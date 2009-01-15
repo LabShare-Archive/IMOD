@@ -20,14 +20,20 @@
 
 #include "mrcslice.h"
 #include "dialog_frame.h"
-class QWidgetStack;
-class QListBox;
+//Added by qt3to4:
+#include <QCloseEvent>
+#include <QTimerEvent>
+#include <QLabel>
+#include <QKeyEvent>
+class QStackedWidget;
+class QListWidget;
 class QVBoxLayout;
 class QLabel;
 class QSpinBox;
 class QPushButton;
 class ToolEdit;
-class FloatSpinBox;
+class QDoubleSpinBox;
+class QListWidgetItem;
 
 typedef struct ViewInfo ImodView;
 
@@ -62,12 +68,12 @@ class IProcWindow : public DialogFrame
   void buttonPressed(int which);
   void autoApplyToggled(bool state);
   void edgeSelected(int which);
-  void filterSelected(int which);
+  void filterSelected(QListWidgetItem *item);
   void filterHighlighted(int which);
   void threshChanged(int which, int value, bool dragging);
   void fourFiltChanged(int which, int value, bool dragging);
   void binningChanged(int val);
-  void kernelChanged(int val);
+  void kernelChanged(double val);
   void scaleSmthToggled(bool state);
   void subsetChanged(bool state);
   void growChanged(bool state);
@@ -87,10 +93,11 @@ class IProcWindow : public DialogFrame
   void timerEvent(QTimerEvent *e);
 
  private:
-  QWidgetStack *mStack;
-  QListBox *mListBox;
+  QStackedWidget *mStack;
+  QListWidget *mListBox;
   void startProcess();
   void finishProcess();
+  void manageListSize();
   int mTimerID;
 #ifdef QT_THREAD_SUPPORT
   QThread *mProcThread;
@@ -118,7 +125,7 @@ typedef struct
   bool          threshShrink;
   int           edge;
   float         kernelSigma;
-  FloatSpinBox  *kernelSpin;
+  QDoubleSpinBox *kernelSpin;
   bool          rescaleSmooth;
   float         radius1;
   float         radius2;
@@ -169,6 +176,9 @@ void iprocCallWhenFree(void (*func)());
 #endif /* BD_IPROC_H_ */
 /*
     $Log$
+    Revision 3.17  2008/05/28 00:10:14  mast
+    Added callback function
+
     Revision 3.16  2008/05/27 05:28:52  mast
     Added autoapply, option for no scaling of smoothing
 

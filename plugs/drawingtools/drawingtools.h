@@ -1,21 +1,24 @@
 #include "dialog_frame.h"
+//Added by qt3to4:
+#include <QKeyEvent>
+#include <QLabel>
+#include <QEvent>
+#include <QCloseEvent>
 class QPushButton;
 class QCheckBox;
 
 class QLabel;
 class QSpinner;
-class QVButtonGroup;
 class QButtonGroup;
 class QRadioButton;
 class QGridLayout;
-class QVBoxLayout;
 class QComboBox;
 class QSpinBox;
 class QGroupBox;
 class QVBoxLayout;
 class QSpacerItem;
 class QEvent;
-class FloatSpinBox;           // class written by David
+class QDoubleSpinBox;
 
 #include "imodplugin.h"
 #include "dia_qtutils.h"
@@ -72,10 +75,10 @@ public slots:
   
   void changeType( int value );
   void changeTypeSelected( int newType );
-  void changeSmoothTol( int value );
+  void changeSmoothTol( double value );
   void setReducePtsOptionAndChangeDisplay(int value);
-  void changeSmoothPtsDist( int value );
-  void changeSmoothTensileFract( int value );
+  void changeSmoothPtsDist( double value );
+  void changeSmoothTensileFract( double value );
   void changeReducePts();
   
   void changeSculptCircleRadius( float value, bool accel=false );
@@ -88,7 +91,7 @@ public slots:
   
  private:
   
-  QVButtonGroup *typeButtonGroup;
+  QButtonGroup *typeButtonGroup;
   QRadioButton *typeRadio_Normal;
   QRadioButton *typeRadio_Sculpt;
   QRadioButton *typeRadio_Join;
@@ -99,12 +102,12 @@ public slots:
   QGridLayout  *gridLayout1;
   QLabel       *lblMinArea;
   QLabel       *lblTol;
-  FloatSpinBox *fSmoothSpinner;
+  QDoubleSpinBox *fSmoothSpinner;
   QCheckBox    *reducePtsCheckbox;
   QLabel       *lblSmoothPtsDist;
-  FloatSpinBox *fSmoothPtsDist;
+  QDoubleSpinBox *fSmoothPtsDist;
   QLabel       *lblSmoothTensileFract;
-  FloatSpinBox *fSmoothTensileFract;
+  QDoubleSpinBox *fSmoothTensileFract;
   
   QGroupBox    *grpActions;
   QVBoxLayout  *vboxLayout1;

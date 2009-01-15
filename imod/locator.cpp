@@ -14,9 +14,14 @@
 #include <qcursor.h>
 #include <qtooltip.h>
 #include <qlabel.h>
-#include <qvbox.h>
-#include <qhbox.h>
+#include <QVBoxLayout>
+#include <QHBoxLayout>
 #include <qpushbutton.h>
+//Added by qt3to4:
+#include <QCloseEvent>
+#include <QTimerEvent>
+#include <QMouseEvent>
+#include <QKeyEvent>
 
 #include "arrowbutton.h"
 #include "dia_qtutils.h"
@@ -50,8 +55,7 @@ int locatorOpen(ImodView *vi)
     return 0;
   }
   LocWin = new LocatorWindow(App->rgba, App->doublebuffer, App->qtEnableDepth,
-                             imodDialogManager.parent(IMOD_IMAGE), 
-                             "locator window");
+                             imodDialogManager.parent(IMOD_IMAGE));
   if (!LocWin) {
     wprint("\aError opening locator window.\n");
     return(-1);
@@ -59,7 +63,7 @@ int locatorOpen(ImodView *vi)
   GLw->mVi = vi;
   if (!App->rgba)
     GLw->setColormap(*(App->qColormap));
-  LocWin->setCaption(imodCaption("3dmod Locator"));
+  LocWin->setWindowTitle(imodCaption("3dmod Locator"));
   LocWin->mCtrl = ivwNewControl(vi, locatorDraw_cb, locatorClose_cb, NULL,
                                 NULL);
   imodDialogManager.add((QWidget *)LocWin, IMOD_IMAGE);
@@ -117,37 +121,43 @@ void locatorScheduleDraw(ImodView *vi)
  * Constructor for the locator class: get the GL window, set up widgets
  */
 LocatorWindow::LocatorWindow(bool rgba, bool doubleBuffer, bool enableDepth, 
-                QWidget * parent, const char * name, WFlags f)
-  : QMainWindow(parent, name, f)
+                QWidget * parent, Qt::WFlags f)
+  : QMainWindow(parent, f)
 {
-  QVBox *central = new QVBox(this, "central");
+  setAttribute(Qt::WA_DeleteOnClose);
+  setAttribute(Qt::WA_AlwaysShowToolTips);
+  QWidget *central = new QWidget(this);
+  QVBoxLayout *cenlay = new QVBoxLayout(central);
+  cenlay->setContentsMargins(0,0,0,0);
   setCentralWidget(central);
-  QHBox *topHBox = new QHBox(central, "topHBox");
+  QHBoxLayout *topHBox = diaHBoxLayout(cenlay);
+  topHBox->setContentsMargins(4,4,4,4);
   topHBox->setSpacing(4);
 
-  ArrowButton *arrow = new ArrowButton(Qt::UpArrow, topHBox, "zoomup button");
+  ArrowButton *arrow = new ArrowButton(Qt::UpArrow, central, "zoomup button");
+  topHBox->addWidget(arrow);
   connect(arrow, SIGNAL(clicked()), this, SLOT(zoomUp()));
-  QToolTip::add(arrow, "Increase window size by 1.5 (hot key =)");
-  arrow = new ArrowButton(Qt::DownArrow, topHBox, "zoom down button");
+  arrow->setToolTip("Increase window size by 1.5 (hot key =)");
+  arrow = new ArrowButton(Qt::DownArrow, central, "zoom down button");
+  topHBox->addWidget(arrow);
   connect(arrow, SIGNAL(clicked()), this, SLOT(zoomDown()));
-  QToolTip::add(arrow, "Decrease window size by 1.5 (hot key -)");
-  mZoomLabel = new QLabel("Zoom 1.00", topHBox);
+  arrow->setToolTip("Decrease window size by 1.5 (hot key -)");
+  mZoomLabel = diaLabel("Zoom 1.00", central, topHBox);
 
   // Help button
-  mHelpButton = new QPushButton("Help", topHBox, "Help button");
-  mHelpButton->setFocusPolicy(QWidget::NoFocus);
+  mHelpButton = diaPushButton("Help", central, topHBox);
   connect(mHelpButton, SIGNAL(clicked()), this, SLOT(help()));
   setFontDependentWidths();
-  QHBox *topSpacer = new QHBox(topHBox);
-  topHBox->setStretchFactor(topSpacer, 1);
+  topHBox->addStretch();
 
   QGLFormat glFormat;
   glFormat.setRgba(rgba);
   glFormat.setDoubleBuffer(doubleBuffer);
   glFormat.setDepth(enableDepth);
   GLw = new LocatorGL(glFormat, central);
-  setFocusPolicy(QWidget::StrongFocus);
-  central->setStretchFactor(GLw, 1);
+  cenlay->addWidget(GLw);
+  setFocusPolicy(Qt::StrongFocus);
+  cenlay->setStretchFactor(GLw, 1);
   adjustSize();
 }
 
@@ -214,8 +224,8 @@ void LocatorWindow::keyPressEvent ( QKeyEvent * event )
 /*
  * Constructor for GL class: just initialize variables
  */
-LocatorGL::LocatorGL(QGLFormat format, QWidget * parent, const char * name)
-  : QGLWidget(format, parent, name)
+LocatorGL::LocatorGL(QGLFormat format, QWidget * parent)
+  : QGLWidget(format, parent)
 {
   mImage = NULL;
   mFirstDraw = true;
@@ -369,12 +379,12 @@ void LocatorGL::mousePressEvent(QMouseEvent * e )
     return;
 
   // Button 1, non-incremental position setting
-  if (e->stateAfter() & ImodPrefs->actualButton(1)) {
+  if (e->buttons() & ImodPrefs->actualButton(1)) {
     getImxy(e->x(), e->y(), imx, imy);
     zapSetImageOrBandCenter(imx, imy, false);
 
     // Button 2: start a shifting from current position, set to move cursor
-  } else if (e->stateAfter() & ImodPrefs->actualButton(2)) {
+  } else if (e->buttons() & ImodPrefs->actualButton(2)) {
     setCursor(QCursor(Qt::SizeAllCursor));
     mCursorSet = 1;
     mMouseX = e->x();
@@ -398,7 +408,7 @@ void LocatorGL::mouseReleaseEvent ( QMouseEvent * e )
 void LocatorGL::mouseMoveEvent ( QMouseEvent * e )
 {
   float imx, imy;
-  if (!(mCursorSet && (e->state() & ImodPrefs->actualButton(2))))
+  if (!(mCursorSet && (e->buttons() & ImodPrefs->actualButton(2))))
     return;
   imx = (float)((e->x() - mMouseX) / mZoom);
   imy = (float)((mMouseY - e->y()) / mZoom);
@@ -409,6 +419,9 @@ void LocatorGL::mouseMoveEvent ( QMouseEvent * e )
 
 /*
 $Log$
+Revision 1.5  2008/08/19 20:01:40  mast
+Made it zoom with + as well as =
+
 Revision 1.4  2008/07/12 03:02:02  mast
 Fixed zoom resize bug
 

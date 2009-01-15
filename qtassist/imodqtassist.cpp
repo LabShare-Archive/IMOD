@@ -26,6 +26,7 @@
 #endif
 #include <qstring.h>
 #include <qapplication.h>
+#include <QTimerEvent>
 #include "imod_assistant.h"
 #include "imodqtassist.h"
 
@@ -117,7 +118,7 @@ int main(int argc, char *argv[])
   delete imodHelp;
 
 #ifdef QT_THREAD_SUPPORT
-  if (assThread->running())
+  if (assThread->isRunning())
     assThread->terminate();
 #endif
   return retval;
@@ -125,7 +126,8 @@ int main(int argc, char *argv[])
 
 void AssistantListener::assistantError(const QString &msg)
 {
-  fprintf(stderr, "WARNING: Qt Assistant generated error: %s\n", msg.latin1());
+  fprintf(stderr, "WARNING: Qt Assistant generated error: %s\n", 
+          (const char *)msg.toLatin1());
   fflush(stderr);
   //QApplication::exit(1);
 }
@@ -249,6 +251,9 @@ static int readLine(char *line)
 
 /*
     $Log$
+    Revision 1.11  2006/06/20 23:39:27  mast
+    Make page not found be a warning
+
     Revision 1.10  2006/06/20 22:07:53  mast
     Do not exit on error, add WARNING: prefix to message
 

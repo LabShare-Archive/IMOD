@@ -24,6 +24,10 @@ Log at end of file
 #include <qlabel.h>
 #include <qlayout.h>
 #include <qtooltip.h>
+//Added by qt3to4:
+#include <QCloseEvent>
+#include <QGridLayout>
+#include <QKeyEvent>
 #include "dia_qtutils.h"
 #include "tooledit.h"
 
@@ -73,7 +77,7 @@ void imodModelEditUpdate()
 
 
 /* DNM 12/21/02: interpret the pixel size from string and set into model */
-void setPixsizeAndUnits(Imod *imod, char *string)
+void setPixsizeAndUnits(Imod *imod, const char *string)
 {
   float fscale = 0.;
   
@@ -150,17 +154,18 @@ ModelHeaderWindow::ModelHeaderWindow(QWidget *parent, const char *name)
 
   mDrawBox = diaCheckBox("Draw model", this, mLayout);
   connect(mDrawBox, SIGNAL(toggled(bool)), this, SLOT(drawToggled(bool)));
-  QToolTip::add(mDrawBox, "Turn display of entire model on or off");
+  mDrawBox->setToolTip("Turn display of entire model on or off");
 
   mSetIncBox = diaCheckBox("Set incremental Z-scale", this, mLayout);
   connect(mSetIncBox, SIGNAL(toggled(bool)), this, SLOT(setIncToggled(bool)));
-  QToolTip::add(mSetIncBox, "Enter ratio of section thickness to Z pixel "
+  mSetIncBox->setToolTip("Enter ratio of section thickness to Z pixel "
                 "size instead of total Z-scale");
 
   str.sprintf("Z/X pixel size ratio = %.3f", mPixRatio);
   label = new QLabel(str, this);
   mLayout->addWidget(label);
-  QGridLayout *grid = new QGridLayout(mLayout, 4, 2);
+  QGridLayout *grid = new QGridLayout();
+  mLayout->addLayout(grid);
 
   for (int i = 0; i < 4; i++) {
     str = boxLabels[i];
@@ -170,11 +175,11 @@ ModelHeaderWindow::ModelHeaderWindow(QWidget *parent, const char *name)
     grid->addWidget(mEditBox[i], i, 1);
     connect(mEditBox[i], SIGNAL(returnPressed()), this, SLOT(valueEntered()));
     connect(mEditBox[i], SIGNAL(focusLost()), this, SLOT(valueEntered()));
-    QToolTip::add(mEditBox[i], boxTips[i]);
+    mEditBox[i]->setToolTip(boxTips[i]);
   }
 
   connect(this, SIGNAL(actionClicked(int)), this, SLOT(buttonPressed(int)));
-  setCaption(imodCaption("3dmod Model Header"));
+  setWindowTitle(imodCaption("3dmod Model Header"));
   mEditBox[0]->setEnabled(false);
 
   update();
@@ -206,10 +211,9 @@ void ModelHeaderWindow::valueEntered()
   else
     HeaderDialog.vw->imod->zscale = mEditBox[1]->text().toFloat();
 
-  HeaderDialog.vw->imod->res = atoi(mEditBox[2]->text().latin1());
+  HeaderDialog.vw->imod->res = atoi(LATIN1(mEditBox[2]->text()));
 
-  setPixsizeAndUnits(HeaderDialog.vw->imod, 
-                     (char *)mEditBox[3]->text().latin1());
+  setPixsizeAndUnits(HeaderDialog.vw->imod, LATIN1(mEditBox[3]->text()));
 
   update();
   imodvPixelChanged();
@@ -380,7 +384,8 @@ ModelOffsetWindow::ModelOffsetWindow(QWidget *parent, const char *name)
   QLabel *label;
 
   diaLabel("Total offsets to be applied:", this, mLayout);
-  QGridLayout *grid = new QGridLayout(mLayout, 3, 3);
+  QGridLayout *grid = new QGridLayout();
+  mLayout->addLayout(grid);
 
   for (int i = 0; i < 3; i++) {
     str = xyz[i];
@@ -390,7 +395,7 @@ ModelOffsetWindow::ModelOffsetWindow(QWidget *parent, const char *name)
     grid->addWidget(mEditBox[i], i, 1);
     //   mEditBox[i]->setFocusPolicy(ClickFocus);
     connect(mEditBox[i], SIGNAL(returnPressed()), this, SLOT(valueEntered()));
-    QToolTip::add(mEditBox[i], "Enter offset to apply in " + str);
+    mEditBox[i]->setToolTip("Enter offset to apply in " + str);
     mBaseLabel[i] = new QLabel(" ", this);
     grid->addWidget(mBaseLabel[i], i, 2);
   }
@@ -400,7 +405,7 @@ ModelOffsetWindow::ModelOffsetWindow(QWidget *parent, const char *name)
   updateLabels();
 
   connect(this, SIGNAL(actionPressed(int)), this, SLOT(buttonPressed(int)));
-  setCaption(imodCaption("3dmod Model Offset"));
+  setWindowTitle(imodCaption("3dmod Model Offset"));
   show();
 }
 
@@ -502,6 +507,9 @@ void ModelOffsetWindow::keyReleaseEvent ( QKeyEvent * e )
 
 /*
 $Log$
+Revision 4.12  2006/01/14 18:14:16  mast
+Added incremental Z scale
+
 Revision 4.11  2005/06/26 19:39:21  mast
 cleanup
 

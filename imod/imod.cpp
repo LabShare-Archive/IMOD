@@ -121,7 +121,7 @@ void imod_usage(char *name)
   qstr += "         -cm <file name>  Load custom false color table.\n";
   qstr += "         -E <keys>  Open windows specified by key letters.\n";
   qstr += "         -h    Print this help message.\n";
-  imodPrintInfo(qstr.latin1());
+  imodPrintInfo(LATIN1(qstr));
   return;
 }
 
@@ -247,15 +247,15 @@ int main( int argc, char *argv[])
   ImodHelp = new ImodAssistant("html/3dmodHelp", "3dmod.adp", "3dmod");
 
   // Set up the application icon for windows to use
-  App->iconPixmap = new QPixmap(QImage(b3dicon));
+  App->iconPixmap = new QPixmap(QPixmap::fromImage(QImage(b3dicon)));
 
   /* if no input files, open startup window */
   i = strlen(argv[0]);
   if (argv[0][i-1] == 'v')
     doImodv = 1;
   if (argc < 2 || (doStartup && doImodv)) {
-    startup = new StartupForm(NULL, "startup dialog", true);
-    startup->setIcon(*(App->iconPixmap));
+    startup = new StartupForm(NULL, true, Qt::Window);
+    startup->setWindowIcon(*(App->iconPixmap));
     if (doImodv) 
       startup->setValues(&vi, argv, firstfile, argc, doImodv, plistfname, 
                          anglefname, xyzwinopen, sliceropen, zapOpen,
@@ -329,7 +329,7 @@ int main( int argc, char *argv[])
           if (argv[i][2] == 'm') {
             if (xcramp_readfalsemap(argv[++i])) {
               qname = b3dGetError();
-              imodError(NULL, qname.latin1());
+              imodError(NULL, LATIN1(qname));
             }
           }
           break;
@@ -508,8 +508,8 @@ int main( int argc, char *argv[])
     /* First time through when doing startup, open startup and give it 
        options */
     if (!argScan && doStartup) {
-      startup = new StartupForm(NULL, "startup dialog", true);
-      startup->setIcon(*(App->iconPixmap));
+      startup = new StartupForm(NULL, true, Qt::Window);
+      startup->setWindowIcon(*(App->iconPixmap));
       startup->setValues(&vi, argv, firstfile, argc, doImodv, plistfname,
                          anglefname, xyzwinopen, sliceropen, zapOpen,
                          modelViewOpen, fillCache, ImodTrans, vi.li->mirrorFFT,
@@ -551,8 +551,8 @@ int main( int argc, char *argv[])
 
   /* Try to open the last file if there is one */
   if (firstfile) {
-    mfin = fopen((QDir::convertSeparators(QString(argv[argc - 1]))).latin1(), 
-      "rb");
+    mfin = fopen(LATIN1(QDir::convertSeparators(QString(argv[argc - 1]))),
+                 "rb");
     if (mfin == NULL) {
       
       /* Fail to open, and it is the only filename, then exit */
@@ -627,18 +627,18 @@ int main( int argc, char *argv[])
     if (!firstfile) {
       imodVersion(NULL);
       imodCopyright();    
-      qname = QFileDialog::getOpenFileName(QString::null, QString::null, 0, 0, 
-                                          "3dmod: Select Image file to load:");
+      qname = QFileDialog::getOpenFileName
+        (NULL, "3dmod: Select Image file to load:");
       if (qname.isEmpty()) {
         imodError(NULL, "3DMOD: file not selected\n");
         exit(3);
       }
-      Imod_imagefile = strdup(qname.latin1());
+      Imod_imagefile = strdup(LATIN1(qname));
       
     } else {
       /* Or, just set the image file name */
-      Imod_imagefile = strdup((curdir->cleanDirPath(QString(argv[firstfile])))
-                              .latin1());
+      Imod_imagefile = strdup
+        (LATIN1(curdir->cleanPath(QString(argv[firstfile]))));
     }
     
     if (Imod_debug){
@@ -646,7 +646,7 @@ int main( int argc, char *argv[])
     }
    
     vi.fp = fin = fopen
-      ((QDir::convertSeparators(QString(Imod_imagefile))).latin1(), "r");
+      (LATIN1(QDir::convertSeparators(QString(Imod_imagefile))), "r");
     if (fin == NULL){
       imodError(NULL, "Couldn't open input file %s.\n", Imod_imagefile);
       exit(10);
@@ -671,17 +671,17 @@ int main( int argc, char *argv[])
 
       /* take directory path to IFD file as new current directory for reading
          images */
-      Imod_cwdpath = QDir::currentDirPath();
+      Imod_cwdpath = QDir::currentPath();
 
       Imod_IFDpath = QString(Imod_imagefile);
-      pathlen = Imod_IFDpath.findRev('/');
+      pathlen = Imod_IFDpath.lastIndexOf('/');
       if (pathlen < 0)
         Imod_IFDpath = "";
       else {
         Imod_IFDpath.truncate(pathlen + 1);
         QDir::setCurrent(Imod_IFDpath);
         if (Imod_debug)
-          imodPrintStderr("chdir %s\n", Imod_IFDpath.latin1());
+          imodPrintStderr("chdir %s\n", LATIN1(Imod_IFDpath));
       }
 
       /* Load list of images and reset current directory */
@@ -733,7 +733,7 @@ int main( int argc, char *argv[])
 
   /* set the model filename, or get a new model with null name */
   if (Model) {
-    setImod_filename((curdir->cleanDirPath(QString(argv[argc - 1]))).latin1());
+    setImod_filename(LATIN1(curdir->cleanPath(QString(argv[argc - 1]))));
   } else {
     Model = imodNew();
     Imod_filename[0] = 0x00;
@@ -796,8 +796,8 @@ int main( int argc, char *argv[])
     qname = b3dGetError();
     qname += "3dmod: Fatal Error -- while reading image data.\n";
     if (errno) 
-      qname += QString("System error: ") + strerror(errno);
-    imodError(NULL, qname.latin1());
+      qname += QString("System error: ") + QString(QString(strerror(errno)));
+    imodError(NULL, LATIN1(qname));
     exit(3);
   }
 
@@ -963,6 +963,9 @@ bool imodDebug(char key)
 /*
 
 $Log$
+Revision 4.69  2008/12/04 06:50:58  mast
+Turn model on when loading
+
 Revision 4.68  2008/12/01 15:42:01  mast
 Changes for undo/redo and selection in 3dmodv standalone
 

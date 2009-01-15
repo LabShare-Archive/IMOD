@@ -1705,8 +1705,8 @@ int ivwLoadIMODifd(ImodView *vi)
     if (!strncmp("IMGDIR", line, 6)){
       if (imgdir) 
         free(imgdir);
-      imgdir = strdup((curdir->cleanDirPath(QString(&line[7]).
-                                            stripWhiteSpace())).latin1());
+      imgdir = strdup(LATIN1(curdir->cleanPath(QString(&line[7]).
+                                                  trimmed())));
       continue;
     }
 
@@ -1752,16 +1752,15 @@ int ivwLoadIMODifd(ImodView *vi)
         filename = (char *)malloc(pathlen + 4);
         strcpy(filename, imgdir);
         strcat(filename, "/");
-        strcat(filename, (curdir->cleanDirPath(QString(&line[6]).
-                                               stripWhiteSpace())).latin1());
+        strcat(filename, LATIN1(curdir->cleanPath(QString(&line[6]).
+                                                  trimmed())));
       }else{
-        filename = strdup((curdir->cleanDirPath(QString(&line[6]).
-                                                stripWhiteSpace())).latin1());
+        filename = strdup(LATIN1(curdir->cleanPath(QString(&line[6]).
+                                                   trimmed())));
       }
 
       errno = 0;
-      image = iiOpen((char *)
-        (QDir::convertSeparators(QString(filename))).latin1(), "rb");
+      image = iiOpen(LATIN1(QDir::convertSeparators(QString(filename))), "rb");
       if (!image){
         if (!xsize || !ysize) {
           imodError(NULL, "3DMOD Error: " 
@@ -1779,7 +1778,7 @@ int ivwLoadIMODifd(ImodView *vi)
         image->ny = ysize;
         image->nz = zsize;
         image->filename = strdup
-                   ((QDir::convertSeparators(QString(filename))).latin1());
+          (LATIN1(QDir::convertSeparators(QString(filename))));
       }
 
       /* DNM: set up scaling for this image, leave last file in hdr/image */
@@ -1844,15 +1843,14 @@ void ivwMultipleFiles(ImodView *vi, char *argv[], int firstfile, int lastimage)
 
   for (i = firstfile; i <= lastimage; i++) {
     if (argv[i][0]) {
-      convarg = strdup((curdir->cleanDirPath(QString(argv[i]))).latin1());
-      image = iiOpen
-        ((char *)(QDir::convertSeparators(QString(convarg))).latin1(), "rb");
+      convarg = strdup(LATIN1(curdir->cleanPath(QString(argv[i]))));
+      image = iiOpen(LATIN1(QDir::convertSeparators(QString(convarg))), "rb");
     } else
       image = iiOpen(argv[i], "rb");
     if (!image){
       str.sprintf("3DMOD Error: couldn't open image file %s.\n", argv[i]);
       str = QString(b3dGetError()) + str;
-      imodError(NULL, str.latin1());
+      imodError(NULL, LATIN1(str));
       exit(3);
     }
 
@@ -2795,6 +2793,9 @@ void ivwBinByN(unsigned char *array, int nxin, int nyin, int nbin,
 /*
 
 $Log$
+Revision 4.77  2008/12/07 05:21:27  mast
+Set xyzmouse position with floating point if given an Ipoint
+
 Revision 4.76  2008/12/03 04:32:57  mast
 Made it detect 3D FFT and not mirror it
 

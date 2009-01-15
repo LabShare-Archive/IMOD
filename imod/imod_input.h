@@ -1,3 +1,5 @@
+//Added by qt3to4:
+#include <QKeyEvent>
 /* imod_input.h - declarations for imod_input.cpp  
  *
  *   Copyright (C) 1995-2006 by Boulder Laboratory for 3-Dimensional Electron
@@ -70,6 +72,9 @@ int mouse_in_box(int llx, int lly, int urx, int  ury, int mousex, int mousey);
 #endif /* imod_input.h */
 /*
   $Log$
+  Revision 3.13  2008/12/01 15:37:42  mast
+  Change in current point restoring function
+
   Revision 3.12  2007/07/19 22:29:19  mast
   Added hot keys for jumping to set limits in time
 

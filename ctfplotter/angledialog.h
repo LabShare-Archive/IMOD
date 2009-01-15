@@ -1,18 +1,18 @@
 #ifndef ANGLEDIALOG_H
 #define ANGLEDIALOG_H
 
-#include<qdialog.h>
+#include<QDialog>
 class QLabel;
 class QLineEdit;
 class QPushButton;
-class QButtonGroup;
+class QGroupBox;
 class QRadioButton;
 
 class AngleDialog :public QDialog
 {
   Q_OBJECT
   public:
-    AngleDialog(QWidget *parent=0, const char *name=0);
+    AngleDialog(QWidget *parent=0);
     QLineEdit *defocusEdit;
     QLineEdit *lowAngleEdit;
     QLineEdit *highAngleEdit;
@@ -43,10 +43,10 @@ private slots:
     QLabel *rightTolLabel;
     QLabel *tileSizeLabel;
     QLabel *axisAngleLabel;
-    QButtonGroup *ifAllGroup;
+    QGroupBox *ifAllGroup;
     QRadioButton *allAtOnceRadio;
     QRadioButton *onlyCenterRadio;
-    QButtonGroup *defocusGroup;
+    QGroupBox *defocusGroup;
     QRadioButton *currDefocusRadio;
     QRadioButton *expDefocusRadio;
    

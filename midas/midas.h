@@ -17,8 +17,9 @@
 class MidasWindow;
 class MidasSlots;
 class MidasGL;
-class FloatSpinBox;
-
+class QDoubleSpinBox;
+#include <QKeyEvent>
+#include <QCloseEvent>
 #include <qlabel.h>
 #include <qstring.h>
 #include <qpushbutton.h>
@@ -26,11 +27,12 @@ class FloatSpinBox;
 #include <qslider.h>
 #include <qcheckbox.h>
 #include <qbuttongroup.h>
+#include <qgroupbox.h>
 #include <qmainwindow.h>
 #include <qapplication.h>
 #include <qsignalmapper.h>
-#include <qhbox.h>
-#include <qvbox.h>
+#include <QHBoxLayout>
+#include <QVBoxLayout>
 #include <qspinbox.h>
 
 #include "imodconfig.h"
@@ -69,6 +71,8 @@ class FloatSpinBox;
 #define MAX_ZOOMIND        13
 #define MAX_INCREMENTS      6
 
+#define LATIN1(a) ((const char *)a.toLatin1())
+
 enum MenuIDs {
   FILE_MENU_LOAD,
   FILE_MENU_SAVE,
@@ -84,7 +88,8 @@ enum MenuIDs {
   HELP_MENU_CONTROLS,
   HELP_MENU_HOTKEYS,
   HELP_MENU_MOUSE,
-  HELP_MENU_MANPAGE
+  HELP_MENU_MANPAGE,
+  LAST_MENU_ID
 };
 
 class MidasWindow : public QMainWindow
@@ -92,8 +97,8 @@ class MidasWindow : public QMainWindow
   Q_OBJECT
 
 public:
-  MidasWindow(bool doubleBuffer, QWidget * parent = 0, const char * name = 0, 
-	      WFlags f = WType_TopLevel) ;
+  MidasWindow(bool doubleBuffer, QWidget * parent = 0,
+              Qt::WFlags f = Qt::Window);
   ~MidasWindow();
 
  protected:
@@ -104,20 +109,20 @@ public:
 public slots:
 
  private:
- void makeSeparator(QVBox *parent, int width);
- void makeTwoArrows(QHBox *parent, int direction, int signal,
+ void makeSeparator(QVBoxLayout *parent, int width);
+ void makeTwoArrows(QHBoxLayout *parent, int direction, int signal,
                     QSignalMapper *mapper, bool repeat);
- QSignalMapper *makeLabeledArrows(QVBox *parent, QString textlabel, 
-				  QLabel **outLabel, bool repeat);
- QLabel *makeArrowRow(QVBox *parent, int direction, int signal, 
-		      QSignalMapper *mapper, bool repeat, QString textlabel, 
-		      int decimals, int digits, float value);
- QSpinBox *makeSpinBoxRow(QHBox *row, char *labText, int minz, int maxz);
- void createParameterDisplay(QVBox *parent);
- void createSectionControls(QVBox *parent);
- void createZoomBlock(QVBox *parent);
- void createViewToggle(QVBox *parent);
- void createContrastControls(QVBox *parent);
+ QSignalMapper *makeLabeledArrows(QVBoxLayout *parent, QString textlabel, 
+                                  QLabel **outLabel, bool repeat);
+ QLabel *makeArrowRow(QVBoxLayout *parent, int direction, int signal, 
+                      QSignalMapper *mapper, bool repeat, QString textlabel, 
+                      int decimals, int digits, float value);
+ QSpinBox *makeSpinBoxRow(QHBoxLayout *row, char *labText, int minz, int maxz);
+ void createParameterDisplay(QVBoxLayout *parent);
+ void createSectionControls(QVBoxLayout *parent);
+ void createZoomBlock(QVBoxLayout *parent);
+ void createViewToggle(QVBoxLayout *parent);
+ void createContrastControls(QVBoxLayout *parent);
 
 
 };
@@ -303,8 +308,8 @@ typedef struct Midas_view
   QSlider  *anglescale;
   QLabel   *anglelabel;
   QLabel   *mouseLabel[3];
-  FloatSpinBox *globRotSpin;
-  FloatSpinBox *tiltOffSpin;
+  QDoubleSpinBox *globRotSpin;
+  QDoubleSpinBox *tiltOffSpin;
   int      mouseXonly;    /* Flag to constrain mouse to X moves only */
   int      ctrlPressed;
   int      shiftPressed;
@@ -319,7 +324,7 @@ extern int Midas_debug;
 
 /****************************************************************************/
 /* midas.cpp function prototypes.                                           */
-void midas_error(char *tmsg, char *bmsg, int retval);
+void midas_error(const char *tmsg, const char *bmsg, int retval);
 
 /****************************************************************************/
 
@@ -362,7 +367,7 @@ void rotate_all_transforms(MidasView *vw, double angle);
 void stretch_transform(MidasView *vw, float *mat, int index, 
                        int destretch);
 void stretch_all_transforms(MidasView *vw, int destretch);
-void transform_model(char *infname, char *outfname, MidasView *vw);
+void transform_model(const char *infname, const char *outfname, MidasView *vw);
 int nearest_edge(MidasView *vw, int z, int xory, int edgeno, 
 		 int direction, int *edgeind);
 int nearest_section(MidasView *vw, int sect, int direction);
@@ -379,10 +384,14 @@ void amat_to_rotmagstr(float *amat, float *theta, float *smag, float *str,
 int gaussj(float *a, int n, int np, float *b, int m, int mp);
 #endif  // MIDAS_H
 
-/*  $Log$
-/*  Revision 3.14  2007/10/03 21:36:10  mast
-/*  Added ImodAssistant help object
 /*
+
+$Log$
+Revision 3.15  2008/10/13 04:36:23  mast
+Added cosine stretching
+
+Revision 3.14  2007/10/03 21:36:10  mast
+Added ImodAssistant help object
 
 Revision 3.13  2006/07/08 15:32:13  mast
 Changes to implement second fixed point for stretching

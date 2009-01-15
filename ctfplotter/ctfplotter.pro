@@ -1,5 +1,5 @@
 TEMPLATE = app
-CONFIG += qt
+CONFIG += qt assistant
 CONFIG       += exceptions
 HEADERS       += defocusfinder.h linearfitting.h simplexfitting.h myapp.h plotter.h \
                  rangedialog.h angledialog.h imod_assistant.h slicecache.h ctfmain.h
@@ -13,15 +13,19 @@ SOURCES       = main.cpp \
                 defocusfinder.cpp \
                 slicecache.cpp \
                 imod_assistant.cpp
-IMAGES        = images/zoomin.png  \
-                images/zoomout.png \
-                images/printer.png \
-                images/moreTile.png \
-                images/range.png \
-                images/angle.png \
-                images/save.png \
-                images/ctfhelp.png 
 
+RESOURCES    =plotter.qrc
+                
 include (qconfigure)
 
 INSTALLS += target
+
+iacpptarget.target = imod_assistant.cpp
+iacpptarget.depends = ../imod/imod_assistant.cpp
+iacpptarget.commands = \cp ../imod/imod_assistant.cpp .
+
+iahtarget.target = imod_assistant.h
+iahtarget.depends = ../imod/imod_assistant.h
+iahtarget.commands = \cp ../imod/imod_assistant.h .
+
+QMAKE_EXTRA_UNIX_TARGETS += iacpptarget iahtarget

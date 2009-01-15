@@ -1,3 +1,9 @@
+//Added by qt3to4:
+#include <QCloseEvent>
+#include <QTimerEvent>
+#include <QLabel>
+#include <QMouseEvent>
+#include <QKeyEvent>
 /*   slicer_classes.h  -  declarations for slicer_classes.cpp
  *
  *   Copyright (C) 1995-2003 by Boulder Laboratory for 3-Dimensional Electron
@@ -35,7 +41,7 @@ class QCheckBox;
 typedef struct Super_slicer SlicerStruct;
 class SlicerGL;
 class SlicerCube;
-class FloatSpinBox;
+class QDoubleSpinBox;
 class HotToolBar;
 
 class SlicerWindow : public QMainWindow
@@ -45,14 +51,14 @@ class SlicerWindow : public QMainWindow
  public:
   SlicerWindow(SlicerStruct *slicer, float maxAngles[], QString timeLabel,
                bool rgba, bool doubleBuffer, bool enableDepth, 
-               QWidget * parent = 0, const char * name = 0, 
-               WFlags f = WType_TopLevel | WDestructiveClose) ;
+               QWidget * parent = 0, Qt::WFlags f = Qt::Window) ;
   ~SlicerWindow() {};
   void setToggleState(int index, int state);
   void setZoomText(float zoom);
   void setModelThickness(float depth);
   void setImageThickness(int depth);
   void setAngles(float *angles);
+  void showSaveAngleToolbar();
 
   SlicerGL *mGLw;
   SlicerCube *mCube;
@@ -74,7 +80,7 @@ class SlicerWindow : public QMainWindow
   void angleChanged(int which, int value, bool dragging);
   void toggleClicked(int index);
   void imageThicknessChanged(int depth);
-  void modelThicknessChanged(int depth);
+  void modelThicknessChanged(double depth);
   void showslicePressed();
   void contourPressed();
   void setTimeLabel(QString label);
@@ -96,19 +102,18 @@ class SlicerWindow : public QMainWindow
   void fontChange( const QFont & oldFont ) {setFontDependentWidths();};
   
  private:
-  void setupToggleButton(HotToolBar *toolBar, QSignalMapper *mapper, 
-			 int index);
   void setFontDependentWidths();
   
   QToolButton *mToggleButs[MAX_SLICER_TOGGLES];
   int mToggleStates[MAX_SLICER_TOGGLES];
   ToolEdit *mZoomEdit;
   QSpinBox *mImageBox;
-  FloatSpinBox *mModelBox;
+  QDoubleSpinBox *mModelBox;
   MultiSlider *mSliders;
   QComboBox *mZscaleCombo;
   QLabel *mTimeLabel;
   QPushButton *mHelpButton;
+  int mBreakBeforeAngBar;
 };
 
 class SlicerGL : public QGLWidget
@@ -116,8 +121,7 @@ class SlicerGL : public QGLWidget
   Q_OBJECT
 
  public:
-  SlicerGL(SlicerStruct *slicer, QGLFormat format, QWidget * parent = 0,
-        const char * name = 0);
+  SlicerGL(SlicerStruct *slicer, QGLFormat format, QWidget * parent = 0);
   ~SlicerGL() {};
  
 protected:
@@ -143,8 +147,7 @@ class SlicerCube : public QGLWidget
   Q_OBJECT
 
  public:
-  SlicerCube(SlicerStruct *slicer, QGLFormat format, 
-	     QWidget * parent = 0, const char * name = 0);
+  SlicerCube(SlicerStruct *slicer, QGLFormat format, QWidget * parent = 0);
   ~SlicerCube() {};
  
 protected:
@@ -179,6 +182,9 @@ void fillImageArray(SlicerStruct *ss, int panning, int meanOnly);
 
 /*
 $Log$
+Revision 4.12  2008/11/29 22:10:30  mast
+Added ability to link slicers
+
 Revision 4.11  2007/06/15 21:19:54  mast
 Added shift lock toolbar botton
 

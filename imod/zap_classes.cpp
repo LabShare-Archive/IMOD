@@ -15,11 +15,19 @@
 #include <qtoolbutton.h>
 #include <qlabel.h>
 #include <qbitmap.h>
+//Added by qt3to4:
+#include <QTimerEvent>
+#include <QKeyEvent>
+#include <QMouseEvent>
+#include <QEvent>
+#include <QWheelEvent>
+#include <QCloseEvent>
 #include <hottoolbar.h>
 #include <qtooltip.h>
 #include <qsignalmapper.h>
 #include <qpushbutton.h>
 #include <qlayout.h>
+#include <qaction.h>
 #include <qslider.h>
 #include <qcheckbox.h>
 #include <qspinbox.h>
@@ -34,7 +42,6 @@
 
 #define BM_WIDTH 16
 #define BM_HEIGHT 16
-#define AUTO_RAISE true
 #define MIN_SLIDER_WIDTH 20
 #define MAX_SLIDER_WIDTH 100
 
@@ -68,16 +75,27 @@ static unsigned char *bitList[NUM_TOOLBUTTONS][2] =
     {rubberband_bits, rubberband2_bits},
     {time_unlock_bits, time_lock_bits}};
 
-static QBitmap *bitmaps[NUM_TOOLBUTTONS][2];
+static int skipInPanels[NUM_TOOLBUTTONS] = {0, 0, 0, 1, 1, 0};
+
+static QIcon *icons[NUM_TOOLBUTTONS];
 static int firstTime = 1;
+static char *toggleTips[] = {
+  "Toggle between regular and high-resolution (interpolated) image",
+  "Lock window at current section unless section is changed in this window",
+  "Toggle between centering when model point nears edge and keeping model"
+  " point centered",
+  "Toggle between inserting points after or before current point",
+  "Toggle rubberband on or off (resize with first mouse, move with second)",
+  "Lock window at current time unless time is changed in this window"};
+
 
 ZapWindow::ZapWindow(struct zapwin *zap, QString timeLabel, bool panels,
                      bool rgba, bool doubleBuffer, bool enableDepth, 
-                     QWidget * parent, const char * name, WFlags f) 
-  : QMainWindow(parent, name, f)
+                     QWidget * parent, const char * name, Qt::WFlags f) 
+  : QMainWindow(parent, f)
 {
   int j;
-  ArrowButton *arrow;
+  ArrowButton *upArrow, *downArrow;
   QCheckBox *button;
 
   mZap = zap;
@@ -86,73 +104,69 @@ ZapWindow::ZapWindow(struct zapwin *zap, QString timeLabel, bool panels,
   mToolBar2 = NULL;
   mPanelBar = NULL;
   mSizeLabel = NULL;
+  mSizeAction = NULL;
   mAngleLabel = NULL;
+  mAngleAction = NULL;
   mInfoButton = NULL;
   mSizeAngleState = -1;
+  setAttribute(Qt::WA_DeleteOnClose);
+  setAttribute(Qt::WA_AlwaysShowToolTips);
+  setAnimated(false);
+  if (firstTime) 
+    utilBitListsToIcons(bitList, icons, NUM_TOOLBUTTONS);
+  firstTime = 0;
 
   // Get the toolbar, add zoom arrows
-  mToolBar = new HotToolBar(this, "zap toolbar");
-  if (!AUTO_RAISE)
-    mToolBar->boxLayout()->setSpacing(4);
+  mToolBar = new HotToolBar(this);
+  if (!TB_AUTO_RAISE)
+    mToolBar->layout()->setSpacing(4);
   connect(mToolBar, SIGNAL(keyPress(QKeyEvent *)), this,
 	  SLOT(toolKeyPress(QKeyEvent *)));
   connect(mToolBar, SIGNAL(keyRelease(QKeyEvent *)), this,
 	  SLOT(toolKeyRelease(QKeyEvent *)));
 
-  arrow = new ArrowButton(Qt::UpArrow, mToolBar, "zoomup button");
-  arrow->setAutoRaise(AUTO_RAISE);
-  connect(arrow, SIGNAL(clicked()), this, SLOT(zoomUp()));
-  QToolTip::add(arrow, "Increase zoom factor");
-  arrow = new ArrowButton(Qt::DownArrow, mToolBar, "zoom down button");
-  arrow->setAutoRaise(AUTO_RAISE);
-  connect(arrow, SIGNAL(clicked()), this, SLOT(zoomDown()));
-  QToolTip::add(arrow, "Decrease zoom factor");
+  mZoomEdit = utilTBZoomTools(this, mToolBar, &upArrow, &downArrow);
+  connect(upArrow, SIGNAL(clicked()), this, SLOT(zoomUp()));
+  connect(downArrow, SIGNAL(clicked()), this, SLOT(zoomDown()));
+  connect(mZoomEdit, SIGNAL(editingFinished()), this, SLOT(newZoom()));
 
-  mZoomEdit = new ToolEdit(mToolBar, 6, "zoom edit box");
-  mZoomEdit->setFocusPolicy(QWidget::ClickFocus);
-  mZoomEdit->setAlignment(Qt::AlignRight);
-  connect(mZoomEdit, SIGNAL(returnPressed()), this, SLOT(newZoom()));
-  connect(mZoomEdit, SIGNAL(focusLost()), this, SLOT(newZoom()));
-  QToolTip::add(mZoomEdit, "Enter an arbitrary zoom factor");
+  if (!panels) {
+    mSizeLabel = new QLabel(" 0000x0000", this);
+    mSizeAction = mToolBar->addWidget(mSizeLabel);
+  }
 
-  if (!panels)
-    mSizeLabel = new QLabel(mToolBar, " 0000x0000");
-
-// Make the 4 toggle buttons and their signal mapper
+// Make the toggle buttons and their signal mapper
   QSignalMapper *toggleMapper = new QSignalMapper(mToolBar);
   connect(toggleMapper, SIGNAL(mapped(int)), this, SLOT(toggleClicked(int)));
   for (j = 0; j < NUM_TOOLBUTTONS - NUM_TIMEBUTTONS; j++)
-    setupToggleButton(mToolBar, toggleMapper, j);
+    if (!panels || !skipInPanels[j]) {
+      mToggleActs[j] = utilSetupToggleButton(mToolBar, mToolBar, NULL,
+                                             toggleMapper, icons, toggleTips,
+                                             mToggleButs, mToggleStates, j);
+      connect(mToggleButs[j], SIGNAL(clicked()), toggleMapper, SLOT(map()));
+    }
   
   // Selecting sections
-  // Low section
-  mLowSectionButton = new QPushButton("Lo", mToolBar, "low section button");
-  mLowSectionButton->setFocusPolicy(QWidget::NoFocus);
+  mLowButtonAction = utilTBPushButton
+    ("Lo", this,  mToolBar, &mLowSectionButton, "Set low section of range");
   connect(mLowSectionButton, SIGNAL(clicked()), this, SLOT(setLowSection()));
-  QToolTip::add(mLowSectionButton, "Low section");
-  // Low section edit box
-  mLowSectionEdit = new ToolEdit(mToolBar, 4, "low section edit box");
-  mLowSectionEdit->setFocusPolicy(QWidget::ClickFocus);
-  mLowSectionEdit->setAlignment(Qt::AlignRight);
-  QToolTip::add(mLowSectionEdit, "Enter low section");
-  // High section
-  mHighSectionButton = new QPushButton("Hi", mToolBar, "high section button");
-  mHighSectionButton->setFocusPolicy(QWidget::NoFocus);
+  mLowEditAction = utilTBToolEdit(4, this,  mToolBar, &mLowSectionEdit,
+                                  "Enter low section of range");
+  mHighButtonAction = utilTBPushButton
+    ("Hi", this,  mToolBar, &mHighSectionButton, "Set high section of range");
   connect(mHighSectionButton, SIGNAL(clicked()), this, SLOT(setHighSection()));
-  QToolTip::add(mHighSectionButton, "High section");
-  // High section edit box
-  mHighSectionEdit = new ToolEdit(mToolBar, 4, "high section edit box");
-  mHighSectionEdit->setFocusPolicy(QWidget::ClickFocus);
-  mHighSectionEdit->setAlignment(Qt::AlignRight);
-  QToolTip::add(mHighSectionEdit, "Enter high section");
+  mHighEditAction = utilTBToolEdit(4, this,  mToolBar, &mHighSectionEdit,
+                                  "Enter high section of range");
+
   // Hide select Z until rubberband is selected
   setLowHighSectionState(0);
-
+  
   // Section slider
-  QLabel *label = new QLabel("Z", mToolBar);
+  QLabel *label = new QLabel("Z", this);
+  mToolBar->addWidget(label);
   label->setAlignment(Qt::AlignRight | Qt::AlignVCenter);
-  mSecSlider = new QSlider(1, zap->vi->zsize, 1, 1, Qt::Horizontal, mToolBar,
-			  "section slider");
+  mSecSlider = diaSlider(1, zap->vi->zsize, 1, 1, this, NULL);
+  mToolBar->addWidget(mSecSlider);
 
   QSize hint = mSecSlider->minimumSizeHint();
   /* fprintf(stderr, "minimum slider size %d minimum hint size %d\n", 
@@ -165,110 +179,120 @@ ZapWindow::ZapWindow(struct zapwin *zap, QString timeLabel, bool panels,
 	  SLOT(sliderChanged(int)));
   connect(mSecSlider, SIGNAL(sliderPressed()), this, SLOT(secPressed()));
   connect(mSecSlider, SIGNAL(sliderReleased()), this, SLOT(secReleased()));
-  QToolTip::add(mSecSlider, "Select or riffle through sections");
+  mSecSlider->setToolTip("Select or riffle through sections");
 
   // Angle label - and show one, hide one of size and angle lables
   if (!panels) {
-    mAngleLabel = new QLabel(mToolBar, " 99.0o");
+    mAngleLabel = new QLabel(" 99.0o", this);
+    mAngleAction = mToolBar->addWidget(mAngleLabel);
     mAngleLabel->setTextFormat(Qt::RichText);
     setSizeAngleState();
   }
 
   // Section edit box
-  mSectionEdit = new ToolEdit(mToolBar, 4, "section edit box");
-  mSectionEdit->setFocusPolicy(QWidget::ClickFocus);
-  mSectionEdit->setAlignment(Qt::AlignRight);
-  connect(mSectionEdit, SIGNAL(returnPressed()), this, SLOT(newSection()));
-  connect(mSectionEdit, SIGNAL(focusLost()), this, SLOT(newSection()));
-  QToolTip::add(mSectionEdit, "Enter section to display");
+  utilTBToolEdit(4, this, mToolBar, &mSectionEdit, "Enter section to display");
+  connect(mSectionEdit, SIGNAL(editingFinished()), this, SLOT(newSection()));
   
   // Info and help buttons
   if (!panels) {
-    mInfoButton = new QPushButton("I", mToolBar, "I button");
-    mInfoButton->setFocusPolicy(QWidget::NoFocus);
-    connect(mInfoButton, SIGNAL(clicked()), this, SLOT(info()));
-    QToolTip::add(mInfoButton,
+    utilTBPushButton("I", this, mToolBar, &mInfoButton,
                   "Bring Info Window to top, get Zap window info");
+    connect(mInfoButton, SIGNAL(clicked()), this, SLOT(info()));
   }
 
-  mHelpButton = new QPushButton("Help", mToolBar, "Help button");
-  mHelpButton->setFocusPolicy(QWidget::NoFocus);
+  utilTBPushButton("Help", this, mToolBar, &mHelpButton, "Open help window");
   connect(mHelpButton, SIGNAL(clicked()), this, SLOT(help()));
-  QToolTip::add(mHelpButton, "Open help window");
+  mToolBar->setAllowedAreas(Qt::TopToolBarArea);
   setFontDependentWidths();
+  addToolBar(mToolBar);
   
   // Optional section if time enabled
   if (!timeLabel.isEmpty()) {
-    mToolBar2 = new HotToolBar(this, "time toolbar");
-    if (!AUTO_RAISE)
-      mToolBar2->boxLayout()->setSpacing(4);
+    mToolBar2 = new HotToolBar(this);
+    if (!TB_AUTO_RAISE)
+      mToolBar2->layout()->setSpacing(4);
     connect(mToolBar2, SIGNAL(keyPress(QKeyEvent *)), this,
             SLOT(toolKeyPress(QKeyEvent *)));
     connect(mToolBar2, SIGNAL(keyRelease(QKeyEvent *)), this,
             SLOT(toolKeyRelease(QKeyEvent *)));
-    setupToggleButton(mToolBar2, toggleMapper, NUM_TOOLBUTTONS - 1);
+    j = NUM_TOOLBUTTONS - 1;
+    mToggleActs[j] = utilSetupToggleButton(mToolBar2, mToolBar2, NULL,
+                                           toggleMapper, icons, toggleTips,
+                                           mToggleButs, mToggleStates, j);
+    connect(mToggleButs[j], SIGNAL(clicked()), toggleMapper, SLOT(map()));
 
-    label = new QLabel("4th D", mToolBar2);
+    label = new QLabel("4th D", this);
     label->setAlignment(Qt::AlignRight | Qt::AlignVCenter);
+    mToolBar2->addWidget(label);
 
-    arrow = new ArrowButton(Qt::LeftArrow, mToolBar2, "time back button");
-    connect(arrow, SIGNAL(clicked()), this, SLOT(timeBack()));
-    arrow->setAutoRaise(AUTO_RAISE);
-    arrow->setAutoRepeat(true);
-    QToolTip::add(arrow, "Move back in 4th dimension (time)");
+    utilTBArrowButton(Qt::LeftArrow, this, mToolBar2, &downArrow, 
+                      "Move back in 4th dimension (time)");
+    connect(downArrow, SIGNAL(clicked()), this, SLOT(timeBack()));
+    downArrow->setAutoRepeat(true);
 
-    arrow = new ArrowButton(Qt::RightArrow, mToolBar2, "time forward button");
-    connect(arrow, SIGNAL(clicked()), this, SLOT(timeForward()));
-    arrow->setAutoRaise(AUTO_RAISE);
-    arrow->setAutoRepeat(true);
-    QToolTip::add(arrow, "Move forward in 4th dimension (time)");
+    utilTBArrowButton(Qt::RightArrow, this, mToolBar2, &upArrow, 
+                      "Move forward in 4th dimension (time)");
+    connect(upArrow, SIGNAL(clicked()), this, SLOT(timeForward()));
+    upArrow->setAutoRepeat(true);
 
-    mTimeLabel = new QLabel(timeLabel, mToolBar2, "time label");
+    mTimeLabel = new QLabel(timeLabel, this);
+    mToolBar2->addWidget(mTimeLabel);
+    mToolBar2->setAllowedAreas(Qt::TopToolBarArea);
+    addToolBar(mToolBar2);
   }
 
   // Optional panel toolbar
   if (panels) {
-
-    // TODO: THIS NEEDS TO BE PARAMETERIZED OR SAFEGUARDED
-    mToggleButs[3]->hide();
-    mToggleButs[4]->hide();
     setLowHighSectionState(0);
-    mPanelBar =  new HotToolBar(this, "panel toolbar");
-    mColumnSpin = diaLabeledSpin(0, 1, MULTIZ_MAX_PANELS, 1, "# X", mPanelBar,
-                          NULL);
+    mPanelBar =  new HotToolBar(this);
+    label = new QLabel("# X");
+    mPanelBar->addWidget(label);
+    mColumnSpin = (QSpinBox *)diaLabeledSpin(0, 1., (float)MULTIZ_MAX_PANELS,
+                                             1., NULL, this, NULL);
+    mPanelBar->addWidget(mColumnSpin);
     diaSetSpinBox(mColumnSpin, zap->numXpanels);
     connect(mColumnSpin, SIGNAL(valueChanged(int)), this, 
             SLOT(columnsChanged(int)));
-    QToolTip::add(mColumnSpin, "Number of columns of panels");
+    mColumnSpin->setToolTip("Number of columns of panels");
 
-    mRowSpin = diaLabeledSpin(0, 1, MULTIZ_MAX_PANELS, 1, "# Y", mPanelBar,
-                              NULL);
+    label = new QLabel("# Y");
+    mPanelBar->addWidget(label);
+    mRowSpin = (QSpinBox *)diaLabeledSpin(0, 1., (float)MULTIZ_MAX_PANELS, 
+                              1., NULL, this, NULL);
+    mPanelBar->addWidget(mRowSpin);
     diaSetSpinBox(mRowSpin, zap->numYpanels);
     connect(mRowSpin, SIGNAL(valueChanged(int)), this, SLOT(rowsChanged(int)));
-    QToolTip::add(mRowSpin, "Number of rows of panels");
+    mRowSpin->setToolTip("Number of rows of panels");
 
-    mZstepSpin = diaLabeledSpin(0, 1, 100, 1, "Z step", mPanelBar, NULL);
+    label = new QLabel("Z step");
+    mPanelBar->addWidget(label);
+    mZstepSpin = (QSpinBox *)diaLabeledSpin(0, 1., 100., 1., NULL, this, NULL);
     diaSetSpinBox(mZstepSpin, zap->panelZstep);
+    mPanelBar->addWidget(mZstepSpin);
     connect(mZstepSpin, SIGNAL(valueChanged(int)), this, 
             SLOT(zStepChanged(int)));
-    QToolTip::add(mZstepSpin, "Interval between panels in Z");
+    mZstepSpin->setToolTip("Interval between panels in Z");
 
     //label = new QLabel("Show in:", mPanelBar);
     //label->setAlignment(Qt::AlignRight | Qt::AlignVCenter);
 
-    button = diaCheckBox("Middle", mPanelBar, NULL);
+    button = diaCheckBox("Middle", this, NULL);
+    mPanelBar->addWidget(button);
     diaSetChecked(button, zap->drawInCenter != 0);
     connect(button, SIGNAL(toggled(bool)), this, 
             SLOT(drawCenterToggled(bool)));
-    QToolTip::add(button, "Draw model on middle panel in Z");
+    button->setToolTip("Draw model on middle panel in Z");
 
-    button = diaCheckBox("Others", mPanelBar, NULL);
+    button = diaCheckBox("Others", this, NULL);
+    mPanelBar->addWidget(button);
     diaSetChecked(button, zap->drawInOthers != 0);
     connect(button, SIGNAL(toggled(bool)), this, 
             SLOT(drawOthersToggled(bool)));
-    QToolTip::add(button, "Draw model on panels other than middle one in Z");
-    }
-  firstTime = 0;
+    button->setToolTip("Draw model on panels other than middle one in Z");
+
+    mPanelBar->setAllowedAreas(Qt::TopToolBarArea);
+    addToolBar(mPanelBar);
+  }
 
   // Need GLwidget next
   QGLFormat glFormat;
@@ -277,22 +301,12 @@ ZapWindow::ZapWindow(struct zapwin *zap, QString timeLabel, bool panels,
   glFormat.setDepth(enableDepth);
   mGLw = new ZapGL(zap, glFormat, this);
   
-  // Set it as main widget, set focus, dock on top and bottom only
+  // Set it as main widget, set focus
   setCentralWidget(mGLw);
-  setFocusPolicy(QWidget::StrongFocus);
-  setDockEnabled(mToolBar, Left, FALSE );
-  setDockEnabled(mToolBar, Right, FALSE );
-  if (mToolBar2) {
-    setDockEnabled(mToolBar2, Left, FALSE );
-    setDockEnabled(mToolBar2, Right, FALSE );
-  }
-  if (mPanelBar) {
-    setDockEnabled(mPanelBar, Left, FALSE );
-    setDockEnabled(mPanelBar, Right, FALSE );
-  }
+  setFocusPolicy(Qt::StrongFocus);
 
   // This makes the toolbar give a proper size hint before showing window
-  setUpLayout();
+  //setUpLayout();
 }
 
 
@@ -316,33 +330,6 @@ void ZapWindow::setFontDependentWidths()
   // Unable to affect sizes of panel bar spin boxes in Windows...
 }
 
-static char *toggleTips[] = {
-  "Toggle between regular and high-resolution (interpolated) image",
-  "Lock window at current section unless section is changed in this window",
-  "Toggle between centering when model point nears edge and keeping model"
-  " point centered",
-  "Toggle between inserting points after or before current point",
-  "Toggle rubberband on or off (resize with first mouse, move with second)",
-  "Lock window at current time unless time is changed in this window"};
-
-// Make the two bitmaps, add the toggle button to the tool bar, and add
-// it to the signal mapper
-void ZapWindow::setupToggleButton(HotToolBar *toolBar, QSignalMapper *mapper, 
-                           int ind)
-{
-  if (firstTime) {
-    bitmaps[ind][0] = new QBitmap(BM_WIDTH, BM_HEIGHT, bitList[ind][0], true);
-    bitmaps[ind][1] = new QBitmap(BM_WIDTH, BM_HEIGHT, bitList[ind][1], true);
-  }
-  mToggleButs[ind] = new QToolButton(toolBar, "toolbar toggle");
-  mToggleButs[ind]->setPixmap(*bitmaps[ind][0]);
-  mToggleButs[ind]->setAutoRaise(AUTO_RAISE);
-  mapper->setMapping(mToggleButs[ind],ind);
-  connect(mToggleButs[ind], SIGNAL(clicked()), mapper, SLOT(map()));
-  mToggleStates[ind] = 0;
-  QToolTip::add(mToggleButs[ind], QString(toggleTips[ind]));
-}
-
 void ZapWindow::zoomUp()
 {
   zapStepZoom(mZap, 1);
@@ -357,13 +344,13 @@ void ZapWindow::zoomDown()
 void ZapWindow::newZoom()
 {
   QString str = mZoomEdit->text();
-  zapEnteredZoom(mZap, atof(str.latin1()));
+  zapEnteredZoom(mZap, atof(LATIN1(str)));
 }
 
 void ZapWindow::newSection()
 {
   QString str = mSectionEdit->text();
-  zapEnteredSection(mZap, atoi(str.latin1()));
+  zapEnteredSection(mZap, atoi(LATIN1(str)));
 }
 
 void ZapWindow::sliderChanged(int value)
@@ -408,9 +395,8 @@ void ZapWindow::timeForward()
 // One of toggle buttons needs to change state
 void ZapWindow::toggleClicked(int index)
 {
-  int state = 1 - mToggleStates[index];
+  int state = mToggleButs[index]->isChecked() ? 1 : 0;
   mToggleStates[index] = state; 
-  mToggleButs[index]->setPixmap(*bitmaps[index][state]);
   zapStateToggled(mZap, index, state);
 }
 
@@ -421,27 +407,22 @@ void ZapWindow::toggleClicked(int index)
  */
 void ZapWindow::setLowHighSectionState(int rubberbandSelected)
 {
-  if (rubberbandSelected == 0 || mToggleButs[4]->isHidden()) {
-    mLowSectionButton->hide();
-    mLowSectionEdit->hide();
+  bool show = rubberbandSelected && !mPanelBar;
+  if (!show) {
     mLowSectionEdit->setText("");
-    mHighSectionButton->hide();
-    mHighSectionEdit->hide();
     mHighSectionEdit->setText("");
   }
-  else {
-    mLowSectionButton->show();
-    mLowSectionEdit->show();
-    mHighSectionButton->show();
-    mHighSectionEdit->show();
-  }
+  mLowButtonAction->setVisible(show);
+  mHighButtonAction->setVisible(show);
+  mLowEditAction->setVisible(show);
+  mHighEditAction->setVisible(show);
 }
 
 // This allows zap to set one of the buttons
 void ZapWindow::setToggleState(int index, int state)
 {
   mToggleStates[index] = state ? 1 : 0;
-  mToggleButs[index]->setPixmap(*bitmaps[index][state]);
+  diaSetChecked(mToggleButs[index], state != 0);
 }
 
 void ZapWindow::setZoomText(float zoom)
@@ -485,8 +466,10 @@ void ZapWindow::setSizeAngleState()
   int num;
   int state = ivwGetTiltAngles(mZap->vi, num) ? 1 : 0;
   if (state != mSizeAngleState) {
-    diaShowWidget(mSizeLabel, state == 0);
-    diaShowWidget(mAngleLabel, state != 0);
+    if (mSizeAction)
+      mSizeAction->setVisible(state == 0);
+    if (mAngleAction)
+      mAngleAction->setVisible(state != 0);
     mSizeAngleState = state;
   }
 }
@@ -591,9 +574,8 @@ void ZapWindow::closeEvent (QCloseEvent * e )
   e->accept();
 }
 
-ZapGL::ZapGL(struct zapwin *zap, QGLFormat inFormat, QWidget * parent,
-             const char * name)
-  : QGLWidget(inFormat, parent, name)
+ZapGL::ZapGL(struct zapwin *zap, QGLFormat inFormat, QWidget * parent)
+  : QGLWidget(inFormat, parent)
 {
   mMousePressed = false;
   mMouseInWindow = -1;
@@ -656,6 +638,9 @@ void ZapGL::leaveEvent ( QEvent * e)
 
 /*
 $Log$
+Revision 4.31  2008/05/27 22:48:33  mast
+Moved angle to separate label after Z slider
+
 Revision 4.30  2008/05/27 05:41:56  mast
 Changes for tilt angle display
 

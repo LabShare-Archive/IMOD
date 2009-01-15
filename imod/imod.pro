@@ -1,7 +1,7 @@
 TEMPLATE	= app
 LANGUAGE	= C++
 
-CONFIG	+= qt opengl
+CONFIG	+= qt opengl assistant
 
 HEADERS	+= autox.h \
 	b3dgfx.h \
@@ -81,7 +81,27 @@ HEADERS	+= autox.h \
 	imodv_mcubes.h \
 	imodv_mcubescpp.h \
 	imodv_surfpieces.h \
-	imodv_mappingtable.h
+	imodv_mappingtable.h \
+	form_object_edit.h \
+	formv_control.h \
+	formv_movie.h \
+	formv_modeled.h \
+	formv_views.h \
+	formv_depthcue.h \
+	formv_objed.h \
+	form_info.h \
+	form_moviecon.h \
+	form_autox.h \
+	form_cont_edit.h \
+	form_behavior.h \
+	form_mouse.h \
+	form_startup.h \
+	form_rawimage.h \
+	form_finegrain.h \
+	form_slicerangle.h \
+	form_scalebar.h \
+	form_appearance.h
+
 
 SOURCES	+= autox.cpp \
 	b3dfile.c \
@@ -149,7 +169,27 @@ SOURCES	+= autox.cpp \
 	iirawimage.cpp \
 	finegrain.cpp \
 	scalebar.cpp \
-	imodv_mappingtable.cpp
+	imodv_mappingtable.cpp \
+	form_object_edit.cpp \
+	formv_control.cpp \
+	formv_movie.cpp \
+	formv_modeled.cpp \
+	formv_views.cpp \
+	formv_depthcue.cpp \
+	formv_objed.cpp \
+	form_info.cpp \
+	form_moviecon.cpp \
+	form_autox.cpp \
+	form_cont_edit.cpp \
+	form_behavior.cpp \
+	form_mouse.cpp \
+	form_startup.cpp \
+	form_rawimage.cpp \
+	form_finegrain.cpp \
+	form_slicerangle.cpp \
+	form_scalebar.cpp \
+	form_appearance.cpp
+
 
 FORMS	= form_object_edit.ui \
 	formv_control.ui \
@@ -162,22 +202,16 @@ FORMS	= form_object_edit.ui \
 	form_moviecon.ui \
 	form_autox.ui \
 	form_cont_edit.ui \
-	form_appearance.ui \
 	form_behavior.ui \
 	form_mouse.ui \
 	form_startup.ui \
 	form_rawimage.ui \
 	form_finegrain.ui \
 	form_slicerangle.ui \
-	form_scalebar.ui
+	form_scalebar.ui \
+	form_appearance.ui 
 
-IMAGES	= uparrow.png \
-	downarrow.png \
-	rightarrow.png \
-	leftarrow.png \
-	raisewindow.png \
-	undo.png \
-	redo.png
+RESOURCES = 3dmod.qrc
 
 TARGET = 3dmod
 INSTALLS += target
@@ -194,4 +228,6 @@ mkargvtarget.commands = gcc -o mkargv mkargv.o
 
 
 QMAKE_EXTRA_UNIX_TARGETS += mkargvtarget helptarget
+
+QT +=  opengl 
 

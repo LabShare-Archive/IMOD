@@ -19,6 +19,8 @@
 #include "imodconfig.h"
 
 #include "imodel.h"       /* imod library include. */
+//Added by qt3to4:
+#include <QPixmap>
 
 /* used for finding bounding box. */
 #ifndef FLT_MAX
@@ -145,6 +147,9 @@ void imodvNewModelAngles(Ipoint *rot);
 /*
 
 $Log$
+Revision 3.25  2008/12/15 21:23:22  mast
+Variables for seperate stereo widgets
+
 Revision 3.24  2008/11/28 06:40:24  mast
 Added extra object variables for bounding box and current point
 

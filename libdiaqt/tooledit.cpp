@@ -13,14 +13,17 @@
  */
 
 #include "tooledit.h"
+//Added by qt3to4:
+#include <QFocusEvent>
 
 /*!
  * A line edit widget that sends a signal, focusLost(), when it loses input 
  * focus, and that can be set to fixed column width by providing the number 
- * of characters in [columns].  [name] and [columns] default to 0.
+ * of characters in [columns].  [columns] defaults to 0.  [name] is ignored.
+ * Use the signal finishedEditing() instead of focusLost() and returnPressed().
  */
 ToolEdit::ToolEdit( QWidget * parent, int columns, const char * name)
-  : QLineEdit(parent, name)
+  : QLineEdit(parent)
 {
   mColumns = 0;
   setColumnWidth(columns);
@@ -64,6 +67,9 @@ void ToolEdit::setColumnWidth(int columns)
 /*
 
 $Log$
+Revision 1.6  2008/01/13 22:21:35  mast
+Added documentation for column setting
+
 Revision 1.5  2007/08/26 06:55:59  mast
 Documentation changes
 

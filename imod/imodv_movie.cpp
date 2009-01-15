@@ -190,8 +190,8 @@ void imodvMovieDialog(ImodvApp *a, int state)
   movie->saved   = 0;
   movie->abort = 1;   /* DNM: make this a flag that not making movie */
 
-  movie->dia = new imodvMovieForm(imodvDialogManager.parent(IMODV_DIALOG), NULL,
-                                  Qt::WDestructiveClose | Qt::WType_TopLevel);
+  movie->dia = new imodvMovieForm(imodvDialogManager.parent(IMODV_DIALOG), 
+                                  Qt::Window);
   if (!movie->dia){
     dia_err("Failed to create 3dmodv movie window!");
     return;
@@ -203,7 +203,7 @@ void imodvMovieDialog(ImodvApp *a, int state)
   if (window_name)
     free(window_name);
   if (!qstr.isEmpty())
-    movie->dia->setCaption(qstr);
+    movie->dia->setWindowTitle(qstr);
 
   // Set the states
   imodvMovieSetStart();
@@ -592,7 +592,7 @@ static void imodvMakeMontage(int frames, int overlap)
       fname = b3dGetSnapshotName("modv", movie->file_format ? SnapShot_RGB : 
                                  SnapShot_TIF, 4, a->snap_fileno);
       sname = b3dShortSnapName(fname);
-      imodPrintStderr("3dmodv: Saving montage to %s", sname.latin1());
+      imodPrintStderr("3dmodv: Saving montage to %s", LATIN1(sname));
       if (movie->file_format)
         b3dSnapshot_NonTIF(fname, 4, limits, linePtrs);
       else
@@ -622,6 +622,9 @@ static void imodvMakeMontage(int frames, int overlap)
 
 /*
     $Log$
+    Revision 4.19  2008/05/27 05:45:38  mast
+    Adapting to changes in snapshot calls
+
     Revision 4.18  2008/05/23 04:31:44  mast
     Changed to do nontiff montage snapshots
 

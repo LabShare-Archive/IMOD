@@ -23,12 +23,15 @@
 #include <qlabel.h>
 #include <qtooltip.h>
 #include <qlayout.h>
+//Added by qt3to4:
+#include <QHBoxLayout>
+#include <QKeyEvent>
+#include <QGridLayout>
+#include <QCloseEvent>
 #include "dia_qtutils.h"
-#include <qhbox.h>
 #include <qpushbutton.h>
 #include <qradiobutton.h>
 #include <qbuttongroup.h>
-#include <qvbuttongroup.h>
 #include "form_cont_edit.h"
 #include "imod.h"
 #include "xzap.h"
@@ -142,27 +145,28 @@ ContourBreak::ContourBreak(QWidget *parent, const char *name)
 
   mObjContLabel = diaLabel("Obj", this, mLayout);
 
-  QGridLayout *grid = new QGridLayout(mLayout, 2, 2);
-
+  QGridLayout *grid = new QGridLayout();
+  mLayout->addLayout(grid);
+  
   mButton1 = new QPushButton("Set 1", this);
   grid->addWidget(mButton1, 0, 0);
-  mButton1->setFocusPolicy(NoFocus);
+  mButton1->setFocusPolicy(Qt::NoFocus);
   connect(mButton1, SIGNAL(clicked()), this, SLOT(set1Pressed()));
-  QToolTip::add(mButton1, "Set first or only break point in contour");
+  mButton1->setToolTip("Set first or only break point in contour");
 
   mSet1Label = new QLabel(" ", this);
   grid->addWidget(mSet1Label, 0, 1);
 
   mButton2 = new QPushButton("Set 2", this);
   grid->addWidget(mButton2, 1, 0);
-  mButton2->setFocusPolicy(NoFocus);
+  mButton2->setFocusPolicy(Qt::NoFocus);
   connect(mButton2, SIGNAL(clicked()), this, SLOT(set2Pressed()));
-  QToolTip::add(mButton2, "Set second break point in contour");
+  mButton2->setToolTip("Set second break point in contour");
 
   mSet2Label = new QLabel(" ", this);
   grid->addWidget(mSet2Label, 1, 1);
 
-  setCaption(imodCaption("3dmod Break Contours"));
+  setWindowTitle(imodCaption("3dmod Break Contours"));
   connect(this, SIGNAL(actionClicked(int)), this, SLOT(buttonPressed(int)));
 
   setFontDependentWidths();
@@ -426,61 +430,70 @@ ContourJoin::ContourJoin(QWidget *parent, const char *name)
   : ContourFrame(parent, 3, applyDoneHelp, joinTips, name)
 {
   QRadioButton *radio;
-  QGridLayout *grid = new QGridLayout(mLayout, 2, 2);
+  QGridLayout *grid = new QGridLayout();
+  mLayout->addLayout(grid);
 
   mButton1 = new QPushButton("Set 1", this);
   grid->addWidget(mButton1, 0, 0);
-  mButton1->setFocusPolicy(NoFocus);
+  mButton1->setFocusPolicy(Qt::NoFocus);
   connect(mButton1, SIGNAL(clicked()), this, SLOT(set1Pressed()));
-  QToolTip::add(mButton1, "Set join point in first contour");
+  mButton1->setToolTip("Set join point in first contour");
 
   mSet1Label = new QLabel(" ", this);
   grid->addWidget(mSet1Label, 0, 1);
 
   mButton2 = new QPushButton("Set 2", this);
   grid->addWidget(mButton2, 1, 0);
-  mButton2->setFocusPolicy(NoFocus);
+  mButton2->setFocusPolicy(Qt::NoFocus);
   connect(mButton2, SIGNAL(clicked()), this, SLOT(set2Pressed()));
-  QToolTip::add(mButton2, "Set join point in second contour");
+  mButton2->setToolTip("Set join point in second contour");
 
   mSet2Label = new QLabel(" ", this);
   grid->addWidget(mSet2Label, 1, 1);
 
-  QHBoxLayout *hbox = new QHBoxLayout(mLayout);
-  mClosedGroup = new QVButtonGroup("Closed Object", this, "closed group");
-  hbox->addWidget(mClosedGroup);
-  connect(mClosedGroup, SIGNAL(clicked(int)), this, 
-          SLOT(closedTypeSelected(int)));
-  mClosedGroup->setInsideSpacing(0);
-  mClosedGroup->setInsideMargin(5);
+  QHBoxLayout *hbox = new QHBoxLayout();
+  mLayout->addLayout(hbox);
+  QGroupBox *gbox = new QGroupBox("Closed Object", this);
+  hbox->addWidget(gbox);
+  QVBoxLayout *gbLayout = new QVBoxLayout(gbox);
+  mClosedGroup = new QButtonGroup(this);
 
-  radio = diaRadioButton("Concatenate", mClosedGroup);
-  QToolTip::add(radio, "Add points from one contour to end of other");
-  radio = diaRadioButton("Join near pts", mClosedGroup);
-  QToolTip::add(radio, "Add line connecting contours between their "
-                "nearest points");
-  radio = diaRadioButton("Auto-choose", mClosedGroup);
-  QToolTip::add(radio, "Concatenate if contour openings are bigger than"
-                " distance between contours");
-  radio = diaRadioButton("Join set pts", mClosedGroup);
-  QToolTip::add(radio, "Add line connecting contours between the set points");
+  connect(mClosedGroup, SIGNAL(buttonClicked(int)), this, 
+          SLOT(closedTypeSelected(int)));
+  gbLayout->setSpacing(0);
+  gbLayout->setContentsMargins(5, 2, 5, 5);
+
+  radio = diaRadioButton("Concatenate", gbox, mClosedGroup, gbLayout, 0,
+                         "Add points from one contour to end of other");
+  radio = diaRadioButton("Join near pts", gbox, mClosedGroup, gbLayout, 1,
+                         "Add line connecting contours between their "
+                         "nearest points");
+  radio = diaRadioButton("Auto-choose", gbox, mClosedGroup, gbLayout, 2,
+                         "Concatenate if contour openings are bigger than"
+                         " distance between contours");
+  radio = diaRadioButton("Join set pts", gbox, mClosedGroup, gbLayout, 3, "Add"
+                         " line connecting contours between the set points");
 
   diaSetGroup(mClosedGroup, cojoin.closedType);
 
-  mOpenGroup = new QVButtonGroup("Open Object", this, "open group");
-  hbox->addWidget(mOpenGroup);
-  connect(mOpenGroup, SIGNAL(clicked(int)), this, SLOT(openTypeSelected(int)));
-  mOpenGroup->setInsideSpacing(0);
-  mOpenGroup->setInsideMargin(5);
+  gbox = new QGroupBox("Open Object", this);
+  hbox->addWidget(gbox);
+  gbLayout = new QVBoxLayout(gbox);
+  mOpenGroup = new QButtonGroup(this);
 
-  radio = diaRadioButton("Concatenate", mOpenGroup);
-  QToolTip::add(radio, "Add points from one contour to end of other");
-  radio = diaRadioButton("Splice set pts", mOpenGroup);
-  QToolTip::add(radio, "Retain points up to set point 1 and after set "
-                "point 2");
+  connect(mOpenGroup, SIGNAL(buttonClicked(int)), this, 
+          SLOT(openTypeSelected(int)));
+  gbLayout->setSpacing(0);
+  gbLayout->setContentsMargins(5, 2, 5, 5);
+
+  radio = diaRadioButton("Concatenate", gbox, mOpenGroup, gbLayout, 0,
+                         "Add points from one contour to end of other");
+  radio = diaRadioButton("Splice set pts", gbox, mOpenGroup, gbLayout, 1,
+                         "Retain points up to set point 1 and after set "
+                         "point 2");
   diaSetGroup(mOpenGroup, cojoin.openType);
 
-  setCaption(imodCaption("3dmod Join Contours"));
+  setWindowTitle(imodCaption("3dmod Join Contours"));
   connect(this, SIGNAL(actionClicked(int)), this, SLOT(buttonPressed(int)));
 
   setFontDependentWidths();
@@ -1350,7 +1363,8 @@ ContourMove::ContourMove(QWidget *parent, const char *name)
   mLayout->setSpacing(2);
 
   // Set up top line layout
-  QHBoxLayout *layout = new QHBoxLayout(mLayout);
+  QHBoxLayout *layout = new QHBoxLayout();
+  mLayout->addLayout(layout);
   mObjSurfLabel = new QLabel(comv.movetosurf ? "Surface to move contour to:" :
                          "Object to move contour to:", this);
   layout->addWidget(mObjSurfLabel);
@@ -1358,35 +1372,33 @@ ContourMove::ContourMove(QWidget *parent, const char *name)
   // The spin box for object to move to
   mObjSpinBox = new QSpinBox(this);
   layout->addWidget(mObjSpinBox);
-  mObjSpinBox->setFocusPolicy(ClickFocus);
-  QToolTip::add(mObjSpinBox, 
-                "Select object or surface to move current contour to");
+  mObjSpinBox->setFocusPolicy(Qt::ClickFocus);
+  mObjSpinBox->setToolTip
+    ("Select object or surface to move current contour to");
   connect(mObjSpinBox, SIGNAL(valueChanged(int)), this, 
           SLOT(objSelected(int)));
 
-  // A simple empty box keeps the spin box from stretching
-  QHBox *hSpacer = new QHBox(this);
-  layout->addWidget(hSpacer);
+  layout->addStretch();
 
   // Set up the check boxes.  Only the keep-size on needs to be initialized
   // The rest get set by update
   mMoveAllBox = diaCheckBox("Move all contours with same surface #", this, 
                          mLayout);
   connect(mMoveAllBox, SIGNAL(toggled(bool)), this, SLOT(surfToggled(bool)));
-  QToolTip::add(mMoveAllBox, "Move entire current surface");
+  mMoveAllBox->setToolTip("Move entire current surface");
   diaSetChecked(mMoveAllBox, comv.wholeSurf);
 
   mToSurfBox = diaCheckBox("Move contour to different surface, not object",
                            this, mLayout);
   connect(mToSurfBox, SIGNAL(toggled(bool)), this, SLOT(toSurfToggled(bool)));
-  QToolTip::add(mToSurfBox, "Move to new surface within current object");
+  mToSurfBox->setToolTip("Move to new surface within current object");
   diaSetChecked(mToSurfBox, comv.movetosurf);
 
   mReplaceBox = diaCheckBox("Replace contour by single point of same size",
                             this, mLayout);
   connect(mReplaceBox, SIGNAL(toggled(bool)), this, 
           SLOT(replaceToggled(bool)));
-  QToolTip::add(mReplaceBox, "Make scattered point with size based on"
+  mReplaceBox->setToolTip("Make scattered point with size based on"
                 " mean radius of contour");
   diaSetChecked(mReplaceBox, comv.replace != 0);
 
@@ -1394,7 +1406,7 @@ ContourMove::ContourMove(QWidget *parent, const char *name)
                             this, mLayout);
   connect(mExpandBox, SIGNAL(toggled(bool)), this, 
           SLOT(expandToggled(bool)));
-  QToolTip::add(mExpandBox, "Replace scattered point with circular contour on"
+  mExpandBox->setToolTip("Replace scattered point with circular contour on"
                 " each section where the point appears");
   diaSetChecked(mExpandBox, comv.expand != 0);
 
@@ -1402,38 +1414,34 @@ ContourMove::ContourMove(QWidget *parent, const char *name)
                            this, mLayout);
   connect(mKeepSizeBox, SIGNAL(toggled(bool)), this, 
           SLOT(keepSizeToggled(bool)));
-  QToolTip::add(mKeepSizeBox, "Assign fixed size to all scattered points that"
+  mKeepSizeBox->setToolTip("Assign fixed size to all scattered points that"
                 " are moved");
   diaSetChecked(mKeepSizeBox, comv.keepsize != 0);
 
   // Make layout for moving up/down, and invisible radio group
-  layout = new QHBoxLayout(mLayout);
+  layout = new QHBoxLayout();
+  mLayout->addLayout(layout);
   mMoveUpDownBox = diaCheckBox("Move contour one section", this, layout);
   connect(mMoveUpDownBox, SIGNAL(toggled(bool)), this, 
           SLOT(moveUpDownToggled(bool)));
-  QToolTip::add(mMoveUpDownBox, "Shift contour(s) up or down in Z, not "
+  mMoveUpDownBox->setToolTip("Shift contour(s) up or down in Z, not "
                 "between objects/surfaces");
-  mUpDownGroup = new QButtonGroup(1, Qt::Horizontal, this);
-  mUpDownGroup->hide();
-  connect(mUpDownGroup, SIGNAL(clicked(int)), this, 
+  mUpDownGroup = new QButtonGroup(this);
+  connect(mUpDownGroup, SIGNAL(buttonClicked(int)), this, 
           SLOT(upDownSelected(int))); 
 
-  mUpButton = diaRadioButton("Up", this);
-  mUpDownGroup->insert(mUpButton);
-  layout->addWidget(mUpButton);
-  mDownButton = diaRadioButton("Down", this);
-  mUpDownGroup->insert(mDownButton);
-  layout->addWidget(mDownButton);
+  mUpButton = diaRadioButton("Up", this, mUpDownGroup, layout, 0, NULL);
+  mDownButton = diaRadioButton("Down", this, mUpDownGroup, layout, 1, NULL);
   diaSetGroup(mUpDownGroup, comv.upOrDown);
 
   QPushButton *button = diaPushButton("Toggle adjusting contour with mouse",
                                      this, mLayout);
   connect(button, SIGNAL(clicked()), this, SLOT(shiftContClicked()));
-  QToolTip::add(button, "Toggle shifting, rotating, or scaling of current"
+  button->setToolTip("Toggle shifting, rotating, or scaling of current"
                 " contour with mouse in Zap window (hot key P)");
 
   connect(this, SIGNAL(actionClicked(int)), this, SLOT(buttonPressed(int)));
-  setCaption(imodCaption("3dmod Move Contour"));
+  setWindowTitle(imodCaption("3dmod Move Contour"));
 }
 
 /* Manage the five check box sensitivities to reflect the mutual exclusivity 
@@ -1586,8 +1594,7 @@ void imodContEditSurf(ImodView *vw)
   surf.vw = vw;
      
   surf.dia = new ContSurfPoint(imodDialogManager.parent(IMOD_DIALOG), 
-                               "surface edit",
-                               Qt::WType_TopLevel | Qt::WDestructiveClose);
+                               Qt::Window);
   imodContEditSurfShow();
   imodDialogManager.add((QWidget *)surf.dia, IMOD_DIALOG);
 
@@ -1742,7 +1749,7 @@ void iceTimeChanged(int value)
 }
 
 // Record change in contour or point label
-void iceLabelChanged(char *st, int contPoint)
+void iceLabelChanged(const char *st, int contPoint)
 {
   Iobj  *obj = imodObjectGet(surf.vw->imod);
   Icont *cont = imodContourGet(surf.vw->imod);
@@ -1861,6 +1868,9 @@ void ContourFrame::keyReleaseEvent ( QKeyEvent * e )
 /*
 
 $Log$
+Revision 4.33  2008/09/23 15:13:44  mast
+Added mouse wheel scrolling of point size
+
 Revision 4.32  2008/04/04 21:22:03  mast
 Free contour after adding to object
 

@@ -1,11 +1,11 @@
 #ifndef PLOTTER_H
 #define PLOTTER_H
 
-#include <qpixmap.h>
-#include <qwidget.h>
+#include <QMap>
+#include <QPixmap>
+#include <QVector>
+#include <QWidget>
 
-#include <map>
-#include <vector>
 
 class QLabel;
 class QToolButton;
@@ -13,17 +13,15 @@ class PlotSettings;
 class RangeDialog;
 class AngleDialog;
 
-typedef std::vector<double> CurveData;
 
 class Plotter : public QWidget
 {
     Q_OBJECT
 public:
-    Plotter(QWidget *parent = 0, const char *name = 0,
-            WFlags flags = 0);
+    Plotter(QWidget *parent = 0);
     ~Plotter();
     void setPlotSettings(const PlotSettings &settings);
-    void setCurveData(int id, const CurveData &data);
+    void setCurveData(int id, const QVector<QPointF> &data);
     void clearCurve(int id);
     QSize minimumSizeHint() const;
     QSize sizeHint() const;
@@ -32,7 +30,7 @@ public:
     QToolButton *tileButton;
     RangeDialog *rDialog;
     AngleDialog *aDialog;
-    std::vector<PlotSettings> zoomStack;
+    QVector<PlotSettings> zoomStack;
     int curZoom;
 
 public slots:
@@ -69,7 +67,7 @@ private:
     QToolButton *angleButton;
     QToolButton *saveButton;
     QToolButton *helpButton;
-    std::map<int, CurveData> curveMap;
+    QMap<int, QVector<QPointF> > curveMap;
     bool rubberBandIsShown;
     QRect rubberBandRect;
     QPixmap pixmap;

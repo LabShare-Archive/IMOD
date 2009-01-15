@@ -1,17 +1,69 @@
-/****************************************************************************
-** ui.h extension file, included from the uic-generated form implementation.
-**
-** If you wish to add, delete or rename slots use Qt Designer which will
-** update this file, preserving your code. Create an init() slot in place of
-** a constructor, and a destroy() slot in place of a destructor.
-*****************************************************************************/
+/*
+ *  form_appearance.h - Class for appearance tab of options window
+ *
+ *  Author: David Mastronarde   email: mast@colorado.edu
+ *
+ *  Copyright (C) 1995-2009 by Boulder Laboratory for 3-Dimensional Electron
+ *  Microscopy of Cells ("BL3DEMC") and the Regents of the University of 
+ *  Colorado.  See dist/COPYRIGHT for full copyright notice.
+ * 
+ * $Id$
+ * Log at end
+ */
+
+#include "form_appearance.h"
+
+#include <qvariant.h>
+#include <qstringlist.h>
+#include <qstyle.h>
+#include <qfontdialog.h>
+#include <qstylefactory.h>
+#include <qcolordialog.h>
+#include <qimage.h>
+#include <qpixmap.h>
+
+#include "preferences.h"
+#include "dia_qtutils.h"
+#include "imod.h"
+#include "imod_info_cb.h"
+
+/*
+ *  Constructs a AppearanceForm as a child of 'parent', with the
+ *  name 'name' and widget flags set to 'f'.
+ */
+AppearanceForm::AppearanceForm(QWidget* parent, Qt::WindowFlags fl)
+  : QWidget(parent, fl)
+{
+  setupUi(this);
+
+  init();
+}
+
+/*
+ *  Destroys the object and frees any allocated resources
+ */
+AppearanceForm::~AppearanceForm()
+{
+  destroy();
+  // no need to delete child widgets, Qt does it all for us
+}
+
+/*
+ *  Sets the strings of the subwidgets using the current
+ *  language.
+ */
+void AppearanceForm::languageChange()
+{
+  retranslateUi(this);
+}
+
 
 // Initialize
 void AppearanceForm::init()
 {
   mPrefs = ImodPrefs->getDialogPrefs();
   mZoomIndex = MAXZOOMS / 3;
-  zoomIndexSpinBox->setMaxValue(MAXZOOMS);
+  zoomIndexSpinBox->setMaximum(MAXZOOMS);
   diaSetSpinBox(zoomIndexSpinBox, mZoomIndex + 1);
   update();
   
@@ -25,8 +77,8 @@ void AppearanceForm::init()
   for ( QStringList::Iterator it = keyList.begin(); it != keyList.end(); ++it ) {
     if (!ImodPrefs->styleOK(*it))
       continue;
-    styleComboBox->insertItem(*it);
-    if ((*it).lower() == mPrefs->styleKey.lower())
+    styleComboBox->addItem(*it);
+    if ((*it).toLower() == mPrefs->styleKey.toLower())
       styleComboBox->setCurrentItem(ind);
     ind++;
   }
@@ -49,9 +101,9 @@ void AppearanceForm::init()
     }
     if (styleStatus[i] < 0)
       continue;
-    styleComboBox->insertItem(str);
-    if (str.lower() == mPrefs->styleKey.lower())
-      styleComboBox->setCurrentItem(ind);
+    styleComboBox->addItem(str);
+    if (str.toLower() == mPrefs->styleKey.toLower())
+      styleComboBox->setCurrentIndex(ind);
     ind++;
   }
 #endif
@@ -67,8 +119,8 @@ void AppearanceForm::init()
 
 void AppearanceForm::setFontDependentWidths()
 {
-    int width = (6 * 2 + 3) * fontMetrics().width("999999") / (6 * 2);
-    zoomEdit->setMaximumWidth(width);
+  int width = (6 * 2 + 3) * fontMetrics().width("999999") / (6 * 2);
+  zoomEdit->setMaximumWidth(width);
 }
 
 // Update the dialog based on current values
@@ -116,7 +168,7 @@ void AppearanceForm::markerColorClicked()
   int indexes[] = {IMOD_CURPOINT, IMOD_BGNPOINT, IMOD_ENDPOINT, 
                    IMOD_FOREGROUND, IMOD_BACKGROUND, IMOD_GHOST, IMOD_SHADOW};
   int item, which;
-  item = indexes[colorComboBox->currentItem()];
+  item = indexes[colorComboBox->currentIndex()];
   for (int i = 0; i < MAX_NAMED_COLORS; i++)
     if (mPrefs->namedIndex[i] == item)
       which = i;
@@ -143,7 +195,7 @@ void AppearanceForm::autoSDChanged( int value )
 // An new style was set  to current item
 void AppearanceForm::styleSelected(const QString &key )
 {
-  if (key.lower() == mPrefs->styleKey.lower())
+  if (key.toLower() == mPrefs->styleKey.toLower())
     return;
   mPrefs->styleChgd = true;
   mPrefs->styleKey = key;
@@ -182,67 +234,67 @@ void AppearanceForm::unload()
 
 void AppearanceForm::displayCurrentZoom()
 {
-    QString str;
-    double zoom = mPrefs->zooms[mZoomIndex];
-    str.sprintf("%.4f", zoom);
-    if (str.endsWith("00"))
-        str.truncate(str.length() - 2);
-    zoomEdit->setText(str);
-    str = "Default " + str;
-    defaultZoomLabel->setText(str);
-    mZoomValChanged = false;
+  QString str;
+  double zoom = mPrefs->zooms[mZoomIndex];
+  str.sprintf("%.4f", zoom);
+  if (str.endsWith("00"))
+    str.truncate(str.length() - 2);
+  zoomEdit->setText(str);
+  str = "Default " + str;
+  defaultZoomLabel->setText(str);
+  mZoomValChanged = false;
 }
 
 void AppearanceForm::newZoomIndex( int value )
 {
-    unloadZoomValue();
-    mZoomIndex = value - 1;
-    displayCurrentZoom();
+  unloadZoomValue();
+  mZoomIndex = value - 1;
+  displayCurrentZoom();
 }
 
 void AppearanceForm::unloadZoomValue()
 {
-    if (!mZoomValChanged)
-	return;
-    double zoom = zoomEdit->text().toDouble();
-    if (zoom < 0.01)
-	zoom = 0.01;
-    if (zoom > 100.)
-	zoom = 100.;
-    double roundfac = zoom < 1.0 ? 1000. : 100.;
-    mPrefs->zooms[mZoomIndex] = ((int)(roundfac * zoom + 0.5)) / roundfac;
-    mPrefs->zoomsChgd = true;
+  if (!mZoomValChanged)
+    return;
+  double zoom = zoomEdit->text().toDouble();
+  if (zoom < 0.01)
+    zoom = 0.01;
+  if (zoom > 100.)
+    zoom = 100.;
+  double roundfac = zoom < 1.0 ? 1000. : 100.;
+  mPrefs->zooms[mZoomIndex] = ((int)(roundfac * zoom + 0.5)) / roundfac;
+  mPrefs->zoomsChgd = true;
 }
 
 void AppearanceForm::newZoomValue()
 {
-    mZoomValChanged = true;
+  mZoomValChanged = true;
 }
 
 void AppearanceForm::shiftZoomsDown()
 {
-    unloadZoomValue();
-    for (int i = 0; i < MAXZOOMS - 1; i++)
-	mPrefs->zooms[i] = mPrefs->zooms[i + 1];
-    mPrefs->zoomsChgd = true;
-    displayCurrentZoom();
+  unloadZoomValue();
+  for (int i = 0; i < MAXZOOMS - 1; i++)
+    mPrefs->zooms[i] = mPrefs->zooms[i + 1];
+  mPrefs->zoomsChgd = true;
+  displayCurrentZoom();
 }
 
 void AppearanceForm::shiftZoomsUp()
 {
-    unloadZoomValue();
-    for (int i = MAXZOOMS - 1; i > 0; i--)
-	mPrefs->zooms[i] = mPrefs->zooms[i - 1];
-    mPrefs->zoomsChgd = true;
-    displayCurrentZoom();
+  unloadZoomValue();
+  for (int i = MAXZOOMS - 1; i > 0; i--)
+    mPrefs->zooms[i] = mPrefs->zooms[i - 1];
+  mPrefs->zoomsChgd = true;
+  displayCurrentZoom();
 }
 
 void AppearanceForm::restoreDefaultZooms()
 {
-    for (int i = 0; i < MAXZOOMS; i++)
-	mPrefs->zooms[i] = mPrefs->zoomsDflt[i];
-    mPrefs->zoomsChgd = true;
-    displayCurrentZoom();
+  for (int i = 0; i < MAXZOOMS; i++)
+    mPrefs->zooms[i] = mPrefs->zoomsDflt[i];
+  mPrefs->zoomsChgd = true;
+  displayCurrentZoom();
 }
 
 // When the window is closing, inform the preference manager
@@ -250,3 +302,9 @@ void AppearanceForm::destroy()
 {
   ImodPrefs->userCanceled();
 }
+
+/*
+
+$Log$
+
+*/

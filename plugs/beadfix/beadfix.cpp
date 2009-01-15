@@ -23,6 +23,12 @@
 #include <qcheckbox.h>
 #include <qtooltip.h>
 #include <qstringlist.h>
+//Added by qt3to4:
+#include <QKeyEvent>
+#include <QMouseEvent>
+#include <QEvent>
+#include <QBoxLayout>
+#include <QCloseEvent>
 
 /* Leave this commented out to test building as a plugin in with public 
    interfaces only; uncomment to test with access to structure members */
@@ -121,8 +127,8 @@ int imodPlugKeys(ImodView *vw, QKeyEvent *event)
    * Modifier key mask.  Set ctrl and shift to true
    * if the coresponding key is pressed.
    */
-  ctrl   = event->state() & Qt::ControlButton;
-  shift  = event->state() & Qt::ShiftButton;
+  ctrl   = event->modifiers() & Qt::ControlModifier;
+  shift  = event->modifiers() & Qt::ShiftModifier;
     
     
   switch(keysym){
@@ -295,7 +301,7 @@ void BeadFixer2::openFile()
   if (plug->filename != NULL)
     free(plug->filename);
       
-  plug->filename = strdup(qname.latin1());
+  plug->filename = strdup(qname.toLatin1());
   reread(0);
 
   if (plug->fp != NULL)
@@ -902,67 +908,61 @@ BeadFixer2::BeadFixer2(QWidget *parent, const char *name)
     width = width2;
   width = (int)(1.15 * width);
 
-  button = diaPushButton("Go to Next Gap", this, (QBoxLayout *)mLayout);
+  button = diaPushButton("Go to Next Gap", this, mLayout);
   connect(button, SIGNAL(clicked()), this, SLOT(nextGap()));
   button->setFixedWidth(width);
-  QToolTip::add(button, "Go to gap in model - Hot key: spacebar");
+  button->setToolTip("Go to gap in model - Hot key: spacebar");
 
-  button = diaPushButton("Open Tiltalign Log File", this, (QBoxLayout *)mLayout);
+  button = diaPushButton("Open Tiltalign Log File", this, mLayout);
   connect(button, SIGNAL(clicked()), this, SLOT(openFile()));
   button->setFixedWidth(width);
-  QToolTip::add(button, "Select an alignment log file to open");
+  button->setToolTip("Select an alignment log file to open");
 
-  rereadBut = diaPushButton("Reread Log File", this, (QBoxLayout *)mLayout);
+  rereadBut = diaPushButton("Reread Log File", this, mLayout);
   connect(rereadBut, SIGNAL(clicked()), this, SLOT(rereadFile()));
   rereadBut->setEnabled(false);
   rereadBut->setFixedWidth(width);
-  QToolTip::add(rereadBut, "Read the previously specified file again");
+  rereadBut->setToolTip("Read the previously specified file again");
 
-  nextLocalBut = diaPushButton("Go to Next Local Set", this, 
-                               (QBoxLayout *)mLayout);
+  nextLocalBut = diaPushButton("Go to Next Local Set", this, mLayout);
   connect(nextLocalBut, SIGNAL(clicked()), this, SLOT(nextLocal()));
   nextLocalBut->setEnabled(false);
   nextLocalBut->setFixedWidth(width);
-  QToolTip::add(nextLocalBut, "Skip to residuals in next local area");
+  nextLocalBut->setToolTip("Skip to residuals in next local area");
 
-  nextResBut = diaPushButton("Go to Next Big Residual", this,
-                             (QBoxLayout *)mLayout);
+  nextResBut = diaPushButton("Go to Next Big Residual", this, mLayout);
   connect(nextResBut, SIGNAL(clicked()), this, SLOT(nextRes()));
   nextResBut->setEnabled(false);
   nextResBut->setFixedWidth(width);
-  QToolTip::add(nextResBut, "Show next highest residual - Hot key: apostrophe");
-  movePointBut = diaPushButton("Move Point by Residual", this, 
-                               (QBoxLayout *)mLayout);
+  nextResBut->setToolTip("Show next highest residual - Hot key: apostrophe");
+  movePointBut = diaPushButton("Move Point by Residual", this, mLayout);
   connect(movePointBut, SIGNAL(clicked()), this, SLOT(movePoint()));
   movePointBut->setEnabled(false);
   movePointBut->setFixedWidth(width);
-  QToolTip::add(movePointBut, "Move point to position that fits alignment"
-                " solution - Hot key: semicolon");
+  movePointBut->setToolTip("Move point to position that fits alignment"
+                           " solution - Hot key: semicolon");
 
-  undoMoveBut = diaPushButton("Undo Move", this, (QBoxLayout *)mLayout);
+  undoMoveBut = diaPushButton("Undo Move", this, mLayout);
   connect(undoMoveBut, SIGNAL(clicked()), this, SLOT(undoMove()));
   undoMoveBut->setEnabled(false);
   undoMoveBut->setFixedWidth(width);
-  QToolTip::add(undoMoveBut, 
-                "Move point back to previous position - Hot key: U");
+  undoMoveBut->setToolTip("Move point back to previous position - Hot key: U");
 
-  backUpBut = diaPushButton("Back Up to Last Point", this,
-                            (QBoxLayout *)mLayout);
+  backUpBut = diaPushButton("Back Up to Last Point", this, mLayout);
   connect(backUpBut, SIGNAL(clicked()), this, SLOT(backUp()));
   backUpBut->setEnabled(false);
   backUpBut->setFixedWidth(width);
-  QToolTip::add(backUpBut, "Back up to last point examined");
+  backUpBut->setToolTip("Back up to last point examined");
 
-  box = diaCheckBox("Examine Points Once", this, (QBoxLayout *)mLayout);
+  box = diaCheckBox("Examine Points Once", this, mLayout);
   connect(box, SIGNAL(toggled(bool)), this, SLOT(onceToggled(bool)));
   diaSetChecked(box, plug->lookonce != 0);
-  QToolTip::add(box, "Skip over points examined before");
+  box->setToolTip("Skip over points examined before");
 
-  clearListBut = diaPushButton("Clear Examined List", this, 
-                               (QBoxLayout *)mLayout);
+  clearListBut = diaPushButton("Clear Examined List", this, mLayout);
   connect(clearListBut, SIGNAL(clicked()), this, SLOT(clearList()));
   clearListBut->setFixedWidth(width);
-  QToolTip::add(clearListBut, "Allow all points to be examined again");
+  clearListBut->setToolTip("Allow all points to be examined again");
 
   connect(this, SIGNAL(actionPressed(int)), this, SLOT(buttonPressed(int)));
 
@@ -984,7 +984,7 @@ void BeadFixer2::buttonPressed(int which)
     // the help file at this location
     //str = QString(getenv("IMOD_CALIB_DIR"));
     //str += QString("/plugins/beadfix2.html");
-    imodShowHelpPage(str);
+    imodShowHelpPage((const char *)str.toLatin1());
 
     // If neither approach is suitable, use dia_vasmsg to pass a string from
     // within the code (can contain html).
@@ -1031,6 +1031,9 @@ void BeadFixer2::keyReleaseEvent ( QKeyEvent * e )
 /*
 
 $Log$
+Revision 3.16  2008/04/04 21:29:30  mast
+free contours after adding to object
+
 Revision 3.15  2008/01/14 19:43:58  mast
 Check out some new functions, expand on help page example
 

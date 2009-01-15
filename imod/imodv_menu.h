@@ -12,6 +12,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 4.3  2008/11/28 06:44:25  mast
+Added function to build bounding box
+
 Revision 4.2  2004/11/21 06:05:43  mast
 Added routine for opening selected windows
 
@@ -29,6 +32,8 @@ initial creation
 #ifndef IMODV_MENU_H
 #define IMODV_MENU_H
 #include <qobject.h>
+//Added by qt3to4:
+#include <QKeyEvent>
 
 class ColorSelector;
 typedef struct __imodv_struct ImodvApp;

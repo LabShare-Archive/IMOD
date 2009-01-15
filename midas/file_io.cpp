@@ -16,6 +16,7 @@
 #include "midas.h"
 #include "b3dutil.h"
 #include <qfile.h>
+#include <QTextStream>
 #include "dia_qtutils.h"
 
 static struct MRCheader ImageHeader;
@@ -38,7 +39,7 @@ int load_image(MidasView *vw, char *filename)
 
   if (mrc_head_read(hin->fp, hin)){
     qstr.sprintf("Could not read %s", filename);
-    midas_error(b3dGetError(), (char *)qstr.latin1(), 0);
+    midas_error(b3dGetError(), LATIN1(qstr), 0);
     return(1);
   }
 
@@ -79,7 +80,7 @@ int load_refimage(MidasView *vw, char *filename)
   }
   if (mrc_head_read(hin.fp, &hin)) {
     qstr.sprintf("Error reading reference image %s\n", filename);
-    midas_error(b3dGetError(), (char *)qstr.latin1(), 0);
+    midas_error(b3dGetError(), LATIN1(qstr), 0);
     return 1;
   }
 
@@ -88,7 +89,7 @@ int load_refimage(MidasView *vw, char *filename)
   if (hin.nx != vw->xsize || hin.ny != vw->ysize){
     qstr.sprintf("Error: size of reference image in %s does not \n"
 	    "match size of images being aligned.\n", filename);
-    midas_error("", (char *)qstr.latin1(), 0);
+    midas_error("", LATIN1(qstr), 0);
     return 1;
   }
 
@@ -99,7 +100,7 @@ int load_refimage(MidasView *vw, char *filename)
       vw->xsec = hin.nz - 1;
     qstr.sprintf("Warning: specified section for reference image "
 	    "was out of bounds;\n using section %d instead\n", vw->xsec + 1);
-    dia_err((char *)qstr.latin1());
+    dia_err(LATIN1(qstr));
   }
 
   li = *vw->li;
@@ -173,11 +174,11 @@ int load_transforms(MidasView *vw, char *filename)
   QString qline;
 
   QFile file(str);
-  if (!file.open(IO_ReadOnly | IO_Translate))
+  if (!file.open(QIODevice::ReadOnly | QIODevice::Text))
     return(-1);
 
   QTextStream stream(&file);
-  stream.setf(QTextStream::dec);
+  stream.setIntegerBase(10);
 
   if (vw->xtype == XTYPE_MONT) {
     qline = stream.readLine();
@@ -185,7 +186,7 @@ int load_transforms(MidasView *vw, char *filename)
       midas_error("Error reading displacement file.", "", 0);
       return(-2);
     }
-    sscanf(qline.latin1(), "%d%*c%d%*c",&nedgex, &nedgey);
+    sscanf(LATIN1(qline), "%d%*c%d%*c",&nedgex, &nedgey);
     if (nedgex != vw->nedge[0] && nedgey != vw->nedge[1]) {
       midas_error("Wrong number of edges in displacement file.", "", 0);
       return(-3);
@@ -197,7 +198,7 @@ int load_transforms(MidasView *vw, char *filename)
           midas_error("Error reading displacement file.", "", 0);
 	  return(-2);
 	}
-	sscanf(qline.latin1(), "%f%*c%f%*c", &(vw->edgedx[k * 2 + ixy]),
+	sscanf(LATIN1(qline), "%f%*c%f%*c", &(vw->edgedx[k * 2 + ixy]),
 	       &(vw->edgedy[k * 2 + ixy]));
       }
     set_mont_pieces(vw);
@@ -222,7 +223,7 @@ int load_transforms(MidasView *vw, char *filename)
       if (qline.isNull())
 	break;
 
-      sscanf(qline.latin1(), "%f%*c%f%*c%f%*c%f%*c%f%*c%f%*c",
+      sscanf(LATIN1(qline), "%f%*c%f%*c%f%*c%f%*c%f%*c%f%*c",
 	     &(vw->tr[k].mat[0]), &(vw->tr[k].mat[3]),
 	     &(vw->tr[k].mat[1]), &(vw->tr[k].mat[4]),
 	     &(vw->tr[k].mat[6]), &(vw->tr[k].mat[7]));
@@ -267,7 +268,7 @@ int write_transforms(MidasView *vw, char *filename)
   QString str = filename;
 
   QFile file(str);
-  if (!file.open(IO_WriteOnly | IO_Translate)) {
+  if (!file.open(QIODevice::WriteOnly | QIODevice::Text)) {
     midas_error("Couldn't open", filename, 0);
     return(-1);
   }
@@ -317,11 +318,11 @@ void load_angles(MidasView *vw)
   float lastAngle;
 
   QFile file(str);
-  if (!file.open(IO_ReadOnly | IO_Translate))
+  if (!file.open(QIODevice::ReadOnly | QIODevice::Text))
     midas_error("Error opening or reading tilt angle file", vw->tiltname, 1);
 
   QTextStream stream(&file);
-  stream.setf(QTextStream::dec);
+  stream.setIntegerBase(10);
   vw->tiltAngles = (float *)malloc(vw->zsize * sizeof(float));
   if (!vw->tiltAngles)
     midas_error("Error getting memory for tilt angles", "", 1);
@@ -334,7 +335,7 @@ void load_angles(MidasView *vw)
       num--;
       continue;
     }
-    vw->tiltAngles[num] = atof(str.latin1());
+    vw->tiltAngles[num] = atof(LATIN1(str));
   }
   if (!num)
     midas_error("No tilt angles found in the file",  vw->tiltname, 1);
@@ -345,6 +346,9 @@ void load_angles(MidasView *vw)
 
 /*
 $Log$
+Revision 3.10  2008/10/13 04:36:23  mast
+Added cosine stretching
+
 Revision 3.9  2007/02/04 21:11:33  mast
 Function name changes from mrcslice cleanup
 

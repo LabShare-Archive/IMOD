@@ -7,6 +7,10 @@
 #ifndef IMODV_LISTOBJ_H
 #define IMODV_LISTOBJ_H
 
+//Added by qt3to4:
+#include <QLabel>
+#include <QKeyEvent>
+#include <QCloseEvent>
 
 #define OBJLIST_NUMBUTTONS 9
 
@@ -14,7 +18,7 @@ typedef struct __imodv_struct ImodvApp;
 #include <qwidget.h>
 class QGridLayout;
 class QFrame;
-class QScrollView;
+class QScrollArea;
 class QPushButton;
 class QSpinBox;
 class QLineEdit;
@@ -33,12 +37,12 @@ class ImodvOlist : public QWidget
   Q_OBJECT
 
  public:
-  ImodvOlist(QWidget *parent, const char *name = NULL, 
-                WFlags fl =  Qt::WDestructiveClose | Qt::WType_TopLevel);
+  ImodvOlist(QWidget *parent, Qt::WFlags fl = Qt::Window);
   ~ImodvOlist() {};
   QFrame *mFrame;
-  QScrollView *mScroll;
+  QScrollArea *mScroll;
   void updateGroups(ImodvApp *a);
+  void adjustFrameSize();
 
  public slots:
   void toggleListSlot(int ob);
@@ -70,6 +74,9 @@ class ImodvOlist : public QWidget
 /*
 
 $Log$
+Revision 4.3  2008/05/22 15:41:59  mast
+Added Others On button
+
 Revision 4.2  2008/01/27 06:22:28  mast
 Added multiple object group controls
 

@@ -1,742 +1,659 @@
-<!DOCTYPE UI><UI version="3.3" stdsetdef="1">
-<class>ScaleBarForm</class>
-<widget class="QWidget">
-    <property name="name">
-        <cstring>ScaleBarForm</cstring>
+<ui version="4.0" stdsetdef="1" >
+  <author></author>
+  <comment></comment>
+  <exportmacro></exportmacro>
+  <class>ScaleBarForm</class>
+  <widget class="QWidget" name="ScaleBarForm" >
+    <property name="geometry" >
+      <rect>
+        <x>0</x>
+        <y>0</y>
+        <width>256</width>
+        <height>423</height>
+      </rect>
     </property>
-    <property name="geometry">
-        <rect>
-            <x>0</x>
-            <y>0</y>
-            <width>256</width>
-            <height>423</height>
-        </rect>
+    <property name="windowTitle" >
+      <string>3dmod Scale Bar</string>
     </property>
-    <property name="caption">
-        <string>3dmod Scale Bar</string>
-    </property>
-    <vbox>
-        <property name="name">
-            <cstring>unnamed</cstring>
-        </property>
-        <widget class="QCheckBox">
-            <property name="name">
-                <cstring>drawCheckBox</cstring>
-            </property>
-            <property name="focusPolicy">
-                <enum>NoFocus</enum>
-            </property>
-            <property name="text">
-                <string>Draw scale bars</string>
-            </property>
-            <property name="toolTip" stdset="0">
-                <string>Turn on scale bar drawing in all windows</string>
-            </property>
+    <layout class="QVBoxLayout" >
+      <item>
+        <widget class="QCheckBox" name="drawCheckBox" >
+          <property name="focusPolicy" >
+            <enum>Qt::NoFocus</enum>
+          </property>
+          <property name="text" >
+            <string>Draw scale bars</string>
+          </property>
+          <property name="toolTip" stdset="0" >
+            <string>Turn on scale bar drawing in all windows</string>
+          </property>
         </widget>
-        <widget class="QLayoutWidget">
-            <property name="name">
-                <cstring>layout43</cstring>
-            </property>
-            <grid>
-                <property name="name">
-                    <cstring>unnamed</cstring>
+      </item>
+      <item>
+        <layout class="QGridLayout" >
+          <item row="1" column="0" >
+            <widget class="QCheckBox" name="colorCheckBox" >
+              <property name="text" >
+                <string>Color ramp</string>
+              </property>
+              <property name="toolTip" stdset="0" >
+                <string>Draw a false color ramp instead of black/white bars</string>
+              </property>
+            </widget>
+          </item>
+          <item row="0" column="0" >
+            <widget class="QCheckBox" name="whiteCheckBox" >
+              <property name="focusPolicy" >
+                <enum>Qt::NoFocus</enum>
+              </property>
+              <property name="text" >
+                <string>White bars</string>
+              </property>
+              <property name="toolTip" stdset="0" >
+                <string>Draw white instead of black bars</string>
+              </property>
+            </widget>
+          </item>
+          <item row="1" column="1" >
+            <widget class="QCheckBox" name="invertCheckBox" >
+              <property name="text" >
+                <string>Invert ramp</string>
+              </property>
+              <property name="toolTip" stdset="0" >
+                <string>Reverse the direction of the color ramp</string>
+              </property>
+            </widget>
+          </item>
+          <item row="0" column="1" >
+            <widget class="QCheckBox" name="verticalCheckBox" >
+              <property name="focusPolicy" >
+                <enum>Qt::NoFocus</enum>
+              </property>
+              <property name="text" >
+                <string>Vertical bars</string>
+              </property>
+              <property name="toolTip" stdset="0" >
+                <string>Draw bars vertically instead of horizontally</string>
+              </property>
+            </widget>
+          </item>
+        </layout>
+      </item>
+      <item>
+        <layout class="QHBoxLayout" >
+          <item>
+            <widget class="QLabel" name="textLabel1" >
+              <property name="text" >
+                <string>Minimum length</string>
+              </property>
+              <property name="wordWrap" >
+                <bool>false</bool>
+              </property>
+            </widget>
+          </item>
+          <item>
+            <widget class="QSpinBox" name="lengthSpinBox" >
+              <property name="focusPolicy" >
+                <enum>Qt::ClickFocus</enum>
+              </property>
+              <property name="maximum" >
+                <number>1000</number>
+              </property>
+              <property name="minimum" >
+                <number>10</number>
+              </property>
+              <property name="singleStep" >
+                <number>5</number>
+              </property>
+              <property name="value" >
+                <number>50</number>
+              </property>
+              <property name="toolTip" stdset="0" >
+                <string>Set minimum length of bars in pixels</string>
+              </property>
+            </widget>
+          </item>
+          <item>
+            <widget class="QLabel" name="textLabel2" >
+              <property name="text" >
+                <string>pixels</string>
+              </property>
+              <property name="wordWrap" >
+                <bool>false</bool>
+              </property>
+            </widget>
+          </item>
+          <item>
+            <spacer name="spacer7" >
+              <property name="sizeHint" >
+                <size>
+                  <width>0</width>
+                  <height>20</height>
+                </size>
+              </property>
+              <property name="sizeType" >
+                <enum>QSizePolicy::Minimum</enum>
+              </property>
+              <property name="orientation" >
+                <enum>Qt::Horizontal</enum>
+              </property>
+            </spacer>
+          </item>
+        </layout>
+      </item>
+      <item>
+        <layout class="QHBoxLayout" >
+          <item>
+            <widget class="QLabel" name="textLabel3" >
+              <property name="text" >
+                <string>Thickness</string>
+              </property>
+              <property name="wordWrap" >
+                <bool>false</bool>
+              </property>
+            </widget>
+          </item>
+          <item>
+            <widget class="QSpinBox" name="thicknessSpinBox" >
+              <property name="focusPolicy" >
+                <enum>Qt::ClickFocus</enum>
+              </property>
+              <property name="maximum" >
+                <number>50</number>
+              </property>
+              <property name="minimum" >
+                <number>1</number>
+              </property>
+              <property name="value" >
+                <number>10</number>
+              </property>
+              <property name="toolTip" stdset="0" >
+                <string>Set thickness of bar in pixels</string>
+              </property>
+            </widget>
+          </item>
+          <item>
+            <spacer name="spacer6" >
+              <property name="sizeHint" >
+                <size>
+                  <width>40</width>
+                  <height>20</height>
+                </size>
+              </property>
+              <property name="sizeType" >
+                <enum>QSizePolicy::MinimumExpanding</enum>
+              </property>
+              <property name="orientation" >
+                <enum>Qt::Horizontal</enum>
+              </property>
+            </spacer>
+          </item>
+        </layout>
+      </item>
+      <item>
+        <layout class="QHBoxLayout" >
+          <item>
+            <widget class="QLabel" name="textLabel4" >
+              <property name="text" >
+                <string>Position</string>
+              </property>
+              <property name="wordWrap" >
+                <bool>false</bool>
+              </property>
+            </widget>
+          </item>
+          <item>
+            <widget class="QComboBox" name="positionComboBox" >
+              <property name="toolTip" stdset="0" >
+                <string>Set corner bars will be located in</string>
+              </property>
+              <item>
+                <property name="text" >
+                  <string>Lower Right</string>
                 </property>
-                <widget class="QCheckBox" row="1" column="0">
-                    <property name="name">
-                        <cstring>colorCheckBox</cstring>
-                    </property>
-                    <property name="text">
-                        <string>Color ramp</string>
-                    </property>
-                    <property name="toolTip" stdset="0">
-                        <string>Draw a false color ramp instead of black/white bars</string>
-                    </property>
-                </widget>
-                <widget class="QCheckBox" row="0" column="0">
-                    <property name="name">
-                        <cstring>whiteCheckBox</cstring>
-                    </property>
-                    <property name="focusPolicy">
-                        <enum>NoFocus</enum>
-                    </property>
-                    <property name="text">
-                        <string>White bars</string>
-                    </property>
-                    <property name="toolTip" stdset="0">
-                        <string>Draw white instead of black bars</string>
-                    </property>
-                </widget>
-                <widget class="QCheckBox" row="1" column="1">
-                    <property name="name">
-                        <cstring>invertCheckBox</cstring>
-                    </property>
-                    <property name="text">
-                        <string>Invert ramp</string>
-                    </property>
-                    <property name="toolTip" stdset="0">
-                        <string>Reverse the direction of the color ramp</string>
-                    </property>
-                </widget>
-                <widget class="QCheckBox" row="0" column="1">
-                    <property name="name">
-                        <cstring>verticalCheckBox</cstring>
-                    </property>
-                    <property name="focusPolicy">
-                        <enum>NoFocus</enum>
-                    </property>
-                    <property name="text">
-                        <string>Vertical bars</string>
-                    </property>
-                    <property name="toolTip" stdset="0">
-                        <string>Draw bars vertically instead of horizontally</string>
-                    </property>
-                </widget>
-            </grid>
-        </widget>
-        <widget class="QLayoutWidget">
-            <property name="name">
-                <cstring>layout10</cstring>
-            </property>
-            <hbox>
-                <property name="name">
-                    <cstring>unnamed</cstring>
+              </item>
+              <item>
+                <property name="text" >
+                  <string>Lower Left</string>
                 </property>
-                <widget class="QLabel">
-                    <property name="name">
-                        <cstring>textLabel1</cstring>
-                    </property>
-                    <property name="text">
-                        <string>Minimum length</string>
-                    </property>
-                </widget>
-                <widget class="QSpinBox">
-                    <property name="name">
-                        <cstring>lengthSpinBox</cstring>
-                    </property>
-                    <property name="focusPolicy">
-                        <enum>ClickFocus</enum>
-                    </property>
-                    <property name="maxValue">
-                        <number>1000</number>
-                    </property>
-                    <property name="minValue">
-                        <number>10</number>
-                    </property>
-                    <property name="lineStep">
-                        <number>5</number>
-                    </property>
-                    <property name="value">
-                        <number>50</number>
-                    </property>
-                    <property name="toolTip" stdset="0">
-                        <string>Set minimum length of bars in pixels</string>
-                    </property>
-                </widget>
-                <widget class="QLabel">
-                    <property name="name">
-                        <cstring>textLabel2</cstring>
-                    </property>
-                    <property name="text">
-                        <string>pixels</string>
-                    </property>
-                </widget>
-                <spacer>
-                    <property name="name">
-                        <cstring>spacer7</cstring>
-                    </property>
-                    <property name="orientation">
-                        <enum>Horizontal</enum>
-                    </property>
-                    <property name="sizeType">
-                        <enum>Minimum</enum>
-                    </property>
-                    <property name="sizeHint">
-                        <size>
-                            <width>0</width>
-                            <height>20</height>
-                        </size>
-                    </property>
-                </spacer>
-            </hbox>
-        </widget>
-        <widget class="QLayoutWidget">
-            <property name="name">
-                <cstring>layout9</cstring>
-            </property>
-            <hbox>
-                <property name="name">
-                    <cstring>unnamed</cstring>
+              </item>
+              <item>
+                <property name="text" >
+                  <string>Upper Left</string>
                 </property>
-                <widget class="QLabel">
-                    <property name="name">
-                        <cstring>textLabel3</cstring>
-                    </property>
-                    <property name="text">
-                        <string>Thickness</string>
-                    </property>
-                </widget>
-                <widget class="QSpinBox">
-                    <property name="name">
-                        <cstring>thicknessSpinBox</cstring>
-                    </property>
-                    <property name="focusPolicy">
-                        <enum>ClickFocus</enum>
-                    </property>
-                    <property name="maxValue">
-                        <number>50</number>
-                    </property>
-                    <property name="minValue">
-                        <number>1</number>
-                    </property>
-                    <property name="value">
-                        <number>10</number>
-                    </property>
-                    <property name="toolTip" stdset="0">
-                        <string>Set thickness of bar in pixels</string>
-                    </property>
-                </widget>
-                <spacer>
-                    <property name="name">
-                        <cstring>spacer6</cstring>
-                    </property>
-                    <property name="orientation">
-                        <enum>Horizontal</enum>
-                    </property>
-                    <property name="sizeType">
-                        <enum>MinimumExpanding</enum>
-                    </property>
-                    <property name="sizeHint">
-                        <size>
-                            <width>40</width>
-                            <height>20</height>
-                        </size>
-                    </property>
-                </spacer>
-            </hbox>
-        </widget>
-        <widget class="QLayoutWidget">
-            <property name="name">
-                <cstring>layout10</cstring>
-            </property>
-            <hbox>
-                <property name="name">
-                    <cstring>unnamed</cstring>
+              </item>
+              <item>
+                <property name="text" >
+                  <string>Upper Right</string>
                 </property>
-                <widget class="QLabel">
-                    <property name="name">
-                        <cstring>textLabel4</cstring>
-                    </property>
-                    <property name="text">
-                        <string>Position</string>
-                    </property>
-                </widget>
-                <widget class="QComboBox">
-                    <item>
-                        <property name="text">
-                            <string>Lower Right</string>
-                        </property>
-                    </item>
-                    <item>
-                        <property name="text">
-                            <string>Lower Left</string>
-                        </property>
-                    </item>
-                    <item>
-                        <property name="text">
-                            <string>Upper Left</string>
-                        </property>
-                    </item>
-                    <item>
-                        <property name="text">
-                            <string>Upper Right</string>
-                        </property>
-                    </item>
-                    <property name="name">
-                        <cstring>positionComboBox</cstring>
-                    </property>
-                    <property name="toolTip" stdset="0">
-                        <string>Set corner bars will be located in</string>
-                    </property>
-                </widget>
-                <spacer>
-                    <property name="name">
-                        <cstring>spacer5</cstring>
-                    </property>
-                    <property name="orientation">
-                        <enum>Horizontal</enum>
-                    </property>
-                    <property name="sizeType">
-                        <enum>MinimumExpanding</enum>
-                    </property>
-                    <property name="sizeHint">
-                        <size>
-                            <width>16</width>
-                            <height>20</height>
-                        </size>
-                    </property>
-                </spacer>
-            </hbox>
+              </item>
+            </widget>
+          </item>
+          <item>
+            <spacer name="spacer5" >
+              <property name="sizeHint" >
+                <size>
+                  <width>16</width>
+                  <height>20</height>
+                </size>
+              </property>
+              <property name="sizeType" >
+                <enum>QSizePolicy::MinimumExpanding</enum>
+              </property>
+              <property name="orientation" >
+                <enum>Qt::Horizontal</enum>
+              </property>
+            </spacer>
+          </item>
+        </layout>
+      </item>
+      <item>
+        <layout class="QHBoxLayout" >
+          <item>
+            <widget class="QLabel" name="textLabel5" >
+              <property name="text" >
+                <string>Indentation in X</string>
+              </property>
+              <property name="wordWrap" >
+                <bool>false</bool>
+              </property>
+            </widget>
+          </item>
+          <item>
+            <widget class="QSpinBox" name="indentXspinBox" >
+              <property name="focusPolicy" >
+                <enum>Qt::ClickFocus</enum>
+              </property>
+              <property name="maximum" >
+                <number>500</number>
+              </property>
+              <property name="minimum" >
+                <number>1</number>
+              </property>
+              <property name="value" >
+                <number>20</number>
+              </property>
+              <property name="toolTip" stdset="0" >
+                <string>Distance from edge of window in X</string>
+              </property>
+            </widget>
+          </item>
+          <item>
+            <widget class="QLabel" name="textLabel6" >
+              <property name="text" >
+                <string>Y</string>
+              </property>
+              <property name="wordWrap" >
+                <bool>false</bool>
+              </property>
+            </widget>
+          </item>
+          <item>
+            <widget class="QSpinBox" name="indentYspinBox" >
+              <property name="focusPolicy" >
+                <enum>Qt::ClickFocus</enum>
+              </property>
+              <property name="maximum" >
+                <number>500</number>
+              </property>
+              <property name="minimum" >
+                <number>1</number>
+              </property>
+              <property name="value" >
+                <number>20</number>
+              </property>
+              <property name="toolTip" stdset="0" >
+                <string>Distance from edge of window in X</string>
+              </property>
+            </widget>
+          </item>
+          <item>
+            <spacer name="spacer8" >
+              <property name="sizeHint" >
+                <size>
+                  <width>0</width>
+                  <height>20</height>
+                </size>
+              </property>
+              <property name="sizeType" >
+                <enum>QSizePolicy::Minimum</enum>
+              </property>
+              <property name="orientation" >
+                <enum>Qt::Horizontal</enum>
+              </property>
+            </spacer>
+          </item>
+        </layout>
+      </item>
+      <item>
+        <layout class="QHBoxLayout" >
+          <item>
+            <widget class="QCheckBox" name="customCheckBox" >
+              <property name="focusPolicy" >
+                <enum>Qt::NoFocus</enum>
+              </property>
+              <property name="text" >
+                <string>Make bar multiple of</string>
+              </property>
+            </widget>
+          </item>
+          <item>
+            <widget class="QSpinBox" name="customSpinBox" >
+              <property name="focusPolicy" >
+                <enum>Qt::ClickFocus</enum>
+              </property>
+              <property name="maximum" >
+                <number>90</number>
+              </property>
+              <property name="minimum" >
+                <number>10</number>
+              </property>
+              <property name="singleStep" >
+                <number>5</number>
+              </property>
+              <property name="value" >
+                <number>25</number>
+              </property>
+            </widget>
+          </item>
+          <item>
+            <spacer name="spacer5_2" >
+              <property name="sizeHint" >
+                <size>
+                  <width>0</width>
+                  <height>20</height>
+                </size>
+              </property>
+              <property name="sizeType" >
+                <enum>QSizePolicy::Minimum</enum>
+              </property>
+              <property name="orientation" >
+                <enum>Qt::Horizontal</enum>
+              </property>
+            </spacer>
+          </item>
+        </layout>
+      </item>
+      <item>
+        <layout class="QGridLayout" >
+          <item row="3" column="0" >
+            <widget class="QLabel" name="xyzLabel" >
+              <property name="text" >
+                <string>XYZ:</string>
+              </property>
+              <property name="alignment" >
+                <set>Qt::AlignVCenter|Qt::AlignRight</set>
+              </property>
+              <property name="wordWrap" >
+                <bool>false</bool>
+              </property>
+            </widget>
+          </item>
+          <item row="1" column="1" >
+            <widget class="QLabel" name="slicerValue" >
+              <property name="text" >
+                <string>10000 pixels</string>
+              </property>
+              <property name="wordWrap" >
+                <bool>false</bool>
+              </property>
+            </widget>
+          </item>
+          <item row="4" column="0" >
+            <widget class="QLabel" name="textLabel11" >
+              <property name="text" >
+                <string>Model View:</string>
+              </property>
+              <property name="alignment" >
+                <set>Qt::AlignVCenter|Qt::AlignRight</set>
+              </property>
+              <property name="wordWrap" >
+                <bool>false</bool>
+              </property>
+            </widget>
+          </item>
+          <item row="2" column="1" >
+            <widget class="QLabel" name="multiZValue" >
+              <property name="text" >
+                <string>10000 pixels</string>
+              </property>
+              <property name="wordWrap" >
+                <bool>false</bool>
+              </property>
+            </widget>
+          </item>
+          <item row="1" column="0" >
+            <widget class="QLabel" name="slicerLabel" >
+              <property name="text" >
+                <string>Top Slicer:</string>
+              </property>
+              <property name="alignment" >
+                <set>Qt::AlignVCenter|Qt::AlignRight</set>
+              </property>
+              <property name="wordWrap" >
+                <bool>false</bool>
+              </property>
+            </widget>
+          </item>
+          <item row="3" column="1" >
+            <widget class="QLabel" name="xyzValue" >
+              <property name="text" >
+                <string>10000 pixels</string>
+              </property>
+              <property name="wordWrap" >
+                <bool>false</bool>
+              </property>
+            </widget>
+          </item>
+          <item row="2" column="0" >
+            <widget class="QLabel" name="multiZLabel" >
+              <property name="text" >
+                <string>Top Multi-Z:</string>
+              </property>
+              <property name="alignment" >
+                <set>Qt::AlignVCenter|Qt::AlignRight</set>
+              </property>
+              <property name="wordWrap" >
+                <bool>false</bool>
+              </property>
+            </widget>
+          </item>
+          <item row="0" column="0" >
+            <widget class="QLabel" name="zapLabel" >
+              <property name="text" >
+                <string>Top Zap:</string>
+              </property>
+              <property name="alignment" >
+                <set>Qt::AlignVCenter|Qt::AlignRight</set>
+              </property>
+              <property name="wordWrap" >
+                <bool>false</bool>
+              </property>
+            </widget>
+          </item>
+          <item row="0" column="1" >
+            <widget class="QLabel" name="zapValue" >
+              <property name="text" >
+                <string>10000 pixels</string>
+              </property>
+              <property name="wordWrap" >
+                <bool>false</bool>
+              </property>
+            </widget>
+          </item>
+          <item row="4" column="1" >
+            <widget class="QLabel" name="modvValue" >
+              <property name="text" >
+                <string>10000 pixels</string>
+              </property>
+              <property name="wordWrap" >
+                <bool>false</bool>
+              </property>
+            </widget>
+          </item>
+        </layout>
+      </item>
+      <item>
+        <widget class="Line" name="Line1" >
+          <property name="frameShape" >
+            <enum>QFrame::HLine</enum>
+          </property>
+          <property name="frameShadow" >
+            <enum>QFrame::Sunken</enum>
+          </property>
         </widget>
-        <widget class="QLayoutWidget">
-            <property name="name">
-                <cstring>layout12</cstring>
-            </property>
-            <hbox>
-                <property name="name">
-                    <cstring>unnamed</cstring>
-                </property>
-                <widget class="QLabel">
-                    <property name="name">
-                        <cstring>textLabel5</cstring>
-                    </property>
-                    <property name="text">
-                        <string>Indentation in X</string>
-                    </property>
-                </widget>
-                <widget class="QSpinBox">
-                    <property name="name">
-                        <cstring>indentXspinBox</cstring>
-                    </property>
-                    <property name="focusPolicy">
-                        <enum>ClickFocus</enum>
-                    </property>
-                    <property name="maxValue">
-                        <number>500</number>
-                    </property>
-                    <property name="minValue">
-                        <number>1</number>
-                    </property>
-                    <property name="value">
-                        <number>20</number>
-                    </property>
-                    <property name="toolTip" stdset="0">
-                        <string>Distance from edge of window in X</string>
-                    </property>
-                </widget>
-                <widget class="QLabel">
-                    <property name="name">
-                        <cstring>textLabel6</cstring>
-                    </property>
-                    <property name="text">
-                        <string>Y</string>
-                    </property>
-                </widget>
-                <widget class="QSpinBox">
-                    <property name="name">
-                        <cstring>indentYspinBox</cstring>
-                    </property>
-                    <property name="focusPolicy">
-                        <enum>ClickFocus</enum>
-                    </property>
-                    <property name="maxValue">
-                        <number>500</number>
-                    </property>
-                    <property name="minValue">
-                        <number>1</number>
-                    </property>
-                    <property name="value">
-                        <number>20</number>
-                    </property>
-                    <property name="toolTip" stdset="0">
-                        <string>Distance from edge of window in X</string>
-                    </property>
-                </widget>
-                <spacer>
-                    <property name="name">
-                        <cstring>spacer8</cstring>
-                    </property>
-                    <property name="orientation">
-                        <enum>Horizontal</enum>
-                    </property>
-                    <property name="sizeType">
-                        <enum>Minimum</enum>
-                    </property>
-                    <property name="sizeHint">
-                        <size>
-                            <width>0</width>
-                            <height>20</height>
-                        </size>
-                    </property>
-                </spacer>
-            </hbox>
-        </widget>
-        <widget class="QLayoutWidget">
-            <property name="name">
-                <cstring>layout7</cstring>
-            </property>
-            <hbox>
-                <property name="name">
-                    <cstring>unnamed</cstring>
-                </property>
-                <widget class="QCheckBox">
-                    <property name="name">
-                        <cstring>customCheckBox</cstring>
-                    </property>
-                    <property name="focusPolicy">
-                        <enum>NoFocus</enum>
-                    </property>
-                    <property name="text">
-                        <string>Make bar multiple of</string>
-                    </property>
-                </widget>
-                <widget class="QSpinBox">
-                    <property name="name">
-                        <cstring>customSpinBox</cstring>
-                    </property>
-                    <property name="focusPolicy">
-                        <enum>ClickFocus</enum>
-                    </property>
-                    <property name="maxValue">
-                        <number>90</number>
-                    </property>
-                    <property name="minValue">
-                        <number>10</number>
-                    </property>
-                    <property name="lineStep">
-                        <number>5</number>
-                    </property>
-                    <property name="value">
-                        <number>25</number>
-                    </property>
-                </widget>
-                <spacer>
-                    <property name="name">
-                        <cstring>spacer5_2</cstring>
-                    </property>
-                    <property name="orientation">
-                        <enum>Horizontal</enum>
-                    </property>
-                    <property name="sizeType">
-                        <enum>Minimum</enum>
-                    </property>
-                    <property name="sizeHint">
-                        <size>
-                            <width>0</width>
-                            <height>20</height>
-                        </size>
-                    </property>
-                </spacer>
-            </hbox>
-        </widget>
-        <widget class="QLayoutWidget">
-            <property name="name">
-                <cstring>layout15</cstring>
-            </property>
-            <grid>
-                <property name="name">
-                    <cstring>unnamed</cstring>
-                </property>
-                <widget class="QLabel" row="3" column="0">
-                    <property name="name">
-                        <cstring>xyzLabel</cstring>
-                    </property>
-                    <property name="text">
-                        <string>XYZ:</string>
-                    </property>
-                    <property name="alignment">
-                        <set>AlignVCenter|AlignRight</set>
-                    </property>
-                </widget>
-                <widget class="QLabel" row="1" column="1">
-                    <property name="name">
-                        <cstring>slicerValue</cstring>
-                    </property>
-                    <property name="text">
-                        <string>10000 pixels</string>
-                    </property>
-                </widget>
-                <widget class="QLabel" row="4" column="0">
-                    <property name="name">
-                        <cstring>textLabel11</cstring>
-                    </property>
-                    <property name="text">
-                        <string>Model View:</string>
-                    </property>
-                    <property name="alignment">
-                        <set>AlignVCenter|AlignRight</set>
-                    </property>
-                </widget>
-                <widget class="QLabel" row="2" column="1">
-                    <property name="name">
-                        <cstring>multiZValue</cstring>
-                    </property>
-                    <property name="text">
-                        <string>10000 pixels</string>
-                    </property>
-                </widget>
-                <widget class="QLabel" row="1" column="0">
-                    <property name="name">
-                        <cstring>slicerLabel</cstring>
-                    </property>
-                    <property name="text">
-                        <string>Top Slicer:</string>
-                    </property>
-                    <property name="alignment">
-                        <set>AlignVCenter|AlignRight</set>
-                    </property>
-                </widget>
-                <widget class="QLabel" row="3" column="1">
-                    <property name="name">
-                        <cstring>xyzValue</cstring>
-                    </property>
-                    <property name="text">
-                        <string>10000 pixels</string>
-                    </property>
-                </widget>
-                <widget class="QLabel" row="2" column="0">
-                    <property name="name">
-                        <cstring>multiZLabel</cstring>
-                    </property>
-                    <property name="text">
-                        <string>Top Multi-Z:</string>
-                    </property>
-                    <property name="alignment">
-                        <set>AlignVCenter|AlignRight</set>
-                    </property>
-                </widget>
-                <widget class="QLabel" row="0" column="0">
-                    <property name="name">
-                        <cstring>zapLabel</cstring>
-                    </property>
-                    <property name="text">
-                        <string>Top Zap:</string>
-                    </property>
-                    <property name="alignment">
-                        <set>AlignVCenter|AlignRight</set>
-                    </property>
-                </widget>
-                <widget class="QLabel" row="0" column="1">
-                    <property name="name">
-                        <cstring>zapValue</cstring>
-                    </property>
-                    <property name="text">
-                        <string>10000 pixels</string>
-                    </property>
-                </widget>
-                <widget class="QLabel" row="4" column="1">
-                    <property name="name">
-                        <cstring>modvValue</cstring>
-                    </property>
-                    <property name="text">
-                        <string>10000 pixels</string>
-                    </property>
-                </widget>
-            </grid>
-        </widget>
-        <widget class="Line">
-            <property name="name">
-                <cstring>Line1</cstring>
-            </property>
-            <property name="frameShape">
-                <enum>HLine</enum>
-            </property>
-            <property name="frameShadow">
-                <enum>Sunken</enum>
-            </property>
-            <property name="orientation">
-                <enum>Horizontal</enum>
-            </property>
-        </widget>
-        <widget class="QLayoutWidget">
-            <property name="name">
-                <cstring>layout32</cstring>
-            </property>
-            <hbox>
-                <property name="name">
-                    <cstring>unnamed</cstring>
-                </property>
-                <widget class="QPushButton">
-                    <property name="name">
-                        <cstring>doneButton</cstring>
-                    </property>
-                    <property name="sizePolicy">
-                        <sizepolicy>
-                            <hsizetype>0</hsizetype>
-                            <vsizetype>0</vsizetype>
-                            <horstretch>0</horstretch>
-                            <verstretch>0</verstretch>
-                        </sizepolicy>
-                    </property>
-                    <property name="maximumSize">
-                        <size>
-                            <width>70</width>
-                            <height>32767</height>
-                        </size>
-                    </property>
-                    <property name="focusPolicy">
-                        <enum>NoFocus</enum>
-                    </property>
-                    <property name="text">
-                        <string>Done</string>
-                    </property>
-                    <property name="autoDefault">
-                        <bool>false</bool>
-                    </property>
-                    <property name="toolTip" stdset="0">
-                        <string>Close this dialog box</string>
-                    </property>
-                </widget>
-                <widget class="QPushButton">
-                    <property name="name">
-                        <cstring>helpButton</cstring>
-                    </property>
-                    <property name="sizePolicy">
-                        <sizepolicy>
-                            <hsizetype>0</hsizetype>
-                            <vsizetype>0</vsizetype>
-                            <horstretch>0</horstretch>
-                            <verstretch>0</verstretch>
-                        </sizepolicy>
-                    </property>
-                    <property name="maximumSize">
-                        <size>
-                            <width>70</width>
-                            <height>32767</height>
-                        </size>
-                    </property>
-                    <property name="focusPolicy">
-                        <enum>NoFocus</enum>
-                    </property>
-                    <property name="text">
-                        <string>Help</string>
-                    </property>
-                    <property name="autoDefault">
-                        <bool>false</bool>
-                    </property>
-                    <property name="toolTip" stdset="0">
-                        <string>Open a help window</string>
-                    </property>
-                </widget>
-            </hbox>
-        </widget>
-    </vbox>
-</widget>
-<connections>
+      </item>
+      <item>
+        <layout class="QHBoxLayout" >
+          <item>
+            <widget class="QPushButton" name="doneButton" >
+              <property name="sizePolicy" >
+                <sizepolicy>
+                  <hsizetype>0</hsizetype>
+                  <vsizetype>0</vsizetype>
+                  <horstretch>0</horstretch>
+                  <verstretch>0</verstretch>
+                </sizepolicy>
+              </property>
+              <property name="maximumSize" >
+                <size>
+                  <width>70</width>
+                  <height>32767</height>
+                </size>
+              </property>
+              <property name="focusPolicy" >
+                <enum>Qt::NoFocus</enum>
+              </property>
+              <property name="text" >
+                <string>Done</string>
+              </property>
+              <property name="autoDefault" >
+                <bool>false</bool>
+              </property>
+              <property name="toolTip" stdset="0" >
+                <string>Close this dialog box</string>
+              </property>
+            </widget>
+          </item>
+          <item>
+            <widget class="QPushButton" name="helpButton" >
+              <property name="sizePolicy" >
+                <sizepolicy>
+                  <hsizetype>0</hsizetype>
+                  <vsizetype>0</vsizetype>
+                  <horstretch>0</horstretch>
+                  <verstretch>0</verstretch>
+                </sizepolicy>
+              </property>
+              <property name="maximumSize" >
+                <size>
+                  <width>70</width>
+                  <height>32767</height>
+                </size>
+              </property>
+              <property name="focusPolicy" >
+                <enum>Qt::NoFocus</enum>
+              </property>
+              <property name="text" >
+                <string>Help</string>
+              </property>
+              <property name="autoDefault" >
+                <bool>false</bool>
+              </property>
+              <property name="toolTip" stdset="0" >
+                <string>Open a help window</string>
+              </property>
+            </widget>
+          </item>
+        </layout>
+      </item>
+    </layout>
+  </widget>
+  <layoutdefault spacing="6" margin="11" />
+  <connections>
     <connection>
-        <sender>drawCheckBox</sender>
-        <signal>toggled(bool)</signal>
-        <receiver>ScaleBarForm</receiver>
-        <slot>drawToggled(bool)</slot>
+      <sender>drawCheckBox</sender>
+      <signal>toggled(bool)</signal>
+      <receiver>ScaleBarForm</receiver>
+      <slot>drawToggled(bool)</slot>
     </connection>
     <connection>
-        <sender>whiteCheckBox</sender>
-        <signal>toggled(bool)</signal>
-        <receiver>ScaleBarForm</receiver>
-        <slot>whiteToggled(bool)</slot>
+      <sender>whiteCheckBox</sender>
+      <signal>toggled(bool)</signal>
+      <receiver>ScaleBarForm</receiver>
+      <slot>whiteToggled(bool)</slot>
     </connection>
     <connection>
-        <sender>lengthSpinBox</sender>
-        <signal>valueChanged(int)</signal>
-        <receiver>ScaleBarForm</receiver>
-        <slot>lengthChanged(int)</slot>
+      <sender>lengthSpinBox</sender>
+      <signal>valueChanged(int)</signal>
+      <receiver>ScaleBarForm</receiver>
+      <slot>lengthChanged(int)</slot>
     </connection>
     <connection>
-        <sender>thicknessSpinBox</sender>
-        <signal>valueChanged(int)</signal>
-        <receiver>ScaleBarForm</receiver>
-        <slot>thicknessChanged(int)</slot>
+      <sender>thicknessSpinBox</sender>
+      <signal>valueChanged(int)</signal>
+      <receiver>ScaleBarForm</receiver>
+      <slot>thicknessChanged(int)</slot>
     </connection>
     <connection>
-        <sender>positionComboBox</sender>
-        <signal>activated(int)</signal>
-        <receiver>ScaleBarForm</receiver>
-        <slot>positionChanged(int)</slot>
+      <sender>positionComboBox</sender>
+      <signal>activated(int)</signal>
+      <receiver>ScaleBarForm</receiver>
+      <slot>positionChanged(int)</slot>
     </connection>
     <connection>
-        <sender>indentXspinBox</sender>
-        <signal>valueChanged(int)</signal>
-        <receiver>ScaleBarForm</receiver>
-        <slot>indentXchanged(int)</slot>
+      <sender>indentXspinBox</sender>
+      <signal>valueChanged(int)</signal>
+      <receiver>ScaleBarForm</receiver>
+      <slot>indentXchanged(int)</slot>
     </connection>
     <connection>
-        <sender>indentYspinBox</sender>
-        <signal>valueChanged(int)</signal>
-        <receiver>ScaleBarForm</receiver>
-        <slot>indentYchanged(int)</slot>
+      <sender>indentYspinBox</sender>
+      <signal>valueChanged(int)</signal>
+      <receiver>ScaleBarForm</receiver>
+      <slot>indentYchanged(int)</slot>
     </connection>
     <connection>
-        <sender>helpButton</sender>
-        <signal>clicked()</signal>
-        <receiver>ScaleBarForm</receiver>
-        <slot>helpPressed()</slot>
+      <sender>helpButton</sender>
+      <signal>clicked()</signal>
+      <receiver>ScaleBarForm</receiver>
+      <slot>helpPressed()</slot>
     </connection>
     <connection>
-        <sender>doneButton</sender>
-        <signal>clicked()</signal>
-        <receiver>ScaleBarForm</receiver>
-        <slot>close()</slot>
+      <sender>doneButton</sender>
+      <signal>clicked()</signal>
+      <receiver>ScaleBarForm</receiver>
+      <slot>close()</slot>
     </connection>
     <connection>
-        <sender>customCheckBox</sender>
-        <signal>toggled(bool)</signal>
-        <receiver>ScaleBarForm</receiver>
-        <slot>customToggled(bool)</slot>
+      <sender>customCheckBox</sender>
+      <signal>toggled(bool)</signal>
+      <receiver>ScaleBarForm</receiver>
+      <slot>customToggled(bool)</slot>
     </connection>
     <connection>
-        <sender>customSpinBox</sender>
-        <signal>valueChanged(int)</signal>
-        <receiver>ScaleBarForm</receiver>
-        <slot>customValChanged(int)</slot>
+      <sender>customSpinBox</sender>
+      <signal>valueChanged(int)</signal>
+      <receiver>ScaleBarForm</receiver>
+      <slot>customValChanged(int)</slot>
     </connection>
     <connection>
-        <sender>verticalCheckBox</sender>
-        <signal>toggled(bool)</signal>
-        <receiver>ScaleBarForm</receiver>
-        <slot>verticalToggled(bool)</slot>
+      <sender>verticalCheckBox</sender>
+      <signal>toggled(bool)</signal>
+      <receiver>ScaleBarForm</receiver>
+      <slot>verticalToggled(bool)</slot>
     </connection>
     <connection>
-        <sender>colorCheckBox</sender>
-        <signal>toggled(bool)</signal>
-        <receiver>ScaleBarForm</receiver>
-        <slot>colorToggled(bool)</slot>
+      <sender>colorCheckBox</sender>
+      <signal>toggled(bool)</signal>
+      <receiver>ScaleBarForm</receiver>
+      <slot>colorToggled(bool)</slot>
     </connection>
     <connection>
-        <sender>invertCheckBox</sender>
-        <signal>toggled(bool)</signal>
-        <receiver>ScaleBarForm</receiver>
-        <slot>invertToggled(bool)</slot>
+      <sender>invertCheckBox</sender>
+      <signal>toggled(bool)</signal>
+      <receiver>ScaleBarForm</receiver>
+      <slot>invertToggled(bool)</slot>
     </connection>
-</connections>
-<includes>
-    <include location="local" impldecl="in implementation">scalebar.h</include>
-    <include location="local" impldecl="in implementation">imodv.h</include>
-    <include location="local" impldecl="in implementation">imodv_input.h</include>
-    <include location="local" impldecl="in implementation">dia_qtutils.h</include>
-    <include location="local" impldecl="in implementation">control.h</include>
-    <include location="local" impldecl="in implementation">imod.h</include>
-    <include location="local" impldecl="in implementation">form_scalebar.ui.h</include>
-</includes>
-<forwards>
-    <forward>typedef struct scale_bar ScaleBar</forward>
-</forwards>
-<variables>
-    <variable access="private">ScaleBar *mParams;</variable>
-    <variable access="private">int mTimerID;</variable>
-</variables>
-<slots>
-    <slot>drawToggled( bool state )</slot>
-    <slot>whiteToggled( bool state )</slot>
-    <slot>verticalToggled( bool state )</slot>
-    <slot>colorToggled( bool state )</slot>
-    <slot>invertToggled( bool state )</slot>
-    <slot>lengthChanged( int value )</slot>
-    <slot>thicknessChanged( int value )</slot>
-    <slot>positionChanged( int value )</slot>
-    <slot>indentXchanged( int value )</slot>
-    <slot>indentYchanged( int value )</slot>
-    <slot>customToggled( bool state )</slot>
-    <slot>customValChanged( int value )</slot>
-    <slot>startUpdateTimer()</slot>
-    <slot>timerEvent( QTimerEvent * e )</slot>
-    <slot>helpPressed()</slot>
-</slots>
-<functions>
-    <function access="private" specifier="non virtual">init()</function>
-    <function>updateValues( float zapv, float multiZv, float slicerv, float xyzv, float modvv, char * units )</function>
-    <function access="protected">keyPressEvent( QKeyEvent * e )</function>
-    <function access="protected">keyReleaseEvent( QKeyEvent * e )</function>
-    <function access="protected">closeEvent( QCloseEvent * e )</function>
-</functions>
-<pixmapinproject/>
-<layoutdefaults spacing="6" margin="11"/>
-</UI>
+  </connections>
+</ui>

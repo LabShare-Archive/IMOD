@@ -13,20 +13,26 @@
  */
 
 #include <qlabel.h>
-#include <qwidgetstack.h>
+#include <QStackedWidget>
 #include <qlayout.h>
 #include <qtooltip.h>
 #include <qcombobox.h>
-#include <qlistbox.h>
+#include <qlistwidget.h>
 #include <qspinbox.h>
-#include <qvbox.h>
+#include <QDoubleSpinBox>
 #include <qcheckbox.h>
 #include <qpushbutton.h>
 #include <qradiobutton.h>
-#include <qvbuttongroup.h>
+#include <QButtonGroup>
+#include <QGroupBox>
+//Added by qt3to4:
+#include <QHBoxLayout>
+#include <QTimerEvent>
+#include <QKeyEvent>
+#include <QVBoxLayout>
+#include <QCloseEvent>
 #include "dia_qtutils.h"
 #include "tooledit.h"
-#include "floatspinbox.h"
 #include "multislider.h"
 #include "imod.h"
 #include "imod_display.h"
@@ -543,13 +549,11 @@ static void mkedge_cb(IProcWindow *win, QWidget *parent, QVBoxLayout *layout)
   diaLabel("Edge Enhancement Filter Type:", parent, layout);
   QComboBox *edgeBox = new QComboBox(parent);
   layout->addWidget(edgeBox);
-  edgeBox->insertItem("Sobel");
-  edgeBox->insertItem("Prewitt");
-  edgeBox->insertItem("Laplacian");
-  edgeBox->insertItem("Graham");
-  edgeBox->insertItem("Gradient");
-  edgeBox->setFocusPolicy(QComboBox::NoFocus);
-  edgeBox->setCurrentItem(proc.edge);
+  QStringList items;
+  items << "Sobel" << "Prewitt" << "Laplacian" << "Graham" << "Gradient";
+  edgeBox->addItems(items);
+  edgeBox->setFocusPolicy(Qt::NoFocus);
+  edgeBox->setCurrentIndex(proc.edge);
   QObject::connect(edgeBox, SIGNAL(activated(int)), win, 
                    SLOT(edgeSelected(int)));
 }
@@ -559,21 +563,20 @@ static void mkSmooth_cb(IProcWindow *win, QWidget *parent, QVBoxLayout *layout)
   diaLabel("Smoothing", parent, layout);
   diaLabel(" Uses standard 3x3 kernel", parent, layout);
   diaLabel(" or Gaussian kernel if sigma set", parent, layout);
-  QHBoxLayout *hLayout = new QHBoxLayout(layout);
-  proc.kernelSpin = (FloatSpinBox *)diaLabeledSpin
-    (2, B3DNINT(100.*NO_KERNEL_SIGMA), 1000, 10, "Kernel sigma", parent,
-     hLayout);
+  QHBoxLayout *hLayout = diaHBoxLayout(layout);
+  proc.kernelSpin = (QDoubleSpinBox *)diaLabeledSpin
+    (2, NO_KERNEL_SIGMA, 10., 0.1f, "Kernel sigma", parent, hLayout);
   diaLabel("pixels", parent, hLayout);
   proc.kernelSpin->setSpecialValueText("None");
-  proc.kernelSpin->setValue(B3DNINT(proc.kernelSigma * 100.));
-  QObject::connect(proc.kernelSpin, SIGNAL(valueChanged(int)), win, 
-                   SLOT(kernelChanged(int)));
+  proc.kernelSpin->setValue(proc.kernelSigma);
+  QObject::connect(proc.kernelSpin, SIGNAL(valueChanged(double)), win, 
+                   SLOT(kernelChanged(double)));
 
   QCheckBox *check = diaCheckBox("Rescale to match min/max", parent, layout);
   diaSetChecked(check, proc.rescaleSmooth);
   QObject::connect(check, SIGNAL(toggled(bool)), win,
                    SLOT(scaleSmthToggled(bool)));
-  QToolTip::add(check, "Rescale smoothed slice so its min/max matches original"
+  check->setToolTip("Rescale smoothed slice so its min/max matches original"
                 " slice");
 
 }
@@ -586,16 +589,15 @@ static void mkthresh_cb(IProcWindow *win, QWidget *parent, QVBoxLayout *layout)
   QObject::connect(slider, SIGNAL(sliderChanged(int, int, bool)), win, 
           SLOT(threshChanged(int, int, bool)));
   layout->addLayout(slider->getLayout());
-  QCheckBox *check = diaCheckBox("Grow thresholded area", parent,
-                                 layout);
+  QCheckBox *check = diaCheckBox("Grow thresholded area", parent, layout);
   diaSetChecked(check, proc.threshGrow);
   QObject::connect(check, SIGNAL(toggled(bool)), win, SLOT(growChanged(bool)));
-  QToolTip::add(check, "Apply dilation to grow area selected area ");
+  check->setToolTip("Apply dilation to grow area selected area ");
   check = diaCheckBox("Shrink thresholded area", parent, layout);
   diaSetChecked(check, proc.threshShrink);
   QObject::connect(check, SIGNAL(toggled(bool)), win, 
                    SLOT(shrinkChanged(bool)));
-  QToolTip::add(check, "Apply erosion to shrink selected area");
+  check->setToolTip("Apply erosion to shrink selected area");
 }
 
 static void mkFourFilt_cb(IProcWindow *win, QWidget *parent,
@@ -613,11 +615,11 @@ static void mkFourFilt_cb(IProcWindow *win, QWidget *parent,
   QObject::connect(slider, SIGNAL(sliderChanged(int, int, bool)), win, 
           SLOT(fourFiltChanged(int, int, bool)));
   layout->addLayout(slider->getLayout());
-  QToolTip::add((QWidget *)slider->getSlider(0), "Sigma for inverted Gaussian"
+  slider->getSlider(0)->setToolTip("Sigma for inverted Gaussian"
                 " high-pass filter (0 at origin)");
-  QToolTip::add((QWidget *)slider->getSlider(1), "Cutoff radius for Gaussian"
+  slider->getSlider(1)->setToolTip("Cutoff radius for Gaussian"
                 " low-pass filter");
-  QToolTip::add((QWidget *)slider->getSlider(0), "Sigma for Gaussian"
+  slider->getSlider(0)->setToolTip("Sigma for Gaussian"
                 "low-pass filter starting at cutoff");
 }
 
@@ -625,33 +627,30 @@ static void mkFFT_cb(IProcWindow *win, QWidget *parent, QVBoxLayout *layout)
 {
   diaLabel("Fourier transform", parent, layout);
   
-  QHBoxLayout *hLayout = new QHBoxLayout(layout);
-  proc.fftBinSpin = diaLabeledSpin(0, 1, 8, 1, "Binning", parent, hLayout);
+  QHBoxLayout *hLayout = diaHBoxLayout(layout);
+  proc.fftBinSpin = (QSpinBox *)diaLabeledSpin(0, 1, 8, 1, "Binning", parent,
+                                               hLayout);
   QObject::connect(proc.fftBinSpin, SIGNAL(valueChanged(int)), win, 
                    SLOT(binningChanged(int)));
   QCheckBox *check = diaCheckBox("Use Zap window subarea", parent, layout);
   diaSetChecked(check, proc.fftSubset);
   QObject::connect(check, SIGNAL(toggled(bool)), win,
                    SLOT(subsetChanged(bool)));
-  QToolTip::add(check, "Do FFT of area displayed or within rubber band "
+  check->setToolTip("Do FFT of area displayed or within rubber band "
                 "in active Zap window");
 
   proc.fftLabel1 = diaLabel("  ", parent, layout);
   proc.fftLabel2 = diaLabel("  ", parent, layout);
 
-  hLayout = new QHBoxLayout(layout);
-  QHBox *spacer = new QHBox(parent);
-  hLayout->addWidget(spacer);
-  hLayout->setStretchFactor(spacer, 10);
+  hLayout = diaHBoxLayout(layout);
+  hLayout->addStretch(0);
   proc.freqButton = diaPushButton("Report frequency", parent, hLayout);
   QObject::connect(proc.freqButton, SIGNAL(clicked()), win,
                    SLOT(reportFreqClicked()));
-  QToolTip::add(proc.freqButton,
+  proc.freqButton->setToolTip(
                 "Compute resolution at current marker or model point");
   proc.freqButton->setEnabled(false);
-  spacer = new QHBox(parent);
-  hLayout->addWidget(spacer);
-  hLayout->setStretchFactor(spacer, 10);
+  hLayout->addStretch(0);
 
   proc.fftLabel3 = diaLabel("  ", parent, layout);
   win->limitFFTbinning();
@@ -661,21 +660,17 @@ static void mkMedian_cb(IProcWindow *win, QWidget *parent,
                         QVBoxLayout *layout)
 {
   diaLabel("Median filter", parent, layout);
-  QHBoxLayout *hLayout = new QHBoxLayout(layout);
-  QLabel *label = new QLabel("Size", parent);
-  label->setAlignment(Qt::AlignRight | Qt::AlignVCenter);
-  hLayout->addWidget(label);
-  QSpinBox *sizeSpin = new QSpinBox(2, 9, 1, parent);
+  QHBoxLayout *hLayout = diaHBoxLayout(layout);
+  QSpinBox *sizeSpin = (QSpinBox *)diaLabeledSpin(0., 2., 9., 1., "Size",
+                                                  parent, hLayout);
   diaSetSpinBox(sizeSpin, proc.medianSize);
-  hLayout->addWidget(sizeSpin);
-  sizeSpin->setFocusPolicy(QWidget::ClickFocus);
   QObject::connect(sizeSpin, SIGNAL(valueChanged(int)), win, 
                    SLOT(medSizeChanged(int)));
   QCheckBox *check = diaCheckBox("Compute median in 3D cube", parent, layout);
   diaSetChecked(check, proc.median3D);
   QObject::connect(check, SIGNAL(toggled(bool)), win,
                    SLOT(med3DChanged(bool)));
-  QToolTip::add(check, "Take median in 3D cube instead of median in 2D within"
+  check->setToolTip("Take median in 3D cube instead of median in 2D within"
                 " this section");
 }
 
@@ -686,46 +681,46 @@ static void mkAnisoDiff_cb(IProcWindow *win, QWidget *parent,
   diaLabel("Anisotropic diffusion", parent, layout);
 
   // The edge stopping radio buttons
-  QVButtonGroup *stopGroup = new QVButtonGroup("Edge Stopping Function", 
-                                               parent);
-  stopGroup->setInsideSpacing(0);
-  stopGroup->setInsideMargin(5);
-  layout->addWidget(stopGroup);
-  QRadioButton *radio = diaRadioButton("Rational", stopGroup);
-  QToolTip::add(radio, "Use rational edge stopping function; may require "
-                "smaller K values");
-  radio = diaRadioButton("Tukey biweight", stopGroup);
-  QToolTip::add(radio, "Use Tukey biweight edge stopping function; may require"
-                " larger K values");
+  QGroupBox *gbox = new QGroupBox("Edge Stopping Function", parent);
+  layout->addWidget(gbox);
+  QVBoxLayout *gbLayout = new QVBoxLayout(gbox);
+  gbLayout->setSpacing(0);
+  gbLayout->setContentsMargins(5, 2, 5, 5);
+  QButtonGroup *stopGroup = new QButtonGroup(parent);
+  QRadioButton *radio = diaRadioButton
+    ("Rational", gbox, stopGroup, gbLayout, 0, "Use rational edge stopping "
+     "function; may require smaller K values");
+  radio = diaRadioButton("Tukey biweight", gbox, stopGroup, gbLayout, 1,
+                         "Use Tukey biweight edge stopping function; may "
+                         "require larger K values");
   diaSetGroup(stopGroup, proc.andfStopFunc);
+  QObject::connect(stopGroup, SIGNAL(buttonClicked(int)), win, 
+                   SLOT(andfFuncClicked(int)));
 
   // Iteration spin box and report of # done
-  QHBoxLayout *hLayout = new QHBoxLayout(layout);
-  QLabel *label = new QLabel("Iterations", parent);
-  label->setAlignment(Qt::AlignRight | Qt::AlignVCenter);
-  hLayout->addWidget(label);
-  QSpinBox *iterSpin = new QSpinBox(1, 1000, 1, parent);
+  QBoxLayout *hLayout = diaHBoxLayout(layout);
+  
+  QSpinBox *iterSpin = (QSpinBox *)diaLabeledSpin
+    (0, 1., 1000., 1., "Iterations", parent, hLayout);
   diaSetSpinBox(iterSpin, proc.andfIterations);
-  QToolTip::add(iterSpin, "Number of time steps to take in one run");
-  hLayout->addWidget(iterSpin);
-  iterSpin->setFocusPolicy(QWidget::ClickFocus);
+  iterSpin->setToolTip("Number of time steps to take in one run");
   QObject::connect(iterSpin, SIGNAL(valueChanged(int)), win, 
                    SLOT(andfIterChanged(int)));
   proc.andfDoneLabel = new QLabel("0 done", parent);
   hLayout->addWidget(proc.andfDoneLabel);
 
   // K edit box and report of unscaled K value
-  hLayout = new QHBoxLayout(layout);
-  label = new QLabel("K", parent);
+  hLayout = diaHBoxLayout(layout);
+  QLabel *label = new QLabel("K", parent);
   label->setAlignment(Qt::AlignRight | Qt::AlignVCenter);
   hLayout->addWidget(label);
   proc.andfKEdit = new ToolEdit(parent, 6);
   hLayout->addWidget(proc.andfKEdit);
-  QToolTip::add(proc.andfKEdit, "Gradient threshold parameter controlling "
+  proc.andfKEdit->setToolTip("Gradient threshold parameter controlling "
                 "edge stopping function");
   str.sprintf("%.5g", proc.andfK);
   proc.andfKEdit->setText(str);
-  proc.andfKEdit->setFocusPolicy(QWidget::ClickFocus);
+  proc.andfKEdit->setFocusPolicy(Qt::ClickFocus);
   proc.andfScaleLabel = new QLabel(" ", parent);
   setUnscaledK();
   hLayout->addWidget(proc.andfScaleLabel);
@@ -737,21 +732,19 @@ static void mkAnisoDiff_cb(IProcWindow *win, QWidget *parent,
                    SLOT(andfKEntered()));
 
   // Lambda edit box
-  hLayout = new QHBoxLayout(layout);
+  hLayout = diaHBoxLayout(layout);
   label = new QLabel("Lambda", parent);
   label->setAlignment(Qt::AlignRight | Qt::AlignVCenter);
   hLayout->addWidget(label);
   proc.andfLambdaEdit = new ToolEdit(parent, 6);
   hLayout->addWidget(proc.andfLambdaEdit);
-  QToolTip::add(proc.andfLambdaEdit, "Size of time step");
+  proc.andfLambdaEdit->setToolTip("Size of time step");
   str.sprintf("%g", proc.andfLambda);
   proc.andfLambdaEdit->setText(str);
-  proc.andfLambdaEdit->setFocusPolicy(QWidget::ClickFocus);
+  proc.andfLambdaEdit->setFocusPolicy(Qt::ClickFocus);
   QObject::connect(proc.andfLambdaEdit, SIGNAL(returnPressed()), win,
                    SLOT(setFocus()));
-  QHBox *spacer = new QHBox(parent);
-  hLayout->addWidget(spacer);
-  hLayout->setStretchFactor(spacer, 100);
+  hLayout->addStretch();
 }
 
 static void setUnscaledK()
@@ -776,7 +769,7 @@ IProcWindow::IProcWindow(QWidget *parent, const char *name)
   : DialogFrame(parent, 7, 1, buttonLabels, buttonTips, false, 
                 ImodPrefs->getRoundedStyle(), " ", "", name)
 {
-  int i;
+  int i, maxwidth = 0, width;
   QString str;
   QVBoxLayout *vLayout;
   QWidget *control;
@@ -784,34 +777,35 @@ IProcWindow::IProcWindow(QWidget *parent, const char *name)
 
   // Put an H layout inside the main layout, then fill that with the
   // List box and the widget stack
-  QHBoxLayout *hLayout = new QHBoxLayout(mLayout);
-  vLayout = new QVBoxLayout(hLayout);
-  mListBox = new QListBox(this);
+  QHBoxLayout *hLayout = diaHBoxLayout(mLayout);
+  vLayout = diaVBoxLayout(hLayout);
+  mListBox = new QListWidget(this);
   vLayout->addWidget(mListBox);
-  mListBox->setFocusPolicy(QListBox::NoFocus);
+  mListBox->setFocusPolicy(Qt::NoFocus);
+  mListBox->setSelectionMode(QAbstractItemView::SingleSelection);
 
+  vLayout->addStretch();
   QCheckBox *check = diaCheckBox("Autoapply", this, vLayout);
   diaSetChecked(check, proc.autoApply);
   QObject::connect(check, SIGNAL(toggled(bool)), this,
                    SLOT(autoApplyToggled(bool)));
-  QToolTip::add(check, "Apply current process automatically when changing" 
+  check->setToolTip("Apply current process automatically when changing" 
                 " section");
 
-  mStack = new QWidgetStack(this);
+  mStack = new QStackedWidget(this);
   hLayout->addWidget(mStack);
 
   // Put a spacer on the right to keep the list box position from changing
-  QHBox *hspace = new QHBox(this);
-  hLayout->addWidget(hspace);
-  hLayout->setStretchFactor(hspace, 5);
-  
+  hLayout->addStretch(0);
 
   for (i = 0; (proc_data[i].name); i++) {
 
     // For each item, add to list box, make a widget and give it a V layout
-    mListBox->insertItem(proc_data[i].name);
+    mListBox->addItem(proc_data[i].name);
     control = new QWidget(this);
-    vLayout = new QVBoxLayout(control, 3, 6);
+    vLayout = new QVBoxLayout(control);
+    vLayout->setContentsMargins(3, 3, 3, 3);
+    vLayout->setSpacing(6);
 
     // Call the make widget function or just add a label
     if (proc_data[i].mkwidget)
@@ -819,37 +813,26 @@ IProcWindow::IProcWindow(QWidget *parent, const char *name)
     else {
       diaLabel(proc_data[i].label, control, vLayout);
     }
-
-    // Fill box with spacer
-    QVBox *spacer = new QVBox(control);
-    vLayout->addWidget(spacer);
-    vLayout->setStretchFactor(spacer, 100);
+    vLayout->addStretch(0);
 
     // Add widget to stack and set size policy to ignored
-    mStack->addWidget(control, i);
+    mStack->addWidget(control);
     control->setSizePolicy(QSizePolicy(QSizePolicy::Ignored,
                                        QSizePolicy::Ignored));
   }
 
   // Finalize list box setting and connections
-  mListBox->setCurrentItem(proc.procnum);
-  connect(mListBox, SIGNAL(highlighted(int)), this,
-          SLOT(filterHighlighted(int)));
-  connect(mListBox, SIGNAL(selected(int)), this, SLOT(filterSelected(int)));
-  
-  // 1/27/05: Forget this, panels set the height now; but fix the width
-  // to avoid bottom scroll
-  //if (i > MAX_LIST_TO_SHOW)
-  //  i = MAX_LIST_TO_SHOW;
-  //mListBox->setMaximumHeight(i * mListBox->itemHeight() + 4);
-  QSize size = mListBox->sizeHint();
-  mListBox->setFixedWidth(size.width() + 4);
-
+  manageListSize();
   filterHighlighted(proc.procnum);
-
+  mListBox->setCurrentRow(proc.procnum);
+  connect(mListBox, SIGNAL(currentRowChanged(int)), this,
+          SLOT(filterHighlighted(int)));
+  connect(mListBox, SIGNAL(itemDoubleClicked(QListWidgetItem *)), this, 
+          SLOT(filterSelected(QListWidgetItem *)));
+  
   connect(this, SIGNAL(actionClicked(int)), this, SLOT(buttonClicked(int)));
   connect(this, SIGNAL(actionPressed(int)), this, SLOT(buttonPressed(int)));
-  setCaption(imodCaption("3dmod Image Processing"));
+  setWindowTitle(imodCaption("3dmod Image Processing"));
   show();
 }
 
@@ -876,10 +859,10 @@ void IProcWindow::fourFiltChanged(int which, int value, bool dragging)
     proc.sigma2 = 0.001 * value;
 }
 
-void IProcWindow::kernelChanged(int val)
+void IProcWindow::kernelChanged(double val)
 {
   setFocus();
-  proc.kernelSigma = val / 100.;
+  proc.kernelSigma = val;
 }
 
 void IProcWindow::scaleSmthToggled(bool state)
@@ -945,21 +928,24 @@ void IProcWindow::shrinkChanged(bool state)
 // again then adjust window size
 void IProcWindow::filterHighlighted(int which)
 {
-  QWidget *control = mStack->visibleWidget();
+  QWidget *control = mStack->currentWidget();
   if (control)
-    control->setSizePolicy(QSizePolicy(QSizePolicy::Ignored, 
+    control->setSizePolicy(QSizePolicy(QSizePolicy::Ignored,
                                        QSizePolicy::Ignored));
   proc.procnum = which;
-  mStack->raiseWidget(which);
-  control = mStack->visibleWidget();
+  mStack->setCurrentIndex(which);
+  control = mStack->currentWidget();
   control->setSizePolicy(QSizePolicy(QSizePolicy::Expanding,
                                      QSizePolicy::Expanding));
+  imod_info_input();
   mStack->adjustSize();
+  imod_info_input();
   adjustSize();
 }
 
-void IProcWindow::filterSelected(int which)
+void IProcWindow::filterSelected(QListWidgetItem *item)
 {
+  int which = mListBox->row(item);
   filterHighlighted(which);
   if (!proc.dia->mRunningProc)
     apply();
@@ -1175,7 +1161,7 @@ void IProcWindow::timerEvent(QTimerEvent *e)
 {
 #ifdef QT_THREAD_SUPPORT
   int i;
-  if (mProcThread->running())
+  if (mProcThread->isRunning())
     return;
   killTimer(mTimerID);
   for (i = 0; i < mNumButtons - 1; i++)
@@ -1199,16 +1185,26 @@ void IProcWindow::limitFFTbinning()
     limit = ip->vi->ysize;
   if (ip->fftBinning > limit)
     ip->fftBinning = limit;
-  ip->fftBinSpin->blockSignals(true);
-  ip->fftBinSpin->setMaxValue(limit);
-  ip->fftBinSpin->setValue(ip->fftBinning);
-  ip->fftBinSpin->blockSignals(false);
+  diaSetSpinMMVal(ip->fftBinSpin, 1, limit, ip->fftBinning);
+}
+
+void IProcWindow::manageListSize()
+{
+  int maxwidth = 0, width, i, height;
+  for (i = 0; i < mListBox->count(); i++) {
+    width = mListBox->fontMetrics().width(mListBox->item(i)->text());
+    maxwidth = B3DMAX(maxwidth, width);
+  }
+  mListBox->setFixedWidth(maxwidth + 12);
+  height = mListBox->fontMetrics().height() *  mListBox->count() + 8;
+  mListBox->setFixedHeight(height);
 }
 
 void IProcWindow::fontChange( const QFont & oldFont )
 {
   mRoundedStyle = ImodPrefs->getRoundedStyle();
   DialogFrame::fontChange(oldFont);
+  manageListSize();
 }
 
 // The window is closing, clean up and remove from manager
@@ -1228,7 +1224,7 @@ void IProcWindow::closeEvent ( QCloseEvent * e )
 // Close on escape, pass on keys
 void IProcWindow::keyPressEvent ( QKeyEvent * e )
 {
-  int modkey = e->state() & (Qt::ShiftButton | Qt::ControlButton);
+  int modkey = e->modifiers() & (Qt::ShiftModifier | Qt::ControlModifier);
   if (e->key() == Qt::Key_A && !modkey) {
     if (!iprocBusy() && !proc.vi->loadingImage)
       apply();
@@ -1257,6 +1253,9 @@ void IProcThread::run()
 /*
 
     $Log$
+    Revision 4.25  2008/05/28 00:09:41  mast
+    Added callback function that can be called immediately or when thread finishes
+
     Revision 4.24  2008/05/27 05:28:27  mast
     Added autoapply and option to not scale the smoothing
 

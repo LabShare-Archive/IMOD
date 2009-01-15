@@ -75,6 +75,7 @@ class ImodClipboard : public QObject
 
 #if defined(_WIN32) && defined(QT_THREAD_SUPPORT)
 #include <qthread.h>
+#include <qmutex.h>
 
 class StdinThread : public QThread
 {
@@ -91,6 +92,9 @@ class StdinThread : public QThread
 #endif /* IMOD_CLIENT_MESSAGE_H */
 /*
 $Log$
+Revision 3.19  2008/11/29 22:08:16  mast
+Beadfixer message
+
 Revision 3.18  2008/07/16 04:31:19  mast
 Added new messages
 

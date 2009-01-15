@@ -218,12 +218,15 @@ float SliceCache::getAngle(int whichSlice)
   int sliceIdx=cacheIndex(whichSlice);
 
   if( sliceIdx<0) exitError("the cache is a mess, exit");
-  else return sliceAngles[sliceIdx];
+  return sliceAngles[sliceIdx];
 }
 
 /*
 
    $Log$
+   Revision 1.4  2008/11/10 18:10:27  xiongq
+   call exitError when angle file is not found
+
    Revision 1.3  2008/11/07 20:34:34  xiongq
    call fflush to sync log  for each slice
 

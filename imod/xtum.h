@@ -13,16 +13,18 @@
 
 #define MAX_XTUM_TOGGLES 2
 
-#define NO_X_INCLUDES
 #include <imodel.h>
 
 #include <qmainwindow.h>
 #include <qgl.h>
+//Added by qt3to4:
+#include <QCloseEvent>
+#include <QKeyEvent>
 
 class QPushButton;
 class QToolButton;
 class QSignalMapper;
-class QHBox;
+class QHBoxLayout;
 class QSpinBox;
 class MultiSlider;
 class TumblerGL;
@@ -79,7 +81,7 @@ class TumblerWindow : public QMainWindow
   TumblerWindow(TumblerStruct *xtum, bool rgba, 
             bool doubleBuffer, bool enableDepth, QWidget * parent = 0,
             const char * name = 0, 
-	    WFlags f = WType_TopLevel | WDestructiveClose) ;
+	    Qt::WFlags f = Qt::Window) ;
   ~TumblerWindow() {};
   void externalKeyEvent ( QKeyEvent * e, int released);
   void draw( TumblerStruct *xtum);
@@ -105,8 +107,6 @@ class TumblerWindow : public QMainWindow
   void fontChange( const QFont & oldFont ) {setFontDependentWidths();};
   
  private:
-  void setupToggleButton(QHBox *toolBar, QSignalMapper *mapper, 
-			 int index);
   void fillSlice(TumblerStruct *xtum);
   void fillASlice(TumblerStruct *xtum);
   void scaleData(TumblerStruct *xtum, unsigned short *sdata);
@@ -137,8 +137,7 @@ class TumblerGL : public QGLWidget
   Q_OBJECT
 
  public:
-  TumblerGL(TumblerStruct *xtum, QGLFormat format, QWidget * parent = 0,
-        const char * name = 0);
+  TumblerGL(TumblerStruct *xtum, QGLFormat format, QWidget * parent = 0);
   ~TumblerGL() {};
  
 protected:
@@ -153,7 +152,11 @@ protected:
 #endif
 
 /*
+
 $Log$
+Revision 4.4  2007/03/29 04:55:49  mast
+Fixed crash bug when closing window while focus is in edit/spinbox
+
 Revision 4.3  2004/05/03 02:33:38  mast
 declare new functions for setting steps
 

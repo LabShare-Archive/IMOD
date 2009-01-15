@@ -22,11 +22,15 @@
 #include <qspinbox.h>
 #include <qtooltip.h>
 #include <qlayout.h>
+//Added by qt3to4:
+#include <QCloseEvent>
+#include <QKeyEvent>
 #include "dia_qtutils.h"
-#include <qhbox.h>
+#include <QHBoxLayout>
 #include <qcombobox.h>
+#include <qgroupbox.h>
+#include <qbuttongroup.h>
 #include <qradiobutton.h>
-#include <qvbuttongroup.h>
 #include "imod_cont_copy.h"
 #include "imod.h"
 #include "imod_display.h"
@@ -235,45 +239,49 @@ ContourCopy::ContourCopy(QWidget *parent, const char *name)
                 ImodPrefs->getRoundedStyle(), " ", "", name)
 {
   QRadioButton *radio;
-  QHBox *hBox = new QHBox(this);
-  mLayout->addWidget(hBox);
+  QHBoxLayout *hBox = diaHBoxLayout(mLayout);
   
-  mToCombo = new QComboBox(false, hBox);
-  mToCombo->insertItem("Copy to Object #", COPY_TO_OBJECT);
-  mToCombo->insertItem("Copy to Section #", COPY_TO_SECTION);
-  mToCombo->insertItem("Copy to Next Section", COPY_TO_NEXT_SECTION);
-  mToCombo->insertItem("Copy to Prev Section", COPY_TO_PREV_SECTION);
-  mToCombo->insertItem("Duplicate", COPY_TO_CURRENT);
+  mToCombo = new QComboBox(this);
+  hBox->addWidget(mToCombo);
+  mToCombo->addItem("Copy to Object #");
+  mToCombo->addItem("Copy to Section #");
+  mToCombo->addItem("Copy to Next Section");
+  mToCombo->addItem("Copy to Prev Section");
+  mToCombo->addItem("Duplicate");
   if (ThisDialog.vw->nt)
-    mToCombo->insertItem("Copy to Time Index #", COPY_TO_TIME);
-  mToCombo->setFocusPolicy(NoFocus);
-  mToCombo->setCurrentItem(ThisDialog.copyOperation);
-  QToolTip::add(mToCombo, "Select type of place to copy contours to");
-  connect(mToCombo, SIGNAL(activated(int)), this, SLOT(placeSelected(int)));
+    mToCombo->addItem("Copy to Time Index #");
+  mToCombo->setFocusPolicy(Qt::NoFocus);
+  mToCombo->setCurrentIndex(ThisDialog.copyOperation);
+  mToCombo->setToolTip("Select type of place to copy contours to");
+  connect(mToCombo, SIGNAL(currentIndexChanged(int)), this,
+          SLOT(placeSelected(int)));
 
-  mToSpinBox = new QSpinBox(hBox);
-  mToSpinBox->setFocusPolicy(ClickFocus);
-  QToolTip::add(mToSpinBox, "Set object, section, or time");
+  mToSpinBox = new QSpinBox(this);
+  hBox->addWidget(mToSpinBox);
+  mToSpinBox->setFocusPolicy(Qt::ClickFocus);
+  mToSpinBox->setToolTip("Set object, section, or time");
   connect(mToSpinBox, SIGNAL(valueChanged(int)), this, 
           SLOT(toValueChanged(int)));
   
-  mRadioGroup = new QVButtonGroup("Copy", this, "copy group");
-  mLayout->addWidget(mRadioGroup);
-  connect(mRadioGroup, SIGNAL(clicked(int)), this, SLOT(rangeSelected(int)));
+  QGroupBox *gbox = new QGroupBox("Copy", this);
+  QVBoxLayout *gbLayout = new QVBoxLayout(gbox);
+  mRadioGroup = new QButtonGroup(this);
+  mLayout->addWidget(gbox);
+  connect(mRadioGroup, SIGNAL(buttonClicked(int)), this, 
+          SLOT(rangeSelected(int)));
 
-  radio = diaRadioButton("Just the current contour", mRadioGroup);
-  QToolTip::add(radio, "Copy only the current contour");
-
-  radio = diaRadioButton("All contours in surface", mRadioGroup);
-  QToolTip::add(radio,
-                "Copy contours with same surface number as current one");
-
-  radio = diaRadioButton("All contours in object", mRadioGroup);
-  QToolTip::add(radio, "Copy all eligible contours in object");
+  radio = diaRadioButton("Just the current contour", gbox, mRadioGroup, 
+                         gbLayout, 0, "Copy only the current contour");
+  radio = diaRadioButton
+    ("All contours in surface", gbox, mRadioGroup, gbLayout, 1, 
+     "Copy contours with same surface number as current one");
+  radio = diaRadioButton("All contours in object", gbox, mRadioGroup, 
+                         gbLayout, 2, "Copy all eligible contours in object");
 
   if (ThisDialog.vw->nt) {
-    mTimeRadio = diaRadioButton("All contours in all objects", mRadioGroup);
-    QToolTip::add(radio, "Copy all contours at this time to selected time");
+    mTimeRadio = diaRadioButton
+      ("All contours in all objects", gbox, mRadioGroup, 
+       gbLayout, 3, "Copy all contours at this time to selected time");
   }
 
   // Figure out initial radio button settings, enforce flag settings and
@@ -291,7 +299,7 @@ ContourCopy::ContourCopy(QWidget *parent, const char *name)
   update();
 
   connect(this, SIGNAL(actionPressed(int)), this, SLOT(buttonPressed(int)));
-  setCaption(imodCaption("3dmod Copy Contours"));
+  setWindowTitle(imodCaption("3dmod Copy Contours"));
   show();
 }
 
@@ -589,6 +597,9 @@ void ContourCopy::keyReleaseEvent ( QKeyEvent * e )
 /*
 
 $Log$
+Revision 4.17  2008/12/10 01:05:15  mast
+Added hot key for contour copy
+
 Revision 4.16  2008/04/04 21:22:03  mast
 Free contour after adding to object
 

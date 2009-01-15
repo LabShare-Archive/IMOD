@@ -18,7 +18,10 @@
 #include <qfile.h>
 #include <qdir.h>
 #include <qregexp.h>
+#include <QTextStream>
 #include "b3dutil.h"
+
+#define LATIN1(a) ((const char *)a.toLatin1())
 
 #define CAPTURE_NONBS "([^\\\\])"
 
@@ -109,7 +112,7 @@ int main(int argc, char *argv[])
   
   str = argv[ind];
   QFile inFile(str);
-  if (!inFile.open(IO_ReadOnly | IO_Translate)) {
+  if (!inFile.open(QIODevice::ReadOnly | QIODevice::Text)) {
     fprintf(stderr, "ERROR: %s - cannot open input file %s\n", progname, 
             argv[ind]);
     exit(1);
@@ -123,7 +126,7 @@ int main(int argc, char *argv[])
 
   str = argv[ind + 1];
   QFile outFile(str);
-  if (!outFile.open(IO_WriteOnly | IO_Translate)) {
+  if (!outFile.open(QIODevice::WriteOnly | QIODevice::Text)) {
     fprintf(stderr, "ERROR: %s - cannot open output file %s\n", progname,
             argv[ind + 1]);
     exit(1);
@@ -138,11 +141,11 @@ int main(int argc, char *argv[])
     // Read lines and look for list or describe strings
     str = inStream.readLine();
     doCode = false;
-    ind1 = str.find(listString);
-    ind2 = str.find(descString);
+    ind1 = str.indexOf(listString);
+    ind2 = str.indexOf(descString);
     if (ind1 < 0 && ind2 < 0) {
-      ind1 = str.find(listCode);
-      ind2 = str.find(descCode);
+      ind1 = str.indexOf(listCode);
+      ind2 = str.indexOf(descCode);
       doCode = ind1 >= 0 || ind2 >= 0;
     }
     if (ind1 >= 0) {
@@ -150,13 +153,13 @@ int main(int argc, char *argv[])
       // get file name and section name and open the file
       fname = str.right(str.length() - ind1 - 
                         (doCode ? strlen(listCode) : strlen(listString)));
-      fname = fname.stripWhiteSpace();
+      fname = fname.trimmed();
       if (fname.startsWith("\"")) {
-        tmpList = QStringList::split('\"', fname);
+        tmpList = fname.split('\"', QString::SkipEmptyParts);
         if (tmpList.count() > 1)
-          tmpList[1].stripWhiteSpace();
+          tmpList[1].trimmed();
       } else {
-        tmpList = QStringList::split(' ', fname);
+        tmpList = fname.split(' ', QString::SkipEmptyParts);
       }
       fname = tmpList[0];
       secName = "";
@@ -164,16 +167,16 @@ int main(int argc, char *argv[])
         secName = tmpList[1];
       
       if (debug)
-        puts(fname.latin1());
+        puts(LATIN1(fname));
       if (debug)
-        puts(secName);
+        puts(LATIN1(secName));
 
       if(debug)
-        puts((path + fname).latin1());
+        puts((const char *)((path + fname).toLatin1()));
       QFile srcFile(path + fname);
-      if (!srcFile.open(IO_ReadOnly | IO_Translate)) {
+      if (!srcFile.open(QIODevice::ReadOnly | QIODevice::Text)) {
         fprintf(stderr, "ERROR: %s - cannot open source file %s\n", progname, 
-                fname.latin1());
+                LATIN1(fname));
         exit(1);
       }
       QTextStream srcStream(&srcFile);
@@ -207,25 +210,25 @@ int main(int argc, char *argv[])
           // Found start sequence.  Start a string list for doc, strip the
           // start sequence, and add string to list if anything remains
           QStringList docList;
-          str = str.stripWhiteSpace();
-          ind = str.find("!");
+          str = str.trimmed();
+          ind = str.indexOf("!");
           str = str.right(str.length() - ind - 1);
           if (debug)
-            puts(str.latin1());
+            puts(LATIN1(str));
 
           // Loop on body of doc copying to list until end sequence
           while (1) {
-            ind = str.find(QRegExp(docEnd));
+            ind = str.indexOf(QRegExp(docEnd));
             if (ind >= 0) {
 
               // Found end sequence; strip it and add to list if not empty
               if (fort77) {
-                ind = str.find("!");
+                ind = str.indexOf("!");
                 str = str.right(str.length() - ind - 1);
               } else {
                 str.truncate(ind);
               }
-              str = str.stripWhiteSpace();
+              str = str.trimmed();
               if (!str.isEmpty())
                 docList << str;
               break;
@@ -238,10 +241,10 @@ int main(int argc, char *argv[])
             // Get new string and loop
             str = srcStream.readLine();
             if (debug)
-              puts(str.latin1());
+              puts(LATIN1(str));
             if (str.isNull()) {
               fprintf(stderr, "ERROR: %s - end of file %s in middle of "
-                      "comment\n", progname, fname.latin1());
+                      "comment\n", progname, LATIN1(fname));
               exit(1);
             }
           }
@@ -253,40 +256,40 @@ int main(int argc, char *argv[])
           do {
             str = srcStream.readLine();
             if (debug)
-              puts(str.latin1());
+              puts(LATIN1(str));
             if (str.isNull()) {
               fprintf(stderr, "ERROR: %s - end of file %s in middle of "
-                      "function\n", progname, fname.latin1());
+                      "function\n", progname, LATIN1(fname));
               exit(1);
             }
 
             // If no function yet, skip if find a non-documentation comment
             // or if we are continuing one
             if (!funcList.count() && 
-                (inComment || str.find(QRegExp(nonDocComment)) >= 0)) {
+                (inComment || str.indexOf(QRegExp(nonDocComment)) >= 0)) {
               
               // In C, if in a comment or comment contains /*, set flag
               // for continuation if we don't find */
-              if (!fort77 && (inComment || str.find("/*") >= 0))
-                inComment = str.find("*/") < 0;
+              if (!fort77 && (inComment || str.indexOf("/*") >= 0))
+                inComment = str.indexOf("*/") < 0;
 
               // clear string and skip the line
               str = "";
               continue;
             }
 
-            str = str.stripWhiteSpace();
-            ind = str.find(QRegExp("\\) *\\{"));
+            str = str.trimmed();
+            ind = str.indexOf(QRegExp("\\) *\\{"));
             if (ind > 0)
               str.truncate(ind + 1);
-            ind = str.find(QRegExp("\\) *;"));
+            ind = str.indexOf(QRegExp("\\) *;"));
             if (ind > 0)
               str.truncate(ind + 1);
 
             // Fort77 continuation: strip it off
             if (fort77 && funcList.count()) {
               str = str.right(str.length() - 1);
-              str = str.stripWhiteSpace();
+              str = str.trimmed();
             }
 
             if (!str.isEmpty() || funcList.count())
@@ -296,15 +299,15 @@ int main(int argc, char *argv[])
           // Extract the function name from first line
           str = funcList[0];
           if (debug)
-            puts(str);
-          ind2 = str.find(QRegExp(" *\\("));
+            puts(LATIN1(str));
+          ind2 = str.indexOf(QRegExp(" *\\("));
           if (debug)
             printf("ind2 %d\n", ind2);
-          ind1 = str.findRev(QRegExp("[* :]"), ind2 - 1) + 1;
+          ind1 = str.lastIndexOf(QRegExp("[* :]"), ind2 - 1) + 1;
           funcName = str.mid(ind1, ind2 - ind1);
 
           if (debug)
-            puts(funcName);
+            puts(LATIN1(funcName));
             
           // Compose entry and output to the list 
           if (funcName != QString(noFunc)) {
@@ -312,7 +315,7 @@ int main(int argc, char *argv[])
             if (ind1)
               str2 += str.left(ind1);
             str2 += "<A HREF=\"#" + funcName + "\">" + funcName + "</A>" + 
-              (str.right(str.length() - ind2)).stripWhiteSpace();
+              (str.right(str.length() - ind2)).trimmed();
             outStream << str2 << "\n";
             for (ui = 1; ui < funcList.count(); ui++)
               outStream << funcList[ui] << "\n";
@@ -339,9 +342,9 @@ int main(int argc, char *argv[])
 
           // Edit each doc line and add it to description list
           for (ui = 0; ui < docList.count(); ui++) {
-            str = docList[ui].stripWhiteSpace();
-            while (!str.find(QRegExp(docContinue)))
-              str = (str.right(str.length() - 1)).stripWhiteSpace();
+            str = docList[ui].trimmed();
+            while (!str.indexOf(QRegExp(docContinue)))
+              str = (str.right(str.length() - 1)).trimmed();
             convertSpecialCodes(str, progname, debug);
             descList << str;
           }
@@ -349,14 +352,14 @@ int main(int argc, char *argv[])
         } else if (doCode && str.contains(codeString)) {
 
           // Found a CODE start, next get the name as the remainder of line
-          ind = str.find(codeString);
+          ind = str.indexOf(codeString);
           funcName = str.right(str.length() - ind - strlen(codeString));
-          ind = funcName.find(QRegExp(docEnd));
+          ind = funcName.indexOf(QRegExp(docEnd));
           if (ind >= 0)
             funcName.truncate(ind);
-          funcName = funcName.stripWhiteSpace();
+          funcName = funcName.trimmed();
           if (debug)
-            puts(funcName.latin1());
+            puts(LATIN1(funcName));
 
           // Output the list entry and add to description list
           str2 = "<BR><A HREF=\"#" + funcName + "\">" + funcName + "</A>\n";
@@ -370,10 +373,10 @@ int main(int argc, char *argv[])
           while (1) {
             str = srcStream.readLine();
             if (debug)
-              puts(str.latin1());
+              puts(LATIN1(str));
             if (str.isNull()) {
               fprintf(stderr, "ERROR: %s - end of file %s in middle of "
-                      "code\n", progname, fname.latin1());
+                      "code\n", progname, LATIN1(fname));
               exit(1);
             }
             
@@ -388,19 +391,19 @@ int main(int argc, char *argv[])
 
               // If in comment, first test
               // if comment end is present, remove it and clear comment flag
-              ind = str.find(QRegExp(docEnd));
+              ind = str.indexOf(QRegExp(docEnd));
               if (ind >= 0) {
                 inComment = false;
                 str.truncate(ind);
               }
 
               // remove up to the starting *
-              ind = str.find('*');
+              ind = str.indexOf('*');
               if (ind >= 0)
                 str = str.right(str.length() - ind - 1);
 
               // Strip the string, interpret codes, and put it out if not empty
-              str = str.stripWhiteSpace();
+              str = str.trimmed();
               if (!str.isEmpty()) {
                 convertSpecialCodes(str, progname, debug);
                 descList << str;
@@ -435,8 +438,8 @@ int main(int argc, char *argv[])
       // Descriptions requested: get filename and look up on list; write lines
       fname = str.right(str.length() - ind2 - 
                         (doCode ? strlen(descCode) : strlen(descString)));
-      fname = fname.stripWhiteSpace();
-      tmpList = QStringList::split(' ', fname);
+      fname = fname.trimmed();
+      tmpList = fname.split(' ', QString::SkipEmptyParts);
       fname = tmpList[0];
       secName = "";
       if (tmpList.count() > 1)
@@ -451,7 +454,7 @@ int main(int argc, char *argv[])
       if (ui == fnameList.count()) {
         fprintf(stderr, "ERROR: %s - function descriptions requested from "
                 "%s but no such\nfile processed for function list\n",
-                progname, fname.latin1());
+                progname, LATIN1(fname));
         exit(1);
       }
 
@@ -485,7 +488,7 @@ static void convertSpecialCodes(QString &str, char *progname, int debug)
   str.replace("&", "&amp;");
 
   // Replace multiple spaces with ;nbsp
-  if (str.find("  ") >= 0) {
+  if (str.indexOf("  ") >= 0) {
     str.replace(QRegExp("([^ ]) ([^ ])"), "\\1%_%\\2");
     str.replace(QRegExp("([^ ]) ([^ ])"), "\\1%_%\\2");
     str.replace(" ", "&nbsp;");
@@ -495,7 +498,7 @@ static void convertSpecialCodes(QString &str, char *progname, int debug)
   if (str.isEmpty())
     str = "<P>";
   if (debug)
-    puts(str);
+    puts(LATIN1(str));
 
   // Insert a link at an @
   while (str.contains(QRegExp("[^\\\\]@")) || str.startsWith("@")) {
@@ -503,7 +506,7 @@ static void convertSpecialCodes(QString &str, char *progname, int debug)
     if (str.startsWith("@"))
       ind0 = 1;
     else
-      ind0 = str.find(QRegExp("[^\\\\]@")) + 2;
+      ind0 = str.indexOf(QRegExp("[^\\\\]@")) + 2;
     ind1 = ind0;
 
     // If there is a double @, then end is another @
@@ -511,10 +514,10 @@ static void convertSpecialCodes(QString &str, char *progname, int debug)
       ind1++;
       while (ind1 < (int)str.length() && str.at(ind1) == ' ')
         ind1++;
-      ind2 = str.find('@', ind1 + 1);
+      ind2 = str.indexOf('@', ind1 + 1);
       if (ind2 < 0) {
         fprintf(stderr, "ERROR: %s - Empty or unterminated @@ link "
-                "in\n%s\n", progname, str.latin1());
+                "in\n%s\n", progname, LATIN1(str));
         exit(1);
       }
       ind3 = ind2 + 1;
@@ -522,7 +525,7 @@ static void convertSpecialCodes(QString &str, char *progname, int debug)
     } else {
       while (ind1 < (int)str.length() && str.at(ind1) == ' ')
         ind1++;
-      ind2 = str.find(QRegExp("[ ,]"), ind1);
+      ind2 = str.indexOf(QRegExp("[ ,]"), ind1);
       if (ind2 < ind1)
         ind2 = str.length();
       ind3 = ind2;
@@ -530,7 +533,7 @@ static void convertSpecialCodes(QString &str, char *progname, int debug)
     funcName = str.mid(ind1, ind2 - ind1);
     if (funcName.contains('#')) {
       href = funcName;
-      ind = funcName.find('#');
+      ind = funcName.indexOf('#');
       funcName = funcName.right(funcName.length() - ind - 1);
     } else {
       href = QString("#") + funcName;
@@ -549,10 +552,14 @@ static void convertSpecialCodes(QString &str, char *progname, int debug)
   // For any escaped characters, remove the backslash
   str.replace(QRegExp("\\\\([\\[\\]\\{\\}^@])"), "\\1");
   if (debug)
-    puts(str);
+    puts(LATIN1(str));
 }
 
-/* $Log$
+/*
+
+$Log$
+Revision 1.8  2008/08/23 00:11:49  mast
+Changed order of tags to put anchor inside header for pdf links to work
 
 Revision 1.7  2006/07/07 19:09:11  mast
 Added ability to import code blocks

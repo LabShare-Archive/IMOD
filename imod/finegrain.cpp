@@ -68,8 +68,7 @@ void fineGrainOpen(ImodView *vw)
   fgd.vw = vw;
      
   fgd.dia = new FineGrainForm(imodDialogManager.parent(IMOD_DIALOG), 
-                               "fine grain edit",
-                               Qt::WType_TopLevel | Qt::WDestructiveClose);
+                              Qt::Window);
   
   fineGrainUpdate();
   imodDialogManager.add((QWidget *)fgd.dia, IMOD_DIALOG);
@@ -1176,41 +1175,45 @@ static void ifgHandleValue1(DrawProps *defProps, DrawProps *contProps,
 }
 
 /*
-  $Log$
-  Revision 1.12  2008/01/19 22:18:35  mast
-  Fixed problems when no objects
 
-  Revision 1.11  2007/09/22 00:09:11  mast
-  Added fixed color/thresholding only capability to value handling
+$Log$
+Revision 1.13  2008/12/08 17:26:12  mast
+Changes for scaling line thicknesses
 
-  Revision 1.10  2006/08/31 23:27:44  mast
-  Changes for stored value display
+Revision 1.12  2008/01/19 22:18:35  mast
+Fixed problems when no objects
 
-  Revision 1.9  2006/05/08 16:37:29  mast
-  Added connection numbers for contours
+Revision 1.11  2007/09/22 00:09:11  mast
+Added fixed color/thresholding only capability to value handling
 
-  Revision 1.8  2006/04/21 01:08:26  mast
-  Fixed problem with "d" output when no current contour defined
+Revision 1.10  2006/08/31 23:27:44  mast
+Changes for stored value display
 
-  Revision 1.7  2006/02/28 15:20:28  mast
-  Back out test changes that went in by mistake
+Revision 1.9  2006/05/08 16:37:29  mast
+Added connection numbers for contours
 
-  Revision 1.6  2006/02/27 19:44:20  mast
-  Added go to next change functionality
+Revision 1.8  2006/04/21 01:08:26  mast
+Fixed problem with "d" output when no current contour defined
 
-  Revision 1.5  2005/09/13 14:34:04  mast
-  removed null from line
+Revision 1.7  2006/02/28 15:20:28  mast
+Back out test changes that went in by mistake
 
-  Revision 1.4  2005/09/12 14:23:17  mast
-  Added rubberband selection and fixed problem with mesh trans matching
+Revision 1.6  2006/02/27 19:44:20  mast
+Added go to next change functionality
 
-  Revision 1.3  2005/09/11 19:54:05  mast
-  New functions and changes for trans matching
+Revision 1.5  2005/09/13 14:34:04  mast
+removed null from line
 
-  Revision 1.2  2005/06/29 05:39:26  mast
-  Fixes for surface vs. contour states
+Revision 1.4  2005/09/12 14:23:17  mast
+Added rubberband selection and fixed problem with mesh trans matching
 
-  Revision 1.1  2005/06/26 19:36:13  mast
-  Addition to program
+Revision 1.3  2005/09/11 19:54:05  mast
+New functions and changes for trans matching
+
+Revision 1.2  2005/06/29 05:39:26  mast
+Fixes for surface vs. contour states
+
+Revision 1.1  2005/06/26 19:36:13  mast
+Addition to program
 
 */

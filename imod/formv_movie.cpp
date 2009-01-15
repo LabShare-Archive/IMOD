@@ -1,15 +1,69 @@
-/****************************************************************************
-** ui.h extension file, included from the uic-generated form implementation.
-**
-** If you wish to add, delete or rename slots use Qt Designer which will
-** update this file, preserving your code. Create an init() slot in place of
-** a constructor, and a destroy() slot in place of a destructor.
-*****************************************************************************/
+/*
+ *  formv_movie.cpp - Class for model movie dialog form
+ *
+ *  Author: David Mastronarde   email: mast@colorado.edu
+ *
+ *  Copyright (C) 1995-2009 by Boulder Laboratory for 3-Dimensional Electron
+ *  Microscopy of Cells ("BL3DEMC") and the Regents of the University of 
+ *  Colorado.  See dist/COPYRIGHT for full copyright notice.
+ * 
+ * $Id$
+ * Log at end
+ */
+
+#include "formv_movie.h"
+
+#include <qvariant.h>
+#include <stdlib.h>
+#include <qimage.h>
+#include <qpixmap.h>
+
+//Added by qt3to4:
+#include <QCloseEvent>
+#include <QKeyEvent>
+
+#include "imodv_input.h"
+#include "imodv_movie.h"
+#include "imod.h"
+#include "imodv.h"
+#include "preferences.h"
+#include "dia_qtutils.h"
+
+/*
+ *  Constructs a imodvMovieForm as a child of 'parent', with the
+ *  name 'name' and widget flags set to 'f'.
+ */
+imodvMovieForm::imodvMovieForm(QWidget* parent, Qt::WindowFlags fl)
+  : QWidget(parent, fl)
+{
+  setupUi(this);
+
+  init();
+}
+
+/*
+ *  Destroys the object and frees any allocated resources
+ */
+imodvMovieForm::~imodvMovieForm()
+{
+  // no need to delete child widgets, Qt does it all for us
+}
+
+/*
+ *  Sets the strings of the subwidgets using the current
+ *  language.
+ */
+void imodvMovieForm::languageChange()
+{
+  retranslateUi(this);
+}
 
 // Layout notes: set spacing to 2 for the big grid to conserve space
 
 void imodvMovieForm::init()
 {
+  setAttribute(Qt::WA_DeleteOnClose);
+  setAttribute(Qt::WA_AlwaysShowToolTips);
   startEdits[0] = xRotStart;
   startEdits[1] = yRotStart;
   startEdits[2] = zRotStart;
@@ -38,7 +92,7 @@ void imodvMovieForm::init()
     
     // A hide alone was not good enough somewhere (Windows?)
     // removing from layout was good but not available in Qt 3.0, so set height instead
-   for (int i = 7; i < 12; i++) {
+    for (int i = 7; i < 12; i++) {
       startEdits[i]->hide();
       endEdits[i]->hide();
       startEdits[i]->setFixedHeight(1);
@@ -55,25 +109,39 @@ void imodvMovieForm::init()
     transpLabel->setFixedHeight(1);
     thickLabel->setFixedHeight(1);
   }
+
+  makeGroup = new QButtonGroup(this);
+  makeGroup->addButton(movieRadioButton, 0);
+  makeGroup->addButton(montageRadioButton, 1);
+  connect(makeGroup, SIGNAL(buttonClicked(int)), this, 
+          SLOT(movieMontSelected(int)));
+  connect(makeGroup, SIGNAL(buttonClicked(int)), this, 
+          SLOT(manageSensitivities(int)));
+  writeGroup = new QButtonGroup(this);
+  writeGroup->addButton(tiffRadioButton, 0);
+  writeGroup->addButton(rgbRadioButton, 1);
+  writeGroup->addButton(pngRadioButton, 2);
+  connect(writeGroup, SIGNAL(buttonClicked(int)), this, 
+          SLOT(rgbTiffSelected(int)));
   adjustSize();
   setNonTifLabel();
 }
 
 void imodvMovieForm::setNonTifLabel()
 {
-    QString str;
-    rgbRadioButton->setText(ImodPrefs->snapFormat() + "s");
-    str = ImodPrefs->snapFormat2();
-    pngRadioButton->setEnabled(!str.isEmpty());
+  QString str;
+  rgbRadioButton->setText(ImodPrefs->snapFormat() + "s");
+  str = ImodPrefs->snapFormat2();
+  pngRadioButton->setEnabled(!str.isEmpty());
     
-    // If no second format, make sure selection is in legal range
-    if (str.isEmpty()) {
-      if (mRgbTiff > 1) {
-        diaSetGroup(writeGroup, 1);
-        mRgbTiff = 1;
-      }
-    } else
-      pngRadioButton->setText(str + "s");
+  // If no second format, make sure selection is in legal range
+  if (str.isEmpty()) {
+    if (mRgbTiff > 1) {
+      diaSetGroup(writeGroup, 1);
+      mRgbTiff = 1;
+    }
+  } else
+    pngRadioButton->setText(str + "s");
 }
 
 void imodvMovieForm::fullXPressed()
@@ -147,9 +215,9 @@ void imodvMovieForm::helpPressed()
 void imodvMovieForm::readStartEnd( int item, float &startVal, float &endVal )
 {
   mStr = startEdits[item]->text();
-  startVal = atof(mStr.latin1());
+  startVal = atof(LATIN1(mStr));
   mStr = endEdits[item]->text();
-  endVal = atof(mStr.latin1());
+  endVal = atof(LATIN1(mStr));
 }
 
 // Set the contents of start or end edit boxes
@@ -172,7 +240,7 @@ void imodvMovieForm::setButtonStates( bool longWay, bool reverse, int movieMont,
   longWayBox->setChecked(longWay);
   reverseBox->setChecked(reverse);
   writeBox->setChecked(writeFiles);
-  makeGroup->setButton(movieMont);
+  diaSetGroup(makeGroup, movieMont);
   mRgbTiff = rgbTiff;
   if (ImodPrefs->snapFormat2().isEmpty() && rgbTiff > 1)
     mRgbTiff = 1;
@@ -199,7 +267,7 @@ void imodvMovieForm::getButtonStates( int &longWay, int &reverse, int &movieMont
 void imodvMovieForm::getFrameBoxes( int &nMovieFrames, int &nMontFrames)
 {
   mStr = framesEdit->text();
-  nMovieFrames = atoi(mStr.latin1());
+  nMovieFrames = atoi(LATIN1(mStr));
   nMontFrames = montageFramesBox->value();
 }
 
@@ -250,3 +318,9 @@ void imodvMovieForm::keyReleaseEvent( QKeyEvent * e )
 {
   imodvKeyRelease(e);
 }
+
+/*
+
+$Log$
+
+*/

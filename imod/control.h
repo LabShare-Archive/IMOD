@@ -21,6 +21,8 @@
 #endif
 
 #include <qrect.h>
+//Added by qt3to4:
+#include <QKeyEvent>
 
 /* DOC_SECTION MANAGERDEF */
 /* DOC_CODE Dialog Manager */
@@ -59,7 +61,7 @@ typedef struct ViewInfo ImodView;
 class QKeyEvent;
 class QString;
 class QWidget;
-class QObjectList;
+//class QObjectList;
 
 #ifndef CONTROLP_H
 #include "controlP.h"
@@ -162,6 +164,9 @@ class DLL_EX_IM DialogManager
 
 /*
 $Log$
+Revision 4.15  2008/01/13 22:58:35  mast
+Changes for multi-Z window
+
 Revision 4.14  2008/01/11 17:31:45  mast
 Needed to include qrect.h, not just forward declare class
 

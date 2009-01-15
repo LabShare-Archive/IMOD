@@ -28,6 +28,14 @@
 #include <qmainwindow.h>
 #include <qgl.h>
 #include <qstring.h>
+//Added by qt3to4:
+#include <QCloseEvent>
+#include <QTimerEvent>
+#include <QWheelEvent>
+#include <QLabel>
+#include <QMouseEvent>
+#include <QKeyEvent>
+#include <QEvent>
 
 class QToolButton;
 class ToolEdit;
@@ -37,6 +45,7 @@ class QSignalMapper;
 class QSlider;
 class QPushButton;
 class QSpinBox;
+class QAction;
 
 struct zapwin;
 class ZapGL;
@@ -48,8 +57,7 @@ class ZapWindow : public QMainWindow
  public:
   ZapWindow(struct zapwin *zap, QString timeLabel, bool panels, bool rgba, 
             bool doubleBuffer, bool enableDepth, QWidget * parent = 0,
-            const char * name = 0, 
-	    WFlags f = WType_TopLevel | WDestructiveClose) ;
+            const char * name = 0, Qt::WFlags f = Qt::Window) ;
   ~ZapWindow();
   void setToggleState(int index, int state);
   void setZoomText(float zoom);
@@ -99,12 +107,11 @@ class ZapWindow : public QMainWindow
     void wheelEvent ( QWheelEvent * e);
 
  private:
-    void setupToggleButton(HotToolBar *toolBar, QSignalMapper *mapper, 
-                           int index);
     void setFontDependentWidths();
 
     QToolButton *mToggleButs[NUM_TOOLBUTTONS];
     int mToggleStates[NUM_TOOLBUTTONS];
+    QAction *mToggleActs[NUM_TOOLBUTTONS];
     ToolEdit *mZoomEdit;
     ToolEdit *mSectionEdit;
     QLabel *mTimeLabel;
@@ -124,6 +131,12 @@ class ZapWindow : public QMainWindow
     ToolEdit *mLowSectionEdit;
     QPushButton *mHighSectionButton;
     ToolEdit *mHighSectionEdit;
+    QAction *mLowButtonAction;
+    QAction *mHighButtonAction;
+    QAction *mLowEditAction;
+    QAction *mHighEditAction;
+    QAction *mAngleAction;
+    QAction *mSizeAction;
 };
 
 class ZapGL : public QGLWidget
@@ -131,8 +144,7 @@ class ZapGL : public QGLWidget
   Q_OBJECT
 
  public:
-  ZapGL(struct zapwin *zap, QGLFormat format, QWidget * parent = 0,
-        const char * name = 0);
+  ZapGL(struct zapwin *zap, QGLFormat format, QWidget * parent = 0);
   ~ZapGL() {};
   void setBufferSwapAuto(bool state) { setAutoBufferSwap(state); };
   bool extraCursorInWindow() {return (mMousePressed || mMouseInWindow);};
@@ -156,7 +168,11 @@ protected:
 };
 
 /*
+
 $Log$
+Revision 4.15  2008/05/27 22:48:35  mast
+Moved angle to separate label after Z slider
+
 Revision 4.14  2008/02/05 19:59:23  sueh
 bug# 1065 Added a low section button and edit field and a high section button
 and edit field.

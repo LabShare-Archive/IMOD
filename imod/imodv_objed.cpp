@@ -21,18 +21,22 @@
 #include <qapplication.h>
 #include <qpushbutton.h>
 #include <qbuttongroup.h>
-#include <qhbuttongroup.h>
+#include <qgroupbox.h>
 #include <qradiobutton.h>
 #include <qlayout.h>
-#include <qvbox.h>
 #include <qframe.h>
 #include <qtooltip.h>
 #include <qsignalmapper.h>
+//Added by qt3to4:
+#include <QTimerEvent>
+#include <QGridLayout>
+#include <QHBoxLayout>
+#include <QVBoxLayout>
+#include <QDoubleSpinBox>
 #include "tooledit.h"
 #include "formv_objed.h"
 #include "multislider.h"
 #include "dia_qtutils.h"
-#include "floatspinbox.h"
 #include "mkmesh.h"
 
 #include "imodv.h"
@@ -94,8 +98,7 @@ static void setStartEndModel(int &mst, int &mnd, bool multipleOK = true);
 static bool changeModelObject(int m, int ob, bool multipleOK = true);
 static void setMat3Flag(int flag, int index, int state);
 static bool drawOnSliderChange(bool dragging);
-static void makeRadioButton(char *label, QWidget *parent, QButtonGroup *group,
-                            QVBoxLayout *layout1, char *tooltip);
+static QVBoxLayout *outerVBoxLayout(QWidget *parent);
 
 /* resident instance of the ImodvObjed class, and pointers to the dialog
    box classes when they are created */
@@ -147,7 +150,7 @@ ObjectEditField objectEditFieldData[]    = {
 
 /* Constructor for resident class */
 ImodvObjed::ImodvObjed(QObject *parent, const char *name)
-  : QObject(parent, name)
+  : QObject(parent)
 {
 }
 
@@ -300,7 +303,7 @@ void imodvObjedName(const char *name)
 // Respond to an On-Off button in either the objed or the object list window
 void ImodvObjed::toggleObjSlot(int ob)
 {
-  objedToggleObj(ob, OnoffButtons[ob]->isOn());
+  objedToggleObj(ob, OnoffButtons[ob]->isChecked());
 }
 
 void objedToggleObj(int ob, bool state)
@@ -458,6 +461,7 @@ static void setOnoffButtons(void)
   ImodvApp *a = Imodv;
   static int numShown = 0;
 
+  imodvOlistUpdateOnOffs(a);
   if (!objed_dialog)
     return;
   num = B3DMAX(numOnoffButtons, B3DMIN(MAX_ONOFF_BUTTONS, a->imod->objsize));
@@ -477,8 +481,6 @@ static void setOnoffButtons(void)
   if (numShown != a->imod->objsize)
     objed_dialog->adjustSize();
   numShown = a->imod->objsize;
-
-  imodvOlistUpdateOnOffs(a);
 }
 
 
@@ -525,8 +527,7 @@ void objed(ImodvApp *a)
     return;
 
   objed_dialog = new imodvObjedForm(imodvDialogManager.parent(IMODV_DIALOG),
-                                    NULL,
-                                    Qt::WDestructiveClose | Qt::WType_TopLevel);
+                                    Qt::Window);
 
   Imodv_objed_all = 0;  // May want to retain this setting
   setOnoffButtons();
@@ -537,7 +538,7 @@ void objed(ImodvApp *a)
     free(window_name);
   }
   if (!qstr.isEmpty())
-      objed_dialog->setCaption(qstr);
+      objed_dialog->setWindowTitle(qstr);
 
   ctrlPressed = false;
   objed_dialog->setCurrentFrame(CurrentObjectField, Imodv_objed_all);
@@ -555,7 +556,7 @@ static void addOnoffButton(void)
   int ob = numOnoffButtons++;
   str.sprintf("%d",ob + 1);
   OnoffButtons[ob] = new QCheckBox(str, OnoffFrame);
-  OnoffButtons[ob]->setFocusPolicy(QWidget::NoFocus);
+  OnoffButtons[ob]->setFocusPolicy(Qt::NoFocus);
   OnoffGrid->addWidget(OnoffButtons[ob], ob / MAX_ONOFF_COLUMNS, 
                        ob % MAX_ONOFF_COLUMNS);
   OnoffMapper->setMapping(OnoffButtons[ob], ob);
@@ -569,8 +570,9 @@ void imodvObjedMakeOnOffs(QFrame *frame)
   ImodvApp *a = Imodv;
   int ob, m, num = 0;
 
-  OnoffGrid = new QGridLayout(frame, 1, MAX_ONOFF_COLUMNS, 2, 0,
-                              "onoff grid");
+  OnoffGrid = new QGridLayout(frame);
+  OnoffGrid->setContentsMargins(2,2,2,2);
+  OnoffGrid->setSpacing(0);
   OnoffMapper = new QSignalMapper(frame);
   OnoffFrame = frame;
   QObject::connect(OnoffMapper, SIGNAL(mapped(int)), &imodvObjed, 
@@ -693,8 +695,7 @@ static void mkLineColor_cb(int index)
 {
   ObjectEditField *oef = &objectEditFieldData[index];
 
-  QVBoxLayout *layout1 = new QVBoxLayout(oef->control, FIELD_MARGIN, 
-                                         FIELD_SPACING, "line color layout");
+  QVBoxLayout *layout1 = outerVBoxLayout(oef->control);
   lineSliders = new MultiSlider(oef->control, 4, rgbTitles);
   lineSliders->setRange(3, 0,100);    // Transparency
   layout1->addLayout(lineSliders->getLayout());
@@ -706,7 +707,7 @@ static void mkLineColor_cb(int index)
   QObject::connect(check, SIGNAL(toggled(bool)), &imodvObjed, 
           SLOT(multipleColorSlot(bool)));
   diaSetChecked(check, multipleColorOK);
-  QToolTip::add(check, "Apply color changes to all objects, all objects that "
+  check->setToolTip("Apply color changes to all objects, all objects that "
                 "are on, or objects in multiple models");
 
   finalSpacer(oef->control, layout1);
@@ -774,8 +775,7 @@ static void mkFillColor_cb(int index)
 {
   ObjectEditField *oef = &objectEditFieldData[index];
 
-  QVBoxLayout *layout1 = new QVBoxLayout(oef->control, FIELD_MARGIN, 
-                                         FIELD_SPACING, "fill color layout");
+  QVBoxLayout *layout1 = outerVBoxLayout(oef->control);
   fillSliders = new MultiSlider(oef->control, 3, rgbTitles);
   layout1->addLayout(fillSliders->getLayout());
   QObject::connect(fillSliders, SIGNAL(sliderChanged(int, int, bool)), 
@@ -784,13 +784,13 @@ static void mkFillColor_cb(int index)
   wFillToggle = diaCheckBox("Use fill color", oef->control, layout1);
   QObject::connect(wFillToggle, SIGNAL(toggled(bool)), &imodvObjed, 
           SLOT(fillToggleSlot(bool)));
-  QToolTip::add(wFillToggle, 
+  wFillToggle->setToolTip(
                 "Use fill color instead of object color for all filled data");
 
   wFillPntToggle = diaCheckBox("Use for spheres", oef->control, layout1);
   QObject::connect(wFillPntToggle, SIGNAL(toggled(bool)), &imodvObjed, 
           SLOT(fillPntToggleSlot(bool)));
-  QToolTip::add(wFillPntToggle, 
+  wFillPntToggle->setToolTip(
                 "Use fill color instead of object color for spheres");
 
   finalSpacer(oef->control, layout1);
@@ -882,17 +882,16 @@ static void mkMaterial_cb (int index)
 {
   ObjectEditField *oef = &objectEditFieldData[index];
 
-  QVBoxLayout *layout1 = new QVBoxLayout(oef->control, FIELD_MARGIN, 
-                                         FIELD_SPACING, "material layout");
+  QVBoxLayout *layout1 = outerVBoxLayout(oef->control);
   matSliders = new MultiSlider(oef->control, 4, matTitles);
   layout1->addLayout(matSliders->getLayout());
-  QToolTip::add((QWidget *)matSliders->getSlider(0),
+  matSliders->getSlider(0)->setToolTip(
                 "Set non-directional light hitting object");
-  QToolTip::add((QWidget *)matSliders->getSlider(1), 
+  matSliders->getSlider(1)->setToolTip(
                 "Set light hitting object from light source");
-  QToolTip::add((QWidget *)matSliders->getSlider(2),
+  matSliders->getSlider(2)->setToolTip(
                 "Set specular reflection properties of object");
-  QToolTip::add((QWidget *)matSliders->getSlider(3),
+  matSliders->getSlider(3)->setToolTip(
                 "Set shininess of object");
   QObject::connect(matSliders, SIGNAL(sliderChanged(int, int, bool)), 
                    &imodvObjed, SLOT(materialSlot(int, int, bool)));
@@ -900,7 +899,7 @@ static void mkMaterial_cb (int index)
   wBothSides = diaCheckBox("Light both sides", oef->control, layout1);
   QObject::connect(wBothSides, SIGNAL(toggled(bool)), &imodvObjed, 
           SLOT(bothSidesSlot(bool)));
-  QToolTip::add(wBothSides, 
+  wBothSides->setToolTip(
                 "Make front and back surface both appear brightly lit"); 
   finalSpacer(oef->control, layout1);
 }
@@ -1003,29 +1002,35 @@ static void mkPoints_cb(int index)
 {
   ObjectEditField *oef = &objectEditFieldData[index];
 
-  QVBoxLayout *layout1 = new QVBoxLayout(oef->control, FIELD_MARGIN, 
-                                         FIELD_SPACING, "points layout");
-  QGridLayout *grid = new QGridLayout(layout1, 3, 2);
+  QVBoxLayout *layout1 = outerVBoxLayout(oef->control);
+  QGridLayout *grid = new QGridLayout();
+  layout1->addLayout(grid);
   QLabel *label = new QLabel("Sphere Size", oef->control);
-  wPointSizeBox = new QSpinBox(0, 255, 1, oef->control, "point spin box");
-  wPointSizeBox->setFocusPolicy(QWidget::ClickFocus);
+  wPointSizeBox = new QSpinBox(oef->control);
+  wPointSizeBox->setRange(0, 255);
+  wPointSizeBox->setSingleStep(1);
+  wPointSizeBox->setFocusPolicy(Qt::ClickFocus);
   grid->addWidget(label, 1, 1);
   grid->addWidget(wPointSizeBox, 1, 2);
   label = new QLabel("Object Quality", oef->control);
-  wPointQualityBox = new QSpinBox(1, 4, 1, oef->control, "quality spin box");
-  wPointQualityBox->setFocusPolicy(QWidget::ClickFocus);
+  wPointQualityBox = new QSpinBox(oef->control);
+  wPointQualityBox->setRange(1, 4);
+  wPointQualityBox->setSingleStep(1);
+  wPointQualityBox->setFocusPolicy(Qt::ClickFocus);
   grid->addWidget(label, 2, 1);
   grid->addWidget(wPointQualityBox, 2, 2);
   label = new QLabel("Global Quality", oef->control);
-  wGlobalQualityBox = new QSpinBox(1, 4, 1, oef->control, "global quality");
-  wGlobalQualityBox->setFocusPolicy(QWidget::ClickFocus);
+  wGlobalQualityBox = new QSpinBox(oef->control);
+  wGlobalQualityBox->setFocusPolicy(Qt::ClickFocus);
+  wGlobalQualityBox->setRange(1, 4);
+  wGlobalQualityBox->setSingleStep(1);
   grid->addWidget(label, 3, 1);
   grid->addWidget(wGlobalQualityBox, 3, 2);
-  QToolTip::add(wPointSizeBox, "Set radius of sphere to draw at each point"
+  wPointSizeBox->setToolTip("Set radius of sphere to draw at each point"
                 " in pixels");
-  QToolTip::add(wPointQualityBox, "Set quality of sphere-drawing for this "
+  wPointQualityBox->setToolTip("Set quality of sphere-drawing for this "
                 "object");
-  QToolTip::add(wGlobalQualityBox, "Set overall quality of sphere-drawing");
+  wGlobalQualityBox->setToolTip("Set overall quality of sphere-drawing");
   
   QObject::connect(wPointSizeBox, SIGNAL(valueChanged(int)), &imodvObjed,
           SLOT(pointSizeSlot(int)));
@@ -1037,7 +1042,7 @@ static void mkPoints_cb(int index)
                                 layout1);
   QObject::connect(wPointNoDrawBox, SIGNAL(toggled(bool)), &imodvObjed,
                    SLOT(pointNoDrawSlot(bool)));
-  QToolTip::add(wPointNoDrawBox, "Skip drawing spheres when drawing object "
+  wPointNoDrawBox->setToolTip("Skip drawing spheres when drawing object "
                 "mesh");
 
   finalSpacer(oef->control, layout1);
@@ -1131,37 +1136,36 @@ static void mkLines_cb(int index)
 {
   ObjectEditField *oef = &objectEditFieldData[index];
 
-  QVBoxLayout *layout1 = new QVBoxLayout(oef->control, FIELD_MARGIN, 
-                                         2, "lines layout");
+  QVBoxLayout *layout1 = outerVBoxLayout(oef->control);
   widthSlider = new MultiSlider(oef->control, 2, widthLabel, 1, 10);
   widthSlider->setRange(1, 1, 100);
   layout1->addLayout(widthSlider->getLayout());
   QObject::connect(widthSlider, SIGNAL(sliderChanged(int, int, bool)), 
                    &imodvObjed, SLOT(lineWidthSlot(int, int, bool)));
-  QToolTip::add((QWidget *)widthSlider->getSlider(0),
+  widthSlider->getSlider(0)->setToolTip(
                 "Set line width in pixels for 2-D display on images");
-  QToolTip::add((QWidget *)widthSlider->getSlider(1),
+  widthSlider->getSlider(1)->setToolTip(
                 "Set line width in pixels for 3-D model view display");
 
   wLineAlias = diaCheckBox("Anti-alias rendering", oef->control, layout1);
   QObject::connect(wLineAlias, SIGNAL(toggled(bool)), &imodvObjed, 
           SLOT(lineAliasSlot(bool)));
-  QToolTip::add(wLineAlias, "Smooth lines with anti-aliasing");
+  wLineAlias->setToolTip("Smooth lines with anti-aliasing");
 
   wThickenCont = diaCheckBox("Thicken current contour", oef->control, layout1);
   QObject::connect(wThickenCont, SIGNAL(toggled(bool)), &imodvObjed, 
           SLOT(lineThickenSlot(bool)));
-  QToolTip::add(wThickenCont, "Draw current contour thicker");
+  wThickenCont->setToolTip("Draw current contour thicker");
 
   wOpenObject = diaCheckBox("Open object type", oef->control, layout1);
   QObject::connect(wOpenObject, SIGNAL(toggled(bool)), &imodvObjed, 
           SLOT(openObjectSlot(bool)));
-  QToolTip::add(wOpenObject, "Select open or closed contour object types");
+  wOpenObject->setToolTip("Select open or closed contour object types");
 
   wAutoNewCont = diaCheckBox("New contour at new Z", oef->control, layout1);
   QObject::connect(wAutoNewCont, SIGNAL(toggled(bool)), &imodvObjed, 
           SLOT(autoNewContSlot(bool)));
-  QToolTip::add(wAutoNewCont, "Automatically start new contour at new "
+  wAutoNewCont->setToolTip("Automatically start new contour at new "
                 "section");
   finalSpacer(oef->control, layout1);
 }
@@ -1241,7 +1245,6 @@ static void setScalar_cb(void)
   }
 
   diaSetGroup(wMeshGroup, which);
-
   diaSetChecked(wMeshFalse, IMOD_OBJFLAG_MCOLOR & obj->flags);
   diaSetChecked(wMeshSkipLo, (obj->matflags2 & MATFLAGS2_SKIP_LOW) != 0);
   diaSetChecked(wMeshSkipHi, (obj->matflags2 & MATFLAGS2_SKIP_HIGH) != 0);
@@ -1272,32 +1275,32 @@ static void mkScalar_cb(int index)
 {
   ObjectEditField *oef = &objectEditFieldData[index];
 
-  QVBoxLayout *layout1 = new QVBoxLayout(oef->control, FIELD_MARGIN, 
-                                         FIELD_SPACING, "mesh layout");
+  QVBoxLayout *layout1 = outerVBoxLayout(oef->control);
 
-  wMeshGroup = new QButtonGroup(1, Qt::Vertical, oef->control);
-  wMeshGroup->hide();
-  QObject::connect(wMeshGroup, SIGNAL(clicked(int)), &imodvObjed,
+  wMeshGroup = new QButtonGroup(oef->control);
+  QObject::connect(wMeshGroup, SIGNAL(buttonClicked(int)), &imodvObjed,
                    SLOT(meshShowSlot(int)));
 
-  QVBoxLayout *vLayout = new QVBoxLayout(layout1, 0);
-  makeRadioButton("No value drawing", oef->control, wMeshGroup, vLayout, NULL);
-  makeRadioButton("Show stored values", oef->control, wMeshGroup, vLayout,
+  QVBoxLayout *vLayout = diaVBoxLayout(layout1);
+  vLayout->setSpacing(1);
+  diaRadioButton("No value drawing", oef->control, wMeshGroup, vLayout, 0,
+                 NULL);
+  diaRadioButton("Show stored values", oef->control, wMeshGroup, vLayout, 1,
                   "Use stored values to modify display color");
-  makeRadioButton("Show normal magnitudes", oef->control, wMeshGroup, vLayout,
-                  "Make surface intensity proportional to magnitude of normal"
-                  " vectors");
+  diaRadioButton("Show normal magnitudes", oef->control, wMeshGroup, vLayout, 
+                 2, "Make surface intensity proportional to magnitude of "
+                 "normal vectors");
 
   meshSliders = new MultiSlider(oef->control, 2, bwLabels);
   layout1->addLayout(meshSliders->getLayout());
   QObject::connect(meshSliders, SIGNAL(sliderChanged(int, int, bool)),
                    &imodvObjed, SLOT(meshLevelSlot(int, int, bool)));
-  QToolTip::add((QWidget *)meshSliders->getSlider(0), "Set low end of "
+  meshSliders->getSlider(0)->setToolTip("Set low end of "
                 "contrast ramp for displaying values");
-  QToolTip::add((QWidget *)meshSliders->getSlider(1), "Set high end of "
+  meshSliders->getSlider(1)->setToolTip("Set high end of "
                 "contrast ramp for displaying values");
 
-  QHBoxLayout *hLayout = new QHBoxLayout(layout1);
+  QHBoxLayout *hLayout = diaHBoxLayout(layout1);
   QLabel *label = new QLabel("Color:", oef->control);
   label->setAlignment(Qt::AlignRight | Qt::AlignVCenter);
   hLayout->addWidget(label);
@@ -1305,15 +1308,15 @@ static void mkScalar_cb(int index)
   wMeshFalse = diaCheckBox("False", oef->control, hLayout);
   QObject::connect(wMeshFalse, SIGNAL(toggled(bool)), &imodvObjed, 
           SLOT(meshFalseSlot(bool)));
-  QToolTip::add(wMeshFalse, "Show values in false color");
+  wMeshFalse->setToolTip("Show values in false color");
 
   wMeshConstant = diaCheckBox("Fixed", oef->control, hLayout);
   QObject::connect(wMeshConstant, SIGNAL(toggled(bool)), &imodvObjed, 
           SLOT(meshConstantSlot(bool)));
-  QToolTip::add(wMeshConstant, "Keep color constant instead of changing with"
+  wMeshConstant->setToolTip("Keep color constant instead of changing with"
                 " value");
 
-  hLayout = new QHBoxLayout(layout1);
+  hLayout = diaHBoxLayout(layout1);
   label = new QLabel("Turn off:", oef->control);
   label->setAlignment(Qt::AlignRight | Qt::AlignVCenter);
   hLayout->addWidget(label);
@@ -1323,9 +1326,9 @@ static void mkScalar_cb(int index)
   wMeshSkipHi = diaCheckBox("High", oef->control, hLayout);
   QObject::connect(wMeshSkipHi, SIGNAL(toggled(bool)), &imodvObjed, 
           SLOT(meshSkipHiSlot(bool)));
-  QToolTip::add(wMeshSkipLo, "Do not draw items with values below low "
+  wMeshSkipLo->setToolTip("Do not draw items with values below low "
                 "limit of black/white sliders");
-  QToolTip::add(wMeshSkipHi, "Do not draw items with values above high "
+  wMeshSkipHi->setToolTip("Do not draw items with values above high "
                 "limit of black/white sliders");
 
   finalSpacer(oef->control, layout1);
@@ -1544,63 +1547,60 @@ static void mkClip_cb(int index)
 {
   ObjectEditField *oef = &objectEditFieldData[index];
 
-  QVBoxLayout *layout1 = new QVBoxLayout(oef->control, FIELD_MARGIN, 
-                                         B3DMAX(3, FIELD_SPACING-2),
-                                         "clip layout");
+  QVBoxLayout *layout1 = outerVBoxLayout(oef->control);
+  layout1->setSpacing(B3DMAX(3, FIELD_SPACING-2));
 
   // Show current plane is a global display property, so do it first
   QCheckBox *cbox = diaCheckBox("Show current plane", oef->control, layout1);
   diaSetChecked(cbox, Imodv->drawClip != 0);
   QObject::connect(cbox, SIGNAL(toggled(bool)), &imodvObjed,
                    SLOT(clipShowSlot(bool)));
-  QToolTip::add(cbox, "Draw semi-transparent plane for clipping plane being"
+  cbox->setToolTip("Draw semi-transparent plane for clipping plane being"
                 " edited");
 
   // Set up the radio button in a group box
-  wClipGlobalGroup = new QHButtonGroup("Planes to edit", oef->control);
-  layout1->addWidget(wClipGlobalGroup);
-  wClipGlobalGroup->setInsideMargin(4);
-  QRadioButton *radio = diaRadioButton("Object", wClipGlobalGroup);
-  wClipGlobalGroup->insert(radio);
-  QToolTip::add(radio, "Adjust object clip planes (use "CTRL_STRING
-                " Key to adjust)");
-  radio = diaRadioButton("Global", wClipGlobalGroup);
-  wClipGlobalGroup->insert(radio);
-  QToolTip::add(radio, "Adjust global clip planes, applied to whole model"
-                " (use "CTRL_STRING" Key to adjust)");
-  QObject::connect(wClipGlobalGroup, SIGNAL(clicked(int)), &imodvObjed, 
+  QGroupBox *gbox = new QGroupBox("Planes to edit", oef->control);
+  layout1->addWidget(gbox);
+  QHBoxLayout *gbLayout = new QHBoxLayout(gbox);
+  gbLayout->setContentsMargins(4, 0, 4, 2);  // L T R B
+  wClipGlobalGroup = new QButtonGroup(gbox);
+  diaRadioButton("Object", gbox, wClipGlobalGroup, gbLayout, 0, "Adjust object"
+                 "clip planes (use "CTRL_STRING " Key to adjust)");
+  diaRadioButton("Global", gbox, wClipGlobalGroup, gbLayout, 1,
+                 "Adjust global clip planes, applied to whole model"
+                 " (use "CTRL_STRING" Key to adjust)");
+  QObject::connect(wClipGlobalGroup, SIGNAL(buttonClicked(int)), &imodvObjed, 
                    SLOT(clipGlobalSlot(int)));
 
   // The skip global planes checkbox
   wClipSkipGlobal = diaCheckBox("Skip global planes", oef->control, layout1);
   QObject::connect(wClipSkipGlobal, SIGNAL(toggled(bool)), &imodvObjed, 
           SLOT(clipSkipSlot(bool)));
-  QToolTip::add(wClipSkipGlobal, 
+  wClipSkipGlobal->setToolTip(
                 "Do not apply any global clipping planes to this object");
 
   // Set up the spin button
-  QHBoxLayout *hLayout = new QHBoxLayout(layout1);
-  wClipPlaneSpin = diaLabeledSpin(0, 1, 1, 1, "Plane #",oef->control, hLayout);
+  QHBoxLayout *hLayout = diaHBoxLayout(layout1);
+  wClipPlaneSpin = (QSpinBox *)diaLabeledSpin(0, 1., 1., 1., "Plane #",
+                                              oef->control, hLayout);
 
   QObject::connect(wClipPlaneSpin, SIGNAL(valueChanged(int)), &imodvObjed, 
                    SLOT(clipPlaneSlot(int)));
-  QToolTip::add(wClipPlaneSpin, "Select plane to adjust (use "CTRL_STRING
+  wClipPlaneSpin->setToolTip("Select plane to adjust (use "CTRL_STRING
                 " Key to adjust)");
-  QHBox *spacer = new QHBox(oef->control);
-  hLayout->addWidget(spacer);
-  hLayout->setStretchFactor(spacer, 100);
+  hLayout->addStretch();
 
   // The ON/OFF checkbox
   wClipToggle = diaCheckBox("Clipping plane ON", oef->control, layout1);
   QObject::connect(wClipToggle, SIGNAL(toggled(bool)), &imodvObjed, 
           SLOT(clipToggleSlot(bool)));
-  QToolTip::add(wClipToggle, "Toggle selected clipping plane");
+  wClipToggle->setToolTip("Toggle selected clipping plane");
 
   // 3 mapped reset buttons
   QSignalMapper *mapper = new QSignalMapper(oef->control);
   QObject::connect(mapper, SIGNAL(mapped(int)), &imodvObjed,
                    SLOT(clipResetSlot(int)));
-  hLayout = new QHBoxLayout(layout1);
+  hLayout = diaHBoxLayout(layout1);
   diaLabel("Reset:", oef->control, hLayout);
 
   for (int i = 0; i < 3; i++) {
@@ -1608,7 +1608,7 @@ static void mkClip_cb(int index)
                            oef->control, hLayout);
     mapper->setMapping(wClipButtons[i], i);
     QObject::connect(wClipButtons[i], SIGNAL(clicked()), mapper, SLOT(map()));
-    QToolTip::add(wClipButtons[i], QString("Reset clipping plane back to ") +
+    wClipButtons[i]->setToolTip(QString("Reset clipping plane back to ") +
                   QString(i ? (i == 1 ? "Y/Z" : "X/Z") :"X/Y") +
                   " plane through center of object or model");
   }
@@ -1618,13 +1618,13 @@ static void mkClip_cb(int index)
   wClipButtons[3] = diaPushButton("Invert", oef->control, hLayout);
   QObject::connect(wClipButtons[3], SIGNAL(clicked()), &imodvObjed,
                    SLOT(clipInvertSlot()));
-  QToolTip::add(wClipButtons[3], 
+  wClipButtons[3]->setToolTip(
                 "Make clipped part visible, clip visible part of object");
 
   wClipMoveAll = diaCheckBox("Adjust all ON planes", oef->control, layout1);
   QObject::connect(wClipMoveAll, SIGNAL(toggled(bool)), &imodvObjed,
                    SLOT(clipMoveAllSlot(bool)));
-  QToolTip::add(wClipMoveAll, "Move/rotate all planes that are ON in object "
+  wClipMoveAll->setToolTip("Move/rotate all planes that are ON in object "
                 "together (use "CTRL_STRING" Key to adjust)");
 
   //diaLabel("Press "CTRL_STRING" Key to adjust", oef->control, layout1);
@@ -1723,8 +1723,7 @@ static void mkMove_cb(int index)
   QLabel *label;
   ObjectEditField *oef = &objectEditFieldData[index];
 
-  QVBoxLayout *layout1 = new QVBoxLayout(oef->control, FIELD_MARGIN, 
-                                         FIELD_SPACING, "move layout");
+  QVBoxLayout *layout1 = outerVBoxLayout(oef->control);
   button = diaPushButton("Center on Object", oef->control, layout1);
   QObject::connect(button, SIGNAL(clicked()), &imodvObjed, 
                    SLOT(moveCenterSlot()));
@@ -1732,7 +1731,9 @@ static void mkMove_cb(int index)
   label = diaLabel("Move by rotating around:", oef->control, layout1);
 
   // Get a grid and a signal mapper to map the buttons
-  QGridLayout *grid = new QGridLayout(layout1, 5, 3, 3, "move grid");
+  QGridLayout *grid = new QGridLayout();
+  layout1->addLayout(grid);
+  grid->setSpacing(3);
   QSignalMapper *mapper = new QSignalMapper(oef->control);
   QObject::connect(mapper, SIGNAL(mapped(int)), &imodvObjed,
                    SLOT(moveAxisSlot(int)));
@@ -1747,7 +1748,7 @@ static void mkMove_cb(int index)
     }
 
     moveButtons[i] = new QPushButton(moveLabels[i], oef->control);
-    moveButtons[i]->setFocusPolicy(QWidget::NoFocus);
+    moveButtons[i]->setFocusPolicy(Qt::NoFocus);
     grid->addWidget(moveButtons[i], i % 4 + 1, icol);
     mapper->setMapping(moveButtons[i], i);
     QObject::connect(moveButtons[i], SIGNAL(clicked()), mapper, SLOT(map()));
@@ -1787,22 +1788,20 @@ static void mkSubsets_cb(int index)
 {
   ObjectEditField *oef = &objectEditFieldData[index];
 
-  QVBoxLayout *layout1 = new QVBoxLayout(oef->control, FIELD_MARGIN, 
-                                         FIELD_SPACING, "move layout");
+  QVBoxLayout *layout1 = outerVBoxLayout(oef->control);
   diaLabel("Show subset of model:", oef->control, layout1);
 
-  QButtonGroup *group = new QButtonGroup(1, Qt::Vertical, oef->control);
-  group->hide();
+  QButtonGroup *group = new QButtonGroup(oef->control);
   
-  QObject::connect(group, SIGNAL(clicked(int)), &imodvObjed, 
+  QObject::connect(group, SIGNAL(buttonClicked(int)), &imodvObjed, 
 		   SLOT(subsetSlot(int)));
 
   for (int i = 0; i < 6; i++)
-    makeRadioButton(subsetLabels[i], oef->control, group, layout1, NULL);
+    diaRadioButton(subsetLabels[i], oef->control, group, layout1, i, NULL);
 
   diaSetGroup(group, Imodv->current_subset);
-
-  finalSpacer(oef->control, layout1);
+  layout1->addStretch();
+  //finalSpacer(oef->control, layout1);
 }
 
 
@@ -1816,10 +1815,10 @@ enum MakeSpinInds {MESH_SPIN_PASS, MESH_SPIN_DIAM, MESH_SPIN_TOL, MESH_SPIN_ZINC
                    MESH_SPIN_FLAT};
 static QCheckBox *wMakeChecks[6];
 static QSpinBox *wMakePassSpin;
-static FloatSpinBox *wMakeDiamSpin;
-static FloatSpinBox *wMakeTolSpin;
+static QDoubleSpinBox *wMakeDiamSpin;
+static QDoubleSpinBox *wMakeTolSpin;
 static QSpinBox *wMakeZincSpin;
-static QSpinBox *wMakeFlatSpin;
+static QDoubleSpinBox *wMakeFlatSpin;
 static QPushButton *wMakeDoButton;
 static QPushButton *wMakeAllButton;
 static QLabel *wMakeProgLabel;
@@ -1830,30 +1829,30 @@ static bool meshAllObjects;
 
 void ImodvObjed::makePassSlot(int value)
 {
-  makeSpinChanged(MESH_SPIN_PASS, value);
+  makeSpinChanged(MESH_SPIN_PASS, (double)value);
 }
 
-void ImodvObjed::makeDiamSlot(int value)
+void ImodvObjed::makeDiamSlot(double value)
 {
   makeSpinChanged(MESH_SPIN_DIAM, value);
 }
 
-void ImodvObjed::makeTolSlot(int value)
+void ImodvObjed::makeTolSlot(double value)
 {
   makeSpinChanged(MESH_SPIN_TOL, value);
 }
 
 void ImodvObjed::makeZincSlot(int value)
 {
-  makeSpinChanged(MESH_SPIN_ZINC, value);
+  makeSpinChanged(MESH_SPIN_ZINC, (double)value);
 }
 
-void ImodvObjed::makeFlatSlot(int value)
+void ImodvObjed::makeFlatSlot(double value)
 {
   makeSpinChanged(MESH_SPIN_FLAT, value);
 }
 
-void ImodvObjed::makeSpinChanged(int which, int value)
+void ImodvObjed::makeSpinChanged(int which, double value)
 {
   MeshParams *param;
   Iobj *obj;
@@ -1870,25 +1869,25 @@ void ImodvObjed::makeSpinChanged(int which, int value)
         any = 1;
         switch (which) {
         case MESH_SPIN_PASS:
-          param->passes = value;
+          param->passes = B3DNINT(value);
           break;
         case MESH_SPIN_DIAM:
-          param->tubeDiameter = 0.1 * value;
+          param->tubeDiameter = value;
           break;
         case MESH_SPIN_TOL:
           if (makeLowRes)
-            param->tolLowRes = 0.01 * value;
+            param->tolLowRes = value;
           else
-            param->tolHighRes = 0.01 * value;
+            param->tolHighRes = value;
           break;
         case MESH_SPIN_ZINC:
           if (makeLowRes)
-            param->inczLowRes = value;
+            param->inczLowRes = B3DNINT(value);
           else
-            param->inczHighRes = value;
+            param->inczHighRes = B3DNINT(value);
           break;
         case MESH_SPIN_FLAT:
-          param->flatCrit = 0.1 * value;
+          param->flatCrit = value;
           break;
         }
       }
@@ -1900,7 +1899,7 @@ void ImodvObjed::makeSpinChanged(int which, int value)
 
 void ImodvObjed::makeStateSlot(int which)
 {
-  bool state = wMakeChecks[which]->isOn();
+  bool state = wMakeChecks[which]->isChecked();
   Iobj *obj = objedObject();
   int mst, mnd, ob, m, any = 0;
   bool tube;
@@ -1983,14 +1982,13 @@ static void setMakeMesh_cb(void)
     makeParams = &makeDefParams;
   scat = iobjScat(obj->flags);
   tube = (makeParams->flags & IMESH_MK_TUBE) && iobjOpen(obj->flags);
-  diaSetSpinBox(wMakeTolSpin, B3DNINT(100. * (makeLowRes ? 
-                                            makeParams->tolLowRes :
-                                            makeParams->tolHighRes)));
+  diaSetDoubleSpinBox (wMakeTolSpin, makeLowRes ? makeParams->tolLowRes : 
+                       makeParams->tolHighRes);
   diaSetSpinBox(wMakeZincSpin, makeLowRes ? 
                 makeParams->inczLowRes : makeParams->inczHighRes);
   diaSetSpinBox(wMakePassSpin, makeParams->passes);
-  diaSetSpinBox(wMakeDiamSpin, B3DNINT(10. * makeParams->tubeDiameter));
-  diaSetSpinBox(wMakeFlatSpin, B3DNINT(10. * makeParams->flatCrit));
+  diaSetDoubleSpinBox(wMakeDiamSpin, makeParams->tubeDiameter);
+  diaSetDoubleSpinBox(wMakeFlatSpin, makeParams->flatCrit);
   diaSetChecked(wMakeChecks[MAKE_MESH_SKIP], 
                 (makeParams->flags & IMESH_MK_SKIP) != 0);
   diaSetChecked(wMakeChecks[MAKE_MESH_SURF], 
@@ -2030,53 +2028,54 @@ static void mkMakeMesh_cb(int index)
     "are loaded binned";
   ObjectEditField *oef = &objectEditFieldData[index];
 
-  QVBoxLayout *layout1 = new QVBoxLayout(oef->control, FIELD_MARGIN, 
-                                         FIELD_SPACING, "mesh layout");
-  QHBoxLayout *hLayout = new QHBoxLayout(layout1);
+  QVBoxLayout *layout1 = outerVBoxLayout(oef->control);
+  QHBoxLayout *hLayout = diaHBoxLayout(layout1);
 
   imeshParamsDefault(&makeDefParams);
 
   wMakeChecks[MAKE_MESH_SKIP] = diaCheckBox("Skip", oef->control, hLayout);
 
-  wMakePassSpin = diaLabeledSpin(0, 1, 10, 1, "Passes", oef->control, hLayout);
+  wMakePassSpin = (QSpinBox *)diaLabeledSpin(0, 1., 10., 1., "Passes", 
+                                             oef->control, hLayout);
   QObject::connect(wMakePassSpin, SIGNAL(valueChanged(int)), &imodvObjed, 
                    SLOT(makePassSlot(int)));
-  QToolTip::add(wMakePassSpin, "Set number of passes at increasing distances");
+  wMakePassSpin->setToolTip("Set number of passes at increasing distances");
 
-  hLayout = new QHBoxLayout(layout1);
+  hLayout = diaHBoxLayout(layout1);
   wMakeChecks[MAKE_MESH_TUBE] = diaCheckBox("Tube", oef->control, hLayout);
-  wMakeDiamSpin = (FloatSpinBox *)diaLabeledSpin(1, -20, 1000, 5, "Diam", 
+  wMakeDiamSpin = (QDoubleSpinBox *)diaLabeledSpin(1, -2., 100., 0.5, "Diam", 
                                                  oef->control, hLayout);
-  QObject::connect(wMakeDiamSpin, SIGNAL(valueChanged(int)), &imodvObjed, 
-                   SLOT(makeDiamSlot(int)));
-  QToolTip::add(wMakeDiamSpin, "Set diameter for tube contours, or 0 to use "
+  QObject::connect(wMakeDiamSpin, SIGNAL(valueChanged(double)), &imodvObjed, 
+                   SLOT(makeDiamSlot(double)));
+  wMakeDiamSpin->setToolTip("Set diameter for tube contours, or 0 to use "
                 "3D line width, -1 to use point size, -2 to use symbol size");
 
-  hLayout = new QHBoxLayout(layout1);
+  hLayout = diaHBoxLayout(layout1);
   wMakeChecks[MAKE_MESH_LOW] = diaCheckBox("Low res", oef->control, hLayout);
-  wMakeTolSpin = (FloatSpinBox *)diaLabeledSpin(2,0, 500, 5, "Tol", 
+  wMakeTolSpin = (QDoubleSpinBox *)diaLabeledSpin(2,0., 5.0, 0.05f, "Tol", 
                                                 oef->control, hLayout);
-  QObject::connect(wMakeTolSpin, SIGNAL(valueChanged(int)), &imodvObjed, 
-                   SLOT(makeTolSlot(int)));
-  QToolTip::add(wMakeTolSpin, "Set tolerance for point reduction");
+  QObject::connect(wMakeTolSpin, SIGNAL(valueChanged(double)), &imodvObjed, 
+                   SLOT(makeTolSlot(double)));
+  wMakeTolSpin->setToolTip("Set tolerance for point reduction");
 
-  hLayout = new QHBoxLayout(layout1);
+  hLayout = diaHBoxLayout(layout1);
   wMakeChecks[MAKE_MESH_SURF] = diaCheckBox("Surface", oef->control, hLayout);
-  wMakeZincSpin = diaLabeledSpin(0, 1, 10, 1, "Z inc", oef->control, hLayout);
+  wMakeZincSpin = (QSpinBox *)diaLabeledSpin(0, 1., 10., 1., "Z inc", 
+                                             oef->control, hLayout);
   QObject::connect(wMakeZincSpin, SIGNAL(valueChanged(int)), &imodvObjed, 
                    SLOT(makeZincSlot(int)));
-  QToolTip::add(wMakeZincSpin, "Set Z increment for coarser meshing");
+  wMakeZincSpin->setToolTip("Set Z increment for coarser meshing");
 
-  hLayout = new QHBoxLayout(layout1);
+  hLayout = diaHBoxLayout(layout1);
   wMakeChecks[MAKE_MESH_CAP] = diaCheckBox("Cap", oef->control, hLayout);
-  wMakeFlatSpin = (FloatSpinBox *)diaLabeledSpin(1, 0, 100, 5, "Flat crit", 
-                                                 oef->control, hLayout);
-  QObject::connect(wMakeFlatSpin, SIGNAL(valueChanged(int)), &imodvObjed, 
-                   SLOT(makeFlatSlot(int)));
-  QToolTip::add(wMakeFlatSpin, "Set criterion Z difference for analyzing for "
+  wMakeFlatSpin = (QDoubleSpinBox *)diaLabeledSpin(1, 0., 10., 5., "Flat crit",
+                                                   oef->control, hLayout);
+  QObject::connect(wMakeFlatSpin, SIGNAL(valueChanged(double)), &imodvObjed, 
+                   SLOT(makeFlatSlot(double)));
+  wMakeFlatSpin->setToolTip("Set criterion Z difference for analyzing for "
                 "tilted contours");
 
-  hLayout = new QHBoxLayout(layout1);
+  hLayout = diaHBoxLayout(layout1);
   wMakeChecks[MAKE_MESH_DOME] = diaCheckBox("Dome cap", oef->control, hLayout);
   wMakeProgLabel = diaLabel("", oef->control, hLayout);
   wMakeProgLabel->setAlignment(Qt::AlignRight | Qt::AlignVCenter);
@@ -2085,7 +2084,7 @@ static void mkMakeMesh_cb(int index)
   QObject::connect(mapper, SIGNAL(mapped(int)), &imodvObjed,
                    SLOT(makeStateSlot(int)));
   for (int i = 0; i < 6; i++) {
-    QToolTip::add(wMakeChecks[i], makeCheckTips[i]);
+    wMakeChecks[i]->setToolTip(makeCheckTips[i]);
     mapper->setMapping(wMakeChecks[i], i);
     QObject::connect(wMakeChecks[i], SIGNAL(toggled(bool)), mapper,
                      SLOT(map()));
@@ -2094,15 +2093,16 @@ static void mkMakeMesh_cb(int index)
   diaSetChecked(wMakeChecks[MAKE_MESH_LOW], makeLowRes != 0);
 
   //QGridLayout *grid = new QGridLayout(layout1, 1, 2, 0);
-  hLayout = new QHBoxLayout(layout1);
+  hLayout = diaHBoxLayout(layout1);
   hLayout->setSpacing(3);
-  hLayout->setMargin(0);
+  hLayout->setContentsMargins(0,0,0,0);
 
   wMakeDoButton = diaPushButton("Mesh One", oef->control, hLayout);
   //wMakeDoButton =  new QPushButton("Mesh One", oef->control);
   //grid->addWidget(wMakeDoButton, 0, 0);
   QObject::connect(wMakeDoButton, SIGNAL(clicked()), &imodvObjed, 
                    SLOT(makeDoitSlot()));
+
   wMakeAllButton = diaPushButton("Mesh All", oef->control, hLayout);
   //wMakeAllButton = new QPushButton("Mesh All", oef->control);
   //grid->addWidget(wMakeAllButton, 0, 1);
@@ -2111,11 +2111,11 @@ static void mkMakeMesh_cb(int index)
   if (!Imodv->standalone && (Imodv->vi->xybin * Imodv->vi->zbin > 1)) {
     wMakeDoButton->setEnabled(false);    
     wMakeAllButton->setEnabled(false);    
-    QToolTip::add(wMakeDoButton, notAvailable);
-    QToolTip::add(wMakeAllButton, notAvailable);
+    wMakeDoButton->setToolTip(notAvailable);
+    wMakeAllButton->setToolTip(notAvailable);
   } else {
-    QToolTip::add(wMakeDoButton, "Mesh the object with these parameters");
-    QToolTip::add(wMakeAllButton, "Mesh all objects with their respective"
+    wMakeDoButton->setToolTip("Mesh the object with these parameters");
+    wMakeAllButton->setToolTip("Mesh all objects with their respective"
                   " meshing parameters");
   }
 
@@ -2232,7 +2232,7 @@ int ImodvObjed::meshOneObject(Iobj *obj)
 void ImodvObjed::timerEvent(QTimerEvent *e)
 {
 #ifdef QT_THREAD_SUPPORT
-  if (mMeshThread->running())
+  if (mMeshThread->isRunning())
     return;
   killTimer(mTimerID);
   if (objed_dialog) {
@@ -2284,7 +2284,7 @@ static int finishMesh()
   if (meshThreadErr) {
     str = QString("An error occurred meshing the object:\n") + 
       QString(b3dGetError());
-    dia_err((char *)str.latin1());
+    dia_err(LATIN1(str));
     retval = -1;
   } else if (meshedModNum >= Imodv->nm || 
       meshedObjNum >= Imodv->mod[meshedModNum]->objsize) {
@@ -2534,20 +2534,21 @@ static void finalSpacer(QWidget *parent, QVBoxLayout *layout)
   layout->addStretch();
 }
 
-static void makeRadioButton(char *label, QWidget *parent, QButtonGroup *group,
-                            QVBoxLayout *layout1, char *tooltip)
+static QVBoxLayout *outerVBoxLayout(QWidget *parent)
 {
-  QRadioButton *radio = new QRadioButton(QString(label), parent);
-  group->insert(radio);
-  layout1->addWidget(radio);
-  radio->setFocusPolicy(QWidget::NoFocus);
-  if (tooltip)
-    QToolTip::add(radio, QString(tooltip));
+  QVBoxLayout *layout1 = new QVBoxLayout(parent);
+  layout1->setContentsMargins(FIELD_MARGIN, FIELD_MARGIN, FIELD_MARGIN, 
+                              FIELD_MARGIN);
+  layout1->setSpacing(FIELD_SPACING);
+  return layout1;
 }
 
 /*
 
 $Log$
+Revision 4.42  2008/12/10 01:05:56  mast
+Fixed test for on flags to require all flags be on
+
 Revision 4.41  2008/12/09 23:27:36  mast
 Changed flag from line to noline
 

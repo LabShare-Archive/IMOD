@@ -15,6 +15,9 @@
     $Revision$
 
     $Log$
+    Revision 1.26  2009/01/07 15:36:06  mast
+    Had to make an argument float in a pow statement
+
     Revision 1.25  2009/01/07 04:02:03  tempuser
     Changed closeEvent to avoid crash
 
@@ -82,7 +85,7 @@
 #include <qcheckbox.h>
 #include <qlabel.h>
 #include <qcombobox.h>
-#include <qvbuttongroup.h>
+#include <QButtonGroup>
 #include <qradiobutton.h>
 #include <qdialog.h>
 #include <qspinbox.h>
@@ -92,6 +95,15 @@
 #include <qstringlist.h>
 #include <qmessagebox.h>
 #include <qinputdialog.h>
+//Added by qt3to4:
+#include <QVBoxLayout>
+#include <QWheelEvent>
+#include <QMouseEvent>
+#include <QCloseEvent>
+#include <QGridLayout>
+#include <QKeyEvent>
+#include <QEvent>
+#include <QHBoxLayout>
 
 #include "_common_functions.h"
 #include "qt_dialog_customizable.h"
@@ -138,8 +150,8 @@ int imodPlugKeys(ImodView *vw, QKeyEvent *event)
     return 0;
   
   int keysym = event->key();            // key value (Key_A, Key_Space... etc)
-  int ctrl    = event->state() & Qt::ControlButton;   // ctrl modifier
-  int shift   = event->state() & Qt::ShiftButton;     // shift modifier
+  int ctrl    = event->modifiers() & Qt::ControlModifier;   // ctrl modifier
+  int shift   = event->modifiers() & Qt::ShiftModifier;     // shift modifier
   
   
   if(ctrl &&             // if the control key is down I typically want IMOD to handle it
@@ -362,7 +374,7 @@ int imodPlugEvent(ImodView *vw, QEvent *event, float imx, float imy)
     
     //## ZOOM:
     
-    if( wheelEvent->state() & Qt::ControlButton )     // if [ctrl] is down:
+    if( wheelEvent->modifiers() & Qt::ControlModifier )     // if [ctrl] is down:
     {
       float zoom;
       int error = ivwGetTopZapZoom(plug.view, &zoom);
@@ -525,7 +537,7 @@ int imodPlugMouse(ImodView *vw, QMouseEvent *event, float imx, float imy,
   plug.but2Down = but2;      // left mouse    (using my preferred settings)
   plug.but3Down = but3;      // middle mosue  (using my preferred settings)
   
-  plug.shiftDown = (event->state() & Qt::ShiftButton);
+  plug.shiftDown = (event->modifiers() & Qt::ShiftModifier);
   
   
 //## IF ANY BUTTON WAS JUST PRESSED: GET THE CENTROID OF THE CURRENT CONTOUR
@@ -726,98 +738,98 @@ DialogFrame(parent, 2, buttonLabels, buttonTips, true, "Drawing Tools", "", name
   
   
   //## Type:
+
+  QGroupBox *typeGbox = new QGroupBox("Drawing Mode:", this);
+  typeButtonGroup = new QButtonGroup(this);
+  QVBoxLayout *gbLayout = new QVBoxLayout(typeGbox);
+  gbLayout->setSpacing(0);
+  gbLayout->setContentsMargins(5, 2, 5, 5);
+  //typeButtonGroup->setMargin(GROUP_MARGIN);
+  connect(typeButtonGroup, SIGNAL(buttonClicked(int)), this, SLOT(changeType(int)));
   
-  typeButtonGroup = new QVButtonGroup("Drawing Mode:", this);
-  typeButtonGroup->setInsideSpacing(0);
-  typeButtonGroup->setInsideMargin(5);
-  typeButtonGroup->setMargin(GROUP_MARGIN);
-  connect(typeButtonGroup, SIGNAL(clicked(int)), this, SLOT(changeType(int)));
+  typeRadio_Normal = diaRadioButton("Normal        [1]", typeGbox, typeButtonGroup,
+                                    gbLayout, 0, "Contours are drawn normally");
   
-  typeRadio_Normal = new QRadioButton("Normal        [1]", typeButtonGroup);
-  typeRadio_Normal->setFocusPolicy(QWidget::NoFocus);
-  QToolTip::add(typeRadio_Normal, "Contours are drawn normally");
+  typeRadio_Sculpt = diaRadioButton
+    ("Sculpt        [2]", typeGbox, typeButtonGroup, gbLayout, 1, 
+     "Draw and modify closed contours "
+     "quickly using the sculpt circle to push or pinch lines");
   
-  typeRadio_Sculpt = new QRadioButton("Sculpt        [2]", typeButtonGroup);
-  typeRadio_Sculpt->setFocusPolicy(QWidget::NoFocus);
-  QToolTip::add(typeRadio_Sculpt, "Draw and modify closed contours "
-                "quickly using the sculpt circle to push or pinch lines");
+  typeRadio_Join = diaRadioButton
+    ("Join              [3]", typeGbox, typeButtonGroup, gbLayout, 2, 
+     "Join or split contours quickly by making overlaps");
   
-  typeRadio_Join = new QRadioButton("Join              [3]", typeButtonGroup);
-  typeRadio_Join->setFocusPolicy(QWidget::NoFocus);
-  QToolTip::add(typeRadio_Join, "Join or split contours quickly by making overlaps");
+  typeRadio_Transform = diaRadioButton
+    ("Transform    [4]", typeGbox, typeButtonGroup, gbLayout, 3, 
+     "Allows you to move, rotate and scale the selected contour");
   
-  typeRadio_Transform = new QRadioButton("Transform    [4]", typeButtonGroup);
-  typeRadio_Transform->setFocusPolicy(QWidget::NoFocus);
-  QToolTip::add(typeRadio_Transform, "Allows you to move, rotate and "
-                "scale the selected contour");
+  typeRadio_Eraser = diaRadioButton
+    ("Eraser          [5]", typeGbox, typeButtonGroup, gbLayout, 4,
+     "Erase contours instantly by clicking them");
   
-  typeRadio_Eraser = new QRadioButton("Eraser          [5]", typeButtonGroup);
-  typeRadio_Eraser->setFocusPolicy(QWidget::NoFocus);
-  QToolTip::add(typeRadio_Eraser, "Erase contours instantly by clicking them");
-  
-  typeRadio_Sculpt = new QRadioButton("Warp           [6]", typeButtonGroup);
-  typeRadio_Sculpt->setFocusPolicy(QWidget::NoFocus);
-  QToolTip::add(typeRadio_Sculpt, "Quicly correct bad regions of contour by "
-                "dragging/warping the edges");
+  typeRadio_Sculpt = diaRadioButton
+    ("Warp           [6]", typeGbox, typeButtonGroup, gbLayout, 5,
+     "Quickly correct bad regions of contour by dragging/warping the edges");
   
   changeTypeSelected( plug.drawMode );
   
-  mLayout->addWidget(typeButtonGroup);
+  mLayout->addWidget(typeGbox);
   
   
   //## Interpolation Options:
   
   grpOptions = new QGroupBox("Contour Smoothing Options:", this);
-  grpOptions->setFocusPolicy(QWidget::NoFocus);
-  grpOptions->setMargin(GROUP_MARGIN);
+  //grpOptions->setFocusPolicy(Qt::NoFocus);
+  //grpOptions->setMargin(GROUP_MARGIN);
   
   gridLayout1 = new QGridLayout(grpOptions);
   gridLayout1->setSpacing(LAYOUT_SPACING);
-  gridLayout1->setMargin(LAYOUT_MARGIN);
-  gridLayout1->addItem( new QSpacerItem(1,SPACER_HEIGHT), 0, 0);
+  gridLayout1->setContentsMargins(LAYOUT_MARGIN, LAYOUT_MARGIN, LAYOUT_MARGIN,
+                                  LAYOUT_MARGIN);
+  
+  // DNM: I don't understand why this was needed but when I switched to a 
+  // QGroupBox the space showed up
+  //gridLayout1->addItem( new QSpacerItem(1,SPACER_HEIGHT), 0, 0);
   
   reducePtsCheckbox = new QCheckBox("reduce drawn contours", grpOptions);
-  reducePtsCheckbox->setFocusPolicy(QWidget::NoFocus);
+  reducePtsCheckbox->setFocusPolicy(Qt::NoFocus);
   reducePtsCheckbox->setChecked( plug.draw_reducePts );
   QObject::connect(reducePtsCheckbox,SIGNAL(clicked()),this,
                    SLOT(changeReducePts()));
-  QToolTip::add(reducePtsCheckbox, 
-                "Automatically applies smoothing to any contour drawn with the "
-                "\n'sculpt' and 'join' tools upon release of the mouse button");
-  gridLayout1->addMultiCellWidget(reducePtsCheckbox, 1, 1, 0, 1);
+  reducePtsCheckbox->setToolTip
+    ("Automatically applies smoothing to any contour drawn with the "
+     "\n'sculpt' and 'join' tools upon release of the mouse button");
+  gridLayout1->addWidget(reducePtsCheckbox, 1, 0, 1, 2);
   
   
   QString minAreaStr = 
-    "When a contour is reduced: wherever three consecutive points "
-    "\nform a triangular area less than this many pixels squared, "
-    "\nthe middle point is removed."
-    "\n"
-    "\nRECOMMENDED VALUE: 0.5";
-  
+      "When a contour is reduced: wherever three consecutive points "
+      "\nform a triangular area less than this many pixels squared, "
+      "\nthe middle point is removed."
+      "\n"
+      "\nRECOMMENDED VALUE: 0.5";
+    
   lblMinArea = new QLabel("reduction min area:", grpOptions);
-  lblMinArea->setFocusPolicy(QWidget::NoFocus);
-  QToolTip::add(lblMinArea, minAreaStr);
+  lblMinArea->setFocusPolicy(Qt::NoFocus);
+  lblMinArea->setToolTip(minAreaStr);
   gridLayout1->addWidget(lblMinArea, 2, 0);
-  
   QString tolStr = 
-    "When a contour is reduced: the higher this tolerance value "
-    "\nthe more points are removed. "
-    "\n"
-    "\nRECOMMENDED VALUE: 0.05";
-  
+      "When a contour is reduced: the higher this tolerance value "
+      "\nthe more points are removed. "
+      "\n"
+      "\nRECOMMENDED VALUE: 0.05";
+    
   lblTol = new QLabel("reduction tolerance:", grpOptions);
-  lblTol->setFocusPolicy(QWidget::NoFocus);
-  QToolTip::add(lblTol, tolStr);
+  lblTol->setFocusPolicy(Qt::NoFocus);
+  lblTol->setToolTip(tolStr);
   gridLayout1->addWidget(lblTol, 2, 0);
   
-  QBoxLayout *box1 = new QBoxLayout(QBoxLayout::LeftToRight);
-  fSmoothSpinner = (FloatSpinBox*)diaLabeledSpin(2,1,2000,1,"",grpOptions,box1);
-  diaSetSpinBox( (QSpinBox*)fSmoothSpinner, int(plug.draw_reducePtsTol*100) );
-  ((QSpinBox *)fSmoothSpinner)->setFocusPolicy(QWidget::ClickFocus);
-  QObject::connect( (QSpinBox*)fSmoothSpinner,SIGNAL(valueChanged(int)),this,
-                    SLOT(changeSmoothTol(int)));
-  QToolTip::add( (QSpinBox*)fSmoothSpinner,
-                 "The higher this value, the more point are removed "
+  QHBoxLayout *box1 = new QHBoxLayout();
+  fSmoothSpinner = (QDoubleSpinBox*)diaLabeledSpin(2,0.01,20.0,0.01,"",grpOptions,box1);
+  diaSetDoubleSpinBox(fSmoothSpinner, plug.draw_reducePtsTol);
+  QObject::connect(fSmoothSpinner,SIGNAL(valueChanged(double)),this,
+                   SLOT(changeSmoothTol(double)));
+  fSmoothSpinner->setToolTip("The higher this value, the more point are removed "
                  "when you press [r] or 'Reduce Contours'"
                  "\n... a value of >1 is not recommended.");
   gridLayout1->addLayout(box1, 2, 1);
@@ -832,17 +844,17 @@ DialogFrame(parent, 2, buttonLabels, buttonTips, true, "Drawing Tools", "", name
     "\nRECOMMENDED VALUE: 5";
   
   lblSmoothPtsDist = new QLabel("smooth point dist:", grpOptions);
-  lblSmoothPtsDist->setFocusPolicy(QWidget::NoFocus);
-  QToolTip::add(lblSmoothPtsDist, smoothPtsDistStr);
+  lblSmoothPtsDist->setFocusPolicy(Qt::NoFocus);
+  lblSmoothPtsDist->setToolTip(smoothPtsDistStr);
   gridLayout1->addWidget(lblSmoothPtsDist, 3, 0);
   
-  QBoxLayout *box2 = new QBoxLayout(QBoxLayout::LeftToRight);
-  fSmoothPtsDist = (FloatSpinBox*)diaLabeledSpin(0,1,50,1,"",grpOptions,box2);
-  diaSetSpinBox( (QSpinBox*)fSmoothPtsDist, plug.draw_smoothMinDist*1 );
-  ((QSpinBox *)fSmoothPtsDist)->setFocusPolicy(QWidget::ClickFocus);
-  QObject::connect( (QSpinBox*)fSmoothPtsDist,SIGNAL(valueChanged(int)),this,
-                   SLOT(changeSmoothPtsDist(int)));
-  QToolTip::add( (QSpinBox*)fSmoothPtsDist, smoothPtsDistStr);
+  // DNM 1/1/09: Made this one show one decimal
+  QHBoxLayout *box2 = new QHBoxLayout();
+  fSmoothPtsDist = (QDoubleSpinBox*)diaLabeledSpin(1,1.,50.,1.,"",grpOptions,box2);
+  diaSetDoubleSpinBox(fSmoothPtsDist, plug.draw_smoothMinDist );
+  QObject::connect(fSmoothPtsDist,SIGNAL(valueChanged(double)),
+                    this, SLOT(changeSmoothPtsDist(double)));
+  fSmoothPtsDist->setToolTip(smoothPtsDistStr);
   gridLayout1->addLayout(box2, 3, 1);
   
   
@@ -855,17 +867,16 @@ DialogFrame(parent, 2, buttonLabels, buttonTips, true, "Drawing Tools", "", name
     "\nRECOMMENDED VALUE: 0.5";
   
   lblSmoothTensileFract = new QLabel("smooth tensile value:", grpOptions);
-  lblSmoothTensileFract->setFocusPolicy(QWidget::NoFocus);
-  QToolTip::add(lblSmoothTensileFract, smoothTensileFractStr);
+  lblSmoothTensileFract->setFocusPolicy(Qt::NoFocus);
+  lblSmoothTensileFract->setToolTip(smoothTensileFractStr);
   gridLayout1->addWidget(lblSmoothTensileFract, 4, 0);
   
-  QBoxLayout *box3 = new QBoxLayout(QBoxLayout::LeftToRight);
-  fSmoothTensileFract = (FloatSpinBox*)diaLabeledSpin(1,0,20,1,"",grpOptions,box3);
-  diaSetSpinBox( (QSpinBox*)fSmoothTensileFract, plug.draw_smoothTensileFract*10 );
-  ((QSpinBox *)fSmoothTensileFract)->setFocusPolicy(QWidget::ClickFocus);
-  QObject::connect( (QSpinBox*)fSmoothTensileFract,SIGNAL(valueChanged(int)),this,
-                    SLOT(changeSmoothTensileFract(int)));
-  QToolTip::add( (QSpinBox*)fSmoothTensileFract, smoothTensileFractStr);
+  QHBoxLayout *box3 = new QHBoxLayout();
+  fSmoothTensileFract = (QDoubleSpinBox*)diaLabeledSpin(1,0.,2.0,0.1,"",grpOptions,box3);
+  diaSetDoubleSpinBox(fSmoothTensileFract, plug.draw_smoothTensileFract );
+  QObject::connect(fSmoothTensileFract,SIGNAL(valueChanged(double)),this,
+                   SLOT(changeSmoothTensileFract(double)));
+  fSmoothTensileFract->setToolTip(smoothTensileFractStr);
   gridLayout1->addLayout(box3, 4, 1);
   mLayout->addWidget(grpOptions);
   
@@ -873,27 +884,29 @@ DialogFrame(parent, 2, buttonLabels, buttonTips, true, "Drawing Tools", "", name
   //## Object
   
   grpActions = new QGroupBox("Smoothing Actions:", this);
-  grpActions->setFocusPolicy(QWidget::NoFocus);
-  grpActions->setMargin(GROUP_MARGIN);
+  //grpActions->setFocusPolicy(Qt::NoFocus);
+  //grpActions->setMargin(GROUP_MARGIN);
   
 
   vboxLayout1 = new QVBoxLayout(grpActions);
   vboxLayout1->setSpacing(LAYOUT_SPACING);
-  vboxLayout1->setMargin(LAYOUT_MARGIN);
-  vboxLayout1->addItem( new QSpacerItem(1,SPACER_HEIGHT) );
+  vboxLayout1->setContentsMargins(LAYOUT_MARGIN, LAYOUT_MARGIN, LAYOUT_MARGIN,
+                                  LAYOUT_MARGIN);
+  // DNM: DITTO TO ABOVE
+  //vboxLayout1->addItem( new QSpacerItem(1,SPACER_HEIGHT) );
   
   reduceContsButton = new QPushButton("Reduce Contours [r]", grpActions);
-  reduceContsButton->setFocusPolicy(QWidget::NoFocus);
+  reduceContsButton->setFocusPolicy(Qt::NoFocus);
   connect(reduceContsButton, SIGNAL(clicked()), this, SLOT(reduceConts()));
-  QToolTip::add(reduceContsButton,
+  reduceContsButton->setToolTip(
                 "Reduces (removes points from) a range of contours "
                 "\nin the current object");
   vboxLayout1->addWidget(reduceContsButton);
   
   smoothContsButton = new QPushButton("Smooth Contours [e]", grpActions);
-  smoothContsButton->setFocusPolicy(QWidget::NoFocus);
+  smoothContsButton->setFocusPolicy(Qt::NoFocus);
   connect(smoothContsButton, SIGNAL(clicked()), this, SLOT(smoothConts()));
-  QToolTip::add(smoothContsButton,
+  smoothContsButton->setToolTip(
                 "Smooths (adds points to) a range of contours "
                 "\nin the current object... (use with caution)");
   vboxLayout1->addWidget(smoothContsButton);
@@ -907,18 +920,19 @@ DialogFrame(parent, 2, buttonLabels, buttonTips, true, "Drawing Tools", "", name
   
   gridLayout2 = new QGridLayout(widget1);
   gridLayout2->setSpacing(LAYOUT_SPACING);
-  gridLayout2->setMargin(LAYOUT_MARGIN);
+  gridLayout2->setContentsMargins(LAYOUT_MARGIN, LAYOUT_MARGIN, LAYOUT_MARGIN,
+                                  LAYOUT_MARGIN);
   
   moreActionsButton = new QPushButton("More Actions", widget1);
   connect(moreActionsButton, SIGNAL(clicked()), this, SLOT(moreActions()));
-  QToolTip::add(moreActionsButton,
+  moreActionsButton->setToolTip(
                 "Contains several other actions I didn't want to sqeeze "
                 "into this window");
   gridLayout2->addWidget(moreActionsButton, 0, 0);
   
   moreSettingsButton = new QPushButton("More Settings", widget1);
   connect(moreSettingsButton, SIGNAL(clicked()), this, SLOT(moreSettings()));
-  QToolTip::add(moreSettingsButton,
+  moreSettingsButton->setToolTip(
                 "Contains several other settings I didn't want to sqeeze "
                 "into this window");
   gridLayout2->addWidget(moreSettingsButton, 0, 1); 
@@ -3671,7 +3685,7 @@ void DrawingTools::changeType( int value ) {
 
 void DrawingTools::changeTypeSelected( int newType) {
   plug.drawMode = newType;
-  typeButtonGroup->setButton( plug.drawMode);
+  diaSetGroup(typeButtonGroup, plug.drawMode);
   plug.window->drawExtraObject(true);
 }
 
@@ -3680,14 +3694,14 @@ void DrawingTools::changeTypeSelected( int newType) {
 //-- Change draw_reducePtsTol or draw_reducePtsMinArea
 //-- (depending on the value of draw_reducePtsOpt)
 
-void DrawingTools::changeSmoothTol( int value ) { 
+void DrawingTools::changeSmoothTol( double value ) { 
   if( plug.draw_reducePtsOpt == RD_TOL )
   {
-    plug.draw_reducePtsTol = (float)value / 100.0f;
+    plug.draw_reducePtsTol = (float)value;
   }
   else
   {
-    plug.draw_reducePtsMinArea = (float)value / 100.0f;
+    plug.draw_reducePtsMinArea = (float)value;
   }
 }
 
@@ -3702,27 +3716,29 @@ void DrawingTools::setReducePtsOptionAndChangeDisplay( int value )
   if( plug.draw_reducePtsOpt == RD_TOL )
   {
     lblTol->show();
-    ((QSpinBox *)fSmoothSpinner)->setValue( plug.draw_reducePtsTol * 100.0f );
+    lblMinArea->hide();
+    fSmoothSpinner->setValue( plug.draw_reducePtsTol );
   }
   else
   {
     lblTol->hide();
-    ((QSpinBox *)fSmoothSpinner)->setValue( plug.draw_reducePtsMinArea * 100.0f );
+    lblMinArea->show();
+    fSmoothSpinner->setValue( plug.draw_reducePtsMinArea );
   }
 }
 
 //------------------------
 //-- Change draw_smoothMinDist
 
-void DrawingTools::changeSmoothPtsDist( int value ) {
-  plug.draw_smoothMinDist = (float)value / 1.0f;
+void DrawingTools::changeSmoothPtsDist( double value ) {
+  plug.draw_smoothMinDist = (float)value;
 }
 
 //------------------------
 //-- Change draw_smoothTensileFract
 
-void DrawingTools::changeSmoothTensileFract( int value ) {
-  plug.draw_smoothTensileFract = (float)value / 10.0f;
+void DrawingTools::changeSmoothTensileFract( double value ) {
+  plug.draw_smoothTensileFract = (float)value;
 }
 
 //------------------------
@@ -3761,7 +3777,7 @@ void DrawingTools::buttonPressed(int which)
     QString str = QString(getenv("IMOD_DIR"));
     str += QString("/lib/imodplug/drawingtools.html");
     
-    imodShowHelpPage(str);
+    imodShowHelpPage((const char *)str.toLatin1());
   }
 }
 

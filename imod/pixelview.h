@@ -1,3 +1,7 @@
+//Added by qt3to4:
+#include <QLabel>
+#include <QKeyEvent>
+#include <QCloseEvent>
 /*   pixelview.h  -  declarations for pixelview.cpp and PixelView class
  *
  *   Copyright (C) 1995-2002 by Boulder Laboratory for 3-Dimensional Electron
@@ -28,7 +32,7 @@ class PixelView: public QWidget
 
  public:
   PixelView(QWidget *parent, const char *name = 0, 
-	      WFlags fl = Qt::WDestructiveClose | Qt::WType_TopLevel);
+	      Qt::WFlags fl = Qt::Window);
   ~PixelView() {};
   void update();
   void setButtonWidths();
@@ -67,6 +71,9 @@ class PixelView: public QWidget
 /*
 
 $Log$
+Revision 4.5  2008/05/27 05:33:15  mast
+Changes for rgb and memory displays
+
 Revision 4.4  2006/09/18 15:46:46  mast
 Moved mouse line to top
 

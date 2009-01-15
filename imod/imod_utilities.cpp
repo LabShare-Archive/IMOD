@@ -13,6 +13,17 @@
 
 #include <stdarg.h>
 #include <qcolor.h>
+#include <qicon.h>
+#include <qaction.h>
+#include <qtoolbutton.h>
+#include <qpushbutton.h>
+#include <qtoolbar.h>
+#include <qbitmap.h>
+#include <QBoxLayout>
+#include <qsignalmapper.h>
+
+//Added by qt3to4:
+#include <QKeyEvent>
 #include "imod.h"
 #include "imod_utilities.h"
 #include "b3dgfx.h"
@@ -21,6 +32,12 @@
 #include "imod_client_message.h"
 #include "imod_assistant.h"
 #include "dia_qtutils.h"  
+#include "tooledit.h"
+#include "arrowbutton.h"
+
+#define TOOLBUT_SIZE 20
+#define BM_WIDTH 16
+#define BM_HEIGHT 16
 
 /* Draw a symbol of the given type, size, and flags */
 void utilDrawSymbol(int mx, int my, int sym, int size, int flags)
@@ -186,9 +203,136 @@ void utilSetObjFlag(Iobj *obj, int flagType, bool state, b3dUInt32 flag)
   }
 }
 
+/*
+ * Adds arrow buttons and a zoom edit box to a tool bar
+ */
+ToolEdit *utilTBZoomTools(QWidget *parent, QToolBar *toolBar, 
+                               ArrowButton **upArrow, ArrowButton **downArrow)
+{
+  ToolEdit *edit;
+  utilTBArrowButton(Qt::UpArrow, parent, toolBar, upArrow,
+                         "Increase zoom factor");
+  utilTBArrowButton(Qt::DownArrow, parent, toolBar, downArrow,
+                         "Decrease zoom factor");
+  utilTBToolEdit(6, parent, toolBar, &edit, "Enter a zoom factor");
+  return edit;
+}
+
+/*
+ * Adds an arrow button to a tool bar and constrains its size
+ */
+QAction *utilTBArrowButton(Qt::ArrowType type, QWidget *parent, 
+                                QToolBar *toolBar, ArrowButton **arrow,
+                                const char *toolTip)
+{
+  QAction *action;
+  *arrow = new ArrowButton(type, parent);
+  action = toolBar->addWidget(*arrow);
+  (*arrow)->setAutoRaise(TB_AUTO_RAISE);
+  (*arrow)->setFixedSize(TOOLBUT_SIZE, TOOLBUT_SIZE);
+  if (toolTip)
+    (*arrow)->setToolTip(toolTip);
+  return action;
+}
+
+/*
+ * Adds a tool edit to a tool bar
+ */
+QAction *utilTBToolEdit(int width, QWidget *parent, QToolBar *toolBar,
+                             ToolEdit **edit, const char *toolTip)
+{
+  QAction *action;
+  *edit = new ToolEdit(parent, width);
+  action = toolBar->addWidget(*edit);
+  (*edit)->setFocusPolicy(Qt::ClickFocus);
+  (*edit)->setAlignment(Qt::AlignRight);
+  if (toolTip)
+    (*edit)->setToolTip(toolTip);
+  return action;
+}  
+
+/*
+ * Adds an tool button to a tool bar and constrains its size
+ */
+QAction *utilTBToolButton(QWidget *parent, QToolBar *toolBar,
+                          QToolButton **button, const char *toolTip)
+{
+  QAction *action;
+  *button = new QToolButton(parent);
+  action = toolBar->addWidget(*button);
+  (*button)->setAutoRaise(TB_AUTO_RAISE);
+  (*button)->setFixedSize(TOOLBUT_SIZE, TOOLBUT_SIZE);
+  (*button)->setFocusPolicy(Qt::NoFocus);
+  if (toolTip)
+    (*button)->setToolTip(toolTip);
+   return action;
+}  
+
+/*
+ * Adds a push button to a tool bar
+ */
+QAction *utilTBPushButton(const char *text, QWidget *parent, QToolBar *toolBar,
+                          QPushButton **button, const char *toolTip)
+{
+  QAction *action;
+  *button = new QPushButton(text, parent);
+  action = toolBar->addWidget(*button);
+  (*button)->setFocusPolicy(Qt::NoFocus);
+  if (toolTip)
+    (*button)->setToolTip(toolTip);
+   return action;
+}  
+
+/*
+ * Take two X11 bitmaps in bitList and convert to off and on icons for num
+ * buttons
+ */
+void utilBitListsToIcons(unsigned char *bitList[][2], QIcon *icons[], int num)
+{
+  for (int i = 0; i < num; i++) {
+    icons[i] = new QIcon();
+    icons[i]->addPixmap
+      (QBitmap::fromData(QSize(BM_WIDTH, BM_HEIGHT), bitList[i][0]),
+       QIcon::Normal, QIcon::Off);
+    icons[i]->addPixmap
+      (QBitmap::fromData(QSize(BM_WIDTH, BM_HEIGHT), bitList[i][1]), 
+       QIcon::Normal, QIcon::On);
+  }
+}
+
+/*
+ * Set up a single toggle button out of a set.  Set the parent and either add
+ * it to a toolbar and return the action, or add it to the layout.  Set the
+ * mapping through the mapper, set the icon, set the state to off.
+ */
+QAction *utilSetupToggleButton(QWidget *parent, QToolBar *toolBar, 
+                               QBoxLayout *layout, QSignalMapper *mapper,
+                               QIcon *icons[], char *tips[], 
+                               QToolButton *buts[], int states[], int ind)
+{
+  QAction *action = NULL;
+  buts[ind] = new QToolButton(parent);
+  if (toolBar)
+    action = toolBar->addWidget(buts[ind]);
+  else if (layout)
+    layout->addWidget(buts[ind]);
+  buts[ind]->setAutoRaise(TB_AUTO_RAISE);
+  buts[ind]->setFixedSize(TOOLBUT_SIZE, TOOLBUT_SIZE);
+  buts[ind]->setCheckable(true);
+  buts[ind]->setChecked(false);
+  buts[ind]->setIcon(*icons[ind]);
+  buts[ind]->setFocusPolicy(Qt::NoFocus);
+  states[ind] = 0;
+  mapper->setMapping(buts[ind], ind);
+  if (tips)
+    buts[ind]->setToolTip(tips[ind]);
+  return action;
+}
+
+
 /* Appends either the model or file name to the window name, giving
    first priority to the model name if "modelFirst" is set */
-char *imodwEithername(char *intro, char *filein, int modelFirst)
+char *imodwEithername(const char *intro, const char *filein, int modelFirst)
 {
   char *retString;
   if (modelFirst) {
@@ -206,9 +350,10 @@ char *imodwEithername(char *intro, char *filein, int modelFirst)
 
 
 /* Appends the given name to window name */
-char *imodwGivenName(char *intro, char *filein)
+char *imodwGivenName(const char *intro, const char *filein)
 {
-  char *winame, *filename;
+  char *winame;
+  const char *filename;
   int i;
      
   filename = filein;
@@ -218,7 +363,7 @@ char *imodwGivenName(char *intro, char *filein)
     return(NULL);
   for(i = 0; filein[i]; i++){
     if (filein[i] == '/'){
-      filename = &(filein[i]);
+      filename = (&(filein[i]));
       filename++;
     }
   }
@@ -230,7 +375,7 @@ char *imodwGivenName(char *intro, char *filein)
 }
 
 /* Appends image name to window names. */
-char *imodwfname(char *intro)
+char *imodwfname(const char *intro)
 {
   char *filename;
   filename = Imod_imagefile;
@@ -248,11 +393,11 @@ char *imodwfname(char *intro)
 
 /* Takes an intro without a :, and returns a qstring with intro: filename
    or just intro */
-QString imodCaption(char *intro)
+QString imodCaption(const char *intro)
 {
   QString qstr = intro;
   qstr += ":";
-  char *name = imodwfname((char *)qstr.latin1());
+  char *name = imodwfname(LATIN1(qstr));
   if (name) {
     qstr = name;
     free(name);
@@ -386,6 +531,9 @@ int imodColorValue(int inColor)
 /*
 
 $Log$
+Revision 1.5  2008/07/16 04:31:09  mast
+Add function to set object flag
+
 Revision 1.4  2008/02/06 21:28:00  mast
 Prevented writing to stdout/stderr if -L input (from etomo) has disconnected
 

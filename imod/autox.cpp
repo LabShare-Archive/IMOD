@@ -387,8 +387,8 @@ int autox_open(ImodView *vw)
   ax->cz        = (int)(vw->zmouse + 0.5);
   ax->diagonal  = 0;
 
-  autoWindow = new AutoxWindow(imodDialogManager.parent(IMOD_DIALOG), NULL, 
-                               Qt::WType_TopLevel | Qt::WDestructiveClose);
+  autoWindow = new AutoxWindow(imodDialogManager.parent(IMOD_DIALOG),
+                               Qt::Window);
 			       
   if (!autoWindow){
     free(ax);
@@ -837,6 +837,10 @@ static void autox_clear(Autox *ax, unsigned char bit)
 /*
 
 $Log$
+Revision 4.12  2008/05/28 00:14:10  mast
+Made it check if image processing busy and then get it to process the
+section when doing Next
+
 Revision 4.11  2008/05/27 22:48:58  mast
 Added function to synchronize color ramp changes
 

@@ -17,6 +17,12 @@
 
 #include <qmainwindow.h>
 #include <qgl.h>
+//Added by qt3to4:
+#include <QCloseEvent>
+#include <QTimerEvent>
+#include <QLabel>
+#include <QMouseEvent>
+#include <QKeyEvent>
 #include "b3dgfx.h"
 #include "imodel.h"
 
@@ -27,6 +33,7 @@ struct Mod_contour;
 class XyzWindow;
 class XyzGL;
 class HotToolBar;
+class QToolBar;
 class QLabel;
 class QToolButton;
 class QSignalMapper;
@@ -35,7 +42,7 @@ class QSlider;
 class MultiSlider;
 class QPushButton;
 
-#define NUM_TOOLBUTTONS 1
+#define MAX_XYZ_TOGGLES  1
 #define NUM_AXIS 3
 
 struct xxyzwin
@@ -86,11 +93,12 @@ class XyzWindow : public QMainWindow
     public:
   XyzWindow(struct xxyzwin *xyz, bool rgba, bool doubleBuffer, 
 	    bool enableDepth, QWidget * parent = 0, const char * name = 0,
-	    WFlags f = Qt::WDestructiveClose || Qt::WType_TopLevel) ;
+	    Qt::WFlags f = Qt::Window) ;
   ~XyzWindow() {};
 
   XyzGL *mGLw;
-  HotToolBar *mToolBar;
+  //HotToolBar *mToolBar;
+  QToolBar *mToolBar;
   void Draw();
   int Getxyz(int x, int y, float *mx, float *my, int *mz);
   void B1Press(int x, int y);
@@ -142,16 +150,14 @@ class XyzWindow : public QMainWindow
 
  private:
   struct xxyzwin *mXyz;
-  QToolButton *mToggleButs[NUM_TOOLBUTTONS];
-  int mToggleStates[NUM_TOOLBUTTONS];
+  QToolButton *mToggleButs[MAX_XYZ_TOGGLES];
+  int mToggleStates[MAX_XYZ_TOGGLES];
   ToolEdit *mZoomEdit;
   bool mCtrlPressed;
   int mDisplayedAxisLocation[NUM_AXIS];
   MultiSlider *mSliders;
   QPushButton *mHelpButton;
   void StateToggled(int index, int state);
-  void setupToggleButton(HotToolBar *toolBar, QSignalMapper *mapper,
-                         int index);
   void stateToggled(int index, int state);
   void enteredZoom(float newZoom);
   void setControlAndLimits();
@@ -167,8 +173,7 @@ class XyzGL : public QGLWidget
   Q_OBJECT
 
     public:
-  XyzGL(  struct xxyzwin *xyz, QGLFormat format, XyzWindow * parent = 0,
-        const char * name = 0);
+  XyzGL(  struct xxyzwin *xyz, QGLFormat format, XyzWindow * parent = 0);
   ~XyzGL() {};
   bool mClosing;
  
@@ -195,7 +200,11 @@ void xyzPixelViewState(bool state);
 float xyzScaleBarSize();
 
 /*
+
 $Log$
+Revision 3.18  2008/01/25 20:22:58  mast
+Changes for new scale bar
+
 Revision 3.17  2007/11/16 23:13:04  mast
 New variables for adjusting balance between windows, center button
 

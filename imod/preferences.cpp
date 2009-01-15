@@ -29,13 +29,18 @@
 #include "preferences.h"
 #include <qsettings.h>
 #include <qtooltip.h>
-#include <qtabdialog.h>
+#include <qtabwidget.h>
+#include <qpushbutton.h>
 #include <qstylefactory.h>
 #include <qapplication.h>
 #include <qdir.h>
+#include <qdialogbuttonbox.h>
 #include <qimage.h>
-#include <qwidgetlist.h>
-#include <qobjectlist.h>
+#include <qwidget.h>
+#include <qobject.h>
+//Added by qt3to4:
+#include <QTimerEvent>
+#include <QImageWriter>
 #include "dia_qtutils.h"
 #include "form_appearance.h"
 #include "form_behavior.h"
@@ -53,12 +58,6 @@
 #include "scalebar.h"
 
 ImodPreferences *ImodPrefs;
-
-#ifdef Q_OS_MACX
-#define IMOD_NAME
-#else
-#define IMOD_NAME "/3dmod/"
-#endif
 
 #define MAX_STYLES 24
 
@@ -79,9 +78,11 @@ static char *styleList[] = {"Windows", "compact",
 #endif
 static int styleStatus[MAX_STYLES];
 
-#define READBOOL(a) prefs->a = settings->readBoolEntry(IMOD_NAME#a, prefs->a##Dflt, &prefs->a##Chgd)
-#define READNUM(a) prefs->a = settings->readNumEntry(IMOD_NAME#a, prefs->a##Dflt, &prefs->a##Chgd)
-#define WRITE_IF_CHANGED(a) if (prefs->a##Chgd) settings->writeEntry(IMOD_NAME#a, prefs->a)
+// Macros to reduce boilerplate!
+// The # turns the argument into a string, the ## joins it to characters
+#define READBOOL(a) prefs->a##Chgd = settings->contains(#a) ; prefs->a = settings->value(#a, prefs->a##Dflt).toBool();
+#define READNUM(a) prefs->a##Chgd = settings->contains(#a) ; prefs->a = settings->value(#a, prefs->a##Dflt).toInt();
+#define WRITE_IF_CHANGED(a) if (prefs->a##Chgd) settings->setValue(#a, prefs->a)
 
 typedef struct generic_settings
 {
@@ -111,6 +112,7 @@ ImodPreferences::ImodPreferences(char *cmdLineStyle)
   mRecordedZapGeom = QRect(0, 0, 0, 0);
   mGenericList = ilistNew(sizeof(GenericSettings), 4);
   mMultiZgeom =  QRect(0, 0, 0, 0);
+  QCoreApplication::setOrganizationDomain("bio3d.colorado.edu");
 
   // Put plugin dir on the library path so image plugins can be found
   plugdir = getenv("IMOD_PLUGIN_DIR");
@@ -124,7 +126,7 @@ ImodPreferences::ImodPreferences(char *cmdLineStyle)
   prefs->modvSwapLeftMidDflt = false;
   prefs->silentBeepDflt = false;
   prefs->classicSlicerDflt = false;
-  prefs->tooltipsOnDflt = true;
+  //prefs->tooltipsOnDflt = true;
   prefs->startAtMidZDflt = true;
   prefs->autoConAtStartDflt = 1;
   prefs->attachToOnObjDflt = true;
@@ -171,11 +173,11 @@ ImodPreferences::ImodPreferences(char *cmdLineStyle)
   READBOOL(modvSwapLeftMid);
   READBOOL(silentBeep);
   READBOOL(classicSlicer);
-  mClassicWarned = settings->readBoolEntry(IMOD_NAME"classicWarned");
+  mClassicWarned = settings->value("classicWarned").toBool();
   if (prefs->classicSlicer)
     mClassicWarned = true;
-  READBOOL(tooltipsOn);
-  QToolTip::setGloballyEnabled(prefs->tooltipsOn);
+  //READBOOL(tooltipsOn);
+  //QToolTip::setGloballyEnabled(prefs->tooltipsOn);
   READNUM(autoConAtStart);
   READBOOL(startAtMidZ);
   READBOOL(attachToOnObj);
@@ -187,21 +189,21 @@ ImodPreferences::ImodPreferences(char *cmdLineStyle)
   READNUM(minModPtSize);
   READNUM(minImPtSize);
   READBOOL(rememberGeom);
-  mGeomLastSaved = settings->readNumEntry(IMOD_NAME"lastGeometrySaved", -1);
+  mGeomLastSaved = settings->value("lastGeometrySaved", -1).toInt();
   READNUM(autoTargetMean);
   READNUM(autoTargetSD);
-  prefs->snapFormat = settings->readEntry(IMOD_NAME"snapFormat",
-                                          prefs->snapFormatDflt,
-                                          &prefs->snapFormatChgd);
+  prefs->snapFormatChgd = settings->contains("snapFormat");
+  prefs->snapFormat = settings->value("snapFormat",
+                                      prefs->snapFormatDflt).toString();
   READNUM(snapQuality);
   READNUM(slicerPanKb);
   READBOOL(speedupSlider);
 
   // Make sure an output format is on the list; if not drop to PNG then RGB
-  strList = (snapFormatList()).grep(prefs->snapFormat);
+  strList = (snapFormatList()).filter(prefs->snapFormat);
   if (strList.isEmpty())
     prefs->snapFormat = "PNG";
-  strList = (snapFormatList()).grep(prefs->snapFormat);
+  strList = (snapFormatList()).filter(prefs->snapFormat);
   if (strList.isEmpty())
     prefs->snapFormat = "RGB";
 
@@ -209,17 +211,19 @@ ImodPreferences::ImodPreferences(char *cmdLineStyle)
   prefs->zoomsChgd = false;
   for (i = 0; i < MAXZOOMS; i++) {
     prefs->zoomsDflt[i] = szoomvals[i];
-    str.sprintf(IMOD_NAME"zooms/%d", i);
-    prefs->zooms[i] = settings->readDoubleEntry(str, szoomvals[i], &readin);
+    str.sprintf("zooms/%d", i);
+    readin = settings->contains(str);
+    prefs->zooms[i] = settings->value(str, szoomvals[i]).toDouble();
     if (readin)
       prefs->zoomsChgd = true;
   }
 
   // Read colors with separate keys
   for (i = 0; i < MAX_NAMED_COLORS; i++) {
-    str.sprintf(IMOD_NAME"namedColors/%d", i);
-    prefs->namedColor[i] = settings->readNumEntry
-      (str, (int)prefs->namedColorDflt[i], &prefs->namedColorChgd[i]);
+    str.sprintf("namedColors/%d", i);
+    prefs->namedColorChgd[i] = settings->contains(str);
+    prefs->namedColor[i] = settings->value
+      (str, (int)prefs->namedColorDflt[i]).toInt();
   }
 
   // Read the geometry information with separate keys
@@ -228,25 +232,25 @@ ImodPreferences::ImodPreferences(char *cmdLineStyle)
     mGeomImageXsize[i] = mGeomImageYsize[i] = 0;
     mGeomZapWin[i].setRect(0, 0, 0, 0);
     mGeomInfoWin[i].setRect(0, 0, 0, 0);
-    str.sprintf(IMOD_NAME"geomImageSize/%d", i);
-    str = settings->readEntry(str);
-    if (!str.isEmpty()) {
-      sscanf(str.latin1(), "%d,%d", &mGeomImageXsize[i], &mGeomImageYsize[i]);
+    str.sprintf("geomImageSize/%d", i);
+    if (settings->contains(str)) {
+      str = settings->value(str).toString();
+      sscanf(LATIN1(str), "%d,%d", &mGeomImageXsize[i], &mGeomImageYsize[i]);
       readin = true;
     }
 
-    str.sprintf(IMOD_NAME"geomZapWindow/%d", i);
-    str = settings->readEntry(str);
-    if (!str.isEmpty()) {
-      sscanf(str.latin1(), "%d,%d,%d,%d", &left, &top, &width, &height);
+    str.sprintf("geomZapWindow/%d", i);
+    if (settings->contains(str)) {
+      str = settings->value(str).toString();
+      sscanf(LATIN1(str), "%d,%d,%d,%d", &left, &top, &width, &height);
       mGeomZapWin[i].setRect(left, top, width, height);
       readin = true;
     }
 
-    str.sprintf(IMOD_NAME"geomInfoWindow/%d", i);
-    str = settings->readEntry(str);
-    if (!str.isEmpty()) {
-      sscanf(str.latin1(), "%d,%d,%d,%d", &left, &top, &width, &height);
+    str.sprintf("geomInfoWindow/%d", i);
+    if (settings->contains(str)) {
+      str = settings->value(str).toString();
+      sscanf(LATIN1(str), "%d,%d,%d,%d", &left, &top, &width, &height);
       mGeomInfoWin[i].setRect(left, top, width, height);
       readin = true;
     }
@@ -257,21 +261,22 @@ ImodPreferences::ImodPreferences(char *cmdLineStyle)
     mClassicWarned = true;
 
   // Get multi Z window geometry and params
-  str = settings->readEntry(IMOD_NAME"geomMultiZwindow");
-  if (!str.isEmpty()) {
-    sscanf(str.latin1(), "%d,%d,%d,%d", &left, &top, &width, &height);
+  if (settings->contains("geomMultiZwindow")) {
+    str = settings->value("geomMultiZwindow").toString();
+    sscanf(LATIN1(str), "%d,%d,%d,%d", &left, &top, &width, &height);
     mMultiZgeom.setRect(left, top, width, height);
-    str = settings->readEntry(IMOD_NAME"multiZparams");
-    if (!str.isEmpty())
-      sscanf(str.latin1(), "%d,%d,%d,%d,%d", &mMultiZnumX, &mMultiZnumY, 
-             &mMultiZstep, &mMultiZdrawCen, &mMultiZdrawOthers);
+  }
+  if (settings->contains("multiZparams")) {
+    str = settings->value("multiZparams").toString();
+    sscanf(LATIN1(str), "%d,%d,%d,%d,%d", &mMultiZnumX, &mMultiZnumY, 
+           &mMultiZstep, &mMultiZdrawCen, &mMultiZdrawOthers);
   }
 
   // Get scale bar params
-  str = settings->readEntry(IMOD_NAME"scaleBarParams");
-  if (!str.isEmpty()) {
+  if (settings->contains("scaleBarParams")) {
+    str = settings->value("scaleBarParams").toString();
     scaleParm = scaleBarGetParams();
-    sscanf(str.latin1(), "%d,%d,%d,%d,%d,%d,%d,%d,%d", &left, &top, 
+    sscanf(LATIN1(str), "%d,%d,%d,%d,%d,%d,%d,%d,%d", &left, &top, 
            &scaleParm->minLength, &scaleParm->thickness, &position,
            &scaleParm->indentX, &scaleParm->indentY, &width, 
            &scaleParm->customVal);
@@ -284,14 +289,14 @@ ImodPreferences::ImodPreferences(char *cmdLineStyle)
     scaleParm->invertRamp = (position & 16) != 0;
   }
 
-  floatOn = settings->readNumEntry(IMOD_NAME"floatButton");
-  subarea = settings->readNumEntry(IMOD_NAME"subareaButton");
+  floatOn = settings->value("floatButton").toInt();
+  subarea = settings->value("subareaButton").toInt();
   imodInfoSetFloatFlags(floatOn, subarea);
-  i = settings->readNumEntry(IMOD_NAME"useWheelForSize");
+  i = settings->value("useWheelForSize").toInt();
   iceSetWheelForSize(i);
-  str = settings->readEntry(IMOD_NAME"montageSnapshots");
-  if (!str.isEmpty()) {
-    sscanf(str.latin1(), "%d,%d,%d,%d,%d", &left, &top, &i, &width, &position);
+  if (settings->contains("montageSnapshots")) {
+    str = settings->value("montageSnapshots").toString();
+    sscanf(LATIN1(str), "%d,%d,%d,%d,%d", &left, &top, &i, &width, &position);
     imcSetSnapMontage(left != 0);
     imcSetMontageFactor(top);
     imcSetSnapWholeMont(i != 0);
@@ -300,9 +305,9 @@ ImodPreferences::ImodPreferences(char *cmdLineStyle)
   }
 
   READNUM(autosaveInterval);
-  prefs->autosaveDir = settings->readEntry(IMOD_NAME"autosaveDir",
-                                          prefs->autosaveDirDflt,
-                                          &prefs->autosaveDirChgd);
+  prefs->autosaveDirChgd = settings->contains("autosaveDir");
+  prefs->autosaveDir = settings->value("autosaveDir",
+                                       prefs->autosaveDirDflt).toString();
   READBOOL(autosaveOn);
 
   // If no autosave interval or state read in, look for environment entry
@@ -322,7 +327,7 @@ ImodPreferences::ImodPreferences(char *cmdLineStyle)
     prefs->autosaveDir = autosaveDir();
 
   // Look for font; either set the font or get the current font
-  str = settings->readEntry(IMOD_NAME"fontString");
+  str = settings->value("fontString").toString();
   prefs->fontChgd = !str.isEmpty() && prefs->font.fromString(str);
   if (prefs->fontChgd)
     QApplication::setFont(prefs->font);
@@ -339,7 +344,7 @@ ImodPreferences::ImodPreferences(char *cmdLineStyle)
 
     // Otherwise, look for a key and use it; or set the key to windows
   } else {
-    str = settings->readEntry(IMOD_NAME"styleKey");
+    str = settings->value("styleKey").toString();
     prefs->styleChgd = styleOK(str) &&  QStyleFactory::create(str) != NULL;
     if (prefs->styleChgd)
       prefs->styleKey = str;
@@ -369,7 +374,7 @@ bool ImodPreferences::styleOK(QString key)
     str = styleList[i];
     if (str.isEmpty())
       break;
-    if (str.lower() == key.lower())
+    if (str.toLower() == key.toLower())
       return false;
   }
   return true;
@@ -380,7 +385,7 @@ bool ImodPreferences::styleOK(QString key)
     str = styleList[i];
     if (str.isEmpty())
       break;
-    if (str.lower() == key.lower() && QStyleFactory::create(str) != NULL)
+    if (str.toLower() == key.toLower() && QStyleFactory::create(str) != NULL)
       return true;
   }
   return false;
@@ -430,25 +435,25 @@ void ImodPreferences::saveSettings(int modvAlone)
     mGeomInfoWin[geomInd] = ivwRestorableGeometry(ImodInfoWin);
     mGeomZapWin[geomInd] = mRecordedZapGeom;
 
-    settings->writeEntry(IMOD_NAME"lastGeometrySaved", geomInd);
+    settings->setValue("lastGeometrySaved", geomInd);
 
     for (i = 0; i < MAX_GEOMETRIES; i++) {
       if (mGeomImageXsize[i]) {
-        str.sprintf(IMOD_NAME"geomImageSize/%d", i);
+        str.sprintf("geomImageSize/%d", i);
         str2.sprintf("%d,%d", mGeomImageXsize[i], mGeomImageYsize[i]);
-        settings->writeEntry(str, str2);
+        settings->setValue(str, str2);
         
-        str.sprintf(IMOD_NAME"geomZapWindow/%d", i);
+        str.sprintf("geomZapWindow/%d", i);
         str2.sprintf("%d,%d,%d,%d", mGeomZapWin[i].left(), 
                      mGeomZapWin[i].top(),
                      mGeomZapWin[i].width(), mGeomZapWin[i].height());
-        settings->writeEntry(str, str2);
+        settings->setValue(str, str2);
         
-        str.sprintf(IMOD_NAME"geomInfoWindow/%d", i);
+        str.sprintf("geomInfoWindow/%d", i);
         str2.sprintf("%d,%d,%d,%d", mGeomInfoWin[i].left(), 
                      mGeomInfoWin[i].top(),
                      mGeomInfoWin[i].width(), mGeomInfoWin[i].height());
-        settings->writeEntry(str, str2);
+        settings->setValue(str, str2);
       }
     }
   }
@@ -456,10 +461,10 @@ void ImodPreferences::saveSettings(int modvAlone)
   if (mMultiZgeom.width()) {
     str.sprintf("%d,%d,%d,%d", mMultiZgeom.left(), mMultiZgeom.top(),
                 mMultiZgeom.width(), mMultiZgeom.height());
-    settings->writeEntry(IMOD_NAME"geomMultiZwindow", str);
+    settings->setValue("geomMultiZwindow", str);
     str.sprintf("%d,%d,%d,%d,%d", mMultiZnumX, mMultiZnumY, mMultiZstep,
                 mMultiZdrawCen, mMultiZdrawOthers);
-    settings->writeEntry(IMOD_NAME"multiZparams", str);
+    settings->setValue("multiZparams", str);
   }
 
   WRITE_IF_CHANGED(hotSliderKey);
@@ -468,8 +473,8 @@ void ImodPreferences::saveSettings(int modvAlone)
   WRITE_IF_CHANGED(modvSwapLeftMid);
   WRITE_IF_CHANGED(silentBeep);
   WRITE_IF_CHANGED(classicSlicer);
-  settings->writeEntry(IMOD_NAME"classicWarned", mClassicWarned);
-  WRITE_IF_CHANGED(tooltipsOn);
+  settings->setValue("classicWarned", mClassicWarned);
+  //WRITE_IF_CHANGED(tooltipsOn);
   WRITE_IF_CHANGED(autoConAtStart);
   WRITE_IF_CHANGED(startAtMidZ);
   WRITE_IF_CHANGED(attachToOnObj);
@@ -489,15 +494,15 @@ void ImodPreferences::saveSettings(int modvAlone)
 
   if (prefs->zoomsChgd) {
     for (i = 0; i < MAXZOOMS; i++) {
-      str.sprintf(IMOD_NAME"zooms/%d", i);
-      settings->writeEntry(str, prefs->zooms[i]); 
+      str.sprintf("zooms/%d", i);
+      settings->setValue(str, prefs->zooms[i]); 
     }
   }
 
   for (i = 0; i < MAX_NAMED_COLORS; i++) {
     if (prefs->namedColorChgd[i]) {
-      str.sprintf(IMOD_NAME"namedColors/%d", i);
-      settings->writeEntry(str, (int)prefs->namedColor[i]);
+      str.sprintf("namedColors/%d", i);
+      settings->setValue(str, (int)prefs->namedColor[i]);
     }
   }
 
@@ -508,34 +513,34 @@ void ImodPreferences::saveSettings(int modvAlone)
               (scaleParm->colorRamp ? 8 : 0) + (scaleParm->invertRamp ? 16 : 0)
               ,scaleParm->indentX, scaleParm->indentY, 
               scaleParm->useCustom ? 1: 0, scaleParm->customVal);
-  settings->writeEntry(IMOD_NAME"scaleBarParams", str);
+  settings->setValue("scaleBarParams", str);
 
   imodInfoGetFloatFlags(floatOn, subarea);
-  settings->writeEntry(IMOD_NAME"floatButton", floatOn);
-  settings->writeEntry(IMOD_NAME"subareaButton", subarea);
-  settings->writeEntry(IMOD_NAME"useWheelForSize", iceGetWheelForSize());
+  settings->setValue("floatButton", floatOn);
+  settings->setValue("subareaButton", subarea);
+  settings->setValue("useWheelForSize", iceGetWheelForSize());
   str.sprintf("%d,%d,%d,%d,%d", imcGetSnapMontage(false) ? 1 : 0, 
               imcGetMontageFactor(), imcGetSnapWholeMont() ? 1: 0,
               imcGetScaleSizes() ? 1 : 0, imcGetSizeScaling());
-  settings->writeEntry(IMOD_NAME"montageSnapshots", str);
+  settings->setValue("montageSnapshots", str);
 
   WRITE_IF_CHANGED(autosaveInterval);
   WRITE_IF_CHANGED(autosaveDir);
   WRITE_IF_CHANGED(autosaveOn);
   if (prefs->fontChgd) {
     str = prefs->font.toString();
-    settings->writeEntry(IMOD_NAME"fontString", str);
+    settings->setValue("fontString", str);
   }
   if (prefs->styleChgd)
-    settings->writeEntry(IMOD_NAME"styleKey", prefs->styleKey);
+    settings->setValue("styleKey", prefs->styleKey);
 
   // Write generic settings if any
   if (mGenericList) {
     GenericSettings *listSet = (GenericSettings *)ilistFirst(mGenericList);
     while (listSet) {
       for (i = 0; i < listSet->numVals; i++) {
-        str.sprintf(IMOD_NAME"%s/%d", listSet->key, i);
-        settings->writeEntry(str, listSet->values[i]);
+        str.sprintf("%s/%d", listSet->key, i);
+        settings->setValue(str, listSet->values[i]);
       }
       listSet = (GenericSettings *)ilistNext(mGenericList);
     }
@@ -547,15 +552,15 @@ void ImodPreferences::saveSettings(int modvAlone)
 // Create the settings object and return pointer
 QSettings *ImodPreferences::getSettingsObject()
 {
-  QSettings *settings = new QSettings();
-  // The Mac format is not compatible with QT 3.0.5
+  QSettings *settings = new QSettings("BL3DEMC", "3dmod");
+  /*  // The Mac format is not compatible with QT 3.0.5
   // Need to check if this will work on other systems without breaking old files.
   // Be sure to modify in saveSettings too
 #ifdef Q_OS_MACX
-  settings->setPath("", "3dmod", QSettings::User);
+  settings->setPath("", "3dmod", QSettings::UserScope);
 #else
   settings->insertSearchPath( QSettings::Windows, "/BL3DEMC" );
-#endif
+  #endif */
   return settings;
 }
 
@@ -567,27 +572,8 @@ QSettings *ImodPreferences::getSettingsObject()
 void ImodPreferences::editPrefs()
 {
   mDialogPrefs = mCurrentPrefs;
-  mTabDlg = new QTabDialog(NULL, NULL, true, Qt::WDestructiveClose);
-  mTabDlg->setOKButton("Done");
-  mTabDlg->setCancelButton("Cancel");
-  mTabDlg->setDefaultButton("Defaults for Tab");
-  mAppearForm = new AppearanceForm();
-  mTabDlg->addTab(mAppearForm, "Appearance");
-  mBehaveForm = new BehaviorForm();
-  mTabDlg->addTab(mBehaveForm, "Behavior");
-  mMouseForm = new MouseForm();
-  mTabDlg->addTab(mMouseForm, "Mouse");
-  mTabDlg->setCaption("3dmod: Set preferences");
-  connect(mTabDlg, SIGNAL(applyButtonPressed()), this, SLOT(donePressed()));
-  connect(mTabDlg, SIGNAL(defaultButtonPressed()), this, 
-          SLOT(defaultPressed()));
-  connect(mTabDlg, SIGNAL(cancelButtonPressed()), this, 
-          SLOT(cancelPressed()));
-
-  if (mCurrentTab == 1)
-    mTabDlg->showPage(mBehaveForm);
-  else if (mCurrentTab == 2)
-    mTabDlg->showPage(mMouseForm);
+  mTabDlg = new PrefsDialog(NULL);
+  mTabDlg->mTabWidget->setCurrentIndex(mCurrentTab);
   mTabDlg->show();
 }
 
@@ -610,8 +596,8 @@ void ImodPreferences::donePressed()
   ImodPrefStruct *curp = &mCurrentPrefs;
   int i;
   bool autosaveChanged = false;
-  mBehaveForm->unload();
-  mAppearForm->unload();
+  mTabDlg->mBehaveForm->unload();
+  mTabDlg->mAppearForm->unload();
   mCurrentPrefs = mDialogPrefs;
 
   curp->hotSliderKeyChgd |= newp->hotSliderKey != oldp->hotSliderKey;
@@ -624,13 +610,13 @@ void ImodPreferences::donePressed()
   curp->startAtMidZChgd |= !equiv(newp->startAtMidZ, oldp->startAtMidZ);
   curp->attachToOnObjChgd |= !equiv(newp->attachToOnObj, oldp->attachToOnObj);
   curp->classicSlicerChgd |= !equiv(newp->classicSlicer, oldp->classicSlicer);
-  if (!equiv(newp->tooltipsOn, oldp->tooltipsOn)) {
+  /*if (!equiv(newp->tooltipsOn, oldp->tooltipsOn)) {
     curp->tooltipsOnChgd = true;
-    QToolTip::setGloballyEnabled(curp->tooltipsOn);
-  }
+    //QToolTip::setGloballyEnabled(curp->tooltipsOn);
+    } */
 
   curp->fontChgd |= newp->font != oldp->font;
-  curp->styleChgd |= newp->styleKey.lower() != oldp->styleKey.lower();
+  curp->styleChgd |= newp->styleKey.toLower() != oldp->styleKey.toLower();
   curp->bwStepChgd |= newp->bwStep != oldp->bwStep;
   curp->iconifyImodvDlgChgd |= !equiv(newp->iconifyImodvDlg, 
                                      oldp->iconifyImodvDlg);
@@ -672,6 +658,7 @@ void ImodPreferences::donePressed()
     imod_start_autosave(App->cvi);
 
   findCurrentTab();
+  mTabDlg->close();
   mTabDlg = NULL;
   imcUpdateDialog();
   imodvMovieUpdate();
@@ -690,6 +677,7 @@ void ImodPreferences::userCanceled()
 {
   if (!mTabDlg)
     return;
+  mTabDlg->close();
   mTabDlg = NULL;
 
   mTimerID = startTimer(10);
@@ -704,7 +692,7 @@ void ImodPreferences::timerEvent(QTimerEvent *e)
     changeStyle(mCurrentPrefs.styleKey);
   if (mDialogPrefs.font != mCurrentPrefs.font)
     changeFont(mCurrentPrefs.font);
-  QToolTip::setGloballyEnabled(mCurrentPrefs.tooltipsOn);
+  //QToolTip::setGloballyEnabled(mCurrentPrefs.tooltipsOn);
     
   pointSizeChanged();
 }
@@ -729,12 +717,12 @@ void ImodPreferences::defaultPressed()
       prefs->zooms[i] = prefs->zoomsDflt[i];
     prefs->slicerPanKb = prefs->slicerPanKbDflt;
     prefs->speedupSlider = prefs->speedupSliderDflt;
-    mAppearForm->update();
+    mTabDlg->mAppearForm->update();
     break;
 
   case 1: 
     prefs->silentBeep = prefs->silentBeepDflt;
-    prefs->tooltipsOn = prefs->tooltipsOnDflt;
+    //prefs->tooltipsOn = prefs->tooltipsOnDflt;
     prefs->autoConAtStart = prefs->autoConAtStartDflt;
     prefs->startAtMidZ = prefs->startAtMidZDflt;
     prefs->attachToOnObj = prefs->attachToOnObjDflt;
@@ -746,10 +734,10 @@ void ImodPreferences::defaultPressed()
     prefs->autosaveInterval = prefs->autosaveIntervalDflt;
     prefs->autosaveOn = prefs->autosaveOnDflt;
     prefs->autosaveDir = prefs->autosaveDirDflt;
-    QToolTip::setGloballyEnabled(prefs->tooltipsOn);
+    //QToolTip::setGloballyEnabled(prefs->tooltipsOn);
     prefs->snapFormat = prefs->snapFormatDflt;
     prefs->snapQuality = prefs->snapQualityDflt;
-    mBehaveForm->update();
+    mTabDlg->mBehaveForm->update();
     break;
 
   case 2: 
@@ -757,7 +745,7 @@ void ImodPreferences::defaultPressed()
     prefs->hotSliderFlag = prefs->hotSliderFlagDflt;
     prefs->mouseMapping = prefs->mouseMappingDflt;
     prefs->modvSwapLeftMid = prefs->modvSwapLeftMidDflt;
-    mMouseForm->update();
+    mTabDlg->mMouseForm->update();
     break;
   }
 }
@@ -765,12 +753,7 @@ void ImodPreferences::defaultPressed()
 // Determine the currently shown tab so it can be set next time
 void ImodPreferences::findCurrentTab()
 {
-  QWidget *curPage = mTabDlg->currentPage();
-  mCurrentTab = 0;
-  if (curPage == (QWidget *)mBehaveForm)
-    mCurrentTab = 1;
-  if (curPage == (QWidget *)mMouseForm)
-    mCurrentTab = 2;
+  mCurrentTab = mTabDlg->mTabWidget->currentIndex();
 }
 
 // Change the font of all widgets by iteration
@@ -779,26 +762,22 @@ void ImodPreferences::changeFont(QFont newFont)
   QApplication::setFont(newFont);
 
   // Get a list of toplevel widgets and iterate over it
-  QWidgetList *topList = QApplication::topLevelWidgets();
-  QWidgetListIt topListIt(*topList);
-  while (topListIt.current()) {
-    QWidget *widget = topListIt.current();
-    ++topListIt;
+  QWidgetList topList = QApplication::topLevelWidgets();
+
+  for (int i = 0; i < topList.size(); i++) {
+    QWidget *widget = topList.at(i);
 
     // get a list of children that are widgets and iterate over it
-    QObjectList *objectList = widget->queryList("QWidget", 0, 0, true);
-    QObjectListIt objectListIt(*objectList);
-    while (objectListIt.current()) {
-      QWidget *child = (QWidget *)objectListIt.current();
-      ++objectListIt;
+    //QObjectList objectList = widget->queryList("QWidget", 0, 0, true);
+    QList<QWidget *> objectList = widget->findChildren<QWidget *>();
+    for (int j = 0; j < objectList.size(); j++) {
+      QWidget *child = objectList.at(j);
       child->setFont(newFont);
     }
 
     // Change font of toplevel last
     widget->setFont(newFont);
-    delete objectList;
   }
-  delete topList;
 }
 
 // Set the style - no iteration seems to be needed
@@ -820,11 +799,16 @@ void ImodPreferences::changeStyle(QString newKey)
 // out binary formats
 QStringList ImodPreferences::snapFormatList()
 {
-  QStringList retList = "RGB";
-  QStringList formats = QImage::outputFormatList();
-  for (int i = 0; i < formats.count(); i++)
+  QStringList retList;
+  QString str;
+  QList<QByteArray> formats = QImageWriter::supportedImageFormats();
+  retList << "RGB";
+  for (int i = 0; i < formats.count(); i++) {
+    str = formats[i];
+    str = str.toUpper();
     if (formats[i] != "PBM" && formats[i] != "XBM")
-      retList << formats[i];
+      retList << str;
+  }
   return retList;
 }
 
@@ -918,7 +902,7 @@ QString ImodPreferences::autosaveDir()
 
   // Otherwise convert and use the environment variable, convert to /
   QDir *curdir = new QDir();
-  QString convDir = curdir->cleanDirPath(QString(envDir));
+  QString convDir = curdir->cleanPath(QString(envDir));
   delete curdir;
   return convDir;
 }
@@ -987,9 +971,11 @@ bool ImodPreferences::getRoundedStyle()
 {
   int index;
   if (mTabDlg)
-    index = mDialogPrefs.styleKey.find(QString("aqua"), 0, false);
+    index = mDialogPrefs.styleKey.indexOf(QString("aqua"), 0, 
+                                          Qt::CaseInsensitive);
   else
-    index = mCurrentPrefs.styleKey.find(QString("aqua"), 0, false);
+    index = mCurrentPrefs.styleKey.indexOf(QString("aqua"), 0,
+                                           Qt::CaseInsensitive);
   //imodPrintStderr("index = %d\n", index);
   return index >= 0;
 }
@@ -1126,10 +1112,11 @@ int ImodPreferences::getGenericSettings(char *key, double *values, int maxVals)
 
   // Read each possible number and load into array if present, quit if not
   for (i = 0; i < maxVals; i++) {
-    str.sprintf(IMOD_NAME"%s/%d", key, i);
-    val = settings->readDoubleEntry(str, 0., &readin);
+    str.sprintf("%s/%d", key, i);
+    readin = settings->contains(str);
     if (!readin)
       break;
+    val = settings->value(str, 0.).toDouble();
     values[i] = val;
   }
   delete settings;
@@ -1144,9 +1131,50 @@ bool ImodPreferences::classicWarned()
   return temp;
 }
 
+PrefsDialog::PrefsDialog(QWidget *parent)
+  : QDialog(parent)
+{
+  setAttribute(Qt::WA_DeleteOnClose);
+  setAttribute(Qt::WA_AlwaysShowToolTips);
+  mTabWidget = new QTabWidget();
+  mAppearForm = new AppearanceForm();
+  mTabWidget->addTab(mAppearForm, "Appearance");
+  mBehaveForm = new BehaviorForm();
+  mTabWidget->addTab(mBehaveForm, "Behavior");
+  mMouseForm = new MouseForm();
+  mTabWidget->addTab(mMouseForm, "Mouse");
+  setWindowTitle("3dmod: Set preferences");
+  
+  QVBoxLayout *mainLayout = new QVBoxLayout;
+  QVBoxLayout *tabLayout = diaVBoxLayout(mainLayout);
+  tabLayout->addWidget(mTabWidget);
+  QHBoxLayout *butLayout = diaHBoxLayout(mainLayout);
+  setLayout(mainLayout);
+
+  QPushButton *button = new QPushButton("Done");
+  butLayout->addWidget(button);
+  connect(button, SIGNAL(clicked()), ImodPrefs, SLOT(donePressed()));
+  
+  button = new QPushButton("Defaults for Tab");
+  butLayout->addWidget(button);
+  connect(button, SIGNAL(clicked()), ImodPrefs, SLOT(defaultPressed())); 
+
+  button = new QPushButton("Cancel");
+  butLayout->addWidget(button);
+  connect(button, SIGNAL(clicked()), ImodPrefs, SLOT(cancelPressed()));
+}
+
+void PrefsDialog::closeEvent ( QCloseEvent * e )
+{
+  ImodPrefs->userCanceled();
+  e->accept();
+}
 
 /*
 $Log$
+Revision 1.36  2008/12/10 01:04:22  mast
+Added function to set JPEG quality
+
 Revision 1.35  2008/12/08 17:27:56  mast
 Save montage snapshot stuff
 

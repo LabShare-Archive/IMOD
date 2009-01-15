@@ -15,9 +15,7 @@
 #include <math.h>
 #include <stdlib.h>
 #include <qlabel.h>
-#include <qvbox.h>
 #include <qapplication.h>
-#include <qhbox.h>
 #include <qlayout.h>
 #include <qbitmap.h>
 #include <qcombobox.h>
@@ -27,6 +25,14 @@
 #include <qspinbox.h>
 #include <qtooltip.h>
 #include <qpushbutton.h>
+//Added by qt3to4:
+#include <QHBoxLayout>
+#include <QKeyEvent>
+#include <QGridLayout>
+#include <QFrame>
+#include <QMouseEvent>
+#include <QVBoxLayout>
+#include <QCloseEvent>
 #include "arrowbutton.h"
 #include "xgraph.h"
 
@@ -39,17 +45,15 @@
 #include "b3dgfx.h"
 #include "control.h"
 #include "preferences.h"
+#include "dia_qtutils.h"
 
 #include "lowres.bits"
 #include "highres.bits"
 #include "lock.bits"
 #include "unlock.bits"
 
-#define BM_WIDTH 16
-#define BM_HEIGHT 16
 #define XGRAPH_WIDTH 320
 #define XGRAPH_HEIGHT 160
-#define AUTO_RAISE true
 
 
 static void graphClose_cb(ImodView *vi, void *client, int junk);
@@ -63,10 +67,13 @@ static unsigned char *bitList[MAX_GRAPH_TOGGLES][2] =
   { {lowres_bits, highres_bits},
     {unlock_bits, lock_bits}};
 
-static QBitmap *bitmaps[MAX_GRAPH_TOGGLES][2];
+static QIcon *icons[MAX_GRAPH_TOGGLES];
 static int firstTime = 1;
+static char *toggleTips[] = {"Display file values instead of scaled bytes",
+                             "Lock X/Y/Z position being displayed"};
 
-enum {GRAPH_XAXIS, GRAPH_YAXIS, GRAPH_ZAXIS, GRAPH_CONTOUR, GRAPH_HISTOGRAM};
+enum {GRAPH_XAXIS = 0, GRAPH_YAXIS, GRAPH_ZAXIS, GRAPH_CONTOUR, 
+      GRAPH_HISTOGRAM};
 
 // Open a graph dialog
 int xgraphOpen(struct ViewInfo *vi)
@@ -102,7 +109,7 @@ int xgraphOpen(struct ViewInfo *vi)
   if (!App->rgba)
     xg->dialog->mGLw->setColormap(*(App->qColormap));
 
-  xg->dialog->setCaption(imodCaption("3dmod Graph"));
+  xg->dialog->setWindowTitle(imodCaption("3dmod Graph"));
 
   xg->ctrl = ivwNewControl (xg->vi, graphDraw_cb, graphClose_cb, graphKey_cb,
 			    (void *)xg);
@@ -171,98 +178,108 @@ static void graphKey_cb(ImodView *vi, void *client, int released,
  */
 GraphWindow::GraphWindow(GraphStruct *graph, bool rgba,
             bool doubleBuffer, bool enableDepth, QWidget * parent,
-            const char * name, WFlags f)
-  : QMainWindow(parent, name, f)
+            const char * name, Qt::WFlags f)
+  : QMainWindow(parent, f)
 {
   int j;
   ArrowButton *arrow;
   mGraph = graph;
+  setAttribute(Qt::WA_DeleteOnClose);
+  setAttribute(Qt::WA_AlwaysShowToolTips);
+  setAnimated(false);
+
+  if (firstTime) 
+    utilBitListsToIcons(bitList, icons, MAX_GRAPH_TOGGLES);
+  firstTime = 0;
 
   // Make central vbox and top frame containing an hbox
-  QVBox *central = new QVBox(this, "central");
+  QWidget *central = new QWidget(this);
   setCentralWidget(central);
-  QFrame * topFrame = new QFrame(central, "topFrame");
+  QVBoxLayout *cenlay = new QVBoxLayout(central);
+  cenlay->setContentsMargins(0,0,0,0);
+  cenlay->setSpacing(0);
+  QFrame * topFrame = new QFrame(central);
+  cenlay->addWidget(topFrame);
   topFrame->setFrameStyle(QFrame::Raised | QFrame::StyledPanel);
 
   // Life lessons!  The frame needs a layout inside it; just putting a box
   // in it does not do the trick, and it asserts no size
-  QHBoxLayout *topLayout = new QHBoxLayout(topFrame, 4);
-  QHBox *topBox = new QHBox(topFrame, "topBox");
-  topLayout->addWidget(topBox);
-  if (!(AUTO_RAISE))
-      topBox->setSpacing(4);
+  QHBoxLayout *topLayout = new QHBoxLayout(topFrame);
+  topLayout->setContentsMargins(2,2,2,2);
+  topLayout->setSpacing(1);
 
   // Add the toolbar widgets
   // Zoom arrows
-  arrow = new ArrowButton(Qt::UpArrow, topBox, "zoomup button");
-  arrow->setAutoRaise(AUTO_RAISE);
+  arrow = new ArrowButton(Qt::UpArrow, topFrame);
+  topLayout->addWidget(arrow);
+  arrow->setAutoRaise(TB_AUTO_RAISE);
+  arrow->setFocusPolicy(Qt::NoFocus);
   connect(arrow, SIGNAL(clicked()), this, SLOT(zoomUp()));
-  QToolTip::add(arrow, "Increase scale along the pixel axis");
-  arrow = new ArrowButton(Qt::DownArrow, topBox, "zoom down button");
-  arrow->setAutoRaise(AUTO_RAISE);
+  arrow->setToolTip("Increase scale along the pixel axis");
+  arrow = new ArrowButton(Qt::DownArrow, topFrame);
+  topLayout->addWidget(arrow);
+  arrow->setAutoRaise(TB_AUTO_RAISE);
+  arrow->setFocusPolicy(Qt::NoFocus);
   connect(arrow, SIGNAL(clicked()), this, SLOT(zoomDown()));
-  QToolTip::add(arrow, "Decrease scale along the pixel axis");
+  arrow->setToolTip("Decrease scale along the pixel axis");
 
   // Make the 2 toggle buttons and their signal mapper
-  QSignalMapper *toggleMapper = new QSignalMapper(topBox);
+  QSignalMapper *toggleMapper = new QSignalMapper(topFrame);
   connect(toggleMapper, SIGNAL(mapped(int)), this, SLOT(toggleClicked(int)));
-  for (j = 0; j < 2; j++)
-    setupToggleButton(topBox, toggleMapper, j);
+  for (j = 0; j < 2; j++) {
+    utilSetupToggleButton(topFrame, NULL, topLayout, toggleMapper, icons, 
+                          toggleTips, mToggleButs, mToggleStates, j);
+    connect(mToggleButs[j], SIGNAL(clicked()), toggleMapper, SLOT(map()));
+  }
 
-  QToolTip::add(mToggleButs[0], "Display file values instead of scaled bytes");
-  QToolTip::add(mToggleButs[1], "Lock X/Y/Z position being displayed");
   mToggleButs[0]->setEnabled(App->cvi->noReadableImage == 0);
 
   // The axis combo box
-  QComboBox *axisCombo = new QComboBox(topBox, "axis combo");
-  axisCombo->insertItem("X-axis", GRAPH_XAXIS);
-  axisCombo->insertItem("Y-axis", GRAPH_YAXIS);
-  axisCombo->insertItem("Z-axis", GRAPH_ZAXIS);
-  axisCombo->insertItem("Contour", GRAPH_CONTOUR);
-  axisCombo->insertItem("Histogram", GRAPH_HISTOGRAM);
-  axisCombo->setFocusPolicy(NoFocus);
-  connect(axisCombo, SIGNAL(activated(int)), this, SLOT(axisSelected(int)));
-  
-  QToolTip::add(axisCombo, "Select axis to graph");
+  QComboBox *axisCombo = new QComboBox(topFrame);
+  topLayout->addWidget(axisCombo);
+  axisCombo->addItem("X-axis");
+  axisCombo->addItem("Y-axis");
+  axisCombo->addItem("Z-axis");
+  axisCombo->addItem("Contour");
+  axisCombo->addItem("Histogram");
+  axisCombo->setFocusPolicy(Qt::NoFocus);
+  connect(axisCombo, SIGNAL(currentIndexChanged(int)), this, 
+          SLOT(axisSelected(int)));
+  axisCombo->setToolTip("Select axis to graph");
 
-  QLabel *label = new QLabel("Width", topBox);
-  label->setAlignment(Qt::AlignRight | Qt::AlignVCenter);
-  mWidthBox = new QSpinBox(1, 100, 1, topBox);
+  mWidthBox = (QSpinBox *)diaLabeledSpin(0, 1., 100., 1., "Width", topFrame,
+                                         topLayout);
   mWidthBox->setValue(1);
-  mWidthBox->setFocusPolicy(QWidget::ClickFocus);
   connect(mWidthBox, SIGNAL(valueChanged(int)), this, SLOT(widthChanged(int)));
-  QToolTip::add(mWidthBox, "Set number of lines to average over");
+  mWidthBox->setToolTip("Set number of lines to average over");
 
-  mMeanLabel = new QLabel(" 0.0000", topBox);
+  mMeanLabel = diaLabel(" 0.0000", topFrame, topLayout);
   
   // Help button
-  QPushButton *pbutton = new QPushButton("Help", topBox, "Help button");
+  QPushButton *pbutton = diaPushButton("Help", topFrame, topLayout);
   int width = (int)(1.2 * pbutton->fontMetrics().width("Help"));
   pbutton->setFixedWidth(width);
-  pbutton->setFocusPolicy(QWidget::NoFocus);
   connect(pbutton, SIGNAL(pressed()), this, SLOT(help()));
+  topLayout->addStretch();
 
-  QHBox *topSpacer = new QHBox(topBox);
-  topBox->setStretchFactor(topSpacer, 1);
-
-  // Now a frame to put a grid layout in
-  QFrame *botFrame = new QFrame(central, "botFrame");
-  QGridLayout *layout = new QGridLayout(botFrame, 2, 2);
-  QVBox *leftBox = new QVBox(botFrame, "leftBox");
-  layout->addWidget(leftBox, 0, 0);
-  QVBox *spacer = new QVBox(botFrame, "spacer");
+  // Now a grid layout in
+  QGridLayout *layout = new QGridLayout();
+  cenlay->addLayout(layout);
+  QVBoxLayout *leftBox = new QVBoxLayout();
+  layout->addLayout(leftBox, 0, 0);
+  QWidget *spacer = new QWidget(topFrame);
   layout->addWidget(spacer, 1, 0);
-  QHBox *botBox = new QHBox(botFrame, "botBox");
-  layout->addWidget(botBox, 1, 1);
+  QHBoxLayout *botBox = new QHBoxLayout();
+  layout->addLayout(botBox, 1, 1);
   layout->setRowStretch(0, 1);
-  layout->setColStretch(1, 1);
+  layout->setColumnStretch(1, 1);
 
   // A frame for the graph widget, and a layout inside it, and the GL widget
-  QFrame *graphFrame = new QFrame(botFrame, "graphFrame");
+  QFrame *graphFrame = new QFrame(central);
   graphFrame->setFrameStyle(QFrame::Sunken | QFrame::StyledPanel);
   layout->addWidget(graphFrame, 0, 1);
   QVBoxLayout *graphLayout = new QVBoxLayout(graphFrame);
-  graphLayout->setMargin(3);
+  graphLayout->setContentsMargins(2,2,2,2);
   QGLFormat glFormat;
   glFormat.setRgba(rgba);
   glFormat.setDoubleBuffer(doubleBuffer);
@@ -273,53 +290,37 @@ GraphWindow::GraphWindow(GraphStruct *graph, bool rgba,
   // Get a bigger font for the labels
   float font_scale = 1.25;
   QFont newFont = QApplication::font();
-  float pointSize = newFont.pointSizeFloat();
+  float pointSize = newFont.pointSizeF();
   if (pointSize > 0) {
-    newFont.setPointSizeFloat(pointSize * font_scale);
+    newFont.setPointSizeF(pointSize * font_scale);
   } else {
     int pixelSize = newFont.pixelSize();
     newFont.setPixelSize((int)floor(pixelSize * font_scale + 0.5));
   }
 
   // Get the labels, give them the bigger font
-  mPlabel1 = new QLabel(botBox);
+  mPlabel1 = diaLabel(" ", central, botBox);
   mPlabel1->setFont(newFont);
   mPlabel1->setAlignment(Qt::AlignLeft | Qt::AlignTop);
-  mPlabel2 = new QLabel(botBox);
+  mPlabel2 = diaLabel(" ", central, botBox);
   mPlabel2->setFont(newFont);
   mPlabel2->setAlignment(Qt::AlignCenter | Qt::AlignTop);
-  mPlabel3 = new QLabel(botBox);
+  mPlabel3 = diaLabel(" ", central, botBox);
   mPlabel3->setFont(newFont);
   mPlabel3->setAlignment(Qt::AlignRight | Qt::AlignTop);
 
-  mVlabel1 = new QLabel("-88888", leftBox);
+  mVlabel1 = diaLabel("-88888", central, leftBox);
   mVlabel1->setFont(newFont);
   mVlabel1->setAlignment(Qt::AlignRight | Qt::AlignTop);
-  mVlabel2 = new QLabel(leftBox);
+  mVlabel2 = diaLabel(" ", central, leftBox);
   mVlabel2->setFont(newFont);
   mVlabel2->setAlignment(Qt::AlignRight | Qt::AlignBottom);
 
   QSize hint = mVlabel1->sizeHint();
-  leftBox->setMinimumWidth(hint.width() + 5);
+  mVlabel1->setMinimumWidth(hint.width() + 5);
 
   resize(XGRAPH_WIDTH, XGRAPH_HEIGHT);
-  setFocusPolicy(QWidget::StrongFocus);
-}
-
-// Set up one toggle button, making bitmaps for the two state
-void GraphWindow::setupToggleButton(QHBox *toolBar, QSignalMapper *mapper,
-				    int ind)
-{
-  if (firstTime) {
-    bitmaps[ind][0] = new QBitmap(BM_WIDTH, BM_HEIGHT, bitList[ind][0], true);
-    bitmaps[ind][1] = new QBitmap(BM_WIDTH, BM_HEIGHT, bitList[ind][1], true);
-  }
-  mToggleButs[ind] = new QToolButton(toolBar, "toolbar toggle");
-  mToggleButs[ind]->setPixmap(*bitmaps[ind][0]);
-  mToggleButs[ind]->setAutoRaise(AUTO_RAISE);
-  mapper->setMapping(mToggleButs[ind],ind);
-  connect(mToggleButs[ind], SIGNAL(clicked()), mapper, SLOT(map()));
-  mToggleStates[ind] = 0;
+  setFocusPolicy(Qt::StrongFocus);
 }
 
 /* 
@@ -347,9 +348,8 @@ void GraphWindow::help()
 // Toggle button
 void GraphWindow::toggleClicked(int index)
 {
-  int state = 1 - mToggleStates[index];
+  int state = mToggleButs[index]->isChecked() ? 1 : 0;
   mToggleStates[index] = state;
-  mToggleButs[index]->setPixmap(*bitmaps[index][state]);
   if (!index) {
 
     // High res button toggled
@@ -376,7 +376,7 @@ void GraphWindow::axisSelected(int item)
 void GraphWindow::setToggleState(int index, int state)
 {
   mToggleStates[index] = state ? 1 : 0;
-  mToggleButs[index]->setPixmap(*bitmaps[index][state]);
+  diaSetChecked(mToggleButs[index], state != 0);
 }
 
 // Width change
@@ -900,9 +900,8 @@ void GraphWindow::xgraphDrawPlot(GraphStruct *xg)
 /*
  * The GL WIDGET CLASS: PAINT, RESIZE, MOUSE EVENTS
  */
-GraphGL::GraphGL(GraphStruct *graph, QGLFormat format, QWidget * parent,
-		 const char * name)
-  : QGLWidget(format, parent, name)
+GraphGL::GraphGL(GraphStruct *graph, QGLFormat format, QWidget * parent)
+  : QGLWidget(format, parent)
 {
   mGraph = graph;
 }
@@ -937,7 +936,7 @@ void GraphGL::resizeGL( int wdth, int hght )
 void GraphGL::mousePressEvent(QMouseEvent * e )
 {
   ivwControlPriority(mGraph->vi, mGraph->ctrl);
-  if (e->stateAfter() & ImodPrefs->actualButton(1))
+  if (e->buttons() & ImodPrefs->actualButton(1))
     setxyz(mGraph, e->x(), e->y());
 }
 
@@ -1005,6 +1004,9 @@ static void makeBoundaryPoint(Ipoint pt1, Ipoint pt2, int ix1, int ix2,
 
 /*
     $Log$
+    Revision 4.13  2008/08/19 20:01:40  mast
+    Made it zoom with + as well as =
+
     Revision 4.12  2008/04/02 04:12:21  mast
     Disable high res button i fno readable image
 

@@ -1,18 +1,20 @@
 #include "dialog_frame.h"
+//Added by qt3to4:
+#include <QKeyEvent>
+#include <QLabel>
+#include <QEvent>
+#include <QCloseEvent>
 class QPushButton;
 class QCheckBox;
 
 class QLabel;
 class QSpinner;
-class QVButtonGroup;
-class QButtonGroup;
 class QRadioButton;
 class QGridLayout;
 class QVBoxLayout;
 class QComboBox;
 class QSpinBox;
 class QGroupBox;
-class QVBoxLayout;
 class QSpacerItem;
 class QEvent;
 

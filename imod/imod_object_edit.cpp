@@ -22,6 +22,8 @@
 #include "imodv_objed.h"
 #include "dia_qtutils.h"
 #include "undoredo.h"
+//Added by qt3to4:
+#include <QKeyEvent>
 
 static objectEditForm *Ioew_dialog;
 
@@ -205,15 +207,15 @@ int imod_object_edit()
     return(0);
   }
      
-  Ioew_dialog = new objectEditForm(imodDialogManager.parent(IMOD_DIALOG), NULL, 
-				   Qt::WType_TopLevel | Qt::WDestructiveClose);
+  Ioew_dialog = new objectEditForm(imodDialogManager.parent(IMOD_DIALOG),
+				   Qt::Window);
 
   if (!Ioew_dialog){
     dia_err("Object edit failed.");
     return(-1);
   }
 
-  Ioew_dialog->setCaption(imodCaption("3dmod Object Edit"));
+  Ioew_dialog->setWindowTitle(imodCaption("3dmod Object Edit"));
   imodDialogManager.add((QWidget *)Ioew_dialog, IMOD_DIALOG);
 
   Ioew_dialog->adjustSize();
@@ -344,7 +346,7 @@ void imod_object_color(int objNum)
 
 // Object color class
 ImodObjColor::ImodObjColor(int objNum)
-  : QObject(0, 0)
+  : QObject(0)
 {
   QString qstr;
   
@@ -353,7 +355,7 @@ ImodObjColor::ImodObjColor(int objNum)
   qstr.sprintf("Select color for object %d.", objNum + 1);
 
   mSelector = new ColorSelector(imodDialogManager.parent(IMOD_DIALOG), 
-                                qstr.latin1(),
+                                LATIN1(qstr),
                                 (int)(obj->red * 255.),
                                 (int)(obj->green * 255.),
                                 (int)(obj->blue * 255.), hotSliderFlag(), 
@@ -368,7 +370,7 @@ ImodObjColor::ImodObjColor(int objNum)
   connect(mSelector, SIGNAL(keyRelease(QKeyEvent *)), this, 
           SLOT(keyReleaseSlot(QKeyEvent *)));
 
-  mSelector->setCaption(imodCaption("3dmod Color"));
+  mSelector->setWindowTitle(imodCaption("3dmod Color"));
   imodDialogManager.add((QWidget *)mSelector, IMOD_DIALOG);
 
   mSelector->show();
@@ -433,6 +435,9 @@ void ImodObjColor::keyReleaseSlot ( QKeyEvent * e )
 
 /*
 $Log$
+Revision 4.20  2008/07/16 04:30:23  mast
+Added contour point limit
+
 Revision 4.19  2007/07/08 16:48:29  mast
 Fixed some sync problems and added sync calls for new properties in model view
 

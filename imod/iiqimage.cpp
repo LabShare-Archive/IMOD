@@ -7,19 +7,11 @@
  *  Copyright (C) 1995-2004 by Boulder Laboratory for 3-Dimensional Electron
  *  Microscopy of Cells ("BL3DEMC") and the Regents of the University of 
  *  Colorado.  See dist/COPYRIGHT for full copyright notice.
+ *
+ * $Id$
+ * Log at end of file
  */
 
-/*  $Author$
-
-$Date$
-
-$Revision$
-
-$Log$
-Revision 1.1  2004/11/30 03:38:55  mast
-Added to program
-
-*/
 #include <qimage.h>
 #include <qstring.h>
 #include "imodconfig.h"
@@ -143,7 +135,7 @@ static int ReadSection(ImodImageFile *inFile, char *buf, int byte)
   QImage *image;
   QImage image2;
   unsigned char *map2 = NULL;
-  QRgb *colorTable;
+  QVector<QRgb> colorTable;
      
   if (inFile->axis == 2)
     return -1;
@@ -155,7 +147,7 @@ static int ReadSection(ImodImageFile *inFile, char *buf, int byte)
 
   // Convert a 16-bpp image to 32
   if (image->depth() == 16) {
-    image2 = image->convertDepth(32);
+    image2 = image->convertToFormat(QImage::Format_RGB32);
     if (image2.isNull())
       return -1;
     image = &image2;
@@ -220,3 +212,14 @@ static int ReadSection(ImodImageFile *inFile, char *buf, int byte)
 
   return 0;
 }
+
+/*
+
+$Log$
+Revision 1.2  2006/09/03 21:36:28  mast
+Switched to proper error codes
+
+Revision 1.1  2004/11/30 03:38:55  mast
+Added to program
+
+*/

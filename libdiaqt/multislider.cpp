@@ -16,6 +16,8 @@
 #include <qslider.h>
 #include <qlayout.h>
 #include <qlabel.h>
+//Added by qt3to4:
+#include <QHBoxLayout>
 #include "multislider.h"
 #include "dia_qtutils.h"
 
@@ -60,7 +62,9 @@ MultiSlider::MultiSlider(QWidget *parent, int numSliders, char *titles[],
   QBoxLayout::Direction dir = mHorizontal ? QBoxLayout::LeftToRight :
                               QBoxLayout::TopToBottom;
   int spacing = mHorizontal ? 2 : 0;
-  mBigLayout = new QBoxLayout(NULL, dir, 0, 10, "multislider big");
+  mBigLayout = new QBoxLayout(dir);
+  mBigLayout->setSpacing(10);
+  mBigLayout->setContentsMargins(0, 0, 0, 0);
 
   // Get signal mappers and connect them to slots
   QSignalMapper *activeMapper = new QSignalMapper(parent);
@@ -75,21 +79,26 @@ MultiSlider::MultiSlider(QWidget *parent, int numSliders, char *titles[],
   for (i = 0; i < numSliders; i++) {
 
     // Make outer layout and slider, add slider to layout
-    layOuter = new QBoxLayout(0, dir, spacing, -1);
+    layOuter = new QBoxLayout(dir);
+    layOuter->setSpacing(spacing);
     str = titles[i];
     mTitleLabels[i] = new QLabel(str, parent);
     mTitleLabels[i]->setAlignment(Qt::AlignTop | Qt::AlignLeft);
     if (horizontal) {
       layOuter->addWidget(mTitleLabels[i]);
     }
-    mSliders[i] = new QSlider(minVal, maxVal, 1, minVal, Qt::Horizontal,
-                              parent);
-    mSliders[i]->setFocusPolicy(QSlider::NoFocus);
+    mSliders[i] = new QSlider(Qt::Horizontal, parent);
+    mSliders[i]->setRange(minVal, maxVal);
+    mSliders[i]->setSingleStep(1);
+    mSliders[i]->setValue(minVal);
+    mSliders[i]->setFocusPolicy(Qt::NoFocus);
     layOuter->addWidget(mSliders[i]);
     
     if (!horizontal) {
       // Make inner layout, title, and value label
-      layInner = new QHBoxLayout(0, 0, 6);
+      layInner = new QHBoxLayout();
+      layInner->setSpacing(6);
+      layInner->setContentsMargins(0, 0, 0, 0);
       layInner->addWidget(mTitleLabels[i]);
       mLabels[i] = new QLabel("0", parent);
       mLabels[i]->setAlignment(Qt::AlignTop | Qt::AlignRight);
@@ -261,6 +270,9 @@ void MultiSlider::sliderReleased(int which)
 }
 /*
 $Log$
+Revision 1.8  2008/06/25 21:21:43  mast
+Added method to show/hide all widgets
+
 Revision 1.7  2008/01/17 22:31:25  mast
 Added call to enable all components
 

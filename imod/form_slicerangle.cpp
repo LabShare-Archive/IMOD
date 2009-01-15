@@ -1,14 +1,68 @@
-/****************************************************************************
-** ui.h extension file, included from the uic-generated form implementation.
-**
-** If you want to add, delete, or rename functions or slots, use
-** Qt Designer to update this file, preserving your code.
-**
-** You should not define a constructor or destructor in this file.
-** Instead, write your code in functions called init() and destroy().
-** These will automatically be called by the form's constructor and
-** destructor.
-*****************************************************************************/
+/*
+ *  form_slicerangle.cpp - Class for slicer angle dialog form
+ *
+ *  Author: David Mastronarde   email: mast@colorado.edu
+ *
+ *  Copyright (C) 1995-2009 by Boulder Laboratory for 3-Dimensional Electron
+ *  Microscopy of Cells ("BL3DEMC") and the Regents of the University of 
+ *  Colorado.  See dist/COPYRIGHT for full copyright notice.
+ * 
+ * $Id$
+ * Log at end
+ */
+
+#include "form_slicerangle.h"
+
+#include <qvariant.h>
+#include <qimage.h>
+#include <qpixmap.h>
+
+//Added by qt3to4:
+#include <QCloseEvent>
+#include <QKeyEvent>
+
+#include "imod.h"
+#include "preferences.h"
+#include "dia_qtutils.h"
+#include "string.h"
+#include "sslice.h"
+#include "ilist.h"
+#include "imodview.h"
+#include "b3dutil.h"
+#include "control.h"
+#include "undoredo.h"
+
+#define SLAN_COLS 7
+
+/*
+ *  Constructs a SlicerAngleForm as a child of 'parent', with the
+ *  name 'name' and widget flags set to 'f'.
+ */
+SlicerAngleForm::SlicerAngleForm(QWidget* parent, Qt::WindowFlags fl)
+  : QWidget(parent, fl)
+{
+  setupUi(this);
+
+  init();
+}
+
+/*
+ *  Destroys the object and frees any allocated resources
+ */
+SlicerAngleForm::~SlicerAngleForm()
+{
+  destroy();
+  // no need to delete child widgets, Qt does it all for us
+}
+
+/*
+ *  Sets the strings of the subwidgets using the current
+ *  language.
+ */
+void SlicerAngleForm::languageChange()
+{
+  retranslateUi(this);
+}
 
 void SlicerAngleForm::init()
 {
@@ -16,6 +70,8 @@ void SlicerAngleForm::init()
   // Set the time increment, so all time indexes start at 1
   SlicerAngles *slanp;
   bool continuous;
+  setAttribute(Qt::WA_DeleteOnClose);
+  setAttribute(Qt::WA_AlwaysShowToolTips);
   mTimeInc = 0;
   mIgnoreCurChg = false;
   mMaxImageTime = ivwGetMaxTime(App->cvi);
@@ -29,9 +85,14 @@ void SlicerAngleForm::init()
     slanp = (SlicerAngles *)ilistItem(angList, i);
     mMaxModelTime = B3DMAX(mMaxModelTime, slanp->time);
   }
-  copySpin->setMaxValue(mMaxModelTime);
-  renumberSpin->setMaxValue(mMaxModelTime);
+  copySpin->setMaximum(mMaxModelTime);
+  renumberSpin->setMaximum(mMaxModelTime);
   
+  connect(table, SIGNAL(itemSelectionChanged()), this, 
+          SLOT(selectionChanged()));
+  connect(table, SIGNAL(cellChanged(int, int)), this, 
+          SLOT(cellChanged(int,int)));
+
   int volHeight = volumeGroup->height();
   // Get rid of unneeded buttons
   if (mMaxModelTime == 1) {
@@ -59,7 +120,7 @@ void SlicerAngleForm::init()
   mCurRow[mCurTime] = -1;
   
   // Set the current row
-  if (table->numRows()) {
+  if (table->rowCount()) {
     table->selectRow(0);
     mCurRow[mCurTime] = 0;
   }
@@ -67,7 +128,7 @@ void SlicerAngleForm::init()
   
   // Set time label if there are multiple files
   if (mMaxModelTime > 1)
-      setTimeLabel();
+    setTimeLabel();
   setFontDependentWidths();
 }
 
@@ -79,7 +140,7 @@ void SlicerAngleForm::destroy()
 // Enables/disables buttons based on state
 void SlicerAngleForm::updateEnables()
 {
-  int numRows = table->numRows();
+  int numRows = table->rowCount();
   setButton->setEnabled(numRows > 0);
   deleteButton->setEnabled(numRows > 0);
   renumberButton->setEnabled(renumberSpin->value() != mCurTime);
@@ -96,7 +157,8 @@ void SlicerAngleForm::fontChange( const QFont &oldFont )
 // Handles width settings with font size changes
 void SlicerAngleForm::setFontDependentWidths()
 {
-  int width;
+  int width, width2, extra = 8;
+  QString str;
   bool rounded = ImodPrefs->getRoundedStyle();
   width = diaSetButtonWidth(setButton, rounded, 1.2, "Set Angles");
   deleteButton->setFixedWidth(width);
@@ -104,16 +166,22 @@ void SlicerAngleForm::setFontDependentWidths()
   diaSetButtonWidth(copyButton, rounded, 1.2, "Copy From");
   width = diaSetButtonWidth(removeButton, rounded, 1.2, "Remove");
   insertButton->setFixedWidth(width);
-  width = (int)(1.1 * table->fontMetrics().width("-90.00") + 0.5);
+  width = table->fontMetrics().width("-90.00") + extra;
   table->setColumnWidth(0, width);
-  width = (int)(1.1 * table->fontMetrics().width("-180.00") + 0.5);
+  width = table->fontMetrics().width("-180.00") + extra;
   table->setColumnWidth(1, width);
   table->setColumnWidth(2, width);
-  width = (int)(1.1 * table->fontMetrics().width("-9999.00") + 0.5);
-  table->setColumnWidth(3, width);
-  table->setColumnWidth(4, width);
-  table->setColumnWidth(5, width);
-  width = (int)(1.1 * table->fontMetrics().width("abcdefghijklmnop") + 0.5);
+  str.sprintf("%.2f", (float)App->cvi->xsize);
+  width = table->fontMetrics().width(str) + extra;
+  width2 = B3DNINT(1.2 * table->fontMetrics().width("X cen")) + extra;
+  table->setColumnWidth(3, B3DMAX(width, width2));
+  str.sprintf("%.2f", (float)App->cvi->ysize);
+  width = table->fontMetrics().width(str) + extra;
+  table->setColumnWidth(4, B3DMAX(width, width2));
+  str.sprintf("%.2f", (float)App->cvi->zsize);
+  width = table->fontMetrics().width(str) + extra;
+  table->setColumnWidth(5, B3DMAX(width, width2));
+  width = table->fontMetrics().width("abcdefghijklmnop") + extra;
   table->setColumnWidth(6, width);
 }
 
@@ -130,10 +198,10 @@ void SlicerAngleForm::setCurrentOrNewRow( int time, bool newrow )
 {
   if (time + mTimeInc != mCurTime)
     switchTime(time + mTimeInc, false);
-  if (newrow || !table->numRows())
-      newClicked();
+  if (newrow || !table->rowCount())
+    newClicked();
   else
-      getAngClicked();
+    getAngClicked();
 }
 
 // Call from a slicer to set slicer angles
@@ -163,7 +231,7 @@ void SlicerAngleForm::getAngClicked()
   slanp->angles[2] = angles[2];
   slanp->center = center;
   App->cvi->undo->finishUnit();
-  loadRow(slanp, mCurRow[mCurTime]);
+  loadRow(slanp, mCurRow[mCurTime], true);
 }
 
 // Set angle button
@@ -196,7 +264,7 @@ void SlicerAngleForm::deleteClicked()
   ilistRemove(App->cvi->imod->slicerAng, index);
   App->cvi->undo->finishUnit();
   loadTable(mCurTime);
-  mCurRow[mCurTime] = B3DMIN(table->numRows() - 1, mCurRow[mCurTime] );
+  mCurRow[mCurTime] = B3DMIN(table->rowCount() - 1, mCurRow[mCurTime] );
   table->selectRow(mCurRow[mCurTime]);  
   updateEnables();
   updateTopIfContinuous();
@@ -219,7 +287,7 @@ void SlicerAngleForm::newClicked()
   ilistAppend(imod->slicerAng, &slang);
   App->cvi->undo->finishUnit();
   loadTable(slang.time);
-  mCurRow[mCurTime] = table->numRows() - 1;
+  mCurRow[mCurTime] = table->rowCount() - 1;
   table->selectRow(mCurRow[mCurTime]);
   updateEnables();
 }
@@ -360,7 +428,7 @@ void SlicerAngleForm::cellChanged( int row, int col )
 {
   int index;
   float val;
-  QString str = table->text(row, col).stripWhiteSpace();
+  QString str = table->item(row, col)->text().trimmed();
   SlicerAngles *slanp = findAngles(row, index);
   if (!slanp)
     return;
@@ -379,12 +447,14 @@ void SlicerAngleForm::cellChanged( int row, int col )
     slanp->center.z = str.toFloat() - 1.f;
   else {
     str.truncate(ANGLE_STRSIZE - 1);
-    strcpy(slanp->label, str.latin1());
+    strcpy(slanp->label, LATIN1(str));
   }
   App->cvi->undo->finishUnit();
-  setFocus();
+
+  // Set the focus back to the table so arrow buttons work
+  table->setFocus();
   table->selectRow(row);
-  //modPrintStderr("cell at row %d  current %d\n", row, mCurRow[mCurTime]);
+  //imodPrintStderr("cell at row %d  current %d\n", row, mCurRow[mCurTime]);
   // Make it ignore the next current cell change since it is on the wrong row
   mIgnoreCurChg = true;
   if (mCurRow[mCurTime] == row)
@@ -392,13 +462,13 @@ void SlicerAngleForm::cellChanged( int row, int col )
 }
 
 // When current cell changes, set angle if continuous
-void SlicerAngleForm::currentChanged( int row, int col )
+void SlicerAngleForm::selectionChanged()
 {
   if (mIgnoreCurChg) {
     mIgnoreCurChg = false;
     return;
   }
- // imodPrintStderr("cur changed args %d %d row %d col %d\n", row, col, table->currentRow(), table->currentColumn());
+  //imodPrintStderr("sel changed row %d col %d\n", table->currentRow(), table->currentColumn());
   mCurRow[mCurTime] = table->currentRow();
   updateTopIfContinuous();
 }
@@ -417,8 +487,10 @@ void SlicerAngleForm::loadTable( int time )
 {
   Imod *imod = App->cvi->imod;
   SlicerAngles *slanp;
-  int i, numRows = 0;
+  int i, j, numRows = 0;
   
+  table->blockSignals(true);
+
   // Load all the items whose time matches
   for (i = 0; i < ilistSize(imod->slicerAng); i++) {
     slanp = (SlicerAngles *)ilistItem(imod->slicerAng, i);
@@ -426,34 +498,47 @@ void SlicerAngleForm::loadTable( int time )
       continue;
     
     // Add a row if needed
-    if (numRows + 1 > table->numRows())
-      table->setNumRows(numRows + 1);
-    loadRow(slanp, numRows++);
+    if (numRows + 1 > table->rowCount()) {
+      table->insertRow(numRows);
+      table->setRowHeight(numRows, table->fontMetrics().height() + 3);
+      for (j = 0; j < SLAN_COLS; j++) {
+        QTableWidgetItem *item = new QTableWidgetItem();
+        if (j < 6)
+          item->setTextAlignment(Qt::AlignRight);
+        table->setItem(numRows, j, item);
+      }
+    }
+    loadRow(slanp, numRows++, false);
   }
   
-  // Get rid of extra rows
-  for (i = table->numRows() - 1; i >= numRows; i--)
+  // Get rid of extra rows (hope it deletes the items)
+  for (i = table->rowCount() - 1; i >= numRows; i--)
     table->removeRow(i);
   mCurTime = time;
+  table->blockSignals(false);
 }
 
 // Load one row of the table
-void SlicerAngleForm::loadRow( SlicerAngles *slanp, int row )
+void SlicerAngleForm::loadRow( SlicerAngles *slanp, int row , bool block)
 {
   QString str;
+  if (block)
+    table->blockSignals(true);
   str.sprintf("%.2f", slanp->angles[0]);
-  table->setText(row, 0, str);
+  table->item(row, 0)->setText(str);
   str.sprintf("%.2f", slanp->angles[1]);
-  table->setText(row, 1, str);
+  table->item(row, 1)->setText(str);
   str.sprintf("%.2f", slanp->angles[2]);
-  table->setText(row, 2, str);
+  table->item(row, 2)->setText(str);
   str.sprintf("%.2f", slanp->center.x + 1.f);
-  table->setText(row, 3, str);
+  table->item(row, 3)->setText(str);
   str.sprintf("%.2f", slanp->center.y + 1.f);
-  table->setText(row, 4, str);
+  table->item(row, 4)->setText(str);
   str.sprintf("%.2f", slanp->center.z + 1.f);
-  table->setText(row, 5, str);
-  table->setText(row, 6, QString(slanp->label));
+  table->item(row, 5)->setText(str);
+  table->item(row, 6)->setText(QString(slanp->label));
+  if (block)
+    table->blockSignals(false);
 }
 
 // Switch the table to a new time and manage selection, enables, and label; also set
@@ -463,7 +548,7 @@ void SlicerAngleForm::switchTime( int newtime, bool doSet )
   int row, time;
   loadTable(newtime);
   updateEnables();
-  row = B3DMIN(mCurRow[mCurTime], table->numRows() - 1);
+  row = B3DMIN(mCurRow[mCurTime], table->rowCount() - 1);
   mCurRow[mCurTime] = row;
   if (row >= 0) {
     
@@ -533,14 +618,14 @@ void SlicerAngleForm::topSlicerDrawing( float *angles, float cx, float cy, float
   if (continuous) {
     
     // But make a row if there is not one yet
-    if (!table->numRows())
+    if (!table->rowCount())
       newClicked();
       
     //imodPrintStderr("updating row %d\n", mCurRow[mCurTime]);
     slanp = findAngles(mCurRow[mCurTime], index);
     if (slanp && (angles[0] != slanp->angles[0] || angles[1] != slanp->angles[1] ||
-        angles[2] != slanp->angles[2]  || cx != slanp->center.x || cy != slanp->center.y
-        || cz != slanp->center.z)) {
+                  angles[2] != slanp->angles[2]  || cx != slanp->center.x || cy != slanp->center.y
+                  || cz != slanp->center.z)) {
       if (!lastDragging)
         App->cvi->undo->modelChange();
       slanp->angles[0] = angles[0];
@@ -549,7 +634,7 @@ void SlicerAngleForm::topSlicerDrawing( float *angles, float cx, float cy, float
       slanp->center.x = cx;
       slanp->center.y = cy;
       slanp->center.z = cz;
-      loadRow(slanp, mCurRow[mCurTime]);
+      loadRow(slanp, mCurRow[mCurTime], true);
       if (!dragging)
         App->cvi->undo->finishUnit();
     } else if (lastDragging && !dragging)
@@ -565,9 +650,16 @@ void SlicerAngleForm::closeEvent( QCloseEvent *e )
   e->accept();
 }
 
-// Pass on keys
+// Pass on keys unless they are table navigation keys, which generate an
+// event when they do not move the table selection
 void SlicerAngleForm::keyPressEvent( QKeyEvent *e )
 {
+  int key = e->key();
+  if (!(e->modifiers() & Qt::KeypadModifier) && 
+      (key == Qt::Key_Left || key == Qt::Key_Right || key == Qt::Key_Up || 
+       key == Qt::Key_Down || key == Qt::Key_PageUp || key == Qt::Key_PageDown
+       || key == Qt::Key_Home || key == Qt::Key_End))
+    return;
   if (e->key() == Qt::Key_Escape) {
     close();
   } else {

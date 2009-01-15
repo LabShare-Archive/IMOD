@@ -1,6 +1,8 @@
 #ifndef MIDASGL_H
 #define MIDASGL_H
 #include "midas.h"
+//Added by qt3to4:
+#include <QMouseEvent>
 class MidasGL : public QGLWidget
 {
   Q_OBJECT

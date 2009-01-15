@@ -13,6 +13,11 @@ Log at end
 #include <math.h>
 
 #include "qtplax.h"
+//Added by qt3to4:
+#include <QCloseEvent>
+#include <QPaintEvent>
+#include <QResizeEvent>
+#include <QEvent>
 #include "b3dutil.h"
 #ifdef QTPLAX_ATEXIT_HACK
 #include <sys/types.h>
@@ -23,7 +28,7 @@ Log at end
 #include <qfont.h>
 #include <qdatetime.h>
 #include <qpen.h>
-#include <qpointarray.h>
+#include <q3pointarray.h>
 #include <qpainter.h>
 #include <qbrush.h>
 
@@ -70,10 +75,8 @@ static int PlaxNoGraph = 0;
 static int argc;
 static char **argv;
 
-#ifndef QTPLAX_NO_THREAD
 static PlaxThread *AppThread = NULL;
 static QMutex *PlaxMutex;
-#endif
 
 static int addBytesToList(char *bytes, int num);
 static int addTwoArgs(int code, int *i1, int *i2);
@@ -122,10 +125,12 @@ enum {PLAX_MAPCOLOR, PLAX_BOX, PLAX_BOXO, PLAX_VECT, PLAX_VECTW, PLAX_CIRC,
       PLAX_CIRCO, PLAX_POLY, PLAX_POLYO, PLAX_SCTEXT};
 
 
-PlaxWindow::PlaxWindow(QWidget *parent, const char *name, WFlags fl) :
-  QWidget(parent, name, fl)
+PlaxWindow::PlaxWindow(QWidget *parent, Qt::WFlags fl) :
+  QWidget(parent, fl)
 {
-  setPaletteBackgroundColor("black");
+  QPalette palette;
+  palette.setColor(backgroundRole(), "black");
+  setPalette(palette);
 }
 
 // Ignore close events
@@ -134,16 +139,11 @@ void PlaxWindow::closeEvent ( QCloseEvent * e )
   e->ignore();
 }
 
-// Paint event: make sure painter existes, paint the whole thing if erased
+// Paint event: make sure painter existes, Qt 4 always erases
 void PlaxWindow::paintEvent ( QPaintEvent * e)
 {
   Plax_exposed = 1;
-#ifdef QTPLAX_NO_THREAD
-  if (!PlaxPainter)
-    return;
-#endif
-  if (e->erased())
-    OutListInd = 0;
+  OutListInd = 0;
   /*fprintf(stderr, "paint %d %d %d %d\n", e->rect().top(), e->rect().left(),
     e->rect().width(), e->rect().height()); */
   draw();
@@ -152,6 +152,7 @@ void PlaxWindow::paintEvent ( QPaintEvent * e)
 // Resize: record size and set scale
 void PlaxWindow::resizeEvent ( QResizeEvent * )
 {
+  //puts("resize event");
   PlaxWidth = width();
   PlaxHeight = height();
   PlaxScaleX = ((float)width()) / 1280.0f;
@@ -160,48 +161,46 @@ void PlaxWindow::resizeEvent ( QResizeEvent * )
   // Make it repaint the whole thing
   // Get a new painter to fit the new size
   OutListInd = 0;
-#ifdef QTPLAX_NO_THREAD
-  if (PlaxPainter)
-    delete PlaxPainter;
-  PlaxPainter = new QPainter(PlaxWidget);
-#endif
 }
 
-
-// The custom event is sent for hiding and showing the widget
-void PlaxWindow::customEvent ( QCustomEvent * e )
+// Redraw signal is sent for showing, hiding, or drawing
+void PlaxWindow::redrawSlot()
 {
   static int widthInc = 1;
+  //puts("Got signal");
   if (!Plax_open)
     hide();
   else if (Plax_open > 0) {
     show();
     raise();
   } else {
+
+    // Qt4 insists on this going through a paint event, which requires complete
+    // erasure anyway.  This works, it complained about the other two ways!
     resize(PlaxWidth + widthInc, PlaxHeight);
     widthInc = -widthInc;
+    /* QCoreApplication::postEvent(PlaxWidget, new QPaintEvent
+       (QRect(0, 0, PlaxWidth, PlaxHeight))); */
+    /* QPaintEvent event = QPaintEvent(QRect(0, 0, PlaxWidth, PlaxHeight));
+       paintEvent(&event); */
     Plax_open = 1;
   }
 }
 
 void PlaxWindow::lock()
 {
-#ifndef QTPLAX_NO_THREAD
   PlaxMutex->lock();
-#endif
 }
 void PlaxWindow::unlock()
 {
-#ifndef QTPLAX_NO_THREAD
   PlaxMutex->unlock();
-#endif
 }
 
-#ifndef QTPLAX_NO_THREAD
 // The thread class
 PlaxThread::PlaxThread()
 {
   QThread::start();
+  QObject::connect(this, SIGNAL(redraw()), PlaxWidget, SLOT(redrawSlot()));
 }
 
 // start the fortran in the second thread
@@ -210,7 +209,11 @@ void PlaxThread::run()
   realgraphicsmain_();
   ::exit(0);
 }
-#endif
+
+void PlaxThread::sendSignal()
+{
+  emit redraw();
+}
 
 #define FSTRING_LEN  80
 void plax_initialize(char *string, int strsize)
@@ -263,12 +266,6 @@ void plax_initialize(char *string, int strsize)
     }
   }
 
-  // If no thread, now call the Fortran main routine
-#ifdef QTPLAX_NO_THREAD
-  realgraphicsmain_();
-  exit(0);
-#else
-
   // Otherwise start the Qt application and start second thread that calls
   // Fortran
   PlaxMutex = new QMutex();
@@ -280,12 +277,7 @@ void plax_initialize(char *string, int strsize)
   PlaxApp->exec();
 
   exit(0);
-#endif
 }
-
-// According to Qt 3.1 documentation, QThread::postEvent is obsolete and
-// QApplication::postEvent should be used, but this worked poorly on RH 7.3
-// under Qt 3.0.5
 
 
 int plax_open(void)
@@ -293,25 +285,10 @@ int plax_open(void)
   if (PlaxNoGraph)
     return 0;
   Plax_open = 1;
-#ifdef QTPLAX_NO_THREAD
-  // Opening: If no thread, get the application, widget and painter first time
-  // or show widget
-  if (!PlaxApp) {
-    if (startPlaxApp())
-      return (-1);
-
-    PlaxWidget->show();
-    plax_input_open();
-    PlaxPainter = new QPainter(PlaxWidget);
-  } else
-    PlaxWidget->show();
-  PlaxWidget->raise();
-
-#else
 
   // Qt in main thread: just show the widget now
-  QThread::postEvent(PlaxWidget, new QCustomEvent(QEvent::User));
-#endif
+  //puts("posting event");
+  AppThread->sendSignal();
   return 0;
 }
 
@@ -322,12 +299,7 @@ void plax_close(void)
   if (PlaxNoGraph)
     return;
   Plax_open = 0;
-#ifdef QTPLAX_NO_THREAD
-  PlaxWidget->hide();
-  plax_input();
-#else
-  QThread::postEvent(PlaxWidget, new QCustomEvent(QEvent::User));
-#endif
+  AppThread->sendSignal();
 }
 
 // To flush the display, post a paint event without erasure, specifying the
@@ -336,22 +308,18 @@ void plax_flush(void)
 {
   if (PlaxNoGraph)
     return;
-#ifdef QTPLAX_NO_THREAD
-  draw();
-  plax_input();
-#else
   // Could not make it draw reliably except when the window resized, just
   // just surrender to resizing the window on every draw.
   // Check this out on a new version of Qt
   // 5/12/06: Linux got worse and worse so surrendered to making this universal
-  //#ifdef _WIN32
+  // (It used to be just win32)
   Plax_open = -1;
-  QThread::postEvent(PlaxWidget, new QCustomEvent(QEvent::User));
+  //puts("posting event");
+  AppThread->sendSignal();
   /*#else
     QThread::postEvent(PlaxWidget, new QPaintEvent
     (QRect(0, 0, PlaxWidth, PlaxHeight), false));
     #endif */
-#endif
 }
 
 // Under Linux, it hangs on a Ctrl C, so kill the process group
@@ -379,7 +347,7 @@ static int startPlaxApp()
   
   // IT WAS NOT OK TO Free the memory
   
-  PlaxWidget = new PlaxWindow(NULL, "plax window");
+  PlaxWidget = new PlaxWindow(NULL);
      
   if (!PlaxWidget){
     fprintf(stderr, "Error opening plax display.\n");
@@ -388,6 +356,7 @@ static int startPlaxApp()
 
   PlaxScaleX = PlaxScaleY = 0.5f;
   PlaxWidget->setGeometry(PlaxLeft, PlaxTop, PlaxWidth, PlaxHeight);
+  PlaxWidget->setAttribute(Qt::WA_DeleteOnClose);
   Plax_exposed = 0;
   return 0;
 }
@@ -579,9 +548,7 @@ static void draw()
   int ind;
   b3dInt16 *vec;
   
-#ifndef QTPLAX_NO_THREAD
   PlaxPainter = new QPainter(PlaxWidget);
-#endif
   PlaxWidget->lock();
 
   /* fprintf(stderr, "Ind %d Size %d\n", OutListInd, ListSize); */
@@ -661,10 +628,8 @@ static void draw()
 
   }
   PlaxWidget->unlock();
-  PlaxPainter->flush();
-#ifndef QTPLAX_NO_THREAD
+  //PlaxPainter->flush();
   delete PlaxPainter;
-#endif
   //  plax_input();
 }
 
@@ -721,7 +686,7 @@ static void plax_draw_poly(b3dInt32 cindex, b3dInt32 csize, b3dInt16 *vec,
                            int iffill)
 {
   int i;
-  QPointArray points(csize);
+  Q3PointArray points(csize);
   
   plax_set_pen(cindex, 0);
   plax_set_brush(cindex, iffill);
@@ -865,6 +830,9 @@ static void plax_set_brush(int color, int closed)
 
 /*
 $Log$
+Revision 1.16  2006/05/12 14:28:29  mast
+Use the resize trick everywhere to get draws to work reliably on Linux
+
 Revision 1.15  2005/11/19 17:00:45  mast
 Have it call fortran routine to call getarg/iargc since these can be intrinsic
 

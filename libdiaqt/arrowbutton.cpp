@@ -2,6 +2,7 @@
 
 #include "arrowbutton.h"
 #include <qpixmap.h>
+#include <qicon.h>
 
 static const char* const left_data[] = { 
 "13 13 78 2",
@@ -418,9 +419,9 @@ static const char* const down_data[] = {
  * A toolbutton with an arrow icon.  [type] should be one of Qt::UpArrow,
  * Qt::DownArrow, Qt::LeftArrow, Qt::RightArrow.  [name] defaults to 0.
  */
-ArrowButton::ArrowButton ( ArrowType type, QWidget * parent, 
+ArrowButton::ArrowButton ( Qt::ArrowType type, QWidget * parent, 
                            const char * name) 
-  : QToolButton(parent, name)
+  : QToolButton(parent)
 {
   const char **data;
   switch (type) {
@@ -439,7 +440,7 @@ ArrowButton::ArrowButton ( ArrowType type, QWidget * parent,
   }
   setText( trUtf8( "" ) );
   QPixmap image(data);
-  setPixmap(image);
+  setIcon(QIcon(image));
 }
 
 ArrowButton::~ArrowButton()

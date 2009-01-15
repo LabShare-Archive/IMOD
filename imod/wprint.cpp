@@ -9,45 +9,12 @@
  */
 
 /*
- * Modified for IMOD by James Kremer. 
+ * Modified for IMOD by James Kremer and David Mastronarde 
  * Prints to the imod information window.
  *
+ *  $Id$
+ *  Log at end of file
  */
-/*  $Author$
-
-$Date$
-
-$Revision$
-
-$Log$
-Revision 4.6  2004/05/31 23:35:26  mast
-Switched to new standard error functions for all debug and user output
-
-Revision 4.5  2003/10/01 05:02:05  mast
-Need to define as extern C for plugins to use
-
-Revision 4.4  2003/04/17 21:50:31  mast
-Using older remove statement for QString
-
-Revision 4.3  2003/04/17 19:05:26  mast
-eliminate Ctrl-A from text strings
-
-Revision 4.2  2003/03/24 17:58:09  mast
-Changes for new preferences capability
-
-Revision 4.1  2003/02/10 20:29:02  mast
-autox.cpp
-
-Revision 1.1.2.2  2003/01/27 00:30:07  mast
-Pure Qt version and general cleanup
-
-Revision 1.1.2.1  2003/01/13 01:19:04  mast
-Qt versions
-
-Revision 3.1  2002/12/01 15:34:41  mast
-Changes to get clean compilation with g++
-
-*/
 
 /* error_test.c -- test the error handlers and wprint() routine
  */
@@ -55,6 +22,7 @@ Changes to get clean compilation with g++
 /*#include <varargs.h>  */
 #include <stdarg.h>
 #include <qtextedit.h>
+#include <qscrollbar.h>
 #include <qapplication.h>
 #include "imod.h"
 #include "preferences.h"
@@ -66,7 +34,7 @@ void wprintWidget(QTextEdit *edit)
      
   Wprint_text_output = edit;
   edit->setReadOnly(true);
-  edit->setTextFormat(Qt::PlainText);
+  //edit->setTextFormat(Qt::PlainText);
 }
 
 /*VARARGS*/
@@ -111,11 +79,11 @@ void wprint(const char *fmt, ...)
   va_end (args);
      
   msgstr = msgbuf;
-  while ((i = msgstr.find(0x07)) >= 0)
+  while ((i = msgstr.indexOf(0x07)) >= 0)
     msgstr = msgstr.remove(i, 1);
 
   // Strip \r's
-  while ((lastnl = msgstr.find('\r')) >= 0) {
+  while ((lastnl = msgstr.indexOf('\r')) >= 0) {
     //    fprintf(stderr,"stripping ctrl-r at %d\n", lastnl);
     msgstr.remove(lastnl, 1);
     nopos = true;
@@ -128,12 +96,13 @@ void wprint(const char *fmt, ...)
 
   // If there was a \r, remove the last line from existing string
   if (nopos && !str.isEmpty()) {
-    lastnl = str.findRev('\n');
+    lastnl = str.lastIndexOf('\n');
     //    fprintf(stderr, "backing up to %d\n", lastnl);
     if (lastnl >= 0)
       str.truncate(lastnl + 1);   // Truncate takes a length not an index!
     else
       str = "";
+    Wprint_text_output->setText(str);
   }
 
 
@@ -142,22 +111,57 @@ void wprint(const char *fmt, ...)
   if (returnPending)
     msgstr.remove(msgstr.length() - 1, 1);
   
-  //  fprintf(stderr, "%s-*-%s",  str.latin1(), msgstr.latin1());
+  //  fprintf(stderr, "%s-*-%s",  LATIN1(str), LATIN1(msgstr));
   str += msgstr;
-  Wprint_text_output->setText(str);
-  Wprint_text_output->scrollToBottom();
+  //  Wprint_text_output->setText(str);
 
   if (beep) {
-    len = Wprint_text_output->paragraphs();
-    lastnl = len - 4;
-    if (lastnl < 0)
-      lastnl = 0;
-    for (i = lastnl; i < len; i++)
-      Wprint_text_output->setParagraphBackgroundColor
-        (i, lastbeep ? "yellow" : "magenta");
+    Wprint_text_output->setTextBackgroundColor
+      (lastbeep ? "yellow" : "magenta");
     lastbeep = 1 - lastbeep;
-  } else
+  } else if (lastbeep) {
+    Wprint_text_output->setTextBackgroundColor("white");
     lastbeep = 0;
+  }
+  if (returnPending)
+    Wprint_text_output->append(msgstr);
+  else
+    Wprint_text_output->setText(str);
+  QScrollBar *scroll = Wprint_text_output->verticalScrollBar();
+  scroll->setValue(scroll->maximum());
 }
 
+/*
 
+$Log$
+Revision 4.7  2008/02/06 16:14:21  sueh
+bug# 1065 Changed wprint(char *) to wprint(const char*).
+
+Revision 4.6  2004/05/31 23:35:26  mast
+Switched to new standard error functions for all debug and user output
+
+Revision 4.5  2003/10/01 05:02:05  mast
+Need to define as extern C for plugins to use
+
+Revision 4.4  2003/04/17 21:50:31  mast
+Using older remove statement for QString
+
+Revision 4.3  2003/04/17 19:05:26  mast
+eliminate Ctrl-A from text strings
+
+Revision 4.2  2003/03/24 17:58:09  mast
+Changes for new preferences capability
+
+Revision 4.1  2003/02/10 20:29:02  mast
+autox.cpp
+
+Revision 1.1.2.2  2003/01/27 00:30:07  mast
+Pure Qt version and general cleanup
+
+Revision 1.1.2.1  2003/01/13 01:19:04  mast
+Qt versions
+
+Revision 3.1  2002/12/01 15:34:41  mast
+Changes to get clean compilation with g++
+
+*/

@@ -18,6 +18,8 @@
 
 #include <stdio.h>
 #include <qstring.h>
+//Added by qt3to4:
+#include <QPixmap>
 #include "imodel.h"
 #include "imodi.h"
 
@@ -222,6 +224,8 @@ extern int (*ivwFastGetValue)(int x, int y, int z);
 
 #define IMOD_SELSIZE 15   /* Distance for selecting model points with mouse. */
 
+#define LATIN1(a) ((const char *)a.toLatin1())
+
 #define RADIANS_PER_DEGREE 0.017453293
 #define MOVIE_DEFAULT 52965
 
@@ -266,6 +270,9 @@ bool imodDebug(char key);
 
 /*
 $Log$
+Revision 3.44  2008/12/01 15:42:01  mast
+Changes for undo/redo and selection in 3dmodv standalone
+
 Revision 3.43  2008/05/27 05:38:51  mast
 Various new variables
 

@@ -375,7 +375,7 @@ int imodv_auto_snapshot(QString fname, int format_type)
   }
   sname = b3dShortSnapName(fname);
 
-  imodPrintStderr("3dmodv: Saving image to %s", sname.latin1());
+  imodPrintStderr("3dmodv: Saving image to %s", LATIN1(sname));
 
   if (a->db)
     a->mainWin->mCurGLw->setBufferSwapAuto(false);
@@ -402,7 +402,7 @@ int imodv_auto_snapshot(QString fname, int format_type)
     a->mainWin->mCurGLw->setBufferSwapAuto(true);
   }
 
-  /* DNM 12/3/03: need to not free the inName since it is Qt's latin1 string */
+  /* DNM 12/3/03: need to not free the inName since it is Qt's toLatin1 string */
   return(0);
 }
 
@@ -415,19 +415,19 @@ static int imodv_snapshot(ImodvApp *a, QString fname)
   int i, xysize;
   GLint xoffset;
   char iname[80];
-  char sep = QDir::separator();
+  char sep = QDir::separator().toLatin1();
   QString tailname = QDir::convertSeparators(fname);
 
   errno = 0;
-  fout = fopen(tailname.latin1(), "wb");
+  fout = fopen(LATIN1(tailname), "wb");
   if (!fout){
     QString qerr = "3dmodv: error opening file\n";
     if (errno)
-      qerr +=  QString("System error: ") + strerror(errno);
-    imodPrintStderr(qerr.latin1());
+      qerr +=  QString("System error: ") + QString(strerror(errno));
+    imodPrintStderr(LATIN1(qerr));
     return(-1);
   }
-  i = tailname.findRev(sep) + 1;
+  i = tailname.lastIndexOf(sep) + 1;
   tailname = tailname.right(tailname.length() - i);
   tailname.truncate(59);
 
@@ -465,7 +465,7 @@ static int imodv_snapshot(ImodvApp *a, QString fname)
   iputlong (fout, 0l);        /* PIXMIN is 0          */
   iputlong (fout, 255l);      /* PIXMAX is 255        */
   iputlong (fout, 0);         /* DUMMY 4 bytes        */
-  sprintf(iname, "%s, Created by 3dmodv.", tailname.latin1());
+  sprintf(iname, "%s, Created by 3dmodv.", LATIN1(tailname));
   fwrite(iname, 80, 1, fout); /* IMAGENAME            */
   iputlong (fout, 0);         /* COLORMAP is 0        */
   for(i=0; i<404; i++)        /* DUMMY 404 bytes      */
@@ -495,6 +495,9 @@ static int imodv_snapshot(ImodvApp *a, QString fname)
 /*
 
 $Log$
+Revision 4.23  2009/01/06 23:58:47  mast
+Swap twice on Mac to avoid losing display
+
 Revision 4.22  2008/12/17 17:51:25  mast
 change in call to set widget
 

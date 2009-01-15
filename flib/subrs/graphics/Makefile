@@ -1,7 +1,7 @@
 include ../../configure
 
 CFLAGS = $(LIBCFLAGS)
-CXXFLAGS = $(LIBCFLAGS)
+CXXFLAGS = $(LIBCFLAGS) $(QTFLAGS)
 FFLAGS = $(LIBFFLAGS)
 
 O        = $(OBJEXT)
@@ -13,6 +13,9 @@ OBJS = bshst.$(O) impak.$(O) bsplt.$(O) graphpak.$(O) imsymb.$(O) scale.$(O) \
 
 all: $(OBJS)
 
+moc_qtplax.cpp: qtplax.h
+	$(MOC) qtplax.h -o moc_qtplax.cpp
+
 qtplax.$(O): qtplax.h
 xplax.$(O): xplax.h
 noplax.$(O): xplax.h
@@ -23,3 +26,4 @@ clean:
 	$(FIND) . -type f -name "*.o*" -exec rm "{}" \;
 	$(FIND) . -type f -name "*~" -exec rm "{}" \;
 	$(FIND) . -type f -name "#*#" -exec rm "{}" \;
+	$(FIND) . -type f -name "moc*" -exec rm "{}" \;

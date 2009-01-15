@@ -1,3 +1,6 @@
+//Added by qt3to4:
+#include <QKeyEvent>
+#include <QCloseEvent>
 /*   imodv_image.h  -  declarations for imodv_image.cpp
  *
  *   Copyright (C) 1995-2002 by Boulder Laboratory for 3-Dimensional Electron
@@ -12,6 +15,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 4.5  2004/11/04 23:30:55  mast
+Changes for rounded button style
+
 Revision 4.4  2004/06/15 01:15:51  mast
 Added functions for movie control
 

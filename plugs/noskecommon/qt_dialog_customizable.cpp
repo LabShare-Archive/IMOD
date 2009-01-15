@@ -1,4 +1,8 @@
 #include "qt_dialog_customizable.h"
+//Added by qt3to4:
+#include <QHBoxLayout>
+#include <QLabel>
+#include <QVBoxLayout>
 
 //############################################################
 
@@ -23,7 +27,7 @@ GuiDialogCustomizable::GuiDialogCustomizable(
             CustomDialog *ds, QString title, QWidget *parent) : QDialog(parent)
 {
 	setDialogElements(ds);
-  setCaption(title);
+  setWindowTitle(title);
 }
 
 //------------------------
@@ -39,15 +43,16 @@ void GuiDialogCustomizable::setDialogElements( CustomDialog *ds_ )
 		cerr << "No elements provided" << endl;
 	}
 	
-	vboxLayout = new QVBoxLayout(this,1,1,"hello");
+	vboxLayout = new QVBoxLayout(this);
 	vboxLayout->setSpacing(6);
   vboxLayout->setMargin(9);
-  
+  vboxLayout->setContentsMargins(9, 6, 9, 9);
+        
 	elements.resize( numElements );
 	
 	
 	//## CREATE ALL FORM ELEMENTS AND ADD THEM TO THE FORM IN VERTICAL LAYOUT:
-	
+  // DNM 1/1/09: changed all tooltip comparisons with 0 to tests for ! isEmpty
 	for( int i = 0; i<numElements; i++ )
 	{
 		switch ( ds->elVal[i].type )
@@ -55,8 +60,8 @@ void GuiDialogCustomizable::setDialogElements( CustomDialog *ds_ )
       case( DLG_LABEL ):
 			{
 				elements[i].label = new QLabel( ds->elVal[i].caption, this );
-				if( ds->elVal[i].tooltip != 0 )
-          QToolTip::add( elements[i].label, ds->elVal[i].tooltip );
+				if( !ds->elVal[i].tooltip.isEmpty() )
+           elements[i].label->setToolTip(ds->elVal[i].tooltip );
         
 				vboxLayout->addWidget( elements[i].label );
 			}
@@ -66,8 +71,8 @@ void GuiDialogCustomizable::setDialogElements( CustomDialog *ds_ )
 			{
 				elements[i].chkBox = new QCheckBox( ds->elVal[i].caption, this );
 				elements[i].chkBox->setChecked( ds->elVal[i].boolValue );
-				if( ds->elVal[i].tooltip != 0 )
-					QToolTip::add( elements[i].chkBox, ds->elVal[i].tooltip );
+				if( !ds->elVal[i].tooltip.isEmpty() )
+					 elements[i].chkBox->setToolTip(ds->elVal[i].tooltip );
         
 				vboxLayout->addWidget( elements[i].chkBox );
 			}
@@ -78,10 +83,10 @@ void GuiDialogCustomizable::setDialogElements( CustomDialog *ds_ )
 				elements[i].label = new QLabel( ds->elVal[i].caption, this );
 				elements[i].lineEdit = new QLineEdit(this);
 				elements[i].lineEdit->setText		( ds->elVal[i].stringValue );
-				if( ds->elVal[i].tooltip != 0 )
+				if( !ds->elVal[i].tooltip.isEmpty() )
         {
-          QToolTip::add( elements[i].label,    ds->elVal[i].tooltip );
-          QToolTip::add( elements[i].lineEdit, ds->elVal[i].tooltip );
+           elements[i].label->setToolTip(ds->elVal[i].tooltip );
+           elements[i].lineEdit->setToolTip(ds->elVal[i].tooltip );
         }
         
 				QHBoxLayout *hboxLayout = new QHBoxLayout();
@@ -96,10 +101,10 @@ void GuiDialogCustomizable::setDialogElements( CustomDialog *ds_ )
 				elements[i].label = new QLabel( ds->elVal[i].caption, this );
 				elements[i].lineEdit = new QLineEdit(this);
 				elements[i].lineEdit->setText( QString::number( ds->elVal[i].value ) );
-				if( ds->elVal[i].tooltip != 0 )
+				if( !ds->elVal[i].tooltip.isEmpty() )
         {
-          QToolTip::add( elements[i].label,    ds->elVal[i].tooltip );
-          QToolTip::add( elements[i].lineEdit, ds->elVal[i].tooltip );
+           elements[i].label->setToolTip(ds->elVal[i].tooltip );
+           elements[i].lineEdit->setToolTip(ds->elVal[i].tooltip );
         }
         
         elements[i].lineEdit->setValidator(                               
@@ -118,19 +123,19 @@ void GuiDialogCustomizable::setDialogElements( CustomDialog *ds_ )
 			{
 				elements[i].label = new QLabel( ds->elVal[i].caption, this );
 				elements[i].spnBox = new QSpinBox(this);
-				elements[i].spnBox->setMinValue		( (int)ds->elVal[i].min ); 
-				elements[i].spnBox->setMaxValue		( (int)ds->elVal[i].max );
-				elements[i].spnBox->setValue		( (int)ds->elVal[i].value );
-				elements[i].spnBox->setLineStep	( (int)ds->elVal[i].step );
-				if( ds->elVal[i].tooltip != 0 )
+				elements[i].spnBox->setRange(      (int)ds->elVal[i].min, 
+                                           (int)ds->elVal[i].max );
+				elements[i].spnBox->setValue		 ( (int)ds->elVal[i].value );
+				elements[i].spnBox->setSingleStep( (int)ds->elVal[i].step );
+				if( !ds->elVal[i].tooltip.isEmpty() )
         {
-          QToolTip::add( elements[i].label,  ds->elVal[i].tooltip );
-					QToolTip::add( elements[i].spnBox, ds->elVal[i].tooltip );
+           elements[i].label->setToolTip(ds->elVal[i].tooltip );
+					 elements[i].spnBox->setToolTip(ds->elVal[i].tooltip );
         }
         
 				QHBoxLayout *hboxLayout = new QHBoxLayout();
 				hboxLayout->setSpacing(0);
-				hboxLayout->setMargin(0);
+				hboxLayout->setContentsMargins(0, 0, 0, 0);
 				QSpacerItem *spacerItem = new QSpacerItem(40, 20, QSizePolicy::Expanding,
                                                   QSizePolicy::Minimum);
 				
@@ -149,23 +154,23 @@ void GuiDialogCustomizable::setDialogElements( CustomDialog *ds_ )
 				
         
         QStringList items = 
-          QStringList::split( QString(","), ds->elVal[i].stringValue );				
+          ds->elVal[i].stringValue.split(",", QString::SkipEmptyParts);
                             // break apart string values between each ","
-        
-        for (int j=0; j<(int)items.size(); j++)					// add each items to combo box
-          elements[i].cmbBox->insertItem ( items[j] );
+
+        // DNM: ANDREW, YOU SHOULD TEST THAT THIS WORKS!
+        elements[i].cmbBox->addItems(items );
         if( (int)ds->elVal[i].value < (int)items.size() )
-          elements[i].cmbBox->setCurrentItem( (int)ds->elVal[i].value );	
+          elements[i].cmbBox->setCurrentIndex( (int)ds->elVal[i].value );	
                                                         // set default selection
-        if( ds->elVal[i].tooltip != 0 )
+        if( !ds->elVal[i].tooltip.isEmpty() )
         {
-          QToolTip::add( elements[i].label,  ds->elVal[i].tooltip );
-          QToolTip::add( elements[i].cmbBox, ds->elVal[i].tooltip );
+           elements[i].label->setToolTip(ds->elVal[i].tooltip );
+           elements[i].cmbBox->setToolTip(ds->elVal[i].tooltip );
         }
         
 				QHBoxLayout *hboxLayout = new QHBoxLayout();
 				hboxLayout->setSpacing(0);
-				hboxLayout->setMargin(0);
+				hboxLayout->setContentsMargins(0, 0, 0, 0);
 				hboxLayout->addWidget( elements[i].label );
 				hboxLayout->addWidget( elements[i].cmbBox );
 				
@@ -175,33 +180,38 @@ void GuiDialogCustomizable::setDialogElements( CustomDialog *ds_ )
         
       case( DLG_RADIOGRP ):
 			{
-				QVButtonGroup *butGrp = new QVButtonGroup(this);
-				butGrp->setTitle( ds->elVal[i].caption );
-				butGrp->setInsideSpacing(2);
+        QGroupBox *butGrpBox = new QGroupBox(this);
+				QButtonGroup *butGrp = new QButtonGroup(this);
+				butGrpBox->setTitle( ds->elVal[i].caption );
+        QVBoxLayout *butLay = new QVBoxLayout(butGrpBox);
+				butLay->setSpacing(2);
+        butLay->setContentsMargins(5, 2, 5, 5);
         QStringList items = 
-          QStringList::split( QString(","), ds->elVal[i].stringValue );      
+          ds->elVal[i].stringValue.split(",", QString::SkipEmptyParts);
                                   // break apart string values between each ","
         
         
         QStringList tooltips;
-        if( ds->elVal[i].tooltipArr != 0 )
-          tooltips = QStringList::split( QString(","), ds->elVal[i].tooltipArr );
+        if( !ds->elVal[i].tooltipArr.isEmpty() )
+          tooltips = ds->elVal[i].tooltipArr.split(",", QString::SkipEmptyParts);
         
 				for (int j=0; j<(int)items.size(); j++)			// add each of item as radio button
 				{
-					QRadioButton *newRadBtn = new QRadioButton(butGrp);
+					QRadioButton *newRadBtn = new QRadioButton(butGrpBox);
+          butLay->addWidget(newRadBtn);
+          butGrp->addButton(newRadBtn, j);
           newRadBtn->setText( items[j] );
 					if( j == (int)ds->elVal[i].value )
 						newRadBtn->setChecked(true);				// set default selection
           if( j<(int)tooltips.size() )
-            QToolTip::add( newRadBtn,  tooltips[j] );
+             newRadBtn->setToolTip(tooltips[j] );
           elements[i].radBtn.push_back( newRadBtn );
 				}
         
-				if( ds->elVal[i].tooltip != 0 && ds->elVal[i].tooltip != ""  )
-					QToolTip::add( butGrp, ds->elVal[i].tooltip );
+				if( !ds->elVal[i].tooltip.isEmpty() )
+					 butGrpBox->setToolTip(ds->elVal[i].tooltip );
         
-				vboxLayout->addWidget( butGrp );
+				vboxLayout->addWidget( butGrpBox );
 			}
         break;
         
@@ -247,7 +257,8 @@ void GuiDialogCustomizable::accept()
         
       case( DLG_LINEEDIT ):
       {
-        string valueStr = elements[i].lineEdit->text();
+        // DNM 1/1/09: changed from direct assignment of QString
+        string valueStr = (const char *)elements[i].lineEdit->text().toLatin1();
         *ds->elVal[i].returnString = valueStr;
       }
         break;
@@ -263,7 +274,7 @@ void GuiDialogCustomizable::accept()
         break;
         
       case( DLG_COMBOBOX ):
-        *ds->elVal[i].returnInt = (double)elements[i].cmbBox->currentItem();
+        *ds->elVal[i].returnInt = (double)elements[i].cmbBox->currentIndex();
         break;
         
       case( DLG_RADIOGRP ):
@@ -309,7 +320,7 @@ string qStringToString( QString qstr )
 {
   string str = "";
   for( int i=0; i<qstr.length(); i++ )
-    str +=  qstr.at(i).latin1();
+    str +=  qstr.at(i).toLatin1();
   return str;
 }
 
@@ -336,7 +347,7 @@ bool MsgBoxYesNo( QWidget *parent, string str )
 
 string InputBoxString( QWidget *parent, string title, string label, string defaultStr )
 {
-  return qStringToString( QInputDialog::getText(title.c_str(), label.c_str(),
+  return qStringToString( QInputDialog::getText(parent, title.c_str(), label.c_str(),
                                                 QLineEdit::Normal, defaultStr.c_str()));
 }
 

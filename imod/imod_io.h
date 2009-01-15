@@ -11,6 +11,9 @@
     $Revision$
 
     $Log$
+    Revision 4.8  2006/01/14 18:15:03  mast
+    Added function for new model initialization
+
     Revision 4.7  2005/10/14 22:00:13  mast
     Changes for reload and some cleanup
 
@@ -68,8 +71,8 @@
 int imodIOGetError(void);
 char *imodIOGetErrorString(void);
 void setImod_filename(const char *name);
-int createNewModel(char *modelFilename);
-int openModel(char *modelFilename, bool keepBW, bool saveAs);
+int createNewModel(const char *modelFilename);
+int openModel(const char *modelFilename, bool keepBW, bool saveAs);
 Imod *LoadModel(FILE *mfin);
 int SaveModel(struct Mod_Model *mod);
 int SaveasModel(struct Mod_Model *mod);

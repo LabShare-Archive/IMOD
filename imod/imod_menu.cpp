@@ -17,8 +17,8 @@
 #include <math.h>
 #include <qfiledialog.h>
 #include <qdir.h>
+#include <qaction.h>
 #include <qtimer.h>
-#include <qpopupmenu.h>
 #include "xxyz.h"
 #include "imod_object_edit.h"
 #include "pixelview.h"
@@ -167,7 +167,7 @@ void InfoWindow::fileSlot(int item)
 
   case FILE_MENU_SNAPGRAY:
     App->convertSnap = 1 - App->convertSnap;
-    mFileMenu->setItemChecked(FILE_MENU_SNAPGRAY, App->convertSnap != 0);
+    mActions[FILE_MENU_SNAPGRAY]->setChecked(App->convertSnap != 0);
     break;
 
   case FILE_MENU_TIFF:  /* Save raw image to tiff file */
@@ -180,8 +180,7 @@ void InfoWindow::fileSlot(int item)
       imod_info_input();
       releaseKeyboard();
       qname = QFileDialog::getSaveFileName
-        (QString::null, QString::null, 0, 0, 
-         "TIFF File to save section from memory:");
+        (ImodInfoWin, "TIFF File to save section from memory:");
       imod_info_enable();
       if (qname.isEmpty())
         break;
@@ -232,11 +231,11 @@ void InfoWindow::fileWriteSlot(int item)
 
   case FWRITE_MENU_IMOD: /* write imod */
     releaseKeyboard();
-    qname = QFileDialog::getSaveFileName(QString::null, QString::null, 0, 0, 
+    qname = QFileDialog::getSaveFileName(ImodInfoWin,
                                          "File to save as Imod:");
     if (qname.isEmpty())
       break;
-    fout =  fopen((QDir::convertSeparators(qname)).latin1(), "wb");
+    fout =  fopen(LATIN1(QDir::convertSeparators(qname)), "wb");
     if (!fout)
       break;
 
@@ -250,24 +249,24 @@ void InfoWindow::fileWriteSlot(int item)
 
   case FWRITE_MENU_WIMP: /* write wimp */
     releaseKeyboard();
-    qname = QFileDialog::getSaveFileName(QString::null, QString::null, 0, 0, 
+    qname = QFileDialog::getSaveFileName(ImodInfoWin,
                                          "File to save as Wimp:");
     if (qname.isEmpty())
       break;
-    fout =  fopen((QDir::convertSeparators(qname)).latin1(), "w");
+    fout =  fopen(LATIN1(QDir::convertSeparators(qname)), "w");
     if (!fout)
       break;
-    imod_to_wmod(App->cvi->imod, fout, (char *)qname.latin1());
+    imod_to_wmod(App->cvi->imod, fout, LATIN1(qname));
     fclose(fout);
     break;
 
   case FWRITE_MENU_NFF: /* write NFF */
     releaseKeyboard();
-    qname = QFileDialog::getSaveFileName(QString::null, QString::null, 0, 0, 
+    qname = QFileDialog::getSaveFileName(ImodInfoWin, 
                                          "File to save as NFF:");
     if (qname.isEmpty())
       break;
-    fout =  fopen((QDir::convertSeparators(qname)).latin1(), "w");
+    fout =  fopen(LATIN1(QDir::convertSeparators(qname)), "w");
     if (!fout)
       break;
     imod_to_nff(App->cvi->imod, fout);
@@ -429,7 +428,7 @@ void InfoWindow::editObjectSlot(int item)
       if (num > 1) {
         qstr.sprintf("%d objects are selected.\nDelete all selected objects?",
                      num);
-        lastDelete = dia_ask_forever((char *)qstr.latin1());
+        lastDelete = dia_ask_forever(LATIN1(qstr));
       } else
         lastDelete = dia_ask_forever("Delete Object?");
       if (!lastDelete)
@@ -520,7 +519,7 @@ void InfoWindow::editObjectSlot(int item)
     if (lastCombine < 2) {
       qstr.sprintf("Are you sure you want to combine these %d selected "
                    "objects into one?", num);
-      lastCombine = dia_ask_forever((char *)qstr.latin1());
+      lastCombine = dia_ask_forever(LATIN1(qstr));
       if (!lastCombine)
         break;
     } else
@@ -642,7 +641,7 @@ void InfoWindow::editObjectSlot(int item)
                    "flatten all contours to lie in only one Z plane", 
                    ob + 1, objtype);
     
-      *lastp = dia_ask_forever((char *)(qstr.latin1()));
+      *lastp = dia_ask_forever(LATIN1(qstr));
       if (!*lastp)
         break;
     }
@@ -751,7 +750,7 @@ void InfoWindow::editSurfaceSlot(int item)
     if (lastDelete < 2 && numDel > 1) {
       qstr.sprintf("Are you sure you want to delete the %d contours in "
                    "this surface?", numDel);
-      lastDelete = dia_ask_forever((char *)qstr.latin1());
+      lastDelete = dia_ask_forever(LATIN1(qstr));
       if (!lastDelete)
         break;
     } else
@@ -1337,6 +1336,9 @@ static int imodContourBreakByZ(ImodView *vi, Iobj *obj, int ob, int co)
 /*
 
 $Log$
+Revision 4.50  2008/12/10 01:04:50  mast
+Added menu item to set jpeg quality
+
 Revision 4.49  2008/07/13 16:45:01  mast
 Keep image windows from opening on initial load
 

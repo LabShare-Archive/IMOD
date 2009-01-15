@@ -16,7 +16,14 @@
 #include <qdatetime.h>
 #include <qapplication.h>
 #include <qcursor.h>
-#include <hottoolbar.h>
+//Added by qt3to4:
+#include <QTimerEvent>
+#include <QMouseEvent>
+#include <QCloseEvent>
+#include <QKeyEvent>
+#include <QVBoxLayout>
+#include <QFrame>
+#include "hottoolbar.h"
 #include <qlayout.h>
 #include <qlabel.h>
 #include <qtoolbutton.h>
@@ -61,16 +68,17 @@
 #define ALL_BORDER (2 * XYZ_BSIZE + XYZ_GSIZE)
 #define GRAB_LENGTH 7
 #define GRAB_WIDTH 3
-#define AUTO_RAISE false
 #define XYZ_TOGGLE_RESOL 0
 #define MAX_SLIDER_WIDTH 100
 #define MIN_SLIDER_WIDTH 20
 
-static unsigned char *bitList[NUM_TOOLBUTTONS][2] =
+static unsigned char *bitList[MAX_XYZ_TOGGLES][2] =
   {{lowres_bits, highres_bits}};
+static char *toggleTips[] = {
+  "Toggle between regular and high-resolution (interpolated) image"};
 
-static QBitmap *bitmaps[NUM_TOOLBUTTONS][2];
-static QBitmap *cenBitmap = NULL;
+static QIcon *icons[MAX_XYZ_TOGGLES];
+static QIcon *cenIcon = NULL;
 
 static char *sliderLabels[] = {"X", "Y", "Z"};
 enum {X_COORD = 0, Y_COORD, Z_COORD};
@@ -152,8 +160,9 @@ int xxyz_open(ImodView *vi)
 
   xx->glw->setMinimumSize(2 * ALL_BORDER, 2 * ALL_BORDER);
 
-  xx->dialog->setCaption(imodCaption("3dmod XYZ Window"));
-  xx->dialog->mToolBar->setLabel(imodCaption("XYZ Toolbar"));
+  xx->dialog->setWindowTitle(imodCaption("3dmod XYZ Window"));
+  // THIS DOESN'T WORK
+  xx->dialog->mToolBar->setWindowTitle(imodCaption("XYZ Toolbar"));
 
   xx->lx = xx->ly = xx->lz = xx->lastCacheSum -1;
   XYZ  = xx;
@@ -179,7 +188,8 @@ int xxyz_open(ImodView *vi)
   // the new window size
   imod_info_input();  
   QSize toolSize = xx->dialog->mToolBar->sizeHint();
-  toolHeight = xx->dialog->height() - xx->glw->height();
+  //toolHeight = xx->dialog->height() - xx->glw->height();
+  toolHeight = toolSize.height();
   newHeight = needWiny + toolHeight;
   newWidth = B3DMAX(needWinx, toolSize.width());
   diaLimitWindowSize(needWinx, needWiny);
@@ -273,57 +283,58 @@ float xyzScaleBarSize()
 // Implementation of the window class
 XyzWindow::XyzWindow(struct xxyzwin *xyz, bool rgba, bool doubleBuffer, 
 		     bool enableDepth, QWidget * parent,
-                     const char * name, WFlags f) 
-  : QMainWindow(parent, name, f)
+                     const char * name, Qt::WFlags f) 
+  : QMainWindow(parent, f)
 {
+  ArrowButton *upArrow, *downArrow;
+  QToolButton *button;
   mXyz = xyz;
   mCtrlPressed = false;
-  
-    // Get the toolbar, add zoom arrows
-  mToolBar = new HotToolBar(this, "xyz toolbar");
-  
-  if (!AUTO_RAISE)
-    mToolBar->boxLayout()->setSpacing(4);
-  connect(mToolBar, SIGNAL(keyPress(QKeyEvent *)), this,
-    SLOT(toolKeyPress(QKeyEvent *)));
-  connect(mToolBar, SIGNAL(keyRelease(QKeyEvent *)), this,
-    SLOT(toolKeyRelease(QKeyEvent *)));
+  setAttribute(Qt::WA_DeleteOnClose);
+  setAttribute(Qt::WA_AlwaysShowToolTips);
+  setAnimated(false);
 
-  ArrowButton *arrow = new ArrowButton(Qt::UpArrow, mToolBar, "zoomup button");
-  arrow->setAutoRaise(AUTO_RAISE);
-  connect(arrow, SIGNAL(clicked()), this, SLOT(zoomUp()));
-  QToolTip::add(arrow, "Increase zoom factor");
-  arrow = new ArrowButton(Qt::DownArrow, mToolBar, "zoom down button");
-  arrow->setAutoRaise(AUTO_RAISE);
-  connect(arrow, SIGNAL(clicked()), this, SLOT(zoomDown()));
-  QToolTip::add(arrow, "Decrease zoom factor");
+  if (!cenIcon) {
+    cenIcon = new QIcon(QBitmap::fromData(QSize(BM_WIDTH, BM_HEIGHT),
+                                          keepCenter_bits));
+    utilBitListsToIcons(bitList, icons, MAX_XYZ_TOGGLES);
+  }
+
+  // Get the toolbar, add zoom arrows
+  mToolBar = new HotToolBar(this);
+  addToolBar(mToolBar);
   
-  mZoomEdit = new ToolEdit(mToolBar, 6, "zoom edit box");
-  mZoomEdit->setFocusPolicy(QWidget::ClickFocus);
-  mZoomEdit->setAlignment(Qt::AlignRight);
-  connect(mZoomEdit, SIGNAL(returnPressed()), this, SLOT(newZoom()));
-  connect(mZoomEdit, SIGNAL(focusLost()), this, SLOT(newZoom()));
-  QToolTip::add(mZoomEdit, "Enter an arbitrary zoom factor");
+  if (!TB_AUTO_RAISE)
+    mToolBar->layout()->setSpacing(4);
+  connect(mToolBar, SIGNAL(keyPress(QKeyEvent *)), this,
+          SLOT(toolKeyPress(QKeyEvent *)));
+  connect(mToolBar, SIGNAL(keyRelease(QKeyEvent *)), this,
+          SLOT(toolKeyRelease(QKeyEvent *)));
+
+  mZoomEdit = utilTBZoomTools(this, mToolBar, &upArrow, &downArrow);
+  connect(upArrow, SIGNAL(clicked()), this, SLOT(zoomUp()));
+  connect(downArrow, SIGNAL(clicked()), this, SLOT(zoomDown()));
+  connect(mZoomEdit, SIGNAL(editingFinished()), this, SLOT(newZoom()));
 
   // Make the toggle buttons and their signal mapper
   QSignalMapper *toggleMapper = new QSignalMapper(mToolBar);
   connect(toggleMapper, SIGNAL(mapped(int)), this, SLOT(toggleClicked(int)));
   int j;
-  for (j = 0; j < NUM_TOOLBUTTONS; j++)
-    setupToggleButton(mToolBar, toggleMapper, j);
+  for (j = 0; j < MAX_XYZ_TOGGLES; j++) {
+    utilSetupToggleButton(mToolBar, mToolBar, NULL, toggleMapper, icons, 
+                          toggleTips, mToggleButs, mToggleStates, j);
+    connect(mToggleButs[j], SIGNAL(clicked()), toggleMapper, SLOT(map()));
+  }
 
   // Make simple pushbutton for centering
-  if (!cenBitmap)
-    cenBitmap = new QBitmap(BM_WIDTH, BM_HEIGHT, keepCenter_bits, true);
-  QToolButton *button = new QToolButton(mToolBar, "center");
-  button->setPixmap(*cenBitmap);
-  button->setAutoRaise(AUTO_RAISE);
+  utilTBToolButton(this, mToolBar, &button, "Center windows on current image"
+                   " or model point (hot key k)");
+  button->setIcon(*cenIcon);
   connect(button, SIGNAL(clicked()), this, SLOT(centerClicked()));
-  QToolTip::add(button, "Center windows on current image or model point (hot"
-                " key k)");
 
   // Make a frame, put a layout in it, and then put multisliders in the layout
-  QFrame *sliderFrame = new QFrame(mToolBar);
+  QFrame *sliderFrame = new QFrame();
+  mToolBar->addWidget(sliderFrame);
   QVBoxLayout *sliderLayout = new QVBoxLayout(sliderFrame);
   mSliders = new MultiSlider(sliderFrame, NUM_AXIS, sliderLabels, 0,
             255, 0, true);
@@ -331,19 +342,16 @@ XyzWindow::XyzWindow(struct xxyzwin *xyz, bool rgba, bool doubleBuffer,
   connect(mSliders, SIGNAL(sliderChanged(int, int, bool)), this, 
     SLOT(sliderChanged(int, int, bool)));
 
-  mHelpButton = new QPushButton("Help", mToolBar, "Help button");
-  mHelpButton->setFocusPolicy(QWidget::NoFocus);
+  utilTBPushButton("Help", this, mToolBar, &mHelpButton, "Open help window");
   connect(mHelpButton, SIGNAL(clicked()), this, SLOT(help()));
-  QToolTip::add(mHelpButton, "Open help window");
   setFontDependentWidths();
 
   setMaxAxis(X_COORD, xyz->vi->xsize - 1);
   setMaxAxis(Y_COORD, xyz->vi->ysize - 1);
   setMaxAxis(Z_COORD, xyz->vi->zsize - 1);
   
-  setDockEnabled(mToolBar, Left, FALSE );
-  setDockEnabled(mToolBar, Right, FALSE );
-  
+  mToolBar->setAllowedAreas(Qt::TopToolBarArea);
+
   QGLFormat glFormat;
   glFormat.setRgba(rgba);
   glFormat.setDoubleBuffer(doubleBuffer);
@@ -352,7 +360,7 @@ XyzWindow::XyzWindow(struct xxyzwin *xyz, bool rgba, bool doubleBuffer,
   
   // Set it as main widget, set focus
   setCentralWidget(mGLw);
-  setFocusPolicy(QWidget::StrongFocus);
+  setFocusPolicy(Qt::StrongFocus);
   insertTime.start();
 }
 
@@ -1106,7 +1114,7 @@ void XyzWindow::setControlAndLimits()
 void XyzWindow::newZoom()
 {
   QString str = mZoomEdit->text();
-  enteredZoom(atof(str.latin1()));
+  enteredZoom(atof(LATIN1(str)));
 }
 
 void XyzWindow::enteredZoom(float newZoom)
@@ -1923,25 +1931,6 @@ void XyzWindow::Draw()
   mGLw->updateGL();
 }
 
-static char *toggleTips[] = {
-  "Toggle between regular and high-resolution (interpolated) image"};
-
-// Make the two bitmaps, add the toggle button to the tool bar, and add
-// it to the signal mapper
-void XyzWindow::setupToggleButton(HotToolBar *toolBar, QSignalMapper *mapper, 
-                           int ind)
-{
-  bitmaps[ind][0] = new QBitmap(BM_WIDTH, BM_HEIGHT, bitList[ind][0], true);
-  bitmaps[ind][1] = new QBitmap(BM_WIDTH, BM_HEIGHT, bitList[ind][1], true);
-  mToggleButs[ind] = new QToolButton(toolBar, "toolbar toggle");
-  mToggleButs[ind]->setPixmap(*bitmaps[ind][0]);
-  mToggleButs[ind]->setAutoRaise(AUTO_RAISE);
-  mapper->setMapping(mToggleButs[ind],ind);
-  connect(mToggleButs[ind], SIGNAL(clicked()), mapper, SLOT(map()));
-  mToggleStates[ind] = 0;
-  QToolTip::add(mToggleButs[ind], QString(toggleTips[ind]));
-}
-
 void XyzWindow::stateToggled(int index, int state)
 {
   setControlAndLimits();
@@ -1957,9 +1946,8 @@ void XyzWindow::stateToggled(int index, int state)
 // One of toggle buttons needs to change state
 void XyzWindow::toggleClicked(int index)
 {
-  int state = 1 - mToggleStates[index];
+  int state = mToggleButs[index]->isChecked() ? 1 : 0;
   mToggleStates[index] = state; 
-  mToggleButs[index]->setPixmap(*bitmaps[index][state]);
   stateToggled(index, state);
 }
 
@@ -1996,7 +1984,7 @@ void XyzWindow::keyReleaseEvent (QKeyEvent * e )
 void XyzWindow::keyRelease(QKeyEvent *event)
 {
   /*  imodPrintStderr ("%d down\n", downtime.elapsed()); */
-  if (!insertDown || !(event->state() & Qt::Keypad) ||
+  if (!insertDown || !(event->modifiers() & Qt::KeypadModifier) ||
       (event->key() != Qt::Key_Insert && event->key() != Qt::Key_0))
     return;
   insertDown = 0;
@@ -2021,11 +2009,11 @@ void XyzWindow::keyPressEvent ( QKeyEvent * event )
   Imod *imod = vi->imod;
 
   int keysym = event->key();
-  int shifted = event->state() & Qt::ShiftButton;
-  int ctrl = event->state() & Qt::ControlButton;
+  int shifted = event->modifiers() & Qt::ShiftModifier;
+  int ctrl = event->modifiers() & Qt::ControlModifier;
   
   int ix, iy, rx;
-  int keypad = event->state() & Qt::Keypad;
+  int keypad = event->modifiers() & Qt::KeypadModifier;
 
   if (inputTestMetaKey(event))
     return;
@@ -2060,8 +2048,9 @@ void XyzWindow::keyPressEvent ( QKeyEvent * event )
 
   case Qt::Key_R:
     if (!ctrl) {
-      toggleClicked(XYZ_TOGGLE_RESOL);
-      //xx->hq = 1 - xx->hq;
+      xx->hq = 1 - xx->hq;
+      mToggleStates[XYZ_TOGGLE_RESOL] = xx->hq;
+      diaSetChecked(mToggleButs[XYZ_TOGGLE_RESOL], xx->hq != 0);
       wprint("\aHigh-resolution mode %s\n", xx->hq ? "ON" : "OFF");
     } else
       handled = 0;
@@ -2127,9 +2116,8 @@ void XyzWindow::keyPressEvent ( QKeyEvent * event )
     inputQDefaultKeys(event, vi);
 }
 
-XyzGL::XyzGL(struct xxyzwin *xyz, QGLFormat inFormat, XyzWindow * parent,
-             const char * name)
-  : QGLWidget(inFormat, parent, name)
+XyzGL::XyzGL(struct xxyzwin *xyz, QGLFormat inFormat, XyzWindow * parent)
+  : QGLWidget(inFormat, parent)
 {
   mMousePressed = false;
   mXyz = xyz;
@@ -2266,9 +2254,9 @@ void XyzGL::mousePressEvent(QMouseEvent * event )
 
   ivwControlPriority(mXyz->vi, mXyz->ctrl);
   
-  button1 = event->stateAfter() & ImodPrefs->actualButton(1) ? 1 : 0;
-  button2 = event->stateAfter() & ImodPrefs->actualButton(2) ? 1 : 0;
-  button3 = event->stateAfter() & ImodPrefs->actualButton(3) ? 1 : 0;
+  button1 = event->buttons() & ImodPrefs->actualButton(1) ? 1 : 0;
+  button2 = event->buttons() & ImodPrefs->actualButton(2) ? 1 : 0;
+  button3 = event->buttons() & ImodPrefs->actualButton(3) ? 1 : 0;
 
   if (event->button() == ImodPrefs->actualButton(1) && !button2 && !button3) {
     but1downt.start();
@@ -2321,9 +2309,9 @@ void XyzGL::mouseMoveEvent( QMouseEvent * event )
 
   ivwControlPriority(mXyz->vi, mXyz->ctrl);
   
-  button1 = event->state() & ImodPrefs->actualButton(1) ? 1 : 0;
-  button2 = event->state() & ImodPrefs->actualButton(2) ? 1 : 0;
-  button3 = event->state() & ImodPrefs->actualButton(3) ? 1 : 0;
+  button1 = (event->buttons() & ImodPrefs->actualButton(1)) ? 1 : 0;
+  button2 = (event->buttons() & ImodPrefs->actualButton(2)) ? 1 : 0;
+  button3 = (event->buttons() & ImodPrefs->actualButton(3)) ? 1 : 0;
   
   button2 = (button2 || insertDown) ? 1 : 0;
 
@@ -2346,6 +2334,9 @@ void XyzGL::mouseMoveEvent( QMouseEvent * event )
 
 /*
 $Log$
+Revision 4.52  2008/09/24 02:40:45  mast
+Call new attach function; stop drawing objects that are off
+
 Revision 4.51  2008/08/19 20:01:40  mast
 Made it zoom with + as well as =
 

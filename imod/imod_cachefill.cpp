@@ -1,48 +1,28 @@
-/*  IMOD VERSION 2.20
- *
+/*  
  *  imod_cachefill.c -- Routines to fill cache
  *
  *  Author: David Mastronarde   email: mast@colorado.edu
+ *
+ *  Copyright (C) 1995-2009 by Boulder Laboratory for 3-Dimensional Electron
+ *  Microscopy of Cells ("BL3DEMC") and the Regents of the University of 
+ *  Colorado.  See dist/COPYRIGHT file for full copyright notice. 
+ *
+ *  $Id$
+ *  Log at end of file
  */
-
-/*****************************************************************************
- *   Copyright (C) 1995-2001 by Boulder Laboratory for 3-Dimensional Fine    *
- *   Structure ("BL3DFS") and the Regents of the University of Colorado.     *
- *                                                                           *
- *   BL3DFS reserves the exclusive rights of preparing derivative works,     *
- *   distributing copies for sale, lease or lending and displaying this      *
- *   software and documentation.                                             *
- *   Users may reproduce the software and documentation as long as the       *
- *   copyright notice and other notices are preserved.                       *
- *   Neither the software nor the documentation may be distributed for       *
- *   profit, either in original form or in derivative works.                 *
- *                                                                           *
- *   THIS SOFTWARE AND/OR DOCUMENTATION IS PROVIDED WITH NO WARRANTY,        *
- *   EXPRESS OR IMPLIED, INCLUDING, WITHOUT LIMITATION, WARRANTY OF          *
- *   MERCHANTABILITY AND WARRANTY OF FITNESS FOR A PARTICULAR PURPOSE.       *
- *                                                                           *
- *   This work is supported by NIH biotechnology grant #RR00592,             *
- *   for the Boulder Laboratory for 3-Dimensional Fine Structure.            *
- *   University of Colorado, MCDB Box 347, Boulder, CO 80309                 *
- *****************************************************************************/
-
-/*  $Author$
-
-$Date$
-
-$Revision$
-Log at end of file
-*/
 
 #include <stdio.h>
 #include <stdlib.h>
-#include <qvbuttongroup.h>
-#include <qhbuttongroup.h>
+#include <QButtonGroup>
+#include <QGroupBox>
 #include <qradiobutton.h>
 #include <qcheckbox.h>
 #include <qlayout.h>
 #include <qtooltip.h>
 #include <qdir.h>
+//Added by qt3to4:
+#include <QCloseEvent>
+#include <QKeyEvent>
 #include "dia_qtutils.h"
 
 #include "imod_cachefill.h"
@@ -136,8 +116,8 @@ static int fill_cache(ImodView *vi, int cz, int ovbefore, int ovafter)
   int ntimes = vi->nt ? vi->nt : 1;
   int nfill = vi->vmSize / filltable[imodCacheFillData.fracfill];
   int curtime = vi->nt ? vi->ct : 1;
-  int nleft, nbase, nextra, i, nshare, tstart, tend, nadj, nadd;
-  int time, ct, z, found, sl, llysave, urysave,nslice, sect, offset;
+  int nleft, nbase, nextra, i, nshare, tstart, tend, nadj;
+  int time, ct, z, sl, llysave, urysave,nslice, sect, offset;
   int minused, slmin, maxdtime, dtime, tdirlim, tdir, pixSize; 
   int maxdz, dz, zdirlim, zdir, loadAxis;
   int *loadtbl = NULL;
@@ -306,7 +286,7 @@ static int fill_cache(ImodView *vi, int cz, int ovbefore, int ovafter)
           message.sprintf("Reading image file # %3.3d, Z = %d", time, z + 1);
         else
           message.sprintf("Reading image file, Z = %d", z + 1);
-        imod_imgcnt((char *)message.latin1());
+        imod_imgcnt(LATIN1(message));
 
 	/* Find oldest slice in cache */
 	minused = vi->vmCount + 1;
@@ -372,7 +352,7 @@ static int fill_cache(ImodView *vi, int cz, int ovbefore, int ovafter)
           message.sprintf("Reading image # %3.3d, file Z = %d", time, z);
         else
           message.sprintf("Reading image, file Z = %d", z);
-        imod_imgcnt((char *)message.latin1());
+        imod_imgcnt(LATIN1(message));
 
 	ivwReadBinnedSection(vi, (char *)buf, z);
 	offset = sect * vi->xsize * pixSize;
@@ -548,67 +528,83 @@ ImodCacheFill::ImodCacheFill(QWidget *parent, const char *name)
 		ImodPrefs->getRoundedStyle(), " ", "", name)
 {
   // Set up fill fraction radio buttons
-  mFillGroup = new QHButtonGroup("Fill fraction", this, "fill group");
-  mLayout->addWidget(mFillGroup);
-  QToolTip::add(mFillGroup, "Set amount of cache to fill at one time");
+  mFillGroup = new QButtonGroup(this);
+  QGroupBox *gbox = new QGroupBox("Fill fraction", this);
+  mLayout->addWidget(gbox);
+  QHBoxLayout *hLayout = new QHBoxLayout(gbox);
+  hLayout->setSpacing(0);
+  hLayout->setContentsMargins(5, 2, 5, 5);
+  gbox->setToolTip("Set amount of cache to fill at one time");
 
-  QRadioButton *radio = diaRadioButton("All", mFillGroup);
-  radio = diaRadioButton("1/2", mFillGroup);
-  radio = diaRadioButton("1/4", mFillGroup);
+  QRadioButton *radio = diaRadioButton("All", gbox, mFillGroup, hLayout, 0, 
+                                       NULL);
+  radio = diaRadioButton("1/2", gbox, mFillGroup, hLayout, 1, NULL);
+  radio = diaRadioButton("1/4", gbox, mFillGroup, hLayout, 2, NULL);
 
-  mFillGroup->setButton(imodCacheFillData.fracfill);
-  connect(mFillGroup, SIGNAL(clicked(int)), this, SLOT(fractionSelected(int)));
+  diaSetGroup(mFillGroup, imodCacheFillData.fracfill);
+  connect(mFillGroup, SIGNAL(buttonClicked(int)), this, 
+          SLOT(fractionSelected(int)));
   
   // Set up balance radio buttons only if times loaded
   if (imodCacheFillData.vi->nt > 0) {
-    mBalanceGroup = new QVButtonGroup("Balance between times", this, 
-				      "balance group");
-    mLayout->addWidget(mBalanceGroup);
+    mBalanceGroup = new QButtonGroup(this);
+    gbox = new QGroupBox("Balance between times", this);
+    mLayout->addWidget(gbox);
+    QVBoxLayout *vLayout = new QVBoxLayout(gbox);
+    vLayout->setSpacing(0);
+    vLayout->setContentsMargins(5, 2, 5, 5);
     
-    radio = diaRadioButton("Treat all times equally", mBalanceGroup);
-    QToolTip::add(radio, "Fill equal number of sections for all times");
-    radio = diaRadioButton("Treat adjacent times equally", mBalanceGroup);
-    QToolTip::add(radio, "Load more sections for current time and"
-		  " two adjacent times");
-    radio = diaRadioButton("Favor current time", mBalanceGroup);
-    QToolTip::add(radio, "Load more sections for the current time");
-    radio = diaRadioButton("Load only current time", mBalanceGroup);
-    QToolTip::add(radio, "Load sections only for the current time");
+    radio = diaRadioButton("Treat all times equally", gbox, mBalanceGroup, 
+                           vLayout, 0, 
+                           "Fill equal number of sections for all times");
+    radio = diaRadioButton("Treat adjacent times equally", gbox, mBalanceGroup,
+                           vLayout, 1, "Load more sections for current time"
+                           " and two adjacent times");
+    radio = diaRadioButton("Favor current time", gbox, mBalanceGroup, 
+                           vLayout, 2, 
+                           "Load more sections for the current time");
+    radio = diaRadioButton("Load only current time", gbox, mBalanceGroup,
+                           vLayout, 3,
+                           "Load sections only for the current time");
     
-    mBalanceGroup->setButton(imodCacheFillData.balance);
-    connect(mBalanceGroup, SIGNAL(clicked(int)), this, 
+    diaSetGroup(mBalanceGroup, imodCacheFillData.balance);
+    connect(mBalanceGroup, SIGNAL(buttonClicked(int)), this, 
 	    SLOT(balanceSelected(int)));
   }
 
   // The auto checkbox
   mAutoCheck = diaCheckBox("Autofill", this, mLayout);
-  QToolTip::add(mAutoCheck, "Fill cache to selected extent whenever "
+  mAutoCheck->setToolTip("Fill cache to selected extent whenever "
 		"section not in cache is needed");
   mAutoCheck->setChecked(imodCacheFillData.autofill != 0);
   connect(mAutoCheck, SIGNAL(toggled(bool)), this, SLOT(autoToggled(bool)));
 
   // The overlap radio buttons
-  mOverlapGroup = new QHButtonGroup("Overlap fraction", this, "overlap group");
-  mLayout->addWidget(mOverlapGroup);
-  QToolTip::add(mOverlapGroup, "Set fraction of sections to retain when"
-		" filling cache automatically");
+  mOverlapGroup = new QButtonGroup(this);
+  mOverlapBox = new QGroupBox("Fill fraction", this);
+  mLayout->addWidget(mOverlapBox);
+  hLayout = new QHBoxLayout(mOverlapBox);
+  hLayout->setSpacing(0);
+  hLayout->setContentsMargins(5, 2, 5, 5);
+  mOverlapBox->setToolTip("Set fraction of sections to retain when"
+                          " filling cache automatically");
 
-  mOverlapRadio[0] = diaRadioButton("1/2", mOverlapGroup);
-  mOverlapRadio[1] = diaRadioButton("1/4", mOverlapGroup);
-  mOverlapRadio[2] = diaRadioButton("1/8", mOverlapGroup);
+  radio = diaRadioButton("1/2", mOverlapBox, mOverlapGroup, hLayout, 0, NULL);
+  radio = diaRadioButton("1/4", mOverlapBox, mOverlapGroup, hLayout, 1, NULL);
+  radio = diaRadioButton("1/8", mOverlapBox, mOverlapGroup, hLayout, 2, NULL);
 
-  mOverlapGroup->setButton(imodCacheFillData.overlap);
-  connect(mOverlapGroup, SIGNAL(clicked(int)), this,
+  diaSetGroup(mOverlapGroup, imodCacheFillData.overlap);
+  connect(mOverlapGroup, SIGNAL(buttonClicked(int)), this,
 	  SLOT(overlapSelected(int)));
 
   // Enable the overlap buttons only if autofill is on
-  mOverlapGroup->setEnabled(imodCacheFillData.autofill != 0);
-  for (int i = 0; i < 3; i++)
-    mOverlapRadio[i]->setEnabled(imodCacheFillData.autofill != 0);
+  mOverlapBox->setEnabled(imodCacheFillData.autofill != 0);
+  //for (int i = 0; i < 3; i++)
+  //mOverlapRadio[i]->setEnabled(imodCacheFillData.autofill != 0);
 
   connect(this, SIGNAL(actionClicked(int)), this, SLOT(buttonPressed(int)));
 
-  setCaption(imodCaption("3dmod Cache Filler"));
+  setWindowTitle(imodCaption("3dmod Cache Filler"));
   show();
 }
 
@@ -649,9 +645,9 @@ void ImodCacheFill::overlapSelected(int which)
 void ImodCacheFill::autoToggled(bool state)
 {
   imodCacheFillData.autofill = state ? 1 : 0;
-  mOverlapGroup->setEnabled(state);
-  for (int i = 0; i < 3; i++)
-    mOverlapRadio[i]->setEnabled(state);
+  mOverlapBox->setEnabled(state);
+  //for (int i = 0; i < 3; i++)
+  //mOverlapRadio[i]->setEnabled(state);
 }
 
 void ImodCacheFill::fontChange( const QFont & oldFont )
@@ -683,7 +679,11 @@ void ImodCacheFill::keyReleaseEvent ( QKeyEvent * e )
 }
 
 /*
+
 $Log$
+Revision 4.11  2007/09/14 21:56:16  sueh
+bug# 1038 Switching from calling dia_vasmsg() to opening an .html file for help.
+
 Revision 4.10  2004/11/04 23:30:55  mast
 Changes for rounded button style
 

@@ -21,6 +21,9 @@
 #include <qtimer.h>
 #include <qcursor.h>
 #include <qapplication.h>
+//Added by qt3to4:
+#include <QKeyEvent>
+#include <QMouseEvent>
 #include "imodv_window.h"
 #include <math.h>
 #include "imodv.h"
@@ -93,10 +96,10 @@ void imodvKeyPress(QKeyEvent *event)
   int tstep = 1;
   int newval, fastdraw, ip;
   float elapsed;
-  int state = event->state();
-  int keypad = event->state() & Qt::Keypad;
-  int shifted = state & Qt::ShiftButton;
-  int ctrl = state & Qt::ControlButton;
+  int state = event->modifiers();
+  int keypad = event->modifiers() & Qt::KeypadModifier;
+  int shifted = state & Qt::ShiftModifier;
+  int ctrl = state & Qt::ControlModifier;
   QString qstr, qstr2;
 
   if (inputTestMetaKey(event))
@@ -144,7 +147,7 @@ void imodvKeyPress(QKeyEvent *event)
                      ((clips->normal[ip].x * clips->point[ip].x) +
                       (clips->normal[ip].y * clips->point[ip].y) +
                       (clips->normal[ip].z * clips->point[ip].z)));
-        imodPrintInfo(qstr.latin1());
+        imodPrintInfo(LATIN1(qstr));
         /* imodPrintStderr("%.2f %.2f %.2f\n", clips->point[ip].x, 
            clips->point[ip].y, clips->point[ip].z); */
       }
@@ -289,13 +292,13 @@ void imodvKeyPress(QKeyEvent *event)
     imodvSelectModel(a, a->cm + 1);
     break;
 
-  case Qt::Key_Next:
+  case Qt::Key_PageDown:
     if (keypad)
       imodv_rotate_model(a,0, 0, -a->md->arot);
     else
       imodv_translated(a, 0, 0, tstep);
     break;
-  case Qt::Key_Prior:
+  case Qt::Key_PageUp:
     if (keypad)
       imodv_rotate_model(a,0, 0, a->md->arot);
     else
@@ -370,7 +373,7 @@ void imodvKeyPress(QKeyEvent *event)
                a->movieFrames, elapsed, 
                a->movieFrames / elapsed);
       }
-      imodPrintInfo(qstr.latin1());
+      imodPrintInfo(LATIN1(qstr));
     }
     break;
 
@@ -460,12 +463,12 @@ void imodvKeyPress(QKeyEvent *event)
     
     // Grabs seem not to be needed and avoiding them saves a lot of trouble
   case Qt::Key_Control:
-    ctrlDown = Qt::ControlButton;
+    ctrlDown = Qt::ControlModifier;
     //    a->mainWin->grabKeyboard();
     break;
 
   case Qt::Key_Shift:
-    shiftDown = Qt::ShiftButton;
+    shiftDown = Qt::ShiftModifier;
     if (midDown && !a->drawLight) {
       a->drawLight = 1;
       imodvDraw(a);
@@ -500,9 +503,9 @@ void imodvMousePress(QMouseEvent *event)
   ImodvApp *a = Imodv;
 
   // Use state after in press and release to keep track of mouse state
-  leftDown = event->stateAfter() & ImodPrefs->actualModvButton(1);
-  midDown = event->stateAfter() & ImodPrefs->actualModvButton(2);
-  rightDown = event->stateAfter() & ImodPrefs->actualModvButton(3);
+  leftDown = event->buttons() & ImodPrefs->actualModvButton(1);
+  midDown = event->buttons() & ImodPrefs->actualModvButton(2);
+  rightDown = event->buttons() & ImodPrefs->actualModvButton(3);
 
   // Set flag for any operation that needs to do something only on first move
   firstMove = 1;
@@ -518,11 +521,11 @@ void imodvMousePress(QMouseEvent *event)
 
   } else if (event->button() == ImodPrefs->actualModvButton(2) ||
              (event->button() == ImodPrefs->actualModvButton(3) && 
-              (event->state() & Qt::ShiftButton))) {
+              (event->modifiers() & Qt::ShiftModifier))) {
     b2x = a->lmx = event->x();
     b2y = a->lmy = event->y();
     if (event->button() == ImodPrefs->actualModvButton(2) && 
-        (event->state() & Qt::ShiftButton)) {
+        (event->modifiers() & Qt::ShiftModifier)) {
       a->drawLight = 1;
       imodvDraw(a);
     }
@@ -538,12 +541,12 @@ void imodvMouseRelease(QMouseEvent *event)
   ImodvApp *a = Imodv;
   int rightWasDown = event->button() & ImodPrefs->actualModvButton(3);
 
-  leftDown = event->stateAfter() & ImodPrefs->actualModvButton(1);
-  midDown = event->stateAfter() & ImodPrefs->actualModvButton(2);
-  rightDown = event->stateAfter() & ImodPrefs->actualModvButton(3);
+  leftDown = event->buttons() & ImodPrefs->actualModvButton(1);
+  midDown = event->buttons() & ImodPrefs->actualModvButton(2);
+  rightDown = event->buttons() & ImodPrefs->actualModvButton(3);
   if (((event->button() & ImodPrefs->actualModvButton(2)) && 
-      !(event->state() & Qt::ShiftButton)) || 
-      (rightWasDown && (event->state() & Qt::ShiftButton)))
+      !(event->modifiers() & Qt::ShiftModifier)) || 
+      (rightWasDown && (event->modifiers() & Qt::ShiftModifier)))
     imodv_rotate(a, 1, rightWasDown);
   if (a->drawLight) {
     a->drawLight = 0;
@@ -557,22 +560,22 @@ void imodvMouseMove(QMouseEvent *event)
   ImodvApp *a = Imodv;
 
   // Use state in mouse move to keep track of button down
-  leftDown = event->state() & ImodPrefs->actualModvButton(1);
-  midDown = event->state() & ImodPrefs->actualModvButton(2);
-  rightDown = event->state() & ImodPrefs->actualModvButton(3);
+  leftDown = event->buttons() & ImodPrefs->actualModvButton(1);
+  midDown = event->buttons() & ImodPrefs->actualModvButton(2);
+  rightDown = event->buttons() & ImodPrefs->actualModvButton(3);
 
   if (leftDown){
-    if (!(event->state() & Qt::ShiftButton))
+    if (!(event->modifiers() & Qt::ShiftModifier))
       /*   DNM: disable this */
       /*           imodv_fog_move(a);
                    else */
       imodv_translate(a, event->x(), event->y());
   }
-  if (midDown && (event->state() & Qt::ShiftButton))
+  if (midDown && (event->modifiers() & Qt::ShiftModifier))
       imodv_light_move(a);
-  else if (midDown || (rightDown && (event->state() & Qt::ShiftButton)))
+  else if (midDown || (rightDown && (event->modifiers() & Qt::ShiftModifier)))
     imodv_rotate(a, 0, rightDown);
-  else if (rightDown && (event->state() & Qt::ControlButton))
+  else if (rightDown && (event->modifiers() & Qt::ControlModifier))
     imodvSelect(a, true);
   a->lmx = event->x();
   a->lmy = event->y();
@@ -586,7 +589,7 @@ static void imodv_light_move(ImodvApp *a)
   int mx, my; 
   unsigned int maskr = imodv_query_pointer(a,&mx,&my);
 
-  if ((maskr & ImodPrefs->actualModvButton(2)) && (maskr & Qt::ShiftButton)) {
+  if ((maskr & ImodPrefs->actualModvButton(2)) && (maskr & Qt::ShiftModifier)) {
     if (firstMove) {
       imodvRegisterModelChg();
       imodvFinishChgUnit();
@@ -659,7 +662,7 @@ static void imodv_translated(ImodvApp *a, int x, int y, int z)
   float scrnscale;
   double alpha, beta;
 
-  if ((maskr & Qt::ControlButton) || !a->moveall) {
+  if ((maskr & Qt::ControlModifier) || !a->moveall) {
     mstrt = a->cm;
     mend = mstrt + 1;
   } else {
@@ -694,7 +697,7 @@ static void imodv_translated(ImodvApp *a, int x, int y, int z)
     opt.y *= (1.0/ imod->view->scale.y);
     opt.z *= (1.0/ imod->view->scale.z);
     
-    if (maskr & Qt::ControlButton){
+    if (maskr & Qt::ControlModifier){
       objedObject();
       if (a->obj){
         registerClipPlaneChg(a);
@@ -769,7 +772,7 @@ static void imodv_compute_rotation(ImodvApp *a, float x, float y, float z)
 
   imodvResolveRotation(mat, 0.1f * x, 0.1f * y, 0.1f * z);
 
-  if (!(maskr & Qt::ControlButton)){
+  if (!(maskr & Qt::ControlModifier)){
 
     /* Regular rotation of one or all models */
 
@@ -896,7 +899,7 @@ static void imodv_rotate(ImodvApp *a, int throwFlag, int rightWasDown)
 
   /* If movie on and not a Control rotation, then check the throw flag */
 
-  if (a->movie && !(maskr & Qt::ControlButton)) {
+  if (a->movie && !(maskr & Qt::ControlModifier)) {
     if (throwFlag) { 
 
       /* If throwing at end of movement, then turn off movie if
@@ -1229,7 +1232,7 @@ void imodvInputRaise()
     Imodv->mainWin->raise();
   imodvDialogManager.raise(IMODV_DIALOG);
 #ifdef _WIN32
-  Imodv->mainWin->setActiveWindow();
+  Imodv->mainWin->activateWindow();
 #endif
 }
 
@@ -1244,8 +1247,9 @@ static void imodv_start_movie(ImodvApp *a)
 {
   int m;
   /* DNM: new workproc approach, start it here and go on */
-  a->wpid = a->mainWin->mTimer->start
-    (a->standalone ? STANDALONE_INTERVAL : MODELVIEW_INTERVAL, false);
+  a->mainWin->mTimer->start 
+    (a->standalone ? STANDALONE_INTERVAL : MODELVIEW_INTERVAL);
+  a->wpid = a->mainWin->mTimer->timerId();
   a->movieFrames = 0;
   a->movieStart = imodv_sys_time();
   for (m = 0; m < MAX_MOVIE_TIMES; m++)
@@ -1283,6 +1287,9 @@ void imodvMovieTimeout()
 /*
 
 $Log$
+Revision 4.45  2008/12/15 21:28:00  mast
+Changes to call for switching buffering
+
 Revision 4.44  2008/12/01 15:42:01  mast
 Changes for undo/redo and selection in 3dmodv standalone
 

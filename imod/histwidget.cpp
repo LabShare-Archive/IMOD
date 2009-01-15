@@ -15,6 +15,8 @@
 #include <qpainter.h>
 #include <qpen.h>
 #include <qcolor.h>
+//Added by qt3to4:
+#include <QPaintEvent>
 
 #include "histwidget.h"
 
@@ -69,7 +71,7 @@ void HistWidget::paintEvent(QPaintEvent *)
 {
    QPainter painter(this);
    QColor black(0,0,0);
-   QPen mypen(black);
+   QPen mypen(Qt::black);
    painter.setPen(mypen);
    int xRange=size().width();
    int yRange=size().height();
@@ -88,5 +90,8 @@ void HistWidget::paintEvent(QPaintEvent *)
 /*
 
 $Log$
+Revision 4.3  2008/10/21 14:52:07  mast
+Use third highest bin to limit the scaling
+
 
 */

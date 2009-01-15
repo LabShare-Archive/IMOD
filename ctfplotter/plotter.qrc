@@ -1,0 +1,12 @@
+<!DOCTYPE RCC><RCC version="1.0">
+<qresource>
+    <file>images/zoomin.png</file>
+    <file>images/zoomout.png</file>
+    <file>images/printer.png</file>
+    <file>images/moreTile.png</file>
+    <file>images/range.png</file>
+    <file>images/angle.png</file>
+    <file>images/save.png</file>
+    <file>images/ctfhelp.png</file>
+</qresource>
+</RCC>

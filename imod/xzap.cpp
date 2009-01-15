@@ -21,7 +21,12 @@
 #include <qpainter.h>
 #include <qpen.h>
 #include <qtimer.h>
-#include <qobjectlist.h>
+#include <qobject.h>
+//Added by qt3to4:
+#include <QWheelEvent>
+#include <QMouseEvent>
+#include <QKeyEvent>
+#include <QEvent>
 #include "zap_classes.h"
 #include "hottoolbar.h"
 
@@ -425,7 +430,8 @@ void zapResize(ZapStruct *zap, int winx, int winy)
     imodPrintStderr("RESIZE: ");
 
   if (imodDebug('z')) {
-    imodPrintStderr("Size = %d x %d :", winx, winy);
+    imodPrintStderr("Size = %d x %d  heights win %d tool %d :", winx, winy,
+                    zap->qtWindow->height(),zap->qtWindow->mToolBar->height());
     if (zap->ginit)
       imodPrintStderr("Old Size = %d x %d :", zap->winx, zap->winy);
   }
@@ -822,15 +828,15 @@ int imod_zap_open(struct ViewInfo *vi, int wintype)
   if (!App->rgba)
     zap->gfx->setColormap(*(App->qColormap));
 
-  zap->qtWindow->setCaption
+  zap->qtWindow->setWindowTitle
     (imodCaption((char *)(wintype ? "3dmod Multi-Z Window" : 
                           "3dmod ZaP Window")));
 
-  zap->qtWindow->mToolBar->setLabel(imodCaption("ZaP Toolbar"));
+  zap->qtWindow->mToolBar->setWindowTitle(imodCaption("ZaP Toolbar"));
   if (zap->qtWindow->mToolBar2)
-    zap->qtWindow->mToolBar2->setLabel(imodCaption("Time Toolbar"));
+    zap->qtWindow->mToolBar2->setWindowTitle(imodCaption("Time Toolbar"));
   if (zap->qtWindow->mPanelBar)
-    zap->qtWindow->mPanelBar->setLabel(imodCaption("Multi-Z Toolbar"));
+    zap->qtWindow->mPanelBar->setWindowTitle(imodCaption("Multi-Z Toolbar"));
   
   zap->ctrl = ivwNewControl(vi, zapDraw_cb, zapClose_cb, zapKey_cb,
                             (void *)zap);
@@ -848,32 +854,39 @@ int imod_zap_open(struct ViewInfo *vi, int wintype)
   imod_info_input();
   QSize toolSize = zap->qtWindow->mToolBar->sizeHint();
   QSize toolSize2(0, 0);
+  QSize toolSize3(0, 0);
   if (zap->qtWindow->mToolBar2)
     toolSize2 = zap->qtWindow->mToolBar2->sizeHint();
-  toolHeight = zap->qtWindow->height() - zap->gfx->height();
-
+  if (wintype)
+    toolSize3 = zap->qtWindow->mPanelBar->sizeHint();
+  toolHeight = toolSize.height();
+  if (imodDebug('z'))
+    imodPrintStderr("Toolsize %d %d win %d gfx %d\n", toolSize.width(), 
+                    toolSize.height(), zap->qtWindow->height(), 
+                    zap->gfx->height());
   if (!oldGeom.width()) {
 
     if (!wintype) {
       // If no old geometry, adjust zoom if necessary to fit image on screen
-      while (zap->zoom * vi->xsize > 1.1 * maxWinx || 
-             zap->zoom * vi->ysize > 1.1 * maxWiny - toolHeight) {
-        newZoom = b3dStepPixelZoom(zap->zoom, -1);
-        if (fabs(newZoom - zap->zoom) < 0.0001)
-          break;
-        zap->zoom = (float)newZoom;
-      }
+
+      for (i = 0; i < 2; i++) {
+        zap->zoom = 1.;
+        while (zap->zoom * vi->xsize > 1.1 * maxWinx || 
+               zap->zoom * vi->ysize > 1.1 * maxWiny - toolHeight) {
+          newZoom = b3dStepPixelZoom(zap->zoom, -1);
+          if (fabs(newZoom - zap->zoom) < 0.0001)
+            break;
+          zap->zoom = (float)newZoom;
+        }
       
-      needWinx = (int)(zap->zoom * vi->xsize);
+        needWinx = (int)(zap->zoom * vi->xsize);
       
-      // If Window is narrower than two toolbars, they will stack, so adjust
-      // toolheight up if it is small; otherwise adjust it down if it is large
-      if (needWinx < toolSize.width() + toolSize2.width()) {
-        if (toolHeight < toolSize.height() + toolSize2.height())
+        // If Window is narrower than two toolbars, set up to stack the
+        // toolbars and increase the tool height
+        if (!i && needWinx < toolSize.width() + toolSize2.width()) {
+          zap->qtWindow->insertToolBarBreak(zap->qtWindow->mToolBar2);
           toolHeight += toolSize2.height();
-      } else {
-        if (toolHeight >= toolSize.height() + toolSize2.height()) 
-          toolHeight -= toolSize2.height();
+        } 
       }
       
       needWiny = (int)(zap->zoom * vi->ysize) + toolHeight;
@@ -885,8 +898,14 @@ int imod_zap_open(struct ViewInfo *vi, int wintype)
       newHeight = needWiny;
     } else {
 
-      newWidth = 640;
+      // For multiZ, just make it big enough for two bars, then if
+      // necessary insert break and make it taller for the panel bar
+      newWidth = B3DMAX(640, toolSize.width() + toolSize2.width());
       newHeight = 170;
+      if (newWidth < toolSize.width() + toolSize2.width() + toolSize3.width()){
+        newHeight += toolSize3.height();
+        zap->qtWindow->insertToolBarBreak(zap->qtWindow->mPanelBar);
+      }
     }
 
     QRect pos = zap->qtWindow->geometry();
@@ -894,12 +913,12 @@ int imod_zap_open(struct ViewInfo *vi, int wintype)
     ytop = pos.y();
 
     diaLimitWindowPos(newWidth, newHeight, xleft, ytop);
-    if (Imod_debug)
+    if (imodDebug('z'))
       imodPrintStderr("Sizes: zap %d %d, toolbar %d %d, GL %d %d: "
-              "resize %d %d\n", zap->qtWindow->width(), 
-              zap->qtWindow->height(), 
-              toolSize.width(), toolSize.height(), zap->gfx->width(), 
-              zap->gfx->height(), newWidth, newHeight);
+                      "resize %d %d\n", zap->qtWindow->width(), 
+                      zap->qtWindow->height(), 
+                      toolSize.width(), toolSize.height(), zap->gfx->width(), 
+                      zap->gfx->height(), newWidth, newHeight);
 
   } else {
 
@@ -911,17 +930,27 @@ int imod_zap_open(struct ViewInfo *vi, int wintype)
     diaLimitWindowSize(newWidth, newHeight);
     diaLimitWindowPos(newWidth, newHeight, xleft, ytop);
 
+    // Adjust the tool height: see if time bar fits on line and insert break
+    // if not and add to height
+    int toolBase = toolSize.width();
+    if (zap->qtWindow->mToolBar2) {
+      if (newWidth < toolBase + toolSize2.width()) {
+        zap->qtWindow->insertToolBarBreak(zap->qtWindow->mToolBar2);
+        toolBase = toolSize2.width();
+        toolHeight += toolSize2.height();
+      } else
+        toolBase += toolSize2.width();
+    }
+
+    // Then see if panel bar fits on line, insert break if not, add to height
+    if (wintype && (newWidth < toolBase + toolSize3.width())) {
+      zap->qtWindow->insertToolBarBreak(zap->qtWindow->mPanelBar);
+      toolHeight += toolSize3.height();
+    }
+
     if (!wintype) {
 
-      // Adjust toolheight then adjust zoom either way to fit window
       needWinx = newWidth;
-      if (needWinx < toolSize.width() + toolSize2.width()) {
-        if (toolHeight < toolSize.height() + toolSize2.height())
-          toolHeight += toolSize2.height();
-      } else {
-        if (toolHeight >= toolSize.height() + toolSize2.height()) 
-          toolHeight -= toolSize2.height();
-      }
       needWiny = newHeight - toolHeight;
       
       // If images are too big, zoom down until they almost fit
@@ -1015,7 +1044,7 @@ static void zapTranslate(ZapStruct *zap, int x, int y)
 static void zapKey_cb(ImodView *vi, void *client, int released, QKeyEvent *e)
 {
   ZapStruct *zap = (ZapStruct *)client;
-  if ((e->state() & Qt::Keypad) && (e->key() == Qt::Key_Insert ||
+  if ((e->modifiers() & Qt::KeypadModifier) && (e->key() == Qt::Key_Insert ||
                                     e->key() == Qt::Key_0))
     return;
   if (released)
@@ -1039,9 +1068,9 @@ void zapKeyInput(ZapStruct *zap, QKeyEvent *event)
   int *limits;
   int limarr[4];
   int rx, ix, iy, i, obst, obnd, ob, start, end;
-  int keypad = event->state() & Qt::Keypad;
-  int shifted = event->state() & Qt::ShiftButton;
-  int ctrl = event->state() & Qt::ControlButton;
+  int keypad = event->modifiers() & Qt::KeypadModifier;
+  int shifted = event->modifiers() & Qt::ShiftModifier;
+  int ctrl = event->modifiers() & Qt::ControlModifier;
   int handled = 0;
   Iindex indadd;
   Iindex *indp;
@@ -1050,7 +1079,7 @@ void zapKeyInput(ZapStruct *zap, QKeyEvent *event)
   /* downtime.start(); */
 
   /*if (Imod_debug)
-    imodPrintStderr("key %x, state %x\n", keysym, event->state()); */
+    imodPrintStderr("key %x, state %x\n", keysym, event->modifiers()); */
   if (inputTestMetaKey(event))
     return;
 
@@ -1104,11 +1133,11 @@ void zapKeyInput(ZapStruct *zap, QKeyEvent *event)
     }
     break;
 
-  case Qt::Key_Prior:
-  case Qt::Key_Next:
+  case Qt::Key_PageUp:
+  case Qt::Key_PageDown:
     // With keypad, translate in movie mode or move point in model mode
     if (keypad) {
-      if (keysym == Qt::Key_Next) {
+      if (keysym == Qt::Key_PageDown) {
         if (imod->mousemode == IMOD_MMOVIE)
           zapTranslate(zap, trans, -trans);
         else
@@ -1123,7 +1152,7 @@ void zapKeyInput(ZapStruct *zap, QKeyEvent *event)
 
       // with regular keys, handle specially if locked
     } else if (!keypad && zap->lock == 2){
-      if (keysym == Qt::Key_Next)
+      if (keysym == Qt::Key_PageDown)
         zap->section--;
       else
         zap->section++;
@@ -1383,7 +1412,7 @@ void zapKeyInput(ZapStruct *zap, QKeyEvent *event)
       XmNheight, &height,
       XmNx, &dx, XmNy, &dy,
       NULL);
-      if (event->state() & ShiftButton)
+      if (event->modifiers() & ShiftButton)
       delta = -1;
       if (keysym == Qt::Key_X)
       width += delta;
@@ -1396,7 +1425,7 @@ void zapKeyInput(ZapStruct *zap, QKeyEvent *event)
 
     /*
       case Qt::Key_X:
-    wprint("Clipboard = %s\n", QApplication::clipboard()->text().latin1());
+    wprint("Clipboard = %s\n", LATIN1(QApplication::clipboard()->text()));
     break;
     */
 
@@ -1421,7 +1450,7 @@ void zapKeyInput(ZapStruct *zap, QKeyEvent *event)
 void zapKeyRelease(ZapStruct *zap, QKeyEvent *event)
 {
   /*  imodPrintStderr ("%d down\n", downtime.elapsed()); */
-  if (!insertDown || !(event->state() & Qt::Keypad) ||
+  if (!insertDown || !(event->modifiers() & Qt::KeypadModifier) ||
       (event->key() != Qt::Key_Insert && event->key() != Qt::Key_0))
     return;
   insertDown = 0;
@@ -1483,13 +1512,13 @@ void zapGeneralEvent(ZapStruct *zap, QEvent *e)
 void zapMousePress(ZapStruct *zap, QMouseEvent *event)
 {
   int button1, button2, button3, ifdraw = 0, drew = 0;
-  int ctrlDown = event->state() & Qt::ControlButton;
+  int ctrlDown = event->modifiers() & Qt::ControlModifier;
   int dxll, dxur,dyll, dyur, x, y;
   int rcrit = 10;   /* Criterion for moving the whole band */
 
-  button1 = event->stateAfter() & ImodPrefs->actualButton(1) ? 1 : 0;
-  button2 = event->stateAfter() & ImodPrefs->actualButton(2) ? 1 : 0;
-  button3 = event->stateAfter() & ImodPrefs->actualButton(3) ? 1 : 0;
+  button1 = event->buttons() & ImodPrefs->actualButton(1) ? 1 : 0;
+  button2 = event->buttons() & ImodPrefs->actualButton(2) ? 1 : 0;
+  button3 = event->buttons() & ImodPrefs->actualButton(3) ? 1 : 0;
   x = event->x();
   y = event->y();
   but1downt.start();
@@ -1601,7 +1630,7 @@ void zapMouseRelease(ZapStruct *zap, QMouseEvent *event)
       return;    //IS THIS RIGHT?
     }
     drew = zapButton1(zap, event->x(), event->y(),
-               event->state() & Qt::ControlButton);
+               event->modifiers() & Qt::ControlModifier);
   }
  
   // Button 2 and band moving, release the band
@@ -1661,8 +1690,8 @@ void zapMouseMove(ZapStruct *zap, QMouseEvent *event, bool mousePressed)
   int ifdraw = 0, drew = 0;
   int cumthresh = 6 * 6;
   int dragthresh = 10 * 10;
-  int ctrlDown = event->state() & Qt::ControlButton;
-  int shiftDown = event->state() & Qt::ShiftButton;
+  int ctrlDown = event->modifiers() & Qt::ControlModifier;
+  int shiftDown = event->modifiers() & Qt::ShiftModifier;
   float imx, imy;
 
   if (pixelViewOpen) {
@@ -1670,9 +1699,9 @@ void zapMouseMove(ZapStruct *zap, QMouseEvent *event, bool mousePressed)
     pvNewMousePosition(zap->vi, imx, imy, imz);
   }
 
-  button1 = event->state() & ImodPrefs->actualButton(1) ? 1 : 0;
-  button2 = event->state() & ImodPrefs->actualButton(2) ? 1 : 0; 
-  button3 = event->state() & ImodPrefs->actualButton(3) ? 1 : 0;
+  button1 = (event->buttons() & ImodPrefs->actualButton(1)) ? 1 : 0;
+  button2 = (event->buttons() & ImodPrefs->actualButton(2)) ? 1 : 0; 
+  button3 = (event->buttons() & ImodPrefs->actualButton(3)) ? 1 : 0;
   if (!(zap->rubberband && moveband)  && 
       (mousePressed || insertDown || zap->vi->trackMouseForPlugs)) {
     ifdraw = checkPlugUseMouse(zap, event, button1, button2, button3);
@@ -3185,7 +3214,7 @@ QString zapPrintInfo(ZapStruct *zap, bool toInfoWindow)
            ixcen + 1, iycen + 1, ixofs, iyofs);
     wprint("%smage size: %d x %d;   To excise:\n", ifpad ? "Padded i" : "I",
            imx, imy);
-    wprint("%s\n",trimvol.latin1());
+    wprint("%s\n", LATIN1(trimvol));
   }
   return trimvol;
 }
@@ -3726,7 +3755,7 @@ static void montageSnapshot(ZapStruct *zap, int snaptype)
   fname = b3dGetSnapshotName("zap", snaptype > 1 ? SnapShot_RGB : SnapShot_TIF,
                              3, fileno);
   sname = b3dShortSnapName(fname);
-  imodPrintStderr("3dmod: Saving zap montage to %s", sname.latin1());
+  imodPrintStderr("3dmod: Saving zap montage to %s", LATIN1(sname));
   if (snaptype == 1)
     b3dSnapshot_TIF(fname, 4, limits, linePtrs, true);
   else
@@ -4533,7 +4562,7 @@ static void zapDrawTools(ZapStruct *zap)
 
 static void zapSetCursor(ZapStruct *zap, int mode)
 {
-  int shape;
+  Qt::CursorShape shape;
 
   // Set up a special cursor for the rubber band
   if (zap->startingBand || (zap->rubberband && (moveband || dragband)) ||
@@ -4586,6 +4615,9 @@ static int zapPointVisable(ZapStruct *zap, Ipoint *pnt)
 /*
 
 $Log$
+Revision 4.133  2008/12/17 00:10:06  mast
+Switched trimvol statement from -yz to -rx
+
 Revision 4.132  2008/12/08 17:27:42  mast
 Fixed crash potential and background line problems with montage snapshots
 Added scaling of sizes and thicknesses; added whole 1:1 snapshot

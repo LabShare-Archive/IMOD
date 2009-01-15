@@ -1,3 +1,7 @@
+//Added by qt3to4:
+#include <QKeyEvent>
+#include <QEvent>
+#include <QMouseEvent>
 /*   imodplugP.h  -  private function declarations for imodplug.cpp
  *
  *  $Id$
@@ -6,13 +10,14 @@
 
 #ifndef IMODPLUGP_H
 #define IMODPLUGP_H
-class QPopupMenu;
+class QMenu;
+class QSignalMapper;
 class QStringList;
 
 int imodPlugInit(void);
 int imodPlugLoaded(int type);
 int imodPlugCall(ImodView *vw, int type, int reason);
-void imodPlugMenu(QPopupMenu *parent); /* build plugin menu. */
+void imodPlugMenu(QMenu *parent, QSignalMapper *mapper);
 int imodPlugHandleKey(ImodView *vw, QKeyEvent *event);
 int imodPlugHandleMouse(ImodView *vw, QMouseEvent *event, float imx, float imy,
                         int but1, int but2, int but3);
@@ -26,6 +31,9 @@ void imodPlugOpenAllExternal(void);
 /* 
 
 $Log$
+Revision 1.6  2008/01/21 05:56:47  mast
+Adde function to open all plugs
+
 Revision 1.5  2007/12/04 22:05:03  mast
 Add function for handling event
 

@@ -10,10 +10,14 @@
  *  $Id$
  *  Log at end of file
  */
-#include <qframe.h>
+#include <q3frame.h>
 #include <qlayout.h>
 #include <qlabel.h>
 #include <qcolordialog.h>
+//Added by qt3to4:
+#include <QTimerEvent>
+#include <QKeyEvent>
+#include <QCloseEvent>
 #include "multislider.h"
 #include "colorselector.h"
 
@@ -49,7 +53,7 @@ static char *buttonTips[] =
  */
 ColorSelector::ColorSelector(QWidget *parent, QString label, int red,
                              int green, int blue, int hotFlag, int hotKey,
-                             bool rounded, const char *name, WFlags fl)
+                             bool rounded, const char *name, Qt::WFlags fl)
   : DialogFrame(parent, 3, 1, buttonLabels, buttonTips, false, rounded, "test",
                 "test2", name, fl)
 {
@@ -121,7 +125,7 @@ void ColorSelector::qtSelectorPressed()
                                                   mCurrentRGB[2]), this);
   if (!retColor.isValid())
     return;
-  retColor.rgb(&mCurrentRGB[0], &mCurrentRGB[1], &mCurrentRGB[2]);
+  retColor.getRgb(&mCurrentRGB[0], &mCurrentRGB[1], &mCurrentRGB[2]);
   imposeColor(true, true);
 }
 
@@ -185,7 +189,7 @@ void ColorSelector::keyReleaseEvent ( QKeyEvent * e )
 
 ColorSelectorGL::ColorSelectorGL(int *currentRGB, QWidget * parent,
 				 const char * name)
-  : QGLWidget(parent, name)
+  : QGLWidget(parent)
 {
   mRGB = currentRGB;
   mFirstDraw = true;
@@ -196,19 +200,22 @@ void ColorSelectorGL::paintGL()
   glClearColor(mRGB[0] / 255., mRGB[1] / 255., mRGB[2] / 255., 0.);
   glClear(GL_COLOR_BUFFER_BIT);
   if (mFirstDraw) {
-    startTimer(10);
+    mTimerID = startTimer(10);
     mFirstDraw = false;
   }
 }
 
 void ColorSelectorGL::timerEvent(QTimerEvent *e)
 {
-  killTimers();
+  killTimer(mTimerID);
   updateGL();
 }
 
 /*
 $Log$
+Revision 1.11  2007/08/26 06:55:59  mast
+Documentation changes
+
 Revision 1.10  2004/11/20 05:06:48  mast
 Provide a way to determine if sliders are being dragged
 

@@ -14,9 +14,11 @@
 #include <math.h>
 #include "midas.h"
 #include "dia_qtutils.h"
+//Added by qt3to4:
+#include <QMouseEvent>
 
 MidasGL::MidasGL(QGLFormat inFormat, QWidget * parent, const char * name)
-  : QGLWidget(inFormat, parent, name)
+  : QGLWidget(inFormat, parent)
 {
   // get format, make sure it is RGB, and compare buffering with requested
   if (!format().rgba())
@@ -392,8 +394,9 @@ int MidasGL::fill_viewdata( MidasView *vw)
   Islice *prevSlice;
   Islice *curSlice  = midasGetSlice(vw, MIDAS_SLICE_CURRENT);
 
-  unsigned char *currImageData = curSlice->data.b;
+  unsigned char *currImageData;
   unsigned char *prevImageData = NULL;
+  currImageData = curSlice->data.b;
 
   /* set previous image data pointer. */
   switch(vw->xtype){
@@ -506,7 +509,7 @@ void MidasGL::resizeGL(int wdth, int hght)
 // Mouse event processing
 void MidasGL::mousePressEvent(QMouseEvent * e )
 {
-  unsigned int state = e->state();
+  unsigned int state = e->modifiers();
   unsigned int button = e->button();
   bool button1 = (button == Qt::LeftButton);
   bool button2 = (button == Qt::MidButton);
@@ -518,27 +521,27 @@ void MidasGL::mousePressEvent(QMouseEvent * e )
   VW->lastmy = VW->height - e->y();
 
   mMousePressed = true;
-  if (button2 && (state & Qt::ControlButton) &&
+  if (button2 && (state & Qt::ControlModifier) &&
       VW->xtype != XTYPE_MONT) {
     VW->xcenter = (VW->lastmx - VW->xoffset) / VW->truezoom;
     VW->ycenter = (VW->lastmy - VW->yoffset) / VW->truezoom;
     draw();
-  } else if (button3 && (state & Qt::ControlButton) &&
+  } else if (button3 && (state & Qt::ControlModifier) &&
       VW->xtype != XTYPE_MONT) {
     VW->xfixed = (VW->lastmx - VW->xoffset) / VW->truezoom;
     VW->yfixed = (VW->lastmy - VW->yoffset) / VW->truezoom;
     VW->useFixed = 1 - VW->useFixed;
     manageMouseLabel(" ");
     draw();
-  } else if (button1 && (state & Qt::ControlButton))
+  } else if (button1 && (state & Qt::ControlModifier))
     manageMouseLabel("PANNING IMAGE");
-  else if (button1 && ! (state & Qt::ShiftButton))
+  else if (button1 && ! (state & Qt::ShiftModifier))
     manageMouseLabel("TRANSLATING");
   else if (VW->xtype != XTYPE_MONT) {
-    if (button2 && !(state & (Qt::ControlButton | Qt::ShiftButton)))
+    if (button2 && !(state & (Qt::ControlModifier | Qt::ShiftModifier)))
       manageMouseLabel("ROTATING");
-    if (button3 && !(state & Qt::ControlButton)) {
-      if (state & Qt::ShiftButton)
+    if (button3 && !(state & Qt::ControlModifier)) {
+      if (state & Qt::ShiftModifier)
         manageMouseLabel("CHANGING MAG");
       else
         manageMouseLabel(VW->useFixed ? "2 PT STRETCHING" : "STRETCHING");
@@ -558,10 +561,11 @@ void MidasGL::mouseReleaseEvent ( QMouseEvent * e )
 // Move event with a button down
 void MidasGL::mouseMoveEvent ( QMouseEvent * e )
 {
-  unsigned int state = e->state();
-  bool button1 = (state & Qt::LeftButton);
-  bool button2 = (state & Qt::MidButton);
-  bool button3 = (state & Qt::RightButton);
+  unsigned int state = e->modifiers();
+  unsigned int buttons = e->buttons();
+  bool button1 = (buttons & Qt::LeftButton);
+  bool button2 = (buttons & Qt::MidButton);
+  bool button3 = (buttons & Qt::RightButton);
 
   // Under windows, there is a spontaneous mouse move event when file dialog is
   // dismissed, so make sure we got the press beforehand
@@ -576,22 +580,22 @@ void MidasGL::mouseMoveEvent ( QMouseEvent * e )
   if ( button1 && !button2 && !button3){
 
     // Button 1 is either translation, or panning image
-    if (state & Qt::ControlButton)
+    if (state & Qt::ControlModifier)
       VW->midasSlots->mouse_shift_image();
-    else if (! (state & Qt::ShiftButton))
+    else if (! (state & Qt::ShiftModifier))
       VW->midasSlots->mouse_translate();
 
     // Button 2 is to rotate
   } else if (VW->xtype != XTYPE_MONT &&
 	     !button1 && button2 && !button3  &&
-	     !(state & (Qt::ControlButton | Qt::ShiftButton))) {
+	     !(state & (Qt::ControlModifier | Qt::ShiftModifier))) {
     VW->midasSlots->mouse_rotate();
     
 
     // Button 3 is for stretch or mag
   } else if (VW->xtype != XTYPE_MONT &&
 	     !button1 && !button2 && button3  && 
-	     !(state & Qt::ControlButton)) {
+	     !(state & Qt::ControlModifier)) {
     VW->midasSlots->mouse_stretch(state);
     
     // Only if no action do we update the last position
@@ -607,23 +611,23 @@ void MidasGL::manageMouseLabel(const char *string)
   int i, active = 0;
   QString ctap = QString(CTRL_STRING).left(2);
   if (VW->ctrlPressed)
-    active = 1;
-  else if (VW->shiftPressed)
     active = 2;
+  else if (VW->shiftPressed)
+    active = 1;
   for (i = 0; i < 3; i++)
-    VW->mouseLabel[i]->setPaletteForegroundColor
-      (QColor(i == active ? "red" : "blue"));
+    diaSetWidgetColor(VW->mouseLabel[i], QColor(i == active ? "red" : "blue"),
+                      QPalette::Foreground);
   if (mMousePressed)
     VW->mouseLabel[active]->setText(QString(string));
   if (!mMousePressed || active != 0)
     VW->mouseLabel[0]->setText(VW->useFixed ? "shift -- rotate -- 2 pt stretch"
                               : "shift -- rotate -- stretch");
   if (!mMousePressed || active != 1)
-    VW->mouseLabel[1]->setText(VW->useFixed ? 
+    VW->mouseLabel[1]->setText("Sh:        --        -- magnify   ");
+  if (!mMousePressed || active != 2)
+    VW->mouseLabel[2]->setText(VW->useFixed ? 
                                ctap + ": pan - new center - no 2 pt" :
                                ctap + ": pan - new center - fixed pt");
-  if (!mMousePressed || active != 2)
-    VW->mouseLabel[2]->setText("Sh:        --        -- magnify   ");
 }
 
 void MidasGL::drawStar(float xcen, float ycen, float censize)
@@ -646,6 +650,9 @@ void MidasGL::drawStar(float xcen, float ycen, float censize)
 /*
 
 $Log$
+Revision 3.10  2008/10/13 04:35:09  mast
+Switched to 3 lines of mouse labels
+
 Revision 3.9  2006/07/08 15:41:38  mast
 Added const to char* in mouse label method
 

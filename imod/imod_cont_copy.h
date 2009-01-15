@@ -8,6 +8,9 @@
 #define IMOD_CONT_COPY_H
 
 #include "dialog_frame.h"
+//Added by qt3to4:
+#include <QKeyEvent>
+#include <QCloseEvent>
 class QButtonGroup;
 class QSpinBox;
 class QComboBox;
@@ -51,6 +54,9 @@ void iccCopyContour(void);
 /*  
 
 $Log$
+Revision 4.3  2008/12/10 01:05:15  mast
+Added hot key for contour copy
+
 Revision 4.2  2004/11/04 23:30:55  mast
 Changes for rounded button style
 

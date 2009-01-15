@@ -9,9 +9,15 @@
  */                                                                           
 
 #include <string.h>
-#include <qpopupmenu.h>
+#include <qmenu.h>
+#include <qsignalmapper.h>
+#include <qaction.h>
 #include <qdir.h>
 #include <qlibrary.h>
+//Added by qt3to4:
+#include <QMouseEvent>
+#include <QKeyEvent>
+#include <QEvent>
 #include "imod.h"
 #include "imodplug.h"
 #include "special_module.h"
@@ -60,7 +66,7 @@ int imodPlugInit(void)
 
   /* load plugs in environment varialble. */
   imodPlugLoadDir(envdir);
-  imodPlugLoadDir(str.latin1());
+  imodPlugLoadDir(LATIN1(str));
 
   /* load system plugins. */
   imodPlugLoadDir(defdir2);
@@ -115,7 +121,7 @@ static int imodPlugLoadDir(const char *plugdir)
   int i;
   QDir *dir = new QDir(QString(plugdir), QString(filter));
   for (i = 0; i < dir->count(); i++)
-    if (!imodPlugLoad(dir->absFilePath(dir->entryList()[i])))
+    if (!imodPlugLoad(dir->absoluteFilePath(dir->entryList()[i])))
       pload++;
 
   delete dir;
@@ -139,7 +145,7 @@ static int imodPlugLoad(QString plugpath)
   if (!library->load()) {
     if (Imod_debug)
       imodPrintStderr("Warning: %s cannot be loaded as a 3dmod plugin.\n",
-                      plugpath.latin1());
+                      LATIN1(plugpath));
     delete library;
     return(2);
   }
@@ -151,7 +157,7 @@ static int imodPlugLoad(QString plugpath)
   if (!fptr){
     if (Imod_debug)
       imodPrintStderr("Warning: imodPlugInfo cannot be resolved in %s.\n",
-                      plugpath.latin1());
+                      LATIN1(plugpath));
     delete library;
     return(2);
   }
@@ -179,7 +185,7 @@ static int imodPlugLoad(QString plugpath)
     
   if (Imod_debug)
     imodPrintStderr("loaded plugin : %s %s\n",
-                    plugpath.latin1(), thePlug.name);
+                    LATIN1(plugpath), thePlug.name);
   return 0;
 }
 
@@ -259,11 +265,12 @@ int imodPlugLoaded(int type)
 /*
  * Populates the menu with the plugin names
  */
-void imodPlugMenu(QPopupMenu *parent)
+void imodPlugMenu(QMenu *parent, QSignalMapper *mapper)
 {
   PlugData *pd;
   int    i, mi;
   QString str;
+  QAction *action;
 
   mi = ilistSize(plugList);
   if (!mi) return;
@@ -278,7 +285,9 @@ void imodPlugMenu(QPopupMenu *parent)
                
       if (pd->type & IMOD_PLUG_MENU){
 	str = pd->name;
-	parent->insertItem(str, i);
+	action = parent->addAction(str);
+        QObject::connect(action, SIGNAL(triggered()), mapper, SLOT(map()));
+        mapper->setMapping(action, i);
       }
     }
   }
@@ -429,7 +438,7 @@ int imodPlugMessage(ImodView *vw, QStringList *strings, int *arg)
 
       // Check name for match
       str = pd->name;
-      nameList = QStringList::split(" ", str);
+      nameList = str.split(" ", QString::SkipEmptyParts);
       numWords = nameList.count();
       for (j = 0; j < numWords; j++)
         if (nameList[j] != message[*arg + j])
@@ -497,6 +506,9 @@ static void *ipGetFunction(PlugData *pd, int which)
 /*
 
 $Log$
+Revision 4.16  2008/01/21 05:55:19  mast
+Added function to open all plugins
+
 Revision 4.15  2007/12/21 19:54:49  mast
 Switched /usr/IMOD/plugins to ImodCalib/plugins
 

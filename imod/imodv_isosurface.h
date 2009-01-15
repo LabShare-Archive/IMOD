@@ -1,8 +1,15 @@
+//Added by qt3to4:
+#include <QLabel>
+#include <QKeyEvent>
+#include <QCloseEvent>
 /*  imodv_isosurface.h  -  declarations for imodv_isosurface.cpp
  *
  *  $Id$
  *
  * $Log$
+ * Revision 4.8  2008/11/07 23:48:53  xiongq
+ * seperate threshold for each stack
+ *
  * Revision 4.7  2008/10/02 16:27:00  xiongq
  * add small piece filter, binning, and local XYZ functions
  *
@@ -42,7 +49,7 @@ class QLabel;
 class QSlider;
 class QLineEdit;
 //class QSpinBox;
-class QToolButton;
+class QPushButton;
 class HistWidget;
 struct ViewInfo;
 struct Mod_Point;
@@ -73,7 +80,7 @@ class ImodvIsosurface : public DialogFrame
   MultiSlider *mSliders;
   HistWidget *mHistPanel;
   MultiSlider *mHistSlider;
-  QToolButton *mUseRubber;
+  QPushButton *mUseRubber;
   QSpinBox *mSmoothBox;
   QSpinBox *mBinningBox;
   QSpinBox *mPiecesBox;

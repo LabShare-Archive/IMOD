@@ -1448,11 +1448,11 @@ void b3dSetMovieSnapping(bool snapping)
  */
 void b3dSetSnapDirectory(void)
 {
-  QString dir = QDir::currentDirPath();
+  QString dir = QDir::currentPath();
   if (!snapDirectory.isEmpty())
     dir = snapDirectory;
   snapDirectory = QFileDialog::getExistingDirectory
-    (dir, NULL, NULL, "Directory to Save Snapshots to");
+    (NULL, "Directory to Save Snapshots to", dir);
 }
 
 /*
@@ -1468,8 +1468,8 @@ QString b3dGetSnapshotName(char *name, int format_type, int digits,
   char format[14];
   QString snapFormat, fext, fname;
   QString dir = snapDirectory;
-  char sep = QDir::separator();
-  if (!dir.isEmpty() && (dir.findRev(sep) != dir.length() - 1))
+  char sep = QDir::separator().toLatin1();
+  if (!dir.isEmpty() && (dir.lastIndexOf(sep) != dir.length() - 1))
     dir += sep;
   sprintf(format, "%%s%%s%%0%dd.%%s", digits);
   bool firstCheck = false;
@@ -1479,7 +1479,7 @@ QString b3dGetSnapshotName(char *name, int format_type, int digits,
     snapFormat = ImodPrefs->snapFormat();
     if (snapFormat == "JPEG")
       snapFormat = "JPG";
-    fext = snapFormat.lower();
+    fext = snapFormat.toLower();
     break;
   case SnapShot_TIF:
     fext = "tif";
@@ -1497,9 +1497,9 @@ QString b3dGetSnapshotName(char *name, int format_type, int digits,
   // Loop until a file is found that does not exist
   for (;;) {
     if (fileno < (int)pow(10., double(digits)))
-      fname.sprintf(format, dir.latin1(), name, fileno++, fext.latin1());
+      fname.sprintf(format, LATIN1(dir), name, fileno++, LATIN1(fext));
     else
-      fname.sprintf("%s%s%d.%s", dir.latin1(), name, fileno++, fext.latin1());
+      fname.sprintf("%s%s%d.%s", LATIN1(dir), name, fileno++, LATIN1(fext));
 
     // If file does not exist and it is the first check on previous file,
     // set file number to 0 to start from 0.  Otherwise, take this file
@@ -1518,10 +1518,10 @@ QString b3dGetSnapshotName(char *name, int format_type, int digits,
 QString b3dShortSnapName(QString fname)
 {
   QString sname = QDir::convertSeparators(fname);
-  char sep = QDir::separator();
-  int index = sname.findRev(sep);
+  char sep = QDir::separator().toLatin1();
+  int index = sname.lastIndexOf(sep);
   if (index > 1) {
-    index = sname.findRev(sep, index - 1);
+    index = sname.lastIndexOf(sep, index - 1);
     if (index >= 0)
       sname = sname.replace(0, index, "...");
   }
@@ -1544,7 +1544,7 @@ int b3dAutoSnapshot(char *name, int format_type, int *limits,
   fname = b3dGetSnapshotName(name, format_type, 3, fileno);
   sname = b3dShortSnapName(fname);
 
-  wprint("%s: Saving image to %s\n", name, sname.latin1());
+  wprint("%s: Saving image to %s\n", name, LATIN1(sname));
 
   switch (format_type){
   case SnapShot_RGB:
@@ -1640,12 +1640,12 @@ int b3dSnapshot_NonTIF(QString fname, int rgbmode, int *limits,
 
   // Open file if RGB mode
   if (format == "RGB") {
-    fout = fopen((QDir::convertSeparators(fname)).latin1(), "wb");
+    fout = fopen(LATIN1(QDir::convertSeparators(fname)), "wb");
     if (!fout) {
       QString qerr = "Snapshot: error opening file\n";
       if (errno)
-        qerr +=  QString("System error: ") + strerror(errno);
-      imodPrintStderr(qerr.latin1());
+        qerr +=  QString("System error: ") + QString(strerror(errno));
+      imodPrintStderr(LATIN1(qerr));
       return 1;
     }
   }
@@ -1767,10 +1767,9 @@ int b3dSnapshot_NonTIF(QString fname, int rgbmode, int *limits,
     }
 
     // Save the image with the given format and quality (JPEG only)
-    QImage *qim = new QImage(pixels, rpWidth, rpHeight, 32, NULL, 0, 
-                             QImage::IgnoreEndian);
+    QImage *qim = new QImage(pixels, rpWidth, rpHeight, QImage::Format_RGB32);
     j = format == "JPEG" ? ImodPrefs->snapQuality() : -1;
-    imret = qim->save(fname, format.latin1(), j);
+    imret = qim->save(fname, LATIN1(format), j);
     delete qim;
   }
   free(pixels);
@@ -1811,14 +1810,14 @@ int b3dSnapshot_TIF(QString fname, int rgbmode, int *limits,
   int rpHeight = CurHeight;
 
   errno = 0;
-  fout = fopen((QDir::convertSeparators(fname)).latin1(), "wb");
+  fout = fopen(LATIN1(QDir::convertSeparators(fname)), "wb");
   if (!fout){
 
     // DNM 5/31/04: output to standard error in case there are many errors
     QString qerr = "Snapshot: error opening file\n";
     if (errno)
-      qerr +=  QString("System error: ") + strerror(errno);
-    imodPrintStderr(qerr.latin1());
+      qerr +=  QString("System error: ") + QString(strerror(errno));
+    imodPrintStderr(LATIN1(qerr));
     return 1;
   }
 
@@ -2058,6 +2057,9 @@ int b3dSnapshot(QString fname)
 
 /*
 $Log$
+Revision 4.41  2008/12/07 05:22:14  mast
+Made images be drawn in window when they fit exactly in window
+
 Revision 4.40  2008/08/01 15:38:47  mast
 Fixed rounding bug with large non-integer zooms and nonHQ display
 

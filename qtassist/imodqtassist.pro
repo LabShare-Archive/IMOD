@@ -1,7 +1,7 @@
 SOURCES += imodqtassist.cpp imod_assistant.cpp
 HEADERS += imodqtassist.h imod_assistant.h
 TEMPLATE = app
-CONFIG += qt
+CONFIG += qt assistant
 INCLUDEPATH += . ../include
 
 include (qconfigure)

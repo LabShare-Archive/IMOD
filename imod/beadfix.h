@@ -13,9 +13,14 @@
 
 #include "dialog_frame.h"
 #include "imodel.h"
+#include <qprocess.h>
 
 // Changes to make internal module: include and declare class
 #include "special_module.h"
+//Added by qt3to4:
+#include <QCloseEvent>
+#include <QTimerEvent>
+#include <QKeyEvent>
 
 class BeadFixerModule : public SpecialModule
 {
@@ -27,9 +32,8 @@ class BeadFixerModule : public SpecialModule
 class QPushButton;
 class QCheckBox;
 class QSpinBox;
-class QHBox;
-class QVButtonGroup;
-class QProcess;
+class QWidget;
+class QButtonGroup;
 class MultiSlider;
 class ToolEdit;
 
@@ -115,7 +119,7 @@ class BeadFixer : public DialogFrame
   void ignoreToggled(bool state);
   void skipListEntered();
   void runAlign();
-  void alignExited();
+  void alignExited(int exitCode, QProcess::ExitStatus exitStatus);
   void setFontDependentWidths();
 
  protected:
@@ -157,7 +161,7 @@ class BeadFixer : public DialogFrame
   int    mBell;                         /* 1 to ring bell, -1 to suppress */ 
   bool   mMovingAll;                  /* Flag for moving all points in local */
   int    mNumAllMoved;                  /* Number moved in local area */
-  QVButtonGroup *modeGroup;
+  QButtonGroup *modeGroup;
   QPushButton *nextGapBut;
   QPushButton *prevGapBut;
   QPushButton *rereadBut;
@@ -179,10 +183,10 @@ class BeadFixer : public DialogFrame
   QSpinBox *diameterSpin;
   QSpinBox *overlaySpin;
   QCheckBox *reverseBox;
-  QHBox *topBox;
-  QHBox *diameterHbox;
-  QHBox *cenLightHbox;
-  QHBox *overlayHbox;
+  QWidget *topBox;
+  QWidget *diameterHbox;
+  QWidget *cenLightHbox;
+  QWidget *overlayHbox;
   MultiSlider *threshSlider;
   QPushButton *deleteBelowBut;
   QCheckBox *delAllSecBut;
@@ -204,6 +208,9 @@ class BeadFixer : public DialogFrame
 /*
 
 $Log$
+Revision 1.24  2008/11/29 22:08:50  mast
+Added skip list, extra object variables
+
 Revision 1.23  2008/11/12 00:38:31  mast
 Added variable to keep track of threshold slider value sent out
 

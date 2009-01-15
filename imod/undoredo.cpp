@@ -1389,6 +1389,9 @@ void undoFlushUnit(ImodView *vi) {
  
 /*
   $Log$
+  Revision 4.13  2008/12/01 15:42:01  mast
+  Changes for undo/redo and selection in 3dmodv standalone
+
   Revision 4.12  2008/01/27 06:21:32  mast
   Changes for object group component of model
 

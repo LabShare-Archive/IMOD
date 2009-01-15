@@ -15,12 +15,19 @@
 #include <qstring.h>
 #include <qstringlist.h>
 #include <qstyle.h>
+#include <qdialog.h>
+//Added by qt3to4:
+#include <QTimerEvent>
+#include <QCloseEvent>
 
-class QTabDialog;
 class AppearanceForm;
 class BehaviorForm;
 class MouseForm;
 class QSettings;
+class QDialogButtonBox;
+class QTabWidget;
+class QAbstractButton;
+class QPushButton;
 typedef struct ilist_struct Ilist;
 
 #ifndef HOTSLIDER_H
@@ -53,7 +60,7 @@ typedef struct imod_pref_struct
   TRIPLET(int, mouseMapping);          // Code for assignment of mouse keys
   TRIPLET(bool, modvSwapLeftMid);    // Swap left and middle in model view
   TRIPLET(bool, silentBeep);         // Silence the alarm in wprint
-  TRIPLET(bool, tooltipsOn);         // Enable tool tips
+  //  TRIPLET(bool, tooltipsOn);         // Enable tool tips
   TRIPLET(bool, classicSlicer);       // Use classic slicer
   TRIPLET(bool, startAtMidZ);         // Go to middle Z at start
   TRIPLET(int, autoConAtStart);      // Do autocontrast at start
@@ -88,6 +95,22 @@ typedef struct imod_pref_struct
 
 } ImodPrefStruct;
 
+class PrefsDialog : public QDialog
+{
+  Q_OBJECT
+    
+    public:
+  PrefsDialog(QWidget *parent = 0);
+  QTabWidget *mTabWidget;
+  AppearanceForm *mAppearForm;
+  BehaviorForm *mBehaveForm;
+  MouseForm *mMouseForm;
+
+ protected:
+  void closeEvent ( QCloseEvent * e );
+
+ private:
+};
 
 class ImodPreferences : public QObject
 {
@@ -153,8 +176,8 @@ class ImodPreferences : public QObject
 
   public slots:
     void donePressed();
-  void defaultPressed();
   void cancelPressed();
+  void defaultPressed();
 
  protected:
   void timerEvent(QTimerEvent *e);
@@ -162,10 +185,7 @@ class ImodPreferences : public QObject
  private:
   ImodPrefStruct mCurrentPrefs;
   ImodPrefStruct mDialogPrefs;
-  QTabDialog *mTabDlg;
-  AppearanceForm *mAppearForm;
-  BehaviorForm *mBehaveForm;
-  MouseForm *mMouseForm;
+  PrefsDialog *mTabDlg;
   int mCurrentTab;
   int mTimerID;
   int mGeomImageXsize[MAX_GEOMETRIES];
@@ -190,6 +210,9 @@ extern ImodPreferences *ImodPrefs;
 
 /*
 $Log$
+Revision 1.20  2008/12/10 01:04:22  mast
+Added function to set JPEG quality
+
 Revision 1.19  2008/09/24 02:39:28  mast
 Added option for attach function to look only at On objects
 

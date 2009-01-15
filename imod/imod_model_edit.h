@@ -12,6 +12,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 4.5  2006/01/14 18:15:39  mast
+Added incremental Z scale
+
 Revision 4.4  2004/11/20 05:05:27  mast
 Changes for undo/redo capability
 
@@ -39,6 +42,10 @@ Initial creation
 
 #include "dialog_frame.h"
 #include "imodel.h"
+//Added by qt3to4:
+#include <QKeyEvent>
+#include <QCloseEvent>
+#include <QLabel>
 class QLabel;
 class QLineEdit;
 class ToolEdit;
@@ -105,7 +112,7 @@ class ModelOffsetWindow : public DialogFrame
 int openModelOffset(ImodView *vw);
 void imodModelEditUpdate();
 int openModelEdit(ImodView *vw);
-void setPixsizeAndUnits(Imod *imod, char *string);
+void setPixsizeAndUnits(Imod *imod, const char *string);
 float scaleModelRes(int res, float zoom);
 void imodTransXYZ(Imod *imod, Ipoint trans);
 

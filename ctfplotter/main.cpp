@@ -14,8 +14,7 @@
 
 #include <math.h>
 #include <stdio.h>
-#include <qfile.h>
-#include <qlabel.h>
+#include <QtGui>
 
 #include "simplexfitting.h"
 #include "linearfitting.h"
@@ -120,9 +119,10 @@ int main(int argc, char *argv[])
   //set the angle range for noise PS computing;
   app.setPS(rAvg);
   
-  Plotter plotter;
-  plotter.setCaption(QObject::tr("CTF Plot"));
-  app.setMainWidget(&plotter);
+  QMainWindow mainWin;
+  Plotter plotter(&mainWin);
+  plotter.setWindowTitle(QObject::tr("CTF Plot"));
+  app.setPlotter(&plotter);
   
   /*****begin of computing noise PS;**********/
   FILE *fpCfg;
@@ -139,7 +139,6 @@ int main(int argc, char *argv[])
                     QApplication::desktop()->height() / 2 - hint.height() / 2);
   splash->show();
   qApp->flush();
-  qApp->flushX();
   qApp->syncX();
   qApp->processEvents();
  
@@ -229,8 +228,11 @@ noise level of this mean\n", stackMean, i, j);
   fflush(stdout);
 
   delete splash;
-  plotter.resize(768, 624);
-  plotter.show();
+  mainWin.setCentralWidget(&plotter);
+  mainWin.resize(768, 624);
+  mainWin.statusBar()->showMessage(QObject::tr("Ready"), 2000);
+
+  mainWin.show();
   app.exec();
   free(rAvg);
   free(noisePs);
@@ -249,6 +251,9 @@ int ctfShowHelpPage(const char *page)
 /*
 
    $Log$
+   Revision 1.12  2008/11/11 16:19:20  xiongq
+   delete qsplashscreen.h
+
    Revision 1.11  2008/11/10 22:43:44  xiongq
    improved splash display
 

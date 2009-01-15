@@ -286,9 +286,8 @@ void imodMovieConDialog(ImodView *vw)
   view = vw;
   imcResetAll(view);
 
-  dia = new MovieController(imodDialogManager.parent(IMOD_DIALOG), NULL, 
-			    Qt::WType_TopLevel | Qt::WDestructiveClose);
-  dia->setCaption(imodCaption("3dmod Movies"));
+  dia = new MovieController(imodDialogManager.parent(IMOD_DIALOG), Qt::Window);
+  dia->setWindowTitle(imodCaption("3dmod Movies"));
 
   imodDialogManager.add((QWidget *)dia, IMOD_DIALOG);
 
@@ -399,6 +398,9 @@ void imcIncrementRate(int dir)
 
 /*
 $Log$
+Revision 4.8  2008/12/08 17:24:04  mast
+Increased interface for montage snapshots
+
 Revision 4.7  2005/09/15 14:25:25  mast
 Added zap montage factor functions
 

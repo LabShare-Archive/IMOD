@@ -1,3 +1,6 @@
+//Added by qt3to4:
+#include <QMouseEvent>
+#include <QKeyEvent>
 /*
  *  sslice.h -- Include file for slicer.c, slicer window.
  *
@@ -150,6 +153,9 @@ int setTopSlicerFromModelView(Ipoint *rot);
 
 /*
     $Log$
+    Revision 3.21  2008/11/29 22:10:29  mast
+    Added ability to link slicers
+
     Revision 3.20  2008/01/25 20:22:58  mast
     Changes for new scale bar
 

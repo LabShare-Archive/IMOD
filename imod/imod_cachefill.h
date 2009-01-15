@@ -12,6 +12,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 4.3  2004/11/04 23:30:55  mast
+Changes for rounded button style
+
 Revision 4.2  2004/01/05 18:06:12  mast
 Make imodCacheFill return an error
 
@@ -27,13 +30,16 @@ Pure Qt version and general cleanup
 #define IMOD_CACHEFILL_H
 
 #include "dialog_frame.h"
+//Added by qt3to4:
+#include <QKeyEvent>
+#include <QCloseEvent>
 
 typedef struct ViewInfo ImodView;
 
-class QHButtonGroup;
-class QVButtonGroup;
+class QButtonGroup;
 class QRadioButton;
 class QCheckBox;
+class QGroupBox;
 
 /* imod_cachefill.c */
 int icfGetAutofill(void);
@@ -63,11 +69,12 @@ class ImodCacheFill : public DialogFrame
   void fontChange( const QFont & oldFont );
 
  private:
-  QHButtonGroup *mFillGroup;
-  QVButtonGroup *mBalanceGroup;
-  QHButtonGroup *mOverlapGroup;
+  QButtonGroup *mFillGroup;
+  QButtonGroup *mBalanceGroup;
+  QButtonGroup *mOverlapGroup;
   QRadioButton *mOverlapRadio[3];
   QCheckBox *mAutoCheck;
+  QGroupBox *mOverlapBox;
 
 };
 

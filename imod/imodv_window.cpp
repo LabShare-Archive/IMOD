@@ -13,9 +13,17 @@
 
 #include <stdio.h>
 #include <qmenubar.h>
-#include <qpopupmenu.h>
-#include <qwidgetstack.h>
+#include <qmenu.h>
+#include <qsignalmapper.h>
+#include <qaction.h>
+#include <QStackedWidget>
 #include <qtimer.h>
+//Added by qt3to4:
+#include <QCloseEvent>
+#include <QWheelEvent>
+#include <QMouseEvent>
+#include <QKeyEvent>
+#include <QEvent>
 #include "imod.h"
 #include "imodv_window.h"
 #include "imodv.h"
@@ -24,117 +32,121 @@
 #include "imodv_input.h"
 #include "control.h"
 
+#define ADD_ACTION(a, b, c) mActions[c] = a##Menu->addAction(b); \
+connect(mActions[c], SIGNAL(triggered()), a##Mapper, SLOT(map())); \
+a##Mapper->setMapping(mActions[c], c);
+
+#define ADD_ACTION_KEY(a, b, c, d) mActions[c] = a##Menu->addAction(b); \
+mActions[c]->setShortcut(QKeySequence(d)); \
+connect(mActions[c], SIGNAL(triggered()), a##Mapper, SLOT(map())); \
+a##Mapper->setMapping(mActions[c], c);
+
 extern int Imod_debug;
 
 ImodvWindow::ImodvWindow(ImodvApp *a,
-                         QWidget * parent, const char * name, WFlags f)
-  : QMainWindow(parent, name, f)
+                         QWidget * parent, const char * name, Qt::WFlags f)
+  : QMainWindow(parent, f)
 {
   int numWidg = 0;
   mDBw = mSBw = mDBstw = mSBstw = NULL;
   mMinimized = false;
+  setAttribute(Qt::WA_DeleteOnClose);
+  setAttribute(Qt::WA_AlwaysShowToolTips);
+
+  QSignalMapper *fileMapper = new QSignalMapper(this);
+  QSignalMapper *editMapper = new QSignalMapper(this);
+  QSignalMapper *viewMapper = new QSignalMapper(this);
+  QSignalMapper *helpMapper = new QSignalMapper(this);
 
   // construct file menu
-  mFileMenu = new QPopupMenu;
-  mFileMenu->insertItem("&Open Model", VFILE_MENU_LOAD);
-  mFileMenu->setAccel(CTRL + Key_O, VFILE_MENU_LOAD);
-  mFileMenu->setItemEnabled(VFILE_MENU_LOAD, a->standalone);
+  QMenu *fileMenu = menuBar()->addMenu("&File");
+  ADD_ACTION_KEY(file, "&Open Model", VFILE_MENU_LOAD, Qt::CTRL + Qt::Key_O);
+  mActions[VFILE_MENU_LOAD]->setEnabled(a->standalone);
 
-  mFileMenu->insertItem("&Save Model", VFILE_MENU_SAVE);
-  mFileMenu->setItemEnabled(VFILE_MENU_SAVE, a->standalone);
+  ADD_ACTION(file, "&Save Model", VFILE_MENU_SAVE);
+  mActions[VFILE_MENU_SAVE]->setEnabled(a->standalone);
 
-  mFileMenu->insertItem("Save Model &As...", VFILE_MENU_SAVEAS);
-  mFileMenu->setItemEnabled(VFILE_MENU_SAVEAS, a->standalone);
-  mFileMenu->insertSeparator();
+  ADD_ACTION(file, "Save Model &As...", VFILE_MENU_SAVEAS);
+  mActions[VFILE_MENU_SAVEAS]->setEnabled(a->standalone);
+  fileMenu->addSeparator();
 
-  mFileMenu->insertItem("Snap &Tiff As...", VFILE_MENU_SNAPTIFF);
-  mFileMenu->insertItem("Snap &NonT As...", VFILE_MENU_SNAPRGB);
-  mFileMenu->insertItem("&Zero Snap File #", VFILE_MENU_ZEROSNAP);
-  mFileMenu->insertItem("S&et Snap Dir...", VFILE_MENU_SNAPDIR);
-  mFileMenu->insertItem("&Movie...", VFILE_MENU_MOVIE);
-  mFileMenu->setAccel(Key_M, VFILE_MENU_MOVIE);
+  ADD_ACTION(file, "Snap &Tiff As...", VFILE_MENU_SNAPTIFF);
+  ADD_ACTION(file, "Snap &NonT As...", VFILE_MENU_SNAPRGB);
+  ADD_ACTION(file, "&Zero Snap File #", VFILE_MENU_ZEROSNAP);
+  ADD_ACTION(file, "S&et Snap Dir...", VFILE_MENU_SNAPDIR);
+  ADD_ACTION_KEY(file, "&Movie...", VFILE_MENU_MOVIE, Qt::Key_M);
 
-  mFileMenu->insertItem(a->standalone ? "&Quit" : "&Close", VFILE_MENU_QUIT);
-  mFileMenu->setAccel(CTRL + Key_Q, VFILE_MENU_QUIT);
+  ADD_ACTION_KEY(file, a->standalone ? "&Quit" : "&Close", VFILE_MENU_QUIT,
+                 Qt::CTRL + Qt::Key_Q);
 
-  connect(mFileMenu, SIGNAL(activated(int)), this, SLOT(fileMenuSlot(int)));
+  connect(fileMapper, SIGNAL(mapped(int)), this, SLOT(fileMenuSlot(int)));
 
   // Construct Edit menu
-  mEditMenu  = new QPopupMenu;
-  mEditMenu->insertItem("&Objects...", VEDIT_MENU_OBJECTS);
-  mEditMenu->setAccel(SHIFT + Key_O, VEDIT_MENU_OBJECTS);
-  mEditMenu->insertItem("&Controls...", VEDIT_MENU_CONTROLS);
-  mEditMenu->setAccel(SHIFT + Key_C, VEDIT_MENU_CONTROLS);
-  mEditMenu->insertItem("Object &List...", VEDIT_MENU_OBJLIST);
-  mEditMenu->setAccel(SHIFT + Key_L, VEDIT_MENU_OBJLIST);
-  mEditMenu->insertItem("&Background...", VEDIT_MENU_BKG);
-  mEditMenu->setAccel(SHIFT + Key_B, VEDIT_MENU_BKG);
-  mEditMenu->insertItem("&Models...", VEDIT_MENU_MODELS);
-  mEditMenu->setAccel(SHIFT + Key_M, VEDIT_MENU_MODELS);
-  mEditMenu->insertItem("&Views...", VEDIT_MENU_VIEWS);
-  mEditMenu->setAccel(SHIFT + Key_V, VEDIT_MENU_VIEWS);
-  mEditMenu->insertItem("&Image...", VEDIT_MENU_IMAGE);
-  mEditMenu->setAccel(SHIFT + Key_I, VEDIT_MENU_IMAGE);
-  mEditMenu->insertItem("Isos&urface...", VEDIT_MENU_ISOSURFACE);
-  mEditMenu->setAccel(SHIFT + Key_U, VEDIT_MENU_ISOSURFACE);
-  mEditMenu->setItemEnabled(VEDIT_MENU_IMAGE, imodvByteImagesExist() != 0);
-  mEditMenu->setItemEnabled(VEDIT_MENU_ISOSURFACE, 
-                            imodvByteImagesExist() != 0);
-  connect(mEditMenu, SIGNAL(activated(int)), this, SLOT(editMenuSlot(int)));
+  QMenu *editMenu = menuBar()->addMenu("&Edit");
+  ADD_ACTION_KEY(edit, "&Objects...", VEDIT_MENU_OBJECTS, 
+                 Qt::SHIFT + Qt::Key_O);
+  ADD_ACTION_KEY(edit, "&Controls...", VEDIT_MENU_CONTROLS,
+                 Qt::SHIFT + Qt::Key_C);
+  ADD_ACTION_KEY(edit, "Object &List...", VEDIT_MENU_OBJLIST,
+                 Qt::SHIFT + Qt::Key_L);
+  ADD_ACTION_KEY(edit, "&Background...", VEDIT_MENU_BKG,
+                 Qt::SHIFT + Qt::Key_B);
+  ADD_ACTION_KEY(edit, "&Models...", VEDIT_MENU_MODELS,
+                 Qt::SHIFT + Qt::Key_M);
+  ADD_ACTION_KEY(edit, "&Views...", VEDIT_MENU_VIEWS,
+                 Qt::SHIFT + Qt::Key_V);
+  ADD_ACTION_KEY(edit, "&Image...", VEDIT_MENU_IMAGE,
+                 Qt::SHIFT + Qt::Key_I);
+  ADD_ACTION_KEY(edit, "Isos&urface...", VEDIT_MENU_ISOSURFACE, 
+                 Qt::SHIFT + Qt::Key_U);
+  mActions[VEDIT_MENU_IMAGE]->setEnabled(imodvByteImagesExist() != 0);
+  mActions[VEDIT_MENU_ISOSURFACE]->setEnabled(imodvByteImagesExist() != 0);
+  connect(editMapper, SIGNAL(mapped(int)), this, SLOT(editMenuSlot(int)));
 
   // View menu
-  mViewMenu  = new QPopupMenu;
-  mViewMenu->setCheckable(true);
-  mViewMenu->insertItem("Low &Res", VVIEW_MENU_LOWRES);
-  mViewMenu->setAccel(SHIFT + Key_R, VVIEW_MENU_LOWRES);
-  mViewMenu->setItemChecked(VVIEW_MENU_LOWRES, a->lowres);
+  QMenu *viewMenu = menuBar()->addMenu("&View");
+  ADD_ACTION_KEY(view, "Low &Res", VVIEW_MENU_LOWRES, Qt::SHIFT + Qt::Key_R);
+  mActions[VVIEW_MENU_LOWRES]->setCheckable(true);
+  mActions[VVIEW_MENU_LOWRES]->setChecked(a->lowres);
   if (!a->standalone) {
-    mViewMenu->insertItem("&Current Point", VVIEW_MENU_CURPNT);
-    mViewMenu->setAccel(Key_P, VVIEW_MENU_CURPNT);
-    mViewMenu->setItemChecked(VVIEW_MENU_CURPNT, false);
+    ADD_ACTION_KEY(view, "&Current Point", VVIEW_MENU_CURPNT, Qt::Key_P);
+    mActions[VVIEW_MENU_CURPNT]->setCheckable(true);
   }
-  mViewMenu->insertItem("Bounding Bo&x", VVIEW_MENU_BOUNDBOX);
-  mViewMenu->setItemChecked(VVIEW_MENU_BOUNDBOX, false);
+  ADD_ACTION(view, "Bounding Bo&x", VVIEW_MENU_BOUNDBOX);
+  mActions[VVIEW_MENU_BOUNDBOX]->setCheckable(true);
 
-  mViewMenu->insertItem("&Stereo...", VVIEW_MENU_STEREO);
-  mViewMenu->insertItem("&Depth Cue...", VVIEW_MENU_DEPTH);
-  mViewMenu->insertItem("Scale &Bar...", VVIEW_MENU_SCALEBAR);
+  ADD_ACTION(view, "&Stereo...", VVIEW_MENU_STEREO);
+  ADD_ACTION(view, "&Depth Cue...", VVIEW_MENU_DEPTH);
+  ADD_ACTION(view, "Scale &Bar...", VVIEW_MENU_SCALEBAR);
 
-  mViewMenu->insertItem("Do&uble Buffer", VVIEW_MENU_DB);
+  ADD_ACTION(view, "Do&uble Buffer", VVIEW_MENU_DB);
 
   // This made it act on a shifted D only and steal it from imodv_input
-  //mViewMenu->setAccel(Key_D, VVIEW_MENU_DB);
-  mViewMenu->setItemChecked(VVIEW_MENU_DB, a->db > 0);
-  mViewMenu->setItemEnabled(VVIEW_MENU_DB, a->db > 0 && a->enableDepthSB >= 0);
+  //mViewMenu->setAccel(Qt::Key_D, VVIEW_MENU_DB);
+  mActions[VVIEW_MENU_DB]->setCheckable(true);
+  mActions[VVIEW_MENU_DB]->setChecked(a->db > 0);
+  mActions[VVIEW_MENU_DB]->setEnabled(a->db > 0 && a->enableDepthSB >= 0);
 
-  mViewMenu->insertItem("&Lighting", VVIEW_MENU_LIGHTING);
-  mViewMenu->setItemChecked(VVIEW_MENU_LIGHTING, a->lighting);
+  ADD_ACTION(view, "&Lighting", VVIEW_MENU_LIGHTING);
+  mActions[VVIEW_MENU_LIGHTING]->setCheckable(true);
+  mActions[VVIEW_MENU_LIGHTING]->setChecked(a->lighting);
 
-  mViewMenu->insertItem("&Wireframe", VVIEW_MENU_WIREFRAME);
-  mViewMenu->setItemChecked(VVIEW_MENU_WIREFRAME, false);
-  connect(mViewMenu, SIGNAL(activated(int)), this, SLOT(viewMenuSlot(int)));
-
-
+  ADD_ACTION(view, "&Wireframe", VVIEW_MENU_WIREFRAME);
+  mActions[VVIEW_MENU_WIREFRAME]->setCheckable(true);
+  connect(viewMapper, SIGNAL(mapped(int)), this, SLOT(viewMenuSlot(int)));
 
   // Help menu
-  QPopupMenu *helpMenu  = new QPopupMenu;
-  helpMenu->insertItem("&Menus", VHELP_MENU_MENUS);
-  helpMenu->insertItem("&Keyboard", VHELP_MENU_KEYBOARD);
-  helpMenu->insertItem("M&ouse", VHELP_MENU_MOUSE);
-  helpMenu->insertSeparator();
-  helpMenu->insertItem("&About", VHELP_MENU_ABOUT);
-  connect(helpMenu, SIGNAL(activated(int)), this, SLOT(helpMenuSlot(int)));
+  menuBar()->addSeparator();
+  QMenu *helpMenu = menuBar()->addMenu("&Help");
+  ADD_ACTION(help, "&Menus", VHELP_MENU_MENUS);
+  ADD_ACTION(help, "&Keyboard", VHELP_MENU_KEYBOARD);
+  ADD_ACTION(help, "M&ouse", VHELP_MENU_MOUSE);
+  helpMenu->addSeparator();
+  ADD_ACTION(help, "&About", VHELP_MENU_ABOUT);
+  connect(helpMapper, SIGNAL(mapped(int)), this, SLOT(helpMenuSlot(int)));
   
-  // Create and fill menu bar
-  QMenuBar *menuBar = new QMenuBar(this);
-  menuBar->insertItem("&File", mFileMenu);
-  menuBar->insertItem("&Edit", mEditMenu);
-  menuBar->insertItem("&View", mViewMenu);
-  menuBar->insertSeparator();
-  menuBar->insertItem("&Help", helpMenu);
-
   // Get the widget stack and the GL widgets
-  mStack = new QWidgetStack(this);
+  mStack = new QStackedWidget(this);
   setCentralWidget(mStack);
   QGLFormat glFormat;
 
@@ -166,10 +178,9 @@ ImodvWindow::ImodvWindow(ImodvApp *a,
   }
 
   // Set the topmost widget of the stack
-  mStack->raiseWidget(mCurGLw);
-  setUpLayout();
+  mStack->setCurrentWidget(mCurGLw);
 
-  mTimer = new QTimer(this, "imodv timer");
+  mTimer = new QTimer(this);
   connect(mTimer, SIGNAL(timeout()), this, SLOT(timeoutSlot()));
 }
 
@@ -223,7 +234,8 @@ void ImodvWindow::helpMenuSlot(int which)
 
 void ImodvWindow::setCheckableItem(int id, bool state)
 {
-  mViewMenu->setItemChecked(id, state);
+  if (id > 0 && id < LAST_VMENU_ID)
+    mActions[id]->setChecked(state);
 }
 
 // Bring the selected widget to the top if it exists
@@ -250,9 +262,9 @@ int ImodvWindow::setGLWidget(ImodvApp *a, int db, int stereo)
     mCurGLw = mSBstw;
   else
     return 1;
-  mStack->raiseWidget(mCurGLw);
+  mStack->setCurrentWidget(mCurGLw);
 
-  // Now remove and destroy non-stereo widgets unless needed - won't work
+  // Now remove and destroy stereo widgets unless needed - won't work
   // all the time if there is no nonstereo DB widget, but that doesn't matter
   if (!stereo) {
     if (mDBw && mDBstw) {
@@ -293,22 +305,25 @@ void ImodvWindow::closeEvent ( QCloseEvent * e )
 // window is minimized or brought back
 bool ImodvWindow::event(QEvent *e)
 {
-  if (Imod_debug && e->type() == QEvent::ShowMinimized)
-    imodPrintStderr("ShowMinimized\n");
+  bool minimized = e->type() == QEvent::WindowStateChange &&
+    (windowState() & Qt::WindowMinimized);
+  bool normal = e->type() == QEvent::WindowStateChange &&
+    (windowState() & (Qt::WindowNoState | Qt::WindowMaximized));
+  //imodPrintStderr("event type %d\n", e->type());
+  if (Imod_debug && minimized)
+    imodPrintStderr("State change to minimized\n");
   if (Imod_debug && e->type() == QEvent::Hide)
     imodPrintStderr("Hide\n");
-  if (Imod_debug && e->type() == QEvent::ShowNormal)
-    imodPrintStderr("ShowNormal\n");
+  if (Imod_debug && normal)
+    imodPrintStderr("State change to normal\n");
   if (Imod_debug && e->type() == QEvent::Show)
     imodPrintStderr("Show\n");
-  if ((e->type() == QEvent::ShowMinimized || e->type() == QEvent::Hide) &&
-      !mMinimized) {
+  if ((minimized || e->type() == QEvent::Hide) && !mMinimized) {
     if (Imod_debug)
       imodPuts("minimizing");
     mMinimized = true;
     imodvDialogManager.hide();
-  } else if ((e->type() == QEvent::ShowNormal || e->type() == QEvent::Show)
-             && mMinimized) {
+  } else if ((normal || e->type() == QEvent::Show) && mMinimized) {
     if (Imod_debug)
       imodPuts("maximizing");
     mMinimized = false;
@@ -322,8 +337,8 @@ void ImodvWindow::timeoutSlot()
   imodvMovieTimeout();
 }
 
-ImodvGL::ImodvGL(QGLFormat inFormat, QWidget * parent, const char * name)
-  : QGLWidget(inFormat, parent, name)
+ImodvGL::ImodvGL(QGLFormat inFormat, QWidget * parent)
+  : QGLWidget(inFormat, parent)
 {
   mMousePressed = false;
 }
@@ -378,6 +393,9 @@ void ImodvGL::wheelEvent ( QWheelEvent * e)
 /*
 
 $Log$
+Revision 4.22  2008/12/17 17:49:45  mast
+Only create stereo widgets when going into stereo, throw away afterwards
+
 Revision 4.21  2008/12/15 21:27:35  mast
 Make stack with nonstereo and stereo db/sb widgets, take Imodv in constructor
 

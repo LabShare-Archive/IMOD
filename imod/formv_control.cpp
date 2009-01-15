@@ -1,12 +1,67 @@
-/****************************************************************************
-** ui.h extension file, included from the uic-generated form implementation.
-**
-** If you wish to add, delete or rename slots use Qt Designer which will
-** update this file, preserving your code. Create an init() slot in place of
-** a constructor, and a destroy() slot in place of a destructor.
-*****************************************************************************/
+/*
+ *  formv_controls.cpp - Class for model view controls dialog form
+ *
+ *  Author: David Mastronarde   email: mast@colorado.edu
+ *
+ *  Copyright (C) 1995-2009 by Boulder Laboratory for 3-Dimensional Electron
+ *  Microscopy of Cells ("BL3DEMC") and the Regents of the University of 
+ *  Colorado.  See dist/COPYRIGHT for full copyright notice.
+ * 
+ * $Id$
+ * Log at end
+ */
+
+#include "formv_control.h"
+
+#include <qvariant.h>
+#include <stdlib.h>
+#include <qimage.h>
+#include <qpixmap.h>
+
+//Added by qt3to4:
+#include <QCloseEvent>
+#include <QKeyEvent>
+
+#include "dia_qtutils.h"
+#include "imodv_input.h"
+#include "imodv_control.h"
+#include "preferences.h"
+#include "imod.h"
+#include "imodv.h"
+
+/*
+ *  Constructs a imodvControlForm as a child of 'parent', with the
+ *  name 'name' and widget flags set to 'f'.
+ */
+imodvControlForm::imodvControlForm(QWidget* parent, Qt::WindowFlags fl)
+  : QWidget(parent, fl)
+{
+  setupUi(this);
+
+  init();
+}
+
+/*
+ *  Destroys the object and frees any allocated resources
+ */
+imodvControlForm::~imodvControlForm()
+{
+  // no need to delete child widgets, Qt does it all for us
+}
+
+/*
+ *  Sets the strings of the subwidgets using the current
+ *  language.
+ */
+void imodvControlForm::languageChange()
+{
+  retranslateUi(this);
+}
+
 void imodvControlForm::init()
 {
+  setAttribute(Qt::WA_DeleteOnClose);
+  setAttribute(Qt::WA_AlwaysShowToolTips);
   mNearPressed = false;
   mFarPressed = false;
   mPerspectivePressed = false;
@@ -94,7 +149,7 @@ void imodvControlForm::zoomUp()
 void imodvControlForm::newScale()
 {
   QString str = scaleLineEdit->text();
-  float value = atof(str.latin1());
+  float value = atof(LATIN1(str));
   if  (value < 0.001)
     value = 0.001;
   setScaleText(value);
@@ -167,7 +222,7 @@ void imodvControlForm::rotateZplus()
 void imodvControlForm::newXrotation()
 {
   QString str = XLineEdit->text();
-  float value = atof(str.latin1());
+  float value = atof(LATIN1(str));
   setFocus();
   imodvControlAxisText(IMODV_CONTROL_XAXIS, value);
 }
@@ -175,7 +230,7 @@ void imodvControlForm::newXrotation()
 void imodvControlForm::newYrotation()
 {
   QString str = YLineEdit->text();
-  float value = atof(str.latin1());
+  float value = atof(LATIN1(str));
   setFocus();
   imodvControlAxisText(IMODV_CONTROL_YAXIS, value);
 }
@@ -183,7 +238,7 @@ void imodvControlForm::newYrotation()
 void imodvControlForm::newZrotation()
 {
   QString str = ZLineEdit->text();
-  float value = atof(str.latin1());
+  float value = atof(LATIN1(str));
   setFocus();
   imodvControlAxisText(IMODV_CONTROL_ZAXIS, value);
 }
@@ -218,7 +273,7 @@ void imodvControlForm::rateChanged( int value )
 void imodvControlForm::newSpeed()
 {
   QString str = speedLineEdit->text();
-  float value = atof(str.latin1());
+  float value = atof(LATIN1(str));
   if  (value < 0.1)
     value = 0.1;
   setSpeedText(value);
@@ -398,3 +453,9 @@ void imodvControlForm::fontChange( const QFont & oldFont )
 {
   setFontDependentWidths();
 }
+
+/*
+
+$Log$
+
+*/

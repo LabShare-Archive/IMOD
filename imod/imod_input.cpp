@@ -14,9 +14,11 @@
 
 #include <math.h>
 #include <qapplication.h>
-#include <qwidgetlist.h>
+#include <qwidget.h>
 #include <qevent.h>
 #include <qnamespace.h>
+//Added by qt3to4:
+#include <QKeyEvent>
 #include "dia_qtutils.h"
 #include "xgraph.h"
 #include "imod.h"
@@ -60,7 +62,7 @@ void inputRaiseWindows()
   if (ImodInfoWin->isVisible())
     ImodInfoWin->raise();
 #ifdef _WIN32
-  ImodInfoWin->setActiveWindow();
+  ImodInfoWin->activateWindow();
 #endif
   
   /* The old way
@@ -746,7 +748,7 @@ void inputDeleteContour(ImodView *vw)
     if (numDel > 2 && lastDel < 2) {
       qstr.sprintf("Are you sure you want to delete these %d contours?", 
                    numDel);
-      lastDel = dia_ask_forever((char *)qstr.latin1());
+      lastDel = dia_ask_forever(LATIN1(qstr));
       if (!lastDel)
         return;
     } else
@@ -993,9 +995,9 @@ void inputUndoRedo(ImodView *vw, bool redo)
 void inputQDefaultKeys(QKeyEvent *event, ImodView *vw)
 {
   int keysym = event->key();
-  int keypad = event->state() & Qt::Keypad;
-  int shifted = event->state() & Qt::ShiftButton;
-  int ctrl = event->state() & Qt::ControlButton;
+  int keypad = event->modifiers() & Qt::KeypadModifier;
+  int shifted = event->modifiers() & Qt::ShiftModifier;
+  int ctrl = event->modifiers() & Qt::ControlModifier;
   int bwStep = ImodPrefs->getBwStep();
   int mean, sd;
   Iobj *obj;
@@ -1053,14 +1055,14 @@ void inputQDefaultKeys(QKeyEvent *event, ImodView *vw)
       handled = 0;
     break;
 
-  case Qt::Key_Next:
+  case Qt::Key_PageDown:
     if (!keypad)
       inputPrevz(vw);
     else
       handled = 0;
     break;
 
-  case Qt::Key_Prior:
+  case Qt::Key_PageUp:
     if (!keypad)
       inputNextz(vw);
     else
@@ -1411,9 +1413,9 @@ void inputQDefaultKeys(QKeyEvent *event, ImodView *vw)
    on to the named keys */
 /* But also turn off keypad on Mac if they are arrow keys */
 static int keypadKeys[10] = {Qt::Key_Delete, Qt::Key_Insert, Qt::Key_End, 
-                             Qt::Key_Down, Qt::Key_Next, Qt::Key_Left,
+                             Qt::Key_Down, Qt::Key_PageDown, Qt::Key_Left,
                              Qt::Key_Right, Qt::Key_Home, Qt::Key_Up,
-                             Qt::Key_Prior};
+                             Qt::Key_PageUp};
 static int numLockKeys[10] = {Qt::Key_Period, Qt::Key_0, Qt::Key_1, Qt::Key_2,
                               Qt::Key_3, Qt::Key_4,
                               Qt::Key_6, Qt::Key_7, Qt::Key_8, Qt::Key_9};
@@ -1438,7 +1440,7 @@ void inputConvertNumLock(int &keysym, int &keypad)
 bool inputTestMetaKey(QKeyEvent *event)
 {
 #ifdef Q_OS_MACX
-  if (event->state() & Qt::MetaButton) {
+  if (event->modifiers() & Qt::MetaModifier) {
     wprint("\aUse the Apple/Command key instead of Ctrl on the Mac!\n");
     event->ignore();
     return true;
@@ -1449,6 +1451,9 @@ bool inputTestMetaKey(QKeyEvent *event)
 
 /*
 $Log$
+Revision 4.46  2008/12/10 01:05:15  mast
+Added hot key for contour copy
+
 Revision 4.45  2008/12/01 15:37:12  mast
 Changed the way current point index is set after changing contours
 

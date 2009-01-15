@@ -15,6 +15,9 @@
     $Revision$
 
     $Log$
+    Revision 1.2  2004/12/24 02:19:47  mast
+    Added variable to keep track of warning
+
     Revision 1.1  2004/12/22 05:49:02  mast
     Addition to package
 
@@ -23,6 +26,8 @@
 #define IMODQTASSIST_H
 
 #include <qobject.h>
+//Added by qt3to4:
+#include <QTimerEvent>
 class AssistantListener : public QObject
 {
   Q_OBJECT
@@ -43,6 +48,7 @@ public:
 
 #ifdef QT_THREAD_SUPPORT
 #include <qthread.h>
+#include <qmutex.h>
 
 class AssistantThread : public QThread
 {

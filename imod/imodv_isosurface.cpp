@@ -20,9 +20,13 @@
 #include <qgl.h>
 #include <qslider.h>
 #include <qtooltip.h>
-#include <qtoolbutton.h>
+#include <qpushbutton.h>
 #include <qspinbox.h>
 #include <qdatetime.h>
+//Added by qt3to4:
+#include <QHBoxLayout>
+#include <QKeyEvent>
+#include <QCloseEvent>
 #include "preferences.h"
 #include "multislider.h"
 #include "dia_qtutils.h"
@@ -257,41 +261,41 @@ ImodvIsosurface::ImodvIsosurface(struct ViewInfo *vi, QWidget *parent, const cha
   mCenterVolume->setChecked(imodvIsosurfaceData.flags & IMODV_CENTER_VOLUME);
   connect(mCenterVolume,
       SIGNAL(toggled(bool)),this,SLOT(centerVolumeToggled(bool)));
-  QToolTip::add(mViewIso, "Display isosurfaces");
-  QToolTip::add(mViewModel, "Display user model");
-  QToolTip::add(mViewBoxing, "Display the bounding box");
-  QToolTip::add(mCenterVolume, "Keep isosurfaces centered in the model view window");
+  mViewIso->setToolTip("Display isosurfaces");
+  mViewModel->setToolTip("Display user model");
+  mViewBoxing->setToolTip("Display the bounding box");
+  mCenterVolume->setToolTip("Keep isosurfaces centered in the model view window");
 
   QHBoxLayout *binningLayout=new QHBoxLayout;
-  mBinningBox = diaLabeledSpin(0, 1, MAXIMAL_BINNING, 1, "Binning:",
-      this, binningLayout);
+  mBinningBox = (QSpinBox *)diaLabeledSpin(0, 1., (float)MAXIMAL_BINNING, 1.,
+                                           "Binning:", this, binningLayout);
   mBinningBox->setValue(imodvIsosurfaceData.binningNum);
   mLayout->addLayout(binningLayout);
   connect(mBinningBox, SIGNAL(valueChanged(int)), this,
       SLOT(binningNumChanged(int)));
-  QToolTip::add(mBinningBox, "Set the binning level");
+  mBinningBox->setToolTip("Set the binning level");
 
   QHBoxLayout *smoothLayout=new QHBoxLayout;
-  mSmoothBox=diaLabeledSpin(0, 0, MAXIMAL_ITERATION, 1, "Smoothing:",
-      this, smoothLayout);
+  mSmoothBox=(QSpinBox *)diaLabeledSpin(0, 0., (float)MAXIMAL_ITERATION, 1.,
+                                        "Smoothing:", this, smoothLayout);
   mSmoothBox->setValue(imodvIsosurfaceData.itNum);
   mLayout->addLayout(smoothLayout);
   connect(mSmoothBox, SIGNAL(valueChanged(int)), this, SLOT(iterNumChanged(int)));
-  QToolTip::add(mSmoothBox, "Set the iteration number for smoothing");
+  mSmoothBox->setToolTip("Set the iteration number for smoothing");
 
   mDeletePieces=diaCheckBox("Delete small pieces", this, mLayout);
   mDeletePieces->setChecked(imodvIsosurfaceData.flags & IMODV_DELETE_PIECES);
   connect(mDeletePieces, SIGNAL(toggled(bool)), this, SLOT(
         deletePiecesToggled(bool)));
-  QToolTip::add(mDeletePieces, "Remove small isosurface pieces");
+  mDeletePieces->setToolTip("Remove small isosurface pieces");
   QHBoxLayout *piecesLayout=new QHBoxLayout;
-  mPiecesBox=diaLabeledSpin(0, 10, 9999, 10, "min size:",
-      this, piecesLayout);
+  mPiecesBox=(QSpinBox *)diaLabeledSpin(0, 10., 9999., 10., "min size:",
+                                        this, piecesLayout);
   mPiecesBox->setValue(imodvIsosurfaceData.minTNum);
   mLayout->addLayout(piecesLayout);
   connect(mPiecesBox, SIGNAL(valueChanged(int)), this,
       SLOT(numOfTrianglesChanged(int)) );
-  QToolTip::add(mPiecesBox, 
+  mPiecesBox->setToolTip(
       "Set the # of triangles the smallest piece must have");
 
   mHistPanel=new HistWidget(this);
@@ -308,7 +312,7 @@ ImodvIsosurface::ImodvIsosurface(struct ViewInfo *vi, QWidget *parent, const cha
   mLinkXYZ->setChecked(imodvIsosurfaceData.flags & IMODV_LINK_XYZ);
   connect(mLinkXYZ, SIGNAL(toggled(bool)), this, SLOT(
         linkXYZToggled(bool)));
-  QToolTip::add(mLinkXYZ, "Link global XYZ and  the XYZ of isosurface center");
+  mLinkXYZ->setToolTip("Link global XYZ and  the XYZ of isosurface center");
 
   // Make multisliders
   mSliders = new MultiSlider(this, 6, sliderLabels);
@@ -344,23 +348,21 @@ ImodvIsosurface::ImodvIsosurface(struct ViewInfo *vi, QWidget *parent, const cha
   (mSliders->getLayout())->setSpacing(4);
   connect(mSliders, SIGNAL(sliderChanged(int, int, bool)), this, 
       SLOT(sliderMoved(int, int, bool)));
-  QToolTip::add((QWidget *)mSliders->getSlider(IIS_X_COORD),
+  mSliders->getSlider(IIS_X_COORD)->setToolTip(
       "Set X coordinate of the box center");
-  QToolTip::add((QWidget *)mSliders->getSlider(IIS_Y_COORD),
+  mSliders->getSlider(IIS_Y_COORD)->setToolTip(
       "Set Y coordinate of the box center");
-  QToolTip::add((QWidget *)mSliders->getSlider(IIS_Z_COORD),
+  mSliders->getSlider(IIS_Z_COORD)->setToolTip(
       "Set Z coordinate of the box center");
-  QToolTip::add((QWidget *)mSliders->getSlider(IIS_X_SIZE),
+  mSliders->getSlider(IIS_X_SIZE)->setToolTip(
       "Set bounding box size in X");
-  QToolTip::add((QWidget *)mSliders->getSlider(IIS_Y_SIZE),
+  mSliders->getSlider(IIS_Y_SIZE)->setToolTip(
       "Set bounding box size in Y");
-  QToolTip::add((QWidget *)mSliders->getSlider(IIS_Z_SIZE),
+  mSliders->getSlider(IIS_Z_SIZE)->setToolTip(
       "Set bounding box size in Z");
 
-  mUseRubber=new QToolButton(this);
-  mUseRubber->setText(tr("Use Rubber Band"));
-  QToolTip::add(mUseRubber, "Show isosurfaces of area enclosed by the rubber band");
-  mLayout->addWidget(mUseRubber);
+  mUseRubber=diaPushButton("Use Rubber Band", this, mLayout);
+  mUseRubber->setToolTip("Show isosurfaces of area enclosed by the rubber band");
   connect(mUseRubber, SIGNAL(clicked()), this, SLOT(showRubberBandArea()));
   connect(this, SIGNAL(actionClicked(int)), this, SLOT(buttonPressed(int)));
 
@@ -1370,6 +1372,10 @@ void ImodvIsosurface::keyReleaseEvent ( QKeyEvent * e )
 /*
 
    $Log$
+   Revision 4.15  2008/12/19 00:42:46  mast
+   Change color again, change the names for saved object, scale down
+   automatically selected color for saved object
+
    Revision 4.14  2008/12/16 00:00:01  mast
    Set a color and material properties to reduce washout
 

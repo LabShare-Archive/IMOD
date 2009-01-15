@@ -73,6 +73,7 @@ void imodvUpdateModel(ImodvApp *a, bool setView)
   if (setView)
     imodvViewsGoto(a->imod->cview - 1, false, false);
   ved->dia->selectItem(a->imod->cview - 1, true);
+  ved->dia->setAutostore(auto_store);
 }
 
 /* set the current application flags into the current view */
@@ -146,8 +147,8 @@ void imodvViewEditDialog(ImodvApp *a, int state)
   }
   ved->a = a;
 
-  ved->dia = new imodvViewsForm(imodvDialogManager.parent(IMODV_DIALOG), NULL,
-                                Qt::WDestructiveClose | Qt::WType_TopLevel);
+  ved->dia = new imodvViewsForm(imodvDialogManager.parent(IMODV_DIALOG),
+                                Qt::Window);
 
   // Set title bar
   window_name = imodwEithername("3dmodv Views: ", a->imod->fileName, 1);
@@ -155,7 +156,7 @@ void imodvViewEditDialog(ImodvApp *a, int state)
   if (window_name)
     free(window_name);
   if (!qstr.isEmpty())
-    ved->dia->setCaption(qstr);
+    ved->dia->setWindowTitle(qstr);
 
   build_list(a);
   ved->dia->setAutostore(auto_store);
@@ -356,6 +357,9 @@ static void build_list(ImodvApp *a)
 /*
 
     $Log$
+    Revision 4.13  2008/06/10 02:07:04  mast
+    Set up lighting flag only when view changes
+
     Revision 4.12  2007/11/30 06:51:50  mast
     Changes for linking slicer to model view
 

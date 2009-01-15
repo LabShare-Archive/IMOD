@@ -10,24 +10,15 @@
 *  $Id$
 *  Log at end of file
 */
-#include <qlabel.h>
-#include <qlayout.h>
-#include <qlineedit.h>
-#include <qpushbutton.h>
-#include <qbuttongroup.h>
-#include <qradiobutton.h>
-#include <qgroupbox.h>
-#include <qerrormessage.h>
-
+#include <QtGui>
 
 #include "angledialog.h"
 #include "myapp.h"
 #include "b3dutil.h"
 
-AngleDialog::AngleDialog(QWidget *parent, const char *name):
-  QDialog(parent,name)
+AngleDialog::AngleDialog(QWidget *parent): QDialog(parent)
 {
-  setCaption(tr("Set angle range and defocus"));
+  setWindowTitle(tr("Set angle range and defocus"));
   defocusLabel=new QLabel(tr("Expected defocus (um): "), this);
   defocusEdit=new QLineEdit("6.0", this);
   defocusLabel->setBuddy(defocusEdit);
@@ -60,18 +51,26 @@ AngleDialog::AngleDialog(QWidget *parent, const char *name):
   axisAngleEdit=new QLineEdit( tr("0.0"), this);
   axisAngleLabel->setBuddy(axisAngleEdit);
 
-  defocusGroup=new QButtonGroup(1, QGroupBox::Horizontal, 
-      tr("Which defocus to use"), this);
-  expDefocusRadio=new QRadioButton(tr("Expected defocus"), defocusGroup);
-  currDefocusRadio=new QRadioButton(tr("Current defocus estimate"), 
-      defocusGroup);
-  defocusGroup->setButton(0);
+  defocusGroup=new QGroupBox(tr("Which defocus to use"), this);
+  expDefocusRadio=new QRadioButton(tr("Expected defocus"));
+  currDefocusRadio=new QRadioButton(tr("Current defocus estimate"));
+  expDefocusRadio->setChecked(true);
 
-  ifAllGroup=new QButtonGroup(1, QGroupBox::Horizontal, 
-      tr("Initial tiles to include"), this);
-  onlyCenterRadio=new QRadioButton(tr("Only central tiles"), ifAllGroup); 
-  allAtOnceRadio=new QRadioButton(tr("All tiles"), ifAllGroup);
-  ifAllGroup->setButton(0);
+  QVBoxLayout *vbox=new QVBoxLayout;
+  vbox->addWidget(expDefocusRadio);
+  vbox->addWidget(currDefocusRadio);
+  defocusGroup->setLayout(vbox);
+  
+
+  ifAllGroup=new QGroupBox(tr("Initial tiles to include"), this);
+  onlyCenterRadio=new QRadioButton(tr("Only central tiles")); 
+  allAtOnceRadio=new QRadioButton(tr("All tiles"));
+  onlyCenterRadio->setChecked(true);
+
+  QVBoxLayout *vbox2=new QVBoxLayout;
+  vbox2->addWidget(onlyCenterRadio);
+  vbox2->addWidget(allAtOnceRadio);
+  ifAllGroup->setLayout(vbox2);
 
   saveButton=new QPushButton( tr("&Store Current Defocus"), this);
   saveButton->setEnabled(true);
@@ -211,7 +210,7 @@ void AngleDialog::saveCurrentDefocus(){
 
    if(!fp){
       QErrorMessage* errorMessage = new QErrorMessage( this );
-      errorMessage->message( "Can not open output file" );
+      errorMessage->showMessage( "Can not open output file" );
       return;
    }
 
@@ -253,4 +252,7 @@ void AngleDialog::allAtOnceChecked()
 /*
 
    $Log$
+   Revision 1.6  2008/11/07 17:04:27  xiongq
+   add the copyright heading
+
 */

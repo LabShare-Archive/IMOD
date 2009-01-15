@@ -18,7 +18,7 @@
 */
 
 #include <stdlib.h>
-#include <qassistantclient.h>
+#include <QtAssistant/QAssistantClient>
 #include <qdir.h>
 #include <qmessagebox.h>
 #include <qstringlist.h>
@@ -96,7 +96,7 @@ int ImodAssistant::showPage(const char *page)
   QString fullPath;
   QString fileOnly, assPath;
   int len, retval = 0;
-  char sep = QDir::separator();
+  char sep = QDir::separator().toLatin1();
 
   // Get the assistant object the first time
   if (!mAssistant) {
@@ -104,13 +104,13 @@ int ImodAssistant::showPage(const char *page)
     // Open the assistant in qtlib if one exists, otherwise take the one on
     // path.  Need to check for .app on Mac, and in /bin on Windows
 #ifdef _WIN32
-    assPath = QDir::cleanDirPath(mImodDir + sep + "bin");
-    if (!QFile::exists(assPath + sep + "assistant.exe")) 
+    assPath = QDir::cleanPath(mImodDir + sep + "bin");
+    if (!QFile::exists(assPath + sep + "assistant_adp.exe")) 
       assPath = "";
 #else
-    assPath = QDir::cleanDirPath(mImodDir + sep + "qtlib");
-    if (!QFile::exists(assPath + sep + "assistant") && 
-        !QFile::exists(assPath + sep + "assistant.app"))
+    assPath = QDir::cleanPath(mImodDir + sep + "qtlib");
+    if (!QFile::exists(assPath + sep + "assistant_adp") && 
+        !QFile::exists(assPath + sep + "assistant_adp.app"))
       assPath = "";
 #endif
     mAssistant = new QAssistantClient(assPath, this);
@@ -142,13 +142,13 @@ int ImodAssistant::showPage(const char *page)
     fullPath = mPath + sep + page;
   else
     fullPath = page;
-  fullPath = QDir::cleanDirPath(fullPath);
+  fullPath = QDir::cleanPath(fullPath);
   if (QDir::isRelativePath(fullPath))
-    fullPath = QDir::currentDirPath() + sep + fullPath;
+    fullPath = QDir::currentPath() + sep + fullPath;
   
   // Get a name with any tags stripped off to check for file existence
   fileOnly = fullPath;
-  len = fileOnly.find('#');
+  len = fileOnly.indexOf('#');
   if (len >= 0)
     fileOnly = fileOnly.left(len);
   if (!QFile::exists(fileOnly)) {
@@ -180,42 +180,46 @@ void ImodAssistant::assistantError(const QString &msg)
 }
 
 /*
-    $Log$
-    Revision 1.10  2005/02/24 22:29:44  mast
-    Added fallback for IMOD_DIR and enhanced error message if fallback used
 
-    Revision 1.9  2004/12/24 02:11:05  mast
-    Have it take determine if page is an absolute path instead of requiring
-    argument
+$Log$
+Revision 1.11  2006/06/18 23:42:09  mast
+Added constructor argument and ability to keep sidebar
 
-    Revision 1.8  2004/12/22 23:15:17  mast
-    Have it determine if adp file not found and give a different return code
-    instead of generating the error signal
+Revision 1.10  2005/02/24 22:29:44  mast
+Added fallback for IMOD_DIR and enhanced error message if fallback used
 
-    Revision 1.7  2004/12/06 04:39:19  mast
-    Made truly standalone, took out of library back into 3dmod
+Revision 1.9  2004/12/24 02:11:05  mast
+Have it take determine if page is an absolute path instead of requiring
+argument
 
-    Revision 1.2  2004/12/04 19:22:38  mast
-    Converted path to absolute before call assistant, RH 9.0 seemed to need
+Revision 1.8  2004/12/22 23:15:17  mast
+Have it determine if adp file not found and give a different return code
+instead of generating the error signal
 
-    Revision 1.1  2004/12/04 02:07:13  mast
-    Added to libdiaqt, added argument to control error reporting, fixed for
-    Windows if assistant in IMOD_DIR/bin is not on path
+Revision 1.7  2004/12/06 04:39:19  mast
+Made truly standalone, took out of library back into 3dmod
 
-    Revision 1.5  2004/11/24 18:30:02  mast
-    Add the adp file if Qt version supports it
+Revision 1.2  2004/12/04 19:22:38  mast
+Converted path to absolute before call assistant, RH 9.0 seemed to need
 
-    Revision 1.4  2004/11/22 18:07:22  mast
-    Changed to work on Mac and to get assistant object on first time instead
-    of upon construction
+Revision 1.1  2004/12/04 02:07:13  mast
+Added to libdiaqt, added argument to control error reporting, fixed for
+Windows if assistant in IMOD_DIR/bin is not on path
 
-    Revision 1.3  2004/11/22 04:30:50  mast
-    ; on include
+Revision 1.5  2004/11/24 18:30:02  mast
+Add the adp file if Qt version supports it
 
-    Revision 1.2  2004/11/22 03:58:58  mast
-    Got it working in Windows/Qt 3.3; added check for file existence
+Revision 1.4  2004/11/22 18:07:22  mast
+Changed to work on Mac and to get assistant object on first time instead
+of upon construction
 
-    Revision 1.1  2004/11/22 00:21:32  mast
-    Addition to program
+Revision 1.3  2004/11/22 04:30:50  mast
+; on include
+
+Revision 1.2  2004/11/22 03:58:58  mast
+Got it working in Windows/Qt 3.3; added check for file existence
+
+Revision 1.1  2004/11/22 00:21:32  mast
+Addition to program
 
 */

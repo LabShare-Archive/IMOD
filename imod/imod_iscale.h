@@ -12,6 +12,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 4.3  2004/11/04 23:30:55  mast
+Changes for rounded button style
+
 Revision 4.2  2003/06/04 23:31:05  mast
 Add timer
 
@@ -30,6 +33,11 @@ initial creation
 #define IMOD_ISCALE_H
 
 #include "dialog_frame.h"
+//Added by qt3to4:
+#include <QTimerEvent>
+#include <QKeyEvent>
+#include <QCloseEvent>
+#include <QLabel>
 class QLabel;
 class QLineEdit;
 

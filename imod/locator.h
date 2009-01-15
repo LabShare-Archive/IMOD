@@ -8,6 +8,12 @@
 #define LOCATOR_H
 #include <qmainwindow.h>
 #include <qgl.h>
+//Added by qt3to4:
+#include <QLabel>
+#include <QMouseEvent>
+#include <QTimerEvent>
+#include <QKeyEvent>
+#include <QCloseEvent>
 
 class LocatorGL;
 class QPushButton;
@@ -24,8 +30,7 @@ class LocatorWindow : public QMainWindow
 
  public:
   LocatorWindow(bool rgba, bool doubleBuffer, bool enableDepth, 
-                QWidget * parent = 0, const char * name = 0, 
-                WFlags f = WType_TopLevel | WDestructiveClose) ;
+                QWidget * parent = 0, Qt::WFlags f = Qt::Window) ;
   ~LocatorWindow() {};
 
   int mCtrl;
@@ -51,7 +56,7 @@ class LocatorGL : public QGLWidget
   Q_OBJECT
 
  public:
-  LocatorGL(QGLFormat format, QWidget * parent = 0, const char * name = 0);
+  LocatorGL(QGLFormat format, QWidget * parent = 0);
   ~LocatorGL() {};
   void drawIfNeeded(int drawflag);
   void scheduleDraw();
@@ -89,6 +94,9 @@ protected:
 
 /*
 $Log$
+Revision 1.2  2007/08/13 20:29:37  mast
+Added a few tools at the top
+
 Revision 1.1  2007/08/13 16:05:25  mast
 Added to program
 

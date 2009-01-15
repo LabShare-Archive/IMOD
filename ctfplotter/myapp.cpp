@@ -92,7 +92,6 @@ void MyApp::saveAllPs()
   double *ps=(double*)malloc(nDim*sizeof(double) );
   double *nps=(double*)malloc(nDim*sizeof(double) );
 
-  Plotter *plotter=(Plotter *)mainWidget();
   PlotSettings settings=plotter->zoomStack[plotter->curZoom];
 
   for(ii=0;ii<nDim;ii++){
@@ -118,9 +117,10 @@ void MyApp::saveAllPs()
 void MyApp::plotFitPS(bool flagSetInitSetting)
 {
     double *ps=(double*)malloc(nDim*sizeof(double) );
-    CurveData data[3];
+    QVector<QPointF> data[3];
     double *resSimplex=(double*)malloc(nDim*sizeof(double));
     double *resLinear=(double *)malloc(nDim*sizeof(double));
+
     double model[2]={0,1.0};
     double err;
     int ii;
@@ -134,11 +134,9 @@ void MyApp::plotFitPS(bool flagSetInitSetting)
     
     PlotSettings plotSetting=PlotSettings();
     double initialMaxY=-100;
-    Plotter *plotter=(Plotter *)mainWidget();
     for(ii=0;ii<nDim;ii++){ 
       ps[ii]=log(ps[ii]);
-      data[0].push_back(ii/(float)(nDim-1) );
-      data[0].push_back(ps[ii]);
+      data[0].append( QPointF(ii/(float)(nDim-1), ps[ii]) );
       if(ps[ii]>initialMaxY) initialMaxY=ps[ii];
     }
     initialMaxY=ceil(initialMaxY);
@@ -164,8 +162,7 @@ void MyApp::plotFitPS(bool flagSetInitSetting)
         printf("unknown fitting method chosen\n"); 
     }
     for(ii=0;ii<nDim;ii++){
-      data[1].push_back(ii/(float)(nDim-1) );
-      data[1].push_back(resSimplex[ii]);
+      data[1].append( QPointF(ii/(float)(nDim-1),resSimplex[ii]) );
     }
     plotter->setCurveData(1, data[1]);
 
@@ -183,8 +180,7 @@ void MyApp::plotFitPS(bool flagSetInitSetting)
         printf("unknown fitting method chosen\n"); 
     }
     for(ii=0;ii<nDim;ii++){
-      data[2].push_back(ii/(float)(nDim-1));
-      data[2].push_back(resLinear[ii]);
+      data[2].append( QPointF(ii/(float)(nDim-1), resLinear[ii]) );
     }
     plotter->setCurveData(2, data[2]);
 
@@ -201,6 +197,7 @@ void MyApp::plotFitPS(bool flagSetInitSetting)
     }else defocusFinder.setDefocus(-2000.0);
     plotter->zeroLabel->setText(zeroString);
     plotter->defocusLabel->setText(defocusString);
+
     free(ps);
     free(resSimplex);
     free(resLinear);
@@ -364,6 +361,7 @@ int  MyApp::computeInitPS()
   }// else
   free( tile);
   free(fftSum);
+  return 0;
 }
 void MyApp::moreTileCenterIncluded(){
   moreTile(true);
@@ -403,7 +401,7 @@ void MyApp::moreTile(bool hasIncludedCentralTiles)
 
   double *psRatio=(double*)malloc(nDim*sizeof(double));
 
-  ((Plotter *)mainWidget())->tileButton->setEnabled(false);
+  plotter->tileButton->setEnabled(false);
   //below set 'rAverage' to be PS ratio, i.e., rAverage[i]=rAverage[i]/nps[i];
   //will be restored at the end of this function;  
   for(ii=0;ii<nDim;ii++){
@@ -682,7 +680,7 @@ void MyApp::rangeChanged(double x1_1, double x1_2, double x2_1, double x2_2)
   int start=n1;
 
   int i;
-  CurveData data;
+  QVector<QPointF> data;
   double *result=(double *)malloc(nDim*sizeof(double) );
   double model_0[2]={0, 1.0};
   //double model_0[4]={0, 0.5, 1.0, 2.0};
@@ -693,20 +691,18 @@ void MyApp::rangeChanged(double x1_1, double x1_2, double x2_1, double x2_2)
     case 0:
       if( !linearEngine->computeFitting(result, model_0, 2, n1, n2) ){
         for(i=0;i<nDim;i++){
-          data.push_back(i*inc);
-          data.push_back(result[i]);
+          data.append(QPointF(i*inc, result[i]) );
         }
-        ( (Plotter *)mainWidget() )->setCurveData(1, data);
+        plotter->setCurveData(1, data);
       }else  printf("linearEngine error\n");
       break;
     case 1:
       simplexEngine->setRange(n1, n2);
       if( !simplexEngine->computeFitting(result, &err, 0) ){
         for(i=0;i<nDim;i++){
-          data.push_back(i*inc );
-          data.push_back(result[i]);
+          data.append(QPointF(i*inc, result[i]) );
         }
-        ( (Plotter *)mainWidget() )->setCurveData(1, data);
+        plotter->setCurveData(1, data);
       }else printf("simplexEngine error\n");
       break;
     default:
@@ -717,7 +713,7 @@ void MyApp::rangeChanged(double x1_1, double x1_2, double x2_1, double x2_2)
   //inc=1.0/(nDim-1);
   n1= x2_1*(nDim-1) ;
   n2= x2_2*(nDim-1) ;
-  CurveData data1;
+  QVector<QPointF> data1;
   double *result1=(double *)malloc(nDim*sizeof(double) );
 
   x2Idx1=n1; x2Idx2=n2;
@@ -725,20 +721,18 @@ void MyApp::rangeChanged(double x1_1, double x1_2, double x2_1, double x2_2)
     case 0:
       if( !linearEngine->computeFitting(result1, model_0, 2, n1, n2) ){
         for(i=0;i<nDim;i++){
-          data1.push_back(i*inc );
-          data1.push_back(result1[i]);
+          data1.append( QPointF(i*inc, result1[i]) );
         }
-        ( (Plotter *)mainWidget() )->setCurveData(2, data1);
+        plotter->setCurveData(2, data1);
       }else printf("linearEngine error\n");
       break;
     case 1:
       simplexEngine->setRange(n1, n2);
       if( !simplexEngine->computeFitting(result1, &err, 1) ){
         for(i=0;i<nDim;i++){
-          data1.push_back(i*inc );
-          data1.push_back(result1[i]);
+          data1.append( QPointF(i*inc, result1[i]) );
         }
-        ( (Plotter *)mainWidget() )->setCurveData(2, data1);
+        plotter->setCurveData(2, data1);
       }else printf("simplexEngine error\n");
       break;
     default:
@@ -755,8 +749,8 @@ void MyApp::rangeChanged(double x1_1, double x1_2, double x2_1, double x2_2)
     sprintf(defocusString, "D: %4.2f", defocus);
   }
   //printf("myApp zeroString=%s \n", zeroString);
-  ( (Plotter *)mainWidget() )->zeroLabel->setText(zeroString);
-  ( (Plotter *)mainWidget() )->defocusLabel->setText(defocusString);
+  plotter->zeroLabel->setText(zeroString);
+  plotter->defocusLabel->setText(defocusString);
 
   free(result);
   free(result1);
@@ -767,11 +761,17 @@ void MyApp::angleChanged(double lAngle, double hAngle, double expDefocus,
    double defTol, int tSize, double axisAngle, double leftTol, double rightTol)
 {  
    QCursor cursor(Qt::WaitCursor);
-   ((Plotter *)mainWidget())->setCursor(cursor);
+   /*((Plotter *)mainWidget())->setCursor(cursor);
    if(((Plotter *)mainWidget())->aDialog)
       ((Plotter *)mainWidget())->aDialog->setCursor(cursor);
    if(((Plotter *)mainWidget())->rDialog)
       ((Plotter *)mainWidget())->rDialog->setCursor(cursor);
+*/
+   plotter->setCursor(cursor);
+   if( plotter->aDialog)
+      plotter->aDialog->setCursor(cursor);
+   if( plotter->rDialog)
+       plotter->rDialog->setCursor(cursor);
 
    defocusTol=defTol;
    leftDefTol=leftTol;
@@ -804,26 +804,29 @@ void MyApp::angleChanged(double lAngle, double hAngle, double expDefocus,
    }
    else {
      computeInitPS();
-     ((Plotter *)mainWidget())->tileButton->setEnabled(true);
+     plotter->tileButton->setEnabled(true);
      plotFitPS(false); // only plot;
    }
 
    cursor.setShape(Qt::ArrowCursor);
-   ((Plotter *)mainWidget())->setCursor(cursor);
-   if(((Plotter *)mainWidget())->aDialog)
-      ((Plotter *)mainWidget())->aDialog->setCursor(cursor);
-   if(((Plotter *)mainWidget())->rDialog)
-      ((Plotter *)mainWidget())->rDialog->setCursor(cursor);
+   plotter->setCursor(cursor);
+   if(plotter->aDialog)
+      plotter->aDialog->setCursor(cursor);
+   if( plotter->rDialog)
+      plotter->rDialog->setCursor(cursor);
 }
 
 void MyApp::setInitTileOption(int index){
-     ((Plotter *)mainWidget())->tileButton->setEnabled(false);
+     plotter->tileButton->setEnabled(false);
      initialTileOption=index;
 }
 
 /*
 
    $Log$
+   Revision 1.11  2008/11/08 21:54:04  xiongq
+   adjust plotter setting for initializaion
+
    Revision 1.10  2008/11/07 17:26:24  xiongq
    add the copyright heading
 

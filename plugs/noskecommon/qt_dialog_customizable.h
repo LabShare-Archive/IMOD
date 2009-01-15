@@ -79,6 +79,8 @@
 #include <iostream>
 #include <vector>
 #include <string>
+//Added by qt3to4:
+#include <QVBoxLayout>
 
 using namespace std;
 
@@ -90,7 +92,7 @@ using namespace std;
 #include <qcheckbox.h>
 #include <qlabel.h>
 #include <qcombobox.h>
-#include <qvbuttongroup.h>
+#include <QButtonGroup>
 #include <qradiobutton.h>
 #include <qdialog.h>
 #include <qspinbox.h>

@@ -1,3 +1,7 @@
+//Added by qt3to4:
+#include <QLabel>
+#include <QKeyEvent>
+#include <QCloseEvent>
 /*   imod_cont_edit.h  -  declarations for imod_cont_edit.cpp
  *
  *   Copyright (C) 1995-2002 by Boulder Laboratory for 3-Dimensional Electron
@@ -20,7 +24,6 @@ class QLabel;
 class QSpinBox;
 class QCheckBox;
 class QButtonGroup;
-class QVButtonGroup;
 class QRadioButton;
 
 class ContourFrame : public DialogFrame
@@ -104,8 +107,8 @@ class ContourJoin : public ContourFrame
   void setFontDependentWidths();
   QPushButton *mButton1;
   QPushButton *mButton2;
-  QVButtonGroup *mOpenGroup;
-  QVButtonGroup *mClosedGroup;
+  QButtonGroup *mOpenGroup;
+  QButtonGroup *mClosedGroup;
 };
 
 class ContourBreak : public ContourFrame
@@ -148,7 +151,7 @@ void imodContEditMoveDialogUpdate(void);
 
 /* Entries from the form class for surface etc */
 void iceTimeChanged(int value);
-void iceLabelChanged(char *st, int contPoint);
+void iceLabelChanged(const char *st, int contPoint);
 void iceSurfNew();
 void iceSurfGoto(int target);
 void iceGhostInterval(int value);
@@ -166,6 +169,9 @@ int iceGetWheelForSize();
 /*  
 
 $Log$
+Revision 4.8  2008/09/23 15:13:44  mast
+Added mouse wheel scrolling of point size
+
 Revision 4.7  2004/11/24 05:08:49  mast
 Changes for new joining capabilities
 

@@ -14,6 +14,8 @@
 
 #include <qfiledialog.h>
 #include <qdir.h>
+//Added by qt3to4:
+#include <QKeyEvent>
 #include <sys/types.h>
 #include <sys/stat.h>
 #include "colorselector.h"
@@ -111,10 +113,10 @@ void imodvHelpMenu(int item)
 
   case VHELP_MENU_ABOUT:
     dia_vasmsg
-      ("3dmodv Qt Version ",
+      ("3dmodv Version ",
        VERSION_NAME,
-       ", written by James Kremer and",
-       "David Mastronarde\n",
+       ", written by David Mastronarde, ",
+       "James Kremer, and Quanren Xiong\n",
        "Copyright (C)",COPYRIGHT_YEARS,"by",LAB_NAME1,"\n",LAB_NAME2,
        "& Regents of the University of Colorado\n\n",
        NULL);
@@ -146,7 +148,7 @@ int imodvLoadModel()
   if (qname.isEmpty())
     return 1;
 
-  tmod = imodRead((char *)qname.latin1());
+  tmod = imodRead(LATIN1(qname));
   if (!tmod)
     return(-1);
 
@@ -208,8 +210,8 @@ void imodvFileSave()
   }
 
   if (a->imod->fileName)
-    fout = fopen((QDir::convertSeparators(QString(a->imod->fileName))).
-      latin1(), "wb");
+    fout = fopen(LATIN1(QDir::convertSeparators(QString(a->imod->fileName))),
+                 "wb");
 
   if (fout){
     a->imod->file = fout;
@@ -249,11 +251,11 @@ void imodvSaveModelAs()
   struct stat buf;
   
   a->mainWin->releaseKeyboard();
-  qname = QFileDialog::getSaveFileName (QString::null, QString::null, 0, 0, 
-                                        "Select file to save model into:");
+  qname = QFileDialog::getSaveFileName(NULL, 
+                                       "Select file to save model into:");
   if (qname.isEmpty())
     return;
-  filename = strdup(qname.latin1());
+  filename = strdup(LATIN1(qname));
 
   /* DNM 8/4/01: store the current view when saving, if appropriate */
   imodvAutoStoreView(a);
@@ -267,7 +269,7 @@ void imodvSaveModelAs()
     rename(filename, nfname1);
   }
 
-  fout = fopen((QDir::convertSeparators(QString(filename))).latin1(), "wb");
+  fout = fopen(LATIN1(QDir::convertSeparators(QString(filename))), "wb");
   if (fout){
     a->imod->file = fout;
     error = imodWrite(Imodv->imod, fout);
@@ -326,9 +328,8 @@ void imodvFileMenu(int item)
     Imodv->mainWin->releaseKeyboard();
     format = (item == VFILE_MENU_SNAPRGB) ? 
       ImodPrefs->snapFormat() : QString("TIFF");
-    qname = QFileDialog::getSaveFileName (QString::null, QString::null, 0, 0, 
-                                          QString("File to save ") + format +
-                                          " snapshot into:");
+    qname = QFileDialog::getSaveFileName
+      (NULL, QString("File to save ") + format + " snapshot into:");
     if (qname.isEmpty())
       break;
     imodv_auto_snapshot(qname, item == VFILE_MENU_SNAPRGB ? 
@@ -603,14 +604,14 @@ void ImodvBkgColor::openDialog()
     free(window_name);
   if (qstr.isEmpty())
     qstr = "3dmodv";
-  mSelector->setCaption(qstr);
+  mSelector->setWindowTitle(qstr);
 
   imodvDialogManager.add((QWidget *)mSelector, IMODV_DIALOG);
   mSelector->show();
 }
 
 ImodvBkgColor::ImodvBkgColor()
-  : QObject(0, 0)
+  : QObject(NULL)
 {
   mSelector = NULL;
 }
@@ -647,6 +648,9 @@ void ImodvBkgColor::keyReleaseSlot ( QKeyEvent * e )
 /*
 
 $Log$
+Revision 4.30  2008/12/15 21:28:00  mast
+Changes to call for switching buffering
+
 Revision 4.29  2008/12/09 23:27:05  mast
 Changed flag from line to noline
 

@@ -1,462 +1,464 @@
-<!DOCTYPE UI><UI version="3.3" stdsetdef="1">
-<class>imodvViewsForm</class>
-<widget class="QWidget">
-    <property name="name">
-        <cstring>imodvViewsForm</cstring>
-    </property>
-    <property name="geometry">
-        <rect>
-            <x>0</x>
-            <y>0</y>
-            <width>234</width>
-            <height>303</height>
-        </rect>
-    </property>
-    <property name="sizePolicy">
-        <sizepolicy>
-            <hsizetype>1</hsizetype>
-            <vsizetype>5</vsizetype>
-            <horstretch>0</horstretch>
-            <verstretch>0</verstretch>
+<ui version="4.0" >
+ <class>imodvViewsForm</class>
+ <widget class="QWidget" name="imodvViewsForm" >
+  <property name="geometry" >
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>363</width>
+    <height>303</height>
+   </rect>
+  </property>
+  <property name="sizePolicy" >
+   <sizepolicy vsizetype="Preferred" hsizetype="Minimum" >
+    <horstretch>0</horstretch>
+    <verstretch>0</verstretch>
+   </sizepolicy>
+  </property>
+  <property name="focusPolicy" >
+   <enum>Qt::StrongFocus</enum>
+  </property>
+  <property name="windowTitle" >
+   <string>3dmodv Views</string>
+  </property>
+  <layout class="QVBoxLayout" name="verticalLayout" >
+   <item>
+    <layout class="QHBoxLayout" name="horizontalLayout" >
+     <item>
+      <widget class="QListWidget" name="viewListBox" >
+       <property name="sizePolicy" >
+        <sizepolicy vsizetype="Expanding" hsizetype="Fixed" >
+         <horstretch>0</horstretch>
+         <verstretch>0</verstretch>
         </sizepolicy>
-    </property>
-    <property name="caption">
-        <string>3dmodv Views</string>
-    </property>
-    <property name="focusPolicy">
-        <enum>StrongFocus</enum>
-    </property>
-    <vbox>
-        <property name="name">
-            <cstring>unnamed</cstring>
-        </property>
-        <property name="margin">
-            <number>11</number>
-        </property>
-        <property name="spacing">
-            <number>6</number>
-        </property>
-        <widget class="QLayoutWidget">
-            <property name="name">
-                <cstring>Layout5</cstring>
-            </property>
-            <hbox>
-                <property name="name">
-                    <cstring>unnamed</cstring>
-                </property>
-                <property name="margin">
-                    <number>0</number>
-                </property>
-                <property name="spacing">
-                    <number>6</number>
-                </property>
-                <widget class="QListBox">
-                    <property name="name">
-                        <cstring>viewListBox</cstring>
-                    </property>
-                    <property name="focusPolicy">
-                        <enum>NoFocus</enum>
-                    </property>
-                </widget>
-                <widget class="QLayoutWidget">
-                    <property name="name">
-                        <cstring>Layout4</cstring>
-                    </property>
-                    <vbox>
-                        <property name="name">
-                            <cstring>unnamed</cstring>
-                        </property>
-                        <property name="margin">
-                            <number>0</number>
-                        </property>
-                        <property name="spacing">
-                            <number>6</number>
-                        </property>
-                        <widget class="QPushButton">
-                            <property name="name">
-                                <cstring>storeButton</cstring>
-                            </property>
-                            <property name="sizePolicy">
-                                <sizepolicy>
-                                    <hsizetype>0</hsizetype>
-                                    <vsizetype>0</vsizetype>
-                                    <horstretch>0</horstretch>
-                                    <verstretch>0</verstretch>
-                                </sizepolicy>
-                            </property>
-                            <property name="maximumSize">
-                                <size>
-                                    <width>80</width>
-                                    <height>32767</height>
-                                </size>
-                            </property>
-                            <property name="focusPolicy">
-                                <enum>NoFocus</enum>
-                            </property>
-                            <property name="text">
-                                <string>Store</string>
-                            </property>
-                            <property name="toolTip" stdset="0">
-                                <string>Save current model properties in selected view</string>
-                            </property>
-                        </widget>
-                        <widget class="QPushButton">
-                            <property name="name">
-                                <cstring>revertButton</cstring>
-                            </property>
-                            <property name="sizePolicy">
-                                <sizepolicy>
-                                    <hsizetype>0</hsizetype>
-                                    <vsizetype>0</vsizetype>
-                                    <horstretch>0</horstretch>
-                                    <verstretch>0</verstretch>
-                                </sizepolicy>
-                            </property>
-                            <property name="maximumSize">
-                                <size>
-                                    <width>80</width>
-                                    <height>32767</height>
-                                </size>
-                            </property>
-                            <property name="focusPolicy">
-                                <enum>NoFocus</enum>
-                            </property>
-                            <property name="text">
-                                <string>Revert</string>
-                            </property>
-                            <property name="toolTip" stdset="0">
-                                <string>Return to the stored values of the currently selected view</string>
-                            </property>
-                        </widget>
-                        <widget class="QPushButton">
-                            <property name="name">
-                                <cstring>deleteButton</cstring>
-                            </property>
-                            <property name="sizePolicy">
-                                <sizepolicy>
-                                    <hsizetype>0</hsizetype>
-                                    <vsizetype>0</vsizetype>
-                                    <horstretch>0</horstretch>
-                                    <verstretch>0</verstretch>
-                                </sizepolicy>
-                            </property>
-                            <property name="maximumSize">
-                                <size>
-                                    <width>80</width>
-                                    <height>32767</height>
-                                </size>
-                            </property>
-                            <property name="focusPolicy">
-                                <enum>NoFocus</enum>
-                            </property>
-                            <property name="text">
-                                <string>Delete</string>
-                            </property>
-                            <property name="toolTip" stdset="0">
-                                <string>Remove the currently selected view from the list</string>
-                            </property>
-                        </widget>
-                        <widget class="QPushButton">
-                            <property name="name">
-                                <cstring>newButton</cstring>
-                            </property>
-                            <property name="sizePolicy">
-                                <sizepolicy>
-                                    <hsizetype>0</hsizetype>
-                                    <vsizetype>0</vsizetype>
-                                    <horstretch>0</horstretch>
-                                    <verstretch>0</verstretch>
-                                </sizepolicy>
-                            </property>
-                            <property name="maximumSize">
-                                <size>
-                                    <width>80</width>
-                                    <height>32767</height>
-                                </size>
-                            </property>
-                            <property name="focusPolicy">
-                                <enum>NoFocus</enum>
-                            </property>
-                            <property name="text">
-                                <string>New View</string>
-                            </property>
-                            <property name="toolTip" stdset="0">
-                                <string>Add a new view to the list with the properties of current display</string>
-                            </property>
-                        </widget>
-                        <widget class="QPushButton">
-                            <property name="name">
-                                <cstring>saveButton</cstring>
-                            </property>
-                            <property name="sizePolicy">
-                                <sizepolicy>
-                                    <hsizetype>0</hsizetype>
-                                    <vsizetype>0</vsizetype>
-                                    <horstretch>0</horstretch>
-                                    <verstretch>0</verstretch>
-                                </sizepolicy>
-                            </property>
-                            <property name="maximumSize">
-                                <size>
-                                    <width>80</width>
-                                    <height>32767</height>
-                                </size>
-                            </property>
-                            <property name="focusPolicy">
-                                <enum>NoFocus</enum>
-                            </property>
-                            <property name="text">
-                                <string>Save Model</string>
-                            </property>
-                            <property name="toolTip" stdset="0">
-                                <string>Save model to file, with all view modifications</string>
-                            </property>
-                        </widget>
-                        <widget class="QCheckBox">
-                            <property name="name">
-                                <cstring>autoStoreBox</cstring>
-                            </property>
-                            <property name="focusPolicy">
-                                <enum>NoFocus</enum>
-                            </property>
-                            <property name="text">
-                                <string>Autostore</string>
-                            </property>
-                            <property name="toolTip" stdset="0">
-                                <string>Automatically store changes in the current view when switching to another view, saving model, etc.</string>
-                            </property>
-                        </widget>
-                    </vbox>
-                </widget>
-            </hbox>
+       </property>
+       <property name="focusPolicy" >
+        <enum>Qt::NoFocus</enum>
+       </property>
+       <property name="editTriggers" >
+        <set>QAbstractItemView::NoEditTriggers</set>
+       </property>
+       <property name="showDropIndicator" stdset="0" >
+        <bool>false</bool>
+       </property>
+       <property name="selectionRectVisible" >
+        <bool>false</bool>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <layout class="QVBoxLayout" >
+       <property name="spacing" >
+        <number>6</number>
+       </property>
+       <property name="margin" >
+        <number>0</number>
+       </property>
+       <item>
+        <widget class="QPushButton" name="storeButton" >
+         <property name="sizePolicy" >
+          <sizepolicy vsizetype="Fixed" hsizetype="Fixed" >
+           <horstretch>0</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
+         </property>
+         <property name="maximumSize" >
+          <size>
+           <width>80</width>
+           <height>32767</height>
+          </size>
+         </property>
+         <property name="focusPolicy" >
+          <enum>Qt::NoFocus</enum>
+         </property>
+         <property name="toolTip" >
+          <string>Save current model properties in selected view</string>
+         </property>
+         <property name="text" >
+          <string>Store</string>
+         </property>
         </widget>
-        <widget class="QLineEdit">
-            <property name="name">
-                <cstring>viewLabelEdit</cstring>
-            </property>
-            <property name="focusPolicy">
-                <enum>ClickFocus</enum>
-            </property>
-            <property name="frameShape">
-                <enum>LineEditPanel</enum>
-            </property>
-            <property name="frameShadow">
-                <enum>Sunken</enum>
-            </property>
-            <property name="toolTip" stdset="0">
-                <string>Change the name of the currently selected view</string>
-            </property>
+       </item>
+       <item>
+        <widget class="QPushButton" name="revertButton" >
+         <property name="sizePolicy" >
+          <sizepolicy vsizetype="Fixed" hsizetype="Fixed" >
+           <horstretch>0</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
+         </property>
+         <property name="maximumSize" >
+          <size>
+           <width>80</width>
+           <height>32767</height>
+          </size>
+         </property>
+         <property name="focusPolicy" >
+          <enum>Qt::NoFocus</enum>
+         </property>
+         <property name="toolTip" >
+          <string>Return to the stored values of the currently selected view</string>
+         </property>
+         <property name="text" >
+          <string>Revert</string>
+         </property>
         </widget>
-        <widget class="Line">
-            <property name="name">
-                <cstring>Line1_2</cstring>
-            </property>
-            <property name="frameShape">
-                <enum>HLine</enum>
-            </property>
-            <property name="frameShadow">
-                <enum>Sunken</enum>
-            </property>
-            <property name="orientation">
-                <enum>Horizontal</enum>
-            </property>
+       </item>
+       <item>
+        <widget class="QPushButton" name="deleteButton" >
+         <property name="sizePolicy" >
+          <sizepolicy vsizetype="Fixed" hsizetype="Fixed" >
+           <horstretch>0</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
+         </property>
+         <property name="maximumSize" >
+          <size>
+           <width>80</width>
+           <height>32767</height>
+          </size>
+         </property>
+         <property name="focusPolicy" >
+          <enum>Qt::NoFocus</enum>
+         </property>
+         <property name="toolTip" >
+          <string>Remove the currently selected view from the list</string>
+         </property>
+         <property name="text" >
+          <string>Delete</string>
+         </property>
         </widget>
-        <widget class="QLayoutWidget">
-            <property name="name">
-                <cstring>Layout13</cstring>
-            </property>
-            <hbox>
-                <property name="name">
-                    <cstring>unnamed</cstring>
-                </property>
-                <property name="margin">
-                    <number>0</number>
-                </property>
-                <property name="spacing">
-                    <number>6</number>
-                </property>
-                <widget class="QPushButton">
-                    <property name="name">
-                        <cstring>doneButton</cstring>
-                    </property>
-                    <property name="sizePolicy">
-                        <sizepolicy>
-                            <hsizetype>0</hsizetype>
-                            <vsizetype>0</vsizetype>
-                            <horstretch>0</horstretch>
-                            <verstretch>0</verstretch>
-                        </sizepolicy>
-                    </property>
-                    <property name="maximumSize">
-                        <size>
-                            <width>70</width>
-                            <height>32767</height>
-                        </size>
-                    </property>
-                    <property name="focusPolicy">
-                        <enum>NoFocus</enum>
-                    </property>
-                    <property name="text">
-                        <string>Done</string>
-                    </property>
-                    <property name="toolTip" stdset="0">
-                        <string>Close dialog box</string>
-                    </property>
-                </widget>
-                <widget class="QPushButton">
-                    <property name="name">
-                        <cstring>helpButton</cstring>
-                    </property>
-                    <property name="sizePolicy">
-                        <sizepolicy>
-                            <hsizetype>0</hsizetype>
-                            <vsizetype>0</vsizetype>
-                            <horstretch>0</horstretch>
-                            <verstretch>0</verstretch>
-                        </sizepolicy>
-                    </property>
-                    <property name="maximumSize">
-                        <size>
-                            <width>70</width>
-                            <height>32767</height>
-                        </size>
-                    </property>
-                    <property name="focusPolicy">
-                        <enum>NoFocus</enum>
-                    </property>
-                    <property name="text">
-                        <string>Help</string>
-                    </property>
-                    <property name="toolTip" stdset="0">
-                        <string>Open help window</string>
-                    </property>
-                </widget>
-            </hbox>
+       </item>
+       <item>
+        <widget class="QPushButton" name="newButton" >
+         <property name="sizePolicy" >
+          <sizepolicy vsizetype="Fixed" hsizetype="Fixed" >
+           <horstretch>0</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
+         </property>
+         <property name="maximumSize" >
+          <size>
+           <width>80</width>
+           <height>32767</height>
+          </size>
+         </property>
+         <property name="focusPolicy" >
+          <enum>Qt::NoFocus</enum>
+         </property>
+         <property name="toolTip" >
+          <string>Add a new view to the list with the properties of current display</string>
+         </property>
+         <property name="text" >
+          <string>New View</string>
+         </property>
         </widget>
-    </vbox>
-</widget>
-<connections>
-    <connection>
-        <sender>viewListBox</sender>
-        <signal>highlighted(const QString&amp;)</signal>
-        <receiver>viewLabelEdit</receiver>
-        <slot>setText(const QString&amp;)</slot>
-    </connection>
-    <connection>
-        <sender>autoStoreBox</sender>
-        <signal>toggled(bool)</signal>
-        <receiver>imodvViewsForm</receiver>
-        <slot>autostoreToggled(bool)</slot>
-    </connection>
-    <connection>
-        <sender>viewLabelEdit</sender>
-        <signal>returnPressed()</signal>
-        <receiver>imodvViewsForm</receiver>
-        <slot>setFocus()</slot>
-    </connection>
-    <connection>
-        <sender>viewLabelEdit</sender>
-        <signal>returnPressed()</signal>
-        <receiver>imodvViewsForm</receiver>
-        <slot>newLabelEntered()</slot>
-    </connection>
-    <connection>
-        <sender>viewListBox</sender>
-        <signal>returnPressed(QListBoxItem*)</signal>
-        <receiver>imodvViewsForm</receiver>
-        <slot>setFocus()</slot>
-    </connection>
-    <connection>
-        <sender>viewListBox</sender>
-        <signal>selected(int)</signal>
-        <receiver>imodvViewsForm</receiver>
-        <slot>viewSelected(int)</slot>
-    </connection>
-    <connection>
-        <sender>viewListBox</sender>
-        <signal>highlighted(int)</signal>
-        <receiver>imodvViewsForm</receiver>
-        <slot>viewSelected(int)</slot>
-    </connection>
-    <connection>
-        <sender>viewListBox</sender>
-        <signal>highlighted(int)</signal>
-        <receiver>viewListBox</receiver>
-        <slot>ensureCurrentVisible()</slot>
-    </connection>
-    <connection>
-        <sender>doneButton</sender>
-        <signal>clicked()</signal>
-        <receiver>imodvViewsForm</receiver>
-        <slot>donePressed()</slot>
-    </connection>
-    <connection>
-        <sender>helpButton</sender>
-        <signal>clicked()</signal>
-        <receiver>imodvViewsForm</receiver>
-        <slot>helpPressed()</slot>
-    </connection>
-    <connection>
-        <sender>storeButton</sender>
-        <signal>clicked()</signal>
-        <receiver>imodvViewsForm</receiver>
-        <slot>storePressed()</slot>
-    </connection>
-    <connection>
-        <sender>revertButton</sender>
-        <signal>clicked()</signal>
-        <receiver>imodvViewsForm</receiver>
-        <slot>revertPressed()</slot>
-    </connection>
-    <connection>
-        <sender>deleteButton</sender>
-        <signal>clicked()</signal>
-        <receiver>imodvViewsForm</receiver>
-        <slot>deletePressed()</slot>
-    </connection>
-    <connection>
-        <sender>newButton</sender>
-        <signal>clicked()</signal>
-        <receiver>imodvViewsForm</receiver>
-        <slot>newPressed()</slot>
-    </connection>
-    <connection>
-        <sender>saveButton</sender>
-        <signal>clicked()</signal>
-        <receiver>imodvViewsForm</receiver>
-        <slot>savePressed()</slot>
-    </connection>
-</connections>
-<includes>
-    <include location="local" impldecl="in implementation">imodv_menu.h</include>
-    <include location="local" impldecl="in implementation">imodv_input.h</include>
-    <include location="local" impldecl="in implementation">imodv_views.h</include>
-    <include location="local" impldecl="in implementation">dia_qtutils.h</include>
-    <include location="local" impldecl="in implementation">preferences.h</include>
-    <include location="local" impldecl="in implementation">formv_views.ui.h</include>
-</includes>
-<slots>
-    <slot>init()</slot>
-    <slot>setFontDependentWidths()</slot>
-    <slot>storePressed()</slot>
-    <slot>revertPressed()</slot>
-    <slot>newPressed()</slot>
-    <slot>deletePressed()</slot>
-    <slot>savePressed()</slot>
-    <slot>autostoreToggled( bool state )</slot>
-    <slot>viewSelected( int item )</slot>
-    <slot>donePressed()</slot>
-    <slot>newLabelEntered()</slot>
-    <slot>helpPressed()</slot>
-    <slot>setAutostore( int state )</slot>
-    <slot>addItem( char * label )</slot>
-    <slot>selectItem( int item, bool block )</slot>
-    <slot>removeAllItems()</slot>
-    <slot>closeEvent( QCloseEvent * e )</slot>
-    <slot>keyPressEvent( QKeyEvent * e )</slot>
-    <slot>keyReleaseEvent( QKeyEvent * e )</slot>
-    <slot>fontChange( const QFont &amp; oldFont )</slot>
-</slots>
-<pixmapinproject/>
-<layoutdefaults spacing="6" margin="11"/>
-</UI>
+       </item>
+       <item>
+        <widget class="QPushButton" name="saveButton" >
+         <property name="sizePolicy" >
+          <sizepolicy vsizetype="Fixed" hsizetype="Fixed" >
+           <horstretch>0</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
+         </property>
+         <property name="maximumSize" >
+          <size>
+           <width>80</width>
+           <height>32767</height>
+          </size>
+         </property>
+         <property name="focusPolicy" >
+          <enum>Qt::NoFocus</enum>
+         </property>
+         <property name="toolTip" >
+          <string>Save model to file, with all view modifications</string>
+         </property>
+         <property name="text" >
+          <string>Save Model</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QCheckBox" name="autoStoreBox" >
+         <property name="focusPolicy" >
+          <enum>Qt::NoFocus</enum>
+         </property>
+         <property name="toolTip" >
+          <string>Automatically store changes in the current view when switching to another view, saving model, etc.</string>
+         </property>
+         <property name="text" >
+          <string>Autostore</string>
+         </property>
+        </widget>
+       </item>
+      </layout>
+     </item>
+    </layout>
+   </item>
+   <item>
+    <widget class="QLineEdit" name="viewLabelEdit" >
+     <property name="focusPolicy" >
+      <enum>Qt::ClickFocus</enum>
+     </property>
+     <property name="toolTip" >
+      <string>Change the name of the currently selected view</string>
+     </property>
+     <property name="text" >
+      <string/>
+     </property>
+    </widget>
+   </item>
+   <item>
+    <widget class="Line" name="Line1_2" >
+     <property name="frameShape" >
+      <enum>QFrame::HLine</enum>
+     </property>
+     <property name="frameShadow" >
+      <enum>QFrame::Sunken</enum>
+     </property>
+    </widget>
+   </item>
+   <item>
+    <layout class="QHBoxLayout" >
+     <property name="spacing" >
+      <number>6</number>
+     </property>
+     <property name="margin" >
+      <number>0</number>
+     </property>
+     <item>
+      <widget class="QPushButton" name="doneButton" >
+       <property name="sizePolicy" >
+        <sizepolicy vsizetype="Fixed" hsizetype="Fixed" >
+         <horstretch>0</horstretch>
+         <verstretch>0</verstretch>
+        </sizepolicy>
+       </property>
+       <property name="maximumSize" >
+        <size>
+         <width>70</width>
+         <height>32767</height>
+        </size>
+       </property>
+       <property name="focusPolicy" >
+        <enum>Qt::NoFocus</enum>
+       </property>
+       <property name="toolTip" >
+        <string>Close dialog box</string>
+       </property>
+       <property name="text" >
+        <string>Done</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QPushButton" name="helpButton" >
+       <property name="sizePolicy" >
+        <sizepolicy vsizetype="Fixed" hsizetype="Fixed" >
+         <horstretch>0</horstretch>
+         <verstretch>0</verstretch>
+        </sizepolicy>
+       </property>
+       <property name="maximumSize" >
+        <size>
+         <width>70</width>
+         <height>32767</height>
+        </size>
+       </property>
+       <property name="focusPolicy" >
+        <enum>Qt::NoFocus</enum>
+       </property>
+       <property name="toolTip" >
+        <string>Open help window</string>
+       </property>
+       <property name="text" >
+        <string>Help</string>
+       </property>
+      </widget>
+     </item>
+    </layout>
+   </item>
+  </layout>
+ </widget>
+ <layoutdefault spacing="6" margin="11" />
+ <resources/>
+ <connections>
+  <connection>
+   <sender>autoStoreBox</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>imodvViewsForm</receiver>
+   <slot>autostoreToggled(bool)</slot>
+   <hints>
+    <hint type="sourcelabel" >
+     <x>20</x>
+     <y>20</y>
+    </hint>
+    <hint type="destinationlabel" >
+     <x>20</x>
+     <y>20</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>viewLabelEdit</sender>
+   <signal>editingFinished()</signal>
+   <receiver>imodvViewsForm</receiver>
+   <slot>setFocus()</slot>
+   <hints>
+    <hint type="sourcelabel" >
+     <x>20</x>
+     <y>20</y>
+    </hint>
+    <hint type="destinationlabel" >
+     <x>20</x>
+     <y>20</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>viewLabelEdit</sender>
+   <signal>editingFinished()</signal>
+   <receiver>imodvViewsForm</receiver>
+   <slot>newLabelEntered()</slot>
+   <hints>
+    <hint type="sourcelabel" >
+     <x>20</x>
+     <y>20</y>
+    </hint>
+    <hint type="destinationlabel" >
+     <x>20</x>
+     <y>20</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>doneButton</sender>
+   <signal>clicked()</signal>
+   <receiver>imodvViewsForm</receiver>
+   <slot>donePressed()</slot>
+   <hints>
+    <hint type="sourcelabel" >
+     <x>20</x>
+     <y>20</y>
+    </hint>
+    <hint type="destinationlabel" >
+     <x>20</x>
+     <y>20</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>helpButton</sender>
+   <signal>clicked()</signal>
+   <receiver>imodvViewsForm</receiver>
+   <slot>helpPressed()</slot>
+   <hints>
+    <hint type="sourcelabel" >
+     <x>20</x>
+     <y>20</y>
+    </hint>
+    <hint type="destinationlabel" >
+     <x>20</x>
+     <y>20</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>storeButton</sender>
+   <signal>clicked()</signal>
+   <receiver>imodvViewsForm</receiver>
+   <slot>storePressed()</slot>
+   <hints>
+    <hint type="sourcelabel" >
+     <x>20</x>
+     <y>20</y>
+    </hint>
+    <hint type="destinationlabel" >
+     <x>20</x>
+     <y>20</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>revertButton</sender>
+   <signal>clicked()</signal>
+   <receiver>imodvViewsForm</receiver>
+   <slot>revertPressed()</slot>
+   <hints>
+    <hint type="sourcelabel" >
+     <x>20</x>
+     <y>20</y>
+    </hint>
+    <hint type="destinationlabel" >
+     <x>20</x>
+     <y>20</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>deleteButton</sender>
+   <signal>clicked()</signal>
+   <receiver>imodvViewsForm</receiver>
+   <slot>deletePressed()</slot>
+   <hints>
+    <hint type="sourcelabel" >
+     <x>20</x>
+     <y>20</y>
+    </hint>
+    <hint type="destinationlabel" >
+     <x>20</x>
+     <y>20</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>newButton</sender>
+   <signal>clicked()</signal>
+   <receiver>imodvViewsForm</receiver>
+   <slot>newPressed()</slot>
+   <hints>
+    <hint type="sourcelabel" >
+     <x>20</x>
+     <y>20</y>
+    </hint>
+    <hint type="destinationlabel" >
+     <x>20</x>
+     <y>20</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>saveButton</sender>
+   <signal>clicked()</signal>
+   <receiver>imodvViewsForm</receiver>
+   <slot>savePressed()</slot>
+   <hints>
+    <hint type="sourcelabel" >
+     <x>20</x>
+     <y>20</y>
+    </hint>
+    <hint type="destinationlabel" >
+     <x>20</x>
+     <y>20</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>viewListBox</sender>
+   <signal>currentTextChanged(QString)</signal>
+   <receiver>viewLabelEdit</receiver>
+   <slot>setText(QString)</slot>
+   <hints>
+    <hint type="sourcelabel" >
+     <x>295</x>
+     <y>115</y>
+    </hint>
+    <hint type="destinationlabel" >
+     <x>116</x>
+     <y>236</y>
+    </hint>
+   </hints>
+  </connection>
+ </connections>
+</ui>

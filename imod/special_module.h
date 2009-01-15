@@ -1,3 +1,7 @@
+//Added by qt3to4:
+#include <QKeyEvent>
+#include <QEvent>
+#include <QMouseEvent>
 /*   special_module.h  -  simple class to have an internal module treated like
  *                          a plugin and appear in Special menu
  *
@@ -40,6 +44,9 @@ class SpecialModule
 /*
 
 $Log$
+Revision 1.4  2007/12/04 18:48:45  mast
+Added event function
+
 Revision 1.3  2006/02/13 05:11:03  mast
 Added mouse function
 

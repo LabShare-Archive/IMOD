@@ -12,6 +12,9 @@
 #define IMODV_INPUT_H
 
 #include <qevent.h>
+//Added by qt3to4:
+#include <QKeyEvent>
+#include <QMouseEvent>
 #include "imodel.h"
 
 typedef struct __imodv_struct ImodvApp;
@@ -36,6 +39,9 @@ void clipCenterAndAngles(ImodvApp *a, Ipoint *clipPoint, Ipoint *clipNormal,
 /*  
 
 $Log$
+Revision 4.6  2007/11/16 03:12:47  mast
+Foxed log format
+
 Revision 4.5  2007/09/20 22:06:55  mast
 Changes for visualizing clipping plane
 

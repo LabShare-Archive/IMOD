@@ -19,10 +19,10 @@
 #include <qsignalmapper.h>
 #include <qpushbutton.h>
 #include <qlayout.h>
-#include <qvbox.h>
 #include <qcheckbox.h>
 #include <qcombobox.h>
 #include <qspinbox.h>
+#include <QDoubleSpinBox>
 #include <qframe.h>
 #include <qdatetime.h>
 #include <qslider.h>
@@ -30,6 +30,13 @@
 #ifdef QT_THREAD_SUPPORT
 #include <qmutex.h>
 #endif
+//Added by qt3to4:
+#include <QTimerEvent>
+#include <QBoxLayout>
+#include <QMouseEvent>
+#include <QCloseEvent>
+#include <QKeyEvent>
+#include <QVBoxLayout>
 #include "imod.h"
 #include "hottoolbar.h"
 #include "slicer_classes.h"
@@ -38,7 +45,6 @@
 #include "b3dgfx.h"
 #include "xcorr.h"
 #include "tooledit.h"
-#include "floatspinbox.h"
 #include "arrowbutton.h"
 #include "multislider.h"
 #include "dia_qtutils.h"
@@ -48,6 +54,7 @@
 #define BM_WIDTH 16
 #define BM_HEIGHT 16
 #define AUTO_RAISE true
+#define TOOLBUT_SIZE 20
 
 #define MAX_THREADS 16
 #define NUM_THREADS 4
@@ -84,178 +91,191 @@ static unsigned char *bitList[MAX_SLICER_TOGGLES][2] =
     {image_bits, fft_bits},
     {time_unlock_bits, time_lock_bits}};
 
-static QBitmap *bitmaps[MAX_SLICER_TOGGLES][2];
-static QBitmap *showBitmap;
-static QBitmap *contBitmap;
+static QIcon *icons[MAX_SLICER_TOGGLES];
+static QIcon *showIcon;
+static QIcon *contIcon;
 static int firstTime = 1;
+static char *toggleTips[] = {
+    "Toggle between regular and high-resolution (interpolated) image",
+    "Lock window at current position",
+    "Keep current image or model point centered (classic mode, hot key k)",
+    "Use keypad and mouse as if Shift key were down to rotate slice",
+    "Toggle between showing image and FFT",
+    "Lock window at current time" };
 
 static char *sliderLabels[] = {"X rotation", "Y rotation", "Z rotation"};
 
 SlicerWindow::SlicerWindow(SlicerStruct *slicer, float maxAngles[], 
                            QString timeLabel,
 			   bool rgba, bool doubleBuffer, bool enableDepth,
-			   QWidget * parent, const char * name, WFlags f) 
-  : QMainWindow(parent, name, f)
+			   QWidget * parent, Qt::WFlags f) 
+  : QMainWindow(parent, f)
 {
   int j;
-  ArrowButton *arrow;
+  ArrowButton *upArrow, *downArrow;
+  QToolButton *button;
   QGLFormat glFormat;
   QLabel *label;
   QCheckBox *check;
   mTimeBar = NULL;
+  mBreakBeforeAngBar = 0;
 
   mSlicer = slicer;
+  setAttribute(Qt::WA_DeleteOnClose);
+  setAttribute(Qt::WA_AlwaysShowToolTips);
+  setAnimated(false);
+  if (firstTime) 
+    utilBitListsToIcons(bitList, icons, MAX_SLICER_TOGGLES);
   
   // Get the toolbar
-  mToolBar = new HotToolBar(this, "zap toolbar");
-  if (!AUTO_RAISE) {
-    QBoxLayout *boxLayout = mToolBar->boxLayout();
-    boxLayout->setSpacing(4);
-  }
+  mToolBar = new HotToolBar(this);
+  addToolBar(mToolBar);
+  if (!TB_AUTO_RAISE)
+    mToolBar->layout()->setSpacing(4);
   connect(mToolBar, SIGNAL(keyPress(QKeyEvent *)), this,
 	  SLOT(toolKeyPress(QKeyEvent *)));
   connect(mToolBar, SIGNAL(keyRelease(QKeyEvent *)), this,
 	  SLOT(toolKeyRelease(QKeyEvent *)));
 
-  // Zoom arrows
-  arrow = new ArrowButton(Qt::UpArrow, mToolBar, "zoomup button");
-  arrow->setAutoRaise(AUTO_RAISE);
-  connect(arrow, SIGNAL(clicked()), this, SLOT(zoomUp()));
-  QToolTip::add(arrow, "Increase zoom factor");
-  arrow = new ArrowButton(Qt::DownArrow, mToolBar, "zoom down button");
-  arrow->setAutoRaise(AUTO_RAISE);
-  connect(arrow, SIGNAL(clicked()), this, SLOT(zoomDown()));
-  QToolTip::add(arrow, "Decrease zoom factor");
-  
-  // Zoom edit box
-  mZoomEdit = new ToolEdit(mToolBar, 6, "zoom edit box");
-  mZoomEdit->setFocusPolicy(QWidget::ClickFocus);
-  mZoomEdit->setAlignment(Qt::AlignRight);
-  connect(mZoomEdit, SIGNAL(returnPressed()), this, SLOT(newZoom()));
-  connect(mZoomEdit, SIGNAL(focusLost()), this, SLOT(newZoom()));
-  QToolTip::add(mZoomEdit, "Enter an arbitrary zoom factor");
-  
-  // Make the 4 toggle buttons and their signal mapper
+  // Zoom tools
+  mZoomEdit = utilTBZoomTools(this, mToolBar, &upArrow, &downArrow);
+  connect(upArrow, SIGNAL(clicked()), this, SLOT(zoomUp()));
+  connect(downArrow, SIGNAL(clicked()), this, SLOT(zoomDown()));
+  connect(mZoomEdit, SIGNAL(editingFinished()), this, SLOT(newZoom()));
+
+  // Make the toggle buttons and their signal mapper
   QSignalMapper *toggleMapper = new QSignalMapper(mToolBar);
   connect(toggleMapper, SIGNAL(mapped(int)), this, SLOT(toggleClicked(int)));
-  for (j = 0; j < 5; j++)
-    setupToggleButton(mToolBar, toggleMapper, j);
+  for (j = 0; j < 5; j++) {
+    utilSetupToggleButton(mToolBar, mToolBar, NULL, toggleMapper, icons, 
+                          toggleTips, mToggleButs, mToggleStates, j);
+    connect(mToggleButs[j], SIGNAL(clicked()), toggleMapper, SLOT(map()));
+  }
   
   // The showslice button is simpler
   if (firstTime) {
-    showBitmap = new QBitmap(BM_WIDTH, BM_HEIGHT, showslice_bits, true);
-    contBitmap = new QBitmap(BM_WIDTH, BM_HEIGHT, contour_bits, true);
+    showIcon = new QIcon(QBitmap::fromData(QSize(BM_WIDTH, BM_HEIGHT),
+                                           showslice_bits));
+    contIcon = new QIcon(QBitmap::fromData(QSize(BM_WIDTH, BM_HEIGHT),
+                                           contour_bits));
   }
-  
-  QToolButton *button = new QToolButton(mToolBar, "show slice");
-  button->setPixmap(*showBitmap);
-  button->setAutoRaise(AUTO_RAISE);
+ 
+  utilTBToolButton(this, mToolBar, &button, "Show slice cutting lines in"
+                   " Xyz and Zap windows (hot key l)");
+  button->setIcon(*showIcon);
   connect(button, SIGNAL(clicked()), this, SLOT(showslicePressed()));
-  QToolTip::add(button, "Show slice cutting lines in Xyz and Zap windows (hot"
-                " key l)");
-  
-  button = new QToolButton(mToolBar, "contour flat");
-  button->setPixmap(*contBitmap);
-  button->setAutoRaise(AUTO_RAISE);
+
+  utilTBToolButton(this, mToolBar, &button, "Set angles and position to show"
+                   " plane of current contour (hot key W)");
+  button->setIcon(*contIcon);
   connect(button, SIGNAL(clicked()), this, SLOT(contourPressed()));
-  QToolTip::add(button, "Set angles and position to show plane of current"
-                " contour (hot key W)");
 
   // The Z scale combo box
-  mZscaleCombo = new QComboBox(mToolBar, "zscale combo");
-  mZscaleCombo->insertItem("Z-Scale Off", SLICE_ZSCALE_OFF);
-  mZscaleCombo->insertItem("Z-Scale Before", SLICE_ZSCALE_BEFORE);
+  mZscaleCombo = new QComboBox(this);
+  mToolBar->addWidget(mZscaleCombo);
+  QStringList scaleList;
+  mZscaleCombo->addItem("Z-Scale Off");
+  mZscaleCombo->addItem("Z-Scale Before");
 
   // Only allow scale after if there is no implicit scale from binning
   if (slicer->vi->xybin == slicer->vi->zbin)
-    mZscaleCombo->insertItem("Z-Scale After", SLICE_ZSCALE_AFTER);
-  mZscaleCombo->setFocusPolicy(NoFocus);
+    mZscaleCombo->addItem("Z-Scale After");
+  mZscaleCombo->setFocusPolicy(Qt::NoFocus);
   connect(mZscaleCombo, SIGNAL(activated(int)), this, 
 	  SLOT(zScaleSelected(int)));
-  QToolTip::add(mZscaleCombo, "Select whether to ignore Z scale, or apply it"
+  mZscaleCombo->setToolTip("Select whether to ignore Z scale, or apply it"
                 " before or after rotation");
+  mToolBar->setAllowedAreas(Qt::TopToolBarArea);
 
   // THE TIME TOOLBAR
   if (!timeLabel.isEmpty()) {
-    mTimeBar = new HotToolBar(this, "time toolbar");
-    if (!AUTO_RAISE)
-      mTimeBar->boxLayout()->setSpacing(4);
+    mTimeBar = new HotToolBar(this);
+    addToolBarBreak();
+    addToolBar(mTimeBar);
+    if (!TB_AUTO_RAISE)
+      mTimeBar->layout()->setSpacing(4);
     connect(mTimeBar, SIGNAL(keyPress(QKeyEvent *)), this,
             SLOT(toolKeyPress(QKeyEvent *)));
     connect(mTimeBar, SIGNAL(keyRelease(QKeyEvent *)), this,
             SLOT(toolKeyRelease(QKeyEvent *)));
 
-    check = new QCheckBox("Link", mTimeBar);
-    check->setFocusPolicy(QWidget::NoFocus);
+    check = diaCheckBox("Link", this, NULL);
+    mTimeBar->addWidget(check);
     connect(check, SIGNAL(toggled(bool)), this, SLOT(linkToggled(bool)));
-    QToolTip::add(check, "Keep angles and positions same as for other linked "
+    check->setToolTip("Keep angles and positions same as for other linked "
                 "slicers");
 
-    setupToggleButton(mTimeBar, toggleMapper, MAX_SLICER_TOGGLES - 1);
+    j =  MAX_SLICER_TOGGLES - 1;
+    utilSetupToggleButton(mTimeBar, mTimeBar, NULL, toggleMapper, icons, 
+                          toggleTips, mToggleButs, mToggleStates, j);
+    connect(mToggleButs[j], SIGNAL(clicked()), toggleMapper, SLOT(map()));
 
-    label = new QLabel("4th D", mTimeBar);
+    label = new QLabel("4th D", this);
     label->setAlignment(Qt::AlignRight | Qt::AlignVCenter);
+    mTimeBar->addWidget(label);
 
-    arrow = new ArrowButton(Qt::LeftArrow, mTimeBar, "time back button");
-    connect(arrow, SIGNAL(clicked()), this, SLOT(timeBack()));
-    arrow->setAutoRaise(AUTO_RAISE);
-    arrow->setAutoRepeat(true);
-    QToolTip::add(arrow, "Move back in 4th dimension (time)");
+    utilTBArrowButton(Qt::LeftArrow, this, mTimeBar, &downArrow, 
+                      "Move back in 4th dimension (time)");
+    connect(downArrow, SIGNAL(clicked()), this, SLOT(timeBack()));
+    downArrow->setAutoRepeat(true);
 
-    arrow = new ArrowButton(Qt::RightArrow, mTimeBar, "time forward button");
-    connect(arrow, SIGNAL(clicked()), this, SLOT(timeForward()));
-    arrow->setAutoRaise(AUTO_RAISE);
-    arrow->setAutoRepeat(true);
-    QToolTip::add(arrow, "Move forward in 4th dimension (time)");
+    utilTBArrowButton(Qt::RightArrow, this, mTimeBar, &upArrow, 
+                      "Move forward in 4th dimension (time)");
+    connect(upArrow, SIGNAL(clicked()), this, SLOT(timeForward()));
+    upArrow->setAutoRepeat(true);
 
-    mTimeLabel = new QLabel(timeLabel, mTimeBar, "time label");
-
+    mTimeLabel = new QLabel(timeLabel, this);
+    mTimeBar->addWidget(mTimeLabel);
+    mTimeBar->setAllowedAreas(Qt::TopToolBarArea);
   }
 
   // SET ANGLE TOOLBAR
   mSaveAngBar = new HotToolBar(this);
-  mSaveAngBar->boxLayout()->setSpacing(4);
+  mSaveAngBar->layout()->setSpacing(4);
   connect(mSaveAngBar, SIGNAL(keyPress(QKeyEvent *)), this,
 	  SLOT(toolKeyPress(QKeyEvent *)));
   connect(mSaveAngBar, SIGNAL(keyRelease(QKeyEvent *)), this,
 	  SLOT(toolKeyRelease(QKeyEvent *)));
-  mSaveAngBut = new QPushButton("Save", mSaveAngBar, "save but");
-  mSaveAngBut->setFocusPolicy(QWidget::NoFocus);
-  connect(mSaveAngBut, SIGNAL(clicked()), this, SLOT(saveAngClicked()));
-  QToolTip::add(mSaveAngBut, "Save current angles and position in slicer angle"
-                " table");
-  mNewRowBut = new QPushButton("New", mSaveAngBar, "new row but");
-  mNewRowBut->setFocusPolicy(QWidget::NoFocus);
-  connect(mNewRowBut, SIGNAL(clicked()), this, SLOT(newRowClicked()));
-  QToolTip::add(mNewRowBut, "Save current angles and position in new row of"
-                " slicer angle table");
-  mSetAngBut = new QPushButton("Set", mSaveAngBar, "set ang but");
-  mSetAngBut->setFocusPolicy(QWidget::NoFocus);
-  connect(mSetAngBut, SIGNAL(clicked()), this, SLOT(setAngClicked()));
-  QToolTip::add(mSetAngBut, "Set angles and position from current row in"
-                " slicer angle table");
 
-  mAutoBox = new QCheckBox("Auto", mSaveAngBar);
-  mAutoBox->setFocusPolicy(QWidget::NoFocus);
+  utilTBPushButton("Save", this, mSaveAngBar, &mSaveAngBut, "Save current "
+                   "angles and position in slicer angle table");
+  connect(mSaveAngBut, SIGNAL(clicked()), this, SLOT(saveAngClicked()));
+
+  utilTBPushButton("New", this, mSaveAngBar, &mNewRowBut, "Save current "
+                   "angles and position in new row of slicer angle table");
+  connect(mNewRowBut, SIGNAL(clicked()), this, SLOT(newRowClicked()));
+
+  utilTBPushButton("Set", this, mSaveAngBar, &mSetAngBut, "Set angles and "
+                   "position from current row in slicer angle table");
+  connect(mSetAngBut, SIGNAL(clicked()), this, SLOT(setAngClicked()));
+
+  mAutoBox = diaCheckBox("Auto", this, NULL);
+  mSaveAngBar->addWidget(mAutoBox);
   connect(mAutoBox, SIGNAL(toggled(bool)), this,
           SLOT(continuousToggled(bool)));
-  QToolTip::add(mAutoBox, "Continuously update table from slicer and slicer "
+  mAutoBox->setToolTip("Continuously update table from slicer and slicer "
                 "from table");
+  mSaveAngBar->setAllowedAreas(Qt::TopToolBarArea);
+  addToolBar(mSaveAngBar);
 
   // SECOND TOOLBAR
   mToolBar2 = new HotToolBar(this);
-  mToolBar2->boxLayout()->setSpacing(4);
+  addToolBarBreak();
+  addToolBar(mToolBar2);
+  mToolBar2->layout()->setSpacing(4);
   connect(mToolBar2, SIGNAL(keyPress(QKeyEvent *)), this,
 	  SLOT(toolKeyPress(QKeyEvent *)));
   connect(mToolBar2, SIGNAL(keyRelease(QKeyEvent *)), this,
 	  SLOT(toolKeyRelease(QKeyEvent *)));
 
-
   // Make a frame, put a layout in it, and then put multisliders in the layout
-  QFrame *sliderFrame = new QFrame(mToolBar2);
+  QWidget *sliderFrame = new QWidget(this);
+  //  sliderFrame->setFrameStyle(QFrame::NoFrame);
+  mToolBar2->addWidget(sliderFrame);
   QVBoxLayout *sliderLayout = new QVBoxLayout(sliderFrame);
+  sliderLayout->setContentsMargins(0, 0, 0, 0);
   mSliders = new MultiSlider(sliderFrame, 3, sliderLabels, -1800,
-					  1800, 1);
+                             1800, 1);
   for (j = 0; j < 3; j++) {
     int maxVal = (int)(10. * maxAngles[j] + 0.1);
     mSliders->setRange(j, -maxVal, maxVal);
@@ -267,42 +287,54 @@ SlicerWindow::SlicerWindow(SlicerStruct *slicer, float maxAngles[],
 	  SLOT(angleChanged(int, int, bool)));
 
   // A frame for the cube widget; and the cube with the default GL format
-  QFrame *cubeFrame = new QFrame(mToolBar2);
+  QFrame *cubeFrame = new QFrame(this);
+  mToolBar2->addWidget(cubeFrame);
   cubeFrame->setFixedWidth(100);
   cubeFrame->setFrameShadow(QFrame::Sunken);
   cubeFrame->setFrameShape(QFrame::StyledPanel);
   QVBoxLayout *cubeLayout = new QVBoxLayout(cubeFrame);
-  cubeLayout->setMargin(3);
+  cubeLayout->setContentsMargins(2, 2, 2, 2);
   mCube = new SlicerCube(slicer, glFormat, cubeFrame);
   cubeLayout->addWidget(mCube);
 
   // Thickness box and help button
-  QVBox *thickBox = new QVBox(mToolBar2);
-  mHelpButton = new QPushButton("Help", thickBox, "Help button");
-  mHelpButton->setFocusPolicy(QWidget::NoFocus);
+  QWidget *thickBox = new QWidget(this);
+  mToolBar2->addWidget(thickBox);
+  QVBoxLayout *thickLay = new QVBoxLayout(thickBox);
+  thickLay->setContentsMargins(0, 0, 0, 0);
+  thickLay->setSpacing(0);
+  mHelpButton = diaPushButton("Help", thickBox, thickLay);
   connect(mHelpButton, SIGNAL(clicked()), this, SLOT(help()));
-  QToolTip::add(mHelpButton, "Open help window");
+  mHelpButton->setToolTip("Open help window");
 
   // Thickness of image spin box
-  label = new QLabel("Image", thickBox);
+  label = diaLabel("Image", thickBox, thickLay);
   QSize labelSize = label->sizeHint();
-  mImageBox = new QSpinBox(1, 1000, 1, thickBox);
-  mImageBox->setFocusPolicy(QWidget::ClickFocus);
+  mImageBox = new QSpinBox(thickBox);
+  thickLay->addWidget(mImageBox);
+  mImageBox->setRange(1,1000);
+  mImageBox->setSingleStep(1);
+  mImageBox->setFocusPolicy(Qt::ClickFocus);
   mImageBox->setMaximumWidth((int)(labelSize.width() * 1.5));
   connect(mImageBox, SIGNAL(valueChanged(int)), this, 
 	  SLOT(imageThicknessChanged(int)));
-  QToolTip::add(mImageBox, "Set number of slices to average (hot keys _  and "
+  mImageBox->setToolTip("Set number of slices to average (hot keys _  and "
                 "+)");
 
   // Thickness of model spin box
-  label = new QLabel("Model", thickBox);
-  mModelBox = new FloatSpinBox(1, 1, 10000, 10, thickBox);
-  mModelBox->setFocusPolicy(QWidget::ClickFocus);
+  label = diaLabel("Model", thickBox, thickLay);
+  mModelBox = new QDoubleSpinBox(thickBox);
+  thickLay->addWidget(mModelBox);  
+  mModelBox->setDecimals(1);
+  mModelBox->setRange(0.1, 1000.);
+  mModelBox->setSingleStep(1.0);
+  mModelBox->setFocusPolicy(Qt::ClickFocus);
   mModelBox->setMaximumWidth((int)(labelSize.width() * 1.5));
-  connect(mModelBox, SIGNAL(valueChanged(int)), this, 
-	  SLOT(modelThicknessChanged(int)));
-  QToolTip::add(mModelBox, "Set thickness of model to project onto image "
+  connect(mModelBox, SIGNAL(valueChanged(double)), this, 
+	  SLOT(modelThicknessChanged(double)));
+  mModelBox->setToolTip("Set thickness of model to project onto image "
                 "(hot keys 9 and 0");
+  mToolBar2->setAllowedAreas(Qt::TopToolBarArea);
 
   setToggleState(SLICER_TOGGLE_CENTER, slicer->classic);
   setFontDependentWidths();
@@ -316,20 +348,8 @@ SlicerWindow::SlicerWindow(SlicerStruct *slicer, float maxAngles[],
   
   // Set it as main widget, set focus, dock on top and bottom only
   setCentralWidget(mGLw);
-  setFocusPolicy(QWidget::StrongFocus);
-  setDockEnabled(mToolBar, Left, FALSE );
-  setDockEnabled(mToolBar, Right, FALSE );
-  setDockEnabled(mToolBar2, Left, FALSE );
-  setDockEnabled(mToolBar2, Right, FALSE );
-  setDockEnabled(mSaveAngBar, Left, FALSE );
-  setDockEnabled(mSaveAngBar, Right, FALSE );
-  if (mTimeBar) {
-    setDockEnabled(mTimeBar, Left, FALSE );
-    setDockEnabled(mTimeBar, Right, FALSE );
-  }
+  setFocusPolicy(Qt::StrongFocus);
 
-  // This makes the toolbar give a proper size hint before showing window
-  setUpLayout();
 }
 
 void SlicerWindow::setFontDependentWidths()
@@ -340,31 +360,24 @@ void SlicerWindow::setFontDependentWidths()
   diaSetButtonWidth(mSetAngBut, ImodPrefs->getRoundedStyle(), 1.35, "Set");
 }
 
-
-// Make the two bitmaps, add the toggle button to the tool bar, and add
-// it to the signal mapper
-void SlicerWindow::setupToggleButton(HotToolBar *toolBar, 
-                                     QSignalMapper *mapper, int ind)
+// Show the save angle toolbar after deciding whether a break is needed
+// from the toolbar before it by comparing sum of their lengths with window
+// width.  But have to use hints - the actual size can be stretched
+void SlicerWindow::showSaveAngleToolbar()
 {
-  char *toggleTips[] = {
-    "Toggle between regular and high-resolution (interpolated) image",
-    "Lock window at current position",
-    "Keep current image or model point centered (classic mode, hot key k)",
-    "Use keypad and mouse as if Shift key were down to rotate slice",
-    "Toggle between showing image and FFT",
-    "Lock window at current time" };
-
-  if (firstTime) {
-    bitmaps[ind][0] = new QBitmap(BM_WIDTH, BM_HEIGHT, bitList[ind][0], true);
-    bitmaps[ind][1] = new QBitmap(BM_WIDTH, BM_HEIGHT, bitList[ind][1], true);
+  QSize angHint = mSaveAngBar->sizeHint();
+  HotToolBar *before = mTimeBar ? mTimeBar : mToolBar;
+  QSize beforeHint = before->sizeHint();
+  int needBreak = angHint.width() + beforeHint.width() >= width() ? 1 : 0;
+  if (needBreak != mBreakBeforeAngBar) {
+    imodPrintStderr("Inserting or removing break %d\n", needBreak);
+    if (needBreak)
+      insertToolBarBreak(mSaveAngBar);
+    else
+      removeToolBarBreak(mSaveAngBar);
   }
-  mToggleButs[ind] = new QToolButton(toolBar, "toolbar toggle");
-  mToggleButs[ind]->setPixmap(*bitmaps[ind][0]);
-  mToggleButs[ind]->setAutoRaise(AUTO_RAISE);
-  mapper->setMapping(mToggleButs[ind],ind);
-  connect(mToggleButs[ind], SIGNAL(clicked()), mapper, SLOT(map()));
-  mToggleStates[ind] = 0;
-  QToolTip::add(mToggleButs[ind], QString(toggleTips[ind]));
+  mBreakBeforeAngBar = needBreak;
+  mSaveAngBar->show();
 }
 
 void SlicerWindow::zoomUp()
@@ -393,7 +406,7 @@ void SlicerWindow::timeForward()
 void SlicerWindow::newZoom()
 {
   QString str = mZoomEdit->text();
-  slicerEnteredZoom(mSlicer, atof(str.latin1()));
+  slicerEnteredZoom(mSlicer, atof(LATIN1(str)));
   setFocus();
 }
 
@@ -404,9 +417,9 @@ void SlicerWindow::imageThicknessChanged(int depth)
   setFocus();
 }
 
-void SlicerWindow::modelThicknessChanged(int depth)
+void SlicerWindow::modelThicknessChanged(double depth)
 {
-  slicerModelThickness(mSlicer, (float)(depth / 10.));
+  slicerModelThickness(mSlicer, (float)depth);
   setFocus();
 }
 
@@ -423,9 +436,8 @@ void SlicerWindow::angleChanged(int which, int value, bool dragging)
 // One of toggle buttons needs to change state
 void SlicerWindow::toggleClicked(int index)
 {
-  int state = 1 - mToggleStates[index];
+  int state = mToggleButs[index]->isChecked() ? 1 : 0;
   mToggleStates[index] = state; 
-  mToggleButs[index]->setPixmap(*bitmaps[index][state]);
   slicerStateToggled(mSlicer, index, state);
 }
 
@@ -483,8 +495,7 @@ void SlicerWindow::setAngles(float *angles)
 
 void SlicerWindow::setModelThickness(float depth)
 {
-  // Downcast seems not to be needed, but play it safe
-  diaSetSpinBox((QSpinBox *)mModelBox, (int)(10. * depth + 0.5));
+  diaSetDoubleSpinBox(mModelBox, depth);
 }
 
 void SlicerWindow::setImageThickness(int depth)
@@ -496,7 +507,7 @@ void SlicerWindow::setImageThickness(int depth)
 void SlicerWindow::setToggleState(int index, int state)
 {
   mToggleStates[index] = state ? 1 : 0;
-  mToggleButs[index]->setPixmap(*bitmaps[index][state]);
+  diaSetChecked(mToggleButs[index], state != 0);
 }
 
 void SlicerWindow::setZoomText(float zoom)
@@ -532,9 +543,8 @@ void SlicerWindow::closeEvent (QCloseEvent * e )
 ///////////////////////////////////////////////
 // The GL widget
 
-SlicerGL::SlicerGL(SlicerStruct *slicer, QGLFormat inFormat, QWidget * parent,
-             const char * name)
-  : QGLWidget(inFormat, parent, name)
+SlicerGL::SlicerGL(SlicerStruct *slicer, QGLFormat inFormat, QWidget * parent)
+  : QGLWidget(inFormat, parent)
 {
   mMousePressed = false;
   mSlicer = slicer;
@@ -584,9 +594,9 @@ void SlicerGL::mouseReleaseEvent ( QMouseEvent * e )
 ///////////////////////////////////////////////
 // The cube class
 
-SlicerCube::SlicerCube(SlicerStruct *slicer, QGLFormat inFormat, 
-		       QWidget * parent, const char * name)
-  : QGLWidget(inFormat, parent, name)
+SlicerCube::SlicerCube(SlicerStruct *slicer, QGLFormat inFormat,
+                       QWidget * parent)
+  : QGLWidget(inFormat, parent)
 {
   mSlicer = slicer;
 }
@@ -1489,6 +1499,9 @@ static void fillArraySegment(int jstart, int jlimit)
 /*
 
 $Log$
+Revision 4.28  2008/11/29 22:10:30  mast
+Added ability to link slicers
+
 Revision 4.27  2008/03/06 06:16:27  mast
 Fixed artifact on right edge in zoomed HQ image
 

@@ -1,4 +1,7 @@
 #include "dialog_frame.h"
+//Added by qt3to4:
+#include <QKeyEvent>
+#include <QCloseEvent>
 class QPushButton;
 class QCheckBox;
 class BeadFixer2 : public DialogFrame

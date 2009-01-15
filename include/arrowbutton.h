@@ -9,7 +9,7 @@ class DLL_IM_EX ArrowButton : public QToolButton
   Q_OBJECT
     public:
 
-  ArrowButton ( ArrowType type, QWidget * parent, const char * name = 0 );
+  ArrowButton ( Qt::ArrowType type, QWidget * parent, const char * name = 0 );
   ~ArrowButton();
 };
 #endif

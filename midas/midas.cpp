@@ -20,18 +20,34 @@
 #include "mrcc.h"
 #include "b3dutil.h"
 #include "math.h"
-#include <qpopupmenu.h>
+#include <qmenu.h>
 #include <qmenubar.h>
-#include <qgrid.h>
+#include <qgridlayout.h>
 #include <qstringlist.h>
 #include <qregexp.h>
 #include <qlayout.h>
+#include <QDoubleSpinBox>
+//Added by qt3to4:
+#include <QKeyEvent>
+#include <QKeySequence>
+#include <QLabel>
+#include <QFrame>
+#include <QCloseEvent>
+#include <QAction>
 #include "arrowbutton.h"
-#include "floatspinbox.h"
 #include "dia_qtutils.h"
 #ifndef NO_IMOD_FORK
 #include <unistd.h>
 #endif
+
+#define ADD_ACTION(a, b, c) menuActions[c] = a##Menu->addAction(b); \
+connect(menuActions[c], SIGNAL(triggered()), a##Mapper, SLOT(map())); \
+a##Mapper->setMapping(menuActions[c], c);
+
+#define ADD_ACTION_KEY(a, b, c, d) menuActions[c] = a##Menu->addAction(b); \
+menuActions[c]->setShortcut(QKeySequence(d)); \
+connect(menuActions[c], SIGNAL(triggered()), a##Mapper, SLOT(map())); \
+a##Mapper->setMapping(menuActions[c], c);
 
 MidasView *VW;
 int Midas_debug = 0;
@@ -71,9 +87,9 @@ static void usage(void)
      qstr += "   -D\t\t debug mode - do not run in background\n";
      qstr += "   -q\t\t suppress reminder message when fixing edges\n";
 #ifdef _WIN32
-     dia_puts((char *)qstr.latin1());
+     dia_puts(LATIN1(qstr));
 #else
-     printf(qstr.latin1());
+     printf(LATIN1(qstr));
 #endif
      exit(3);
 }
@@ -163,7 +179,7 @@ int main (int argc, char **argv)
 
       case 't': /* tilt angles */
 	vw->tiltname = argv[++i];
-        vw->cosStretch = 1;
+        vw->cosStretch = -1;
         vw->rotMode = 1;
 	break;
 
@@ -184,7 +200,7 @@ int main (int argc, char **argv)
 	break;
 
       case 'c':
-        chunkList = QStringList::split(',', QString(argv[++i]));
+        chunkList = QString(argv[++i]).split(",", QString::SkipEmptyParts);
         vw->numChunks = chunkList.count();
         break;
 
@@ -349,7 +365,7 @@ int main (int argc, char **argv)
   // Create the components (window creates the GL widget)
   vw->midasSlots = new MidasSlots();
   vw->midasWindow = new MidasWindow(doubleBuffer);
-  myapp.setMainWidget(vw->midasWindow);
+  //myapp.setMainWidget(vw->midasWindow);
 
   vw->midasWindow->show();
   vw->midasWindow->setFocus();
@@ -358,73 +374,76 @@ int main (int argc, char **argv)
 }
 
 
-MidasWindow::MidasWindow(bool doubleBuffer, QWidget * parent, 
-			 const char * name, WFlags f)
-  : QMainWindow(parent, name, f)
+MidasWindow::MidasWindow(bool doubleBuffer, QWidget * parent, Qt::WFlags f)
+  : QMainWindow(parent, f)
 {
-  int deskWidth, deskHeight, newWidth, newHeight, xleft, ytop;
+  int newWidth, newHeight, xleft, ytop;
   int commandWidth, commandHeight, id;
 
+  // Yes this goes out of scope, but this was a prototype for 3dmod
+  QAction *menuActions[LAST_MENU_ID];
+
+  // Create the menus in the menubar
+  QMenu *fileMenu = menuBar()->addMenu("&File");
+  QMenu *editMenu = menuBar()->addMenu("&Edit");
+  menuBar()->addSeparator();
+  QMenu *helpMenu = menuBar()->addMenu("&Help");
+  QSignalMapper *fileMapper = new QSignalMapper(this);
+  QSignalMapper *editMapper = new QSignalMapper(this);
+  QSignalMapper *helpMapper = new QSignalMapper(this);
+  connect(fileMapper, SIGNAL(mapped(int)), VW->midasSlots, 
+          SLOT(slotFilemenu(int)));
+  connect(editMapper, SIGNAL(mapped(int)), VW->midasSlots, 
+          SLOT(slotEditmenu(int)));
+  connect(helpMapper, SIGNAL(mapped(int)), VW->midasSlots, 
+          SLOT(slotHelpmenu(int)));
+
   // Create file menu
-  QPopupMenu *fileMenu = new QPopupMenu;
-  fileMenu->insertItem("&Load transforms", FILE_MENU_LOAD);
-  id = fileMenu->insertItem("&Save transforms", FILE_MENU_SAVE);
-  fileMenu->setAccel(Key_S, id);   // Want it to show upas little s but...
-  fileMenu->insertItem("Sa&ve transforms as...", FILE_MENU_SAVE_AS);
-  fileMenu->insertItem("Save &contrast-scaled image...", FILE_MENU_SAVE_IMAGE);
-  fileMenu->insertItem("&Transform model...", FILE_MENU_TRANSFORM);
-  fileMenu->insertSeparator();
-  fileMenu->insertItem("&Quit", FILE_MENU_QUIT);
-  QObject::connect(fileMenu, SIGNAL(activated(int)), VW->midasSlots,
-		   SLOT(slotFilemenu(int)));
+  ADD_ACTION(file, "&Load transforms", FILE_MENU_LOAD);
+  ADD_ACTION_KEY(file, "&Save transforms", FILE_MENU_SAVE, Qt::Key_S);
+  ADD_ACTION(file, "Sa&ve transforms as...", FILE_MENU_SAVE_AS);
+  ADD_ACTION(file, "Save &contrast-scaled image...", FILE_MENU_SAVE_IMAGE);
+  ADD_ACTION(file, "&Transform model...", FILE_MENU_TRANSFORM);
+  fileMenu->addSeparator();
+  ADD_ACTION(file, "&Quit", FILE_MENU_QUIT);
   if (VW->xtype == XTYPE_XF || VW->xtype == XTYPE_MONT)
-    fileMenu->setItemEnabled(FILE_MENU_TRANSFORM, false);
+    menuActions[FILE_MENU_TRANSFORM]->setEnabled(false);
   
   // Create Edit menu
-  QPopupMenu *editMenu = new QPopupMenu;
-  editMenu->insertItem("&Store section transform", EDIT_MENU_STORE);
-  editMenu->insertItem("&Reset to unit transform", EDIT_MENU_RESET);
-  editMenu->insertItem("Re&vert to stored transform", EDIT_MENU_REVERT);
-  editMenu->insertItem("&Mirror around X axis", EDIT_MENU_MIRROR);
-  QObject::connect(editMenu, SIGNAL(activated(int)), VW->midasSlots,
-		   SLOT(slotEditmenu(int)));
-  if (VW->xtype == XTYPE_MONT)
-    fileMenu->setItemEnabled(EDIT_MENU_MIRROR, false);
+  ADD_ACTION(edit, "&Store section transform", EDIT_MENU_STORE);
+  ADD_ACTION(edit, "&Reset to unit transform", EDIT_MENU_RESET);
+  ADD_ACTION(edit, "Re&vert to stored transform", EDIT_MENU_REVERT);
+  ADD_ACTION(edit, "&Mirror around X axis", EDIT_MENU_MIRROR);
+  menuActions[EDIT_MENU_MIRROR]->setEnabled(VW->xtype != XTYPE_MONT);
   
   // Create Help menu
-  QPopupMenu *helpMenu = new QPopupMenu;
-  helpMenu->insertItem("&Controls", HELP_MENU_CONTROLS);
-  helpMenu->insertItem("&Hotkeys", HELP_MENU_HOTKEYS);
-  helpMenu->insertItem("&Mouse", HELP_MENU_MOUSE);
-  helpMenu->insertItem("Man &Page", HELP_MENU_MANPAGE);
-  helpMenu->insertSeparator();
-  helpMenu->insertItem("&About Midas", HELP_MENU_ABOUT);
-  QObject::connect(helpMenu, SIGNAL(activated(int)), VW->midasSlots,
-		   SLOT(slotHelpmenu(int)));
-
-  // Create and fill menu bar
-  QMenuBar *menuBar = new QMenuBar(this);
-  menuBar->insertItem("&File", fileMenu);
-  menuBar->insertItem("&Edit", editMenu);
-  menuBar->insertSeparator();
-  menuBar->insertItem("&Help", helpMenu);
+  ADD_ACTION(help, "&Controls", HELP_MENU_CONTROLS);
+  ADD_ACTION(help, "&Hotkeys", HELP_MENU_HOTKEYS);
+  ADD_ACTION(help, "&Mouse", HELP_MENU_MOUSE);
+  ADD_ACTION(help, "Man &Page", HELP_MENU_MANPAGE);
+  helpMenu->addSeparator();
+  ADD_ACTION(help, "&About Midas", HELP_MENU_ABOUT);
 
   // Create main widget control panel
-  QHBox *mainbox = new QHBox(this);
+  QWidget *mainbox = new QWidget(this);
+  QHBoxLayout *mainlay = new QHBoxLayout(mainbox);
+  mainlay->setContentsMargins(2, 2, 2, 2);
   setCentralWidget(mainbox);
-  QVBox *outer = new QVBox(mainbox);
-  QVBox *col = new QVBox(outer);
+  QWidget *outer = new QWidget(mainbox);
+  mainlay->addWidget(outer);
+  QVBoxLayout *col = new QVBoxLayout(outer);
   col->setSpacing(4);
-  col->setMargin(5);
+  col->setContentsMargins(3, 3, 3, 3);
 
   // Need GLwidget next
   QGLFormat glFormat;
   glFormat.setRgba(true);
   glFormat.setDoubleBuffer(doubleBuffer);
   VW->midasGL = new MidasGL(glFormat, mainbox);
+  mainlay->addWidget(VW->midasGL);
 
-  mainbox->setStretchFactor(col, 0);
-  mainbox->setStretchFactor(VW->midasGL, 1);
+  mainlay->setStretchFactor(col, 0);
+  mainlay->setStretchFactor(VW->midasGL, 1);
 
   createSectionControls(col);
   makeSeparator(col, 2);
@@ -436,11 +455,8 @@ MidasWindow::MidasWindow(bool doubleBuffer, QWidget * parent,
   makeSeparator(col, 2);
   createParameterDisplay(col);
 
-  // The alternative, skipping the outer box and adding the spacer to col,
-  // worked just as well as long as a stretch factor was set for the spacer
-  // But this seems less mysterious and does not even require stretch factors
-  new QVBox(outer);
-  
+  col->addStretch();
+
   // set window width from current width plus image width
   QSize comSize = col->sizeHint();
   QSize winSize = sizeHint();
@@ -466,9 +482,9 @@ MidasWindow::MidasWindow(bool doubleBuffer, QWidget * parent,
   move(xleft, ytop);
 
   // This should be a good thing, because widgets were all initialized with
-  // exteme numbers
-  col->setFixedWidth(commandWidth);
-  setFocusPolicy(StrongFocus);
+  // extreme numbers
+  outer->setFixedWidth(commandWidth);
+  setFocusPolicy(Qt::StrongFocus);
 }
 
 MidasWindow::~MidasWindow()
@@ -489,38 +505,41 @@ void MidasWindow::keyPressEvent ( QKeyEvent * e )
 
 void MidasWindow::keyReleaseEvent ( QKeyEvent * e )
 {
-  if (e->key() == Key_Control) {
+  if (e->key() == Qt::Key_Control) {
     VW->ctrlPressed = 0;
     VW->midasGL->manageMouseLabel(" ");
   }
-  if (e->key() == Key_Shift) {
+  if (e->key() == Qt::Key_Shift) {
     VW->shiftPressed = 0;
     VW->midasGL->manageMouseLabel(" ");
   }
 }
 
-void MidasWindow::makeSeparator(QVBox *parent, int width)
+void MidasWindow::makeSeparator(QVBoxLayout *parent, int width)
 {
-  QFrame *frame = new QFrame(parent);
+  QFrame *frame = new QFrame();
+  parent->addWidget(frame);
   frame->setFrameStyle(QFrame::Plain | QFrame::HLine);
   frame->setLineWidth(width);
 }
 
-void MidasWindow::makeTwoArrows(QHBox *parent, int direction, 
+void MidasWindow::makeTwoArrows(QHBoxLayout *parent, int direction, 
                                 int signal, QSignalMapper *mapper, bool repeat)
-
+  
 {
   parent->setSpacing(4);
   ArrowButton *arrow = new ArrowButton(direction < 0 ? 
-					Qt::LeftArrow : Qt::UpArrow, parent);
+                                       Qt::LeftArrow : Qt::UpArrow, NULL);
+  parent->addWidget(arrow);
   arrow->setFixedWidth(ARROW_SIZE);
   arrow->setFixedHeight(ARROW_SIZE);
   arrow->setAutoRepeat(repeat);
   mapper->setMapping(arrow, direction * signal);
   QObject::connect(arrow, SIGNAL(clicked()), mapper, SLOT(map()));
 
-  arrow = new ArrowButton(direction < 0 ? Qt::RightArrow : Qt::DownArrow,
-			  parent);
+  arrow = new ArrowButton(direction < 0 ? Qt::RightArrow : Qt::DownArrow, 
+                          NULL);
+  parent->addWidget(arrow);
   arrow->setFixedWidth(ARROW_SIZE);
   arrow->setFixedHeight(ARROW_SIZE);
   arrow->setAutoRepeat(repeat);
@@ -528,59 +547,57 @@ void MidasWindow::makeTwoArrows(QHBox *parent, int direction,
   QObject::connect(arrow, SIGNAL(clicked()), mapper, SLOT(map()));
 }
 
-QLabel *MidasWindow::makeArrowRow(QVBox *parent, int direction, int signal,
-				  QSignalMapper *mapper, bool repeat,
-				  QString textlabel, int decimals, int digits,
-				  float value)
+QLabel *MidasWindow::makeArrowRow(QVBoxLayout *parent, int direction, 
+                                  int signal, QSignalMapper *mapper, 
+                                  bool repeat, QString textlabel, int decimals,
+                                  int digits, float value)
 {
   char string[32];
   QLabel *label;
   QString str;
-  QHBox *row = new QHBox(parent);
+  QHBoxLayout *row = diaHBoxLayout(parent);
   makeTwoArrows(row, direction, signal, mapper, repeat);
   
-  label = new QLabel(textlabel, row);
+  label = diaLabel(LATIN1(textlabel), NULL, row);
   label->setAlignment(Qt::AlignLeft | Qt::AlignVCenter);
   VW->midasSlots->sprintf_decimals(string, decimals, digits, value);
   str = string;
-  label = new QLabel(str, row);
+  label = diaLabel(LATIN1(str), NULL, row);
   label->setAlignment(Qt::AlignRight | Qt::AlignVCenter);
   return (label);
 }
 
-QSignalMapper *MidasWindow::makeLabeledArrows(QVBox *parent, QString textlabel,
+QSignalMapper *MidasWindow::makeLabeledArrows(QVBoxLayout *parent, 
+                                              QString textlabel,
 					      QLabel **outLabel, bool repeat)
 {
-  QHBox *row = new QHBox(parent);
-  QSignalMapper *mapper = new QSignalMapper(row);
+  QHBoxLayout *row = diaHBoxLayout(parent);
+  QSignalMapper *mapper = new QSignalMapper();
   
   makeTwoArrows(row, 1, 1, mapper, repeat);
   
-  *outLabel = new QLabel(textlabel, row);
+  *outLabel = diaLabel(LATIN1(textlabel), NULL, row);
   (*outLabel)->setAlignment(Qt::AlignLeft | Qt::AlignVCenter);
   //row->setStretchFactor(*outLabel, 5);
   return (mapper);
 }
 
-QSpinBox *MidasWindow::makeSpinBoxRow(QHBox *row, char *labText,
-                                 int minz, int maxz)
+QSpinBox *MidasWindow::makeSpinBoxRow(QHBoxLayout *row, char *labText,
+                                      int minz, int maxz)
 {
-  QLabel *label = new QLabel(QString(labText), row);
-  label->setAlignment(AlignRight | AlignVCenter);
-  row->setStretchFactor(label, 1);
-  QSpinBox *spin = new QSpinBox(minz, maxz, 1, row);
+  QSpinBox *spin = (QSpinBox *)diaLabeledSpin
+    (0, (float)minz, (float)maxz, 1., labText, NULL,  row);
   spin->setFixedWidth(60);
-  spin->setFocusPolicy(ClickFocus);
   return spin;
 }
 
-void MidasWindow::createParameterDisplay(QVBox *col)
+void MidasWindow::createParameterDisplay(QVBoxLayout *col)
 {
   int i;
   QLabel *label;
   
   for (i = 0; i < 3; i++) {
-    VW->mouseLabel[i] = new QLabel(" ", col);
+    VW->mouseLabel[i] = diaLabel(" ", NULL, col);
     VW->mouseLabel[i]->setAlignment(Qt::AlignCenter);
   }
   VW->midasGL->manageMouseLabel(" ");
@@ -633,102 +650,95 @@ void MidasWindow::createParameterDisplay(QVBox *col)
 		   SLOT(slotIncrement(int)));
 
   if (VW->xtype != XTYPE_MONT) {
-    VW->anglescale = new QSlider(-900, 900, 100, 0, Qt::Horizontal, col);
-    VW->anglescale->setLineStep(10);
-    VW->anglescale->setFocusPolicy(NoFocus);
-    QHBox *slideBox = new QHBox(col);
-    QLabel *slideName = new QLabel("Stretch Angle", slideBox);
+    VW->anglescale = diaSlider(-900, 900, 100, 0, NULL, col);
+    VW->anglescale->setPageStep(10);
+    QHBoxLayout *slideBox = diaHBoxLayout(col);
+    QLabel *slideName = diaLabel("Stretch Angle", NULL, slideBox);
     slideName->setAlignment(Qt::AlignLeft);
-    VW->anglelabel = new QLabel("0.0", slideBox);
+    VW->anglelabel = diaLabel("0.0", NULL, slideBox);
     VW->anglelabel->setAlignment(Qt::AlignRight);
     QObject::connect(VW->anglescale, SIGNAL(valueChanged(int)),
 		     VW->midasSlots, SLOT(slotAngle(int)));
 
     if (VW->rotMode) {
       makeSeparator(col, 1);
-      QHBox *globRotBox = new QHBox(col);
-      QLabel *globLabel = new QLabel("Global rotation", globRotBox);
-      globLabel->setAlignment(Qt::AlignLeft);
+      QHBoxLayout *globRotBox = diaHBoxLayout(col);
+      //QLabel *globLabel = diaLabel("Global rotation", NULL, globRotBox);
+      //globLabel->setAlignment(Qt::AlignLeft);
 
-      VW->globRotSpin = new FloatSpinBox(1, -1800, 1800, 10, globRotBox);
+      VW->globRotSpin = (QDoubleSpinBox *)diaLabeledSpin
+        (1, -180., 180., 1., "Global rotation", NULL, globRotBox);
       VW->globRotSpin->setFixedWidth
-        (globLabel->fontMetrics().width("-180.0000"));
+        (VW->globRotSpin->fontMetrics().width("-180.0000"));
       VW->globRotSpin->setValue((int)floor(VW->globalRot * 10. + 0.5));
-      VW->globRotSpin->setFocusPolicy(ClickFocus);
-      QObject::connect(VW->globRotSpin, SIGNAL(valueChanged(int)), 
-                       VW->midasSlots, SLOT(slotGlobRot(int)));
-
-      QCheckBox *check = new QCheckBox("Mouse shifts X only", col);
+      QObject::connect(VW->globRotSpin, SIGNAL(valueChanged(double)), 
+                       VW->midasSlots, SLOT(slotGlobRot(double)));
+      QCheckBox *check = diaCheckBox("Mouse shifts X only", NULL, col);
       check->setChecked(false);
-      check->setFocusPolicy(NoFocus);
       QObject::connect(check, SIGNAL(toggled(bool)), VW->midasSlots,
                        SLOT(slotConstrainMouse(bool)));
       if (VW->cosStretch) {
-        check = new QCheckBox("Apply cosine stretch", col);
+        check = diaCheckBox("Apply cosine stretch", NULL, col);
         check->setChecked(false);
-        check->setFocusPolicy(NoFocus);
         QObject::connect(check, SIGNAL(toggled(bool)), VW->midasSlots,
                          SLOT(slotCosStretch(bool)));
-        VW->cosStretch = false;
+        VW->cosStretch = 0;
 
-        QHBox *tiltOffBox = new QHBox(col);
-        QLabel *tiltOffLabel = new QLabel("Tilt angle offset", tiltOffBox);
-        tiltOffLabel->setAlignment(Qt::AlignLeft);
-
-        VW->tiltOffSpin = new FloatSpinBox(1, -900, 900, 10, tiltOffBox);
+        QHBoxLayout *tiltOffBox = diaHBoxLayout(col);
+        VW->tiltOffSpin = (QDoubleSpinBox *)diaLabeledSpin
+          (1, -90., 90., 1., "Tilt angle offset", NULL, tiltOffBox);
         VW->tiltOffSpin->setFixedWidth
-          (globLabel->fontMetrics().width("-180.0000"));
-        VW->tiltOffSpin->setValue(0);
-        VW->tiltOffSpin->setFocusPolicy(ClickFocus);
-        QObject::connect(VW->tiltOffSpin, SIGNAL(valueChanged(int)), 
-                         VW->midasSlots, SLOT(slotTiltOff(int)));
+          (VW->tiltOffSpin->fontMetrics().width("-180.0000"));
+        VW->tiltOffSpin->setValue(0.);
+        QObject::connect(VW->tiltOffSpin, SIGNAL(valueChanged(double)), 
+                         VW->midasSlots, SLOT(slotTiltOff(double)));
       }
     }
 
   } else {
     makeSeparator(col, 2);
 
-    VW->wMeanerr = new QLabel("Mean error: 100.00", col);
+    VW->wMeanerr = diaLabel("Mean error: 100.00", NULL, col);
     VW->wMeanerr->setAlignment(Qt::AlignLeft);
-    label = new QLabel("Top 4 errors:", col);
+    label = diaLabel("Top 4 errors:", NULL, col);
     label->setAlignment(Qt::AlignLeft);
 
-    QGrid *grid = new QGrid(2, Qt::Horizontal, col);
+    QGridLayout *grid = new QGridLayout();
+    col->addLayout(grid);
     grid->setSpacing(5);
-    QSignalMapper *mapper = new QSignalMapper(col);
+    QSignalMapper *mapper = new QSignalMapper();
     for (i = 0; i < 4; i++) {
-      VW->wToperr[i] = new QPushButton("X 199: 50.00  ", grid);
+      VW->wToperr[i] = new QPushButton("X 199: 50.00  ");
+      grid->addWidget(VW->wToperr[i], i / 2, i % 2);
       mapper->setMapping(VW->wToperr[i], i);
       QObject::connect(VW->wToperr[i], SIGNAL(clicked()), mapper, SLOT(map()));
-      VW->wToperr[i]->setFocusPolicy(NoFocus);
+      VW->wToperr[i]->setFocusPolicy(Qt::NoFocus);
     }
     QObject::connect(mapper, SIGNAL(mapped(int)), 
 		     VW->midasSlots, SLOT(slotTop_error(int)));
 
-    VW->wCurerr = new QLabel("This edge: -50.00, -50.00", col);
+    VW->wCurerr = diaLabel("This edge: -50.00, -50.00", NULL, col);
     VW->wCurerr->setAlignment(Qt::AlignLeft);
-    VW->wLeaverr = new QLabel("Leave-out: -50.00, -50.00", col);
+    VW->wLeaverr = diaLabel("Leave-out: -50.00, -50.00", NULL, col);
     VW->wLeaverr->setAlignment(Qt::AlignLeft);
 
-    QPushButton *button = new QPushButton("Apply Leave-out Error", col);
-    button->setFocusPolicy(NoFocus);
+    QPushButton *button = diaPushButton("Apply Leave-out Error", NULL, col);
     QObject::connect(button, SIGNAL(clicked()), VW->midasSlots,
 		     SLOT(slotLeave_out()));
   }
 
 }
 
-void MidasWindow::createSectionControls(QVBox *parent)
+void MidasWindow::createSectionControls(QVBoxLayout *parent)
 {
-  QHBox *row;
-  QVBox *col = parent;
+  QHBoxLayout *row;
+  QVBoxLayout *col = parent;
   QLabel *label;
-  QSignalMapper *mapper;
   int maxz;
 
   // Reference section text box
   if (VW->xtype != XTYPE_MONT) {
-    row = new QHBox(col);
+    row = diaHBoxLayout(col);
     maxz = (VW->xtype == XTYPE_XREF) ? VW->refzsize : VW->zsize;
     VW->refSpin = makeSpinBoxRow(row, "Reference Sec. ", 1, maxz);
     QObject::connect(VW->refSpin, SIGNAL(valueChanged(int)),
@@ -736,7 +746,7 @@ void MidasWindow::createSectionControls(QVBox *parent)
   }
 
   // Current section text box
-  row = new QHBox(col);
+  row = diaHBoxLayout(col);
   maxz = (VW->xtype == XTYPE_MONT) ? VW->maxzpiece + 1 : VW->zsize;
   VW->curSpin = makeSpinBoxRow(row, "Current Sec. ", 1, maxz);
   QObject::connect(VW->curSpin, SIGNAL(valueChanged(int)),
@@ -745,7 +755,7 @@ void MidasWindow::createSectionControls(QVBox *parent)
   if (VW->numChunks) {
 
     // Chunk mode: just add a chunk spin box
-    row = new QHBox(col);
+    row = diaHBoxLayout(col);
     VW->chunkSpin = makeSpinBoxRow(row, "Current Chunk ", 2, VW->numChunks);
     QObject::connect(VW->chunkSpin, SIGNAL(valueChanged(int)),
                      VW->midasSlots, SLOT(slotChunkValue(int)));
@@ -754,29 +764,26 @@ void MidasWindow::createSectionControls(QVBox *parent)
     
     // Non-montage: the difference checkbox and mode label
 
-    VW->difftoggle  = new QCheckBox("Keep Curr - Ref diff = 1", col);
+    VW->difftoggle  = diaCheckBox("Keep Curr - Ref diff = 1", NULL, col);
     VW->difftoggle->setChecked(true);
-    VW->difftoggle->setFocusPolicy(NoFocus);
     QObject::connect(VW->difftoggle, SIGNAL(toggled(bool)), 
 		     VW->midasSlots, SLOT(slotKeepdiff(bool)));
 
     if (VW->xtype == XTYPE_XF)
-      label = new QLabel ("Local Alignment Mode", col);
+      label = diaLabel ("Local Alignment Mode", NULL, col);
     else
-      label = new QLabel ("Global Alignment Mode", col);
+      label = diaLabel ("Global Alignment Mode", NULL, col);
     label->setAlignment(Qt::AlignCenter);
 
   } else if (VW->xtype == XTYPE_MONT) { 
 
     // Make the X and Y radio buttons, and edge number textbox
-    row = new QHBox(col);
+    row = diaHBoxLayout(col);
     row->setSpacing(3);
-    VW->edgeGroup = new QButtonGroup(2, Qt::Horizontal, row);
-    VW->wXedge = new QRadioButton("X", VW->edgeGroup);
-    VW->wYedge = new QRadioButton("Y", VW->edgeGroup);
-    VW->wXedge->setFocusPolicy(NoFocus);
-    VW->wYedge->setFocusPolicy(NoFocus);
-    QObject::connect(VW->edgeGroup, SIGNAL(clicked(int)),
+    VW->edgeGroup = new QButtonGroup();
+    VW->wXedge = diaRadioButton("X", NULL, VW->edgeGroup, row, 0, NULL);
+    VW->wXedge = diaRadioButton("Y", NULL, VW->edgeGroup, row, 1, NULL);
+    QObject::connect(VW->edgeGroup, SIGNAL(buttonClicked(int)),
 		     VW->midasSlots, SLOT(slotXory(int)));
 
     VW->edgeSpin = makeSpinBoxRow(row, "Edge ", 1, VW->maxedge[VW->xory]);
@@ -786,12 +793,12 @@ void MidasWindow::createSectionControls(QVBox *parent)
     VW->midasSlots->manage_xory(VW);
     
   } else {
-    label = new QLabel("Reference Alignment Mode", col);
+    label = diaLabel("Reference Alignment Mode", NULL, col);
     label->setAlignment(Qt::AlignCenter);
   }
 }
 
-void MidasWindow::createZoomBlock(QVBox *parent)
+void MidasWindow::createZoomBlock(QVBoxLayout *parent)
 {
   QString str;
 
@@ -805,40 +812,36 @@ void MidasWindow::createZoomBlock(QVBox *parent)
   QObject::connect(mapper, SIGNAL(mapped(int)), VW->midasSlots,
 		     SLOT(slotBlock(int)));
   
-  QCheckBox *check = new QCheckBox("Interpolate", parent);
+  QCheckBox *check = diaCheckBox("Interpolate", NULL, parent);
   check->setChecked(VW->fastip == 0);
-  check->setFocusPolicy(NoFocus);
   QObject::connect(check, SIGNAL(toggled(bool)), VW->midasSlots,
 		     SLOT(slotInterpolate(bool)));
 }
 
-void MidasWindow::createViewToggle(QVBox *parent)
+void MidasWindow::createViewToggle(QVBoxLayout *parent)
 {
 
-  VW->overlaytoggle = new QCheckBox("Overlay view", parent);
+  VW->overlaytoggle = diaCheckBox("Overlay view", NULL, parent);
   VW->overlaytoggle->setChecked(VW->vmode == MIDAS_VIEW_COLOR);
-  VW->overlaytoggle->setFocusPolicy(NoFocus);
   QObject::connect(VW->overlaytoggle, SIGNAL(toggled(bool)), VW->midasSlots,
 		   SLOT(slotOverlay(bool)));
 
-  QPushButton *button = new QPushButton("Toggle Ref/Cur", parent);
-  button->setFocusPolicy(NoFocus);
+  QPushButton *button = diaPushButton("Toggle Ref/Cur", NULL, parent);
   QObject::connect(button, SIGNAL(pressed()), VW->midasSlots,
 		     SLOT(slotAlign_arm()));
   QObject::connect(button, SIGNAL(released()), VW->midasSlots,
 		     SLOT(slotAlign_disarm()));
 }
 
-void MidasWindow::createContrastControls(QVBox *parent)
+void MidasWindow::createContrastControls(QVBoxLayout *parent)
 {
-  QHBox *row;
+  QHBoxLayout *row;
 
-  row = new QHBox(parent);
+  row = diaHBoxLayout(parent);
   row->setSpacing(3);
-  new QLabel("Black", row);
-  VW->wBlacklevel = new QSlider(0, 255, 1, 0, Qt::Horizontal, row);
-  VW->wBlacklevel->setFocusPolicy(NoFocus);
-  VW->wBlackval = new QLabel("000", row);
+  diaLabel("Black", NULL, row);
+  VW->wBlacklevel = diaSlider(0, 255, 1, 0, NULL, row);
+  VW->wBlackval = diaLabel("000", NULL, row);
   QObject::connect(VW->wBlacklevel, SIGNAL(valueChanged(int)),
 		   VW->midasSlots, SLOT(slotBlacklevel(int)));
   QObject::connect(VW->wBlacklevel, SIGNAL(sliderPressed()),
@@ -846,12 +849,12 @@ void MidasWindow::createContrastControls(QVBox *parent)
   QObject::connect(VW->wBlacklevel, SIGNAL(sliderReleased()),
 		   VW->midasSlots, SLOT(slotBlackReleased()));
 
-  row = new QHBox(parent);
+  row = diaHBoxLayout(parent);
   row->setSpacing(3);
-  new QLabel("White", row);
-  VW->wWhitelevel = new QSlider(0, 255, 1, 255, Qt::Horizontal, row);
-  VW->wWhitelevel->setFocusPolicy(NoFocus);
-  VW->wWhiteval = new QLabel("255", row);
+  diaLabel("White", NULL, row);
+  VW->wWhitelevel = diaSlider(0, 255, 1, 255, NULL, row);
+  row->addWidget(VW->wWhitelevel);
+  VW->wWhiteval = diaLabel("255", NULL, row);
   QObject::connect(VW->wWhitelevel, SIGNAL(valueChanged(int)),
 		   VW->midasSlots, SLOT(slotWhitelevel(int)));
   QObject::connect(VW->wWhitelevel, SIGNAL(sliderPressed()),
@@ -859,34 +862,31 @@ void MidasWindow::createContrastControls(QVBox *parent)
   QObject::connect(VW->wWhitelevel, SIGNAL(sliderReleased()),
 		   VW->midasSlots, SLOT(slotWhiteReleased()));
      
-  QCheckBox *check = new QCheckBox("Apply to only one sec.", parent);
+  QCheckBox *check = diaCheckBox("Apply to only one sec.", NULL, parent);
   check->setChecked(false);
-  check->setFocusPolicy(NoFocus);
   QObject::connect(check, SIGNAL(toggled(bool)), VW->midasSlots,
 		     SLOT(slotApplyone(bool)));
 
-  VW->reversetoggle = new QCheckBox("Reverse contrast", parent);
+  VW->reversetoggle = diaCheckBox("Reverse contrast", NULL, parent);
   VW->reversetoggle->setChecked(false);
-  VW->reversetoggle->setFocusPolicy(NoFocus);
   QObject::connect(VW->reversetoggle, SIGNAL(toggled(bool)), VW->midasSlots,
 		     SLOT(slotReverse(bool)));
 
-  QPushButton *button = new QPushButton("Auto Contrast", parent);
-  button->setFocusPolicy(NoFocus);
+  QPushButton *button = diaPushButton("Auto Contrast", NULL, parent);
   QObject::connect(button, SIGNAL(clicked()), VW->midasSlots,
 		     SLOT(slotAutoContrast()));
 }
 
 
 
-void midas_error(char *tmsg, char *bmsg, int retval)
+void midas_error(const char *tmsg, const char *bmsg, int retval)
 {
   QString str;
   /* if (VW->midasWindow == NULL)
     fprintf(stderr, "%s %s\n", tmsg, bmsg);
     else { */
     str.sprintf("%s %s\n", tmsg, bmsg);
-    dia_err((char *)str.latin1());
+    dia_err(LATIN1(str));
     //}  
   if (retval)
     exit(retval);
@@ -895,15 +895,19 @@ void midas_error(char *tmsg, char *bmsg, int retval)
 }
 
 /*
-    $Log$
-    Revision 3.21  2008/10/13 04:36:00  mast
-    Added cosine stretch, switched to 3 lines of mouse reminders, got rid of
-    larger font
 
-    Revision 3.20  2007/10/03 21:36:10  mast
-    Added ImodAssistant help object
+$Log$
+Revision 3.22  2008/11/02 15:00:45  mast
+Changed so cosine stretch option is not on by default
 
-    Revision 3.19  2006/06/26 15:48:19  mast
+Revision 3.21  2008/10/13 04:36:00  mast
+Added cosine stretch, switched to 3 lines of mouse reminders, got rid of
+larger font
+
+Revision 3.20  2007/10/03 21:36:10  mast
+Added ImodAssistant help object
+
+Revision 3.19  2006/06/26 15:48:19  mast
     Added autocontrast function
 
     Revision 3.18  2006/05/20 16:07:56  mast

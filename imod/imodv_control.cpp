@@ -7,15 +7,10 @@
  *  Copyright (C) 1995-2004 by Boulder Laboratory for 3-Dimensional Electron
  *  Microscopy of Cells ("BL3DEMC") and the Regents of the University of 
  *  Colorado.  See dist/COPYRIGHT for full copyright notice.
+ *
+ *  $Id$
+ *  Log at end of file
  */
-
-/*  $Author$
-    
-$Date$
-
-$Revision$
-Log at end of file
-*/
 
 #include <qstring.h>
 #include "formv_control.h"
@@ -384,8 +379,8 @@ int imodv_control(ImodvApp *a, int state)
     return -1;
   }
   
-  dialog = new imodvControlForm(imodvDialogManager.parent(IMODV_DIALOG), NULL,
-                                Qt::WDestructiveClose | Qt::WType_TopLevel);
+  dialog = new imodvControlForm(imodvDialogManager.parent(IMODV_DIALOG), 
+                                Qt::Window);
   if (!dialog){
     dia_err("Failed to create 3dmodv controls window!");
     return(-1);
@@ -395,7 +390,7 @@ int imodv_control(ImodvApp *a, int state)
   if (window_name)
     free(window_name);
   if (!qstr.isEmpty())
-    dialog->setCaption(qstr);
+    dialog->setWindowTitle(qstr);
 
   imodvDialogManager.add((QWidget *)dialog, IMODV_DIALOG);
   dialog->adjustSize();
@@ -411,74 +406,78 @@ int imodv_control(ImodvApp *a, int state)
 }
 
 /*
-    $Log$
-    Revision 4.10  2006/05/11 02:17:42  mast
-    Draw images when Z scale changes
 
-    Revision 4.9  2005/12/11 18:23:54  mast
-    Added ability to set extreme clipping planes out farther
+$Log$
+Revision 4.11  2007/11/30 06:51:50  mast
+Changes for linking slicer to model view
 
-    Revision 4.8  2004/11/21 06:07:49  mast
-    Changes for undo/redo
+Revision 4.10  2006/05/11 02:17:42  mast
+Draw images when Z scale changes
 
-    Revision 4.7  2004/06/10 00:33:02  mast
-    Documented new behavior of clip planes
+Revision 4.9  2005/12/11 18:23:54  mast
+Added ability to set extreme clipping planes out farther
 
-    Revision 4.6  2003/11/04 04:42:46  mast
-    Add new calls for rotation speed and remove code for changing [xyz]rotm
+Revision 4.8  2004/11/21 06:07:49  mast
+Changes for undo/redo
 
-    Revision 4.5  2003/10/01 05:04:19  mast
-    change include from imodP to imod after eliminating imod.h from imodP.h
+Revision 4.7  2004/06/10 00:33:02  mast
+Documented new behavior of clip planes
 
-    Revision 4.4  2003/04/28 04:00:56  mast
-    Fix help text on hotkey and gadget
+Revision 4.6  2003/11/04 04:42:46  mast
+Add new calls for rotation speed and remove code for changing [xyz]rotm
 
-    Revision 4.3  2003/04/25 03:28:32  mast
-    Changes for name change to 3dmod
+Revision 4.5  2003/10/01 05:04:19  mast
+change include from imodP to imod after eliminating imod.h from imodP.h
 
-    Revision 4.2  2003/04/17 18:43:38  mast
-    adding parent to window creation
+Revision 4.4  2003/04/28 04:00:56  mast
+Fix help text on hotkey and gadget
 
-    Revision 4.1  2003/02/10 20:29:00  mast
-    autox.cpp
+Revision 4.3  2003/04/25 03:28:32  mast
+Changes for name change to 3dmod
 
-    Revision 1.1.2.12  2003/01/27 00:30:07  mast
-    Pure Qt version and general cleanup
+Revision 4.2  2003/04/17 18:43:38  mast
+adding parent to window creation
 
-    Revision 1.1.2.11  2003/01/23 20:09:19  mast
-    update z scale in model-header dialog
+Revision 4.1  2003/02/10 20:29:00  mast
+autox.cpp
 
-    Revision 1.1.2.10  2003/01/18 01:10:17  mast
-    add include of dia_qtutils
+Revision 1.1.2.12  2003/01/27 00:30:07  mast
+Pure Qt version and general cleanup
 
-    Revision 1.1.2.9  2003/01/13 07:21:38  mast
-    Changes to use new dialog manager class
+Revision 1.1.2.11  2003/01/23 20:09:19  mast
+update z scale in model-header dialog
 
-    Revision 1.1.2.8  2002/12/30 06:49:50  mast
-    rationalizing dialogs as widgets and using dialog list
+Revision 1.1.2.10  2003/01/18 01:10:17  mast
+add include of dia_qtutils
 
-    Revision 1.1.2.7  2002/12/23 05:00:25  mast
-    Make imodv mainwindow be parent
+Revision 1.1.2.9  2003/01/13 07:21:38  mast
+Changes to use new dialog manager class
 
-    Revision 1.1.2.6  2002/12/17 22:28:20  mast
-    cleanup of unused variables and SGI errors
+Revision 1.1.2.8  2002/12/30 06:49:50  mast
+rationalizing dialogs as widgets and using dialog list
 
-    Revision 1.1.2.5  2002/12/17 18:33:19  mast
-    using new includes for imodv compoennts
+Revision 1.1.2.7  2002/12/23 05:00:25  mast
+Make imodv mainwindow be parent
 
-    Revision 1.1.2.4  2002/12/13 06:08:40  mast
-    simplification in dealing with filename string
+Revision 1.1.2.6  2002/12/17 22:28:20  mast
+cleanup of unused variables and SGI errors
 
-    Revision 1.1.2.3  2002/12/07 01:21:44  mast
-    Taking care of window title
+Revision 1.1.2.5  2002/12/17 18:33:19  mast
+using new includes for imodv compoennts
 
-    Revision 1.1.2.2  2002/12/06 22:12:13  mast
-    *** empty log message ***
+Revision 1.1.2.4  2002/12/13 06:08:40  mast
+simplification in dealing with filename string
 
-    Revision 1.1.2.1  2002/12/05 16:31:25  mast
-    Qt version
+Revision 1.1.2.3  2002/12/07 01:21:44  mast
+Taking care of window title
 
-    Revision 3.1  2002/12/01 15:34:41  mast
-    Changes to get clean compilation with g++
+Revision 1.1.2.2  2002/12/06 22:12:13  mast
+*** empty log message ***
+
+Revision 1.1.2.1  2002/12/05 16:31:25  mast
+Qt version
+
+Revision 3.1  2002/12/01 15:34:41  mast
+Changes to get clean compilation with g++
 
 */

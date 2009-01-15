@@ -17,6 +17,10 @@
 #include <qlayout.h>
 #include <qslider.h>
 #include <qapplication.h>
+//Added by qt3to4:
+#include <QCloseEvent>
+#include <QKeyEvent>
+#include <QDesktopWidget>
 #include "multislider.h"
 #include "dialog_frame.h"
 #include "dia_qtutils.h"
@@ -355,12 +359,12 @@ ImodvStereo::ImodvStereo(QWidget *parent, const char *name)
 {
   // Make combo box, with just the 2 software options
   mCtrlPressed = false;
-  mComboBox = new QComboBox(this, "stereo combo");
+  mComboBox = new QComboBox(this);
   mLayout->addWidget(mComboBox);
-  mComboBox->insertItem("Stereo Off", IMODV_STEREO_OFF);
-  mComboBox->insertItem("Side by Side", IMODV_STEREO_RL);
-  mComboBox->insertItem("Top / Bottom", IMODV_STEREO_TB);
-  mComboBox->setFocusPolicy(NoFocus);
+  QStringList items;
+  items << "Stereo Off" << "Side by Side" << "Top / Bottom";
+  mComboBox->addItems(items);
+  mComboBox->setFocusPolicy(Qt::NoFocus);
   connect(mComboBox, SIGNAL(activated(int)), this, SLOT(newOption(int)));
 
   // Make the slider with 1 decimal point
@@ -414,14 +418,15 @@ void ImodvStereo::update()
   mSlider->setValue(0, (int)floor(Imodv->plax * 10. + 0.5));
 
   // Adjust the number of combo items for status of hardware stereo
+  QStringList items;
   if (hardwareOK() && mComboBox->count() == 3)
-    mComboBox->insertItem("Hardware", IMODV_STEREO_HW);
+    mComboBox->addItem("Hardware");
 
   if (!hardwareOK() && mComboBox->count() == 4)
     mComboBox->removeItem(IMODV_STEREO_HW);
 
   // Set the combo box
-  mComboBox->setCurrentItem(Imodv->stereo);
+  mComboBox->setCurrentIndex(Imodv->stereo);
 }
 
 void ImodvStereo::fontChange( const QFont & oldFont )
@@ -466,6 +471,9 @@ void ImodvStereo::keyReleaseEvent ( QKeyEvent * e )
 /*
 
 $Log$
+Revision 4.15  2008/12/15 21:23:53  mast
+Changes for using separate widgets for stereo
+
 Revision 4.14  2008/10/02 22:45:19  mast
 Made geometry change conditional on SGI, set up for proper clearing
 after leaving stereo

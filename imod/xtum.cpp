@@ -21,10 +21,14 @@
 #include <qpushbutton.h>
 #include <qsignalmapper.h>
 #include <qframe.h>
-#include <qvbox.h>
-#include <qhbox.h>
 #include <qbitmap.h>
 #include <qtooltip.h>
+#include <qslider.h>
+//Added by qt3to4:
+#include <QHBoxLayout>
+#include <QVBoxLayout>
+#include <QKeyEvent>
+#include <QCloseEvent>
 #include "multislider.h"
 #include "preferences.h"
 #include "dia_qtutils.h"
@@ -42,17 +46,13 @@
 #include "lock.bits"
 #include "unlock.bits"
 
-#define BM_WIDTH 16
-#define BM_HEIGHT 16
 #define XTUM_WIDTH 200
 #define XTUM_HEIGHT 250
-#define XTUM_SIZE_MIN 8
-#define XTUM_SIZE_MAX 148
-#define XTUM_SIZE_INC 8
+#define XTUM_SIZE_MIN 8.
+#define XTUM_SIZE_MAX 148.
+#define XTUM_SIZE_INC 8.
 #define XTUM_SIZE_INI 48
-#define XTUM_MAX_ZOOM 12
-
-#define AUTO_RAISE false
+#define XTUM_MAX_ZOOM 12.
 
 
 static void xtumClose_cb(ImodView *vi, void *client, int junk);
@@ -64,8 +64,11 @@ static unsigned char *bitList[MAX_XTUM_TOGGLES][2] =
   { {lowres_bits, highres_bits},
     {unlock_bits, lock_bits}};
 
-static QBitmap *bitmaps[MAX_XTUM_TOGGLES][2];
+static QIcon *icons[MAX_XTUM_TOGGLES];
 static int firstTime = 1;
+
+static char *toggleTips[] = {"Toggle between low and high resolution.",
+                             "Lock X/Y/Z position being displayed"};
 
 /*
  * Callbacks from the controller 
@@ -158,7 +161,7 @@ int xtumOpen(struct ViewInfo *vi)
   if (!App->rgba)
     xtum->dialog->mGLw->setColormap(*(App->qColormap));
 
-  xtum->dialog->setCaption(imodCaption("3dmod Tumbler"));
+  xtum->dialog->setWindowTitle(imodCaption("3dmod Tumbler"));
   xtum->ctrl = ivwNewControl(vi, xtumDraw_cb, xtumClose_cb, xtumKey_cb,
                                (void *)xtum);
   imodDialogManager.add((QWidget *)xtum->dialog, IMOD_IMAGE);
@@ -175,81 +178,86 @@ static char *sliderLabels[] = {"Black Threshold", "White Threshold"};
 
 TumblerWindow::TumblerWindow(TumblerStruct *xtum, bool rgba,
             bool doubleBuffer, bool enableDepth, QWidget * parent,
-            const char * name, WFlags f)
-  : QMainWindow(parent, name, f)
+            const char * name, Qt::WFlags f)
+  : QMainWindow(parent, f)
 {
   int j;
   QString str;
   mTum = xtum;
+  setAttribute(Qt::WA_DeleteOnClose);
+  setAttribute(Qt::WA_AlwaysShowToolTips);
 
+  if (firstTime) 
+    utilBitListsToIcons(bitList, icons, MAX_XTUM_TOGGLES);
+  firstTime = 0;
+  
   // Make central vbox and top frame containing an hboxlayout
-  QVBox *central = new QVBox(this, "central");
+  QWidget *central = new QWidget(this);
   setCentralWidget(central);
-  QFrame * topFrame = new QFrame(central, "topFrame");
+  QVBoxLayout *cenlay = new QVBoxLayout(central);
+  cenlay->setContentsMargins(0,0,0,0);
+  cenlay->setSpacing(0);
+  QFrame * topFrame = new QFrame(central);
+  cenlay->addWidget(topFrame);
   topFrame->setFrameStyle(QFrame::Raised | QFrame::StyledPanel);
 
-  QHBoxLayout *topLayout = new QHBoxLayout(topFrame, 4);
-  QVBox *topVBox = new QVBox(topFrame, "topVBox");
-  topLayout->addWidget(topVBox);
+  QHBoxLayout *topLayout = new QHBoxLayout(topFrame);
+  topLayout->setContentsMargins(2,2,2,2);
+  topLayout->setSpacing(3);
   
-  QHBox *topHBox = new QHBox(topVBox, "topHBox");
-  if (!(AUTO_RAISE))
-      topHBox->setSpacing(4);
+  QVBoxLayout *topVBox = diaVBoxLayout(topLayout);
+  topVBox->setSpacing(4);
+  QHBoxLayout *topHBox = diaHBoxLayout(topVBox);
+  topHBox->setContentsMargins(0,0,0,0);
+  topHBox->setSpacing(3);
 
   // Add the toolbar widgets
   // Zoom spin box
   // If you try to make a spin box narrower, it makes the arrows tiny
-  QLabel *label = new QLabel("Zoom", topHBox);
-  mZoomBox = new QSpinBox(1, XTUM_MAX_ZOOM, 1, topHBox);
+  mZoomBox = (QSpinBox *)diaLabeledSpin(0, 1., XTUM_MAX_ZOOM, 1., "Zoom",
+                                        topFrame, topHBox);
   mZoomBox->setValue(xtum->zoom);
-  mZoomBox->setFocusPolicy(QWidget::ClickFocus);
   connect(mZoomBox, SIGNAL(valueChanged(int)), this, 
 	  SLOT(zoomChanged(int)));
-  QToolTip::add(mZoomBox, "Change zoom of display");
+  mZoomBox->setToolTip("Change zoom of display");
 
   // Make the 2 toggle buttons and their signal mapper
-  QSignalMapper *toggleMapper = new QSignalMapper(topHBox);
+  QSignalMapper *toggleMapper = new QSignalMapper(topFrame);
   connect(toggleMapper, SIGNAL(mapped(int)), this, SLOT(toggleClicked(int)));
-  for (j = 0; j < 2; j++)
-    setupToggleButton(topHBox, toggleMapper, j);
-
-  QToolTip::add(mToggleButs[0],
-		"Toggle between low and high resolution.");
-  QToolTip::add(mToggleButs[1], "Lock X/Y/Z position being displayed");
+  for (j = 0; j < 2; j++) {
+    utilSetupToggleButton(topFrame, NULL, topHBox, toggleMapper, icons, 
+                          toggleTips, mToggleButs, mToggleStates, j);
+    connect(mToggleButs[j], SIGNAL(clicked()), toggleMapper, SLOT(map()));
+  }
 
   // Help button
-  mHelpButton = new QPushButton("Help", topHBox, "Help button");
-  mHelpButton->setFocusPolicy(QWidget::NoFocus);
+  mHelpButton = diaPushButton("Help", topFrame, topHBox);
   connect(mHelpButton, SIGNAL(clicked()), this, SLOT(help()));
   setFontDependentWidths();
 
-  // Spacer for the top row
-  QHBox *topSpacer = new QHBox(topHBox);
-  topHBox->setStretchFactor(topSpacer, 1);
+  topHBox->addStretch();
 
   // Make second row for size spin boxes, and signal map them
-  QHBox *botHBox = new QHBox(topVBox, "botHBox");
-  QSignalMapper *sizeMapper = new QSignalMapper(botHBox);
+  QHBoxLayout *botHBox = diaHBoxLayout(topVBox);
+  botHBox->setContentsMargins(0,0,0,0);
+  botHBox->setSpacing(3);
+  QSignalMapper *sizeMapper = new QSignalMapper(topFrame);
   connect(sizeMapper, SIGNAL(mapped(int)), this, SLOT(sizeChanged(int)));
 
   // Make the spin boxes
   for (j = 0; j < 3; j++) {
     str = xyzLabels[j];
-    label = new QLabel(str, botHBox);
-    label->setAlignment(Qt::AlignRight | Qt::AlignVCenter);
-    mSizeBoxes[j] = new QSpinBox(XTUM_SIZE_MIN, XTUM_SIZE_MAX, XTUM_SIZE_INC,
-				 botHBox);
+    mSizeBoxes[j] = (QSpinBox *)diaLabeledSpin(0, XTUM_SIZE_MIN, XTUM_SIZE_MAX,
+                                               XTUM_SIZE_INC, LATIN1(str), 
+                                               topFrame, botHBox);
     mSizeBoxes[j]->setValue(XTUM_SIZE_INI);
-    mSizeBoxes[j]->setFocusPolicy(QWidget::ClickFocus);
     sizeMapper->setMapping(mSizeBoxes[j], j);
     connect(mSizeBoxes[j], SIGNAL(valueChanged(int)), sizeMapper, SLOT(map()));
-    QToolTip::add(mSizeBoxes[j], "Change size of box in " + str);
+    mSizeBoxes[j]->setToolTip("Change size of box in " + str);
   }
 
   // Spacer for the second row
-  QHBox *botSpacer = new QHBox(botHBox);
-  botHBox->setStretchFactor(botSpacer, 1);
-  topVBox->setStretchFactor(botHBox, 1);
+  botHBox->addStretch();
 
   // Add a vertical line
   QFrame *vertLine = new QFrame(topFrame);
@@ -263,9 +271,9 @@ TumblerWindow::TumblerWindow(TumblerStruct *xtum, bool rgba,
 	  SLOT(thresholdChanged(int, int, bool)));
   mSliders->setValue(0, xtum->minval);
   mSliders->setValue(1, xtum->maxval);
-  QToolTip::add((QWidget *)mSliders->getSlider(0), 
+  mSliders->getSlider(0)->setToolTip(
 		"Level below which pixels will be set to black");
-  QToolTip::add((QWidget *)mSliders->getSlider(1), 
+  mSliders->getSlider(1)->setToolTip(
 		"Level above which pixels will be set to white");
 
 
@@ -274,32 +282,16 @@ TumblerWindow::TumblerWindow(TumblerStruct *xtum, bool rgba,
   glFormat.setDoubleBuffer(doubleBuffer);
   glFormat.setDepth(enableDepth);
   mGLw = new TumblerGL(xtum, glFormat, central);
-
-  central->setStretchFactor(mGLw, 1);
+  cenlay->addWidget(mGLw);
+  cenlay->setStretchFactor(mGLw, 1);
 
   resize(XTUM_WIDTH, XTUM_HEIGHT);
-  setFocusPolicy(QWidget::StrongFocus);
+  setFocusPolicy(Qt::StrongFocus);
 }
 
 void TumblerWindow::setFontDependentWidths()
 {
   diaSetButtonWidth(mHelpButton, ImodPrefs->getRoundedStyle(), 1.2, "Help");
-}
-
-// Set up one toggle button, making bitmaps for the two state
-void TumblerWindow::setupToggleButton(QHBox *toolBar, QSignalMapper *mapper,
-				    int ind)
-{
-  if (firstTime) {
-    bitmaps[ind][0] = new QBitmap(BM_WIDTH, BM_HEIGHT, bitList[ind][0], true);
-    bitmaps[ind][1] = new QBitmap(BM_WIDTH, BM_HEIGHT, bitList[ind][1], true);
-  }
-  mToggleButs[ind] = new QToolButton(toolBar, "toolbar toggle");
-  mToggleButs[ind]->setPixmap(*bitmaps[ind][0]);
-  mToggleButs[ind]->setAutoRaise(AUTO_RAISE);
-  mapper->setMapping(mToggleButs[ind],ind);
-  connect(mToggleButs[ind], SIGNAL(clicked()), mapper, SLOT(map()));
-  mToggleStates[ind] = 0;
 }
 
 // Respond to change in zoom spin box
@@ -363,9 +355,8 @@ void TumblerWindow::help()
 // Respond to change in one of the toggle buttons
 void TumblerWindow::toggleClicked(int index)
 {
-  int state = 1 - mToggleStates[index];
+  int state = mToggleButs[index]->isChecked() ? 1 : 0;
   mToggleStates[index] = state;
-  mToggleButs[index]->setPixmap(*bitmaps[index][state]);
   if (!index) {
 
     // High res button toggled
@@ -401,9 +392,9 @@ void TumblerWindow::keyPressEvent ( QKeyEvent * event)
   TumblerStruct *xtum = mTum;
   float tstep = xtum->tstep;
   int key = event->key();
-  int shift = event->state() & Qt::ShiftButton;
-  int ctrl = event->state() & Qt::ControlButton;
-  int keypad = event->state() & Qt::Keypad;
+  int shift = event->modifiers() & Qt::ShiftModifier;
+  int ctrl = event->modifiers() & Qt::ControlModifier;
+  int keypad = event->modifiers() & Qt::KeypadModifier;
   int dodraw = 1;
   int handled = 1;
   int newdata = 1;
@@ -474,8 +465,8 @@ void TumblerWindow::keyPressEvent ( QKeyEvent * event)
       dodraw = 0;
     break;
     
-  case Qt::Key_Next:
-  case Qt::Key_Prior:
+  case Qt::Key_PageDown:
+  case Qt::Key_PageUp:
   case Qt::Key_Up:
   case Qt::Key_Down:
   case Qt::Key_Right:
@@ -484,9 +475,12 @@ void TumblerWindow::keyPressEvent ( QKeyEvent * event)
 
       // Someone with a better eye than mine may see that the directions
       // of X and Y need to be reversed
-      xrot = (key == Key_Up ? tstep : 0.) - (key == Key_Down ? tstep : 0.); 
-      yrot = (key == Key_Right ? tstep : 0.) - (key == Key_Left ? tstep : 0.);
-      zrot = (key == Key_Prior ? tstep : 0.) - (key == Key_Next ? tstep : 0.);
+      xrot = (key == Qt::Key_Up ? tstep : 0.) - 
+        (key == Qt::Key_Down ? tstep : 0.); 
+      yrot = (key == Qt::Key_Right ? tstep : 0.) - 
+        (key == Qt::Key_Left ? tstep : 0.);
+      zrot = (key == Qt::Key_PageUp ? tstep : 0.) - 
+        (key == Qt::Key_PageDown ? tstep : 0.);
       computeRotation(xrot, yrot, zrot);
     } else
       handled = 0;
@@ -699,7 +693,7 @@ void TumblerWindow::fillSlice(TumblerStruct *xtum)
 /* Really fill the slice data for one slice */
 void TumblerWindow::fillASlice(TumblerStruct *xtum)
 {
-  unsigned short *sdata=(unsigned short *)xtum->slice->data.s;
+  unsigned short *sdata;
   short *ndata = xtum->count->data.s;
   int xysize = xtum->slice->xsize * xtum->slice->ysize;
   int n;
@@ -725,6 +719,7 @@ void TumblerWindow::fillASlice(TumblerStruct *xtum)
   float dsum;
   int nsum, shortcut, izoom, ilimshort, jlimshort, ishort, fillval, nmax;
   float zoom = xtum->zoom;
+  sdata = (unsigned short *)xtum->slice->data.s;
 
   if (xtum->slice->xsize <= 0)
     return;
@@ -1221,9 +1216,8 @@ void TumblerWindow::drawBorder(TumblerStruct *xtum)
 /*
  * THE GL WIDGET CLASS 
  */
-TumblerGL::TumblerGL(TumblerStruct *xtum, QGLFormat format, QWidget * parent,
-        const char * name)
-  : QGLWidget(format, parent, name)
+TumblerGL::TumblerGL(TumblerStruct *xtum, QGLFormat format, QWidget * parent)
+  : QGLWidget(format, parent)
 {
   mTum = xtum;
 }
@@ -1257,6 +1251,9 @@ void TumblerGL::paintGL()
 
 /*
 $Log$
+Revision 4.30  2008/08/19 20:01:40  mast
+Made it zoom with + as well as =
+
 Revision 4.29  2007/12/04 18:49:36  mast
 Moved control include down
 

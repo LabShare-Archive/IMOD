@@ -17,6 +17,7 @@
 #include "midas.h"
 #include "imodel.h"
 #include <qfile.h>
+#include <QTextStream>
 #include "dia_qtutils.h"
 
 static void checklist(int *xpclist, int npclist, int nxframe, int *minxpiece,
@@ -230,11 +231,11 @@ int load_view(MidasView *vw, char *fname)
   if (vw->plname) {
     str = vw->plname;
     QFile file(str);
-    if (!file.open(IO_ReadOnly | IO_Translate))
+    if (!file.open(QIODevice::ReadOnly | QIODevice::Text))
       midas_error("Error opening ", vw->plname, 3);
 
     QTextStream stream(&file);
-    stream.setf(QTextStream::dec);
+    stream.setIntegerBase(10);
 
     vw->xpclist = (int *)malloc(vw->zsize * sizeof(int));
     vw->ypclist = (int *)malloc(vw->zsize * sizeof(int));
@@ -252,10 +253,10 @@ int load_view(MidasView *vw, char *fname)
       str = stream.readLine();
       if (str.isEmpty()) {
         str.sprintf("Error reading piece list after %d lines\n" , k);
-        midas_error((char *)str.latin1(), "", 3);
+        midas_error(LATIN1(str), "", 3);
       }
 
-      sscanf(str.latin1(), "%d %d %d", &(vw->xpclist[k]), 
+      sscanf(LATIN1(str), "%d %d %d", &(vw->xpclist[k]), 
                        &(vw->ypclist[k]), &(vw->zpclist[k]));
       if (vw->minzpiece > vw->zpclist[k])
         vw->minzpiece = vw->zpclist[k];
@@ -435,7 +436,7 @@ static Islice *getXformSlice(MidasView *vw, int zval, int shiftOK,
     tramat_idmat(rmat);
     tramat_rot(rmat, vw->globalRot);
     if (zval == vw->cz || vw->xtype == XTYPE_XG) {
-      if (vw->cosStretch && zval) {
+      if (vw->cosStretch > 0 && zval) {
         lastAng = (vw->tiltAngles[vw->refz]-vw->tiltOffset)*RADIANS_PER_DEGREE;
         angle = (vw->tiltAngles[zval] - vw->tiltOffset) * RADIANS_PER_DEGREE;
         stretch = cos(lastAng) / cos(angle);
@@ -1078,7 +1079,7 @@ void stretch_all_transforms(MidasView *vw, int destretch)
     stretch_transform(vw, vw->tr[i].mat, i, destretch);
 }
 
-void transform_model(char *infname, char *outfname, MidasView *vw)
+void transform_model(const char *infname, const char *outfname, MidasView *vw)
 {
   struct Mod_Model *model;
   int k;
@@ -1709,6 +1710,9 @@ static void solve_for_shifts(MidasView *vw, float *a, float *b,
 
 /*
 $Log$
+Revision 3.19  2008/11/07 05:32:16  mast
+Fixed auto contrast of reference slice in reference mode
+
 Revision 3.18  2008/10/13 04:36:23  mast
 Added cosine stretching
 

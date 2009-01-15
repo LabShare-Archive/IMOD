@@ -1,22 +1,97 @@
-/****************************************************************************
-** ui.h extension file, included from the uic-generated form implementation.
-**
-** If you wish to add, delete or rename slots use Qt Designer which will
-** update this file, preserving your code. Create an init() slot in place of
-** a constructor, and a destroy() slot in place of a destructor.
-*****************************************************************************/
+/*
+ *  form_startup.cpp - Class for startup dialog form
+ *
+ *  Author: David Mastronarde   email: mast@colorado.edu
+ *
+ *  Copyright (C) 1995-2009 by Boulder Laboratory for 3-Dimensional Electron
+ *  Microscopy of Cells ("BL3DEMC") and the Regents of the University of 
+ *  Colorado.  See dist/COPYRIGHT for full copyright notice.
+ * 
+ * $Id$
+ * Log at end
+ */
+
+#include "form_startup.h"
+
+#include <qvariant.h>
+#include <stdlib.h>
+#include <qfiledialog.h>
+#include <string.h>
+#include <qregexp.h>
+#include <qstring.h>
+#include <qstringlist.h>
+#include <qimage.h>
+#include <qpixmap.h>
+
+#include "imod.h"
+#include "dia_qtutils.h"
+
+/*
+ *  Constructs a StartupForm as a child of 'parent', with the
+ *  name 'name' and widget flags set to 'f'.
+ *
+ *  The dialog will by default be modeless, unless you set 'modal' to
+ *  true to construct a modal dialog.
+ */
+StartupForm::StartupForm(QWidget* parent, bool modal, Qt::WindowFlags fl)
+  : QDialog(parent, fl)
+{
+  setupUi(this);
+
+  setModal(modal);
+  init();
+}
+
+/*
+ *  Destroys the object and frees any allocated resources
+ */
+StartupForm::~StartupForm()
+{
+  // no need to delete child widgets, Qt does it all for us
+}
+
+/*
+ *  Sets the strings of the subwidgets using the current
+ *  language.
+ */
+void StartupForm::languageChange()
+{
+  retranslateUi(this);
+}
 
 
 void StartupForm::init()
 {
+  setAttribute(Qt::WA_DeleteOnClose);
+  setAttribute(Qt::WA_AlwaysShowToolTips);
+
   // Set up radio buttons and other defaults
+  startAsGroup = new QButtonGroup(this);
+  startAsGroup->addButton(start3dmodRadio, 0);
+  startAsGroup->addButton(startModvRadio, 1);
+  connect(startAsGroup, SIGNAL(buttonClicked(int)), this, 
+          SLOT(startAsClicked(int)));
+  diaSetGroup(startAsGroup, 0);
+  
+  cacheGroup = new QButtonGroup(this);
+  cacheGroup->addButton(cacheSectionsButton, 0);
+  cacheGroup->addButton(megabyteButton, 1);
+  connect(cacheGroup, SIGNAL(buttonClicked(int)), this, 
+          SLOT(cacheTypeClicked(int)));
+  diaSetGroup(cacheGroup, 0);
+  
+  windowSizeGroup = new QButtonGroup(this);
+  windowSizeGroup->addButton(defaultSizeButton, 0);
+  windowSizeGroup->addButton(fullScreenButton, 1);
+  windowSizeGroup->addButton(setSizeButton, 2);
+  connect(windowSizeGroup, SIGNAL(buttonClicked(int)), this, 
+          SLOT(modvSizeClicked(int)));
+  diaSetGroup(windowSizeGroup, 0);
+  
   mModvMode = false;
   mShowMontage = false;
   mCacheOption = 0;
   mModvSizeOption = 0;
-  startAsGroup->setButton(0);
-  cacheGroup->setButton(0);
-  windowSizeGroup->setButton(0);
   openZapBox->setChecked(true);
   binXYSpinBox->setValue(1);
   binZSpinBox->setValue(1);
@@ -86,7 +161,7 @@ void StartupForm::manageForModView()
   yMontageLabel->setEnabled(!mModvMode);
   manageMontage();
   
-  windowSizeGroup->setEnabled(mModvMode);
+  winSizeGroupBox->setEnabled(mModvMode);
   defaultSizeButton->setEnabled(mModvMode);
   fullScreenButton->setEnabled(mModvMode);
   setSizeButton->setEnabled(mModvMode);
@@ -166,30 +241,29 @@ void StartupForm::imageSelectClicked()
   // Get current directory string for removal; on Windows, set up with both cases
   // of the drive letter (current dir comes through as lower case and the file dialog
   // returns upper case)
-  QString curDir = QDir::currentDirPath() + QString("/");
+  QString curDir = QDir::currentPath() + QString("/");
   QString curDir2;
   bool replace2 = false;
 
 #ifdef _WIN32
-  if (curDir.find(':') == 1) {
+  if (curDir.indexOf(':') == 1) {
     replace2 = true;
     QChar start = curDir[0];
-    QChar toggle = start.upper();
+    QChar toggle = start.toUpper();
     if (toggle == start)
-      toggle = start.lower();
+      toggle = start.toLower();
     curDir2 = curDir;
     curDir2.replace(0, 1, toggle);
   }
 #endif
 
   enableButtons(false);
-  // 5/30/04: need to check if this is still compatible to 3.0.5
   mImageFileList = QFileDialog::getOpenFileNames
-                   (mModvMode ? "Model files (*.*mod)" : 
-                    "MRC files (*.*st *.*ali *.*rec *.*mrc *.*join);;TIFF files (*.tif);;JPEG files (*.jpg);;PNG files (*.png);;All files (*)",
-                    QString::null, 0, 0, 
-                    mModvMode ? "Select model file(s) to load" :
-                    "Select image file(s) to load");
+    (this,  mModvMode ? "Select model file(s) to load" :
+     "Select image file(s) to load", QString(),
+     mModvMode ? "Model files (*.*mod)" : 
+     "MRC files (*.*st *.*ali *.*rec *.*mrc *.*join);;TIFF files (*.tif);;"
+     "JPEG files (*.jpg);;PNG files (*.png);;All files (*)");
   enableButtons(true);
   
   // Join the list with ; and see if there are any spaces.  If not rejoin with spaces
@@ -200,7 +274,7 @@ void StartupForm::imageSelectClicked()
   if (replace2)
     mImageFiles.remove(curDir2);
 
-  if (mImageFiles.find(' ') < 0) {
+  if (mImageFiles.indexOf(' ') < 0) {
     mImageFiles = mImageFileList.join(" ");
     mImageFiles.remove(curDir);
     if (replace2)
@@ -387,19 +461,19 @@ char ** StartupForm::getArguments( int & argc )
   // Piece list file
   if (!pieceFileEdit->text().isEmpty()) {
     addArg("-p");
-    addArg(pieceFileEdit->text().latin1());
+    addArg(LATIN1(pieceFileEdit->text()));
   }
   
   // Angle file
   if (!angleFileEdit->text().isEmpty()) {
     addArg("-a");
-    addArg(angleFileEdit->text().latin1());
+    addArg(LATIN1(angleFileEdit->text()));
   }
   
   // Image files and model file
   addImageFiles();
   if (!modelFileEdit->text().isEmpty())
-    addArg(modelFileEdit->text().latin1());
+    addArg(LATIN1(modelFileEdit->text()));
   argc = mArgc;
   return mArgv;
 }
@@ -412,11 +486,11 @@ void StartupForm::addImageFiles()
   // If the files do not contain a ;, and either were joined with space
   // or contain no directory names, split with space, otherwise split with ;
   if (mFilesChanged) {
-    if (mImageFiles.find(';') < 0 && 
-        (mJoinedWithSpace || mImageFiles.find(QRegExp("[\\\\/]"))))
-      mImageFileList = QStringList::split(" ", mImageFiles);
+    if (mImageFiles.indexOf(';') < 0 && 
+        (mJoinedWithSpace || mImageFiles.indexOf(QRegExp("[\\\\/]"))))
+      mImageFileList = mImageFiles.split(" ", QString::SkipEmptyParts);
     else 
-      mImageFileList = QStringList::split(";", mImageFiles);
+      mImageFileList = mImageFiles.split(";", QString::SkipEmptyParts);
   }
   
   //Process list by the book
@@ -425,25 +499,25 @@ void StartupForm::addImageFiles()
   while( it != list.end() ) {
     
     // Split the file into a path and filename
-    sepInd = (*it).findRev(QRegExp("[\\\\/]"));
+    sepInd = (*it).lastIndexOf(QRegExp("[\\\\/]"));
     if (sepInd < 0) {
       path = "./";
-      file = (*it).stripWhiteSpace();
+      file = (*it).trimmed();
     } else {
-      path = ((*it).left(sepInd + 1)).stripWhiteSpace();
-      file = ((*it).mid(sepInd + 1)).stripWhiteSpace();
+      path = ((*it).left(sepInd + 1)).trimmed();
+      file = ((*it).mid(sepInd + 1)).trimmed();
     }
     //imodPrintStderr("sepInd %d  path =<%s>   file =<%s>\n", sepInd, path.latin1(), file.latin1());
     // If there are no wildcards, just add the whole filename
-    if (file.find(QRegExp("[\\*\\?]")) < 0) {
-      addArg((*it).latin1());
+    if (file.indexOf(QRegExp("[\\*\\?]")) < 0) {
+      addArg(LATIN1((*it)));
     } else {
       
       // Otherwise get a file list that matches the filename
       QDir dir(path, file);
       for (i = 0; i < dir.count(); i++) {
         file = path +dir[i];
-        addArg(file.latin1());
+        addArg(LATIN1(file));
       }
     }
     ++it;
@@ -459,7 +533,7 @@ void StartupForm::setValues( ImodView *vi, char * *argv, int firstfile, int argc
                              int overx, int overy, int overEntered )
 {
   // Imodv mode
-  startAsGroup->setButton(doImodv);
+  diaSetGroup(startAsGroup, doImodv);
   mModvMode = doImodv != 0;
   
   // Files. Join with ; then if there are no spaces, convert to space join
@@ -467,8 +541,8 @@ void StartupForm::setValues( ImodView *vi, char * *argv, int firstfile, int argc
     mImageFiles = "";
     for (int i = firstfile; i < argc; i++)
       mImageFiles += QString(argv[i]) + ";";
-    mImageFileList = QStringList::split(";", mImageFiles);
-    if (mImageFiles.find(' ') < 0) {
+    mImageFileList = mImageFiles.split(";", QString::SkipEmptyParts);
+    if (mImageFiles.indexOf(' ') < 0) {
       mImageFiles.replace(';', " ");
       mJoinedWithSpace = true;
     }
@@ -524,7 +598,7 @@ void StartupForm::setValues( ImodView *vi, char * *argv, int firstfile, int argc
   openModvBox->setChecked(modelViewOpen > 0);
   
   // Caching
-  cacheGroup->setButton(vi->vmSize < 0 ? 1 : 0);
+  diaSetGroup(cacheGroup, vi->vmSize < 0 ? 1 : 0);
   if (vi->vmSize) {
     mStr.sprintf("%d", vi->vmSize > 0 ? vi->vmSize : -vi->vmSize);
     cacheSizeEdit->setText(mStr);
@@ -555,5 +629,11 @@ void StartupForm::setValues( ImodView *vi, char * *argv, int firstfile, int argc
 
 void StartupForm::helpClicked()
 {
-    imodShowHelpPage("startup.html");
+  imodShowHelpPage("startup.html");
 }
+
+/*
+
+$Log$
+
+*/

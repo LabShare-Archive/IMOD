@@ -60,7 +60,7 @@ ImodClipboard::ImodClipboard(bool useStdin)
   : QObject()
 {
   QClipboard *cb = QApplication::clipboard();
-  cb->setSelectionMode(false);
+  //cb->setSelectionMode(false);
   mHandling = false;
   mExiting = false;
   mDisconnected = false;
@@ -99,7 +99,7 @@ ImodClipboard::ImodClipboard(bool useStdin)
 void ImodClipboard::startDisconnect()
 {
 #if defined(_WIN32) && defined(QT_THREAD_SUPPORT)
-  if (mUseStdin && stdThread->running())
+  if (mUseStdin && stdThread->isRunning())
     imodPrintStderr("REQUEST STOP LISTENING\n");
 #endif
 }
@@ -109,7 +109,7 @@ int ImodClipboard::waitForDisconnect()
 {
 #if defined(_WIN32) && defined(QT_THREAD_SUPPORT)
   int timeout = 5000;
-  if (mUseStdin && stdThread->running()) {
+  if (mUseStdin && stdThread->isRunning()) {
     if (stdThread->wait(timeout))
       return 0;
     dia_err("3dmod is stuck listening for input and is unable to terminate"
@@ -130,12 +130,12 @@ void ImodClipboard::clipboardChanged()
 {
   if (Imod_debug) {
     QClipboard *cb = QApplication::clipboard();
-    cb->setSelectionMode(false);
+    //cb->setSelectionMode(false);
     QString text = cb->text();
     imodPrintStderr("imodHCM in clipboardChanged - clipboard = %s\n", 
-            text.latin1());
+                    LATIN1(text));
     if (ImodInfoWin)
-      wprint("clipboardChanged = %s\n", text.latin1());
+      wprint("clipboardChanged = %s\n", LATIN1(text));
   }
   // If already handling a change or the message is not for us, return
   if (mHandling || !handleMessage())
@@ -146,7 +146,8 @@ void ImodClipboard::clipboardChanged()
   mHandling = true;
   mClipTimer = new QTimer(this);
   connect(mClipTimer, SIGNAL(timeout()), this, SLOT(clipTimeout()));
-  mClipTimer->start(10, true);
+  mClipTimer->setSingleShot(true);
+  mClipTimer->start(10);
 }
 
 void ImodClipboard::clipTimeout()
@@ -168,7 +169,8 @@ void ImodClipboard::clipTimeout()
 
       // If it returns true, set the exiting flag and start another timer
       mExiting = true;
-      mClipTimer->start(200, true);          // 100 ms is too short on SGI
+      mClipTimer->setSingleShot(true);
+      mClipTimer->start(200);          // 100 ms is too short on SGI
     } else if (mClipTimer){
 
       // Otherwise, all done with this timer
@@ -184,7 +186,7 @@ void ImodClipboard::clipTimeout()
 void ImodClipboard::clipHackTimeout()
 {
   QClipboard *cb = QApplication::clipboard();
-  cb->setSelectionMode(false);
+  //cb->setSelectionMode(false);
   if (cb->text() == mSavedClipboard)
     return;
   mSavedClipboard = cb->text();
@@ -236,30 +238,30 @@ void ImodClipboard::stdinTimeout()
     return;
   }
 
-  messageStrings = QStringList::split(" ", text);
+  messageStrings = text.split(" ", QString::SkipEmptyParts);
 
   // Start timer to execute message just as for clipboard
   mHandling = true;
   mClipTimer = new QTimer(this);
   connect(mClipTimer, SIGNAL(timeout()), this, SLOT(clipTimeout()));
-  mClipTimer->start(10, true);
+  mClipTimer->setSingleShot(true);
+  mClipTimer->start(10);
 }
 
 // Parse the message, see if it is for us, and save in local variables
 bool ImodClipboard::handleMessage()
 {
-  int index, newStamp;
+  int newStamp;
   if (!ImodInfoWin && ImodvClosed)
     return false;
 
   // get the text from the clipboard
   QClipboard *cb = QApplication::clipboard();
-  cb->setSelectionMode(false);
+  //cb->setSelectionMode(false);
   QString text = cb->text();
   if (Imod_debug) {
-    imodPrintStderr("imodHCM in handleMessage = %s\n", 
-            text.latin1());
-    wprint("handleMessage = %s\n", text.latin1());
+    imodPrintStderr("imodHCM in handleMessage = %s\n", LATIN1(text));
+    wprint("handleMessage = %s\n", LATIN1(text));
   }                   
 
   // Return if text is empty
@@ -268,7 +270,7 @@ bool ImodClipboard::handleMessage()
 
   // Split the string, ignoring multiple spaces, and return false if fewer
   // than 3 elements
-  messageStrings = QStringList::split(" ", text);
+  messageStrings = text.split(" ", QString::SkipEmptyParts);
   if (messageStrings.count() < 3)
     return false;
 
@@ -333,7 +335,7 @@ bool ImodClipboard::executeMessage()
       case MESSAGE_OPEN_MODEL:
       case MESSAGE_OPEN_KEEP_BW:
         curdir = new QDir();
-        convName = curdir->cleanDirPath(messageStrings[++arg]);
+        convName = curdir->cleanPath(messageStrings[++arg]);
         delete curdir;
     
         // Since this could open a dialog with an indefinite delay, just send
@@ -343,11 +345,11 @@ bool ImodClipboard::executeMessage()
         inputRaiseWindows();
 
         // DNM 6/3/04: switch to keeping BW values in the first place
-        returnValue = openModel((char *)convName.latin1(), 
+        returnValue = openModel(LATIN1(convName), 
                                 message_action == MESSAGE_OPEN_KEEP_BW, false);
         if(returnValue == IMOD_IO_SUCCESS) {
           wprint("%s loaded.\n", 
-                 (QDir::convertSeparators(QString(Imod_filename))).latin1());
+                 LATIN1(QDir::convertSeparators(QString(Imod_filename))));
 
         }
         else if(returnValue == IMOD_IO_SAVE_ERROR) {
@@ -361,15 +363,15 @@ bool ImodClipboard::executeMessage()
 
         // The model does not exist yet.  Try creating a new model.
         else if(returnValue == IMOD_IO_DOES_NOT_EXIST) {
-          returnValue = createNewModel((char *)convName.latin1());
+          returnValue = createNewModel(LATIN1(convName));
           if(returnValue == IMOD_IO_SUCCESS) {
         
             wprint("New model %s created.\n", 
-                   (QDir::convertSeparators(QString(Imod_filename))).latin1());
+                   LATIN1(QDir::convertSeparators(QString(Imod_filename))));
           }
           else {
             wprint("Could not create a new model %s.\n", 
-                   messageStrings[arg].latin1());
+                   LATIN1(messageStrings[arg]));
             arg = numArgs;
           }
         }
@@ -583,7 +585,7 @@ void ImodClipboard::sendResponse(int succeeded)
   } else {
     str.sprintf("%u %s", ourWindowID(), succeeded ? "OK" : "ERROR");
     QClipboard *cb = QApplication::clipboard();
-    cb->setSelectionMode(false);
+    //cb->setSelectionMode(false);
     cb->setText(str);
   }
 }
@@ -642,6 +644,9 @@ static int readLine(char *line)
 
 /*
 $Log$
+Revision 4.29  2008/07/24 17:22:01  mast
+Fixed reading of object properties 2 to not swallow another number
+
 Revision 4.28  2008/07/16 04:29:08  mast
 Added new messages for some more object properties
 

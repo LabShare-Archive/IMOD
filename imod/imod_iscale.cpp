@@ -26,6 +26,11 @@ Log at end of file
 #include <qlineedit.h>
 #include <qframe.h>
 #include <qtooltip.h>
+//Added by qt3to4:
+#include <QCloseEvent>
+#include <QTimerEvent>
+#include <QGridLayout>
+#include <QKeyEvent>
 
 #include "imod_iscale.h"
 #include "imod.h"
@@ -103,7 +108,8 @@ ImageScaleWindow::ImageScaleWindow(QWidget *parent, const char *name)
 
   diaLabel("Limits for linear scaling:", this, mLayout);
 
-  QGridLayout *grid = new QGridLayout(mLayout, 2, 2);
+  QGridLayout *grid = new QGridLayout();
+  mLayout->addLayout(grid);
 
   for (int i = 0; i < 2; i++) {
     str = uplow[i];
@@ -111,7 +117,7 @@ ImageScaleWindow::ImageScaleWindow(QWidget *parent, const char *name)
     grid->addWidget(label, i, 0);
     mEditBox[i] = new QLineEdit(this);
     grid->addWidget(mEditBox[i], i, 1);
-    QToolTip::add(mEditBox[i], "Enter new " + str + " limit for rescaling");
+    mEditBox[i]->setToolTip("Enter new " + str + " limit for rescaling");
     connect(mEditBox[i],  SIGNAL(returnPressed()), this, SLOT(setFocus()));
   }
 
@@ -120,7 +126,7 @@ ImageScaleWindow::ImageScaleWindow(QWidget *parent, const char *name)
   updateLimits();
 
   connect(this, SIGNAL(actionClicked(int)), this, SLOT(buttonPressed(int)));
-  setCaption(imodCaption("3dmod Image Scale"));
+  setWindowTitle(imodCaption("3dmod Image Scale"));
   show();
 }
 
@@ -330,6 +336,9 @@ void ImageScaleWindow::keyReleaseEvent ( QKeyEvent * e )
 
 /*
 $Log$
+Revision 4.15  2006/08/24 21:30:27  mast
+Fixed (?) test for multi file sections
+
 Revision 4.14  2005/12/08 05:56:04  mast
 Flush the cache only for the current time, not all files.
 

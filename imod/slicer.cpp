@@ -17,10 +17,13 @@
 #include <string.h>
 #include <qcursor.h>
 #include <qapplication.h>
-#include <qobjectlist.h>
+#include <qobject.h>
 #include <qdatetime.h>
 #include <qcheckbox.h>
 #include <qpushbutton.h>
+//Added by qt3to4:
+#include <QMouseEvent>
+#include <QKeyEvent>
 
 #include "slicer_classes.h"
 #include "hottoolbar.h"
@@ -402,8 +405,7 @@ int sslice_open(struct ViewInfo *vi)
   utilGetLongestTimeString(vi, &str);
   ss->qtWindow = new SlicerWindow(ss, maxAngle,  str, App->rgba,
                                   App->doublebuffer, App->qtEnableDepth,
-                                  imodDialogManager.parent(IMOD_IMAGE),
-                                  "slicer window");
+                                  imodDialogManager.parent(IMOD_IMAGE));
   if (!ss->qtWindow) {
     free(ss);
     wprint("Error opening slicer window.");
@@ -414,12 +416,12 @@ int sslice_open(struct ViewInfo *vi)
   if (!App->rgba)
     ss->glw->setColormap(*(App->qColormap));
 
-  ss->qtWindow->setCaption(imodCaption("3dmod Slicer"));
-  ss->qtWindow->mToolBar->setLabel(imodCaption("Slicer Toolbar 1"));
-  ss->qtWindow->mToolBar2->setLabel(imodCaption("Slicer Toolbar 2"));
-  ss->qtWindow->mSaveAngBar->setLabel(imodCaption("Slicer Toolbar 3"));
+  ss->qtWindow->setWindowTitle(imodCaption("3dmod Slicer"));
+  ss->qtWindow->mToolBar->setWindowTitle(imodCaption("Slicer Toolbar 1"));
+  ss->qtWindow->mToolBar2->setWindowTitle(imodCaption("Slicer Toolbar 2"));
+  ss->qtWindow->mSaveAngBar->setWindowTitle(imodCaption("Slicer Toolbar 3"));
   if (ss->qtWindow->mTimeBar)
-    ss->qtWindow->mTimeBar->setLabel(imodCaption("Slicer Time Toolbar"));
+    ss->qtWindow->mTimeBar->setWindowTitle(imodCaption("Slicer Time Toolbar"));
 	
   ss->ctrl = ivwNewControl(vi, slicerDraw_cb, slicerClose_cb, slicerKey_cb,
                                (void *)ss);
@@ -440,6 +442,7 @@ int sslice_open(struct ViewInfo *vi)
   
   QSize toolSize1 = ss->qtWindow->mToolBar->sizeHint();
   QSize toolSize2 = ss->qtWindow->mToolBar2->sizeHint();
+  ss->qtWindow->mToolBar2->setMaximumWidth(toolSize2.width() + 10);
   int newWidth = toolSize1.width() > toolSize2.width() ?
     toolSize1.width() : toolSize2.width();
   int newHeight = newWidth + toolSize1.height() + toolSize2.height();
@@ -479,8 +482,7 @@ int slicerAnglesOpen()
     return 0;
   }
   sliceAngDia = new SlicerAngleForm(imodDialogManager.parent(IMOD_DIALOG), 
-                                    "slicer angles", Qt::WType_TopLevel | 
-                                    Qt::WDestructiveClose);
+                                    Qt::Window);
   if (!sliceAngDia)
     return -1;
   imodDialogManager.add((QWidget *)sliceAngDia, IMOD_DIALOG);
@@ -517,17 +519,17 @@ static void setAngleToolbarState(SlicerWindow *slicer, bool open)
   slicer->mSetAngBut->setEnabled(open);
   slicer->mSaveAngBut->setEnabled(open);
   slicer->mNewRowBut->setEnabled(open);
-  if (open)
-    slicer->mSaveAngBar->show();
-  else {
+  if (open) {
+    slicer->showSaveAngleToolbar();
+  } else {
     
     // Turn off continuous when closing
     diaSetChecked(slicer->mAutoBox, false);
     slicer->mSlicer->continuous = false;
     slicer->mSaveAngBar->hide();
   }
-  
 }
+  
 // The pixel view window has opened or closed, set mouse tracking for all
 void slicerPixelViewState(bool state)
 {
@@ -837,13 +839,13 @@ static void slicerKey_cb(ImodView *vi, void *client, int released,
 void slicerKeyInput(SlicerStruct *ss, QKeyEvent *event)
 {
   int keysym = event->key();
-  int shift = event->state() & Qt::ShiftButton;
-  int ctrl = event->state() & Qt::ControlButton;
+  int shift = event->modifiers() & Qt::ShiftModifier;
+  int ctrl = event->modifiers() & Qt::ControlModifier;
   int lang = ss->lastangle;
   int dodraw = 1;
   int handled = 1;
   int docheck = 0;
-  int keypad = event->state() & Qt::Keypad;
+  int keypad = event->modifiers() & Qt::KeypadModifier;
   float unit;
   Ipoint *p1, *p2;
   int ob, co, pt, axis, start, end;
@@ -1007,10 +1009,10 @@ void slicerKeyInput(SlicerStruct *ss, QKeyEvent *event)
   case Qt::Key_Left:
   case Qt::Key_Insert:
   case Qt::Key_End:
-  case Qt::Key_Next:
-  case Qt::Key_Prior:
+  case Qt::Key_PageDown:
+  case Qt::Key_PageUp:
     dodraw = 0;
-    if ((keypad && !(shift || ss->shiftLock) && keysym == Qt::Key_Prior) || 
+    if ((keypad && !(shift || ss->shiftLock) && keysym == Qt::Key_PageUp) || 
         (keypad && (shift || ss->shiftLock) && keysym == Qt::Key_Insert) ||
         (!keypad && ((!ss->locked && ss->classic) || keysym == Qt::Key_End || 
                      keysym == Qt::Key_Insert))) {
@@ -1031,9 +1033,9 @@ void slicerKeyInput(SlicerStruct *ss, QKeyEvent *event)
         vec.x = -unit;
       if (keysym == Qt::Key_Up)
         vec.y = -unit;
-      if (keysym == Qt::Key_Prior)
+      if (keysym == Qt::Key_PageUp)
         vec.z = 1.;
-      if (keysym == Qt::Key_Next)
+      if (keysym == Qt::Key_PageDown)
         vec.z = -1.;
       if (translateByRotatedVec(ss, &vec)) {
         dodraw = 1;
@@ -1085,9 +1087,9 @@ void slicerKeyInput(SlicerStruct *ss, QKeyEvent *event)
         setViewAxisRotation(ss, 0., unit, 0.);
       if (keysym == Qt::Key_Up)
         setViewAxisRotation(ss, unit, 0., 0.);
-      if (keysym == Qt::Key_Prior)
+      if (keysym == Qt::Key_PageUp)
         setViewAxisRotation(ss, 0., 0., unit);
-      if (keysym == Qt::Key_Next)
+      if (keysym == Qt::Key_PageDown)
         setViewAxisRotation(ss, 0., 0., -unit);
     } else {
       slicerSetForwardMatrix(ss);
@@ -1101,7 +1103,7 @@ void slicerKeyInput(SlicerStruct *ss, QKeyEvent *event)
         ss->tang[lang] += 0.5;
       if (keysym == Qt::Key_End)
         ss->tang[lang] -= 15.0;
-      if (keysym == Qt::Key_Next)
+      if (keysym == Qt::Key_PageDown)
         ss->tang[lang] += 15.0;
       if (keysym == Qt::Key_Insert)
         ss->tang[lang] = 0.0;
@@ -1155,13 +1157,13 @@ void slicerKeyRelease(SlicerStruct *ss, QKeyEvent *event)
 // Process press of mouse buttons
 void slicerMousePress(SlicerStruct *ss, QMouseEvent *event)
 {
-  int shift = (event->state() & Qt::ShiftButton) + ss->shiftLock;
-  int ctrl = (event->state() & Qt::ControlButton);
+  int shift = (event->modifiers() & Qt::ShiftModifier) + ss->shiftLock;
+  int ctrl = (event->modifiers() & Qt::ControlModifier);
   ivwControlPriority(ss->vi, ss->ctrl);
 
   lastmx = firstmx = event->x();
   lastmy = firstmy = event->y();
-  if (event->stateAfter() & ImodPrefs->actualButton(1)) {
+  if (event->buttons() & ImodPrefs->actualButton(1)) {
     if (ss->classic) {
       slicer_attach_point(ss, event->x(), event->y());
     } else {
@@ -1169,10 +1171,10 @@ void slicerMousePress(SlicerStruct *ss, QMouseEvent *event)
     }
   }
 
-  if ((event->stateAfter() & ImodPrefs->actualButton(2)) && (ctrl || !shift))
+  if ((event->buttons() & ImodPrefs->actualButton(2)) && (ctrl || !shift))
     slicer_insert_point(ss, event->x(), event->y(), ctrl);
   
-  if ((event->stateAfter() & ImodPrefs->actualButton(3)) && (ctrl || !shift))
+  if ((event->buttons() & ImodPrefs->actualButton(3)) && (ctrl || !shift))
     slicer_modify_point(ss, event->x(), event->y(), ctrl);
 }
 
@@ -1207,9 +1209,9 @@ void slicerMouseMove(SlicerStruct *ss, QMouseEvent *event)
   int cumdx, cumdy;
   int cumthresh = 6 * 6;
   double transFac = ss->zoom < 4. ? 1. / ss->zoom : 0.25;
-  int shift = (event->state() & Qt::ShiftButton) + ss->shiftLock;
-  int button2 = event->state() & ImodPrefs->actualButton(2);
-  int button3 = event->state() & ImodPrefs->actualButton(3);
+  int shift = (event->modifiers() & Qt::ShiftModifier) + ss->shiftLock;
+  int button2 = event->buttons() & ImodPrefs->actualButton(2);
+  int button3 = event->buttons() & ImodPrefs->actualButton(3);
   Ipoint vec;
  
   ivwControlPriority(ss->vi, ss->ctrl);
@@ -1219,7 +1221,7 @@ void slicerMouseMove(SlicerStruct *ss, QMouseEvent *event)
   }
 
   // Pan with button 1 if not classic mode
-  if ((event->state() & ImodPrefs->actualButton(1)) && !ss->classic) {
+  if ((event->buttons() & ImodPrefs->actualButton(1)) && !ss->classic) {
     cumdx = event->x() - firstmx;
     cumdy = event->y() - firstmy;
     if (mousePanning || but1downt.elapsed() > 250 || 
@@ -2696,6 +2698,9 @@ void slicerCubePaint(SlicerStruct *ss)
 
 /*
 $Log$
+Revision 4.61  2008/11/29 22:10:30  mast
+Added ability to link slicers
+
 Revision 4.60  2008/09/24 02:40:26  mast
 Call new attach function; fix logic
 

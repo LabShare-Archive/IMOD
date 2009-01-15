@@ -4,12 +4,13 @@
 /* DNM 8/17/00: add this to get the flags in as needed */
 #include "imodconfig.h"
 
-#ifndef QTPLAX_NO_THREAD
-#define QT_THREAD_SUPPORT
 #include <qthread.h>
 #include <qmutex.h>
-#endif
 #include <qwidget.h>
+//Added by qt3to4:
+#include <QPaintEvent>
+#include <QResizeEvent>
+#include <QCloseEvent>
 
 /* First color used in color index ramp */
 #define PLAX_LOWRAMP 40
@@ -106,31 +107,38 @@ void plax_sctext(int *thickness,
 
 class PlaxWindow : public QWidget
 {
+  Q_OBJECT
+
  public:
-  PlaxWindow(QWidget *parent, const char *name = 0, 
-	     WFlags fl = Qt::WDestructiveClose | Qt::WType_TopLevel);
+  PlaxWindow(QWidget *parent, Qt::WFlags fl = Qt::Window);
   ~PlaxWindow() {};
   void lock();
   void unlock();
+
+  public slots:
+  void redrawSlot();
 
  protected:
     void closeEvent ( QCloseEvent * e );
     void paintEvent ( QPaintEvent * );
     void resizeEvent ( QResizeEvent * );
-    void customEvent ( QCustomEvent * );
 
 };
 
-#ifndef QTPLAX_NO_THREAD
 class PlaxThread : public QThread
 {
+  Q_OBJECT
+
  public:
   PlaxThread();
   ~PlaxThread() {};
+  void sendSignal();
+
+ signals:
+  void redraw();
 
  protected:
   void run();
 };
-#endif
 
 #endif /* plax.h */

@@ -33,7 +33,6 @@
 #include <qcheckbox.h>
 #include <qlabel.h>
 #include <qcombobox.h>
-#include <qvbuttongroup.h>
 #include <qradiobutton.h>
 #include <qdialog.h>
 #include <qspinbox.h>
@@ -43,6 +42,14 @@
 #include <qstringlist.h>
 #include <qmessagebox.h>
 #include <qinputdialog.h>
+//Added by qt3to4:
+#include <QWheelEvent>
+#include <QMouseEvent>
+#include <QCloseEvent>
+#include <QGridLayout>
+#include <QKeyEvent>
+#include <QEvent>
+#include <QVBoxLayout>
 
 #include "_common_functions.h"
 #include "qt_dialog_customizable.h"
@@ -90,8 +97,8 @@ int imodPlugKeys(ImodView *vw, QKeyEvent *event)
     return 0;
   
   int keysym = event->key();            // key value (Key_A, Key_Space... etc)
-  int ctrl    = event->state() & Qt::ControlButton;   // ctrl modifier
-  int shift   = event->state() & Qt::ShiftButton;     // shift modifier
+  int ctrl    = event->modifiers() & Qt::ControlModifier;   // ctrl modifier
+  int shift   = event->modifiers() & Qt::ShiftModifier;     // shift modifier
   
   if(ctrl)          // if the control key is down we don't want to do anything!
     return 0;
@@ -494,60 +501,57 @@ BeadHelper::BeadHelper(QWidget *parent, const char *name) :
   //## Range:
   
   grpRange = new QGroupBox("Range:", this);
-  grpRange->setFocusPolicy(QWidget::NoFocus);
-  grpRange->setMargin(GROUP_MARGIN);
+  //grpRange->setFocusPolicy(Qt::NoFocus);
+  //grpRange->setMargin(GROUP_MARGIN);
   
   gridLayout1 = new QGridLayout(grpRange);
   gridLayout1->setSpacing(LAYOUT_SPACING);
-  gridLayout1->setMargin(LAYOUT_MARGIN);
-  gridLayout1->addItem( new QSpacerItem(1,SPACER_HEIGHT), 0, 0);
+  gridLayout1->setContentsMargins(LAYOUT_MARGIN, LAYOUT_MARGIN, LAYOUT_MARGIN,
+                                  LAYOUT_MARGIN);
+  //gridLayout1->addItem( new QSpacerItem(1,SPACER_HEIGHT), 0, 0);
   
   lblViews = new QLabel("views: ", grpRange);
-  lblViews->setFocusPolicy(QWidget::NoFocus);
+  lblViews->setFocusPolicy(Qt::NoFocus);
   gridLayout1->addWidget(lblViews, 1, 0);
   
   viewMinSpinner = new QSpinBox(grpRange);
-  viewMinSpinner->setFocusPolicy(QWidget::ClickFocus);
-  viewMinSpinner->setMinValue(1);
-  viewMinSpinner->setMaxValue(plug.zsize);
+  viewMinSpinner->setFocusPolicy(Qt::ClickFocus);
+  viewMinSpinner->setRange(1, plug.zsize);
   viewMinSpinner->setValue( plug.viewMin );
-  QToolTip::add(viewMinSpinner, "Minimum view value (inclusive)");
+  viewMinSpinner->setToolTip( "Minimum view value (inclusive)");
   gridLayout1->addWidget(viewMinSpinner, 1, 1);
   
   lblViewsTo = new QLabel(" to ", grpRange);
-  lblViewsTo->setFocusPolicy(QWidget::NoFocus);
+  lblViewsTo->setFocusPolicy(Qt::NoFocus);
   gridLayout1->addWidget(lblViewsTo, 1, 2);
   
   viewMaxSpinner = new QSpinBox(grpRange);
-  viewMaxSpinner->setFocusPolicy(QWidget::ClickFocus);
-  viewMaxSpinner->setMinValue(1);
-  viewMaxSpinner->setMaxValue(plug.zsize);
+  viewMaxSpinner->setFocusPolicy(Qt::ClickFocus);
+  viewMaxSpinner->setRange(1, plug.zsize);
   viewMaxSpinner->setValue( plug.viewMax );
-  QToolTip::add(viewMaxSpinner, "Maximum view value (inclusive)");
+  viewMaxSpinner->setToolTip( "Maximum view value (inclusive)");
   gridLayout1->addWidget(viewMaxSpinner, 1, 3);
   
   lblContours = new QLabel("contours: ", grpRange);
-  lblContours->setFocusPolicy(QWidget::NoFocus);
+  lblContours->setFocusPolicy(Qt::NoFocus);
   gridLayout1->addWidget(lblContours, 2, 0);
   
   contMinSpinner = new QSpinBox(grpRange);
-  contMinSpinner->setFocusPolicy(QWidget::ClickFocus);
-  contMinSpinner->setMinValue(1);
-  contMinSpinner->setMaxValue(1000);
+  contMinSpinner->setFocusPolicy(Qt::ClickFocus);
+  contMinSpinner->setRange(1, 1000);
   contMinSpinner->setValue( plug.contMin );
-  QToolTip::add(contMinSpinner, "Minimum contour value (inclusive)");
+  contMinSpinner->setToolTip( "Minimum contour value (inclusive)");
   gridLayout1->addWidget(contMinSpinner, 2, 1);
   
   lblContoursTo = new QLabel(" to ", grpRange);
-  lblContoursTo->setFocusPolicy(QWidget::NoFocus);
+  lblContoursTo->setFocusPolicy(Qt::NoFocus);
   gridLayout1->addWidget(lblContoursTo, 2, 2);
   
   contMaxSpinner = new QSpinBox(grpRange);
-  contMaxSpinner->setFocusPolicy(QWidget::ClickFocus);
-  contMaxSpinner->setMinValue(1);
-  contMaxSpinner->setMaxValue(9999);
+  contMaxSpinner->setFocusPolicy(Qt::ClickFocus);
+  contMaxSpinner->setRange(1, 9999);
   contMaxSpinner->setValue( plug.contMax );
-  QToolTip::add(contMaxSpinner, "Maximum contour value (inclusive)"
+  contMaxSpinner->setToolTip( "Maximum contour value (inclusive)"
                 "\n\nNOTE: This value defaults to 9999 - which means all contours "
                 "\n     from the min value to the last contour in the "
                 "\n     object are included in the range");
@@ -559,16 +563,17 @@ BeadHelper::BeadHelper(QWidget *parent, const char *name) :
   //## Actions:
   
   grpActions = new QGroupBox("Actions:", this);
-  grpActions->setFocusPolicy(QWidget::NoFocus);
+  grpActions->setFocusPolicy(Qt::NoFocus);
   
   vboxLayout1 = new QVBoxLayout(grpActions);
   vboxLayout1->setSpacing(LAYOUT_SPACING);
-  vboxLayout1->setMargin(LAYOUT_MARGIN);
-  vboxLayout1->addItem( new QSpacerItem(1,SPACER_HEIGHT) );
+  vboxLayout1->setContentsMargins(LAYOUT_MARGIN, LAYOUT_MARGIN, LAYOUT_MARGIN,
+                                  LAYOUT_MARGIN);
+  //vboxLayout1->addItem( new QSpacerItem(1,SPACER_HEIGHT) );
   
   deletePtsButton = new QPushButton("Delete Points in Range [d]", grpActions);
   connect(deletePtsButton, SIGNAL(clicked()), this, SLOT(deletePtsInRange()));
-  QToolTip::add(deletePtsButton,
+  deletePtsButton->setToolTip(
                 "Deletes all points on the specified views from the specified "
                 "range of contours");
   vboxLayout1->addWidget(deletePtsButton);
@@ -576,14 +581,14 @@ BeadHelper::BeadHelper(QWidget *parent, const char *name) :
   reduceContsToSeedButton = new QPushButton("Reduce Contours to Seed  [r]", grpActions);
   QObject::connect(reduceContsToSeedButton, SIGNAL(clicked()), this,
                    SLOT(reduceContsToSeed()));
-  QToolTip::add(reduceContsToSeedButton,
+  reduceContsToSeedButton->setToolTip(
                 "Deletes all points in the current contour except on the seed view");
   vboxLayout1->addWidget(reduceContsToSeedButton);
   
   movePtsToEstButton = new QPushButton("Move Pts to Estimated Pos [e]", grpActions);
   QObject::connect(movePtsToEstButton, SIGNAL(clicked()), this,
                    SLOT(movePtsToEstimatedPosOptions()));
-  QToolTip::add(movePtsToEstButton,
+  movePtsToEstButton->setToolTip(
                 "Smooths contour(s) by moving points towards their estimated position "
                 "(provides several different methods to achieve this)");
   vboxLayout1->addWidget(movePtsToEstButton);
@@ -591,13 +596,13 @@ BeadHelper::BeadHelper(QWidget *parent, const char *name) :
   fillMissingPtsButton = new QPushButton("Fill Missing Points   [f]", grpActions);
   QObject::connect(fillMissingPtsButton, SIGNAL(clicked()), this,
                    SLOT(fillMissingPts()));
-  QToolTip::add(fillMissingPtsButton,
+  fillMissingPtsButton->setToolTip(
                 "Fills in missing points");
   vboxLayout1->addWidget(fillMissingPtsButton);
   
   reorderContsButton = new QPushButton("Reorder Contours   [o]", grpActions);
   connect(reorderContsButton, SIGNAL(clicked()), this, SLOT(reorderContours()));
-  QToolTip::add(reorderContsButton,
+  reorderContsButton->setToolTip(
                 "Reorders the specified range of contours by one of several crititeria");
   vboxLayout1->addWidget(reorderContsButton);
   
@@ -607,59 +612,59 @@ BeadHelper::BeadHelper(QWidget *parent, const char *name) :
   //## Display:
   
   grpDisplay = new QGroupBox("Visual Aids:", this);
-  grpDisplay->setFocusPolicy(QWidget::NoFocus);
-  grpDisplay->setMargin(GROUP_MARGIN);
+  //grpDisplay->setFocusPolicy(Qt::NoFocus);
+  //grpDisplay->setMargin(GROUP_MARGIN);
   
   gridLayout2 = new QGridLayout(grpDisplay);
   gridLayout2->setSpacing(LAYOUT_SPACING);
-  gridLayout2->setMargin(LAYOUT_MARGIN);
-  gridLayout2->addItem( new QSpacerItem(1,SPACER_HEIGHT), 0, 0);
+  gridLayout2->setContentsMargins(LAYOUT_MARGIN, LAYOUT_MARGIN, LAYOUT_MARGIN,
+                                  LAYOUT_MARGIN);
+  //gridLayout2->addItem( new QSpacerItem(1,SPACER_HEIGHT), 0, 0);
   
   showEstimatedPosCheckbox = new QCheckBox("show estimated position", grpDisplay);
   showEstimatedPosCheckbox->setChecked( plug.showExpectedPos );
   QObject::connect(showEstimatedPosCheckbox,SIGNAL(clicked()),this,
                    SLOT(changeShowExpectedPos()));
-  QToolTip::add(showEstimatedPosCheckbox, 
+  showEstimatedPosCheckbox->setToolTip( 
                 "Shows the estimated position of the current point based on "
                 "position of points either side");
-  gridLayout2->addMultiCellWidget(showEstimatedPosCheckbox, 1, 1, 0, 1);
+  gridLayout2->addWidget(showEstimatedPosCheckbox, 1, 0, 1, 2);
   
   showSpheresCheckbox = new QCheckBox("sphere size:", grpDisplay);
   showSpheresCheckbox->setChecked( plug.showSpheres );
   QObject::connect(showSpheresCheckbox,SIGNAL(clicked()),this,
                    SLOT(changeShowSpheres()));
-  QToolTip::add(showSpheresCheckbox,
+  showSpheresCheckbox->setToolTip(
                 "Show/hide spheres on the current object");
   gridLayout2->addWidget(showSpheresCheckbox, 2, 0);
   
   sphereSizeSpinner = new QSpinBox(grpDisplay);
-  sphereSizeSpinner->setMinValue(1);
-  sphereSizeSpinner->setMaxValue(50);
-  sphereSizeSpinner->setFocusPolicy(QWidget::NoFocus);
+  sphereSizeSpinner->setRange(1, 50);
+  sphereSizeSpinner->setFocusPolicy(Qt::NoFocus);
   sphereSizeSpinner->setValue( plug.sphereSize );
   QObject::connect(sphereSizeSpinner,SIGNAL(valueChanged(int)),this,
                    SLOT(changeSphereSize(int)));
-  QToolTip::add(sphereSizeSpinner,
+  sphereSizeSpinner->setToolTip(
                 "The size of the spheres you wish to display");
   gridLayout2->addWidget(sphereSizeSpinner, 2, 1);
   
   lblLineDisplay = new QLabel("line display: ", grpDisplay);
-  lblLineDisplay->setFocusPolicy(QWidget::NoFocus);
-	QToolTip::add(lblLineDisplay, 
+  lblLineDisplay->setFocusPolicy(Qt::NoFocus);
+  lblLineDisplay->setToolTip( 
               "Visual aid to let you see the trajectory of contours in the ZAP window");
   gridLayout2->addWidget(lblLineDisplay, 3, 0);
   
   lineDisplayCombo = new QComboBox(grpDisplay);
-	lineDisplayCombo->setFocusPolicy(QWidget::NoFocus);
-	lineDisplayCombo->insertItem("off");
-	lineDisplayCombo->insertItem("all contours");
-	lineDisplayCombo->insertItem("curr contour");
-  lineDisplayCombo->insertItem("missing pts");
-  lineDisplayCombo->insertItem("result smooth");
-  lineDisplayCombo->insertItem("pt residuals");
-  lineDisplayCombo->insertItem("line best fit");
-  lineDisplayCombo->setCurrentItem( plug.lineDisplayType );
-	connect(lineDisplayCombo, SIGNAL(activated(int)), this,
+  lineDisplayCombo->setFocusPolicy(Qt::NoFocus);
+  lineDisplayCombo->addItem("off");
+  lineDisplayCombo->addItem("all contours");
+  lineDisplayCombo->addItem("curr contour");
+  lineDisplayCombo->addItem("missing pts");
+  lineDisplayCombo->addItem("result smooth");
+  lineDisplayCombo->addItem("pt residuals");
+  lineDisplayCombo->addItem("line best fit");
+  lineDisplayCombo->setCurrentIndex( plug.lineDisplayType );
+  connect(lineDisplayCombo, SIGNAL(activated(int)), this,
           SLOT(changeLineDisplayType(int)));
   toolStr = "Visual aid to let you see the trajectory of contours. "
     "\n"
@@ -675,25 +680,25 @@ BeadHelper::BeadHelper(QWidget *parent, const char *name) :
       " contour with solid arrows "
     "\n > line best fit  - shows a 'line of best fit'; a straight line which "
       "best approximates all the points in the slected contour";
-  QToolTip::add(lineDisplayCombo, toolStr );
-	//QToolTip::add(lineDisplayCombo, "Visual aid to let you see the trajectory of contours");
+  lineDisplayCombo->setToolTip( toolStr );
+	//lineDisplayCombo->setToolTip( "Visual aid to let you see the trajectory of contours");
 	gridLayout2->addWidget(lineDisplayCombo, 3, 1);
   
   lblTiltDisplay = new QLabel("tilt display: ", grpDisplay);
-  lblTiltDisplay->setFocusPolicy(QWidget::NoFocus);
-	QToolTip::add(lblTiltDisplay, 
+  lblTiltDisplay->setFocusPolicy(Qt::NoFocus);
+  lblTiltDisplay->setToolTip( 
                 "Visual aid to show the axis about which subsequent views are tilted");
   gridLayout2->addWidget(lblTiltDisplay, 4, 0);
   
   tiltDisplayCombo = new QComboBox(grpDisplay);
-	tiltDisplayCombo->setFocusPolicy(QWidget::NoFocus);
-	tiltDisplayCombo->insertItem("off");
-  tiltDisplayCombo->insertItem("tilt axis");
-  tiltDisplayCombo->insertItem("tilt and seed");
-  tiltDisplayCombo->insertItem("tilt and pt");
-  tiltDisplayCombo->insertItem("tilt segments");
-  tiltDisplayCombo->insertItem("[h] grid");
-  tiltDisplayCombo->setCurrentItem( plug.tiltDisplayType );
+  tiltDisplayCombo->setFocusPolicy(Qt::NoFocus);
+  tiltDisplayCombo->addItem("off");
+  tiltDisplayCombo->addItem("tilt axis");
+  tiltDisplayCombo->addItem("tilt and seed");
+  tiltDisplayCombo->addItem("tilt and pt");
+  tiltDisplayCombo->addItem("tilt segments");
+  tiltDisplayCombo->addItem("[h] grid");
+  tiltDisplayCombo->setCurrentIndex( plug.tiltDisplayType );
 	connect(tiltDisplayCombo, SIGNAL(activated(int)), this,
           SLOT(changeTiltDisplayType(int)));
   toolStr = "Visual aid to show the tilt axis. "
@@ -709,7 +714,7 @@ BeadHelper::BeadHelper(QWidget *parent, const char *name) :
       "according to the tilt increment (under 'More Settings')"
     "\n > [h] grid    - shows the grid used to find the 'next biggest hole' when [h] "
       "is pressed (see 'More Settings')";
-	QToolTip::add(tiltDisplayCombo, toolStr);
+	tiltDisplayCombo->setToolTip( toolStr);
 	gridLayout2->addWidget(tiltDisplayCombo, 4, 1);
   
   mLayout->addWidget(grpDisplay);
@@ -718,30 +723,31 @@ BeadHelper::BeadHelper(QWidget *parent, const char *name) :
   //## Display:
   
   grpOptions = new QGroupBox("Options:", this);
-  grpOptions->setFocusPolicy(QWidget::NoFocus);
-  grpOptions->setMargin(GROUP_MARGIN);
+  //grpOptions->setFocusPolicy(Qt::NoFocus);
+  //grpOptions->setMargin(GROUP_MARGIN);
   
   gridLayout3 = new QGridLayout(grpOptions);
   gridLayout3->setSpacing(LAYOUT_SPACING);
-  gridLayout3->setMargin(LAYOUT_MARGIN);
-  gridLayout3->addItem( new QSpacerItem(1,SPACER_HEIGHT), 0, 0);
+  gridLayout3->setContentsMargins(LAYOUT_MARGIN, LAYOUT_MARGIN, LAYOUT_MARGIN,
+                                  LAYOUT_MARGIN);
+  //gridLayout3->addItem( new QSpacerItem(1,SPACER_HEIGHT), 0, 0);
   
   lblEstMethod = new QLabel("estimation meth:", grpOptions);
-	QToolTip::add(lblEstMethod, 
+  lblEstMethod->setToolTip( 
                 "The method used to determine the estimated position of points");
   gridLayout3->addWidget(lblEstMethod, 1, 0);
   
   estPosMethodCombo = new QComboBox(grpOptions);
-  estPosMethodCombo->setFocusPolicy(QWidget::NoFocus);
-  estPosMethodCombo->insertItem("best 2 pts");
-  estPosMethodCombo->insertItem("smart 2 pts");
-	estPosMethodCombo->insertItem("nearest 2 pts");
-  estPosMethodCombo->insertItem("prev 2 pts");
-	estPosMethodCombo->insertItem("curve");
-	estPosMethodCombo->insertItem("local curve");
-  estPosMethodCombo->insertItem("prev 6 pts");
-  estPosMethodCombo->insertItem("prev 3 pts");
-  estPosMethodCombo->setCurrentItem( plug.estPosMethod );
+  estPosMethodCombo->setFocusPolicy(Qt::NoFocus);
+  estPosMethodCombo->addItem("best 2 pts");
+  estPosMethodCombo->addItem("smart 2 pts");
+  estPosMethodCombo->addItem("nearest 2 pts");
+  estPosMethodCombo->addItem("prev 2 pts");
+  estPosMethodCombo->addItem("curve");
+  estPosMethodCombo->addItem("local curve");
+  estPosMethodCombo->addItem("prev 6 pts");
+  estPosMethodCombo->addItem("prev 3 pts");
+  estPosMethodCombo->setCurrentIndex( plug.estPosMethod );
 	connect(estPosMethodCombo, SIGNAL(activated(int)), this,
           SLOT(changeEstPosMethod(int)));
   toolStr = "The method used to determine the estimated position of points. "
@@ -761,28 +767,28 @@ BeadHelper::BeadHelper(QWidget *parent, const char *name) :
     "\n > prev 6 pts     - uses the line of best fit, plus increasing distance along "
     "X over the previous 3 points towards the seed"
     "\n > prev 3 pts     - as above using previous 3 points";
-  QToolTip::add(estPosMethodCombo, toolStr );
+  estPosMethodCombo->setToolTip( toolStr );
   gridLayout3->addWidget(estPosMethodCombo, 1, 1);
   
   mLayout->addWidget(grpOptions);
   
   keyboardSettingsButton = new QPushButton("Mouse and Keyboard", grpOptions);
   connect(keyboardSettingsButton, SIGNAL(clicked()), this, SLOT(keyboardSettings()));
-  QToolTip::add(keyboardSettingsButton,
+  keyboardSettingsButton->setToolTip(
                 "Contains several other settings I didn't want to sqeeze "
                 "into this window");
-  gridLayout3->addMultiCellWidget(keyboardSettingsButton, 2, 2, 0, 1);
+  gridLayout3->addWidget(keyboardSettingsButton, 2, 0, 1, 2);
   
   moreActionsButton = new QPushButton("More Actions", grpOptions);
   connect(moreActionsButton, SIGNAL(clicked()), this, SLOT(moreActions()));
-  QToolTip::add(moreActionsButton,
+  moreActionsButton->setToolTip(
                 "Contains several other actions I didn't want to sqeeze "
                 "into this window");
   gridLayout3->addWidget(moreActionsButton, 3, 0);
   
   moreSettingsButton = new QPushButton("More Settings", grpOptions);
   connect(moreSettingsButton, SIGNAL(clicked()), this, SLOT(moreSettings()));
-  QToolTip::add(moreSettingsButton,
+  moreSettingsButton->setToolTip(
                 "Contains several other settings I didn't want to sqeeze "
                 "into this window");
   gridLayout3->addWidget(moreSettingsButton, 3, 1);
@@ -2443,8 +2449,8 @@ void BeadHelper::moveContour()
   
   int lastCont = csize( obj );
   bool ok;
-  int newContIdx = QInputDialog::getInteger( "Move contour", "Move to:",
-                                             lastCont, 1, lastCont, 1, &ok, this ) - 1;
+  int newContIdx = QInputDialog::getInteger(this, "Move contour", "Move to:",
+                                            lastCont, 1, lastCont, 1, &ok) - 1;
   if ( ok && contIdx != newContIdx )
   {
     Icont *contCopy = imodContourDup( cont );
@@ -3521,7 +3527,7 @@ void BeadHelper::buttonPressed(int which)
     QString str = QString(getenv("IMOD_DIR"));
     str += QString("/lib/imodplug/beadhelper.html");
     
-    imodShowHelpPage(str);
+    imodShowHelpPage((const char *)str.toLatin1());
   }
 }
 

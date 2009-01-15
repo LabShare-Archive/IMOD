@@ -4,11 +4,16 @@
  *  $Id$
  *
  *  $Log$
+ *  Revision 1.3  2007/05/31 16:34:31  mast
+ *  Took out of slicer and made separate so zap could use it too
+ *
  */
 #ifndef HOTTOOLBAR_H
 #define HOTTOOLBAR_H
 
 #include <qtoolbar.h>
+//Added by qt3to4:
+#include <QKeyEvent>
 
 /* 
  * A HotToolBar emits keyPress( QKeyEvent * e) and keyRelease( QKeyEvent * e)
@@ -19,8 +24,10 @@ class HotToolBar : public QToolBar
 {
   Q_OBJECT
  public:
-  HotToolBar( QMainWindow * parent = 0, const char * name = 0) 
-    : QToolBar(parent, name) { };
+  HotToolBar(QWidget * parent = 0) 
+    : QToolBar(parent) { };
+  HotToolBar( const QString & title, QWidget * parent = 0) 
+    : QToolBar(title, parent) { };
   ~HotToolBar() {}
 
  signals:

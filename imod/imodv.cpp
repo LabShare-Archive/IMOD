@@ -95,7 +95,7 @@ static void usage(char *pname)
   qstr += "\t-E <keys>        Open windows specifed by key letters (= hot keys).\n";
   qstr += "\t-D               Debug mode.\n";
   qstr += "\t-h               Print this help message.\n";
-  imodPrintInfo(qstr.latin1());
+  imodPrintInfo(LATIN1(qstr));
   exit(3);
 }
 
@@ -349,10 +349,7 @@ static int openWindow(ImodvApp *a)
 
   ImodvClosed = 0;
   imodvSetCaption();
-  a->mainWin->setIcon(*(a->iconPixmap));
-
-  // This call gets the window size to be right after the setuplayout
-  imod_info_input();
+  a->mainWin->setWindowIcon(*(a->iconPixmap));
 
   // If fullscreen, set that and show
   if (a->fullscreen) {
@@ -369,6 +366,9 @@ static int openWindow(ImodvApp *a)
     } else {
 
       // Otherwise, set the size, allowing for menu based on the current size
+      // Have to actually show it for the GL widget to fill the window
+      a->mainWin->show();
+      imod_info_input();
       newHeight = needy + a->mainWin->height() - a->winy;
       QPoint pos = a->mainWin->pos();
       xleft = pos.x();
@@ -412,8 +412,7 @@ static int load_models(int n, char **fname, ImodvApp *a)
   a->nm = n;
   a->cm = 0;
   for(i = 0; i < n; i++){
-    a->mod[i] = imodRead((char *)(QDir::convertSeparators(QString(fname[i]))).
-      latin1());
+    a->mod[i] = imodRead(LATIN1(QDir::convertSeparators(QString(fname[i]))));
     if (!a->mod[i]){
       imodError(NULL, "Error loading %s\n", fname[i]);
       return(-1);
@@ -542,7 +541,7 @@ int imodv_main(int argc, char **argv)
     exit(3);
 
   a->vi->imod = a->imod;
-  a->iconPixmap = new QPixmap(QImage(b3dicon));
+  a->iconPixmap = new QPixmap(QPixmap::fromImage(QImage(b3dicon)));
 
   if (openWindow(Imodv))
     exit(3);
@@ -690,7 +689,7 @@ void imodvSetCaption()
   if (str.isEmpty())
     str = "3dmod Model View";
 
-  a->mainWin->setCaption(str);
+  a->mainWin->setWindowTitle(str);
 }
 
 // To call imodDraw if not in standalone mode
@@ -772,6 +771,9 @@ void imodvQuit()
 
 /*
 $Log$
+Revision 4.44  2008/12/17 17:49:13  mast
+Make warning about no DB visual more nuanced
+
 Revision 4.43  2008/12/15 21:22:43  mast
 Make separate widgets for stereo so they are used only when stereo is on
 

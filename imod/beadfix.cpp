@@ -22,15 +22,21 @@
 #include <qradiobutton.h>
 #include <qtooltip.h>
 #include <qtoolbutton.h>
-#include <qhbox.h>
-#include <qvbuttongroup.h>
+#include <QButtonGroup>
+#include <QGroupBox>
 #include <qlabel.h>
 #include <qlayout.h>
 #include <qdir.h>
 #include <qstringlist.h>
 #include <qfile.h>
 #include <qslider.h>
-#include <qprocess.h>
+//Added by qt3to4:
+#include <QTimerEvent>
+#include <QPixmap>
+#include <QMouseEvent>
+#include <QCloseEvent>
+#include <QKeyEvent>
+#include <QEvent>
 
 
 /*#include "../../imod/imod.h"
@@ -54,6 +60,7 @@
 #include "pegged.xpm"
 #include "unpegged.xpm"
 #include "imod_input.h"
+#include "imod_info_cb.h"
 #include "imod_edit.h"
 #include "imodv_objed.h"
 #include "preferences.h"
@@ -156,8 +163,8 @@ int imodPlugKeys(ImodView *vw, QKeyEvent *event)
    * Modifier key mask.  Set ctrl and shift to true
    * if the coresponding key is pressed.
    */
-  ctrl   = event->state() & Qt::ControlButton;
-  shift  = event->state() & Qt::ShiftButton;
+  ctrl   = event->modifiers() & Qt::ControlModifier;
+  shift  = event->modifiers() & Qt::ShiftModifier;
     
     
   switch(keysym){
@@ -206,7 +213,7 @@ int imodPlugKeys(ImodView *vw, QKeyEvent *event)
     plug->window->overlayToggled(plug->overlayOn != 0);
     break;
   case Qt::Key_Insert:
-    if ((event->state() & Qt::Keypad) && ivwGetMovieModelMode(vw)
+    if ((event->modifiers() & Qt::KeypadModifier) && ivwGetMovieModelMode(vw)
         && !ivwGetTopZapMouse(plug->view, &mpt))
       keyhandled = plug->window->insertPoint(mpt.x, mpt.y, true);
     break;
@@ -230,7 +237,7 @@ static int imodPlugMouse(ImodView *vw, QMouseEvent *event, float imx,
   if (event->type() == QEvent::MouseButtonPress && but2 != 0)
     handled = plug->window->insertPoint(imx, imy, false);
   else if (event->type() == QEvent::MouseButtonPress && but3 != 0 &&
-           (event->state() & Qt::ShiftButton) && plug->autoCenter && 
+           (event->modifiers() & Qt::ShiftModifier) && plug->autoCenter && 
            plug->showMode != RES_MODE)
     handled = plug->window->modifyPoint(imx, imy);
   return handled;
@@ -345,7 +352,7 @@ int BeadFixer::executeMessage(QStringList *strings, int *arg)
       ++(*arg);
       return 0;
     }
-    return plug->window->openFileByName((*strings)[++(*arg)].latin1());
+    return plug->window->openFileByName(LATIN1((*strings)[++(*arg)]));
   case MESSAGE_BEADFIX_REREAD:
     if (!plug->filename)
       return 0;
@@ -391,7 +398,7 @@ void BeadFixer::openFile()
   
   if (qname.isEmpty())
     return;
-  openFileByName(qname.latin1());
+  openFileByName(LATIN1(qname));
 }
  
 /* Open the log file with the given name, returning 1 if error */
@@ -461,15 +468,15 @@ int BeadFixer::reread()
         PipStartsWith(line, "Residual err")) {
       if (strstr(line, "Residual error mean and sd:") &&
           globalResLine.isEmpty()) {
-        strList = QStringList::split(" ", QString(line));
+        strList = QString(line).split(" ", QString::SkipEmptyParts);
         if (strList.size() > 5)
           globalResLine = "Global mean residual: " + strList[5];
       }
       if (strstr(line, "Residual error local mean:")) {
-        strList = QStringList::split(" ", QString(line));
+        strList = QString(line).split(" ", QString::SkipEmptyParts);
         if (strList.size() > 8)
           localResLine = "Local mean residual: " + strList[4] + " (" + 
-            strList[6] + " - " + strList[8].stripWhiteSpace() + ")";
+            strList[6] + " - " + strList[8].trimmed() + ")";
       }
     }
         
@@ -597,9 +604,9 @@ int BeadFixer::reread()
   nextResBut->setEnabled(mNumResid);
   backUpBut->setEnabled(false);    
   if (!globalResLine.isEmpty())
-    wprint("\n%s\n", globalResLine.latin1());
+    wprint("\n%s\n", LATIN1(globalResLine));
   if (!localResLine.isEmpty())
-    wprint("%s\n", localResLine.latin1());
+    wprint("%s\n", LATIN1(localResLine));
   if (!gotHeader)
     wprint("\aResidual data not found\n");
   else if (!mLookonce)
@@ -1300,9 +1307,9 @@ void BeadFixer::newSkipList(QString list)
   }
   if (list.isEmpty())
     return;
-  mSkipSecs = parselist((char *)list.latin1(), &mNumSkip);
+  mSkipSecs = parselist(LATIN1(list), &mNumSkip);
   if (mSkipSecs) {
-    plug->skipList = strdup(list.latin1());
+    plug->skipList = strdup(LATIN1(list));
     for (int i = 0; i < mNumSkip; i++)
       mSkipSecs[i]--;
   }
@@ -1879,6 +1886,7 @@ void BeadFixer::modeSelected(int value)
   showWidget(clearListBut, value == RES_MODE);
   showWidget(examineBox, value == RES_MODE);
 
+  imod_info_input();
   adjustSize();
 
   // Turn overlay mode on or off if needed
@@ -1972,95 +1980,105 @@ BeadFixer::BeadFixer(QWidget *parent, const char *name)
   mExtraObj = ivwGetFreeExtraObjectNumber(plug->view);
 
   mLayout->setSpacing(4);
-  topBox = new QHBox(this);
+  topBox = new QWidget(this);
   mLayout->addWidget(topBox);
-  topBox->setSpacing(6);
+  QHBoxLayout* toplay = new QHBoxLayout(topBox);
+  toplay->setSpacing(5);
+  toplay->setContentsMargins(0,0,0,0);
 
   QToolButton *toolBut = new QToolButton(topBox);
-  toolBut->setToggleButton(true);
-  QIconSet iconSet;
-  iconSet.setPixmap(QPixmap((const char **)pegged), QIconSet::Automatic, 
-                    QIconSet::Normal, QIconSet::On);
-  iconSet.setPixmap(QPixmap((const char **)unpegged), QIconSet::Automatic,
-                    QIconSet::Normal, QIconSet::Off);
-  toolBut->setIconSet(iconSet);
-  toolBut->setOn(false);
+  toplay->addWidget(toolBut);
+  toolBut->setCheckable(true);
+  toolBut->setFocusPolicy(Qt::NoFocus);
+  QIcon iconSet;
+  iconSet.addPixmap(QPixmap((const char **)pegged), QIcon::Normal, QIcon::On);
+  iconSet.addPixmap(QPixmap((const char **)unpegged), QIcon::Normal, 
+                    QIcon::Off);
+  toolBut->setIcon(iconSet);
+  toolBut->setChecked(false);
   QSize hint = toolBut->sizeHint();
   toolBut->setFixedWidth(hint.width());
   toolBut->setFixedHeight(hint.height());
   connect(toolBut, SIGNAL(toggled(bool)), this, SLOT(keepOnTop(bool)));
-  QToolTip::add(toolBut, "Keep bead fixer window on top");
+  toolBut->setToolTip("Keep bead fixer window on top");
 
-  modeGroup = new QVButtonGroup("Operation", topBox, "mode group");
-  connect(modeGroup, SIGNAL(clicked(int)), this, SLOT(modeSelected(int)));
-  modeGroup->setInsideSpacing(0);
-  modeGroup->setInsideMargin(5);
+  QGroupBox *gbox = new QGroupBox("Operation", topBox);
+  toplay->addWidget(gbox);
+  QVBoxLayout *gbLayout = new QVBoxLayout(gbox);
+  gbLayout->setSpacing(0);
+  gbLayout->setContentsMargins(4, 0, 4, 3);
+  modeGroup = new QButtonGroup(this);
+  connect(modeGroup, SIGNAL(buttonClicked(int)), this,
+          SLOT(modeSelected(int)));
 
-  QRadioButton *radio = diaRadioButton("Make seed", modeGroup);
-  QToolTip::add(radio, "Show tools for making seed model");
-  radio = diaRadioButton("Fill gaps", modeGroup);
-  QToolTip::add(radio, "Show tools for finding and filling gaps");
-  radio = diaRadioButton("Fix big residuals", modeGroup);
-  QToolTip::add(radio, "Show tools for fixing big residuals");
+  QRadioButton *radio = diaRadioButton("Make seed", gbox, modeGroup, gbLayout,
+                                       0, "Show tools for making seed model");
+  radio = diaRadioButton("Fill gaps", gbox, modeGroup, gbLayout, 1, 
+                         "Show tools for finding and filling gaps");
+  radio = diaRadioButton("Fix big residuals", gbox, modeGroup, gbLayout, 2,
+                         "Show tools for fixing big residuals");
   diaSetGroup(modeGroup, plug->showMode);
 
-  cenLightHbox = new QHBox(this);
+  cenLightHbox = new QWidget(this);
   mLayout->addWidget(cenLightHbox);
-  topBox->setSpacing(8);
-    //box = diaCheckBox("Autocenter", this, mLayout);
-  autoCenBox = new QCheckBox("Autocenter", cenLightHbox);
-  autoCenBox->setFocusPolicy(QWidget::NoFocus);
+  QHBoxLayout *cenlay = new QHBoxLayout(cenLightHbox);
+  cenlay->setSpacing(8);
+  cenlay->setContentsMargins(0,0,0,0);
+  autoCenBox = diaCheckBox("Autocenter", cenLightHbox, cenlay);
   connect(autoCenBox, SIGNAL(toggled(bool)), this, SLOT(autoCenToggled(bool)));
   diaSetChecked(autoCenBox, plug->autoCenter != 0);
-  QToolTip::add(autoCenBox, 
-                "Automatically center inserted point on nearby bead");
+  autoCenBox->setToolTip("Automatically center inserted point on nearby bead");
 
-  // box = diaCheckBox("Light beads", this, mLayout);
-  box = new QCheckBox("Light", cenLightHbox);
-  box->setFocusPolicy(QWidget::NoFocus);
+  box = diaCheckBox("Light", cenLightHbox, cenlay);
+  box->setFocusPolicy(Qt::NoFocus);
   connect(box, SIGNAL(toggled(bool)), this, SLOT(lightToggled(bool)));
   diaSetChecked(box, plug->lightBead != 0);
-  QToolTip::add(box, "Beads are lighter not darker than background");
+  box->setToolTip("Beads are lighter not darker than background");
 
-  diameterHbox = new QHBox(this);
+  diameterHbox = new QWidget(this);
   mLayout->addWidget(diameterHbox);
-  new QLabel("Diameter", diameterHbox);
-  diameterSpin = new QSpinBox(1, MAX_DIAMETER, 1, diameterHbox);
-  diameterSpin->setFocusPolicy(QWidget::ClickFocus);
+  QHBoxLayout *diamlay = new QHBoxLayout(diameterHbox);
+  diamlay->setContentsMargins(0,0,0,0);
+  diameterSpin = (QSpinBox *)diaLabeledSpin
+    (0, 1., (float)MAX_DIAMETER, 1., "Diameter", diameterHbox, diamlay);
   QObject::connect(diameterSpin, SIGNAL(valueChanged(int)), this,
                    SLOT(diameterChanged(int)));
-  QToolTip::add(diameterSpin, "Diameter of beads in pixels");
+  diameterSpin->setToolTip("Diameter of beads in pixels");
   diaSetSpinBox(diameterSpin, plug->diameter);
+  diamlay->addStretch();
 
   seedModeBox = diaCheckBox("Automatic new contour", this, mLayout);
   connect(seedModeBox, SIGNAL(toggled(bool)), this, SLOT(seedToggled(bool)));
   diaSetChecked(seedModeBox, plug->autoNewCont != 0);
-  QToolTip::add(seedModeBox, "Make new contour for every point in a new "
+  seedModeBox->setToolTip("Make new contour for every point in a new "
                 "position");
   
 
   if (App->rgba && !App->cvi->rawImageStore) {
-    overlayHbox = new QHBox(this);
+    overlayHbox = new QWidget(this);
     mLayout->addWidget(overlayHbox);
-    overlayBox = new QCheckBox("Overlay - view", overlayHbox);
-    overlayBox->setFocusPolicy(QWidget::NoFocus);
+    diamlay =  new QHBoxLayout(overlayHbox);
+    diamlay->setContentsMargins(0,0,0,0);
+    diamlay->setSpacing(4);
+    overlayBox = diaCheckBox("Overlay - view", overlayHbox, diamlay);
     connect(overlayBox, SIGNAL(toggled(bool)), this, 
             SLOT(overlayToggled(bool)));
-    QToolTip::add(overlayBox, "Show another section in color overlay -"
+    overlayBox->setToolTip("Show another section in color overlay -"
                   " Hot key: /");
 
-    overlaySpin = new QSpinBox(-MAX_OVERLAY, MAX_OVERLAY, 1, overlayHbox);
-    overlaySpin->setFocusPolicy(QWidget::ClickFocus);
+    overlaySpin = (QSpinBox *)diaLabeledSpin(0, -(float)MAX_OVERLAY,
+                                             (float)MAX_OVERLAY, 1., NULL,
+                                             overlayHbox, diamlay);
     QObject::connect(overlaySpin, SIGNAL(valueChanged(int)), this,
                      SLOT(overlayChanged(int)));
-    QToolTip::add(overlaySpin, "Interval to overlay section");
+    overlaySpin->setToolTip("Interval to overlay section");
     diaSetSpinBox(overlaySpin, plug->overlaySec);
     overlaySpin->setEnabled(plug->overlayOn != 0);
 
     reverseBox = diaCheckBox("Reverse overlay contrast", this, mLayout);
     connect(reverseBox, SIGNAL(toggled(bool)), this, 
             SLOT(reverseToggled(bool)));
-    QToolTip::add(reverseBox, "Show color overlay in reverse contrast");
+    reverseBox->setToolTip("Show color overlay in reverse contrast");
     diaSetChecked(reverseBox, plug->reverseOverlay != 0);
   }    
 
@@ -2078,7 +2096,7 @@ BeadFixer::BeadFixer(QWidget *parent, const char *name)
       mLayout->addLayout(threshSlider->getLayout());
       QObject::connect(threshSlider, SIGNAL(sliderChanged(int, int, bool)),
                        this, SLOT(threshChanged(int, int, bool)));
-      QToolTip::add((QWidget *)threshSlider->getSlider(0), 
+      threshSlider->getSlider(0)->setToolTip(
                     "Set threshold peak strength for viewing points");
       threshSlider->setValue(0, B3DNINT(obj->valblack * (mPeakMax - mPeakMin) /
                                        255. + mPeakMin));
@@ -2086,24 +2104,24 @@ BeadFixer::BeadFixer(QWidget *parent, const char *name)
       turnOffBut = diaCheckBox("Turn off below threshold", this, mLayout);
       connect(turnOffBut, SIGNAL(toggled(bool)), this,
               SLOT(turnOffToggled(bool)));
-      QToolTip::add(turnOffBut, "Do not show contours below the threshold");
+      turnOffBut->setToolTip("Do not show contours below the threshold");
       diaSetChecked(turnOffBut, (obj->matflags2 & MATFLAGS2_SKIP_LOW) != 0);
 
       deleteBelowBut = diaPushButton("Delete Below", this, mLayout);
       connect(deleteBelowBut, SIGNAL(clicked()), this, SLOT(deleteBelow()));
-      QToolTip::add(deleteBelowBut, "Delete all contours below threshold");
+      deleteBelowBut->setToolTip("Delete all contours below threshold");
 
       delAllSecBut = diaCheckBox("Delete on all sections", this, mLayout);
       connect(delAllSecBut, SIGNAL(toggled(bool)), this, 
               SLOT(delAllSecToggled(bool)));
-      QToolTip::add(delAllSecBut, "Delete contours below threshold regardless"
+      delAllSecBut->setToolTip("Delete contours below threshold regardless"
                     " of Z value of points");
       diaSetChecked(delAllSecBut, plug->delOnAllSec != 0);
 
       delAllObjBut = diaCheckBox("Delete in all objects", this, mLayout);
       connect(delAllObjBut, SIGNAL(toggled(bool)), this, 
               SLOT(delAllObjToggled(bool)));
-      QToolTip::add(delAllObjBut, "Delete contours from all objects that are"
+      delAllObjBut->setToolTip("Delete contours from all objects that are"
                     " below the respective object threshold");
       diaSetChecked(delAllObjBut, plug->delInAllObj != 0);
 
@@ -2114,29 +2132,29 @@ BeadFixer::BeadFixer(QWidget *parent, const char *name)
   // GAP CONTROLS
   nextGapBut = diaPushButton("Go to Next Gap", this, mLayout);
   connect(nextGapBut, SIGNAL(clicked()), this, SLOT(nextGap()));
-  QToolTip::add(nextGapBut, "Go to gap in model - Hot key: spacebar");
+  nextGapBut->setToolTip("Go to gap in model - Hot key: spacebar");
 
   prevGapBut = diaPushButton("Go to Previous Gap", this, mLayout);
   connect(prevGapBut, SIGNAL(clicked()), this, SLOT(prevGap()));
-  QToolTip::add(prevGapBut, "Go back to previous gap in model");
+  prevGapBut->setToolTip("Go back to previous gap in model");
 
   reattachBut = diaPushButton("Reattach to Gap Point", this, mLayout);
   connect(reattachBut, SIGNAL(clicked()), this, SLOT(reattach()));
-  QToolTip::add(reattachBut, "Make point at current gap be the current point"
+  reattachBut->setToolTip("Make point at current gap be the current point"
                 " again");
 
   resetStartBut = diaPushButton("Start from Beginning", this, mLayout);
   connect(resetStartBut, SIGNAL(clicked()), this, SLOT(resetStart()));
-  QToolTip::add(resetStartBut, "Look for gaps from beginning of model");
+  resetStartBut->setToolTip("Look for gaps from beginning of model");
 
   resetCurrentBut = diaPushButton("Start from Current Point", this, mLayout);
   connect(resetCurrentBut, SIGNAL(clicked()), this, SLOT(resetCurrent()));
-  QToolTip::add(resetCurrentBut, "Look for gaps from current point");
+  resetCurrentBut->setToolTip("Look for gaps from current point");
 
   ignoreSkipBut = diaCheckBox("Ignore gaps at views:", this, mLayout);
   connect(ignoreSkipBut, SIGNAL(toggled(bool)), this, 
           SLOT(ignoreToggled(bool)));
-  QToolTip::add(ignoreSkipBut, "Skip over gaps at views in the list below");
+  ignoreSkipBut->setToolTip("Skip over gaps at views in the list below");
   diaSetChecked(ignoreSkipBut, plug->ignoreSkips != 0);
 
   skipEdit = new ToolEdit(this);
@@ -2147,70 +2165,73 @@ BeadFixer::BeadFixer(QWidget *parent, const char *name)
   }
   connect(skipEdit, SIGNAL(returnPressed()), this, SLOT(skipListEntered()));
   connect(skipEdit, SIGNAL(focusLost()), this, SLOT(skipListEntered()));
-  QToolTip::add(skipEdit, "Enter list of views to ignore gaps at");
+  skipEdit->setToolTip("Enter list of views to ignore gaps at");
   skipEdit->setEnabled(plug->ignoreSkips != 0);
 
   // RESIDUAL CONTROLS
   openFileBut = diaPushButton("Open Tiltalign Log File", this, mLayout);
   connect(openFileBut, SIGNAL(clicked()), this, SLOT(openFile()));
-  QToolTip::add(openFileBut, "Select an alignment log file to open");
+  openFileBut->setToolTip("Select an alignment log file to open");
 
   runAlignBut = diaPushButton("Save && Run Tiltalign", this, mLayout);
   connect(runAlignBut, SIGNAL(clicked()), this, SLOT(runAlign()));
   runAlignBut->setEnabled(false);
-  QToolTip::add(runAlignBut, "Save model and run Tiltalign");
+  runAlignBut->setToolTip("Save model and run Tiltalign");
 
   rereadBut = diaPushButton("Reread Log File", this, mLayout);
   connect(rereadBut, SIGNAL(clicked()), this, SLOT(rereadFile()));
   rereadBut->setEnabled(false);
-  QToolTip::add(rereadBut, "Read the previously specified file again");
+  rereadBut->setToolTip("Read the previously specified file again");
 
   nextLocalBut = diaPushButton("Go to First Local Set", this, mLayout);
   connect(nextLocalBut, SIGNAL(clicked()), this, SLOT(nextLocal()));
   nextLocalBut->setEnabled(false);
-  QToolTip::add(nextLocalBut, "Skip to residuals in next local area");
+  nextLocalBut->setToolTip("Skip to residuals in next local area");
 
   nextResBut = diaPushButton("Go to Next Big Residual", this, mLayout);
   connect(nextResBut, SIGNAL(clicked()), this, SLOT(nextRes()));
   nextResBut->setEnabled(false);
-  QToolTip::add(nextResBut, "Show next highest residual - Hot key: "
+  nextResBut->setToolTip("Show next highest residual - Hot key: "
                 "apostrophe");
 
   movePointBut = diaPushButton("Move Point by Residual", this, mLayout);
   connect(movePointBut, SIGNAL(clicked()), this, SLOT(movePoint()));
   movePointBut->setEnabled(false);
-  QToolTip::add(movePointBut, "Move point to position that fits alignment"
+  movePointBut->setToolTip("Move point to position that fits alignment"
                 " solution - Hot key: semicolon");
 
   undoMoveBut = diaPushButton("Undo Move", this, mLayout);
   connect(undoMoveBut, SIGNAL(clicked()), this, SLOT(undoMove()));
   undoMoveBut->setEnabled(false);
-  QToolTip::add(undoMoveBut, 
+  undoMoveBut->setToolTip(
                 "Move point back to previous position - Hot key: U");
 
   moveAllBut = diaPushButton("Move All in Local Area", this, mLayout);
   connect(moveAllBut, SIGNAL(clicked()), this, SLOT(moveAll()));
   moveAllBut->setEnabled(false);
-  QToolTip::add(moveAllBut, "Move all points in current area by residual"
+  moveAllBut->setToolTip("Move all points in current area by residual"
                 " - Hot key: colon");
 
   backUpBut = diaPushButton("Back Up to Last Point", this, mLayout);
   connect(backUpBut, SIGNAL(clicked()), this, SLOT(backUp()));
   backUpBut->setEnabled(false);
-  QToolTip::add(backUpBut, "Back up to last point examined - "
+  backUpBut->setToolTip("Back up to last point examined - "
                 "Hot key: double quote");
 
   examineBox = diaCheckBox("Examine Points Once", this, mLayout);
   connect(examineBox, SIGNAL(toggled(bool)), this, SLOT(onceToggled(bool)));
   diaSetChecked(examineBox, mLookonce != 0);
-  QToolTip::add(examineBox, "Skip over points examined before");
+  examineBox->setToolTip("Skip over points examined before");
 
   clearListBut = diaPushButton("Clear Examined List", this, mLayout);
   connect(clearListBut, SIGNAL(clicked()), this, SLOT(clearList()));
-  QToolTip::add(clearListBut, "Allow all points to be examined again");
+  clearListBut->setToolTip("Allow all points to be examined again");
 
   connect(this, SIGNAL(actionClicked(int)), this, SLOT(buttonPressed(int)));
   modeSelected(plug->showMode);
+  setFontDependentWidths();
+  imod_info_input();
+  adjustSize();
 }
 
 void BeadFixer::buttonPressed(int which)
@@ -2236,17 +2257,21 @@ void BeadFixer::keepOnTop(bool state)
   }
 
 #else
-  int flags = getWFlags();
+  Qt::WindowFlags flags = windowFlags();
   if (state)
-    flags |= WStyle_StaysOnTop;
+    flags |= Qt::WindowStaysOnTopHint;
   else
-    flags ^= WStyle_StaysOnTop;
-  QPoint p(geometry().x(), geometry().y());
+    flags ^= Qt::WindowStaysOnTopHint;
+
+  // Here are the old Qt 3 notes: Linux now OK with pos()
+  //QPoint p(geometry().x(), geometry().y());
   // Using pos() jumps on Windows
   // Also, pos() jumps up-left on Unix, geometry() jumps down-right
   // Unless we access the pos !
   QPoint p2 = pos();
-  reparent(0, flags, p, true);  
+  setWindowFlags(flags);
+  move(p2);
+  show();
 #endif
 }
 
@@ -2267,6 +2292,7 @@ void BeadFixer::runAlign()
   inputSaveModel(plug->view);
 
   QString comStr, fileStr, vmsStr;
+  QStringList arguments;
   int dotPos;
   char *imodDir = getenv("IMOD_DIR");
   char *cshell = getenv("IMOD_CSHELL");
@@ -2279,26 +2305,26 @@ void BeadFixer::runAlign()
   fileStr = plug->filename;
   
   // Remove the leading path and the extension
-  dotPos = fileStr.findRev('/');
+  dotPos = fileStr.lastIndexOf('/');
   if (dotPos >= 0)
     fileStr = fileStr.right(fileStr.length() - dotPos - 1);
-  dotPos = fileStr.findRev('.');
+  dotPos = fileStr.lastIndexOf('.');
   if (dotPos > 0)
     fileStr.truncate(dotPos);
 
   // 7/3/06: The old way was to run vmstocsh and pipe to tcsh in a "system"
   // command inside a thread - but in Windows it hung with -L listening to 
   // stdin.  This way worked through "system" call but QProcess is cleaner
-  vmsStr = QString(imodDir) + "/bin/submfg -q";
-  comStr.sprintf("%s -f %s %s", cshell, 
-                 (QDir::convertSeparators(vmsStr)).latin1(), fileStr.latin1());
+  vmsStr = QString(imodDir) + "/bin/submfg";
+  arguments << "-f";
+  arguments << LATIN1(QDir::convertSeparators(vmsStr));
+  arguments << "-q";
+  arguments << LATIN1(fileStr);
 
-  mAlignProcess = new QProcess(QStringList::split(" ", comStr));
-  connect(mAlignProcess, SIGNAL(processExited()), this, SLOT(alignExited()));
-  if (!mAlignProcess->start()) {
-    wprint("\aError trying to start tiltalign process.\n");
-    return;
-  }
+  mAlignProcess = new QProcess();
+  connect(mAlignProcess, SIGNAL(finished(int, QProcess::ExitStatus)), this,
+          SLOT(alignExited(int, QProcess::ExitStatus )));
+  mAlignProcess->start(cshell, arguments);
 
   mRunningAlign = true;
   rereadBut->setEnabled(false);
@@ -2309,15 +2335,15 @@ void BeadFixer::runAlign()
 }
 
 // When align exits, check the status and reenable buttons
-void BeadFixer::alignExited()
+void BeadFixer::alignExited(int exitCode, QProcess::ExitStatus exitStatus)
 {
   int err;
 
   // Check if exit staus, clean up and reenable buttons
-  if (!mAlignProcess->normalExit())
+  if (exitStatus != QProcess::NormalExit)
     wprint("\aAbnormal exit trying to run tiltalign.\n");
-  else if ((err = mAlignProcess->exitStatus()))
-    wprint("\aError (return code %d) running tiltalign.\n", err);
+  else if (exitCode)
+    wprint("\aError (return code %d) running tiltalign.\n", exitCode);
 
   delete mAlignProcess;
   mRunningAlign = false;
@@ -2402,8 +2428,12 @@ void BeadFixer::setFontDependentWidths()
     width = width2;
   topBox->setFixedWidth(width);
   diameterHbox->setFixedWidth(width);
+  cenLightHbox->setFixedWidth(width);
   if (overlayHbox)
     overlayHbox->setFixedWidth(width);
+  //reverseBox->setFixedWidth(width);
+  nextGapBut->setFixedWidth(width);
+  prevGapBut->setFixedWidth(width);
   resetStartBut->setFixedWidth(width);
   resetCurrentBut->setFixedWidth(width);
   openFileBut->setFixedWidth(width);
@@ -2417,6 +2447,8 @@ void BeadFixer::setFontDependentWidths()
   moveAllBut->setFixedWidth(width);
   clearListBut->setFixedWidth(width);
   reattachBut->setFixedWidth(width);
+  ignoreSkipBut->setFixedWidth(width);
+  skipEdit->setFixedWidth(width);
 }
 
 void BeadFixer::fontChange( const QFont & oldFont )
@@ -2443,6 +2475,9 @@ void BeadFixer::keyReleaseEvent ( QKeyEvent * e )
 /*
 
 $Log$
+Revision 1.52  2008/12/13 01:25:48  mast
+Improved criteria for accepting farther peak in autocenter
+
 Revision 1.51  2008/12/10 00:58:59  mast
 Save the binning that goes along with a diameter
 

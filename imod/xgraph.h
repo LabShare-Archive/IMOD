@@ -15,11 +15,16 @@
 
 #include <qmainwindow.h>
 #include <qgl.h>
+//Added by qt3to4:
+#include <QLabel>
+#include <QMouseEvent>
+#include <QKeyEvent>
+#include <QCloseEvent>
 
 class QToolButton;
 class QLabel;
 class QSignalMapper;
-class QHBox;
+class QHBoxLayout;
 class QSpinBox;
 class GraphGL;
 class GraphWindow;
@@ -61,8 +66,7 @@ class GraphWindow : public QMainWindow
  public:
   GraphWindow(GraphStruct *graph, bool rgba, 
             bool doubleBuffer, bool enableDepth, QWidget * parent = 0,
-            const char * name = 0, 
-	    WFlags f = WType_TopLevel | WDestructiveClose) ;
+            const char * name = 0, Qt::WFlags f = Qt::Window) ;
   ~GraphWindow() {};
   void setToggleState(int index, int state);
 
@@ -86,8 +90,6 @@ class GraphWindow : public QMainWindow
   void closeEvent ( QCloseEvent * e );
   
  private:
-  void setupToggleButton(QHBox *toolBar, QSignalMapper *mapper, 
-			 int index);
   int allocDataArray(int dsize);
   
   GraphStruct *mGraph;
@@ -107,8 +109,7 @@ class GraphGL : public QGLWidget
   Q_OBJECT
 
  public:
-  GraphGL(GraphStruct *graph, QGLFormat format, QWidget * parent = 0,
-        const char * name = 0);
+  GraphGL(GraphStruct *graph, QGLFormat format, QWidget * parent = 0);
   ~GraphGL() {};
   void setxyz(GraphStruct *xg, int mx, int my);
  
@@ -124,7 +125,11 @@ protected:
 #endif     // XGRAPH_H
 
 /*
+
 $Log$
+Revision 4.3  2007/03/29 04:55:49  mast
+Fixed crash bug when closing window while focus is in edit/spinbox
+
 Revision 4.2  2006/08/24 21:31:39  mast
 New stuff for width, subarea, mean value output
 

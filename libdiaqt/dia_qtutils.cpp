@@ -18,57 +18,79 @@
 #include <qcheckbox.h>
 #include <qlabel.h>
 #include <qslider.h>
+#include <qabstractbutton.h>
 #include <qpushbutton.h>
 #include <qradiobutton.h>
 #include <qlayout.h>
 #include <qapplication.h>
-#include <qhbox.h>
 #include <qspinbox.h>
+#include <qabstractspinbox.h>
+#include <QDoubleSpinBox>
 #include <qdialog.h>
 #include <qfiledialog.h>
 #include <qinputdialog.h>
 #include <qmessagebox.h>
 #include <qtextedit.h>
 #include <qbuttongroup.h>
+//Added by qt3to4:
+#include <QVBoxLayout>
+#include <QHBoxLayout>
+#include <QDesktopWidget>
 
-#include "floatspinbox.h"
 #include "dia_qtutils.h"
+#include "b3dutil.h"
 
 char *Dia_title = NULL;
 
 /*! Makes a new push button with the given [text], adds it to [layout] if it
-  is non-NULL, and sets it for no focus */
-QPushButton *diaPushButton(char *text, QWidget *parent, QBoxLayout *layout)
+  is non-NULL, and sets it for no focus.  [layout] can be a QHBoxLayout or a
+  QVBoxLayout. */
+QPushButton *diaPushButton(const char *text, QWidget *parent, 
+                           QBoxLayout *layout)
 {
   QPushButton *button = new QPushButton(text, parent);
-  button->setFocusPolicy(QWidget::NoFocus);
+  button->setFocusPolicy(Qt::NoFocus);
   if (layout)
     layout->addWidget(button);
   return button;
 }
 
 /*! Makes a new check box with the given [text], adds it to [layout] if it is 
-  non-NULL, and sets it for no focus */
-QCheckBox *diaCheckBox(char *text, QWidget *parent, QBoxLayout *layout)
+  non-NULL, and sets it for no focus.  [layout] can be a QHBoxLayout or a
+  QVBoxLayout. */
+QCheckBox *diaCheckBox(const char *text, QWidget *parent, QBoxLayout *layout)
 {
   QCheckBox *button = new QCheckBox(text, parent);
-  button->setFocusPolicy(QWidget::NoFocus);
+  button->setFocusPolicy(Qt::NoFocus);
   if (layout)
     layout->addWidget(button);
   return button;
 }
 
-/*! Makes a new radio button with the given [text] and sets it for no focus */
-QRadioButton *diaRadioButton(char *text, QWidget *parent)
+/*!
+ * Makes a new radio button with the give [text] and with the given [parent]
+ * (which can be NULL), adds it to the button group [group] with button ID [id]
+ * if [group] is non-NULL, adds it to [layout] if it is non-NULL, sets it for
+ * no focus, and sets [tooltip] as the tooltip if it is non-NULL.  [layout] 
+ * can be a QHBoxLayout or a QVBoxLayout.
+ */
+QRadioButton *diaRadioButton(char *label, QWidget *parent, QButtonGroup *group,
+                             QBoxLayout *layout, int id, char *tooltip)
 {
-  QRadioButton *button = new QRadioButton(text, parent);
-  button->setFocusPolicy(QWidget::NoFocus);
-  return button;
+  QRadioButton *radio = new QRadioButton(QString(label), parent);
+  if (group)
+    group->addButton(radio, id);
+  if (layout)
+    layout->addWidget(radio);
+  radio->setFocusPolicy(Qt::NoFocus);
+  if (tooltip)
+    radio->setToolTip(QString(tooltip));
+  return radio;
 }
 
 /*! Makes a new label with the given [text] and adds it to [layout] if it
- is non-NULL. */
-QLabel *diaLabel(char *text, QWidget *parent, QBoxLayout *layout)
+ is non-NULL. [layout] can be a QHBoxLayout or a QVBoxLayout.*/
+QLabel *diaLabel(const char *text, QWidget *parent, QBoxLayout *layout)
 {
   QLabel *label = new QLabel(text, parent);
   if (layout)
@@ -82,28 +104,77 @@ QLabel *diaLabel(char *text, QWidget *parent, QBoxLayout *layout)
  * box in which to place them.  (In a toolbar, [layout] can be NULL.)  
  * [minValue], [maxValue], and [step] are the  minimum, maximum, and step 
  * sizes for the spin box.  If [nDecimal] is non-zero, it creates and returns 
- * a FloatSpinBox with that number of decimal places.
+ * a QDoubleSpinBox with that number of decimal places.  It skips the label
+ * if [text] is NULL.  The focus policy is set to ClickFocus.  Keyboard 
+ * tracking is turned off.
  */
-QSpinBox *diaLabeledSpin(int nDecimal, int minValue, int maxValue, int step,
-                         char *text, QWidget *parent, QBoxLayout *layout)
+QAbstractSpinBox *diaLabeledSpin(int nDecimal, float minValue, float maxValue,
+                                 float step, const char *text, QWidget *parent,
+                                 QBoxLayout *layout)
 {
   QSpinBox *spin;
-  FloatSpinBox *fspin;
-  QLabel *label = diaLabel(text, parent, layout);
-  label->setAlignment(Qt::AlignRight | Qt::AlignVCenter);
+  QDoubleSpinBox *fspin;
+  if (text) {
+    QLabel *label = diaLabel(text, parent, layout);
+    label->setAlignment(Qt::AlignRight | Qt::AlignVCenter);
+  }
   if (nDecimal) {
-    fspin = new FloatSpinBox(nDecimal, minValue, maxValue, step, parent);
+    fspin = new QDoubleSpinBox(parent);
+    fspin->setDecimals(nDecimal);
+    fspin->setRange((double)minValue, (double)maxValue);
+    fspin->setSingleStep((double)step);
     spin = (QSpinBox *)fspin;
-  } else
-    spin = new QSpinBox(minValue, maxValue, step, parent);
+  } else {
+    spin = new QSpinBox(parent);
+    spin->setRange(B3DNINT(minValue), B3DNINT(maxValue));
+    spin->setSingleStep(B3DNINT(step));
+  }
   if (layout)
     layout->addWidget(spin);
-  spin->setFocusPolicy(QWidget::ClickFocus);
-  return spin;
+  spin->setFocusPolicy(Qt::ClickFocus);
+  spin->setKeyboardTracking(false);
+  return (QAbstractSpinBox *)spin;
 }
 
-/*! Sets a checkbox [button] to [state] with signals blocked */
-void diaSetChecked(QCheckBox *button, bool state)
+/*! Creates a QVBoxLayout and adds it to [layout], replacing the very useful
+  Qt 3 constructor. */
+QVBoxLayout *diaVBoxLayout(QBoxLayout *layout)
+{
+  QVBoxLayout *lay = new QVBoxLayout();
+  layout->addLayout(lay);
+  return lay;
+}
+
+/*! Creates a QHBoxLayout and adds it to [layout] */
+QHBoxLayout *diaHBoxLayout(QBoxLayout *layout)
+{
+  QHBoxLayout *lay = new QHBoxLayout();
+  layout->addLayout(lay);
+  return lay;
+}
+
+/*! 
+ * Creates and returns a new horizontal slider with range from [min] to [max],
+ * value [value] and single step size [step], adds it to [layout] if it is not
+ * NULL, and sets it for no focus.
+ */
+QSlider *diaSlider(int min, int max, int step, int value,
+                   QWidget *parent, QBoxLayout *layout)
+{
+  QSlider *slider = new QSlider(parent);
+  if (layout)
+    layout->addWidget(slider);
+  slider->setOrientation(Qt::Horizontal);
+  slider->setRange(min, max);
+  slider->setSingleStep(step);
+  slider->setValue(value);
+  slider->setFocusPolicy(Qt::NoFocus);
+  return slider;
+}
+
+/*! Sets a checkbox or checkable toolbutton [button] to [state] with signals 
+  blocked */
+void diaSetChecked(QAbstractButton *button, bool state)
 {
   button->blockSignals(true);
   button->setChecked(state);
@@ -126,23 +197,35 @@ void diaSetSpinBox(QSpinBox *box, int value)
   box->blockSignals(false);
 }
 
+/*! Sets a double spin box [box] to [value] with signals blocked */
+void diaSetDoubleSpinBox(QDoubleSpinBox *box, double value)
+{
+  box->blockSignals(true);
+  box->setValue(value);
+  box->blockSignals(false);
+}
+
 /*! Sets a spin box [box] to [value] and sets its minimum and maximum to [min]
  * and [max], with signals blocked */
 void diaSetSpinMMVal(QSpinBox *box, int min, int max, int value)
 {
   box->blockSignals(true);
-  box->setMinValue(min);
-  box->setMaxValue(max);
+  box->setRange(min, max);
   box->setValue(value);
   box->blockSignals(false);
 }
 
-/*! Sets a button group [group] to [value] with signals blocked */
-void diaSetGroup(QButtonGroup *group, int value)
+/*! Turns on button with ID [id] in button group [group], with signals blocked.
+ * The ID must be explicitly assigned such as when adding the button to the 
+ * group. */
+void diaSetGroup(QButtonGroup *group, int id)
 {
-  group->blockSignals(true);
-  group->setButton(value);
-  group->blockSignals(false);
+  QAbstractButton *button = group->button(id);
+  if (!button)
+    return;
+  button->blockSignals(true);
+  button->setChecked(true);
+  button->blockSignals(false);
 }
 
 /*! Sets a text edit [edit] to the given [tex] with signals blocked */
@@ -188,6 +271,21 @@ int diaSetButtonWidth(QPushButton *button, bool rounded,
   return width;
 }
 
+/* !
+ * Sets the background or other color of [widget] to [color].  The role of the
+ * color in the palette is specified by [role], which has a default value of
+ * QPalette::NoRole, in which case {widget->backgroundRole()} will be used for
+ * the role.  In order for background color changes to work, it is necessary to
+ * call {widget->setAutoFillBackground(true)} when the widget is created.
+ */
+void diaSetWidgetColor(QWidget *widget, QColor color, QPalette::ColorRole role)
+{
+  QPalette palette = widget->palette();
+  if (role == QPalette::NoRole)
+    role = widget->backgroundRole();
+  palette.setColor(role, color);
+  widget->setPalette(palette);
+}
 
 // Some routines for controlling window size and keeping the window on the
 // screen.  The BORDERS are the total borders outside the window 
@@ -254,7 +352,7 @@ void diaLimitWindowPos(int neww, int newh, int &newdx, int &newdy)
 
 
 /*! Sets the application title into the static variable {Dia_title} */
-void diaSetTitle(char *title)
+void diaSetTitle(const char *title)
 {
   if (Dia_title)
     free(Dia_title);
@@ -263,7 +361,7 @@ void diaSetTitle(char *title)
 
 /*! Puts up an application-model message box with the information string in
   [message] and an OK button */
-int dia_puts(char *message)
+int dia_puts(const char *message)
 {
   QString str = message;
   QString title = Dia_title;
@@ -276,7 +374,7 @@ int dia_puts(char *message)
 
 /*! Puts up an application-modal message box with an error string in [message]
   [message] and an OK button */
-int dia_err(char *message)
+int dia_err(const char *message)
 {
   QString str = message;
   QString title = Dia_title;
@@ -289,7 +387,7 @@ int dia_err(char *message)
 
 /*! Puts up an application-modal message box with the text in [question] and
   Yes and No buttons.  Returns 0 for no, 1 for yes. */
-int dia_ask(char *question)
+int dia_ask(const char *question)
 {
   QString str = question;
   QString title = Dia_title;
@@ -305,7 +403,7 @@ int dia_ask(char *question)
  * Yes, Yes Always, and No buttons.  Returns 0 for No, 1 for Yes, 2 for Yes 
  * Always.
  */
-int dia_ask_forever(char *question)
+int dia_ask_forever(const char *question)
 {
   QString str = question;
   QString title = Dia_title;
@@ -323,7 +421,8 @@ int dia_ask_forever(char *question)
  * Supply a NULL to omit a button.  Returns the number of the button pressed,
  * numbered from 1.
  */
-int dia_choice(char *question, char *lab1, char *lab2, char *lab3)
+int dia_choice(const char *question, const char *lab1, const char *lab2,
+               const char *lab3)
 {
   QString str = question;
   QString title = Dia_title;
@@ -346,7 +445,7 @@ int dia_choice(char *question, char *lab1, char *lab2, char *lab3)
  * [low] and [high] specifying scaled lower an upper limits. 
  * Returns 0 if the user cancels.
  */
-int diaQInput(int *value, int low, int high, int decimal, char *prompt)
+int diaQInput(int *value, int low, int high, int decimal, const char *prompt)
 {
   bool ok = false;
   QString str = prompt;
@@ -356,7 +455,8 @@ int diaQInput(int *value, int low, int high, int decimal, char *prompt)
   
 
   if (!decimal) {
-    result = QInputDialog::getInteger(title, str, *value, low, high, 1, &ok);
+    result = QInputDialog::getInteger
+      (NULL, title, str, *value, low, high, 1, &ok);
     if (ok)
       *value = result;
     return ok ? 1 : 0;
@@ -368,8 +468,8 @@ int diaQInput(int *value, int low, int high, int decimal, char *prompt)
     from = low / factor;
     to = high / factor;
     dvalue = *value / factor;
-    dresult = QInputDialog::getDouble(title, str, dvalue, from, to, decimal,
-				      &ok);
+    dresult = QInputDialog::getDouble
+      (NULL, title, str, dvalue, from, to, decimal, &ok);
     if (ok)
       *value = (int)floor(dresult * factor + 0.5);
   }
@@ -383,18 +483,15 @@ int diaQInput(int *value, int low, int high, int decimal, char *prompt)
  * [filters]; the first will be the default filter.  Returns an empty string
  * if the user cancels.
  */
-QString diaOpenFileName(QWidget *parent, char *caption, int numFilters,
+QString diaOpenFileName(QWidget *parent, const char *caption, int numFilters,
                         char *filters[])
 {
-  QString qname = Dia_title;
-  QFileDialog fileDialog(parent, NULL, true);
-  fileDialog.setMode(QFileDialog::ExistingFile);
-  fileDialog.setCaption(qname + ": " + caption);
-  for (int i = numFilters - 1; i >= 0; i--)
-    fileDialog.addFilter(QString(filters[i]));
-  qname = "";
-  if (fileDialog.exec() == QDialog::Accepted)
-    qname = fileDialog.selectedFile();
+  QString qname = QString(Dia_title) + QString(": ") + QString(caption);
+  QString filter;
+  for (int i = 0; i < numFilters; i++)
+    filter += QString(filters[i]) + QString(";;");
+  filter += QString("All Files (*)");
+  qname = QFileDialog::getOpenFileName(parent, qname, QString(), filter);
   return qname;
 }
 
@@ -448,8 +545,8 @@ void dia_smsg( char **msg)
   int height, width = 0;
   QString test;
 
-  QDialog *dlg = new QDialog(0, 0, false, 
-                             Qt::WDestructiveClose);
+  QDialog *dlg = new QDialog();
+  dlg->setAttribute(Qt::WA_DeleteOnClose);
 
   for (i = 0, bufsize = 0; msg[i]; i++){
     linesize = strlen(msg[i]);
@@ -533,9 +630,8 @@ void dia_smsg( char **msg)
   edit->setText(qmsg);
   edit->setReadOnly(true);
   vbox->addWidget(edit);
-  QHBox *hbox = new QHBox(dlg);
-  vbox->addWidget(hbox);
-  QPushButton *button = new QPushButton("Close", hbox);
+  QHBoxLayout *hbox = diaHBoxLayout(vbox);
+  QPushButton *button = diaPushButton("Close", dlg, hbox);
   diaSetButtonWidth(button, true, 1.4, "Close");
   QObject::connect(button, SIGNAL(clicked()), dlg, SLOT(close()));
 
@@ -553,12 +649,15 @@ void dia_smsg( char **msg)
   // Set title
   test = Dia_title;
   test += " Help";
-  dlg->setCaption(test);
+  dlg->setWindowTitle(test);
   dlg->show();
 }
 
 /*
 $Log$
+Revision 1.12  2008/05/25 05:35:52  mast
+Added function to show/hide a widget
+
 Revision 1.11  2008/01/13 22:22:25  mast
 Made layout optional in diaWidget functions so they can be used in toolbars
 

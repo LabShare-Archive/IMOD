@@ -13,6 +13,12 @@
 
 #include <qmainwindow.h>
 #include <qgl.h>
+//Added by qt3to4:
+#include <QWheelEvent>
+#include <QEvent>
+#include <QMouseEvent>
+#include <QKeyEvent>
+#include <QCloseEvent>
 
 enum {VFILE_MENU_LOAD, VFILE_MENU_SAVE, VFILE_MENU_SAVEAS, VFILE_MENU_SNAPRGB,
       VFILE_MENU_SNAPTIFF, VFILE_MENU_ZEROSNAP, VFILE_MENU_SNAPDIR, 
@@ -24,11 +30,11 @@ enum {VFILE_MENU_LOAD, VFILE_MENU_SAVE, VFILE_MENU_SAVEAS, VFILE_MENU_SNAPRGB,
       VVIEW_MENU_LIGHTING, VVIEW_MENU_WIREFRAME, VVIEW_MENU_LOWRES, 
       VVIEW_MENU_STEREO, VVIEW_MENU_DEPTH, VVIEW_MENU_SCALEBAR,
       VHELP_MENU_MENUS, VHELP_MENU_KEYBOARD, VHELP_MENU_MOUSE,
-      VHELP_MENU_ABOUT};
+      VHELP_MENU_ABOUT, LAST_VMENU_ID};
 
 class ImodvGL;
-class QWidgetStack;
-class QPopupMenu;
+class QStackedWidget;
+class QAction;
 class QTimer;
 typedef struct __imodv_struct ImodvApp;
 
@@ -38,7 +44,7 @@ class ImodvWindow : public QMainWindow
 
  public:
   ImodvWindow(ImodvApp *a, QWidget * parent = 0, const char * name = 0, 
-              WFlags f = WType_TopLevel | WDestructiveClose) ;
+              Qt::WFlags f = Qt::Window) ;
   ~ImodvWindow();
   void setCheckableItem(int id, bool state);
   int setGLWidget(ImodvApp *a, int db, int stereo);
@@ -66,10 +72,8 @@ public slots:
   bool event(QEvent *e);
 
  private:
-  QWidgetStack *mStack;    // The stack holding the two widgets
-  QPopupMenu *mFileMenu;
-  QPopupMenu *mEditMenu;
-  QPopupMenu *mViewMenu;
+  QStackedWidget *mStack;    // The stack holding the two widgets
+  QAction *mActions[LAST_VMENU_ID];
   bool mMinimized;
 };
 
@@ -78,7 +82,7 @@ class ImodvGL : public QGLWidget
   Q_OBJECT
 
  public:
-  ImodvGL(QGLFormat format, QWidget * parent = 0, const char * name = 0);
+  ImodvGL(QGLFormat format, QWidget * parent = 0);
   ~ImodvGL();
   void setBufferSwapAuto(bool state) { setAutoBufferSwap(state); };
  
@@ -100,6 +104,9 @@ protected:
 /*
 
 $Log$
+Revision 4.11  2008/12/17 17:50:40  mast
+Add function to add widget to stack
+
 Revision 4.10  2008/12/15 21:26:28  mast
 Changes for stereo/non-stereo widgets
 

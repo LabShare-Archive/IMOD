@@ -1,3 +1,7 @@
+//Added by qt3to4:
+#include <QKeyEvent>
+#include <QEvent>
+#include <QMouseEvent>
 /*   imodplug.h  -  public declarations for imodplug.cpp
  *
  *   Copyright (C) 1995-2003 by Boulder Laboratory for 3-Dimensional Electron
@@ -130,6 +134,9 @@ int PLUG_EXPORT imodPlugExecuteMessage(ImodView *vw, QStringList *strings,
 
 /*
   $Log$
+  Revision 4.10  2008/01/17 22:33:24  mast
+  Changed documentation for model update
+
   Revision 4.9  2008/01/11 18:11:29  mast
   Wheel events now work when declared correctly
 

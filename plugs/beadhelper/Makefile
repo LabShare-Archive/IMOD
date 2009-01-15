@@ -3,7 +3,7 @@
 include ../../configure
 
 O     = $(OBJEXT)
-CXXFLAGS = $(LIBCFLAGS)
+CXXFLAGS = $(LIBCFLAGS)  $(QTFLAGS)
 
 PLUGS = beadhelper.$(DLLEXT)
 

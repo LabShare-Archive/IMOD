@@ -6,6 +6,9 @@
 #ifndef MIDASSLOTS_H
 #define MIDASSLOTS_H
 #include "midas.h"
+//Added by qt3to4:
+#include <QLabel>
+#include <QKeyEvent>
 
 class ImodAssistant;
 
@@ -66,13 +69,13 @@ class MidasSlots : public QObject
   void slotAlign_disarm();
   void slotReverse(bool state);
   void slotOverlay(bool state);
-  void slotGlobRot(int value);
-  void slotTiltOff(int value);
+  void slotGlobRot(double value);
+  void slotTiltOff(double value);
   void slotConstrainMouse(bool state);
   void slotCosStretch(bool state);
   void slotAutoContrast();
   void slotMidas_quit();
- 
+
  private:
   int index_to_edgeno(int index, int *xory);
   void retransform_slice(void);
@@ -105,9 +108,13 @@ class MidasSlots : public QObject
 };
 
 #endif
-/*  $Log$
-/*  Revision 3.6  2007/10/03 21:36:10  mast
-/*  Added ImodAssistant help object
 /*
+  
+$Log$
+Revision 3.7  2008/10/13 04:36:23  mast
+Added cosine stretching
+
+Revision 3.6  2007/10/03 21:36:10  mast
+Added ImodAssistant help object
 
 */

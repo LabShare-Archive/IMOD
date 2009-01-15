@@ -11,6 +11,8 @@
 #ifndef MULTISLIDER_H
 #define MULTISLIDER_H
 #include <qobject.h>
+//Added by qt3to4:
+#include <QLabel>
 #include "dllexport.h"
 
 class QSlider;
@@ -63,6 +65,9 @@ class DLL_IM_EX MultiSlider : public QObject
 /*  
 
 $Log$
+Revision 3.7  2008/06/25 21:21:57  mast
+Added method for show/hide
+
 Revision 3.6  2008/01/19 23:09:41  mast
 Cleanup comment problem in log
 

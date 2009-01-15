@@ -16,6 +16,10 @@
 #define XZAP_H
 
 #include "control.h"
+//Added by qt3to4:
+#include <QMouseEvent>
+#include <QKeyEvent>
+#include <QEvent>
 
 class ZapWindow;
 class ZapGL;
@@ -153,6 +157,9 @@ void zapSetMouseTracking();
 
 /*
 $Log$
+Revision 3.31  2008/08/01 15:37:55  mast
+Moved draw routine to global so imodview can draw top zap
+
 Revision 3.30  2008/02/06 16:33:48  sueh
 bug# 1065 In zapPrintInfo made printing the info optional.
 

@@ -16,6 +16,8 @@
 #include <qtooltip.h>
 #include <qpushbutton.h>
 #include <qsignalmapper.h>
+#include <QHBoxLayout>
+#include <QVBoxLayout>
 #include "dialog_frame.h"
 #include "dia_qtutils.h"
 
@@ -28,8 +30,7 @@
  * non-NULL.  The buttons will be equally sized if [equalSized] is true; 
  * otherwise they will all be just big enough for their respective text.  The
  * window title will be set to [caption], or to [fallback] if [caption] is 
- * NULL.  [name] defaults to 0, [fl] defaults to
- * Qt::WDestructiveClose | Qt::WType_TopLevel.
+ * NULL.  [name] defaults to 0, [fl] defaults to Qt::Window. 
  * ^ The class emits two signals: actionPressed(int which) and 
  * actionClicked(int which)
  * with the argument providing the number of the button pressed or clicked.
@@ -37,11 +38,11 @@
 DialogFrame::DialogFrame(QWidget *parent, int numButtons, char *labels[], 
 			 char *tips[],
 			 bool equalSized, char *caption, char *fallback,
-			 const char *name, WFlags fl)
-  : QWidget(parent, name, fl)
+			 const char *name, Qt::WFlags fl)
+  : QWidget(parent, fl)
 {
   makeDialogFrame(parent, numButtons, 1, labels, tips, equalSized, false,
-                  caption, fallback, name, fl);
+                  caption, fallback, fl);
 }
 
 /*!
@@ -52,17 +53,17 @@ DialogFrame::DialogFrame(QWidget *parent, int numButtons, char *labels[],
 DialogFrame::DialogFrame(QWidget *parent, int numButtons, int numRows,
                          char *labels[], char *tips[], bool equalSized,
                          bool rounded, char *caption, char *fallback,
-			 const char *name, WFlags fl)
-  : QWidget(parent, name, fl)
+			 const char *name, Qt::WFlags fl)
+  : QWidget(parent, fl)
 {
   makeDialogFrame(parent, numButtons, numRows, labels, tips, equalSized, 
-                  rounded, caption, fallback, name, fl);
+                  rounded, caption, fallback, fl);
 }
 
 void DialogFrame::makeDialogFrame(QWidget *parent, int numButtons, int numRows,
                                   char *labels[], char *tips[],
                                   bool equalSized, bool rounded, char *caption,
-                                  char *fallback, const char *name, WFlags fl)
+                                  char *fallback, Qt::WFlags fl)
 {
   int width = 0;
   int i, twidth, row = 0, rowStart = 0;
@@ -72,13 +73,18 @@ void DialogFrame::makeDialogFrame(QWidget *parent, int numButtons, int numRows,
   mEqualSized = equalSized;
   mNumButtons = numButtons;
   mRoundedStyle = rounded;
+  setAttribute(Qt::WA_DeleteOnClose);
+  setAttribute(Qt::WA_AlwaysShowToolTips);
 
   // Force it to a small size so it will end up at minumum size
   resize(50, 50);
 
   // Get outer layout then the layout that derived class will build into
-  QVBoxLayout *outerLayout = new QVBoxLayout(this, 8, 6, "outer layout");
-  mLayout = new QVBoxLayout(outerLayout);
+  QVBoxLayout *outerLayout = new QVBoxLayout(this);
+  outerLayout->setSpacing(6);
+  outerLayout->setContentsMargins(8, 8, 8, 8);
+  mLayout = new QVBoxLayout();
+  outerLayout->addLayout(mLayout);
 
   // Make the line
   QFrame *line = new QFrame(this);
@@ -100,7 +106,9 @@ void DialogFrame::makeDialogFrame(QWidget *parent, int numButtons, int numRows,
     // If time to start a new row, get a new layout and compute the index
     // Of the next row start
     if (i == rowStart) {
-      layout2 = new QHBoxLayout(0, 0, 6);
+      layout2 = new QHBoxLayout();
+      layout2->setContentsMargins(0, 0, 0, 0);
+      layout2->setSpacing(6);
       outerLayout->addLayout(layout2);
       rowStart += numButtons / numRows;
       if (row < numButtons % numRows)
@@ -109,26 +117,26 @@ void DialogFrame::makeDialogFrame(QWidget *parent, int numButtons, int numRows,
     }
 
     str = labels[i];
-    button = new QPushButton(str, this, labels[i]);
+    button = new QPushButton(str, this);
     if (i < BUTTON_ARRAY_MAX)
       mButtons[i] = button;
-    button->setFocusPolicy(NoFocus);
+    button->setFocusPolicy(Qt::NoFocus);
     layout2->addWidget(button);
     pressMapper->setMapping(button, i);
     connect(button, SIGNAL(pressed()), pressMapper, SLOT(map()));
     clickMapper->setMapping(button, i);
     connect(button, SIGNAL(clicked()), clickMapper, SLOT(map()));
     if (tips != NULL)
-      QToolTip::add(button, tips[i]);
+      button->setToolTip(tips[i]);
   }
   setFontDependentWidths();
 
-  setFocusPolicy(StrongFocus);
+  setFocusPolicy(Qt::StrongFocus);
 
   str = caption;
   if (str.isEmpty())
       str = fallback;
-  setCaption(str);
+  setWindowTitle(str);
 }
 
 void DialogFrame::setFontDependentWidths()
@@ -180,6 +188,9 @@ void DialogFrame::actionButtonClicked(int which)
 
 /*
 $Log$
+Revision 1.7  2007/08/26 06:55:59  mast
+Documentation changes
+
 Revision 1.6  2004/11/04 23:32:44  mast
 Changes for rounded button style
 

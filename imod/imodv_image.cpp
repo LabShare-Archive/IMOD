@@ -17,6 +17,9 @@
 #include <qgl.h>
 #include <qslider.h>
 #include <qtooltip.h>
+//Added by qt3to4:
+#include <QKeyEvent>
+#include <QCloseEvent>
 #include "preferences.h"
 #include "multislider.h"
 #include "dia_qtutils.h"
@@ -619,9 +622,9 @@ ImodvImage::ImodvImage(QWidget *parent, const char *name)
   mViewZBox = diaCheckBox("View Z image", this, mLayout);
   mViewZBox->setChecked(imodvImageData.flags & IMODV_DRAW_CZ);
   connect(mViewZBox, SIGNAL(toggled(bool)), this, SLOT(viewZToggled(bool)));
-  QToolTip::add(mViewXBox, "Display YZ plane at current X");
-  QToolTip::add(mViewYBox, "Display XZ plane at current Y");
-  QToolTip::add(mViewZBox, "Display XY plane at current Z");
+  mViewXBox->setToolTip("Display YZ plane at current X");
+  mViewYBox->setToolTip("Display XZ plane at current Y");
+  mViewZBox->setToolTip("Display XY plane at current Z");
 
   // Make multisliders
   mSliders = new MultiSlider(this, 10, sliderLabels);
@@ -648,32 +651,32 @@ ImodvImage::ImodvImage(QWidget *parent, const char *name)
   (mSliders->getLayout())->setSpacing(4);
   connect(mSliders, SIGNAL(sliderChanged(int, int, bool)), this, 
           SLOT(sliderMoved(int, int, bool)));
-  QToolTip::add((QWidget *)mSliders->getSlider(IIS_X_COORD),
+  mSliders->getSlider(IIS_X_COORD)->setToolTip(
                 "Set current image X coordinate");
-  QToolTip::add((QWidget *)mSliders->getSlider(IIS_Y_COORD),
+  mSliders->getSlider(IIS_Y_COORD)->setToolTip(
                 "Set current image Y coordinate");
-  QToolTip::add((QWidget *)mSliders->getSlider(IIS_Z_COORD),
+  mSliders->getSlider(IIS_Z_COORD)->setToolTip(
                 "Set current image Z coordinate");
-  QToolTip::add((QWidget *)mSliders->getSlider(IIS_X_SIZE),
+  mSliders->getSlider(IIS_X_SIZE)->setToolTip(
                 "Set image size to display in X");
-  QToolTip::add((QWidget *)mSliders->getSlider(IIS_Y_SIZE),
+  mSliders->getSlider(IIS_Y_SIZE)->setToolTip(
                 "Set image size to display in Y");
-  QToolTip::add((QWidget *)mSliders->getSlider(IIS_Z_SIZE),
+  mSliders->getSlider(IIS_Z_SIZE)->setToolTip(
                 "Set image size to display in Z");
-  QToolTip::add((QWidget *)mSliders->getSlider(IIS_SLICES),
+  mSliders->getSlider(IIS_SLICES)->setToolTip(
                 "Set number of slices to display");
-  QToolTip::add((QWidget *)mSliders->getSlider(IIS_TRANSPARENCY),
+  mSliders->getSlider(IIS_TRANSPARENCY)->setToolTip(
                 "Set percent transparency");
-  QToolTip::add((QWidget *)mSliders->getSlider(IIS_BLACK),
+  mSliders->getSlider(IIS_BLACK)->setToolTip(
                 "Set minimum black level of contrast ramp");
-  QToolTip::add((QWidget *)mSliders->getSlider(IIS_WHITE),
+  mSliders->getSlider(IIS_WHITE)->setToolTip(
                 "Set maximum white level of contrast ramp");
 
   // Make false color checkbox
   mFalseBox = diaCheckBox("False color", this, mLayout);
   mFalseBox->setChecked(Falsecolor);
   connect(mFalseBox, SIGNAL(toggled(bool)), this, SLOT(falseToggled(bool)));
-  QToolTip::add(mFalseBox, "Display image in false color");
+  mFalseBox->setToolTip("Display image in false color");
 
   if (Imodv->vi->colormapImage) {
     mFalseBox->setEnabled(false);
@@ -840,6 +843,9 @@ void ImodvImage::keyReleaseEvent ( QKeyEvent * e )
 
 /*
 $Log$
+Revision 4.18  2008/05/27 02:48:43  mast
+Fixed multiple plane drawing of X and Y planes
+
 Revision 4.17  2007/07/08 16:04:49  mast
 Used new hot slider function
 

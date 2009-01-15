@@ -11,23 +11,13 @@
 *  Log at end of file
 */
 
-#include <qlabel.h>
-#include <qlayout.h>
-#include <qlineedit.h>
-#include <qpushbutton.h>
-#include <qbuttongroup.h>
-#include <qradiobutton.h>
-#include <qgroupbox.h>
-#include <qapplication.h>
-
-
+#include <QtGui>
 
 #include "rangedialog.h"
 #include "myapp.h"
 #define PRECISION 0.00005
 
-  RangeDialog::RangeDialog(QWidget *parent, const char *name)
-:QDialog(parent, name)
+  RangeDialog::RangeDialog(QWidget *parent) :QDialog(parent)
 {
   float nDim=((MyApp *)qApp)->getDim()-1;
   float x1Idx1=((MyApp *)qApp)->getX1RangeLow()/nDim;
@@ -36,7 +26,7 @@
   float x2Idx2=((MyApp *)qApp)->getX2RangeHigh()/nDim;
   char tmpStr[20];
 
-  setCaption(tr("Set X Range"));
+  setWindowTitle(tr("Set X Range"));
   x1_label_1=new QLabel(tr("X1 &Starts:"), this);
   sprintf(tmpStr, "%4.2f", x1Idx1);
   x1_edit_1=new QLineEdit(tmpStr, this);
@@ -48,11 +38,15 @@
   x1_edit_2=new QLineEdit(tmpStr, this);
   x1_label_2->setBuddy(x1_edit_1);
 
-  x1Group=new QButtonGroup(1, QGroupBox::Horizontal, tr("X1 fitting method"),
-      this);
-  x1LinearRadio=new QRadioButton(tr("Line"), x1Group);
-  x1SimplexRadio=new QRadioButton(tr("Gaussian"), x1Group);
-  x1Group->setButton(1);
+  x1Group=new QGroupBox(tr("X1 fitting method"), this);
+  x1LinearRadio=new QRadioButton(tr("Line"));
+  x1SimplexRadio=new QRadioButton(tr("Gaussian"));
+  x1SimplexRadio->setChecked(true);
+
+  QVBoxLayout *vbox=new QVBoxLayout;
+  vbox->addWidget(x1LinearRadio);
+  vbox->addWidget(x1SimplexRadio);
+  x1Group->setLayout(vbox);
 
   x2_label_1=new QLabel(tr("X2 &Starts:"), this);
   sprintf(tmpStr, "%4.2f", x2Idx1);
@@ -64,11 +58,16 @@
   x2_edit_2=new QLineEdit(tmpStr, this);
   x2_label_2->setBuddy(x2_edit_2);
 
-  x2Group=new QButtonGroup(1, QGroupBox::Horizontal, tr("X2 fitting method"),
-      this);
-  x2LinearRadio=new QRadioButton(tr("Line"), x2Group);
-  x2SimplexRadio=new QRadioButton(tr("Gaussian"), x2Group);
-  x2Group->setButton(1);
+  x2Group=new QGroupBox(tr("X2 fitting method"), this);
+  x2LinearRadio=new QRadioButton(tr("Line"));
+  x2SimplexRadio=new QRadioButton(tr("Gaussian"));
+  x2SimplexRadio->setChecked(true);
+
+  QVBoxLayout *vbox2=new QVBoxLayout;
+  vbox2->addWidget(x2LinearRadio);
+  vbox2->addWidget(x2SimplexRadio);
+  x2Group->setLayout(vbox2);
+
 
   applyButton= new QPushButton( tr("&Apply"), this);
   applyButton->setDefault(true);
@@ -204,4 +203,7 @@ void RangeDialog::x2SimplexChecked()
 /*
 
    $Log$
+   Revision 1.3  2008/11/07 17:26:24  xiongq
+   add the copyright heading
+
 */

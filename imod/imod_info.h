@@ -12,13 +12,18 @@
 #define IMOD_INFO_H
 
 #include <qmainwindow.h>
+#include <qprocess.h>
+//Added by qt3to4:
+#include <QCloseEvent>
+#include <QTimerEvent>
+#include <QKeyEvent>
+#include <QEvent>
 
 class InfoControls;
 class QTextEdit;
 class QTimer;
-class QPopupMenu;
 class InfoWindow;
-class QProcess;
+class QAction;
 
 typedef struct Mod_Model Imod;
 
@@ -51,8 +56,8 @@ enum {FILE_MENU_NEW, FILE_MENU_OPEN, FILE_MENU_RELOAD, FILE_MENU_SAVE,
       IMAGE_MENU_GRAPH, IMAGE_MENU_SLICER, IMAGE_MENU_TUMBLER, 
       IMAGE_MENU_MODV, IMAGE_MENU_ZAP, IMAGE_MENU_XYZ, IMAGE_MENU_PIXEL,
       IMAGE_MENU_LOCATOR, IMAGE_MENU_MULTIZ, IMAGE_MENU_ISOSURFACE,
-      HELP_MENU_MAN, HELP_MENU_MENUS, HELP_MENU_HOTKEY, HELP_MENU_ABOUT};
-
+      HELP_MENU_MAN, HELP_MENU_MENUS, HELP_MENU_HOTKEY, HELP_MENU_ABOUT,
+      LAST_MENU_ID};
 
 class InfoWindow : public QMainWindow
 {
@@ -60,7 +65,7 @@ class InfoWindow : public QMainWindow
 
  public:
   InfoWindow(QWidget * parent = 0, const char * name = 0, 
-              WFlags f = WType_TopLevel | WDestructiveClose) ;
+              Qt::WFlags f = Qt::Window) ;
   ~InfoWindow() {};
   void manageMenus();
   void keepOnTop(bool state);
@@ -81,7 +86,7 @@ class InfoWindow : public QMainWindow
   void imageSlot(int item);
   void pluginSlot(int item);
   void helpSlot(int item);
-  void trimvolExited();
+  void trimvolExited(int exitCode, QProcess::ExitStatus exitStatus);
 
  protected:
     void keyPressEvent ( QKeyEvent * e );
@@ -93,19 +98,7 @@ class InfoWindow : public QMainWindow
 
  private:
   void extract();
-  QPopupMenu *mFileMenu;
-  QPopupMenu *mEditMenu;
-  QPopupMenu *mImageMenu;
-  QPopupMenu *mHelpMenu;
-  QPopupMenu *mFModelMenu;
-  QPopupMenu *mFWriteMenu;
-  QPopupMenu *mEModelMenu;
-  QPopupMenu *mEObjectMenu;
-  QPopupMenu *mESurfaceMenu;
-  QPopupMenu *mEPointMenu;
-  QPopupMenu *mEContourMenu;
-  QPopupMenu *mEImageMenu;
-  QPopupMenu *mPlugMenu;
+  QAction *mActions[LAST_MENU_ID];
   QTextEdit *mStatusEdit;
   bool mMinimized;
   int mTopTimerID;
@@ -120,6 +113,9 @@ int imod_info_open();
 
 /*
     $Log$
+    Revision 3.26  2008/12/10 01:04:50  mast
+    Added menu item to set jpeg quality
+
     Revision 3.25  2008/05/27 05:50:28  mast
     New menu items and autocontrast after delay
 

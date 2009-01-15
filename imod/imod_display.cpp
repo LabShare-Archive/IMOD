@@ -64,11 +64,12 @@ int imod_display_init(ImodApp *ap, char **argv)
   ap->depth = imodFindQGLFormat(ap, argv);
 
   // Set up the cursor for model mode
-  QBitmap bmCursor(qcursor_width, qcursor_height, qcursor_bits, true);
-  QBitmap bmMask(qcursor_width, qcursor_height, qcursor_mask_bits, true);
+  QBitmap bmCursor = QBitmap::fromData(QSize(qcursor_width, qcursor_height),
+                                       qcursor_bits);
+  QBitmap bmMask = QBitmap::fromData(QSize(qcursor_width, qcursor_height),
+                                     qcursor_mask_bits);
   ap->modelCursor = new QCursor(bmCursor, bmMask, qcursor_x_hot, 
                                 qcursor_y_hot);
-
   diaSetTitle("3dmod");
   return(0);
 }
@@ -554,6 +555,9 @@ int imodFindQGLFormat(ImodApp *ap, char **argv)
 /*
 
 $Log$
+Revision 4.27  2008/12/11 20:20:08  mast
+Only skip the bwfloat if no image windows exists, not the rest of the draw
+
 Revision 4.26  2008/12/01 15:39:31  mast
 Do not call bwfloat if no images to display yet
 

@@ -42,8 +42,7 @@ void scaleBarOpen()
     type = IMODV_DIALOG;
     manager = &imodvDialogManager;
   }
-  sbDia = new ScaleBarForm(manager->parent(type), "scale bar", 
-                            Qt::WType_TopLevel | Qt::WDestructiveClose);
+  sbDia = new ScaleBarForm(manager->parent(type), Qt::Window);
   if (!sbDia) {
     wprint("/aCould not open Scale Bar dialog\n");
     return;
@@ -202,6 +201,9 @@ void scaleBarRedraw()
 /*
 
 $Log$
+Revision 1.6  2008/11/28 06:37:08  mast
+Made it redraw when closing to bars go away
+
 Revision 1.5  2008/06/12 22:49:49  mast
 Disable depth test to make scalebar come out on top
 

@@ -20,7 +20,6 @@
 #define DEF_END -20.0
 #define ZERO_START 0.2
 #define ZERO_END 0.8
-#define MY_PI 3.1415926
 
 extern int debugLevel;
 
@@ -288,6 +287,9 @@ int DefocusFinder::findDefocus(double *focus)
 /*
 
    $Log$
+   Revision 1.6  2008/11/10 18:09:42  xiongq
+   switch to an approximating formula to find defocus
+
    Revision 1.5  2008/11/07 17:26:24  xiongq
    add the copyright heading
 

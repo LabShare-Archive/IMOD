@@ -1,3 +1,5 @@
+//Added by qt3to4:
+#include <QKeyEvent>
 /*  imod.h - public header file for 3dmod
  *
  *  Original author: James Kremer
@@ -190,6 +192,9 @@ int DLL_EX_IM imodShowHelpPage(const char *page);
 
 /*
     $Log$
+    Revision 3.20  2008/07/17 05:01:35  mast
+    Add new model notificaton to plugins
+
     Revision 3.19  2008/05/28 14:57:28  mast
     Added z scale to draw model function
 

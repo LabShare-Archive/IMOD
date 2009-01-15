@@ -1,13 +1,14 @@
 #ifndef MYAPP_H
 #define MYAPP_H
 
-#include <qapplication.h>
+#include <QApplication>
 #include "defocusfinder.h"
 #include "mrcslice.h"
 #include "slicecache.h"
 
 class SimplexFitting;
 class LinearFitting;
+class Plotter;
 
 class MyApp : public QApplication
 {
@@ -19,6 +20,7 @@ class MyApp : public QApplication
     int getEndingSliceNum() { return endingSlice;}
     int getStartingSliceNum() {return startingSlice;}
     void plotFitPS(bool flagSetInitSetting );
+    void setPlotter( Plotter *p){ plotter=p;}
     void setSlice(char *stackFile, char *angleFile);
     double getLowAngle() {return lowAngle;}
     char *getStackName() {return fnStack;}
@@ -72,6 +74,7 @@ class MyApp : public QApplication
     // arrays of size 'nDim';
     static int nDim;  
     static int tileSize;
+    Plotter *plotter;
     char *fnStack;
     char *fnAngle;
     char *fnDefocus;

@@ -191,8 +191,8 @@ int imodPlugKeys(ImodView *vw, QKeyEvent *event)
    * Modifier key mask.  Set ctrl and shift to true
    * if the coresponding key is pressed.
    */
-  ctrl   = event->state() & Qt::ControlButton;
-  shift  = event->state() & Qt::ShiftButton;
+  ctrl   = event->modifiers() & Qt::ControlModifier;
+  shift  = event->modifiers() & Qt::ShiftModifier;
     
   switch(keysym){
   case Qt::Key_Apostrophe: 
@@ -318,7 +318,8 @@ LineTrack::LineTrack(QWidget *parent, const char *name)
 {
   PlugData *plug = &thisPlug;
 
-  mGrid = new QGridLayout(mLayout);
+  mGrid = new QGridLayout();
+  mLayout->addLayout(mGrid);
   mMapper = new QSignalMapper(this);
   connect(mMapper, SIGNAL(mapped(int)), this, SLOT(valueEntered(int)));
 
@@ -364,19 +365,19 @@ void LineTrack::makeEditRow(int row, char *label, int *iPtr, float *fPtr,
   QString str = label;
   QLabel *qlab = new QLabel(str, this);
   mGrid->addWidget(qlab, row, 0);
-  qlab->setAlignment(AlignRight | AlignVCenter);
+  qlab->setAlignment(Qt::AlignRight | Qt::AlignVCenter);
 
   // Make the tool edit and connect to mapper
   mEdit[row] = new ToolEdit(this, 8);
   mGrid->addWidget(mEdit[row], row, 1);
-  mEdit[row]->setAlignment(AlignRight);
-  mEdit[row]->setFocusPolicy(ClickFocus);
+  mEdit[row]->setAlignment(Qt::AlignRight);
+  mEdit[row]->setFocusPolicy(Qt::ClickFocus);
   mMapper->setMapping(mEdit[row], row);
   connect(mEdit[row], SIGNAL(returnPressed()), mMapper, SLOT(map()));
   connect(mEdit[row], SIGNAL(returnPressed()), this, SLOT(setFocus()));
   connect(mEdit[row], SIGNAL(focusLost()), mMapper, SLOT(map()));
   str = tip;
-  QToolTip::add(mEdit[row], str);
+  mEdit[row]->setToolTip(str);
 
   fillinValue(row);
 }
@@ -402,7 +403,7 @@ void LineTrack::valueEntered(int which)
   // 1/25/03: QString's toInt is unforgiving of stray characters after the
   // number and produces a 0
   if (mIsInt[which]) {
-    ival = atoi(mEdit[which]->text().latin1());
+    ival = atoi(LATIN1(mEdit[which]->text()));
     if (ival < mMinVal[which])
       ival = (int)floor(mMinVal[which] + 0.5);
     if (ival > mMaxVal[which])
@@ -745,6 +746,9 @@ void LineTrack::keyReleaseEvent ( QKeyEvent * e )
 /*
 
 $Log$
+Revision 1.16  2008/05/27 04:18:49  mast
+Prevented it from opening on color data.
+
 Revision 1.15  2007/10/03 19:31:28  sueh
 bug# 1038 Replacing help strings with an .html file.
 

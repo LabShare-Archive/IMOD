@@ -12,16 +12,23 @@
 #define DIA_QTUTILS_H
 
 #include "dllexport.h"
+//Added by qt3to4:
+#include <QLabel>
+#include <QPalette>
 
 class QCheckBox;
 class QLabel;
 class QPushButton;
 class QRadioButton;
 class QBoxLayout;
+class QHBoxLayout;
+class QVBoxLayout;
 class QWidget;
 class QSlider;
 class QSpinBox;
-class FloatSpinBox;
+class QAbstractSpinBox;
+class QAbstractButton;
+class QDoubleSpinBox;
 class QButtonGroup;
 class QString;
 class QLineEdit;
@@ -29,48 +36,63 @@ class QLineEdit;
 extern DLL_IM_EX char *Dia_title;
 
 void DLL_IM_EX diaSetSpinBox(QSpinBox *box, int value);
+void DLL_IM_EX diaSetDoubleSpinBox(QDoubleSpinBox *box, double value);
 void DLL_IM_EX diaSetSpinMMVal(QSpinBox *box, int min, int max, int value);
-void DLL_IM_EX diaSetGroup(QButtonGroup *group, int value);
+void DLL_IM_EX diaSetGroup(QButtonGroup *group, int id);
 void DLL_IM_EX diaSetSlider(QSlider *slider, int value);
-void DLL_IM_EX diaSetChecked(QCheckBox *button, bool state);
+void DLL_IM_EX diaSetChecked(QAbstractButton *button, bool state);
 void DLL_IM_EX diaSetEditText(QLineEdit *edit, const QString &text);
 void DLL_IM_EX diaShowWidget(QWidget *widget, bool state);
-QLabel DLL_IM_EX *diaLabel(char *text, QWidget *parent, QBoxLayout *layout);
-QRadioButton DLL_IM_EX *diaRadioButton(char *text, QWidget *parent);
-QPushButton DLL_IM_EX *diaPushButton(char *text, QWidget *parent, 
+QLabel DLL_IM_EX *diaLabel(const char *text, QWidget *parent,
+                           QBoxLayout *layout);
+QRadioButton DLL_IM_EX *diaRadioButton(char *label, QWidget *parent,
+                                       QButtonGroup *group, QBoxLayout *layout,
+                                       int id, char *tooltip);
+QPushButton DLL_IM_EX *diaPushButton(const char *text, QWidget *parent, 
 			   QBoxLayout *layout);
-QCheckBox DLL_IM_EX *diaCheckBox(char *text, QWidget *parent, 
+QCheckBox DLL_IM_EX *diaCheckBox(const char *text, QWidget *parent, 
                                  QBoxLayout *layout);
-QSpinBox DLL_IM_EX *diaLabeledSpin(int nDecimal, int minValue, int maxValue,
-                                   int step, char *text, QWidget *parent,
-                                   QBoxLayout *layout);
+QSlider DLL_IM_EX *diaSlider(int min, int max, int step, int value,
+                             QWidget *parent, QBoxLayout *layout);
+QAbstractSpinBox DLL_IM_EX *diaLabeledSpin
+(int nDecimal, float minValue, float maxValue, float step, const char *text,
+ QWidget *parent, QBoxLayout *layout);
+QVBoxLayout DLL_IM_EX *diaVBoxLayout(QBoxLayout *layout);
+QHBoxLayout DLL_IM_EX *diaHBoxLayout(QBoxLayout *layout);
 int DLL_IM_EX diaGetButtonWidth(QWidget *widget, bool rounded, float factor, 
                       const QString &text);
 int DLL_IM_EX diaSetButtonWidth(QPushButton *button, bool rounded,
                                 float factor, const QString &text);
+void DLL_IM_EX diaSetWidgetColor(QWidget *widget, QColor color,
+                                 QPalette::ColorRole role = QPalette::NoRole);
 void DLL_IM_EX diaMaximumWindowSize(int &width, int &height);
 void DLL_IM_EX diaLimitWindowSize(int &width, int &height);
 void DLL_IM_EX diaLimitWindowPos(int neww, int newh, int &newdx, int &newdy);
-void DLL_IM_EX diaSetTitle(char *title);
+void DLL_IM_EX diaSetTitle(const char *title);
 
 // Get a single existing file name with a set of filters
-QString DLL_IM_EX diaOpenFileName(QWidget *parent, char *caption, 
+QString DLL_IM_EX diaOpenFileName(QWidget *parent, const char *caption, 
                                   int numFilters, char *filters[]);
 
-int DLL_IM_EX dia_err(char *message);
-int DLL_IM_EX dia_puts(char *message);
-int DLL_IM_EX dia_ask(char *question);
-int DLL_IM_EX dia_ask_forever(char *question);
-int DLL_IM_EX dia_choice(char *question, char *lab1, char *lab2, char *lab3);
+int DLL_IM_EX dia_err(const char *message);
+int DLL_IM_EX dia_puts(const char *message);
+int DLL_IM_EX dia_ask(const char *question);
+int DLL_IM_EX dia_ask_forever(const char *question);
+int DLL_IM_EX dia_choice(const char *question, const char *lab1, 
+                         const char *lab2, const char *lab3);
 int DLL_IM_EX diaQInput(int *value, int low, int high, int decimal, 
-                        char *prompt);
+                        const char *prompt);
 void DLL_IM_EX dia_vasmsg(char *msg, ...);
 void DLL_IM_EX dia_smsg(char **msg);
 
 #endif
 
 /*
+
 $Log$
+Revision 3.9  2008/05/27 05:56:33  mast
+Added show/hide function
+
 Revision 3.8  2007/07/08 16:53:51  mast
 Added dia_ask_forever
 

@@ -11,25 +11,32 @@
  *  Log at end of file
  */
 
-#include <qscrollview.h>
+#include <qscrollarea.h>
 #include <qframe.h>
 #include <qapplication.h>
 #include <qcheckbox.h>
 #include <qsignalmapper.h>
 #include <qpushbutton.h>
-#include <qhbox.h>
 #include <qlabel.h>
 #include <qtooltip.h>
 #include <qlayout.h>
 #include <qspinbox.h>
 #include <qlineedit.h>
-#include <qvgroupbox.h>
+#include <qgroupbox.h>
+//Added by qt3to4:
+#include <QHBoxLayout>
+#include <QCloseEvent>
+#include <QGridLayout>
+#include <QKeyEvent>
+#include <QVBoxLayout>
+#include <QDesktopWidget>
 #include "dia_qtutils.h"
 #include "objgroup.h"
 
 #include "imodv.h"
 #include "imodv_gfx.h"
 #include "imod.h"
+#include "imod_info_cb.h"
 #include "control.h"
 #include "preferences.h"
 #include "imodv_objed.h"
@@ -100,6 +107,7 @@ void imodvObjectListDialog(ImodvApp *a, int state)
   // Get sizes to adjust window size with
   QSize svSize = Oolist_dialog->mScroll->sizeHint();
   QSize frameSize = Oolist_dialog->mFrame->sizeHint();
+  imod_info_input();
   Oolist_dialog->adjustSize();
 
   // 4 pixels added was enough to prevent scroll bars
@@ -123,7 +131,7 @@ void imodvObjectListDialog(ImodvApp *a, int state)
   }
   if (qstr.isEmpty())
     qstr = "3dmodv Object List";
-  Oolist_dialog->setCaption(qstr);
+  Oolist_dialog->setWindowTitle(qstr);
   imodvDialogManager.add((QWidget *)Oolist_dialog, IMODV_DIALOG);
 
   // After getting size with group buttons present, maybe hide them
@@ -147,8 +155,8 @@ void imodvOlistSetColor(ImodvApp *a, int ob)
   if (!Oolist_dialog || ob >= numOolistButtons || ob >= a->imod->objsize)
     return;
   obj = &a->imod->obj[ob];
-  OolistButtons[ob]->setPaletteBackgroundColor
-    (QColor((int)(255 * obj->red), (int)(255 * obj->green),
+  diaSetWidgetColor
+    (OolistButtons[ob], QColor((int)(255 * obj->red), (int)(255 * obj->green),
             (int)(255 * obj->blue)));
 }
 
@@ -163,7 +171,7 @@ void imodvOlistUpdateGroups(ImodvApp *a)
 void imodvOlistUpdateOnOffs(ImodvApp *a)
 {
   int ob;
-  bool state;
+  bool state, nameChgd = false;
   QString qstr;
   char obname[MAX_LIST_NAME];
   int len;
@@ -171,8 +179,8 @@ void imodvOlistUpdateOnOffs(ImodvApp *a)
   QColor gray;
   if (!Oolist_dialog || !numOolistButtons)
     return;
-
-  gray = Oolist_dialog->paletteBackgroundColor();
+  QPalette palette = Oolist_dialog->palette();
+  gray = palette.color(Oolist_dialog->backgroundRole());
   for (ob = 0; ob < numOolistButtons; ob++) {
     if (ob < a->imod->objsize) {
       // Get a truncated name
@@ -183,19 +191,27 @@ void imodvOlistUpdateOnOffs(ImodvApp *a)
       strncpy(obname, a->imod->obj[ob].name, len);
       obname[len] = 0x00;
       qstr.sprintf("%d: %s",ob + 1, obname);
-      OolistButtons[ob]->setText(qstr);
       state = !(a->imod->obj[ob].flags & IMOD_OBJFLAG_OFF);
       bkgColor.setRgb((int)(255. * a->imod->obj[ob].red),
                       (int)(255. * a->imod->obj[ob].green),
                       (int)(255. * a->imod->obj[ob].blue));
-    } else {
-      state = false;
-      bkgColor = gray;
+      if (OolistButtons[ob]->isHidden()) {
+        OolistButtons[ob]->show();
+        nameChgd = true;
+      }
+      if (qstr != OolistButtons[ob]->text()) {
+        OolistButtons[ob]->setText(qstr);
+        nameChgd = true;
+      }
+      diaSetWidgetColor(OolistButtons[ob], bkgColor);
+      diaSetChecked(OolistButtons[ob], state);
+    } else if (!OolistButtons[ob]->isHidden()) {
+      OolistButtons[ob]->hide();
+      nameChgd = true;
     }
-    OolistButtons[ob]->setEnabled(ob < a->imod->objsize);
-    OolistButtons[ob]->setPaletteBackgroundColor(bkgColor);
-    diaSetChecked(OolistButtons[ob], state);
   }
+  if (nameChgd)
+    Oolist_dialog->adjustFrameSize();
 }
 
 /*
@@ -206,7 +222,7 @@ bool imodvOlistObjInGroup(ImodvApp *a, int ob)
   if (!Oolist_dialog || !numOolistButtons || !grouping || 
       ob >= numOolistButtons) 
     return false;
-  return groupButtons[ob]->isOn();
+  return groupButtons[ob]->isChecked();
 }
 
 // Simply return flag for whether grouping is on
@@ -218,8 +234,8 @@ bool imodvOlistGrouping(void)
 /*
  * Object list class constructor
  */
-ImodvOlist::ImodvOlist(QWidget *parent, const char *name, WFlags fl)
-  : QWidget(parent, name, fl)
+ImodvOlist::ImodvOlist(QWidget *parent, Qt::WFlags fl)
+  : QWidget(parent, fl)
 {
   int nPerCol, olistNcol, ob, i;
   QString qstr;
@@ -235,30 +251,37 @@ ImodvOlist::ImodvOlist(QWidget *parent, const char *name, WFlags fl)
                   "Turn OFF all objects in the current group",
                   "Turn ON objects NOT in the current group",
                   "Turn OFF objects NOT in the current group"};
+  
+  setAttribute(Qt::WA_DeleteOnClose);
+  setAttribute(Qt::WA_AlwaysShowToolTips);
+  QVBoxLayout *layout = new QVBoxLayout(this);
+  layout->setContentsMargins(5, 5, 5, 5);
+  layout->setSpacing(6);
 
-  QVBoxLayout *layout = new QVBoxLayout(this, 11, 6, "list layout");
-
-  QVGroupBox *grpbox = new QVGroupBox("Object Group Selection", this);
+  QGroupBox *grpbox = new QGroupBox("Object Group Selection");
   layout->addWidget(grpbox);
-  QHBox *hbox = new QHBox(grpbox);
-  new QLabel("Group", hbox);
-  mGroupSpin = new QSpinBox(0, 0, 1, hbox);
+  QVBoxLayout *gblay = new QVBoxLayout(grpbox);
+  gblay->setContentsMargins(6, 3, 6, 6);
+  gblay->setSpacing(6);
+  QHBoxLayout *hbox = diaHBoxLayout(gblay); 
+  
+  mGroupSpin = (QSpinBox *)diaLabeledSpin(0, 0., 0., 1., "Group", grpbox,hbox);
   mGroupSpin->setSpecialValueText("None");
-  mGroupSpin->setFocusPolicy(QWidget::ClickFocus);
   connect(mGroupSpin, SIGNAL(valueChanged(int)), this, 
           SLOT(curGroupChanged(int)));
-  QToolTip::add(mGroupSpin, "Select the current object group or turn off "
+  mGroupSpin->setToolTip("Select the current object group or turn off "
                 "selection");
 
-  mNumberLabel = new QLabel("/99", hbox);
-  mNameEdit = new QLineEdit(hbox);
+  mNumberLabel = diaLabel("/99", grpbox, hbox);
+  mNameEdit = new QLineEdit(grpbox);
+  hbox->addWidget(mNameEdit);
   mNameEdit->setMaxLength(OBJGRP_STRSIZE - 1);
-  mNameEdit->setFocusPolicy(QWidget::ClickFocus);
+  mNameEdit->setFocusPolicy(Qt::ClickFocus);
   connect(mNameEdit, SIGNAL(returnPressed()), this,
           SLOT(returnPressed()));
   connect(mNameEdit, SIGNAL(textChanged(const QString&)), this,
           SLOT(nameChanged(const QString&)));
-  QToolTip::add(mNameEdit, "Enter a name for the current group");
+  mNameEdit->setToolTip("Enter a name for the current group");
 
   QSignalMapper *clickMapper = new QSignalMapper(this);
   connect(clickMapper, SIGNAL(mapped(int)), this,
@@ -268,28 +291,28 @@ ImodvOlist::ImodvOlist(QWidget *parent, const char *name, WFlags fl)
   for (i = 0; i < OBJLIST_NUMBUTTONS; i++) {
 
     if (i == 0 || i == 5)
-      hbox = new QHBox(grpbox);
+      hbox = diaHBoxLayout(gblay);
     if (i == 7) {
-      label = new QLabel("Others:", hbox);
+      label = diaLabel("Others:", grpbox, hbox);
       label->setAlignment(Qt::AlignRight | Qt::AlignVCenter);
     }
 
     qstr = labels[i];
-    mButtons[i] = new QPushButton(qstr, hbox);
-    mButtons[i]->setFocusPolicy(QWidget::NoFocus);
+    mButtons[i] = diaPushButton(LATIN1(qstr), grpbox, hbox);
     clickMapper->setMapping(mButtons[i], i);
     connect(mButtons[i], SIGNAL(clicked()), clickMapper, SLOT(map()));
-    QToolTip::add(mButtons[i], tips[i]);
+    mButtons[i]->setToolTip(tips[i]);
   }
 
-  mScroll = new QScrollView(this);
+  mScroll = new QScrollArea(this);
   layout->addWidget(mScroll);
-  mFrame = new QFrame(mScroll->viewport());
-  mScroll->addChild(mFrame);
-  mScroll->viewport()->setPaletteBackgroundColor
-    (mFrame->paletteBackgroundColor());
-  mGrid = new QGridLayout(mFrame, 1, 1, 0, 2, "list grid");
-
+  mFrame = new QFrame();
+  mScroll->setAutoFillBackground(true);
+  QPalette palette = mFrame->palette();
+  QColor bkg = palette.color(mFrame->backgroundRole());
+  diaSetWidgetColor(mScroll->viewport(), bkg);
+  mGrid = new QGridLayout(mFrame);
+  mGrid->setSpacing(2);
   olistNcol = (numOolistButtons + MAX_LIST_IN_COL - 1) / MAX_LIST_IN_COL;
   nPerCol = (numOolistButtons + olistNcol - 1) / olistNcol;
 
@@ -305,7 +328,8 @@ ImodvOlist::ImodvOlist(QWidget *parent, const char *name, WFlags fl)
     mGrid->addLayout(hLayout, ob % nPerCol, ob / nPerCol);
     groupButtons[ob] = diaCheckBox("", mFrame, hLayout);
     qstr.sprintf("%d: ",ob + 1);
-    OolistButtons[ob] = diaCheckBox((char *)qstr.latin1(), mFrame, hLayout);
+    OolistButtons[ob] = diaCheckBox(LATIN1(qstr), mFrame, hLayout);
+    OolistButtons[ob]->setAutoFillBackground(true);
     mapper->setMapping(OolistButtons[ob], ob);
     connect(OolistButtons[ob], SIGNAL(toggled(bool)), mapper, SLOT(map()));
     gmapper->setMapping(groupButtons[ob], ob);
@@ -315,6 +339,7 @@ ImodvOlist::ImodvOlist(QWidget *parent, const char *name, WFlags fl)
     // Hide the buttons later after window size is set
     grouping = true;
   }
+  mScroll->setWidget(mFrame);
 
   // Make a line
   QFrame *line = new QFrame(this);
@@ -322,13 +347,10 @@ ImodvOlist::ImodvOlist(QWidget *parent, const char *name, WFlags fl)
   line->setFrameShadow( QFrame::Sunken );
   layout->addWidget(line);
 
-  QHBox *box = new QHBox(this);
-  layout->addWidget(box);
-  mDoneButton = new QPushButton("Done", box);
-  mDoneButton->setFocusPolicy(QWidget::NoFocus);
+  QHBoxLayout *box = diaHBoxLayout(layout);
+  mDoneButton = diaPushButton("Done", this, box);
   connect(mDoneButton, SIGNAL(clicked()), this, SLOT(donePressed()));
-  mHelpButton = new QPushButton("Help", box);
-  mHelpButton->setFocusPolicy(QWidget::NoFocus);
+  mHelpButton = diaPushButton("Help", this, box);
   connect(mHelpButton, SIGNAL(clicked()), this, SLOT(helpPressed()));
   setFontDependentWidths();
 }
@@ -342,7 +364,7 @@ void ImodvOlist::toggleGroupSlot(int ob)
   if (!group)
     return;
   index = objGroupLookup(group, ob);
-  state = groupButtons[ob]->isOn();
+  state = groupButtons[ob]->isChecked();
   if (state && index < 0)
     objGroupAppend(group, ob);
   else if (!state && index >= 0)
@@ -351,7 +373,7 @@ void ImodvOlist::toggleGroupSlot(int ob)
  
 void ImodvOlist::toggleListSlot(int ob)
 {
-  objedToggleObj(ob, OolistButtons[ob]->isOn());
+  objedToggleObj(ob, OolistButtons[ob]->isChecked());
 }
 
 void ImodvOlist::donePressed()
@@ -466,7 +488,7 @@ void ImodvOlist::nameChanged(const QString &str)
                                             Imodv->imod->curObjGroup);
   if (!group)
     return;
-  strncpy(&group->name[0], str.latin1(), OBJGRP_STRSIZE);
+  strncpy(&group->name[0], LATIN1(str), OBJGRP_STRSIZE);
   group->name[OBJGRP_STRSIZE - 1] = 0x00;
 }
 
@@ -489,6 +511,7 @@ void ImodvOlist::updateGroups(ImodvApp *a)
   int curGrp = a->imod->curObjGroup;
   int *objs;
   bool *states;
+  bool showChgd = false;
   QString str;
   diaSetSpinMMVal(mGroupSpin, 0, numGroups, curGrp + 1);
   str.sprintf("/%d", numGroups);
@@ -497,15 +520,19 @@ void ImodvOlist::updateGroups(ImodvApp *a)
   for (i = 1; i < OBJLIST_NUMBUTTONS; i++)
     mButtons[i]->setEnabled(curGrp >= 0);
   if (curGrp < 0) {
-    if (grouping)
+    if (grouping) {
       for (ob = 0; ob < numOolistButtons; ob++)
         groupButtons[ob]->hide();
+      adjustFrameSize();
+    }
     grouping = false;
     return;
   }
-  if (!grouping)
+  if (!grouping) {
     for (ob = 0; ob < numOolistButtons; ob++)
       groupButtons[ob]->show();
+    adjustFrameSize();
+  }
   grouping = true;
 
   group = (IobjGroup *)ilistItem(a->imod->groupList, curGrp);
@@ -523,12 +550,28 @@ void ImodvOlist::updateGroups(ImodvApp *a)
       if (objs[i] >= 0 && objs[i] < numOolistButtons)
         states[objs[i]] = true;
   }
-  for (ob = 0; ob < numOolistButtons; ob++)
-    diaSetChecked(groupButtons[ob], states[ob]);
-
+  for (ob = 0; ob < numOolistButtons; ob++) {
+    if (ob < a->imod->objsize) {
+      diaSetChecked(groupButtons[ob], states[ob]);
+      if (groupButtons[ob]->isHidden()) {
+        groupButtons[ob]->show();
+        showChgd = true;
+      }
+    } else if (!groupButtons[ob]->isHidden()) {
+      groupButtons[ob]->hide();
+      showChgd = true;
+    }
+  }
   free(states);
+  if (showChgd)
+    adjustFrameSize();
 }
 
+void ImodvOlist::adjustFrameSize()
+{
+  imod_info_input();
+  mFrame->adjustSize();
+}
 
 void ImodvOlist::setFontDependentWidths()
 {
@@ -549,8 +592,8 @@ void ImodvOlist::fontChange(const QFont &oldFont)
 {
   setFontDependentWidths();
   QWidget::fontChange(oldFont);
+  adjustFrameSize();
 }
-
 
 void ImodvOlist::closeEvent ( QCloseEvent * e )
 {
@@ -579,6 +622,9 @@ void ImodvOlist::keyReleaseEvent ( QKeyEvent * e )
 /*
 
 $Log$
+Revision 4.4  2008/05/22 15:42:18  mast
+Added Others On button; fixed for extra object editability
+
 Revision 4.3  2008/01/28 19:25:03  mast
 Fixed crash on calling imodvOlistUpdateGroups with no window open
 

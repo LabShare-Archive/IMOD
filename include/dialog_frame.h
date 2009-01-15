@@ -3,15 +3,66 @@
  *   Copyright (C) 1995-2002 by Boulder Laboratory for 3-Dimensional Electron
  *   Microscopy of Cells ("BL3DEMC") and the Regents of the University of 
  *   Colorado.  See implementation file for full copyright notice.
+ *
+ *  $Id$
+ *  Log at end of file
  */                                                                           
 
-/*  $Author$
+#ifndef DIALOG_FRAME_H
+#define DIALOG_FRAME_H
+#include <qwidget.h>
+#include "dllexport.h"
 
-$Date$
+#define BUTTON_ARRAY_MAX 10
 
-$Revision$
+class QVBoxLayout;
+class QPushButton;
+
+class DLL_IM_EX DialogFrame : public QWidget
+{
+  Q_OBJECT
+
+ public:
+  DialogFrame(QWidget *parent, int numButtons, char *labels[], char *tips[],
+              bool equalSized, char *caption, char *fallback,
+              const char *name = 0, Qt::WFlags fl = Qt::Window);
+  DialogFrame(QWidget *parent, int numButtons, int numRows, char *labels[], 
+              char *tips[], bool equalSized, bool rounded, char *caption,
+              char *fallback, const char *name = 0,
+              Qt::WFlags fl = Qt::Window);
+  ~DialogFrame() {};
+  void setFontDependentWidths();
+
+ signals:
+  void actionPressed(int which);
+  void actionClicked(int which);
+
+  public slots:
+    void actionButtonPressed(int which);
+    void actionButtonClicked(int which);
+
+ protected:
+  virtual void fontChange(const QFont &oldFont);
+  QVBoxLayout *mLayout;
+  QPushButton *mButtons[BUTTON_ARRAY_MAX];
+  int mNumButtons;
+  bool mRoundedStyle;
+
+ private:
+  void makeDialogFrame(QWidget *parent, int numButtons, int numRows,
+                       char *labels[], char *tips[], bool equalSized,
+                       bool rounded, char *caption, char *fallback,
+                       Qt::WFlags fl = Qt::Window);
+  bool mEqualSized;
+};
+#endif
+
+/*
 
 $Log$
+Revision 3.7  2004/11/04 23:31:07  mast
+Changes for rounded button style
+
 Revision 3.6  2004/06/23 03:35:15  mast
 Changed to allow multiple rows of buttons
 
@@ -46,54 +97,3 @@ Revision 1.1.2.1  2002/12/29 04:15:04  mast
 Initial creation
 
 */
-
-#ifndef DIALOG_FRAME_H
-#define DIALOG_FRAME_H
-#include <qwidget.h>
-#include "dllexport.h"
-
-#define BUTTON_ARRAY_MAX 10
-
-class QVBoxLayout;
-class QPushButton;
-
-class DLL_IM_EX DialogFrame : public QWidget
-{
-  Q_OBJECT
-
- public:
-  DialogFrame(QWidget *parent, int numButtons, char *labels[], char *tips[],
-              bool equalSized, char *caption, char *fallback,
-              const char *name = 0, 
-              WFlags fl = Qt::WDestructiveClose | Qt::WType_TopLevel);
-  DialogFrame(QWidget *parent, int numButtons, int numRows, char *labels[], 
-              char *tips[], bool equalSized, bool rounded, char *caption,
-              char *fallback, const char *name = 0, 
-              WFlags fl = Qt::WDestructiveClose | Qt::WType_TopLevel);
-  ~DialogFrame() {};
-  void setFontDependentWidths();
-
- signals:
-  void actionPressed(int which);
-  void actionClicked(int which);
-
-  public slots:
-    void actionButtonPressed(int which);
-    void actionButtonClicked(int which);
-
- protected:
-  virtual void fontChange(const QFont &oldFont);
-  QVBoxLayout *mLayout;
-  QPushButton *mButtons[BUTTON_ARRAY_MAX];
-  int mNumButtons;
-  bool mRoundedStyle;
-
- private:
-  void makeDialogFrame(QWidget *parent, int numButtons, int numRows,
-                       char *labels[], char *tips[], bool equalSized,
-                       bool rounded,
-                       char *caption, char *fallback, const char *name = 0, 
-                       WFlags fl = Qt::WDestructiveClose | Qt::WType_TopLevel);
-  bool mEqualSized;
-};
-#endif

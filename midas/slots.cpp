@@ -20,9 +20,11 @@
 #include "midas.h"
 #include <qdialog.h>
 #include <qlayout.h>
-#include <qtextedit.h>
 #include <qmessagebox.h>
 #include <qfiledialog.h>
+//Added by qt3to4:
+#include <QKeyEvent>
+#include <QLabel>
 #include "floatspinbox.h"
 #include "dia_qtutils.h"
 #include "b3dutil.h"
@@ -135,10 +137,10 @@ void MidasSlots::update_sections()
     diaSetSpinBox(VW->chunkSpin, VW->curChunk + 1);
     VW->curSpin->blockSignals(true);
     VW->refSpin->blockSignals(true);
-    VW->curSpin->setMinValue(VW->chunk[VW->curChunk].start + 1);
-    VW->curSpin->setMaxValue(VW->chunk[VW->curChunk + 1].start);
-    VW->refSpin->setMinValue(VW->chunk[VW->curChunk - 1].start + 1);
-    VW->refSpin->setMaxValue(VW->chunk[VW->curChunk].start);
+    VW->curSpin->setRange(VW->chunk[VW->curChunk].start + 1,
+                          VW->chunk[VW->curChunk + 1].start);
+    VW->refSpin->setRange(VW->chunk[VW->curChunk - 1].start + 1,
+                          VW->chunk[VW->curChunk].start);
   }
 
   diaSetSpinBox(VW->curSpin, (VW->xtype == XTYPE_MONT ? VW->montcz : VW->cz)
@@ -165,7 +167,7 @@ void MidasSlots::update_overlay()
 /* To transform the current slice with a new transform */
 void MidasSlots::retransform_slice()
 {
-  Islice *curSlice = midasGetSlice(VW, MIDAS_SLICE_CURRENT);
+  midasGetSlice(VW, MIDAS_SLICE_CURRENT);
   VW->midasGL->update_slice_view();
 }
 
@@ -178,11 +180,10 @@ int MidasSlots::save_transforms()
 
   if (!VW->xname) {
     QString qname = QFileDialog::getSaveFileName
-      (QString::null, QString::null, 0, 0, 
-       "Select name of file to save transforms in");
+      (VW->midasWindow, "Select name of file to save transforms in");
     if (qname.isEmpty())
       return 1;
-    filename = strdup(qname.latin1());
+    filename = strdup(LATIN1(qname));
     if (!filename)
       return 1;
     if (filename[0] == 0x00){
@@ -261,7 +262,6 @@ void MidasSlots::slotFilemenu(int item)
   char *filename;
   QString qname, inName;
   char *filters[] = {"Transform files (*.*xf *.*xg)"};
-
   switch(item){
   case FILE_MENU_LOAD: /* load transforms */
     if (VW->xtype == XTYPE_MONT) {
@@ -282,7 +282,7 @@ void MidasSlots::slotFilemenu(int item)
                             filters);
     if (qname.isEmpty())
       break;
-    filename = strdup(qname.latin1());
+    filename = strdup(LATIN1(qname));
     if (!filename)
       break;
     if (filename[0] == 0x00){
@@ -334,11 +334,10 @@ void MidasSlots::slotFilemenu(int item)
       break;
     }
     qname = QFileDialog::getSaveFileName
-      (QString::null, QString::null, 0, 0, 
-       "Enter file to save");
+       (VW->midasWindow, "Enter file to save");
     if (qname.isEmpty())
       break;
-    filename = strdup(qname.latin1());
+    filename = strdup(LATIN1(qname));
     if (!filename)
       break;
     if (filename[0] == 0x00){
@@ -368,18 +367,16 @@ void MidasSlots::slotFilemenu(int item)
 	       "alignment or montage fixing mode");
       break;
     }
-    inName = QFileDialog::getOpenFileName
-      (QString::null, QString::null, 0, 0, 
-       "Select model file to transform");
+    inName = diaOpenFileName
+      (VW->midasWindow, "Select model file to transform", 0, NULL);
     if (inName.isEmpty())
       break;
     qname = QFileDialog::getSaveFileName
-      (QString::null, QString::null, 0, 0, 
-       "Enter file to save transformed model into");
+      (VW->midasWindow, "Enter file to save transformed model into");
     if (qname.isEmpty())
       break;
 
-    transform_model((char *)inName.latin1(), (char *)qname.latin1(), VW);
+    transform_model(LATIN1(inName), LATIN1(qname), VW);
     break;
 
 case FILE_MENU_QUIT: /* Quit */
@@ -896,16 +893,14 @@ void MidasSlots::slotXory(int which)
   VW->xory = which;
   flush_xformed(VW);
 
-  VW->edgeGroup->blockSignals(true);
-  VW->edgeGroup->setButton(VW->xory);
-  VW->edgeGroup->blockSignals(false);
+  diaSetGroup(VW->edgeGroup, VW->xory);
 
   /* Adjust the edge number as necessary, and set current edge to zero to
      force it to recognize this as a new edge and do updates */
   if (newcur > VW->maxedge[VW->xory])
     newcur = VW->maxedge[VW->xory];
   VW->curedge = 0;
-  VW->edgeSpin->setMaxValue(VW->maxedge[VW->xory]);
+  VW->edgeSpin->setRange(1, VW->maxedge[VW->xory]);
   try_montage_edge(newcur, 0);
 }
 
@@ -930,10 +925,8 @@ void MidasSlots::manage_xory(MidasView *vw)
 
   if (!vw->wXedge)
     return;
-  VW->edgeSpin->setMaxValue(VW->maxedge[VW->xory]);
-  vw->edgeGroup->blockSignals(true);
-  vw->edgeGroup->setButton(vw->xory);
-  vw->edgeGroup->blockSignals(false);
+  VW->edgeSpin->setRange(1, VW->maxedge[VW->xory]);
+  diaSetGroup(VW->edgeGroup, VW->xory);
 
   state = onlyone < 0;
   vw->wXedge->setEnabled(state);
@@ -1215,8 +1208,8 @@ void MidasSlots::slotAutoContrast()
   unsigned char **lines;
 
   // Set area to use
-  ixStart = VW->xsize * matt;
-  iyStart = VW->ysize * matt;
+  ixStart = (int)(VW->xsize * matt);
+  iyStart = (int)(VW->ysize * matt);
   nxUse = VW->xsize - 2 * ixStart;
   nyUse = VW->ysize - 2 * iyStart;
   sample = 10000.0/(nxUse * nyUse);
@@ -1305,15 +1298,14 @@ void MidasSlots::slotOverlay(bool state)
     show_cur();
 }
 
-void MidasSlots::slotGlobRot(int value)
+void MidasSlots::slotGlobRot(double value)
 {
-  double newVal = value / 10.;
   if (VW->cosStretch)
     stretch_all_transforms(VW, 1);
-  rotate_all_transforms(VW, newVal - VW->globalRot);
+  rotate_all_transforms(VW, value - VW->globalRot);
   if (VW->cosStretch)
     stretch_all_transforms(VW, 0);
-  VW->globalRot = newVal;
+  VW->globalRot = value;
   flush_xformed(VW);
   update_parameters();
   VW->midasGL->fill_viewdata(VW);
@@ -1338,10 +1330,10 @@ void MidasSlots::slotCosStretch(bool state)
   VW->midasWindow->setFocus();
 }
 
-void MidasSlots::slotTiltOff(int value)
+void MidasSlots::slotTiltOff(double value)
 {
   stretch_all_transforms(VW, 1);
-  VW->tiltOffset = value / 10.;
+  VW->tiltOffset = value;
   stretch_all_transforms(VW, 0);
   flush_xformed(VW);
   update_parameters();
@@ -1356,7 +1348,7 @@ void MidasSlots::midas_keyinput(QKeyEvent *event)
   int bwinc = 3;
   int coninc = (bwinc + 1) / 2;
   int keysym = event->key();
-  int keypad = event->state() & Qt::Keypad;
+  int keypad = event->modifiers() & Qt::KeypadModifier;
 
   convertNumLock(keysym, keypad);
 
@@ -1450,16 +1442,16 @@ void MidasSlots::midas_keyinput(QKeyEvent *event)
     break;
 
   case Qt::Key_Home:
-  case Qt::Key_Next:
+  case Qt::Key_PageDown:
     show_ref();
     break;
 
-  case Qt::Key_Prior:
+  case Qt::Key_PageUp:
     show_cur();
     break;
 
 #ifdef Q_OS_MACX
-  case Qt::Qt::Key_Help:
+  case Qt::Key_Help:
 #endif
   case Qt::Key_Delete:
   case Qt::Key_Insert:
@@ -1520,20 +1512,20 @@ void MidasSlots::midas_keyinput(QKeyEvent *event)
     break;
 	  
   case Qt::Key_A:
-    if ((event->state() & ShiftButton) && (VW->xtype == XTYPE_MONT))
+    if ((event->modifiers() & Qt::ShiftModifier) && (VW->xtype == XTYPE_MONT))
       slotEdge(1);
-    else if ((event->state() & ShiftButton) && VW->numChunks)
+    else if ((event->modifiers() & Qt::ShiftModifier) && VW->numChunks)
       slotChunkValue(VW->curChunk + 2);
-    else if (event->state() & ControlButton)
+    else if (event->modifiers() & Qt::ControlModifier)
       slotAutoContrast();
     else
       sectionInc(1);
     break;
 
   case Qt::Key_B:
-    if ((event->state() & ShiftButton) && (VW->xtype == XTYPE_MONT))
+    if ((event->modifiers() & Qt::ShiftModifier) && (VW->xtype == XTYPE_MONT))
       slotEdge(-1);
-    else if ((event->state() & ShiftButton) && VW->numChunks)
+    else if ((event->modifiers() & Qt::ShiftModifier) && VW->numChunks)
       slotChunkValue(VW->curChunk);
     else
       sectionInc(-1);
@@ -1648,7 +1640,7 @@ void MidasSlots::mouse_stretch(unsigned int state)
   
   xcen = zoom * VW->xcenter + VW->xoffset;
   ycen = zoom * VW->ycenter + VW->yoffset;
-  if (!VW->useFixed || (state & Qt::ShiftButton)) {
+  if (!VW->useFixed || (state & Qt::ShiftModifier)) {
     delx = VW->lastmx - xcen;
     dely = VW->lastmy - ycen;
     if(delx > -20. && delx < 20. && dely > -20. && dely < 20.)
@@ -1664,7 +1656,7 @@ void MidasSlots::mouse_stretch(unsigned int state)
     delrad = thresh * floor((double)delrad / thresh + 0.5);
     if(delrad != 0.) {
       delrad += 1.;
-      if (state & Qt::ShiftButton)
+      if (state & Qt::ShiftModifier)
         scale(delrad);
       else
         stretch(delrad, endang);
@@ -1805,9 +1797,9 @@ void MidasSlots::synchronizeChunk(int sec)
    on to the named keys */
 /* But also turn off keypad on Mac if they are arrow keys */
 static int keypadKeys[10] = {Qt::Key_Delete, Qt::Key_Insert, Qt::Key_End, 
-                             Qt::Key_Down, Qt::Key_Next, Qt::Key_Left,
+                             Qt::Key_Down, Qt::Key_PageDown, Qt::Key_Left,
                              Qt::Key_Right, Qt::Key_Home, Qt::Key_Up,
-                             Qt::Key_Prior};
+                             Qt::Key_PageUp};
 static int numLockKeys[10] = {Qt::Key_Period, Qt::Key_0, Qt::Key_1, Qt::Key_2,
                               Qt::Key_3, Qt::Key_4,
                               Qt::Key_6, Qt::Key_7, Qt::Key_8, Qt::Key_9};
@@ -1841,6 +1833,9 @@ int MidasSlots::showHelpPage(const char *page)
 
 /*
 $Log$
+Revision 3.19  2008/11/18 22:45:05  mast
+Added Delete key for Mac, used new amatToRotmagstr
+
 Revision 3.18  2008/10/13 04:36:23  mast
 Added cosine stretching
 

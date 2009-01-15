@@ -1,3 +1,5 @@
+//Added by qt3to4:
+#include <QTimerEvent>
 /*   imodv_objed.h  -  declarations for imodv_objed.cpp
  *
  *   Copyright (C) 1995-2002 by Boulder Laboratory for 3-Dimensional Electron
@@ -81,7 +83,7 @@ class ImodvObjed : public QObject
   ~ImodvObjed() {};
   int meshOneObject(Iobj *obj);
   int startMeshingNext();
-  void makeSpinChanged(int which, int value);
+  void makeSpinChanged(int which, double value);
 
   public slots:
     void lineColorSlot(int color, int value, bool dragging);
@@ -118,10 +120,10 @@ class ImodvObjed : public QObject
   void moveAxisSlot(int which);
   void subsetSlot(int which);
   void makePassSlot(int value);
-  void makeDiamSlot(int value);
-  void makeTolSlot(int value);
+  void makeDiamSlot(double value);
+  void makeTolSlot(double value);
   void makeZincSlot(int value);
-  void makeFlatSlot(int value);
+  void makeFlatSlot(double value);
   void makeStateSlot(int which);
   void makeDoitSlot();
   void makeDoAllSlot();
@@ -143,6 +145,9 @@ class ImodvObjed : public QObject
 
 /*
 $Log$
+Revision 4.16  2008/11/16 04:24:01  mast
+Function for processing meshing spin boxes
+
 Revision 4.15  2008/06/17 20:16:58  mast
 Added slot for not drawing spheres when drawing mesh
 

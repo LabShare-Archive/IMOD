@@ -7,6 +7,8 @@
 #ifndef IMOD_OBJECT_EDIT_H
 #define IMOD_OBJECT_EDIT_H
 #include <qobject.h>
+//Added by qt3to4:
+#include <QKeyEvent>
 
 class ColorSelector;
 
@@ -57,6 +59,9 @@ void imod_object_color(int objNum);
 
 /*
 $Log$
+Revision 4.4  2008/07/16 04:31:58  mast
+Added call for point limit
+
 Revision 4.3  2007/06/08 04:49:15  mast
 Added call for planar flag
 

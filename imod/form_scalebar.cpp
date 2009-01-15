@@ -1,18 +1,67 @@
-/****************************************************************************
-** ui.h extension file, included from the uic-generated form implementation.
-**
-** If you want to add, delete, or rename functions or slots, use
-** Qt Designer to update this file, preserving your code.
-**
-** You should not define a constructor or destructor in this file.
-** Instead, write your code in functions called init() and destroy().
-** These will automatically be called by the form's constructor and
-** destructor.
-*****************************************************************************/
+/*
+ *  form_scalebar.cpp - Class for scale bar dialog form
+ *
+ *  Author: David Mastronarde   email: mast@colorado.edu
+ *
+ *  Copyright (C) 1995-2009 by Boulder Laboratory for 3-Dimensional Electron
+ *  Microscopy of Cells ("BL3DEMC") and the Regents of the University of 
+ *  Colorado.  See dist/COPYRIGHT for full copyright notice.
+ * 
+ * $Id$
+ * Log at end
+ */
 
+#include "form_scalebar.h"
+
+#include <qvariant.h>
+#include <qimage.h>
+#include <qpixmap.h>
+
+//Added by qt3to4:
+#include <QTimerEvent>
+#include <QKeyEvent>
+#include <QCloseEvent>
+
+#include "scalebar.h"
+#include "imodv.h"
+#include "imodv_input.h"
+#include "dia_qtutils.h"
+#include "control.h"
+#include "imod.h"
+
+/*
+ *  Constructs a ScaleBarForm as a child of 'parent', with the
+ *  name 'name' and widget flags set to 'f'.
+ */
+ScaleBarForm::ScaleBarForm(QWidget* parent, Qt::WindowFlags fl)
+  : QWidget(parent, fl)
+{
+  setupUi(this);
+
+  init();
+}
+
+/*
+ *  Destroys the object and frees any allocated resources
+ */
+ScaleBarForm::~ScaleBarForm()
+{
+  // no need to delete child widgets, Qt does it all for us
+}
+
+/*
+ *  Sets the strings of the subwidgets using the current
+ *  language.
+ */
+void ScaleBarForm::languageChange()
+{
+  retranslateUi(this);
+}
 
 void ScaleBarForm::init()
 {
+  setAttribute(Qt::WA_DeleteOnClose);
+  setAttribute(Qt::WA_AlwaysShowToolTips);
   mTimerID = 0;
   mParams = scaleBarGetParams();
   diaSetChecked(drawCheckBox, mParams->draw);
@@ -24,7 +73,7 @@ void ScaleBarForm::init()
   diaSetSpinBox(thicknessSpinBox, mParams->thickness);
   diaSetSpinBox(indentXspinBox, mParams->indentX);
   diaSetSpinBox(indentYspinBox, mParams->indentY);
-  positionComboBox->setCurrentItem(mParams->position);
+  positionComboBox->setCurrentIndex(mParams->position);
   diaSetChecked(customCheckBox, mParams->useCustom);
   diaSetSpinBox(customSpinBox, mParams->customVal);
   if (imodvStandalone()) {
@@ -169,7 +218,7 @@ void ScaleBarForm::timerEvent( QTimerEvent *e )
 void ScaleBarForm::keyPressEvent( QKeyEvent * e )
 {
   if (e->key() == Qt::Key_Escape)
-	close();
+    close();
   else if (imodvStandalone())
     imodvKeyPress(e);
   else
@@ -191,6 +240,12 @@ void ScaleBarForm::helpPressed()
 
 void ScaleBarForm::closeEvent( QCloseEvent * e )
 {
-    scaleBarClosing();
-    e->accept();
+  scaleBarClosing();
+  e->accept();
 }
+
+/*
+
+$Log$
+
+*/

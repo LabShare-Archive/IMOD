@@ -12,6 +12,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 3.4  2004/06/04 03:00:42  mast
+Implement export/import macro for making libdiaqt be a DLL
+
 Revision 3.3  2003/03/26 06:23:32  mast
 Adjust to font changes
 
@@ -32,6 +35,8 @@ added column width setting
 #ifndef TOOLEDIT_H
 #define TOOLEDIT_H
 #include <qlineedit.h>
+//Added by qt3to4:
+#include <QFocusEvent>
 #include "dllexport.h"
 
 class DLL_IM_EX ToolEdit : public QLineEdit

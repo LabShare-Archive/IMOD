@@ -12,6 +12,7 @@
 
 #include <qlabel.h>
 #include <qapplication.h>
+#include <QDesktopWidget>
 #include <qdatetime.h>
 #include "imod.h"
 #include "b3dutil.h"
@@ -91,16 +92,16 @@ int iiRawCheck(ImodImageFile *inFile)
     return IIERR_BAD_CALL;
 
   str = inFile->filename;
-  ind = str.findRev('/');
+  ind = str.lastIndexOf('/');
   if (ind < 0)
-    ind = str.findRev('\\');
+    ind = str.lastIndexOf('\\');
   if (ind >= 0)
     str = str.right(str.length() - 1 - ind);
 
   // Unless the all match flag has been set, get the form to set info
   if (!info.allMatch) {
-    RawImageForm *form = new RawImageForm(NULL, "raw image form", true);
-    form->setIcon(*(App->iconPixmap));
+    RawImageForm *form = new RawImageForm(NULL, true, Qt::Window);
+    form->setWindowIcon(*(App->iconPixmap));
     form->load(str, &info);
     if (form->exec() == QDialog::Rejected)
       return IIERR_NOT_FORMAT;
@@ -133,9 +134,9 @@ int iiRawScan(ImodImageFile *inFile)
     return 1;
 
   str = inFile->filename;
-  ind = str.findRev('/');
+  ind = str.lastIndexOf('/');
   if (ind < 0)
-    ind = str.findRev('\\');
+    ind = str.lastIndexOf('\\');
   if (ind >= 0)
     str = str.right(str.length() - 1 - ind);
 
@@ -162,7 +163,6 @@ int iiRawScan(ImodImageFile *inFile)
                    QApplication::desktop()->height() / 2 - hint.height() / 2);
       splash->show();
       qApp->flush();
-      qApp->flushX();
       qApp->syncX();
       qApp->processEvents();
     }
@@ -232,6 +232,9 @@ int iiRawScan(ImodImageFile *inFile)
 /*
 
 $Log$
+Revision 4.6  2008/11/12 03:44:49  mast
+Added some calls to make splash screen show up a little more
+
 Revision 4.5  2006/09/03 21:35:57  mast
 Switched to proper error codes
 

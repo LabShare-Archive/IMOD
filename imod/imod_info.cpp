@@ -20,15 +20,21 @@
 
 #include "form_info.h"
 #include <qmenubar.h>
-#include <qpopupmenu.h>
-#include <qvbox.h>
+#include <qmenu.h>
+#include <qaction.h>
+#include <qsignalmapper.h>
 #include <qlayout.h>
 #include <qtextedit.h>
 #include <qframe.h>
 #include <qtimer.h>
 #include <qfiledialog.h>
 #include <qstringlist.h>
-#include <qprocess.h>
+//Added by qt3to4:
+#include <QTimerEvent>
+#include <QKeyEvent>
+#include <QEvent>
+#include <QVBoxLayout>
+#include <QCloseEvent>
 #include "imod_info.h"
 #include "imod.h"
 #include "imod_info_cb.h"
@@ -39,8 +45,17 @@
 #include "control.h"
 #include "xzap.h"
 
-#define INFO_MIN_LINES 3.5
+#define INFO_MIN_LINES 4.0
 #define INFO_STARTING_LINES 4.75
+
+#define ADD_ACTION(a, b, c) mActions[c] = a##Menu->addAction(b); \
+connect(mActions[c], SIGNAL(triggered()), a##Mapper, SLOT(map())); \
+a##Mapper->setMapping(mActions[c], c);
+
+#define ADD_ACTION_KEY(a, b, c, d) mActions[c] = a##Menu->addAction(b); \
+mActions[c]->setShortcut(QKeySequence(d)); \
+connect(mActions[c], SIGNAL(triggered()), a##Mapper, SLOT(map())); \
+a##Mapper->setMapping(mActions[c], c);
 
 /* some declarations */
 void wprintWidget(QTextEdit *edit);
@@ -56,203 +71,197 @@ InfoControls *ImodInfoWidget = NULL;
 /*
  * THE CONSTRUCTOR FOR InfoWindow
  */
-InfoWindow::InfoWindow(QWidget * parent, const char * name, WFlags f)
-  : QMainWindow(parent, name, f)
+InfoWindow::InfoWindow(QWidget * parent, const char * name, Qt::WFlags f)
+  : QMainWindow(parent, f)
 {
   mMinimized = false;
   mAutoTimerID = 0;
   mTopTimerID = 0;
+  setAttribute(Qt::WA_DeleteOnClose);
+  setAttribute(Qt::WA_AlwaysShowToolTips);
+  
+  QSignalMapper *fileMapper = new QSignalMapper(this);
+  QSignalMapper *editMapper = new QSignalMapper(this);
+  QSignalMapper *imageMapper = new QSignalMapper(this);
+  QSignalMapper *helpMapper = new QSignalMapper(this);
+  QSignalMapper *fWriteMapper = new QSignalMapper(this);
+  QSignalMapper *eModelMapper = new QSignalMapper(this);
+  QSignalMapper *eObjectMapper = new QSignalMapper(this);
+  QSignalMapper *eSurfaceMapper = new QSignalMapper(this);
+  QSignalMapper *ePointMapper = new QSignalMapper(this);
+  QSignalMapper *eContourMapper = new QSignalMapper(this);
+  QSignalMapper *eImageMapper = new QSignalMapper(this);
 
-  QMenuBar *menuBar = new QMenuBar(this);
-  mFileMenu = new QPopupMenu();
-  menuBar->insertItem("&File", mFileMenu);
-  mFWriteMenu = new QPopupMenu();
+  // File menu
+  QMenu *fileMenu = menuBar()->addMenu("&File");
+  ADD_ACTION(file, "&New Model", FILE_MENU_NEW);
+  ADD_ACTION(file, "&Open Model", FILE_MENU_OPEN);
+  ADD_ACTION(file, "&Reload Model", FILE_MENU_RELOAD);
+  ADD_ACTION_KEY(file, "&Save Model", FILE_MENU_SAVE, Qt::Key_S);
+  ADD_ACTION(file, "S&ave Model As...", FILE_MENU_SAVEAS);
+  QMenu *fWriteMenu = fileMenu->addMenu("&Write Model As");
+  ADD_ACTION(file, "S&et Snap Dir...", FILE_MENU_SNAPDIR);
+  ADD_ACTION(file, "&Gray TIF snaps", FILE_MENU_SNAPGRAY);
+  mActions[FILE_MENU_SNAPGRAY]->setCheckable(true);
+  ADD_ACTION(file, "&JPEG Quality...", FILE_MENU_SNAPQUALITY);
+  ADD_ACTION(file, "&Memory to TIF...", FILE_MENU_TIFF);
+  ADD_ACTION(file, "E&xtract File...", FILE_MENU_EXTRACT);
+  ADD_ACTION(file, "&Quit", FILE_MENU_QUIT);
 
-  mFileMenu->setCheckable(true);
-  mFileMenu->insertItem("&New Model", FILE_MENU_NEW);
-  mFileMenu->insertItem("&Open Model", FILE_MENU_OPEN);
-  mFileMenu->insertItem("&Reload Model", FILE_MENU_RELOAD);
-  mFileMenu->insertItem("&Save Model", FILE_MENU_SAVE);
-  mFileMenu->setAccel(Key_S, FILE_MENU_SAVE);
-  mFileMenu->insertItem("S&ave Model As...", FILE_MENU_SAVEAS);
-  mFileMenu->insertItem("&Write Model As", mFWriteMenu);
-  mFileMenu->insertItem("S&et Snap Dir...", FILE_MENU_SNAPDIR);
-  mFileMenu->insertItem("&Gray TIF snaps", FILE_MENU_SNAPGRAY);
-  mFileMenu->setItemChecked(FILE_MENU_SNAPGRAY, false);
-  mFileMenu->insertItem("&JPEG Quality...", FILE_MENU_SNAPQUALITY);
-  mFileMenu->insertItem("&Memory to TIF...", FILE_MENU_TIFF);
-  mFileMenu->insertItem("E&xtract File...", FILE_MENU_EXTRACT);
-  mFileMenu->insertItem("&Quit", FILE_MENU_QUIT);
-
-  mFWriteMenu->insertItem("&Imod", FWRITE_MENU_IMOD);
-  mFWriteMenu->insertItem("&Wimp", FWRITE_MENU_WIMP);
-  mFWriteMenu->insertItem("&NFF", FWRITE_MENU_NFF);
-  mFWriteMenu->insertItem("&Synu", FWRITE_MENU_SYNU);
+  ADD_ACTION(fWrite, "&Imod", FWRITE_MENU_IMOD);
+  ADD_ACTION(fWrite, "&Wimp", FWRITE_MENU_WIMP);
+  ADD_ACTION(fWrite, "&NFF", FWRITE_MENU_NFF);
+  ADD_ACTION(fWrite, "&Synu", FWRITE_MENU_SYNU);
 
   // The edit menu, mostly submenus
-  mEditMenu = new QPopupMenu();
-  menuBar->insertItem("&Edit", mEditMenu);
-  mEModelMenu = new QPopupMenu();
-  mEObjectMenu = new QPopupMenu();
-  mESurfaceMenu = new QPopupMenu();
-  mEContourMenu = new QPopupMenu();
-  mEPointMenu = new QPopupMenu();
-  mEImageMenu = new QPopupMenu();
-
-  mEditMenu->insertItem("&Model", mEModelMenu);
-  mEditMenu->insertItem("&Object", mEObjectMenu);
-  mEditMenu->insertItem("&Surface", mESurfaceMenu);
-  mEditMenu->insertItem("&Contour", mEContourMenu);
-  mEditMenu->insertItem("&Point", mEPointMenu);
-  mEditMenu->insertItem("&Image", mEImageMenu); 
-  mEditMenu->insertItem("M&ovies...", EDIT_MENU_MOVIES);
-  mEditMenu->insertItem("&Fine Grain...", EDIT_MENU_GRAIN);
-  mEditMenu->insertItem("&Angles...", EDIT_MENU_ANGLES);
-  mEditMenu->insertItem("Scale &Bar...", EDIT_MENU_SCALEBAR);
-  mEditMenu->insertItem("Op&tions...", EDIT_MENU_PREFS);
+  QMenu *editMenu = menuBar()->addMenu("&Edit");
+  QMenu *eModelMenu = editMenu->addMenu("&Model");  
+  QMenu *eObjectMenu = editMenu->addMenu("&Object"); 
+  QMenu *eSurfaceMenu = editMenu->addMenu("&Surface");
+  QMenu *eContourMenu = editMenu->addMenu("&Contour");
+  QMenu *ePointMenu = editMenu->addMenu("&Point");  
+  QMenu *eImageMenu = editMenu->addMenu("&Image");
+  ADD_ACTION(edit, "M&ovies...", EDIT_MENU_MOVIES);
+  ADD_ACTION(edit, "&Fine Grain...", EDIT_MENU_GRAIN);
+  ADD_ACTION(edit, "&Angles...", EDIT_MENU_ANGLES);
+  ADD_ACTION(edit, "Scale &Bar...", EDIT_MENU_SCALEBAR);
+  ADD_ACTION(edit, "Op&tions...", EDIT_MENU_PREFS);
 
   // Edit model submenu
-  mEModelMenu->insertItem("&Header...", EMODEL_MENU_HEADER);
-  mEModelMenu->insertItem("&Offsets...", EMODEL_MENU_OFFSETS);
-  mEModelMenu->insertItem("&Clean", EMODEL_MENU_CLEAN);
+  ADD_ACTION(eModel, "&Header...", EMODEL_MENU_HEADER);
+  ADD_ACTION(eModel, "&Offsets...", EMODEL_MENU_OFFSETS);
+  ADD_ACTION(eModel, "&Clean", EMODEL_MENU_CLEAN);
 
   // Edit object submenu
-  mEObjectMenu->insertItem("&New", EOBJECT_MENU_NEW);
-  mEObjectMenu->insertItem("&Delete", EOBJECT_MENU_DELETE);
-  mEObjectMenu->insertItem("&Type...", EOBJECT_MENU_TYPE);
-  mEObjectMenu->insertItem("&Color...", EOBJECT_MENU_COLOR);
-  mEObjectMenu->insertItem("&Move...", EOBJECT_MENU_MOVE);
-  mEObjectMenu->insertItem("C&ombine", EOBJECT_MENU_COMBINE);
-  mEObjectMenu->insertItem("&Info", EOBJECT_MENU_INFO);
-  mEObjectMenu->insertItem("C&lean", EOBJECT_MENU_CLEAN);
-  mEObjectMenu->insertItem("&Break by Z", EOBJECT_MENU_FIXZ);
-  mEObjectMenu->insertItem("&Flatten", EOBJECT_MENU_FLATTEN);
-  mEObjectMenu->insertItem("&Renumber...", EOBJECT_MENU_RENUMBER);
+  ADD_ACTION(eObject, "&New", EOBJECT_MENU_NEW);
+  ADD_ACTION(eObject, "&Delete", EOBJECT_MENU_DELETE);
+  ADD_ACTION(eObject, "&Type...", EOBJECT_MENU_TYPE);
+  ADD_ACTION(eObject, "&Color...", EOBJECT_MENU_COLOR);
+  ADD_ACTION(eObject, "&Move...", EOBJECT_MENU_MOVE);
+  ADD_ACTION(eObject, "C&ombine", EOBJECT_MENU_COMBINE);
+  ADD_ACTION(eObject, "&Info", EOBJECT_MENU_INFO);
+  ADD_ACTION(eObject, "C&lean", EOBJECT_MENU_CLEAN);
+  ADD_ACTION(eObject, "&Break by Z", EOBJECT_MENU_FIXZ);
+  ADD_ACTION(eObject, "&Flatten", EOBJECT_MENU_FLATTEN);
+  ADD_ACTION(eObject, "&Renumber...", EOBJECT_MENU_RENUMBER);
 
   // Edit Surface submenu
-  mESurfaceMenu->insertItem("&New", ESURFACE_MENU_NEW);
-  mESurfaceMenu->setAccel(SHIFT + Key_N, ESURFACE_MENU_NEW);
-  mESurfaceMenu->insertItem("&Go To...", ESURFACE_MENU_GOTO);
-  mESurfaceMenu->insertItem("&Move...", ESURFACE_MENU_MOVE);
-  mESurfaceMenu->insertItem("&Delete", ESURFACE_MENU_DELETE);
+  ADD_ACTION_KEY(eSurface, "&New", ESURFACE_MENU_NEW, Qt::SHIFT + Qt::Key_N);
+  ADD_ACTION(eSurface, "&Go To...", ESURFACE_MENU_GOTO);
+  ADD_ACTION(eSurface, "&Move...", ESURFACE_MENU_MOVE);
+  ADD_ACTION(eSurface, "&Delete", ESURFACE_MENU_DELETE);
 
   // Edit Contour submenu
-  mEContourMenu->insertItem("&New", ECONTOUR_MENU_NEW);
-  mEContourMenu->setAccel(Key_N, ECONTOUR_MENU_NEW);
-  mEContourMenu->insertItem("&Delete", ECONTOUR_MENU_DELETE);
-  mEContourMenu->setAccel(SHIFT + Key_D, ECONTOUR_MENU_DELETE);
-  mEContourMenu->insertItem("&Move...", ECONTOUR_MENU_MOVE);
-  mEContourMenu->insertItem("&Copy...", ECONTOUR_MENU_COPY);
-  mEContourMenu->insertItem("&Sort", ECONTOUR_MENU_SORT);
-  mEContourMenu->insertSeparator();
-  mEContourMenu->insertItem("&Break...", ECONTOUR_MENU_BREAK);
-  mEContourMenu->insertItem("&Join...", ECONTOUR_MENU_JOIN);
-  mEContourMenu->insertItem("&Break by Z", ECONTOUR_MENU_FIXZ);
-  mEContourMenu->insertItem("&Fill in Z", ECONTOUR_MENU_FILLIN);
-  mEContourMenu->insertItem("&Loopback", ECONTOUR_MENU_LOOPBACK);
-  mEContourMenu->insertItem("&Invert", ECONTOUR_MENU_INVERT);
-  mEContourMenu->insertSeparator();
-  mEContourMenu->insertItem("&Info", ECONTOUR_MENU_INFO);
-  mEContourMenu->insertItem("&Auto...", ECONTOUR_MENU_AUTO);
-  mEContourMenu->insertItem("&Type...", ECONTOUR_MENU_TYPE);
+  ADD_ACTION_KEY(eContour, "&New", ECONTOUR_MENU_NEW, Qt::Key_N);
+  ADD_ACTION_KEY(eContour, "&Delete", ECONTOUR_MENU_DELETE, 
+                 Qt::SHIFT + Qt::Key_D);
+  ADD_ACTION(eContour, "&Move...", ECONTOUR_MENU_MOVE);
+  ADD_ACTION(eContour, "&Copy...", ECONTOUR_MENU_COPY);
+  ADD_ACTION(eContour, "&Sort", ECONTOUR_MENU_SORT);
+  eContourMenu->addSeparator();
+  ADD_ACTION(eContour, "&Break...", ECONTOUR_MENU_BREAK);
+  ADD_ACTION(eContour, "&Join...", ECONTOUR_MENU_JOIN);
+  ADD_ACTION(eContour, "&Break by Z", ECONTOUR_MENU_FIXZ);
+  ADD_ACTION(eContour, "&Fill in Z", ECONTOUR_MENU_FILLIN);
+  ADD_ACTION(eContour, "&Loopback", ECONTOUR_MENU_LOOPBACK);
+  ADD_ACTION(eContour, "&Invert", ECONTOUR_MENU_INVERT);
+  eContourMenu->addSeparator();
+  ADD_ACTION(eContour, "&Info", ECONTOUR_MENU_INFO);
+  ADD_ACTION(eContour, "&Auto...", ECONTOUR_MENU_AUTO);
+  ADD_ACTION(eContour, "&Type...", ECONTOUR_MENU_TYPE);
 
   // Edit Point submenu
-  mEPointMenu->insertItem("&Delete", EPOINT_MENU_DELETE);
-  mEPointMenu->insertItem("Si&ze...", EPOINT_MENU_SIZE);
-  mEPointMenu->insertItem("D&istance", EPOINT_MENU_DIST);
-  mEPointMenu->insertItem("&Value", EPOINT_MENU_VALUE);
-  mEPointMenu->insertItem("&Sort by Z", EPOINT_MENU_SORTZ);
-  mEPointMenu->insertItem("S&ort by dist", EPOINT_MENU_SORTDIST);
+  ADD_ACTION(ePoint, "&Delete", EPOINT_MENU_DELETE);
+  ADD_ACTION(ePoint, "Si&ze...", EPOINT_MENU_SIZE);
+  ADD_ACTION(ePoint, "D&istance", EPOINT_MENU_DIST);
+  ADD_ACTION(ePoint, "&Value", EPOINT_MENU_VALUE);
+  ADD_ACTION(ePoint, "&Sort by Z", EPOINT_MENU_SORTZ);
+  ADD_ACTION(ePoint, "S&ort by dist", EPOINT_MENU_SORTDIST);
 
   // Edit Image submenu
-  mEImageMenu->insertItem("F&lip", EIMAGE_MENU_FLIP);
-  mEImageMenu->insertItem("P&rocess...", EIMAGE_MENU_PROCESS);
-  /*  mEImageMenu->insertItem("C&olormap...", EIMAGE_MENU_COLORMAP);
-      mEImageMenu->setItemEnabled(EIMAGE_MENU_COLORMAP, App->rgba == 0 && 
-      App->depth > 8); */
-  mEImageMenu->insertItem("R&eload...", EIMAGE_MENU_RELOAD);
-  mEImageMenu->insertItem("F&ill Cache", EIMAGE_MENU_FILLCACHE);
-  mEImageMenu->insertItem("C&ache Filler...", EIMAGE_MENU_FILLER);
+  ADD_ACTION(eImage, "F&lip", EIMAGE_MENU_FLIP);
+  ADD_ACTION(eImage, "P&rocess...", EIMAGE_MENU_PROCESS);
+  ADD_ACTION(eImage, "R&eload...", EIMAGE_MENU_RELOAD);
+  ADD_ACTION(eImage, "F&ill Cache", EIMAGE_MENU_FILLCACHE);
+  ADD_ACTION(eImage, "C&ache Filler...", EIMAGE_MENU_FILLER);
 
   // The image menu
-  mImageMenu = new QPopupMenu();
-  menuBar->insertItem("&Image", mImageMenu);
-
-  mImageMenu->insertItem("&ZaP", IMAGE_MENU_ZAP);
-  mImageMenu->setAccel(Key_Z, IMAGE_MENU_ZAP);
-  mImageMenu->insertItem("Multi-&Z", IMAGE_MENU_MULTIZ);
-  mImageMenu->insertItem("&XYZ", IMAGE_MENU_XYZ);
-  mImageMenu->insertItem("&Slicer", IMAGE_MENU_SLICER);
-  mImageMenu->setAccel(Key_Backslash, IMAGE_MENU_SLICER);
-  mImageMenu->insertItem("&Model View", IMAGE_MENU_MODV);
-  mImageMenu->setAccel(Key_V, IMAGE_MENU_MODV);
-  mImageMenu->insertItem("&Pixel View", IMAGE_MENU_PIXEL);
-  mImageMenu->insertItem("&Graph", IMAGE_MENU_GRAPH);
-  mImageMenu->setAccel(SHIFT + Key_G, IMAGE_MENU_GRAPH);
-  mImageMenu->insertItem("&Locator", IMAGE_MENU_LOCATOR);
-  mImageMenu->insertItem("&Isosurface", IMAGE_MENU_ISOSURFACE);
-  mImageMenu->setAccel(SHIFT + Key_U, IMAGE_MENU_ISOSURFACE);
-  mImageMenu->insertItem("&Tumbler", IMAGE_MENU_TUMBLER);
-
-
+  QMenu *imageMenu = menuBar()->addMenu("&Image");
+  ADD_ACTION_KEY(image, "&ZaP", IMAGE_MENU_ZAP,  Qt::Key_Z);
+  ADD_ACTION(image, "Multi-&Z", IMAGE_MENU_MULTIZ);
+  ADD_ACTION(image, "&XYZ", IMAGE_MENU_XYZ);
+  ADD_ACTION_KEY(image, "&Slicer", IMAGE_MENU_SLICER, Qt::Key_Backslash);
+  ADD_ACTION_KEY(image, "&Model View", IMAGE_MENU_MODV, Qt::Key_V);
+  ADD_ACTION(image, "&Pixel View", IMAGE_MENU_PIXEL);
+  ADD_ACTION_KEY(image, "&Graph", IMAGE_MENU_GRAPH, Qt::SHIFT + Qt::Key_G);
+  ADD_ACTION(image, "&Locator", IMAGE_MENU_LOCATOR);
+  ADD_ACTION_KEY(image, "&Isosurface", IMAGE_MENU_ISOSURFACE, 
+                 Qt::SHIFT + Qt::Key_U);
+  ADD_ACTION(image, "&Tumbler", IMAGE_MENU_TUMBLER);
+  
   // plugin menu
   int plugs   = imodPlugLoaded(IMOD_PLUG_MENU);
   if (plugs) {
-    mPlugMenu = new QPopupMenu();
-    menuBar->insertItem("&Special", mPlugMenu);
-    imodPlugMenu(mPlugMenu); /* Install all menu plugs */
-    connect(mPlugMenu, SIGNAL(activated(int)), this, SLOT(pluginSlot(int)));
+    QMenu *plugMenu = menuBar()->addMenu("&Special");
+    QSignalMapper *plugMapper = new QSignalMapper(this);
+    imodPlugMenu(plugMenu, plugMapper); /* Install all menu plugs */
+    connect(plugMapper, SIGNAL(mapped(int)), this, SLOT(pluginSlot(int)));
   }
-
+  
   // Help menu
-  mHelpMenu = new QPopupMenu();
-  menuBar->insertSeparator();
-  menuBar->insertItem("&Help", mHelpMenu);
-
-  mHelpMenu->insertItem("&Man Page", HELP_MENU_MAN);
-  mHelpMenu->insertItem("&Menus", HELP_MENU_MENUS);
-  mHelpMenu->insertItem("&Hot Keys", HELP_MENU_HOTKEY);
-  mHelpMenu->insertSeparator();
-  mHelpMenu->insertItem("&About", HELP_MENU_ABOUT);
+  menuBar()->addSeparator();
+  QMenu *helpMenu = menuBar()->addMenu("&Help");
+  ADD_ACTION(help, "&Man Page", HELP_MENU_MAN);
+  ADD_ACTION(help, "&Menus", HELP_MENU_MENUS);
+  ADD_ACTION(help, "&Hot Keys", HELP_MENU_HOTKEY);
+  helpMenu->addSeparator();
+  ADD_ACTION(help, "&About", HELP_MENU_ABOUT);
 
   // Make the connections
-  connect(mFileMenu, SIGNAL(activated(int)), this, SLOT(fileSlot(int)));
-  connect(mEditMenu, SIGNAL(activated(int)), this, SLOT(editSlot(int)));
-  connect(mImageMenu, SIGNAL(activated(int)), this, SLOT(imageSlot(int)));
-  connect(mHelpMenu, SIGNAL(activated(int)), this, SLOT(helpSlot(int)));
-  connect(mFWriteMenu, SIGNAL(activated(int)), this, SLOT(fileWriteSlot(int)));
-  connect(mEModelMenu, SIGNAL(activated(int)), this, SLOT(editModelSlot(int)));
-  connect(mEObjectMenu, SIGNAL(activated(int)), this,
-	  SLOT(editObjectSlot(int)));
-  connect(mESurfaceMenu, SIGNAL(activated(int)), this,
-	  SLOT(editSurfaceSlot(int)));
-  connect(mEContourMenu, SIGNAL(activated(int)), this,
-	  SLOT(editContourSlot(int)));
-  connect(mEPointMenu, SIGNAL(activated(int)), this, SLOT(editPointSlot(int)));
-  connect(mEImageMenu, SIGNAL(activated(int)), this, SLOT(editImageSlot(int)));
-
+  connect(fileMapper, SIGNAL(mapped(int)), this, SLOT(fileSlot(int)));
+  connect(editMapper, SIGNAL(mapped(int)), this, SLOT(editSlot(int)));
+  connect(imageMapper, SIGNAL(mapped(int)), this, SLOT(imageSlot(int)));
+  connect(helpMapper, SIGNAL(mapped(int)), this, SLOT(helpSlot(int)));
+  connect(fWriteMapper, SIGNAL(mapped(int)), this, SLOT(fileWriteSlot(int)));
+  connect(eModelMapper, SIGNAL(mapped(int)), this, SLOT(editModelSlot(int)));
+  connect(eObjectMapper, SIGNAL(mapped(int)), this, SLOT(editObjectSlot(int)));
+  connect(eSurfaceMapper, SIGNAL(mapped(int)), this,
+          SLOT(editSurfaceSlot(int)));
+  connect(ePointMapper, SIGNAL(mapped(int)), this, SLOT(editPointSlot(int)));
+  connect(eContourMapper, SIGNAL(mapped(int)), this, 
+          SLOT(editContourSlot(int)));
+  connect(eImageMapper, SIGNAL(mapped(int)), this, SLOT(editImageSlot(int)));
+  
 
   // Now make a central VBox for the control widget and text edit
   // Put widget in a sunken frame because menu bar is flat
-  QVBox *central = new QVBox(this);
+  QWidget *central = new QWidget(this);
+  QVBoxLayout *cenlay = new QVBoxLayout(central);
   QFrame *frame = new QFrame(central);
+  cenlay->addWidget(frame);
+  cenlay->setContentsMargins(0, 0, 0, 0);
+  cenlay->setSpacing(0);
+  
   frame->setFrameStyle(QFrame::Sunken | QFrame::StyledPanel);
-  QVBoxLayout *layout = new QVBoxLayout(frame, 5);
+  QVBoxLayout *layout = new QVBoxLayout(frame);
+  layout->setContentsMargins(2, 2, 2, 2);
   ImodInfoWidget = new InfoControls(frame);
   layout->addWidget(ImodInfoWidget);
   setCentralWidget(central);
 
   // Get the status window 
   mStatusEdit = new QTextEdit(central);
+  cenlay->addWidget(mStatusEdit);
   setFontDependentWidths();
 
-  setFocusPolicy(StrongFocus);
-  mStatusEdit->setFocusPolicy(NoFocus);
+  setFocusPolicy(Qt::StrongFocus);
+  mStatusEdit->setFocusPolicy(Qt::NoFocus);
   wprintWidget(mStatusEdit);
 
-  setIcon(*(App->iconPixmap));
+  setWindowIcon(*(App->iconPixmap));
 }
 
+// This is not really working well at this point - need to rethink info layouts
 void InfoWindow::setFontDependentWidths()
 {
   // fix the minimum size of the status window
@@ -316,23 +325,25 @@ void InfoWindow::closeEvent ( QCloseEvent * e )
 // Watch for both event types in each case due to further X11/Mac differences
 bool InfoWindow::event(QEvent *e)
 {
+  bool minimized = e->type() == QEvent::WindowStateChange &&
+    (windowState() & Qt::WindowMinimized);
+  bool normal = e->type() == QEvent::WindowStateChange &&
+    (windowState() & (Qt::WindowNoState | Qt::WindowMaximized));
   //imodPrintStderr("event type %d\n", e->type());
-  if (Imod_debug && e->type() == QEvent::ShowMinimized)
-    imodPrintStderr("ShowMinimized\n");
+  if (Imod_debug && minimized)
+    imodPrintStderr("State change to minimized\n");
   if (Imod_debug && e->type() == QEvent::Hide)
     imodPrintStderr("Hide\n");
-  if (Imod_debug && e->type() == QEvent::ShowNormal)
-    imodPrintStderr("ShowNormal\n");
+  if (Imod_debug && normal)
+    imodPrintStderr("State change to normal\n");
   if (Imod_debug && e->type() == QEvent::Show)
     imodPrintStderr("Show\n");
-  if ((e->type() == QEvent::ShowMinimized || e->type() == QEvent::Hide) &&
-      !mMinimized) {
+  if ((minimized || e->type() == QEvent::Hide) && !mMinimized) {
     if (Imod_debug)
       imodPuts("minimizing");
     mMinimized = true;
     imodDialogManager.hide();
-  } else if ((e->type() == QEvent::ShowNormal || e->type() == QEvent::Show)
-             && mMinimized) {
+  } else if ((normal || e->type() == QEvent::Show) && mMinimized) {
     if (Imod_debug)
       imodPuts("maximizing");
     mMinimized = false;
@@ -346,38 +357,35 @@ void InfoWindow::manageMenus()
 {
   ImodView *vi = App->cvi;
   bool imageOK = !(vi->fakeImage || vi->rawImageStore);
-  mFileMenu->setItemEnabled(FILE_MENU_TIFF, vi->rawImageStore != 0);
-  mFileMenu->setItemEnabled(FILE_MENU_EXTRACT, vi->rawImageStore == 0 &&
-                            vi->fakeImage == 0 && vi->multiFileZ <= 0 &&
-                            vi->noReadableImage == 0);
+  mActions[FILE_MENU_TIFF]->setEnabled(vi->rawImageStore != 0);
+  mActions[FILE_MENU_EXTRACT]->setEnabled
+    (vi->rawImageStore == 0 && vi->fakeImage == 0 && vi->multiFileZ <= 0 &&
+     vi->noReadableImage == 0);
   /*fprintf(stderr, "vi->multiFileZ=%d\n", vi->multiFileZ);*/
-  mEImageMenu->setItemEnabled(EIMAGE_MENU_FILLCACHE, 
-			      vi->vmSize != 0 || vi->nt > 0);
-  mEImageMenu->setItemEnabled(EIMAGE_MENU_FILLER, 
-			      vi->vmSize != 0 || vi->nt > 0);
-  mImageMenu->setItemEnabled(IMAGE_MENU_SLICER, vi->rawImageStore == 0);
-  mImageMenu->setItemEnabled(IMAGE_MENU_XYZ, vi->rawImageStore == 0);
-  mImageMenu->setItemEnabled(IMAGE_MENU_ISOSURFACE, imageOK);
-  mEContourMenu->setItemEnabled(ECONTOUR_MENU_AUTO, imageOK);
+  mActions[EIMAGE_MENU_FILLCACHE]->setEnabled(vi->vmSize != 0 || vi->nt > 0);
+  mActions[EIMAGE_MENU_FILLER]->setEnabled(vi->vmSize != 0 || vi->nt > 0);
+  mActions[IMAGE_MENU_SLICER]->setEnabled(vi->rawImageStore == 0);
+  mActions[IMAGE_MENU_XYZ]->setEnabled(vi->rawImageStore == 0);
+  mActions[IMAGE_MENU_ISOSURFACE]->setEnabled(imageOK);
+  mActions[ECONTOUR_MENU_AUTO]->setEnabled(imageOK);
   if (!imageOK) {
-    mImageMenu->setItemEnabled(IMAGE_MENU_GRAPH, false);
+    mActions[IMAGE_MENU_GRAPH]->setEnabled(false);
   }
   if (!imageOK || vi->colormapImage) {
-    mEImageMenu->setItemEnabled(EIMAGE_MENU_PROCESS, false);
-    mImageMenu->setItemEnabled(IMAGE_MENU_TUMBLER, false);
+    mActions[EIMAGE_MENU_PROCESS]->setEnabled(false);
+    mActions[IMAGE_MENU_TUMBLER]->setEnabled(false);
     ImodInfoWidget->setFloat(-1);
   }
-  mImageMenu->setItemEnabled(IMAGE_MENU_PIXEL, vi->fakeImage == 0);    
+  mActions[IMAGE_MENU_PIXEL]->setEnabled(vi->fakeImage == 0);    
 
   // These are run-time items.  If more instances appear this should be
   // split into initial and runtime calls
-  mEImageMenu->setItemEnabled(EIMAGE_MENU_FLIP, !iprocBusy() && 
-                              !vi->colormapImage);
-  mEImageMenu->setItemEnabled(EIMAGE_MENU_RELOAD, !iprocBusy() && imageOK &&
-                              !vi->colormapImage && !vi->noReadableImage);
-  mFileMenu->setItemEnabled(FILE_MENU_RELOAD, vi->reloadable != 0);
-  mEObjectMenu->setItemEnabled(EOBJECT_MENU_DELETE, !meshingBusy());
-  mEObjectMenu->setItemEnabled(EOBJECT_MENU_RENUMBER, !meshingBusy());
+  mActions[EIMAGE_MENU_FLIP]->setEnabled(!iprocBusy() && !vi->colormapImage);
+  mActions[EIMAGE_MENU_RELOAD]->setEnabled
+    (!iprocBusy() && imageOK && !vi->colormapImage && !vi->noReadableImage);
+  mActions[FILE_MENU_RELOAD]->setEnabled(vi->reloadable != 0);
+  mActions[EOBJECT_MENU_DELETE]->setEnabled(!meshingBusy());
+  mActions[EOBJECT_MENU_RENUMBER]->setEnabled(!meshingBusy());
 }
 
 //Runs trimvol on current time with rubberband and low/high Z coordinates.
@@ -387,6 +395,7 @@ void InfoWindow::extract()
   int i;
   char *imodDir = getenv("IMOD_DIR");
   char *cshell = getenv("IMOD_CSHELL");
+  QStringList arguments;
   if (App->cvi->rawImageStore != 0 || App->cvi->fakeImage != 0 ||
       App->cvi->multiFileZ > 0||App->cvi->image->file != IIFILE_MRC ||
       sliceModeIfReal(mrchead->mode) < 0) {
@@ -399,20 +408,20 @@ void InfoWindow::extract()
   }
   if (!cshell)
     cshell = "tcsh";
-  mTrimvolOutput = QFileDialog::getSaveFileName
-    (QString::null, QString::null, 0, 0, "MRC File to extract to:");
-  if (mTrimvolOutput.isEmpty())
-    return;
   ZapStruct *zap = getTopZapWindow(true);
   if (!zap) {
     wprint("\aThere is no zap window with a rubberband.\n");
     return;
   }
+  mTrimvolOutput = QFileDialog::getSaveFileName
+    (this, "MRC File to extract to:");
+  if (mTrimvolOutput.isEmpty())
+    return;
   QString commandString = zapPrintInfo(zap, false);
   if (commandString.isEmpty()) {
     return;
   }
-  mFileMenu->setItemEnabled(FILE_MENU_EXTRACT, false);
+  mActions[FILE_MENU_EXTRACT]->setEnabled(false);
   QString filePath;
   if (!Imod_IFDpath.isEmpty()) {
     QDir dir = QDir(Imod_IFDpath);
@@ -422,51 +431,49 @@ void InfoWindow::extract()
     filePath = App->cvi->image->filename;
   }
   mTrimvolProcess = new QProcess();
-  mTrimvolProcess->addArgument(cshell);
-  mTrimvolProcess->addArgument("-f");
-  QStringList command = QStringList::split(" ", commandString);
+  arguments << "-f";
+  QStringList command = commandString.split(" ", QString::SkipEmptyParts);
   command[0] = QDir::convertSeparators(QString(imodDir) + "/bin/trimvol");
   for (i = 0; i < command.count(); i++)
-    mTrimvolProcess->addArgument(command[i]);
+    arguments << command[i];
     
-  mTrimvolProcess->addArgument(QDir::convertSeparators(filePath));
-  mTrimvolProcess->addArgument(QDir::convertSeparators(mTrimvolOutput));
-  QStringList list = mTrimvolProcess->arguments();
+  arguments << QDir::convertSeparators(filePath);
+  arguments << QDir::convertSeparators(mTrimvolOutput);
   wprint("trimvol ");
-  for (i = 3; i < list.count(); i++)
-    wprint("%s ", list[i].latin1());
+  for (i = 3; i < arguments.count(); i++)
+    wprint("%s ", LATIN1(arguments[i]));
   wprint("\n");
-  connect(mTrimvolProcess, SIGNAL(processExited()), this,
-          SLOT(trimvolExited()));
-  if (!mTrimvolProcess->start()) {
-    wprint("\aError trying to start trimvol process.\n");
-    mFileMenu->setItemEnabled(FILE_MENU_EXTRACT, true);
-    return;
-  }
+  connect(mTrimvolProcess, SIGNAL(finished(int, QProcess::ExitStatus)), this,
+          SLOT(trimvolExited(int, QProcess::ExitStatus )));
+  mTrimvolProcess->start(cshell, arguments);
 }
 
 // Reports result when trimvol finishes
-void InfoWindow::trimvolExited() {
-  mFileMenu->setItemEnabled(FILE_MENU_EXTRACT, true);
+void InfoWindow::trimvolExited(int exitCode, QProcess::ExitStatus exitStatus) 
+{
+  mActions[FILE_MENU_EXTRACT]->setEnabled(true);
   if (mTrimvolProcess == 0) {
     return;
   }
-  if (mTrimvolProcess->normalExit()) {
-    wprint("%s created.\n", mTrimvolOutput.latin1());
-    /*while (mTrimvolProcess->canReadLineStdout()) {
-      wprint("out:\n%s\n", mTrimvolProcess->readLineStdout().latin1());
-    }*/
+  if (!exitCode && exitStatus == QProcess::NormalExit) {
+    wprint("%s created.\n", LATIN1(mTrimvolOutput));
+    /*mTrimvolProcess->setReadChannel(QProcess::StandardOutput);
+      while (mTrimvolProcess->canReadLine()) {
+      wprint("out:\n%s\n", mTrimvolProcess->readLine().constData());
+      } */
   } else {
+    mTrimvolProcess->setReadChannel(QProcess::StandardOutput);
     wprint("\aTrimvol failed.\n");
-    while (mTrimvolProcess->canReadLineStdout()) {
-      QString out = mTrimvolProcess->readLineStdout();
+    while (mTrimvolProcess->canReadLine()) {
+      QString out = mTrimvolProcess->readLine();
       if (out.startsWith("ERROR:")) {
-        wprint("%s\n", out.latin1());
+        wprint("%s\n", LATIN1(out));
       }
     }
   }
-  while (mTrimvolProcess->canReadLineStderr()) {
-    wprint("err:\n%s\n", mTrimvolProcess->readLineStderr().latin1());
+  mTrimvolProcess->setReadChannel(QProcess::StandardError);
+  while (mTrimvolProcess->canReadLine()) {
+    wprint("err:\n%s\n", mTrimvolProcess->readLine().constData());
   }
   delete mTrimvolProcess;
   mTrimvolProcess = 0;
@@ -487,21 +494,26 @@ void InfoWindow::keepOnTop(bool state)
   if (state)
     mTopTimerID = startTimer(200);
 #else
-  int flags = getWFlags();
+  Qt::WindowFlags flags = windowFlags();
   if (state)
-    flags |= WStyle_StaysOnTop;
+    flags |= Qt::WindowStaysOnTopHint;
   else
-    flags ^= WStyle_StaysOnTop;
-  QPoint p(geometry().x(), geometry().y());
+    flags ^= Qt::WindowStaysOnTopHint;
+
+  // Here are old Qt 3 notes.  But with Qt 4, linux jumped to corner sometimes
+  //QPoint p(geometry().x(), geometry().y());
   // Using pos() jumps on Windows
   // Also, pos() jumps up-left on Unix, geometry() jumps down-right
   // Unless we access the pos !
   QPoint p2 = pos();
-  /* imodPrintStderr("before geom %d %d  pos %d %d\n", geometry().x(), 
-     geometry().y(), pos().x(), pos().y()); */
-  reparent(0, flags, p, true);  
-  /* imodPrintStderr("after geom %d %d  pos %d %d\n", geometry().x(), 
-     geometry().y(), pos().x(), pos().y()); */
+  /*imodPrintStderr("before geom %d %d  pos %d %d\n", geometry().x(), 
+    geometry().y(), pos().x(), pos().y()); */
+  //imodPrintStderr("pos %d %d\n", p2.x(), p2.y());
+  setWindowFlags(flags);
+  move(p2);
+  show();
+  imodPrintStderr("after geom %d %d  pos %d %d\n", geometry().x(), 
+     geometry().y(), pos().x(), pos().y());
 #endif
 }
 
@@ -592,10 +604,10 @@ int imod_info_open()
   char *filename;
 
   // Open the window
-  ImodInfoWin = new InfoWindow(NULL, "info window");
+  ImodInfoWin = new InfoWindow(NULL);
 
   // Initialize the caption and image line
-  ImodInfoWin->setCaption(imodCaption("3dmod"));
+  ImodInfoWin->setWindowTitle(imodCaption("3dmod"));
 
   filename = imodwfname("Image:");
   filename = truncate_name(filename, 23);
@@ -677,9 +689,13 @@ static char *truncate_name(char *name, int limit)
   return(newName);
 }
 
+
 /*
 
 $Log$
+Revision 4.52  2008/12/10 01:04:50  mast
+Added menu item to set jpeg quality
+
 Revision 4.51  2008/12/01 15:42:01  mast
 Changes for undo/redo and selection in 3dmodv standalone
 

@@ -47,11 +47,11 @@ static void initModelData(Imod *newModel, bool keepBW);
 static char *datetime(void);
 static void imod_undo_backup(void);
 static void imod_finish_backup(void);
-static void imod_make_backup(char *filename);
+static void imod_make_backup(const char *filename);
 static int mapErrno(int errorCode);
 static void setSavedModelState(Imod *mod);
 static int writeModel(Imod *mod, FILE *fout, QString qname);
-static Imod *LoadModelFile(char *filename) ;
+static Imod *LoadModelFile(const char *filename) ;
 
 char Imod_filename[IMOD_FILENAME_SIZE] = {0x00};
 
@@ -91,7 +91,7 @@ int imod_model_changed(Imod *imodel)
 
 /* Rename existing copy of saved file if it hasn't been done before for this
    file name */
-static void imod_make_backup(char *filename)
+static void imod_make_backup(const char *filename)
 {
   QString qname, nfname1, nfname2;
   if ((filename[0] != 0x00) && strcmp(filename, saved_filename)) {
@@ -99,9 +99,9 @@ static void imod_make_backup(char *filename)
     qname = QDir::convertSeparators(QString(filename));
     nfname1 = qname + "~";
     nfname2 = qname + "~~";
-    curdir->remove(nfname2.latin1());
-    curdir->rename(nfname1.latin1(), nfname2.latin1());
-    curdir->rename(qname.latin1(), nfname1.latin1());
+    curdir->remove(LATIN1(nfname2));
+    curdir->rename(LATIN1(nfname1), LATIN1(nfname2));
+    curdir->rename(LATIN1(qname), LATIN1(nfname1));
     strcpy(saved_filename, filename);
     delete curdir;
   }
@@ -184,7 +184,7 @@ int imod_autosave(Imod *mod)
       if (Imod_filename[i] == '/')
         timestr = &(Imod_filename[i]) + 1;
         
-    sprintf(autosave_filename, "%s/%s%s", savedir.latin1(), timestr, 
+    sprintf(autosave_filename, "%s/%s%s", LATIN1(savedir), timestr, 
 	    autosave_string);
       
   } else
@@ -193,7 +193,7 @@ int imod_autosave(Imod *mod)
   // Then clean up with the new name
   imod_cleanup_autosave();
   convname = strdup
-    ((QDir::convertSeparators(QString(autosave_filename))).latin1());
+    (LATIN1(QDir::convertSeparators(QString(autosave_filename))));
 
   tfilep = fopen(convname, "wb");
   if (tfilep == NULL){
@@ -243,8 +243,7 @@ int SaveModel(Imod *mod)
 
   imod_make_backup(Imod_filename);
 
-  fout = fopen((QDir::convertSeparators(QString(Imod_filename))).latin1(),
-    "wb+");
+  fout = fopen(LATIN1(QDir::convertSeparators(QString(Imod_filename))), "wb+");
 
   if (fout == NULL){
     imod_undo_backup();
@@ -277,8 +276,7 @@ int SaveasModel(Imod *mod)
 
   lastError = IMOD_IO_SUCCESS;
      
-  qname = QFileDialog::getSaveFileName(QString::null, QString::null, 0, 0, 
-                                       "Model Save File:");
+  qname = QFileDialog::getSaveFileName(NULL, "Model Save File:");
   if (qname.isEmpty()) {
     // OLD NOTE ABOUT dia_filename
     /* this dialog doesn't return if no file selected, so this is a cancel
@@ -288,10 +286,10 @@ int SaveasModel(Imod *mod)
     return IMOD_IO_SAVE_CANCEL;
   }
 
-  imod_make_backup((char *)qname.latin1());
-  fout = fopen((QDir::convertSeparators(qname)).latin1(), "wb");
+  imod_make_backup(LATIN1(qname));
+  fout = fopen(LATIN1(QDir::convertSeparators(qname)), "wb");
   if (fout == NULL){
-    wprint("\aError: Couldn't open %s .  Model not saved.\n", qname.latin1());
+    wprint("\aError: Couldn't open %s .  Model not saved.\n", LATIN1(qname));
     imod_undo_backup();
     lastError = mapErrno(errno);
     return lastError;
@@ -300,7 +298,7 @@ int SaveasModel(Imod *mod)
   retval = writeModel(mod, fout, qname);
 
   if (!retval) {
-    setImod_filename(qname.latin1());
+    setImod_filename(LATIN1(qname));
     MaintainModelName(mod);
     imodvSetCaption();
   }
@@ -334,7 +332,7 @@ static int writeModel(Imod *mod, FILE *fout, QString qname)
   if (!retval) {
     timestr = datetime();
     wprint("Done saving model %s\n%s\n", timestr,
-           (QDir::convertSeparators(qname)).latin1());
+           LATIN1(QDir::convertSeparators(qname)));
     imod_finish_backup();
     mod->csum = imodChecksum(mod);
     imod_cleanup_autosave();
@@ -422,7 +420,7 @@ Imod *LoadModel(FILE *mfin)
 // imod_io_error function.
 // 10/14/05: Called only from openModel
 
-static Imod *LoadModelFile(char *filename) 
+static Imod *LoadModelFile(const char *filename) 
 {
   FILE *fin;
   Imod *imod;
@@ -445,7 +443,7 @@ static Imod *LoadModelFile(char *filename)
     qname = filename;
   }
 
-  fin = fopen((QDir::convertSeparators(qname)).latin1(), "rb");
+  fin = fopen(LATIN1(QDir::convertSeparators(qname)), "rb");
 
   if (fin == NULL) {
     lastError = mapErrno(errno);
@@ -460,7 +458,7 @@ static Imod *LoadModelFile(char *filename)
     error if unidentified */
   /* DNM 9/12/03: eliminate checksum, protect from overrunning filename */
   if (imod) {
-    setImod_filename(qname.latin1());
+    setImod_filename(LATIN1(qname));
   } else {
     lastError = mapErrno(errno);
     if (lastError == IMOD_IO_UNIMPLEMENTED_ERROR)
@@ -476,7 +474,7 @@ static Imod *LoadModelFile(char *filename)
 // set keepBW to retain existing black/white values 
 // set saveAs to call Saveas instead of Save if current model is being saved
 //
-int openModel(char *modelFilename, bool keepBW, bool saveAs) 
+int openModel(const char *modelFilename, bool keepBW, bool saveAs) 
 {
   Imod *tmod;
   int err;
@@ -587,7 +585,7 @@ static void initModelData(Imod *newModel, bool keepBW)
 //  App data structure is initialized for the new model.
 //  10/14/05: Called from imod_menu and imod_client_message
 //
-int createNewModel(char *modelFilename)
+int createNewModel(const char *modelFilename)
 {
   int mode;
   int err, answer;
@@ -743,7 +741,7 @@ unsigned char **imod_io_image_load(struct ViewInfo *vi)
   vi->loadingImage = 1;
   for (i = 0; i < vi->zsize; i++) {
     message.sprintf("Reading Image # %3.3d", i+1); 
-    imod_imgcnt((char *)message.latin1());
+    imod_imgcnt(LATIN1(message));
     ivwReadBinnedSection(vi, (char *)idata[i], i + li->zmin);
   }
   imod_imgcnt("");
@@ -810,6 +808,9 @@ static int mapErrno(int errorCode)
 
 /*
 $Log$
+Revision 4.28  2008/12/04 06:50:58  mast
+Turn model on when loading
+
 Revision 4.27  2008/07/17 05:01:19  mast
 Notify plugins when new model loaded
 

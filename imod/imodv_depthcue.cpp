@@ -91,8 +91,7 @@ void imodvDepthCueEditDialog(ImodvApp *a, int state)
   }
 
   idcData.dia = new imodvDepthcueForm(imodvDialogManager.parent(IMODV_DIALOG), 
-                                      NULL, Qt::WDestructiveClose |
-				      Qt::WType_TopLevel);
+                                      Qt::Window);
 
   imodvDepthCueSetWidgets();
   imodvDialogManager.add((QWidget *)idcData.dia, IMODV_DIALOG);
@@ -138,6 +137,9 @@ void imodvDepthcueToggle(int state)
 
 /*
 $Log$
+Revision 4.5  2004/11/22 00:22:17  mast
+Changed to use help page in Qt Assistant
+
 Revision 4.4  2004/11/21 06:07:49  mast
 Changes for undo/redo
 

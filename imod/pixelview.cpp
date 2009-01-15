@@ -15,14 +15,19 @@
 #include <stdlib.h>
 #include <qpushbutton.h>
 #include <qlabel.h>
-#include <qvbox.h>
-#include <qhbox.h>
 #include <qcheckbox.h>
 #include <qsignalmapper.h>
 #include <qlayout.h>
 #include <qtooltip.h>
+//Added by qt3to4:
+#include <QHBoxLayout>
+#include <QCloseEvent>
+#include <QGridLayout>
+#include <QKeyEvent>
+#include <QVBoxLayout>
 #include "pixelview.h"
 #include "imod.h"
+#include "imod_info_cb.h"
 #include "imod_display.h"
 #include "control.h"
 #include "preferences.h"
@@ -89,7 +94,7 @@ int open_pixelview(struct ViewInfo *vi)
   PixelViewDialog = new PixelView(imodDialogManager.parent(IMOD_IMAGE),
                                   "pixel view");
 
-  PixelViewDialog->setCaption(imodCaption("3dmod Pixel View"));
+  PixelViewDialog->setWindowTitle(imodCaption("3dmod Pixel View"));
 
   ctrl = ivwNewControl(vi, pviewDraw_cb, pviewClose_cb, NULL, (void *)0);
   imodDialogManager.add((QWidget *)PixelViewDialog, IMOD_IMAGE);
@@ -154,14 +159,17 @@ void pvNewMousePosition(ImodView *vi, float x, float y, int iz)
 /*
  * The class constructor
  */
-PixelView::PixelView(QWidget *parent, const char *name, WFlags fl)
-  : QWidget(parent, name, fl)
+PixelView::PixelView(QWidget *parent, const char *name, Qt::WFlags fl)
+  : QWidget(parent, fl)
 {
   int i, j, iz = B3DNINT(App->cvi->zmouse);
+  setAttribute(Qt::WA_DeleteOnClose);
+  setAttribute(Qt::WA_AlwaysShowToolTips);
   QVBoxLayout *vBox = new QVBoxLayout(this);
+  vBox->setSpacing(3);
 
   // Make the mouse report box
-  QHBoxLayout *hBox = new QHBoxLayout(vBox);
+  QHBoxLayout *hBox = diaHBoxLayout(vBox);
   mMouseLabel = diaLabel(" ", this, hBox);
   hBox->addStretch();
   hBox->setSpacing(5);
@@ -170,21 +178,21 @@ PixelView::PixelView(QWidget *parent, const char *name, WFlags fl)
   diaSetChecked(mFileValBox, fromFile);
   connect(mFileValBox, SIGNAL(toggled(bool)), this, 
           SLOT(fromFileToggled(bool)));
-  QToolTip::add(mFileValBox, "Show value from file, not byte value from memory"
+  mFileValBox->setToolTip("Show value from file, not byte value from memory"
                 ", at mouse position");
   mFileValBox->setEnabled(fileReadable(App->cvi, iz));
 
   QCheckBox *gbox = diaCheckBox("Grid", this, hBox);
   diaSetChecked(gbox, showButs);
   connect(gbox, SIGNAL(toggled(bool)), this, SLOT(showButsToggled(bool)));
-  QToolTip::add(gbox, "Show buttons with values from file or memory)");
+  gbox->setToolTip("Show buttons with values from file or memory)");
 
-  hBox = new QHBoxLayout(vBox);
+  hBox = diaHBoxLayout(vBox);
   mGridValBox = diaCheckBox("Grid value from file", this, hBox);
   diaSetChecked(mGridValBox, gridFromFile);
   connect(mGridValBox, SIGNAL(toggled(bool)), this, 
           SLOT(gridFileToggled(bool)));
-  QToolTip::add(mGridValBox, "Show value from file, not byte value from memory"
+  mGridValBox->setToolTip("Show value from file, not byte value from memory"
                 ", in each button");
   mGridValBox->setEnabled(fileReadable(App->cvi, iz));
 
@@ -194,7 +202,7 @@ PixelView::PixelView(QWidget *parent, const char *name, WFlags fl)
     diaSetChecked(mConvertBox, convertRGB);
     connect(mConvertBox, SIGNAL(toggled(bool)), this, 
             SLOT(convertToggled(bool)));
-    QToolTip::add(mConvertBox, "Show luminance values instead of RGB triplets"
+    mConvertBox->setToolTip("Show luminance values instead of RGB triplets"
                   );
   }
 
@@ -204,26 +212,26 @@ PixelView::PixelView(QWidget *parent, const char *name, WFlags fl)
   connect(mHelpButton, SIGNAL(clicked()), this, SLOT(helpClicked()));
 
   // Make the grid
-  QGridLayout *layout = new QGridLayout(PV_ROWS + 1, PV_COLS + 1, 
-				       5, "pixel view layout");
+  QGridLayout *layout = new QGridLayout();
+  layout->setSpacing(5);
   vBox->addLayout(layout);
-  vBox->setMargin(7);
+  vBox->setContentsMargins(7,7,7,7);
 
   // Add labels on left
   for (i = 0; i < PV_ROWS; i++) {
     mLeftLabels[i] = new QLabel("88888", this);
-    mLeftLabels[i]->setAlignment(AlignRight | AlignVCenter);
+    mLeftLabels[i]->setAlignment(Qt::AlignRight | Qt::AlignVCenter);
     layout->addWidget(mLeftLabels[i], PV_ROWS - 1 - i, 0);
   }
 
   // Add labels on bottom
   for (i = 0; i < PV_COLS; i++) {
     mBotLabels[i] = new QLabel("8", this);
-    mBotLabels[i]->setAlignment(AlignCenter);
+    mBotLabels[i]->setAlignment(Qt::AlignCenter);
     layout->addWidget(mBotLabels[i], PV_ROWS, i + 1);
   }
   mLabXY = new QLabel("Y/X", this);
-  mLabXY->setAlignment(AlignCenter);
+  mLabXY->setAlignment(Qt::AlignCenter);
   layout->addWidget(mLabXY, PV_ROWS, 0);
 
   // Make signal mapper
@@ -234,7 +242,8 @@ PixelView::PixelView(QWidget *parent, const char *name, WFlags fl)
   for (i = 0; i < PV_ROWS; i++) {
     for (j = 0; j < PV_COLS; j++) {
       mButtons[i][j] = new QPushButton("8", this);
-      mButtons[i][j]->setFocusPolicy(NoFocus);
+      mButtons[i][j]->setFocusPolicy(Qt::NoFocus);
+      mButtons[i][j]->setAutoFillBackground(true);
       layout->addWidget(mButtons[i][j], PV_ROWS - 1 - i, j + 1);
       mapper->setMapping(mButtons[i][j], i * PV_COLS + j);
       connect(mButtons[i][j], SIGNAL(clicked()), mapper, SLOT(map()));
@@ -243,7 +252,8 @@ PixelView::PixelView(QWidget *parent, const char *name, WFlags fl)
   setButtonWidths();
 
   // Get the default background color, initial minimum/maximum rows
-  mGrayColor = mButtons[0][0]->paletteBackgroundColor();
+  QPalette palette = mButtons[0][0]->palette();
+  mGrayColor = palette.color(mButtons[0][0]->backgroundRole());
   mMinRow = -1;
   mMaxRow = -1;
 }
@@ -283,9 +293,9 @@ void PixelView::update()
 
   // Reset the button colors from previous min/max
   if (mMinRow >= 0)
-    mButtons[mMinRow][mMinCol]->setPaletteBackgroundColor(mGrayColor);
+    diaSetWidgetColor(mButtons[mMinRow][mMinCol], mGrayColor);
   if (mMaxRow >= 0)
-    mButtons[mMaxRow][mMaxCol]->setPaletteBackgroundColor(mGrayColor);
+    diaSetWidgetColor(mButtons[mMaxRow][mMaxCol], mGrayColor);
   mMinRow = -1;
   mMaxRow = -1;
 
@@ -362,9 +372,9 @@ void PixelView::update()
     }
   }
   if (mMinRow >= 0)
-    mButtons[mMinRow][mMinCol]->setPaletteBackgroundColor(QColor(0, 255, 255));
+    diaSetWidgetColor(mButtons[mMinRow][mMinCol], QColor(0, 255, 255));
   if (mMaxRow >= 0)
-    mButtons[mMaxRow][mMaxCol]->setPaletteBackgroundColor(QColor(255, 0, 128));
+    diaSetWidgetColor(mButtons[mMaxRow][mMaxCol], QColor(255, 0, 128));
 }
 
 void PixelView::buttonPressed(int pos)
@@ -437,9 +447,10 @@ void PixelView::adjustDialogSize()
                    (App->cvi->rawImageStore && convertRGB))) {
     QSize hint = sizeHint();
     resize((int)(0.7 * hint.width()), hint.height());
-  } else
+  } else {
+    imod_info_input();
     adjustSize();
-
+  }
 }
 
 // Close event: just remove control from list and null pointer
@@ -462,7 +473,7 @@ void PixelView::keyPressEvent ( QKeyEvent * e )
   if (key == Qt::Key_Escape)
     close();
 
-  else if (!(e->state() & Qt::Keypad) && 
+  else if (!(e->modifiers() & Qt::KeypadModifier) && 
 	   (key == Qt::Key_Right || key == Qt::Key_Left || 
 	    key == Qt::Key_Up || key == Qt::Key_Down))
     inputQDefaultKeys(e, App->cvi);
@@ -480,6 +491,10 @@ void PixelView::keyReleaseEvent ( QKeyEvent * e )
 /*
 
 $Log$
+Revision 4.15  2008/05/27 05:34:12  mast
+Added display of rgb values with option to show as gray, added option to
+show grid from memory, added help.
+
 Revision 4.14  2008/04/02 04:38:42  mast
 Fixed tooltips on buttons
 

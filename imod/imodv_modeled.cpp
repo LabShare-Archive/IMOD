@@ -80,8 +80,8 @@ void imodvModelEditDialog(ImodvApp *a, int state)
   }
   med->a = a;
 
-  med->dia = new imodvModeledForm(imodvDialogManager.parent(IMODV_DIALOG), NULL,
-                                  Qt::WDestructiveClose | Qt::WType_TopLevel);
+  med->dia = new imodvModeledForm(imodvDialogManager.parent(IMODV_DIALOG), 
+                                  Qt::Window);
 
   updateWorkArea();
   med->dia->setViewSelection(a->drawall);
@@ -170,7 +170,7 @@ void imodvModeledEdit(int item)
 void imodvModeledName(QString nameStr)
 {
   int i,mi;
-  const char *name = nameStr.latin1();
+  const char *name = LATIN1(nameStr);
 
   mi = strlen(name);
   if (mi >= IMOD_STRSIZE)
@@ -190,10 +190,10 @@ void imodvModeledScale(int update)
   if (!scale.isEmpty()) {
     imodvRegisterModelChg();
     imodvFinishChgUnit();
-    setPixsizeAndUnits(med->a->imod, (char *)scale.latin1());
+    setPixsizeAndUnits(med->a->imod, LATIN1(scale));
   }
 
-  //fprintf(stderr, "string %s gives %f for %s, update %d\n", scale.latin1(),
+  //fprintf(stderr, "string %s gives %f for %s, update %d\n", LATIN1(scale),
   //        med->a->imod->pixsize, med->a->imod->fileName, update);
   if (update)
     updateWorkArea();
@@ -237,6 +237,9 @@ void imodvPixelChanged()
 /*  
 
 $Log$
+Revision 4.10  2008/12/01 15:42:01  mast
+Changes for undo/redo and selection in 3dmodv standalone
+
 Revision 4.9  2008/11/28 06:47:14  mast
 Update bounding box when model changes
 
