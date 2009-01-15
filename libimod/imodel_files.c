@@ -65,7 +65,7 @@ static void tovmsfloat(unsigned char *ptr);
  * Reads a model from file given by [filename] and returns created model 
  * structure or NULL for error.  (Unused, calls @imodRead).
  */
-Imod *imodFileRead(char *filename)
+Imod *imodFileRead(const char *filename)
 {
   return(imodRead(filename));
 }
@@ -74,7 +74,7 @@ Imod *imodFileRead(char *filename)
  * Writes the model [imod] to the file given by [filename].  Returns -1 for
  * error, 0 for success.  (Unused 4/23/05).
  */
-int  imodFileWrite(Imod *imod, char *filename)
+int  imodFileWrite(Imod *imod, const char *filename)
 {
   FILE *fout = fopen(filename, "wb");
   return(imodWrite(imod, fout));
@@ -85,7 +85,7 @@ int  imodFileWrite(Imod *imod, char *filename)
  * pointer into imod->file and the filename into imod->filename.  Returns -1
  * for error or 0 for success.
  */
-int imodOpenFile(char *filename, char *mode, Imod *imod)
+int imodOpenFile(const char *filename, const char *mode, Imod *imod)
 {
   FILE *fp;
   int len;
@@ -1977,109 +1977,113 @@ int imodPutByte(FILE *fp, unsigned char *dat)
 }
 
 /*
-  $Log$
-  Revision 3.34  2008/12/09 23:26:42  mast
-  Changed flag from line to noline
 
-  Revision 3.33  2008/11/20 20:13:29  mast
-  Added refimage info to ascii model
+$Log$
+Revision 3.35  2009/01/02 05:18:48  mast
+const char * for Qt 4 port
 
-  Revision 3.32  2008/05/31 23:02:48  mast
-  Put contour and point general values into ascii model
+Revision 3.34  2008/12/09 23:26:42  mast
+Changed flag from line to noline
 
-  Revision 3.31  2008/03/03 17:46:15  mast
-  Rename run scripts to program names
+Revision 3.33  2008/11/20 20:13:29  mast
+Added refimage info to ascii model
 
-  Revision 3.30  2008/01/27 06:20:15  mast
-  Changes for object groups
+Revision 3.32  2008/05/31 23:02:48  mast
+Put contour and point general values into ascii model
 
-  Revision 3.29  2007/11/01 16:47:02  mast
-  Fixed reading of ascii modelwith DOS line endings
+Revision 3.31  2008/03/03 17:46:15  mast
+Rename run scripts to program names
 
-  Revision 3.28  2007/06/12 05:39:25  mast
-  Upgraded ascii format
+Revision 3.30  2008/01/27 06:20:15  mast
+Changes for object groups
 
-  Revision 3.27  2007/05/25 05:18:26  mast
-  Changes for slicer angle storage
+Revision 3.29  2007/11/01 16:47:02  mast
+Fixed reading of ascii modelwith DOS line endings
 
-  Revision 3.26  2006/09/13 23:52:43  mast
-  Fixed reading of skip list
+Revision 3.28  2007/06/12 05:39:25  mast
+Upgraded ascii format
 
-  Revision 3.25  2006/09/13 02:43:30  mast
-  Stopped calling imodDefault twice when reading a model
+Revision 3.27  2007/05/25 05:18:26  mast
+Changes for slicer angle storage
 
-  Revision 3.24  2006/09/12 15:22:39  mast
-  Added mesh parameters
+Revision 3.26  2006/09/13 23:52:43  mast
+Fixed reading of skip list
 
-  Revision 3.23  2006/08/31 21:11:29  mast
-  Changed mat1 and mt3 to real names
+Revision 3.25  2006/09/13 02:43:30  mast
+Stopped calling imodDefault twice when reading a model
 
-  Revision 3.22  2005/10/14 21:45:22  mast
-  Fixed casting in calls to imodPutScaledPoints
+Revision 3.24  2006/09/12 15:22:39  mast
+Added mesh parameters
 
-  Revision 3.21  2005/10/13 20:05:43  mast
-  Handle clip plane writing properly from binned data
+Revision 3.23  2006/08/31 21:11:29  mast
+Changed mat1 and mt3 to real names
 
-  Revision 3.20  2005/09/09 18:38:04  mast
-  Fixed fatal bug in writing mesh from model loaded on binned data
+Revision 3.22  2005/10/14 21:45:22  mast
+Fixed casting in calls to imodPutScaledPoints
 
-  Revision 3.19  2005/06/20 22:24:58  mast
-  Added calls to read/write general storage
+Revision 3.21  2005/10/13 20:05:43  mast
+Handle clip plane writing properly from binned data
 
-  Revision 3.18  2005/04/23 23:37:31  mast
-  Documented functions
+Revision 3.20  2005/09/09 18:38:04  mast
+Fixed fatal bug in writing mesh from model loaded on binned data
 
-  Revision 3.17  2005/03/20 19:56:49  mast
-  Eliminating duplicate functions
+Revision 3.19  2005/06/20 22:24:58  mast
+Added calls to read/write general storage
 
-  Revision 3.16  2005/02/11 01:42:34  mast
-  Warning cleanup: implicit declarations, main return type, parentheses, etc.
+Revision 3.18  2005/04/23 23:37:31  mast
+Documented functions
 
-  Revision 3.15  2004/11/20 04:15:58  mast
-  Eliminated virtual stiff
+Revision 3.17  2005/03/20 19:56:49  mast
+Eliminating duplicate functions
 
-  Revision 3.14  2004/09/21 20:12:01  mast
-  Changes for multiple and global clip planes, surface labels
+Revision 3.16  2005/02/11 01:42:34  mast
+Warning cleanup: implicit declarations, main return type, parentheses, etc.
 
-  Revision 3.13  2004/09/10 21:33:46  mast
-  Eliminated long variables
+Revision 3.15  2004/11/20 04:15:58  mast
+Eliminated virtual stiff
 
-  Revision 3.12  2004/01/05 18:30:26  mast
-  Removed print statement about scaling
+Revision 3.14  2004/09/21 20:12:01  mast
+Changes for multiple and global clip planes, surface labels
 
-  Revision 3.11  2004/01/05 17:28:09  mast
-  Added "unbinning" of model on output to undo scaling by 3dmod on input
+Revision 3.13  2004/09/10 21:33:46  mast
+Eliminated long variables
 
-  Revision 3.10  2003/11/01 16:41:56  mast
-  changed to use new error processing routine
+Revision 3.12  2004/01/05 18:30:26  mast
+Removed print statement about scaling
 
-  Revision 3.9  2003/03/28 05:08:13  mast
-  Use new unique little endian flag
+Revision 3.11  2004/01/05 17:28:09  mast
+Added "unbinning" of model on output to undo scaling by 3dmod on input
 
-  Revision 3.8  2003/02/27 00:34:40  mast
-  add projects' *.dsw *.dsp
+Revision 3.10  2003/11/01 16:41:56  mast
+changed to use new error processing routine
 
-  Revision 3.7  2003/02/21 23:58:29  mast
-  Open files in binary mode
+Revision 3.9  2003/03/28 05:08:13  mast
+Use new unique little endian flag
 
-  Revision 3.6  2003/02/21 22:21:35  mast
-  Use new b3d types
+Revision 3.8  2003/02/27 00:34:40  mast
+add projects' *.dsw *.dsp
 
-  Revision 3.5  2002/11/25 19:04:42  mast
-  Added "int" in front of imodFgetline
+Revision 3.7  2003/02/21 23:58:29  mast
+Open files in binary mode
 
-  Revision 3.4  2002/09/04 23:12:50  mast
-  Read mat1 and mat3 the old way if a new flag is not set.  Set the flag
-  when writing a file.
+Revision 3.6  2003/02/21 22:21:35  mast
+Use new b3d types
 
-  Revision 3.3  2002/09/03 20:05:14  mast
-  Changed some casts in the mat1 and mat3 calls
+Revision 3.5  2002/11/25 19:04:42  mast
+Added "int" in front of imodFgetline
 
-  Revision 3.2  2002/09/03 19:38:52  mast
-  Made it save and restore mat1 and mat3 as 4 bytes instead of integers
+Revision 3.4  2002/09/04 23:12:50  mast
+Read mat1 and mat3 the old way if a new flag is not set.  Set the flag
+when writing a file.
 
-  Revision 3.1  2001/12/05 16:00:46  mast
-  Make conversion of VMS floats be a globally available function instead of
-  conditionally compiled static
+Revision 3.3  2002/09/03 20:05:14  mast
+Changed some casts in the mat1 and mat3 calls
+
+Revision 3.2  2002/09/03 19:38:52  mast
+Made it save and restore mat1 and mat3 as 4 bytes instead of integers
+
+Revision 3.1  2001/12/05 16:00:46  mast
+Make conversion of VMS floats be a globally available function instead of
+conditionally compiled static
 
 */
