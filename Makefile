@@ -374,7 +374,7 @@ cleansrc : ALWAYS
 	\find qtassist -type f -name "moc_*.cpp" -exec rm "{}" \;
 	\find plugs -type f -name "moc_*.cpp" -exec rm "{}" \;
 	(cd pysrc ; make clean)
-	\rm pysrc/Makefile
+	/bin/rm -f pysrc/Makefile
 	(cd manpages ; make clean)
 	(cd flib/man ; make clean)
 	(cd autodoc ; make clean)
@@ -454,6 +454,9 @@ ALWAYS:
 
 ############################################################################
 #  $Log$
+#  Revision 3.73  2008/01/29 05:32:58  mast
+#  Remove devkit from src build
+#
 #  Revision 3.72  2008/01/24 15:46:08  mast
 #  Added html in plugin directories
 #
