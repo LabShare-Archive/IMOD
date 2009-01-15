@@ -224,6 +224,10 @@ else
 endif
 
 set nxyz =  `header -si "$argv[1]" | sed '/[[:cntrl:]]/s///g'`
+if ($#nxyz != 3) then
+    echo "ERROR: $pn - failed to read header of $argv[1]"
+    exit 1
+endif
 
 @ nx = $nxyz[1]
 @ ny = $nxyz[2]
@@ -438,6 +442,10 @@ clean:
 exit 1
 
 #  $Log$
+#  Revision 3.20  2008/12/19 15:56:53  mast
+#  Compute offset from coordinates the same way newstack gets coords from
+#  offset to avoid error on odd-to-even cases
+#
 #  Revision 3.19  2008/01/04 07:03:38  mast
 #  Fixed for space in IMOD_DIR, possibly for space in tmpdir
 #
