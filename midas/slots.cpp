@@ -25,7 +25,6 @@
 //Added by qt3to4:
 #include <QKeyEvent>
 #include <QLabel>
-#include "floatspinbox.h"
 #include "dia_qtutils.h"
 #include "b3dutil.h"
 #include "imod_assistant.h"
@@ -1833,6 +1832,9 @@ int MidasSlots::showHelpPage(const char *page)
 
 /*
 $Log$
+Revision 3.20  2009/01/15 16:30:19  mast
+Qt 4 port
+
 Revision 3.19  2008/11/18 22:45:05  mast
 Added Delete key for Mac, used new amatToRotmagstr
 
