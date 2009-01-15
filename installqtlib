@@ -56,8 +56,9 @@ if (! -e $instdir/$assistdir) mkdir -p $instdir/$assistdir
 
 # Qt assistant could be an exe or a .app directory
 #
-if (`\find $QTDIR/bin -name 'assistant*' -print` != "") then
-    \cp -r $QTDIR/bin/assistant* $instdir/$assistdir
+set assistname = `\find $QTDIR/bin -maxdepth 1 -name '*ssistant_ad*[^g]' -print`
+if ("$assistname" != "") then
+    \cp -r $assistname $instdir/$assistdir
 else
     echo "Qt Assistant not found in $QTDIR/bin"
     exit 1
@@ -71,8 +72,8 @@ if (-e $instdir/qtlib) then
         set prog = $app:t:r
         if (! -e $instdir/qtlib/$prog) then
             sed -e "/imodsendevent/s//$prog/g" -e "/IMOD_DIR/s/bin/qtlib/" \
-                $instdir/bin/imodsendevent > $instdir/qtlib/assistant
-            chmod a+rx $instdir/qtlib/assistant
+                $instdir/bin/imodsendevent > $instdir/qtlib/assistant_adp
+            chmod a+rx $instdir/qtlib/assistant_adp
         endif
     endif
 endif
@@ -145,23 +146,20 @@ if (! -e $instdir/$qtlibdir) mkdir -p $instdir/$qtlibdir
 #
 # grab the name of the Qt lib from the ever-useful sendevent Makefile
 #
-set qtlib = `sed -n '/^LIBS.*=/s/^.*-lqt/libqt/p' sendevent/Makefile`
+set qtlibs = `sed -n '/QTLIBSTOCOPY/s/^.*= *//p' configure`
 
 # If the library goes to bin, it is Windows and need to copy a dll
 # First get rid of any lib's that installed into the bin with the dll's
 #
 if ($qtlibdir == "bin") then
     \find $instdir/$qtlibdir -name '*.lib' -print -exec \rm '{}' \;
-    if (`\find $QTDIR/lib -name 'qt-mt*.dll' -print` != "") then
-        \cp $QTDIR/lib/qt-mt*.dll $instdir/$qtlibdir
-    else if (`\find $QTDIR/lib -name 'qt-*.dll' -print` != "") then
-        \cp $QTDIR/lib/qt-*.dll $instdir/$qtlibdir
-    else if (`\find $QTDIR/lib -name 'qt*.dll' -print` != "") then
-        \cp $QTDIR/lib/qt*.dll $instdir/$qtlibdir
-    else
-        echo "INSTALLQTLIB CANNOT FIND LIBRARY IN $QTDIR/lib"
-        exit 1
-    endif
+    foreach i ($qtlibs)  
+        \cp  $QTDIR/lib/${i}4.dll $instdir/$qtlibdir
+        if ($status) then
+            echo "INSTALLQTLIB CANNOT FIND LIBRARY ${i}4.dll IN $QTDIR/lib"
+            exit 1
+        endif
+    end
 
     # 6/25/04: discovered these were not coming through right, and it matters
     #
@@ -169,49 +167,17 @@ if ($qtlibdir == "bin") then
     exit 0
 endif
 
-set qtlib = $qtlib[1]
 
 #
-# For qt lib and possible assistant lib, count up non-links and save name of 
-# real file
+# Mac and Linux: add lib to front of name
 #
-@ whichlib = 0
-while ($whichlib < 2)
-    @ numreal = 0
-    foreach i ($QTDIR/lib/${qtlib}.*${dllext}*)
-        if ((! -l $i) && $i:e != "prl" && $i:e != "la") then
-            @ numreal++
-            set realname = $i
-        endif
-    end
-
-    if ($numreal == 0) then
-        if ($whichlib > 0) break
-        echo "installqtlib: Qt Library not found at $QTDIR/lib/$qtlib.*"
+foreach i ($qtlibs)  
+    set files = `\find $QTDIR/lib -name "lib${i}*${dllext}*" -print | grep -v debug`
+    if ("$files" == "") then
+        echo "INSTALLQTLIB CANNOT FIND ANY lib${i}.${dllext} in $QTDIR/lib"
         exit 1
     endif
-
-    if ($numreal > 1) then
-        echo "installqtlib: $numreal real Qt libraries match $QTDIR/lib/$qtlib.*"
-        echo Cannot make links properly
-        exit 1
-    endif
-
-    cd $instdir/$qtlibdir
-    \cp $realname .
-    foreach i ($QTDIR/lib/${qtlib}*${dllext}*)
-        if (-l $i) then
-            \rm -f $i:t
-            ln -s $realname:t $i:t
-        endif
-    end
-
-    #
-    # Copy libqassistantclient the same way if it is a shared lib
-    #
-    set qtlib = libqassistantclient
-    if (! -e $QTDIR/lib/${qtlib}.${dllext}) break;
-    @ whichlib++
+    \cp -R $files $instdir/$qtlibdir 
 end
 exit 0
 

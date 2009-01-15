@@ -5,12 +5,11 @@
 #
 # 3/28/03: eliminated all X includes and libs
 #
-set c_includes =  ' -I$(QTDIR)/include'
-
+set c_includes = ""
 
 # DNM 8/27/01: Needed for large files to work right.  Use a -D define instead
 # of #define in imodconfig because it must precede all system includes.
-set defines = -D_FILE_OFFSET_BITS=64
+set defines = '-D_FILE_OFFSET_BITS=64'
 
 set fcompFlags = ""
 if ($compiler == intel) then
@@ -209,13 +208,14 @@ set fbpswitch       = fbpswitch-pc.inc
 #
 cat << EOF  >! $midas_qconf
 DEFINES	+= _FILE_OFFSET_BITS=64
+INCLUDEPATH += $QTDIR/include/QtOpenGL
 EOF
 
 cat << EOF >! $imod_qconf
 SOURCES += linegui.cpp
 HEADERS += linegui.h
 LIBS += -L$lib_dir -liimod -limesh -limod -ltrack -lcfshr -ldiaqt -lifft -ltiff
-LIBS += -lqassistantclient -lm
+LIBS += -lm
 DEFINES	+= _FILE_OFFSET_BITS=64
 QMAKE_LFLAGS_DEBUG += -Wl,-E 
 QMAKE_LFLAGS_RELEASE += -Wl,-E
@@ -280,4 +280,5 @@ if ($packqt == true) then
     endif
 else
     echo 'INSTALL_FILES = IMOD-linux.csh IMOD-linux.sh IMOD-qtconflict.csh IMOD-qtconflict.sh' >> $configure
+    set qt4libstocopy = ""
 endif

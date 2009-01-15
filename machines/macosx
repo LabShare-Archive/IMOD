@@ -1,13 +1,13 @@
 #!/bin/csh
 #############################################################################
 #
-set c_includes = '-I$(QTDIR)/include'
+set c_includes = ''
 #
 #   default is to assume tifflib does exist
 #
 if ($tifflibs == default) set tifflibs = true
 
-if ($tifflibs == true) set c_includes = '-I$(QTDIR)/include -I/usr/local/include'
+if ($tifflibs == true) set c_includes = "$c_includes"' -I/usr/local/include'
 
 echo 'LDFLAGS = -L$(LIBDIR) -dynamic -read_only_relocs warning' >> $configure
 
@@ -228,13 +228,6 @@ set midas_target = `echo $send_target | sed '/imod/s/imodsendevent/midas/g'`
 set assist_target = `echo $send_target | sed '/imod/s/imodsendevent/imodqtassist/g'`
 set ctf_target = `echo $send_target | sed '/imod/s/imodsendevent/ctfplotter/g'`
 set sourcedoc_exe = `echo $send_target | sed '/imod/s/imodsendevent/sourcedoc/g'`
-set qt_libs = `sed -n '/^LIBS /s/^LIBS.*-L\$(QTDIR/-L\$(QTDIR/p' $sendevent_dir/Makefile`
-
-# Tell plugins where imod is
-#
-set plug_loader = ${source_dir}/${imod_dir}/${imod_target}
-echo 'MAKELIBSO = $(ARCPP) -bundle -dynamic -bundle_loader '"$plug_loader"' $(LDFLAGS) -limod -lcfshr -ldiaqt '"$qt_libs -o " >> $configure
-echo  'MAKEF77PLUGIN  = $(FC)  -bundle -dynamic -bundle_loader '"$plug_loader"' $(LDFLAGS) -limod -lcfshr -ldiaqt '"$qt_libs $fort_cpplibs -o " >> $configure
 
 # Make some more lists for looping
 #
@@ -309,7 +302,7 @@ EOF
 chmod a+x $imod_dir/runimod $imod_dir/runimodv $midas_dir/runmidas 
 
 cat << EOF  >! $midas_qconf
-
+INCLUDEPATH += $QTDIR/include/QtOpenGL
 EOF
 
 # 3/33/04: removed -ldl from the second LIBS line because it is in libqt now
@@ -318,7 +311,7 @@ cat << EOF >! $imod_qconf
 SOURCES += linegui.cpp
 HEADERS += linegui.h
 LIBS += -L$lib_dir -liimod -limesh -limod -ltrack -lcfshr -ldiaqt -lifft -ltiff
-LIBS += -lqassistantclient -lm
+LIBS += -lm
 RC_FILE = b3dicon.icns
 EOF
 
