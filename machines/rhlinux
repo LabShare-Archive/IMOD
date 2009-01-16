@@ -138,8 +138,8 @@ echo '#define SWAP_IEEE_FLOATS' >> $hconfigure
 
 #
 # Use a workaround when window managers won't do StaysOnTop reliably
-#
-echo '#define STAY_ON_TOP_HACK' >> $hconfigure
+# 1/16/09: Let's try it without the hack and see how it goes
+#echo '#define STAY_ON_TOP_HACK' >> $hconfigure
 
 # For Qt 3.2 onward, need to post message twice
 #
