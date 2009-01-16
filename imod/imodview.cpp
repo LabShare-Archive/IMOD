@@ -73,6 +73,7 @@ void ivwInit(ImodView *vi, bool modview)
 
   vi->vmSize     = 0;
   vi->keepCacheFull = 1;
+  vi->fullCacheFlipped = 0;
   vi->loadingImage = 0;
   vi->doingInitialLoad = 0;
   vi->black      = 0;
@@ -873,7 +874,6 @@ int ivwInitCache(ImodView *vi)
 
   vi->vmTdim = vi->nt ? vi->nt : 1;
   vi->vmTbase = vi->nt ? 1 : 0;
-  vi->fullCacheFlipped = 0;
 
   if (vi->li->axis == 2) {
     ysize = vi->li->zmax - vi->li->zmin + 1;
@@ -2793,6 +2793,9 @@ void ivwBinByN(unsigned char *array, int nxin, int nyin, int nbin,
 /*
 
 $Log$
+Revision 4.78  2009/01/15 16:33:18  mast
+Qt 4 port
+
 Revision 4.77  2008/12/07 05:21:27  mast
 Set xyzmouse position with floating point if given an Ipoint
 
