@@ -369,8 +369,11 @@ void SlicerWindow::showSaveAngleToolbar()
   HotToolBar *before = mTimeBar ? mTimeBar : mToolBar;
   QSize beforeHint = before->sizeHint();
   int needBreak = angHint.width() + beforeHint.width() >= width() ? 1 : 0;
+  /* imodPrintStderr("anghint %d beforehint %d width %d needbreak %d mbreak "
+     "%d\n", angHint.width(), beforeHint.width(), width(), needBreak,
+     mBreakBeforeAngBar); */
   if (needBreak != mBreakBeforeAngBar) {
-    imodPrintStderr("Inserting or removing break %d\n", needBreak);
+    //imodPrintStderr("Inserting or removing break %d\n", needBreak);
     if (needBreak)
       insertToolBarBreak(mSaveAngBar);
     else
@@ -1499,6 +1502,9 @@ static void fillArraySegment(int jstart, int jlimit)
 /*
 
 $Log$
+Revision 4.29  2009/01/15 16:33:18  mast
+Qt 4 port
+
 Revision 4.28  2008/11/29 22:10:30  mast
 Added ability to link slicers
 
