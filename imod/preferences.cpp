@@ -1012,6 +1012,7 @@ void ImodPreferences::setInfoGeometry()
   xx = mGeomInfoWin[indSave].x();
   yy = mGeomInfoWin[indSave].y();
   diaLimitWindowPos(ImodInfoWin->width(), ImodInfoWin->height(), xx, yy);
+  imod_info_input();
   ImodInfoWin->move(xx, yy);
 }
 
@@ -1172,6 +1173,9 @@ void PrefsDialog::closeEvent ( QCloseEvent * e )
 
 /*
 $Log$
+Revision 1.37  2009/01/15 16:33:18  mast
+Qt 4 port
+
 Revision 1.36  2008/12/10 01:04:22  mast
 Added function to set JPEG quality
 
