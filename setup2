@@ -767,7 +767,7 @@ EOF
 fi
 prog="\$1"
 shift
-\$IMOD_DIR/bin/\$prog "\$@"
+"\$IMOD_DIR/bin/\$prog" "\$@"
 EOF
 
         chmod a+x $scripts_dir/runimodqtapp
@@ -951,6 +951,9 @@ exit
 
 #
 #  $Log$
+#  Revision 1.40  2009/01/15 16:47:01  mast
+#  Qt 4 port
+#
 #  Revision 1.39  2008/07/29 18:06:22  mast
 #  Fixed qt_lib extraction for Ubuntu
 #
