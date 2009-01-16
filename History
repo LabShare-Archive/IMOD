@@ -1,5 +1,7 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+1/16/09: Fixed runimodqtapp for spaces in IMOD_DIR (In 3.13).
+
 1/15/09: Stopped beadfixer from deleting current contour when deleting ones
 below threshold (In 3.13).
 
