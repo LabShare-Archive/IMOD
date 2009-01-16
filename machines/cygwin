@@ -333,6 +333,7 @@ while ($i < $#qdir)
         # enough so need to delete the qmake commands
         # 3/20/05: Removed strip from install - it removes 3KB of symbols that
         # are needed for plugins to work
+        # Guess what, they are perfectly valid nmake files!
         (cd $qdir[$i] ; qmake -o makefile.tmp $qprog[$i].pro)
         set badrules = `sed -n '/{.*}.*{.*}/p' < $qdir[$i]/makefile.tmp`
         sed -e '/^<</d'  -e '/^	$/d' -e '/-del/s//-rm -f/' -e '/@<< */s//\\/' \
@@ -390,7 +391,7 @@ if ($compiler == intel) then
     set qt_libs = '/LIBPATH:"$(QTDIR)/lib" QtCore4.lib QtGui4.lib QtOpenGl4.lib'
     if ($no_qt3 == false) set qt_libs = "$qt_libs Qt3Support4.lib"
     if ($shared_libs == true) then
-        set opengl_lib = `sed -n '/^LIBS[ 	]*=/s/^.*\(opengl[^ ]*.lib\).*$/\1/p' $midas_dir/Makefile.Release`
+        set opengl_lib = `sed -n '/^LIBS[ 	]*=/s/^.*\(opengl[^ ]*.lib\).*$/\1/p' $midas_dir/Makefile`
         echo "LIBDIAQTDEF = $qt_libs $opengl_lib" >> $configure
     endif
 
@@ -399,7 +400,7 @@ if ($compiler == intel) then
     echo "MAKELIBSO = link -dll /NOLOGO  $qt_libs ../../buildlib/libimod.lib ../../buildlib/libcfshr.lib ../../imod/3dmod.lib ../../buildlib/libdiaqt.lib /out:" >> $configure
 
     # Then get simple set for fortran graphics
-    set qt_libs = `sed -n '/^LIBS[ 	]*= */s///p' $sendevent_dir/Makefile.Release | sed '/\\/s//\//g'`
+    set qt_libs = `sed -n '/^LIBS[ 	]*= */s///p' $sendevent_dir/Makefile | sed '/\\/s//\//g'`
 
     # Output variables for libraries to copy to bin
     #
