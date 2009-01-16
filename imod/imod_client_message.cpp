@@ -64,10 +64,10 @@ ImodClipboard::ImodClipboard(bool useStdin)
   mHandling = false;
   mExiting = false;
   mDisconnected = false;
-  mClipTimer = NULL;
   mClipHackTimer = NULL;
   mStdinTimer = NULL;
   mUseStdin = useStdin;
+
   if (useStdin) {
 #if defined(_WIN32) && defined(QT_THREAD_SUPPORT)
     stdThread = new StdinThread();
@@ -89,6 +89,7 @@ ImodClipboard::ImodClipboard(bool useStdin)
     // Otherwise just connect to signal for changes
     connect(cb, SIGNAL(dataChanged()), this, SLOT(clipboardChanged()));
 #endif
+
   }
 }
 
@@ -144,19 +145,13 @@ void ImodClipboard::clipboardChanged()
   // Otherwise create and start a timer to execute the action
   // Set flag because event comes in twice in Windows
   mHandling = true;
-  mClipTimer = new QTimer(this);
-  connect(mClipTimer, SIGNAL(timeout()), this, SLOT(clipTimeout()));
-  mClipTimer->setSingleShot(true);
-  mClipTimer->start(10);
+  QTimer::singleShot(10, this, SLOT(clipTimeout()));
 }
 
 void ImodClipboard::clipTimeout()
 {
   // If exiting flag is set, then finally quit
   if (mExiting) {
-    disconnect(mClipTimer);
-    delete mClipTimer;
-    mClipTimer = NULL;
     if (ImodvClosed || !Imodv->standalone)
       imod_quit();
     else
@@ -168,16 +163,10 @@ void ImodClipboard::clipTimeout()
     if (executeMessage()) {
 
       // If it returns true, set the exiting flag and start another timer
+      // 100 ms is too short on SGI
       mExiting = true;
-      mClipTimer->setSingleShot(true);
-      mClipTimer->start(200);          // 100 ms is too short on SGI
-    } else if (mClipTimer){
-
-      // Otherwise, all done with this timer
-      disconnect(mClipTimer);
-      delete mClipTimer;
-      mClipTimer = NULL;
-    }
+      QTimer::singleShot(200, this, SLOT(clipTimeout()));
+    } 
     mHandling = false;
   }
 }
@@ -230,9 +219,10 @@ void ImodClipboard::stdinTimeout()
 #endif
 
   if (!lineLen) {
+    mStdinTimer->stop();
     disconnect(mStdinTimer);
-    delete mStdinTimer;
-    mStdinTimer = NULL;
+    //delete mStdinTimer;
+    //mStdinTimer = NULL;
     sendResponse(1);
     mDisconnected = true;
     return;
@@ -242,10 +232,7 @@ void ImodClipboard::stdinTimeout()
 
   // Start timer to execute message just as for clipboard
   mHandling = true;
-  mClipTimer = new QTimer(this);
-  connect(mClipTimer, SIGNAL(timeout()), this, SLOT(clipTimeout()));
-  mClipTimer->setSingleShot(true);
-  mClipTimer->start(10);
+  QTimer::singleShot(10, this, SLOT(clipTimeout()));
 }
 
 // Parse the message, see if it is for us, and save in local variables
@@ -644,6 +631,9 @@ static int readLine(char *line)
 
 /*
 $Log$
+Revision 4.30  2009/01/15 16:33:17  mast
+Qt 4 port
+
 Revision 4.29  2008/07/24 17:22:01  mast
 Fixed reading of object properties 2 to not swallow another number
 
