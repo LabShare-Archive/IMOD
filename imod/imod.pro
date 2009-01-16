@@ -218,16 +218,5 @@ INSTALLS += target
 
 include (qconfigure)
 
-helptarget.target = imodhelp.h
-helptarget.commands = ./mkargv imodhelp imodhelp.h "Imod_help_text[]"
-helptarget.depends = imodhelp mkargvtarget
-
-mkargvtarget.target = mkargv
-mkargvtarget.depends = mkargv.o
-mkargvtarget.commands = gcc -o mkargv mkargv.o
-
-
-QMAKE_EXTRA_UNIX_TARGETS += mkargvtarget helptarget
-
 QT +=  opengl 
 

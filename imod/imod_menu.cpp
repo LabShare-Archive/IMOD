@@ -55,10 +55,6 @@
 #include "undoredo.h"
 #include "scalebar.h"
 
-/****help text data include files*****/
-#include "imodhelp.h" 
-
-
 static int obj_moveto = 0;
 
 /* function unsuitable libimod because of undo stuff */
@@ -1257,8 +1253,7 @@ void InfoWindow::helpSlot(int item)
 
   switch (item){
   case HELP_MENU_MAN:
-    if (imodShowHelpPage("../man/3dmod.html"))
-      dia_smsg(Imod_help_text);
+    imodShowHelpPage("../man/3dmod.html");
     break;
   case HELP_MENU_MENUS:
     imodShowHelpPage("menus.html");
@@ -1336,6 +1331,9 @@ static int imodContourBreakByZ(ImodView *vi, Iobj *obj, int ob, int co)
 /*
 
 $Log$
+Revision 4.51  2009/01/15 16:33:17  mast
+Qt 4 port
+
 Revision 4.50  2008/12/10 01:04:50  mast
 Added menu item to set jpeg quality
 
