@@ -378,7 +378,7 @@ MidasWindow::MidasWindow(bool doubleBuffer, QWidget * parent, Qt::WFlags f)
   : QMainWindow(parent, f)
 {
   int newWidth, newHeight, xleft, ytop;
-  int commandWidth, commandHeight, id;
+  int commandWidth, commandHeight;
 
   // Yes this goes out of scope, but this was a prototype for 3dmod
   QAction *menuActions[LAST_MENU_ID];
@@ -782,7 +782,7 @@ void MidasWindow::createSectionControls(QVBoxLayout *parent)
     row->setSpacing(3);
     VW->edgeGroup = new QButtonGroup();
     VW->wXedge = diaRadioButton("X", NULL, VW->edgeGroup, row, 0, NULL);
-    VW->wXedge = diaRadioButton("Y", NULL, VW->edgeGroup, row, 1, NULL);
+    VW->wYedge = diaRadioButton("Y", NULL, VW->edgeGroup, row, 1, NULL);
     QObject::connect(VW->edgeGroup, SIGNAL(buttonClicked(int)),
 		     VW->midasSlots, SLOT(slotXory(int)));
 
@@ -897,6 +897,9 @@ void midas_error(const char *tmsg, const char *bmsg, int retval)
 /*
 
 $Log$
+Revision 3.23  2009/01/15 16:30:19  mast
+Qt 4 port
+
 Revision 3.22  2008/11/02 15:00:45  mast
 Changed so cosine stretch option is not on by default
 
