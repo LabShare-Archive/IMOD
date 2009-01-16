@@ -11,9 +11,12 @@
 #############################################################################
 # BUILD AND INSTALLATION INSTRUCTIONS:
 #
+# IMOD now requires Qt 4.4.  You will probably have to build this on any
+# architecture.
+#
 # PC UNDER LINUX:
 #
-# The Qt development package (qt-devel) must be installed
+# A development version of Qt 4.4 is required
 #
 # 1. "setup -i [install directory]" to set the install directory.
 #
@@ -43,7 +46,7 @@
 # 4. "installqtlibs" to copy Qt library and install files to install directory
 #
 #
-# IRIX 6.5:
+# IRIX 6.5:  Almost certainly will not work
 #
 # A developer's version of Qt must be installed and on the path, QTDIR must be
 # set in the environment, and QTDIR/lib must be on LD_LIBRARYN32_PATH.
@@ -234,7 +237,7 @@ installlibs : installclibs
 #
 # Clean up our mess.
 #
-clean : configure
+clean : configure ALWAYS
 	cd libcfshr   ; $(MAKE) $@
 	cd libimod    ; $(MAKE) $@
 	cd libiimod   ; $(MAKE) $@
@@ -267,7 +270,7 @@ clean : configure
 # different architectures
 #
 
-cleanclibs : configure
+cleanclibs : configure ALWAYS
 	cd libcfshr  ; $(MAKE) clean
 	cd libimod   ; $(MAKE) clean
 	cd libiimod  ; $(MAKE) clean
@@ -281,7 +284,7 @@ cleanlibs : cleanclibs
 #
 # Clean up everything that depends on Qt
 #
-cleanqt : configure
+cleanqt : configure ALWAYS
 	cd libdiaqt   ; $(MAKE) clean
 	cd plugs      ; $(MAKE) clean
 	cd imod       ; $(MAKE) clean
@@ -298,7 +301,7 @@ cleanqt : configure
 #
 # Clean up executables in Windows
 #
-cleanexe : configure
+cleanexe : configure ALWAYS
 	\find . \( -type d -name bin -prune \) -o -type f -name '*.exe' -exec /bin/rm -f '{}' \;
 #
 # Shortcut for making libs only, helps for debugging.
@@ -454,6 +457,9 @@ ALWAYS:
 
 ############################################################################
 #  $Log$
+#  Revision 3.74  2009/01/15 16:37:44  mast
+#  Change a \rm in make src
+#
 #  Revision 3.73  2008/01/29 05:32:58  mast
 #  Remove devkit from src build
 #
