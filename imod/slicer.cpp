@@ -465,8 +465,7 @@ int sslice_open(struct ViewInfo *vi)
     }
   }
   
-  if (!sliceAngDia)
-    setAngleToolbarState(ss->qtWindow, false);
+  setAngleToolbarState(ss->qtWindow, sliceAngDia != NULL);
 
   ss->qtWindow->show();
   ss->glw->setMouseTracking(pixelViewOpen);
@@ -2698,6 +2697,9 @@ void slicerCubePaint(SlicerStruct *ss)
 
 /*
 $Log$
+Revision 4.62  2009/01/15 16:33:18  mast
+Qt 4 port
+
 Revision 4.61  2008/11/29 22:10:30  mast
 Added ability to link slicers
 
