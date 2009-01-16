@@ -121,6 +121,7 @@ class BeadFixer : public DialogFrame
   void runAlign();
   void alignExited(int exitCode, QProcess::ExitStatus exitStatus);
   void setFontDependentWidths();
+  void fixSize();
 
  protected:
   void closeEvent ( QCloseEvent * e );
@@ -208,6 +209,9 @@ class BeadFixer : public DialogFrame
 /*
 
 $Log$
+Revision 1.25  2009/01/15 16:33:17  mast
+Qt 4 port
+
 Revision 1.24  2008/11/29 22:08:50  mast
 Added skip list, extra object variables
 
