@@ -501,6 +501,7 @@ void InfoWindow::keepOnTop(bool state)
     flags ^= Qt::WindowStaysOnTopHint;
 
   // Here are old Qt 3 notes.  But with Qt 4, linux jumped to corner sometimes
+  // but pos() works on both Windows and Linux now
   //QPoint p(geometry().x(), geometry().y());
   // Using pos() jumps on Windows
   // Also, pos() jumps up-left on Unix, geometry() jumps down-right
@@ -512,8 +513,8 @@ void InfoWindow::keepOnTop(bool state)
   setWindowFlags(flags);
   move(p2);
   show();
-  imodPrintStderr("after geom %d %d  pos %d %d\n", geometry().x(), 
-     geometry().y(), pos().x(), pos().y());
+  /*imodPrintStderr("after geom %d %d  pos %d %d\n", geometry().x(), 
+    geometry().y(), pos().x(), pos().y()); */
 #endif
 }
 
@@ -693,6 +694,9 @@ static char *truncate_name(char *name, int limit)
 /*
 
 $Log$
+Revision 4.53  2009/01/15 16:33:17  mast
+Qt 4 port
+
 Revision 4.52  2008/12/10 01:04:50  mast
 Added menu item to set jpeg quality
 
