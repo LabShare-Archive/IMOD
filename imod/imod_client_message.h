@@ -55,7 +55,6 @@ class ImodClipboard : public QObject
   int waitForDisconnect();
   bool disconnectedFromStderr() {return mDisconnected;};
 
-  QTimer *mClipTimer;
   QTimer *mClipHackTimer;
   QTimer *mStdinTimer;
 
@@ -92,6 +91,9 @@ class StdinThread : public QThread
 #endif /* IMOD_CLIENT_MESSAGE_H */
 /*
 $Log$
+Revision 3.20  2009/01/15 16:33:17  mast
+Qt 4 port
+
 Revision 3.19  2008/11/29 22:08:16  mast
 Beadfixer message
 
