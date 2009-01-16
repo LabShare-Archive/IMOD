@@ -1775,7 +1775,7 @@ void BeadFixer::deleteBelow()
 {
   Imod *imod = ivwGetModel(plug->view);
   Iobj *obj;
-  int ob, i, del, ix, iy, iz, pt, curobj;
+  int ob, i, del, ix, iy, iz, pt, curobj, anydel = 0;
   Istore *store;
   Iindex index;
   Icont *cont;
@@ -1809,14 +1809,19 @@ void BeadFixer::deleteBelow()
                 }
               }
             }
-            if (del)    
+            if (del) {
+              if (!anydel)
+                imodSelectionListClear(plug->view);
               imodSelectionListAdd(plug->view, index);
+              anydel = 1;
+            }
           }
         }
       }
     }
   }
-  inputDeleteContour(plug->view);
+  if (anydel)
+    inputDeleteContour(plug->view);
 }
 
 
@@ -1848,46 +1853,57 @@ void BeadFixer::turnOffToggled(bool state)
 
 void BeadFixer::modeSelected(int value)
 {
-  // Manage seed mode items
-  showWidget(seedModeBox, value == SEED_MODE);
-  showWidget(overlayHbox, value == SEED_MODE);
-  showWidget(reverseBox, value == SEED_MODE);
-  if (threshSlider) {
-    threshSlider->showWidgets(0, value == SEED_MODE);
-    showWidget(deleteBelowBut, value == SEED_MODE);
-    showWidget(delAllSecBut, value == SEED_MODE);
-    showWidget(delAllObjBut, value == SEED_MODE);
-    showWidget(turnOffBut, value == SEED_MODE);
+  for (int on = 0; on < 2; on++) {
+
+    // Manage seed mode items
+    if (!on && value != SEED_MODE || on && value == SEED_MODE) {
+      showWidget(seedModeBox, value == SEED_MODE);
+      showWidget(overlayHbox, value == SEED_MODE);
+      showWidget(reverseBox, value == SEED_MODE);
+      if (threshSlider) {
+        threshSlider->showWidgets(0, value == SEED_MODE);
+        showWidget(deleteBelowBut, value == SEED_MODE);
+        showWidget(delAllSecBut, value == SEED_MODE);
+        showWidget(delAllObjBut, value == SEED_MODE);
+        showWidget(turnOffBut, value == SEED_MODE);
+      }
+    }
+
+
+    // Manage gap filling items
+    if (!on && value != GAP_MODE || on && value == GAP_MODE) {
+      showWidget(ignoreSkipBut, value == GAP_MODE);
+      showWidget(skipEdit, value == GAP_MODE);
+      showWidget(nextGapBut, value == GAP_MODE);
+      showWidget(prevGapBut, value == GAP_MODE);
+      showWidget(reattachBut, value == GAP_MODE);
+      showWidget(resetStartBut, value == GAP_MODE);
+      showWidget(resetCurrentBut, value == GAP_MODE);
+    }
+
+    // Manage autocenter items
+    if (!on && value == RES_MODE || on && value != RES_MODE) {
+      showWidget(cenLightHbox, value != RES_MODE);
+      showWidget(diameterHbox, value != RES_MODE);
+    }
+    
+    // Manage residual mode items
+    if (!on && value != RES_MODE || on && value == RES_MODE) {
+      showWidget(openFileBut, value == RES_MODE);
+      showWidget(runAlignBut, value == RES_MODE);
+      showWidget(rereadBut, value == RES_MODE);
+      showWidget(nextLocalBut, value == RES_MODE);
+      showWidget(nextResBut, value == RES_MODE);
+      showWidget(movePointBut, value == RES_MODE);
+      showWidget(undoMoveBut, value == RES_MODE);
+      showWidget(moveAllBut, value == RES_MODE);
+      showWidget(backUpBut, value == RES_MODE);
+      showWidget(clearListBut, value == RES_MODE);
+      showWidget(examineBox, value == RES_MODE);
+    }
   }
 
-  // Manage gap filling items
-  showWidget(ignoreSkipBut, value == GAP_MODE);
-  showWidget(skipEdit, value == GAP_MODE);
-  showWidget(nextGapBut, value == GAP_MODE);
-  showWidget(prevGapBut, value == GAP_MODE);
-  showWidget(reattachBut, value == GAP_MODE);
-  showWidget(resetStartBut, value == GAP_MODE);
-  showWidget(resetCurrentBut, value == GAP_MODE);
-
-  // Manage autocenter items
-  showWidget(cenLightHbox, value != RES_MODE);
-  showWidget(diameterHbox, value != RES_MODE);
-    
-  // Manage residual mode items
-  showWidget(openFileBut, value == RES_MODE);
-  showWidget(runAlignBut, value == RES_MODE);
-  showWidget(rereadBut, value == RES_MODE);
-  showWidget(nextLocalBut, value == RES_MODE);
-  showWidget(nextResBut, value == RES_MODE);
-  showWidget(movePointBut, value == RES_MODE);
-  showWidget(undoMoveBut, value == RES_MODE);
-  showWidget(moveAllBut, value == RES_MODE);
-  showWidget(backUpBut, value == RES_MODE);
-  showWidget(clearListBut, value == RES_MODE);
-  showWidget(examineBox, value == RES_MODE);
-
-  imod_info_input();
-  adjustSize();
+  fixSize();
 
   // Turn overlay mode on or off if needed
   if ((value == SEED_MODE || plug->showMode == SEED_MODE) && plug->overlayOn)
@@ -2230,8 +2246,16 @@ BeadFixer::BeadFixer(QWidget *parent, const char *name)
   connect(this, SIGNAL(actionClicked(int)), this, SLOT(buttonPressed(int)));
   modeSelected(plug->showMode);
   setFontDependentWidths();
+  fixSize();
+}
+
+// In Qt 4 it just wouldn't go down to its minimum size: so force it down to the hint
+void BeadFixer::fixSize()
+{
   imod_info_input();
   adjustSize();
+  QSize hint = sizeHint();
+  resize(B3DMIN(width(), hint.width()), B3DMIN(height(), hint.height()));
 }
 
 void BeadFixer::buttonPressed(int which)
@@ -2455,6 +2479,7 @@ void BeadFixer::fontChange( const QFont & oldFont )
 {
   mRoundedStyle = ImodPrefs->getRoundedStyle();
   setFontDependentWidths();
+  fixSize();
   DialogFrame::fontChange(oldFont);
 }
 
@@ -2475,6 +2500,9 @@ void BeadFixer::keyReleaseEvent ( QKeyEvent * e )
 /*
 
 $Log$
+Revision 1.53  2009/01/15 16:33:17  mast
+Qt 4 port
+
 Revision 1.52  2008/12/13 01:25:48  mast
 Improved criteria for accepting farther peak in autocenter
 
