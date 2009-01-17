@@ -455,19 +455,7 @@ echo VCEXEDIR = $vcexedir >> $configure
 echo 'QTINSTLIBDIR = bin' >> $configure
 echo 'INSTALL_FILES = IMOD-cygwin.csh IMOD-cygwin.sh' >> $configure
 
-# Manage dual python extension module build
-#
-set toppy = `which python`
-set altpy = ""
-if ("$toppy" == "/usr/bin/python" || "$toppy" == "/bin/python") then
-    set altpy = `echo $PATH | sed '/.*:\([^:]*[Pp]ython[^:]*\):.*/s//\1/'`
-else if (-e "/usr/bin/python") then
-    set altpy = "/usr/bin"
-endif
-if ("$altpy" != "") then
-    echo "ALTPYTHON  = $altpy" >> $configure
-    echo "TWOPYTHONS = twopys" >> $configure
-endif
+# 1/16/09: Remove dual python build, the altpy path was broken (4.0.2)
 
 # Add scripts for running from command line to the install.  They are no
 # longer generated because of permission problems and to handle spaces in args
