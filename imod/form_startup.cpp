@@ -62,7 +62,7 @@ void StartupForm::languageChange()
 
 void StartupForm::init()
 {
-  setAttribute(Qt::WA_DeleteOnClose);
+  // Do NOT Delete on close, imod needs to access the arguments
   setAttribute(Qt::WA_AlwaysShowToolTips);
 
   // Set up radio buttons and other defaults
@@ -635,5 +635,8 @@ void StartupForm::helpClicked()
 /*
 
 $Log$
+Revision 4.1  2009/01/15 16:33:17  mast
+Qt 4 port
+
 
 */
