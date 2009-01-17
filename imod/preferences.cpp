@@ -115,9 +115,15 @@ ImodPreferences::ImodPreferences(char *cmdLineStyle)
   QCoreApplication::setOrganizationDomain("bio3d.colorado.edu");
 
   // Put plugin dir on the library path so image plugins can be found
+  // Replace the default path so we don't get anything from our own Qt install
   plugdir = getenv("IMOD_PLUGIN_DIR");
   if (plugdir)
-    QApplication::addLibraryPath(QString(plugdir));
+    strList << plugdir;
+  plugdir = getenv("IMOD_DIR");
+  if (plugdir)
+    strList << QString(plugdir) + QString("/lib/imodplug");
+  if (strList.count())
+    QApplication::setLibraryPaths(strList);
 
   // Set the default values
   prefs->hotSliderKeyDflt = 0;
@@ -806,6 +812,8 @@ QStringList ImodPreferences::snapFormatList()
   for (int i = 0; i < formats.count(); i++) {
     str = formats[i];
     str = str.toUpper();
+    if (Imod_debug)
+      imodPrintStderr("%s  ", LATIN1(str));
     if (str == "JPG") 
       str = "JPEG";
     if (str != "PBM" && str != "XBM" && str != "TIF" && str != "TIFF" && 
@@ -815,6 +823,8 @@ QStringList ImodPreferences::snapFormatList()
       gotJPEG = true;
   }
   retList << "RGB";
+  if (Imod_debug)
+    imodPuts(" ");
   return retList;
 }
 
@@ -1179,6 +1189,9 @@ void PrefsDialog::closeEvent ( QCloseEvent * e )
 
 /*
 $Log$
+Revision 1.39  2009/01/17 00:07:14  mast
+Eliminate TIFF and duplicate JPG formats
+
 Revision 1.38  2009/01/16 22:59:33  mast
 Info position confusion avoided by processing events before moving window
 
