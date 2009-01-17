@@ -88,11 +88,6 @@ else
 endif
 echo "DLLDESTDIR = lib" >> $configure
 
-# Set up to copy jpeg plugin for Qt
-#
-echo "QTPLUG_SRCDIR1 = imageformats" >> $configure
-echo "QTPLUGS_TOCOPY1 = libqjpeg.dylib" >> $configure
-
 # Needed under tcsh 6.12 in RH 8.0 to avoid getting two \ out
 cat << EOF >> $configure
 CP        = \\cp
