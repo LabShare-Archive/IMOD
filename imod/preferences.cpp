@@ -796,19 +796,25 @@ void ImodPreferences::changeStyle(QString newKey)
 }
 
 // Return a doctored list of snapshot formats, starting with RGB and leaving
-// out binary formats
+// out binary formats and their TIF/TIFF and eliminating JPEG/JPG duplication
 QStringList ImodPreferences::snapFormatList()
 {
   QStringList retList;
   QString str;
   QList<QByteArray> formats = QImageWriter::supportedImageFormats();
-  retList << "RGB";
+  bool gotJPEG = false;
   for (int i = 0; i < formats.count(); i++) {
     str = formats[i];
     str = str.toUpper();
-    if (formats[i] != "PBM" && formats[i] != "XBM")
+    if (str == "JPG") 
+      str = "JPEG";
+    if (str != "PBM" && str != "XBM" && str != "TIF" && str != "TIFF" && 
+        !(str == "JPEG" && gotJPEG))
       retList << str;
+    if (str == "JPEG")
+      gotJPEG = true;
   }
+  retList << "RGB";
   return retList;
 }
 
@@ -1173,6 +1179,9 @@ void PrefsDialog::closeEvent ( QCloseEvent * e )
 
 /*
 $Log$
+Revision 1.38  2009/01/16 22:59:33  mast
+Info position confusion avoided by processing events before moving window
+
 Revision 1.37  2009/01/15 16:33:18  mast
 Qt 4 port
 
