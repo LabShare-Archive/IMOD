@@ -393,10 +393,10 @@ csrc : ALWAYS
 	tar cBf - \
 	machines \
 	lib*/*.[ch] lib*/*.cpp lib[icm]*/Makefile libdiaqt/Makefile.dummy \
-	libdiaqt/Makefile.unix lib*/*.dsp libimod/libimod.dsw \
+	libdiaqt/Makefile.unix lib*/*.dsp lib*/*.vcproj libimod/libimod.dsw \
 	USFFTlib/*/*.a sysdep/*/* \
-	imod/*.[ch] imod/*.cpp imod/*.ui imod/imod.pro imod/imodhelp \
-	imod/*.bits imod/*.png imod/*.xpm \
+	imod/*.[ch] imod/*.cpp imod/*.ui imod/imod.pro \
+	imod/*.bits imod/*.png imod/*.xpm imod/*.qrc \
 	imod/3dmod.dsw imod/Makefile.dummy imod/b3dicon.i* \
 	imodutil/*.[ch] imodutil/Makefile \
 	mrc/*.[ch] mrc/*.cpp   mrc/Makefile \
@@ -410,7 +410,7 @@ csrc : ALWAYS
 	sourcedoc/*.cpp sourcedoc/sourcedoc.pro \
 	sourcedoc/Makefile.dummy sourcedoc/sourcedoc.dsp \
 	ctfplotter/*.cpp ctfplotter/*.h ctfplotter/ctfplotter.pro \
-	ctfplotter/Makefile.dummy ctfplotter/images \
+	ctfplotter/Makefile.dummy ctfplotter/*.qrc ctfplotter/images \
 	html/*.* html/Makefile html/3dmodimages html/etomoImages \
 	html/3dmodHelp html/joinImages html/adpStub html/makeadp \
 	html/ctfHelp html/midasHelp html/libdoc/Makefile html/libdoc/*.html \
@@ -457,6 +457,9 @@ ALWAYS:
 
 ############################################################################
 #  $Log$
+#  Revision 3.75  2009/01/16 03:00:24  mast
+#  Updated notes, maybe made some cleans work better
+#
 #  Revision 3.74  2009/01/15 16:37:44  mast
 #  Change a \rm in make src
 #
