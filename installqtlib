@@ -87,7 +87,10 @@ while ($plugnum < 100)
     set pluglist = `sed -n "/QTPLUGS_TOCOPY$plugnum/s/^.*= *//p" configure`
     mkdir -p $instdir/lib/imodplug/$plugdir
     foreach i ($pluglist)
-        \cp $QTDIR/plugins/$plugdir/$i $instdir/lib/imodplug/$plugdir
+        if (-e $QTDIR/plugins/$plugdir/$i) then
+            \cp $QTDIR/plugins/$plugdir/$i $instdir/lib/imodplug/$plugdir
+            chmod a+rx $instdir/lib/imodplug/$plugdir
+        endif
     end
     @ plugnum++
 end
@@ -183,6 +186,9 @@ exit 0
 
 #
 #  $Log$
+#  Revision 3.33  2009/01/15 16:47:01  mast
+#  Qt 4 port
+#
 #  Revision 3.31  2008/12/23 03:41:41  mast
 #  UAC wrapper scripts needed to already have the final name
 #
