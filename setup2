@@ -772,6 +772,10 @@ EOF
 
         chmod a+x $scripts_dir/runimodqtapp
         set gen_scripts = runimodqtapp
+
+        # Set up Qt image plugins to copy
+        #
+        echo "QTPLUGS_TOCOPY1 = libqjpeg.so libqico.so" >> $configure
     else
 
         # MACOSX: deferred tasks
@@ -781,6 +785,9 @@ EOF
         set plug_loader = ${source_dir}/${imod_dir}/${imod_target}
         set allqt_libs = `sed -n -e '/-ltrack/s///' -e '/^LIBS /s/^LIBS.*) *//p' $imod_dir/Makefile`
         echo 'MAKELIBSO = $(ARCPP) -bundle -dynamic -bundle_loader '"$plug_loader"' $(LDFLAGS) '"$allqt_libs -o " >> $configure
+
+
+        echo "QTPLUGS_TOCOPY1 = libqjpeg.dylib libqico.dylib" >> $configure
     endif
 
     (cd $imod_dir ; \rm -f 3dmodv ; ln -s 3dmod 3dmodv)
@@ -805,6 +812,7 @@ endif
 \find $imod_dir -name 'imod.o*' ! -newer .version -exec \rm -f '{}' \;
 \find $imod_dir -name 'imod*_menu.o*' ! -newer .version -exec \rm -f '{}' \;
 
+echo "QTPLUG_SRCDIR1 = imageformats" >> $configure
 echo "RGBPROGS = $rgbprogs" >> $configure
 echo "LDFFLAGS = $ldfflags" >> $configure
 echo "MAKESTATICLIB = $makestaticlib" >> $configure
@@ -951,6 +959,9 @@ exit
 
 #
 #  $Log$
+#  Revision 1.41  2009/01/16 19:05:28  mast
+#  Add quotes to program in runimodqtapp in case of space in IMOD_DIR
+#
 #  Revision 1.40  2009/01/15 16:47:01  mast
 #  Qt 4 port
 #
