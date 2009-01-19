@@ -1,5 +1,7 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+1/17/09: Fixed problem get min and max X of contours in Flattenwarp.
+
 1/16/09: Fixed runimodqtapp for spaces in IMOD_DIR (In 3.13).
 
 1/15/09: Stopped beadfixer from deleting current contour when deleting ones
