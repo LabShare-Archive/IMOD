@@ -141,8 +141,8 @@ int main( int argc, char *argv[])
       /* Make sure contour is planar and get x min and max */
       iyval = B3DNINT(cont->pts[0].y);
       planar = 1;
-      xmin = 1.e20;
-      xmax = -xmin;
+      xmin = cont->pts[0].x;
+      xmax = xmin;
       for (pt = 1; pt < cont->psize; pt++) {
         if (B3DNINT(cont->pts[pt].y) !=iyval)
           planar = 0;
