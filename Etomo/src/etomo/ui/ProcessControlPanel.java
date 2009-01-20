@@ -22,6 +22,10 @@ import etomo.util.InvalidParameterException;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.8  2007/09/07 00:27:48  sueh
+ * <p> bug# 989 Using a public INSTANCE to refer to the EtomoDirector singleton
+ * <p> instead of getInstance and createInstance.
+ * <p>
  * <p> Revision 3.7  2007/08/21 21:52:42  sueh
  * <p> bug# 771 Made colorNotStarted final.
  * <p>
@@ -83,7 +87,7 @@ public class ProcessControlPanel {
 
   private String command;
   private JPanel panelRoot = new JPanel();
-  private JToggleButton buttonRun = new JToggleButton();
+  private SimpleToggleButton buttonRun = new SimpleToggleButton();
 
   private JPanel panelState;
   private ColoredStateText highlightState;
@@ -116,10 +120,9 @@ public class ProcessControlPanel {
       System.err.println(e.getMessage());
     }
 
-    updateLabel();
     panelRoot.add(buttonRun);
     buttonRun.setActionCommand(dialogType.toString());
-    buttonRun.setName(dialogType.getStorableName());
+    updateLabel();
   }
 
   String getCommand() {
