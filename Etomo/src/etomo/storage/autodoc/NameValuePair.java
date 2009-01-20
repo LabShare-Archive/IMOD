@@ -59,9 +59,17 @@ final class NameValuePair extends Statement {
     }
     return value.getValues();
   }
+  
+  public ReadOnlySection getSubsection() {
+    return null;
+  }
+  
+  public String toString() {
+    return getString();
+  }
 
   /**
-   * Get something equivalent to the original statement.  No gaurenteed to be
+   * Get something equivalent to the original statement.  Not guarenteed to be
    * exactly the same
    */
   public String getString() {
@@ -174,6 +182,13 @@ final class NameValuePair extends Statement {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.10  2007/04/11 22:04:52  sueh
+ * <p> bug# 964 Added a link list to Statement so that groups of statements could be
+ * <p> removed.  Added the parameter Statement previousStatement to the Statement
+ * <p> constructor.  Removed getDelimiterChangeInstance and added
+ * <p> setDelimiterChange.  Added remove(), which overrides Statement.remove() and
+ * <p> calls Attribute.remove() for each attribute in the name.
+ * <p>
  * <p> Revision 1.9  2007/04/09 20:33:37  sueh
  * <p> bug# 964 Change NameValuePair to an abstract class called Statement and
  * <p> child classes representing name/value pair, comment, empty line, and
