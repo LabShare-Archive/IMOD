@@ -47,6 +47,7 @@ final class SetupDialog extends ProcessDialog implements ContextMenu,
   static final String FRAME_TYPE_LABEL = "Frame Type";
   static final String SINGLE_AXIS_LABEL = "Single axis";
   static final String MONTAGE_LABEL ="Montage";
+  private final String BACKUP_DIRECTORY_LABEL = "Backup directory: ";
 
   private final JPanel pnlDataParameters = new JPanel();
   //  Dataset GUI objects
@@ -56,21 +57,21 @@ final class SetupDialog extends ProcessDialog implements ContextMenu,
 
   private final LabeledTextField ltfDataset = new LabeledTextField(
       DATASET_NAME_LABEL);
-  private final JButton btnDataset = new JButton(iconFolder);
+  private final SimpleButton btnDataset = new SimpleButton(iconFolder);
 
   private final LabeledTextField ltfBackupDirectory = new LabeledTextField(
-      "Backup directory: ");
-  private final JButton btnBackupDirectory = new JButton(iconFolder);
+      BACKUP_DIRECTORY_LABEL);
+  private final SimpleButton btnBackupDirectory = new SimpleButton(iconFolder);
 
   //  Data type GUI objects
   private final JPanel pnlPerAxisInfo = new JPanel();
-  private final JPanel pnlAxisInfoA = new JPanel();
-  private final JPanel pnlDataType = new JPanel();
-  private final JPanel pnlAxisType = new JPanel();
+  private final EtomoPanel pnlAxisInfoA = new EtomoPanel();
+  private final EtomoPanel pnlDataType = new EtomoPanel();
+  private final EtomoPanel pnlAxisType = new EtomoPanel();
   private final RadioButton rbSingleAxis = new RadioButton(SINGLE_AXIS_LABEL);
   private final RadioButton rbDualAxis = new RadioButton("Dual axis");
 
-  private final JPanel pnlViewType = new JPanel();
+  private final EtomoPanel pnlViewType = new EtomoPanel();
   private final RadioButton rbSingleView = new RadioButton("Single frame");
   private final RadioButton rbMontage = new RadioButton(MONTAGE_LABEL);
 
@@ -133,11 +134,11 @@ final class SetupDialog extends ProcessDialog implements ContextMenu,
     this.expert = expert;
     this.calibrationAvailable = calibrationAvailable;
     rootPanel.setLayout(new BoxLayout(rootPanel, BoxLayout.Y_AXIS));
-
     createDatasetPanel();
     createDataTypePanel();
     createPerAxisInfoPanel();
-
+    btnDataset.setName(DATASET_NAME_LABEL);
+    btnBackupDirectory.setName(BACKUP_DIRECTORY_LABEL);
     //  Relabel the postpone button
     btnPostpone.setText("Use Existing Coms");
     btnExecute.setText("Create Com Scripts");
@@ -732,7 +733,7 @@ final class SetupDialog extends ProcessDialog implements ContextMenu,
     cbAdjustedFocusA.setEnabled(false);
     pnlAxisInfoA.add(pnlAdjustedFocusA);
 
-    JPanel pnlAxisInfoB = new JPanel();
+    EtomoPanel pnlAxisInfoB = new EtomoPanel();
     pnlAxisInfoB.setBorder(borderAxisInfoB.getBorder());
     pnlAxisInfoB.setLayout(new BoxLayout(pnlAxisInfoB, BoxLayout.Y_AXIS));
     ltfExcludeListB.setAlignmentX(Component.CENTER_ALIGNMENT);
@@ -857,6 +858,9 @@ final class SetupDialog extends ProcessDialog implements ContextMenu,
 }
 /**
  * <p> $Log$
+ * <p> Revision 3.63  2008/12/01 22:30:40  sueh
+ * <p> bug# 1131 Made Montage labels available to package.
+ * <p>
  * <p> Revision 3.62  2008/09/10 21:36:08  sueh
  * <p> Handled a null pointer exception in DatasetAction.
  * <p>
