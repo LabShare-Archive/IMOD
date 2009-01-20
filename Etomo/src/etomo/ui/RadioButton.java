@@ -18,7 +18,7 @@ import etomo.storage.autodoc.AutodocTokenizer;
 import etomo.storage.autodoc.ReadOnlySection;
 import etomo.type.EnumeratedType;
 import etomo.type.EtomoAutodoc;
-import etomo.type.UITestField;
+import etomo.type.UITestFieldType;
 import etomo.util.Utilities;
 
 /**
@@ -108,7 +108,7 @@ final class RadioButton implements RadioButtonInterface {
     String name = Utilities.convertLabelToName(text);
     radioButton.setName(name);
     if (EtomoDirector.INSTANCE.getArguments().isPrintNames()) {
-      System.out.println(UITestField.RADIO_BUTTON.toString()
+      System.out.println(UITestFieldType.RADIO_BUTTON.toString()
           + AutodocTokenizer.SEPARATOR_CHAR + name + ' '
           + AutodocTokenizer.DEFAULT_DELIMITER + ' ');
     }
@@ -225,6 +225,10 @@ final class RadioButton implements RadioButtonInterface {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.20  2008/05/30 22:33:01  sueh
+ * <p> bug# 1102 Isolating the etomo.uitest package so it is not need for
+ * <p> running EtomoDirector.
+ * <p>
  * <p> Revision 1.19  2008/05/30 21:33:56  sueh
  * <p> bug# 1102 Moved uitest classes to etomo.uitest.
  * <p>
