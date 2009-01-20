@@ -38,6 +38,9 @@ import etomo.type.SectionTableRowData;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.5  2008/09/30 20:57:17  sueh
+ * <p> bug# 1113 In display, check Viewport before displaying.
+ * <p>
  * <p> Revision 1.4  2008/01/31 20:25:24  sueh
  * <p> bug# 1055 throwing a FileException when LogFile.getInstance fails.
  * <p>
@@ -74,15 +77,17 @@ final class BoundaryRow {
   private final GridBagConstraints constraints;
   private final AdjustedEndChangeListener adjustedEndChangeListener;
   private final AdjustedStartChangeListener adjustedStartChangeListener;
+  private final BoundaryTable table;
   private Gap gap = null;
   private boolean endInverted = false;
   private boolean startInverted = false;
 
   BoundaryRow(int key, ConstJoinMetaData metaData, JoinScreenState screenState,
-      JPanel panel, GridBagLayout layout, GridBagConstraints constraints) {
+      JPanel panel, GridBagLayout layout, GridBagConstraints constraints,BoundaryTable table) {
     this.panel = panel;
     this.layout = layout;
     this.constraints = constraints;
+    this.table=table;
     //boundary
     String firstSection = Integer.toString(key);
     boundary.setText(firstSection);
@@ -128,6 +133,13 @@ final class BoundaryRow {
     adjustedStartChangeListener = new AdjustedStartChangeListener(this);
     adjustedEnd.addChangeListener(adjustedEndChangeListener);
     adjustedStart.addChangeListener(adjustedStartChangeListener);
+  }
+  
+  void setNames() {
+    adjustedStart.setHeaders(BoundaryTable.TABLE_LABEL, sections, table
+        .getAdjustedHeaderCell());
+    adjustedEnd.setHeaders(BoundaryTable.TABLE_LABEL, sections, table
+        .getAdjustedHeaderCell());
   }
 
   /**
