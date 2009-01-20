@@ -14,6 +14,9 @@
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.34  2008/10/16 22:31:14  sueh
+ * <p> bug# 1141 Removed fixRootPanel because it doesn't do anything.
+ * <p>
  * <p> Revision 3.33  2008/05/30 22:32:28  sueh
  * <p> bug# 1102 Isolating the etomo.uitest package so it is not need for
  * <p> running EtomoDirector.
@@ -176,13 +179,10 @@ import javax.swing.JPanel;
 
 
 import etomo.ApplicationManager;
-import etomo.EtomoDirector;
 import etomo.comscript.ParallelParam;
-import etomo.storage.autodoc.AutodocTokenizer;
 import etomo.type.AxisID;
 import etomo.type.DialogExitState;
 import etomo.type.DialogType;
-import etomo.type.UITestAction;
 import etomo.util.Utilities;
 
 public abstract class ProcessDialog implements AbstractParallelDialog {
@@ -191,7 +191,7 @@ public abstract class ProcessDialog implements AbstractParallelDialog {
   final ApplicationManager applicationManager;
   final AxisID axisID;
   final DialogType dialogType;
-  final JPanel rootPanel = new JPanel();
+  final EtomoPanel rootPanel = new EtomoPanel();
   //  Exit buttons
   final JPanel pnlExitButtons = new JPanel();
   final MultiLineButton btnCancel = new MultiLineButton("Cancel");
@@ -221,15 +221,6 @@ public abstract class ProcessDialog implements AbstractParallelDialog {
     applicationManager = appManager;
     this.axisID = axisID;
     this.dialogType = dialogType;
-    //set name
-    String name = dialogType.getStorableName();
-    rootPanel.setName(name);
-    if (EtomoDirector.INSTANCE.getArguments().isPrintNames()) {
-      System.out.println(AutodocTokenizer.OPEN_CHAR
-          + UITestAction.DIALOG.toString() + ' '
-          + AutodocTokenizer.DEFAULT_DELIMITER + ' ' + name
-          + AutodocTokenizer.CLOSE_CHAR);
-    }
     //  Get the default initial advanced state
     isAdvanced = appManager.isAdvanced(dialogType, axisID);
     setAdvanced(isAdvanced);

@@ -55,6 +55,10 @@ import etomo.util.MRCHeader;
  * 
  * <p>
  * $Log$
+ * Revision 3.57  2008/07/19 01:12:03  sueh
+ * bug# 1125 Making it easier to access CpuAdoc by not passing the
+ * manager to it; all it needs is the current directory.
+ *
  * Revision 3.56  2008/05/28 02:51:22  sueh
  * bug# 1111 Add a dialogType parameter to the ProcessSeries
  * constructor.  DialogType must be passed to any function that constructs
@@ -423,11 +427,11 @@ public final class SetupCombinePanel implements ContextMenu,
 
   boolean matchBtoA;
 
-  private JPanel pnlRoot = new JPanel();
+  private EtomoPanel pnlRoot = new EtomoPanel();
   private BeveledBorder brdrContent = new BeveledBorder(
       "Combination Parameters");
 
-  private JPanel pnlToSelector = new JPanel();
+  private EtomoPanel pnlToSelector = new EtomoPanel();
   private ButtonGroup bgToSelector = new ButtonGroup();
   private JPanel pnlRBToSelector = new JPanel();
   private JLabel lblEffectWarning = new JLabel(
@@ -437,7 +441,7 @@ public final class SetupCombinePanel implements ContextMenu,
 
   private SolvematchPanel pnlSolvematch;
 
-  private JPanel pnlPatchParams = new JPanel();
+  private EtomoPanel pnlPatchParams = new EtomoPanel();
   private JPanel pnlPatchParamsBody = new JPanel();
   private RadioButton rbSmallPatch = new RadioButton("Small patches");
   private RadioButton rbMediumPatch = new RadioButton("Medium patches");
@@ -449,7 +453,7 @@ public final class SetupCombinePanel implements ContextMenu,
       "Create/Edit Patch Region Model", this);
 
   private JPanel pnlPatchRegion = new JPanel();
-  private final JPanel pnlVolcombineControls = new JPanel();
+  private final EtomoPanel pnlVolcombineControls = new EtomoPanel();
   private final JPanel pnlVolcombineControlsBody = new JPanel();
   private LabeledTextField ltfXMin = new LabeledTextField("X axis min: ");
   private LabeledTextField ltfXMax = new LabeledTextField("X axis max: ");
@@ -461,7 +465,7 @@ public final class SetupCombinePanel implements ContextMenu,
       ConstCombineParams.PATCH_Z_MAX_LABEL + ": ");
   private int maxZMax = 0;
 
-  private JPanel pnlTempDirectory = new JPanel();
+  private EtomoPanel pnlTempDirectory = new EtomoPanel();
   private JPanel pnlTempDirectoryBody = new JPanel();
   private LabeledTextField ltfTempDirectory = new LabeledTextField(
       "Temporary directory: ");
@@ -513,7 +517,7 @@ public final class SetupCombinePanel implements ContextMenu,
     pnlRBToSelector.setLayout(new BoxLayout(pnlRBToSelector, BoxLayout.Y_AXIS));
     pnlRBToSelector.add(rbBtoA.getComponent());
     pnlRBToSelector.add(rbAtoB.getComponent());
-    pnlToSelector.add(toSelectorHeader.getContainer());
+    pnlToSelector.add(toSelectorHeader);
     pnlToSelector.add(pnlRBToSelector);
     pnlToSelector.add(Box.createHorizontalGlue());
 
@@ -574,7 +578,7 @@ public final class SetupCombinePanel implements ContextMenu,
     patchParamsHeader = PanelHeader.getInstance(
         "Patch Parameters for Refining Alignment", this, dialogType);
     pnlPatchParams.setLayout(new BoxLayout(pnlPatchParams, BoxLayout.Y_AXIS));
-    pnlPatchParams.add(patchParamsHeader.getContainer());
+    pnlPatchParams.add(patchParamsHeader);
     pnlPatchParams.add(pnlPatchParamsBody);
 
     //  Create the volcombine controls panel
@@ -583,7 +587,7 @@ public final class SetupCombinePanel implements ContextMenu,
     pnlVolcombineControls.setBorder(BorderFactory.createEtchedBorder());
     volcombineHeader = PanelHeader.getInstance("Volcombine Controls", this,
         dialogType);
-    pnlVolcombineControls.add(volcombineHeader.getContainer());
+    pnlVolcombineControls.add(volcombineHeader);
     pnlVolcombineControlsBody.setLayout(new BoxLayout(
         pnlVolcombineControlsBody, BoxLayout.Y_AXIS));
     cbParallelProcess = new CheckBox(
@@ -606,7 +610,7 @@ public final class SetupCombinePanel implements ContextMenu,
         this, dialogType);
     pnlTempDirectory
         .setLayout(new BoxLayout(pnlTempDirectory, BoxLayout.Y_AXIS));
-    pnlTempDirectory.add(tempDirectoryHeader.getContainer());
+    pnlTempDirectory.add(tempDirectoryHeader);
     pnlTempDirectory.add(pnlTempDirectoryBody);
 
     //  Bind the buttons to the action listener

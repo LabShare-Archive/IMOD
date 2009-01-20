@@ -54,6 +54,9 @@ import etomo.type.Run3dmodMenuOptions;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.68  2009/01/13 19:39:36  sueh
+ * <p> bug# 1170 Added cbNWeightGroup so that nWeightGroup can be enabled independently of flgWedgeWeight.  Getting the minimum of the nWeightGroup spinner from MatlabParam.  Saving cbNWeightGroup in metadata, so that its setting is not lost when it is disabled.  CbNWeightGroup enables sNWeightGroup.
+ * <p>
  * <p> Revision 1.67  2008/10/10 20:43:24  sueh
  * <p> bug# 1142 Clear tiltRange when tiltRange check box is unchecked.
  * <p>
@@ -292,7 +295,7 @@ public final class PeetDialog implements ContextMenu, AbstractParallelDialog,
   private static final String LST_THRESHOLD_ADDITIONAL_NUMBERS_TITLE = "Additional numbers";
   private static final String N_WEIGHT_GROUP_LABEL = "# of weight groups for equalizing CCCs: ";
 
-  private final JPanel rootPanel = new JPanel();
+  private final EtomoPanel rootPanel = new EtomoPanel();
   private final FileTextField ftfDirectory = new FileTextField(DIRECTORY_LABEL
       + ": ");
   private final LabeledTextField ltfFnOutput = new LabeledTextField(
@@ -413,12 +416,12 @@ public final class PeetDialog implements ContextMenu, AbstractParallelDialog,
       "Import a .prm File");
   private final Run3dmodButton btnAvgVol = Run3dmodButton.get3dmodInstance(
       "Open Averaged Volumes in 3dmod", this);
-  private final JPanel pnlInitMotl = new JPanel();
+  private final EtomoPanel pnlInitMotl = new EtomoPanel();
   private final TabbedPane tabPane = new TabbedPane();
   private final SpacedPanel pnlSetup = SpacedPanel.getInstance();
-  private final JPanel pnlRun = new JPanel();
+  private final EtomoPanel pnlRun = new EtomoPanel();
   private final SpacedPanel pnlYaxisType = SpacedPanel.getInstance();
-  private final JPanel pnlCcMode = new JPanel();
+  private final EtomoPanel pnlCcMode = new EtomoPanel();
   private final Run3dmodButton btnRef = Run3dmodButton.get3dmodInstance(
       "Open Reference Files in 3dmod", this);
   private final MultiLineButton btnDuplicateProject = new MultiLineButton(
@@ -449,7 +452,7 @@ public final class PeetDialog implements ContextMenu, AbstractParallelDialog,
     iterationTable = IterationTable.getInstance(manager);
     //panels
     rootPanel.setLayout(new BoxLayout(rootPanel, BoxLayout.Y_AXIS));
-    rootPanel.setBorder(new EtchedBorder("PEET").getBorder());
+    rootPanel.setBorder(new BeveledBorder("PEET").getBorder());
     rootPanel.add(tabPane);
     createSetupPanel();
     createRunPanel();
@@ -1050,7 +1053,7 @@ public final class PeetDialog implements ContextMenu, AbstractParallelDialog,
     pnlProject.add(ftfDirectory.getContainer());
     pnlProject.add(ltfFnOutput.getContainer());
     //use existing project
-    JPanel pnlUseExistingProject = new JPanel();
+    EtomoPanel pnlUseExistingProject = new EtomoPanel();
     pnlUseExistingProject.setLayout(new BoxLayout(pnlUseExistingProject,
         BoxLayout.X_AXIS));
     pnlUseExistingProject.setBorder(new EtchedBorder("Use Existing Project")
@@ -1074,7 +1077,7 @@ public final class PeetDialog implements ContextMenu, AbstractParallelDialog,
     pnlVolumeFile.add(rbReferenceFile.getComponent());
     pnlVolumeFile.add(ftfReferenceFile.getContainer());
     //reference
-    JPanel pnlReference = new JPanel();
+    EtomoPanel pnlReference = new EtomoPanel();
     pnlReference.setLayout(new BoxLayout(pnlReference, BoxLayout.Y_AXIS));
     pnlReference.setBorder(new EtchedBorder("Reference").getBorder());
     pnlReference.add(pnlVolumeReference);
@@ -1123,7 +1126,7 @@ public final class PeetDialog implements ContextMenu, AbstractParallelDialog,
     pnlMaskType.add(rbMaskTypeVolume.getComponent());
     pnlMaskType.add(rbMaskTypeSphere.getComponent());
     pnlMaskType.add(rbMaskTypeCylinder.getComponent());
-    JPanel pnlMaskRadii = new JPanel();
+    EtomoPanel pnlMaskRadii = new EtomoPanel();
     pnlMaskRadii.setLayout(new BoxLayout(pnlMaskRadii, BoxLayout.X_AXIS));
     pnlMaskRadii.setBorder(new EtchedBorder("Radii of Sphere or Cylinder")
         .getBorder());
@@ -1146,14 +1149,14 @@ public final class PeetDialog implements ContextMenu, AbstractParallelDialog,
     pnlMaskModelPts.add(sMaskModelPtsVolumeModelNumber.getContainer());
     pnlMaskModelPts.add(ltfMaskModelPtsVolumeParticle.getContainer());
     //mask cylinder details
-    JPanel pnlMaskCylinder = new JPanel();
+    EtomoPanel pnlMaskCylinder = new EtomoPanel();
     pnlMaskCylinder.setLayout(new BoxLayout(pnlMaskCylinder, BoxLayout.Y_AXIS));
     pnlMaskCylinder.setBorder(new EtchedBorder("Cylinder Orientation")
         .getBorder());
     pnlMaskCylinder.add(pnlUseMaskModelPts);
     pnlMaskCylinder.add(pnlMaskModelPts);
     //mask
-    JPanel pnlMask = new JPanel();
+    EtomoPanel pnlMask = new EtomoPanel();
     pnlMask.setLayout(new BoxLayout(pnlMask, BoxLayout.X_AXIS));
     pnlMask.setBorder(new EtchedBorder("Masking").getBorder());
     pnlMask.add(pnlMaskType);
@@ -1205,12 +1208,12 @@ public final class PeetDialog implements ContextMenu, AbstractParallelDialog,
     //main panel
     pnlSetup.setBoxLayout(BoxLayout.Y_AXIS);
     pnlSetup.setBorder(BorderFactory.createEtchedBorder());
-    pnlSetup.add(phSetup.getContainer());
+    pnlSetup.add(phSetup);
   }
 
   private void createRunPanel() {
     //Spherical Sampling
-    JPanel pnlSphericalSampling = new JPanel();
+    EtomoPanel pnlSphericalSampling = new EtomoPanel();
     pnlSphericalSampling.setLayout(new BoxLayout(pnlSphericalSampling,
         BoxLayout.X_AXIS));
     pnlSphericalSampling.setBorder(new EtchedBorder(
@@ -1288,7 +1291,7 @@ public final class PeetDialog implements ContextMenu, AbstractParallelDialog,
     //main panel
     pnlRun.setLayout(new BoxLayout(pnlRun, BoxLayout.Y_AXIS));
     pnlRun.setBorder(BorderFactory.createEtchedBorder());
-    pnlRun.add(phRun.getContainer());
+    pnlRun.add(phRun);
   }
 
   public void action(final Run3dmodButton button,

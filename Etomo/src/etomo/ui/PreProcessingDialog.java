@@ -6,7 +6,6 @@ import java.awt.event.*;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.JLabel;
-import javax.swing.JPanel;
 
 import etomo.ApplicationManager;
 import etomo.type.*;
@@ -27,6 +26,9 @@ import etomo.comscript.CCDEraserParam;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.14  2008/10/16 22:30:38  sueh
+ * <p> bug# 1141 Removed fixRootPanel because it doesn't do anything.
+ * <p>
  * <p> Revision 3.13  2008/05/03 00:52:25  sueh
  * <p> bug# 847 Passing null for ProcessSeries to process funtions.
  * <p>
@@ -129,11 +131,11 @@ public class PreProcessingDialog extends ProcessDialog {
 
   private JLabel textDM2MRC = new JLabel(
       "No digital micrograph files detected:  ");
-  private JPanel pnlDMConvert = new JPanel();
+  private EtomoPanel pnlDMConvert = new EtomoPanel();
   private CheckBox cbUniqueHeaders = new CheckBox(
       "Digital micrograph files have unique headers");
 
-  private JPanel pnlEraser = new JPanel();
+  private EtomoPanel pnlEraser = new EtomoPanel();
   private CCDEraserPanel panelCCDEraser;
 
   public PreProcessingDialog(ApplicationManager appManager, AxisID axisID) {

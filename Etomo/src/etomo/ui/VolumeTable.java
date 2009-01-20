@@ -50,6 +50,10 @@ import etomo.type.Run3dmodMenuOptions;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.34  2008/10/07 16:44:55  sueh
+ * <p> bug# 1113 Improved names:  changed Viewport.msgViewportMoved to
+ * <p> msgViewportPaged.
+ * <p>
  * <p> Revision 1.33  2008/10/06 22:49:36  sueh
  * <p> bug# 1113 Got the table size from UserConfiguration.
  * <p>
@@ -344,7 +348,7 @@ final class VolumeTable implements Expandable, Highlightable,
     constraints.gridheight = 1;
     display();
     //border
-    JPanel pnlBorder = new JPanel();
+    EtomoPanel pnlBorder = new EtomoPanel();
     pnlBorder.setLayout(new BoxLayout(pnlBorder, BoxLayout.X_AXIS));
     pnlBorder.setBorder(new EtchedBorder(TABLE_HEADER).getBorder());
     pnlBorder.add(pnlTable);

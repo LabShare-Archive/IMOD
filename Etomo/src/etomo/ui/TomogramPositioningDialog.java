@@ -35,6 +35,9 @@ import etomo.type.Run3dmodMenuOptions;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.64  2008/10/16 22:32:47  sueh
+ * <p> bug# 1141 Removed fixRootPanel because it doesn't do anything.
+ * <p>
  * <p> Revision 3.63  2008/09/30 22:46:19  sueh
  * <p> bug# 1113 Using a private constructor in SpacedPanel.
  * <p>
@@ -360,7 +363,7 @@ final class TomogramPositioningDialog extends ProcessDialog implements
   private final CheckBox cbWholeTomogram = new CheckBox("Use whole tomogram");
   private final Run3dmodButton btnCreateBoundary = Run3dmodButton
       .get3dmodInstance("Create Boundary Model", this);
-  private final JPanel pnlFinalAlign = new JPanel();
+  private final EtomoPanel pnlFinalAlign = new EtomoPanel();
   private final CalcPanel cpAngleOffset = new CalcPanel("Angle offset");
   private CalcPanel cpTiltAxisZShift = new CalcPanel("Z shift");
   private final CalcPanel cpXAxisTilt = new CalcPanel("X axis tilt");

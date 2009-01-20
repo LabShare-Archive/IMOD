@@ -79,7 +79,7 @@ final class TiltalignPanel implements Expandable {
   private final TabbedPane tabPane = new TabbedPane();
 
   //  General pane
-  private final JPanel pnlGeneral = new JPanel();
+  private final EtomoPanel pnlGeneral = new EtomoPanel();
   private final JPanel pnlGeneralBody = new JPanel();
 
   private final LabeledTextField ltfResidualThreshold = new LabeledTextField(
@@ -89,34 +89,34 @@ final class TiltalignPanel implements Expandable {
   private final RadioButton rbResidNeighboring = new RadioButton(
       "Neighboring views");
   private final ButtonGroup bgResidualThreshold = new ButtonGroup();
-  private final JPanel pnlResidualThreshold = new JPanel();
+  private final EtomoPanel pnlResidualThreshold = new EtomoPanel();
 
   private final RadioButton rbSingleFiducialSurface = new RadioButton(
       "Assume fiducials on 1 surface for analysis");
   private final RadioButton rbDualFiducialSurfaces = new RadioButton(
       "Assume fiducials on 2 surfaces for analysis");
   private final ButtonGroup bgFiducialSurfaces = new ButtonGroup();
-  private final JPanel pnlFiducialSurfaces = new JPanel();
+  private final EtomoPanel pnlFiducialSurfaces = new EtomoPanel();
 
   private final LabeledTextField ltfExcludeList = new LabeledTextField(
       "List of views to exclude: ");
   private final LabeledTextField ltfSeparateViewGroups = new LabeledTextField(
       "Separate view groups: ");
 
-  private final JPanel pnlVolumeParameters = new JPanel();
+  private final EtomoPanel pnlVolumeParameters = new EtomoPanel();
   private final LabeledTextField ltfTiltAngleOffset = new LabeledTextField(
       "Total tilt angle offset: ");
   private final LabeledTextField ltfTiltAxisZShift = new LabeledTextField(
       "Tilt axis z shift: ");
 
-  private final JPanel pnlMinimizationParams = new JPanel();
+  private final EtomoPanel pnlMinimizationParams = new EtomoPanel();
   private final LabeledTextField ltfMetroFactor = new LabeledTextField(
       "Metro factor: ");
   private final LabeledTextField ltfCycleLimit = new LabeledTextField(
       "Cycle limit: ");
 
-  private final JPanel pnlLocalParameters = new JPanel();
-  private final JPanel pnlLocalParametersBody = new JPanel();
+  private final EtomoPanel pnlLocalParameters = new EtomoPanel();
+  private final EtomoPanel pnlLocalParametersBody = new EtomoPanel();
   private final SpacedPanel pnlLocalPatches = SpacedPanel.getInstance(true);
   private final CheckBox cbLocalAlignments = new CheckBox(
       "Enable local alignments");
@@ -133,7 +133,7 @@ final class TiltalignPanel implements Expandable {
       "Use global X-Y-Z coordinates");
 
   //  Global variables pane
-  private final JPanel pnlGlobalVariable = new JPanel();
+  private final EtomoPanel pnlGlobalVariable = new EtomoPanel();
   private final JPanel pnlGlobalVariableBody = new JPanel();
 
   //  Tilt angle pane
@@ -144,7 +144,7 @@ final class TiltalignPanel implements Expandable {
   private final RadioButton rbTiltAngleAutomap = new RadioButton(
       "Group tilt angles ");
   private final ButtonGroup bgTiltAngleSolution = new ButtonGroup();
-  private final JPanel pnlTiltAngleSolution = new JPanel();
+  private final EtomoPanel pnlTiltAngleSolution = new EtomoPanel();
 
   private final LabeledTextField ltfTiltAngleGroupSize = new LabeledTextField(
       "Group size: ");
@@ -159,7 +159,7 @@ final class TiltalignPanel implements Expandable {
   private RadioButton rbMagnificationAutomap = new RadioButton(
       "Group magnifications");
   private final ButtonGroup bgMagnificationSolution = new ButtonGroup();
-  private final JPanel pnlMagnificationSolution = new JPanel();
+  private final EtomoPanel pnlMagnificationSolution = new EtomoPanel();
 
   private final LabeledTextField ltfMagnificationReferenceView = new LabeledTextField(
       "Reference view: ");
@@ -169,7 +169,7 @@ final class TiltalignPanel implements Expandable {
       "Non-default grouping: ");
 
   // GlobalDistortion pane
-  private final JPanel pnlDistortionSolution = new JPanel();
+  private final EtomoPanel pnlDistortionSolution = new EtomoPanel();
   private final RadioButton rbDistortionDisabled = new RadioButton("Disabled");
   private final RadioButton rbDistortionFullSolution = new RadioButton(
       "Full solution");
@@ -187,11 +187,11 @@ final class TiltalignPanel implements Expandable {
       "Skew non-default grouping: ");
 
   //  Local variables pane
-  private final JPanel pnlLocalSolution = new JPanel();
+  private final EtomoPanel pnlLocalSolution = new EtomoPanel();
   private final JPanel pnlLocalSolutionBody = new JPanel();
 
   //  Local rotation pane
-  private final JPanel pnlLocalRotationSolution = new JPanel();
+  private final EtomoPanel pnlLocalRotationSolution = new EtomoPanel();
   private final CheckBox cbLocalRotation = new CheckBox("Enable");
 
   private final LabeledTextField ltfLocalRotationGroupSize = new LabeledTextField(
@@ -200,7 +200,7 @@ final class TiltalignPanel implements Expandable {
       "Non-default grouping: ");
 
   //  Local tilt angle pane
-  private final JPanel pnlLocalTiltAngleSolution = new JPanel();
+  private final EtomoPanel pnlLocalTiltAngleSolution = new EtomoPanel();
   private final CheckBox cbLocalTiltAngle = new CheckBox("Enable");
 
   private final LabeledTextField ltfLocalTiltAngleGroupSize = new LabeledTextField(
@@ -209,7 +209,7 @@ final class TiltalignPanel implements Expandable {
       "Non-default grouping: ");
 
   // Local magnfication pane
-  private final JPanel pnlLocalMagnificationSolution = new JPanel();
+  private final EtomoPanel pnlLocalMagnificationSolution = new EtomoPanel();
   private final CheckBox cbLocalMagnification = new CheckBox("Enable");
 
   private final LabeledTextField ltfLocalMagnificationGroupSize = new LabeledTextField(
@@ -218,7 +218,7 @@ final class TiltalignPanel implements Expandable {
       "Non-default grouping: ");
 
   //  Local distortion pane
-  private final JPanel pnlLocalDistortionSolution = new JPanel();
+  private final EtomoPanel pnlLocalDistortionSolution = new EtomoPanel();
   private final RadioButton rbLocalDistortionDisabled = new RadioButton(
       "Disabled");
   private final RadioButton rbLocalDistortionFullSolution = new RadioButton(
@@ -244,7 +244,7 @@ final class TiltalignPanel implements Expandable {
       "Group rotations");
   private final RadioButton rbRotationOne = new RadioButton("One rotation");
   private final ButtonGroup bgRotationSolution = new ButtonGroup();
-  private final JPanel pnlRotationSolution = new JPanel();
+  private final EtomoPanel pnlRotationSolution = new EtomoPanel();
   private final LabeledTextField ltfRotationAngle = new LabeledTextField(
       "Rotation angle: ");
   private final LabeledTextField ltfRotationGroupSize = new LabeledTextField(
@@ -260,7 +260,7 @@ final class TiltalignPanel implements Expandable {
       "Fixed beam tilt (degrees): ", bgBeamTiltOption);
   private final RadioButton rbSolveForBeamTilt = new RadioButton(
       "Solve for beam tilt");
-  private final JPanel pnlBeamTilt = new JPanel();
+  private final EtomoPanel pnlBeamTilt = new EtomoPanel();
   private final JPanel pnlBeamTiltBody = new JPanel();
   private final PanelHeader phBeamTilt;
 
@@ -1324,7 +1324,7 @@ final class TiltalignPanel implements Expandable {
     pnlBeamTilt.setLayout(new BoxLayout(pnlBeamTilt, BoxLayout.Y_AXIS));
     pnlBeamTilt.setBorder(BorderFactory.createEtchedBorder());
     pnlBeamTilt.setAlignmentX(Component.CENTER_ALIGNMENT);
-    pnlBeamTilt.add(phBeamTilt.getContainer());
+    pnlBeamTilt.add(phBeamTilt);
     //beam tilt body
     pnlBeamTiltBody.setLayout(new BoxLayout(pnlBeamTiltBody, BoxLayout.Y_AXIS));
     //no beam tilt
@@ -1410,14 +1410,14 @@ final class TiltalignPanel implements Expandable {
     pnlLocalSolution.setVisible(false);
   }
 
-  private void createVariablePanel(final JPanel panel, final CheckBox checkBox,
+  private void createVariablePanel(final EtomoPanel panel, final CheckBox checkBox,
       final LabeledTextField groupSize,
       final LabeledTextField additionalGroups, final String title) {
     createVariablePanel(panel, checkBox, groupSize, additionalGroups, null,
         title);
   }
 
-  private void createVariablePanel(final JPanel panel, final CheckBox checkBox,
+  private void createVariablePanel(final EtomoPanel panel, final CheckBox checkBox,
       final LabeledTextField field1, final LabeledTextField field2,
       final LabeledTextField field3, final String title) {
     JPanel buttonPanel = new JPanel();
@@ -1427,7 +1427,7 @@ final class TiltalignPanel implements Expandable {
         title, null);
   }
 
-  private void createVariablePanel(final JPanel panel,
+  private void createVariablePanel(final EtomoPanel panel,
       final CheckBox checkBox1, final LabeledTextField field1,
       final LabeledTextField field2, final LabeledTextField field3,
       final CheckBox checkBox2, final String title) {
@@ -1442,14 +1442,14 @@ final class TiltalignPanel implements Expandable {
    * create a variable panel with an internal panel (can contain a radio button
    * group
    */
-  private void createVariablePanel(final JPanel panel,
+  private void createVariablePanel(final EtomoPanel panel,
       final JPanel buttonPanel, final LabeledTextField groupSize,
       final LabeledTextField additionalGroups, final String title) {
     createVariablePanel(panel, buttonPanel, groupSize, additionalGroups, null,
         null, null, title, null);
   }
 
-  private void createVariablePanel(final JPanel panel,
+  private void createVariablePanel(final EtomoPanel panel,
       final Container buttonPanel, final LabeledTextField field1,
       final LabeledTextField field2, final LabeledTextField field3,
       final LabeledTextField field4, final CheckBox checkBox,
@@ -1855,6 +1855,9 @@ final class TiltalignPanel implements Expandable {
 
 /**
  * <p> $Log$
+ * <p> Revision 3.49  2008/11/21 17:11:44  sueh
+ * <p> bug# 1123 Added get and setParameters(ReconScreenState).
+ * <p>
  * <p> Revision 3.48  2008/11/20 01:47:56  sueh
  * <p> bug# 1147 Fixed metaData.setNoBeamTiltSelected,
  * <p> setFixedBeamTiltSelected, and setFixedBeamTilt.

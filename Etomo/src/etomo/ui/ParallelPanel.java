@@ -43,9 +43,9 @@ public final class ParallelPanel implements Expandable {
   private static HashedArray maxCPUList = null;
   private static EtomoBoolean2 validAutodoc = null;
 
-  private final JPanel tablePanel = new JPanel();
-  private final JPanel computerTablePanel = new JPanel();
-  private final JPanel queueTablePanel = new JPanel();
+  private final EtomoPanel tablePanel = new EtomoPanel();
+  private final EtomoPanel computerTablePanel = new EtomoPanel();
+  private final EtomoPanel queueTablePanel = new EtomoPanel();
   private final LabeledTextField ltfCPUsSelected = new LabeledTextField(
       "CPUs: ");
   private final LabeledTextField ltfChunksFinished = new LabeledTextField(
@@ -55,7 +55,7 @@ public final class ParallelPanel implements Expandable {
   private final MultiLineButton btnSaveDefaults = new MultiLineButton(
       "Save As Defaults");
   private final SpacedPanel bodyPanel = SpacedPanel.getInstance();
-  private final JPanel rootPanel = new JPanel();
+  private final EtomoPanel rootPanel = new EtomoPanel();
   private final MultiLineButton btnRestartLoad = new MultiLineButton(
       "Restart Load");
   private final CheckBox cbCluster = new CheckBox("Use a cluster");
@@ -135,7 +135,7 @@ public final class ParallelPanel implements Expandable {
     //header
     header = PanelHeader.getMoreLessInstance(TITLE, this, null);
     //rootPanel
-    rootPanel.add(header.getContainer());
+    rootPanel.add(header);
     rootPanel.add(bodyPanel.getContainer());
     ltfChunksFinished.setTextPreferredWidth(UIParameters.INSTANCE
         .getFourDigitWidth());
@@ -380,6 +380,10 @@ public final class ParallelPanel implements Expandable {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.64  2008/10/27 20:42:03  sueh
+ * <p> bug# 1141 Added getCPUsSelected.  Removed
+ * <p> getParameters(SplittiltParam) because it is not generic.
+ * <p>
  * <p> Revision 1.63  2008/10/06 22:40:17  sueh
  * <p> bug# 1113 Removed pack, which is unecessary since table scrolling was
  * <p> removed.

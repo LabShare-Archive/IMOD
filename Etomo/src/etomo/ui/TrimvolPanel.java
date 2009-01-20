@@ -36,6 +36,9 @@ import etomo.type.Run3dmodMenuOptions;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.31  2008/09/30 22:51:46  sueh
+ * <p> bug# 1113 Using a private constructor in SpacedPanel.
+ * <p>
  * <p> Revision 3.30  2008/07/15 21:23:58  sueh
  * <p> bug# 1127 Placing the rubberband button for scaling in the trimvol panel
  * <p> instead of the rubberband panel because it includes Z, which is in a radio
@@ -208,9 +211,9 @@ public final class TrimvolPanel implements Run3dmodButtonContainer,
 
   private ApplicationManager applicationManager;
 
-  private JPanel pnlTrimvol = new JPanel();
+  private EtomoPanel pnlTrimvol = new EtomoPanel();
 
-  private JPanel pnlRange = new JPanel();
+  private EtomoPanel pnlRange = new EtomoPanel();
   private LabeledTextField ltfXMin = new LabeledTextField("X min: ");
   private LabeledTextField ltfXMax = new LabeledTextField(" X max: ");
   private LabeledTextField ltfYMin = new LabeledTextField("Y min: ");
@@ -218,7 +221,7 @@ public final class TrimvolPanel implements Run3dmodButtonContainer,
   private LabeledTextField ltfZMin = new LabeledTextField("Z min: ");
   private LabeledTextField ltfZMax = new LabeledTextField(" Z max: ");
 
-  private JPanel pnlScale = new JPanel();
+  private EtomoPanel pnlScale = new EtomoPanel();
   private JPanel pnlScaleFixed = new JPanel();
   private CheckBox cbConvertToBytes = new CheckBox("Convert to bytes");
   private RadioButton rbScaleFixed = new RadioButton(
@@ -236,7 +239,7 @@ public final class TrimvolPanel implements Run3dmodButtonContainer,
   private LabeledTextField ltfSectionScaleMax = new LabeledTextField(
       SECTION_SCALE_MAX_LABEL);
 
-  private final JPanel pnlReorientationChoices = new JPanel();
+  private final EtomoPanel pnlReorientationChoices = new EtomoPanel();
   private final ButtonGroup bgReorientation = new ButtonGroup();
   private final RadioButton rbNone = new RadioButton("None");
   private final RadioButton rbSwapYZ = new RadioButton(SWAP_YZ_LABEL);

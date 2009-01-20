@@ -106,7 +106,7 @@ public final class SettingsDialog extends JDialog {
     pnlGeneralSettings.add(cbAdvancedDialogs);
     pnlGeneralSettings.add(cbCompactDisplay);
     //parallel processing settings
-    JPanel pnlParallelProcessing = new JPanel();
+    EtomoPanel pnlParallelProcessing = new EtomoPanel();
     pnlParallelProcessing.setLayout(new BoxLayout(pnlParallelProcessing,
         BoxLayout.Y_AXIS));
     pnlParallelProcessing.setBorder(new EtchedBorder(
@@ -131,7 +131,7 @@ public final class SettingsDialog extends JDialog {
     panelDefaults.add(cbSwapYAndZ);
     pnlMain.add(panelDefaults.getContainer());
     //table settings
-    JPanel pnlTableSize = new JPanel();
+    EtomoPanel pnlTableSize = new EtomoPanel();
     pnlTableSize.setLayout(new BoxLayout(pnlTableSize, BoxLayout.Y_AXIS));
     pnlTableSize.setBorder(new EtchedBorder("Table Sizes").getBorder());
     pnlTableSize.add(ltfParallelTableSize.getContainer());

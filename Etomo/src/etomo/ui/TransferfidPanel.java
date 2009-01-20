@@ -35,7 +35,7 @@ import etomo.type.Run3dmodMenuOptions;
 final class TransferfidPanel implements Expandable, Run3dmodButtonContainer {
   public static final String rcsid = "$Id$";
 
-  private final JPanel panelTransferfid = new JPanel();
+  private final EtomoPanel panelTransferfid = new EtomoPanel();
   private final JPanel panelTransferfidBody = new JPanel();
   private final CheckBox cbRunMidas = new CheckBox("Run midas");
   private final LabeledTextField ltfCenterViewA = new LabeledTextField(
@@ -46,7 +46,7 @@ final class TransferfidPanel implements Expandable, Run3dmodButtonContainer {
       "Number of views in the search: ");
   private final CheckBox cbMirrorInX = new CheckBox(
       "Mirror one image around the X axis");
-  private final JPanel panelSearchDirection = new JPanel();
+  private final EtomoPanel panelSearchDirection = new EtomoPanel();
   private final ButtonGroup bgSearchDirection = new ButtonGroup();
   private final RadioButton rbSearchBoth = new RadioButton("Both directions");
   private final RadioButton rbSearchPlus90 = new RadioButton("+90 (CCW) only");
@@ -106,7 +106,7 @@ final class TransferfidPanel implements Expandable, Run3dmodButtonContainer {
     panelTransferfid
         .setLayout(new BoxLayout(panelTransferfid, BoxLayout.Y_AXIS));
     panelTransferfid.setBorder(BorderFactory.createEtchedBorder());
-    panelTransferfid.add(header.getContainer());
+    panelTransferfid.add(header);
     panelTransferfid.add(panelTransferfidBody);
 
     setToolTipText();
@@ -311,6 +311,11 @@ final class TransferfidPanel implements Expandable, Run3dmodButtonContainer {
 
 /**
  * <p> $Log$
+ * <p> Revision 3.18  2008/05/28 02:52:04  sueh
+ * <p> bug# 1111 Add a dialogType parameter to the ProcessSeries
+ * <p> constructor.  DialogType must be passed to any function that constructs
+ * <p> a ProcessSeries instance.
+ * <p>
  * <p> Revision 3.17  2008/05/13 23:09:03  sueh
  * <p> bug# 847 Adding a right click menu for deferred 3dmods to some
  * <p> process buttons.

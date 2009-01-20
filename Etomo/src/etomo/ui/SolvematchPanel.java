@@ -44,6 +44,11 @@ import etomo.type.Run3dmodMenuOptions;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.35  2008/05/28 02:51:30  sueh
+ * <p> bug# 1111 Add a dialogType parameter to the ProcessSeries
+ * <p> constructor.  DialogType must be passed to any function that constructs
+ * <p> a ProcessSeries instance.
+ * <p>
  * <p> Revision 3.34  2008/05/13 23:07:29  sueh
  * <p> bug# 847 Adding a right click menu for deferred 3dmods to some
  * <p> process buttons.
@@ -179,7 +184,7 @@ final class SolvematchPanel implements Run3dmodButtonContainer, Expandable {
 
   private static final String HEADER_LABEL = "Solvematch Parameters";
 
-  private final JPanel pnlRoot = new JPanel();
+  private final EtomoPanel pnlRoot = new EtomoPanel();
   private final JPanel pnlBody = new JPanel();
   private final JPanel pnlFiducialRadio = new JPanel();
   private final JPanel pnlFiducialSelect = new JPanel();
@@ -298,7 +303,7 @@ final class SolvematchPanel implements Run3dmodButtonContainer, Expandable {
       header = PanelHeader.getInstance(HEADER_LABEL, this, parent
           .getDialogType());
     }
-    pnlRoot.add(header.getContainer());
+    pnlRoot.add(header);
     pnlRoot.add(pnlBody);
     setToolTipText();
     show();

@@ -12,6 +12,11 @@
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.28  2008/05/28 02:50:37  sueh
+ * <p> bug# 1111 Add a dialogType parameter to the ProcessSeries
+ * <p> constructor.  DialogType must be passed to any function that constructs
+ * <p> a ProcessSeries instance.
+ * <p>
  * <p> Revision 1.27  2008/05/13 23:02:42  sueh
  * <p> bug# 847 Adding a right click menu for deferred 3dmods to some
  * <p> process buttons.
@@ -140,7 +145,7 @@ final class PrenewstPanel implements ContextMenu, Expandable,
     Run3dmodButtonContainer {
   public static final String rcsid = "$Id$";
 
-  private final JPanel pnlPrenewst = new JPanel();
+  private final EtomoPanel pnlPrenewst = new EtomoPanel();
   private final JPanel pnlBody = new JPanel();
   private final JPanel pnlCheckBoxes = new JPanel();
   private final ApplicationManager applicationManager;
@@ -199,7 +204,7 @@ final class PrenewstPanel implements ContextMenu, Expandable,
     UIUtilities.alignComponentsX(pnlBody, Component.CENTER_ALIGNMENT);
     UIUtilities.alignComponentsX(pnlCheckBoxes, Component.LEFT_ALIGNMENT);
     pnlPrenewst.setBorder(BorderFactory.createEtchedBorder());
-    pnlPrenewst.add(header.getContainer());
+    pnlPrenewst.add(header);
     pnlPrenewst.add(pnlBody);
 
     //  Mouse adapter for context menu

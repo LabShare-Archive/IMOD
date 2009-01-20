@@ -48,6 +48,11 @@ import etomo.type.ViewType;
  * 
  * <p>
  * $Log$
+ * Revision 3.118  2008/10/27 20:43:44  sueh
+ * bug# 1141 Removed implementation statement for
+ * AbstractParallelDialog because it is already implemented in the ancestor
+ * class.
+ *
  * Revision 3.117  2008/10/16 22:32:18  sueh
  * bug# 1141 Created FinalAlignedStack dialog to run full aligned stack and mtf filter.
  *
@@ -642,7 +647,7 @@ public class TomogramGenerationDialog extends ProcessDialog implements
       + "that a section that appears to be tilted around the X axis can be "
       + "made flat to fit into a smaller volume.";
 
-  private JPanel pnlTilt = new JPanel();
+  private EtomoPanel pnlTilt = new EtomoPanel();
 
   //  Tilt objects
   private SpacedTextField ltfXShift = new SpacedTextField("X shift:");
@@ -691,7 +696,7 @@ public class TomogramGenerationDialog extends ProcessDialog implements
   private PanelHeader tiltHeader = null;
   private PanelHeader trialHeader = null;
   //panels that are changed in setAdvanced()
-  private JPanel trialPanel;
+  private EtomoPanel trialPanel;
   private JPanel tiltBodyPanel;
   private SpacedPanel trialBodyPanel;
 
@@ -1150,7 +1155,7 @@ public class TomogramGenerationDialog extends ProcessDialog implements
       cbParallelProcess = new CheckBox(ParallelPanel.FIELD_LABEL);
     }
     //panels
-    JPanel tiltPanel = new JPanel();
+    EtomoPanel tiltPanel = new EtomoPanel();
     tiltPanel.setLayout(new BoxLayout(tiltPanel, BoxLayout.Y_AXIS));
     tiltPanel.setBorder(BorderFactory.createEtchedBorder());
     tiltBodyPanel = new JPanel();
@@ -1222,7 +1227,7 @@ public class TomogramGenerationDialog extends ProcessDialog implements
     tiltBodyPanel.add(buttonPanel.getContainer());
     UIUtilities.alignComponentsX(tiltBodyPanel, Component.LEFT_ALIGNMENT);
     //tiltPanel
-    tiltPanel.add(tiltHeader.getContainer());
+    tiltPanel.add(tiltHeader);
     tiltPanel.add(tiltBodyPanel);
     UIUtilities.alignComponentsX(tiltPanel, Component.LEFT_ALIGNMENT);
     //configure
@@ -1237,7 +1242,7 @@ public class TomogramGenerationDialog extends ProcessDialog implements
    */
   private JPanel layoutTrialPanel() {
     //panels
-    trialPanel = new JPanel();
+    trialPanel = new EtomoPanel();
     trialPanel.setLayout(new BoxLayout(trialPanel, BoxLayout.Y_AXIS));
     trialPanel.setBorder(BorderFactory.createEtchedBorder());
     trialBodyPanel = SpacedPanel.getInstance();
@@ -1263,7 +1268,7 @@ public class TomogramGenerationDialog extends ProcessDialog implements
     trialBodyPanel.add(northPanel);
     trialBodyPanel.add(buttonPanel);
     //trialPanel
-    trialPanel.add(trialHeader.getContainer());
+    trialPanel.add(trialHeader);
     trialPanel.add(trialBodyPanel.getContainer());
     //configure
     //trialHeader.setOpen(true);
