@@ -17,7 +17,6 @@ import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.ButtonGroup;
 import javax.swing.ImageIcon;
-import javax.swing.JButton;
 import javax.swing.JFileChooser;
 import javax.swing.JPanel;
 import javax.swing.SpinnerNumberModel;
@@ -62,6 +61,9 @@ import etomo.util.DatasetFiles;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.9  2008/12/02 21:39:10  sueh
+ * <p> bug# 1157 Added "(pixels)" to the final stack fiducial diameter.
+ * <p>
  * <p> Revision 1.8  2008/12/02 21:21:51  sueh
  * <p> bug# 1157 Changed better radius to fiducial diameter.
  * <p>
@@ -96,11 +98,15 @@ import etomo.util.DatasetFiles;
 public final class FinalAlignedStackDialog extends ProcessDialog implements
     ContextMenu, FiducialessParams, Expandable, Run3dmodButtonContainer {
   public static final String rcsid = "$Id$";
+  
+  private static final String MTF_FILE_LABEL = "MTF file: ";
 
   static final String SIZE_TO_OUTPUT_IN_X_AND_Y_LABEL = "Size to output";
   private static final DialogType DIALOG_TYPE = DialogType.FINAL_ALIGNED_STACK;
   public static final String CTF_CORRECTION_LABEL = "Correct CTF";
   public static final String CCD_ERASER_LABEL = "Erase Beads";
+
+  private final EtomoPanel pnlFinalAlignedStack = new EtomoPanel();
 
   // Fiducialess parameters
   private final CheckBox cbFiducialess = new CheckBox("Fiducialless alignment");
@@ -122,8 +128,8 @@ public final class FinalAlignedStackDialog extends ProcessDialog implements
       "Low pass (cutoff,sigma): ");
   private final ImageIcon iconFolder = new ImageIcon(ClassLoader
       .getSystemResource("images/openFile.gif"));
-  private final LabeledTextField ltfMtfFile = new LabeledTextField("MTF file: ");
-  private final JButton btnMtfFile = new JButton(iconFolder);
+  private final LabeledTextField ltfMtfFile = new LabeledTextField(MTF_FILE_LABEL);
+  private final SimpleButton btnMtfFile = new SimpleButton(iconFolder);
   private final LabeledTextField ltfMaximumInverse = new LabeledTextField(
       "Maximum Inverse: ");
   private final LabeledTextField ltfInverseRolloffRadiusSigma = new LabeledTextField(
@@ -232,6 +238,7 @@ public final class FinalAlignedStackDialog extends ProcessDialog implements
     btnUseFilter = (MultiLineButton) displayFactory.getUseFilteredStack();
     rootPanel.setLayout(new BoxLayout(rootPanel, BoxLayout.Y_AXIS));
     btnExecute.setText("Done");
+    btnMtfFile.setName(MTF_FILE_LABEL);
     // Layout the main panel (and sub panels) and add it to the root panel
     rootPanel.setBorder(new BeveledBorder("Final Aligned Stack").getBorder());
     filterBodyPanel = new JPanel();
@@ -653,6 +660,7 @@ public final class FinalAlignedStackDialog extends ProcessDialog implements
 
   private void layoutCcdEraser() {
     //panel
+    EtomoPanel ctfCorrectionMainPanel = new EtomoPanel();
     JPanel ccdEraserRoot = new JPanel();
     tabbedPane.addTab("Erase Gold", ccdEraserRoot);
     ccdEraserMainPanel.setLayout(new BoxLayout(ccdEraserMainPanel,
@@ -1012,7 +1020,7 @@ public final class FinalAlignedStackDialog extends ProcessDialog implements
     else if (command.equals(btnXfModel.getActionCommand())) {
       expert
           .xfmodel(btnXfModel, null, deferred3dmodButton, run3dmodMenuOptions);
-    }
+  }
     else if (command.equals(btn3dmodXfModel.getActionCommand())) {
       expert.seedEraseFiducialModel(run3dmodMenuOptions, btn3dmodXfModel);
     }
@@ -1027,7 +1035,7 @@ public final class FinalAlignedStackDialog extends ProcessDialog implements
       expert.useCcdEraser(btnUseCcdEraser);
     }
   }
-
+  
   private final void changeTab() {
     ((Container) tabbedPane.getComponentAt(curTab.toInt())).removeAll();
     curTab = Tab.getInstance(tabbedPane.getSelectedIndex());
