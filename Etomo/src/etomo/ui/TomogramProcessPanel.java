@@ -7,7 +7,6 @@ import java.awt.event.ActionListener;
 
 import javax.swing.Box;
 import javax.swing.BoxLayout;
-import javax.swing.JButton;
 import javax.swing.JPanel;
 
 import etomo.ApplicationManager;
@@ -31,6 +30,9 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.29  2008/10/16 22:33:46  sueh
+ * <p> bug# 1141 Created FinalAlignedStack dialog to run full aligned stack and mtf filter.
+ * <p>
  * <p> Revision 1.28  2008/01/14 22:06:48  sueh
  * <p> bug# 1050 Moved string "Axis B" to TomogramProcessPanel.
  * <p>
@@ -173,8 +175,8 @@ public class TomogramProcessPanel extends AxisProcessPanel {
       DialogType.POST_PROCESSING);
   private ProcessControlPanel procCtlCleanUp = new ProcessControlPanel(
       DialogType.CLEAN_UP);
-  private JButton axisButton1 = new JButton();
-  private JButton axisButton2 = new JButton();
+  private SimpleButton axisButton1 = new SimpleButton();
+  private SimpleButton axisButton2 = new SimpleButton();
   JPanel axisButtonPanel = new JPanel();
   private String bothAxisTooltip = null;
   private String axisATooltip = null;
@@ -417,9 +419,8 @@ public class TomogramProcessPanel extends AxisProcessPanel {
     progressPanel.setBackground(color);
   }
 
-  private void setButton(JButton button, String label, String tooltip) {
+  private void setButton(SimpleButton button, String label, String tooltip) {
     button.setText(label);
-    button.setName(Utilities.convertLabelToName(label));
     /*Rectangle2D buttonSize = button.getFontMetrics(button.getFont())
      .getStringBounds(AXIS_A_LABEL.toCharArray(), 0, label.length(),
      button.getGraphics());
