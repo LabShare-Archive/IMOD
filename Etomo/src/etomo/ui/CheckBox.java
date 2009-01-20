@@ -6,7 +6,7 @@ import javax.swing.JCheckBox;
 
 import etomo.EtomoDirector;
 import etomo.storage.autodoc.AutodocTokenizer;
-import etomo.type.UITestField;
+import etomo.type.UITestFieldType;
 import etomo.util.Utilities;
 
 /**
@@ -23,6 +23,9 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.14  2008/10/27 20:30:26  sueh
+ * <p> bug# 1141 Added printinfo (debugging tool).
+ * <p>
  * <p> Revision 1.13  2008/05/30 22:31:35  sueh
  * <p> bug# 1102 Isolating the etomo.uitest package so it is not need for
  * <p> running EtomoDirector.
@@ -87,7 +90,7 @@ final class CheckBox extends JCheckBox {
     String name = Utilities.convertLabelToName(text);
     super.setName(name);
     if (EtomoDirector.INSTANCE.getArguments().isPrintNames()) {
-      System.out.println(UITestField.CHECK_BOX.toString()
+      System.out.println(UITestFieldType.CHECK_BOX.toString()
           + AutodocTokenizer.SEPARATOR_CHAR + name + ' '
           + AutodocTokenizer.DEFAULT_DELIMITER + ' ');
     }
@@ -117,6 +120,9 @@ final class CheckBox extends JCheckBox {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.14  2008/10/27 20:30:26  sueh
+ * <p> bug# 1141 Added printinfo (debugging tool).
+ * <p>
  * <p> Revision 1.13  2008/05/30 22:31:35  sueh
  * <p> bug# 1102 Isolating the etomo.uitest package so it is not need for
  * <p> running EtomoDirector.
