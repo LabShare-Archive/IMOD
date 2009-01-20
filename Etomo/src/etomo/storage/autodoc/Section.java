@@ -1,6 +1,7 @@
 package etomo.storage.autodoc;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 
 import etomo.storage.LogFile;
@@ -24,6 +25,9 @@ import etomo.ui.Token;
  * @notthreadsafe
  *
  * <p> $$Log$
+ * <p> $Revision 1.17  2008/10/27 18:36:11  sueh
+ * <p> $bug# 1141 Added debug.
+ * <p> $
  * <p> $Revision 1.16  2007/04/11 22:06:10  sueh
  * <p> $bug# 964 Added a link list to Statement so that groups of statements could be
  * <p> $removed.  Added the parameter Statement previousStatement to the Statement
@@ -123,6 +127,8 @@ final class Section extends WriteOnlyStatementList implements ReadOnlySection {
   private final Token type;
   private final Token name;
   private final AttributeList attributeList;
+  private final List sectionList = new ArrayList();
+  private final HashMap subSectionMap = new HashMap();
 
   private boolean subsection = false;
   private final WriteOnlyStatementList parent;
@@ -142,9 +148,17 @@ final class Section extends WriteOnlyStatementList implements ReadOnlySection {
   }
 
   public String getString() {
-    return AutodocTokenizer.OPEN_CHAR + type.getValues() + ' '
-        + AutodocTokenizer.DEFAULT_DELIMITER + ' ' + name.getValues()
-        + AutodocTokenizer.CLOSE_CHAR;
+    StringBuffer buffer = new StringBuffer();
+    buffer.append(AutodocTokenizer.OPEN_CHAR);
+    if (subsection) {
+      buffer.append(AutodocTokenizer.OPEN_CHAR);
+    }
+    buffer.append(type.getValues() + ' ' + AutodocTokenizer.DEFAULT_DELIMITER
+        + ' ' + name.getValues() + AutodocTokenizer.CLOSE_CHAR);
+    if (subsection) {
+      buffer.append(AutodocTokenizer.CLOSE_CHAR);
+    }
+    return buffer.toString();
   }
 
   public static String getKey(Token type, Token name) {
@@ -172,7 +186,7 @@ final class Section extends WriteOnlyStatementList implements ReadOnlySection {
     }
     return Token.convertToKey(type) + Token.convertToKey(name);
   }
-  
+
   public StatementLocation getStatementLocation() {
     return new StatementLocation();
   }
@@ -185,7 +199,7 @@ final class Section extends WriteOnlyStatementList implements ReadOnlySection {
     location.increment();
     return statement;
   }
-  
+
   public String getName() {
     if (name == null) {
       throw new IllegalStateException("name is required");
@@ -203,6 +217,10 @@ final class Section extends WriteOnlyStatementList implements ReadOnlySection {
 
   void setCurrentDelimiter(Token newDelimiter) {
     parent.setCurrentDelimiter(newDelimiter);
+  }
+
+  public void setDebug() {
+    debug = true;
   }
 
   String getCurrentDelimiter() {
@@ -284,7 +302,52 @@ final class Section extends WriteOnlyStatementList implements ReadOnlySection {
     Section section = new Section(type, name, this);
     section.subsection = true;
     statementList.add(new Subsection(section, this, getMostRecentStatement()));
+    sectionList.add(section);
+    subSectionMap.put(section.getKey(), section);
     return section;
+  }
+
+  /**
+   * Sets a SectionLocation index to the first section with the type the same as
+   * the type parameter.  Returns the SectionLocation index.
+   */
+  public SectionLocation getSectionLocation(String type) {
+    Section section = null;
+    for (int i = 0; i < sectionList.size(); i++) {
+      section = (Section) sectionList.get(i);
+      if (section.equalsType(type)) {
+        return new SectionLocation(type, i);
+      }
+    }
+    return null;
+  }
+
+  /**
+   * Starts with the section that location is pointing to returns the first
+   * section which the same type as location.  Increments location.
+   */
+  public ReadOnlySection nextSection(SectionLocation location) {
+    if (location == null) {
+      return null;
+    }
+    Section section = null;
+    for (int i = location.getIndex(); i < sectionList.size(); i++) {
+      section = (Section) sectionList.get(i);
+      if (section.equalsType(location.getType())) {
+        location.setIndex(i + 1);
+        return section;
+      }
+    }
+    return null;
+  }
+
+  /**
+   * Gets a subsection
+   * @return
+   */
+  public ReadOnlySection getSection(String subSectionType, String subSectionName) {
+    return (ReadOnlySection) subSectionMap.get(Section.getKey(subSectionType,
+        subSectionName));
   }
 
   void addComment(Token comment) {
