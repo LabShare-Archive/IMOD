@@ -14,7 +14,6 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-import javax.swing.BorderFactory;
 import javax.swing.BoxLayout;
 import javax.swing.JFileChooser;
 import javax.swing.JPanel;
@@ -53,6 +52,10 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.46  2008/10/07 16:43:44  sueh
+ * <p> bug# 1113 Improved names:  changed Viewport.msgViewportMoved to
+ * <p> msgViewportPaged.
+ * <p>
  * <p> Revision 1.45  2008/10/06 22:45:24  sueh
  * <p> bug# 1113 Got the table size from UserConfiguration.
  * <p>
@@ -380,6 +383,7 @@ final class SectionTablePanel implements ContextMenu, Expandable,
       "TomogrgetAlignTabJComponentams have to be flipped after generation",
       "in order to be in the right orientation for joining serial sections." };
   private static final String HEADER1_SECTIONS_LABEL = "Sections";
+   static final String LABEL = "Section Table";
 
   private final JPanel rootPanel = new JPanel();
   private final SpacedPanel pnlBorder = SpacedPanel.getInstance();
@@ -488,7 +492,7 @@ final class SectionTablePanel implements ContextMenu, Expandable,
         "Section");
     //create root panel
     pnlBorder.setBoxLayout(BoxLayout.Y_AXIS);
-    pnlBorder.setBorder(BorderFactory.createEtchedBorder());
+    pnlBorder.setBorder(new EtchedBorder(LABEL).getBorder());
     rootPanel.add(pnlBorder.getContainer());
     pnlBorder.add(pnlTable);
     pnlViewport.setLayout(new BoxLayout(pnlViewport, BoxLayout.X_AXIS));
@@ -979,8 +983,9 @@ final class SectionTablePanel implements ContextMenu, Expandable,
       return;
     }
     //  Open up the file chooser in the working directory
-    JFileChooser chooser = new JFileChooser(lastLocation == null ? new File(
+    FileChooser chooser = new FileChooser(lastLocation == null ? new File(
         manager.getPropertyUserDir()) : lastLocation);
+    chooser.setDialogTitle("Choose a section");
     TomogramFileFilter tomogramFilter = new TomogramFileFilter();
     chooser.setFileFilter(tomogramFilter);
     chooser.setPreferredSize(new Dimension(400, 400));
@@ -1191,6 +1196,18 @@ final class SectionTablePanel implements ContextMenu, Expandable,
     rowList.configureRows();
     joinDialog.setNumSections(rowList.size());
     manager.getMainPanel().repaint();
+  }
+  
+  HeaderCell getSampleHeaderCell() {
+    return header1Sample;
+  }
+  
+  HeaderCell getRotationHeaderCell() {
+    return header1Rotation;
+  }
+  
+  HeaderCell getJoinFinalHeaderCell() {
+    return header1JoinFinal;
   }
 
   String getInvalidReason() {
@@ -1532,6 +1549,7 @@ final class SectionTablePanel implements ContextMenu, Expandable,
       SectionTableRow row = new SectionTableRow(manager, table,
           list.size() + 1, tomogram, expanded);
       row.setMode(mode);
+      row.setNames();
       list.add(row);
       return list.size() - 1;
     }
@@ -1628,6 +1646,7 @@ final class SectionTablePanel implements ContextMenu, Expandable,
         SectionTableRowData data = (SectionTableRowData) rowData.get(i);
         SectionTableRow row = new SectionTableRow(manager, table, data, false);
         int rowIndex = data.getRowIndex();
+        row.setNames();
         list.add(rowIndex, row);
       }
       for (int i = 0; i < list.size(); i++) {
