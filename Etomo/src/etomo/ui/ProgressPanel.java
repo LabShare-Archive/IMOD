@@ -12,6 +12,10 @@
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.12  2008/09/30 22:12:27  sueh
+ * <p> bug# 1113 Using a private constructor in ProgressPanel.  Added
+ * <p> addListeners.
+ * <p>
  * <p> Revision 3.11  2006/08/10 17:51:32  sueh
  * <p> bug# 686 Passing manager and axis to ProgressPanel.  Added pack().
  * <p>
@@ -99,7 +103,8 @@ import etomo.util.Utilities;
 public final class ProgressPanel {
   public static final String rcsid = "$Id$";
 
-  public static final String NAME = "progress-bar";
+  public static final String NAME = "the-progress-bar";
+  public static final String LABEL_NAME = NAME+"-label";
   private static final int MAX_PACK = 5;
 
   private final JPanel panel = new JPanel();
@@ -134,9 +139,10 @@ public final class ProgressPanel {
     panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
     panel.add(taskLabel);
     panel.add(Box.createRigidArea(FixedDim.x0_y5));
-    progressBar.setName(NAME);
     panel.add(progressBar);
     panel.setAlignmentY(Component.BOTTOM_ALIGNMENT);
+    progressBar.setName(NAME);
+    taskLabel.setName(LABEL_NAME);
   }
 
   static ProgressPanel getInstance(String newLabel, BaseManager manager,
