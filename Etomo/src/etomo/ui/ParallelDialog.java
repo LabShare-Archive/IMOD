@@ -8,7 +8,6 @@ import java.io.File;
 
 import javax.swing.BoxLayout;
 import javax.swing.ImageIcon;
-import javax.swing.JButton;
 
 import etomo.BaseManager;
 import etomo.ParallelManager;
@@ -35,14 +34,15 @@ public final class ParallelDialog implements AbstractParallelDialog {
   public static final String rcsid = "$Id$";
 
   private static final DialogType DIALOG_TYPE = DialogType.PARALLEL;
+  private static final String PROCESS_NAME_LABEL = "Process name: ";
 
   private final ImageIcon iconFolder = new ImageIcon(ClassLoader
       .getSystemResource("images/openFile.gif"));
   private final SpacedPanel pnlRoot = SpacedPanel.getInstance();
   private final SpacedPanel pnlProcessName = SpacedPanel.getInstance();
-  private final JButton btnChunkComscript = new JButton(iconFolder);
+  private final SimpleButton btnChunkComscript = new SimpleButton(iconFolder);
   private final LabeledTextField ltfProcessName = new LabeledTextField(
-      "Process name: ");
+      PROCESS_NAME_LABEL);
   private final MultiLineButton btnRunProcess = MultiLineButton
       .getToggleButtonInstance("Run Parallel Process");
 
@@ -57,6 +57,7 @@ public final class ParallelDialog implements AbstractParallelDialog {
     this.manager = manager;
     this.axisID = axisID;
     //process name panel
+    btnChunkComscript.setName(PROCESS_NAME_LABEL);
     pnlProcessName.setBoxLayout(BoxLayout.X_AXIS);
     ltfProcessName.setTextPreferredWidth(125);
     pnlProcessName.add(ltfProcessName);
@@ -187,6 +188,9 @@ public final class ParallelDialog implements AbstractParallelDialog {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.20  2008/09/30 22:01:14  sueh
+ * <p> bug# 1113 Using a private constructor in SpacedPanel.
+ * <p>
  * <p> Revision 1.19  2008/05/03 00:51:26  sueh
  * <p> bug# 847 Passing null for ProcessSeries to process funtions.
  * <p>
