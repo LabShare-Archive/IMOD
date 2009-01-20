@@ -1,46 +1,46 @@
 Version = 1.2
 
 [function = build]
-function = set-global
-function = set-general
-function = compute-alignment
-function = done
-waitfor.popup.etomo-question = Yes
+run.function.set-global=
+run.function.set-general=
+run.function.compute-alignment=
+run.function.done=
+wait.popup.etomo-question = Yes
 
 [function = test]
-function = assert-general-fields
-function = assert-general-fields-advanced
-function = assert-general-local-alignments-fields-enabled
-function = assert-global-fields
-function = assert-global-fields-advanced
-function = assert-global-beam-tilt-fields-enabled
-function = compute-alignment
-function = files-exist
-function = set-global
-function = compute-alignment
-assert.file.exists = align%{axis}.log~
-function = set-general
-function = compute-alignment
+run.function.assert-general-fields=
+run.function.assert-general-fields-advanced=
+run.function.assert-general-local-alignments-fields-enabled=
+run.function.assert-global-fields=
+run.function.assert-global-fields-advanced=
+run.function.assert-global-beam-tilt-fields-enabled=
+run.function.compute-alignment=
+run.function.files-exist=
+run.function.set-global=
+run.function.compute-alignment=
+assert.file.exist = align%{axis}.log~
+run.function.set-general=
+run.function.compute-alignment=
 rb.neighboring-views =
-function = compute-alignment
-function = done
-waitfor.popup.etomo-question = Yes
+run.function.compute-alignment=
+run.function.done=
+wait.popup.etomo-question = Yes
 
 # build functions
 #################
 
 [function = set-global]
-tp.general.1 = 
+tb.general.1 = 
 rb.full-solution =
 
 [function = set-general]
-tp.general.0 =
+tb.general.0 =
 cb.enable-local-alignments =
 rb.neighboring-views =
 
 [function = compute-alignment]
 bn.compute-alignment =
-waitfor.process.align = done
+wait.process.aligning-stack = done
 
 [function = done]
 bn.done =
@@ -49,7 +49,7 @@ bn.done =
 #######################
 
 [function = assert-general-fields]
-tp.general.0 =
+tb.general.0 =
 assert.tf.list-of-views-to-exclude=
 assert.tf.separate-view-groups=
 assert.tf.threshold-for-residual-report=3.0
@@ -127,7 +127,7 @@ assert.cb.use-global-x-y-z-coordinates.enabled=0
 bn.basic =
 
 [function = assert-global-fields]
-tp.general.1 =
+tb.general.1 =
 assert.rb.no-rotation=0
 assert.rb.solve-for-all-rotations=1
 assert.rb.group-rotations=0
@@ -171,10 +171,10 @@ assert.tf.skew-group-size.enabled = 0
 rb.no-rotation=
 assert.tf.rotation-angle.enabled=1
 rb.solve-for-all-rotations=
-tp.general.0 =
+tb.general.0 =
 
 [function = assert-global-fields-advanced]
-tp.general.1 =
+tb.general.1 =
 bn.advanced =
 assert.tf.non-default-grouping = 
 assert.tf.non-default-grouping.1 =
@@ -200,11 +200,11 @@ assert.tf.fixed-beam-tilt.enabled = 0
 assert.rb.solve-for-beam-tilt.enabled = 1
 assert.cb.solve-for-single-stretch-during-projection.enabled = 1
 bn.basic =
-tp.general.0 =
+tb.general.0 =
 
 [function = assert-global-beam-tilt-fields-enabled]
 # bug# 981
-tp.general.1 =
+tb.general.1 =
 mb.beam-tilt-advanced = 1
 rb.full-solution =
 assert.rb.solve-for-beam-tilt.enabled = 0
@@ -235,17 +235,17 @@ assert.rb.skew-only.enabled=1
 rb.solve-for-all-rotations=
 rb.disabled =
 mb.beam-tilt-advanced = 0
-tp.general.0 =
+tb.general.0 =
 
 # Functionality tests
 #####################
 
 [function = files-exist]
-assert.file.exists = align%{axis}.log
-assert.file.exists = taAngles%{axis}.log
-assert.file.exists = taCoordinates%{axis}.log
-assert.file.exists = taError%{axis}.log
-assert.file.exists = taLocals%{axis}.log
-assert.file.exists = taMappings%{axis}.log
-assert.file.exists = taResiduals%{axis}.log
-assert.file.exists = taSolution%{axis}.log
+assert.file.exist = align%{axis}.log
+assert.file.exist = taAngles%{axis}.log
+assert.file.exist = taCoordinates%{axis}.log
+assert.file.exist = taError%{axis}.log
+assert.file.exist = taLocals%{axis}.log
+assert.file.exist = taMappings%{axis}.log
+assert.file.exist = taResiduals%{axis}.log
+assert.file.exist = taSolution%{axis}.log

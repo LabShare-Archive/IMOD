@@ -1,76 +1,74 @@
 Version = 1.2
 
-[function = run-dual]
-function = ui
-function = run
-
-[function = run]
-mb.beadtracker-open = 1
+[function = main]
+[[if = test-gui]]
+	if.var.dual.run.function.test-gui-transfer-fiducials =
+	run.function.test-gui-beadtracker-values =
+	run.function.test-gui-beadtracker-enabled =
+[[]]
+[[if = axis]]
+	if.not-equals.var.axis.return = b
+	mb.transfer-fiducials = +
+	bn.transfer-fiducials-from-other-axis =
+	wait.process.transferfid = done
+[[]]
+[[if = axis]]
+	if.equals.var.axis.return = b
+	copy.always.file = %{dataset}%{axis}.seed
+[[]]
+mb.beadtracker = +
 bn.track-seed-model =
-waitfor.process.track = done
-assert.file.exists = track%{axis}.log
+wait.process.tracking-fiducials = done
+assert.exists.file = track%{axis}.log
 bn.track-with-fiducial-model-as-seed = 
-assert.file.exists = track%{axis}.log~
-waitfor.process.track = done
+assert.exists.file = track%{axis}.log~
+wait.process.tracking-fiducials = done
 bn.track-with-fiducial-model-as-seed =
-waitfor.process.track = done
+wait.process.tracking-fiducials = done
 tf.view-skip-list = 1, 2
 bn.fix-fiducial-model=
-waitfor.popup.entry-error = OK
+wait.popup.entry-error = OK
 tf.view-skip-list =
 bn.fix-fiducial-model=
 tf.view-skip-list = 1,2
 bn.fix-fiducial-model=
 bn.done =
 
-[function = test-dual]
-function = beadtracker-enabled
-function = beadtracker-values
-function = run-dual
 
-[function = test]
-function = beadtracker-enabled
-function = beadtracker-values
-function = run
-
-[function = beadtracker-enabled]
-mb.beadtracker-open = 1
-mb.beadtracker-advanced = 1
-tf.unbinned-bead-diameter.enabled = 1
-mb.beadtracker-advanced = 0
+[function = test-gui-beadtracker-enabled]
+mb.beadtracker = +
+mb.beadtracker.1 = A
+assert.enabled.tf.unbinned-bead-diameter = 
+mb.beadtracker.1 = B
 
 
-[function = beadtracker-values]
-mb.beadtracker-open = 1
-mb.beadtracker-advanced = 1
-tf.unbinned-bead-diameter = %{unbinned-bead-diameter}
-mb.beadtracker-advanced = 0
+[function = test-gui-beadtracker-values]
+mb.beadtracker = +
+mb.beadtracker.1 = A
+assert.tf.unbinned-bead-diameter = %{unbinned-bead-diameter}
+mb.beadtracker.1 = B
 
-
-[function = ui]
-function = ui-transfer-fiducials
-
-[function = ui-transfer-fiducials]
-mb.transfer-fiducials-open = 1
-mb.transfer-fiducials-advanced = 1
-assert.cb.run-midas.enabled = 0
+[function = test-gui-transfer-fiducials]
+mb.transfer-fiducials = +
+mb.transfer-fiducials.1 = A
+assert.disabled.cb.run-midas =
 assert.tf.center-view-a = 
-assert.tf.center-view-a.enabled = 0
+assert.disabled.tf.center-view-a =
 assert.tf.center-view-b = 
-assert.tf.center-view-b.enabled = 0
+assert.disabled.tf.center-view-b = 
 assert.tf.number-of-views-in-the-search = 5
-assert.tf.number-of-views-in-the-search.enabled =
+assert.disabled.tf.number-of-views-in-the-search =
 assert.rb.both-directions = 1
-assert.rb.both-directions.enabled = 0
+assert.disabled.rb.both-directions =
 assert.rb.+90-only = 0
-assert.rb.+90-only.enabled = 0
+assert.disabled.rb.+90-only =
 assert.rb.-90-only = 0
-assert.rb.-90-only.enabled = 0
+assert.disabled.rb.-90-only = 
 assert.cb.mirror-one-image-around-the-x-axis = 0
-assert.cb.mirror-one-image-around-the-x-axis.enabled = 0
+assert.disabled.cb.mirror-one-image-around-the-x-axis = 
 assert.bn.transfer-fiducials-from-other-axis = 0
-assert.bn.transfer-fiducials-from-other-axis.enabled = 0
-mb.transfer-fiducials-advanced = 0
-assert.cb.run-midas.enabled = 0
+assert.disabled.bn.transfer-fiducials-from-other-axis = 
+mb.transfer-fiducials.1 = A
+assert.disabled.cb.run-midas = 
 assert.bn.transfer-fiducials-from-other-axis = 0
-assert.bn.transfer-fiducials-from-other-axis.enabled = 0
+assert.disabled.bn.transfer-fiducials-from-other-axis = 

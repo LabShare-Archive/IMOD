@@ -1,0 +1,20 @@
+Version = 1.2
+
+[function = main]
+open.dialog.join=
+tf.section-table-1-final.1=46
+tf.section-table-2-final=5
+tf.section-table-2-final.1=62
+bn.get-max-size-and-shift=
+wait.process.finishjoin=done
+[[if = test-processes]]
+	assert.tf.size-in-x=818
+	assert.tf.y=594
+	assert.tf.shift-in-x=-7
+	assert.tf.y.1=-12
+	bn.trial-join=
+	wait.process.finishjoin=done
+[[]]
+bn.finish-join=
+wait.process.finishjoin=done
+bn.refine-join=

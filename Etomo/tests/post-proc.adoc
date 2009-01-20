@@ -1,15 +1,14 @@
 Version = 1.2
 
-[function = run]
-sleep =
+[function = build]
 tf.z-min = 5
 tf.z-max = 70
 bn.trim-volume =
-waitfor.process.trimvol = done
+wait.process.trimming-volume = done
 bn.trim-volume =
-waitfor.process.trimvol = done
+wait.process.trimming-volume = done
 bn.squeeze-volume =
-waitfor.process.squeezevol = done
+wait.process.squeezing-volume = done
 bn.squeeze-volume =
-waitfor.process.squeezevol = done
+wait.process.squeezing-volume = done
 bn.done =

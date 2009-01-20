@@ -1,91 +1,91 @@
 Version = 1.2
 
 [function = build]
-function = create-sample-tomograms
-function = compute-z-shift-&-pitch-angles
-function = create-final-alignment
+run.function.create-sample-tomograms=
+run.function.compute-z-shift-&-pitch-angles=
+run.function.create-final-alignment=
 bn.done =
 
 [function = create-sample-tomograms]
 copy.file = %{dataset}%{axis}.fid
 tf.sample-tomogram-thickness = %{sample-tomogram-thickness}
 bn.create-sample-tomograms =
-waitfor.process.sample = done
+wait.process.creating-sample-tomogram = done
 
 [function = compute-z-shift-&-pitch-angles]
 copy.file = tomopitch%{axis}.mod
 bn.compute-z-shift-&-pitch-angles =
-waitfor.process.tomopitch = done
+wait.process.finding-sample-position = done
 
 [function = create-final-alignment]
 bn.create-final-alignment =
-waitfor.process.align = done
+wait.process.calculating-final-alignment = done
 
 [function = run1]
 copy.file = %{dataset}%{axis}.fid
 tf.sample-tomogram-thickness = %{sample-tomogram-thickness}
 bn.create-sample-tomograms =
-waitfor.process.sample = done
-assert.file.exists = sample%{axis}.log
+wait.process.creating-sample-tomogram = done
+assert.file.exist = sample%{axis}.log
 bn.create-sample-tomograms =
-waitfor.process.sample = done
-assert.file.exists = sample%{axis}.log~
+wait.process.creating-sample-tomogram = done
+assert.file.exist = sample%{axis}.log~
 # check whole tomogram
 cb.use-whole-tomogram =
 bn.create-whole-tomogram =
-waitfor.process.tilt = done
+wait.process.tilt = done
 
 [function = run2]
 cb.use-whole-tomogram =
 #
 copy.file = tomopitch%{axis}.mod
 bn.compute-z-shift-&-pitch-angles =
-waitfor.process.tomopitch = done
-assert.file.exists = tomopitch%{axis}.log
+wait.process.finding-sample-position = done
+assert.file.exist = tomopitch%{axis}.log
 bn.compute-z-shift-&-pitch-angles =
-waitfor.process.tomopitch = done
-assert.file.exists = tomopitch%{axis}.log~
+wait.process.finding-sample-position = done
+assert.file.exist = tomopitch%{axis}.log~
 bn.create-final-alignment =
-waitfor.process.align = done
-assert.file.exists = align%{axis}.log
+wait.process.calculating-final-alignment = done
+assert.file.exist = align%{axis}.log
 bn.create-final-alignment =
-waitfor.process.align = done
-assert.file.exists = align%{axis}.log~
+wait.process.calculating-final-alignment = done
+assert.file.exist = align%{axis}.log~
 bn.done =
 
 [function = assert-whole-tomo]
-assert.file.exists = %{dataset}%{axis}.rec
+assert.file.exist = %{dataset}%{axis}.rec
 
 [function = assert-whole-tomo-single]
-assert.file.exists = %{dataset}_full.rec
+assert.file.exist = %{dataset}_full.rec
 
 [function = test]
-function = run1
-function = assert-whole-tomo
-function = run2
+run.function.run1=
+run.function.assert-whole-tomo=
+run.function.run2=
 
 [function = test-single]
-function = run1
-function = assert-whole-tomo-single
-function = run2
+run.function.run1=
+run.function.assert-whole-tomo-single=
+run.function.run2=
 
 [function = run-fidless]
 tf.sample-tomogram-thickness = %{sample-tomogram-thickness}
 cb.use-whole-tomogram =
 bn.create-whole-tomogram =
-waitfor.process.tilt = done
-assert.file.exists = newst%{axis}.log
-assert.file.exists = tilt%{axis}.log
+wait.process.tilt = done
+assert.file.exist = newst%{axis}.log
+assert.file.exist = tilt%{axis}.log
 bn.create-whole-tomogram =
-waitfor.process.tilt = done
-assert.file.exists = newst%{axis}.log~
-assert.file.exists = tilt%{axis}.log~
+wait.process.tilt = done
+assert.file.exist = newst%{axis}.log~
+assert.file.exist = tilt%{axis}.log~
 copy.file = tomopitch%{axis}.mod
 bn.compute-z-shift-&-pitch-angles =
-waitfor.process.tomopitch = done
-assert.file.exists = tomopitch%{axis}.log
+wait.process.finding-sample-position = done
+assert.file.exist = tomopitch%{axis}.log
 bn.compute-z-shift-&-pitch-angles =
-waitfor.process.tomopitch = done
-assert.file.exists = tomopitch%{axis}.log~
+wait.process.finding-sample-position = done
+assert.file.exist = tomopitch%{axis}.log~
 bn.done =
 

@@ -1,52 +1,163 @@
 Version = 1.2
 
-[Interface = Recon]
-navigation = bn
-Dialog.SetupRecon = default
-Dialog.PreProc =
-Dialog.CoarseAlign =
-Dialog.FidModel =
-Dialog.FineAlign =
-Dialog.TomoPos =
-Dialog.Stack =
-Dialog.TomoGen =
-Dialog.Combine =
-Dialog.PostProc =
-Dialog.CleanUp =
-
-[Interface = Join]
-navigation = tp
-tp = setup
-Dialog.setup = default
-Dialog.setup.index = 0
-Dialog.align.index = 1
-Dialog.join.index = 2
-Dialog.model.index = 3
-Dialog.rejoin.index = 4
-
-[Interface = PEET]
-navigation = tp
-tp = setup
-Dialog.setup = default
-Dialog.setup.index = 0
-Dialog.run.index = 1
-
-[Interface = Parallel]
-navigation = bn
-Dialog.Parallel = default
-Dialog.generic-parallel-process =
-Dialog.nonlinear-anisotropic-diffusion =
-
-
-[Test = build-join]
-Interface = Join
-datafile = basal.ejf
-datadir = basal
-copy.file = basal.ejf
-adoc = build-join.adoc
-duration = ::5
+[Test = single]
+set.keep.testdir=single
+set.adoc.dialog = recon.adoc
+set.dataset=BB
+#set.param = --names
+set.param = %{dataset}.edf
+set.var.single=
 
 [Test = dual]
+set.keep.testdir = dual
+set.adoc.dialog.a=recon.adoc
+set.adoc.bdialog.b=recon.adoc
+set.dataset = BB
+set.param = %{dataset}.edf
+set.var.dual=
+
+[Test = join]
+set.testdir = join
+set.adoc.tab = join.adoc
+set.dataset = unicross
+
+[Test = single-montage]
+set.keep.testdir = single-montage
+set.adoc.dialog = recon.adoc
+set.dataset = midzone2
+set.param = %{dataset}.edf
+set.var.single=
+set.var.montage=
+
+[Test = dual-montage]
+set.keep.testdir = dual-montage
+set.adoc.dialog.a=recon.adoc
+set.adoc.bdialog.b=recon.adoc
+set.dataset = midzone2
+set.param = %{dataset}.edf
+set.var.dual=
+set.var.montage=
+
+[Test = join-test-processes]
+set.testdir = join-test-processes
+set.adoc.tab = join.adoc
+set.dataset = unicross
+set.var.test-processes=
+
+[Test = single-test-gui]
+set.keep.testdir = single-test-gui
+set.adoc.dialog = recon.adoc
+set.dataset = BB
+set.param = %{dataset}.edf
+set.var.single=
+set.var.test-gui=
+
+[Test = dual-test-gui]
+set.keep.testdir = dual-test-gui
+set.adoc.dialog.a=recon.adoc
+set.adoc.bdialog.b=recon.adoc
+set.dataset = BB
+set.param = %{dataset}.edf
+set.var.dual=
+set.var.test-gui=
+
+[Test = single-fidless]
+set.testdir=single-fidless
+set.adoc.dialog = recon.adoc
+set.dataset=BB
+#set.param = %{dataset}.edf
+set.var.single=
+set.var.fidless=
+
+[Test = dual-fidless]
+set.testdir = dual-fidless
+set.adoc.dialog.a=recon.adoc
+set.adoc.bdialog.b=recon.adoc
+set.dataset = BB
+#set.param = %{dataset}.edf
+set.var.dual=
+set.var.fidless=
+
+
+[dataset = BB]
+set.single.dataset = BBa
+copy.file = %{dataset}.st
+copy.file.a = %{dataset}a.st
+copy.file.b = %{dataset}b.st
+set.var.pixel-size = 2.02
+set.var.fiducial-diameter = 10
+set.var.image-rotation = -12.5
+set.var.sample-tomogram-thickness = 200
+set.var.z-axis-min = 5
+set.var.z-axis-max = 70
+set.var.unbinned-bead-diameter = 4.95
+set.interface.Recon=
+
+[dataset = midzone2]
+set.single.dataset = midzone2a
+copy.file = %{dataset}.st
+copy.file.a = %{dataset}a.st
+copy.file.b = %{dataset}b.st
+set.var.montage=
+set.var.pixel-size = 1.42
+set.var.fiducial-diameter = 15
+set.var.image-rotation = 0
+set.var.sample-tomogram-thickness = 200
+set.var.z-axis-min = 5
+set.var.z-axis-max = 70
+set.var.unbinned-bead-diameter = 10.56
+set.interface.Recon=
+
+[dataset = unicross]
+copy.file = %{dataset}1.rec
+copy.file = %{dataset}2.rec
+copy.file = %{dataset}3.rec
+set.interface.Join=
+
+
+[interface = Recon]
+goto.frame.pnl.main-frame =
+goto.frame.a.pnl.main-frame =
+open.frame.b.bn.both =
+goto.frame.b.pnl.sub-frame =
+open.dialog.PreProc.bn.pre = 
+open.dialog.CoarseAlign.bn.coarse =
+open.dialog.FidModel.bn.track =
+open.dialog.FineAlign.bn.fine =
+open.dialog.TomoPos.bn.pos =
+open.dialog.FinalStack.bn.stack =
+open.dialog.TomoGen.bn.gen =
+open.dialog.Combine.bn.comb =
+open.dialog.PostProc.bn.post =
+open.dialog.CleanUp.bn.clean =
+
+[interface = Join]
+goto.frame.pnl.main-frame =
+[[open = interface]]
+mn.file=
+mn.new-join=
+[[]]
+open.dialog.setup.tb.setup =
+open.dialog.align.tb.setup.1 =
+open.dialog.join.tb.setup.2 =
+open.dialog.model.tb.setup.3 =
+open.dialog.rejoin.tb.setup.4 =
+
+[interface = PEET]
+goto.frame.pnl.main-frame =
+open.dialog.setup.tb.setup =
+open.dialog.toprun.tb.setup.1 =
+
+[Interface = Parallel]
+goto.frame.pnl.main-frame =
+open.dialog.generic-parallel-process.bn.generic-parallel-process =
+open.dialog.nonlinear-anisotropic-diffusion.bn.nonlinear-anisotropic-diffusion=
+
+
+
+
+
+[hideTest = dual]
 Interface = Recon
 #datasetdir.keep = dual
 #datafile = BB.edf
@@ -66,7 +177,7 @@ set.z-axis-max = 70
 set.unbinned-bead-diameter = 4.95
 duration = ::25
 
-[Test = single]
+[hideTest = single]
 Interface = Recon
 #datasetdir.keep = single
 #datafile = BBa.edf
@@ -81,7 +192,7 @@ set.image-rotation = -12.5
 set.sample-tomogram-thickness = 200
 set.unbinned-bead-diameter = 4.95
 
-[Test = build-dual]
+[hideTest = build-dual]
 Interface = Recon
 datasetdir = dual
 #datafile = BB.edf
@@ -100,7 +211,7 @@ set.z-axis-max = 70
 set.unbinned-bead-diameter = 4.95
 duration = ::25
 
-[Test = build-dual-fidless]
+[hideTest = build-dual-fidless]
 Interface = Recon
 datasetdir = dual
 #datafile = BB.edf
@@ -119,21 +230,7 @@ set.z-axis-max = 70
 set.unbinned-bead-diameter = 4.95
 duration = ::20
 
-[Test = build-single]
-Interface = Recon
-datasetdir = single
-#datafile = BBa.edf
-dataset = BBa
-adoc = build.adoc
-datadir = BB
-copy.file = BBa.st
-set.pixel-size = 2.02
-set.fiducial-diameter = 10
-set.image-rotation = -12.5
-set.unbinned-bead-diameter = 4.95
-set.sample-tomogram-thickness = 200
-
-[Test = build-dual-montage]
+[hideTest = build-dual-montage]
 Interface = Recon
 datasetdir = dual-montage
 #datafile = midzone2.edf
@@ -152,3 +249,25 @@ set.z-axis-min = 5
 set.z-axis-max = 70
 set.unbinned-bead-diameter = 10.56
 duration = :2
+
+[hideTest = build-join]
+Interface = Join
+datafile = basal.ejf
+datadir = basal
+copy.file = basal.ejf
+adoc = build-join.adoc
+duration = ::50
+
+
+[hideTest = test]
+dataset = BBa
+adoc = run.adoc
+datadir = BB
+copy.file = BBa.st
+set.pixel-size = 2.02
+set.fiducial-diameter = 10
+set.image-rotation = -12.5
+set.sample-tomogram-thickness = 200
+set.gui = 1
+set.single = 1
+set.buttons = 1

@@ -1,88 +1,60 @@
 Version = 1.2
 
-[function = build]
-function = open-tiltxcorr
-function = tiltxcorr
-function = open-newstack
-function = newstack
-function = done
+[function = main]
+#starting gui test
+if.var.test-gui.run.function.test1=
+#tiltxcorr
+mb.tiltxcorr = +
+run.function.tiltxcorr=
+[[if = test-gui]]
+assert.exists.file = xcorr%{axis}.log
+run.function.tiltxcorr=
+assert.exists.file = xcorr%{axis}.log~
+[[]]
+#newstack or blendmont
+if.not.var.montage.set.var.single-frame=
+[[if = single-frame]]
+	mb.newstack = +
+	run.function.newstack=
+	if.var.test-gui.set.var.single-frame-test-gui=
+[[]]
+[[if = montage]]
+	mb.blendmont = +
+	run.function.blendmont=
+[[]]
+[[if = single-frame-test-gui]]
+	assert.file.exists = prenewst%{axis}.log
+	run.function.newstack=
+	assert.file.exists = prenewst%{axis}.log~
+[[]]
+#fidless
+if.var.fidless.cb.fiducialless-alignment = 
+#ending gui test
+[[if = test-gui]]
+bn.view-aligned-stack-in-3dmod = 
+run.function.test2=
+[[]]
+bn.done =
 
-[function = montage]
-function = open-tiltxcorr
-function = tiltxcorr
-function = open-blendmont
-function = blendmont
-function = done
-
-[function = build-fidless]
-function = open-tiltxcorr
-function = tiltxcorr
-function = open-newstack
-function = newstack
-function = fidless
-function = done
-
-[function = test]
-function = test1
-function = tiltxcorr
-function = test-tiltxcorr
-function = tiltxcorr
-function = test-backup-tiltxcorr
-function = open-newstack
-function = newstack
-function = test-newstack
-function = newstack
-function = test-newstack
-function = test-backup-newstack
-function = 3dmod
-function = test2
-function = done
-
-[function = open-tiltxcorr]
-mb.tiltxcorr-open = 1
 
 [function = tiltxcorr]
 bn.calculate-cross-correlation =
-waitfor.process.xcorr = done
-
-[function = test-tiltxcorr]
-assert.file.exists = xcorr%{axis}.log
-
-[function = test-backup-tiltxcorr]
-assert.file.exists = xcorr%{axis}.log~
-
-[function = open-newstack]
-mb.newstack-open = 1
-
-[function = open-blendmont]
-mb.blendmont-open = 1
+wait.process.cross-correlating-stack = done
 
 [function = newstack]
 bn.generate-coarse-aligned-stack =
-waitfor.process.prenewst = done
+wait.process.creating-coarse-stack = done
 
 [function = blendmont]
 bn.generate-coarse-aligned-stack =
-waitfor.process.blendmont = done
-
-[function = test-newstack]
-assert.file.exists = prenewst%{axis}.log
-
-[function = test-backup-newstack]
-assert.file.exists = prenewst%{axis}.log~
-
-[function = fidless]
-cb.fiducialless-alignment = 
-
-[function = done]
-bn.done =
+wait.process.coarse-alignment = done
 
 [function = test1]
 #
 # tiltxcorr
 #
-function = open-tiltxcorr
-mb.tiltxcorr-advanced = 1
+mb.tiltxcorr = +
+mb.tiltxcorr.1 = A
 # values
 assert.tf.low-frequency-rolloff-sigma = 0.03
 assert.tf.high-frequency-cutoff-radius = 0.25
@@ -94,92 +66,88 @@ assert.tf.y-axis-min =
 assert.tf.max.1 =
 assert.tf.pixels-to-pad =
 assert.tf.pixels-to-taper =
-assert.cb.cumulative-correlation =
-assert.cb.absolute-cosine-stretch =
-assert.cb.no-cosine-stretch =
-assert.cb.exclude-central-peak-due-to-fixed-pattern-noise =
+assert.cb.cumulative-correlation = off
+assert.cb.absolute-cosine-stretch = off
+assert.cb.no-cosine-stretch = off
+assert.cb.exclude-central-peak-due-to-fixed-pattern-noise = off
 assert.tf.test-output =
 assert.tf.view-range =
-assert.bn.calculate-cross-correlation =
 # enabled
-assert.tf.low-frequency-rolloff-sigma.enabled = 1
-assert.tf.high-frequency-cutoff-radius.enabled = 1
-assert.tf.high-frequency-rolloff-sigma.enabled = 1
-assert.tf.pixels-to-trim.enabled.enabled = 1
-assert.tf.x-axis-min.enabled = 1
-assert.tf.max.enabled = 1
-assert.tf.y-axis-min.enabled = 1
-assert.tf.max.1.enabled = 1
-assert.tf.pixels-to-pad.enabled = 1
-assert.tf.pixels-to-taper.enabled = 1
-assert.cb.cumulative-correlation.enabled = 1
-assert.cb.absolute-cosine-stretch.enabled =
-assert.cb.no-cosine-stretch.enabled = 1
-assert.cb.exclude-central-peak-due-to-fixed-pattern-noise.enabled =1
-assert.tf.test-output.enabled =1
-assert.tf.view-range.enabled =1
-assert.bn.calculate-cross-correlation.enabled = 1
+assert.enabled.tf.low-frequency-rolloff-sigma = 
+assert.enabled.tf.high-frequency-cutoff-radius =
+assert.enabled.tf.high-frequency-rolloff-sigma = 
+assert.enabled.tf.pixels-to-trim = 
+assert.enabled.tf.x-axis-min = 
+assert.enabled.tf.max = 
+assert.enabled.tf.y-axis-min = 
+assert.enabled.tf.max.1 = 
+assert.enabled.tf.pixels-to-pad = 
+assert.enabled.tf.pixels-to-taper = 
+assert.enabled.cb.cumulative-correlation = 
+assert.disabled.cb.absolute-cosine-stretch =
+assert.enabled.cb.no-cosine-stretch = 
+assert.enabled.cb.exclude-central-peak-due-to-fixed-pattern-noise =
+assert.enabled.tf.test-output =
+assert.enabled.tf.view-range =
+assert.enabled.bn.calculate-cross-correlation = 
 # enable/disable
 #   enabling/disabling Absolute cosine stretch
-cb.cumulative-correlation = 1
-assert.cb.absolute-cosine-stretch.enabled = 1
+cb.cumulative-correlation = on
+assert.enabled.cb.absolute-cosine-stretch = 
 cb.no-cosine-stretch = 1
-assert.cb.absolute-cosine-stretch.enabled = 0
+assert.cb.absolute-cosine-stretch = off
 #   unchecking Absolute cosine stretch when it is disabled
-cb.no-cosine-stretch = 0
-cb.absolute-cosine-stretch = 1
-assert.cb.absolute-cosine-stretch = 1
-cb.no-cosine-stretch = 1
-assert.cb.absolute-cosine-stretch = 0
-cb.cumulative-correlation = 0
-cb.no-cosine-stretch = 0
-mb.tiltxcorr-advanced = 0
+cb.no-cosine-stretch = off
+cb.absolute-cosine-stretch = on
+assert.cb.absolute-cosine-stretch = on
+cb.no-cosine-stretch = on
+assert.cb.absolute-cosine-stretch = off
+cb.cumulative-correlation = off
+cb.no-cosine-stretch = off
+mb.tiltxcorr.1 = B
 #
 # newstack
 #
-function = open-newstack
+mb.newstack = +
 # values
-mb.newstack-advanced = 1
+mb.newstack.1 = A
 assert.sp.coarse-aligned-image-stack-binning = 1
 assert.cb.convert-to-bytes = 1
 assert.cb.float-intensities-to-mean = 1
-assert.bn.generate-coarse-aligned-stack = 
 # enabled
-assert.mb.newstack-advanced.enabled = 1
-assert.sp.coarse-aligned-image-stack-binning.enabled = 1
-assert.cb.convert-to-bytes.enabled = 1
-assert.cb.float-intensities-to-mean.enabled = 1
-assert.bn.generate-coarse-aligned-stack.enabled = 1
-mb.newstack-advanced = 0
+assert.enabled.mb.newstack.1 = 
+assert.enabled.sp.coarse-aligned-image-stack-binning = 
+assert.enabled.cb.convert-to-bytes = 
+assert.enabled.cb.float-intensities-to-mean = 
+assert.enabled.bn.generate-coarse-aligned-stack = 
+mb.newstack.1 = B
 #
 # view and fix
 #
 # values
-assert.bn.view-aligned-stack-in-3dmod = 
-assert.cb.fiducialless-alignment = 
+assert.bn.view-aligned-stack-in-3dmod = 0
+assert.cb.fiducialless-alignment = off
 assert.tf.tilt-axis-rotation = -12.5
-assert.bn.fix-alignment-with-midas = 
+assert.bn.fix-alignment-with-midas = 0
 # enabled
-assert.bn.view-aligned-stack-in-3dmod.enabled = 1
-assert.cb.fiducialless-alignment.enabled = 1
-assert.tf.tilt-axis-rotation.enabled = 1
-assert.bn.fix-alignment-with-midas.enabled = 1
+assert.enabled.bn.view-aligned-stack-in-3dmod =
+assert.enabled.cb.fiducialless-alignment =
+assert.enabled.tf.tilt-axis-rotation = 
+assert.enabled.bn.fix-alignment-with-midas =
 #
 # done buttons
 #
-adoc = tests.adoc
-function = buttons
-adoc = coarse-align.adoc
+set.adoc.function = tests.adoc
+run.function.buttons=
+set.adoc.function = 
 #
 # failure
 #
 # thread problem
 #bn.generate-coarse-aligned-stack =
-#waitfor.popup.prenewst%{axis}com-terminated = OK
-#waitfor.process = failed
-
-[function = 3dmod]
-bn.view-aligned-stack-in-3dmod =
+#wait.popup.prenewst%{axis}com-terminated = OK
+#wait.process = failed
+mb.tiltxcorr = -
 
 [function = test2]
 assert.bn.calculate-cross-correlation = 1

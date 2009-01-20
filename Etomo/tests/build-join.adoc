@@ -1,4 +1,6 @@
 Version = 1.2
+verbose =
 
 [Dialog = setup]
 bn.make-samples =
+waitfor.process.Startjoin = done

@@ -1,47 +1,41 @@
 Version = 1.2
 
-[function = build]
-function = create
-function = use
+[function = main]
+[[if = test-gui]]
+run.function.test1 =
+[[]]
+run.function.create =
+[[if = test-gui]]
+assert.exists.file = eraser%{axis}.log
+run.function.create =
+assert.exists.file = eraser%{axis}.log~
+[[]]
+bn.use-fixed-stack = 
+[[if = test-gui]]
+run.function.test2 =
+[[]]
 bn.done =
 
-[function = test]
-function = test1
-function = create
-function = test-create
-function = create
-function = test-create-backup
-function = use
-function = test2
-bn.done =
 
 [function = create]
 bn.create-fixed-stack =
-waitfor.process.eraser = done
+wait.process.ccd-eraser = done
 
-[function = test-create]
-assert.file.exists = eraser%{axis}.log
-
-[function = test-create-backup]
-assert.file.exists = eraser%{axis}.log~
-
-[function = use]
-bn.use-fixed-stack = 
 
 [function = test1]
 #
 # copytomocoms
 #
-assert.file.exists = align%{axis}.com
-assert.file.exists = eraser%{axis}.com
-assert.file.exists = mtffilter%{axis}.com
-assert.file.exists = newst%{axis}.com
-assert.file.exists = prenewst%{axis}.com
-assert.file.exists = sample%{axis}.com
-assert.file.exists = tilt%{axis}.com
-assert.file.exists = tomopitch%{axis}.com
-assert.file.exists = track%{axis}.com
-assert.file.exists = xcorr%{axis}.com
+assert.exists.file = align%{axis}.com
+assert.exists.file = eraser%{axis}.com
+assert.exists.file = mtffilter%{axis}.com
+assert.exists.file = newst%{axis}.com
+assert.exists.file = prenewst%{axis}.com
+assert.exists.file = sample%{axis}.com
+assert.exists.file = tilt%{axis}.com
+assert.exists.file = tomopitch%{axis}.com
+assert.exists.file = track%{axis}.com
+assert.exists.file = xcorr%{axis}.com
 #
 # ccd eraser
 #
@@ -67,84 +61,84 @@ assert.bn.create-fixed-stack = 0
 assert.bn.view-fixed-stack = 0
 assert.bn.use-fixed-stack = 0
 # enabled
-assert.tf.peak-criterion.enabled = 1
-assert.tf.difference-criterion.enabled = 1
-assert.cb.automatic-x-ray-replacement.enabled = 1
-assert.tf.grow-criterion.enabled = 1
-assert.tf.edge-exclusion.enabled = 1
-assert.tf.maximum-radius.enabled = 1
-assert.tf.annulus-width.enabled = 1
-assert.tf.xy-scan-size.enabled = 1
-assert.tf.scan-criterion.enabled = 1
-assert.bn.find-x-rays.enabled = 1
-assert.bn.view-x-ray-model.enabled = 1
-assert.tf.input-file.enabled = 1
-assert.tf.output-file.enabled = 1
-assert.tf.border-pixels.enabled = 1
-assert.tf.polynomial-order.enabled = 1
-assert.cb.include-adjacent-points.enabled = 1
-assert.bn.create-fixed-stack.enabled = 1
-assert.bn.view-fixed-stack.enabled = 1
-assert.bn.use-fixed-stack.enabled = 1
+assert.enabled.tf.peak-criterion =
+assert.enabled.tf.difference-criterion=
+assert.enabled.cb.automatic-x-ray-replacement=
+assert.enabled.tf.grow-criterion = 
+assert.enabled.tf.edge-exclusion = 
+assert.enabled.tf.maximum-radius = 
+assert.enabled.tf.annulus-width = 
+assert.enabled.tf.xy-scan-size = 
+assert.enabled.tf.scan-criterion = 
+assert.enabled.bn.find-x-rays = 
+assert.enabled.bn.view-x-ray-model = 
+assert.enabled.tf.input-file = 
+assert.enabled.tf.output-file = 
+assert.enabled.tf.border-pixels = 
+assert.enabled.tf.polynomial-order = 
+assert.enabled.cb.include-adjacent-points = 
+assert.enabled.bn.create-fixed-stack = 
+assert.enabled.bn.view-fixed-stack = 
+assert.enabled.bn.use-fixed-stack = 
 #enable/disable
 cb.automatic-x-ray-replacement = 0
-assert.tf.peak-criterion.enabled = 0
-assert.tf.difference-criterion.enabled = 0
-assert.tf.grow-criterion.enabled = 0
-assert.tf.edge-exclusion.enabled = 0
-assert.tf.maximum-radius.enabled = 0
-assert.tf.annulus-width.enabled = 0
-assert.tf.xy-scan-size.enabled = 0
-assert.tf.scan-criterion.enabled = 0
-assert.bn.find-x-rays.enabled = 0
-assert.bn.view-x-ray-model.enabled = 0
+assert.disabled.tf.peak-criterion = 
+assert.disabled.tf.difference-criterion = 
+assert.disabled.tf.grow-criterion = 
+assert.disabled.tf.edge-exclusion =
+assert.disabled.tf.maximum-radius = 
+assert.disabled.tf.annulus-width = 
+assert.disabled.tf.xy-scan-size = 
+assert.disabled.tf.scan-criterion = 
+assert.disabled.bn.find-x-rays = 
+assert.disabled.bn.view-x-ray-model = 
 cb.automatic-x-ray-replacement = 1
 bn.basic =
-assert.tf.peak-criterion.enabled = 1
-assert.tf.difference-criterion.enabled = 1
-assert.tf.maximum-radius.enabled = 1
-assert.bn.create-fixed-stack.enabled = 1
-assert.bn.view-fixed-stack.enabled = 1
-assert.bn.use-fixed-stack.enabled = 1
+assert.enabled.tf.peak-criterion = 
+assert.enabled.tf.difference-criterion = 
+assert.enabled.tf.maximum-radius = 
+assert.enabled.bn.create-fixed-stack = 
+assert.enabled.bn.view-fixed-stack = 
+assert.enabled.bn.use-fixed-stack = 
 #
 # manual pixel region replacement
 #
 bn.advanced =
 # values
-assert.cb.manual-replacement =
+assert.cb.manual-replacement = off
 assert.tf.all-section-replacement-list =
 assert.tf.line-replacement-list = 
-assert.bn.create-manual-replacement-model =
+assert.bn.create-manual-replacement-model = 0
 # enabled
-assert.cb.manual-replacement.enabled = 1
-assert.tf.all-section-replacement-list.enabled =
-assert.tf.line-replacement-list.enabled = 
-assert.bn.create-manual-replacement-model.enabled =
+assert.enabled.cb.manual-replacement =
+assert.disabled.tf.all-section-replacement-list =
+assert.disabled.tf.line-replacement-list = 
+assert.disabled.bn.create-manual-replacement-model =
 #enable/disable
-cb.manual-replacement = 1
-assert.tf.all-section-replacement-list.enabled = 1
-assert.tf.line-replacement-list.enabled = 1
-assert.bn.create-manual-replacement-model.enabled = 1
-cb.manual-replacement = 0
+cb.manual-replacement = on
+assert.enabled.tf.all-section-replacement-list = 
+assert.enabled.tf.line-replacement-list = 
+assert.enabled.bn.create-manual-replacement-model = 
+cb.manual-replacement = off
 bn.basic =
 #
 # done buttons
 #
-adoc = tests.adoc
-function = buttons
-adoc = pre-proc.adoc
+set.adoc.function = tests.adoc
+run.function.buttons =
+set.adoc.function =
 #
 # test find x-rays
 #
 bn.find-x-rays =
-waitfor.process.eraser = done
+wait.process.ccd-eraser = done
 bn.find-x-rays =
-waitfor.process.eraser = done
+wait.process.ccd-eraser = done
 #
 # test missing data
 #
 bn.use-fixed-stack =
-waitfor.popup.missing-erased-stack =
+wait.popup.missing-erased-stack = OK
 
 [function = test2]
 #

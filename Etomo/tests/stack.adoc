@@ -1,44 +1,44 @@
 Version = 1.2
 
-[function = run]
+[function = build]
 #full align
 bn.create-full-aligned-stack =
-waitfor.process.newst = done
+wait.process.creating-aligned-stack = done
 bn.done =
 
 [function = test]
 #full align
 bn.create-full-aligned-stack =
-waitfor.process.newst = done
+wait.process.creating-aligned-stack = done
 assert.file.exists = newst%{axis}.log
 bn.create-full-aligned-stack =
-waitfor.process.newst = done
+wait.process.creating-aligned-stack = done
 assert.file.exists = newst%{axis}.log~
-function = ctf-correction
-function=erase-gold
-function = filtering
-function = done
+run.function.ctf-correction=
+run.function.erase-gold=
+run.function.filtering=
+run.function.done=
 
 [function = montage]
 #full align
 bn.create-full-aligned-stack =
-waitfor.process.blend = done
+wait.process.blend = done
 assert.file.exists = blend%{axis}.log
 bn.create-full-aligned-stack =
-waitfor.process.blend = done
+wait.process.blend = done
 assert.file.exists = blend%{axis}.log~
-function = ctf-correction
-function=erase-gold
-function = filtering
-function = done
+run.function.ctf-correction=
+run.function.erase-gold=
+run.function.filtering=
+run.function.done=
 
 [function = ctf-correction]
 #check screen
 tp.create.1 =
-function = ctf-correction-base-values
-function = ctf-correction-base-enabled
+run.function.ctf-correction-base-values=
+run.function.ctf-correction-base-enabled=
 cb.use-expected-defocus-instead-of-ctfplotter-output =
-function = expected-defocus-enabled
+run.function.expected-defocus-enabled=
 #run
 #test ctf plotter
 cb.use-expected-defocus-instead-of-ctfplotter-output =
@@ -49,14 +49,14 @@ assert.file.exists = ctfplotter%{axis}.log
 #test ctf correction
 cb.use-expected-defocus-instead-of-ctfplotter-output =
 bn.correct-ctf =
-waitfor.process.ctf-correction = done
+wait.process.ctf-correction = done
 assert.file.exists = %{dataset}%{axis}_simple.defocus
 assert.file.exists = ctfcorrection%{axis}.log
 assert.file.exists = %{dataset}%{axis}_ctfcorr.ali
 cb.parallel-processing =
 tf.expected-defocus = 8500.0
 bn.correct-ctf =
-waitfor.process.ctf-correction = done
+wait.process.ctf-correction = done
 assert.file.exists = %{dataset}%{axis}_simple.defocus~
 assert.file.exists = ctfcorrection%{axis}.log~
 assert.file.exists = %{dataset}%{axis}_ctfcorr.ali~
@@ -67,45 +67,45 @@ cb.parallel-processing =
 [function = erase-gold]
 #check screen
 tp.create.2=
-function = erase-gold-base-values
-function = erase-gold-base-enabled
+run.function.erase-gold-base-values=
+run.function.erase-gold-base-enabled=
 #run
 #test xfmodel
 bn.transform-fiducial-model=
-waitfor.process.xfmodel=done
+wait.process.xfmodel=done
 assert.file.exists=%{dataset}%{axis}_erase.fid
 bn.transform-fiducial-model=
-waitfor.process.xfmodel=done
+wait.process.xfmodel=done
 assert.file.exists=%{dataset}%{axis}_erase.fid~
 bn.view-transformed-model=
 #test ccderaser
 bn.erase-beads=
-waitfor.process.ccderaser=done
+wait.process.ccderaser=done
 assert.file.exists=%{dataset}%{axis}_erase.ali
 bn.erase-beads=
-waitfor.process.ccderaser=done
+wait.process.ccderaser=done
 assert.file.exists=%{dataset}%{axis}_erase.ali~
 bn.view-erased-stack=
 bn.use-erased-stack=
-waitfor.popup.etomo-question = Yes
+wait.popup.etomo-question = Yes
 
 [function = filtering]
 tp.create.3 = 
 bn.filter =
-waitfor.process.mtffilter = done
+wait.process.mtffilter = done
 assert.file.exists = mtffilter%{axis}.log
 bn.filter =
-waitfor.process.mtffilter = done
+wait.process.mtffilter = done
 assert.file.exists = mtffilter%{axis}.log~
 bn.view-filtered-stack =
 bn.use-filtered-stack =
-mb.parallel-processing-open = 1
-mb.parallel-processing-more = 1
+mb.parallel-processing = +
+mb.parallel-processing.1 = >
 
 [function = done]
 bn.done =
-waitfor.popup.etomo-question = Yes
-waitfor.popup.etomo-question = Yes
+wait.popup.etomo-question = Yes
+wait.popup.etomo-question = Yes
 
 [function = ctf-correction-base-values]
 assert.tf.voltage = 200
@@ -116,10 +116,10 @@ assert.cb.use-expected-defocus-instead-of-ctfplotter-output = 0
 assert.cb.parallel-processing = 1
 assert.tf.interpolation-width = 20
 #advanced
-mb.ctf-correction-advanced = 1
+mb.ctf-correction.1 = A
 assert.tf.amplitude-contrast = 0.07
 assert.tf.defocus-tolerance = 200
-mb.ctf-correction-advanced = 0
+mb.ctf-correction.1 = B
 
 [function = ctf-correction-base-enabled]
 assert.tf.voltage.enabled = 1
@@ -131,10 +131,10 @@ assert.cb.use-expected-defocus-instead-of-ctfplotter-output.enabled = 1
 assert.cb.parallel-processing.enabled = 1
 assert.tf.interpolation-width.enabled = 1
 #advanced
-mb.ctf-correction-advanced = 1
+mb.ctf-correction.1 = A
 assert.tf.amplitude-contrast.enabled = 1
 assert.tf.defocus-tolerance.enabled = 1
-mb.ctf-correction-advanced = 0
+mb.ctf-correction.0 = B
 
 [function = expected-defocus-enabled]
 assert.tf.voltage.enabled = 1
@@ -146,10 +146,10 @@ assert.cb.use-expected-defocus-instead-of-ctfplotter-output.enabled = 1
 assert.cb.parallel-processing.enabled = 1
 assert.tf.interpolation-width.enabled = 1
 #advanced
-mb.ctf-correction-advanced = 1
+mb.ctf-correction.1 = A
 assert.amplitude-contrast.enabled = 1
 assert.tf.defocus-tolerance.enabled = 1
-mb.ctf-correction-advanced = 0
+mb.ctf-correction.1 = B
 
 [function = erase-gold-base-values]
 assert.bn.transform-fiducial-model = 0
