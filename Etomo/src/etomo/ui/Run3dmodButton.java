@@ -57,7 +57,7 @@ final class Run3dmodButton extends MultiLineButton implements ContextMenu,
       else {
         openString = "And open " + description;
       }
-      noMenuOption = new JMenuItem(openString);
+      noMenuOption = new MenuItem(openString);
     }
     else {
       if (description == null) {
@@ -67,8 +67,8 @@ final class Run3dmodButton extends MultiLineButton implements ContextMenu,
         openString = "Open " + description;
       }
     }
-    startupWindow = new JMenuItem(openString + " with startup window");
-    binBy2 = new JMenuItem(openString + " binned by 2");
+    startupWindow = new MenuItem(openString + " with startup window");
+    binBy2 = new MenuItem(openString + " binned by 2");
   }
 
   static Run3dmodButton get3dmodInstance(final String label,
@@ -197,6 +197,10 @@ final class Run3dmodButton extends MultiLineButton implements ContextMenu,
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.12  2008/05/13 23:06:06  sueh
+ * <p> bug# 847 Added deferred3dmodButton, which holds to method of
+ * <p> running 3dmod that the button instance will use.
+ * <p>
  * <p> Revision 1.11  2008/05/07 00:24:08  sueh
  * <p> bug#847 Running deferred 3dmods by using the button that usually calls
  * <p> them.  This avoids having to duplicate the calls and having a
