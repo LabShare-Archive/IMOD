@@ -6,7 +6,7 @@ import javax.swing.JTabbedPane;
 
 import etomo.EtomoDirector;
 import etomo.storage.autodoc.AutodocTokenizer;
-import etomo.type.UITestField;
+import etomo.type.UITestFieldType;
 import etomo.util.Utilities;
 
 /**
@@ -25,30 +25,51 @@ import etomo.util.Utilities;
 final class TabbedPane extends JTabbedPane {
   public static final String rcsid = "$Id$";
 
+  /**
+   * Adds a tab, sets the name of the pane on the first tab.  Sets the name of
+   * the component, if it does not have a name.
+   */
   public void addTab(String title, Component component) {
     super.addTab(title, component);
-    int tabCount = getTabCount();
-    String name;
-    if (tabCount < 0) {
-      throw new IllegalStateException("tabCount="+tabCount);
+    if (getTabCount() == 1) {
+      setName(title);
     }
-    if (tabCount == 1) {
-      name = Utilities.convertLabelToName(title);
-      setName(name);
+  }
+
+  /**
+   * Adds a tab, sets the name of the pane on the first tab.  Sets the name of
+   * the component, if it does not have a name.
+   */
+  public void addTab(String title, SpacedPanel spacedPanel) {
+    super.addTab(title, spacedPanel.getContainer());
+    if (getTabCount() == 1) {
+      setName(title);
     }
-    else {
-      name = getName();
+  }
+
+  public void setTitleAt(int index, String title) {
+    super.setTitleAt(index, title);
+    if (index == 0) {
+      setName(title);
     }
+  }
+
+  public void setName(String text) {
+    String name = Utilities.convertLabelToName(text);
+    super.setName(name);
     if (EtomoDirector.INSTANCE.getArguments().isPrintNames()) {
-      System.out.println(UITestField.TABBED_PANE.toString()
+      System.out.println(UITestFieldType.TAB.toString()
           + AutodocTokenizer.SEPARATOR_CHAR + name
-          + AutodocTokenizer.SEPARATOR_CHAR + (tabCount - 1) + " "
           + AutodocTokenizer.DEFAULT_DELIMITER + ' ');
     }
   }
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.5  2008/05/30 22:36:28  sueh
+ * <p> bug# 1102 Isolating the etomo.uitest package so it is not need for
+ * <p> running EtomoDirector.
+ * <p>
  * <p> Revision 1.4  2008/05/30 21:34:46  sueh
  * <p> bug# 1102 Moved uitest classes to etomo.uitest.
  * <p>
