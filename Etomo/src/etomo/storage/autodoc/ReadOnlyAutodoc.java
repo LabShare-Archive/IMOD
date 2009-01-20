@@ -20,6 +20,9 @@ import etomo.storage.autodoc.Autodoc.InternalTestType;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.6  2008/10/27 18:35:50  sueh
+ * <p> bug# 1141 Added isDebug and setDebug.
+ * <p>
  * <p> Revision 1.5  2008/05/30 21:25:43  sueh
  * <p> bug# 1102 Formatted.
  * <p>
@@ -42,7 +45,7 @@ import etomo.storage.autodoc.Autodoc.InternalTestType;
  * <p> bug# 964 Limiting access to autodoc classes by using ReadOnly interfaces.
  * <p> </p>
  */
-public interface ReadOnlyAutodoc extends ReadOnlyStatementList {
+public interface ReadOnlyAutodoc extends ReadOnlyStatementList, ReadOnlySectionList {
   public static final String rcsid = "$Id$";
 
   public HashMap getAttributeValues(String sectionType, String attributeName);
