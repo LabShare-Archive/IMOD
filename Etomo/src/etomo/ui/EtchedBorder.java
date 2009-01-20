@@ -3,7 +3,6 @@ package etomo.ui;
 import java.awt.Color;
 
 import javax.swing.BorderFactory;
-import javax.swing.border.Border;
 import javax.swing.border.TitledBorder;
 
 /*
@@ -19,6 +18,9 @@ import javax.swing.border.TitledBorder;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.0  2003/11/07 23:19:01  rickg
+ * <p> Version 1.0.0
+ * <p>
  * <p> Revision 1.3  2003/03/20 17:30:10  rickg
  * <p> Comment update
  * <p>
@@ -46,7 +48,7 @@ public class EtchedBorder {
         title);
   }
 
-  public Border getBorder() {
+  public TitledBorder getBorder() {
     return titledBorder;
   }
 
