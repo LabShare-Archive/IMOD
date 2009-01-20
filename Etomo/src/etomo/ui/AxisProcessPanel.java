@@ -11,15 +11,10 @@ import javax.swing.*;
 import java.awt.Rectangle;
 
 import etomo.BaseManager;
-import etomo.EtomoDirector;
-import etomo.storage.autodoc.AutodocTokenizer;
 import etomo.type.AxisID;
 import etomo.type.EtomoNumber;
 import etomo.type.ProcessEndState;
 import etomo.type.ProcessName;
-import etomo.type.UITestAction;
-import etomo.type.UITestField;
-import etomo.util.Utilities;
 
 /**
  * <p>Description: </p>
@@ -34,6 +29,10 @@ import etomo.util.Utilities;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.38  2008/10/06 22:37:41  sueh
+ * <p> bug# 1113 Removed pack, which is unecessary since scrolling was
+ * <p> removed.
+ * <p>
  * <p> Revision 3.37  2008/09/30 20:55:45  sueh
  * <p> bug# 1113 Using a private constructor in ProgressPanel.
  * <p>
@@ -277,7 +276,7 @@ public abstract class AxisProcessPanel implements ContextMenu {
 
   //  Progress panel
   final ProgressPanel progressPanel;
-  private final JButton buttonKillProcess = new JButton(KILL_BUTTON_LABEL);
+  private final SimpleButton buttonKillProcess = new SimpleButton(KILL_BUTTON_LABEL);
   private ParallelPanel parallelPanel = null;
 
   //  Process select panel
@@ -296,7 +295,6 @@ public abstract class AxisProcessPanel implements ContextMenu {
     progressPanel = ProgressPanel.getInstance("No process", manager, axis);
     axisID = axis;
     this.manager = manager;
-    buttonKillProcess.setName(Utilities.convertLabelToName(KILL_BUTTON_LABEL));
     //  Create the status panel
     actionListener = new KillButtonActionListener(this);
     buttonKillProcess.addActionListener(actionListener);
@@ -315,22 +313,6 @@ public abstract class AxisProcessPanel implements ContextMenu {
     innerStatusPanel
         .setLayout(new BoxLayout(innerStatusPanel, BoxLayout.X_AXIS));
     buttonKillProcess.setToolTipText("Press to end the current process.");
-  }
-
-  private void setName(ProcessName processName) {
-    if (processName == null) {
-      buttonKillProcess
-          .setName(Utilities.convertLabelToName(KILL_BUTTON_LABEL));
-      return;
-    }
-    buttonKillProcess.setName(Utilities.convertLabelToName(KILL_BUTTON_LABEL,
-        processName));
-    if (EtomoDirector.INSTANCE.getArguments().isPrintNames()) {
-      System.out.println(UITestAction.WAIT_FOR.toString()
-          + AutodocTokenizer.SEPARATOR_CHAR + UITestField.PROCESS
-          + AutodocTokenizer.SEPARATOR_CHAR + processName.toString() + ' '
-          + AutodocTokenizer.DEFAULT_DELIMITER + ' ');
-    }
   }
 
   protected void initializePanels() {
@@ -503,9 +485,6 @@ public abstract class AxisProcessPanel implements ContextMenu {
     progressPanel.setMinimum(0);
     progressPanel.setMaximum(nSteps);
     buttonKillProcess.setEnabled(true);
-    //for testing, once the button is enabled, can change the button name to reflect
-    //the current process
-    setName(processName);
     if (parallelPanel != null) {
       parallelPanel.setPauseEnabled(enablePause);
     }
@@ -535,9 +514,6 @@ public abstract class AxisProcessPanel implements ContextMenu {
     progressPanel.setLabel(label);
     progressPanel.start();
     buttonKillProcess.setEnabled(true);
-    //for testing, once the button is enabled, can change the button name to reflect
-    //the current process
-    setName(processName);
   }
 
   /**
