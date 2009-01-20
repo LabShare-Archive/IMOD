@@ -6,7 +6,6 @@ import java.io.File;
 
 import javax.swing.BoxLayout;
 import javax.swing.ImageIcon;
-import javax.swing.JButton;
 import javax.swing.JLabel;
 
 import etomo.type.ConstStringParameter;
@@ -25,6 +24,11 @@ import etomo.type.ConstStringParameter;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.12  2008/11/22 00:18:34  sueh
+ * <p> bug# 1155 Fixed problem with outputting a corrupted file path.  The
+ * <p> actual file has to be saved because this class sometimes displays a
+ * <p> partial file name.
+ * <p>
  * <p> Revision 1.11  2008/10/27 20:38:01  sueh
  * <p> bug# 1441 Fixed a bug where the member variable file was not kept up
  * <p> to date.
@@ -65,7 +69,7 @@ import etomo.type.ConstStringParameter;
 final class FileTextField {
   public static final String rcsid = "$Id$";
 
-  private final JButton button = new JButton(new ImageIcon(ClassLoader
+  private final SimpleButton button = new SimpleButton(new ImageIcon(ClassLoader
       .getSystemResource("images/openFile.gif")));
   private final SpacedPanel panel = SpacedPanel.getInstance();
   private final TextField field;
@@ -90,6 +94,7 @@ final class FileTextField {
     field = new TextField(label);
     panel.add(field);
     button.setActionCommand(label);
+    button.setName(label);
     panel.add(button);
     button.setPreferredSize(FixedDim.folderButton);
     button.setMaximumSize(FixedDim.folderButton);
