@@ -119,6 +119,10 @@ final class Autodoc extends WriteOnlyStatementList implements WritableAutodoc {
     Autodoc.absoluteDir = absoluteDir;
   }
 
+  public void setDebug() {
+    debug = true;
+  }
+
   public String getName() {
     return autodocFile.getName();
   }
@@ -275,19 +279,18 @@ final class Autodoc extends WriteOnlyStatementList implements WritableAutodoc {
 
   public ReadOnlySection getSection(String type, String name) {
     if (debug) {
-      System.out.println("Autodoc.getSection:type="+type+",name="+name);
+      System.out.println("Autodoc.getSection:type=" + type + ",name=" + name);
     }
     if (sectionMap == null) {
       return null;
     }
     String key = Section.getKey(type, name);
     if (debug) {
-      System.out.println("Autodoc.getSection:key="+key);
-      System.out.println("sectionMap="+sectionMap);
+      System.out.println("Autodoc.getSection:key=" + key);
     }
     Section section = (Section) sectionMap.get(key);
     if (debug) {
-      System.out.println("Autodoc.getSection:section="+section);
+      System.out.println("Autodoc.getSection:section=" + section);
     }
     return section;
   }
@@ -296,6 +299,10 @@ final class Autodoc extends WriteOnlyStatementList implements WritableAutodoc {
     return getSectionLocation(type) != null;
   }
 
+  /**
+   * Sets a SectionLocation index to the first section with the type the same as
+   * the type parameter.  Returns the SectionLocation index.
+   */
   public SectionLocation getSectionLocation(String type) {
     Section section = null;
     for (int i = 0; i < sectionList.size(); i++) {
@@ -307,6 +314,10 @@ final class Autodoc extends WriteOnlyStatementList implements WritableAutodoc {
     return null;
   }
 
+  /**
+   * Starts with the section that location is pointing to returns the first
+   * section which the same type as location.  Increments location.
+   */
   public ReadOnlySection nextSection(SectionLocation location) {
     if (location == null) {
       return null;
@@ -521,9 +532,14 @@ final class Autodoc extends WriteOnlyStatementList implements WritableAutodoc {
   void initializeUITestAxis(LogFile autodocFile, AxisID axisID)
       throws FileNotFoundException, IOException, LogFile.ReadException {
     this.autodocFile = autodocFile;
-    initialize(null, axisID, null, true);
+    /*if (autodocFile.getName().equals("setup-recon.adoc")) {
+      initialize(null, axisID, null, false);
+    }
+    else {*/
+      initialize(null, axisID, null, true);
+    //}
   }
-  
+
   public boolean isDebug() {
     return debug;
   }
@@ -553,6 +569,7 @@ final class Autodoc extends WriteOnlyStatementList implements WritableAutodoc {
    */
   public void runInternalTest(InternalTestType type, boolean showTokens,
       boolean showDetails) throws IOException, LogFile.ReadException {
+    System.out.println("runInternalTest");
     if (type == InternalTestType.STREAM_TOKENIZER) {
       parser.testStreamTokenizer(showTokens, showDetails);
     }
@@ -603,6 +620,9 @@ final class Autodoc extends WriteOnlyStatementList implements WritableAutodoc {
       parser.initialize();
       parser.parse();
     }
+    else {
+      runInternalTest(InternalTestType.STREAM_TOKENIZER, true, false);
+    }
   }
 
   /**
@@ -640,6 +660,9 @@ final class Autodoc extends WriteOnlyStatementList implements WritableAutodoc {
 }
 /**
  *<p> $$Log$
+ *<p> $Revision 1.26  2008/10/27 18:34:58  sueh
+ *<p> $bug# 1141 Added debug.
+ *<p> $
  *<p> $Revision 1.25  2008/05/30 21:22:21  sueh
  *<p> $bug# 1102 Added commandLanguage and writable.  Will be used to limit
  *<p> $functionality of regular autodocs to original autodoc definition.
