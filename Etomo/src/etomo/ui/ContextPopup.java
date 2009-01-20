@@ -32,6 +32,9 @@ import etomo.type.AxisID;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.14  2008/03/19 01:01:25  sueh
+ * <p> bug# 1099 TabbedTextWindow.openFiles return boolean.
+ * <p>
  * <p> Revision 3.13  2007/11/12 22:13:53  sueh
  * <p> bug# 1047 Added an ContextPopup constructor with a subdir name string to
  * <p> popup a .log file in a subdirectory.
@@ -158,11 +161,11 @@ public class ContextPopup {
   private JPopupMenu contextMenu = new JPopupMenu("Help Documents");
   private JMenuItem[] manPageItem;
   private JMenuItem[] logFileItem;
-  private JMenuItem tomoGuideItem = new JMenuItem("Tomography Guide ...");
-  private JMenuItem modelGuideItem = new JMenuItem("IMOD Users Guide ...");
-  private JMenuItem it3dmodGuide = new JMenuItem("3dmod Users Guide ...");
-  private JMenuItem etomoGuideItem = new JMenuItem("Etomo Users Guide ...");
-  private JMenuItem joinGuideItem = new JMenuItem("Join Users Guide ...");
+  private JMenuItem tomoGuideItem = new MenuItem("Tomography Guide ...");
+  private JMenuItem modelGuideItem = new MenuItem("IMOD Users Guide ...");
+  private JMenuItem it3dmodGuide = new MenuItem("3dmod Users Guide ...");
+  private JMenuItem etomoGuideItem = new MenuItem("Etomo Users Guide ...");
+  private JMenuItem joinGuideItem = new MenuItem("Join Users Guide ...");
   private ActionListener actionListener;
   private MouseEvent mouseEvent;
 
@@ -669,10 +672,10 @@ public class ContextPopup {
    * @param manPage
    */
   private void addManPageMenuItems(String[] manPageLabel, String manPage[]) {
-    manPageItem = new JMenuItem[manPageLabel.length];
+    manPageItem = new MenuItem[manPageLabel.length];
     manPageName = new String[manPage.length];
     for (int i = 0; i < manPageItem.length; i++) {
-      manPageItem[i] = new JMenuItem();
+      manPageItem[i] = new MenuItem();
       manPageItem[i].setText(manPageLabel[i] + " man page ...");
       manPageItem[i].addActionListener(actionListener);
       contextMenu.add(manPageItem[i]);
@@ -755,10 +758,10 @@ public class ContextPopup {
    * @param logFile
    */
   private void addLogFileMenuItems(String[] logFileLabel, String logFile[]) {
-    logFileItem = new JMenuItem[logFileLabel.length];
+    logFileItem = new MenuItem[logFileLabel.length];
     logFileName = new String[logFile.length];
     for (int i = 0; i < logFileItem.length; i++) {
-      logFileItem[i] = new JMenuItem();
+      logFileItem[i] = new MenuItem();
       logFileItem[i].setText(logFileLabel[i] + " log file ...");
       logFileItem[i].addActionListener(actionListener);
       contextMenu.add(logFileItem[i]);
@@ -767,9 +770,9 @@ public class ContextPopup {
   }
 
   private void addTabbedLogFileMenuItems(String[] logWindowLabel) {
-    logFileItem = new JMenuItem[logWindowLabel.length];
+    logFileItem = new MenuItem[logWindowLabel.length];
     for (int i = 0; i < logFileItem.length; i++) {
-      logFileItem[i] = new JMenuItem();
+      logFileItem[i] = new MenuItem();
       logFileItem[i].setText(logWindowLabel[i] + " log file ...");
       logFileItem[i].addActionListener(actionListener);
       contextMenu.add(logFileItem[i]);
