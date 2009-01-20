@@ -23,6 +23,9 @@ import etomo.type.AxisID;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.10  2008/10/27 18:35:26  sueh
+ * <p> bug# 1141 Added ctfplotter and ctfcorrection
+ * <p>
  * <p> Revision 1.9  2008/05/30 21:23:42  sueh
  * <p> bug# 1102 Added writable.  Will be used to limit functionality of non-
  * <p> matlab autodocs to original autodoc definition.
@@ -120,7 +123,7 @@ public final class AutodocFactory {
     if (name.equals(UITEST)) {
       autodoc.initializeUITest(name, axisID);
     }
-    if (name.equals(CPU)) {
+    else if (name.equals(CPU)) {
       autodoc.initializeCpu(name, axisID);
     }
     else {
