@@ -9,6 +9,7 @@ import javax.swing.event.ChangeListener;
 import javax.swing.plaf.ColorUIResource;
 
 import etomo.type.EtomoBoolean2;
+import etomo.type.UITestFieldType;
 
 /**
  * <p>Description: </p>
@@ -43,6 +44,10 @@ final class CheckBoxCell extends InputCell implements ToggleCell{
 
   Component getComponent() {
     return checkBox;
+  }
+  
+  UITestFieldType getFieldType() {
+    return UITestFieldType.CHECK_BOX;
   }
 
   public void setEnabled(final boolean enabled) {
@@ -108,6 +113,10 @@ final class CheckBoxCell extends InputCell implements ToggleCell{
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.13  2007/09/27 20:49:20  sueh
+ * <p> bug# 1044 Implementing ToggleCell and adding addChangeLIstener() to allow a
+ * <p> radio button to be used to select a single queue in the processor table.
+ * <p>
  * <p> Revision 1.12  2007/04/02 21:44:31  sueh
  * <p> bug# 964 Implementing Cell interface.
  * <p>
