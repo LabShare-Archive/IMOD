@@ -18,7 +18,6 @@ import javax.swing.JFrame;
 import javax.swing.JMenuBar;
 import javax.swing.JOptionPane;
 
-
 import etomo.BaseManager;
 import etomo.EtomoDirector;
 import etomo.process.ImodqtassistProcess;
@@ -29,8 +28,8 @@ import etomo.storage.autodoc.AutodocTokenizer;
 import etomo.type.AxisID;
 import etomo.type.AxisType;
 import etomo.type.BaseMetaData;
-import etomo.type.UITestAction;
-import etomo.type.UITestField;
+import etomo.type.UITestActionType;
+import etomo.type.UITestSubjectType;
 import etomo.util.Utilities;
 
 /**
@@ -60,18 +59,18 @@ abstract class EtomoFrame extends JFrame {
   private static final String OK = "OK";
 
   private boolean verbose = false;
-  protected boolean main;
-  protected EtomoMenu menu;
-  protected JMenuBar menuBar;
-  protected MainPanel mainPanel;
-  protected BaseManager currentManager;
+  boolean main;
+  EtomoMenu menu;
+  JMenuBar menuBar;
+  MainPanel mainPanel;
+  BaseManager currentManager;
 
-  protected static EtomoFrame mainFrame = null;
-  protected static EtomoFrame subFrame = null;
+  static EtomoFrame mainFrame = null;
+  static EtomoFrame subFrame = null;
 
-  protected abstract void register();
+  abstract void register();
 
-  protected void initialize() {
+  void initialize() {
     menu = new EtomoMenu();
     ImageIcon iconEtomo = new ImageIcon(ClassLoader
         .getSystemResource("images/etomo.png"));
@@ -268,7 +267,7 @@ abstract class EtomoFrame extends JFrame {
    * handled in the child classes.
    * @param event
    */
-  protected void menuOptionsAction(ActionEvent event) {
+  void menuOptionsAction(ActionEvent event) {
     if (menu.equalsSettings(event)) {
       EtomoDirector.INSTANCE.openSettingsDialog();
     }
@@ -303,7 +302,7 @@ abstract class EtomoFrame extends JFrame {
    * it changes the menu's appearance.
    * @param currentManager
    */
-  protected void setEnabled(BaseManager currentManager) {
+  void setEnabled(BaseManager currentManager) {
     menu.setEnabled(currentManager);
     EtomoFrame otherFrame = getOtherFrame();
     if (otherFrame != null) {
@@ -317,7 +316,7 @@ abstract class EtomoFrame extends JFrame {
    * Also run this function on the other frame since it changes the menu's
    * appearance.
    */
-  protected void setMRUFileLabels(String[] mRUList) {
+  void setMRUFileLabels(String[] mRUList) {
     menu.setMRUFileLabels(mRUList);
     EtomoFrame otherFrame = getOtherFrame();
     if (otherFrame != null) {
@@ -567,8 +566,8 @@ abstract class EtomoFrame extends JFrame {
       String[] optionStrings, String title, String[] message) {
     if (printNames) {
       //print waitfor popup name/value pair
-      StringBuffer buffer = new StringBuffer(UITestAction.WAIT_FOR.toString()
-          + AutodocTokenizer.SEPARATOR_CHAR + UITestField.POPUP.toString()
+      StringBuffer buffer = new StringBuffer(UITestActionType.WAIT.toString()
+          + AutodocTokenizer.SEPARATOR_CHAR + UITestSubjectType.POPUP.toString()
           + AutodocTokenizer.SEPARATOR_CHAR + name + ' '
           + AutodocTokenizer.DEFAULT_DELIMITER + ' ');
       //if there are options, then print a popup name/value pair
@@ -771,11 +770,11 @@ abstract class EtomoFrame extends JFrame {
       bounds.width++;
       setBounds(bounds);
       try {
-      super.pack();
-    }
+        super.pack();
+      }
       catch (NullPointerException e) {
         e.printStackTrace();
-  }
+      }
     }
   }
 
@@ -811,7 +810,7 @@ abstract class EtomoFrame extends JFrame {
     return null;
   }
 
-  protected AxisID getAxisID() {
+  AxisID getAxisID() {
     if (!main) {
       return AxisID.SECOND;
     }
@@ -828,7 +827,7 @@ abstract class EtomoFrame extends JFrame {
     return AxisID.FIRST;
   }
 
-  protected EtomoFrame getOtherFrame() {
+  EtomoFrame getOtherFrame() {
     if (main) {
       return subFrame;
     }
@@ -856,6 +855,10 @@ abstract class EtomoFrame extends JFrame {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.39  2008/05/30 22:31:42  sueh
+ * <p> bug# 1102 Isolating the etomo.uitest package so it is not need for
+ * <p> running EtomoDirector.
+ * <p>
  * <p> Revision 1.38  2008/05/30 21:28:16  sueh
  * <p> bug# 1102 Moved uitest classes to etomo.uitest.
  * <p>
