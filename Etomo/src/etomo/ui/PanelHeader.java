@@ -41,6 +41,7 @@ final class PanelHeader implements Expandable {
   private final HeaderCell cellTitle;
 
   private final DialogType dialogType;
+  private final String title;
 
   private ExpandButton btnOpenClose = null;
   private ExpandButton btnAdvancedBasic = null;
@@ -80,6 +81,7 @@ final class PanelHeader implements Expandable {
       boolean moreLess, DialogType dialogType, boolean openClose) {
     this.parent = parent;
     this.dialogType = dialogType;
+    this.title = title;
     //panels
     rootPanel.setLayout(new BoxLayout(rootPanel, BoxLayout.Y_AXIS));
     JPanel northPanel = new JPanel();
@@ -168,6 +170,10 @@ final class PanelHeader implements Expandable {
       return;
     }
     btnOpenClose.setExpanded(open);
+  }
+
+  String getTitle() {
+    return title;
   }
 
   boolean isAdvanced() {
