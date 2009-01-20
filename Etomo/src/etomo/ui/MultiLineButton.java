@@ -14,7 +14,7 @@ import etomo.type.DialogType;
 import etomo.type.ProcessResult;
 import etomo.type.ProcessResultDisplay;
 import etomo.type.ProcessResultDisplayState;
-import etomo.type.UITestField;
+import etomo.type.UITestFieldType;
 import etomo.util.Utilities;
 
 import java.awt.Color;
@@ -44,6 +44,9 @@ import java.lang.String;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.36  2008/11/20 01:46:26  sueh
+ * <p> bug# 1147 Added isVisible.
+ * <p>
  * <p> Revision 3.35  2008/09/30 21:59:13  sueh
  * <p> bug# 1113 Added setIncon.
  * <p>
@@ -335,7 +338,7 @@ class MultiLineButton implements ProcessResultDisplay {
     String name = Utilities.convertLabelToName(label);
     button.setName(name);
     if (EtomoDirector.INSTANCE.getArguments().isPrintNames()) {
-      System.out.println(UITestField.BUTTON.toString()
+      System.out.println(UITestFieldType.BUTTON.toString()
           + AutodocTokenizer.SEPARATOR_CHAR + name + ' '
           + AutodocTokenizer.DEFAULT_DELIMITER + ' ');
     }
@@ -505,7 +508,7 @@ class MultiLineButton implements ProcessResultDisplay {
   final boolean isSelected() {
     return button.isSelected();
   }
-  
+
   final boolean isVisible() {
     return button.isVisible();
   }
