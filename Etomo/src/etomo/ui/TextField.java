@@ -8,7 +8,7 @@ import javax.swing.JTextField;
 
 import etomo.EtomoDirector;
 import etomo.storage.autodoc.AutodocTokenizer;
-import etomo.type.UITestField;
+import etomo.type.UITestFieldType;
 import etomo.util.Utilities;
 
 /**
@@ -99,7 +99,7 @@ final class TextField {
     String name = Utilities.convertLabelToName(reference);
     textField.setName(name);
     if (EtomoDirector.INSTANCE.getArguments().isPrintNames()) {
-      System.out.println(UITestField.TEXT_FIELD.toString()
+      System.out.println(UITestFieldType.TEXT_FIELD.toString()
           + AutodocTokenizer.SEPARATOR_CHAR + name + ' '
           + AutodocTokenizer.DEFAULT_DELIMITER + ' ');
     }
@@ -107,6 +107,10 @@ final class TextField {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.8  2008/05/30 22:36:39  sueh
+ * <p> bug# 1102 Isolating the etomo.uitest package so it is not need for
+ * <p> running EtomoDirector.
+ * <p>
  * <p> Revision 1.7  2008/05/30 21:34:57  sueh
  * <p> bug# 1102 Moved uitest classes to etomo.uitest.
  * <p>

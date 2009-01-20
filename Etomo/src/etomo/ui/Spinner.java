@@ -15,7 +15,7 @@ import etomo.storage.autodoc.AutodocTokenizer;
 import etomo.type.ConstEtomoNumber;
 import etomo.type.EtomoNumber;
 import etomo.type.ParsedElement;
-import etomo.type.UITestField;
+import etomo.type.UITestFieldType;
 import etomo.util.Utilities;
 
 /**
@@ -32,6 +32,9 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.14  2009/01/13 19:40:12  sueh
+ * <p> bug# 1170 Added a static getInstance function which takes value, min, and max.
+ * <p>
  * <p> Revision 1.13  2008/09/10 21:36:49  sueh
  * <p> bug# 1135 In setValue(ParsedElement) handle possibility that the
  * <p> parameter may be null.
@@ -92,7 +95,7 @@ final class Spinner {
     String name = Utilities.convertLabelToName(label);
     spinner.setName(name);
     if (EtomoDirector.INSTANCE.getArguments().isPrintNames()) {
-      System.out.println(UITestField.SPINNER.toString()
+      System.out.println(UITestFieldType.SPINNER.toString()
           + AutodocTokenizer.SEPARATOR_CHAR + name + ' '
           + AutodocTokenizer.DEFAULT_DELIMITER + ' ');
     }
