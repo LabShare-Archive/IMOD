@@ -14,6 +14,10 @@ package etomo.storage.autodoc;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.2  2007/03/23 20:35:10  sueh
+* <p> bug# 964 Added getMultiLineValue(), to convert a link list of tokens into a string
+* <p> which retains EOL information.
+* <p>
 * <p> Revision 1.1  2007/03/15 21:46:36  sueh
 * <p> bug# 964 Added ReadOnlyAttribute, which is used as an interface for Attribute,
 * <p> unless the Attribute needs to be modified.
@@ -26,4 +30,7 @@ public interface ReadOnlyAttribute {
   public String getMultiLineValue();
   public ReadOnlyAttribute getAttribute(String name);
   public Attribute getAttribute(int name);
+  public String getName();
+  public ReadOnlyAttribute getFirstAttribute();
+  public String toString();
 }
