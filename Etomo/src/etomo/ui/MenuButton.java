@@ -25,6 +25,9 @@ import etomo.type.DialogType;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.3  2008/05/03 00:50:52  sueh
+ * <p> bug# 847 This class will not be used.
+ * <p>
  * <p> Revision 1.2  2007/09/13 18:38:08  sueh
  * <p> bug# 847 Added action().  Using ActionElement instead of strings to identify the
  * <p> menu item selected.
@@ -40,7 +43,7 @@ final class MenuButton extends MultiLineButton implements ContextMenu {
 
   private MenuButtonContainer container = null;
   private JPopupMenu contextMenu = null;
-  private JMenuItem[] jMenuItemArray = null;
+  private JMenuItem[] menuItemArray = null;
   private ActionElement[] actionElementArray = null;
   private MenuActionListener listener = new MenuActionListener(this);
 
@@ -70,12 +73,12 @@ final class MenuButton extends MultiLineButton implements ContextMenu {
     if (actionElementArray == null) {
       actionElementArray = new ActionElement[0];
     }
-    jMenuItemArray = new JMenuItem[actionElementArray.length];
+    menuItemArray = new MenuItem[actionElementArray.length];
     for (int i = 0; i < actionElementArray.length; i++) {
-      jMenuItemArray[i] = new JMenuItem(MENU_STRING + " "
+      menuItemArray[i] = new MenuItem(MENU_STRING + " "
           + actionElementArray[i].getActionCommand());
-      contextMenu.add(jMenuItemArray[i]);
-      jMenuItemArray[i].addActionListener(listener);
+      contextMenu.add(menuItemArray[i]);
+      menuItemArray[i].addActionListener(listener);
     }
   }
 
