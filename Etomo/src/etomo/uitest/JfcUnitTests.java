@@ -29,12 +29,15 @@ public final class JfcUnitTests {
   
   public static Test suite() throws IOException {
     TestSuite suite = new TestSuite("JfcUnit Tests");
-    suite.addTestSuite(UITest.class);
+    suite.addTestSuite(TestRunner.class);
     return suite;
   }
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.1  2008/05/30 21:36:43  sueh
+ * <p> bug# 1102 Moved uitest classes to etomo.uitest.
+ * <p>
  * <p> Revision 1.5  2006/01/04 20:22:53  sueh
  * <p> bug# 675 Moved constants that must be shared by non-test objects to an
  * <p> object which doesn't know about junit.  Overwise junit would have to be in
