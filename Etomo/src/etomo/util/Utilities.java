@@ -12,6 +12,9 @@
  * @version $$Revision$
  *
  * <p> $$Log$
+ * <p> $Revision 3.61  2008/12/10 18:35:02  sueh
+ * <p> $bug# 1162 Added dateTimeStamp and managerStamp.
+ * <p> $
  * <p> $Revision 3.60  2008/12/02 21:25:47  sueh
  * <p> $bug# 1157 Removed unecessary rounding functions breakAndTrim, covertToScienticNotation, and round.
  * <p> $
@@ -867,12 +870,19 @@ public class Utilities {
     return true;
   }
 
-  public static final String convertLabelToName(String label,
-      ProcessName processName) {
-    if (processName == null) {
-      return convertLabelToName(label);
+  public static final String convertLabelToName(String label1, String label2,
+      String label3) {
+    StringBuffer buffer = new StringBuffer();
+    if (label1!=null) {
+      buffer.append(label1+" ");
     }
-    return convertLabelToName(label + ' ' + processName);
+    if (label2!=null) {
+      buffer.append(label2+" ");
+    }
+    if (label3!=null) {
+      buffer.append(label3+" ");
+    }
+    return convertLabelToName(buffer.toString());
   }
 
   /**
