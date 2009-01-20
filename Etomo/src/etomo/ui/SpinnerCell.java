@@ -11,6 +11,7 @@ import javax.swing.event.ChangeListener;
 import javax.swing.plaf.ColorUIResource;
 
 import etomo.type.EtomoNumber;
+import etomo.type.UITestFieldType;
 
 /**
  * <p>Description: Table cell with an integer JSpinner</p>
@@ -94,6 +95,10 @@ class SpinnerCell extends InputCell {
 
   final void setValue(String value) {
     setValue(new EtomoNumber(type).set(value).getNumber());
+  }
+  
+  UITestFieldType getFieldType() {
+    return UITestFieldType.SPINNER;
   }
 
   final int getIntValue() {
@@ -184,6 +189,10 @@ class SpinnerCell extends InputCell {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.13  2007/07/12 21:44:27  sueh
+ * <p> bug# 993 In setEnabled, when using savedValue and disabledValue,
+ * <p> make sure that savedValue can't be 0.
+ * <p>
  * <p> Revision 1.12  2007/04/02 21:53:11  sueh
  * <p> bug# 964 Implementing Cell interface.
  * <p>
