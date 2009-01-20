@@ -16,6 +16,11 @@ import etomo.storage.LogFile;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.2  2007/04/11 22:06:42  sueh
+ * <p> bug# 964 Added a link list to Statement so that groups of statements could be
+ * <p> removed.  Added the parameter Statement previousStatement to the Statement
+ * <p> constructor.  Added remove(), which removes the instance from the link list.
+ * <p>
  * <p> Revision 1.1  2007/04/09 20:50:44  sueh
  * <p> bug# 964 Changed NameValuePair to an abstract class called Statement and
  * <p> child classes representing name/value pair, comment, empty line, and
@@ -37,10 +42,6 @@ public abstract class Statement extends WritableStatement {
       previous = previousStatement;
       previous.next = this;
     }
-  }
-  
-  public String toString() {
-    return getType().toString();
   }
 
   abstract void write(LogFile file, long writeId) throws LogFile.WriteException;
