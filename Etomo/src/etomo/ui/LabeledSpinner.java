@@ -12,6 +12,10 @@
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.22  2008/05/30 22:32:01  sueh
+ * <p> bug# 1102 Isolating the etomo.uitest package so it is not need for
+ * <p> running EtomoDirector.
+ * <p>
  * <p> Revision 1.21  2008/05/30 21:31:24  sueh
  * <p> bug# 1102 Moved uitest classes to etomo.uitest.
  * <p>
@@ -110,7 +114,7 @@ import javax.swing.SpinnerNumberModel;
 import etomo.EtomoDirector;
 import etomo.storage.autodoc.AutodocTokenizer;
 import etomo.type.ConstEtomoNumber;
-import etomo.type.UITestField;
+import etomo.type.UITestFieldType;
 import etomo.util.Utilities;
 
 public class LabeledSpinner {
@@ -131,7 +135,7 @@ public class LabeledSpinner {
     String name = Utilities.convertLabelToName(spinLabel);
     spinner.setName(name);
     if (EtomoDirector.INSTANCE.getArguments().isPrintNames()) {
-      System.out.println(UITestField.SPINNER.toString()
+      System.out.println(UITestFieldType.SPINNER.toString()
           + AutodocTokenizer.SEPARATOR_CHAR + name + ' '
           + AutodocTokenizer.DEFAULT_DELIMITER + ' ');
     }

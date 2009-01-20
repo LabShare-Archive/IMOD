@@ -9,7 +9,7 @@ import javax.swing.*;
 import etomo.EtomoDirector;
 import etomo.storage.autodoc.AutodocTokenizer;
 import etomo.type.ConstEtomoNumber;
-import etomo.type.UITestField;
+import etomo.type.UITestFieldType;
 import etomo.util.Utilities;
 
 /**
@@ -25,6 +25,9 @@ import etomo.util.Utilities;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.31  2008/10/27 20:40:31  sueh
+ * <p> bug# 1141 In setToolTipText, added the tooltip to the label.
+ * <p>
  * <p> Revision 3.30  2008/05/30 22:32:10  sueh
  * <p> bug# 1102 Isolating the etomo.uitest package so it is not need for
  * <p> running EtomoDirector.
@@ -200,7 +203,7 @@ final class LabeledTextField {
     String name = Utilities.convertLabelToName(tfLabel);
     textField.setName(name);
     if (EtomoDirector.INSTANCE.getArguments().isPrintNames()) {
-      System.out.println(UITestField.TEXT_FIELD.toString()
+      System.out.println(UITestFieldType.TEXT_FIELD.toString()
           + AutodocTokenizer.SEPARATOR_CHAR + name + ' '
           + AutodocTokenizer.DEFAULT_DELIMITER + ' ');
     }
