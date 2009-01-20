@@ -44,7 +44,7 @@ final class CCDEraserPanel implements ContextMenu, Run3dmodButtonContainer {
   public static final String rcsid = "$Id$";
 
   private final JPanel pnlCCDEraser = new JPanel();
-  private final JPanel pnlManualReplacement = new JPanel();
+  private final EtomoPanel pnlManualReplacement = new EtomoPanel();
   private final CheckBox cbXrayReplacement = new CheckBox(
       "Automatic x-ray replacement");
   private final LabeledTextField ltfPeakCriterion = new LabeledTextField(
@@ -112,7 +112,7 @@ final class CCDEraserPanel implements ContextMenu, Run3dmodButtonContainer {
     btnReplaceRawStack = (MultiLineButton) displayFactory.getUseFixedStack();
     setToolTipText();
 
-    JPanel pnlXRayReplacement = new JPanel();
+    EtomoPanel pnlXRayReplacement = new EtomoPanel();
     pnlXRayReplacement.setLayout(new BoxLayout(pnlXRayReplacement,
         BoxLayout.Y_AXIS));
     pnlXRayReplacement
@@ -532,6 +532,11 @@ final class CCDEraserPanel implements ContextMenu, Run3dmodButtonContainer {
 
 /**
  * <p> $Log$
+ * <p> Revision 3.29  2008/05/28 02:49:26  sueh
+ * <p> bug# 1111 Add a dialogType parameter to the ProcessSeries
+ * <p> constructor.  DialogType must be passed to any function that constructs
+ * <p> a ProcessSeries instance.
+ * <p>
  * <p> Revision 3.28  2008/05/13 23:00:05  sueh
  * <p> bug# 847 Adding a right click menu for deferred 3dmods to some
  * <p> process buttons.

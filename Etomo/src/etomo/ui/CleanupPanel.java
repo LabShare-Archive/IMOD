@@ -38,6 +38,9 @@ import etomo.util.Utilities;
  * 
  * <p>
  * $Log$
+ * Revision 3.15  2007/12/28 21:15:27  sueh
+ * bug# 726 Added directory size to clean up panel.
+ *
  * Revision 3.14  2007/02/09 00:48:16  sueh
  * bug# 962 Made TooltipFormatter a singleton and moved its use to low-level ui
  * classes.
@@ -148,7 +151,7 @@ import etomo.util.Utilities;
 final class CleanupPanel {
   public static final String rcsid = "$Id$";
 
-  private final JPanel pnlCleanup = new JPanel();
+  private final EtomoPanel pnlCleanup = new EtomoPanel();
   private final JLabel instructions = new JLabel(
       "Select files to be deleted then press the \"Delete Selected\" button. Ctrl-A selects all displayed files.");
   private final JPanel pnlButton = new JPanel();

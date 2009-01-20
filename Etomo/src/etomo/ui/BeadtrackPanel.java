@@ -40,6 +40,9 @@ import etomo.type.Run3dmodMenuOptions;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.25  2008/12/12 17:38:53  sueh
+ * <p> bug# 1160 Added BeadDiameter to beadtrack panel.
+ * <p>
  * <p> Revision 3.24  2008/12/09 21:33:15  sueh
  * <p> bug# 1160 Removed centroid radius.
  * <p>
@@ -169,7 +172,7 @@ public final class BeadtrackPanel implements Expandable,
   public static final String USE_MODEL_LABEL = "Track with Fiducial Model as Seed";
   private static final String VIEW_SKIP_LIST_LABEL = "View skip list";
 
-  private final JPanel panelBeadtrack = new JPanel();
+  private final EtomoPanel panelBeadtrack = new EtomoPanel();
   private final JPanel panelBeadtrackBody = new JPanel();
   private final AxisID axisID;
   private final Run3dmodButton btnFixModel;
@@ -236,7 +239,7 @@ public final class BeadtrackPanel implements Expandable,
   private final JPanel pnlCheckbox = new JPanel();
   private final JPanel pnlLightBeads = new JPanel();
   private final JPanel pnlLocalAreaTracking = new JPanel();
-  private final JPanel pnlExpertParameters = new JPanel();
+  private final EtomoPanel pnlExpertParameters = new EtomoPanel();
   private final JPanel pnlExpertParametersBody = new JPanel();
 
   private final PanelHeader expertParametersHeader;
@@ -324,7 +327,7 @@ public final class BeadtrackPanel implements Expandable,
     pnlExpertParameters.setLayout(new BoxLayout(pnlExpertParameters,
         BoxLayout.Y_AXIS));
     pnlExpertParameters.setBorder(BorderFactory.createEtchedBorder());
-    pnlExpertParameters.add(expertParametersHeader.getContainer());
+    pnlExpertParameters.add(expertParametersHeader);
     pnlExpertParameters.add(pnlExpertParametersBody);
     panelBeadtrackBody.add(pnlExpertParameters);
 
@@ -347,7 +350,7 @@ public final class BeadtrackPanel implements Expandable,
 
     panelBeadtrack.setLayout(new BoxLayout(panelBeadtrack, BoxLayout.Y_AXIS));
     panelBeadtrack.setBorder(BorderFactory.createEtchedBorder());
-    panelBeadtrack.add(header.getContainer());
+    panelBeadtrack.add(header);
     panelBeadtrack.add(panelBeadtrackBody);
     setToolTipText();
   }

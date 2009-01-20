@@ -11,6 +11,9 @@
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.50  2008/10/16 21:09:32  sueh
+ * <p> bug# 1141 Removed fixRootPanel because it doesn't do anything.
+ * <p>
  * <p> Revision 3.49  2008/09/30 20:58:58  sueh
  * <p> bug# 1113 Using a private constructor in SpacedPanel.
  * <p>
@@ -275,7 +278,7 @@ public final class CoarseAlignDialog extends ProcessDialog implements
     ContextMenu, FiducialessParams, Run3dmodButtonContainer {
   public static final String rcsid = "$Id$";
 
-  private final JPanel pnlCoarseAlign = new JPanel();
+  private final EtomoPanel pnlCoarseAlign = new EtomoPanel();
 
   private final CrossCorrelationPanel pnlCrossCorrelation;
 

@@ -11,6 +11,11 @@
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.28  2008/05/28 02:49:46  sueh
+ * <p> bug# 1111 Add a dialogType parameter to the ProcessSeries
+ * <p> constructor.  DialogType must be passed to any function that constructs
+ * <p> a ProcessSeries instance.
+ * <p>
  * <p> Revision 3.27  2008/05/03 00:49:27  sueh
  * <p> bug# 847 Passing null for ProcessSeries to process funtions.
  * <p>
@@ -179,7 +184,7 @@ import etomo.type.ProcessResultDisplay;
 final class CrossCorrelationPanel implements ContextMenu, Expandable {
   public static final String rcsid = "$Id$";
 
-  private final JPanel pnlCrossCorrelation = new JPanel();
+  private final EtomoPanel pnlCrossCorrelation = new EtomoPanel();
   private final JPanel pnlBody = new JPanel();
   private final JPanel pnlAdvanced = new JPanel();
   private final JPanel pnlXMinAndMax = new JPanel();
@@ -271,7 +276,7 @@ final class CrossCorrelationPanel implements ContextMenu, Expandable {
     pnlCrossCorrelation.setLayout(new BoxLayout(pnlCrossCorrelation,
         BoxLayout.Y_AXIS));
     pnlCrossCorrelation.setBorder(BorderFactory.createEtchedBorder());
-    pnlCrossCorrelation.add(header.getContainer());
+    pnlCrossCorrelation.add(header);
     pnlCrossCorrelation.add(pnlBody);
     //  Mouse adapter for context menu
     GenericMouseAdapter mouseAdapter = new GenericMouseAdapter(this);
