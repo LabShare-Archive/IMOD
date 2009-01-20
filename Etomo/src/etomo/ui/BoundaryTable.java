@@ -31,6 +31,9 @@ import etomo.type.JoinScreenState;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.7  2008/10/07 16:42:28  sueh
+ * <p> bug# 1113 Changed Viewport.msgViewportMoved to msgViewportPaged.
+ * <p>
  * <p> Revision 1.6  2008/10/06 22:38:32  sueh
  * <p> bug# 1113 Setting table size from UserConfiguration.
  * <p>
@@ -52,6 +55,8 @@ import etomo.type.JoinScreenState;
  */
 final class BoundaryTable implements Viewable {
   public static final String rcsid = "$Id$";
+
+  static final String TABLE_LABEL = "Boundary Table";
 
   //header
   //first row
@@ -79,7 +84,7 @@ final class BoundaryTable implements Viewable {
   private final HeaderCell header3AdjustedEnd = new HeaderCell("End");
   private final HeaderCell header3AdjustedStart = new HeaderCell("Start");
 
-  private final RowList rowList = new RowList();
+  private final RowList rowList = new RowList(this);
   private final JPanel rootPanel = new JPanel();
   private final GridBagConstraints constraints = new GridBagConstraints();
   private final JPanel pnlTable = new JPanel();
@@ -103,14 +108,14 @@ final class BoundaryTable implements Viewable {
         .getJoinTableSize().getInt(), joinDialog.getModelTabJComponent(),
         joinDialog.getRejoinTabJComponent(), null, "Boundary");
     //construct panels
-    JPanel pnlBorder = new JPanel();
+    EtomoPanel pnlBorder = new EtomoPanel();
     //root panel
     rootPanel.setFocusable(true);
     rootPanel.setLayout(new BoxLayout(rootPanel, BoxLayout.Y_AXIS));
     rootPanel.add(pnlBorder);
     //border pane
     pnlBorder.setLayout(new BoxLayout(pnlBorder, BoxLayout.X_AXIS));
-    pnlBorder.setBorder(new EtchedBorder("Boundary Table").getBorder());
+    pnlBorder.setBorder(new EtchedBorder(TABLE_LABEL).getBorder());
     pnlBorder.add(pnlTable);
     pnlBorder.add(viewport.getPagingPanel());
     //table panel
@@ -176,6 +181,10 @@ final class BoundaryTable implements Viewable {
   void getScreenState() {
     BoundaryRow.resetScreenState(screenState);
     rowList.getScreenState(screenState);
+  }
+
+  HeaderCell getAdjustedHeaderCell() {
+    return header1Adjusted;
   }
 
   void getMetaData() {
@@ -317,6 +326,12 @@ final class BoundaryTable implements Viewable {
   private static final class RowList {
     private final ArrayList list = new ArrayList();
 
+    private final BoundaryTable table;
+
+    private RowList(BoundaryTable table) {
+      this.table = table;
+    }
+
     /**
      * Clears the list.
      */
@@ -383,8 +398,10 @@ final class BoundaryTable implements Viewable {
         final GridBagLayout layout, final GridBagConstraints constraints,
         final Viewport viewport) {
       for (int i = 0; i < size; i++) {
-        list.add(new BoundaryRow(i + 1, metaData, screenState, panel, layout,
-            constraints));
+        BoundaryRow row = new BoundaryRow(i + 1, metaData, screenState, panel, layout,
+            constraints, table);
+        list.add(row);
+        row.setNames();
       }
     }
 
