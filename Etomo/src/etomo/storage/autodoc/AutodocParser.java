@@ -95,11 +95,11 @@ import etomo.ui.Token;
  * 
  * sectionName => [ \CLOSE & SUBCLOSE & WHITESPACE & EOL & EOF\ ]
  *               
- * subsection => !emptyLine DelimiterInLine SUBOPEN sectionHeader SUBCLOSE ( EOL | EOF )
+ * subsection => !emptyLine DelimiterInLine SUBOPEN sectionHeader SUBCLOSE -WHITESPACE- ( EOL | EOF )
  *               { emptyLine | comment | pair }
  *               subsectionClose
  *               
- * subsectionClose -> !emptyLine !DelimiterInLine SUBOPEN -WHITESPACE- SUBCLOSE (EOL | EOF )
+ * subsectionClose => !emptyLine !DelimiterInLine SUBOPEN -WHITESPACE- SUBCLOSE (EOL | EOF )
  *               
  * pair => !emptyLine DelimiterInLine name -WHITESPACE- DELIMITER -WHITESPACE- value
  *         
@@ -150,6 +150,9 @@ import etomo.ui.Token;
  * @version $$Revision$$
  *
  * <p> $$Log$
+ * <p> $Revision 1.19  2008/05/30 21:24:27  sueh
+ * <p> $bug# 1102 In autodoc() setting commandLanguage boolean.
+ * <p> $
  * <p> $Revision 1.18  2007/08/01 22:44:20  sueh
  * <p> $bug# 985 Moved look-ahead to tokenizer for subsection recognition.  Fixed bugs
  * <p> $in subsection recognition.
@@ -520,7 +523,14 @@ final class AutodocParser {
       testEndFunction("subsection", false);
       return false;
     }
-    nextToken();
+    matchToken(Token.Type.WHITESPACE);
+    if (!matchToken(Token.Type.EOL) && !matchToken(Token.Type.EOF)) {
+      //bad section
+      reportError("A section header must end with \""
+          + AutodocTokenizer.CLOSE_CHAR + AutodocTokenizer.CLOSE_CHAR + "\".");
+      testEndFunction("section", false);
+      return false;
+    }
     while (!subsectionClose(subsection)) {
       //look for elements in the subsection
       if (emptyLine(subsection)) {
@@ -565,9 +575,15 @@ final class AutodocParser {
       testEndFunction("subsectionClose", false);
       return false;
     }
+    matchToken(Token.Type.WHITESPACE);
+    if (!matchToken(Token.Type.EOL) && !matchToken(Token.Type.EOF)) {
+      //bad subsection
+      reportError("A section header must end with \""
+          + AutodocTokenizer.CLOSE_CHAR + AutodocTokenizer.CLOSE_CHAR + "\".");
+      testEndFunction("section", false);
+      return false;
+    }
     testEndFunction("subsectionClose", true);
-    //eat up EOL
-    nextToken();
     return true;
   }
 
