@@ -19,6 +19,13 @@ import etomo.ui.Token;
  * @version $$Revision$$
  *
  * <p> $$Log$
+ * <p> $Revision 1.11  2007/04/11 21:47:10  sueh
+ * <p> $bug# 964 Allow removal of an occurrence of an attribute.  To allow the removal
+ * <p> $of attributes, I added boolean occurrences.  When occurrences is 0, then
+ * <p> $attribute will not print, and exists() will return false.  This allows the removal of
+ * <p> $the attribute without changing the tree structure.  Attributes are removed by
+ * <p> $NameValuePairs.
+ * <p> $
  * <p> $Revision 1.10  2007/04/09 20:15:46  sueh
  * <p> $bug# 964 Moved the value to the associated name/value pair.  Changed
  * <p> $the Vector member variable from values to nameValuePairList.  Associated the
@@ -228,6 +235,19 @@ final class Attribute extends WriteOnlyAttributeList implements
     return children.getAttribute(name);
   }
 
+  /**
+   * Gets the first attribute in children with an occurrences value of at least
+   * one.
+   */
+  public ReadOnlyAttribute getFirstAttribute() {
+    if (children == null) {
+      return null;
+    }
+    return children.getFirstAttribute();
+  }
+  
+  
+
   public void write(LogFile file, long writeId) throws LogFile.WriteException {
     if (!exists()) {
       return;
@@ -279,7 +299,7 @@ final class Attribute extends WriteOnlyAttributeList implements
     return name;
   }
 
-  String getName() {
+  public String getName() {
     return name.getValues();
   }
 
