@@ -14,8 +14,10 @@ import javax.swing.JPanel;
 
 import etomo.BaseManager;
 import etomo.EtomoDirector;
+import etomo.storage.autodoc.AutodocTokenizer;
 import etomo.type.AxisID;
 import etomo.type.AxisType;
+import etomo.type.UITestFieldType;
 import etomo.util.UniqueKey;
 import etomo.util.Utilities;
 
@@ -32,6 +34,9 @@ import etomo.util.Utilities;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.49  2008/12/10 18:34:39  sueh
+ * <p> bug# 1162 Added a manager stamp to setCurrentManager.
+ * <p>
  * <p> Revision 3.48  2008/09/30 21:57:47  sueh
  * <p> bug# 1113 Reformatted
  * <p>
@@ -438,7 +443,7 @@ public final class MainFrame extends EtomoFrame implements ContextMenu {
   private static final String etomoTitle = "Etomo";
 
   //private JPanel contentPane;
-  private JPanel rootPanel;
+  private final JPanel rootPanel;
 
   GenericMouseAdapter mouseAdapter = null;
   WindowSwitch windowSwitch = new WindowSwitch();
@@ -461,7 +466,14 @@ public final class MainFrame extends EtomoFrame implements ContextMenu {
     rootPanel = (JPanel) getContentPane();
     rootPanel.setLayout(new BorderLayout());
     rootPanel.setMaximumSize(rootPanelSize);
-    rootPanel.setName(NAME);
+    //set name
+    String name = Utilities.convertLabelToName(NAME);
+    rootPanel.setName(name);
+    if (EtomoDirector.INSTANCE.getArguments().isPrintNames()) {
+      System.out.println(UITestFieldType.PANEL.toString()
+          + AutodocTokenizer.SEPARATOR_CHAR + name + ' '
+          + AutodocTokenizer.DEFAULT_DELIMITER + ' ');
+    }
 
     //rootPanel.setLayout(new BoxLayout(rootPanel, BoxLayout.PAGE_AXIS));
 
@@ -470,7 +482,7 @@ public final class MainFrame extends EtomoFrame implements ContextMenu {
     super.initialize();
   }
 
-  protected final synchronized void register() {
+  final synchronized void register() {
     if (registered) {
       throw new IllegalStateException(
           "Only one instance of MainFrame is allowed.");
@@ -535,7 +547,7 @@ public final class MainFrame extends EtomoFrame implements ContextMenu {
     setCurrentManager(currentManager, managerKey, false);
   }
 
-  protected void setMRUFileLabels(String[] mRUList) {
+  void setMRUFileLabels(String[] mRUList) {
     this.mRUList = mRUList;
     super.setMRUFileLabels(mRUList);
   }
@@ -570,7 +582,7 @@ public final class MainFrame extends EtomoFrame implements ContextMenu {
    * Handle the options menu events
    * @param event
    */
-  protected void menuOptionsAction(ActionEvent event) {
+  void menuOptionsAction(ActionEvent event) {
     if (menu.equalsAxisA(event)) {
       showAxisA();
     }
