@@ -16,6 +16,11 @@ import etomo.storage.LogFile;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.2  2007/04/11 22:09:16  sueh
+ * <p> bug# 964 Added a link list to Statement so that groups of statements could be
+ * <p> removed.  Added the parameter Statement previousStatement to the Statement
+ * <p> constructor.
+ * <p>
  * <p> Revision 1.1  2007/04/09 20:52:42  sueh
  * <p> bug# 964 Changed NameValuePair to an abstract class called Statement and
  * <p> child classes representing name/value pair, comment, empty line, and
@@ -25,7 +30,7 @@ import etomo.storage.LogFile;
  * <p> duplications.
  * <p> </p>
  */
-final class Subsection extends Statement {
+public final class Subsection extends Statement {
   public static final String rcsid = "$Id$";
 
   private static final Type TYPE = Statement.Type.SUBSECTION;
@@ -60,6 +65,10 @@ final class Subsection extends Statement {
   
   public String getRightSide() {
     return subsection.getName();
+  }
+  
+  public ReadOnlySection getSubsection() {
+    return subsection;
   }
 
   void write(LogFile file, long writeId) throws LogFile.WriteException {

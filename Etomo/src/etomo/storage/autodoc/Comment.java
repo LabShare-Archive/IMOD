@@ -17,6 +17,11 @@ import etomo.ui.Token;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.2  2007/04/11 22:01:52  sueh
+ * <p> bug# 964 Added a link list to Statement so that groups of statements could be
+ * <p> removed.  Added the parameter Statement previousStatement to the Statement
+ * <p> constructor.
+ * <p>
  * <p> Revision 1.1  2007/04/09 20:32:12  sueh
  * <p> bug# 964 Change NameValuePair to an abstract class called Statement and
  * <p> child classes representing name/value pair, comment, empty line, and
@@ -63,6 +68,10 @@ final class Comment extends Statement {
     comment.write(file, writeId);
     file.newLine(writeId);
     return;
+  }
+  
+ public ReadOnlySection getSubsection() {
+    return null;
   }
 
   void print(int level) {
