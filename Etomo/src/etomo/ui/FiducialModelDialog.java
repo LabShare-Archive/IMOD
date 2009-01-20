@@ -32,6 +32,10 @@ import etomo.comscript.FortranInputSyntaxException;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.43  2008/11/20 01:41:16  sueh
+ * <p> bug# 1147 Changed ApplicationManager.imodSeedFiducials to
+ * <p> imodSeedModel.
+ * <p>
  * <p> Revision 3.42  2008/10/16 21:20:51  sueh
  * <p> bug# 1141 Removed fixRootPanel because it doesn't do anything.
  * <p>
@@ -284,7 +288,7 @@ public final class FiducialModelDialog extends ProcessDialog implements
   private static final String SEEDING_NOT_DONE_LABEL = "Seed Fiducial Model";
   private static final String SEEDING_DONE_LABEL = "View Seed Model";
 
-  private final JPanel pnlFiducialModel = new JPanel();
+  private final EtomoPanel pnlFiducialModel = new EtomoPanel();
   private final FiducialModelActionListener actionListener = new FiducialModelActionListener(
       this);
 

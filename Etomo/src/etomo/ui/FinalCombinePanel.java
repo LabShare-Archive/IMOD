@@ -59,6 +59,9 @@ import etomo.util.DatasetFiles;
  * 
  * <p>
  * $Log$
+ * Revision 3.69  2008/09/30 21:01:32  sueh
+ * bug# 1113 Using a private constructor in SpacedPanel.
+ *
  * Revision 3.68  2008/07/02 18:45:31  sueh
  * bug# 1121 opening objects windows in patch vector model
  *
@@ -396,7 +399,7 @@ public class FinalCombinePanel implements ContextMenu, FinalCombineFields,
 
   private JPanel pnlRoot = new JPanel();
 
-  private JPanel pnlPatchcorr = new JPanel();
+  private EtomoPanel pnlPatchcorr = new EtomoPanel();
   private SpacedPanel pnlPatchcorrBody = SpacedPanel.getInstance(true);
 
   private JPanel pnlPatchsize = new JPanel();
@@ -432,9 +435,9 @@ public class FinalCombinePanel implements ContextMenu, FinalCombineFields,
 
   private final Run3dmodButton btnPatchcorrRestart;
 
-  private JPanel pnlMatchorwarp = new JPanel();
+  private EtomoPanel pnlMatchorwarp = new EtomoPanel();
   private JPanel pnlMatchorwarpBody = new JPanel();
-  private JPanel pnlPatchRegionModel = new JPanel();
+  private EtomoPanel pnlPatchRegionModel = new EtomoPanel();
   private SpacedPanel pnlPatchRegionModelBody = SpacedPanel.getInstance(true);
   private CheckBox cbUsePatchRegionModel = new CheckBox(
       "Use patch region model");
@@ -459,7 +462,7 @@ public class FinalCombinePanel implements ContextMenu, FinalCombineFields,
   private final Run3dmodButton btnMatchorwarpRestart;
   private MultiLineButton btnMatchorwarpTrial = new MultiLineButton(
       "<html><b>Matchorwarp Trial Run</b>");
-  private JPanel pnlVolcombine = new JPanel();
+  private EtomoPanel pnlVolcombine = new EtomoPanel();
   private JPanel pnlVolcombineBody = new JPanel();
   private final Run3dmodButton btnVolcombineRestart;
   private JPanel pnlButton = new JPanel();
@@ -549,7 +552,7 @@ public class FinalCombinePanel implements ContextMenu, FinalCombineFields,
     pnlPatchRegionModel.setBorder(BorderFactory.createEtchedBorder());
     patchRegionModelHeader = PanelHeader.getInstance("Patch Region Model",
         this, dialogType);
-    pnlPatchRegionModel.add(patchRegionModelHeader.getContainer());
+    pnlPatchRegionModel.add(patchRegionModelHeader);
     pnlPatchRegionModel.add(pnlPatchRegionModelBody.getContainer());
 
     // Layout the Patchcorr panel
@@ -623,7 +626,7 @@ public class FinalCombinePanel implements ContextMenu, FinalCombineFields,
     pnlPatchcorr.setBorder(BorderFactory.createEtchedBorder());
     patchcorrHeader = PanelHeader.getAdvancedBasicInstance(
         "Patchcorr Parameters", this, dialogType);
-    pnlPatchcorr.add(patchcorrHeader.getContainer());
+    pnlPatchcorr.add(patchcorrHeader);
     pnlPatchcorr.add(pnlPatchcorrBody.getContainer());
 
     //  Layout the Matchorwarp panel
@@ -664,7 +667,7 @@ public class FinalCombinePanel implements ContextMenu, FinalCombineFields,
     pnlMatchorwarp.setBorder(BorderFactory.createEtchedBorder());
     matchorwarpHeader = PanelHeader.getAdvancedBasicInstance(
         "Matchorwarp Parameters", this, dialogType);
-    pnlMatchorwarp.add(matchorwarpHeader.getContainer());
+    pnlMatchorwarp.add(matchorwarpHeader);
     pnlMatchorwarp.add(pnlMatchorwarpBody);
 
     pnlVolcombineBody.setLayout(new BoxLayout(pnlVolcombineBody,
@@ -687,7 +690,7 @@ public class FinalCombinePanel implements ContextMenu, FinalCombineFields,
     pnlVolcombine.setBorder(BorderFactory.createEtchedBorder());
     volcombineHeader = PanelHeader.getAdvancedBasicInstance(
         "Volcombine Parameters", this, dialogType);
-    pnlVolcombine.add(volcombineHeader.getContainer());
+    pnlVolcombine.add(volcombineHeader);
     pnlVolcombine.add(pnlVolcombineBody);
 
     //  Create the button panel

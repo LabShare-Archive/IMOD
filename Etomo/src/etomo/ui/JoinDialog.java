@@ -58,6 +58,9 @@ import etomo.util.DatasetFiles;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 1.64  2008/12/10 21:56:38  sueh
+ * <p> bug# 1166 Stopped calling LabeledSpinner.setTextMaxmimumSize
+ * <p>
  * <p> Revision 1.63  2008/11/20 01:46:09  sueh
  * <p> bug# 1147 Added AxisID to manager.imodOpen.
  * <p>
@@ -576,7 +579,7 @@ public final class JoinDialog implements ContextMenu, Run3dmodButtonContainer {
       .getDeferred3dmodInstance("Make Samples", this, "averages in 3dmod");
   private final SpacedPanel pnlModelTab = SpacedPanel
       .getFocusableInstance(true);
-  private final JPanel pnlRejoinTab = new JPanel();
+  private final EtomoPanel pnlRejoinTab = new EtomoPanel();
   private final BinnedXY3dmodButton b3bOpenTrialIn3dmod = new BinnedXY3dmodButton(
       "Open Trial in 3dmod", this);
   private final Run3dmodButton btnTrialJoin = Run3dmodButton
@@ -753,15 +756,14 @@ public final class JoinDialog implements ContextMenu, Run3dmodButtonContainer {
     //tabPane.addMouseListener(new GenericMouseAdapter(this));
     //TabChangeListener tabChangeListener = new TabChangeListener(this);
     //tabPane.addChangeListener(tabChangeListener);
-    tabPane.setBorder(new BeveledBorder("Join").getBorder());
     createSetupPanel(workingDirName);
-    tabPane.addTab("Setup", pnlSetupTab.getContainer());
+    tabPane.addTab("Setup", pnlSetupTab);
     createAlignPanel();
-    tabPane.addTab("Align", pnlAlignTab.getContainer());
+    tabPane.addTab("Align", pnlAlignTab);
     createJoinPanel();
-    tabPane.addTab("Join", pnlJoinTab.getContainer());
+    tabPane.addTab("Join", pnlJoinTab);
     createModelPanel();
-    tabPane.addTab("Model", pnlModelTab.getContainer());
+    tabPane.addTab("Model", pnlModelTab);
     createRejoinPanel();
     tabPane.addTab("Rejoin", pnlRejoinTab);
     addPanelComponents(Tab.SETUP);
@@ -1197,7 +1199,7 @@ public final class JoinDialog implements ContextMenu, Run3dmodButtonContainer {
     btnTrialRejoin.setSize();
     pnlTrialRejoinButton.add(btnTrialRejoin);
     //trial rejoin buttons
-    JPanel pnlTrialRejoinButtons = new JPanel();
+    EtomoPanel pnlTrialRejoinButtons = new EtomoPanel();
     pnlTrialRejoinButtons.setLayout(new BoxLayout(pnlTrialRejoinButtons,
         BoxLayout.X_AXIS));
     pnlTrialRejoinButtons.setBorder(new EtchedBorder("Trial Rejoin")
@@ -1207,7 +1209,7 @@ public final class JoinDialog implements ContextMenu, Run3dmodButtonContainer {
     pnlTrialRejoinButtons.add(b3bOpenTrialRejoin.getContainer());
     pnlRejoin.add(pnlTrialRejoinButtons);
     //rejoin buttons
-    JPanel pnlRejoinButtons = new JPanel();
+    EtomoPanel pnlRejoinButtons = new EtomoPanel();
     pnlRejoinButtons
         .setLayout(new BoxLayout(pnlRejoinButtons, BoxLayout.X_AXIS));
     pnlRejoinButtons.setBorder(new EtchedBorder("Final Rejoin").getBorder());
@@ -1836,7 +1838,7 @@ public final class JoinDialog implements ContextMenu, Run3dmodButtonContainer {
           b3bOpenTrialIn3dmod.getInt(), run3dmodMenuOptions);
     }
     else if (command.equals(btnMakeRefiningModel.getActionCommand())) {
-      manager.imodOpen(AxisID.ONLY, ImodManager.MODELED_JOIN_KEY, DatasetFiles
+      manager.imodOpen(AxisID.ONLY,ImodManager.MODELED_JOIN_KEY, DatasetFiles
           .getRefineModelFileName(manager), run3dmodMenuOptions);
     }
     else if (command.equals(b3bOpenRejoin.getActionCommand())) {

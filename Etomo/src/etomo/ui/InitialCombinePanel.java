@@ -40,6 +40,9 @@ import etomo.util.MRCHeader;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.38  2008/09/30 21:41:29  sueh
+ * <p> bug# 1113 Using a private constructor in SpacedPanel.
+ * <p>
  * <p> Revision 3.37  2008/05/28 02:50:03  sueh
  * <p> bug# 1111 Add a dialogType parameter to the ProcessSeries
  * <p> constructor.  DialogType must be passed to any function that constructs
@@ -244,7 +247,7 @@ public class InitialCombinePanel implements ContextMenu, InitialCombineFields,
   //private Run3dmodButton btnMatchcheck = new Run3dmodButton(
   //   "<html><b>View Match Check Volume</b>", this);
   private final Run3dmodButton btnMatchvolRestart;
-  private final JPanel pnlMatchvol1 = new JPanel();
+  private final EtomoPanel pnlMatchvol1 = new EtomoPanel();
   private final SpacedPanel pnlMatchvol1Body = SpacedPanel.getInstance(true);
   private final PanelHeader matchvol1Header;
   private final LabeledTextField ltfOutputSizeY = new LabeledTextField(
@@ -288,7 +291,7 @@ public class InitialCombinePanel implements ContextMenu, InitialCombineFields,
     btnMatchvolRestart.setAlignmentX(Component.CENTER_ALIGNMENT);
     btnMatchvolRestart.setSize();
     pnlMatchvol1Body.add(btnMatchvolRestart);
-    pnlMatchvol1.add(matchvol1Header.getContainer());
+    pnlMatchvol1.add(matchvol1Header);
     pnlMatchvol1.add(pnlMatchvol1Body.getContainer());
     pnlRoot.add(pnlMatchvol1);
 
