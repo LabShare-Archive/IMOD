@@ -17,6 +17,9 @@ import javax.swing.border.*;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.0  2003/11/07 23:19:01  rickg
+ * <p> Version 1.0.0
+ * <p>
  * <p> Revision 2.0  2003/01/24 20:30:31  rickg
  * <p> Single window merge to main branch
  * <p>
@@ -53,7 +56,7 @@ public class BeveledBorder {
     titledBorder.setBorder(border);
   }
 
-  public Border getBorder() {
+  public TitledBorder getBorder() {
     return titledBorder;
   }
 
