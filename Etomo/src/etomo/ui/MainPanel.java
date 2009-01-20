@@ -35,6 +35,10 @@ import etomo.type.ProcessName;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 1.39  2008/10/06 22:38:47  sueh
+ * <p> bug# 1113 Removed pack, which is unecessary since table scrolling was
+ * <p> removed.
+ * <p>
  * <p> Revision 1.38  2008/09/30 21:58:37  sueh
  * <p> bug# 1113 Added repaint, so that focus can be requested after repaint.
  * <p>
@@ -240,7 +244,7 @@ import etomo.type.ProcessName;
  * <p> to MainPanel.
  * <p> </p>
  */
-public abstract class MainPanel extends JPanel {
+public abstract class MainPanel extends EtomoPanel {
   public static final String rcsid = "$Id$";
 
   static final String STATUS_BAR_EMPTY_TITLE = "No data set loaded";
