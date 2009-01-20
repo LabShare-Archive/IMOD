@@ -8,6 +8,8 @@ import javax.swing.ButtonGroup;
 import javax.swing.event.ChangeListener;
 import javax.swing.plaf.ColorUIResource;
 
+import etomo.type.UITestFieldType;
+
 /**
  * <p>Description: </p>
  * 
@@ -21,7 +23,10 @@ import javax.swing.plaf.ColorUIResource;
  * 
  * @version $Revision$
  * 
- * <p> $Log$ </p>
+ * <p> $Log$
+ * <p> Revision 1.1  2007/09/27 21:04:52  sueh
+ * <p> bug# 1044 Class to put a radio button in a table.
+ * <p> </p>
  */
 final class RadioButtonCell extends InputCell implements ToggleCell {
   public static final String rcsid = "$Id$";
@@ -81,6 +86,10 @@ final class RadioButtonCell extends InputCell implements ToggleCell {
 
   Component getComponent() {
     return radioButton.getComponent();
+  }
+  
+  UITestFieldType getFieldType() {
+    return UITestFieldType.RADIO_BUTTON;
   }
   
   public void setEnabled(final boolean enabled) {
