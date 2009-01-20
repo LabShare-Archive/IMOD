@@ -1,8 +1,10 @@
 package etomo.storage.autodoc;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 
 import etomo.ui.Token;
@@ -35,17 +37,24 @@ final class AttributeList {
    * but the number of occurrences they contain can be reduced to 0.
    */
   private final Map map = new HashMap();
+  private final List list = new ArrayList();
 
   AttributeList(WriteOnlyAttributeList parent) {
     this.parent = parent;
   }
 
+  /**
+   * Adds a new attribute, or increments an existing one
+   * @param name
+   * @return
+   */
   WriteOnlyAttributeList addAttribute(Token name) {
     String key = Attribute.getKey(name);
     Attribute attribute = (Attribute) map.get(Attribute.getKey(name));
     if (attribute == null) {
       attribute = new Attribute(parent, name);
       map.put(key, attribute);
+      list.add(attribute);
     }
     else {
       //add another occurrence of this attribute
@@ -64,6 +73,20 @@ final class AttributeList {
       return null;
     }
     return attribute;
+  }
+
+  /**
+   * Returns the first attribute which exists.
+   * @return
+   */
+  ReadOnlyAttribute getFirstAttribute() {
+    for (int i = 0; i < list.size(); i++) {
+      Attribute attribute = (Attribute) list.get(i);
+      if (attribute.exists()) {
+        return attribute;
+      }
+    }
+    return null;
   }
 
   void print(int level) {
@@ -91,6 +114,11 @@ final class AttributeList {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.2  2007/04/11 21:49:56  sueh
+ * <p> bug# 964 Removed list because it was not being used.  In addAttribute, when an
+ * <p> attribute already exists, increment Attribute.occurrences by calling
+ * <p> Attribute.add().  In getAttribute, return null is Attribute.exists() returns false.
+ * <p>
  * <p> Revision 1.1  2007/04/09 20:16:15  sueh
  * <p> bug# 964 Moved the value to the associated name/value pair.  Changed
  * <p> the Vector member variable from values to nameValuePairList.  Associated the
