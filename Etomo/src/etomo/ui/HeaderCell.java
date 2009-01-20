@@ -5,6 +5,8 @@ import java.awt.Dimension;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.event.ActionListener;
+import java.util.ArrayList;
+import java.util.List;
 
 import javax.swing.AbstractButton;
 import javax.swing.BorderFactory;
@@ -29,7 +31,7 @@ import etomo.type.EtomoNumber;
  * 
  * @version $Revision$
  */
-final class HeaderCell implements Cell{
+final class HeaderCell implements Cell {
   public static final String rcsid = "$Id$";
 
   private static final ColorUIResource background = new ColorUIResource(204,
@@ -44,6 +46,7 @@ final class HeaderCell implements Cell{
   private String text = "";
   private final boolean controlColor;
   private String pad = "";
+  private List children = null;
 
   public String toString() {
     return text;
@@ -74,7 +77,7 @@ final class HeaderCell implements Cell{
   }
 
   Component getComponent() {
-    return cell;
+    return (Component) cell;
   }
 
   void setWarning(boolean warning, String toolTipText) {
@@ -127,15 +130,15 @@ final class HeaderCell implements Cell{
 
   HeaderCell add(JPanel panel, GridBagLayout layout,
       GridBagConstraints constraints) {
-    layout.setConstraints(cell, constraints);
-    panel.add(cell);
+    layout.setConstraints((Component) cell, constraints);
+    panel.add((Component) cell);
     jpanelContainer = panel;
     return this;
   }
 
   void remove() {
     if (jpanelContainer != null) {
-      jpanelContainer.remove(cell);
+      jpanelContainer.remove((Component) cell);
       jpanelContainer = null;
     }
   }
@@ -151,6 +154,18 @@ final class HeaderCell implements Cell{
   void setText(String text) {
     this.text = text;
     cell.setText(formatText());
+    if (children != null) {
+      for (int i = 0; i < children.size(); i++) {
+        ((FieldCell) children.get(i)).msgLabelChanged();
+      }
+    }
+  }
+
+  void addChild(InputCell child) {
+    if (children == null) {
+      children = new ArrayList();
+    }
+    children.add(child);
   }
 
   void setText() {
@@ -221,6 +236,9 @@ final class HeaderCell implements Cell{
 }
 /**
  * * <p> $Log$
+ * * <p> Revision 1.18  2007/04/02 21:49:40  sueh
+ * * <p> bug# 964 Implementing Cell interface.
+ * * <p>
  * * <p> Revision 1.17  2007/03/27 00:02:45  sueh
  * * <p> bug# 964 Using a setPreferredSize() call to get the sizing to work.
  * * <p>
