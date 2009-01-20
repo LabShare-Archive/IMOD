@@ -834,8 +834,6 @@ public final class TomogramPositioningExpert extends ReconUIExpert {
     if (dialog == null) {
       return;
     }
-    System.out.println("metaData.getTomoPosBinning(axisID)="
-        + metaData.getTomoPosBinning(axisID));
     dialog.setBinning(metaData.getTomoPosBinning(axisID));
     dialog.setSampleThickness(metaData.getSampleThickness(axisID));
   }
@@ -950,6 +948,11 @@ public final class TomogramPositioningExpert extends ReconUIExpert {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.30  2008/12/15 23:04:51  sueh
+ * <p> bug# 1161 Calling NewstParam.setSizeToOutputInXandY and
+ * <p> BlendmontParam.convertToStartingAndEndXandY; calling them with an
+ * <p> empty string in order to handle 90 degree image rotation.
+ * <p>
  * <p> Revision 1.29  2008/11/20 01:49:03  sueh
  * <p> Bug# 1147  Getting binning only from meta data, not from newst, which
  * <p> is overwritten by Tomogram Positioning and Final Aligned Stack.
