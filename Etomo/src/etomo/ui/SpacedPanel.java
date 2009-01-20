@@ -14,6 +14,7 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.border.Border;
+import javax.swing.border.TitledBorder;
 
 /**
  * <p>Description: A JPanel-like object that places rigid areas between 
@@ -33,6 +34,9 @@ import javax.swing.border.Border;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.24  2008/10/27 20:42:27  sueh
+ * <p> bug# 1141 Added add(FioltTextField).
+ * <p>
  * <p> Revision 1.23  2008/10/01 22:53:14  sueh
  * <p> bug# 1113 Added add(Component).
  * <p>
@@ -137,7 +141,7 @@ final class SpacedPanel {
   private static final Dimension MULTI_LINE_BUTTON_DIM = UIParameters.INSTANCE
       .getButtonDimension();
 
-  private final JPanel panel = new JPanel();
+  private final EtomoPanel panel = new EtomoPanel();
   private final JPanel innerPanel = new JPanel();
   private final JPanel outerPanel;
   private final StringBuffer xDescription = new StringBuffer();
@@ -380,7 +384,7 @@ final class SpacedPanel {
 
   void add(final PanelHeader panelHeader) {
     addSpacing();
-    panel.add(panelHeader.getContainer());
+    panel.add(panelHeader);
     xDescription.append("PanelHeader,");
     yDescription.append("PanelHeader,");
   }
@@ -484,12 +488,24 @@ final class SpacedPanel {
   JPanel getJPanel() {
     return (JPanel) getContainer();
   }
+  
+  String getName() {
+    return panel.getName();
+  }
+  
+  void setName(String name) {
+    panel.setName(name);
+  }
 
   void setAlignmentX(final float alignmentX) {
     outerPanel.setAlignmentX(alignmentX);
   }
-
+  
   void setBorder(final Border border) {
+    panel.setBorder(border);
+  }
+
+  void setBorder(final TitledBorder border) {
     panel.setBorder(border);
   }
 
