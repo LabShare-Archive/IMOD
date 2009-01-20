@@ -10,6 +10,10 @@ import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 
 import etomo.BaseManager;
+import etomo.EtomoDirector;
+import etomo.storage.autodoc.AutodocTokenizer;
+import etomo.type.UITestFieldType;
+import etomo.util.Utilities;
 
 /**
  * <p>Description: </p>
@@ -28,8 +32,8 @@ public final class SubFrame extends EtomoFrame {
   public static final String rcsid = "$Id$";
 
   public static final String NAME = "sub-frame";
-  
-  private MainFrame mainFrame;
+
+  private final MainFrame mainFrame;
   private JPanel rootPanel;
   private JLabel statusBar;
   private Rectangle bounds = null;
@@ -39,7 +43,7 @@ public final class SubFrame extends EtomoFrame {
     this.mainFrame = mainFrame;
   }
 
-  protected final synchronized void register() {
+  final synchronized void register() {
     if (subFrame != null) {
       throw new IllegalStateException(
           "Only one instance of SubFrame is allowed.");
@@ -62,7 +66,14 @@ public final class SubFrame extends EtomoFrame {
     mainPanel = mainFrame.getMainPanel();
     rootPanel = (JPanel) getContentPane();
     rootPanel.setLayout(new BorderLayout());
-    rootPanel.setName(NAME);
+    //set name
+    String name = Utilities.convertLabelToName(NAME);
+    rootPanel.setName(name);
+    if (EtomoDirector.INSTANCE.getArguments().isPrintNames()) {
+      System.out.println(UITestFieldType.PANEL.toString()
+          + AutodocTokenizer.SEPARATOR_CHAR + name + ' '
+          + AutodocTokenizer.DEFAULT_DELIMITER + ' ');
+    }
     statusBar = new JLabel(mainPanel.getStatusBarText());
     //menu.setEnabled(currentManager);
     menu.setEnabled(getOtherFrame().menu);
@@ -93,7 +104,7 @@ public final class SubFrame extends EtomoFrame {
    * Override superclass to call mainFrame for command which require switching
    * axis.
    */
-  protected void menuOptionsAction(ActionEvent event) {
+  void menuOptionsAction(ActionEvent event) {
     if (menu.equalsAxisA(event) || menu.equalsAxisB(event)
         || menu.equalsAxisBoth(event)) {
       mainFrame.menuOptionsAction(event);
@@ -136,29 +147,31 @@ public final class SubFrame extends EtomoFrame {
     }
     validate();
   }
-  
+
   private void setLocation() {
     Rectangle mainFrameBounds = mainFrame.getBounds();
     Rectangle deviceBounds = mainFrame.getGraphicsConfiguration().getBounds();
-    int xLocation = deviceBounds.x + mainFrameBounds.x
-        + mainFrameBounds.width;
+    int xLocation = deviceBounds.x + mainFrameBounds.x + mainFrameBounds.width;
     if (xLocation > deviceBounds.x + deviceBounds.width) {
       xLocation = (deviceBounds.x + deviceBounds.width) / 2;
     }
     setLocation(xLocation, deviceBounds.y + mainFrameBounds.y);
   }
-  
+
   void move() {
     bounds = null;
     setLocation();
   }
-  
+
   void moveSubFrame() {
     move();
   }
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.9  2008/05/30 21:34:28  sueh
+ * <p> bug# 1102 Moved uitest classes to etomo.uitest.
+ * <p>
  * <p> Revision 1.8  2006/04/25 19:21:52  sueh
  * <p> bug# 787 Named the sub frame.
  * <p>
