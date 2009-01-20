@@ -33,51 +33,51 @@ public final class EtomoMenu {
 
   private final JMenuBar menuBar = new JMenuBar();
 
-  private final JMenu menuFile = new JMenu("File");
-  private final JMenuItem menuFileNewTomogram = new JMenuItem("New Tomogram",
+  private final JMenu menuFile = new Menu("File");
+  private final JMenuItem menuFileNewTomogram = new MenuItem("New Tomogram",
       KeyEvent.VK_N);
-  private final JMenuItem menuFileNewJoin = new JMenuItem("New Join",
+  private final JMenuItem menuFileNewJoin = new MenuItem("New Join",
       KeyEvent.VK_J);
-  private final JMenuItem menuFileNewParallel = new JMenuItem(
+  private final JMenuItem menuFileNewParallel = new MenuItem(
       "New Parallel Process", KeyEvent.VK_P);
-  private final JMenuItem menuFileNewPeet = new JMenuItem("New PEET",
+  private final JMenuItem menuFileNewPeet = new MenuItem("New PEET",
       KeyEvent.VK_E);
-  private final JMenuItem menuFileOpen = new JMenuItem("Open...", KeyEvent.VK_O);
-  private final JMenuItem menuFileSave = new JMenuItem("Save", KeyEvent.VK_S);
-  private final JMenuItem menuFileSaveAs = new JMenuItem("Save As",
+  private final JMenuItem menuFileOpen = new MenuItem("Open...", KeyEvent.VK_O);
+  private final JMenuItem menuFileSave = new MenuItem("Save", KeyEvent.VK_S);
+  private final JMenuItem menuFileSaveAs = new MenuItem("Save As",
       KeyEvent.VK_A);
-  private final JMenuItem menuFileClose = new JMenuItem("Close", KeyEvent.VK_C);
-  private final JMenuItem menuFileExit = new JMenuItem("Exit", KeyEvent.VK_X);
-  private final JMenuItem menuFileTomosnapshot = new JMenuItem(
+  private final JMenuItem menuFileClose = new MenuItem("Close", KeyEvent.VK_C);
+  private final JMenuItem menuFileExit = new MenuItem("Exit", KeyEvent.VK_X);
+  private final JMenuItem menuFileTomosnapshot = new MenuItem(
       "Run Tomosnapshot", KeyEvent.VK_R);
-  private final JMenuItem[] menuMRUList = new JMenuItem[nMRUFileMax];
+  private final JMenuItem[] menuMRUList = new MenuItem[nMRUFileMax];
 
-  private final JMenu menuOptions = new JMenu("Options");
-  private final JMenuItem menuAxisA = new JMenuItem("Axis A", KeyEvent.VK_A);
-  private final JMenuItem menuAxisB = new JMenuItem(TomogramProcessPanel.AXIS_B_LABEL, KeyEvent.VK_B);
-  private final JMenuItem menuAxisBoth = new JMenuItem("Both Axes",
+  private final JMenu menuOptions = new Menu("Options");
+  private final JMenuItem menuAxisA = new MenuItem("Axis A", KeyEvent.VK_A);
+  private final JMenuItem menuAxisB = new MenuItem(TomogramProcessPanel.AXIS_B_LABEL, KeyEvent.VK_B);
+  private final JMenuItem menuAxisBoth = new MenuItem("Both Axes",
       KeyEvent.VK_2);
-  private final JMenuItem menuSettings = new JMenuItem("Settings",
+  private final JMenuItem menuSettings = new MenuItem("Settings",
       KeyEvent.VK_S);
-  private final JMenuItem menuFitWindow = new JMenuItem("Fit Window",
+  private final JMenuItem menuFitWindow = new MenuItem("Fit Window",
       KeyEvent.VK_F);
-  private final JCheckBoxMenuItem menu3dmodStartupWindow = new JCheckBoxMenuItem(
+  private final JCheckBoxMenuItem menu3dmodStartupWindow = new CheckBoxMenuItem(
       "Open 3dmod with Startup Window");
-  private final JCheckBoxMenuItem menu3dmodBinBy2 = new JCheckBoxMenuItem(
+  private final JCheckBoxMenuItem menu3dmodBinBy2 = new CheckBoxMenuItem(
       "Open 3dmod Binned by 2");
 
-  private final JMenu menuHelp = new JMenu("Help");
-  private final JMenuItem menuTomoGuide = new JMenuItem("Tomography Guide",
+  private final JMenu menuHelp = new Menu("Help");
+  private final JMenuItem menuTomoGuide = new MenuItem("Tomography Guide",
       KeyEvent.VK_T);
-  private final JMenuItem menuImodGuide = new JMenuItem("Imod Users Guide",
+  private final JMenuItem menuImodGuide = new MenuItem("Imod Users Guide",
       KeyEvent.VK_I);
-  private final JMenuItem menu3dmodGuide = new JMenuItem("3dmod Users Guide",
+  private final JMenuItem menu3dmodGuide = new MenuItem("3dmod Users Guide",
       KeyEvent.VK_3);
-  private final JMenuItem menuEtomoGuide = new JMenuItem("Etomo Users Guide",
+  private final JMenuItem menuEtomoGuide = new MenuItem("Etomo Users Guide",
       KeyEvent.VK_E);
-  private final JMenuItem menuJoinGuide = new JMenuItem("Join Users Guide",
+  private final JMenuItem menuJoinGuide = new MenuItem("Join Users Guide",
       KeyEvent.VK_J);
-  private final JMenuItem menuHelpAbout = new JMenuItem("About", KeyEvent.VK_A);
+  private final JMenuItem menuHelpAbout = new MenuItem("About", KeyEvent.VK_A);
 
   void createMenus(final EtomoFrame frame) {
     //  Mnemonics for the main menu bar
@@ -148,7 +148,7 @@ public final class EtomoMenu {
     FileMRUListActionListener fileMRUListActionListener = new FileMRUListActionListener(
         frame);
     for (int i = 0; i < nMRUFileMax; i++) {
-      menuMRUList[i] = new JMenuItem();
+      menuMRUList[i] = new MenuItem();
       menuMRUList[i].addActionListener(fileMRUListActionListener);
       menuMRUList[i].setVisible(false);
       menuFile.add(menuMRUList[i]);
@@ -439,6 +439,9 @@ public final class EtomoMenu {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.12  2008/01/14 22:04:24  sueh
+ * <p> bug# 1050 Moved string "Axis B" to TomogramProcessPanel.
+ * <p>
  * <p> Revision 1.11  2007/05/02 21:07:33  sueh
  * <p> bug# 964 Removed Import PRM and Duplicate PEET menu items.
  * <p>
