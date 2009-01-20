@@ -37,6 +37,11 @@ import etomo.type.Run3dmodMenuOptions;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.35  2008/12/05 00:53:41  sueh
+ * <p> bug# 1156 Added a skipList parameter to
+ * <p> ApplicationManager.imodFixFiducials.  Passing null when in
+ * <p> RESIDUAL_MODE.
+ * <p>
  * <p> Revision 3.34  2008/11/21 17:11:28  sueh
  * <p> bug# 1123 Added get and setParameters(ReconScreenState).
  * <p>
@@ -292,7 +297,7 @@ public final class AlignmentEstimationDialog extends ProcessDialog implements
 
   public static final String rcsid = "$Id$";
 
-  private JPanel pnlAlignEst = new JPanel();
+  private EtomoPanel pnlAlignEst = new EtomoPanel();
 
   private BeveledBorder border = new BeveledBorder("Fine Alignment");
 
