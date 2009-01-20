@@ -14,7 +14,7 @@ import javax.swing.border.BevelBorder;
 import etomo.EtomoDirector;
 import etomo.storage.autodoc.AutodocTokenizer;
 import etomo.type.DialogType;
-import etomo.type.UITestField;
+import etomo.type.UITestFieldType;
 import etomo.util.Utilities;
 
 /**
@@ -36,6 +36,10 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.19  2008/05/30 22:31:51  sueh
+ * <p> bug# 1102 Isolating the etomo.uitest package so it is not need for
+ * <p> running EtomoDirector.
+ * <p>
  * <p> Revision 1.18  2008/05/30 21:28:31  sueh
  * <p> bug# 1102 Moved uitest classes to etomo.uitest.
  * <p>
@@ -184,12 +188,11 @@ public final class ExpandButton extends MultiLineButton {
    * unless manualName is true.
    * @param label
    */
-  void setName(String label) {
-    String name = Utilities.convertLabelToName(label) + "-"
-        + type.getExpandedState();
+  void setName(String associatedLabel) {
+    String name = Utilities.convertLabelToName(associatedLabel);
     getButton().setName(name);
     if (EtomoDirector.INSTANCE.getArguments().isPrintNames()) {
-      System.out.println(UITestField.MINI_BUTTON.toString()
+      System.out.println(UITestFieldType.MINI_BUTTON.toString()
           + AutodocTokenizer.SEPARATOR_CHAR + name + ' '
           + AutodocTokenizer.DEFAULT_DELIMITER + ' ');
     }
@@ -254,7 +257,7 @@ public final class ExpandButton extends MultiLineButton {
     panel.add(getComponent());
     jpanelContainer = panel;
   }
-  
+
   void remove() {
     if (jpanelContainer != null) {
       jpanelContainer.remove(getComponent());
