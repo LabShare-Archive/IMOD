@@ -31,6 +31,10 @@ import etomo.util.DatasetFiles;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.31  2008/09/30 22:42:26  sueh
+ * <p> bug# 1113 Change add() to display.  Checking Viewport before
+ * <p> displaying.
+ * <p>
  * <p> Revision 1.30  2007/04/02 21:52:59  sueh
  * <p> bug# 964 Added FieldCell.editable to make instances of FieldCell that can't be
  * <p> edited.  This allows FieldCell.setEditable and setEnabled to be called without
@@ -256,7 +260,6 @@ public final class SectionTableRow implements Highlightable {
   private SectionTableRowData data;
   private final HeaderCell rowNumber = new HeaderCell(
       (int) (30 * UIParameters.INSTANCE.getFontSizeAdjustment()));
-
   private int imodIndex = -1;
   private int imodRotIndex = -1;
   private boolean sectionExpanded = false;
@@ -296,6 +299,27 @@ public final class SectionTableRow implements Highlightable {
 
   public String toString() {
     return "[" + setupSection + "]";
+  }
+
+  void setNames() {
+    sampleBottomStart.setHeaders(SectionTablePanel.LABEL, rowNumber, table
+        .getSampleHeaderCell());
+    sampleBottomEnd.setHeaders(SectionTablePanel.LABEL, rowNumber, table
+        .getSampleHeaderCell());
+    sampleTopStart.setHeaders(SectionTablePanel.LABEL, rowNumber, table
+        .getSampleHeaderCell());
+    sampleTopEnd.setHeaders(SectionTablePanel.LABEL, rowNumber, table
+        .getSampleHeaderCell());
+    rotationAngleX.setHeaders(SectionTablePanel.LABEL, rowNumber, table
+        .getRotationHeaderCell());
+    rotationAngleY.setHeaders(SectionTablePanel.LABEL, rowNumber, table
+        .getRotationHeaderCell());
+    rotationAngleZ.setHeaders(SectionTablePanel.LABEL, rowNumber, table
+        .getRotationHeaderCell());
+    joinFinalStart.setHeaders(SectionTablePanel.LABEL, rowNumber, table
+        .getJoinFinalHeaderCell());
+    joinFinalEnd.setHeaders(SectionTablePanel.LABEL, rowNumber, table
+        .getJoinFinalHeaderCell());
   }
 
   void setInUse() {
