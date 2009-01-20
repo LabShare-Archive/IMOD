@@ -9,6 +9,7 @@ import etomo.type.ConstEtomoNumber;
 import etomo.type.EtomoNumber;
 import etomo.type.ParsedArray;
 import etomo.type.ParsedElementType;
+import etomo.type.UITestFieldType;
 
 /**
  * <p>Description: </p>
@@ -24,6 +25,9 @@ import etomo.type.ParsedElementType;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.26  2008/09/30 20:59:24  sueh
+ * <p> bug# 1113 Added toString.
+ * <p>
  * <p> Revision 1.25  2008/08/21 00:07:22  sueh
  * <p> bug# 1132 Added isEnabled.
  * <p>
@@ -155,7 +159,7 @@ final class FieldCell extends InputCell {
     setForeground();
     setFont();
   }
-  
+
   public String toString() {
     return textField.getText();
   }
@@ -205,6 +209,8 @@ final class FieldCell extends InputCell {
   public boolean isEnabled() {
     return isEditable();
   }
+
+
 
   void setEditable(boolean editable) {
     //if this is not an editable instance, it can't be made editable
@@ -308,6 +314,10 @@ final class FieldCell extends InputCell {
       throw new IllegalStateException("range not in use");
     }
     return endValue;
+  }
+  
+  UITestFieldType getFieldType() {
+    return UITestFieldType.TEXT_FIELD;
   }
 
   String getValue() {
