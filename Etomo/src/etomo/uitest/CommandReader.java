@@ -1,22 +1,18 @@
 package etomo.uitest;
 
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.util.LinkedList;
-
-import etomo.storage.LogFile;
-import etomo.storage.autodoc.AutodocFactory;
-import etomo.storage.autodoc.Statement;
-import etomo.storage.autodoc.StatementLocation;
+import junit.framework.Assert;
 import etomo.storage.autodoc.ReadOnlyAutodoc;
+import etomo.storage.autodoc.ReadOnlySection;
+import etomo.storage.autodoc.ReadOnlySectionList;
 import etomo.storage.autodoc.ReadOnlyStatement;
 import etomo.storage.autodoc.ReadOnlyStatementList;
 import etomo.storage.autodoc.SectionLocation;
+import etomo.storage.autodoc.StatementLocation;
 import etomo.type.AxisID;
 
 /**
- * <p>Description: </p>
+ * <p>Description: Reads statements in order from one or many sections or a
+ * subsections.  Receives either an autodoc or a section to read from.</p>
  * 
  * <p>Copyright: Copyright (c) 2006</p>
  *
@@ -28,324 +24,244 @@ import etomo.type.AxisID;
  * 
  * @version $Revision$
  */
-public final class CommandReader {
+public final class CommandReader extends Assert {
   public static final String rcsid = "$Id$";
 
-  private final ReadOnlyAutodoc autodoc;
-  private final LinkedList locationStack = new LinkedList();
-  private final String autodocName;
+  private final ReadOnlySectionList sectionList;
+  private final AxisID axisID;
   private final String sectionType;
+  private final VariableList variableList;
 
-  private ReadOnlyStatementList list = null;
-  private SectionLocation sectionLoc = null;
-  private StatementLocation statementLoc = null;
-  private boolean readingSections = false;
-  private boolean readingStatements = false;
-  private boolean verbose = false;
+  private SectionLocation sectionLocation = null;
+  private ReadOnlyStatementList statementList = null;
+  private StatementLocation statementLocation = null;
   private boolean done = false;
-  private String name = null;
-  private ReadOnlyAutodoc functionAutodoc = null;
-  private File functionLocationSourceDir = null;
-  private AxisID axisID = null;
-  private String info = null;
-  private boolean function = false;
   private boolean debug = false;
 
-  public CommandReader(ReadOnlyAutodoc autodoc, String sectionType) {
-    this.autodoc = autodoc;
-    this.sectionType = sectionType;
-    sectionLoc = autodoc.getSectionLocation(sectionType);
-    list = autodoc;
-    name = autodoc.getName();
-    autodocName = name;
-    functionAutodoc = autodoc;
-    setInfo();
-  }
-
-  public void setFunctionLocationSourceDir(File functionLocationSourceDir) {
-    this.functionLocationSourceDir = functionLocationSourceDir;
-  }
-
-  public void setAxisID(AxisID axisID) {
-    this.axisID = axisID;
-    setInfo();
-  }
-
-  public void setVerbose() {
-    verbose = true;
-  }
-
-  public boolean isReadingSections() {
-    return readingSections;
-  }
-
-  public boolean isReadingStatements() {
-    return readingStatements;
-  }
-
-  public boolean isDone() {
-    return done;
-  }
-
-  public void setDebug(boolean input) {
-    debug = input;
-  }
-
-  public void setDone() {
-    done = true;
-  }
-
-  public String getName() {
-    return name;
-  }
-
-  public void setInfo() {
-    StringBuffer buffer = new StringBuffer();
-    if (axisID != null) {
-      buffer.append(axisID.toString() + ":");
-    }
-    if (name != null) {
-      buffer.append(name.toString() + ":");
-    }
-    if (function) {
-      if (functionAutodoc != null) {
-        buffer.append(functionAutodoc.getName() + ":");
-      }
-      if (list != null) {
-        buffer.append(list.getName() + ":");
-      }
-    }
-    if (buffer.length() == 0) {
-      info = CommandReader.class.getName();
-    }
-    else {
-      info = buffer.toString();
-    }
-  }
-
-  public String getInfo() {
-    return info;
+  /**
+   * Create a reader that reads all the sections of sectionType in the autodoc.
+   * @param autodoc
+   * @param sectionType
+   * @param axisID
+   */
+  public static CommandReader getAutodocReader(ReadOnlyAutodoc autodoc,
+      String sectionType, AxisID axisID, VariableList variableList) {
+    CommandReader autodocReader = new CommandReader(autodoc, sectionType, null,
+        axisID, variableList);
+    assertFalse("syntax error in autodoc - " + autodoc.getName(), autodoc
+        .isError());
+    return autodocReader;
   }
 
   /**
-   * Gets the next command in the current section.  An adoc command will cause
-   * this function to push the current autodoc and open the autodoc
-   * specified in the adoc command.  If the function is unable to get a command,
-   * it will attempt to pop to a previous autodoc.  If a null command is passed
-   * to it, the function will create a new command and return it, otherwise it
-   * will reuse the command parameter.
+   * Create a reader that reads one section in autodoc.
+   * @param autodoc
+   * @param sectionType
+   * @param sectionName
+   */
+  public static CommandReader getSectionReader(ReadOnlyAutodoc autodoc,
+      String sectionType, String sectionName, AxisID axisID,
+      VariableList variableList) {
+    CommandReader sectionReader= new CommandReader(autodoc, sectionType, sectionName, axisID,
+        variableList);
+    assertFalse("syntax error in autodoc - " + autodoc.getName(), autodoc
+        .isError());
+    return sectionReader;
+  }
+
+  /**
+   * Create a reader that reads a subset of commands in one subsection in a
+   * section.  Only reads commands where the first attribute equals
+   * subsetAttribute.
+   * @param autodoc
+   * @param sectionType
+   * @param sectionName
+   * @param subsectionType
+   * @param subSectionName
+   * @param subsetAttribute
+   * @param axisID
+   * @return
+   */
+  public static CommandReader getSubsectionReader(
+      ReadOnlySectionList sectionList, ReadOnlySection subsection,
+      AxisID axisID, VariableList variableList) {
+    return new CommandReader(sectionList, subsection, axisID, variableList);
+  }
+
+  /**
+   * Sets sectionList to either an autodoc or a section.  Sets statementList to
+   * a section.  sectionLocation is null if only one section is being used.
+   * @param autodoc
+   * @param sectionType
+   * @param sectionName
+   * @param axisID
+   * @param variableList
+   */
+  private CommandReader(ReadOnlyAutodoc autodoc, String sectionType,
+      String sectionName, AxisID axisID, VariableList variableList) {
+    this.axisID = axisID;
+    this.variableList = variableList;
+    this.sectionList = autodoc;
+    this.sectionType = sectionType;
+    //Get a section from the autodoc.
+    // Sets sectionLocation to the first section in sectionList, if sectionName is
+    // empty.  Sets it to null if sectionName is set.
+    if (sectionName == null) {
+      //reading an autodoc
+      sectionLocation = sectionList.getSectionLocation(sectionType);
+      statementList = sectionList.nextSection(sectionLocation);
+    }
+    else {
+      //reading a section
+      sectionLocation = null;
+      statementList = sectionList.getSection(sectionType, sectionName);
+    }
+    if (statementList == null) {
+      done = true;
+    }
+    else {
+      statementLocation = statementList.getStatementLocation();
+    }
+  }
+
+  /**
+   * Sets statementList to the subsection that was passed in.  SectionLocation
+   * is null.  SectionList is passed in only so its name can be used in print
+   * statements.
+   * @param subsection
+   * @param axisID
+   * @param variableList
+   */
+  private CommandReader(ReadOnlySectionList sectionList,
+      ReadOnlySection subsection, AxisID axisID, VariableList variableList) {
+    this.axisID = axisID;
+    this.variableList = variableList;
+    this.sectionList = sectionList;
+    this.sectionType = null;
+    //The passed in subsection is the statementList. SectionList is only used
+    //for printing.
+    sectionLocation = null;
+    statementList = subsection;
+    if (statementList == null) {
+      done = true;
+    }
+    else {
+      statementLocation = statementList.getStatementLocation();
+    }
+  }
+
+  /**
+   * Get the next section in the sectionList.
+   *
+   */
+  void nextSection() {
+    if (debug) {
+      Thread.dumpStack();
+    }
+    statementList = sectionList.nextSection(sectionLocation);
+    if (statementList == null) {
+      if (debug) {
+        System.out.println("nextSection:statementList is null");
+      }
+      done = true;
+      return;
+    }
+    statementLocation = statementList.getStatementLocation();
+    statementLocation.setDebug(debug);
+  }
+
+  String getSectionName() {
+    return statementList.getName();
+  }
+
+  /**
+   * Gets the current statement and set command to it.  If command is null, will
+   * construct a new ActionCommand.  Otherwise it used the one that was passed
+   * to it.
    * @param command
    * @return
    */
-  public UITestCommand nextCommand(UITestCommand command,
-      UITestCommandFactory factory) {
-    readingStatements = true;
-    //create command if it is null
-    if (command == null) {
-      if (factory == null) {
-        throw new IllegalArgumentException(
-            "command is null and factory is null");
-      }
-      command = factory.newCommand();
+  Command nextCommand(Command command) {
+    ReadOnlyStatement statement = nextStatement();
+    if (debug) {
+      System.out.println("nextCommand:statement=" + statement);
     }
-    command.reset();
-    if (list == null) {
-      return command;
-    }
-    //if starting a list, get the statement location
-    if (statementLoc == null) {
-      statementLoc = list.getStatementLocation();
-    }
-    //get the statement, ignoring comments and empty lines
-    ReadOnlyStatement statement;
-    do {
-      statement = list.nextStatement(statementLoc);
-    } while (statement != null
-        && (statement.getType() == Statement.Type.COMMENT || statement
-            .getType() == Statement.Type.EMPTY_LINE));
     if (statement == null) {
-      //if this is the end of a function section, end the function and read the
-      //next command from the calling autodoc
-      if (function) {
-        endFunction();
-        return nextCommand(command, factory);
-      }
-      return command;
+      return null;
     }
-    if (verbose) {
-      System.err.println(axisID.toString() + ": " + statement.getString());
+    if (command == null) {
+      command = new Command();
     }
-    //place the statement in command
-    command.set(statement);
-    if (command.isFunctionLocation()) {
-      //if the function location command (adoc) is found, change the function
-      //autodoc and get the next command
-      setFunctionAutodoc(command);
-      return nextCommand(command, factory);
-    }
-    if (command.isFunction()) {
-      //if the function command is found, get the function section and get the
-      //first command from it
-      callFunction(command);
-      return nextCommand(command, factory);
+    command.set(statement, variableList);
+    if (debug) {
+      System.out.println("nextCommand:command.isKnown()=" + command.isKnown());
     }
     return command;
   }
 
-  public void nextSection() {
-    if (sectionLoc == null) {
-      throw new IllegalStateException(axisID
-          + ": do not call nextSection on a secondary autodoc");
-    }
-    list = autodoc.nextSection(sectionLoc);
-    setSection();
-  }
-
-  public void setSection(String sectionName) {
-    if (sectionLoc == null) {
-      throw new IllegalStateException(axisID
-          + ": do not call setSection on a secondary autodoc");
-    }
-    list = autodoc.getSection(sectionType, sectionName);
-    setSection();
-  }
-
-  private void setSection() {
-    readingSections = true;
-    statementLoc = null;
-    name = null;
-    readingStatements = false;
-    if (list == null) {
-      getInfo();
-      done = true;
-      if (verbose) {
-        System.err.println(autodoc.getName() + ":  done with test.");
-      }
-      return;
-    }
-    name = list.getName();
-    if (debug) {
-    System.out.println("name=" + name);}
-    getInfo();
-    if (verbose) {
-      System.err.println(axisID.toString() + ":" + list.getString());
-    }
-  }
-
   /**
-   * Pushes the current location onto the stack and gets a new location based
-   * on the function call.
-   * @param command
+   * Gets the current statement from statementList and increments
+   * statementLocation.  If there are no more statements, or statementList is
+   * null, returns null.
+   * @return
    */
-  private void callFunction(UITestCommand command) {
-    if (functionLocationSourceDir == null) {
-      throw new IllegalStateException(
-          "A secondary autodo source directory must be set when secondary autodocs are in use.");
-    }
-    if (!command.isFunction()) {
-      throw new IllegalStateException("command=" + command);
-    }
-    //push old location
-    Location location = new Location(list, sectionLoc, statementLoc, function);
-    locationStack.addLast(location);
-    //set values from the current autodoc
-    list = functionAutodoc.getSection(command.getAction().toString(), command
-        .getValue());
-    if (list == null) {
-      throw new IllegalStateException(functionAutodoc.getName()
-          + ":missing section:" + command.toString());
-    }
-    sectionLoc = null;
-    statementLoc = null;
-    function = true;
-    setInfo();
-    if (verbose) {
-      System.err.println(axisID.toString() + ":start:" + list.getString());
-    }
-  }
-
-  private void setFunctionAutodoc(UITestCommand command) {
-    String functionLocation = command.getValue();
-    if (functionLocation == null) {
-      functionAutodoc = autodoc;
+  private ReadOnlyStatement nextStatement() {
+    if (statementList == null) {
+      //NextSection or getSection failed, so there is nothing left to read.
+      if (debug) {
+        System.out.println("nextStatement:statementList is null");
+      }
+      done = true;
     }
     else {
-      try {
-        functionAutodoc = AutodocFactory.getInstance(functionLocationSourceDir,
-            command.getValue(), AxisID.ONLY);
+      ReadOnlyStatement statement = statementList
+          .nextStatement(statementLocation);
+      if (statement == null) {
+        if (sectionLocation == null) {
+          //Only reading one section and finished with it, so done.
+          if (debug) {
+            System.out
+                .println("nextStatement:statement is null & sectionLocation is null");
+          }
+          done = true;
+        }
       }
-      catch (FileNotFoundException e) {
-        e.printStackTrace();
-        return;
-      }
-      catch (IOException e) {
-        e.printStackTrace();
-        return;
-      }
-      catch (LogFile.ReadException e) {
-        e.printStackTrace();
-        return;
-      }
-      catch (LogFile.FileException e) {
-        e.printStackTrace();
-        return;
+      else {
+        System.err.println("### " + sectionList.getName() + ":"
+            + (sectionType != null ? sectionType : "") + ":"
+            + statementList.getName() + ":"
+            + (axisID != null ? axisID.getExtension() : "") + ":"
+            + statement.getString());
+        return statement;
       }
     }
+    return null;
   }
 
   /**
-   * the the top autodoc status off of the stack and makes it the current
-   * autodoc
+   * True when reader runs out of things to read.  When this happens depends on
+   * how it was constructed.  If the reader was constructed with a section type
+   * and a section name, it will set done to true after finishing the one
+   * section refered to by type and name.  If the reader was contructed with
+   * just a section type, then it will set done to true after reading all the
+   * section of the section type set in the constructor.
+   * @return
    */
-  private void endFunction() {
-    Location location = (Location) locationStack.removeLast();
-    if (location == null) {
-      list = null;
-      return;
-    }
-    if (verbose) {
-      System.err.println(axisID.toString() + ":end:" + list.getString());
-    }
-    list = location.getList();
-    sectionLoc = location.getSectionLoc();
-    statementLoc = location.getStatementLoc();
-    function = location.isFunction();
-    setInfo();
+  boolean isDone() {
+    return done;
   }
 
-  private static final class Location {
-    private final ReadOnlyStatementList list;
-    private final SectionLocation sectionLoc;
-    private final StatementLocation statementLoc;
-    private final boolean function;
+  /**
+   * Force the reader to be done.
+   */
+  void setDone() {
+    done = true;
+  }
 
-    Location(ReadOnlyStatementList list, SectionLocation sectionLoc,
-        StatementLocation statementLoc, boolean function) {
-      this.list = list;
-      this.sectionLoc = sectionLoc;
-      this.statementLoc = statementLoc;
-      this.function = function;
-    }
-
-    ReadOnlyStatementList getList() {
-      return list;
-    }
-
-    SectionLocation getSectionLoc() {
-      return sectionLoc;
-    }
-
-    StatementLocation getStatementLoc() {
-      return statementLoc;
-    }
-
-    boolean isFunction() {
-      return function;
-    }
-
-    public String toString() {
-      return "list=" + list.getName() + ",\nsectionLoc=" + sectionLoc
-          + ",\nstatementLoc=" + statementLoc;
+  void setDebug() {
+    debug = true;
+    if (statementLocation != null) {
+      statementLocation.setDebug(debug);
     }
   }
 }
