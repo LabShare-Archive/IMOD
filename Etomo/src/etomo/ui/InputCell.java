@@ -8,6 +8,11 @@ import java.awt.GridBagLayout;
 import javax.swing.JPanel;
 import javax.swing.plaf.ColorUIResource;
 
+import etomo.EtomoDirector;
+import etomo.storage.autodoc.AutodocTokenizer;
+import etomo.type.UITestFieldType;
+import etomo.util.Utilities;
+
 /**
  * <p>Description:  Uses lazy construction.  The inheritor should add the
  * following calls to its 
@@ -34,8 +39,11 @@ abstract class InputCell implements Cell {
   private Font italicFont = null;
   private JPanel jpanelContainer = null;
   private boolean initialized = false;
+  private String tableHeader = null;
+  private HeaderCell rowHeader = null, columnHeader = null;
 
   abstract Component getComponent();
+  abstract UITestFieldType getFieldType();
 
   abstract int getWidth();
 
@@ -144,9 +152,44 @@ abstract class InputCell implements Cell {
   private void setBackground(ColorUIResource color) {
     getComponent().setBackground(color);
   }
+  
+  void setHeaders(String tableHeader, HeaderCell rowHeader,
+      HeaderCell columnHeader) {
+    this.tableHeader = tableHeader;
+    this.rowHeader = rowHeader;
+    this.columnHeader = columnHeader;
+    setName();
+    rowHeader.addChild(this);
+    columnHeader.addChild(this);
+  }
+
+  /**
+   * Message from row header or column header that their label has changed.
+   */
+  void msgLabelChanged() {
+    setName();
+  }
+
+  /**
+   * Build the name out of table header, row header, and column header.
+   */
+  private void setName() {
+    String name = Utilities.convertLabelToName(tableHeader,
+        rowHeader != null ? rowHeader.getText() : null,
+        columnHeader != null ? columnHeader.getText() : null);
+    getComponent().setName(name);
+    if (EtomoDirector.INSTANCE.getArguments().isPrintNames()) {
+      System.out.println(getFieldType().toString()
+          + AutodocTokenizer.SEPARATOR_CHAR + name + ' '
+          + AutodocTokenizer.DEFAULT_DELIMITER + ' ');
+    }
+  }
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.11  2008/08/21 00:07:42  sueh
+ * <p> bug# 1132 Added isEditable.
+ * <p>
  * <p> Revision 1.10  2007/09/27 20:51:02  sueh
  * <p> bug# 1044 Made setWarning public.
  * <p>
