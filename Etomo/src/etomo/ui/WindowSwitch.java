@@ -6,9 +6,7 @@ import java.awt.event.ActionListener;
 import javax.swing.JCheckBoxMenuItem;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
-import javax.swing.JMenu;
 import javax.swing.JMenuItem;
-import javax.swing.JTabbedPane;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
@@ -60,10 +58,10 @@ public class WindowSwitch {
   private static final char menuItemDividerChar = ':';
   private static final String menuItemDivider = menuItemDividerChar + " ";
 
-  private JMenu menu = new JMenu("Window");
+  private Menu menu = new Menu("Window");
   private UniqueHashedArray menuList = null;
   private UniqueHashedArray mainPanelList = null;
-  private JTabbedPane tabbedPane = null;
+  private TabbedPane tabbedPane = null;
   private MenuActionListener menuActionListener;
   private TabChangeListener tabChangeListener;
 
@@ -85,9 +83,9 @@ public class WindowSwitch {
     if (menuList == null) {
       menuList = new UniqueHashedArray();
       mainPanelList = new UniqueHashedArray();
-      tabbedPane = new JTabbedPane();
+      tabbedPane = new TabbedPane();
     }
-    JCheckBoxMenuItem menuItem = new JCheckBoxMenuItem();
+    JCheckBoxMenuItem menuItem = new CheckBoxMenuItem();
     menuItem.addActionListener(menuActionListener);
     int index = menuList.size();
     menuItem.setText(Integer.toString(index + 1) + menuItemDivider
@@ -158,7 +156,7 @@ public class WindowSwitch {
    * Returns the menu.
    * @return
    */
-  JMenu getMenu() {
+  Menu getMenu() {
     return menu;
   }
 
@@ -312,6 +310,10 @@ public class WindowSwitch {
 
 /**
  * <p>$Log$
+ * <p>Revision 1.11  2007/09/07 00:30:14  sueh
+ * <p>bug# 989 Using a public INSTANCE to refer to the EtomoDirector singleton
+ * <p>instead of getInstance and createInstance.
+ * <p>
  * <p>Revision 1.10  2005/11/14 22:36:17  sueh
  * <p>bug# 762 Made menuAction() and tabChanged protected.
  * <p>
