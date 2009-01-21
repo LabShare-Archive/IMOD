@@ -81,7 +81,6 @@ clean :
 	$(FIND) . -name "*~" -exec rm "{}" \;
 	$(FIND) . -type f -name "core*" -exec rm "{}" \;
 	$(FIND) . -type f -name "*.exe" -exec rm "{}" \;
-	$(FIND) . -type f -perm 755 -exec rm "{}" \;
 
 ##############################################################################
 #
@@ -118,6 +117,9 @@ mrcmmm$(E) : mrcmmm.$(O)
 	$(CC) -o mrcmmm mrcmmm.$(O) -L$(LIBDIR) $(LIBS)
 
 #  $Log$
+#  Revision 3.10  2007/09/19 23:49:19  mast
+#  Changes for library rearrangements
+#
 #  Revision 3.9  2007/09/18 05:07:53  mast
 #  Added ctfphaseflip
 #
