@@ -106,7 +106,6 @@ clean :
 	$(FIND) . -type f -name "*~" -exec rm "{}" \;
 	$(FIND) . -type f -name "core*" -exec rm "{}" \;
 	$(FIND) . -type f -name "*.exe" -exec rm "{}" \;
-	$(FIND) . -type f -perm 755 -exec rm "{}" \;
 
 
 ##############################################################################
@@ -136,6 +135,9 @@ imodmkhv : imodmkhv.$(O)
 
 
 #  $Log$
+#  Revision 3.21  2009/01/07 03:13:29  mast
+#  Added flattenwarp
+#
 #  Revision 3.20  2008/06/19 23:27:11  mast
 #  Added imodfindbeads
 #
