@@ -23,7 +23,7 @@ set srcdir = $argv[2]
 shift ; shift
 set numarg = $#argv
 while ($#argv > 0)
-    if (-x $argv[1] || $numarg == 1) then
+    if ((-x $argv[1] || $numarg == 1) && ($argv[1] != "settmpdir")) then
         set comsh = `head -n 1 $argv[1] | sed -e '/^.*bin\//s///' -e '/ .*$/s///' -e '/[[:cntrl:]]/s///g'`
         switch ("$comsh")
           case sh:
@@ -56,6 +56,10 @@ exit 0
 
 #
 #  $Log$
+#  Revision 1.5  2008/03/20 20:30:38  mast
+#  Made it produced personalized wrapper with name, so command can be run
+#  by full path
+#
 #  Revision 1.4  2007/04/10 19:41:18  mast
 #  Make it detect command shell and copy the right wrapper; second arg is
 #  now directory to find wrappers, not wrapper itself
