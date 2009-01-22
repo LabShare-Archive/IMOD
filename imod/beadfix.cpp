@@ -2453,8 +2453,8 @@ void BeadFixer::setFontDependentWidths()
   topBox->setFixedWidth(width);
   diameterHbox->setFixedWidth(width);
   cenLightHbox->setFixedWidth(width);
-  if (overlayHbox)
-    overlayHbox->setFixedWidth(width);
+  //if (overlayHbox)
+  //overlayHbox->setFixedWidth(width);
   //reverseBox->setFixedWidth(width);
   nextGapBut->setFixedWidth(width);
   prevGapBut->setFixedWidth(width);
@@ -2500,6 +2500,10 @@ void BeadFixer::keyReleaseEvent ( QKeyEvent * e )
 /*
 
 $Log$
+Revision 1.54  2009/01/16 06:07:33  mast
+Fixed size problem, stopped it from deleting current contour with ones below
+threshold
+
 Revision 1.53  2009/01/15 16:33:17  mast
 Qt 4 port
 
