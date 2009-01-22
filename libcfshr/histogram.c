@@ -265,6 +265,7 @@ int findHistogramDip(float *values, int numVals, int minGuess, float *bins,
                 0, histDip, peakBelow, peakAbove);
   printf("Histogram smoothed with H = %g has lowest dip at %g\n",
          fineH, *histDip);
+  fflush(stdout);
   return 0;
 }
 
@@ -284,6 +285,9 @@ int findhistogramdip(float *values, int *numVals, int *minGuess, float *bins,
 /*
 
 $Log$
+Revision 1.2  2008/11/12 05:11:06  mast
+Add include of math.h
+
 Revision 1.1  2008/11/12 03:47:22  mast
 Added to library, simplified functions from imodfindbeads for fortran use
 
