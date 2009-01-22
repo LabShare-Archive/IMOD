@@ -262,7 +262,8 @@ c
       call cleanSortedList(indPeak, peakVal, peakPos, numPeaks, distMin,
      &    cleanBoth, peakRelMin)
       print *,numPeaks,' candidate peaks left after eliminating close points'
-c
+c       
+      call flush(6)
       ierr = findHistogramDip(corrVal, numPeaks, minGuess, histo, limHisto,
      &    0., 1., histDip, peakBelow, peakAbove, max(0, iVerbose - 2))
       blackThresh = histDip
@@ -298,6 +299,7 @@ c
       maxShift = max(8, nint(radius))
       numCorrs = 0
       numSave = numPeaks
+      print *,numLook,' peaks being averaged to make reference for correlation'
       do loopCorr = 1, 2 * numPass
 c         
 c         Zero the array on odd loops
@@ -321,6 +323,7 @@ c         Copy correlation positions to peak positions on loop 3
           numCorrs = 0
         endif
         if (loopCorr .eq. 2 * numPass) numLook = numSave
+        if (iVerbose .gt. 0) print *,loopCorr, numLook
         do izPiece = 1, numZpieces
           do iyPiece = 1, numYpieces
             do ixPiece = 1, numXpieces
@@ -385,7 +388,6 @@ c                     adding peak in
      &                  lenPiece(iyPiece,2), lenPiece(izPiece,3), ixStart,
      &                  ixEnd,iyStart,iyEnd, izStart,izEnd, xpeak,
      &                  ypeak, zpeak, maxShift, found, peakCorr)
-                    
                     if (found) then
                       call addToSortedList(indCorr, corrVal, numCorrs,
      &                    maxPeaks, peakRelMin, peakCorr, index)
@@ -393,6 +395,9 @@ c                     adding peak in
                         corrPos(1, index) = xpeak + ind0(ixPiece,1) +sumXoffset
                         corrPos(2, index) = ypeak + ind0(iyPiece,2) +sumYoffset
                         corrPos(3, index) = zpeak + ind0(izPiece,3) +sumZoffset
+c                        write(*,'(i6,f8.4,i3,f10.5,6f7.1)') i,peakVal(ix),
+c     &                      peakCorr*1.e-9,(peakPos(ix1,ix),ix1=1,3),
+c     &                      (corrPos(ix1,index),ix1=1,3)
                       endif
                     endif
                   endif
@@ -409,10 +414,13 @@ c                     adding peak in
      &        sumZoffset
 c           do iz = 1,nzCorr
 c           do iy = 1,nyCorr
-c           print *,iy,iz,(nint(array(maxVol + ix + (iy - 1) * nxCorr +
-c           &              (iz - 1) * nxCorr * nyCorr)), ix =1, nxCorr)
+c           write(*,'(2i3,(9i8))')iy,iz,(nint(array(maxVol + ix + (iy - 1) *
+c     &           nxCorr + (iz - 1) * nxCorr * nyCorr)), ix =1, nxCorr)
 c           enddo
 c           enddo
+          call meanzero(array(maxVol+1),nxCorr,nxCorr, nyCorr * nzCorr)
+          if (iVerbose .gt. 0) call volwrite(17, 'volsum.st', array(maxVol+1),
+     &        nxCorr, nyCorr, nzCorr)
         endif
       enddo
 c       
@@ -428,6 +436,7 @@ c
      &      (corrPos(ix,indCorr(i)), ix = 1, 3)
       enddo
 c
+      call flush(6)
       ierr = findHistogramDip(peakVal, numCorrs, minGuess, histo, limHisto,
      &    0., 1., histDip, peakBelow, peakAbove, 0)
       blackThresh = histDip
@@ -1275,5 +1284,46 @@ c
       return
       end
 
+
+c       Routine to write a volume in a contiguous array
+c
+      subroutine volwrite(iunit, filout,array,nx, ny, nz)
+      implicit none
+      character*(*) filout
+      integer*4 iunit, nx, ny, nz, iz
+      real*4 array(nx,ny,nz),tmin,tmax,tmean,dmin,dmax,dmean,title(20)
+      integer*4 nxyz(3)
+      real*4 cell(6)/0.,0.,1.,90.,90.,90./
+      character*80 titlech
+c       
+      call imopen(iunit,filout,'NEW')
+      write(titlech,3000)
+3000  FORMAT('DEBUG VOLUME')
+      nxyz(1)=nx
+      nxyz(2)=ny
+      nxyz(3)=nz
+      cell(1)=nx
+      cell(2)=ny
+      cell(3)=nz
+      call icrhdr(iunit,nxyz,nxyz,2,title,0)
+      call ialcel(iunit,cell)
+      dmean = 0.
+      tmin = 1.e30
+      tmax = -1.e30
+      do iz = 1, nz
+        call iclden(array(1,1,iz),nx,ny,1,nx,1,ny,tmin,tmax,tmean)
+        call iwrsec(iunit,array(1,1,iz))
+        dmin=min(tmin,dmin)
+        dmax=max(tmax,dmax)
+        dmean = dmean + tmean
+      enddo
+      call iwrhdrc(iunit,titlech,1,dmin,dmax,dmean / nz)
+      call imclose(iunit)
+      return
+      end
+
 c       
 c       $Log$
+c       Revision 3.1  2008/12/11 06:05:43  mast
+c       Added to package
+c
