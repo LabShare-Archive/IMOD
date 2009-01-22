@@ -67,6 +67,7 @@ set deltas = `awk '{print 1000. * $4}' $infile`
 if ($deltax != 0 || $deltay != 0 || $deltaz != 0) then
     if (-e $outfile) \mv -f $outfile $outfile~
     \cp $infile $outfile
+    chmod u+rw $outfile
     echo "MATCHSHIFTS: Found non-zero shifts in $infile, copied it to $outfile"
     exit 0
 endif
@@ -247,6 +248,7 @@ if (-e $outfile) \mv -f $outfile $outfile~
 \echo "$sol[1]   $sol[2]   $sol[3]   $xshift"  > $outfile
 \echo "$sol[5]   $sol[6]   $sol[7]   $displ[2]"  >> $outfile
 \echo "$sol[9]   $sol[10]   $sol[11]   $yshift"  >> $outfile
+chmod u+rw $outfile
 
 echo "MATCHSHIFTS: GETTING VOLUMES TO CHECK THE MATCH"
 
@@ -319,6 +321,9 @@ exit $exitstatus
 
 #
 #  $Log$
+#  Revision 3.17  2008/01/04 07:03:38  mast
+#  Fixed for space in IMOD_DIR, possibly for space in tmpdir
+#
 #  Revision 3.16  2006/08/17 18:36:55  mast
 #  Added locale statement to keep output of awk from having instead of .
 #
