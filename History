@@ -1,5 +1,11 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+1/21/09: Matchshifts makes sure solve.xf is readable by owner to solve problem
+on Vista when files appear to have no permissions to cygwin (In 3.13).
+
+1/21/09: Made Findbeads3d set mean of correlation reference to zero, needed
+for valid correlations (In 3.13).
+
 1/17/09: Fixed problem get min and max X of contours in Flattenwarp.
 
 1/16/09: Fixed runimodqtapp for spaces in IMOD_DIR (In 3.13).
