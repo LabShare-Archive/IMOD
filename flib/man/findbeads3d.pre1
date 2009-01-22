@@ -9,7 +9,7 @@ SSYYNNOOPPSSIISS
   findbeads3d [options] input_image_file output_model_file
 
 DDEESSCCRRIIPPTTIIOONN
-  Findbeads3d will find gold partciles and other spherical densities in
+  Findbeads3d will find gold particles and other spherical densities in
   tomograms.  Given the diameter of the beads, it will search for particles of
   this size and store their locations in a model along with the strengths of
   their correlations with an average particle.  It will automatically
