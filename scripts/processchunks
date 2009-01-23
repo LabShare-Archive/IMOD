@@ -437,8 +437,21 @@ while ($numdone < $#comlist)
                     set failed[$name] = 0
                     if ($numchunkerr[$ind] != 0) set chunkerred[$name] = 0
                     @ numdone++
-                    set anydone = 1
                     echo "$comlist[$ind] finished on $machines[$proc]"
+
+                    # If this is the first one done, issue drop messages now
+                    # on ones that chunk errored and exceeded failure count
+                    #
+                    if ($anydone == 0) then
+                      @ tmpind = 0
+                      while ($tmpind < $#namelist)
+                        @ tmpind++
+                        @ failcount = $failed[$tmpind]
+                        if ($failcount >= $dropcrit && $chunkerred[$tmpind]) \
+                           echo "Dropping $namelist[$tmpind]"
+                      end
+                    endif
+                    set anydone = 1
 
                     # copy the log for the first chunk
                     #
@@ -557,7 +570,11 @@ EOF
                       set dropmess = "it failed (with time out) $failcount times in a row"
                     if ("$dropmess" == "") set dropmess = \
                       "it failed (with chunk error) $failcount times in a row"
-                    echo "Dropping $machines[$proc] - $dropmess"
+                    if ($anydone == 0 && $chunkerred[$name] != 0) then
+                      echo "Holding off on using $machines[$proc] - $dropmess"
+                    else
+                      echo "Dropping $machines[$proc] - $dropmess"
+                    endif
                 endif
             endif
 
@@ -866,6 +883,9 @@ exit 3
 
 #
 #  $Log$
+#  Revision 3.43  2008/12/08 21:12:29  mast
+#  Fixed hold to hold only on a failed machine
+#
 #  Revision 3.42  2008/07/16 04:37:05  mast
 #  Added silly ls *.log if log file not present
 #
