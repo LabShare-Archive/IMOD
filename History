@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+1/23/09: Processchunks now prevents etomo from dropping machines until at
+least one chunk has succeeded.
+
 1/21/09: Matchshifts makes sure solve.xf is readable by owner to solve problem
 on Vista when files appear to have no permissions to cygwin (In 3.13).
 
