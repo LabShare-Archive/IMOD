@@ -4,7 +4,7 @@
   <title>IMOD User's Guide</title>
 </head>
 <body>
-<h1 align="center">IMOD User's Guide for Version 3.12.16 </h1>
+<h1 align="center">IMOD User's Guide for Version 3.13 </h1>
 <h3 align="center">Boulder Laboratory for 3-D Electron Microscopy of
 Cells</h3>
 <hr>
@@ -50,14 +50,14 @@ page. </p>
     </a> </dt>
 All of the IMOD programs are available via the <a
  href="http://bio3d.colorado.edu/imod/download.html">IMOD Download Page</a>.
-&nbsp;The distribution is bundled together using the Unix tar program
+&nbsp;The distribution is bundled together using the tar program
 with gzip compression, then placed in a file after a C shell script
 that can extract and install the programs.&nbsp; If you are willing to
 install to the default location in the system and set up the IMOD
 environment for all users in the default way, then you can install
 simply by running this
 script, e.g.,<br>
-&nbsp;&nbsp;&nbsp;<code>csh -f imod_3.11.2_FC2.csh</code><br>
+&nbsp;&nbsp;&nbsp;<code>csh -f imod_3.13.2_FC4.csh</code><br>
   <br>
 (In this guide, the specific filenames are used as an example; your
 copy may have higher version numbers.) <span
@@ -66,24 +66,27 @@ install it.</span>&nbsp; If you have
 followed our recommended installation procedures
 since IMOD 3.0.8, you will be able to upgrade using the same
 command. If you want to install to a location other than the
-default,&nbsp; you can specify the desired location,
+default,&nbsp; you can specify the desired location inside of which the
+IMOD directory will be placed,
 e.g.,<br>
-&nbsp;&nbsp; <code>csh -f imod_3.11.2_FC2.csh -dir /opt</code><br>
+&nbsp;&nbsp; <code>csh -f imod_3.13.2_FC4.csh -dir /opt</code><br>
   <br>
 Older versions will be renamed, and at the end the installation script
 will offer to remove them for you.&nbsp; People with special
 requirements not anticipated by the install script may need to work
 with
 the tar file instead.&nbsp; It can be extracted with:<br>
-&nbsp; <code>csh -f imod_3.11.2_FC2.csh -extract<br>
+&nbsp; <code>csh -f imod_3.13.2_FC4.csh -extract<br>
   </code><br>
 The gzipped tar file and the install script will be left in a
-subdirectory named <code>IMODtempDir.</code>&nbsp; There are two other
+subdirectory named <code>IMODtempDir.</code>&nbsp; There are several
+other
 useful options: <code>-script </code>to install
-startup scripts to a different location, and <code>-skip</code> to
-skip installing startup scripts.&nbsp; Use:<br>
+startup scripts to a different location, <code>-skip</code> to
+skip installing startup scripts, <code>-name</code> to have the IMOD
+directory be renamed to the given name.&nbsp; Use:<br>
 </dl>
-<code>csh -f imod_3.11.2_FC2.csh -help</code>
+<code>csh -f imod_3.13.2_FC4.csh -help</code>
 <dl>
 to see all available options.&nbsp; The sections below on individual
 machine types describe what will be
@@ -98,14 +101,16 @@ The recommended configuration for
 running the IMOD software is:
     <p> Processor: Almost any Intel or AMD processor from the last 5
 years will run adequately<br>
-Video Card: any relatively modern Nvidia card (GeForce or Quadro, 64 MB
+Video Card: any relatively modern Nvidia card (GeForce or Quadro, 128
+MB
 or higher cards preferred)<br>
-Minimum memory size: 512MB <br>
-Minimum disk size: 15 GB <br>
+Minimum memory size: 1 GB <br>
+Minimum disk size: 25 GB <br>
 Operating System: Red Hat Workstation 4 or Fedora 4 or higher<br>
 Nvidia Linux device drivers and OpenGL libraries from <a
  href="http://www.nvidia.com">Nvidia</a>, at least version 8776 or
-higher due to security concerns<br>
+higher due to security concerns (but versions above 100.14.19 give
+significantly worse performance when viewing models in <code>3dmod</code>)<br>
     <br>
     </p>
     <p><b>Nvidia installation.</b> Installing Nvidia
@@ -128,10 +133,10 @@ or two
 packages not in the default installation are needed to run IMOD under
 a fresh installation of FC4 on up.&nbsp; If you are running a version
 of IMOD built under FC4, you
-need compat-libf2c.&nbsp; The reason for this is that the Fortran
-compiler g77 has been
-declared "legacy" even though its successor, gfortran, is too buggy to
-rely on yet.&nbsp; To install this, use:</p>
+need compat-libf2c.&nbsp; The reason for this is that IMOD is still
+using the legacy Fortran
+compiler g77; we should switch to its successor, gfortran, for the next
+major release.&nbsp; To install this, use:</p>
   </dd>
   <dd><code>&nbsp; sudo yum install 'compat-libf2c-*'</code><br>
   </dd>
@@ -202,7 +207,7 @@ the <code>-skip</code> option.&nbsp; To accomplish all
 of this, change directory to the place where the package is located and
 enter, for example:<br>
 &nbsp;&nbsp;&nbsp;&nbsp; <code>sudo csh </code><code>-f
-imod_3.11.2_FC2.csh</code><br>
+imod_3.13.2_FC4.csh</code><br>
     <br>
 You will have to open a new window, or possibly even log out and
 log back in, for the installation to take effect.<br>
@@ -232,7 +237,8 @@ IMOD&gt; is the absolute path to the IMOD directory):</dd>
 $IMOD_DIR/IMOD-linux.csh </code></dd>
 </dl>
 <dl>
-  <dd>or, place the following in the <code>.bash_profile</code> of
+  <dd>or, place the following in the <code>.bashrc </code>or <code>.bash_profile</code>
+of&nbsp;
 individual
 users under <code>bash</code>:</dd>
   <dd><code>export IMOD_DIR=&lt;location of IMOD&gt;</code></dd>
@@ -241,7 +247,7 @@ $IMOD_DIR/IMOD-linux.sh ; fi</code></dd>
 </dl>
 <dl>
   <dd>Alternatively, if there are system-wide startup scripts sourced
-from the users' <code>.cshrc</code> or <code>.bash_profile</code>,
+from the users' <code>.cshrc</code> or <code>.basrc/.bash_profile</code>,
 you would place these commands in the system-wide startup
 scripts.&nbsp; You should always source the startup script that comes
 with an IMOD distribution, not make a copy of the startup script and
@@ -255,9 +261,9 @@ option:<br>
     <ol>
       <li> Log in as root or do all of these commands with sudo </li>
       <li> cd to the directory where you downloaded IMOD, and <br>
-        <code> mv imod_3.11.2_FC2.tar.gz /usr/local</code> </li>
+        <code> mv imod_3.13.2_FC4.tar.gz /usr/local</code> </li>
       <li><code> cd /usr/local</code> </li>
-      <li><code> tar -xzf imod_3.11.2_FC2.tar.gz</code> </li>
+      <li><code> tar -xzf imod_3.13.2_FC4.tar.gz</code> </li>
       <li>To see if you already have a /usr/local/IMOD, <br>
         <code> ls -l</code> </li>
       <li>If you do have a /usr/local/IMOD and it is a link (e.g., it
@@ -265,7 +271,7 @@ shows up as <code> IMOD -&gt; imod_2.7.6</code>), then enter <br>
         <code> rm IMOD</code> <br>
 Otherwise, rename the existing directory, e.g.: <br>
         <code> mv IMOD oldIMOD</code> </li>
-      <li><code> ln -s imod_3.11.2 IMOD</code> </li>
+      <li><code> ln -s imod_3.13.2 IMOD</code> </li>
       <li>Except on Ubuntu and other Debian systems,<br>
         <code>cp IMOD/IMOD-linux.* /etc/profile.d</code> <code></code></li>
     </ol>
@@ -301,47 +307,23 @@ enter:</dd>
 </dl>
 <dl>
   <dd><code></code><code>3dmod</code> may fail to run if another
-installed package has placed an incompatible Qt or OpenGL library on
-your library load path.&nbsp; The sign of a problem with the Qt library
-is an error message about an undefined symbol, usually a very long
-string containing "QGLWidget".&nbsp; The remedy for these problems
-depends on whether
-your IMOD&nbsp; distribution has a Qt library included.&nbsp; <br>
+installed package has placed an incompatible OpenGL library on
+your library load path.&nbsp; The remedy for this problem would be to
+edit <code>IMOD-linux.sh</code> and <code>IMOD-linux.csh</code> in <code>/etc/profile.d</code>
+to change the definition of IMOD_QTLIBDIR from <code>"$IMOD_DIR/qtlib"</code>
+to <code>"$IMOD_DIR/qtlib:/usr/lib:/usr/X11R6/lib"</code> .<br>
   </dd>
 </dl>
-<ul>
-  <ul>
-    <li>If the distribution has a Qt library, you will find <code>IMOD-localQt.sh</code>
-and <code>IMOD-localQt.csh</code> in the top IMOD directory.&nbsp; Use
-these to replace the startup files in <code>/etc/profile.d</code>:<br>
-      <code>sudo cp IMOD-localQt.sh /etc/profile.d/IMOD-linux.sh<br>
-      </code><code>sudo cp IMOD-localQt.csh
-/etc/profile.d/IMOD-linux.csh</code><br>
-    </li>
-    <li>&nbsp;If your distribution does not have a Qt library, the top
-IMOD directory contains
-two
-files, <code>IMOD-qtconflict.sh</code> and <code>IMOD-qtconflict.csh</code>,
-that can be used to solve the problem. &nbsp;Try sourcing the
-appropriate file, then try following the directions in the file and
-sourcing it again. &nbsp;If this solves the problem, make any needed
-changes to both files and copy them to <code>/etc/profile.d,</code>
-without deleting <code>IMOD-linux.*sh</code>.<code><br>
-      </code></li>
-  </ul>
-</ul>
+<br>
 <dl style="margin-left: 40px;">
   <a name="InstallingJavaLinux">
   <h4>Installing Java on a Linux PC<br>
   </h4>
   </a>Etomo is a Java 2 application and thus requires a Java runtime
-environment (JRE) with a version of 1.4 or better to be
+environment (JRE) with a version of 1.5 or better to be
 installed.&nbsp; Etomo will not work with the GNU Java that is
 currently distributed with Fedora Core, so you will need a Sun
-version.&nbsp; We highly recommend using version 1.5 or 1.6 since 1.5
-or
-better will almost certainly be required
-by the next release of IMOD.&nbsp; Sun's JRE version 1.5.0_6
+version.&nbsp; Sun's JRE version 1.5.0_6
 is
 available <a
  href="http://bio3d.colorado.edu/imod/java/jre-1_5_0_06-linux-i586.bin">here</a>&nbsp;for
@@ -382,11 +364,15 @@ ln
   <span style="font-family: monospace;"><code></code></span>
   <p class="western">If you upgrade to a different JRE, then you just
 need to change the link. &nbsp;If you wish to use a different JRE than
-the one pointed to by <code>/usr/local/java</code>, you must edit the <code>IMOD-linux.sh</code>
+the one pointed to by <code>/usr/local/java</code>, you must&nbsp; <code>IMOD-linux.sh</code>
 and <code>IMOD-linux.csh</code> scripts in <code>/etc/profile.d</code>
-and define the variable IMOD_JAVADIR to specify the directory where the
-JRE you wish to use is installed.<br>
-  </p>
+and redefine the environment variable IMOD_JAVADIR to specify the
+directory where the
+JRE you wish to use is installed.&nbsp; The best way to do this is to
+make files <code>IMOD.csh</code> and <code>IMOD.sh</code> in <code>/usr/local/ImodCalib</code>
+that set this environment variable, rather than modifying the <code>IMOD-linux.sh</code>
+and <code>IMOD-linux.csh</code> scripts in <code>/etc/profile.d</code>
+(see&nbsp;<a href="#ImodCalib">Using the ImodCalib Directory</a>). </p>
 &nbsp; <br>
   <a name="InstallingMac">
   <h4>Installing IMOD on a Macintosh running OS X</h4>
@@ -404,7 +390,7 @@ in <code>/etc/csh.login<span style="font-family: sans-serif;"> </span></code>and
 need to be able to use sudo. &nbsp;Open a terminal window (under
 Applications-Utilities), change
 directory to the place where the package is located, and enter, e.g.:<br>
-&nbsp;&nbsp;&nbsp;&nbsp;<code>sudo csh -f imod_3.11.2_osx_ppc.csh</code><br>
+&nbsp;&nbsp;&nbsp;&nbsp;<code>sudo csh -f imod_3.13.2_osx_intel.csh</code><br>
   <br>
 &nbsp;You will need to exit and restart Terminal for these changes to
 take
@@ -442,9 +428,9 @@ alternatives.&nbsp;To do it from the command line, open a Terminal
 window and:<br>
   <ol>
     <li> cd to the directory where you downloaded IMOD, and <br>
-      <code>sudo mv imod_3.11.2_osx_ppc.tar.gz /Applications</code></li>
+      <code>sudo mv imod_3.13.2_osx_ppc.tar.gz /Applications</code></li>
     <li><code>cd /Applications</code></li>
-    <li><code>sudo tar xzf imod_3.11.2_osx_ppc.tar.gz</code></li>
+    <li><code>sudo tar xzf imod_3.13.2_osx_intel.tar.gz</code></li>
     <li>To see if you already have a /Applications/IMOD, <br>
       <code> ls -l</code> </li>
     <li>If you do have a /Applications/IMOD and it is a link (e.g., it
@@ -452,14 +438,14 @@ shows up as <code> IMOD -&gt; imod_3.1.6</code>), then enter <br>
       <code>sudo rm IMOD</code> <br>
 Otherwise, rename the existing directory, e.g.: <br>
       <code>sudo mv IMOD oldIMOD</code> </li>
-    <li><code> sudo mv imod_3.11.2 IMOD</code></li>
+    <li><code> sudo mv imod_3.13.2 IMOD</code></li>
   </ol>
   <br>
 If you are on a single user-machine or have administrative privileges
 from the desktop, you can use the following alternative approach:
   <ol>
     <li>Click on the downloaded file to unpack it with Stuffit Expander
-and create the IMOD folder, e.g. <code>imod_3.11.2</code></li>
+and create the IMOD folder, e.g. <code>imod_3.13.2</code></li>
     <li>Drag this folder into the /Applications folder.</li>
     <li>If you already have an IMOD folder in /Applications, rename it
 or move it elsewhere.</li>
@@ -514,37 +500,99 @@ For complete IMOD functionality
 under Windows, including the ability to run
 shell scripts and to build tomograms, you need to install a Unix-like
 environment called <a href="http://www.cygwin.com">Cygwin</a>.
-&nbsp;We have provided a <a
- href="http://bio3d.colorado.edu/imod/windows/cygwinForIMOD0108.exe">Cygwin
-package</a> (from January, 2008) to make this process simpler and more
+&nbsp;We have provided both a <a
+ href="http://bio3d.colorado.edu/imod/windows/cygwinForIMOD0608.exe">Cygwin
+package</a> and a <a
+ href="http://bio3d.colorado.edu/imod/windows/cygwin_installer_0608.exe">Cygwin
+installer</a> (from January, 2008) to make this process simpler and more
 predictable.
-&nbsp;This installation will occupy ~75 MB, all located under a single
+&nbsp;This installation will occupy ~100 MB, all located under a single
 directory that can be removed easily. &nbsp;The installation will also
 create icons on the desktop and in the Start Menu, and make several
 simple entries to the Windows registry.&nbsp; To satisfy the terms
 of the Cygwin open source license, we also provide the <a
- href="http://bio3d.colorado.edu/imod/openSource/cygwinSource0108.zip">
+ href="http://bio3d.colorado.edu/imod/openSource/cygwinSource0608.zip">
 source code</a>
 matching the binaries in our package.<br>
   <br>
-This package includes a superior
-terminal window called <code>rxvt</code>&nbsp;and a lightweight text
-editor, <code>nano</code>&nbsp;(derived from <code>pico</code>&nbsp;and
-similar
-to the editor in the <code>pine</code>&nbsp;email program).&nbsp;You
-can
-upgrade a previous Cygwin installation using this package, using the
-same procedure as described below.<br>
+Installing Cygwin creates a Unix-like directory tree (including directories
+<code>bin</code>, <code>etc</code>, <code>usr</code>, and <code>home</code>)
+under its top directory,
+which is <code>C:\cygwin</code> by default.&nbsp;Terminal
+windows and Cygwin programs such as the Unix tools will
+display and work with Unix-type paths that are relative to the top Cygwin
+directory.&nbsp; For example, if you install Cygwin in
+<code>C:\cygwin</code>,
+then the location where IMOD will be installed is referred to as
+<code>/usr/local/IMOD</code> from within Cygwin and will exist in the
+Windows file systems as <code>C:\cygwin\usr\local\IMOD</code>.<br>
   <br>
-Cygwin installation may work best if you are logged in as a user with
+Our Cygwin packages now include Python, which will be required for the next release of
+IMOD.&nbsp; They also include a superior
+terminal window called <code>rxvt</code> and a lightweight text
+editor, <code>nano</code> (derived from <code>pico</code> and
+similar
+to the editor in the <code>pine</code> email program).&nbsp;
+The primary advantage of the <code>rxvt</code> window is that you can
+copy and paste just like under Unix (highlight with left mouse button,
+paste with middle mouse button). This capability uses the Windows
+clipboard, so you can copy text in a Windows program (Ctrl-C) and paste
+with the mouse in the <code>rxvt </code>window, or highlight in the <code>rxvt
+  </code>window
+and paste in a Windows program with Ctrl-V.&nbsp; Another
+advantage is that you can resize the <code>rxvt</code> window
+horizontally as well as vertically.<br>
+  <br>
+Cygwin installation will work best if you are logged in as a user with
 Administrative privileges.<br>
   <br>
-To install or upgrade Cygwin from the package in <code>cygwinForIMOD.exe</code>:<br>
+Use our <a
+ href="http://bio3d.colorado.edu/imod/windows/cygwin_installer_0608.exe">
+installer</a> for a fresh installation of Cygwin. &nbsp;It performs all the steps
+described below. &nbsp;Simply click on it; it will
+unpack itself and launch the Cygwin setup program as well as show a page with
+some instructions. &nbsp;Note the following points:
+<ul>
+<li>For the most part, you just accept the defaults in Cygwin setup. &nbsp;The
+instructions illustrate the one tricky step that is
+needed to get everything installed from the package.</li>
+<li>You are free to change the drive
+letter under which it will be installed, but you should keep
+<code>cygwin</code> as the directory name.</li>
+<li>After components are 
+installed, you can
+uncheck the box for an icon on the desktop, because our installer will create
+desktop shortcuts for starting an <code>rxvt</code> window running either a
+<code>bash</code> or a <code>tcsh</code> shell.</li>
+<li>Our installer also takes 
+care of creating <code>/etc/passwd</code> and 
+<code>/etc/group</code> files and has startup files copied to your Cygwin
+home directory. &nbsp;It places a file named <code>.Xdefaults</code> there that you
+can edit to change the number of lines or font size of the <code>rxvt</code>
+window.</li>
+<li>Copies of the two shortcuts and of <code>.Xdefaults</code> 
+will also be left in /usr/local for other users to copy.</li>
+</ul>
+<br>
+In order to run eTomo, you also need to have Java
+installed.  If you do not already have Java (most machines do now), get the
+latest Java Run-time Environment from <a href="http://www.sun.com">Sun</a>
+or use the version provided <a
+ href="http://bio3d.colorado.edu/imod/java/jre-1_5_0_06-windows-i586-p.exe">here</a>.&nbsp;
+Click on the file and take the defaults to install Java. When
+you are done, you can delete any Java icons from your desktop.<br>
+<br>
+You can use our simpler <a
+ href="http://bio3d.colorado.edu/imod/windows/cygwinForIMOD0608.exe">Cygwin
+package</a> instead to install Cygwin, but then you would have to do all the
+steps described below yourself. &nbsp;You can also use this package to upgrade
+a previous Cygwin installation. &nbsp;The rest of this section has steps
+for installing or upgrading Cygwin from this package:<br>
   <br>
   <ol>
     <li>Click on the package to extract it. Press "Browse" and select
 a folder to unzip to that is conveniently accessed (the Desktop will
-do). &nbsp;You will get the <code>setup.exe</code> program and a <code>cygwinMaster</code>&nbsp;
+do). &nbsp;You will get the <code>setup.exe</code> program and a <code>cygwinMaster</code> 
 folder with all the packages.</li>
     <li>Click on <code>setup.exe</code></li>
     <li>Select install from a Local Directory</li>
@@ -563,17 +611,10 @@ next to "All" to switch from "Default" to "Install"</li>
 icons on the desktop and start menu.</li>
   </ol>
   <br>
-The installation will create a Unix-like directory tree under <code>C:\cygwin</code>.&nbsp;Terminal
-windows and Cygwin programs such as the Unix tools will
-display and work with paths that are relative to the Cygwin
-installation.&nbsp;For example, if you have installed Cygwin in <code>C:\cygwin</code>&nbsp;
-then the <code>/usr/local/IMOD</code>&nbsp;directory will exist in the
-windows file systems as <code>C:\cygwin\usr\local\IMOD</code>.<br>
-  <br>
 After installation you will get an icon that
 will
 start up a shell under bash.&nbsp;The first time that you run this, a
-home directory is created in&nbsp;<code>/home</code>&nbsp;(<code>C:\cygwin\home</code>)
+home directory is created in&nbsp;<code>/home</code> (<code>C:\cygwin\home</code>)
 and some bash
 startup files are copied there.<br>
   <br>
@@ -600,19 +641,9 @@ properties, and press the button to change the icon to select the
 Cygwin icon. </li>
   </ol>
   <br>
-The primary advantage of the <code>rxvt<span
- style="font-family: sans-serif;"> </span></code>window is that you
-can
-copy and paste just like under Unix (highlight with left mouse button,
-paste with middle mouse button). This capability uses the Windows
-clipboard, so you can copy text in a Windows program (Ctrl-C) and paste
-with the mouse in the <code>rxvt </code>window, or highlight in the <code>rxvt
-  </code>window
-and paste in a Windows program with Ctrl-V.&nbsp;Another
-advantage is that you can resize the <code>rxvt</code>&nbsp;window
-horizontally as well as vertically.&nbsp;The <code>cygwinMaster </code>folder
+&nbsp;The <code>cygwinMaster </code>folder
 contains two shortcuts and a configuration file that make it
-easy to use <code>rxvt.</code>&nbsp;To use rxvt:<br>
+easy to use <code>rxvt.</code> To use rxvt:<br>
   <ol>
     <li>Copy one of <code>Cygwin-bash.lnk</code> or <code>Cygwin-tcsh.lnk</code>
 from <code>cygwinMaster</code> to your desktop, depending on your
@@ -650,77 +681,84 @@ is safer to use the package that we provide if it is adequate.<br>
   <br>
   <a name="InstallingWindows">
   <h4>Installing IMOD on a Windows PC</h4>
-  </a>The self-installing package will install IMOD in /usr/local and
-copy <code>IMOD-cygwin.sh</code>&nbsp;and <code>IMOD-cygwin.csh</code>&nbsp;to
-  <code>/etc/profile.d</code>. <span
- style="font-weight: bold; color: rgb(255, 0, 0);">It will not work by
-clicking on it, only
-by executing it from the command line.</span>&nbsp; To
-install IMOD, start a Cygwin terminal window, change to the
-directory where the package is located, and enter, e.g.:<br>
-&nbsp;&nbsp;&nbsp;&nbsp;<code>csh imod_3.11.2_win.csh<br>
-  </code><br>
-  <ol>
-  </ol>
-You will have to open a new Cygwin window for the installation to take
-effect. <br>
+  </a>For Windows, we provide an installer that works by clicking on it,
+installs IMOD in <code>/usr/local</code>, copies the startup scripts 
+<code>IMOD-cygwin.sh</code> and <code>IMOD-cygwin.csh</code> to
+<code>/etc/profile.d</code>, and takes care of putting Cygwin on the system
+path and setting the environment
+variables <code>IMOD_DIR</code> and <code>HOME</code> as described below. 
+Old versions of IMOD are
+automatically deleted.  If you need something
+besides this behavior, you can still run a self-installing package
+(e.g., a <code>csh</code> file like <code>imod_3.13.2_win.csh</code>) at the
+command line, as described below. <br>
+<br>
+To use the installer, just click on it and press buttons to confirm each
+step.  There are no choices to make.  Open a new Cygwin window and you should
+be able to run IMOD programs.<br>
   <br>
-After installation, everything can be run from a Cygwin
-window. &nbsp;In order to run eTomo, you also need to have Java
-installed and
-define some environment variables inside Windows:<br>
-  <br>
-  <ol>
-    <li>If you do not already have Java (many machines do now), get the
-latest Java Run-time Environment from <a href="http://www.sun.com">Sun</a>
-or use the version provided <a
- href="http://bio3d.colorado.edu/imod/java/jre-1_5_0_06-windows-i586-p.exe">here</a>
-.</li>
-    <li> Click on the file and take the defaults to install Java. When
-you are done, you can delete any Java icons from your desktop.</li>
-    <li> To define environment variables, right click My Computer,
-select Properties, Advanced, Environment Variables. Define all of these
-paths in Windows format as illustrated in the following steps. Press
-"New" to define a variable.</li>
-    <li>Under "System variables", define &nbsp;<code>IMOD_DIR</code>
-&nbsp;to be &nbsp;<code>C:\cygwin\usr\local\IMOD</code></li>
-    <li>Under "User variables for username", define <code>&nbsp;HOME</code>
-&nbsp; to be &nbsp; <code>C:\cygwin\home\username</code></li>
-    <li> You also need to add the Cygwin bin to the system path, e.g.,
-under "System variables", select <code>PATH</code>, press "Edit", and
-add <code>C:\cygwin\bin; </code>to the front of the path (the ";" is
-a
-separator).</li>
-  </ol>
-  <br>
-Here are some optional steps:<br>
-  <br>
-If you installed to a drive other than C:, you should define&nbsp; <code>IMOD_DIR</code>
-as an environment variable in Windows as described above, but with the
-appropriate letter instead of C, so that <code>3dmod</code> will be
-able to find help files if it is started by clicking on an icon.<br>
-  <br>
-You can add <code>C:\cygwin\usr\local\IMOD\bin</code>&nbsp;to the
+Here are some optional steps, whichever way you install IMOD:<br>
+<ol>
+<li>You can add the location of the IMOD <code>bin</code> directory (e.g., 
+<code>C:\cygwin\usr\local\IMOD\bin</code>) to the
 Windows
 path, in which case you will be able to run everything, including shell
 scripts,
-from a DOS window.<br>
-  <br>
-To get some command files with DOS line endings you can define an
-environment variable <code>CYGWIN</code>&nbsp;to be&nbsp;<code>nobinmode</code>.
+from a DOS window.</li>
+<li>To get some command files with DOS line endings you can define an
+environment variable <code>CYGWIN</code> to be&nbsp;<code>nobinmode</code>.
 This will make command files from <code>Setupcombine</code>, but not
-those from <code>Copytomocoms</code>, have DOS line endings.<br>
-  <br>
-If you want to be able to display and print Postscript graphs from the
+those from <code>Copytomocoms</code>, have DOS line endings.</li>
+<li>If you want to be able to display and print Postscript graphs from the
 Fortran graphics programs (e.g., <code>nda, mtk, mtoverlap</code>),
 you
 can install <a
  href="http://bio3d.colorado.edu/imod/windows/gs811w32.exe">ghostscript</a>&nbsp;and
   <a href="http://bio3d.colorado.edu/imod/windows/gsv45w32.exe">gsview</a>&nbsp;for
-Windows.<br>
+Windows.</li>
+</ol>
+<br>
+The rest of this section describes other ways of installing IMOD.
+If you run a self-installing package at the command line instead, it will 
+install IMOD in /usr/local and
+copy <code>IMOD-cygwin.sh</code> and <code>IMOD-cygwin.csh</code> to
+<code>/etc/profile.d</code>, unless given options telling it to do something
+else. <span
+ style="font-weight: bold; color: rgb(255, 0, 0);">It will not work by
+clicking on it, only
+by executing it from the command line.</span>&nbsp; To
+install or upgrade IMOD this way, start a Cygwin terminal window, change to the
+directory where the package is located, and enter, e.g.:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<code>csh -f imod_3.13.2_win.csh</code><br>
+<br>
+You will have to open a new Cygwin window for the installation to take
+effect. <br>
   <br>
-The steps for manually installing from the tar file
-instead are:<br>
+After installation, everything can be run from a Cygwin
+window. &nbsp;In order to run eTomo, you also need to 
+define some environment variables inside Windows:<br>
+  <br>
+  <ol>
+    <li> Right click My Computer,
+select Properties, Advanced, Environment Variables. Define all of these
+paths in Windows format as illustrated in the following steps. Press
+"New" to define a variable.</li>
+    <li>Under "System variables", define <code>IMOD_DIR</code>
+to be <code>C:\cygwin\usr\local\IMOD</code></li>
+    <li>Under "User variables for username", define <code> HOME</code>
+to be <code>C:\cygwin\home\username</code></li>
+    <li> You also need to add the Cygwin bin to the system path, e.g.,
+under "System variables", select <code>PATH</code>, press "Edit", and
+add <code>C:\cygwin\bin; </code>to the front of the path (the ";" is
+a separator).</li>
+  </ol>
+  <br>
+Even if you are not running eTomo, if you installed to a drive other than C:, you should define&nbsp; <code>IMOD_DIR</code>
+as an environment variable in Windows as described above, but with the
+appropriate letter instead of C, so that <code>3dmod</code> will be
+able to find help files if it is started by clicking on an icon.<br>
+  <br>
+The steps for manually installing from the tar file instead are:<br>
   <ol>
     <li> Start a Cygwin terminal window. <br>
     </li>
@@ -734,21 +772,21 @@ mv IMOD oldIMOD</code><br>
     </li>
     <li>&nbsp;Unpack the tar file, rename it to IMOD, and copy startup
 files: <br>
-      <code></code><code>tar -xzf imod_3.11.2.tar.gz </code><br>
-      <code>mv imod_3.11.2 IMOD </code><br>
+      <code></code><code>tar -xzf imod_3.13.2.tar.gz </code><br>
+      <code>mv imod_3.13.2 IMOD </code><br>
       <code>cp IMOD/IMOD-cygwin.* /etc/profile.d</code></li>
   </ol>
   <br>
 Finally, if you do not want to install Cygwin, you can still
 use most of the programs in
-IMOD.&nbsp;In this case, get the <code>.tar.gz</code>&nbsp;distribution
+IMOD.&nbsp; In this case, get the <code>.tar.gz</code> distribution
 instead of the self-installing distribution and use <a
  href="http://www.winzip.com">Winzip </a>to
 unpack it somewhere, (e.g., <code>C:\Program Files</code>), rename the
 top directory to IMOD, and add the <code>IMOD\bin</code> directory
 (e.g., <code>C:\Program Files\IMOD\bin</code>) to your path in
-Windows, as described
-above. <a name="ImodCalib"></a>
+Windows, as described above.
+<a name="ImodCalib"></a>
   <h4>Using the ImodCalib directory</h4>
 Several parts of IMOD look for data and configuration files in a
 separate
@@ -794,8 +832,12 @@ IMOD startup scripts.
 <dt>You will want to go through the <a href="3dmodguide.html">Introduction
 to 3dmod</a> because <code>3dmod</code> is the central graphical tool
 of
-the IMOD package. Beyond this, your initial problem may be getting
-data into a format usable by the IMOD programs. If you are having
+the IMOD package.&nbsp; If you are doing tomography, you should start with the 
+<a href="etomoTutorial.html">eTomo tutorial</a>.&nbsp; For access to the
+complete IMOD documentation, just enter <code>imodhelp</code> at the command
+line to open it in the Qt Assistant, where it can be browsed and
+searched.&nbsp; Beyond this, your initial problem may be getting
+data into a format usable by the IMOD programs.&nbsp; If you are having
 problems getting your data into a format usable by IMOD contact us for
 help. </dt>
 <dl>
@@ -1115,7 +1157,7 @@ tomograms with eTomo, including a sample data set.</li>
 </dl>
 <br>
 <br>
-<hr><i>Last updated: May 29, 2008</i> [<a
+<hr><i>Last updated: January 23, 2009</i> [<a
  href="http://bio3d.colorado.edu/imod/index.html">IMOD Home Page</a>] [<a
  href="http://bio3d.colorado.edu/index.html">BL3DEMC Home Page</a>] <br>
 <br>
