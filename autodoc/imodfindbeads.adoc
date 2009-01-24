@@ -255,6 +255,8 @@ manpage = Sigma for real-space smoothing with a Gaussian kernel (in pixels).
 The smoothing is with a 3x3, 5x5 or 7x7 kernel whose coefficients are
 proportional to a Gaussian with the given sigma centered on the central
 pixel.  This smoothing is applied before the image is scaled for filtering.
+The default is 0.85, which is equivalent to the simple smoothing filter in
+Clip(1) and 3dmod(1).
 
 [Field = FilterRadius1]
 short = rad1
