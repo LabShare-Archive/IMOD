@@ -66,6 +66,8 @@ void ivwInit(ImodView *vi, bool modview)
   startExtraObjectIfNone(vi);
   vi->undo = new UndoRedo(vi);
   vi->modelViewVi = modview ? 1 : 0;
+  vi->xybin = 1;
+  vi->zbin = 1;
   if (modview)
     return;
      
@@ -111,8 +113,6 @@ void ivwInit(ImodView *vi, bool modview)
   vi->linePtrs = NULL;
   vi->linePtrMax = 0;
   vi->blankLine = NULL;
-  vi->xybin = 1;
-  vi->zbin = 1;
   vi->flippable = 1;
   vi->grayRGBs = 0;
   vi->reloadable = 0;
@@ -2793,6 +2793,9 @@ void ivwBinByN(unsigned char *array, int nxin, int nyin, int nbin,
 /*
 
 $Log$
+Revision 4.79  2009/01/16 20:23:24  mast
+Initialize fullCacheFlipped since it's going to be tested on
+
 Revision 4.78  2009/01/15 16:33:18  mast
 Qt 4 port
 
