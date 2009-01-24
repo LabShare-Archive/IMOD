@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+1/23/09: Fixed size of current point sphere in model view if data loaded with
+binning (In 3.13).
+
 1/23/09: Processchunks now prevents etomo from dropping machines until at
 least one chunk has succeeded.
 
