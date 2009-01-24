@@ -329,6 +329,7 @@ SlicerWindow::SlicerWindow(SlicerStruct *slicer, float maxAngles[],
   mModelBox->setRange(0.1, 1000.);
   mModelBox->setSingleStep(1.0);
   mModelBox->setFocusPolicy(Qt::ClickFocus);
+  mModelBox->setKeyboardTracking(false);
   mModelBox->setMaximumWidth((int)(labelSize.width() * 1.5));
   connect(mModelBox, SIGNAL(valueChanged(double)), this, 
 	  SLOT(modelThicknessChanged(double)));
@@ -1502,6 +1503,9 @@ static void fillArraySegment(int jstart, int jlimit)
 /*
 
 $Log$
+Revision 4.30  2009/01/16 18:27:03  mast
+Commented out debug output on the angle bar break
+
 Revision 4.29  2009/01/15 16:33:18  mast
 Qt 4 port
 

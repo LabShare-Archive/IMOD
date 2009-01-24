@@ -5,8 +5,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>222</width>
-    <height>640</height>
+    <width>233</width>
+    <height>673</height>
    </rect>
   </property>
   <property name="windowTitle" >
@@ -660,6 +660,9 @@
           <property name="toolTip" >
            <string>Set line width in image displays</string>
           </property>
+          <property name="keyboardTracking" >
+           <bool>false</bool>
+          </property>
           <property name="minimum" >
            <number>1</number>
           </property>
@@ -803,6 +806,9 @@
           </property>
           <property name="toolTip" >
            <string>Set line width in model view</string>
+          </property>
+          <property name="keyboardTracking" >
+           <bool>false</bool>
           </property>
           <property name="minimum" >
            <number>1</number>
@@ -1155,6 +1161,9 @@
           <property name="toolTip" >
            <string>Set symbol size in image displays</string>
           </property>
+          <property name="keyboardTracking" >
+           <bool>false</bool>
+          </property>
           <property name="minimum" >
            <number>1</number>
           </property>
@@ -1303,6 +1312,9 @@
        </property>
        <property name="specialValueText" >
         <string>None</string>
+       </property>
+       <property name="keyboardTracking" >
+        <bool>false</bool>
        </property>
        <property name="minimum" >
         <number>0</number>

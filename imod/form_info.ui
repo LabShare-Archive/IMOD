@@ -67,7 +67,7 @@
         <string/>
        </property>
        <property name="icon" >
-        <iconset resource="3dmod.qrc" >
+        <iconset>
          <normaloff>:/raisewindow.png</normaloff>:/raisewindow.png</iconset>
        </property>
       </widget>
@@ -84,7 +84,7 @@
         <string/>
        </property>
        <property name="icon" >
-        <iconset resource="3dmod.qrc" >
+        <iconset>
          <normaloff>:/undo.png</normaloff>:/undo.png</iconset>
        </property>
       </widget>
@@ -101,7 +101,7 @@
         <string/>
        </property>
        <property name="icon" >
-        <iconset resource="3dmod.qrc" >
+        <iconset>
          <normaloff>:/redo.png</normaloff>:/redo.png</iconset>
        </property>
       </widget>
@@ -266,6 +266,9 @@
               <property name="specialValueText" >
                <string>-x-</string>
               </property>
+              <property name="keyboardTracking" >
+               <bool>false</bool>
+              </property>
              </widget>
             </item>
             <item>
@@ -288,6 +291,9 @@
               <property name="specialValueText" >
                <string>-x-</string>
               </property>
+              <property name="keyboardTracking" >
+               <bool>false</bool>
+              </property>
              </widget>
             </item>
             <item>
@@ -309,6 +315,9 @@
               </property>
               <property name="specialValueText" >
                <string>-x-</string>
+              </property>
+              <property name="keyboardTracking" >
+               <bool>false</bool>
               </property>
              </widget>
             </item>
@@ -477,6 +486,9 @@
               <property name="specialValueText" >
                <string/>
               </property>
+              <property name="keyboardTracking" >
+               <bool>false</bool>
+              </property>
               <property name="minimum" >
                <number>1</number>
               </property>
@@ -502,6 +514,9 @@
               <property name="specialValueText" >
                <string/>
               </property>
+              <property name="keyboardTracking" >
+               <bool>false</bool>
+              </property>
               <property name="minimum" >
                <number>1</number>
               </property>
@@ -526,6 +541,9 @@
               </property>
               <property name="specialValueText" >
                <string/>
+              </property>
+              <property name="keyboardTracking" >
+               <bool>false</bool>
               </property>
               <property name="minimum" >
                <number>1</number>

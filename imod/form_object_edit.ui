@@ -209,6 +209,9 @@
        <property name="specialValueText" >
         <string>No limit</string>
        </property>
+       <property name="keyboardTracking" >
+        <bool>false</bool>
+       </property>
        <property name="maximum" >
         <number>100</number>
        </property>
@@ -401,6 +404,9 @@
        <property name="toolTip" >
         <string>Increase, decrease, or enter a radius for spheres to be drawn at each point (in unbinned pixels)</string>
        </property>
+       <property name="keyboardTracking" >
+        <bool>false</bool>
+       </property>
        <property name="maximum" >
         <number>999</number>
        </property>
@@ -449,6 +455,9 @@
        </property>
        <property name="toolTip" >
         <string>Increase, decrease, or enter the object's line width</string>
+       </property>
+       <property name="keyboardTracking" >
+        <bool>false</bool>
        </property>
        <property name="minimum" >
         <number>1</number>

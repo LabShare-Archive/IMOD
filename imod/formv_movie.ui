@@ -804,6 +804,9 @@
        <property name="focusPolicy" >
         <enum>Qt::ClickFocus</enum>
        </property>
+       <property name="keyboardTracking" >
+        <bool>false</bool>
+       </property>
        <property name="minimum" >
         <number>2</number>
        </property>

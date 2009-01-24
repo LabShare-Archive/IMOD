@@ -45,6 +45,9 @@
        <property name="toolTip" >
         <string>Select the current model to be displayed</string>
        </property>
+       <property name="keyboardTracking" >
+        <bool>false</bool>
+       </property>
        <property name="minimum" >
         <number>1</number>
        </property>

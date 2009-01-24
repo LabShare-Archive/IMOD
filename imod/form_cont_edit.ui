@@ -75,6 +75,9 @@
           <property name="toolTip" >
            <string>Current surface/Enter surface to go to</string>
           </property>
+          <property name="keyboardTracking" >
+           <bool>false</bool>
+          </property>
          </widget>
         </item>
         <item>
@@ -368,6 +371,9 @@
           <property name="specialValueText" >
            <string>No Time</string>
           </property>
+          <property name="keyboardTracking" >
+           <bool>false</bool>
+          </property>
          </widget>
         </item>
        </layout>
@@ -586,11 +592,14 @@
           <property name="toolTip" >
            <string>Set number of sections away that ghosts will display</string>
           </property>
+          <property name="keyboardTracking" >
+           <bool>false</bool>
+          </property>
           <property name="minimum" >
            <number>1</number>
           </property>
           <property name="maximum" >
-           <number>10</number>
+           <number>101</number>
           </property>
          </widget>
         </item>
