@@ -1,13 +1,13 @@
 <html><head> <title>IMOD Tomography Guide</title> </head>
 <body>
-<H2 ALIGN=center>Tomography Guide for IMOD Version 3.11<BR>
+<H2 ALIGN=center>Tomography Guide for IMOD Version 3.13<BR>
 </H2>
 <H3 ALIGN=center>Boulder Laboratory for 3-D Electron Microscopy of Cells</H3>
 <HR>
 <H3>Table of Contents</H3>
 
 <UL>
-<BR><A HREF = "#WHATSNEW">0. WHAT'S NEW IN IMOD 3.11</A>
+<BR><A HREF = "#WHATSNEW">0. WHAT'S NEW IN IMOD 3.13</A>
 <BR><A HREF = "#BACKGROUND">1. BACKGROUND</A>
 <BR><A HREF = "#Program Names">1.1. Program Names</A>
 <BR><A HREF = "#Command Files">1.2. Command Files</A>
@@ -42,81 +42,90 @@
 <BR><A HREF = "#TOMOGRAM POSITIONING">8. TOMOGRAM POSITIONING </A>
 <BR><A HREF = "#Doing Tilted Samples">8.1. Redoing Samples to Refine the Positioning</A>
 <BR><A HREF = "#Whole Tomogram Positioning">8.2. Positioning with a Whole Tomogram</A>
-<BR><A HREF = "#TOMOGRAM GENERATION">9. TOMOGRAM GENERATION</A>
+<BR><A HREF = "#ResolutionFiltering">9. FILTERING AND RESOLUTION</A>
 <BR><A HREF = "#Radial filter">9.1. Tomogram Resolution and the Need for Filtering</A>
 <BR><A HREF = "#Filtering Options">9.2. Filtering Options</A>
 <BR><A HREF = "#Filtering Guidelines">9.3. Filtering Guidelines</A>
-<BR><A HREF = "#Making Aligned">9.4. Making and Processing the Aligned Stack</A>
-<BR><A HREF = "#Building Tomogram">9.5. Building the Tomogram</A>
-<BR><A HREF = "#Making Trial Tomograms">9.6. Making Trial Tomograms</A>
-<BR><A HREF = "#Z factors">9.7. Using Z Factors in the Backprojection</A>
-<BR><A HREF = "#TOMOGRAM COMBINATION">10. COMBINING TWO TOMOGRAMS</A>
-<BR><A HREF = "#Setting Up">10.1. Setting Up</A>
-<BR><A HREF = "#Temporary Combining Storage">10.2. Using Temporary Storage for Combining</A>
-<BR><A HREF = "#Proceeding">10.3. Proceeding</A>
-<BR><A HREF = "#Initial Problems in Combining">10.4. Initial Registration Problems in Combining</A>
-<BR><A HREF = "#Patch Problems in Combining">10.5. Patch Correlation Problems in Combining</A>
-<BR><A HREF = "#Linen Pattern">10.6. Linen Patterns in the Combined Tomogram</A>
-<BR><A HREF = "#Block Artifacts">10.7. Block Artifacts in the Combined Tomogram</A>
-<BR><A HREF = "#POST-PROCESSING">11. POST-PROCESSING</A>
-<BR><A HREF = "#Scaling and Trimming">11.1. Scaling and Trimming a Tomogram</A>
-<BR><A HREF = "#Reorienting">11.2. Reorienting the Volume</A>
-<BR><A HREF = "#Squeezing">11.3. Squeezing a Tomogram</A>
-<BR><A HREF = "#Cleaning Up">12. CLEAN UP</A>
+<BR><A HREF = "#FinalAligned">10. MAKING AND PROCESSING THE ALIGNED STACK</A>
+<BR><A HREF = "#Making Aligned">10.1 Making the Aligned Stack</A>
+<BR><A HREF = "#CorrectingCTF">10.2 Correcting Phase Inversions from the Microscope CTF</A>
+<BR><A HREF = "#ErasingGold">10.3 Erasing Gold Particles</A>
+<BR><A HREF = "#Filtering2D">10.4 Applying 2D Filtering</A>
+<BR><A HREF = "#TOMOGRAM GENERATION">11. TOMOGRAM GENERATION</A>
+<BR><A HREF = "#Building Tomogram">11.1. Building the Tomogram</A>
+<BR><A HREF = "#Making Trial Tomograms">11.2. Making Trial Tomograms</A>
+<BR><A HREF = "#Z factors">11.3. Using Z Factors in the Backprojection</A>
+<BR><A HREF = "#TOMOGRAM COMBINATION">12. COMBINING TWO TOMOGRAMS</A>
+<BR><A HREF = "#Setting Up">12.1. Setting Up</A>
+<BR><A HREF = "#Temporary Combining Storage">12.2. Using Temporary Storage for Combining</A>
+<BR><A HREF = "#Proceeding">12.3. Proceeding</A>
+<BR><A HREF = "#Initial Problems in Combining">12.4. Initial Registration Problems in Combining</A>
+<BR><A HREF = "#Patch Problems in Combining">12.5. Patch Correlation Problems in Combining</A>
+<BR><A HREF = "#Linen Pattern">12.6. Linen Patterns in the Combined Tomogram</A>
+<BR><A HREF = "#Block Artifacts">12.7. Block Artifacts in the Combined Tomogram</A>
+<BR><A HREF = "#POST-PROCESSING">13. POST-PROCESSING</A>
+<BR><A HREF = "#Scaling and Trimming">13.1. Scaling and Trimming a Tomogram</A>
+<BR><A HREF = "#Reorienting">13.2. Reorienting the Volume</A>
+<BR><A HREF = "#Squeezing">13.3. Squeezing a Tomogram</A>
+<BR><A HREF = "#Cleaning Up">14. CLEAN UP</A>
 </UL>
 <HR>
 <P><H3><A NAME = "WHATSNEW"></A>
-0. WHAT'S NEW IN IMOD 3.11
+0. WHAT'S NEW IN IMOD 3.13
 </H3>
+<P>
 This section lists significant changes or additions to this guide from the
-3.9 version.
+3.11 version.
 <UL>
-<LI>More explicit instructions on handling bidirectional tilt series, in
-<A HREF = "#Bidirectional Series">Tilt Series Taken in Two Directions from
-Zero Tilt</A>
-<LI>Modified advice on solving for linear distortion with fiducials on only
-one surface (just don't do it) in 
-<A HREF = "#Distortion One">Solving for Distortion - Fiducials on Only One
-Surface</A>
-<LI>Instructions on solving for nonperpendicularity between beam and tilt
-axes, in 
-<A HREF = "#Beam Tilt">Solving for Beam Tilt</A>
-<LI>Using a target patch size instead of number of patches for local
-alignments, in
-<A HREF = "#Using Local Alignments">Using Local Alignments</A>
-<LI>Running CTF correction and fiducial erasure procedures in the aligned
-stack, at the command line, in
-<A HREF = "#Making Aligned">Making and Processing the Aligned Stack</A>
-<LI>Description of a problem with the initial transform collapsing in Z, in
-<A HREF = "#Initial Problems in Combining">Initial Registration Problems
-in Combining</A>
+<LI>A few sentences about manual replacement options with Ccderaser were added
+in <A HREF = "#PRE-PROCESSING">PRE-PROCESSING: REMOVING X-RAYS</A></LI>
+<LI> The eTomo interface for generating the aligned stack was split off
+into a new page with tabs for different operations.  Accordingly, 
+the TOMOGRAM GENERATION section here was reorganized into
+<A HREF = "#ResolutionFiltering">FILTERING AND RESOLUTION</A>,
+<A HREF = "#FinalAligned">MAKING AND PROCESSING THE ALIGNED STACK</A>.
+and <A HREF = "#TOMOGRAM GENERATION">TOMOGRAM GENERATION</A></LI>
+<LI>A new option for making aligned stacks of different sizes is described in
+<A HREF = "#Making Aligned">Making the Aligned Stack</A></LI>
+<LI>Interfaces for CTF correction and erasing gold have been added and are
+described in 
+<A HREF = "#CorrectingCTF">Correcting Phase Inversions from the
+Microscope CTF</A>  and
+<A HREF = "#ErasingGold">Erasing Gold Particles</A></LI>
+<LI>Instructions are provided for two methods of getting more complete models
+for erasing gold, in <A HREF = 
+"tomoExtra.html#ErasingGold">Erasing All Gold from a Tomogram</A></LI>
+<LI>Instructions are provided for importing tomograms built elsewhere into
+eTomo for combining, in
+<A HREF = "tomoExtra.html#ImportingDual">
+Importing Two Tomograms into Tomogram Combination</A></LI>
 
 </UL>
 
-
-<P>
+</P>
 <H3><A NAME = "BACKGROUND"></A>
 1. BACKGROUND
 </H3>
+<P>
 This is a guide to building single and dual axis tomograms with IMOD using
 the eTomo interface.  It contains sufficient detail to serve as a reference
 guide, which makes it less suitable when starting out.  The recommended
 approach is to work through our <A HREF = "etomoTutorial.html">tutorial</A>
 with a sample data set before trying
 to use this guide to process your own data.
-
-<P>
+</P>
 <H4><A NAME = "Program Names"></A>
 1.1. Program Names
 </H4>
+<P>
 In this document, program names are capitalized.  However, their true
 names are all lower case, and they must be run by entering these names in
 lower case because UNIX is case-sensitive.
-
-<P>
+</P>
 <H4><A NAME = "Command Files"></A>
 1.2. Command Files
 </H4>
+<P>
 eTomo works with the same set of command files that used to be edited and
 run on the command line in earlier versions of IMOD.  These files have
 the extension <CODE>.com</CODE>, and when a command file is run,
@@ -138,14 +147,15 @@ track.com will be executed in the background, a log file will be created
 called track.log, and a message will appear when the command file is completed.
 For more information on the format of command files and how to run
 them, see <A HREF = "tomoExtra.html#Command Files">Command Files</A> in
-the Extra Topics section.  If you want to make or edit command files, or if
+the Advanced Topics section.  If you want to make or edit command files, or if
 you want to run programs at the command line, see also the section on 
 <A HREF = "tomoExtra.html#Entries to Programs">Entries to Programs</A>.
 
-<P>
+</P>
 <H4><A NAME = "Numbering System"></A>
 1.3. Numbering System
 </H4>
+<P>
 Sections or views in the image files are consistently numbered from 1
 within
 the graphical interface programs,
@@ -162,10 +172,11 @@ is a good chance that they are numbered from 0.  The most important
 example is the program <A HREF = "man/newstack.html">Newstack</A>, which is
 often used for rearranging or extracting sections from a stack.
 
-<P>
+</P>
 <H4><A NAME = "Backup Files"></A>
 1.4. Backup Files
 </H4>
+<P>
      Nearly every program that you run will create a backup file if an output
 file already exists, rather than simply deleting the old version of the output
 file.  The existing file is renamed by adding a "~" at the end.
@@ -176,10 +187,11 @@ alias for purging backup files in your .cshrc: <BR><CODE> alias purge '\rm *~'
  With this alias, "purge" will delete all backup files without asking for 
 confirmation.
 
-<P>
+</P>
 <H4><A NAME = "Using Insecure Storage"></A>
 1.5. Using Temporary or Insecure Storage
 </H4>
+<P>
      It is possible to have your small working files automatically saved to
 another directory every time that you run a command file.  This will provide
 backup protection if you build tomograms in a disk area that is not regularly
@@ -198,10 +210,11 @@ automatically, copying files over to the source directory.  You can also run
 "savework" yourself at any time (for example, after working on a fiducial
 model for a while).
 
-<P>
+</P>
 <H4><A NAME = "Intensity Problems"></A>
 1.6. Problems with Intensities in 3dmod
 </H4>
+<P>
 X-rays and other artifacts from the CCD camera can produce extreme intensity
 values in the raw tilt series.  These effects can result in the images
 looking terrible when loaded into
@@ -253,15 +266,16 @@ you should prevent the coarse aligned stack from being converted to bytes.
 Go to Advanced mode in the <B>Newstack</B> section of the
 <B>Coarse Alignment</B> panel in eTomo and uncheck <B>Convert to bytes</B>.
 
-<P>
+</P>
 <H3><A NAME = "NON-BOULDER NOTES"></A>
 2. NOTES FOR NON-BOULDER USERS
 </H3>
-
 <P>
+</P>
 <H4><A NAME = "File Naming Conventions"></A>
 2.1. File Naming Conventions
 </H4>
+<P>
 In order for the processing sequence to work, the names of your starting files
 must follow several conventions.
 The raw image stacks must have the extension ".st"; so for a single axis
@@ -275,10 +289,11 @@ If you are supplying your own file of raw tilt angles, they must be named with
 the data set name followed by ".rawtlt" (or "a.rawtlt" and "b.rawtlt" for a
 dual axis tilt series.
 
-<P>
+</P>
 <H4><A NAME = "Film versus CCD Images"></A>
 2.2. Film versus CCD Images
 </H4>
+<P>
      Some of the programs make a distinction between images from film and ones
 acquired on a CCD camera.  This is based on an obsolete method of
 digitizing from film, in which tilt images were already in good translational
@@ -289,10 +304,10 @@ If your data
 are already in very good alignment, the only disadvantage to
 processing it in eTomo is that you will have to run the prealignment
 step.  This is worth it to avoid editing and running command files by hand.
-
-<P>
+</P>
 <H4><A NAME = "Image Scaling"></A>
 2.3. Image Scaling and Contrast Polarity
+<P>
 </H4>
      The default parameters for reconstruction assume that the numbers in your
 images are linearly related to the number of transmitted electrons caught
@@ -323,10 +338,11 @@ programs will try to detect this and set the base to 32768.
 fail to track your fiducials properly with the default settings.
 Simply change the 0 to a 1 in the <B>Fiducial marker size & polarity</B>
 box in the <B>Fiducial Model Generation Panel</B>.
-<P>
+</P>
 <H4><A NAME = "Bidirectional Series"></A>
 2.4. Tilt Series Taken in Two Directions from Zero Tilt
 </H4>
+<P>
 A tilt series taken by tilting in two directions from zero tilt often shows a
 discontinuity in the aligned stack at the transition between the two halves of
 the series.  Usually this reflects either an irregular tilt increment due to 
@@ -350,10 +366,11 @@ tilt in <A HREF = "man/tiltalign.html">Tiltalign</A>; see
 Correcting for X-axis Tilt in Bidirectional Tilt Series</A> in the Extra 
 Topics section.
 
-<P>
+</P>
 <H3><A NAME = "INITIAL STEPS"></A>
 3. SETUP
 </H3>
+<P>
 To work on a new data set, start eTomo and fill in the entries in the
 <B>Setup Panel</B> that appears.
 You need not start eTomo from the directory where the files are located.
@@ -382,8 +399,9 @@ with data from SerialEM on the Tecnai as well as with files using David
 Agard's extended header format, which is also used in the FEI
 tomography acquisition software.
 
-<LI><B> Pixel size and Fiducial diameter:</B> These values are used only by
-<A HREF = "man/beadtrack.html">Beadtrack</A>.  If you do not know the
+<LI><B> Pixel size and Fiducial diameter:</B> These values are used by
+<A HREF = "man/beadtrack.html">Beadtrack</A> and when setting the default
+diameter for erasing gold particles from images.  If you do not know the
 pixel size, you can enter 1, and the measured diameter of the gold
 particles in pixels.
 
@@ -447,7 +465,7 @@ When processing montaged images with correction for mag gradients,
 this checkbox can be used to indicate that the montages were acquired
 with the option to adjust focus for changes in Z height.
 </UL>
-
+<P>
 Once you have made all of these entries, push the button to <B>Create
 Com Scripts</B>.  eTomo will run the Copytomocoms script to produce
 command files for processing the
@@ -472,12 +490,17 @@ alignment by correlation
 <BR>
  uses tomopitch.com to run <A HREF = "man/tomopitch.html">Tomopitch</A>
 to find the pitch of the section from a model on the three regions
-<LI><B>Tomogram Generation</B>: uses newst.com to run 
-<A HREF = "man/newstack.html">Newstack</A> to make an aligned stack
+<LI><B>Final Aligned Stack</B>: uses newst.com to run 
+<A HREF = "man/newstack.html">Newstack</A> to make an aligned stack;
+<BR>
+optionally uses ctfplotter.com to run 
+<A HREF = "man/ctfplotter.html">Ctfplotter</A> and ctfcorrection.com to run
+<A HREF = "man/ctfphaseflip.html">Ctfphaseflip</A> for correction of
+the microscope CTF;
 <BR>
  optionally uses mtffilter.com to run <A HREF =
 "man/mtffilter.html">Mtffilter</A> to filter the aligned stack.
-<BR>
+<LI><B>Tomogram Generation</B>: 
  uses tilt.com to run <A HREF = "man/tilt.html">Tilt</A> to generate a tomogram
 </UL>
 
@@ -499,11 +522,12 @@ them for any questions on the options available in these programs.
 <P>
 If you find that you need to run Copytomocoms by hand, see
 <A HREF = "tomoExtra.html#Getting Files">Getting Command Files</A> in
-the Extra Topics section for more details.
-<P>
+the Advanced Topics section for more details.
+</P>
 <H4><A NAME = "Montage Coms"></A>
 3.1. Command Files when Montaging
 </H4>
+<P>
 For a montaged data set, some command files and programs are
 different, as follows:
 <UL>
@@ -525,7 +549,7 @@ and the
 <A HREF = "man/blendmont.html">Blendmont</A>
 to make an aligned stack
 </UL>
-<P>
+</P>
 <H3><A NAME = "PRE-PROCESSING"></A>
 4. PRE-PROCESSING: REMOVING X-RAYS
 </H3>
@@ -581,17 +605,23 @@ automatic X-ray removal, you can specify the pixels to erase in a
 model file.  Press the <B>Advanced</B> button to reveal the controls
 for this option, and see the man page for 
 <A HREF = "man/ccderaser.html">Ccderaser</A> for
-details on how to construct the model file.
+details on how to construct the model file.  By default, model objects are
+assumed to have contours consisting of a single point on each pixel to be
+erased.  If you want to erase pixels along lines, list objects with such 
+line contours in the <B>Line replacement list</B> text box.  If you want to
+draw contours as boundaries around large patches to be replaced, list objects
+with such contours in the <B>Boundary replacement list</B> text box.
 <P>
 With a montaged data set, when you view the X-ray model, the images
 will be loaded into <A HREF = "man/3dmod.html">3dmod</A> as single
 frames instead of as a montage, so that all parts every frame can be
 viewed.  However, this feature does make it difficult to page through
 the images.
-<P>
+</P>
 <H3><A NAME = "COARSE ALIGNMENT"></A>
 5. COARSE ALIGNMENT BY CROSS-CORRELATION
 </H3>
+<P>
 The main purpose of this step is to get the images aligned well enough for
 the automatic tracking of fiducials to work.  There are generally no
 parameters to adjust, so you proceed by pushing the top three buttons
@@ -640,10 +670,11 @@ The existing model will load correctly onto the stack with the new binning;
 just be sure to save the model after doing this and eventually run the fine
 alignment, which will synchronize
 all information about the pixel size.
-<P>
+</P>
 <H4><A Name = "Fiducialless Quick"></A>
 5.1 Making a Quick Tomogram with Correlation Alignment
 </H4>
+<P>
 It is possible to generate a tomogram using only the coarse alignment from
 cross-correlation.  This could be used to get a tomogram quickly to see
 whether it is worth doing the fiducial alignment, or if the tilt series was
@@ -676,13 +707,14 @@ in unbinned pixels so that its value is independent of the selected binning.
 </OL>
 <P>
 If you need to set the position of a tomogram built with fiducialless
-alignment, see the <A HREF = "tomoExtra.html#Fiducialless Tomogram">Extra
+alignment, see the <A HREF = "tomoExtra.html#Fiducialless Tomogram">Advanced
 Topics</A> section.  It is recommended that you NOT do this if you plan to go
 back and do the fiducial alignment procedure.
-<P>
+</P>
 <H4><A NAME = "Fixing Montage Edges"></A>
 5.2. Fixing Montage Edges
 </H4>
+<P>
 For a montaged data set, the <B>Coarse Alignment</B> panel also
 provides controls for fixing errors in the displacements between
 frames.  <A HREF = "man/blendmont.html">Blendmont</A> analyzes the overlap
@@ -758,10 +790,11 @@ automatically be used when
 build new edge functions on its next run, because the edge functions depend
 partly on the displacements that you just modified.
 
-<P>
+</P>
 <H3><A NAME = "GETTING FIDUCIAL"></A>
 6. FIDUCIAL MODEL GENERATION
 </H3>
+<P>
      The first step is to set up a seed model.  Press
 <B>Seed Fiducial Model Using 3dmod</B> to open the prealigned stack and
 an empty model in <A HREF = "man/3dmod.html">3dmod</A>.
@@ -894,10 +927,11 @@ their 3-D positions can be solved for accurately.  If you do need to add
 several fiducials, you could put some "seeds" into your edited fiducial model
 and allow Beadtrack to track those beads as far as possible.
 
-<P>
+</P>
 <H4><A NAME = "Reseeding Model"></A>
 6.1. Using Beadtrack to Extend a Model
 </H4>
+<P>
 Sometimes you will want to have <A HREF =
 "man/beadtrack.html">Beadtrack</A>
 start with an existing
@@ -917,10 +951,11 @@ the model, which is usually
 appropriate.  However, if you have already left some gaps in the model
 because of ambiguities, you should uncheck <B>Fill seed model gaps</B>.
 
-<P>
+</P>
 <H4><A NAME = "Transferring Fiducial"></A>
 6.2. Getting Fiducials for a Second Axis
 </H4>
+<P>
 If you are doing a double-tilt series, at least some (8-10) of the beads
 that you track must be the same in the two series.  The shell script 
 <A HREF = "man/transferfid.html">Transferfid</A> will help ensure this
@@ -993,20 +1028,22 @@ If
 you do this, then when you prepare to combine the two tomograms, you would
 specify that only the first 5 beads correspond.
 
-<P>
+</P>
 <H3><A NAME = "FINAL ALIGNMENT"></A>
 7. FINE ALIGNMENT
 </H3>
+<P>
 The goal of the final alignment is to transform the images so that they
 represent projections of a solid body tilted around the Y axis, as well as to
 refine the projection angles.  In order to transform the images, one needs to
 determine the rotation, translation, and scaling (magnification) to be applied
 to each image.  It is also possible to solve for variables which will correct
 for linear distortions of the specimen.
-<P>
+</P>
 <H4><A NAME = "Running Tiltalign"></A>
 7.1. Running Tiltalign
 </H4>
+<P>
      Whether you have fiducials on one surface or two determines what
 variables can be solved for.  If there are beads on only one surface, you can
 solve for either tilt angles or stretch in the X direction but not both.  If
@@ -1116,10 +1153,11 @@ on.  This is a good way to assess whether the points are well enough
 distributed on both surfaces to support solving for distortion, particularly
 when local alignments are to be used.
 
-<P>
+</P>
 <H4><A NAME = "Background Grouping"></A>
 7.2. Background on Grouping Variables and Solving for Linear Distortion
 </H4>
+<P>
 Before you get into trying to solve for linear distortion and grouping
 variables, you should be aware of several points.  First, variables are
 grouped in order to reduce the number of variables being solved for.
@@ -1187,10 +1225,11 @@ random errors in the locations of the model points, or a ratio of measurements
 to unknowns that is too low.  The potential remedies are to increase group
 sizes or to give up on solving for distortion.
 
-<P>
+</P>
 <H4><A NAME = "Distortion Two"></A>
 7.3. Solving for Distortion - Fiducials on Both Surfaces
 </H4>
+<P>
 To solve for distortion, open the <B>Global Variables</B> page of the
 <B>Fine Alignment</B> panel and select <B>Full solution</B> in the 
 <B>Distortion Solution Type</B> section.  This will automatically switch
@@ -1256,10 +1295,11 @@ groupings with spaces, as in the example.
 for larger gold particles or images acquired at smaller pixel sizes (less
 than 1-1.5 nm).
 
-<P>
+</P>
 <H4><A NAME = "Distortion One"></A>
 7.4. Solving for Distortion - Fiducials on Only One Surface
 </H4>
+<P>
 If you have fiducials on only one surface, or only a few fiducials on one
 surface, you can't properly solve for
 both tilt angle and distortion.  If the section has thinned but not distorted,
@@ -1291,10 +1331,11 @@ solving for distortion as in the previous step; i.e., return to solving for
 tilt angles with a group size of 5.
 </OL>
 
-<P>
+</P>
 <H4><A NAME = "Projection Stretch"></A>
 7.5. Solving for Projection Stretch
 </H4>
+<P>
 In some cases, distortions may occur because of stretching
 along an axis during the projection of the images, instead of from
 changes in the specimen.  To accommodate this situation, 
@@ -1307,10 +1348,11 @@ If you have fiducials on only one surface or only a few fiducials, disable
 the distortion solution since it could be redundant to the projection
 stretch solution.
 
-<P>
+</P>
 <H4><A NAME = "Beam Tilt"></A>
 7.6. Solving for Beam Tilt
 </H4>
+<P>
 The ordinary alignment assumes that the tilt axis is perpendicular to the beam
 axis.  A non-perpendicularity between these axes is referred to as beam tilt.
 If beam tilt is more than a few tenths of a degree, it can impair the
@@ -1343,11 +1385,11 @@ is thus to insert the characteristic beam tilt angle instead of trying to
 solve for it.  You would need to have obtained the beam tilt angle from
 alignment of other data sets from that microscope.
 
-<P>
+</P>
 <H4><A NAME = "Using Local Alignments"></A>
 7.7. Using Local Alignments
 </H4>
-
+<P>
      If you are reconstructing a large area, particularly if you are
 montaging, then you may need to solve for local tilt alignments to get the
 same quality of alignment and resulting resolution as you would with a smaller
@@ -1432,10 +1474,11 @@ be moved are likely to come up on this first pass.  On successive passes one
 can then move all points if desired.
 </OL>
 
-<P>
+</P>
 <H4><A NAME = "Excluding Views"></A>
 7.8. Excluding Views
 </H4>
+<P>
 Sometimes there are images in the original data that do not align well or
 that have poor image quality, and that you want to exclude 
 from the alignment and reconstruction.  This can be done by inserting a list
@@ -1446,10 +1489,11 @@ views will still be included in the
 final aligned stack, they will be automatically excluded from the
 reconstruction.
 
-<P>
+</P>
 <H4><A NAME = "Residual Model Output"></A>
 7.9. Residual Model Output
 </H4>
+<P>
 <A HREF = "man/tiltalign.html">Tiltalign</A> produces a text file
 with the residuals for each point, and <A HREF =
 "man/patch2imod.html">Patch2imod</A> converts this into
@@ -1462,10 +1506,11 @@ by a factor of 10.  The start and end of a vector is marked by a green
 and a red cross, respectively.
 
 
-<P>
+</P>
 <H3><A NAME = "TOMOGRAM POSITIONING"></A>
 8. TOMOGRAM POSITIONING 
 </H3>
+<P>
      The goal of the next step is to shift and rotate your reconstruction so
 that it is as flat as possible and will fit into the smallest volume.  This is
 done by sampling three regions of the tomogram, ones computed from near the
@@ -1523,10 +1568,11 @@ parameters shown on this screen are used in making the reconstruction and
 will be carried forward to the <B>Tomogram Generation</B> panel.
 </OL>
 
-<P>
+</P>
 <H4><A NAME = "Doing Tilted Samples"></A>
 8.1. Redoing Samples to Refine the Positioning
 </H4>
+<P>
 The Positioning panel makes it easy to refine the positioning with a second
 round of samples.  You might want to do this
 if your initial samples do not contain the entire section, which can easily
@@ -1540,10 +1586,11 @@ and press <B>Create Boundary Models</B>.  Delete the existing contours
 press <B>Compute Pitch Angles & Z Shift</B>, new positioning values will be 
 added to the previous ones.
 
-<P>
+</P>
 <H4><A NAME = "Whole Tomogram Positioning"></A>
 8.2. Positioning with a Whole Tomogram
 </H4>
+<P>
 For situations where the 3 samples at fixed positions are unsuitable, there is
 an option to draw lines in a whole tomogram instead.  A whole tomogram can be
 generated quite quickly with binning of 3 or 4.  To use this option, check
@@ -1570,7 +1617,7 @@ Y.  Scroll through until you see the top of the section on the left
 side, and deposit the first point of a contour there.  Then find the
 slice that shows the comparable view of the top of the section on the
 right, at about the same Y level, and add a point there.  Start a new
-contour and repeat this procedure on the bottom of the section.  The
+contour and repeat this procedure on the bottom of the section.  Then
 pick another two levels in Y and repeat the provedure of drawing top
 and bottom lines at each.
 <LI>Open a Slicer window, scroll in Z to one surface of the specimen,
@@ -1580,13 +1627,15 @@ a point on the left then a point on the right side.
 Draw two more lines at different Y levels (starting a new contour for each).
 Go to the other surface and repeat.
 </OL>
+<P>
 In each of these cases it is helpful to open the model view window before
 starting to monitor the location of the lines.
 
-<P>
-<H3><A NAME = "TOMOGRAM GENERATION"></A>
-9. TOMOGRAM GENERATION
+</P>
+<H3><A NAME = "ResolutionFiltering"></A>
+9. FILTERING AND RESOLUTION
 </H3>
+<P>
 The tomogram generation process involves several steps at which
 filtering can be applied to the data, and the appearance and interpretability
 of the resulting tomogram depends on the choice of filtering.
@@ -1598,9 +1647,11 @@ Spatial frequencies are expressed in cycles
 per pixel, ranging from 0 to 0.5, the highest spatial frequency that can be
 represented in a digital image.
 
+</P>
 <H4><A NAME = "Radial filter"></A>
 9.1. Tomogram Resolution and the Need for Filtering
 </H4>
+<P>
 The noise or graininess in a reconstruction from
 well-aligned data arises from two main sources:
 noise 
@@ -1652,9 +1703,11 @@ intuitive sense if one thinks of the projections as providing information
 needed to solve for densities in the volume, since then the number of
 measurements will match the number of unknowns.
 
+</P>
 <H4><A NAME = "Filtering Options"></A>
 9.2. Filtering Options
 </H4>
+<P>
 The first step with a choice that affects filtering of the data is the
 generation of the aligned stack, which can be done with either cubic or
 linear interpolation.  Although the default cubic interpolation does
@@ -1695,9 +1748,11 @@ optimal 2D filtering of the aligned stack gives a more faithful reproduction
 of the original structure than does radial filtering in the backprojection
 with the same cutoff and sigma values.
 
+</P>
 <H4><A NAME = "Filtering Guidelines"></A>
 9.3. Filtering Guidelines
 </H4>
+<P>
 These various considerations motivate the following guidelines:
 <UL>
 <LI> The default filter for both the 2D and radial filtering, with a cutoff of
@@ -1736,88 +1791,121 @@ axis.
 These guidelines are just a starting point, and the best approach may be to
 experiment with different filter settings to find the best balance between
 reduced graininess and sharpness of features in the tomogram.
-
+</P>
+<H3><A NAME = "FinalAligned"></A>
+10. MAKING AND PROCESSING THE ALIGNED STACK
+</H3>
+<P>
+When you get to the <B>Final Aligned Stack</B> page, the only required step is
+to generate the aligned stack.  There are three other tabs with optional
+steps for modifying the aligned stack: CTF correction, erasing gold
+particles from the images, and 2D filtering.  If more than one of these steps
+is being done, the tabs should be visited in order from left to right.  In
+each tab, the modified stack replaces the aligned stack when you are done with
+the operation and press the button to use that stack.
+</P>
 <H4><A NAME = "Making Aligned"></A>
-9.4. Making and Processing the Aligned Stack
+10.1. Making the Aligned Stack
 </H4>
-The first step when you get to the <B>Tomogram Generation</B> page is to
-generate the aligned stack.
+<P>
 First select linear interpolation if desired for this step.
 Notice that you can also select a binning of the aligned stack at this stage.
-Press <B>Create Full Aligned Stack</B>.
+In Advanced mode, there is also an option to set the size of the aligned
+stack.  There are two uses for this.  One is to make an aligned stack that
+contains a centered subarea of the original images; this can be useful when
+testing a SIRT reconstruction (see <A HREF =
+"man/sirtsetup.html">Sirtsetup</A>).  The other is to make an over-sized
+aligned stack
+that contains all of the original image data after the rotation that brings
+the tilt axis to vertical.  This rotation can lose significant, usable
+portions of the reconstruction if the rotation is more than ~15 degrees (or
+differs from 90 degrees by that amount).  Even when the rotation is less than
+this, over-sized reconstructions are useful when stitching together adjacent,
+overlapping tomograms.
 <P>
-Before the optional 2D filtering, there are two other operations that you
-might want to perform, and for which there is not yet an interface in eTomo:
-correction for microscope CTF and erasure of fiducial markers.
-<OL>
-<LI><I>CTF Correction</I>.  You can use
+After setting parameters, press <B>Create Full Aligned Stack</B>.
+</P>
+<H4><A NAME = "CorrectingCTF"></A>
+10.2. Correcting Phase Inversions from the Microscope CTF
+</H4>
+<P>
+To do CTF correction, first make sure that the <B>Voltage</B> and <B>Spherical
+aberration</B> entries are correct for your microscope.  Also, fill in the
+<B>Expected defocus</B> text box with the defocus in Angstroms (underfocus is
+positive).
+<P>
+You can use
 <A HREF = "man/ctfplotter.html">Ctfplotter</A> to estimate the defocus of the
 tilt series; this program requires a set of noise image files for the camera
-being used.  To run this program, get a copy of a parameter file:
-<pre>
-   cp $IMOD_DIR/com/ctfplotter.param .
-</pre>
-Edit the file to specify your file name and other parameters.  Run the
-program with:
-<pre>
-   ctfplotter -param ctfplotter.param
-</pre>
-This program allows you to estimate a single value of defocus for the whole
+being used. 
+It allows you to estimate a single value of defocus for the whole
 tilt series or several defocus values that apply over different ranges of tilt
 angles.  At the end, you 
 store these defocus estimates in a file "setname.defocus".
-If you do not run <A HREF = "man/ctfplotter.html">Ctfplotter</A> and have a
-defocus to use, you need to make a file "setname.defocus" with a single
-line, "20 20 0. 0. defocus_value", specifying the defocus value.
+Press <B>Run CTF Plotter</B> to run this program.
 <P>
-To correct the aligned stack for the CTF, get a copy of the command file:
-<pre>
-   cp $IMOD_DIR/com/ctfcorrection.com .
-</pre>
-Edit the file to specify your file name and other parameters.  Run the
-program with:
-<pre>
-   subm ctfcorrection 
-</pre>
-After the computation is finished, replace the aligned stack.
-<pre>
-   mv setnameCorrected.ali setname.ali
-</pre>
-<LI><I>Erasing Fiducial Markers</I>. 
-<A HREF = "man/ccderaser.html">Ccderaser</A> can now erase a circular region
+If you are not able to run
+<A HREF = "man/ctfplotter.html">Ctfplotter</A>, you can run the correction
+with the 
+single defocus value in <B>Expected defocus</B> by checking 
+<B>Use expected defocus instead of ctfplotter output</B>.  A file named
+"setname_simple.defocus" will be created in the right format to specify this
+defocus value to <A HREF = "man/ctfphaseflip.html">Ctfphaseflip</A>.
+<P>
+Press <B>Correct CTF</B> to correct the phases in the aligned stack.
+After the computation is finished, press <B>Use CTF Correction</B> to replace 
+the aligned stack.
+</P>
+<H4><A NAME = "ErasingGold"></A>
+10.3. Erasing Gold Particles
+</H4>
+<P>
+<A HREF = "man/ccderaser.html">Ccderaser</A> can erase a circular region
 around every point in an object.  This allows the fiducial gold markers to be
 removed from images, which will reduce the artifacts cast by these markers in
 the reconstruction but might produce other artifacts.  You can use the
 fiducial model to erase the beads that were used for alignment, or a more
-complete model if you have prepared one.
-The first step below transforms the model into alignment with the
-aligned stack, so if you have a model that already fits the positions in the
-aligned stack, that step should be omitted.  Here are the steps to follow for
-a model "setname.fid":
-<PRE>
-   xfmodel -xf setname.tltxf setname.fid setname.fidali
-   ccderaser -cir 1 -bet radius -mer -exc -mod setname.fidali setname.ali setname_erase.ali
-   3dmod setname_erase.ali
-</PRE>
-In the Ccderaser command, "radius" is the radius around each point to erase,
-in pixels; this value can be floating point rather than integer.  The entry
-"-cir 1" specifies that object 1 contains the points to be erased as circles;
-if your points are in more that one object, enter a list of object numbers
-instead of 1.
-If the erasure appears acceptable, replace the aligned stack:
-<PRE>
-   mv setname_erase.ali setname.ali
-</PRE>
-<LI><I>2D Filtering</I>. If you decide to use 2D filtering, set the cutoff
+complete model if you have prepared one.  See <A HREF = 
+"tomoExtra.html#ErasingGold">Erasing All Gold from a Tomogram</A> for
+instructions on two different methods of getting more complete models.
+<P>
+If want to use the fiducial model, or another model by the same name that has
+been built on the prealigned stack, then press <B>Transform Fiducial
+Model</B>.  You can then use <B>View Transformed Model</B> to see this model
+on the aligned stack.
+<P>
+The <B>Fiducial Diameter</B> text box contains a diameter in pixels, computed
+from your entries on fiducial and pixel size during Setup.  You will probably
+need to increase this number to erase gold completely.  Press <B>Erase
+Beads</B> to run the erasure, then press <B>View Erased Stack</B> to see the
+resulting images together with the model.  If gold is generally not erased
+completely, increase the diameter.  If some particles are not well-erased
+because their model points were not centered, you can move the model points,
+save the model, and run again.  In this case, be careful not to retransform
+the fiducial model, as that will replace your edited model.
+<P>
+When the erasure appears acceptable, replace the aligned stack by pressing
+<B>Use Erased Stack</B>
+</P>
+<H4><A NAME = "Filtering2D"></A>
+10.4. Applying 2D Filtering
+</H4>
+<P>
+If you decide to use 2D filtering, set the cutoff
 radius and sigma values and press <B>Filter</B>.  You can press 
 <B>View Filtered Stack</B> to see the result.  You can change parameters and
 filter again, or press <B>Use Filtered Stack</B> to replace the aligned stack
 with the filtered version.
-</OL>
+</P>
+<H3><A NAME = "TOMOGRAM GENERATION"></A>
+11. TOMOGRAM GENERATION
+</H3>
 <P>
+</P>
 <H4><A NAME = "Building Tomogram"></A>
-9.5. Building the Tomogram
+11.1. Building the Tomogram
 </H4>
+<P>
 In the <B>Tilt Parameters</B> section, the values for 
 <B>Tomogram thickness</B> and <B>X-axis tilt</B> were inserted when you ran  
 <A HREF = "man/tomopitch.html">Tomopitch</A>; correct them if necessary.
@@ -1825,11 +1913,11 @@ Adjust the radial filter parameters as appropriate.  If you did 2D filtering,
 you can set the cutoff higher (e.g., 0.45) to avoid double-filtering the 
 data.  
 Press <B>Generate Tomogram</B>.
-<P>
+</P>
 <H4><A NAME = "Making Trial Tomograms"></A>
-9.6. Making Trial Tomograms
+11.2. Making Trial Tomograms
 </H4>
-
+<P>
 In Advanced mode, the <B>Tomogram Generation</B> panel has a set of
 controls for making and examining trial tomograms.  You might want to
 do this to see the effects of varying the radial filter, or to see the
@@ -1863,10 +1951,11 @@ angle offset will in the Fine Alignment step.  In addition, there is
 an entry for <B>Z shift</B> that has the same effect as the 
 <B>Z shift</B> specified earlier.  These entries are useful when
 doing an alignment without fiducials.  
-<P>
+</P>
 <H4><A NAME = "Z factors"></A>
-9.7. Using Z Factors in the Backprojection
+11.3. Using Z Factors in the Backprojection
 </H4>
+<P>
 When a specimen shrinks along an oblique axis during a tilt series, it is
 actually not possible to transform the 2D images to correct fully for this
 shrinkage.  That is, the aligned images will not represent projections of
@@ -1888,11 +1977,11 @@ usually reflect changes in the specimen rather than stretches during
 imaging.  However, in situations where imaging is a more likely source of
 stretch, the option should be turned off.  
 
-<P>
+</P>
 <H3><A NAME = "TOMOGRAM COMBINATION"></A>
-10. COMBINING TWO TOMOGRAMS
+12. COMBINING TWO TOMOGRAMS
 </H3>
-
+<P>
 To combine two tomograms, eTomo uses a series of command
 files to perform a sequence of operations.  Just as for building the
 single-axis tomogram, you first adjust entries on a setup page, then you
@@ -1940,10 +2029,15 @@ and recombined (<A HREF = "man/assemblevol.html">Assemblevol</A>),
 because it is much faster to take Fourier transforms of these pieces.
 All of these operations are run by volcombine.com.
 </UL>
-
 <P>
+It is possible to import tomograms built in other software for combining in
+eTomo.  See 
+<A HREF = "tomoExtra.html#ImportingDual">
+Importing Two Tomograms into Tomogram Combination</A> in the Advanced Topics
+Guide.
+</P>
 <H4><A NAME = "Setting Up"></A>
-10.1. Setting Up
+12.1. Setting Up
 </H4>
 <P>
 Go through the following steps to set up the combination:
@@ -1962,7 +2056,8 @@ from CCD cameras.  Notice that there are also
 options for using models of corresponding points either alone or together with
 fiducials; for details on using these options see
 <A HREF = "tomoExtra.html#Fiducialless Combine">
-Combining Tomograms with Few or No Fiducials</A> in the Extra Topics section.
+Combining Tomograms with Few or No Fiducials</A> in the Advanced Topics 
+section.
 <LI> 
 If you used <A HREF = "man/transferfid.html">Transferfid</A> successfully
 to make a second seed model, then the coordinate file
@@ -2037,10 +2132,11 @@ If you have noisy tomograms, you should probably use linear interpolation
 (instead of the default quadratic) for making the final matching volume with
 <A HREF = "man/matchorwarp.html">Matchorwarp</A>.  To do this, go to Advanced
 mode on the <B>Final Match</B> page and select <B>Use linear interpolation</B>.
-<P>
+</P>
 <H4><A NAME = "Temporary Combining Storage"></A>
-10.2. Using Temporary Storage for Combining
+12.2. Using Temporary Storage for Combining
 </H4>
+<P>
 It is possible to use temporary disk space when combining two tomograms;
 this is useful if you want to run the combine operation on a machine different
 from the one where the two tomograms are located.  Combining creates a large
@@ -2068,11 +2164,11 @@ directory.  However, if you recreate the command files, a new
 temporary directory will be used.
 
 
-<P>
+</P>
 <H4><A NAME = "Proceeding"></A>
-10.3. Proceeding
+12.3. Proceeding
 </H4>
-
+<P>
 Press <B>Create Combine Scripts</B> to generate the command files based on
 the parameters in the <B>Setup</B> page.  After this, the <B>Initial
 Match</B> and <B>Final Match</B> pages will be accessible, and you can go to
@@ -2108,10 +2204,11 @@ you should look at the patch vector model
 and consider whether to take any of the remedial
 actions described below.
 
-<P>
+</P>
 <H4><A NAME = "Initial Problems in Combining"></A>
-10.4. Initial Registration Problems in Combining
+12.4. Initial Registration Problems in Combining
 </H4>
+<P>
 The first step of the combine operation can fail for two reasons: 
 the linear fit between corresponding fiducial positions gives a maximum
 residual above the specified limit; or there is a 
@@ -2209,10 +2306,11 @@ the fiducial coordinate files will contain the information that
 <A HREF = "man/solvematch.html">Solvematch</A> needs to find the shifts
 directly.
 
-<P>
+</P>
 <H4><A NAME = "Patch Problems in Combining"></A>
-10.5. Patch Correlation Problems in Combining
+12.5. Patch Correlation Problems in Combining
 </H4>
+<P>
 If combine.com exits because neither 
 <A HREF = "man/refinematch.html">Refinematch</A>
  nor <A HREF = "man/findwarp.html">Findwarp</A> could find
@@ -2348,10 +2446,11 @@ Once you have done this, you can finish the combine operation by entering
 </CODE><BR>
 </OL>
 
-<P>
+</P>
 <H4><A NAME = "Linen Pattern"></A>
-10.6. Linen Patterns in the Combined Tomogram
+12.6. Linen Patterns in the Combined Tomogram
 </H4>
+<P>
 Some combined tomograms show a pattern of vertically
 and horizontally oriented lines that we refer to as "linen".  This pattern
 can appear when the reconstructions are particularly noisy or when the
@@ -2381,10 +2480,11 @@ If the text box is disabled, you have an older version of
 volcombine.com.  To use the reduction, return to the <B>Setup</B>
 page, recreate the combine
 scripts, then restart at volcombine.com.
-<P>
+</P>
 <H4><A NAME = "Block Artifacts"></A>
-10.7. Block Artifacts in the Combined Tomogram
+12.7. Block Artifacts in the Combined Tomogram
 </H4>
+<P>
 Sometimes tomograms with large empty spaces will show borders between the
 separately combined pieces in the light areas.  This happens because of a
 mismatch between the very low frequency components in the adjacent pieces.
@@ -2395,15 +2495,16 @@ tomogram.  To enable this averaging, go to Advanced mode on the
 for <B>Radius below which to average components from both tomograms</B>.
 Values in the range of 0.01 to 0.015 have been effective in limited testing;
 try them first then use a higher value if necessary.
-<P>
+</P>
 <H3><A NAME = "POST-PROCESSING"></A>
-11. POST-PROCESSING
+13. POST-PROCESSING
 </H3>
-
 <P>
+</P>
 <H4><A NAME = "Scaling and Trimming"></A>
-11.1. Scaling and Trimming a Tomogram
+13.1. Scaling and Trimming a Tomogram
 </H4>
+<P>
 The <B>Volume Trimming</B> section of the <B>Post-processing</B> panel
 uses <A HREF = "man/trimvol.html">Trimvol</A> to
 trim a volume and convert it to
@@ -2481,10 +2582,11 @@ limit.  Then adjust both sliders so that only the overshoots around the beads
 show up as white pixels; this slider value is the upper contrast limit.
 Enter these
 limits into the <B>black</B> and <B>white</B> text boxes.
-<P>
+</P>
 <H4><A NAME = "Reorienting"></A>
-11.2. Reorienting the Volume
+13.2. Reorienting the Volume
 </H4>
+<P>
 A final choice in the trimming step is how to reorient the volume.  Swapping Y
 and Z dimensions will reproduce the flipping that 
 <A HREF = "man/3dmod.html">3dmod</A> does
@@ -2514,10 +2616,11 @@ the microscope column, then it has correct handedness; otherwise it is
 inverted.  This kind of careful assessment needs to be done only once for a
 particular scope and acquisition software, or possibly twice if there are
 magnification ranges where the images are turned by 90 degrees.
-<P>
+</P>
 <H4><A NAME = "Squeezing"></A>
-11.3. Squeezing a Tomogram
+13.3. Squeezing a Tomogram
 </H4>
+<P>
      If your images were acquired on a CCD camera with limited spatial
 resolution, you may be able to reduce the size of the final volume
 considerably with no perceptible loss of image detail.  
@@ -2559,10 +2662,11 @@ you need to make an entry in the <B>Total Z-scale</B> based on:
           S = thickness of section in squeezed volume, in pixels 
           P = pixel size in X and Y after squeezing, in nm
 </pre>
-<P>
+</P>
 <H3><A NAME = "Cleaning Up"></A>
-12. CLEAN UP
+14. CLEAN UP
 </H3>
+<P>
 Cleaning up your files is very important!  The
 <B>Intermediate File Cleanup</B> panel makes cleanup easy.  The philosophy here
 is to remove all intermediate image files and volcombine.log, but to
@@ -2589,4 +2693,5 @@ ability to burn DVDs or your files are too big for a DVD, the shell script
 can be used to divide a very 
 large MRC file into pieces that will fit
 on multiple volumes; <A HREF = "man/recombine.html">Recombine</A>
-can be used later to put the pieces back together.
+can be used later to put the pieces back together, or you can just stack them
+back together with <A HREF = "man/newstack.html">Newstack</A>.
