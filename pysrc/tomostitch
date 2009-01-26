@@ -91,7 +91,7 @@ matchLengthFrac = 0.7
 
 # Fallbacks from ../manpages/autodoc2man 3 1 tomostitch
 options = ["info:InfoFile:FN:", "xrun:XRunStartEnd:IP:",
-           "yrun:YRunStartEnd:IP:", "zrun:ZRun:IP:",
+           "yrun:YRunStartEnd:IP:", "zrun:ZRun:I:",
            "thickness:ThicknessToOutput:I:", "find:FindWarping:B:",
            "warp:WarpVolumes:B:", "stack:StackVolumes:B:",
            "blend:BlendVolumes:B:", "verbose:VerboseOutput:I:",
@@ -714,6 +714,9 @@ sys.exit(0)
 
 #
 # $Log$
+# Revision 1.7  2008/05/29 23:36:08  mast
+# Made ExcludeFill an option passed to Blendmont
+#
 # Revision 1.6  2008/04/27 21:26:58  mast
 # Modified to match densities across overlap zones and resolve into single
 # density scaling, added options to control that and for verbose output
