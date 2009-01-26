@@ -1,5 +1,6 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+1/25/09: IMOD_4-0-3
 1/25/09: Fixed a bug in Flattenwarp in handling non-planar contours.
 
 1/23/09: Fixed size of current point sphere in model view if data loaded with
