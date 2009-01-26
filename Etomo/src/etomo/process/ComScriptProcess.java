@@ -18,6 +18,10 @@
  * 
  * <p>
  * $Log$
+ * Revision 3.51  2008/10/27 17:51:45  sueh
+ * bug# 1141 Added nonBlocking, so that the class knows that the axis is not
+ * being blocked.
+ *
  * Revision 3.50  2008/05/03 00:37:42  sueh
  * bug# 847 Passing ProcessSeries to process object constructors so it can
  * be passed to process done functions.
@@ -668,14 +672,14 @@ public class ComScriptProcess extends Thread implements SystemProcessInterface {
       if (!nonBlocking && isComScriptBusy()) {
         error = true;
         processMessages.addError(comScriptName + " is already running");
-        processManager.msgComScriptDone(this, 1);
+        processManager.msgComScriptDone(this, 1, nonBlocking);
         return;
       }
 
       try {
         if (!renameFiles()) {
           error = true;
-          processManager.msgComScriptDone(this, 1);
+          processManager.msgComScriptDone(this, 1, nonBlocking);
         }
       }
       catch (LogFile.FileException except) {
@@ -684,7 +688,7 @@ public class ComScriptProcess extends Thread implements SystemProcessInterface {
           if (vmstocsh != null) {
             exitValue = vmstocsh.getExitValue();
           }
-          processManager.msgComScriptDone(this, exitValue);
+          processManager.msgComScriptDone(this, exitValue, nonBlocking);
         }
         return;
       }
@@ -695,17 +699,19 @@ public class ComScriptProcess extends Thread implements SystemProcessInterface {
       }
       catch (SystemProcessException except) {
         error = true;
-        if (!nonBlocking) {
-          processManager.msgComScriptDone(this, vmstocsh.getExitValue());
-        }
+        // if (!nonBlocking) {
+        processManager.msgComScriptDone(this, vmstocsh.getExitValue(),
+            nonBlocking);
+        // }
         return;
       }
       catch (IOException except) {
         error = true;
         processMessages.addError(except.getMessage());
-        if (!nonBlocking) {
-          processManager.msgComScriptDone(this, vmstocsh.getExitValue());
-        }
+        // if (!nonBlocking) {
+        processManager.msgComScriptDone(this, vmstocsh.getExitValue(),
+            nonBlocking);
+        // }
         return;
       }
 
@@ -732,9 +738,7 @@ public class ComScriptProcess extends Thread implements SystemProcessInterface {
 
     // Send a message back to the ProcessManager that this thread is done.
     //  FIXME this modifies swing element within this thread!!!
-    if (!nonBlocking) {
-      processManager.msgComScriptDone(this, csh.getExitValue());
-    }
+    processManager.msgComScriptDone(this, csh.getExitValue(), nonBlocking);
   }
 
   protected boolean renameFiles() throws LogFile.FileException {
