@@ -33,7 +33,8 @@ static char *deciFormats[MAX_DECIMALS + 1] = {"%d", "%.1f", "%.2f", "%.3f",
  * dragged.  The number of sliders is set in [numSliders], their text labels 
  * in [titles].  Overall minimal and maximum values and number of decimal
  * places can be set with [minVal] (default 0), [maxVal] (default 255), and
- * [decimals] (default 0).  Set [horizontal] flag to true to have the sliders
+ * [decimals] (default 0).  The page step and single step size of each slider
+ * is set to 1.  Set [horizontal] flag to true to have the sliders
  * arranged in a QHBoxLayout instead of a QVBoxLayout.  The layout can be
  * obtained with:
  * ^   QBoxLayout *getLayout();
@@ -90,6 +91,7 @@ MultiSlider::MultiSlider(QWidget *parent, int numSliders, char *titles[],
     mSliders[i] = new QSlider(Qt::Horizontal, parent);
     mSliders[i]->setRange(minVal, maxVal);
     mSliders[i]->setSingleStep(1);
+    mSliders[i]->setPageStep(1);
     mSliders[i]->setValue(minVal);
     mSliders[i]->setFocusPolicy(Qt::NoFocus);
     layOuter->addWidget(mSliders[i]);
@@ -270,6 +272,9 @@ void MultiSlider::sliderReleased(int which)
 }
 /*
 $Log$
+Revision 1.9  2009/01/15 16:30:26  mast
+Qt 4 port
+
 Revision 1.8  2008/06/25 21:21:43  mast
 Added method to show/hide all widgets
 
