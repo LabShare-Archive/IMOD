@@ -149,9 +149,11 @@ int main( int argc, char *argv[])
         xmin = B3DMIN(xmin, cont->pts[pt].x);
         xmax = B3DMAX(xmax, cont->pts[pt].x);
       }
-      if (!planar)
-        break;
-
+      if (!planar) {
+        printf ("\nWARNING: Obj %d, cont %d, at Y = %d, is not planar and is"
+                " being ignored\n\n", ob + 1, co + 1, iyval + 1);
+        continue;
+      }
       imodel_contour_sortx(cont, 0, cont->psize - 1);
 
       /* Check for other contour at this Y value */
