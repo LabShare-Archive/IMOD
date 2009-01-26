@@ -28,7 +28,7 @@ default is to include all frames in Y.
 
 [Field = ZRun]
 short = zrun
-type = IP
+type = I
 usage = Z value to perform operations on
 tooltip =
 manpage = Z value to perform operations on.  This entry is not needed if there
