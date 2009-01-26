@@ -156,7 +156,8 @@ QHBoxLayout *diaHBoxLayout(QBoxLayout *layout)
 /*! 
  * Creates and returns a new horizontal slider with range from [min] to [max],
  * value [value] and single step size [step], adds it to [layout] if it is not
- * NULL, and sets it for no focus.
+ * NULL, and sets it for no focus.  The page step and single step are both set
+ * to 1.
  */
 QSlider *diaSlider(int min, int max, int step, int value,
                    QWidget *parent, QBoxLayout *layout)
@@ -167,6 +168,7 @@ QSlider *diaSlider(int min, int max, int step, int value,
   slider->setOrientation(Qt::Horizontal);
   slider->setRange(min, max);
   slider->setSingleStep(step);
+  slider->setPageStep(step);
   slider->setValue(value);
   slider->setFocusPolicy(Qt::NoFocus);
   return slider;
@@ -655,6 +657,9 @@ void dia_smsg( char **msg)
 
 /*
 $Log$
+Revision 1.13  2009/01/15 16:30:26  mast
+Qt 4 port
+
 Revision 1.12  2008/05/25 05:35:52  mast
 Added function to show/hide a widget
 
