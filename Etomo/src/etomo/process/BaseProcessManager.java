@@ -44,6 +44,10 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.72  2008/12/11 19:25:51  sueh
+ * <p> bug# 1167 In msgProcessDone(BackgroundProcess, int, boolean) looking
+ * <p> for warning messages after postProcess call.
+ * <p>
  * <p> Revision 1.71  2008/11/20 01:31:49  sueh
  * <p> bug# 1149 Moved xfmodel from JoinProcessManager to BaseProcessManager.
  * <p>
@@ -1239,7 +1243,7 @@ public abstract class BaseProcessManager {
    *          the exit value for the com script
    */
   public final void msgComScriptDone(final ComScriptProcess script,
-      final int exitValue) {
+      final int exitValue,final boolean nonBlocking) {
     System.err
         .println("msgComScriptDone:scriptName=" + script.getComScriptName()
             + ",processName=" + script.getProcessName());
@@ -1302,7 +1306,7 @@ public abstract class BaseProcessManager {
     //  Inform the app manager that this process is complete
     manager.processDone(script.getName(), exitValue, script.getProcessName(),
         script.getAxisID(), script.getProcessEndState(), exitValue != 0, script
-            .getProcessResultDisplay(), script.getProcessSeries());
+            .getProcessResultDisplay(), script.getProcessSeries(),nonBlocking);
   }
 
   public final void msgReconnectDone(final ReconnectProcess script,
@@ -1365,7 +1369,7 @@ public abstract class BaseProcessManager {
     manager.processDone(name, exitValue, script.getProcessData()
         .getProcessName(), script.getAxisID(), script.getProcessEndState(),
         script.getProcessEndState() != ProcessEndState.DONE || exitValue != 0,
-        script.getProcessResultDisplay(), script.getProcessSeries());
+        script.getProcessResultDisplay(), script.getProcessSeries(),false);
   }
 
   /**
@@ -1596,14 +1600,14 @@ public abstract class BaseProcessManager {
       manager.processDone(process.getName(), exitValue, process
           .getProcessName(), process.getAxisID(), process.isForceNextProcess(),
           process.getProcessEndState(), exitValue != 0 || errorFound, process
-              .getProcessResultDisplay(), process.getProcessSeries());
+              .getProcessResultDisplay(), process.getProcessSeries(),false);
     }
     else {
       manager.processDone(process.getName(), exitValue, process
           .getProcessName(), process.getAxisID(), process.isForceNextProcess(),
           process.getProcessEndState(), process.getStatusString(),
           exitValue != 0 || errorFound, process.getProcessResultDisplay(),
-          process.getProcessSeries());
+          process.getProcessSeries(),false);
     }
   }
 
@@ -1643,14 +1647,14 @@ public abstract class BaseProcessManager {
       manager.processDone(process.getName(), exitValue, process
           .getProcessName(), process.getAxisID(), process.isForceNextProcess(),
           process.getProcessEndState(), exitValue != 0 || errorFound, process
-              .getProcessResultDisplay(), process.getProcessSeries());
+              .getProcessResultDisplay(), process.getProcessSeries(),false);
     }
     else {
       manager.processDone(process.getName(), exitValue, process
           .getProcessName(), process.getAxisID(), process.isForceNextProcess(),
           process.getProcessEndState(), process.getStatusString(),
           exitValue != 0 || errorFound, process.getProcessResultDisplay(),
-          process.getProcessSeries());
+          process.getProcessSeries(),false);
     }
   }
 
