@@ -205,7 +205,7 @@ public abstract class BaseManager {
     if (propertyUserDir.matches("\\s*")) {
       propertyUserDir = null;
     }
-    Utilities.managerStamp(propertyUserDir,null);
+    Utilities.managerStamp(propertyUserDir, null);
     String oldPropertyUserDir = this.propertyUserDir;
     this.propertyUserDir = propertyUserDir;
     return oldPropertyUserDir;
@@ -826,18 +826,19 @@ public abstract class BaseManager {
   public final void processDone(String threadName, int exitValue,
       ProcessName processName, AxisID axisID, ProcessEndState endState,
       boolean failed, ProcessResultDisplay processResultDisplay,
-      ConstProcessSeries processSeries) {
+      ConstProcessSeries processSeries, boolean nonBlocking) {
     processDone(threadName, exitValue, processName, axisID, false, endState,
-        null, failed, processResultDisplay, processSeries);
+        null, failed, processResultDisplay, processSeries, nonBlocking);
   }
 
   public final void processDone(String threadName, int exitValue,
       ProcessName processName, AxisID axisID, boolean forceNextProcess,
       ProcessEndState endState, boolean failed,
       ProcessResultDisplay processResultDisplay,
-      ConstProcessSeries processSeries) {
+      ConstProcessSeries processSeries, boolean nonBlocking) {
     processDone(threadName, exitValue, processName, axisID, forceNextProcess,
-        endState, null, failed, processResultDisplay, processSeries);
+        endState, null, failed, processResultDisplay, processSeries,
+        nonBlocking);
   }
 
   /**
@@ -850,7 +851,7 @@ public abstract class BaseManager {
       ProcessName processName, AxisID axisID, boolean forceNextProcess,
       ProcessEndState endState, String statusString, boolean failed,
       ProcessResultDisplay processResultDisplay,
-      ConstProcessSeries processSeries) {
+      ConstProcessSeries processSeries, boolean nonBlocking) {
     if (threadName.equals(threadNameA)) {
       getMainPanel().stopProgressBar(AxisID.FIRST, endState, statusString);
       threadNameA = "none";
@@ -863,7 +864,7 @@ public abstract class BaseManager {
       threadNameB = "none";
       //axisID = AxisID.SECOND;
     }
-    else {
+    else if (!nonBlocking) {
       uiHarness.openMessageDialog("Unknown thread finished!!!", "Thread name: "
           + threadName, axisID);
     }
@@ -1234,6 +1235,9 @@ public abstract class BaseManager {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.105  2008/12/10 18:30:49  sueh
+ * <p> bug# 1162 Added a manager stamp to setPropertyUserDir.
+ * <p>
  * <p> Revision 1.104  2008/11/20 01:24:32  sueh
  * <p> bug# 1147 Added imodOpen for opening with a model.
  * <p>
