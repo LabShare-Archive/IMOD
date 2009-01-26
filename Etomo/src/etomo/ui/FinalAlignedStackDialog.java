@@ -61,6 +61,9 @@ import etomo.util.DatasetFiles;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.11  2009/01/26 22:42:55  sueh
+ * <p> bug# 1173 Added mouse listener to tabbed panel.  Added tooltips.
+ * <p>
  * <p> Revision 1.10  2009/01/20 20:04:05  sueh
  * <p> bug# 1102 Changed labeled panels to type EtomoPanel so that they can name themselves.  Changed JButtons to SimpleButtons to they they can
  * <p> name themselves.
@@ -920,7 +923,7 @@ public final class FinalAlignedStackDialog extends ProcessDialog implements
     logFile[2] = "ctfcorrection" + axisID.getExtension() + ".log";
     logFile[3] = "mtffilter" + axisID.getExtension() + ".log";
     ContextPopup contextPopup = new ContextPopup(rootPanel, mouseEvent,
-        "FINAL ALIGNED STACK", ContextPopup.TOMO_GUIDE, manPagelabel, manPage,
+        "FinalAligned", ContextPopup.TOMO_GUIDE, manPagelabel, manPage,
         logFileLabel, logFile, applicationManager, axisID);
   }
 
