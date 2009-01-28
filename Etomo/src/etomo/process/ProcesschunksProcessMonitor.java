@@ -362,6 +362,24 @@ class ProcesschunksProcessMonitor implements OutfileProcessMonitor,
           .equals("All previously running chunks are done - exiting as requested")) {
         endMonitor(ProcessEndState.PAUSED);
       }
+      //A tcsh error causes processchunks to exit immediately.  Currently not
+      //ending the monitor because we don't want the user to rerun processchunks
+      //before all the chunk processes end.
+      else if (line.indexOf("Syntax Error") != -1
+          || line.indexOf("Subscript error") != -1
+          || line.indexOf("Undefined variable") != -1
+          || line.indexOf("Expression Syntax") != -1
+          || line.indexOf("Subscript out of range") != -1
+          || line.indexOf("Illegal variable name") != -1
+          || line.indexOf("Variable syntax") != -1
+          || line.indexOf("Badly placed (") != -1
+          || line.indexOf("Badly formed number") != -1) {
+        System.err.println("ERROR: Tcsh error in processchunks log");
+        UIHarness.INSTANCE
+            .openMessageDialog(
+                "Unrecoverable error in processchunks.  Please contact the programmer.  Let the chunk processes complete before rerunning.",
+                "Fatal Error");
+      }
       else {
         String[] strings = line.split("\\s+");
         //set nChunks and chunksFinished
@@ -534,6 +552,10 @@ class ProcesschunksProcessMonitor implements OutfileProcessMonitor,
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.39  2008/05/16 22:44:16  sueh
+ * <p> bug# 1109 Added getSubProcess so that the process that processchunks
+ * <p> is running can be saved in ProcessData.
+ * <p>
  * <p> Revision 1.38  2008/05/05 19:57:58  sueh
  * <p> bug# 1108 In run, when catching a read exception do not leave the while
  * <p> loop.
