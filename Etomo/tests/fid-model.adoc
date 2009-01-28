@@ -2,7 +2,7 @@ Version = 1.2
 
 [function = main]
 [[if = test-gui]]
-	if.var.dual.run.function.test-gui-transfer-fiducials =
+	if.equals.var.axis.run.function.test-gui-transfer-fiducials-a = a
 	run.function.test-gui-beadtracker-values =
 	run.function.test-gui-beadtracker-enabled =
 [[]]
@@ -10,7 +10,7 @@ Version = 1.2
 	if.not-equals.var.axis.return = b
 	mb.transfer-fiducials = +
 	bn.transfer-fiducials-from-other-axis =
-	wait.process.transferfid = done
+	wait.process.transferring-fiducials = done
 [[]]
 [[if = axis]]
 	if.equals.var.axis.return = b
@@ -48,7 +48,7 @@ mb.beadtracker.1 = A
 assert.tf.unbinned-bead-diameter = %{unbinned-bead-diameter}
 mb.beadtracker.1 = B
 
-[function = test-gui-transfer-fiducials]
+[function = test-gui-transfer-fiducials-a]
 mb.transfer-fiducials = +
 mb.transfer-fiducials.1 = A
 assert.disabled.cb.run-midas =
