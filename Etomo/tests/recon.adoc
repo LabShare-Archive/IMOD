@@ -1,9 +1,12 @@
 Version = 1.2
 
+#A axis
+#======
+
 [dialog = SetupRecon]
 #partial test
-open.dialog.CoarseAlign =
-skipto.dialog.CoarseAlign =
+#open.dialog.FinalStack =
+#skipto.dialog.FinalStack =
 #
 
 set.adoc.function = setup-recon.adoc
@@ -14,40 +17,19 @@ open.dialog.PreProc=
 set.adoc.function = pre-proc.adoc
 run.function.main=
 
-[bdialog = PreProc]
-#partial test
-open.dialog.CoarseAlign =
-skipto.dialog.CoarseAlign =
-#
-set.adoc.dialog =
-run.function.PreProc=
-
 [dialog = CoarseAlign]
 set.adoc.function = coarse-align.adoc
 run.function.main=
-
-[bdialog = CoarseAlign]
-set.adoc.dialog=
-run.function.CoarseAlign=
-wait.test.a=FineAlign
 
 [dialog = FidModel]
 if.var.fidless.return =
 set.adoc.function = fid-model.adoc
 run.function.main=
 
-[bdialog = FidModel]
-if.var.fidless.return =
-set.adoc.dialog=
-run.function.FidModel=
-
 [dialog = FineAlign]
-#partial test
-end=
-#
 if.var.fidless.return =
 set.adoc.function = fine-align.adoc
-run.function.build=
+run.function.main=
 
 [dialog = TomoPos]
 set.adoc.function = tomo-pos.adoc
@@ -60,6 +42,17 @@ run.function.build=
 [dialog = TomoGen]
 set.adoc.function = tomo-gen.adoc
 run.function.build=
+[[if = dual]]
+	if.equals.var.axis.return = b
+	wait.test.b = TomoGen
+[[]]
+
+[dialog = Combine]
+if.var.single.return=
+if.equals.var.axis.return = b
+open.dialog.Combine=
+set.adoc.function = combine.adoc
+run.function.main=
 
 [dialog = PostProc]
 set.adoc.function = post-proc.adoc
@@ -67,5 +60,43 @@ run.function.build=
 
 [dialog = CleanUp]
 set.adoc.function = clean-up.adoc
-run.function.run-single=
+run.function.main=
+
+#B axis
+#======
+
+[bdialog = PreProc]
+#partial test
+#open.dialog.FinalStack =
+#skipto.dialog.FinalStack =
+#
+set.adoc.dialog =
+run.function.PreProc=
+
+[bdialog = CoarseAlign]
+set.adoc.dialog=
+run.function.CoarseAlign=
+wait.test.a=FineAlign
+
+[bdialog = FidModel]
+if.var.fidless.return =
+set.adoc.dialog=
+run.function.FidModel=
+
+[bdialog = FineAlign]
+if.var.fidless.return =
+set.adoc.dialog=
+run.function.FineAlign=
+
+[bdialog = TomoPos]
+set.adoc.dialog=
+run.function.TomoPos=
+
+[bdialog = FinalStack]
+set.adoc.dialog=
+run.function.FinalStack=
+
+[bdialog = TomoGen]
+set.adoc.dialog=
+run.function.TomoGen=
 
