@@ -18,7 +18,10 @@ import etomo.type.UITestFieldType;
  * 
  * @version $Revision$
  * 
- * <p> $Log$ </p>
+ * <p> $Log$
+ * <p> Revision 1.1  2009/01/20 20:47:15  sueh
+ * <p> bug# 1102 Class that holds the field portion of a Command.
+ * <p> </p>
  */
 
 final class Field extends Assert {
@@ -41,8 +44,6 @@ final class Field extends Assert {
   private void assertValid() {
     //Grammer assertions
     assertNotNull("fieldType is required (" + string + ")", fieldType);
-    assertTrue("index must be integer - " + index.getInvalidReason() + " ("
-        + string + ")", index.isValid());
     assertFalse("index must be set (default 0) (" + string + ")", index
         .isNull());
     assertNotNull("must create string representation of command", string);
@@ -69,11 +70,16 @@ final class Field extends Assert {
     //Set name
     name = Command.replaceVariables(statement.getLeftSide(i), variableList);
     i++;
-    //Set index
+    //Set index - must be an integer
     String leftSide = statement.getLeftSide(i);
     if (leftSide != null) {
       index.set(leftSide);
-      i++;
+      if (index.isValid()) {
+        i++;
+      }
+      else {
+        index.set(0);
+      }
     }
     else {
       index.set(0);

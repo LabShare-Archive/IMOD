@@ -22,7 +22,10 @@ import etomo.type.UITestSubjectType;
  * 
  * @version $Revision$
  * 
- * <p> $Log$ </p>
+ * <p> $Log$
+ * <p> Revision 1.1  2009/01/20 20:46:19  sueh
+ * <p> bug# 1102 Class that holds all uitest commands.
+ * <p> </p>
  */
 final class Command extends Assert {
   public static final String rcsid = "$Id$";
@@ -63,10 +66,6 @@ final class Command extends Assert {
       assertFalse("modifierType can't exist without a subject or a field ("
           + string + ")", subject.isEmpty() && field.isEmpty());
     }
-    if (subcommand!=null&&!subcommand.isEmpty()) {
-      assertTrue("cannot have a field and a second command (" + string + ")",
-          field.isEmpty());
-    }
     assertNotNull("must create string representation of command", string);
     assertTrue("processed command must be known (" + string + ")", isKnown());
   }
@@ -101,12 +100,10 @@ final class Command extends Assert {
       }
       i = subject.set(statement, i, variableList);
       i = field.set(statement, i, variableList);
-      if (field.isEmpty()) {
-        if (subcommand == null) {
-          subcommand = new Command();
-        }
-        i = subcommand.set(statement, i, variableList);
+      if (subcommand == null) {
+        subcommand = new Command();
       }
+      i = subcommand.set(statement, i, variableList);
     }
     String leftSide = statement.getLeftSide(i);
     assertNull("unknown attributes at the end of the command - " + leftSide
@@ -141,8 +138,6 @@ final class Command extends Assert {
     empty = false;
     i = subject.set(statement, i, variableList);
     String leftSide = statement.getLeftSide(i);
-    assertNull("unknown attributes at the end of the command - " + leftSide
-        + " (" + string + ")", leftSide);
     value = replaceVariables(statement.getRightSide(), variableList);
     known = true;
     //validate
