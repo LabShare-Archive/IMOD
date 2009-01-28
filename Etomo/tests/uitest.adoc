@@ -1,19 +1,21 @@
 Version = 1.2
 
 [Test = single]
-set.keep.testdir=single
+set.testdir=single
+#set.keep.testdir=single
 set.adoc.dialog = recon.adoc
 set.dataset=BB
 #set.param = --names
-set.param = %{dataset}.edf
+#set.param = %{dataset}.edf
 set.var.single=
 
 [Test = dual]
-set.keep.testdir = dual
+set.testdir = dual
+#set.keep.testdir = dual
 set.adoc.dialog.a=recon.adoc
 set.adoc.bdialog.b=recon.adoc
 set.dataset = BB
-set.param = %{dataset}.edf
+#set.param = %{dataset}.edf
 set.var.dual=
 
 [Test = join]
@@ -22,19 +24,21 @@ set.adoc.tab = join.adoc
 set.dataset = unicross
 
 [Test = single-montage]
-set.keep.testdir = single-montage
+set.testdir = single-montage
+#set.keep.testdir = single-montage
 set.adoc.dialog = recon.adoc
 set.dataset = midzone2
-set.param = %{dataset}.edf
+#set.param = %{dataset}.edf
 set.var.single=
 set.var.montage=
 
 [Test = dual-montage]
-set.keep.testdir = dual-montage
+set.testdir = dual-montage
+#set.keep.testdir = dual-montage
 set.adoc.dialog.a=recon.adoc
 set.adoc.bdialog.b=recon.adoc
 set.dataset = midzone2
-set.param = %{dataset}.edf
+#set.param = %{dataset}.edf
 set.var.dual=
 set.var.montage=
 
@@ -45,19 +49,21 @@ set.dataset = unicross
 set.var.test-processes=
 
 [Test = single-test-gui]
-set.keep.testdir = single-test-gui
+set.testdir = single-test-gui
+#set.keep.testdir = single-test-gui
 set.adoc.dialog = recon.adoc
 set.dataset = BB
-set.param = %{dataset}.edf
+#set.param = %{dataset}.edf
 set.var.single=
 set.var.test-gui=
 
 [Test = dual-test-gui]
-set.keep.testdir = dual-test-gui
+set.testdir = dual-test-gui
+#set.keep.testdir = dual-test-gui
 set.adoc.dialog.a=recon.adoc
 set.adoc.bdialog.b=recon.adoc
 set.dataset = BB
-set.param = %{dataset}.edf
+#set.param = %{dataset}.edf
 set.var.dual=
 set.var.test-gui=
 
