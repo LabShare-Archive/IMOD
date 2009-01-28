@@ -12,8 +12,7 @@ run.function.tiltxcorr=
 assert.exists.file = xcorr%{axis}.log~
 [[]]
 #newstack or blendmont
-if.not.var.montage.set.var.single-frame=
-[[if = single-frame]]
+[[ifnot = montage]]
 	mb.newstack = +
 	run.function.newstack=
 	if.var.test-gui.set.var.single-frame-test-gui=
