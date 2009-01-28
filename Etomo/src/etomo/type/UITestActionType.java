@@ -13,7 +13,10 @@ package etomo.type;
  * 
  * @version $Revision$
  * 
- * <p> $Log$ </p>
+ * <p> $Log$
+ * <p> Revision 1.1  2009/01/20 19:41:53  sueh
+ * <p> bug# 1102 Was UITestAction.
+ * <p> </p>
  */
 
 public final class UITestActionType {
@@ -25,6 +28,7 @@ public final class UITestActionType {
   public  static final UITestActionType COPY = new UITestActionType("copy");
   public static final UITestActionType GOTO = new UITestActionType("goto");
   public static final UITestActionType IF = new UITestActionType("if");
+  public static final UITestActionType IFNOT = new UITestActionType("ifnot");
   public static final UITestActionType OPEN = new UITestActionType("open");
   public static final UITestActionType RETURN = new UITestActionType("return");
   public static final UITestActionType RUN = new UITestActionType("run");
@@ -57,6 +61,9 @@ public final class UITestActionType {
     }
     if (IF.equals(string)) {
       return IF;
+    }
+    if (IFNOT.equals(string)) {
+      return IFNOT;
     }
     if (OPEN.equals(string)) {
       return OPEN;
