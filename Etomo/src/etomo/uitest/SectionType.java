@@ -13,13 +13,15 @@ package etomo.uitest;
  * 
  * @version $Revision$
  * 
- * <p> $Log$ </p>
+ * <p> $Log$
+ * <p> Revision 1.1  2009/01/20 20:48:39  sueh
+ * <p> bug# 1102 Lists the names of sections and subsections with fixed types.
+ * <p> </p>
  */
 final class SectionType {
   public static final String rcsid = "$Id$";
 
   static final SectionType DATASET = new SectionType("dataset");
-  static final SectionType IF = new SectionType("if");
   static final SectionType INTERFACE = new SectionType("interface");
   static final SectionType TEST = new SectionType("Test");
 
@@ -36,9 +38,6 @@ final class SectionType {
     }
     if (string.equals(DATASET.toString())) {
       return DATASET;
-    }
-    if (string.equals(IF.toString())) {
-      return IF;
     }
     if (string.equals(INTERFACE.toString())) {
       return INTERFACE;
