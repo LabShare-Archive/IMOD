@@ -1,15 +1,13 @@
 Version = 2.1
 
-[function = run]
+[function = main]
+if.disabled.bn.archive-original-stacks.return = 
 bn.archive-original-stacks =
 wait.popup.delete-file? = Delete
-wait.popup.delete-file? = Delete
-wait.process.archiveorig = done
+[[if = dual]]
+	if.var.dual.wait.popup.delete-file? = Delete
+	wait.process.archiving-second-stack = done
+[[]]
+if.var.single.wait.process.archiving-only-stack = done
 bn.done =
 
-
-[function = run-single]
-bn.archive-original-stack =
-wait.popup.delete-file? = Delete
-wait.process.archiving-only-stack = done
-bn.done =
