@@ -2325,6 +2325,7 @@ static int finishMesh()
     passClearFlags = 0;
     failSetFlags = IMOD_OBJFLAG_MESH;
     failClearFlags = IMOD_OBJFLAG_OFF;
+    int turnon = iobjOff(obj->flags);
     optionSetFlags(&obj->flags);
 
     // Transfer points off flag
@@ -2333,9 +2334,17 @@ static int finishMesh()
     else 
       obj->flags &= ~IMOD_OBJFLAG_PNT_NOMODV;
 
-    if (meshedModNum == Imodv->cm && meshedObjNum == Imodv->ob && objed_dialog)
-      objset(Imodv);
-
+    // Update various things
+    if (meshedModNum == Imodv->cm) {
+      if (meshedObjNum == Imodv->ob && objed_dialog)
+        objset(Imodv);
+      if (turnon) {
+        if (meshedObjNum < numOnoffButtons)
+          diaSetChecked(OnoffButtons[meshedObjNum], true);
+        imodvOlistSetChecked(Imodv, meshedObjNum, true);
+        imodvDrawImodImages();
+      }
+    }
     if (!ImodvClosed)
       imodvDraw(Imodv);
   }
@@ -2546,6 +2555,9 @@ static QVBoxLayout *outerVBoxLayout(QWidget *parent)
 /*
 
 $Log$
+Revision 4.43  2009/01/15 16:33:18  mast
+Qt 4 port
+
 Revision 4.42  2008/12/10 01:05:56  mast
 Fixed test for on flags to require all flags be on
 
