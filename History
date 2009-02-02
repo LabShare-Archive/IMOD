@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+2/2/09: Sychronize all on/off buttons when meshing turns an object on (In 
+3.13).
+
 1/26/09: Fixed right-click popup menu on Final Aligned Stack panel (In 3.13).
 
 1/26/09: Fixed eTomo reporting of error messages from Ctfplotter (In 3.13).
