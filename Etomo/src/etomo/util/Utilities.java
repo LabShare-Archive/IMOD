@@ -12,6 +12,10 @@
  * @version $$Revision$
  *
  * <p> $$Log$
+ * <p> $Revision 3.62  2009/01/20 20:34:32  sueh
+ * <p> $bug# 1102 Changed convertLabelToName(String,ProcessName) to
+ * <p> $convertLabelToName(String,String,String).
+ * <p> $
  * <p> $Revision 3.61  2008/12/10 18:35:02  sueh
  * <p> $bug# 1162 Added dateTimeStamp and managerStamp.
  * <p> $
@@ -776,13 +780,17 @@ public class Utilities {
     startTime = new Date().getTime();
   }
 
+  public static String getDateTimeStamp() {
+    return new Date().toString();
+  }
+
   public static void dateTimeStamp() {
     System.err.println(new Date().toString());
   }
 
   public static void managerStamp(String dir, String name) {
     System.err.println("\n++++++++++++++++");
-    Utilities.dateTimeStamp();
+    dateTimeStamp();
     if (dir != null) {
       System.err.println(dir);
     }
@@ -873,14 +881,14 @@ public class Utilities {
   public static final String convertLabelToName(String label1, String label2,
       String label3) {
     StringBuffer buffer = new StringBuffer();
-    if (label1!=null) {
-      buffer.append(label1+" ");
+    if (label1 != null) {
+      buffer.append(label1 + " ");
     }
-    if (label2!=null) {
-      buffer.append(label2+" ");
+    if (label2 != null) {
+      buffer.append(label2 + " ");
     }
-    if (label3!=null) {
-      buffer.append(label3+" ");
+    if (label3 != null) {
+      buffer.append(label3 + " ");
     }
     return convertLabelToName(buffer.toString());
   }
@@ -915,7 +923,7 @@ public class Utilities {
       e.printStackTrace();
       return label;
     }
-    catch (LogFile.ReadException e) {
+    catch (LogFile.LockException e) {
       e.printStackTrace();
       return label;
     }
@@ -982,7 +990,7 @@ public class Utilities {
       e.printStackTrace();
       return name;
     }
-    catch (LogFile.ReadException e) {
+    catch (LogFile.LockException e) {
       e.printStackTrace();
       return label;
     }
