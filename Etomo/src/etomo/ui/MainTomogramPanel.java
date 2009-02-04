@@ -28,6 +28,9 @@ import etomo.type.ProcessTrack;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.22  2008/10/16 21:37:02  sueh
+ * <p> bug# 1141 Created FinalAlignedStack dialog to run full aligned stack and mtf filter.
+ * <p>
  * <p> Revision 1.21  2007/12/26 22:25:17  sueh
  * <p> bug# 1052 Moved argument handling from EtomoDirector to a separate class.
  * <p>
@@ -340,7 +343,7 @@ public class MainTomogramPanel extends MainPanel {
     TomogramProcessPanel axisPanel = mapAxis(axisID);
     axisPanel.setTomogramPositioningState(state);
   }
-  
+
   /**
    * 
    * @param state
@@ -397,8 +400,8 @@ public class MainTomogramPanel extends MainPanel {
   /**
    * Set the status bar with the file name of the data parameter file
    */
-  public final void setStatusBarText(File paramFile, BaseMetaData metaData) {
-    super.setStatusBarText(paramFile, metaData);
+  public final void setStatusBarText(File paramFile, BaseMetaData metaData,LogPanel logPanel) {
+    super.setStatusBarText(paramFile, metaData,logPanel);
   }
 
   protected void resetAxisPanels() {

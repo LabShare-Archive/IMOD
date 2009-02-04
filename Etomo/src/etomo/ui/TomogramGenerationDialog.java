@@ -48,6 +48,9 @@ import etomo.type.ViewType;
  * 
  * <p>
  * $Log$
+ * Revision 3.119  2009/01/20 20:31:45  sueh
+ * bug# 1102 Changed labeled panels to type EtomoPanel so that they can name themselves.
+ *
  * Revision 3.118  2008/10/27 20:43:44  sueh
  * bug# 1141 Removed implementation statement for
  * AbstractParallelDialog because it is already implemented in the ancestor
@@ -1408,7 +1411,7 @@ public class TomogramGenerationDialog extends ProcessDialog implements
     catch (IOException except) {
       except.printStackTrace();
     }
-    catch (LogFile.ReadException e) {
+    catch (LogFile.LockException e) {
       e.printStackTrace();
     }
     cbParallelProcess
@@ -1505,7 +1508,7 @@ public class TomogramGenerationDialog extends ProcessDialog implements
     catch (IOException except) {
       except.printStackTrace();
     }
-    catch (LogFile.ReadException e) {
+    catch (LogFile.LockException e) {
       e.printStackTrace();
     }
   }

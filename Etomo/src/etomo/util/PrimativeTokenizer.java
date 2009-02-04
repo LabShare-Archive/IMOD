@@ -53,6 +53,10 @@ import etomo.ui.Token;
  * @version $$Revision$$
  *
  * <p> $$Log$
+ * <p> $Revision 1.12  2007/06/07 21:34:12  sueh
+ * <p> $bug# 1012 Passing debug in constructor.  In initializeStreamTokenizer
+ * <p> $catching FileNotFoundException so that the file can be closed.
+ * <p> $
  * <p> $Revision 1.11  2007/05/14 22:29:26  sueh
  * <p> $bug# 964 Handling \r\n.
  * <p> $
@@ -113,7 +117,7 @@ public final class PrimativeTokenizer {
 
   private static final String RETURN = "\r";
   private LogFile file = null;
-  private long readId = LogFile.NO_ID;
+  private LogFile.ReadingId readingId = null;
   private String string = null;
   private StreamTokenizer tokenizer = null;
   private String symbols = new String("!\"#$%&'()*+,-./:;<=>?@[\\]^_`{|}~");
@@ -148,17 +152,17 @@ public final class PrimativeTokenizer {
    * @throws IOException
    */
   public void initialize() throws FileNotFoundException, IOException,
-      LogFile.ReadException {
+      LogFile.LockException {
     initializeStreamTokenizer();
     nextToken();
   }
 
   private void initializeStreamTokenizer() throws FileNotFoundException,
-      LogFile.ReadException {
+      LogFile.LockException {
     try {
       if (file != null) {
         File readingFile = new File(file.getAbsolutePath());
-        readId = file.openForReading();
+        readingId = file.openForReading();
         reader = new FileReader(readingFile);
       }
       else if (string != null) {
@@ -176,8 +180,8 @@ public final class PrimativeTokenizer {
       tokenizer.eolIsSignificant(true);
     }
     catch (FileNotFoundException e) {
-      if (readId != LogFile.NO_ID) {
-        file.closeForReading(readId);
+      if (readingId != null && !readingId.isEmpty()) {
+        file.closeForReading(readingId);
       }
       throw e;
     }
@@ -287,7 +291,7 @@ public final class PrimativeTokenizer {
    * @param tokens If true, prints each token.  If false, prints the text.
    * @throws IOException
    */
-  public void test(boolean tokens) throws IOException, LogFile.ReadException {
+  public void test(boolean tokens) throws IOException, LogFile.LockException {
     initialize();
     Token token;
     do {
@@ -310,7 +314,7 @@ public final class PrimativeTokenizer {
    * @throws IOException
    */
   public void testStreamTokenizer(boolean tokens, boolean details)
-      throws IOException, LogFile.ReadException {
+      throws IOException, LogFile.LockException {
     initializeStreamTokenizer();
     do {
       nextToken();
@@ -360,11 +364,11 @@ public final class PrimativeTokenizer {
   }
 
   private void closeFile() throws IOException {
-    if (file != null && readId != LogFile.NO_ID) {
+    if (file != null && readingId != null && !readingId.isEmpty()) {
       fileClosed = true;
       reader.close();
-      file.closeForReading(readId);
-      readId = LogFile.NO_ID;
+      file.closeForReading(readingId);
+      readingId = null;
     }
   }
 

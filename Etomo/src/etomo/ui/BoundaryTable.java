@@ -3,6 +3,8 @@ package etomo.ui;
 import java.awt.Container;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
+import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.util.ArrayList;
 
 import javax.swing.BoxLayout;
@@ -31,6 +33,13 @@ import etomo.type.JoinScreenState;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.8  2009/01/20 19:48:46  sueh
+ * <p> bug# 1102 Changed labeled panels to type EtomoPanel so that they can
+ * <p> name themselves.  Added getAdjustedHeaderCell so that the adjusted
+ * <p> column cells can name themselves.  Made the table label available for
+ * <p> the same reason.  Calling row.setNames when creating a new row in
+ * <p> RowList.
+ * <p>
  * <p> Revision 1.7  2008/10/07 16:42:28  sueh
  * <p> bug# 1113 Changed Viewport.msgViewportMoved to msgViewportPaged.
  * <p>
@@ -128,8 +137,7 @@ final class BoundaryTable implements Viewable {
     setToolTipText();
   }
 
-  void setXfjointomoResult() throws LogFile.ReadException,
-      LogFile.FileException {
+  void setXfjointomoResult() throws LogFile.LockException,FileNotFoundException,IOException{
     rowList.setXfjointomoResult(manager);
   }
 
@@ -366,7 +374,7 @@ final class BoundaryTable implements Viewable {
     }
 
     private void setXfjointomoResult(final BaseManager manager)
-        throws LogFile.ReadException, LogFile.FileException {
+        throws LogFile.LockException,FileNotFoundException,IOException {
       for (int i = 0; i < list.size(); i++) {
         get(i).setXfjointomoResult(manager);
       }

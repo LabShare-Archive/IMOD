@@ -36,7 +36,10 @@ import etomo.util.Utilities;
  * 
  * @version $Revision$
  * 
- * <p> $Log$ </p>
+ * <p> $Log$
+ * <p> Revision 1.1  2009/01/20 20:49:35  sueh
+ * <p> bug# 1102 Class to run a test defined by a Test section in uitest.adoc.
+ * <p> </p>
  */
 public final class TestRunner extends JFCTestCase implements VariableList {
   public static final String rcsid = "$Id$";
@@ -79,7 +82,7 @@ public final class TestRunner extends JFCTestCase implements VariableList {
    * @throws LogFile.ReadException
    */
   public void test() throws FileNotFoundException, IOException,
-      LogFile.ReadException, LogFile.FileException {
+      LogFile.LockException {
     //Add the default arguments to the parameter list.
     parameterList.add(Arguments.SELFTEST_TAG);
     parameterList.add(Arguments.TEST_TAG);

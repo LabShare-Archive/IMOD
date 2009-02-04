@@ -59,6 +59,9 @@ import etomo.util.DatasetFiles;
  * 
  * <p>
  * $Log$
+ * Revision 3.70  2009/01/20 20:04:58  sueh
+ * bug# 1102 Changed labeled panels to type EtomoPanel so that they can name themselves.
+ *
  * Revision 3.69  2008/09/30 21:01:32  sueh
  * bug# 1113 Using a private constructor in SpacedPanel.
  *
@@ -1358,7 +1361,7 @@ public class FinalCombinePanel implements ContextMenu, FinalCombineFields,
     catch (IOException except) {
       except.printStackTrace();
     }
-    catch (LogFile.ReadException e) {
+    catch (LogFile.LockException e) {
       e.printStackTrace();
       return;
     }

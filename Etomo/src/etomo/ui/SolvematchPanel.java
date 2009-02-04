@@ -44,6 +44,9 @@ import etomo.type.Run3dmodMenuOptions;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.36  2009/01/20 20:28:19  sueh
+ * <p> bug# 1102 Changed labeled panels to type EtomoPanel so that they can name themselves.
+ * <p>
  * <p> Revision 3.35  2008/05/28 02:51:30  sueh
  * <p> bug# 1111 Add a dialogType parameter to the ProcessSeries
  * <p> constructor.  DialogType must be passed to any function that constructs
@@ -702,7 +705,7 @@ final class SolvematchPanel implements Run3dmodButtonContainer, Expandable {
     catch (IOException except) {
       except.printStackTrace();
     }
-    catch (LogFile.ReadException except) {
+    catch (LogFile.LockException except) {
       except.printStackTrace();
     }
     section = autodoc.getSection(EtomoAutodoc.FIELD_SECTION_NAME,

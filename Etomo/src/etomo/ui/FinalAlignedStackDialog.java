@@ -61,6 +61,9 @@ import etomo.util.DatasetFiles;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.12  2009/01/26 23:10:57  sueh
+ * <p> bug# 1173 Correct tag for tomogram doc
+ * <p>
  * <p> Revision 1.11  2009/01/26 22:42:55  sueh
  * <p> bug# 1173 Added mouse listener to tabbed panel.  Added tooltips.
  * <p>
@@ -105,7 +108,7 @@ import etomo.util.DatasetFiles;
 public final class FinalAlignedStackDialog extends ProcessDialog implements
     ContextMenu, FiducialessParams, Expandable, Run3dmodButtonContainer {
   public static final String rcsid = "$Id$";
-
+  
   private static final String MTF_FILE_LABEL = "MTF file: ";
 
   static final String SIZE_TO_OUTPUT_IN_X_AND_Y_LABEL = "Size to output";
@@ -135,8 +138,7 @@ public final class FinalAlignedStackDialog extends ProcessDialog implements
       "Low pass (cutoff,sigma): ");
   private final ImageIcon iconFolder = new ImageIcon(ClassLoader
       .getSystemResource("images/openFile.gif"));
-  private final LabeledTextField ltfMtfFile = new LabeledTextField(
-      MTF_FILE_LABEL);
+  private final LabeledTextField ltfMtfFile = new LabeledTextField(MTF_FILE_LABEL);
   private final SimpleButton btnMtfFile = new SimpleButton(iconFolder);
   private final LabeledTextField ltfMaximumInverse = new LabeledTextField(
       "Maximum Inverse: ");
@@ -1034,7 +1036,7 @@ public final class FinalAlignedStackDialog extends ProcessDialog implements
     else if (command.equals(btnXfModel.getActionCommand())) {
       expert
           .xfmodel(btnXfModel, null, deferred3dmodButton, run3dmodMenuOptions);
-    }
+  }
     else if (command.equals(btn3dmodXfModel.getActionCommand())) {
       expert.seedEraseFiducialModel(run3dmodMenuOptions, btn3dmodXfModel);
     }
@@ -1049,7 +1051,7 @@ public final class FinalAlignedStackDialog extends ProcessDialog implements
       expert.useCcdEraser(btnUseCcdEraser);
     }
   }
-
+  
   private final void changeTab() {
     ((Container) tabbedPane.getComponentAt(curTab.toInt())).removeAll();
     curTab = Tab.getInstance(tabbedPane.getSelectedIndex());
@@ -1083,7 +1085,7 @@ public final class FinalAlignedStackDialog extends ProcessDialog implements
     catch (IOException except) {
       except.printStackTrace();
     }
-    catch (LogFile.ReadException e) {
+    catch (LogFile.LockException e) {
       e.printStackTrace();
     }
     cbUseLinearInterpolation
@@ -1132,7 +1134,7 @@ public final class FinalAlignedStackDialog extends ProcessDialog implements
     catch (IOException except) {
       except.printStackTrace();
     }
-    catch (LogFile.ReadException e) {
+    catch (LogFile.LockException e) {
       e.printStackTrace();
     }
     if (autodoc != null) {
@@ -1148,7 +1150,7 @@ public final class FinalAlignedStackDialog extends ProcessDialog implements
     catch (IOException except) {
       except.printStackTrace();
     }
-    catch (LogFile.ReadException e) {
+    catch (LogFile.LockException e) {
       e.printStackTrace();
     }
     if (autodoc != null) {
@@ -1174,7 +1176,7 @@ public final class FinalAlignedStackDialog extends ProcessDialog implements
     catch (IOException except) {
       except.printStackTrace();
     }
-    catch (LogFile.ReadException e) {
+    catch (LogFile.LockException e) {
       e.printStackTrace();
     }
     if (autodoc != null) {

@@ -34,6 +34,9 @@ import etomo.util.Utilities;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.50  2009/01/20 20:13:24  sueh
+ * <p> bug# 1102 Printing out the name of the main frame root panel.
+ * <p>
  * <p> Revision 3.49  2008/12/10 18:34:39  sueh
  * <p> bug# 1162 Added a manager stamp to setCurrentManager.
  * <p>
@@ -450,6 +453,7 @@ public final class MainFrame extends EtomoFrame implements ContextMenu {
   private String title;
   private String[] mRUList;
   private boolean registered = false;
+  private LogFrame logFrame = LogFrame.getInstance();
 
   /**
    * Main window constructor.  This sets up the menus and status line.
@@ -494,13 +498,17 @@ public final class MainFrame extends EtomoFrame implements ContextMenu {
 
   void setCurrentManager(BaseManager currentManager, UniqueKey managerKey,
       boolean newWindow) {
+    if (EtomoDirector.INSTANCE.getArguments().isTest() && logFrame.isVisible()) {
+      showHideLogFrame();
+    }
     this.currentManager = currentManager;
     if (currentManager == null) {
       EtomoDirector.INSTANCE.makeCurrent();
     }
     else {
       currentManager.makeCurrent();
-      Utilities.managerStamp(currentManager.getPropertyUserDir(),currentManager.getName());
+      Utilities.managerStamp(currentManager.getPropertyUserDir(),
+          currentManager.getName());
     }
     if (mainPanel != null) {
       rootPanel.removeAll();
@@ -509,11 +517,13 @@ public final class MainFrame extends EtomoFrame implements ContextMenu {
       title = etomoTitle;
       setEnabled(currentManager);
       hideAxisB();
+      logFrame.setPanel(null);
     }
     else {
       mainPanel = currentManager.getMainPanel();
       title = currentManager.getName() + " - " + etomoTitle;
       rootPanel.add(windowSwitch.getPanel(managerKey));
+      logFrame.setPanel(currentManager.getLogPanel());
       mainPanel.addMouseListener(mouseAdapter);
       setEnabled(currentManager);
       mainPanel.repaint();
@@ -537,6 +547,14 @@ public final class MainFrame extends EtomoFrame implements ContextMenu {
         }
       }
     }
+  }
+
+  void msgChanged(LogPanel logPanel) {
+    logFrame.msgChanged(logPanel);
+  }
+
+  void showHideLogFrame() {
+    logFrame.showHideFrame();
   }
 
   MainPanel getMainPanel() {
@@ -579,10 +597,10 @@ public final class MainFrame extends EtomoFrame implements ContextMenu {
   }
 
   /**
-   * Handle the options menu events
+   * Handle the view menu events
    * @param event
    */
-  void menuOptionsAction(ActionEvent event) {
+  void menuViewAction(ActionEvent event) {
     if (menu.equalsAxisA(event)) {
       showAxisA();
     }
@@ -592,8 +610,11 @@ public final class MainFrame extends EtomoFrame implements ContextMenu {
     else if (menu.equalsAxisBoth(event)) {
       showBothAxis();
     }
+    else if (menu.equalsLogWindow(event)) {
+      showHideLogFrame();
+    }
     else {
-      super.menuOptionsAction(event);
+      super.menuViewAction(event);
     }
   }
 
@@ -664,6 +685,10 @@ public final class MainFrame extends EtomoFrame implements ContextMenu {
         && !EtomoDirector.INSTANCE.getArguments().isTest()) {
       menu.doClickFileExit();
     }
+  }
+
+  void pack(boolean force) {
+    super.pack(force);
   }
 
   //  TODO Need a way to repaint the existing font

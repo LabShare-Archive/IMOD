@@ -368,7 +368,7 @@ public final class RemotePath {
       e.printStackTrace();
       return;
     }
-    catch (LogFile.ReadException e) {
+    catch (LogFile.LockException e) {
       e.printStackTrace();
       return;
     }
@@ -677,6 +677,9 @@ public final class RemotePath {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.19  2007/12/26 22:41:38  sueh
+ * <p> bug# 1052 Moved argument handling from EtomoDirector to a separate class.
+ * <p>
  * <p> Revision 1.18  2007/11/12 15:04:21  sueh
  * <p> bug# 1047 Formatted.
  * <p>

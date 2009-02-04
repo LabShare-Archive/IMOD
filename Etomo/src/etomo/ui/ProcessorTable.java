@@ -266,7 +266,7 @@ final class ProcessorTable implements Storable, ParallelProgressDisplay,
           .getParameterStore();
       parameterStore.load(this);
     }
-    catch (LogFile.WriteException e) {
+    catch (LogFile.LockException e) {
       UIHarness.INSTANCE.openMessageDialog("Unable to load parameters.\n"
           + e.getMessage(), "Etomo Error", axisID);
     }
@@ -831,6 +831,10 @@ final class ProcessorTable implements Storable, ParallelProgressDisplay,
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.52  2008/10/07 16:43:35  sueh
+ * <p> bug# 1113 Improved names:  changed Viewport.msgViewportMoved to
+ * <p> msgViewportPaged.
+ * <p>
  * <p> Revision 1.51  2008/10/06 22:43:25  sueh
  * <p> bug# 1113 Removed pack, which is unecessary since table scrolling was
  * <p> removed.  Moved rows into RowList.  Used a regular array instead of HashedArray, since the hash was never used and the table is not very big.  Implemented Viewable.  Added a Viewport.  Got rid of scrolling and

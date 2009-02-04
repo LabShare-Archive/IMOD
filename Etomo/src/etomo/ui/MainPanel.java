@@ -11,7 +11,6 @@ import javax.swing.BoxLayout;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
-import javax.swing.JSplitPane;
 
 import etomo.BaseManager;
 import etomo.process.ProcessState;
@@ -35,6 +34,9 @@ import etomo.type.ProcessName;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 1.40  2009/01/20 20:14:01  sueh
+ * <p> bug# 1102 Inheriting EtomoPanel so that MainPanel can name itself.
+ * <p>
  * <p> Revision 1.39  2008/10/06 22:38:47  sueh
  * <p> bug# 1113 Removed pack, which is unecessary since table scrolling was
  * <p> removed.
@@ -263,7 +265,7 @@ public abstract class MainPanel extends EtomoPanel {
   JScrollPane scrollPaneA;
   ScrollPanel scrollB;
   JScrollPane scrollPaneB;
-  JSplitPane splitPane;
+  //JSplitPane splitPane;
   BaseManager manager = null;
   private boolean showingBothAxis = false;
   private boolean showingAxisA = true;
@@ -352,7 +354,11 @@ public abstract class MainPanel extends EtomoPanel {
     }
   }
 
-  void setStatusBarText(File paramFile, BaseMetaData metaData) {
+  void setStatusBarText(File paramFile, BaseMetaData metaData, LogPanel logPanel) {
+    //Set the title of log panel.  SetStatusBarText is used by all of the
+    //interfaces so this is good place to do it.
+    logPanel.setTitle(paramFile, metaData, manager.getPropertyUserDir());
+    //Set the status bar
     int maxTitleLength = 79;
     if (metaData == null) {
       statusBar.setText(STATUS_BAR_EMPTY_TITLE);
@@ -380,16 +386,16 @@ public abstract class MainPanel extends EtomoPanel {
    * @param value
    */
   public void setDividerLocation(double value) {
-    if (splitPane != null) {
-      //removing commands that cause the divider location to change incorrectly
-      //when the window is taller then the screen
-      //scrollPaneA.doLayout();
-      //scrollPaneB.doLayout();
-      //splitPane.doLayout();
-      //splitPane.revalidate();
-      //splitPane.validate();
-      splitPane.setDividerLocation(value);
-    }
+    //if (splitPane != null) {
+    //removing commands that cause the divider location to change incorrectly
+    //when the window is taller then the screen
+    //scrollPaneA.doLayout();
+    //scrollPaneB.doLayout();
+    //splitPane.doLayout();
+    //splitPane.revalidate();
+    //splitPane.validate();
+    //  splitPane.setDividerLocation(value);
+    // }
   }
 
   /**
@@ -579,13 +585,13 @@ public abstract class MainPanel extends EtomoPanel {
     return showingAxisA;
   }
 
-  private void setBothAxis() {
-    splitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, scrollPaneA,
-        scrollPaneB);
-    splitPane.setDividerLocation(0.5);
-    splitPane.setOneTouchExpandable(true);
-    panelCenter.add(splitPane);
-  }
+  //private void setBothAxis() {
+  // splitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, scrollPaneA,
+  //    scrollPaneB);
+  // splitPane.setDividerLocation(0.5);
+  //splitPane.setOneTouchExpandable(true);
+  // panelCenter.add(splitPane);
+  //}
 
   public String toString() {
     if (manager != null) {

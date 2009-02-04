@@ -1635,7 +1635,7 @@ final class TiltalignPanel implements Expandable {
     catch (IOException except) {
       except.printStackTrace();
     }
-    catch (LogFile.ReadException e) {
+    catch (LogFile.LockException e) {
       e.printStackTrace();
     }
     // General tab
@@ -1855,6 +1855,9 @@ final class TiltalignPanel implements Expandable {
 
 /**
  * <p> $Log$
+ * <p> Revision 3.50  2009/01/20 20:31:34  sueh
+ * <p> bug# 1102 Changed labeled panels to type EtomoPanel so that they can name themselves.
+ * <p>
  * <p> Revision 3.49  2008/11/21 17:11:44  sueh
  * <p> bug# 1123 Added get and setParameters(ReconScreenState).
  * <p>

@@ -54,6 +54,9 @@ import etomo.type.Run3dmodMenuOptions;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.69  2009/01/20 20:19:01  sueh
+ * <p> bug# 1102 Changed labeled panels to type EtomoPanel so that they can name themselves.
+ * <p>
  * <p> Revision 1.68  2009/01/13 19:39:36  sueh
  * <p> bug# 1170 Added cbNWeightGroup so that nWeightGroup can be enabled independently of flgWedgeWeight.  Getting the minimum of the nWeightGroup spinner from MatlabParam.  Saving cbNWeightGroup in metadata, so that its setting is not lost when it is disabled.  CbNWeightGroup enables sNWeightGroup.
  * <p>
@@ -1020,7 +1023,7 @@ public final class PeetDialog implements ContextMenu, AbstractParallelDialog,
     catch (IOException e) {
       e.printStackTrace();
     }
-    catch (LogFile.ReadException e) {
+    catch (LogFile.LockException e) {
       e.printStackTrace();
     }
   }

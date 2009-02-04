@@ -52,6 +52,9 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.47  2009/01/20 20:24:57  sueh
+ * <p> bug# 1102 Calling setNames in each row.
+ * <p>
  * <p> Revision 1.46  2008/10/07 16:43:44  sueh
  * <p> bug# 1113 Improved names:  changed Viewport.msgViewportMoved to
  * <p> msgViewportPaged.
@@ -776,7 +779,7 @@ final class SectionTablePanel implements ContextMenu, Expandable,
     return rowList.size();
   }
 
-  void setInverted() throws LogFile.FileException {
+  void setInverted() throws LogFile.LockException {
     int invertedCount = rowList.setInverted(JoinInfoFile.getInstance(manager));
     if (invertedCount > rowList.size() / 2) {
       uiHarness
@@ -1438,7 +1441,7 @@ final class SectionTablePanel implements ContextMenu, Expandable,
     }
 
     private int setInverted(final JoinInfoFile joinInfoFile)
-        throws LogFile.FileException {
+        throws LogFile.LockException {
       int invertedCount = 0;
       for (int i = 0; i < list.size(); i++) {
         ConstEtomoNumber inverted = joinInfoFile.getInverted(i);

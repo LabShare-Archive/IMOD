@@ -1,5 +1,7 @@
 package etomo.ui;
 
+import java.io.IOException;
+
 import etomo.storage.LogFile;
 
 /**
@@ -68,6 +70,10 @@ import etomo.storage.LogFile;
  * @version $$Revision$$
  *
  * <p> $$Log$
+ * <p> $Revision 1.19  2007/08/01 22:45:20  sueh
+ * <p> $bug# 985 Changed the type of AutodocTokenizer.OPEN_CHAR and
+ * <p> $CLOSE_CHAR to Character.
+ * <p> $
  * <p> $Revision 1.18  2007/04/11 22:22:35  sueh
  * <p> $bug# 964 Changed the ONE_OR_MORE token type string to ANYTHING.
  * <p> $
@@ -243,10 +249,11 @@ public final class Token {
     return buffer.toString();
   }
 
-  public void write(LogFile file, long writeId) throws LogFile.WriteException {
-    file.write(value, writeId);
+  public void write(LogFile file, LogFile.WriterId writerId)
+      throws LogFile.LockException, IOException {
+    file.write(value, writerId);
     if (next != null) {
-      next.write(file, writeId);
+      next.write(file, writerId);
     }
   }
 

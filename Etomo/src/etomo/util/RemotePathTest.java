@@ -123,7 +123,7 @@ public final class RemotePathTest extends TestCase {
   private void writeNewFile(String testDirName, int ruleStartNumber,
       boolean globalRules, boolean sectionRules, boolean section,
       boolean computerName, boolean fullSectionName, boolean useMountName,
-      boolean remoteSection) throws IOException, LogFile.ReadException {
+      boolean remoteSection) throws IOException, LogFile.LockException {
     int ruleNumber = ruleStartNumber;
     BufferedWriter bufferedWriter = setUpTestFile(testDirName);
     if (bufferedWriter == null) {
@@ -198,7 +198,7 @@ public final class RemotePathTest extends TestCase {
   private void writeNewFile(String testDirName, boolean globalRules,
       boolean sectionRules, boolean section, boolean computerName,
       boolean fullSectionName, boolean useMountName) throws IOException,
-      LogFile.ReadException {
+      LogFile.LockException {
     writeNewFile(testDirName, 1, globalRules, sectionRules, section,
         computerName, fullSectionName, useMountName, false);
   }
@@ -210,7 +210,7 @@ public final class RemotePathTest extends TestCase {
    * @throws IOException
    */
   private void writeNewOverrideFile(String testDirName) throws IOException,
-      LogFile.ReadException {
+      LogFile.LockException {
     BufferedWriter bufferedWriter = setUpTestFile(testDirName);
     if (bufferedWriter == null) {
       return;
@@ -235,7 +235,7 @@ public final class RemotePathTest extends TestCase {
    * @param testDirName
    */
   private void writeNewBadFile(String testDirName) throws IOException,
-      LogFile.ReadException {
+      LogFile.LockException {
     BufferedWriter bufferedWriter = setUpTestFile(testDirName);
     if (bufferedWriter == null) {
       return;
@@ -440,7 +440,7 @@ public final class RemotePathTest extends TestCase {
    * @throws IOException
    */
   private BufferedWriter setUpTestFile(String testDirName) throws IOException,
-      LogFile.ReadException {
+      LogFile.LockException {
     File testDir = setUpTestDirectory(testDirName);
     File testFile = new File(testDir, TEST_FILE_NAME);
     testFile.delete();
@@ -471,7 +471,7 @@ public final class RemotePathTest extends TestCase {
    * getRemotePath only loads rules once
    */
   public void test_getRemotePath_onlyLoadRulesOnce() throws IOException,
-      InvalidMountRuleException, LogFile.ReadException {
+      InvalidMountRuleException, LogFile.LockException {
     if (Utilities.isWindowsOS()) {
       return;
     }
@@ -527,7 +527,7 @@ public final class RemotePathTest extends TestCase {
    * getRemotePath does not throw an exception when no rules in autodoc
    */
   public void test_getRemotePath_noRules() throws IOException,
-      InvalidMountRuleException, LogFile.ReadException {
+      InvalidMountRuleException, LogFile.LockException {
     if (Utilities.isWindowsOS()) {
       return;
     }
@@ -542,7 +542,7 @@ public final class RemotePathTest extends TestCase {
    */
   public void test_getRemotePath_unknownPath()
       throws InvalidParameterException, SystemProcessException, IOException,
-      InvalidMountRuleException, LogFile.ReadException {
+      InvalidMountRuleException, LogFile.LockException {
     if (Utilities.isWindowsOS()) {
       return;
     }
@@ -574,7 +574,7 @@ public final class RemotePathTest extends TestCase {
    * getRemotePath returns section name as mount name
    */
   public void test_getRemotePath_globalRules() throws IOException,
-      InvalidMountRuleException, LogFile.ReadException {
+      InvalidMountRuleException, LogFile.LockException {
     if (Utilities.isWindowsOS()) {
       return;
     }
@@ -593,7 +593,7 @@ public final class RemotePathTest extends TestCase {
    * getRemotePath returns remote path when local path is found
    */
   public void test_getRemotePath_globalRulesNoSection() throws IOException,
-      InvalidMountRuleException, LogFile.ReadException {
+      InvalidMountRuleException, LogFile.LockException {
     if (Utilities.isWindowsOS()) {
       return;
     }
@@ -710,7 +710,7 @@ public final class RemotePathTest extends TestCase {
    * getRemotePath returns section name as mount name
    */
   public void test_getRemotePath_sectionRules() throws IOException,
-      InvalidMountRuleException, LogFile.ReadException {
+      InvalidMountRuleException, LogFile.LockException {
     if (Utilities.isWindowsOS()) {
       return;
     }
@@ -729,7 +729,7 @@ public final class RemotePathTest extends TestCase {
    * getRemotePath returns section name as mount name
    */
   public void test_getRemotePath_sectionRulesFullHostName() throws IOException,
-      InvalidMountRuleException, LogFile.ReadException {
+      InvalidMountRuleException, LogFile.LockException {
     if (Utilities.isWindowsOS()) {
       return;
     }
@@ -750,7 +750,7 @@ public final class RemotePathTest extends TestCase {
    * getRemotePath returns section name as mount name
    */
   public void test_getRemotePath_globalAndSectionRules() throws IOException,
-      InvalidMountRuleException, LogFile.ReadException {
+      InvalidMountRuleException, LogFile.LockException {
     if (Utilities.isWindowsOS()) {
       return;
     }
@@ -772,7 +772,7 @@ public final class RemotePathTest extends TestCase {
    * getRemotePath tests local rules before global rules
    */
   public void test_getRemotePath_localHost() throws IOException,
-      InvalidMountRuleException, LogFile.ReadException {
+      InvalidMountRuleException, LogFile.LockException {
     if (Utilities.isWindowsOS()) {
       return;
     }
@@ -794,7 +794,7 @@ public final class RemotePathTest extends TestCase {
    * getRemotePath tests local rules before global rules
    */
   public void test_getRemotePath_localHostWithoutMountName()
-      throws IOException, InvalidMountRuleException, LogFile.ReadException {
+      throws IOException, InvalidMountRuleException, LogFile.LockException {
     if (Utilities.isWindowsOS()) {
       return;
     }
@@ -815,7 +815,7 @@ public final class RemotePathTest extends TestCase {
    * getRemotePath tests local rules before global rules
    */
   public void test_getRemotePath_fullSectionName() throws IOException,
-      InvalidMountRuleException, LogFile.ReadException {
+      InvalidMountRuleException, LogFile.LockException {
     if (Utilities.isWindowsOS()) {
       return;
     }
@@ -835,7 +835,7 @@ public final class RemotePathTest extends TestCase {
    * getRemotePath tests local rules before global rules
    */
   public void test_getRemotePath_mountName() throws IOException,
-      InvalidMountRuleException, LogFile.ReadException {
+      InvalidMountRuleException, LogFile.LockException {
     if (Utilities.isWindowsOS()) {
       return;
     }
@@ -850,7 +850,7 @@ public final class RemotePathTest extends TestCase {
    * bad mount rules are not loaded
    */
   public void test_getRemotePath_badRules() throws IOException,
-      InvalidMountRuleException, LogFile.ReadException {
+      InvalidMountRuleException, LogFile.LockException {
     if (Utilities.isWindowsOS()) {
       return;
     }
@@ -863,7 +863,7 @@ public final class RemotePathTest extends TestCase {
    * a global mount rule can be overridden by a section-level mount rule
    */
   public void test_getRemotePath_overrideMountRule() throws IOException,
-      InvalidMountRuleException, LogFile.ReadException {
+      InvalidMountRuleException, LogFile.LockException {
     if (Utilities.isWindowsOS()) {
       return;
     }
@@ -881,7 +881,7 @@ public final class RemotePathTest extends TestCase {
    * mount rule numbers must start from 1 in each area
    */
   public void test_getRemotePath_ruleNumbers() throws IOException,
-      InvalidMountRuleException, LogFile.ReadException {
+      InvalidMountRuleException, LogFile.LockException {
     if (Utilities.isWindowsOS()) {
       return;
     }
@@ -913,7 +913,7 @@ public final class RemotePathTest extends TestCase {
    * @throws IOException
    */
   public void test_isLocalSection_missingLocalSection() throws IOException,
-      LogFile.ReadException {
+      LogFile.LockException {
     if (Utilities.isWindowsOS()) {
       return;
     }
@@ -935,7 +935,7 @@ public final class RemotePathTest extends TestCase {
    * @throws IOException
    */
   public void test_isLocalSection_hostName() throws IOException,
-      LogFile.ReadException {
+      LogFile.LockException {
     if (Utilities.isWindowsOS()) {
       return;
     }
@@ -955,7 +955,7 @@ public final class RemotePathTest extends TestCase {
    * @throws IOException
    */
   public void test_isLocalSection_strippedHostName() throws IOException,
-      LogFile.ReadException {
+      LogFile.LockException {
     if (Utilities.isWindowsOS()) {
       return;
     }
@@ -969,6 +969,10 @@ public final class RemotePathTest extends TestCase {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.41  2008/12/15 23:06:52  sueh
+ * <p> bug# 1161 Made EtomoDirector.getCurrentManager private.  Added a
+ * <p> public test version for public access.
+ * <p>
  * <p> Revision 1.40  2007/12/10 22:52:23  sueh
  * <p> bug# 1041 Always delete and create test files because the tester may change
  * <p> computers.

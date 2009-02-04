@@ -453,7 +453,7 @@ final class CCDEraserPanel implements ContextMenu, Run3dmodButtonContainer {
     catch (IOException except) {
       except.printStackTrace();
     }
-    catch (LogFile.ReadException except) {
+    catch (LogFile.LockException except) {
       except.printStackTrace();
     }
     ltfInputImage.setToolTipText(EtomoAutodoc.getTooltip(autodoc,
@@ -532,6 +532,9 @@ final class CCDEraserPanel implements ContextMenu, Run3dmodButtonContainer {
 
 /**
  * <p> $Log$
+ * <p> Revision 3.30  2009/01/20 19:49:02  sueh
+ * <p> bug# 1102 Changed labeled panels to type EtomoPanel so that they can name themselves.
+ * <p>
  * <p> Revision 3.29  2008/05/28 02:49:26  sueh
  * <p> bug# 1111 Add a dialogType parameter to the ProcessSeries
  * <p> constructor.  DialogType must be passed to any function that constructs

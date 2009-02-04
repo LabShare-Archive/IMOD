@@ -11,6 +11,9 @@
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.29  2009/01/20 19:51:44  sueh
+ * <p> bug# 1102 Changed labeled panels to type EtomoPanel so that they can name themselves.
+ * <p>
  * <p> Revision 3.28  2008/05/28 02:49:46  sueh
  * <p> bug# 1111 Add a dialogType parameter to the ProcessSeries
  * <p> constructor.  DialogType must be passed to any function that constructs
@@ -478,7 +481,7 @@ final class CrossCorrelationPanel implements ContextMenu, Expandable {
     catch (IOException except) {
       except.printStackTrace();
     }
-    catch (LogFile.ReadException except) {
+    catch (LogFile.LockException except) {
       except.printStackTrace();
     }
     ltfTestOutput

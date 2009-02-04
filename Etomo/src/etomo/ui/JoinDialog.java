@@ -58,6 +58,9 @@ import etomo.util.DatasetFiles;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 1.65  2009/01/20 20:11:51  sueh
+ * <p> bug# 1102 Changed labeled panels to type EtomoPanel so that they can name themselves.
+ * <p>
  * <p> Revision 1.64  2008/12/10 21:56:38  sueh
  * <p> bug# 1166 Stopped calling LabeledSpinner.setTextMaxmimumSize
  * <p>
@@ -935,7 +938,7 @@ public final class JoinDialog implements ContextMenu, Run3dmodButtonContainer {
     UIHarness.INSTANCE.pack(manager);
   }
 
-  public void setInverted() throws LogFile.FileException {
+  public void setInverted() throws LogFile.LockException {
     pnlSectionTable.setInverted();
   }
 
@@ -1463,8 +1466,7 @@ public final class JoinDialog implements ContextMenu, Run3dmodButtonContainer {
     }
   }
 
-  public void setXfjointomoResult() throws LogFile.ReadException,
-      LogFile.FileException {
+  public void setXfjointomoResult() throws LogFile.LockException,FileNotFoundException,IOException {
     boundaryTable.setXfjointomoResult();
   }
 
@@ -1776,12 +1778,12 @@ public final class JoinDialog implements ContextMenu, Run3dmodButtonContainer {
           parameterStore.save(metaData);
         }
       }
-      catch (LogFile.FileException e) {
-        UIHarness.INSTANCE.openMessageDialog("Unable to save JoinMetaData.\n"
+      catch (LogFile.LockException e) {
+        UIHarness.INSTANCE.openMessageDialog("Unable to save or write JoinMetaData.\n"
             + e.getMessage(), "Etomo Error");
       }
-      catch (LogFile.WriteException e) {
-        UIHarness.INSTANCE.openMessageDialog("Unable to write JoinMetaData.\n"
+      catch (IOException e) {
+        UIHarness.INSTANCE.openMessageDialog("Unable to save or write JoinMetaData.\n"
             + e.getMessage(), "Etomo Error");
       }
       setMode(JoinDialog.CHANGING_SAMPLE_MODE);
@@ -1951,7 +1953,7 @@ public final class JoinDialog implements ContextMenu, Run3dmodButtonContainer {
           LogFile.getInstance(manager.getPropertyUserDir(), DatasetFiles
               .getModeledJoinFileName(manager)));
     }
-    catch (LogFile.FileException e) {
+    catch (LogFile.LockException e) {
       e.printStackTrace();
       UIHarness.INSTANCE.openMessageDialog("Unable to move join file.\n"
           + e.getMessage(), "Failed File Move");
@@ -2123,7 +2125,7 @@ public final class JoinDialog implements ContextMenu, Run3dmodButtonContainer {
     catch (IOException e) {
       e.printStackTrace();
     }
-    catch (LogFile.ReadException except) {
+    catch (LogFile.LockException except) {
       except.printStackTrace();
     }
     cbGap

@@ -2,6 +2,8 @@ package etomo.ui;
 
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
+import java.io.FileNotFoundException;
+import java.io.IOException;
 
 import javax.swing.JPanel;
 import javax.swing.event.ChangeEvent;
@@ -38,6 +40,10 @@ import etomo.type.SectionTableRowData;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.6  2009/01/20 19:46:30  sueh
+ * <p> bug# 1102 Added setNames to set names required by the current uitest
+ * <p> set.
+ * <p>
  * <p> Revision 1.5  2008/09/30 20:57:17  sueh
  * <p> bug# 1113 In display, check Viewport before displaying.
  * <p>
@@ -83,11 +89,12 @@ final class BoundaryRow {
   private boolean startInverted = false;
 
   BoundaryRow(int key, ConstJoinMetaData metaData, JoinScreenState screenState,
-      JPanel panel, GridBagLayout layout, GridBagConstraints constraints,BoundaryTable table) {
+      JPanel panel, GridBagLayout layout, GridBagConstraints constraints,
+      BoundaryTable table) {
     this.panel = panel;
     this.layout = layout;
     this.constraints = constraints;
-    this.table=table;
+    this.table = table;
     //boundary
     String firstSection = Integer.toString(key);
     boundary.setText(firstSection);
@@ -134,7 +141,7 @@ final class BoundaryRow {
     adjustedEnd.addChangeListener(adjustedEndChangeListener);
     adjustedStart.addChangeListener(adjustedStartChangeListener);
   }
-  
+
   void setNames() {
     adjustedStart.setHeaders(BoundaryTable.TABLE_LABEL, sections, table
         .getAdjustedHeaderCell());
@@ -190,7 +197,8 @@ final class BoundaryRow {
    * @param orig (either origEnd or origStart)
    * @return
    */
-  private long calculateNegativeAdjustment(final int roundedBestGap, final long orig) {
+  private long calculateNegativeAdjustment(final int roundedBestGap,
+      final long orig) {
     if (roundedBestGap < 0 || orig <= 0) {
       throw new IllegalStateException(
           "Only pass the absolute value of roundedBestGap.  Orig is either origEnd or origStart and must be at least 1.\nroundedBestGap="
@@ -206,7 +214,8 @@ final class BoundaryRow {
     return adjustment * -1;
   }
 
-  void display(final int index, final Viewport viewport, final JoinDialog.Tab tab) {
+  void display(final int index, final Viewport viewport,
+      final JoinDialog.Tab tab) {
     if (!viewport.inViewport(index)) {
       return;
     }
@@ -255,8 +264,8 @@ final class BoundaryRow {
     adjustedStart.remove();
   }
 
-  void setXfjointomoResult(BaseManager manager) throws LogFile.ReadException,
-      LogFile.FileException {
+  void setXfjointomoResult(BaseManager manager) throws LogFile.LockException,
+      FileNotFoundException, IOException {
     XfjointomoLog xfjointomoLog = XfjointomoLog.getInstance(manager);
     String boundary = this.boundary.getText();
     if (!xfjointomoLog.rowExists(boundary)) {

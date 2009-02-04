@@ -40,6 +40,9 @@ import etomo.type.Run3dmodMenuOptions;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.26  2009/01/20 19:44:48  sueh
+ * <p> bug# 1102 Changed labeled panels to type EtomoPanel so that they can name themselves.
+ * <p>
  * <p> Revision 3.25  2008/12/12 17:38:53  sueh
  * <p> bug# 1160 Added BeadDiameter to beadtrack panel.
  * <p>
@@ -690,7 +693,7 @@ public final class BeadtrackPanel implements Expandable,
     catch (IOException except) {
       except.printStackTrace();
     }
-    catch (LogFile.ReadException except) {
+    catch (LogFile.LockException except) {
       except.printStackTrace();
     }
     if (autodoc == null) {

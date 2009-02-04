@@ -28,6 +28,9 @@ import etomo.type.UITestSubjectType;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.3  2009/01/20 20:47:38  sueh
+ * <p> bug# 1102 Class to store an interface section.
+ * <p>
  * <p> Revision 1.2  2008/05/30 22:37:18  sueh
  * <p> bug# 1102 Isolating the etomo.uitest package so it is not needed for
  * <p> running EtomoDirector.
@@ -56,7 +59,7 @@ final class InterfaceSection extends Assert {
    * @throws LogFile.ReadException
    */
   Command getGotoFrameCommand(AxisID axisID) throws FileNotFoundException,
-      IOException, LogFile.ReadException {
+      IOException, LogFile.LockException {
     readSection();
     return (Command) commandMap.get(UITestActionType.GOTO.toString()
         + UITestSubjectType.FRAME.toString() + axisID.getExtension());
@@ -71,7 +74,7 @@ final class InterfaceSection extends Assert {
    * @throws LogFile.ReadException
    */
   Command getOpenFrameCommand(AxisID axisID) throws FileNotFoundException,
-      IOException, LogFile.ReadException {
+      IOException, LogFile.LockException {
     readSection();
     return (Command) commandMap.get(UITestActionType.OPEN.toString()
         + UITestSubjectType.FRAME.toString() + axisID.getExtension());
@@ -85,7 +88,7 @@ final class InterfaceSection extends Assert {
    * @throws LogFile.ReadException
    */
   Command getOpenInterfaceCommand() throws FileNotFoundException, IOException,
-      LogFile.ReadException {
+      LogFile.LockException {
     readSection();
     Command command= (Command) commandMap.get(UITestActionType.OPEN.toString()
         + UITestSubjectType.INTERFACE.toString());
@@ -101,7 +104,7 @@ final class InterfaceSection extends Assert {
    * @throws LogFile.ReadException
    */
   Command getOpenDialogCommand(String dialogName) throws FileNotFoundException,
-      IOException, LogFile.ReadException {
+      IOException, LogFile.LockException {
     readSection();
     return (Command) commandMap.get(UITestActionType.OPEN.toString()
         + UITestSubjectType.DIALOG.toString() + dialogName);
@@ -115,7 +118,7 @@ final class InterfaceSection extends Assert {
    * @throws LogFile.ReadException
    */
   private void readSection() throws FileNotFoundException, IOException,
-      LogFile.ReadException {
+      LogFile.LockException {
     if (commandMap != null) {
       return;
     }

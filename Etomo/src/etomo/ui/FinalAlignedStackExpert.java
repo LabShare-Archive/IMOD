@@ -62,6 +62,10 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.9  2009/01/26 22:43:32  sueh
+ * <p> bug# 1173 Saved current tab from dialog.  Added new line to simple
+ * <p> defocus file.
+ * <p>
  * <p> Revision 1.8  2008/12/15 23:03:30  sueh
  * <p> bug# 1161 Added parameters imageRotation and manager to
  * <p> NewstParam.setSizeToOutputInXandY.
@@ -128,7 +132,7 @@ public final class FinalAlignedStackExpert extends ReconUIExpert {
     //Create the dialog and show it.
     Utilities.timestamp("new", "FinalAlignedStackDialog",
         Utilities.STARTED_STATUS);
-    dialog = FinalAlignedStackDialog.getInstance(manager, this, axisID,curTab);
+    dialog = FinalAlignedStackDialog.getInstance(manager, this, axisID, curTab);
     Utilities.timestamp("new", "FinalAlignedStackDialog",
         Utilities.FINISHED_STATUS);
     // no longer managing image size
@@ -566,16 +570,16 @@ public final class FinalAlignedStackExpert extends ReconUIExpert {
   boolean createSimpleDefocusFile() {
     boolean updateToDate = false;
     LogFile file = null;
-    long readId = LogFile.NO_ID;
-    long writeId = LogFile.NO_ID;
+    LogFile.ReaderId readerId = null;
+    LogFile.WriterId writerId = null;
     try {
       file = LogFile.getInstance(DatasetFiles.getSimpleDefocusFile(manager,
           axisID));
       if (file.exists()) {
-        readId = file.openReader();
-        String line = file.readLine(readId);
-        if (file.closeReader(readId)) {
-          readId = LogFile.NO_ID;
+        readerId = file.openReader();
+        String line = file.readLine(readerId);
+        if (file.closeReader(readerId)) {
+          readerId = null;
         }
         String[] array = line.split("\\s+");
         if (array[4].equals(dialog.getExpectedDefocus())) {
@@ -586,29 +590,26 @@ public final class FinalAlignedStackExpert extends ReconUIExpert {
         }
       }
       if (!updateToDate) {
-        writeId = file.openWriter();
-        file.write("1 1 0 0 " + dialog.getExpectedDefocus(), writeId);
-        file.newLine(writeId);
+        writerId = file.openWriter();
+        file.write("1 1 0 0 " + dialog.getExpectedDefocus(), writerId);
+        file.newLine(writerId);
         updateToDate = true;
-        if (file.closeWriter(writeId)) {
-          writeId = LogFile.NO_ID;
+        if (file.closeWriter(writerId)) {
+          writerId = null;
         }
       }
     }
-    catch (LogFile.FileException e) {
+    catch (LogFile.LockException e) {
       e.printStackTrace();
     }
-    catch (LogFile.ReadException e) {
+    catch (IOException e) {
       e.printStackTrace();
     }
-    catch (LogFile.WriteException e) {
-      e.printStackTrace();
+    if (readerId != null && !readerId.isEmpty()) {
+      file.closeReader(readerId);
     }
-    if (readId != LogFile.NO_ID) {
-      file.closeForReading(readId);
-    }
-    if (writeId != LogFile.NO_ID) {
-      file.closeForWriting(writeId);
+    if (writerId != null && !writerId.isEmpty()) {
+      file.closeWriter(writerId);
     }
     if (!updateToDate) {
       if (!UIHarness.INSTANCE.openYesNoDialog(DatasetFiles

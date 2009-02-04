@@ -40,6 +40,9 @@ import etomo.util.MRCHeader;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.6  2008/12/02 21:24:46  sueh
+ * <p> bug# 1157 Simplify rounding method used with pixel.
+ * <p>
  * <p> Revision 1.5  2008/12/01 22:35:05  sueh
  * <p> bug# 1131 Setting montage from userConfiguration.
  * <p>
@@ -210,13 +213,7 @@ public final class SetupDialogExpert {
           paramStore.load(savedMetaData);
         }
       }
-      catch (LogFile.WriteException e) {
-        e.printStackTrace();
-        UIHarness.INSTANCE.openMessageDialog("Unable to read .edf files in "
-            + propertyUserDir, "Etomo Error");
-        continue;
-      }
-      catch (LogFile.FileException e) {
+      catch (LogFile.LockException e) {
         e.printStackTrace();
         UIHarness.INSTANCE.openMessageDialog("Unable to read .edf files in "
             + propertyUserDir, "Etomo Error");

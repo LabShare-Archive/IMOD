@@ -36,6 +36,9 @@ import etomo.type.EtomoAutodoc;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.17  2008/09/30 21:41:45  sueh
+ * <p> bug# 1113 Using a private constructor in SpacedPanel.
+ * <p>
  * <p> Revision 1.16  2008/08/21 00:09:15  sueh
  * <p> bug# 1132 Sharing the Max header.
  * <p>
@@ -272,7 +275,7 @@ final class IterationTable implements Highlightable {
     catch (IOException e) {
       e.printStackTrace();
     }
-    catch (LogFile.ReadException e) {
+    catch (LogFile.LockException e) {
       e.printStackTrace();
     }
   }

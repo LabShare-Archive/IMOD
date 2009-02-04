@@ -60,6 +60,9 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.2  2009/01/28 00:57:50  sueh
+ * <p> bug# 1102 In nextSection, moving subframe out of the the way.  In executeCommand handling the ifnot subsection and if.enabled.field.subcommand.  In executeField handling if.enabled.field.subcommand.  Changed assertEnabled to enabled to handle if.enabled.field.subcommand.
+ * <p>
  * <p> Revision 1.1  2009/01/20 20:44:46  sueh
  * <p> bug# 1102 Tester of autodocs, functions, and subsections.
  * <p> </p>
@@ -288,7 +291,7 @@ final class AutodocTester extends Assert implements VariableList {
    * @throws LogFile.FileException
    */
   void testUntilWait() throws FileNotFoundException, IOException,
-      LogFile.ReadException, LogFile.FileException {
+      LogFile.LockException {
     //System.out.println("testUntilWait:axisID="+axisID);
     //If this is a top level tester and the frame hasn't been opened, try to
     //open the frame associated with this tester.
@@ -358,7 +361,7 @@ final class AutodocTester extends Assert implements VariableList {
    * @throws LogFile.FileException
    */
   private void nextSection() throws FileNotFoundException, IOException,
-      LogFile.ReadException, LogFile.FileException {
+      LogFile.LockException {
     boolean isAutodocTester = sectionType != null && sectionName == null;
     if (debug) {
       System.out.println("sectionType=" + sectionType + ",sectionName="
@@ -444,7 +447,7 @@ final class AutodocTester extends Assert implements VariableList {
    * @throws LogFile.ReadException
    */
   private void gotoFrame() throws FileNotFoundException, IOException,
-      LogFile.ReadException, LogFile.FileException {
+      LogFile.LockException {
     executeCommand(testRunner.getInterfaceSection().getGotoFrameCommand(axisID));
   }
 
@@ -458,7 +461,7 @@ final class AutodocTester extends Assert implements VariableList {
    * @return true if the frame is open
    */
   private boolean openFrame() throws FileNotFoundException, IOException,
-      LogFile.ReadException, LogFile.FileException {
+      LogFile.LockException {
     Command frameCommand = testRunner.getInterfaceSection()
         .getOpenFrameCommand(axisID);
     //if frameCommand is null, then it is not necessary to open the frame, so
@@ -479,7 +482,7 @@ final class AutodocTester extends Assert implements VariableList {
    * @throws LogFile.ReadException
    */
   private void openInterface() throws FileNotFoundException, IOException,
-      LogFile.ReadException, LogFile.FileException {
+      LogFile.LockException {
     executeCommand(testRunner.getInterfaceSection().getOpenInterfaceCommand());
   }
 
@@ -491,7 +494,7 @@ final class AutodocTester extends Assert implements VariableList {
    * @throws LogFile.ReadException
    */
   private void openDialog(String dialogName) throws FileNotFoundException,
-      IOException, LogFile.ReadException, LogFile.FileException {
+      IOException, LogFile.LockException {
     executeCommand(testRunner.getInterfaceSection().getOpenDialogCommand(
         dialogName));
   }
@@ -504,7 +507,7 @@ final class AutodocTester extends Assert implements VariableList {
    * @return false if an optional command fails, otherwise return true or fail an assert
    */
   private boolean executeCommand(Command command) throws FileNotFoundException,
-      IOException, LogFile.FileException, LogFile.ReadException {
+      IOException, LogFile.LockException {
     if (command == null || !command.isKnown()) {
       return true;
     }
@@ -990,8 +993,7 @@ final class AutodocTester extends Assert implements VariableList {
    * @param command
    */
   private void enabled(Component component, Command command)
-      throws FileNotFoundException, IOException, LogFile.FileException,
-      LogFile.ReadException {
+      throws FileNotFoundException, IOException, LogFile.LockException {
     UITestActionType actionType = command.getActionType();
     UITestModifierType modifierType = command.getModifierType();
     boolean enabled = false;
@@ -1031,8 +1033,7 @@ final class AutodocTester extends Assert implements VariableList {
    * @param command
    */
   private void enabled(JTextComponent textComponent, Command command)
-      throws FileNotFoundException, IOException, LogFile.FileException,
-      LogFile.ReadException {
+      throws FileNotFoundException, IOException, LogFile.LockException {
     assertNull("assert.enabled/disabled command does not use a value ("
         + command + ")", command.getValue());
     UITestActionType actionType = command.getActionType();
@@ -1079,7 +1080,7 @@ final class AutodocTester extends Assert implements VariableList {
   }
 
   private void executeField(Command command) throws FileNotFoundException,
-      IOException, LogFile.FileException, LogFile.ReadException {
+      IOException, LogFile.LockException {
     executeField(command, true);
   }
 
@@ -1089,8 +1090,7 @@ final class AutodocTester extends Assert implements VariableList {
    * @return false if failed and failIfNotFound is false, otherwise return true if a failure is not asserted
    */
   private boolean executeField(Command command, boolean failIfNotFound)
-      throws FileNotFoundException, IOException, LogFile.FileException,
-      LogFile.ReadException {
+      throws FileNotFoundException, IOException, LogFile.LockException {
     UITestActionType actionType = command.getActionType();
     UITestModifierType modifierType = command.getModifierType();
     Field field = command.getField();
@@ -1182,7 +1182,7 @@ final class AutodocTester extends Assert implements VariableList {
     //MENU_ITEM
     else if (fieldType == UITestFieldType.MENU_ITEM) {
       setupNamedComponentFinder(JMenuItem.class, name);
-      AbstractButton menuItem = (AbstractButton) finder.find();
+      JMenuItem menuItem = (JMenuItem) finder.find();
       if (menuItem == null) {
         if (failIfNotFound) {
           fail("can't find menu item - " + name + " (" + command + ")");
@@ -1193,7 +1193,7 @@ final class AutodocTester extends Assert implements VariableList {
       }
       //mn.menu_item_label
       if (!actionSet) {
-        //if value is present,only click on mini-button when it matches value
+        //if value is present, only click on menu item when it matches value
         helper.enterClickAndLeave(new MouseEventData(testRunner, menuItem));
         //wait for menu to open
         try {

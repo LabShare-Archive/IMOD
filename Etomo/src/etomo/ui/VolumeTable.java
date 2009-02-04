@@ -50,6 +50,9 @@ import etomo.type.Run3dmodMenuOptions;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.35  2009/01/20 20:33:19  sueh
+ * <p> bug# 1102 Changed labeled panels to type EtomoPanel so that they can name themselves.
+ * <p>
  * <p> Revision 1.34  2008/10/07 16:44:55  sueh
  * <p> bug# 1113 Improved names:  changed Viewport.msgViewportMoved to
  * <p> msgViewportPaged.
@@ -505,7 +508,7 @@ final class VolumeTable implements Expandable, Highlightable,
     catch (IOException e) {
       e.printStackTrace();
     }
-    catch (LogFile.ReadException e) {
+    catch (LogFile.LockException e) {
       e.printStackTrace();
     }
   }
@@ -629,7 +632,7 @@ final class VolumeTable implements Expandable, Highlightable,
           row.setTiltRangeMin(tiltLog.getMinAngle());
           row.setTiltRangeMax(tiltLog.getMaxAngle());
         }
-        catch (LogFile.FileException e) {
+        catch (LogFile.LockException e) {
           e.printStackTrace();
           UIHarness.INSTANCE.openMessageDialog("Unable to open tilt log "
               + file.getAbsolutePath() + "\n" + e.getMessage(),
