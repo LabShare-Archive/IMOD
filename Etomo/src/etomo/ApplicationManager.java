@@ -195,7 +195,7 @@ public final class ApplicationManager extends BaseManager {
         imodManager.setMetaData(metaData);
         if (loadedParamFile) {
           openProcessingPanel();
-          mainPanel.setStatusBarText(paramFile, metaData);
+          mainPanel.setStatusBarText(paramFile, metaData, logPanel);
         }
         else {
           openSetupDialog();
@@ -374,7 +374,7 @@ public final class ApplicationManager extends BaseManager {
         imodManager.setMetaData(metaData);
         // set paramFile so meta data can be saved
         paramFile = new File(propertyUserDir, metaData.getMetaDataFileName());
-        mainPanel.setStatusBarText(paramFile, metaData);
+        mainPanel.setStatusBarText(paramFile, metaData, logPanel);
         if (userConfig.getSwapYAndZ()) {
           TrimvolParam trimvolParam = metaData.getTrimvolParam();
           trimvolParam.setSwapYZ(true);
@@ -2246,7 +2246,7 @@ public final class ApplicationManager extends BaseManager {
     }
   }
 
-  public void save() throws LogFile.FileException, LogFile.WriteException {
+  public void save() throws LogFile.LockException,IOException {
     super.save();
     mainPanel.done();
     saveDialogs();
@@ -3237,10 +3237,25 @@ public final class ApplicationManager extends BaseManager {
       message[1] = except.getMessage();
       uiHarness.openMessageDialog(message, "Unable to generate prexg", axisID);
     }
+    catch (LogFile.LockException except) {
+      except.printStackTrace();
+      String[] message = new String[2];
+      message[0] = "Unable to generate prexg";
+      message[1] = except.getMessage();
+      uiHarness.openMessageDialog(message, "Unable to generate prexg", axisID);
+    }
     try {
       processMgr.generateNonFidXF(axisID);
     }
     catch (SystemProcessException except) {
+      except.printStackTrace();
+      String[] message = new String[2];
+      message[0] = "Unable to generate _nonfid.xf";
+      message[1] = except.getMessage();
+      uiHarness.openMessageDialog(message, "Unable to generate _nonfid.xf",
+          axisID);
+    }
+    catch (LogFile.LockException except) {
       except.printStackTrace();
       String[] message = new String[2];
       message[0] = "Unable to generate _nonfid.xf";
@@ -4883,7 +4898,7 @@ public final class ApplicationManager extends BaseManager {
           AxisID.ONLY);
       return;
     }
-    catch (LogFile.FileException except) {
+    catch (LogFile.LockException except) {
       String[] errorMessage = new String[2];
       errorMessage[0] = "Unable to convert patch_vector.mod to patch.out";
       errorMessage[1] = except.getMessage();
@@ -5079,7 +5094,7 @@ public final class ApplicationManager extends BaseManager {
       alignLogFile = LogFile.getInstance(propertyUserDir, axisID,
           ProcessName.ALIGN);
     }
-    catch (LogFile.FileException e) {
+    catch (LogFile.LockException e) {
       e.printStackTrace();
       return false;
     }
@@ -5466,14 +5481,14 @@ public final class ApplicationManager extends BaseManager {
         || fidXyz.getPixelSize() != prealiHeader.getXPixelSpacing()) {
       // if (getStackBinning(axisID, ".preali") !=
       // getBackwardCompatibleAlignBinning(axisID)) {
-      uiHarness
-          .openMessageDialog(
-              "The prealigned image stack binning has changed.  You must:\n    1. Go "
-                  + "to Fiducial Model Gen. and Press Fix Fiducial Model to open the "
-                  + "fiducial model.\n    2. Save the fiducial model by pressing "
-                  + "\"s\".\n    3. Go to Fine Alignment and press Compute Alignment to"
-                  + " rerun align" + axisID.getExtension() + ".com.",
-              "Prealigned image stack binning has changed", axisID);
+      String title = "Prealigned image stack binning has changed";
+      String[] message = new String[] {"The prealigned image stack binning has changed.  You "
+          + "must:","    1. Go  to Fiducial Model Gen. and Press Fix Fiducial "
+          + "Model to open the fiducial model.","    2. Save the fiducial model "
+          + "by pressing \"s\".","    3. Go to Fine Alignment and press Compute "
+          + "Alignment to rerun align" + axisID.getExtension() + ".com."};
+      logPanel.logMessage(title,axisID,message);
+      uiHarness.openMessageDialog(message, title, axisID);
     }
     processDone(axisID, processResultDisplay, processSeries);
   }
@@ -5494,7 +5509,7 @@ public final class ApplicationManager extends BaseManager {
   public void setParamFile(File paramFile) {
     this.paramFile = paramFile;
     // Update main window information and status bar
-    mainPanel.setStatusBarText(paramFile, metaData);
+    mainPanel.setStatusBarText(paramFile, metaData, logPanel);
   }
 
   protected void createProcessTrack() {
@@ -5821,6 +5836,9 @@ public final class ApplicationManager extends BaseManager {
 }
 /**
  * <p> $Log$
+ * <p> Revision 3.313  2008/12/09 21:25:41  sueh
+ * <p> bug# 1160 Changed getFiducialDiameterPerPixel; divided the diameter by coarse aligned stack binning.
+ * <p>
  * <p> Revision 3.312  2008/12/05 00:49:29  sueh
  * <p> bug# 1156 Added a skipList parameter to imodFixFiducials.
  * <p>
