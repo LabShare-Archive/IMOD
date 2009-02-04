@@ -34,33 +34,34 @@ public final class EtomoMenu {
   private final JMenuBar menuBar = new JMenuBar();
 
   private final JMenu menuFile = new Menu("File");
-  private final JMenuItem menuFileNewTomogram = new MenuItem("New Tomogram",
+  private final JMenuItem menuNewTomogram = new MenuItem("New Tomogram",
       KeyEvent.VK_N);
-  private final JMenuItem menuFileNewJoin = new MenuItem("New Join",
-      KeyEvent.VK_J);
-  private final JMenuItem menuFileNewParallel = new MenuItem(
+  private final JMenuItem menuNewJoin = new MenuItem("New Join", KeyEvent.VK_J);
+  private final JMenuItem menuNewParallel = new MenuItem(
       "New Parallel Process", KeyEvent.VK_P);
-  private final JMenuItem menuFileNewPeet = new MenuItem("New PEET",
-      KeyEvent.VK_E);
-  private final JMenuItem menuFileOpen = new MenuItem("Open...", KeyEvent.VK_O);
-  private final JMenuItem menuFileSave = new MenuItem("Save", KeyEvent.VK_S);
-  private final JMenuItem menuFileSaveAs = new MenuItem("Save As",
-      KeyEvent.VK_A);
-  private final JMenuItem menuFileClose = new MenuItem("Close", KeyEvent.VK_C);
-  private final JMenuItem menuFileExit = new MenuItem("Exit", KeyEvent.VK_X);
-  private final JMenuItem menuFileTomosnapshot = new MenuItem(
-      "Run Tomosnapshot", KeyEvent.VK_R);
+  private final JMenuItem menuNewPeet = new MenuItem("New PEET", KeyEvent.VK_E);
+  private final JMenuItem menuOpen = new MenuItem("Open...", KeyEvent.VK_O);
+  private final JMenuItem menuSave = new MenuItem("Save", KeyEvent.VK_S);
+  private final JMenuItem menuSaveAs = new MenuItem("Save As", KeyEvent.VK_A);
+  private final JMenuItem menuClose = new MenuItem("Close", KeyEvent.VK_C);
+  private final JMenuItem menuExit = new MenuItem("Exit", KeyEvent.VK_X);
+  private final JMenuItem menuTomosnapshot = new MenuItem("Run Tomosnapshot",
+      KeyEvent.VK_R);
   private final JMenuItem[] menuMRUList = new MenuItem[nMRUFileMax];
 
-  private final JMenu menuOptions = new Menu("Options");
+  private final JMenu menuView = new Menu("View");
+  private final JMenuItem menuLogWindow = new MenuItem("Show/Hide Log Window",
+      KeyEvent.VK_L);
   private final JMenuItem menuAxisA = new MenuItem("Axis A", KeyEvent.VK_A);
-  private final JMenuItem menuAxisB = new MenuItem(TomogramProcessPanel.AXIS_B_LABEL, KeyEvent.VK_B);
+  private final JMenuItem menuAxisB = new MenuItem(
+      TomogramProcessPanel.AXIS_B_LABEL, KeyEvent.VK_B);
   private final JMenuItem menuAxisBoth = new MenuItem("Both Axes",
       KeyEvent.VK_2);
-  private final JMenuItem menuSettings = new MenuItem("Settings",
-      KeyEvent.VK_S);
   private final JMenuItem menuFitWindow = new MenuItem("Fit Window",
       KeyEvent.VK_F);
+
+  private final JMenu menuOptions = new Menu("Options");
+  private final JMenuItem menuSettings = new MenuItem("Settings", KeyEvent.VK_S);
   private final JCheckBoxMenuItem menu3dmodStartupWindow = new CheckBoxMenuItem(
       "Open 3dmod with Startup Window");
   private final JCheckBoxMenuItem menu3dmodBinBy2 = new CheckBoxMenuItem(
@@ -82,43 +83,47 @@ public final class EtomoMenu {
   void createMenus(final EtomoFrame frame) {
     //  Mnemonics for the main menu bar
     menuFile.setMnemonic(KeyEvent.VK_F);
+    menuView.setMnemonic(KeyEvent.VK_V);
     menuOptions.setMnemonic(KeyEvent.VK_O);
     menuHelp.setMnemonic(KeyEvent.VK_H);
 
     //  Accelerators
     menuSettings.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_S,
         ActionEvent.CTRL_MASK));
-
     menuAxisA.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_A,
         ActionEvent.CTRL_MASK));
     menuAxisB.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_B,
         ActionEvent.CTRL_MASK));
     menuAxisBoth.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_2,
         ActionEvent.CTRL_MASK));
-
     menuFitWindow.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_F,
+        ActionEvent.CTRL_MASK));
+    menuLogWindow.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_L,
         ActionEvent.CTRL_MASK));
 
     //  Bind the menu items to their listeners
     FileActionListener fileActionListener = new FileActionListener(frame);
-    menuFileNewTomogram.addActionListener(fileActionListener);
-    menuFileNewJoin.addActionListener(fileActionListener);
-    menuFileNewParallel.addActionListener(fileActionListener);
-    menuFileNewPeet.addActionListener(fileActionListener);
-    menuFileOpen.addActionListener(fileActionListener);
-    menuFileSave.addActionListener(fileActionListener);
-    menuFileSaveAs.addActionListener(fileActionListener);
-    menuFileClose.addActionListener(fileActionListener);
-    menuFileExit.addActionListener(fileActionListener);
-    menuFileTomosnapshot.addActionListener(fileActionListener);
+    menuNewTomogram.addActionListener(fileActionListener);
+    menuNewJoin.addActionListener(fileActionListener);
+    menuNewParallel.addActionListener(fileActionListener);
+    menuNewPeet.addActionListener(fileActionListener);
+    menuOpen.addActionListener(fileActionListener);
+    menuSave.addActionListener(fileActionListener);
+    menuSaveAs.addActionListener(fileActionListener);
+    menuClose.addActionListener(fileActionListener);
+    menuExit.addActionListener(fileActionListener);
+    menuTomosnapshot.addActionListener(fileActionListener);
+
+    ViewActionListener viewActionListener = new ViewActionListener(frame);
+    menuLogWindow.addActionListener(viewActionListener);
+    menuFitWindow.addActionListener(viewActionListener);
+    menuAxisA.addActionListener(viewActionListener);
+    menuAxisB.addActionListener(viewActionListener);
+    menuAxisBoth.addActionListener(viewActionListener);
 
     OptionsActionListener optionsActionListener = new OptionsActionListener(
         frame);
     menuSettings.addActionListener(optionsActionListener);
-    menuFitWindow.addActionListener(optionsActionListener);
-    menuAxisA.addActionListener(optionsActionListener);
-    menuAxisB.addActionListener(optionsActionListener);
-    menuAxisBoth.addActionListener(optionsActionListener);
     menu3dmodStartupWindow.addActionListener(optionsActionListener);
     menu3dmodBinBy2.addActionListener(optionsActionListener);
 
@@ -131,17 +136,17 @@ public final class EtomoMenu {
     menuHelpAbout.addActionListener(helpActionListener);
 
     //  File menu
-    menuFile.add(menuFileNewTomogram);
-    menuFile.add(menuFileNewJoin);
-    menuFile.add(menuFileNewParallel);
-    menuFile.add(menuFileNewPeet);
-    menuFile.add(menuFileOpen);
-    menuFile.add(menuFileSave);
-    menuFile.add(menuFileSaveAs);
-    menuFile.add(menuFileClose);
-    menuFile.add(menuFileExit);
+    menuFile.add(menuNewTomogram);
+    menuFile.add(menuNewJoin);
+    menuFile.add(menuNewParallel);
+    menuFile.add(menuNewPeet);
+    menuFile.add(menuOpen);
+    menuFile.add(menuSave);
+    menuFile.add(menuSaveAs);
+    menuFile.add(menuClose);
+    menuFile.add(menuExit);
     menuFile.addSeparator();
-    menuFile.add(menuFileTomosnapshot);
+    menuFile.add(menuTomosnapshot);
     menuFile.addSeparator();
 
     //  Initialize all of the MRU file menu items
@@ -154,14 +159,17 @@ public final class EtomoMenu {
       menuFile.add(menuMRUList[i]);
     }
 
+    // View menu
+    menuView.add(menuLogWindow);
+    menuView.add(menuAxisA);
+    menuView.add(menuAxisB);
+    menuView.add(menuAxisBoth);
+    menuView.add(menuFitWindow);
+
     // Options menu
     menuOptions.add(menuSettings);
     menuOptions.add(menu3dmodStartupWindow);
     menuOptions.add(menu3dmodBinBy2);
-    menuOptions.add(menuAxisA);
-    menuOptions.add(menuAxisB);
-    menuOptions.add(menuAxisBoth);
-    menuOptions.add(menuFitWindow);
 
     // Help menu
     menuHelp.add(menuTomoGuide);
@@ -173,6 +181,7 @@ public final class EtomoMenu {
 
     //  Construct menu bar
     menuBar.add(menuFile);
+    menuBar.add(menuView);
     menuBar.add(menuOptions);
     menuBar.add(menuHelp);
   }
@@ -187,27 +196,27 @@ public final class EtomoMenu {
    */
   void setEnabled(final BaseManager currentManager) {
     if (currentManager == null) {
-      menuFileSave.setEnabled(false);
-      menuFileSaveAs.setEnabled(false);
-      menuFileClose.setEnabled(false);
+      menuSave.setEnabled(false);
+      menuSaveAs.setEnabled(false);
+      menuClose.setEnabled(false);
       menuAxisA.setEnabled(false);
       menuAxisB.setEnabled(false);
       menuAxisBoth.setEnabled(false);
     }
     else {
-      menuFileSave.setEnabled(true);
-      menuFileSaveAs.setEnabled(currentManager.canChangeParamFileName());
-      menuFileClose.setEnabled(true);
+      menuSave.setEnabled(true);
+      menuSaveAs.setEnabled(currentManager.canChangeParamFileName());
+      menuClose.setEnabled(true);
       boolean dualAxis = currentManager.getBaseMetaData().getAxisType() == AxisType.DUAL_AXIS;
       menuAxisA.setEnabled(dualAxis);
       menuAxisB.setEnabled(dualAxis);
       menuAxisBoth.setEnabled(dualAxis);
     }
     if (currentManager == null || !currentManager.canSnapshot()) {
-      menuFileTomosnapshot.setEnabled(false);
+      menuTomosnapshot.setEnabled(false);
     }
     else {
-      menuFileTomosnapshot.setEnabled(true);
+      menuTomosnapshot.setEnabled(true);
     }
   }
 
@@ -217,14 +226,12 @@ public final class EtomoMenu {
    * @param otherMenu
    */
   void setEnabled(final EtomoMenu mainFrameMenu) {
-    menuFileNewTomogram.setEnabled(mainFrameMenu.menuFileNewTomogram
-        .isEnabled());
-    menuFileNewJoin.setEnabled(mainFrameMenu.menuFileNewJoin.isEnabled());
-    menuFileNewParallel.setEnabled(mainFrameMenu.menuFileNewParallel
-        .isEnabled());
-    menuFileNewPeet.setEnabled(mainFrameMenu.menuFileNewPeet.isEnabled());
-    menuFileSaveAs.setEnabled(mainFrameMenu.menuFileSaveAs.isEnabled());
-    menuFileTomosnapshot.setEnabled(menuFileTomosnapshot.isEnabled());
+    menuNewTomogram.setEnabled(mainFrameMenu.menuNewTomogram.isEnabled());
+    menuNewJoin.setEnabled(mainFrameMenu.menuNewJoin.isEnabled());
+    menuNewParallel.setEnabled(mainFrameMenu.menuNewParallel.isEnabled());
+    menuNewPeet.setEnabled(mainFrameMenu.menuNewPeet.isEnabled());
+    menuSaveAs.setEnabled(mainFrameMenu.menuSaveAs.isEnabled());
+    menuTomosnapshot.setEnabled(menuTomosnapshot.isEnabled());
     menuAxisA.setEnabled(mainFrameMenu.menuAxisA.isEnabled());
     menuAxisB.setEnabled(mainFrameMenu.menuAxisB.isEnabled());
     menuAxisBoth.setEnabled(mainFrameMenu.menuAxisBoth.isEnabled());
@@ -269,63 +276,67 @@ public final class EtomoMenu {
   }
 
   void doClickFileExit() {
-    menuFileExit.doClick();
+    menuExit.doClick();
+  }
+  
+  void setEnabledLogWindow(final boolean enable) {
+    menuLogWindow.setEnabled(enable);
   }
 
-  void setEnabledFileNewTomogram(final boolean enable) {
-    menuFileNewTomogram.setEnabled(enable);
+  void setEnabledNewTomogram(final boolean enable) {
+    menuNewTomogram.setEnabled(enable);
   }
 
-  void setEnabledFileNewJoin(final boolean enable) {
-    menuFileNewJoin.setEnabled(enable);
+  void setEnabledNewJoin(final boolean enable) {
+    menuNewJoin.setEnabled(enable);
   }
 
-  void setEnabledFileNewParallel(final boolean enable) {
-    menuFileNewParallel.setEnabled(enable);
+  void setEnabledNewParallel(final boolean enable) {
+    menuNewParallel.setEnabled(enable);
   }
 
-  void setEnabledFileNewPeet(final boolean enable) {
-    menuFileNewPeet.setEnabled(enable);
+  void setEnabledNewPeet(final boolean enable) {
+    menuNewPeet.setEnabled(enable);
   }
 
-  boolean equalsFileNewTomogram(final ActionEvent event) {
-    return equals(menuFileNewTomogram, event);
+  boolean equalsNewTomogram(final ActionEvent event) {
+    return equals(menuNewTomogram, event);
   }
 
-  boolean equalsFileNewJoin(final ActionEvent event) {
-    return equals(menuFileNewJoin, event);
+  boolean equalsNewJoin(final ActionEvent event) {
+    return equals(menuNewJoin, event);
   }
 
-  boolean equalsFileNewParallel(final ActionEvent event) {
-    return equals(menuFileNewParallel, event);
+  boolean equalsNewParallel(final ActionEvent event) {
+    return equals(menuNewParallel, event);
   }
 
-  boolean equalsFileNewPeet(final ActionEvent event) {
-    return equals(menuFileNewPeet, event);
+  boolean equalsNewPeet(final ActionEvent event) {
+    return equals(menuNewPeet, event);
   }
 
-  boolean equalsFileOpen(final ActionEvent event) {
-    return equals(menuFileOpen, event);
+  boolean equalsOpen(final ActionEvent event) {
+    return equals(menuOpen, event);
   }
 
-  boolean equalsFileSave(final ActionEvent event) {
-    return equals(menuFileSave, event);
+  boolean equalsSave(final ActionEvent event) {
+    return equals(menuSave, event);
   }
 
-  boolean equalsFileSaveAs(final ActionEvent event) {
-    return equals(menuFileSaveAs, event);
+  boolean equalsSaveAs(final ActionEvent event) {
+    return equals(menuSaveAs, event);
   }
 
-  boolean equalsFileClose(final ActionEvent event) {
-    return equals(menuFileClose, event);
+  boolean equalsClose(final ActionEvent event) {
+    return equals(menuClose, event);
   }
 
-  boolean equalsFileExit(final ActionEvent event) {
-    return equals(menuFileExit, event);
+  boolean equalsExit(final ActionEvent event) {
+    return equals(menuExit, event);
   }
 
-  boolean equalsFileTomosnapshot(final ActionEvent event) {
-    return equals(menuFileTomosnapshot, event);
+  boolean equalsTomosnapshot(final ActionEvent event) {
+    return equals(menuTomosnapshot, event);
   }
 
   boolean equalsSettings(final ActionEvent event) {
@@ -350,6 +361,10 @@ public final class EtomoMenu {
 
   boolean equals3dmodBinBy2(final ActionEvent event) {
     return equals(menu3dmodBinBy2, event);
+  }
+
+  boolean equalsLogWindow(final ActionEvent event) {
+    return equals(menuLogWindow, event);
   }
 
   boolean equalsFitWindow(final ActionEvent event) {
@@ -411,7 +426,20 @@ public final class EtomoMenu {
     }
   }
 
-  // Options file action listener
+  // View action listener
+  private static final class ViewActionListener implements ActionListener {
+    private EtomoFrame adaptee;
+
+    private ViewActionListener(final EtomoFrame adaptee) {
+      this.adaptee = adaptee;
+    }
+
+    public void actionPerformed(final ActionEvent event) {
+      adaptee.menuViewAction(event);
+    }
+  }
+
+  // Options action listener
   private static final class OptionsActionListener implements ActionListener {
     private EtomoFrame adaptee;
 
@@ -439,6 +467,11 @@ public final class EtomoMenu {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.13  2009/01/20 19:59:13  sueh
+ * <p> bug# 1102 Changed JMenuItem variables to type MenuItem, JMenu
+ * <p> variables to type Menu, and JCheckBoxMenuItem variables to
+ * <p> CheckBoxMenuItem so that they can name themselves.
+ * <p>
  * <p> Revision 1.12  2008/01/14 22:04:24  sueh
  * <p> bug# 1050 Moved string "Axis B" to TomogramProcessPanel.
  * <p>

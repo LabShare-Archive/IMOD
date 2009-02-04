@@ -102,15 +102,15 @@ public final class SubFrame extends EtomoFrame {
 
   /**
    * Override superclass to call mainFrame for command which require switching
-   * axis.
+   * axis or handling the log window.
    */
-  void menuOptionsAction(ActionEvent event) {
+  void menuViewAction(ActionEvent event) {
     if (menu.equalsAxisA(event) || menu.equalsAxisB(event)
-        || menu.equalsAxisBoth(event)) {
-      mainFrame.menuOptionsAction(event);
+        || menu.equalsAxisBoth(event) || menu.equalsLogWindow(event)) {
+      mainFrame.menuViewAction(event);
     }
     else {
-      super.menuOptionsAction(event);
+      super.menuViewAction(event);
     }
   }
 
@@ -169,6 +169,9 @@ public final class SubFrame extends EtomoFrame {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.10  2009/01/20 20:30:16  sueh
+ * <p> bug# 1102 Printing out the name of the sub-frame.
+ * <p>
  * <p> Revision 1.9  2008/05/30 21:34:28  sueh
  * <p> bug# 1102 Moved uitest classes to etomo.uitest.
  * <p>
