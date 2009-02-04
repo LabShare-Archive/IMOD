@@ -392,6 +392,12 @@ public final class UIHarness {
       mainFrame.selectWindowMenuItem(currentManagerKey, newWindow);
     }
   }
+  
+  public void setEnabledLogWindowMenuItem(boolean enable) {
+    if (isHead()) {
+      mainFrame.setEnabledLogWindowMenuItem(enable);
+    }
+  }
 
   public void setEnabledNewJoinMenuItem(boolean enable) {
     if (isHead()) {
@@ -446,6 +452,12 @@ public final class UIHarness {
     if (!headless && mainFrame == null) {
       mainFrame = new MainFrame();
       mainFrame.setVerbose(verbose);
+    }
+  }
+
+  public void msgChanged(LogPanel logPanel) {
+    if (isHead()) {
+      mainFrame.msgChanged(logPanel);
     }
   }
 
@@ -565,6 +577,10 @@ public final class UIHarness {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.32  2008/10/06 22:47:26  sueh
+ * <p> bug# 1113 Removed packPanel, which is unecessary since scrolling was
+ * <p> removed.
+ * <p>
  * <p> Revision 1.31  2008/09/30 22:52:57  sueh
  * <p> bug# 1113 Modify pack functions so that they can request focus after
  * <p> repaint and pack are done.  The focus Component comes from the
