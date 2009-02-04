@@ -28,6 +28,9 @@ import etomo.util.Utilities;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.44  2008/12/10 18:33:24  sueh
+ * <p> bug# 1162 Added a manager stamp to setDatasetName.
+ * <p>
  * <p> Revision 3.43  2008/12/02 21:20:57  sueh
  * <p> bug# 1157 Added finalStackFiducialDiameterA and B.  Deprecated finalStackBetterRadiusA and B.  Getting better radius for backwards compatibility.  Changed revision number to 1.10.
  * <p>
@@ -440,7 +443,7 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
     String path = file.getPath();
     datasetName = file.getName();
     fixDatasetName();
-    Utilities.managerStamp(null,datasetName);
+    Utilities.managerStamp(null, datasetName);
   }
 
   /**
@@ -1170,7 +1173,7 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
     }
     return finalStackFiducialDiameterA.toString();
   }
-  
+
   /**
    * @deprecated in 1.10
    */
@@ -1194,7 +1197,7 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
     }
     return finalStackFiducialDiameterA.isNull();
   }
-  
+
   /**
    * @deprecated in 1.10
    */

@@ -137,7 +137,7 @@ public class EtomoAutodoc {
     catch (IOException e) {
       return value;
     }
-    catch (LogFile.ReadException e) {
+    catch (LogFile.LockException e) {
       return value;
     }
     try {
@@ -199,7 +199,7 @@ public class EtomoAutodoc {
     catch (IOException e) {
       return new String[] { value };
     }
-    catch (LogFile.ReadException e) {
+    catch (LogFile.LockException e) {
       return new String[] { value };
     }
     try {
@@ -261,6 +261,9 @@ public class EtomoAutodoc {
 
 /**
  * <p> $Log$
+ * <p> Revision 1.17  2008/10/27 18:38:00  sueh
+ * <p> bug# 1141 Added debug only print statements.
+ * <p>
  * <p> Revision 1.16  2007/04/13 20:12:56  sueh
  * <p> bug# 964 Added debug member variable.
  * <p>

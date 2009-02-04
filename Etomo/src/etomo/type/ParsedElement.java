@@ -20,6 +20,12 @@ import etomo.util.PrimativeTokenizer;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.14  2008/09/10 21:06:34  sueh
+ * <p> bug# 1135 Check for null when calling ParsedElementList.get(int).  Check
+ * <p> for null when calling ParsedElement.getElement or getRawNumber.
+ * <p> arsedElementList will no longer create an empty element, so null returns
+ * <p> will happen.  Remove all the array size functionality because the array descriptor will not automatically be padded out to three.
+ * <p>
  * <p> Revision 1.13  2008/04/15 21:23:32  sueh
  * <p> bug# 1105 Simplified setting the default.  Move setDebug() to child
  * <p> classes.
@@ -167,7 +173,7 @@ public abstract class ParsedElement {
       e.printStackTrace();
       fail(e.getMessage());
     }
-    catch (LogFile.ReadException e) {
+    catch (LogFile.LockException e) {
       e.printStackTrace();
       fail(e.getMessage());
     }

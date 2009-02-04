@@ -574,8 +574,8 @@ public final class ConstEtomoNumberTest extends TestCase {
     test.internalTest();
   }
 
-  public final void testStore_Properties() throws LogFile.FileException,
-      LogFile.WriteException, FileNotFoundException, IOException {
+  public final void testStore_Properties() throws 
+      LogFile.LockException, FileNotFoundException, IOException {
     String name = "TestStore_PropertiesName";
     EtomoNumber test = new EtomoNumber(name);
     test.set(smallInteger);
@@ -1371,6 +1371,9 @@ public final class ConstEtomoNumberTest extends TestCase {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.46  2007/07/30 18:53:44  sueh
+ * <p> bug# 1002 ParameterStore.getInstance can return null - handle it.
+ * <p>
  * <p> Revision 1.45  2007/05/18 23:53:01  sueh
  * <p> bug# 987 Made isNull(int) static.
  * <p>

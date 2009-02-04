@@ -71,6 +71,9 @@ import etomo.util.PrimativeTokenizer;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.16  2008/10/10 20:43:05  sueh
+ * <p> bug# 1142 Added clear function.
+ * <p>
  * <p> Revision 1.15  2008/09/10 21:08:00  sueh
  * <p> bug# 1135 Check for null when calling ParsedElementList.get(int).  Check
  * <p> for null when calling ParsedElement.getElement or getRawNumber.
@@ -335,7 +338,7 @@ public final class ParsedList {
       e.printStackTrace();
       fail();
     }
-    catch (LogFile.ReadException e) {
+    catch (LogFile.LockException e) {
       e.printStackTrace();
       fail();
     }

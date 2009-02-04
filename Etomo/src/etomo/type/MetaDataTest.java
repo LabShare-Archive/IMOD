@@ -26,6 +26,10 @@ import junit.framework.TestCase;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.23  2008/12/15 23:02:38  sueh
+ * <p> bug# 1161 Made EtomoDirector.getCurrentManager private.  Added a
+ * <p> public test version for public access.
+ * <p>
  * <p> Revision 3.22  2007/12/26 22:18:31  sueh
  * <p> bug# 1052 Removed print statement.
  * <p>
@@ -226,8 +230,7 @@ public class MetaDataTest extends TestCase {
   /*
    * Class to test for void store(Properties)
    */
-  public void testStoreProperties() throws LogFile.WriteException,
-      LogFile.FileException {
+  public void testStoreProperties() throws LogFile.LockException,IOException {
     for (int i = 0; i < edfList.length; i++) {
       MetaData origMetaData = new MetaData(manager);
 
