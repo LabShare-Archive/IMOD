@@ -85,7 +85,7 @@ public final class ParallelManager extends BaseManager {
     initializeUIParameters(paramFileName, AXIS_ID);
     if (!EtomoDirector.INSTANCE.getArguments().isHeadless()) {
       openProcessingPanel();
-      mainPanel.setStatusBarText(paramFile, metaData);
+      mainPanel.setStatusBarText(paramFile, metaData, logPanel);
       if (paramFile == null) {
         openParallelChooser();
       }
@@ -189,7 +189,7 @@ public final class ParallelManager extends BaseManager {
     processMgr.pause(axisID);
   }
 
-  public void save() throws LogFile.FileException, LogFile.WriteException {
+  public void save() throws LogFile.LockException,IOException {
     super.save();
     mainPanel.done();
     saveDialog();
@@ -339,7 +339,7 @@ public final class ParallelManager extends BaseManager {
     imodManager.setMetaData(metaData);
     setParamFile(new File(propertyUserDir, metaData.getMetaDataFileName()));
     EtomoDirector.INSTANCE.renameCurrentManager(metaData.getRootName());
-    mainPanel.setStatusBarText(paramFile, metaData);
+    mainPanel.setStatusBarText(paramFile, metaData, logPanel);
     return true;
   }
 
@@ -451,8 +451,7 @@ public final class ParallelManager extends BaseManager {
   }
 
   private AnisotropicDiffusionParam updateAnisotropicDiffusionParamForVaryingK(
-      final String subdirName) throws LogFile.WriteException,
-      LogFile.FileException {
+      final String subdirName) throws LogFile.LockException,IOException{
     AnisotropicDiffusionParam param = new AnisotropicDiffusionParam(this);
     if (!anisotropicDiffusionDialog.getParametersForVaryingK(param)) {
       return null;
@@ -462,8 +461,7 @@ public final class ParallelManager extends BaseManager {
     return param;
   }
 
-  private void updateAnisotropicDiffusionParam() throws LogFile.FileException,
-      LogFile.WriteException {
+  private void updateAnisotropicDiffusionParam() throws LogFile.LockException,IOException {
     AnisotropicDiffusionParam param = new AnisotropicDiffusionParam(this);
     anisotropicDiffusionDialog.getParameters(param);
     param.createFilterFullFile();
@@ -479,14 +477,14 @@ public final class ParallelManager extends BaseManager {
     try {
       updateAnisotropicDiffusionParam();
     }
-    catch (LogFile.WriteException e) {
+    catch (LogFile.LockException e) {
       e.printStackTrace();
       uiHarness.openMessageDialog(
           "Anisotropic diffusion comscripts could not be created",
           "Write Comscript Error", AxisID.ONLY);
       return false;
     }
-    catch (LogFile.FileException e) {
+    catch (IOException e) {
       e.printStackTrace();
       uiHarness.openMessageDialog(
           "Anisotropic diffusion comscripts could not be created",
@@ -611,14 +609,14 @@ public final class ParallelManager extends BaseManager {
         return;
       }
     }
-    catch (LogFile.WriteException e) {
+    catch (LogFile.LockException e) {
       e.printStackTrace();
       uiHarness.openMessageDialog(
           "Anisotropic diffusion comscripts could not be created",
           "Write Comscript Error", AxisID.ONLY);
       return;
     }
-    catch (LogFile.FileException e) {
+    catch (IOException e) {
       e.printStackTrace();
       uiHarness.openMessageDialog(
           "Anisotropic diffusion comscripts could not be created",
@@ -688,7 +686,7 @@ public final class ParallelManager extends BaseManager {
     setParamFile(new File(propertyUserDir, metaData.getMetaDataFileName()));
     System.err.println("paramFile: " + paramFile);
     EtomoDirector.INSTANCE.renameCurrentManager(metaData.getRootName());
-    mainPanel.setStatusBarText(paramFile, metaData);
+    mainPanel.setStatusBarText(paramFile, metaData, logPanel);
     return true;
   }
 
@@ -699,6 +697,9 @@ public final class ParallelManager extends BaseManager {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.29  2008/08/26 20:35:26  sueh
+ * <p> bug# 1122 Moved deleteSubdir from dialog to manager so that ImodManager can be queried about open 3dmods.
+ * <p>
  * <p> Revision 1.28  2008/05/28 02:47:55  sueh
  * <p> bug# 1111 Removed processDialogTypeA and B from BaseManager.
  * <p> The dialogType for processes should be handled by ProcessSeries.

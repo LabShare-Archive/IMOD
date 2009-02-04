@@ -58,6 +58,9 @@ import etomo.util.DatasetFiles;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.44  2008/10/01 22:50:01  sueh
+ * <p> bug# 1113 Added getFocusComponent.
+ * <p>
  * <p> Revision 1.43  2008/05/28 02:48:03  sueh
  * <p> bug# 1111 Removed processDialogTypeA and B from BaseManager.
  * <p> The dialogType for processes should be handled by ProcessSeries.
@@ -258,7 +261,7 @@ public final class PeetManager extends BaseManager {
     }
     if (!EtomoDirector.INSTANCE.getArguments().isHeadless()) {
       openProcessingPanel();
-      mainPanel.setStatusBarText(paramFile, metaData);
+      mainPanel.setStatusBarText(paramFile, metaData, logPanel);
       openPeetDialog();
     }
   }
@@ -394,7 +397,7 @@ public final class PeetManager extends BaseManager {
     matlabParam.setFile(propertyUserDir);
     setPeetDialogParameters(matlabParamFile.getParentFile(), false,
         parametersOnly);
-    mainPanel.setStatusBarText(paramFile, metaData);
+    mainPanel.setStatusBarText(paramFile, metaData, logPanel);
     EtomoDirector.INSTANCE.renameCurrentManager(metaData.getName());
   }
 
@@ -468,14 +471,11 @@ public final class PeetManager extends BaseManager {
         peetDialog.setFnOutput(newName);
         peetDialog.updateDisplay(true);
         setPeetDialogParameters(null, true, parametersOnly);
-        mainPanel.setStatusBarText(paramFile, metaData);
+        mainPanel.setStatusBarText(paramFile, metaData, logPanel);
         EtomoDirector.INSTANCE.renameCurrentManager(metaData.getName());
       }
     }
-    catch (LogFile.WriteException e) {
-      e.printStackTrace();
-    }
-    catch (LogFile.FileException e) {
+    catch (LogFile.LockException e) {
       e.printStackTrace();
     }
   }
@@ -563,7 +563,7 @@ public final class PeetManager extends BaseManager {
     }
   }
 
-  public void save() throws LogFile.FileException, LogFile.WriteException {
+  public void save() throws LogFile.LockException,IOException {
     super.save();
     mainPanel.done();
     savePeetDialog();
@@ -666,7 +666,7 @@ public final class PeetManager extends BaseManager {
         LogFile log = LogFile.getInstance(param.getLogFile());
         log.backup();
       }
-      catch (LogFile.FileException e) {
+      catch (LogFile.LockException e) {
         e.printStackTrace();
       }
       removeComFiles();
