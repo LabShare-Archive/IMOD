@@ -70,6 +70,10 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.72  2008/11/20 01:25:19  sueh
+ * <p> bug# 1147 Moved imodOpen(String,String,Run3dmodMenuOptions) to
+ * <p> BaseManager.
+ * <p>
  * <p> Revision 1.71  2008/09/30 20:42:50  sueh
  * <p> bug# 1113 Added getFocusComponent.
  * <p>
@@ -504,7 +508,7 @@ public final class JoinManager extends BaseManager {
     initializeUIParameters(paramFileName, axisID);
     if (!paramFileName.equals("") && loadedParamFile) {
       imodManager.setMetaData(metaData);
-      mainPanel.setStatusBarText(paramFile, metaData);
+      mainPanel.setStatusBarText(paramFile, metaData, logPanel);
     }
     if (!EtomoDirector.INSTANCE.getArguments().isHeadless()) {
       openJoinDialog();
@@ -524,8 +528,8 @@ public final class JoinManager extends BaseManager {
     return processResultDisplayFactory;
   }
 
-  public boolean saveParamFile() throws LogFile.FileException,
-      LogFile.WriteException {
+  public boolean saveParamFile() throws LogFile.LockException,
+      IOException {
     boolean retval;
     if ((retval = super.saveParamFile())) {
       endSetupMode();
@@ -546,7 +550,7 @@ public final class JoinManager extends BaseManager {
         initializeUIParameters(file, AxisID.ONLY, false);
         if (loadedParamFile) {
           imodManager.setMetaData(metaData);
-          mainPanel.setStatusBarText(paramFile, metaData);
+          mainPanel.setStatusBarText(paramFile, metaData, logPanel);
         }
       }
     }
@@ -628,7 +632,7 @@ public final class JoinManager extends BaseManager {
       initializeUIParameters(paramFile, AxisID.ONLY, false);
       if (loadedParamFile) {
         imodManager.setMetaData(metaData);
-        mainPanel.setStatusBarText(paramFile, metaData);
+        mainPanel.setStatusBarText(paramFile, metaData, logPanel);
       }
     }
     joinDialog.getMetaData(metaData);
@@ -903,12 +907,12 @@ public final class JoinManager extends BaseManager {
         joinDialog.setXfjointomoResult();
       }
     }
-    catch (LogFile.ReadException e) {
+    catch (LogFile.LockException e) {
       e.printStackTrace();
       uiHarness.openMessageDialog("Unable to read "
           + DatasetFiles.XFJOINTOMO_LOG + ".\n" + e.getMessage(), "Read Error");
     }
-    catch (LogFile.FileException e) {
+    catch (IOException e) {
       e.printStackTrace();
       uiHarness.openMessageDialog("Unable to read "
           + DatasetFiles.XFJOINTOMO_LOG + ".\n" + e.getMessage(), "Read Error");
@@ -934,12 +938,13 @@ public final class JoinManager extends BaseManager {
     if (!paramFile.exists()) {
       processMgr.createNewFile(paramFile.getAbsolutePath());
     }
-    initializeUIParameters(paramFile, AxisID.ONLY, false);
-    if (loadedParamFile) {
+    loadedParamFile = true;
+    //initializeUIParameters(paramFile, AxisID.ONLY, false);
+    //if (loadedParamFile) {
       //imodManager.setMetaData(metaData);
-      mainPanel.setStatusBarText(paramFile, metaData);
-    }
-    mainPanel.setStatusBarText(paramFile, metaData);
+      //mainPanel.setStatusBarText(paramFile, metaData, logPanel);
+    //}
+    mainPanel.setStatusBarText(paramFile, metaData, logPanel);
     return true;
   }
 
@@ -1229,7 +1234,7 @@ public final class JoinManager extends BaseManager {
       processSeries.setNextProcess(ProcessName.REMAPMODEL.toString());
     }
     try {
-      threadNameA = processMgr.xfmodel(param, AxisID.ONLY,null,processSeries);
+      threadNameA = processMgr.xfmodel(param, AxisID.ONLY, null, processSeries);
     }
     catch (SystemProcessException except) {
       except.printStackTrace();
@@ -1341,13 +1346,13 @@ public final class JoinManager extends BaseManager {
       }
       parameterStore.save(metaData);
     }
-    catch (LogFile.FileException e) {
-      uiHarness.openMessageDialog("Cannot save metaData.\n" + e.getMessage(),
+    catch (LogFile.LockException e) {
+      uiHarness.openMessageDialog("Cannot save or write to metaData.\n" + e.getMessage(),
           "Etomo Error");
     }
-    catch (LogFile.WriteException e) {
-      uiHarness.openMessageDialog("Cannot write to metaData.\n"
-          + e.getMessage(), "Etomo Error");
+    catch (IOException e) {
+      uiHarness.openMessageDialog("Cannot save or write to metaData.\n" + e.getMessage(),
+          "Etomo Error");
     }
     return true;
   }
@@ -1406,7 +1411,7 @@ public final class JoinManager extends BaseManager {
   public void setParamFile(File paramFile) {
     this.paramFile = paramFile;
     //  Update main window information and status bar
-    mainPanel.setStatusBarText(paramFile, metaData);
+    mainPanel.setStatusBarText(paramFile, metaData, logPanel);
   }
 
   protected void updateDialog(ProcessName processName, AxisID axisID) {
@@ -1535,7 +1540,7 @@ public final class JoinManager extends BaseManager {
     }
   }
 
-  public void save() throws LogFile.FileException, LogFile.WriteException {
+  public void save() throws LogFile.LockException,IOException {
     super.save();
     doneJoinDialog();
     mainPanel.done();
