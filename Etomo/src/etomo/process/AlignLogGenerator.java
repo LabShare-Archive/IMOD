@@ -11,6 +11,9 @@
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.7  2007/11/14 23:46:20  sueh
+ * <p> bug# 1048 Added beam tilt log.
+ * <p>
  * <p> Revision 3.6  2006/06/27 23:09:46  sueh
  * <p> bug# 886 Fixed problem:  Was placing an empty string in alignLogCommand
  * <p> when the axisID is ONLY.  This caused alignlog to fail.
@@ -38,6 +41,7 @@ import etomo.BaseManager;
 import etomo.type.AxisID;
 
 public class AlignLogGenerator {
+ public static final String ERROR_LOG_NAME = "taError";
 
   AxisID axisID;
   String[] alignLogCommand = null;
@@ -66,7 +70,7 @@ public class AlignLogGenerator {
   public void run() throws IOException {
     runArgument("-a", "taAngles");
     runArgument("-c", "taCoordinates");
-    runArgument("-e", "taError");
+    runArgument("-e", ERROR_LOG_NAME);
     runArgument("-l", "taLocals");
     runArgument("-m", "taMappings");
     runArgument("-r", "taResiduals");
