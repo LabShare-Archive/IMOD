@@ -1,7 +1,0 @@
-Version = 1.2
-verbose =
-interface = Recon
-
-[Dialog = SetupRecon]
-adoc = setup-recon-test.adoc
-function = run

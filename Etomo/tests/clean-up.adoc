@@ -1,8 +1,14 @@
 Version = 2.1
 
 [function = main]
-if.disabled.bn.archive-original-stacks.return = 
-bn.archive-original-stacks =
+[[if = single]]
+	if.disabled.bn.archive-original-stack.return = 
+	bn.archive-original-stack =
+[[]]
+[[if = dual]]
+	if.disabled.bn.archive-original-stacks.return = 
+	bn.archive-original-stacks =
+[[]]
 wait.popup.delete-file? = Delete
 [[if = dual]]
 	if.var.dual.wait.popup.delete-file? = Delete

@@ -3,7 +3,8 @@ Version = 1.2
 [function = build]
 #full align
 bn.create-full-aligned-stack =
-wait.process.creating-aligned-stack = done
+if.not.var.montage.wait.process.creating-aligned-stack = done
+if.var.montage.wait.process.full-alignment = done
 bn.done =
 
 [function = test]
