@@ -1,0 +1,295 @@
+.TH uitest 7 2/4/2009 BL3DEMC
+
+.SH NAME
+uitest - script to run GUI tests using JFCUnit
+
+.SH SYNOPSIS
+.B scripts/uitest \fITest_Section_name\fR
+.B make -f tests/uitest.make [target...]
+
+.SH DESCRIPTION
+Autodocs:
+
+The main UITest autodoc is uitest.adoc.  Test autodocs are referred to by uitest.adoc.  Function autodocs are referred to by Test autodocs.
+
+Section relationships:
+
+The uitest.adoc contains Test, Dataset, and Interface sections.  A Test section contains descriptions of tests that will be run together.  A Test section refers to a single Dataset section for information on the dataset being tested.  A Dataset section refers to one interface section.  A Test section also refers to at least one Test autodoc and specifies a section type to be accessed in it.  Sections specified by a Test section are called Dialog sections.  Sections may also be called like functions.  Subsections with a section type of "if" or "ifnot" act as simple if clauses.
+
+
+Testing:
+
+The TestRunner class picks a Test Section based on the IMOD_TEST_SECTION environment variable (set by uitest).  Each Test Section is associated with one dataset.  A list of autodocs are added to the section using the adoc command.  Each autodoc is associated with one Axis.  The TestRunner runs a test on each autodoc in turn, based on the order they appear in the Test Section.  Each test will run until it starts to wait for a process, then it will return control to TestRunner.  The TestRunner will keep running tests on each autodoc in turn until all tests in the autodoc have been completed.  This allows uitest to mimic the way a person might work with Etomo - moving from one axis or dataset to another.
+
+
+Grammer:
+action = [value]
+field = [value]
+action[.modifier].field = [value]
+action[.modifier].subject = [value]
+action[.modifier].subject.field = [value]
+action[.modifier].subject.subcommand = [value]
+action[.modifier].field.subcommand = [value]
+
+field:  field_type.field_name[.index]
+subject:  subject_type[.subject_name][.axis]
+subcommand:  action.subject
+
+Action:   assert, copy, if, goto, open, run, set, skipto, start, or wait.
+Modifier:  always, disabled, enabled, equals, exists, keep, not, not-equals, not-exists, or single.
+Subject type:  adoc, dataset, dialog, file, frame, function, interface, param, popup, process, section, test, testdir, or var.
+Subject name:  Name of the subject.  May contains variables.  May not be "a", "b", an action string, or a field string.
+Axis:  a or b.  Default is single axis.
+Field type:  bn (button), cb (check box), mb (mini-button), pnl (panel), sp (spinner), tb (tab), or tf (text field).
+Field name:  Name of the field.  May contain variables.  See Naming.
+Index:  An integer.  Default: 0.  Used when multiples fields of the same type and name are present.
+Value:  Make contain a directory, file name, process result, command line parameter, button state, or field value.
+
+
+Scope:
+
+Datasets, variables, interfaces, autodocs, and anything else set with the set command have scope.  Settings defined in a section are in force in that section and in any sections or autodocs that are run from that section.  So variables in a Test section are global for the test.  The scope for settings in the global section of an autodoc is all the sections in the autodoc and any sections or autodocs that are run from them.
+
+
+Variables:
+
+Variable are created by the set command - set.var.variable_name = variable_value.  They are refered to with the format %{variable_name}.  Variables set in uitest.adoc are global.  Variable references cannot exist inside of other variable references, but variables references can be placed in variable values
+Example:
+set.var.axisbob = robert%{axis}
+If %{axis} is b, then %{axisbob} would be robertb.
+
+Built in variables
+testdir:  A global variable created when the set.testdir command executed in a Test section.
+dataset:  A global variable created when the set.dataset command is executed in a Test section.
+axis:  A variable created when a Test autodoc is executed.  It is global to the Test autodoc.
+
+
+Waiting:
+The wait command creates a wait state in a tester and causes the tester to wait until the situation specified in the wait command.  If multiple Dialog autodocs where specified in the Test section, the tester for the current Dialog autodoc will cease testing and the tester for the next Dialog autodoc will continue where it left off.
+
+
+Naming:
+
+To name a field, its associated label is changed to all lower case, one "-" is substituted for each space or contiguious group of spaces, everything from ":" on is truncated, strings wrapped in "()" are removed.  To see the field names in Etomo, run etomo with the --names option.  Panels with headers or boundary titles are named in the same way.  The exceptions are the top-level panels for the frames, which are always called "main-frame" and "sub-frame".  Popups are identified by their titles, which is turned into a name the same way a label is.
+
+Buttons with symbol labels
+Buttons labeled with single characters or symbols such as ">", "B", or "+" are called mini buttons (mb) and labeled with the name taken from panel or text field they are associated with.  If there are multiple buttons with the same name, for instance a +/- button and an A/B button on the same dialog, use an index for all but the first (the first one has index 0).
+
+
+Boolean values:
+
+A variety of boolean values can be when a boolean is called for: 1, 0, t, f, true, false, y, n, yes, no, on, off.  Case insensitive.
+
+
+Order:
+Commands are always read in the order they are written, so order is always meaningful.  Don't use variables before setting them.  In the Test sections, always set the test directory and the autodocs before setting the dataset.
+
+
+The B axis:
+The B axis is tested in the sub-frame (the second window).  Tests will automatically try to open their frame if an open.frame command is placed in the interface section that is being used.  If the frame can't be opened the test will
+
+
+UITest autodoc:
+
+uitest.adoc
+
+Test section
+[Test = test_name]
+Required.  Only valid in uitest.adoc.  Section describing a single test.  Put the section name in the environment variable IMOD_TEST_SECTION to run the test.  There is one test directory and one dataset per test.  There can be multiple autodocs per test.
+
+set.testdir[.keep] = directory
+Required.  Only one allowed.  The name of the test directory.  Will be created under ./UITests.  An existing directory will be deleted and re-added, unless keep is used.
+
+set.adoc.test_section_type[.(a|b)] = file_name.adoc
+Required.  Creates a test.  Sets a test autodoc for the test, and a section_type to be tested.  Can also be used to set the axis for the test (a or b - default is single axis).  If more then one test is being done, the axis letter will serve as a test name and must be unique in the Test section.  The test can be refered to by the axis letter set here.  This axis letter is also used in the Dataset section to copy the right files for the axis.  Place the autodoc in the directory pointed to by the environment variable IMOD_UITEST_SOURCE.
+
+set[.keep].dataset = dataset_name
+Required.  Only one allowed.  Causes the Dataset Section for this test to be read and executed.  Causes a dataset directory to be created.  Causes a global variable called dataset, which is set to dataset_name, to be created.  If keep is present, the command will not override an existing directory.  See the Dataset section.
+
+set.param = parameter
+Causes etomo to be run with parameter added to the commmand line.  More then one set.param command can be used.
+
+set.var.variable_name = [value]
+Causes a global variable call variable_name to be set to value.  See Variables in the first section.  Variables can be set anywhere in the this section and will be available for use immediately.
+
+
+Dataset section
+[dataset = dataset_dir]
+Required.  Only valid in uitest.adoc.  The section describing the dataset and the location of a directory containing files to be copied to the dataset directory.  The dataset_dir is in the directory pointed to by the environment variable IMOD_UITEST_DATA.
+
+set.single.dataset = dataset_name
+If the dataset is different from the dataset_dir in the section header, use this command to set it.  If dual is used, the command will set the dataset variable for a test on a dual axis dataset.  If dual is not used, the command will set the dataset variable for a single axis dataset.
+
+copy.file[.(a|b)] = file_name
+Causes a file called file_name to be copied from data_dir (see Dataset Section) to testdir (see Test Section).  The file will only be copied if the axis matches the axis of one of the autodocs listed in the Test Section.  If the set.dataset command in the Test section used the keep modifier, then only copy the file if it is not in the dataset directory.
+
+set.var.variable_name = [value]
+Causes a global variable call variable_name to be set to value.  See Variables in the first section.
+
+set.interface.interface_Section_name =
+Required.  Sets the interface section associated with the dataset.
+
+
+Interface section
+[Interface = name]
+Required.  Only valid in uitest.adoc.  A section describing an interface.  Currently there are four interface:  Reconstruction, PEET, Parallel-Processing, and Join.  An Interface Section describes how to open an axis, go to an axis, open a dialog, and go to a dialog in one of these interfaces.  Part of each command must be unique because they are stored and searched.
+
+goto.frame[.(a|b)].field_command =
+Unique portion:  goto.frame[.(a|b)]
+Required.  Contains the field command to grab the main frame or the sub-frame.  This command is run every time control is passed to each Dialog Autodoc tester.  Only the command which matches a test's axis will be run.
+Examples:
+goto.frame.pnl.main-frame =
+goto.frame.a.pnl.main-frame =
+goto.frame.b.pnl.sub-frame =
+
+open.dialog.dialog_name.field_command =
+Unique portion:  open.dialog.dialog_name
+Optional.  A command to open a dialog.  Dialog_name is the section name of the current section in the associated Dialog Autodoc.  The rest of the command is the field command that must be executed to open the dialog.  This command is run when an "open.dialog" command appears in the current section of the associated Dialog autodoc.  If an "open.dialog" command appears in a section, goto.dialog will be run after open.dialog is run.
+Example:  open.dialog.PreProc.bn.pre = 
+
+open.frame[.(a|b)].field_command =
+Unique portion:  open.frame[.(a|b)]
+Optional.  Contains the field command to open the main frame or the sub-frame.  This command is run the first time control is passed to each Dialog Autodoc tester.  If the command fails a wait state is generated, not a failure.  The tester will continue to run this command until it succeeds.  See Waiting.  Only the command which matches a test's axis will be run.
+Example:  open.frame.b.bn.both =
+
+Subsections
+
+[[open = interface]]
+field_command
+.
+.
+.
+[[]]
+Unique portion:  open = interface
+Optional.  Provides a way to open an interface.  This is used with interfaces like join which don't open automatically.
+Example:
+[[open = interface]]
+mn.file =
+mn.new-join =
+[[]]
+
+
+Test Autodocs:
+
+name.adoc
+
+These are a top level test autodocs which are refered to with the set.test command in the uitest.adoc Test sections.  The section type to be tested is specfied in the adoc subcommand of the set.test command.   Each section to be tested will be opened in the order they appear in the autodoc.  A variable called axis is created for each test autdoc.
+
+Dialog Sections
+[dialog_section_type = dialog_section_name]
+Required.  Describes a test against a dialog.  The actions required to bring up the dialog may need to be described with an open.dialog command in the corresponding Interface Section.  The test_section_type must match a set.test command placed in a Test Section.  The dialog_section_type/dialog_section_name combination must be unique in the autodoc.  This is because dialog_section_names are recorded when they are finished (see the wait.test command below).
+
+Field Commands
+
+bn.button_name[.index] =
+Press a button called button_name.  If there are multiple buttons of the same name, use index; the first one has an index of 0 (the default).  See Naming above.
+
+cb.check_box_name[.index] = [goal]
+Click a check box called check_box_name.  If there are multiple check boxes of the same name, use index.  If goal is present, the check box will only be click if it is NOT the same as goal.  Goal is a boolean value.  See Boolean values.
+
+mb.associated_name[.index] = [press_if]
+Press a symbol button.  The pressable system buttons have the any of the following symbols on them:  >, <, +, -, A, or B.  They are named after the panel they are on, or the field they are related to.  See Naming - Buttons with symbol labels.  Use index if there is more then one of the same name.  If press_if is present, the button is only pressed if the button system matches press_if.
+Example:
+mb.tiltxcorr = +
+Press the open/close button on the Tiltxcorr panel only if the panel is closed.
+
+mn.menu_choice =
+Click on a menu choice.
+
+pnl.panel_name =
+Go to a panel named panel_name.  See Naming above.
+
+rb.radio_button_name[.index] =
+Press a radio button called radio_button_name.  If there are multiple radio buttons of the same name, use index; the first one has an index of 0 (the default).  See Naming above.
+
+sp.spinner_name[.index] = (integer_value|up|down)
+Changes the number in the spinner's editor panel or presses an up or down arrow one time.
+
+tb.first_tab_name[.index] =
+Click on a tab.  Tabs are all named after the first tab.  The rest must be referred to with index.  See Naming above.
+
+tf.text_field_name[.index] = [value]
+Write value to a text field called text_field_name.  If there are multiple text fields of the same name, use index; the first one has an index of 0 (the default).  See Naming above.
+
+tf.table_label-row_label-top_column_label[.index_within_column] = [value]
+Works like a regular tf field command, except that it is used for accessing text fields in a table.  Table_label is the label of the table.  Row_label is the text of the left most column in the table.  Top_column_label is the text of the header in the top row.  The index is for columns that share a top row header.  The first column on the left will have index 0.  This functionality has not been implemented for all columns and tables.
+
+Action Commands
+
+assert.field = [text_or_boolean]
+Tests that the field_command.  For radio buttons and check boxes, text_or_boolean is boolean and refers to whether the button is checked.  For buttons text_or_boolean refers to whether the button has been pressed (a button that has been pressed is dark).  For text fields it refers to the text contained in the text field.  For spinners it refers to the text contained in the spinner's editor panel.  For mini buttons it refers to the mini button's current label.  Panels and tabs are not valid for this command.
+
+assert.(enabled|disabled).field =
+Tests that the field_command is enabled or disabled.  Panel and tabs are not valid for this command.
+
+assert.file.(exists|not-exists) = file_name
+Fails if the file's existance does not match the modifier.  The file called file_name is assumed to be in the dataset directory.
+
+copy[.always].file = file_name
+Causes a file called file_name to be copied from data_dir (see Dataset Section) to testdir (see Test Section).  If the set.dataset command in the Test section used the keep modifier, and always is not used in this command, then only copy the file if it is not already in the dataset directory.
+
+end =
+Ends the test.
+
+if[.not].var.variable_name.field_command = field_value|field_setting
+if[.not].var.variable_name.action.subcommand = [value]
+Runs the field_command or executes the subcommand if the variable called variable_name has been defined.  If not is used, runs the field command or performs the action if the variable has not been defined.  A subcommand can be any command in this section that does not contain a field or a subcommand.
+
+if.(equals|not-equal).var.variable_name.subcommand = [variable_value]
+Compares a variable called variable_name to variable_value using either equals or not-equals.  If the result is true, execute the subcommand.  If the result is false, continue without executing the subcommand.  A subcommand can be any command in this section that does not contain a field or a subcommand.  It this case only subcommands that don't require a value can be used because the if.comparison command requires the value.
+
+if.(enabled|disabled).field.subcommand = [subcommand_value]
+If the field in field_command is enabled/disabled, execute the subcommand.
+
+open.dialog.dialog_name =
+Tells the autodoc tester that it must call the open.dialog command corresponding to either dialog_name or the dialog_name of the current section in the Interface Section.
+
+return =
+Closes the current scope.  If the return is used in a Dialog section, the current Dialog section will be done.  If the return is used in function section or an if subsection, the section or subsection will end and testing will continue.
+
+run.function.section_name =
+Executes a separate section like a function; jumps to the other section, executes it, and then jumps back.  The function will be in the file specified by the most recent set.adoc (see above).  The section type of the function must be set by a set.adoc command prior to running a function.  Functions contain the same commands used in Dialog sections.
+
+set.adoc.section_type = [file_name.adoc]
+Sets an autodoc containing sections that will be called like functions using the run.function command.  Place the autodoc in the directory pointed to by the environment variable IMOD_UITEST_SOURCE.  If file_name.adoc is missing, then the command refers to the current autodoc.  Section_type refers to the section type of the sections that will be called.  Only the most recent set.adoc command in the current scope remains in force.  Test autodocs can contain function sections.
+Examples:
+set.adoc.function = setup-recon.adoc
+set.adoc.dialog =
+
+set.var.variable_name = variable_value
+Sets a variable called variable_name to variable value.  To refer to the variable later, use %{variable_name}.  See Variables above.
+
+sleep = [time_in_milliseconds]
+Tells the tester to sleep for time_in_milliseconds.  The default is 1000.
+
+skipto.section.dialog_section_name =
+Immediate exits the current section and jumps to a later section called dialog_section_name.  Skipto only works in dialog sections.
+
+wait.file-chooser=
+Wait for a file chooser.
+
+wait.popup.popup_name = popup_button_name
+Used to find a popup dialog.  Identifies the popup by its title, which is converted to a name (see Naming).  Presses the button on the popup identified by popup_button_name.
+
+wait.process.process_name = end_state
+Used to find the end of a single process or the end of the last process in a sequence of processes.  It will not be reliable for finding a process that is not the last process.  The process_name comes from the string describing the process name which appears at the top of the window when a process is running (see Naming).  The end_state is the text inside of the process bar when the process is done.  It checks for the Kill Process button to be disabled as a way to see if a process is done.
+
+wait.test.(a|b) = dialog_section_name
+Causes the test to wait until another test has completed a Dialog section named dialog_section_name.
+Example:
+In the b axis:  wait.test.a = FineAlign
+In the a axis:  wait.test.b = TomoGen
+
+Functions
+
+Fnctions can be in different autodocs or in a Test autodoc.  They are sections that are run like functions.  They are not called by the Test sections.  They can contain almost all of the commands used in the Dialog sections.  See set.adoc and run.function Dialog Sections.
+
+Subsections
+
+[[if[not] = variable_name]]
+[[]]
+If and ifnot subsections are special subsections that function like a simple if statement.  They have their own scope.  If subsections are only executed if the variable called variable_name has been defined. Ifnot subsections are only executed if the variable called variable_name has not been defined. Variable_name may not start with "=".
+
+
+
+
