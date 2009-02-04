@@ -1,6 +1,7 @@
 package etomo.comscript;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Hashtable;
 import java.util.List;
@@ -33,6 +34,9 @@ import etomo.util.DatasetFiles;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.8  2008/09/10 20:50:32  sueh
+ * <p> bug# 1135 Check for null when calling ParsedElementList.get(int).
+ * <p>
  * <p> Revision 1.7  2008/06/20 18:39:27  sueh
  * <p> bug# 1119 Changing debug to debugLevel.
  * <p>
@@ -139,26 +143,24 @@ public final class AnisotropicDiffusionParam implements CommandDetails {
    * @throws LogFile.FileException
    * @throws LogFile.WriteException
    */
-  public void createFilterFullFile() throws LogFile.FileException,
-      LogFile.WriteException {
+  public void createFilterFullFile() throws LogFile.LockException,IOException {
     File subdir = new File(manager.getPropertyUserDir(), subdirName);
     LogFile filterFullFile = LogFile.getInstance(new File(subdir,
         getFilterFullFileName()));
     filterFullFile.create();
-    long writeId = filterFullFile.openWriter();
+    LogFile.WriterId writerId = filterFullFile.openWriter();
     filterFullFile.write(COMMAND_CHAR + ProcessName.ANISOTROPIC_DIFFUSION + " "
         + K_VALUE_TAG + " " + kValue + " " + ITERATION_TAG + " " + iteration
-        + " " + "INPUTFILE" + " " + "OUTPUTFILE", writeId);
-    filterFullFile.newLine(writeId);
-    filterFullFile.closeWriter(writeId);
+        + " " + "INPUTFILE" + " " + "OUTPUTFILE", writerId);
+    filterFullFile.newLine(writerId);
+    filterFullFile.closeWriter(writerId);
   }
 
   public static String getFilterFullFileName() {
     return ProcessName.ANISOTROPIC_DIFFUSION + DatasetFiles.COMSCRIPT_EXT;
   }
 
-  public void createTestFiles() throws LogFile.WriteException,
-      LogFile.FileException {
+  public void createTestFiles() throws LogFile.LockException,IOException {
     File subdir = new File(manager.getPropertyUserDir(), subdirName);
     EtomoNumber index = new EtomoNumber();
     EtomoNumber k = new EtomoNumber(EtomoNumber.Type.FLOAT);
@@ -169,15 +171,15 @@ public final class AnisotropicDiffusionParam implements CommandDetails {
           TestNADFileFilter.FILE_NAME_BODY + index.toStringWithLeadingZeros(3)
               + TestNADFileFilter.FILE_NAME_EXT));
       testFile.create();
-      long writeId = testFile.openWriter();
+      LogFile.WriterId writerId = testFile.openWriter();
       testFile.write(COMMAND_CHAR + ProcessName.ANISOTROPIC_DIFFUSION + " "
           + K_VALUE_TAG + " " + kValueList.getRawString(i) + " "
           + ITERATION_TAG + " " + iteration.toString() + " " + inputFileName
-          + " " + getTestFileName(k, iteration), writeId);
-      testFile.newLine(writeId);
-      testFile.write(COMMAND_CHAR + "echo CHUNK DONE", writeId);
-      testFile.newLine(writeId);
-      testFile.closeWriter(writeId);
+          + " " + getTestFileName(k, iteration), writerId);
+      testFile.newLine(writerId);
+      testFile.write(COMMAND_CHAR + "echo CHUNK DONE", writerId);
+      testFile.newLine(writerId);
+      testFile.closeWriter(writerId);
     }
   }
 

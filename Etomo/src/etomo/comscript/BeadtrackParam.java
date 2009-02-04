@@ -27,6 +27,9 @@ import etomo.type.ScriptParameter;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.19  2008/12/12 17:38:17  sueh
+ * <p> bug# 1160 Shared the BeadDiameter key.
+ * <p>
  * <p> Revision 3.18  2008/12/09 21:27:28  sueh
  * <p> bug# 1160 Added beadDiameter.  Converted centroidRadius to
  * <p> beadDiameter if beadDiameter was not added by copytomocoms.
@@ -338,7 +341,7 @@ public class BeadtrackParam extends OldBeadtrackParam implements CommandParam {
     catch (IOException except) {
       except.printStackTrace();
     }
-    catch (LogFile.ReadException except) {
+    catch (LogFile.LockException except) {
       except.printStackTrace();
     }
     if (autodoc == null) {
