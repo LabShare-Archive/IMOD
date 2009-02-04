@@ -20,6 +20,9 @@
  * 
  * <p>
  * $Log$
+ * Revision 3.126  2008/11/20 01:33:37  sueh
+ * bug# 1147 Added ccdEraser, to run ccderaser as a command.
+ *
  * Revision 3.125  2008/10/30 21:02:19  sueh
  * bug# 1145 In midasBlendStack, added -t option.
  *
@@ -867,6 +870,8 @@
 package etomo.process;
 
 import etomo.storage.LogFile;
+import etomo.storage.TaErrorLog;
+import etomo.storage.TrackLog;
 import etomo.type.AxisID;
 import etomo.type.ConstProcessSeries;
 import etomo.type.ProcessName;
@@ -1151,7 +1156,8 @@ public class ProcessManager extends BaseProcessManager {
    * @param axisID
    * @throws SystemProcessException
    */
-  public void generatePreXG(AxisID axisID) throws SystemProcessException {
+  public void generatePreXG(AxisID axisID) throws SystemProcessException,
+      LogFile.LockException {
     String[] xftoxg = new String[5];
     xftoxg[0] = ApplicationManager.getIMODBinPath() + "xftoxg";
     xftoxg[1] = "-NumberToFit";
@@ -1166,7 +1172,8 @@ public class ProcessManager extends BaseProcessManager {
    * 
    * @param axisID
    */
-  public void generateNonFidXF(AxisID axisID) throws SystemProcessException {
+  public void generateNonFidXF(AxisID axisID) throws SystemProcessException,
+      LogFile.LockException {
     String[] xfproduct = new String[4];
     xfproduct[0] = ApplicationManager.getIMODBinPath() + "xfproduct";
     xfproduct[1] = getDatasetName() + axisID.getExtension() + ".prexg";
@@ -1529,7 +1536,7 @@ public class ProcessManager extends BaseProcessManager {
       thread.start();
       mapAxisThread(process, axisID);
     }
-    catch (LogFile.FileException e) {
+    catch (LogFile.LockException e) {
       e.printStackTrace();
       UIHarness.INSTANCE.openMessageDialog(
           "Unable to reconnect to processchunks.\n" + e.getMessage(),
@@ -1684,7 +1691,7 @@ public class ProcessManager extends BaseProcessManager {
    * for this command
    */
   public void modelToPatch(AxisID axisID) throws SystemProcessException,
-      LogFile.FileException {
+      LogFile.LockException {
     LogFile patchOut = LogFile.getInstance(appManager.getPropertyUserDir(),
         DatasetFiles.PATCH_OUT);
     patchOut.backup();
@@ -1887,19 +1894,19 @@ public class ProcessManager extends BaseProcessManager {
    * @throws SystemProcessException
    */
   private void runCommand(String[] commandArray, AxisID axisID, LogFile logFile)
-      throws SystemProcessException {
+      throws SystemProcessException, LogFile.LockException {
     SystemProgram systemProgram = new SystemProgram(appManager
         .getPropertyUserDir(), commandArray, axisID);
     systemProgram
         .setWorkingDirectory(new File(appManager.getPropertyUserDir()));
     systemProgram.setDebug(EtomoDirector.INSTANCE.getArguments().isDebug());
-    long logWriteId = LogFile.NO_ID;
+    LogFile.WritingId logWritingId = null;
     if (logFile != null) {
-      logWriteId = logFile.openForWriting();
+      logWritingId = logFile.openForWriting();
     }
     systemProgram.run();
     if (logFile != null) {
-      logFile.closeForWriting(logWriteId);
+      logFile.closeForWriting(logWritingId);
     }
     if (systemProgram.getExitValue() != 0) {
       String message = "";
@@ -1956,6 +1963,8 @@ public class ProcessManager extends BaseProcessManager {
           .getDoubleValue(TiltalignParam.Fields.ANGLE_OFFSET));
       appManager.postProcess(axisID, processName, processDetails, script
           .getProcessResultDisplay());
+      appManager.logMessage(TaErrorLog.getInstance(appManager
+          .getPropertyUserDir(), axisID), axisID);
     }
     else if (processName == ProcessName.TOMOPITCH) {
       appManager.setTomopitchOutput(axisID);
@@ -1996,6 +2005,8 @@ public class ProcessManager extends BaseProcessManager {
       File fiducialFile = DatasetFiles.getFiducialModelFile(appManager, axisID);
       if (fiducialFile.exists()) {
         state.setFidFileLastModified(axisID, fiducialFile.lastModified());
+        appManager.logMessage(TrackLog.getInstance(appManager
+            .getPropertyUserDir(), axisID), axisID);
       }
       else {
         state.resetFidFileLastModified(axisID);

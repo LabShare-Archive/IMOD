@@ -33,6 +33,10 @@ import etomo.util.Utilities;
  * @version $$Revision$$
  * 
  * <p> $Log$
+ * <p> Revision 1.30  2008/05/03 00:35:57  sueh
+ * <p> bug# 847 Passing ProcessSeries to process object constructors so it can
+ * <p> be passed to process done functions.
+ * <p>
  * <p> Revision 1.29  2008/01/31 20:17:32  sueh
  * <p> bug# 1055 throwing a FileException when LogFile.getInstance fails.
  * <p>
@@ -269,7 +273,7 @@ public class BackgroundComScriptProcess extends ComScriptProcess {
       comscriptLog = LogFile.getInstance(getWorkingDirectory()
           .getAbsolutePath(), axisID, comscriptState.getComscriptName());
     }
-    catch (LogFile.FileException e) {
+    catch (LogFile.LockException e) {
       e.printStackTrace();
       return false;
     }
@@ -290,7 +294,7 @@ public class BackgroundComScriptProcess extends ComScriptProcess {
     try {
       renameFiles(getWatchedFileName(), getWorkingDirectory(), getLogFile());
     }
-    catch (LogFile.FileException e) {
+    catch (LogFile.LockException e) {
       getProcessMessages().addError(e.getMessage());
       getProcessMessages().addError(
           getComScriptName() + " may already be running.  Check the log file.");
@@ -307,7 +311,7 @@ public class BackgroundComScriptProcess extends ComScriptProcess {
                 .getPropertyUserDir(), getAxisID(), comscriptState
                 .getCommand(index)));
       }
-      catch (LogFile.FileException e) {
+      catch (LogFile.LockException e) {
         getProcessMessages().addError(e.getMessage());
         getProcessMessages().addError(
             getComScriptName()
@@ -324,8 +328,8 @@ public class BackgroundComScriptProcess extends ComScriptProcess {
    * Places commmands in the .csh file.  Creates and runs a file containing
    * commands to execute the .csh file in the background.  
    */
-  protected void execCsh(String[] commands) throws IOException,
-      SystemProcessException {
+   void execCsh(String[] commands) throws IOException,
+      SystemProcessException,LogFile.LockException {
     File workingDirectory = getWorkingDirectory();
     String runName = parseBaseName(getComScriptName(), ".com");
     String cshFileName = runName + ".csh";
@@ -354,12 +358,12 @@ public class BackgroundComScriptProcess extends ComScriptProcess {
     Thread parsePIDThread = new Thread(parsePID);
     parsePIDThread.start();
     //make sure nothing else is writing or backing up the log files
-    long logWriteId = getLogFile().openForWriting();
+    LogFile.WritingId logWritingId = getLogFile().openForWriting();
 
     program.run();
 
     //release the log files
-    getLogFile().closeForWriting(logWriteId);
+    getLogFile().closeForWriting(logWritingId);
     // Check the exit value, if it is non zero, parse the warnings and errors
     // from the log file.
     if (program.getExitValue() != 0) {
@@ -416,7 +420,7 @@ public class BackgroundComScriptProcess extends ComScriptProcess {
    * Parses errors and warnings from the comscript and all child comscripts found in
    * comscriptState that may have been executed.
    */
-  protected void parse() throws LogFile.ReadException, LogFile.FileException {
+  protected void parse() throws LogFile.LockException,FileNotFoundException {
     parse(getComScriptName(), true);
     int startCommand = comscriptState.getStartCommand();
     int endCommand = comscriptState.getEndCommand();

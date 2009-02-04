@@ -20,6 +20,9 @@ import etomo.storage.autodoc.Autodoc.InternalTestType;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.7  2009/01/20 19:36:41  sueh
+ * <p> bug# 1102 Extending ReadOnlySectionList.
+ * <p>
  * <p> Revision 1.6  2008/10/27 18:35:50  sueh
  * <p> bug# 1141 Added isDebug and setDebug.
  * <p>
@@ -68,7 +71,7 @@ public interface ReadOnlyAutodoc extends ReadOnlyStatementList, ReadOnlySectionL
   public ReadOnlySection nextSection(SectionLocation location);
 
   void runInternalTest(InternalTestType type, boolean showTokens,
-      boolean showDetails) throws IOException, LogFile.ReadException;
+      boolean showDetails) throws IOException, LogFile.LockException;
   
   public boolean isDebug();
   

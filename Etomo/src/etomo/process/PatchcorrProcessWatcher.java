@@ -14,6 +14,9 @@ package etomo.process;
  * @version $$Revision$$
  * 
  * <p> $$Log$
+ * <p> $Revision 1.7  2006/10/24 21:28:18  sueh
+ * <p> $bug# 947 Passing the ProcessName to AxisProcessPanel.
+ * <p> $
  * <p> $Revision 1.6  2006/10/16 22:43:06  sueh
  * <p> $bug# 933 Added ProcessResultDisplay to ApplicationManager.postProcess().
  * <p> $
@@ -81,7 +84,7 @@ public class PatchcorrProcessWatcher extends LogFileProcessMonitor {
    * @see etomo.process.LogFileProcessMonitor#getCurrentSection()
    */
   protected void getCurrentSection() throws NumberFormatException,
-      LogFile.ReadException {
+      LogFile.LockException,IOException {
     String line;
     while ((line = readLogFileLine()) != null) {
       if (!line.trim().endsWith("positions")) {
@@ -98,7 +101,7 @@ public class PatchcorrProcessWatcher extends LogFileProcessMonitor {
    * Search patch.out file for the number of positions
    */
   protected void findNSections() throws InterruptedException,
-      NumberFormatException, IOException, LogFile.ReadException {
+      NumberFormatException, IOException, LogFile.LockException {
 
     //  Search for the number of sections, we should see a header ouput first
     boolean foundNSections = false;

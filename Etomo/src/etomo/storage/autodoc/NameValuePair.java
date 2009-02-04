@@ -1,5 +1,6 @@
 package etomo.storage.autodoc;
 
+import java.io.IOException;
 import java.util.Vector;
 
 import etomo.storage.LogFile;
@@ -109,17 +110,17 @@ final class NameValuePair extends Statement {
     return super.remove();
   }
 
-  void write(LogFile file, long writeId) throws LogFile.WriteException {
+  void write(LogFile file, LogFile.WriterId writerId) throws LogFile.LockException,IOException{
     for (int i = 0; i < name.size(); i++) {
-      ((Attribute) name.get(i)).write(file, writeId);
+      ((Attribute) name.get(i)).write(file, writerId);
       if (i < name.size() - 1) {
-        file.write(AutodocTokenizer.SEPARATOR_CHAR, writeId);
+        file.write(AutodocTokenizer.SEPARATOR_CHAR, writerId);
       }
     }
-    file.write(' ' + parent.getCurrentDelimiter() + ' ', writeId);
+    file.write(' ' + parent.getCurrentDelimiter() + ' ', writerId);
     if (value != null) {
-      value.write(file, writeId);
-      file.newLine(writeId);
+      value.write(file, writerId);
+      file.newLine(writerId);
     }
     if (newDelimiter != null) {
       parent.setCurrentDelimiter(newDelimiter);
@@ -182,6 +183,9 @@ final class NameValuePair extends Statement {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.11  2009/01/20 19:35:33  sueh
+ * <p> bug# 1102 Added getSubsection and toString.
+ * <p>
  * <p> Revision 1.10  2007/04/11 22:04:52  sueh
  * <p> bug# 964 Added a link list to Statement so that groups of statements could be
  * <p> removed.  Added the parameter Statement previousStatement to the Statement

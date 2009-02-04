@@ -1,5 +1,6 @@
 package etomo.storage.autodoc;
 
+import java.io.IOException;
 import java.util.Vector;
 
 import etomo.storage.LogFile;
@@ -19,6 +20,9 @@ import etomo.ui.Token;
  * @version $$Revision$$
  *
  * <p> $$Log$
+ * <p> $Revision 1.12  2009/01/20 19:31:16  sueh
+ * <p> $bug# 1102 Added getFirstAttribute.
+ * <p> $
  * <p> $Revision 1.11  2007/04/11 21:47:10  sueh
  * <p> $bug# 964 Allow removal of an occurrence of an attribute.  To allow the removal
  * <p> $of attributes, I added boolean occurrences.  When occurrences is 0, then
@@ -245,14 +249,13 @@ final class Attribute extends WriteOnlyAttributeList implements
     }
     return children.getFirstAttribute();
   }
-  
-  
 
-  public void write(LogFile file, long writeId) throws LogFile.WriteException {
+  public void write(LogFile file, LogFile.WriterId writerId)
+      throws LogFile.LockException, IOException {
     if (!exists()) {
       return;
     }
-    name.write(file, writeId);
+    name.write(file, writerId);
   }
 
   void print(int level) {

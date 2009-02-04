@@ -300,7 +300,7 @@ public class CpuAdoc {
     catch (IOException e) {
       e.printStackTrace();
     }
-    catch (LogFile.ReadException e) {
+    catch (LogFile.LockException e) {
       e.printStackTrace();
     }
     if (autodoc == null) {
@@ -565,6 +565,13 @@ public class CpuAdoc {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.14  2008/07/19 00:28:49  sueh
+ * <p> bug# 1125 Get rid of isSetByUser and isValid because they where always
+ * <p> used together.  Have file, envVar, and userConfig booleans.  IsAvailable
+ * <p> is true when one of these booleans is true.  SettingsDialog can also check
+ * <p> whether file or envVar is true.  Added setting userConfig and the number
+ * <p> of CPUs.
+ * <p>
  * <p> Revision 1.13  2008/01/25 22:23:44  sueh
  * <p> bug# 1070 Added setByUser which is true when the user sets the cpu data with
  * <p> cpu.adoc or IMOD_PROCESSORS.

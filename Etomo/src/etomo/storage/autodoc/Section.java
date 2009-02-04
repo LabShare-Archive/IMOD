@@ -1,5 +1,6 @@
 package etomo.storage.autodoc;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -25,6 +26,9 @@ import etomo.ui.Token;
  * @notthreadsafe
  *
  * <p> $$Log$
+ * <p> $Revision 1.18  2009/01/20 19:39:51  sueh
+ * <p> $bug# 1102 Added sectionList and subSectionMap.  Added getSection, getSectionLocation, nextSection, and setDebug.
+ * <p> $
  * <p> $Revision 1.17  2008/10/27 18:36:11  sueh
  * <p> $bug# 1141 Added debug.
  * <p> $
@@ -264,28 +268,28 @@ final class Section extends WriteOnlyStatementList implements ReadOnlySection {
     return attributeList.getAttribute(name);
   }
 
-  void write(LogFile file, long writeId) throws LogFile.WriteException {
+  void write(LogFile file, LogFile.WriterId writerId) throws LogFile.LockException,IOException {
     //write section header
-    file.write(AutodocTokenizer.OPEN_CHAR, writeId);
+    file.write(AutodocTokenizer.OPEN_CHAR, writerId);
     if (subsection) {
-      file.write(AutodocTokenizer.OPEN_CHAR, writeId);
+      file.write(AutodocTokenizer.OPEN_CHAR, writerId);
     }
-    type.write(file, writeId);
-    file.write(' ' + parent.getCurrentDelimiter() + ' ', writeId);
-    name.write(file, writeId);
-    file.write(AutodocTokenizer.CLOSE_CHAR, writeId);
+    type.write(file, writerId);
+    file.write(' ' + parent.getCurrentDelimiter() + ' ', writerId);
+    name.write(file, writerId);
+    file.write(AutodocTokenizer.CLOSE_CHAR, writerId);
     if (subsection) {
-      file.write(AutodocTokenizer.CLOSE_CHAR, writeId);
+      file.write(AutodocTokenizer.CLOSE_CHAR, writerId);
     }
-    file.newLine(writeId);
+    file.newLine(writerId);
     for (int i = 0; i < statementList.size(); i++) {
-      ((Statement) statementList.get(i)).write(file, writeId);
+      ((Statement) statementList.get(i)).write(file, writerId);
     }
     //if subsection, write subsection footer
     if (subsection) {
       file.write("" + AutodocTokenizer.OPEN_CHAR + AutodocTokenizer.OPEN_CHAR
-          + AutodocTokenizer.CLOSE_CHAR + AutodocTokenizer.CLOSE_CHAR, writeId);
-      file.newLine(writeId);
+          + AutodocTokenizer.CLOSE_CHAR + AutodocTokenizer.CLOSE_CHAR, writerId);
+      file.newLine(writerId);
     }
   }
 

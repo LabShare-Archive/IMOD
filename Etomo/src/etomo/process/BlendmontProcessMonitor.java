@@ -66,7 +66,7 @@ public class BlendmontProcessMonitor extends LogFileProcessMonitor {
   }
 
   protected void getCurrentSection() throws NumberFormatException,
-      LogFile.ReadException {
+      LogFile.LockException,IOException {
     String line;
     while ((line = readLogFileLine()) != null) {
       line = line.trim();
@@ -95,7 +95,7 @@ public class BlendmontProcessMonitor extends LogFileProcessMonitor {
   }
 
   protected void findNSections() throws InterruptedException,
-      NumberFormatException, LogFile.ReadException, InvalidParameterException,
+      NumberFormatException, LogFile.LockException, InvalidParameterException,
       IOException {
     Montagesize montagesize = null;
     montagesize = Montagesize.getInstance(applicationManager, axisID);
@@ -105,6 +105,9 @@ public class BlendmontProcessMonitor extends LogFileProcessMonitor {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.15  2007/02/05 22:53:29  sueh
+ * <p> bug# 962 Move comscript mode info to inner class.
+ * <p>
  * <p> Revision 1.14  2006/10/24 21:17:41  sueh
  * <p> bug# 947 Passing the ProcessName to AxisProcessPanel.
  * <p>

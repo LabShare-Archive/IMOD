@@ -1,6 +1,8 @@
 package etomo.process;
 
 import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.IOException;
 
 import etomo.BaseManager;
 import etomo.JoinManager;
@@ -38,6 +40,9 @@ import etomo.util.DatasetFiles;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 1.27  2008/11/20 01:32:53  sueh
+ * <p> bug# 1149 Moved xfmodel from JoinProcessManager to BaseProcessManager.
+ * <p>
  * <p> Revision 1.26  2008/08/18 22:36:52  sueh
  * <p> bug# 1130 In postProcess(BackgroundProcess) setting joinLocalFits and joinTrialLocalFits when the mode is TRIAL or FINISH_JOIN.
  * <p>
@@ -421,12 +426,17 @@ public final class JoinProcessManager extends BaseProcessManager {
       try {
         state.setGapsExist(XfjointomoLog.getInstance(manager).gapsExist());
       }
-      catch (LogFile.ReadException e) {
+      catch (LogFile.LockException e) {
         e.printStackTrace();
         //if not sure whether gaps exist, run remapmodel
         state.setGapsExist(true);
       }
-      catch (LogFile.FileException e) {
+      catch (FileNotFoundException e) {
+        e.printStackTrace();
+        //if not sure whether gaps exist, run remapmodel
+        state.setGapsExist(true);
+      }
+      catch (IOException e) {
         e.printStackTrace();
         //if not sure whether gaps exist, run remapmodel
         state.setGapsExist(true);

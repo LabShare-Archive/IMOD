@@ -1,5 +1,7 @@
 package etomo.storage.autodoc;
 
+import java.io.IOException;
+
 import etomo.storage.LogFile;
 import etomo.ui.Token;
 
@@ -17,6 +19,10 @@ import etomo.ui.Token;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.3  2007/04/11 22:10:08  sueh
+ * <p> bug# 964 ADded removeNameValuePair, removeStatement, setDebug, and
+ * <p> printStatementList.
+ * <p>
  * <p> Revision 1.2  2007/04/09 20:56:40  sueh
  * <p> bug# 964 Changed addAttributeAndNameValuePair to addNameValuePair, since
  * <p> a name/value pair can't exist without Attributes; so the creation of the Attribute is
@@ -33,7 +39,7 @@ public interface WritableAutodoc extends ReadOnlyAutodoc {
 
   public WritableAttribute getWritableAttribute(String name);
 
-  public void write() throws LogFile.FileException, LogFile.WriteException;
+  public void write() throws LogFile.LockException,IOException;
 
   public void addComment(Token comment);
 

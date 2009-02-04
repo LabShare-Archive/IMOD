@@ -81,7 +81,7 @@ final class DetachedProcess extends BackgroundProcess {
           + getCommandName());
       return false;
     }
-    catch (LogFile.FileException e) {
+    catch (LogFile.LockException e) {
       e.printStackTrace();
       UIHarness.INSTANCE.openMessageDialog(e.getMessage(), "Can't Run "
           + getCommandName());
@@ -116,7 +116,7 @@ final class DetachedProcess extends BackgroundProcess {
   }
 
   private final String[] makeRunFile() throws IOException,
-      LogFile.FileException {
+      LogFile.LockException {
     String commandName;
     if (subdirName == null) {
       commandName = getCommandName();
@@ -253,6 +253,9 @@ final class DetachedProcess extends BackgroundProcess {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.17  2008/05/16 22:26:48  sueh
+ * <p> bug# 1109 Setting subprocess name in processData from the monitor.
+ * <p>
  * <p> Revision 1.16  2008/05/03 00:37:52  sueh
  * <p> bug# 847 Passing ProcessSeries to process object constructors so it can
  * <p> be passed to process done functions.

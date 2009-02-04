@@ -23,6 +23,9 @@ import etomo.type.AxisID;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.11  2009/01/20 19:33:30  sueh
+ * <p> bug# 1102 In getInstance(String,AxisID) added else to if name equals CPU.
+ * <p>
  * <p> Revision 1.10  2008/10/27 18:35:26  sueh
  * <p> bug# 1141 Added ctfplotter and ctfcorrection
  * <p>
@@ -106,12 +109,12 @@ public final class AutodocFactory {
   }
 
   public static ReadOnlyAutodoc getInstance(String name)
-      throws FileNotFoundException, IOException, LogFile.ReadException {
+      throws FileNotFoundException, IOException, LogFile.LockException {
     return getInstance(name, AxisID.ONLY);
   }
 
   public static ReadOnlyAutodoc getInstance(String name, AxisID axisID)
-      throws FileNotFoundException, IOException, LogFile.ReadException {
+      throws FileNotFoundException, IOException, LogFile.LockException {
     if (name == null) {
       throw new IllegalStateException("name is null");
     }
@@ -133,7 +136,7 @@ public final class AutodocFactory {
   }
 
   public static ReadOnlyAutodoc getDebugInstance(String name, AxisID axisID)
-      throws FileNotFoundException, IOException, LogFile.ReadException {
+      throws FileNotFoundException, IOException, LogFile.LockException {
     if (name == null) {
       throw new IllegalStateException("name is null");
     }
@@ -156,7 +159,7 @@ public final class AutodocFactory {
   }
 
   public static WritableAutodoc getMatlabDebugInstance(File file)
-      throws IOException, LogFile.ReadException, LogFile.FileException {
+      throws IOException, LogFile.LockException {
     if (file == null) {
       throw new IllegalStateException("file is null");
     }
@@ -172,7 +175,7 @@ public final class AutodocFactory {
   }
 
   public static WritableAutodoc getMatlabInstance(File file)
-      throws IOException, LogFile.ReadException, LogFile.FileException {
+      throws IOException, LogFile.LockException {
     if (file == null) {
       throw new IllegalStateException("file is null");
     }
@@ -187,7 +190,7 @@ public final class AutodocFactory {
   }
 
   public static WritableAutodoc getEmptyMatlabInstance(File file)
-      throws IOException, LogFile.ReadException, LogFile.FileException {
+      throws IOException, LogFile.LockException {
     if (file == null) {
       throw new IllegalStateException("file is null");
     }
@@ -202,7 +205,7 @@ public final class AutodocFactory {
   }
 
   public static ReadOnlyAutodoc getInstance(File file) throws IOException,
-      LogFile.ReadException, LogFile.FileException {
+      LogFile.LockException {
     if (file == null) {
       throw new IllegalStateException("file is null");
     }
@@ -226,7 +229,7 @@ public final class AutodocFactory {
    * @throws LogFile.ReadException
    */
   public static ReadOnlyAutodoc getTestInstance(File file) throws IOException,
-      LogFile.ReadException, LogFile.FileException {
+      LogFile.LockException{
     if (file == null) {
       throw new IllegalStateException("file is null");
     }
@@ -242,7 +245,7 @@ public final class AutodocFactory {
 
   public static ReadOnlyAutodoc getInstance(String fileName, String name,
       AxisID axisID) throws FileNotFoundException, IOException,
-      LogFile.ReadException {
+      LogFile.LockException {
     if (name == null) {
       throw new IllegalStateException("name is null");
     }
@@ -268,7 +271,7 @@ public final class AutodocFactory {
    */
   public static Autodoc getInstance(File directory, String autodocFileName,
       AxisID axisID) throws FileNotFoundException, IOException,
-      LogFile.ReadException, LogFile.FileException {
+      LogFile.LockException {
     if (autodocFileName == null) {
       return null;
     }

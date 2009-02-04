@@ -1,6 +1,8 @@
 package etomo.storage;
 
 import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.IOException;
 
 import etomo.type.EtomoNumber;
 
@@ -29,7 +31,7 @@ public final class TiltLog {
   private TiltLog() {
   }
   
-  public static TiltLog getInstance(final File file) throws LogFile.FileException{
+  public static TiltLog getInstance(final File file) throws LogFile.LockException{
     TiltLog instance = new TiltLog();
     instance.file = LogFile.getInstance(file);
     return instance;
@@ -42,12 +44,16 @@ public final class TiltLog {
   public boolean read() {
     reset();
     try {
-      long readId = file.openReader();
-      boolean retval = read(readId);
-      file.closeReader(readId);
+      LogFile.ReaderId readerId = file.openReader();
+      boolean retval = read(readerId);
+      file.closeReader(readerId);
       return retval;
     }
-    catch (LogFile.ReadException e) {
+    catch (LogFile.LockException e) {
+      e.printStackTrace();
+      return false;
+    }
+    catch (FileNotFoundException e) {
       e.printStackTrace();
       return false;
     }
@@ -66,29 +72,29 @@ public final class TiltLog {
    * @param readId
    * @return
    */
-  private boolean read(long readId) {
+  private boolean read(LogFile.ReaderId readerId) {
     try {
       //find angle list
       String line;
-      while ((line = file.readLine(readId)) != null
+      while ((line = file.readLine(readerId)) != null
           && !line.endsWith("Projection angles:")) {
       }
       if (line == null) {
         return false;
       }
       //remove blank line at start of angle list
-      while ((line = file.readLine(readId)) != null && !line.matches("\\s*")) {
+      while ((line = file.readLine(readerId)) != null && !line.matches("\\s*")) {
       }
       if (line == null) {
         return false;
       }
       //set minAngle to the first angle in the angle list
-      line = file.readLine(readId);
+      line = file.readLine(readerId);
       minAngle.set(line.trim().split("\\s+")[0]);
       //find the last line of the angle list (assume there is a blank line after
       //the angle list)
       String prevLine = line;
-      while ((line = file.readLine(readId)) != null && !line.matches("\\s*")) {
+      while ((line = file.readLine(readerId)) != null && !line.matches("\\s*")) {
         prevLine = line;
       }
       //set maxAngle to the last angle in the angle list
@@ -96,7 +102,11 @@ public final class TiltLog {
       maxAngle.set(angleArray[angleArray.length - 1]);
       return true;
     }
-    catch (LogFile.ReadException e) {
+    catch (LogFile.LockException e) {
+      e.printStackTrace();
+      return false;
+    }
+    catch (IOException e) {
       e.printStackTrace();
       return false;
     }
@@ -109,6 +119,9 @@ public final class TiltLog {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.2  2008/01/31 20:23:56  sueh
+ * <p> bug# 1055 throwing a FileException when LogFile.getInstance fails.
+ * <p>
  * <p> Revision 1.1  2007/07/25 22:57:28  sueh
  * <p> bug# 1027 Class to read the tilt log file.
  * <p> </p>

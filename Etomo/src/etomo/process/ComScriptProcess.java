@@ -18,6 +18,10 @@
  * 
  * <p>
  * $Log$
+ * Revision 3.52  2009/01/26 22:42:29  sueh
+ * bug# 1173 When not block do error checking, just don't complain about
+ * axis busy.
+ *
  * Revision 3.51  2008/10/27 17:51:45  sueh
  * bug# 1141 Added nonBlocking, so that the class knows that the axis is not
  * being blocked.
@@ -399,6 +403,7 @@ package etomo.process;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -613,7 +618,7 @@ public class ComScriptProcess extends Thread implements SystemProcessInterface {
       logFile = LogFile.getInstance(manager.getPropertyUserDir(), axisID,
           getProcessName());
     }
-    catch (LogFile.FileException e) {
+    catch (LogFile.LockException e) {
       e.printStackTrace();
       UIHarness.INSTANCE.openMessageDialog("Unable to create log file.\n"
           + e.getMessage(), "Com Script Log Failure");
@@ -682,7 +687,7 @@ public class ComScriptProcess extends Thread implements SystemProcessInterface {
           processManager.msgComScriptDone(this, 1, nonBlocking);
         }
       }
-      catch (LogFile.FileException except) {
+      catch (LogFile.LockException except) {
         if (processManager != null) {
           int exitValue = 0;
           if (vmstocsh != null) {
@@ -725,14 +730,17 @@ public class ComScriptProcess extends Thread implements SystemProcessInterface {
       catch (IOException except) {
         processMessages.addError(except.getMessage());
       }
+      catch (LogFile.LockException except) {
+        processMessages.addError(except.getMessage());
+      }
       try {
         parse();
       }
-      catch (LogFile.ReadException except2) {
-        processMessages.addError(except2.getMessage());
+      catch (LogFile.LockException except1) {
+        processMessages.addError(except1.getMessage());
       }
-      catch (LogFile.FileException e) {
-        processMessages.addError(e.getMessage());
+      catch (FileNotFoundException except2) {
+        processMessages.addError(except2.getMessage());
       }
     }
 
@@ -741,7 +749,7 @@ public class ComScriptProcess extends Thread implements SystemProcessInterface {
     processManager.msgComScriptDone(this, csh.getExitValue(), nonBlocking);
   }
 
-  protected boolean renameFiles() throws LogFile.FileException {
+  protected boolean renameFiles() throws LogFile.LockException {
     renameFiles(watchedFileName, workingDirectory, logFile);
     if (processMonitor != null) {
       processMonitor.msgLogFileRenamed();
@@ -750,7 +758,7 @@ public class ComScriptProcess extends Thread implements SystemProcessInterface {
   }
 
   static protected void renameFiles(String watchedFileName,
-      File workingDirectory, LogFile logFile) throws LogFile.FileException {
+      File workingDirectory, LogFile logFile) throws LogFile.LockException {
     if (logFile == null) {
       return;
     }
@@ -856,8 +864,8 @@ public class ComScriptProcess extends Thread implements SystemProcessInterface {
   /**
    * Execute the csh commands.
    */
-  protected void execCsh(String[] commands) throws IOException,
-      SystemProcessException {
+   void execCsh(String[] commands) throws IOException,
+      SystemProcessException,LogFile.LockException {
 
     // Do not use the -e flag for tcsh since David's scripts handle the failure 
     // of commands and then report appropriately.  The exception to this is the
@@ -871,12 +879,12 @@ public class ComScriptProcess extends Thread implements SystemProcessInterface {
     Thread parsePIDThread = new Thread(parsePID);
     parsePIDThread.start();
     //make sure nothing else is writing or backing up the log file
-    long logWriteId = logFile.openForWriting();
+    LogFile.WritingId logWritingId = logFile.openForWriting();
 
     csh.run();
 
     //release the log file
-    logFile.closeForWriting(logWriteId);
+    logFile.closeForWriting(logWritingId);
     // Check the exit value, if it is non zero, parse the warnings and errors
     // from the log file.
     if (csh.getExitValue() != 0) {
@@ -951,7 +959,7 @@ public class ComScriptProcess extends Thread implements SystemProcessInterface {
    * @return
    * @throws IOException
    */
-  protected void parse() throws LogFile.ReadException, LogFile.FileException {
+  protected void parse() throws LogFile.LockException,FileNotFoundException{
     parse(comScriptName, true);
   }
 
@@ -969,7 +977,7 @@ public class ComScriptProcess extends Thread implements SystemProcessInterface {
    *         then zero length array will be returned.
    */
   protected final void parse(String name, boolean mustExist)
-      throws LogFile.ReadException, LogFile.FileException {
+      throws LogFile.LockException,FileNotFoundException {
     ArrayList errors = new ArrayList();
     LogFile logFileToParse = logFile;
     if (!parseLogFile) {

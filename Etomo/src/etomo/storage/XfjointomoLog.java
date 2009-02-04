@@ -1,5 +1,7 @@
 package etomo.storage;
 
+import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.util.Hashtable;
 import java.util.Vector;
 
@@ -23,6 +25,9 @@ import etomo.util.DatasetFiles;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.2  2008/01/31 20:24:14  sueh
+ * <p> bug# 1055 throwing a FileException when LogFile.getInstance fails.
+ * <p>
  * <p> Revision 1.1  2007/02/05 23:08:48  sueh
  * <p> bug# 962 Class for reading xfjointomo log file.
  * <p> </p>
@@ -51,14 +56,14 @@ public final class XfjointomoLog {
     logFile = null;
   }
 
-  public boolean rowExists(String boundary) throws LogFile.ReadException,
-      LogFile.FileException {
+  public boolean rowExists(String boundary) throws LogFile.LockException,
+      FileNotFoundException, IOException {
     load();
     return rowList.containsKey(boundary);
   }
 
-  public String getBestGap(String boundary) throws LogFile.ReadException,
-      LogFile.FileException {
+  public String getBestGap(String boundary) throws LogFile.LockException,
+      FileNotFoundException, IOException {
     load();
     Row row = (Row) rowList.get(boundary);
     if (row == null) {
@@ -67,9 +72,7 @@ public final class XfjointomoLog {
     return row.getBestGap();
   }
 
-  public String getMeanError(String boundary) throws LogFile.ReadException,
-      LogFile.FileException {
-    load();
+  public String getMeanError(String boundary) throws LogFile.LockException {
     Row row = (Row) rowList.get(boundary);
     if (row == null) {
       return null;
@@ -77,8 +80,8 @@ public final class XfjointomoLog {
     return row.getMeanError();
   }
 
-  public String getMaxError(String boundary) throws LogFile.ReadException,
-      LogFile.FileException {
+  public String getMaxError(String boundary) throws LogFile.LockException,
+      FileNotFoundException, IOException {
     load();
     Row row = (Row) rowList.get(boundary);
     if (row == null) {
@@ -87,8 +90,8 @@ public final class XfjointomoLog {
     return row.getMaxError();
   }
 
-  public synchronized boolean gapsExist() throws LogFile.ReadException,
-      LogFile.FileException {
+  public synchronized boolean gapsExist() throws LogFile.LockException,
+      IOException, FileNotFoundException {
     load();
     boolean gapsExist = false;
     for (int i = 0; i < rowArray.size(); i++) {
@@ -127,17 +130,17 @@ public final class XfjointomoLog {
    * Load data from the log file.  Or reload data, if reset() has been called.
    * @throws LogFile.ReadException
    */
-  private synchronized void load() throws LogFile.ReadException,
-      LogFile.FileException {
+  private synchronized void load() throws LogFile.LockException,
+      FileNotFoundException, IOException {
     if (logFile != null) {
       return;
     }
     rowList.clear();
     logFile = LogFile.getInstance(dir, DatasetFiles.XFJOINTOMO_LOG);
-    long readId = logFile.openReader();
+    LogFile.ReaderId readerId = logFile.openReader();
     String boundary = null;
     String line = null;
-    while ((line = logFile.readLine(readId)) != null) {
+    while ((line = logFile.readLine(readerId)) != null) {
       if (line.indexOf("At boundary") != -1) {
         //load the data from the line
         String[] stringArray = line.trim().split("\\s+");
@@ -154,7 +157,7 @@ public final class XfjointomoLog {
         rowArray.add(row);
       }
     }
-    logFile.closeReader(readId);
+    logFile.closeReader(readerId);
   }
 
   private String parseBoundary(String[] stringArray) {

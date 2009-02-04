@@ -1,6 +1,8 @@
 package etomo.process;
 
 import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.util.Vector;
 
 import etomo.BaseManager;
@@ -54,7 +56,7 @@ final class ReconnectProcess implements SystemProcessInterface, Runnable {
 
   static ReconnectProcess getInstance(BaseManager manager,
       BaseProcessManager processManager, ProcessMonitor monitor,
-      ProcessData processData, AxisID axisID) throws LogFile.FileException {
+      ProcessData processData, AxisID axisID) throws LogFile.LockException {
     ReconnectProcess instance = new ReconnectProcess(manager, processManager,
         monitor, processData, axisID);
     instance.logFile = LogFile.getInstance(manager.getPropertyUserDir(),
@@ -66,7 +68,7 @@ final class ReconnectProcess implements SystemProcessInterface, Runnable {
       BaseProcessManager processManager, ProcessMonitor monitor,
       ProcessData processData, AxisID axisID, String logFileName,
       String logSuccessTag, ConstStringProperty subDirName)
-      throws LogFile.FileException {
+      throws LogFile.LockException {
     ReconnectProcess instance = new ReconnectProcess(manager, processManager,
         monitor, processData, axisID);
     if (subDirName.isEmpty()) {
@@ -96,22 +98,27 @@ final class ReconnectProcess implements SystemProcessInterface, Runnable {
     }
     catch (InterruptedException e) {
     }
-    long logWriteId = LogFile.NO_ID;
-    if (!monitorControl) {
-      //make sure nothing else is writing or backing up the log file
-      logWriteId = logFile.openForWriting();
+    LogFile.WritingId logWritingId = null;
+    try {
+      if (!monitorControl) {
+        //make sure nothing else is writing or backing up the log file
+        logWritingId = logFile.openForWriting();
+      }
+      while ((!monitorControl && processData.isRunning())
+          || (monitorControl && monitor.isRunning())) {
+        try {
+          Thread.sleep(500);
+        }
+        catch (InterruptedException e) {
+        }
+      }
     }
-    while ((!monitorControl && processData.isRunning())
-        || (monitorControl && monitor.isRunning())) {
-      try {
-        Thread.sleep(500);
-      }
-      catch (InterruptedException e) {
-      }
+    catch (LogFile.LockException e) {
+      e.printStackTrace();
     }
     if (!monitorControl) {
       //release the log file
-      logFile.closeForWriting(logWriteId);
+      logFile.closeForWriting(logWritingId);
       monitor.stop();
       while (!monitor.isRunning()) {
         try {
@@ -132,7 +139,10 @@ final class ReconnectProcess implements SystemProcessInterface, Runnable {
     try {
       messages.addProcessOutput(logFile);
     }
-    catch (LogFile.ReadException e) {
+    catch (LogFile.LockException e) {
+      e.printStackTrace();
+    }
+    catch (FileNotFoundException e) {
       e.printStackTrace();
     }
     int exitValue = 0;
@@ -162,34 +172,40 @@ final class ReconnectProcess implements SystemProcessInterface, Runnable {
    */
   public String[] getStdOutput() {
     //BufferedReader logReader;
-    long readId = LogFile.NO_ID;
+    LogFile.ReaderId readerId = null;
     try {
-      readId = logFile.openReader();
+      readerId = logFile.openReader();
       //logReader = new BufferedReader(new FileReader(DatasetFiles.getLogFile(
       //    manager, axisID, processData.getProcessName())));
     }
-    catch (LogFile.ReadException e) {
+    catch (LogFile.LockException e) {
+      return null;
+    }
+    catch (FileNotFoundException e) {
       return null;
     }
     Vector log = new Vector();
     String line;
     try {
-      while ((line = logFile.readLine(readId)) != null) {
+      while ((line = logFile.readLine(readerId)) != null) {
         log.add(line);
       }
     }
-    catch (LogFile.ReadException e) {
+    catch (LogFile.LockException e) {
+      e.printStackTrace();
+    }
+    catch (IOException e) {
       e.printStackTrace();
     }
     if (log.size() == 0) {
-      logFile.closeReader(readId);
+      logFile.closeReader(readerId);
       return null;
     }
     if (log.size() == 1) {
-      logFile.closeReader(readId);
+      logFile.closeReader(readerId);
       return new String[] { (String) log.get(0) };
     }
-    logFile.closeReader(readId);
+    logFile.closeReader(readerId);
     return (String[]) log.toArray(new String[log.size()]);
   }
 
@@ -213,10 +229,10 @@ final class ReconnectProcess implements SystemProcessInterface, Runnable {
   }
 
   public final void kill(AxisID axisID) {
-    if (monitor!=null) {
-      monitor.kill(this,axisID);
+    if (monitor != null) {
+      monitor.kill(this, axisID);
     }
-   // processManager.signalKill(this, axisID);
+    // processManager.signalKill(this, axisID);
   }
 
   public void notifyKilled() {
@@ -268,6 +284,12 @@ final class ReconnectProcess implements SystemProcessInterface, Runnable {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.7  2008/05/16 22:47:03  sueh
+ * <p> bug# 1109 Calling monitor.kill instead of signalKill.  Kill processes call
+ * <p> signalKill.  And for processchunks signalKill, which sends a kill signal
+ * <p> doesn't work as well as sending a message to the pipe file.  Also enabling
+ * <p> pause so it can be used by processchunks.
+ * <p>
  * <p> Revision 1.6  2008/05/03 00:42:49  sueh
  * <p> bug# 847 Passing ProcessSeries to process object constructors so it can
  * <p> be passed to process done functions.

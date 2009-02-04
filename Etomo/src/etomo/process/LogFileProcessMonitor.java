@@ -1,5 +1,6 @@
 package etomo.process;
 
+import java.io.FileNotFoundException;
 import java.io.IOException;
 
 import etomo.ApplicationManager;
@@ -23,6 +24,9 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.29  2008/01/31 20:18:44  sueh
+ * <p> bug# 1055 throwing a FileException when LogFile.getInstance fails.
+ * <p>
  * <p> Revision 3.28  2008/01/14 21:30:30  sueh
  * <p> bug# 1050 Added stop() and isRunning() to allow ProcessMonitor classes to work
  * <p> with ReconnectProcess.
@@ -205,13 +209,13 @@ public abstract class LogFileProcessMonitor implements ProcessMonitor {
   //  This needs to be set in the concrete class constructor
   protected String logFileBasename;
   private LogFile logFile;
-  private long logFileReadId = LogFile.NO_ID;
+  private LogFile.ReaderId logFileReaderId = null;
   protected final ProcessName processName;
 
   protected abstract void initializeProgressBar();
 
   protected abstract void getCurrentSection() throws NumberFormatException,
-      LogFile.ReadException;
+      LogFile.LockException,IOException;
 
   /**
    * Default constructor
@@ -261,10 +265,7 @@ public abstract class LogFileProcessMonitor implements ProcessMonitor {
         updateProgressBar();
       }
     }
-    catch (LogFile.ReadException e) {
-      e.printStackTrace();
-    }
-    catch (LogFile.FileException e) {
+    catch (LogFile.LockException e) {
       e.printStackTrace();
     }
     catch (InterruptedException e) {
@@ -287,9 +288,9 @@ public abstract class LogFileProcessMonitor implements ProcessMonitor {
     //if (logFileReader != null) {
     // logFileReader.close();
     //}
-    if (logFile != null && logFileReadId != LogFile.NO_ID) {
-      logFile.closeReader(logFileReadId);
-      logFileReadId = LogFile.NO_ID;
+    if (logFile != null && logFileReaderId!=null&&!logFileReaderId.isEmpty()) {
+      logFile.closeReader(logFileReaderId);
+      logFileReaderId = null;
     }
     if (lastProcess) {
       applicationManager.progressBarDone(axisID, endState);
@@ -307,8 +308,8 @@ public abstract class LogFileProcessMonitor implements ProcessMonitor {
   protected void postProcess() {
   }
 
-  protected String readLogFileLine() throws LogFile.ReadException {
-    return logFile.readLine(logFileReadId);
+  protected String readLogFileLine() throws LogFile.LockException,IOException {
+    return logFile.readLine(logFileReaderId);
   }
 
   /**
@@ -340,7 +341,7 @@ public abstract class LogFileProcessMonitor implements ProcessMonitor {
    * @return a buffered reader of the log file
    */
   private void waitForLogFile() throws InterruptedException,
-      LogFile.ReadException {
+      LogFile.LockException,FileNotFoundException {
 
     processStartTime = System.currentTimeMillis();
 
@@ -357,7 +358,7 @@ public abstract class LogFileProcessMonitor implements ProcessMonitor {
     }
     //  Open the log file
     //logFileReader = new BufferedReader(new FileReader(logFile));
-    logFileReadId = logFile.openReader();
+    logFileReaderId = logFile.openReader();
   }
 
   /**
@@ -365,7 +366,7 @@ public abstract class LogFileProcessMonitor implements ProcessMonitor {
    * sections
    */
   protected void findNSections() throws InterruptedException,
-      NumberFormatException, LogFile.ReadException, InvalidParameterException,
+      NumberFormatException, LogFile.LockException, InvalidParameterException,
       IOException {
 
     //  Search for the number of sections, we should see a header ouput first
@@ -375,7 +376,7 @@ public abstract class LogFileProcessMonitor implements ProcessMonitor {
     while (!foundNSections) {
       Thread.sleep(updatePeriod);
       String line;
-      while ((line = logFile.readLine(logFileReadId)) != null) {
+      while ((line = logFile.readLine(logFileReaderId)) != null) {
         if (line.startsWith(" Number of columns, rows, sections")) {
           String[] fields = line.split("\\s+");
           if (fields.length > 9) {

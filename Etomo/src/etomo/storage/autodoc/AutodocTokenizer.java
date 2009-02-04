@@ -66,6 +66,9 @@ import etomo.util.PrimativeTokenizer;
  * @version $$Revision$$
  *
  * <p> $$Log$
+ * <p> $Revision 1.11  2008/05/30 21:24:57  sueh
+ * <p> $bug# 1102 Added command language keyword.
+ * <p> $
  * <p> $Revision 1.10  2007/08/01 22:41:51  sueh
  * <p> $bug# 985 Made [[ and ]] into tokens.  Added findLookAheadToken and
  * <p> $matchWithLookAhead to find OPEN, SUBOPEN, CLOSE, and SUBCLOSE.
@@ -169,7 +172,7 @@ public final class AutodocTokenizer {
   }
 
   void initialize() throws FileNotFoundException, IOException,
-      LogFile.ReadException {
+      LogFile.LockException {
     primativeTokenizer.initialize();
   }
 
@@ -213,7 +216,7 @@ public final class AutodocTokenizer {
     return autodocToken;
   }
 
-  void test(boolean tokens) throws IOException, LogFile.ReadException {
+  void test(boolean tokens) throws IOException, LogFile.LockException {
     initialize();
     Token token = null;
     do {
@@ -231,12 +234,12 @@ public final class AutodocTokenizer {
   }
 
   void testPrimativeTokenizer(boolean tokens) throws IOException,
-      LogFile.ReadException {
+      LogFile.LockException {
     primativeTokenizer.test(tokens);
   }
 
   void testStreamTokenizer(boolean tokens, boolean details) throws IOException,
-      LogFile.ReadException {
+      LogFile.LockException {
     primativeTokenizer.testStreamTokenizer(tokens, details);
   }
 

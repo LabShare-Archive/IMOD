@@ -24,6 +24,10 @@ import java.util.*;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.9  2008/01/31 20:23:00  sueh
+ * <p> bug# 1055 throwing a FileException when LogFile.getInstance fails.  Made
+ * <p> ParametersStore thread safe.
+ * <p>
  * <p> Revision 3.8  2007/07/30 18:53:24  sueh
  * <p> bug# 1002 Added ParameterStore.getInstance.
  * <p>
@@ -87,26 +91,30 @@ public final class ParameterStore {
    * If paramFile is null, returns null.
    */
   public static ParameterStore getInstance(File paramFile)
-      throws LogFile.FileException {
+      throws LogFile.LockException {
     ParameterStore instance = new ParameterStore(paramFile);
     instance.initialize(paramFile);
     return instance;
   }
 
-  private void initialize(File paramFile) throws LogFile.FileException {
+  private void initialize(File paramFile) throws LogFile.LockException {
     dataFile = LogFile.getInstance(paramFile);
     if (dataFile.exists()) {
-      long writeId = LogFile.NO_ID;
+      LogFile.InputStreamId inputStreamId = null;
       try {
-        writeId = dataFile.openInputStream();
-        dataFile.load(properties, writeId);
+        inputStreamId = dataFile.openInputStream();
+        dataFile.load(properties, inputStreamId);
       }
-      catch (LogFile.WriteException e) {
+      catch (LogFile.LockException e) {
         System.err.println("Unable to read " + dataFile.getAbsolutePath());
         e.printStackTrace();
       }
-      if (writeId != LogFile.NO_ID) {
-        dataFile.closeInputStream(writeId);
+      catch (IOException e) {
+        System.err.println("Unable to read " + dataFile.getAbsolutePath());
+        e.printStackTrace();
+      }
+      if (inputStreamId != null && !inputStreamId.isEmpty()) {
+        dataFile.closeInputStream(inputStreamId);
       }
     }
   }
@@ -115,14 +123,13 @@ public final class ParameterStore {
    * Saves properties to the paramFile.
    * @throws IOException
    */
-  public void storeProperties() throws LogFile.FileException,
-      LogFile.WriteException {
+  public void storeProperties() throws LogFile.LockException,IOException{
     synchronized (dataFile) {
       dataFile.backupOnce();
       if (!dataFile.exists()) {
         dataFile.create();
       }
-      long outputStreamId = dataFile.openOutputStream();
+      LogFile.OutputStreamId outputStreamId = dataFile.openOutputStream();
       dataFile.store(properties, outputStreamId);
       dataFile.closeOutputStream(outputStreamId);
     }
@@ -150,8 +157,7 @@ public final class ParameterStore {
    * @param storable
    * @throws IOException
    */
-  public void save(Storable storable) throws LogFile.WriteException,
-      LogFile.FileException {
+  public void save(Storable storable) throws LogFile.LockException,IOException{
     synchronized (dataFile) {
       //let the storable overwrite its values
       storable.store(properties);
@@ -171,7 +177,7 @@ public final class ParameterStore {
    * @param storable
    * @throws IOException
    */
-  public void load(Storable storable) throws LogFile.WriteException {
+  public void load(Storable storable) throws LogFile.LockException {
     synchronized (dataFile) {
       storable.load(properties);
     }

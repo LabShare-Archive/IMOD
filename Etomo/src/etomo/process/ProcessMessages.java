@@ -43,7 +43,7 @@ public final class ProcessMessages {
   private String processOutputString = null;
   private String[] processOutputStringArray = null;
   private LogFile logFile = null;
-  private long logFileReadId = LogFile.NO_ID;
+  private LogFile.ReaderId logFileReaderId = null;
   private int index = -1;
   private String line = null;
   private Vector infoList = null;
@@ -129,10 +129,10 @@ public final class ProcessMessages {
   }
 
   synchronized final void addProcessOutput(LogFile processOutput)
-      throws LogFile.ReadException {
+      throws LogFile.LockException,FileNotFoundException {
     //Open the log file
     logFile = processOutput;
-    logFileReadId = logFile.openReader();
+    logFileReaderId = logFile.openReader();
     nextLine();
     while (logFile != null) {
       parse();
@@ -727,18 +727,26 @@ public final class ProcessMessages {
   
   private final boolean nextLogFileLine() {
     try {
-      if ((line = logFile.readLine(logFileReadId)) == null) {
-        logFile.closeReader(logFileReadId);
+      if ((line = logFile.readLine(logFileReaderId)) == null) {
+        logFile.closeReader(logFileReaderId);
         logFile = null;
-        logFileReadId = LogFile.NO_ID;
+        logFileReaderId = null;
         return false;
       }
     }
-    catch (LogFile.ReadException e) {
+    catch (LogFile.LockException e) {
       e.printStackTrace();
-      logFile.closeReader(logFileReadId);
+      logFile.closeReader(logFileReaderId);
       logFile = null;
-      logFileReadId = LogFile.NO_ID;
+      logFileReaderId = null;
+      line = null;
+      return false;
+    }
+    catch (IOException e) {
+      e.printStackTrace();
+      logFile.closeReader(logFileReaderId);
+      logFile = null;
+      logFileReaderId = null;
       line = null;
       return false;
     }
@@ -832,6 +840,10 @@ public final class ProcessMessages {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.9  2008/01/14 21:58:21  sueh
+ * <p> bug# 1050 Added getInstance(String successTag) for finding message with one
+ * <p> successTag.
+ * <p>
  * <p> Revision 1.8  2006/10/10 05:13:05  sueh
  * <p> bug# 931 Added addProcessOutput(LogFile).
  * <p>

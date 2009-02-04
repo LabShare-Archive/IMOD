@@ -1,5 +1,7 @@
 package etomo.storage;
 
+import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.util.ArrayList;
 
 import etomo.BaseManager;
@@ -41,7 +43,7 @@ public class JoinInfoFile {
   }
 
   public static JoinInfoFile getInstance(BaseManager manager)
-      throws LogFile.FileException {
+      throws LogFile.LockException {
     JoinInfoFile instance = new JoinInfoFile(manager);
     instance.joinInfo = LogFile.getInstance(manager.getPropertyUserDir(),
         DatasetFiles.getJoinInfoName(manager));
@@ -72,9 +74,9 @@ public class JoinInfoFile {
   private boolean load() {
     reset();
     try {
-      long readId = joinInfo.openReader();
-      joinInfo.readLine(readId);
-      String line = joinInfo.readLine(readId);
+      LogFile.ReaderId readerId = joinInfo.openReader();
+      joinInfo.readLine(readerId);
+      String line = joinInfo.readLine(readerId);
       if (line == null) {
         UIHarness.INSTANCE.openMessageDialog(ERROR_TITLE, ERROR_MESSAGE);
         return false;
@@ -88,10 +90,22 @@ public class JoinInfoFile {
           }
         }
       }
-      joinInfo.closeReader(readId);
-      readId = LogFile.NO_ID;
+      joinInfo.closeReader(readerId);
+      readerId = null;
     }
-    catch (LogFile.ReadException e) {
+    catch (LogFile.LockException e) {
+      e.printStackTrace();
+      UIHarness.INSTANCE.openMessageDialog("Etomo Error", ERROR_MESSAGE + "\n"
+          + e.toString());
+      return false;
+    }
+    catch (FileNotFoundException e) {
+      e.printStackTrace();
+      UIHarness.INSTANCE.openMessageDialog("Etomo Error", ERROR_MESSAGE + "\n"
+          + e.toString());
+      return false;
+    }
+    catch (IOException e) {
       e.printStackTrace();
       UIHarness.INSTANCE.openMessageDialog("Etomo Error", ERROR_MESSAGE + "\n"
           + e.toString());
@@ -112,6 +126,9 @@ public class JoinInfoFile {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.4  2008/01/31 20:21:56  sueh
+ * <p> bug# 1055 throwing a FileException when LogFile.getInstance fails.
+ * <p>
  * <p> Revision 1.3  2006/10/16 22:45:03  sueh
  * <p> bug# 919  GetInverted():  return null on failure.
  * <p>

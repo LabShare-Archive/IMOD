@@ -43,6 +43,13 @@ import etomo.util.DatasetFiles;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.25  2009/01/13 19:35:55  sueh
+ * <p> bug# 1170 Changed N_WEIGHT_GROUP_DEFAULT to 8.  Added
+ * <p> N_WEIGHT_GROUP_MIN.  Setting the floor of nWeightGroup to
+ * <p> N_WEIGHT_GROUP_MIN for backwards compatibility, since the previous
+ * <p> version have a min of 0, which causes the spinner to lock up.  Added
+ * <p> isNWeightGroupEmpty.
+ * <p>
  * <p> Revision 1.24  2008/10/10 20:42:48  sueh
  * <p> bug# 1142 Clear tiltRange when tiltRange check box is unchecked.
  * <p>
@@ -374,16 +381,10 @@ public final class MatlabParam {
           "File Error");
       return false;
     }
-    catch (LogFile.ReadException e) {
+    catch (LogFile.LockException e) {
       UIHarness.INSTANCE.openMessageDialog("Unable to read "
           + file.getAbsolutePath() + ".  LogFile.ReadException:  "
           + e.getMessage(), "File Error");
-      return false;
-    }
-    catch (LogFile.FileException e) {
-      UIHarness.INSTANCE.openMessageDialog(
-          "Unable to open file .  LogFile.FileException:  " + e.getMessage(),
-          "File Error");
       return false;
     }
     return true;
@@ -410,7 +411,7 @@ public final class MatlabParam {
       System.err.println("Problem with " + AutodocFactory.PEET_PRM
           + ".adoc.\nIOException:  " + e.getMessage());
     }
-    catch (LogFile.ReadException e) {
+    catch (LogFile.LockException e) {
       System.err.println("Problem with " + AutodocFactory.PEET_PRM
           + ".adoc.\nLogFile.ReadException:  " + e.getMessage());
     }
@@ -463,19 +464,9 @@ public final class MatlabParam {
       UIHarness.INSTANCE.openMessageDialog("Unable to load " + file.getName()
           + ".  IOException:  " + e.getMessage(), "File Error");
     }
-    catch (LogFile.ReadException e) {
+    catch (LogFile.LockException e) {
       UIHarness.INSTANCE.openMessageDialog("Unable to read " + file.getName()
           + ".  LogFile.ReadException:  " + e.getMessage(), "File Error");
-    }
-    catch (LogFile.FileException e) {
-      UIHarness.INSTANCE.openMessageDialog("Unable to back up "
-          + file.getName() + ".  LogFile.FileException:  " + e.getMessage(),
-          "File Error");
-    }
-    catch (LogFile.WriteException e) {
-      UIHarness.INSTANCE.openMessageDialog("Unable to write to "
-          + file.getName() + ".  LogFile.WriteException:  " + e.getMessage(),
-          "File Error");
     }
   }
 

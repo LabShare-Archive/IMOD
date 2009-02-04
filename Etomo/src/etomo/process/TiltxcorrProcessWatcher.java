@@ -1,5 +1,7 @@
 package etomo.process;
 
+import java.io.IOException;
+
 import etomo.ApplicationManager;
 import etomo.storage.LogFile;
 import etomo.type.AxisID;
@@ -66,7 +68,7 @@ public class TiltxcorrProcessWatcher extends LogFileProcessMonitor {
    * @see etomo.process.LogFileProcessMonitor#getCurrentSection()
    */
   protected void getCurrentSection()
-    throws NumberFormatException, LogFile.ReadException {
+    throws NumberFormatException, LogFile.LockException,IOException {
     String line;
     while ((line = readLogFileLine()) != null) {
       if (line.startsWith("View")) {
@@ -86,7 +88,7 @@ public class TiltxcorrProcessWatcher extends LogFileProcessMonitor {
    * sections
    */
   protected void findNSections() throws InterruptedException,
-      NumberFormatException, LogFile.ReadException {
+      NumberFormatException, LogFile.LockException,IOException {
     //  Search for the number of sections, we should see a header ouput first
     boolean foundNSections = false;
 
@@ -119,6 +121,9 @@ public class TiltxcorrProcessWatcher extends LogFileProcessMonitor {
 }
 /**
 * <p> $Log$
+* <p> Revision 1.3  2006/10/24 21:41:01  sueh
+* <p> bug# 947 Passing the ProcessName to AxisProcessPanel.
+* <p>
 * <p> Revision 1.2  2006/10/10 05:14:39  sueh
 * <p> bug# 931 Managing the log file with LogFile.
 * <p>

@@ -25,6 +25,9 @@ import junit.framework.TestCase;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.5  2008/01/31 20:23:09  sueh
+ * <p> bug# 1055 throwing a FileException when LogFile.getInstance fails.
+ * <p>
  * <p> Revision 1.4  2007/09/07 00:24:27  sueh
  * <p> bug# 989 Do not have to create the EtomoDirector instance because
  * <p> EtomoDirector.main is being run by JUnitTest.
@@ -65,8 +68,7 @@ public final class ParameterStoreTest extends TestCase {
     initFiles();
   }
 
-  private void initFiles() throws LogFile.FileException,
-      LogFile.WriteException, IOException {
+  private void initFiles() throws LogFile.LockException, IOException {
     //TEMP
     if (Utilities.isWindowsOS()) {
       return;
@@ -94,13 +96,12 @@ public final class ParameterStoreTest extends TestCase {
     assertFalse(backupFile.exists());
   }
 
-  public void testParameterStore() throws LogFile.FileException {
+  public void testParameterStore() throws LogFile.LockException {
     ParameterStore psTest = ParameterStore.getInstance(testFile);
     LogFile.reset();
   }
 
-  public void testLoadProperties() throws LogFile.FileException,
-      LogFile.WriteException {
+  public void testLoadProperties() throws LogFile.LockException, IOException {
     //TEMP
     if (Utilities.isWindowsOS()) {
       return;
@@ -128,8 +129,7 @@ public final class ParameterStoreTest extends TestCase {
     LogFile.reset();
   }
 
-  public void testStoreProperties() throws LogFile.FileException,
-      LogFile.WriteException {
+  public void testStoreProperties() throws LogFile.LockException, IOException {
     //TEMP
     if (Utilities.isWindowsOS()) {
       return;
@@ -164,7 +164,7 @@ public final class ParameterStoreTest extends TestCase {
     LogFile.reset();
   }
 
-  public void testLoad() throws LogFile.FileException, LogFile.WriteException {
+  public void testLoad() throws LogFile.LockException {
     //TEMP
     if (Utilities.isWindowsOS()) {
       return;
@@ -177,7 +177,7 @@ public final class ParameterStoreTest extends TestCase {
     LogFile.reset();
   }
 
-  public void testSave() throws LogFile.FileException, LogFile.WriteException,
+  public void testSave() throws LogFile.LockException,
       IOException {
     //TEMP
     if (Utilities.isWindowsOS()) {

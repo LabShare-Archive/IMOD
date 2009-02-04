@@ -1,5 +1,7 @@
 package etomo.process;
 
+import java.io.IOException;
+
 import etomo.ApplicationManager;
 import etomo.storage.LogFile;
 import etomo.type.AxisID;
@@ -19,6 +21,9 @@ import etomo.type.ProcessName;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.5  2006/10/24 21:19:49  sueh
+ * <p> bug# 947 Passing the ProcessName to AxisProcessPanel.
+ * <p>
  * <p> Revision 1.4  2006/10/10 05:10:17  sueh
  * <p> bug# 931 Managing the log file with LogFile.
  * <p>
@@ -66,7 +71,7 @@ public class MatchorwarpProcessMonitor extends LogFileProcessMonitor {
   /* (non-Javadoc)
    * @see etomo.process.LogFileProcessMonitor#getCurrentSection()
    */
-  protected void getCurrentSection() throws NumberFormatException, LogFile.ReadException {
+  protected void getCurrentSection() throws NumberFormatException, LogFile.LockException,IOException {
     String line;
     while ((line = readLogFileLine()) != null) {
       line = line.trim();
@@ -85,7 +90,7 @@ public class MatchorwarpProcessMonitor extends LogFileProcessMonitor {
    * Search matchvol1.log.out file for the number of positions
    */
   protected void findNSections() throws InterruptedException,
-      NumberFormatException, LogFile.ReadException {
+      NumberFormatException, LogFile.LockException,IOException {
     //  Search for the number of sections, we should see a header ouput first
     boolean foundNSections = false;
     nSections = -1;

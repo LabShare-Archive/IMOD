@@ -20,7 +20,7 @@ interface DetachedProcessMonitor extends ProcessMonitor {
   public static  final String  rcsid =  "$Id$";
   
   public boolean isProcessRunning();
-  public String getProcessOutputFileName()throws LogFile.FileException;
+  public String getProcessOutputFileName()throws LogFile.LockException;
   public void setProcess(SystemProcessInterface process);
 }
 /**
@@ -50,6 +50,10 @@ interface DetachedProcessMonitor extends ProcessMonitor {
  */
 /**
 * <p> $Log$
+* <p> Revision 1.4  2006/10/11 10:08:39  sueh
+* <p> bug# 931 Added delete functionality to LogFile - changed BackupException to
+* <p> FileException.
+* <p>
 * <p> Revision 1.3  2006/01/31 20:44:33  sueh
 * <p> bug# 521 Added the process to combine monitor.  This allows the last
 * <p> ProcessResultDisplay used by the monitor to be assigned to the process.

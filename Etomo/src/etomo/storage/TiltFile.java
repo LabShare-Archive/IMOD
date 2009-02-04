@@ -1,6 +1,7 @@
 package etomo.storage;
 
 import java.io.File;
+import java.io.IOException;
 
 import etomo.type.ConstEtomoNumber;
 import etomo.type.EtomoNumber;
@@ -19,6 +20,9 @@ import etomo.type.EtomoNumber;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.3  2008/01/31 20:23:18  sueh
+ * <p> bug# 1055 throwing a FileException when LogFile.getInstance fails.
+ * <p>
  * <p> Revision 1.2  2007/07/25 22:56:37  sueh
  * <p> bug# 1027 Change start and end angles to min and max angles.
  * <p>
@@ -38,12 +42,12 @@ public final class TiltFile {
     this.file = file;
     try {
       LogFile fileReader = LogFile.getInstance(file);
-      long readId = fileReader.openReader();
-      minAngle.set(fileReader.readLine(readId));
+      LogFile.ReaderId readerId = fileReader.openReader();
+      minAngle.set(fileReader.readLine(readerId));
       //read until end of file, preserving last line read
       String prevLine = null;
       String line = null;
-      while ((line = fileReader.readLine(readId)) != null) {
+      while ((line = fileReader.readLine(readerId)) != null) {
         prevLine = line;
       }
       maxAngle.set(prevLine);
@@ -54,10 +58,10 @@ public final class TiltFile {
         maxAngle.set(temp);
       }
     }
-    catch (LogFile.ReadException e) {
+    catch (LogFile.LockException e) {
       e.printStackTrace();
     }
-    catch (LogFile.FileException e) {
+    catch (IOException e) {
       e.printStackTrace();
     }
   }

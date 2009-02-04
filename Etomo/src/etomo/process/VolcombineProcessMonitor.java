@@ -1,5 +1,7 @@
 package etomo.process;
 
+import java.io.IOException;
+
 import etomo.ApplicationManager;
 import etomo.storage.LogFile;
 import etomo.type.AxisID;
@@ -18,6 +20,10 @@ import etomo.type.ProcessName;
  * @version $$Revision$$
  * 
  * <p> $$Log$
+ * <p> $Revision 1.8  2006/12/02 04:58:08  sueh
+ * <p> $bug# 944 Made subprocess static so it could be used by
+ * <p> $ProcesschunksVolcombineMonitor.
+ * <p> $
  * <p> $Revision 1.7  2006/11/29 20:17:10  sueh
  * <p> $bug# 944 Added display for densmatch.
  * <p> $
@@ -84,7 +90,7 @@ public class VolcombineProcessMonitor extends LogFileProcessMonitor {
    * @see etomo.process.LogFileProcessMonitor#getCurrentSection()
    */
   protected void getCurrentSection() throws NumberFormatException,
-      LogFile.ReadException {
+      LogFile.LockException,IOException {
     String line;
     while ((line = readLogFileLine()) != null) {
       if (line.startsWith("STATUS:")) {
@@ -125,7 +131,7 @@ public class VolcombineProcessMonitor extends LogFileProcessMonitor {
    * sections
    */
   protected void findNSections() throws InterruptedException,
-      LogFile.ReadException {
+      LogFile.LockException,IOException {
     //  Search for the number of sections, we should see a header ouput first
     boolean foundNSections = false;
 

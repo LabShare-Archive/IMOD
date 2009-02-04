@@ -28,6 +28,11 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.31  2008/10/27 23:19:52  sueh
+ * <p> bug# 1141 Fixed monitor - In CTF correction,log file doesn't show the
+ * <p> watched file's name, so turn off findWatchedFileName to avoid looking
+ * <p> for it.
+ * <p>
  * <p> Revision 3.30  2008/01/31 20:18:19  sueh
  * <p> bug# 1055 throwing a FileException when LogFile.getInstance fails.
  * <p>
@@ -191,7 +196,7 @@ abstract class FileSizeProcessMonitor implements ProcessMonitor {
   //private FileReader fileReader = null;
   private boolean logFileRenamed = false;
   private LogFile logFile;
-  private long logReadId = LogFile.NO_ID;
+  private LogFile.ReaderId logReaderId =null;
   private boolean findWatchedFileName = true;
 
   public FileSizeProcessMonitor(ApplicationManager appMgr, AxisID id,
@@ -204,7 +209,7 @@ abstract class FileSizeProcessMonitor implements ProcessMonitor {
       logFile = LogFile.getInstance(appMgr.getPropertyUserDir(), axisID,
           processName);
     }
-    catch (LogFile.FileException e) {
+    catch (LogFile.LockException e) {
       e.printStackTrace();
       UIHarness.INSTANCE.openMessageDialog("Unable to create log file.\n"
           + e.getMessage(), "File Size Monitor Log File Failure");
@@ -310,9 +315,12 @@ abstract class FileSizeProcessMonitor implements ProcessMonitor {
     while (!watchedFileBackedUp) {
       String line = null;
       try {
-        line = logFile.readLine(logReadId);
+        line = logFile.readLine(logReaderId);
       }
-      catch (LogFile.ReadException e) {
+      catch (LogFile.LockException e) {
+        e.printStackTrace();
+      }
+      catch (IOException e) {
         e.printStackTrace();
       }
       if (line == null) {
@@ -438,18 +446,21 @@ abstract class FileSizeProcessMonitor implements ProcessMonitor {
     //closeLogFileReader();
     try {
       //fileReader = new FileReader(logFile);
-      logReadId = logFile.openReader();
+      logReaderId = logFile.openReader();
     }
-    catch (LogFile.ReadException e) {
+    catch (LogFile.LockException e) {
+      e.printStackTrace();
+    }
+    catch (FileNotFoundException e) {
       e.printStackTrace();
     }
     //logFileReader = new BufferedReader(fileReader);
   }
 
   private void closeLogFileReader() {
-    if (logReadId != LogFile.NO_ID) {
-      logFile.closeReader(logReadId);
-      logReadId = LogFile.NO_ID;
+    if (logReaderId!=null &&!logReaderId.isEmpty()) {
+      logFile.closeReader(logReaderId);
+      logReaderId = null;
     }
   }
 

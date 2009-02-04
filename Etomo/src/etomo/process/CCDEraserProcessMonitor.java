@@ -1,5 +1,7 @@
 package etomo.process;
 
+import java.io.IOException;
+
 import etomo.ApplicationManager;
 import etomo.storage.LogFile;
 import etomo.type.AxisID;
@@ -18,6 +20,9 @@ import etomo.type.ProcessName;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.5  2006/10/24 21:18:01  sueh
+ * <p> bug# 947 Passing the ProcessName to AxisProcessPanel.
+ * <p>
  * <p> Revision 3.4  2006/10/10 05:07:40  sueh
  * <p> bug# 931 Managing the log file with LogFile.
  * <p>
@@ -75,7 +80,7 @@ public class CCDEraserProcessMonitor extends LogFileProcessMonitor {
    * @see etomo.process.LogFileProcessMonitor#getCurrentSection()
    */
   protected void getCurrentSection()
-    throws NumberFormatException, LogFile.ReadException {
+    throws NumberFormatException, LogFile.LockException ,IOException{
     String line;
     while ((line = readLogFileLine()) != null) {
       if (line.startsWith("Section")) {

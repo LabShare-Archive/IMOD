@@ -1,5 +1,8 @@
 package etomo.process;
 
+import java.io.FileNotFoundException;
+import java.io.IOException;
+
 import etomo.BaseManager;
 import etomo.storage.LogFile;
 import etomo.type.AxisID;
@@ -20,6 +23,10 @@ import etomo.util.DatasetFiles;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.4  2008/01/14 21:33:23  sueh
+ * <p> big# 1050 Removed protected modifiers since classes in this familly aren't being
+ * <p> inherited by classes outside their package.
+ * <p>
  * <p> Revision 1.3  2007/12/10 22:29:58  sueh
  * <p> bug# 1041 Removed subdirName from the super constructor because it is optional and never used in this class.
  * <p>
@@ -31,15 +38,14 @@ import etomo.util.DatasetFiles;
  * <p> volcombine.  Watches volcombine-start.log and volcombine-finish.log
  * <p> </p>
  */
- final class ProcesschunksVolcombineMonitor extends
-    ProcesschunksProcessMonitor {
+final class ProcesschunksVolcombineMonitor extends ProcesschunksProcessMonitor {
   public static final String rcsid = "$Id$";
 
   private LogFile startLog = null;
   private LogFile finishLog = null;
   private final VolcombineProcessMonitor.Subprocess subprocess = new VolcombineProcessMonitor.Subprocess();
-  private long readIdStart = LogFile.NO_ID;
-  private long readIdFinish = LogFile.NO_ID;
+  private LogFile.ReaderId readerIdStart = null;
+  private LogFile.ReaderId readerIdFinish = null;
 
   public ProcesschunksVolcombineMonitor(BaseManager manager, AxisID axisID,
       ParallelProgressDisplay parallelProgressDisplay, String rootName,
@@ -47,8 +53,7 @@ import etomo.util.DatasetFiles;
     super(manager, axisID, parallelProgressDisplay, rootName, computerList);
   }
 
-   boolean updateState() throws LogFile.ReadException,
-      LogFile.FileException {
+  boolean updateState() throws LogFile.LockException,FileNotFoundException,IOException {
     String line = null;
     if (super.updateState()) {
       return true;
@@ -58,16 +63,16 @@ import etomo.util.DatasetFiles;
         startLog = LogFile.getInstance(manager.getPropertyUserDir(),
             DatasetFiles.VOLCOMBINE_START_LOG);
       }
-      if (readIdStart == LogFile.NO_ID) {
+      if (readerIdStart == null || readerIdStart.isEmpty()) {
         try {
-          readIdStart = startLog.openReader();
+          readerIdStart = startLog.openReader();
         }
-        catch (LogFile.ReadException e) {
+        catch (LogFile.LockException e) {
           return false;
         }
       }
-      if (readIdStart != LogFile.NO_ID) {
-        while ((line = startLog.readLine(readIdStart)) != null) {
+      if (readerIdStart != null && !readerIdStart.isEmpty()) {
+        while ((line = startLog.readLine(readerIdStart)) != null) {
           if (VolcombineProcessMonitor.setSubprocess(line, subprocess)) {
             return true;
           }
@@ -79,16 +84,16 @@ import etomo.util.DatasetFiles;
         finishLog = LogFile.getInstance(manager.getPropertyUserDir(),
             DatasetFiles.VOLCOMBINE_FINISH_LOG);
       }
-      if (readIdFinish == LogFile.NO_ID) {
+      if (readerIdFinish == null || readerIdFinish.isEmpty()) {
         try {
-          readIdFinish = finishLog.openReader();
+          readerIdFinish = finishLog.openReader();
         }
-        catch (LogFile.ReadException e) {
+        catch (LogFile.LockException e) {
           return false;
         }
       }
-      if (readIdFinish != LogFile.NO_ID) {
-        while ((line = finishLog.readLine(readIdFinish)) != null) {
+      if (readerIdFinish != null && !readerIdFinish.isEmpty()) {
+        while ((line = finishLog.readLine(readerIdFinish)) != null) {
           if (VolcombineProcessMonitor.setSubprocess(line, subprocess)) {
             return true;
           }
@@ -98,7 +103,7 @@ import etomo.util.DatasetFiles;
     return false;
   }
 
-   void updateProgressBar() {
+  void updateProgressBar() {
     if (subprocess.isFilltomo()) {
       manager.getMainPanel().setProgressBarValue(0, "Filltomo", axisID);
     }
@@ -113,17 +118,18 @@ import etomo.util.DatasetFiles;
     }
   }
 
-   void closeProcessOutput() {
+  void closeProcessOutput() {
     super.closeProcessOutput();
-    if (startLog != null && readIdStart != LogFile.NO_ID) {
-      startLog.closeReader(readIdStart);
+    if (startLog != null && readerIdStart != null && !readerIdStart.isEmpty()) {
+      startLog.closeReader(readerIdStart);
       startLog = null;
-      readIdStart = LogFile.NO_ID;
+      readerIdStart = null;
     }
-    if (finishLog != null && readIdFinish != LogFile.NO_ID) {
-      finishLog.closeReader(readIdFinish);
+    if (finishLog != null && readerIdFinish != null
+        && !readerIdFinish.isEmpty()) {
+      finishLog.closeReader(readerIdFinish);
       finishLog = null;
-      readIdFinish = LogFile.NO_ID;
+      readerIdFinish = null;
     }
   }
 }

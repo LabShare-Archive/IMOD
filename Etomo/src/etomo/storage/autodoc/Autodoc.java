@@ -172,19 +172,19 @@ final class Autodoc extends WriteOnlyStatementList implements WritableAutodoc {
     return attributeList.addAttribute(name);
   }
 
-  public void write() throws LogFile.FileException, LogFile.WriteException {
+  public void write() throws LogFile.LockException, IOException {
     if (!writable) {
       new IllegalStateException("Not a writable autodoc.").printStackTrace();
       return;
     }
-    long writeId = autodocFile.openWriter();
+    LogFile.WriterId writerId = autodocFile.openWriter();
     for (int i = 0; i < statementList.size(); i++) {
-      ((Statement) statementList.get(i)).write(autodocFile, writeId);
+      ((Statement) statementList.get(i)).write(autodocFile, writerId);
     }
     for (int j = 0; j < sectionList.size(); j++) {
-      ((Section) sectionList.get(j)).write(autodocFile, writeId);
+      ((Section) sectionList.get(j)).write(autodocFile, writerId);
     }
-    autodocFile.closeWriter(writeId);
+    autodocFile.closeWriter(writerId);
   }
 
   /**
@@ -479,7 +479,7 @@ final class Autodoc extends WriteOnlyStatementList implements WritableAutodoc {
     try {
       return LogFile.getInstance(file);
     }
-    catch (LogFile.FileException e) {
+    catch (LogFile.LockException e) {
       System.err.println("Warning:  cannot open the autodoc file,"
           + file.getAbsolutePath() + ".");
       return null;
@@ -530,13 +530,13 @@ final class Autodoc extends WriteOnlyStatementList implements WritableAutodoc {
   }
 
   void initializeUITestAxis(LogFile autodocFile, AxisID axisID)
-      throws FileNotFoundException, IOException, LogFile.ReadException {
+      throws FileNotFoundException, IOException, LogFile.LockException {
     this.autodocFile = autodocFile;
     /*if (autodocFile.getName().equals("setup-recon.adoc")) {
-      initialize(null, axisID, null, false);
-    }
-    else {*/
-      initialize(null, axisID, null, true);
+     initialize(null, axisID, null, false);
+     }
+     else {*/
+    initialize(null, axisID, null, true);
     //}
   }
 
@@ -545,17 +545,17 @@ final class Autodoc extends WriteOnlyStatementList implements WritableAutodoc {
   }
 
   void initialize(String name, AxisID axisID) throws FileNotFoundException,
-      IOException, LogFile.ReadException {
+      IOException, LogFile.LockException {
     initialize(name, axisID, null, true);
   }
 
   void initializeUITest(String name, AxisID axisID)
-      throws FileNotFoundException, IOException, LogFile.ReadException {
+      throws FileNotFoundException, IOException, LogFile.LockException {
     initialize(name, axisID, "IMOD_UITEST_SOURCE", true);
   }
 
   void initializeCpu(String name, AxisID axisID) throws FileNotFoundException,
-      IOException, LogFile.ReadException {
+      IOException, LogFile.LockException {
     initialize(name, axisID, EnvironmentVariable.CALIB_DIR, true);
   }
 
@@ -568,7 +568,7 @@ final class Autodoc extends WriteOnlyStatementList implements WritableAutodoc {
    * @throws LogFile.ReadException
    */
   public void runInternalTest(InternalTestType type, boolean showTokens,
-      boolean showDetails) throws IOException, LogFile.ReadException {
+      boolean showDetails) throws IOException, LogFile.LockException {
     System.out.println("runInternalTest");
     if (type == InternalTestType.STREAM_TOKENIZER) {
       parser.testStreamTokenizer(showTokens, showDetails);
@@ -608,7 +608,7 @@ final class Autodoc extends WriteOnlyStatementList implements WritableAutodoc {
    */
   private void initialize(String name, AxisID axisID, String envVariable,
       boolean storeData) throws FileNotFoundException, IOException,
-      LogFile.ReadException {
+      LogFile.LockException {
     if (autodocFile == null) {
       autodocFile = setAutodocFile(name, axisID, envVariable);
     }
@@ -637,7 +637,7 @@ final class Autodoc extends WriteOnlyStatementList implements WritableAutodoc {
    */
   void initialize(File file, boolean storeData, boolean versionRequired,
       boolean writable) throws FileNotFoundException, IOException,
-      LogFile.ReadException, LogFile.FileException {
+      LogFile.LockException {
     this.writable = writable;
     autodocFile = LogFile.getInstance(file);
     parser = new AutodocParser(this, allowAltComment, versionRequired, debug);
@@ -660,6 +660,9 @@ final class Autodoc extends WriteOnlyStatementList implements WritableAutodoc {
 }
 /**
  *<p> $$Log$
+ *<p> $Revision 1.27  2009/01/20 19:32:37  sueh
+ *<p> $bug# 1102 Hooked up internal testing.
+ *<p> $
  *<p> $Revision 1.26  2008/10/27 18:34:58  sueh
  *<p> $bug# 1141 Added debug.
  *<p> $

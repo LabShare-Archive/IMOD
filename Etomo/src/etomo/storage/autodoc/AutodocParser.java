@@ -150,6 +150,9 @@ import etomo.ui.Token;
  * @version $$Revision$$
  *
  * <p> $$Log$
+ * <p> $Revision 1.20  2009/01/20 19:34:21  sueh
+ * <p> $bug# 1102 Fixed bug - not allowing whitespace after subsection header close.
+ * <p> $
  * <p> $Revision 1.19  2008/05/30 21:24:27  sueh
  * <p> $bug# 1102 In autodoc() setting commandLanguage boolean.
  * <p> $
@@ -326,7 +329,7 @@ final class AutodocParser {
   }
 
   void initialize() throws FileNotFoundException, IOException,
-      LogFile.ReadException {
+      LogFile.LockException {
     tokenizer.initialize();
   }
 
@@ -1014,22 +1017,22 @@ final class AutodocParser {
   }
 
   void testStreamTokenizer(boolean tokens, boolean details) throws IOException,
-      LogFile.ReadException {
+      LogFile.LockException {
     tokenizer.testStreamTokenizer(tokens, details);
   }
 
   void testPrimativeTokenizer(boolean tokens) throws IOException,
-      LogFile.ReadException {
+      LogFile.LockException {
     tokenizer.testPrimativeTokenizer(tokens);
   }
 
   void testAutodocTokenizer(boolean tokens) throws IOException,
-      LogFile.ReadException {
+      LogFile.LockException {
     tokenizer.test(tokens);
   }
 
   void testPreprocessor(boolean tokens) throws IOException,
-      LogFile.ReadException {
+      LogFile.LockException {
     if (tokens) {
       System.err.println("(type,value):delimiterInLine");
     }
@@ -1056,7 +1059,7 @@ final class AutodocParser {
    * @throws IOException
    */
   void test(boolean tokens, boolean details) throws IOException,
-      LogFile.ReadException {
+      LogFile.LockException {
     detailedTest = details;
     test = true;
     testWithTokens = tokens;

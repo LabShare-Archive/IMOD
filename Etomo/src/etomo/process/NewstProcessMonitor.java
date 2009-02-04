@@ -11,6 +11,9 @@
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.17  2008/01/31 20:18:55  sueh
+ * <p> bug# 1055 throwing a FileException when LogFile.getInstance fails.
+ * <p>
  * <p> Revision 3.16  2007/09/11 21:27:01  sueh
  * <p> bug# 1035 In calcFileSize prevent integer overflow when calculating fileSize by
  * <p> casting nX * xY to long.  Getting nX and nY from
@@ -89,6 +92,7 @@
 package etomo.process;
 
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import etomo.ApplicationManager;
 import etomo.comscript.ComScriptManager;
@@ -121,32 +125,39 @@ final class NewstProcessMonitor extends FileSizeProcessMonitor {
     //read the lines available in the log and look for a line shows that
     //mrctaper started
     String line;
-    long logReadId = LogFile.NO_ID;
+    LogFile.ReaderId logReaderId = null;
     try {
-      logReadId = getLogFile().openReader();
+      logReaderId = getLogFile().openReader();
     }
-    catch (LogFile.ReadException e) {
+    catch (LogFile.LockException e) {
+      return false;
+    }
+    catch (FileNotFoundException e) {
       return false;
     }
     try {
-      while ((line = getLogFile().readLine(logReadId)) != null) {
+      while ((line = getLogFile().readLine(logReaderId)) != null) {
         if (line.startsWith("Doing section")) {
           //mrctaper started
           applicationManager.getMainPanel().setProgressBarValue(0, "mrctaper",
               axisID);
           gotStatusFromLog = true;
-          getLogFile().closeReader(logReadId);
-          logReadId = LogFile.NO_ID;
+          getLogFile().closeReader(logReaderId);
+          logReaderId = null;
           return true;
         }
       }
     }
     //there is a problem with the log
-    catch (LogFile.ReadException e) {
+    catch (LogFile.LockException e) {
       return false;
     }
-    if (logReadId != LogFile.NO_ID) {
-      getLogFile().closeReader(logReadId);
+    catch (IOException e) {
+      return false;
+    }
+    if (logReaderId != null && !logReaderId.isEmpty()) {
+      getLogFile().closeReader(logReaderId);
+      logReaderId = null;//added this
     }
     //did not find a line shows that mrctaper started
     return false;

@@ -1,10 +1,12 @@
 package etomo.process;
 
+import java.io.FileNotFoundException;
+import java.io.IOException;
+
 import etomo.ApplicationManager;
 import etomo.EtomoDirector;
 import etomo.comscript.CombineComscriptState;
 import etomo.storage.LogFile;
-import etomo.storage.LogFile.ReadException;
 import etomo.type.AxisID;
 import etomo.type.CombineProcessType;
 import etomo.type.ProcessEndState;
@@ -31,6 +33,9 @@ import etomo.util.Utilities;
  * @version $$Revision$$
  * 
  * <p> $$Log$
+ * <p> $Revision 1.27  2008/01/31 20:17:53  sueh
+ * <p> $bug# 1055 throwing a FileException when LogFile.getInstance fails.
+ * <p> $
  * <p> $Revision 1.26  2008/01/14 20:34:54  sueh
  * <p> $bug# 1050 Added stop() and isRunning() to allow ProcessMonitor classes to work
  * <p> $with ReconnectProcess.
@@ -176,7 +181,7 @@ public class CombineProcessMonitor implements DetachedProcessMonitor {
   private final ApplicationManager manager;
   private AxisID axisID = null;
   //private BufferedReader logFileReader = null;
-  private long logFileReadId = LogFile.NO_ID;
+  private LogFile.ReaderId logFileReaderId = null;
   private long sleepCount = 0;
   private ProcessEndState endState = null;
 
@@ -202,7 +207,7 @@ public class CombineProcessMonitor implements DetachedProcessMonitor {
   private final ProcessResultDisplayFactory displayFactory;
   private boolean firstChildProcessSet = false;
   private LogFile childLog = null;
-  private long childLogWriteId = LogFile.NO_ID;
+  private LogFile.WritingId childLogWritingId = null;
   private boolean stop = false;
   private boolean running = false;
 
@@ -273,11 +278,10 @@ public class CombineProcessMonitor implements DetachedProcessMonitor {
    * @throws NumberFormatException
    * @throws IOException
    */
-  private void getCurrentSection() throws LogFile.ReadException,
-      LogFile.FileException {
+  private void getCurrentSection() throws LogFile.LockException, IOException {
     String line;
     String matchString = CombineComscriptState.getComscriptMatchString();
-    while ((line = logFile.readLine(logFileReadId)) != null) {
+    while ((line = logFile.readLine(logFileReaderId)) != null) {
       int index = -1;
       if ((line.indexOf("running ") != -1 || line.indexOf("Running ") != -1)
           && line.matches(matchString)) {
@@ -307,10 +311,11 @@ public class CombineProcessMonitor implements DetachedProcessMonitor {
    * @param comscriptName
    */
   private void setCurrentChildCommand(String comscriptName)
-      throws LogFile.FileException {
-    if (childLog != null && childLogWriteId != LogFile.NO_ID) {
-      childLog.closeForWriting(childLogWriteId);
-      childLogWriteId = LogFile.NO_ID;
+      throws LogFile.LockException {
+    if (childLog != null && childLogWritingId != null
+        && !childLogWritingId.isEmpty()) {
+      childLog.closeForWriting(childLogWritingId);
+      childLogWritingId = null;
     }
     manager.progressBarDone(axisID, ProcessEndState.DONE);
     String childCommandName = comscriptName.substring(0, comscriptName
@@ -319,7 +324,7 @@ public class CombineProcessMonitor implements DetachedProcessMonitor {
     if (currentCommand != null) {
       childLog = LogFile.getInstance(manager.getPropertyUserDir(), axisID,
           currentCommand);
-      childLogWriteId = childLog.openForWriting();
+      childLogWritingId = childLog.openForWriting();
     }
     if (currentCommand == ProcessName.MATCHVOL1) {
       setNextProcessResultDisplay(displayFactory.getRestartMatchvol1());
@@ -397,9 +402,10 @@ public class CombineProcessMonitor implements DetachedProcessMonitor {
    *
    */
   private void endMonitor(ProcessEndState endState) {
-    if (childLog != null && childLogWriteId != LogFile.NO_ID) {
-      childLog.closeForWriting(childLogWriteId);
-      childLogWriteId = LogFile.NO_ID;
+    if (childLog != null && childLogWritingId != null
+        && !childLogWritingId.isEmpty()) {
+      childLog.closeForWriting(childLogWritingId);
+      childLogWritingId = null;
     }
     setProcessEndState(endState);
     endCurrentChildMonitor();
@@ -461,13 +467,7 @@ public class CombineProcessMonitor implements DetachedProcessMonitor {
         getCurrentSection();
       }
     }
-    catch (LogFile.ReadException e) {
-      endMonitor(ProcessEndState.FAILED);
-      e.printStackTrace();
-      UIHarness.INSTANCE.openMessageDialog(e.getMessage(), "Etomo Error",
-          axisID);
-    }
-    catch (LogFile.FileException e) {
+    catch (LogFile.LockException e) {
       endMonitor(ProcessEndState.FAILED);
       e.printStackTrace();
       UIHarness.INSTANCE.openMessageDialog(e.getMessage(), "Etomo Error",
@@ -480,13 +480,17 @@ public class CombineProcessMonitor implements DetachedProcessMonitor {
       endMonitor(ProcessEndState.FAILED);
       e.printStackTrace();
     }
+    catch (IOException e) {
+      endMonitor(ProcessEndState.FAILED);
+      e.printStackTrace();
+    }
     //  Close the log file reader
     Utilities
         .debugPrint("LogFileProcessMonitor: Closing the log file reader for "
             + logFile.getAbsolutePath());
     if (logFile != null) {
-      logFile.closeReader(logFileReadId);
-      logFileReadId = LogFile.NO_ID;
+      logFile.closeReader(logFileReaderId);
+      logFileReaderId = null;
     }
     runSelfTest(RAN_STATE);
     running = false;
@@ -499,7 +503,8 @@ public class CombineProcessMonitor implements DetachedProcessMonitor {
    * Wait for the process to start and the appropriate log file to be created 
    * @return a buffered reader of the log file
    */
-  private void waitForLogFile() throws ReadException, InterruptedException {
+  private void waitForLogFile() throws LogFile.LockException,
+      InterruptedException,FileNotFoundException {
     if (logFile == null) {
       throw new NullPointerException("logFile");
     }
@@ -515,7 +520,7 @@ public class CombineProcessMonitor implements DetachedProcessMonitor {
       }
     }
     //  Open the log file
-    logFileReadId = logFile.openReader();
+    logFileReaderId = logFile.openReader();
     //logFileReader = new BufferedReader(new FileReader(logFile));
     runSelfTest(WAITED_FOR_LOG_STATE);
   }
@@ -595,7 +600,7 @@ public class CombineProcessMonitor implements DetachedProcessMonitor {
     return null;
   }
 
-  public final String getProcessOutputFileName() throws LogFile.FileException {
+  public final String getProcessOutputFileName() throws LogFile.LockException {
     return null;
   }
 }

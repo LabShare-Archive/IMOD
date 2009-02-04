@@ -44,6 +44,11 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.73  2009/01/26 22:41:43  sueh
+ * <p> bug# 1173 Added boolean nonBlocking to msgComScriptDone functions,
+ * <p> so that processDone knows not to pop up an error message that thread
+ * <p> name is not set.
+ * <p>
  * <p> Revision 1.72  2008/12/11 19:25:51  sueh
  * <p> bug# 1167 In msgProcessDone(BackgroundProcess, int, boolean) looking
  * <p> for warning messages after postProcess call.
@@ -496,7 +501,7 @@ public abstract class BaseProcessManager {
       thread.start();
       mapAxisThread(process, axisID);
     }
-    catch (LogFile.FileException e) {
+    catch (LogFile.LockException e) {
       e.printStackTrace();
       UIHarness.INSTANCE.openMessageDialog(
           "Unable to reconnect to processchunks.\n" + e.getMessage(),
@@ -919,10 +924,10 @@ public abstract class BaseProcessManager {
       }
       paramStore.save(processData);
     }
-    catch (LogFile.FileException e) {
+    catch (LogFile.LockException e) {
       e.printStackTrace();
     }
-    catch (LogFile.WriteException e) {
+    catch (IOException e) {
       e.printStackTrace();
     }
   }
@@ -1675,29 +1680,34 @@ public abstract class BaseProcessManager {
   final void writeLogFile(final BackgroundProcess process, final AxisID axisID,
       final String fileName) {
     LogFile logFile = null;
-    long writeId = LogFile.NO_ID;
+    LogFile.WriterId writerId = null;
     try {
       //  Write the standard output to a the log file
       String[] stdOutput = process.getStdOutput();
       try {
         logFile = LogFile.getInstance(manager.getPropertyUserDir(), fileName);
       }
-      catch (LogFile.FileException e) {
+      catch (LogFile.LockException e) {
         uiHarness.openMessageDialog(e.getMessage(), "log File Write Error",
             axisID);
         return;
       }
-      writeId = logFile.openWriter();
+      writerId = logFile.openWriter();
       if (stdOutput != null) {
         for (int i = 0; i < stdOutput.length; i++) {
-          logFile.write(stdOutput[i], writeId);
-          logFile.newLine(writeId);
+          logFile.write(stdOutput[i], writerId);
+          logFile.newLine(writerId);
         }
       }
-      logFile.closeWriter(writeId);
+      logFile.closeWriter(writerId);
     }
-    catch (LogFile.WriteException except) {
-      logFile.closeWriter(writeId);
+    catch (LogFile.LockException except) {
+      logFile.closeWriter(writerId);
+      uiHarness.openMessageDialog(except.getMessage(), "log File Write Error",
+          axisID);
+    }
+    catch (IOException except) {
+      logFile.closeWriter(writerId);
       uiHarness.openMessageDialog(except.getMessage(), "log File Write Error",
           axisID);
     }

@@ -1,5 +1,7 @@
 package etomo.storage.autodoc;
 
+import java.io.IOException;
+
 import etomo.storage.LogFile;
 
 /**
@@ -16,6 +18,9 @@ import etomo.storage.LogFile;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.3  2009/01/20 19:41:03  sueh
+ * <p> bug# 1102 Added getSubsection.
+ * <p>
  * <p> Revision 1.2  2007/04/11 22:09:16  sueh
  * <p> bug# 964 Added a link list to Statement so that groups of statements could be
  * <p> removed.  Added the parameter Statement previousStatement to the Statement
@@ -38,41 +43,43 @@ public final class Subsection extends Statement {
   private final WriteOnlyStatementList parent;
   private final Section subsection;
 
-  Subsection(Section subsection, WriteOnlyStatementList parent,Statement previousStatement) {
+  Subsection(Section subsection, WriteOnlyStatementList parent,
+      Statement previousStatement) {
     super(previousStatement);
     this.parent = parent;
     this.subsection = subsection;
   }
-  
-  public Statement.Type getType(){
+
+  public Statement.Type getType() {
     return TYPE;
   }
-  
+
   public int sizeLeftSide() {
     return 1;
   }
-  
+
   public String getString() {
     return subsection.getString();
   }
-  
+
   public String getLeftSide(int index) {
-    if (index >0) {
+    if (index > 0) {
       return null;
     }
     return subsection.getTypeToken().getValues();
   }
-  
+
   public String getRightSide() {
     return subsection.getName();
   }
-  
+
   public ReadOnlySection getSubsection() {
     return subsection;
   }
 
-  void write(LogFile file, long writeId) throws LogFile.WriteException {
-    subsection.write(file, writeId);
+  void write(LogFile file, LogFile.WriterId writerId)
+      throws LogFile.LockException, IOException {
+    subsection.write(file, writerId);
   }
 
   void print(int level) {

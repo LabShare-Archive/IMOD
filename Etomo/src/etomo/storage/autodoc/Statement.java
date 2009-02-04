@@ -1,5 +1,7 @@
 package etomo.storage.autodoc;
 
+import java.io.IOException;
+
 import etomo.storage.LogFile;
 
 /**
@@ -16,6 +18,9 @@ import etomo.storage.LogFile;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.3  2009/01/20 19:40:22  sueh
+ * <p> bug# 1102 Added toString.
+ * <p>
  * <p> Revision 1.2  2007/04/11 22:06:42  sueh
  * <p> bug# 964 Added a link list to Statement so that groups of statements could be
  * <p> removed.  Added the parameter Statement previousStatement to the Statement
@@ -44,7 +49,8 @@ public abstract class Statement extends WritableStatement {
     }
   }
 
-  abstract void write(LogFile file, long writeId) throws LogFile.WriteException;
+  abstract void write(LogFile file, LogFile.WriterId writerId)
+      throws LogFile.LockException, IOException;
 
   abstract void print(int level);
 

@@ -1,5 +1,7 @@
 package etomo.storage.autodoc;
 
+import java.io.IOException;
+
 import etomo.storage.LogFile;
 import etomo.ui.Token;
 
@@ -17,6 +19,9 @@ import etomo.ui.Token;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.3  2009/01/20 19:34:46  sueh
+ * <p> bug# 1102 Added getSubsection.
+ * <p>
  * <p> Revision 1.2  2007/04/11 22:01:52  sueh
  * <p> bug# 964 Added a link list to Statement so that groups of statements could be
  * <p> removed.  Added the parameter Statement previousStatement to the Statement
@@ -63,10 +68,10 @@ final class Comment extends Statement {
     return comment.getValues();
   }
 
-  void write(LogFile file, long writeId) throws LogFile.WriteException {
-    file.write(AutodocTokenizer.COMMENT_CHAR, writeId);
-    comment.write(file, writeId);
-    file.newLine(writeId);
+  void write(LogFile file, LogFile.WriterId writerId) throws LogFile.LockException,IOException {
+    file.write(AutodocTokenizer.COMMENT_CHAR, writerId);
+    comment.write(file, writerId);
+    file.newLine(writerId);
     return;
   }
   
