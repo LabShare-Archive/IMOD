@@ -7,6 +7,7 @@ import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.event.ActionEvent;
 import java.io.File;
+import java.io.IOException;
 import java.net.MalformedURLException;
 import java.util.ArrayList;
 
@@ -114,37 +115,37 @@ abstract class EtomoFrame extends JFrame {
    */
   void menuFileAction(ActionEvent event) {
     AxisID axisID = getAxisID();
-    if (menu.equalsFileNewTomogram(event)) {
+    if (menu.equalsNewTomogram(event)) {
       EtomoDirector.INSTANCE.openTomogram(true, axisID);
     }
-    else if (menu.equalsFileNewJoin(event)) {
+    else if (menu.equalsNewJoin(event)) {
       EtomoDirector.INSTANCE.openJoin(true, axisID);
     }
-    else if (menu.equalsFileNewParallel(event)) {
+    else if (menu.equalsNewParallel(event)) {
       EtomoDirector.INSTANCE.openParallel(true, axisID);
     }
-    else if (menu.equalsFileNewPeet(event)) {
+    else if (menu.equalsNewPeet(event)) {
       EtomoDirector.INSTANCE.openPeet(true, axisID);
     }
-    else if (menu.equalsFileOpen(event)) {
+    else if (menu.equalsOpen(event)) {
       File dataFile = openDataFileDialog();
       if (dataFile != null) {
         EtomoDirector.INSTANCE.openManager(dataFile, true, axisID);
       }
     }
-    else if (menu.equalsFileSave(event)) {
+    else if (menu.equalsSave(event)) {
       save(axisID);
     }
-    else if (menu.equalsFileSaveAs(event)) {
+    else if (menu.equalsSaveAs(event)) {
       saveAs(axisID);
     }
-    else if (menu.equalsFileClose(event)) {
+    else if (menu.equalsClose(event)) {
       EtomoDirector.INSTANCE.closeCurrentManager(axisID, false);
     }
-    else if (menu.equalsFileExit(event)) {
+    else if (menu.equalsExit(event)) {
       UIHarness.INSTANCE.exit(axisID);
     }
-    else if (menu.equalsFileTomosnapshot(event)) {
+    else if (menu.equalsTomosnapshot(event)) {
       currentManager.tomosnapshot(axisID, null);
     }
   }
@@ -166,11 +167,11 @@ abstract class EtomoFrame extends JFrame {
         currentManager.saveParamFile();
       }
     }
-    catch (LogFile.FileException e) {
-      UIHarness.INSTANCE.openMessageDialog("Unable to save parameters.\n"
+    catch (LogFile.LockException e) {
+      UIHarness.INSTANCE.openMessageDialog("Unable to write parameters.\n"
           + e.getMessage(), "Etomo Error", axisID);
     }
-    catch (LogFile.WriteException e) {
+    catch (IOException e) {
       UIHarness.INSTANCE.openMessageDialog("Unable to write parameters.\n"
           + e.getMessage(), "Etomo Error", axisID);
     }
@@ -182,12 +183,12 @@ abstract class EtomoFrame extends JFrame {
         currentManager.saveParamFile();
       }
     }
-    catch (LogFile.FileException e) {
+    catch (LogFile.LockException e) {
       UIHarness.INSTANCE.openMessageDialog("Unable to save parameters.\n"
           + e.getMessage(), "Etomo Error", axisID);
     }
-    catch (LogFile.WriteException e) {
-      UIHarness.INSTANCE.openMessageDialog("Unable to write parameters.\n"
+    catch (IOException e) {
+      UIHarness.INSTANCE.openMessageDialog("Unable to save parameters.\n"
           + e.getMessage(), "Etomo Error", axisID);
     }
   }
@@ -263,6 +264,26 @@ abstract class EtomoFrame extends JFrame {
   }
 
   /**
+   * Handle some of the view menu events.  Axis switch events should be
+   * handled in the child classes.
+   * @param event
+   */
+  void menuViewAction(ActionEvent event) {
+    //Run fitWindow on both frames.
+    if (menu.equalsFitWindow(event)) {
+      UIHarness.INSTANCE.pack(true, currentManager);
+      if (getOtherFrame() != null) {
+        UIHarness.INSTANCE.pack(AxisID.SECOND, true, currentManager);
+      }
+    }
+    else {
+      throw new IllegalStateException(
+          "Cannot handled menu command in this class.  command="
+              + event.getActionCommand());
+    }
+  }
+
+  /**
    * Handle some of the options menu events.  Axis switch events should be
    * handled in the child classes.
    * @param event
@@ -270,13 +291,6 @@ abstract class EtomoFrame extends JFrame {
   void menuOptionsAction(ActionEvent event) {
     if (menu.equalsSettings(event)) {
       EtomoDirector.INSTANCE.openSettingsDialog();
-    }
-    //Run fitWindow on both frames.
-    else if (menu.equalsFitWindow(event)) {
-      UIHarness.INSTANCE.pack(true, currentManager);
-      if (getOtherFrame() != null) {
-        UIHarness.INSTANCE.pack(AxisID.SECOND, true, currentManager);
-      }
     }
     else if (menu.equals3dmodStartUpWindow(event)) {
       EtomoFrame frame = getOtherFrame();
@@ -325,34 +339,42 @@ abstract class EtomoFrame extends JFrame {
   }
 
   void setEnabledNewTomogramMenuItem(boolean enable) {
-    menu.setEnabledFileNewTomogram(enable);
+    menu.setEnabledNewTomogram(enable);
     EtomoFrame otherFrame = getOtherFrame();
     if (otherFrame != null) {
-      getOtherFrame().menu.setEnabledFileNewTomogram(enable);
+      getOtherFrame().menu.setEnabledNewTomogram(enable);
+    }
+  }
+  
+  void setEnabledLogWindowMenuItem(boolean enable) {
+    menu.setEnabledLogWindow(enable);
+    EtomoFrame otherFrame = getOtherFrame();
+    if (otherFrame != null) {
+      getOtherFrame().menu.setEnabledLogWindow(enable);
     }
   }
 
   void setEnabledNewJoinMenuItem(boolean enable) {
-    menu.setEnabledFileNewJoin(enable);
+    menu.setEnabledNewJoin(enable);
     EtomoFrame otherFrame = getOtherFrame();
     if (otherFrame != null) {
-      getOtherFrame().menu.setEnabledFileNewJoin(enable);
+      getOtherFrame().menu.setEnabledNewJoin(enable);
     }
   }
 
   void setEnabledNewParallelMenuItem(boolean enable) {
-    menu.setEnabledFileNewParallel(enable);
+    menu.setEnabledNewParallel(enable);
     EtomoFrame otherFrame = getOtherFrame();
     if (otherFrame != null) {
-      getOtherFrame().menu.setEnabledFileNewParallel(enable);
+      getOtherFrame().menu.setEnabledNewParallel(enable);
     }
   }
 
   void setEnabledNewPeetMenuItem(boolean enable) {
-    menu.setEnabledFileNewPeet(enable);
+    menu.setEnabledNewPeet(enable);
     EtomoFrame otherFrame = getOtherFrame();
     if (otherFrame != null) {
-      getOtherFrame().menu.setEnabledFileNewPeet(enable);
+      getOtherFrame().menu.setEnabledNewPeet(enable);
     }
   }
 
@@ -567,7 +589,8 @@ abstract class EtomoFrame extends JFrame {
     if (printNames) {
       //print waitfor popup name/value pair
       StringBuffer buffer = new StringBuffer(UITestActionType.WAIT.toString()
-          + AutodocTokenizer.SEPARATOR_CHAR + UITestSubjectType.POPUP.toString()
+          + AutodocTokenizer.SEPARATOR_CHAR
+          + UITestSubjectType.POPUP.toString()
           + AutodocTokenizer.SEPARATOR_CHAR + name + ' '
           + AutodocTokenizer.DEFAULT_DELIMITER + ' ');
       //if there are options, then print a popup name/value pair
@@ -855,6 +878,9 @@ abstract class EtomoFrame extends JFrame {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.40  2009/01/20 19:57:42  sueh
+ * <p> bug# 1102 Changed  UITestAction to UITestActionType.
+ * <p>
  * <p> Revision 1.39  2008/05/30 22:31:42  sueh
  * <p> bug# 1102 Isolating the etomo.uitest package so it is not need for
  * <p> running EtomoDirector.
