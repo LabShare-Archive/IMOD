@@ -83,7 +83,7 @@ public class EtomoDirector {
   private UniqueHashedArray managerList;
   private File IMODDirectory;
   private File IMODCalibDirectory;
-  private MemoryThread memoryThread;
+  private UtilityThread utilityThread;
 
   private final Arguments arguments = new Arguments();
 
@@ -158,11 +158,7 @@ public class EtomoDirector {
       parameterStore = ParameterStore.getInstance(userConfigFile);
       parameterStore.load(userConfig);
     }
-    catch (LogFile.WriteException except) {
-      UIHarness.INSTANCE.openMessageDialog("Can't load user configuration.\n"
-          + except.getMessage(), "Etomo Error");
-    }
-    catch (LogFile.FileException except) {
+    catch (LogFile.LockException except) {
       UIHarness.INSTANCE.openMessageDialog("Can't load user configuration.\n"
           + except.getMessage(), "Etomo Error");
     }
@@ -278,8 +274,8 @@ public class EtomoDirector {
       }
     }
     IMODCalibDirectory = new File(imodCalibDirectoryName);
-    memoryThread = new MemoryThread();
-    new Thread(memoryThread).start();
+    utilityThread = new UtilityThread();
+    new Thread(utilityThread).start();
     //get the java memory limit
     //check it before complaining about having too little memory available
     //SGI seems to go very low on the available memory, but its fine as long
@@ -365,7 +361,7 @@ public class EtomoDirector {
     }
     return (BaseManager) managerList.get(currentManagerKey);
   }
-  
+
   public BaseManager getCurrentManagerForTest() {
     if (!arguments.isTest()) {
       throw new IllegalStateException("Illegal use of getCurrentManagerForTest");
@@ -394,7 +390,7 @@ public class EtomoDirector {
 
   public final void makeCurrent() {
     System.setProperty("user.dir", originalUserDir);
-    Utilities.managerStamp(originalUserDir,null);
+    Utilities.managerStamp(originalUserDir, null);
   }
 
   public final String getOriginalUserDir() {
@@ -551,7 +547,12 @@ public class EtomoDirector {
         }
       }
     }
+  }
 
+  private void saveLogs() {
+    for (int i = 0; i < managerList.size(); i++) {
+      ((BaseManager) managerList.get(i)).saveLog();
+    }
   }
 
   public UniqueKey openManager(File dataFile, boolean makeCurrent, AxisID axisID) {
@@ -659,7 +660,7 @@ public class EtomoDirector {
    * @return
    */
   public boolean exitProgram(AxisID axisID) {
-    memoryThread.setStop(true);
+    utilityThread.stop();
     try {
       while (managerList.size() != 0) {
         if (!closeCurrentManager(axisID, true)) {
@@ -676,6 +677,7 @@ public class EtomoDirector {
         userConfig.setMainWindowHeight(size.height);
         //  Write out the user configuration data
         parameterStore.save(userConfig);
+        //  utilityThread.waitUntilFinished();
         return true;
       }
     }
@@ -683,6 +685,7 @@ public class EtomoDirector {
       e.printStackTrace();
       return true;
     }
+    // utilityThread.waitUntilFinished();
     return true;
   }
 
@@ -828,10 +831,6 @@ public class EtomoDirector {
     return arguments;
   }
 
-  public int getManagerListSize() {
-    return managerList.size();
-  }
-
   /**
    * Return the IMOD directory
    */
@@ -898,13 +897,13 @@ public class EtomoDirector {
     try {
       parameterStore.save(userConfig);
     }
-    catch (LogFile.FileException e) {
-      UIHarness.INSTANCE.openMessageDialog("Unable to save preferences to "
+    catch (LogFile.LockException e) {
+      UIHarness.INSTANCE.openMessageDialog("Unable to save or write preferences to "
           + parameterStore.getAbsolutePath() + ".\n" + e.getMessage(),
           "Etomo Error");
     }
-    catch (LogFile.WriteException e) {
-      UIHarness.INSTANCE.openMessageDialog("Unable to write preferences to "
+    catch (IOException e) {
+      UIHarness.INSTANCE.openMessageDialog("Unable to save or write preferences to "
           + parameterStore.getAbsolutePath() + ".\n" + e.getMessage(),
           "Etomo Error");
     }
@@ -992,36 +991,81 @@ public class EtomoDirector {
     isAdvanced = state;
   }
 
-  protected final class MemoryThread implements Runnable {
+  private final class UtilityThread implements Runnable {
+    private final int autoSaveLogInterval = 1;//in minutes
+    private final int autoSaveLogEvery;
+    private final boolean displayMemory;
+    private final int displayMemoryInterval;
+    private final int displayMemoryEvery;
+    private final int sleep;//in minutes
 
     private boolean stop = false;
+    private Thread utilityThread = null;
 
-    public final void run() {
-      int displayMemoryInterval = arguments.getDisplayMemoryInterval();
-      if (!arguments.isDisplayMemory() || displayMemoryInterval < 1) {
-        return;
+    private UtilityThread() {
+      displayMemoryInterval = arguments.getDisplayMemoryInterval();
+      displayMemory = arguments.isDisplayMemory() && displayMemoryInterval >= 1;
+      if (!displayMemory || displayMemoryInterval == autoSaveLogInterval) {
+        //sleep for five minutes
+        sleep = autoSaveLogInterval;
+        //run autosave after every sleep
+        autoSaveLogEvery = 1;
+        displayMemoryEvery = 1;//ignored if !displayMemory
       }
-      try {
-        System.err.println(new Date());
-        INSTANCE.isMemoryAvailable();
-        while (!stop) {
-          Thread.sleep(1000 * 60 * displayMemoryInterval);
-          System.err.println(new Date());
-          INSTANCE.isMemoryAvailable();
-        }
-      }
-      catch (InterruptedException e) {
-        e.printStackTrace();
+      else {
+        //This could be more complicated to allow longer sleeps, but I don't
+        //think its worth it.
+        sleep = 1;
+        //run autosave after 5 one-minute sleeps
+        autoSaveLogEvery = autoSaveLogInterval;
+        displayMemoryEvery = displayMemoryInterval;
       }
     }
 
-    protected final void setStop(boolean stop) {
-      this.stop = stop;
+    public final void run() {
+      utilityThread = Thread.currentThread();
+      if (displayMemory) {
+        System.err.println(new Date());
+        INSTANCE.isMemoryAvailable();
+      }
+      int autoSaveLogCount = 0;
+      int displayMemoryCount = 0;
+      while (!stop) {
+        try {
+          Thread.sleep(1000 * 60 * sleep);
+        }
+        catch (InterruptedException e) {
+          e.printStackTrace();
+        }
+        if (displayMemory) {
+          if (++displayMemoryCount == displayMemoryEvery) {
+            displayMemoryCount = 0;
+            System.err.println(new Date());
+            INSTANCE.isMemoryAvailable();
+          }
+        }
+        if (++autoSaveLogCount == autoSaveLogEvery) {
+          autoSaveLogCount = 0;
+          INSTANCE.saveLogs();
+        }
+      }
+      utilityThread = null;
+    }
+
+    private final void stop() {
+      stop = true;
+      if (utilityThread != null) {
+        utilityThread.interrupt();
+      }
     }
   }
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.78  2008/12/15 22:56:43  sueh
+ * <p> bug# 1161 Made EtomoDirector.getCurrentManager private.  Added a
+ * <p> public test version for public access.
+ * <p>
  * <p> Revision 1.77  2008/12/10 18:31:49  sueh
  * <p> bug# 1162 Added a date/time stamp to main.  Added a manager stamp
  * <p> to makeCurrent().
