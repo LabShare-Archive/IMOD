@@ -54,7 +54,7 @@ import etomo.util.Utilities;
 public final class LogFile {
   public static final String rcsid = "$Id$";
 
-  public static final long NO_ID = -1;
+  private static final long NO_ID = -1;
   public static final long NO_WAIT_LIMIT = -1;
   private static final String PUBLIC_EXCEPTION_MESSAGE = "\nPlease make a copy "
       + "of the current etomo_err.log file and inform the software developer.";
@@ -94,29 +94,29 @@ public final class LogFile {
    * @return retrieved instance
    */
   public static LogFile getInstance(String userDir, AxisID axisID,
-      ProcessName processName) throws FileException {
+      ProcessName processName) throws LockException {
     return getInstance(userDir, axisID, processName.toString());
   }
 
   public static LogFile getInstance(String userDir, AxisID axisID, String name)
-      throws FileException {
+      throws LockException {
     return getInstance(userDir, name + axisID.getExtension()
         + DatasetFiles.LOG_EXT);
   }
 
   public static LogFile getInstance(String userDir, String fileName)
-      throws FileException {
+      throws LockException {
     return getInstance(new File(userDir, fileName));
   }
 
   public static LogFile getInstance(File dir, String fileName)
-      throws FileException {
+      throws LockException {
     return getInstance(new File(dir, fileName));
   }
 
-  public static LogFile getInstance(File file) throws FileException {
+  public static LogFile getInstance(File file) throws LockException {
     if (file == null) {
-      throw new FileException("Cannot create LogFile, file is null.");
+      throw new LockException("Cannot create LogFile, file is null.");
     }
     LogFile logFile;
     String key = file.getAbsolutePath();
@@ -168,18 +168,13 @@ public final class LogFile {
    * @return true if backup() was called and was successful
    * @throws FileException
    */
-  public synchronized boolean backupOnce() throws FileException {
+  public synchronized boolean backupOnce() throws LockException {
     if (backedUp) {
       return false;
     }
     boolean backupResult = false;
-    try {
-      backupResult = backup();
-      backedUp = true;
-    }
-    catch (FileException e) {
-      throw e;
-    }
+    backupResult = backup();
+    backedUp = true;
     return backupResult;
   }
 
@@ -191,7 +186,7 @@ public final class LogFile {
    * @return true if backup() successful or already backed up
    * @throws FileException
    */
-  public synchronized boolean backup() throws FileException {
+  public synchronized boolean backup() throws LockException {
     if (backedUp) {
       return false;
     }
@@ -199,13 +194,8 @@ public final class LogFile {
     if (!file.exists()) {
       return false;
     }
-    long fileId = NO_ID;
-    try {
-      fileId = lock.lock(LockType.FILE);
-    }
-    catch (LockException e) {
-      throw new FileException(fileId, e);
-    }
+    FileId fileId = new FileId();
+    lock.lock(LockType.FILE, fileId);
     createBackupFile();
     if (!file.exists()) {
       //nothing to backup
@@ -261,7 +251,7 @@ public final class LogFile {
         message
             .append("\nIf either of these files is open in 3dmod, close 3dmod.");
       }
-      throw new FileException(this, fileId, message.toString());
+      throw new LockException(this, fileId, message.toString());
     }
     //reset the File variables sinces the file names may have changed.
     file = null;
@@ -280,18 +270,13 @@ public final class LogFile {
    * @return
    * @throws FileException
    */
-  public synchronized boolean create() throws FileException {
+  public synchronized boolean create() throws LockException, IOException {
     createFile();
     if (file.exists()) {
       return false;
     }
-    long fileId = NO_ID;
-    try {
-      fileId = lock.lock(LockType.FILE);
-    }
-    catch (LockException e) {
-      throw new FileException(fileId, e);
-    }
+    FileId fileId = new FileId();
+    lock.lock(LockType.FILE, fileId);
     if (file.exists()) {
       //nothing to create
       try {
@@ -304,12 +289,7 @@ public final class LogFile {
       }
       return false;
     }
-    try {
-      file.createNewFile();
-    }
-    catch (IOException e) {
-      throw new FileException(e, file);
-    }
+    file.createNewFile();
     boolean success = file.exists();
     try {
       lock.unlock(LockType.FILE, fileId);
@@ -323,21 +303,16 @@ public final class LogFile {
     }
     String path = file.getAbsolutePath();
     file = null;
-    throw new FileException(this, fileId, "Unable to create " + path);
+    throw new LockException(this, fileId, "Unable to create " + path);
   }
 
-  public synchronized boolean delete() throws FileException {
+  public synchronized boolean delete() throws LockException {
     createFile();
     if (!file.exists()) {
       return false;
     }
-    long fileId = NO_ID;
-    try {
-      fileId = lock.lock(LockType.FILE);
-    }
-    catch (LockException e) {
-      throw new FileException(fileId, e);
-    }
+    FileId fileId = new FileId();
+    lock.lock(LockType.FILE, fileId);
     if (!file.exists()) {
       //nothing to delete
       try {
@@ -369,21 +344,16 @@ public final class LogFile {
     }
     String path = file.getAbsolutePath();
     file = null;
-    throw new FileException(this, fileId, "Unable to delete " + path);
+    throw new LockException(this, fileId, "Unable to delete " + path);
   }
 
-  public synchronized boolean move(LogFile target) throws FileException {
+  public synchronized boolean move(LogFile target) throws LockException {
     createFile();
     if (!file.exists()) {
       return false;
     }
-    long fileId = NO_ID;
-    try {
-      fileId = lock.lock(LockType.FILE);
-    }
-    catch (LockException e) {
-      throw new FileException(fileId, e);
-    }
+    FileId fileId = new FileId();
+    lock.lock(LockType.FILE, fileId);
     if (!file.exists()) {
       //nothing to move
       try {
@@ -399,7 +369,7 @@ public final class LogFile {
     try {
       target.backup();
     }
-    catch (FileException backupException) {
+    catch (LockException backupException) {
       //unable to backup
       try {
         lock.unlock(LockType.FILE, fileId);
@@ -413,13 +383,8 @@ public final class LogFile {
       throw backupException;
     }
     //need to get a file lock on the target for this operation
-    long targetFileId = NO_ID;
-    try {
-      targetFileId = target.lock.lock(LockType.FILE);
-    }
-    catch (LockException e) {
-      throw new FileException(targetFileId, e);
-    }
+    FileId targetFileId = new FileId();
+    target.lock.lock(LockType.FILE, targetFileId);
     target.createFile();
     boolean success = file.renameTo(target.file);
     try {
@@ -446,12 +411,26 @@ public final class LogFile {
     }
     String path = file.getAbsolutePath();
     file = null;
-    throw new FileException(this, fileId, "Unable to rename " + path + " to "
+    throw new LockException(this, fileId, "Unable to rename " + path + " to "
         + target.fileAbsolutePath);
   }
 
-  public synchronized long openWriter() throws WriteException {
-    return openForWriting(true);
+  public synchronized WriterId openWriter() throws LockException, IOException {
+    WriterId writerId = new WriterId();
+    lock.lock(LockType.WRITE, writerId);
+    try {
+      createWriter();
+    }
+    catch (IOException e) {
+      try {
+        lock.unlock(LockType.WRITE, writerId);
+      }
+      catch (LockException e0) {
+        e0.printStackTrace();
+      }
+      throw e;
+    }
+    return writerId;
   }
 
   /**
@@ -459,40 +438,10 @@ public final class LogFile {
    * @see waitForLock()
    * @return
    */
-  public synchronized long openForWriting() {
-    long writeId = NO_ID;
-    try {
-      writeId = openForWriting(false);
-    }
-    catch (WriteException e) {
-      e.printStackTrace();
-    }
-    return writeId;
-  }
-
-  private long openForWriting(boolean openWriter) throws WriteException {
-    long writeId = NO_ID;
-    try {
-      writeId = lock.lock(LockType.WRITE);
-    }
-    catch (LockException e) {
-      throw new WriteException(e);
-    }
-    if (openWriter) {
-      try {
-        createWriter();
-      }
-      catch (IOException e) {
-        try {
-          lock.unlock(LockType.WRITE, writeId);
-        }
-        catch (LockException e0) {
-          e0.printStackTrace();
-        }
-        throw new WriteException(e);
-      }
-    }
-    return writeId;
+  public synchronized WritingId openForWriting() throws LockException {
+    WritingId writingId = new WritingId();
+    lock.lock(LockType.WRITE, writingId);
+    return writingId;
   }
 
   /**
@@ -504,27 +453,23 @@ public final class LogFile {
    * @return
    * @throws InputStreamException
    */
-  public synchronized long openInputStream() throws WriteException {
-    long writeId = NO_ID;
-    try {
-      writeId = lock.lock(LockType.WRITE);
-    }
-    catch (LockException e) {
-      throw new WriteException(e);
-    }
+  public synchronized InputStreamId openInputStream() throws LockException,
+      IOException {
+    InputStreamId inputStreamId = new InputStreamId();
+    lock.lock(LockType.WRITE, inputStreamId);
     try {
       createInputStream();
     }
     catch (IOException e) {
       try {
-        lock.unlock(LockType.WRITE, writeId);
+        lock.unlock(LockType.WRITE, inputStreamId);
       }
       catch (LockException e0) {
         e0.printStackTrace();
       }
-      throw new WriteException(e);
+      throw e;
     }
-    return writeId;
+    return inputStreamId;
   }
 
   /**
@@ -532,53 +477,37 @@ public final class LogFile {
    * @return
    * @throws WriteException
    */
-  public synchronized long openOutputStream() throws WriteException {
-    long writeId = NO_ID;
-    try {
-      writeId = lock.lock(LockType.WRITE);
-    }
-    catch (LockException e) {
-      throw new WriteException(e);
-    }
+  public synchronized OutputStreamId openOutputStream() throws LockException,
+      IOException {
+    OutputStreamId outputStreamId = new OutputStreamId();
+    lock.lock(LockType.WRITE, outputStreamId);
     try {
       createOutputStream();
     }
     catch (IOException e) {
       try {
-        lock.unlock(LockType.WRITE, writeId);
+        lock.unlock(LockType.WRITE, outputStreamId);
       }
       catch (LockException e0) {
         e0.printStackTrace();
       }
-      throw new WriteException(e);
+      throw e;
     }
-    return writeId;
+    return outputStreamId;
   }
 
-  public synchronized boolean closeInputStream(long writeId) {
-    if (fileWriter != null) {
-      new WriteException(this, writeId,
-          "Must use closeWriter() when opened with openWriter()")
-          .printStackTrace();
-      return false;
-    }
-    if (outputStream != null) {
-      new WriteException(this, writeId,
-          "Must use closeOutputStream() when opened with openOutputStream()")
-          .printStackTrace();
-      return false;
-    }
+  public synchronized boolean closeInputStream(InputStreamId inputStreamId) {
     if (inputStream == null) {
-      new WriteException(this, writeId,
+      new LockException(this, inputStreamId,
           "Must use closeForWriting() when opened with openForWriting()")
           .printStackTrace();
       return false;
     }
     //close the input stream before unlocking
     try {
-      lock.assertUnlockable(LockType.WRITE, writeId);
+      lock.assertUnlockable(LockType.WRITE, inputStreamId);
       closeInputStream();
-      lock.unlock(LockType.WRITE, writeId);
+      lock.unlock(LockType.WRITE, inputStreamId);
     }
     catch (IOException e) {
       e.printStackTrace();
@@ -591,30 +520,18 @@ public final class LogFile {
     return true;
   }
 
-  public synchronized boolean closeOutputStream(long writeId) {
-    if (fileWriter != null) {
-      new WriteException(this, writeId,
-          "Must use closeWriter() when opened with openWriter()")
-          .printStackTrace();
-      return false;
-    }
-    if (inputStream != null) {
-      new WriteException(this, writeId,
-          "Must use closeInputStream() when opened with openInputStream()")
-          .printStackTrace();
-      return false;
-    }
+  public synchronized boolean closeOutputStream(OutputStreamId outputStreamId) {
     if (outputStream == null) {
-      new WriteException(this, writeId,
+      new LockException(this, outputStreamId,
           "Must use closeForWriting() when opened with openForWriting()")
           .printStackTrace();
       return false;
     }
     //close the input stream before unlocking
     try {
-      lock.assertUnlockable(LockType.WRITE, writeId);
+      lock.assertUnlockable(LockType.WRITE, outputStreamId);
       closeOutputStream();
-      lock.unlock(LockType.WRITE, writeId);
+      lock.unlock(LockType.WRITE, outputStreamId);
     }
     catch (IOException e) {
       e.printStackTrace();
@@ -630,27 +547,9 @@ public final class LogFile {
   /**
    * Unlocks the open variable and closes the writer
    */
-  public synchronized boolean closeForWriting(long writeId) {
-    if (fileWriter != null) {
-      new WriteException(this, writeId,
-          "Must use closeWriter() when opened with openWriter()")
-          .printStackTrace();
-      return false;
-    }
-    if (inputStream != null) {
-      new WriteException(this, writeId,
-          "Must use closeInputStream() when opened with openInputStream()")
-          .printStackTrace();
-      return false;
-    }
-    if (outputStream != null) {
-      new WriteException(this, writeId,
-          "Must use closeOutputStream() when opened with openOutputStream()")
-          .printStackTrace();
-      return false;
-    }
+  public synchronized boolean closeForWriting(WritingId writingId) {
     try {
-      lock.unlock(LockType.WRITE, writeId);
+      lock.unlock(LockType.WRITE, writingId);
     }
     catch (LockException e) {
       e.printStackTrace();
@@ -659,30 +558,18 @@ public final class LogFile {
     return true;
   }
 
-  public synchronized boolean closeWriter(long writeId) {
-    if (inputStream != null) {
-      new WriteException(this, writeId,
-          "Must use closeInputStream() when opened with openInputStream()")
-          .printStackTrace();
-      return false;
-    }
-    if (outputStream != null) {
-      new WriteException(this, writeId,
-          "Must use closeOutputStream() when opened with openOutputStream()")
-          .printStackTrace();
-      return false;
-    }
+  public synchronized boolean closeWriter(WriterId writerId) {
     if (fileWriter == null) {
-      new WriteException(this, writeId,
+      new LockException(this, writerId,
           "Must use closeForWriting() when opened with openForWriting()")
           .printStackTrace();
       return false;
     }
     //close the writer before unlocking
     try {
-      lock.assertUnlockable(LockType.WRITE, writeId);
+      lock.assertUnlockable(LockType.WRITE, writerId);
       closeWriter();
-      lock.unlock(LockType.WRITE, writeId);
+      lock.unlock(LockType.WRITE, writerId);
     }
     catch (IOException e) {
       e.printStackTrace();
@@ -695,73 +582,52 @@ public final class LogFile {
     return true;
   }
 
-  public synchronized long openReader() throws ReadException {
-    long readId = NO_ID;
-    try {
-      readId = lock.lock(LockType.READ);
-    }
-    catch (LockException e) {
-      e.printStackTrace();
-      throw new ReadException(e);
-    }
+  public synchronized ReaderId openReader() throws LockException,
+      FileNotFoundException {
+    ReaderId readerId = new ReaderId();
+    lock.lock(LockType.READ, readerId);
     createFile();
-    String idKey = ReadingTokenList.makeKey(readId);
+    String idKey = ReadingTokenList.makeKey(readerId);
     try {
       readerList.openReadingToken(idKey, file);
     }
     catch (FileNotFoundException e) {
-      try {
-        lock.unlock(LockType.READ, readId);
-      }
-      catch (LockException e0) {
-        e0.printStackTrace();
-      }
-      throw new ReadException(readId, e);
+      lock.unlock(LockType.READ, readerId);
+      throw e;
     }
-    return readId;
+    return readerId;
   }
 
-  public synchronized long openForReading() throws ReadException {
-    long readId = NO_ID;
-    try {
-      readId = lock.lock(LockType.READ);
-    }
-    catch (LockException e) {
-      e.printStackTrace();
-      throw new ReadException(e);
-    }
+  public synchronized ReadingId openForReading() throws LockException,
+      FileNotFoundException {
+    ReadingId readingId = new ReadingId();
+    lock.lock(LockType.READ, readingId);
     createFile();
-    String idKey = ReadingTokenList.makeKey(readId);
+    String idKey = ReadingTokenList.makeKey(readingId);
     try {
       readingTokenList.openReadingToken(idKey, file);
     }
     catch (FileNotFoundException e) {
-      try {
-        lock.unlock(LockType.READ, readId);
-      }
-      catch (LockException e0) {
-        e0.printStackTrace();
-      }
-      throw new ReadException(readId, e);
+      lock.unlock(LockType.READ, readingId);
     }
-    return readId;
+    return readingId;
   }
 
-  public synchronized boolean closeReader(long readId) {
+  public synchronized boolean closeReader(ReaderId readerId) {
     //close the reader before unlocking
     try {
-      lock.assertUnlockable(LockType.READ, readId);
+      lock.assertUnlockable(LockType.READ, readerId);
       createFile();
       ReadingToken readingToken = readerList.getReadingToken(ReadingTokenList
-          .makeKey(readId));
+          .makeKey(readerId));
       if (readingToken != null) {
         readingToken.close();
       }
       else {
-        new ReadException(this, readId, "readingToken is null.")
+        new LockException(this, readerId, "readingToken is null.")
             .printStackTrace();
       }
-      lock.unlock(LockType.READ, readId);
+      lock.unlock(LockType.READ, readerId);
     }
     catch (IOException e) {
       e.printStackTrace();
@@ -774,15 +640,15 @@ public final class LogFile {
     return true;
   }
 
-  public synchronized boolean closeForReading(long readId) {
+  public synchronized boolean closeForReading(ReadingId ReadingId) {
     //close the reading token before unlocking
     try {
-      lock.assertUnlockable(LockType.READ, readId);
+      lock.assertUnlockable(LockType.READ, ReadingId);
       createFile();
       ReadingToken readingToken = readingTokenList
-          .getReadingToken(ReadingTokenList.makeKey(readId));
+          .getReadingToken(ReadingTokenList.makeKey(ReadingId));
       readingToken.close();
-      lock.unlock(LockType.READ, readId);
+      lock.unlock(LockType.READ, ReadingId);
     }
     catch (IOException e) {
       e.printStackTrace();
@@ -795,109 +661,81 @@ public final class LogFile {
     return true;
   }
 
-  public synchronized String readLine(long readId) throws ReadException {
+  public synchronized String readLine(ReaderId readId) throws LockException,
+      IOException {
     if (!lock.isLocked(LockType.READ, readId)) {
-      throw new ReadException(this, readId);
+      throw new LockException(this, readId);
     }
     createFile();
-    try {
-      return readerList.getReader(ReadingTokenList.makeKey(readId)).readLine();
-    }
-    catch (IOException e) {
-      throw new ReadException(readId, e);
-    }
+    return readerList.getReader(ReadingTokenList.makeKey(readId)).readLine();
   }
 
-  public synchronized void load(Properties properties, long writeId)
-      throws WriteException {
-    if (inputStream == null || !lock.isLocked(LockType.WRITE, writeId)) {
-      throw new WriteException(this, writeId);
+  public synchronized void load(Properties properties,
+      InputStreamId inputStreamId) throws LockException, IOException {
+    if (inputStream == null || !lock.isLocked(LockType.WRITE, inputStreamId)) {
+      throw new LockException(this, inputStreamId);
     }
-    try {
-      properties.load(inputStream);
-    }
-    catch (IOException e) {
-      throw new WriteException(writeId, e);
-    }
+    properties.load(inputStream);
   }
-  
+
   public void setDebug(boolean input) {
     debug = input;
+    readerList.setDebug(debug);
   }
 
-  public synchronized void store(Properties properties, long writeId)
-      throws WriteException {
-    if (outputStream == null || !lock.isLocked(LockType.WRITE, writeId)) {
-      throw new WriteException(this, writeId);
+  public synchronized void store(Properties properties,
+      OutputStreamId outputStreamId) throws LockException, IOException {
+    if (outputStream == null || !lock.isLocked(LockType.WRITE, outputStreamId)) {
+      throw new LockException(this, outputStreamId);
     }
-    try {
-      properties.store(outputStream, null);
-    }
-    catch (IOException e) {
-      throw new WriteException(writeId, e);
-    }
+    properties.store(outputStream, null);
   }
 
-  public synchronized void write(String string, long writeId)
-      throws WriteException {
+  public synchronized void write(String string, WriterId writerId)
+      throws LockException, IOException {
     if (string == null) {
       return;
     }
     if (fileWriter == null) {
-      throw new WriteException(this, writeId, "fileWriter is null");
+      throw new LockException(this, writerId, "fileWriter is null");
     }
-    if (!lock.isLocked(LockType.WRITE, writeId)) {
-      throw new WriteException(this, writeId, "not locked");
+    if (!lock.isLocked(LockType.WRITE, writerId)) {
+      throw new LockException(this, writerId, "not locked");
     }
-    try {
-      bufferedWriter.write(string);
-    }
-    catch (IOException e) {
-      throw new WriteException(writeId, e);
-    }
+    bufferedWriter.write(string);
   }
 
-  public synchronized void write(char ch, long writeId) throws WriteException {
-    if (fileWriter == null || !lock.isLocked(LockType.WRITE, writeId)) {
-      throw new WriteException(this, writeId);
+  public synchronized void write(char ch, WriterId writerId)
+      throws LockException, IOException {
+    if (fileWriter == null || !lock.isLocked(LockType.WRITE, writerId)) {
+      throw new LockException(this, writerId);
     }
-    try {
-      bufferedWriter.write(ch);
-    }
-    catch (IOException e) {
-      throw new WriteException(writeId, e);
-    }
+    bufferedWriter.write(ch);
   }
 
-  public synchronized void write(Character ch, long writeId)
-      throws WriteException {
-    write(ch.charValue(), writeId);
+  public synchronized void write(Character ch, WriterId writerId)
+      throws LockException, IOException {
+    write(ch.charValue(), writerId);
   }
 
-  public synchronized void newLine(long writeId) throws WriteException {
-    if (fileWriter == null || !lock.isLocked(LockType.WRITE, writeId)) {
-      throw new WriteException(this, writeId);
+  public synchronized void newLine(WriterId writerId) throws LockException,
+      IOException {
+    if (fileWriter == null || !lock.isLocked(LockType.WRITE, writerId)) {
+      throw new LockException(this, writerId);
     }
-    try {
-      bufferedWriter.newLine();
-    }
-    catch (IOException e) {
-      throw new WriteException(writeId, e);
-    }
+    bufferedWriter.newLine();
   }
 
-  public synchronized void flush(long writeId) throws WriteException {
-    if (!lock.isLocked(LockType.WRITE, writeId)) {
-      throw new WriteException(this, writeId);
+  public synchronized void flush(WriterId writerId) throws LockException,
+      IOException {
+    if (!lock.isLocked(LockType.WRITE, writerId)) {
+      throw new LockException(this, writerId);
     }
     try {
       bufferedWriter.flush();
     }
-    catch (IOException e) {
-      throw new WriteException(writeId, e);
-    }
     catch (NullPointerException e) {
-      throw new WriteException(writeId,
+      throw new LockException(writerId,
           "Must open with openWriter() to be able to call flush().", e);
     }
   }
@@ -1019,7 +857,7 @@ public final class LogFile {
   /**
    * @return true if the open variabled is locked.
    */
-  public synchronized boolean isOpen(LockType lockType, long id) {
+  synchronized boolean isOpen(LockType lockType, Id id) {
     return lock.isLocked(lockType, id);
   }
 
@@ -1050,87 +888,39 @@ public final class LogFile {
     }
   }
 
-  public static final class ReadException extends Exception {
-    ReadException(LogFile logFile, long id) {
-      super("id=" + id + ",logFile=" + logFile + PUBLIC_EXCEPTION_MESSAGE);
+  public static final class LockException extends Exception {
+    private LockException(String message) {
+      super(message);
     }
 
-    ReadException(Exception e) {
-      super(e.toString() + PUBLIC_EXCEPTION_MESSAGE);
-      e.printStackTrace();
-    }
-
-    ReadException(long id, Exception e) {
-      super(e.toString() + "\nid=" + id + PUBLIC_EXCEPTION_MESSAGE);
-      e.printStackTrace();
-    }
-
-    ReadException(LogFile logFile, long id, String message) {
-      super(message + ",id=" + id + ",logFile=" + logFile
-          + PUBLIC_EXCEPTION_MESSAGE);
-    }
-  }
-
-  public static class WriteException extends Exception {
-    WriteException(LogFile logFile, long id) {
-      super("id=" + id + ",logFile=" + logFile + PUBLIC_EXCEPTION_MESSAGE);
-    }
-
-    WriteException(Exception e) {
-      super(e.toString() + PUBLIC_EXCEPTION_MESSAGE);
-      e.printStackTrace();
-    }
-
-    WriteException(LogFile logFile, long id, String message) {
-      super(message + "\nid=" + id + ",logFile=" + logFile
-          + PUBLIC_EXCEPTION_MESSAGE);
-    }
-
-    WriteException(long id, Exception e) {
-      super(e.toString() + "\nid=" + id + PUBLIC_EXCEPTION_MESSAGE);
-      e.printStackTrace();
-    }
-
-    WriteException(long id, String message, Exception e) {
-      super(message + '\n' + e.toString() + "\nid=" + id
-          + PUBLIC_EXCEPTION_MESSAGE);
-      e.printStackTrace();
-    }
-  }
-
-  public static final class FileException extends Exception {
-    FileException(long id, Exception e) {
-      super(e.toString() + "\nid=" + id + PUBLIC_EXCEPTION_MESSAGE);
-      e.printStackTrace();
-    }
-
-    FileException(LogFile logFile, long id, String message) {
-      super(message + "\nid=" + id + ",logFile=" + logFile
-          + PUBLIC_EXCEPTION_MESSAGE);
-    }
-
-    FileException(Exception e, File file) {
-      super(file != null ? file.getAbsolutePath() + ":  " : "" + e.toString()
-          + PUBLIC_EXCEPTION_MESSAGE);
-      e.printStackTrace();
-    }
-
-    FileException(String message) {
-      super(message + PUBLIC_EXCEPTION_MESSAGE);
-    }
-  }
-
-  private static final class LockException extends Exception {
-    LockException(LogFile logFile) {
+    private LockException(LogFile logFile) {
       super("logFile=" + logFile);
     }
 
-    LockException(LogFile logFile, LockType lockType) {
+    private LockException(LogFile logFile, LockType lockType) {
       super("lockType=" + lockType + ",logFile=" + logFile);
     }
 
-    LockException(LogFile logFile, LockType lockType, long id) {
+    private LockException(LogFile logFile, LockType lockType, Id id) {
       super("lockType=" + lockType + ",id=" + id + ",logFile=" + logFile);
+    }
+
+    private LockException(LogFile logFile, Id id) {
+      super("id=" + id + ",logFile=" + logFile + PUBLIC_EXCEPTION_MESSAGE);
+    }
+
+    private LockException(Exception e) {
+      super(e.toString() + PUBLIC_EXCEPTION_MESSAGE);
+      e.printStackTrace();
+    }
+
+    private LockException(LogFile logFile, Id id, String message) {
+      super(message + "\nid=" + id + ",logFile=" + logFile
+          + PUBLIC_EXCEPTION_MESSAGE);
+    }
+
+    private LockException(Id id, String message, Exception e) {
+      super(message + "\nid=" + id + PUBLIC_EXCEPTION_MESSAGE);
     }
   }
 
@@ -1151,6 +941,17 @@ public final class LogFile {
           || EtomoDirector.INSTANCE.getArguments().isTest();
     }
 
+    private static String makeKey(final Id id) {
+      if (id == null) {
+        LockException idNull = new LockException("id is null");
+        idNull.printStackTrace();
+        UIHarness.INSTANCE.openMessageDialog(idNull.getMessage()
+            + PUBLIC_EXCEPTION_MESSAGE, "File Lock Warning");
+        return null;
+      }
+      return id.toString();
+    }
+
     private static String makeKey(final long id) {
       return String.valueOf(id);
     }
@@ -1164,7 +965,16 @@ public final class LogFile {
           + ",fileId=" + fileId + "]";
     }
 
-    private long lock(final LockType lockType) throws LockException {
+    private void lock(final LockType lockType, Id id) throws LockException {
+      if (id == null) {
+        LockException idNull = new LockException("id is null");
+        idNull.printStackTrace();
+        UIHarness.INSTANCE.openMessageDialog(idNull.getMessage()
+            + PUBLIC_EXCEPTION_MESSAGE, "File Lock Warning");
+        if (throwException) {
+          throw idNull;
+        }
+      }
       assertLockable(lockType);
       //set the lock
       locked = true;
@@ -1186,21 +996,31 @@ public final class LogFile {
       else {
         fileId = currentId;
       }
-      return currentId;
+      id.set(currentId);
+      return;
     }
 
-    private void unlock(final LockType lockType, final long id)
+    private void unlock(final LockType lockType, final Id id)
         throws LockException {
+      if (id == null) {
+        LockException idNull = new LockException("id is null");
+        idNull.printStackTrace();
+        UIHarness.INSTANCE.openMessageDialog(idNull.getMessage()
+            + PUBLIC_EXCEPTION_MESSAGE, "File Lock Warning");
+        if (throwException) {
+          throw idNull;
+        }
+      }
       assertUnlockable(lockType, id);
       //unsetting the matching saved id
       String readKey = makeKey(id);
       if (lockType == LockType.READ && readIdHashMap.containsKey(readKey)) {
         readIdHashMap.remove(readKey);
       }
-      else if (lockType == LockType.WRITE && id == writeId) {
+      else if (lockType == LockType.WRITE && id.equals(writeId)) {
         writeId = NO_ID;
       }
-      else if (lockType == LockType.FILE && id == fileId) {
+      else if (lockType == LockType.FILE && id.equals(fileId)) {
         fileId = NO_ID;
       }
       else {
@@ -1221,14 +1041,14 @@ public final class LogFile {
       return;
     }
 
-    private boolean isLocked(final LockType lockType, final long id) {
-      if (!locked || lockType == null || id == NO_ID) {
+    private boolean isLocked(final LockType lockType, final Id id) {
+      if (id == null || !locked || lockType == null || id.isEmpty()) {
         return false;
       }
       return (lockType == LockType.READ && readIdHashMap
           .containsKey(makeKey(id)))
-          || (lockType == LockType.WRITE && id == writeId)
-          || (lockType == LockType.FILE && id == fileId);
+          || (lockType == LockType.WRITE && id.equals(writeId))
+          || (lockType == LockType.FILE && id.equals(fileId));
     }
 
     private boolean isLocked(final LockType lockType) {
@@ -1278,8 +1098,24 @@ public final class LogFile {
       //a read and write (either can be started first)
     }
 
-    private void assertUnlockable(final LockType lockType, final long id)
+    /**
+     * 
+     * @param lockType
+     * @param id
+     * @return
+     * @throws LockException
+     */
+    private void assertUnlockable(final LockType lockType, final Id id)
         throws LockException {
+      if (id == null) {
+        LockException idNull = new LockException("id is null");
+        idNull.printStackTrace();
+        UIHarness.INSTANCE.openMessageDialog(idNull.getMessage()
+            + PUBLIC_EXCEPTION_MESSAGE, "File Lock Warning");
+        if (throwException) {
+          throw idNull;
+        }
+      }
       LockException e = new LockException(logFile, lockType, id);
       if (!locked) {
         if (throwException) {
@@ -1299,8 +1135,8 @@ public final class LogFile {
       }
       //checking for unlockability
       if ((lockType == LockType.READ && readIdHashMap.containsKey(makeKey(id)))
-          || (lockType == LockType.WRITE && id == writeId)
-          || (lockType == LockType.FILE && id == fileId)) {
+          || (lockType == LockType.WRITE && id.equals(writeId))
+          || (lockType == LockType.FILE && id.equals(fileId))) {
         return;
       }
       e = new LockException(logFile, lockType, id);
@@ -1324,6 +1160,8 @@ public final class LogFile {
     private final ArrayList arrayList = new ArrayList();
     private final boolean storeReaders;
 
+    private boolean debug = false;
+
     static ReadingTokenList getReadingTokenInstance() {
       return new ReadingTokenList(false);
     }
@@ -1336,8 +1174,19 @@ public final class LogFile {
       this.storeReaders = storeReaders;
     }
 
-    static String makeKey(long id) {
-      return String.valueOf(id);
+    static String makeKey(Id id) {
+      if (id == null) {
+        LockException idNull = new LockException("id is null");
+        idNull.printStackTrace();
+        UIHarness.INSTANCE.openMessageDialog(idNull.getMessage()
+            + PUBLIC_EXCEPTION_MESSAGE, "File Lock Warning");
+        return "";
+      }
+      return (id.toString());
+    }
+
+    void setDebug(boolean input) {
+      debug = input;
     }
 
     synchronized ReadingToken getReadingToken(String key) {
@@ -1453,9 +1302,57 @@ public final class LogFile {
       return bufferedReader.readLine();
     }
   }
+
+  static class Id {
+    private long id = NO_ID;
+
+    void set(long input) {
+      this.id = input;
+    }
+
+    long get() {
+      return id;
+    }
+
+    private boolean equals(long input) {
+      return id == input;
+    }
+
+    public boolean isEmpty() {
+      return id == NO_ID;
+    }
+
+    public String toString() {
+      return Long.toString(get());
+    }
+  }
+
+  private static final class FileId extends Id {
+  }
+
+  public static final class ReaderId extends Id {
+  }
+
+  public static final class ReadingId extends Id {
+  }
+
+  static final class InputStreamId extends Id {
+  }
+
+  public static final class WriterId extends Id {
+  }
+
+  public static final class WritingId extends Id {
+  }
+
+  static final class OutputStreamId extends Id {
+  }
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.23  2008/10/27 18:07:26  sueh
+ * <p> bug# 1141 Added more failure information to write().
+ * <p>
  * <p> Revision 1.22  2008/09/11 20:33:04  sueh
  * <p> bug# 1139 Corrected a null pointer exception in closeReader.  Printing an
  * <p> exception if it happens again.
