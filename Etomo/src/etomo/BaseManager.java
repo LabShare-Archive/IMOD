@@ -25,6 +25,7 @@ import etomo.process.SystemProcessInterface;
 import etomo.process.ProcessData;
 import etomo.storage.ChunkComscriptFileFilter;
 import etomo.storage.LogFile;
+import etomo.storage.Loggable;
 import etomo.storage.ParameterStore;
 import etomo.storage.Storable;
 import etomo.type.AxisID;
@@ -42,6 +43,7 @@ import etomo.type.ProcessName;
 import etomo.type.ProcessResultDisplay;
 import etomo.type.Run3dmodMenuOptions;
 import etomo.type.UserConfiguration;
+import etomo.ui.LogPanel;
 import etomo.ui.MainPanel;
 import etomo.ui.AbstractParallelDialog;
 import etomo.ui.ParallelPanel;
@@ -71,7 +73,8 @@ public abstract class BaseManager {
   static UserConfiguration userConfig = EtomoDirector.INSTANCE
       .getUserConfiguration();
 
-  //protected variables
+  final LogPanel logPanel = LogPanel.getInstance();
+
   boolean loadedParamFile = false;
   // imodManager manages the opening and closing closing of imod(s), message
   // passing for loading model
@@ -196,6 +199,18 @@ public abstract class BaseManager {
     return propertyUserDir;
   }
 
+  public LogPanel getLogPanel() {
+    return logPanel;
+  }
+
+  public void logMessage(Loggable loggable, AxisID axisID) {
+    logPanel.logMessage(loggable, axisID);
+  }
+
+  public void saveLog() {
+    logPanel.save();
+  }
+
   public Component getFocusComponent() {
     return null;
   }
@@ -252,14 +267,14 @@ public abstract class BaseManager {
       parameterStore.setAutoStore(true);
       parameterStore.save(storable);
     }
-    catch (LogFile.FileException e) {
+    catch (LogFile.LockException e) {
       e.printStackTrace();
-      uiHarness.openMessageDialog("Unable to save to properties.  "
+      uiHarness.openMessageDialog("Unable to save or write to properties.  "
           + e.getMessage(), "Etomo Error", axisID);
     }
-    catch (LogFile.WriteException e) {
+    catch (IOException e) {
       e.printStackTrace();
-      uiHarness.openMessageDialog("Unable to write to properties.  "
+      uiHarness.openMessageDialog("Unable to save or write to properties.  "
           + e.getMessage(), "Etomo Error", axisID);
     }
   }
@@ -286,29 +301,29 @@ public abstract class BaseManager {
         parameterStore.save(storables[i]);
       }
     }
-    catch (LogFile.FileException e) {
+    catch (LogFile.LockException e) {
       e.printStackTrace();
-      uiHarness.openMessageDialog("Unable to save to properties.  "
+      uiHarness.openMessageDialog("Unable to save or write to properties.  "
           + e.getMessage(), "Etomo Error", axisID);
     }
-    catch (LogFile.WriteException e) {
+    catch (IOException e) {
       e.printStackTrace();
-      uiHarness.openMessageDialog("Unable to write to properties.  "
+      uiHarness.openMessageDialog("Unable to save or write to properties.  "
           + e.getMessage(), "Etomo Error", axisID);
     }
     parameterStore.setAutoStore(true);
     try {
       parameterStore.storeProperties();
     }
-    catch (LogFile.FileException e) {
+    catch (LogFile.LockException e) {
       e.printStackTrace();
-      uiHarness.openMessageDialog("Unable to save to "
+      uiHarness.openMessageDialog("Unable to save or write to "
           + paramFile.getAbsolutePath() + ".  " + e.getMessage(),
           "Etomo Error", axisID);
     }
-    catch (LogFile.WriteException e) {
+    catch (IOException e) {
       e.printStackTrace();
-      uiHarness.openMessageDialog("Unable to write to "
+      uiHarness.openMessageDialog("Unable to save or write to "
           + paramFile.getAbsolutePath() + ".  " + e.getMessage(),
           "Etomo Error", axisID);
     }
@@ -331,7 +346,7 @@ public abstract class BaseManager {
    * and exit).
    * @throws IOException
    */
-  void save() throws LogFile.FileException, LogFile.WriteException {
+  void save() throws LogFile.LockException, LogFile.LockException, IOException {
     if (parameterStore == null) {
       return;
     }
@@ -344,8 +359,7 @@ public abstract class BaseManager {
    * A message asking the ApplicationManager to save the parameter
    * information to a file.
    */
-  public boolean saveParamFile() throws LogFile.FileException,
-      LogFile.WriteException {
+  public boolean saveParamFile() throws LogFile.LockException, IOException {
     setParamFile();
     if (getParameterStore() == null) {
       return false;
@@ -373,7 +387,7 @@ public abstract class BaseManager {
    * null.
    * @return
    */
-  public ParameterStore getParameterStore() throws LogFile.FileException {
+  public ParameterStore getParameterStore() throws LogFile.LockException {
     if (paramFile == null) {
       return null;
     }
@@ -777,16 +791,7 @@ public abstract class BaseManager {
           }
         }
       }
-      catch (LogFile.FileException except) {
-        except.printStackTrace();
-        String[] errorMessage = new String[3];
-        errorMessage[0] = "Test parameter file read error";
-        errorMessage[1] = "Could not find the test parameter data file:";
-        errorMessage[2] = except.getMessage();
-        uiHarness.openMessageDialog(errorMessage, "Etomo Error", axisID);
-        return false;
-      }
-      catch (LogFile.WriteException except) {
+      catch (LogFile.LockException except) {
         except.printStackTrace();
         String[] errorMessage = new String[3];
         errorMessage[0] = "Test parameter file read error";
@@ -1107,13 +1112,14 @@ public abstract class BaseManager {
           .getParameterStore();
       localParameterStore.save(storable);
     }
-    catch (LogFile.FileException e) {
+    catch (LogFile.LockException e) {
       e.printStackTrace();
       uiHarness.openMessageDialog("Unable to save preferences.\n"
           + e.getMessage(), "Etomo Error", axisID);
     }
-    catch (LogFile.WriteException e) {
-      uiHarness.openMessageDialog("Unable to write preferences.\n"
+    catch (IOException e) {
+      e.printStackTrace();
+      uiHarness.openMessageDialog("Unable to save preferences.\n"
           + e.getMessage(), "Etomo Error", axisID);
     }
   }
@@ -1235,6 +1241,10 @@ public abstract class BaseManager {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.106  2009/01/26 22:40:57  sueh
+ * <p> bug# 1173 Added boolean nonBlocking to processDone functions, so it
+ * <p> knows not to pop up an error message that thread name is not set.
+ * <p>
  * <p> Revision 1.105  2008/12/10 18:30:49  sueh
  * <p> bug# 1162 Added a manager stamp to setPropertyUserDir.
  * <p>
