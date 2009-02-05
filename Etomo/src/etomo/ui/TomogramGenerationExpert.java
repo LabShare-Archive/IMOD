@@ -1,7 +1,6 @@
 package etomo.ui;
 
 import java.io.IOException;
-import java.util.Vector;
 
 import etomo.ApplicationManager;
 import etomo.ProcessSeries;
@@ -20,6 +19,7 @@ import etomo.type.ConstMetaData;
 import etomo.type.ConstProcessSeries;
 import etomo.type.DialogExitState;
 import etomo.type.DialogType;
+import etomo.type.IntKeyList;
 import etomo.type.MetaData;
 import etomo.type.ProcessResult;
 import etomo.type.ProcessName;
@@ -55,7 +55,9 @@ public final class TomogramGenerationExpert extends ReconUIExpert {
   private TomogramGenerationDialog dialog = null;
   private boolean advanced = false;
   private boolean getBinningFromNewst = true;
-  private Vector trialTomogramList = null;
+  //A way to know what items are currently in the trial tomogram combo box.
+  //It is set from MetaData, which is assumed to be not null.
+  private IntKeyList trialTomogramList = null;
 
   public TomogramGenerationExpert(ApplicationManager manager,
       MainTomogramPanel mainPanel, ProcessTrack processTrack, AxisID axisID) {
@@ -80,7 +82,6 @@ public final class TomogramGenerationExpert extends ReconUIExpert {
     Utilities.timestamp("new", "TomogramGenerationDialog",
         Utilities.STARTED_STATUS);
     dialog = new TomogramGenerationDialog(manager, this, axisID);
-    trialTomogramList = new Vector();
     Utilities.timestamp("new", "TomogramGenerationDialog",
         Utilities.FINISHED_STATUS);
     // no longer managing image size
@@ -406,6 +407,8 @@ public final class TomogramGenerationExpert extends ReconUIExpert {
     if (dialog == null) {
       return;
     }
+    trialTomogramList = metaData.getTomoGenTrialTomogramNameList(axisID);
+    dialog.setTrialTomogramNameList(trialTomogramList);
     CpuAdoc cpuAdoc = CpuAdoc.getInstance(AxisID.ONLY, manager
         .getPropertyUserDir());
     //Parallel processing is optional in tomogram reconstruction, so only use it
@@ -453,6 +456,7 @@ public final class TomogramGenerationExpert extends ReconUIExpert {
     if (dialog == null) {
       return;
     }
+    metaData.setTomoGenTrialTomogramNameList(axisID, trialTomogramList);
     metaData.setTomoGenTiltParallel(axisID, dialog.isParallelProcess());
   }
 
@@ -693,7 +697,7 @@ public final class TomogramGenerationExpert extends ReconUIExpert {
           "Tilt Parameter Syntax Error", axisID);
       return;
     }
-    if (!trialTomogramList.contains(trialTomogramName)) {
+    if (!trialTomogramList.containsValue(trialTomogramName)) {
       trialTomogramList.add(trialTomogramName);
       dialog.addToTrialTomogramName(trialTomogramName);
     }
@@ -725,6 +729,11 @@ public final class TomogramGenerationExpert extends ReconUIExpert {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.26  2008/11/11 23:54:47  sueh
+ * <p> bug# 1149 Removed getBinning(), which was used to save binning to
+ * <p> MetaData.tomoGenBinning.  TomoGenBinning is now finalStackBinning
+ * <p> and comes from the FinalStack dialog.  Is was always supposed to be saved from the binning in the Align box.
+ * <p>
  * <p> Revision 1.25  2008/10/27 20:45:10  sueh
  * <p> bug# 1141 Added getParameters(SplittiltParam).
  * <p>
