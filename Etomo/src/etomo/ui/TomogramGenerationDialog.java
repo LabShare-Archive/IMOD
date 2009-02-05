@@ -21,7 +21,9 @@ import etomo.storage.autodoc.AutodocFactory;
 import etomo.storage.autodoc.ReadOnlyAutodoc;
 import etomo.type.AxisID;
 import etomo.type.ConstEtomoNumber;
+import etomo.type.ConstIntKeyList;
 import etomo.type.DialogType;
+import etomo.type.IntKeyList;
 import etomo.type.PanelHeaderState;
 import etomo.type.ProcessResultDisplay;
 import etomo.type.ProcessResultDisplayFactory;
@@ -48,6 +50,9 @@ import etomo.type.ViewType;
  * 
  * <p>
  * $Log$
+ * Revision 3.120  2009/02/04 23:36:48  sueh
+ * bug# 1158 Changed id and exception classes in LogFile.
+ *
  * Revision 3.119  2009/01/20 20:31:45  sueh
  * bug# 1102 Changed labeled panels to type EtomoPanel so that they can name themselves.
  *
@@ -760,6 +765,13 @@ public class TomogramGenerationDialog extends ProcessDialog implements
   public static ProcessResultDisplay getGenerateTomogramDisplay() {
     return Run3dmodButton.getDeferredToggle3dmodInstance("Generate Tomogram",
         DialogType.TOMOGRAM_GENERATION);
+  }
+
+  void setTrialTomogramNameList(ConstIntKeyList input) {
+    IntKeyList.Walker walker = input.getWalker();
+    while (walker.hasNext()) {
+      cmboTrialTomogramName.addItem(walker.nextString());
+    }
   }
 
   void addToTrialTomogramName(String trialTomogramName) {
