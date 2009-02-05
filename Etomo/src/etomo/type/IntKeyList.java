@@ -2,6 +2,8 @@ package etomo.type;
 
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
 import java.util.Properties;
 
 /**
@@ -32,6 +34,9 @@ import java.util.Properties;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.7  2008/05/22 00:15:57  sueh
+ * <p> bug# 1110 Corrected a comment in class description.
+ * <p>
  * <p> Revision 1.6  2007/06/06 20:42:37  sueh
  * <p> bug# 1016 Added getPrepend(String, String tempKey), load(Properties,
  * <p> String, String tempKey), and remove(Properties, String, String tempKey) to
@@ -58,7 +63,7 @@ import java.util.Properties;
 public final class IntKeyList implements ConstIntKeyList {
   public static final String rcsid = "$Id$";
 
-  private final HashMap list = new HashMap();
+  private final Map map = new HashMap();
   private final RowKey rowKey = new RowKey();
   //If etomoNumberType is null, then the value is a string
   private final EtomoNumber.Type etomoNumberType;
@@ -66,7 +71,7 @@ public final class IntKeyList implements ConstIntKeyList {
   private boolean debug = false;
 
   public String toString() {
-    return "[list=" + list + "]";
+    return "[map=" + map + "]";
   }
 
   private IntKeyList(String listKey, EtomoNumber.Type etomoNumberType) {
@@ -99,7 +104,7 @@ public final class IntKeyList implements ConstIntKeyList {
   }
 
   public synchronized void reset() {
-    list.clear();
+    map.clear();
     rowKey.reset();
   }
 
@@ -116,7 +121,7 @@ public final class IntKeyList implements ConstIntKeyList {
   }
 
   public boolean isEmpty() {
-    return list.isEmpty();
+    return map.isEmpty();
   }
 
   public void set(final String[] input) {
@@ -126,6 +131,18 @@ public final class IntKeyList implements ConstIntKeyList {
     for (int i = 0; i < input.length; i++) {
       if (input[i] != null) {
         put(i, input[i]);
+      }
+    }
+  }
+
+  public void set(final List input) {
+    if (input == null) {
+      return;
+    }
+    for (int i = 0; i < input.size(); i++) {
+      Object object = input.get(i);
+      if (object != null) {
+        put(i, object);
       }
     }
   }
@@ -150,25 +167,52 @@ public final class IntKeyList implements ConstIntKeyList {
 
   public synchronized void put(final int key, final String value) {
     rowKey.adjustFirstLastKeys(key);
-    list.put(buildKey(key), new Pair(key, value, etomoNumberType));
+    map.put(buildKey(key), new Pair(key, value, etomoNumberType));
     if (debug) {
-      System.out.println("list.size()="+list.size());
+      System.out.println("map.size()=" + map.size());
+    }
+  }
+
+  public synchronized void put(final int key, final Object value) {
+    rowKey.adjustFirstLastKeys(key);
+    Pair pair = null;
+    if (etomoNumberType==null) {
+      pair = new Pair(key, (String)value, etomoNumberType);
+    }
+    else {
+      pair = new Pair(key, (ConstEtomoNumber)value, etomoNumberType);
+    }
+    map.put(buildKey(key), pair);
+    if (debug) {
+      System.out.println("map.size()="+map.size());
     }
   }
 
   public synchronized void put(int key, ConstEtomoNumber value) {
     rowKey.adjustFirstLastKeys(key);
-    list.put(buildKey(key), new Pair(key, value, etomoNumberType));
+    map.put(buildKey(key), new Pair(key, value, etomoNumberType));
     if (debug) {
-      System.out.println("list.size()="+list.size());
+      System.out.println("map.size()=" + map.size());
     }
   }
 
   public synchronized void put(int key, int value) {
     rowKey.adjustFirstLastKeys(key);
-    list.put(buildKey(key), new Pair(key, value, etomoNumberType));
+    map.put(buildKey(key), new Pair(key, value, etomoNumberType));
     if (debug) {
-      System.out.println("list.size()="+list.size());
+      System.out.println("map.size()=" + map.size());
+    }
+  }
+
+  /**
+   * puts the value, generates its own key (lastKey+1)
+   * @param value
+   */
+  public synchronized void add(ConstEtomoNumber value) {
+    int key = rowKey.genKey();
+    map.put(buildKey(key), new Pair(key, value, etomoNumberType));
+    if (debug) {
+      System.out.println("map.size()=" + map.size());
     }
   }
   
@@ -176,11 +220,11 @@ public final class IntKeyList implements ConstIntKeyList {
    * puts the value, generates its own key (lastKey+1)
    * @param value
    */
-  public synchronized void put(ConstEtomoNumber value) {
+  public synchronized void add(String value) {
     int key = rowKey.genKey();
-    list.put(buildKey(key), new Pair(key, value, etomoNumberType));
+    map.put(buildKey(key), new Pair(key, value, etomoNumberType));
     if (debug) {
-      System.out.println("list.size()="+list.size());
+      System.out.println("map.size()=" + map.size());
     }
   }
 
@@ -193,7 +237,7 @@ public final class IntKeyList implements ConstIntKeyList {
   }
 
   public String getString(int key) {
-    Pair pair = (Pair) list.get(buildKey(key));
+    Pair pair = (Pair) map.get(buildKey(key));
     if (pair == null) {
       return null;
     }
@@ -201,7 +245,7 @@ public final class IntKeyList implements ConstIntKeyList {
   }
 
   public ConstEtomoNumber getEtomoNumber(int key) {
-    Pair pair = (Pair) list.get(buildKey(key));
+    Pair pair = (Pair) map.get(buildKey(key));
     if (pair == null) {
       return null;
     }
@@ -219,16 +263,16 @@ public final class IntKeyList implements ConstIntKeyList {
     if (listKey == null) {
       return;
     }
-    //Remove everything from this list from properties.  This means that
+    //Remove everything from this map from properties.  This means that
     //renumbering is unnecessary.
     remove(props, prepend);
     prepend = getPrepend(prepend);
     String group = prepend + ".";
     rowKey.store(props, prepend);
-    if (list.isEmpty()) {
+    if (map.isEmpty()) {
       return;
     }
-    Iterator i = list.values().iterator();
+    Iterator i = map.values().iterator();
     while (i.hasNext()) {
       Pair pair = (Pair) i.next();
       if (pair != null && !pair.isNull()) {
@@ -247,9 +291,9 @@ public final class IntKeyList implements ConstIntKeyList {
     for (int i = getFirstKey(); i <= getLastKey(); i++) {
       String value = props.getProperty(group + String.valueOf(i));
       if (value != null) {
-        list.put(String.valueOf(i), new Pair(i, value, etomoNumberType));
+        map.put(String.valueOf(i), new Pair(i, value, etomoNumberType));
         if (debug) {
-          System.out.println("list.size()="+list.size());
+          System.out.println("map.size()=" + map.size());
         }
       }
     }
@@ -265,14 +309,14 @@ public final class IntKeyList implements ConstIntKeyList {
     for (int i = getFirstKey(); i <= getLastKey(); i++) {
       String value = props.getProperty(group + String.valueOf(i));
       if (value != null) {
-        list.put(String.valueOf(i), new Pair(i, value, etomoNumberType));
+        map.put(String.valueOf(i), new Pair(i, value, etomoNumberType));
         if (debug) {
-          System.out.println("list.size()="+list.size());
+          System.out.println("map.size()=" + map.size());
         }
       }
     }
   }
-  
+
   public void remove(Properties props, String prepend, String tempKey) {
     if (tempKey == null) {
       return;
@@ -287,16 +331,23 @@ public final class IntKeyList implements ConstIntKeyList {
     oldRowKey.remove(props, prepend);
   }
 
+  /**
+   * Iterator that doesn't allow changes to the IntKeyList
+   */
   public Walker getWalker() {
     return new Walker(this);
   }
 
   public boolean containsKey(int key) {
-    return list.containsKey(buildKey(key));
+    return map.containsKey(buildKey(key));
+  }
+  
+  public boolean containsValue(String element) {
+    return map.containsValue(element);
   }
 
   public int size() {
-    return list.size();
+    return map.size();
   }
 
   public void setDebug(boolean debug) {
@@ -401,7 +452,7 @@ public final class IntKeyList implements ConstIntKeyList {
 
     public int size() {
       if (debug) {
-        System.out.println("list.size()="+list.size());
+        System.out.println("list.size()=" + list.size());
       }
       return list.size();
     }
