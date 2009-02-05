@@ -34,6 +34,10 @@ import etomo.util.DatasetFiles;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.33  2008/08/18 22:33:29  sueh
+ * <p> bug# 1130 Added "-l" to GenOptions:  from dialog, sets localFits.  Added
+ * <p> "-l" to genRejoinOptions:  from state.
+ * <p>
  * <p> Revision 1.32  2008/05/22 00:13:33  sueh
  * <p> bug# 1110 In genRejoinOptions handling this bug by telling the user how
  * <p> fix the damage done by this bug (rerunning Finish Join).
@@ -527,8 +531,8 @@ public final class FinishjoinParam implements CommandDetails {
       //the rows in order, incrementing the key by 1 each time
       refineStartList.reset(1);
       refineEndList.reset(1);
-      refineStartList.put(start);
-      refineEndList.put(end);
+      refineStartList.add(start);
+      refineEndList.add(end);
       //The middle start and end pairs come from the boundary table
       //while look should end when gapEndListWalker runs out of values (its ahead
       //of gapStartListWalker by 1).
@@ -536,16 +540,16 @@ public final class FinishjoinParam implements CommandDetails {
         start = gapStartListWalker.nextEtomoNumber();
         end = gapEndListWalker.nextEtomoNumber();
         options.add(start + "," + end);
-        refineStartList.put(start);
-        refineEndList.put(end);
+        refineStartList.add(start);
+        refineEndList.add(end);
       }
       //The last start and end:  start comes from the boundary table and end comes from
       //the last join final end.
       start = gapStartListWalker.nextEtomoNumber();
       end = endListWalker.getLastEtomoNumber();
       options.add(start + "," + end);
-      refineStartList.put(start);
-      refineEndList.put(end);
+      refineStartList.add(start);
+      refineEndList.add(end);
     }
     else if (numRows >= 2 && numRows == endListWalker.size()
         && numRows > gapStartListWalker.size() + 1
