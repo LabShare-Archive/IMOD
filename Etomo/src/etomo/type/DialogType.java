@@ -16,6 +16,9 @@ import java.util.Properties;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.13  2008/10/16 20:57:06  sueh
+ * <p> bug# 1141 Added FINAL_ALIGNED_STACK.
+ * <p>
  * <p> Revision 1.12  2008/05/28 02:48:27  sueh
  * <p> bug# 1111 Added JOIN.
  * <p>
@@ -93,6 +96,8 @@ public final class DialogType {
 
   public static final int TOTAL_PEET = peetIndex + 1;
 
+  //Storable names cannot be changed without handling the resulting backwards
+  //compatibility errors.
   private static final String SETUP_RECON_NAME = "SetupRecon";
   private static final String PRE_PROCESSING_NAME = "PreProc";
   private static final String COARSE_ALIGNMENT_NAME = "CoarseAlign";
@@ -126,6 +131,11 @@ public final class DialogType {
     return name;
   }
 
+  /**
+   * Storable names cannot be changed without handling the resulting backwards
+   * compatibility errors.
+   * @return
+   */
   public String getStorableName() {
     return getStorableName(tabType, index);
   }
@@ -267,6 +277,8 @@ public final class DialogType {
   }
 
   /**
+   * Storable names cannot be changed without handling the resulting backwards
+   * compatibility errors.
    * Return a name without spaces.  All storable names must be unique to
    * DialogType.
    * @param tabType
