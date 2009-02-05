@@ -128,7 +128,7 @@ void utilCurrentPointSize(Iobj *obj, int *modPtSize, int *backupSize,
 void utilEnableStipple(ImodView *vi, Icont *cont)
 {
   if (vi->drawStipple && (cont->flags & ICONT_STIPPLED)) {
-    glLineStipple(3, 0xAAAA);
+    glLineStipple(3, 0x5555);
     glEnable(GL_LINE_STIPPLE);
   }
 }
@@ -531,6 +531,9 @@ int imodColorValue(int inColor)
 /*
 
 $Log$
+Revision 1.6  2009/01/15 16:33:17  mast
+Qt 4 port
+
 Revision 1.5  2008/07/16 04:31:09  mast
 Add function to set object flag
 
