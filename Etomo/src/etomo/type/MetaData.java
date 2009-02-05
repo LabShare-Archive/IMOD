@@ -28,6 +28,9 @@ import etomo.util.Utilities;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.45  2009/02/04 23:30:30  sueh
+ * <p> bug# 1158 Changed id and exception classes in LogFile.
+ * <p>
  * <p> Revision 3.44  2008/12/10 18:33:24  sueh
  * <p> bug# 1162 Added a manager stamp to setDatasetName.
  * <p>
@@ -406,6 +409,12 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
   private EtomoNumber finalStackPolynomialOrderB = new EtomoNumber(
       DialogType.FINAL_ALIGNED_STACK.getStorableName() + "."
           + AxisID.SECOND.getExtension() + "." + "PolynomialOrder");
+  private IntKeyList tomoGenTrialTomogramNameListA = IntKeyList
+      .getStringInstance(DialogType.TOMOGRAM_GENERATION.getStorableName() + "."
+          + AxisID.FIRST.getExtension() + "." + "TrialTomogramName");
+  private IntKeyList tomoGenTrialTomogramNameListB = IntKeyList
+      .getStringInstance(DialogType.TOMOGRAM_GENERATION.getStorableName() + "."
+          + AxisID.SECOND.getExtension() + "." + "TrialTomogramName");
 
   public MetaData(ApplicationManager manager) {
     this.manager = manager;
@@ -814,6 +823,8 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
     finalStackFiducialDiameterB.reset();
     finalStackPolynomialOrderA.reset();
     finalStackPolynomialOrderB.reset();
+    tomoGenTrialTomogramNameListA.reset();
+    tomoGenTrialTomogramNameListB.reset();
     //load
     prepend = createPrepend(prepend);
     String group = prepend + ".";
@@ -969,6 +980,8 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
     fixedBeamTiltB.load(props, prepend);
     finalStackPolynomialOrderA.load(props, prepend);
     finalStackPolynomialOrderB.load(props, prepend);
+    tomoGenTrialTomogramNameListA.load(props, prepend);
+    tomoGenTrialTomogramNameListB.load(props, prepend);
   }
 
   public void setNoBeamTiltSelected(AxisID axisID, boolean selected) {
@@ -1144,6 +1157,8 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
     finalStackPolynomialOrderB.store(props, prepend);
     finalStackFiducialDiameterA.store(props, prepend);
     finalStackFiducialDiameterB.store(props, prepend);
+    tomoGenTrialTomogramNameListA.store(props,prepend);
+    tomoGenTrialTomogramNameListB.store(props,prepend);
   }
 
   public ConstEtomoNumber getNoBeamTiltSelected(AxisID axisID) {
@@ -1189,6 +1204,20 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
       return finalStackPolynomialOrderB.getInt();
     }
     return finalStackPolynomialOrderA.getInt();
+  }
+
+  public IntKeyList getTomoGenTrialTomogramNameList(AxisID axisID) {
+    if (axisID == AxisID.SECOND) {
+      return tomoGenTrialTomogramNameListB;
+    }
+    return tomoGenTrialTomogramNameListA;
+  }
+
+  public void setTomoGenTrialTomogramNameList(AxisID axisID, IntKeyList input) {
+    if (axisID == AxisID.SECOND) {
+      tomoGenTrialTomogramNameListB = input;
+    }
+    tomoGenTrialTomogramNameListA = input;
   }
 
   public boolean isFinalStackFiducialDiameterNull(AxisID axisID) {
