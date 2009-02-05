@@ -1,4 +1,7 @@
 package etomo.type;
+
+import etomo.type.IntKeyList.Walker;
+
 /**
 * <p>Description: </p>
 * 
@@ -13,6 +16,10 @@ package etomo.type;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.2  2007/03/01 01:24:05  sueh
+* <p> bug# 964 Saving immutable Number elements instead of EtomoNumber elements
+* <p> in IntKeyList.
+* <p>
 * <p> Revision 1.1  2007/02/05 23:23:04  sueh
 * <p> bug# 962 Const interface for IntKeyList.
 * <p> </p>
@@ -26,4 +33,5 @@ public interface ConstIntKeyList {
   public ConstEtomoNumber getEtomoNumber(int key);
   public boolean containsKey(int key);
   public int size();
+  public Walker getWalker();
 }
