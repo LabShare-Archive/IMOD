@@ -1,13 +1,38 @@
 .TH uitest 7 2/4/2009 BL3DEMC
+.na
+.nh
 
 .SH NAME
-uitest - script to run GUI tests using JFCUnit
+uitest - a script to run GUI tests against Etomo using JFCUnit
 
 .SH SYNOPSIS
-.B scripts/uitest \fITest_Section_name\fR
-.B make -f tests/uitest.make [target...]
+.HP
+.B scripts/uitest \fITest_Section_name
+.HP
+.B make -f tests/uitest.make \fR[\fItarget\fR ...]
+.HP
+.B etomo.uitest.JfcUnitTests \fR(in eclipse)
 
 .SH DESCRIPTION
+Description of uitest usage and the files used by etomo.uitest.JfcUnitTests.
+
+.SH ENVIRONMENT
+The IMOD environment that allows Etomo to be run must be in place.
+
+.TP
+.B IMOD_TEST_SECTION
+Only needs to be set if JfcUnitTests is being run directly.  It should be set to the name of test section that will be run (see Section relationships below).
+.TP
+.B IMOD_UITEST_DATA
+Should be set to the directory where file that will be copied into a test dataset are stored.
+.TP
+.B IMOD_UITEST_SOURCE
+should be set the Etomo/tests directory.
+.TP
+.B IMOD_JUNIT_HOME
+
+
+.SH FILES
 Autodocs:
 
 The main UITest autodoc is uitest.adoc.  Test autodocs are referred to by uitest.adoc.  Function autodocs are referred to by Test autodocs.
