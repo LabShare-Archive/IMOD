@@ -54,32 +54,59 @@ public interface ConstMetaData {
   public String getMagGradientFile();
 
   public String getExcludeProjectionsB();
+
   public CombineParams getCombineParams();
+
   public ConstEtomoNumber getCombineVolcombineParallel();
+
   public ConstEtomoNumber getDefaultParallel();
+
   public String getFirstAxisPrepend();
-  public  String getSecondAxisPrepend();
+
+  public String getSecondAxisPrepend();
+
   public String getTargetPatchSizeXandY();
+
   public ConstEtomoNumber getFixedBeamTiltSelected(AxisID axisID);
+
   public String getNumberOfLocalPatchesXandY();
+
   public ConstEtomoNumber getFixedBeamTilt(AxisID axisID);
+
   public ConstEtomoNumber getNoBeamTiltSelected(AxisID axisID);
+
   public EtomoNumber getSampleThickness(AxisID axisID);
+
   public int getTomoPosBinning(AxisID axisID);
+
   public FortranInputString getSizeToOutputInXandY(AxisID axisID);
+
   public int getFinalStackBinning(AxisID axisID);
+
   public ConstEtomoNumber getTomoGenTiltParallel(AxisID axisID);
+
   public ConstEtomoNumber getFinalStackCtfCorrectionParallel(AxisID axisID);
+
   public boolean isDistortionCorrection();
+
   public boolean isFinalStackBetterRadiusEmpty(AxisID axisID);
+
   public String getFinalStackBetterRadius(AxisID axisID);
+
   public boolean isFinalStackFiducialDiameterNull(AxisID axisID);
+
   public String getFinalStackFiducialDiameter(AxisID axisID);
+
   public int getFinalStackPolynomialOrder(AxisID axisID);
+
+  public IntKeyList getTomoGenTrialTomogramNameList(AxisID axisID);
 }
 
 /**
  * <p> $Log$
+ * <p> Revision 3.48  2008/12/02 21:20:03  sueh
+ * <p> bug# 1157 Added finalStackFiducialDiameterA and B.
+ * <p>
  * <p> Revision 3.47  2008/11/20 01:35:04  sueh
  * <p> bug# 1147, bug# 1149 Added getFinalStackBetterRadius,
  * <p> getFinalStackPolynomialOrder, and isFinalStackBetterRadiusEmpty.
