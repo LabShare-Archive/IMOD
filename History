@@ -1,5 +1,7 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+2/5/09: In Etomo added more error checking to the PEET interface.
+
 2/5/09: In Etomo saved the trial tomogram names in the combo box.
 
 2/2/09: Sychronize all on/off buttons when meshing turns an object on (In 
