@@ -25,6 +25,9 @@ import etomo.util.MRCHeader;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.33  2007/12/13 01:13:20  sueh
+ * <p> bug# 1056 Added adjustOrigin.
+ * <p>
  * <p> Revision 1.32  2007/09/07 00:25:31  sueh
  * <p> bug# 989 Using a public INSTANCE to refer to the EtomoDirector singleton
  * <p> instead of getInstance and createInstance.
@@ -256,6 +259,12 @@ public class TomogramState extends BaseState {
       + "." + ADJUST_ORIGIN_KEY);
   private final EtomoBoolean2 adjustOriginB = new EtomoBoolean2(B_AXIS_KEY
       + "." + ADJUST_ORIGIN_KEY);
+  private final EtomoNumber postProcTrimVolInputNColumns = new EtomoNumber(
+      DialogType.POST_PROCESSING.getStorableName() + ".TrimVol.Input.NColumns");
+  private final EtomoNumber postProcTrimVolInputNRows = new EtomoNumber(
+      DialogType.POST_PROCESSING.getStorableName() + ".TrimVol.Input.NRows");
+  private final EtomoNumber postProcTrimVolInputNSections = new EtomoNumber(
+      DialogType.POST_PROCESSING.getStorableName() + ".TrimVol.Input.NSections");
 
   public TomogramState(ApplicationManager manager) {
     this.manager = manager;
@@ -330,6 +339,9 @@ public class TomogramState extends BaseState {
     tomogramSizeB.store(props, prepend);
     adjustOriginA.store(props, prepend);
     adjustOriginB.store(props, prepend);
+    postProcTrimVolInputNColumns.store(props, prepend);
+    postProcTrimVolInputNRows.store(props, prepend);
+    postProcTrimVolInputNSections.store(props, prepend);
     //backwards compatibility
     props.remove(COMBINE_MATCH_MODE_BACK_KEY);
     if (combineMatchMode == null) {
@@ -515,6 +527,9 @@ public class TomogramState extends BaseState {
     tomogramSizeB.load(props, prepend);
     adjustOriginA.load(props, prepend);
     adjustOriginB.load(props, prepend);
+    postProcTrimVolInputNColumns.load(props, prepend);
+    postProcTrimVolInputNRows.load(props, prepend);
+    postProcTrimVolInputNSections.load(props, prepend);
     combineMatchMode = MatchMode.getInstance(props.getProperty(prepend + "."
         + COMBINE_MATCH_MODE_KEY));
     //backwards compatibility
@@ -601,6 +616,42 @@ public class TomogramState extends BaseState {
     else {
       adjustOriginA.set(input);
     }
+  }
+
+  public void setPostProcTrimVolInputNColumns(int input) {
+    postProcTrimVolInputNColumns.set(input);
+  }
+
+  public void setPostProcTrimVolInputNRows(int input) {
+    postProcTrimVolInputNRows.set(input);
+  }
+
+  public void setPostProcTrimVolInputNSections(int input) {
+    postProcTrimVolInputNSections.set(input);
+  }
+  
+  public boolean isPostProcTrimVolInputNColumnsNull() {
+    return postProcTrimVolInputNColumns.isNull();
+  }
+
+  public boolean isPostProcTrimVolInputNRowsNull() {
+    return postProcTrimVolInputNRows.isNull();
+  }
+  
+  public boolean isPostProcTrimVolInputNSectionsNull() {
+    return postProcTrimVolInputNSections.isNull();
+  }
+
+  public int getPostProcTrimVolInputNColumns() {
+    return postProcTrimVolInputNColumns.getInt();
+  }
+
+  public int getPostProcTrimVolInputNRows() {
+    return postProcTrimVolInputNRows.getInt();
+  }
+
+  public int getPostProcTrimVolInputNSections() {
+    return postProcTrimVolInputNSections.getInt();
   }
 
   public ConstEtomoNumber getTomogramSize(AxisID axisID) {
