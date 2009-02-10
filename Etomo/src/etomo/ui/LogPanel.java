@@ -35,7 +35,10 @@ import etomo.util.Utilities;
  * 
  * @version $Revision$
  * 
- * <p> $Log$ </p>
+ * <p> $Log$
+ * <p> Revision 1.1  2009/02/04 23:35:18  sueh
+ * <p> bug# 1158 The log window panel.  One instance per manager is created.
+ * <p> </p>
  */
 public final class LogPanel {
   public static final String rcsid = "$Id$";
@@ -43,6 +46,7 @@ public final class LogPanel {
   static final String TITLE = "Project Log";
   static final String SAVE_LABEL = "Save Log";
   static final String LOG_WINDOW_LABEL = "Hide Log Window";
+  static final String LINE_SEPARATOR = System.getProperty("line.separator");
 
   private final EtomoPanel rootPanel = new EtomoPanel();
   private final EtchedBorder border = new EtchedBorder(TITLE);
@@ -364,7 +368,8 @@ public final class LogPanel {
         int lastLineEndOffset = textArea.getLineEndOffset(textArea
             .getLineCount() - 1);
         if (lastLineEndOffset != 0) {
-          textArea.append("\n");
+          //textArea.append("\n");
+          textArea.append(LINE_SEPARATOR);
         }
       }
       catch (BadLocationException e) {
