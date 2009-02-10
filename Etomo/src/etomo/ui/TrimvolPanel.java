@@ -36,6 +36,9 @@ import etomo.type.Run3dmodMenuOptions;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.32  2009/01/20 20:33:03  sueh
+ * <p> bug# 1102 Changed labeled panels to type EtomoPanel so that they can name themselves.
+ * <p>
  * <p> Revision 3.31  2008/09/30 22:51:46  sueh
  * <p> bug# 1113 Using a private constructor in SpacedPanel.
  * <p>
@@ -249,6 +252,7 @@ public final class TrimvolPanel implements Run3dmodButtonContainer,
   private final JLabel lWarning3 = new JLabel("the same reorientation");
   private final JLabel lWarning4 = new JLabel("method for each");
   private final JLabel lWarning5 = new JLabel("section.");
+  private final     JLabel warning = new JLabel();
 
   private JPanel pnlButton = new JPanel();
   private Run3dmodButton btnImodFull = Run3dmodButton.get3dmodInstance(
@@ -272,6 +276,7 @@ public final class TrimvolPanel implements Run3dmodButtonContainer,
     this.dialogType = dialogType;
     this.axisID = axisID;
     applicationManager = appMgr;
+    //panels
     pnlScaleRubberband = RubberbandPanel
         .getNoButtonInstance(
             appMgr,
@@ -344,7 +349,9 @@ public final class TrimvolPanel implements Run3dmodButtonContainer,
 
     pnlTrimvol.setLayout(new BoxLayout(pnlTrimvol, BoxLayout.Y_AXIS));
     pnlTrimvol.setBorder(new BeveledBorder("Volume Trimming").getBorder());
-
+    warning.setForeground(ProcessControlPanel.colorNotStarted);
+    warning.setAlignmentX(Component.CENTER_ALIGNMENT);
+    pnlTrimvol.add(warning);
     pnlImodFull.setLayout(new BoxLayout(pnlImodFull, BoxLayout.X_AXIS));
     pnlImodFull.add(Box.createHorizontalGlue());
     pnlImodFull.add(btnImodFull.getComponent());
@@ -388,6 +395,8 @@ public final class TrimvolPanel implements Run3dmodButtonContainer,
     pnlTrimvol.add(Box.createRigidArea(FixedDim.x0_y10));
     pnlTrimvol.add(pnlButton);
     pnlTrimvol.add(Box.createRigidArea(FixedDim.x0_y10));
+    
+    setToolTipText();
 
     ScalingListener ScalingListener = new ScalingListener(this);
     rbScaleFixed.addActionListener(ScalingListener);
@@ -399,8 +408,6 @@ public final class TrimvolPanel implements Run3dmodButtonContainer,
     btnTrimvol.addActionListener(buttonActonListener);
     btnImodTrim.addActionListener(buttonActonListener);
     btnGetCoordinates.addActionListener(buttonActonListener);
-
-    setToolTipText();
   }
 
   /**
@@ -446,6 +453,28 @@ public final class TrimvolPanel implements Run3dmodButtonContainer,
     }
     setScaleState();
     pnlScaleRubberband.setParameters(trimvolParam.getScaleXYParam());
+    boolean nColumnsChanged = trimvolParam.isNColumnsChanged();
+    boolean nRowsChanged = trimvolParam.isNRowsChanged();
+    boolean nSectionsChanged = trimvolParam.isNSectionsChanged();
+    
+    //set warning
+    //  Y and Z  are swapped to present the user with Z as the depth domain
+    if (nColumnsChanged || nSectionsChanged) {
+      if (nRowsChanged) {
+        warning.setText("Min and max values have been restored to defaults");
+      }
+      else {
+        warning.setText("X,Y values have been restored to defaults");
+      }
+    }
+    else {
+      if (nRowsChanged) {
+        warning.setText("Z values have been restored to defaults");
+      }
+      else {
+        warning.setVisible(false);
+      }
+    }
   }
 
   /**
