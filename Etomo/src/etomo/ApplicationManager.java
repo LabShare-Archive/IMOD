@@ -2246,7 +2246,7 @@ public final class ApplicationManager extends BaseManager {
     }
   }
 
-  public void save() throws LogFile.LockException,IOException {
+  public void save() throws LogFile.LockException, IOException {
     super.save();
     mainPanel.done();
     saveDialogs();
@@ -4931,8 +4931,7 @@ public final class ApplicationManager extends BaseManager {
       // Set the appropriate input and output files
       TrimvolParam trimvolParam = metaData.getTrimvolParam();
       try {
-        trimvolParam.setDefaultRange(TrimvolParam.getInputFileName(metaData
-            .getAxisType(), metaData.getDatasetName()));
+        trimvolParam.setDefaultRange(state);
       }
       catch (InvalidParameterException except) {
         String[] detailedMessage = new String[4];
@@ -5482,12 +5481,14 @@ public final class ApplicationManager extends BaseManager {
       // if (getStackBinning(axisID, ".preali") !=
       // getBackwardCompatibleAlignBinning(axisID)) {
       String title = "Prealigned image stack binning has changed";
-      String[] message = new String[] {"The prealigned image stack binning has changed.  You "
-          + "must:","    1. Go  to Fiducial Model Gen. and Press Fix Fiducial "
-          + "Model to open the fiducial model.","    2. Save the fiducial model "
-          + "by pressing \"s\".","    3. Go to Fine Alignment and press Compute "
-          + "Alignment to rerun align" + axisID.getExtension() + ".com."};
-      logPanel.logMessage(title,axisID,message);
+      String[] message = new String[] {
+          "The prealigned image stack binning has changed.  You " + "must:",
+          "    1. Go  to Fiducial Model Gen. and Press Fix Fiducial "
+              + "Model to open the fiducial model.",
+          "    2. Save the fiducial model " + "by pressing \"s\".",
+          "    3. Go to Fine Alignment and press Compute "
+              + "Alignment to rerun align" + axisID.getExtension() + ".com." };
+      logPanel.logMessage(title, axisID, message);
       uiHarness.openMessageDialog(message, title, axisID);
     }
     processDone(axisID, processResultDisplay, processSeries);
@@ -5836,6 +5837,10 @@ public final class ApplicationManager extends BaseManager {
 }
 /**
  * <p> $Log$
+ * <p> Revision 3.314  2009/02/04 22:31:15  sueh
+ * <p> bug# 1158 passing logPanel to mainPanel.setStatusBarText so its title can
+ * <p> be updated.
+ * <p>
  * <p> Revision 3.313  2008/12/09 21:25:41  sueh
  * <p> bug# 1160 Changed getFiducialDiameterPerPixel; divided the diameter by coarse aligned stack binning.
  * <p>
