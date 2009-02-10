@@ -20,6 +20,9 @@
  * 
  * <p>
  * $Log$
+ * Revision 3.127  2009/02/04 23:26:53  sueh
+ * bug# 1158 Changed id and exceptions classes in LogFile.
+ *
  * Revision 3.126  2008/11/20 01:33:37  sueh
  * bug# 1147 Added ccdEraser, to run ccderaser as a command.
  *
@@ -886,6 +889,7 @@ import etomo.ui.TextPageWindow;
 import etomo.ui.UIHarness;
 import etomo.util.DatasetFiles;
 import etomo.util.InvalidParameterException;
+import etomo.util.MRCHeader;
 import etomo.util.Utilities;
 import etomo.comscript.ArchiveorigParam;
 import etomo.comscript.BlendmontParam;
@@ -2056,11 +2060,27 @@ public class ProcessManager extends BaseProcessManager {
       ProcessDetails processDetails = process.getProcessDetails();
       Command command = process.getCommand();
       if (commandName.equals(TrimvolParam.getName())) {
-        appManager.getState()
-            .setTrimvolFlipped(
-                processDetails.getBooleanValue(TrimvolParam.Fields.SWAP_YZ)
-                    || processDetails
-                        .getBooleanValue(TrimvolParam.Fields.ROTATE_X));
+        TomogramState state = appManager.getState();
+        AxisID axisID = process.getAxisID();
+        state.setTrimvolFlipped(processDetails
+            .getBooleanValue(TrimvolParam.Fields.SWAP_YZ)
+            || processDetails.getBooleanValue(TrimvolParam.Fields.ROTATE_X));
+        MRCHeader mrcHeader = MRCHeader.getInstance(appManager
+            .getPropertyUserDir(), TrimvolParam.getInputFileName(appManager
+            .getBaseMetaData().getAxisType(), appManager.getBaseMetaData()
+            .getName()), AxisID.ONLY);
+        try {
+          mrcHeader.read();
+          state.setPostProcTrimVolInputNColumns(mrcHeader.getNColumns());
+          state.setPostProcTrimVolInputNRows(mrcHeader.getNRows());
+          state.setPostProcTrimVolInputNSections(mrcHeader.getNSections());
+        }
+        catch (IOException e) {
+          e.printStackTrace();
+        }
+        catch (InvalidParameterException e) {
+          e.printStackTrace();
+        }
       }
       else if (commandName.equals(SqueezevolParam.getName())) {
         appManager.getState().setSqueezevolFlipped(
