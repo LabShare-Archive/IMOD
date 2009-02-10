@@ -11,6 +11,9 @@
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.27  2007/12/13 01:07:10  sueh
+ * <p> bug# 1056 Added keepSameOrigin.
+ * <p>
  * <p> Revision 3.26  2007/11/06 19:17:48  sueh
  * <p> bug# 1047 Added getSubcommandDetails.
  * <p>
@@ -169,6 +172,7 @@ import etomo.type.BaseMetaData;
 import etomo.type.ConstEtomoNumber;
 import etomo.type.ConstIntKeyList;
 import etomo.type.EtomoNumber;
+import etomo.type.TomogramState;
 import etomo.util.MRCHeader;
 import etomo.util.InvalidParameterException;
 
@@ -212,7 +216,10 @@ public class TrimvolParam implements CommandDetails {
   private AxisID axisID;
   private boolean oldVersion = false;
   private boolean keepSameOrigin = false;
-  
+  private boolean nColumnsChanged = false;
+  private boolean nRowsChanged = false;
+  private boolean nSectionsChanged = false;
+
   private final BaseManager manager;
 
   public TrimvolParam(BaseManager manager) {
@@ -572,9 +579,9 @@ public class TrimvolParam implements CommandDetails {
   public ConstEtomoNumber setFixedScaleMin(String fixedScaleMin) {
     return this.fixedScaleMin.set(fixedScaleMin);
   }
-  
+
   public void setKeepSameOrigin(boolean input) {
-    keepSameOrigin=input;
+    keepSameOrigin = input;
   }
 
   /**
@@ -669,18 +676,72 @@ public class TrimvolParam implements CommandDetails {
     this.zMin.set(zMin);
   }
 
-  public void setDefaultRange(String fileName)
-      throws InvalidParameterException, IOException {
-    //Don't override existing values
-    if (xMin.getInt() != Integer.MIN_VALUE) {
-      return;
+  public boolean isNColumnsChanged() {
+    return nColumnsChanged;
+  }
+  public boolean isNRowsChanged() {
+    return nRowsChanged;
+  }
+  public boolean isNSectionsChanged() {
+    return nSectionsChanged;
+  }
+  
+  private boolean hasInputFileSizeChanged(MRCHeader mrcHeader,
+      TomogramState state) {
+    System.out.println("\nstate.isNColumnsNull()="+state.isPostProcTrimVolInputNColumnsNull());
+    System.out.println("mrcHeader.getNColumns()="+mrcHeader.getNColumns());
+    System.out.println("state.getNColumns()="+state.getPostProcTrimVolInputNColumns());
+    boolean changed = false;
+    if (!state.isPostProcTrimVolInputNColumnsNull()
+        && mrcHeader.getNColumns() != state.getPostProcTrimVolInputNColumns()) {
+      changed = true;
+      nColumnsChanged = true;
     }
+    else {
+      nColumnsChanged = false;
+    }
+    System.out.println("NColumnsChanged="+nColumnsChanged);
+    System.out.println("\nstate.isNRowsNull()="+state.isPostProcTrimVolInputNRowsNull());
+    System.out.println("mrcHeader.genNRows()="+mrcHeader.getNRows());
+    System.out.println("state.getNRows()="+state.getPostProcTrimVolInputNRows());
+    if (!state.isPostProcTrimVolInputNRowsNull()
+        && mrcHeader.getNRows() != state.getPostProcTrimVolInputNRows()) {
+      changed = true;
+      nRowsChanged = true;
+    }
+    else {
+      nRowsChanged = false;
+    }
+    System.out.println("nRowsChanged="+nRowsChanged);
+    System.out.println("\nstate.isNSectionsNull()="+state.isPostProcTrimVolInputNSectionsNull());
+    System.out.println("mrcHeader.genNSections()="+mrcHeader.getNSections());
+    System.out.println("state.getNSections()="+state.getPostProcTrimVolInputNSections());
+    if (!state.isPostProcTrimVolInputNSectionsNull()
+        && mrcHeader.getNSections() != state.getPostProcTrimVolInputNSections()) {
+      changed = true;
+      nSectionsChanged = true;
+    }
+    else {
+      nSectionsChanged = false;
+    }
+    System.out.println("nSectionsChanged="+nSectionsChanged);
+    return changed;
+  }
+
+  public void setDefaultRange(TomogramState state)
+      throws InvalidParameterException, IOException {
     // Get the data size limits from the image stack
     BaseMetaData metaData = manager.getBaseMetaData();
     MRCHeader mrcHeader = MRCHeader.getInstance(manager.getPropertyUserDir(),
         TrimvolParam.getInputFileName(metaData.getAxisType(), metaData
             .getName()), AxisID.ONLY);
     mrcHeader.read();
+    //Don't override existing values unless the size of the trimvol input file
+    //has changed since the last time trimvol was run.
+    if (xMin.getInt() != Integer.MIN_VALUE
+        && !hasInputFileSizeChanged(mrcHeader, state)) {
+      return;
+    }
     xMin.set(1);
     xMax.set(mrcHeader.getNColumns());
     yMin.set(1);
