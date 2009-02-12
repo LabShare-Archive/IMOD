@@ -47,6 +47,7 @@ final class SetupDialog extends ProcessDialog implements ContextMenu,
   static final String FRAME_TYPE_LABEL = "Frame Type";
   static final String SINGLE_AXIS_LABEL = "Single axis";
   static final String MONTAGE_LABEL ="Montage";
+  static final String SINGLE_FRAME_LABEL = "Single frame";
   private final String BACKUP_DIRECTORY_LABEL = "Backup directory: ";
 
   private final JPanel pnlDataParameters = new JPanel();
@@ -72,7 +73,7 @@ final class SetupDialog extends ProcessDialog implements ContextMenu,
   private final RadioButton rbDualAxis = new RadioButton("Dual axis");
 
   private final EtomoPanel pnlViewType = new EtomoPanel();
-  private final RadioButton rbSingleView = new RadioButton("Single frame");
+  private final RadioButton rbSingleView = new RadioButton(SINGLE_FRAME_LABEL);
   private final RadioButton rbMontage = new RadioButton(MONTAGE_LABEL);
 
   private final Run3dmodButton btnViewRawStackA = Run3dmodButton
@@ -858,6 +859,10 @@ final class SetupDialog extends ProcessDialog implements ContextMenu,
 }
 /**
  * <p> $Log$
+ * <p> Revision 3.64  2009/01/20 20:27:11  sueh
+ * <p> bug# 1102 Changed labeled panels to type EtomoPanel so that they can name themselves.  Changed icon buttons to type SimpleButton and
+ * <p> naming them.
+ * <p>
  * <p> Revision 3.63  2008/12/01 22:30:40  sueh
  * <p> bug# 1131 Made Montage labels available to package.
  * <p>
