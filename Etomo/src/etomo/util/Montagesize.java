@@ -81,6 +81,23 @@ public class Montagesize {
     }
     return montagesize;
   }
+  
+  /**
+   * Function to get an instance of the class
+   * @param directory
+   * @param datasetName
+   * @param axisID
+   * @return
+   */
+  public static Montagesize getInstance(String fileLocation, String filename, AxisID axisID) {
+    File keyFile = Utilities.getFile(fileLocation, filename);
+    String key = makeKey(keyFile);
+    Montagesize montagesize = (Montagesize) instances.get(key);
+    if (montagesize == null) {
+      return createInstance(fileLocation, key, keyFile, axisID);
+    }
+    return montagesize;
+  }
 
   /**
    * Function to create and save an instance of the class.  Just returns the
@@ -339,6 +356,10 @@ public class Montagesize {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.17  2008/11/21 22:39:31  sueh
+ * <p> bug# 1138 The command line is too long so do not use the absolute path
+ * <p> for the .pl file.
+ * <p>
  * <p> Revision 1.16  2007/12/26 22:41:29  sueh
  * <p> bug# 1052 Moved argument handling from EtomoDirector to a separate class.
  * <p>
