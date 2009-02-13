@@ -16,6 +16,7 @@ if.var.single.rb.single-axis =
 if.not.var.montage.bn.scan-header =
 tf.fiducial-diameter = %{fiducial-diameter}
 [[if = test-gui]]
+	if.not.var.montage.run.function.test-single-frame=
 	run.function.3dmod=
 	run.function.3dmod-dual=
 	run.function.test-angles=
@@ -211,6 +212,12 @@ assert.disabled.cb.focus-was-adjusted-between-montage-frames.1 =
 
 # Functionality tests
 #####################
+
+[function=test-single-frame]
+rb.montage=
+bn.create-com-scripts=
+wait.popup.setup-dialog-error=OK
+rb.single-frame=
 
 [function = trigger-error]
 bn.scan-header =
