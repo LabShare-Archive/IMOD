@@ -27,6 +27,9 @@ import etomo.ui.UIHarness;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.24  2007/02/05 23:47:28  sueh
+ * <p> bug# 962 Moved EtomoNumber type info to inner class.
+ * <p>
  * <p> Revision 3.23  2006/11/15 21:36:38  sueh
  * <p> bug# 872 Removed setTestInvariants
  * <p>
@@ -257,7 +260,7 @@ public class MRCHeader {
   //other functions
   //
   /**
-   * @returns true if a read was attempted
+   * @returns true if file exists
    */
   public synchronized boolean read() throws IOException,
       InvalidParameterException {
@@ -266,12 +269,13 @@ public class MRCHeader {
       throw new IOException("No filename specified");
     }
     if (!file.exists()) {
-      throw new IOException("file, " + file.getAbsolutePath()
-          + ", does not exist");
+      System.err.println("WARNING: attempting to read the header of "
+          + file.getAbsolutePath() + ", which doesn't exist.");
+      return false;
     }
     //If the file hasn't changed, don't reread
     if (!modifiedFlag.isModifiedSinceLastRead()) {
-      return false;
+      return true;
     }
     Utilities.timestamp("read", "header", filename, Utilities.STARTED_STATUS);
 
