@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+2/12/09: In Etomo - Tomogram Generation saved the trial tomogram names in the
+combo box.
+
 2/12/09: In Etomo - Setup Tomogram popping up an error message if Frame Type is
 incorrect.
 
@@ -8,8 +11,6 @@ being trimmed has been changed since last time trimvol was run.  A warning
 message is displayed when this is done.
 
 2/5/09: In Etomo added more error checking to the PEET interface.
-
-2/5/09: In Etomo saved the trial tomogram names in the combo box.
 
 2/2/09: Sychronize all on/off buttons when meshing turns an object on (In 
 3.13).
