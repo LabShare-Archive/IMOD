@@ -69,8 +69,9 @@ public final class UIExpertUtilities {
         stackExtension);
     long defaultValue = nullIfFailed ? EtomoNumber.LONG_NULL_VALUE : 1;
     try {
-      rawstackHeader.read();
-      stackHeader.read();
+      if (!rawstackHeader.read() || !stackHeader.read()) {
+        return defaultValue;
+      }
     }
     catch (InvalidParameterException e) {
       //missing file
@@ -226,7 +227,9 @@ public final class UIExpertUtilities {
       AxisID axisID) {
     MRCHeader rawstackHeader = MRCHeader.getInstance(manager, axisID, ".st");
     try {
-      rawstackHeader.read();
+      if (!rawstackHeader.read()) {
+        return 1;
+      }
     }
     catch (InvalidParameterException e) {
       e.printStackTrace();
@@ -282,7 +285,9 @@ public final class UIExpertUtilities {
     //fallback to .preali
     MRCHeader stackHeader = MRCHeader.getInstance(manager, axisID, ".preali");
     try {
-      stackHeader.read();
+      if (!stackHeader.read()) {
+        return 1;
+      }
     }
     catch (InvalidParameterException e) {
       e.printStackTrace();
@@ -314,9 +319,10 @@ public final class UIExpertUtilities {
       AxisID axisID, ConstTiltParam tiltParam) {
     MRCHeader rawstackHeader = MRCHeader.getInstance(manager, axisID, ".st");
     try {
-      rawstackHeader.read();
+      if (!rawstackHeader.read()) {
+        return 1;
+      }
     }
-
     catch (InvalidParameterException e) {
       e.printStackTrace();
       return 1;
@@ -360,6 +366,9 @@ public final class UIExpertUtilities {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.4  2007/12/13 01:14:48  sueh
+ * <p> bug# 1056 Removed the Storables inner class from TiltParam.
+ * <p>
  * <p> Revision 1.3  2006/09/19 22:39:13  sueh
  * <p> bug# 920 Refreshing and saving meta data values in TiltParam.
  * <p>

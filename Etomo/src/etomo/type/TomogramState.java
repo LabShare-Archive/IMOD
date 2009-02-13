@@ -25,6 +25,9 @@ import etomo.util.MRCHeader;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.34  2009/02/10 22:19:37  sueh
+ * <p> bug# 1143 Added postProcTrimVolInputNColumns, Rows, and Sections.
+ * <p>
  * <p> Revision 1.33  2007/12/13 01:13:20  sueh
  * <p> bug# 1056 Added adjustOrigin.
  * <p>
@@ -944,7 +947,9 @@ public class TomogramState extends BaseState {
     MRCHeader header = MRCHeader.getInstance(manager.getPropertyUserDir(),
         trimvolFile.getAbsolutePath(), AxisID.ONLY);
     try {
-      header.read();
+      if (!header.read()) {
+        return false;
+      }
     }
     catch (IOException e) {
       return false;

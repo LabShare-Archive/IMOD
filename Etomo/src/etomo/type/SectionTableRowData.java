@@ -32,6 +32,10 @@ import etomo.util.MRCHeader;
  * </p>
  * 
  * <p> $Log$
+ * <p> Revision 1.16  2007/03/26 18:37:52  sueh
+ * <p> bug# 964 Changed getDouble(boolean defaultIfNull) to getDefaultDouble() so that
+ * <p> the functionality will be remembered and used.
+ * <p>
  * <p> Revision 1.15  2006/11/03 21:34:17  sueh
  * <p> bug# 955 Change the order of join final start and end, if necessary
  * <p>
@@ -307,7 +311,8 @@ public class SectionTableRowData extends ConstSectionTableRowData {
    * @return converted z
    */
   private final long convertToRotatedZ(ConstEtomoNumber z) {
-    double cosXY = Math.cos(Math.toRadians(rotationAngleX.getDefaultedDouble()))
+    double cosXY = Math
+        .cos(Math.toRadians(rotationAngleX.getDefaultedDouble()))
         * Math.cos(Math.toRadians(rotationAngleY.getDefaultedDouble()));
     if (Math.abs(cosXY) <= COS_X_Y_THRESHOLD) {
       return z.getLong();
@@ -337,7 +342,8 @@ public class SectionTableRowData extends ConstSectionTableRowData {
    * @return converted z
    */
   private final long convertFromRotatedZ(ConstEtomoNumber z) {
-    double cosXY = Math.cos(Math.toRadians(rotationAngleX.getDefaultedDouble()))
+    double cosXY = Math
+        .cos(Math.toRadians(rotationAngleX.getDefaultedDouble()))
         * Math.cos(Math.toRadians(rotationAngleY.getDefaultedDouble()));
     if (Math.abs(cosXY) <= COS_X_Y_THRESHOLD) {
       return z.getLong();
@@ -431,7 +437,11 @@ public class SectionTableRowData extends ConstSectionTableRowData {
     MRCHeader header = MRCHeader.getInstance(manager.getPropertyUserDir(),
         path, AxisID.ONLY);
     try {
-      header.read();
+      if (!header.read()) {
+        UIHarness.INSTANCE.openMessageDialog("Unable to read the header in"
+            + path, "Setting Max Values Failed");
+        return null;
+      }
     }
     catch (InvalidParameterException e) {
       e.printStackTrace();

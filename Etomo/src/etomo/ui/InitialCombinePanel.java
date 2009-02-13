@@ -40,6 +40,9 @@ import etomo.util.MRCHeader;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.39  2009/01/20 20:08:23  sueh
+ * <p> bug# 1102 Changed labeled panels to type EtomoPanel so that they can name themselves.
+ * <p>
  * <p> Revision 3.38  2008/09/30 21:41:29  sueh
  * <p> bug# 1113 Using a private constructor in SpacedPanel.
  * <p>
@@ -330,7 +333,9 @@ public class InitialCombinePanel implements ContextMenu, InitialCombineFields,
         fromAxisID, DatasetFiles.TOMO_EXT);
     int toY = -1;
     try {
-      toHeader.read();
+      if (!toHeader.read()) {
+        return;
+      }
     }
     catch (InvalidParameterException e) {
       e.printStackTrace();
@@ -341,7 +346,9 @@ public class InitialCombinePanel implements ContextMenu, InitialCombineFields,
     toY = toHeader.getNRows();
     int fromY = -1;
     try {
-      fromHeader.read();
+      if (!fromHeader.read()) {
+        return;
+      }
     }
     catch (InvalidParameterException e) {
       e.printStackTrace();

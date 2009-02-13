@@ -20,6 +20,10 @@
  * 
  * <p>
  * $Log$
+ * Revision 3.128  2009/02/10 22:08:16  sueh
+ * bug# 1143 In postProcess(BackgroundProcess) save the size of the
+ * trimvol input file.
+ *
  * Revision 3.127  2009/02/04 23:26:53  sueh
  * bug# 1158 Changed id and exceptions classes in LogFile.
  *
@@ -2070,10 +2074,11 @@ public class ProcessManager extends BaseProcessManager {
             .getBaseMetaData().getAxisType(), appManager.getBaseMetaData()
             .getName()), AxisID.ONLY);
         try {
-          mrcHeader.read();
-          state.setPostProcTrimVolInputNColumns(mrcHeader.getNColumns());
-          state.setPostProcTrimVolInputNRows(mrcHeader.getNRows());
-          state.setPostProcTrimVolInputNSections(mrcHeader.getNSections());
+          if (mrcHeader.read()) {
+            state.setPostProcTrimVolInputNColumns(mrcHeader.getNColumns());
+            state.setPostProcTrimVolInputNRows(mrcHeader.getNRows());
+            state.setPostProcTrimVolInputNSections(mrcHeader.getNSections());
+          }
         }
         catch (IOException e) {
           e.printStackTrace();

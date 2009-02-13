@@ -55,6 +55,9 @@ import etomo.util.MRCHeader;
  * 
  * <p>
  * $Log$
+ * Revision 3.58  2009/01/20 20:25:29  sueh
+ * bug# 1102 Changed labeled panels to type EtomoPanel so that they can name themselves.
+ *
  * Revision 3.57  2008/07/19 01:12:03  sueh
  * bug# 1125 Making it easier to access CpuAdoc by not passing the
  * manager to it; all it needs is the current directory.
@@ -712,11 +715,12 @@ public final class SetupCombinePanel implements ContextMenu,
           .getPropertyUserDir(), DatasetFiles.getTomogramName(
           applicationManager, fromAxisID), AxisID.ONLY);
       try {
-        toMrcHeader.read();
-        fromMrcHeader.read();
-        if (toMrcHeader.getNColumns() != fromMrcHeader.getNSections()
-            || toMrcHeader.getNSections() != fromMrcHeader.getNColumns()) {
-          different = true;
+        if (toMrcHeader.read()) {
+          fromMrcHeader.read();
+          if (toMrcHeader.getNColumns() != fromMrcHeader.getNSections()
+              || toMrcHeader.getNSections() != fromMrcHeader.getNColumns()) {
+            different = true;
+          }
         }
       }
       catch (InvalidParameterException e) {
@@ -1152,7 +1156,9 @@ public final class SetupCombinePanel implements ContextMenu,
         .getPropertyUserDir(), DatasetFiles.getTomogramName(applicationManager,
         toAxisID), AxisID.ONLY);
     try {
-      mrcHeader.read();
+      if (!mrcHeader.read()) {
+        return;
+      }
       int xyborder = CombineParams.getXYBorder(mrcHeader);
       ltfXMin.setText(xyborder);
       ltfXMax.setText(mrcHeader.getNColumns() - xyborder);

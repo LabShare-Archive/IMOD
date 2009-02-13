@@ -22,6 +22,10 @@ import junit.framework.TestCase;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.23  2008/12/15 23:05:02  sueh
+ * <p> bug# 1161 Made EtomoDirector.getCurrentManager private.  Added a
+ * <p> public test version for public access.
+ * <p>
  * <p> Revision 3.22  2007/09/07 00:31:00  sueh
  * <p> bug# 989 Using a public INSTANCE to refer to the EtomoDirector singleton
  * <p> instead of getInstance and createInstance.
@@ -154,8 +158,7 @@ public class MRCHeaderTest extends TestCase {
 
   public void testEmptyFilename() throws InvalidParameterException {
     try {
-      emptyFilename.read();
-      fail("Should rise IOException exception");
+      assertFalse("Should rise IOException exception", emptyFilename.read());
     }
     catch (IOException success) {
     }
@@ -166,8 +169,7 @@ public class MRCHeaderTest extends TestCase {
     // present
     boolean exceptionThrown = false;
     try {
-      badFilename.read();
-      fail("IOException not thrown");
+      assertFalse("IOException not thrown",badFilename.read());
     }
     catch (IOException except) {
     }
@@ -189,9 +191,8 @@ public class MRCHeaderTest extends TestCase {
 
     // Check out the test header stack into the required directories
     try {
-      TestUtilites.getVector(EtomoDirector.INSTANCE
-          .getCurrentManagerForTest(), testDirPath, testDirectory1,
-          headerTestStack);
+      TestUtilites.getVector(EtomoDirector.INSTANCE.getCurrentManagerForTest(),
+          testDirPath, testDirectory1, headerTestStack);
     }
     catch (SystemProcessException except) {
       System.err.println(except.getMessage());
@@ -240,16 +241,15 @@ public class MRCHeaderTest extends TestCase {
     }
     // Check out the test header stack into the required directories
     try {
-      TestUtilites.getVector(EtomoDirector.INSTANCE
-          .getCurrentManagerForTest(), testDirPath, testDirectory2,
-          "headerTest.st");
+      TestUtilites.getVector(EtomoDirector.INSTANCE.getCurrentManagerForTest(),
+          testDirPath, testDirectory2, "headerTest.st");
     }
     catch (SystemProcessException except) {
       System.err.println(except.getMessage());
       fail("Error checking out test vector:\n" + except.getMessage());
     }
 
-    mrcWithSpaces.read();
+    assertTrue("the file should exist",mrcWithSpaces.read());
     assertEquals("Incorrect column count", 512, mrcWithSpaces.getNColumns());
     assertEquals("Incorrect row count", 512, mrcWithSpaces.getNRows());
     assertEquals("Incorrect section count", 1, mrcWithSpaces.getNSections());

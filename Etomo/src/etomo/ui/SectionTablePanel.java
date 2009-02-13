@@ -52,6 +52,9 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.48  2009/02/04 23:36:48  sueh
+ * <p> bug# 1158 Changed id and exception classes in LogFile.
+ * <p>
  * <p> Revision 1.47  2009/01/20 20:24:57  sueh
  * <p> bug# 1102 Calling setNames in each row.
  * <p>
@@ -386,7 +389,7 @@ final class SectionTablePanel implements ContextMenu, Expandable,
       "TomogrgetAlignTabJComponentams have to be flipped after generation",
       "in order to be in the right orientation for joining serial sections." };
   private static final String HEADER1_SECTIONS_LABEL = "Sections";
-   static final String LABEL = "Section Table";
+  static final String LABEL = "Section Table";
 
   private final JPanel rootPanel = new JPanel();
   private final SpacedPanel pnlBorder = SpacedPanel.getInstance();
@@ -1028,7 +1031,11 @@ final class SectionTablePanel implements ContextMenu, Expandable,
 
   private boolean readHeader(final MRCHeader header) {
     try {
-      header.read();
+      if (!header.read()) {
+        uiHarness.openMessageDialog("File does not exist", "System Error",
+            AxisID.ONLY);
+        return false;
+      }
     }
     catch (InvalidParameterException e) {
       e.printStackTrace();
@@ -1200,15 +1207,15 @@ final class SectionTablePanel implements ContextMenu, Expandable,
     joinDialog.setNumSections(rowList.size());
     manager.getMainPanel().repaint();
   }
-  
+
   HeaderCell getSampleHeaderCell() {
     return header1Sample;
   }
-  
+
   HeaderCell getRotationHeaderCell() {
     return header1Rotation;
   }
-  
+
   HeaderCell getJoinFinalHeaderCell() {
     return header1JoinFinal;
   }

@@ -62,6 +62,9 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.10  2009/02/04 23:36:48  sueh
+ * <p> bug# 1158 Changed id and exception classes in LogFile.
+ * <p>
  * <p> Revision 1.9  2009/01/26 22:43:32  sueh
  * <p> bug# 1173 Saved current tab from dialog.  Added new line to simple
  * <p> defocus file.
@@ -672,8 +675,9 @@ public final class FinalAlignedStackExpert extends ReconUIExpert {
     MRCHeader header = MRCHeader.getInstance(manager.getPropertyUserDir(),
         DatasetFiles.getFullAlignedStackFileName(manager, axisID), axisID);
     try {
-      header.read();
-      param.setMaxZ(header.getNSections());
+      if (header.read()) {
+        param.setMaxZ(header.getNSections());
+      }
     }
     catch (IOException e) {
       e.printStackTrace();
