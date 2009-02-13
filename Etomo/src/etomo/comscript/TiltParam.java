@@ -11,6 +11,10 @@
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.30  2008/12/15 23:01:08  sueh
+ * <p> bug# 1161 In setFullImage, setMontageFullImage, setMontageSubsetStart,
+ * <p> and setSubsetStart handle 90 degree tilt axis angles.
+ * <p>
  * <p> Revision 3.29  2008/07/15 17:46:26  sueh
  * <p> bug# 1124 In updateComScriptCommand never use xTiltFile if
  * <p> fiducialess is true.
@@ -1073,7 +1077,10 @@ public final class TiltParam implements ConstTiltParam, CommandParam {
     if (goodframe != null) {
       MRCHeader header = MRCHeader.getInstance(manager, axisID, ".ali");
       try {
-        header.read();
+        if (!header.read()) {
+          //ok if tilt is being updated before .ali exists
+          return;
+        }
         int goodframeX;
         int goodframeY;
         if (etomo.comscript.Utilities.is90DegreeImageRotation(manager
@@ -1112,9 +1119,13 @@ public final class TiltParam implements ConstTiltParam, CommandParam {
     resetSubsetStart();
     MRCHeader stackHeader = MRCHeader.getInstance(manager, axisID, ".st");
     try {
-      stackHeader.read();
+      if (!stackHeader.read()) {
+        return true;
+      }
       MRCHeader aliHeader = MRCHeader.getInstance(manager, axisID, ".ali");
-      aliHeader.read();
+      if (!aliHeader.read()) {
+        return true;
+      }
       int stackX;
       int stackY;
       if (etomo.comscript.Utilities.is90DegreeImageRotation(manager
@@ -1182,7 +1193,9 @@ public final class TiltParam implements ConstTiltParam, CommandParam {
     try {
       MRCHeader header = MRCHeader.getInstance(manager.getPropertyUserDir(),
           stack.getName(), axisID);
-      header.read();
+      if (!header.read()) {
+        return;
+      }
       if (etomo.comscript.Utilities.is90DegreeImageRotation(manager
           .getConstMetaData().getImageRotation(axisID))) {
         fullImageX = header.getNRows();

@@ -25,6 +25,10 @@ import etomo.util.MRCHeader;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.13  2007/08/21 21:51:06  sueh
+ * <p> bug# 771 Factored out get xyborder functionality from
+ * <p> setDefaultPatchBoundaries into getXYBorder.
+ * <p>
  * <p> Revision 3.12  2007/07/27 21:38:32  sueh
  * <p> bug# 980 Removed unnecessary resetUserList.
  * <p>
@@ -286,7 +290,9 @@ public class CombineParams extends ConstCombineParams implements Storable {
     // Get the data size limits from the image stack
     MRCHeader mrcHeader = MRCHeader.getInstance(manager.getPropertyUserDir(),
         fileName, AxisID.ONLY);
-    mrcHeader.read();
+    if (!mrcHeader.read()) {
+      throw new IOException("file does not exist");
+    }
     maxPatchZMax = mrcHeader.getNRows();
   }
 
@@ -449,7 +455,7 @@ public class CombineParams extends ConstCombineParams implements Storable {
 
     fiducialMatch = FiducialMatch.fromString(props.getProperty(group
         + "FiducialMatch", fiducialMatch.toString()));
-    
+
     useList.parseString(props
         .getProperty(group + "UseList", useList.toString()));
 
@@ -515,8 +521,10 @@ public class CombineParams extends ConstCombineParams implements Storable {
     // Get the data size limits from the image stack
     MRCHeader mrcHeader = MRCHeader.getInstance(manager.getPropertyUserDir(),
         fileName, AxisID.ONLY);
-    mrcHeader.read();
-    int xyborder = getXYBorder( mrcHeader);
+    if (!mrcHeader.read()) {
+      return;
+    }
+    int xyborder = getXYBorder(mrcHeader);
     patchXMin = xyborder;
     patchXMax = mrcHeader.getNColumns() - xyborder;
     patchYMin = xyborder;
@@ -525,7 +533,7 @@ public class CombineParams extends ConstCombineParams implements Storable {
     patchZMax.set(mrcHeader.getNRows());
     maxPatchZMax = patchZMax.getInt();
   }
-  
+
   /**
    * gets the border for xy using logic from setupcombine and the mrcheader
    * @param mrcHeader
@@ -536,7 +544,7 @@ public class CombineParams extends ConstCombineParams implements Storable {
     // names used match those from the setupcombine script
     int[] xyborders = { 24, 36, 54, 68, 80 };
     int borderinc = 1000;
-    
+
     //  Assume that Y and Z domains are swapped
     int minsize = Math.min(mrcHeader.getNColumns(), mrcHeader.getNSections());
     int borderindex = (int) (minsize / borderinc);

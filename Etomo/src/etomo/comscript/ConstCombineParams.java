@@ -27,6 +27,10 @@ import etomo.util.MRCHeader;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.7  2006/07/19 15:15:45  sueh
+ * <p> bug# 903 Change patchZMin and Max to EtomoNumbers so they won't generate
+ * <p> an exception when they are set to a blank string.
+ * <p>
  * <p> Revision 3.6  2006/05/16 21:23:42  sueh
  * <p> bug# 856 Added transfer and useList.  Removed dialogMatchMode from
  * <p> CombineParam.  Letting the screen save the script state, since it already is.
@@ -98,7 +102,7 @@ public class ConstCombineParams {
 
   public static final String PATCH_Z_MIN_LABEL = "Z axis min";
   public static final String PATCH_Z_MAX_LABEL = "Z axis max";
-  
+
   protected String revisionNumber = "1.2";
 
   //protected MatchMode dialogMatchMode = MatchMode.B_TO_A;
@@ -148,7 +152,7 @@ public class ConstCombineParams {
     if (!fiducialMatch.equals(cmp.getFiducialMatch())) {
       return false;
     }
-    
+
     if (!useList.toString().equals(cmp.getUseList().toString())) {
       return false;
     }
@@ -277,7 +281,9 @@ public class ConstCombineParams {
     MRCHeader header = MRCHeader.getInstance(manager.getPropertyUserDir(),
         DatasetFiles.getTomogram(manager, axisID).getAbsolutePath(), axisID);
     try {
-      header.read();
+      if (!header.read()) {
+        return true;
+      }
     }
     catch (IOException e) {
       return true;
@@ -327,11 +333,11 @@ public class ConstCombineParams {
   //public MatchMode getDialogMatchMode() {
   //  return dialogMatchMode;
   //}
-  
+
   public MatchMode getMatchMode() {
     return matchMode;
   }
-  
+
   public boolean isTransfer() {
     return transfer;
   }
@@ -339,7 +345,7 @@ public class ConstCombineParams {
   public FiducialMatch getFiducialMatch() {
     return fiducialMatch;
   }
-  
+
   public String getUseList() {
     return useList.toString();
   }

@@ -3306,7 +3306,12 @@ public final class ApplicationManager extends BaseManager {
       double startingAngle = tiltAngleSpec.getRangeMin();
       double step = tiltAngleSpec.getRangeStep();
       MRCHeader rawStackHeader = MRCHeader.getInstance(this, axisID, ".st");
-      rawStackHeader.read();
+      if (!rawStackHeader.read()) {
+        String message = "Unable to create " + rawtlt.getAbsolutePath();
+        uiHarness.openMessageDialog(message, "Unable to create raw tilt file",
+            axisID);
+        throw new IOException(message);
+      }
       int sections = rawStackHeader.getNSections();
       for (int curSection = 0; curSection < sections; curSection++) {
         bufferedWriter.write(Double.toString(startingAngle
@@ -5448,8 +5453,10 @@ public final class ApplicationManager extends BaseManager {
     MRCHeader rawstackHeader = MRCHeader.getInstance(this, axisID, ".st");
     try {
       fidXyz.read();
-      prealiHeader.read();
-      rawstackHeader.read();
+      if (!prealiHeader.read() || !rawstackHeader.read()) {
+        processDone(axisID, processResultDisplay, processSeries);
+        return;
+      }
     }
     catch (IOException except) {
       processDone(axisID, processResultDisplay, processSeries);
@@ -5837,6 +5844,9 @@ public final class ApplicationManager extends BaseManager {
 }
 /**
  * <p> $Log$
+ * <p> Revision 3.315  2009/02/10 21:36:49  sueh
+ * <p> bug# 1143 Passing state to TrimvolParam.setDefaultRange.
+ * <p>
  * <p> Revision 3.314  2009/02/04 22:31:15  sueh
  * <p> bug# 1158 passing logPanel to mainPanel.setStatusBarText so its title can
  * <p> be updated.

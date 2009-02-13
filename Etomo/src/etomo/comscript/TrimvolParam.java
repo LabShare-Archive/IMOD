@@ -11,6 +11,11 @@
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.28  2009/02/10 21:42:00  sueh
+ * <p> bug# 1143 Added hasInputFileSizeChanged, which returns a boolean and
+ * <p> also sets nColumnsChanged, nRowsChanged, and nSectionsChanged.
+ * <p> Calling hasInputFileSizeChanged from setDefaultRange.
+ * <p>
  * <p> Revision 3.27  2007/12/13 01:07:10  sueh
  * <p> bug# 1056 Added keepSameOrigin.
  * <p>
@@ -735,7 +740,9 @@ public class TrimvolParam implements CommandDetails {
     MRCHeader mrcHeader = MRCHeader.getInstance(manager.getPropertyUserDir(),
         TrimvolParam.getInputFileName(metaData.getAxisType(), metaData
             .getName()), AxisID.ONLY);
-    mrcHeader.read();
+    if (!mrcHeader.read()) {
+      throw new IOException("file does not exist");
+    }
     //Don't override existing values unless the size of the trimvol input file
     //has changed since the last time trimvol was run.
     if (xMin.getInt() != Integer.MIN_VALUE
