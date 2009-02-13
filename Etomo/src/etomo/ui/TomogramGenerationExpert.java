@@ -175,7 +175,6 @@ public final class TomogramGenerationExpert extends ReconUIExpert {
     leaveDialog(exitState);
     //Hold onto the finished dialog in case anything is running that needs it or
     //there are next processes that need it.
-    trialTomogramList = null;
     return true;
   }
 
@@ -729,6 +728,9 @@ public final class TomogramGenerationExpert extends ReconUIExpert {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.27  2009/02/05 23:45:52  sueh
+ * <p> bug# 1148 Setting and getting trialTomogramList from metadata.
+ * <p>
  * <p> Revision 1.26  2008/11/11 23:54:47  sueh
  * <p> bug# 1149 Removed getBinning(), which was used to save binning to
  * <p> MetaData.tomoGenBinning.  TomoGenBinning is now finalStackBinning
