@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+2/12/09: In Etomo got rid of the exception that is added to the etomo log when
+header is used to read a file that doesn't exist.
+
 2/12/09: In Etomo - Tomogram Generation saved the trial tomogram names in the
 combo box.
 
