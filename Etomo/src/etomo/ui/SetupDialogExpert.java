@@ -25,6 +25,7 @@ import etomo.type.ViewType;
 import etomo.util.DatasetFiles;
 import etomo.util.InvalidParameterException;
 import etomo.util.MRCHeader;
+import etomo.util.Montagesize;
 
 /**
  * <p>Description: </p>
@@ -40,6 +41,9 @@ import etomo.util.MRCHeader;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.7  2009/02/04 23:36:48  sueh
+ * <p> bug# 1158 Changed id and exception classes in LogFile.
+ * <p>
  * <p> Revision 1.6  2008/12/02 21:24:46  sueh
  * <p> bug# 1157 Simplify rounding method used with pixel.
  * <p>
@@ -341,7 +345,54 @@ public final class SetupDialogExpert {
           errorMessageTitle, AxisID.ONLY);
       return false;
     }
-
+    Montagesize montagesize = Montagesize.getInstance(manager
+        .getPropertyUserDir(), getStackFileName(), AxisID.ONLY);
+    if (dialog.isSingleViewSelected()) {
+      try {
+        montagesize.read();
+        //not supposed to be a montage
+        //OK if its a 1x1 montage
+        MRCHeader header = readMRCHeader();
+        if (header == null) {
+          //File does not exist
+          return false;
+        }
+        if (montagesize.getX().getInt() > header.getNColumns()
+            || montagesize.getY().getInt() > header.getNRows()) {
+          UIHarness.INSTANCE.openMessageDialog(
+              "The dataset is a montage.  Please change "
+                  + SetupDialog.FRAME_TYPE_LABEL + " to "
+                  + SetupDialog.MONTAGE_LABEL + ".", errorMessageTitle,
+              AxisID.ONLY);
+          return false;
+        }
+      }
+      catch (InvalidParameterException e) {
+      }
+      catch (IOException e) {
+      }
+    }
+    else {
+      try {
+        montagesize.read();
+      }
+      catch (InvalidParameterException e) {
+        UIHarness.INSTANCE.openMessageDialog(
+            "The dataset is not a montage.  Please change "
+                + SetupDialog.FRAME_TYPE_LABEL + " to "
+                + SetupDialog.SINGLE_FRAME_LABEL + ".", errorMessageTitle,
+            AxisID.ONLY);
+        return false;
+      }
+      catch (IOException e) {
+        UIHarness.INSTANCE.openMessageDialog(
+            "The dataset is not a montage.  Please change "
+                + SetupDialog.FRAME_TYPE_LABEL + " to "
+                + SetupDialog.SINGLE_FRAME_LABEL + ".", errorMessageTitle,
+            AxisID.ONLY);
+        return false;
+      }
+    }
     return true;
   }
 
@@ -657,13 +708,17 @@ public final class SetupDialogExpert {
 
   }
 
-  private void scanHeaderAction() {
+  /**
+   * Get the A or only stack name using dialog.getDataset()
+   * @return
+   */
+  private String getStackFileName() {
     // Get the dataset name from the UI object
     String datasetName = dialog.getDataset();
     if (datasetName == null || datasetName.equals("")) {
       UIHarness.INSTANCE.openMessageDialog("Dataset name has not been entered",
           "Missing dataset name", AxisID.ONLY);
-      return;
+      return null;
     }
     //  Add the appropriate extension onto the filename if necessary 
     if (!datasetName.endsWith(".st")) {
@@ -675,12 +730,24 @@ public final class SetupDialogExpert {
 
       }
     }
+    return datasetName;
+  }
+
+  /**
+   * Construction and read an MRCHeader object.
+   * @return the MRCHeader object
+   */
+  private MRCHeader readMRCHeader() {
     // Run header on the dataset to the extract whatever information is
     // available
     MRCHeader header = MRCHeader.getInstance(manager.getPropertyUserDir(),
-        datasetName, AxisID.ONLY);
+        getStackFileName(), AxisID.ONLY);
     try {
-      header.read();
+      if (!header.read()) {
+        UIHarness.INSTANCE.openMessageDialog("File does not exist.",
+            "Entry Error", AxisID.ONLY);
+        return null;
+      }
     }
     catch (InvalidParameterException except) {
       UIHarness.INSTANCE.openMessageDialog(except.getMessage(),
@@ -689,6 +756,14 @@ public final class SetupDialogExpert {
     catch (IOException except) {
       UIHarness.INSTANCE.openMessageDialog(except.getMessage(), "IO Exception",
           AxisID.ONLY);
+    }
+    return header;
+  }
+
+  private void scanHeaderAction() {
+    MRCHeader header = readMRCHeader();
+    if (header == null) {
+      return;
     }
 
     // Set the image rotation if available
