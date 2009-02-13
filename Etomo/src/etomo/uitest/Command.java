@@ -23,6 +23,9 @@ import etomo.type.UITestSubjectType;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.2  2009/01/28 00:58:20  sueh
+ * <p> bug# 1102 Allowing a subcommand after a field.
+ * <p>
  * <p> Revision 1.1  2009/01/20 20:46:19  sueh
  * <p> bug# 1102 Class that holds all uitest commands.
  * <p> </p>
@@ -136,6 +139,10 @@ final class Command extends Assert {
     }
     int i = startAt + 1;
     empty = false;
+    modifierType = UITestModifierType.getInstance(statement.getLeftSide(i));
+    if (modifierType != null) {
+      i++;
+    }
     i = subject.set(statement, i, variableList);
     String leftSide = statement.getLeftSide(i);
     value = replaceVariables(statement.getRightSide(), variableList);
