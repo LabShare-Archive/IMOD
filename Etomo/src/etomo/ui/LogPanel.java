@@ -36,6 +36,9 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.2  2009/02/10 23:37:04  sueh
+ * <p> bug# 1158 In newline() using line.separator instead of "\n".
+ * <p>
  * <p> Revision 1.1  2009/02/04 23:35:18  sueh
  * <p> bug# 1158 The log window panel.  One instance per manager is created.
  * <p> </p>
@@ -46,7 +49,6 @@ public final class LogPanel {
   static final String TITLE = "Project Log";
   static final String SAVE_LABEL = "Save Log";
   static final String LOG_WINDOW_LABEL = "Hide Log Window";
-  static final String LINE_SEPARATOR = System.getProperty("line.separator");
 
   private final EtomoPanel rootPanel = new EtomoPanel();
   private final EtchedBorder border = new EtchedBorder(TITLE);
@@ -193,8 +195,37 @@ public final class LogPanel {
     try {
       writerId = file.openWriter();
       changed = false;
-      file.write(textArea.getText(), writerId);
-      file.closeWriter(writerId);
+      String text = textArea.getText();
+      //LogFile.newLine() will put the appropriate line endings in the file.
+      //Strip the line endings by breaking up the text by \n.  Strip windows
+      //line endings (\r\n) by removing the \r which, if it is in use, will now
+      //be at the end of each line.  This also adds a new line to the end of the
+      //file, if there is not one already there.  This should also preserve
+      //empty lines.
+      String[] lineArray = text.split("\n");
+      if (lineArray != null) {
+        for (int i = 0; i < lineArray.length; i++) {
+          //Preserve an empty line by calling newLine.
+          if (lineArray[i] != null && lineArray[i].length() != 0) {
+            //Look for Windows line ending.
+            if (lineArray[i].charAt(lineArray[i].length() - 1) == '\r') {
+              //Preserve an empty line by calling newLine.
+              if (lineArray[i].length() > 1) {
+                //Write a line which has a Windows line ending (strip \r).
+                file.write(
+                    lineArray[i].substring(0, lineArray[i].length() - 2),
+                    writerId);
+              }
+            }
+            else {
+              //Write a line which has a Linux line ending.
+              file.write(lineArray[i], writerId);
+            }
+          }
+          file.newLine(writerId);
+        }
+        file.closeWriter(writerId);
+      }
     }
     catch (LogFile.LockException e) {
       e.printStackTrace();
@@ -368,8 +399,7 @@ public final class LogPanel {
         int lastLineEndOffset = textArea.getLineEndOffset(textArea
             .getLineCount() - 1);
         if (lastLineEndOffset != 0) {
-          //textArea.append("\n");
-          textArea.append(LINE_SEPARATOR);
+          textArea.append("\n");
         }
       }
       catch (BadLocationException e) {
