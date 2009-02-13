@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+2/12/09: In Etomo - Setup Tomogram popping up an error message if Frame Type is
+incorrect.
+
 2/10/09: In Etomo recalculated trimvol parameters when the size of the file
 being trimmed has been changed since last time trimvol was run.  A warning
 message is displayed when this is done.
