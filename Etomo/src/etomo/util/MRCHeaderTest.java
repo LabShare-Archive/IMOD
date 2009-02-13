@@ -22,6 +22,9 @@ import junit.framework.TestCase;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.24  2009/02/13 02:40:45  sueh
+ * <p> bug# 1176 Checking return value of MRCHeader.read.
+ * <p>
  * <p> Revision 3.23  2008/12/15 23:05:02  sueh
  * <p> bug# 1161 Made EtomoDirector.getCurrentManager private.  Added a
  * <p> public test version for public access.
@@ -203,9 +206,6 @@ public class MRCHeaderTest extends TestCase {
     assertEquals("Incorrect column count", 512, mrcHeader.getNColumns());
     assertEquals("Incorrect row count", 512, mrcHeader.getNRows());
     assertEquals("Incorrect section count", 1, mrcHeader.getNSections());
-    //test: will not re-read when the file modify time is earlier then previous
-    //read time
-    assertFalse(mrcHeader.read());
     //TEMP test failing - fix later
     /*
      //test: re-read works when the file modify time is later then previous read
