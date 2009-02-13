@@ -28,6 +28,9 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.32  2009/02/04 23:25:10  sueh
+ * <p> bug# 1158 Changed id and exceptions classes in LogFile.
+ * <p>
  * <p> Revision 3.31  2008/10/27 23:19:52  sueh
  * <p> bug# 1141 Fixed monitor - In CTF correction,log file doesn't show the
  * <p> watched file's name, so turn off findWatchedFileName to avoid looking
@@ -222,7 +225,7 @@ abstract class FileSizeProcessMonitor implements ProcessMonitor {
   // - initialize the progress bar through the application manager, the maximum
   //   value should be the expected size of the file in k bytes
   // - set the watchedFile reference to the output file being monitored.
-  abstract void calcFileSize() throws InvalidParameterException, IOException;
+  abstract boolean calcFileSize() throws InvalidParameterException, IOException;
 
   abstract void reloadWatchedFile();
 
@@ -237,7 +240,11 @@ abstract class FileSizeProcessMonitor implements ProcessMonitor {
 
       //  Calculate the expected file size in bytes, initialize the progress bar
       //  and set the File object.
-      calcFileSize();
+      if (!calcFileSize()) {
+        setProcessEndState(ProcessEndState.DONE);
+        closeOpenFiles();
+        return;
+      }
       //  Wait for the output file to be backed up and set the process start time
       waitForFile();
     }
