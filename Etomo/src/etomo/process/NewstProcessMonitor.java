@@ -11,6 +11,9 @@
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.18  2009/02/04 23:26:32  sueh
+ * <p> bug# 1158 Changed id and exceptions classes in LogFile.
+ * <p>
  * <p> Revision 3.17  2008/01/31 20:18:55  sueh
  * <p> bug# 1055 throwing a FileException when LogFile.getInstance fails.
  * <p>
@@ -166,7 +169,7 @@ final class NewstProcessMonitor extends FileSizeProcessMonitor {
   /* (non-Javadoc)
    * @see etomo.process.FileSizeProcessMonitor#calcFileSize()
    */
-  void calcFileSize() throws InvalidParameterException, IOException {
+  boolean calcFileSize() throws InvalidParameterException, IOException {
     int nX;
     int nY;
     int nZ;
@@ -180,7 +183,9 @@ final class NewstProcessMonitor extends FileSizeProcessMonitor {
         + newstParam.getInputFile();
     MRCHeader rawStack = MRCHeader.getInstance(applicationManager
         .getPropertyUserDir(), rawStackFilename, axisID);
-    rawStack.read();
+    if (!rawStack.read()) {
+      return false;
+    }
     if (newstParam.isSizeToOutputInXandYSet()) {
       nX = newstParam.getSizeToOutputInX();
       nY = newstParam.getSizeToOutputInY();
@@ -227,6 +232,7 @@ final class NewstProcessMonitor extends FileSizeProcessMonitor {
     nKBytes = (int) (fileSize / 1024);
     applicationManager.getMainPanel().setProgressBar("Creating aligned stack",
         nKBytes, axisID, processName);
+    return true;
   }
 
   private void loadNewstParam() {

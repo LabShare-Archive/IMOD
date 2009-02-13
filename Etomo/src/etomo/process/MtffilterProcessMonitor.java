@@ -13,67 +13,71 @@ import etomo.type.ProcessName;
 import etomo.type.ViewType;
 import etomo.util.InvalidParameterException;
 import etomo.util.MRCHeader;
+
 /**
-* <p>Description: </p>
-* 
-* <p>Copyright: Copyright (c) 2005</p>
-*
-*<p>Organization:
-* Boulder Laboratory for 3-Dimensional Electron Microscopy of Cells (BL3DEM),
-* University of Colorado</p>
-* 
-* @author $Author$
-* 
-* @version $Revision$
-* 
-* <p> $Log$
-* <p> Revision 1.11  2006/09/22 18:18:35  sueh
-* <p> bug# 931 Passing the process name to super().
-* <p>
-* <p> Revision 1.10  2006/08/11 00:16:54  sueh
-* <p> bug# 739 Added reloadWatchedFile(), loadComScriptManager(), and
-* <p> loadMtfFilterParam().
-* <p>
-* <p> Revision 1.9  2006/03/27 19:55:05  sueh
-* <p> bug# 836 Removed print statements
-* <p>
-* <p> Revision 1.8  2006/03/24 21:01:19  sueh
-* <p> bug# 836 In calcFileSize(), making file size a double to avoid overflow.
-* <p>
-* <p> Revision 1.7  2006/03/24 20:42:27  sueh
-* <p> bug# 836 In calcFileSize(), making file size a double to avoid overflow.
-* <p>
-* <p> Revision 1.6  2006/03/22 00:35:56  sueh
-* <p> bug# 836 Added temporary diagnostics to calcFileSize().
-* <p>
-* <p> Revision 1.5  2005/11/03 00:51:23  sueh
-* <p> bug# 740 In calcFileSize():  Getting file to open from Blendmont when
-* <p> montage is true.  Taking starting and ending Z into account.
-* <p>
-* <p> Revision 1.4  2005/07/29 00:52:06  sueh
-* <p> bug# 709 Going to EtomoDirector to get the current manager is unreliable
-* <p> because the current manager changes when the user changes the tab.
-* <p> Passing the manager where its needed.
-* <p>
-* <p> Revision 1.3  2005/06/20 16:46:56  sueh
-* <p> bug# 522 Made MRCHeader an n'ton.  Getting instance instead of
-* <p> constructing in calcFileSize().
-* <p>
-* <p> Revision 1.2  2005/04/25 20:48:19  sueh
-* <p> bug# 615 Passing the axis where a command originates to the message
-* <p> functions so that the message will be popped up in the correct window.
-* <p> This requires adding AxisID to many objects.
-* <p>
-* <p> Revision 1.1  2005/01/26 04:27:15  sueh
-* <p> bug# 83 File size process monitor for mtffilter.
-* <p> </p>
-*/
+ * <p>Description: </p>
+ * 
+ * <p>Copyright: Copyright (c) 2005</p>
+ *
+ *<p>Organization:
+ * Boulder Laboratory for 3-Dimensional Electron Microscopy of Cells (BL3DEM),
+ * University of Colorado</p>
+ * 
+ * @author $Author$
+ * 
+ * @version $Revision$
+ * 
+ * <p> $Log$
+ * <p> Revision 1.12  2006/10/24 21:27:24  sueh
+ * <p> bug# 947 Passing the ProcessName to AxisProcessPanel.
+ * <p>
+ * <p> Revision 1.11  2006/09/22 18:18:35  sueh
+ * <p> bug# 931 Passing the process name to super().
+ * <p>
+ * <p> Revision 1.10  2006/08/11 00:16:54  sueh
+ * <p> bug# 739 Added reloadWatchedFile(), loadComScriptManager(), and
+ * <p> loadMtfFilterParam().
+ * <p>
+ * <p> Revision 1.9  2006/03/27 19:55:05  sueh
+ * <p> bug# 836 Removed print statements
+ * <p>
+ * <p> Revision 1.8  2006/03/24 21:01:19  sueh
+ * <p> bug# 836 In calcFileSize(), making file size a double to avoid overflow.
+ * <p>
+ * <p> Revision 1.7  2006/03/24 20:42:27  sueh
+ * <p> bug# 836 In calcFileSize(), making file size a double to avoid overflow.
+ * <p>
+ * <p> Revision 1.6  2006/03/22 00:35:56  sueh
+ * <p> bug# 836 Added temporary diagnostics to calcFileSize().
+ * <p>
+ * <p> Revision 1.5  2005/11/03 00:51:23  sueh
+ * <p> bug# 740 In calcFileSize():  Getting file to open from Blendmont when
+ * <p> montage is true.  Taking starting and ending Z into account.
+ * <p>
+ * <p> Revision 1.4  2005/07/29 00:52:06  sueh
+ * <p> bug# 709 Going to EtomoDirector to get the current manager is unreliable
+ * <p> because the current manager changes when the user changes the tab.
+ * <p> Passing the manager where its needed.
+ * <p>
+ * <p> Revision 1.3  2005/06/20 16:46:56  sueh
+ * <p> bug# 522 Made MRCHeader an n'ton.  Getting instance instead of
+ * <p> constructing in calcFileSize().
+ * <p>
+ * <p> Revision 1.2  2005/04/25 20:48:19  sueh
+ * <p> bug# 615 Passing the axis where a command originates to the message
+ * <p> functions so that the message will be popped up in the correct window.
+ * <p> This requires adding AxisID to many objects.
+ * <p>
+ * <p> Revision 1.1  2005/01/26 04:27:15  sueh
+ * <p> bug# 83 File size process monitor for mtffilter.
+ * <p> </p>
+ */
 final class MtffilterProcessMonitor extends FileSizeProcessMonitor {
-  public static  final String  rcsid =  "$Id$";
-  
+  public static final String rcsid = "$Id$";
+
   private MTFFilterParam mtfFilterParam = null;
   private ComScriptManager comScriptManager = null;
-  
+
   public MtffilterProcessMonitor(ApplicationManager appMgr, AxisID id) {
     super(appMgr, id, ProcessName.MTFFILTER);
   }
@@ -81,7 +85,7 @@ final class MtffilterProcessMonitor extends FileSizeProcessMonitor {
   /* (non-Javadoc)
    * @see etomo.process.FileSizeProcessMonitor#calcFileSize()
    */
-  void calcFileSize() throws InvalidParameterException, IOException {
+  boolean calcFileSize() throws InvalidParameterException, IOException {
     double nX;
     double nY;
     double nZ;
@@ -109,37 +113,40 @@ final class MtffilterProcessMonitor extends FileSizeProcessMonitor {
     }
     MRCHeader outputHeader = MRCHeader.getInstance(applicationManager
         .getPropertyUserDir(), outputFilename, axisID);
-    outputHeader.read();
+    if (!outputHeader.read()) {
+      return false;
+    }
     nX = (double) outputHeader.getNRows();
     nY = (double) outputHeader.getNColumns();
     nZ = (double) outputHeader.getNSections();
     switch (outputHeader.getMode()) {
-      case 0 :
-        modeBytes = 1.0d;
-        break;
-      case 1 :
-        modeBytes = 2.0d;
-        break;
-      case 2 :
-        modeBytes = 4.0d;
-        break;
-      case 3 :
-        modeBytes = 4.0d;
-        break;
-      case 4 :
-        modeBytes = 8.0d;
-        break;
-      case 16 :
-        modeBytes = 3.0d;
-        break;
-      default :
-        throw new InvalidParameterException("Unknown mode parameter");
+    case 0:
+      modeBytes = 1.0d;
+      break;
+    case 1:
+      modeBytes = 2.0d;
+      break;
+    case 2:
+      modeBytes = 4.0d;
+      break;
+    case 3:
+      modeBytes = 4.0d;
+      break;
+    case 4:
+      modeBytes = 8.0d;
+      break;
+    case 16:
+      modeBytes = 3.0d;
+      break;
+    default:
+      throw new InvalidParameterException("Unknown mode parameter");
     }
     loadMtfFilterParam();
     //take starting and ending Z into account
     if (mtfFilterParam.isStartingZSet()) {
       if (mtfFilterParam.isEndingZSet()) {
-        nZ = (double) mtfFilterParam.getEndingZ() - (double) mtfFilterParam.getStartingZ() + 1.0d;
+        nZ = (double) mtfFilterParam.getEndingZ()
+            - (double) mtfFilterParam.getStartingZ() + 1.0d;
       }
       else {
         nZ = nZ - (double) mtfFilterParam.getStartingZ() + 1.0d;
@@ -154,22 +161,23 @@ final class MtffilterProcessMonitor extends FileSizeProcessMonitor {
     double fileSize = 1024.0d + nX * nY * nZ * modeBytes;
     nKBytes = (int) (fileSize / 1024);
     applicationManager.getMainPanel().setProgressBar("Running MTF filter",
-        nKBytes, axisID,ProcessName.MTFFILTER);
+        nKBytes, axisID, ProcessName.MTFFILTER);
+    return true;
   }
-  
+
   protected void reloadWatchedFile() {
     loadMtfFilterParam();
-    watchedFile = new File(applicationManager.getPropertyUserDir(), mtfFilterParam
-        .getOutputFile());
+    watchedFile = new File(applicationManager.getPropertyUserDir(),
+        mtfFilterParam.getOutputFile());
   }
-  
+
   private void loadComScriptManager() {
     if (comScriptManager != null) {
       return;
     }
     comScriptManager = applicationManager.getComScriptManager();
   }
-  
+
   private void loadMtfFilterParam() {
     if (mtfFilterParam != null) {
       return;

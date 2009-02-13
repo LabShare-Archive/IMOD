@@ -27,6 +27,9 @@ import etomo.util.MRCHeader;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.2  2008/10/27 23:19:30  sueh
+ * <p> bug# 1141 Fixed monitor - log file doesn't show the watched file's name, so turn off findWatchedFileName to avoid looking for it.
+ * <p>
  * <p> Revision 1.1  2008/10/27 17:53:11  sueh
  * <p> bug# 1141 Monitor for ctfcorrection.com.
  * <p> </p>
@@ -44,7 +47,7 @@ public final class CtfCorrectionMonitor extends FileSizeProcessMonitor {
   /* (non-Javadoc)
    * @see etomo.process.FileSizeProcessMonitor#calcFileSize()
    */
-  void calcFileSize() throws InvalidParameterException, IOException {
+  boolean calcFileSize() throws InvalidParameterException, IOException {
     double nX;
     double nY;
     double nZ;
@@ -72,7 +75,9 @@ public final class CtfCorrectionMonitor extends FileSizeProcessMonitor {
     }
     MRCHeader outputHeader = MRCHeader.getInstance(applicationManager
         .getPropertyUserDir(), outputFilename, axisID);
-    outputHeader.read();
+    if (!outputHeader.read()) {
+      return false;
+    }
     nX = (double) outputHeader.getNRows();
     nY = (double) outputHeader.getNColumns();
     nZ = (double) outputHeader.getNSections();
@@ -104,6 +109,7 @@ public final class CtfCorrectionMonitor extends FileSizeProcessMonitor {
     nKBytes = (int) (fileSize / 1024);
     applicationManager.getMainPanel().setProgressBar("Running CTF Correction",
         nKBytes, axisID, ProcessName.CTF_CORRECTION);
+    return true;
   }
 
   void reloadWatchedFile() {
