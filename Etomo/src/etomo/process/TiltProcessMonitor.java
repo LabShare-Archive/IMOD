@@ -26,6 +26,9 @@ import etomo.util.MRCHeader;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.20  2007/12/26 22:15:02  sueh
+ * <p> bug# 1052 Moved argument handling from EtomoDirector to a separate class.
+ * <p>
  * <p> Revision 3.19  2007/12/13 01:10:53  sueh
  * <p> bug# 1056 Removed the Storables inner class from TiltParam.
  * <p>
@@ -141,7 +144,7 @@ final class TiltProcessMonitor extends FileSizeProcessMonitor {
   /* (non-Javadoc)
    * @see etomo.process.FileSizeProcessMonitor#calcFileSize()
    */
-  void calcFileSize() throws InvalidParameterException, IOException {
+  boolean calcFileSize() throws InvalidParameterException, IOException {
     long nX;
     long nY;
     long nZ;
@@ -157,7 +160,9 @@ final class TiltProcessMonitor extends FileSizeProcessMonitor {
 
     MRCHeader alignedStack = MRCHeader.getInstance(applicationManager
         .getPropertyUserDir(), alignedFilename, axisID);
-    alignedStack.read();
+   if(! alignedStack.read()) {
+     return false;
+   }
 
     nX = alignedStack.getNColumns();
     nY = alignedStack.getNRows();
@@ -223,6 +228,7 @@ final class TiltProcessMonitor extends FileSizeProcessMonitor {
     }
     applicationManager.getMainPanel().setProgressBar("Calculating tomogram",
         nKBytes, axisID, ProcessName.TILT);
+    return true;
   }
 
   protected void reloadWatchedFile() {

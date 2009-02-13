@@ -11,6 +11,10 @@
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.11  2007/09/11 21:29:07  sueh
+ * <p> bug# 1035 In calcFileSize prevent integer overflow when calculating fileSize by
+ * <p> casting nX * xY to long.
+ * <p>
  * <p> Revision 3.10  2006/10/24 21:37:46  sueh
  * <p> bug# 947 Passing the ProcessName to AxisProcessPanel.
  * <p>
@@ -85,7 +89,7 @@ public class PrenewstProcessMonitor extends FileSizeProcessMonitor {
   public static final String rcsid = "$Id$";
 
   private String dataSetPath = null;
-  
+
   public PrenewstProcessMonitor(ApplicationManager appMgr, AxisID id) {
     super(appMgr, id, ProcessName.PRENEWST);
   }
@@ -95,7 +99,7 @@ public class PrenewstProcessMonitor extends FileSizeProcessMonitor {
    * stack and newstack binBy parameter.  The assumption for prenewst.com is
    * that the mode is always 0 (1 byte per pixel).
    */
-  void calcFileSize() throws InvalidParameterException, IOException {
+  boolean calcFileSize() throws InvalidParameterException, IOException {
     int nX;
     int nY;
     int nZ;
@@ -105,7 +109,9 @@ public class PrenewstProcessMonitor extends FileSizeProcessMonitor {
     loadDataSetPath();
     MRCHeader rawStack = MRCHeader.getInstance(applicationManager
         .getPropertyUserDir(), dataSetPath + ".st", axisID);
-    rawStack.read();
+    if (!rawStack.read()) {
+      return false;
+    }
 
     nX = rawStack.getNRows();
     nY = rawStack.getNColumns();
@@ -113,7 +119,7 @@ public class PrenewstProcessMonitor extends FileSizeProcessMonitor {
 
     // Get the binByFactor from prenewst.com script
     ComScriptManager comScriptManager = applicationManager
-      .getComScriptManager();
+        .getComScriptManager();
     comScriptManager.loadPrenewst(axisID);
     NewstParam prenewstParam = comScriptManager.getPrenewstParam(axisID);
     int binBy = prenewstParam.getBinByFactor();
@@ -124,20 +130,23 @@ public class PrenewstProcessMonitor extends FileSizeProcessMonitor {
     }
     long fileSize = 1024 + ((long) nX * nY) * nZ * modeBytes;
     nKBytes = (int) (fileSize / 1024);
-    applicationManager.getMainPanel().setProgressBar("Creating coarse stack", nKBytes, axisID,ProcessName.PRENEWST);
+    applicationManager.getMainPanel().setProgressBar("Creating coarse stack",
+        nKBytes, axisID, ProcessName.PRENEWST);
+    return true;
   }
-  
+
   protected void reloadWatchedFile() {
     loadDataSetPath();
     // Create a file object describing the file to be monitored
     watchedFile = new File(dataSetPath + ".preali");
   }
-  
+
   private void loadDataSetPath() {
     if (dataSetPath != null) {
       return;
     }
     dataSetPath = applicationManager.getPropertyUserDir() + "/"
-    + applicationManager.getMetaData().getDatasetName() + axisID.getExtension();
+        + applicationManager.getMetaData().getDatasetName()
+        + axisID.getExtension();
   }
 }
