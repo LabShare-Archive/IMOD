@@ -15,7 +15,7 @@ UTILOBJS = b3dutil.$(O) ilist.$(O) parselist.$(O) amoeba.$(O) \
 	scaledsobel.$(O) filtxcorr.$(O) taperpad.$(O) circlefit.$(O) \
 	insidecontour.$(O) islice.$(O) taperatfill.$(O) histogram.$(O) \
 	simplestat.$(O) amat_to_rotmagstr.$(O) percentile.$(O) beadutil.$(O) \
-	lsqr.$(O) lsqrblas.$(O) sparselsqr.$(O)
+	lsqr.$(O) lsqrblas.$(O) sparselsqr.$(O) parallelwrite.$(O)
 
 PIPOBJS = parse_params.$(O) pip_fwrap.$(O) autodoc.$(O) adoc_fwrap.$(O)
 
@@ -50,6 +50,9 @@ adoc_fwrap.$(O) : $(INCDIR)/autodoc.h
 lsqr.$(O) : $(INCDIR)/lsqr.h cblas.h stdbool.h
 
 #  $Log$
+#  Revision 1.10  2008/12/30 00:52:09  mast
+#  Added lsqr stuff
+#
 #  Revision 1.9  2008/12/01 15:30:39  mast
 #  Added percentile and beadutil
 #
