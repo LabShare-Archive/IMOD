@@ -34,17 +34,18 @@ int main(int argc, char *argv[])
   int numOptArgs, numNonOptArgs;
 
   // Fallbacks from   ../manpages/autodoc2man 2 1 ctfphaseflip
-  int numOptions = 14;
+  int numOptions = 15;
   char *options[] = {
     "input:InputStack:FN:", "output:OutputFileName:FN:", 
     "angleFn:AngleFile:FN:", "defFn:DefocusFile:FN:", "defTol:DefocusTol:I:", 
     "iWidth:InterpolationWidth:I:", "pixelSize:PixelSize:F:", 
     "volt:Voltage:I:", "cs:SphericalAberration:F:", 
     "ampContrast:AmplitudeContrast:F:", "views:StartingEndingViews:IP:", 
-    "totalViews:TotalViews:IP:", "aAngle:AxisAngle:F:", 
-    "param:Parameter:PF:"};
+    "totalViews:TotalViews:IP:", "boundary:BoundaryInfoFile:FN:", 
+    "aAngle:AxisAngle:F:", "param:Parameter:PF:"};
 
   char *stackFn, *angleFn, *outFn, *defFn;
+  char *boundFn = NULL;
   int volt, iWidth, defocusTol;
   float tiltAxisAngle, pixelSize, cs, ampContrast, stripDefocus;
   int startingView, endingView, startingTotal, endingTotal;
@@ -81,7 +82,7 @@ int main(int argc, char *argv[])
     isSingleRun=true; // TotalViews is not specified;
   if( PipGetString("OutputFileName", &outFn) )
     exitError("OutputFileName is not specified");
-
+  PipGetString("BoundaryInfoFile", &boundFn);
   
   printf("stackFn=%s, angleFn=%s\n", stackFn, angleFn);
   printf("volt=%d Kv, interpolationWidth=%d pixels, defocusTol=%d nm \n", 
@@ -128,8 +129,8 @@ int main(int argc, char *argv[])
   */
   sliceMode=sliceModeIfReal(header.mode);
   if (sliceMode < 0)
-     exitError("%s - File mode is %d; only byte, short, integer allowed",
-            "ctfphaseflip", header.mode);
+    exitError("File mode is %d; only byte, short integer, or real allowed",
+              header.mode);
 
   //The number of slices this run deals with;
   int currNz=endingView-startingView+1;
@@ -144,8 +145,8 @@ int main(int argc, char *argv[])
   outHeader.next=0;
   outHeader.headerSize=1024;
   outHeader.swapped=0;
-  mrc_head_label(&outHeader, "ctfPhaseFlip: CTF correction \
-      with phase flipping only");
+  mrc_head_label(&outHeader, "ctfPhaseFlip: CTF correction "
+                 "with phase flipping only");
   
   if( (startingView==-1 && endingView==-1) || isSingleRun ){
       imodBackupFile(outFn);
@@ -167,6 +168,11 @@ int main(int argc, char *argv[])
              angleFn);
     }
   }
+
+  int err = parWrtInitialize(boundFn, header.nx, header.ny);
+  if (err)
+    exitError("Initializing parallel writing with boundary info file %s "
+              "(error %d)", boundFn, err);
     
   int nx = header.nx;
   int ny = header.ny;
@@ -414,7 +420,7 @@ int main(int argc, char *argv[])
       if( sliceNewMode(outSlice, sliceMode)<0 )
         exitError("converting slice to original mode");
 
-    if( mrc_write_slice(outSlice->data.b, foutput, &outHeader, currK, 'Z') )
+    if( parallelWriteSlice(outSlice->data.b, foutput, &outHeader, currK) )
       exitError("Writing slice %d error", currK);
     currK++;
     sliceFree(currSlice);
@@ -441,6 +447,9 @@ int main(int argc, char *argv[])
 /*
 
 $Log$
+Revision 3.11  2008/11/20 01:32:31  mast
+Restored \n on 3 printf's including critical min/max/mean statement
+
 Revision 3.10  2008/11/07 22:25:08  xiongq
 add fflush calls
 

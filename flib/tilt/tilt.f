@@ -458,7 +458,7 @@ c
               call ialsiz(2,nxyztmp,nxyzst)
               DMEAN=DTOT8/(float(NSLICEout)*IWIDE*ITHICK)
               CALL IWRHDR(2,TITLE,-1,DMIN,DMAX,DMEAN)
-              call imposn(2,nsliceout,0)
+              call parWrtPosn(2,nsliceout,0)
             endif
           endif
           lsliceOut = lsliceOut + idelslice
@@ -1431,8 +1431,8 @@ c
           enddo
                   i = (lslice - islice) / idelslice
           if (minTotSlice .gt. 0) i = lslice - minTotSlice
-          call imposn(2, j - 1, i)
-          call iwrlin(2,projline)
+          call parWrtPosn(2, j - 1, i)
+          call parWrtLin(2,projline)
         enddo
         dtot8=dtot8+dtmp8
         return
@@ -1456,7 +1456,7 @@ C
 C       Dump slice
       IF(PERP)THEN
 C         ....slices correspond to sections of map
-        CALL IWRSEC(2,ARRAY(IMAP))
+        CALL parWrtSEC(2,ARRAY(IMAP))
       ELSE
 C         ....slices must be properly stored
 C         Take each line of array and place it in the correct section
@@ -1503,7 +1503,7 @@ C
       character*80 titlech
 C       
       Character*1024 card
-      CHARACTER*320 FILIN,FILOUT,recfile,basefile
+      CHARACTER*320 FILIN,FILOUT,recfile,basefile,boundfile
       integer*4 nfields,inum(limnum)
       real*4 XNUM(limnum)
 c       
@@ -1523,7 +1523,7 @@ c
       real*4 pixelLocal, dmint,dmaxt,dmeant, frac, origx, origy, origz
       integer*4 nViewsReproj, iwideReproj, k, ind1, ind2, ifExpWeight
       logical*4 adjustOrigin, projModel, readSmallMod
-      integer*4 licenseusfft,niceframe
+      integer*4 licenseusfft,niceframe, parWrtInitialize
 c
       integer*4 numOptArg, numNonOptArg
       integer*4 PipGetInteger,PipGetBoolean,PipGetLogical,PipGetTwoFloats
@@ -1534,7 +1534,7 @@ c
 c       fallbacks from ../../manpages/autodoc2man -2 2  tilt
 c       
       integer numOptions
-      parameter (numOptions = 53)
+      parameter (numOptions = 54)
       character*(40 * numOptions) options(1)
       options(1) =
      &    'input:InputProjections:FN:@output:OutputFile:FN:@'//
@@ -1542,13 +1542,14 @@ c
      &    ':BaseRecFile:FN:@:AdjustOrigin:B:@:ANGLES:FAM:@:BaseNumViews:I:@'//
      &    ':COMPFRACTION:F:@:COMPRESS:FAM:@:COSINTERP:IA:@:DENSWEIGHT:FA:@'//
      &    ':DONE:B:@:EXCLUDELIST2:LIM:@:FlatFilterFraction:F:@:FBPINTERP:I:@'//
-     &    ':FULLIMAGE:IP:@:IMAGEBINNED:I:@:INCLUDE:LIM:@'//
-     &    ':SubtractFromBase:LI:@:LOCALFILE:FN:@:LOCALSCALE:F:@:LOG:F:@'//
-     &    ':MASK:F:@:MinMaxMean:IT:@:MODE:I:@:OFFSET:FA:@:PARALLEL:B:@'//
-     &    ':PERPENDICULAR:B:@:RADIAL:FP:@:REPLICATE:FPM:@:REPROJECT:FAM:@'//
-     &    ':SCALE:FP:@:SHIFT:FA:@:SLICE:FA:@:SUBSETSTART:IP:@:THICKNESS:I:@'//
-     &    ':TILTFILE:FN:@:TITLE:CH:@:TOTALSLICES:IP:@:ViewsToReproject:LI:@'//
-     &    ':WeightAngleFile:FN:@:WeightFile:FN:@:WIDTH:I:@:XAXISTILT:F:@'//
+     &    ':FULLIMAGE:IP:@:BoundaryInfoFile:FN:@:IMAGEBINNED:I:@'//
+     &    ':INCLUDE:LIM:@:SubtractFromBase:LI:@:LOCALFILE:FN:@'//
+     &    ':LOCALSCALE:F:@:LOG:F:@:MASK:F:@:MinMaxMean:IT:@:MODE:I:@'//
+     &    ':OFFSET:FA:@:PARALLEL:B:@:PERPENDICULAR:B:@:RADIAL:FP:@'//
+     &    ':REPLICATE:FPM:@:REPROJECT:FAM:@:SCALE:FP:@:SHIFT:FA:@:SLICE:FA:@'//
+     &    ':SUBSETSTART:IP:@:THICKNESS:I:@:TILTFILE:FN:@:TITLE:CH:@'//
+     &    ':TOTALSLICES:IP:@:ViewsToReproject:LI:@:WeightAngleFile:FN:@'//
+     &    ':WeightFile:FN:@:WIDTH:I:@:XAXISTILT:F:@'//
      &    'xminmax:XMinAndMaxReproj:IP:@:XTILTFILE:FN:@:XTILTINTERP:I:@'//
      &    'yminmax:YMinAndMaxReproj:IP:@:ZFACTORFILE:FN:@'//
      &    'zminmax:ZMinAndMaxReproj:IP:@param:ParameterFile:PF:@help:usage:B:'
@@ -1901,6 +1902,9 @@ c
         read(3,*,err=2414,end=2414)(expWeight(i),i=1,nviews)
         close(3)
       endif
+c       
+      boundFile = ' '
+      ierr = PipGetString('BoundaryInfoFile', boundFile)
 c       
       if (PipGetFloat('XAXISTILT', globalpha) .eq. 0) then
         write(6,2301)globalpha
@@ -2392,6 +2396,14 @@ c           Legacy origin.  All kinds of wrong.
         endif
       endif
 c       
+c       Initialize parallel writing routines if bound file entered
+      ierr = parWrtInitialize(boundFile, 5, noxyz(1), noxyz(2), noxyz(3))
+      if (ierr. ne. 0) then
+        write(*,'(a,i3)')'ERROR: TILT - INITIALIZING PARALLEL WRITE '//
+     &      'BOUNDARY FILE, ERROR',ierr
+        call exit(1)
+      endif
+c       
 c       chunk mode starter run: write header and exit
 c
       if (.not.projModel) then
@@ -2403,7 +2415,7 @@ c
           call exit(0)
         endif
         if (minTotSlice .gt. 0 .and. .not.recReproj) then
-          call imposn(2, islice - minTotSlice, 0)
+          call parWrtPosn(2, islice - minTotSlice, 0)
           if (readBase .and. .not. recReproj)
      &        call imposn(3, islice - minTotSlice, 0)
         endif
@@ -3843,8 +3855,8 @@ c       constant mean levels.  Descale non-log data by exposure weights
       enddo
       iyout = line - islice
       if (minTotSlice .gt. 0) iyout = line - minTotSlice
-      call imposn(2, iv - 1, iyout)
-      call iwrlin(2, array(imap))
+      call parWrtPosn(2, iv - 1, iyout)
+      call parWrtLin(2, array(imap))
       return
       end
 
@@ -3984,6 +3996,11 @@ c       Set to open contour, show values etc., and show sphere on section only
 
 c       
 c       $Log$
+c       Revision 3.43  2008/12/12 16:40:21  mast
+c       Fixes for 180 degree tilting: modify angles to be 0.05 degree away from
+c       +/-90; disable cosine stretching of data above 80, and swap left and
+c       right limits of valid backprojection when needed
+c
 c       Revision 3.42  2008/11/14 06:32:25  mast
 c       Added projection from model
 c

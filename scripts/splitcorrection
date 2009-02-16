@@ -10,6 +10,7 @@ set pn = splitblend
 @ maxslices = 5
 @ targetratio = 4
 @ targetslabs = 0
+@ boundpixels = 2048
 
 if ($#argv < 1) then
 cat <<EOF
@@ -17,11 +18,13 @@ Usage: $pn [options] command_file
    Produces multiple command files for running 'ctfphaseflip' in parallel.
    Options:
       -m #   Maximum number of slices to be corrected per chunk (default $maxslices)
+      -b #   Number of boundary pixels for direct writing (default $boundpixels)
 EOF
 exit 0
 endif
 
 setenv LC_NUMERIC C
+set boundext = cbound
 
 if ($?IMOD_DIR) then
     setenv PATH "$IMOD_DIR/bin:$PATH"
@@ -35,6 +38,11 @@ while ($#argv > 1)
       @ maxslices = $argv[2]
       shift; shift
       breaksw
+    case -b:
+      @ boundpixels = $argv[2]
+      shift; shift
+      breaksw
+
     default:
       echo "ERROR: $pn - unrecognized option $argv[1]"
       exit 1
@@ -50,10 +58,6 @@ if (! -e $comname) then
     exit 1
 endif
 
-# Set target slabs if not entered
-#
-if ($targetslabs == 0) @ targetslabs = $targetratio * $numproc
-
 # Get name of output file
 set outline = `sed -n -e '/	/s// /g' -e '/[[:cntrl:]]/s///g' -e '/^ *OutputF/p' $comname`
 if ($#outline < 2) then
@@ -66,14 +70,22 @@ set outfile = $outline[2]
 \rm -f $rootname-start.com $rootname-finish.com
 
 set views = `grep -i StartingEndingViews $comname | grep -v '^#' | sed '/[^ 0-9\.]/s///g'`
-set inStack = `grep -i InputStack $comname | grep -v '^#'` 
+set inStack = `grep -i InputStack $comname | grep -v '^#' | sed '/[[:cntrl:]]/s///g'` 
+set dimensions = `header -s $inStack[2] | sed '/[[:cntrl:]]/s///g'`
+if (! -e $inStack[2]) then
+    echo "ERROR: $pn - Input stack $inStack[2] does not exist"
+    exit 1
+endif
 if ($#views <2 ) then
-   set dimensions = `header -s $inStack[2] | sed '/[[:cntrl:]]/s///g'`
    set views = `echo "1  $dimensions[3]"`
 endif
 
 set viewdel = 'StartingEndingViews'
 @ total = 1 + $views[2] - $views[1]
+
+@ numslabs = ($total + $maxslices - 1) / $maxslices
+@ slabsize = $total / $numslabs
+@ remainder = $total - $numslabs * $slabsize
 
 set outroot = $outfile:r
 set outext = $outfile:e
@@ -97,11 +109,18 @@ TotalViews $views[1] $views[2]\
 EOF
 endif
 
-@ num = 0
-set currSlice = 0
-set origOffset = $views[1]
+set boundfile = $rootname-bound.info
+@ width = $dimensions[1]
+@ boundlines = ($boundpixels + $width - 1) / $width
+@ ny = $dimensions[2]
+if ($boundlines > $ny / 2 + 1) @ boundlines =  $ny / 2 + 1
+echo "1 0 $width $boundlines $numslabs" >! $boundfile
 
-while ($currSlice < $total)
+@ num = 0
+set origOffset = $views[1]
+@ firstview = $views[1]
+
+while ($num < $numslabs)
     @ num++
     set numtext = $num
     if ($num < 10) then
@@ -111,13 +130,8 @@ while ($currSlice < $total)
     endif
     set thiscom = $rootname-$numtext.com
 
-    @ currSlice = $currSlice + $maxslices
-
-    if ($currSlice > $total ) then
-        set origEnd = $views[2]
-    else
-        @ origEnd = $origOffset + $maxslices - 1 
-    endif
+    @ origEnd = $origOffset + $slabsize - 1 
+    if ($num <= $remainder) @ origEnd++
 
     sed -e "/$viewdel/d" \
         -e "/DefocusFile/a\\
@@ -126,18 +140,33 @@ $viewdel $origOffset  $origEnd\
         -e "/DefocusFile/a\\
 TotalViews $views[1] $views[2]\
 " \
+        -e "/DefocusFile/a\\
+BoundaryInfoFile $boundfile\
+" \
   $comname >! $thiscom
     cat <<EOF >> $thiscom
 \$echo CHUNK DONE
 EOF
-   @ origOffset =$origOffset + $maxslices
+
+   @ boundstart = $origOffset - $firstview
+   @ boundend = $origEnd - $firstview
+   if ($num == 1) @ boundstart = -1
+   if ($num == $numslabs) @ boundend = -1
+   echo $outroot-$numtext.$boundext >> $boundfile
+   echo "$boundstart 0 $boundend -1" >> $boundfile
+
+   @ origOffset = $origEnd + 1
 end
 
 set finish = $rootname-finish.com
    cat <<EOF >! $finish
+\$fixboundaries $outfile $boundfile
 \$collectmmm pixels= $rootname $num $outline[2]
-\$\\rm -f $rootname-[0-9]*.* $rootname-start*.* $rootname-finish*.* 
+\$\\rm -f $rootname-[0-9]*.* $rootname-start*.* $rootname-finish*.* $outroot-[0-9]*.$boundext $boundfile
 EOF
 
 #  $Log$
+#  Revision 3.3  2007/11/06 23:31:45  xiongq
+#  add log funtion and use DefocusFile option
+#
 #
