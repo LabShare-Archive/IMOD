@@ -17,7 +17,8 @@ PROGS = addtostack$(E) alterheader$(E) assemblevol$(E) avganova$(E) \
  subimstat$(E) taperoutvol$(E) tapervoledge$(E) tiltxcorr$(E) tomopieces$(E) \
  vmstocsh$(E) warpvol$(E) xcorrstack$(E) xfinverse$(E) xfproduct$(E) \
  xftoxg$(E) xyzproj$(E) extractmagrad$(E) mtffilter$(E) maxjoinsize$(E) \
- binvol$(E) numericdiff$(E) stitchalign$(E) densnorm$(E) xfsimplex$(E)
+ binvol$(E) numericdiff$(E) stitchalign$(E) densnorm$(E) xfsimplex$(E) \
+ fixboundaries$(E)
 
 LIBS = $(FORTCLIBS)
 
@@ -88,6 +89,9 @@ extracttilts$(E): extracttilts.$(O)
 
 extstack$(E): extstack.$(O)
 	$(FC) -o extstack extstack.$(O) $(LDFLG) $(IMLIBS) $(LIBS)
+
+fixboundaries$(E): fixboundaries.$(O)
+	$(FC) -o fixboundaries fixboundaries.$(O) $(LDFLG) $(IMLIBS) $(LIBS)
 
 fftrans$(E): fftrans.$(O) giantfft.$(O)
 	$(FC) -o fftrans fftrans.$(O) giantfft.$(O) $(LDFLG) $(IMLIBS) $(LIBS)
@@ -205,6 +209,9 @@ enhance.$(O): $(INCDIR)/ftbuf.inc
 fftrans.$(O): $(INCDIR)/ftbuf.inc
 
 #  $Log$
+#  Revision 3.17  2008/05/08 02:56:30  mast
+#  vmstocsh can be compiled normally - fixed bad assumption in there
+#
 #  Revision 3.16  2007/10/30 14:25:06  mast
 #  Renamed xcorr to xcorrstack
 #
