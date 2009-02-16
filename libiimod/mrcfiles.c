@@ -1504,6 +1504,71 @@ int mrc_write_slice(void *buf, FILE *fout, MrcHeader *hdata, int slice,
   return(retval);
 }
 
+/*!
+ * Writes one Z slice of data at Z = [slice] from the buffer [buf] to file
+ * [fout] according the header in [hdata].  If parallel writing has been 
+ * initialized, lines will be written to a boundary file if appropriate.
+ * Returns errors from writing the slice with @mrc_write_slice and also returns
+ * other non-zero values from opening the boundary file, writing its header, 
+ * or writing to the file.
+ */
+int parallelWriteSlice(void *buf, FILE *fout, MrcHeader *hdata, int slice)
+{
+  static MrcHeader hbound;
+  static int dsize, csize, linesBound = -1;
+  static int sections[2], startLines[2];
+  static FILE *fpBound;
+  int err, allsec, nfiles, ib;
+  char *filename;
+
+  err = mrc_write_slice(buf, fout, hdata, slice, 'Z');
+  if (err)
+    return err;
+  if (linesBound < 0) {
+    if (parWrtProperties(&allsec, &linesBound, &nfiles)) {
+      linesBound = 0;
+      return 0;
+    }
+    mrc_head_new(&hbound, hdata->nx, linesBound, 2, hdata->mode);
+    err = parWrtFindRegion(slice, 0, hdata->ny, &filename, sections, 
+                           startLines);
+    if (err) {
+      b3dError(stdout, "ERROR: sliceWriteParallel - finding parallel writing"
+               " region for slice %d (err %d)\n", slice, err);
+      return err;
+    }
+    if (mrc_getdcsize(hdata->mode, &dsize, &csize)){
+      b3dError(stdout, "ERROR: sliceWriteParallel - unknown mode.\n");
+      return 1;
+    }
+    imodBackupFile(filename);
+    fpBound = fopen(filename, "wb");
+    if (!fpBound) {
+      b3dError(stdout, "ERROR: sliceWriteParallel - opening boundary file %s"
+               "\n", filename);
+      return 1;
+    }
+    if (mrc_head_write(fpBound, &hbound))
+      return 1;
+  }
+
+  if (!linesBound)
+    return;
+  for (ib = 0; ib < 2; ib++) {
+    if (sections[ib] >= 0 && slice == sections[ib]) {
+      fseek(fpBound, hbound.headerSize + ib * hbound.nx * linesBound * csize *
+            dsize, SEEK_SET);
+      filename = (char *)buf;
+      filename += hbound.nx * startLines[ib] * csize * dsize;
+      err = mrc_write_slice(filename, fpBound, &hbound, ib, 'Z');
+      if (err)
+        return err;
+    }
+  }
+  return 0;
+}
+
+
 /*
  * Support functions: DOC_SECTION SUPPORT
  */
@@ -2176,6 +2241,9 @@ void mrc_swap_floats(fb3dFloat *data, int amt)
 
 /*
 $Log$
+Revision 3.41  2009/01/02 05:18:43  mast
+const char * for Qt 4 port
+
 Revision 3.40  2008/11/02 13:43:08  mast
 Added functions for reading float slice
 

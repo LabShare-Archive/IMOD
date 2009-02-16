@@ -283,6 +283,7 @@ int mrc_write_idata(FILE *fout, MrcHeader *hdata, void *data[]);
 int mrc_data_new   (FILE *fout, MrcHeader *hdata);
 int mrc_write_slice(void *buf, FILE *fout, MrcHeader *hdata, 
 		    int slice, char axis);
+int parallelWriteSlice(void *buf, FILE *fout, MrcHeader *hdata, int slice);
 
 /************************ Read image data functions **************************/
 float mrc_read_point (FILE *fin, MrcHeader *hdata, int x, int y, int z);
@@ -362,6 +363,9 @@ void mrc_set_cmap_stamp(MrcHeader *hdata);
 /*
 
 $Log$
+Revision 3.22  2009/01/02 05:19:19  mast
+const char * for Qt 4 port
+
 Revision 3.21  2008/11/02 13:43:17  mast
 Added functions for reading float slice
 
