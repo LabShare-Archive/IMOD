@@ -14,6 +14,7 @@ set radial2 = "0.5,0.05"
 @ leaverecs = 5
 @ iterations = 10
 set mode = 2
+set boundpixels = 2048
 
 if ($#argv < 1) then
 cat <<EOF
@@ -33,7 +34,8 @@ Usage: $pn [options] command_file
       -zp      Constrain reconstruction to positive values
       -zn      Constrain reconstruction to negative values
       -ch      Write reconstructions to separate chunks, not directly to file
-      -di      Directly write projections to single output file
+      -pc      Write projections to separate chunks, not directly to file
+      -bo #    Number of boundary pixels when writing directly (default $boundpixels)
       -mo #    Output file mode (default $mode)
       -te #    Test mode, 1: retain proj, drec; 2: leave command and log files
 EOF
@@ -47,7 +49,7 @@ if ($?IMOD_DIR) then
     setenv PATH "$IMOD_DIR/bin:$PATH"
 endif
 
-set projchunk = "-c"
+set projchunk = ""
 set recchunk = ""
 set projsubzero = "-zero"
 set recsubthresh = ""
@@ -70,9 +72,14 @@ while ($#argv > 1)
       shift
       breaksw
 
-    case -di:
-      set projchunk = ""
+    case -pc:
+      set projchunk = "-c"
       shift
+      breaksw
+
+    case -bo:
+      set boundpixels = $argv[2]
+      shift; shift
       breaksw
 
     case -fl:
@@ -256,9 +263,9 @@ set slices = (0 $aliy)
 set setname = $recfile:r
 @ lastnum = 0
 if (! $startfirst) then
-    set reclist = `\find . -maxdepth 1 -name "$setname.${sirtext}[0-9][0-9]" -print | sort`
+    set reclist = `\find . -maxdepth 1 -name "$setname.${sirtext}[0-9]*[^~]" -print | sort`
     if ($#reclist) then
-        set lastnum = `echo $reclist[$#reclist] | sed '/.*\([0-9][0-9]$\)/s//\1/'`
+        set lastnum = `echo $reclist[$#reclist] | sed '/.*\([0-9][0-9]*$\)/s//\1/'`
         if ($lastnum == "") then
             echo "ERROR: $pn - Cannot detect number of last reconstruction"
             exit 1
@@ -311,7 +318,7 @@ SLICE     $slices\
         -e "/THICKNESS/a\\
 FlatFilterFraction   $flatfrac\
 " < $comname | grep -v -i '^ *log' >! $sirtname.com
-    set splitout = `splittilt -n $numproc -o $recchunk -i $comnum $sirtname.com`
+    set splitout = `splittilt -n $numproc -o $recchunk $boundpixels -i $comnum $sirtname.com`
     if ($status) then
         echo "$splitout"
         echo "ERROR: $pn - splittilt failed on initial run"
@@ -361,7 +368,7 @@ ViewsToReproj     0\
 RecFileToReproj     $lastname\
 " < $comname | grep -v -i '^ *log' >! $sirtname.com
     
-    set splitout = `splittilt -n $numproc -o -i $comnum $projchunk $sirtname.com`
+    set splitout = `splittilt -n $numproc -o -i $comnum $projchunk $boundpixels $sirtname.com`
     if ($status) then
         echo "$splitout"
         echo "ERROR: $pn - splittilt failed setting up projection for iteration # $iter"
@@ -404,7 +411,7 @@ SLICE     $slices\
 FlatFilterFraction   2\
 " < $comname | grep -v -i '^ *log' >! $sirtname.com
 
-    set splitout = `splittilt -n $numproc -o -i $comnum $recchunk $sirtname.com`
+    set splitout = `splittilt -n $numproc -o -i $comnum $recchunk $boundpixels $sirtname.com`
     if ($status) then
         echo "$splitout"
         echo "ERROR: $pn - splittilt failed setting up difference reconstruction for iteration # $iter"
@@ -459,6 +466,9 @@ echo "  processchunks machine_list $sirtname"
 exit 0
 
 #  $Log$
+#  Revision 3.7  2008/07/31 16:44:09  mast
+#  Remove continuation inside back-ticks: tcsh allows, csh does not
+#
 #  Revision 3.6  2008/04/14 17:56:24  mast
 #  Used escaped echo to output escaped rm due to bad cygwin tcsh echo
 #
