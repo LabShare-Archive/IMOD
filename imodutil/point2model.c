@@ -96,6 +96,9 @@ int main( int argc, char *argv[])
   ob = 0;
   co = 0;
   lineNum = 0;
+  imod->xmax = 0.;
+  imod->ymax = 0.;
+  imod->zmax = 0.;
 
   // To do: error check contour and object #'s, and they are numbered from 1.
   while (1) {
@@ -184,6 +187,9 @@ int main( int argc, char *argv[])
 
 /*
   $Log$
+  Revision 3.2  2008/01/28 19:42:12  mast
+  Switched from close to fclose
+
   Revision 3.1  2007/10/18 22:17:10  mast
   Added to package
 
