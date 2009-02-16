@@ -17,6 +17,7 @@
 #include "imod.h"
 #include "imod_edit.h"
 #include "imod_input.h"
+#include "imod_info_cb.h"
 #include "imod_display.h"
 #include "control.h"
 #include "undoredo.h"
@@ -73,6 +74,8 @@ void fineGrainOpen(ImodView *vw)
   fineGrainUpdate();
   imodDialogManager.add((QWidget *)fgd.dia, IMOD_DIALOG);
 
+  imod_info_input();
+  fgd.dia->adjustSize();
   fgd.dia->show();
 
 }
@@ -1177,6 +1180,9 @@ static void ifgHandleValue1(DrawProps *defProps, DrawProps *contProps,
 /*
 
 $Log$
+Revision 1.14  2009/01/15 16:33:17  mast
+Qt 4 port
+
 Revision 1.13  2008/12/08 17:26:12  mast
 Changes for scaling line thicknesses
 

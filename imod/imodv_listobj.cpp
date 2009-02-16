@@ -137,6 +137,7 @@ void imodvObjectListDialog(ImodvApp *a, int state)
   // After getting size with group buttons present, maybe hide them
   Oolist_dialog->updateGroups(a);
   Oolist_dialog->show();
+  Oolist_dialog->adjustFrameSize();
 }
 
 // Set On/Off state for one object
@@ -622,6 +623,9 @@ void ImodvOlist::keyReleaseEvent ( QKeyEvent * e )
 /*
 
 $Log$
+Revision 4.5  2009/01/15 16:33:18  mast
+Qt 4 port
+
 Revision 4.4  2008/05/22 15:42:18  mast
 Added Others On button; fixed for extra object editability
 

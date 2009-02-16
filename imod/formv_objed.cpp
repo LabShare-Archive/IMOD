@@ -125,11 +125,13 @@ void imodvObjedForm::setFontDependentSizes(int width, int height)
   }
 
   // Qt 4: this stretched out, so just set it to a fixed width
-  panelListBox->setFixedWidth(maxWidth + 12);
-  panelListBox->setFixedHeight(panelListBox->count() * 
-                               panelListBox->fontMetrics().height() + 8);
-  /*printf("panel max width %d  computed width %d\n", 
-    panelListBox->maxItemWidth(), maxWidth);*/
+  //QSize hint = panelListBox->sizeHint();
+  panelListBox->setFixedWidth(maxWidth + 16);
+  panelListBox->setFixedHeight(B3DNINT(1.1 * panelListBox->count() * 
+                             panelListBox->fontMetrics().height() + 8));
+  /*imodPrintStderr("panel max width %d  hint width %d  count *fontheight %d "
+    "hint %d\n", maxWidth, hint.width(), panelListBox->count() *
+    panelListBox->fontMetrics().height(), hint.height()); */
 }
 
 // Need to adjust and measure sizes of widgets on font change
@@ -266,5 +268,8 @@ void imodvObjedForm::keyReleaseEvent( QKeyEvent * e )
 /*
 
 $Log$
+Revision 4.1  2009/01/15 16:33:17  mast
+Qt 4 port
+
 
 */
