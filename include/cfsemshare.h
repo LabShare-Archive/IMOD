@@ -139,6 +139,12 @@ extern "C" {
                       float *cenmean, float *annmean, float *temp, 
                       float annPct, float *median);
 
+  /* parallelwrite.c */
+  int parWrtInitialize(char *filename, int nxin, int nyin);
+  int parWrtProperties(int *allSec, int *linesBound, int *nfiles);
+  int parWrtFindRegion(int secNum, int lineNum, int nlWrite, char **filename, 
+                       int *sections, int *startLines);
+
 #ifdef __cplusplus
 }
 #endif
@@ -149,6 +155,9 @@ extern "C" {
 /*
 
 $Log$
+Revision 3.13  2009/01/02 05:19:19  mast
+const char * for Qt 4 port
+
 Revision 3.12  2008/12/22 23:02:30  mast
 Added return of nsum to ccc function
 
