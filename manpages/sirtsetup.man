@@ -160,17 +160,22 @@ and have negative values, as usually produced by Densnorm(1).
 .B -ch
 Write reconstructions in chunks to separate files and assemble these into a
 single tomogram.
-The default is to write directly to the output file.  This option should be
-needed only if the corresponding option is needed with Splittilt(1) for
-parallel reconstructions on your computer systems.
+The default is to write directly to the output file.  This option should not be
+needed with the protections provided by saving pixels at chunk boundaries into
+separate files.
 .TP
-.B -di
-Write reprojections directly to a single
-output file.  The default is to write chunks to separate files that are
-assembled with Assemblevol(1), because direct writing can give empty lines
-with a typical multiple-computer setup.  This option may be safe if no remote
-machines are used for processing, particularly if the local machine is not
-writing to a remote server.
+.B -pc
+Write reprojections in chunks to separate files instead of directly to a single
+output file.  The separate files are
+assembled with Assemblevol(1).  This option should not be
+needed with the protections provided by saving pixels at chunk boundaries into
+separate files.
+.TP
+.B -bo <value>
+Set the number of boundary pixels saved in separate files to the given value
+when writing reconstructions or projections directly to a single output file.
+The boundary pixels are rewritten to the output file after all chunks are
+done.
 .TP
 .B -mo <value> 
 Set the mode of the output files.  The default is 2 because scaling is

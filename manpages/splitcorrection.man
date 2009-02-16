@@ -33,6 +33,11 @@ shows the default values for these options.
 .TP
 .B -m <value>
 Set the number of views to be processed per chunk to the given value (the default is 5 ).
+.TP
+.B -b <value>
+Number of pixels at each boundary between chunks to save in separate boundary
+files (named setname-nnn.cbound) and rewrite to the output file in the
+-finish.com file.  The default is 2048.  
 .SH FILES
 The finishing command file deletes all the
 command and log files for the chunks after collecting minimun, maximum, and

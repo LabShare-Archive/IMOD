@@ -102,6 +102,13 @@ Write chunks to separate files named setname-nnn.rec and assemble the output
 file from these
 at the end.  The default is to write directly to the output file.
 .TP
+.B -b <value>
+Number of pixels at each boundary between chunks to save in separate boundary
+files (named setname-nnn.rbound) and rewrite to the output file in the
+-finish.com file, when directly writing to the output file.  The default is
+2048.  This capability to rewrite lines at the boundary should make it
+unnecessary to write chunks to separate files.
+.TP
 .B -s <value>
 Start with given command file number instead of 1.  When this option is
 entered, the program will not delete any existing command files.  If data are

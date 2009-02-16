@@ -117,6 +117,15 @@ run initially with a StartingEndingViews entry of -1,-1 to set up the output
 file.  Then it is run with actual starting and ending views for each parallel
 run, and each run writes to the existing output file.
 
+[Field = BoundaryInfoFile]
+short = boundary
+type = FN
+usage = Name of file with information about boundaries for parallel writing
+tooltip =
+manpage = Name of file with information about boundaries between chunks and
+files in which to write lines at the boundaries, when multiple runs are 
+writing in parallel to an output file.
+
 [Field = AxisAngle]
 short = aAngle 
 type = F

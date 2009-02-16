@@ -18,6 +18,7 @@ EXPORTS
 	mrc_coord_cp
 	mrc_plist_li
 	sliceByteEdgeLaplacian
+	parallelWriteSlice
 	mrc_slice_putvol
 	iiSetupRawHeaders
 	mrc_read_slice

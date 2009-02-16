@@ -84,6 +84,13 @@ usage = Number of views in previous reconstruction
 tooltip = 
 manpage = 
 
+[Field = BoundaryInfoFile]
+type = FN
+usage = File with information about boundaries when writing in parallel
+tooltip = 
+manpage = File with information about boundary locations and files when 
+directly writing in parallel to a single output file.
+
 [Field = COMPFRACTION]
 type = F
 usage = Fraction of distance over which compression occurred
