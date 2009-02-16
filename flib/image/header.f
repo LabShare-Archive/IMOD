@@ -8,14 +8,20 @@ c       $Id$
 c       Log at end of file
 *       
       implicit none
-      integer maxextra
-      parameter (maxextra = 2000000)
+      integer maxextra,ntypes
+      parameter (maxextra = 2000000, ntypes = 6)
       real*4 array(maxextra/4)
       integer*4 NXYZ(3),MXYZ(3), mode, nbsym, nint, nreal, ierr, i, j
       logical nbytes_and_flags
+      integer*4 lnblnk
 C       
       CHARACTER*320 FILIN
 C       
+      character*17 typeName(ntypes)/'Tilt angles', 'Piece coordinates',
+     &    'Stage positions', 'Magnifications', 'Intensities', 'Exposure doses'/
+      character*25 extractCom(ntypes)/'extracttilts', 'extractpieces',
+     &    'extracttilts -stage', 'extracttilts -mag', 'extracttilts -int',
+     &    'extracttilts -exp'/
       integer*4 numInputFiles, nfilein, ifBrief
       logical*4 doSize, doMode, doMin,doMax,doMean, silent, doPixel, doOrigin
       real*4 DMIN,DMAX,DMEAN, pixel,tiltaxis, delta(3)
@@ -118,8 +124,25 @@ C
 101             format(10x,'Tilt axis rotation angle =', f6.1)
               endif
               pixel = array(nint + 12) * 1.e9
-              if (pixel .gt. 0.01 .and. pixel .lt. 10000.) write(*,102)pixel
-102           format(10x,'Pixel size in nanometers =', g11.4) 
+              call irtdel(1, delta)
+              if (pixel .gt. 0.01 .and. pixel .lt. 10000.) then
+                if (delta(1) .eq. 1) then
+                  write(*,102)pixel
+                else
+                  write(*,104)pixel
+                endif
+102             format(10x,'Pixel size in nanometers =', g11.4) 
+104             format(10x,'Original pixel size in nanometers =', g11.4) 
+              endif
+            endif
+            if (nbytes_and_flags(nint, nreal)) then
+              write(*,'(/,a)')'Extended header from SerialEM contains:'
+              do j = 1, ntypes
+                if (mod(nreal/2**(j-1), 2) .ne. 0)
+     &              write(*,103)typeName(j),
+     &              extractCom(j)(1:lnblnk(extractCom(j)))
+103             format(2x, a, ' - Extract with "',a,'"')
+              enddo
             endif
           endif
         endif
@@ -132,6 +155,9 @@ c
 
 c       
 c       $Log$
+c       Revision 3.6  2008/01/31 22:43:36  mast
+c       Redimension filename to 320
+c
 c       Revision 3.5  2006/10/05 19:48:59  mast
 c       Don't rotate FEI angles by 180, it ruins polarity of tilt angles
 c
