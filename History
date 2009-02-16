@@ -1,5 +1,20 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+2/15/09: Added structure for avoiding artifacts when writing to one file from
+multiple computers, implemented it for Tilt/Splittilt and Ctfphaseflip/Splitcorrection.
+
+2/15/09: Added details on the contents of the extended header and commands for
+extracting data to Header program output.
+
+2/15/09: Added options to Alterheader to set pixel spacing from pixel size in
+FEI/Agard style extended header, and to invert sign of origin.  Wrote proper
+man page for Alterheader.
+
+2/15/09: Fixed problem with getting max coordinates in Point2model (In 3.13).
+
+2/15/09: Fixed geometry problems in model view object edit and object list 
+windows.
+
 2/12/09: In Etomo got rid of the exception that is added to the etomo log when
 header is used to read a file that doesn't exist.
 
