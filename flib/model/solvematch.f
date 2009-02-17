@@ -968,12 +968,17 @@ c             print *,'distance',dist, csdx,csdy,csdz
      &            nint(csdx),nint(csdz),nint(csdy)
 1016          format(/,'Center shift indicated by local fit is',f6.0,
      &            ', bigger than the specified limit',/,
-     &            '   Set the InitialShiftXYZ for corrsearch3d to',3i5,/,
-     &            '   In eTomo, set patchcorr X, Y, Z initial shifts to',3i5)
+     &            '   The InitialShiftXYZ for corrsearch3d needs to be',3i5,/,
+     &            '   In eTomo, set Patchcorr Initial shifts in X, Y, Z to',3i5)
               if (nxyz(jxyz(3),2) .gt. nxyz(jxyz(3),1))
      &            write(*,1017) nxyz(2,jxyz(3))
 1017          format('   You should also set thickness of initial ',
-     &            'matching file to at least', i5)
+     &            'matching file to at least', i5,/,
+     &            '     (In eTomo, Initial match size for Matchvol1)')
+              write(*,1018)nint(dist) + 1
+1018          format('   To avoid stopping with this error, set CenterShift',
+     &            'Limit to',i4,/,
+     &            '     (In eTomo, Limit on center shift for Solvematch)')
               if (devmax .lt. stoplim) then
                 write(*,'(/,a)')'ERROR: SOLVEMATCH - INITIAL SHIFT NEEDS TO'//
      &              ' BE SET FOR PATCH CORRELATION (BUT SOLUTION IS OK)'
@@ -1294,6 +1299,9 @@ c
 
 c
 c       $Log$
+c       Revision 3.20  2008/12/10 21:47:27  mast
+c       Changed to handle different pixel size in transferfid coords
+c
 c       Revision 3.19  2007/12/12 23:41:19  mast
 c       Added detection of different scaling along the three axes and warnings
 c
