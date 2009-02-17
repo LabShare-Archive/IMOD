@@ -380,7 +380,7 @@ int PipAddOption(char *optionString)
     }
   }
 
-  sprintf(tempStr, "Option does not have three colons in it:\n");
+  sprintf(tempStr, "Option does not have three colons in it:  ");
   AppendToErrorString(optionString);
   return -1;
 }
@@ -1331,7 +1331,7 @@ static int ReadParamFile(FILE *pFile)
     while (indst < lineLen) {
       if (lineStr[indst] == '=') {
         if (gotEquals) {
-          sprintf(tempStr, "Two = signs in input line:\n");
+          sprintf(tempStr, "Two = signs in input line:  ");
           AppendToErrorString(lineStr);
           return -1;
         }
@@ -1348,7 +1348,7 @@ static int ReadParamFile(FILE *pFile)
     else if (!strcmp(optTable[optNum].type, BOOLEAN_STRING))
       token = strdup("1");
     else {
-      sprintf(tempStr, "Missing a value on the input line:\n");
+      sprintf(tempStr, "Missing a value on the input line:  ");
       AppendToErrorString(lineStr);
       return -1;
     }
@@ -1507,7 +1507,7 @@ int PipGetLineOfValues(char *option, char *strPtr, void *array, int valType,
           break;
         }
         sprintf(tempStr, "Default entry with a / is not allowed"
-                " in value entry:\n%s  ", option);
+                " in value entry:  %s  ", option);
         AppendToErrorString(fullStr);
         return -1;
       }
@@ -1523,7 +1523,7 @@ int PipGetLineOfValues(char *option, char *strPtr, void *array, int valType,
               break;
           } else {
             sprintf(tempStr, "Default entries with commas are not allowed"
-                    " in value entry:\n%s  ", option);
+                    " in value entry:  %s  ", option);
             AppendToErrorString(fullStr);
             return -1;
           }
@@ -1540,7 +1540,7 @@ int PipGetLineOfValues(char *option, char *strPtr, void *array, int valType,
 
     /* If we are already full, then it is an error */
     if (numGot >= arraySize) {
-      sprintf(tempStr, "Too many values for input array in value entry:\n%s  ",
+      sprintf(tempStr, "Too many values for input array in value entry:  %s  ",
               option);
       AppendToErrorString(fullStr);
       return -1;
@@ -1554,7 +1554,7 @@ int PipGetLineOfValues(char *option, char *strPtr, void *array, int valType,
 
     /* If invalid character is before end character, it is an error */
     if (invalid != endPtr) {
-      sprintf(tempStr, "Illegal character in value entry:\n%s  ", option);
+      sprintf(tempStr, "Illegal character in value entry:  %s  ", option);
       AppendToErrorString(fullStr);
       return -1;
     }
@@ -1577,7 +1577,7 @@ int PipGetLineOfValues(char *option, char *strPtr, void *array, int valType,
   /* If not enough values found, return error */
   if (numGot < *numToGet) {
     sprintf(tempStr, "%d values expected but only %d values found in value "
-            "entry:\n%s  ", *numToGet, numGot, option);
+            "entry:  %s  ", *numToGet, numGot, option);
     AppendToErrorString(fullStr);
     return -1;
   }
@@ -1825,6 +1825,9 @@ static int CheckKeyword(char *line, char *keyword, char **copyto, int *gotit,
 
 /*
 $Log$
+Revision 1.3  2008/12/04 05:49:18  mast
+Put a .SS in front of section headers for manpage output
+
 Revision 1.2  2007/10/18 22:22:47  mast
 Made exir prefix a static array so exitError works after PipDone
 
