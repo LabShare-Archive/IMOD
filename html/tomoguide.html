@@ -2268,19 +2268,27 @@ made as thin as the first volume; and 2) that the patch correlations will not
 work because they
 start at the center of the volume and require the volumes to be well-enough
 aligned there.  The processing stops when there is a large shift to allow you
-to eliminate these risks.  Check the solvematch log file for advice.  1) If
+to eliminate these risks.  Check the solvematch log file for advice.  
+<UL>
+<LI> If
 the volume being transformed is larger than the one being matched to, you will
 see a message advising that you make the initial match volume a certain size.
 On the <B>Initial Match</B> page, go to Advanced mode in the <B>Matchvol1</B>
 section and set the indicated number in the <B>Initial match size</B> text
-box.  2) You will see a message 
-"In eTomo, set patchcorr X, Y, Z initial shifts to".  On the 
+box. </LI>
+<LI> You will see a message 
+"In eTomo, set Patchcorr Initial shifts in X, Y, Z to".  On the 
 <B>Final Match</B> page, go to Advanced mode in the <B>Patchcorr
 Parameters</B> section and transfer the numbers in this message into the
-<B>Initial shift</B> text boxes.  After making these parameter changes, you
-can either resume the processing with <B>Restart at Matchvol1</B> or you can
-increase the <B>Limit on center shift</B> (again, in Advanced mode on the 
-<B>Initial Match</B> page) and use <B>Restart Combine</B>.
+<B>Initial shift</B> text boxes.  </LI>
+<LI> You will see a message telling you to
+increase the limit for the center shift in order to avoid stopping with an
+error.
+Go to Advanced mode in the <B>Solvematch</B> section of the 
+<B>Initial Match</B> page
+and increase the <B>Limit on center shift</B> to the recommended value.
+</UL>
+After making these parameter changes, press <B>Restart Combine</B>.</LI>
 </OL>
 <P>
 There is another problem that can occur in the initial matching step.  If

@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+2/16/09: Improved messages from Solvematch and guide instructions when the
+center shift is above the limit (In 3.13).
+
 2/15/09: Added structure for avoiding artifacts when writing to one file from
 multiple computers, implemented it for Tilt/Splittilt and Ctfphaseflip/Splitcorrection.
 
