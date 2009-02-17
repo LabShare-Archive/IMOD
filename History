@@ -1,10 +1,17 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+2/16/09: Set working directory permissions in Copytomocoms and Makejoincom and set
+permissions of copied files in align.com, Finishjoin, Xfalign, Tomosnapshot to get
+around problems in Vista (In 3.13).
+
+2/16/09: Made error messages produced by PIP come out on one line (In 3.13).
+
 2/16/09: Improved messages from Solvematch and guide instructions when the
 center shift is above the limit (In 3.13).
 
 2/15/09: Added structure for avoiding artifacts when writing to one file from
-multiple computers, implemented it for Tilt/Splittilt and Ctfphaseflip/Splitcorrection.
+multiple computers, implemented it for Tilt/Splittilt and 
+Ctfphaseflip/Splitcorrection.
 
 2/15/09: Added details on the contents of the extended header and commands for
 extracting data to Header program output.
