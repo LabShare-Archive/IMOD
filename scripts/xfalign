@@ -549,7 +549,8 @@ while ($#filesect != 0 )
     if ($doskip == "0") then
 
 	if ($docopy == "1") then
-	    cp $infile "$tmppic"
+	    \cp $infile "$tmppic"
+            chmod u+rw "$tmppic"
 	else
             newstack -sec $insect -size $NEWSIZE -mode $NEWMODE -off $NEWCEN $infile "$tmppic" >! "$tmplog"
             if ($status) goto error
@@ -626,6 +627,9 @@ unset noglob
 exit $exitstat
 
 #  $Log$
+#  Revision 3.21  2008/05/08 00:08:26  mast
+#  Do not escape quotes in a cat!
+#
 #  Revision 3.20  2008/01/04 07:03:38  mast
 #  Fixed for space in IMOD_DIR, possibly for space in tmpdir
 #

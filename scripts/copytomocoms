@@ -546,7 +546,7 @@ switch ($beadrad)
 	breaksw
 endsw
 
-
+chmod u+rwx .
 set srcext = ".com"
 @ numax = $naxis
 @ iaxis = 0
@@ -1141,7 +1141,9 @@ InputFile1 $setname.prexg
 InputFile2 $setname.tltxf
 OutputFile ${setname}_fid.xf
 \$\\cp ${setname}_fid.xf $setname.xf
+\$chmod u+rw $setname.xf
 \$\\cp  $setname.tlt ${setname}_fid.tlt
+\$chmod u+rw ${setname}_fid.tlt
 EOF
     endif
     cat >> $dstfile <<EOF
@@ -1506,6 +1508,9 @@ exit 0
 
 #
 #  $Log$
+#  Revision 3.68  2009/01/25 16:40:16  mast
+#  Needed to initialize the userawtlt variable for interactive case
+#
 #  Revision 3.67  2009/01/25 06:59:02  mast
 #  Stopped warning about .rawtlt not existing if doing angle/increment
 #

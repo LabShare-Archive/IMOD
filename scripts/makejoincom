@@ -36,6 +36,8 @@ if ($?IMOD_DIR) then
     setenv PATH "$IMOD_DIR/bin:$PATH"
 endif
 
+chmod u+rwx .
+
 if ($#argv > 0) then
     set interactive = 0
     @ listsize = $#argv
@@ -794,6 +796,9 @@ EOF
 
 #
 #  $Log$
+#  Revision 3.18  2008/05/20 21:13:14  mast
+#  Put out stacking of sample averages in multiple lines to avoid long line
+#
 #  Revision 3.17  2006/08/17 18:36:54  mast
 #  Added locale statement to keep output of awk from having instead of .
 #

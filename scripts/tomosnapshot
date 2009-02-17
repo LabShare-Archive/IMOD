@@ -140,10 +140,11 @@ if (-w .) then
     set cygthere = `uname | sed -n '/CYGWIN/p'`
     if ($cygthere != "") cygcheck -s -v -r >> uname.out
     \ls -lrt >! lslrt.out
+    \ls -ld . >> lslrt.out
 endif
 set list = ($edffile)
 
-# Get error logs from elsewhere: first scan etomo_err.log for iles
+# Get error logs from elsewhere: first scan etomo_err.log for files
 #
 set copylogs = ""
 if (-e etomo_err.log) then
@@ -151,7 +152,8 @@ if (-e etomo_err.log) then
     if ("$errlogs" != "") then
         foreach i ($errlogs)
             if (-r "$i") then
-                cp -p -f $i .
+                \cp -p -f $i .
+                chmod u+rw $i:t
                 set copylogs = ($copylogs $i:t)
             endif
         end
@@ -169,7 +171,8 @@ if (-r "$ETOMO_LOG_DIR" && -d "$ETOMO_LOG_DIR") then
     if ("$errlogs" != "") then
         foreach i ($errlogs)
             if (-r "$ETOMO_LOG_DIR/$i") then
-                cp -p -f "$ETOMO_LOG_DIR/$i" .
+                \cp -p -f "$ETOMO_LOG_DIR/$i" .
+                chmod u+rw $i
                 set copylogs = ($copylogs $i)
             endif
         end
@@ -238,6 +241,9 @@ Options:
 EOF
 
 #  $Log$
+#  Revision 3.19  2008/12/17 21:06:25  mast
+#  Add maggrad and zfac
+#
 #  Revision 3.18  2008/12/05 22:26:05  mast
 #  Collect error logs from ETOMO_LOG_DIR or .etomologs
 #
