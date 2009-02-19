@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+2/19/09: In Etomo fixed unit testing utilities so that they work with earlier
+versions.
+
 2/19/09: In Etomo - Fine Alignment, no longer placing local area residual errors
 in the Project Log Window in order to avoid overloading it with too much
 information.

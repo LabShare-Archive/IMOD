@@ -21,6 +21,9 @@ import etomo.storage.Storable;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.7  2009/02/19 21:31:51  sueh
+ * <p> bug# 1180 Ported change from branch IMOD_3-13, Revision 1.6.2.1.
+ * <p>
  * <p> Revision 1.6.2.1  2009/02/19 21:28:24  sueh
  * <p> bug# 1180 Added get(int).
  * <p>
