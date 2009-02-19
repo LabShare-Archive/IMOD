@@ -1,5 +1,7 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+2/18/09: In Etomo corrected tooltips that where being formatted twice.
+
 2/16/09: Set working directory permissions in Copytomocoms and Makejoincom and set
 permissions of copied files in align.com, Finishjoin, Xfalign, Tomosnapshot to get
 around problems in Vista (In 3.13).
