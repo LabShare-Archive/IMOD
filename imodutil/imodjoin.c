@@ -88,10 +88,12 @@ int main(int argc, char **argv)
   int keepScale = 0;
   int keepFlip = 0;
   int changeColors = 0;
+  int setMax = 1;
   float rsave, gsave, bsave;
   IrefImage useRef, outRef, *modRefp;
   FILE *fin;
   MrcHeader hdata;
+  Ipoint newmax;
   Ipoint unitPt = {1., 1., 1.};
   Ipoint zeroPt = {0., 0., 0.};
     
@@ -494,6 +496,14 @@ int main(int argc, char **argv)
   inModel->cindex.contour = -1;
   inModel->cindex.object = 0;
 
+  /* Set max of model big enough to long the whole thing */
+  if (setMax) {
+    imodel_maxpt(inModel, &newmax);
+    inModel->xmax = B3DMAX(inModel->xmax, newmax.x);
+    inModel->ymax = B3DMAX(inModel->ymax, newmax.y);
+    inModel->zmax = B3DMAX(inModel->zmax, newmax.z);
+  }
+
   imodBackupFile(argv[argc - 1]);
   if (imodOpenFile(argv[argc - 1], "wb", inModel)) {
     fprintf(stderr, "ERROR: imodjoin - Fatal error opening new model\n");
@@ -506,6 +516,9 @@ int main(int argc, char **argv)
 /*
 
 $Log$
+Revision 3.12  2008/11/29 01:35:03  mast
+Added option to change object colors
+
 Revision 3.11  2006/06/26 14:48:49  mast
 Added b3dutil include for parselist
 
