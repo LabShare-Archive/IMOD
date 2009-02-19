@@ -1,7 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 2/19/09: In Imodjoin, increased maximum size in model header to hold new
-joined model so whole model can be viewed in Zap window.
+joined model so whole model can be viewed in Zap window.  In Remapmodel, 
+adjusted maximum Z to hold remapped Z values.
 
 2/18/09: In Etomo corrected tooltips that where being formatted twice.
 
