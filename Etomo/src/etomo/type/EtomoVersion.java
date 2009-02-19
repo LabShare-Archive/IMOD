@@ -21,6 +21,12 @@ import etomo.storage.Storable;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.6.2.1  2009/02/19 21:28:24  sueh
+ * <p> bug# 1180 Added get(int).
+ * <p>
+ * <p> Revision 1.6  2008/10/16 20:57:40  sueh
+ * <p> bug# 1141 Added description.
+ * <p>
  * <p> Revision 1.5  2007/12/10 22:36:12  sueh
  * <p> bug# 1041 Changed getInstance(String key) to getEmptyInstance(String key) for
  * <p> clarity.
@@ -268,6 +274,19 @@ public final class EtomoVersion implements ConstEtomoVersion, Storable {
 
   boolean isNull() {
     return sectionList.size() == 0;
+  }
+
+  /**
+   * Gets a single section.
+   * Example:  If the version is 3.12.5, get(1) returns 12.
+   * @param sectionIndex
+   * @return
+   */
+  public String get(int sectionIndex) {
+    if (sectionIndex<sectionList.size()) {
+      return (String) sectionList.get(sectionIndex);
+    }
+    return null;
   }
 
   /**
