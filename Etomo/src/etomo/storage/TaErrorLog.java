@@ -22,7 +22,11 @@ import etomo.type.ProcessName;
  * 
  * @version $Revision$
  * 
- * <p> $Log$ </p>
+ * <p> $Log$
+ * <p> Revision 1.1  2009/02/04 23:28:52  sueh
+ * <p> bug# 1158 Class representing the taError.log file.  Used to send entries to
+ * <p> LogPanel.
+ * <p> </p>
  */
 public final class TaErrorLog implements Loggable {
   public static final String rcsid = "$Id$";
@@ -78,7 +82,8 @@ public final class TaErrorLog implements Loggable {
       if (readerId != null && !readerId.isEmpty()) {
         String line = taErrorLog.readLine(readerId);
         while (line != null) {
-          if (line.trim().startsWith("Residual error")) {
+          if (line.trim().startsWith("Residual error")
+              && line.indexOf("Local area") == -1) {
             lineList.add(line);
           }
           line = taErrorLog.readLine(readerId);
