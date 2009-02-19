@@ -25,7 +25,7 @@ c
       character*160 modelfile,newmodel
       character*1024 listString
       logical exist,readw_or_imod
-      integer*4 getimodMaxes
+      integer*4 getimodMaxes, putimodMaxes
 c       
       integer*4 ninzlis,iobj,indobj,ipnt,nlistz,i,nnew
       integer*4 ifreorder,ninobj,ibase,izval,newzval,indmov,itmp,index,j
@@ -108,6 +108,7 @@ c
         newlist(i)=listz(i)
       enddo
       nnew=nlistz
+      ierr = getImodMaxes(maxx, maxy, maxz)
 c       
 c       get options from pip input
 c
@@ -138,7 +139,6 @@ c
      &            'INPUT LIST OF Z VALUES MUST BE IN INCREASING ORDER')
             enddo
           else if (ifEntered .ne. 0) then
-            ierr = getImodMaxes(maxx, maxy, maxz)
             if (maxz .gt. limsec) call exitError(
      &          'MODEL RANGE IN Z TOO BIG FOR ARRAYS')
             do i = 1, maxz
@@ -323,6 +323,7 @@ c
               p_coord(2,ipnt)=p_coord(2,ipnt)+yadd
               p_coord(3,ipnt)=p_coord(3,ipnt)+zadd+newzval-izval
               indobj=indobj+1
+              maxz = max(maxz, nint(p_coord(3,ipnt)))
             else
 c               
 c               or delete point by moving rest of pointers in object down
@@ -357,6 +358,7 @@ c
 c       scale data back
 c       
       call scale_model(1)
+      ierr = putImodMaxes(maxx, maxy, maxz)
       call write_wmod(newmodel)
       call exit(0)
       end
@@ -365,6 +367,9 @@ c       DNM 7/20/89  changes for new model format
 c       DNM 2/20/90  changes to negate Z and reorder by Z
 c       
 c       $Log$
+c       Revision 3.6  2008/12/10 21:24:38  mast
+c       Fixed bug in reading in shifts with -add option
+c
 c       Revision 3.5  2007/01/24 23:44:45  mast
 c       Fixed code for making list of Z values
 c
