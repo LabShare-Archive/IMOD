@@ -26,6 +26,9 @@ import etomo.type.EnumeratedType;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.5  2008/11/20 01:46:57  sueh
+ * <p> bug# 1147 Commented out code that was not in use.
+ * <p>
  * <p> Revision 1.4  2007/04/13 20:38:46  sueh
  * <p> bug# 964Added EnumeratedType, which is the interface for enumeration types.
  * <p>
@@ -156,7 +159,7 @@ final class RadioTextField implements RadioButtonInterface {
 
   void setToolTipText(final String text) {
     radioButton.setToolTipText(text);
-    textField.setToolTipText(TooltipFormatter.INSTANCE.format(text));
+    textField.setToolTipText(text);
   }
 
   void setRadioButtonToolTipText(final String text) {
