@@ -1,5 +1,9 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+2/19/09: In Etomo - Fine Alignment, no longer placing local area residual errors
+in the Project Log Window in order to avoid overloading it with too much
+information.
+
 2/19/09: In Imodjoin, increased maximum size in model header to hold new
 joined model so whole model can be viewed in Zap window.  In Remapmodel, 
 adjusted maximum Z to hold remapped Z values.
