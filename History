@@ -1,11 +1,12 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+2/19/09: IMOD_4-0-4
 2/19/09: In Etomo fixed unit testing utilities so that they work with earlier
 versions.
 
-2/19/09: In Etomo - Fine Alignment, no longer placing local area residual errors
-in the Project Log Window in order to avoid overloading it with too much
-information.
+2/19/09: In Etomo - Fine Alignment, no longer placing local area residual
+errors in the Project Log Window in order to avoid overloading it with too
+much information.
 
 2/19/09: In Imodjoin, increased maximum size in model header to hold new
 joined model so whole model can be viewed in Zap window.  In Remapmodel, 
@@ -50,6 +51,9 @@ incorrect.
 2/10/09: In Etomo recalculated trimvol parameters when the size of the file
 being trimmed has been changed since last time trimvol was run.  A warning
 message is displayed when this is done.
+
+2/7/09: Etomo has a new Project Log Window that records some output from
+program logs, can be typed into, and is saved automatically.
 
 2/5/09: In Etomo added more error checking to the PEET interface.
 
