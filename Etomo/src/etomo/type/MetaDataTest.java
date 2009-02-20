@@ -5,7 +5,6 @@ import java.io.IOException;
 
 import etomo.ApplicationManager;
 import etomo.EtomoDirector;
-import etomo.process.SystemProcessException;
 import etomo.process.SystemProgram;
 import etomo.storage.LogFile;
 import etomo.storage.ParameterStore;
@@ -26,6 +25,9 @@ import junit.framework.TestCase;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.24  2009/02/04 23:30:30  sueh
+ * <p> bug# 1158 Changed id and exception classes in LogFile.
+ * <p>
  * <p> Revision 3.23  2008/12/15 23:02:38  sueh
  * <p> bug# 1161 Made EtomoDirector.getCurrentManager private.  Added a
  * <p> public test version for public access.
@@ -165,14 +167,8 @@ public class MetaDataTest extends TestCase {
 
     //  Check out the test vectors from the CVS repository
     for (int i = 0; i < edfList.length; i++) {
-      try {
         TestUtilites.getVector(manager, TypeTests.TEST_ROOT_DIR
             .getAbsolutePath(), testDirectory, edfList[i]);
-      }
-      catch (SystemProcessException except) {
-        System.err.println(except.getMessage());
-        fail("Error checking out test vector:\n" + except.getMessage());
-      }
     }
 
     //Don't do tests involving file permissions in Windows, since they can't be set.
