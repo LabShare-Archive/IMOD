@@ -22,6 +22,10 @@ import junit.framework.TestCase;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.25  2009/02/13 16:53:50  sueh
+ * <p> bug# 1176 In testRead removed the reread test because that doesn't
+ * <p> affect the return value anymore.
+ * <p>
  * <p> Revision 3.24  2009/02/13 02:40:45  sueh
  * <p> bug# 1176 Checking return value of MRCHeader.read.
  * <p>
@@ -172,13 +176,14 @@ public class MRCHeaderTest extends TestCase {
     // present
     boolean exceptionThrown = false;
     try {
-      assertFalse("IOException not thrown",badFilename.read());
+      assertFalse("IOException not thrown", badFilename.read());
     }
     catch (IOException except) {
     }
   }
 
-  public void testRead() throws IOException, InvalidParameterException {
+  public void testRead() throws IOException, InvalidParameterException,
+      SystemProcessException {
     //TEMP
     if (Utilities.isWindowsOS()) {
       return;
@@ -193,14 +198,8 @@ public class MRCHeaderTest extends TestCase {
     }
 
     // Check out the test header stack into the required directories
-    try {
-      TestUtilites.getVector(EtomoDirector.INSTANCE.getCurrentManagerForTest(),
-          testDirPath, testDirectory1, headerTestStack);
-    }
-    catch (SystemProcessException except) {
-      System.err.println(except.getMessage());
-      fail("Error checking out test vector:\n" + except.getMessage());
-    }
+    TestUtilites.getVector(EtomoDirector.INSTANCE.getCurrentManagerForTest(),
+        testDirPath, testDirectory1, headerTestStack);
 
     assertTrue(mrcHeader.read());
     assertEquals("Incorrect column count", 512, mrcHeader.getNColumns());
@@ -226,7 +225,8 @@ public class MRCHeaderTest extends TestCase {
      */
   }
 
-  public void testWithSpaces() throws IOException, InvalidParameterException {
+  public void testWithSpaces() throws IOException, InvalidParameterException,
+      SystemProcessException {
     //TEMP
     if (Utilities.isWindowsOS()) {
       return;
@@ -240,16 +240,10 @@ public class MRCHeaderTest extends TestCase {
       testDir2.mkdirs();
     }
     // Check out the test header stack into the required directories
-    try {
-      TestUtilites.getVector(EtomoDirector.INSTANCE.getCurrentManagerForTest(),
-          testDirPath, testDirectory2, "headerTest.st");
-    }
-    catch (SystemProcessException except) {
-      System.err.println(except.getMessage());
-      fail("Error checking out test vector:\n" + except.getMessage());
-    }
+    TestUtilites.getVector(EtomoDirector.INSTANCE.getCurrentManagerForTest(),
+        testDirPath, testDirectory2, "headerTest.st");
 
-    assertTrue("the file should exist",mrcWithSpaces.read());
+    assertTrue("the file should exist", mrcWithSpaces.read());
     assertEquals("Incorrect column count", 512, mrcWithSpaces.getNColumns());
     assertEquals("Incorrect row count", 512, mrcWithSpaces.getNRows());
     assertEquals("Incorrect section count", 1, mrcWithSpaces.getNSections());
