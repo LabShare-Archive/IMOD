@@ -13,6 +13,9 @@
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.19  2009/02/19 21:38:29  sueh
+ * <p> bug# 1180 Ported change from IMOD_3-13, revision 1.18.4.1.
+ * <p>
  * <p> Revision 1.18.4.1  2009/02/19 21:29:27  sueh
  * <p> bug# 1180 In checkoutVector try checking out with the current version
  * <p> tag before checking out the latest checkins.
@@ -207,9 +210,9 @@ public class TestUtilites {
   private static File checkoutVector(BaseManager manager, File testRootDir,
       File testDir, File target, String checkoutLocation)
       throws SystemProcessException, InvalidParameterException {
-    System.out.println("target="+target);
-    System.out.println("testDir="+testDir);
-    System.out.println("checkoutLocation="+checkoutLocation);
+    System.out.println("target=" + target);
+    System.out.println("testDir=" + testDir);
+    System.out.println("checkoutLocation=" + checkoutLocation);
     //set working directory
     String originalDirName = EtomoDirector.INSTANCE
         .setCurrentPropertyUserDir(testRootDir.getAbsolutePath());
@@ -221,7 +224,6 @@ public class TestUtilites {
           + target.getAbsolutePath());
     }
     //Check using the version number in ImodVersion.
-    boolean checkoutVersion = true;
     EtomoVersion version = EtomoVersion
         .getDefaultInstance(ImodVersion.CURRENT_VERSION);
     String[] cvsCommand = new String[7];
@@ -231,14 +233,27 @@ public class TestUtilites {
     cvsCommand[3] = "IMOD_" + version.get(0) + "-" + version.get(1);
     cvsCommand[4] = "-d";
     cvsCommand[5] = testDir.getName();
-   cvsCommand[6] = checkoutLocation + target.getName();
+    cvsCommand[6] = checkoutLocation + target.getName();
     SystemProgram cvs = new SystemProgram(manager.getPropertyUserDir(),
         cvsCommand, AxisID.ONLY);
     cvs.setDebug(true);
     cvs.run();
     if (cvs.getExitValue() > 0
         && cvs.getStdErrorString().indexOf("no such tag") != -1) {
-      checkoutVersion = false;
+      // NOTE: some version of cvs (1.11.2) have bug that results in a checkout
+      // (CVS directory is created) instead of an export when using the -d flag
+      // This is a work around to handle that case
+      File badDirectory = new File(testDir, "CVS");
+      if (badDirectory.exists()) {
+        String[] rmCommand = new String[3];
+        rmCommand[0] = "rm";
+        rmCommand[1] = "-rf";
+        rmCommand[2] = badDirectory.getAbsolutePath();
+        SystemProgram rm = new SystemProgram(manager.getPropertyUserDir(),
+            rmCommand, AxisID.ONLY);
+        rm.run();
+      }
+
       //If checking out with the version number fails, then the tag was not
       //created.  Checkout the latest stuff.
       cvsCommand = new String[7];
@@ -266,11 +281,11 @@ public class TestUtilites {
               "CVSROOT", AxisID.ONLY) + ",manager.getPropertyUserDir()="
           + manager.getPropertyUserDir() + ",testRootDir="
           + testRootDir.getAbsolutePath() + "\ntestDir="
-          + testDir.getAbsolutePath() + ",target=" + target.getAbsolutePath();
+          + testDir.getAbsolutePath() + ",target=" + target.getAbsolutePath()
+          + ",working dir=" + System.getProperty("user.dir");
       EtomoDirector.INSTANCE.setCurrentPropertyUserDir(originalDirName);
       throw new SystemProcessException(message);
     }
-    if (!checkoutVersion) {
     // NOTE: some version of cvs (1.11.2) have bug that results in a checkout
     // (CVS directory is created) instead of an export when using the -d flag
     // This is a work around to handle that case
@@ -283,7 +298,6 @@ public class TestUtilites {
       SystemProgram rm = new SystemProgram(manager.getPropertyUserDir(),
           rmCommand, AxisID.ONLY);
       rm.run();
-    }
     }
     //reset working directory
     EtomoDirector.INSTANCE.setCurrentPropertyUserDir(originalDirName);
