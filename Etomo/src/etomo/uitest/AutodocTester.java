@@ -60,6 +60,9 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.3  2009/02/04 23:37:15  sueh
+ * <p> bug# 1158 Changed id and exception classes in LogFile.
+ * <p>
  * <p> Revision 1.2  2009/01/28 00:57:50  sueh
  * <p> bug# 1102 In nextSection, moving subframe out of the the way.  In executeCommand handling the ifnot subsection and if.enabled.field.subcommand.  In executeField handling if.enabled.field.subcommand.  Changed assertEnabled to enabled to handle if.enabled.field.subcommand.
  * <p>
@@ -1263,6 +1266,13 @@ final class AutodocTester extends Assert implements VariableList {
         }
         else {
           return false;
+        }
+      }
+      else {
+        try {
+          Thread.sleep(1);
+        }
+        catch (InterruptedException e) {
         }
       }
     }
