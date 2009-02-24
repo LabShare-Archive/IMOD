@@ -7,15 +7,10 @@
  *  Copyright (C) 1995-2005 by Boulder Laboratory for 3-Dimensional Electron
  *  Microscopy of Cells ("BL3DEMC") and the Regents of the University of 
  *  Colorado.  See dist/COPYRIGHT for full copyright notice.
+ *
+ * $Id$
+ * Log at end
  */
-/*  $Author$
-
-    $Date$
-
-    $Revision$
-
-    Log at end 
-*/
 
 #include <math.h>
 #include <string.h>
@@ -535,10 +530,14 @@ int imodContourCenterOfMass(Icont *cont, Ipoint *rpt)
 }
 
 /*!
- * Computes components of the centroid of contour [icont], returning the 
- * sum of pixel locations inside the contour in [rcp] and the pixel sum, or
- * area, in [rtw].  The centroid is rcp->x/rtw, rcp->y/rtw.  Assumes the
- * contour is in the X/Y plane.  Returns -1 for error.
+ * Computes components of the centroid of contour [icont].  If ICONT_TEMPUSE is
+ * not set in the {flags} element of [icont], it treats the contour as coming
+ * from a closed contour object and assumes it is confined to the X/Y plane,
+ * and returns the sum of pixel locations inside the contour in [rcp] and the 
+ * pixel sum, or area, in [rtw].  If ICONT_TEMPUSE is set, it treats it as 
+ * coming from an open contour object and returns the sum of pixel locations
+ * along the contour in [rcp] and the contour length in [rtw].  In either case
+ * the centroid is rcp->x/rtw, rcp->y/rtw, rcp->z/rtw.  Returns -1 for error.
  */
 int imodel_contour_centroid(Icont *icont, Ipoint *rcp,
                             double *rtw)
@@ -550,6 +549,7 @@ int imodel_contour_centroid(Icont *icont, Ipoint *rcp,
   int xmin, xmax;
   int bgnpt,endpt;
   int scanline;
+  Ipoint scale = {1., 1., 1.};
 
   if (!icont)
     return(-1);
@@ -561,13 +561,30 @@ int imodel_contour_centroid(Icont *icont, Ipoint *rcp,
     rcp->x = icont->pts->x;
     rcp->y = icont->pts->y;
     rcp->z = icont->pts->z;
+    *rtw = 1;
     return(0);
   }
 
   rcp->x = 0.0f;
   rcp->y = 0.0f;
-  rcp->z = icont->pts[0].z;
   *rtw = 0;
+
+  /* Handle contour in open contour object */
+  if (icont->flags & ICONT_TEMPUSE) {
+    rcp->z = 0;
+    for (i = 1; i < icont->psize; i++) {
+      weight = imodPoint3DScaleDistance(&icont->pts[i-1], &icont->pts[i],
+                                        &scale);
+      rcp->x += weight * (icont->pts[i-1].x + icont->pts[i].x) * 0.5f;
+      rcp->y += weight * (icont->pts[i-1].y + icont->pts[i].y) * 0.5f;
+      rcp->z += weight * (icont->pts[i-1].z + icont->pts[i].z) * 0.5f;
+      *rtw += weight;
+    }
+    return 0;
+  }
+
+  /* Use scan contour for closed contour object */
+  rcp->z = icont->pts[0].z;
   cont = imodel_contour_scan(icont);
   if (!cont)
     return (-1);
@@ -3460,6 +3477,9 @@ char *imodContourGetName(Icont *inContour)
 /* END_SECTION */
 /*
   $Log$
+  Revision 3.30  2008/05/27 05:30:57  mast
+  Made contour from points routine do interpolation
+
   Revision 3.29  2008/04/04 21:20:26  mast
   Documentation fix
 
