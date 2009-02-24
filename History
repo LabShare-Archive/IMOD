@@ -1,6 +1,9 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-2/19/09: IMOD_4-0-4
+2/24/09: Imodinfo -c option now reports a centroid based on line segments
+rather than enclosed area for open contour objects.
+
+2/19/09: IMOD_4-0-4 and IMOD_3-13-2 released
 2/19/09: In Etomo fixed unit testing utilities so that they work with earlier
 versions.
 
