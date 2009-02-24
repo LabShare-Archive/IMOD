@@ -379,7 +379,8 @@ class ProcesschunksProcessMonitor implements OutfileProcessMonitor,
           || line.indexOf("Illegal variable name") != -1
           || line.indexOf("Variable syntax") != -1
           || line.indexOf("Badly placed (") != -1
-          || line.indexOf("Badly formed number") != -1) {
+          || line.indexOf("Badly formed number") != -1
+          || line.indexOf("No match") != -1) {
         System.err.println("ERROR: Tcsh error in processchunks log");
         UIHarness.INSTANCE
             .openMessageDialog(
@@ -558,6 +559,9 @@ class ProcesschunksProcessMonitor implements OutfileProcessMonitor,
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.41  2009/02/04 23:26:53  sueh
+ * <p> bug# 1158 Changed id and exceptions classes in LogFile.
+ * <p>
  * <p> Revision 1.40  2009/01/28 00:24:49  sueh
  * <p> bug# 1174 In updateState warn the user if a tcsh error happens.
  * <p>
