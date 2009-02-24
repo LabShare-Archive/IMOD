@@ -371,7 +371,16 @@ float imodObjectVolume(Iobj *obj)
 }
 
 
-/* testing, internal only (unused 3/20/05) */
+/*!
+ * Returns centroid of object [obj] into the point [rcp].  For closed-contour
+ * objects, computes centroid of area enclosed by each contour and forms the
+ * overall centroid from that.  For open-contour objects, computes the centroid
+ * of each contour line from the segments along the line, then forms an overall
+ * centroid from that.  Does not work for scattered point objects.  Does not
+ * account for Z-scaling.  Returns 1 for error computing a contour centroid or
+ * if there are no contours.
+ */
+/* Used by Rick's imod-dist program */
 int imodel_object_centroid(Iobj *obj, Ipoint *rcp)
 {
   Icont *cont;
@@ -385,12 +394,20 @@ int imodel_object_centroid(Iobj *obj, Ipoint *rcp)
 
   for(co = 0; co < obj->contsize; co++){
     cont = &(obj->cont[co]);
-    imodel_contour_centroid(cont, &cpt, &weight);
+    if (!cont->psize)
+      continue;
+    setOrClearFlags(&cont->flags, ICONT_TEMPUSE, 
+                    obj->flags & IMOD_OBJFLAG_OPEN);
+    if (imodel_contour_centroid(cont, &cpt, &weight))
+      return 1;
+    setOrClearFlags(&cont->flags, ICONT_TEMPUSE, 0);
     tweight += weight;
     rcp->x += cpt.x;
     rcp->y += cpt.y;
     rcp->z += cpt.z;  /* z-scale is done outside of function */
   }
+  if (!tweight)
+    return 1;
   rcp->x /= tweight;
   rcp->y /= tweight;
   rcp->z /= tweight;
@@ -807,6 +824,9 @@ void  imodObjectSetValue(Iobj *inObject, int inValueType, int inValue)
 /*
 
 $Log$
+Revision 3.21  2008/12/09 23:26:48  mast
+Changed flag from line to noline
+
 Revision 3.20  2008/05/07 04:44:20  mast
 Made bounding box function measure meshes if no contours
 
