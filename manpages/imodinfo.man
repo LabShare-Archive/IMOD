@@ -101,7 +101,9 @@ printed
 .TP
 .B -c
 Print volume, surface area, and center of gravity for each object in
-column output.
+column output.  For closed contour objects, the centroid is computed from the
+area enclosed inside each contour.  For open contour objects, the centroid
+is computed from the line segments themselves.
 .TP
 .B -l
 Print lengths of open contours in column output.
