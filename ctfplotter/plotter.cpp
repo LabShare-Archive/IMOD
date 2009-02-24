@@ -89,6 +89,7 @@ Plotter::Plotter(QWidget *parent) : QWidget(parent)
     defocusLabel->adjustSize();
 
     printer= new QPrinter;
+    printer->setOrientation(QPrinter::Landscape);
     setPlotSettings(PlotSettings());
 }
 
@@ -197,7 +198,7 @@ void Plotter::printIt()
     QPainter painter;
     if( !painter.begin( printer ) ) return;
     painter.setWindow(0, 0, width(), height() );
-    drawGrid(&painter);
+    drawGrid(&painter, false);
     drawCurves(&painter);
   }
 }
@@ -478,12 +479,12 @@ void Plotter::refreshPixmap()
     pixmap.fill(QColor(64,64,64));
     QPainter painter(&pixmap);
     painter.initFrom(this);
-    drawGrid(&painter);
+    drawGrid(&painter, true);
     drawCurves(&painter);
     update();
 }
 
-void Plotter::drawGrid(QPainter *painter)
+void Plotter::drawGrid(QPainter *painter, bool onScreen)
 {
     QRect rect(Margin, Margin,
                width() - 2 * Margin, height() - 2 * Margin);
@@ -491,8 +492,16 @@ void Plotter::drawGrid(QPainter *painter)
     PlotSettings settings = zoomStack[curZoom];
     //QPen quiteDark = palette().dark().color().light();
     //QPen light = palette().light().color();
-    QPen quiteDark=QPen(Qt::white);
-    QPen light=QPen(Qt::white);
+    //QPen quiteDark=QPen(Qt::white);
+    QPen quiteDark;
+    QPen light;
+    if(onScreen){
+      quiteDark=QPen(Qt::black);
+      light=QPen(Qt::white);
+    }else{
+      quiteDark=QPen(QColor(64, 64, 64));
+      light=QPen(Qt::black);
+    }
 
     for (int i = 0; i <= settings.numXTicks; ++i) {
         int x = rect.left() + (i * (rect.width() - 1)
@@ -606,6 +615,9 @@ void PlotSettings::adjustAxis(double &min, double &max,
 /*
 
    $Log$
+   Revision 1.10  2009/01/15 16:31:36  mast
+   Qt 4 port
+
    Revision 1.9  2008/11/08 21:54:04  xiongq
    adjust plotter setting for initializaion
 

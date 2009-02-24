@@ -55,7 +55,7 @@ protected:
 private:
     void updateRubberBandRegion();
     void refreshPixmap();
-    void drawGrid(QPainter *painter);
+    void drawGrid(QPainter *painter, bool onScreen);
     void drawCurves(QPainter *painter);
 
     enum { Margin = 40 };
