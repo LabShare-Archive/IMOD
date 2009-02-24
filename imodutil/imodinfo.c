@@ -1096,7 +1096,13 @@ static void computeObjectAreaVol(Imod *model, Iobj *obj, int scaninside,
       
       *vol += tvol;
       *surf += info_contour_length(cont, obj->flags, pixsize, zscale);
+
+      /* 2/24/09: Compute differently for open contours, so set a flag 
+         for an open contour object */
+      setOrClearFlags(&cont->flags, ICONT_TEMPUSE, 
+                      obj->flags & IMOD_OBJFLAG_OPEN);
       imodel_contour_centroid(cont, &ccent, &weight);
+      setOrClearFlags(&cont->flags, ICONT_TEMPUSE, 0);
       tweight += weight;
       cent->x += ccent.x;
       cent->y += ccent.y;
@@ -2230,6 +2236,10 @@ static void trim_scan_contour(Icont *cont, Ipoint min, Ipoint max, int doclip,
 /*
 
 $Log$
+Revision 3.20  2008/11/14 06:11:09  mast
+Added volume in mesh report, renamed mesh volume to contour volume, made
+it drop the cylinder reports if the mesh exists.
+
 Revision 3.19  2008/06/19 19:18:37  mast
 Fixed -vv option
 
