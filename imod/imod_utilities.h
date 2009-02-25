@@ -3,6 +3,9 @@
  *
  *  $Id$
  *  $Log$
+ *  Revision 1.5  2009/01/15 16:33:17  mast
+ *  Qt 4 port
+ *
  *  Revision 1.4  2008/07/16 04:30:50  mast
  *  Add function to set object flag
  *
@@ -44,6 +47,7 @@ void utilClearWindow(int index);
 float utilMouseZaxisRotation(int winx, int mx, int lastmx, int winy, int my,
                              int lastmy);
 void utilSetObjFlag(Iobj *obj, int flagType, bool state, b3dUInt32 flag);
+int utilNextSecWithCont(ImodView *vi, int curz, int dir);
 ToolEdit *utilTBZoomTools(QWidget *parent, QToolBar *toolBar, 
                           ArrowButton **upArrow, ArrowButton **downArrow);
 QAction *utilTBArrowButton(Qt::ArrowType type, QWidget *parent, 

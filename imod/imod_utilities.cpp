@@ -219,6 +219,32 @@ ToolEdit *utilTBZoomTools(QWidget *parent, QToolBar *toolBar,
 }
 
 /*
+ * Finds the next section in the current object with a contour, given curz is
+ * the current Z and dir is 1 to go forward or -1 to go back
+ */
+int utilNextSecWithCont(ImodView *vi, int curz, int dir)
+{
+  int diff, co, contz;
+  int newz = curz;
+  Icont *cont;
+  Iobj *obj = imodObjectGet(vi->imod);
+  if (!obj)
+    return newz;
+  newz = -1;
+  for (co = 0; co < obj->contsize; co++) {
+    cont = &obj->cont[co];
+    if (!cont->psize)
+      continue;
+    contz = B3DNINT(cont->pts[0].z);
+    contz = B3DMAX(0, B3DMIN(contz, vi->zsize - 1));
+    diff = dir * (contz - curz);
+    if (diff > 0 && (newz < 0 || diff < dir * (newz - curz)))
+      newz = contz;
+  }
+  return newz >= 0 ? newz : curz;
+}
+
+/*
  * Adds an arrow button to a tool bar and constrains its size
  */
 QAction *utilTBArrowButton(Qt::ArrowType type, QWidget *parent, 
@@ -531,6 +557,9 @@ int imodColorValue(int inColor)
 /*
 
 $Log$
+Revision 1.7  2009/02/05 05:23:44  tempuser
+Change stipple to start with on bit instead of off bit to see dense lines
+
 Revision 1.6  2009/01/15 16:33:17  mast
 Qt 4 port
 
