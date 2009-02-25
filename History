@@ -1,7 +1,19 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-2/24/09: In Etomo changed SphericalAberration (ctfplotter and ctfphaseflip
-parameter) a floating pointing.
+2/24/09: IMOD_4-0-5
+2/24/09: Added Shift-PageUp and PageDown to move to next or previous Z with
+contours in the current object.
+
+2/24/09: To avoid problems with tablets, process mouse move events so as to
+skip to the current event in model view, and skip updating dialogs when
+doing continuous drawing in Zap window.
+
+2/24/09: Fixed fatal bug in parallel writing routine.
+
+2/24/09: Etomo CTF correction now works with non-integer spherical aberration
+(In 3.13).
+
+2/24/09: Colors changed so grid appears when printing from Ctfplotter.
 
 2/24/09: Imodinfo -c option now reports a centroid based on line segments
 rather than enclosed area for open contour objects.
@@ -31,7 +43,8 @@ center shift is above the limit (In 3.13).
 
 2/15/09: Added structure for avoiding artifacts when writing to one file from
 multiple computers, implemented it for Tilt/Splittilt and 
-Ctfphaseflip/Splitcorrection.
+Ctfphaseflip/Splitcorrection.  ALL MACHINES USED FOR PARALLEL PROCESSING
+WITH DIRECT WRITING MUST BE UPGRADED TOGETHER.
 
 2/15/09: Added details on the contents of the extended header and commands for
 extracting data to Header program output.
