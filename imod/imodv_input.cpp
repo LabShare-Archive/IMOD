@@ -29,6 +29,7 @@
 #include "imodv.h"
 #include "imod.h"
 #include "imod_edit.h"
+#include "imod_info_cb.h"
 #include "imod_display.h"
 #include "b3dgfx.h"
 #include "imod_input.h"
@@ -52,13 +53,13 @@
 #include "dia_qtutils.h"
 
 
-static void imodv_light_move(ImodvApp *a);
+static void imodv_light_move(ImodvApp *a, int mx, int my);
 static void imodv_translate(ImodvApp *a, int x, int y);
 static void imodv_translated(ImodvApp *a, int x, int y, int z);
-static void imodvSelect(ImodvApp *a, bool moving);
-static void imodv_translated(ImodvApp *a, int x, int y, int z);
+static void imodvSelect(ImodvApp *a, int mx, int my, bool moving);
 static void imodv_compute_rotation(ImodvApp *a, float x, float y, float z);
-static void imodv_rotate(ImodvApp *a, int throwFlag, int rightWasDown);
+static void imodv_rotate(ImodvApp *a, int mx, int my, int throwFlag,
+                         int rightWasDown);
 static int  imodvStepTime(ImodvApp *a, int tstep);
 static void processHits (ImodvApp *a, GLint hits, GLuint buffer[], 
                          bool moving);
@@ -531,7 +532,7 @@ void imodvMousePress(QMouseEvent *event)
     }
 
   } else if (event->button() == ImodPrefs->actualModvButton(3)) {
-    imodvSelect(a, false);
+    imodvSelect(a, event->x(), event->y(), false);
   }
 }
 
@@ -547,7 +548,7 @@ void imodvMouseRelease(QMouseEvent *event)
   if (((event->button() & ImodPrefs->actualModvButton(2)) && 
       !(event->modifiers() & Qt::ShiftModifier)) || 
       (rightWasDown && (event->modifiers() & Qt::ShiftModifier)))
-    imodv_rotate(a, 1, rightWasDown);
+    imodv_rotate(a, event->x(), event->y(), 1, rightWasDown);
   if (a->drawLight) {
     a->drawLight = 0;
     imodvDraw(a);
@@ -558,36 +559,53 @@ void imodvMouseRelease(QMouseEvent *event)
 void imodvMouseMove(QMouseEvent *event)
 {
   ImodvApp *a = Imodv;
+  static int ex, ey, modifiers;
+  static bool processing = false;
+  ex = event->x();
+  ey = event->y();
 
   // Use state in mouse move to keep track of button down
   leftDown = event->buttons() & ImodPrefs->actualModvButton(1);
   midDown = event->buttons() & ImodPrefs->actualModvButton(2);
   rightDown = event->buttons() & ImodPrefs->actualModvButton(3);
+  modifiers = event->modifiers();
+  if (imodDebug('m'))
+    imodPrintStderr("Move ex,y %d %d ", ex, ey);
+
+  // Return after recording values if processing events, or process events
+  // to stay up to date
+  if (processing)
+    return;
+  processing = true;
+  imod_info_input();
+  processing = false;
 
   if (leftDown){
-    if (!(event->modifiers() & Qt::ShiftModifier))
+    if (!(modifiers & Qt::ShiftModifier))
       /*   DNM: disable this */
       /*           imodv_fog_move(a);
                    else */
-      imodv_translate(a, event->x(), event->y());
+      imodv_translate(a, ex, ey);
   }
-  if (midDown && (event->modifiers() & Qt::ShiftModifier))
-      imodv_light_move(a);
-  else if (midDown || (rightDown && (event->modifiers() & Qt::ShiftModifier)))
-    imodv_rotate(a, 0, rightDown);
-  else if (rightDown && (event->modifiers() & Qt::ControlModifier))
-    imodvSelect(a, true);
-  a->lmx = event->x();
-  a->lmy = event->y();
+  if (midDown && (modifiers & Qt::ShiftModifier))
+    imodv_light_move(a, ex, ey);
+  else if (midDown || (rightDown && (modifiers & Qt::ShiftModifier)))
+    imodv_rotate(a, ex, ey, 0, rightDown);
+  else if (rightDown && (modifiers & Qt::ControlModifier))
+    imodvSelect(a, ex, ey, true);
+  a->lmx = ex;
+  a->lmy = ey;
+  if (imodDebug('m'))
+    imodPuts(" ");
 }
 
 /*
  *  Move the light.
  */
-static void imodv_light_move(ImodvApp *a)
+static void imodv_light_move(ImodvApp *a, int mx, int my)
 {
-  int mx, my; 
-  unsigned int maskr = imodv_query_pointer(a,&mx,&my);
+  int mxp, myp; 
+  unsigned int maskr = imodv_query_pointer(a,&mxp,&myp);
 
   if ((maskr & ImodPrefs->actualModvButton(2)) && (maskr & Qt::ShiftModifier)) {
     if (firstMove) {
@@ -605,10 +623,8 @@ static void imodv_light_move(ImodvApp *a)
 
 /* model coord transformation. */
 
-static void imodv_translate(ImodvApp *a, int x, int y)
+static void imodv_translate(ImodvApp *a, int mx, int my)
 {
-  int mx, my;
-  imodv_query_pointer(a,&mx,&my);
   int dx, dy;
      
   dx = -(mx - a->lmx);
@@ -891,10 +907,11 @@ void imodvResolveRotation(Imat *mat, float x, float y, float z)
 #define MIN_SQUARE_TO_THROW 17
 #define SAME_SPEED_DISTANCE 100.
 
-static void imodv_rotate(ImodvApp *a, int throwFlag, int rightWasDown)
+static void imodv_rotate(ImodvApp *a, int mx, int my, int throwFlag, 
+                         int rightWasDown)
 {
-  int mx, my, idx = 0, idy = 0, idz = 0;
-  unsigned int maskr = imodv_query_pointer(a,&mx,&my);
+  int mxp, myp, idx = 0, idy = 0, idz = 0;
+  unsigned int maskr = imodv_query_pointer(a,&mxp,&myp);
   float dx, dy, angleScale;
 
   /* If movie on and not a Control rotation, then check the throw flag */
@@ -963,6 +980,8 @@ static void imodv_rotate(ImodvApp *a, int throwFlag, int rightWasDown)
   if ((!idx) && (!idy) && !idz)
     return;
      
+  if (imodDebug('m'))
+    imodPrintStderr("mx,y %d %d  lmx,y %d %d",  mx, my, a->lmx, a->lmy);
   imodv_rotate_model(a, idx, idy, idz);
 
   /* This is uneeded, since the rotate_model has a draw */
@@ -1156,18 +1175,16 @@ static void processHits (ImodvApp *a, GLint hits, GLuint buffer[], bool moving)
 }
 
 // For select mode, set up for picking then call draw routine
-static void imodvSelect(ImodvApp *a, bool moving)
+static void imodvSelect(ImodvApp *a, int x, int y, bool moving)
 {
 
   // 5/29/08: This was static, but why?  It stays in scope while needed.
   GLuint buf[SELECT_BUFSIZE];
   GLint hits;
-  int x, y;
   //QTime picktime;
   //picktime.start();
 
   imodv_winset(a);
-  imodv_query_pointer(a, &x, &y);
   glSelectBuffer(SELECT_BUFSIZE, buf);
 
   // Defer entering selection mode until inside the paint routine and context
@@ -1287,6 +1304,9 @@ void imodvMovieTimeout()
 /*
 
 $Log$
+Revision 4.46  2009/01/15 16:33:18  mast
+Qt 4 port
+
 Revision 4.45  2008/12/15 21:28:00  mast
 Changes to call for switching buffering
 
