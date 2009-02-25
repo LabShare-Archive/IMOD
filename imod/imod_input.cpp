@@ -1056,16 +1056,22 @@ void inputQDefaultKeys(QKeyEvent *event, ImodView *vw)
     break;
 
   case Qt::Key_PageDown:
-    if (!keypad)
+    if (!keypad && !shifted)
       inputPrevz(vw);
-    else
+    else if (!keypad && shifted) {
+      vw->zmouse = utilNextSecWithCont(vw, B3DNINT(vw->zmouse), -1);
+      imodDraw(vw, IMOD_DRAW_XYZ | IMOD_DRAW_NOSYNC);
+    } else
       handled = 0;
     break;
 
   case Qt::Key_PageUp:
-    if (!keypad)
+    if (!keypad && !shifted)
       inputNextz(vw);
-    else
+    else if (!keypad && shifted) {
+      vw->zmouse = utilNextSecWithCont(vw, B3DNINT(vw->zmouse), 1);
+      imodDraw(vw, IMOD_DRAW_XYZ | IMOD_DRAW_NOSYNC);
+    } else
       handled = 0;
     break;
 
@@ -1451,6 +1457,9 @@ bool inputTestMetaKey(QKeyEvent *event)
 
 /*
 $Log$
+Revision 4.47  2009/01/15 16:33:17  mast
+Qt 4 port
+
 Revision 4.46  2008/12/10 01:05:15  mast
 Added hot key for contour copy
 
