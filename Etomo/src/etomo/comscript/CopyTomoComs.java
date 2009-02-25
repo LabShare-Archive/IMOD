@@ -18,6 +18,10 @@
  * 
  * <p>
  * $Log$
+ * Revision 3.22  2008/10/27 17:47:34  sueh
+ * bug# 1141 Added options to setup ctf files only:  ctfFiles,
+ * sphericalAberration, and voltage.
+ *
  * Revision 3.21  2007/12/26 22:11:48  sueh
  * bug# 1052 Moved argument handling from EtomoDirector to a separate class.
  *
@@ -219,7 +223,8 @@ public final class CopyTomoComs {
 
   private final ArrayList command = new ArrayList();
   private final EtomoNumber voltage = new EtomoNumber();
-  private final EtomoNumber sphericalAberration = new EtomoNumber();
+  private final EtomoNumber sphericalAberration = new EtomoNumber(
+      EtomoNumber.Type.DOUBLE);
   private final EtomoNumber ctfFiles = new EtomoNumber();
 
   private final BaseManager manager;
@@ -258,7 +263,7 @@ public final class CopyTomoComs {
   public void setSphericalAberration(ConstEtomoNumber input) {
     sphericalAberration.set(input);
   }
-  
+
   public void setCTFFiles(CtfFilesValue ctfFilesValue) {
     ctfFiles.set(ctfFilesValue.get());
   }
@@ -621,7 +626,7 @@ public final class CopyTomoComs {
     private CtfFilesValue(int value) {
       this.value = value;
     }
-    
+
     private int get() {
       return value;
     }

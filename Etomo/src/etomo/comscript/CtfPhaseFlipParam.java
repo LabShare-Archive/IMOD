@@ -20,6 +20,11 @@ import etomo.type.StringParameter;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.2  2008/12/09 21:07:04  sueh
+ * <p> bug# 1154 Added outputFileName, for updating in the comscript only -
+ * <p> not necessary to parse from the comscript because it is always set to the
+ * <p> default.
+ * <p>
  * <p> Revision 1.1  2008/10/27 17:48:20  sueh
  * <p> bug# 1141 Parameters to update a phaseflip call.  The call is in
  * <p> ctfcorrection.com.
@@ -38,7 +43,7 @@ public final class CtfPhaseFlipParam implements ConstCtfPhaseFlipParam,
 
   private final ScriptParameter voltage = new ScriptParameter(VOLTAGE_OPTION);
   private final ScriptParameter sphericalAberration = new ScriptParameter(
-      SPHERICAL_ABERRATION_OPTION);
+      EtomoNumber.Type.DOUBLE, SPHERICAL_ABERRATION_OPTION);
   private final ScriptParameter amplitudeContrast = new ScriptParameter(
       EtomoNumber.Type.FLOAT, AMPLITUDE_CONTRAST_OPTION);
   private final StringParameter defocusFile = new StringParameter("DefocusFile");
@@ -91,7 +96,7 @@ public final class CtfPhaseFlipParam implements ConstCtfPhaseFlipParam,
   public void setVoltage(String input) {
     voltage.set(input);
   }
-  
+
   public void setOutputFileName(String input) {
     outputFileName.set(input);
   }

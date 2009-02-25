@@ -21,7 +21,10 @@ import etomo.type.StringParameter;
  * 
  * @version $Revision$
  * 
- * <p> $Log$ </p>
+ * <p> $Log$
+ * <p> Revision 1.1  2008/10/27 17:48:52  sueh
+ * <p> bug# 1141 Class to update a ctfplotter call.
+ * <p> </p>
  */
 public final class CtfPlotterParam implements ConstCtfPlotterParam,
     CommandParam {
@@ -34,7 +37,7 @@ public final class CtfPlotterParam implements ConstCtfPlotterParam,
   private final ScriptParameter voltage = new ScriptParameter(
       CtfPhaseFlipParam.VOLTAGE_OPTION);
   private final ScriptParameter sphericalAberration = new ScriptParameter(
-      CtfPhaseFlipParam.SPHERICAL_ABERRATION_OPTION);
+      EtomoNumber.Type.DOUBLE, CtfPhaseFlipParam.SPHERICAL_ABERRATION_OPTION);
   private final ScriptParameter amplitudeContrast = new ScriptParameter(
       EtomoNumber.Type.FLOAT, CtfPhaseFlipParam.AMPLITUDE_CONTRAST_OPTION);
   private final StringParameter configFile = new StringParameter(
