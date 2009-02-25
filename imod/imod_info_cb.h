@@ -4,43 +4,11 @@
  *   Copyright (C) 1995-2003 by Boulder Laboratory for 3-Dimensional Electron
  *   Microscopy of Cells ("BL3DEMC") and the Regents of the University of 
  *   Colorado.  See implementation file for full copyright notice.
+ *
+ *  $Id$
+ *  Log at end of file
  */                                                                           
 
-/*  $Author$
-
-    $Date$
-
-    $Revision$
-
-    $Log$
-    Revision 4.6  2008/03/06 00:12:46  mast
-    Changes to allow settings of float and subarea checkboxes to be saved
-
-    Revision 4.5  2004/11/07 23:02:29  mast
-    Added routine to indicate saving next clear
-
-    Revision 4.4  2004/10/22 22:15:33  mast
-    Added function to start dumping of cache after each section load
-
-    Revision 4.3  2003/09/18 05:59:08  mast
-    Added functions for autocontrast
-
-    Revision 4.2  2003/02/27 19:35:02  mast
-    Remove unneeded imod_open function
-
-    Revision 4.1  2003/02/10 20:41:55  mast
-    Merge Qt source
-
-    Revision 1.1.2.3  2003/01/27 00:30:07  mast
-    Pure Qt version and general cleanup
-
-    Revision 1.1.2.2  2003/01/23 20:04:29  mast
-    took care of orphan
-
-    Revision 1.1.2.1  2003/01/13 01:04:51  mast
-    Initial creation
-
-*/
 #ifndef IMOD_INFO_CB_H
 #define IMOD_INFO_CB_H
 
@@ -74,5 +42,40 @@ void imod_set_mmode(int mode);
 void imod_draw_window(void);
 void imod_imgcnt(const char *string);
 void imodStartAutoDumpCache();
+void imodInfoUpdateOnly(int value);
  
 #endif
+/* 
+
+$Log$
+Revision 4.7  2009/01/02 16:07:57  mast
+Change to const char for Qt4 port
+
+Revision 4.6  2008/03/06 00:12:46  mast
+Changes to allow settings of float and subarea checkboxes to be saved
+
+Revision 4.5  2004/11/07 23:02:29  mast
+Added routine to indicate saving next clear
+
+Revision 4.4  2004/10/22 22:15:33  mast
+Added function to start dumping of cache after each section load
+
+Revision 4.3  2003/09/18 05:59:08  mast
+Added functions for autocontrast
+
+Revision 4.2  2003/02/27 19:35:02  mast
+Remove unneeded imod_open function
+
+Revision 4.1  2003/02/10 20:41:55  mast
+Merge Qt source
+
+Revision 1.1.2.3  2003/01/27 00:30:07  mast
+Pure Qt version and general cleanup
+
+Revision 1.1.2.2  2003/01/23 20:04:29  mast
+took care of orphan
+
+Revision 1.1.2.1  2003/01/13 01:04:51  mast
+Initial creation
+
+*/

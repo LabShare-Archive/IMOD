@@ -51,6 +51,7 @@ static int last_subsets = 0;
 
 static int dumpCache = 0;
 static int startDump = 0;
+static int updateInfoOnly = 0;
 
 /*
  * FUNCTIONS FOR THE CONTROLS TO REPORT CHANGES
@@ -299,7 +300,9 @@ void imod_info_setocp(void)
                                      imod->cindex.contour) < -1)
     imodSelectionListClear(App->cvi);
 
-  // Update dialog boxes if they are open
+  // Update dialog boxes if they are open and not engaged in continuous draw
+  if (updateInfoOnly)
+    return;
   imod_object_edit_draw();
   imodContEditSurfShow();
   imodContEditMoveDialogUpdate();
@@ -329,6 +332,12 @@ void imod_info_setxyz(void)
   if (App->cvi->multiFileZ)
     imodImageScaleUpdate(App->cvi);
   iprocUpdate();
+}
+
+/* Set or clear flag to skip updating other dialogs */
+void imodInfoUpdateOnly(int value)
+{
+  updateInfoOnly = value;
 }
 
 // A structure to store means and SD's of areas
@@ -805,6 +814,9 @@ void imod_imgcnt(const char *string)
 
 /*
 $Log$
+Revision 4.33  2009/01/02 16:07:38  mast
+Change to const char for Qt4 port
+
 Revision 4.32  2008/12/01 15:38:52  mast
 Fix float on startup to middle Z, and set current point index better
 
