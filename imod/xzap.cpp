@@ -122,6 +122,7 @@ static void zapFlushImage(ZapStruct *zap);
 static void panelIndexAndCoord(int size, int num, int gutter, int border, 
                                int &pos, int &panelInd);
 static bool getLowHighSection(ZapStruct *zap, int &low, int &high);
+static void setDrawCurrentOnly(ZapStruct *zap, int value);
 
 static int dragRegisterSize = 10;
 
@@ -558,7 +559,8 @@ void zapPaint(ZapStruct *zap)
     return;
   }
   
-  zap->drawCurrentOnly = 0;
+  if (zap->drawCurrentOnly < 0)
+    setDrawCurrentOnly(zap, 0);
 
   /* DNM 1/29/03: no more skipping of further drawing */
   zapDrawGraphics(zap);
@@ -1152,10 +1154,15 @@ void zapKeyInput(ZapStruct *zap, QKeyEvent *event)
 
       // with regular keys, handle specially if locked
     } else if (!keypad && zap->lock == 2){
-      if (keysym == Qt::Key_PageDown)
-        zap->section--;
-      else
-        zap->section++;
+      if (shifted) {
+        zap->section = utilNextSecWithCont(vi, zap->section, 
+                                           keysym == Qt::Key_PageUp ? 1 : -1);
+      } else {
+        if (keysym == Qt::Key_PageDown)
+          zap->section--;
+        else
+          zap->section++;
+      }
       if (zap->section < 0) zap->section = 0;
       if (zap->section >= vi->zsize) 
         zap->section = vi->zsize -1;
@@ -1458,9 +1465,12 @@ void zapKeyRelease(ZapStruct *zap, QKeyEvent *event)
   setMouseTracking(zap);
   zap->qtWindow->releaseKeyboard();
   zap->gfx->releaseMouse();
+
+  // Note that unless the user truns off autorepeat on the key, there is a
+  // series of key press - release events and it does full draws
   if (zap->drawCurrentOnly) {
-    zap->drawCurrentOnly = 0;
-    zapDraw(zap);
+    setDrawCurrentOnly(zap, 0);
+    imodDraw(zap->vi, IMOD_DRAW_MOD | IMOD_DRAW_XYZ);
   }
 }
 
@@ -1657,7 +1667,7 @@ void zapMouseRelease(ZapStruct *zap, QMouseEvent *event)
     zap->vi->xmouse = imx;
     zap->vi->ymouse = imy;
     if (zap->drawCurrentOnly) {
-      zap->drawCurrentOnly = 0;
+      setDrawCurrentOnly(zap, 0);
       imodDraw(zap->vi, IMOD_DRAW_MOD | IMOD_DRAW_XYZ);
       drew = 1;
     } else
@@ -1722,7 +1732,7 @@ void zapMouseMove(ZapStruct *zap, QMouseEvent *event, bool mousePressed)
 
   cumdx = event->x() - firstmx;
   cumdy = event->y() - firstmy;
-  button2 = button2 || insertDown ? 1 : 0;
+  button2 = (button2 || insertDown) ? 1 : 0;
   /*  imodPrintStderr("mb  %d|%d|%d\n", button1, button2, button3); */
 
   if ( (button1) && (!button2) && (!button3)){
@@ -2479,7 +2489,7 @@ int zapB2Drag(ZapStruct *zap, int x, int y, int controlDown)
 
     // Set flag for drawing current contour only if at end and going forward
     if (!zap->insertmode && pt == cont->psize)
-      zap->drawCurrentOnly = 1;
+      setDrawCurrentOnly(zap, 1);
 
     // Register previous additions if the count is up or if the object or
     // contour has changed
@@ -4612,9 +4622,18 @@ static int zapPointVisable(ZapStruct *zap, Ipoint *pnt)
   return(0);
 }
 
+static void setDrawCurrentOnly(ZapStruct *zap, int value)
+{
+  zap->drawCurrentOnly = value;
+  imodInfoUpdateOnly(value);
+}
+
 /*
 
 $Log$
+Revision 4.134  2009/01/15 16:33:18  mast
+Qt 4 port
+
 Revision 4.133  2008/12/17 00:10:06  mast
 Switched trimvol statement from -yz to -rx
 
