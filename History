@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+2/24/09: In Etomo changed SphericalAberration (ctfplotter and ctfphaseflip
+parameter) a floating pointing.
+
 2/24/09: Imodinfo -c option now reports a centroid based on line segments
 rather than enclosed area for open contour objects.
 
