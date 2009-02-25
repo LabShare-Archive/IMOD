@@ -3,6 +3,9 @@ c       in parallel to a file.
 c       
 c       $Id$
 c       $Log$
+c       Revision 1.1  2009/02/16 06:23:33  mast
+c       Added to package
+c
 c       
 c
 c       !
@@ -136,12 +139,14 @@ c       writing at section izsec, nlwrite lines starting at iyline
 c
       subroutine pwOpenIfNeeded(izsec, iyline, nlwrite, ierr)
       implicit none
-      integer*4 izsec, iyline, nlwrite, ierr, nxyz(3)
+      integer*4 izsec, iyline, nlwrite, ierr, kti, nxyz(3)
       character*320 filename
       include 'parallel_write.inc'
       real*4 title(20)
+      character*80 titlech /'parallel_write: boundary lines'/
       integer*4 parWrtFindRegion
 
+      ierr = 0
       if (ifopen .ne. 0) return
       ierr = parWrtFindRegion(izsec, iyline, nlwrite, filename, izBound,
      &    iyBound)
@@ -150,6 +155,7 @@ c
       nxyz(2) = linesBound
       nxyz(3) = 2
       if (ifAllSec .ne. 0) nxyz(3) = 2 * nzpw
+      read(titlech,'(20a4)')(title(kti),kti=1,20)
       call imopen(iunBound, filename, 'new')
       call icrhdr(iunBound, nxyz, nxyz, 2, title, 0)
       call ialsiz_sam_cel(iunBound, nxpw, linesBound, nxyz(3))
