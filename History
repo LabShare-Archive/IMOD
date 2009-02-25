@@ -58,6 +58,9 @@ man page for Alterheader.
 2/15/09: Fixed geometry problems in model view object edit and object list 
 windows.
 
+2/13/09: Added a separate log window for user entries and selected excerpts from
+process logs. 
+
 2/12/09: In Etomo got rid of the exception that is added to the etomo log when
 header is used to read a file that doesn't exist.
 
