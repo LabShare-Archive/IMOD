@@ -158,7 +158,7 @@ public class BlendmontParam implements CommandParam, CommandDetails {
       etomo.util.InvalidParameterException, IOException {
     //make sure an empty string really causes sizeToOutputInXandY to be empty.
     if (sizeToOutputInXandY.equals("")) {
-      sizeToOutputInXandY="/";
+      sizeToOutputInXandY = "/";
     }
     startingAndEndingX.reset();
     startingAndEndingY.reset();
@@ -168,11 +168,11 @@ public class BlendmontParam implements CommandParam, CommandDetails {
     if ((fisSizeToOutputInXandY.isDefault() || fisSizeToOutputInXandY.isEmpty())
         && Utilities.is90DegreeImageRotation(imageRotation)) {
       Goodframe goodframe = etomo.comscript.Utilities
-      .getGoodframeFromMontageSize(axisID, manager);
-      if (goodframe!=null) {
+          .getGoodframeFromMontageSize(axisID, manager);
+      if (goodframe != null) {
         //transposing x and y
-        fisSizeToOutputInXandY.set(1,goodframe.getFirstOutput());
-        fisSizeToOutputInXandY.set(0,goodframe.getSecondOutput());
+        fisSizeToOutputInXandY.set(1, goodframe.getOutput(0));
+        fisSizeToOutputInXandY.set(0, goodframe.getOutput(1));
       }
     }
     if (fisSizeToOutputInXandY.isDefault() || fisSizeToOutputInXandY.isEmpty()) {
@@ -413,6 +413,10 @@ public class BlendmontParam implements CommandParam, CommandDetails {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.28  2008/12/15 22:57:47  sueh
+ * <p> bug# 1161 In convertToStartingAndEndingXandY handle 90 degree tilt
+ * <p> axis angles.
+ * <p>
  * <p> Revision 1.27  2007/12/13 01:03:03  sueh
  * <p> bug# 1056 Added adjustOrigin.
  * <p>

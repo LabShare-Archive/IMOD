@@ -11,6 +11,9 @@
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.31  2009/02/13 02:13:00  sueh
+ * <p> bug# 1176 Checking return value of MRCHeader.read.
+ * <p>
  * <p> Revision 3.30  2008/12/15 23:01:08  sueh
  * <p> bug# 1161 In setFullImage, setMontageFullImage, setMontageSubsetStart,
  * <p> and setSubsetStart handle 90 degree tilt axis angles.
@@ -1086,12 +1089,12 @@ public final class TiltParam implements ConstTiltParam, CommandParam {
         if (etomo.comscript.Utilities.is90DegreeImageRotation(manager
             .getConstMetaData().getImageRotation(axisID))) {
           //transpose x and y
-          goodframeX = goodframe.getSecondOutput().getInt();
-          goodframeY = goodframe.getFirstOutput().getInt();
+          goodframeX = goodframe.getOutput(1).getInt();
+          goodframeY = goodframe.getOutput(0).getInt();
         }
         else {
-          goodframeX = goodframe.getFirstOutput().getInt();
-          goodframeY = goodframe.getSecondOutput().getInt();
+          goodframeX = goodframe.getOutput(0).getInt();
+          goodframeY = goodframe.getOutput(1).getInt();
         }
         idxXSubsetStart = (int) ((goodframeX - header.getNColumns()
             * setImageBinned().getLong()) / 2);
@@ -1176,12 +1179,12 @@ public final class TiltParam implements ConstTiltParam, CommandParam {
     if (goodframe != null) {
       if (etomo.comscript.Utilities.is90DegreeImageRotation(manager
           .getConstMetaData().getImageRotation(axisID))) {
-        fullImageX = goodframe.getSecondOutput().getInt();
-        fullImageY = goodframe.getFirstOutput().getInt();
+        fullImageX = goodframe.getOutput(1).getInt();
+        fullImageY = goodframe.getOutput(0).getInt();
       }
       else {
-        fullImageX = goodframe.getFirstOutput().getInt();
-        fullImageY = goodframe.getSecondOutput().getInt();
+        fullImageX = goodframe.getOutput(0).getInt();
+        fullImageY = goodframe.getOutput(1).getInt();
       }
     }
   }
