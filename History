@@ -1,5 +1,10 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+2/26/09: In Etomo - Generic Parallel Process allowing comscript names with more
+digits.
+
+2/26/09: In Etomo - PEET added an error check for szVol.
+
 2/24/09: IMOD_4-0-5
 2/24/09: Added Shift-PageUp and PageDown to move to next or previous Z with
 contours in the current object.
