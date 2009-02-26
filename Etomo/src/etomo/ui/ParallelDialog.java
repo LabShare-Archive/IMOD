@@ -145,7 +145,7 @@ public final class ParallelDialog implements AbstractParallelDialog {
       try {
         String comFileName = chunkComscript.getName();
         ltfProcessName.setText(comFileName.substring(0, comFileName
-            .lastIndexOf("-001")));
+            .lastIndexOf("-0")));
         workingDir = chunkComscript.getParentFile();
       }
       catch (Exception e) {
@@ -188,6 +188,9 @@ public final class ParallelDialog implements AbstractParallelDialog {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.21  2009/01/20 20:18:28  sueh
+ * <p> bug# 1102 Changing the icon button to a simple button and naming it.
+ * <p>
  * <p> Revision 1.20  2008/09/30 22:01:14  sueh
  * <p> bug# 1113 Using a private constructor in SpacedPanel.
  * <p>
