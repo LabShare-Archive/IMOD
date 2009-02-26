@@ -3,21 +3,22 @@ package etomo.storage;
 import java.io.File;
 
 /**
-* <p>Description: </p>
-* 
-* <p>Copyright: Copyright (c) 2006</p>
-*
-* <p>Organization:
-* Boulder Laboratory for 3-Dimensional Electron Microscopy of Cells (BL3DEMC),
-* University of Colorado</p>
-* 
-* @author $Author$
-* 
-* @version $Revision$
-*/
-public class ChunkComscriptFileFilter extends javax.swing.filechooser.FileFilter implements java.io.FileFilter {
-  public static  final String  rcsid =  "$Id$";
-  
+ * <p>Description: </p>
+ * 
+ * <p>Copyright: Copyright (c) 2006</p>
+ *
+ * <p>Organization:
+ * Boulder Laboratory for 3-Dimensional Electron Microscopy of Cells (BL3DEMC),
+ * University of Colorado</p>
+ * 
+ * @author $Author$
+ * 
+ * @version $Revision$
+ */
+public class ChunkComscriptFileFilter extends
+    javax.swing.filechooser.FileFilter implements java.io.FileFilter {
+  public static final String rcsid = "$Id$";
+
   /**
    * returns true if a file is a chunk com file
    * File must be in the form:  {rootname}-*.com
@@ -27,8 +28,10 @@ public class ChunkComscriptFileFilter extends javax.swing.filechooser.FileFilter
     if (file.isDirectory()) {
       return true;
     }
-    if (!file.getName().endsWith("-001.com") && 
-        !file.getName().endsWith("-001-sync.com")) {
+    //only match -001.com or -001-sync.com.  At least one 0 is required.  Any
+    //number of 0s is valid.
+    if (!file.getName().matches("\\S+-0+1.com")
+        && !file.getName().matches("\\S+-0+1-sync.com")) {
       return false;
     }
     return true;
@@ -39,12 +42,15 @@ public class ChunkComscriptFileFilter extends javax.swing.filechooser.FileFilter
   }
 }
 /**
-* <p> $Log$
-* <p> Revision 1.2  2006/04/06 20:51:32  sueh
-* <p> bug# 840 Only pick the first chunk .com file, since it always has to be
-* <p> there.
-* <p>
-* <p> Revision 1.1  2006/03/20 17:52:58  sueh
-* <p> bug# 835 A file filter for parallel processing .com scripts.
-* <p> </p>
-*/
+ * <p> $Log$
+ * <p> Revision 1.3  2007/08/10 16:56:01  mast
+ * <p> The first chunk may be a sync file, so filter for -001-sync.com
+ * <p>
+ * <p> Revision 1.2  2006/04/06 20:51:32  sueh
+ * <p> bug# 840 Only pick the first chunk .com file, since it always has to be
+ * <p> there.
+ * <p>
+ * <p> Revision 1.1  2006/03/20 17:52:58  sueh
+ * <p> bug# 835 A file filter for parallel processing .com scripts.
+ * <p> </p>
+ */
