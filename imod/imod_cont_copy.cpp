@@ -259,6 +259,7 @@ ContourCopy::ContourCopy(QWidget *parent, const char *name)
   mToSpinBox = new QSpinBox(this);
   hBox->addWidget(mToSpinBox);
   mToSpinBox->setFocusPolicy(Qt::ClickFocus);
+  mToSpinBox->setKeyboardTracking(false);
   mToSpinBox->setToolTip("Set object, section, or time");
   connect(mToSpinBox, SIGNAL(valueChanged(int)), this, 
           SLOT(toValueChanged(int)));
@@ -597,6 +598,9 @@ void ContourCopy::keyReleaseEvent ( QKeyEvent * e )
 /*
 
 $Log$
+Revision 4.18  2009/01/15 16:33:17  mast
+Qt 4 port
+
 Revision 4.17  2008/12/10 01:05:15  mast
 Added hot key for contour copy
 

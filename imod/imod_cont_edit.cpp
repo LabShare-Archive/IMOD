@@ -1373,6 +1373,7 @@ ContourMove::ContourMove(QWidget *parent, const char *name)
   mObjSpinBox = new QSpinBox(this);
   layout->addWidget(mObjSpinBox);
   mObjSpinBox->setFocusPolicy(Qt::ClickFocus);
+  mObjSpinBox->setKeyboardTracking(false);
   mObjSpinBox->setToolTip
     ("Select object or surface to move current contour to");
   connect(mObjSpinBox, SIGNAL(valueChanged(int)), this, 
@@ -1868,6 +1869,9 @@ void ContourFrame::keyReleaseEvent ( QKeyEvent * e )
 /*
 
 $Log$
+Revision 4.34  2009/01/15 16:33:17  mast
+Qt 4 port
+
 Revision 4.33  2008/09/23 15:13:44  mast
 Added mouse wheel scrolling of point size
 

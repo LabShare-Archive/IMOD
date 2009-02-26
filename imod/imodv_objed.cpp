@@ -1010,6 +1010,7 @@ static void mkPoints_cb(int index)
   wPointSizeBox->setRange(0, 255);
   wPointSizeBox->setSingleStep(1);
   wPointSizeBox->setFocusPolicy(Qt::ClickFocus);
+  wPointSizeBox->setKeyboardTracking(false);
   grid->addWidget(label, 1, 1);
   grid->addWidget(wPointSizeBox, 1, 2);
   label = new QLabel("Object Quality", oef->control);
@@ -1017,6 +1018,7 @@ static void mkPoints_cb(int index)
   wPointQualityBox->setRange(1, 4);
   wPointQualityBox->setSingleStep(1);
   wPointQualityBox->setFocusPolicy(Qt::ClickFocus);
+  wPointQualityBox->setKeyboardTracking(false);
   grid->addWidget(label, 2, 1);
   grid->addWidget(wPointQualityBox, 2, 2);
   label = new QLabel("Global Quality", oef->control);
@@ -1024,6 +1026,7 @@ static void mkPoints_cb(int index)
   wGlobalQualityBox->setFocusPolicy(Qt::ClickFocus);
   wGlobalQualityBox->setRange(1, 4);
   wGlobalQualityBox->setSingleStep(1);
+  wGlobalQualityBox->setKeyboardTracking(false);
   grid->addWidget(label, 3, 1);
   grid->addWidget(wGlobalQualityBox, 3, 2);
   wPointSizeBox->setToolTip("Set radius of sphere to draw at each point"
@@ -2555,6 +2558,9 @@ static QVBoxLayout *outerVBoxLayout(QWidget *parent)
 /*
 
 $Log$
+Revision 4.44  2009/02/02 13:32:10  mast
+Synchronize on/off checkboxes when turn object on from meshing
+
 Revision 4.43  2009/01/15 16:33:18  mast
 Qt 4 port
 
