@@ -39,6 +39,8 @@ import etomo.type.EtomoAutodoc;
 import etomo.type.PeetMetaData;
 import etomo.type.PeetScreenState;
 import etomo.type.Run3dmodMenuOptions;
+import etomo.util.Goodframe;
+import etomo.util.InvalidParameterException;
 
 /**
  * <p>Description: </p>
@@ -54,6 +56,9 @@ import etomo.type.Run3dmodMenuOptions;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.71  2009/02/06 03:11:57  sueh
+ * <p> bug# 1168 Adding most error checking to validateRun.
+ * <p>
  * <p> Revision 1.70  2009/02/04 23:36:48  sueh
  * <p> bug# 1158 Changed id and exception classes in LogFile.
  * <p>
@@ -317,6 +322,10 @@ public final class PeetDialog implements ContextMenu, AbstractParallelDialog,
   private static final String SAMPLE_SPHERE_FULL_LABEL = "Full sphere";
   private static final String SAMPLE_SPHERE_HALF_LABEL = "Half sphere";
   private static final String SAMPLE_INTERVAL_LABEL = "Sample interval";
+  private static final String PARTICLE_VOLUME_LABEL = "Particle volume";
+  private static final String X_LABEL = "X";
+  private static final String Y_LABEL = "Y";
+  private static final String Z_LABEL = "Z";
 
   private final EtomoPanel rootPanel = new EtomoPanel();
   private final FileTextField ftfDirectory = new FileTextField(DIRECTORY_LABEL
@@ -331,9 +340,11 @@ public final class PeetDialog implements ContextMenu, AbstractParallelDialog,
   private final FileTextField ftfReferenceFile = FileTextField
       .getUnlabeledInstance(REFERENCE_FILE_LABEL);
   private final LabeledTextField ltfSzVolX = new LabeledTextField(
-      "Particle volume X: ");
-  private final LabeledTextField ltfSzVolY = new LabeledTextField("Y: ");
-  private final LabeledTextField ltfSzVolZ = new LabeledTextField("Z: ");
+      PARTICLE_VOLUME_LABEL + " " + X_LABEL + ": ");
+  private final LabeledTextField ltfSzVolY = new LabeledTextField(Y_LABEL
+      + ": ");
+  private final LabeledTextField ltfSzVolZ = new LabeledTextField(Z_LABEL
+      + ": ");
   private final LabeledTextField ltfEdgeShift = new LabeledTextField(
       "Edge shift: ");
   private final CheckBox cbFlgMeanFill = new CheckBox("Mean fill");
@@ -1440,7 +1451,55 @@ public final class PeetDialog implements ContextMenu, AbstractParallelDialog,
           + " is selected.", "Entry Error");
       return false;
     }
-    return iterationTable.validateRun();
+    if (!iterationTable.validateRun()) {
+      return false;
+    }
+    Goodframe goodframe = new Goodframe(manager.getPropertyUserDir(),
+        AxisID.FIRST);
+    try {
+      goodframe.run(new String[] { ltfSzVolX.getText(), ltfSzVolY.getText(),
+          ltfSzVolZ.getText() });
+      if (!goodframe.getOutput(0).equals(ltfSzVolX.getText())) {
+        UIHarness.INSTANCE.openMessageDialog("In " + PARTICLE_VOLUME_LABEL
+            + ", " + X_LABEL + " is invalid.  Try " + goodframe.getOutput(0)
+            + ".", "Entry Error");
+        return false;
+      }
+      if (!goodframe.getOutput(1).equals(ltfSzVolY.getText())) {
+        UIHarness.INSTANCE.openMessageDialog("In " + PARTICLE_VOLUME_LABEL
+            + ", " + Y_LABEL + " is invalid.  Try " + goodframe.getOutput(1)
+            + ".", "Entry Error");
+        return false;
+      }
+      if (!goodframe.getOutput(2).equals(ltfSzVolZ.getText())) {
+        UIHarness.INSTANCE.openMessageDialog("In " + PARTICLE_VOLUME_LABEL
+            + ", " + Z_LABEL + " is invalid.  Try " + goodframe.getOutput(2)
+            + ".", "Entry Error");
+        return false;
+      }
+    }
+    catch (IOException e) {
+      if (!UIHarness.INSTANCE.openYesNoDialog("Unable to validate "
+          + PARTICLE_VOLUME_LABEL + ".  Continue?\n\n" + e.getMessage(),
+          AxisID.ONLY)) {
+        return false;
+      }
+    }
+    catch (InvalidParameterException e) {
+      if (!UIHarness.INSTANCE.openYesNoDialog("Unable to validate "
+          + PARTICLE_VOLUME_LABEL + ".  Continue?\n\n" + e.getMessage(),
+          AxisID.ONLY)) {
+        return false;
+      }
+    }
+    catch (NumberFormatException e) {
+      if (!UIHarness.INSTANCE.openYesNoDialog("Unable to validate "
+          + PARTICLE_VOLUME_LABEL + ".  Continue?\n\n" + e.getMessage(),
+          AxisID.ONLY)) {
+        return false;
+      }
+    }
+    return true;
   }
 
   /**
