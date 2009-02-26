@@ -315,6 +315,7 @@ SlicerWindow::SlicerWindow(SlicerStruct *slicer, float maxAngles[],
   mImageBox->setRange(1,1000);
   mImageBox->setSingleStep(1);
   mImageBox->setFocusPolicy(Qt::ClickFocus);
+  mImageBox->setKeyboardTracking(false);
   mImageBox->setMaximumWidth((int)(labelSize.width() * 1.5));
   connect(mImageBox, SIGNAL(valueChanged(int)), this, 
 	  SLOT(imageThicknessChanged(int)));
@@ -1503,6 +1504,9 @@ static void fillArraySegment(int jstart, int jlimit)
 /*
 
 $Log$
+Revision 4.31  2009/01/24 01:04:49  mast
+Turn of keyboard tracking on spin boxes
+
 Revision 4.30  2009/01/16 18:27:03  mast
 Commented out debug output on the angle bar break
 
