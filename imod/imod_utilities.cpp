@@ -255,6 +255,7 @@ QAction *utilTBArrowButton(Qt::ArrowType type, QWidget *parent,
   *arrow = new ArrowButton(type, parent);
   action = toolBar->addWidget(*arrow);
   (*arrow)->setAutoRaise(TB_AUTO_RAISE);
+  (*arrow)->setFocusPolicy(Qt::NoFocus);
   (*arrow)->setFixedSize(TOOLBUT_SIZE, TOOLBUT_SIZE);
   if (toolTip)
     (*arrow)->setToolTip(toolTip);
@@ -557,6 +558,9 @@ int imodColorValue(int inColor)
 /*
 
 $Log$
+Revision 1.8  2009/02/25 05:35:53  mast
+Add function for getting next/prev Z with contours
+
 Revision 1.7  2009/02/05 05:23:44  tempuser
 Change stipple to start with on bit instead of off bit to see dense lines
 
