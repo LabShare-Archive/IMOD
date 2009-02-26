@@ -137,6 +137,7 @@ ImodPreferences::ImodPreferences(char *cmdLineStyle)
   prefs->autoConAtStartDflt = 1;
   prefs->attachToOnObjDflt = true;
   prefs->bwStepDflt = 3;
+  prefs->pageStepDflt = 10;
   prefs->iconifyImodvDlgDflt = 1;
   prefs->iconifyImodDlgDflt = 1;
   prefs->iconifyImageWinDflt = 0;
@@ -189,6 +190,7 @@ ImodPreferences::ImodPreferences(char *cmdLineStyle)
   READBOOL(attachToOnObj);
 
   READNUM(bwStep);
+  READNUM(pageStep);
   READBOOL(iconifyImodvDlg);
   READBOOL(iconifyImodDlg);
   READBOOL(iconifyImageWin);
@@ -485,6 +487,7 @@ void ImodPreferences::saveSettings(int modvAlone)
   WRITE_IF_CHANGED(startAtMidZ);
   WRITE_IF_CHANGED(attachToOnObj);
   WRITE_IF_CHANGED(bwStep);
+  WRITE_IF_CHANGED(pageStep);
   WRITE_IF_CHANGED(iconifyImodvDlg);
   WRITE_IF_CHANGED(iconifyImodDlg);
   WRITE_IF_CHANGED(iconifyImageWin);
@@ -624,6 +627,7 @@ void ImodPreferences::donePressed()
   curp->fontChgd |= newp->font != oldp->font;
   curp->styleChgd |= newp->styleKey.toLower() != oldp->styleKey.toLower();
   curp->bwStepChgd |= newp->bwStep != oldp->bwStep;
+  curp->pageStepChgd |= newp->pageStep != oldp->pageStep;
   curp->iconifyImodvDlgChgd |= !equiv(newp->iconifyImodvDlg, 
                                      oldp->iconifyImodvDlg);
   curp->iconifyImodDlgChgd |= !equiv(newp->iconifyImodDlg, 
@@ -733,6 +737,7 @@ void ImodPreferences::defaultPressed()
     prefs->startAtMidZ = prefs->startAtMidZDflt;
     prefs->attachToOnObj = prefs->attachToOnObjDflt;
     prefs->bwStep = prefs->bwStepDflt;
+    prefs->pageStep = prefs->pageStepDflt;
     prefs->iconifyImodvDlg = prefs->iconifyImodvDlgDflt;
     prefs->iconifyImodDlg = prefs->iconifyImodDlgDflt;
     prefs->iconifyImageWin = prefs->iconifyImageWinDflt;
@@ -1189,6 +1194,9 @@ void PrefsDialog::closeEvent ( QCloseEvent * e )
 
 /*
 $Log$
+Revision 1.40  2009/01/17 05:06:24  mast
+Replace default library path, add IMOD_DIR/lib/imodplug for safety
+
 Revision 1.39  2009/01/17 00:07:14  mast
 Eliminate TIFF and duplicate JPG formats
 

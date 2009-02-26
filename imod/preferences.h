@@ -70,6 +70,7 @@ typedef struct imod_pref_struct
   QString styleKey;        // Style
   bool styleChgd;
   TRIPLET(int, bwStep);              // Step size for F1-F8 keys
+  TRIPLET(int, pageStep);            // Step size for paging with keypad /,*
   TRIPLET(bool, iconifyImodvDlg);    // Iconify imodv dialogs with imodv window
   TRIPLET(bool, iconifyImodDlg);    // Iconify imod dialogs with info window
   TRIPLET(bool, iconifyImageWin);   // Iconify image windows with info window
@@ -123,6 +124,7 @@ class ImodPreferences : public QObject
   void editPrefs();
   double *getZooms() {return &mCurrentPrefs.zooms[0];};
   int getBwStep() {return mCurrentPrefs.bwStep;};
+  int getPageStep() {return mCurrentPrefs.pageStep;};
   int iconifyImodvDlg() {return mCurrentPrefs.iconifyImodvDlg;};
   int iconifyImodDlg() {return mCurrentPrefs.iconifyImodDlg;};
   int iconifyImageWin() {return mCurrentPrefs.iconifyImageWin;};
@@ -210,6 +212,9 @@ extern ImodPreferences *ImodPrefs;
 
 /*
 $Log$
+Revision 1.21  2009/01/15 16:33:18  mast
+Qt 4 port
+
 Revision 1.20  2008/12/10 01:04:22  mast
 Added function to set JPEG quality
 

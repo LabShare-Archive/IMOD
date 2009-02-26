@@ -196,19 +196,19 @@ void inputModifyPoint(ImodView *vw)
 
 /* DNM 7/29/03: make correct nearest int tests for zmouse to avoid going 
    outside legal limits */
-void inputNextz(ImodView *vw)
+void inputNextz(ImodView *vw, int step)
 {
-  if ((int)(vw->zmouse + 0.5) < (vw->zsize - 1)){
-    vw->zmouse += 1.0;
+  if (B3DNINT(vw->zmouse) < (vw->zsize - 1)){
+    vw->zmouse = B3DMIN(vw->zmouse + step, vw->zsize - 1);
     imodDraw(vw, IMOD_DRAW_XYZ | IMOD_DRAW_NOSYNC);
   }
   return;
 }
 
-void inputPrevz(ImodView *vw)
+void inputPrevz(ImodView *vw, int step)
 {
-  if ((int)floor(vw->zmouse + 0.5) > 0){
-    vw->zmouse -= 1.0;
+  if (B3DNINT(vw->zmouse) > 0){
+    vw->zmouse = B3DMAX(vw->zmouse - step, 0);
     imodDraw(vw, IMOD_DRAW_XYZ | IMOD_DRAW_NOSYNC);
   }
   return;
@@ -1075,6 +1075,20 @@ void inputQDefaultKeys(QKeyEvent *event, ImodView *vw)
       handled = 0;
     break;
 
+  case Qt::Key_Slash:
+    if (keypad)
+      inputPrevz(vw, ImodPrefs->getPageStep());
+    else
+      handled = 0;
+    break;
+
+  case Qt::Key_Asterisk:
+    if (keypad)
+      inputNextz(vw, ImodPrefs->getPageStep());
+    else
+      handled = 0;
+    break;
+
   case Qt::Key_Up:
     if (!keypad)
       inputNexty(vw);
@@ -1457,6 +1471,9 @@ bool inputTestMetaKey(QKeyEvent *event)
 
 /*
 $Log$
+Revision 4.48  2009/02/25 05:35:29  mast
+Add shift-Page commands
+
 Revision 4.47  2009/01/15 16:33:17  mast
 Qt 4 port
 

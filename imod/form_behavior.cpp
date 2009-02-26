@@ -78,6 +78,7 @@ void BehaviorForm::update()
   autoConAtStartBox->setCurrentIndex(mPrefs->autoConAtStart);
   diaSetChecked(geomCheckBox, mPrefs->rememberGeom);
   diaSetSpinBox(f1f8StepSpinBox, mPrefs->bwStep);
+  diaSetSpinBox(pageStepSpinBox, mPrefs->pageStep);
   diaSetChecked(autosaveEnabledBox, mPrefs->autosaveOn);
   diaSetSpinBox(autosaveSpinBox, mPrefs->autosaveInterval);
   autosaveDirEdit->setText(QDir::convertSeparators(mPrefs->autosaveDir));
@@ -106,6 +107,7 @@ void BehaviorForm::unload()
   mPrefs->autoConAtStart = autoConAtStartBox->currentIndex();
   mPrefs->rememberGeom = geomCheckBox->isChecked();
   mPrefs->bwStep = f1f8StepSpinBox->value();
+  mPrefs->pageStep = pageStepSpinBox->value();
   mPrefs->autosaveOn = autosaveEnabledBox->isChecked();
   mPrefs->autosaveInterval = autosaveSpinBox->value();
   mPrefs->iconifyImageWin = imageIconifyBox->isChecked();
@@ -127,5 +129,8 @@ void BehaviorForm::toolTipsToggled( bool state )
 /*
 
 $Log$
+Revision 4.1  2009/01/15 16:33:17  mast
+Qt 4 port
+
 
 */

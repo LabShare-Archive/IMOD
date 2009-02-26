@@ -25,8 +25,8 @@ void inputQDefaultKeys(QKeyEvent *event, ImodView *vw);
 void inputDeletePoint(ImodView *vw);
 void inputInsertPoint(ImodView *vw);
 void inputModifyPoint(ImodView *vw);
-void inputNextz(ImodView *vw);
-void inputPrevz(ImodView *vw);
+void inputNextz(ImodView *vw, int step = 1);
+void inputPrevz(ImodView *vw, int step = 1);
 void inputNexty(ImodView *vw);
 void inputPrevy(ImodView *vw);
 void inputNextx(ImodView *vw);
@@ -72,6 +72,9 @@ int mouse_in_box(int llx, int lly, int urx, int  ury, int mousex, int mousey);
 #endif /* imod_input.h */
 /*
   $Log$
+  Revision 3.14  2009/01/15 16:33:17  mast
+  Qt 4 port
+
   Revision 3.13  2008/12/01 15:37:42  mast
   Change in current point restoring function
 
