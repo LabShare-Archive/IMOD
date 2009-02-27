@@ -779,6 +779,7 @@ int main( int argc, char *argv[])
 
   /* Get the clipboard messaging object on heap (doesn't work on stack!) */
   ClipHandler = new ImodClipboard(useStdin);
+  App->listening = (print_wid ? 1 : 0) + (useStdin ? 2 : 0);
 
   /********************************************/
   /* Load in image data, set up image buffer. */
@@ -963,6 +964,9 @@ bool imodDebug(char key)
 /*
 
 $Log$
+Revision 4.70  2009/01/15 16:33:17  mast
+Qt 4 port
+
 Revision 4.69  2008/12/04 06:50:58  mast
 Turn model on when loading
 
