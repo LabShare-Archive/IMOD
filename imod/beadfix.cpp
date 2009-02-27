@@ -2369,6 +2369,9 @@ void BeadFixer::alignExited(int exitCode, QProcess::ExitStatus exitStatus)
   else if (exitCode)
     wprint("\aError (return code %d) running tiltalign.\n", exitCode);
 
+  if (exitStatus == QProcess::NormalExit && App->listening)
+    imodPrintStderr("Tiltalign ran with exit code %d\n", exitCode);
+
   delete mAlignProcess;
   mRunningAlign = false;
 
@@ -2500,6 +2503,9 @@ void BeadFixer::keyReleaseEvent ( QKeyEvent * e )
 /*
 
 $Log$
+Revision 1.55  2009/01/22 02:52:11  mast
+stopped fixed width for overlay box
+
 Revision 1.54  2009/01/16 06:07:33  mast
 Fixed size problem, stopped it from deleting current contour with ones below
 threshold
