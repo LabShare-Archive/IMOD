@@ -4,8 +4,6 @@ import java.awt.Color;
 
 import javax.swing.plaf.ColorUIResource;
 
-import etomo.util.Utilities;
-
 /**
  * <p>Description: </p>
  * 
@@ -20,6 +18,9 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.8  2007/04/02 21:47:43  sueh
+ * <p> bug# 964 Added CELL_DISABLED_FOREGROUND.
+ * <p>
  * <p> Revision 1.7  2007/03/27 19:30:49  sueh
  * <p> bug# 964 Changed InputCell.setEnabled() to setEditable.
  * <p>
@@ -58,12 +59,13 @@ public final class Colors {
       255, 255);
   static final ColorUIResource FOREGROUND = new ColorUIResource(0, 0, 0);
 
-  static final int java1_5Change = 17;//half the difference between 1.4 color and 1.5 color
-
-  private static final ColorUIResource BACKGROUND_GREYOUT = new ColorUIResource(25,
-      25, 25);
-  static final ColorUIResource CELL_DISABLED_FOREGROUND = new ColorUIResource(120,
-      120, 120);
+  private static final ColorUIResource BACKGROUND_GREYOUT = new ColorUIResource(
+      25, 25, 25);
+  static final ColorUIResource CELL_DISABLED_FOREGROUND = new ColorUIResource(
+      120, 120, 120);
+  static final Color AVAILABLE_BACKGROUND = new ColorUIResource(224, 240, 255);
+  static final Color AVAILABLE_BORDER = new ColorUIResource(153, 204, 255);
+  private static final int BACKGROUND_ADJUSTMENT = 20;
 
   private static Color backgroundA = null;
   private static Color backgroundB = null;
@@ -77,46 +79,37 @@ public final class Colors {
 
   static Color getBackgroundA() {
     if (backgroundA == null) {
-      backgroundA = getBackground(153, 179, 204);//saphire
+      backgroundA = new Color(153+BACKGROUND_ADJUSTMENT, 179+BACKGROUND_ADJUSTMENT,204+BACKGROUND_ADJUSTMENT);//saphire
     }
     return backgroundA;
   }
 
   static Color getBackgroundB() {
     if (backgroundB == null) {
-      backgroundB = getBackground(153, 204, 179);//jade
+      backgroundB = new Color(153+BACKGROUND_ADJUSTMENT, 204+BACKGROUND_ADJUSTMENT, 179+BACKGROUND_ADJUSTMENT);//jade
     }
     return backgroundB;
   }
 
   static Color getBackgroundJoin() {
     if (backgroundJoin == null) {
-      backgroundJoin = getBackground(179, 153, 204);//violet
+      backgroundJoin = new Color(179+BACKGROUND_ADJUSTMENT, 153+BACKGROUND_ADJUSTMENT, 204+BACKGROUND_ADJUSTMENT);//violet
     }
     return backgroundJoin;
   }
 
   static Color getBackgroundParallel() {
     if (backgroundParallel == null) {
-      backgroundParallel = getBackground(166, 204, 153);//lime
+      backgroundParallel = new Color(166+BACKGROUND_ADJUSTMENT, 204+BACKGROUND_ADJUSTMENT, 153+BACKGROUND_ADJUSTMENT);//lime
     }
     return backgroundParallel;
   }
 
   static Color getBackgroundPeet() {
     if (backgroundPeet == null) {
-      backgroundPeet = getBackground(166, 153, 204);//purple
+      backgroundPeet = new Color(166+BACKGROUND_ADJUSTMENT, 153+BACKGROUND_ADJUSTMENT, 204+BACKGROUND_ADJUSTMENT);//purple
     }
     return backgroundPeet;
-  }
-
-  private static Color getBackground(final int r, final int g, final int b) {
-    int change = 0;
-    if (Utilities.isJava1_5()) {
-      change = java1_5Change;
-    }
-    Color background = new Color(r + change, g + change, b + change);
-    return background;
   }
 
   static ColorUIResource getCellNotEditableBackground() {
@@ -155,7 +148,7 @@ public final class Colors {
         .getGreen()
         - subtractColor.getGreen(), color.getBlue() - subtractColor.getBlue());
   }
-  
+
   private static ColorUIResource addColor(Color color, Color subtractColor) {
     return new ColorUIResource(color.getRed() + subtractColor.getRed(), color
         .getGreen()
@@ -164,6 +157,9 @@ public final class Colors {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.8  2007/04/02 21:47:43  sueh
+ * <p> bug# 964 Added CELL_DISABLED_FOREGROUND.
+ * <p>
  * <p> Revision 1.7  2007/03/27 19:30:49  sueh
  * <p> bug# 964 Changed InputCell.setEnabled() to setEditable.
  * <p>
