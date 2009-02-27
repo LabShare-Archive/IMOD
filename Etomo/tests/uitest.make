@@ -1,21 +1,18 @@
-all:	test build
-
-test:	test-dual test-single
-
-build:	build-dual build-single
-
-build-fidless:	build-dual-fidless
-
-test-dual:
-	which uitest
-	uitest dual
-test-single:
+single:
 	uitest single
-build-dual:
-	uitest build-dual
-build-single:
-	uitest build-single
-build-dual-fidless:
-	uitest build-dual-fidless
-build-dual-montage:
-	uitest build-dual-montage
+dual:
+	uitest dual
+join:
+	uitest join
+single-montage:
+	uitest single-montage
+dual-montage:
+	uitest dual-montage
+join-test-processes:
+	uitest join-test-processes
+single-test-gui:
+	uitest single-test-gui
+dual-test-gui:
+	uitest dual-test-gui
+single-fidless:
+	uitest single-fidless
