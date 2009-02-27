@@ -1,6 +1,7 @@
 package etomo.ui;
 
 import javax.swing.AbstractButton;
+import javax.swing.BorderFactory;
 import javax.swing.Icon;
 import javax.swing.JButton;
 import javax.swing.JToggleButton;
@@ -44,6 +45,9 @@ import java.lang.String;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.37  2009/01/20 20:15:58  sueh
+ * <p> bug# 1102 Changed UITestField to UITestFieldType.
+ * <p>
  * <p> Revision 3.36  2008/11/20 01:46:26  sueh
  * <p> bug# 1147 Added isVisible.
  * <p>
@@ -243,6 +247,14 @@ class MultiLineButton implements ProcessResultDisplay {
     }
     init();
     processResultDisplayState = new ProcessResultDisplayState(this);
+    String text = button.getText();
+    if (EtomoDirector.INSTANCE.getArguments().isNewstuff()) {
+      if (text.indexOf("View Raw Image Stack") == -1
+          && text.indexOf("Cancel") == -1) {
+        button.setBorder(BorderFactory.createBevelBorder(0,
+            Colors.AVAILABLE_BORDER, Colors.AVAILABLE_BORDER));
+      }
+    }
   }
 
   void setHighlight(boolean highlight) {
@@ -324,7 +336,7 @@ class MultiLineButton implements ProcessResultDisplay {
   final void setManualName() {
     manualName = true;
   }
-  
+
   void setIcon(Icon icon) {
     button.setIcon(icon);
   }
