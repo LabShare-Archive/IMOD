@@ -1,9 +1,14 @@
-IMOD History
+OBIMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 2/26/09: In Etomo - Generic Parallel Process allowing comscript names with more
 digits.
 
 2/26/09: In Etomo - PEET added an error check for szVol.
+
+2/25/09: Turned off keyboard tracking for remaining spin boxes.
+
+2/25/09: Added keyboard / and * to page up/down in big steps, step size
+settable in Options.
 
 2/24/09: IMOD_4-0-5
 2/24/09: Added Shift-PageUp and PageDown to move to next or previous Z with
