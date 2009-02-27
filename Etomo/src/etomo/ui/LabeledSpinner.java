@@ -12,6 +12,10 @@
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.23  2009/01/20 20:12:07  sueh
+ * <p> bug# 1102 Changed UITestField to UITestFieldType.  Simplified the name
+ * <p> by removing the expanded state portion.
+ * <p>
  * <p> Revision 1.22  2008/05/30 22:32:01  sueh
  * <p> bug# 1102 Isolating the etomo.uitest package so it is not need for
  * <p> running EtomoDirector.
@@ -123,7 +127,7 @@ public class LabeledSpinner {
   private final JPanel panel = new JPanel();
   private final JLabel label = new JLabel();
   private final JSpinner spinner = new JSpinner();
-  
+
   private SpinnerNumberModel model;
 
   /**
@@ -156,14 +160,18 @@ public class LabeledSpinner {
       maxSize.setSize(maxSize.getWidth(), 2 * spinner.getFont().getSize());
     }
     spinner.setMaximumSize(maxSize);
+    if (EtomoDirector.INSTANCE.getArguments().isNewstuff()) {
+      label.setBackground(Colors.AVAILABLE_BACKGROUND);
+      panel.setBackground(Colors.AVAILABLE_BACKGROUND);
+    }
   }
-  
+
   void setMax(int max) {
     model.setMaximum(new Integer(max));
   }
 
   public void setModel(SpinnerNumberModel model) {
-    this.model =model;
+    this.model = model;
     spinner.setModel(model);
   }
 
@@ -213,7 +221,7 @@ public class LabeledSpinner {
       textField.setBackground(Colors.BACKGROUND);
     }
   }
-  
+
   private final JFormattedTextField getTextField() {
     return ((JSpinner.DefaultEditor) spinner.getEditor()).getTextField();
   }
@@ -259,7 +267,7 @@ public class LabeledSpinner {
   }
 
   public void setToolTipText(String text) {
-    String tooltip=TooltipFormatter.INSTANCE.format(text);
+    String tooltip = TooltipFormatter.INSTANCE.format(text);
     panel.setToolTipText(tooltip);
     spinner.setToolTipText(tooltip);
     getTextField().setToolTipText(tooltip);

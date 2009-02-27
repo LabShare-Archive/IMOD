@@ -23,6 +23,9 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.15  2009/01/20 19:49:28  sueh
+ * <p> bug# 1102 Changed this UITestField to UITestFieldType.
+ * <p>
  * <p> Revision 1.14  2008/10/27 20:30:26  sueh
  * <p> bug# 1141 Added printinfo (debugging tool).
  * <p>
@@ -79,6 +82,9 @@ final class CheckBox extends JCheckBox {
   public CheckBox(String text) {
     super(text);
     setName(text);
+    if (EtomoDirector.INSTANCE.getArguments().isNewstuff()) {
+      setBackground(Colors.AVAILABLE_BACKGROUND);
+    }
   }
 
   public void setText(String text) {
@@ -99,7 +105,7 @@ final class CheckBox extends JCheckBox {
   public void setToolTipText(String text) {
     super.setToolTipText(TooltipFormatter.INSTANCE.format(text));
   }
-  
+
   void printInfo() {
     System.out.println(getName());
     printInfo(getParent());
@@ -120,6 +126,9 @@ final class CheckBox extends JCheckBox {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.15  2009/01/20 19:49:28  sueh
+ * <p> bug# 1102 Changed this UITestField to UITestFieldType.
+ * <p>
  * <p> Revision 1.14  2008/10/27 20:30:26  sueh
  * <p> bug# 1141 Added printinfo (debugging tool).
  * <p>
