@@ -336,6 +336,7 @@ you do have some fiducials.
 <H4><A NAME = "ImportingDual"></A>
 7.0. Importing Two Tomograms into Tomogram Combination
 </H4>
+<P>
 This section describes how you can use eTomo to combine tomograms from tilt
 series taken around two axes and reconstructed in other software.
 The instructions assume that you are starting with tomograms 
@@ -406,20 +407,22 @@ inside the border of the original data by as much as half the X/Y size of the
 patches used for patch correlations.
 <LI> Set other parameters as usual and start the combine operation.
 </ol>
-
+</P>
 <H4><A NAME = "ErasingGold"></A>
 8.0. Erasing All Gold from a Tomogram
 </H4>
+<P>
 If you want to erase gold that was not modeled as fiducials, then you need to
 make a more complete model than the fiducial model.
 There are two different methods that you can use to get a more complete model:
 adding seeds to the fiducial model and tracking it, or getting a model of the
 positions of the beads in a tomogram and projecting that to match the final
 aligned stack.
-
+</P>
 <H4><A NAME = "ErasingTracking"></A>
 8.1. Tracking Additional Gold
 </H4>
+<P>
 In this method, you make your complete model on
 the coarse aligned stack.  It will be named "setname.fid", and you will be
 able to use
@@ -477,10 +480,11 @@ a positive value (either a relative peak strength or a number of peaks) for the
 Once you are satisfied with the seed model, proceed to track and refine as
 usual.  When the model is complete, return to the <B>Final Aligned Stack</B>
 panel, transform the model, and use it to erase the gold.
-
+</P>
 <H4><A NAME = "ErasingFinding3D"></A>
 8.2. Finding Gold in a Tomogram and Projecting It
 </H4>
+<P>
 In this approach, you use <A HREF = "man/findbeads3d.html">Findbeads3d</A> to
 find the gold particles in a tomogram and <A HREF = "man/tilt.html">Tilt</A>
 to get a model of the positions of the beads on the aligned images.  You can
@@ -565,3 +569,4 @@ since this will overwrite the projected model.)
 restore the tomogram thickness to that determined by positioning, and to
 remove the <B>Z shift</B> value.
 </OL>
+</P>
