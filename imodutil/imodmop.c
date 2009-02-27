@@ -190,7 +190,7 @@ int main( int argc, char *argv[])
 
   PipGetBoolean("KeepTempFiles", &retain);
   PipGetBoolean("2DScatteredPoints", &scat2D);
-  PipGetBoolean("2DScatteredPoints", &scat2D);
+  PipGetBoolean("3DScatteredPoints", &scat3D);
   PipGetBoolean("PlanarTubes", &tubes2D);
   if (scat2D && scat3D)
     exitError("You can not enter both -2 and -3");
@@ -974,6 +974,9 @@ static int itemOnList(int item, int *list, int num)
 
 /*
 $Log$
+Revision 3.12  2009/01/08 00:00:54  mast
+Added option for planar tubes
+
 Revision 3.11  2008/05/02 16:07:47  mast
 Fixed bug in painting tube when points are too far apart in Z
 
