@@ -58,6 +58,7 @@ typedef struct imod_application
   
   short wzoom;
   int exiting;
+  int listening;    // Flag that it was started with -L or -W
 
 }ImodApp;
 
@@ -270,6 +271,9 @@ bool imodDebug(char key);
 
 /*
 $Log$
+Revision 3.45  2009/01/15 16:33:17  mast
+Qt 4 port
+
 Revision 3.44  2008/12/01 15:42:01  mast
 Changes for undo/redo and selection in 3dmodv standalone
 
