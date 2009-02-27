@@ -382,10 +382,17 @@ class ProcesschunksProcessMonitor implements OutfileProcessMonitor,
           || line.indexOf("Badly formed number") != -1
           || line.indexOf("No match") != -1) {
         System.err.println("ERROR: Tcsh error in processchunks log");
-        UIHarness.INSTANCE
-            .openMessageDialog(
-                "Unrecoverable error in processchunks.  Please contact the programmer.  Let the chunk processes complete before rerunning.",
-                "Fatal Error");
+        UIHarness.INSTANCE.openMessageDialog(
+            "Unrecoverable error in processchunks.  Please contact the "
+                + "programmer.  The chunk processes are still running, but "
+                + "they won't show up in the progress bar or appear in the "
+                + "Finished Chunks column.  IMPORTANT:  Let the chunk "
+                + "processes complete before rerunning the parallel process.  "
+                + "The load may decline when your chunks are done.  Also you "
+                + "can ssh to each computer and run top.  After the chunk "
+                + "processes are complete, exit Etomo to clear the parallel "
+                + "processing panel.  To attempt to continue the parallel "
+                + "process, rerun Etomo, and press Resume.", "Fatal Error");
       }
       else {
         String[] strings = line.split("\\s+");
@@ -559,6 +566,9 @@ class ProcesschunksProcessMonitor implements OutfileProcessMonitor,
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.42  2009/02/24 23:51:23  sueh
+ * <p> bug# 1183 In updateState catching another tcsh error.
+ * <p>
  * <p> Revision 1.41  2009/02/04 23:26:53  sueh
  * <p> bug# 1158 Changed id and exceptions classes in LogFile.
  * <p>
