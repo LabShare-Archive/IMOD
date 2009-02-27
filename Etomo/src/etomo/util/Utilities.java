@@ -12,6 +12,9 @@
  * @version $$Revision$
  *
  * <p> $$Log$
+ * <p> $Revision 3.63  2009/02/04 23:38:03  sueh
+ * <p> $bug# 1158 Added getDataTimeStamp.
+ * <p> $
  * <p> $Revision 3.62  2009/01/20 20:34:32  sueh
  * <p> $bug# 1102 Changed convertLabelToName(String,ProcessName) to
  * <p> $convertLabelToName(String,String,String).
@@ -820,15 +823,6 @@ public class Utilities {
       setMacOS = true;
     }
     return macOS;
-  }
-
-  public static boolean isJava1_5() {
-    if (!setJava1_5) {
-      String osName = System.getProperty("java.version").toLowerCase();
-      java1_5 = osName.startsWith("1.5");
-      setJava1_5 = true;
-    }
-    return java1_5;
   }
 
   public static final void findMessageAndOpenDialog(AxisID axisID,
