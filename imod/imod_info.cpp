@@ -440,7 +440,7 @@ void InfoWindow::extract()
   arguments << QDir::convertSeparators(filePath);
   arguments << QDir::convertSeparators(mTrimvolOutput);
   wprint("trimvol ");
-  for (i = 3; i < arguments.count(); i++)
+  for (i = 2; i < arguments.count(); i++)
     wprint("%s ", LATIN1(arguments[i]));
   wprint("\n");
   connect(mTrimvolProcess, SIGNAL(finished(int, QProcess::ExitStatus)), this,
@@ -694,6 +694,9 @@ static char *truncate_name(char *name, int limit)
 /*
 
 $Log$
+Revision 4.54  2009/01/16 20:23:44  mast
+Comment out debug output
+
 Revision 4.53  2009/01/15 16:33:17  mast
 Qt 4 port
 
