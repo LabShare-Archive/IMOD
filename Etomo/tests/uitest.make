@@ -1,18 +1,20 @@
+all: single dual join single-montage join-test-processes single-test-gui dual-test-gui single-fidless
+
 single:
-	uitest single
+	$(IMOD_UITEST_SCRIPT)/uitest single
 dual:
-	uitest dual
+	$(IMOD_UITEST_SCRIPT)/uitest dual
 join:
-	uitest join
+	$(IMOD_UITEST_SCRIPT)/uitest join
 single-montage:
-	uitest single-montage
+	$(IMOD_UITEST_SCRIPT)/uitest single-montage
 dual-montage:
-	uitest dual-montage
+	$(IMOD_UITEST_SCRIPT)/uitest dual-montage
 join-test-processes:
-	uitest join-test-processes
+	$(IMOD_UITEST_SCRIPT)/uitest join-test-processes
 single-test-gui:
-	uitest single-test-gui
+	$(IMOD_UITEST_SCRIPT)/uitest single-test-gui
 dual-test-gui:
-	uitest dual-test-gui
+	$(IMOD_UITEST_SCRIPT)/uitest dual-test-gui
 single-fidless:
-	uitest single-fidless
+	$(IMOD_UITEST_SCRIPT)/uitest single-fidless
