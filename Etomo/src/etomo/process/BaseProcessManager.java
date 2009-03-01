@@ -44,6 +44,9 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.75  2009/03/01 00:53:15  sueh
+ * <p> bug# 1193 In startDetachedProcess setting the process in the monitor.
+ * <p>
  * <p> Revision 1.74  2009/02/04 23:23:18  sueh
  * <p> bug# 1158 Changed id and exceptions classes in LogFile.
  * <p>
@@ -499,6 +502,7 @@ public abstract class BaseProcessManager {
           this, monitor, getSavedProcessData(axisID), axisID, monitor
               .getLogFileName(), ProcesschunksProcessMonitor.SUCCESS_TAG,
           processData.getSubDirName());
+      monitor.setProcess(process);
       process.setProcessResultDisplay(processResultDisplay);
       Thread thread = new Thread(process);
       thread.start();
