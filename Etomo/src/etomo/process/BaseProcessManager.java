@@ -44,6 +44,9 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.74  2009/02/04 23:23:18  sueh
+ * <p> bug# 1158 Changed id and exceptions classes in LogFile.
+ * <p>
  * <p> Revision 1.73  2009/01/26 22:41:43  sueh
  * <p> bug# 1173 Added boolean nonBlocking to msgComScriptDone functions,
  * <p> so that processDone knows not to pop up an error message that thread
@@ -1248,7 +1251,7 @@ public abstract class BaseProcessManager {
    *          the exit value for the com script
    */
   public final void msgComScriptDone(final ComScriptProcess script,
-      final int exitValue,final boolean nonBlocking) {
+      final int exitValue, final boolean nonBlocking) {
     System.err
         .println("msgComScriptDone:scriptName=" + script.getComScriptName()
             + ",processName=" + script.getProcessName());
@@ -1311,7 +1314,7 @@ public abstract class BaseProcessManager {
     //  Inform the app manager that this process is complete
     manager.processDone(script.getName(), exitValue, script.getProcessName(),
         script.getAxisID(), script.getProcessEndState(), exitValue != 0, script
-            .getProcessResultDisplay(), script.getProcessSeries(),nonBlocking);
+            .getProcessResultDisplay(), script.getProcessSeries(), nonBlocking);
   }
 
   public final void msgReconnectDone(final ReconnectProcess script,
@@ -1374,7 +1377,7 @@ public abstract class BaseProcessManager {
     manager.processDone(name, exitValue, script.getProcessData()
         .getProcessName(), script.getAxisID(), script.getProcessEndState(),
         script.getProcessEndState() != ProcessEndState.DONE || exitValue != 0,
-        script.getProcessResultDisplay(), script.getProcessSeries(),false);
+        script.getProcessResultDisplay(), script.getProcessSeries(), false);
   }
 
   /**
@@ -1435,6 +1438,9 @@ public abstract class BaseProcessManager {
     DetachedProcess detachedProcess = new DetachedProcess(manager,
         detachedCommand, this, axisID, monitor, processResultDisplay,
         processName, processSeries);
+    if (monitor != null) {
+      monitor.setProcess(detachedProcess);
+    }
     return startBackgroundProcess(detachedProcess, detachedCommand
         .getCommandLine(), axisID, monitor);
   }
@@ -1451,6 +1457,9 @@ public abstract class BaseProcessManager {
         processName, processSeries);
     detachedProcess.setSubdirName(subdirName);
     detachedProcess.setShortCommandName(shortCommandName);
+    if (monitor != null) {
+      monitor.setProcess(detachedProcess);
+    }
     return startBackgroundProcess(detachedProcess, detachedCommand
         .getCommandLine(), axisID, monitor);
   }
@@ -1605,14 +1614,14 @@ public abstract class BaseProcessManager {
       manager.processDone(process.getName(), exitValue, process
           .getProcessName(), process.getAxisID(), process.isForceNextProcess(),
           process.getProcessEndState(), exitValue != 0 || errorFound, process
-              .getProcessResultDisplay(), process.getProcessSeries(),false);
+              .getProcessResultDisplay(), process.getProcessSeries(), false);
     }
     else {
       manager.processDone(process.getName(), exitValue, process
           .getProcessName(), process.getAxisID(), process.isForceNextProcess(),
           process.getProcessEndState(), process.getStatusString(),
           exitValue != 0 || errorFound, process.getProcessResultDisplay(),
-          process.getProcessSeries(),false);
+          process.getProcessSeries(), false);
     }
   }
 
@@ -1652,14 +1661,14 @@ public abstract class BaseProcessManager {
       manager.processDone(process.getName(), exitValue, process
           .getProcessName(), process.getAxisID(), process.isForceNextProcess(),
           process.getProcessEndState(), exitValue != 0 || errorFound, process
-              .getProcessResultDisplay(), process.getProcessSeries(),false);
+              .getProcessResultDisplay(), process.getProcessSeries(), false);
     }
     else {
       manager.processDone(process.getName(), exitValue, process
           .getProcessName(), process.getAxisID(), process.isForceNextProcess(),
           process.getProcessEndState(), process.getStatusString(),
           exitValue != 0 || errorFound, process.getProcessResultDisplay(),
-          process.getProcessSeries(),false);
+          process.getProcessSeries(), false);
     }
   }
 

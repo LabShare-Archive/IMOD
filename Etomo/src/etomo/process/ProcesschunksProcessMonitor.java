@@ -68,6 +68,7 @@ class ProcesschunksProcessMonitor implements OutfileProcessMonitor,
   private boolean stop = false;
   private boolean running = false;
   private boolean reconnect = false;
+  private SystemProcessInterface process = null;
 
   final BaseManager manager;
   final AxisID axisID;
@@ -94,6 +95,7 @@ class ProcesschunksProcessMonitor implements OutfileProcessMonitor,
   }
 
   public final void setProcess(SystemProcessInterface process) {
+    this.process = process;
   }
 
   public final boolean isRunning() {
@@ -371,7 +373,7 @@ class ProcesschunksProcessMonitor implements OutfileProcessMonitor,
       //A tcsh error causes processchunks to exit immediately.  Currently not
       //ending the monitor because we don't want the user to rerun processchunks
       //before all the chunk processes end.
-      else if (line.indexOf("Syntax Error") != -1
+      else if ((line.indexOf("Syntax Error") != -1
           || line.indexOf("Subscript error") != -1
           || line.indexOf("Undefined variable") != -1
           || line.indexOf("Expression Syntax") != -1
@@ -379,8 +381,9 @@ class ProcesschunksProcessMonitor implements OutfileProcessMonitor,
           || line.indexOf("Illegal variable name") != -1
           || line.indexOf("Variable syntax") != -1
           || line.indexOf("Badly placed (") != -1
-          || line.indexOf("Badly formed number") != -1
-          || line.indexOf("No match") != -1) {
+          || line.indexOf("Badly formed number") != -1 || line
+          .indexOf("No match") != -1)
+          && (process == null || process.getProcessData().isRunning())) {
         System.err.println("ERROR: Tcsh error in processchunks log");
         UIHarness.INSTANCE.openMessageDialog(
             "Unrecoverable error in processchunks.  Please contact the "
@@ -566,6 +569,9 @@ class ProcesschunksProcessMonitor implements OutfileProcessMonitor,
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.43  2009/02/27 03:49:38  sueh
+ * <p> bug# 1189 In updateState changed tcsh failure error message.
+ * <p>
  * <p> Revision 1.42  2009/02/24 23:51:23  sueh
  * <p> bug# 1183 In updateState catching another tcsh error.
  * <p>
