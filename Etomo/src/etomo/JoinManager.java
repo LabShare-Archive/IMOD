@@ -70,6 +70,11 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.73  2009/02/04 22:47:09  sueh
+ * <p> bug# 1158 passing logPanel to mainPanel.setStatusBarText so its title can
+ * <p> be updated.  Fixed endSetupMode, which was invalidating metadata by
+ * <p> using initializeUIParameters to load a non-existant .ejf file.
+ * <p>
  * <p> Revision 1.72  2008/11/20 01:25:19  sueh
  * <p> bug# 1147 Moved imodOpen(String,String,Run3dmodMenuOptions) to
  * <p> BaseManager.
@@ -1397,10 +1402,12 @@ public final class JoinManager extends BaseManager {
 
   /**
    * Open the main window in processing mode
+   * MUST run reconnect for all axis
    */
   private void openProcessingPanel() {
     mainPanel.showProcessingPanel(AxisType.SINGLE_AXIS);
     setPanel();
+    reconnect(AxisID.ONLY);
   }
 
   /**
