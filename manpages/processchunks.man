@@ -156,13 +156,16 @@ pointed to by the environment variable IMOD_CALIB_DIR (default
 /usr/local/ImodCalib).  See the example cpu.adoc file in $IMOD_DIR/autodoc and
 the manual page for cpuadoc(1) for full details on
 configuring this file.  For a single machine with multiple CPUs,
-there are two simple options for enabling the parallel processing: 
-   1) Make a file /usr/local/ImodCalib/cpu.adoc with these two lines:
+there are three simple options for enabling the parallel processing: 
+   1) In eTomo, open the Settings dialog from the Options menu, check 
+"Enable Parallel processing" and enter the number of processors.
+.br
+   2) Make a file /usr/local/ImodCalib/cpu.adoc with these two lines:
        [Computer = localhost]
        number = 4
 .br
 where the number should be set to the number of processors.
-    2) set the
+    3) set the
 environment variable IMOD_PROCESSORS to the number of processors, e.g.,
     setenv IMOD_PROCESSORS 4     (for tcsh users)
     export IMOD_PROCESSORS=4     (for bash users)
