@@ -34,6 +34,9 @@ import etomo.util.Utilities;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.51  2009/02/04 23:36:48  sueh
+ * <p> bug# 1158 Changed id and exception classes in LogFile.
+ * <p>
  * <p> Revision 3.50  2009/01/20 20:13:24  sueh
  * <p> bug# 1102 Printing out the name of the main frame root panel.
  * <p>
@@ -658,7 +661,6 @@ public final class MainFrame extends EtomoFrame implements ContextMenu {
       subFrame.setVisible(false);
     }
     mainPanel.showAxisB();
-    currentManager.reconnect(AxisID.SECOND);
     UIHarness.INSTANCE.pack(AxisID.SECOND, currentManager);
   }
 
@@ -673,7 +675,6 @@ public final class MainFrame extends EtomoFrame implements ContextMenu {
     else {
       subFrame.setVisible(true);
     }
-    currentManager.reconnect(AxisID.SECOND);
     UIHarness.INSTANCE.pack(currentManager);
     subFrame.pack();
   }
