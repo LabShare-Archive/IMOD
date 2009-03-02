@@ -44,6 +44,9 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.76  2009/03/01 01:17:19  sueh
+ * <p> bug# 1193 In reconnectProcesschunks setting the process in the monitor.
+ * <p>
  * <p> Revision 1.75  2009/03/01 00:53:15  sueh
  * <p> bug# 1193 In startDetachedProcess setting the process in the monitor.
  * <p>
@@ -426,6 +429,8 @@ public abstract class BaseProcessManager {
   private final ProcessData savedProcessDataA;
   private final ProcessData savedProcessDataB;
   private final BaseManager manager;
+  private boolean blockAxisA = true;
+  private boolean blockAxisB = true;
 
   private final EtomoDirector etomoDirector = EtomoDirector.INSTANCE;
 
@@ -912,6 +917,25 @@ public abstract class BaseProcessManager {
       //ensure that out of date process info won't be resaved
       savedProcessData.reset();
       saveProcessData(savedProcessData);
+    }
+    if (axisID == AxisID.SECOND) {
+      if (blockAxisB) {
+        throw new SystemProcessException(
+            "Process attempting to restart - axis B is blocked.");
+      }
+    }
+    else if (blockAxisA) {
+      throw new SystemProcessException(
+          "Process attempting to restart - axis A is blocked.");
+    }
+  }
+
+  public final void unblockAxis(AxisID axisID) {
+    if (axisID == AxisID.SECOND) {
+      blockAxisB = false;
+    }
+    else {
+      blockAxisA = false;
     }
   }
 
