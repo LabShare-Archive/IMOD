@@ -36,6 +36,9 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.60  2008/11/20 01:34:04  sueh
+ * <p> bug# 1149 Added getDefaultedInt.
+ * <p>
  * <p> Revision 1.59  2008/08/21 00:02:30  sueh
  * <p> bug# 1132 Added multiply().
  * <p>
@@ -1126,7 +1129,7 @@ public abstract class ConstEtomoNumber implements Storable {
     validateReturnTypeDouble();
     return getDefaultedValue().doubleValue();
   }
-  
+
   public int getDefaultedInt() {
     return getDefaultedValue().intValue();
   }
@@ -1137,7 +1140,8 @@ public abstract class ConstEtomoNumber implements Storable {
   }
 
   public void setDefault(ConstEtomoNumber input) {
-    if (debug)System.out.println("ConstEtomoNumber.setDefault:input="+input);
+    if (debug)
+      System.out.println("ConstEtomoNumber.setDefault:input=" + input);
     if (input == null) {
       defaultValue = newNumber();
     }
@@ -1211,6 +1215,16 @@ public abstract class ConstEtomoNumber implements Storable {
   public boolean le(int value) {
     Number v = newNumber(value);
     return lt(getValue(), v) || equals(getValue(), v);
+  }
+
+  public boolean le(ConstEtomoNumber value) {
+    return lt(getValue(), value.getNumber())
+        || equals(getValue(), value.getNumber());
+  }
+
+  public boolean ge(ConstEtomoNumber value) {
+    return gt(getValue(), value.getNumber())
+        || equals(getValue(), value.getNumber());
   }
 
   public boolean gt(ConstEtomoNumber etomoNumber) {
@@ -1659,7 +1673,7 @@ public abstract class ConstEtomoNumber implements Storable {
     }
     throw new IllegalStateException("type=" + type);
   }
-  
+
   /**
    * If one of the numbers is null, the result is null.
    * @param number1
@@ -1882,18 +1896,18 @@ public abstract class ConstEtomoNumber implements Storable {
     public static Type getDefault() {
       return INTEGER;
     }
-    
+
     public String toString() {
-      if (this==DOUBLE) {
+      if (this == DOUBLE) {
         return "Double";
       }
-      if (this==FLOAT) {
+      if (this == FLOAT) {
         return "Float";
       }
-      if (this==INTEGER) {
+      if (this == INTEGER) {
         return "Integer";
       }
-      if (this==LONG) {
+      if (this == LONG) {
         return "Long";
       }
       return "Unknown Type";
