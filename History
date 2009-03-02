@@ -1,5 +1,8 @@
 OBIMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+3/2/09: In Etomo preventing processes from running the attempt to reconnect to
+an existing process is finished.
+
 2/26/09: In Etomo - Generic Parallel Process allowing comscript names with more
 digits.
 
