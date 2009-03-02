@@ -14,7 +14,14 @@ cpu.adoc \- Description of computers for parallel processing in eTomo
 The cpu.adoc file contains descriptions of the computers you wish to use when
 running parallel processes through eTomo with processchunks(1).  
 It is used by eTomo to build the parallel
-processing table and to run processchunks.  The cpu.adoc file
+processing table and to run processchunks.  If you are just using a single
+computer with multiple processors, there are two simple alternatives to using
+the cpu.adoc file: 1) enable parallel processing and enter the number of
+processors in the Settings dialog opened from the eTomo Options menu; or 2)
+define the environment variable IMOD_PROCESSORS to be the number of processors
+(see imodenv(1)).
+
+The cpu.adoc file
 must be placed in the IMOD calibration directory.  The location of 
 this directory is defined by the environment variable IMOD_CALIB_DIR, which
 has a default value of /usr/local/ImodCalib with a default installation of
