@@ -58,6 +58,10 @@ import etomo.util.DatasetFiles;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.45  2009/02/04 23:04:24  sueh
+ * <p> bug# 1158 passing logPanel to mainPanel.setStatusBarText so its title can
+ * <p> be updated.
+ * <p>
  * <p> Revision 1.44  2008/10/01 22:50:01  sueh
  * <p> bug# 1113 Added getFocusComponent.
  * <p>
@@ -762,6 +766,9 @@ public final class PeetManager extends BaseManager {
   private void createState() {
   }
 
+  /**
+   * MUST run reconnect for all axis
+   */
   private void openProcessingPanel() {
     mainPanel.showProcessingPanel(AxisType.SINGLE_AXIS);
     setPanel();

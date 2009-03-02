@@ -233,6 +233,9 @@ public final class ParallelManager extends BaseManager {
   void updateDialog(final ProcessName processName, final AxisID axisID) {
   }
 
+  /**
+   * MUST run reconnect for all axis
+   */
   private void openProcessingPanel() {
     mainPanel.showProcessingPanel(AxisType.SINGLE_AXIS);
     setPanel();
@@ -697,6 +700,10 @@ public final class ParallelManager extends BaseManager {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.30  2009/02/04 23:04:11  sueh
+ * <p> bug# 1158 passing logPanel to mainPanel.setStatusBarText so its title can
+ * <p> be updated.
+ * <p>
  * <p> Revision 1.29  2008/08/26 20:35:26  sueh
  * <p> bug# 1122 Moved deleteSubdir from dialog to manager so that ImodManager can be queried about open 3dmods.
  * <p>
