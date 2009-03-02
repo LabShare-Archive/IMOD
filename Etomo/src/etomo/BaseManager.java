@@ -923,24 +923,40 @@ public abstract class BaseManager {
   }
 
   /**
+   * IMPORTANT:  Must turn off the blocking in BaseProcessManager when it is
+   * first run.  If it doesn't then no process that blocks an axis can run.
    * Attempts to reconnect to a currently running process.  Only run once per
    * axis.  Only attempts one reconnect.
    * @param axisID - axis of the running process.
    * @return true if a reconnect was attempted.
+   * @throws RuntimeException if any Throwable is caught
    */
-  public boolean reconnect(AxisID axisID) {
-    if (isReconnectRun(axisID)) {
-      return false;
+  public boolean reconnect(AxisID axisID)  {
+    try {
+      if (isReconnectRun(axisID)) {
+        //Just in case
+        getProcessManager().unblockAxis(axisID);
+        return false;
+      }
+      setReconnectRun(axisID);
+      ProcessData processData = getProcessManager().getRunningProcessData(
+          axisID);
+      if (processData == null) {
+        getProcessManager().unblockAxis(axisID);
+        return false;
+      }
+      if (processData.getProcessName() == ProcessName.PROCESSCHUNKS) {
+        reconnectProcesschunks(processData, axisID);
+        getProcessManager().unblockAxis(axisID);
+        return true;
+      }
     }
-    setReconnectRun(axisID);
-    ProcessData processData = getProcessManager().getRunningProcessData(axisID);
-    if (processData == null) {
-      return false;
+    catch (Throwable t) {
+      t.printStackTrace();
+      getProcessManager().unblockAxis(axisID);
+      throw new RuntimeException(t);
     }
-    if (processData.getProcessName() == ProcessName.PROCESSCHUNKS) {
-      reconnectProcesschunks(processData, axisID);
-      return true;
-    }
+    getProcessManager().unblockAxis(axisID);
     return false;
   }
 
@@ -1241,6 +1257,9 @@ public abstract class BaseManager {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.107  2009/02/04 22:38:17  sueh
+ * <p> bug# 1158 Added logPanel.
+ * <p>
  * <p> Revision 1.106  2009/01/26 22:40:57  sueh
  * <p> bug# 1173 Added boolean nonBlocking to processDone functions, so it
  * <p> knows not to pop up an error message that thread name is not set.
