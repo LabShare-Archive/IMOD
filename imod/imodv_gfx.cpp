@@ -277,10 +277,11 @@ void imodvPaintGL()
   a->scaleBarSize = scaleBarDraw(a->winx, a->winy, scale, color);
 
   // Cards with hidden stereo capability need this to avoid losing display
-#ifdef Q_OS_MACX
+  // (In Qt 3 - take it out for Qt 4)
+  /*#ifdef Q_OS_MACX
   imodv_swapbuffers(a);
   imodv_swapbuffers(a);
-#endif
+  #endif*
   imodvControlSetView(a);
   imodvControlUpdate(a);
 }
@@ -495,6 +496,9 @@ static int imodv_snapshot(ImodvApp *a, QString fname)
 /*
 
 $Log$
+Revision 4.24  2009/01/15 16:33:17  mast
+Qt 4 port
+
 Revision 4.23  2009/01/06 23:58:47  mast
 Swap twice on Mac to avoid losing display
 
