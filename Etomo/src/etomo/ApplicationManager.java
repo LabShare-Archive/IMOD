@@ -445,6 +445,7 @@ public final class ApplicationManager extends BaseManager {
 
   /**
    * Open the main window in processing mode
+   * MUST run reconnect for all axis
    */
   private void openProcessingPanel() {
     mainPanel.showProcessingPanel(metaData.getAxisType());
@@ -452,6 +453,7 @@ public final class ApplicationManager extends BaseManager {
     setPanel();
     if (metaData.getAxisType() == AxisType.DUAL_AXIS) {
       reconnect(AxisID.FIRST);
+      reconnect(AxisID.SECOND);
     }
     else {
       reconnect(AxisID.ONLY);
@@ -477,6 +479,7 @@ public final class ApplicationManager extends BaseManager {
   /**
    * Attempts to reconnect to a currently running process.  Only run once per
    * axis.  Only attempts one reconnect.
+   * Must run super.reconnect
    * @param axisID - axis of the running process.
    * @return true if a reconnect was attempted.
    */
@@ -5844,6 +5847,9 @@ public final class ApplicationManager extends BaseManager {
 }
 /**
  * <p> $Log$
+ * <p> Revision 3.316  2009/02/13 02:11:46  sueh
+ * <p> bug# 1176 Checking return value of MRCHeader.read.
+ * <p>
  * <p> Revision 3.315  2009/02/10 21:36:49  sueh
  * <p> bug# 1143 Passing state to TrimvolParam.setDefaultRange.
  * <p>
