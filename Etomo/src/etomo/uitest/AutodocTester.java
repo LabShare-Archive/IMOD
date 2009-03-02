@@ -60,6 +60,10 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.4  2009/02/20 18:14:56  sueh
+ * <p> bug# 1102 Do a quick sleep after finding a panel to avoid unreliable
+ * <p> behavior.
+ * <p>
  * <p> Revision 1.3  2009/02/04 23:37:15  sueh
  * <p> bug# 1158 Changed id and exception classes in LogFile.
  * <p>
@@ -1082,6 +1086,39 @@ final class AutodocTester extends Assert implements VariableList {
     }
   }
 
+  /**
+   * Handle assert.ge/le.  Checks text field value against command value.
+   * @param textComponent
+   * @param command
+   */
+  private void compare(JTextComponent textComponent, Command command)
+      throws FileNotFoundException, IOException, LogFile.LockException {
+    assertNotNull("assert.ge/le command must use a value (" + command + ")",
+        command.getValue());
+    UITestModifierType modifierType = command.getModifierType();
+    EtomoNumber fieldValue = new EtomoNumber(EtomoNumber.Type.DOUBLE);
+    fieldValue.set(textComponent.getText());
+    EtomoNumber commandValue = new EtomoNumber(EtomoNumber.Type.DOUBLE);
+    commandValue.set(command.getValue());
+    assertTrue("only numeric comparisons are valid (" + command + ")",
+        fieldValue.isValid() && commandValue.isValid());
+    //assert.ge.field
+    if (modifierType == UITestModifierType.GE) {
+      assertTrue(
+          "the value of this field is not greater or equal to the value if this command ("
+              + command + ")", fieldValue.ge(commandValue));
+    }
+    else if (modifierType == UITestModifierType.LE) {
+      assertTrue(
+          "the value of this field is not less then or equal to the value if this command ("
+              + command + ")", fieldValue.le(commandValue));
+    }
+    else {
+      fail("unknown modifier - " + textComponent.getText() + ","
+          + command.getValue() + " (" + command + ")");
+    }
+  }
+
   private void executeField(Command command) throws FileNotFoundException,
       IOException, LogFile.LockException {
     executeField(command, true);
@@ -1343,7 +1380,6 @@ final class AutodocTester extends Assert implements VariableList {
       //assert
       //if
       else {
-
         if (modifierType != null) {
           enabled(spinner, command);
         }
@@ -1405,7 +1441,20 @@ final class AutodocTester extends Assert implements VariableList {
       //if
       else {
         if (modifierType != null) {
-          enabled(textField, command);
+          if (modifierType == UITestModifierType.ENABLED
+              || modifierType == UITestModifierType.DISABLED) {
+            enabled(textField, command);
+          }
+          //assert.ge
+          //assert.le
+          else if (actionType == UITestActionType.ASSERT
+              && (modifierType == UITestModifierType.GE || modifierType == UITestModifierType.LE)) {
+            compare(textField, command);
+          }
+          else {
+            fail("unknown action/modifier - " + textField.getText() + ","
+                + value + " (" + command + ")");
+          }
         }
         //assert.tf.text_field_label
         else {
