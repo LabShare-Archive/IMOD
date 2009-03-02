@@ -13,7 +13,10 @@ package etomo.uitest;
  * 
  * @version $Revision$
  * 
- * <p> $Log$ </p>
+ * <p> $Log$
+ * <p> Revision 1.1  2009/01/20 20:50:54  sueh
+ * <p> bug# 1102 List of action modifiers of commands.
+ * <p> </p>
  */
 final class UITestModifierType {
   public static final String rcsid = "$Id$";
@@ -30,6 +33,8 @@ final class UITestModifierType {
   static final UITestModifierType NOT_EXISTS = new UITestModifierType(
       "not-exists");
   static final UITestModifierType SINGLE = new UITestModifierType("single");
+  static final UITestModifierType GE = new UITestModifierType("ge");//greater then or equal to
+  static final UITestModifierType LE = new UITestModifierType("le");//less then or equal to
 
   private final String string;
 
@@ -70,6 +75,12 @@ final class UITestModifierType {
     }
     if (SINGLE.equals(string)) {
       return SINGLE;
+    }
+    if (GE.equals(string)) {
+      return GE;
+    }
+    if (LE.equals(string)) {
+      return LE;
     }
     return null;
   }
