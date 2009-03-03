@@ -281,7 +281,7 @@ void imodvPaintGL()
   /*#ifdef Q_OS_MACX
   imodv_swapbuffers(a);
   imodv_swapbuffers(a);
-  #endif*
+  #endif*/
   imodvControlSetView(a);
   imodvControlUpdate(a);
 }
@@ -496,6 +496,9 @@ static int imodv_snapshot(ImodvApp *a, QString fname)
 /*
 
 $Log$
+Revision 4.25  2009/03/02 20:28:11  mast
+Take out double swap on Mac
+
 Revision 4.24  2009/01/15 16:33:17  mast
 Qt 4 port
 
