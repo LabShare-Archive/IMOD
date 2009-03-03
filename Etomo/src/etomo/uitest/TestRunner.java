@@ -37,6 +37,9 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.2  2009/02/04 23:37:32  sueh
+ * <p> bug# 1158 Changed id and exception classes in LogFile.
+ * <p>
  * <p> Revision 1.1  2009/01/20 20:49:35  sueh
  * <p> bug# 1102 Class to run a test defined by a Test section in uitest.adoc.
  * <p> </p>
@@ -143,9 +146,11 @@ public final class TestRunner extends JFCTestCase implements VariableList {
                 value);
             parameterList.add(value);
           }
+          //set.dataset
           else if (subjectType == UITestSubjectType.DATASET) {
             executeDatasetSection(autodoc, value);
           }
+          //set.testdir
           else if (subjectType == UITestSubjectType.TESTDIR) {
             setTestDir(command, testSectionReader);
           }
