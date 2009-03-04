@@ -1,7 +1,17 @@
 OBIMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+3/3/09: Changed Processchunks to handle up to 99999 com files and to avoid
+problems from * in error strings.
+
+3/3/09: Made combine.com convert volcombine.csh to unix line endings to get
+around bug in Cygwin tcsh (in 3.13).
+
 3/2/09: In Etomo preventing processes from running the attempt to reconnect to
 an existing process is finished.
+
+2/27/09: Fixed trimvol command in info window (missing -x).
+
+2/27/09: Fixed 3dscat option in Imodmop, broken by change on 1/7/09 (In 3.13).
 
 2/26/09: In Etomo - Generic Parallel Process allowing comscript names with more
 digits.
