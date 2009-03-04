@@ -1,7 +1,7 @@
 # THIS IS A MASTER COMMAND FILE TO COMBINE TOMOGRAMS FROM A TWO-AXIS TILT
 # SERIES
 #
-####CreatedVersion#### 3.12.13
+####CreatedVersion#### 4.0.6
 # 
 # It runs a command file for each step in turn.  To change parameters for
 # a particular procedure, edit the command file for that step.
@@ -75,6 +75,7 @@ $volcombine:
 $set process = volcombine
 $echo "Matchvol or Warpvol finished, next running volcombine.com"
 $(vmstocsh volcombine.log < volcombine.com >! volcombine.csh)
+$if (-e /bin/dos2unix.exe) dos2unix volcombine.csh
 $csh -ef volcombine.csh
 $if ($status) goto error
 $echo "COMBINE SUCCESSFULLY COMPLETED"
