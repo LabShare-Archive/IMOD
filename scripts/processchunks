@@ -158,15 +158,22 @@ if ($#machines < 1) then
     exit 1
 endif
 
+# Build up lists in order -nnn, -nnnn, -nnnnn*, which should work both for
+# lists that are all 5 digits or lists that are 3, 4, 5 digits
+#
 set rootname = $argv[2]
 set comlist = `\find . -name "$rootname-[0-9][0-9][0-9][^0-9]*com" -print | sed '/\.\//s///' | sort`
+
+set thoulist = `\find . -name "$rootname-[0-9][0-9][0-9][0-9][^0-9]*com" -print | sed '/\.\//s///' | sort`
+if ($#thoulist > 0) set comlist = ($comlist $thoulist)
+
+set tenthoulist = `\find . -name "$rootname-[0-9][0-9][0-9][0-9][0-9]*com" -print | sed '/\.\//s///' | sort`
+if ($#tenthoulist > 0) set comlist = ($comlist $tenthoulist)
 
 if ($#comlist < 1) then
     echo "ERROR: $pn - There are no command files matching $rootname-nnn.com"
     exit 1
 endif
-set thoulist = `\find . -name "$rootname-[0-9][0-9][0-9][0-9]*com" -print | sed '/\.\//s///' | sort`
-if ($#thoulist > 0) set comlist = ($comlist $thoulist)
 
 set thishost = `hostname`
 set hostroot = $thishost:r:r:r
@@ -339,6 +346,10 @@ set anydone = 0
 @ holdcrit = ($#machines + 1) / 2
 set pausing = 0
 @ checkline = 0
+
+# Set this to prevent errors from trying to substitute *'s in error messages
+# Quoting the assignments did not always work
+set noglob
 
 continue:
 
@@ -526,7 +537,9 @@ EOF
 
                     # If log file seems not to exist, do a ls on all logs once
                     if (! $didlslogs) then
+                        unset noglob
                         ls *.log >& /dev/null
+                        set noglob
                         set didlslogs = 1
                     endif
                     if (! -e $logname) then
@@ -757,6 +770,8 @@ if ("$ans" == "P") set pausing = 1
 if ("$ans" == "C" || ("$ans" == "P" && ! $queue)) goto continue
 
 # now try to kill jobs
+#
+unset noglob
 @ proc = 0
 set machkills = ()
 set comkills = ()
@@ -883,6 +898,10 @@ exit 3
 
 #
 #  $Log$
+#  Revision 3.44  2009/01/23 18:00:37  mast
+#  Made it say it is holding a machine if no chucks done yet, and drop it when
+#  one is done.
+#
 #  Revision 3.43  2008/12/08 21:12:29  mast
 #  Fixed hold to hold only on a failed machine
 #
