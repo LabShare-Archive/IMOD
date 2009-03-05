@@ -2248,6 +2248,18 @@ public final class ApplicationManager extends BaseManager {
       return true;
     }
   }
+  
+  /**
+   * When SetupDialog is displayed, save the log properties to user config.
+   * Always call BaseManager.saveParamFile after doing this.
+   */
+  public boolean saveParamFile() throws LogFile.LockException, IOException {
+    if (getParameterStore() == null) {
+      EtomoDirector.INSTANCE.getUserConfiguration().setLogProperties(
+          logPanel.getCurrentFrameProperties());
+    }
+    return super.saveParamFile();
+  }
 
   public void save() throws LogFile.LockException, IOException {
     super.save();
@@ -5847,6 +5859,9 @@ public final class ApplicationManager extends BaseManager {
 }
 /**
  * <p> $Log$
+ * <p> Revision 3.317  2009/03/02 18:52:42  sueh
+ * <p> bug# 1193 Do all reconnects in openProcessingPanel.
+ * <p>
  * <p> Revision 3.316  2009/02/13 02:11:46  sueh
  * <p> bug# 1176 Checking return value of MRCHeader.read.
  * <p>
