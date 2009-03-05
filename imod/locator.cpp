@@ -407,18 +407,36 @@ void LocatorGL::mouseReleaseEvent ( QMouseEvent * e )
  */
 void LocatorGL::mouseMoveEvent ( QMouseEvent * e )
 {
+  static int ex, ey, button2, processing = 0;
   float imx, imy;
-  if (!(mCursorSet && (e->buttons() & ImodPrefs->actualButton(2))))
+
+  // Record event state, return if eating events
+  ex = e->x();  
+  ey = e->y();  
+  button2 = e->buttons() & ImodPrefs->actualButton(2);
+  if (processing)
     return;
-  imx = (float)((e->x() - mMouseX) / mZoom);
-  imy = (float)((mMouseY - e->y()) / mZoom);
-  mMouseX = e->x();
-  mMouseY = e->y();
+
+  if (!(mCursorSet && button2))
+    return;
+
+  // Catch up with any pending events
+  processing = 1;
+  imod_info_input();
+  processing = 0;
+
+  imx = (float)((ex - mMouseX) / mZoom);
+  imy = (float)((mMouseY - ey) / mZoom);
+  mMouseX = ex;
+  mMouseY = ey;
   zapSetImageOrBandCenter(imx, imy, true);
 }
 
 /*
 $Log$
+Revision 1.6  2009/01/15 16:33:18  mast
+Qt 4 port
+
 Revision 1.5  2008/08/19 20:01:40  mast
 Made it zoom with + as well as =
 

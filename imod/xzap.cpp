@@ -1695,23 +1695,33 @@ void zapMouseRelease(ZapStruct *zap, QMouseEvent *event)
  */
 void zapMouseMove(ZapStruct *zap, QMouseEvent *event, bool mousePressed)
 {
-  int imz, button1, button2, button3;
+  int imz;
+  static int button1, button2, button3, ex, ey, processing = 0;
+  static int ctrlDown, shiftDown;
   int cumdx, cumdy;
   int ifdraw = 0, drew = 0;
   int cumthresh = 6 * 6;
   int dragthresh = 10 * 10;
-  int ctrlDown = event->modifiers() & Qt::ControlModifier;
-  int shiftDown = event->modifiers() & Qt::ShiftModifier;
   float imx, imy;
 
-  if (pixelViewOpen) {
-    zapGetixy(zap, event->x(), event->y(), &imx, &imy, &imz);
-    pvNewMousePosition(zap->vi, imx, imy, imz);
-  }
-
+  // Record state of event and then return if eating move events
+  ctrlDown = event->modifiers() & Qt::ControlModifier;
+  shiftDown = event->modifiers() & Qt::ShiftModifier;
+  ex = event->x();
+  ey = event->y();
   button1 = (event->buttons() & ImodPrefs->actualButton(1)) ? 1 : 0;
   button2 = (event->buttons() & ImodPrefs->actualButton(2)) ? 1 : 0; 
   button3 = (event->buttons() & ImodPrefs->actualButton(3)) ? 1 : 0;
+  if (processing) {
+    processing++;
+    return;
+  }
+
+  if (pixelViewOpen) {
+    zapGetixy(zap, ex, ey, &imx, &imy, &imz);
+    pvNewMousePosition(zap->vi, imx, imy, imz);
+  }
+
   if (!(zap->rubberband && moveband)  && 
       (mousePressed || insertDown || zap->vi->trackMouseForPlugs)) {
     ifdraw = checkPlugUseMouse(zap, event, button1, button2, button3);
@@ -1724,26 +1734,37 @@ void zapMouseMove(ZapStruct *zap, QMouseEvent *event, bool mousePressed)
 
   if (!(mousePressed || insertDown)) {
     if (zap->rubberband)
-      zapAnalyzeBandEdge(zap, event->x(), event->y());
+      zapAnalyzeBandEdge(zap, ex, ey);
     if (ifdraw)
       zapDraw(zap);
     return;
   }
 
-  cumdx = event->x() - firstmx;
-  cumdy = event->y() - firstmy;
+  // For first button or band moving, eat any pending move events and use 
+  // latest position
+  if ( (button1 && !button2 && !button3) || (zap->rubberband && moveband)) {
+    processing = 1;
+    imod_info_input();
+    if (imodDebug('m') && processing > 1)
+      imodPrintStderr("Flushed %d move events\n", processing - 1);
+    processing = 0;
+  }
+
+  cumdx = ex - firstmx;
+  cumdy = ey - firstmy;
   button2 = (button2 || insertDown) ? 1 : 0;
-  /*  imodPrintStderr("mb  %d|%d|%d\n", button1, button2, button3); */
+  /*imodPrintStderr("mb  %d|%d|%d  c %x s %x\n", button1, button2, button3, 
+    ctrlDown, shiftDown); */
 
   if ( (button1) && (!button2) && (!button3)){
     if (ctrlDown) {
-      drew = dragSelectContsCrossed(zap, event->x(), event->y());
+      drew = dragSelectContsCrossed(zap, ex, ey);
     } else {
       /* DNM: wait for a bit of time or until enough distance moved, but if we
          do not replace original lmx, lmy, there is a disconcerting lurch */
       if ((but1downt.elapsed()) > 250 || cumdx * cumdx + cumdy * cumdy >
           cumthresh)
-        drew = zapB1Drag(zap, event->x(), event->y());
+        drew = zapB1Drag(zap, ex, ey);
     }
   }
 
@@ -1751,14 +1772,14 @@ void zapMouseMove(ZapStruct *zap, QMouseEvent *event, bool mousePressed)
   if ( (!button1) && (button2) && (!button3)) {
     if ((but1downt.elapsed()) > 150 || cumdx * cumdx + cumdy * cumdy > 
         dragthresh)
-      drew = zapB2Drag(zap, event->x(), event->y(), ctrlDown);
+      drew = zapB2Drag(zap, ex, ey, ctrlDown);
   }
   
   if ( (!button1) && (!button2) && (button3))
-    drew = zapB3Drag(zap, event->x(), event->y(), ctrlDown, shiftDown);
+    drew = zapB3Drag(zap, ex, ey, ctrlDown, shiftDown);
   
-  zap->lmx = event->x();
-  zap->lmy = event->y();
+  zap->lmx = ex;
+  zap->lmy = ey;
   if (ifdraw && !drew)
     zapDraw(zap);
 }
@@ -4631,6 +4652,9 @@ static void setDrawCurrentOnly(ZapStruct *zap, int value)
 /*
 
 $Log$
+Revision 4.135  2009/02/25 05:35:08  mast
+Turn off dialog updates during continuous draw; add shift-Page commands
+
 Revision 4.134  2009/01/15 16:33:18  mast
 Qt 4 port
 

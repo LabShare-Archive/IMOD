@@ -2288,16 +2288,27 @@ void XyzGL::mouseReleaseEvent( QMouseEvent * event )
 
 void XyzGL::mouseMoveEvent( QMouseEvent * event )
 {
-  int button1, button2, button3, whichbox;
+  static int button1, button2, button3, ex, ey, processing = 0;
   float mx, my;
-  int mz, ex, ey, cumdx, cumdy;
+  int mz, whichbox, cumdx, cumdy;
   int cumthresh = 6 * 6;
-  ex = event->x();
-  ey = event->y();
 
   // Reject event if closing (why is there an event anyway?)
   if (mClosing)
     return;
+
+  // Record state of event and return if processing
+  ex = event->x();
+  ey = event->y();
+  button1 = (event->buttons() & ImodPrefs->actualButton(1)) ? 1 : 0;
+  button2 = (event->buttons() & ImodPrefs->actualButton(2)) ? 1 : 0;
+  button3 = (event->buttons() & ImodPrefs->actualButton(3)) ? 1 : 0;
+  button2 = (button2 || insertDown) ? 1 : 0;
+  if (processing) {
+    processing++;
+    return;
+  }
+
   if (pixelViewOpen) {
     whichbox = mWin->Getxyz(ex, ey, &mx, &my, &mz);
     if (whichbox != NOT_IN_BOX && whichbox <= Z_SLICE_BOX)
@@ -2307,13 +2318,16 @@ void XyzGL::mouseMoveEvent( QMouseEvent * event )
   if(!mMousePressed)
     return;
 
+  // Flush events for panning moves
+  if ( (button1) && (!button2) && (!button3)) {
+    processing = 1;
+    imod_info_input();
+    if (imodDebug('m') && processing > 1)
+      imodPrintStderr("Flushed %d move events\n", processing - 1);
+    processing = 0;
+  }
+
   ivwControlPriority(mXyz->vi, mXyz->ctrl);
-  
-  button1 = (event->buttons() & ImodPrefs->actualButton(1)) ? 1 : 0;
-  button2 = (event->buttons() & ImodPrefs->actualButton(2)) ? 1 : 0;
-  button3 = (event->buttons() & ImodPrefs->actualButton(3)) ? 1 : 0;
-  
-  button2 = (button2 || insertDown) ? 1 : 0;
 
   if ( (button1) && (!button2) && (!button3)) {
     cumdx = mXyz->lmx - ex;
@@ -2334,6 +2348,9 @@ void XyzGL::mouseMoveEvent( QMouseEvent * event )
 
 /*
 $Log$
+Revision 4.53  2009/01/15 16:33:18  mast
+Qt 4 port
+
 Revision 4.52  2008/09/24 02:40:45  mast
 Call new attach function; stop drawing objects that are off
 

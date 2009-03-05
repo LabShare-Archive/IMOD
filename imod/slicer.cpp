@@ -1199,6 +1199,7 @@ void slicerMouseRelease(SlicerStruct *ss, QMouseEvent *event)
 // Process a mouse move
 void slicerMouseMove(SlicerStruct *ss, QMouseEvent *event)
 {
+  static int button1, button2, button3, ex, ey, shift, processing = 0;
   int zmouse;
   float xm, ym, zm, angleScale, dx = 0., dy = 0., drot = 0.;
   Ipoint cpt;
@@ -1207,26 +1208,48 @@ void slicerMouseMove(SlicerStruct *ss, QMouseEvent *event)
   Ipoint scale = {1., 1., 1.};
   int cumdx, cumdy;
   int cumthresh = 6 * 6;
+  bool addingPoints;
   double transFac = ss->zoom < 4. ? 1. / ss->zoom : 0.25;
-  int shift = (event->modifiers() & Qt::ShiftModifier) + ss->shiftLock;
-  int button2 = event->buttons() & ImodPrefs->actualButton(2);
-  int button3 = event->buttons() & ImodPrefs->actualButton(3);
   Ipoint vec;
  
+  // Record state of event and return if processing
+  shift = (event->modifiers() & Qt::ShiftModifier) + ss->shiftLock;
+  button1 = event->buttons() & ImodPrefs->actualButton(1);
+  button2 = event->buttons() & ImodPrefs->actualButton(2);
+  button3 = event->buttons() & ImodPrefs->actualButton(3);
+  ex = event->x();
+  ey = event->y();
+  if (processing) {
+    processing++;
+    return;
+  }
+
   ivwControlPriority(ss->vi, ss->ctrl);
   if (pixelViewOpen) {
-    zmouse = sslice_getxyz(ss, event->x(), event->y(), xm, ym, zm);
+    zmouse = sslice_getxyz(ss, ex, ey, xm, ym, zm);
     pvNewMousePosition(ss->vi, xm, ym, zmouse);
   }
 
+  // For anything but modeling points, eat any pending move events and use
+  // latest position
+  addingPoints = button2 && !shift &&
+    (ss->locked || !ss->classic) && imod->mousemode == IMOD_MMODEL;
+  if (!addingPoints) {
+    processing = 1;
+    imod_info_input();
+    if (imodDebug('m') && processing > 1)
+      imodPrintStderr("Flushed %d move events\n", processing - 1);
+    processing = 0;
+  }
+
   // Pan with button 1 if not classic mode
-  if ((event->buttons() & ImodPrefs->actualButton(1)) && !ss->classic) {
-    cumdx = event->x() - firstmx;
-    cumdy = event->y() - firstmy;
+  if (button1 && !ss->classic) {
+    cumdx = ex - firstmx;
+    cumdy = ey - firstmy;
     if (mousePanning || but1downt.elapsed() > 250 || 
         cumdx * cumdx + cumdy * cumdy > cumthresh) {
-      vec.x = (lastmx - event->x()) * transFac;
-      vec.y = (event->y() - lastmy) * transFac;
+      vec.x = (lastmx - ex) * transFac;
+      vec.y = (ey - lastmy) * transFac;
       vec.z = 0.;
       mousePanning = 1;
       if (translateByRotatedVec(ss, &vec))
@@ -1236,9 +1259,8 @@ void slicerMouseMove(SlicerStruct *ss, QMouseEvent *event)
   }
 
   // Button 2 in model mode, locked or new mode, add points
-  if (button2 && !shift &&
-      (ss->locked || !ss->classic) && imod->mousemode == IMOD_MMODEL) {
-    zmouse = sslice_setxyz(ss, event->x(), event->y());
+  if (addingPoints) {
+    zmouse = sslice_setxyz(ss, ex, ey);
     cpt.x = ss->vi->xmouse;
     cpt.y = ss->vi->ymouse;
     cpt.z = ss->vi->zmouse;
@@ -1259,13 +1281,13 @@ void slicerMouseMove(SlicerStruct *ss, QMouseEvent *event)
   // Button 2 shifted, rotate around view axis in X/Y plane
     if (button2) {
       angleScale = 180. / (3.142 * 0.4 * B3DMIN(ss->winx, ss->winy));
-      dy = (event->x() - lastmx) * angleScale;
-      dx = (event->y() - lastmy) * angleScale;
+      dy = (ex - lastmx) * angleScale;
+      dx = (ey - lastmy) * angleScale;
     } else {
 
       // Button 3 shifted, rotate around Z view axis
-      drot = utilMouseZaxisRotation(ss->winx, event->x(), lastmx,
-                                    ss->winy, event->y(), lastmy);
+      drot = utilMouseZaxisRotation(ss->winx, ex, lastmx,
+                                    ss->winy, ey, lastmy);
 
     }
     if (dx <= -0.1 || dx >= 0.1 || dy <= -0.1 || dy >= 0.1 || 
@@ -1280,8 +1302,8 @@ void slicerMouseMove(SlicerStruct *ss, QMouseEvent *event)
       slicerShowSlice(ss);
     }
   }
-  lastmx = event->x();
-  lastmy = event->y();
+  lastmx = ex;
+  lastmy = ey;
 }
 
 // Process first mouse button - attach in model, set current point in movie
@@ -2697,6 +2719,9 @@ void slicerCubePaint(SlicerStruct *ss)
 
 /*
 $Log$
+Revision 4.63  2009/01/16 18:27:18  mast
+Set angle toolbar state properly when opeing
+
 Revision 4.62  2009/01/15 16:33:18  mast
 Qt 4 port
 
