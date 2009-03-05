@@ -1,13 +1,12 @@
 package etomo.ui;
 
-import java.awt.Dimension;
-import java.awt.Point;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Properties;
 
 import javax.swing.BoxLayout;
 import javax.swing.JPanel;
@@ -18,8 +17,10 @@ import javax.swing.text.BadLocationException;
 
 import etomo.storage.LogFile;
 import etomo.storage.Loggable;
+import etomo.storage.Storable;
 import etomo.type.AxisID;
 import etomo.type.BaseMetaData;
+import etomo.type.ConstLogProperties;
 import etomo.util.Utilities;
 
 /**
@@ -36,6 +37,10 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.3  2009/02/13 02:34:31  sueh
+ * <p> bug# 1158 In save, Stripping line endings and adding line endings that
+ * <p> match the OS.
+ * <p>
  * <p> Revision 1.2  2009/02/10 23:37:04  sueh
  * <p> bug# 1158 In newline() using line.separator instead of "\n".
  * <p>
@@ -43,7 +48,7 @@ import etomo.util.Utilities;
  * <p> bug# 1158 The log window panel.  One instance per manager is created.
  * <p> </p>
  */
-public final class LogPanel {
+public final class LogPanel implements Storable {
   public static final String rcsid = "$Id$";
 
   static final String TITLE = "Project Log";
@@ -53,7 +58,7 @@ public final class LogPanel {
   private final EtomoPanel rootPanel = new EtomoPanel();
   private final EtchedBorder border = new EtchedBorder(TITLE);
   private final JTextArea textArea = new JTextArea(10, 60);
-  private JScrollPane scrollPane = new JScrollPane(textArea);
+  private final JScrollPane scrollPane = new JScrollPane(textArea);
 
   private LogFile file = null;
   private String userDir = null;
@@ -61,8 +66,8 @@ public final class LogPanel {
   private boolean changed = false;
   private boolean fileFailed = false;
   private boolean writeFailed = false;
-  private Dimension frameSize = null;
-  private Point frameLocation = null;
+  private ConstLogProperties frameProperties = null;
+  private boolean frameVisible = true;
 
   private LogPanel() {
     rootPanel.setLayout(new BoxLayout(rootPanel, BoxLayout.Y_AXIS));
@@ -133,31 +138,7 @@ public final class LogPanel {
       border.setTitle(TITLE);
       file = null;
     }
-    UIHarness.INSTANCE.msgChanged(this);
-  }
-
-  /**
-   * Save the frame size from when this panel was displayed.
-   * @param input
-   */
-  void setFrameSize(Dimension input) {
-    frameSize = input;
-  }
-
-  Dimension getFrameSize() {
-    return frameSize;
-  }
-
-  /**
-   * Save the frame location from when this panel was displayed.
-   * @param input
-   */
-  void setFrameLocation(Point input) {
-    frameLocation = input;
-  }
-
-  Point getFrameLocation() {
-    return frameLocation;
+    UIHarness.INSTANCE.msgLogChanged(this);
   }
 
   /**
@@ -314,6 +295,59 @@ public final class LogPanel {
 
   JPanel getRootPanel() {
     return rootPanel;
+  }
+
+  /**
+   * Gets frame properties.-
+   * @return
+   */
+  public ConstLogProperties getFrameProperties() {
+    return frameProperties;
+  }
+
+  /**
+   * Sets frame properties
+   * @param constLogProperties
+   */
+  void setFrameProperties(ConstLogProperties constLogProperties) {
+    frameProperties = constLogProperties;
+  }
+
+  /**
+   * Loads the frame properties from props.
+   */
+  public void load(Properties props) {
+    if (frameProperties == null) {
+      frameProperties = new LogProperties();
+    }
+    frameProperties.load(props, "");
+  }
+
+  /**
+   * Updates the frame properties and returns them.
+   * @return
+   */
+  public ConstLogProperties getCurrentFrameProperties() {
+    UIHarness.INSTANCE.msgUpdateLogProperties(this);
+    return frameProperties;
+  }
+
+  /**
+   * Updates the frame properties and stores them.
+   */
+  public void store(Properties props) {
+    UIHarness.INSTANCE.msgUpdateLogProperties(this);
+    if (frameProperties != null) {
+      frameProperties.store(props, "");
+    }
+  }
+
+  boolean isFrameVisible() {
+    return frameVisible;
+  }
+
+  void setFrameVisible(boolean visible) {
+    frameVisible = visible;
   }
 
   private final class AppendLater implements Runnable {
