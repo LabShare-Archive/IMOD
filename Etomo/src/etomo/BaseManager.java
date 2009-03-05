@@ -334,9 +334,10 @@ public abstract class BaseManager {
    * @return
    */
   private Storable[] getStorables() {
-    Storable[] storables = getStorables(2);
+    Storable[] storables = getStorables(3);
     storables[0] = getProcessManager().getProcessData(AxisID.FIRST);
     storables[1] = getProcessManager().getProcessData(AxisID.SECOND);
+    storables[2] = logPanel;
     return storables;
   }
 
@@ -353,6 +354,7 @@ public abstract class BaseManager {
     parameterStore.setAutoStore(false);
     parameterStore.save(getProcessManager().getProcessData(AxisID.FIRST));
     parameterStore.save(getProcessManager().getProcessData(AxisID.SECOND));
+    parameterStore.save(logPanel);
   }
 
   /**
@@ -931,7 +933,7 @@ public abstract class BaseManager {
    * @return true if a reconnect was attempted.
    * @throws RuntimeException if any Throwable is caught
    */
-  public boolean reconnect(AxisID axisID)  {
+  public boolean reconnect(AxisID axisID) {
     try {
       if (isReconnectRun(axisID)) {
         //Just in case
@@ -1257,6 +1259,9 @@ public abstract class BaseManager {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.108  2009/03/02 18:53:51  sueh
+ * <p> bug# 1193 In reconnect(AxisID) unblock the axis.
+ * <p>
  * <p> Revision 1.107  2009/02/04 22:38:17  sueh
  * <p> bug# 1158 Added logPanel.
  * <p>
