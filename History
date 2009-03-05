@@ -1,5 +1,8 @@
 OBIMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+3/4/09: Changed Zap, Slicer, Xyz, and Locator windows to process mouse move
+events when appropriate to avoid falling behind with events from tablet.
+
 3/3/09: Changed Processchunks to handle up to 99999 com files and to avoid
 problems from * in error strings.
 
