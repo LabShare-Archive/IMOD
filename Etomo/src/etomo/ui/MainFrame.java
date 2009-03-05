@@ -34,6 +34,11 @@ import etomo.util.Utilities;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.52  2009/03/02 19:00:02  sueh
+ * <p> bug# 1193 Removed reconnect calls from showAxisB and
+ * <p> showBothAxis.  Reconnects for all axes must always be called from
+ * <p> openProcessingPanel.
+ * <p>
  * <p> Revision 3.51  2009/02/04 23:36:48  sueh
  * <p> bug# 1158 Changed id and exception classes in LogFile.
  * <p>
@@ -502,7 +507,7 @@ public final class MainFrame extends EtomoFrame implements ContextMenu {
   void setCurrentManager(BaseManager currentManager, UniqueKey managerKey,
       boolean newWindow) {
     if (EtomoDirector.INSTANCE.getArguments().isTest() && logFrame.isVisible()) {
-      showHideLogFrame();
+      showHideLog();
     }
     this.currentManager = currentManager;
     if (currentManager == null) {
@@ -552,12 +557,16 @@ public final class MainFrame extends EtomoFrame implements ContextMenu {
     }
   }
 
-  void msgChanged(LogPanel logPanel) {
+  void msgLogChanged(LogPanel logPanel) {
     logFrame.msgChanged(logPanel);
   }
 
-  void showHideLogFrame() {
-    logFrame.showHideFrame();
+  void msgUpdateLogProperties(LogPanel logPanel) {
+    logFrame.msgUpdateProperties(logPanel);
+  }
+
+  void showHideLog() {
+    logFrame.showHide();
   }
 
   MainPanel getMainPanel() {
@@ -614,7 +623,7 @@ public final class MainFrame extends EtomoFrame implements ContextMenu {
       showBothAxis();
     }
     else if (menu.equalsLogWindow(event)) {
-      showHideLogFrame();
+      showHideLog();
     }
     else {
       super.menuViewAction(event);

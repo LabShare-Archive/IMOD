@@ -39,7 +39,6 @@ public final class UIHarness {
   private boolean headless = false;
   private MainFrame mainFrame = null;
   private boolean verbose = false;
-  private boolean log = false;
 
   private UIHarness() {
   }
@@ -49,10 +48,6 @@ public final class UIHarness {
     if (isHead()) {
       mainFrame.setVerbose(verbose);
     }
-  }
-
-  public void setLog(boolean log) {
-    this.log = log;
   }
 
   public void moveSubFrame() {
@@ -75,9 +70,6 @@ public final class UIHarness {
   public synchronized void openMessageDialog(String message, String title,
       AxisID axisID) {
     if (isHead() && !EtomoDirector.INSTANCE.isTestDone()) {
-      if (log) {
-        log("openMessageDialog", message, title, axisID);
-      }
       mainFrame.displayMessage(message, title, axisID);
     }
     else {
@@ -88,9 +80,6 @@ public final class UIHarness {
   public synchronized void openInfoMessageDialog(String message, String title,
       AxisID axisID) {
     if (isHead() && !EtomoDirector.INSTANCE.isTestDone()) {
-      if (log) {
-        log("openMessageDialog", message, title, axisID);
-      }
       mainFrame.displayInfoMessage(message, title, axisID);
     }
     else {
@@ -106,9 +95,6 @@ public final class UIHarness {
   public synchronized void openErrorMessageDialog(ProcessMessages message,
       String title, AxisID axisID) {
     if (isHead() && !EtomoDirector.INSTANCE.isTestDone()) {
-      if (log) {
-        logError("openMessageDialog", message, title, axisID);
-      }
       mainFrame.displayErrorMessage(message, title, axisID);
     }
     else {
@@ -124,9 +110,6 @@ public final class UIHarness {
   public synchronized void openWarningMessageDialog(ProcessMessages messages,
       String title, AxisID axisID) {
     if (isHead() && !EtomoDirector.INSTANCE.isTestDone()) {
-      if (log) {
-        logWarning("openMessageDialog", messages, title, axisID);
-      }
       mainFrame.displayWarningMessage(messages, title, axisID);
     }
     else {
@@ -141,9 +124,6 @@ public final class UIHarness {
    */
   public synchronized void openMessageDialog(String message, String title) {
     if (isHead() && !EtomoDirector.INSTANCE.isTestDone()) {
-      if (log) {
-        log("openMessageDialog", message, title);
-      }
       mainFrame.displayMessage(message, title);
     }
     else {
@@ -159,9 +139,6 @@ public final class UIHarness {
   public synchronized void openMessageDialog(String[] message, String title,
       AxisID axisID) {
     if (isHead() && !EtomoDirector.INSTANCE.isTestDone()) {
-      if (log) {
-        log("openMessageDialog", message, title, axisID);
-      }
       mainFrame.displayMessage(message, title, axisID);
     }
     else {
@@ -171,9 +148,6 @@ public final class UIHarness {
 
   public synchronized int openYesNoCancelDialog(String[] message, AxisID axisID) {
     if (isHead() && !EtomoDirector.INSTANCE.isTestDone()) {
-      if (log) {
-        log("openYesNoCancelDialog", message, axisID);
-      }
       return mainFrame.displayYesNoCancelMessage(message, axisID);
     }
     log("openYesNoCancelDialog", message, axisID);
@@ -182,9 +156,6 @@ public final class UIHarness {
 
   public synchronized boolean openYesNoDialog(String message, AxisID axisID) {
     if (isHead() && !EtomoDirector.INSTANCE.isTestDone()) {
-      if (log) {
-        log("openYesNoDialog", message, axisID);
-      }
       return mainFrame.displayYesNoMessage(message, axisID);
     }
     log("openYesNoDialog", message, axisID);
@@ -193,9 +164,6 @@ public final class UIHarness {
 
   public synchronized boolean openDeleteDialog(String[] message, AxisID axisID) {
     if (isHead() && !EtomoDirector.INSTANCE.isTestDone()) {
-      if (log) {
-        log("openDeleteDialog", message, axisID);
-      }
       return mainFrame.displayDeleteMessage(message, axisID);
     }
     log("openDeleteDialog", message, axisID);
@@ -205,9 +173,6 @@ public final class UIHarness {
   public synchronized boolean openYesNoWarningDialog(String message,
       AxisID axisID) {
     if (isHead() && !EtomoDirector.INSTANCE.isTestDone()) {
-      if (log) {
-        log("openYesNoWarningDialog", message, axisID);
-      }
       return mainFrame.displayYesNoWarningDialog(message, axisID);
     }
     log("openYesNoWarningDialog", message, axisID);
@@ -216,9 +181,6 @@ public final class UIHarness {
 
   public synchronized boolean openYesNoDialog(String[] message, AxisID axisID) {
     if (isHead() && !EtomoDirector.INSTANCE.isTestDone()) {
-      if (log) {
-        log("openYesNoDialog", message, axisID);
-      }
       return mainFrame.displayYesNoMessage(message, axisID);
     }
     log("openYesNoDialog", message, axisID);
@@ -455,9 +417,15 @@ public final class UIHarness {
     }
   }
 
-  public void msgChanged(LogPanel logPanel) {
+  public void msgLogChanged(LogPanel logPanel) {
     if (isHead()) {
-      mainFrame.msgChanged(logPanel);
+      mainFrame.msgLogChanged(logPanel);
+    }
+  }
+  
+  public void msgUpdateLogProperties(LogPanel logPanel) {
+    if (isHead()) {
+      mainFrame.msgUpdateLogProperties(logPanel);
     }
   }
 
@@ -577,6 +545,10 @@ public final class UIHarness {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.33  2009/02/04 23:36:09  sueh
+ * <p> bug# 1158 Added msgChanged(LogPanel) and
+ * <p> setEnabledLogWindowMenuItem.
+ * <p>
  * <p> Revision 1.32  2008/10/06 22:47:26  sueh
  * <p> bug# 1113 Removed packPanel, which is unecessary since scrolling was
  * <p> removed.
