@@ -1,8 +1,6 @@
 package etomo.ui;
 
 import java.awt.Container;
-import java.awt.Dimension;
-import java.awt.Point;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
@@ -13,6 +11,9 @@ import javax.swing.JMenu;
 import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
 import javax.swing.KeyStroke;
+
+import etomo.EtomoDirector;
+import etomo.type.ConstLogProperties;
 
 /**
  * <p>Description: </p>
@@ -27,13 +28,18 @@ import javax.swing.KeyStroke;
  * 
  * @version $Revision$
  * 
- * <p> $Log$ </p>
+ * <p> $Log$
+ * <p> Revision 1.1  2009/02/04 23:34:34  sueh
+ * <p> bug# 1158 Frame for the log window.  Hold the log window for the
+ * <p> current manager.  Can be fitted independently of the rest of Etomo.
+ * <p> Stores its current size and location in each log window.  Can be hidden
+ * <p> without affecting automatic logging.
+ * <p> </p>
  */
 final class LogFrame extends JFrame {
   public static final String rcsid = "$Id$";
 
   private LogPanel curLogPanel = null;
-  private boolean hide = false;
 
   private final JMenuBar menuBar = new JMenuBar();
   private final JMenu menuFile = new Menu("File");
@@ -82,52 +88,85 @@ final class LogFrame extends JFrame {
   }
 
   /**
-   * Get, pack, and display a logPanel.  
+   * Get a LogProperties instance filled with values from the current state of
+   * the frame.
+   * @return
+   */
+  private ConstLogProperties getProperties() {
+    LogProperties properties = new LogProperties();
+    properties.setFrameSize(getSize());
+    properties.setFrameLocation(getLocation());
+    return properties;
+  }
+
+  /**
+   * Gets and displays a new log panel.  Saves the current frame properties in
+   * the old log panel.  Changes the frame to match the frame properties in the
+   * new log panel.
    * @param logPanel
    */
   void setPanel(LogPanel logPanel) {
     Container contentPane = getContentPane();
     contentPane.removeAll();
+    //the old log panel needs to remember its size and location
     if (curLogPanel != null) {
-      //the log panel needs to remember its size and location
-      curLogPanel.setFrameSize(getSize());
-      curLogPanel.setFrameLocation(getLocation());
+      //Save the current state in the old log panel
+      curLogPanel.setFrameProperties(getProperties());
+      curLogPanel.setFrameVisible(isVisible());
     }
+    //Set the new panel
     curLogPanel = logPanel;
     if (curLogPanel != null) {
       UIHarness.INSTANCE.setEnabledLogWindowMenuItem(true);
       contentPane.add(curLogPanel.getRootPanel());
       setTitle(curLogPanel.getTitle());
       //get the last size and location for this log panel
-      Dimension size = curLogPanel.getFrameSize();
-      if (size != null) {
-        setPreferredSize(size);
+      ConstLogProperties properties = curLogPanel.getFrameProperties();
+      if (properties == null) {
+        properties = EtomoDirector.INSTANCE.getUserConfiguration()
+            .getLogProperties();
       }
-      Point location = curLogPanel.getFrameLocation();
-      if (location != null) {
-        setLocation(location);
+      if (properties == null) {
+        properties = new LogProperties();
       }
-      setVisible(true);
+      setPreferredSize(properties.getFrameSize());
+      setLocation(properties.getFrameLocationX(), properties
+          .getFrameLocationY());
+      setVisible(curLogPanel.isFrameVisible());
+      if (isVisible()) {
+        repaint();
+        pack();
+      }
     }
     else {
+      //This happens when exiting
       UIHarness.INSTANCE.setEnabledLogWindowMenuItem(false);
       setVisible(false);
     }
   }
 
-  void showHideFrame() {
-    hide = !hide;
-    setVisible(!hide);
+  /**
+   * Toggles _hide and shows or hides the frame.
+   */
+  void showHide() {
+    setVisible(!isVisible());
+    if (isVisible()) {
+      repaint();
+      pack();
+    }
   }
 
-  public void hideFrame() {
-    hide = true;
-    setVisible(!hide);
+  /**
+   * Hides the frame.
+   *
+   */
+  private void hideLogFrame() {
+    setVisible(false);
   }
 
   /**
    * Message sent by LogPanel when it has changed.  If LogFrame does not
-   * currently contain this logPanel instance, ignore the message.
+   * currently contain this logPanel instance, the message is ignored.
    * @param ready
    * @param logPanel
    */
@@ -139,13 +178,17 @@ final class LogFrame extends JFrame {
     }
   }
 
-  public void setVisible(boolean visible) {
-    visible = visible && !hide;
-    if (visible) {
-      repaint();
-      pack();
+  /**
+   * Message sent by LogPanel when its needs to have the current frame
+   * properties.  If LogFrame does not currently contain this logPanel instance,
+   * the message is ignored.
+   * @param ready
+   * @param logPanel
+   */
+  void msgUpdateProperties(LogPanel logPanel) {
+    if (curLogPanel == logPanel) {
+      curLogPanel.setFrameProperties(getProperties());
     }
-    super.setVisible(visible);
   }
 
   /**
@@ -170,9 +213,12 @@ final class LogFrame extends JFrame {
       }
     }
     else if (menuLogWindow.getActionCommand().equals(actionCommand)) {
-      hideFrame();
+      hideLogFrame();
     }
     if (menuFitWindow.getActionCommand().equals(actionCommand)) {
+      //Getting rid of preferred size lets the frame fit to original size of the
+      //text area.
+      setPreferredSize(null);
       pack();
       repaint();
     }
