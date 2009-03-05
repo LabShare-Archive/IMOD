@@ -1,7 +1,9 @@
 package etomo.type;
 
 import etomo.storage.Storable;
+import etomo.ui.LogProperties;
 import etomo.util.CircularBuffer;
+
 import java.util.*;
 
 /**
@@ -17,6 +19,9 @@ import java.util.*;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.9  2008/12/01 22:23:14  sueh
+ * <p> bug# 1131 Added montage.
+ * <p>
  * <p> Revision 3.8  2008/10/06 22:37:17  sueh
  * <p> bug# 1113 Added parallelTableSize, joinTableSize, and peetTableSize.
  * <p>
@@ -104,6 +109,7 @@ public final class UserConfiguration implements Storable {
       "ParallelTableSize");
   private final EtomoNumber joinTableSize = new EtomoNumber("JoinTableSize");
   private final EtomoNumber peetTableSize = new EtomoNumber("PeetTableSize");
+  private ConstLogProperties logProperties = new LogProperties();
 
   public UserConfiguration() {
     MRUFileList = new CircularBuffer(nMRUFiles);
@@ -169,6 +175,9 @@ public final class UserConfiguration implements Storable {
     parallelTableSize.store(props, prepend);
     joinTableSize.store(props, prepend);
     peetTableSize.store(props, prepend);
+    if (logProperties != null) {
+      logProperties.store(props, prepend);
+    }
 
     props.setProperty(group + "MainWindowWidth", String
         .valueOf(mainWindowWidth));
@@ -243,6 +252,9 @@ public final class UserConfiguration implements Storable {
     parallelTableSize.load(props, prepend);
     joinTableSize.load(props, prepend);
     peetTableSize.load(props, prepend);
+    if (logProperties != null) {
+      logProperties.load(props, prepend);
+    }
   }
 
   /**
@@ -435,17 +447,21 @@ public final class UserConfiguration implements Storable {
   public ConstEtomoNumber getCpus() {
     return cpus;
   }
-  
+
   public ConstEtomoNumber getParallelTableSize() {
     return parallelTableSize;
   }
-  
+
   public ConstEtomoNumber getJoinTableSize() {
     return joinTableSize;
   }
-  
+
   public ConstEtomoNumber getPeetTableSize() {
     return peetTableSize;
+  }
+
+  public ConstLogProperties getLogProperties() {
+    return logProperties;
   }
 
   public boolean getParallelProcessing() {
@@ -459,7 +475,7 @@ public final class UserConfiguration implements Storable {
   public boolean getSingleAxis() {
     return singleAxis.is();
   }
-  
+
   public boolean getMontage() {
     return montage.is();
   }
@@ -479,17 +495,21 @@ public final class UserConfiguration implements Storable {
   public void setCpus(String input) {
     cpus.set(input);
   }
-  
+
   public void setParallelTableSize(String input) {
     parallelTableSize.set(input);
   }
-  
+
   public void setJoinTableSize(String input) {
     joinTableSize.set(input);
   }
-  
+
   public void setPeetTableSize(String input) {
     peetTableSize.set(input);
+  }
+
+  public void setLogProperties(ConstLogProperties constLogProperties) {
+    logProperties = constLogProperties;
   }
 
   public void setNoParallelProcessing(boolean input) {
@@ -499,7 +519,7 @@ public final class UserConfiguration implements Storable {
   public void setSingleAxis(boolean input) {
     singleAxis.set(input);
   }
-  
+
   public void setMontage(boolean input) {
     montage.set(input);
   }
