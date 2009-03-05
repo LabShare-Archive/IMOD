@@ -1,5 +1,7 @@
 OBIMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+3/5/09: Moved the log window to a better spot.  Also remembering its size.
+
 3/4/09: Changed Zap, Slicer, Xyz, and Locator windows to process mouse move
 events when appropriate to avoid falling behind with events from tablet.
 
