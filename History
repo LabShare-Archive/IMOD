@@ -1,6 +1,8 @@
 OBIMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 3/5/09: IMOD_4-0-6
+3/5/09: Fixed value set into global rotation spin box in Midas.
+
 3/5/09: Etomo remembers position and size of log windows between sessions and
 starts up with it offset from the main window.
 
