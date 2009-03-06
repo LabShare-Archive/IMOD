@@ -1,6 +1,10 @@
 OBIMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-3/5/09: Moved the log window to a better spot.  Also remembering its size.
+3/5/09: IMOD_4-0-6
+3/5/09: Etomo remembers position and size of log windows between sessions and
+starts up with it offset from the main window.
+
+3/5/09: Removed extensions from tomosnapshot name, may make it more mailable.
 
 3/4/09: Changed Zap, Slicer, Xyz, and Locator windows to process mouse move
 events when appropriate to avoid falling behind with events from tablet.
