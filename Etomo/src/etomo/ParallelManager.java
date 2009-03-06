@@ -40,6 +40,8 @@ import etomo.ui.ParallelChooser;
 import etomo.ui.ParallelDialog;
 import etomo.ui.ParallelPanel;
 import etomo.ui.UIHarness;
+import etomo.util.InvalidParameterException;
+import etomo.util.MRCHeader;
 
 /**
  * <p>Description: </p>
@@ -189,7 +191,7 @@ public final class ParallelManager extends BaseManager {
     processMgr.pause(axisID);
   }
 
-  public void save() throws LogFile.LockException,IOException {
+  public void save() throws LogFile.LockException, IOException {
     super.save();
     mainPanel.done();
     saveDialog();
@@ -454,7 +456,7 @@ public final class ParallelManager extends BaseManager {
   }
 
   private AnisotropicDiffusionParam updateAnisotropicDiffusionParamForVaryingK(
-      final String subdirName) throws LogFile.LockException,IOException{
+      final String subdirName) throws LogFile.LockException, IOException {
     AnisotropicDiffusionParam param = new AnisotropicDiffusionParam(this);
     if (!anisotropicDiffusionDialog.getParametersForVaryingK(param)) {
       return null;
@@ -464,7 +466,8 @@ public final class ParallelManager extends BaseManager {
     return param;
   }
 
-  private void updateAnisotropicDiffusionParam() throws LogFile.LockException,IOException {
+  private void updateAnisotropicDiffusionParam() throws LogFile.LockException,
+      IOException {
     AnisotropicDiffusionParam param = new AnisotropicDiffusionParam(this);
     anisotropicDiffusionDialog.getParameters(param);
     param.createFilterFullFile();
@@ -555,6 +558,9 @@ public final class ParallelManager extends BaseManager {
     if (param == null) {
       return;
     }
+    if (!validateTestVolume(param)) {
+      return;
+    }
     processSeries.setRun3dmodDeferred(deferred3dmodButton, run3dmodMenuOptions);
     // Start the trimvol process
     String threadName;
@@ -594,6 +600,54 @@ public final class ParallelManager extends BaseManager {
     processchunks(AxisID.ONLY, param, null, processSeries);
   }
 
+  /**
+   * Attempts to validate the size of the test volume.  Returns false if the
+   * test volume is too big.  Returns true if the test volume is not too big or
+   * if the validation cannot be done.
+   * The test volume is too big if it is larger then the current
+   * "Memory per chunk" spinner setting in AnisotripicDiffusionDialog divided by
+   * 36 (ChunksetupParam.MEMORY_TO_VOXEL).
+   * @param param
+   * @return False if test volume is too big.
+   */
+  private boolean validateTestVolume(AnisotropicDiffusionParam param) {
+    MRCHeader testVolumeHeader = MRCHeader.getInstance(new File(
+        propertyUserDir, param.getSubdirName()).getAbsolutePath(), param
+        .getInputFileName(), AxisID.ONLY);
+    try {
+      testVolumeHeader.read();
+      long size = Math.round(testVolumeHeader.getNColumns() / 1024.0
+          * testVolumeHeader.getNRows() * testVolumeHeader.getNSections()
+          * ChunksetupParam.MEMORY_TO_VOXEL / 1024.0);
+      if (size > 0
+          && size > anisotropicDiffusionDialog.getMemoryPerChunk().intValue()) {
+        UIHarness.INSTANCE
+            .openMessageDialog(
+                "Processing this test volume would require "
+                    + size
+                    + " MB of memory, more than the limit of "
+                    + anisotropicDiffusionDialog.getMemoryPerChunk()
+                    + " MB that you have set for chunks when processing the "
+                    + "whole volume.  Make a smaller test volume or increase the "
+                    + "memory limit for chunks in the \""
+                    + AnisotropicDiffusionDialog.MEMORY_PER_CHUNK_LABEL
+                    + "\" spinner in the "
+                    + AnisotropicDiffusionDialog.FILTER_FULL_VOLUME_LABEL
+                    + " box.", "Entry Error", AxisID.ONLY);
+        return false;
+      }
+    }
+    catch (InvalidParameterException e) {
+      e.printStackTrace();
+      System.err.println("Unable to validate test volume.");
+    }
+    catch (IOException e) {
+      e.printStackTrace();
+      System.err.println("Unable to validate test volume.");
+    }
+    return true;
+  }
+
   public void anisotropicDiffusionVaryingK(final String subdirName,
       ProcessSeries processSeries, Deferred3dmodButton deferred3dmodButton,
       Run3dmodMenuOptions run3dmodMenuOptions, final DialogType dialogType) {
@@ -624,6 +678,9 @@ public final class ParallelManager extends BaseManager {
       uiHarness.openMessageDialog(
           "Anisotropic diffusion comscripts could not be created",
           "Write Comscript Error", AxisID.ONLY);
+      return;
+    }
+    if (!validateTestVolume(anisotropicDiffusionParam)) {
       return;
     }
     ProcesschunksParam param = new ProcesschunksParam(this, AxisID.ONLY,
@@ -700,6 +757,9 @@ public final class ParallelManager extends BaseManager {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.31  2009/03/02 18:56:04  sueh
+ * <p> bug# 1193 Commented openProcessingPanel().
+ * <p>
  * <p> Revision 1.30  2009/02/04 23:04:11  sueh
  * <p> bug# 1158 passing logPanel to mainPanel.setStatusBarText so its title can
  * <p> be updated.
