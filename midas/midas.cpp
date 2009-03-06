@@ -670,7 +670,7 @@ void MidasWindow::createParameterDisplay(QVBoxLayout *col)
         (1, -180., 180., 1., "Global rotation", NULL, globRotBox);
       VW->globRotSpin->setFixedWidth
         (VW->globRotSpin->fontMetrics().width("-180.0000"));
-      VW->globRotSpin->setValue((int)floor(VW->globalRot * 10. + 0.5));
+      VW->globRotSpin->setValue(VW->globalRot);
       QObject::connect(VW->globRotSpin, SIGNAL(valueChanged(double)), 
                        VW->midasSlots, SLOT(slotGlobRot(double)));
       QCheckBox *check = diaCheckBox("Mouse shifts X only", NULL, col);
@@ -897,6 +897,9 @@ void midas_error(const char *tmsg, const char *bmsg, int retval)
 /*
 
 $Log$
+Revision 3.24  2009/01/16 21:48:29  mast
+Fixed assignment to Y radio button
+
 Revision 3.23  2009/01/15 16:30:19  mast
 Qt 4 port
 
