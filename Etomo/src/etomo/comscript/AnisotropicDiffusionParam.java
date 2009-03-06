@@ -34,6 +34,9 @@ import etomo.util.DatasetFiles;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.9  2009/02/04 23:15:03  sueh
+ * <p> bug# 1158 Changed id and exceptions classes in LogFile.
+ * <p>
  * <p> Revision 1.8  2008/09/10 20:50:32  sueh
  * <p> bug# 1135 Check for null when calling ParsedElementList.get(int).
  * <p>
@@ -126,8 +129,16 @@ public final class AnisotropicDiffusionParam implements CommandDetails {
     subdirName = input;
   }
 
+  public String getSubdirName() {
+    return subdirName;
+  }
+
   public void setInputFileName(final String input) {
     inputFileName = input;
+  }
+  
+  public String getInputFileName() {
+    return inputFileName;
   }
 
   public void deleteTestFiles() {
@@ -143,7 +154,7 @@ public final class AnisotropicDiffusionParam implements CommandDetails {
    * @throws LogFile.FileException
    * @throws LogFile.WriteException
    */
-  public void createFilterFullFile() throws LogFile.LockException,IOException {
+  public void createFilterFullFile() throws LogFile.LockException, IOException {
     File subdir = new File(manager.getPropertyUserDir(), subdirName);
     LogFile filterFullFile = LogFile.getInstance(new File(subdir,
         getFilterFullFileName()));
@@ -160,7 +171,7 @@ public final class AnisotropicDiffusionParam implements CommandDetails {
     return ProcessName.ANISOTROPIC_DIFFUSION + DatasetFiles.COMSCRIPT_EXT;
   }
 
-  public void createTestFiles() throws LogFile.LockException,IOException {
+  public void createTestFiles() throws LogFile.LockException, IOException {
     File subdir = new File(manager.getPropertyUserDir(), subdirName);
     EtomoNumber index = new EtomoNumber();
     EtomoNumber k = new EtomoNumber(EtomoNumber.Type.FLOAT);
