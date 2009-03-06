@@ -598,10 +598,10 @@ c
 c           if not leaving axis at center of box, compute amount that
 c           current view must be shifted across tilt axis to be lined up at
 c           center, then rotate that to get shifts in X and Y
-c           
+c           This is not due to cosine stretch, it is due to difference in
+c           the box offsets
           if (ifLeaveAxis .eq. 0) then
-            xBoxOfs = axisOffset(ivRef) *
-     &          (cosview / cosd(tilt(ivRef)) - 1.)
+            xBoxOfs = axisOffset(iview) - axisOffset(ivRef)
             xshift = xshift + xBoxOfs * cosphi
             yshift = yshift + xBoxOfs * sinphi
           endif
@@ -835,6 +835,9 @@ c	print *,xpeak,ypeak
 
 c       
 c       $Log$
+c       Revision 3.28  2008/12/12 16:36:59  mast
+c       Tested maximum tilt angle appropriate for cosince stretching
+c
 c       Revision 3.27  2008/10/08 22:26:09  mast
 c       Increased field width for output of shifts
 c
