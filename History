@@ -1,5 +1,8 @@
 OBIMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+3/6/09: Fixed Tiltxcorr's adjustment of shift for uncentered correlation box
+to avoid division by 0 at 90 degrees (in 3.13).
+
 3/5/09: IMOD_4-0-6
 3/5/09: Fixed value set into global rotation spin box in Midas.
 
