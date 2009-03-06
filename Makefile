@@ -348,7 +348,7 @@ dist : ALWAYS
 	(cd dist ; \find . -type f -name "*~" -exec rm "{}" \;)
 	($(MAKE) install)
 	-\cp buildlib/*.so $(ARCDIR)/lib/
-	\cp dist/COPYRIGHT dist/start.html dist/installIMOD dist/GPL.txt $(ARCDIR)/
+	\cp dist/COPYRIGHT dist/start.html dist/installIMOD dist/*GPL.txt $(ARCDIR)/
 	-\find $(ARCDIR) -depth -name CVS -exec /bin/rm -rf {} \;
 	./installqtlib
 	@echo "Compressing..."
@@ -457,6 +457,9 @@ ALWAYS:
 
 ############################################################################
 #  $Log$
+#  Revision 3.76  2009/01/17 17:03:27  mast
+#  updates to make src
+#
 #  Revision 3.75  2009/01/16 03:00:24  mast
 #  Updated notes, maybe made some cleans work better
 #
