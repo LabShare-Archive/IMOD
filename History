@@ -1,4 +1,4 @@
-OBIMOD History
+IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 3/6/09: Fixed Tiltxcorr's adjustment of shift for uncentered correlation box
 to avoid division by 0 at 90 degrees (in 3.13).
