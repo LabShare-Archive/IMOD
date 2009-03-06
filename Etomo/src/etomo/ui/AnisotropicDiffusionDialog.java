@@ -26,7 +26,9 @@ import etomo.type.Run3dmodMenuOptions;
 import etomo.util.Utilities;
 
 /**
- * <p>Description: </p>
+ * <p>Description: Main dialog for Nonlinear anisotropic diffusion.  Appears as
+ * the result of a button press on the parallel processing interface main
+ * dialog.</p>
  * 
  * <p>Copyright: Copyright 2006</p>
  *
@@ -39,6 +41,9 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.14  2008/09/30 20:54:36  sueh
+ * <p> bug# 1113 Using a private constructor in SpacedPanel.
+ * <p>
  * <p> Revision 1.13  2008/08/26 20:36:39  sueh
  * <p> bug# 1122 Moved deleteSubdir from dialog to manager so that
  * <p> ImodManager can be queried about open 3dmods.  Check deleteSubdir
@@ -101,8 +106,10 @@ public final class AnisotropicDiffusionDialog implements ContextMenu,
   private static final String K_VALUE_LABEL = "K value: ";
   private static final String ITERATION_LABEL = "Iterations: ";
   private static final DialogType DIALOG_TYPE = DialogType.ANISOTROPIC_DIFFUSION;
+  public static final String MEMORY_PER_CHUNK_LABEL = "Memory per chunk";
+  public static final String FILTER_FULL_VOLUME_LABEL = "Filter Full Volume";
 
-  static final String TEST_VOLUME_NAME = "test.input";
+  public static final String TEST_VOLUME_NAME = "test.input";
 
   private final SpacedPanel rootPanel = SpacedPanel.getInstance();
   private final Run3dmodButton btnViewFullVolume = Run3dmodButton
@@ -133,11 +140,11 @@ public final class AnisotropicDiffusionDialog implements ContextMenu,
   private final Spinner spIteration = Spinner.getLabeledInstance(
       ITERATION_LABEL, 10, 1, 200);
   private Run3dmodButton btnRunFilterFullVolume = Run3dmodButton
-      .getDeferred3dmodInstance("Filter Full Volume", this);
+      .getDeferred3dmodInstance(FILTER_FULL_VOLUME_LABEL, this);
   private Run3dmodButton btnViewFilteredVolume = Run3dmodButton
       .get3dmodInstance("View Filtered Volume", this);
   private final Spinner spMemoryPerChunk = Spinner.getLabeledInstance(
-      "Memory per chunk (MB): ", MEMORY_PER_CHUNK_DEFAULT,
+      MEMORY_PER_CHUNK_LABEL + " (MB): ", MEMORY_PER_CHUNK_DEFAULT,
       ChunksetupParam.MEMORY_TO_VOXEL, 30 * ChunksetupParam.MEMORY_TO_VOXEL,
       ChunksetupParam.MEMORY_TO_VOXEL);
   private final MultiLineButton btnCleanup = new MultiLineButton(CLEANUP_LABEL);
@@ -327,7 +334,7 @@ public final class AnisotropicDiffusionDialog implements ContextMenu,
     //filter
     SpacedPanel pnlFilter = SpacedPanel.getInstance();
     pnlFilter.setBoxLayout(BoxLayout.Y_AXIS);
-    pnlFilter.setBorder(new EtchedBorder("Filter Full Volume").getBorder());
+    pnlFilter.setBorder(new EtchedBorder(FILTER_FULL_VOLUME_LABEL).getBorder());
     SpacedPanel pnlFilterFields = SpacedPanel.getInstance();
     pnlFilterFields.setBoxLayout(BoxLayout.X_AXIS);
     ltfKValue.setTextPreferredWidth(UIParameters.INSTANCE.getFourDigitWidth());
@@ -412,6 +419,10 @@ public final class AnisotropicDiffusionDialog implements ContextMenu,
     metaData.setKValue(ltfKValue.getText());
     metaData.setIteration(spIteration.getValue());
     metaData.setMemoryPerChunk(spMemoryPerChunk.getValue());
+  }
+
+  public Number getMemoryPerChunk() {
+    return spMemoryPerChunk.getValue();
   }
 
   public void setParameters(final ParallelMetaData metaData) {
