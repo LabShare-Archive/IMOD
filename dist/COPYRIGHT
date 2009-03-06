@@ -37,8 +37,10 @@ excluded from this notice; it is copyright Max-Planck-Institut for
 Biochemistry, Martinsried, Germany.
 
 The LSQR routine by Michael Saunders is used in some programs.  It is
-covered by the Common Public License.  The source code used here and the
-license can be found at  http://bio3d.colorado.edu/imod/openSource
+covered by the Common Public License.  IMOD now uses a C version of LSQR
+and some BLAS routines from the BCLS package of Michael Friedlander,
+which are covered by the Lesser GPL.  The source code used here and the
+licenses can be found at  http://bio3d.colorado.edu/imod/openSource
 
 IMOD uses a subset of the LAPACK routines developed at Univ. of
 Tennessee, Univ. of California Berkeley, NAG Ltd., Courant Institute,
