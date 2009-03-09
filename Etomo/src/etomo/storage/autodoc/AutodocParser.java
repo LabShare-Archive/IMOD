@@ -1,10 +1,7 @@
 package etomo.storage.autodoc;
 
-//import java.io.FileReader;
-//import java.lang.IllegalArgumentException;
 import java.io.IOException;
 import java.lang.IllegalStateException;
-//import java.io.StreamTokenizer;
 import java.io.FileNotFoundException;
 import java.util.Vector;
 
@@ -20,7 +17,10 @@ import etomo.ui.Token;
  * It retains the original whitespace, except for end of line.  It substitute one
  * space for each end of line character in a multi-line value.  Comments and
  * empty lines are stored.  Messages about syntax errors are sent to System.err.
- * It is extremely important to keep the language definition up to date.
+ * It stores attributes in a tree structure and as individual ordered name/value
+ * pairs.  When there are duplicate attributes in a section, retrieving the
+ * value from the tree structure retrieves the last value.  It is extremely
+ * important to keep the language definition up to date.
  *
  * To Use:
  * Construct the class with an Autodoc.
@@ -60,7 +60,7 @@ import etomo.ui.Token;
  * WORD => The largest possible string of everything not used by other Autodoc
  *         tokens.
  * KEYWORD => A WORD that matches an autodoc keyword:  Version, Pip,
- *            KeyValueDelimiter, CommandLanguage
+ *            KeyValueDelimiter
  *
  *
  * Language definition for the parser:
@@ -150,6 +150,9 @@ import etomo.ui.Token;
  * @version $$Revision$$
  *
  * <p> $$Log$
+ * <p> $Revision 1.21  2009/02/04 23:30:00  sueh
+ * <p> $bug# 1158 Changed id and exceptions classes in LogFile.
+ * <p> $
  * <p> $Revision 1.20  2009/01/20 19:34:21  sueh
  * <p> $bug# 1102 Fixed bug - not allowing whitespace after subsection header close.
  * <p> $
@@ -359,15 +362,6 @@ final class AutodocParser {
     }
     parsed = true;
     nextToken();
-    //If the first thing in the autodoc is "CommmandLanguage =" then turn on the
-    //command language boolean.
-    if (!token.is(Token.Type.EOF) && pair(autodoc)) {
-      ReadOnlyAttribute attribute = autodoc
-          .getAttribute(AutodocTokenizer.COMMAND_LANGUAGE_KEYWORD);
-      if (attribute != null && attribute.getValue() == null) {
-        autodoc.setCommandLanguage();
-      }
-    }
     while (!token.is(Token.Type.EOF)) {
       if (!emptyLine(autodoc) && !comment(autodoc) && !section()
           && !pair(autodoc)) {
