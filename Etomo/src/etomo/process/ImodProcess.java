@@ -36,6 +36,12 @@ import etomo.util.Utilities;
  * 
  * <p>
  * $Log$
+ * Revision 3.51  2008/12/09 21:32:44  sueh
+ * bug# 1160 Removing the constructor that has the beadfixerDiameter
+ * parameter.  Added setBeadfixerDiameter.  Also setting
+ * beadfixerDiameter to default in setAutoCenter when beadfixerDiameter
+ * was not set.
+ *
  * Revision 3.50  2008/12/05 00:52:03  sueh
  * bug# 1156 Added setSkipList.
  *
@@ -1105,9 +1111,9 @@ public class ImodProcess {
   public void setSkipList(String skipList) {
     addPluginMessage(BEAD_FIXER_PLUGIN, BF_MESSAGE_SKIP_LIST, skipList);
   }
-  
+
   public void setBeadfixerDiameter(long beadfixerDiameter) {
-    beadfixerDiameterSet=true;
+    beadfixerDiameterSet = true;
     addPluginMessage(BEAD_FIXER_PLUGIN, BF_MESSAGE_DIAMETER, String
         .valueOf(beadfixerDiameter));
   }
@@ -1679,7 +1685,6 @@ public class ImodProcess {
       boolean responseReceived = false;
       String response = null;
       StringBuffer userMessage = new StringBuffer();
-      StringBuffer exceptionMessage = new StringBuffer();
       // wait for the response for at most 5 seconds
       for (int timeout = 0; timeout < 10; timeout++) {
         if (responseReceived) {
@@ -1703,19 +1708,14 @@ public class ImodProcess {
             break;
           }
           // if the response is not OK or an error message meant for the user
-          // then either its a requested return string, or an exception must be
-          // thrown
-          if (!parseUserMessages(response, userMessage)) {
-            if (imodReturnValues != null && !failure
-                && !response.startsWith("imodExecuteMessage:")) {
-              String[] words = response.split("\\s+");
-              for (int i = 0; i < words.length; i++) {
-                imodReturnValues.add(words[i]);
-              }
-            }
-            else {
-              failure = true;
-              exceptionMessage.append(response + "\n");
+          // then it may be a requested return string.  Otherwise it is some
+          // 3dmod output that etomo can ignore.
+          if (!parseUserMessages(response, userMessage)
+              && imodReturnValues != null && !failure
+              && !response.startsWith("imodExecuteMessage:")) {
+            String[] words = response.split("\\s+");
+            for (int i = 0; i < words.length; i++) {
+              imodReturnValues.add(words[i]);
             }
           }
         }
@@ -1725,16 +1725,7 @@ public class ImodProcess {
         UIHarness.INSTANCE.openMessageDialog(userMessage.toString(),
             "3dmod Message", getAxisID());
       }
-      // "throw" exceptions if error message found that are directed towards the
-      // user
-      if (exceptionMessage.length() > 0) {
-        SystemProcessException exception = new SystemProcessException(
-            exceptionMessage.toString());
-        exception.printStackTrace();
-        UIHarness.INSTANCE.openMessageDialog(exception.getMessage(),
-            "3dmod Exception", getAxisID());
-      }
-      else if (!responseReceived) {
+      if (!responseReceived) {
         if (isRunning()) {
           // no response received and 3dmod is running - "throw" exception
           SystemProcessException exception = new SystemProcessException(
@@ -1752,7 +1743,7 @@ public class ImodProcess {
     }
 
     /**
-     * Parse messages that are directed at the user - mesages that contain
+     * Parse messages that are directed at the user - messages that contain
      * ERROR_TAG or WARNING_TAG.
      * 
      * @param line
