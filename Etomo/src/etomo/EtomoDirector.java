@@ -708,32 +708,8 @@ public class EtomoDirector {
   }
 
   private final void printUsageMessage() {
-    System.out
-        .println("Usage:\tetomo [options] *"
-            + DatasetFiles.RECON_DATA_FILE_EXT
-            + "|*"
-            + DatasetFiles.JOIN_DATA_FILE_EXT
-            + "|*"
-            + DatasetFiles.PEET_DATA_FILE_EXT
-            + "|*"
-            + DatasetFiles.PARALLEL_DATA_FILE_EXT
-            + " [ *"
-            + DatasetFiles.RECON_DATA_FILE_EXT
-            + "|*"
-            + DatasetFiles.JOIN_DATA_FILE_EXT
-            + "|*"
-            + DatasetFiles.PEET_DATA_FILE_EXT
-            + "|*"
-            + DatasetFiles.PARALLEL_DATA_FILE_EXT
-            + " ...]\n\tetomo "
-            + "[options] [reconstruction_setup_options]\n\nStandard out is usually redirected "
-            + "to etomo_out.log.  Standard error is\nusually redirected to "
-            + "etomo_err.log.\n\n*" + DatasetFiles.RECON_DATA_FILE_EXT
-            + ":\tA reconstruction data file.\n*"
-            + DatasetFiles.JOIN_DATA_FILE_EXT + ":\tA join data file.\n*"
-            + DatasetFiles.PEET_DATA_FILE_EXT + ":\tA PEET data file.\n*"
-            + DatasetFiles.PARALLEL_DATA_FILE_EXT
-            + ":\tA parallel process data file.\n" + Arguments.HELP_MESSAGE);
+    System.out.println("Usage: etomo [options] [data files]\n"
+        + Arguments.HELP_MESSAGE);
   }
 
   /**
@@ -898,13 +874,15 @@ public class EtomoDirector {
       parameterStore.save(userConfig);
     }
     catch (LogFile.LockException e) {
-      UIHarness.INSTANCE.openMessageDialog("Unable to save or write preferences to "
-          + parameterStore.getAbsolutePath() + ".\n" + e.getMessage(),
+      UIHarness.INSTANCE.openMessageDialog(
+          "Unable to save or write preferences to "
+              + parameterStore.getAbsolutePath() + ".\n" + e.getMessage(),
           "Etomo Error");
     }
     catch (IOException e) {
-      UIHarness.INSTANCE.openMessageDialog("Unable to save or write preferences to "
-          + parameterStore.getAbsolutePath() + ".\n" + e.getMessage(),
+      UIHarness.INSTANCE.openMessageDialog(
+          "Unable to save or write preferences to "
+              + parameterStore.getAbsolutePath() + ".\n" + e.getMessage(),
           "Etomo Error");
     }
   }
@@ -1062,6 +1040,11 @@ public class EtomoDirector {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.79  2009/02/04 22:39:39  sueh
+ * <p> bug# 1158 Changed MemoryThread to UtilityThread.  Made it a thread for
+ * <p> running multiple periodic tasks.  Always runs now.  Added saving the log
+ * <p> panel to it.
+ * <p>
  * <p> Revision 1.78  2008/12/15 22:56:43  sueh
  * <p> bug# 1161 Made EtomoDirector.getCurrentManager private.  Added a
  * <p> public test version for public access.

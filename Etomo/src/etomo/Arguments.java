@@ -23,6 +23,9 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.2  2008/11/11 23:46:31  sueh
+ * <p> bug# 1149 Made --names option available for testing.
+ * <p>
  * <p> Revision 1.1  2007/12/26 21:54:20  sueh
  * <p> bug# 1052 Moved argument handling from EtomoDirector to a separate class.
  * <p> </p>
@@ -49,74 +52,110 @@ public final class Arguments {
   private static final String SCAN_TAG = "--scan";
   private static final String CREATE_TAG = "--create";
   private static final String EXIT_TAG = "--exit";
+  private static final String FG_TAG = "--fg";//foreground
 
-  static final String HELP_MESSAGE = "\nOptions:\n  "
-      + DEBUG_TAG
-      + "\tSend extra information to standard error.  The "
-      + DEBUG_TAG
-      + " option\n\t\tincludes the following options:  "
-      + MEMORY_TAG
-      + " and "
-      + TIMESTAMP_TAG
-      + ".\n  "
-      + HELP1_TAG
-      + ", "
-      + HELP2_TAG
-      + "\tSend this message to standard out and exit.\n  "
-      + MEMORY_TAG
-      + " [Integer]\n\t\tSend memory usage statements to standard error before "
-      + "and\n\t\tafter processes are run.  The integer is the interval (in\n\t\t"
-      + "minutes) at which to send additional memory usage statements.\n  "
-      + NAMES_TAG
-      + "\tSend the names of screen elements to standard out.  For writing\n\t\t"
-      + "automated regression tests.\n  "
-      + NEWSTUFF_TAG
-      + "\tMay cause Etomo to run with unreleased functionality.\n  "
-      + SELFTEST_TAG
-      + "\tCauses Etomo to do some internal testing.  Etomo may run more\n\t\t"
-      + "slowly.\n  "
-      + TIMESTAMP_TAG
-      + "\tSend timestamps to standard error before and after processes\n\t\tare "
-      + "run.\n\nReconstruction Setup Options:\n  "
-      + DATASET_TAG
-      + " tilt_series_file | dataset_name\n\t\tSets Dataset Name in the Setup "
-      + "Tomogram dialog.  Can be set to\n\t\ta file containing a tilt series or "
-      + "to the dataset name.  A\n\t\tdataset name is the root name of the tilt "
-      + "series file,\n\t\texcluding the extension (and the axis extension - "
-      + "\"a\" or \"b\" -\n\t\tin the case of dual axis).  Must be in the local "
-      + "directory\n\t\tunless the "
-      + DIR_TAG
-      + " option is used.\n  "
-      + DIR_TAG
-      + " \"directory_path\"\n\t\tThe absolute or relative directory of the file "
-      + "or dataset\n\t\tspecified with the "
-      + DATASET_TAG
-      + " option.\n  "
+  static final String HELP_MESSAGE = "Options:\n  "
       + AXIS_TAG
       + " "
       + AxisType.SINGLE_AXIS.getValue()
       + "|"
       + AxisType.DUAL_AXIS.getValue()
-      + "\n\t\tSets the Axis Type in the Setup Tomogram dialog.  \n  "
+      + "\n\t\tFor automation.  Sets the Axis Type in the Setup Tomogram dialog."
+      + "\n\n  "
+      + CREATE_TAG
+      + "\tFor automation.  Runs Create Com Scripts in the Setup Tomogram"
+      + "\n\t\tdialog."
+      + "\n\n  "
+      + DATASET_TAG
+      + " tilt_series_file|dataset_name"
+      + "\n\t\tFor automation.  Sets Dataset Name in the Setup  Tomogram dialog."
+      + "\n\t\tCan be set to a file containing a tilt series or to the dataset"
+      + "\n\t\t name.  A dataset name is the root name of the tilt series file,"
+      + "\n\t\texcluding the extension (and the axis extension - \"a\" or \"b\""
+      + "\n\t\t - in the case of dual axis).  Must be in the local directory"
+      + "\n\t\tunless the "
+      + DIR_TAG
+      + " option is used."
+      + "\n\n  "
+      + DEBUG_TAG
+      + "\tSend extra information to standard error.  The "
+      + DEBUG_TAG
+      + " option"
+      + "\n\t\tincludes the following options:  "
+      + MEMORY_TAG
+      + " and "
+      + TIMESTAMP_TAG
+      + "."
+      + "\n\n  "
+      + DEMO_TAG
+      + "\tDeprecated."
+      + "\n\n  "
+      + DIR_TAG
+      + " \"directory_path\""
+      + "\n\t\tFor automation.  The absolute or relative directory containing"
+      + "\n\t\tthe file or dataset specified with the "
+      + DATASET_TAG
+      + " option."
+      + "\n\n  "
+      + EXIT_TAG
+      + "\tFor automation.  Causes Etomo to exit after the Setup Tomogram dialog"
+      + "\n\t\tis completed."
+      + "\n\n  "
+      + FG_TAG
+      + "\t\tUsed with automation.  Must be the first option.  Causes Etomo to "
+      + "\n\t\tbe run in the foreground rather then in the background.  This is"
+      + "\n\t\tuseful when running Etomo with automation from a script; a"
+      + "\n\t\tscript will not wait until Etomo is done unless Etomo is running"
+      + "\n\t\tin the foreground."
+      + "\n\n  "
+      + FIDUCIAL_TAG
+      + " fiducial_diameter"
+      + "\n\t\tFor automation.  Sets the Fiducial Diameter (a double) in the"
+      + "\n\t\tSetup Tomogram dialog."
+      + "\n\n  "
       + FRAME_TAG
       + " "
       + ViewType.SINGLE_VIEW.getValue()
       + "|"
       + ViewType.MONTAGE.getValue()
-      + "\n\t\tSets the Frame Type in the Setup Tomogram dialog.\n  "
-      + FIDUCIAL_TAG
-      + " Double\n\t\tSets the Fiducial Diameter in the Setup Tomogram dialog.\n  "
-      + SCAN_TAG
-      + "\tRuns Scan Header in the Setup Tomogram dialog.\n  "
-      + CREATE_TAG
-      + "\tRuns Create Com Scripts in the Setup Tomogram dialog.\n  "
-      + EXIT_TAG
-      + "\tCauses Etomo to exit after the Setup Tomogram dialog is completed.\n\nOther Options:\n  Testing Only:\n    "
+      + "\n\t\tFor automation.  Sets the Frame Type in the Setup Tomogram"
+      + "\n\t\tdialog."
+      + "\n\n  "
       + HEADLESS_TAG
-      + "\tNo window is created.  Used for unit testing.\n    "
+      + "\tFor testing.  No window is created.  Used for unit testing."
+      + "\n\n  "
+      + HELP1_TAG
+      + ", "
+      + HELP2_TAG
+      + "\tSend this message to standard out and exit."
+      + "\n\n  "
+      + MEMORY_TAG
+      + " [interval]"
+      + "\n\t\tLog memory usage statements before and after processes are run."
+      + "\n\t\tThe interval is an integer which denotes the interval in minutes"
+      + "\n\t\tat which to send additional memory usage statements."
+      + "\n\n  "
+      + NAMES_TAG
+      + "\tFor testing.  Send the names of screen elements to standard out.  For"
+      + "\n\t\twriting automated regression tests."
+      + "\n\n  "
+      + NEWSTUFF_TAG
+      + "\tMay cause Etomo to run with unreleased functionality."
+      + "\n\n  "
+      + SCAN_TAG
+      + "\tFor automation.  Runs Scan Header in the Setup Tomogram dialog."
+      + "\n\n  "
+      + SELFTEST_TAG
+      + "\tCauses Etomo to do some internal testing.  Etomo may run more\n\t\t"
+      + "slowly."
+      + "\n\n  "
       + TEST_TAG
-      + "\tTest mode used for unit testing and automated regression\n\t\ttesting."
-      + "\n  Deprecated:\n    " + DEMO_TAG + "\n";
+      + "\tFor testing.  Test mode used for unit testing and automated"
+      + "\n\t\tregression testing."
+      + "\n\n  "
+      + TIMESTAMP_TAG
+      + "\tSend timestamps to standard error before and after processes are run."
+      + "\n";
 
   private final ArrayList paramFileNameList = new ArrayList();
 
@@ -148,6 +187,7 @@ public final class Arguments {
   private String dir = null;
   private boolean create = false;
   private boolean exit = false;
+  private String automationFile = null;
 
   private final EtomoNumber fiducial = new EtomoNumber(EtomoNumber.Type.DOUBLE);
 
@@ -182,10 +222,18 @@ public final class Arguments {
     return scan;
   }
 
+  public boolean isAutomation() {
+    return automationFile != null;
+  }
+
+  public String getAutomationFile() {
+    return automationFile;
+  }
+
   public boolean isCreate() {
     return create;
   }
-  
+
   public boolean isExit() {
     return exit;
   }
@@ -322,6 +370,16 @@ public final class Arguments {
       }
       else if (args[i].equals(EXIT_TAG)) {
         exit = true;
+      }
+      else if (args[i].equals(FG_TAG)) {
+        if (i > 0) {
+          System.err
+              .println("WARNING:  option --fg had no effect; must be the first option to have an effect.");
+        }
+      }
+      else {
+        System.err.println("WARNING:  unknown argument, " + args[i]
+            + ", ignored.");
       }
       i++;
     }
