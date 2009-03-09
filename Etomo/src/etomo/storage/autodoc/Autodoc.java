@@ -34,6 +34,10 @@ import java.util.List;
  * The break character is no longer being handled by autodoc.  It is now considered
  * a "flavor" of autodoc.
  * 
+ * 1.3:  Fixed handling duplicate attribute names (see 1.2).  The rule for
+ * autodoc is that is keeps the last value.  So it needs to keep acting like it
+ * is doing this even though it is actually keeping  all the values.
+ * 
  * To Use:
  * 
  * Set up environment variables:  make sure that either the AUTODOC_DIR or
@@ -99,7 +103,6 @@ final class Autodoc extends WriteOnlyStatementList implements WritableAutodoc {
   private final AttributeList attributeList;
   private String currentDelimiter = AutodocTokenizer.DEFAULT_DELIMITER;
   private boolean debug = false;
-  private boolean commandLanguage = false;
   private boolean writable = false;
 
   Autodoc() {
@@ -146,10 +149,6 @@ final class Autodoc extends WriteOnlyStatementList implements WritableAutodoc {
       return newSection;
     }
     return existingSection;
-  }
-
-  void setCommandLanguage() {
-    commandLanguage = true;
   }
 
   boolean isGlobal() {
@@ -199,13 +198,11 @@ final class Autodoc extends WriteOnlyStatementList implements WritableAutodoc {
     Attribute attribute = attributeList.getAttribute(name);
     Token valueToken = new Token();
     valueToken.set(Token.Type.ANYTHING, value);
-    //add name/value pair - command language only
-    //if (commandLanguage) {
+    //add name/value pair
     NameValuePair pair = addNameValuePair();
     //add attribute and value to pair
     pair.addAttribute(attribute);
     pair.addValue(valueToken);
-    //}
   }
 
   /**
@@ -660,6 +657,9 @@ final class Autodoc extends WriteOnlyStatementList implements WritableAutodoc {
 }
 /**
  *<p> $$Log$
+ *<p> $Revision 1.28  2009/02/04 23:30:00  sueh
+ *<p> $bug# 1158 Changed id and exceptions classes in LogFile.
+ *<p> $
  *<p> $Revision 1.27  2009/01/20 19:32:37  sueh
  *<p> $bug# 1102 Hooked up internal testing.
  *<p> $
