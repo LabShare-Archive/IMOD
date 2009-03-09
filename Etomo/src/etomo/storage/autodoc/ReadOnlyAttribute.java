@@ -14,6 +14,9 @@ package etomo.storage.autodoc;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.3  2009/01/20 19:36:01  sueh
+* <p> bug# 1102 Added getName, getFirstAttribute, and toString.
+* <p>
 * <p> Revision 1.2  2007/03/23 20:35:10  sueh
 * <p> bug# 964 Added getMultiLineValue(), to convert a link list of tokens into a string
 * <p> which retains EOL information.
@@ -31,6 +34,5 @@ public interface ReadOnlyAttribute {
   public ReadOnlyAttribute getAttribute(String name);
   public Attribute getAttribute(int name);
   public String getName();
-  public ReadOnlyAttribute getFirstAttribute();
   public String toString();
 }
