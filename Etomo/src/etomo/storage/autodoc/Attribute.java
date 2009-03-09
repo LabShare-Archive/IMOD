@@ -20,6 +20,9 @@ import etomo.ui.Token;
  * @version $$Revision$$
  *
  * <p> $$Log$
+ * <p> $Revision 1.13  2009/02/04 23:30:00  sueh
+ * <p> $bug# 1158 Changed id and exceptions classes in LogFile.
+ * <p> $
  * <p> $Revision 1.12  2009/01/20 19:31:16  sueh
  * <p> $bug# 1102 Added getFirstAttribute.
  * <p> $
@@ -218,8 +221,8 @@ final class Attribute extends WriteOnlyAttributeList implements
       //where this attribute is the last attribute in the name.
       return;
     }
-    //current we can only modify the first name/value pair found
-    NameValuePair nameValuePair = (NameValuePair) nameValuePairList.get(0);
+    //current we can only modify the last name/value pair found
+    NameValuePair nameValuePair = getNameValuePair();
     Token value = new Token();
     value.set(Token.Type.ANYTHING, newValue);
     nameValuePair.setValue(value);
@@ -310,7 +313,7 @@ final class Attribute extends WriteOnlyAttributeList implements
     if (nameValuePairList == null || nameValuePairList.size() == 0) {
       return null;
     }
-    Token value = ((NameValuePair) nameValuePairList.get(0)).getTokenValue();
+    Token value = getNameValuePair().getTokenValue();
     if (value == null) {
       return null;
     }
@@ -324,7 +327,7 @@ final class Attribute extends WriteOnlyAttributeList implements
     if (nameValuePairList == null || nameValuePairList.size() == 0) {
       return null;
     }
-    Token value = ((NameValuePair) nameValuePairList.get(0)).getTokenValue();
+    Token value = getNameValuePair().getTokenValue();
     if (value == null) {
       return null;
     }
@@ -336,20 +339,20 @@ final class Attribute extends WriteOnlyAttributeList implements
   }
 
   /**
-   * Gets the first nameValuePair in the nameValuePairList.
+   * Gets the last nameValuePair in the nameValuePairList.
    */
   NameValuePair getNameValuePair() {
     if (nameValuePairList == null || nameValuePairList.size() == 0) {
       return null;
     }
-    return (NameValuePair) nameValuePairList.get(0);
+    return (NameValuePair) nameValuePairList.get(nameValuePairList.size() - 1);
   }
 
   public Token getValueToken() {
     if (nameValuePairList == null || nameValuePairList.size() == 0) {
       return null;
     }
-    Token value = ((NameValuePair) nameValuePairList.get(0)).getTokenValue();
+    Token value = getNameValuePair().getTokenValue();
     if (value == null) {
       return null;
     }
