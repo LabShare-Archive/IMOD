@@ -23,6 +23,9 @@ import etomo.type.AxisID;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.12  2009/02/04 23:30:00  sueh
+ * <p> bug# 1158 Changed id and exceptions classes in LogFile.
+ * <p>
  * <p> Revision 1.11  2009/01/20 19:33:30  sueh
  * <p> bug# 1102 In getInstance(String,AxisID) added else to if name equals CPU.
  * <p>
@@ -206,12 +209,17 @@ public final class AutodocFactory {
 
   public static ReadOnlyAutodoc getInstance(File file) throws IOException,
       LogFile.LockException {
+    return getInstance(file,true);
+  }
+
+  public static ReadOnlyAutodoc getInstance(File file, boolean versionRequired)
+      throws IOException, LogFile.LockException {
     if (file == null) {
       throw new IllegalStateException("file is null");
     }
     Autodoc autodoc = new Autodoc();
     try {
-      autodoc.initialize(file, true, true, false);
+      autodoc.initialize(file, true, versionRequired, false);
       return autodoc;
     }
     catch (FileNotFoundException e) {
@@ -229,7 +237,7 @@ public final class AutodocFactory {
    * @throws LogFile.ReadException
    */
   public static ReadOnlyAutodoc getTestInstance(File file) throws IOException,
-      LogFile.LockException{
+      LogFile.LockException {
     if (file == null) {
       throw new IllegalStateException("file is null");
     }
