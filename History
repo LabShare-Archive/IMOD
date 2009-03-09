@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+3/9/09: In Etomo - Fine Alignment, removed unnecessary error that was popping up
+after Compute Alignment was run.
+
 3/9/09: In Etomo, added the -fg option to run Etomo in the foreground.
 
 3/5/09: In Etomo - NAD, prevented the use of huge test volumes.
