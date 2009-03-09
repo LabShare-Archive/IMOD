@@ -102,13 +102,17 @@ if [ -e "${IMOD_DIR}/bin/setlibpath" ]; then
 fi
 
 # Check for help option
+# Check for foreground option - needed to run multiple etomos with automation.
 
 help=0
+foreground=0
 if [ $# -gt 0 ] ; then
     if [ $1 == '-h' ] ; then
     	help=1
     elif [ $1 == '--help' ] ; then
     	help=1
+    elif [ $1 == '--fg' ] ; then
+    	foreground=1
     fi
 fi
 
@@ -165,16 +169,24 @@ if [ ${help} -eq 0 ] ; then
     cp -p ${outlog} ${outlog}~
   fi
 
-
-  echo "starting eTomo with log in ${errlog}"
-  java -Xmx${ETOMO_MEM_LIM} -cp "${IMOD_DIR}/bin/etomo" \
-   -jar "${IMOD_DIR}/bin/etomo.jar" "$@" 2>${errlog} >${outlog} &
+	if [ ${foreground} -eq 0 ] ; then
+    echo "starting eTomo with log in ${errlog}"
+    java -Xmx${ETOMO_MEM_LIM} -cp "${IMOD_DIR}/bin/etomo" \
+     -jar "${IMOD_DIR}/bin/etomo.jar" "$@" 2>${errlog} >${outlog} &
+  else
+    echo "starting eTomo with log in ${errlog}"
+    java -Xmx${ETOMO_MEM_LIM} -cp "${IMOD_DIR}/bin/etomo" \
+     -jar "${IMOD_DIR}/bin/etomo.jar" "$@" 2>${errlog} >${outlog}
+  fi
 else
   java -Xmx${ETOMO_MEM_LIM} -cp "${IMOD_DIR}/bin/etomo" \
    -jar "${IMOD_DIR}/bin/etomo.jar" "$@"
 fi
 
 # $Log$
+# Revision 1.30  2009/02/21 00:10:28  mast
+# Added test for java 1.4
+#
 # Revision 1.29  2008/12/12 21:52:46  mast
 # New startup message was confusing
 #
