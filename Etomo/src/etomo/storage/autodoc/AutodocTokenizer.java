@@ -66,6 +66,9 @@ import etomo.util.PrimativeTokenizer;
  * @version $$Revision$$
  *
  * <p> $$Log$
+ * <p> $Revision 1.12  2009/02/04 23:30:00  sueh
+ * <p> $bug# 1158 Changed id and exceptions classes in LogFile.
+ * <p> $
  * <p> $Revision 1.11  2008/05/30 21:24:57  sueh
  * <p> $bug# 1102 Added command language keyword.
  * <p> $
@@ -141,7 +144,6 @@ public final class AutodocTokenizer {
   static final String VERSION_KEYWORD = "Version";
   static final String PIP_KEYWORD = "Pip";
   static final String DELIMITER_KEYWORD = "KeyValueDelimiter";
-  static final String COMMAND_LANGUAGE_KEYWORD = "CommandLanguage";
 
   private final boolean allowAltComment;
   private final StringBuffer restrictedSymbols = new StringBuffer(COMMENT_CHAR
@@ -445,8 +447,7 @@ public final class AutodocTokenizer {
   private void findKeyword() {
     if (token.is(Token.Type.WORD)) {
       if (token.equals(VERSION_KEYWORD) || token.equals(PIP_KEYWORD)
-          || token.equals(DELIMITER_KEYWORD)
-          || token.equals(COMMAND_LANGUAGE_KEYWORD)) {
+          || token.equals(DELIMITER_KEYWORD)) {
         token.set(Token.Type.KEYWORD);
       }
     }
