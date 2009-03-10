@@ -37,11 +37,13 @@ typedef struct fg_data_struct {
   int surfLoaded;
   int stateFlags;
   int rangeEnd;
+  int showConnects;
+  int changeAll;
   DrawProps contProps;
   Istore store;
 } FgData;
 
-static FgData fgd = {NULL, NULL, NULL, NULL, 0, -1, -1, -1, -1, 0, 0};
+static FgData fgd = {NULL, NULL, NULL, NULL, 0, -1, -1, -1, -1, 0, 0, 0, 0};
 
 static int getLoadedObjCont(int addType);
 static int findNextChange(Ilist *list, int index, int surfFlag);
@@ -137,6 +139,16 @@ void fineGrainUpdate()
   fgd.dia->update(fgd.ptContSurf, enable, &props, fgd.stateFlags, nextEnable);
 }
 
+int ifgShowConnections()
+{
+  return fgd.showConnects ;
+}
+
+int ifgGetChangeAll()
+{
+  return fgd.changeAll;
+}
+
 /*
  * Change the selection of point/cont/surf
  */
@@ -144,6 +156,11 @@ void ifgPtContSurfSelected(int which)
 {
   fgd.ptContSurf = which;
   fineGrainUpdate();
+}
+
+void ifgChangeAllToggled(bool state)
+{
+  fgd.changeAll = state ? 1 : 0;
 }
 
 /*
@@ -338,15 +355,34 @@ void ifgEndChange(int type)
  */
 void ifgClearChange(int type)
 {
-  int err;
+  int err, i;
+  Iindex *index;
   if (getLoadedObjCont(-1))
     return;
   if (fgd.ptContSurf) {
-    fgd.vw->undo->objectPropChg();
-    err = istoreClearOneIndexItem
-      (fgd.obj->store, type, 
-       (fgd.ptContSurf == 2) ? fgd.surfLoaded : fgd.contLoaded,
-       (fgd.ptContSurf == 2) ? 1 : 0);
+    fgd.vw->undo->objectPropChg(fgd.objLoaded);
+
+    // If changing all, clear out each legal item on the selection list
+    if (fgd.ptContSurf == 1 && fgd.changeAll && type != GEN_STORE_CONNECT &&
+        ilistSize(fgd.vw->selectionList) > 1) {
+      for (i = 0; i < ilistSize(fgd.vw->selectionList); i++) {
+        index = (Iindex *)ilistItem(fgd.vw->selectionList, i);
+        if (index->object == fgd.objLoaded && index->contour >= 0 && 
+            index->contour < fgd.obj->contsize) {
+          err = istoreClearOneIndexItem(fgd.obj->store, type, index->contour,
+                                        0);
+          if (err)
+            break;
+        }
+      }
+    } else {
+
+      // Otherwise just do the one item
+      err = istoreClearOneIndexItem
+        (fgd.obj->store, type, 
+         (fgd.ptContSurf == 2) ? fgd.surfLoaded : fgd.contLoaded,
+         (fgd.ptContSurf == 2) ? 1 : 0);
+    }
     if (imodDebug('g'))
       istoreDump(fgd.obj->store);
   } else {
@@ -424,6 +460,15 @@ void ifgConnectChanged(int value)
   fineGrainUpdate();
 }
 
+/*
+ * Toggling the flag to show connections
+ */
+void ifgShowConnectChanged(bool state)
+{
+  fgd.showConnects = state;
+  imodDraw(App->cvi, IMOD_DRAW_MOD);
+}
+
 void ifgDump()
 {
   if (getLoadedObjCont(-1))
@@ -483,6 +528,17 @@ static int getLoadedObjCont(int addType)
     fineGrainUpdate();
     return 1;
   }
+
+  if (fgd.ptContSurf == 1 && fgd.changeAll &&
+      ilistSize(fgd.vw->selectionList) > 1) {
+    if (imodSelectionListQuery(fgd.vw, fgd.objLoaded, fgd.contLoaded) < -1) {
+      wprint("\aContour last loaded into Fine Grain dialog is not in the list "
+             "of selected contours\n");
+      fineGrainUpdate();
+      return 1;
+    }
+  }
+
   if (!fgd.ptContSurf) {
     if (addType >= 0 && zapRubberbandCoords(rbX0, rbX1, rbY0, rbY1)) {
 
@@ -540,13 +596,33 @@ static int getLoadedObjCont(int addType)
  */
 static void insertAndUpdate(int type)
 {
-  int err;
+  int err, i;
+  Iindex *index;
   fgd.store.type = type;
   fgd.store.flags |= fgd.ptContSurf == 2 ? GEN_STORE_SURFACE : 0;
   if (fgd.ptContSurf) {
-    fgd.vw->undo->objectPropChg();
-    fgd.store.index.i =  fgd.ptContSurf == 2 ? fgd.surfLoaded : fgd.contLoaded;
-    err = istoreAddOneIndexItem(&fgd.obj->store, &fgd.store);
+    fgd.vw->undo->objectPropChg(fgd.objLoaded);
+
+    // If changing all, change each legal item on the selection list
+    if (fgd.ptContSurf == 1 && fgd.changeAll && type != GEN_STORE_CONNECT &&
+        ilistSize(fgd.vw->selectionList) > 1) {
+      for (i = 0; i < ilistSize(fgd.vw->selectionList); i++) {
+        index = (Iindex *)ilistItem(fgd.vw->selectionList, i);
+        if (index->object == fgd.objLoaded && index->contour >= 0 && 
+            index->contour < fgd.obj->contsize) {
+          fgd.store.index.i = index->contour;
+          err = istoreAddOneIndexItem(&fgd.obj->store, &fgd.store);
+          if (err)
+            break;
+        }
+      }
+    } else {
+
+      // Otherwise change the contour or surface
+      fgd.store.index.i =  fgd.ptContSurf == 2 ? fgd.surfLoaded : 
+        fgd.contLoaded;
+      err = istoreAddOneIndexItem(&fgd.obj->store, &fgd.store);
+    }
     if (imodDebug('g'))
       istoreDump(fgd.obj->store);
   } else {
@@ -1180,6 +1256,9 @@ static void ifgHandleValue1(DrawProps *defProps, DrawProps *contProps,
 /*
 
 $Log$
+Revision 1.15  2009/02/16 06:47:35  mast
+Fixed some geometry problems
+
 Revision 1.14  2009/01/15 16:33:17  mast
 Qt 4 port
 
