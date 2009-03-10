@@ -989,9 +989,6 @@ void inputUndoRedo(ImodView *vw, bool redo)
 }
 
 
-// Until full Qt includes are used, we need the Qt:: before the keys.
-// Or maybe it's the QT_CLEAN_NAMESPACE flag after all
-
 void inputQDefaultKeys(QKeyEvent *event, ImodView *vw)
 {
   int keysym = event->key();
@@ -1001,6 +998,7 @@ void inputQDefaultKeys(QKeyEvent *event, ImodView *vw)
   int bwStep = ImodPrefs->getBwStep();
   int mean, sd;
   Iobj *obj;
+  Icont *cont;
 
   if (inputTestMetaKey(event))
     return;
@@ -1244,6 +1242,17 @@ void inputQDefaultKeys(QKeyEvent *event, ImodView *vw)
     break;
 
   case Qt::Key_O:
+    if (shifted) {
+      obj = imodObjectGet(vw->imod);
+      cont = imodContourGet(vw->imod);
+      if (cont) {
+        if (iobjClose(obj->flags))
+          iceClosedOpen((cont->flags & ICONT_OPEN) ? 0 : 1);
+        else
+          wprint("\aObject must be closed type to toggle between open and "
+                 "closed contours\n");
+      }
+    } else
     inputPrevObject(vw);
     break;
 
@@ -1471,6 +1480,9 @@ bool inputTestMetaKey(QKeyEvent *event)
 
 /*
 $Log$
+Revision 4.49  2009/02/26 20:03:32  mast
+Add paging by big steps
+
 Revision 4.48  2009/02/25 05:35:29  mast
 Add shift-Page commands
 
