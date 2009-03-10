@@ -15,6 +15,9 @@ ability to toggle multiple selected contours with hot key or radio buttons,
 and made the ends of the current contour have triangles instead of circles for
 an open contour.
 
+3/9/09: Fixed display of current point in model view to stay on model point in
+model mode (In 3.13).
+
 3/9/09: In Etomo - Fine Alignment, removed unnecessary error that was popping
 up after Compute Alignment was run.
 
