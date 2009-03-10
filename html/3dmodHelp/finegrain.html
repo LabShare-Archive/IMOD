@@ -31,7 +31,8 @@ create an opening in a contour.  The <B>Mesh Connection #</B> also
 applies only to a single point.
 <P>
 For contours and surfaces, all changes apply only to a single contour
-or surface.  Thus, once a property has been set, the <B>Clear</B>
+or surface, or to a selected group of contours rather than a contiguous set
+of them.  Thus, once a property has been set, the <B>Clear</B>
 button is enabled to allow you to restore the default value, while the
 <B>End</B> button has no function.
 <P>
@@ -39,7 +40,25 @@ Once you have set a property, the <B>Last</B> button is enabled so
 that you can conveniently apply the same change to other items, for
 example points in a corresponding position on another contour.
 <P>
-The <B>Go to Next Change</B> button near the top can be used to step forward
+If the <B>Change all selected contours</B> checkbox is turned on, then changes
+will be applied to all currently selected contours.  This feature is enabled
+only when contour properties are being controlled.  You can use 
+Ctrl and the first mouse button to select multiple
+contours in the Zap window, where they will be drawn extra-thick.  You can
+also select multiple contours using Ctrl and the
+right mouse button in the Model View window (to see the selected contours
+there, turn on <B>Thicken current contour</B> in the Lines panel of the
+Edit-Objects dialog).  In both cases, moving the mouse while holding down Ctrl
+and the relevant button will select contours crossed by the mouse.  All
+properties except connection numbers
+can be changed in tandem for the selected contours.
+<P>
+The <B>Draw mesh connections</B> checkbox allows you to visualize the mesh
+connections that have been defined for individual points (see below).  At each
+point with a mesh connection, a square will be drawn in the Zap window; the
+size of the square is the assigned mesh connection number plus 3.
+<P>
+The <B>Go to Next Change</B> button can be used to step forward
 to the next item where a change occurs.  When point properties are being
 displayed, this will move the current point to the point where the next change
 occurs (which can be the end of a change or the beginning of a new one).  With 
@@ -107,25 +126,70 @@ default values are set in the 3dmod Object Edit window.
 model view.
 <LI><B>Gap to next point</B> introduces an opening in the contour after
 the current point, so that contours can have multiple openings.  These
-gaps are introduced into the mesh when 
-<A HREF = "../man/imodmesh.html">Imodmesh</A> is run on the model. When
+gaps are introduced into the mesh when the model is meshed with
+<A HREF = "../man/imodmesh.html">Imodmesh</A> or in the Edit-Objects dialog of
+the Model View window. When
 contour or surface properties are being shown, this button mutates to
 <B>Turn off drawing</B>, which lets you turn off an individual contour or
 surface.
 <LI><B>Mesh connection #</B> also has two different meanings.  When point
 properties are being shown, it can be used to force particular points
 in adjacent contours to be connected in a mesh, such as the points at
-the start of a gap.  The points to be connected need to be assigned the
+the start of a gap, and to prevent some connections.  
+The points to be connected need to be assigned the
 same unique connection number.  It may be necessary to connect three
 points rather than two to guarantee that a gap connects correctly
 between contours.  If there are more than three points with the same
 connection number, points after the third one will be silently ignored
-by <A HREF = "../man/imodmesh.html">Imodmesh</A>.  If contour properties are
-being shown, then connection numbers can be used either to control whether
+when meshing.  There are two cases where connections can be prevented:
+<OL>
+<LI>
+At the ends of two contours in an open contour object, or two open
+contours in a closed contour object.  Here, the same connection number should
+be assigned to the end of one of the contours and to an interior point of
+the other contour where you want the mesh to end (the two points marked "1" in
+the diagram below, where "X" is the end of the lower contour).  Then assign a
+unique connection number to the next point out from that interior point (the
+point marked "2", which is adjacent to "1"
+in the lower contour).
+<br><pre>
+            1----------...
+   X------2-1----------...
+</pre>
+<LI>
+Between two sets of connected points when meshing two contours in a closed
+contour object.  Typically this would be a place where you define a gap in one
+of the contours, or it would be the place where the open end of an open
+contour connects to a closed contour.  In the diagram below, the upper contour
+has either a gap or an open end between points marked "1" and "2".  The
+desired points for them to connect to in the lower contour are marked "1" and
+"2" there.  If the points just adjacent to them are marked with a unique 
+value ("3"), then no mesh will be made between the line connecting points
+"1" and the line connecting points "2".  These points block the
+mesh from filling up the gap on the lower contour.
+<br><pre>
+     ...-----1                  2------...
+     ...------1-3-----------3-2--------...
+</pre>
+</OL>
+<br>
+If contour properties are
+being shown, then connection numbers can be used to control whether
 contours on adjacent sections are meshed together by 
 <A HREF = "../man/imodmesh.html">Imodmesh</A>.  To connect two contours that
 do not overlap, give them the same connection number.  To prevent a connection
 between two contours that do overlap, give them two different connection
 numbers.
+
+
+<LI><B>General value:</B> shows the value that has been stored, if any, for
+the current point or contour.  These values can be inserted into a model with
+programs such as 
+<A HREF = "../man/imodcurvature.html">Imodcurvature</A>, 
+<A HREF = "../man/patch2imod.html">Patch2imod</A>, 
+<A HREF = "../man/point2model.html">Point2model</A>, 
+<A HREF = "../man/imodfindbeads.html">Imodfindbeads</A>, 
+<A HREF = "../man/findbeads3d.html">Findbeads3d</A>, and PEET.
+</UL>
 <P>
 <A HREF="index.html">Help Index<A>

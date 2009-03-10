@@ -5,16 +5,16 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>233</width>
-    <height>673</height>
+    <width>243</width>
+    <height>686</height>
    </rect>
   </property>
   <property name="windowTitle" >
    <string>3dmod Fine Grain Control</string>
   </property>
   <layout class="QVBoxLayout" name="verticalLayout" >
-   <property name="margin" >
-    <number>6</number>
+   <property name="spacing" >
+    <number>4</number>
    </property>
    <item>
     <widget class="QGroupBox" name="groupBox" >
@@ -56,6 +56,29 @@
        </widget>
       </item>
      </layout>
+    </widget>
+   </item>
+   <item>
+    <widget class="QCheckBox" name="changeAllCheckBox" >
+     <property name="toolTip" >
+      <string>Apply change to multiple selected contours in current object</string>
+     </property>
+     <property name="text" >
+      <string>Change all selected contours</string>
+     </property>
+    </widget>
+   </item>
+   <item>
+    <widget class="QCheckBox" name="drawConnectCheckBox" >
+     <property name="focusPolicy" >
+      <enum>Qt::NoFocus</enum>
+     </property>
+     <property name="toolTip" >
+      <string>Draw squares in Zap window at points with mesh connection numbers</string>
+     </property>
+     <property name="text" >
+      <string>Draw symbols at connections</string>
+     </property>
     </widget>
    </item>
    <item>
@@ -1346,6 +1369,40 @@
     </layout>
    </item>
    <item>
+    <layout class="QHBoxLayout" name="horizontalLayout_4" >
+     <item>
+      <widget class="QLabel" name="label" >
+       <property name="text" >
+        <string>General Value:</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QLabel" name="valueLabel" >
+       <property name="toolTip" >
+        <string>A value associated with the individual point or contour</string>
+       </property>
+       <property name="text" >
+        <string/>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <spacer name="horizontalSpacer" >
+       <property name="orientation" >
+        <enum>Qt::Horizontal</enum>
+       </property>
+       <property name="sizeHint" stdset="0" >
+        <size>
+         <width>40</width>
+         <height>20</height>
+        </size>
+       </property>
+      </spacer>
+     </item>
+    </layout>
+   </item>
+   <item>
     <widget class="Line" name="Line1" >
      <property name="frameShape" >
       <enum>QFrame::HLine</enum>
@@ -1422,6 +1479,19 @@
     </layout>
    </item>
   </layout>
+  <zorder>groupBox</zorder>
+  <zorder>changeAllCheckBox</zorder>
+  <zorder>groupBox5</zorder>
+  <zorder>groupBox5_2</zorder>
+  <zorder>groupBox5_3</zorder>
+  <zorder>groupBox5_4</zorder>
+  <zorder>groupBox5_4_2</zorder>
+  <zorder>groupBox5_4_3_2</zorder>
+  <zorder>groupBox5_4_3</zorder>
+  <zorder>gapCheckBox</zorder>
+  <zorder>Line1</zorder>
+  <zorder>label</zorder>
+  <zorder>drawConnectCheckBox</zorder>
  </widget>
  <layoutdefault spacing="6" margin="11" />
  <includes>
@@ -1626,6 +1696,38 @@
    <signal>toggled(bool)</signal>
    <receiver>FineGrainForm</receiver>
    <slot>gapToggled(bool)</slot>
+   <hints>
+    <hint type="sourcelabel" >
+     <x>20</x>
+     <y>20</y>
+    </hint>
+    <hint type="destinationlabel" >
+     <x>20</x>
+     <y>20</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>drawConnectCheckBox</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>FineGrainForm</receiver>
+   <slot>drawConnectToggled(bool)</slot>
+   <hints>
+    <hint type="sourcelabel" >
+     <x>20</x>
+     <y>20</y>
+    </hint>
+    <hint type="destinationlabel" >
+     <x>20</x>
+     <y>20</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>changeAllCheckBox</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>FineGrainForm</receiver>
+   <slot>changeAllToggled(bool)</slot>
    <hints>
     <hint type="sourcelabel" >
      <x>20</x>
