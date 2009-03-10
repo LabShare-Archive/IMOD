@@ -33,9 +33,13 @@ void ifgEndChange(int type);
 void ifgClearChange(int type);
 void ifgGapChanged(bool state);
 void ifgConnectChanged(int value);
+void ifgShowConnectChanged(bool state);
+void ifgChangeAllToggled(bool state);
+int ifgGetChangeAll();
 void ifgDump();
 void ifgHelp();
 void ifgClosing();
+int ifgShowConnections();
 
 void fineGrainOpen(ImodView *vw);
 void fineGrainUpdate();
@@ -66,6 +70,9 @@ void ifgResetValueSetup();
 /*
 
 $Log$
+Revision 1.6  2008/12/08 17:26:29  mast
+Changes for scaling line thicknesses
+
 Revision 1.5  2006/08/31 23:27:44  mast
 Changes for stored value display
 
