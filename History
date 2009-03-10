@@ -1,7 +1,22 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-3/9/09: In Etomo - Fine Alignment, removed unnecessary error that was popping up
-after Compute Alignment was run.
+3/9/09: IMOD_4-0-7
+3/9/09: In fine-grained dialog, added an option to see points with mesh
+connections as squares in the Zap window, ability to change multiple selected
+contours, and output of the general value for the current point or contour.
+
+3/9/09: Added ability to define mesh connection numbers that block the mesh
+from going to the end of one contour when meshing between two open contours,
+or from filling a gap on one side when meshing between a contour with a gap
+or open end and one without (see fine grain dialog help).
+
+3/9/09: Added hot key O for toggling between open and closed contours; added
+ability to toggle multiple selected contours with hot key or radio buttons,
+and made the ends of the current contour have triangles instead of circles for
+an open contour.
+
+3/9/09: In Etomo - Fine Alignment, removed unnecessary error that was popping
+up after Compute Alignment was run.
 
 3/9/09: In Etomo, added the -fg option to run Etomo in the foreground.
 
