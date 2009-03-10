@@ -4090,8 +4090,9 @@ static void zapDrawContour(ZapStruct *zap, int co, int ob)
   float delz;
   Iobj  *obj;
   Icont *cont;
+  Istore *stp;
   DrawProps contProps, ptProps;
-  int pt, radius, lastX, lastY, thisX, thisY;
+  int pt, radius, lastX, lastY, thisX, thisY, st;
   float drawsize, zscale;
   int nextChange, stateFlags, changeFlags;
   int checkSymbol = 0;
@@ -4285,6 +4286,23 @@ static void zapDrawContour(ZapStruct *zap, int co, int ob)
     imodSetObjectColor(ob);
   }
 
+  // Draw connectors
+  if (ifgShowConnections() && 
+      istoreCountItems(cont->store, GEN_STORE_CONNECT, 0)) {
+    b3dColorIndex(App->foreground);
+    for (st = 0; st < ilistSize(cont->store); st++) {
+      stp = istoreItem(cont->store, st);
+      if (stp->type == GEN_STORE_CONNECT) {
+        pt = stp->index.i;
+        if (pt >= 0 && pt < cont->psize &&
+            zapPointVisable(zap, &cont->pts[pt]))
+          b3dDrawSquare(zapXpos(zap, cont->pts[pt].x),
+                        zapYpos(zap, cont->pts[pt].y), stp->value.i + 3);
+      }
+    }
+    imodSetObjectColor(ob);
+  }
+
   /* Removed drawing of size 3 circles at ends of current open contour if
      first two points visible or last point visible and next to last is not */
 
@@ -4302,7 +4320,7 @@ static void zapDrawCurrentPoint(ZapStruct *zap)
   Icont *cont = imodContourGet(vi->imod);
   Ipoint *pnt = imodPointGet(vi->imod);
   int imPtSize, modPtSize, backupSize, curSize;
-  int x,y;
+  int x,y, symbol = IOBJ_SYM_CIRCLE, flags = 0, openAdd = 0;
 
   if (!vi->drawcursor) return;
 
@@ -4345,18 +4363,23 @@ static void zapDrawCurrentPoint(ZapStruct *zap)
     if (ivwTimeMismatch(vi, zap->timeLock, obj, cont))
       return;
 
+    if (iobjClose(obj->flags) && (cont->flags & ICONT_OPEN)) {
+      symbol = IOBJ_SYM_TRIANGLE;
+      openAdd = 1;
+    }
     b3dLineWidth(scaleSizes * obj->linewidth2);
     if (cont->psize > 1){
       if (zapPointVisable(zap, cont->pts)){
         b3dColorIndex(App->bgnpoint);
-        b3dDrawCircle(zapXpos(zap, cont->pts->x),
-                      zapYpos(zap, cont->pts->y), scaleSizes * modPtSize);
+        utilDrawSymbol(zapXpos(zap, cont->pts->x),
+                       zapYpos(zap, cont->pts->y), symbol, 
+                       scaleSizes * (modPtSize + openAdd), flags);
       }
       if (zapPointVisable(zap, &(cont->pts[cont->psize - 1]))){
         b3dColorIndex(App->endpoint);
-        b3dDrawCircle(zapXpos(zap, cont->pts[cont->psize - 1].x),
-                      zapYpos(zap, cont->pts[cont->psize - 1].y), 
-                      scaleSizes * modPtSize);
+        utilDrawSymbol(zapXpos(zap, cont->pts[cont->psize - 1].x),
+                       zapYpos(zap, cont->pts[cont->psize - 1].y), 
+                       symbol, scaleSizes * (modPtSize + openAdd), flags);
       }
     }
   }
@@ -4652,6 +4675,9 @@ static void setDrawCurrentOnly(ZapStruct *zap, int value)
 /*
 
 $Log$
+Revision 4.136  2009/03/05 00:59:16  mast
+Flush mouse move events to get to most recent one when appropriate
+
 Revision 4.135  2009/02/25 05:35:08  mast
 Turn off dialog updates during continuous draw; add shift-Page commands
 
