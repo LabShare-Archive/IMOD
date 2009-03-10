@@ -33,6 +33,8 @@
 #include "finegrain.h"
 #include "colorselector.h"
 
+// NOTE: Set layout spacing of main form to 4
+
 /*
  *  Constructs a FineGrainForm as a child of 'parent', with the
  *  name 'name' and widget flags set to 'f'.
@@ -142,6 +144,8 @@ void FineGrainForm::init()
   mLastTrans = mLast2Dwidth = mLast3Dwidth = mLastSymsize = -1;
   mLastSymType = -1;
   mCtrlPressed = false;
+  diaSetChecked(drawConnectCheckBox, ifgShowConnections() != 0);
+  diaSetChecked(changeAllCheckBox, ifgGetChangeAll() != 0);
     
   // Get the signal mappers
   QSignalMapper *endMapper = new QSignalMapper(this);
@@ -184,7 +188,9 @@ void FineGrainForm::update( int ptContSurf, bool enabled, DrawProps *props, int 
                             bool nextEnabled)
 {
   int i;
+  QString str;
   diaSetGroup(surfContPtGroup, ptContSurf);
+  changeAllCheckBox->setEnabled(ptContSurf == 1);
   nextChangeButton->setEnabled(nextEnabled);
   for (i = 0; i < 7; i++) {
     bool changed = stateFlags & mChangeFlags[i];
@@ -231,11 +237,20 @@ void FineGrainForm::update( int ptContSurf, bool enabled, DrawProps *props, int 
   gapCheckBox->setEnabled(enabled);
   diaSetSpinBox(connectSpin, props->connect);
   connectSpin->setEnabled(ptContSurf < 2 && enabled);
+  if (enabled && (stateFlags & CHANGED_VALUE1))
+    str.sprintf("%.5g", props->value1);
+  valueLabel->setText(str);
 }
 
 void FineGrainForm::ptContSurfSelected( int which )
 {
+  changeAllCheckBox->setEnabled(which == 1);
   ifgPtContSurfSelected(which);
+}
+
+void FineGrainForm::changeAllToggled( bool state )
+{
+  ifgChangeAllToggled(state);
 }
 
 void FineGrainForm::nextChangeClicked()
@@ -436,6 +451,11 @@ void FineGrainForm::connectChanged( int value )
   ifgConnectChanged(value);
 }
 
+void FineGrainForm::drawConnectToggled( bool state )
+{
+  ifgShowConnectChanged(state);
+}
+
 void FineGrainForm::helpClicked()
 {
   ifgHelp();
@@ -483,5 +503,8 @@ void FineGrainForm::fontChange( const QFont & oldFont )
 /*
 
 $Log$
+Revision 4.1  2009/01/15 16:33:17  mast
+Qt 4 port
+
 
 */
