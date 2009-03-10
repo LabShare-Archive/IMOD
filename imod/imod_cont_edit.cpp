@@ -1717,17 +1717,54 @@ void iceSurfNew()
 // Record change in open/closed state
 void iceClosedOpen(int state)
 {
-  Icont *cont = imodContourGet(surf.vw->imod);
+  static int lastChange = 0;
+  int i, numChange = 0;
+  QString qstr;
+  Iindex *index;
+  Imod *imod = surf.vw->imod;
+  Icont *cont = imodContourGet(imod);
   if (!cont)
     return;
 
-  surf.vw->undo->contourPropChg();
-  if (state)
-    cont->flags |= ICONT_OPEN;
-  else
-    cont->flags &= ~ICONT_OPEN;
+  // Count number of valid entries on selection list
+  for (i = 0; i < ilistSize(surf.vw->selectionList); i++) {
+    index = (Iindex *)ilistItem(surf.vw->selectionList, i);
+    if (index->object >= 0 && index->object < imod->objsize &&
+        iobjClose(imod->obj[index->object].flags) && index->contour >= 0 &&
+        index->contour <= imod->obj[index->object].contsize)
+      numChange++;
+  }
+
+  // Change one
+  if (numChange < 2) {
+    surf.vw->undo->contourPropChg();
+    setOrClearFlags(&cont->flags, ICONT_OPEN, state);
+  } else {
+
+    // Or confirm changing multiple ones
+    if (numChange > 2 && lastChange < 2) {
+      qstr.sprintf("Are you sure you want to change these %d contours to %s?",
+                   numChange, state ? "open" : "closed");
+      lastChange = dia_ask_forever(LATIN1(qstr));
+      if (!lastChange)
+        return;
+    } else
+      wprint("%d contours changed to %s.\n", numChange, state ? 
+             "open" : "closed");
+    for (i = 0; i < ilistSize(surf.vw->selectionList); i++) {
+      index = (Iindex *)ilistItem(surf.vw->selectionList, i);
+      if (index->object >= 0 && index->object < imod->objsize &&
+          iobjClose(imod->obj[index->object].flags) && index->contour >= 0 &&
+          index->contour < imod->obj[index->object].contsize) {
+        surf.vw->undo->contourPropChg(index->object, index->contour);
+        setOrClearFlags(&imod->obj[index->object].cont[index->contour].flags,
+                        ICONT_OPEN, state);
+      }
+    }
+  }
+
   surf.vw->undo->finishUnit();
-  imodDraw(App->cvi, IMOD_DRAW_MOD);
+  imodDraw(surf.vw, IMOD_DRAW_MOD);
 }
 
 // Record change in time index of this contour
@@ -1869,6 +1906,9 @@ void ContourFrame::keyReleaseEvent ( QKeyEvent * e )
 /*
 
 $Log$
+Revision 4.35  2009/02/26 20:04:04  mast
+Turn off keyboard tracking of spin boxes
+
 Revision 4.34  2009/01/15 16:33:17  mast
 Qt 4 port
 
