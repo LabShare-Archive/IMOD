@@ -110,6 +110,7 @@ static void imodvSetViewbyModel(ImodvApp *a, Imod *imod)
   double kickFac = 3.;    /* Default amount to kick extreme planes out */
   double extraKick = 10.; /* Extra amount when kick checked */
   Iobj *xobj;
+  Ipoint *curPnt;
 
   if (!a->imod) return;
 
@@ -143,9 +144,14 @@ static void imodvSetViewbyModel(ImodvApp *a, Imod *imod)
   if (a->curPointExtraObj > 0) {
     xobj = ivwGetAnExtraObject(a->vi, a->curPointExtraObj);
     if (xobj) {
-      xobj->cont[0].pts[0].x = a->vi->xmouse;
-      xobj->cont[0].pts[0].y = a->vi->ymouse;
-      xobj->cont[0].pts[0].z = a->vi->zmouse;
+      curPnt = imodPointGet(imod);
+      if (curPnt && imod->mousemode == IMOD_MMODEL) 
+        xobj->cont[0].pts[0] = *curPnt;
+      else {
+        xobj->cont[0].pts[0].x = a->vi->xmouse;
+        xobj->cont[0].pts[0].y = a->vi->ymouse;
+        xobj->cont[0].pts[0].z = a->vi->zmouse;
+      }
       scale = 0.5 * B3DMIN(xs, ys) / rad;
       imodPointSetSize(&xobj->cont[0], 0, xobj->pdrawsize / scale);
     }
@@ -2540,6 +2546,9 @@ static void drawCurrentClipPlane(ImodvApp *a)
 /*
 
 $Log$
+Revision 4.45  2008/12/01 15:42:01  mast
+Changes for undo/redo and selection in 3dmodv standalone
+
 Revision 4.44  2008/11/28 06:45:05  mast
 Modify current point object at right point for it to be drawn
 
