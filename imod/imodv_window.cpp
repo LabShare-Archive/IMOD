@@ -297,6 +297,8 @@ void ImodvWindow::keyReleaseEvent ( QKeyEvent * e )
 
 void ImodvWindow::closeEvent ( QCloseEvent * e )
 {
+  if (ImodvClosed)
+    return;
   imodvQuit();
   e->accept();
 }
@@ -393,6 +395,9 @@ void ImodvGL::wheelEvent ( QWheelEvent * e)
 /*
 
 $Log$
+Revision 4.23  2009/01/15 16:33:18  mast
+Qt 4 port
+
 Revision 4.22  2008/12/17 17:49:45  mast
 Only create stereo widgets when going into stereo, throw away afterwards
 
