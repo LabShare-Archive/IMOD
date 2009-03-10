@@ -2,6 +2,9 @@
  *
  *  $Id$
  *  $Log$
+ *  Revision 4.1  2009/01/15 16:33:17  mast
+ *  Qt 4 port
+ *
  *
  */
 #ifndef FINEGRAINFORM_H
@@ -51,8 +54,10 @@ class FineGrainForm : public QWidget, public Ui::FineGrainForm
   virtual void symsizeChanged( int value );
   virtual void symtypeSelected( int value );
   virtual void fillToggled( bool state );
+  virtual void changeAllToggled( bool state );
   virtual void gapToggled( bool state );
   virtual void connectChanged( int value );
+  virtual void drawConnectToggled( bool state );
   virtual void helpClicked();
   virtual void closeEvent( QCloseEvent * e );
   virtual void keyPressEvent( QKeyEvent * e );
