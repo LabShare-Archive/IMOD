@@ -36,6 +36,10 @@ import etomo.util.Utilities;
  * 
  * <p>
  * $Log$
+ * Revision 3.52  2009/03/09 21:07:39  sueh
+ * bug# 1198 removed exceptionMessage - ignoring unrecognized
+ * messages.
+ *
  * Revision 3.51  2008/12/09 21:32:44  sueh
  * bug# 1160 Removing the constructor that has the beadfixerDiameter
  * parameter.  Added setBeadfixerDiameter.  Also setting
@@ -1244,6 +1248,11 @@ public class ImodProcess {
   protected Vector imodSendAndReceive(String[] args)
       throws SystemProcessException {
     Vector results = new Vector();
+    if (!isRunning()) {
+        UIHarness.INSTANCE.openMessageDialog("3dmod is not running.",
+                "3dmod Warning", axisID);
+        return null;
+    }
     imodSendEvent(args, results);
     //3dmod sends the results before it returns 
     //the exit value to imodSendEvent - no waiting
@@ -1256,6 +1265,7 @@ public class ImodProcess {
       return results;
     }
     //Currently assuming results can only be on one line.
+    boolean foundError = false;
     do {
       if (!parseError(line, results)) {
         String[] words = line.split("\\s+");
@@ -1263,7 +1273,14 @@ public class ImodProcess {
           results.add(words[i]);
         }
       }
+      else {
+        foundError = true;
+      }
     } while ((line = imod.readStderr()) != null);
+    if (foundError) {
+      UIHarness.INSTANCE.openMessageDialog(results.toString(),
+          "3dmod Message", getAxisID());
+    }
     return results;
   }
 
