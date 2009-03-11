@@ -17,6 +17,7 @@ import etomo.type.ConstPeetMetaData;
 import etomo.type.JoinMetaData;
 import etomo.type.ParallelMetaData;
 import etomo.type.Run3dmodMenuOptions;
+import etomo.ui.UIHarness;
 import etomo.util.DatasetFiles;
 
 /*p
@@ -35,6 +36,10 @@ import etomo.util.DatasetFiles;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.68  2008/12/09 21:30:44  sueh
+ * <p> bug# 1160 Removed the management of beadfixerDiameter.  It is now
+ * <p> handled by ImodState.
+ * <p>
  * <p> Revision 3.67  2008/12/05 00:50:16  sueh
  * <p> bug# 1156 Added setSkipList.
  * <p>
@@ -976,6 +981,8 @@ public class ImodManager {
     key = getPrivateKey(key);
     ImodState imodState = get(key);
     if (imodState == null) {
+      UIHarness.INSTANCE.openMessageDialog("3dmod is not running.",
+          "3dmod Warning", AxisID.ONLY);
       return null;
     }
     return imodState.getRubberbandCoordinates();
@@ -986,6 +993,8 @@ public class ImodManager {
     key = getPrivateKey(key);
     ImodState imodState = get(key, vectorIndex);
     if (imodState == null || !imodState.isOpen()) {
+      UIHarness.INSTANCE.openMessageDialog("3dmod is not running.",
+          "3dmod Warning", AxisID.ONLY);
       return null;
     }
     return imodState.getSlicerAngles();
