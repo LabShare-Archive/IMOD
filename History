@@ -1,7 +1,9 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-3/11/09: In Etomo improved error reporting when retrieving rubberband and slicer
-rotation values from 3dmod.
+3/12/09: Fixed layout of Open buttons in startup window.
+
+3/11/09: In Etomo improved error reporting when retrieving rubberband and
+slicer rotation values from 3dmod. 
 
 3/9/09: IMOD_4-0-7
 3/9/09: In fine-grained dialog, added an option to see points with mesh
