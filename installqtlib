@@ -89,7 +89,7 @@ while ($plugnum < 100)
     foreach i ($pluglist)
         if (-e $QTDIR/plugins/$plugdir/$i) then
             \cp $QTDIR/plugins/$plugdir/$i $instdir/lib/imodplug/$plugdir
-            chmod a+rx $instdir/lib/imodplug/$plugdir
+            chmod -R 755 $instdir/lib/imodplug/$plugdir
         endif
     end
     @ plugnum++
@@ -165,8 +165,29 @@ if ($qtlibdir == "bin") then
     end
 
     # 6/25/04: discovered these were not coming through right, and it matters
+    # 3/13/09: also need u+w, so just do 755
+    chmod 755 $instdir/$qtlibdir/*.dll $instdir/$qtlibdir/assistant*
+
+
+    # Now copy redistributable directory and install manifests
     #
-    chmod a+rx $instdir/$qtlibdir/*.dll $instdir/$qtlibdir/assistant*
+    if ($?MSVCREDIST) then
+        set manifest = `sed -n '/MANIFEST/s/^.*= *//p' configure`
+        set redist = "$MSVCREDIST:t"
+        \cp -r "$MSVCREDIST" $instdir/bin
+        chmod -R 755 $instdir/bin/$redist
+        foreach i ($instdir/bin/*.exe)
+            if ("$i:t" != $assistname) then
+                set icyg = `cygpath -w $i`
+                mt "-outputresource:$icyg;#1" -manifest $manifest > /dev/null
+                if ($status) then
+                    echo "Error running: mt -outputresource:$icyg;#1 -manifest $manifest"
+                    mt "-outputresource:$icyg;#1" -manifest $manifest
+                    exit 1
+                endif
+            endif
+        end
+
     exit 0
 endif
 
@@ -186,6 +207,9 @@ exit 0
 
 #
 #  $Log$
+#  Revision 3.34  2009/01/17 06:15:45  mast
+#  Make sure Qt plugin exists before copy, and make it a+rx
+#
 #  Revision 3.33  2009/01/15 16:47:01  mast
 #  Qt 4 port
 #
