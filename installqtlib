@@ -187,8 +187,9 @@ if ($qtlibdir == "bin") then
                 endif
             endif
         end
-
+    endif
     exit 0
+
 endif
 
 
@@ -207,6 +208,9 @@ exit 0
 
 #
 #  $Log$
+#  Revision 3.35  2009/03/14 00:03:55  mast
+#  Changes for copying redistributables and adding manifests to exe's
+#
 #  Revision 3.34  2009/01/17 06:15:45  mast
 #  Make sure Qt plugin exists before copy, and make it a+rx
 #
