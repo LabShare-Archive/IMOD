@@ -1730,7 +1730,8 @@ void zapMouseMove(ZapStruct *zap, QMouseEvent *event, bool mousePressed)
         zapDraw(zap);
       return;
     }
-  }
+  } else
+    setControlAndLimits(zap);
 
   if (!(mousePressed || insertDown)) {
     if (zap->rubberband)
@@ -1753,8 +1754,8 @@ void zapMouseMove(ZapStruct *zap, QMouseEvent *event, bool mousePressed)
   cumdx = ex - firstmx;
   cumdy = ey - firstmy;
   button2 = (button2 || insertDown) ? 1 : 0;
-  /*imodPrintStderr("mb  %d|%d|%d  c %x s %x\n", button1, button2, button3, 
-    ctrlDown, shiftDown); */
+  /* imodPrintStderr("mb  %d|%d|%d  c %x s %x\n", button1, button2, button3, 
+     ctrlDown, shiftDown); */
 
   if ( (button1) && (!button2) && (!button3)){
     if (ctrlDown) {
@@ -4675,6 +4676,9 @@ static void setDrawCurrentOnly(ZapStruct *zap, int value)
 /*
 
 $Log$
+Revision 4.137  2009/03/10 04:34:33  mast
+Draw triangles for open contour ends, draw squares at connectors
+
 Revision 4.136  2009/03/05 00:59:16  mast
 Flush mouse move events to get to most recent one when appropriate
 
