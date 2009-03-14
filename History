@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+3/13/09: Fixed subarea floating when moving rubber band in Zap window 
+(In 3.13).
+
 3/12/09: Fixed layout of Open buttons in startup window.
 
 3/11/09: In Etomo improved error reporting when retrieving rubberband and
