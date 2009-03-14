@@ -370,14 +370,14 @@ switch($target_computer)
                 breaksw
 
         # Cygwin on Intel 
-        case *__CYGWIN_NT-5.*WOW64__*__*:
-        case x86_64__CYGWIN_NT-5.*__*__*:
+        case *__CYGWIN_NT-*.*WOW64__*__*:
+        case x86_64__CYGWIN_NT-*.*__*__*:
                 echo $target_computer is Intel running Cygwin under Windows-64
                 set machine = cygwin64
                 goto cygwin64
                 breaksw
 
-        case i686__CYGWIN_NT-5.*__*__*:
+        case i686__CYGWIN_NT-*.*__*__*:
                 echo $target_computer is Intel running Cygwin under Windows
                 set machine = cygwin
                 goto cygwin
@@ -959,6 +959,9 @@ exit
 
 #
 #  $Log$
+#  Revision 1.42  2009/01/17 05:57:33  mast
+#  Qt plugin copying is now universal, not just for mac
+#
 #  Revision 1.41  2009/01/16 19:05:28  mast
 #  Add quotes to program in runimodqtapp in case of space in IMOD_DIR
 #
