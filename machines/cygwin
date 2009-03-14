@@ -420,15 +420,30 @@ if ($compiler == intel) then
     else
 
         # Version 8 or higher has different libraries, and also needs to
-        # include msvcr71.dll from .NET for Win2K
+        # include msvcr71.dll from .NET for Win2K, or more complicated stuff
         #
         set fortbin = `which ifort | sed '/\/[^\/]*$/s///'`
         echo "DLLSOURCEDIR2 = $fortbin" >> $configure
         echo 'DLLSTOCOPY2 = libifcoremd libifportmd libmmd' >> $configure
-        if ($m64bit == false) then
-            set dllsrc3 = `cygpath $SYSTEMROOT/system32`
-            echo "DLLSOURCEDIR3 = $dllsrc3" >> $configure
-            echo 'DLLSTOCOPY3 = msvcr71 msvcp71' >> $configure
+
+        # If this variable is set, we need to copy a redist directory and 
+        # install manifests in executables.  The variable is the dir
+        #
+        if ($?MSVCREDIST) then
+            if ($m64bit == false) then
+                echo "MANIFEST = sysdep/win/generic.manifest" >> $configure
+            else
+                echo "MANIFEST = sysdep/win/generic64.manifest" >> $configure
+            endif
+
+        else
+
+            # Older 32-bit compilations
+            if ($m64bit == false) then
+                set dllsrc3 = `cygpath $SYSTEMROOT/system32`
+                echo "DLLSOURCEDIR3 = $dllsrc3" >> $configure
+                echo 'DLLSTOCOPY3 = msvcr71 msvcp71' >> $configure
+            endif
         endif
     endif
 
@@ -437,8 +452,9 @@ if ($compiler == intel) then
     echo 'IMODWINCPU = imodwincpu.exe' >> $configure
 
     # Compiler 9.1 suddenly started assuming VC6 compatibility flag 
-    # (No, I installed it wrong)
-    if ($iclversion > 8 && $subversion > 0) echo "WINCPUVC = /Qvc7.1" >> $configure
+    # (No, I installed it wrong).  But not for 64-build...  THIS SHOULD
+    # BE DONE WITH A VC VERSION BASED ON LINK
+    if ($iclversion > 8 && $subversion > 0 && $iclversion < 10) echo "WINCPUVC = /Qvc7.1" >> $configure
 else
     set makefile_ext = dummy
     set makefile_dirs = ($qdir $libdiaqt_dir $plugsrc_dir)
