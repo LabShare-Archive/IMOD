@@ -181,7 +181,7 @@ if ($qtlibdir == "bin") then
                 set icyg = `cygpath -w $i`
                 mt "-outputresource:$icyg;#1" -manifest $manifest > /dev/null
                 if ($status) then
-                    echo "Error running: mt -outputresource:$icyg;#1 -manifest $manifest"
+                    \echo "Error running: mt -outputresource:$icyg;#1 -manifest $manifest"
                     mt "-outputresource:$icyg;#1" -manifest $manifest
                     exit 1
                 endif
@@ -208,6 +208,9 @@ exit 0
 
 #
 #  $Log$
+#  Revision 3.36  2009/03/14 15:39:58  mast
+#  Fixed missing endif
+#
 #  Revision 3.35  2009/03/14 00:03:55  mast
 #  Changes for copying redistributables and adding manifests to exe's
 #
