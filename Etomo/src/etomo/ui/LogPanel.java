@@ -15,6 +15,7 @@ import javax.swing.JTextArea;
 import javax.swing.SwingUtilities;
 import javax.swing.text.BadLocationException;
 
+import etomo.ManagerKey;
 import etomo.storage.LogFile;
 import etomo.storage.Loggable;
 import etomo.storage.Storable;
@@ -37,6 +38,9 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.4  2009/03/05 23:29:21  sueh
+ * <p> bug# 1194 Manage frame size and location with LogProperties.
+ * <p>
  * <p> Revision 1.3  2009/02/13 02:34:31  sueh
  * <p> bug# 1158 In save, Stripping line endings and adding line endings that
  * <p> match the OS.
@@ -59,6 +63,7 @@ public final class LogPanel implements Storable {
   private final EtchedBorder border = new EtchedBorder(TITLE);
   private final JTextArea textArea = new JTextArea(10, 60);
   private final JScrollPane scrollPane = new JScrollPane(textArea);
+  private final ManagerKey managerKey;
 
   private LogFile file = null;
   private String userDir = null;
@@ -69,14 +74,15 @@ public final class LogPanel implements Storable {
   private ConstLogProperties frameProperties = null;
   private boolean frameVisible = true;
 
-  private LogPanel() {
+  private LogPanel(ManagerKey managerKey) {
+    this.managerKey = managerKey;
     rootPanel.setLayout(new BoxLayout(rootPanel, BoxLayout.Y_AXIS));
     rootPanel.setBorder(border.getBorder());
     rootPanel.add(scrollPane);
   }
 
-  public static LogPanel getInstance() {
-    LogPanel instance = new LogPanel();
+  public static LogPanel getInstance(ManagerKey managerKey) {
+    LogPanel instance = new LogPanel(managerKey);
     instance.addListeners();
     return instance;
   }
@@ -118,12 +124,12 @@ public final class LogPanel implements Storable {
             catch (LogFile.LockException e) {
               e.printStackTrace();
               UIHarness.INSTANCE.openMessageDialog("Unabled to load "
-                  + file.getAbsolutePath(), "System Error");
+                  + file.getAbsolutePath(), "System Error", managerKey);
             }
             catch (IOException e) {
               e.printStackTrace();
               UIHarness.INSTANCE.openMessageDialog("Unabled to load "
-                  + file.getAbsolutePath(), "System Error");
+                  + file.getAbsolutePath(), "System Error", managerKey);
             }
           }
         }
@@ -213,7 +219,7 @@ public final class LogPanel implements Storable {
       if (!writeFailed) {
         writeFailed = true;
         UIHarness.INSTANCE.openMessageDialog("Unabled to write to file "
-            + file.getAbsolutePath(), "System Error");
+            + file.getAbsolutePath(), "System Error", managerKey);
         if (writerId != null && !writerId.isEmpty()) {
           file.closeWriter(writerId);
         }
@@ -224,7 +230,7 @@ public final class LogPanel implements Storable {
       if (!writeFailed) {
         writeFailed = true;
         UIHarness.INSTANCE.openMessageDialog("Unabled to write to file "
-            + file.getAbsolutePath(), "System Error");
+            + file.getAbsolutePath(), "System Error", managerKey);
         if (writerId != null && !writerId.isEmpty()) {
           file.closeWriter(writerId);
         }
@@ -244,14 +250,15 @@ public final class LogPanel implements Storable {
     if (file == null) {
       String fileName = datasetName + "_project.log";
       try {
-        file = LogFile.getInstance(userDir, datasetName + "_project.log");
+        file = LogFile.getInstance(userDir, datasetName + "_project.log",
+            managerKey);
       }
       catch (LogFile.LockException e) {
         e.printStackTrace();
         if (!fileFailed) {
           fileFailed = true;
           UIHarness.INSTANCE.openMessageDialog("Unabled to access file "
-              + fileName + " in " + userDir, "System Error");
+              + fileName + " in " + userDir, "System Error", managerKey);
         }
         return false;
       }
@@ -259,14 +266,14 @@ public final class LogPanel implements Storable {
     return true;
   }
 
-  public void logMessage(Loggable loggable, AxisID axisID) {
-    if (loggable == null) {
+  public void logMessage(Loggable loggable, AxisID axisID, ManagerKey managerKey) {
+    if (loggable == null || !managerKey.equals(this.managerKey)) {
       return;
     }
     try {
       SwingUtilities.invokeLater(new AppendLater(Utilities.getDateTimeStamp(),
           loggable.getName() + " - " + axisID + " axis:", loggable
-              .getLogMessage()));
+              .getLogMessage(managerKey)));
     }
     catch (LogFile.LockException e) {
       e.printStackTrace();
@@ -280,7 +287,11 @@ public final class LogPanel implements Storable {
     }
   }
 
-  public void logMessage(String title, AxisID axisID, String[] message) {
+  public void logMessage(String title, AxisID axisID, String[] message,
+      ManagerKey managerKey) {
+    if (!managerKey.equals(this.managerKey)) {
+      return;
+    }
     SwingUtilities.invokeLater(new AppendLater(Utilities.getDateTimeStamp(),
         title + " - " + axisID + " axis:", message));
   }
@@ -358,10 +369,6 @@ public final class LogPanel implements Storable {
     private String[] stringArray = null;
     private List lineList = null;
 
-    private AppendLater(String line1) {
-      this.line1 = line1;
-    }
-
     private AppendLater(String line1, String line2) {
       this.line1 = line1;
       this.line2 = line2;
@@ -394,6 +401,7 @@ public final class LogPanel implements Storable {
      * Append lines and lineList to textArea.
      */
     public void run() {
+      newLine();
       if (line1 != null) {
         newLine();
         textArea.append(line1);
