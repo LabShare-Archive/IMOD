@@ -70,6 +70,9 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.74  2009/03/02 18:54:22  sueh
+ * <p> bug# 1193 Must do a reconnect in openProcessingPanel.
+ * <p>
  * <p> Revision 1.73  2009/02/04 22:47:09  sueh
  * <p> bug# 1158 passing logPanel to mainPanel.setStatusBarText so its title can
  * <p> be updated.  Fixed endSetupMode, which was invalidating metadata by
@@ -533,8 +536,7 @@ public final class JoinManager extends BaseManager {
     return processResultDisplayFactory;
   }
 
-  public boolean saveParamFile() throws LogFile.LockException,
-      IOException {
+  public boolean saveParamFile() throws LogFile.LockException, IOException {
     boolean retval;
     if ((retval = super.saveParamFile())) {
       endSetupMode();
@@ -666,16 +668,17 @@ public final class JoinManager extends BaseManager {
     catch (AxisTypeException except) {
       except.printStackTrace();
       uiHarness.openMessageDialog(except.getMessage(), "AxisType problem",
-          AxisID.ONLY);
+          AxisID.ONLY, getManagerKey());
     }
     catch (SystemProcessException except) {
       except.printStackTrace();
       uiHarness.openMessageDialog(except.getMessage(), "Can't open " + imodKey
-          + " in 3dmod ", AxisID.ONLY);
+          + " in 3dmod ", AxisID.ONLY, getManagerKey());
     }
     catch (IOException e) {
       e.printStackTrace();
-      uiHarness.openMessageDialog(e.getMessage(), "IO Exception", AxisID.ONLY);
+      uiHarness.openMessageDialog(e.getMessage(), "IO Exception", AxisID.ONLY,
+          getManagerKey());
     }
   }
 
@@ -696,16 +699,17 @@ public final class JoinManager extends BaseManager {
     catch (AxisTypeException except) {
       except.printStackTrace();
       uiHarness.openMessageDialog(except.getMessage(), "AxisType problem",
-          AxisID.ONLY);
+          AxisID.ONLY, getManagerKey());
     }
     catch (SystemProcessException except) {
       except.printStackTrace();
       uiHarness.openMessageDialog(except.getMessage(), "Can't open " + imodKey
-          + " in 3dmod ", AxisID.ONLY);
+          + " in 3dmod ", AxisID.ONLY, getManagerKey());
     }
     catch (IOException e) {
       e.printStackTrace();
-      uiHarness.openMessageDialog(e.getMessage(), "IO Exception", AxisID.ONLY);
+      uiHarness.openMessageDialog(e.getMessage(), "IO Exception", AxisID.ONLY,
+          getManagerKey());
     }
   }
 
@@ -716,16 +720,17 @@ public final class JoinManager extends BaseManager {
     catch (AxisTypeException except) {
       except.printStackTrace();
       uiHarness.openMessageDialog(except.getMessage(), "AxisType problem",
-          AxisID.ONLY);
+          AxisID.ONLY, getManagerKey());
     }
     catch (SystemProcessException except) {
       except.printStackTrace();
       uiHarness.openMessageDialog(except.getMessage(), "Can't open " + imodKey
-          + " in 3dmod ", AxisID.ONLY);
+          + " in 3dmod ", AxisID.ONLY, getManagerKey());
     }
     catch (IOException e) {
       e.printStackTrace();
-      uiHarness.openMessageDialog(e.getMessage(), "IO Exception", AxisID.ONLY);
+      uiHarness.openMessageDialog(e.getMessage(), "IO Exception", AxisID.ONLY,
+          getManagerKey());
     }
   }
 
@@ -735,7 +740,7 @@ public final class JoinManager extends BaseManager {
     }
     catch (AxisTypeException e) {
       uiHarness.openMessageDialog(e.getMessage(), "AxisType problem",
-          AxisID.ONLY);
+          AxisID.ONLY, getManagerKey());
       return false;
     }
   }
@@ -755,16 +760,17 @@ public final class JoinManager extends BaseManager {
     catch (AxisTypeException except) {
       except.printStackTrace();
       uiHarness.openMessageDialog(except.getMessage(), "AxisType problem",
-          AxisID.ONLY);
+          AxisID.ONLY, getManagerKey());
     }
     catch (IOException e) {
       e.printStackTrace();
-      uiHarness.openMessageDialog(e.getMessage(), "IO Exception", AxisID.ONLY);
+      uiHarness.openMessageDialog(e.getMessage(), "IO Exception", AxisID.ONLY,
+          getManagerKey());
     }
     catch (SystemProcessException e) {
       e.printStackTrace();
       uiHarness.openMessageDialog(e.getMessage(), "System Process Exception",
-          AxisID.ONLY);
+          AxisID.ONLY, getManagerKey());
     }
   }
 
@@ -773,23 +779,25 @@ public final class JoinManager extends BaseManager {
     try {
       if (imodIndex == -1) {
         uiHarness.openMessageDialog("The is no open " + imodKey
-            + " 3dmod for the highlighted row.", "No 3dmod", AxisID.ONLY);
+            + " 3dmod for the highlighted row.", "No 3dmod", AxisID.ONLY,
+            getManagerKey());
       }
       results = imodManager.getSlicerAngles(imodKey, imodIndex);
     }
     catch (AxisTypeException except) {
       except.printStackTrace();
       uiHarness.openMessageDialog(except.getMessage(), "AxisType problem",
-          AxisID.ONLY);
+          AxisID.ONLY, getManagerKey());
     }
     catch (IOException e) {
       e.printStackTrace();
-      uiHarness.openMessageDialog(e.getMessage(), "IO Exception", AxisID.ONLY);
+      uiHarness.openMessageDialog(e.getMessage(), "IO Exception", AxisID.ONLY,
+          getManagerKey());
     }
     catch (SystemProcessException e) {
       e.printStackTrace();
       uiHarness.openMessageDialog(e.getMessage(), "System Process Exception",
-          AxisID.ONLY);
+          AxisID.ONLY, getManagerKey());
     }
     Vector messageArray = new Vector();
     SlicerAngles slicerAngles = null;
@@ -839,7 +847,8 @@ public final class JoinManager extends BaseManager {
     if (messageArray.size() > 0) {
       String[] messages = (String[]) messageArray
           .toArray(new String[messageArray.size()]);
-      uiHarness.openMessageDialog(messages, "Slicer Angles", AxisID.ONLY);
+      uiHarness.openMessageDialog(messages, "Slicer Angles", AxisID.ONLY,
+          getManagerKey());
     }
     return slicerAngles;
   }
@@ -855,7 +864,7 @@ public final class JoinManager extends BaseManager {
     }
     if (!metaData.isValid(joinDialog.getWorkingDirName())) {
       uiHarness.openMessageDialog(metaData.getInvalidReason(), "Invalid Data",
-          AxisID.ONLY);
+          AxisID.ONLY, getManagerKey());
       return;
     }
     if (!joinDialog.validateMakejoincom()) {
@@ -879,7 +888,8 @@ public final class JoinManager extends BaseManager {
     catch (SystemProcessException except) {
       except.printStackTrace();
       uiHarness.openMessageDialog("Can't run makejoincom\n"
-          + except.getMessage(), "SystemProcessException", AxisID.ONLY);
+          + except.getMessage(), "SystemProcessException", AxisID.ONLY,
+          getManagerKey());
       return;
     }
     processSeries.setNextProcess("startjoin");
@@ -915,12 +925,14 @@ public final class JoinManager extends BaseManager {
     catch (LogFile.LockException e) {
       e.printStackTrace();
       uiHarness.openMessageDialog("Unable to read "
-          + DatasetFiles.XFJOINTOMO_LOG + ".\n" + e.getMessage(), "Read Error");
+          + DatasetFiles.XFJOINTOMO_LOG + ".\n" + e.getMessage(), "Read Error",
+          getManagerKey());
     }
     catch (IOException e) {
       e.printStackTrace();
       uiHarness.openMessageDialog("Unable to read "
-          + DatasetFiles.XFJOINTOMO_LOG + ".\n" + e.getMessage(), "Read Error");
+          + DatasetFiles.XFJOINTOMO_LOG + ".\n" + e.getMessage(), "Read Error",
+          getManagerKey());
     }
   }
 
@@ -946,8 +958,8 @@ public final class JoinManager extends BaseManager {
     loadedParamFile = true;
     //initializeUIParameters(paramFile, AxisID.ONLY, false);
     //if (loadedParamFile) {
-      //imodManager.setMetaData(metaData);
-      //mainPanel.setStatusBarText(paramFile, metaData, logPanel);
+    //imodManager.setMetaData(metaData);
+    //mainPanel.setStatusBarText(paramFile, metaData, logPanel);
     //}
     mainPanel.setStatusBarText(paramFile, metaData, logPanel);
     return true;
@@ -974,7 +986,8 @@ public final class JoinManager extends BaseManager {
     catch (SystemProcessException except) {
       except.printStackTrace();
       uiHarness.openMessageDialog("Can't run" + JoinDialog.MIDAS_TEXT + "\n"
-          + except.getMessage(), "SystemProcessException", AxisID.ONLY);
+          + except.getMessage(), "SystemProcessException", AxisID.ONLY,
+          getManagerKey());
       return;
     }
   }
@@ -991,7 +1004,8 @@ public final class JoinManager extends BaseManager {
     catch (SystemProcessException except) {
       except.printStackTrace();
       uiHarness.openMessageDialog("Can't run initial xfalign\n"
-          + except.getMessage(), "SystemProcessException", AxisID.ONLY);
+          + except.getMessage(), "SystemProcessException", AxisID.ONLY,
+          getManagerKey());
       joinDialog.enableMidas();
       return;
     }
@@ -1014,7 +1028,7 @@ public final class JoinManager extends BaseManager {
       except.printStackTrace();
       uiHarness.openMessageDialog("Can't run "
           + JoinDialog.REFINE_AUTO_ALIGNMENT_TEXT + "\n" + except.getMessage(),
-          "SystemProcessException", AxisID.ONLY);
+          "SystemProcessException", AxisID.ONLY, getManagerKey());
       joinDialog.enableMidas();
       return;
     }
@@ -1042,7 +1056,7 @@ public final class JoinManager extends BaseManager {
             "Copy " + newXfFile.getName() + " to " + xfFileName,
             " and then rerun " + commandDescription + "." };
         uiHarness.openMessageDialog(message,
-            "Cannot run " + commandDescription, AxisID.ONLY);
+            "Cannot run " + commandDescription, AxisID.ONLY, getManagerKey());
         return false;
       }
     }
@@ -1061,7 +1075,8 @@ public final class JoinManager extends BaseManager {
             "Unable to copy " + xfOutputFile.getAbsolutePath() + " to "
                 + xfFile.getName() + ".",
             "Copy " + xfOutputFile.getName() + " to " + xfFile.getName() + "." };
-        uiHarness.openMessageDialog(message, "Cannot Copy File", AxisID.ONLY);
+        uiHarness.openMessageDialog(message, "Cannot Copy File", AxisID.ONLY,
+            getManagerKey());
       }
     }
   }
@@ -1133,7 +1148,7 @@ public final class JoinManager extends BaseManager {
   public void startjoin(ConstProcessSeries processSeries) {
     if (!metaData.isValid(joinDialog.getWorkingDir())) {
       uiHarness.openMessageDialog(metaData.getInvalidReason(), "Invalid Data",
-          AxisID.ONLY);
+          AxisID.ONLY, getManagerKey());
       return;
     }
     try {
@@ -1146,7 +1161,8 @@ public final class JoinManager extends BaseManager {
     catch (SystemProcessException except) {
       except.printStackTrace();
       uiHarness.openMessageDialog("Can't run startjoin.com\n"
-          + except.getMessage(), "SystemProcessException", AxisID.ONLY);
+          + except.getMessage(), "SystemProcessException", AxisID.ONLY,
+          getManagerKey());
       return;
     }
     mainPanel.startProgressBar("Startjoin", AxisID.ONLY, ProcessName.STARTJOIN);
@@ -1185,7 +1201,7 @@ public final class JoinManager extends BaseManager {
       except.printStackTrace();
       uiHarness.openMessageDialog("Can't run "
           + ProcessName.XFJOINTOMO.toString() + "\n" + except.getMessage(),
-          "SystemProcessException", AxisID.ONLY);
+          "SystemProcessException", AxisID.ONLY, getManagerKey());
       return;
     }
     mainPanel.startProgressBar(ProcessName.XFJOINTOMO.toString(), AxisID.ONLY,
@@ -1200,7 +1216,8 @@ public final class JoinManager extends BaseManager {
     catch (SystemProcessException except) {
       except.printStackTrace();
       uiHarness.openMessageDialog("Can't run " + RemapmodelParam.COMMAND_NAME
-          + "\n" + except.getMessage(), "SystemProcessException", AxisID.ONLY);
+          + "\n" + except.getMessage(), "SystemProcessException", AxisID.ONLY,
+          getManagerKey());
       return;
     }
     mainPanel.startProgressBar(RemapmodelParam.COMMAND_NAME, AxisID.ONLY,
@@ -1244,7 +1261,8 @@ public final class JoinManager extends BaseManager {
     catch (SystemProcessException except) {
       except.printStackTrace();
       uiHarness.openMessageDialog("Can't run " + XfmodelParam.COMMAND_NAME
-          + "\n" + except.getMessage(), "SystemProcessException", AxisID.ONLY);
+          + "\n" + except.getMessage(), "SystemProcessException", AxisID.ONLY,
+          getManagerKey());
       return;
     }
     mainPanel.startProgressBar(XfmodelParam.COMMAND_NAME, AxisID.ONLY,
@@ -1263,7 +1281,8 @@ public final class JoinManager extends BaseManager {
     catch (SystemProcessException except) {
       except.printStackTrace();
       uiHarness.openMessageDialog("Can't run " + XftoxgParam.COMMAND_NAME
-          + "\n" + except.getMessage(), "SystemProcessException", AxisID.ONLY);
+          + "\n" + except.getMessage(), "SystemProcessException", AxisID.ONLY,
+          getManagerKey());
       return;
     }
     mainPanel.startProgressBar(XftoxgParam.COMMAND_NAME, AxisID.ONLY,
@@ -1291,14 +1310,15 @@ public final class JoinManager extends BaseManager {
       if (mode == FinishjoinParam.Mode.SUPPRESS_EXECUTION
           && imodManager.isOpen(ImodManager.TRANSFORMED_MODEL_KEY)) {
         uiHarness.openMessageDialog("Please close "
-            + DatasetFiles.getRefineAlignedModelFileName(this), "Close File");
+            + DatasetFiles.getRefineAlignedModelFileName(this), "Close File",
+            getManagerKey());
         return;
       }
     }
     catch (AxisTypeException except) {
       except.printStackTrace();
       uiHarness.openMessageDialog(except.getMessage(), "AxisType problem",
-          AxisID.ONLY);
+          AxisID.ONLY, getManagerKey());
     }
     if (!updateMetaDataFromJoinDialog(AxisID.ONLY)) {
       return;
@@ -1327,7 +1347,8 @@ public final class JoinManager extends BaseManager {
       catch (SystemProcessException except) {
         except.printStackTrace();
         uiHarness.openMessageDialog("Can't run " + buttonText + "\n"
-            + except.getMessage(), "SystemProcessException", AxisID.ONLY);
+            + except.getMessage(), "SystemProcessException", AxisID.ONLY,
+            getManagerKey());
         return;
       }
       mainPanel.startProgressBar("Finishjoin: " + buttonText, AxisID.ONLY,
@@ -1341,7 +1362,7 @@ public final class JoinManager extends BaseManager {
     }
     if (!metaData.isValid(propertyUserDir)) {
       uiHarness.openMessageDialog(metaData.getInvalidReason(), "Invalid Data",
-          axisID);
+          axisID, getManagerKey());
       return false;
     }
     try {
@@ -1352,12 +1373,12 @@ public final class JoinManager extends BaseManager {
       parameterStore.save(metaData);
     }
     catch (LogFile.LockException e) {
-      uiHarness.openMessageDialog("Cannot save or write to metaData.\n" + e.getMessage(),
-          "Etomo Error");
+      uiHarness.openMessageDialog("Cannot save or write to metaData.\n"
+          + e.getMessage(), "Etomo Error", getManagerKey());
     }
     catch (IOException e) {
-      uiHarness.openMessageDialog("Cannot save or write to metaData.\n" + e.getMessage(),
-          "Etomo Error");
+      uiHarness.openMessageDialog("Cannot save or write to metaData.\n"
+          + e.getMessage(), "Etomo Error", getManagerKey());
     }
     return true;
   }
@@ -1386,7 +1407,8 @@ public final class JoinManager extends BaseManager {
       joinDialog.abortAddSection();
       except.printStackTrace();
       uiHarness.openMessageDialog("Can't run clip flipyz\n"
-          + except.getMessage(), "SystemProcessException", AxisID.ONLY);
+          + except.getMessage(), "SystemProcessException", AxisID.ONLY,
+          getManagerKey());
       return;
     }
     mainPanel.startProgressBar("Flipping " + tomogram.getName(), AxisID.ONLY);
@@ -1547,7 +1569,7 @@ public final class JoinManager extends BaseManager {
     }
   }
 
-  public void save() throws LogFile.LockException,IOException {
+  public void save() throws LogFile.LockException, IOException {
     super.save();
     doneJoinDialog();
     mainPanel.done();
