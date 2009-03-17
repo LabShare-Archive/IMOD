@@ -445,7 +445,8 @@ final class CCDEraserPanel implements ContextMenu, Run3dmodButtonContainer {
     String text;
     ReadOnlyAutodoc autodoc = null;
     try {
-      autodoc = AutodocFactory.getInstance(AutodocFactory.CCDERASER, axisID);
+      autodoc = AutodocFactory.getInstance(AutodocFactory.CCDERASER, axisID,
+          applicationManager.getManagerKey());
     }
     catch (FileNotFoundException except) {
       except.printStackTrace();
@@ -532,6 +533,9 @@ final class CCDEraserPanel implements ContextMenu, Run3dmodButtonContainer {
 
 /**
  * <p> $Log$
+ * <p> Revision 3.31  2009/02/04 23:36:48  sueh
+ * <p> bug# 1158 Changed id and exception classes in LogFile.
+ * <p>
  * <p> Revision 3.30  2009/01/20 19:49:02  sueh
  * <p> bug# 1102 Changed labeled panels to type EtomoPanel so that they can name themselves.
  * <p>

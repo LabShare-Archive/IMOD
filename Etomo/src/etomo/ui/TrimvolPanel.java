@@ -36,6 +36,10 @@ import etomo.type.Run3dmodMenuOptions;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.33  2009/02/10 22:21:03  sueh
+ * <p> bug# 1143 Added warning label.  In setParameters(TrimvolParam) set
+ * <p> warning label text and show or hide it.
+ * <p>
  * <p> Revision 3.32  2009/01/20 20:33:03  sueh
  * <p> bug# 1102 Changed labeled panels to type EtomoPanel so that they can name themselves.
  * <p>
@@ -252,7 +256,7 @@ public final class TrimvolPanel implements Run3dmodButtonContainer,
   private final JLabel lWarning3 = new JLabel("the same reorientation");
   private final JLabel lWarning4 = new JLabel("method for each");
   private final JLabel lWarning5 = new JLabel("section.");
-  private final     JLabel warning = new JLabel();
+  private final JLabel warning = new JLabel();
 
   private JPanel pnlButton = new JPanel();
   private Run3dmodButton btnImodFull = Run3dmodButton.get3dmodInstance(
@@ -395,7 +399,7 @@ public final class TrimvolPanel implements Run3dmodButtonContainer,
     pnlTrimvol.add(Box.createRigidArea(FixedDim.x0_y10));
     pnlTrimvol.add(pnlButton);
     pnlTrimvol.add(Box.createRigidArea(FixedDim.x0_y10));
-    
+
     setToolTipText();
 
     ScalingListener ScalingListener = new ScalingListener(this);
@@ -456,7 +460,7 @@ public final class TrimvolPanel implements Run3dmodButtonContainer,
     boolean nColumnsChanged = trimvolParam.isNColumnsChanged();
     boolean nRowsChanged = trimvolParam.isNRowsChanged();
     boolean nSectionsChanged = trimvolParam.isNSectionsChanged();
-    
+
     //set warning
     //  Y and Z  are swapped to present the user with Z as the depth domain
     if (nColumnsChanged || nSectionsChanged) {
@@ -497,9 +501,11 @@ public final class TrimvolPanel implements Run3dmodButtonContainer,
       trimvolParam.setFixedScaling(true);
       try {
         trimvolParam.setFixedScaleMin(ltfFixedScaleMin.getText()).validate(
-            SCALING_ERROR_TITLE, FIXED_SCALE_MIN_LABEL, axisID);
+            SCALING_ERROR_TITLE, FIXED_SCALE_MIN_LABEL, axisID,
+            applicationManager.getManagerKey());
         trimvolParam.setFixedScaleMax(ltfFixedScaleMax.getText()).validate(
-            SCALING_ERROR_TITLE, FIXED_SCALE_MAX_LABEL, axisID);
+            SCALING_ERROR_TITLE, FIXED_SCALE_MAX_LABEL, axisID,
+            applicationManager.getManagerKey());
       }
       catch (InvalidEtomoNumberException e) {
         return false;
@@ -509,9 +515,11 @@ public final class TrimvolPanel implements Run3dmodButtonContainer,
       trimvolParam.setFixedScaling(false);
       try {
         trimvolParam.setSectionScaleMin(ltfSectionScaleMin.getText()).validate(
-            SCALING_ERROR_TITLE, SECTION_SCALE_MIN_LABEL, axisID);
+            SCALING_ERROR_TITLE, SECTION_SCALE_MIN_LABEL, axisID,
+            applicationManager.getManagerKey());
         trimvolParam.setSectionScaleMax(ltfSectionScaleMax.getText()).validate(
-            SCALING_ERROR_TITLE, SECTION_SCALE_MAX_LABEL, axisID);
+            SCALING_ERROR_TITLE, SECTION_SCALE_MAX_LABEL, axisID,
+            applicationManager.getManagerKey());
       }
       catch (InvalidEtomoNumberException e) {
         return false;

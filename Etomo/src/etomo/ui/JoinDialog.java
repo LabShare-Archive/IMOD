@@ -58,6 +58,9 @@ import etomo.util.DatasetFiles;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 1.66  2009/02/04 23:36:48  sueh
+ * <p> bug# 1158 Changed id and exception classes in LogFile.
+ * <p>
  * <p> Revision 1.65  2009/01/20 20:11:51  sueh
  * <p> bug# 1102 Changed labeled panels to type EtomoPanel so that they can name themselves.
  * <p>
@@ -1466,7 +1469,8 @@ public final class JoinDialog implements ContextMenu, Run3dmodButtonContainer {
     }
   }
 
-  public void setXfjointomoResult() throws LogFile.LockException,FileNotFoundException,IOException {
+  public void setXfjointomoResult() throws LogFile.LockException,
+      FileNotFoundException, IOException {
     boundaryTable.setXfjointomoResult();
   }
 
@@ -1779,12 +1783,14 @@ public final class JoinDialog implements ContextMenu, Run3dmodButtonContainer {
         }
       }
       catch (LogFile.LockException e) {
-        UIHarness.INSTANCE.openMessageDialog("Unable to save or write JoinMetaData.\n"
-            + e.getMessage(), "Etomo Error");
+        UIHarness.INSTANCE.openMessageDialog(
+            "Unable to save or write JoinMetaData.\n" + e.getMessage(),
+            "Etomo Error", manager.getManagerKey());
       }
       catch (IOException e) {
-        UIHarness.INSTANCE.openMessageDialog("Unable to save or write JoinMetaData.\n"
-            + e.getMessage(), "Etomo Error");
+        UIHarness.INSTANCE.openMessageDialog(
+            "Unable to save or write JoinMetaData.\n" + e.getMessage(),
+            "Etomo Error", manager.getManagerKey());
       }
       setMode(JoinDialog.CHANGING_SAMPLE_MODE);
     }
@@ -1840,7 +1846,7 @@ public final class JoinDialog implements ContextMenu, Run3dmodButtonContainer {
           b3bOpenTrialIn3dmod.getInt(), run3dmodMenuOptions);
     }
     else if (command.equals(btnMakeRefiningModel.getActionCommand())) {
-      manager.imodOpen(AxisID.ONLY,ImodManager.MODELED_JOIN_KEY, DatasetFiles
+      manager.imodOpen(AxisID.ONLY, ImodManager.MODELED_JOIN_KEY, DatasetFiles
           .getRefineModelFileName(manager), run3dmodMenuOptions);
     }
     else if (command.equals(b3bOpenRejoin.getActionCommand())) {
@@ -1898,7 +1904,7 @@ public final class JoinDialog implements ContextMenu, Run3dmodButtonContainer {
     if (!DatasetFiles.getJoinFile(useTrial, manager).exists()) {
       UIHarness.INSTANCE.openMessageDialog(joinFileName
           + " does not exist.  Press " + buttonName + " to create it.",
-          "Failed File Move");
+          "Failed File Move", manager.getManagerKey());
       return;
     }
     //Make sure that there is data available about the .join file which will be
@@ -1914,7 +1920,8 @@ public final class JoinDialog implements ContextMenu, Run3dmodButtonContainer {
                   + " file has not been saved.\nRefine cannot proceed without complete information on the join file.  If the highlighted data on the screen has NOT been changed since the "
                   + joinFileName
                   + " file was created, press Yes.  Otherwise press no and then press "
-                  + buttonName + " to recreate the file.", AxisID.ONLY);
+                  + buttonName + " to recreate the file.", AxisID.ONLY, manager
+                  .getManagerKey());
       setRefineDataHighlight(false);
       if (!convertVersion) {
         return;
@@ -1930,7 +1937,7 @@ public final class JoinDialog implements ContextMenu, Run3dmodButtonContainer {
               + "IMPORTANT:  "
               + "If the binning of the modeled join file will be different, "
               + "you must open the model with the new modeled join file and "
-              + "save it at least once.", AxisID.ONLY)) {
+              + "save it at least once.", AxisID.ONLY, manager.getManagerKey())) {
         return;
       }
     }
@@ -1944,19 +1951,21 @@ public final class JoinDialog implements ContextMenu, Run3dmodButtonContainer {
     if (manager.isImodOpen(imodKey)) {
       UIHarness.INSTANCE.openMessageDialog("Please close the " + joinFileName
           + " file in 3dmod.  This file will be moved to "
-          + DatasetFiles.getModeledJoinFileName(manager) + '.', "Close 3dmod");
+          + DatasetFiles.getModeledJoinFileName(manager) + '.', "Close 3dmod",
+          manager.getManagerKey());
       return;
     }
     try {
       //move the join file (or trial join) to the _modeled.join file
-      LogFile.getInstance(manager.getPropertyUserDir(), joinFileName).move(
+      LogFile.getInstance(manager.getPropertyUserDir(), joinFileName,
+          manager.getManagerKey()).move(
           LogFile.getInstance(manager.getPropertyUserDir(), DatasetFiles
-              .getModeledJoinFileName(manager)));
+              .getModeledJoinFileName(manager), manager.getManagerKey()));
     }
     catch (LogFile.LockException e) {
       e.printStackTrace();
       UIHarness.INSTANCE.openMessageDialog("Unable to move join file.\n"
-          + e.getMessage(), "Failed File Move");
+          + e.getMessage(), "Failed File Move", manager.getManagerKey());
       return;
     }
     //convertVersion is true when the .ejf file is an older version and the user
@@ -1964,7 +1973,8 @@ public final class JoinDialog implements ContextMenu, Run3dmodButtonContainer {
     if (convertVersion) {
       if (!pnlSectionTable.getMetaData(manager.getJoinMetaData())) {
         UIHarness.INSTANCE.openMessageDialog(
-            "Unable to proceed.  Screen data is invalid.", "Data Error");
+            "Unable to proceed.  Screen data is invalid.", "Data Error",
+            manager.getManagerKey());
         return;
       }
       state.setJoinVersion1_0(useTrial, manager.getJoinMetaData());
@@ -2113,7 +2123,7 @@ public final class JoinDialog implements ContextMenu, Run3dmodButtonContainer {
     ReadOnlyAutodoc autodoc = null;
     try {
       autodoc = AutodocFactory.getInstance(AutodocFactory.XFJOINTOMO,
-          AxisID.ONLY);
+          AxisID.ONLY, manager.getManagerKey());
       ltfBoundariesToAnalyze.setToolTipText(EtomoAutodoc.getTooltip(autodoc,
           XfjointomoParam.BOUNDARIES_TO_ANALYZE_KEY));
       ltfObjectsToInclude.setToolTipText(EtomoAutodoc.getTooltip(autodoc,

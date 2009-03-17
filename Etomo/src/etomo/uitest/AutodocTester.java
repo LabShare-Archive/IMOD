@@ -32,6 +32,7 @@ import junit.extensions.jfcunit.eventdata.MouseEventData;
 import junit.extensions.jfcunit.finder.AbstractButtonFinder;
 import junit.extensions.jfcunit.finder.NamedComponentFinder;
 import junit.framework.Assert;
+import etomo.EtomoDirector;
 import etomo.storage.LogFile;
 import etomo.storage.autodoc.AutodocFactory;
 import etomo.storage.autodoc.ReadOnlyAutodoc;
@@ -60,6 +61,10 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.5  2009/03/02 20:58:00  sueh
+ * <p> bug# 1102 Added assert.ge.tf and assert.le.tf.  Added compare
+ * <p> (JTextComponent, Command) to test these commands.
+ * <p>
  * <p> Revision 1.4  2009/02/20 18:14:56  sueh
  * <p> bug# 1102 Do a quick sleep after finding a panel to avoid unreliable
  * <p> behavior.
@@ -764,7 +769,8 @@ final class AutodocTester extends Assert implements VariableList {
         //set.adoc.section_type = autodoc_name
         else {
           functionAutodoc = AutodocFactory.getInstance(sourceDir, value,
-              AxisID.ONLY);
+              AxisID.ONLY, EtomoDirector.INSTANCE.getCurrentManagerForTest()
+                  .getManagerKey());
         }
       }
       //set.var.variable_name

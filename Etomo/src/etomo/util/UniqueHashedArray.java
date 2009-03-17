@@ -4,34 +4,34 @@ import java.util.Hashtable;
 import java.util.Vector;
 
 /**
-* <p>Description: </p>
-* 
-* <p>Copyright: Copyright (c) 2005</p>
-*
-* <p>Organization:
-* Boulder Laboratory for 3-Dimensional Electron Microscopy of Cells (BL3DEM),
-* University of Colorado</p>
-* 
-* @author $Author$
-* 
-* @version $Revision$
-*/
+ * <p>Description: </p>
+ * 
+ * <p>Copyright: Copyright (c) 2005</p>
+ *
+ * <p>Organization:
+ * Boulder Laboratory for 3-Dimensional Electron Microscopy of Cells (BL3DEM),
+ * University of Colorado</p>
+ * 
+ * @author $Author$
+ * 
+ * @version $Revision$
+ */
 public class UniqueHashedArray {
-  public static  final String  rcsid =  "$Id$";
-  
+  public static final String rcsid = "$Id$";
+
   Hashtable map = null;
   Vector keyArray = null;
-  
+
   public UniqueHashedArray() {
     map = new Hashtable();
     keyArray = new Vector();
   }
-  
+
   protected UniqueHashedArray(Vector keyArray) {
     map = new Hashtable();
     this.keyArray = new Vector(keyArray);
   }
-  
+
   /**
    * Add a new value with unique key is creates from keyName
    * @param keyName
@@ -44,8 +44,7 @@ public class UniqueHashedArray {
     map.put(key, value);
     return key;
   }
-  
-  
+
   /**
    * Adds a new value and key.
    * @param key
@@ -62,7 +61,7 @@ public class UniqueHashedArray {
     map.put(key, value);
     return key;
   }
-  
+
   /**
    * Set an existing UniqueKey to a new value by index
    * @param keyIndex
@@ -75,7 +74,7 @@ public class UniqueHashedArray {
     map.put(key, value);
     return key;
   }
-  
+
   public synchronized Object remove(UniqueKey key) {
     for (int i = 0; i < keyArray.size(); i++) {
       if (keyArray.get(i).equals(key)) {
@@ -84,11 +83,11 @@ public class UniqueHashedArray {
     }
     return map.remove(key);
   }
-  
+
   public synchronized UniqueKey rekey(UniqueKey oldKey, String newKeyName) {
     return rekey(oldKey, new UniqueKey(newKeyName, this));
   }
-  
+
   public synchronized UniqueKey rekey(UniqueKey oldKey, UniqueKey newKey) {
     int index = getIndex(oldKey);
     Object value = map.remove(oldKey);
@@ -96,14 +95,15 @@ public class UniqueHashedArray {
     keyArray.set(index, newKey);
     return newKey;
   }
-  
+
   public Object get(UniqueKey key) {
     if (key == null) {
       return null;
     }
-    return map.get(key);
+    Object object = map.get(key);
+    return object;
   }
-  
+
   public Object get(int index) {
     if (index < 0) {
       return null;
@@ -117,14 +117,14 @@ public class UniqueHashedArray {
     }
     return map.get(key);
   }
-  
+
   public UniqueKey getKey(int index) {
     if (index < 0) {
       return null;
     }
     return (UniqueKey) keyArray.get(index);
   }
-  
+
   public int getIndex(UniqueKey key) {
     if (key == null) {
       return -1;
@@ -136,22 +136,22 @@ public class UniqueHashedArray {
     }
     return -1;
   }
-  
+
   public int size() {
     return keyArray.size();
   }
-  
+
   //FIXME are the elements in the new array copies?  Should they be?  
   //If they aren't
   //copies, should this function be in UniqueHashedArray?
   public UniqueHashedArray getEmptyUniqueHashedArray() {
     return new UniqueHashedArray(keyArray);
   }
-  
+
   public String toString() {
     return getClass().getName() + "[" + paramString() + "]";
   }
-  
+
   protected String paramString() {
     StringBuffer buffer = new StringBuffer(",map=");
     for (int i = 0; i < keyArray.size(); i++) {
@@ -166,5 +166,9 @@ public class UniqueHashedArray {
 
 }
 /**
-* <p> $Log$ </p>
-*/
+ * <p> $Log$
+ * <p> Revision 1.1  2005/08/22 18:22:51  sueh
+ * <p> bug# 532 Moved HashedArray to UniqueHashedArray.  Added a simpler
+ * <p> HashedArray class which does not use UniqueKey.
+ * <p> </p>
+ */

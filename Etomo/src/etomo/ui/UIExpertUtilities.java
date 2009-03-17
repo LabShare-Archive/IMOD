@@ -7,6 +7,7 @@ import java.io.IOException;
 
 import etomo.ApplicationManager;
 import etomo.BaseManager;
+import etomo.ManagerKey;
 import etomo.comscript.ConstTiltParam;
 import etomo.comscript.TiltParam;
 import etomo.comscript.TiltalignParam;
@@ -64,9 +65,10 @@ public final class UIExpertUtilities {
    */
   public long getStackBinning(BaseManager manager, AxisID axisID,
       String stackExtension, boolean nullIfFailed) {
-    MRCHeader rawstackHeader = MRCHeader.getInstance(manager, axisID, ".st");
+    MRCHeader rawstackHeader = MRCHeader.getInstance(manager, axisID, ".st",
+        manager.getManagerKey());
     MRCHeader stackHeader = MRCHeader.getInstance(manager, axisID,
-        stackExtension);
+        stackExtension, manager.getManagerKey());
     long defaultValue = nullIfFailed ? EtomoNumber.LONG_NULL_VALUE : 1;
     try {
       if (!rawstackHeader.read() || !stackHeader.read()) {
@@ -112,13 +114,14 @@ public final class UIExpertUtilities {
       errorMessage[0] = "Tilt axis rotation format error";
       errorMessage[1] = except.getMessage();
       UIHarness.INSTANCE.openMessageDialog(errorMessage,
-          "Tilt axis rotation syntax error", axisID);
+          "Tilt axis rotation syntax error", axisID, manager.getManagerKey());
       return false;
     }
     manager.getMetaData().setFiducialessAlignment(axisID,
         dialog.isFiducialess());
     manager.getMetaData().setImageRotation(tiltAxisAngle, axisID);
-    updateRotationXF(manager.getPropertyUserDir(), tiltAxisAngle, axisID);
+    updateRotationXF(manager.getPropertyUserDir(), tiltAxisAngle, axisID,
+        manager.getManagerKey());
     return true;
   }
 
@@ -128,7 +131,7 @@ public final class UIExpertUtilities {
    * @param axisID
    */
   private void updateRotationXF(String propertyUserDir, float angle,
-      AxisID axisID) {
+      AxisID axisID, ManagerKey managerKey) {
     //  Open the appropriate rotation file
     String fnRotationXF = propertyUserDir + File.separator + "rotation"
         + axisID.getExtension() + ".xf";
@@ -151,14 +154,15 @@ public final class UIExpertUtilities {
       errorMessage[1] = except.getMessage();
       errorMessage[2] = fnRotationXF;
       UIHarness.INSTANCE.openMessageDialog(errorMessage,
-          "Rotation Transform IO Exception", axisID);
+          "Rotation Transform IO Exception", axisID, managerKey);
     }
   }
 
   /**
    *  
    */
-  public boolean areScriptsCreated(ConstMetaData metaData, AxisID axisID) {
+  public boolean areScriptsCreated(ConstMetaData metaData, AxisID axisID,
+      ManagerKey managerKey) {
     if (metaData.getComScriptCreated()) {
       return true;
     }
@@ -166,7 +170,7 @@ public final class UIExpertUtilities {
     message[0] = "The setup process has not been completed";
     message[1] = "Complete the Setup process before opening other process dialogs";
     UIHarness.INSTANCE.openMessageDialog(message, "Program Operation Error",
-        axisID);
+        axisID, managerKey);
     return false;
   }
 
@@ -225,7 +229,8 @@ public final class UIExpertUtilities {
    */
   private long getBackwardCompatibleAlignBinning(ApplicationManager manager,
       AxisID axisID) {
-    MRCHeader rawstackHeader = MRCHeader.getInstance(manager, axisID, ".st");
+    MRCHeader rawstackHeader = MRCHeader.getInstance(manager, axisID, ".st",
+        manager.getManagerKey());
     try {
       if (!rawstackHeader.read()) {
         return 1;
@@ -283,7 +288,8 @@ public final class UIExpertUtilities {
       return binning;
     }
     //fallback to .preali
-    MRCHeader stackHeader = MRCHeader.getInstance(manager, axisID, ".preali");
+    MRCHeader stackHeader = MRCHeader.getInstance(manager, axisID, ".preali",
+        manager.getManagerKey());
     try {
       if (!stackHeader.read()) {
         return 1;
@@ -317,7 +323,8 @@ public final class UIExpertUtilities {
    */
   private int getBackwardCompatibleTiltBinning(ApplicationManager manager,
       AxisID axisID, ConstTiltParam tiltParam) {
-    MRCHeader rawstackHeader = MRCHeader.getInstance(manager, axisID, ".st");
+    MRCHeader rawstackHeader = MRCHeader.getInstance(manager, axisID, ".st",
+        manager.getManagerKey());
     try {
       if (!rawstackHeader.read()) {
         return 1;
@@ -366,6 +373,9 @@ public final class UIExpertUtilities {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.5  2009/02/13 02:38:12  sueh
+ * <p> bug# 1176 Checking return value of MRCHeader.read.
+ * <p>
  * <p> Revision 1.4  2007/12/13 01:14:48  sueh
  * <p> bug# 1056 Removed the Storables inner class from TiltParam.
  * <p>

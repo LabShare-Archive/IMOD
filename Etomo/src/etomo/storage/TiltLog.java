@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 
+import etomo.ManagerKey;
 import etomo.type.EtomoNumber;
 
 /**
@@ -24,16 +25,17 @@ public final class TiltLog {
 
   //created in initialization
   private LogFile file;
-  
+
   private final EtomoNumber minAngle = new EtomoNumber(EtomoNumber.Type.FLOAT);
   private final EtomoNumber maxAngle = new EtomoNumber(EtomoNumber.Type.FLOAT);
 
   private TiltLog() {
   }
-  
-  public static TiltLog getInstance(final File file) throws LogFile.LockException{
+
+  public static TiltLog getInstance(final File file, ManagerKey managerKey)
+      throws LogFile.LockException {
     TiltLog instance = new TiltLog();
-    instance.file = LogFile.getInstance(file);
+    instance.file = LogFile.getInstance(file, managerKey);
     return instance;
   }
 
@@ -119,6 +121,9 @@ public final class TiltLog {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.3  2009/02/04 23:29:40  sueh
+ * <p> bug# 1158 Changed id and exceptions classes in LogFile.
+ * <p>
  * <p> Revision 1.2  2008/01/31 20:23:56  sueh
  * <p> bug# 1055 throwing a FileException when LogFile.getInstance fails.
  * <p>

@@ -13,6 +13,9 @@
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.21  2009/02/23 21:38:01  sueh
+ * <p> bug# 1180 Ported from 3.13.
+ * <p>
  * <p> Revision 1.18.4.3  2009/02/23 21:32:09  sueh
  * <p> bug# 1180 Checking for "has disappeared" error message.  Error doesn't
  * <p> cause a non-zero return value.
@@ -172,10 +175,10 @@ public class TestUtilites {
     File target = new File(testDir, vectorName);
     //save time by looking for already checked out files in workspace directory
     String homeDirName = EnvironmentVariable.INSTANCE.getValue(null, "HOME",
-        AxisID.ONLY);
+        AxisID.ONLY, manager.getManagerKey());
     if (homeDirName != null && !homeDirName.matches("\\s*+")) {
       File homeDir = new File(EnvironmentVariable.INSTANCE.getValue(null,
-          "HOME", AxisID.ONLY));
+          "HOME", AxisID.ONLY, manager.getManagerKey()));
       if (homeDir.exists() && homeDir.canRead()) {
         File vector = new File(new File(homeDir, "workspace/"
             + workspaceLocation), vectorName);
@@ -191,7 +194,7 @@ public class TestUtilites {
           copyCommand[1] = vector.getAbsolutePath();
           copyCommand[2] = testDir.getAbsolutePath();
           SystemProgram copy = new SystemProgram(manager.getPropertyUserDir(),
-              copyCommand, AxisID.ONLY);
+              copyCommand, AxisID.ONLY, manager.getManagerKey());
           copy.setDebug(true);
           copy.run();
           if (target.exists()) {
@@ -241,7 +244,7 @@ public class TestUtilites {
     cvsCommand[5] = testDir.getName();
     cvsCommand[6] = checkoutLocation + target.getName();
     SystemProgram cvs = new SystemProgram(manager.getPropertyUserDir(),
-        cvsCommand, AxisID.ONLY);
+        cvsCommand, AxisID.ONLY, manager.getManagerKey());
     cvs.setDebug(true);
     cvs.run();
     //make sure that the file system is up to date
@@ -249,7 +252,7 @@ public class TestUtilites {
     command[0] = "ls";
     command[1] = checkoutLocation;
     SystemProgram systemProgram = new SystemProgram(manager
-        .getPropertyUserDir(), command, AxisID.ONLY);
+        .getPropertyUserDir(), command, AxisID.ONLY, manager.getManagerKey());
     systemProgram.run();
     if ((cvs.getExitValue() > 0 && cvs.getStdErrorString().indexOf(
         "no such tag") != -1)
@@ -269,7 +272,7 @@ public class TestUtilites {
         rmCommand[1] = "-rf";
         rmCommand[2] = badDirectory.getAbsolutePath();
         SystemProgram rm = new SystemProgram(manager.getPropertyUserDir(),
-            rmCommand, AxisID.ONLY);
+            rmCommand, AxisID.ONLY, manager.getManagerKey());
         rm.run();
       }
 
@@ -284,7 +287,7 @@ public class TestUtilites {
       cvsCommand[5] = testDir.getName();
       cvsCommand[6] = checkoutLocation + target.getName();
       cvs = new SystemProgram(manager.getPropertyUserDir(), cvsCommand,
-          AxisID.ONLY);
+          AxisID.ONLY, manager.getManagerKey());
       cvs.setDebug(true);
       cvs.run();
     }
@@ -297,7 +300,7 @@ public class TestUtilites {
       String message = cvs.getStdErrorString()
           + "\nCVSROOT="
           + EnvironmentVariable.INSTANCE.getValue(manager.getPropertyUserDir(),
-              "CVSROOT", AxisID.ONLY) + ",manager.getPropertyUserDir()="
+              "CVSROOT", AxisID.ONLY, manager.getManagerKey()) + ",manager.getPropertyUserDir()="
           + manager.getPropertyUserDir() + ",testRootDir="
           + testRootDir.getAbsolutePath() + "\ntestDir="
           + testDir.getAbsolutePath() + ",target=" + target.getAbsolutePath()
@@ -315,7 +318,7 @@ public class TestUtilites {
       rmCommand[1] = "-rf";
       rmCommand[2] = badDirectory.getAbsolutePath();
       SystemProgram rm = new SystemProgram(manager.getPropertyUserDir(),
-          rmCommand, AxisID.ONLY);
+          rmCommand, AxisID.ONLY, manager.getManagerKey());
       rm.run();
     }
     //reset working directory

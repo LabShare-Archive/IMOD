@@ -23,6 +23,9 @@ import junit.framework.TestCase;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.6  2009/02/04 23:29:40  sueh
+ * <p> bug# 1158 Changed id and exceptions classes in LogFile.
+ * <p>
  * <p> Revision 1.5  2008/12/15 23:02:11  sueh
  * <p> bug# 1161 Made EtomoDirector.getCurrentManager private.  Added a
  * <p> public test version for public access.
@@ -43,11 +46,11 @@ import junit.framework.TestCase;
  */
 public class JoinInfoFileTest extends TestCase {
   public static final String rcsid = "$Id$";
-  
-  private static final File testDir = new File(StorageTests.TEST_ROOT_DIR,
-  "JoinInfoFile");
 
-  public void testGetInverted() throws LogFile.LockException,IOException {
+  private static final File testDir = new File(StorageTests.TEST_ROOT_DIR,
+      "JoinInfoFile");
+
+  public void testGetInverted() throws LogFile.LockException, IOException {
     //TEMP
     if (Utilities.isWindowsOS()) {
       return;
@@ -55,11 +58,10 @@ public class JoinInfoFileTest extends TestCase {
     testDir.mkdirs();
     BaseManager manager = EtomoDirector.INSTANCE.getCurrentManagerForTest();
     LogFile infoFile = LogFile.getInstance(testDir.getAbsolutePath(),
-        DatasetFiles.getJoinInfoName(manager));
+        DatasetFiles.getJoinInfoName(manager), manager.getManagerKey());
     infoFile.delete();
-    JoinInfoFile test =  JoinInfoFile.getTestInstance(infoFile);
-    assertNull("Should return null when there is no file", test
-        .getInverted(0));
+    JoinInfoFile test = JoinInfoFile.getTestInstance(manager, infoFile);
+    assertNull("Should return null when there is no file", test.getInverted(0));
     EtomoDirector.INSTANCE.getCurrentManagerForTest().touch(
         infoFile.getAbsolutePath());
     try {
@@ -67,21 +69,16 @@ public class JoinInfoFileTest extends TestCase {
     }
     catch (InterruptedException e) {
     }
-    assertNull("Should return null when the file is empty", test
-        .getInverted(0));
+    assertNull("Should return null when the file is empty", test.getInverted(0));
     LogFile.WriterId writerId = infoFile.openWriter();
     infoFile.newLine(writerId);
-    assertNull("Should return null when the second line doesn't exist",
-        test.getInverted(0));
+    assertNull("Should return null when the second line doesn't exist", test
+        .getInverted(0));
     infoFile.write("0 1 0", writerId);
     infoFile.closeWriter(writerId);
-    assertEquals("First number should be 0", test.getInverted(0)
-        .getInt(), 0);
-    assertEquals("Second number should be 1", test.getInverted(1)
-        .getInt(), 1);
-    assertEquals("Third number should be 0", test.getInverted(2)
-        .getInt(), 0);
-    assertNull("Should return null for an index error", test
-        .getInverted(4));
+    assertEquals("First number should be 0", test.getInverted(0).getInt(), 0);
+    assertEquals("Second number should be 1", test.getInverted(1).getInt(), 1);
+    assertEquals("Third number should be 0", test.getInverted(2).getInt(), 0);
+    assertNull("Should return null for an index error", test.getInverted(4));
   }
 }

@@ -6,6 +6,7 @@ import java.util.Hashtable;
 
 import etomo.ApplicationManager;
 import etomo.BaseManager;
+import etomo.ManagerKey;
 import etomo.process.ProcessMessages;
 import etomo.process.SystemProgram;
 import etomo.type.AxisID;
@@ -27,6 +28,10 @@ import etomo.ui.UIHarness;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.25  2009/02/13 02:40:34  sueh
+ * <p> bug# 1176 In read, when the file does not exist put a warning in the log
+ * <p> file instead of throwing an exception.  Also return false in this case.
+ * <p>
  * <p> Revision 3.24  2007/02/05 23:47:28  sueh
  * <p> bug# 962 Moved EtomoNumber type info to inner class.
  * <p>
@@ -175,6 +180,8 @@ public class MRCHeader {
   //member variables to prevent unnecessary reads
   //
   private FileModifiedFlag modifiedFlag;
+
+  private final ManagerKey managerKey;
   //
   //other member variables
   //
@@ -197,17 +204,20 @@ public class MRCHeader {
   private AxisID axisID;
   private final String fileLocation;
 
-  private MRCHeader(String fileLocation, File file, AxisID axisID) {
+  private MRCHeader(String fileLocation, File file, AxisID axisID,
+      ManagerKey managerKey) {
     this.fileLocation = fileLocation;
     filename = file.getAbsolutePath();
     this.axisID = axisID;
+    this.managerKey = managerKey;
     modifiedFlag = new FileModifiedFlag(file);
   }
 
   public static MRCHeader getInstance(BaseManager manager, AxisID axisID,
-      String filename) {
+      String filename, ManagerKey managerKey) {
     return MRCHeader.getInstance(manager.getPropertyUserDir(), DatasetFiles
-        .getDatasetFile(manager, axisID, filename).getAbsolutePath(), axisID);
+        .getDatasetFile(manager, axisID, filename).getAbsolutePath(), axisID,
+        managerKey);
   }
 
   /**
@@ -218,12 +228,12 @@ public class MRCHeader {
    * @return
    */
   public static MRCHeader getInstance(String fileLocation, String filename,
-      AxisID axisID) {
+      AxisID axisID, ManagerKey managerKey) {
     File keyFile = Utilities.getFile(fileLocation, filename);
     String key = makeKey(keyFile);
     MRCHeader mrcHeader = (MRCHeader) instances.get(key);
     if (mrcHeader == null) {
-      return createInstance(fileLocation, key, keyFile, axisID);
+      return createInstance(fileLocation, key, keyFile, axisID, managerKey);
     }
     return mrcHeader;
   }
@@ -237,12 +247,12 @@ public class MRCHeader {
    * @return
    */
   private static synchronized MRCHeader createInstance(String fileLocation,
-      String key, File file, AxisID axisID) {
+      String key, File file, AxisID axisID, ManagerKey managerKey) {
     MRCHeader mrcHeader = (MRCHeader) instances.get(key);
     if (mrcHeader != null) {
       return mrcHeader;
     }
-    mrcHeader = new MRCHeader(fileLocation, file, axisID);
+    mrcHeader = new MRCHeader(fileLocation, file, axisID, managerKey);
     instances.put(key, mrcHeader);
     return mrcHeader;
   }
@@ -284,7 +294,8 @@ public class MRCHeader {
     String[] commandArray = new String[2];
     commandArray[0] = ApplicationManager.getIMODBinPath() + "header";
     commandArray[1] = filename;
-    SystemProgram header = new SystemProgram(fileLocation, commandArray, axisID);
+    SystemProgram header = new SystemProgram(fileLocation, commandArray,
+        axisID, managerKey);
     header.setDebug(Utilities.isDebug());
     modifiedFlag.setReadingNow();
     header.run();
@@ -421,7 +432,7 @@ public class MRCHeader {
       if (popupErrorMessage) {
         UIHarness.INSTANCE.openMessageDialog("Invalid pixel spacing:  "
             + sPixelSpacing + ".  Fix the mrc header in " + filename
-            + " with alterheader.", "Header Error", axisID);
+            + " with alterheader.", "Header Error", axisID, managerKey);
       }
       return false;
     }

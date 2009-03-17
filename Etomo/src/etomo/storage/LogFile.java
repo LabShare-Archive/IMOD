@@ -15,6 +15,7 @@ import java.util.Hashtable;
 import java.util.Properties;
 
 import etomo.EtomoDirector;
+import etomo.ManagerKey;
 import etomo.type.AxisID;
 import etomo.type.ProcessName;
 import etomo.ui.UIHarness;
@@ -66,6 +67,7 @@ public final class LogFile {
   private ReadingTokenList readingTokenList = ReadingTokenList
       .getReadingTokenInstance();
   private final String fileAbsolutePath;
+  private final ManagerKey managerKey;
 
   private File file = null;
   private File backupFile = null;
@@ -76,8 +78,9 @@ public final class LogFile {
   private boolean backedUp = false;
   private boolean debug = false;
 
-  private LogFile(File file) {
-    lock = new Lock(this);
+  private LogFile(File file, ManagerKey managerKey) {
+    this.managerKey = managerKey;
+    lock = new Lock(this, managerKey);
     this.fileAbsolutePath = file.getAbsolutePath();
   }
 
@@ -94,27 +97,28 @@ public final class LogFile {
    * @return retrieved instance
    */
   public static LogFile getInstance(String userDir, AxisID axisID,
-      ProcessName processName) throws LockException {
-    return getInstance(userDir, axisID, processName.toString());
+      ProcessName processName, ManagerKey managerKey) throws LockException {
+    return getInstance(userDir, axisID, processName.toString(), managerKey);
   }
 
-  public static LogFile getInstance(String userDir, AxisID axisID, String name)
-      throws LockException {
+  public static LogFile getInstance(String userDir, AxisID axisID, String name,
+      ManagerKey managerKey) throws LockException {
     return getInstance(userDir, name + axisID.getExtension()
-        + DatasetFiles.LOG_EXT);
+        + DatasetFiles.LOG_EXT, managerKey);
   }
 
-  public static LogFile getInstance(String userDir, String fileName)
+  public static LogFile getInstance(String userDir, String fileName,
+      ManagerKey managerKey) throws LockException {
+    return getInstance(new File(userDir, fileName), managerKey);
+  }
+
+  public static LogFile getInstance(File dir, String fileName,
+      ManagerKey managerKey) throws LockException {
+    return getInstance(new File(dir, fileName), managerKey);
+  }
+
+  public static LogFile getInstance(File file, ManagerKey managerKey)
       throws LockException {
-    return getInstance(new File(userDir, fileName));
-  }
-
-  public static LogFile getInstance(File dir, String fileName)
-      throws LockException {
-    return getInstance(new File(dir, fileName));
-  }
-
-  public static LogFile getInstance(File file) throws LockException {
     if (file == null) {
       throw new LockException("Cannot create LogFile, file is null.");
     }
@@ -122,7 +126,7 @@ public final class LogFile {
     String key = file.getAbsolutePath();
     if ((logFile = (LogFile) logFileHashTable.get(key)) == null) {
       //the instance doesn't exist - create it
-      logFile = createInstance(file, key);
+      logFile = createInstance(file, key, managerKey);
     }
     return logFile;
   }
@@ -144,7 +148,8 @@ public final class LogFile {
    * @param key
    * @return created instance
    */
-  private static synchronized LogFile createInstance(File file, String key) {
+  private static synchronized LogFile createInstance(File file, String key,
+      ManagerKey managerKey) {
     LogFile logFile;
     //make sure that the instance wasn't created by another thread
     if (logFileHashTable != null
@@ -152,7 +157,7 @@ public final class LogFile {
       return logFile;
     }
     //create the instance
-    logFile = new LogFile(file);
+    logFile = new LogFile(file, managerKey);
     //save the instance
     logFileHashTable.put(key, logFile);
     return logFile;
@@ -587,7 +592,7 @@ public final class LogFile {
     ReaderId readerId = new ReaderId();
     lock.lock(LockType.READ, readerId);
     createFile();
-    String idKey = ReadingTokenList.makeKey(readerId);
+    String idKey = ReadingTokenList.makeKey(readerId, managerKey);
     try {
       readerList.openReadingToken(idKey, file);
     }
@@ -603,7 +608,7 @@ public final class LogFile {
     ReadingId readingId = new ReadingId();
     lock.lock(LockType.READ, readingId);
     createFile();
-    String idKey = ReadingTokenList.makeKey(readingId);
+    String idKey = ReadingTokenList.makeKey(readingId, managerKey);
     try {
       readingTokenList.openReadingToken(idKey, file);
     }
@@ -619,7 +624,7 @@ public final class LogFile {
       lock.assertUnlockable(LockType.READ, readerId);
       createFile();
       ReadingToken readingToken = readerList.getReadingToken(ReadingTokenList
-          .makeKey(readerId));
+          .makeKey(readerId, managerKey));
       if (readingToken != null) {
         readingToken.close();
       }
@@ -640,15 +645,15 @@ public final class LogFile {
     return true;
   }
 
-  public synchronized boolean closeForReading(ReadingId ReadingId) {
+  public synchronized boolean closeForReading(ReadingId readingId) {
     //close the reading token before unlocking
     try {
-      lock.assertUnlockable(LockType.READ, ReadingId);
+      lock.assertUnlockable(LockType.READ, readingId);
       createFile();
       ReadingToken readingToken = readingTokenList
-          .getReadingToken(ReadingTokenList.makeKey(ReadingId));
+          .getReadingToken(ReadingTokenList.makeKey(readingId, managerKey));
       readingToken.close();
-      lock.unlock(LockType.READ, ReadingId);
+      lock.unlock(LockType.READ, readingId);
     }
     catch (IOException e) {
       e.printStackTrace();
@@ -667,7 +672,8 @@ public final class LogFile {
       throw new LockException(this, readId);
     }
     createFile();
-    return readerList.getReader(ReadingTokenList.makeKey(readId)).readLine();
+    return readerList.getReader(ReadingTokenList.makeKey(readId, managerKey))
+        .readLine();
   }
 
   public synchronized void load(Properties properties,
@@ -928,6 +934,7 @@ public final class LogFile {
     private final HashMap readIdHashMap = new HashMap();
     private final boolean throwException;
     private final LogFile logFile;
+    private final ManagerKey managerKey;
 
     private boolean warningDisplayed = false;
     private boolean locked = false;
@@ -935,18 +942,19 @@ public final class LogFile {
     private long writeId = NO_ID;
     private long fileId = NO_ID;
 
-    private Lock(final LogFile logFile) {
+    private Lock(final LogFile logFile, ManagerKey managerKey) {
+      this.managerKey = managerKey;
       this.logFile = logFile;
       throwException = Utilities.isWindowsOS()
           || EtomoDirector.INSTANCE.getArguments().isTest();
     }
 
-    private static String makeKey(final Id id) {
+    private static String makeKey(final Id id, ManagerKey managerKey) {
       if (id == null) {
         LockException idNull = new LockException("id is null");
         idNull.printStackTrace();
         UIHarness.INSTANCE.openMessageDialog(idNull.getMessage()
-            + PUBLIC_EXCEPTION_MESSAGE, "File Lock Warning");
+            + PUBLIC_EXCEPTION_MESSAGE, "File Lock Warning", managerKey);
         return null;
       }
       return id.toString();
@@ -970,7 +978,7 @@ public final class LogFile {
         LockException idNull = new LockException("id is null");
         idNull.printStackTrace();
         UIHarness.INSTANCE.openMessageDialog(idNull.getMessage()
-            + PUBLIC_EXCEPTION_MESSAGE, "File Lock Warning");
+            + PUBLIC_EXCEPTION_MESSAGE, "File Lock Warning", managerKey);
         if (throwException) {
           throw idNull;
         }
@@ -1006,14 +1014,14 @@ public final class LogFile {
         LockException idNull = new LockException("id is null");
         idNull.printStackTrace();
         UIHarness.INSTANCE.openMessageDialog(idNull.getMessage()
-            + PUBLIC_EXCEPTION_MESSAGE, "File Lock Warning");
+            + PUBLIC_EXCEPTION_MESSAGE, "File Lock Warning", managerKey);
         if (throwException) {
           throw idNull;
         }
       }
       assertUnlockable(lockType, id);
       //unsetting the matching saved id
-      String readKey = makeKey(id);
+      String readKey = makeKey(id, managerKey);
       if (lockType == LockType.READ && readIdHashMap.containsKey(readKey)) {
         readIdHashMap.remove(readKey);
       }
@@ -1031,7 +1039,7 @@ public final class LogFile {
         if (!warningDisplayed) {
           warningDisplayed = true;
           UIHarness.INSTANCE.openMessageDialog(e.getMessage()
-              + PUBLIC_EXCEPTION_MESSAGE, "File Lock Warning");
+              + PUBLIC_EXCEPTION_MESSAGE, "File Lock Warning", managerKey);
         }
       }
       //turn off locked if all the saved ids are empty
@@ -1045,8 +1053,8 @@ public final class LogFile {
       if (id == null || !locked || lockType == null || id.isEmpty()) {
         return false;
       }
-      return (lockType == LockType.READ && readIdHashMap
-          .containsKey(makeKey(id)))
+      return (lockType == LockType.READ && readIdHashMap.containsKey(makeKey(
+          id, managerKey)))
           || (lockType == LockType.WRITE && id.equals(writeId))
           || (lockType == LockType.FILE && id.equals(fileId));
     }
@@ -1069,7 +1077,7 @@ public final class LogFile {
         if (!warningDisplayed) {
           warningDisplayed = true;
           UIHarness.INSTANCE.openMessageDialog(e.getMessage()
-              + PUBLIC_EXCEPTION_MESSAGE, "File Lock Warning");
+              + PUBLIC_EXCEPTION_MESSAGE, "File Lock Warning", managerKey);
         }
       }
     }
@@ -1090,7 +1098,7 @@ public final class LogFile {
         if (!warningDisplayed) {
           warningDisplayed = true;
           UIHarness.INSTANCE.openMessageDialog(e.getMessage()
-              + PUBLIC_EXCEPTION_MESSAGE, "File Lock Warning");
+              + PUBLIC_EXCEPTION_MESSAGE, "File Lock Warning", managerKey);
         }
       }
       //compatible:
@@ -1111,7 +1119,7 @@ public final class LogFile {
         LockException idNull = new LockException("id is null");
         idNull.printStackTrace();
         UIHarness.INSTANCE.openMessageDialog(idNull.getMessage()
-            + PUBLIC_EXCEPTION_MESSAGE, "File Lock Warning");
+            + PUBLIC_EXCEPTION_MESSAGE, "File Lock Warning", managerKey);
         if (throwException) {
           throw idNull;
         }
@@ -1124,7 +1132,7 @@ public final class LogFile {
         if (!warningDisplayed) {
           warningDisplayed = true;
           UIHarness.INSTANCE.openMessageDialog(e.getMessage()
-              + PUBLIC_EXCEPTION_MESSAGE, "File Lock Warning");
+              + PUBLIC_EXCEPTION_MESSAGE, "File Lock Warning", managerKey);
         }
       }
       if (readIdHashMap.isEmpty() && writeId == NO_ID && fileId == NO_ID) {
@@ -1134,7 +1142,8 @@ public final class LogFile {
                 + ",fileId=" + fileId);
       }
       //checking for unlockability
-      if ((lockType == LockType.READ && readIdHashMap.containsKey(makeKey(id)))
+      if ((lockType == LockType.READ && readIdHashMap.containsKey(makeKey(id,
+          managerKey)))
           || (lockType == LockType.WRITE && id.equals(writeId))
           || (lockType == LockType.FILE && id.equals(fileId))) {
         return;
@@ -1146,7 +1155,7 @@ public final class LogFile {
       if (!warningDisplayed) {
         warningDisplayed = true;
         UIHarness.INSTANCE.openMessageDialog(e.getMessage()
-            + PUBLIC_EXCEPTION_MESSAGE, "File Lock Warning");
+            + PUBLIC_EXCEPTION_MESSAGE, "File Lock Warning", managerKey);
       }
     }
 
@@ -1174,12 +1183,12 @@ public final class LogFile {
       this.storeReaders = storeReaders;
     }
 
-    static String makeKey(Id id) {
+    static String makeKey(Id id, ManagerKey managerKey) {
       if (id == null) {
         LockException idNull = new LockException("id is null");
         idNull.printStackTrace();
         UIHarness.INSTANCE.openMessageDialog(idNull.getMessage()
-            + PUBLIC_EXCEPTION_MESSAGE, "File Lock Warning");
+            + PUBLIC_EXCEPTION_MESSAGE, "File Lock Warning", managerKey);
         return "";
       }
       return (id.toString());
@@ -1350,6 +1359,9 @@ public final class LogFile {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.24  2009/02/04 23:06:33  sueh
+ * <p> bug# 1158 Distinguishing between ids for different types of file opens by making a class for each type.  Helps avoid mysterious errors while developing.  Also simplified the @#!#$ exception class scheme.
+ * <p>
  * <p> Revision 1.23  2008/10/27 18:07:26  sueh
  * <p> bug# 1141 Added more failure information to write().
  * <p>

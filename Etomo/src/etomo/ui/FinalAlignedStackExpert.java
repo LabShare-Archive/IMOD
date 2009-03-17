@@ -62,6 +62,9 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.11  2009/02/13 02:32:50  sueh
+ * <p> bug# 1176 Checking return value of MRCHeader.read.
+ * <p>
  * <p> Revision 1.10  2009/02/04 23:36:48  sueh
  * <p> bug# 1158 Changed id and exception classes in LogFile.
  * <p>
@@ -235,7 +238,8 @@ public final class FinalAlignedStackExpert extends ReconUIExpert {
       getParameters(metaData);
     }
     catch (FortranInputSyntaxException e) {
-      UIHarness.INSTANCE.openMessageDialog(e.getMessage(), "Data File Error");
+      UIHarness.INSTANCE.openMessageDialog(e.getMessage(), "Data File Error",
+          manager.getManagerKey());
     }
     getParameters(screenState);
     if (!UIExpertUtilities.INSTANCE.updateFiducialessParams(manager, dialog,
@@ -247,16 +251,16 @@ public final class FinalAlignedStackExpert extends ReconUIExpert {
         updateBlendCom();
       }
       catch (FortranInputSyntaxException e) {
-        UIHarness.INSTANCE
-            .openMessageDialog(e.getMessage(), "Update Com Error");
+        UIHarness.INSTANCE.openMessageDialog(e.getMessage(),
+            "Update Com Error", manager.getManagerKey());
       }
       catch (InvalidParameterException e) {
-        UIHarness.INSTANCE
-            .openMessageDialog(e.getMessage(), "Update Com Error");
+        UIHarness.INSTANCE.openMessageDialog(e.getMessage(),
+            "Update Com Error", manager.getManagerKey());
       }
       catch (IOException e) {
-        UIHarness.INSTANCE
-            .openMessageDialog(e.getMessage(), "Update Com Error");
+        UIHarness.INSTANCE.openMessageDialog(e.getMessage(),
+            "Update Com Error", manager.getManagerKey());
       }
     }
     else {
@@ -317,7 +321,7 @@ public final class FinalAlignedStackExpert extends ReconUIExpert {
       UIHarness.INSTANCE
           .openMessageDialog(
               "Can not update newst?.com without an active final aligned stack dialog",
-              "Program logic error", axisID);
+              "Program logic error", axisID, manager.getManagerKey());
       return null;
     }
     NewstParam newstParam = null;
@@ -337,7 +341,7 @@ public final class FinalAlignedStackExpert extends ReconUIExpert {
       errorMessage[1] = "Axis: " + axisID.getExtension();
       errorMessage[2] = except.getMessage();
       UIHarness.INSTANCE.openMessageDialog(errorMessage,
-          "Newst Parameter Syntax Error", axisID);
+          "Newst Parameter Syntax Error", axisID, manager.getManagerKey());
       return null;
     }
     catch (FortranInputSyntaxException except) {
@@ -358,7 +362,7 @@ public final class FinalAlignedStackExpert extends ReconUIExpert {
       UIHarness.INSTANCE
           .openMessageDialog(
               "Can not update mtffilter?.com without an active final aligned stack dialog",
-              "Program logic error", axisID);
+              "Program logic error", axisID, manager.getManagerKey());
       return false;
     }
     try {
@@ -388,7 +392,7 @@ public final class FinalAlignedStackExpert extends ReconUIExpert {
       errorMessage[1] = "Axis: " + axisID.getExtension();
       errorMessage[2] = except.getMessage();
       UIHarness.INSTANCE.openMessageDialog(errorMessage,
-          "MTF Filter Parameter Syntax Error", axisID);
+          "MTF Filter Parameter Syntax Error", axisID, manager.getManagerKey());
       return false;
     }
     catch (FortranInputSyntaxException except) {
@@ -397,7 +401,7 @@ public final class FinalAlignedStackExpert extends ReconUIExpert {
       errorMessage[1] = "Axis: " + axisID.getExtension();
       errorMessage[2] = except.getMessage();
       UIHarness.INSTANCE.openMessageDialog(errorMessage,
-          "MTF Filter Parameter Syntax Error", axisID);
+          "MTF Filter Parameter Syntax Error", axisID, manager.getManagerKey());
       return false;
     }
     return true;
@@ -470,7 +474,7 @@ public final class FinalAlignedStackExpert extends ReconUIExpert {
     fiducialDiameter.set(dialog.getFiducialDiameter());
     param.setBetterRadius(fiducialDiameter.getDouble() / 2.0);
     param.setPolynomialOrder(dialog.getPolynomialOrder());
-    if (param.validate()) {
+    if (param.validate(manager.getManagerKey())) {
       return param;
     }
     return null;
@@ -502,16 +506,16 @@ public final class FinalAlignedStackExpert extends ReconUIExpert {
         blendmontParam = updateBlendCom();
       }
       catch (FortranInputSyntaxException e) {
-        UIHarness.INSTANCE
-            .openMessageDialog(e.getMessage(), "Update Com Error");
+        UIHarness.INSTANCE.openMessageDialog(e.getMessage(),
+            "Update Com Error", manager.getManagerKey());
       }
       catch (InvalidParameterException e) {
-        UIHarness.INSTANCE
-            .openMessageDialog(e.getMessage(), "Update Com Error");
+        UIHarness.INSTANCE.openMessageDialog(e.getMessage(),
+            "Update Com Error", manager.getManagerKey());
       }
       catch (IOException e) {
-        UIHarness.INSTANCE
-            .openMessageDialog(e.getMessage(), "Update Com Error");
+        UIHarness.INSTANCE.openMessageDialog(e.getMessage(),
+            "Update Com Error", manager.getManagerKey());
       }
     }
     else {
@@ -577,7 +581,7 @@ public final class FinalAlignedStackExpert extends ReconUIExpert {
     LogFile.WriterId writerId = null;
     try {
       file = LogFile.getInstance(DatasetFiles.getSimpleDefocusFile(manager,
-          axisID));
+          axisID), manager.getManagerKey());
       if (file.exists()) {
         readerId = file.openReader();
         String line = file.readLine(readerId);
@@ -617,7 +621,8 @@ public final class FinalAlignedStackExpert extends ReconUIExpert {
     if (!updateToDate) {
       if (!UIHarness.INSTANCE.openYesNoDialog(DatasetFiles
           .getSimpleDefocusFileName(manager, axisID)
-          + " may not be up to date.  Continue?", axisID)) {
+          + " may not be up to date.  Continue?", axisID, manager
+          .getManagerKey())) {
         return false;
       }
     }
@@ -673,7 +678,8 @@ public final class FinalAlignedStackExpert extends ReconUIExpert {
   void getParameters(final SplitCorrectionParam param) {
     param.setCpus(getParallelPanel().getCPUsSelected());
     MRCHeader header = MRCHeader.getInstance(manager.getPropertyUserDir(),
-        DatasetFiles.getFullAlignedStackFileName(manager, axisID), axisID);
+        DatasetFiles.getFullAlignedStackFileName(manager, axisID), axisID,
+        manager.getManagerKey());
     try {
       if (header.read()) {
         param.setMaxZ(header.getNSections());
@@ -746,7 +752,7 @@ public final class FinalAlignedStackExpert extends ReconUIExpert {
     if (!output.exists()) {
       UIHarness.INSTANCE.openMessageDialog(output.getAbsolutePath()
           + " doesn't exist.  Press " + buttonLabel + " to create this file.",
-          buttonLabel + " Output Missing", axisID);
+          buttonLabel + " Output Missing", axisID, manager.getManagerKey());
       sendMsg(ProcessResult.FAILED_TO_START, processResultDisplay);
       return;
     }
@@ -760,7 +766,7 @@ public final class FinalAlignedStackExpert extends ReconUIExpert {
       catch (IOException except) {
         UIHarness.INSTANCE.openMessageDialog("Unable to backup "
             + fullAlignedStack.getAbsolutePath() + "\n" + except.getMessage(),
-            "File Rename Error", axisID);
+            "File Rename Error", axisID, manager.getManagerKey());
         sendMsg(ProcessResult.FAILED, processResultDisplay);
         return;
       }
@@ -772,7 +778,7 @@ public final class FinalAlignedStackExpert extends ReconUIExpert {
     }
     catch (IOException except) {
       UIHarness.INSTANCE.openMessageDialog(except.getMessage(),
-          "File Rename Error", axisID);
+          "File Rename Error", axisID, manager.getManagerKey());
       sendMsg(ProcessResult.FAILED, processResultDisplay);
       return;
     }
@@ -811,7 +817,8 @@ public final class FinalAlignedStackExpert extends ReconUIExpert {
       UIHarness.INSTANCE
           .openMessageDialog(
               "The filtered full aligned stack doesn't exist.  Create the filtered full aligned stack first",
-              "Filtered full aligned stack missing", axisID);
+              "Filtered full aligned stack missing", axisID, manager
+                  .getManagerKey());
       sendMsg(ProcessResult.FAILED_TO_START, processResultDisplay);
       return;
     }
@@ -825,7 +832,7 @@ public final class FinalAlignedStackExpert extends ReconUIExpert {
       catch (IOException except) {
         UIHarness.INSTANCE.openMessageDialog("Unable to backup "
             + fullAlignedStack.getAbsolutePath() + "\n" + except.getMessage(),
-            "File Rename Error", axisID);
+            "File Rename Error", axisID, manager.getManagerKey());
         sendMsg(ProcessResult.FAILED, processResultDisplay);
         return;
       }
@@ -837,7 +844,7 @@ public final class FinalAlignedStackExpert extends ReconUIExpert {
     }
     catch (IOException except) {
       UIHarness.INSTANCE.openMessageDialog(except.getMessage(),
-          "File Rename Error", axisID);
+          "File Rename Error", axisID, manager.getManagerKey());
       sendMsg(ProcessResult.FAILED, processResultDisplay);
       return;
     }
@@ -889,7 +896,7 @@ public final class FinalAlignedStackExpert extends ReconUIExpert {
     }
     dialog.setBinning(metaData.getFinalStackBinning(axisID));
     CpuAdoc cpuAdoc = CpuAdoc.getInstance(AxisID.ONLY, manager
-        .getPropertyUserDir());
+        .getPropertyUserDir(), manager.getManagerKey());
     if (!metaData.isFinalStackFiducialDiameterNull(axisID)) {
       dialog
           .setFiducialDiameter(metaData.getFinalStackFiducialDiameter(axisID));

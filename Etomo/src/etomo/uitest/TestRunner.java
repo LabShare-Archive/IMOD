@@ -37,6 +37,9 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.3  2009/03/03 20:46:40  sueh
+ * <p> bug# 1102 Added comments.
+ * <p>
  * <p> Revision 1.2  2009/02/04 23:37:32  sueh
  * <p> bug# 1158 Changed id and exception classes in LogFile.
  * <p>
@@ -91,7 +94,7 @@ public final class TestRunner extends JFCTestCase implements VariableList {
     parameterList.add(Arguments.TEST_TAG);
     //get uitest.adoc
     ReadOnlyAutodoc autodoc = AutodocFactory.getInstance(AutodocFactory.UITEST,
-        AxisID.ONLY);
+        AxisID.ONLY, null);
     if (autodoc == null) {
       fail("Missing autodoc: " + AutodocFactory.UITEST);
       return;
@@ -99,7 +102,7 @@ public final class TestRunner extends JFCTestCase implements VariableList {
     //Get the Test section specified by the environment variable
     //IMOD_TEST_SECTION.
     String testName = EnvironmentVariable.INSTANCE.getValue(null,
-        "IMOD_TEST_SECTION", AxisID.ONLY);
+        "IMOD_TEST_SECTION", AxisID.ONLY, null);
     System.err.println("Testing " + testName);
     if (testName == null || testName.matches("\\*+")) {
       fail("$IMOD_TEST_SECTION has not been set");
@@ -125,7 +128,8 @@ public final class TestRunner extends JFCTestCase implements VariableList {
           if (subjectType == UITestSubjectType.ADOC) {
             //Create an autodoc tester for each autodoc in the Test section.  The
             //they appear is the order in which they start running.
-            File dir = Utilities.getExistingDir(SOURCE_ENV_VAR, AxisID.ONLY);
+            File dir = Utilities.getExistingDir(SOURCE_ENV_VAR, AxisID.ONLY,
+                null);
             System.err.println(SOURCE_ENV_VAR + ": " + dir.getAbsolutePath());
             AxisID axisID = subject.getAxisID();
             //Get the sectionType
@@ -135,8 +139,8 @@ public final class TestRunner extends JFCTestCase implements VariableList {
                     + command + ")", sectionType);
             //Create an autodoc tester for this autodoc.
             AutodocTester autodocTester = AutodocTester.getAutodocTester(this,
-                helper, AutodocFactory.getInstance(dir, value, AxisID.ONLY),
-                dir, sectionType, axisID, this);
+                helper, AutodocFactory.getInstance(dir, value, AxisID.ONLY,
+                    null), dir, sectionType, axisID, this);
             autodocTesterList.add(autodocTester);
             //Assuming that AxisID can be a unique key for the testers
             autodocTesterMap.put(axisID, autodocTester);
@@ -189,7 +193,7 @@ public final class TestRunner extends JFCTestCase implements VariableList {
       }
     }
   }
-  
+
   boolean isDone(AxisID axisID) {
     AutodocTester tester = (AutodocTester) autodocTesterMap.get(axisID);
     assertNotNull("no tester has this axisID - " + axisID, tester);
@@ -215,7 +219,7 @@ public final class TestRunner extends JFCTestCase implements VariableList {
     //The directory where dataset files are stored is specified by the section
     //name.
     dataDir = new File(Utilities
-        .getExistingDir("IMOD_UITEST_DATA", AxisID.ONLY), sectionName);
+        .getExistingDir("IMOD_UITEST_DATA", AxisID.ONLY, null), sectionName);
     Command command = null;
     while (!datasetSectionReader.isDone()) {
       command = datasetSectionReader.nextCommand(command);
@@ -304,7 +308,8 @@ public final class TestRunner extends JFCTestCase implements VariableList {
     else if (!keepDatasetDir) {
       //clean the test directory by deleting it
       SystemProgram remove = new SystemProgram(System.getProperty("user.dir"),
-          new String[] { "rm", "-fr", testDir.getAbsolutePath() }, AxisID.ONLY);
+          new String[] { "rm", "-fr", testDir.getAbsolutePath() }, AxisID.ONLY,
+          null);
       remove.run();
       //make the test directory
       testDir.mkdir();
@@ -335,7 +340,7 @@ public final class TestRunner extends JFCTestCase implements VariableList {
       }
     }
     SystemProgram copy = new SystemProgram(System.getProperty("user.dir"),
-        new String[] { "cp", file.getAbsolutePath(), "." }, AxisID.ONLY);
+        new String[] { "cp", file.getAbsolutePath(), "." }, AxisID.ONLY, null);
     copy.run();
   }
 }

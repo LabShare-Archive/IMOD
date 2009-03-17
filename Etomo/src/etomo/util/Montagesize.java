@@ -7,6 +7,7 @@ import java.util.Hashtable;
 import etomo.ApplicationManager;
 import etomo.BaseManager;
 import etomo.EtomoDirector;
+import etomo.ManagerKey;
 import etomo.process.ProcessMessages;
 import etomo.process.SystemProgram;
 import etomo.type.AxisID;
@@ -48,6 +49,7 @@ public class Montagesize {
   private final File file;
   private final String propertyUserDir;
   private final AxisID axisID;
+  private final ManagerKey managerKey;
 
   private boolean fileExists = false;
   String[] commandArray = null;
@@ -58,10 +60,12 @@ public class Montagesize {
   /**
    * private constructor
    */
-  private Montagesize(String propertyUserDir, File file, AxisID axisID) {
+  private Montagesize(String propertyUserDir, File file, AxisID axisID,
+      ManagerKey managerKey) {
     this.propertyUserDir = propertyUserDir;
     this.file = file;
     this.axisID = axisID;
+    this.managerKey = managerKey;
     modifiedFlag = new FileModifiedFlag(file);
   }
 
@@ -72,16 +76,18 @@ public class Montagesize {
    * @param axisID
    * @return
    */
-  public static Montagesize getInstance(BaseManager manager, AxisID axisID) {
+  public static Montagesize getInstance(BaseManager manager, AxisID axisID,
+      ManagerKey managerKey) {
     File keyFile = Utilities.getFile(manager, axisID, fileExtension);
     String key = makeKey(keyFile);
     Montagesize montagesize = (Montagesize) instances.get(key);
     if (montagesize == null) {
-      return createInstance(manager.getPropertyUserDir(), key, keyFile, axisID);
+      return createInstance(manager.getPropertyUserDir(), key, keyFile, axisID,
+          managerKey);
     }
     return montagesize;
   }
-  
+
   /**
    * Function to get an instance of the class
    * @param directory
@@ -89,12 +95,13 @@ public class Montagesize {
    * @param axisID
    * @return
    */
-  public static Montagesize getInstance(String fileLocation, String filename, AxisID axisID) {
+  public static Montagesize getInstance(String fileLocation, String filename,
+      AxisID axisID, ManagerKey managerKey) {
     File keyFile = Utilities.getFile(fileLocation, filename);
     String key = makeKey(keyFile);
     Montagesize montagesize = (Montagesize) instances.get(key);
     if (montagesize == null) {
-      return createInstance(fileLocation, key, keyFile, axisID);
+      return createInstance(fileLocation, key, keyFile, axisID, managerKey);
     }
     return montagesize;
   }
@@ -108,12 +115,13 @@ public class Montagesize {
    * @return
    */
   private static synchronized Montagesize createInstance(
-      String propertyUserDir, String key, File file, AxisID axisID) {
+      String propertyUserDir, String key, File file, AxisID axisID,
+      ManagerKey managerKey) {
     Montagesize montagesize = (Montagesize) instances.get(key);
     if (montagesize != null) {
       return montagesize;
     }
-    montagesize = new Montagesize(propertyUserDir, file, axisID);
+    montagesize = new Montagesize(propertyUserDir, file, axisID, managerKey);
     instances.put(key, montagesize);
     montagesize.selfTestInvariants();
     return montagesize;
@@ -207,7 +215,7 @@ public class Montagesize {
     //Run the montagesize command on the file.
     buildCommand();
     SystemProgram montagesize = new SystemProgram(propertyUserDir,
-        commandArray, axisID);
+        commandArray, axisID, managerKey);
     montagesize.setDebug(EtomoDirector.INSTANCE.getArguments().isDebug());
     modifiedFlag.setReadingNow();
     montagesize.run();
@@ -356,6 +364,10 @@ public class Montagesize {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.18  2009/02/13 02:39:32  sueh
+ * <p> bug# 1152 Added a getInstance function which can construct a file from
+ * <p> the file location and the file name.
+ * <p>
  * <p> Revision 1.17  2008/11/21 22:39:31  sueh
  * <p> bug# 1138 The command line is too long so do not use the absolute path
  * <p> for the .pl file.

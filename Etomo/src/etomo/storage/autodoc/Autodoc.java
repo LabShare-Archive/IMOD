@@ -1,5 +1,6 @@
 package etomo.storage.autodoc;
 
+import etomo.ManagerKey;
 import etomo.storage.LogFile;
 import etomo.type.AxisID;
 import etomo.ui.Token;
@@ -425,30 +426,31 @@ final class Autodoc extends WriteOnlyStatementList implements WritableAutodoc {
    * @param axisID
    * @param envVariable
    */
-  private LogFile setAutodocFile(String name, AxisID axisID, String envVariable) {
+  private LogFile setAutodocFile(String name, AxisID axisID,
+      String envVariable, ManagerKey managerKey) {
     File dir = getAbsoluteDir();
     if (dir != null) {
-      return getAutodocFile(dir, name);
+      return getAutodocFile(dir, name, managerKey);
     }
     if (envVariable != null && !envVariable.matches("\\s*+")) {
       //if envVariable is set, then it points to the only valid directory for this
       //autodoc
-      dir = Utilities.getExistingDir(envVariable, axisID);
+      dir = Utilities.getExistingDir(envVariable, axisID, managerKey);
       if (dir == null) {
         System.err.println("Warning:  can't open the " + name
             + " autodoc file.\nThis autodoc should be stored in $"
             + envVariable + ".\n");
         return null;
       }
-      return getAutodocFile(dir, name);
+      return getAutodocFile(dir, name, managerKey);
     }
-    dir = Utilities.getExistingDir(AUTODOC_DIR, axisID);
+    dir = Utilities.getExistingDir(AUTODOC_DIR, axisID, managerKey);
     if (dir != null) {
-      return getAutodocFile(dir, name);
+      return getAutodocFile(dir, name, managerKey);
     }
-    dir = getDir(IMOD_DIR, DEFAULT_AUTODOC_DIR, axisID);
+    dir = getDir(IMOD_DIR, DEFAULT_AUTODOC_DIR, axisID, managerKey);
     if (dir != null) {
-      return getAutodocFile(dir, name);
+      return getAutodocFile(dir, name, managerKey);
     }
     System.err.println("Warning:  can't open the " + name
         + " autodoc file.\nThis autodoc should be stored in either $"
@@ -456,7 +458,8 @@ final class Autodoc extends WriteOnlyStatementList implements WritableAutodoc {
     return null;
   }
 
-  private LogFile getAutodocFile(File autodocDir, String autodocName) {
+  private LogFile getAutodocFile(File autodocDir, String autodocName,
+      ManagerKey managerKey) {
     File file = DatasetFiles.getAutodoc(autodocDir, autodocName);
     if (!file.exists()) {
       System.err.println("Warning:  the autodoc file," + file.getAbsolutePath()
@@ -474,7 +477,7 @@ final class Autodoc extends WriteOnlyStatementList implements WritableAutodoc {
       return null;
     }
     try {
-      return LogFile.getInstance(file);
+      return LogFile.getInstance(file, managerKey);
     }
     catch (LogFile.LockException e) {
       System.err.println("Warning:  cannot open the autodoc file,"
@@ -514,8 +517,9 @@ final class Autodoc extends WriteOnlyStatementList implements WritableAutodoc {
     return autodocFile.getAbsolutePath();
   }
 
-  private File getDir(String envVariable, String dirName, AxisID axisID) {
-    File parentDir = Utilities.getExistingDir(envVariable, axisID);
+  private File getDir(String envVariable, String dirName, AxisID axisID,
+      ManagerKey managerKey) {
+    File parentDir = Utilities.getExistingDir(envVariable, axisID, managerKey);
     if (parentDir == null) {
       return null;
     }
@@ -526,14 +530,15 @@ final class Autodoc extends WriteOnlyStatementList implements WritableAutodoc {
     return dir;
   }
 
-  void initializeUITestAxis(LogFile autodocFile, AxisID axisID)
-      throws FileNotFoundException, IOException, LogFile.LockException {
+  void initializeUITestAxis(LogFile autodocFile, AxisID axisID,
+      ManagerKey managerKey) throws FileNotFoundException, IOException,
+      LogFile.LockException {
     this.autodocFile = autodocFile;
     /*if (autodocFile.getName().equals("setup-recon.adoc")) {
      initialize(null, axisID, null, false);
      }
      else {*/
-    initialize(null, axisID, null, true);
+    initialize(null, axisID, null, true, managerKey);
     //}
   }
 
@@ -541,19 +546,19 @@ final class Autodoc extends WriteOnlyStatementList implements WritableAutodoc {
     return debug;
   }
 
-  void initialize(String name, AxisID axisID) throws FileNotFoundException,
-      IOException, LogFile.LockException {
-    initialize(name, axisID, null, true);
-  }
-
-  void initializeUITest(String name, AxisID axisID)
+  void initialize(String name, AxisID axisID, ManagerKey managerKey)
       throws FileNotFoundException, IOException, LogFile.LockException {
-    initialize(name, axisID, "IMOD_UITEST_SOURCE", true);
+    initialize(name, axisID, null, true, managerKey);
   }
 
-  void initializeCpu(String name, AxisID axisID) throws FileNotFoundException,
-      IOException, LogFile.LockException {
-    initialize(name, axisID, EnvironmentVariable.CALIB_DIR, true);
+  void initializeUITest(String name, AxisID axisID, ManagerKey managerKey)
+      throws FileNotFoundException, IOException, LogFile.LockException {
+    initialize(name, axisID, "IMOD_UITEST_SOURCE", true, managerKey);
+  }
+
+  void initializeCpu(String name, AxisID axisID, ManagerKey managerKey)
+      throws FileNotFoundException, IOException, LogFile.LockException {
+    initialize(name, axisID, EnvironmentVariable.CALIB_DIR, true, managerKey);
   }
 
   /**
@@ -604,10 +609,10 @@ final class Autodoc extends WriteOnlyStatementList implements WritableAutodoc {
    * @throws LogFile.ReadException
    */
   private void initialize(String name, AxisID axisID, String envVariable,
-      boolean storeData) throws FileNotFoundException, IOException,
-      LogFile.LockException {
+      boolean storeData, ManagerKey managerKey) throws FileNotFoundException,
+      IOException, LogFile.LockException {
     if (autodocFile == null) {
-      autodocFile = setAutodocFile(name, axisID, envVariable);
+      autodocFile = setAutodocFile(name, axisID, envVariable, managerKey);
     }
     if (autodocFile == null) {
       return;
@@ -633,10 +638,10 @@ final class Autodoc extends WriteOnlyStatementList implements WritableAutodoc {
    * @throws LogFile.ReadException
    */
   void initialize(File file, boolean storeData, boolean versionRequired,
-      boolean writable) throws FileNotFoundException, IOException,
-      LogFile.LockException {
+      boolean writable, ManagerKey managerKey) throws FileNotFoundException,
+      IOException, LogFile.LockException {
     this.writable = writable;
-    autodocFile = LogFile.getInstance(file);
+    autodocFile = LogFile.getInstance(file, managerKey);
     parser = new AutodocParser(this, allowAltComment, versionRequired, debug);
     if (storeData) {
       parser.initialize();
@@ -657,6 +662,9 @@ final class Autodoc extends WriteOnlyStatementList implements WritableAutodoc {
 }
 /**
  *<p> $$Log$
+ *<p> $Revision 1.29  2009/03/09 17:26:24  sueh
+ *<p> $bug# 1199 Documents version 1.3.
+ *<p> $
  *<p> $Revision 1.28  2009/02/04 23:30:00  sueh
  *<p> $bug# 1158 Changed id and exceptions classes in LogFile.
  *<p> $

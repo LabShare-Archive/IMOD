@@ -4,6 +4,7 @@ import java.io.IOException;
 
 import etomo.ApplicationManager;
 import etomo.EtomoDirector;
+import etomo.ManagerKey;
 import etomo.process.ProcessMessages;
 import etomo.process.SystemProgram;
 import etomo.type.AxisID;
@@ -28,12 +29,14 @@ public class Goodframe {
 
   private final AxisID axisID;
   private final String propertyUserDir;
+  private final ManagerKey managerKey;
 
   private EtomoNumber[] output;
 
-  public Goodframe(String propertyUserDir, AxisID axisID) {
+  public Goodframe(String propertyUserDir, AxisID axisID, ManagerKey managerKey) {
     this.propertyUserDir = propertyUserDir;
     this.axisID = axisID;
+    this.managerKey = managerKey;
   }
 
   public void run(int firstInput, int secondInput) throws IOException,
@@ -57,7 +60,7 @@ public class Goodframe {
       commandArray[i + 1] = input[i];
     }
     SystemProgram groupframe = new SystemProgram(propertyUserDir, commandArray,
-        axisID);
+        axisID, managerKey);
     groupframe.setDebug(EtomoDirector.INSTANCE.getArguments().isDebug());
     groupframe.run();
 
@@ -116,7 +119,7 @@ public class Goodframe {
    * @return output[index] if it exists, otherwise null
    */
   public ConstEtomoNumber getOutput(int index) {
-    if (output == null || output.length < index+1) {
+    if (output == null || output.length < index + 1) {
       return null;
     }
     return output[index];
@@ -124,6 +127,10 @@ public class Goodframe {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.12  2009/02/26 17:24:59  sueh
+ * <p> bug# 1184 Changed Goodframe so that it can handle any number of
+ * <p> inputs and outputs.
+ * <p>
  * <p> Revision 1.11  2007/12/26 22:41:13  sueh
  * <p> bug# 1052 Moved argument handling from EtomoDirector to a separate class.
  * <p>

@@ -11,6 +11,9 @@
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.30  2009/02/04 23:36:48  sueh
+ * <p> bug# 1158 Changed id and exception classes in LogFile.
+ * <p>
  * <p> Revision 3.29  2009/01/20 19:51:44  sueh
  * <p> bug# 1102 Changed labeled panels to type EtomoPanel so that they can name themselves.
  * <p>
@@ -472,7 +475,8 @@ final class CrossCorrelationPanel implements ContextMenu, Expandable {
     ReadOnlyAutodoc autodoc = null;
 
     try {
-      autodoc = AutodocFactory.getInstance(AutodocFactory.TILTXCORR, axisID);
+      autodoc = AutodocFactory.getInstance(AutodocFactory.TILTXCORR, axisID,
+          applicationManager.getManagerKey());
       //autodoc.print();
     }
     catch (FileNotFoundException except) {

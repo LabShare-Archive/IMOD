@@ -83,8 +83,8 @@ final class ProcessorTable implements Storable, ParallelProgressDisplay,
 
   private final RowList rowList = new RowList();
   private final Viewport viewport = new Viewport(this, EtomoDirector.INSTANCE
-      .getUserConfiguration().getParallelTableSize().getInt(), null, null, null,
-      "Processor");
+      .getUserConfiguration().getParallelTableSize().getInt(), null, null,
+      null, "Processor");
   private final ParallelPanel parent;
   private final AxisID axisID;
   private final BaseManager manager;
@@ -147,7 +147,8 @@ final class ProcessorTable implements Storable, ParallelProgressDisplay,
   }
 
   private void initTable() {
-    CpuAdoc cpuAdoc = CpuAdoc.getInstance(axisID, manager.getPropertyUserDir());
+    CpuAdoc cpuAdoc = CpuAdoc.getInstance(axisID, manager.getPropertyUserDir(),
+        manager.getManagerKey());
     usersColumn = cpuAdoc.isUsersColumn() && !displayQueues;
     speedUnits = cpuAdoc.getSpeedUnits();
     memoryUnits = cpuAdoc.getMemoryUnits();
@@ -268,7 +269,7 @@ final class ProcessorTable implements Storable, ParallelProgressDisplay,
     }
     catch (LogFile.LockException e) {
       UIHarness.INSTANCE.openMessageDialog("Unable to load parameters.\n"
-          + e.getMessage(), "Etomo Error", axisID);
+          + e.getMessage(), "Etomo Error", axisID, manager.getManagerKey());
     }
     setToolTipText();
     if (displayQueues && rowList.size() == 1) {
@@ -472,7 +473,8 @@ final class ProcessorTable implements Storable, ParallelProgressDisplay,
     if (displayQueues) {
       String queue = rowList.getComputer(rowList.getFirstSelectedIndex());
       param.setQueueCommand(CpuAdoc.getInstance(axisID,
-          manager.getPropertyUserDir()).getQueue(queue).getCommand());
+          manager.getPropertyUserDir(), manager.getManagerKey())
+          .getQueue(queue).getCommand());
       param.setQueue(queue);
     }
     rowList.getParameters(param);
@@ -831,6 +833,9 @@ final class ProcessorTable implements Storable, ParallelProgressDisplay,
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.53  2009/02/04 23:36:48  sueh
+ * <p> bug# 1158 Changed id and exception classes in LogFile.
+ * <p>
  * <p> Revision 1.52  2008/10/07 16:43:35  sueh
  * <p> bug# 1113 Improved names:  changed Viewport.msgViewportMoved to
  * <p> msgViewportPaged.

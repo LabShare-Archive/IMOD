@@ -46,8 +46,7 @@ public final class ProcessData implements Storable {
   private final EtomoNumber displayKey = new EtomoNumber("DisplayKey");
   private final StringProperty subProcessName = new StringProperty(
       "SubProcessName");
-  private final StringProperty subDirName = new StringProperty(
-  "SubDirName");
+  private final StringProperty subDirName = new StringProperty("SubDirName");
 
   private final AxisID axisID;
   private final String processDataPrepend;
@@ -100,7 +99,7 @@ public final class ProcessData implements Storable {
   public void setSubProcessName(String input) {
     subProcessName.set(input);
   }
-  
+
   public void setSubDirName(String input) {
     subDirName.set(input);
   }
@@ -157,7 +156,7 @@ public final class ProcessData implements Storable {
   private PsParam runPs(String pid) {
     PsParam param = new PsParam(pid);
     SystemProgram ps = new SystemProgram(manager.getPropertyUserDir(), param
-        .getCommandArray(), axisID);
+        .getCommandArray(), axisID, manager.getManagerKey());
     ps.run();
     param.setOutput(ps.getStdOutput());
     return param;
@@ -181,7 +180,7 @@ public final class ProcessData implements Storable {
   public String getSubProcessName() {
     return subProcessName.toString();
   }
-  
+
   public ConstStringProperty getSubDirName() {
     return subDirName;
   }
@@ -267,6 +266,11 @@ public final class ProcessData implements Storable {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.7  2008/01/14 21:45:54  sueh
+ * <p> bug# 1050 Changed readOnly to doNotLoad because that is the only limitation is
+ * <p> on loading.  Added displayKey to get the processResultDisplay generically.  Add
+ * <p> subDirNAme and subProcessName for processchunks.
+ * <p>
  * <p> Revision 1.6  2007/12/10 22:30:48  sueh
  * <p> bug# 1041 working with the changes in ProcessName.
  * <p>

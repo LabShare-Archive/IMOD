@@ -60,7 +60,7 @@ final class ReconnectProcess implements SystemProcessInterface, Runnable {
     ReconnectProcess instance = new ReconnectProcess(manager, processManager,
         monitor, processData, axisID);
     instance.logFile = LogFile.getInstance(manager.getPropertyUserDir(),
-        axisID, processData.getProcessName());
+        axisID, processData.getProcessName(), manager.getManagerKey());
     return instance;
   }
 
@@ -73,11 +73,12 @@ final class ReconnectProcess implements SystemProcessInterface, Runnable {
         monitor, processData, axisID);
     if (subDirName.isEmpty()) {
       instance.logFile = LogFile.getInstance(manager.getPropertyUserDir(),
-          logFileName);
+          logFileName, manager.getManagerKey());
     }
     else {
       instance.logFile = LogFile.getInstance(new File(manager
-          .getPropertyUserDir(), subDirName.toString()), logFileName);
+          .getPropertyUserDir(), subDirName.toString()), logFileName, manager
+          .getManagerKey());
     }
     instance.logSuccessTag = logSuccessTag;
     instance.monitorControl = true;
@@ -246,7 +247,7 @@ final class ReconnectProcess implements SystemProcessInterface, Runnable {
   public final void pause(AxisID axisID) {
     if (monitor == null) {
       UIHarness.INSTANCE.openMessageDialog("Unable to pause.",
-          "Function Not Available");
+          "Function Not Available", manager.getManagerKey());
     }
     else {
       monitor.pause(this, axisID);
@@ -284,6 +285,9 @@ final class ReconnectProcess implements SystemProcessInterface, Runnable {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.8  2009/02/04 23:26:53  sueh
+ * <p> bug# 1158 Changed id and exceptions classes in LogFile.
+ * <p>
  * <p> Revision 1.7  2008/05/16 22:47:03  sueh
  * <p> bug# 1109 Calling monitor.kill instead of signalKill.  Kill processes call
  * <p> signalKill.  And for processchunks signalKill, which sends a kill signal

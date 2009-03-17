@@ -14,6 +14,7 @@ import javax.swing.JPanel;
 
 import etomo.BaseManager;
 import etomo.EtomoDirector;
+import etomo.ManagerKey;
 import etomo.storage.autodoc.AutodocTokenizer;
 import etomo.type.AxisID;
 import etomo.type.AxisType;
@@ -34,6 +35,9 @@ import etomo.util.Utilities;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.53  2009/03/05 23:31:05  sueh
+ * <p> bug# 1194 Added msgUpdateLogProperties.
+ * <p>
  * <p> Revision 3.52  2009/03/02 19:00:02  sueh
  * <p> bug# 1193 Removed reconnect calls from showAxisB and
  * <p> showBothAxis.  Reconnects for all axes must always be called from
@@ -504,7 +508,7 @@ public final class MainFrame extends EtomoFrame implements ContextMenu {
     main = true;
   }
 
-  void setCurrentManager(BaseManager currentManager, UniqueKey managerKey,
+  void setCurrentManager(BaseManager currentManager, ManagerKey managerKey,
       boolean newWindow) {
     if (EtomoDirector.INSTANCE.getArguments().isTest() && logFrame.isVisible()) {
       showHideLog();
@@ -573,7 +577,7 @@ public final class MainFrame extends EtomoFrame implements ContextMenu {
     return mainPanel;
   }
 
-  void setCurrentManager(BaseManager currentManager, UniqueKey managerKey) {
+  void setCurrentManager(BaseManager currentManager, ManagerKey managerKey) {
     setCurrentManager(currentManager, managerKey, false);
   }
 
@@ -588,24 +592,32 @@ public final class MainFrame extends EtomoFrame implements ContextMenu {
         currentManager, getAxisID());
   }
 
-  void addWindow(BaseManager manager, UniqueKey managerKey) {
+  void addWindow(BaseManager manager, ManagerKey managerKey) {
     windowSwitch.add(manager, managerKey);
   }
 
-  void removeWindow(UniqueKey managerKey) {
+  void removeWindow(ManagerKey managerKey) {
     windowSwitch.remove(managerKey);
   }
 
-  void renameWindow(UniqueKey oldKey, UniqueKey newKey) {
-    windowSwitch.rename(oldKey, newKey);
+  void renameWindow(UniqueKey oldKey, ManagerKey newManagerKey) {
+    windowSwitch.rename(oldKey, newManagerKey);
   }
 
-  void selectWindowMenuItem(UniqueKey currentManagerKey) {
+  void selectWindowMenuItem(ManagerKey currentManagerKey) {
     selectWindowMenuItem(currentManagerKey, false);
   }
+  
+  void selectWindowMenuItem(UniqueKey currentKey) {
+    selectWindowMenuItem(currentKey, false);
+  }
 
-  void selectWindowMenuItem(UniqueKey currentManagerKey, boolean newWindow) {
+  void selectWindowMenuItem(ManagerKey currentManagerKey, boolean newWindow) {
     windowSwitch.selectWindow(currentManagerKey, newWindow);
+  }
+  
+  void selectWindowMenuItem(UniqueKey currentKey, boolean newWindow) {
+    windowSwitch.selectWindow(currentKey, newWindow);
   }
 
   /**

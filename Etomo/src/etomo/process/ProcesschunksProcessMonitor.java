@@ -114,7 +114,7 @@ class ProcesschunksProcessMonitor implements OutfileProcessMonitor,
     }
     catch (LogFile.LockException e) {
       UIHarness.INSTANCE.openMessageDialog(e.getMessage(),
-          "Processchunks Error", axisID);
+          "Processchunks Error", axisID, manager.getManagerKey());
     }
     parallelProgressDisplay.msgStartingProcessOnSelectedComputers();
     nChunks.set(0);
@@ -396,7 +396,8 @@ class ProcesschunksProcessMonitor implements OutfileProcessMonitor,
                 + "can ssh to each computer and run top.  After the chunk "
                 + "processes are complete, exit Etomo to clear the parallel "
                 + "processing panel.  To attempt to continue the parallel "
-                + "process, rerun Etomo, and press Resume.", "Fatal Error");
+                + "process, rerun Etomo, and press Resume.", "Fatal Error",
+            manager.getManagerKey());
       }
       else {
         String[] strings = line.split("\\s+");
@@ -509,7 +510,8 @@ class ProcesschunksProcessMonitor implements OutfileProcessMonitor,
     //delete the commands pipe even if it was never created (just to be sure)
     if (commandsPipe == null) {
       commandsPipe = LogFile.getInstance(manager.getPropertyUserDir(),
-          DatasetFiles.getCommandsFileName(subdirName, rootName));
+          DatasetFiles.getCommandsFileName(subdirName, rootName), manager
+              .getManagerKey());
     }
     if (commandsPipeWriterId != null && !commandsPipeWriterId.isEmpty()) {
       commandsPipe.closeWriter(commandsPipeWriterId);
@@ -537,7 +539,8 @@ class ProcesschunksProcessMonitor implements OutfileProcessMonitor,
     }
     if (commandsPipe == null) {
       commandsPipe = LogFile.getInstance(manager.getPropertyUserDir(),
-          DatasetFiles.getCommandsFileName(subdirName, rootName));
+          DatasetFiles.getCommandsFileName(subdirName, rootName), manager
+              .getManagerKey());
     }
     if (commandsPipeWriterId == null || commandsPipeWriterId.isEmpty()) {
       commandsPipeWriterId = commandsPipe.openWriter();
@@ -559,7 +562,8 @@ class ProcesschunksProcessMonitor implements OutfileProcessMonitor,
     if (processOutput == null) {
       processOutput = LogFile.getInstance(manager.getPropertyUserDir(),
           DatasetFiles.getOutFileName(manager, subdirName,
-              ProcessName.PROCESSCHUNKS.toString(), axisID));
+              ProcessName.PROCESSCHUNKS.toString(), axisID), manager
+              .getManagerKey());
       //Don't remove the file if this is a reconnect.
       if (!reconnect) {
         //Avoid looking at a file from a previous run.
@@ -570,6 +574,10 @@ class ProcesschunksProcessMonitor implements OutfileProcessMonitor,
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.45  2009/03/03 20:40:19  sueh
+ * <p> bug# 1193 In updateState fixed comparison which checked
+ * <p> ProcessData.isRunning to decide whether to pop up error message.
+ * <p>
  * <p> Revision 1.44  2009/03/01 00:53:55  sueh
  * <p> bug# 1193 In startDetachedProcess setting the process in the monitor.
  * <p>

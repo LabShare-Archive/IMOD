@@ -41,6 +41,9 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.15  2009/03/06 23:37:27  sueh
+ * <p> bug# 1194 Made labels public.
+ * <p>
  * <p> Revision 1.14  2008/09/30 20:54:36  sueh
  * <p> bug# 1113 Using a private constructor in SpacedPanel.
  * <p>
@@ -464,7 +467,7 @@ public final class AnisotropicDiffusionDialog implements ContextMenu,
     errorMessage = param.setKValueList(ltfTestKValueList.getText());
     if (errorMessage != null) {
       UIHarness.INSTANCE.openMessageDialog(K_VALUE_LIST_LABEL + errorMessage,
-          "Entry Error");
+          "Entry Error", manager.getManagerKey());
       return false;
     }
     param.setIteration(spTestIteration.getValue());
@@ -476,7 +479,7 @@ public final class AnisotropicDiffusionDialog implements ContextMenu,
         TEST_VOLUME_NAME).exists())) {
       UIHarness.INSTANCE.openMessageDialog(
           "Test volume has not been created.  Please extract test volume.",
-          "Entry Error");
+          "Entry Error", manager.getManagerKey());
       return false;
     }
     param.setSubdirName(subdirName);
@@ -506,7 +509,7 @@ public final class AnisotropicDiffusionDialog implements ContextMenu,
     errorMessage = param.setIterationList(ltfTestIterationList.getText());
     if (errorMessage != null) {
       UIHarness.INSTANCE.openMessageDialog(ITERATION_LIST_LABEL + errorMessage,
-          "Entry Error");
+          "Entry Error", manager.getManagerKey());
       return false;
     }
     param.setSubdirName(subdirName);
@@ -520,10 +523,9 @@ public final class AnisotropicDiffusionDialog implements ContextMenu,
    */
   private boolean initSubdir() {
     if (ftfVolume.isEmpty()) {
-      UIHarness.INSTANCE
-          .openMessageDialog(
-              "Please choose a volume before running this function.",
-              "Entry Error");
+      UIHarness.INSTANCE.openMessageDialog(
+          "Please choose a volume before running this function.",
+          "Entry Error", manager.getManagerKey());
       return false;
     }
     if (subdirName == null) {
@@ -610,7 +612,7 @@ public final class AnisotropicDiffusionDialog implements ContextMenu,
     volume = chooser.getSelectedFile();
     if (volume == null || volume.isDirectory() || !volume.exists()) {
       UIHarness.INSTANCE.openMessageDialog("Please choose a volume",
-          "Entry Error");
+          "Entry Error", manager.getManagerKey());
       return;
     }
     ftfVolume.setButtonEnabled(false);

@@ -38,6 +38,9 @@ import etomo.util.Utilities;
  * 
  * <p>
  * $Log$
+ * Revision 3.16  2009/01/20 19:50:37  sueh
+ * bug# 1102 Changed labeled panels to type EtomoPanel so that they can name themselves.
+ *
  * Revision 3.15  2007/12/28 21:15:27  sueh
  * bug# 726 Added directory size to clean up panel.
  *
@@ -265,7 +268,8 @@ final class CleanupPanel {
         message.append("\nIf the files are open in 3dmod, close 3dmod.");
       }
       UIHarness.INSTANCE.openMessageDialog(message.toString(),
-          "Unable to delete intermediate file", AxisID.ONLY);
+          "Unable to delete intermediate file", AxisID.ONLY, applicationManager
+              .getManagerKey());
     }
     setDirSize();
   }

@@ -32,6 +32,10 @@ import etomo.type.AxisID;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.15  2009/01/20 19:51:31  sueh
+ * <p> bug# 1102 Changed menu items to type MenuItem so that they can
+ * <p> name themselves.
+ * <p>
  * <p> Revision 3.14  2008/03/19 01:01:25  sueh
  * <p> bug# 1099 TabbedTextWindow.openFiles return boolean.
  * <p>
@@ -604,7 +608,8 @@ public class ContextPopup {
                 logWindowLabel[i], axisID);
             try {
               if (logFileWindow.openFiles(logFileFullPath,
-                  (String[]) logFileLabel.get(i), axisID)) {
+                  (String[]) logFileLabel.get(i), axisID, applicationManager
+                      .getManagerKey())) {
                 logFileWindow.setVisible(true);
               }
               else {
@@ -627,7 +632,7 @@ public class ContextPopup {
               UIHarness.INSTANCE.openMessageDialog(
                   "WARNING:  Ran out of memory.  Will not display log file."
                       + "\nPlease close open windows or exit Etomo.",
-                  "Out of Memory");
+                  "Out of Memory", applicationManager.getManagerKey());
               throw e;
             }
           }

@@ -31,6 +31,9 @@ import etomo.util.DatasetFiles;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.32  2009/01/20 20:25:09  sueh
+ * <p> bug# 1102 Added setNames.
+ * <p>
  * <p> Revision 1.31  2008/09/30 22:42:26  sueh
  * <p> bug# 1113 Change add() to display.  Checking Viewport before
  * <p> displaying.
@@ -644,47 +647,58 @@ public final class SectionTableRow implements Highlightable {
     valid = true;
     String errorTitle = "Invalid number in section " + rowNumber.getText();
     if (!data.setSampleBottomStart(sampleBottomStart.getValue()).isValid(
-        displayErrorMessage && valid, errorTitle, AxisID.ONLY)) {
+        displayErrorMessage && valid, errorTitle, AxisID.ONLY,
+        manager.getManagerKey())) {
       valid = false;
     }
     if (!data.setSampleBottomEnd(sampleBottomEnd.getValue()).isValid(
-        displayErrorMessage && valid, errorTitle, AxisID.ONLY)) {
+        displayErrorMessage && valid, errorTitle, AxisID.ONLY,
+        manager.getManagerKey())) {
       valid = false;
     }
     if (!data.setSampleTopStart(sampleTopStart.getValue()).isValid(
-        displayErrorMessage && valid, errorTitle, AxisID.ONLY)) {
+        displayErrorMessage && valid, errorTitle, AxisID.ONLY,
+        manager.getManagerKey())) {
       valid = false;
     }
     if (!data.setSampleTopEnd(sampleTopEnd.getValue()).isValid(
-        displayErrorMessage && valid, errorTitle, AxisID.ONLY)) {
+        displayErrorMessage && valid, errorTitle, AxisID.ONLY,
+        manager.getManagerKey())) {
       valid = false;
     }
     if (!data.setSetupFinalStart(setupFinalStart.getValue()).isValid(
-        displayErrorMessage && valid, errorTitle, AxisID.ONLY)) {
+        displayErrorMessage && valid, errorTitle, AxisID.ONLY,
+        manager.getManagerKey())) {
       valid = false;
     }
     if (!data.setSetupFinalEnd(setupFinalEnd.getValue()).isValid(
-        displayErrorMessage && valid, errorTitle, AxisID.ONLY)) {
+        displayErrorMessage && valid, errorTitle, AxisID.ONLY,
+        manager.getManagerKey())) {
       valid = false;
     }
     if (!data.setJoinFinalStart(joinFinalStart.getValue()).isValid(
-        displayErrorMessage && valid, errorTitle, AxisID.ONLY)) {
+        displayErrorMessage && valid, errorTitle, AxisID.ONLY,
+        manager.getManagerKey())) {
       valid = false;
     }
     if (!data.setJoinFinalEnd(joinFinalEnd.getValue()).isValid(
-        displayErrorMessage && valid, errorTitle, AxisID.ONLY)) {
+        displayErrorMessage && valid, errorTitle, AxisID.ONLY,
+        manager.getManagerKey())) {
       valid = false;
     }
     if (!data.setRotationAngleX(rotationAngleX.getValue()).isValid(
-        displayErrorMessage && valid, errorTitle, AxisID.ONLY)) {
+        displayErrorMessage && valid, errorTitle, AxisID.ONLY,
+        manager.getManagerKey())) {
       valid = false;
     }
     if (!data.setRotationAngleY(rotationAngleY.getValue()).isValid(
-        displayErrorMessage && valid, errorTitle, AxisID.ONLY)) {
+        displayErrorMessage && valid, errorTitle, AxisID.ONLY,
+        manager.getManagerKey())) {
       valid = false;
     }
     if (!data.setRotationAngleZ(rotationAngleZ.getValue()).isValid(
-        displayErrorMessage && valid, errorTitle, AxisID.ONLY)) {
+        displayErrorMessage && valid, errorTitle, AxisID.ONLY,
+        manager.getManagerKey())) {
       valid = false;
     }
     return valid;
@@ -712,13 +726,15 @@ public final class SectionTableRow implements Highlightable {
     if (start.isNull() && !end.isNull()) {
       UIHarness.INSTANCE.openMessageDialog(start.getDescription()
           + " cannot be empty when " + end.getDescription()
-          + " has been entered.", errorTitle, AxisID.ONLY);
+          + " has been entered.", errorTitle, AxisID.ONLY, manager
+          .getManagerKey());
       valid = false;
     }
     else if (!start.isNull() && end.isNull()) {
       UIHarness.INSTANCE.openMessageDialog(end.getDescription()
           + " cannot be empty when " + start.getDescription()
-          + " has been entered.", errorTitle, AxisID.ONLY);
+          + " has been entered.", errorTitle, AxisID.ONLY, manager
+          .getManagerKey());
       valid = false;
     }
     else if (validateValues) {
@@ -726,14 +742,14 @@ public final class SectionTableRow implements Highlightable {
         if (start.getInt() > end.getInt()) {
           UIHarness.INSTANCE.openMessageDialog(start.getDescription()
               + " must be less then or equal to " + start.getDescription()
-              + ".", errorTitle, AxisID.ONLY);
+              + ".", errorTitle, AxisID.ONLY, manager.getManagerKey());
           valid = false;
         }
       }
       else if (start.getLong() > end.getLong()) {
         UIHarness.INSTANCE.openMessageDialog(start.getDescription()
             + " must be less then or equal to " + start.getDescription() + ".",
-            errorTitle, AxisID.ONLY);
+            errorTitle, AxisID.ONLY, manager.getManagerKey());
         valid = false;
       }
     }
@@ -929,7 +945,7 @@ public final class SectionTableRow implements Highlightable {
     if (imodIndex == -1) {
       UIHarness.INSTANCE.openMessageDialog(
           "Open in 3dmod and use the Slicer to change the angles.",
-          "Open 3dmod", AxisID.ONLY);
+          "Open 3dmod", AxisID.ONLY, manager.getManagerKey());
       return false;
     }
     SlicerAngles slicerAngles = manager.imodGetSlicerAngles(

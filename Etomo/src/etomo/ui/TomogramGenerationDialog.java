@@ -50,6 +50,9 @@ import etomo.type.ViewType;
  * 
  * <p>
  * $Log$
+ * Revision 3.121  2009/02/05 23:45:18  sueh
+ * bug# 1148 Added setTrialTomogramNameList.
+ *
  * Revision 3.120  2009/02/04 23:36:48  sueh
  * bug# 1158 Changed id and exception classes in LogFile.
  *
@@ -1161,7 +1164,8 @@ public class TomogramGenerationDialog extends ProcessDialog implements
   private Container layoutTiltPanel() {
     //fields
     ConstEtomoNumber maxCPUs = CpuAdoc.getInstance(axisID,
-        applicationManager.getPropertyUserDir()).getMaxTilt();
+        applicationManager.getPropertyUserDir(),
+        applicationManager.getManagerKey()).getMaxTilt();
     if (maxCPUs != null && !maxCPUs.isNull()) {
       cbParallelProcess = new CheckBox(ParallelPanel.FIELD_LABEL
           + ParallelPanel.MAX_CPUS_STRING + maxCPUs.toString());
@@ -1415,7 +1419,8 @@ public class TomogramGenerationDialog extends ProcessDialog implements
     ReadOnlyAutodoc autodoc = null;
 
     try {
-      autodoc = AutodocFactory.getInstance(AutodocFactory.MTF_FILTER, axisID);
+      autodoc = AutodocFactory.getInstance(AutodocFactory.MTF_FILTER, axisID,
+          applicationManager.getManagerKey());
     }
     catch (FileNotFoundException except) {
       except.printStackTrace();
@@ -1512,7 +1517,8 @@ public class TomogramGenerationDialog extends ProcessDialog implements
         .setToolTipText("List of views to exclude from the reconstruction, in addition to the ones"
             + "excluded from fine alignment.");
     try {
-      autodoc = AutodocFactory.getInstance(AutodocFactory.NEWSTACK, axisID);
+      autodoc = AutodocFactory.getInstance(AutodocFactory.NEWSTACK, axisID,
+          applicationManager.getManagerKey());
     }
     catch (FileNotFoundException except) {
       except.printStackTrace();

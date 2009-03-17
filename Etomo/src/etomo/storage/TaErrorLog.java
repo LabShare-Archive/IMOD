@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
+import etomo.ManagerKey;
 import etomo.process.AlignLogGenerator;
 import etomo.type.AxisID;
 import etomo.type.ProcessName;
@@ -23,6 +24,9 @@ import etomo.type.ProcessName;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.2  2009/02/19 18:20:23  sueh
+ * <p> bug# 1179 Excluding local area output lines.
+ * <p>
  * <p> Revision 1.1  2009/02/04 23:28:52  sueh
  * <p> bug# 1158 Class representing the taError.log file.  Used to send entries to
  * <p> LogPanel.
@@ -71,12 +75,12 @@ public final class TaErrorLog implements Loggable {
   /**
    * Get a message to be logged in the LogPanel.
    */
-  public List getLogMessage() throws LogFile.LockException,
+  public List getLogMessage(ManagerKey managerKey) throws LogFile.LockException,
       FileNotFoundException, IOException {
     lineList.clear();
     //refresh the log file
     LogFile taErrorLog = LogFile.getInstance(userDir, axisID,
-        AlignLogGenerator.ERROR_LOG_NAME);
+        AlignLogGenerator.ERROR_LOG_NAME, managerKey);
     if (taErrorLog.exists()) {
       LogFile.ReaderId readerId = taErrorLog.openReader();
       if (readerId != null && !readerId.isEmpty()) {

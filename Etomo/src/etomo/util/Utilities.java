@@ -12,6 +12,9 @@
  * @version $$Revision$
  *
  * <p> $$Log$
+ * <p> $Revision 3.64  2009/02/27 03:54:54  sueh
+ * <p> $bug# 1188 Removed unnecessary Java version check.
+ * <p> $
  * <p> $Revision 3.63  2009/02/04 23:38:03  sueh
  * <p> $bug# 1158 Added getDataTimeStamp.
  * <p> $
@@ -285,6 +288,7 @@ import java.util.Date;
 
 import etomo.BaseManager;
 import etomo.EtomoDirector;
+import etomo.ManagerKey;
 import etomo.storage.LogFile;
 import etomo.type.AxisID;
 import etomo.type.ProcessName;
@@ -364,7 +368,7 @@ public class Utilities {
     if (!file.exists() && mustExist) {
       UIHarness.INSTANCE.openMessageDialog("The " + fileDescription + " file: "
           + file.getAbsolutePath() + " doesn't exist.", "Missing "
-          + fileDescription, axisID);
+          + fileDescription, axisID, manager.getManagerKey());
       return null;
     }
     return file;
@@ -826,23 +830,26 @@ public class Utilities {
   }
 
   public static final void findMessageAndOpenDialog(AxisID axisID,
-      String[] searchLines, String startsWith, String title) {
+      String[] searchLines, String startsWith, String title,
+      ManagerKey managerKey) {
     if (searchLines == null) {
       return;
     }
     for (int i = 0; i < searchLines.length; i++) {
       if (searchLines[i].startsWith(startsWith)) {
-        UIHarness.INSTANCE.openInfoMessageDialog(searchLines[i], title, axisID);
+        UIHarness.INSTANCE.openInfoMessageDialog(searchLines[i], title, axisID,
+            managerKey);
       }
     }
   }
 
-  public static final File getExistingDir(String envVariable, AxisID axisID) {
+  public static final File getExistingDir(String envVariable, AxisID axisID,
+      ManagerKey managerKey) {
     if (envVariable == null || envVariable.matches("\\s*")) {
       return null;
     }
     String dirName = EnvironmentVariable.INSTANCE.getValue(null, envVariable,
-        axisID);
+        axisID, managerKey);
     if (dirName == null || dirName.matches("\\s*")) {
       return null;
     }

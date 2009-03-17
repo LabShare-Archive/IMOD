@@ -52,6 +52,9 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.49  2009/02/13 02:34:44  sueh
+ * <p> bug# 1176 Checking return value of MRCHeader.read.
+ * <p>
  * <p> Revision 1.48  2009/02/04 23:36:48  sueh
  * <p> bug# 1158 Changed id and exception classes in LogFile.
  * <p>
@@ -791,7 +794,7 @@ final class SectionTablePanel implements ContextMenu, Expandable,
                   + SectionTableRow.INVERTED_WARNING
                   + "  If you don't want these inversions, "
                   + "push the \"Change Setup\" button and then push the \"Invert Table\" button.",
-              "Join Warning");
+              "Join Warning", manager.getManagerKey());
     }
   }
 
@@ -934,7 +937,7 @@ final class SectionTablePanel implements ContextMenu, Expandable,
     }
     if (index == 0) {
       uiHarness.openMessageDialog("Can't move the row up.  Its at the top.",
-          "Wrong Row", AxisID.ONLY);
+          "Wrong Row", AxisID.ONLY, manager.getManagerKey());
       return;
     }
     // rowList.removeRows(index - 1);
@@ -963,7 +966,7 @@ final class SectionTablePanel implements ContextMenu, Expandable,
     if (index == rowList.size() - 1) {
       uiHarness.openMessageDialog(
           "Can't move the row down.  Its at the bottom.", "Wrong Row",
-          AxisID.ONLY);
+          AxisID.ONLY, manager.getManagerKey());
       return;
     }
     // rowList.removeRows(index);
@@ -985,7 +988,7 @@ final class SectionTablePanel implements ContextMenu, Expandable,
         JoinDialog.WORKING_DIRECTORY_TEXT, invalidBuffer, true, true, true,
         true)) {
       uiHarness.openMessageDialog(invalidBuffer.toString(),
-          "Unable to Add Section", AxisID.ONLY);
+          "Unable to Add Section", AxisID.ONLY, manager.getManagerKey());
       return;
     }
     //  Open up the file chooser in the working directory
@@ -1004,7 +1007,7 @@ final class SectionTablePanel implements ContextMenu, Expandable,
         return;
       }
       MRCHeader header = MRCHeader.getInstance(manager.getPropertyUserDir(),
-          tomogram.getAbsolutePath(), AxisID.ONLY);
+          tomogram.getAbsolutePath(), AxisID.ONLY, manager.getManagerKey());
       if (!readHeader(header)) {
         return;
       }
@@ -1019,7 +1022,8 @@ final class SectionTablePanel implements ContextMenu, Expandable,
             "bacause the tomogram is thicker in Z then it is long in Y.",
             flipWarning[0], flipWarning[1],
             "Shall I use the clip flipyz command to flip Y and Z?" };
-        if (uiHarness.openYesNoDialog(msgFlipped, AxisID.ONLY)) {
+        if (uiHarness.openYesNoDialog(msgFlipped, AxisID.ONLY, manager
+            .getManagerKey())) {
           manager.flip(tomogram, joinDialog.getWorkingDir(), null);
           return;
         }
@@ -1033,7 +1037,7 @@ final class SectionTablePanel implements ContextMenu, Expandable,
     try {
       if (!header.read()) {
         uiHarness.openMessageDialog("File does not exist", "System Error",
-            AxisID.ONLY);
+            AxisID.ONLY, manager.getManagerKey());
         return false;
       }
     }
@@ -1043,7 +1047,8 @@ final class SectionTablePanel implements ContextMenu, Expandable,
           "The header command returned an error (InvalidParameterException).",
           "This file may not contain a tomogram.",
           "Are you sure you want to open this file?" };
-      if (!uiHarness.openYesNoDialog(msgInvalidParameterException, AxisID.ONLY)) {
+      if (!uiHarness.openYesNoDialog(msgInvalidParameterException, AxisID.ONLY,
+          manager.getManagerKey())) {
         return false;
       }
     }
@@ -1053,7 +1058,8 @@ final class SectionTablePanel implements ContextMenu, Expandable,
             "The header command returned an error (IOException).",
             "Unable to tell if the tomogram is flipped.", flipWarning[0],
             flipWarning[1], "Are you sure you want to open this file?" };
-        if (!uiHarness.openYesNoDialog(msgIOException, AxisID.ONLY)) {
+        if (!uiHarness.openYesNoDialog(msgIOException, AxisID.ONLY, manager
+            .getManagerKey())) {
           return false;
         }
       }
@@ -1065,7 +1071,8 @@ final class SectionTablePanel implements ContextMenu, Expandable,
             "The header command returned an error (NumberFormatException).",
             "Unable to tell if the tomogram is flipped.", flipWarning[0],
             flipWarning[1], "Are you sure you want to open this file?" };
-        if (!uiHarness.openYesNoDialog(msgNumberFormatException, AxisID.ONLY)) {
+        if (!uiHarness.openYesNoDialog(msgNumberFormatException, AxisID.ONLY,
+            manager.getManagerKey())) {
           return false;
         }
       }
@@ -1078,7 +1085,7 @@ final class SectionTablePanel implements ContextMenu, Expandable,
       String msgDuplicate = "The file, " + section.getAbsolutePath()
           + ", is already in the table.";
       uiHarness.openMessageDialog(msgDuplicate, "Add Section Failed",
-          AxisID.ONLY);
+          AxisID.ONLY, manager.getManagerKey());
       return true;
     }
     return false;
@@ -1089,12 +1096,14 @@ final class SectionTablePanel implements ContextMenu, Expandable,
     setMode();
     if (!tomogram.exists()) {
       uiHarness.openMessageDialog(tomogram.getAbsolutePath()
-          + " does not exist.", "File Error", AxisID.ONLY);
+          + " does not exist.", "File Error", AxisID.ONLY, manager
+          .getManagerKey());
       return;
     }
     if (!tomogram.isFile()) {
       uiHarness.openMessageDialog(tomogram.getAbsolutePath()
-          + " is not a file.", "File Error", AxisID.ONLY);
+          + " is not a file.", "File Error", AxisID.ONLY, manager
+          .getManagerKey());
       return;
     }
     //Sections are only added in the Setup tab, so assume that the join
@@ -1120,7 +1129,8 @@ final class SectionTablePanel implements ContextMenu, Expandable,
       return;
     }
     if (!uiHarness.openYesNoDialog("Really remove "
-        + rowList.getSetupSectionText(index) + "?", AxisID.ONLY)) {
+        + rowList.getSetupSectionText(index) + "?", AxisID.ONLY, manager
+        .getManagerKey())) {
       return;
     }
     //  rowList.removeRows(index);

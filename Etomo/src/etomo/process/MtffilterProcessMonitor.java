@@ -28,6 +28,10 @@ import etomo.util.MRCHeader;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.13  2009/02/13 02:14:38  sueh
+ * <p> bug# 1176 Checking return value of MRCHeader.read.  Gave calcFileSize
+ * <p> a return value.
+ * <p>
  * <p> Revision 1.12  2006/10/24 21:27:24  sueh
  * <p> bug# 947 Passing the ProcessName to AxisProcessPanel.
  * <p>
@@ -112,7 +116,8 @@ final class MtffilterProcessMonitor extends FileSizeProcessMonitor {
           + newstParam.getOutputFile();
     }
     MRCHeader outputHeader = MRCHeader.getInstance(applicationManager
-        .getPropertyUserDir(), outputFilename, axisID);
+        .getPropertyUserDir(), outputFilename, axisID, applicationManager
+        .getManagerKey());
     if (!outputHeader.read()) {
       return false;
     }

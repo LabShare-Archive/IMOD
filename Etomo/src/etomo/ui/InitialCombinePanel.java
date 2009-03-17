@@ -40,6 +40,9 @@ import etomo.util.MRCHeader;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.40  2009/02/13 02:33:00  sueh
+ * <p> bug# 1176 Checking return value of MRCHeader.read.
+ * <p>
  * <p> Revision 3.39  2009/01/20 20:08:23  sueh
  * <p> bug# 1102 Changed labeled panels to type EtomoPanel so that they can name themselves.
  * <p>
@@ -328,9 +331,9 @@ public class InitialCombinePanel implements ContextMenu, InitialCombineFields,
       fromAxisID = AxisID.FIRST;
     }
     MRCHeader toHeader = MRCHeader.getInstance(applicationManager, toAxisID,
-        DatasetFiles.TOMO_EXT);
+        DatasetFiles.TOMO_EXT, applicationManager.getManagerKey());
     MRCHeader fromHeader = MRCHeader.getInstance(applicationManager,
-        fromAxisID, DatasetFiles.TOMO_EXT);
+        fromAxisID, DatasetFiles.TOMO_EXT, applicationManager.getManagerKey());
     int toY = -1;
     try {
       if (!toHeader.read()) {

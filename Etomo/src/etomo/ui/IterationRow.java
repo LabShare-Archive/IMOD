@@ -5,6 +5,7 @@ import java.awt.GridBagLayout;
 
 import javax.swing.JPanel;
 
+import etomo.ManagerKey;
 import etomo.storage.MatlabParam;
 
 /**
@@ -21,6 +22,10 @@ import etomo.storage.MatlabParam;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.13  2008/08/21 00:08:53  sueh
+ * <p> bug# 1132 In validateRun fixed phi, theta, and psi validation so that it
+ * <p> only fails on an empty Max.
+ * <p>
  * <p> Revision 1.12  2008/04/02 17:34:54  sueh
  * <p> bug# 1098 Improved user error messages.
  * <p>
@@ -83,26 +88,31 @@ final class IterationRow implements Highlightable {
   private final GridBagConstraints constraints;
   private final HighlighterButton btnHighlighter;
   private final Highlightable parent;
+  private final ManagerKey managerKey;
 
   private int index;
 
   IterationRow(final int index, final Highlightable parent, final JPanel panel,
-      final GridBagLayout layout, final GridBagConstraints constraints) {
+      final GridBagLayout layout, final GridBagConstraints constraints,
+      ManagerKey managerKey) {
     this.index = index;
     this.parent = parent;
     this.panel = panel;
     this.layout = layout;
     this.constraints = constraints;
+    this.managerKey = managerKey;
     btnHighlighter = HighlighterButton.getInstance(this, parent);
     number.setText(String.valueOf(index + 1));
   }
 
-  IterationRow(final int index, final IterationRow iterationRow) {
+  IterationRow(final int index, final IterationRow iterationRow,
+      ManagerKey managerKey) {
     this.index = index;
     this.parent = iterationRow.parent;
     this.panel = iterationRow.panel;
     this.layout = iterationRow.layout;
     this.constraints = iterationRow.constraints;
+    this.managerKey = managerKey;
     btnHighlighter = HighlighterButton.getInstance(this, parent);
     number.setText(String.valueOf(index + 1));
     dPhiMax.setValue(iterationRow.dPhiMax.getValue());
@@ -224,7 +234,7 @@ final class IterationRow implements Highlightable {
           + IterationTable.D_PHI_D_THETA_D_PSI_HEADER1 + " "
           + IterationTable.D_PHI_HEADER2 + " " + IterationTable.MAX_HEADER
           + " must not be empty.  Use 0 to not search on the angle.",
-          "Entry Error");
+          "Entry Error", managerKey);
       return false;
     }
     if (dThetaMax.isEnabled() && dThetaMax.isEmpty()) {
@@ -233,7 +243,7 @@ final class IterationRow implements Highlightable {
           + IterationTable.D_PHI_D_THETA_D_PSI_HEADER1 + " "
           + IterationTable.D_THETA_HEADER2 + " " + IterationTable.MAX_HEADER
           + " must not be empty.  Use 0 to not search on the angle.",
-          "Entry Error");
+          "Entry Error", managerKey);
       return false;
     }
     if (dPsiMax.isEnabled() && dPsiMax.isEmpty()) {
@@ -242,7 +252,7 @@ final class IterationRow implements Highlightable {
           + IterationTable.D_PHI_D_THETA_D_PSI_HEADER1 + " "
           + IterationTable.D_PSI_HEADER2 + " " + IterationTable.MAX_HEADER
           + " must not be empty.  Use 0 to not search on the angle.",
-          "Entry Error");
+          "Entry Error", managerKey);
       return false;
     }
     if (!searchRadius.getParsedArray().ge(1)) {
@@ -250,7 +260,7 @@ final class IterationRow implements Highlightable {
           + ":  In row " + number.getText() + ", "
           + IterationTable.SEARCH_RADIUS_HEADER1 + " "
           + IterationTable.SEARCH_RADIUS_HEADER2 + " must not be less then 1.",
-          "Entry Error");
+          "Entry Error", managerKey);
       return false;
     }
     return true;

@@ -953,7 +953,7 @@ final class TiltalignPanel implements Expandable {
   boolean isValid() {
     if (rtfFixedBeamTilt.isSelected() && rtfFixedBeamTilt.getText().equals("")) {
       UIHarness.INSTANCE.openMessageDialog(rtfFixedBeamTilt.getLabel()
-          + " can not be empty when it is selected.", "Entry Error");
+          + " can not be empty when it is selected.", "Entry Error", appMgr.getManagerKey());
       return false;
     }
     return true;
@@ -1627,7 +1627,7 @@ final class TiltalignPanel implements Expandable {
     ReadOnlySection section;
     ReadOnlyAutodoc autodoc = null;
     try {
-      autodoc = AutodocFactory.getInstance(AutodocFactory.TILTALIGN, axisID);
+      autodoc = AutodocFactory.getInstance(AutodocFactory.TILTALIGN, axisID, appMgr.getManagerKey());
     }
     catch (FileNotFoundException except) {
       except.printStackTrace();
@@ -1855,6 +1855,9 @@ final class TiltalignPanel implements Expandable {
 
 /**
  * <p> $Log$
+ * <p> Revision 3.51  2009/02/04 23:36:48  sueh
+ * <p> bug# 1158 Changed id and exception classes in LogFile.
+ * <p>
  * <p> Revision 3.50  2009/01/20 20:31:34  sueh
  * <p> bug# 1102 Changed labeled panels to type EtomoPanel so that they can name themselves.
  * <p>

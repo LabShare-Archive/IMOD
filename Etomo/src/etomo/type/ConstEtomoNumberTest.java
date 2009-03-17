@@ -7,6 +7,8 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.util.Properties;
 
+import etomo.EtomoDirector;
+import etomo.ManagerKey;
 import etomo.storage.LogFile;
 import etomo.storage.ParameterStore;
 import junit.framework.TestCase;
@@ -304,17 +306,18 @@ public final class ConstEtomoNumberTest extends TestCase {
     assertTrue(test.isValid());
   }
 
-  public final void testValidate_String_String_AxisID()
+  public final void testValidate_String_String_AxisID(ManagerKey managerKey)
       throws InvalidEtomoNumberException {
     String errorTitle = "testValidate_String_String_AxisID";
     EtomoNumber test = new EtomoNumber();
     //test valid
-    test.validate(errorTitle, "test valid failed", AxisID.FIRST);
+    test.validate(errorTitle, "test valid failed", AxisID.FIRST, managerKey);
     //test invalid
     test.setNullIsValid(false);
     test.setInvalidReason();
     try {
-      test.validate(errorTitle, "test invalid succeeded", AxisID.FIRST);
+      test.validate(errorTitle, "test invalid succeeded", AxisID.FIRST,
+          managerKey);
       fail("invalid ConstEomoNumber failed to cause exception to be thrown");
     }
     catch (InvalidEtomoNumberException e) {
@@ -322,24 +325,25 @@ public final class ConstEtomoNumberTest extends TestCase {
     test.internalTest();
   }
 
-  public final void testIsValid_boolean_String_String_AxisID() {
+  public final void testIsValid_boolean_String_String_AxisID(
+      ManagerKey managerKey) {
     String errorTitle = "testIsValid_boolean_String_String_AxisID";
     EtomoNumber test = new EtomoNumber();
     //test valid with print
-    assertTrue(test
-        .isValid(true, errorTitle, "test valid failed", AxisID.FIRST));
+    assertTrue(test.isValid(true, errorTitle, "test valid failed",
+        AxisID.FIRST, managerKey));
     //test valid without print
     assertTrue(test.isValid(false, errorTitle, "test valid failed",
-        AxisID.FIRST));
+        AxisID.FIRST, managerKey));
     //test invalid
     test.setNullIsValid(false);
     test.setInvalidReason();
     ///with print
     assertFalse(test.isValid(true, errorTitle, "test valid succeeded",
-        AxisID.FIRST));
+        AxisID.FIRST, managerKey));
     //without print
     assertFalse(test.isValid(false, errorTitle, "test valid succeeded",
-        AxisID.FIRST));
+        AxisID.FIRST, managerKey));
     test.internalTest();
   }
 
@@ -574,12 +578,13 @@ public final class ConstEtomoNumberTest extends TestCase {
     test.internalTest();
   }
 
-  public final void testStore_Properties() throws 
-      LogFile.LockException, FileNotFoundException, IOException {
+  public final void testStore_Properties() throws LogFile.LockException,
+      FileNotFoundException, IOException {
     String name = "TestStore_PropertiesName";
     EtomoNumber test = new EtomoNumber(name);
     test.set(smallInteger);
-    ParameterStore properties =  ParameterStore.getInstance(propertiesFile);
+    ParameterStore properties = ParameterStore.getInstance(propertiesFile,
+        EtomoDirector.INSTANCE.getCurrentManagerForTest().getManagerKey());
     //test: no IOException thrown on save
     properties.save(test);
     //test: write parameter to file
@@ -1371,6 +1376,9 @@ public final class ConstEtomoNumberTest extends TestCase {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.47  2009/02/04 23:30:30  sueh
+ * <p> bug# 1158 Changed id and exception classes in LogFile.
+ * <p>
  * <p> Revision 1.46  2007/07/30 18:53:44  sueh
  * <p> bug# 1002 ParameterStore.getInstance can return null - handle it.
  * <p>

@@ -48,6 +48,9 @@ import etomo.type.TomogramState;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.61  2008/10/16 22:31:44  sueh
+ * <p> bug# 1141 Removed fixRootPanel because it doesn't do anything.
+ * <p>
  * <p> Revision 3.60  2008/09/30 22:45:32  sueh
  * <p> bug# 1113 Reformatted
  * <p>
@@ -410,7 +413,7 @@ public final class TomogramCombinationDialog extends ProcessDialog implements
   public TomogramCombinationDialog(ApplicationManager appMgr) {
     super(appMgr, AxisID.FIRST, DialogType.TOMOGRAM_COMBINATION);
     ConstEtomoNumber maxCPUs = CpuAdoc.getInstance(AxisID.ONLY,
-        appMgr.getPropertyUserDir()).getMaxVolcombine();
+        appMgr.getPropertyUserDir(), appMgr.getManagerKey()).getMaxVolcombine();
     if (maxCPUs != null && !maxCPUs.isNull()) {
       parallelProcessCheckBoxText = ParallelPanel.FIELD_LABEL
           + ParallelPanel.MAX_CPUS_STRING + maxCPUs.toString();

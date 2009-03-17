@@ -7,6 +7,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import etomo.ManagerKey;
 import etomo.storage.autodoc.AutodocFactory;
 import etomo.storage.autodoc.ReadOnlyAttribute;
 import etomo.storage.autodoc.ReadOnlyAutodoc;
@@ -43,6 +44,9 @@ import etomo.util.DatasetFiles;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.26  2009/02/04 23:29:40  sueh
+ * <p> bug# 1158 Changed id and exceptions classes in LogFile.
+ * <p>
  * <p> Revision 1.25  2009/01/13 19:35:55  sueh
  * <p> bug# 1170 Changed N_WEIGHT_GROUP_DEFAULT to 8.  Added
  * <p> N_WEIGHT_GROUP_MIN.  Setting the floor of nWeightGroup to
@@ -326,6 +330,8 @@ public final class MatlabParam {
       .getMatlabInstance();
   private final ParsedNumber nWeightGroup = ParsedNumber.getMatlabInstance();
 
+  private final ManagerKey managerKey;
+
   private String lowCutoff = LOW_CUTOFF_DEFAULT;
   private InitMotlCode initMotlCode = InitMotlCode.DEFAULT;
   private CCMode ccMode = CCMode.DEFAULT;
@@ -338,7 +344,8 @@ public final class MatlabParam {
   private boolean newFile;
   private File file;
 
-  public MatlabParam(File file, boolean newFile) {
+  public MatlabParam(File file, boolean newFile, ManagerKey managerKey) {
+    this.managerKey = managerKey;
     this.file = file;
     this.newFile = newFile;
     nWeightGroup.setDefault(N_WEIGHT_GROUP_DEFAULT);
@@ -367,10 +374,10 @@ public final class MatlabParam {
     }
     try {
       ReadOnlyAutodoc autodoc = null;
-      autodoc = (AutodocFactory.getMatlabInstance(file));
+      autodoc = (AutodocFactory.getMatlabInstance(file, managerKey));
       if (autodoc == null) {
         UIHarness.INSTANCE.openMessageDialog("Unable to read "
-            + file.getAbsolutePath() + ".", "File Error");
+            + file.getAbsolutePath() + ".", "File Error", managerKey);
         return false;
       }
       parseData(autodoc);
@@ -378,13 +385,13 @@ public final class MatlabParam {
     catch (IOException e) {
       UIHarness.INSTANCE.openMessageDialog("Unable to load "
           + file.getAbsolutePath() + ".  IOException:  " + e.getMessage(),
-          "File Error");
+          "File Error", managerKey);
       return false;
     }
     catch (LogFile.LockException e) {
       UIHarness.INSTANCE.openMessageDialog("Unable to read "
           + file.getAbsolutePath() + ".  LogFile.ReadException:  "
-          + e.getMessage(), "File Error");
+          + e.getMessage(), "File Error", managerKey);
       return false;
     }
     return true;
@@ -405,7 +412,7 @@ public final class MatlabParam {
     ReadOnlyAutodoc commentAutodoc = null;
     try {
       commentAutodoc = AutodocFactory.getInstance(AutodocFactory.PEET_PRM,
-          AxisID.ONLY);
+          AxisID.ONLY, managerKey);
     }
     catch (IOException e) {
       System.err.println("Problem with " + AutodocFactory.PEET_PRM
@@ -416,13 +423,14 @@ public final class MatlabParam {
           + ".adoc.\nLogFile.ReadException:  " + e.getMessage());
     }
     try {
-      WritableAutodoc autodoc = AutodocFactory.getMatlabDebugInstance(file);
+      WritableAutodoc autodoc = AutodocFactory.getMatlabDebugInstance(file,
+          managerKey);
       if (autodoc == null) {
         //get an empty .prm autodoc if the file doesn't exist
-        autodoc = AutodocFactory.getEmptyMatlabInstance(file);
+        autodoc = AutodocFactory.getEmptyMatlabInstance(file, managerKey);
       }
       else {
-        LogFile logFile = LogFile.getInstance(file);
+        LogFile logFile = LogFile.getInstance(file, managerKey);
         logFile.backup();
       }
       if (commentAutodoc == null) {
@@ -462,11 +470,12 @@ public final class MatlabParam {
     }
     catch (IOException e) {
       UIHarness.INSTANCE.openMessageDialog("Unable to load " + file.getName()
-          + ".  IOException:  " + e.getMessage(), "File Error");
+          + ".  IOException:  " + e.getMessage(), "File Error", managerKey);
     }
     catch (LogFile.LockException e) {
       UIHarness.INSTANCE.openMessageDialog("Unable to read " + file.getName()
-          + ".  LogFile.ReadException:  " + e.getMessage(), "File Error");
+          + ".  LogFile.ReadException:  " + e.getMessage(), "File Error",
+          managerKey);
     }
   }
 
@@ -732,7 +741,7 @@ public final class MatlabParam {
   public ParsedElement getNWeightGroup() {
     return nWeightGroup;
   }
-  
+
   public boolean isNWeightGroupEmpty() {
     return nWeightGroup.isEmpty();
   }

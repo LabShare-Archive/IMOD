@@ -3,6 +3,7 @@ package etomo.type;
 import java.util.Properties;
 import java.util.Vector;
 
+import etomo.ManagerKey;
 import etomo.storage.Storable;
 import etomo.ui.UIHarness;
 import etomo.util.Utilities;
@@ -36,6 +37,9 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.61  2009/03/02 20:57:01  sueh
+ * <p> bug# 1102 Added le(ConstEtomoNumber) and ge(ConstEtomoNumber).
+ * <p>
  * <p> Revision 1.60  2008/11/20 01:34:04  sueh
  * <p> bug# 1149 Added getDefaultedInt.
  * <p>
@@ -525,9 +529,9 @@ public abstract class ConstEtomoNumber implements Storable {
    * @param axisID
    * @throws InvalidEtomoNumberException
    */
-  public void validate(String errorTitle, String description, AxisID axisID)
-      throws InvalidEtomoNumberException {
-    if (!isValid(true, errorTitle, description, axisID)) {
+  public void validate(String errorTitle, String description, AxisID axisID,
+      ManagerKey managerKey) throws InvalidEtomoNumberException {
+    if (!isValid(true, errorTitle, description, axisID, managerKey)) {
       throw new InvalidEtomoNumberException(invalidReason.toString());
     }
   }
@@ -540,8 +544,8 @@ public abstract class ConstEtomoNumber implements Storable {
    * @return
    */
   public boolean isValid(boolean displayErrorMessage, String errorTitle,
-      AxisID axisID) {
-    return isValid(displayErrorMessage, errorTitle, null, axisID);
+      AxisID axisID, ManagerKey managerKey) {
+    return isValid(displayErrorMessage, errorTitle, null, axisID, managerKey);
   }
 
   /**
@@ -551,17 +555,20 @@ public abstract class ConstEtomoNumber implements Storable {
    * @param axisID
    * @return
    */
-  public boolean isValid(String errorTitle, String description, AxisID axisID) {
-    return isValid(true, errorTitle, description, axisID);
+  public boolean isValid(String errorTitle, String description, AxisID axisID,
+      ManagerKey managerKey) {
+    return isValid(true, errorTitle, description, axisID, managerKey);
   }
 
-  public boolean isValid(String errorTitle, String description) {
-    return isValid(true, errorTitle, description, AxisID.ONLY);
+  public boolean isValid(String errorTitle, String description,
+      ManagerKey managerKey) {
+    return isValid(true, errorTitle, description, AxisID.ONLY, managerKey);
   }
 
   public boolean isValid(boolean displayErrorMessage, String errorTitle,
-      String description) {
-    return isValid(displayErrorMessage, errorTitle, description, AxisID.ONLY);
+      String description, ManagerKey managerKey) {
+    return isValid(displayErrorMessage, errorTitle, description, AxisID.ONLY,
+        managerKey);
   }
 
   /**
@@ -573,21 +580,21 @@ public abstract class ConstEtomoNumber implements Storable {
    * @return
    */
   public boolean isValid(boolean displayErrorMessage, String errorTitle,
-      String description, AxisID axisID) {
+      String description, AxisID axisID, ManagerKey managerKey) {
     if (invalidReason != null && displayErrorMessage) {
       if (description == null) {
         UIHarness.INSTANCE.openMessageDialog(this.description + ": "
-            + invalidReason, errorTitle, axisID);
+            + invalidReason, errorTitle, axisID, managerKey);
       }
       else {
         description = description.trim();
         if (description.endsWith(":")) {
           UIHarness.INSTANCE.openMessageDialog(description + "  "
-              + invalidReason, errorTitle, axisID);
+              + invalidReason, errorTitle, axisID, managerKey);
         }
         else {
           UIHarness.INSTANCE.openMessageDialog(description + ":  "
-              + invalidReason, errorTitle, axisID);
+              + invalidReason, errorTitle, axisID, managerKey);
         }
       }
     }

@@ -24,6 +24,9 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.30  2009/02/04 23:26:03  sueh
+ * <p> bug# 1158 Changed id and exceptions classes in LogFile.
+ * <p>
  * <p> Revision 3.29  2008/01/31 20:18:44  sueh
  * <p> bug# 1055 throwing a FileException when LogFile.getInstance fails.
  * <p>
@@ -215,7 +218,7 @@ public abstract class LogFileProcessMonitor implements ProcessMonitor {
   protected abstract void initializeProgressBar();
 
   protected abstract void getCurrentSection() throws NumberFormatException,
-      LogFile.LockException,IOException;
+      LogFile.LockException, IOException;
 
   /**
    * Default constructor
@@ -245,12 +248,12 @@ public abstract class LogFileProcessMonitor implements ProcessMonitor {
       if (standardLogFileName) {
         //logFileName = logFileBasename + axisID.getExtension() + ".log";
         logFile = LogFile.getInstance(applicationManager.getPropertyUserDir(),
-            axisID, logFileBasename);
+            axisID, logFileBasename, applicationManager.getManagerKey());
       }
       else {
         //logFileName = logFileBasename;
         logFile = LogFile.getInstance(applicationManager.getPropertyUserDir(),
-            logFileBasename);
+            logFileBasename, applicationManager.getManagerKey());
 
       }
       //  Wait for the log file to exist
@@ -288,7 +291,8 @@ public abstract class LogFileProcessMonitor implements ProcessMonitor {
     //if (logFileReader != null) {
     // logFileReader.close();
     //}
-    if (logFile != null && logFileReaderId!=null&&!logFileReaderId.isEmpty()) {
+    if (logFile != null && logFileReaderId != null
+        && !logFileReaderId.isEmpty()) {
       logFile.closeReader(logFileReaderId);
       logFileReaderId = null;
     }
@@ -308,7 +312,7 @@ public abstract class LogFileProcessMonitor implements ProcessMonitor {
   protected void postProcess() {
   }
 
-  protected String readLogFileLine() throws LogFile.LockException,IOException {
+  protected String readLogFileLine() throws LogFile.LockException, IOException {
     return logFile.readLine(logFileReaderId);
   }
 
@@ -341,7 +345,7 @@ public abstract class LogFileProcessMonitor implements ProcessMonitor {
    * @return a buffered reader of the log file
    */
   private void waitForLogFile() throws InterruptedException,
-      LogFile.LockException,FileNotFoundException {
+      LogFile.LockException, FileNotFoundException {
 
     processStartTime = System.currentTimeMillis();
 

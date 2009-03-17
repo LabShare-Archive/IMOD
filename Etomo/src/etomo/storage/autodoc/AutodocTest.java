@@ -55,7 +55,7 @@ public final class AutodocTest extends TestCase {
     }
     ReadOnlyAutodoc autodoc = AutodocFactory.getInstance(TestUtilites
         .getVector(manager, AutodocTests.TEST_ROOT_DIR.getAbsolutePath(),
-            TEST_DIR_NAME, "simple.adoc"));
+            TEST_DIR_NAME, "simple.adoc"), manager.getManagerKey());
     //only use with getTestInstance
     //autodoc.runInternalTest(AutodocFactory.InternalTestType.PARSER,false,false);
     //only use with getInstance
@@ -72,91 +72,91 @@ public final class AutodocTest extends TestCase {
       return;
     }
     ReadOnlyAutodoc autodoc = AutodocFactory.getInstance(
-        AutodocFactory.BEADTRACK, AxisID.ONLY);
+        AutodocFactory.BEADTRACK, AxisID.ONLY, manager.getManagerKey());
     assertFalse(autodoc.isError());
   }
 
   public void testCcderaser() throws FileNotFoundException, IOException,
       LogFile.LockException {
     ReadOnlyAutodoc autodoc = AutodocFactory.getInstance(
-        AutodocFactory.CCDERASER, AxisID.ONLY);
+        AutodocFactory.CCDERASER, AxisID.ONLY, manager.getManagerKey());
     assertFalse(autodoc.isError());
   }
 
   public void testCombineFft() throws FileNotFoundException, IOException,
       LogFile.LockException {
     ReadOnlyAutodoc autodoc = AutodocFactory.getInstance(
-        AutodocFactory.COMBINE_FFT, AxisID.ONLY);
+        AutodocFactory.COMBINE_FFT, AxisID.ONLY, manager.getManagerKey());
     assertFalse(autodoc.isError());
   }
 
   public void testCorrSearch3d() throws FileNotFoundException, IOException,
       LogFile.LockException {
     ReadOnlyAutodoc autodoc = AutodocFactory.getInstance(
-        AutodocFactory.CORR_SEARCH_3D, AxisID.ONLY);
+        AutodocFactory.CORR_SEARCH_3D, AxisID.ONLY, manager.getManagerKey());
     assertFalse(autodoc.isError());
   }
 
   public void testCtfPhaseFlip() throws FileNotFoundException, IOException,
       LogFile.LockException {
     ReadOnlyAutodoc autodoc = AutodocFactory.getInstance(
-        AutodocFactory.CTF_PHASE_FLIP, AxisID.ONLY);
+        AutodocFactory.CTF_PHASE_FLIP, AxisID.ONLY, manager.getManagerKey());
     assertFalse(autodoc.isError());
   }
 
   public void testCtfPlotter() throws FileNotFoundException, IOException,
       LogFile.LockException {
     ReadOnlyAutodoc autodoc = AutodocFactory.getInstance(
-        AutodocFactory.CTF_PLOTTER, AxisID.ONLY);
+        AutodocFactory.CTF_PLOTTER, AxisID.ONLY, manager.getManagerKey());
     assertFalse(autodoc.isError());
   }
 
   public void testDensmatch() throws FileNotFoundException, IOException,
       LogFile.LockException {
     ReadOnlyAutodoc autodoc = AutodocFactory.getInstance(
-        AutodocFactory.DENS_MATCH, AxisID.ONLY);
+        AutodocFactory.DENS_MATCH, AxisID.ONLY, manager.getManagerKey());
     assertFalse(autodoc.isError());
   }
 
   public void testMtfFilter() throws FileNotFoundException, IOException,
       LogFile.LockException {
     ReadOnlyAutodoc autodoc = AutodocFactory.getInstance(
-        AutodocFactory.MTF_FILTER, AxisID.ONLY);
+        AutodocFactory.MTF_FILTER, AxisID.ONLY, manager.getManagerKey());
     assertFalse(autodoc.isError());
   }
 
   public void testNewstack() throws FileNotFoundException, IOException,
       LogFile.LockException {
     ReadOnlyAutodoc autodoc = AutodocFactory.getInstance(
-        AutodocFactory.NEWSTACK, AxisID.ONLY);
+        AutodocFactory.NEWSTACK, AxisID.ONLY, manager.getManagerKey());
     assertFalse(autodoc.isError());
   }
 
   public void testSolvematch() throws FileNotFoundException, IOException,
       LogFile.LockException {
     ReadOnlyAutodoc autodoc = AutodocFactory.getInstance(
-        AutodocFactory.SOLVEMATCH, AxisID.ONLY);
+        AutodocFactory.SOLVEMATCH, AxisID.ONLY, manager.getManagerKey());
     assertFalse(autodoc.isError());
   }
 
   public void testTiltalign() throws FileNotFoundException, IOException,
       LogFile.LockException {
     ReadOnlyAutodoc autodoc = AutodocFactory.getInstance(
-        AutodocFactory.TILTALIGN, AxisID.ONLY);
+        AutodocFactory.TILTALIGN, AxisID.ONLY, manager.getManagerKey());
     assertFalse(autodoc.isError());
   }
 
   public void testTiltxcorr() throws FileNotFoundException, IOException,
       LogFile.LockException {
     ReadOnlyAutodoc autodoc = AutodocFactory.getInstance(
-        AutodocFactory.TILTXCORR, AxisID.ONLY);
+        AutodocFactory.TILTXCORR, AxisID.ONLY, manager.getManagerKey());
     assertFalse(autodoc.isError());
   }
 
   public void testXfjointomo() throws FileNotFoundException, IOException,
       LogFile.LockException {
     ReadOnlyAutodoc autodoc = AutodocFactory.getInstance(
-        AutodocFactory.XFJOINTOMO, AxisID.ONLY);
+        AutodocFactory.XFJOINTOMO, AxisID.ONLY, manager.getManagerKey());
     assertFalse(autodoc.isError());
   }
 
@@ -169,7 +169,7 @@ public final class AutodocTest extends TestCase {
     }
     ReadOnlyAutodoc autodoc = AutodocFactory.getInstance(TestUtilites
         .getVector(manager, AutodocTests.TEST_ROOT_DIR.getAbsolutePath(),
-            TEST_DIR_NAME, "cpu.adoc"));
+            TEST_DIR_NAME, "cpu.adoc"), manager.getManagerKey());
     assertTrue(autodoc != null && !autodoc.isError());
   }
 
@@ -182,7 +182,7 @@ public final class AutodocTest extends TestCase {
     }
     ReadOnlyAutodoc autodoc = AutodocFactory.getMatlabInstance(TestUtilites
         .getVector(manager, AutodocTests.TEST_ROOT_DIR.getAbsolutePath(),
-            TEST_DIR_NAME, "master.prm"));
+            TEST_DIR_NAME, "master.prm"), manager.getManagerKey());
     //only use with getTestInstance
     //autodoc.runInternalTest(AutodocFactory.INSTANCE.InternalTestType.PARSER,false,false);
     //only use with getInstance
@@ -196,7 +196,7 @@ public final class AutodocTest extends TestCase {
       SystemProcessException, InvalidParameterException {
     ReadOnlyAutodoc autodoc = AutodocFactory.getInstance(TestUtilites
         .getVector(manager, AutodocTests.TEST_ROOT_DIR.getAbsolutePath(),
-            TEST_DIR_NAME, "uitest.adoc", true));
+            TEST_DIR_NAME, "uitest.adoc", true), manager.getManagerKey());
     assertTrue(autodoc != null && !autodoc.isError());
   }
 
@@ -204,7 +204,7 @@ public final class AutodocTest extends TestCase {
       SystemProcessException, InvalidParameterException {
     ReadOnlyAutodoc autodoc = AutodocFactory.getInstance(TestUtilites
         .getVector(manager, AutodocTests.TEST_ROOT_DIR.getAbsolutePath(),
-            TEST_DIR_NAME, "tests.adoc", true));
+            TEST_DIR_NAME, "tests.adoc", true), manager.getManagerKey());
     assertTrue(autodoc != null && !autodoc.isError());
   }
 
@@ -214,7 +214,7 @@ public final class AutodocTest extends TestCase {
       SystemProcessException, InvalidParameterException {
     ReadOnlyAutodoc autodoc = AutodocFactory.getInstance(TestUtilites
         .getVector(manager, AutodocTests.TEST_ROOT_DIR.getAbsolutePath(),
-            TEST_DIR_NAME, "recon.adoc", true));
+            TEST_DIR_NAME, "recon.adoc", true), manager.getManagerKey());
     assertTrue(autodoc != null && !autodoc.isError());
   }
 
@@ -222,7 +222,7 @@ public final class AutodocTest extends TestCase {
       SystemProcessException, InvalidParameterException {
     ReadOnlyAutodoc autodoc = AutodocFactory.getInstance(TestUtilites
         .getVector(manager, AutodocTests.TEST_ROOT_DIR.getAbsolutePath(),
-            TEST_DIR_NAME, "setup-recon.adoc", true));
+            TEST_DIR_NAME, "setup-recon.adoc", true), manager.getManagerKey());
     assertTrue(autodoc != null && !autodoc.isError());
   }
 
@@ -230,7 +230,7 @@ public final class AutodocTest extends TestCase {
       SystemProcessException, InvalidParameterException {
     ReadOnlyAutodoc autodoc = AutodocFactory.getInstance(TestUtilites
         .getVector(manager, AutodocTests.TEST_ROOT_DIR.getAbsolutePath(),
-            TEST_DIR_NAME, "pre-proc.adoc", true));
+            TEST_DIR_NAME, "pre-proc.adoc", true), manager.getManagerKey());
     assertTrue(autodoc != null && !autodoc.isError());
   }
 
@@ -238,7 +238,7 @@ public final class AutodocTest extends TestCase {
       SystemProcessException, InvalidParameterException {
     ReadOnlyAutodoc autodoc = AutodocFactory.getInstance(TestUtilites
         .getVector(manager, AutodocTests.TEST_ROOT_DIR.getAbsolutePath(),
-            TEST_DIR_NAME, "coarse-align.adoc", true));
+            TEST_DIR_NAME, "coarse-align.adoc", true), manager.getManagerKey());
     assertTrue(autodoc != null && !autodoc.isError());
   }
 
@@ -246,7 +246,7 @@ public final class AutodocTest extends TestCase {
       SystemProcessException, InvalidParameterException {
     ReadOnlyAutodoc autodoc = AutodocFactory.getInstance(TestUtilites
         .getVector(manager, AutodocTests.TEST_ROOT_DIR.getAbsolutePath(),
-            TEST_DIR_NAME, "fid-model.adoc", true));
+            TEST_DIR_NAME, "fid-model.adoc", true), manager.getManagerKey());
     assertTrue(autodoc != null && !autodoc.isError());
   }
 
@@ -254,7 +254,7 @@ public final class AutodocTest extends TestCase {
       SystemProcessException, InvalidParameterException {
     ReadOnlyAutodoc autodoc = AutodocFactory.getInstance(TestUtilites
         .getVector(manager, AutodocTests.TEST_ROOT_DIR.getAbsolutePath(),
-            TEST_DIR_NAME, "fine-align.adoc", true));
+            TEST_DIR_NAME, "fine-align.adoc", true), manager.getManagerKey());
     //only use with getTestInstance
     //autodoc.runInternalTest(AutodocFactory.InternalTestType.PARSER,false,false);
     //only use with getInstance
@@ -266,7 +266,7 @@ public final class AutodocTest extends TestCase {
       SystemProcessException, InvalidParameterException {
     ReadOnlyAutodoc autodoc = AutodocFactory.getInstance(TestUtilites
         .getVector(manager, AutodocTests.TEST_ROOT_DIR.getAbsolutePath(),
-            TEST_DIR_NAME, "tomo-pos.adoc", true));
+            TEST_DIR_NAME, "tomo-pos.adoc", true), manager.getManagerKey());
     assertTrue(autodoc != null && !autodoc.isError());
   }
 
@@ -274,7 +274,7 @@ public final class AutodocTest extends TestCase {
       SystemProcessException, InvalidParameterException {
     ReadOnlyAutodoc autodoc = AutodocFactory.getInstance(TestUtilites
         .getVector(manager, AutodocTests.TEST_ROOT_DIR.getAbsolutePath(),
-            TEST_DIR_NAME, "stack.adoc", true));
+            TEST_DIR_NAME, "stack.adoc", true), manager.getManagerKey());
     assertTrue(autodoc != null && !autodoc.isError());
   }
 
@@ -282,7 +282,7 @@ public final class AutodocTest extends TestCase {
       SystemProcessException, InvalidParameterException {
     ReadOnlyAutodoc autodoc = AutodocFactory.getInstance(TestUtilites
         .getVector(manager, AutodocTests.TEST_ROOT_DIR.getAbsolutePath(),
-            TEST_DIR_NAME, "tomo-gen.adoc", true));
+            TEST_DIR_NAME, "tomo-gen.adoc", true), manager.getManagerKey());
     assertTrue(autodoc != null && !autodoc.isError());
   }
 
@@ -290,7 +290,7 @@ public final class AutodocTest extends TestCase {
       SystemProcessException, InvalidParameterException {
     ReadOnlyAutodoc autodoc = AutodocFactory.getInstance(TestUtilites
         .getVector(manager, AutodocTests.TEST_ROOT_DIR.getAbsolutePath(),
-            TEST_DIR_NAME, "combine.adoc", true));
+            TEST_DIR_NAME, "combine.adoc", true), manager.getManagerKey());
     assertTrue(autodoc != null && !autodoc.isError());
   }
 
@@ -298,7 +298,7 @@ public final class AutodocTest extends TestCase {
       SystemProcessException, InvalidParameterException {
     ReadOnlyAutodoc autodoc = AutodocFactory.getInstance(TestUtilites
         .getVector(manager, AutodocTests.TEST_ROOT_DIR.getAbsolutePath(),
-            TEST_DIR_NAME, "post-proc.adoc", true));
+            TEST_DIR_NAME, "post-proc.adoc", true), manager.getManagerKey());
     assertTrue(autodoc != null && !autodoc.isError());
   }
 
@@ -306,7 +306,7 @@ public final class AutodocTest extends TestCase {
       SystemProcessException, InvalidParameterException {
     ReadOnlyAutodoc autodoc = AutodocFactory.getInstance(TestUtilites
         .getVector(manager, AutodocTests.TEST_ROOT_DIR.getAbsolutePath(),
-            TEST_DIR_NAME, "clean-up.adoc", true));
+            TEST_DIR_NAME, "clean-up.adoc", true), manager.getManagerKey());
     assertTrue(autodoc != null && !autodoc.isError());
   }
 
@@ -316,7 +316,7 @@ public final class AutodocTest extends TestCase {
       SystemProcessException, InvalidParameterException {
     ReadOnlyAutodoc autodoc = AutodocFactory.getInstance(TestUtilites
         .getVector(manager, AutodocTests.TEST_ROOT_DIR.getAbsolutePath(),
-            TEST_DIR_NAME, "join.adoc", true));
+            TEST_DIR_NAME, "join.adoc", true), manager.getManagerKey());
     assertTrue(autodoc != null && !autodoc.isError());
   }
 
@@ -324,7 +324,7 @@ public final class AutodocTest extends TestCase {
       SystemProcessException, InvalidParameterException {
     ReadOnlyAutodoc autodoc = AutodocFactory.getInstance(TestUtilites
         .getVector(manager, AutodocTests.TEST_ROOT_DIR.getAbsolutePath(),
-            TEST_DIR_NAME, "join-setup.adoc", true));
+            TEST_DIR_NAME, "join-setup.adoc", true), manager.getManagerKey());
     assertTrue(autodoc != null && !autodoc.isError());
   }
 
@@ -332,7 +332,7 @@ public final class AutodocTest extends TestCase {
       SystemProcessException, InvalidParameterException {
     ReadOnlyAutodoc autodoc = AutodocFactory.getInstance(TestUtilites
         .getVector(manager, AutodocTests.TEST_ROOT_DIR.getAbsolutePath(),
-            TEST_DIR_NAME, "join-align.adoc", true));
+            TEST_DIR_NAME, "join-align.adoc", true), manager.getManagerKey());
     assertTrue(autodoc != null && !autodoc.isError());
   }
 
@@ -340,7 +340,7 @@ public final class AutodocTest extends TestCase {
       SystemProcessException, InvalidParameterException {
     ReadOnlyAutodoc autodoc = AutodocFactory.getInstance(TestUtilites
         .getVector(manager, AutodocTests.TEST_ROOT_DIR.getAbsolutePath(),
-            TEST_DIR_NAME, "join-model.adoc", true));
+            TEST_DIR_NAME, "join-model.adoc", true), manager.getManagerKey());
     assertTrue(autodoc != null && !autodoc.isError());
   }
 
@@ -348,12 +348,15 @@ public final class AutodocTest extends TestCase {
       SystemProcessException, InvalidParameterException {
     ReadOnlyAutodoc autodoc = AutodocFactory.getInstance(TestUtilites
         .getVector(manager, AutodocTests.TEST_ROOT_DIR.getAbsolutePath(),
-            TEST_DIR_NAME, "join-rejoin.adoc", true));
+            TEST_DIR_NAME, "join-rejoin.adoc", true), manager.getManagerKey());
     assertTrue(autodoc != null && !autodoc.isError());
   }
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.22  2009/02/05 17:38:38  sueh
+ * <p> bug# 1102 Removed tests on autodocs that had been deleted from the tests directory.  Added the rest of the tests on autodocs supported by Etomo.
+ * <p>
  * <p> Revision 1.21  2009/02/04 23:30:00  sueh
  * <p> bug# 1158 Changed id and exceptions classes in LogFile.
  * <p>

@@ -8,6 +8,7 @@ import java.util.List;
 import java.util.Map;
 
 import etomo.EtomoDirector;
+import etomo.ManagerKey;
 import etomo.storage.autodoc.AutodocFactory;
 import etomo.storage.autodoc.ReadOnlyAttribute;
 import etomo.storage.autodoc.ReadOnlyAutodoc;
@@ -54,6 +55,8 @@ public class CpuAdoc {
 
   private static CpuAdoc INSTANCE = null;
 
+  private final ManagerKey managerKey;
+
   private final List computerList = new ArrayList();
   private final Map computerMap = new Hashtable();
   private final List queueList = new ArrayList();
@@ -71,25 +74,26 @@ public class CpuAdoc {
   private boolean envVar = false;
   private boolean userConfig = false;
 
-  private CpuAdoc() {
+  private CpuAdoc(ManagerKey managerKey) {
+    this.managerKey = managerKey;
     minNice.setDisplayValue(MIN_NICE_DEFAULT);
     minNice.setDefault(MIN_NICE_DEFAULT);
   }
 
   public static synchronized CpuAdoc getInstance(AxisID axisID,
-      String propertyUserDir) {
+      String propertyUserDir, ManagerKey managerKey) {
     if (INSTANCE != null) {
       return INSTANCE;
     }
-    return createInstance(axisID, propertyUserDir);
+    return createInstance(axisID, propertyUserDir, managerKey);
   }
 
   private static synchronized CpuAdoc createInstance(AxisID axisID,
-      String propertyUserDir) {
+      String propertyUserDir, ManagerKey managerKey) {
     if (INSTANCE != null) {
       return INSTANCE;
     }
-    INSTANCE = new CpuAdoc();
+    INSTANCE = new CpuAdoc(managerKey);
     INSTANCE.load(axisID, propertyUserDir);
     return INSTANCE;
   }
@@ -210,7 +214,7 @@ public class CpuAdoc {
   private void setImodProcessors(AxisID axisID, String propertyUserDir) {
     EtomoNumber imodProcessors = new EtomoNumber();
     imodProcessors.set(EnvironmentVariable.INSTANCE.getValue(propertyUserDir,
-        "IMOD_PROCESSORS", axisID));
+        "IMOD_PROCESSORS", axisID, managerKey));
     if (!imodProcessors.isNull() && imodProcessors.isValid()) {
       envVar = true;
       createComputerInstance(imodProcessors.getInt());
@@ -292,7 +296,8 @@ public class CpuAdoc {
   private ReadOnlyAutodoc getAutodoc(AxisID axisID) {
     ReadOnlyAutodoc autodoc = null;
     try {
-      autodoc = AutodocFactory.getInstance(AutodocFactory.CPU, axisID);
+      autodoc = AutodocFactory.getInstance(AutodocFactory.CPU, axisID,
+          managerKey);
     }
     catch (FileNotFoundException e) {
       e.printStackTrace();
@@ -565,6 +570,9 @@ public class CpuAdoc {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.15  2009/02/04 23:29:40  sueh
+ * <p> bug# 1158 Changed id and exceptions classes in LogFile.
+ * <p>
  * <p> Revision 1.14  2008/07/19 00:28:49  sueh
  * <p> bug# 1125 Get rid of isSetByUser and isValid because they where always
  * <p> used together.  Have file, envVar, and userConfig booleans.  IsAvailable

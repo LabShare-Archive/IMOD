@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.IOException;
 
 import etomo.EtomoDirector;
+import etomo.ManagerKey;
 import etomo.process.SystemProcessException;
 import etomo.type.AxisID;
 
@@ -22,6 +23,10 @@ import junit.framework.TestCase;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.26  2009/02/20 17:07:48  sueh
+ * <p> bug# 1180 Letting exceptions be thrown instead of catching them so that
+ * <p> more information will be available when this fails.
+ * <p>
  * <p> Revision 3.25  2009/02/13 16:53:50  sueh
  * <p> bug# 1176 In testRead removed the reread test because that doesn't
  * <p> affect the return value anymore.
@@ -154,13 +159,16 @@ public class MRCHeaderTest extends TestCase {
     if (!testDir.exists()) {
       testDir.mkdirs();
     }
-    emptyFilename = MRCHeader.getInstance(testDirPath, "", AxisID.ONLY);
+    ManagerKey managerKey = EtomoDirector.INSTANCE.getCurrentManagerForTest()
+        .getManagerKey();
+    emptyFilename = MRCHeader.getInstance(testDirPath, "", AxisID.ONLY,
+        managerKey);
     badFilename = MRCHeader.getInstance(testDirPath, testDirectory1
-        + "/non_existant_image_file", AxisID.ONLY);
+        + "/non_existant_image_file", AxisID.ONLY, managerKey);
     mrcHeader = MRCHeader.getInstance(testDirPath, testDirectory1
-        + "/headerTest.st", AxisID.ONLY);
+        + "/headerTest.st", AxisID.ONLY, managerKey);
     mrcWithSpaces = MRCHeader.getInstance(testDirPath, testDirectory2
-        + "/headerTest.st", AxisID.ONLY);
+        + "/headerTest.st", AxisID.ONLY, managerKey);
   }
 
   public void testEmptyFilename() throws InvalidParameterException {

@@ -8,6 +8,7 @@ import java.util.List;
 import etomo.ManagerKey;
 import etomo.type.AxisID;
 import etomo.type.ProcessName;
+import etomo.util.DatasetFiles;
 
 /**
  * <p>Description: </p>
@@ -22,25 +23,20 @@ import etomo.type.ProcessName;
  * 
  * @version $Revision$
  * 
- * <p> $Log$
- * <p> Revision 1.1  2009/02/04 23:29:21  sueh
- * <p> bug# 1158 Class representing the track.log file.  Used to send entries to
- * <p> LogPanel.
- * <p> </p>
+ * <p> $Log$ </p>
  */
-
-public final class TrackLog implements Loggable {
+public final class TransferFidLog implements Loggable {
   public static final String rcsid = "$Id$";
 
-  private static TrackLog INSTANCE_A = null;
-  private static TrackLog INSTANCE_B = null;
+  private static TransferFidLog INSTANCE_A = null;
+  private static TransferFidLog INSTANCE_B = null;
 
   private final List lineList = new ArrayList();
 
   private final String userDir;
   private final AxisID axisID;
 
-  private TrackLog(String userDir, AxisID axisID) {
+  private TransferFidLog(String userDir, AxisID axisID) {
     this.userDir = userDir;
     this.axisID = axisID;
   }
@@ -52,21 +48,21 @@ public final class TrackLog implements Loggable {
    * @param processName
    * @return
    */
-  public static TrackLog getInstance(String userDir, AxisID axisID) {
+  public static TransferFidLog getInstance(String userDir, AxisID axisID) {
     if (axisID == AxisID.SECOND) {
       if (INSTANCE_B == null) {
-        INSTANCE_B = new TrackLog(userDir, axisID);
+        INSTANCE_B = new TransferFidLog(userDir, axisID);
       }
       return INSTANCE_B;
     }
     if (INSTANCE_A == null) {
-      INSTANCE_A = new TrackLog(userDir, axisID);
+      INSTANCE_A = new TransferFidLog(userDir, axisID);
     }
     return INSTANCE_A;
   }
 
   public String getName() {
-    return ProcessName.TRACK.toString();
+    return ProcessName.TRANSFERFID.toString();
   }
 
   /**
@@ -76,21 +72,19 @@ public final class TrackLog implements Loggable {
       FileNotFoundException, IOException {
     lineList.clear();
     //refresh the log file
-    LogFile trackLog = LogFile.getInstance(userDir, axisID, ProcessName.TRACK,
-        managerKey);
-    if (trackLog.exists()) {
-      LogFile.ReaderId readerId = trackLog.openReader();
+    LogFile logFile = LogFile.getInstance(userDir, 
+        DatasetFiles.TRANSFER_FID_LOG, managerKey);
+    if (logFile.exists()) {
+      LogFile.ReaderId readerId = logFile.openReader();
       if (readerId != null && !readerId.isEmpty()) {
-        String line = trackLog.readLine(readerId);
+        String line = logFile.readLine(readerId);
         while (line != null) {
-          if (line.trim().startsWith("Total points missing")) {
+          if (line.trim().startsWith("Points in")) {
             lineList.add(line);
-            trackLog.closeReader(readerId);
-            return lineList;
           }
-          line = trackLog.readLine(readerId);
+          line = logFile.readLine(readerId);
         }
-        trackLog.closeReader(readerId);
+        logFile.closeReader(readerId);
       }
     }
     return lineList;

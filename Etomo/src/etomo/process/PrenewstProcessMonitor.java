@@ -11,6 +11,10 @@
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.12  2009/02/13 02:31:37  sueh
+ * <p> bug# 1176 Checking return value of MRCHeader.read.  Gave calcFileSize
+ * <p> a return value.
+ * <p>
  * <p> Revision 3.11  2007/09/11 21:29:07  sueh
  * <p> bug# 1035 In calcFileSize prevent integer overflow when calculating fileSize by
  * <p> casting nX * xY to long.
@@ -108,7 +112,8 @@ public class PrenewstProcessMonitor extends FileSizeProcessMonitor {
     // Get the header from the raw stack to calculate the aligned stack size
     loadDataSetPath();
     MRCHeader rawStack = MRCHeader.getInstance(applicationManager
-        .getPropertyUserDir(), dataSetPath + ".st", axisID);
+        .getPropertyUserDir(), dataSetPath + ".st", axisID, applicationManager
+        .getManagerKey());
     if (!rawStack.read()) {
       return false;
     }

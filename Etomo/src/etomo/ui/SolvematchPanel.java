@@ -44,6 +44,9 @@ import etomo.type.Run3dmodMenuOptions;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.37  2009/02/04 23:36:48  sueh
+ * <p> bug# 1158 Changed id and exception classes in LogFile.
+ * <p>
  * <p> Revision 3.36  2009/01/20 20:28:19  sueh
  * <p> bug# 1102 Changed labeled panels to type EtomoPanel so that they can name themselves.
  * <p>
@@ -697,7 +700,7 @@ final class SolvematchPanel implements Run3dmodButtonContainer, Expandable {
     ReadOnlyAutodoc autodoc = null;
     try {
       autodoc = AutodocFactory.getInstance(AutodocFactory.SOLVEMATCH,
-          AxisID.ONLY);
+          AxisID.ONLY, applicationManager.getManagerKey());
     }
     catch (FileNotFoundException except) {
       except.printStackTrace();

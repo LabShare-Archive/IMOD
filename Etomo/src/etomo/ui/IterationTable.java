@@ -16,6 +16,7 @@ import javax.swing.JPanel;
 import javax.swing.border.LineBorder;
 
 import etomo.BaseManager;
+import etomo.ManagerKey;
 import etomo.storage.LogFile;
 import etomo.storage.MatlabParam;
 import etomo.storage.autodoc.AutodocFactory;
@@ -36,6 +37,9 @@ import etomo.type.EtomoAutodoc;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.18  2009/02/04 23:36:48  sueh
+ * <p> bug# 1158 Changed id and exception classes in LogFile.
+ * <p>
  * <p> Revision 1.17  2008/09/30 21:41:45  sueh
  * <p> bug# 1113 Using a private constructor in SpacedPanel.
  * <p>
@@ -109,7 +113,7 @@ final class IterationTable implements Highlightable {
   private final JPanel rootPanel = new JPanel();
   private final JPanel pnlTable = new JPanel();
   private final GridBagLayout layout = new GridBagLayout();
-  private final RowList rowList = new RowList();
+  private final RowList rowList;
   private final GridBagConstraints constraints = new GridBagConstraints();
   private final HeaderCell header1IterationNumber = new HeaderCell("Run #");
   private final HeaderCell header2IterationNumber = new HeaderCell();
@@ -153,6 +157,7 @@ final class IterationTable implements Highlightable {
 
   private IterationTable(BaseManager manager) {
     this.manager = manager;
+    rowList = new RowList(manager.getManagerKey());
     createTable();
     rowList.add(this, pnlTable, layout, constraints);
     display();
@@ -232,8 +237,8 @@ final class IterationTable implements Highlightable {
         .setToolTipText("Add a new row with values from the highlighted row.");
     btnDeleteRow.setToolTipText("Delete the highlighted row.");
     try {
-      ReadOnlyAutodoc autodoc = AutodocFactory
-          .getInstance(AutodocFactory.PEET_PRM);
+      ReadOnlyAutodoc autodoc = AutodocFactory.getInstance(
+          AutodocFactory.PEET_PRM, manager.getManagerKey());
       tooltip = EtomoAutodoc.getTooltip(autodoc, MatlabParam.D_PHI_KEY);
       String tooltip1 = EtomoAutodoc.getTooltip(autodoc,
           MatlabParam.D_THETA_KEY);
@@ -415,13 +420,18 @@ final class IterationTable implements Highlightable {
 
   private static final class RowList {
     private final List list = new ArrayList();
+    private final ManagerKey managerKey;
+
+    private RowList(ManagerKey managerKey) {
+      this.managerKey = managerKey;
+    }
 
     private synchronized IterationRow add(final Highlightable parent,
         final JPanel panel, final GridBagLayout layout,
         final GridBagConstraints constraints) {
       int index = list.size();
       IterationRow row = new IterationRow(index, parent, panel, layout,
-          constraints);
+          constraints, managerKey);
       list.add(row);
       return row;
     }
@@ -463,7 +473,7 @@ final class IterationTable implements Highlightable {
         final Highlightable parent, final JPanel panel,
         final GridBagLayout layout, final GridBagConstraints constraints) {
       int index = list.size();
-      IterationRow copy = new IterationRow(index, row);
+      IterationRow copy = new IterationRow(index, row, managerKey);
       list.add(copy);
       copy.display();
     }
@@ -493,7 +503,7 @@ final class IterationTable implements Highlightable {
         }
       }
       UIHarness.INSTANCE.openMessageDialog("Please highlight a row.",
-          "Entry Error");
+          "Entry Error", managerKey);
       return null;
     }
 

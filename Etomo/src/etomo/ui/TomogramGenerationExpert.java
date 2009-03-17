@@ -188,7 +188,7 @@ public final class TomogramGenerationExpert extends ReconUIExpert {
       getParameters(metaData);
     }
     catch (FortranInputSyntaxException e) {
-      UIHarness.INSTANCE.openMessageDialog(e.getMessage(), "Data File Error");
+      UIHarness.INSTANCE.openMessageDialog(e.getMessage(), "Data File Error", manager.getManagerKey());
     }
     getParameters(screenState);
     if (updateTiltCom(true) == null) {
@@ -213,7 +213,7 @@ public final class TomogramGenerationExpert extends ReconUIExpert {
       UIHarness.INSTANCE
           .openMessageDialog(
               "Can not update tilt?.com without an active tomogram generation dialog",
-              "Program logic error", axisID);
+              "Program logic error", axisID, manager.getManagerKey());
       return null;
     }
     TiltParam tiltParam = null;
@@ -254,7 +254,7 @@ public final class TomogramGenerationExpert extends ReconUIExpert {
       errorMessage[1] = "Axis: " + axisID.getExtension();
       errorMessage[2] = except.getMessage();
       UIHarness.INSTANCE.openMessageDialog(errorMessage,
-          "Tilt Parameter Syntax Error", axisID);
+          "Tilt Parameter Syntax Error", axisID, manager.getManagerKey());
       return null;
     }
     catch (InvalidParameterException except) {
@@ -263,7 +263,7 @@ public final class TomogramGenerationExpert extends ReconUIExpert {
       errorMessage[1] = "Axis: " + axisID.getExtension();
       errorMessage[2] = except.getMessage();
       UIHarness.INSTANCE.openMessageDialog(errorMessage,
-          "Tilt Parameter Syntax Error", axisID);
+          "Tilt Parameter Syntax Error", axisID, manager.getManagerKey());
       return null;
     }
     catch (IOException e) {
@@ -272,7 +272,7 @@ public final class TomogramGenerationExpert extends ReconUIExpert {
       errorMessage[1] = "Axis: " + axisID.getExtension();
       errorMessage[2] = e.getMessage();
       UIHarness.INSTANCE.openMessageDialog(errorMessage, "Tilt Parameter",
-          axisID);
+          axisID, manager.getManagerKey());
       return null;
     }
     return tiltParam;
@@ -385,7 +385,7 @@ public final class TomogramGenerationExpert extends ReconUIExpert {
       return null;
     }
     param.setSeparateChunks(CpuAdoc.getInstance(axisID,
-        manager.getPropertyUserDir()).isSeparateChunks());
+        manager.getPropertyUserDir(), manager.getManagerKey()).isSeparateChunks());
     return param;
   }
 
@@ -396,7 +396,7 @@ public final class TomogramGenerationExpert extends ReconUIExpert {
       UIHarness.INSTANCE.openMessageDialog(getParallelPanel()
           .getCPUsSelectedLabel()
           + " " + numMachines.getInvalidReason(), "Unable to run splittilt",
-          axisID);
+          axisID, manager.getManagerKey());
       return false;
     }
     return true;
@@ -409,7 +409,7 @@ public final class TomogramGenerationExpert extends ReconUIExpert {
     trialTomogramList = metaData.getTomoGenTrialTomogramNameList(axisID);
     dialog.setTrialTomogramNameList(trialTomogramList);
     CpuAdoc cpuAdoc = CpuAdoc.getInstance(AxisID.ONLY, manager
-        .getPropertyUserDir());
+        .getPropertyUserDir(), manager.getManagerKey());
     //Parallel processing is optional in tomogram reconstruction, so only use it
     //if the user set it up.
     boolean validAutodoc = cpuAdoc.isAvailable();
@@ -693,7 +693,7 @@ public final class TomogramGenerationExpert extends ReconUIExpert {
       errorMessage[1] = "A filename for the trial tomogram must be entered in the Trial"
           + " tomogram filename edit box.";
       UIHarness.INSTANCE.openMessageDialog(errorMessage,
-          "Tilt Parameter Syntax Error", axisID);
+          "Tilt Parameter Syntax Error", axisID, manager.getManagerKey());
       return;
     }
     if (!trialTomogramList.containsValue(trialTomogramName)) {
@@ -728,6 +728,10 @@ public final class TomogramGenerationExpert extends ReconUIExpert {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.28  2009/02/13 02:37:54  sueh
+ * <p> bug# 1148 In doneDialog no longer setting trialTomogramList to null
+ * <p> because this causes a null pointer exception on close.
+ * <p>
  * <p> Revision 1.27  2009/02/05 23:45:52  sueh
  * <p> bug# 1148 Setting and getting trialTomogramList from metadata.
  * <p>

@@ -4,6 +4,7 @@ import java.io.File;
 
 import etomo.BaseManager;
 import etomo.JoinManager;
+import etomo.ManagerKey;
 import etomo.type.AxisID;
 import etomo.type.AxisType;
 import etomo.type.BaseMetaData;
@@ -339,7 +340,8 @@ public final class DatasetFiles {
       AxisID axisID) {
     BaseMetaData metaData = manager.getBaseMetaData();
     axisID = correctAxisID(metaData, axisID);
-    return metaData.getName() + axisID.getExtension() + getErasedFiducialsFileExtension();
+    return metaData.getName() + axisID.getExtension()
+        + getErasedFiducialsFileExtension();
   }
 
   public static String getErasedFiducialsFileExtension() {
@@ -458,10 +460,11 @@ public final class DatasetFiles {
 
   //directories
 
-  public static File getCalibrationDir(String propertyUserDir, AxisID axisID) {
+  public static File getCalibrationDir(String propertyUserDir, AxisID axisID,
+      ManagerKey managerKey) {
     if (calibrationDir == null) {
       String calibDirVar = EnvironmentVariable.INSTANCE.getValue(
-          propertyUserDir, EnvironmentVariable.CALIB_DIR, axisID);
+          propertyUserDir, EnvironmentVariable.CALIB_DIR, axisID, managerKey);
       if (!calibDirVar.equals("")) {
         calibrationDir = new File(calibDirVar);
       }
@@ -469,9 +472,10 @@ public final class DatasetFiles {
     return calibrationDir;
   }
 
-  public static File getDistortionDir(String propertyUserDir, AxisID axisID) {
+  public static File getDistortionDir(String propertyUserDir, AxisID axisID,
+      ManagerKey managerKey) {
     if (calibrationDir == null) {
-      getCalibrationDir(propertyUserDir, axisID);
+      getCalibrationDir(propertyUserDir, axisID, managerKey);
     }
     if (calibrationDir == null) {
       return null;
@@ -529,6 +533,9 @@ public final class DatasetFiles {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.48  2008/12/09 21:08:49  sueh
+ * <p> bug# 1154 Made getCtfCorrectionFileName public.
+ * <p>
  * <p> Revision 1.47  2008/11/20 01:50:27  sueh
  * <p> bug# 1149 Added erasedFiducialsFile, eraseFiducialsModel, and
  * <p> transformFile.

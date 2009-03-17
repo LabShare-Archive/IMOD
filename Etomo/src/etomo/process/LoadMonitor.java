@@ -26,11 +26,16 @@ import etomo.util.HashedArray;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.2  2008/07/19 00:25:06  sueh
+ * <p> bug# 1125 Making it easier to access CpuAdoc by not passing the
+ * <p> manager to it; all it needs is the current directory.
+ * <p>
  * <p> Revision 1.1  2007/09/27 20:25:10  sueh
  * <p> bug# 1044 Added QueuechunkLoadMonitor, which has mostly the same functionality as LoadAverageMonitor, except for the output and how it is used.  Factoring out common functionality into a new parent class, LoadMonitor.
  * <p> </p>
  */
-public abstract class LoadMonitor implements IntermittentProcessMonitor, Runnable {
+public abstract class LoadMonitor implements IntermittentProcessMonitor,
+    Runnable {
   public static final String rcsid = "$Id$";
 
   final LoadDisplay display;
@@ -43,10 +48,10 @@ public abstract class LoadMonitor implements IntermittentProcessMonitor, Runnabl
 
   abstract void processData(ProgramState programState);
 
-  public LoadMonitor(LoadDisplay display, AxisID axisID,
-      BaseManager manager) {
+  public LoadMonitor(LoadDisplay display, AxisID axisID, BaseManager manager) {
     this.display = display;
-    usersColumn = CpuAdoc.getInstance(axisID, manager.getPropertyUserDir()).isUsersColumn();
+    usersColumn = CpuAdoc.getInstance(axisID, manager.getPropertyUserDir(),
+        manager.getManagerKey()).isUsersColumn();
   }
 
   public void run() {
@@ -147,8 +152,8 @@ public abstract class LoadMonitor implements IntermittentProcessMonitor, Runnabl
     if (programs.containsKey(key)) {
       ProgramState program = (ProgramState) programs.get(key);
       FailureReasonInterface failureReason = program.getFailureReason();
-      display.msgLoadFailed(key, failureReason.getReason(),
-          failureReason.getTooltip());
+      display.msgLoadFailed(key, failureReason.getReason(), failureReason
+          .getTooltip());
       program.fail();
       program.addToRestarter();
     }

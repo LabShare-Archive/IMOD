@@ -27,6 +27,9 @@ import etomo.type.Run3dmodMenuOptions;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.23  2008/10/10 20:44:13  sueh
+ * <p> bug# 1142 Commented setParameters(ConstPeetMetaData).
+ * <p>
  * <p> Revision 1.22  2008/10/01 22:55:07  sueh
  * <p> bug# 1113 Adding index and vewport parameters to display().
  * <p>
@@ -291,7 +294,7 @@ final class VolumeRow implements Highlightable {
       UIHarness.INSTANCE.openMessageDialog(VolumeTable.TABLE_HEADER
           + ":  In row " + number.getText() + ", "
           + VolumeTable.FN_MOD_PARTICLE_HEADER1 + " must not be empty.",
-          "Entry Error");
+          "Entry Error", manager.getManagerKey());
       return false;
     }
     return true;

@@ -5,6 +5,7 @@ import java.awt.event.*;
 import javax.swing.*;
 
 import etomo.EtomoDirector;
+import etomo.ManagerKey;
 import etomo.storage.CpuAdoc;
 import etomo.type.AxisID;
 import etomo.type.UserConfiguration;
@@ -62,10 +63,10 @@ public final class SettingsDialog extends JDialog {
   private SettingsDialog() {
   }
 
-  public static SettingsDialog getInstance(String propertyUserDir) {
+  public static SettingsDialog getInstance(String propertyUserDir, ManagerKey managerKey) {
     SettingsDialog instance = new SettingsDialog();
     instance.buildDialog();
-    instance.loadData(propertyUserDir);
+    instance.loadData(propertyUserDir, managerKey);
     instance.addListeners();
     return instance;
   }
@@ -153,8 +154,8 @@ public final class SettingsDialog extends JDialog {
    * Get data from CpuAdoc.
    * @param propertyUserDir
    */
-  private void loadData(String propertyUserDir) {
-    CpuAdoc cpuAdoc = CpuAdoc.getInstance(AxisID.FIRST, propertyUserDir);
+  private void loadData(String propertyUserDir, ManagerKey managerKey) {
+    CpuAdoc cpuAdoc = CpuAdoc.getInstance(AxisID.FIRST, propertyUserDir, managerKey);
     //Disable parallel processing if it was enabled by a way that takes
     //precidence over this one (cpu.adoc or IMOD_PROCESSORS).
     cbParallelProcessing.setEnabled(!cpuAdoc.isFile() && !cpuAdoc.isEnvVar());

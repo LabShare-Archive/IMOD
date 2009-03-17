@@ -8,6 +8,7 @@ import javax.swing.JOptionPane;
 
 import etomo.BaseManager;
 import etomo.EtomoDirector;
+import etomo.ManagerKey;
 import etomo.process.ProcessMessages;
 import etomo.type.AxisID;
 import etomo.util.UniqueKey;
@@ -68,9 +69,9 @@ public final class UIHarness {
    * @param title
    */
   public synchronized void openMessageDialog(String message, String title,
-      AxisID axisID) {
+      AxisID axisID, ManagerKey managerKey) {
     if (isHead() && !EtomoDirector.INSTANCE.isTestDone()) {
-      mainFrame.displayMessage(message, title, axisID);
+      mainFrame.displayMessage(message, title, axisID, managerKey);
     }
     else {
       log("openMessageDialog", message, title, axisID);
@@ -78,9 +79,9 @@ public final class UIHarness {
   }
 
   public synchronized void openInfoMessageDialog(String message, String title,
-      AxisID axisID) {
+      AxisID axisID, ManagerKey managerKey) {
     if (isHead() && !EtomoDirector.INSTANCE.isTestDone()) {
-      mainFrame.displayInfoMessage(message, title, axisID);
+      mainFrame.displayInfoMessage(message, title, axisID, managerKey);
     }
     else {
       log("openMessageDialog", message, title, axisID);
@@ -93,9 +94,9 @@ public final class UIHarness {
    * @param title
    */
   public synchronized void openErrorMessageDialog(ProcessMessages message,
-      String title, AxisID axisID) {
+      String title, AxisID axisID, ManagerKey managerKey) {
     if (isHead() && !EtomoDirector.INSTANCE.isTestDone()) {
-      mainFrame.displayErrorMessage(message, title, axisID);
+      mainFrame.displayErrorMessage(message, title, axisID, managerKey);
     }
     else {
       logError("openMessageDialog", message, title, axisID);
@@ -108,9 +109,9 @@ public final class UIHarness {
    * @param title
    */
   public synchronized void openWarningMessageDialog(ProcessMessages messages,
-      String title, AxisID axisID) {
+      String title, AxisID axisID, ManagerKey managerKey) {
     if (isHead() && !EtomoDirector.INSTANCE.isTestDone()) {
-      mainFrame.displayWarningMessage(messages, title, axisID);
+      mainFrame.displayWarningMessage(messages, title, axisID, managerKey);
     }
     else {
       logWarning("openMessageDialog", messages, title, axisID);
@@ -122,9 +123,10 @@ public final class UIHarness {
    * @param message
    * @param title
    */
-  public synchronized void openMessageDialog(String message, String title) {
+  public synchronized void openMessageDialog(String message, String title,
+      ManagerKey managerKey) {
     if (isHead() && !EtomoDirector.INSTANCE.isTestDone()) {
-      mainFrame.displayMessage(message, title);
+      mainFrame.displayMessage(message, title, managerKey);
     }
     else {
       log("openMessageDialog", message, title);
@@ -137,51 +139,55 @@ public final class UIHarness {
    * @param title
    */
   public synchronized void openMessageDialog(String[] message, String title,
-      AxisID axisID) {
+      AxisID axisID, ManagerKey managerKey) {
     if (isHead() && !EtomoDirector.INSTANCE.isTestDone()) {
-      mainFrame.displayMessage(message, title, axisID);
+      mainFrame.displayMessage(message, title, axisID, managerKey);
     }
     else {
       log("openMessageDialog", message, title, axisID);
     }
   }
 
-  public synchronized int openYesNoCancelDialog(String[] message, AxisID axisID) {
+  public synchronized int openYesNoCancelDialog(String[] message,
+      AxisID axisID, ManagerKey managerKey) {
     if (isHead() && !EtomoDirector.INSTANCE.isTestDone()) {
-      return mainFrame.displayYesNoCancelMessage(message, axisID);
+      return mainFrame.displayYesNoCancelMessage(message, axisID, managerKey);
     }
     log("openYesNoCancelDialog", message, axisID);
     return JOptionPane.YES_OPTION;
   }
 
-  public synchronized boolean openYesNoDialog(String message, AxisID axisID) {
+  public synchronized boolean openYesNoDialog(String message, AxisID axisID,
+      ManagerKey managerKey) {
     if (isHead() && !EtomoDirector.INSTANCE.isTestDone()) {
-      return mainFrame.displayYesNoMessage(message, axisID);
+      return mainFrame.displayYesNoMessage(message, axisID, managerKey);
     }
     log("openYesNoDialog", message, axisID);
     return true;
   }
 
-  public synchronized boolean openDeleteDialog(String[] message, AxisID axisID) {
+  public synchronized boolean openDeleteDialog(String[] message, AxisID axisID,
+      ManagerKey managerKey) {
     if (isHead() && !EtomoDirector.INSTANCE.isTestDone()) {
-      return mainFrame.displayDeleteMessage(message, axisID);
+      return mainFrame.displayDeleteMessage(message, axisID, managerKey);
     }
     log("openDeleteDialog", message, axisID);
     return true;
   }
 
   public synchronized boolean openYesNoWarningDialog(String message,
-      AxisID axisID) {
+      AxisID axisID, ManagerKey managerKey) {
     if (isHead() && !EtomoDirector.INSTANCE.isTestDone()) {
-      return mainFrame.displayYesNoWarningDialog(message, axisID);
+      return mainFrame.displayYesNoWarningDialog(message, axisID, managerKey);
     }
     log("openYesNoWarningDialog", message, axisID);
     return true;
   }
 
-  public synchronized boolean openYesNoDialog(String[] message, AxisID axisID) {
+  public synchronized boolean openYesNoDialog(String[] message, AxisID axisID,
+      ManagerKey managerKey) {
     if (isHead() && !EtomoDirector.INSTANCE.isTestDone()) {
-      return mainFrame.displayYesNoMessage(message, axisID);
+      return mainFrame.displayYesNoMessage(message, axisID, managerKey);
     }
     log("openYesNoDialog", message, axisID);
     return true;
@@ -324,21 +330,27 @@ public final class UIHarness {
   }
 
   public void setCurrentManager(BaseManager currentManager,
-      UniqueKey managerKey, boolean newWindow) {
+      ManagerKey managerKey, boolean newWindow) {
     if (isHead()) {
       mainFrame.setCurrentManager(currentManager, managerKey, newWindow);
     }
   }
 
-  public void setCurrentManager(BaseManager currentManager, UniqueKey managerKey) {
+  public void setCurrentManager(BaseManager currentManager, ManagerKey managerKey) {
     if (isHead()) {
       mainFrame.setCurrentManager(currentManager, managerKey);
     }
   }
 
-  public void selectWindowMenuItem(UniqueKey currentManagerKey) {
+  public void selectWindowMenuItem(ManagerKey currentManagerKey) {
     if (isHead()) {
       mainFrame.selectWindowMenuItem(currentManagerKey);
+    }
+  }
+  
+  public void selectWindowMenuItem(UniqueKey currentKey) {
+    if (isHead()) {
+      mainFrame.selectWindowMenuItem(currentKey);
     }
   }
 
@@ -348,13 +360,13 @@ public final class UIHarness {
    * @param currentManagerKey
    * @param newWindow
    */
-  public void selectWindowMenuItem(UniqueKey currentManagerKey,
+  public void selectWindowMenuItem(ManagerKey currentManagerKey,
       boolean newWindow) {
     if (isHead()) {
       mainFrame.selectWindowMenuItem(currentManagerKey, newWindow);
     }
   }
-  
+
   public void setEnabledLogWindowMenuItem(boolean enable) {
     if (isHead()) {
       mainFrame.setEnabledLogWindowMenuItem(enable);
@@ -379,21 +391,21 @@ public final class UIHarness {
     }
   }
 
-  public void addWindow(BaseManager manager, UniqueKey managerKey) {
+  public void addWindow(BaseManager manager, ManagerKey managerKey) {
     if (isHead()) {
       mainFrame.addWindow(manager, managerKey);
     }
   }
 
-  public void removeWindow(UniqueKey managerKey) {
+  public void removeWindow(ManagerKey managerKey) {
     if (isHead()) {
       mainFrame.removeWindow(managerKey);
     }
   }
 
-  public void renameWindow(UniqueKey oldKey, UniqueKey newKey) {
+  public void renameWindow(UniqueKey oldKey, ManagerKey newManagerKey) {
     if (isHead()) {
-      mainFrame.renameWindow(oldKey, newKey);
+      mainFrame.renameWindow(oldKey, newManagerKey);
     }
   }
 
@@ -422,7 +434,7 @@ public final class UIHarness {
       mainFrame.msgLogChanged(logPanel);
     }
   }
-  
+
   public void msgUpdateLogProperties(LogPanel logPanel) {
     if (isHead()) {
       mainFrame.msgUpdateLogProperties(logPanel);
@@ -545,6 +557,9 @@ public final class UIHarness {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.34  2009/03/05 23:31:41  sueh
+ * <p> bug# 1194 Added msgUpdateLogProperties.
+ * <p>
  * <p> Revision 1.33  2009/02/04 23:36:09  sueh
  * <p> bug# 1158 Added msgChanged(LogPanel) and
  * <p> setEnabledLogWindowMenuItem.

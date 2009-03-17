@@ -7,6 +7,7 @@ import java.util.Map;
 
 import junit.framework.Assert;
 
+import etomo.EtomoDirector;
 import etomo.storage.LogFile;
 import etomo.storage.autodoc.AutodocFactory;
 import etomo.storage.autodoc.ReadOnlyAutodoc;
@@ -28,6 +29,9 @@ import etomo.type.UITestSubjectType;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.4  2009/02/04 23:37:32  sueh
+ * <p> bug# 1158 Changed id and exception classes in LogFile.
+ * <p>
  * <p> Revision 1.3  2009/01/20 20:47:38  sueh
  * <p> bug# 1102 Class to store an interface section.
  * <p>
@@ -124,7 +128,7 @@ final class InterfaceSection extends Assert {
     }
     commandMap = new HashMap();
     ReadOnlyAutodoc autodoc = AutodocFactory.getInstance(AutodocFactory.UITEST,
-        AxisID.ONLY);
+        AxisID.ONLY, EtomoDirector.INSTANCE.getCurrentManagerForTest().getManagerKey());
     CommandReader reader = CommandReader.getSectionReader(autodoc,
         SectionType.INTERFACE.toString(), sectionName, null, null);
     Command command = null;

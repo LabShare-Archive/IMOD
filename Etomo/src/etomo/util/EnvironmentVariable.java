@@ -2,6 +2,7 @@ package etomo.util;
 
 import java.util.HashMap;
 
+import etomo.ManagerKey;
 import etomo.process.SystemProgram;
 import etomo.type.AxisID;
 
@@ -35,7 +36,8 @@ public final class EnvironmentVariable {
    * @param varName
    * @return String
    */
-  public String getValue(String propertyUserDir, String varName, AxisID axisID) {
+  public String getValue(String propertyUserDir, String varName, AxisID axisID,
+      ManagerKey managerKey) {
     String value = "";
     //prevent multiple reads and writes at the same time
     synchronized (variableList) {
@@ -53,10 +55,11 @@ public final class EnvironmentVariable {
     if (Utilities.isWindowsOS()) {
       String var = "%" + varName + "%";
       readEnvVar = new SystemProgram(propertyUserDir, new String[] { "cmd.exe",
-          "/C", "echo", var }, axisID);
+          "/C", "echo", var }, axisID, managerKey);
       try {
         readEnvVar.run();
-      } catch (Exception excep) {
+      }
+      catch (Exception excep) {
         excep.printStackTrace();
         System.err.println(excep.getMessage());
         System.err.println("Unable to run cmd command to find " + varName
@@ -83,10 +86,11 @@ public final class EnvironmentVariable {
     // Non windows environment
     else {
       readEnvVar = new SystemProgram(propertyUserDir, new String[] { "env" },
-          axisID);
+          axisID, managerKey);
       try {
         readEnvVar.run();
-      } catch (Exception excep) {
+      }
+      catch (Exception excep) {
         excep.printStackTrace();
         System.err.println(excep.getMessage());
         System.err.println("Unable to run env command to find " + varName
@@ -124,6 +128,9 @@ public final class EnvironmentVariable {
 /**
  * <p>
  * $Log$
+ * Revision 1.3  2006/07/21 22:24:47  sueh
+ * bug# 901 Added IMOD_CALIB_DIR constant
+ *
  * Revision 1.2  2006/07/03 23:35:36  sueh
  * Using the Utilities.isWindows() function instead of testing for windows here.
  *

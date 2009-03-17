@@ -56,6 +56,9 @@ import etomo.util.InvalidParameterException;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.72  2009/02/26 17:26:44  sueh
+ * <p> bug# 1184 Validating sxVol by passing the values to goodframe.
+ * <p>
  * <p> Revision 1.71  2009/02/06 03:11:57  sueh
  * <p> bug# 1168 Adding most error checking to validateRun.
  * <p>
@@ -941,7 +944,7 @@ public final class PeetDialog implements ContextMenu, AbstractParallelDialog,
             + "Only one .epe file per directory.");
     try {
       ReadOnlyAutodoc autodoc = AutodocFactory
-          .getInstance(AutodocFactory.PEET_PRM);
+          .getInstance(AutodocFactory.PEET_PRM, manager.getManagerKey());
       pnlInitMotl.setToolTipText(TooltipFormatter.INSTANCE.format(EtomoAutodoc
           .getTooltip(autodoc, MatlabParam.INIT_MOTL_KEY)));
       ReadOnlySection section = autodoc.getSection(
@@ -1393,7 +1396,8 @@ public final class PeetDialog implements ContextMenu, AbstractParallelDialog,
       changeTab(0);
       UIHarness.INSTANCE.openMessageDialog("In " + REFERENCE_LABEL + ", "
           + PARTICLE_LABEL + " is required when " + REFERENCE_VOLUME_LABEL
-          + " is selected.", "Entry Error", AxisID.ONLY);
+          + " is selected.", "Entry Error", AxisID.ONLY, manager
+          .getManagerKey());
       return false;
     }
     //if sphere or cylinder is selected, require inner or outer or both.
@@ -1407,7 +1411,7 @@ public final class PeetDialog implements ContextMenu, AbstractParallelDialog,
           + INSIDE_MASK_RADIUS_LABEL + " and/or " + OUTSIDE_MASK_RADIUS_LABEL
           + " " + MASK_RADII_LABEL + " are required when either "
           + MASK_TYPE_SPHERE_LABEL + " or " + MASK_TYPE_CYLINDER_LABEL
-          + " is selected.", "Entry Error");
+          + " is selected.", "Entry Error", manager.getManagerKey());
       return false;
     }
     //if Cylinder is selected and "set cylinder orientation from reference
@@ -1421,7 +1425,7 @@ public final class PeetDialog implements ContextMenu, AbstractParallelDialog,
           + PARTICLE_LABEL + " is required when " + MASK_TYPE_CYLINDER_LABEL
           + " " + MASK_TYPE_LABEL + " is selected and "
           + MASK_USE_REFERENCE_PARTICLE_LABEL + " is not checked. ",
-          "Entry Error");
+          "Entry Error", manager.getManagerKey());
       return false;
     }
     //If end points of contour is checked, must have object # and contour#
@@ -1434,7 +1438,8 @@ public final class PeetDialog implements ContextMenu, AbstractParallelDialog,
       UIHarness.INSTANCE.openMessageDialog("In " + Y_AXIS_TYPE_LABEL + ", "
           + Y_AXIS_CONTOUR_OBJECT_NUMBER_LABEL + " and "
           + Y_AXIS_CONTOUR_CONTOUR_NUMBER_LABEL + " are required when "
-          + Y_AXIS_CONTOUR_LABEL + " is selected.", "Entry Error");
+          + Y_AXIS_CONTOUR_LABEL + " is selected.", "Entry Error", manager
+          .getManagerKey());
       return false;
     }
 
@@ -1448,54 +1453,54 @@ public final class PeetDialog implements ContextMenu, AbstractParallelDialog,
       UIHarness.INSTANCE.openMessageDialog("In " + SPHERICAL_SAMPLING_LABEL
           + ", " + SAMPLE_INTERVAL_LABEL + " is required when either "
           + SAMPLE_SPHERE_FULL_LABEL + " or " + SAMPLE_SPHERE_HALF_LABEL
-          + " is selected.", "Entry Error");
+          + " is selected.", "Entry Error", manager.getManagerKey());
       return false;
     }
     if (!iterationTable.validateRun()) {
       return false;
     }
     Goodframe goodframe = new Goodframe(manager.getPropertyUserDir(),
-        AxisID.FIRST);
+        AxisID.FIRST, manager.getManagerKey());
     try {
       goodframe.run(new String[] { ltfSzVolX.getText(), ltfSzVolY.getText(),
           ltfSzVolZ.getText() });
       if (!goodframe.getOutput(0).equals(ltfSzVolX.getText())) {
         UIHarness.INSTANCE.openMessageDialog("In " + PARTICLE_VOLUME_LABEL
             + ", " + X_LABEL + " is invalid.  Try " + goodframe.getOutput(0)
-            + ".", "Entry Error");
+            + ".", "Entry Error", manager.getManagerKey());
         return false;
       }
       if (!goodframe.getOutput(1).equals(ltfSzVolY.getText())) {
         UIHarness.INSTANCE.openMessageDialog("In " + PARTICLE_VOLUME_LABEL
             + ", " + Y_LABEL + " is invalid.  Try " + goodframe.getOutput(1)
-            + ".", "Entry Error");
+            + ".", "Entry Error", manager.getManagerKey());
         return false;
       }
       if (!goodframe.getOutput(2).equals(ltfSzVolZ.getText())) {
         UIHarness.INSTANCE.openMessageDialog("In " + PARTICLE_VOLUME_LABEL
             + ", " + Z_LABEL + " is invalid.  Try " + goodframe.getOutput(2)
-            + ".", "Entry Error");
+            + ".", "Entry Error", manager.getManagerKey());
         return false;
       }
     }
     catch (IOException e) {
       if (!UIHarness.INSTANCE.openYesNoDialog("Unable to validate "
           + PARTICLE_VOLUME_LABEL + ".  Continue?\n\n" + e.getMessage(),
-          AxisID.ONLY)) {
+          AxisID.ONLY, manager.getManagerKey())) {
         return false;
       }
     }
     catch (InvalidParameterException e) {
       if (!UIHarness.INSTANCE.openYesNoDialog("Unable to validate "
           + PARTICLE_VOLUME_LABEL + ".  Continue?\n\n" + e.getMessage(),
-          AxisID.ONLY)) {
+          AxisID.ONLY, manager.getManagerKey())) {
         return false;
       }
     }
     catch (NumberFormatException e) {
       if (!UIHarness.INSTANCE.openYesNoDialog("Unable to validate "
           + PARTICLE_VOLUME_LABEL + ".  Continue?\n\n" + e.getMessage(),
-          AxisID.ONLY)) {
+          AxisID.ONLY, manager.getManagerKey())) {
         return false;
       }
     }
@@ -1510,14 +1515,14 @@ public final class PeetDialog implements ContextMenu, AbstractParallelDialog,
     if (path == null || path.matches("\\s*")) {
       UIHarness.INSTANCE.openMessageDialog("Please set the "
           + PeetDialog.DIRECTORY_LABEL + "field before importing a .prm file.",
-          "Entry Error");
+          "Entry Error", manager.getManagerKey());
       return;
     }
     File dir = new File(ftfDirectory.getText());
     if (!dir.exists()) {
       UIHarness.INSTANCE.openMessageDialog("Please create "
           + dir.getAbsolutePath() + " before importing a .prm file.",
-          "Entry Error");
+          "Entry Error", manager.getManagerKey());
       return;
     }
     File matlabParamFile = null;
@@ -1541,14 +1546,14 @@ public final class PeetDialog implements ContextMenu, AbstractParallelDialog,
     if (path == null || path.matches("\\s*")) {
       UIHarness.INSTANCE.openMessageDialog("Please set the "
           + PeetDialog.DIRECTORY_LABEL + "field before importing a .prm file.",
-          "Entry Error");
+          "Entry Error", manager.getManagerKey());
       return;
     }
     File dir = new File(ftfDirectory.getText());
     if (!dir.exists()) {
       UIHarness.INSTANCE.openMessageDialog("Please create "
           + dir.getAbsolutePath() + " before importing a .prm file.",
-          "Entry Error");
+          "Entry Error", manager.getManagerKey());
       return;
     }
     JFileChooser chooser = new JFileChooser(dir);
@@ -1572,13 +1577,14 @@ public final class PeetDialog implements ContextMenu, AbstractParallelDialog,
     if (path == null || path.matches("\\s*")) {
       UIHarness.INSTANCE.openMessageDialog("Please set the "
           + PeetDialog.DIRECTORY_LABEL + "field before copying parameters.",
-          "Entry Error");
+          "Entry Error", manager.getManagerKey());
       return;
     }
     File dir = new File(ftfDirectory.getText());
     if (!dir.exists()) {
       UIHarness.INSTANCE.openMessageDialog("Please create "
-          + dir.getAbsolutePath() + " before copy parameters.", "Entry Error");
+          + dir.getAbsolutePath() + " before copy parameters.", "Entry Error",
+          manager.getManagerKey());
       return;
     }
     JFileChooser chooser = new JFileChooser(dir);

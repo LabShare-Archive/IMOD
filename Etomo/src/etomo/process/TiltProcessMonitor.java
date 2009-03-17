@@ -26,6 +26,10 @@ import etomo.util.MRCHeader;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.21  2009/02/13 02:31:59  sueh
+ * <p> bug# 1176 Checking return value of MRCHeader.read.  Gave calcFileSize
+ * <p> a return value.
+ * <p>
  * <p> Revision 3.20  2007/12/26 22:15:02  sueh
  * <p> bug# 1052 Moved argument handling from EtomoDirector to a separate class.
  * <p>
@@ -159,10 +163,11 @@ final class TiltProcessMonitor extends FileSizeProcessMonitor {
         + tiltParam.getInputFile();
 
     MRCHeader alignedStack = MRCHeader.getInstance(applicationManager
-        .getPropertyUserDir(), alignedFilename, axisID);
-   if(! alignedStack.read()) {
-     return false;
-   }
+        .getPropertyUserDir(), alignedFilename, axisID, applicationManager
+        .getManagerKey());
+    if (!alignedStack.read()) {
+      return false;
+    }
 
     nX = alignedStack.getNColumns();
     nY = alignedStack.getNRows();

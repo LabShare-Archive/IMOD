@@ -63,7 +63,8 @@ public abstract class ReconUIExpert implements UIExpert {
   final boolean canShowDialog() {
     //  Check to see if the com files are present otherwise pop up a dialog
     //  box informing the user to run the setup process
-    if (!UIExpertUtilities.INSTANCE.areScriptsCreated(metaData, axisID)) {
+    if (!UIExpertUtilities.INSTANCE.areScriptsCreated(metaData, axisID, manager
+        .getManagerKey())) {
       mainPanel.showBlankProcess(axisID);
       return false;
     }
@@ -208,6 +209,11 @@ public abstract class ReconUIExpert implements UIExpert {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.9  2008/05/28 02:51:12  sueh
+ * <p> bug# 1111 Add a dialogType parameter to the ProcessSeries
+ * <p> constructor.  DialogType must be passed to any function that constructs
+ * <p> a ProcessSeries instance.  Removed nextProcess.
+ * <p>
  * <p> Revision 1.8  2008/05/13 23:04:14  sueh
  * <p> bug# 847 Factored canShowDialog out of showDialog so that the boolean
  * <p> returned from each function would mean only one thing.

@@ -2,6 +2,7 @@ package etomo.type;
 
 import java.io.IOException;
 
+import etomo.ManagerKey;
 import etomo.storage.autodoc.ReadOnlyAttribute;
 import etomo.ui.Token;
 import etomo.util.PrimativeTokenizer;
@@ -29,6 +30,9 @@ import etomo.util.PrimativeTokenizer;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.20  2009/01/13 19:36:47  sueh
+ * <p> bug# 1170 Added setFloor.
+ * <p>
  * <p> Revision 1.19  2008/09/10 21:09:27  sueh
  * <p> bug# 1135 Check for null when calling ParsedElementList.get(int).  Check
  * <p> for null when calling ParsedElement.getElement or getRawNumber.
@@ -282,10 +286,11 @@ public final class ParsedNumber extends ParsedElement {
     setFailed(!rawNumber.isValid(), rawNumber.getInvalidReason());
   }
 
-  void setRawString(String number, String fieldDescription) {
+  void setRawString(String number, String fieldDescription,
+      ManagerKey managerKey) {
     rawNumber.set(number);
     if (fieldDescription != null) {
-      rawNumber.isValid("Entry Error", fieldDescription);
+      rawNumber.isValid("Entry Error", fieldDescription, managerKey);
     }
   }
 
@@ -367,8 +372,8 @@ public final class ParsedNumber extends ParsedElement {
   void setDefault(EtomoNumber input) {
     rawNumber.setDefault(input);
   }
-  
- public void setFloor(int input) {
+
+  public void setFloor(int input) {
     rawNumber.setFloor(input);
   }
 
@@ -498,7 +503,7 @@ public final class ParsedNumber extends ParsedElement {
     rawNumber.set(buffer.toString());
     return token;
   }
-  
+
   boolean isDescriptor() {
     return false;
   }

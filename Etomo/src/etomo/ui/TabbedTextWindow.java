@@ -15,6 +15,7 @@ import javax.swing.JTabbedPane;
 import javax.swing.WindowConstants;
 
 import etomo.EtomoDirector;
+import etomo.ManagerKey;
 import etomo.type.AxisID;
 
 /**
@@ -30,6 +31,13 @@ import etomo.type.AxisID;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.7  2008/03/22 00:17:32  sueh
+ * <p> bug# 1099 In openFiles not using StyledEditorKit because it takes up a lot
+ * <p> of memory and mostly runs from the event loop, meaning the resulting
+ * <p> memory errors cannot be caught and cause Etomo to lock up.  In
+ * <p> checkSize increased file size limits and increased the padding to a
+ * <p> minimum of 15MB, which where Redhat starts to have problems.
+ * <p>
  * <p> Revision 3.6  2008/03/19 01:01:44  sueh
  * <p> bug# 1099 Added checkSize and display.
  * <p>
@@ -90,8 +98,8 @@ final class TabbedTextWindow extends JFrame {
    * @throws IOException
    * @throws FileNotFoundException
    */
-  boolean openFiles(String[] files, String[] labels, AxisID axisID)
-      throws IOException, FileNotFoundException {
+  boolean openFiles(String[] files, String[] labels, AxisID axisID,
+      ManagerKey managerKey) throws IOException, FileNotFoundException {
     checkSize(files);
     StringBuffer error = null;
     JTabbedPane tabPane = null;
@@ -139,7 +147,7 @@ final class TabbedTextWindow extends JFrame {
           UIHarness.INSTANCE.openMessageDialog(
               "WARNING:  Ran out of memory.  Will not display log file."
                   + "\nPlease close open log file windows or exit Etomo.",
-              "Out of Memory");
+              "Out of Memory", managerKey);
           throw e;
         }
       }
@@ -154,7 +162,7 @@ final class TabbedTextWindow extends JFrame {
       error
           .append(".  Not enough available memory.  Close unnecessary windows.");
       UIHarness.INSTANCE.openMessageDialog(error.toString(),
-          "Memory Limitation", axisID);
+          "Memory Limitation", axisID, managerKey);
     }
     return displayEverythingElse;
   }

@@ -17,6 +17,9 @@
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.36  2009/01/13 22:29:19  sueh
+ * <p> bug# 1171 popping up an error message when tcsh is missing.
+ * <p>
  * <p> Revision 3.35  2008/02/16 01:55:09  sueh
  * <p> bug# 1080 Added collectionOutput, which is used to set
  * <p> OutputBufferManager.collectionOutput.  This allows intermittent
@@ -265,12 +268,16 @@ import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Date;
 
+import etomo.ManagerKey;
 import etomo.type.AxisID;
 import etomo.ui.UIHarness;
 import etomo.util.Utilities;
 
 public class SystemProgram implements Runnable {
   public static final String rcsid = "$Id$";
+
+  private final ManagerKey managerKey;
+  private final String propertyUserDir;
 
   private boolean debug = false;
   private int exitValue = Integer.MIN_VALUE;
@@ -284,7 +291,6 @@ public class SystemProgram implements Runnable {
   private boolean done = false;
   private Date runTimestamp = null;
   private final AxisID axisID;
-  private final String propertyUserDir;
   private OutputStream cmdInputStream = null;
   private BufferedWriter cmdInBuffer = null;
   private boolean acceptInputWhileRunning = false;
@@ -302,7 +308,9 @@ public class SystemProgram implements Runnable {
    * that SystemProgram(String[] arg) for be used so that spaces are not
    * accidentally lost in path or arguments. 
    */
-  public SystemProgram(String propertyUserDir, ArrayList command, AxisID axisID) {
+  public SystemProgram(String propertyUserDir, ArrayList command,
+      AxisID axisID, ManagerKey managerKey) {
+    this.managerKey = managerKey;
     this.propertyUserDir = propertyUserDir;
     this.axisID = axisID;
     processMessages = ProcessMessages.getMultiLineInstance();
@@ -321,7 +329,9 @@ public class SystemProgram implements Runnable {
    *  run.
    * 	
    */
-  public SystemProgram(String propertyUserDir, String[] cmdArray, AxisID axisID) {
+  public SystemProgram(String propertyUserDir, String[] cmdArray,
+      AxisID axisID, ManagerKey managerKey) {
+    this.managerKey = managerKey;
     this.propertyUserDir = propertyUserDir;
     this.axisID = axisID;
     processMessages = ProcessMessages.getInstance();
@@ -527,7 +537,8 @@ public class SystemProgram implements Runnable {
       except.printStackTrace();
       exceptionMessage = except.getMessage();
       if (exceptionMessage.indexOf("Cannot run program \"tcsh\"") != -1) {
-        UIHarness.INSTANCE.openMessageDialog(exceptionMessage, "System Error");
+        UIHarness.INSTANCE.openMessageDialog(exceptionMessage, "System Error",
+            managerKey);
       }
     }
     processMessages.addProcessOutput(stdout);

@@ -29,6 +29,8 @@ public class JoinInfoFile {
   private static final String ERROR_TITLE = "Etomo Error";
   private static final String ERROR_MESSAGE = "WARNING:  Unable to find out if sections will be inverted.";
 
+  private final BaseManager manager;
+
   //Set by constructor or getInstance.
   private LogFile joinInfo;
 
@@ -36,9 +38,11 @@ public class JoinInfoFile {
   private ArrayList invertedArray = null;
 
   private JoinInfoFile(BaseManager manager) {
+    this.manager = manager;
   }
 
-  private JoinInfoFile(LogFile logFile) {
+  private JoinInfoFile(BaseManager manager, LogFile logFile) {
+    this.manager = manager;
     joinInfo = logFile;
   }
 
@@ -46,12 +50,12 @@ public class JoinInfoFile {
       throws LogFile.LockException {
     JoinInfoFile instance = new JoinInfoFile(manager);
     instance.joinInfo = LogFile.getInstance(manager.getPropertyUserDir(),
-        DatasetFiles.getJoinInfoName(manager));
+        DatasetFiles.getJoinInfoName(manager), manager.getManagerKey());
     return instance;
   }
 
-  static JoinInfoFile getTestInstance(LogFile logFile) {
-    return new JoinInfoFile(logFile);
+  static JoinInfoFile getTestInstance(BaseManager manager, LogFile logFile) {
+    return new JoinInfoFile(manager, logFile);
   }
 
   public ConstEtomoNumber getInverted(int index) {
@@ -66,7 +70,7 @@ public class JoinInfoFile {
     catch (IndexOutOfBoundsException e) {
       e.printStackTrace();
       UIHarness.INSTANCE.openMessageDialog(ERROR_TITLE, ERROR_MESSAGE + "\n"
-          + e.toString());
+          + e.toString(), manager.getManagerKey());
       return null;
     }
   }
@@ -78,7 +82,8 @@ public class JoinInfoFile {
       joinInfo.readLine(readerId);
       String line = joinInfo.readLine(readerId);
       if (line == null) {
-        UIHarness.INSTANCE.openMessageDialog(ERROR_TITLE, ERROR_MESSAGE);
+        UIHarness.INSTANCE.openMessageDialog(ERROR_TITLE, ERROR_MESSAGE,
+            manager.getManagerKey());
         return false;
       }
       else {
@@ -96,19 +101,19 @@ public class JoinInfoFile {
     catch (LogFile.LockException e) {
       e.printStackTrace();
       UIHarness.INSTANCE.openMessageDialog("Etomo Error", ERROR_MESSAGE + "\n"
-          + e.toString());
+          + e.toString(), manager.getManagerKey());
       return false;
     }
     catch (FileNotFoundException e) {
       e.printStackTrace();
       UIHarness.INSTANCE.openMessageDialog("Etomo Error", ERROR_MESSAGE + "\n"
-          + e.toString());
+          + e.toString(), manager.getManagerKey());
       return false;
     }
     catch (IOException e) {
       e.printStackTrace();
       UIHarness.INSTANCE.openMessageDialog("Etomo Error", ERROR_MESSAGE + "\n"
-          + e.toString());
+          + e.toString(), manager.getManagerKey());
       return false;
     }
     loaded = true;
@@ -126,6 +131,9 @@ public class JoinInfoFile {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.5  2009/02/04 23:29:40  sueh
+ * <p> bug# 1158 Changed id and exceptions classes in LogFile.
+ * <p>
  * <p> Revision 1.4  2008/01/31 20:21:56  sueh
  * <p> bug# 1055 throwing a FileException when LogFile.getInstance fails.
  * <p>

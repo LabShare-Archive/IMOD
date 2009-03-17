@@ -12,6 +12,7 @@ import javax.swing.event.ChangeListener;
 
 import etomo.BaseManager;
 import etomo.EtomoDirector;
+import etomo.ManagerKey;
 import etomo.util.UniqueHashedArray;
 import etomo.util.UniqueKey;
 
@@ -76,8 +77,8 @@ public class WindowSwitch {
    * @param controller
    * @param key
    */
-  void add(BaseManager manager, UniqueKey key) {
-    if (manager == null || key == null) {
+  void add(BaseManager manager, ManagerKey managerKey) {
+    if (manager == null) {
       return;
     }
     if (menuList == null) {
@@ -88,6 +89,7 @@ public class WindowSwitch {
     JCheckBoxMenuItem menuItem = new CheckBoxMenuItem();
     menuItem.addActionListener(menuActionListener);
     int index = menuList.size();
+    UniqueKey key = managerKey.getKey();
     menuItem.setText(Integer.toString(index + 1) + menuItemDivider
         + key.getName());
     menuItem.setVisible(true);
@@ -102,7 +104,8 @@ public class WindowSwitch {
    * @param oldKey
    * @param newKey
    */
-  void rename(UniqueKey oldKey, UniqueKey newKey) {
+  void rename(UniqueKey oldKey, ManagerKey newManagerKey) {
+    UniqueKey newKey = newManagerKey.getKey();
     if (oldKey == null || newKey == null || menuList == null) {
       return;
     }
@@ -116,7 +119,7 @@ public class WindowSwitch {
         && tabbedPane.getTabCount() > index) {
       tabbedPane.setTitleAt(index, newKey.getName());
     }
-    EtomoDirector.INSTANCE.setCurrentManager(newKey);
+    EtomoDirector.INSTANCE.setCurrentManager(newManagerKey);
   }
 
   /**
@@ -124,7 +127,11 @@ public class WindowSwitch {
    * menuList.  Removes the associated mainPanel from mainPanelList.
    * @param key
    */
-  void remove(UniqueKey key) {
+  void remove(ManagerKey managerKey) {
+    if (managerKey == null) {
+      return;
+    }
+    UniqueKey key = managerKey.getKey();
     if (key == null || menuList == null) {
       return;
     }
@@ -167,15 +174,27 @@ public class WindowSwitch {
    * @param key
    * @return
    */
-  JComponent getPanel(UniqueKey key) {
+  JComponent getPanel(ManagerKey managerKey) {
     if (mainPanelList == null || mainPanelList.size() == 0) {
       return null;
     }
+    UniqueKey key = managerKey.getKey();
     if (mainPanelList.size() == 1) {
       return (MainPanel) mainPanelList.get(key);
     }
     setTabs(menuList.getIndex(key));
     return tabbedPane;
+  }
+
+  /**
+   * Allows the program to select a window.
+   * @param managerKey
+   */
+  void selectWindow(ManagerKey managerKey, boolean newWindow) {
+    if (managerKey == null) {
+      return;
+    }
+    selectWindow(managerKey.getKey(), newWindow);
   }
 
   /**
@@ -310,6 +329,9 @@ public class WindowSwitch {
 
 /**
  * <p>$Log$
+ * <p>Revision 1.12  2009/01/20 20:33:48  sueh
+ * <p>bug# 1102 Changed menu items to self-naming menu items.
+ * <p>
  * <p>Revision 1.11  2007/09/07 00:30:14  sueh
  * <p>bug# 989 Using a public INSTANCE to refer to the EtomoDirector singleton
  * <p>instead of getInstance and createInstance.

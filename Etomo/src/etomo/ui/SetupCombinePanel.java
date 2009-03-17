@@ -55,6 +55,9 @@ import etomo.util.MRCHeader;
  * 
  * <p>
  * $Log$
+ * Revision 3.59  2009/02/13 02:34:57  sueh
+ * bug# 1176 Checking return value of MRCHeader.read.
+ *
  * Revision 3.58  2009/01/20 20:25:29  sueh
  * bug# 1102 Changed labeled panels to type EtomoPanel so that they can name themselves.
  *
@@ -709,11 +712,11 @@ public final class SetupCombinePanel implements ContextMenu,
       AxisID toAxisID = matchBtoA ? AxisID.FIRST : AxisID.SECOND;
       MRCHeader toMrcHeader = MRCHeader.getInstance(applicationManager
           .getPropertyUserDir(), DatasetFiles.getTomogramName(
-          applicationManager, toAxisID), AxisID.ONLY);
+          applicationManager, toAxisID), AxisID.ONLY, applicationManager.getManagerKey());
       AxisID fromAxisID = matchBtoA ? AxisID.SECOND : AxisID.FIRST;
       MRCHeader fromMrcHeader = MRCHeader.getInstance(applicationManager
           .getPropertyUserDir(), DatasetFiles.getTomogramName(
-          applicationManager, fromAxisID), AxisID.ONLY);
+          applicationManager, fromAxisID), AxisID.ONLY, applicationManager.getManagerKey());
       try {
         if (toMrcHeader.read()) {
           fromMrcHeader.read();
@@ -764,7 +767,7 @@ public final class SetupCombinePanel implements ContextMenu,
 
   void setParameters(ConstMetaData metaData) {
     CpuAdoc cpuAdoc = CpuAdoc.getInstance(AxisID.ONLY, applicationManager
-        .getPropertyUserDir());
+        .getPropertyUserDir(), applicationManager.getManagerKey());
     //Parallel processing is optional in tomogram reconstruction, so only use it
     //if the user set it up.
     boolean validAutodoc = cpuAdoc.isAvailable();
@@ -1154,7 +1157,7 @@ public final class SetupCombinePanel implements ContextMenu,
     AxisID toAxisID = matchBtoA ? AxisID.FIRST : AxisID.SECOND;
     MRCHeader mrcHeader = MRCHeader.getInstance(applicationManager
         .getPropertyUserDir(), DatasetFiles.getTomogramName(applicationManager,
-        toAxisID), AxisID.ONLY);
+        toAxisID), AxisID.ONLY, applicationManager.getManagerKey());
     try {
       if (!mrcHeader.read()) {
         return;

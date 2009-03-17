@@ -20,6 +20,9 @@
  * 
  * <p>
  * $Log$
+ * Revision 3.129  2009/02/13 02:31:51  sueh
+ * bug# 1176 Checking return value of MRCHeader.read.
+ *
  * Revision 3.128  2009/02/10 22:08:16  sueh
  * bug# 1143 In postProcess(BackgroundProcess) save the size of the
  * trimvol input file.
@@ -879,6 +882,7 @@ package etomo.process;
 import etomo.storage.LogFile;
 import etomo.storage.TaErrorLog;
 import etomo.storage.TrackLog;
+import etomo.storage.TransferFidLog;
 import etomo.type.AxisID;
 import etomo.type.ConstProcessSeries;
 import etomo.type.ProcessName;
@@ -931,7 +935,7 @@ public class ProcessManager extends BaseProcessManager {
 
   //variables cast from base class variables
   //initialized in constructor
-  ApplicationManager appManager;
+  private final ApplicationManager appManager;
 
   // save the transferfid command line so that we can identify when process is
   // complete.
@@ -988,15 +992,15 @@ public class ProcessManager extends BaseProcessManager {
         errorMessage.append("\n" + messages.getError(i));
       }
       UIHarness.INSTANCE.openMessageDialog(errorMessage.toString(),
-          "Copytomocoms Error", axisID);
+          "Copytomocoms Error", axisID, appManager.getManagerKey());
     }
     for (int i = 0; i < messages.warningListSize(); i++) {
       UIHarness.INSTANCE.openMessageDialog(messages.getWarning(i),
-          "Copytomocoms Warning", axisID);
+          "Copytomocoms Warning", axisID, appManager.getManagerKey());
     }
     if (exitValue != 0) {
       UIHarness.INSTANCE.openMessageDialog(copyTomoComs.getStdErrorString(),
-          "Copytomocoms Error", axisID);
+          "Copytomocoms Error", axisID, appManager.getManagerKey());
       return false;
     }
     return true;
@@ -1383,7 +1387,7 @@ public class ProcessManager extends BaseProcessManager {
     }
     catch (IOException except) {
       uiHarness.openMessageDialog("Unable to create alignlog files",
-          "Alignlog Error", axisID);
+          "Alignlog Error", axisID, appManager.getManagerKey());
     }
   }
 
@@ -1412,7 +1416,7 @@ public class ProcessManager extends BaseProcessManager {
     catch (IOException e) {
       e.printStackTrace();
       uiHarness.openMessageDialog("Unable to copy protected align files:",
-          "Align Error", axisID);
+          "Align Error", axisID, appManager.getManagerKey());
     }
 
   }
@@ -1548,7 +1552,7 @@ public class ProcessManager extends BaseProcessManager {
       e.printStackTrace();
       UIHarness.INSTANCE.openMessageDialog(
           "Unable to reconnect to processchunks.\n" + e.getMessage(),
-          "Reconnect Failure", axisID);
+          "Reconnect Failure", axisID, appManager.getManagerKey());
     }
   }
 
@@ -1660,7 +1664,7 @@ public class ProcessManager extends BaseProcessManager {
     }
     catch (SystemProcessException e) {
       uiHarness.openMessageDialog(e.getMessage(), "Setup Combine Error",
-          AxisID.ONLY);
+          AxisID.ONLY, appManager.getManagerKey());
       return false;
     }
     appManager.saveStorables(AxisID.ONLY);
@@ -1668,17 +1672,17 @@ public class ProcessManager extends BaseProcessManager {
     ProcessMessages messages = setupCombine.getProcessMessages();
     for (int i = 0; i < messages.errorListSize(); i++) {
       UIHarness.INSTANCE.openMessageDialog(messages.getError(i),
-          "Setup Combine Error", AxisID.ONLY);
+          "Setup Combine Error", AxisID.ONLY, appManager.getManagerKey());
     }
     for (int i = 0; i < messages.warningListSize(); i++) {
       UIHarness.INSTANCE.openMessageDialog(messages.getWarning(i),
-          "Setup Combine Warning", AxisID.ONLY);
+          "Setup Combine Warning", AxisID.ONLY, appManager.getManagerKey());
     }
     TomogramState state = appManager.getState();
     if (exitValue != 0) {
       UIHarness.INSTANCE.openMessageDialog(
           "Setup combine failed.  Exit value = " + exitValue,
-          "Setup Combine Failed", AxisID.ONLY);
+          "Setup Combine Failed", AxisID.ONLY, appManager.getManagerKey());
       if (processResultDisplay != null) {
         processResultDisplay.msgProcessFailed();
       }
@@ -1701,7 +1705,7 @@ public class ProcessManager extends BaseProcessManager {
   public void modelToPatch(AxisID axisID) throws SystemProcessException,
       LogFile.LockException {
     LogFile patchOut = LogFile.getInstance(appManager.getPropertyUserDir(),
-        DatasetFiles.PATCH_OUT);
+        DatasetFiles.PATCH_OUT, appManager.getManagerKey());
     patchOut.backup();
     /*File patchOut = new File(appManager.getPropertyUserDir(), "patch.out");
      if (patchOut.exists()) {
@@ -1882,7 +1886,7 @@ public class ProcessManager extends BaseProcessManager {
 
   private void printPsOutput(AxisID axisID) {
     SystemProgram ps = new SystemProgram(appManager.getPropertyUserDir(),
-        new String[] { "ps", "axl" }, axisID);
+        new String[] { "ps", "axl" }, axisID, appManager.getManagerKey());
     ps.run();
     System.out.println("ps axl date=" + ps.getRunTimestamp());
     //  Find the index of the Parent ID and ProcessID
@@ -1904,7 +1908,7 @@ public class ProcessManager extends BaseProcessManager {
   private void runCommand(String[] commandArray, AxisID axisID, LogFile logFile)
       throws SystemProcessException, LogFile.LockException {
     SystemProgram systemProgram = new SystemProgram(appManager
-        .getPropertyUserDir(), commandArray, axisID);
+        .getPropertyUserDir(), commandArray, axisID, appManager.getManagerKey());
     systemProgram
         .setWorkingDirectory(new File(appManager.getPropertyUserDir()));
     systemProgram.setDebug(EtomoDirector.INSTANCE.getArguments().isDebug());
@@ -1972,7 +1976,7 @@ public class ProcessManager extends BaseProcessManager {
       appManager.postProcess(axisID, processName, processDetails, script
           .getProcessResultDisplay());
       appManager.logMessage(TaErrorLog.getInstance(appManager
-          .getPropertyUserDir(), axisID), axisID);
+          .getPropertyUserDir(), axisID), axisID, appManager.getManagerKey());
     }
     else if (processName == ProcessName.TOMOPITCH) {
       appManager.setTomopitchOutput(axisID);
@@ -2014,7 +2018,7 @@ public class ProcessManager extends BaseProcessManager {
       if (fiducialFile.exists()) {
         state.setFidFileLastModified(axisID, fiducialFile.lastModified());
         appManager.logMessage(TrackLog.getInstance(appManager
-            .getPropertyUserDir(), axisID), axisID);
+            .getPropertyUserDir(), axisID), axisID, appManager.getManagerKey());
       }
       else {
         state.resetFidFileLastModified(axisID);
@@ -2053,8 +2057,11 @@ public class ProcessManager extends BaseProcessManager {
     super.postProcess(process);
     if (process.getCommandLine().equals(transferfidCommandLine)) {
       writeLogFile(process, process.getAxisID(), DatasetFiles.TRANSFER_FID_LOG);
-      showTransferfidLogFile(process.getAxisID());
+      //showTransferfidLogFile(process.getAxisID());
       appManager.getState().setSeedingDone(process.getAxisID(), true);
+      appManager.logMessage(TransferFidLog.getInstance(appManager
+          .getPropertyUserDir(), process.getAxisID()), process.getAxisID(),
+          appManager.getManagerKey());
     }
     else {
       String commandName = process.getCommandName();
@@ -2072,7 +2079,7 @@ public class ProcessManager extends BaseProcessManager {
         MRCHeader mrcHeader = MRCHeader.getInstance(appManager
             .getPropertyUserDir(), TrimvolParam.getInputFileName(appManager
             .getBaseMetaData().getAxisType(), appManager.getBaseMetaData()
-            .getName()), AxisID.ONLY);
+            .getName()), AxisID.ONLY, appManager.getManagerKey());
         try {
           if (mrcHeader.read()) {
             state.setPostProcTrimVolInputNColumns(mrcHeader.getNColumns());

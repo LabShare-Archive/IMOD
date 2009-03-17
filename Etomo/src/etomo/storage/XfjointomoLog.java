@@ -6,6 +6,7 @@ import java.util.Hashtable;
 import java.util.Vector;
 
 import etomo.BaseManager;
+import etomo.ManagerKey;
 import etomo.type.EtomoNumber;
 import etomo.util.DatasetFiles;
 
@@ -25,6 +26,9 @@ import etomo.util.DatasetFiles;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.3  2009/02/04 23:29:40  sueh
+ * <p> bug# 1158 Changed id and exceptions classes in LogFile.
+ * <p>
  * <p> Revision 1.2  2008/01/31 20:24:14  sueh
  * <p> bug# 1055 throwing a FileException when LogFile.getInstance fails.
  * <p>
@@ -40,7 +44,10 @@ public final class XfjointomoLog {
 
   private final Hashtable rowList = new Hashtable();
   private final Vector rowArray = new Vector();
+  
   private final String dir;
+  private final ManagerKey managerKey;
+  
   private LogFile logFile = null;
 
   public static XfjointomoLog getInstance(BaseManager manager) {
@@ -102,6 +109,7 @@ public final class XfjointomoLog {
 
   private XfjointomoLog(BaseManager manager) {
     dir = manager.getPropertyUserDir();
+    managerKey = manager.getManagerKey();
   }
 
   private synchronized static XfjointomoLog createInstance(BaseManager manager) {
@@ -136,7 +144,7 @@ public final class XfjointomoLog {
       return;
     }
     rowList.clear();
-    logFile = LogFile.getInstance(dir, DatasetFiles.XFJOINTOMO_LOG);
+    logFile = LogFile.getInstance(dir, DatasetFiles.XFJOINTOMO_LOG, managerKey);
     LogFile.ReaderId readerId = logFile.openReader();
     String boundary = null;
     String line = null;

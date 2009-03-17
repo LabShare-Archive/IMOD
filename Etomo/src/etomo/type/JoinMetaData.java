@@ -25,6 +25,9 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.13  2008/12/10 18:32:18  sueh
+ * <p> bug# 1162 Added a manager stamp to setRootName.
+ * <p>
  * <p> Revision 1.12  2008/08/18 22:38:00  sueh
  * <p> bug# 1130 Added localFits.
  * <p>
@@ -305,7 +308,7 @@ public final class JoinMetaData extends BaseMetaData implements
       if (rowIndex < 0) {
         UIHarness.INSTANCE.openMessageDialog("Invalid row index: " + rowIndex,
             "Corrupted " + DatasetFiles.JOIN_DATA_FILE_EXT + " file",
-            AxisID.ONLY);
+            AxisID.ONLY, manager.getManagerKey());
       }
       sectionTableData.add(row.getRowIndex(), row);
     }

@@ -32,6 +32,9 @@ import etomo.util.MRCHeader;
  * </p>
  * 
  * <p> $Log$
+ * <p> Revision 1.17  2009/02/13 02:32:28  sueh
+ * <p> bug# 1176 Checking return value of MRCHeader.read.
+ * <p>
  * <p> Revision 1.16  2007/03/26 18:37:52  sueh
  * <p> bug# 964 Changed getDouble(boolean defaultIfNull) to getDefaultDouble() so that
  * <p> the functionality will be remembered and used.
@@ -435,11 +438,11 @@ public class SectionTableRowData extends ConstSectionTableRowData {
    */
   private final MRCHeader readHeader(String path) {
     MRCHeader header = MRCHeader.getInstance(manager.getPropertyUserDir(),
-        path, AxisID.ONLY);
+        path, AxisID.ONLY, manager.getManagerKey());
     try {
       if (!header.read()) {
         UIHarness.INSTANCE.openMessageDialog("Unable to read the header in"
-            + path, "Setting Max Values Failed");
+            + path, "Setting Max Values Failed", manager.getManagerKey());
         return null;
       }
     }
@@ -447,13 +450,13 @@ public class SectionTableRowData extends ConstSectionTableRowData {
       e.printStackTrace();
       UIHarness.INSTANCE.openMessageDialog("Unable to read the header in"
           + path + ".\nInvalidParameterException:  " + e.getMessage(),
-          "Setting Max Values Failed");
+          "Setting Max Values Failed", manager.getManagerKey());
       return null;
     }
     catch (IOException e) {
       UIHarness.INSTANCE.openMessageDialog("Unable to read the header in"
           + path + ".\nIOException:  " + e.getMessage(),
-          "Setting Max Values Failed");
+          "Setting Max Values Failed", manager.getManagerKey());
       return null;
     }
     return header;

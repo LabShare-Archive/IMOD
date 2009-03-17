@@ -59,6 +59,9 @@ import etomo.util.DatasetFiles;
  * 
  * <p>
  * $Log$
+ * Revision 3.71  2009/02/04 23:36:48  sueh
+ * bug# 1158 Changed id and exception classes in LogFile.
+ *
  * Revision 3.70  2009/01/20 20:04:58  sueh
  * bug# 1102 Changed labeled panels to type EtomoPanel so that they can name themselves.
  *
@@ -1351,9 +1354,10 @@ public class FinalCombinePanel implements ContextMenu, FinalCombineFields,
 
     try {
       adocCombineFft = AutodocFactory.getInstance(AutodocFactory.COMBINE_FFT,
-          AxisID.ONLY);
+          AxisID.ONLY, applicationManager.getManagerKey());
       adocCorrsearch3d = AutodocFactory.getInstance(
-          AutodocFactory.CORR_SEARCH_3D, AxisID.ONLY);
+          AutodocFactory.CORR_SEARCH_3D, AxisID.ONLY, applicationManager
+              .getManagerKey());
     }
     catch (FileNotFoundException except) {
       except.printStackTrace();

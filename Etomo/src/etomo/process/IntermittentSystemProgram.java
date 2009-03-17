@@ -3,6 +3,7 @@ package etomo.process;
 import java.io.BufferedReader;
 import java.io.IOException;
 
+import etomo.ManagerKey;
 import etomo.type.AxisID;
 
 /**
@@ -28,8 +29,8 @@ public class IntermittentSystemProgram {
   private boolean debug = false;
 
   private IntermittentSystemProgram(String propertyUserDir, String[] cmdArray,
-      AxisID axisID, String outputKeyPhrase, boolean useStartCommand) {
-    program = new SystemProgram(propertyUserDir, cmdArray, axisID);
+      AxisID axisID, String outputKeyPhrase, boolean useStartCommand, ManagerKey managerKey) {
+    program = new SystemProgram(propertyUserDir, cmdArray, axisID, managerKey);
     program.setCollectOutput(false);
     this.outputKeyPhrase = outputKeyPhrase;
     this.useStartCommand = useStartCommand;
@@ -37,9 +38,9 @@ public class IntermittentSystemProgram {
 
   public static IntermittentSystemProgram getStartInstance(
       String propertyUserDir, String[] startCmdArray, AxisID axisID,
-      String outputKeyPhrase) {
+      String outputKeyPhrase, ManagerKey managerKey) {
     return new IntermittentSystemProgram(propertyUserDir, startCmdArray,
-        axisID, outputKeyPhrase, true);
+        axisID, outputKeyPhrase, true, managerKey);
   }
 
   /**
@@ -53,10 +54,10 @@ public class IntermittentSystemProgram {
    */
   public static IntermittentSystemProgram getIntermittentInstance(
       String propertyUserDir, String intermittentCommand, AxisID axisID,
-      String outputKeyPhrase) {
+      String outputKeyPhrase, ManagerKey managerKey) {
 
     return new IntermittentSystemProgram(propertyUserDir, intermittentCommand
-        .split("\\s+"), axisID, outputKeyPhrase, false);
+        .split("\\s+"), axisID, outputKeyPhrase, false, managerKey);
   }
 
   boolean useStartCommand() {
@@ -150,6 +151,9 @@ public class IntermittentSystemProgram {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.18  2008/02/16 01:47:18  sueh
+ * <p> bug# 1080 In clearStdError calling OutputBufferManager.clear.
+ * <p>
  * <p> Revision 1.17  2007/09/27 20:19:54  sueh
  * <p> bug# 1044 Changed IntermittentSystemProgram to have the option of not
  * <p> running a start command.  It this case, this intermittent command is set that the

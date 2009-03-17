@@ -40,6 +40,9 @@ import etomo.type.Run3dmodMenuOptions;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.27  2009/02/04 23:36:48  sueh
+ * <p> bug# 1158 Changed id and exception classes in LogFile.
+ * <p>
  * <p> Revision 3.26  2009/01/20 19:44:48  sueh
  * <p> bug# 1102 Changed labeled panels to type EtomoPanel so that they can name themselves.
  * <p>
@@ -472,8 +475,8 @@ public final class BeadtrackPanel implements Expandable,
   public void getParameters(BeadtrackParam beadtrackParams)
       throws FortranInputSyntaxException, InvalidEtomoNumberException {
     beadtrackParams.setFillGaps(cbFillGaps.isSelected());
-    beadtrackParams.setImagesAreBinned(UIExpertUtilities.INSTANCE.getStackBinning(
-        manager, axisID, ".preali"));
+    beadtrackParams.setImagesAreBinned(UIExpertUtilities.INSTANCE
+        .getStackBinning(manager, axisID, ".preali"));
     String errorTitle = "Field Error";
     String badParameter = "";
     //handle field that throw FortranInputSyntaxException
@@ -516,87 +519,96 @@ public final class BeadtrackPanel implements Expandable,
       //InvalidEtomoNumberException
       try {
         badParameter = ltfTiltAngleGroupSize.getLabel();
-        beadtrackParams.setTiltDefaultGrouping(ltfTiltAngleGroupSize.getText())
-            .validate(errorTitle, badParameter, axisID);
+        beadtrackParams
+            .setTiltDefaultGrouping(ltfTiltAngleGroupSize.getText())
+            .validate(errorTitle, badParameter, axisID, manager.getManagerKey());
 
         badParameter = ltfMagnificationGroupSize.getLabel();
         beadtrackParams.setMagDefaultGrouping(
             ltfMagnificationGroupSize.getText()).validate(errorTitle,
-            badParameter, axisID);
+            badParameter, axisID, manager.getManagerKey());
 
         badParameter = ltfNMinViews.getLabel();
-        beadtrackParams.setMinViewsForTiltalign(ltfNMinViews.getText())
-            .validate(errorTitle, badParameter, axisID);
+        beadtrackParams
+            .setMinViewsForTiltalign(ltfNMinViews.getText())
+            .validate(errorTitle, badParameter, axisID, manager.getManagerKey());
 
         badParameter = ltfMaxGap.getLabel();
         beadtrackParams.setMaxGapSize(ltfMaxGap.getText()).validate(errorTitle,
-            badParameter, axisID);
+            badParameter, axisID, manager.getManagerKey());
 
         badParameter = ltfMaxFiducialsAvg.getLabel();
-        beadtrackParams.setMaxBeadsToAverage(ltfMaxFiducialsAvg.getText())
-            .validate(errorTitle, badParameter, axisID);
+        beadtrackParams
+            .setMaxBeadsToAverage(ltfMaxFiducialsAvg.getText())
+            .validate(errorTitle, badParameter, axisID, manager.getManagerKey());
 
         badParameter = ltfMinRescueDistance.getLabel();
         beadtrackParams.setDistanceRescueCriterion(
             ltfMinRescueDistance.getText()).validate(errorTitle, badParameter,
-            axisID);
+            axisID, manager.getManagerKey());
 
         badParameter = ltfResidualDistanceLimit.getLabel();
         beadtrackParams.setPostFitRescueResidual(
             ltfResidualDistanceLimit.getText()).validate(errorTitle,
-            badParameter, axisID);
+            badParameter, axisID, manager.getManagerKey());
 
         badParameter = ltfDensityRelaxationPostFit.getLabel();
         beadtrackParams.setDensityRelaxationPostFit(
             ltfDensityRelaxationPostFit.getText()).validate(errorTitle,
-            badParameter, axisID);
+            badParameter, axisID, manager.getManagerKey());
 
         badParameter = ltfMaxRescueDistance.getLabel();
-        beadtrackParams.setMaxRescueDistance(ltfMaxRescueDistance.getText())
-            .validate(errorTitle, badParameter, axisID);
+        beadtrackParams
+            .setMaxRescueDistance(ltfMaxRescueDistance.getText())
+            .validate(errorTitle, badParameter, axisID, manager.getManagerKey());
 
         badParameter = ltfMinTiltRangeToFindAxis.getLabel();
         beadtrackParams.setMinTiltRangeToFindAxis(
             ltfMinTiltRangeToFindAxis.getText()).validate(errorTitle,
-            badParameter, axisID);
+            badParameter, axisID, manager.getManagerKey());
 
         badParameter = ltfMinTiltRangeToFindAngle.getLabel();
         beadtrackParams.setMinTiltRangeToFindAngles(
             ltfMinTiltRangeToFindAngle.getText()).validate(errorTitle,
-            badParameter, axisID);
+            badParameter, axisID, manager.getManagerKey());
 
         badParameter = ltfBeadDiameter.getLabel();
-        beadtrackParams.setBeadDiameter(ltfBeadDiameter.getText())
-            .validate(errorTitle, badParameter, axisID);
+        beadtrackParams.setBeadDiameter(ltfBeadDiameter.getText()).validate(
+            errorTitle, badParameter, axisID, manager.getManagerKey());
 
         badParameter = cbLightBeads.getText();
         beadtrackParams.setLightBeads(cbLightBeads.isSelected()).validate(
-            errorTitle, badParameter, axisID);
+            errorTitle, badParameter, axisID, manager.getManagerKey());
 
         badParameter = cbLocalAreaTracking.getText();
-        beadtrackParams.setLocalAreaTracking(cbLocalAreaTracking.isSelected())
-            .validate(errorTitle, badParameter, axisID);
+        beadtrackParams
+            .setLocalAreaTracking(cbLocalAreaTracking.isSelected())
+            .validate(errorTitle, badParameter, axisID, manager.getManagerKey());
 
         badParameter = ltfLocalAreaTargetSize.getText();
         beadtrackParams
             .setLocalAreaTargetSize(ltfLocalAreaTargetSize.getText()).validate(
-                errorTitle, badParameter, axisID);
+                errorTitle, badParameter, axisID, manager.getManagerKey());
 
         badParameter = ltfMinBeadsInArea.getText();
-        beadtrackParams.setMinBeadsInArea(ltfMinBeadsInArea.getText())
-            .validate(errorTitle, badParameter, axisID);
+        beadtrackParams
+            .setMinBeadsInArea(ltfMinBeadsInArea.getText())
+            .validate(errorTitle, badParameter, axisID, manager.getManagerKey());
 
         badParameter = ltfMinOverlapBeads.getText();
-        beadtrackParams.setMinOverlapBeads(ltfMinOverlapBeads.getText())
-            .validate(errorTitle, badParameter, axisID);
+        beadtrackParams
+            .setMinOverlapBeads(ltfMinOverlapBeads.getText())
+            .validate(errorTitle, badParameter, axisID, manager.getManagerKey());
 
         badParameter = ltfMaxViewsInAlign.getText();
-        beadtrackParams.setMaxViewsInAlign(ltfMaxViewsInAlign.getText())
-            .validate(errorTitle, badParameter, axisID);
+        beadtrackParams
+            .setMaxViewsInAlign(ltfMaxViewsInAlign.getText())
+            .validate(errorTitle, badParameter, axisID, manager.getManagerKey());
 
         badParameter = ltfRoundsOfTracking.getText();
-        beadtrackParams.setRoundsOfTracking(ltfRoundsOfTracking.getText())
-            .validate(errorTitle, badParameter, axisID);
+        beadtrackParams
+            .setRoundsOfTracking(ltfRoundsOfTracking.getText())
+            .validate(errorTitle, badParameter, axisID, manager.getManagerKey());
       }
       catch (InvalidEtomoNumberException e) {
         throw e;
@@ -631,7 +643,8 @@ public final class BeadtrackPanel implements Expandable,
       if (skipList.length() > 0) {
         if (skipList.matches(".*\\s+.*")) {
           UIHarness.INSTANCE.openMessageDialog(VIEW_SKIP_LIST_LABEL
-              + " cannot contain embedded spaces.", "Entry Error", axisID);
+              + " cannot contain embedded spaces.", "Entry Error", axisID,
+              manager.getManagerKey());
           return;
         }
       }
@@ -685,7 +698,8 @@ public final class BeadtrackPanel implements Expandable,
     String text;
     ReadOnlyAutodoc autodoc = null;
     try {
-      autodoc = AutodocFactory.getInstance(AutodocFactory.BEADTRACK, axisID);
+      autodoc = AutodocFactory.getInstance(AutodocFactory.BEADTRACK, axisID,
+          manager.getManagerKey());
     }
     catch (FileNotFoundException except) {
       except.printStackTrace();

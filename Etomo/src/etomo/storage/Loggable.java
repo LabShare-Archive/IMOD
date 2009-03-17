@@ -4,6 +4,8 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.List;
 
+import etomo.ManagerKey;
+
 /**
  * <p>Description: </p>
  * 
@@ -17,13 +19,16 @@ import java.util.List;
  * 
  * @version $Revision$
  * 
- * <p> $Log$ </p>
+ * <p> $Log$
+ * <p> Revision 1.1  2009/02/04 23:27:58  sueh
+ * <p> bug# 1158 Interface for classes that will send log entries to LogPanel.
+ * <p> </p>
  */
 
 public interface Loggable {
   public static final String rcsid = "$Id$";
 
-  public List getLogMessage() throws LogFile.LockException,
+  public List getLogMessage(ManagerKey managerKey) throws LogFile.LockException,
       FileNotFoundException, IOException;
 
   public String getName();

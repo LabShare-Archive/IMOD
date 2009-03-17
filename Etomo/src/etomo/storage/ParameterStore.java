@@ -3,7 +3,9 @@ package etomo.storage;
 import java.io.*;
 import java.util.*;
 
-/*
+import etomo.ManagerKey;
+
+/**
  * <p>Description: Keeps a Properties instance that mirrors a properties file.
  * Loads the properties file once.  Updates the properties instance and saves as
  * requested.</p>  
@@ -24,6 +26,9 @@ import java.util.*;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.10  2009/02/04 23:29:40  sueh
+ * <p> bug# 1158 Changed id and exceptions classes in LogFile.
+ * <p>
  * <p> Revision 3.9  2008/01/31 20:23:00  sueh
  * <p> bug# 1055 throwing a FileException when LogFile.getInstance fails.  Made
  * <p> ParametersStore thread safe.
@@ -72,7 +77,7 @@ import java.util.*;
  * <p> Revision 1.1  2002/09/09 22:57:02  rickg
  * <p> Initial CVS entry, basic functionality not including combining
  * <p> </p>
- */
+ **/
 public final class ParameterStore {
   public static final String rcsid = "$Id$";
 
@@ -90,15 +95,16 @@ public final class ParameterStore {
   /**
    * If paramFile is null, returns null.
    */
-  public static ParameterStore getInstance(File paramFile)
+  public static ParameterStore getInstance(File paramFile, ManagerKey managerKey)
       throws LogFile.LockException {
     ParameterStore instance = new ParameterStore(paramFile);
-    instance.initialize(paramFile);
+    instance.initialize(paramFile, managerKey);
     return instance;
   }
 
-  private void initialize(File paramFile) throws LogFile.LockException {
-    dataFile = LogFile.getInstance(paramFile);
+  private void initialize(File paramFile, ManagerKey managerKey)
+      throws LogFile.LockException {
+    dataFile = LogFile.getInstance(paramFile, managerKey);
     if (dataFile.exists()) {
       LogFile.InputStreamId inputStreamId = null;
       try {
@@ -123,7 +129,7 @@ public final class ParameterStore {
    * Saves properties to the paramFile.
    * @throws IOException
    */
-  public void storeProperties() throws LogFile.LockException,IOException{
+  public void storeProperties() throws LogFile.LockException, IOException {
     synchronized (dataFile) {
       dataFile.backupOnce();
       if (!dataFile.exists()) {
@@ -157,7 +163,7 @@ public final class ParameterStore {
    * @param storable
    * @throws IOException
    */
-  public void save(Storable storable) throws LogFile.LockException,IOException{
+  public void save(Storable storable) throws LogFile.LockException, IOException {
     synchronized (dataFile) {
       //let the storable overwrite its values
       storable.store(properties);

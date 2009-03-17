@@ -23,6 +23,9 @@ import etomo.util.DatasetFiles;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.5  2009/02/04 23:26:53  sueh
+ * <p> bug# 1158 Changed id and exceptions classes in LogFile.
+ * <p>
  * <p> Revision 1.4  2008/01/14 21:33:23  sueh
  * <p> big# 1050 Removed protected modifiers since classes in this familly aren't being
  * <p> inherited by classes outside their package.
@@ -53,7 +56,8 @@ final class ProcesschunksVolcombineMonitor extends ProcesschunksProcessMonitor {
     super(manager, axisID, parallelProgressDisplay, rootName, computerList);
   }
 
-  boolean updateState() throws LogFile.LockException,FileNotFoundException,IOException {
+  boolean updateState() throws LogFile.LockException, FileNotFoundException,
+      IOException {
     String line = null;
     if (super.updateState()) {
       return true;
@@ -61,7 +65,7 @@ final class ProcesschunksVolcombineMonitor extends ProcesschunksProcessMonitor {
     if (isStarting()) {
       if (startLog == null) {
         startLog = LogFile.getInstance(manager.getPropertyUserDir(),
-            DatasetFiles.VOLCOMBINE_START_LOG);
+            DatasetFiles.VOLCOMBINE_START_LOG, manager.getManagerKey());
       }
       if (readerIdStart == null || readerIdStart.isEmpty()) {
         try {
@@ -82,7 +86,7 @@ final class ProcesschunksVolcombineMonitor extends ProcesschunksProcessMonitor {
     else if (isFinishing()) {
       if (finishLog == null) {
         finishLog = LogFile.getInstance(manager.getPropertyUserDir(),
-            DatasetFiles.VOLCOMBINE_FINISH_LOG);
+            DatasetFiles.VOLCOMBINE_FINISH_LOG, manager.getManagerKey());
       }
       if (readerIdFinish == null || readerIdFinish.isEmpty()) {
         try {

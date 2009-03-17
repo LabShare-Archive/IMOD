@@ -103,8 +103,8 @@ public final class ParallelPanel implements Expandable {
     southPanel.add(ltfCPUsSelected);
     southPanel.add(btnRestartLoad);
     //sNice
-    niceFloor = CpuAdoc.getInstance(axisID, manager.getPropertyUserDir())
-        .getMinNice();
+    niceFloor = CpuAdoc.getInstance(axisID, manager.getPropertyUserDir(),
+        manager.getManagerKey()).getMinNice();
     sNice = Spinner.getLabeledInstance("Nice: ", manager
         .getParallelProcessingDefaultNice(), niceFloor,
         ProcesschunksParam.NICE_CEILING);
@@ -118,18 +118,18 @@ public final class ParallelPanel implements Expandable {
     bodyPanel.addRigidArea();
     bodyPanel.add(tablePanel);
     bodyPanel.add(southPanel);
-    if (CpuAdoc.getInstance(axisID, manager.getPropertyUserDir())
-        .hasComputers()
-        && CpuAdoc.getInstance(axisID, manager.getPropertyUserDir())
-            .hasQueues()) {
+    if (CpuAdoc.getInstance(axisID, manager.getPropertyUserDir(),
+        manager.getManagerKey()).hasComputers()
+        && CpuAdoc.getInstance(axisID, manager.getPropertyUserDir(),
+            manager.getManagerKey()).hasQueues()) {
       JPanel clusterPanel = new JPanel();
       clusterPanel.setLayout(new BoxLayout(clusterPanel, BoxLayout.LINE_AXIS));
       clusterPanel.setAlignmentX(Component.RIGHT_ALIGNMENT);
       clusterPanel.add(cbCluster);
       bodyPanel.add(clusterPanel);
     }
-    else if (CpuAdoc.getInstance(axisID, manager.getPropertyUserDir())
-        .hasQueues()) {
+    else if (CpuAdoc.getInstance(axisID, manager.getPropertyUserDir(),
+        manager.getManagerKey()).hasQueues()) {
       cbCluster.setSelected(true);
     }
     //header
@@ -193,11 +193,11 @@ public final class ParallelPanel implements Expandable {
   void setCPUsSelected(final int cpusSelected) {
     ltfCPUsSelected.setText(cpusSelected);
   }
-  
+
   String getCPUsSelected() {
     return ltfCPUsSelected.getText();
   }
-  
+
   String getCPUsSelectedLabel() {
     return ltfCPUsSelected.getLabel();
   }
@@ -318,7 +318,8 @@ public final class ParallelPanel implements Expandable {
     UIHarness.INSTANCE.openMessageDialog(error
         + "  "
         + (cbCluster.isSelected() ? queueTable : computerTable)
-            .getHelpMessage(), TITLE + " Table Error", axisID);
+            .getHelpMessage(), TITLE + " Table Error", axisID, manager
+        .getManagerKey());
     return false;
   }
 
@@ -380,6 +381,9 @@ public final class ParallelPanel implements Expandable {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.65  2009/01/20 20:18:46  sueh
+ * <p> bug# 1102 Changed labeled panels to type EtomoPanel so that they can name themselves.
+ * <p>
  * <p> Revision 1.64  2008/10/27 20:42:03  sueh
  * <p> bug# 1141 Added getCPUsSelected.  Removed
  * <p> getParameters(SplittiltParam) because it is not generic.

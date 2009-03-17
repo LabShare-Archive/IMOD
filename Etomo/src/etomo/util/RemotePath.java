@@ -362,7 +362,7 @@ public final class RemotePath {
 
     ReadOnlyAutodoc autodoc;
     try {
-      autodoc = AutodocFactory.getInstance(AUTODOC, axisID);
+      autodoc = AutodocFactory.getInstance(AUTODOC, axisID, manager.getManagerKey());
     }
     catch (IOException e) {
       e.printStackTrace();
@@ -578,7 +578,7 @@ public final class RemotePath {
    */
   private final String getHostName(BaseManager manager, AxisID axisID) {
     SystemProgram hostname = new SystemProgram(manager.getPropertyUserDir(),
-        new String[] { "hostname" }, axisID);
+        new String[] { "hostname" }, axisID, manager.getManagerKey());
     hostname.run();
     String[] stdout = hostname.getStdOutput();
     if (stdout == null || stdout.length < 1) {
@@ -677,6 +677,9 @@ public final class RemotePath {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.20  2009/02/04 23:38:24  sueh
+ * <p> bug# 1158 Changed id and exception classes in LogFile.
+ * <p>
  * <p> Revision 1.19  2007/12/26 22:41:38  sueh
  * <p> bug# 1052 Moved argument handling from EtomoDirector to a separate class.
  * <p>

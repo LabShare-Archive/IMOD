@@ -5,6 +5,7 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.Properties;
 
+import etomo.BaseManager;
 import etomo.EtomoDirector;
 import etomo.type.AxisID;
 import etomo.type.ProcessName;
@@ -26,6 +27,9 @@ import junit.framework.TestCase;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.10  2009/02/04 23:29:40  sueh
+ * <p> bug# 1158 Changed id and exceptions classes in LogFile.
+ * <p>
  * <p> Revision 1.9  2008/12/15 23:02:21  sueh
  * <p> bug# 1161 Made EtomoDirector.getCurrentManager private.  Added a
  * <p> public test version for public access.
@@ -69,6 +73,8 @@ public class LogFileTest extends TestCase {
       + DatasetFiles.LOG_EXT);
   private final File backupLog = new File(log.getAbsolutePath()
       + DatasetFiles.BACKUP_CHAR);
+  private final BaseManager manager = EtomoDirector.INSTANCE
+      .getCurrentManagerForTest();
 
   public LogFileTest() {
     super();
@@ -220,7 +226,7 @@ public class LogFileTest extends TestCase {
         test.isOpen(LogFile.LockType.WRITE, writingId1));
     LogFile.WritingId writingId2 = null;
     try {
-       writingId2 = test.openForWriting();
+      writingId2 = test.openForWriting();
       fail("Shouldn't be able to open a log file for writing when it is already open for writing.");
     }
     catch (LogFile.LockException e) {
@@ -443,7 +449,8 @@ public class LogFileTest extends TestCase {
     LogFile test = getInstance();
     test.delete();
     assertTrue(test.noLocks());
-    LogFile target = LogFile.getInstance(testDir.getAbsolutePath(), "target");
+    LogFile target = LogFile.getInstance(testDir.getAbsolutePath(), "target",
+        manager.getManagerKey());
     target.delete();
     LogFile.WriterId writerId = test.openWriter();
     try {
@@ -606,7 +613,7 @@ public class LogFileTest extends TestCase {
       IOException {
     LogFile testa = getInstance();
     LogFile testb = LogFile.getInstance(log.getParent(), AxisID.ONLY,
-        ProcessName.ALIGN);
+        ProcessName.ALIGN, manager.getManagerKey());
     LogFile.InputStreamId id0a = testa.openInputStream();
     LogFile.WritingId id0b = testb.openForWriting();
     assertEquals("Ids in different instances do not affect each other", id0a
@@ -705,14 +712,13 @@ public class LogFileTest extends TestCase {
 
   private LogFile getInstance() throws LogFile.LockException {
     LogFile logFile = LogFile.getInstance(testDir.getAbsolutePath(),
-        AxisID.ONLY, ProcessName.BLEND);
+        AxisID.ONLY, ProcessName.BLEND, manager.getManagerKey());
     return logFile;
   }
 
   private void createLog() {
     if (!log.exists()) {
-      EtomoDirector.INSTANCE.getCurrentManagerForTest().touch(
-          log.getAbsolutePath());
+      manager.touch(log.getAbsolutePath());
       try {
         Thread.sleep(500);
       }

@@ -25,6 +25,10 @@ import junit.framework.TestCase;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.25  2009/02/20 17:07:24  sueh
+ * <p> bug# 1180 Letting exceptions by thrown instead of catch so that more
+ * <p> information will be available when this fails.
+ * <p>
  * <p> Revision 3.24  2009/02/04 23:30:30  sueh
  * <p> bug# 1158 Changed id and exception classes in LogFile.
  * <p>
@@ -152,8 +156,9 @@ public class MetaDataTest extends TestCase {
   private final ApplicationManager manager;
 
   public MetaDataTest(String test) {
-	super(test);
-    manager = (ApplicationManager) EtomoDirector.INSTANCE.getCurrentManagerForTest();
+    super(test);
+    manager = (ApplicationManager) EtomoDirector.INSTANCE
+        .getCurrentManagerForTest();
   }
 
   protected void setUp() throws Exception {
@@ -167,8 +172,8 @@ public class MetaDataTest extends TestCase {
 
     //  Check out the test vectors from the CVS repository
     for (int i = 0; i < edfList.length; i++) {
-        TestUtilites.getVector(manager, TypeTests.TEST_ROOT_DIR
-            .getAbsolutePath(), testDirectory, edfList[i]);
+      TestUtilites.getVector(manager,
+          TypeTests.TEST_ROOT_DIR.getAbsolutePath(), testDirectory, edfList[i]);
     }
 
     //Don't do tests involving file permissions in Windows, since they can't be set.
@@ -226,18 +231,19 @@ public class MetaDataTest extends TestCase {
   /*
    * Class to test for void store(Properties)
    */
-  public void testStoreProperties() throws LogFile.LockException,IOException {
+  public void testStoreProperties() throws LogFile.LockException, IOException {
     for (int i = 0; i < edfList.length; i++) {
       MetaData origMetaData = new MetaData(manager);
 
       //  Load in the original etomo data file
       File origFile = new File(testDir, edfList[i]);
-      ParameterStore paramStore = ParameterStore.getInstance(origFile);
+      ParameterStore paramStore = ParameterStore.getInstance(origFile, manager
+          .getManagerKey());
       paramStore.load(origMetaData);
 
       //  Create a new output file
       File newFile = new File(testDir, edfList[i] + "new");
-      paramStore = ParameterStore.getInstance(newFile);
+      paramStore = ParameterStore.getInstance(newFile, manager.getManagerKey());
 
       //  Write out the meta data to the new file
       paramStore.save(origMetaData);
@@ -259,7 +265,8 @@ public class MetaDataTest extends TestCase {
     assertTrue(file.isFile());
     if (file.canRead()) {
       SystemProgram program = new SystemProgram(manager.getPropertyUserDir(),
-          new String[] { "chmod", "244", name }, AxisID.ONLY);
+          new String[] { "chmod", "244", name }, AxisID.ONLY, manager
+              .getManagerKey());
       program.setWorkingDirectory(dir);
       program.run();
     }

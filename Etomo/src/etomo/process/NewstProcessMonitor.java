@@ -11,6 +11,10 @@
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.19  2009/02/13 02:14:49  sueh
+ * <p> bug# 1176 Checking return value of MRCHeader.read.  Gave calcFileSize
+ * <p> a return value.
+ * <p>
  * <p> Revision 3.18  2009/02/04 23:26:32  sueh
  * <p> bug# 1158 Changed id and exceptions classes in LogFile.
  * <p>
@@ -182,7 +186,8 @@ final class NewstProcessMonitor extends FileSizeProcessMonitor {
     String rawStackFilename = applicationManager.getPropertyUserDir() + "/"
         + newstParam.getInputFile();
     MRCHeader rawStack = MRCHeader.getInstance(applicationManager
-        .getPropertyUserDir(), rawStackFilename, axisID);
+        .getPropertyUserDir(), rawStackFilename, axisID, applicationManager
+        .getManagerKey());
     if (!rawStack.read()) {
       return false;
     }
