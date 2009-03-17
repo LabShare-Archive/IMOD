@@ -62,6 +62,7 @@ c
       integer*4 ixstCen, ixndCen, iystCen, iyndCen
       real*4 xBoxOfs, yBoxOfs, cosphi, sinphi, x0, y0, xshift, yshift
       real*4 usemin, usemax, usemean, cumXshift, cumYshift, cumXrot, xAdjust
+      real*4 angleOffset
       integer*4 niceframe
       real*4 cosd, sind
 
@@ -74,20 +75,20 @@ c
 c       fallbacks from ../../manpages/autodoc2man -2 2  tiltxcorr
 c       
       integer numOptions
-      parameter (numOptions = 27)
+      parameter (numOptions = 28)
       character*(40 * numOptions) options(1)
       options(1) =
      &    'input:InputFile:FN:@piece:PieceListFile:FN:@'//
      &    'output:OutputFile:FN:@rotation:RotationAngle:F:@'//
      &    'first:FirstTiltAngle:F:@increment:TiltIncrement:F:@'//
      &    'tiltfile:TiltFile:FN:@angles:TiltAngles:FAM:@'//
-     &    'radius1:FilterRadius1:F:@radius2:FilterRadius2:F:@'//
-     &    'sigma1:FilterSigma1:F:@sigma2:FilterSigma2:F:@'//
-     &    'exclude:ExcludeCentralPeak:B:@border:BordersInXandY:IP:@'//
-     &    'xminmax:XMinAndMax:IP:@yminmax:YMinAndMax:IP:@'//
-     &    'bin:BinningToApply:I:@leaveaxis:LeaveTiltAxisShifted:B:@'//
-     &    'pad:PadsInXandY:IP:@taper:TapersInXandY:IP:@'//
-     &    'views:StartingEndingViews:IP:@'//
+     &    'offset:AngleOffset:F:@radius1:FilterRadius1:F:@'//
+     &    'radius2:FilterRadius2:F:@sigma1:FilterSigma1:F:@'//
+     &    'sigma2:FilterSigma2:F:@exclude:ExcludeCentralPeak:B:@'//
+     &    'border:BordersInXandY:IP:@xminmax:XMinAndMax:IP:@'//
+     &    'yminmax:YMinAndMax:IP:@binning:BinningToApply:I:@'//
+     &    'leaveaxis:LeaveTiltAxisShifted:B:@pad:PadsInXandY:IP:@'//
+     &    'taper:TapersInXandY:IP:@views:StartingEndingViews:IP:@'//
      &    'cumulative:CumulativeCorrelation:B:@'//
      &    'absstretch:AbsoluteCosineStretch:B:@nostretch:NoCosineStretch:B:@'//
      &    'test:TestOutput:FN:@param:ParameterFile:PF:@help:usage:B:'
@@ -108,7 +109,7 @@ c
       ifNoStretch = 0
       ifAbsStretch = 0
       ifLeaveAxis = 0
-
+      angleOffset = 0.
       maxbinsize=1180
       maxBinning = 8
       cosStrMaxTilt = 82.
@@ -181,8 +182,8 @@ c
 c       
       call get_tilt_angles(nview,3,tilt, limview, ifpip)
       if(nview.ne.nz)then
-        print *
-        print *,'ERROR: TILTXCORR - There must be a tilt angle for'
+        write(*,'(/,a,i5,a,i5,a)')
+     &      'ERROR: TILTXCORR - There must be a tilt angle for'
      &      //' each image: nz =', nz,', but there are',nview,
      &      ' tilt angles'
         call exit(1)
@@ -223,6 +224,10 @@ c
         ierr = PipGetBoolean('NoCosineStretch', ifNoStretch)
         ierr = PipGetBoolean('AbsoluteCosineStretch', ifAbsStretch)
         ierr = PipGetBoolean('LeaveTiltAxisShifted', ifLeaveAxis)
+        ierr = PipGetFloat('AngleOffset', angleOffset)
+        do iv = 1, nview
+          tilt(iv) = tilt(iv) + angleOffset
+        enddo
       else
         write(*,'(1x,a,$)')
      &      'Rotation angle FROM vertical TO the tilt axis: '
@@ -835,6 +840,10 @@ c	print *,xpeak,ypeak
 
 c       
 c       $Log$
+c       Revision 3.29  2009/03/06 21:28:50  mast
+c       Fixed formula for moving axis back from offset box, which also avoids
+c       division by 0 at 90 degrees
+c
 c       Revision 3.28  2008/12/12 16:36:59  mast
 c       Tested maximum tilt angle appropriate for cosince stretching
 c
