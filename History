@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+3/17/09: Added option to Tiltxcorr to enter an angle offset, which can sharpen
+correlations at high tilt when the specimen is tilted at 0 degrees.
+
 3/16/09: Added transferfid messages to the Project log window.  Added the
 contents of pop dialogs to the Project log window.
 

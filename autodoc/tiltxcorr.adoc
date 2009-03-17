@@ -61,6 +61,17 @@ tooltip =
 manpage = Use this option to enter the tilt angles for each view individually,
 in degrees.
 
+[Field = AngleOffset]
+short = offset
+type = F
+usage = Amount to add to all entered tilt angles
+tooltip =
+manpage = Amount to add to all entered tilt angles.  If the specimen is 
+significantly tilted at zero tilt, then the amount of cosine stretching become
+inaccurate at high tilt.  Sharper correlations can be obtained by adding this
+angle offset, which is same as the offset needed in Tiltalign(1) or Tilt(1) to
+make the specimen flat in the reconstruction.
+
 [Field = FilterRadius1]
 short = radius1
 type = F
