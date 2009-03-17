@@ -183,7 +183,7 @@ if ($qtlibdir == "bin") then
                 while ($count < 5)
                     @ count++
                     set errout = `mt "-outputresource:$icyg;#1" -manifest $manifest`
-                    if (! $status) then
+                    if ((! $status) || $status == 79) then
                         break
                     else 
                         \echo "Error running: mt -outputresource:$icyg;#1 -manifest $manifest"
@@ -215,6 +215,9 @@ exit 0
 
 #
 #  $Log$
+#  Revision 3.39  2009/03/17 02:24:52  mast
+#  Try again to get error message
+#
 #  Revision 3.38  2009/03/17 00:23:05  mast
 #  Ridiculous retry on mt
 #
