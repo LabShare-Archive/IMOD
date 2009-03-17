@@ -36,6 +36,10 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.20  2009/01/20 20:00:36  sueh
+ * <p> bug# 1102 Changed UITestField to UITestFieldType.  Simplified the name
+ * <p> by removing the expanded state portion.
+ * <p>
  * <p> Revision 1.19  2008/05/30 22:31:51  sueh
  * <p> bug# 1102 Isolating the etomo.uitest package so it is not need for
  * <p> running EtomoDirector.
@@ -217,7 +221,8 @@ public final class ExpandButton extends MultiLineButton {
    * @return
    */
   String createButtonStateKey(DialogType dialogType) {
-    String stateKey = dialogType.getStorableName() + '.' + getName();
+    String stateKey = dialogType.getStorableName() + '.' + getName() + '.'
+        + type.getExpandedState();
     setStateKey(stateKey);
     return stateKey;
   }
@@ -334,7 +339,9 @@ public final class ExpandButton extends MultiLineButton {
     static final Type OPEN = new Type("open", OPEN_EXPANDED_SYMBOL,
         "Close panel.", "closed", "+", "Open panel.");
 
+    //Backwards compatibility issue:  expandedState is a key in the .edf file.
     private final String expandedState;
+    
     private final String expandedSymbol;
     private final String expandedToolTip;
     private final String contractedState;
@@ -367,6 +374,10 @@ public final class ExpandButton extends MultiLineButton {
       return contractedState;
     }
 
+    /**
+     * Backwards compatibility issue:  expandedState is a key in the .edf file.
+     * @return expandedState
+     */
     String getExpandedState() {
       return expandedState;
     }
