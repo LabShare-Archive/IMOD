@@ -23,6 +23,9 @@ import junit.framework.TestCase;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.27  2009/03/17 00:46:44  sueh
+ * <p> bug# 1186 Pass managerKey to everything that pops up a dialog.
+ * <p>
  * <p> Revision 3.26  2009/02/20 17:07:48  sueh
  * <p> bug# 1180 Letting exceptions be thrown instead of catching them so that
  * <p> more information will be available when this fails.
@@ -184,7 +187,7 @@ public class MRCHeaderTest extends TestCase {
     // present
     boolean exceptionThrown = false;
     try {
-      assertFalse("IOException not thrown", badFilename.read());
+      assertFalse("Did not return false", badFilename.read());
     }
     catch (IOException except) {
     }
