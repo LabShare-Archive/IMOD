@@ -44,6 +44,10 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.77  2009/03/02 18:58:33  sueh
+ * <p> bug# 1193 Added blockAxisA and B.  Testing them in isAxisBusy.  Turning
+ * <p> them off in unblockAxis.
+ * <p>
  * <p> Revision 1.76  2009/03/01 01:17:19  sueh
  * <p> bug# 1193 In reconnectProcesschunks setting the process in the monitor.
  * <p>
@@ -517,7 +521,7 @@ public abstract class BaseProcessManager {
       e.printStackTrace();
       UIHarness.INSTANCE.openMessageDialog(
           "Unable to reconnect to processchunks.\n" + e.getMessage(),
-          "Reconnect Failure", axisID);
+          "Reconnect Failure", axisID, manager.getManagerKey());
     }
   }
 
@@ -567,25 +571,26 @@ public abstract class BaseProcessManager {
     if (!dir.exists()) {
       if (!dir.mkdirs()) {
         uiHarness.openMessageDialog(
-            "Unable to create " + dir.getAbsolutePath(), "File Error");
+            "Unable to create " + dir.getAbsolutePath(), "File Error", manager
+                .getManagerKey());
         return;
       }
     }
     if (!dir.canWrite()) {
       uiHarness.openMessageDialog("Cannot write to " + dir.getAbsolutePath(),
-          "File Error");
+          "File Error", manager.getManagerKey());
       return;
     }
     try {
       if (!file.createNewFile()) {
         uiHarness.openMessageDialog("Cannot create  " + file.getAbsolutePath(),
-            "File Error");
+            "File Error", manager.getManagerKey());
       }
     }
     catch (IOException e) {
       e.printStackTrace();
       uiHarness.openMessageDialog("Cannot create  " + file.getAbsolutePath()
-          + ".\n" + e.getMessage(), "File Error");
+          + ".\n" + e.getMessage(), "File Error", manager.getManagerKey());
     }
   }
 
@@ -599,13 +604,14 @@ public abstract class BaseProcessManager {
     if (!dir.exists()) {
       if (!dir.mkdirs()) {
         uiHarness.openMessageDialog(
-            "Unable to create " + dir.getAbsolutePath(), "File Error");
+            "Unable to create " + dir.getAbsolutePath(), "File Error", manager
+                .getManagerKey());
         return;
       }
     }
     if (!dir.canWrite()) {
       uiHarness.openMessageDialog("Cannot write to " + dir.getAbsolutePath(),
-          "File Error");
+          "File Error", manager.getManagerKey());
       return;
     }
     String[] commandArray = { "touch", absolutePath };
@@ -863,7 +869,7 @@ public abstract class BaseProcessManager {
       }
       uiHarness.openMessageDialog(
           "A process is already executing in the current axis",
-          "Cannot run process", axisID);
+          "Cannot run process", axisID, manager.getManagerKey());
       return true;
     }
     return false;
@@ -949,7 +955,7 @@ public abstract class BaseProcessManager {
   private void saveProcessData(final ProcessData processData) {
     try {
       ParameterStore paramStore = ParameterStore.getInstance(manager
-          .getParamFile());
+          .getParamFile(), manager.getManagerKey());
       if (paramStore == null) {
         return;
       }
@@ -1116,7 +1122,8 @@ public abstract class BaseProcessManager {
   private void kill(final String signal, final String processID,
       final AxisID axisID) {
     SystemProgram killShell = new SystemProgram(manager.getPropertyUserDir(),
-        new String[] { "kill", signal, processID }, axisID);
+        new String[] { "kill", signal, processID }, axisID, manager
+            .getManagerKey());
     killShell.run();
     //"kill " + signal + " " + processID + " at " + killShell.getRunTimestamp());
     Utilities.debugPrint("kill " + signal + " " + processID + " at "
@@ -1137,7 +1144,7 @@ public abstract class BaseProcessManager {
     Utilities.debugPrint("in getChildProcessList: processID=" + processID);
     //ps -l: get user processes on this terminal
     SystemProgram ps = new SystemProgram(manager.getPropertyUserDir(),
-        new String[] { "ps", "axl" }, axisID);
+        new String[] { "ps", "axl" }, axisID, manager.getManagerKey());
     ps.run();
     //System.out.println("ps axl date=" +  ps.getRunTimestamp());
     //  Find the index of the Parent ID and ProcessID
@@ -1218,7 +1225,7 @@ public abstract class BaseProcessManager {
     Utilities.debugPrint("in getChildProcess: processID=" + processID);
     //ps -l: get user processes on this terminal
     SystemProgram ps = new SystemProgram(manager.getPropertyUserDir(),
-        new String[] { "ps", "axl" }, axisID);
+        new String[] { "ps", "axl" }, axisID, manager.getManagerKey());
     ps.run();
 
     //  Find the index of the Parent ID and ProcessID
@@ -1306,7 +1313,7 @@ public abstract class BaseProcessManager {
           && script.getProcessEndState() != ProcessEndState.PAUSED) {
         uiHarness.openErrorMessageDialog(combinedMessages, script
             .getComScriptName()
-            + " terminated", script.getAxisID());
+            + " terminated", script.getAxisID(), manager.getManagerKey());
         //make sure script knows about failure
         script.setProcessEndState(ProcessEndState.FAILED);
       }
@@ -1318,7 +1325,7 @@ public abstract class BaseProcessManager {
       if (messages.warningListSize() > 0) {
         messages.addWarning("Com script: " + script.getComScriptName());
         uiHarness.openWarningMessageDialog(messages, script.getComScriptName()
-            + " warnings", script.getAxisID());
+            + " warnings", script.getAxisID(), manager.getManagerKey());
       }
     }
     manager.saveStorables(script.getAxisID());
@@ -1369,7 +1376,7 @@ public abstract class BaseProcessManager {
       if (script.getProcessEndState() != ProcessEndState.KILLED
           && script.getProcessEndState() != ProcessEndState.PAUSED) {
         uiHarness.openErrorMessageDialog(combinedMessages,
-            name + " terminated", script.getAxisID());
+            name + " terminated", script.getAxisID(), manager.getManagerKey());
         //make sure script knows about failure
         script.setProcessEndState(ProcessEndState.FAILED);
       }
@@ -1381,7 +1388,7 @@ public abstract class BaseProcessManager {
       if (messages.warningListSize() > 0) {
         messages.addWarning("Com script: " + name);
         uiHarness.openWarningMessageDialog(messages, name + " warnings", script
-            .getAxisID());
+            .getAxisID(), manager.getManagerKey());
       }
     }
     manager.saveStorables(script.getAxisID());
@@ -1592,7 +1599,7 @@ public abstract class BaseProcessManager {
       final AxisID axisID) {
     // Initialize the SystemProgram object
     SystemProgram sysProgram = new SystemProgram(manager.getPropertyUserDir(),
-        command, axisID);
+        command, axisID, manager.getManagerKey());
     startSystemProgramThread(sysProgram);
   }
 
@@ -1671,7 +1678,7 @@ public abstract class BaseProcessManager {
       ProcessMessages messages = process.getProcessMessages();
       if (messages != null && messages.warningListSize() > 0) {
         uiHarness.openWarningMessageDialog(messages, process.getName()
-            + " warnings", process.getAxisID());
+            + " warnings", process.getAxisID(), manager.getManagerKey());
       }
     }
     manager.saveStorables(process.getAxisID());
@@ -1722,11 +1729,12 @@ public abstract class BaseProcessManager {
       //  Write the standard output to a the log file
       String[] stdOutput = process.getStdOutput();
       try {
-        logFile = LogFile.getInstance(manager.getPropertyUserDir(), fileName);
+        logFile = LogFile.getInstance(manager.getPropertyUserDir(), fileName,
+            manager.getManagerKey());
       }
       catch (LogFile.LockException e) {
         uiHarness.openMessageDialog(e.getMessage(), "log File Write Error",
-            axisID);
+            axisID, manager.getManagerKey());
         return;
       }
       writerId = logFile.openWriter();
@@ -1741,12 +1749,12 @@ public abstract class BaseProcessManager {
     catch (LogFile.LockException except) {
       logFile.closeWriter(writerId);
       uiHarness.openMessageDialog(except.getMessage(), "log File Write Error",
-          axisID);
+          axisID, manager.getManagerKey());
     }
     catch (IOException except) {
       logFile.closeWriter(writerId);
       uiHarness.openMessageDialog(except.getMessage(), "log File Write Error",
-          axisID);
+          axisID, manager.getManagerKey());
     }
   }
 
@@ -1758,7 +1766,7 @@ public abstract class BaseProcessManager {
     if (ProcessName.TOMOSNAPSHOT.equals(commandName)) {
       Utilities.findMessageAndOpenDialog(process.getAxisID(), process
           .getStdOutput(), TomosnapshotParam.OUTPUT_LINE,
-          "Tomosnapshot Complete");
+          "Tomosnapshot Complete", manager.getManagerKey());
     }
   }
 

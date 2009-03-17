@@ -18,6 +18,9 @@
  * 
  * <p>
  * $Log$
+ * Revision 3.23  2009/02/25 00:14:09  sueh
+ * bug# 1182 Made sphericalAberration a double.
+ *
  * Revision 3.22  2008/10/27 17:47:34  sueh
  * bug# 1141 Added options to setup ctf files only:  ctfFiles,
  * sphericalAberration, and voltage.
@@ -252,7 +255,7 @@ public final class CopyTomoComs {
     command.add(ApplicationManager.getIMODBinPath() + "copytomocoms");
     genOptions();
     copytomocoms = new SystemProgram(manager.getPropertyUserDir(), command,
-        AxisID.ONLY);
+        AxisID.ONLY, manager.getManagerKey());
     //genStdInputSequence();
   }
 

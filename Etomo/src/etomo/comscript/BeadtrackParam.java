@@ -4,6 +4,7 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.HashMap;
 
+import etomo.BaseManager;
 import etomo.storage.LogFile;
 import etomo.storage.autodoc.AutodocFactory;
 import etomo.storage.autodoc.ReadOnlyAutodoc;
@@ -27,6 +28,9 @@ import etomo.type.ScriptParameter;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.20  2009/02/04 23:15:15  sueh
+ * <p> bug# 1158 Changed id and exceptions classes in LogFile.
+ * <p>
  * <p> Revision 3.19  2008/12/12 17:38:17  sueh
  * <p> bug# 1160 Shared the BeadDiameter key.
  * <p>
@@ -182,6 +186,8 @@ public class BeadtrackParam extends OldBeadtrackParam implements CommandParam {
   public static final String MAX_VIEWS_IN_ALIGN_KEY = "MaxViewsInAlign";
   public static final String ROUNDS_OF_TRACKING_KEY = "RoundsOfTracking";
 
+  private final BaseManager manager;
+
   private boolean initialized = false;
 
   private StringList skipViews;//was viewSkipList
@@ -211,8 +217,9 @@ public class BeadtrackParam extends OldBeadtrackParam implements CommandParam {
 
   private AxisID axisID;
 
-  public BeadtrackParam(AxisID axisID) {
+  public BeadtrackParam(AxisID axisID, BaseManager manager) {
     this.axisID = axisID;
+    this.manager = manager;
   }
 
   private void initialize() {
@@ -333,7 +340,8 @@ public class BeadtrackParam extends OldBeadtrackParam implements CommandParam {
   private HashMap getRequiredMap() {
     ReadOnlyAutodoc autodoc = null;
     try {
-      autodoc = AutodocFactory.getInstance(AutodocFactory.BEADTRACK, axisID);
+      autodoc = AutodocFactory.getInstance(AutodocFactory.BEADTRACK, axisID,
+          manager.getManagerKey());
     }
     catch (FileNotFoundException except) {
       except.printStackTrace();
@@ -401,7 +409,7 @@ public class BeadtrackParam extends OldBeadtrackParam implements CommandParam {
   public ConstEtomoNumber getPostFitRescueResidual() {
     return postFitRescueResidual;
   }
-  
+
   public String getBeadDiameter() {
     return beadDiameter.toString();
   }
@@ -734,7 +742,7 @@ public class BeadtrackParam extends OldBeadtrackParam implements CommandParam {
   public ConstEtomoNumber setPostFitRescueResidual(String postFitRescueResidual) {
     return this.postFitRescueResidual.set(postFitRescueResidual);
   }
-  
+
   public ConstEtomoNumber setBeadDiameter(String input) {
     return beadDiameter.set(input);
   }

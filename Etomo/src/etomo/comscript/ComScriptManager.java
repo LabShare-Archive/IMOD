@@ -33,6 +33,9 @@ import etomo.util.Utilities;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.53  2008/10/27 17:43:58  sueh
+ * <p> bug# 1141 Added ctfCorrection and ctfPlotter scripts.
+ * <p>
  * <p> Revision 3.52  2007/12/10 21:54:28  sueh
  * <p> bug# 1041 Formatted.
  * <p>
@@ -329,7 +332,7 @@ public class ComScriptManager {
 
   static final String PARAM_KEY = "Param";
 
-  ApplicationManager appManager;
+  private final ApplicationManager appManager;
   UIHarness uiHarness = UIHarness.INSTANCE;
 
   public static final String MTFFILTER_COMMAND = "mtffilter";
@@ -797,7 +800,7 @@ public class ComScriptManager {
     }
 
     // Initialize a BeadtrckParam object from the com script command object
-    BeadtrackParam beadtrackParam = new BeadtrackParam(axisID);
+    BeadtrackParam beadtrackParam = new BeadtrackParam(axisID, appManager);
     initialize(beadtrackParam, track, "beadtrack", axisID);
     return beadtrackParam;
   }
@@ -1768,7 +1771,7 @@ public class ComScriptManager {
       errorMessage[0] = "Unable to update comscript.";
       errorMessage[1] = "\nscript=" + script + "\ncommand=" + command;
       uiHarness.openMessageDialog(errorMessage, "ComScriptManager Error",
-          axisID);
+          axisID, appManager.getManagerKey());
       return false;
     }
     Utilities.timestamp("update", command, script, Utilities.STARTED_STATUS);
@@ -1832,7 +1835,7 @@ public class ComScriptManager {
       errorMessage[0] = "Unable to update comscript.";
       errorMessage[1] = "\nscript=" + script + "\ncommand=" + command;
       uiHarness.openMessageDialog(errorMessage, "ComScriptManager Error",
-          axisID);
+          axisID, appManager.getManagerKey());
       return false;
     }
     Utilities.timestamp("update", command, script, Utilities.STARTED_STATUS);
@@ -1849,7 +1852,7 @@ public class ComScriptManager {
           + " because the previous command, " + previousCommand
           + ", is missing.";
       uiHarness.openMessageDialog(errorMessage, "ComScriptManager Error",
-          axisID);
+          axisID, appManager.getManagerKey());
       Utilities.timestamp("update", command, script, Utilities.FAILED_STATUS);
       return false;
     }
@@ -1924,7 +1927,7 @@ public class ComScriptManager {
       errorMessage[0] = "Unable to update comscript.  ";
       errorMessage[1] = "\ntoScript=" + toScript + "ncommand=" + command;
       uiHarness.openMessageDialog(errorMessage, "ComScriptManager Error",
-          axisID);
+          axisID, appManager.getManagerKey());
       return;
     }
     Utilities.timestamp("update", command, toScript, Utilities.STARTED_STATUS);
@@ -2011,7 +2014,7 @@ public class ComScriptManager {
       errorMessage[0] = "Unable to update comscript.\nscript=" + script
           + "\ncommand=" + command;
       uiHarness.openMessageDialog(errorMessage, "ComScriptManager Error",
-          axisID);
+          axisID, appManager.getManagerKey());
       return -1;
     }
     Utilities.timestamp("update", command, script, Utilities.STARTED_STATUS);
@@ -2026,7 +2029,7 @@ public class ComScriptManager {
           + " because the previous command, " + previousCommand
           + ", is missing.";
       uiHarness.openMessageDialog(errorMessage, "ComScriptManager Error",
-          axisID);
+          axisID, appManager.getManagerKey());
       Utilities.timestamp("update", command, script, Utilities.FAILED_STATUS);
       return -1;
     }
@@ -2053,7 +2056,7 @@ public class ComScriptManager {
       errorMessage[0] = "Unable to update comscript.";
       errorMessage[1] = "\nscript=" + script + "\ncommand=" + command;
       uiHarness.openMessageDialog(errorMessage, "ComScriptManager Error",
-          axisID);
+          axisID, appManager.getManagerKey());
       return -1;
     }
     if (!updateStarted) {
@@ -2066,7 +2069,7 @@ public class ComScriptManager {
           + " because the previous command index, " + previousCommandIndex
           + ", is invalid.\npreviousCommandIndex=" + previousCommandIndex;
       uiHarness.openMessageDialog(errorMessage, "ComScriptManager Error",
-          axisID);
+          axisID, appManager.getManagerKey());
       Utilities.timestamp("update", command, script, Utilities.FAILED_STATUS);
       return -1;
     }
@@ -2122,7 +2125,7 @@ public class ComScriptManager {
       errorMessage[0] = "Unable to update comscript.  ";
       errorMessage[1] = "Cannot delete" + command + ".\nscript=" + script;
       uiHarness.openMessageDialog(errorMessage, "ComScriptManager Error",
-          axisID);
+          axisID, appManager.getManagerKey());
       return;
     }
     Utilities.timestamp("delete", command, script, Utilities.STARTED_STATUS);
@@ -2138,7 +2141,7 @@ public class ComScriptManager {
           + " because the previous command, " + previousCommand
           + ", is missing.";
       uiHarness.openMessageDialog(errorMessage, "ComScriptManager Error",
-          axisID);
+          axisID, appManager.getManagerKey());
       Utilities.timestamp("delete", command, script, Utilities.FAILED_STATUS);
       return;
     }
@@ -2180,7 +2183,7 @@ public class ComScriptManager {
       errorMessage[0] = "Unable to update comscript.";
       errorMessage[1] = "\nscript=" + script + "\ncommand=" + command;
       uiHarness.openMessageDialog(errorMessage, "ComScriptManager Error",
-          axisID);
+          axisID, appManager.getManagerKey());
       return;
     }
     Utilities.timestamp("delete", command, script, Utilities.STARTED_STATUS);
@@ -2324,7 +2327,7 @@ public class ComScriptManager {
             + " because the previous command, " + previousCommand
             + ", is missing.";
         uiHarness.openMessageDialog(errorMessage, "ComScriptManager Error",
-            axisID);
+            axisID, appManager.getManagerKey());
         Utilities.timestamp("initialize", command, comScript,
             Utilities.FAILED_STATUS);
         return false;

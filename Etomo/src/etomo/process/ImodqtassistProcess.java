@@ -33,13 +33,13 @@ public class ImodqtassistProcess {
       run(manager, axisID);
     }
     try {
-      send(action, axisID);
+      send(manager, action, axisID);
     }
     catch (IOException e) {
       //try running the program again, in case it died
       run(manager, axisID);
       try {
-        send(action, axisID);
+        send(manager, action, axisID);
       }
       catch (IOException e1) {
         e1.printStackTrace();
@@ -47,7 +47,8 @@ public class ImodqtassistProcess {
     }
   }
 
-  private void send(String action, AxisID axisID) throws IOException {
+  private void send(BaseManager manager, String action, AxisID axisID)
+      throws IOException {
     program.setCurrentStdInput(action);
     try {
       Thread.sleep(500);
@@ -58,8 +59,9 @@ public class ImodqtassistProcess {
     String line = null;
     while ((line = program.readStderr()) != null) {
       if (line.startsWith("ERROR:") || line.startsWith("WARNING:")) {
-      UIHarness.INSTANCE.openMessageDialog(line,
-          "Problem Displaying Help Topic", axisID);}
+        UIHarness.INSTANCE.openMessageDialog(line,
+            "Problem Displaying Help Topic", axisID, manager.getManagerKey());
+      }
     }
   }
 
@@ -98,5 +100,9 @@ public class ImodqtassistProcess {
   }
 }
 /**
- * <p> $Log$ </p>
+ * <p> $Log$
+ * <p> Revision 1.1  2006/06/21 15:47:32  sueh
+ * <p> bug# 581 Runs imodqtassist and sends commands to in via its stdin.  Quits
+ * <p> imodqtassist when etomo exits.
+ * <p> </p>
  */

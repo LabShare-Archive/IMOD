@@ -66,7 +66,7 @@ public class BlendmontProcessMonitor extends LogFileProcessMonitor {
   }
 
   protected void getCurrentSection() throws NumberFormatException,
-      LogFile.LockException,IOException {
+      LogFile.LockException, IOException {
     String line;
     while ((line = readLogFileLine()) != null) {
       line = line.trim();
@@ -98,13 +98,17 @@ public class BlendmontProcessMonitor extends LogFileProcessMonitor {
       NumberFormatException, LogFile.LockException, InvalidParameterException,
       IOException {
     Montagesize montagesize = null;
-    montagesize = Montagesize.getInstance(applicationManager, axisID);
+    montagesize = Montagesize.getInstance(applicationManager, axisID,
+        applicationManager.getManagerKey());
     montagesize.read();
     nSections = montagesize.getZ().getInt();
   }
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.16  2009/02/04 23:23:29  sueh
+ * <p> bug# 1158 Changed id and exceptions classes in LogFile.
+ * <p>
  * <p> Revision 1.15  2007/02/05 22:53:29  sueh
  * <p> bug# 962 Move comscript mode info to inner class.
  * <p>

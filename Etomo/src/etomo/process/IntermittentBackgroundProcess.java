@@ -291,17 +291,17 @@ public final class IntermittentBackgroundProcess implements Runnable {
     if (localSection && localStartCommand != null) {
       localProgram = IntermittentSystemProgram.getStartInstance(manager
           .getPropertyUserDir(), localStartCommand, AxisID.ONLY,
-          outputKeyPhrase);
+          outputKeyPhrase, manager.getManagerKey());
     }
     else if (!localSection && remoteStartCommand != null) {
       localProgram = IntermittentSystemProgram.getStartInstance(manager
           .getPropertyUserDir(), command.getRemoteStartCommand(), AxisID.ONLY,
-          outputKeyPhrase);
+          outputKeyPhrase, manager.getManagerKey());
     }
     else {
       localProgram = IntermittentSystemProgram.getIntermittentInstance(manager
           .getPropertyUserDir(), command.getIntermittentCommand(), AxisID.ONLY,
-          outputKeyPhrase);
+          outputKeyPhrase, manager.getManagerKey());
     }
     //place the most recent local SystemProgram in the member SystemProgram
     //non-local request (getting and setting standard input and output) will go
@@ -321,7 +321,7 @@ public final class IntermittentBackgroundProcess implements Runnable {
           localProgram.setCurrentStdInput(intermittentCommand);
         }
         else {
-          if (localProgram.isDone()||!localProgram.isStarted()) {
+          if (localProgram.isDone() || !localProgram.isStarted()) {
             localProgram.start();
           }
         }
@@ -417,6 +417,11 @@ public final class IntermittentBackgroundProcess implements Runnable {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.14  2007/09/27 20:18:57  sueh
+ * <p> bug# 1044 Changed IntermittentSystemProgram to have the option of not
+ * <p> running a start command.  It this case, this intermittent command is set that the
+ * <p> instance is run multiple times.
+ * <p>
  * <p> Revision 1.13  2007/06/07 21:27:14  sueh
  * <p> bug# 994 Decreased the wait time in stop() to make etomo end faster.
  * <p>

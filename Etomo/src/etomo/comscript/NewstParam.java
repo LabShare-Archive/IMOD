@@ -11,6 +11,9 @@
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.18  2008/12/15 23:00:26  sueh
+ * <p> bug# 1161 In setSizeToOutputInXandY handle 90 degree tilt axis angles.
+ * <p>
  * <p> Revision 3.17  2007/12/13 01:05:34  sueh
  * <p> bug# 1056 Added adjustOrigin.
  * <p>
@@ -565,13 +568,14 @@ public class NewstParam extends ConstNewstParam implements CommandParam {
       throws FortranInputSyntaxException {
     //make sure an empty string really causes sizeToOutputInXandY to be empty.
     if (userSize.equals("")) {
-      userSize="/";
+      userSize = "/";
     }
     sizeToOutputInXandY.validateAndSet(userSize);
     //UserSize is empty, check for an angle close to 90 degrees.
     if ((sizeToOutputInXandY.isDefault() || sizeToOutputInXandY.isEmpty())
         && Utilities.is90DegreeImageRotation(imageRotation)) {
-      MRCHeader header = MRCHeader.getInstance(manager, axisID, ".st");
+      MRCHeader header = MRCHeader.getInstance(manager, axisID, ".st", manager
+          .getManagerKey());
       //Set y from columns (x)
       sizeToOutputInXandY.set(1, header.getNColumns());
       //Set x from rows (y)

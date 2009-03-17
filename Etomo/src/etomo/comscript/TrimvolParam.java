@@ -11,6 +11,9 @@
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.29  2009/02/13 02:13:10  sueh
+ * <p> bug# 1176 Checking return value of MRCHeader.read.
+ * <p>
  * <p> Revision 3.28  2009/02/10 21:42:00  sueh
  * <p> bug# 1143 Added hasInputFileSizeChanged, which returns a boolean and
  * <p> also sets nColumnsChanged, nRowsChanged, and nSectionsChanged.
@@ -171,6 +174,7 @@ import java.util.Hashtable;
 import java.util.Properties;
 
 import etomo.BaseManager;
+import etomo.ManagerKey;
 import etomo.type.AxisID;
 import etomo.type.AxisType;
 import etomo.type.BaseMetaData;
@@ -733,13 +737,13 @@ public class TrimvolParam implements CommandDetails {
     return changed;
   }
 
-  public void setDefaultRange(TomogramState state)
+  public void setDefaultRange(TomogramState state, ManagerKey managerKey)
       throws InvalidParameterException, IOException {
     // Get the data size limits from the image stack
     BaseMetaData metaData = manager.getBaseMetaData();
     MRCHeader mrcHeader = MRCHeader.getInstance(manager.getPropertyUserDir(),
         TrimvolParam.getInputFileName(metaData.getAxisType(), metaData
-            .getName()), AxisID.ONLY);
+            .getName()), AxisID.ONLY, managerKey);
     if (!mrcHeader.read()) {
       throw new IOException("file does not exist");
     }

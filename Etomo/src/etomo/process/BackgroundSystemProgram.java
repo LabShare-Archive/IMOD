@@ -21,6 +21,13 @@ import etomo.type.ProcessEndState;
  * @version $$Revision$$
  * 
  * <p> $$Log$
+ * <p> $Revision 1.8  2005/11/19 02:14:52  sueh
+ * <p> $bug# 744 BackgroundSystemProgram is used by
+ * <p> $DetachedProcessMonitor as well as BackgroundComScriptProcess.  It is
+ * <p> $the SystemProgram for detached processes because it uses the
+ * <p> $monitor's isProcessRunning function to halt processing until the process
+ * <p> $is done.
+ * <p> $
  * <p> $Revision 1.7  2005/08/30 18:36:38  sueh
  * <p> $bug# 532 Changing monitor interface because the combine monitor now
  * <p> $implements BackgroundComScriptMonitor.
@@ -62,13 +69,7 @@ public class BackgroundSystemProgram extends SystemProgram {
 
   public BackgroundSystemProgram(BaseManager manager, String[] command,
       DetachedProcessMonitor monitor, AxisID axisID) {
-    super(manager.getPropertyUserDir(), command, axisID);
-    this.monitor = monitor;
-  }
-
-  public BackgroundSystemProgram(String propertyUserDir, String[] cmdArray,
-      DetachedProcessMonitor monitor, AxisID axisID) {
-    super(propertyUserDir, cmdArray, axisID);
+    super(manager.getPropertyUserDir(), command, axisID, manager.getManagerKey());
     this.monitor = monitor;
   }
 
@@ -76,7 +77,7 @@ public class BackgroundSystemProgram extends SystemProgram {
    * use process monitor to wait for a background process to finish
    * 
    */
-  protected  void waitForProcess() {
+  protected void waitForProcess() {
     //wait until process is finished
     try {
       while (monitor.isProcessRunning()) {

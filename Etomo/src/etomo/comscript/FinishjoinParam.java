@@ -34,6 +34,9 @@ import etomo.util.DatasetFiles;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.34  2009/02/05 23:42:12  sueh
+ * <p> bug# 1148 Changed IntKeyList.put to add.
+ * <p>
  * <p> Revision 1.33  2008/08/18 22:33:29  sueh
  * <p> bug# 1130 Added "-l" to GenOptions:  from dialog, sets localFits.  Added
  * <p> "-l" to genRejoinOptions:  from state.
@@ -557,7 +560,8 @@ public final class FinishjoinParam implements CommandDetails {
       UIHarness.INSTANCE.openMessageDialog(
           "The dataset file may be corrupted.  If this process fails, exit "
               + "and rerun Etomo, then go to the Join tab and run Finish "
-              + "Join to fix the problem.", "Etomo Warning");
+              + "Join to fix the problem.", "Etomo Warning", manager
+              .getManagerKey());
     }
     return options;
   }

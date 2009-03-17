@@ -80,7 +80,8 @@ public final class ProcesschunksParam implements DetachedCommand, ParallelParam 
 
   private void init() {
     nice.set(manager.getParallelProcessingDefaultNice());
-    nice.setFloor(CpuAdoc.getInstance(axisID, manager.getPropertyUserDir()).getMinNice());
+    nice.setFloor(CpuAdoc.getInstance(axisID, manager.getPropertyUserDir(), manager.getManagerKey())
+        .getMinNice());
     nice.setCeiling(NICE_CEILING);
   }
 
@@ -340,7 +341,8 @@ public final class ProcesschunksParam implements DetachedCommand, ParallelParam 
     catch (InvalidMountRuleException e) {
       UIHarness.INSTANCE.openMessageDialog("ERROR:  Remote path error.  "
           + "Unabled to run " + ProcessName.PROCESSCHUNKS + ".\n\n"
-          + e.getMessage(), "Processchunks Error", axisID);
+          + e.getMessage(), "Processchunks Error", axisID, manager
+          .getManagerKey());
       valid = false;
     }
     if (remoteUserDir != null) {
@@ -433,6 +435,10 @@ public final class ProcesschunksParam implements DetachedCommand, ParallelParam 
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.35  2008/07/19 00:24:22  sueh
+ * <p> bug# 1125 Making it easier to access CpuAdoc by not passing the
+ * <p> manager to it; all it needs is the current directory.
+ * <p>
  * <p> Revision 1.34  2008/02/23 00:57:05  sueh
  * <p> bug# 1086 Quoting the -c parameter when the subdir is not empty.
  * <p>

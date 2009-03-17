@@ -28,6 +28,9 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.33  2009/02/13 02:14:27  sueh
+ * <p> bug# 1176 Checking return value of calcFileSize.
+ * <p>
  * <p> Revision 3.32  2009/02/04 23:25:10  sueh
  * <p> bug# 1158 Changed id and exceptions classes in LogFile.
  * <p>
@@ -199,7 +202,7 @@ abstract class FileSizeProcessMonitor implements ProcessMonitor {
   //private FileReader fileReader = null;
   private boolean logFileRenamed = false;
   private LogFile logFile;
-  private LogFile.ReaderId logReaderId =null;
+  private LogFile.ReaderId logReaderId = null;
   private boolean findWatchedFileName = true;
 
   public FileSizeProcessMonitor(ApplicationManager appMgr, AxisID id,
@@ -210,12 +213,13 @@ abstract class FileSizeProcessMonitor implements ProcessMonitor {
     this.processName = processName;
     try {
       logFile = LogFile.getInstance(appMgr.getPropertyUserDir(), axisID,
-          processName);
+          processName, applicationManager.getManagerKey());
     }
     catch (LogFile.LockException e) {
       e.printStackTrace();
       UIHarness.INSTANCE.openMessageDialog("Unable to create log file.\n"
-          + e.getMessage(), "File Size Monitor Log File Failure");
+          + e.getMessage(), "File Size Monitor Log File Failure",
+          applicationManager.getManagerKey());
       logFile = null;
     }
   }
@@ -465,7 +469,7 @@ abstract class FileSizeProcessMonitor implements ProcessMonitor {
   }
 
   private void closeLogFileReader() {
-    if (logReaderId!=null &&!logReaderId.isEmpty()) {
+    if (logReaderId != null && !logReaderId.isEmpty()) {
       logFile.closeReader(logReaderId);
       logReaderId = null;
     }

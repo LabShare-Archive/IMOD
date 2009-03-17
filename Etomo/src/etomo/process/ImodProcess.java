@@ -36,6 +36,9 @@ import etomo.util.Utilities;
  * 
  * <p>
  * $Log$
+ * Revision 3.53  2009/03/11 21:37:15  sueh
+ * bug# 1195 In imodSendAndReceive added error pop ups.
+ *
  * Revision 3.52  2009/03/09 21:07:39  sueh
  * bug# 1198 removed exceptionMessage - ignoring unrecognized
  * messages.
@@ -1249,9 +1252,9 @@ public class ImodProcess {
       throws SystemProcessException {
     Vector results = new Vector();
     if (!isRunning()) {
-        UIHarness.INSTANCE.openMessageDialog("3dmod is not running.",
-                "3dmod Warning", axisID);
-        return null;
+      UIHarness.INSTANCE.openMessageDialog("3dmod is not running.",
+          "3dmod Warning", axisID, manager.getManagerKey());
+      return null;
     }
     imodSendEvent(args, results);
     //3dmod sends the results before it returns 
@@ -1278,8 +1281,8 @@ public class ImodProcess {
       }
     } while ((line = imod.readStderr()) != null);
     if (foundError) {
-      UIHarness.INSTANCE.openMessageDialog(results.toString(),
-          "3dmod Message", getAxisID());
+      UIHarness.INSTANCE.openMessageDialog(results.toString(), "3dmod Message",
+          getAxisID(), manager.getManagerKey());
     }
     return results;
   }
@@ -1645,7 +1648,7 @@ public class ImodProcess {
         if (imodReturnValues != null) {
           // unable to get return values
           UIHarness.INSTANCE.openMessageDialog("3dmod is not running.",
-              "3dmod Warning", getAxisID());
+              "3dmod Warning", getAxisID(), manager.getManagerKey());
         }
         return;
       }
@@ -1665,7 +1668,7 @@ public class ImodProcess {
             if (imodReturnValues != null) {
               // unable to get return values
               UIHarness.INSTANCE.openMessageDialog("3dmod is not running.",
-                  "3dmod Warning", getAxisID());
+                  "3dmod Warning", getAxisID(), manager.getManagerKey());
             }
             return;
           }
@@ -1677,14 +1680,14 @@ public class ImodProcess {
             if (imodReturnValues != null) {
               // unable to get return values
               UIHarness.INSTANCE.openMessageDialog("3dmod is not running.",
-                  "3dmod Warning", getAxisID());
+                  "3dmod Warning", getAxisID(), manager.getManagerKey());
             }
             return;
           }
           else {
             exception.printStackTrace();
             UIHarness.INSTANCE.openMessageDialog(exception.getMessage(),
-                "3dmod Exception", getAxisID());
+                "3dmod Exception", getAxisID(), manager.getManagerKey());
           }
         }
       }
@@ -1740,7 +1743,7 @@ public class ImodProcess {
       // pop up error and warning messages for the user
       if (userMessage.length() > 0) {
         UIHarness.INSTANCE.openMessageDialog(userMessage.toString(),
-            "3dmod Message", getAxisID());
+            "3dmod Message", getAxisID(), manager.getManagerKey());
       }
       if (!responseReceived) {
         if (isRunning()) {
@@ -1749,12 +1752,12 @@ public class ImodProcess {
               "No response received from 3dmod.");
           exception.printStackTrace();
           UIHarness.INSTANCE.openMessageDialog(exception.getMessage(),
-              "3dmod Exception", getAxisID());
+              "3dmod Exception", getAxisID(), manager.getManagerKey());
         }
         else if (imodReturnValues != null) {
           // unable to get return values
           UIHarness.INSTANCE.openMessageDialog("3dmod is not running.",
-              "3dmod Warning", getAxisID());
+              "3dmod Warning", getAxisID(), manager.getManagerKey());
         }
       }
     }

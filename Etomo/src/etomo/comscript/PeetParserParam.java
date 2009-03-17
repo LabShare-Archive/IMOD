@@ -26,6 +26,9 @@ import etomo.util.EnvironmentVariable;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.4  2007/12/13 01:05:49  sueh
+ * <p> bug# 1056 Changed etomo.comscript.Fields to etomo.comscript.Field.
+ * <p>
  * <p> Revision 1.3  2007/11/06 19:14:58  sueh
  * <p> bug# 1047 Added getSubcommandDetails.
  * <p>
@@ -62,8 +65,8 @@ public final class PeetParserParam implements CommandDetails {
     command = new String[3];
     command[0] = "sh";
     File commandFile = new File(new File(EnvironmentVariable.INSTANCE.getValue(
-        manager.getPropertyUserDir(), "PARTICLE_DIR", AxisID.ONLY), "bin"),
-        ProcessName.PEET_PARSER.toString());
+        manager.getPropertyUserDir(), "PARTICLE_DIR", AxisID.ONLY, manager
+            .getManagerKey()), "bin"), ProcessName.PEET_PARSER.toString());
     command[1] = commandFile.getAbsolutePath();
     command[2] = prmFile.getName();
     if (debug) {

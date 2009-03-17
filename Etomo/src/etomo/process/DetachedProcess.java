@@ -47,7 +47,7 @@ final class DetachedProcess extends BackgroundProcess {
   private String subdirName = null;
   private String shortCommandName = "";
 
-   DetachedProcess(BaseManager manager, DetachedCommand command,
+  DetachedProcess(BaseManager manager, DetachedCommand command,
       BaseProcessManager processManager, AxisID axisID,
       OutfileProcessMonitor monitor, ProcessResultDisplay processResultDisplay,
       ProcessName processName, ConstProcessSeries processSeries) {
@@ -78,27 +78,27 @@ final class DetachedProcess extends BackgroundProcess {
     }
     catch (IOException e) {
       UIHarness.INSTANCE.openMessageDialog(e.getMessage(), "Can't Run "
-          + getCommandName());
+          + getCommandName(), manager.getManagerKey());
       return false;
     }
     catch (LogFile.LockException e) {
       e.printStackTrace();
       UIHarness.INSTANCE.openMessageDialog(e.getMessage(), "Can't Run "
-          + getCommandName());
+          + getCommandName(), manager.getManagerKey());
       return false;
     }
     if (!getDetachedCommand().isValid()) {
       processDone(1);
       return false;
     }
-    SystemProgram program = new BackgroundSystemProgram(manager
-        .getPropertyUserDir(), runCommand, monitor, axisID);
+    SystemProgram program = new BackgroundSystemProgram(manager, runCommand,
+        monitor, axisID);
     program.setAcceptInputWhileRunning(true);
     setProgram(program);
     return true;
   }
 
-   void waitForPid() {
+  void waitForPid() {
     if (monitor == null) {
       super.waitForPid();
       return;
@@ -209,11 +209,11 @@ final class DetachedProcess extends BackgroundProcess {
     return (DetachedCommand) getCommand();
   }
 
- private final class PidThread implements Runnable {
+  private final class PidThread implements Runnable {
     private final OutfileProcessMonitor monitor;
     private final ProcessData processData;
 
-   private PidThread(OutfileProcessMonitor monitor, ProcessData processData) {
+    private PidThread(OutfileProcessMonitor monitor, ProcessData processData) {
       this.monitor = monitor;
       this.processData = processData;
     }
@@ -253,6 +253,9 @@ final class DetachedProcess extends BackgroundProcess {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.18  2009/02/04 23:24:42  sueh
+ * <p> bug# 1158 Changed id and exceptions classes in LogFile.
+ * <p>
  * <p> Revision 1.17  2008/05/16 22:26:48  sueh
  * <p> bug# 1109 Setting subprocess name in processData from the monitor.
  * <p>

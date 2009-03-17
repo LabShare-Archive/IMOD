@@ -178,7 +178,8 @@ public class BlendmontParam implements CommandParam, CommandDetails {
     if (fisSizeToOutputInXandY.isDefault() || fisSizeToOutputInXandY.isEmpty()) {
       return;
     }
-    Montagesize montagesize = Montagesize.getInstance(manager, axisID);
+    Montagesize montagesize = Montagesize.getInstance(manager, axisID, manager
+        .getManagerKey());
     montagesize.read();
     convertToStartingAndEnding(startingAndEndingX, montagesize.getX().getInt(),
         fisSizeToOutputInXandY.getInt(0));
@@ -413,6 +414,10 @@ public class BlendmontParam implements CommandParam, CommandDetails {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.29  2009/02/26 17:25:23  sueh
+ * <p> bug# 1184 Changed Goodframe so that it can handle any number of
+ * <p> inputs and outputs.
+ * <p>
  * <p> Revision 1.28  2008/12/15 22:57:47  sueh
  * <p> bug# 1161 In convertToStartingAndEndingXandY handle 90 degree tilt
  * <p> axis angles.

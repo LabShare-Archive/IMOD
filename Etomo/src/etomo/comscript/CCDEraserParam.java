@@ -3,6 +3,7 @@ package etomo.comscript;
 import java.util.ArrayList;
 
 import etomo.BaseManager;
+import etomo.ManagerKey;
 import etomo.type.EtomoNumber;
 import etomo.type.ProcessName;
 import etomo.type.ScriptParameter;
@@ -21,6 +22,9 @@ import etomo.ui.UIHarness;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.7  2008/12/02 21:15:31  sueh
+ * <p> bug# 1157 Changed betterRadius to a ScriptParameter of type double.
+ * <p>
  * <p> Revision 3.6  2008/11/20 01:28:01  sueh
  * <p> bug# 1147 Made CCDEraserParam able to create commands, as well as
  * <p> update comscripts.  Added genOptions, getCommandArray, validate, and
@@ -133,10 +137,11 @@ public class CCDEraserParam extends ConstCCDEraserParam implements CommandParam 
     return options;
   }
 
-  public boolean validate() {
+  public boolean validate(ManagerKey managerKey) {
     if (betterRadius.isNull()) {
       UIHarness.INSTANCE.openMessageDialog(
-          "Empty Better Radius value.  Please enter a value.", "Entry Error");
+          "Empty Better Radius value.  Please enter a value.", "Entry Error",
+          managerKey);
       return false;
     }
     return true;

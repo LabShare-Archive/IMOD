@@ -11,6 +11,9 @@
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.8  2009/02/04 23:15:50  sueh
+ * <p> bug# 1158 Sharing the name of the error log.
+ * <p>
  * <p> Revision 3.7  2007/11/14 23:46:20  sueh
  * <p> bug# 1048 Added beam tilt log.
  * <p>
@@ -41,7 +44,7 @@ import etomo.BaseManager;
 import etomo.type.AxisID;
 
 public class AlignLogGenerator {
- public static final String ERROR_LOG_NAME = "taError";
+  public static final String ERROR_LOG_NAME = "taError";
 
   AxisID axisID;
   String[] alignLogCommand = null;
@@ -81,7 +84,7 @@ public class AlignLogGenerator {
   private void runArgument(String argument, String logFile) throws IOException {
     alignLogCommand[3] = argument;
     SystemProgram alignlog = new SystemProgram(manager.getPropertyUserDir(),
-        alignLogCommand, axisID);
+        alignLogCommand, axisID, manager.getManagerKey());
 
     alignlog.run();
 

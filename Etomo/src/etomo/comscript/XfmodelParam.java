@@ -30,6 +30,11 @@ import etomo.util.DatasetFiles;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.7  2008/11/20 01:31:05  sueh
+ * <p> bug# 1147 Using xfmodel in both Join and Reconstruction.  Changed
+ * <p> genOptions to genJoinOptions.  Added genReconOptions.  Added a
+ * <p> second constructor for BaseManager.
+ * <p>
  * <p> Revision 1.6  2007/12/13 01:07:20  sueh
  * <p> bug# 1056 Changed etomo.comscript.Fields to etomo.comscript.Field.
  * <p>
@@ -91,7 +96,7 @@ public final class XfmodelParam implements CommandDetails {
     options.add("-XformsToApply");
     options.add(DatasetFiles.getTransformFileName(manager, axisID));
     options.add(DatasetFiles.getFiducialModelName(manager, axisID));
-    options.add(DatasetFiles.getEraseFiducialsModelName(manager,axisID));
+    options.add(DatasetFiles.getEraseFiducialsModelName(manager, axisID));
     return options;
   }
 
@@ -177,7 +182,8 @@ public final class XfmodelParam implements CommandDetails {
       if (inFile.equals(outFile)) {
         UIHarness.INSTANCE.openMessageDialog(
             "Cannot overwrite xfmodel input file, " + inFile
-                + " with output file, " + outFile + ".", "XfmodelParam Error");
+                + " with output file, " + outFile + ".", "XfmodelParam Error",
+            manager.getManagerKey());
         return false;
       }
     }

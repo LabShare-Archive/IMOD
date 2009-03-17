@@ -9,44 +9,45 @@ import etomo.util.DatasetFiles;
 import etomo.util.MRCHeader;
 
 /**
-* <p>Description: </p>
-* 
-* <p>Copyright: Copyright (c) 2005</p>
-*
-* <p>Organization:
-* Boulder Laboratory for 3-Dimensional Electron Microscopy of Cells (BL3DEM),
-* University of Colorado</p>
-* 
-* @author $Author$
-* 
-* @version $Revision$
-*/
+ * <p>Description: </p>
+ * 
+ * <p>Copyright: Copyright (c) 2005</p>
+ *
+ * <p>Organization:
+ * Boulder Laboratory for 3-Dimensional Electron Microscopy of Cells (BL3DEM),
+ * University of Colorado</p>
+ * 
+ * @author $Author$
+ * 
+ * @version $Revision$
+ */
 public class ExtractmagradParam {
-  public static  final String  rcsid =  "$Id$";
-  
+  public static final String rcsid = "$Id$";
+
   public static final String COMMAND_NAME = "extractmagrad";
-  
+
   private final AxisID axisID;
   private final BaseManager manager;
-  
-  private final EtomoNumber rotationAngle = new EtomoNumber(EtomoNumber.Type.FLOAT);
+
+  private final EtomoNumber rotationAngle = new EtomoNumber(
+      EtomoNumber.Type.FLOAT);
 
   private String gradientTable = null;
   private String[] commandArray = null;
   private EtomoNumber pixelSize = null;
-  
+
   public ExtractmagradParam(BaseManager manager, AxisID axisID) {
     this.axisID = axisID;
     this.manager = manager;
   }
-  
+
   public final String[] getCommand() {
     if (commandArray == null) {
       buildCommand();
     }
     return commandArray;
   }
-  
+
   private final void buildCommand() {
     ArrayList command = new ArrayList();
     command.add(BaseManager.getIMODBinPath() + COMMAND_NAME);
@@ -67,14 +68,15 @@ public class ExtractmagradParam {
   public final void setGradientTable(String gradientTable) {
     this.gradientTable = gradientTable;
   }
-  
+
   public final void setRotationAngle(float rotationAngle) {
     this.rotationAngle.set(rotationAngle);
   }
-  
+
   public final void setPixelSize(double pixelSize) {
     MRCHeader header = MRCHeader.getInstance(manager.getPropertyUserDir(),
-        DatasetFiles.getStackName(manager, axisID), axisID);
+        DatasetFiles.getStackName(manager, axisID), axisID, manager
+            .getManagerKey());
     if (header.getXPixelSpacing() == 1) {
       if (this.pixelSize == null) {
         this.pixelSize = new EtomoNumber(EtomoNumber.Type.DOUBLE);
@@ -84,14 +86,17 @@ public class ExtractmagradParam {
   }
 }
 /**
-* <p> $Log$
-* <p> Revision 1.3  2006/03/20 17:51:11  sueh
-* <p> bug# 835 Added getName (a convenience function) to managers.
-* <p>
-* <p> Revision 1.2  2005/10/28 18:48:16  sueh
-* <p> bug# 725 Passing pixel size when header pixel size is 1.
-* <p>
-* <p> Revision 1.1  2005/10/27 00:12:21  sueh
-* <p> bug# 725 Param to create a extractmagrad command line.
-* <p> </p>
-*/
+ * <p> $Log$
+ * <p> Revision 1.4  2007/02/05 21:52:03  sueh
+ * <p> bug# 962  Put EtomoNumber type info into an inner class.
+ * <p>
+ * <p> Revision 1.3  2006/03/20 17:51:11  sueh
+ * <p> bug# 835 Added getName (a convenience function) to managers.
+ * <p>
+ * <p> Revision 1.2  2005/10/28 18:48:16  sueh
+ * <p> bug# 725 Passing pixel size when header pixel size is 1.
+ * <p>
+ * <p> Revision 1.1  2005/10/27 00:12:21  sueh
+ * <p> bug# 725 Param to create a extractmagrad command line.
+ * <p> </p>
+ */

@@ -27,6 +27,9 @@ import etomo.util.MRCHeader;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.8  2009/02/13 02:12:24  sueh
+ * <p> bug# 1176 Checking return value of MRCHeader.read.
+ * <p>
  * <p> Revision 3.7  2006/07/19 15:15:45  sueh
  * <p> bug# 903 Change patchZMin and Max to EtomoNumbers so they won't generate
  * <p> an exception when they are set to a blank string.
@@ -279,7 +282,8 @@ public class ConstCombineParams {
       axisID = AxisID.SECOND;
     }
     MRCHeader header = MRCHeader.getInstance(manager.getPropertyUserDir(),
-        DatasetFiles.getTomogram(manager, axisID).getAbsolutePath(), axisID);
+        DatasetFiles.getTomogram(manager, axisID).getAbsolutePath(), axisID,
+        manager.getManagerKey());
     try {
       if (!header.read()) {
         return true;

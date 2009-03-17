@@ -27,6 +27,10 @@ import etomo.util.MRCHeader;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.3  2009/02/13 02:14:09  sueh
+ * <p> bug# 1176 Checking return value of MRCHeader.read.  Gave calcFileSize
+ * <p> a return value.
+ * <p>
  * <p> Revision 1.2  2008/10/27 23:19:30  sueh
  * <p> bug# 1141 Fixed monitor - log file doesn't show the watched file's name, so turn off findWatchedFileName to avoid looking for it.
  * <p>
@@ -74,7 +78,8 @@ public final class CtfCorrectionMonitor extends FileSizeProcessMonitor {
           + newstParam.getOutputFile();
     }
     MRCHeader outputHeader = MRCHeader.getInstance(applicationManager
-        .getPropertyUserDir(), outputFilename, axisID);
+        .getPropertyUserDir(), outputFilename, axisID, applicationManager
+        .getManagerKey());
     if (!outputHeader.read()) {
       return false;
     }

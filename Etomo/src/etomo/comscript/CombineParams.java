@@ -25,6 +25,9 @@ import etomo.util.MRCHeader;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.14  2009/02/13 02:11:59  sueh
+ * <p> bug# 1176 Checking return value of MRCHeader.read.
+ * <p>
  * <p> Revision 3.13  2007/08/21 21:51:06  sueh
  * <p> bug# 771 Factored out get xyborder functionality from
  * <p> setDefaultPatchBoundaries into getXYBorder.
@@ -289,7 +292,7 @@ public class CombineParams extends ConstCombineParams implements Storable {
 
     // Get the data size limits from the image stack
     MRCHeader mrcHeader = MRCHeader.getInstance(manager.getPropertyUserDir(),
-        fileName, AxisID.ONLY);
+        fileName, AxisID.ONLY, manager.getManagerKey());
     if (!mrcHeader.read()) {
       throw new IOException("file does not exist");
     }
@@ -520,7 +523,7 @@ public class CombineParams extends ConstCombineParams implements Storable {
 
     // Get the data size limits from the image stack
     MRCHeader mrcHeader = MRCHeader.getInstance(manager.getPropertyUserDir(),
-        fileName, AxisID.ONLY);
+        fileName, AxisID.ONLY, manager.getManagerKey());
     if (!mrcHeader.read()) {
       return;
     }

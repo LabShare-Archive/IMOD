@@ -34,6 +34,9 @@ import etomo.util.DatasetFiles;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.10  2009/03/06 23:36:43  sueh
+ * <p> bug# 1196 Added getInputFileName and getSubdirName.
+ * <p>
  * <p> Revision 1.9  2009/02/04 23:15:03  sueh
  * <p> bug# 1158 Changed id and exceptions classes in LogFile.
  * <p>
@@ -136,7 +139,7 @@ public final class AnisotropicDiffusionParam implements CommandDetails {
   public void setInputFileName(final String input) {
     inputFileName = input;
   }
-  
+
   public String getInputFileName() {
     return inputFileName;
   }
@@ -157,7 +160,7 @@ public final class AnisotropicDiffusionParam implements CommandDetails {
   public void createFilterFullFile() throws LogFile.LockException, IOException {
     File subdir = new File(manager.getPropertyUserDir(), subdirName);
     LogFile filterFullFile = LogFile.getInstance(new File(subdir,
-        getFilterFullFileName()));
+        getFilterFullFileName()), manager.getManagerKey());
     filterFullFile.create();
     LogFile.WriterId writerId = filterFullFile.openWriter();
     filterFullFile.write(COMMAND_CHAR + ProcessName.ANISOTROPIC_DIFFUSION + " "
@@ -180,7 +183,7 @@ public final class AnisotropicDiffusionParam implements CommandDetails {
       k.set(kValueList.getRawString(i));
       LogFile testFile = LogFile.getInstance(new File(subdir,
           TestNADFileFilter.FILE_NAME_BODY + index.toStringWithLeadingZeros(3)
-              + TestNADFileFilter.FILE_NAME_EXT));
+              + TestNADFileFilter.FILE_NAME_EXT), manager.getManagerKey());
       testFile.create();
       LogFile.WriterId writerId = testFile.openWriter();
       testFile.write(COMMAND_CHAR + ProcessName.ANISOTROPIC_DIFFUSION + " "

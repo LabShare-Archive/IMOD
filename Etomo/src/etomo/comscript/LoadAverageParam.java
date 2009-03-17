@@ -95,7 +95,7 @@ public class LoadAverageParam implements IntermittentCommand {
     //shell for a bash user.
     String bashShell = "bash";
     String shell = EnvironmentVariable.INSTANCE.getValue(manager
-        .getPropertyUserDir(), "SHELL", AxisID.ONLY);
+        .getPropertyUserDir(), "SHELL", AxisID.ONLY, manager.getManagerKey());
     if (shell != null && shell.equals(bashShell)) {
       command.add(bashShell);
     }
@@ -158,6 +158,9 @@ public class LoadAverageParam implements IntermittentCommand {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.12  2007/09/27 19:22:17  sueh
+ * <p> bug# 1044 Changed command to startCommand.
+ * <p>
  * <p> Revision 1.11  2007/09/14 16:01:09  sueh
  * <p> bug# 1043
  * <p>

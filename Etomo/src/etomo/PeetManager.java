@@ -58,6 +58,9 @@ import etomo.util.DatasetFiles;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.46  2009/03/02 18:56:13  sueh
+ * <p> bug# 1193 Commented openProcessingPanel().
+ * <p>
  * <p> Revision 1.45  2009/02/04 23:04:24  sueh
  * <p> bug# 1158 passing logPanel to mainPanel.setStatusBarText so its title can
  * <p> be updated.
@@ -308,7 +311,7 @@ public final class PeetManager extends BaseManager {
   public MainPanel getMainPanel() {
     return mainPanel;
   }
-  
+
   public Component getFocusComponent() {
     if (peetDialog == null) {
       return null;
@@ -359,7 +362,8 @@ public final class PeetManager extends BaseManager {
     }
     uiHarness.openMessageDialog(
         "The directory " + userDir.getAbsolutePath() + " can contain only one "
-            + DatasetFiles.PEET_DATA_FILE_EXT + " file.", "Entry Error");
+            + DatasetFiles.PEET_DATA_FILE_EXT + " file.", "Entry Error",
+        getManagerKey());
     return false;
   }
 
@@ -381,7 +385,7 @@ public final class PeetManager extends BaseManager {
    * @param parametersOnly - allows the user to reuse a set of parameters, means that fnOutput is required
    */
   public void loadMatlabParam(final File matlabParamFile, boolean parametersOnly) {
-    matlabParam = new MatlabParam(matlabParamFile, false);
+    matlabParam = new MatlabParam(matlabParamFile, false, getManagerKey());
     if (!matlabParam.read()) {
       return;
     }
@@ -389,7 +393,8 @@ public final class PeetManager extends BaseManager {
     if (fnOutput == null || fnOutput.matches("\\s*")) {
       if (parametersOnly) {
         uiHarness.openMessageDialog(PeetDialog.FN_OUTPUT_LABEL
-            + " is required when copying parameters.", "Entry Error");
+            + " is required when copying parameters.", "Entry Error",
+            getManagerKey());
         return;
       }
       peetDialog.setFnOutput(matlabParam.getFnOutput());
@@ -416,14 +421,16 @@ public final class PeetManager extends BaseManager {
     boolean emptyNewName = newName == null || newName.matches("\\s*");
     if (parametersOnly && emptyNewName) {
       uiHarness.openMessageDialog(PeetDialog.FN_OUTPUT_LABEL
-          + " is required when copying parameters.", "Entry Error");
+          + " is required when copying parameters.", "Entry Error",
+          getManagerKey());
       return;
     }
     String newDirName = peetDialog.getDirectory();
     File newDir = new File(newDirName);
     if (origParamFile.getParentFile().equals(newDir)) {
       uiHarness.openMessageDialog(
-          "Cannot duplicate a project in the same directory.", "Entry Error");
+          "Cannot duplicate a project in the same directory.", "Entry Error",
+          getManagerKey());
       return;
     }
     if (!isUserDirValid(newDir, newName)) {
@@ -432,8 +439,8 @@ public final class PeetManager extends BaseManager {
     //load the original param file
     PeetMetaData origMetaData = new PeetMetaData();
     try {
-      ParameterStore origParameterStore = ParameterStore
-          .getInstance(origParamFile);
+      ParameterStore origParameterStore = ParameterStore.getInstance(
+          origParamFile, getManagerKey());
       if (origParameterStore != null) {
         origParameterStore.load(origMetaData);
         Storable[] storables = getStorables(0);
@@ -459,7 +466,8 @@ public final class PeetManager extends BaseManager {
         metaData.setName(newName);
         //read the matlab param file associated with the original param file
         matlabParam = new MatlabParam(DatasetFiles.getMatlabParamFile(
-            origParamFile.getParent(), origMetaData.getName()), false);
+            origParamFile.getParent(), origMetaData.getName()), false,
+            getManagerKey());
         //the .prm file is not readable but paramFile has already been set, so
         //all the initiazation changes have to be backed out.
         if (!matlabParam.read()) {
@@ -536,7 +544,7 @@ public final class PeetManager extends BaseManager {
     if (!metaData.isValid()) {
       uiHarness.openMessageDialog(
           "Invalid data, unable to proceed.  Please exit and restart Etomo",
-          "Fatal Error");
+          "Fatal Error", getManagerKey());
       return false;
     }
     imodManager.setMetaData(metaData);
@@ -567,7 +575,7 @@ public final class PeetManager extends BaseManager {
     }
   }
 
-  public void save() throws LogFile.LockException,IOException {
+  public void save() throws LogFile.LockException, IOException {
     super.save();
     mainPanel.done();
     savePeetDialog();
@@ -660,14 +668,15 @@ public final class PeetManager extends BaseManager {
     savePeetDialog();
     if (matlabParam == null) {
       uiHarness.openMessageDialog("Must set " + PeetDialog.DIRECTORY_LABEL
-          + " and " + PeetDialog.FN_OUTPUT_LABEL, "Entry Error");
+          + " and " + PeetDialog.FN_OUTPUT_LABEL, "Entry Error",
+          getManagerKey());
       return;
     }
     PeetParserParam param = new PeetParserParam(this, matlabParam.getFile());
     param.getParameters(matlabParam);
     try {
       try {
-        LogFile log = LogFile.getInstance(param.getLogFile());
+        LogFile log = LogFile.getInstance(param.getLogFile(), getManagerKey());
         log.backup();
       }
       catch (LogFile.LockException e) {
@@ -683,7 +692,8 @@ public final class PeetManager extends BaseManager {
     catch (SystemProcessException e) {
       e.printStackTrace();
       uiHarness.openMessageDialog("Unable to run " + ProcessName.PEET_PARSER
-          + ", SystemProcessException.\n" + e.getMessage(), "Process Error");
+          + ", SystemProcessException.\n" + e.getMessage(), "Process Error",
+          getManagerKey());
     }
   }
 
@@ -759,7 +769,7 @@ public final class PeetManager extends BaseManager {
       return;
     }
     matlabParam = new MatlabParam(DatasetFiles.getMatlabParamFile(this),
-        newFile);
+        newFile, getManagerKey());
     matlabParam.read();
   }
 

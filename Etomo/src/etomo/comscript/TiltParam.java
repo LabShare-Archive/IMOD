@@ -11,6 +11,10 @@
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.32  2009/02/26 17:25:32  sueh
+ * <p> bug# 1184 Changed Goodframe so that it can handle any number of
+ * <p> inputs and outputs.
+ * <p>
  * <p> Revision 3.31  2009/02/13 02:13:00  sueh
  * <p> bug# 1176 Checking return value of MRCHeader.read.
  * <p>
@@ -1078,7 +1082,7 @@ public final class TiltParam implements ConstTiltParam, CommandParam {
     Goodframe goodframe = etomo.comscript.Utilities
         .getGoodframeFromMontageSize(axisID, manager);
     if (goodframe != null) {
-      MRCHeader header = MRCHeader.getInstance(manager, axisID, ".ali");
+      MRCHeader header = MRCHeader.getInstance(manager, axisID, ".ali", manager.getManagerKey());
       try {
         if (!header.read()) {
           //ok if tilt is being updated before .ali exists
@@ -1120,12 +1124,12 @@ public final class TiltParam implements ConstTiltParam, CommandParam {
    */
   public boolean setSubsetStart() {
     resetSubsetStart();
-    MRCHeader stackHeader = MRCHeader.getInstance(manager, axisID, ".st");
+    MRCHeader stackHeader = MRCHeader.getInstance(manager, axisID, ".st", manager.getManagerKey());
     try {
       if (!stackHeader.read()) {
         return true;
       }
-      MRCHeader aliHeader = MRCHeader.getInstance(manager, axisID, ".ali");
+      MRCHeader aliHeader = MRCHeader.getInstance(manager, axisID, ".ali", manager.getManagerKey());
       if (!aliHeader.read()) {
         return true;
       }
@@ -1158,12 +1162,12 @@ public final class TiltParam implements ConstTiltParam, CommandParam {
                     + "start in tilt.com.  Your tomogram would have been a disaster.  "
                     + "But I caught the problem before it ruined your life.\n"
                     + "Don't bother to thank me.\n" + e.getMessage(),
-                "Just Awful", axisID);
+                "Just Awful", axisID, manager.getManagerKey());
       }
       else {
         UIHarness.INSTANCE.openMessageDialog(
             "Unable to set subset start in tilt.com.\n" + e.getMessage(),
-            "Setting Tilt.com Failed", axisID);
+            "Setting Tilt.com Failed", axisID, manager.getManagerKey());
       }
       return false;
     }
@@ -1195,7 +1199,7 @@ public final class TiltParam implements ConstTiltParam, CommandParam {
   public void setFullImage(final File stack) {
     try {
       MRCHeader header = MRCHeader.getInstance(manager.getPropertyUserDir(),
-          stack.getName(), axisID);
+          stack.getName(), axisID, manager.getManagerKey());
       if (!header.read()) {
         return;
       }

@@ -18,6 +18,9 @@
  * 
  * <p>
  * $Log$
+ * Revision 3.53  2009/02/04 23:24:31  sueh
+ * bug# 1158 Changed id and exceptions classes in LogFile.
+ *
  * Revision 3.52  2009/01/26 22:42:29  sueh
  * bug# 1173 When not block do error checking, just don't complain about
  * axis busy.
@@ -411,6 +414,7 @@ import java.util.ArrayList;
 
 import etomo.ApplicationManager;
 import etomo.BaseManager;
+import etomo.ManagerKey;
 import etomo.comscript.Command;
 import etomo.comscript.CommandDetails;
 import etomo.comscript.ProcessDetails;
@@ -616,12 +620,12 @@ public class ComScriptProcess extends Thread implements SystemProcessInterface {
   private void initialize() {
     try {
       logFile = LogFile.getInstance(manager.getPropertyUserDir(), axisID,
-          getProcessName());
+          getProcessName(), manager.getManagerKey());
     }
     catch (LogFile.LockException e) {
       e.printStackTrace();
       UIHarness.INSTANCE.openMessageDialog("Unable to create log file.\n"
-          + e.getMessage(), "Com Script Log Failure");
+          + e.getMessage(), "Com Script Log Failure", manager.getManagerKey());
       logFile = null;
     }
   }
@@ -664,7 +668,7 @@ public class ComScriptProcess extends Thread implements SystemProcessInterface {
       try {
         started = true;
         csh = new SystemProgram(manager.getPropertyUserDir(),
-            new String[] { "nothing" }, axisID);
+            new String[] { "nothing" }, axisID, manager.getManagerKey());
         csh.setExitValue(0);
         sleep(demoTime);
       }
@@ -750,7 +754,8 @@ public class ComScriptProcess extends Thread implements SystemProcessInterface {
   }
 
   protected boolean renameFiles() throws LogFile.LockException {
-    renameFiles(watchedFileName, workingDirectory, logFile);
+    renameFiles(watchedFileName, workingDirectory, logFile, manager
+        .getManagerKey());
     if (processMonitor != null) {
       processMonitor.msgLogFileRenamed();
     }
@@ -758,7 +763,8 @@ public class ComScriptProcess extends Thread implements SystemProcessInterface {
   }
 
   static protected void renameFiles(String watchedFileName,
-      File workingDirectory, LogFile logFile) throws LogFile.LockException {
+      File workingDirectory, LogFile logFile, ManagerKey managerKey)
+      throws LogFile.LockException {
     if (logFile == null) {
       return;
     }
@@ -767,7 +773,7 @@ public class ComScriptProcess extends Thread implements SystemProcessInterface {
     logFile.backup();
     if (watchedFileName != null) {
       LogFile watchedFile = LogFile.getInstance(workingDirectory
-          .getAbsolutePath(), watchedFileName);
+          .getAbsolutePath(), watchedFileName, managerKey);
       watchedFile.backup();
     }
   }
@@ -864,14 +870,14 @@ public class ComScriptProcess extends Thread implements SystemProcessInterface {
   /**
    * Execute the csh commands.
    */
-   void execCsh(String[] commands) throws IOException,
-      SystemProcessException,LogFile.LockException {
+  void execCsh(String[] commands) throws IOException, SystemProcessException,
+      LogFile.LockException {
 
     // Do not use the -e flag for tcsh since David's scripts handle the failure 
     // of commands and then report appropriately.  The exception to this is the
     // com scripts which require the -e flag.  RJG: 2003-11-06  
     csh = new SystemProgram(manager.getPropertyUserDir(), new String[] {
-        "tcsh", "-ef" }, axisID);
+        "tcsh", "-ef" }, axisID, manager.getManagerKey());
     csh.setWorkingDirectory(workingDirectory);
     csh.setStdInput(commands);
     csh.setDebug(debug);
@@ -904,7 +910,8 @@ public class ComScriptProcess extends Thread implements SystemProcessInterface {
     String[] command = new String[] {
         ApplicationManager.getIMODBinPath() + "vmstocsh", logFile.getName() };
     //parseBaseName(comScriptName, ".com") + ".log" };
-    vmstocsh = new SystemProgram(manager.getPropertyUserDir(), command, axisID);
+    vmstocsh = new SystemProgram(manager.getPropertyUserDir(), command, axisID,
+        manager.getManagerKey());
     vmstocsh.setWorkingDirectory(workingDirectory);
     vmstocsh.setStdInput(comSequence);
     vmstocsh.setDebug(debug);
@@ -959,7 +966,7 @@ public class ComScriptProcess extends Thread implements SystemProcessInterface {
    * @return
    * @throws IOException
    */
-  protected void parse() throws LogFile.LockException,FileNotFoundException{
+  protected void parse() throws LogFile.LockException, FileNotFoundException {
     parse(comScriptName, true);
   }
 
@@ -977,12 +984,12 @@ public class ComScriptProcess extends Thread implements SystemProcessInterface {
    *         then zero length array will be returned.
    */
   protected final void parse(String name, boolean mustExist)
-      throws LogFile.LockException,FileNotFoundException {
+      throws LogFile.LockException, FileNotFoundException {
     ArrayList errors = new ArrayList();
     LogFile logFileToParse = logFile;
     if (!parseLogFile) {
       logFileToParse = LogFile.getInstance(new File(workingDirectory,
-          parseBaseName(name, ".com") + ".log"));
+          parseBaseName(name, ".com") + ".log"), manager.getManagerKey());
     }
     if (!logFileToParse.exists() && !mustExist) {
       return;

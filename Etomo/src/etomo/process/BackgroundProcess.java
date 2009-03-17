@@ -27,6 +27,9 @@ import etomo.ui.UIHarness;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.39  2008/12/11 19:24:46  sueh
+ * <p> bug# 1167 Made getProcessMessages public.
+ * <p>
  * <p> Revision 3.38  2008/05/16 22:24:09  sueh
  * <p> bug# 1109 Added more explanation to the isNohup function.
  * <p>
@@ -586,15 +589,15 @@ class BackgroundProcess extends Thread implements SystemProcessInterface {
   boolean newProgram() {
     if (commandArray != null) {
       program = new SystemProgram(manager.getPropertyUserDir(), commandArray,
-          axisID);
+          axisID, manager.getManagerKey());
     }
     else if (command != null) {
       program = new SystemProgram(manager.getPropertyUserDir(), command
-          .getCommandArray(), axisID);
+          .getCommandArray(), axisID, manager.getManagerKey());
     }
     else if (commandArrayList != null) {
       program = new SystemProgram(manager.getPropertyUserDir(),
-          commandArrayList, axisID);
+          commandArrayList, axisID, manager.getManagerKey());
     }
     else {
       processDone(1);
@@ -660,13 +663,13 @@ class BackgroundProcess extends Thread implements SystemProcessInterface {
       if (processMessages.isError()) {
         errorFound = true;
         UIHarness.INSTANCE.openErrorMessageDialog(processMessages,
-            "Process Error", axisID);
+            "Process Error", axisID, manager.getManagerKey());
       }
       //popup error messages from the monitor
       if (monitorMessages != null && monitorMessages.isError()) {
         errorFound = true;
         UIHarness.INSTANCE.openErrorMessageDialog(monitorMessages,
-            "Process Monitor Error", axisID);
+            "Process Monitor Error", axisID, manager.getManagerKey());
         if (endState == ProcessEndState.FAILED) {
           errorFound = true;
         }
@@ -703,7 +706,7 @@ class BackgroundProcess extends Thread implements SystemProcessInterface {
       setProcessEndState(ProcessEndState.FAILED);
       //popup error messages
       UIHarness.INSTANCE.openErrorMessageDialog(errorMessage, getCommandName()
-          + " terminated", axisID);
+          + " terminated", axisID, manager.getManagerKey());
     }
     processDone(exitValue, errorFound);
   }

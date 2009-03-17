@@ -33,6 +33,9 @@ import etomo.util.Utilities;
  * @version $$Revision$$
  * 
  * <p> $$Log$
+ * <p> $Revision 1.28  2009/02/04 23:24:07  sueh
+ * <p> $bug# 1158 Changed id and exceptions classes in LogFile.
+ * <p> $
  * <p> $Revision 1.27  2008/01/31 20:17:53  sueh
  * <p> $bug# 1055 throwing a FileException when LogFile.getInstance fails.
  * <p> $
@@ -323,7 +326,7 @@ public class CombineProcessMonitor implements DetachedProcessMonitor {
     currentCommand = ProcessName.getInstance(childCommandName, axisID);
     if (currentCommand != null) {
       childLog = LogFile.getInstance(manager.getPropertyUserDir(), axisID,
-          currentCommand);
+          currentCommand, manager.getManagerKey());
       childLogWritingId = childLog.openForWriting();
     }
     if (currentCommand == ProcessName.MATCHVOL1) {
@@ -456,7 +459,7 @@ public class CombineProcessMonitor implements DetachedProcessMonitor {
     //  Instantiate the logFile object
     try {
       logFile = LogFile.getInstance(manager.getPropertyUserDir(), axisID,
-          CombineComscriptState.COMSCRIPT_NAME);
+          CombineComscriptState.COMSCRIPT_NAME, manager.getManagerKey());
 
       //  Wait for the log file to exist
       waitForLogFile();
@@ -471,7 +474,7 @@ public class CombineProcessMonitor implements DetachedProcessMonitor {
       endMonitor(ProcessEndState.FAILED);
       e.printStackTrace();
       UIHarness.INSTANCE.openMessageDialog(e.getMessage(), "Etomo Error",
-          axisID);
+          axisID, manager.getManagerKey());
     }
     catch (InterruptedException e) {
       endMonitor(ProcessEndState.DONE);
@@ -504,7 +507,7 @@ public class CombineProcessMonitor implements DetachedProcessMonitor {
    * @return a buffered reader of the log file
    */
   private void waitForLogFile() throws LogFile.LockException,
-      InterruptedException,FileNotFoundException {
+      InterruptedException, FileNotFoundException {
     if (logFile == null) {
       throw new NullPointerException("logFile");
     }

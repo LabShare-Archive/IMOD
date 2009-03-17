@@ -18,6 +18,9 @@
  * 
  * <p>
  * $Log$
+ * Revision 3.18  2007/12/26 22:11:58  sueh
+ * bug# 1052 Moved argument handling from EtomoDirector to a separate class.
+ *
  * Revision 3.17  2007/12/10 21:59:49  sueh
  * bug# 1041 Formatted.
  *
@@ -238,7 +241,7 @@ public class SetupCombine {
       commandArray[i] = (String) command.get(i);
     }
     setupcombine = new SystemProgram(manager.getPropertyUserDir(),
-        commandArray, AxisID.ONLY);
+        commandArray, AxisID.ONLY, manager.getManagerKey());
     //genStdInputSequence();
   }
 

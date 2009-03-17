@@ -36,6 +36,10 @@ import etomo.util.DatasetFiles;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.69  2009/03/11 01:11:32  sueh
+ * <p> bug# 1195 In getRubberbandCoordinates and getSlicerAngles pop up an
+ * <p> error message if imodState is null.
+ * <p>
  * <p> Revision 3.68  2008/12/09 21:30:44  sueh
  * <p> bug# 1160 Removed the management of beadfixerDiameter.  It is now
  * <p> handled by ImodState.
@@ -982,7 +986,7 @@ public class ImodManager {
     ImodState imodState = get(key);
     if (imodState == null) {
       UIHarness.INSTANCE.openMessageDialog("3dmod is not running.",
-          "3dmod Warning", AxisID.ONLY);
+          "3dmod Warning", AxisID.ONLY, manager.getManagerKey());
       return null;
     }
     return imodState.getRubberbandCoordinates();
@@ -994,7 +998,7 @@ public class ImodManager {
     ImodState imodState = get(key, vectorIndex);
     if (imodState == null || !imodState.isOpen()) {
       UIHarness.INSTANCE.openMessageDialog("3dmod is not running.",
-          "3dmod Warning", AxisID.ONLY);
+          "3dmod Warning", AxisID.ONLY, manager.getManagerKey());
       return null;
     }
     return imodState.getSlicerAngles();

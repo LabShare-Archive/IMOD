@@ -33,6 +33,9 @@ import etomo.util.Utilities;
  * @version $$Revision$$
  * 
  * <p> $Log$
+ * <p> Revision 1.31  2009/02/04 23:23:06  sueh
+ * <p> bug# 1158 Changed id and exceptions classes in LogFile.
+ * <p>
  * <p> Revision 1.30  2008/05/03 00:35:57  sueh
  * <p> bug# 847 Passing ProcessSeries to process object constructors so it can
  * <p> be passed to process done functions.
@@ -249,12 +252,14 @@ public class BackgroundComScriptProcess extends ComScriptProcess {
     if (groupPid == null) {
       String[] command = new String[] { "/usr/sbin/lsof", "-w", "-S", "-l",
           "-M", "-L" };
-      lsof = new SystemProgram(manager.getPropertyUserDir(), command, axisID);
+      lsof = new SystemProgram(manager.getPropertyUserDir(), command, axisID,
+          manager.getManagerKey());
     }
     else {
       String[] command = new String[] { "/usr/sbin/lsof", "-w", "-S", "-l",
           "-M", "-L", "-g", groupPid };
-      lsof = new SystemProgram(manager.getPropertyUserDir(), command, axisID);
+      lsof = new SystemProgram(manager.getPropertyUserDir(), command, axisID,
+          manager.getManagerKey());
     }
     lsof.run();
     String[] stdout = lsof.getStdOutput();
@@ -271,7 +276,8 @@ public class BackgroundComScriptProcess extends ComScriptProcess {
     LogFile comscriptLog;
     try {
       comscriptLog = LogFile.getInstance(getWorkingDirectory()
-          .getAbsolutePath(), axisID, comscriptState.getComscriptName());
+          .getAbsolutePath(), axisID, comscriptState.getComscriptName(),
+          manager.getManagerKey());
     }
     catch (LogFile.LockException e) {
       e.printStackTrace();
@@ -292,7 +298,8 @@ public class BackgroundComScriptProcess extends ComScriptProcess {
 
   protected boolean renameFiles() {
     try {
-      renameFiles(getWatchedFileName(), getWorkingDirectory(), getLogFile());
+      renameFiles(getWatchedFileName(), getWorkingDirectory(), getLogFile(),
+          manager.getManagerKey());
     }
     catch (LogFile.LockException e) {
       getProcessMessages().addError(e.getMessage());
@@ -309,7 +316,8 @@ public class BackgroundComScriptProcess extends ComScriptProcess {
         renameFiles(comscriptState.getWatchedFile(index),
             getWorkingDirectory(), LogFile.getInstance(manager
                 .getPropertyUserDir(), getAxisID(), comscriptState
-                .getCommand(index)));
+                .getCommand(index), manager.getManagerKey()), manager
+                .getManagerKey());
       }
       catch (LogFile.LockException e) {
         getProcessMessages().addError(e.getMessage());
@@ -328,8 +336,8 @@ public class BackgroundComScriptProcess extends ComScriptProcess {
    * Places commmands in the .csh file.  Creates and runs a file containing
    * commands to execute the .csh file in the background.  
    */
-   void execCsh(String[] commands) throws IOException,
-      SystemProcessException,LogFile.LockException {
+  void execCsh(String[] commands) throws IOException, SystemProcessException,
+      LogFile.LockException {
     File workingDirectory = getWorkingDirectory();
     String runName = parseBaseName(getComScriptName(), ".com");
     String cshFileName = runName + ".csh";
@@ -420,7 +428,7 @@ public class BackgroundComScriptProcess extends ComScriptProcess {
    * Parses errors and warnings from the comscript and all child comscripts found in
    * comscriptState that may have been executed.
    */
-  protected void parse() throws LogFile.LockException,FileNotFoundException {
+  protected void parse() throws LogFile.LockException, FileNotFoundException {
     parse(getComScriptName(), true);
     int startCommand = comscriptState.getStartCommand();
     int endCommand = comscriptState.getEndCommand();
