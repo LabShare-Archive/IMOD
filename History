@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+3/16/09: Added transferfid messages to the Project log window.  Added the
+contents of pop dialogs to the Project log window.
+
 3/13/09: Fixed subarea floating when moving rubber band in Zap window 
 (In 3.13).
 
