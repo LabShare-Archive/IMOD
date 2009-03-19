@@ -400,6 +400,7 @@ float imeshVolume(Imesh *mesh, Ipoint *scale, Ipoint *center)
     dz = center->z;
   } else {
     nsum = 0;
+    xsum = ysum = zsum = 0.;
     for(i = 0; i < mesh->lsize; i++){
       switch(mesh->list[i]){
       case IMOD_MESH_BGNBIGPOLY:
@@ -431,7 +432,7 @@ float imeshVolume(Imesh *mesh, Ipoint *scale, Ipoint *center)
     dy = ysum / nsum;
     dz = zsum / nsum;
   }
-  
+
   /* Add tetrahedon volumes to the centroid from each triangle */
   for(i = 0; i < mesh->lsize; i++){
     switch(mesh->list[i]){
@@ -713,6 +714,9 @@ int imeshCopySkipList(int *lfrom, int nfrom, int **lto, int *nto)
 /*
 
 $Log$
+Revision 3.9  2008/11/14 06:13:36  mast
+Implemented volume in mesh function
+
 Revision 3.8  2008/11/13 21:16:26  mast
 Compute surface area sum with doubles
 
