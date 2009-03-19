@@ -1,3 +1,4 @@
+<pre>
 The MRC file format used by IMOD.
 
 The MRC header. length 1024 bytes
@@ -119,4 +120,4 @@ looking down on the volume.
 
 The size of the image is nx * ny * nz * (mode data size).
 
-
+</pre>

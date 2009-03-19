@@ -1,3 +1,4 @@
+<pre>
                       SERIAL SECTION ALIGNMENT WITH IMOD
 
      This document gives an overview and some background information on the
@@ -370,3 +371,4 @@ convenience, the script has the advantage that it can be given a limited
 number of sections over which to find the alignment, and it will properly
 handle the transitions between the regions being realigned and those being
 left as they were.
+</pre>
