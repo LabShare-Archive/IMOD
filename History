@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+3/18/09: Fixed bug in Tomopitch when two contours of a pair are drawn in
+opposite directions (In 3.13).
+
 3/18/09: Fixed computation of volume inside mesh in imodinfo (In 3.13).
 
 3/17/09: Added option to Tiltxcorr to enter an angle offset, which can sharpen
