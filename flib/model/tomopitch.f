@@ -425,8 +425,10 @@ c
 
       ibottop(1)=iobj1
       ibottop(2)=iobj2
-      if(p_coord(indy,object(ibase_obj(iobj1)+1)).gt.
-     &    p_coord(indy,object(ibase_obj(iobj2)+1)))then
+      if(p_coord(indy,object(ibase_obj(iobj1)+1)) +
+     &    p_coord(indy,object(ibase_obj(iobj1)+npt_in_obj(iobj1))).gt.
+     &    p_coord(indy,object(ibase_obj(iobj2)+1)) +
+     &    p_coord(indy,object(ibase_obj(iobj2)+npt_in_obj(iobj2)))) then
         ibottop(1)=iobj2
         ibottop(2)=iobj1
       endif
@@ -575,6 +577,9 @@ c
       end
 
 c       $Log$
+c       Revision 3.15  2008/07/15 18:19:54  mast
+c       Fixed error messages to come out on one line on Windows
+c
 c       Revision 3.14  2006/06/29 05:09:43  mast
 c       Switched to use small model
 c
