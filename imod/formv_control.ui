@@ -1420,7 +1420,7 @@
   </connection>
   <connection>
    <sender>scaleLineEdit</sender>
-   <signal>lostFocus()</signal>
+   <signal>editingFinished()</signal>
    <receiver>imodvControlForm</receiver>
    <slot>newScale()</slot>
    <hints>
@@ -1452,7 +1452,7 @@
   </connection>
   <connection>
    <sender>speedLineEdit</sender>
-   <signal>lostFocus()</signal>
+   <signal>editingFinished()</signal>
    <receiver>imodvControlForm</receiver>
    <slot>newSpeed()</slot>
    <hints>
@@ -1740,7 +1740,7 @@
   </connection>
   <connection>
    <sender>XLineEdit</sender>
-   <signal>lostFocus()</signal>
+   <signal>editingFinished()</signal>
    <receiver>imodvControlForm</receiver>
    <slot>newXrotation()</slot>
    <hints>
@@ -1756,7 +1756,7 @@
   </connection>
   <connection>
    <sender>YLineEdit</sender>
-   <signal>lostFocus()</signal>
+   <signal>editingFinished()</signal>
    <receiver>imodvControlForm</receiver>
    <slot>newYrotation()</slot>
    <hints>
@@ -1772,7 +1772,7 @@
   </connection>
   <connection>
    <sender>ZLineEdit</sender>
-   <signal>lostFocus()</signal>
+   <signal>editingFinished()</signal>
    <receiver>imodvControlForm</receiver>
    <slot>newZrotation()</slot>
    <hints>
