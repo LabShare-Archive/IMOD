@@ -9,7 +9,6 @@ if ($tifflibs == default) set tifflibs = true
 
 if ($tifflibs == true) set c_includes = "$c_includes"' -I/usr/local/include'
 
-echo 'LDFLAGS = -L$(LIBDIR) -dynamic -read_only_relocs warning' >> $configure
 
 
 # DNM 1/1/9/03: remove the defines for FILE_OFFSET_BITS=64 here and in the
@@ -18,9 +17,34 @@ echo 'LDFLAGS = -L$(LIBDIR) -dynamic -read_only_relocs warning' >> $configure
 echo "CC        = gcc"              >> $configure
 echo "CXX       = g++"              >> $configure
 
-# Set default compiler to intel for intel chip
+# Figure out if 64-bit from Qt moc program and set name of LD_LIBRARY variable
 #
-if ($compiler == default && $intel == true) set compiler = ifort
+set filetext = `file $QTDIR/bin/moc | grep 64-bit`
+set m64flags = ""
+set ld_lib_var      = DYLD_LIBRARY_PATH
+if ("$filetext" != "") then
+    set m64bit = true
+    set m64notIA = true
+    set m64flags = '-m64'
+    set ld_lib_var      = DYLD_FRAMEWORK_PATH
+
+    # These two could be a Qt 4.5 requirement...
+    set midasGL = ""
+    set assistantcopy   = 'QtAssistant'
+endif
+
+echo "LDFLAGS = $m64flags"' -L$(LIBDIR) -dynamic -read_only_relocs warning' >> $configure
+
+# Set default compiler to intel for intel, but only if it exists and 32-bit
+#
+if ($compiler == default && $intel == true) then
+    set ifortout = `which ifort`
+    if ($status || $m64bit == true) then
+	set compiler = gfortran
+    else
+	set compiler = ifort
+    endif
+endif
 
 if ($compiler == ifort) then
     set fcomp = "ifort"
@@ -102,7 +126,7 @@ set release = `echo $URELEASE | sed 's/\./ /g'`
 if ($shared_libs != false) then
 	echo "AR      = c++"                 >> $configure
 	echo "ARCPP   = c++"                >> $configure
-	echo "ARFLAGS = $flags -i-dynamic -dynamiclib -Wl,-single_module -Wl,-flat_namespace -Wl,-undefined,suppress -Wl,-read_only_relocs,warning -o "    >> $configure
+	echo "ARFLAGS = $flags $m64flags -i-dynamic -dynamiclib -Wl,-single_module -Wl,-flat_namespace -Wl,-undefined,suppress -Wl,-read_only_relocs,warning -o "    >> $configure
 	echo "RANLIB    = true"                     >> $configure
 	echo "LIBEXT  = dylib"                 >> $configure
         if ($majorrel > 7) then
@@ -170,8 +194,8 @@ set optimization = "-O3 -w"
 if ($compiler == ifort) set optimization = "-O2"
 if ($debug == true) set optimization = "-g -O0"
 
-set cflags = "$flags $optimization $defines $include_flags $c_includes"
-set fflags = "$flags $fcompFlags $fcmpldFlags $optimization $include_flags"
+set cflags = "$flags $m64flags $optimization $defines $include_flags $c_includes"
+set fflags = "$flags $m64flags $fcompFlags $fcmpldFlags $optimization $include_flags"
 
 echo "CFLAGS  = $cflags" >> $configure
 echo "CXXFLAGS = $cflags" >> $configure
@@ -237,7 +261,7 @@ while ($i < 3)
     @ i++
 cat <<EOF >! $qdir[$i]/$qrun[$i]
 #!/bin/sh
-export DYLD_LIBRARY_PATH="\${IMOD_QTLIBDIR}:\$DYLD_LIBRARY_PATH"
+export $ld_lib_var="\${IMOD_QTLIBDIR}:\$$ld_lib_var"
 \$IMOD_DIR/bin/${qtarget[$i]} "\$@"
 EOF
 chmod a+x $qdir[$i]/$qrun[$i]
@@ -245,7 +269,7 @@ end
 
 cat <<EOF >! $imod_dir/runimod
 #!/bin/sh
-export DYLD_LIBRARY_PATH="\${IMOD_QTLIBDIR}:\$DYLD_LIBRARY_PATH"
+export $ld_lib_var="\${IMOD_QTLIBDIR}:\$$ld_lib_var"
 background=1
 for i
 do
@@ -262,7 +286,7 @@ EOF
 
 cat <<EOF >! $imod_dir/runimodv
 #!/bin/sh
-export DYLD_LIBRARY_PATH="\${IMOD_QTLIBDIR}:\$DYLD_LIBRARY_PATH"
+export $ld_lib_var="\${IMOD_QTLIBDIR}:\$$ld_lib_var"
 background=1
 for i
 do
@@ -279,7 +303,7 @@ EOF
 
 cat <<EOF >! $midas_dir/runmidas
 #!/bin/sh
-export DYLD_LIBRARY_PATH="\${IMOD_QTLIBDIR}:\$DYLD_LIBRARY_PATH"
+export $ld_lib_var="\${IMOD_QTLIBDIR}:\$$ld_lib_var"
 background=1
 for i
 do
@@ -319,21 +343,21 @@ foreach i ($fortqtprogs)
     set gen_scripts = ($gen_scripts run$i)
     cat <<EOF >! $scripts_dir/run$i
 #!/bin/sh
-export DYLD_LIBRARY_PATH="\${IMOD_QTLIBDIR}:\$DYLD_LIBRARY_PATH"
+export $ld_lib_var="\${IMOD_QTLIBDIR}:\$$ld_lib_var"
 \$IMOD_DIR/bin/$i.app/Contents/MacOS/$i "\$@"
 EOF
     chmod a+x $scripts_dir/run$i
 end
 
 #
-# Set up to copy qt lib for a distribution, and set name of LD_LIBRARY variable
+# Set up to copy qt lib for a distribution, 
 echo 'QTINSTLIBDIR = qtlib' >> $configure
-set ld_lib_var      = DYLD_LIBRARY_PATH
 echo "MACAPPS = $fortqtprogs" >> $configure
 set qtapp_path  = '$1.app/Contents/MacOS/'
 echo 'INSTALL_FILES = IMOD-mac.csh mac.cshrc IMOD-mac.sh mac.profile linklibs-mac' >> $configure
 if ($distname == "") then
     set distname = _osx_ppc
     if ($intel == true) set distname = _osx_intel 
+    if ($m64bit == true) set distname = ${distname}64
 endif
 
