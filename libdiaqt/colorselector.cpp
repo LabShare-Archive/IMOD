@@ -10,7 +10,6 @@
  *  $Id$
  *  Log at end of file
  */
-#include <q3frame.h>
 #include <qlayout.h>
 #include <qlabel.h>
 #include <qcolordialog.h>
@@ -213,6 +212,9 @@ void ColorSelectorGL::timerEvent(QTimerEvent *e)
 
 /*
 $Log$
+Revision 1.12  2009/01/15 16:30:26  mast
+Qt 4 port
+
 Revision 1.11  2007/08/26 06:55:59  mast
 Documentation changes
 
