@@ -147,7 +147,7 @@ if ($qtlibdir == "") exit 0
 if (! -e $instdir/$qtlibdir) mkdir -p $instdir/$qtlibdir
 
 #
-# grab the name of the Qt lib from the ever-useful sendevent Makefile
+# Get names of libs to copy
 #
 set qtlibs = `sed -n '/QTLIBSTOCOPY/s/^.*= *//p' configure`
 
@@ -198,17 +198,27 @@ endif
 # Mac and Linux: add lib to front of name
 #
 foreach i ($qtlibs)  
-    set files = `\find $QTDIR/lib -name "lib${i}*${dllext}*" -print | grep -v debug`
-    if ("$files" == "") then
-        echo "INSTALLQTLIB CANNOT FIND ANY lib${i}.${dllext} in $QTDIR/lib"
-        exit 1
+    if (-d $QTDIR/lib/$i.framework) then
+
+        # A Framework 
+        cp -R $QTDIR/lib/$i.framework $instdir/$qtlibdir
+        \find $instdir/$qtlibdir/$i.framework -depth -name Headers -exec \rm -rf '{}' \;
+    else
+        set files = `\find $QTDIR/lib -name "lib${i}*${dllext}*" -print | grep -v debug`
+        if ("$files" == "") then
+            echo "INSTALLQTLIB CANNOT FIND ANY lib${i}.${dllext} in $QTDIR/lib"
+            exit 1
+        endif
+        \cp -R $files $instdir/$qtlibdir 
     endif
-    \cp -R $files $instdir/$qtlibdir 
 end
 exit 0
 
 #
 #  $Log$
+#  Revision 3.41  2009/03/17 23:12:30  mast
+#  No no those really were errors, back to normal single error processing on mt
+#
 #  Revision 3.40  2009/03/17 04:00:23  mast
 #  Allow exit status 79 on mt, it is what we get now!
 #
