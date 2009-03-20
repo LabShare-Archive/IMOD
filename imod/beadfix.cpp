@@ -2370,7 +2370,7 @@ void BeadFixer::alignExited(int exitCode, QProcess::ExitStatus exitStatus)
     wprint("\aError (return code %d) running tiltalign.\n", exitCode);
 
   if (exitStatus == QProcess::NormalExit && App->listening)
-    imodPrintStderr("Tiltalign ran with exit code %d\n", exitCode);
+    imodPrintStderr("ETOMO INFO: Tiltalign ran with exit code %d\n", exitCode);
 
   delete mAlignProcess;
   mRunningAlign = false;
@@ -2503,6 +2503,9 @@ void BeadFixer::keyReleaseEvent ( QKeyEvent * e )
 /*
 
 $Log$
+Revision 1.56  2009/02/27 23:46:33  mast
+Output message for etomo when ran align
+
 Revision 1.55  2009/01/22 02:52:11  mast
 stopped fixed width for overlay box
 
