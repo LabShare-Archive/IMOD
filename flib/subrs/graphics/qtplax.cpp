@@ -28,8 +28,8 @@ Log at end
 #include <qfont.h>
 #include <qdatetime.h>
 #include <qpen.h>
-#include <q3pointarray.h>
 #include <qpainter.h>
+#include <qpolygon.h>
 #include <qbrush.h>
 
 #define LIST_CHUNK  1024
@@ -686,7 +686,7 @@ static void plax_draw_poly(b3dInt32 cindex, b3dInt32 csize, b3dInt16 *vec,
                            int iffill)
 {
   int i;
-  Q3PointArray points(csize);
+  QPolygon points(csize);
   
   plax_set_pen(cindex, 0);
   plax_set_brush(cindex, iffill);
@@ -830,6 +830,9 @@ static void plax_set_brush(int color, int closed)
 
 /*
 $Log$
+Revision 1.17  2009/01/15 16:32:58  mast
+Qt 4 port
+
 Revision 1.16  2006/05/12 14:28:29  mast
 Use the resize trick everywhere to get draws to work reliably on Linux
 
