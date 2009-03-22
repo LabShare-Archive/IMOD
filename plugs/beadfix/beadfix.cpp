@@ -204,7 +204,10 @@ void imodPlugExecute(ImodView *inImodView)
                                 "bead fixer");
 
   imodDialogManager.add((QWidget *)plug->window, IMOD_DIALOG);
-  plug->window->show();
+
+  // This makes the widget the right size and keeps it on screen and off the
+  // info window on the Mac
+  adjustGeometryAndShow((QWidget *)plug->window, IMOD_DIALOG);
   ivwTrackMouseForPlugs(plug->view, 1);
 }
 
@@ -1031,6 +1034,9 @@ void BeadFixer2::keyReleaseEvent ( QKeyEvent * e )
 /*
 
 $Log$
+Revision 3.17  2009/01/15 16:34:51  mast
+Qt 4 port
+
 Revision 3.16  2008/04/04 21:29:30  mast
 free contours after adding to object
 
