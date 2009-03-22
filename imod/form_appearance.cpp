@@ -79,7 +79,7 @@ void AppearanceForm::init()
       continue;
     styleComboBox->addItem(*it);
     if ((*it).toLower() == mPrefs->styleKey.toLower())
-      styleComboBox->setCurrentItem(ind);
+      styleComboBox->setCurrentIndex(ind);
     ind++;
   }
 #else
@@ -306,5 +306,8 @@ void AppearanceForm::destroy()
 /*
 
 $Log$
+Revision 4.1  2009/01/15 16:33:17  mast
+Qt 4 port
+
 
 */
