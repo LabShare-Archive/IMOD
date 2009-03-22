@@ -26,6 +26,7 @@ if ("$filetext" != "") then
     set m64bit = true
     set m64notIA = true
     set m64flags = '-m64'
+    set ltiff = '-ltiff64'
     set ld_lib_var      = DYLD_FRAMEWORK_PATH
 
     # These two could be a Qt 4.5 requirement...
@@ -134,7 +135,7 @@ if ($shared_libs != false) then
             set makestaticlib = "ar -sruv "
             set makenmcar = '$(MAKESTATICLIB)'
             set nmcarext = "a"
-            if ($tifflibs == true) echo 'LIBIIMODDEF = -ltiff -lSystemStubs' >> $configure
+            if ($tifflibs == true) echo "LIBIIMODDEF = $ltiff -lSystemStubs" >> $configure
         endif
 else
 	echo "AR      = ar"                 >> $configure
@@ -329,7 +330,7 @@ EOF
 cat << EOF >! $imod_qconf
 SOURCES += linegui.cpp
 HEADERS += linegui.h
-LIBS += -L$lib_dir -liimod -limesh -limod -ltrack -lcfshr -ldiaqt -lifft -ltiff
+LIBS += -L$lib_dir -liimod -limesh -limod -ltrack -lcfshr -ldiaqt -lifft $ltiff
 LIBS += -lm
 RC_FILE = b3dicon.icns
 EOF
