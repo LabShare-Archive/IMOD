@@ -39,6 +39,7 @@ int hotSliderFlag();
 int hotSliderKey();
 #endif
 
+#define EXCLUDE_STYLES
 #define MAXZOOMS 18
 #define MAX_GEOMETRIES 10
 #define MAX_NAMED_COLORS 8
@@ -212,6 +213,9 @@ extern ImodPreferences *ImodPrefs;
 
 /*
 $Log$
+Revision 1.22  2009/02/26 20:03:32  mast
+Add paging by big steps
+
 Revision 1.21  2009/01/15 16:33:18  mast
 Qt 4 port
 
