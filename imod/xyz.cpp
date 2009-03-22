@@ -133,7 +133,7 @@ int xxyz_open(ImodView *vi)
   xx->hq = 0;
   xx->project = 0;
   xx->mousemode = IMOD_MMOVIE;
-  xx->toolZoom = 0.0f;
+  xx->toolZoom = -1.0f;
   xx->toolMaxX = vi->xsize;
   xx->toolMaxY = vi->ysize;
   xx->toolMaxZ = vi->zsize;
@@ -2216,7 +2216,11 @@ void XyzGL::drawTools()
     mXyz->dialog->setMaxAxis(Z_COORD, mXyz->toolMaxZ);
   }
      
+  // Workaround to Qt 4.5.0 cocoa bug, need to load this boxes 3 times
   if (mXyz->toolZoom != mXyz->zoom){
+    if (mXyz->toolZoom < 0.)
+      mXyz->toolZoom -= 1.;
+    if (mXyz->toolZoom <= -4. || mXyz->toolZoom > -0.9)
     mXyz->toolZoom = mXyz->zoom;
     mXyz->dialog->setZoomText(mXyz->zoom);
   }
@@ -2348,6 +2352,9 @@ void XyzGL::mouseMoveEvent( QMouseEvent * event )
 
 /*
 $Log$
+Revision 4.54  2009/03/05 00:59:16  mast
+Flush mouse move events to get to most recent one when appropriate
+
 Revision 4.53  2009/01/15 16:33:18  mast
 Qt 4 port
 
