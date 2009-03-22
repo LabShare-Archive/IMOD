@@ -770,7 +770,7 @@ int imod_zap_open(struct ViewInfo *vi, int wintype)
   zap->timeLock = 0;
   zap->toolSection = -1;
   zap->toolMaxZ = vi->zsize;
-  zap->toolZoom = 0.0f;
+  zap->toolZoom = -1.0f;
   zap->toolTime = 0;
   zap->toolSizeX = 0;
   zap->toolSizeY = 0;
@@ -1482,7 +1482,7 @@ void zapGeneralEvent(ZapStruct *zap, QEvent *e)
   Iobj *obj;
   Icont *cont;
   float wheelScale = 1./1200.f;
-  if (zap->numXpanels)
+  if (zap->numXpanels || !zap->popup)
     return;
   ix = (zap->gfx->mapFromGlobal(QCursor::pos())).x();
   iy = (zap->gfx->mapFromGlobal(QCursor::pos())).y();
@@ -4580,13 +4580,18 @@ static void zapDrawTools(ZapStruct *zap)
     zap->qtWindow->setMaxZ(zap->toolMaxZ);
   }
 
+  // Workaround to Qt 4.5.0 cocoa bug, need to load these boxes 3 times
   if (zap->toolSection != zap->section){
-    zap->toolSection = zap->section;
+    if (zap->toolZoom <= -4. || zap->toolZoom > -0.9)
+      zap->toolSection = zap->section;
     zap->qtWindow->setSectionText(zap->section + 1);
   }
      
   if (zap->toolZoom != zap->zoom){
-    zap->toolZoom = zap->zoom;
+    if (zap->toolZoom < 0.)
+      zap->toolZoom -= 1.;
+    if (zap->toolZoom <= -4. || zap->toolZoom > -0.9)
+      zap->toolZoom = zap->zoom;
     zap->qtWindow->setZoomText(zap->zoom);
   }
 
@@ -4676,6 +4681,9 @@ static void setDrawCurrentOnly(ZapStruct *zap, int value)
 /*
 
 $Log$
+Revision 4.138  2009/03/14 00:43:33  mast
+Made sure mouse move set limits regardless, fixed rubberband moving float
+
 Revision 4.137  2009/03/10 04:34:33  mast
 Draw triangles for open contour ends, draw squares at connectors
 
