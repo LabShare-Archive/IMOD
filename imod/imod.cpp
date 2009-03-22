@@ -778,7 +778,8 @@ int main( int argc, char *argv[])
   }
 
   /* Get the clipboard messaging object on heap (doesn't work on stack!) */
-  ClipHandler = new ImodClipboard(useStdin);
+  if (print_wid || useStdin)
+    ClipHandler = new ImodClipboard(useStdin);
   App->listening = (print_wid ? 1 : 0) + (useStdin ? 2 : 0);
 
   /********************************************/
@@ -964,6 +965,9 @@ bool imodDebug(char key)
 /*
 
 $Log$
+Revision 4.71  2009/02/27 23:46:55  mast
+Set listening flag if started with -W or -L
+
 Revision 4.70  2009/01/15 16:33:17  mast
 Qt 4 port
 
