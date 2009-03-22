@@ -118,7 +118,7 @@ int xgraphOpen(struct ViewInfo *vi)
   imod_info_input();
   QSize size = xg->dialog->sizeHint();
   xg->dialog->resize(size.width(), (int)(0.65 * size.width()));
-  xg->dialog->show();
+  adjustGeometryAndShow((QWidget *)xg->dialog, IMOD_IMAGE, false);
 
   return(0);
 }
@@ -256,9 +256,9 @@ GraphWindow::GraphWindow(GraphStruct *graph, bool rgba,
   mMeanLabel = diaLabel(" 0.0000", topFrame, topLayout);
   
   // Help button
+  topLayout->addStretch();
   QPushButton *pbutton = diaPushButton("Help", topFrame, topLayout);
-  int width = (int)(1.2 * pbutton->fontMetrics().width("Help"));
-  pbutton->setFixedWidth(width);
+  diaSetButtonWidth(pbutton, ImodPrefs->getRoundedStyle(), 1.2, "Help");
   connect(pbutton, SIGNAL(pressed()), this, SLOT(help()));
   topLayout->addStretch();
 
@@ -1004,6 +1004,9 @@ static void makeBoundaryPoint(Ipoint pt1, Ipoint pt2, int ix1, int ix2,
 
 /*
     $Log$
+    Revision 4.14  2009/01/15 16:33:18  mast
+    Qt 4 port
+
     Revision 4.13  2008/08/19 20:01:40  mast
     Made it zoom with + as well as =
 

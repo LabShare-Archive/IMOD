@@ -18,6 +18,7 @@
 #include <qcheckbox.h>
 #include <qsignalmapper.h>
 #include <qlayout.h>
+#include <qstylefactory.h>
 #include <qtooltip.h>
 //Added by qt3to4:
 #include <QHBoxLayout>
@@ -101,7 +102,7 @@ int open_pixelview(struct ViewInfo *vi)
 
   // This takes care of showing/hiding. resizing, and updating
   PixelViewDialog->showButsToggled(showButs);
-  PixelViewDialog->show();
+  adjustGeometryAndShow((QWidget *)PixelViewDialog, IMOD_IMAGE);
   pvNewMousePosition(vi, vi->xmouse, vi->ymouse, B3DNINT(vi->zmouse));
   zapPixelViewState(true);
   xyzPixelViewState(true);
@@ -238,12 +239,21 @@ PixelView::PixelView(QWidget *parent, const char *name, Qt::WFlags fl)
   QSignalMapper *mapper = new QSignalMapper(this);
   connect(mapper, SIGNAL(mapped(int)), this, SLOT(buttonPressed(int)));
 
+  // The buttons look really bad in Aqua so use a fixed style here
+#ifdef Q_OS_MACX
+  QStyle *newStyle = QStyleFactory::create("Cleanlooks");
+#else
+  QStyle *newStyle = NULL;
+#endif
+
   // Make the buttons - put them in array in order of right-handed coordinates
   for (i = 0; i < PV_ROWS; i++) {
     for (j = 0; j < PV_COLS; j++) {
       mButtons[i][j] = new QPushButton("8", this);
       mButtons[i][j]->setFocusPolicy(Qt::NoFocus);
       mButtons[i][j]->setAutoFillBackground(true);
+      if (newStyle)
+        mButtons[i][j]->setStyle(newStyle);
       layout->addWidget(mButtons[i][j], PV_ROWS - 1 - i, j + 1);
       mapper->setMapping(mButtons[i][j], i * PV_COLS + j);
       connect(mButtons[i][j], SIGNAL(clicked()), mapper, SLOT(map()));
@@ -491,6 +501,9 @@ void PixelView::keyReleaseEvent ( QKeyEvent * e )
 /*
 
 $Log$
+Revision 4.16  2009/01/15 16:33:18  mast
+Qt 4 port
+
 Revision 4.15  2008/05/27 05:34:12  mast
 Added display of rgb values with option to show as gray, added option to
 show grid from memory, added help.
