@@ -57,7 +57,8 @@ typedef struct imod_application
   int ghost;
   
   short wzoom;
-  int exiting;
+  int closing;      // Flag that widows are being closed on exit
+  int exiting;      // Flag that application exit has been called
   int listening;    // Flag that it was started with -L or -W
 
 }ImodApp;
@@ -271,6 +272,9 @@ bool imodDebug(char key);
 
 /*
 $Log$
+Revision 3.46  2009/02/27 23:47:05  mast
+Added listening flag
+
 Revision 3.45  2009/01/15 16:33:17  mast
 Qt 4 port
 
