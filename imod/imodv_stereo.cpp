@@ -343,7 +343,7 @@ void imodvStereoEditDialog(ImodvApp *a, int state)
 
   imodvDialogManager.add((QWidget *)imodvStereoData.dia, IMODV_DIALOG);
   imodvStereoUpdate();
-  imodvStereoData.dia->show();
+  adjustGeometryAndShow((QWidget *)imodvStereoData.dia, IMODV_DIALOG);
 }
 
 /****************************************************************************/
@@ -471,6 +471,9 @@ void ImodvStereo::keyReleaseEvent ( QKeyEvent * e )
 /*
 
 $Log$
+Revision 4.16  2009/01/15 16:33:18  mast
+Qt 4 port
+
 Revision 4.15  2008/12/15 21:23:53  mast
 Changes for using separate widgets for stereo
 

@@ -546,7 +546,7 @@ void objed(ImodvApp *a)
   lastModNum = a->cm;
   objset(a);
   imodvDialogManager.add((QWidget *)objed_dialog, IMODV_DIALOG);
-  objed_dialog->show();
+  adjustGeometryAndShow((QWidget *)objed_dialog, IMODV_DIALOG);
 }
 
 // Make an on-off button, add it to the grid, and connect it to the mapper
@@ -2558,6 +2558,9 @@ static QVBoxLayout *outerVBoxLayout(QWidget *parent)
 /*
 
 $Log$
+Revision 4.45  2009/02/26 20:04:04  mast
+Turn off keyboard tracking of spin boxes
+
 Revision 4.44  2009/02/02 13:32:10  mast
 Synchronize on/off checkboxes when turn object on from meshing
 

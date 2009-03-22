@@ -165,7 +165,7 @@ int xtumOpen(struct ViewInfo *vi)
   xtum->ctrl = ivwNewControl(vi, xtumDraw_cb, xtumClose_cb, xtumKey_cb,
                                (void *)xtum);
   imodDialogManager.add((QWidget *)xtum->dialog, IMOD_IMAGE);
-  xtum->dialog->show();
+  adjustGeometryAndShow((QWidget *)xtum->dialog, IMOD_IMAGE, false);
      
   return(0);
 }
@@ -1251,6 +1251,9 @@ void TumblerGL::paintGL()
 
 /*
 $Log$
+Revision 4.31  2009/01/15 16:33:18  mast
+Qt 4 port
+
 Revision 4.30  2008/08/19 20:01:40  mast
 Made it zoom with + as well as =
 

@@ -117,8 +117,7 @@ void imodContEditBreak(ImodView *vw)
 
   cobrk.dia = new ContourBreak(imodDialogManager.parent(IMOD_DIALOG), 
                                "contour break");
-
-  cobrk.dia->show();
+  adjustGeometryAndShow((QWidget *)cobrk.dia, IMOD_DIALOG);
 }
 
 static void setlabel(QLabel *label, Iindex ind)
@@ -171,7 +170,6 @@ ContourBreak::ContourBreak(QWidget *parent, const char *name)
 
   setFontDependentWidths();
   setLabels();
-  show();
 }
 
 void ContourBreak::setFontDependentWidths()
@@ -415,7 +413,7 @@ void imodContEditJoinOpen(ImodView *vw)
   cojoin.dia = new ContourJoin(imodDialogManager.parent(IMOD_DIALOG), 
                                "contour join");
 
-  cojoin.dia->show();
+  adjustGeometryAndShow((QWidget *)cojoin.dia, IMOD_DIALOG);
 }
 
 
@@ -499,7 +497,6 @@ ContourJoin::ContourJoin(QWidget *parent, const char *name)
   setFontDependentWidths();
   setlabel(mSet1Label, cojoin.i1);
   setlabel(mSet2Label, cojoin.i2);
-  show();
 }
 
 void ContourJoin::setFontDependentWidths()
@@ -917,7 +914,7 @@ void imodContEditMoveDialog(ImodView *vw, int moveSurf)
                              "contour move");
 
   imodContEditMoveDialogUpdate();
-  comv.dia->show();
+  adjustGeometryAndShow((QWidget *)comv.dia, IMOD_DIALOG);
 }
 
 /* Update the dialog box based on the current object and settings */
@@ -1598,8 +1595,7 @@ void imodContEditSurf(ImodView *vw)
                                Qt::Window);
   imodContEditSurfShow();
   imodDialogManager.add((QWidget *)surf.dia, IMOD_DIALOG);
-
-  surf.dia->show();
+  adjustGeometryAndShow((QWidget *)surf.dia, IMOD_DIALOG);
 }
 
 /*
@@ -1714,21 +1710,21 @@ void iceSurfNew()
   inputNewSurface(surf.vw);
 }
 
-// Record change in open/closed state
+// Record change in open/closed state - a general routine 
 void iceClosedOpen(int state)
 {
   static int lastChange = 0;
   int i, numChange = 0;
   QString qstr;
   Iindex *index;
-  Imod *imod = surf.vw->imod;
+  Imod *imod = App->cvi->imod;
   Icont *cont = imodContourGet(imod);
   if (!cont)
     return;
 
   // Count number of valid entries on selection list
-  for (i = 0; i < ilistSize(surf.vw->selectionList); i++) {
-    index = (Iindex *)ilistItem(surf.vw->selectionList, i);
+  for (i = 0; i < ilistSize(App->cvi->selectionList); i++) {
+    index = (Iindex *)ilistItem(App->cvi->selectionList, i);
     if (index->object >= 0 && index->object < imod->objsize &&
         iobjClose(imod->obj[index->object].flags) && index->contour >= 0 &&
         index->contour <= imod->obj[index->object].contsize)
@@ -1737,7 +1733,7 @@ void iceClosedOpen(int state)
 
   // Change one
   if (numChange < 2) {
-    surf.vw->undo->contourPropChg();
+    App->cvi->undo->contourPropChg();
     setOrClearFlags(&cont->flags, ICONT_OPEN, state);
   } else {
 
@@ -1751,20 +1747,20 @@ void iceClosedOpen(int state)
     } else
       wprint("%d contours changed to %s.\n", numChange, state ? 
              "open" : "closed");
-    for (i = 0; i < ilistSize(surf.vw->selectionList); i++) {
-      index = (Iindex *)ilistItem(surf.vw->selectionList, i);
+    for (i = 0; i < ilistSize(App->cvi->selectionList); i++) {
+      index = (Iindex *)ilistItem(App->cvi->selectionList, i);
       if (index->object >= 0 && index->object < imod->objsize &&
           iobjClose(imod->obj[index->object].flags) && index->contour >= 0 &&
           index->contour < imod->obj[index->object].contsize) {
-        surf.vw->undo->contourPropChg(index->object, index->contour);
+        App->cvi->undo->contourPropChg(index->object, index->contour);
         setOrClearFlags(&imod->obj[index->object].cont[index->contour].flags,
                         ICONT_OPEN, state);
       }
     }
   }
 
-  surf.vw->undo->finishUnit();
-  imodDraw(surf.vw, IMOD_DRAW_MOD);
+  App->cvi->undo->finishUnit();
+  imodDraw(App->cvi, IMOD_DRAW_MOD);
 }
 
 // Record change in time index of this contour
@@ -1906,6 +1902,9 @@ void ContourFrame::keyReleaseEvent ( QKeyEvent * e )
 /*
 
 $Log$
+Revision 4.36  2009/03/10 04:35:50  mast
+Made open-closed toggle change multiple contours
+
 Revision 4.35  2009/02/26 20:04:04  mast
 Turn off keyboard tracking of spin boxes
 

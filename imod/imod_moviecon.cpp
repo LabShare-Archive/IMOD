@@ -295,7 +295,7 @@ void imodMovieConDialog(ImodView *vw)
   set_sliders();
   dia->setRateBox(realrate);
   dia->enableTime(vw->nt);
-  dia->show();
+  adjustGeometryAndShow((QWidget *)dia, IMOD_DIALOG);
 }
 
 /****************************************************************************/
@@ -398,6 +398,9 @@ void imcIncrementRate(int dir)
 
 /*
 $Log$
+Revision 4.9  2009/01/15 16:33:17  mast
+Qt 4 port
+
 Revision 4.8  2008/12/08 17:24:04  mast
 Increased interface for montage snapshots
 

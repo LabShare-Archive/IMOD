@@ -95,7 +95,7 @@ void imodvDepthCueEditDialog(ImodvApp *a, int state)
 
   imodvDepthCueSetWidgets();
   imodvDialogManager.add((QWidget *)idcData.dia, IMODV_DIALOG);
-  idcData.dia->show();
+  adjustGeometryAndShow((QWidget *)idcData.dia, IMODV_DIALOG);
 }
 
 /****************************************************************************/
@@ -137,6 +137,9 @@ void imodvDepthcueToggle(int state)
 
 /*
 $Log$
+Revision 4.6  2009/01/15 16:33:17  mast
+Qt 4 port
+
 Revision 4.5  2004/11/22 00:22:17  mast
 Changed to use help page in Qt Assistant
 

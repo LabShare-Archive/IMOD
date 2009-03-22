@@ -162,7 +162,7 @@ void imodvViewEditDialog(ImodvApp *a, int state)
   ved->dia->setAutostore(auto_store);
   ved->dia->selectItem(a->imod->cview - 1, true);
   imodvDialogManager.add((QWidget *)ved->dia, IMODV_DIALOG);
-  ved->dia->show();
+  adjustGeometryAndShow((QWidget *)ved->dia, IMODV_DIALOG);
 }
 
 // Save model: call appropriate routine depending on whether imod or standalone
@@ -357,6 +357,9 @@ static void build_list(ImodvApp *a)
 /*
 
     $Log$
+    Revision 4.14  2009/01/15 16:33:18  mast
+    Qt 4 port
+
     Revision 4.13  2008/06/10 02:07:04  mast
     Set up lighting flag only when view changes
 

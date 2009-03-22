@@ -87,7 +87,7 @@ void imodvModelEditDialog(ImodvApp *a, int state)
   med->dia->setViewSelection(a->drawall);
   med->dia->setMoveEdit(a->moveall, a->crosset);
   imodvDialogManager.add((QWidget *)med->dia, IMODV_DIALOG);
-  med->dia->show();
+  adjustGeometryAndShow((QWidget *)med->dia, IMODV_DIALOG);
 }
 
 // The program is selecting a new model
@@ -237,6 +237,9 @@ void imodvPixelChanged()
 /*  
 
 $Log$
+Revision 4.11  2009/01/15 16:33:18  mast
+Qt 4 port
+
 Revision 4.10  2008/12/01 15:42:01  mast
 Changes for undo/redo and selection in 3dmodv standalone
 

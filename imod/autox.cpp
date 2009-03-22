@@ -407,8 +407,7 @@ int autox_open(ImodView *vw)
 			ax->altmouse, ax->diagonal);
   autox_clear(ax, AUTOX_ALL);
   imodDialogManager.add((QWidget *)autoWindow, IMOD_DIALOG);
-
-  autoWindow->show();
+  adjustGeometryAndShow((QWidget *)autoWindow, IMOD_DIALOG);
 
   vw->ax = ax;
   return(0);
@@ -837,6 +836,9 @@ static void autox_clear(Autox *ax, unsigned char bit)
 /*
 
 $Log$
+Revision 4.13  2009/01/15 16:33:17  mast
+Qt 4 port
+
 Revision 4.12  2008/05/28 00:14:10  mast
 Made it check if image processing busy and then get it to process the
 section when doing Next

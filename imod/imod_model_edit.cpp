@@ -63,6 +63,7 @@ int openModelEdit(ImodView *vw)
     (imodDialogManager.parent(IMOD_DIALOG), "model offset");
 
   imodDialogManager.add((QWidget *)HeaderDialog.dia, IMOD_DIALOG);
+  adjustGeometryAndShow((QWidget *)HeaderDialog.dia, IMOD_DIALOG);
   return 0;
 
 }
@@ -183,7 +184,6 @@ ModelHeaderWindow::ModelHeaderWindow(QWidget *parent, const char *name)
   mEditBox[0]->setEnabled(false);
 
   update();
-  show();
 }
 
 void ModelHeaderWindow::buttonPressed(int which)
@@ -322,6 +322,7 @@ int openModelOffset(ImodView *vw)
     (imodDialogManager.parent(IMOD_DIALOG), "model offset");
 
   imodDialogManager.add((QWidget *)OffsetDialog.dia, IMOD_DIALOG);
+  adjustGeometryAndShow((QWidget *)OffsetDialog.dia, IMOD_DIALOG);
   return 0;
 }
 
@@ -406,7 +407,6 @@ ModelOffsetWindow::ModelOffsetWindow(QWidget *parent, const char *name)
 
   connect(this, SIGNAL(actionPressed(int)), this, SLOT(buttonPressed(int)));
   setWindowTitle(imodCaption("3dmod Model Offset"));
-  show();
 }
 
 // Respond to button press: apply, revert, set base, done
@@ -507,6 +507,9 @@ void ModelOffsetWindow::keyReleaseEvent ( QKeyEvent * e )
 
 /*
 $Log$
+Revision 4.13  2009/01/15 16:33:17  mast
+Qt 4 port
+
 Revision 4.12  2006/01/14 18:14:16  mast
 Added incremental Z scale
 

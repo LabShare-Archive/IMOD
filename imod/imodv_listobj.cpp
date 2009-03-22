@@ -136,7 +136,7 @@ void imodvObjectListDialog(ImodvApp *a, int state)
 
   // After getting size with group buttons present, maybe hide them
   Oolist_dialog->updateGroups(a);
-  Oolist_dialog->show();
+  adjustGeometryAndShow((QWidget *)Oolist_dialog, IMODV_DIALOG);
   Oolist_dialog->adjustFrameSize();
 }
 
@@ -623,6 +623,9 @@ void ImodvOlist::keyReleaseEvent ( QKeyEvent * e )
 /*
 
 $Log$
+Revision 4.6  2009/02/16 06:47:55  mast
+Fixed some geometry problems
+
 Revision 4.5  2009/01/15 16:33:18  mast
 Qt 4 port
 

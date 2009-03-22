@@ -280,7 +280,7 @@ void FineGrainForm::setLineColor()
           SLOT(keyReleaseEvent(QKeyEvent *)));
   imodDialogManager.add((QWidget *)mLineSelector, IMOD_DIALOG);
   mLineSelector->setWindowTitle(imodCaption("3dmod Line Color"));
-  mLineSelector->show();
+  adjustGeometryAndShow((QWidget *)mLineSelector, IMOD_DIALOG);
 }
 
 void FineGrainForm::setFillColor()
@@ -304,7 +304,7 @@ void FineGrainForm::setFillColor()
           SLOT(keyReleaseEvent(QKeyEvent *)));
   imodDialogManager.add((QWidget *)mFillSelector, IMOD_DIALOG);
   mFillSelector->setWindowTitle(imodCaption("3dmod Fill Color"));
-  mFillSelector->show();
+  adjustGeometryAndShow((QWidget *)mFillSelector, IMOD_DIALOG);
 }
 
 // Slots for the color changes
@@ -503,6 +503,10 @@ void FineGrainForm::fontChange( const QFont & oldFont )
 /*
 
 $Log$
+Revision 4.2  2009/03/10 04:37:19  mast
+Added options to change all contours, draw symbols at connections, and
+output for general values
+
 Revision 4.1  2009/01/15 16:33:17  mast
 Qt 4 port
 

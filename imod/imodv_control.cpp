@@ -393,8 +393,7 @@ int imodv_control(ImodvApp *a, int state)
     dialog->setWindowTitle(qstr);
 
   imodvDialogManager.add((QWidget *)dialog, IMODV_DIALOG);
-  dialog->adjustSize();
-  dialog->show();
+  adjustGeometryAndShow((QWidget *)dialog, IMODV_DIALOG);
 
   lastX = lastY = lastZ = lastScale = -999.;
   imodvControlUpdate(a);
@@ -408,6 +407,9 @@ int imodv_control(ImodvApp *a, int state)
 /*
 
 $Log$
+Revision 4.12  2009/01/15 16:33:17  mast
+Qt 4 port
+
 Revision 4.11  2007/11/30 06:51:50  mast
 Changes for linking slicer to model view
 

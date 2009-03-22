@@ -405,6 +405,7 @@ int inputIProcOpen(struct ViewInfo *vi)
 
     proc.dia = new IProcWindow(imodDialogManager.parent(IMOD_DIALOG), NULL);
     imodDialogManager.add((QWidget *)proc.dia, IMOD_DIALOG);
+    adjustGeometryAndShow((QWidget *)proc.dia, IMOD_DIALOG);
 
   }else{
     proc.dia->raise();
@@ -833,7 +834,6 @@ IProcWindow::IProcWindow(QWidget *parent, const char *name)
   connect(this, SIGNAL(actionClicked(int)), this, SLOT(buttonClicked(int)));
   connect(this, SIGNAL(actionPressed(int)), this, SLOT(buttonPressed(int)));
   setWindowTitle(imodCaption("3dmod Image Processing"));
-  show();
 }
 
 /* Action functions */
@@ -1253,6 +1253,9 @@ void IProcThread::run()
 /*
 
     $Log$
+    Revision 4.26  2009/01/15 16:33:18  mast
+    Qt 4 port
+
     Revision 4.25  2008/05/28 00:09:41  mast
     Added callback function that can be called immediately or when thread finishes
 

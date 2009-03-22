@@ -212,7 +212,7 @@ void imodvMovieDialog(ImodvApp *a, int state)
                               movie->file_format, movie->saved);
   movie->dia->setFrameBoxes(movie->frames, movie->montFrames);
   imodvDialogManager.add((QWidget *)movie->dia, IMODV_DIALOG);
-  movie->dia->show();
+  adjustGeometryAndShow((QWidget *)movie->dia, IMODV_DIALOG);
 }
 
 static void setstep(int index, int frame, int loLim, int hiLim, float *start,
@@ -622,6 +622,9 @@ static void imodvMakeMontage(int frames, int overlap)
 
 /*
     $Log$
+    Revision 4.20  2009/01/15 16:33:18  mast
+    Qt 4 port
+
     Revision 4.19  2008/05/27 05:45:38  mast
     Adapting to changes in snapshot calls
 

@@ -218,8 +218,7 @@ int imod_object_edit()
   Ioew_dialog->setWindowTitle(imodCaption("3dmod Object Edit"));
   imodDialogManager.add((QWidget *)Ioew_dialog, IMOD_DIALOG);
 
-  Ioew_dialog->adjustSize();
-  Ioew_dialog->show();
+  adjustGeometryAndShow((QWidget *)Ioew_dialog, IMOD_DIALOG);
 
   imod_object_edit_draw();
   return(0);
@@ -372,8 +371,7 @@ ImodObjColor::ImodObjColor(int objNum)
 
   mSelector->setWindowTitle(imodCaption("3dmod Color"));
   imodDialogManager.add((QWidget *)mSelector, IMOD_DIALOG);
-
-  mSelector->show();
+  adjustGeometryAndShow((QWidget *)mSelector, IMOD_DIALOG);
 }
 
 void ImodObjColor::newColorSlot(int red, int green, int blue)
@@ -435,6 +433,9 @@ void ImodObjColor::keyReleaseSlot ( QKeyEvent * e )
 
 /*
 $Log$
+Revision 4.21  2009/01/15 16:33:17  mast
+Qt 4 port
+
 Revision 4.20  2008/07/16 04:30:23  mast
 Added contour point limit
 

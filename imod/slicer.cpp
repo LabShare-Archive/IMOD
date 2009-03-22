@@ -467,7 +467,7 @@ int sslice_open(struct ViewInfo *vi)
   
   setAngleToolbarState(ss->qtWindow, sliceAngDia != NULL);
 
-  ss->qtWindow->show();
+  adjustGeometryAndShow((QWidget *)ss->qtWindow, IMOD_IMAGE, false);
   ss->glw->setMouseTracking(pixelViewOpen);
 
   return(0);
@@ -485,7 +485,7 @@ int slicerAnglesOpen()
   if (!sliceAngDia)
     return -1;
   imodDialogManager.add((QWidget *)sliceAngDia, IMOD_DIALOG);
-  sliceAngDia->show();
+  adjustGeometryAndShow((QWidget *)sliceAngDia, IMOD_DIALOG);
   notifySlicersOfAngDia(true);
   return 0;
 }
@@ -2719,6 +2719,9 @@ void slicerCubePaint(SlicerStruct *ss)
 
 /*
 $Log$
+Revision 4.64  2009/03/05 00:59:16  mast
+Flush mouse move events to get to most recent one when appropriate
+
 Revision 4.63  2009/01/16 18:27:18  mast
 Set angle toolbar state properly when opeing
 

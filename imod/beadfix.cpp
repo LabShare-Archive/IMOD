@@ -310,7 +310,7 @@ void imodPlugExecute(ImodView *inImodView)
   }
   firstTime = 0;
 
-  plug->window->show();
+  adjustGeometryAndShow((QWidget *)plug->window, IMOD_DIALOG);
 }
 
 /* Execute other specific commands (update for model change) */
@@ -2503,6 +2503,9 @@ void BeadFixer::keyReleaseEvent ( QKeyEvent * e )
 /*
 
 $Log$
+Revision 1.57  2009/03/20 21:29:37  mast
+Added tag for ran message
+
 Revision 1.56  2009/02/27 23:46:33  mast
 Output message for etomo when ran align
 

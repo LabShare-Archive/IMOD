@@ -98,7 +98,7 @@ void imodvImageEditDialog(ImodvApp *a, int state)
 
   mkcmap();
   imodvDialogManager.add((QWidget *)imodvImageData.dia, IMODV_DIALOG);
-  imodvImageData.dia->show();
+  adjustGeometryAndShow((QWidget *)imodvImageData.dia, IMODV_DIALOG);
 }
 
 // Update the dialog box (just the view flag for now)
@@ -843,6 +843,9 @@ void ImodvImage::keyReleaseEvent ( QKeyEvent * e )
 
 /*
 $Log$
+Revision 4.19  2009/01/15 16:33:17  mast
+Qt 4 port
+
 Revision 4.18  2008/05/27 02:48:43  mast
 Fixed multiple plane drawing of X and Y planes
 

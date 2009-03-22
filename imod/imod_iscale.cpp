@@ -70,6 +70,7 @@ void imodImageScaleDialog(ImodView *vi)
     (imodDialogManager.parent(IMOD_DIALOG), "image scale");
 
   imodDialogManager.add((QWidget *)imodImageScaleData.dia, IMOD_DIALOG);
+  adjustGeometryAndShow((QWidget *)imodImageScaleData.dia, IMOD_DIALOG);
 
   return;
 }
@@ -127,7 +128,6 @@ ImageScaleWindow::ImageScaleWindow(QWidget *parent, const char *name)
 
   connect(this, SIGNAL(actionClicked(int)), this, SLOT(buttonPressed(int)));
   setWindowTitle(imodCaption("3dmod Image Scale"));
-  show();
 }
 
 // Respond to button press: apply, revert, set base, done
@@ -336,6 +336,9 @@ void ImageScaleWindow::keyReleaseEvent ( QKeyEvent * e )
 
 /*
 $Log$
+Revision 4.16  2009/01/15 16:33:17  mast
+Qt 4 port
+
 Revision 4.15  2006/08/24 21:30:27  mast
 Fixed (?) test for multi file sections
 

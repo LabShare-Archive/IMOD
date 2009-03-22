@@ -214,6 +214,7 @@ int openContourCopyDialog(ImodView *vw)
   if (!ThisDialog.dia) return(1);
 
   imodDialogManager.add((QWidget *)ThisDialog.dia, IMOD_DIALOG);
+  adjustGeometryAndShow((QWidget *)ThisDialog.dia, IMOD_DIALOG);
   return(0);
 }
 
@@ -301,7 +302,6 @@ ContourCopy::ContourCopy(QWidget *parent, const char *name)
 
   connect(this, SIGNAL(actionPressed(int)), this, SLOT(buttonPressed(int)));
   setWindowTitle(imodCaption("3dmod Copy Contours"));
-  show();
 }
 
 // Operation is passed directly when selected
@@ -598,6 +598,9 @@ void ContourCopy::keyReleaseEvent ( QKeyEvent * e )
 /*
 
 $Log$
+Revision 4.19  2009/02/26 20:04:04  mast
+Turn off keyboard tracking of spin boxes
+
 Revision 4.18  2009/01/15 16:33:17  mast
 Qt 4 port
 

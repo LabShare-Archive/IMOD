@@ -102,7 +102,7 @@ void imodvIsosurfaceEditDialog(ImodvApp *a, int state)
   imodvIsosurfaceData.dia = new ImodvIsosurface(a->vi, imodvDialogManager.parent(IMODV_DIALOG),
       "isosurface view");
   imodvDialogManager.add((QWidget *)imodvIsosurfaceData.dia, IMODV_DIALOG);
-  imodvIsosurfaceData.dia->show();
+  adjustGeometryAndShow((QWidget *)imodvIsosurfaceData.dia, IMODV_DIALOG);
 }
 
 bool imodvIsosurfaceUpdate(void)
@@ -1372,6 +1372,9 @@ void ImodvIsosurface::keyReleaseEvent ( QKeyEvent * e )
 /*
 
    $Log$
+   Revision 4.16  2009/01/15 16:33:18  mast
+   Qt 4 port
+
    Revision 4.15  2008/12/19 00:42:46  mast
    Change color again, change the names for saved object, scale down
    automatically selected color for saved object

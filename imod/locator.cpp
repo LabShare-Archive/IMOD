@@ -81,7 +81,7 @@ int locatorOpen(ImodView *vi)
   }
   winy += LocWin->height() - GLw->height();
   LocWin->resize(winx, winy);
-  LocWin->show();
+  adjustGeometryAndShow((QWidget *)LocWin, IMOD_IMAGE, false);
   return 0;
 }
 
@@ -434,6 +434,9 @@ void LocatorGL::mouseMoveEvent ( QMouseEvent * e )
 
 /*
 $Log$
+Revision 1.7  2009/03/05 00:59:16  mast
+Flush mouse move events to get to most recent one when appropriate
+
 Revision 1.6  2009/01/15 16:33:18  mast
 Qt 4 port
 

@@ -298,7 +298,7 @@ void imodPlugExecute(ImodView *inImodView)
   }
   first = 0;
 
-  plug->window->show();
+  adjustGeometryAndShow((QWidget *)plug->window, IMOD_DIALOG);
 }
 
 
@@ -746,6 +746,9 @@ void LineTrack::keyReleaseEvent ( QKeyEvent * e )
 /*
 
 $Log$
+Revision 1.17  2009/01/15 16:33:18  mast
+Qt 4 port
+
 Revision 1.16  2008/05/27 04:18:49  mast
 Prevented it from opening on color data.
 

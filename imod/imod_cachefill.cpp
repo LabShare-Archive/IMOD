@@ -511,7 +511,7 @@ void imodCacheFillDialog(ImodView *vi)
   imodCacheFillData.dia = new ImodCacheFill
     (imodDialogManager.parent(IMOD_DIALOG), "cache filler");
   imodDialogManager.add((QWidget *)imodCacheFillData.dia, IMOD_DIALOG);
-  return;
+  adjustGeometryAndShow((QWidget *)imodCacheFillData.dia, IMOD_DIALOG);
 }
 
 /****************************************************************************/
@@ -605,7 +605,6 @@ ImodCacheFill::ImodCacheFill(QWidget *parent, const char *name)
   connect(this, SIGNAL(actionClicked(int)), this, SLOT(buttonPressed(int)));
 
   setWindowTitle(imodCaption("3dmod Cache Filler"));
-  show();
 }
 
 // Respond to action buttons
@@ -681,6 +680,9 @@ void ImodCacheFill::keyReleaseEvent ( QKeyEvent * e )
 /*
 
 $Log$
+Revision 4.12  2009/01/15 16:33:17  mast
+Qt 4 port
+
 Revision 4.11  2007/09/14 21:56:16  sueh
 bug# 1038 Switching from calling dia_vasmsg() to opening an .html file for help.
 

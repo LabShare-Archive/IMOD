@@ -607,7 +607,7 @@ void ImodvBkgColor::openDialog()
   mSelector->setWindowTitle(qstr);
 
   imodvDialogManager.add((QWidget *)mSelector, IMODV_DIALOG);
-  mSelector->show();
+  adjustGeometryAndShow((QWidget *)mSelector, IMODV_DIALOG);
 }
 
 ImodvBkgColor::ImodvBkgColor()
@@ -648,6 +648,9 @@ void ImodvBkgColor::keyReleaseSlot ( QKeyEvent * e )
 /*
 
 $Log$
+Revision 4.32  2009/01/24 00:24:31  mast
+*** empty log message ***
+
 Revision 4.31  2009/01/15 16:33:18  mast
 Qt 4 port
 

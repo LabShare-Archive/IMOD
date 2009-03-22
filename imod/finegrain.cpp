@@ -75,11 +75,7 @@ void fineGrainOpen(ImodView *vw)
   
   fineGrainUpdate();
   imodDialogManager.add((QWidget *)fgd.dia, IMOD_DIALOG);
-
-  imod_info_input();
-  fgd.dia->adjustSize();
-  fgd.dia->show();
-
+  adjustGeometryAndShow((QWidget *)fgd.dia, IMOD_DIALOG);
 }
 
 /*
@@ -1256,6 +1252,10 @@ static void ifgHandleValue1(DrawProps *defProps, DrawProps *contProps,
 /*
 
 $Log$
+Revision 1.16  2009/03/10 04:38:44  mast
+Added ability change multiple contours, option for drawing connections,
+and value output
+
 Revision 1.15  2009/02/16 06:47:35  mast
 Fixed some geometry problems
 
