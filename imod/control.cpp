@@ -24,14 +24,17 @@
 #include <qtimer.h>
 #include <qobject.h>
 #include <qapplication.h>
+#include <QDesktopWidget>
 //Added by qt3to4:
 #include <QKeyEvent>
 #include "imod.h"
 #include "imod_info.h"
+#include "imod_info_cb.h"
 #include "imodv.h"
 #include "control.h"
 #include "imod_workprocs.h"
 #include "preferences.h"
+#include "dia_qtutils.h"
 
 /* Structure used by dialog manager */
 typedef struct imodv_dialog
@@ -498,6 +501,57 @@ void DialogManager::windowList(QObjectList *objList, int dlgClass, int dlgType)
   }
 }
 
+// Adjust size 
+void adjustGeometryAndShow(QWidget *widget, int dlgClass, bool doSize)
+{
+  QWidget *parwidg = NULL;
+  int deskWidth, deskHeight, xleft, ytop;
+  QRect pos, parpos, newpos;
+
+  // Adjust the size and get it on the screen, then show it
+  imod_info_input();
+  if (doSize)
+    widget->adjustSize();
+  pos = widget->frameGeometry();
+  xleft = pos.x();
+  ytop = pos.y();
+  //imodPrintStderr("%d %d %d %d\n", xleft, ytop, pos.width(), pos.height());
+  diaLimitWindowPos(pos.width(), pos.height(), xleft, ytop);
+  if (xleft != pos.x() || ytop != pos.y())
+    widget->move(xleft, ytop);
+  newpos = pos;
+  newpos.moveTo(xleft, ytop);
+  //imodPrintStderr("%d %d %d %d\n", xleft, ytop, pos.width(), pos.height());
+  widget->show();
+  //imodPrintStderr("%d %d\n", widget->x(), widget->y());
+
+  // Get parent if appropriate (Mac OSX) and make sure it doesn't intersect
+  // it, but at least restore window manager's position
+  if (dlgClass >= 0)
+    parwidg = imodDialogManager.parent(dlgClass);
+  if (parwidg) {
+    parpos = parwidg->frameGeometry();
+    /*imodPrintStderr("parent %d %d %d %d\n", parpos.x(), parpos.y(),
+      parpos.width(), parpos.height()); */
+    // If parent intersects, check if can be moved to below, above, right, left
+    if (newpos.intersects(parpos)) {
+      deskWidth = QApplication::desktop()->width();
+      deskHeight = QApplication::desktop()->height();
+      if (pos.height() <= deskHeight - (parpos.y() + parpos.height()))
+        ytop = parpos.y() + parpos.height();
+      else if (pos.height() < parpos.y() - 32)
+        ytop = parpos.y() - pos.height();
+      else if (pos.width() <= deskWidth - (parpos.x() + parpos.width()))
+        xleft = parpos.x() + parpos.width();
+      else if (pos.width() < parpos.x())
+        xleft = parpos.x() - pos.width();
+    }
+    diaLimitWindowPos(pos.width(), pos.height(), xleft, ytop);
+    widget->move(xleft, ytop);
+    //imodPrintStderr("%d %d %d %d\n", xleft, ytop);
+  }
+}
+
 // Return system-dependent rectangle that can be used to restore window size
 // and position
 // This is supposed to be the frame position and the client size, but on
@@ -511,8 +565,12 @@ QRect ivwRestorableGeometry(QWidget *widget)
 #endif
 }
 
+
 /*
 $Log$
+Revision 4.18  2009/01/15 16:33:17  mast
+Qt 4 port
+
 Revision 4.17  2004/11/20 05:05:27  mast
 Changes for undo/redo capability
 

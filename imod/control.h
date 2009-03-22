@@ -42,6 +42,17 @@ extern DLL_EX_IM DialogManager imodDialogManager;
 enum {ZAP_WINDOW_TYPE, MULTIZ_WINDOW_TYPE, SLICER_WINDOW_TYPE,
       GRAPH_WINDOW_TYPE, UNKNOWN_TYPE};
 /* END_CODE */
+
+/*!
+ * Processes events, adjusts size of [widget] if [doSize] is true, makes sure 
+ * it is fully on the desktop, then shows the widget.  On Mac OSX, if 
+ * [dlgClass] is non-negative, the 
+ * widget is retored to the window manager's position then, if necessary,
+ * moved so as not to overlay the parent (Info window or model view).
+ */
+void DLL_EX_IM adjustGeometryAndShow(QWidget *widget, int dlgClass, 
+                                     bool doSize = true);
+
 /* END_SECTION */
 
 typedef struct ilist_struct Ilist;
@@ -145,7 +156,8 @@ class DLL_EX_IM DialogManager
   void hide();
   void show();
 
-  /*! Returns the parent window for the give type of dialog/window, [dlgType].
+  /*! On Mac OSX, returns the parent window for the give type of 
+   * dialog/window, [dlgClass].  Elsewhere, returns NULL.
    */
   QWidget *parent(int dlgClass);
   void raise(int dlgClass);
@@ -157,6 +169,7 @@ class DLL_EX_IM DialogManager
   Ilist *mDialogList;
   QRect mLastZapGeom;
 };
+
 /* END_SECTION */
 
 }
@@ -164,6 +177,9 @@ class DLL_EX_IM DialogManager
 
 /*
 $Log$
+Revision 4.16  2009/01/15 16:33:17  mast
+Qt 4 port
+
 Revision 4.15  2008/01/13 22:58:35  mast
 Changes for multi-Z window
 
