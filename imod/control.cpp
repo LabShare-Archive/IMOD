@@ -523,16 +523,20 @@ void adjustGeometryAndShow(QWidget *widget, int dlgClass, bool doSize)
   newpos.moveTo(xleft, ytop);
   //imodPrintStderr("%d %d %d %d\n", xleft, ytop, pos.width(), pos.height());
   widget->show();
-  //imodPrintStderr("%d %d\n", widget->x(), widget->y());
 
   // Get parent if appropriate (Mac OSX) and make sure it doesn't intersect
   // it, but at least restore window manager's position
   if (dlgClass >= 0)
     parwidg = imodDialogManager.parent(dlgClass);
   if (parwidg) {
+
+    // Get the geometry again since Y size was not right for tallest widgets
+    // in cocoa Qt 4.5.0
+    pos = widget->frameGeometry();
+    //imodPrintStderr("%d %d %d %d\n",pos.x(),pos.y(),pos.width(),pos.height());
     parpos = parwidg->frameGeometry();
     /*imodPrintStderr("parent %d %d %d %d\n", parpos.x(), parpos.y(),
-      parpos.width(), parpos.height()); */
+      parpos.width(), parpos.height());*/
     // If parent intersects, check if can be moved to below, above, right, left
     if (newpos.intersects(parpos)) {
       deskWidth = QApplication::desktop()->width();
@@ -548,7 +552,7 @@ void adjustGeometryAndShow(QWidget *widget, int dlgClass, bool doSize)
     }
     diaLimitWindowPos(pos.width(), pos.height(), xleft, ytop);
     widget->move(xleft, ytop);
-    //imodPrintStderr("%d %d %d %d\n", xleft, ytop);
+    //imodPrintStderr("%d %d\n", xleft, ytop);
   }
 }
 
@@ -568,6 +572,9 @@ QRect ivwRestorableGeometry(QWidget *widget)
 
 /*
 $Log$
+Revision 4.19  2009/03/22 19:44:05  mast
+New routine for adjusting size generally, and position on make, when showing
+
 Revision 4.18  2009/01/15 16:33:17  mast
 Qt 4 port
 
