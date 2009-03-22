@@ -62,15 +62,13 @@ ImodPreferences *ImodPrefs;
 #define MAX_STYLES 24
 
 #ifdef EXCLUDE_STYLES
-// These are the styles that crash in RH 7.3
-static char *styleList[] = {"highcolor", "b3", "default", ""};
+// This used to be a list of styles that crashed in RH7
+static char *styleList[] = {""};
 #else
-// These are the styles that do not crash RH 7.3 and that exist there, because
-// non-existent style makes it search and generate "already exists" messages
-static char *styleList[] = {"Windows", "compact", 
-                            "Platinum", "Motif", "MotifPlus", "SGI", 
-                            "CDE", "marble", "System", "Systemalt", "riscos", 
-                            "Light, 2nd revision", "Light, 3rd revision", 
+// It used to be done this way because 
+// non-existent style made it search and generate "already exists" messages
+static char *styleList[] = {"Windows",
+                            "Motif", "CDE", "Plastique", "Cleanlooks",
 #ifdef Q_OS_MACX
                             "Macintosh (Aqua)",
 #endif
@@ -356,8 +354,13 @@ ImodPreferences::ImodPreferences(char *cmdLineStyle)
     prefs->styleChgd = styleOK(str) &&  QStyleFactory::create(str) != NULL;
     if (prefs->styleChgd)
       prefs->styleKey = str;
-    else
-      prefs->styleKey = "windows";
+    else {
+#ifdef Q_OS_MACX
+      prefs->styleKey = "Cleanlooks";
+#else
+      prefs->styleKey = "Windows";
+#endif
+    }
     QApplication::setStyle(prefs->styleKey);
   }
 
@@ -1194,6 +1197,9 @@ void PrefsDialog::closeEvent ( QCloseEvent * e )
 
 /*
 $Log$
+Revision 1.41  2009/02/26 20:03:32  mast
+Add paging by big steps
+
 Revision 1.40  2009/01/17 05:06:24  mast
 Replace default library path, add IMOD_DIR/lib/imodplug for safety
 
