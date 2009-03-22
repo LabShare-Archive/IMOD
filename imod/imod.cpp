@@ -174,6 +174,7 @@ int main( int argc, char *argv[])
   App = &app;
   App->rgba = 1;    /* Set to 1 to force RGB visual */
   App->exiting = 0;
+  App->closing = 0;
   App->cvi = &vi;
   App->base = Rampbase;
   App->convertSnap = 0;
@@ -892,6 +893,7 @@ void imod_exit(int retcode)
     ImodPrefs->recordZapGeometry();
   zapReportBiggestMultiZ();
 
+  App->closing = 1;
   imodv_close();                     // Imodv and associated dialogs
   ivwControlListDelete(App->cvi);    // Image windows
   imodDialogManager.close();         // Remaining imod dialog windows
@@ -965,6 +967,9 @@ bool imodDebug(char key)
 /*
 
 $Log$
+Revision 4.72  2009/03/22 03:17:48  mast
+Just like in imodv, only create clip handler if needed
+
 Revision 4.71  2009/02/27 23:46:55  mast
 Set listening flag if started with -W or -L
 
