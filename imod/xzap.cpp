@@ -164,6 +164,7 @@ static void zapClose_cb(ImodView *vi, void *client, int junk)
   ZapStruct *zap = (ZapStruct *)client;
   if (imodDebug('z'))
     imodPrintStderr("Sending zap window close.\n");
+  zap->popup = 0;
   zap->qtWindow->close();
 }
 
@@ -1368,6 +1369,8 @@ void zapKeyInput(ZapStruct *zap, QKeyEvent *event)
     break;
           
   case Qt::Key_Escape:
+    // For cocoa/Qt 4.5.0, need to prevent enter/leave events
+    zap->popup = 0;
     zap->qtWindow->close();
     handled = 1;
     break;
@@ -1482,7 +1485,7 @@ void zapGeneralEvent(ZapStruct *zap, QEvent *e)
   Iobj *obj;
   Icont *cont;
   float wheelScale = 1./1200.f;
-  if (zap->numXpanels || !zap->popup)
+  if (zap->numXpanels || !zap->popup || App->closing)
     return;
   ix = (zap->gfx->mapFromGlobal(QCursor::pos())).x();
   iy = (zap->gfx->mapFromGlobal(QCursor::pos())).y();
@@ -4681,6 +4684,10 @@ static void setDrawCurrentOnly(ZapStruct *zap, int value)
 /*
 
 $Log$
+Revision 4.139  2009/03/22 19:41:51  mast
+Changes for cocoa/OS 10.5: fill toolbar text boxes 3 times, test if window
+open before passing on general events
+
 Revision 4.138  2009/03/14 00:43:33  mast
 Made sure mouse move set limits regardless, fixed rubberband moving float
 
