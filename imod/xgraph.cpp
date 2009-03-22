@@ -1004,6 +1004,9 @@ static void makeBoundaryPoint(Ipoint pt1, Ipoint pt2, int ix1, int ix2,
 
 /*
     $Log$
+    Revision 4.15  2009/03/22 19:49:46  mast
+    wrong message
+
     Revision 4.14  2009/01/15 16:33:18  mast
     Qt 4 port
 
