@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.LinkedList;
+import java.util.Queue;
 import java.util.Vector;
 
 import etomo.ApplicationManager;
@@ -36,6 +37,9 @@ import etomo.util.Utilities;
  * 
  * <p>
  * $Log$
+ * Revision 3.54  2009/03/17 00:36:13  sueh
+ * bug# 1186 Pass managerKey to everything that pops up a dialog.
+ *
  * Revision 3.53  2009/03/11 21:37:15  sueh
  * bug# 1195 In imodSendAndReceive added error pop ups.
  *
@@ -569,6 +573,12 @@ public class ImodProcess {
   public static final String GAP_MODE = "1";
   public static final String RESIDUAL_MODE = "2";
   public static final String IMOD_SEND_EVENT_STRING = "imodsendevent returned:";
+  //static final String CONTINUOUS_TAG = "ETOMO INFO:";
+  static final String CONTINUOUS_TAG = "ETOMO INFO:";
+
+  //Get stderr messages only through this member variable.
+  private final Stderr stderr = new Stderr();
+  private final ContinuousListener continuousListener;
 
   private String datasetName = "";
 
@@ -594,14 +604,22 @@ public class ImodProcess {
   private Thread imodThread;
   private final BaseManager manager;
   private boolean beadfixerDiameterSet = false;
-  private LinkedList requestQueue = new LinkedList();
-  private LinkedList stderrQueue = new LinkedList();
   private ArrayList windowOpenOptionList = null;
   private boolean debug = false;
   private String subdirName = null;
   //Zap opens by default.  OpenZap is only necessary when model view is in use.
   private boolean openZap = false;
   private String tiltFile = null;
+  private ContinuousListenerTarget continuousListenerTarget = null;
+
+  /**
+   * If true, run 3dmod with -L.  This means that imodsentevent will not be used
+   * - the MessageSender can be used instead.  In Windows the
+   * Stderr.requestQueue will receive requests to send MESSAGE_STOP_LISTENING.
+   * The thread should be checking this queue (see ImodManager.ImodManager()).
+   */
+  private final boolean listenToStdin = !Utilities.isWindowsOS()
+      || EtomoDirector.INSTANCE.getArguments().isListen();
 
   /**
    * Constructor for using imodv
@@ -610,6 +628,8 @@ public class ImodProcess {
   public ImodProcess(BaseManager manager, AxisID axisID) {
     this.manager = manager;
     this.axisID = axisID;
+    continuousListener = new ContinuousListener(stderr, axisID);
+
   }
 
   /**
@@ -622,6 +642,7 @@ public class ImodProcess {
     this.manager = manager;
     this.axisID = axisID;
     datasetName = dataset;
+    continuousListener = new ContinuousListener(stderr, axisID);
   }
 
   public ImodProcess(BaseManager manager, String dataset, AxisID axisID,
@@ -630,6 +651,7 @@ public class ImodProcess {
     this.axisID = axisID;
     this.flip = flip;
     datasetName = dataset;
+    continuousListener = new ContinuousListener(stderr, axisID);
   }
 
   /**
@@ -644,6 +666,7 @@ public class ImodProcess {
     this.manager = manager;
     datasetName = dataset;
     modelName = model;
+    continuousListener = new ContinuousListener(stderr, axisID);
   }
 
   /**
@@ -658,11 +681,13 @@ public class ImodProcess {
     this.manager = manager;
     datasetNameArray = datasetArray;
     modelName = model;
+    continuousListener = new ContinuousListener(stderr, axisID);
   }
 
   public ImodProcess(BaseManager manager, String[] datasetArray) {
     this.manager = manager;
     datasetNameArray = datasetArray;
+    continuousListener = new ContinuousListener(stderr, axisID);
   }
 
   /**
@@ -750,11 +775,16 @@ public class ImodProcess {
     ArrayList commandOptions = new ArrayList();
     commandOptions.add(ApplicationManager.getIMODBinPath() + "3dmod");
     // Collect the command line options
+    
+    //3/22/09
+    //On Mac never run with -D, -W, and not -L.  This will crash 3dmod by
+    //copying the clipboard onto the message area.  3dmod will crash if there is
+    //something big in the clipboard.
 
     if (outputWindowID) {
       commandOptions.add("-W");
     }
-    if (!Utilities.isWindowsOS()) {
+    if (listenToStdin) {
       commandOptions.add("-L");
     }
 
@@ -853,6 +883,8 @@ public class ImodProcess {
       System.out.println();
     }
     imod = new InteractiveSystemProgram(manager, commandArray, axisID);
+    stderr.setImod(imod);
+
     if (workingDirectory != null) {
       imod.setWorkingDirectory(workingDirectory);
     }
@@ -860,46 +892,46 @@ public class ImodProcess {
     // Start the 3dmod program thread and wait for it to finish
     imodThread = new Thread(imod);
     imodThread.start();
+    if (continuousListenerTarget != null) {
+      continuousListener.startThread(imodThread, continuousListenerTarget);
+    }
+    //Synchronized on stderr.quickListenerQueue to keep other threads from
+    //from causing a response to appear on this queue before start up messages
+    //are processed.
+    synchronized (stderr.quickListenerQueue) {
 
-    // Check the stderr of the 3dmod process for the windowID and the
-    String line;
-    while (imodThread.isAlive() && windowID.equals("")) {
-
-      while ((line = getStderr()) != null) {
-        if (line.indexOf("Window id = ") != -1) {
-          String[] words = line.split("\\s+");
-          if (words.length < 4) {
-            throw (new SystemProcessException(
-                "Could not parse window ID from imod\n"));
+      // Check the stderr of the 3dmod process for the windowID and the
+      String line;
+      while (imodThread.isAlive() && windowID.equals("")) {
+        while ((line = stderr.getQuickMessage()) != null) {
+          if (line.indexOf("Window id = ") != -1) {
+            String[] words = line.split("\\s+");
+            if (words.length < 4) {
+              throw (new SystemProcessException(
+                  "Could not parse window ID from imod\n"));
+            }
+            windowID = words[3];
           }
-          windowID = words[3];
         }
       }
 
-      // Wait a litte while for 3dmod to generate some stderr output
-      try {
-        Thread.sleep(500);
-      }
-      catch (InterruptedException e) {
-      }
-    }
+      // If imod exited before getting the window report the problem to the user
+      if (windowID.equals("") && outputWindowID) {
+        String message = "3dmod returned: "
+            + String.valueOf(imod.getExitValue()) + "\n";
 
-    // If imod exited before getting the window report the problem to the user
-    if (windowID.equals("") && outputWindowID) {
-      String message = "3dmod returned: " + String.valueOf(imod.getExitValue())
-          + "\n";
+        while ((line = stderr.getQuickMessage()) != null) {
+          System.err.println(line);
+          message = message + "stderr: " + line + "\n";
+        }
 
-      while ((line = getStderr()) != null) {
-        System.err.println(line);
-        message = message + "stderr: " + line + "\n";
+        while ((line = imod.readStdout()) != null) {
+          message = message + "stdout: " + line + "\n";
+          line = imod.readStdout();
+        }
+
+        throw (new SystemProcessException(message));
       }
-
-      while ((line = imod.readStdout()) != null) {
-        message = message + "stdout: " + line + "\n";
-        line = imod.readStdout();
-      }
-
-      throw (new SystemProcessException(message));
     }
   }
 
@@ -914,8 +946,13 @@ public class ImodProcess {
     }
   }
 
+  /**
+   * When Windows 3dmod is listening to stdin, it can't quit properly, so send
+   * it a command to stop listening to stdin.
+   * @throws IOException
+   */
   public void disconnect() throws IOException {
-    if (!Utilities.isWindowsOS()) {
+    if (listenToStdin && Utilities.isWindowsOS()) {
       if (isRunning()) {
         String[] messages = new String[1];
         messages[0] = MESSAGE_STOP_LISTENING;
@@ -1214,7 +1251,7 @@ public class ImodProcess {
      */
     String[] argArray = (String[]) sendArguments
         .toArray(new String[sendArguments.size()]);
-    if (Utilities.isWindowsOS()) {
+    if (!listenToStdin) {
       imodSendEvent(argArray);
     }
     else {
@@ -1224,7 +1261,7 @@ public class ImodProcess {
   }
 
   private void send(String[] args) throws IOException, SystemProcessException {
-    if (Utilities.isWindowsOS()) {
+    if (!listenToStdin) {
       imodSendEvent(args);
     }
     else {
@@ -1234,7 +1271,7 @@ public class ImodProcess {
 
   private Vector request(String[] args) throws IOException,
       SystemProcessException {
-    if (Utilities.isWindowsOS()) {
+    if (!listenToStdin) {
       return imodSendAndReceive(args);
     }
     else {
@@ -1308,70 +1345,78 @@ public class ImodProcess {
   }
 
   /**
-   * Send an event to 3dmod using the imodsendevent command
+   * Send an event to 3dmod using the imodsendevent command.
+   * Synchronized on stderr.quickListenerQueue to keep other threads from
+   * from causing a response to appear on this queue before this thread can read
+   * the response it generates.
    */
   private void imodSendEvent(String[] args, Vector messages)
       throws SystemProcessException {
-    if (windowID.equals("")) {
-      throw (new SystemProcessException("No window ID available for imod"));
-    }
-    String[] command = new String[2 + args.length];
-    command[0] = ApplicationManager.getIMODBinPath() + "imodsendevent";
-    command[1] = windowID;
-    //String command = ApplicationManager.getIMODBinPath() + "imodsendevent "
-    //    + windowID + " ";
-    for (int i = 0; i < args.length; i++) {
-      command[i + 2] = args[i];
-    }
-    if (EtomoDirector.INSTANCE.getArguments().isDebug()) {
-      System.err.print(command);
-    }
-    InteractiveSystemProgram imodSendEvent = new InteractiveSystemProgram(
-        manager, command, axisID);
+    synchronized (stderr.quickListenerQueue) {
+      if (windowID.equals("")) {
+        throw (new SystemProcessException("No window ID available for imod"));
+      }
+      String[] command = new String[2 + args.length];
+      command[0] = ApplicationManager.getIMODBinPath() + "imodsendevent";
+      command[1] = windowID;
+      //String command = ApplicationManager.getIMODBinPath() + "imodsendevent "
+      //    + windowID + " ";
+      for (int i = 0; i < args.length; i++) {
+        command[i + 2] = args[i];
+      }
+      if (EtomoDirector.INSTANCE.getArguments().isDebug()) {
+        System.err.print(command);
+      }
+      InteractiveSystemProgram imodSendEvent = new InteractiveSystemProgram(
+          manager, command, axisID);
 
-    //  Start the imodSendEvent program thread and wait for it to finish
-    Thread sendEventThread = new Thread(imodSendEvent);
-    sendEventThread.start();
-    try {
-      sendEventThread.join();
-    }
-    catch (Exception except) {
-      except.printStackTrace();
-    }
-    if (EtomoDirector.INSTANCE.getArguments().isDebug()) {
-      System.err.println("...done");
-    }
-
-    // Check imodSendEvent's exit code, if it is not zero read in the
-    // stderr/stdout stream and throw an exception describing why the file
-    // was not loaded
-    if (imodSendEvent.getExitValue() != 0) {
-
-      String message = IMOD_SEND_EVENT_STRING + " "
-          + String.valueOf(imodSendEvent.getExitValue()) + "\n";
-
-      String line = imodSendEvent.readStderr();
-      while (line != null) {
-        message = message + "stderr: " + line + "\n";
-        line = imodSendEvent.readStderr();
+      //  Start the imodSendEvent program thread and wait for it to finish
+      Thread sendEventThread = new Thread(imodSendEvent);
+      sendEventThread.start();
+      try {
+        sendEventThread.join();
+      }
+      catch (Exception except) {
+        except.printStackTrace();
+      }
+      if (EtomoDirector.INSTANCE.getArguments().isDebug()) {
+        System.err.println("...done");
       }
 
-      line = imodSendEvent.readStdout();
-      while (line != null) {
-        message = message + "stdout: " + line + "\n";
+      // Check imodSendEvent's exit code, if it is not zero read in the
+      // stderr/stdout stream and throw an exception describing why the file
+      // was not loaded
+      if (imodSendEvent.getExitValue() != 0) {
+
+        String message = IMOD_SEND_EVENT_STRING + " "
+            + String.valueOf(imodSendEvent.getExitValue()) + "\n";
+
+        String line = imodSendEvent.readStderr();
+        while (line != null) {
+          message = message + "stderr: " + line + "\n";
+          line = imodSendEvent.readStderr();
+        }
+
         line = imodSendEvent.readStdout();
-      }
+        while (line != null) {
+          message = message + "stdout: " + line + "\n";
+          line = imodSendEvent.readStdout();
+        }
 
-      if (messages == null) {
-        throw (new SystemProcessException(message));
+        if (messages == null) {
+          throw (new SystemProcessException(message));
+        }
+        messages.add(message);
       }
-      messages.add(message);
     }
   }
 
   /**
    * Sends a request to 3dmod's stdin and returns the results. Pops up error and
-   * warning messages from 3dmod that are directed at the user.
+   * warning messages from 3dmod that are directed at the user.  Synchronized on
+   * stderr.quickListenerQueue to keep other threads from
+   * from causing a response to appear on this queue before this thread can read
+   * the response it generates.
    * 
    * @param args -
    *          commands.
@@ -1379,22 +1424,28 @@ public class ImodProcess {
    * @throws IOException
    */
   private Vector sendRequest(String[] args) throws IOException {
-    Vector imodReturnValues = new Vector();
-    sendCommands(args, imodReturnValues, true);
-    return imodReturnValues;
+    synchronized (stderr.quickListenerQueue) {
+      Vector imodReturnValues = new Vector();
+      sendCommands(args, imodReturnValues, true);
+      return imodReturnValues;
+    }
   }
 
   /**
    * Sends commands to 3dmod's stdin and process the results. Pops up error and
-   * warning messages from 3dmod that are directed at the user.
-   * 
+   * warning messages from 3dmod that are directed at the user.  Synchronized on
+   * stderr.quickListenerQueue to keep other threads from
+   * from causing a response to appear on this queue before this thread can read
+   * the response it generates.
    * @param args -
    *          commands.
    * @throws IOException
    *           messages are received.
    */
   private void sendCommands(String[] args) throws IOException {
-    sendCommands(args, null, true);
+    synchronized (stderr.quickListenerQueue) {
+      sendCommands(args, null, true);
+    }
   }
 
   private void sendCommandsNoWait(String[] args) throws IOException {
@@ -1413,10 +1464,10 @@ public class ImodProcess {
    * @throws IOException
    *           messages are received and imodReturnValues is null.
    */
-  private synchronized void sendCommands(String[] args,
-      Vector imodReturnValues, boolean responseRequired) throws IOException {
+  private void sendCommands(String[] args, Vector imodReturnValues,
+      boolean readResponse) throws IOException {
     MessageSender messageSender = new MessageSender(args, imodReturnValues,
-        responseRequired);
+        readResponse);
     if (imodReturnValues == null) {
       new Thread(messageSender).start();
     }
@@ -1437,41 +1488,14 @@ public class ImodProcess {
     }
   }
 
-  private synchronized boolean isRequestReceived() {
-    if (imod == null) {
+  private boolean isRequestReceived() {
+    if (stderr == null) {
       return false;
     }
-    if (requestQueue.size() > 0) {
-      requestQueue.removeFirst();
+    if (stderr.getRequestMessage() != null) {
       return true;
     }
-    String stderr = null;
-    while ((stderr = imod.readStderr()) != null) {
-      if (stderr.startsWith(REQUEST_TAG)
-          && stderr.indexOf(STOP_LISTENING_REQUEST) != -1) {
-        return true;
-      }
-      stderrQueue.addLast(stderr);
-    }
     return false;
-  }
-
-  synchronized String getStderr() {
-    if (imod == null) {
-      return null;
-    }
-    if (stderrQueue.size() > 0 || imod == null) {
-      return (String) stderrQueue.removeFirst();
-    }
-    String stderr = null;
-    while ((stderr = imod.readStderr()) != null) {
-      if (!stderr.startsWith("REQUEST_TAG:")
-          || stderr.indexOf("stop STOP_LISTENING_REQUEST") == -1) {
-        return stderr;
-      }
-      requestQueue.addLast(stderr);
-    }
-    return null;
   }
 
   /**
@@ -1621,6 +1645,155 @@ public class ImodProcess {
     windowOpenOptionList.add(option);
   }
 
+  void setContinuousListenerTarget(
+      ContinuousListenerTarget continuousListenerTarget) {
+    this.continuousListenerTarget = continuousListenerTarget;
+  }
+
+  /**
+   * Class to get messages from the stderr and place them in queues.  This is
+   * only way that imod.stderr should be accessed.
+   * @author sueh
+   *
+   */
+  private static final class Stderr {
+    /**
+     * Queue to hold returned data that was requested by etomo, and also error
+     * messages.  Also contains miscellaneous messages that can be ignored.
+     */
+    private final Queue quickListenerQueue = new LinkedList();
+    /**
+     * Queue to hold information from 3dmod.  These messages are requested by
+     * etomo but do not arrive instantly.
+     */
+    private final Queue continuousListenerQueue = new LinkedList();
+    /**
+     * Queue to hold requests from 3dmod.  3dmod chooses when to send these
+     * messages.
+     */
+    private final Queue requestQueue = new LinkedList();
+
+    private InteractiveSystemProgram imod = null;
+
+    private Stderr() {
+    }
+
+    private void setImod(InteractiveSystemProgram imod) {
+      this.imod = imod;
+    }
+
+    /**
+     * Removes and returns one message from the quickListenerQueue, or null if
+     * the queue is empty.
+     * @return
+     */
+    private String getQuickMessage() {
+      readStderr();
+      return (String) quickListenerQueue.poll();
+    }
+
+    /**
+     * Removes and returns one message from the quickListenerQueue, or null if
+     * the queue is empty.  Assuming that only one continuous listener exists
+     * per 3dmod instance.
+     * @return
+     */
+    private String getContinuousMessage() {
+      readStderr();
+      return (String) continuousListenerQueue.poll();
+    }
+
+    /**
+     * Removes and returns one message from the requestQueue, or null if
+     * the queue is empty.
+     * @return
+     */
+    private String getRequestMessage() {
+      readStderr();
+      return (String) requestQueue.poll();
+    }
+
+    /**
+     * Sleeps and then moves all stderr messages found into a queue.  Messages
+     * that start with REQUEST_TAG go to the requeueQueue.  Messages that start
+     * with CONTINOUS_TAG go to the continuousListenerQueue.  All other messages
+     * go to the quickListenerQueue.
+     * This function should only be called by Stderr functions.
+     */
+    private synchronized void readStderr() {
+      try {
+        Thread.sleep(500);
+      }
+      catch (InterruptedException e) {
+      }
+      if (imod == null) {
+        return;
+      }
+      String message;
+      while ((message = imod.readStderr()) != null) {
+        if (message.startsWith(REQUEST_TAG)
+            && message.indexOf(STOP_LISTENING_REQUEST) != -1) {
+          requestQueue.add(message);
+        }
+        else if (message.startsWith(CONTINUOUS_TAG)) {
+          continuousListenerQueue.add(message);
+        }
+        else {
+          quickListenerQueue.add(message);
+        }
+      }
+    }
+  }
+
+  private static class ContinuousListener implements Runnable {
+    private final Stderr stderr;
+    private final AxisID axisID;
+
+    private Thread imodThread = null;
+    private Thread continuousListenerThread = null;
+    private ContinuousListenerTarget target = null;
+
+    private ContinuousListener(Stderr stderr, AxisID axisID) {
+      this.stderr = stderr;
+      this.axisID = axisID;
+    }
+
+    /**
+     * Set imodThread and target and run the run() function on a separate
+     * thread.
+     * @param imodThread
+     */
+    private synchronized void startThread(Thread imodThread,
+        ContinuousListenerTarget continuousListenerTarget) {
+      this.imodThread = imodThread;
+      target = continuousListenerTarget;
+      if (continuousListenerThread == null) {
+        continuousListenerThread = new Thread(this);
+      }
+      if (!continuousListenerThread.isAlive()) {
+        continuousListenerThread.start();
+      }
+    }
+
+    /**
+     * Check stderr.continuousListenerQueue until imodThread is no longer alive
+     * or an interrupted exception is received.
+     */
+    public synchronized void run() {
+      try {
+        do {
+          Thread.sleep(500);
+          String message = stderr.getContinuousMessage();
+          if (message != null) {
+            target.getContinuousMessage(message, axisID);
+          }
+        } while (imodThread != null && imodThread.isAlive());
+      }
+      catch (InterruptedException e) {
+      }
+    }
+  }
+
   /**
    * Class to send a message to 3dmod. Can be run on a separate thread to avoid
    * locking up the GUI.
@@ -1630,13 +1803,13 @@ public class ImodProcess {
 
     private final Vector imodReturnValues;
 
-    private boolean responseRequired = true;
+    private boolean readResponse = true;
 
     private MessageSender(String[] args, Vector imodReturnValues,
-        boolean responseRequired) {
+        boolean readResponse) {
       this.imodReturnValues = imodReturnValues;
       this.args = args;
-      this.responseRequired = responseRequired;
+      this.readResponse = readResponse;
     }
 
     /**
@@ -1691,7 +1864,7 @@ public class ImodProcess {
           }
         }
       }
-      if (responseRequired) {
+      if (readResponse) {
         // read the response from 3dmod
         readResponse();
       }
@@ -1710,14 +1883,9 @@ public class ImodProcess {
         if (responseReceived) {
           break;
         }
-        try {
-          Thread.sleep(500);
-        }
-        catch (InterruptedException e) {
-        }
         // process response
         boolean failure = false;
-        while ((response = getStderr()) != null) {
+        while ((response = stderr.getQuickMessage()) != null) {
           responseReceived = true;
           if (EtomoDirector.INSTANCE.getArguments().isDebug()) {
             System.err.println(response);
