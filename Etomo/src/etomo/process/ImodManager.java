@@ -8,6 +8,7 @@ import java.io.File;
 import java.io.IOException;
 
 import etomo.BaseManager;
+import etomo.EtomoDirector;
 import etomo.type.AxisID;
 import etomo.type.AxisType;
 import etomo.type.AxisTypeException;
@@ -19,8 +20,9 @@ import etomo.type.ParallelMetaData;
 import etomo.type.Run3dmodMenuOptions;
 import etomo.ui.UIHarness;
 import etomo.util.DatasetFiles;
+import etomo.util.Utilities;
 
-/*p
+/**
  * <p>Description: This class manages the opening, closing and sending of 
  * messages to the appropriate imod processes. This class is state based in the
  * sense that is initialized with MetaData information and uses that information
@@ -36,6 +38,9 @@ import etomo.util.DatasetFiles;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.70  2009/03/17 00:36:03  sueh
+ * <p> bug# 1186 Pass managerKey to everything that pops up a dialog.
+ * <p>
  * <p> Revision 3.69  2009/03/11 01:11:32  sueh
  * <p> bug# 1195 In getRubberbandCoordinates and getSlicerAngles pop up an
  * <p> error message if imodState is null.
@@ -473,7 +478,7 @@ import etomo.util.DatasetFiles;
  * <p> initial entry
  * <p>
  * <p> </p>
- */
+ **/
 public class ImodManager {
   public static final String rcsid = "$Id$";
 
@@ -589,7 +594,7 @@ public class ImodManager {
 
   private boolean useMap = true;
   private final BaseManager manager;
-  private final ImodRequestHandler requestHandler;
+  private ImodRequestHandler requestHandler = null;
 
   //constructors
 
@@ -598,7 +603,14 @@ public class ImodManager {
   public ImodManager(BaseManager manager) {
     this.manager = manager;
     imodMap = new HashMap();
-    requestHandler = ImodRequestHandler.getInstance(this);
+    //Only run the request handler when necesary.  In Windows when 3dmod is
+    //listening to stdin and it wants to exit, it sends a request to stderr to
+    //ask that the stdin receive a stop listening command.  This is because
+    //3dmod in Windows can't exit when it is listening to stdin.
+    if (Utilities.isWindowsOS()
+        && EtomoDirector.INSTANCE.getArguments().isListen()) {
+      requestHandler = ImodRequestHandler.getInstance(this);
+    }
   }
 
   //Interface
@@ -1255,6 +1267,16 @@ public class ImodManager {
     }
   }
 
+  public void setContinuousListenerTarget(String key, AxisID axisID,
+      ContinuousListenerTarget continuousListenerTarget)throws AxisTypeException {
+    key = getPrivateKey(key);
+    ImodState imodState = get(key);
+    if (imodState == null) {
+      return;
+    }
+    imodState.setContinuousListenerTarget(continuousListenerTarget);
+  }
+
   public void setBinningXY(String key, int vectorIndex, int binning)
       throws AxisTypeException {
     key = getPrivateKey(key);
@@ -1336,7 +1358,6 @@ public class ImodManager {
   }
 
   public void stopRequestHandler() {
-    //System.out.println("stopRequestHandler");
     if (requestHandler != null) {
       requestHandler.stop();
     }
