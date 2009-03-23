@@ -23,6 +23,9 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.3  2009/03/09 17:22:06  sueh
+ * <p> bug# 1172 For now just adding --fg option.
+ * <p>
  * <p> Revision 1.2  2008/11/11 23:46:31  sueh
  * <p> bug# 1149 Made --names option available for testing.
  * <p>
@@ -53,6 +56,7 @@ public final class Arguments {
   private static final String CREATE_TAG = "--create";
   private static final String EXIT_TAG = "--exit";
   private static final String FG_TAG = "--fg";//foreground
+  private static final String LISTEN_TAG = "--listen";
 
   static final String HELP_MESSAGE = "Options:\n  "
       + AXIS_TAG
@@ -129,6 +133,11 @@ public final class Arguments {
       + HELP2_TAG
       + "\tSend this message to standard out and exit."
       + "\n\n  "
+      + LISTEN_TAG
+      + "\n\t\tForces all 3dmods to be run with the -L option.  This only has an "
+      + "\n\t\teffect on Windows computers because -L is always used on Linux"
+      + "\n\t\tand Mac."
+      + "\n\n  "
       + MEMORY_TAG
       + " [interval]"
       + "\n\t\tLog memory usage statements before and after processes are run."
@@ -146,8 +155,7 @@ public final class Arguments {
       + "\tFor automation.  Runs Scan Header in the Setup Tomogram dialog."
       + "\n\n  "
       + SELFTEST_TAG
-      + "\tCauses Etomo to do some internal testing.  Etomo may run more\n\t\t"
-      + "slowly."
+      + "\tCauses Etomo to do some internal testing.  Etomo may run more slowly."
       + "\n\n  "
       + TEST_TAG
       + "\tFor testing.  Test mode used for unit testing and automated"
@@ -188,6 +196,7 @@ public final class Arguments {
   private boolean create = false;
   private boolean exit = false;
   private String automationFile = null;
+  private boolean listen = false;
 
   private final EtomoNumber fiducial = new EtomoNumber(EtomoNumber.Type.DOUBLE);
 
@@ -240,6 +249,10 @@ public final class Arguments {
 
   public boolean isPrintNames() {
     return printNames;
+  }
+
+  public boolean isListen() {
+    return listen;
   }
 
   public boolean isNewstuff() {
@@ -376,6 +389,9 @@ public final class Arguments {
           System.err
               .println("WARNING:  option --fg had no effect; must be the first option to have an effect.");
         }
+      }
+      else if (args[i].equals(LISTEN_TAG)) {
+        listen = true;
       }
       else {
         System.err.println("WARNING:  unknown argument, " + args[i]
