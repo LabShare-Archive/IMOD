@@ -96,6 +96,13 @@ Send a usage message to standard out (goes to the command line not to a file)
 and exit.
 
 .TP
+.B --listen
+Forces all 3dmods to be run with the -L option.  This only has an effect on
+Windows computers because -L is always used on Linux and Mac.  When
+\fB--listen\fR is used in Windows, messages to 3dmod will be sent through stdin
+rather then imodsendevent.
+
+.TP
 .B --memory \fR[\fIinterval\fR]
 Log memory usage statements before and after processes are run.  The interval is
 an integer which denotes the interval in minutes at which to send additional
@@ -185,4 +192,4 @@ Sue Held
 
 
 .SH SEE ALSO
-imodenv(1), uitest(1).
+imodenv(1), uitest(1), 3dmod(1).
