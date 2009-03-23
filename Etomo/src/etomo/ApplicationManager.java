@@ -2052,7 +2052,7 @@ public final class ApplicationManager extends BaseManager implements
         getManagerKey());
   }
 
-  public void sendContinuousMessage(String message, AxisID axisID) {
+  public void getContinuousMessage(String message, AxisID axisID) {
     if (message != null
         && message.indexOf("Tiltalign ran with exit code 0") != -1) {
       processMgr.generateAlignLogs(axisID);
@@ -5940,6 +5940,9 @@ public final class ApplicationManager extends BaseManager implements
 }
 /**
  * <p> $Log$
+ * <p> Revision 3.320  2009/03/23 16:45:57  sueh
+ * <p> bug# 1187 Moved taError.log logging to ApplicationManager.  Implement ContinuousMessageTarget:  added sendContinuousMessage which generates the ta align logs and calls logTaErrorLogMessage.
+ * <p>
  * <p> Revision 3.319  2009/03/17 00:23:25  sueh
  * <p> bug# 1186 Pass managerKey to everything that pops up a dialog.
  * <p>
