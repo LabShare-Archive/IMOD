@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+3/23/09: In Etomo - PEET added a useful error message when PARTICLE_DIR is not
+set.
+
 3/21/09: Fixed bug in using O hot key when cont/surf/point dialog not open.
 
 3/18/09: Fixed bug in Tomopitch when two contours of a pair are drawn in
