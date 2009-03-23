@@ -10,6 +10,7 @@ import etomo.type.ConstEtomoNumber;
 import etomo.type.ConstIntKeyList;
 
 import etomo.type.ProcessName;
+import etomo.ui.UIHarness;
 import etomo.util.EnvironmentVariable;
 
 /**
@@ -26,6 +27,9 @@ import etomo.util.EnvironmentVariable;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.5  2009/03/17 00:32:30  sueh
+ * <p> bug# 1186 Pass managerKey to everything that pops up a dialog.
+ * <p>
  * <p> Revision 1.4  2007/12/13 01:05:49  sueh
  * <p> bug# 1056 Changed etomo.comscript.Fields to etomo.comscript.Field.
  * <p>
@@ -49,7 +53,6 @@ public final class PeetParserParam implements CommandDetails {
   private final BaseManager manager;
 
   private boolean debug = true;
-  private String[] command = null;
   private int iterationListSize;
   private String[] lstThresholdsArray;
 
@@ -59,11 +62,22 @@ public final class PeetParserParam implements CommandDetails {
   }
 
   public String[] getCommandArray() {
+    String[] command = null;
     if (command != null) {
       return command;
     }
     command = new String[3];
     command[0] = "sh";
+    String particleDir = EnvironmentVariable.INSTANCE.getValue(manager
+        .getPropertyUserDir(), "PARTICLE_DIR", AxisID.ONLY, manager
+        .getManagerKey());
+    if (particleDir == null || particleDir.matches("\\s*")) {
+      UIHarness.INSTANCE.openMessageDialog(
+          "The environment variables PARTICLE_DIR has not been set.  Set it "
+              + "to the location of the directory containing the PEET "
+              + "software.", "Environment Error", manager.getManagerKey());
+      return null;
+    }
     File commandFile = new File(new File(EnvironmentVariable.INSTANCE.getValue(
         manager.getPropertyUserDir(), "PARTICLE_DIR", AxisID.ONLY, manager
             .getManagerKey()), "bin"), ProcessName.PEET_PARSER.toString());
