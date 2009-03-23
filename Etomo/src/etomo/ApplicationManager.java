@@ -54,6 +54,7 @@ import etomo.comscript.TrimvolParam;
 import etomo.comscript.XfmodelParam;
 import etomo.comscript.XfproductParam;
 import etomo.process.BaseProcessManager;
+import etomo.process.ContinuousListenerTarget;
 import etomo.process.ImodManager;
 import etomo.process.ImodProcess;
 import etomo.process.ProcessData;
@@ -63,6 +64,7 @@ import etomo.process.ProcessState;
 import etomo.process.SystemProcessException;
 import etomo.storage.LogFile;
 import etomo.storage.Storable;
+import etomo.storage.TaErrorLog;
 import etomo.storage.XrayStackArchiveFilter;
 import etomo.type.AxisID;
 import etomo.type.AxisType;
@@ -141,7 +143,8 @@ import etomo.util.Utilities;
  * 
  * @version $Revision$
  */
-public final class ApplicationManager extends BaseManager {
+public final class ApplicationManager extends BaseManager implements
+    ContinuousListenerTarget {
   public static final String rcsid = "$Id$";
 
   // Process dialog references
@@ -2044,6 +2047,19 @@ public final class ApplicationManager extends BaseManager {
         / UIExpertUtilities.INSTANCE.getStackBinning(this, axisID, ".preali"));
   }
 
+  public void logTaErrorLogMessage(AxisID axisID) {
+    logMessage(TaErrorLog.getInstance(getPropertyUserDir(), axisID), axisID,
+        getManagerKey());
+  }
+
+  public void sendContinuousMessage(String message, AxisID axisID) {
+    if (message != null
+        && message.indexOf("Tiltalign ran with exit code 0") != -1) {
+      processMgr.generateAlignLogs(axisID);
+      logTaErrorLogMessage(axisID);
+    }
+  }
+
   /**
    * Open 3dmod with the new fidcuial model
    */
@@ -2076,6 +2092,10 @@ public final class ApplicationManager extends BaseManager {
       }
       else {
         imodManager.resetTiltFile(ImodManager.COARSE_ALIGNED_KEY, axisID);
+      }
+      if (beadfixerMode.equals(ImodProcess.RESIDUAL_MODE)) {
+        imodManager.setContinuousListenerTarget(ImodManager.COARSE_ALIGNED_KEY,
+            axisID, this);
       }
       imodManager.open(ImodManager.COARSE_ALIGNED_KEY, axisID, fiducialModel,
           true, menuOptions);
@@ -5920,6 +5940,9 @@ public final class ApplicationManager extends BaseManager {
 }
 /**
  * <p> $Log$
+ * <p> Revision 3.319  2009/03/17 00:23:25  sueh
+ * <p> bug# 1186 Pass managerKey to everything that pops up a dialog.
+ * <p>
  * <p> Revision 3.318  2009/03/05 23:22:03  sueh
  * <p> bug$ 1194 Added saveParamFile to logPanel.frameProperties to UserConfiguration.
  * <p>
