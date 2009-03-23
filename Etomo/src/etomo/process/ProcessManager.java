@@ -20,6 +20,9 @@
  * 
  * <p>
  * $Log$
+ * Revision 3.130  2009/03/17 00:43:42  sueh
+ * bug# 1186 Pass managerKey to everything that pops up a dialog.
+ *
  * Revision 3.129  2009/02/13 02:31:51  sueh
  * bug# 1176 Checking return value of MRCHeader.read.
  *
@@ -880,7 +883,6 @@
 package etomo.process;
 
 import etomo.storage.LogFile;
-import etomo.storage.TaErrorLog;
 import etomo.storage.TrackLog;
 import etomo.storage.TransferFidLog;
 import etomo.type.AxisID;
@@ -1975,8 +1977,7 @@ public class ProcessManager extends BaseProcessManager {
           .getDoubleValue(TiltalignParam.Fields.ANGLE_OFFSET));
       appManager.postProcess(axisID, processName, processDetails, script
           .getProcessResultDisplay());
-      appManager.logMessage(TaErrorLog.getInstance(appManager
-          .getPropertyUserDir(), axisID), axisID, appManager.getManagerKey());
+      appManager.logTaErrorLogMessage(axisID);
     }
     else if (processName == ProcessName.TOMOPITCH) {
       appManager.setTomopitchOutput(axisID);
