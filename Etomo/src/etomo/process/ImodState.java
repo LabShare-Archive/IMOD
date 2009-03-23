@@ -175,6 +175,10 @@ import etomo.type.Run3dmodMenuOptions;
  * @version $$Revision$$
  * 
  * <p> $$Log$
+ * <p> $Revision 1.51  2008/12/15 23:59:12  sueh
+ * <p> $bug# 1160 Fixed the problem where 3dmod has the wrong diameter if
+ * <p> $the button is pressed while it is running.
+ * <p> $
  * <p> $Revision 1.50  2008/12/09 21:30:13  sueh
  * <p> $bug# 1160 Removing the contractor that has the beadfixerDiameter
  * <p> $parameter.  In open, setting beadfixerDiameter from ApplicationManager
@@ -1149,6 +1153,10 @@ public final class ImodState {
    */
   public void setWorkingDirectory(File workingDirectory) {
     process.setWorkingDirectory(workingDirectory);
+  }
+
+  void setContinuousListenerTarget(ContinuousListenerTarget continuousListenerTarget) {
+    process.setContinuousListenerTarget(continuousListenerTarget);
   }
 
   //internal state sets and gets
