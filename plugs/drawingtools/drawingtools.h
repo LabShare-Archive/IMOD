@@ -61,7 +61,8 @@ public slots:
   void moreSettings();
   void sortContours();
   void findContours();
-  void deleteContours();
+  void deleteRangeContours();
+  void cropRangeContours();
   void copyOrMoveContourRange();
   void tranformContourRange();
   void movePoint();
