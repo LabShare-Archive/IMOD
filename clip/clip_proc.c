@@ -1367,12 +1367,12 @@ int clip_get_stat3d(Istack *v,
 
 int grap_stat(MrcHeader *hin, ClipOptions *opt)
 {
-  int i, j, k, iz;
+  int i, j, k, iz, di, dj;
   int xmax, ymax, xmin, ymin, zmin, zmax;
   Istack *v;
   Islice *slice;
   float min, max, m, ptnum;
-  double mean, std, sumsq, vmean, vsumsq;
+  double mean, std, sumsq, vmean, vsumsq, cx, cy, data[3][3];
   float x,y;
   float vmin, vmax;
   FILE *fout;
@@ -1466,14 +1466,18 @@ int grap_stat(MrcHeader *hin, ClipOptions *opt)
     std = (sumsq - ptnum * mean * mean) / B3DMAX(1.,(ptnum - 1.));
     std = sqrt(B3DMAX(0., std));
   
-    /*	  for (di = 0, j = ymax - 1; j <= ymax + 1; j++)
-          for(i = xmax - 1; i <= xmax + 1; i++ , di++)
-          data[di] = sliceGetPixelMagnitude(slice, i, j);
-    */	
-    x = xmax;
-    y = ymax;
+    /* 3/23/09: switched to parabolic fit, center of gravity is ridiculous */
+    for (dj = 0, j = ymax - 1; j <= ymax + 1; j++, dj++)
+      for(di = 0,i = xmax - 1; i <= xmax + 1; i++ , di++)
+        data[dj][di] = sliceGetPixelMagnitude(slice, i, j);
 
-    corr_getmax(slice, 7, xmax, ymax, &x, &y);
+    parabolic_fit(&cx, &cy, data);
+    x = cx + xmax;
+    y = cy + ymax;
+    
+    /* x = xmax;
+       y = ymax;
+       corr_getmax(slice, 7, xmax, ymax, &x, &y); */
 
     if (opt->sano){
       x -= (float)slice->xsize/2;
@@ -1582,6 +1586,9 @@ int free_vol(Islice **vol, int z)
 */
 /*
 $Log$
+Revision 3.26  2008/12/11 23:51:15  mast
+Remove diagnostic output
+
 Revision 3.25  2008/11/15 00:49:56  mast
 Fixed bug in flipz of an odd file, made flipyz/rotx use up to 2x memory
 for a big file
