@@ -37,6 +37,9 @@ import etomo.util.Utilities;
  * 
  * <p>
  * $Log$
+ * Revision 3.56  2009/03/24 20:17:03  sueh
+ * bug# 1187 Added some debug statements.
+ *
  * Revision 3.55  2009/03/23 17:07:02  sueh
  * bug# 1187 Added classes ContinuousListener and Stderr, member variables
  * CONTINUOUS_TAG, continuousListener, continuousListenerTarget, stderr, and
@@ -786,7 +789,7 @@ public class ImodProcess {
     ArrayList commandOptions = new ArrayList();
     commandOptions.add(ApplicationManager.getIMODBinPath() + "3dmod");
     // Collect the command line options
-    
+
     //3/22/09
     //On Mac never run with -D, -W, and not -L.  This will crash 3dmod by
     //copying the clipboard onto the message area.  3dmod will crash if there is
@@ -1749,7 +1752,7 @@ public class ImodProcess {
       String message;
       while ((message = imod.readStderr()) != null) {
         if (EtomoDirector.INSTANCE.getArguments().isDebug()) {
-          System.err.println("stderr:"+message);
+          System.err.println("stderr:" + message);
         }
         if (message.startsWith(REQUEST_TAG)
             && message.indexOf(STOP_LISTENING_REQUEST) != -1) {
@@ -1787,10 +1790,10 @@ public class ImodProcess {
         ContinuousListenerTarget continuousListenerTarget) {
       this.imodThread = imodThread;
       target = continuousListenerTarget;
-      if (continuousListenerThread == null) {
+      //If thread has ended create and start a new thread
+      if (continuousListenerThread == null
+          || !continuousListenerThread.isAlive()) {
         continuousListenerThread = new Thread(this);
-      }
-      if (!continuousListenerThread.isAlive()) {
         continuousListenerThread.start();
       }
     }
@@ -1804,7 +1807,7 @@ public class ImodProcess {
         do {
           Thread.sleep(500);
           String message = stderr.getContinuousMessage();
-          if (message != null) {
+          if (message != null && target != null) {
             target.getContinuousMessage(message, axisID);
           }
         } while (imodThread != null && imodThread.isAlive());
