@@ -110,7 +110,8 @@ using namespace std;
 //## CONSTANTS:
 
 enum DlgType { DLG_LABEL, DLG_CHECKBOX, DLG_LINEEDIT,
-               DLG_SPINBOX, DLG_COMBOBOX, DLG_RADIOGRP, DLG_FLOATEDIT };
+               DLG_SPINBOX, DLG_DBLSPINBOX,
+               DLG_COMBOBOX, DLG_RADIOGRP, DLG_FLOATEDIT };
 
 //############################################################
 
@@ -255,6 +256,30 @@ struct CustomDialog                // used to set up a new GuiDialogCustomizable
     return ((int)elVal.size()-1);
   }
   
+  int addDblSpinBoxF( QString caption, float min, float max, float *value,
+                      int decimals, float step=0.1, QString tooltip=0 ) {
+    DialogElementValue newElement;
+    
+    newElement.returnFloat = value;
+    
+    newElement.type = DLG_DBLSPINBOX;
+    newElement.caption = caption;
+    newElement.min = min;
+    newElement.max = max;
+    newElement.value = *value;
+    newElement.decimals = decimals;
+    newElement.step = step;
+    newElement.tooltip = tooltip;
+    
+    if( *value < min || *value > max ) {
+      cerr << "ERROR: Bad value entered into spin box" << elVal.size()+1 << endl;
+      newElement.value = min;
+    }
+    
+    elVal.push_back( newElement );
+    return ((int)elVal.size()-1);
+  }
+  
   int addComboBox( QString caption, QString commaSeperatedList, int *selectedIndex,
                    QString tooltip=0 ) {
     DialogElementValue newElement;
@@ -325,11 +350,12 @@ struct CustomDialog                // used to set up a new GuiDialogCustomizable
                                 // displayed in GuiDialogCustomizable
 struct DialogElement                
 {
-  QLabel      *label;
-  QLineEdit   *lineEdit;
-  QCheckBox   *chkBox;
-  QSpinBox    *spnBox;
-  QComboBox   *cmbBox;
+  QLabel         *label;
+  QLineEdit      *lineEdit;
+  QCheckBox      *chkBox;
+  QSpinBox       *spnBox;
+  QDoubleSpinBox *dblSpnBox;
+  QComboBox      *cmbBox;
   vector<QRadioButton*> radBtn;
   
   DialogElement() {};

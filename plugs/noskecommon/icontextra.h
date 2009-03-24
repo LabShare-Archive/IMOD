@@ -227,7 +227,8 @@ int cont_removeRedundantPts( Icont *cont, bool removeStraightLinePts, bool close
 bool cont_isSimple( Icont *cont, bool closed=true );
 bool cont_isSimpleSeg( Icont *cont, bool closed, int *ptCross );
 void cont_makeSimple( Icont *cont );                            
-int  cont_breakIntoSimple( vector<IcontPtr> &conts, Icont *cont );                    
+int  cont_breakIntoSimple( vector<IcontPtr> &conts, Icont *cont );   
+int  cont_killVertAndHorzSegments( Icont *cont );                           // NEW
 bool cont_isConvex( Icont *cont );                              
 int  cont_makeConvex( Icont *cont );
 int  cont_markConvexPtsNegOne( Icont *cont );
@@ -241,6 +242,7 @@ void cont_getIntersectingConvexPolygon( Icont *newCont, Icont *cont1, Icont *con
 int cont_breakContByZValue( Icont *contOrig, vector<IcontPtr> &contSegs, int zValue, bool removeOffSegments );  // NEW
 int cont_breakOpenContAtZValue( Icont *contOrig, vector<IcontPtr> &contSegs, int zValueToBreak );               // NEW
 int cont_breakContByCircle( Icont *contOrig, vector<IcontPtr> &contSegs, Ipoint *center, float radius );        // NEW
+int cont_breakContOutsideMBR( Icont *contOrig, vector<IcontPtr> &contSegs, Ipoint *ll, Ipoint *ur );            // NEW
 int cont_getIntersectingSegments( Icont *cont1, Icont *cont2, vector<IcontPtr> &cont1Segs, vector<IcontPtr> &cont2Segs  );   // MODIFY
 int cont_getIntersectingPolygons( vector<IcontPtr> &finalConts, Icont *cont1, Icont *cont2 );                      
 int cont_getUnionPolygons( vector<IcontPtr> &finalConts, Icont *cont1, Icont *cont2 );                        

@@ -147,6 +147,35 @@ void GuiDialogCustomizable::setDialogElements( CustomDialog *ds_ )
 			}
         break;
         
+      case( DLG_DBLSPINBOX ):
+			{
+				elements[i].label = new QLabel( ds->elVal[i].caption, this );
+				elements[i].dblSpnBox = new QDoubleSpinBox(this);
+				elements[i].dblSpnBox->setMinimum   ( ds->elVal[i].min ); 
+        elements[i].dblSpnBox->setMaximum   ( ds->elVal[i].max );
+				elements[i].dblSpnBox->setValue	   ( ds->elVal[i].value );
+				elements[i].dblSpnBox->setSingleStep( ds->elVal[i].step );
+        elements[i].dblSpnBox->setDecimals  ( ds->elVal[i].decimals );
+				if( !ds->elVal[i].tooltip.isEmpty() )
+        {
+          elements[i].label->setToolTip(ds->elVal[i].tooltip );
+          elements[i].dblSpnBox->setToolTip(ds->elVal[i].tooltip );
+        }
+        
+				QHBoxLayout *hboxLayout = new QHBoxLayout();
+				hboxLayout->setSpacing(0);
+				hboxLayout->setContentsMargins(0, 0, 0, 0);
+				QSpacerItem *spacerItem = new QSpacerItem(40, 20, QSizePolicy::Expanding,
+                                                  QSizePolicy::Minimum);
+				
+				hboxLayout->addWidget( elements[i].label );
+				hboxLayout->addItem( spacerItem );
+				hboxLayout->addWidget( elements[i].dblSpnBox );
+				
+				vboxLayout->addLayout( hboxLayout );
+			}
+        break;
+        
       case( DLG_COMBOBOX ):
 			{
 				elements[i].label = new QLabel( ds->elVal[i].caption, this );
@@ -271,6 +300,10 @@ void GuiDialogCustomizable::accept()
         
       case( DLG_SPINBOX ):
         *ds->elVal[i].returnInt = (double)elements[i].spnBox->value();
+        break;
+        
+      case( DLG_DBLSPINBOX ):
+        *ds->elVal[i].returnFloat = (float)elements[i].dblSpnBox->value();
         break;
         
       case( DLG_COMBOBOX ):

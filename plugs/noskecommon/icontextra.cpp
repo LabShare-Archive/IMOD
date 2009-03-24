@@ -15,6 +15,9 @@
     $Revision$
 
     $Log$
+    Revision 1.13  2009/01/07 04:03:06  tempuser
+    changed cont_addChamferPts function
+
     Revision 1.12  2008/11/16 12:13:20  tempuser
     *** empty log message ***
 
@@ -645,16 +648,19 @@ Ipoint line_getPtRelativeToEnd( Ipoint *start, Ipoint *end,
 
 
 
+
+
 //------------------------
 //-- Takes two lines (four coordinates) and returns true, plus point of
 //-- intersection if the lines cross each other - otherwise returns false.
 //-- NOTE: doubles are used here to increase precision of final value.
 
+
 bool line_doLinesCrossAndWhere( Ipoint *line1pt1, Ipoint *line1pt2,
                                 Ipoint *line2pt1, Ipoint *line2pt2, Ipoint *intercept )
 {
-  double a1 = line1pt2->y-line1pt1->y;
-  double b1 = line1pt1->x-line1pt2->x;
+  double a1 = line1pt2->y-line1pt1->y;      // rise  (difference Y)
+  double b1 = line1pt1->x-line1pt2->x;      // run   (difference X)
   double c1 = line1pt2->x*line1pt1->y - line1pt1->x*line1pt2->y;
                                                 //{ a1*x + b1*y + c1 = 0 is line 1 }
   double a2 = line2pt2->y-line2pt1->y;
@@ -670,23 +676,21 @@ bool line_doLinesCrossAndWhere( Ipoint *line1pt1, Ipoint *line1pt2,
   intercept->y = (a2*c1 - a1*c2) / denom;
   intercept->z = line1pt1->z;
   
-  return ( ( isBetween(line1pt1->x, intercept->x, line1pt2->x)
-             && isBetween(line2pt1->y, intercept->y, line2pt2->y) )
-           ||
-           ( isBetween(line2pt1->x, intercept->x, line2pt2->x)
-             && isBetween(line1pt1->y, intercept->y, line1pt2->y) ) );
+  //return ( ( isBetween(line1pt1->x, intercept->x, line1pt2->x)
+  //           && isBetween(line2pt1->y, intercept->y, line2pt2->y) )
+  //         ||
+  //         ( isBetween(line2pt1->x, intercept->x, line2pt2->x)
+  //           && isBetween(line1pt1->y, intercept->y, line1pt2->y) ) );
   
   // NOTE: recently changed this to account for horizontal and veritcal lines
-  //       where precision of caculations put intercept point slightly off
+  //       where precision of calculations put intercept point slightly off
   
-  /*
+  
   return ( isBetween(line1pt1->x, intercept->x, line1pt2->x)
            && isBetween(line2pt1->x, intercept->x, line2pt2->x)
            && isBetween(line1pt1->y, intercept->y, line1pt2->y)
            && isBetween(line2pt1->y, intercept->y, line2pt2->y) );
-   */
 }
-
 
 
 
@@ -2015,6 +2019,32 @@ int cont_breakIntoSimple( vector<IcontPtr> &conts, Icont *cont )
 
 
 
+//------------------------
+//-- Ensure no two consequtive points have the same x or y value 
+//-- NOTE: I use this function because I tend to have trouble with perfectly
+//-- vertical and (to a lesser extent) horizontal contour segments
+//-- where I need to find intersections and measure gradients.
+
+int cont_killVertAndHorzSegments( Icont *cont )
+{
+  int nudgeEvents = 0;
+  
+  for( int i=1; i<psize(cont); i++)
+  {
+    if( getPt(cont,i)->y == getPt(cont,i-1)->y  )
+    {
+      getPt(cont,i)->y += 0.0001f;
+      nudgeEvents++;
+    }
+    if( getPt(cont,i)->x == getPt(cont,i-1)->x  )
+    {
+      getPt(cont,i)->x += 0.0001f;
+      nudgeEvents++;
+    }
+  }
+  
+  return (nudgeEvents);
+}
 
 
 
@@ -2749,91 +2779,6 @@ void cont_getIntersectingConvexPolygon( Icont *newCont,
 //-- setting all their points to zValue and deleting any fragments
 //-- with only one point.
 
-/*
-int cont_breakContByZValue( Icont *contOrig, vector<IcontPtr> &contSegs, int zValue,
-                            bool removeOffSegments )
-{
-  contSegs.clear();
-  
-  if( isEmpty(contOrig) )
-    return 0;
-  
-  Icont *cont = imodContourDup(contOrig);
-  float z = (float)zValue;
-  
-  imodContourUnique( cont );
-  
-  //## REORDER CONTOUR TO START FORM A POINT WHICH IS OFF:
-  
-  for(int i=0; i<psize(cont); i++)
-    if( getPt(cont,i)->z != z  )            // if pt not on zValue:
-    {
-      cont_reorderPtsToStartAtIdx( cont, i );   // make it the first point
-      break;
-    }
-  
-  //## GO THROUGH CONT AND CREATE SEGMENTS FROM SEQENTIAL SERIES OF ON POINTS:
-  
-  contSegs.push_back( IcontPtr() );
-  
-  if( removeOffSegments )
-  {
-    float z = (float)zValue;
-    
-    for (int i=0; i<psize(cont)+1;i++)
-    {
-      bool prevPointOn = getPt(cont,i-1)->z == z;
-      bool currPointOn = getPt(cont,i)->z   == z;
-      bool nextPointOn = getPt(cont,i+1)->z == z;
-      
-      if( currPointOn )                         // if point is on: add it
-      {
-        imodPointAppend( contSegs.back().cont, getPt(cont,i));
-      }
-      else if( prevPointOn || nextPointOn )     // if intersection point:
-      {
-        if( prevPointOn )
-          imodPointAppend( contSegs.back().cont, getPt(cont,i));
-        
-        contSegs.push_back( IcontPtr() );
-        
-        if( nextPointOn )
-          imodPointAppend( contSegs.back().cont, getPt(cont,i));
-      }
-    }
-  }
-  else
-  {
-    for (int i=0; i<psize(cont)+1;i++)
-    {
-      // if this is an intersection point: add it, then start a new contour
-      if( getPt(cont,i)->z != (float)zValue )
-      {
-        if( removeOffSegments )
-        {
-          
-          imodPointAppend( contSegs.back().cont, getPt(cont,i));
-          contSegs.push_back( IcontPtr() );
-        }
-        imodPointAppend( contSegs.back().cont, getPt(cont,i));
-      }
-    }
-  }
-  
-  //## CLEAN ALL SEGMENTS AND REMOVE ANY WITH ONLY ONE POINT OR LESS:
-  
-  for(int i=(int)contSegs.size()-1; i>=0; i--)
-  {
-    imodContourUnique( contSegs[i].cont );
-    changeZValue( contSegs[i].cont,zValue );
-    if(psize(contSegs[i].cont) <= 1 )
-      eraseContour( contSegs, i );
-  }
-  
-  imodContourDelete(cont);
-  return (contSegs.size());
-}
-*/
 
 int cont_breakContByZValue( Icont *cont, vector<IcontPtr> &contSegs, int zValue,
                             bool removeOffSegments )
@@ -2953,8 +2898,8 @@ int cont_breakOpenContAtZValue( Icont *contOrig, vector<IcontPtr> &contSegs,
 //-- Takes a single open contour and breaks it into fragments either side of
 //-- a circle, by marking any points inside the circle and getting rid of them.
 
-int cont_breakContByCircle( Icont *contOrig, vector<IcontPtr> &contSegs, Ipoint *center,
-                            float radius )
+int cont_breakContByCircle( Icont *contOrig, vector<IcontPtr> &contSegs,
+                            Ipoint *center, float radius )
 {
   int radiusSq = (radius*radius);
   int numRemovedPoints = 0;
@@ -2986,6 +2931,46 @@ int cont_breakContByCircle( Icont *contOrig, vector<IcontPtr> &contSegs, Ipoint 
 
 
 
+//------------------------
+//-- Takes a single open contour and breaks it into fragments outside of the 
+//-- bounding box, by marking any points inside the circle and getting rid of them.
+/*
+int cont_breakContOutsideMBR( Icont *contOrig, vector<IcontPtr> &contSegs,
+                              Ipoint *ll, Ipoint *ur )
+{
+  
+  //cont_getIntersectingPolygons();
+  /*
+  int radiusSq = (radius*radius);
+  int numRemovedPoints = 0;
+  
+  int REMOVE_POINT_Z = -2;
+  
+  Icont *cont = imodContourDup(contOrig);
+  
+  for(int p=0; p<psize(cont); p++ )
+  {
+    Ipoint *pt = getPt(cont,p);
+    if( !mbr_isPtInsideBBox2D( pt, ll, ur ) )
+    {
+      getPt(cont, p)->z = REMOVE_POINT_Z;
+      numRemovedPoints++;
+    }
+  }
+  
+  if(numRemovedPoints)
+  {
+    
+  }
+  
+  cont_breakOpenContAtZValue( cont, contSegs, REMOVE_POINT_Z );
+  
+  imodContourDelete(cont);
+  return (numRemovedPoints);
+   
+}
+*/
+
 
 
 //------------------------
@@ -3012,8 +2997,8 @@ int cont_getIntersectingSegments( Icont *cont1Orig, Icont *cont2Orig,
   int cont1ZVal = getZ(cont1);
   int cont2ZVal = getZ(cont2);
   
-  if( cont1ZVal != cont2ZVal)
-    wprint( "ERROR: cont_getIntersectingSegments() - different z vals\n" );
+  //if( cont1ZVal != cont2ZVal)
+  //  wprint( "ERROR: cont_getIntersectingSegments() - different z vals\n" );
   
   vector<PtConnection> intercepts;   // stores a list of points where the two contours
                                      // intersect, plus the index in both cont1P and
@@ -3254,6 +3239,27 @@ int cont_getUnionPolygons( vector<IcontPtr> &finConts, Icont *cont1, Icont *cont
   finConts.clear();       // will store the final combined regions
                           // (the union of the two contours)
   
+  //%%%%%%%%%%%%%
+  /*
+  for(int i=1; i<psize(cont1); i++)
+  {
+    if( getPt(cont1,i)->y == getPt(cont1,i-1)->y )
+    {
+      getPt(cont1,i)->y += 0.00001;
+      cout << "diff 1:" << i << endl;
+    }
+  }
+  
+  for(int i=1; i<psize(cont2); i++)
+  {
+    if( getPt(cont2,i)->y == getPt(cont2,i-1)->y )
+    {
+      getPt(cont2,i)->y += 0.00001;
+      cout << "diff 2:" << i << endl;
+    }
+  }
+  */
+  //%%%%%%%%%%%%%
   
   if( isEmpty(cont1) || isEmpty(cont2) )   // if either contours is empty:
     return (finConts.size());                 // return empty set
@@ -3398,6 +3404,11 @@ void cont_getOuterUnionPolygon( Icont *newCont, Icont *cont1O, Icont *cont2O )
 {
   vector<IcontPtr> joinedConts;
   cont_getUnionPolygons( joinedConts, cont1O, cont2O );
+  
+  if ( joinedConts.empty() ) {
+    cont_getUnionPolygons( joinedConts, cont2O, cont1O );
+  }
+  
   
   if ( joinedConts.empty() ) {        // if contours don't touch: return empty contour
     imodContourDefault(newCont);
