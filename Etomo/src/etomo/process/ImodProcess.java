@@ -37,6 +37,17 @@ import etomo.util.Utilities;
  * 
  * <p>
  * $Log$
+ * Revision 3.55  2009/03/23 17:07:02  sueh
+ * bug# 1187 Added classes ContinuousListener and Stderr, member variables
+ * CONTINUOUS_TAG, continuousListener, continuousListenerTarget, stderr, and
+ * listenToStdin.  Removing member variables requestQueue and stderrQueue, and
+ * function getStderr.  In disconnect() only send the MESSAGE_STOP_LISTENING
+ * command when the OS is Windows and the --listen parameter is used.  In
+ * MessageSender changed responseRequired to readResponse.  Get all stderr
+ * messages from Stderr.  Stop sleeping for 500 except in Stderr.  In open
+ * (Run3dmodMenuOptions) update member variables stderr and continuousListener.
+ * Use listenToStdin to decide if MessageSender or imodsendevent should be used.
+ *
  * Revision 3.54  2009/03/17 00:36:13  sueh
  * bug# 1186 Pass managerKey to everything that pops up a dialog.
  *
@@ -1275,6 +1286,9 @@ public class ImodProcess {
       return imodSendAndReceive(args);
     }
     else {
+      if (EtomoDirector.INSTANCE.getArguments().isDebug()) {
+        System.err.println("using stdin");
+      }
       return sendRequest(args);
     }
   }
@@ -1352,6 +1366,9 @@ public class ImodProcess {
    */
   private void imodSendEvent(String[] args, Vector messages)
       throws SystemProcessException {
+    if (EtomoDirector.INSTANCE.getArguments().isDebug()) {
+      System.err.println("using imodsendevent");
+    }
     synchronized (stderr.quickListenerQueue) {
       if (windowID.equals("")) {
         throw (new SystemProcessException("No window ID available for imod"));
@@ -1731,6 +1748,9 @@ public class ImodProcess {
       }
       String message;
       while ((message = imod.readStderr()) != null) {
+        if (EtomoDirector.INSTANCE.getArguments().isDebug()) {
+          System.err.println("stderr:"+message);
+        }
         if (message.startsWith(REQUEST_TAG)
             && message.indexOf(STOP_LISTENING_REQUEST) != -1) {
           requestQueue.add(message);
