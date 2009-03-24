@@ -1,26 +1,14 @@
 /*
  *  clip.h -- Header file for command line image proccessing.
  *
- *  Author: James Kremer email: kremer@colorado.edu
- *
  *  Copyright (C) 1995-2005 by Boulder Laboratory for 3-Dimensional Electron
  *  Microscopy of Cells ("BL3DEMC") and the Regents of the University of 
  *  Colorado.  See dist/COPYRIGHT for full copyright notice.
+ *
+ *  $Id$
+ *  Log at end
  */
-/*  $Author$
 
-$Date$
-
-$Revision$
-
-$Log$
-Revision 3.3  2005/01/17 17:09:56  mast
-Changes for new typedefs and 2D processing scheme
-
-Revision 3.2  2005/01/07 20:07:06  mast
-Changes for new filters
-
-*/
 #ifndef CLIP_H
 #define CLIP_H
 
@@ -155,6 +143,20 @@ int grap_corr(MrcHeader *hin1, MrcHeader *hin2, MrcHeader *hout,
               ClipOptions *opt);
 int padfloat_volume(Istack *v, float pad);
 int clip_cor_scalevol(Istack *v);
+double parabolic_fit(double *outX, double *outY, double i[3][3]);
      
 #endif /* clip.h */
 
+/*  
+
+$Log$
+Revision 3.4  2005/01/27 05:55:17  mast
+Added anisotropic diffusion option
+
+Revision 3.3  2005/01/17 17:09:56  mast
+Changes for new typedefs and 2D processing scheme
+
+Revision 3.2  2005/01/07 20:07:06  mast
+Changes for new filters
+
+*/
