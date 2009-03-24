@@ -13,12 +13,13 @@ set edffile = ""
 set outfile = ""
 set setname = ""
 set axistype = ""
+set comdir = tomosnapshot.cms.$$
 
 # The file lists
 #
 set oneAxisSetFiles = (.rawtlt _peak.mod .prexf .prexg .seed .fid .3dmod .tlt \
 fid.xyz .resid .resmod .tltxf _fid.xf local.xf .matmod .pl .ecd _orig.seed \
-.xtilt .maggrad .zfac)
+.xtilt .maggrad .zfac .defocus _erase.fid)
 set oneAxisHeaders = (_orig.st .st .preali .ali .rec .mat _full.rec)
 set singleFiles = (solvezero.xf solve.xf refine.xf warp.xf inverse.xf \
 patch.out patch_vector.mod patch_vector_ccc.mod patch_region.mod lslrt.out \
@@ -160,7 +161,7 @@ if (-e etomo_err.log) then
     endif
 endif
 
-# Then get last N from the lg directory
+# Then get last N from the log directory
 #
 if (! $?ETOMO_LOG_DIR) setenv ETOMO_LOG_DIR $HOME/.etomologs
 if ("$ETOMO_LOG_DIR" == "") setenv ETOMO_LOG_DIR $HOME/.etomologs
@@ -181,11 +182,22 @@ endif
 
 # Get all com and log files and backups except the ta*.log
 #
-set comlist = `\find . -name '*.com' -print`
-set comlistb = `\find . -name '*.com~' -print`
-set loglist = `\find . -name '*.log' -print | grep -v '\./ta'`
-set loglistb = `\find . -name '*.log~' -print | grep -v '\./ta'`
-set list = ($list $comlist $comlistb $loglist $loglistb)
+set comlist = `\find . -maxdepth 1 -name '*.com' -print`
+set comlistb = `\find . -maxdepth 1 -name '*.com~' -print`
+set loglist = `\find . -maxdepth 1 -name '*.log' -print | grep -v '\./ta'`
+set loglistb = `\find . -maxdepth 1 -name '*.log~' -print | grep -v '\./ta'`
+set list = ($list $comlistb $loglist $loglistb)
+
+if (-w .) then
+    \rm -rf $comdir
+    mkdir -p $comdir
+    foreach i ($comlist)
+        \cp -p $i $comdir/$i:t:r
+    end
+    set list = ($list $comdir)
+else
+    set list = ($list $comlist)
+endif
 
 # Loop on axis files, adding files if they exist
 #
@@ -216,6 +228,7 @@ tar -czvf "$outfile" $list
 #gzip -f "$outfile"
 if (-e uname.out) \rm -f uname.out
 if (-e lslrt.out) \rm -f lslrt.out
+if (-e $comdir) \rm -rf $comdir
 if ("$copylogs" != "") \rm -f $copylogs
 if ($status) then
     echo "ERROR: $pn - making snapshot tar file"
@@ -241,6 +254,9 @@ Options:
 EOF
 
 #  $Log$
+#  Revision 3.21  2009/03/06 05:20:59  mast
+#  Tar up directly with z and remove extensions to make it more mailable
+#
 #  Revision 3.20  2009/02/17 05:44:04  mast
 #  Changing directory or copied file modes for Vista
 #
