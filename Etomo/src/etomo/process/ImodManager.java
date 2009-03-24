@@ -38,6 +38,10 @@ import etomo.util.Utilities;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.71  2009/03/23 16:56:24  sueh
+ * <p> bug# 1187 Added setContinuousListenerTarget.  Only use requestHandler if the OS is
+ * <p> Windows and the --listen parameter was used.
+ * <p>
  * <p> Revision 3.70  2009/03/17 00:36:03  sueh
  * <p> bug# 1186 Pass managerKey to everything that pops up a dialog.
  * <p>
@@ -1119,6 +1123,7 @@ public class ImodManager {
     ImodState imodState = get(key);
     if (imodState == null) {
       newImod(key);
+      imodState = get(key);
     }
     imodState.setSwapYZ(swapYZ);
   }
@@ -1205,6 +1210,7 @@ public class ImodManager {
     ImodState imodState = get(key, axisID);
     if (imodState == null) {
       newImod(key, axisID);
+      imodState = get(key, axisID);
     }
     if (imodState != null) {
       imodState.setBinning(binning);
@@ -1217,6 +1223,7 @@ public class ImodManager {
     ImodState imodState = get(key, axisID);
     if (imodState == null) {
       newImod(key, axisID);
+      imodState = get(key, axisID);
     }
     if (imodState != null) {
       imodState.setTiltFile(tiltFile);
@@ -1228,6 +1235,7 @@ public class ImodManager {
     ImodState imodState = get(key, axisID);
     if (imodState == null) {
       newImod(key, axisID);
+      imodState = get(key, axisID);
     }
     if (imodState != null) {
       imodState.resetTiltFile();
@@ -1239,6 +1247,7 @@ public class ImodManager {
     ImodState imodState = get(key);
     if (imodState == null) {
       newImod(key);
+      imodState = get(key);
     }
     if (imodState != null) {
       imodState.setBinning(binning);
@@ -1261,6 +1270,7 @@ public class ImodManager {
     ImodState imodState = get(key);
     if (imodState == null) {
       newImod(key);
+      imodState = get(key);
     }
     if (imodState != null) {
       imodState.setBinningXY(binning);
@@ -1270,9 +1280,10 @@ public class ImodManager {
   public void setContinuousListenerTarget(String key, AxisID axisID,
       ContinuousListenerTarget continuousListenerTarget)throws AxisTypeException {
     key = getPrivateKey(key);
-    ImodState imodState = get(key);
+    ImodState imodState = get(key, axisID);
     if (imodState == null) {
-      return;
+      newImod(key, axisID);
+      imodState = get(key, axisID);
     }
     imodState.setContinuousListenerTarget(continuousListenerTarget);
   }
@@ -1294,6 +1305,7 @@ public class ImodManager {
     ImodState imodState = get(key, axisID);
     if (imodState == null) {
       newImod(key, axisID);
+      imodState = get(key, axisID);
     }
     if (imodState != null) {
       imodState.setOpenContours(openContours);
@@ -1306,6 +1318,7 @@ public class ImodManager {
     ImodState imodState = get(key, axisID);
     if (imodState == null) {
       newImod(key, axisID);
+      imodState = get(key, axisID);
     }
     if (imodState != null) {
       imodState.setPointLimit(pointLimit);
@@ -1318,6 +1331,7 @@ public class ImodManager {
     ImodState imodState = get(key, axisID);
     if (imodState == null) {
       newImod(key, axisID);
+      imodState = get(key, axisID);
     }
     if (imodState != null) {
       imodState.setPreserveContrast(preserveContrast);
@@ -1330,6 +1344,7 @@ public class ImodManager {
     ImodState imodState = get(key, axisID);
     if (imodState == null) {
       newImod(key, axisID);
+      imodState = get(key, axisID);
     }
     if (imodState != null) {
       imodState.setFrames(frames);
@@ -1342,6 +1357,7 @@ public class ImodManager {
     ImodState imodState = get(key, axisID);
     if (imodState == null) {
       newImod(key, axisID);
+      imodState = get(key, axisID);
     }
     if (imodState != null) {
       imodState.setPieceListFileName(pieceListFileName);
