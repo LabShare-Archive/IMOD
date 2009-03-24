@@ -64,6 +64,7 @@ class BeadHelper : public DialogFrame
   void reorderContours();
   void moveContour();
   void moveMultipleContours();
+  void splitOrMergeContours();
   void correctCurrentObject();
   void toggleStippled();
   void togglePtsChecked();
@@ -71,7 +72,8 @@ class BeadHelper : public DialogFrame
   void markRangeAsStippled();
   void markRangePtsAsChecked();
   
-  bool updateAndVerifyRanges();
+  bool verifyCurrObjectAndUpdateRanges();
+  bool verifyAndUpdateEnteredRangeValues();
   bool advanceSelectedPointInCurrCont( int change );
   int  applyMAction();
   void goToSeedView();
@@ -98,6 +100,7 @@ class BeadHelper : public DialogFrame
   
  private:
   
+  /*
   QGroupBox   *grpRange;
   QGridLayout *gridLayout1;
   QLabel      *lblViews;
@@ -108,7 +111,8 @@ class BeadHelper : public DialogFrame
   QSpinBox    *contMinSpinner;
   QLabel      *lblContoursTo;
   QSpinBox    *contMaxSpinner;
-  
+  */
+    
   QGroupBox   *grpActions;
   QVBoxLayout *vboxLayout1;
   QPushButton *deletePtsButton;
@@ -149,7 +153,7 @@ enum estimationmethod { EM_BESTTWO, EM_SMARTTWO, EM_NEARESTTWO, EM_PREVTWO,
 enum contsortcriteria { SORT_YJUMPS, SORT_DEV, SORT_AVG_GREY, SORT_DIST_FROM_MIDDLE,
                         SORT_MISSING_PTS, SORT_UNCHECKED, SORT_RANDOM };
 
-enum contdisplay      { LD_OFF, LD_ALL, LD_CURRENT, LD_CURRMISSING,
+enum contdisplay      { LD_OFF, LD_ALL, LD_OBJ, LD_CURRENT, LD_CURRMISSING,
                         LD_RESULTSMOOTH, LD_SLICE_RESID, LD_BEST_FIT };
 enum tiltaxisdisplay  { TD_OFF, TD_TILTAXIS, TD_TILTAXISSEED, TD_TILTAXISPT,
                         TD_TILTSEGS, TD_HGRID };
@@ -177,13 +181,18 @@ struct BeadHelperData   // contains all local plugin data
   BeadHelper *window;
   
   //** MAIN OPTIONS:
-    
-  int viewMin;                // minimum view in range
-  int viewMax;                // maximum view in range
-  int contMin;                // minimum contour in range
-  int contMax;                // maximum contour in range
   
-  int showExpectedPos;       // if true: will show estimated position (est pos) of point on
+  int viewMinN;               // minimum view in range
+  int viewMaxN;               // maximum view in range
+  int contMinN;               // minimum contour in range
+  int contMaxN;               // maximum contour in range
+  
+  int viewMin;                // minimum view index in range
+  int viewMax;                // maximum view index in range
+  int contMin;                // minimum contour index in range
+  int contMax;                // maximum contour index in range
+  
+  int showExpectedPos;        // if true: will show estimated position (est pos) of point on
                               //   the current each view
   bool showSpheres;           // if true: will set the sphere size to "sphereSize"
   int  sphereSize;            // the sphere size of the object, allowing the user
@@ -305,6 +314,9 @@ bool isCurrPtValid();
 int edit_getZOfTopZap();
 int edit_setZapLocation( float x, int y, int z, bool redraw );
 int edit_changeSelectedView( int changeZ, bool redraw );
+int edit_addContourToObj( Iobj *obj, Icont *cont, bool enableUndo );
+int edit_removeAllDeleteFlaggedContoursFromObj( Iobj *obj, bool enableUndo );
+
 bool bead_focusOnPointCrude( float x, float y, float z );
 float bead_getTiltAngleAtZ( int z );
 

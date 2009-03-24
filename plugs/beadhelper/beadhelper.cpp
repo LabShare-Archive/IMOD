@@ -246,10 +246,15 @@ void imodPlugExecute(ImodView *inImodView)
     
     //** MAIN OPTIONS:
     
-    plug.viewMin           = 1;
-    plug.viewMax           = plug.zsize;
-    plug.contMin            = 5;
-    plug.contMax            = 9999;
+    plug.viewMinN           = 1;
+    plug.viewMaxN           = plug.zsize;
+    plug.contMinN           = 6;
+    plug.contMaxN           = 9999;
+    
+    plug.viewMin            = plug.viewMinN - 1;
+    plug.viewMax            = plug.viewMaxN - 1;
+    plug.contMin            = plug.contMinN - 1;
+    plug.contMax            = plug.contMaxN - 1;
     
     plug.showExpectedPos    = 1;
     plug.showSpheres        = true;
@@ -292,7 +297,7 @@ void imodPlugExecute(ImodView *inImodView)
     plug.wWeightedDiv          = 15;
     plug.uKeyBehav             = UK_TOGGLEPTCHECKED;
     plug.enterAction           = EN_PREVUNCHECKED;
-    plug.minPtsEnter           = 5;
+    plug.minPtsEnter           = plug.zsize - 1;
     plug.maxPtsEnter           = plug.zsize;
     plug.enterPrint            = false;
     
@@ -316,7 +321,7 @@ void imodPlugExecute(ImodView *inImodView)
     plug.window->loadSettings();
     plug.initialized        = true;
   }
-  
+  plug.minPtsEnter           = plug.zsize - 1;
   
   //## SET UP EXTRA OBJECTS:
   
@@ -352,7 +357,8 @@ void imodPlugExecute(ImodView *inImodView)
   plug.window  = new BeadHelper(imodDialogManager.parent(IMOD_DIALOG),"Bead Helper");
   
   imodDialogManager.add((QWidget *)plug.window, IMOD_DIALOG);
-  plug.window->show();
+  adjustGeometryAndShow((QWidget *)plug.window, IMOD_DIALOG );
+  //plug.window->show();
   
   //## REDRAW:
   
@@ -497,68 +503,6 @@ BeadHelper::BeadHelper(QWidget *parent, const char *name) :
   
   QString toolStr;
   
-  
-  //## Range:
-  
-  grpRange = new QGroupBox("Range:", this);
-  //grpRange->setFocusPolicy(Qt::NoFocus);
-  //grpRange->setMargin(GROUP_MARGIN);
-  
-  gridLayout1 = new QGridLayout(grpRange);
-  gridLayout1->setSpacing(LAYOUT_SPACING);
-  gridLayout1->setContentsMargins(LAYOUT_MARGIN, LAYOUT_MARGIN, LAYOUT_MARGIN,
-                                  LAYOUT_MARGIN);
-  //gridLayout1->addItem( new QSpacerItem(1,SPACER_HEIGHT), 0, 0);
-  
-  lblViews = new QLabel("views: ", grpRange);
-  lblViews->setFocusPolicy(Qt::NoFocus);
-  gridLayout1->addWidget(lblViews, 1, 0);
-  
-  viewMinSpinner = new QSpinBox(grpRange);
-  viewMinSpinner->setFocusPolicy(Qt::ClickFocus);
-  viewMinSpinner->setRange(1, plug.zsize);
-  viewMinSpinner->setValue( plug.viewMin );
-  viewMinSpinner->setToolTip( "Minimum view value (inclusive)");
-  gridLayout1->addWidget(viewMinSpinner, 1, 1);
-  
-  lblViewsTo = new QLabel(" to ", grpRange);
-  lblViewsTo->setFocusPolicy(Qt::NoFocus);
-  gridLayout1->addWidget(lblViewsTo, 1, 2);
-  
-  viewMaxSpinner = new QSpinBox(grpRange);
-  viewMaxSpinner->setFocusPolicy(Qt::ClickFocus);
-  viewMaxSpinner->setRange(1, plug.zsize);
-  viewMaxSpinner->setValue( plug.viewMax );
-  viewMaxSpinner->setToolTip( "Maximum view value (inclusive)");
-  gridLayout1->addWidget(viewMaxSpinner, 1, 3);
-  
-  lblContours = new QLabel("contours: ", grpRange);
-  lblContours->setFocusPolicy(Qt::NoFocus);
-  gridLayout1->addWidget(lblContours, 2, 0);
-  
-  contMinSpinner = new QSpinBox(grpRange);
-  contMinSpinner->setFocusPolicy(Qt::ClickFocus);
-  contMinSpinner->setRange(1, 1000);
-  contMinSpinner->setValue( plug.contMin );
-  contMinSpinner->setToolTip( "Minimum contour value (inclusive)");
-  gridLayout1->addWidget(contMinSpinner, 2, 1);
-  
-  lblContoursTo = new QLabel(" to ", grpRange);
-  lblContoursTo->setFocusPolicy(Qt::NoFocus);
-  gridLayout1->addWidget(lblContoursTo, 2, 2);
-  
-  contMaxSpinner = new QSpinBox(grpRange);
-  contMaxSpinner->setFocusPolicy(Qt::ClickFocus);
-  contMaxSpinner->setRange(1, 9999);
-  contMaxSpinner->setValue( plug.contMax );
-  contMaxSpinner->setToolTip( "Maximum contour value (inclusive)"
-                "\n\nNOTE: This value defaults to 9999 - which means all contours "
-                "\n     from the min value to the last contour in the "
-                "\n     object are included in the range");
-  gridLayout1->addWidget(contMaxSpinner, 2, 3);
-  
-  mLayout->addWidget(grpRange);
-  
 
   //## Actions:
   
@@ -669,8 +613,9 @@ BeadHelper::BeadHelper(QWidget *parent, const char *name) :
   toolStr = "Visual aid to let you see the trajectory of contours. "
     "\n"
     "\n > off             - don't display any lines/contours "
-    "\n > all contours        - shows ALL contours on current object "
+    "\n > all contours        - shows ALL contours in the model (accross all objects) "
       "with any checked contours as stippled "
+    "\n > all contours        - shows ALL contours int the current object "
     "\n > curr contour   - shows only the current (selected) contour "
     "\n > missing pts    - shows the selected contour as solid, with the expected "
       " position of any missing points as crosshairs "
@@ -1018,6 +963,22 @@ bool BeadHelper::drawExtraObject( bool redraw )
   {
     case( LD_ALL ):
     {
+      for(int o=0; o<osize(imod);o++)
+      {
+        Iobj *objO = getObj(imod,o);
+        for(int c=0; c<csize(objO);c++)
+        {
+          Icont *xcont = imodContourDup( getCont(objO,c) );
+          changeZValue( xcont, z );
+          imodContourSetFlag(xcont, ICONT_DRAW_ALLZ | ICONT_MMODEL_ONLY, 1);
+          imodObjectAddContour(xobjC, xcont);
+          free(xcont);
+        }
+      }
+    }break;
+    
+    case( LD_OBJ ):
+    {
       for(int c=0; c<csize(obj);c++)
       {
         Icont *xcont = imodContourDup( getCont(obj,c) );
@@ -1227,9 +1188,11 @@ void BeadHelper::loadSettings()
   if(nvals!=NUM_SAVED_VALS)
   {
     wprint("\aBeadHelper: Could not load saved values\n\n");
-    wprint("\aIf this is your first time using BeadHelper ");
-    wprint("it is HIGHLY recommended you click 'Help' ");
-    wprint("to learn about how it works!\n");
+    QMessageBox::about( this, "-- Documentation --",
+                        "If this is your first time using 'Bead Helper' \n"
+                        "it is HIGHLY recommended you start by clicking 'Help' \n"
+                        "(at bottom of the plugin) and reading the documentation ! \n"
+                        "                                   -- Andrew Noske" );
     return;
   }
   
@@ -1349,30 +1312,38 @@ void BeadHelper::saveSettings()
 
 void BeadHelper::deletePtsInRange()
 {
-  if( !updateAndVerifyRanges() )
+  if( !verifyCurrObjectAndUpdateRanges() )
     return;
   
-  //## GET USER INPUT FROM CUSTOM DIALOG:
+  Imod *imod = ivwGetModel(plug.view);
+  Iobj *obj  = imodObjectGet(imod);
+  int objIdx, contIdx, ptIdx;
+  imodGetIndex(imod, &objIdx, &contIdx, &ptIdx);
+  int nConts = csize(obj);
   
-  int numConts  = (plug.contMax - plug.contMin) + 1;
-  int numViews = (plug.viewMax - plug.viewMin) + 1;
-  int numPts = numConts * numViews;
-  string incSeedView = isBetweenAsc(plug.viewMin,plug.seedView,plug.viewMax) ?
-    "\nTHIS INCLUDES THE MIDDLE SLICE!\n" : "";
-  string msg = "This operation will delete ALL points \n  on "
-    + toString(numConts) + " contours ("
-    + toString(plug.contMin+1) + "-" + toString(plug.contMax+1)
-    + ") \n  on " + toString(numViews) + " views ("
-    + toString(plug.viewMin+1) + "-" + toString(plug.viewMax+1) + ")"
-    + "\n  Potential # points = " + toString(numPts)
-    + incSeedView;
+  //## GET USER INPUT FROM CUSTOM DIALOG:
   
   static bool skipCheckedConts = true;
   static bool skipCheckedPts   = true;
   static bool skipSeedView     = true;
   
   CustomDialog ds;
-  ds.addLabel   ( msg.c_str() );
+  ds.addLabel   ( "----- RANGE: -----" );
+  ds.addLabel   ( "contours (inclusive):" );
+  ds.addSpinBox ( "  min:", 1, nConts, &plug.contMinN, 1,
+                  "Points will only be deleted from contours "
+                  "AFTER this contour # (inclusive)" );
+  ds.addSpinBox ( "  max:", 1, nConts, &plug.contMaxN, 1,
+                  "Points will only be deleted from contours "
+                  "AFTER this contour # (inclusive)" );
+  ds.addLabel   ( "views to delete (inclusive):" );
+  ds.addSpinBox ( "  min:", 1, plug.zsize, &plug.viewMinN, 1,
+                  "Points will only be deleted from views "
+                  "AFTER this view (inclusive)" );
+  ds.addSpinBox ( "  max:", 1, plug.zsize, &plug.viewMaxN, 1,
+                  "Points will only be deleted from views "
+                  "BEFORE this view (inclusive)" );
+  ds.addLabel   ( "-----" );
   ds.addCheckBox( "skip checked contours", &skipCheckedConts,
                   "Will not delete any points from checked /n"
                   "(stippled) contours (marked with [u])" );
@@ -1385,17 +1356,15 @@ void BeadHelper::deletePtsInRange()
   if( ds.cancelled )
     return;
   
+  if( !verifyAndUpdateEnteredRangeValues() )
+    return;
+  
   
   //## DELETE ALL POINTS IN RANGE:
   
-  Imod *imod = ivwGetModel(plug.view);
-  Iobj *obj = imodObjectGet(imod);
-  int objIdx, contIdx, ptIdx;
-  imodGetIndex(imod, &objIdx, &contIdx, &ptIdx);
-  
   int numPtsDeleted = 0;
   
-  for( int c=MAX(plug.contMin,0); c<=plug.contMax && c<csize(obj); c++)
+  for( int c=plug.contMin; c<=plug.contMax && c<csize(obj); c++)
   {
     imodSetIndex(imod, objIdx, c, 0);
     undoContourDataChgCC( plug.view );      // REGISTER UNDO
@@ -1421,7 +1390,7 @@ void BeadHelper::deletePtsInRange()
 
 void BeadHelper::deletePtsCurrContInRange()
 {
-  if( !updateAndVerifyRanges() || !isCurrContValid() )
+  if( !verifyCurrObjectAndUpdateRanges() || !isCurrContValid() )
     return;
   
   int numPtsDeleted = 0;
@@ -1431,7 +1400,7 @@ void BeadHelper::deletePtsCurrContInRange()
   
   for( int p=0; p<psize(cont); p++ )
   {
-    if( isBetweenAsc( plug.viewMin, getPtZInt(cont,p), plug.viewMax ) )
+    if( isBetweenAsc( plug.viewMinN-1, getPtZInt(cont,p), plug.viewMaxN-1 ) )
     {
       imodPointDelete( cont, p );
       p--;
@@ -1452,7 +1421,7 @@ void BeadHelper::deletePtsCurrContInRange()
 
 bool BeadHelper::deletePtsUsingDAction()
 {
-  if( !updateAndVerifyRanges() || !isCurrPtValid() || plug.dKeyBehav == DK_NONE )
+  if( !verifyCurrObjectAndUpdateRanges() || !isCurrPtValid() || plug.dKeyBehav == DK_NONE )
     return false;
   
   //## GET INFORMATION:
@@ -1468,8 +1437,8 @@ bool BeadHelper::deletePtsUsingDAction()
   
   //## DETERMINE WHAT Z RANGE TO DELETE ACCORDING TO "dKeyBehav" VALUE:
   
-  int minZ = plug.viewMin;
-  int maxZ = plug.viewMax;
+  int minZ = plug.viewMinN-1;
+  int maxZ = plug.viewMaxN-1;
   
   switch( plug.dKeyBehav )
   {
@@ -1518,23 +1487,33 @@ bool BeadHelper::deletePtsUsingDAction()
 
 void BeadHelper::reduceContsToSeed()
 {
-  if( !updateAndVerifyRanges() )
+  if( !verifyCurrObjectAndUpdateRanges() )
     return;
   
   
-  //## GET USER INPUT FROM CUSTOM DIALOG:
+  Imod *imod = ivwGetModel(plug.view);
+  Iobj *obj  = imodObjectGet(imod);
+  int objIdx, contIdx, ptIdx;
+  imodGetIndex(imod, &objIdx, &contIdx, &ptIdx);
+  int nConts = csize(obj);
   
-  int numConts  = (plug.contMax - plug.contMin) + 1;
-  string msg = "This operation will delete all but the seed point from \n  "
-    + toString(numConts) + " contours ("
-    + toString(plug.contMin+1) + "-" + toString(plug.contMax+1)
-    + ")";
+  //## GET USER INPUT FROM CUSTOM DIALOG:
   
   static bool skipCheckedConts = true;
   static bool skipCheckedPts   = true;
   
   CustomDialog ds;
-  ds.addLabel   ( msg.c_str() );
+  ds.addLabel   ( "----- RANGE: -----" );
+  ds.addLabel   ( "contours to reduce (inclusive):" );
+  ds.addSpinBox ( "  min:", 1, nConts, &plug.contMinN, 1,
+                  "Only contours AFTER this contour # (inclusive)"
+                  "will be reduce to a seed point" );
+  ds.addSpinBox ( "  max:", 1, nConts, &plug.contMaxN, 1,
+                  "Only contours BEFORE this contour # (inclusive)"
+                  "will be reduce to a seed point" );
+  ds.addLabel   ( "-----" );
+  ds.addLabel   ( "views to fill (inclusive):" );
+  
   ds.addCheckBox( "skip checked contours", &skipCheckedConts,
                   "Will not delete any points from checked "
                   "(stippled) contours " );
@@ -1546,18 +1525,15 @@ void BeadHelper::reduceContsToSeed()
   if( ds.cancelled )
     return;
 
+  if( !verifyAndUpdateEnteredRangeValues() )
+    return;
   
   //## REDUCE RANGE OF CONTOURS TO SEED:
-  
-  Imod *imod = ivwGetModel(plug.view);
-  Iobj *obj  = imodObjectGet(imod);
-  int objIdx, contIdx, ptIdx;
-  imodGetIndex(imod, &objIdx, &contIdx, &ptIdx);
   
   int numContsReduced = 0;
   int numPtsDeleted = 0;
   
-  for( int c=MAX(plug.contMin,0); c<=plug.contMax && c<csize(obj); c++)
+  for( int c=plug.contMin; c<=plug.contMax && c<nConts; c++)
   {
     Icont *cont = getCont( obj, c );
     if( psize(cont) <= 1 || !bead_isPtOnView(cont,plug.seedView)  )
@@ -1626,10 +1602,10 @@ void BeadHelper::reduceCurrContToSeed()
 
 void BeadHelper::movePtsToEstimatedPosOptions()
 {
-  if( !updateAndVerifyRanges() )
+  if( !verifyCurrObjectAndUpdateRanges() )
     return;
   
-  //## DISPLAY OPTIONS FOR SMOOTHING / MOVING POINTS:
+  //## GET USER INPUT FROM CUSTOM DIALOG:
   
   int smoothMoveFract  = plug.smoothMoveFract * 10;
   int smoothMinResid   = plug.smoothMinResid  * 10;
@@ -1703,34 +1679,53 @@ void BeadHelper::movePtsToEstimatedPosRange()
 {
   //## INTIALIZE VARIABLES: 
   
-  int numConts  = (plug.contMax - plug.contMin) + 1;
-  int numViews = (plug.viewMax - plug.viewMin) + 1;
-  int numPts = numConts * numViews;
-  
-  string msg = "This operation will move ALL points "
-    "\n  on " + toString(numConts) + "  contours ("
-    + toString(plug.contMin+1) + "-" + toString(plug.contMax+1)
-    + ")\n  on " + toString(numViews) + " views ("
-    + toString(plug.viewMin+1) + "-" + toString(plug.viewMax+1) + ")."
-    + "\n  Total points = " + toString(numPts)
-    + "\nAre you sure you want to continue ?";
-  
-  if( !MsgBoxYesNo(this, msg) )
-    return;
-  
-  int currView = edit_getZOfTopZap();
   Imod *imod = ivwGetModel(plug.view);
   Iobj *obj  = imodObjectGet(imod);
   int objIdx, contIdx, ptIdx;
   imodGetIndex(imod, &objIdx, &contIdx, &ptIdx);
+  int nConts = csize(obj);
+  
+  
+  //## DISPLAY OPTIONS:
+  
+  static bool fillPastEnds = false;
+  
+	CustomDialog ds;
+  ds.addLabel   ( "----- RANGE: -----" );
+  ds.addLabel   ( "contours to smooth (inclusive):" );
+  ds.addSpinBox ( "  min:", 1, nConts, &plug.contMinN, 1,
+                  "Points will only be moved in contours "
+                  "AFTER this contour # (inclusive)" );
+  ds.addSpinBox ( "  max:", 1, nConts, &plug.contMaxN, 1,
+                  "Points will only be moved in contours "
+                  "AFTER this contour # (inclusive)" );
+  ds.addLabel   ( "views to fill (inclusive):" );
+  ds.addSpinBox ( "  min:", 1, plug.zsize, &plug.viewMinN, 1,
+                  "Points will only be moved in views "
+                  "AFTER this number (inclusive)" );
+  ds.addSpinBox ( "  max:", 1, plug.zsize, &plug.viewMaxN, 1,
+                  "Points will only be moved in views "
+                  "BEFORE this number (inclusive)" );
+  ds.addLabel   ( "-----" );
+  ds.addLabel   ( "Are you sure you want to move ALL points in this range?!" );
+	GuiDialogCustomizable dlg(&ds, "Move Points", this);
+	dlg.exec();
+	if( ds.cancelled )
+		return;
+  
+  if( !verifyAndUpdateEnteredRangeValues() )
+    return;
+  
+  int currView = edit_getZOfTopZap();
     
   int numPtsMoved = 0;
   int numPtsAdded = 0;
   
+  
   //## ITERATE THROUGH SPECIFIED RANGE OF CONTOURS AND MOVE ALL POINTS WITHIN
   //## SPECIFIED VIEWS TO THEIR EXPECTED POSITION: 
   
-  for( int c=MAX(plug.contMin,0); c<=plug.contMax && c<csize(obj); c++)
+  for( int c=plug.contMin; c<=plug.contMax && c<csize(obj); c++)
   {
     imodSetIndex(imod, objIdx, c, 0);
     Icont *cont = getCont( obj, c );
@@ -1822,29 +1817,36 @@ void BeadHelper::moveCurrPtToEstimatedPos()
 
 void BeadHelper::fillMissingPts()
 {
-  if( !updateAndVerifyRanges() )
+  if( !verifyCurrObjectAndUpdateRanges() )
     return;
   
   Imod *imod = ivwGetModel(plug.view);
   Iobj *obj  = imodObjectGet(imod);
   int objIdx, contIdx, ptIdx;
   imodGetIndex(imod, &objIdx, &contIdx, &ptIdx);
-  
+  int nConts = csize(obj);
   
   //## GET USER INPUT FROM CUSTOM DIALOG:
-  
-  int numConts  = (plug.contMax - plug.contMin) + 1;
-  int numViews = (plug.viewMax - plug.viewMin) + 1;
-  string msg = "This operation will fill missing points on "
-    + toString(numConts) + " contours ("
-    + toString(plug.contMin+1) + "-" + toString(plug.contMax+1)
-    + ") on " + toString(numViews) + " views ("
-    + toString(plug.viewMin+1) + "-" + toString(plug.viewMax+1) + ")";
   
   static bool fillPastEnds = false;
   
 	CustomDialog ds;
-  ds.addLabel   ( msg.c_str() );
+  ds.addLabel   ( "----- RANGE: -----" );
+  ds.addLabel   ( "contours to fill (inclusive):" );
+  ds.addSpinBox ( "  min:", 1, nConts, &plug.contMinN, 1,
+                  "Points will only be added to contours "
+                  "AFTER this contour # (inclusive)" );
+  ds.addSpinBox ( "  max:", 1, nConts, &plug.contMaxN, 1,
+                  "Points will only be added to contours "
+                  "AFTER this contour # (inclusive)" );
+  ds.addLabel   ( "views to fill (inclusive):" );
+  ds.addSpinBox ( "  min:", 1, plug.zsize, &plug.viewMinN, 1,
+                  "Points will only be added to views "
+                  "AFTER this number (inclusive)" );
+  ds.addSpinBox ( "  max:", 1, plug.zsize+1, &plug.viewMaxN, 1,
+                  "Points will only be added to views "
+                  "BEFORE this number (inclusive)" );
+  ds.addLabel   ( "-----" );
   ds.addCheckBox( "fill past ends",
                   &fillPastEnds,
                   "Will add points past the start and end point of \n"
@@ -1854,13 +1856,16 @@ void BeadHelper::fillMissingPts()
 	if( ds.cancelled )
 		return;
   
+  if( !verifyAndUpdateEnteredRangeValues() )
+    return;
+  
   
   //## FILL MISSING POINTS:
   
   int numContsChanged = 0;
   int numPtsAddedTotal = 0;
   
-  for( int c=MAX(plug.contMin,0); c<=plug.contMax && c<csize(obj); c++)
+  for( int c=plug.contMin; c<=plug.contMax && c<csize(obj); c++)
   {
     Icont *cont = getCont( obj, c );
     
@@ -1907,7 +1912,7 @@ void BeadHelper::fillMissingPtsCurrCont( bool fillPastEnds )
 
 void BeadHelper::moreActions()
 {
-  updateAndVerifyRanges();
+  verifyCurrObjectAndUpdateRanges();
   
   //## GET USER INPUT FROM CUSTOM DIALOG:
   
@@ -1918,10 +1923,11 @@ void BeadHelper::moreActions()
                   "show contour turning points,"
                   "show grid,"
                   "clear purple object,"
-                  "move contours between objects,"
+                  "move contour range to another object,"
+                  "split or merge contours between objects **,"
                   "verify contours"
                      "\n(reorders pts and removes duplicates),"
-                  "mark contours as checked/unchecked,"
+                  "mark contours as checked/unchecked **,"
                   "mark points as checked/unchecked,"
                   "print contour info,"
                   "load tilt angles",
@@ -1945,6 +1951,9 @@ void BeadHelper::moreActions()
                     "seperately and you'll often yeild better results \n"
                     "for a set of points if you first track a subset \n"
                     "and then later move the other points back,"
+                  "Use this to split a large number of contours \n"
+                    "across multiple objects... or to merge all contours "
+                    "into the first object,"
                   "Can be used to quickly fix the common problems \n"
                     "whereby you've accidently added two points \n"
                     "in the same view or they are not in order,"
@@ -2027,27 +2036,32 @@ void BeadHelper::moreActions()
       moveMultipleContours();
     } break;
       
-    case(6):      // remove duplicate pts from object
+    case(6):      // move points between objects
+    {
+      splitOrMergeContours();
+    } break;
+      
+    case(7):      // remove duplicate pts from object
     {
       correctCurrentObject();
     } break;
     
-    case(7):      // mark all contours as stippled/unstippled
+    case(8):      // mark all contours as stippled/unstippled
     {
       markRangeAsStippled();
     } break;
     
-    case(8):      // mark all points as checked/unchecked
+    case(9):      // mark all points as checked/unchecked
     {
       markRangePtsAsChecked();
     } break;
       
-    case(9):      // print contour info
+    case(10):      // print contour info
     {
       printContourCheckedInfo();
     } break;
     
-    case(10):      // load tilt angles
+    case(11):      // load tilt angles
     {
       openTiltAngleFile();
     } break;
@@ -2367,25 +2381,23 @@ void BeadHelper::keyboardSettings()
 
 void BeadHelper::reorderContours()
 {
-  if( !updateAndVerifyRanges() )
+  if( !verifyCurrObjectAndUpdateRanges() )
     return;
   
   int nConts = csize(getCurrObj());
   
   //## GET USER INPUT FROM CUSTOM DIALOG:
   
-  int         contMin      = plug.contMin+1;
-  int         contMax      = nConts;
   static bool reverseOrder = false;
   static bool printVals    = true;
   static bool calcValsOnly = false;
   
 	CustomDialog ds;
   ds.addLabel   ( "contours to sort (inclusive):" );
-  ds.addSpinBox ( "min:", 1, nConts, &contMin, 1,
+  ds.addSpinBox ( "  min:", 1, nConts, &plug.contMinN, 1,
                   "Only contours after this contour "
                   "(inclusive) will be reordered" );
-  ds.addSpinBox ( "max:", 1, nConts, &contMax, 1,
+  ds.addSpinBox ( "  max:", 1, nConts, &plug.contMaxN, 1,
                   "Only contours BEFORE this contour "
                   "(inclusive) will be reordered" );
 	 ds.addRadioGrp( "sort by:         (sort criteria)",
@@ -2422,10 +2434,10 @@ void BeadHelper::reorderContours()
 	if( ds.cancelled )
 		return;
   
-  contMin   -= 1;
-  contMax   -= 1;
+  if( !verifyAndUpdateEnteredRangeValues() )
+    return;
   
-  bead_reorderConts( plug.sortCriteria, contMin, contMax, calcValsOnly,
+  bead_reorderConts( plug.sortCriteria, plug.contMin, plug.contMax, calcValsOnly,
                      reverseOrder, printVals );
   
   ivwRedraw( plug.view );
@@ -2472,7 +2484,7 @@ void BeadHelper::moveContour()
 
 void BeadHelper::moveMultipleContours()
 {
-  if ( !updateAndVerifyRanges() || !isCurrObjValid() )
+  if ( !verifyCurrObjectAndUpdateRanges() )
     return;
   
   Imod *imod = ivwGetModel(plug.view);
@@ -2498,16 +2510,14 @@ void BeadHelper::moveMultipleContours()
   
   //## GET USER INPUT FROM CUSTOM DIALOG:
   
-  int         contMin      = plug.contMin+1;
-  int         contMax      = plug.contMax+1;
   int         objToIdx     = numObjs;
-  static bool seedOnly     = true;
-  static bool deleteMatch  = true;
+  static bool seedOnly     = false;
+  static bool deleteMatch  = false;
   static bool copy         = false;
-    
+  
 	CustomDialog ds;
-  ds.addSpinBox ( "min cont:", 1, maxContIdx+1, &contMin, 1 );
-  ds.addSpinBox ( "max cont:", 1, maxContIdx+1, &contMax, 1 );  
+  ds.addSpinBox ( "min cont:", 1, maxContIdx+1, &plug.contMinN, 1 );
+  ds.addSpinBox ( "max cont:", 1, maxContIdx+1, &plug.contMaxN, 1 );  
 	ds.addSpinBox ( "move to object:", 1, numObjs, &objToIdx, 1 );
 	ds.addCheckBox( "seed pt only", &seedOnly );
   ds.addCheckBox( "delete matching seeds", &deleteMatch );
@@ -2517,8 +2527,8 @@ void BeadHelper::moveMultipleContours()
 	if( ds.cancelled )
 		return;
   
-  contMin   = MAX( contMin - 1, 0);
-  contMax   = MIN( contMax - 1, maxContIdx);
+  if( !verifyAndUpdateEnteredRangeValues() )
+    return;
   objToIdx -= 1;
   
   
@@ -2533,7 +2543,7 @@ void BeadHelper::moveMultipleContours()
   int numContsCopied = 0;
   Iobj *objTo = getObj(imod,objToIdx);
   
-  for(int c=contMin; c<=contMax; c++)
+  for(int c=plug.contMin; c<=plug.contMax; c++)
   {
     Icont  *cont   = getCont(obj, c);
     setDeleteFlag( cont, 0 );     // clear delete flag
@@ -2570,7 +2580,7 @@ void BeadHelper::moveMultipleContours()
   //## REMOVE ANY CONTOURS FLAGGED FOR DELETE:
   
   int numContsDeleted = 0;
-  for(int c=contMax; c>=contMin; c--)   // for all contours in range:
+  for(int c=plug.contMax; c>=plug.contMin; c--)   // for all contours in range:
   {
     if ( isDeleteFlag( getCont(obj,c) ) )   // if delete flag is set:
     {
@@ -2594,6 +2604,180 @@ void BeadHelper::moveMultipleContours()
   
   ivwRedraw( plug.view );
 }
+
+
+
+//------------------------
+//-- Splits all the contours in the model into multiple
+//-- objects, each with N objects.... or merges them into
+//-- the first object.
+
+void BeadHelper::splitOrMergeContours()
+{
+         bool mergeOnly          = false;
+  static int  numContsPerObj     = 10;
+  static int  numContsToLeave    = 0;
+  static bool randomizeOrder     = false;
+  
+	CustomDialog ds;
+  ds.addCheckBox( "MERGE ALL CONTOUR INTO FIRST OBJECT ONLY", &mergeOnly,
+                  "Will ignore the value immediately below and move all contours "
+                  "into object 1" );
+  ds.addSpinBox ( "number of contours per object:", 1, 1000, &numContsPerObj, 5,
+                  "The number of contours to place in each object" );
+  ds.addLabel   ( "-----" );
+  ds.addCheckBox( "randomize contour order:", &randomizeOrder,
+                  "Will randomize contours (excluding the range below) before splitting "
+                  "them between objects" );
+  ds.addSpinBox ( "contours to leave at the start:", 0, 9999, &numContsToLeave, 1,
+                  "This many contours at the start of object 1 will not be moved "
+                  "or reordered" );
+	GuiDialogCustomizable dlg(&ds, "Split Contours Options", this);
+	dlg.exec();
+	if( ds.cancelled )
+		return;
+  
+  Imod *imod = ivwGetModel(plug.view);
+  imodSetIndex(imod, 0, 0, 0);          // select first object, first contour
+  
+  //## COPY ALL CONTOURS TO THE FIRST OBJECT
+  
+  Iobj *firstObj = getObj(imod,0);
+  
+  for( int o=1; o<osize(imod); o++ )
+  {
+    Iobj *obj = getObj(imod,o);
+    
+    while( csize(obj) )
+    {
+      Icont *cont = getCont(obj,0);
+      //imodObjectAddContour(firstObj, cont );
+      edit_addContourToObj( firstObj, cont, false );
+      setDeleteFlag(cont,1);
+      //undoContourRemoval( plug.view, o, 0 );         // REGISTER UNDO
+      //imodObjectRemoveContour( obj, 0 );
+    }
+  }
+  
+  int nConts = csize(firstObj);
+  int nObjectsNeeded = ceil( fDivide(nConts, numContsPerObj) );
+  int nObjectsToAdd  = nObjectsNeeded - osize(imod);
+  
+  cout << "nConts         =" << nConts << endl;
+  cout << "nObjectsNeeded =" << nObjectsNeeded << endl;
+  cout << "osize(imod)    =" << osize(imod) << endl;
+  cout << "nObjectsToAdd  =" << nObjectsToAdd << endl;
+  flush(cout);
+  
+  //## IF SPECIFIED, REORDER CONTOURS RANDOMLY:
+  
+  if( randomizeOrder )
+    bead_reorderConts( SORT_RANDOM, numContsToLeave, 9999, false, false, false );
+  
+  if(mergeOnly)
+  {
+    wprint("\nAll %d contours have been moved to object 1\n", nConts );
+    //undoFinishUnit( plug.view );              // FINISH UNDO
+    ivwRedraw( plug.view );
+  }
+  
+  //## ADD EXTRA OBJECTS:
+  
+  
+  
+  for( int o=0; o<nObjectsToAdd; o++ )
+  {
+    undoObjectAddition(plug.view, osize(imod));       // REGISTER UNDO
+    imodNewObject( imod );
+    Iobj *newObj = getObj(imod, osize(imod)-1);
+    imodObjectSetValue( newObj, IobjFlagClosed, 0 );
+    imodObjectSetValue( newObj, IobjPointSize,  3 );
+  }
+  
+  //cout << "osize(imod)    =" << osize(imod) << endl;
+  //flush(cout);
+  
+  //## FOR EACH OBJECT AFTER FIRST OBJECT, CLEAR ALL CONTOURS:
+  
+  for( int c=0; c<csize(firstObj); c++ )
+  {
+    Icont *cont = getCont(firstObj,c);
+    setDeleteFlag( cont, 0 );
+    int destObjIdx = int( fDivide(c,numContsPerObj) ) % osize(imod);
+    
+    if(destObjIdx != 0)
+    {
+      Imod *objDest = getObj(imod,destObjIdx);
+      //undoContourMove( plug.view, 0, c, destObjIdx, osize(objDest) );         // REGISTER UNDO
+      edit_addContourToObj( objDest, cont, false);
+      
+      //imodObjectAddContour(objDest, cont );
+      //undoContourRemoval( plug.view, o, 0 );         // REGISTER UNDO
+      //imodObjectRemoveContour( firstObj, c );
+      setDeleteFlag( cont, 1 );
+    }
+  }
+  
+  //edit_removeAllDeleteFlaggedContoursFromObj( firstObj, false );
+  
+  for( int o=0; o<osize(imod); o++ )
+    edit_removeAllDeleteFlaggedContoursFromObj( getObj(imod,o), false );
+  
+  /*while( csize(firstObj) > nObjectsToAdd )
+  {
+    
+  }*/
+  
+  /*
+  for( int o=1; o<osize(imod); o++ )
+  {
+    Iobj *obj = getObj(imod,o);
+    while( csize(obj) )
+    {
+      undoContourRemoval( plug.view, o, 0 );         // REGISTER UNDO
+      imodObjectRemoveContour( obj, 0 );
+    }
+  }
+  */
+  
+  //## MOVE SELECT CONTOURS FROM THE FIRST OBJECT TO APPROPRIATE OBJECTS:
+  /*
+  imodSetIndex(imod, 0, 0, 0);          // select first object, first contour
+  for( int c=csize(firstObj)-1; c>=numContsToLeave; c-- )
+  {
+    Icont *cont = getCont(firstObj,c);
+    int destObjIdx = c % osize(imod);
+    //int destObjIdx = (c / numContsPerObj);
+    //cout << destObjIdx << endl;
+    
+    if(destObjIdx != 0)
+    {
+      //Imod *objDest = getObj(imod,destObjIdx);
+      //Icont *contCopy = imodContourDup( cont );   // create copy of contour (don't delete)
+      //undoContourAddition( plug.view, destObjIdx, osize(objDest) );              // REGISTER UNDO
+      //imodObjectAddContour( objDest, contCopy );                    // copy contour
+      //free(contCopy);
+      Imod *objDest = getObj(imod,destObjIdx);
+      imodObjectAddContour(objDest, cont );
+      //undoContourRemoval( plug.view, 0, c );         // REGISTER UNDO
+      imodObjectRemoveContour( firstObj, c );
+      //imodDeleteContour( imod, c );
+      
+      //imodSetIndex(imod, destObjIdx, 0, 0);          // select first object, first contour
+      //Imod *objDest = getObj(imod,destObjIdx);
+      //edit_addContourToObj( objDest, cont, false );
+      //undoContourRemoval( plug.view, 0, c );         // REGISTER UNDO
+      //imodObjectRemoveContour( firstObj, c );
+    }
+  }
+  */
+  
+  wprint("\n%d contours have been split across %d objects\n", nConts, nObjectsNeeded );
+  
+  undoFinishUnit( plug.view );              // FINISH UNDO
+  ivwRedraw( plug.view );
+}
+
 
 
 //------------------------
@@ -2817,7 +3001,6 @@ bool BeadHelper::enterActionIterateConts( bool reverse )
   
   
   Imod *imod  = ivwGetModel(plug.view);
-  Iobj *obj   = imodObjectGet(imod);
   int objIdx, contIdx, ptIdx;
   imodGetIndex(imod, &objIdx, &contIdx, &ptIdx);
   
@@ -2825,6 +3008,7 @@ bool BeadHelper::enterActionIterateConts( bool reverse )
   
   if( plug.enterPrint )
   {
+    Iobj *obj   = imodObjectGet(imod);
     int matches = 0;
     for( int i=0; i<csize(obj); i++ )
     {
@@ -2834,28 +3018,34 @@ bool BeadHelper::enterActionIterateConts( bool reverse )
             && ( anyCont || isInterpolated(cont) == stippledCont ) )
         matches++;
     }
-    wprint("%d matching contours left\n", matches);
+    wprint("%d matching contours left (this object)\n", matches);
   }
   
   //## ITERATE FORWARDS OR BACKWARDS FROM CURRENT CONTOUR AND SELECT THE NEXT
   //## CONTOUR MATCHING THE ENTER CRITERIA:
   
-  for( int i=0; i<csize(obj); i++ )
+  for( int j=0; j<osize(imod); j++ ) 
   {
-    int c = intMod( (i+1)*change+contIdx , csize(obj) );
+    int o = intMod( j*change+objIdx, osize(imod) );
+    Iobj *obj = getObj(imod,o);
     
-    Icont *cont = getCont(obj,c);
-    
-    if(      ( psize(cont) >= plug.minPtsEnter )
-             && ( psize(cont) <= plug.maxPtsEnter )
-             && ( anyCont || isInterpolated(cont) == stippledCont ) )
+    for( int i=1; i<csize(obj); i++ )
     {
-      ptIdx = MIN( ptIdx, psize(cont)-1 );
-      ptIdx = MAX( ptIdx, 0 );
-      imodSetIndex( imod, objIdx, c, ptIdx );
-      plug.window->drawExtraObject(true);
-      ivwRedraw( plug.view );
-      return true;
+      int c = intMod( i*change+contIdx, csize(obj) );
+      
+      Icont *cont = getCont(obj,c);
+      
+      if(      ( psize(cont) >= plug.minPtsEnter )
+               && ( psize(cont) <= plug.maxPtsEnter )
+               && ( anyCont || isInterpolated(cont) == stippledCont ) )
+      {
+        ptIdx = MIN( ptIdx, psize(cont)-1 );
+        ptIdx = MAX( ptIdx, 0 );
+        imodSetIndex( imod, o, c, ptIdx );
+        plug.window->drawExtraObject(true);
+        ivwRedraw( plug.view );
+        return true;
+      }
     }
   }
   
@@ -2876,26 +3066,26 @@ bool BeadHelper::enterActionIterateConts( bool reverse )
 
 void BeadHelper::markRangeAsStippled()
 {
-  if( !isCurrObjValid() )
-  {
-    MsgBox( "Select a valid object first" );
+  if( !verifyCurrObjectAndUpdateRanges() )
     return;
-  }
   
-  updateAndVerifyRanges();
-  int nConts = csize(getCurrObj());
+  Imod *imod  = ivwGetModel(plug.view);
+  Iobj *obj   = imodObjectGet(imod);
+  int objIdx, contIdx, ptIdx;
+  imodGetIndex(imod, &objIdx, &contIdx, &ptIdx);
+  int nConts = csize(obj);
+  
   
   //## GET USER INPUT FROM CUSTOM DIALOG:
   
-  int        contMin = plug.contMin+1;
-  int        contMax = nConts;
   static int checked = 1;
   
 	CustomDialog ds;
+  ds.addLabel   ( "-- RANGE: --" );
   ds.addLabel   ( "contours to change:" );
-  ds.addSpinBox ( "min:", 1, nConts, &contMin, 1,
+  ds.addSpinBox ( "  min:", 1, nConts, &plug.contMinN, 1,
                   "Only contours after this contour (inclusive) will be changed" );
-  ds.addSpinBox ( "max:", 1, nConts, &contMax, 1,
+  ds.addSpinBox ( "  max:", 1, nConts, &plug.contMaxN, 1,
                   "Only contours BEFORE this contour (inclusive) will be changed" );
   ds.addRadioGrp( "mark as:",
                   "unchecked (unstippled),"
@@ -2908,20 +3098,16 @@ void BeadHelper::markRangeAsStippled()
 	dlg.exec();
 	if( ds.cancelled )
 		return;
-  contMin    -= 1;
-  contMax    -= 1;
+  
+  if( !verifyAndUpdateEnteredRangeValues() )
+    return;
   
   
   //## CHANGE CONTOURS IN RANGE TO STIPPLED / UNSTIPPLED
   
-  Imod *imod  = ivwGetModel(plug.view);
-  Iobj *obj   = imodObjectGet(imod);
-  int objIdx, contIdx, ptIdx;
-  imodGetIndex(imod, &objIdx, &contIdx, &ptIdx);
-  
   int numChanged = 0;
   
-  for( int c=contMin; c<=contMax && c<csize(obj); c++ )
+  for( int c=plug.contMin; c<=plug.contMax && c<csize(obj); c++ )
   {
     Icont *cont = getCont(obj,c);
     if( isInterpolated(cont) != checked )
@@ -2944,34 +3130,28 @@ void BeadHelper::markRangeAsStippled()
 
 void BeadHelper::markRangePtsAsChecked()
 {
-  if( !isCurrObjValid() )
-  {
-    MsgBox( "Select a valid object first" );
+  if( !verifyCurrObjectAndUpdateRanges() )
     return;
-  }
   
-  updateAndVerifyRanges();
   int nConts = csize(getCurrObj());
   
   //## GET USER INPUT FROM CUSTOM DIALOG:
   
-  int contMin         = 1;
-  int contMax         = nConts;
-  int viewMin         = 1;
-  int viewMax         = plug.zsize;
   static int checked  = 1;
   
 	CustomDialog ds;
+  ds.addLabel   ( "RANGE:" );
   ds.addLabel   ( "contours to change:" );
-  ds.addSpinBox ( "min:", 1, nConts, &contMin, 1,
+  ds.addSpinBox ( "  min:", 1, nConts, &plug.contMinN, 1,
                   "Only contours after this contour (inclusive) will be reordered" );
-  ds.addSpinBox ( "max:", 1, nConts, &contMax, 1,
+  ds.addSpinBox ( "  max:", 1, nConts, &plug.contMaxN, 1,
                   "Only contours BEFORE this contour (inclusive) will be reordered" );
   ds.addLabel   ( "views to change:" );
-  ds.addSpinBox ( "min:", 1, plug.zsize, &viewMin, 1,
+  ds.addSpinBox ( "  min:", 1, plug.zsize, &plug.viewMinN, 1,
                   "Only pts on view after this (inclusive) will be changed" );
-  ds.addSpinBox ( "max:", 1, plug.zsize, &viewMax, 1,
+  ds.addSpinBox ( "  max:", 1, plug.zsize, &plug.viewMaxN, 1,
                   "Only pts on view BEFORE this (inclusive) will be changed" );
+  ds.addLabel   ( "------" );
   ds.addRadioGrp( "mark as:",
                   "unchecked (no sphere),"
                   "checked   (little sphere)", &checked );
@@ -2980,10 +3160,8 @@ void BeadHelper::markRangePtsAsChecked()
 	if( ds.cancelled )
 		return;
   
-  contMin   -= 1;
-  contMax   -= 1;
-  viewMin   -= 1;
-  viewMax   -= 1;
+  if( !verifyAndUpdateEnteredRangeValues() )
+    return;
   
   //## CHANGE POINTS IN RANGE TO CHECKED / UNCHECKED
   
@@ -2993,13 +3171,13 @@ void BeadHelper::markRangePtsAsChecked()
   imodGetIndex(imod, &objIdx, &contIdx, &ptIdx);
   int numChanged = 0;
   
-  for( int c=contMin; c<=contMax && c<csize(obj); c++ )
+  for( int c=plug.contMin; c<=plug.contMax && c<csize(obj); c++ )
   {
     Icont *cont = getCont(obj,c);
     for(int p=0; p<psize(cont); p++)
     {
       int z = getPtZInt(cont,p);
-      if( z > viewMax || z < viewMin )
+      if( z > plug.viewMax || z < plug.viewMin )
         continue;
       
       int ptChecked = ( bead_isPtChecked(obj,cont,p) ) ? 1 : 0;
@@ -3023,40 +3201,88 @@ void BeadHelper::markRangePtsAsChecked()
 
 
 //------------------------
-//-- Updates the range values and corrects any returns true if a 
-//-- valid contour and view range has been provided.
-//-- Otherwise displays error message and returns false.
+//-- Returns false if the current object is invalid or empty.
+//-- Otherwise returns true and updates the range values to
+//-- match the current object, and ensure all range values are valid.
 
-bool BeadHelper::updateAndVerifyRanges()
+bool BeadHelper::verifyCurrObjectAndUpdateRanges()
 {
+  //## CHECK CURRENT OBJECT IS VALID AND CONTAINS CONTOURS:
+  
   if( !isCurrObjValid() )
   {
     MsgBox("You have not selected a valid object");
     return false;
   }
   
-  plug.viewMin = viewMinSpinner->value() - 1;
-  plug.viewMax = viewMaxSpinner->value() - 1;
-  plug.contMin = contMinSpinner->value() - 1;
-  plug.contMax = contMaxSpinner->value() - 1;
+  int nCont = csize( getCurrObj() );
   
-  int maxContIdx = csize( getCurrObj() )-1;
-  plug.contMax = MIN( plug.contMax, maxContIdx );
-  
-  if ( plug.contMin > plug.contMax  )
+  if( nCont == 0 )
   {
-    MsgBox("\aBad contour range");
-    contMinSpinner->setValue( plug.contMax+1 );
-    return false;
-  }
-  if ( plug.viewMin > plug.viewMax )
-  {
-    MsgBox("\aBad view range");
-    viewMinSpinner->setValue( plug.viewMax+1 );
+    MsgBox("Selected object has no contours");
     return false;
   }
   
-  return true;
+  //## UPDATE RANGE VALUES:
+  
+  if( plug.contMinN > nCont )
+    plug.contMinN = nCont;
+  
+  plug.contMinN = MAX( plug.contMinN, 1 );
+  plug.contMaxN = nCont;              // set max contour to last contour
+  
+  plug.viewMinN = MAX( plug.viewMinN, 1 );
+  plug.viewMaxN = MIN( plug.viewMaxN, plug.zsize );
+  
+  if( plug.contMinN > plug.contMaxN )
+    plug.contMaxN = plug.contMinN;
+  
+  if( plug.viewMinN > plug.viewMaxN )
+    plug.viewMaxN = plug.viewMinN;
+  
+  return verifyAndUpdateEnteredRangeValues();
+}
+
+
+//------------------------
+//-- Updates the range values and corrects any returns true if a 
+//-- valid contour and view range has been provided.
+//-- Otherwise displays error message and returns false.
+
+bool BeadHelper::verifyAndUpdateEnteredRangeValues()
+{
+  if( !isCurrObjValid() )
+    return false;
+  
+  int nCont = csize( getCurrObj() );
+  bool rangeIsGood = true;
+  
+  if(    !isBetweenAsc( 1, plug.contMinN, nCont )
+      || !isBetweenAsc( 1, plug.contMinN, nCont ) 
+      || plug.contMinN > plug.contMaxN )
+  {
+    MsgBox("\aBad range of contours was entered");
+    plug.contMinN = 1;
+    plug.contMaxN = nCont;
+    rangeIsGood = false;
+  }
+  
+  if(    !isBetweenAsc( 1, plug.viewMinN, plug.zsize )
+      || !isBetweenAsc( 1, plug.viewMaxN, plug.zsize ) 
+      || plug.viewMinN > plug.viewMaxN )
+  {
+    MsgBox("\aBad range of views was entered");
+    plug.viewMinN = 1;
+    plug.viewMaxN = plug.zsize;
+    rangeIsGood = false;
+  }
+  
+  plug.viewMin = plug.viewMinN - 1;
+  plug.viewMax = plug.viewMaxN - 1;
+  plug.contMin = plug.contMinN - 1;
+  plug.contMax = plug.contMaxN - 1;
+  
+  return (rangeIsGood);
 }
 
 
@@ -3167,18 +3393,13 @@ void BeadHelper::goToSeedView()
 }
 
 //------------------------
-//-- Prints contour stats for the current object including: 
+//-- Prints contour stats for the each object in the model including: 
 //-- the number of checked, non-checked and single-point contours.
 
 void BeadHelper::printContourCheckedInfo()
 {
-  if( !isCurrObjValid() )
-  {
-    MsgBox( "Select a valid object first" );
-    return;
-  }
-  
-  Iobj *obj = getCurrObj();
+  Imod *imod  = ivwGetModel(plug.view);
+  bool multipleObjects = osize(imod) > 1;
   
   int totMissingPts = 0;
   int totEmptyC     = 0;
@@ -3186,41 +3407,55 @@ void BeadHelper::printContourCheckedInfo()
   int totCheckedC   = 0;
   int totFullC      = 0;
   int totPartialC   = 0;
+  int totConts      = 0;
   
-  for( int c=0; c<csize(obj); c++ )
+  for( int o=0; o<osize(imod); o++ )
   {
-    Icont *cont   = getCont(obj,c);
+    Iobj *obj = getObj(imod,o);
+    int objCheckedC   = 0;
+    int objFullC      = 0;
     
-    int numPts = psize(cont);
+    for( int c=0; c<csize(obj); c++ )
+    {
+      Icont *cont   = getCont(obj,c);
+      
+      int numPts = psize(cont);
+      
+      if     ( numPts == 0 )            totEmptyC += 1;
+      else if( numPts == 1 )            totSinglePtC += 1;
+      else if( isInterpolated(cont) )   objCheckedC += 1;
+      else if( numPts == plug.zsize )   objFullC += 1;
+      else                              totPartialC += 1;
+      
+      totMissingPts += plug.zsize - numPts;
+    }
     
-    if     ( numPts == 0 )
-      totEmptyC += 1;
-    else if( numPts == 1 )
-      totSinglePtC += 1;
-    else if( isInterpolated(cont) )
-      totCheckedC += 1;
-    else if( numPts == plug.zsize )
-      totFullC += 1;
-    else
-      totPartialC += 1;
+    totCheckedC += objCheckedC;
+    totFullC    += objFullC;
+    totConts    += csize(obj);
     
-    totMissingPts += plug.zsize - numPts;
+    if( multipleObjects )
+    {
+      if(o==0)
+        wprint("\nOBJ \tCONTS \tFULL \tCHECKED\n");
+      wprint("%d \t%d \t%d \t%d\n", o+1, csize(obj), totFullC, totCheckedC );
+    }
   }
   
-  float avgMissingPtsPerCont = fDivide( totMissingPts, csize(obj) );
-  int   percentSinglePt      = int( fDivide( totSinglePtC,  csize(obj)  ) * 100.0f );
-  int   percentChecked       = int( fDivide( totCheckedC,   csize(obj)  ) * 100.0f );
-  int   percentFull          = int( fDivide( totFullC,      csize(obj)  ) * 100.0f );
-  int   percentPartial       = int( fDivide( totPartialC,   csize(obj)  ) * 100.0f );
+  float avgMissingPtsPerCont = fDivide( totMissingPts, totConts );
+  int   percentSinglePt      = calcPercentInt( totSinglePtC,  totConts  );
+  int   percentChecked       = calcPercentInt( totCheckedC,   totConts  );
+  int   percentFull          = calcPercentInt( totFullC,      totConts  );
+  int   percentPartial       = calcPercentInt( totPartialC,   totConts  );
   
   wprint("\nCONTOUR INFO:\n");
-  wprint(" total contours  = %d\n", csize(obj) );
+  wprint(" total contours  = %d\n", totConts );
   if(totEmptyC)
     wprint("  # empty   \t= %d\n", totEmptyC );
-  wprint("  # single pt \t= %d \t(%d%%)\n", totSinglePtC, percentSinglePt );
-  wprint("  # partial   \t= %d \t(%d%%)\n", totPartialC,  percentPartial );
-  wprint("  # full           \t= %d \t(%d%%)\n", totFullC,     percentFull  );
-  wprint("  # checked   \t= %d \t(%d%%)\n", totCheckedC,  percentChecked );
+  wprint("  # single pt \t= %d \t(%d%%)\n", totSinglePtC,  percentSinglePt );
+  wprint("  # partial   \t= %d \t(%d%%)\n", totPartialC,   percentPartial );
+  wprint("  # full           \t= %d \t(%d%%)\n", totFullC, percentFull  );
+  wprint("  # checked   \t= %d \t(%d%%)\n", totCheckedC,   percentChecked );
   wprint(" total missing pts = %d\n", totMissingPts );
   wprint(" avg missing pts/cont = %g\n", avgMissingPtsPerCont );
 }
@@ -3309,14 +3544,14 @@ bool BeadHelper::verifySeedViewIsSeeded()
 bool BeadHelper::verifyTiltIncrement( bool printResult, bool showErrorMsgBoxIfBad )
 {
   float minTilt = -plug.seedView * plug.tiltIncrement;
-  float maxTilt = (plug.zsize - plug.seedView) * plug.tiltIncrement;
+  float maxTilt = (plug.zsize - plug.seedView - 1) * plug.tiltIncrement;
   
   bool tiltAppearsGood =   ( minTilt >= -80  &&  minTilt <= -10 )
                         && ( maxTilt >=  10  &&  maxTilt <=  80 );
   
   if( printResult )
   {
-    string str = "Tilt increment = " + toString(plug.tiltIncrement,2) + DEGREE_SIGN + 
+    string str = "\nTilt increment = " + toString(plug.tiltIncrement,2) + DEGREE_SIGN + 
              + "   (" + toString(minTilt,1) + DEGREE_SIGN + " to +"
              + toString(maxTilt,1) + DEGREE_SIGN + ")\n";
     wprint( str.c_str() );
@@ -3698,6 +3933,44 @@ int edit_changeSelectedView( int changeZ, bool redraw )
   edit_setZapLocation( ix, iy, iz+changeZ, redraw );
 }
 
+//------------------------
+//-- Adds a new contour to the specified object
+
+int edit_addContourToObj( Iobj *obj, Icont *cont, bool enableUndo )
+{
+  Icont *newCont = imodContourDup( cont );    // malloc new contour and don't delele it
+  int numConts = csize(obj);
+  if(enableUndo)
+    undoContourAdditionCO( plug.view, numConts );    // REGISTER UNDO
+  int newContPos = imodObjectAddContour( obj, newCont );
+  free(newCont);
+  return newContPos;
+}
+
+
+//------------------------
+//-- Removes all contours in the object which have their delete flag set to 1
+
+int edit_removeAllDeleteFlaggedContoursFromObj( Iobj *obj, bool enableUndo )
+{
+	int numRemoved = 0;
+	for( int c=csize(obj)-1; c>=0; c-- )
+	{
+    Icont *cont = getCont(obj, c);
+		if( isDeleteFlag( cont ) && isInterpolated( cont ) )
+		{
+      if(enableUndo)
+        undoContourRemovalCO( plug.view, c );              // REGISTER UNDO
+			imodObjectRemoveContour( obj, c );
+			numRemoved++;
+		}
+	}
+	return numRemoved;
+}
+
+
+
+
 
 
 //------------------------
@@ -3720,8 +3993,10 @@ bool bead_focusOnPointCrude( float x, float y, float z )
   imodPointAppendXYZ( tempCont, x,y,z );
   int tempContIdx = imodObjectAddContour( obj,tempCont );
   imodSetIndex(imod, objIdx, tempContIdx, 0);
-  imodObjectRemoveContour( obj, tempContIdx );
+  //imodObjectRemoveContour( obj, tempContIdx );
   ivwSetLocation(plug.view, x, y, z);
+  imodSetIndex(imod, objIdx, -1, 0);
+  imodObjectRemoveContour( obj, tempContIdx );
   ivwRedraw( plug.view );
   imodContourDelete(tempCont);
   //free(tempCont);             // already freed by 'imodObjectRemoveContour'
@@ -4616,8 +4891,8 @@ bool bead_movePtsTowardsEstimatedPos ( Icont *cont, int minZ, int maxZ,
 
 bool bead_smoothPtsUsingPlugSettings( Icont *cont, int &ptsMoved, int &ptsAdded )
 {
-  int minZ = plug.viewMin;
-  int maxZ = plug.viewMax;
+  int minZ = plug.viewMinN-1;
+  int maxZ = plug.viewMaxN-1;
   
   if( plug.smoothAdjacentV && edit_getZOfTopZap()>0 )
   {
@@ -5189,10 +5464,9 @@ bool bead_goToNextBiggestYJump( bool findNextBiggest )
   //## SETUP VARIABLES
   
   Imod *imod = ivwGetModel(plug.view);
-  Iobj *obj  = imodObjectGet(imod);
+  
   int objIdx, contIdx, ptIdx;
   imodGetIndex(imod, &objIdx, &contIdx, &ptIdx);
-  
   
   float maxYJumpAllowed = FLOAT_MAX;
   if ( findNextBiggest && contIdx == lastContSelected )
@@ -5207,32 +5481,39 @@ bool bead_goToNextBiggestYJump( bool findNextBiggest )
   
   //## FIND THE POINT WITH THE NEXT BIGGEST Y JUMP:
   
-  float maxYJump = 0;
+  float maxYJump = 0.0f;
+  int maxObjIdx  = 0;
   int maxContIdx = 0;
-  int maxPtIdx = 0;
+  int maxPtIdx   = 0;
   
-  for (int c=0; c<csize(obj); c++)
+  for (int o=0; o<osize(imod);o++)
   {
-    Icont *cont = getCont(obj,c);
-    if(    ( plug.contsToSearch==SC_CHECKED   && !isInterpolated(cont) )
-        || ( plug.contsToSearch==SC_UNCHECKED && isInterpolated(cont) )  )
-      continue;
+    Iobj *obj  = getObj(imod,o);
     
-    for (int p=0; p<psize(cont);p++)
+    for (int c=0; c<csize(obj); c++)
     {
-      int z = getPtZInt(cont,p);
-      if( !plug.includeEndsResid && ( p==0 || p==psize(cont)-1 || z==plug.seedView) )
-        continue;
-      if( plug.searchRangeOnly && plug.window->updateAndVerifyRanges() &&
-          ( z<plug.viewMin || z>plug.viewMax ) )
+      Icont *cont = getCont(obj,c);
+      if(    ( plug.contsToSearch==SC_CHECKED   && !isInterpolated(cont) )
+             || ( plug.contsToSearch==SC_UNCHECKED && isInterpolated(cont) )  )
         continue;
       
-      float yJump = bead_calcYJump(cont,p);
-      if ( (yJump > maxYJump) && (yJump < maxYJumpAllowed) )
+      for (int p=0; p<psize(cont);p++)
       {
-        maxYJump = yJump;
-        maxContIdx = c;
-        maxPtIdx = p;
+        int z = getPtZInt(cont,p);
+        if( !plug.includeEndsResid && ( p==0 || p==psize(cont)-1 || z==plug.seedView) )
+          continue;
+        if( plug.searchRangeOnly && plug.window->verifyCurrObjectAndUpdateRanges() &&
+            ( z<plug.viewMinN-1 || z>plug.viewMaxN-1 ) )
+          continue;
+        
+        float yJump = bead_calcYJump(cont,p);
+        if ( (yJump > maxYJump) && (yJump < maxYJumpAllowed) )
+        {
+          maxYJump = yJump;
+          maxObjIdx = o;
+          maxContIdx = c;
+          maxPtIdx = p;
+        }
       }
     }
   }
@@ -5251,7 +5532,7 @@ bool bead_goToNextBiggestYJump( bool findNextBiggest )
   
   //## SELECT POINT:
   
-  imodSetIndex(imod, objIdx, maxContIdx, maxPtIdx);
+  imodSetIndex(imod, maxObjIdx, maxContIdx, maxPtIdx);
   maxYJumpLastIteration = maxYJump;
   lastContSelected = maxContIdx;
   ivwRedraw( plug.view );
@@ -5309,8 +5590,8 @@ bool bead_goToNextBiggestDev( bool findNextBiggest )
       int z = getPtZInt(cont,p);
       if( !plug.includeEndsResid && ( p==0 || p==psize(cont)-1 || z==plug.seedView) )
         continue;
-      if( plug.searchRangeOnly && plug.window->updateAndVerifyRanges()
-          && ( z<plug.viewMin || z>plug.viewMax ) )
+      if( plug.searchRangeOnly && plug.window->verifyCurrObjectAndUpdateRanges()
+          && ( z<plug.viewMinN-1 || z>plug.viewMaxN-1 ) )
         continue;
       
       float deviaton = bead_calcDistanceFromExpected(cont,p,false);
@@ -5455,13 +5736,18 @@ bool bead_goToNextBiggestHole( bool findNextBiggest )
   
   Icont *allSeedPts = imodContourNew();
   Imod *imod = ivwGetModel(plug.view);
-  Iobj *obj = imodObjectGet(imod);
-  for (int c=0; c<csize(obj); c++)
+  
+  for (int o=0; o<osize(imod); o++)
   {
-    Icont *cont = getCont(obj,c);
-    Ipoint *pt = bead_getPtOnView(cont,plug.seedView);
-    if( pt != NULL )
-      imodPointAppendXYZ( allSeedPts, pt->x, pt->y, pt->z );
+    Iobj *obj = getObj(imod,o);
+    
+    for (int c=0; c<csize(obj); c++)
+    {
+      Icont *cont = getCont(obj,c);
+      Ipoint *pt = bead_getPtOnView(cont,plug.seedView);
+      if( pt != NULL )
+        imodPointAppendXYZ( allSeedPts, pt->x, pt->y, pt->z );
+    }
   }
   
   //## DETERMINE WETHER USER HAS ADDED POINTS SINCE LAST ITERATION, IF NOT
@@ -5563,7 +5849,10 @@ bool bead_goToNextBiggestHole( bool findNextBiggest )
   
   //## SET FOCUS ON NEW LOCATION:
   
+  //edit_setZapLocation( maxPt.x, maxPt.y, maxPt.z, false );
   bead_focusOnPointCrude( maxPt.x, maxPt.y, maxPt.z );  
+  //ivwSetLocation( plug.view, maxPt.x, maxPt.y, maxPt.z );
+  //ivwRedraw( plug.view );
   imodContourDelete(allSeedPts);  
   
   maxDistLastIteration = maxDist;

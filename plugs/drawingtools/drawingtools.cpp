@@ -15,6 +15,9 @@
     $Revision$
 
     $Log$
+    Revision 1.28  2009/03/24 13:29:55  tempuser
+    improved sculpt tools and added crop contours
+
     Revision 1.27  2009/01/15 16:35:48  mast
     Qt 4 port
 
@@ -205,9 +208,9 @@ int imodPlugKeys(ImodView *vw, QKeyEvent *event)
       return plug.window->copyCurrContToView(shift);
       break;
       
-    case Qt::Key_T:                  // temporary testing purposes - comment out
-      plug.window->test();
-      break;
+    //case Qt::Key_T:                  // temporary testing purposes - comment out
+    //  plug.window->test();
+    //  break;
       
     case Qt::Key_X:
       if(ctrl)
@@ -3719,14 +3722,14 @@ void DrawingTools::test()
 {  
   Icont *cont = getCurrCont();
   
-  /*
+  
   if( !isContValid(cont) )
   {
     wprint("Have not selected valid contour\n");
     return;
   }
-  */
   
+  /*
   Iobj *obj = getCurrObj();
   
   if( csize(obj) < 3 )
@@ -3762,7 +3765,7 @@ void DrawingTools::test()
   
   (cross) ? wprint("INTERCEPT\n") : wprint("no intercept\n");
   (imodCross) ? wprint("IMODCROSS\n") : wprint("no imodcross\n");
-  
+  */
   ivwRedraw( plug.view );
 }
 
