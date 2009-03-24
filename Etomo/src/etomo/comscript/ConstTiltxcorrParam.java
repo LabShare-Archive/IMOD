@@ -4,7 +4,9 @@ import java.io.File;
 
 import etomo.BaseManager;
 import etomo.type.AxisID;
+import etomo.type.EtomoNumber;
 import etomo.type.ProcessName;
+import etomo.type.ScriptParameter;
 import etomo.type.TiltAngleSpec;
 
 /**
@@ -21,6 +23,9 @@ import etomo.type.TiltAngleSpec;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.19  2007/11/06 19:09:34  sueh
+ * <p> bug# 1047 Added getSubcommandDetails.
+ * <p>
  * <p> Revision 3.18  2007/02/05 21:42:27  sueh
  * <p> bug# 962 Changed getCommandMode to return CommandMode.
  * <p>
@@ -142,6 +147,7 @@ public class ConstTiltxcorrParam implements ConstCommandParam, Command {
   protected double filterRadius2;
   protected double filterSigma1;
   protected double filterSigma2;
+  ScriptParameter angleOffset = new ScriptParameter(EtomoNumber.Type.DOUBLE, "AngleOffset");
 
   //sequential input only
   protected TiltAngleSpec tiltAngleSpec;
@@ -199,6 +205,7 @@ public class ConstTiltxcorrParam implements ConstCommandParam, Command {
     filterSigma2 = Double.NaN;
     TiltAngleSpec tiltAngleSpec = new TiltAngleSpec();
     filterParams.setDefault();
+    angleOffset.reset();
   }
   
   public boolean isParseComments() {
@@ -284,6 +291,10 @@ public class ConstTiltxcorrParam implements ConstCommandParam, Command {
   }
   public String getTestOutput() {
     return testOutput;
+  }
+  
+  public String getAngleOffset() {
+    return angleOffset.toString();
   }
   
   public String getCommandName() {

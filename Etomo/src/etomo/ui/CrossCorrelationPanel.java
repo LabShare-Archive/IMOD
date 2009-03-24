@@ -11,6 +11,9 @@
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.31  2009/03/17 00:46:24  sueh
+ * <p> bug# 1186 Pass managerKey to everything that pops up a dialog.
+ * <p>
  * <p> Revision 3.30  2009/02/04 23:36:48  sueh
  * <p> bug# 1158 Changed id and exception classes in LogFile.
  * <p>
@@ -225,6 +228,7 @@ final class CrossCorrelationPanel implements ContextMenu, Expandable {
   private final CheckBox cbNoCosineStretch = new CheckBox("No Cosine Stretch");
   private final LabeledTextField ltfViewRange = new LabeledTextField(
       "View range (start,end): ");
+  private final LabeledTextField ltfAngleOffset = new LabeledTextField("Tilt angle offset: ");
 
   private final AxisID axisID;
   private final DialogType dialogType;
@@ -254,6 +258,7 @@ final class CrossCorrelationPanel implements ContextMenu, Expandable {
 
     //  Construct the advanced panel
     pnlAdvanced.setLayout(new BoxLayout(pnlAdvanced, BoxLayout.Y_AXIS));
+    UIUtilities.addWithYSpace(pnlAdvanced, ltfAngleOffset.getContainer());
     UIUtilities.addWithYSpace(pnlAdvanced, ltfFilterSigma1.getContainer());
     UIUtilities.addWithYSpace(pnlAdvanced, ltfFilterRadius2.getContainer());
     UIUtilities.addWithYSpace(pnlAdvanced, ltfFilterSigma2.getContainer());
@@ -351,6 +356,7 @@ final class CrossCorrelationPanel implements ContextMenu, Expandable {
     cbNoCosineStretch.setSelected(tiltXcorrParams.isNoCosineStretch());
     ltfTestOutput.setText(tiltXcorrParams.getTestOutput());
     ltfViewRange.setText(tiltXcorrParams.getStartingEndingViews());
+    ltfAngleOffset.setText(tiltXcorrParams.getAngleOffset());
     updateCrossCorrelationPanel();
   }
 
@@ -403,6 +409,8 @@ final class CrossCorrelationPanel implements ContextMenu, Expandable {
       tiltXcorrParams.setNoCosineStretch(cbNoCosineStretch.isSelected());
       currentParam = ltfViewRange.getLabel();
       tiltXcorrParams.setStartingEndingViews(ltfViewRange.getText());
+      currentParam = ltfAngleOffset.getLabel();
+      tiltXcorrParams.setAngleOffset(ltfAngleOffset.getText());
     }
     catch (FortranInputSyntaxException except) {
       String message = currentParam + except.getMessage();
@@ -523,6 +531,8 @@ final class CrossCorrelationPanel implements ContextMenu, Expandable {
         "StartingEndingViews"));
     cbExcludeCentralPeak.setToolTipText(EtomoAutodoc.getTooltip(autodoc,
         "ExcludeCentralPeak"));
+    ltfAngleOffset.setToolTipText(EtomoAutodoc.getTooltip(autodoc,
+    "AngleOffset"));
     btnCrossCorrelate
         .setToolTipText("Find alignment transformations between successive images by cross-correlation.");
   }

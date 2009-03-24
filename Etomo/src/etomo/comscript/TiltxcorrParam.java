@@ -19,6 +19,10 @@ import etomo.type.TiltAngleType;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.12  2005/08/24 22:33:32  sueh
+ * <p> bug# 715 Implemented Command to allow param to be checked in
+ * <p> postProcess() and errorProcess().
+ * <p>
  * <p> Revision 3.11  2004/06/13 17:03:23  rickg
  * <p> Solvematch mid change
  * <p>
@@ -192,6 +196,7 @@ public class TiltxcorrParam
         startingEndingViews.validateAndSet(
           scriptCommand.getValue("StartingEndingViews"));
       }
+      angleOffset.parse(scriptCommand);
       return;
     }
 
@@ -291,6 +296,7 @@ public class TiltxcorrParam
     ParamUtilities.updateScriptParameter(scriptCommand, "NoCosineStretch", noCosineStretch);
     ParamUtilities.updateScriptParameter(scriptCommand, "TestOutput", testOutput);
     ParamUtilities.updateScriptParameter(scriptCommand, "StartingEndingViews", startingEndingViews);
+    angleOffset.updateComScript(scriptCommand);
   }
   
   public void initializeDefaults() {
@@ -413,6 +419,10 @@ public class TiltxcorrParam
   
   public void setTestOutput(String testOutput) {
     this.testOutput = new String(testOutput);
+  }
+  
+  public void setAngleOffset(String input) {
+    angleOffset.set(input);
   }
   
 
