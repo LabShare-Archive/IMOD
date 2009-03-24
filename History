@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+3/23/09: Switched clip stat -2d maximum position from centroid over 49 pixels
+to parabolic fit over 9 to avoid misleading positions.
+
 3/23/09: In Etomo - PEET added a useful error message when PARTICLE_DIR is not
 set.
 
