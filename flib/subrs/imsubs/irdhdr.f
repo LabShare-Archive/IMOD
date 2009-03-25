@@ -194,9 +194,8 @@ c       DNM 6/10/04: Workaround to FEI goof in which nints was set to
 c       # of bytes, 4 * nreal
 c       
       call move(idat,stuff(11,j),4)
-      feichar = 'Fei '
-      read(feichar, '(a4)')k
-      if (idat(1) .eq. 128 .and. idat(2) .eq. 32  .and. (k .eq. labls(1,1,1)
+      write(feichar, '(a4)')labls(1,1,1)
+      if (idat(1) .eq. 128 .and. idat(2) .eq. 32  .and. (feichar .eq. 'Fei '
      &    .or. nbsym(j) .eq. 131072)) then
         idat(1) = 0
         call move(stuff(11,j),idat,4)
@@ -1263,6 +1262,9 @@ c
       end
 
 c       $Log$
+c       Revision 3.16  2007/12/25 16:00:09  mast
+c       Added extra header size to test of FEI #int bug
+c
 c       Revision 3.15  2006/10/04 22:57:08  mast
 c       Fixed qseek accidentally deleted in itrextra
 c
