@@ -16,6 +16,12 @@ in the project log.
 3/23/09: In Etomo - PEET added a useful error message when PARTICLE_DIR is not
 set.
 
+3/22/09: Changes for 64-bit version with Qt 4.5 on Mac OS X 10.5.
+
+3/22/09: 3dmod makes sure dialogs and image windows are fully on the screen
+and, on Mac, keeps them from overlapping their parent (Info window or model
+view).
+
 3/21/09: Fixed bug in using O hot key when cont/surf/point dialog not open.
 
 3/18/09: Fixed bug in Tomopitch when two contours of a pair are drawn in
@@ -31,6 +37,8 @@ contents of pop dialogs to the Project log window.
 
 3/13/09: Fixed subarea floating when moving rubber band in Zap window 
 (In 3.13).
+
+3/13/09: Changes to produce new 64-bit Windows version.
 
 3/12/09: Fixed layout of Open buttons in startup window.
 
