@@ -250,6 +250,8 @@ public final class LogFile {
       }
       System.err.println("Unable to rename log file to: "
           + backupFile.getAbsolutePath());
+      System.err.println("lock.isThrowException()="
+          + lock.isThrowException());
       StringBuffer message = new StringBuffer("Unable to rename "
           + file.getAbsolutePath() + " to " + backupFile.getAbsolutePath());
       if (lock.isThrowException()) {
@@ -1359,6 +1361,9 @@ public final class LogFile {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.25  2009/03/17 00:44:52  sueh
+ * <p> bug# 1186 Pass managerKey to everything that pops up a dialog.
+ * <p>
  * <p> Revision 1.24  2009/02/04 23:06:33  sueh
  * <p> bug# 1158 Distinguishing between ids for different types of file opens by making a class for each type.  Helps avoid mysterious errors while developing.  Also simplified the @#!#$ exception class scheme.
  * <p>
