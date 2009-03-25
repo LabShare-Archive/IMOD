@@ -223,7 +223,7 @@ void imodvControlForm::newXrotation()
 {
   QString str = XLineEdit->text();
   float value = atof(LATIN1(str));
-  setFocus();
+  YLineEdit->setFocus();
   imodvControlAxisText(IMODV_CONTROL_XAXIS, value);
 }
 
@@ -231,7 +231,7 @@ void imodvControlForm::newYrotation()
 {
   QString str = YLineEdit->text();
   float value = atof(LATIN1(str));
-  setFocus();
+  ZLineEdit->setFocus();
   imodvControlAxisText(IMODV_CONTROL_YAXIS, value);
 }
 
@@ -457,5 +457,8 @@ void imodvControlForm::fontChange( const QFont & oldFont )
 /*
 
 $Log$
+Revision 4.1  2009/01/15 16:33:17  mast
+Qt 4 port
+
 
 */
