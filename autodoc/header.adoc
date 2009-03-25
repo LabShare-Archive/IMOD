@@ -64,7 +64,9 @@ type = B
 usage = Output brief header
 tooltip = 
 manpage = Output brief header with dimensions, pixel size, mode, minimum,
-maximum, and mean value, and the first and last title
+maximum, and mean value, and the first and last title.  This is the only way
+to get a brief header output; the IMOD_BRIEF_HEADER environment variable is
+ignored when running this program.
 
 [Field = usage]
 short = help
