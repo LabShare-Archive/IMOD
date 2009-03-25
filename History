@@ -1,5 +1,7 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+3/25/09: Fixed uninitialized variable in Xfjointomo (In 3.13). 
+
 3/24/09: IMOD_4-0-8
 2/24/09: Fine alignment run in 3dmod will appear in the Etomo project log.
 
