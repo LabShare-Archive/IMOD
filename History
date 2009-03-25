@@ -1,6 +1,7 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-3/34/09: Tomosnapshot copies coms to a directory and strips .com (In 3.13).
+3/24/09: IMOD_4-0-8
+3/24/09: Tomosnapshot copies coms to a directory and strips .com (In 3.13).
 
 3/24/09: In Etomo, added Angle Offset to Tiltxcorr.
 
