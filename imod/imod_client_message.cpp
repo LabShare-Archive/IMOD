@@ -284,7 +284,7 @@ bool ImodClipboard::executeMessage()
   QString convName;
   QDir *curdir;
   int movieVal, xaxis, yaxis, zaxis, taxis;
-  int objNum, type, symbol, symSize, ptSize;
+  int objNum, type, symbol, symSize, ptSize, mode, mask, interval;
   bool props1;
   Imod *imod;
   Iobj *obj;
@@ -293,7 +293,7 @@ bool ImodClipboard::executeMessage()
 
   // Number of arguments required - for backward compatibility, going to
   // model mode does not require one but should have one
-  int requiredArgs[] = {0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 5, 5, 0, 2, 4, 4};
+  int requiredArgs[] = {0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 5, 5, 0, 2, 4, 4, 3};
   int numArgs = messageStrings.count();
 
   // Loop on the actions in the list; set arg to numArgs to break loop
@@ -516,6 +516,16 @@ bool ImodClipboard::executeMessage()
         if (imod->objsize == 1 && !obj->contsize)
           imod->csum = imodChecksum(imod);
         break;
+
+      case MESSAGE_GHOST_MODE:
+        mode = messageStrings[++arg].toInt();
+        mask = messageStrings[++arg].toInt();
+        App->cvi->ghostmode = (App->cvi->ghostmode & ~mask) | (mode & mask);
+        interval = messageStrings[++arg].toInt();
+        if (interval >= 0)
+          App->cvi->ghostdist = interval;
+        imodDraw(App->cvi, IMOD_DRAW_MOD);
+        break;
         
       case MESSAGE_PLUGIN_EXECUTE:
         arg++;
@@ -631,6 +641,9 @@ static int readLine(char *line)
 
 /*
 $Log$
+Revision 4.31  2009/01/16 05:12:21  mast
+Stop deleting tier in handler and switch to single-shot static for mClipTimer
+
 Revision 4.30  2009/01/15 16:33:17  mast
 Qt 4 port
 

@@ -26,6 +26,7 @@
 #define MESSAGE_PLUGIN_EXECUTE 14
 #define MESSAGE_OBJ_PROPS_2    15
 #define MESSAGE_NEWOBJ_PROPS_2 16
+#define MESSAGE_GHOST_MODE     17
 
 /* Definitions for plugins/special modules */
 #define MESSAGE_BEADFIX_OPENFILE   1
@@ -91,6 +92,9 @@ class StdinThread : public QThread
 #endif /* IMOD_CLIENT_MESSAGE_H */
 /*
 $Log$
+Revision 3.21  2009/01/16 05:11:48  mast
+Switched to fancy new singleshot static for mcliptimer
+
 Revision 3.20  2009/01/15 16:33:17  mast
 Qt 4 port
 
