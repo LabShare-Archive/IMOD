@@ -66,6 +66,13 @@ Currently, 3dmod will accept the following commands:
           Limit on number of points per contour, or 0 for no limit
           1 to start new contours automatically at new Z, 0 not to
           1 to draw spheres on central section only, 0 not to
+  17  Set ghost mode flags and distance.  Follow with 3 numbers:
+        New mode bits: the sum of 1 for display on next section, 2 for
+          display on previous section, 4 for surface ghost, 8 for all
+          objects, 16 for lighter colors
+        Mask bits: the sum of the same values for the bits to change;
+          bits that are off here will not be changed in the mode
+        Number of sections to display ghosts for, or 0 for near mode
 
 Bead Fixer accepts the following commands:
    1  Open a Tiltalign log file if one is not open yet.  Follow with

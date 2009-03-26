@@ -33,10 +33,10 @@ drawing one surface, you must use it for all the X/Z planes in your model.
 Thus, before you begin, you need to decide whether to draw just one surface.
 .P
 To assess the consistency between successive contours in Y, you should turn on 
-ghost contour display mode and set the maximum section range for ghost display
-higher than your spacing between contours.  Use Edit-Contour-Type to open the
-Surf/Cont/Point dialog, and under "Section ghost", set the appropriate interval
-in the spin box, and check the "Up" and "Down" buttons.
+ghost contour display mode and use the "Near" setting for the distance,
+which is the default and will display contours from the nearest sections with
+contours.  Use the "g" hot key, or use Edit-Contour-Type to open the
+Surf/Cont/Point dialog and select other options under "Section ghost".
 .P
 The program currently does not smooth the surface that it is flattening.  This
 means that if the points describing the surface are closely spaced, random

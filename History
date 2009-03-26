@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+3/25/09: Implemented new ghost mode that displays contours just from nearest 
+section with contours for the particular object and made this the default.
+
 3/25/09: Fixed uninitialized variable in Xfjointomo (In 3.13). 
 
 3/24/09: IMOD_4-0-8

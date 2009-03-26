@@ -835,7 +835,7 @@ m  -  Toggle model edit mode and movie mode
 t  -  Toggle model drawing on/off
 T  -  Toggle current point/contour markers on/off
 Ctrl-T - Toggle current object on/off
-g  -  Toggle previous contour ghost draw mode
+g  -  Toggle nearby contour ghost draw mode
 s  -  Save Model File
 f  -  Print current pixel value in information window
 F  -  Find the maximum pixel within 10 pixels and report its value
@@ -1186,7 +1186,8 @@ window has controls
 to enable the display of ghost
 contours from adjacent sections, which is also toggled by the g hot key.
 Ghosts can be displayed from above or below the current section, and 
-from variable numbers of sections away.  There are also options to control
+from variable numbers of sections away, or simply from the nearest section 
+having contours in the particular object.  There are also options to control
 whether the ghost contours are lighter or darker in color, and to show ghosts
 from all objects rather than just from the current object.
 

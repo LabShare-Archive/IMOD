@@ -590,13 +590,16 @@
            <enum>Qt::ClickFocus</enum>
           </property>
           <property name="toolTip" >
-           <string>Set number of sections away that ghosts will display</string>
+           <string>Set number of sections away that ghosts will display (Near for nearest section with contours)</string>
+          </property>
+          <property name="specialValueText" >
+           <string>Near</string>
           </property>
           <property name="keyboardTracking" >
            <bool>false</bool>
           </property>
           <property name="minimum" >
-           <number>1</number>
+           <number>0</number>
           </property>
           <property name="maximum" >
            <number>501</number>
