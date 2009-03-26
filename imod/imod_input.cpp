@@ -1057,7 +1057,8 @@ void inputQDefaultKeys(QKeyEvent *event, ImodView *vw)
     if (!keypad && !shifted)
       inputPrevz(vw);
     else if (!keypad && shifted) {
-      vw->zmouse = utilNextSecWithCont(vw, B3DNINT(vw->zmouse), -1);
+      obj = imodObjectGet(vw->imod);
+      vw->zmouse = utilNextSecWithCont(vw, obj, B3DNINT(vw->zmouse), -1);
       imodDraw(vw, IMOD_DRAW_XYZ | IMOD_DRAW_NOSYNC);
     } else
       handled = 0;
@@ -1067,7 +1068,8 @@ void inputQDefaultKeys(QKeyEvent *event, ImodView *vw)
     if (!keypad && !shifted)
       inputNextz(vw);
     else if (!keypad && shifted) {
-      vw->zmouse = utilNextSecWithCont(vw, B3DNINT(vw->zmouse), 1);
+      obj = imodObjectGet(vw->imod);
+      vw->zmouse = utilNextSecWithCont(vw, obj, B3DNINT(vw->zmouse), 1);
       imodDraw(vw, IMOD_DRAW_XYZ | IMOD_DRAW_NOSYNC);
     } else
       handled = 0;
@@ -1480,6 +1482,9 @@ bool inputTestMetaKey(QKeyEvent *event)
 
 /*
 $Log$
+Revision 4.50  2009/03/10 04:36:11  mast
+Added hot key to toggle open/closed contours
+
 Revision 4.49  2009/02/26 20:03:32  mast
 Add paging by big steps
 

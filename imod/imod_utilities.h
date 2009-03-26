@@ -3,6 +3,9 @@
  *
  *  $Id$
  *  $Log$
+ *  Revision 1.6  2009/02/25 05:35:53  mast
+ *  Add function for getting next/prev Z with contours
+ *
  *  Revision 1.5  2009/01/15 16:33:17  mast
  *  Qt 4 port
  *
@@ -47,7 +50,7 @@ void utilClearWindow(int index);
 float utilMouseZaxisRotation(int winx, int mx, int lastmx, int winy, int my,
                              int lastmy);
 void utilSetObjFlag(Iobj *obj, int flagType, bool state, b3dUInt32 flag);
-int utilNextSecWithCont(ImodView *vi, int curz, int dir);
+int utilNextSecWithCont(ImodView *vi, Iobj *obj, int curz, int dir);
 ToolEdit *utilTBZoomTools(QWidget *parent, QToolBar *toolBar, 
                           ArrowButton **upArrow, ArrowButton **downArrow);
 QAction *utilTBArrowButton(Qt::ArrowType type, QWidget *parent, 

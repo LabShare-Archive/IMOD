@@ -222,12 +222,11 @@ ToolEdit *utilTBZoomTools(QWidget *parent, QToolBar *toolBar,
  * Finds the next section in the current object with a contour, given curz is
  * the current Z and dir is 1 to go forward or -1 to go back
  */
-int utilNextSecWithCont(ImodView *vi, int curz, int dir)
+int utilNextSecWithCont(ImodView *vi, Iobj *obj, int curz, int dir)
 {
   int diff, co, contz;
   int newz = curz;
   Icont *cont;
-  Iobj *obj = imodObjectGet(vi->imod);
   if (!obj)
     return newz;
   newz = -1;
@@ -558,6 +557,9 @@ int imodColorValue(int inColor)
 /*
 
 $Log$
+Revision 1.9  2009/02/26 20:02:54  mast
+Set toolbar arrows to no focus
+
 Revision 1.8  2009/02/25 05:35:53  mast
 Add function for getting next/prev Z with contours
 
