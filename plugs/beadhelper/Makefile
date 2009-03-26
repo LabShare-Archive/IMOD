@@ -1,37 +1,52 @@
 # Makefile for beadhelper
 
+MODULE = beadhelper
+
 include ../../configure
 
 O     = $(OBJEXT)
 CXXFLAGS = $(LIBCFLAGS)  $(QTFLAGS)
 
-PLUGS = beadhelper.$(DLLEXT)
+PLUGS = $(MODULE).$(DLLEXT)
 
 IMODINCLUDES = imod.h imodview.h imodplug.h control.h undoredo.h
+COMMINCLUDES = icontextra.h _common_functions.h qt_dialog_customizable.h
+IMODREALINCLUDES = ../../imod/imod.h ../../imod/imodview.h \
+	../../imod/imodplug.h ../../imod/control.h ../../imod/undoredo.h
+
+CONTEXTRA = ../noskecommon/icontextra
+QTDIALOG = ../noskecommon/qt_dialog_customizable
+COMMFUNC = ../noskecommon/_common_functions.h
 
 all : $(PLUGS)
 
 install : $(PLUGS)
-	$(CP) -f $(PLUGS) beadhelper.html $(IMOD_PLUGIN_DIR)
+	$(CP) -f $(PLUGS) $(MODULE).html $(IMOD_PLUGIN_DIR)
 
 
-$(PLUGS) : icontextra.$(O) qt_dialog_customizable.$(O) \
-	beadhelper.$(O) moc_beadhelper.$(O)
-	$(MAKELIBSO)$(PLUGS) icontextra.$(O) qt_dialog_customizable.$(O) \
-	beadhelper.$(O) moc_beadhelper.$(O)
+$(PLUGS) : $(CONTEXTRA).$(O) $(QTDIALOG).$(O) $(MODULE).$(O) \
+	moc_$(MODULE).$(O) $(COMMINCLUDES)
+	$(MAKELIBSO)$(PLUGS) $(CONTEXTRA).$(O) $(QTDIALOG).$(O) \
+	$(MODULE).$(O) moc_$(MODULE).$(O)
 
 
-moc_beadhelper.cpp : beadhelper.h
-	$(MOC) beadhelper.h -o moc_beadhelper.cpp
+moc_$(MODULE).cpp : $(MODULE).h
+	$(MOC) $(MODULE).h -o moc_$(MODULE).cpp
 
-beadhelper.$(O) : $(IMODINCLUDES) _common_functions.h icontextra.h \
-	beadhelper.h
+$(MODULE).$(O) : $(IMODINCLUDES) $(COMMINCLUDES) $(MODULE).cpp $(MODULE).h 
 
-icontextra.$(O) : $(IMODINCLUDES) _common_functions.h icontextra.h
+# Build common object files in common directory
+#
+$(CONTEXTRA).$(O) : $(CONTEXTRA).cpp $(IMODREALINCLUDES) $(COMMFUNC) \
+	$(CONTEXTRA).h
+	(cd ../noskecommon ; $(MAKE) icontextra.$(O))
 
-qt_dialog_customizable.$(O) : $(IMODINCLUDES) qt_dialog_customizable.h
+$(QTDIALOG).$(O) : $(QTDIALOG).cpp $(IMODREALINCLUDES) $(QTDIALOG).h
+	(cd ../noskecommon ; $(MAKE) qt_dialog_customizable.$(O))
 
 
+# Copy IMOD includes
+#
 imod.h : ../../imod/imod.h
 	$(CP) -f ../../imod/imod.h .
 imodview.h : ../../imod/imodview.h
@@ -43,17 +58,14 @@ control.h : ../../imod/control.h
 undoredo.h : ../../imod/undoredo.h
 	$(CP) -f ../../imod/undoredo.h .
 
-
-_common_functions.h : ../noskecommon/_common_functions.h
-	$(CP) -f ../noskecommon/_common_functions.h .
-icontextra.h : ../noskecommon/icontextra.h
-	$(CP) -f ../noskecommon/icontextra.h .
-icontextra.cpp : ../noskecommon/icontextra.cpp
-	$(CP) -f ../noskecommon/icontextra.cpp .
-qt_dialog_customizable.h : ../noskecommon/qt_dialog_customizable.h
-	$(CP) -f ../noskecommon/qt_dialog_customizable.h .
-qt_dialog_customizable.cpp : ../noskecommon/qt_dialog_customizable.cpp
-	$(CP) -f ../noskecommon/qt_dialog_customizable.cpp .
+# Copy common includes
+#
+_common_functions.h : $(COMMFUNC)
+	$(CP) -f $(COMMFUNC) .
+icontextra.h : $(CONTEXTRA).h
+	$(CP) -f $(CONTEXTRA).h .
+qt_dialog_customizable.h : $(QTDIALOG).h
+	$(CP) -f $(QTDIALOG).h .
 
 
 clean :
