@@ -1156,7 +1156,8 @@ void zapKeyInput(ZapStruct *zap, QKeyEvent *event)
       // with regular keys, handle specially if locked
     } else if (!keypad && zap->lock == 2){
       if (shifted) {
-        zap->section = utilNextSecWithCont(vi, zap->section, 
+        obj = imodObjectGet(imod);
+        zap->section = utilNextSecWithCont(vi, obj, zap->section, 
                                            keysym == Qt::Key_PageUp ? 1 : -1);
       } else {
         if (keysym == Qt::Key_PageDown)
@@ -4413,6 +4414,7 @@ static void zapDrawGhost(ZapStruct *zap)
   Imod *mod = zap->vi->imod;
   DrawProps contProps, ptProps;
   int nextz, prevz, iz;
+  bool drawprev, drawnext;
   int pt, npt, lastX, lastY, thisX, thisY;
   int nextChange, stateFlags, changeFlags;
   int handleFlags;
@@ -4437,8 +4439,15 @@ static void zapDrawGhost(ZapStruct *zap)
       handleFlags |= HANDLE_VALUE1;
 
     /* DNM 6/16/01: need to be based on zap->section, not zmouse */
-    nextz = zap->section + zap->vi->ghostdist;
-    prevz = zap->section - zap->vi->ghostdist;
+    if (zap->vi->ghostdist) {
+      nextz = zap->section + zap->vi->ghostdist;
+      prevz = zap->section - zap->vi->ghostdist;
+    } else {
+      nextz = utilNextSecWithCont(zap->vi, obj, zap->section, 1);
+      prevz = utilNextSecWithCont(zap->vi, obj, zap->section, -1);
+    }
+    drawprev = zap->vi->ghostmode & IMOD_GHOST_PREVSEC;
+    drawnext = zap->vi->ghostmode & IMOD_GHOST_NEXTSEC;
      
     for (co = 0; co < obj->contsize; co++) {
       cont = &(obj->cont[co]);
@@ -4453,10 +4462,12 @@ static void zapDrawGhost(ZapStruct *zap)
       /* By popular demand, display ghosts from lower and upper sections */
       if (cont->pts && !(cont->flags & ICONT_WILD)) {
         iz = (int)floor(cont->pts->z + 0.5);
-        if ((iz > zap->section && iz <= nextz && 
-             (zap->vi->ghostmode & IMOD_GHOST_PREVSEC)) ||
-            (iz < zap->section && iz >= prevz && 
-             (zap->vi->ghostmode & IMOD_GHOST_NEXTSEC))) {
+        if ((iz > zap->section && drawprev && 
+             ((zap->vi->ghostdist && iz <= nextz) || 
+              (!zap->vi->ghostdist && iz == nextz))) ||
+            (iz < zap->section && drawnext && 
+             ((zap->vi->ghostdist && iz >= prevz) ||
+              (!zap->vi->ghostdist && iz == prevz)))) {
 
           if (nextChange < 0) {
             b3dBeginLine();
@@ -4684,6 +4695,9 @@ static void setDrawCurrentOnly(ZapStruct *zap, int value)
 /*
 
 $Log$
+Revision 4.140  2009/03/22 21:18:49  mast
+Keep general events from being processed whenever app or window is closing
+
 Revision 4.139  2009/03/22 19:41:51  mast
 Changes for cocoa/OS 10.5: fill toolbar text boxes 3 times, test if window
 open before passing on general events
