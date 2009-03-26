@@ -97,7 +97,7 @@ void ivwInit(ImodView *vi, bool modview)
   vi->movieRunning = 0;
   vi->ghostmode = 0;
   vi->ghostlast = IMOD_GHOST_SECTION;
-  vi->ghostdist = 1;
+  vi->ghostdist = 0;
   vi->obj_moveto = 1;
   vi->drawcursor = TRUE;
   vi->insertmode = 0;
@@ -2793,6 +2793,9 @@ void ivwBinByN(unsigned char *array, int nxin, int nyin, int nbin,
 /*
 
 $Log$
+Revision 4.80  2009/01/24 00:24:54  mast
+initialized bin variables for model view
+
 Revision 4.79  2009/01/16 20:23:24  mast
 Initialize fullCacheFlipped since it's going to be tested on
 
