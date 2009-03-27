@@ -175,13 +175,19 @@ void imodvOlistUpdateOnOffs(ImodvApp *a)
   bool state, nameChgd = false;
   QString qstr;
   char obname[MAX_LIST_NAME];
-  int len;
+  int len, firstHid = -1;
   QColor bkgColor;
   QColor gray;
   if (!Oolist_dialog || !numOolistButtons)
     return;
   QPalette palette = Oolist_dialog->palette();
   gray = palette.color(Oolist_dialog->backgroundRole());
+
+  // Hiding seems to help the updates some, especially if there are text 
+  // changes or massive turning off of buttons, but processing events after
+  // hiding doesn't help the time on Linux and leaves it gray (3/26/09)
+  if (numOolistButtons > 256)
+    Oolist_dialog->mFrame->hide();
   for (ob = 0; ob < numOolistButtons; ob++) {
     if (ob < a->imod->objsize) {
       // Get a truncated name
@@ -211,7 +217,9 @@ void imodvOlistUpdateOnOffs(ImodvApp *a)
       nameChgd = true;
     }
   }
-  if (nameChgd)
+  if (numOolistButtons > 256)
+    Oolist_dialog->mFrame->show();
+  if (nameChgd) 
     Oolist_dialog->adjustFrameSize();
 }
 
@@ -522,16 +530,20 @@ void ImodvOlist::updateGroups(ImodvApp *a)
     mButtons[i]->setEnabled(curGrp >= 0);
   if (curGrp < 0) {
     if (grouping) {
+      mFrame->hide();
       for (ob = 0; ob < numOolistButtons; ob++)
         groupButtons[ob]->hide();
+      mFrame->show();
       adjustFrameSize();
     }
     grouping = false;
     return;
   }
   if (!grouping) {
+    mFrame->hide();
     for (ob = 0; ob < numOolistButtons; ob++)
       groupButtons[ob]->show();
+    mFrame->show();
     adjustFrameSize();
   }
   grouping = true;
@@ -623,6 +635,9 @@ void ImodvOlist::keyReleaseEvent ( QKeyEvent * e )
 /*
 
 $Log$
+Revision 4.7  2009/03/22 19:54:25  mast
+Show with new geometry adjust routine for Mac OS X 10.5/cocoa
+
 Revision 4.6  2009/02/16 06:47:55  mast
 Fixed some geometry problems
 
