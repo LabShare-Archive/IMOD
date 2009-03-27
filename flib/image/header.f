@@ -12,6 +12,8 @@ c       Log at end of file
       parameter (maxextra = 2000000, ntypes = 6)
       real*4 array(maxextra/4)
       integer*4 NXYZ(3),MXYZ(3), mode, nbsym, nint, nreal, ierr, i, j
+      integer*4 labels(20,10), nlabel
+      character*4 feichar
       logical nbytes_and_flags
       integer*4 lnblnk
 C       
@@ -120,8 +122,14 @@ C
               if (tiltaxis .ge. -360. .and. tiltaxis .le. 360.) then
                 if (tiltaxis .lt. -180.) tiltaxis = tiltaxis + 360.
                 if (tiltaxis .gt. 180.) tiltaxis = tiltaxis - 360.
-                write(*,101)tiltaxis
-101             format(10x,'Tilt axis rotation angle =', f6.1)
+                call irtlab(1,labels,nlabel)
+                write(feichar, '(a4)')labels(1,1)
+                if (feichar .eq. 'Fei ') then
+                  write(*,101)-tiltaxis,' (Corrected sign)'
+                else
+                  write(*,101)tiltaxis
+                endif
+101             format(10x,'Tilt axis rotation angle =', f6.1, a)
               endif
               pixel = array(nint + 12) * 1.e9
               call irtdel(1, delta)
@@ -135,7 +143,8 @@ C
 104             format(10x,'Original pixel size in nanometers =', g11.4) 
               endif
             endif
-            if (nbytes_and_flags(nint, nreal)) then
+            if (nbytes_and_flags(nint, nreal) .and. .not.silent .and. 
+     &          ifBrief .eq. 0) then
               write(*,'(/,a)')'Extended header from SerialEM contains:'
               do j = 1, ntypes
                 if (mod(nreal/2**(j-1), 2) .ne. 0)
@@ -155,6 +164,9 @@ c
 
 c       
 c       $Log$
+c       Revision 3.7  2009/02/16 06:27:28  mast
+c       Added detail on extra header and directives for extracting
+c
 c       Revision 3.6  2008/01/31 22:43:36  mast
 c       Redimension filename to 320
 c
