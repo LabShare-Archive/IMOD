@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+3/27/09: Header now inverts the sign of rotation angles from FEI header because
+they are defined as clockwise positive (In 3.13).
+
 3/26/09: Improved performance of Object List window when adding or removing
 group checkboxes for lots of objects.
 
