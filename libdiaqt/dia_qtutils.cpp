@@ -493,7 +493,10 @@ QString diaOpenFileName(QWidget *parent, const char *caption, int numFilters,
   for (int i = 0; i < numFilters; i++)
     filter += QString(filters[i]) + QString(";;");
   filter += QString("All Files (*)");
-  qname = QFileDialog::getOpenFileName(parent, qname, QString(), filter);
+
+  // Qt 4.4 on Mac required explicit directory entry or it went to last dir
+  qname = QFileDialog::getOpenFileName(parent, qname, QDir::currentPath(), 
+                                       filter);
   return qname;
 }
 
@@ -657,6 +660,9 @@ void dia_smsg( char **msg)
 
 /*
 $Log$
+Revision 1.14  2009/01/26 04:39:25  mast
+Set page step of slider to 1: that is the left click step
+
 Revision 1.13  2009/01/15 16:30:26  mast
 Qt 4 port
 
