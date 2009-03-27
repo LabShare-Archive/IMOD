@@ -30,8 +30,9 @@ option.
 .P
 For 3-D transformations, however they are specified, all contour points are 
 transformed, as well as all mesh points, surface normals, and clipping
-planes.  The mesh is transformed because contours that have been rotated out
-of the X/Y plane cannot currently be remeshed.  For 2-D transformations, only
+planes.  The mesh is transformed because formerly it was not possible to
+remesh contours that have been rotated out
+of the X/Y plane, but this is now possible.  For 2-D transformations, only
 contour points are transformed, so clipping planes are not preserved and the
 model will have to be remeshed.  However, if a single 2D transformation is 
 applied to the whole model it is converted to a 3D transformation and the
