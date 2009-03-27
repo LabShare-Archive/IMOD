@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+3/26/09: Improved performance of Object List window when adding or removing
+group checkboxes for lots of objects.
+
 3/25/09: Implemented new ghost mode that displays contours just from nearest 
 section with contours for the particular object and made this the default.
 
