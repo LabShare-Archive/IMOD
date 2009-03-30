@@ -871,7 +871,9 @@ int main( int argc, char *argv[])
     ImodInfoWin->setupAutoContrast();
 
   loopStarted = 1;
-
+#ifdef Q_OS_MACX
+  inputRaiseWindows();
+#endif
   return qapp.exec();
 }
 
@@ -967,6 +969,9 @@ bool imodDebug(char key)
 /*
 
 $Log$
+Revision 4.73  2009/03/22 21:37:26  mast
+Set flag when start to close windows for Mac
+
 Revision 4.72  2009/03/22 03:17:48  mast
 Just like in imodv, only create clip handler if needed
 
