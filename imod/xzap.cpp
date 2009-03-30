@@ -1539,9 +1539,6 @@ void zapMousePress(ZapStruct *zap, QMouseEvent *event)
   firstmx = x;
   firstmy = y;
   utilRaiseIfNeeded(zap->qtWindow, event);
-  //QApplication::setActiveWindow(zap->qtWindow);
-  //zap->qtWindow->activateWindow();
-  //zap->qtWindow->setFocus();
 
   /* imodPrintStderr("click at %d %d\n", event->x(), event->y()); */
 
