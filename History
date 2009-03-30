@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+3/30/09: Mac fixes: Raise windows at start, raise and activate window on mouse
+press in Qt 4.5, set current directory in file chooser.
+
 3/27/09: Header now inverts the sign of rotation angles from FEI header because
 they are defined as clockwise positive (In 3.13).
 
