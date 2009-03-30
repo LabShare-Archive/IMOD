@@ -24,6 +24,7 @@
 
 //Added by qt3to4:
 #include <QKeyEvent>
+#include <QMouseEvent>
 #include "imod.h"
 #include "imod_utilities.h"
 #include "b3dgfx.h"
@@ -355,6 +356,23 @@ QAction *utilSetupToggleButton(QWidget *parent, QToolBar *toolBar,
   return action;
 }
 
+/*
+ * Raises window if needed on Mac OS X: Qt 4.5, second or third button
+ */
+void utilRaiseIfNeeded(QWidget *window, QMouseEvent *event)
+{
+#ifdef Q_OS_MACX
+#if QT_VERSION >= 0x040500
+  if (!(event->buttons() & Qt::LeftButton)) {
+    window->raise();
+
+    // This specific call gets the window highlighted and the parent's menu
+    // reinstalled, QApplication::setActiveWindow and setFocus don't
+    window->activateWindow();
+  }
+#endif
+#endif
+}
 
 /* Appends either the model or file name to the window name, giving
    first priority to the model name if "modelFirst" is set */
@@ -557,6 +575,9 @@ int imodColorValue(int inColor)
 /*
 
 $Log$
+Revision 1.10  2009/03/26 05:41:01  mast
+Change nearest section function to work for an object passed as argument
+
 Revision 1.9  2009/02/26 20:02:54  mast
 Set toolbar arrows to no focus
 

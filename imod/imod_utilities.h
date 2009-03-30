@@ -2,27 +2,9 @@
  *       Publicly exposed utilities are in imod.h
  *
  *  $Id$
- *  $Log$
- *  Revision 1.6  2009/02/25 05:35:53  mast
- *  Add function for getting next/prev Z with contours
- *
- *  Revision 1.5  2009/01/15 16:33:17  mast
- *  Qt 4 port
- *
- *  Revision 1.4  2008/07/16 04:30:50  mast
- *  Add function to set object flag
- *
- *  Revision 1.3  2008/02/03 18:36:14  mast
- *  Added function for converting mouse movement to in-plane rotation
- *
- *  Revision 1.2  2008/01/13 22:26:13  mast
- *  Added clearing function
- *
- *  Revision 1.1  2007/12/04 18:42:02  mast
- *  Added to get common functions out of xzap.cpp and imod.
- *
- *
- */                                                                           
+ *  Log at end
+ */
+
 #ifndef UTILITIES_H
 #define  UTILITIES_H
 #include <qstring.h>
@@ -38,6 +20,7 @@ class QToolEdit;
 class QBoxLayout;
 class QIcon;
 class QSignalMapper;
+class QMouseEvent;
 
 typedef struct ViewInfo ImodView;
 void utilDrawSymbol(int mx, int my, int sym, int size, int flags);
@@ -67,8 +50,35 @@ QAction *utilSetupToggleButton(QWidget *parent, QToolBar *toolBar,
                                QBoxLayout *layout, QSignalMapper *mapper,
                                QIcon *icons[], char *tips[], 
                                QToolButton *buts[], int states[], int ind);
+void utilRaiseIfNeeded(QWidget *window, QMouseEvent *event);
 char *imodwfname(const char *intro);
 char *imodwEithername(const char *intro, const char *filein, int modelFirst);
 char *imodwGivenName(const char *intro, const char *filein);
 QString imodCaption(const char *intro);
 #endif
+
+/*
+ *
+ *  $Log$
+ *  Revision 1.7  2009/03/26 05:41:01  mast
+ *  Change nearest section function to work for an object passed as argument
+ *
+ *  Revision 1.6  2009/02/25 05:35:53  mast
+ *  Add function for getting next/prev Z with contours
+ *
+ *  Revision 1.5  2009/01/15 16:33:17  mast
+ *  Qt 4 port
+ *
+ *  Revision 1.4  2008/07/16 04:30:50  mast
+ *  Add function to set object flag
+ *
+ *  Revision 1.3  2008/02/03 18:36:14  mast
+ *  Added function for converting mouse movement to in-plane rotation
+ *
+ *  Revision 1.2  2008/01/13 22:26:13  mast
+ *  Added clearing function
+ *
+ *  Revision 1.1  2007/12/04 18:42:02  mast
+ *  Added to get common functions out of xzap.cpp and imod.
+ *
+ */                                                                           
