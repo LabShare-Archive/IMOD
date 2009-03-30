@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+3/30/09: Try to prevent degenerate solutions in Findwarp by detecting when
+most patches are on a diagonal.
+
 3/30/09: Mac fixes: Raise windows at start, raise and activate window on mouse
 press in Qt 4.5, set current directory in file chooser.
 
