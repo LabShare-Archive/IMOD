@@ -1538,6 +1538,10 @@ void zapMousePress(ZapStruct *zap, QMouseEvent *event)
   but1downt.start();
   firstmx = x;
   firstmy = y;
+  utilRaiseIfNeeded(zap->qtWindow, event);
+  //QApplication::setActiveWindow(zap->qtWindow);
+  //zap->qtWindow->activateWindow();
+  //zap->qtWindow->setFocus();
 
   /* imodPrintStderr("click at %d %d\n", event->x(), event->y()); */
 
@@ -4695,6 +4699,9 @@ static void setDrawCurrentOnly(ZapStruct *zap, int value)
 /*
 
 $Log$
+Revision 4.141  2009/03/26 05:42:01  mast
+New nearest section ghost mode
+
 Revision 4.140  2009/03/22 21:18:49  mast
 Keep general events from being processed whenever app or window is closing
 

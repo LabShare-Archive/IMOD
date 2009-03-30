@@ -936,6 +936,7 @@ void GraphGL::resizeGL( int wdth, int hght )
 void GraphGL::mousePressEvent(QMouseEvent * e )
 {
   ivwControlPriority(mGraph->vi, mGraph->ctrl);
+  utilRaiseIfNeeded(mGraph->dialog, e);
   if (e->buttons() & ImodPrefs->actualButton(1))
     setxyz(mGraph, e->x(), e->y());
 }
@@ -1004,6 +1005,9 @@ static void makeBoundaryPoint(Ipoint pt1, Ipoint pt2, int ix1, int ix2,
 
 /*
     $Log$
+    Revision 4.16  2009/03/22 19:51:22  mast
+    Added spacer between mean and help button for cocoa in Aqua style
+
     Revision 4.15  2009/03/22 19:49:46  mast
     wrong message
 

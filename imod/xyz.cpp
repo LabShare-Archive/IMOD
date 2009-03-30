@@ -2261,6 +2261,7 @@ void XyzGL::mousePressEvent(QMouseEvent * event )
   button1 = event->buttons() & ImodPrefs->actualButton(1) ? 1 : 0;
   button2 = event->buttons() & ImodPrefs->actualButton(2) ? 1 : 0;
   button3 = event->buttons() & ImodPrefs->actualButton(3) ? 1 : 0;
+  utilRaiseIfNeeded(mXyz->dialog, event);
 
   if (event->button() == ImodPrefs->actualButton(1) && !button2 && !button3) {
     but1downt.start();
@@ -2352,6 +2353,9 @@ void XyzGL::mouseMoveEvent( QMouseEvent * event )
 
 /*
 $Log$
+Revision 4.55  2009/03/22 19:42:16  mast
+Changes for cocoa/10.5: fill toolbar edit box 3 times
+
 Revision 4.54  2009/03/05 00:59:16  mast
 Flush mouse move events to get to most recent one when appropriate
 

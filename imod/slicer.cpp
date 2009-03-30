@@ -1160,6 +1160,8 @@ void slicerMousePress(SlicerStruct *ss, QMouseEvent *event)
   int ctrl = (event->modifiers() & Qt::ControlModifier);
   ivwControlPriority(ss->vi, ss->ctrl);
 
+  utilRaiseIfNeeded(ss->qtWindow, event);
+
   lastmx = firstmx = event->x();
   lastmy = firstmy = event->y();
   if (event->buttons() & ImodPrefs->actualButton(1)) {
@@ -2719,6 +2721,9 @@ void slicerCubePaint(SlicerStruct *ss)
 
 /*
 $Log$
+Revision 4.65  2009/03/22 19:54:25  mast
+Show with new geometry adjust routine for Mac OS X 10.5/cocoa
+
 Revision 4.64  2009/03/05 00:59:16  mast
 Flush mouse move events to get to most recent one when appropriate
 

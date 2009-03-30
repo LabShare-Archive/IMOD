@@ -507,6 +507,7 @@ void imodvMousePress(QMouseEvent *event)
   leftDown = event->buttons() & ImodPrefs->actualModvButton(1);
   midDown = event->buttons() & ImodPrefs->actualModvButton(2);
   rightDown = event->buttons() & ImodPrefs->actualModvButton(3);
+  utilRaiseIfNeeded(a->mainWin, event);
 
   // Set flag for any operation that needs to do something only on first move
   firstMove = 1;
@@ -1304,6 +1305,9 @@ void imodvMovieTimeout()
 /*
 
 $Log$
+Revision 4.47  2009/02/25 05:34:26  mast
+Consume mouse move events to get to current one
+
 Revision 4.46  2009/01/15 16:33:18  mast
 Qt 4 port
 

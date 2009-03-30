@@ -378,6 +378,8 @@ void LocatorGL::mousePressEvent(QMouseEvent * e )
   if (!(mLastNx < mVi->xsize - 1 || mLastNy < mVi->ysize - 1))
     return;
 
+  utilRaiseIfNeeded(LocWin, e);
+
   // Button 1, non-incremental position setting
   if (e->buttons() & ImodPrefs->actualButton(1)) {
     getImxy(e->x(), e->y(), imx, imy);
@@ -434,6 +436,9 @@ void LocatorGL::mouseMoveEvent ( QMouseEvent * e )
 
 /*
 $Log$
+Revision 1.8  2009/03/22 19:54:25  mast
+Show with new geometry adjust routine for Mac OS X 10.5/cocoa
+
 Revision 1.7  2009/03/05 00:59:16  mast
 Flush mouse move events to get to most recent one when appropriate
 
