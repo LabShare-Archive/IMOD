@@ -17,9 +17,9 @@ c       Log at end
 c       
       implicit none
       include 'statsize.inc'
-      integer idim,limpatch,limvert,limaxis,limtarg
+      integer idim,limpatch,limvert,limaxis,limtarg,limdiag
       parameter (idim=40000,limpatch=500000,limvert=500000)
-      parameter (limaxis=1000, limtarg=100)
+      parameter (limaxis=1000, limtarg=100, limdiag = 2*limaxis)
       real*4 xr(msiz,idim)
       real*4 cx(limpatch,3),dx(limpatch,3)
       real*4 firstm(3,3),firstd(3),a(3,3),dxyz(3),devxyz(3)
@@ -35,7 +35,8 @@ c
       integer*4 indvert(idim),nvert(idim)
       integer*4 nfxauto(limpatch),nfyauto(limpatch),nfzauto(limpatch)
       integer*4 inrowx(limaxis),inrowy(limaxis),inrowz(limaxis)
-      character*160 filename, resfile
+      integer*4 inDiag1(limdiag), inDiag2(limdiag)
+      character*320 filename, resfile
       real*4 cxyzin(3),dxyzin(3),targetres(limtarg),devavAuto(limpatch)
       integer*4 npatxyz(3),listpos(limaxis,3),indxyz(3)
       integer*4 nfitx,nfity,nfitz,nfitxyz(3),nxtot,nytot,nztot,ntotxyz(3)
@@ -58,7 +59,7 @@ c
       real*4 dzmin,dz,devmax,devavg,devsd,zscal,xyscal, discount
       real*4 devavavg,devmaxavg,devavmax, determ, detmean
       integer*4 icmin,icont,indv,indlc,ipntmax,maxdrop, numLowDet
-      integer*4 ifon,ndrop,ifflip,indpat,indloc,icolfix
+      integer*4 ifon,ndrop,ifflip,indpat,indloc,icolfix,nyDiag
       character*5 rowslab(2) /'rows ', 'slabs'/
       character*5 rowslabcap(2) /'ROWS ', 'SLABS'/
       character*1 yztext(2) /'Y', 'Z'/
@@ -671,12 +672,19 @@ c
               xyzsum(i)=0.
             enddo
 c             
-c             count up number in each row in each dimension
+c             count up number in each row in each dimension and on each 
+c             diagonal in the major dimensions
 c             
             do i=1,max(nfitx,nfity,nfitz)
               inrowx(i)=0
               inrowy(i)=0
               inrowz(i)=0
+            enddo
+            nyDiag = nfity
+            if (ifflip .eq. 1) nyDiag = nfitz
+            do i = 1, nfitx + nyDiag - 3
+              inDiag1(i) = 0
+              inDiag2(i) = 0
             enddo
             do lz=locz+nofsz,locz+nofsz+nfitz-1
               do ly=locy+nofsy,locy+nofsy+nfity-1
@@ -723,11 +731,20 @@ c
                     enddo
 c                     
 c                     Solve_wo_outliers uses columns 8-14; save indexi in 15
+c                     Add to row counts and to diagonal counts
 c                     
                     xr(15,ndat)=ind
-                    inrowx(lx+1-locx-nofsx)=inrowx(lx+1-locx-nofsx)+1
-                    inrowy(ly+1-locy-nofsy)=inrowy(ly+1-locy-nofsy)+1
-                    inrowz(lz+1-locz-nofsz)=inrowz(lz+1-locz-nofsz)+1
+                    ix = lx+1-locx-nofsx
+                    iy = ly+1-locy-nofsy
+                    iz = lz+1-locz-nofsz
+                    inrowx(ix) = inrowx(ix) + 1
+                    inrowy(iy) = inrowy(iy) + 1
+                    inrowz(iz) = inrowz(iz) + 1
+                    if (ifflip .eq. 1) iy = iz
+                    iz = (ix - iy) + nyDiag - 1
+                    inDiag1(iz) = inDiag1(iz) + 1
+                    iz = ix + iy - 2
+                    inDiag2(iz) = inDiag2(iz) + 1
                   endif
                 enddo
               enddo
@@ -756,8 +773,7 @@ c
             maxdrop=nint(fracdrop*ndat)
             icolfix = 0
             do i=1,max(nfitx,nfity,nfitz)
-              if (debugHere) print *,i, ' in row',inrowx(i),inrowy(i),inrowz(i)
-              
+              if(debugHere)print *,'in row',i,':',inrowx(i),inrowy(i),inrowz(i)
               if (ifflip .eq. 1) then
                 if(inrowx(i).gt.ndat-3-maxdrop.or.
      &              inrowz(i).gt.ndat-3-maxdrop)solved(indlc)=.false.
@@ -768,19 +784,23 @@ c
                 if (inrowz(i).gt.ndat-3-maxdrop .or. nfitz.eq.1) icolfix=3
               endif
             enddo
+            do i = 1, nfitx + nyDiag - 3
+              if (inDiag1(i) .gt. ndat-3-maxdrop .or.
+     &            inDiag2(i) .gt. ndat-3-maxdrop) solved(indlc)=.false.
+            enddo
             if(solved(indlc))then
               call solve_wo_outliers(xr,ndat,3,icolfix,maxdrop,crit,
      &            critabs, elimmin,idrop, ndrop, a,dxyz, cenloc,
      &            devavg,devsd, devmax, ipntmax,devxyzmax)
 c               
-            if (debugHere)then
-              do i=1,ndat
-                write(*,'(8f9.2)')(xr(j,i),j=1,7)
-              enddo
-              print *,'cenloc',(cenloc(i),i=1,3)
-              print *,'censave',(censave(i,indlc),i=1,3)
-              write(*,'(9f8.3)')((a(i,j),i=1,3),j=1,3)
-            endif
+              if (debugHere)then
+                do i=1,ndat
+                  write(*,'(8f9.2)')(xr(j,i),j=1,7)
+                enddo
+                print *,'cenloc',(cenloc(i),i=1,3)
+                print *,'censave',(censave(i,indlc),i=1,3)
+                write(*,'(9f8.3)')((a(i,j),i=1,3),j=1,3)
+              endif
 c               
 c               Accumulate information about dropped points
 c
@@ -997,6 +1017,10 @@ c
 
 c       
 c       $Log$
+c       Revision 3.17  2008/12/29 20:42:07  mast
+c       Adjusted measured/unknown ratio for one layer of patches, issued
+c       error if discount ratio is too low and eliminates all fits
+c
 c       Revision 3.16  2008/04/14 16:58:20  mast
 c       FIxed bizarre parentheses error that didn't trouble Intel compiler
 c
