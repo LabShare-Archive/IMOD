@@ -27,6 +27,10 @@ import etomo.util.EnvironmentVariable;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.6  2009/03/23 16:47:16  sueh
+ * <p> bug# 1204 Added a usefull error message for PARTICLE_DIR not being set to
+ * <p> getCommandArray.
+ * <p>
  * <p> Revision 1.5  2009/03/17 00:32:30  sueh
  * <p> bug# 1186 Pass managerKey to everything that pops up a dialog.
  * <p>
@@ -75,7 +79,10 @@ public final class PeetParserParam implements CommandDetails {
       UIHarness.INSTANCE.openMessageDialog(
           "The environment variables PARTICLE_DIR has not been set.  Set it "
               + "to the location of the directory containing the PEET "
-              + "software.", "Environment Error", manager.getManagerKey());
+              + "software.  Make sure the PEET package is installed "
+              + "(typically installed in /usr/local/Particle).  Go to "
+              + "ftp://bio3d.colorado.edu/PEET to download PEET.",
+          "Environment Error", manager.getManagerKey());
       return null;
     }
     File commandFile = new File(new File(EnvironmentVariable.INSTANCE.getValue(
