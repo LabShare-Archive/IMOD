@@ -54,7 +54,17 @@ int tiffReopen(ImodImageFile *inFile);
 void tiffDelete(ImodImageFile *inFile);
 static int ReadSection(ImodImageFile *inFile, char *buf, int inSection,
                        int byte);
+static void copyLine(unsigned char *bdata, unsigned char *obuf, int xout,
+                     int byte, int pixsize, int samples, float slope, 
+                     float offset, int doscale, unsigned char *map);
 static TIFF *openWithoutBMode(ImodImageFile *inFile);
+static int setMatchingDirectory(ImodImageFile *inFile, int dirnum);
+static void closeWithError(ImodImageFile *inFile, char *message);
+typedef void (*TIFFWarningHandler)(const char *module, const char *fmt,
+                                   va_list ap);
+
+static TIFFWarningHandler oldHandler = NULL;
+static void warningHandler(const char *module, const char *fmt, va_list ap);
 
 int iiTIFFCheck(ImodImageFile *inFile)
 {
@@ -63,8 +73,10 @@ int iiTIFFCheck(ImodImageFile *inFile)
   b3dUInt16 buf;
   int dirnum = 1;
   uint32 val;
-  uint16 bits, samples, photometric, sampleformat;
-  int defined, i, j, err = 0;
+  uint16 bits, samples, photometric, sampleformat, planarConfig;
+  uint16 bitsIm, samplesIm, photoIm, formatIm, planarIm;
+  int nxim, nyim, formatDef;
+  int defined, i, j, mismatch = 0, err = 0;
   double minmax;
   b3dUInt16 *redp, *greenp, *bluep;
 
@@ -100,35 +112,83 @@ int iiTIFFCheck(ImodImageFile *inFile)
     return(IIERR_IO_ERROR);
   }
     
-  TIFFGetField(tif, TIFFTAG_IMAGEWIDTH, &inFile->nx);
-  TIFFGetField(tif, TIFFTAG_IMAGELENGTH, &inFile->ny);
-  TIFFGetField(tif, TIFFTAG_BITSPERSAMPLE, &bits);
-  TIFFGetField(tif, TIFFTAG_PHOTOMETRIC, &photometric);
+  inFile->header = (char *)tif;
+  inFile->nx = inFile->ny = 0;
+  inFile->multipleSizes = 0;
+  inFile->planesPerImage = 1;
+  inFile->contigSamples = 1;
 
-  /* DNM 11/18/01: field need not be defined, set a default */
-  defined = TIFFGetField(tif, TIFFTAG_SAMPLESPERPIXEL, &samples);
-  if (!defined)
-    samples = 1;
+  /* Read each directory of the file, get properties and count usable images */
+  do {
+    TIFFGetField(tif, TIFFTAG_IMAGEWIDTH, &nxim);
+    TIFFGetField(tif, TIFFTAG_IMAGELENGTH, &nyim);
+    TIFFGetField(tif, TIFFTAG_BITSPERSAMPLE, &bitsIm);
+    TIFFGetField(tif, TIFFTAG_PHOTOMETRIC, &photoIm);
 
-  while (TIFFReadDirectory(tif)) 
-    dirnum++;
+    /* DNM 11/18/01: field need not be defined, set a default */
+    defined = TIFFGetField(tif, TIFFTAG_SAMPLESPERPIXEL, &samplesIm);
+    if (!defined)
+      samplesIm = 1;
+
+    TIFFGetField(tif, TIFFTAG_PLANARCONFIG, &planarIm);
+    if (!defined)
+      photoIm = PLANARCONFIG_CONTIG;
+
+    defined = TIFFGetField(tif, TIFFTAG_SAMPLEFORMAT, &formatIm);
+
+    /* If this is a bigger image, it is a new standard, so set all the
+       properties and reset to one directory */
+    if ((float)nxim * (float)nyim > (float)inFile->nx * (float)inFile->ny) {
+      inFile->nx = nxim;
+      inFile->ny = nyim;
+      bits = bitsIm;
+      photometric = photoIm;
+      planarConfig = planarIm;
+      samples = samplesIm;
+      formatDef = defined;
+      sampleformat = formatIm;
+      
+      if (dirnum)
+        inFile->multipleSizes = 1;
+      dirnum = 1;
+    } else if (nxim == inFile->nx && nyim == inFile->ny) {
+      dirnum++;
+
+      /* If size matches, check that everything matches */
+      if (bitsIm != bits || photoIm != photometric || planarIm != planarConfig
+          || samples != samplesIm || defined != formatDef || 
+          (defined && formatIm != sampleformat)) {
+        mismatch = 1;
+        break;
+      }
+    } else if (dirnum)
+      inFile->multipleSizes = 1;
+  } while (TIFFReadDirectory(tif));
+
   TIFFSetDirectory(tif, 0);
 
   /* Don't know how to get the multiple bit entries from libtiff, so can't test
      if they are all 8 */
-  if (!((samples == 1 && (bits == 8 || bits ==16 || bits == 32) && 
-         photometric < 2) ||
-        (samples == 3 && photometric == 2 && bits == 8) || 
-        (photometric == 3 && bits == 8))) {
-    TIFFClose(tif);
-    inFile->fp = fopen(inFile->filename, inFile->fmode);
-    b3dError(stderr, "ERROR: iiTIFFCheck - Unsupported type of TIFF file\n");
+  if (mismatch || 
+      !(((bits == 8 || bits ==16 || bits == 32) && 
+         photometric < PHOTOMETRIC_RGB) ||
+        (samples == 3 && photometric == PHOTOMETRIC_RGB && bits == 8) || 
+        (photometric == PHOTOMETRIC_PALETTE && bits == 8))) {
+    closeWithError(inFile, "ERROR: iiTIFFCheck - Unsupported type of TIFF "
+                   "file\n");
     return(IIERR_NO_SUPPORT);
   }
 
   inFile->nz     = dirnum;
   inFile->file   = IIFILE_TIFF;
   inFile->format = IIFORMAT_LUMINANCE;
+  if (photometric < PHOTOMETRIC_RGB) {
+    if (planarConfig == PLANARCONFIG_SEPARATE)
+      inFile->planesPerImage = samples;
+    else
+      inFile->contigSamples = samples;
+    inFile->nz = dirnum * samples;
+  }
 
   /* 11/22/08: define this for all types, not just for 3-sample data */
   inFile->readSection = tiffReadSection;
@@ -153,13 +213,17 @@ int iiTIFFCheck(ImodImageFile *inFile)
       inFile->readSectionByte = tiffReadSection;
       inFile->colormap = (unsigned char *)malloc(3 * 256 * dirnum);
       if (!inFile->colormap) {
-        TIFFClose(tif);
-        inFile->fp = fopen(inFile->filename, inFile->fmode);
-        b3dError(stderr, "ERROR: iiTIFFCheck - Getting memory for colormap\n");
+        closeWithError(inFile, "ERROR: iiTIFFCheck - Getting memory for "
+                       "colormap\n");
         return(IIERR_MEMORY_ERR);
       }
       for (j = 0; j < dirnum; j++) {
-        TIFFSetDirectory(tif, j);
+        if (setMatchingDirectory(inFile, j)) {
+          closeWithError(inFile, "ERROR: iiTIFFCheck - getting directory for "
+                         "colormap\n");
+          return(IIERR_IO_ERROR);
+        }
+
         TIFFGetField(tif, TIFFTAG_COLORMAP, &redp, &greenp, &bluep);
         for (i = 0; i < 256; i++) {
           inFile->colormap[j*768 + i] = (unsigned char)(redp[i] >> 8);
@@ -204,7 +268,6 @@ int iiTIFFCheck(ImodImageFile *inFile)
   inFile->smax   = inFile->amax;
   inFile->headerSize = 8;
   inFile->sectionSkip = 0;
-  inFile->header = (char *)tif;
   inFile->fp = (FILE *)tif;    
   inFile->cleanUp = tiffDelete;
   inFile->reopen = tiffReopen;
@@ -272,9 +335,24 @@ void tiffSuppressErrors(void)
   TIFFSetErrorHandler(NULL);
 }
 
+
 void tiffSuppressWarnings(void)
 {
   TIFFSetWarningHandler(NULL);
+}
+
+static void warningHandler(const char *module, const char *fmt, va_list ap)
+{
+  char buffer[256];
+  vsprintf(buffer, fmt, ap);
+  va_end(ap);
+  if (!strstr(buffer, "unknown field with tag") && oldHandler)
+    oldHandler(module, fmt, ap);
+}
+
+void tiffFilterWarnings(void)
+{
+  oldHandler = TIFFSetWarningHandler(warningHandler);
 }
 
 /* Mode 'b' means something completely different for TIFF, so strip it */
@@ -302,6 +380,32 @@ static TIFF *openWithoutBMode(ImodImageFile *inFile)
   return tif;
 }
 
+/* Find the directory at the given number that matches the proper size */
+static int setMatchingDirectory(ImodImageFile *inFile, int dirnum)
+{
+  int nx, ny, dir = 0;
+  TIFF *tif = (TIFF *)inFile->header;
+  TIFFSetDirectory(tif, 0);
+  do {
+    TIFFGetField(tif, TIFFTAG_IMAGEWIDTH, &nx);
+    TIFFGetField(tif, TIFFTAG_IMAGELENGTH, &ny);
+    if (nx == inFile->nx && ny == inFile->ny) {
+      if (dir == dirnum)
+        return 0;
+      else
+        dir++;
+    }
+  } while (TIFFReadDirectory(tif));
+  return 1;
+}
+
+static void closeWithError(ImodImageFile *inFile, char *message)
+{
+  TIFFClose((TIFF *)inFile->header);
+  inFile->fp = fopen(inFile->filename, inFile->fmode);
+  b3dError(stderr, message);
+}
+
 /* DNM 12/24/00: Got this working for bytes, shorts, and RGBs, for whole
    images or subsets, and using maps for scaling */
 /* DNM 11/18/01: Added ability to read tiles, made tiffReadSection and 
@@ -310,10 +414,11 @@ static TIFF *openWithoutBMode(ImodImageFile *inFile)
 static int ReadSection(ImodImageFile *inFile, char *buf, int inSection,
                        int byte)
 {
-  int nstrip, si;
+  int nstrip, si, plane, sampOffset;
   int xout, xcopy;
   int xsize = inFile->nx;
   int ysize = inFile->ny;
+  int samples = inFile->contigSamples;
   int row;
   int i, pixel, xstart, xend, ystart, yend, y, ofsin, ofsout;
   int doscale;
@@ -347,7 +452,6 @@ static int ReadSection(ImodImageFile *inFile, char *buf, int inSection,
   if (!tif)
     return -1;
 
-
   /* set the dimensions to read in */
   /* DNM 2/26/03: replace upper right only if negative */
   xmin   = inFile->llx;
@@ -364,7 +468,10 @@ static int ReadSection(ImodImageFile *inFile, char *buf, int inSection,
   doscale = (offset <= -1.0 || offset >= 1.0 || 
              slope < 0.995 || slope > 1.005);
      
-  TIFFSetDirectory(tif, inSection);   
+  row = inSection / (inFile->planesPerImage * samples);
+  setMatchingDirectory(inFile, row);
+  plane = inSection % inFile->planesPerImage;
+  sampOffset = inSection % samples;
   if (byte) {
     if (inFile->type == IITYPE_SHORT) {
       pixsize = 2;
@@ -402,7 +509,7 @@ static int ReadSection(ImodImageFile *inFile, char *buf, int inSection,
       return -1;
     }
                
-    nstrip = TIFFNumberOfStrips(tif);
+    nstrip = TIFFNumberOfStrips(tif) / inFile->planesPerImage;
     /* printf("%d %d %d %d\n", stripsize, rowsperstrip, nstrip, 
        pixsize); */
 
@@ -419,42 +526,19 @@ static int ReadSection(ImodImageFile *inFile, char *buf, int inSection,
         continue;
                
       /* Read the strip if necessary */
-      nread = TIFFReadEncodedStrip(tif, si, tmp, stripsize);
+      nread = TIFFReadEncodedStrip(tif, si + plane * nstrip, tmp, stripsize);
       /* printf("%d %d %d %d\n", nread, si, ystart, yend); */
       for (y = ystart; y <= yend; y++) {
 
         /* for each y, compute back to row, and get offsets into
            input and output arrays */
         row = ysize - 1 - y - rowsperstrip * si;
-        ofsin = movesize * (row * xsize + xmin);
+        ofsin = samples * pixsize * (row * xsize + xmin) + sampOffset *pixsize;
         ofsout = movesize * (y - ymin) * xout;
         obuf = (unsigned char *)buf + ofsout;
         bdata = tmp + ofsin;
-        if (byte) {
-          if (pixsize == 1) {
-                              
-            /* Bytes */
-            if (doscale)
-              for (i = 0; i < xout; i++)
-                *obuf++ = map[*bdata++];
-            else
-              memcpy(obuf, bdata, xout);
-          } else if (pixsize == 2) {
-                              
-            /* Integers */
-            usdata = (b3dUInt16 *)tmp + ofsin;
-            for (i = 0; i < xout; i++)
-              *obuf++ = map[*usdata++];
-          } else {
-
-            /* Floats */
-            fdata = (b3dFloat *)tmp + ofsin;
-            for (i = 0; i < xout; i++)
-              *obuf++ = slope * (*fdata++) + offset;
-          }
-        } else {
-          memcpy(obuf, bdata, xout * pixsize);
-        }
+        copyLine(bdata, obuf, xout, byte, pixsize, samples, slope, offset,
+                 doscale, map);
       }    
     }
   } else {
@@ -500,7 +584,7 @@ static int ReadSection(ImodImageFile *inFile, char *buf, int inSection,
           continue;
                     
         /* Read the tile if necessary */
-        si = xti + yti * xtiles;
+        si = xti + yti * xtiles + plane * xtiles * ytiles;
         nread = TIFFReadEncodedTile(tif, si, tmp, tilesize);
         xcopy = xend + 1 - xstart;
         /* printf("%d %d %d %d\n", nread, si, ystart, yend); */
@@ -509,40 +593,16 @@ static int ReadSection(ImodImageFile *inFile, char *buf, int inSection,
           /* for each y, compute back to row, and get offsets 
              into input and output arrays */
           row = ysize - 1 - y - tilelength * yti;
-          ofsin = movesize * 
-            (row * tilewidth + xstart - xti * tilewidth);
+          ofsin = pixsize * samples *
+            (row * tilewidth + xstart - xti * tilewidth) + sampOffset *pixsize;
           ofsout = movesize * 
             ((y - ymin) * xout + xstart - xmin);
           obuf = (unsigned char *)buf + ofsout;
           bdata = tmp + ofsin;
-          if (byte) {
-            if (pixsize == 1) {
-                                   
-              /* Bytes */
-              if (doscale)
-                for (i = 0; i < xcopy; i++)
-                  *obuf++ = map[*bdata++];
-              else
-                memcpy(obuf, bdata, xcopy);
-            } else if (pixsize == 2) {
-                                   
-              /* Integers */
-              usdata = (b3dUInt16 *)tmp + ofsin;
-              for (i = 0; i < xcopy; i++)
-                *obuf++ = map[*usdata++];
-            } else {
-              
-              /* Floats */
-              fdata = (b3dFloat *)tmp + ofsin;
-              for (i = 0; i < xcopy; i++)
-                *obuf++ = slope * (*fdata++) + offset;
-            }
-          } else {
-            memcpy(obuf, bdata, xcopy * pixsize);
-          }
+          copyLine(bdata, obuf, xcopy, byte, pixsize, samples, slope, offset,
+                 doscale, map);
         }
-      }
-               
+      }               
     }
   }
   free (tmp);
@@ -551,6 +611,82 @@ static int ReadSection(ImodImageFile *inFile, char *buf, int inSection,
 
   return 0;
 }
+
+static void copyLine(unsigned char *bdata, unsigned char *obuf, int xout,
+                     int byte, int pixsize, int samples, float slope, 
+                     float offset, int doscale, unsigned char *map)
+{
+  b3dUInt16 *usdata;
+  b3dFloat *fdata;
+  int i, j;
+
+  if (byte) {
+
+    /* Converted data */
+    if (pixsize == 1) {
+      
+      /* Bytes */
+      if (samples == 1) {
+        if (doscale)
+          for (i = 0; i < xout; i++)
+            *obuf++ = map[*bdata++];
+        else
+          memcpy(obuf, bdata, xout);
+      } else {
+        if (doscale) 
+          for (i = 0; i < xout; i++) {
+            *obuf++ = map[*bdata];
+            bdata += samples;
+          }
+        else
+          for (i = 0; i < xout; i++) {
+            *obuf++ = *bdata;
+            bdata += samples;
+          }
+      }
+      
+    } else if (pixsize == 2) {
+      
+      /* Integers */
+      usdata = (b3dUInt16 *)bdata;
+      if (samples == 1) {
+        for (i = 0; i < xout; i++)
+          *obuf++ = map[*usdata++];
+      } else {
+        for (i = 0; i < xout; i++) {
+          *obuf++ = map[*usdata];
+          usdata += samples;
+        }
+      }
+      
+    } else {
+      
+      /* Floats */
+      fdata = (b3dFloat *)bdata;
+      if (samples == 1) {
+        for (i = 0; i < xout; i++)
+                *obuf++ = slope * (*fdata++) + offset;
+      } else {
+        for (i = 0; i < xout; i++) {
+          *obuf++ = slope * (*fdata) + offset;
+          fdata += samples;
+        }
+      }
+    }
+  } else {
+    
+    /* Non-converted data */
+    if (samples == 1) {
+      memcpy(obuf, bdata, xout * pixsize);
+    } else {
+      for (i = 0; i < xout; i++) {
+        for (j = 0; j < pixsize; j++)
+          *obuf++ = *bdata++;
+        bdata += (samples - 1) * pixsize;
+      }
+    }
+  }
+}    
 
 int tiffReadSectionByte(ImodImageFile *inFile, char *buf, int inSection)
 { 
@@ -562,9 +698,147 @@ int tiffReadSection(ImodImageFile *inFile, char *buf, int inSection)
   return(ReadSection(inFile, buf, inSection, 0));
 }
 
+/*
+ * Open new file for writing
+ */
+int tiffOpenNew(ImodImageFile *inFile)
+{
+  TIFF *tif = TIFFOpen(inFile->filename, "w");
+  if (!tif)
+    return IIERR_IO_ERROR;
+  inFile->header = (char *)tif;
+  inFile->fp = (FILE *)tif;
+  inFile->state = IISTATE_READY;
+  inFile->cleanUp = tiffDelete; 
+  inFile->close = tiffClose;
+  return 0;
+}
+
+/*
+ * Write next section to file with the given compression value; set inverted
+ * non-zero if image is already inverted and does not need copying
+ */
+int tiffWriteSection(ImodImageFile *inFile, void *buf, int compression, 
+                     int inverted)
+{
+  int stripTarget = 8192;
+  uint32 rowsPerStrip, lineBytes, stripBytes;
+  uint16 bits, samples, photometric, sampleformat;
+  double dmin, dmax;
+  int lines, linesDone, numStrips, strip, i;
+  char *tmp;
+  char *inbuf;
+  TIFF *tif = (TIFF *)inFile->header;
+  if (!(inFile->format == IIFORMAT_RGB || 
+        (inFile->format == IIFORMAT_LUMINANCE && 
+         (inFile->type == IITYPE_UBYTE || inFile->type == IITYPE_BYTE ||
+          inFile->type == IITYPE_USHORT || inFile->type == IITYPE_SHORT ||
+          inFile->type == IITYPE_FLOAT))))
+    return(IIERR_NO_SUPPORT);
+  if (inFile->state == IISTATE_BUSY)
+    TIFFWriteDirectory(tif);
+  inFile->state = IISTATE_READY;
+  
+  TIFFSetField(tif, TIFFTAG_IMAGEWIDTH, inFile->nx);
+  TIFFSetField(tif, TIFFTAG_IMAGELENGTH, inFile->ny);
+  TIFFSetField(tif, TIFFTAG_PLANARCONFIG, PLANARCONFIG_CONTIG);
+  TIFFSetField(tif, TIFFTAG_COMPRESSION, compression);
+  TIFFSetField(tif, TIFFTAG_RESOLUTIONUNIT, RESUNIT_NONE);
+  if (inFile->format == IIFORMAT_RGB) {
+    samples = 3;
+    photometric = PHOTOMETRIC_RGB;
+    bits = 8;
+    TIFFSetField(tif, TIFFTAG_BITSPERSAMPLE, bits, bits, bits);
+  } else {
+    
+    samples = 1;
+    photometric = PHOTOMETRIC_MINISWHITE;
+    switch (inFile->type) {
+    case IITYPE_BYTE:
+      bits = 8;
+      sampleformat = SAMPLEFORMAT_INT;
+      break;
+    case IITYPE_UBYTE:
+      bits = 8;
+      sampleformat = SAMPLEFORMAT_UINT;
+      break;
+    case IITYPE_SHORT:
+      bits = 16;
+      sampleformat = SAMPLEFORMAT_INT;
+      break;
+    case IITYPE_USHORT:
+      bits = 16;
+      sampleformat = SAMPLEFORMAT_UINT;
+      break;
+    case IITYPE_FLOAT:
+      bits = 32;
+      sampleformat = SAMPLEFORMAT_IEEEFP;
+      break;
+    }
+
+    TIFFSetField(tif, TIFFTAG_BITSPERSAMPLE, bits);
+    TIFFSetField(tif, TIFFTAG_SAMPLEFORMAT, sampleformat);
+    if (bits > 8 && inFile->amax > inFile->amin) {
+      dmin = inFile->amin;
+      dmax = inFile->amax;
+      TIFFSetField(tif, TIFFTAG_SMINSAMPLEVALUE, dmin);
+      TIFFSetField(tif, TIFFTAG_SMAXSAMPLEVALUE, dmax);
+    }
+  }
+  TIFFSetField(tif, TIFFTAG_PHOTOMETRIC, photometric);
+  TIFFSetField(tif, TIFFTAG_SAMPLESPERPIXEL, samples);
+  
+  lineBytes = (samples * bits / 8) * inFile->nx;
+  rowsPerStrip = B3DMAX(1, (stripTarget + lineBytes / 2) / lineBytes);
+
+  /* For JPEG compression, rows must be multiple of 8 */
+  if (compression == COMPRESSION_JPEG && rowsPerStrip % 8) {
+    if (rowsPerStrip < 5 || rowsPerStrip % 8 > 4)
+      rowsPerStrip = 8 * ((rowsPerStrip + 7) / 8);
+    else
+      rowsPerStrip = 8 * (rowsPerStrip / 8);
+  }
+  TIFFSetField(tif, TIFFTAG_ROWSPERSTRIP, rowsPerStrip);
+  stripBytes = rowsPerStrip * lineBytes;
+  numStrips = (inFile->ny + rowsPerStrip - 1) / rowsPerStrip;
+  if (!inverted) {
+    tmp = (char *)_TIFFmalloc(stripBytes);
+    if (!tmp)
+      return IIERR_MEMORY_ERR;
+  }
+  
+  linesDone = 0;
+  for (strip = 0; strip < numStrips; strip++) {
+    lines = B3DMIN(rowsPerStrip, inFile->ny - linesDone);
+    if (inverted) {
+      tmp = (char *)buf + linesDone * lineBytes;
+    } else {
+
+      for (i = 0; i < lines; i++) {
+        inbuf = (char *)buf + (inFile->ny - (linesDone + i + 1)) * lineBytes;
+        memcpy(tmp + i * lineBytes, inbuf, lineBytes);
+      }
+    }
+    if (TIFFWriteEncodedStrip(tif, strip, tmp, lineBytes * lines) < 0) {
+      if (!inverted)
+        free(tmp);
+      return IIERR_IO_ERROR;
+    }
+    linesDone += lines;
+  }
+  inFile->state = IISTATE_BUSY;
+  if (!inverted)
+    _TIFFfree(tmp);
+  return 0;
+}
+  
+    
 
 /*
   $Log$
+  Revision 3.14  2008/11/25 16:32:11  mast
+  Visual C wants all declarations before executable statements
+
   Revision 3.13  2008/11/25 16:24:31  mast
   Made stripping of b mode fancier, switched back to non-allocated fmode
 
