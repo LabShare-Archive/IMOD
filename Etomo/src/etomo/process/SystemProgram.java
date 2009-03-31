@@ -17,6 +17,9 @@
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.38  2009/03/23 17:09:52  sueh
+ * <p> bug# 1204 Handling a null commandArray.
+ * <p>
  * <p> Revision 3.37  2009/03/17 00:44:03  sueh
  * <p> bug# 1186 Pass managerKey to everything that pops up a dialog.
  * <p>
@@ -408,7 +411,7 @@ public class SystemProgram implements Runnable {
       //timestamp
       StringBuffer timestampString = new StringBuffer(3);
       if (commandArray == null) {
-        exitValue = 1204;
+        exitValue = 1204;//bug# 1204
         return;
       }
       for (int i = 0; i < Math.min(2, commandArray.length); i++) {

@@ -27,6 +27,10 @@ import etomo.util.EnvironmentVariable;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.7  2009/03/31 21:06:28  sueh
+ * <p> bug# 1204 In getCommandArray, changed error message to give the typical location
+ * <p> of the PEET software.
+ * <p>
  * <p> Revision 1.6  2009/03/23 16:47:16  sueh
  * <p> bug# 1204 Added a usefull error message for PARTICLE_DIR not being set to
  * <p> getCommandArray.
@@ -80,8 +84,8 @@ public final class PeetParserParam implements CommandDetails {
           "The environment variables PARTICLE_DIR has not been set.  Set it "
               + "to the location of the directory containing the PEET "
               + "software.  Make sure the PEET package is installed "
-              + "(typically installed in /usr/local/Particle).  Go to "
-              + "ftp://bio3d.colorado.edu/PEET to download PEET.",
+              + "(typically installed in /usr/local/Particle).  To download "
+              + "PEET, go to ftp://bio3d.colorado.edu/PEET.",
           "Environment Error", manager.getManagerKey());
       return null;
     }
