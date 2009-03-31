@@ -546,6 +546,7 @@ int main( int argc, char *argv[])
     iiInsertCheckFunction(iiRawCheck,0);
   else
     iiAddCheckFunction(iiRawCheck);
+  tiffFilterWarnings();
 
   QDir *curdir = new QDir();
   Model = NULL;
@@ -969,6 +970,9 @@ bool imodDebug(char key)
 /*
 
 $Log$
+Revision 4.74  2009/03/30 18:26:03  mast
+Raise all windows after starting on the Mac
+
 Revision 4.73  2009/03/22 21:37:26  mast
 Set flag when start to close windows for Mac
 
