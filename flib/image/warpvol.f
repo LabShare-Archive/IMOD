@@ -51,7 +51,7 @@ c
       real*4 xofsout,xp,yp,zp,bval,dx,dy,dz,v2,v4,v6,v5,v8,vu,vd,vmin,vmax
       real*4 a,b,c,d,e,f,tmin,tmax,tmean,dmean,dminin,dmaxin,d11,d12,d21,d22
       integer*4 iunit,longint,l,izp,izpp1,izpm1,nLinesOut,interpOrder, nExtra
-      integer*4 newExtra,nck
+      integer*4 newExtra,nck, lForErr
       real*4 baseInt,rnck
 c       
       logical pipinput
@@ -164,6 +164,7 @@ c
         zlocmax=-1.e10
         
         do l=1,nloctot
+          lForErr = l
           read(1,*,err=98,end=98)cenlocx,cenlocy,cenlocz
           read(1,*,err=98,end=98)((aloc(i,j,l),j=1,3),dloc(i,l),i=1,3)
           xlocst=min(cenlocx,xlocst)
@@ -183,6 +184,7 @@ c         array and put it there, then copy into empty positions at end
         do l=1,nloctot
           trray(l) = 0.
         enddo
+        lForErr = 1
 10      read(1,*,err=98,end=12)cenlocx,cenlocy,cenlocz
         ix = min(nlocx, max(1, nint((cenlocx - xlocst) / dxloc + 1.)))
         iy = min(nlocy, max(1, nint((cenlocy - ylocst) / dyloc + 1.)))
@@ -190,6 +192,7 @@ c         array and put it there, then copy into empty positions at end
         l = ix + (iy - 1) * nlocx + (iz - 1) * nlocx * nlocy
         read(1,*,err=98,end=98)((aloc(i,j,l),j=1,3),dloc(i,l),i=1,3)
         trray(l) = 1.
+        lForErr = lForErr + 1
         go to 10
 12      call fillInTransforms(aloc, dloc, trray, nlocx, nlocy, nlocz,
      &      dxloc, dyloc, dzloc)
@@ -521,7 +524,9 @@ c
         call imclose(i)
       enddo
       call exit(0)
-98    call exiterror('READING WARP FILE')
+98    write(*,'(/,a,i7)')'ERROR: WARPVOL - READING WARP FILE AT POSITION',
+     &    lForErr
+      call exit(1)
 99    call exiterror('READING IMAGE FILE')
       end
 
@@ -640,6 +645,9 @@ c               Copy transform from closest position
 
 c       
 c       $Log$
+c       Revision 3.14  2008/12/31 21:34:34  mast
+c       Added same size option
+c
 c       Revision 3.13  2007/11/18 04:53:46  mast
 c       Increased filename limits to 320
 c
