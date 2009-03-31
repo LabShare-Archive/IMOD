@@ -104,12 +104,15 @@ extern "C" {
     int   axis;
     int   mirrorFFT;   /* Return mirrored FFT when scaling to bytes */
 
-    /* extra storage used by each file format functions. */
+    /* extra storage used by individual file format functions. */
     int   headerSize;
     int   sectionSkip;
     char *header;
     char *userData;
     unsigned char *colormap;
+    int  planesPerImage;     /* # of planes per TIFF image */
+    int  contigSamples;      /* # of contiguous samples per pixel in plane */
+    int  multipleSizes;      /* Flag that TIFF file has multiple sizes */
 
     /* Callback functions used by different file formats. */
     int (*readSection)(ImodImageFile *inFile, char *buf, int inSection);
@@ -177,6 +180,10 @@ extern "C" {
   int tiffGetArray(ImodImageFile *inFile, int tag, int *count, void *value);
   void tiffSuppressWarnings(void);
   void tiffSuppressErrors(void);
+  void tiffFilterWarnings(void);
+  int tiffOpenNew(ImodImageFile *inFile);
+  int tiffWriteSection(ImodImageFile *inFile, void *buf, int compression, 
+                       int inverted);
   int iiLikeMRCCheck(ImodImageFile *inFile);
   void iiLikeMRCDelete(ImodImageFile *inFile);
   int iiSetupRawHeaders(ImodImageFile *inFile, RawImageInfo *info);
@@ -190,6 +197,9 @@ extern "C" {
 
 /*
 $Log$
+Revision 3.15  2009/01/02 05:19:19  mast
+const char * for Qt 4 port
+
 Revision 3.14  2008/11/24 23:50:07  mast
 Changes for using in SerialEM
 
