@@ -15,6 +15,9 @@
     $Revision$
 
     $Log$
+    Revision 1.29  2009/03/24 13:33:31  tempuser
+    added adjustGeometryAndShow
+
     Revision 1.28  2009/03/24 13:29:55  tempuser
     improved sculpt tools and added crop contours
 
@@ -208,9 +211,9 @@ int imodPlugKeys(ImodView *vw, QKeyEvent *event)
       return plug.window->copyCurrContToView(shift);
       break;
       
-    //case Qt::Key_T:                  // temporary testing purposes - comment out
-    //  plug.window->test();
-    //  break;
+    case Qt::Key_T:                  // temporary testing purposes - comment out
+      plug.window->test();
+      break;
       
     case Qt::Key_X:
       if(ctrl)
@@ -603,7 +606,7 @@ int imodPlugMouse(ImodView *vw, QMouseEvent *event, float imx, float imy,
       }
       else if( plug.but2Released ) {
         edit_executeJoinEnd();
-        //ivwRedraw( plug.view );
+        ivwDraw( plug.view, IMOD_DRAW_XYZ | IMOD_DRAW_NOSYNC );
       }
       break;
     }
@@ -3721,13 +3724,16 @@ void DrawingTools::cleanModelAndFixContours()
 void DrawingTools::test()
 {  
   Icont *cont = getCurrCont();
-  
+  Iobj *obj = getCurrObj();
   
   if( !isContValid(cont) )
   {
     wprint("Have not selected valid contour\n");
     return;
   }
+  
+  //int ptsAdded = cont_addPtsAtIntersection( getCont(obj,0), getCont(obj,1) );
+  //wprint("%d points added\n", ptsAdded);
   
   /*
   Iobj *obj = getCurrObj();
@@ -5279,7 +5285,7 @@ void edit_breakCurrContIntoSimpleContsAndDeleteSmallest ()
     
     for( int i=0; i<(int)conts.size(); i++ )    // for each contour: 
       if(   ( psize( conts[i].cont ) < 5 )      // if too few points
-         || ( imodContourArea(conts[i].cont) < 3.0f ) )  // or very small: delete it
+         || ( imodContourArea(conts[i].cont) < 4.0f ) )  // or very small: delete it
       {
         eraseContour( conts, i );
         i--;
@@ -5359,20 +5365,23 @@ void edit_joinCurrContWithAnyTouching()
   {
     Icont *contCompare = getCont(obj, i);
     
-    if( i==contIdx || imodContourZValue(contCompare) != zSlice || isEmpty(contCompare) )
+    if( getZ(contCompare) != zSlice || i==contIdx || isEmpty(contCompare) )
       continue;
     
     if( cont_doCountoursCross( cont, contCompare, true, true ) )
     {
       undoContourDataChgCC( plug.view );          // REGISTER UNDO
-      cont_getOuterUnionPolygon( cont, cont, contCompare );
+      bool unionMade = cont_getOuterUnionPolygon( cont, cont, contCompare );
       
-      imodSetIndex(imod, objIdx, i, 0);
-      undoContourDataChgCC( plug.view );          // REGISTER UNDO
-      imodContourDefault( contCompare );
-      imodSetIndex(imod, objIdx, contIdx, ptIdx);
-      
-      break;      // we only want to do one at a time for now.
+      if(unionMade)
+      {
+        imodSetIndex(imod, objIdx, i, 0);
+        undoContourDataChgCC( plug.view );          // REGISTER UNDO
+        imodContourDefault( contCompare );
+        imodSetIndex(imod, objIdx, contIdx, ptIdx);
+        
+        break;      // we only want to do one at a time for now.
+      }
     }
   }
 }
