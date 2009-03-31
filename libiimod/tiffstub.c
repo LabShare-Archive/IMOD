@@ -1,4 +1,5 @@
 #include "notiffio.h"
+#include <stdarg.h>
 
 int TIFFSetDirectory(TIFF *d, tdir_t t)
 {
@@ -8,7 +9,16 @@ int TIFFReadDirectory(TIFF *d)
 {
     return 0;
 }
+int TIFFWriteDirectory(TIFF *d)
+{
+    return 0;
+}
 int TIFFGetField(TIFF *d, ttag_t t, ...)
+{
+    return 0;
+}
+
+int TIFFSetField(TIFF *d, ttag_t t, ...)
 {
     return 0;
 }
@@ -24,6 +34,11 @@ tsize_t TIFFStripSize(TIFF* tif)
 }
 
 tsize_t TIFFReadEncodedStrip(TIFF *t, tstrip_t s, tdata_t d, tsize_t z)
+{
+    return 0;
+}
+
+tsize_t TIFFWriteEncodedStrip(TIFF *t, tstrip_t s, tdata_t d, tsize_t z)
 {
     return 0;
 }
@@ -51,4 +66,19 @@ TIFF* TIFFOpen(const char *a, const char *b)
 void TIFFClose(TIFF *d)
 {
 
+}
+
+typedef void (*TIFFWarningHandler)(const char *module, const char *fmt,
+                                   va_list ap);
+
+TIFFWarningHandler TIFFSetWarningHandler(TIFFWarningHandler handler)
+{
+  return NULL;
+}
+typedef void (*TIFFErrorHandler)(const char *module, const char *fmt,
+                                   va_list ap);
+
+TIFFErrorHandler TIFFSetErrorHandler(TIFFErrorHandler handler)
+{
+  return NULL;
 }
