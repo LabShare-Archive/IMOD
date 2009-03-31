@@ -176,20 +176,21 @@ bool line_twoKiss( Ipoint *a1, Ipoint *a2, Ipoint *a3,    Ipoint *b1, Ipoint *b2
 //-------------------------------
 //## EXTRA CONTOUR FUNCTIONS:
 
-int cont_isEqual( Icont *cont1, Icont *cont2 );
-int cont_doesPtExistInCont( Icont *cont, Ipoint *pt );
+int  cont_isEqual( Icont *cont1, Icont *cont2 );
+int  cont_doesPtExistInCont( Icont *cont, Ipoint *pt );
 
 bool cont_getMBR( Icont *cont, Ipoint *ll, Ipoint *ur );
 bool cont_getCenterOfMBR( Icont *cont, Ipoint *rpt );
-bool cont_getCentroid( Icont *cont, Ipoint *rpt );
+bool cont_getCentroid( Icont *cont, Ipoint *rpt ); 
+bool cont_insideCrude( Icont *cont1, Icont *cont2 );            // NEW
 
 float cont_getRadius( Icont *c );
-void cont_findClosestPtInContToGivenPt( Ipoint *pt, Icont *cont, float *closestDist, Ipoint *closestPt, int *closestPtIdx );
-bool cont_doContsTouch( Icont *cont1, Icont *cont2 );
+void  cont_findClosestPtInContToGivenPt( Ipoint *pt, Icont *cont, float *closestDist, Ipoint *closestPt, int *closestPtIdx );
+bool  cont_doContsTouch( Icont *cont1, Icont *cont2 );
 float cont_minDistPtAndContourPts2D( Ipoint *pt, Icont *cont, bool returnZeroIfPtInside );
 float cont_minDistBetweenContPts2D( Icont *cont1, Icont *cont2, bool returnZeroIfTouch );
-void cont_reorderPtsToStartAtIdx( Icont *c, int idxNewFirstPt );
-int cont_removePointsInCircle( Icont *cont, Ipoint *center, float radius, bool checkZEachPoint );      //NEW
+void  cont_reorderPtsToStartAtIdx( Icont *c, int idxNewFirstPt );
+int   cont_removePointsInCircle( Icont *cont, Ipoint *center, float radius, bool checkZEachPoint );      //NEW
 
 void cont_translate( Icont *cont, Ipoint *translate );
 void cont_translate( Icont *cont, float x, float y );
@@ -229,6 +230,8 @@ bool cont_isSimpleSeg( Icont *cont, bool closed, int *ptCross );
 void cont_makeSimple( Icont *cont );                            
 int  cont_breakIntoSimple( vector<IcontPtr> &conts, Icont *cont );   
 int  cont_killVertAndHorzSegments( Icont *cont );                           // NEW
+void cont_nudgeAllPointsRandomly( Icont *cont );                            // NEW
+int  cont_nudgeAnyPointsLyingOnOtherContour( Icont *cont1, Icont *cont2 );  // NEW
 bool cont_isConvex( Icont *cont );                              
 int  cont_makeConvex( Icont *cont );
 int  cont_markConvexPtsNegOne( Icont *cont );
@@ -242,11 +245,11 @@ void cont_getIntersectingConvexPolygon( Icont *newCont, Icont *cont1, Icont *con
 int cont_breakContByZValue( Icont *contOrig, vector<IcontPtr> &contSegs, int zValue, bool removeOffSegments );  // NEW
 int cont_breakOpenContAtZValue( Icont *contOrig, vector<IcontPtr> &contSegs, int zValueToBreak );               // NEW
 int cont_breakContByCircle( Icont *contOrig, vector<IcontPtr> &contSegs, Ipoint *center, float radius );        // NEW
-int cont_breakContOutsideMBR( Icont *contOrig, vector<IcontPtr> &contSegs, Ipoint *ll, Ipoint *ur );            // NEW
+int cont_addPtsAtIntersection( Icont *cont1, Icont *cont2 );                                                    // NEW
 int cont_getIntersectingSegments( Icont *cont1, Icont *cont2, vector<IcontPtr> &cont1Segs, vector<IcontPtr> &cont2Segs  );   // MODIFY
 int cont_getIntersectingPolygons( vector<IcontPtr> &finalConts, Icont *cont1, Icont *cont2 );                      
 int cont_getUnionPolygons( vector<IcontPtr> &finalConts, Icont *cont1, Icont *cont2 );                        
-void cont_getOuterUnionPolygon( Icont *newCont, Icont *cont1O, Icont *cont2O );                    
+bool cont_getOuterUnionPolygon( Icont *newCont, Icont *cont1O, Icont *cont2O );                    
 
 Ipoint cont_getPtDistAlongLength( Icont *cont, float dist, bool closed, int startPt );
 Ipoint cont_getPtFractAlongLength( Icont *cont, float fract, bool closed, int startPt );
