@@ -1,5 +1,11 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+3/31/09: Tif2mrc and 3dmod will both read grayscale TIFF files with multiple
+samples per pixel by treating each sample as a separate image.  When a
+multipage TIFF file has multiple image sizes, the smaller ones (e.g.,
+thumbnails) are now ignored.  Mrc2tif now writes data using libtiff and
+supports compression options.
+
 3/30/09: Try to prevent degenerate solutions in Findwarp by detecting when
 most patches are on a diagonal.
 

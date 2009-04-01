@@ -13,16 +13,28 @@ and RGB color files (modes 0, 1, 6, 2, 16) can be converted.  If the input
 file has only one section, then the output file will simply be the 
 <tiff root name> with no suffix added.  
 .P
-If the option 
-.B -s
-is given, then a single output file will be created, a TIFF stack with all of
-the sections in the input file.
-.P
 When the mode is integer or float, the TIFF file will contain the minimum and
 maximum value for the data in the file.  When a TIFF stack is created, each
 image will have the same overall minimum and maximum, rather than values
 specific to that image.  This way, 3dmod will be able to read
 in the data with proper scaling.  
+.SS Options
+.TP
+.B -s
+Create a single output file, a TIFF stack with all of
+the sections in the input file.
+.TP
+.B -c <value>
+Compress the data with the type of compression indicated.  The most useful
+compression types may be LZW (value 5), Zip or Deflate (value 8), and JPEG
+(value 7).  For these types, the value can be given as a text string: "lzw",
+"zip", or "jpeg".  On Linux, see "man libtiff" for other numeric values that
+can be entered.  Not all of these options will be available on all operating
+systems.
+.TP
+.B -o
+Use old IMOD code instead of libtiff for writing the files (for testing
+purposes).
 .SH AUTHORS
 Jim Kremer, David Mastronarde
 .SH SEE ALSO
