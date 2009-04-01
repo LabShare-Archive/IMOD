@@ -52,6 +52,9 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.50  2009/03/17 00:46:24  sueh
+ * <p> bug# 1186 Pass managerKey to everything that pops up a dialog.
+ * <p>
  * <p> Revision 1.49  2009/02/13 02:34:44  sueh
  * <p> bug# 1176 Checking return value of MRCHeader.read.
  * <p>
@@ -389,7 +392,7 @@ final class SectionTablePanel implements ContextMenu, Expandable,
   private static final Dimension buttonDimension = UIParameters.INSTANCE
       .getButtonDimension();
   private static final String flipWarning[] = {
-      "TomogrgetAlignTabJComponentams have to be flipped after generation",
+      "Tomograms have to be rotated after generation",
       "in order to be in the right orientation for joining serial sections." };
   private static final String HEADER1_SECTIONS_LABEL = "Sections";
   static final String LABEL = "Section Table";
@@ -482,7 +485,7 @@ final class SectionTablePanel implements ContextMenu, Expandable,
   private BinnedXY3dmodButton b3bOpen3dmod;
 
   private int mode = JoinDialog.SETUP_MODE;
-  private boolean flipping = false;
+  private boolean rotating = false;
   private final JoinState state;
   private File lastLocation = null;
 
@@ -832,7 +835,7 @@ final class SectionTablePanel implements ContextMenu, Expandable,
     case JoinDialog.SETUP_MODE:
     case JoinDialog.SAMPLE_NOT_PRODUCED_MODE:
     case JoinDialog.CHANGING_SAMPLE_MODE:
-      if (!flipping) {
+      if (!rotating) {
         btnAddSection.setEnabled(true);
         btnInvertTable.setEnabled(true);
       }
@@ -901,7 +904,7 @@ final class SectionTablePanel implements ContextMenu, Expandable,
   }
 
   void enableAddSection() {
-    flipping = false;
+    rotating = false;
     setMode();
   }
 
@@ -1011,20 +1014,20 @@ final class SectionTablePanel implements ContextMenu, Expandable,
       if (!readHeader(header)) {
         return;
       }
-      flipping = true;
+      rotating = true;
       btnAddSection.setEnabled(false);
       btnInvertTable.setEnabled(false);
       if (header.getNRows() < header.getNSections()) {
         //The tomogram may not be flipped
-        //Ask use if can flip the tomogram
+        //Ask user if can rotate the tomogram
         String msgFlipped[] = {
-            "It looks like you didn't flip the tomogram in Post Processing",
+            "It looks like you didn't rotate the tomogram in Post Processing",
             "bacause the tomogram is thicker in Z then it is long in Y.",
             flipWarning[0], flipWarning[1],
-            "Shall I use the clip flipyz command to flip Y and Z?" };
+            "Should Etomo use the clip rotx command to rotate -90 degrees in X?" };
         if (uiHarness.openYesNoDialog(msgFlipped, AxisID.ONLY, manager
             .getManagerKey())) {
-          manager.flip(tomogram, joinDialog.getWorkingDir(), null);
+          manager.rotx(tomogram, joinDialog.getWorkingDir(), null);
           return;
         }
       }
@@ -1092,7 +1095,7 @@ final class SectionTablePanel implements ContextMenu, Expandable,
   }
 
   void addSection(final File tomogram) {
-    flipping = false;
+    rotating = false;
     setMode();
     if (!tomogram.exists()) {
       uiHarness.openMessageDialog(tomogram.getAbsolutePath()
