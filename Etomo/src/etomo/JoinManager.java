@@ -7,8 +7,8 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.util.Vector;
 
+import etomo.comscript.ClipParam;
 import etomo.comscript.FinishjoinParam;
-import etomo.comscript.FlipyzParam;
 import etomo.comscript.MakejoincomParam;
 import etomo.comscript.MidasParam;
 import etomo.comscript.ProcessDetails;
@@ -70,6 +70,9 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.75  2009/03/17 00:23:34  sueh
+ * <p> bug# 1186 Pass managerKey to everything that pops up a dialog.
+ * <p>
  * <p> Revision 1.74  2009/03/02 18:54:22  sueh
  * <p> bug# 1193 Must do a reconnect in openProcessingPanel.
  * <p>
@@ -1397,21 +1400,21 @@ public final class JoinManager extends BaseManager {
     joinDialog.setShiftInY(shiftInY);
   }
 
-  public void flip(File tomogram, File workingDir,
+  public void rotx(File tomogram, File workingDir,
       ConstProcessSeries processSeries) {
-    FlipyzParam flipyzParam = new FlipyzParam(tomogram, workingDir);
+    ClipParam clipParam = new ClipParam(tomogram, workingDir);
     try {
-      threadNameA = processMgr.flipyz(flipyzParam, processSeries);
+      threadNameA = processMgr.rotx(clipParam, processSeries);
     }
     catch (SystemProcessException except) {
       joinDialog.abortAddSection();
       except.printStackTrace();
-      uiHarness.openMessageDialog("Can't run clip flipyz\n"
+      uiHarness.openMessageDialog("Can't run clip rotx\n"
           + except.getMessage(), "SystemProcessException", AxisID.ONLY,
           getManagerKey());
       return;
     }
-    mainPanel.startProgressBar("Flipping " + tomogram.getName(), AxisID.ONLY);
+    mainPanel.startProgressBar("rotating " + tomogram.getName(), AxisID.ONLY);
   }
 
   public void abortAddSection() {
