@@ -926,7 +926,7 @@ unsigned char **mrc_read_byte(FILE *fin,
 
   /********************/
   /* Print some info. */
-  if (func != ( void (*)(char *) ) NULL){
+  if (func != ( void (*)(const char *) ) NULL){
     if (zsize > 1)
       sprintf(statstr, "Image size %d x %d, %d sections.\n", 
               xsize, ysize, zsize);
@@ -1013,14 +1013,14 @@ unsigned char **mrc_read_byte(FILE *fin,
     mrcHugeSeek(fin, hdata->sectionSkip * zoff, 0, 0, zoff, hdata->nx,
                 hdata->ny, dsize, SEEK_CUR);
 
-  if (func != ( void (*)(char *) ) NULL){
+  if (func != ( void (*)(const char *) ) NULL){
     sprintf(statstr, "\nReading Image # %3.3d",k+1); 
     (*func)(statstr);
   }
 
   /* Loop on sections */
   for (k = 0; k < zsize; k++){
-    if (func != ( void (*)(char *) ) NULL){
+    if (func != ( void (*)(const char *) ) NULL){
       sprintf(statstr, "\rReading Image # %3.3d",k+1); 
       (*func)(statstr);
     }
@@ -1139,7 +1139,7 @@ unsigned char **mrc_read_byte(FILE *fin,
       /* Keep track of total number of bytes on full lines that were probably
          read from disk and report status more frequently for large images so 
          3dmod can process messages */
-      if (func != ( void (*)(char *) ) NULL) {
+      if (func != ( void (*)(const char *) ) NULL) {
         bytesRead += dsize * hdata->nx;
         if (bytesRead > statusLimit) {
           (*func)(statstr);
@@ -1176,7 +1176,7 @@ unsigned char **mrc_read_byte(FILE *fin,
   hdata->zlen = hdata->nz * zscale;
      
   sprintf(statstr, "\n");
-  if (func != ( void (*)(char *) ) NULL)
+  if (func != ( void (*)(const char *) ) NULL)
     (*func)(statstr);
 
   return(idata);
@@ -1553,7 +1553,7 @@ int parallelWriteSlice(void *buf, FILE *fout, MrcHeader *hdata, int slice)
   }
 
   if (!linesBound)
-    return;
+    return 0;
   for (ib = 0; ib < 2; ib++) {
     if (sections[ib] >= 0 && slice == sections[ib]) {
       fseek(fpBound, hbound.headerSize + ib * hbound.nx * linesBound * csize *
@@ -2241,6 +2241,9 @@ void mrc_swap_floats(fb3dFloat *data, int amt)
 
 /*
 $Log$
+Revision 3.42  2009/02/16 06:16:58  mast
+Add parallel write routine
+
 Revision 3.41  2009/01/02 05:18:43  mast
 const char * for Qt 4 port
 
