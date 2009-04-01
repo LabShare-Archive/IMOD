@@ -2,22 +2,26 @@
 .nh
 .TH tif2mrc 1 3.6.17 BL3DEMC
 .SH NAME
-tif2mrc \- Make a MRC file from tiff image files.
+tif2mrc \- Make a MRC file from TIFF image files.
 .SH SYNOPSIS
-tif2mrc [-g | -G | -u | -d] [-b file] <tiff files...> <MRC file>
+tif2mrc [-g | -G | -u | -d] [-b file] <TIFF files...> <MRC file>
 .SH DESCRIPTION
-tif2mrc takes a series of tiff files and converts them
+tif2mrc takes a series of TIFF files and converts them
 into an MRC stack.  
-tif2mrc can also convert a single multi-page tiff file to an MRC stack.
+tif2mrc can also convert a single multi-page TIFF file to an MRC stack.
 .P
 Only grayscale and color image files are supported.
 Grayscale images must be 8 or 16 bit integers or 32 bit floats.
 Color images must be either 24 bit with pixels stored as 
 red-green-blue triplets, or 8-bit with an embedded colormap.  Colormapped 8-bit
 images will be converted to 24 bit RGB images, since this is the kind of 
-color MRC file that IMOD defines.
+color MRC file that IMOD defines.  If a grayscale image file has multiple
+sample values per pixel, then each sample will be converted to a separate
+section in the output file, and the input file will be treated like a
+multi-page TIFF file.  The multiple
+samples can be stored either contiguously or in separate planes.
 .P
-Images need not all be the same size.
+Images from different files need not all be the same size.
 The x and y dimensions of the stack
 are set from the x and y size of the first image, unless the 
 .B -o
@@ -30,7 +34,7 @@ Most of the options have to do with the treatment of unsigned 16-bit numbers.
 The standard MRC file mode for holding 16-bit integers is mode 1, which holds
 signed (positive and negative) values and has a range from -32768 to 32767.
 Unsigned integers, with a range from 0 to 65535, can be stored in file mode 6,
-which is a nonstandard mode.  If the tiff file has a tag indicating that it
+which is a nonstandard mode.  If the TIFF file has a tag indicating that it
 contains unsigned integers, then by default the program will preserve these
 values in a file of mode 6.  You can alter this behavior and store the numbers
 as signed values (mode 1) in three ways: 1) with the
@@ -42,7 +46,7 @@ option to divide by 2, which will throw away one bit of precision but keep the
 numbers positive; or 3) with the
 .B -s
 option to force the numbers to be saved unmodified in mode 1, which will be
-fine as long as there are no values above 32767.  Finally, if the tiff file
+fine as long as there are no values above 32767.  Finally, if the TIFF file
 lacks a tag indicating that it is unsigned but the numbers do range above
 32767, you can preserve unsigned integers and force output into a file of mode
 6 with the 
@@ -67,14 +71,14 @@ the mode of images from color to grayscale with Clip(1).
 .B -u
 With this option, the program will convert 16-bit numbers from unsigned to
 signed integers by subtracting 32768.
-Use this option if the tiff files have positive numbers ranging above 32767,
+Use this option if the TIFF files have positive numbers ranging above 32767,
 you want an output file of mode 1, and
 you do not want to lose any of the dynamic range of the numbers.
 .TP
 .B -d
 With this option, the program will treat 16-bit numbers as unsigned integers
 and divide them by two.  The resulting numbers will range between 0 and 32767.
-Use this option if the tiff files have positive numbers ranging above 32767,
+Use this option if the TIFF files have positive numbers ranging above 32767,
 you want an output file of mode 1, you want the numbers to remain positive,
 and you do not mind losing one bit of precision.
 .TP
@@ -91,17 +95,24 @@ With this option, the program will treat numbers as unsigned and output data
 into a file of mode 6 even if there is no tag indicating the data are unsigned.
 .TP
 .B -f
-If only one input file is given and it is a multi-page tiff file, the program
+If only one input file is given and it is a multi-page TIFF file, the program
 will convert all of the pages in the file into sections in an MRC file.  Use
 this option to make the program ignore the multiple pages and read only the
-first image.
+first image.  This option is no longer needed to process files with thumbnail 
+images embedded; if there are pages with differnt sizes, only the largest size
+will be converted to sections, and thus a thumbnail image will be ignored.
 .TP
 .B -o <#,#>
 Set the size of the output to the given dimensions in X and Y.  This option
 has no effect for multi-page input files.
+.TP
+.B -p <#>
+Set the pixel spacing in the header of the output file to the given value.
+This spacing is defined as having units of Angstroms, but you can place
+arbitrary values there.
 .TP 
 .B -b file
-This option loads a background file in tiff format.
+This option loads a background file in TIFF format.
 If a background file is loaded its values are subtracted from
 the values in the rest of the files.
 The background file must have the same data type as the images from which
@@ -114,7 +125,7 @@ Jim Kremer and David Mastronarde
 .SH SEE ALSO
 tomrc(1), raw2mrc(1)
 .SH BUGS
-If a standard tiff library is not installed, images must be uncompressed and
+If a standard TIFF library is not installed, images must be uncompressed and
 must consist of strips rather than tiles, and colormap files cannot be read.
 
 Email bug reports to mast@colorado.edu.
