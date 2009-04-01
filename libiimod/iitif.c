@@ -39,7 +39,9 @@ Additional documentation is at <ftp://ftp.sgi.com/graphics/tiff/doc>
 ****************************************************************************/
 
 #include <stdlib.h>
+#include <stdarg.h>
 #include <string.h>
+#include <stdio.h>
 #include "imodconfig.h"
 #ifdef NOTIFFLIBS
 #include "notiffio.h"
@@ -49,6 +51,10 @@ Additional documentation is at <ftp://ftp.sgi.com/graphics/tiff/doc>
 
 #include "iimage.h"
 #include "b3dutil.h"
+
+#ifdef _WIN32
+#define vsnprintf _vsnprintf
+#endif
 
 int tiffReopen(ImodImageFile *inFile);
 void tiffDelete(ImodImageFile *inFile);
@@ -343,8 +349,8 @@ void tiffSuppressWarnings(void)
 
 static void warningHandler(const char *module, const char *fmt, va_list ap)
 {
-  char buffer[256];
-  vsprintf(buffer, fmt, ap);
+  char buffer[100];
+  vsnprintf(buffer, 99, fmt, ap);
   va_end(ap);
   if (!strstr(buffer, "unknown field with tag") && oldHandler)
     oldHandler(module, fmt, ap);
@@ -836,6 +842,10 @@ int tiffWriteSection(ImodImageFile *inFile, void *buf, int compression,
 
 /*
   $Log$
+  Revision 3.15  2009/03/31 23:47:35  mast
+  Added writing function and support for multiple samples as images either
+  in contiguous bytes or separate planes and for multiple sizes in file
+
   Revision 3.14  2008/11/25 16:32:11  mast
   Visual C wants all declarations before executable statements
 
