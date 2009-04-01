@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+4/1/09: In Etomo - Join using clip rotx instead of clip flipyz handle a flipped
+tomogram (still creating a .flip file).  Rotx does not change handedness.
+
 3/31/09: Tif2mrc and 3dmod will both read grayscale TIFF files with multiple
 samples per pixel by treating each sample as a separate image.  When a
 multipage TIFF file has multiple image sizes, the smaller ones (e.g.,
