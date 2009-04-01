@@ -18,48 +18,100 @@
 #include "mrcfiles.h"
 #include "b3dtiff.h"
 #include "b3dutil.h"
+static FILE *openEitherWay(ImodImageFile *iifile, char *iname, char *progname,
+                           int oldcode);
 
 int main(int argc, char *argv[])
 {
   FILE *fin;
   MrcHeader hdata;
-  FILE *fpTiff;
+  FILE *fpTiff = NULL;
   Islice slice;
   int xsize, ysize, zsize, psize, xysize;
   int i, slmode, z, iarg = 1, stack = 0;
+  int oldcode = 0;
+  int compression = 1;
   b3dUInt32 ifdOffset = 0, dataOffset = 0;
   float dmin, dmax;
-
+  char prefix[100];
+  ImodImageFile *iifile = iiNew();
   char *iname;
   unsigned char *buf;
   char *progname = imodProgName(argv[0]);
+#define NUM_LEGAL 12
+  int legalComp[NUM_LEGAL] = {1, 2, 3, 4, 5, 7, 8, 32771, 32773, 32946, 32845,
+                              32845};
 
-  if (argc > 1 && !strcmp(argv[1], "-s")) {
-    iarg++;
-    stack = 1;
+  sprintf(prefix, "\nERROR: %s - ", progname);
+  setExitPrefix(prefix);
+
+  for (iarg = 1; iarg < argc - 1 ; iarg++){
+    if (argv[iarg][0] == '-'){
+      switch (argv[iarg][1]){
+      case 's':
+        stack = 1;
+        break;
+
+      case 'o':
+        oldcode = 1;
+        break;
+
+      case 'c':
+        iarg++;
+        if (!strcmp(argv[iarg], "zip"))
+          compression = 8;
+        else if (!strcmp(argv[iarg], "jpeg"))
+          compression = 7;
+        else if (!strcmp(argv[iarg], "lzw"))
+          compression = 5;
+        else
+          compression = atoi(argv[iarg]);
+        for (i = 0; i < NUM_LEGAL; i++)
+          if (compression == legalComp[i])
+            break;
+        if (i == NUM_LEGAL)
+          exitError("Compression value %d not allowed", compression);
+        break;
+
+      default:
+        break;
+      }
+      
+    }
+    else
+      break;
+       
   }
+
+  if (oldcode && compression != 1)
+    exitError("Compression not available with old writing code");
+
+
   if (argc - iarg != 2){
     printf("%s version %s \n", progname, VERSION_NAME);
     imodCopyright();
-    printf("%s [-s] <mrc file> <tiff name/root>\n\n", progname);
+    printf("%s [options] <mrc file> <tiff name/root>\n\n", progname);
     printf(" Without -s, a series of tiff files will be created "
             "with the\n prefix [tiff root name] and with the suffix nnn.tif, "
-            "where nnn is the z number.\n With -s, all images in the mrc "
-            "file will be stacked into a single tiff file.\n");
+           "where nnn is the z number. \n  Options:\n");
+    printf("    -s      Stack all images in the mrc file into a single tiff "
+           "file\n");
+    printf("    -c val  Compress data; val can be lzw, zip, jpeg, or numbers "
+           "defined\n\t\t in libtiff\n");
+    printf("    -o      Write file with old IMOD code instead of libtiff\n");
     exit(1);
   }
 
-  if (NULL == (fin = fopen(argv[iarg], "rb"))){
-    printf("ERROR: %s - Couldn't open %s\n", progname, argv[iarg]);
-    exit(3);
-  }
+  if (NULL == (fin = fopen(argv[iarg], "rb")))
+    exitError("Couldn't open %s", argv[iarg]);
 
-  if (mrc_head_read(fin, &hdata)){
-    printf("ERROR: %s - Can't Read Input Header from %s.\n",
-            progname,argv[iarg]);
-    exit(3);
-  }
+  if (mrc_head_read(fin, &hdata))
+    exitError("Can't Read Input Header from %s", argv[iarg]);
   iarg++;
+  iifile->format = IIFORMAT_LUMINANCE;
+  iifile->file = IIFILE_TIFF;
+  iifile->type = IITYPE_UBYTE;
+  iifile->amin = iifile->amax = 0;
 
   switch(hdata.mode){
       
@@ -68,19 +120,22 @@ int main(int argc, char *argv[])
     break;
   case MRC_MODE_SHORT:
     psize = 2;
+    iifile->type = IITYPE_SHORT;
     break;
   case MRC_MODE_USHORT:
     psize = 2;
+    iifile->type = IITYPE_USHORT;
     break;
   case MRC_MODE_RGB:
     psize = 3;
+    iifile->format = IIFORMAT_RGB;
     break;
   case MRC_MODE_FLOAT:
     psize = 4;
+    iifile->type = IITYPE_FLOAT;
     break;
   default:
-    printf("ERROR: %s - Datatype not supported.\n", progname);
-    exit(3);
+    exitError("Data mode %d not supported.", hdata.mode);
     break;
   }
   xsize = hdata.nx;
@@ -93,19 +148,12 @@ int main(int argc, char *argv[])
   buf = (unsigned char *)malloc(xsize * ysize * psize);
   iname = (char *)malloc(strlen(argv[iarg]) + 20);
 
-  if (!buf || !iname) {
-    printf("ERROR: %s - Failed to allocate memory for slice\n",
-            progname);
-    exit(3);
-  }
+  if (!buf || !iname)
+    exitError("Failed to allocate memory for slice");
 
   if (stack) {
     sprintf(iname, "%s", argv[iarg]);
-    fpTiff = fopen(iname, "wb");
-    if (!fpTiff){
-      printf("ERROR: %s - Opening %s\n", progname, iname);
-      perror("mrc2tif system message");
-    }
+    fpTiff = openEitherWay(iifile, iname, progname, oldcode);
   }    
 
   printf("Writing TIFF images. ");
@@ -119,13 +167,9 @@ int main(int argc, char *argv[])
       sprintf(iname, "%s.%3.3d.tif", argv[iarg], z);
       if (zsize == 1)
         sprintf(iname, "%s", argv[iarg]);
-
-      fpTiff = fopen(iname, "wb");
-      if (!fpTiff){
-        printf("\nERROR: %s - Opening %s\n", progname, iname);
-        perror("mrc2tif system message");
-        exit(1);
-      }
+      if (z)
+        free(iifile->filename);
+      fpTiff = openEitherWay(iifile, iname, progname, oldcode);
       ifdOffset = 0;
       dataOffset = 0;
     }
@@ -133,9 +177,8 @@ int main(int argc, char *argv[])
     /* DNM: switch to calling a routine that takes care of swapping and
        big seeks */
     if (mrc_read_slice(buf, fin, &hdata, z, 'Z')) {
-      printf("\nERROR: %s - reading section %d\n", progname, z);
       perror("mrc2tif ");
-      exit(1);
+      exitError("Reading section %d", z);
     }
 
     /* Get min/max for int/float images, those are the only ones the write
@@ -144,35 +187,69 @@ int main(int argc, char *argv[])
     if (!stack && slmode > 0) {
       sliceInit(&slice, xsize, ysize, slmode, buf);
       sliceMMM(&slice);
-      dmin = slice.min;
-      dmax = slice.max;
+      iifile->amin = slice.min;
+      iifile->amax = slice.max;
     }
-
-    tiferr = tiff_write_image(fpTiff, xsize, ysize, hdata.mode, buf, 
-                              &ifdOffset, &dataOffset, dmin, dmax);
+    iifile->nx = xsize;
+    iifile->ny = ysize;
+    if (fpTiff)
+      tiferr = tiff_write_image(fpTiff, xsize, ysize, hdata.mode, buf, 
+                                &ifdOffset, &dataOffset, dmin, dmax);
+    else
+      tiferr = tiffWriteSection(iifile, buf, compression, 0);
     if (tiferr){
-      printf("\nERROR: %s - error (%d) writing section %d to %s\n",
-              progname, tiferr, z, iname);
       perror("mrc2tif ");
-      exit(1);
+      exitError("Error (%d) writing section %d to %s", tiferr, z, iname);
     }
     
-    if (!stack)
-      fclose(fpTiff);
+    if (!stack) {
+      if (fpTiff) {
+        fclose(fpTiff);
+        fpTiff = NULL;
+      } else
+        iiClose(iifile);
+    }
   }
 
   printf("\r\n");
-  if (stack)
-    fclose(fpTiff);
-  
+  if (stack) {
+    if (fpTiff)
+      fclose(fpTiff);
+    else
+      iiClose(iifile);
+  }
   fclose(fin);
   free(buf);
   exit(0);
 }
 
+static FILE *openEitherWay(ImodImageFile *iifile, char *iname, char *progname,
+                           int oldcode)
+{
+  static int warned = 0;
+  FILE *fpTiff = NULL;
+  iifile->filename = strdup(iname);
+  
+  if (oldcode || tiffOpenNew(iifile)) {
+    fpTiff = fopen(iname, "wb");
+    if (!fpTiff){
+      perror("mrc2tif system message");
+      exitError("Opening %s", iname);
+    } else if (!oldcode && !warned) {
+      warned = 1;
+      printf("\nWARNING: %s - Not writing with libtiff, compression not "
+             "available", progname);
+    }
+  }
+  return fpTiff;
+}
+
 /*
 
 $Log$
+Revision 3.10  2008/05/24 14:52:45  mast
+Fixed string length allocation
+
 Revision 3.9  2008/05/23 23:03:31  mast
 Added string include
 
