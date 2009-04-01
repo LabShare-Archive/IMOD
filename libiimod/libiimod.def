@@ -114,18 +114,21 @@ EXPORTS
 	mrcReadFloatSlice
 	mrcGetComplexScale
 	mrc_read_byte
+	tiffWriteSection
 	iiWriteSection
 	mrc_fix_li
 	niceFrame
 	sliceAddConst
 	iiMRCCheck
 	mrc_bandpass_filter
+	tiffFilterWarnings
 	iiDeleteRawCheckList
 	mrc_set_cmap_stamp
 	mrcReadZByte
 	iiDelete
 	mrc_write_idata
 	mrc_liso
+	tiffOpenNew
 	mrc_slice_valscale
 	mrc_slice_lie_img
 	tiffSuppressErrors
