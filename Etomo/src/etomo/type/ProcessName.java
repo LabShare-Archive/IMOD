@@ -17,6 +17,10 @@ import etomo.util.DatasetFiles;
  * @version $$Revision$$
  *
  * <p> $$Log$
+ * <p> $Revision 1.19  2008/11/20 01:36:58  sueh
+ * <p> $bug# 1147 Added CCD_ERASER - for running ccderaser from the
+ * <p> $command line.
+ * <p> $
  * <p> $Revision 1.18  2008/10/27 19:25:23  sueh
  * <p> $bug# 1141 Added ctfPlotter, ctfCorrection, and splitCorrection
  * <p> $
@@ -133,6 +137,7 @@ public class ProcessName {
   private static final String ctfCorrection = "ctfcorrection";
   private static final String splitCorrection = "splitcorrection";
   private static final String ccderaser = "ccderaser";
+  private static final String clip = "clip";
 
   private final String name;
 
@@ -190,6 +195,7 @@ public class ProcessName {
   public static final ProcessName CTF_CORRECTION = new ProcessName(ctfCorrection);
   public static final ProcessName SPLIT_CORRECTION = new ProcessName(splitCorrection);
   public static final ProcessName CCD_ERASER = new ProcessName(ccderaser);
+  public static final ProcessName CLIP = new ProcessName(clip);
 
   /**
    * Returns a string representation of the object.
@@ -432,6 +438,9 @@ public class ProcessName {
     }
     if (name.compareToIgnoreCase(ccderaser) == 0) {
       return CCD_ERASER;
+    }
+    if (name.compareToIgnoreCase(clip) == 0) {
+      return CLIP;
     }
     return null;
   }
