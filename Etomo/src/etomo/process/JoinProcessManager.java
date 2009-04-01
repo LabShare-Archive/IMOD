@@ -6,6 +6,7 @@ import java.io.IOException;
 
 import etomo.BaseManager;
 import etomo.JoinManager;
+import etomo.comscript.ClipParam;
 import etomo.comscript.Command;
 import etomo.comscript.ProcessDetails;
 import etomo.comscript.FinishjoinParam;
@@ -40,6 +41,9 @@ import etomo.util.DatasetFiles;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 1.28  2009/02/04 23:25:27  sueh
+ * <p> bug# 1158 Changed id and exceptions classes in LogFile.
+ * <p>
  * <p> Revision 1.27  2008/11/20 01:32:53  sueh
  * <p> bug# 1149 Moved xfmodel from JoinProcessManager to BaseProcessManager.
  * <p>
@@ -276,12 +280,12 @@ public final class JoinProcessManager extends BaseProcessManager {
   }
 
   /**
-   * Run flip
+   * Run clip rotx
    */
-  public String flipyz(FlipyzParam flipyzParam, ConstProcessSeries processSeries)
+  public String rotx(ClipParam clipyzParam, ConstProcessSeries processSeries)
       throws SystemProcessException {
-    BackgroundProcess backgroundProcess = startBackgroundProcess(flipyzParam,
-        AxisID.ONLY, ProcessName.CLIPFLIPYZ, processSeries);
+    BackgroundProcess backgroundProcess = startBackgroundProcess(clipyzParam,
+        AxisID.ONLY, ProcessName.CLIP, processSeries);
     return backgroundProcess.getName();
   }
 
@@ -333,7 +337,7 @@ public final class JoinProcessManager extends BaseProcessManager {
     }
     ProcessDetails processDetails = process.getProcessDetails();
     Command command = process.getCommand();
-    if (commandName.equals(FlipyzParam.getName())) {
+    if (commandName.equals(ClipParam.getName())) {
       if (command == null) {
         return;
       }
@@ -463,6 +467,17 @@ public final class JoinProcessManager extends BaseProcessManager {
       manager.setMode();
     }
     else if (commandName.equals(FlipyzParam.getName())) {
+      Command command = process.getCommand();
+      if (command == null) {
+        return;
+      }
+      File outputFile = command.getCommandOutputFile();
+      //A partially created flip file can cause an error when it is opened.
+      if (outputFile != null) {
+        outputFile.delete();
+      }
+    }
+    else if (commandName.equals(ClipParam.getName())) {
       Command command = process.getCommand();
       if (command == null) {
         return;
