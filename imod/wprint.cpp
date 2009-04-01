@@ -26,6 +26,9 @@
 #include <qapplication.h>
 #include "imod.h"
 #include "preferences.h"
+#ifdef _WIN32
+#define vsnprintf _vsnprintf
+#endif
 
 static QTextEdit *Wprint_text_output = NULL;
 
@@ -38,9 +41,10 @@ void wprintWidget(QTextEdit *edit)
 }
 
 /*VARARGS*/
+#define MSGBUF_LEN  512
 void wprint(const char *fmt, ...)
 {
-  char msgbuf[1000];
+  char msgbuf[MSGBUF_LEN];
   va_list args;
   bool nopos = false;
   int i, len, lastnl;
@@ -64,18 +68,9 @@ void wprint(const char *fmt, ...)
       beep = 1;
     }
 
-#ifndef NO_VPRINTF
-  (void) vsprintf (msgbuf, fmt, args);
-#else /* !NO_VPRINTF */
-  {
-    FILE foo;
-    foo._cnt = 256;
-    foo._base = foo._ptr = msgbuf; /* (unsigned char *) ?? */
-    foo._flag = _IOWRT+_IOSTRG;
-    (void) _doprnt (fmt, args, &foo);
-    *foo._ptr = '\0'; /* plant terminating null character */
-  }
-#endif /* NO_VPRINTF */
+  vsnprintf (msgbuf, MSGBUF_LEN - 1, fmt, args);
+
+  // 3/31/09: removed alternative calls if no vsprintf
   va_end (args);
      
   msgstr = msgbuf;
@@ -134,6 +129,9 @@ void wprint(const char *fmt, ...)
 /*
 
 $Log$
+Revision 4.8  2009/01/15 16:33:18  mast
+Qt 4 port
+
 Revision 4.7  2008/02/06 16:14:21  sueh
 bug# 1065 Changed wprint(char *) to wprint(const char*).
 
