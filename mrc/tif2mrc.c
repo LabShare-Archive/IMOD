@@ -61,7 +61,7 @@ int main( int argc, char *argv[])
   int xsize = XSIZE, ysize = YSIZE;
   int mrcxsize = 0, mrcysize = 0, mrcsizeset;
   int bpix;
-  float mean, tmean;
+  float mean, tmean, pixelSize = 1.;
   int pixel;
   b3dInt16 *sptr;
   b3dInt16 *bgshort;
@@ -97,6 +97,7 @@ int main( int argc, char *argv[])
             "integer mode\n");
     printf("\t-s      Store as signed integers (mode 1) even if data "
             "are unsigned\n");
+    printf("\t-p  #   Set pixel spacing in MRC header to given #\n");
     printf("\t-f      Read only first image of multi-page file\n");
     printf("\t-o x,y  Set output file size in X and Y\n");
     printf("\t-b file Background subtract image in given file\n");
@@ -136,6 +137,12 @@ int main( int argc, char *argv[])
         forceSigned = 1;
         break;
  
+      case 'p': /* Insert pixel size in header */
+        pixelSize = atof(argv[++i]);
+        if (pixelSize <= 0.)
+          pixelSize = 1.;
+        break;
+
       case 'f': /* read only first image */
         readFirst = 1;
         break;
@@ -173,6 +180,7 @@ int main( int argc, char *argv[])
     unsign = 1;
   if (unsign)
     forceSigned = 1;
+  tiffFilterWarnings();
 
   if (i == (argc - 2) && !readFirst){
 
@@ -273,9 +281,9 @@ int main( int argc, char *argv[])
       hdata.mx = hdata.nx;
       hdata.my = hdata.ny;
       hdata.mz = hdata.nz;
-      hdata.xlen = hdata.nx;
-      hdata.ylen = hdata.ny;
-      hdata.zlen = hdata.nz;
+      hdata.xlen = hdata.nx * pixelSize;
+      hdata.ylen = hdata.ny * pixelSize;
+      hdata.zlen = hdata.nz * pixelSize;
       if (mode == MRC_MODE_RGB) {
         hdata.amax = 255;
         hdata.amean = 128.0;
@@ -516,9 +524,9 @@ int main( int argc, char *argv[])
   hdata.mx = hdata.nx;
   hdata.my = hdata.ny;
   hdata.mz = hdata.nz;
-  hdata.xlen = hdata.nx;
-  hdata.ylen = hdata.ny;
-  hdata.zlen = hdata.nz;
+  hdata.xlen = hdata.nx * pixelSize;
+  hdata.ylen = hdata.ny * pixelSize;
+  hdata.zlen = hdata.nz * pixelSize;
   if (mode == MRC_MODE_RGB) {
     hdata.amax = 255;
     hdata.amean = 128.0;
@@ -699,6 +707,9 @@ static float minmaxmean(unsigned char *tifdata, int mode, int unsign,
 
 /* 
    $Log$
+   Revision 3.17  2008/05/23 22:56:08  mast
+   Added float support, NTSC gray option, standardized error output
+
    Revision 3.16  2007/10/15 21:42:57  mast
    Fixed log setup
 
