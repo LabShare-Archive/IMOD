@@ -18,12 +18,12 @@
 #include <string.h>
 #include <stdio.h>
 #include <math.h>
-#include <stdbool.h>
+#include "stdbool.h"
 
 #ifdef __APPLE__
   #include <vecLib/vecLib.h>
 #else
-  #include <cblas.h>
+  #include "cblas.h"
 #endif
 
 #define ZERO   0.0
