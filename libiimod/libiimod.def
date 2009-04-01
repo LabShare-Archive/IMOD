@@ -18,7 +18,6 @@ EXPORTS
 	mrc_coord_cp
 	mrc_plist_li
 	sliceByteEdgeLaplacian
-	parallelWriteSlice
 	mrc_slice_putvol
 	iiSetupRawHeaders
 	mrc_read_slice
@@ -131,6 +130,7 @@ EXPORTS
 	mrc_slice_lie_img
 	tiffSuppressErrors
 	mrc_slice_zoom
+	parallelWriteSlice
 	iiOpen
 	mrc_swap_longs
 	mrcReadSectionFloat
