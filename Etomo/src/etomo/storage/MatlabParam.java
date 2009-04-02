@@ -44,6 +44,9 @@ import etomo.util.DatasetFiles;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.27  2009/03/17 00:45:24  sueh
+ * <p> bug# 1186 Pass managerKey to everything that pops up a dialog.
+ * <p>
  * <p> Revision 1.26  2009/02/04 23:29:40  sueh
  * <p> bug# 1158 Changed id and exceptions classes in LogFile.
  * <p>
@@ -1866,7 +1869,7 @@ public final class MatlabParam {
       if (increment.equals(0)) {
         increment.set(1);
       }
-      descriptor.setRawStringIncrement(input);
+      descriptor.setRawStringIncrement(increment.toString());
     }
 
     private String getEnd() {
