@@ -78,7 +78,7 @@ public class WindowSwitch {
    * @param key
    */
   void add(BaseManager manager, ManagerKey managerKey) {
-    if (manager == null) {
+    if (manager == null || managerKey == null) {
       return;
     }
     if (menuList == null) {
@@ -128,7 +128,7 @@ public class WindowSwitch {
    * @param key
    */
   void remove(ManagerKey managerKey) {
-    if (managerKey == null) {
+    if (managerKey == null || managerKey == null) {
       return;
     }
     UniqueKey key = managerKey.getKey();
@@ -175,7 +175,8 @@ public class WindowSwitch {
    * @return
    */
   JComponent getPanel(ManagerKey managerKey) {
-    if (mainPanelList == null || mainPanelList.size() == 0) {
+    if (mainPanelList == null || mainPanelList.size() == 0
+        || managerKey == null) {
       return null;
     }
     UniqueKey key = managerKey.getKey();
@@ -191,7 +192,7 @@ public class WindowSwitch {
    * @param managerKey
    */
   void selectWindow(ManagerKey managerKey, boolean newWindow) {
-    if (managerKey == null) {
+    if (managerKey == null || managerKey == null) {
       return;
     }
     selectWindow(managerKey.getKey(), newWindow);
@@ -329,6 +330,9 @@ public class WindowSwitch {
 
 /**
  * <p>$Log$
+ * <p>Revision 1.13  2009/03/17 00:46:24  sueh
+ * <p>bug# 1186 Pass managerKey to everything that pops up a dialog.
+ * <p>
  * <p>Revision 1.12  2009/01/20 20:33:48  sueh
  * <p>bug# 1102 Changed menu items to self-naming menu items.
  * <p>
