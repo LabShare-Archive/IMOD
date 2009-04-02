@@ -416,7 +416,7 @@ public class EtomoDirector {
    */
   public synchronized void setCurrentManager(ManagerKey managerKey,
       boolean newWindow) {
-    if (managerKey == null || managerKey.getKey() == null) {
+    if (managerKey == null || managerKey == null || managerKey.getKey() == null) {
       return;
     }
     setCurrentManager((BaseManager) managerList.get(managerKey.getKey()),
@@ -1081,6 +1081,9 @@ public class EtomoDirector {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.81  2009/03/17 00:22:42  sueh
+ * <p> bug# 1186 Changed currentManagerKey to a ManagerKey, which holds a UniqueKey.  Set the unique key in managerKey when it changes.
+ * <p>
  * <p> Revision 1.80  2009/03/09 17:22:28  sueh
  * <p> bug# 1172 For now just adding --fg option.
  * <p>
