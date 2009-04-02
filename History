@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+4/2/09: In Etomo - PEET changed Phi, Theta, Psi increments so that a 0 value
+defaults to 1.
+
 4/2/09: In Etomo fixed the Tomosnapshot menu option so that it on all the time.
 
 4/1/09: In Etomo - Join using clip rotx instead of clip flipyz handle a flipped
