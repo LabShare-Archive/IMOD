@@ -38,6 +38,10 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.5  2009/03/16 23:24:30  sueh
+ * <p> bug# 1186 In logMessage only log if the parameter managerKey equals the member
+ * <p> variable managerKey.
+ * <p>
  * <p> Revision 1.4  2009/03/05 23:29:21  sueh
  * <p> bug# 1194 Manage frame size and location with LogProperties.
  * <p>
@@ -267,7 +271,9 @@ public final class LogPanel implements Storable {
   }
 
   public void logMessage(Loggable loggable, AxisID axisID, ManagerKey managerKey) {
-    if (loggable == null || !managerKey.equals(this.managerKey)) {
+    //If managerKey parameter is null, always log.
+    if (loggable == null
+        || (managerKey != null && !managerKey.equals(this.managerKey))) {
       return;
     }
     try {
@@ -289,7 +295,8 @@ public final class LogPanel implements Storable {
 
   public void logMessage(String title, AxisID axisID, String[] message,
       ManagerKey managerKey) {
-    if (!managerKey.equals(this.managerKey)) {
+    //If managerKey parameter is null, always log.
+    if ((managerKey != null && !managerKey.equals(this.managerKey))) {
       return;
     }
     SwingUtilities.invokeLater(new AppendLater(Utilities.getDateTimeStamp(),
