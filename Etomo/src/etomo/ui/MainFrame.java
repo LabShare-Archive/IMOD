@@ -35,6 +35,9 @@ import etomo.util.Utilities;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.54  2009/03/17 00:46:24  sueh
+ * <p> bug# 1186 Pass managerKey to everything that pops up a dialog.
+ * <p>
  * <p> Revision 3.53  2009/03/05 23:31:05  sueh
  * <p> bug# 1194 Added msgUpdateLogProperties.
  * <p>
@@ -510,6 +513,7 @@ public final class MainFrame extends EtomoFrame implements ContextMenu {
 
   void setCurrentManager(BaseManager currentManager, ManagerKey managerKey,
       boolean newWindow) {
+    setEnabled(currentManager);
     if (EtomoDirector.INSTANCE.getArguments().isTest() && logFrame.isVisible()) {
       showHideLog();
     }
@@ -527,7 +531,6 @@ public final class MainFrame extends EtomoFrame implements ContextMenu {
     }
     if (currentManager == null) {
       title = etomoTitle;
-      setEnabled(currentManager);
       hideAxisB();
       logFrame.setPanel(null);
     }
@@ -537,7 +540,6 @@ public final class MainFrame extends EtomoFrame implements ContextMenu {
       rootPanel.add(windowSwitch.getPanel(managerKey));
       logFrame.setPanel(currentManager.getLogPanel());
       mainPanel.addMouseListener(mouseAdapter);
-      setEnabled(currentManager);
       mainPanel.repaint();
 
       if (subFrame != null) {
