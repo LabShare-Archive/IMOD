@@ -147,7 +147,7 @@ abstract class EtomoFrame extends JFrame {
       UIHarness.INSTANCE.exit(axisID);
     }
     else if (menu.equalsTomosnapshot(event)) {
-      currentManager.tomosnapshot(axisID, null);
+      currentManager.tomosnapshot(axisID);
     }
   }
 
@@ -915,6 +915,11 @@ abstract class EtomoFrame extends JFrame {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.42  2009/03/16 23:51:36  sueh
+ * <p> bug# 1186 In showOptionDialog pass the managerKey parameter to
+ * <p> BaseManager.logMessage.  Add managerKey to every function which calls
+ * <p> showOptionDialog.
+ * <p>
  * <p> Revision 1.41  2009/02/04 23:31:59  sueh
  * <p> bug# 1158 Add a View pull down menu.
  * <p>
