@@ -1252,10 +1252,9 @@ public abstract class BaseManager {
     getMainPanel().setParallelDialog(axisID, dialog.usingParallelProcessing());
   }
 
-  public final void tomosnapshot(AxisID axisID, ConstProcessSeries processSeries) {
-    String threadName;
+  public final void tomosnapshot(AxisID axisID) {
     try {
-      threadName = getProcessManager().tomosnapshot(axisID, processSeries);
+      getProcessManager().tomosnapshot(axisID);
     }
     catch (SystemProcessException e) {
       e.printStackTrace();
@@ -1266,13 +1265,14 @@ public abstract class BaseManager {
           + ProcessName.TOMOSNAPSHOT, axisID, managerKey);
       return;
     }
-    setThreadName(threadName, axisID);
-    getMainPanel().startProgressBar("Running " + ProcessName.TOMOSNAPSHOT,
-        axisID, ProcessName.TOMOSNAPSHOT);
   }
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.110  2009/03/16 23:44:28  sueh
+ * <p> bug# 1186 Added member variable managerKey.   Add this managerKey to LogPanel.
+ * <p> In logMessage pass the managerKey received as a param to LogPanel.logMessage.
+ * <p>
  * <p> Revision 1.109  2009/03/05 23:22:48  sueh
  * <p> bug# 1194 In getStorables() and save() save logPanel.
  * <p>
