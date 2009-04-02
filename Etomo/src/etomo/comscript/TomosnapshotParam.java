@@ -29,13 +29,12 @@ public final class TomosnapshotParam implements Command {
       .toString();
 
   private final AxisID axisID;
-  private final BaseManager manager;
 
   private String[] commandArray = null;
+  private boolean debug = true;
 
-  public TomosnapshotParam(BaseManager manager, AxisID axisID) {
+  public TomosnapshotParam(AxisID axisID) {
     this.axisID = axisID;
-    this.manager = manager;
   }
 
   public final String getCommand() {
@@ -59,12 +58,20 @@ public final class TomosnapshotParam implements Command {
     command.add("tcsh");
     command.add("-f");
     command.add(BaseManager.getIMODBinPath() + COMMAND_NAME);
-    command.add("-e");
-    command.add(manager.getBaseMetaData().getMetaDataFileName());
+    //    command.add("-e");
+    //    command.add(manager.getBaseMetaData().getMetaDataFileName());
     int commandSize = command.size();
     commandArray = new String[commandSize];
     for (int i = 0; i < commandSize; i++) {
       commandArray[i] = (String) command.get(i);
+    }
+    if (debug) {
+      System.err.println("Running tomosnapshot in "
+          + System.getProperty("user.dir"));
+      for (int i = 0; i < commandArray.length; i++) {
+        System.err.print(commandArray[i] + " ");
+      }
+      System.err.println();
     }
   }
 
@@ -90,12 +97,16 @@ public final class TomosnapshotParam implements Command {
     }
     return commandArray;
   }
+
   public CommandDetails getSubcommandDetails() {
     return null;
   }
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.7  2007/11/06 19:17:32  sueh
+ * <p> bug# 1047 Added getSubcommandDetails.
+ * <p>
  * <p> Revision 1.6  2007/02/05 22:48:08  sueh
  * <p> bug# 962 Changed getCommandMode to return CommandMode.
  * <p>
