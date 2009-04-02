@@ -212,12 +212,6 @@ public final class EtomoMenu {
       menuAxisB.setEnabled(dualAxis);
       menuAxisBoth.setEnabled(dualAxis);
     }
-    if (currentManager == null || !currentManager.canSnapshot()) {
-      menuTomosnapshot.setEnabled(false);
-    }
-    else {
-      menuTomosnapshot.setEnabled(true);
-    }
   }
 
   /**
@@ -231,7 +225,6 @@ public final class EtomoMenu {
     menuNewParallel.setEnabled(mainFrameMenu.menuNewParallel.isEnabled());
     menuNewPeet.setEnabled(mainFrameMenu.menuNewPeet.isEnabled());
     menuSaveAs.setEnabled(mainFrameMenu.menuSaveAs.isEnabled());
-    menuTomosnapshot.setEnabled(menuTomosnapshot.isEnabled());
     menuAxisA.setEnabled(mainFrameMenu.menuAxisA.isEnabled());
     menuAxisB.setEnabled(mainFrameMenu.menuAxisB.isEnabled());
     menuAxisBoth.setEnabled(mainFrameMenu.menuAxisBoth.isEnabled());
@@ -467,6 +460,10 @@ public final class EtomoMenu {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.14  2009/02/04 23:32:25  sueh
+ * <p> bug# 1158 Add a View pull down menu and menu options for the log
+ * <p> frame.
+ * <p>
  * <p> Revision 1.13  2009/01/20 19:59:13  sueh
  * <p> bug# 1102 Changed JMenuItem variables to type MenuItem, JMenu
  * <p> variables to type Menu, and JCheckBoxMenuItem variables to
