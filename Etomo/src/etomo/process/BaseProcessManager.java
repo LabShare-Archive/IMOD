@@ -44,6 +44,9 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.78  2009/03/17 00:34:31  sueh
+ * <p> bug# 1186 Pass managerKey to everything that pops up a dialog.
+ * <p>
  * <p> Revision 1.77  2009/03/02 18:58:33  sueh
  * <p> bug# 1193 Added blockAxisA and B.  Testing them in isAxisBusy.  Turning
  * <p> them off in unblockAxis.
@@ -1592,10 +1595,36 @@ public abstract class BaseProcessManager {
     return program;
   }
 
+  public final void tomosnapshot(final AxisID axisID)
+      throws SystemProcessException {
+    SystemProgram sysProgram = new SystemProgram(
+        System.getProperty("user.dir"), new TomosnapshotParam(axisID)
+            .getCommandArray(), axisID, null);
+    sysProgram.run();
+    if (sysProgram.getExitValue() != 0) {
+      StringBuffer errorMessage = new StringBuffer();
+      errorMessage.append("Unable to run tomosnapshot in "
+          + System.getProperty("user.dir") + ".  Exit value is "
+          + sysProgram.getExitValue() + ".  ");
+      String[] err = sysProgram.getStdError();
+      if (err != null) {
+        for (int i = 0; i < err.length; i++) {
+          errorMessage.append(err[i] + "  ");
+        }
+      }
+      uiHarness.openMessageDialog(errorMessage.toString(), "Process Failed",
+          axisID, null);
+    }
+    else {
+      uiHarness.openMessageDialog("Snapshot file created in "
+          + System.getProperty("user.dir"), "Snapshot Created", axisID, null);
+    }
+  }
+
   /**
    * Start an arbitrary command as an unmanaged background thread
    */
-  final void startSystemProgramThread(final String[] command,
+  public final void startSystemProgramThread(final String[] command,
       final AxisID axisID) {
     // Initialize the SystemProgram object
     SystemProgram sysProgram = new SystemProgram(manager.getPropertyUserDir(),
@@ -1711,14 +1740,6 @@ public abstract class BaseProcessManager {
       final InteractiveSystemProgram program, final int exitValue) {
     postProcess(program);
     manager.saveStorables(program.getAxisID());
-  }
-
-  public final String tomosnapshot(final AxisID axisID,
-      final ConstProcessSeries processSeries) throws SystemProcessException {
-    BackgroundProcess backgroundProcess = startBackgroundProcess(
-        new TomosnapshotParam(manager, axisID), axisID,
-        ProcessName.TOMOSNAPSHOT, processSeries);
-    return backgroundProcess.getName();
   }
 
   final void writeLogFile(final BackgroundProcess process, final AxisID axisID,
