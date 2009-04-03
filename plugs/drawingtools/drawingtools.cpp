@@ -15,6 +15,9 @@
     $Revision$
 
     $Log$
+    Revision 1.30  2009/03/31 04:54:11  tempuser
+    fixed join tool (I hope)
+
     Revision 1.29  2009/03/24 13:33:31  tempuser
     added adjustGeometryAndShow
 
@@ -211,9 +214,12 @@ int imodPlugKeys(ImodView *vw, QKeyEvent *event)
       return plug.window->copyCurrContToView(shift);
       break;
       
-    case Qt::Key_T:                  // temporary testing purposes - comment out
-      plug.window->test();
-      break;
+    //case Qt::Key_T:                  // temporary testing purposes - comment out
+    //  if(ctrl)
+    //    plug.window->test();
+    //  else
+    //    return 0;
+    //  break;
       
     case Qt::Key_X:
       if(ctrl)
