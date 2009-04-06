@@ -402,9 +402,9 @@ void XyzWindow::closeEvent (QCloseEvent * e )
   e->accept();
 }
 
-void XyzWindow::SetCursor(int mode)
+void XyzWindow::SetCursor(int mode, bool setAnyway)
 {
-  if (mXyz->mousemode == mode)
+  if (mXyz->mousemode == mode && !setAnyway)
     return;
   if (mode == IMOD_MMODEL)
       mGLw->setCursor(*App->modelCursor);
@@ -2262,6 +2262,7 @@ void XyzGL::mousePressEvent(QMouseEvent * event )
   button2 = event->buttons() & ImodPrefs->actualButton(2) ? 1 : 0;
   button3 = event->buttons() & ImodPrefs->actualButton(3) ? 1 : 0;
   utilRaiseIfNeeded(mXyz->dialog, event);
+  mWin->SetCursor(mXyz->mousemode, utilNeedToSetCursor());
 
   if (event->button() == ImodPrefs->actualButton(1) && !button2 && !button3) {
     but1downt.start();
@@ -2353,6 +2354,9 @@ void XyzGL::mouseMoveEvent( QMouseEvent * event )
 
 /*
 $Log$
+Revision 4.56  2009/03/30 18:26:20  mast
+Call function to raise on mouse press if needed
+
 Revision 4.55  2009/03/22 19:42:16  mast
 Changes for cocoa/10.5: fill toolbar edit box 3 times
 

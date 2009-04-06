@@ -127,7 +127,7 @@ class XyzWindow : public QMainWindow
                    int indy, int indz, int currentZ, float bx, float by,
                    bool currentCont);
   void keyPressPassedOn ( QKeyEvent * e ) {keyPressEvent(e);};
-  void SetCursor(int mode);
+  void SetCursor(int mode, bool setAnyway = false);
   void setZoomText(float zoom);
   void setSlider(int which, int section);
   void setMaxAxis(int which, int max);
@@ -202,6 +202,9 @@ float xyzScaleBarSize();
 /*
 
 $Log$
+Revision 3.19  2009/01/15 16:33:18  mast
+Qt 4 port
+
 Revision 3.18  2008/01/25 20:22:58  mast
 Changes for new scale bar
 

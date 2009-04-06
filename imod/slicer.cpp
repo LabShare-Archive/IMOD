@@ -1161,6 +1161,8 @@ void slicerMousePress(SlicerStruct *ss, QMouseEvent *event)
   ivwControlPriority(ss->vi, ss->ctrl);
 
   utilRaiseIfNeeded(ss->qtWindow, event);
+  if (ss->mousemode == IMOD_MMODEL && utilNeedToSetCursor())
+    ss->glw->setCursor(*App->modelCursor);
 
   lastmx = firstmx = event->x();
   lastmy = firstmy = event->y();
@@ -2721,6 +2723,9 @@ void slicerCubePaint(SlicerStruct *ss)
 
 /*
 $Log$
+Revision 4.66  2009/03/30 18:26:20  mast
+Call function to raise on mouse press if needed
+
 Revision 4.65  2009/03/22 19:54:25  mast
 Show with new geometry adjust routine for Mac OS X 10.5/cocoa
 
