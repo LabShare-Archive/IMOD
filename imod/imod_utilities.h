@@ -51,6 +51,7 @@ QAction *utilSetupToggleButton(QWidget *parent, QToolBar *toolBar,
                                QIcon *icons[], char *tips[], 
                                QToolButton *buts[], int states[], int ind);
 void utilRaiseIfNeeded(QWidget *window, QMouseEvent *event);
+bool utilNeedToSetCursor();
 char *imodwfname(const char *intro);
 char *imodwEithername(const char *intro, const char *filein, int modelFirst);
 char *imodwGivenName(const char *intro, const char *filein);
@@ -60,6 +61,9 @@ QString imodCaption(const char *intro);
 /*
  *
  *  $Log$
+ *  Revision 1.8  2009/03/30 18:25:44  mast
+ *  Added function to handle raising on mouse event, workaround Mac Qt 4.5.0
+ *
  *  Revision 1.7  2009/03/26 05:41:01  mast
  *  Change nearest section function to work for an object passed as argument
  *

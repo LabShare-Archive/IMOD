@@ -361,8 +361,7 @@ QAction *utilSetupToggleButton(QWidget *parent, QToolBar *toolBar,
  */
 void utilRaiseIfNeeded(QWidget *window, QMouseEvent *event)
 {
-#ifdef Q_OS_MACX
-#if QT_VERSION >= 0x040500
+#if defined(Q_OS_MACX) && QT_VERSION >= 0x040500
   if (!(event->buttons() & Qt::LeftButton)) {
     window->raise();
 
@@ -371,8 +370,17 @@ void utilRaiseIfNeeded(QWidget *window, QMouseEvent *event)
     window->activateWindow();
   }
 #endif
+}
+
+bool utilNeedToSetCursor()
+{
+#if defined(Q_OS_MACX) && QT_VERSION >= 0x040500
+  return true;
+#else
+  return false;
 #endif
 }
+
 
 /* Appends either the model or file name to the window name, giving
    first priority to the model name if "modelFirst" is set */
@@ -575,6 +583,9 @@ int imodColorValue(int inColor)
 /*
 
 $Log$
+Revision 1.11  2009/03/30 18:25:44  mast
+Added function to handle raising on mouse event, workaround Mac Qt 4.5.0
+
 Revision 1.10  2009/03/26 05:41:01  mast
 Change nearest section function to work for an object passed as argument
 
