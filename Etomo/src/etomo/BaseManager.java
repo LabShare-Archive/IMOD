@@ -1253,22 +1253,15 @@ public abstract class BaseManager {
   }
 
   public final void tomosnapshot(AxisID axisID) {
-    try {
-      getProcessManager().tomosnapshot(axisID);
-    }
-    catch (SystemProcessException e) {
-      e.printStackTrace();
-      String[] message = new String[2];
-      message[0] = "Can not execute " + ProcessName.TOMOSNAPSHOT;
-      message[1] = e.getMessage();
-      uiHarness.openMessageDialog(message, "Unable to execute "
-          + ProcessName.TOMOSNAPSHOT, axisID, managerKey);
-      return;
-    }
+    getProcessManager().tomosnapshot(axisID);
   }
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.111  2009/04/02 19:05:10  sueh
+ * <p> bug# 1206 Simplify tomosnapshot so that it uses as little of Etomo as possible, since it
+ * <p> is supposed to be called when there is an error.
+ * <p>
  * <p> Revision 1.110  2009/03/16 23:44:28  sueh
  * <p> bug# 1186 Added member variable managerKey.   Add this managerKey to LogPanel.
  * <p> In logMessage pass the managerKey received as a param to LogPanel.logMessage.
