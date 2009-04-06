@@ -97,7 +97,7 @@ static int  zapDrawAuto(ZapStruct *zap);
 static void zapDrawGhost(ZapStruct *zap);
 static void zapSetGhostColor(ZapStruct *zap, float obr, float obg, float obb);
 static void zapDrawTools(ZapStruct *zap);
-static void zapSetCursor(ZapStruct *zap, int mode);
+static void zapSetCursor(ZapStruct *zap, int mode, bool setAnyway = false);
 static int  zapXpos(ZapStruct *zap, float x);
 static int  zapYpos(ZapStruct *zap, float x);
 static void zapGetixy(ZapStruct *zap, int mx, int my, float *x, float *y, 
@@ -1559,13 +1559,14 @@ void zapMousePress(ZapStruct *zap, QMouseEvent *event)
           (dxll > 0 && dxur < 0 && (dyll < rcrit && dyll > -rcrit ||
                                     dyur < rcrit && dyur > -rcrit))) {
         moveband = 1;
-        zapSetCursor(zap, zap->mousemode);
         zap->lmx = x;
         zap->lmy = y;
+        zapSetCursor(zap, zap->mousemode);
         return;
       }
     }   
   }  
+  zapSetCursor(zap, zap->mousemode, utilNeedToSetCursor());
 
   // Now give the plugins a crack at it
   ifdraw = checkPlugUseMouse(zap, event, button1, button2, button3);
@@ -2291,7 +2292,7 @@ int zapB1Drag(ZapStruct *zap, int x, int y)
         zap->rbImageY1 = zap->rbImageY0 + 1;
     }
     zap->bandChanged = 1;
-
+    zapSetCursor(zap, zap->mousemode, utilNeedToSetCursor());
   } else {
     /* Move the image */
     zap->xtrans += (int)floor(transFac * (x - zap->lmx) + 0.5);
@@ -3395,9 +3396,12 @@ void zapToggleRubberband(ZapStruct *zap, bool draw)
   // 3/6/05: synchronize the toolbar button
   zap->qtWindow->setToggleState(ZAP_TOGGLE_RUBBER, 
                                 zap->rubberband + zap->startingBand);
-  zapSetCursor(zap, zap->mousemode);
+  zapSetCursor(zap, zap->mousemode, utilNeedToSetCursor());
   if (draw)
     zapDraw(zap);
+
+  // 4/6/09: This was needed before and after the draw for the Mac Qt 4.5.0
+  zapSetCursor(zap, zap->mousemode, utilNeedToSetCursor());
 }
 
 /*
@@ -4635,7 +4639,7 @@ static void zapDrawTools(ZapStruct *zap)
   }
 }
 
-static void zapSetCursor(ZapStruct *zap, int mode)
+static void zapSetCursor(ZapStruct *zap, int mode, bool setAnyway)
 {
   Qt::CursorShape shape;
 
@@ -4652,18 +4656,23 @@ static void zapSetCursor(ZapStruct *zap, int mode)
       shape = Qt::SizeHorCursor;
     else if (dragging[2] || dragging[3])
       shape = Qt::SizeVerCursor;
-    if (shape != zap->lastShape)
+    if (shape != zap->lastShape || setAnyway) {
+
+      // This one makes the cursor show up a little better on starting/MAC
+      imod_info_input();
       zap->gfx->setCursor(QCursor(shape));
+    }
     zap->lastShape = shape;
     return;
   }
 
   // Or restore cursor from rubber band or change cursor dur to mode change
-  if (zap->mousemode != mode || zap->lastShape >= 0){
-    if (mode == IMOD_MMODEL)
+  if (zap->mousemode != mode || zap->lastShape >= 0 || setAnyway) {
+    if (mode == IMOD_MMODEL) {
       zap->gfx->setCursor(*App->modelCursor);
-    else
+    } else {
       zap->gfx->unsetCursor();
+    }
     zap->mousemode = mode;
     zap->lastShape = -1;
     imod_info_input();
@@ -4696,6 +4705,9 @@ static void setDrawCurrentOnly(ZapStruct *zap, int value)
 /*
 
 $Log$
+Revision 4.143  2009/03/30 18:27:09  mast
+Check in the right file
+
 Revision 4.141  2009/03/26 05:42:01  mast
 New nearest section ghost mode
 
