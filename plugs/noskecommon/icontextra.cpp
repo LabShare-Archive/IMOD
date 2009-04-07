@@ -15,6 +15,9 @@
     $Revision$
 
     $Log$
+    Revision 1.15  2009/03/31 04:53:33  tempuser
+    fixed line_doLinesCrossAndWhere (I hope)
+
     Revision 1.14  2009/03/24 13:29:02  tempuser
     modified line_doLinesCrossAndWhere function - may still need work
 
@@ -2844,8 +2847,6 @@ void cont_getIntersectingConvexPolygon( Icont *newCont,
 
 
 
-
-
 //------------------------
 //-- Takes a single closed contour and breaks it into fragments either side 
 //-- of any point which has a z value not equal to "zValue" with the point 
@@ -3020,8 +3021,11 @@ int cont_breakContByCircle( Icont *contOrig, vector<IcontPtr> &contSegs,
 
 int cont_addPtsAtIntersection( Icont *cont1, Icont *cont2 )
 {
-  int ptsAdded = 0;
+  int ptsAdded  = 0;
   Ipoint intercept;     // fed into "line_doLinesCrossAndWhere" function
+  
+  imodContourUnique( cont1 );
+  imodContourUnique( cont2 );
   
   for (int i=0; i<psize(cont1);i++)                // for each point/line in cont1:
   {
@@ -3032,11 +3036,17 @@ int cont_addPtsAtIntersection( Icont *cont1, Icont *cont2 )
           && !ptsEqual( getPt(cont1,i+1), getPt(cont2,j) )
           && !ptsEqual( getPt(cont1,i+1), getPt(cont2,j+1) )
           &&
-          //imodPointIntersect( getPt(cont1,i), getPt(cont1,i+1),
-          //                    getPt(cont2,j), getPt(cont2,j+1) ) )
           line_doLinesCrossAndWhere( getPt(cont1,i), getPt(cont1,i+1),
                                      getPt(cont2,j), getPt(cont2,j+1), &intercept ) )
       {
+        if( ptsAdded > 10000 )
+        {
+          wprint("\aERROR: cont_addPtsAtIntersection() - precision error");
+          imodContourUnique( cont1 );
+          imodContourUnique( cont2 );
+          return (ptsAdded);
+        }
+        
         //intercept.x = roundPrec( intercept.x, 0.00001 );
         //intercept.y = roundPrec( intercept.y, 0.00001 );
         
@@ -3122,6 +3132,133 @@ int cont_getIntersectingSegments( Icont *cont1Orig, Icont *cont2Orig,
 
 
 
+//------------------------
+//-- Takes two contours and breaks both lines apart into pieces/segments
+//-- in every place they intersect and returns the number of intercepts found.
+//-- NOTE: If cont1 and cont2 are different slices no conts will be returned.
+
+int cont_getIntersectingSegmentsSafe( Icont *cont1Orig, Icont *cont2Orig,
+                                  vector<IcontPtr> &cont1Seg,
+                                  vector<IcontPtr> &cont2Seg  )
+{
+  cont1Seg.clear();
+  cont2Seg.clear();
+  
+  if( psize(cont1Orig) <= 1 || psize(cont2Orig) <= 1 )  // if either contours are empty:
+    return 0;                                               // return empty set
+  
+  Icont *cont1 = imodContourDup(cont1Orig);
+  Icont *cont2 = imodContourDup(cont2Orig);
+  
+  imodContourUnique( cont1 );
+  imodContourUnique( cont2 );
+  
+  int cont1ZVal = getZ(cont1);
+  int cont2ZVal = getZ(cont2);
+  
+  //if( cont1ZVal != cont2ZVal)
+  //  wprint( "ERROR: cont_getIntersectingSegments() - different z vals\n" );
+  
+  vector<PtConnection> intercepts;   // stores a list of points where the two contours
+                                     // intersect, plus the index in both cont1P and
+                                     // cont2P where this intersect point was added.
+  Ipoint intercept;     // fed into "line_doLinesCrossAndWhere" function.
+  
+  // create "matrix of intersects" - is used to index a list of intercept
+  // points (in intercepts) which occur after EACH point in cont1 plus
+  // the distance to that point (and same for cont2)
+  
+  vector< vector<IdxAndFloat> > cont1Intercepts( psize(cont1));
+  vector< vector<IdxAndFloat> > cont2Intercepts( psize(cont2));
+  
+  const int INTERSECT_PT = -2;
+  
+  //## FIND ALL INTERCEPTION POINTS WHERE CONTOURS CROSS AND
+  //## ADD THEM TO THE LIST OF INTERCEPTS:
+  
+  for (int i=0; i<psize(cont1);i++)                // for each point/line in cont1:
+    for (int j=0; j<psize(cont2);j++)                // for each point/line in cont2:
+      if( line_doLinesCrossAndWhere( getPt(cont1,i), getPt(cont1,i+1),
+                                     getPt(cont2,j), getPt(cont2,j+1), &intercept ) )
+        // if lines cross: add intercept point & calculate distances
+      {
+        PtConnection newInt = PtConnection(intercept);
+        if( vector_doesElementExistInVector( intercepts, newInt )
+            || ptsEqual( getPt(cont1,i+1), &intercept)
+            || ptsEqual( getPt(cont2,j+1), &intercept ) )
+          continue;
+        intercepts.push_back( newInt );
+        
+        cont1Intercepts[i].push_back(IdxAndFloat(int(intercepts.size())-1,
+                                                 line_distBetweenPts2D( &intercept, getPt(cont1,i))));
+        cont2Intercepts[j].push_back(IdxAndFloat(int(intercepts.size())-1,
+                                                 line_distBetweenPts2D( &intercept, getPt(cont2,j))));
+      }
+        
+        //## IF CONTOURS NEVER CROSS: RETURN ZERO
+        
+        if( intercepts.size() == 0  )
+        {
+          imodContourDelete(cont1);
+          imodContourDelete(cont2);
+          return 0;
+        }
+        
+        
+        //## FOR BOTH CONTOURS: IF MORE THAN ONE INTERCEPT POINT AFTER A SINGLE POINT:
+        //## SORT THESE IN ORDER OF THEIR DISTANCE FROM THE POINT
+        
+        for (int i=0; i<int(cont1Intercepts.size()); i++)    // for each point in cont1:
+          if ( (int)cont1Intercepts[i].size() > 1 )
+            cont1Intercepts[i] = vector_sort( cont1Intercepts[i] );
+  
+  for (int i=0; i<int(cont2Intercepts.size()); i++)    // for each point in cont2:
+    if ( (int)cont2Intercepts[i].size() > 1 )
+      cont2Intercepts[i] = vector_sort( cont2Intercepts[i] );
+  
+  //## FOR BOTH CONTOURS: CREATE A NEW VERSION WHEREBY THE INTERCEPTS POINT ARE ADDED,
+  //## AND MAP THE CONNECTION OF THESE POINTS BETWEEN CONTOURS
+  
+  Icont *cont1P = imodContourNew();  //|- stores a version of the contours where the 
+  Icont *cont2P = imodContourNew();  //|  intercept points have been ADDED as extra pts
+  
+  for (int i=0; i<int(cont1Intercepts.size()); i++) {  // for each point in cont1:
+    imodPointAppend( cont1P, getPt(cont1,i));                // add it to cont1P
+    for (int j=0; j<(int)cont1Intercepts[i].size(); j++ )
+    {
+      int interceptsIdx = cont1Intercepts[i][j].idx;
+      Ipoint interceptPt = intercepts.at(interceptsIdx).intercept;
+      interceptPt.z = (float)INTERSECT_PT;
+      imodPointAppend( cont1P, &interceptPt );        // add the intercept to cont1P
+      intercepts.at(interceptsIdx).cont1Idx = psize(cont1P)-1;
+    }
+  }
+  
+  for (int i=0; i<int(cont2Intercepts.size()); i++) {  // for each point in cont2:
+    imodPointAppend( cont2P, getPt(cont2,i));                // add it to cont2P
+    for (int j=0; j<(int)cont2Intercepts[i].size(); j++ )
+    {
+      int interceptsIdx = cont2Intercepts[i][j].idx;
+      Ipoint interceptPt = intercepts.at(interceptsIdx).intercept;
+      interceptPt.z = (float)INTERSECT_PT;
+      imodPointAppend( cont2P, &interceptPt );         // add the intercept to cont2P
+      intercepts.at(interceptsIdx).cont2Idx = psize(cont2P)-1;
+    }
+  }
+  
+  //## CLEAN LINE SEGMENTS AND DELETE ANY EMPTY ONES:
+  
+  cont_breakContByZValue( cont1P, cont1Seg, cont1ZVal, false );
+  cont_breakContByZValue( cont2P, cont2Seg, cont2ZVal, false );
+  
+  imodContourDelete(cont1);
+  imodContourDelete(cont2);
+  imodContourDelete(cont1P);
+  imodContourDelete(cont2P);
+  
+  return ((int)cont1Seg.size());    // returns the number of intercept points
+}
+
 
 
 //------------------------
@@ -3153,7 +3290,7 @@ int cont_getIntersectingPolygons(vector<IcontPtr> &finConts, Icont *cont1, Icont
   vector<IcontPtr> cont1Seg;
   vector<IcontPtr> cont2Seg;
   int numIntersectPts =
-    cont_getIntersectingSegments( cont1, cont2, cont1Seg, cont2Seg  );
+    cont_getIntersectingSegmentsSafe( cont1, cont2, cont1Seg, cont2Seg  );
   
 //## IF CONTOURS NEVER CROSS: TEST IF ONE IS INSIDE THE OTHER,
 //## AND RETURN APPROPRIATE VALUE
@@ -3267,11 +3404,17 @@ int cont_getUnionPolygons( vector<IcontPtr> &finConts, Icont *cont1, Icont *cont
   
   vector<IcontPtr> cont1Seg;     // list of segments in cont1
   vector<IcontPtr> cont2Seg;     // list of segments in cont2
-  int numIntersectPts = cont_getIntersectingSegments(cont1, cont2, cont1Seg, cont2Seg);
+  int numIntersectPts = cont_getIntersectingSegmentsSafe(cont1, cont2, cont1Seg, cont2Seg);
   
   //wprint( "cont1Seg=%d cont1Seg=%d\n", cont1Seg.size(), cont2Seg.size());    //%%%%%%
 
-    
+  if( numIntersectPts > 1000 )
+  {
+    wprint("WARNING: Floating point problem - too many intersections\n");
+    return 0;
+  }
+  
+  
 //## IF CONTOURS NEVER CROSS: TEST IF ONE IS INSIDE THE OTHER,
 //## AND RETURN APPROPRIATE VALUE
   

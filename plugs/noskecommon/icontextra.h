@@ -247,6 +247,7 @@ int cont_breakOpenContAtZValue( Icont *contOrig, vector<IcontPtr> &contSegs, int
 int cont_breakContByCircle( Icont *contOrig, vector<IcontPtr> &contSegs, Ipoint *center, float radius );        // NEW
 int cont_addPtsAtIntersection( Icont *cont1, Icont *cont2 );                                                    // NEW
 int cont_getIntersectingSegments( Icont *cont1, Icont *cont2, vector<IcontPtr> &cont1Segs, vector<IcontPtr> &cont2Segs  );   // MODIFY
+int cont_getIntersectingSegmentsSafe( Icont *cont1, Icont *cont2, vector<IcontPtr> &cont1Segs, vector<IcontPtr> &cont2Segs  );   // MODIFY
 int cont_getIntersectingPolygons( vector<IcontPtr> &finalConts, Icont *cont1, Icont *cont2 );                      
 int cont_getUnionPolygons( vector<IcontPtr> &finalConts, Icont *cont1, Icont *cont2 );                        
 bool cont_getOuterUnionPolygon( Icont *newCont, Icont *cont1O, Icont *cont2O );                    
