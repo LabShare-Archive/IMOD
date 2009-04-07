@@ -30,7 +30,7 @@ c
       real*4 fidModY(idim,2)
       integer*4 modObj(idim,2), modCont(idim,2), izbest(2), numFid(2)
       integer*4 modObjFid(idim,2), modContFid(idim,2)
-      character*80 filename
+      character*320 filename
       character*1 abtext(2)/'A', 'B'/
       character*1 badaxis1, badaxis2
       integer*4 nstartmin,itry,nlist,nlista,nlistb,ndat,ifZshifts,ifAngleOfs
@@ -1299,6 +1299,9 @@ c
 
 c
 c       $Log$
+c       Revision 3.21  2009/02/17 00:03:24  mast
+c       Improved messages when center shift is above limit
+c
 c       Revision 3.20  2008/12/10 21:47:27  mast
 c       Changed to handle different pixel size in transferfid coords
 c
