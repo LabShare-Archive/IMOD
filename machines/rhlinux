@@ -12,13 +12,13 @@ set c_includes = ""
 set defines = '-D_FILE_OFFSET_BITS=64'
 
 set fcompFlags = ""
+set openmpFlags = ""
 if ($compiler == intel) then
     set dynamic = '-i-dynamic'
     if ($intelstat == true) then
         set dynamic = "-i-static"
         set shared_libs = false
     endif
-    echo 'LDFLAGS = -L$(LIBDIR)'" $dynamic" >> $configure
     echo "CC        = icc"              >> $configure
     echo "CXX       = icpc"              >> $configure
     set fcomp = "ifort"
@@ -35,9 +35,10 @@ if ($compiler == intel) then
         echo "Cannot get version number from icc -v"
     endif
     \rm -f icc.tmp
+    if ($openmp == true) set openmpFlags = "-openmp"
+    echo 'LDFLAGS = -L$(LIBDIR)'" $dynamic $openmpFlags" >> $configure
 
 else
-    echo 'LDFLAGS = -L$(LIBDIR)' >> $configure
     echo "CC        = gcc"              >> $configure
     echo "CXX       = g++"              >> $configure
     set fcompFlags = "-ffixed-line-length-0"
@@ -67,7 +68,9 @@ else
         echo "DATESRC   = compat/datetime.f" >> $configure
         echo "DIRDATEOBJ  = compat/datetime.o" >> $configure
         echo "DATEOBJ  = datetime.o" >> $configure
+        if ($openmp == true) set openmpFlags = "-fopenmp"
     endif
+    echo 'LDFLAGS = -L$(LIBDIR)'" $openmpFlags" >> $configure
 endif
 
 # Needed under tcsh 6.12 in RH 8.0 to avoid getting two \ out
@@ -168,8 +171,8 @@ endif
 
 # 4/8/04: Use intermediate variables to simplify all the defines that are needed
 #
-set cflags = "$flags $m64flags $optimization $defines $include_flags $c_includes"
-set fflags = "$flags $m64flags $fcompFlags $optimization $include_flags "
+set cflags = "$flags $m64flags $optimization $defines $include_flags $c_includes $openmpFlags"
+set fflags = "$flags $m64flags $fcompFlags $optimization $include_flags $openmpFlags"
 
 echo "CFLAGS  = $cflags" >> $configure
 echo "CXXFLAGS = $cflags" >> $configure
@@ -229,7 +232,7 @@ HEADERS += linegui.h
 LIBS += -L$lib_dir -liimod -limesh -limod -ltrack -lcfshr -ldiaqt -lifft -ltiff
 LIBS += -lm
 DEFINES	+= _FILE_OFFSET_BITS=64
-QMAKE_LFLAGS_DEBUG += -Wl,-E 
+QMAKE_LFLAGS_DEBUG += -Wl,-E
 QMAKE_LFLAGS_RELEASE += -Wl,-E
 QMAKE_CXXFLAGS_DEBUG += -Wno-unused-parameter -Wno-sign-compare
 EOF
@@ -250,7 +253,12 @@ if ($compiler == intel) then
             echo "DLLSTOCOPY2 = libifcore libifport" >> $configure
             set dllstocopy1 = "libcxaguard libirc libimf libintlc"
         endif
-        echo "DLLDESTDIR = qtlib" >> $configure
+        if ($wrapintel == true) then
+            echo "DLLDESTDIR = qtlib" >> $configure
+        else
+            echo "DLLDESTDIR = lib" >> $configure
+        endif
+        if ($openmp == true) set dllstocopy1 = "$dllstocopy1 libguide"
     endif
     setenv QMAKESPEC linux-icc
 
@@ -291,7 +299,7 @@ if ($packqt == true) then
     #
     echo 'QTINSTLIBDIR = qtlib' >> $configure
     if ($useqt == true) then
-        if ($compiler == intel && $intelstat == false) then
+        if ($compiler == intel && $intelstat == false && $wrapintel == true) then
             echo 'INSTALL_FILES = IMOD-linux.csh IMOD-linux.sh' >> $configure
         else
             echo 'INSTALL_RENAME = IMOD-linuxPackQt.csh IMOD-linux.csh IMOD-linuxPackQt.sh IMOD-linux.sh' >> $configure
