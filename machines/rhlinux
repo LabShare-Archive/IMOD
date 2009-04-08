@@ -22,8 +22,19 @@ if ($compiler == intel) then
     echo "CC        = icc"              >> $configure
     echo "CXX       = icpc"              >> $configure
     set fcomp = "ifort"
+    set ctfplotopt = '-nofor-main'
     set fcompFlags = '-132 -assume bscc'
     echo "      parameter (nbytes_recl_item=4)" >! $endian_dir/recl_bytes.inc
+
+    icc -v >&! icc.tmp
+    set iccnum = `sed 's/[^0-9]/ /g' icc.tmp`
+    @ iccversion = 9
+    if ($#iccnum > 1) then
+        @ iccversion = $iccnum[1]
+    else
+        echo "Cannot get version number from icc -v"
+    endif
+    \rm -f icc.tmp
 
 else
     echo 'LDFLAGS = -L$(LIBDIR)' >> $configure
@@ -31,6 +42,7 @@ else
     echo "CXX       = g++"              >> $configure
     set fcompFlags = "-ffixed-line-length-0"
     set fortvers = 3
+    set ctfplotopt = ''
 
     if ($compiler == gfortran) then
         gfortran -v >&! gfortran.tmp
@@ -231,21 +243,27 @@ if ($compiler == intel) then
         set fortdir = `which ifort`
         set fortlibdir = $fortdir:h:h/lib
         echo "DLLSOURCEDIR2 = $fortlibdir" >> $configure
-        echo "DLLSTOCOPY2 = libifcore libifport" >> $configure
-        echo "DLLDESTDIR = lib" >> $configure
+        if ($iccversion > 9) then
+            echo "DLLSTOCOPY2 = libifcore libifport libifcoremt" >> $configure
+            set dllstocopy1 = "libimf libintlc"
+        else
+            echo "DLLSTOCOPY2 = libifcore libifport" >> $configure
+            set dllstocopy1 = "libcxaguard libirc libimf libintlc"
+        endif
+        echo "DLLDESTDIR = qtlib" >> $configure
     endif
     setenv QMAKESPEC linux-icc
 
     if ($m64bit == true) then
         if ($intelstat == false) \
-          echo "DLLSTOCOPY1 = libcxaguard libirc libimf libsvml" >> $configure
+          echo "DLLSTOCOPY1 = $dllstocopy1 libsvml" >> $configure
         set qtdel1 = "-m64"
         set qtdel2 = "-mtune=nocona"
         set qtsub1f = "X11R6\/lib "
         set qtsub1t = "X11R6\/lib64 "
     else
         if ($intelstat == false) \
-            echo "DLLSTOCOPY1 = libcxaguard libirc libimf" >> $configure
+            echo "DLLSTOCOPY1 = $dllstocopy1" >> $configure
         set qtdel1 = "-m32"
         set qtdel2 = "-fasynchronous-unwind-tables"
         set qtsub1f = gibberish
@@ -273,7 +291,11 @@ if ($packqt == true) then
     #
     echo 'QTINSTLIBDIR = qtlib' >> $configure
     if ($useqt == true) then
-        echo 'INSTALL_RENAME = IMOD-linuxPackQt.csh IMOD-linux.csh IMOD-linuxPackQt.sh IMOD-linux.sh' >> $configure
+        if ($compiler == intel && $intelstat == false) then
+            echo 'INSTALL_FILES = IMOD-linux.csh IMOD-linux.sh' >> $configure
+        else
+            echo 'INSTALL_RENAME = IMOD-linuxPackQt.csh IMOD-linux.csh IMOD-linuxPackQt.sh IMOD-linux.sh' >> $configure
+        endif
     else
         echo 'INSTALL_RENAME = IMOD-linuxPackQt.csh IMOD-localQt.csh IMOD-linuxPackQt.sh IMOD-localQt.sh' >> $configure
         echo 'INSTALL_FILES = IMOD-linux.csh IMOD-linux.sh' >> $configure
