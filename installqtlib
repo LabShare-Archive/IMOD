@@ -138,6 +138,31 @@ if ("$dllrenlist" != "") then
     popd
 endif
 
+# If the destination dir was qtlib, then all programs need wrapper scripts
+# This should work for Mac too - but (4/7/09) the existing wrappers for Qt 4.5
+# need to have both DYLD_LIBRARY_PATH and DYLD_FRAMEWORK_PATH set
+#
+if ("$dlldestdir" == "qtlib") then
+    pushd $instdir/bin
+    set envar = LD_LIBRARY_PATH
+    if ("$dllext" == "dylib") set envar = DYLD_LIBRARY_PATH
+    mkdir -p realbin
+    foreach i (*)
+        file $i | grep '\-bit.*executable' >& /dev/null
+        if (! $status) then
+            mv $i realbin
+            cat << EOF > $i
+#!/bin/sh
+export ${envar}="\${IMOD_DIR}/qtlib:\$$envar"
+"\$IMOD_DIR/bin/realbin/$i" "\$@"
+EOF
+        chmod a+rx $i
+        endif
+    end
+    popd
+endif
+
+
 # Now done if no Qt library location defined
 #
 if ($qtlibdir == "") exit 0
@@ -216,6 +241,9 @@ exit 0
 
 #
 #  $Log$
+#  Revision 3.42  2009/03/20 21:50:04  mast
+#  Changes for installing framework
+#
 #  Revision 3.41  2009/03/17 23:12:30  mast
 #  No no those really were errors, back to normal single error processing on mt
 #
