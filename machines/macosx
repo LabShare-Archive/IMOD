@@ -223,8 +223,8 @@ set optimization = "-O3 -w"
 if ($compiler == ifort) set optimization = "-O2"
 if ($debug == true) set optimization = "-g -O0"
 
-set cflags = "$flags $m64flags $optimization $defines $include_flags $c_includes $openmpFlags"
-set fflags = "$flags $m64flags $fcompFlags $fcmpldFlags $optimization $include_flags $openmpFlags"
+set cflags = "$flags $m64flags $optimization $defines $include_flags $c_includes"
+set fflags = "$flags $m64flags $fcompFlags $fcmpldFlags $optimization $include_flags"
 
 echo "CFLAGS  = $cflags" >> $configure
 echo "CXXFLAGS = $cflags" >> $configure

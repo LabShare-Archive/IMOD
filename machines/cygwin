@@ -237,8 +237,8 @@ endif
 #
 
 set flags = "$flags /MD"
-set cflags = "$flags $optimization $defines $include_flags $c_includes $openmpFlags"
-set fflags = "$flags $fcompFlags $fcmpldFlags $optimization $include_flags $openmpFlags"
+set cflags = "$flags $optimization $defines $include_flags $c_includes"
+set fflags = "$flags $fcompFlags $fcmpldFlags $optimization $include_flags"
 
 cat << EOF >> $configure
 CFLAGS  = $cflags
