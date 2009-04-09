@@ -9,11 +9,12 @@ if ($tifflibs == default) set tifflibs = true
 
 if ($tifflibs == true) set c_includes = "$c_includes"' -I/usr/local/include'
 
-# Set default compiler to intel for intel, but only if it exists
+# Set default compiler to intel for intel, but only if it exists and its true
+# location has been put on the path
 #
 if ($compiler == default && $intel == true) then
     set ifortout = `which ifort`
-    if ($status) then
+    if ($status || "$ifortout:h" == "/usr/bin") then
 	set compiler = gfortran
     else
 	set compiler = ifort
@@ -29,7 +30,7 @@ set libmt = ""
 setenv QMAKESPEC macx-g++
 if ($compiler == ifort) then
     set iccout = `which icc`
-    if (! $status) then
+    if (! $status && "$iccout:h" != "/usr/bin") then
         set ccomp = "icc"
         set cxx = "icpc"
         setenv QMAKESPEC macx-icc
