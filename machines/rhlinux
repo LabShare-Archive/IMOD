@@ -258,7 +258,7 @@ if ($compiler == intel) then
         else
             echo "DLLDESTDIR = lib" >> $configure
         endif
-        if ($openmp == true) set dllstocopy1 = "$dllstocopy1 libguide"
+        if ($openmp == true) set dllstocopy1 = "$dllstocopy1 libguide libifcoremt"
     endif
     setenv QMAKESPEC linux-icc
 
