@@ -21,6 +21,9 @@ PIPOBJS = parse_params.$(O) pip_fwrap.$(O) autodoc.$(O) adoc_fwrap.$(O)
 
 all : $(LIBI)
 
+cubinterp.$(O) : cubinterp.c
+	$(CC) $(CFLAGS) $(OPENMP) -c cubinterp.c
+
 $(LIBI) : $(UTILOBJS) $(PIPOBJS)
 	$(FIND) . -type f -name $(LIBI) -exec rm "{}" \;
 	$(MAKELIB)$(LIBI) $(LIBCFSHRDEF) $(UTILOBJS) $(PIPOBJS)
@@ -50,6 +53,9 @@ adoc_fwrap.$(O) : $(INCDIR)/autodoc.h
 lsqr.$(O) : $(INCDIR)/lsqr.h cblas.h stdbool.h
 
 #  $Log$
+#  Revision 1.11  2009/02/16 06:15:43  mast
+#  Added parallelwrite
+#
 #  Revision 1.10  2008/12/30 00:52:09  mast
 #  Added lsqr stuff
 #
