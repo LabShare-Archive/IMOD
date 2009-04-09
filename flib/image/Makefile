@@ -141,6 +141,9 @@ numericdiff$(E): numericdiff.$(O)
 rotatevol$(E): rotatevol.$(O) rotmatwarpsubs.$(O)
 	$(FC) -o rotatevol rotatevol.$(O) rotmatwarpsubs.$(O) $(LDFLG) $(IMLIBS) $(LIBS)
 
+rotmatwarpsubs.$(O): rotmatwarpsubs.f
+	$(FC) $(FFLAGS) $(OPENMP) -c rotmatwarpsubs.f
+
 rotmont$(E): rotmont.$(O)
 	$(FC) -o rotmont rotmont.$(O) $(LDFLG) $(IMLIBS) $(LIBS)
 
@@ -209,6 +212,9 @@ enhance.$(O): $(INCDIR)/ftbuf.inc
 fftrans.$(O): $(INCDIR)/ftbuf.inc
 
 #  $Log$
+#  Revision 3.18  2009/02/16 06:26:42  mast
+#  Added fixboundaries
+#
 #  Revision 3.17  2008/05/08 02:56:30  mast
 #  vmstocsh can be compiled normally - fixed bad assumption in there
 #
