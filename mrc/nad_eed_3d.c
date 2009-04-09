@@ -976,8 +976,8 @@ int main (int argc, char **argv)
 {
   MrcHeader header;
   float  ***u;                   /* image */
-  long   i, j, k, p;             /* loop variables */
-  long   nx, ny, nz;             /* image size in x, y direction */
+  int   i, j, k, p;             /* loop variables */
+  int   nx, ny, nz;             /* image size in x, y direction */
   FILE   *fp_infile, *fp_outfile = NULL;    /* input file, output file */
   float  ht = 0.1f;              /* time step size */
   int    pmax = 20;              /* largest iteration number */
@@ -1157,7 +1157,7 @@ int main (int argc, char **argv)
     
   for (p=1; p<=pmax; p++) {
     /* perform one iteration */
-    printf("iteration number: %5ld / %ld \n", p, pmax);
+    printf("iteration number: %5d / %d \n", p, pmax);
     
     eed (ht, nx, ny, nz, 1.0, 1.0, 1.0, sigma, lambda, u);
     
@@ -1268,6 +1268,9 @@ int main (int argc, char **argv)
 /*  
     
 $Log$
+Revision 3.11  2009/01/03 03:29:57  mast
+Fixed a pointer type
+
 Revision 3.10  2007/12/11 00:11:51  mast
 Eliminated usage statement if argument processing gets out of sync, and
 added proper error messages when an option is missing a value
