@@ -8,7 +8,7 @@ time (In 3.13).
 when clicking on a window, keep the right cursor when using rubberband.
 
 4/2/09: In Etomo - PEET changed Phi, Theta, Psi increments so that a 0 value
-defaults to 1.
+defaults to 1 (In 3.13).
 
 4/1/09: In Etomo - Join using clip rotx instead of clip flipyz handle a flipped
 tomogram (still creating a .flip file).  Rotx does not change handedness.
