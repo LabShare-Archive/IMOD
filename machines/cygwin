@@ -19,6 +19,7 @@ endif
 
 set fcompFlags = ""
 set fcmpldFlags = ""
+set openmpFlags = ""
 
 if ($compiler == intel) then
     set c_includes =  
@@ -66,9 +67,10 @@ if ($compiler == intel) then
         
     endif
     set ldfflags = "$fcmpldFlags "'$(LDFLAGS)'
+    if ($openmp == true) set openmpFlags = '/Qopenmp'
     
 cat << EOF >> $configure
-LDFLAGS = /nologo /MD -link -LIBPATH:"$cyg_lib" /NODEFAULTLIB:libc.lib
+LDFLAGS = /nologo /MD $openmpFlags -link -LIBPATH:"$cyg_lib" /NODEFAULTLIB:libc.lib
 .SUFFIXES: .cpp .obj .f .c
 .cpp.obj:
 	\$(CXX) -c \$(CXXFLAGS) \$<
@@ -235,8 +237,8 @@ endif
 #
 
 set flags = "$flags /MD"
-set cflags = "$flags $optimization $defines $include_flags $c_includes"
-set fflags = "$flags $fcompFlags $fcmpldFlags $optimization $include_flags"
+set cflags = "$flags $optimization $defines $include_flags $c_includes $openmpFlags"
+set fflags = "$flags $fcompFlags $fcmpldFlags $optimization $include_flags $openmpFlags"
 
 cat << EOF >> $configure
 CFLAGS  = $cflags
@@ -322,10 +324,18 @@ while ($i < $#qdir)
         echo CONFIG += thread debug warn_off >> $qdir[$i]/qconfigure
         echo CONFIG -= debug_and_release release >> $qdir[$i]/qconfigure
         set vcexedir = Debug
+        if ($openmp == true) then
+            echo QMAKE_CXXFLAGS_DEBUG += $openmpFlags >> $qdir[$i]/qconfigure
+            echo QMAKE_CFLAGS_DEBUG += $openmpFlags >> $qdir[$i]/qconfigure
+        endif
     else
         echo CONFIG += thread release $warn[$i] >> $qdir[$i]/qconfigure
         echo CONFIG -= debug_and_release debug >> $qdir[$i]/qconfigure
         set vcexedir = Release
+        if ($openmp == true) then
+            echo QMAKE_CXXFLAGS_RELEASE += $openmpFlags >> $qdir[$i]/qconfigure
+            echo QMAKE_CFLAGS_RELEASE += $openmpFlags >> $qdir[$i]/qconfigure
+        endif
     endif
 
     if ($compiler == intel) then
@@ -424,7 +434,9 @@ if ($compiler == intel) then
         #
         set fortbin = `which ifort | sed '/\/[^\/]*$/s///'`
         echo "DLLSOURCEDIR2 = $fortbin" >> $configure
-        echo 'DLLSTOCOPY2 = libifcoremd libifportmd libmmd' >> $configure
+        set dllstocopy2 = "libifcoremd libifportmd libmmd"
+        if ($openmp == true) set dllstocopy2 = "$dllstocopy2 libguide40"
+        echo "DLLSTOCOPY2 = $dllstocopy2" >> $configure
 
         # If this variable is set, we need to copy a redist directory and 
         # install manifests in executables.  The variable is the dir
