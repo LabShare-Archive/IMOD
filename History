@@ -1,8 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-4/8/09: IMOD_4-0-9
+4/6/09: IMOD_4-0-9
 4/6/09: In Etomo fixed the Tomosnapshot menu option so that it is on all the 
-time.
+time (In 3.13).
 
 4/6/09: Workarounds to Qt 4.5/Mac cursor problems: preserve the model cursor 
 when clicking on a window, keep the right cursor when using rubberband.
