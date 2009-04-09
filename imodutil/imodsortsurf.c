@@ -98,7 +98,7 @@ int main(int argc, char **argv)
   }
 
   if (!splitToObj && (existingSurf || keepColor || keepSurf))
-    fprintf(stderr, "WARNING: -e, -c, and -k have no effect when not "
+    fprintf(stderr, "WARNING: %s - -e, -c, and -k have no effect when not "
             "splitting into objects\n", progname);
 
   inModel = imodRead(argv[argc-2]);
@@ -121,7 +121,7 @@ int main(int argc, char **argv)
       if (existingSurf && splitToObj) {
         if (imodSplitSurfsToObjs(inModel, ob, keepColor, keepSurf)) {
           fprintf(stderr, "ERROR: %s - Moving contours in object %d "
-                  "to new objects\n", ob + 1, progname);
+                  "to new objects\n", progname, ob + 1);
           exit(1);
         }
       } else {
@@ -137,7 +137,7 @@ int main(int argc, char **argv)
               numBefore = inModel->objsize;
               if (imodSplitSurfsToObjs(inModel, ob, keepColor, keepSurf)) {
                 fprintf(stderr, "ERROR: %s - Moving contours in object %d "
-                        "to new objects\n", ob + 1, progname);
+                        "to new objects\n", progname, ob + 1);
                 exit(1);
               }
               printf("Object %d sorted into %d objects\n",ob + 1,
@@ -448,6 +448,9 @@ int imodSplitSurfsToObjs(Imod *mod, int ob, int keepColor, int keepSurf)
 
 /*
 $Log$
+Revision 3.11  2006/06/26 14:48:49  mast
+Added b3dutil include for parselist
+
 Revision 3.10  2005/09/11 19:22:54  mast
 Changed for new mesh style and managed general store items
 
