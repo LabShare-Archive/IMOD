@@ -31,7 +31,9 @@ foreach prog ($fprogs)
         set contents = $instdir/bin/${prog}.app/Contents
         if (! -e $contents/MacOS) mkdir -p $contents/MacOS
         \cp $imsecont/PkgInfo $contents
-        if (-e $imsecont/Info.plist) sed "/imodsendevent/s//$prog/" < $imsecont/Info.plist > $contents/Info.plist
+        if (-e $imsecont/Info.plist) then
+            sed "/imodsendevent/s//$prog/" < $imsecont/Info.plist > $contents/Info.plist
+        endif
         \mv $instdir/bin/$prog $contents/MacOS
         if (-e $instdir/bin/run$prog) \mv $instdir/bin/run$prog $instdir/bin/$prog
     endif
@@ -50,6 +52,9 @@ end
 
 #
 #  $Log$
+#  Revision 1.13  2009/04/09 04:35:16  mast
+#  With Intel C compiler, no Info.plist files, so test for that
+#
 #  Revision 1.12  2009/01/15 16:47:01  mast
 #  Qt 4 port
 #
