@@ -17,7 +17,11 @@ import etomo.ui.UIHarness;
  * 
  * @version $Revision$
  * 
- * <p> $Log$ </p>
+ * <p> $Log$
+ * <p> Revision 1.1  2009/04/06 22:39:49  sueh
+ * <p> bug# 1206 Class to run run tomosnapshot on a separate thread without a manager or
+ * <p> EtomoDirector.
+ * <p> </p>
  */
 final class TomosnapshotProcess implements Runnable {
   public static final String rcsid = "$Id$";
@@ -51,7 +55,7 @@ final class TomosnapshotProcess implements Runnable {
             + System.getProperty("user.dir"), "Snapshot Created", axisID, null);
       }
       else {
-        UIHarness.INSTANCE.openMessageDialog(stdout[stdout.length - 1],
+        UIHarness.INSTANCE.openInfoMessageDialog(stdout[stdout.length - 1],
             "Snapshot Created", axisID, null);
       }
       return;
