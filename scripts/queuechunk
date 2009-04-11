@@ -274,6 +274,8 @@ elif [ $action == "L" ] ; then
             fi
             if [ $nmax -gt 0 ] ; then
                 load=`echo $nrun $nmax | awk '{printf "%.2f", $1 / $2}'`
+            elif [ $nrun -gt 0 ] ; then
+                load=$nrun
             fi
         fi
     fi
@@ -291,6 +293,9 @@ exit 0
 
 #
 #  $Log$
+#  Revision 3.4  2007/09/28 21:11:13  mast
+#  Needed to request resurce on pbs queue to avoid all jobs on one node
+#
 #  Revision 3.2  2007/09/24 22:04:23  mast
 #  Fixes in qstat: test for non-zero file, not existence, and use right column
 #
