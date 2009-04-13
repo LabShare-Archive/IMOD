@@ -44,6 +44,9 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.80  2009/04/06 22:38:49  sueh
+ * <p> bug# 1206 Moved the popups to Tomosnapshot.run.
+ * <p>
  * <p> Revision 1.79  2009/04/02 19:16:09  sueh
  * <p> bug# 1206 Calling tomosnapshot in the main thread using SystemProgram.  Popping
  * <p> up message if it succeeds or fails.
@@ -431,16 +434,25 @@ public abstract class BaseProcessManager {
   UIHarness uiHarness = UIHarness.INSTANCE;
 
   private SystemProcessInterface threadAxisA = null;
+
   private SystemProcessInterface threadAxisB = null;
+
   private Thread processMonitorA = null;
+
   private Thread processMonitorB = null;
+
   private boolean debug = false;
 
   private final HashMap killedList = new HashMap();
+
   private final ProcessData savedProcessDataA;
+
   private final ProcessData savedProcessDataB;
+
   private final BaseManager manager;
+
   private boolean blockAxisA = true;
+
   private boolean blockAxisB = true;
 
   private final EtomoDirector etomoDirector = EtomoDirector.INSTANCE;
@@ -463,11 +475,14 @@ public abstract class BaseProcessManager {
     savedProcessDataB = new ProcessData(AxisID.SECOND, manager);
   }
 
+  /**
+   * Get saved process data and call ProcessData.setRunning().
+   * @param axisID
+   * @return processData
+   */
   public final ProcessData getRunningProcessData(final AxisID axisID) {
     ProcessData processData = getSavedProcessData(axisID);
-    if (processData == null || !processData.isRunning()) {
-      return null;
-    }
+    processData.setRunning();
     return processData;
   }
 
@@ -544,7 +559,7 @@ public abstract class BaseProcessManager {
       final ParallelProgressDisplay parallelProgressDisplay,
       final ProcessResultDisplay processResultDisplay,
       final ConstProcessSeries processSeries) throws SystemProcessException {
-    //  Instantiate the process monitor
+    // Instantiate the process monitor
     ProcesschunksProcessMonitor monitor;
     if (param.equalsRootName(ProcessName.VOLCOMBINE, axisID)) {
       monitor = new ProcesschunksVolcombineMonitor(manager, axisID,
@@ -820,7 +835,7 @@ public abstract class BaseProcessManager {
           comScriptProcess.getDemoTime());
     }
 
-    //  Start the process monitor thread if a runnable process is provided
+    // Start the process monitor thread if a runnable process is provided
     if (processMonitor != null) {
       // Wait for the started flag within the comScriptProcess, this ensures
       // that log file has already been moved
@@ -911,23 +926,26 @@ public abstract class BaseProcessManager {
           "A process is already executing in the current axis");
     }
     //check for running processes that are not managed by Etomo because the user
-    //exited and then reran Etomo
+    // exited and then reran Etomo
     ProcessData savedProcessData = getSavedProcessData(axisID);
     if (savedProcessData.isRunning()) {
       if (processResultDisplay != null) {
         processResultDisplay.msgProcessFailedToStart();
       }
-      throw new SystemProcessException(
-          "A process is running on the current axis.\nThe process was started the last time Etomo was run."
-              + "\n\nReferences:"
-              + "\nProcessName="
-              + savedProcessData.getProcessName()
-              + "\n"
-              + manager.getParamFile() + "\nPID = " + savedProcessData.getPid());
+      StringBuffer message = new StringBuffer();
+      message
+          .append("A process is running on the current axis.\nThe process was started the last time Etomo was run");
+      if (savedProcessData.isOnDifferentHost()) {
+        message.append(" on " + savedProcessData.getHostName());
+      }
+      message.append("." + "\n\nReferences:" + "\nProcessName="
+          + savedProcessData.getProcessName() + "\n" + manager.getParamFile()
+          + "\nPID = " + savedProcessData.getPid());
+      throw new SystemProcessException(message.toString());
 
     }
     else {
-      //ensure that out of date process info won't be resaved
+      // ensure that out of date process info won't be resaved
       savedProcessData.reset();
       saveProcessData(savedProcessData);
     }
@@ -1103,13 +1121,13 @@ public abstract class BaseProcessManager {
     if (processID == null || processID.equals("")) {
       return;
     }
-    //try to prevent process from spawning with a SIGSTOP signal
+    // try to prevent process from spawning with a SIGSTOP signal
     kill("-19", processID, axisID);
 
-    //kill all decendents of process before killing process
+    // kill all decendents of process before killing process
     String[] childProcessIDList = null;
     do {
-      //get unkilled child processes
+      // get unkilled child processes
       childProcessIDList = getChildProcessList(processID, axisID);
       if (childProcessIDList != null) {
         for (int i = 0; i < childProcessIDList.length; i++) {
@@ -1117,12 +1135,12 @@ public abstract class BaseProcessManager {
         }
       }
     } while (childProcessIDList != null);
-    //there are no more unkilled child processes so kill process with a SIGKILL
-    //signal
+    // there are no more unkilled child processes so kill process with a SIGKILL
+    // signal
     kill("-9", processID, axisID);
     System.err.println("killProcessAndDescendants:kill " + "-9" + " "
         + processID);
-    //record killed process
+    // record killed process
     killedList.put(processID, "");
   }
 
@@ -1138,9 +1156,9 @@ public abstract class BaseProcessManager {
   }
 
   /**
-   * Return a the PIDs of child processes for the specified parent process.  A
+   * Return a the PIDs of child processes for the specified parent process. A
    * new ps command is run each time this function is called so that the most
-   * up-to-date list of child processes is used.  Only processes that have not
+   * up-to-date list of child processes is used. Only processes that have not
    * already received a "kill -9" signal are returned.
    * 
    * @param processID
@@ -1149,12 +1167,12 @@ public abstract class BaseProcessManager {
   private String[] getChildProcessList(final String processID,
       final AxisID axisID) {
     Utilities.debugPrint("in getChildProcessList: processID=" + processID);
-    //ps -l: get user processes on this terminal
+    // ps -l: get user processes on this terminal
     SystemProgram ps = new SystemProgram(manager.getPropertyUserDir(),
         new String[] { "ps", "axl" }, axisID, manager.getManagerKey());
     ps.run();
-    //System.out.println("ps axl date=" +  ps.getRunTimestamp());
-    //  Find the index of the Parent ID and ProcessID
+    // System.out.println("ps axl date=" + ps.getRunTimestamp());
+    // Find the index of the Parent ID and ProcessID
     String[] stdout = ps.getStdOutput();
     if (stdout == null) {
       return null;
@@ -1186,7 +1204,7 @@ public abstract class BaseProcessManager {
         break;
       }
     }
-    //  Return null if the PID or PPID fields are not found
+    // Return null if the PID or PPID fields are not found
     if (idxPPID == -1 || idxPID == -1) {
       return null;
     }
@@ -1194,9 +1212,9 @@ public abstract class BaseProcessManager {
     // Walk through the process list finding the PID of the children
     ArrayList childrenPID = new ArrayList();
     String[] fields;
-    //System.out.println(stdout[0]);
+    // System.out.println(stdout[0]);
     for (int i = 1; i < stdout.length; i++) {
-      //System.out.println(stdout[i]);
+      // System.out.println(stdout[i]);
       fields = stdout[i].trim().split("\\s+");
       if (fields[idxPPID].equals(processID)
           && !killedList.containsKey(fields[idxPID])) {
@@ -1222,7 +1240,7 @@ public abstract class BaseProcessManager {
   /**
    * Return a PID of a child process for the specified parent process.  A new
    * ps command is run each time this function is called so that the most
-   * up-to-date list of child processes is used.  Only processes the have not
+   * up-to-date list of child processes is used. Only processes the have not
    * already received a "kill -9" signal are returned.
    * 
    * @param processID
@@ -1230,12 +1248,12 @@ public abstract class BaseProcessManager {
    */
   private String getChildProcess(final String processID, final AxisID axisID) {
     Utilities.debugPrint("in getChildProcess: processID=" + processID);
-    //ps -l: get user processes on this terminal
+    // ps -l: get user processes on this terminal
     SystemProgram ps = new SystemProgram(manager.getPropertyUserDir(),
         new String[] { "ps", "axl" }, axisID, manager.getManagerKey());
     ps.run();
 
-    //  Find the index of the Parent ID and ProcessID
+    // Find the index of the Parent ID and ProcessID
     String[] stdout = ps.getStdOutput();
     if (stdout == null) {
       return null;
@@ -1263,7 +1281,7 @@ public abstract class BaseProcessManager {
         break;
       }
     }
-    //  Return null if the PID or PPID fields are not found
+    // Return null if the PID or PPID fields are not found
     if (idxPPID == -1 || idxPID == -1) {
       return null;
     }
@@ -1300,14 +1318,14 @@ public abstract class BaseProcessManager {
     if (exitValue != 0) {
       String[] stdError = script.getStdError();
       ProcessMessages combinedMessages = ProcessMessages.getInstance();
-      //    Is the last string "Killed"
+      // Is the last string "Killed"
       if (stdError != null && stdError.length > 0
           && stdError[stdError.length - 1].trim().equals("Killed")) {
         combinedMessages.addError("<html>Terminated: "
             + script.getComScriptName());
       }
       else {
-        ProcessMessages messages = script.getProcessMessages();/*Error*/
+        ProcessMessages messages = script.getProcessMessages();/* Error */
         int j = 0;
         combinedMessages.addError("<html>Com script failed: "
             + script.getComScriptName());
@@ -1321,14 +1339,14 @@ public abstract class BaseProcessManager {
         uiHarness.openErrorMessageDialog(combinedMessages, script
             .getComScriptName()
             + " terminated", script.getAxisID(), manager.getManagerKey());
-        //make sure script knows about failure
+        // make sure script knows about failure
         script.setProcessEndState(ProcessEndState.FAILED);
       }
       errorProcess(script);
     }
     else {
       postProcess(script);
-      ProcessMessages messages = script.getProcessMessages();/*Warning*/
+      ProcessMessages messages = script.getProcessMessages();/* Warning */
       if (messages.warningListSize() > 0) {
         messages.addWarning("Com script: " + script.getComScriptName());
         uiHarness.openWarningMessageDialog(messages, script.getComScriptName()
@@ -1336,7 +1354,7 @@ public abstract class BaseProcessManager {
       }
     }
     manager.saveStorables(script.getAxisID());
-    //  Null out the correct thread
+    // Null out the correct thread
     // Interrupt the process monitor and nulll out the appropriate references
     if (threadAxisA == script) {
       if (processMonitorA != null) {
@@ -1353,7 +1371,7 @@ public abstract class BaseProcessManager {
       threadAxisB = null;
     }
 
-    //  Inform the app manager that this process is complete
+    // Inform the app manager that this process is complete
     manager.processDone(script.getName(), exitValue, script.getProcessName(),
         script.getAxisID(), script.getProcessEndState(), exitValue != 0, script
             .getProcessResultDisplay(), script.getProcessSeries(), nonBlocking);
@@ -1366,13 +1384,13 @@ public abstract class BaseProcessManager {
     if (exitValue != 0) {
       String[] stdError = script.getStdError();
       ProcessMessages combinedMessages = ProcessMessages.getInstance();
-      //    Is the last string "Killed"
+      // Is the last string "Killed"
       if (stdError != null && stdError.length > 0
           && stdError[stdError.length - 1].trim().equals("Killed")) {
         combinedMessages.addError("<html>Terminated: " + name);
       }
       else {
-        ProcessMessages messages = script.getProcessMessages();/*Error*/
+        ProcessMessages messages = script.getProcessMessages();/* Error */
         int j = 0;
         combinedMessages.addError("<html>Com script failed: " + name);
         combinedMessages.addError("\n<html><U>Log file errors:</U>");
@@ -1384,14 +1402,14 @@ public abstract class BaseProcessManager {
           && script.getProcessEndState() != ProcessEndState.PAUSED) {
         uiHarness.openErrorMessageDialog(combinedMessages,
             name + " terminated", script.getAxisID(), manager.getManagerKey());
-        //make sure script knows about failure
+        // make sure script knows about failure
         script.setProcessEndState(ProcessEndState.FAILED);
       }
       errorProcess(script);
     }
     else {
       postProcess(script);
-      ProcessMessages messages = script.getProcessMessages();/*Warning*/
+      ProcessMessages messages = script.getProcessMessages();/* Warning */
       if (messages.warningListSize() > 0) {
         messages.addWarning("Com script: " + name);
         uiHarness.openWarningMessageDialog(messages, name + " warnings", script
@@ -1399,7 +1417,7 @@ public abstract class BaseProcessManager {
       }
     }
     manager.saveStorables(script.getAxisID());
-    //  Null out the correct thread
+    // Null out the correct thread
     // Interrupt the process monitor and nulll out the appropriate references
     if (threadAxisA == script) {
       if (processMonitorA != null) {
@@ -1415,7 +1433,7 @@ public abstract class BaseProcessManager {
       }
       threadAxisB = null;
     }
-    //  Inform the app manager that this process is complete
+    // Inform the app manager that this process is complete
     manager.processDone(name, exitValue, script.getProcessData()
         .getProcessName(), script.getAxisID(), script.getProcessEndState(),
         script.getProcessEndState() != ProcessEndState.DONE || exitValue != 0,
@@ -1563,7 +1581,7 @@ public abstract class BaseProcessManager {
       System.err.println("  Name: " + backgroundProcess.getName());
     }
     mapAxisThread(backgroundProcess, axisID);
-    //  Start the process monitor thread if a runnable process is provided
+    // Start the process monitor thread if a runnable process is provided
     if (processMonitor != null) {
       // Wait for the started flag within the backgroundProcess
       while (!backgroundProcess.isStarted()) {
@@ -1603,12 +1621,12 @@ public abstract class BaseProcessManager {
     try {
       TomosnapshotProcess process = new TomosnapshotProcess(axisID);
       new Thread(process).start();
-    }
+        }
     catch (Exception e) {
       UIHarness.INSTANCE.openMessageDialog(e.getMessage(), "Process Exception",
           axisID, null);
     }
-  }
+    }
 
   /**
    * Start an arbitrary command as an unmanaged background thread
@@ -1633,7 +1651,7 @@ public abstract class BaseProcessManager {
     sysProgram.setWorkingDirectory(new File(manager.getPropertyUserDir()));
     sysProgram.setDebug(etomoDirector.getArguments().isDebug());
 
-    //  Start the system program thread
+    // Start the system program thread
     Thread sysProgThread = new Thread(sysProgram);
     manager.saveStorables(sysProgram.getAxisID());
     sysProgThread.start();
@@ -1661,7 +1679,7 @@ public abstract class BaseProcessManager {
     if (process == threadAxisB) {
       threadAxisB = null;
     }
-    //  Inform the manager that this process is complete
+    // Inform the manager that this process is complete
     ProcessEndState endState = process.getProcessEndState();
     if (endState == null || endState == ProcessEndState.DONE) {
       manager.processDone(process.getName(), exitValue, process
@@ -1708,7 +1726,7 @@ public abstract class BaseProcessManager {
     if (process == threadAxisB) {
       threadAxisB = null;
     }
-    //  Inform the manager that this process is complete
+    // Inform the manager that this process is complete
     ProcessEndState endState = process.getProcessEndState();
     if (endState == null || endState == ProcessEndState.DONE) {
       manager.processDone(process.getName(), exitValue, process
@@ -1736,7 +1754,7 @@ public abstract class BaseProcessManager {
     LogFile logFile = null;
     LogFile.WriterId writerId = null;
     try {
-      //  Write the standard output to a the log file
+      // Write the standard output to a the log file
       String[] stdOutput = process.getStdOutput();
       try {
         logFile = LogFile.getInstance(manager.getPropertyUserDir(), fileName,
@@ -1788,6 +1806,6 @@ public abstract class BaseProcessManager {
       }
     }
     catch (NullPointerException e) {
-    }
   }
+}
 }
