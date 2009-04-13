@@ -576,7 +576,7 @@ public final class RemotePath {
    * @param axisID
    * @return
    */
-  private final String getHostName(BaseManager manager, AxisID axisID) {
+  public static final String getHostName(BaseManager manager, AxisID axisID) {
     SystemProgram hostname = new SystemProgram(manager.getPropertyUserDir(),
         new String[] { "hostname" }, axisID, manager.getManagerKey());
     hostname.run();
@@ -677,6 +677,9 @@ public final class RemotePath {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.21  2009/03/17 00:46:43  sueh
+ * <p> bug# 1186 Pass managerKey to everything that pops up a dialog.
+ * <p>
  * <p> Revision 1.20  2009/02/04 23:38:24  sueh
  * <p> bug# 1158 Changed id and exception classes in LogFile.
  * <p>
