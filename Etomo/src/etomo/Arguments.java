@@ -23,6 +23,9 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.4  2009/03/23 16:46:19  sueh
+ * <p> bug# 1187 Added --listen parameter.
+ * <p>
  * <p> Revision 1.3  2009/03/09 17:22:06  sueh
  * <p> bug# 1172 For now just adding --fg option.
  * <p>
@@ -245,6 +248,10 @@ public final class Arguments {
 
   public boolean isExit() {
     return exit;
+  }
+  
+  public void setExit() {
+    exit = true;
   }
 
   public boolean isPrintNames() {
