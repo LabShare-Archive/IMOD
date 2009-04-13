@@ -699,7 +699,9 @@ public class EtomoDirector {
    * @return
    */
   public boolean exitProgram(AxisID axisID) {
-    utilityThread.stop();
+    if (utilityThread != null) {
+      utilityThread.stop();
+    }
     try {
       while (managerList.size() != 0) {
         if (!closeCurrentManager(axisID, true)) {
@@ -1081,6 +1083,9 @@ public class EtomoDirector {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.82  2009/04/02 19:05:38  sueh
+ * <p> bug# 1206 Handle managerKey is null.
+ * <p>
  * <p> Revision 1.81  2009/03/17 00:22:42  sueh
  * <p> bug# 1186 Changed currentManagerKey to a ManagerKey, which holds a UniqueKey.  Set the unique key in managerKey when it changes.
  * <p>
