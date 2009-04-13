@@ -9,10 +9,12 @@ import etomo.type.AxisID;
 import etomo.type.ConstEtomoNumber;
 import etomo.type.ConstStringProperty;
 import etomo.type.EtomoNumber;
+import etomo.type.OSType;
 import etomo.type.ProcessName;
 import etomo.type.ProcessResultDisplay;
 import etomo.type.StringProperty;
 import etomo.type.Time;
+import etomo.util.RemotePath;
 
 /**
  * <p>Description:
@@ -42,11 +44,13 @@ public final class ProcessData implements Storable {
   private static final String GROUP_PID_KEY = "GroupPID";
   private static final String START_TIME_KEY = "StartTime";
   private static final String PROCESS_NAME_KEY = "ProcessName";
+  private static final String OS_TYPE_KEY = "OS";
 
   private final EtomoNumber displayKey = new EtomoNumber("DisplayKey");
   private final StringProperty subProcessName = new StringProperty(
       "SubProcessName");
   private final StringProperty subDirName = new StringProperty("SubDirName");
+  private final StringProperty hostName = new StringProperty("HostName");
 
   private final AxisID axisID;
   private final String processDataPrepend;
@@ -57,11 +61,15 @@ public final class ProcessData implements Storable {
   private Time startTime = null;
   private ProcessName processName = null;
   private boolean doNotLoad = false;
+  private OSType osType = null;
+  private boolean running = false;
+  private boolean sshFailed = false;
 
   /**
    * Get an instance of ProcessData which is associated with a process managed
    * by Etomo.  It cannot be loaded from the param file.  This instance will
-   * have a fixed process name.
+   * have a fixed process name, and a host name and OS taken from the
+   * current computer.
    * @param axisID
    * @param manager
    * @param processName
@@ -71,6 +79,8 @@ public final class ProcessData implements Storable {
       ProcessName processName) {
     ProcessData processData = new ProcessData(axisID, manager);
     processData.processName = processName;
+    processData.hostName.set(RemotePath.getHostName(manager, axisID));
+    processData.osType = OSType.getInstance();
     processData.doNotLoad = true;
     return processData;
   }
@@ -119,15 +129,32 @@ public final class ProcessData implements Storable {
 
   /**
    * Look for the process data in the ps output.
-   * @return true if the process data is found in the ps output, false if the
+   * Set running to true if the process data is found in the ps output, false if the
    * process data is not found or this instance is empty.
+   * If the row is not in ps more then three times, it returns false without
+   * checking.
    */
-  boolean isRunning() {
+  void setRunning() {
     if (isEmpty()) {
-      return false;
+      running = false;
     }
     PsParam param = runPs(pid);
-    return param.findRow(pid, groupPid, startTime);
+    running = param.findRow(pid, groupPid, startTime);
+  }
+
+  public boolean isRunning() {
+    return running;
+  }
+
+  public boolean isOnDifferentHost() {
+    if (!hostName.isEmpty()) {
+      return !hostName.equals(RemotePath.getHostName(manager, axisID));
+    }
+    return false;
+  }
+
+  public boolean isSshFailed() {
+    return sshFailed;
   }
 
   /**
@@ -154,11 +181,21 @@ public final class ProcessData implements Storable {
    * @return
    */
   private PsParam runPs(String pid) {
-    PsParam param = new PsParam(pid);
+    PsParam param = new PsParam(manager, axisID, pid, osType, hostName
+        .toString(), false);
     SystemProgram ps = new SystemProgram(manager.getPropertyUserDir(), param
         .getCommandArray(), axisID, manager.getManagerKey());
     ps.run();
-    param.setOutput(ps.getStdOutput());
+    String[] stdout = ps.getStdOutput();
+    //Ps should always return something - usually as header, but on Mac it will
+    //return a bunch of result lines because we are not using the -p pid option.
+    if (stdout == null || stdout.length == 0) {
+      sshFailed = true;
+    }
+    else {
+      sshFailed = false;
+    }
+    param.setOutput(stdout);
     return param;
   }
 
@@ -189,6 +226,10 @@ public final class ProcessData implements Storable {
     return displayKey;
   }
 
+  public String getHostName() {
+    return hostName.toString();
+  }
+
   private String getPrepend(String prepend) {
     if (prepend == "") {
       prepend = processDataPrepend;
@@ -200,10 +241,7 @@ public final class ProcessData implements Storable {
   }
 
   public String toString() {
-    String group = getPrepend("") + ".";
-    return "[" + group + PID_KEY + "=" + pid + "," + group + GROUP_PID_KEY
-        + "=" + groupPid + "," + group + START_TIME_KEY + "=" + startTime + ","
-        + group + PROCESS_NAME_KEY + "=" + processName + "]";
+    return "hostName=" + hostName;
   }
 
   private void store(Properties props, String prepend) {
@@ -217,6 +255,8 @@ public final class ProcessData implements Storable {
       displayKey.remove(props, prepend);
       subProcessName.remove(props, prepend);
       subDirName.remove(props, prepend);
+      hostName.remove(props, prepend);
+      props.remove(group + OSType.KEY);
     }
     else {
       props.setProperty(group + PID_KEY, pid);
@@ -231,6 +271,13 @@ public final class ProcessData implements Storable {
       displayKey.store(props, prepend);
       subProcessName.store(props, prepend);
       subDirName.store(props, prepend);
+      hostName.store(props, prepend);
+      if (osType == null) {
+        props.remove(group + OSType.KEY);
+      }
+      else {
+        osType.store(props, prepend);
+      }
     }
   }
 
@@ -262,10 +309,15 @@ public final class ProcessData implements Storable {
     subProcessName.load(props, prepend);
     subDirName.load(props, prepend);
     displayKey.load(props, prepend);
+    hostName.load(props, prepend);
+    osType = OSType.getInstance(props, prepend);
   }
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.8  2009/03/17 00:43:20  sueh
+ * <p> bug# 1186 Pass managerKey to everything that pops up a dialog.
+ * <p>
  * <p> Revision 1.7  2008/01/14 21:45:54  sueh
  * <p> bug# 1050 Changed readOnly to doNotLoad because that is the only limitation is
  * <p> on loading.  Added displayKey to get the processResultDisplay generically.  Add
