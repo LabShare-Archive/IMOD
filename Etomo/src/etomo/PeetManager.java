@@ -58,6 +58,9 @@ import etomo.util.DatasetFiles;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.47  2009/03/17 00:30:14  sueh
+ * <p> bug# 1186 Pass managerKey to everything that pops up a dialog.
+ * <p>
  * <p> Revision 1.46  2009/03/02 18:56:13  sueh
  * <p> bug# 1193 Commented openProcessingPanel().
  * <p>
@@ -271,9 +274,6 @@ public final class PeetManager extends BaseManager {
       mainPanel.setStatusBarText(paramFile, metaData, logPanel);
       openPeetDialog();
     }
-  }
-
-  public void doAutomation() {
   }
 
   void initializeUIParameters(String paramFileName, AxisID axisID) {
@@ -782,7 +782,7 @@ public final class PeetManager extends BaseManager {
   private void openProcessingPanel() {
     mainPanel.showProcessingPanel(AxisType.SINGLE_AXIS);
     setPanel();
-    reconnect(AxisID.ONLY);
+    reconnect(processMgr.getRunningProcessData(AxisID.ONLY), AxisID.ONLY);
   }
 
   /**

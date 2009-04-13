@@ -107,9 +107,6 @@ public final class ParallelManager extends BaseManager {
     return processResultDisplayFactory;
   }
 
-  public void doAutomation() {
-  }
-
   public ParallelState getState() {
     return state;
   }
@@ -241,7 +238,7 @@ public final class ParallelManager extends BaseManager {
   private void openProcessingPanel() {
     mainPanel.showProcessingPanel(AxisType.SINGLE_AXIS);
     setPanel();
-    reconnect(AxisID.ONLY);
+    reconnect(processMgr.getRunningProcessData(AxisID.ONLY), AxisID.ONLY);
   }
 
   private void openParallelChooser() {
@@ -759,6 +756,9 @@ public final class ParallelManager extends BaseManager {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.33  2009/03/17 00:24:18  sueh
+ * <p> bug# 1186 Pass managerKey to everything that pops up a dialog.
+ * <p>
  * <p> Revision 1.32  2009/03/06 23:36:07  sueh
  * <p> bug# 1196 Added validateTestVolume.
  * <p>

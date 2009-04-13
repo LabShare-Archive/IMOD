@@ -70,6 +70,9 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.76  2009/04/01 19:55:07  sueh
+ * <p> bug# 1208 Replaced flip with rotx.
+ * <p>
  * <p> Revision 1.75  2009/03/17 00:23:34  sueh
  * <p> bug# 1186 Pass managerKey to everything that pops up a dialog.
  * <p>
@@ -525,9 +528,6 @@ public final class JoinManager extends BaseManager {
       openJoinDialog();
       setMode();
     }
-  }
-
-  public void doAutomation() {
   }
 
   public InterfaceType getInterfaceType() {
@@ -1409,9 +1409,9 @@ public final class JoinManager extends BaseManager {
     catch (SystemProcessException except) {
       joinDialog.abortAddSection();
       except.printStackTrace();
-      uiHarness.openMessageDialog("Can't run clip rotx\n"
-          + except.getMessage(), "SystemProcessException", AxisID.ONLY,
-          getManagerKey());
+      uiHarness.openMessageDialog(
+          "Can't run clip rotx\n" + except.getMessage(),
+          "SystemProcessException", AxisID.ONLY, getManagerKey());
       return;
     }
     mainPanel.startProgressBar("rotating " + tomogram.getName(), AxisID.ONLY);
@@ -1432,7 +1432,7 @@ public final class JoinManager extends BaseManager {
   private void openProcessingPanel() {
     mainPanel.showProcessingPanel(AxisType.SINGLE_AXIS);
     setPanel();
-    reconnect(AxisID.ONLY);
+    reconnect(processMgr.getRunningProcessData(AxisID.ONLY), AxisID.ONLY);
   }
 
   /**
