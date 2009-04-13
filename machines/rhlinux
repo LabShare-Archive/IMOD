@@ -171,8 +171,8 @@ endif
 
 # 4/8/04: Use intermediate variables to simplify all the defines that are needed
 #
-set cflags = "$flags $m64flags $optimization $defines $include_flags $c_includes $openmpFlags"
-set fflags = "$flags $m64flags $fcompFlags $optimization $include_flags $openmpFlags"
+set cflags = "$flags $m64flags $optimization $defines $include_flags $c_includes"
+set fflags = "$flags $m64flags $fcompFlags $optimization $include_flags"
 
 echo "CFLAGS  = $cflags" >> $configure
 echo "CXXFLAGS = $cflags" >> $configure
