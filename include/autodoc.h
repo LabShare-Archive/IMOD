@@ -16,6 +16,7 @@ extern "C" {
 int AdocRead(char *filename);
 int AdocNew();
 int AdocSetCurrent(int index);
+void AdocClear(int index);
 void AdocDone();
 int AdocWrite(char *filename);
 int AdocAddSection(char *collName, char *name);
@@ -56,6 +57,9 @@ int AdocSetThreeFloats(char *typeName, int sectInd, char *key, float val1,
 
 /*
   $Log$
+  Revision 3.3  2007/04/05 20:57:42  mast
+  Added set functions for ints and floats
+
   Revision 3.2  2006/10/17 18:01:26  mast
   Gettingthe Id string right
 
