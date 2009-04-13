@@ -47,6 +47,7 @@ typedef struct adoc_autodoc {
   int *sectList;
   int numSections;
   int maxSections;
+  int inUse;
 } Autodoc;
 
 /* The static variables that can hold multiple autodocs */
@@ -86,7 +87,7 @@ static int addComments(AdocSection *sect, char **comments, int *numComments,
 int AdocRead(char *filename)
 {
   int gotSection = 0;
-  int err, i, lineLen, indst, icol, ikey, lastInd;
+  int err, i, lineLen, indst, icol, ikey, lastInd, index;
   int badline = 1234;
   AdocSection *curSect;
   AdocCollection *coll;
@@ -108,12 +109,12 @@ int AdocRead(char *filename)
 
   /* Create a new adoc, which sets up global collection/section
    and takes care of cleanup if it fails */
-  if (addAutodoc()) {
+  if ((index = addAutodoc()) < 0) {
     fclose(afile);
     return -1;
   }
 
-  AdocSetCurrent(numAutodocs - 1);
+  AdocSetCurrent(index);
   curSect = &curAdoc->collections[0].sections[0];
   lastInd = -1;
 
@@ -278,7 +279,7 @@ int AdocRead(char *filename)
   }
 
   fclose(afile);
-  return (err ? err : numAutodocs - 1);
+  return (err ? err : index);
 }
 
 /*!
@@ -288,10 +289,10 @@ int AdocRead(char *filename)
 int AdocNew()
 {
   int err;
-  if ((err = addAutodoc()))
+  if ((err = addAutodoc()) < 0)
     return err;
-  AdocSetCurrent(numAutodocs - 1);
-  return numAutodocs - 1;
+  AdocSetCurrent(err);
+  return err;
 }  
 
 /*!
@@ -305,6 +306,15 @@ int AdocSetCurrent(int index)
   curAdocInd = index;
   curAdoc = &autodocs[curAdocInd];
   return 0;
+}
+
+/*!
+ * Deletes all data from the autodoc at [index] and marks it as unused.
+ */
+void AdocClear(int index)
+{
+  if (index >= 0 && index < numAutodocs)
+    deleteAdoc(&autodocs[index]);
 }
 
 /*!
@@ -858,18 +868,31 @@ static int addCollection(Autodoc *adoc, char *name)
 static int addAutodoc()
 {
   Autodoc *adoc;
+  int index = -1, i;
+  
+  /* Search for a free autodoc in array */
+  for (i = 0; i < numAutodocs; i++) {
+    if (!autodocs[i].inUse) {
+      index = i;
+      break;
+    }
+  }
 
-  /* Allocate just one at a time when needed */
-  if (!numAutodocs)
-    autodocs = (Autodoc *)malloc(sizeof(Autodoc));
-  else
-    autodocs = (Autodoc *)realloc(autodocs, (numAutodocs + 1) *
-                                  sizeof(Autodoc));
-  if (PipMemoryError(autodocs, "addAutodoc"))
-    return -1;
+  if (index < 0) {
+
+    /* Allocate just one at a time when needed */
+    if (!numAutodocs)
+      autodocs = (Autodoc *)malloc(sizeof(Autodoc));
+    else
+      autodocs = (Autodoc *)realloc(autodocs, (numAutodocs + 1) *
+                                    sizeof(Autodoc));
+    if (PipMemoryError(autodocs, "addAutodoc"))
+      return -1;
+    index = numAutodocs++;
+  }
 
   /* Initialize collections */
-  adoc = &autodocs[numAutodocs];
+  adoc = &autodocs[index];
   adoc->collections = NULL;
   adoc->numCollections = 0;
   adoc->finalComments = NULL;
@@ -878,7 +901,7 @@ static int addAutodoc()
   adoc->sectList = NULL;
   adoc->numSections = 0;
   adoc->maxSections = 0;
-  numAutodocs++;
+  adoc->inUse = 1;
 
   /* Add a collection and section for global data */
   if (addCollection(adoc, GLOBAL_NAME))
@@ -887,7 +910,7 @@ static int addAutodoc()
     deleteAdoc(adoc);
     return -1;
   }
-  return 0;
+  return index;
 }
 
 /* 
@@ -959,6 +982,7 @@ static void deleteAdoc(Autodoc *adoc)
     free(adoc->finalComments);
   adoc->finalComments = NULL;
   adoc->numFinalCom = 0;
+  adoc->inUse = 0;
 }
 
 /* Parses the characters in line up to (not including) end for the construct
@@ -1082,6 +1106,9 @@ static int addComments(AdocSection *sect, char **comments, int *numComments,
 
 /*
   $Log$
+  Revision 1.1  2007/09/20 02:43:08  mast
+  Moved to new library
+
   Revision 3.2  2007/04/05 20:56:58  mast
   Added Set functions for ints and floats
 
