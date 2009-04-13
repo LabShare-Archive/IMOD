@@ -7,7 +7,8 @@ import etomo.ManagerKey;
 import etomo.type.AxisID;
 
 /**
- * <p>Description:
+ * <p>Description:  Runs a command using SystemProgram.  Keeps standard input
+ * open.  Sends a string through standard input at intervals.
  * 
  * <p>Copyright: Copyright (c) 2005</p>
  *
@@ -151,6 +152,9 @@ public class IntermittentSystemProgram {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.19  2009/03/17 00:41:41  sueh
+ * <p> bug# 1186 Pass managerKey to everything that pops up a dialog.
+ * <p>
  * <p> Revision 1.18  2008/02/16 01:47:18  sueh
  * <p> bug# 1080 In clearStdError calling OutputBufferManager.clear.
  * <p>
