@@ -310,7 +310,6 @@ final class ProcessorTableRow implements Storable {
       return;
     }
     //handle radio button changes
-    System.err.println("computerStateChanged");
     updateSelected(cellComputer.isSelected());
   }
 
@@ -584,6 +583,9 @@ final class ProcessorTableRow implements Storable {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.33  2008/10/06 22:44:46  sueh
+ * <p> bug# 1113 Changed addRow to display.  Display now takes index and viewport so it can check if it should display itself.
+ * <p>
  * <p> Revision 1.32  2007/09/27 21:03:23  sueh
  * <p> bug# 1044 Added a displayQueues mode.
  * <p>
