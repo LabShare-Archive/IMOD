@@ -7,6 +7,36 @@ a Fortran wrapper for every function listed here, with the same calling
 conventions.  The only exception is that indices are numbered from 1 instead of
 0.
 <P>
+The basic unit of organization in the autodoc file is the section, which
+starts with a line of the form:
+<BR>
+[SectionType = name]
+<BR>
+There can be many sections of the same type, i.e., having the same key name
+for the section, named <B>typeName</B> in the functions below.  Each of these
+would typically have a different value for the name entry, although this is
+not strictly necessary as no uniqueness is enforced and sections are not looked
+up by name.  All of the sections of
+the same type are held in an array, referred to as a collection, and they are
+accessed by their array
+index.  Thus, functions for setting or getting values from a section all
+refer to the section by its <B>typeName</B> and its index <B>sectInd</B>.
+<P>
+Inside of a section, the autodoc contains a set lines with key-value pairs,
+of the form:
+<BR>
+key = value
+<BR>
+In general, the values are stored as strings, but functions below can be used
+for storing or retrieving the values from strings consisting of 1 to 3 floats
+or integers.  Sections of the same type do not need to have the same set of
+key-value pairs defined.
+<P>
+Every autodoc structure is initialized with a section for global data stored 
+at the start of the file, before any actual sections are defined.  These data
+are accessed by calls with a <B>typeName</B> of "PreData" and a <B>sectInd</B>
+of 0.
+<P>
 LIST FUNCTIONS FROM autodoc.c
 <P>
 DESCRIBE FUNCTIONS FROM autodoc.c
