@@ -55,7 +55,7 @@ import etomo.util.Utilities;
  * <p>Description: Base class for ApplicationManager and JoinManager</p>
  * 
  * <p>Copyright: Copyright (c) 2002 - 2005</p>
- *
+ * 
  * <p>Organization:
  * Boulder Laboratory for 3-Dimensional Electron Microscopy of Cells (BL3DEM),
  * University of Colorado</p>
@@ -67,38 +67,34 @@ import etomo.util.Utilities;
 public abstract class BaseManager {
   public static final String rcsid = "$Id$";
 
-  //protected static variables
+  // protected static variables
   private static boolean headless = false;
-  //protected MainFrame mainFrame = null;
+  // protected MainFrame mainFrame = null;
   UIHarness uiHarness = UIHarness.INSTANCE;
   static UserConfiguration userConfig = EtomoDirector.INSTANCE
       .getUserConfiguration();
-
   boolean loadedParamFile = false;
   // imodManager manages the opening and closing closing of imod(s), message
   // passing for loading model
   final ImodManager imodManager;
-  //  This object controls the reading and writing of David's com scripts
+  // This object controls the reading and writing of David's com scripts
   ComScriptManager comScriptMgr = null;
   File paramFile = null;
-  //FIXME homeDirectory may not have to be visible
+  // FIXME homeDirectory may not have to be visible
   String homeDirectory;
   String threadNameA = "none";
-
   String threadNameB = "none";
-
   boolean backgroundProcessA = false;
   String backgroundProcessNameA = null;
-  String propertyUserDir = null;//working directory for this manager
-
-  //private static variables
+  String propertyUserDir = null;// working directory for this manager
+  // private static variables
   private boolean debug = false;
   private boolean exiting = false;
   private boolean initialized = false;
   private DialogType currentDialogTypeA = null;
   private DialogType currentDialogTypeB = null;
   private ParameterStore parameterStore = null;
-  //True if reconnect() has been run for the specified axis.
+  // True if reconnect() has been run for the specified axis.
   private boolean reconnectRunA = false;
   private boolean reconnectRunB = false;
   private final ManagerKey managerKey = new ManagerKey();
@@ -152,8 +148,6 @@ public abstract class BaseManager {
 
   public abstract String getName();
 
-  public abstract void doAutomation();
-
   public abstract ProcessResultDisplayFactoryInterface getProcessResultDisplayFactoryInterface(
       AxisID axisID);
 
@@ -161,7 +155,7 @@ public abstract class BaseManager {
     propertyUserDir = System.getProperty("user.dir");
     createProcessTrack();
     createComScriptManager();
-    //  Initialize the program settings
+    // Initialize the program settings
     debug = EtomoDirector.INSTANCE.getArguments().isDebug();
     debug = true;
     headless = EtomoDirector.INSTANCE.getArguments().isHeadless();
@@ -222,7 +216,7 @@ public abstract class BaseManager {
   }
 
   public String setPropertyUserDir(String propertyUserDir) {
-    //avoid empty strings
+    // avoid empty strings
     if (propertyUserDir.matches("\\s*")) {
       propertyUserDir = null;
     }
@@ -378,8 +372,8 @@ public abstract class BaseManager {
     save();
     parameterStore.setAutoStore(true);
     parameterStore.storeProperties();
-    //save(getStorableArray(true), axisID);
-    //  Update the MRU test data filename list
+    // save(getStorableArray(true), axisID);
+    // Update the MRU test data filename list
     userConfig.putDataFile(paramFile.getAbsolutePath());
     uiHarness.setMRUFileLabels(userConfig.getMRUFileList());
     // Reset the process track flag, if it exists
@@ -424,7 +418,7 @@ public abstract class BaseManager {
         AxisID.FIRST);
     SystemProcessInterface processB = getProcessManager().getThread(
         AxisID.SECOND);
-    //  Check to see if next processes have to be done
+    // Check to see if next processes have to be done
     ArrayList messageArray = new ArrayList();
     ConstProcessSeries processSeriesA = null;
     ConstProcessSeries processSeriesB = null;
@@ -473,7 +467,7 @@ public abstract class BaseManager {
   }
 
   private void close3dmods(AxisID axisID) {
-    //  Should we close the 3dmod windows
+    // Should we close the 3dmod windows
     try {
       if (imodManager.isOpen()) {
         String[] message = new String[3];
@@ -521,13 +515,13 @@ public abstract class BaseManager {
   }
 
   /**
-   * Exit the program.  To guarantee that etomo can always exit, catch all
+   * Exit the program. To guarantee that etomo can always exit, catch all
    * unrecognized Exceptions and Errors and return true.
    */
   boolean exitProgram(AxisID axisID) {
     exiting = true;
     try {
-      //Check for processes that will die if etomo exits
+      // Check for processes that will die if etomo exits
       SystemProcessInterface processA = getProcessManager().getThread(
           AxisID.FIRST);
       SystemProcessInterface processB = getProcessManager().getThread(
@@ -552,7 +546,7 @@ public abstract class BaseManager {
     catch (Throwable e) {
       e.printStackTrace();
     }
-    //Do this even if everything else fails
+    // Do this even if everything else fails
     disconnect3dmods();
     return true;
   }
@@ -612,7 +606,7 @@ public abstract class BaseManager {
 
   void setPanel() {
     uiHarness.pack(this);
-    //  Resize to the users preferrred window dimensions
+    // Resize to the users preferrred window dimensions
     getMainPanel().setSize(
         new Dimension(userConfig.getMainWindowWidth(), userConfig
             .getMainWindowHeight()));
@@ -623,7 +617,7 @@ public abstract class BaseManager {
     }
   }
 
-  //get functions
+  // get functions
 
   /**
    * Return the absolute IMOD bin path
@@ -762,10 +756,10 @@ public abstract class BaseManager {
   }
 
   /**
-   * Loads storables, sets the param file, and sets up the ImodManager.  Loads
-   * the meta data object first, and then loads all the storables.  Set
+   * Loads storables, sets the param file, and sets up the ImodManager. Loads
+   * the meta data object first, and then loads all the storables. Set
    * loadedFromADIfferentFile to true if duplicating or extracting data from
-   * another param file to create this project.  In this case storables will not
+   * another param file to create this project. In this case storables will not
    * be loaded.
    * @param paramFile the File object specifiying the data parameter file.
    * @param loadedFromADifferentFile True if duplicating or extracting data from
@@ -796,7 +790,7 @@ public abstract class BaseManager {
         if (parameterStore == null) {
           return false;
         }
-        //must load meta data before other storables can be constructed
+        // must load meta data before other storables can be constructed
         parameterStore.load(getBaseMetaData());
         Storable[] storables = getStorables();
         if (storables != null) {
@@ -865,7 +859,7 @@ public abstract class BaseManager {
    * Notification message that a background process is done.
    * 
    * @param threadName
-   *            The name of the thread that has finished
+   *          The name of the thread that has finished
    */
   public final void processDone(String threadName, int exitValue,
       ProcessName processName, AxisID axisID, boolean forceNextProcess,
@@ -877,12 +871,12 @@ public abstract class BaseManager {
       threadNameA = "none";
       backgroundProcessA = false;
       backgroundProcessNameA = null;
-      //axisID = AxisID.FIRST;
+      // axisID = AxisID.FIRST;
     }
     else if (threadName.equals(threadNameB)) {
       getMainPanel().stopProgressBar(AxisID.SECOND, endState, statusString);
       threadNameB = "none";
-      //axisID = AxisID.SECOND;
+      // axisID = AxisID.SECOND;
     }
     else if (!nonBlocking) {
       uiHarness.openMessageDialog("Unknown thread finished!!!", "Thread name: "
@@ -891,9 +885,9 @@ public abstract class BaseManager {
     if (processName != null) {
       updateDialog(processName, axisID);
     }
-    //Try to start the next process if the process succeeded, or if
+    // Try to start the next process if the process succeeded, or if
     //forceNextProcess is true (unless the user killed the process, it makes the
-    //nextProcess execute even when the current process failed).
+    // nextProcess execute even when the current process failed).
     if (endState != ProcessEndState.KILLED
         && (exitValue == 0 || forceNextProcess)) {
       if (processSeries == null
@@ -903,9 +897,9 @@ public abstract class BaseManager {
       }
     }
     else {
-      //ProcessSeries gets thrown away after it fails or the processes are used
-      //up, so the processes don't have to be cleared as they did when next
-      //processes where managed by BaseManager.
+      // ProcessSeries gets thrown away after it fails or the processes are used
+      // up, so the processes don't have to be cleared as they did when next
+      // processes where managed by BaseManager.
       if (failed) {
         sendMsgProcessFailed(processResultDisplay);
       }
@@ -937,33 +931,74 @@ public abstract class BaseManager {
     }
   }
 
+  public void doAutomation() {
+    if (EtomoDirector.INSTANCE.getArguments().isExit()) {
+      uiHarness.exit(AxisID.ONLY);
+    }
+  }
+
   /**
-   * IMPORTANT:  Must turn off the blocking in BaseProcessManager when it is
-   * first run.  If it doesn't then no process that blocks an axis can run.
-   * Attempts to reconnect to a currently running process.  Only run once per
-   * axis.  Only attempts one reconnect.
+   * @param processData
+   * @param axisID
+   */
+  void handleDifferentHost(ProcessData processData, AxisID axisID) {
+    String hostName = processData.getHostName();
+    if (processData.isRunning()) {
+      //Handles the case where ssh hostname ps finds the pid of this process.
+      if (uiHarness.openYesNoDialog("WARNING:  Cannot connect to "
+          + processData.getProcessName() + ".  The process is running on "
+          + hostName + ".  Please exit Etomo, run xhost " + hostName
+          + ", ssh to " + hostName
+          + ", and run etomo in order to connect to this process.  Exit "
+          + "Etomo Y/N?", axisID, managerKey)) {
+        EtomoDirector.INSTANCE.getArguments().setExit();
+      }
+    }
+    else if (processData.isSshFailed()) {
+      //Handles the case where the ssh fails.
+      uiHarness.openMessageDialog("WARNING:  Cannot connect to "
+          + processData.getProcessName() + ".  This process may be running on "
+          + hostName + ".  Unable to connect to " + hostName
+          + " to find out.  If " + processData.getProcessName()
+          + " is still running on " + hostName
+          + ", please exit Etomo, run xhost " + hostName + ", ssh to "
+          + hostName + ", and run etomo in order to connect to this process.",
+          "Reconnect Warning", axisID, managerKey);
+    }
+  }
+
+  /**
+   * IMPORTANT: Must turn off the blocking in BaseProcessManager when it is
+   * first run. If it doesn't then no process that blocks an axis can run.
+   * Attempts to reconnect to a currently running process. Only run once per
+   * axis. Only attempts one reconnect.
    * @param axisID - axis of the running process.
    * @return true if a reconnect was attempted.
    * @throws RuntimeException if any Throwable is caught
    */
-  public boolean reconnect(AxisID axisID) {
+  public boolean reconnect(ProcessData processData, AxisID axisID) {
     try {
       if (isReconnectRun(axisID)) {
-        //Just in case
+        // Just in case
         getProcessManager().unblockAxis(axisID);
         return false;
       }
       setReconnectRun(axisID);
-      ProcessData processData = getProcessManager().getRunningProcessData(
-          axisID);
       if (processData == null) {
         getProcessManager().unblockAxis(axisID);
         return false;
       }
       if (processData.getProcessName() == ProcessName.PROCESSCHUNKS) {
-        reconnectProcesschunks(processData, axisID);
-        getProcessManager().unblockAxis(axisID);
-        return true;
+        if (processData.isOnDifferentHost()) {
+          handleDifferentHost(processData, axisID);
+          getProcessManager().unblockAxis(axisID);
+          return false;
+        }
+        if (processData.isRunning()) {
+          reconnectProcesschunks(processData, axisID);
+          getProcessManager().unblockAxis(axisID);
+          return true;
+        }
       }
     }
     catch (Throwable t) {
@@ -982,8 +1017,8 @@ public abstract class BaseManager {
     if (display != null) {
       sendMsgProcessStarting(display);
     }
-    //Add parallel panel if it doesn't exist.  ReconnectProcesschunks is called
-    //before any dialog is displayed, so it probably doesn't exist.
+    // Add parallel panel if it doesn't exist. ReconnectProcesschunks is called
+    // before any dialog is displayed, so it probably doesn't exist.
     MainPanel mainPanel = getMainPanel();
     ParallelPanel parallelPanel = mainPanel.getParallelPanel(axisID);
     if (parallelPanel == null) {
@@ -1026,7 +1061,7 @@ public abstract class BaseManager {
       }
       return;
     }
-    //set param in parallel panel so it can do a resume
+    // set param in parallel panel so it can do a resume
     parallelPanel.setProcessInfo(param, processResultDisplay);
     setThreadName(threadName, axisID);
   }
@@ -1159,9 +1194,9 @@ public abstract class BaseManager {
    * Map the thread name to the correct axis
    * 
    * @param name
-   *            The name of the thread to assign to the axis
+   *          The name of the thread to assign to the axis
    * @param axisID
-   *            The axis of the thread to be mapped
+   *          The axis of the thread to be mapped
    */
   void setThreadName(String name, AxisID axisID) {
     if (name == null) {
@@ -1176,7 +1211,7 @@ public abstract class BaseManager {
   }
 
   public static File chunkComscriptAction(Container root) {
-    //  Open up the file chooser in the working directory
+    // Open up the file chooser in the working directory
     JFileChooser chooser = new JFileChooser(new File(EtomoDirector.INSTANCE
         .getOriginalUserDir()));
     ChunkComscriptFileFilter filter = new ChunkComscriptFileFilter();
@@ -1253,11 +1288,14 @@ public abstract class BaseManager {
   }
 
   public final void tomosnapshot(AxisID axisID) {
-    getProcessManager().tomosnapshot(axisID);
-  }
+      getProcessManager().tomosnapshot(axisID);
+    }
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.112  2009/04/06 22:37:32  sueh
+ * <p> bug# 1206 BaseProcessManager.tomosnapshot is not returning an exception.
+ * <p>
  * <p> Revision 1.111  2009/04/02 19:05:10  sueh
  * <p> bug# 1206 Simplify tomosnapshot so that it uses as little of Etomo as possible, since it
  * <p> is supposed to be called when there is an error.
