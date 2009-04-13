@@ -1,13 +1,19 @@
 package etomo.comscript;
 
 import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
 
+import etomo.BaseManager;
+import etomo.type.AxisID;
+import etomo.type.OSType;
 import etomo.type.Time;
+import etomo.util.RemotePath;
 import etomo.util.Utilities;
 
 /**
  * <p>Description:
- * Class which represents the ps command.  Can run build a ps command string and
+ * Class which represents the ps command.  Can build a ps command string and
  * parse ps command output.</p>
  * 
  * <p>Copyright: Copyright 2006</p>
@@ -65,26 +71,55 @@ public final class PsParam {
   /**
    * Builds the ps commmand.  Uses the pid to limit the output to one process.
    * @param pid
+   * @param osType
+   * @param hostName
    */
-  public PsParam(String pid) {
+  public PsParam(BaseManager manager, AxisID axisID, String pid, OSType osType,
+      String hostName, boolean willRunOnWorkerThread) {
+    if (hostName != null && !hostName.matches("\\*")
+        && !hostName.equals(RemotePath.getHostName(manager, axisID))) {
+      //If the timeout option cannot be added to ssh then only ssh if the caller
+      //of this constructor promises to run the command in a worker thread.  An
+      //ssh on the main thread can lock up the user interface.
+      if (willRunOnWorkerThread || SshParam.INSTANCE.isTimeoutAvailable()) {
+        List sshCommand = SshParam.INSTANCE.getCommand(true, hostName);
+        if (sshCommand != null) {
+          Iterator iterator = sshCommand.iterator();
+          while (iterator.hasNext()) {
+            Object element = iterator.next();
+            if (element != null && !element.equals("")) {
+              command.add(element);
+            }
+          }
+        }
+      }
+    }
+    //The calling function expects at least one line be returned even when the
+    //pid is not found.
     command.add("ps");
-    if (Utilities.isWindowsOS()) {
+    if (osType == OSType.WINDOWS) {
       parentPidColumn = true;
       windowPidColumn = true;
       terminalColumn = true;
       userIdColumn = true;
     }
-    else if (Utilities.isMacOS()) {
+    else if (osType == OSType.MAC) {
       command.add("-A");
     }
-    else {
+    else if (pid != null) {
       command.add("-p");
       command.add(pid);
     }
-    if (!Utilities.isWindowsOS()) {
+    if (osType != OSType.WINDOWS) {
       command.add("-o");
     }
     command.add("pid,pgid," + START_TIME_COMMAND);
+
+    Iterator iterator = command.iterator();
+    while (iterator.hasNext()) {
+      System.err.print(iterator.next() + " ");
+    }
+    System.err.println();
   }
 
   public Row getRow() {
@@ -154,7 +189,6 @@ public final class PsParam {
       return;
     }
     for (int i = 1; i < output.length; i++) {
-      //System.out.println(output[i]);
       if (output[i] != null)
         if (output[i] != null && output[i].length() >= startTimeEndIndex) {
           valuesArray.add(new Values(output[i]));
@@ -303,6 +337,9 @@ public final class PsParam {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.3  2006/06/07 20:37:28  sueh
+ * <p> bug# 766 Added ps command for mac
+ * <p>
  * <p> Revision 1.2  2006/06/06 17:16:28  sueh
  * <p> bug# 766 Implementing ps for windows.  Add a boolean for each column, so that column reading
  * <p> works with any OS.  When the OS is windows change the command and
