@@ -2,6 +2,7 @@ package etomo.comscript;
 
 import java.util.ArrayList;
 import java.util.Hashtable;
+import java.util.List;
 
 import etomo.BaseManager;
 import etomo.type.AxisID;
@@ -110,24 +111,7 @@ public class LoadAverageParam implements IntermittentCommand {
   }
 
   private final void buildRemoteStartCommand() {
-    ArrayList command = new ArrayList();
-    command.add("ssh");
-    //prevents ssh from waiting for an answer when connecting to a computer for
-    //the first time
-    //see man ssh_config
-    command.add("-x");
-    command.add("-o");
-    command.add("StrictHostKeyChecking=no");
-    //Removed because it doesn't work with older versions of Redhat (see bug# 1043).
-    //maximum connection timeout for a down computer
-    //command.add("-o");
-    //command.add("ConnectTimeout=5");
-    command.add("-o");
-    //prevents password prompts when the publickey authentication fails
-    command.add("PreferredAuthentications=publickey");
-    command.add("-v");
-    command.add(computer);
-
+    List command = SshParam.INSTANCE.getCommand(false,computer);
     int commandSize = command.size();
     remoteStartCommandArray = new String[commandSize];
     for (int i = 0; i < commandSize; i++) {
@@ -158,6 +142,9 @@ public class LoadAverageParam implements IntermittentCommand {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.13  2009/03/17 00:32:02  sueh
+ * <p> bug# 1186 Pass managerKey to everything that pops up a dialog.
+ * <p>
  * <p> Revision 1.12  2007/09/27 19:22:17  sueh
  * <p> bug# 1044 Changed command to startCommand.
  * <p>
