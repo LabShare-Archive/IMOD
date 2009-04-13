@@ -2,7 +2,6 @@ package etomo.process;
 
 import etomo.BaseManager;
 import etomo.type.AxisID;
-import etomo.type.FailureReasonInterface;
 import etomo.ui.LoadDisplay;
 import etomo.util.Utilities;
 
@@ -112,39 +111,12 @@ public class LoadAverageMonitor extends LoadMonitor {
     }
     return Double.parseDouble(load);
   }
-
-  static final class FailureReason implements FailureReasonInterface {
-    static final FailureReason UNKOWN = new FailureReason("",
-        "Unable to get the load averages for this computer.");
-    static final FailureReason COMPUTER_DOWN = new FailureReason("down",
-        "This computer in not running.");
-    static final FailureReason LOGIN_FAILED = new FailureReason("no login",
-        "You must have an account on this computer.  "
-            + "You must also have a passwordless login on this computer.");
-
-    private final String reason;
-    private final String tooltip;
-
-    private FailureReason(String reason, String tooltip) {
-      this.reason = reason;
-      this.tooltip = tooltip;
-    }
-
-    public String getReason() {
-      return reason;
-    }
-
-    public String getTooltip() {
-      return tooltip;
-    }
-
-    public String toString() {
-      return reason;
-    }
-  }
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.25  2007/09/27 20:24:56  sueh
+ * <p> bug# 1044 Added QueuechunkLoadMonitor, which has mostly the same functionality as LoadAverageMonitor, except for the output and how it is used.  Factoring out common functionality into a new parent class, LoadMonitor.
+ * <p>
  * <p> Revision 1.24  2007/07/17 21:06:54  sueh
  * <p> bug# 1018 Getting usersColumn from CpuAdoc.
  * <p>
