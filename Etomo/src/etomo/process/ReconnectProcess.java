@@ -19,7 +19,7 @@ import etomo.ui.UIHarness;
  * <p>Description: </p>
  * 
  * <p>Copyright: Copyright 2006</p>
- *
+ * 
  * <p>Organization:
  * Boulder Laboratory for 3-Dimensional Electron Microscopy of Cells (BL3DEMC),
  * University of Colorado</p>
@@ -32,16 +32,25 @@ final class ReconnectProcess implements SystemProcessInterface, Runnable {
   public static final String rcsid = "$Id$";
 
   private final BaseManager manager;
+
   private final BaseProcessManager processManager;
+
   private final ProcessMonitor monitor;
+
   private final ProcessData processData;
+
   private final AxisID axisID;
 
   private ProcessEndState endState = null;
+
   private ProcessResultDisplay processResultDisplay = null;
+
   private ProcessMessages messages = null;
+
   private LogFile logFile;
+
   private String logSuccessTag = null;
+
   private boolean monitorControl = false;
 
   private ReconnectProcess(BaseManager manager,
@@ -90,7 +99,8 @@ final class ReconnectProcess implements SystemProcessInterface, Runnable {
   }
 
   public void run() {
-    if (processData == null || !processData.isRunning()) {
+    if (processData == null || !processData.isRunning()
+        || processData.isOnDifferentHost()) {
       return;
     }
     new Thread(monitor).start();
@@ -102,7 +112,7 @@ final class ReconnectProcess implements SystemProcessInterface, Runnable {
     LogFile.WritingId logWritingId = null;
     try {
       if (!monitorControl) {
-        //make sure nothing else is writing or backing up the log file
+        // make sure nothing else is writing or backing up the log file
         logWritingId = logFile.openForWriting();
       }
       while ((!monitorControl && processData.isRunning())
@@ -111,14 +121,14 @@ final class ReconnectProcess implements SystemProcessInterface, Runnable {
           Thread.sleep(500);
         }
         catch (InterruptedException e) {
-        }
+      }
       }
     }
     catch (LogFile.LockException e) {
       e.printStackTrace();
     }
     if (!monitorControl) {
-      //release the log file
+      // release the log file
       logFile.closeForWriting(logWritingId);
       monitor.stop();
       while (!monitor.isRunning()) {
@@ -126,8 +136,8 @@ final class ReconnectProcess implements SystemProcessInterface, Runnable {
           Thread.sleep(500);
         }
         catch (InterruptedException e) {
-        }
       }
+    }
     }
     if (logSuccessTag == null) {
       messages = ProcessMessages.getInstance("Reconstruction of",
@@ -172,12 +182,12 @@ final class ReconnectProcess implements SystemProcessInterface, Runnable {
    * Return the log file as the standard output
    */
   public String[] getStdOutput() {
-    //BufferedReader logReader;
+    // BufferedReader logReader;
     LogFile.ReaderId readerId = null;
     try {
       readerId = logFile.openReader();
-      //logReader = new BufferedReader(new FileReader(DatasetFiles.getLogFile(
-      //    manager, axisID, processData.getProcessName())));
+      // logReader = new BufferedReader(new FileReader(DatasetFiles.getLogFile(
+      // manager, axisID, processData.getProcessName())));
     }
     catch (LogFile.LockException e) {
       return null;
@@ -285,6 +295,9 @@ final class ReconnectProcess implements SystemProcessInterface, Runnable {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.9  2009/03/17 00:43:53  sueh
+ * <p> bug# 1186 Pass managerKey to everything that pops up a dialog.
+ * <p>
  * <p> Revision 1.8  2009/02/04 23:26:53  sueh
  * <p> bug# 1158 Changed id and exceptions classes in LogFile.
  * <p>
