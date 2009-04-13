@@ -18,6 +18,9 @@ import java.util.Properties;
  * @notthreadsafe
  * 
  * <p> $Log$
+ * <p> Revision 1.5  2008/11/20 01:39:55  sueh
+ * <p> bug# 1149 Simplified StringProperty - set string to null when it is empty.
+ * <p>
  * <p> Revision 1.4  2008/01/14 22:03:11  sueh
  * <p> bug# 1050 Made the class public.
  * <p>
@@ -77,11 +80,14 @@ public final class StringProperty implements ConstStringProperty {
     return string == null || string.matches("\\s*");
   }
 
-  boolean equals(final String comparee) {
-    if (string == null) {
-      return isEmpty(comparee);
+  public boolean equals(final String string) {
+    if (string == null || string.matches("\\*")) {
+      return isEmpty(this.string);
     }
-    return this.string.equals(comparee);
+    if (isEmpty(this.string)) {
+      return false;
+    }
+    return this.string.equals(string);
   }
 
   boolean equals(final StringProperty stringProperty) {
