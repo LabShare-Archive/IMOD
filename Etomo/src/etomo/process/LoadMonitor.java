@@ -5,10 +5,8 @@ import java.util.HashMap;
 
 import etomo.BaseManager;
 import etomo.comscript.IntermittentCommand;
-import etomo.process.LoadAverageMonitor.FailureReason;
 import etomo.storage.CpuAdoc;
 import etomo.type.AxisID;
-import etomo.type.FailureReasonInterface;
 import etomo.ui.LoadDisplay;
 import etomo.util.HashedArray;
 
@@ -26,6 +24,9 @@ import etomo.util.HashedArray;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.3  2009/03/17 00:41:48  sueh
+ * <p> bug# 1186 Pass managerKey to everything that pops up a dialog.
+ * <p>
  * <p> Revision 1.2  2008/07/19 00:25:06  sueh
  * <p> bug# 1125 Making it easier to access CpuAdoc by not passing the
  * <p> manager to it; all it needs is the current directory.
@@ -151,7 +152,7 @@ public abstract class LoadMonitor implements IntermittentProcessMonitor,
     String key = command.getComputer();
     if (programs.containsKey(key)) {
       ProgramState program = (ProgramState) programs.get(key);
-      FailureReasonInterface failureReason = program.getFailureReason();
+      FailureReason failureReason = program.getFailureReason();
       display.msgLoadFailed(key, failureReason.getReason(), failureReason
           .getTooltip());
       program.fail();
@@ -257,9 +258,9 @@ public abstract class LoadMonitor implements IntermittentProcessMonitor,
      * @param program
      * @return
      */
-    private synchronized FailureReasonInterface getFailureReason() {
+    private synchronized FailureReason getFailureReason() {
       //There was a failure, so failureReason must not be null
-      FailureReasonInterface failureReason = program.getFailureReason();
+      FailureReason failureReason = program.getFailureReason();
       if (failureReason == null) {
         program.setFailureReason(FailureReason.UNKOWN);
       }

@@ -7,7 +7,6 @@ import java.util.Hashtable;
 import etomo.BaseManager;
 import etomo.comscript.IntermittentCommand;
 import etomo.type.AxisID;
-import etomo.type.FailureReasonInterface;
 import etomo.util.HashedArray;
 import etomo.util.RemotePath;
 
@@ -82,7 +81,7 @@ public final class IntermittentBackgroundProcess implements Runnable {
   //processing it can slow Etomo down.
   private String outputKeyPhrase = null;
   //failureReason is null unless the process fails
-  private FailureReasonInterface failureReason = null;
+  private FailureReason failureReason = null;
 
   public String toString() {
     return "[stopped=" + stopped + "," + super.toString() + "]";
@@ -370,11 +369,11 @@ public final class IntermittentBackgroundProcess implements Runnable {
     return command;
   }
 
-  FailureReasonInterface getFailureReason() {
+  FailureReason getFailureReason() {
     return failureReason;
   }
 
-  void setFailureReason(FailureReasonInterface input) {
+  void setFailureReason(FailureReason input) {
     failureReason = input;
   }
 
@@ -417,6 +416,9 @@ public final class IntermittentBackgroundProcess implements Runnable {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.15  2009/03/17 00:36:30  sueh
+ * <p> bug# 1186 Pass managerKey to everything that pops up a dialog.
+ * <p>
  * <p> Revision 1.14  2007/09/27 20:18:57  sueh
  * <p> bug# 1044 Changed IntermittentSystemProgram to have the option of not
  * <p> running a start command.  It this case, this intermittent command is set that the
