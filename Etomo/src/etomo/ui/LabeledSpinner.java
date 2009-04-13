@@ -12,6 +12,10 @@
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.24  2009/02/27 03:53:01  sueh
+ * <p> bug# 1172 Added experimental automation recording background color
+ * <p> (newstuff only).
+ * <p>
  * <p> Revision 1.23  2009/01/20 20:12:07  sueh
  * <p> bug# 1102 Changed UITestField to UITestFieldType.  Simplified the name
  * <p> by removing the expanded state portion.
@@ -160,10 +164,6 @@ public class LabeledSpinner {
       maxSize.setSize(maxSize.getWidth(), 2 * spinner.getFont().getSize());
     }
     spinner.setMaximumSize(maxSize);
-    if (EtomoDirector.INSTANCE.getArguments().isNewstuff()) {
-      label.setBackground(Colors.AVAILABLE_BACKGROUND);
-      panel.setBackground(Colors.AVAILABLE_BACKGROUND);
-    }
   }
 
   void setMax(int max) {

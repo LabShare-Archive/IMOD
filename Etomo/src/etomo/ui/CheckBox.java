@@ -23,6 +23,10 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.16  2009/02/27 03:50:23  sueh
+ * <p> bug# 1172 Added experimental automation recording background color
+ * <p> (newstuff only).
+ * <p>
  * <p> Revision 1.15  2009/01/20 19:49:28  sueh
  * <p> bug# 1102 Changed this UITestField to UITestFieldType.
  * <p>
@@ -82,9 +86,6 @@ final class CheckBox extends JCheckBox {
   public CheckBox(String text) {
     super(text);
     setName(text);
-    if (EtomoDirector.INSTANCE.getArguments().isNewstuff()) {
-      setBackground(Colors.AVAILABLE_BACKGROUND);
-    }
   }
 
   public void setText(String text) {
@@ -126,6 +127,10 @@ final class CheckBox extends JCheckBox {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.16  2009/02/27 03:50:23  sueh
+ * <p> bug# 1172 Added experimental automation recording background color
+ * <p> (newstuff only).
+ * <p>
  * <p> Revision 1.15  2009/01/20 19:49:28  sueh
  * <p> bug# 1102 Changed this UITestField to UITestFieldType.
  * <p>

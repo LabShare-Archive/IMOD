@@ -25,6 +25,10 @@ import etomo.util.Utilities;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.33  2009/02/27 03:53:18  sueh
+ * <p> bug# 1172 Added experimental automation recording background color
+ * <p> (newstuff only).
+ * <p>
  * <p> Revision 3.32  2009/01/20 20:12:23  sueh
  * <p> bug# 1102 Changed UITestField to UITestFieldType.  Simplified the name
  * <p> by removing the expanded state portion.
@@ -201,12 +205,6 @@ final class LabeledTextField {
       maxSize.setSize(maxSize.getWidth(), 2 * textField.getFont().getSize());
     }
     textField.setMaximumSize(maxSize);
-    if (EtomoDirector.INSTANCE.getArguments().isNewstuff()) {
-      if (label.getText().indexOf("Backup directory") == -1) {
-        panel.setBackground(Colors.AVAILABLE_BACKGROUND);
-        label.setBackground(Colors.AVAILABLE_BACKGROUND);
-      }
-    }
   }
 
   private void setName(final String tfLabel) {

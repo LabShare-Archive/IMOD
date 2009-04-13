@@ -68,9 +68,6 @@ final class RadioButton implements RadioButtonInterface {
     if (enumeratedType != null && enumeratedType.isDefault()) {
       radioButton.setSelected(true);
     }
-    if (EtomoDirector.INSTANCE.getArguments().isNewstuff()) {
-      radioButton.setBackground(Colors.AVAILABLE_BACKGROUND);
-    }
   }
 
   public String toString() {
@@ -228,6 +225,10 @@ final class RadioButton implements RadioButtonInterface {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.22  2009/02/27 03:54:22  sueh
+ * <p> bug# 1172 Added experimental automation recording background color
+ * <p> (newstuff only).
+ * <p>
  * <p> Revision 1.21  2009/01/20 20:23:00  sueh
  * <p> bug# 1102 Changed UITestField to UITestFieldType.
  * <p>

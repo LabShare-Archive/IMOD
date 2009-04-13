@@ -1,7 +1,6 @@
 package etomo.ui;
 
 import javax.swing.AbstractButton;
-import javax.swing.BorderFactory;
 import javax.swing.Icon;
 import javax.swing.JButton;
 import javax.swing.JToggleButton;
@@ -45,6 +44,10 @@ import java.lang.String;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.38  2009/02/27 03:54:11  sueh
+ * <p> bug# 1172 Added experimental automation recording border color
+ * <p> (newstuff only).
+ * <p>
  * <p> Revision 3.37  2009/01/20 20:15:58  sueh
  * <p> bug# 1102 Changed UITestField to UITestFieldType.
  * <p>
@@ -248,13 +251,6 @@ class MultiLineButton implements ProcessResultDisplay {
     init();
     processResultDisplayState = new ProcessResultDisplayState(this);
     String text = button.getText();
-    if (EtomoDirector.INSTANCE.getArguments().isNewstuff()) {
-      if (text.indexOf("View Raw Image Stack") == -1
-          && text.indexOf("Cancel") == -1) {
-        button.setBorder(BorderFactory.createBevelBorder(0,
-            Colors.AVAILABLE_BORDER, Colors.AVAILABLE_BORDER));
-      }
-    }
   }
 
   void setHighlight(boolean highlight) {
