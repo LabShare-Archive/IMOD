@@ -218,9 +218,7 @@ public final class ApplicationManager extends BaseManager implements
         return;
       }
     }
-    if (EtomoDirector.INSTANCE.getArguments().isExit()) {
-      uiHarness.exit(AxisID.ONLY);
-    }
+    super.doAutomation();
   }
 
   public boolean setParamFile() {
@@ -456,11 +454,11 @@ public final class ApplicationManager extends BaseManager implements
     mainPanel.updateAllProcessingStates(processTrack);
     setPanel();
     if (metaData.getAxisType() == AxisType.DUAL_AXIS) {
-      reconnect(AxisID.FIRST);
-      reconnect(AxisID.SECOND);
+      reconnect(processMgr.getRunningProcessData(AxisID.FIRST), AxisID.FIRST);
+      reconnect(processMgr.getRunningProcessData(AxisID.SECOND), AxisID.SECOND);
     }
     else {
-      reconnect(AxisID.ONLY);
+      reconnect(processMgr.getRunningProcessData(AxisID.ONLY), AxisID.ONLY);
     }
   }
 
@@ -483,30 +481,31 @@ public final class ApplicationManager extends BaseManager implements
   /**
    * Attempts to reconnect to a currently running process.  Only run once per
    * axis.  Only attempts one reconnect.
-   * Must run super.reconnect
+   * Must run super.reconnect first
    * @param axisID - axis of the running process.
    * @return true if a reconnect was attempted.
    */
-  public boolean reconnect(AxisID axisID) {
-    if (super.reconnect(axisID)) {
+  public boolean reconnect(ProcessData processData, AxisID axisID) {
+    if (super.reconnect(processData, axisID)) {
       return true;
     }
     if (isReconnectRun(axisID)) {
       return false;
     }
     setReconnectRun(axisID);
-    ProcessData processData = processMgr.getRunningProcessData(axisID);
     if (processData == null) {
       return false;
     }
-    ProcessName processName = processData.getProcessName();
-    if (processName == null) {
-      return false;
-    }
-    if (processName == ProcessName.TILT) {
-      ((TomogramGenerationExpert) getUIExpert(DialogType.TOMOGRAM_GENERATION,
-          axisID)).reconnectTilt(processName);
-      return true;
+    if (processData.getProcessName() == ProcessName.TILT) {
+      if (processData.isOnDifferentHost()) {
+        handleDifferentHost(processData, axisID);
+        return false;
+      }
+      if (processData.isRunning()) {
+        ((TomogramGenerationExpert) getUIExpert(DialogType.TOMOGRAM_GENERATION,
+            axisID)).reconnectTilt(processData.getProcessName());
+        return true;
+      }
     }
     return false;
   }
@@ -5940,6 +5939,9 @@ public final class ApplicationManager extends BaseManager implements
 }
 /**
  * <p> $Log$
+ * <p> Revision 3.321  2009/03/23 16:53:54  sueh
+ * <p> bug# 1187 Changed sendContinuousMessage, which is the wrong verb, to getContinuousMessage.
+ * <p>
  * <p> Revision 3.320  2009/03/23 16:45:57  sueh
  * <p> bug# 1187 Moved taError.log logging to ApplicationManager.  Implement ContinuousMessageTarget:  added sendContinuousMessage which generates the ta align logs and calls logTaErrorLogMessage.
  * <p>
