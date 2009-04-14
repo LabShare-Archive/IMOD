@@ -995,6 +995,7 @@ public abstract class BaseManager {
           return false;
         }
         if (processData.isRunning()) {
+          System.err.println("\nAttempting to reconnect\n" + processData);
           reconnectProcesschunks(processData, axisID);
           getProcessManager().unblockAxis(axisID);
           return true;
@@ -1288,11 +1289,14 @@ public abstract class BaseManager {
   }
 
   public final void tomosnapshot(AxisID axisID) {
-      getProcessManager().tomosnapshot(axisID);
-    }
+    getProcessManager().tomosnapshot(axisID);
+  }
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.113  2009/04/13 22:20:25  sueh
+ * <p> bug# 1207 Implemented doAutomation in BaseManager.  Added handleDifferentHost.  Passed processData to reconnect.
+ * <p>
  * <p> Revision 1.112  2009/04/06 22:37:32  sueh
  * <p> bug# 1206 BaseProcessManager.tomosnapshot is not returning an exception.
  * <p>

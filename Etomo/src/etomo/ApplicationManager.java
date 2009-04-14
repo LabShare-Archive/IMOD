@@ -454,11 +454,11 @@ public final class ApplicationManager extends BaseManager implements
     mainPanel.updateAllProcessingStates(processTrack);
     setPanel();
     if (metaData.getAxisType() == AxisType.DUAL_AXIS) {
-      reconnect(processMgr.getRunningProcessData(AxisID.FIRST), AxisID.FIRST);
-      reconnect(processMgr.getRunningProcessData(AxisID.SECOND), AxisID.SECOND);
+      reconnect(processMgr.getSavedProcessData(AxisID.FIRST), AxisID.FIRST);
+      reconnect(processMgr.getSavedProcessData(AxisID.SECOND), AxisID.SECOND);
     }
     else {
-      reconnect(processMgr.getRunningProcessData(AxisID.ONLY), AxisID.ONLY);
+      reconnect(processMgr.getSavedProcessData(AxisID.ONLY), AxisID.ONLY);
     }
   }
 
@@ -502,6 +502,7 @@ public final class ApplicationManager extends BaseManager implements
         return false;
       }
       if (processData.isRunning()) {
+        System.err.println("\nAttempting to reconnect\n" + processData);
         ((TomogramGenerationExpert) getUIExpert(DialogType.TOMOGRAM_GENERATION,
             axisID)).reconnectTilt(processData.getProcessName());
         return true;
@@ -5939,6 +5940,11 @@ public final class ApplicationManager extends BaseManager implements
 }
 /**
  * <p> $Log$
+ * <p> Revision 3.322  2009/04/13 22:18:49  sueh
+ * <p> bug# 1207 Moved the call the ProcessData.isRunning to
+ * <p> processMgr.getRunningProcess so it can be called fewer times.  Implemented
+ * <p> doAutomation in BaseManager.
+ * <p>
  * <p> Revision 3.321  2009/03/23 16:53:54  sueh
  * <p> bug# 1187 Changed sendContinuousMessage, which is the wrong verb, to getContinuousMessage.
  * <p>
