@@ -62,7 +62,6 @@ public final class ProcessData implements Storable {
   private ProcessName processName = null;
   private boolean doNotLoad = false;
   private OSType osType = null;
-  private boolean running = false;
   private boolean sshFailed = false;
 
   /**
@@ -100,6 +99,17 @@ public final class ProcessData implements Storable {
     this.manager = manager;
   }
 
+  /**
+   * This is being used in the production code.  Keep it up to date.
+   */
+  public String toString() {
+    return "ProcessData values:" + "\nprocessName=" + processName + "\npid="
+        + pid + "\ngroupPid=" + groupPid + "\nstartTime=" + startTime
+        + "\nsubProcessName=" + subProcessName + "\nsubDirName=" + subDirName
+        + "\nhostName=" + hostName + "\nosType=" + osType + "\ndisplayKey="
+        + displayKey + "\n";
+  }
+
   public void setDisplayKey(ProcessResultDisplay processResultDisplay) {
     if (processResultDisplay != null) {
       displayKey.set(processResultDisplay.getDependencyIndex());
@@ -129,21 +139,17 @@ public final class ProcessData implements Storable {
 
   /**
    * Look for the process data in the ps output.
-   * Set running to true if the process data is found in the ps output, false if the
+   * Returns true if the process data is found in the ps output, false if the
    * process data is not found or this instance is empty.
    * If the row is not in ps more then three times, it returns false without
    * checking.
    */
-  void setRunning() {
+  public boolean isRunning() {
     if (isEmpty()) {
-      running = false;
+      return false;
     }
     PsParam param = runPs(pid);
-    running = param.findRow(pid, groupPid, startTime);
-  }
-
-  public boolean isRunning() {
-    return running;
+    return param.findRow(pid, groupPid, startTime);
   }
 
   public boolean isOnDifferentHost() {
@@ -240,10 +246,6 @@ public final class ProcessData implements Storable {
     return prepend;
   }
 
-  public String toString() {
-    return "hostName=" + hostName;
-  }
-
   private void store(Properties props, String prepend) {
     prepend = getPrepend(prepend);
     String group = prepend + ".";
@@ -315,6 +317,9 @@ public final class ProcessData implements Storable {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.9  2009/04/13 22:38:01  sueh
+ * <p> bug# 1207 Added hostName, osType, running, and sshFailed.
+ * <p>
  * <p> Revision 1.8  2009/03/17 00:43:20  sueh
  * <p> bug# 1186 Pass managerKey to everything that pops up a dialog.
  * <p>
