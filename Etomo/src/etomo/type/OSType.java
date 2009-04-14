@@ -22,6 +22,10 @@ import java.util.Properties;
  * 
  * <p>
  * $Log$
+ * Revision 1.1  2009/04/13 22:54:41  sueh
+ * bug# 1207 Class representing the type of OS.  Can either get the OS of the current
+ * system or a stored OS.
+ *
  * </p>
  */
 public final class OSType {
@@ -73,6 +77,10 @@ public final class OSType {
 
   public void store(Properties props, String prepend) {
     props.setProperty(prepend + "." + KEY, description);
+  }
+  
+  public String toString() {
+    return description;
   }
 
 }
