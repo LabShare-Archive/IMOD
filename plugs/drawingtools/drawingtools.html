@@ -31,8 +31,9 @@ stretch <i>[shift+third_button]</i> the currently selected contour.</li>
 or points <i>[third_button]</i> touching the sculpt circle. 
 Holding <i>[shift+third_button]</i> lets you break apart contours.</li>
 <li><b>Warp</b> - allows you to quickly correct bad regions of contour
-with the <i>[second_button]</i> or <i>[third_button]</i> by warping
-the points closest to the sculpt circle. 
+by warping <i>[second_button]</i> or warp-and-smoothing <i>[third_button]</i>
+the contour points closest to (if you click on a contour) or within (if you 
+click near a contour) the sculpt circle.
 Holding <i>[shift+third_button]</i> lets you break apart contours.</li>
 </ol>
 <br><br>
@@ -90,7 +91,7 @@ Hold Shift down to alter the behavior of certain draw modes<br>
 <b>Tips</b><br>
 ---------------------<br>
 <br>
-Holding and dragging [shift+first_button] allows you to quickly
+Holding and dragging <b>[shift+first_button]</b> allows you to quickly
 scroll up and down the slices.<br>
 <br>
 Be warned that the sculpt and join tool were designed for 2D 
@@ -102,7 +103,8 @@ copy it to nearby slices by simply scrolling to a different
 and mouse clicking [second_button]. In this way transform can
 be useful to quickly mark-up simple shapes.
 <br>
-The sculpt tool can become sluggish for objects with numerous contours. 
+The join tool and, to a lesser extent, the sculpt tool can become
+sluggish for objects with numerous contours. 
 To improve performance you should consider adding an extra object and 
 then use <i>'edit > object > move'</i> to merge the contours into the 
 desired object periodically.<br> 

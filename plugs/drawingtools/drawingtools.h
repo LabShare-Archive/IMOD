@@ -130,7 +130,6 @@ enum smoothmodes    { RD_TOL, RD_MINAREA };
 enum wheelbehaviour { WH_NONE, WH_SCULPTCIRCLE, WH_SLICES, WH_CONTS, WH_PTS, WH_PTSIZE };
 enum dkeybehavior   { DK_NONE, DK_TOEND, DK_NEARESTEND, DK_DELETEPT, DK_DELETECONT,
                       DK_REMOVEPTSIZE, DK_REMOVEALLPTSIZES };
-enum warpdisplay    { WD_CIRCLE, WD_LENGTH, WD_ALL, WD_EITHER };
 
 enum sortcriteria   { SORT_SURFACENUM,
                       SORT_NUMPTS, SORT_LENGTH, SORT_AREA, SORT_CLOCKWISEAREA,
@@ -140,7 +139,7 @@ enum sortcriteria   { SORT_SURFACENUM,
                       SORT_PTX, SORT_PTY, SORT_PTZ,
                       SORT_PTSIZE, SORT_PTGREY, SORT_NUMOPTIONS };
 
-const int NUM_SAVED_VALS = 19;
+const int NUM_SAVED_VALS = 18;
 
 //-------------------------------
 //## DRAWINGTOOLS DATA STRUCTURE:
@@ -218,6 +217,7 @@ struct DrawingToolsData   // contains all local plugin data
   
   bool shiftDown;       // set to true when the SHIFT button is down
   Ipoint centerPt;      // the center of the currently selected contour
+  bool contortInProgress;   // used in DM_WARP when user clicks close to contour edge
   
   vector<IdxToSort> sortVals; // stores a idx and float for each contour after
                               // "sort contours" is run

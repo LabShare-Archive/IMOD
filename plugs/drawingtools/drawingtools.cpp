@@ -15,6 +15,9 @@
     $Revision$
 
     $Log$
+    Revision 1.31  2009/04/03 00:38:07  tempuser
+    commented out test T key
+
     Revision 1.30  2009/03/31 04:54:11  tempuser
     fixed join tool (I hope)
 
@@ -317,7 +320,6 @@ void imodPlugExecute(ImodView *inImodView)
     plug.markTouchedContsAsKey    = false;
     plug.wheelResistance          = 100;
     plug.showMouseInModelView     = false;
-    plug.warpDisplay              = WD_EITHER;
     plug.testIntersetAllObjs      = true;
     plug.selectedAction           = 0;
     plug.sortCriteria             = SORT_NUMPTS;
@@ -1143,27 +1145,24 @@ bool DrawingTools::drawExtraObject( bool redraw )
       break;
     }
     
-  case(DM_WARP):            // draw warp circle
+  case(DM_WARP):            // draw warp area
     {
-      if( plug.warpDisplay != WD_LENGTH && plug.warpDisplay != WD_EITHER )
+      bool ptInContortRange = false;
+      
+      if( !plug.but2Down && !plug.but3Down )    // if mouse not down: check if cont close
       {
-        cont_generateCircle( xcont, radius, 100, plug.mouse, true );
-        setInterpolated( xcont, true );
+        float contortDistTol = 10.0f*sc; //MAX( radius*0.2f, 5.0f );
+        ptInContortRange =
+          edit_selectNearPtInCurrObj( &plug.mouse, contortDistTol, 0.0f, false );
+        plug.contortInProgress = false;
       }
       
-      int objIdx, contIdx, ptIdx;
-      imodGetIndex(imod, &objIdx, &contIdx, &ptIdx);
+      bool showContort = isCurrPtValid() 
+                          && ( plug.contortInProgress || ptInContortRange );
       
-      float distTol         = MAX( radius*0.5f, 10.0f );
-      float distTolCurrCont = ( plug.but2Down || plug.but3Down ) ? 20.0f : 0.0f;
-      
-      bool suitableContourSelected =
-        edit_selectNearPtInCurrObj( &plug.mouse, distTol, distTolCurrCont, false );
-      
-      imodGetIndex(imod, &objIdx, &contIdx, &ptIdx);
-      
-      if( suitableContourSelected && isCurrPtValid() )    // draw closest point:
+      if( showContort )    // draw contort area (instead of warp circle)
       {
+                              // draw thick circle around closest (current) point
         Ipoint *currPt = getCurrPt();
         Icont *xcont2 = imodContourNew();
         Icont *xcont3 = imodContourNew();
@@ -1171,60 +1170,71 @@ bool DrawingTools::drawExtraObject( bool redraw )
         cont_generateCircle( xcont3, 4.5f*sc, 100, *currPt, true );
         imodObjectAddContour(xobj, xcont2);
         imodObjectAddContour(xobj, xcont3);
-        imodSetIndex(imod, objIdx, contIdx, ptIdx);
         
-        if( plug.warpDisplay != WD_CIRCLE )                   // draw warp length:
+                              // draw warp area
+        
+        Imod *imod  = ivwGetModel(plug.view);
+        Iobj  *obj  = getCurrObj();
+        Icont *cont = getCurrCont();
+        int objIdx, contIdx, ptIdx;
+        imodGetIndex(imod, &objIdx, &contIdx, &ptIdx);
+        bool closed = isContClosed(obj,cont);
+        float contLength = imodContourLength( cont, closed );
+        float distToWarp = MIN( plug.draw_sculptRadius, contLength * 0.25f );
+        int numPts = psize(cont);
+          
+        int idxStart, idxEnd;
+        float distFromSelPt = 0.0f;
+        for( int p=numPts+(ptIdx-1); p>=ptIdx; p-- )
         {
-          Iobj  *obj  = getCurrObj();
-          Icont *cont = getCurrCont();
-          bool closed = isContClosed(obj,cont);
-          float  contLength = imodContourLength( cont, closed );
-          if( contLength > plug.draw_sculptRadius )
-          {            
-            float distToWarp = MIN( plug.draw_sculptRadius, contLength * 0.25f );
-            int numPts = psize(cont);
-            
-            int idxStart, idxEnd;
-            float distFromSelPt = 0.0f;
-            for( int p=numPts+(ptIdx-1); p>=ptIdx; p-- )
-            {
-              distFromSelPt += line_distBetweenPts2D( getPt(cont,p), getPt(cont,p-1) );
-              if( distFromSelPt >= distToWarp )
-              {
-                idxStart = p;
-                break;
-              }
-            }
-            
-            distFromSelPt = 0.0f;
-            for( int p=numPts+(ptIdx+1); p<=numPts+numPts+ptIdx; p++ )
-            {
-              distFromSelPt += line_distBetweenPts2D( getPt(cont,p-1), getPt(cont,p) );
-              if( distFromSelPt >= distToWarp )
-              {
-                idxEnd = p;
-                break;
-              }
-            }
-            Icont *xcontS = imodContourNew();
-            Icont *xcontE = imodContourNew();
-            Icont *xcontL = imodContourNew();
-            for( int p=idxStart; p<=idxEnd; p++ )
-              imodPointAppend( xcontL, getPt(cont,p) );
-            for( int p=idxEnd; p>=idxStart; p-- )
-              imodPointAppend( xcontL, getPt(cont,p) );
-            cont_generateCircle( xcontS, 3.5f*sc, 4, *getPt(cont,idxStart), true );
-            cont_generateCircle( xcontE, 3.5f*sc, 4, *getPt(cont,idxEnd), true );
-            imodObjectAddContour(xobj, xcontL);
-            imodObjectAddContour(xobj, xcontS);
-            imodObjectAddContour(xobj, xcontE);
+          distFromSelPt += line_distBetweenPts2D( getPt(cont,p), getPt(cont,p-1) );
+          if( distFromSelPt >= distToWarp )
+          {
+            idxStart = p;
+            break;
           }
         }
+        
+        distFromSelPt = 0.0f;
+        for( int p=numPts+(ptIdx+1); p<=numPts+numPts+ptIdx; p++ )
+        {
+          distFromSelPt += line_distBetweenPts2D( getPt(cont,p-1), getPt(cont,p) );
+          if( distFromSelPt >= distToWarp )
+          {
+            idxEnd = p;
+            break;
+          }
+        }
+        Icont *xcontS = imodContourNew();
+        Icont *xcontE = imodContourNew();
+        Icont *xcontL = imodContourNew();
+        for( int p=idxStart; p<=idxEnd; p++ )
+          imodPointAppend( xcontL, getPt(cont,p) );
+        for( int p=idxEnd; p>=idxStart; p-- )
+          imodPointAppend( xcontL, getPt(cont,p) );
+        cont_generateCircle( xcontS, 3.5f*sc, 4, *getPt(cont,idxStart), true );
+        cont_generateCircle( xcontE, 3.5f*sc, 4, *getPt(cont,idxEnd), true );
+        imodObjectAddContour(xobj, xcontL);
+        imodObjectAddContour(xobj, xcontS);
+        imodObjectAddContour(xobj, xcontE);
+        
+                              // draw small lines to show radius
+        
+        float halfSmallLineLen = MAX( radius*0.05f, 0.5f );
+        Icont *xcontRL = imodContourNew();
+        Icont *xcontRR = imodContourNew();
+        imodPointAppendXYZ( xcontRL, x-radius, y+halfSmallLineLen, z );
+        imodPointAppendXYZ( xcontRL, x-radius, y-halfSmallLineLen, z );
+        imodPointAppendXYZ( xcontRR, x+radius, y+halfSmallLineLen, z );
+        imodPointAppendXYZ( xcontRR, x+radius, y-halfSmallLineLen, z );
+        imodObjectAddContour(xobj, xcontRL);
+        imodObjectAddContour(xobj, xcontRR);
       }
-      else if( plug.warpDisplay == WD_EITHER )
+      else        // draw warp circle
       {
         cont_generateCircle( xcont, radius, 100, plug.mouse, true );
         setInterpolated( xcont, true );
+        break;
       }
       
       break;
@@ -1296,11 +1306,10 @@ void DrawingTools::loadSettings()
   plug.useNumKeys                 = savedValues[11];
   plug.markTouchedContsAsKey      = savedValues[12];
   plug.wheelResistance            = savedValues[13];
-  plug.warpDisplay                = savedValues[14];
   plug.selectedAction             = savedValues[15];
-  plug.selectedAction             = savedValues[16];
-  plug.testIntersetAllObjs        = savedValues[17];
-  plug.findCriteria               = savedValues[18];
+  plug.selectedAction             = savedValues[15];
+  plug.testIntersetAllObjs        = savedValues[16];
+  plug.findCriteria               = savedValues[17];
 }
 
 
@@ -1326,11 +1335,10 @@ void DrawingTools::saveSettings()
   saveValues[11]  = plug.useNumKeys;
   saveValues[12]  = plug.markTouchedContsAsKey;
   saveValues[13]  = plug.wheelResistance;
-  saveValues[14]  = plug.warpDisplay;
+  saveValues[14]  = plug.selectedAction;
   saveValues[15]  = plug.selectedAction;
-  saveValues[16]  = plug.selectedAction;
-  saveValues[17]  = plug.testIntersetAllObjs;
-  saveValues[18]  = plug.selectedAction;
+  saveValues[16]  = plug.testIntersetAllObjs;
+  saveValues[17]  = plug.selectedAction;
   
   prefSaveGenericSettings("DrawingTools",NUM_SAVED_VALS,saveValues);
 }
@@ -2437,18 +2445,6 @@ void DrawingTools::moreSettings()
                   "in sculpt and join drawing mode. \n"
                   "NOTE: You can also change this using "
                   "[q], [w] and the mouse wheel.");
-  ds.addComboBox( "warp tool display:",
-                  "circle only,"
-                  "warp length only,"
-                  "circle and length,"
-                  "either", &plug.warpDisplay,
-                  "Display setting for the warp tool [6] is used. \n"
-                  "\n"
-                  " > circle - show the deform circle whereby the diameter "
-                  "represents how much length will be warped \n"
-                  " > warp length - shows the length/region of the contour "
-                  "to be warped \n"
-                  " > circle and length - shows the deform circle and warp length");
   ds.addLabel   ( "\n--- OTHER ---" );
   ds.addComboBox( "smoothing meth:",
                   "segment threshold,"
@@ -4272,12 +4268,13 @@ int edit_removeAllFlaggedContoursFromObj( Iobj *obj )
 
 
 //------------------------
-//-- Searches all contours in the current object and tries to find and select the
-//-- closest point on the given slice and within the "distTol" of "centerPt".
+//-- Searches all contours in the current object and select the
+//-- closest point on the given slice within "distTol" of "centerPt".
 //-- Note that the current contour is searched first, and the closest points here
 //-- will be selected if "centerPt" is within "distTolCurrCont", or if
 //-- "countInsideCurrCont" is set and "centerPt" is inside the contour.
 //-- Returns true if a point is selected.
+//-- 
 //-- NOTE: This function is called by edit_executeSculptStart.
 
 bool edit_selectNearPtInCurrObj( Ipoint *centerPt, float distTol,
@@ -4352,11 +4349,13 @@ bool edit_selectNearPtInCurrObj( Ipoint *centerPt, float distTol,
 
 
 //------------------------
-//-- Searches all contours in the current object and tries to find and select a
-//-- point and contour with the given z value and within the specified distance of 
-//-- the x, y coordinates and returns true if a point is actually found.
+//-- Searches all contours in the current object and selects the first
+//-- point (and contour) with the given z value and within "distTolerance" of 
+//-- the given x coordinate (along the x axis) and y coordinate (along the y axis).
+//-- Returns true if a point is found, false if no point was within this "search box".
+//--
 //-- NOTE: "distTolerance" represents the maximum distance (in tomogram pixels)
-//--       the x, y coordinates must be from our point
+//--       the x, y coordinates must be from our point.
 //-- NOTE: This function is called by edit_executeSculptStart.
 
 bool edit_selectContourPtNearCoordsCurrObj(float x, float y, int z, float distTolerance)
@@ -4806,41 +4805,57 @@ void edit_executeWarpStart()
   //## DETERMINE IF USER IS TRYING TO EDIT THE CURRENT CONTOUR,
   //## A DIFFERENT CONTOUR, OR START A NEW CONTOUR:
   
+  plug.contortInProgress = false;
+  
   float radius = plug.draw_sculptRadius;
-  float distTol         = MAX( radius*0.5f, 10.0f );
+  
+  float zapZoom = 1.0f;                 // gets the zoom of the top-most zap window
+  int noZap = ivwGetTopZapZoom(plug.view, &zapZoom); 
+  float sc = fDivide( 1.0f, zapZoom);   // tomogram distance for one screen pixel 
+  float contortDistTol = 10.0f*sc;
   
   bool suitableContourSelected =
-    edit_selectNearPtInCurrObj( &plug.mouse, distTol, 0.0f, false );
+    edit_selectNearPtInCurrObj( &plug.mouse, radius*2.0f, 0.0f, false );
   
-  Imod *imod = ivwGetModel(plug.view);
-  Iobj *obj  = imodObjectGet(imod);
+  Imod *imod  = ivwGetModel(plug.view);
+  Iobj *obj   = imodObjectGet(imod);
   Icont *cont = imodContourGet(imod);
+  Ipoint *pt  = imodPointGet(imod);
   
-  //## (IF SUITABLE CONTOUR IS SELECTED) WARP CONTOUR EDGE:
   
-  if( suitableContourSelected && isContValid(cont) && psize(cont) > 3 )
+  //## IF NO SUITABLE CONTOUR WAS SELECTED: CREATE AND SELECT NEW CONTOUR
+  
+  if( !suitableContourSelected || !isContValid(cont) || !isCurrPtValid() )
   {
-    undoContourDataChgCC( plug.view );      // REGISTER UNDO
-    edit_addPtsCurrContInRadius( &plug.mouse, plug.draw_sculptRadius,
-                                 plug.draw_sculptRadius*0.2f );
-    edit_selectClosestPtInCurrCont( &plug.mouse );
-    edit_executeWarp();
+    Icont *newCont = imodContourNew();
+    cont_generateCircle(newCont, plug.draw_sculptRadius, 16, plug.mouse, false);
+    int newContPos = edit_addContourToObj(obj, newCont, true);
+    int objIdx, contIdx, ptIdx;
+    imodGetIndex(imod, &objIdx, &contIdx, &ptIdx);
+    imodSetIndex(imod, objIdx, newContPos, 0);
     return;
   }
   
-  //## (IF NO SUITABLE CONTOUR WAS FOUND) DO NOTHING
+  //## IF SUITABLE CONTOUR WAS SELECTED: DETERMINE IF WE WANT TO WARP OR CONTORT IT
   
-  int objIdx, contIdx, ptIdx;
-  imodGetIndex(imod, &objIdx, &contIdx, &ptIdx);
-  imodSetIndex(imod, objIdx, -1, -1);
+  float distToCurrPt = line_distBetweenPts2D( &plug.mouse, pt );
+  
+  if( distToCurrPt <= contortDistTol )
+     plug.contortInProgress = true;
+  
+  undoContourDataChgCC( plug.view );      // REGISTER UNDO
+  edit_addPtsCurrContInRadius( &plug.mouse, plug.draw_sculptRadius,
+                               plug.draw_sculptRadius*0.2f );
 }
+
+
 
 
 //------------------------
 //-- Executes a warp operation by determining the movement of the mouse and
 //-- moving points near the point clicked by and appropriate distance.
 
-void edit_executeWarp()
+void edit_executeContort()
 {
   Imod   *imod  = ivwGetModel(plug.view);
   Iobj   *obj   = imodObjectGet(imod);
@@ -4951,11 +4966,79 @@ void edit_executeWarp()
   }
 }
 
+
+//------------------------
+//-- Executes a warp operation by determining the movement of the mouse and
+//-- moving points near the point clicked by and appropriate distance.
+
+void edit_executeWarp()
+{
+  if( plug.contortInProgress )
+  {
+    edit_executeContort();
+    return;
+  }
+  
+  Imod   *imod  = ivwGetModel(plug.view);
+  Iobj   *obj   = imodObjectGet(imod);
+  Icont  *cont  = imodContourGet(imod);
+  Ipoint *selPt = imodPointGet(imod);
+  int objIdx, contIdx, ptIdx;
+  imodGetIndex(imod, &objIdx, &contIdx, &ptIdx);
+  
+  if( !isContValid(cont) || !isCurrPtValid() || psize(cont) <= 1 )
+    return;
+  
+  bool  closed     = isContClosed( obj, cont );
+  float contLength = imodContourLength(cont, closed);
+  
+  float radius = plug.draw_sculptRadius;
+  
+  if(radius == 0)
+    return;
+  
+  float changeX =  plug.mouse.x - plug.mousePrev.x;
+  float changeY =  plug.mouse.y - plug.mousePrev.y;
+  
+  cont_addPtsCrude( cont, radius*0.25, closed );
+  
+  for( int p=0; p<psize(cont); p++ )
+  {
+    Ipoint *pt = getPt(cont,p);
+    float distToCenter  = line_distBetweenPts2D( &plug.mouse, pt );
+    if( distToCenter > radius )
+      continue;
+    
+    float fractToCenter = distToCenter / radius;
+    float moveWeight    = (1.0f - fractToCenter);
+    
+    pt->x += moveWeight * changeX;
+    pt->y += moveWeight * changeY;
+  }
+  
+  
+  if(plug.but3Down)
+  {
+    for( int p=1; p<psize(cont)-1; p++ )
+    {
+      Ipoint *pt = getPt(cont,p);
+      float distToCenter  = line_distBetweenPts2D( &plug.mouse, pt );
+      if( distToCenter > radius )
+        continue;
+      
+      Ipoint estPos = line_getPtHalfwayBetween( getPt(cont,p-1), getPt(cont,p+1) );
+      *pt = line_findPtFractBetweenPts2D( pt, &estPos, 0.1 );
+    }
+  }
+}
+
 //------------------------
 //-- Compleles a warp action by reducing points.
 
 void edit_executeWarpEnd()
 {
+  plug.contortInProgress = false;
+  
   if( !isCurrContValid() )
     return;
   
