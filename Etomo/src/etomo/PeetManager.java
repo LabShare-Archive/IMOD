@@ -58,6 +58,9 @@ import etomo.util.DatasetFiles;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.48  2009/04/13 22:22:22  sueh
+ * <p> bug# 1207 Implemented doAutomation in BaseManager.
+ * <p>
  * <p> Revision 1.47  2009/03/17 00:30:14  sueh
  * <p> bug# 1186 Pass managerKey to everything that pops up a dialog.
  * <p>
@@ -782,7 +785,7 @@ public final class PeetManager extends BaseManager {
   private void openProcessingPanel() {
     mainPanel.showProcessingPanel(AxisType.SINGLE_AXIS);
     setPanel();
-    reconnect(processMgr.getRunningProcessData(AxisID.ONLY), AxisID.ONLY);
+    reconnect(processMgr.getSavedProcessData(AxisID.ONLY), AxisID.ONLY);
   }
 
   /**

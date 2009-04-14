@@ -70,6 +70,9 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.77  2009/04/13 22:21:53  sueh
+ * <p> bug# 1207 Implemented doAutomation in BaseManager.
+ * <p>
  * <p> Revision 1.76  2009/04/01 19:55:07  sueh
  * <p> bug# 1208 Replaced flip with rotx.
  * <p>
@@ -1432,7 +1435,7 @@ public final class JoinManager extends BaseManager {
   private void openProcessingPanel() {
     mainPanel.showProcessingPanel(AxisType.SINGLE_AXIS);
     setPanel();
-    reconnect(processMgr.getRunningProcessData(AxisID.ONLY), AxisID.ONLY);
+    reconnect(processMgr.getSavedProcessData(AxisID.ONLY), AxisID.ONLY);
   }
 
   /**
