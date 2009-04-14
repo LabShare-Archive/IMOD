@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+4/14/09: In Etomo fixed processchunks resume with a queue; it wasn't getting
+updated number of CPUs.
+
 4/6/09: IMOD_4-0-9
 4/6/09: In Etomo fixed the Tomosnapshot menu option so that it is on all the 
 time (In 3.13).
