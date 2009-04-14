@@ -287,6 +287,7 @@ public final class ParallelPanel implements Expandable {
     cbCluster.setEnabled(false);
     param.setResume(true);
     param.setNice(sNice.getValue());
+    param.setCPUNumber(ltfCPUsSelected.getText());
     param.resetMachineName();
     if (cbCluster.isSelected()) {
       queueTable.getParameters(param);
@@ -381,6 +382,9 @@ public final class ParallelPanel implements Expandable {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.66  2009/03/17 00:46:24  sueh
+ * <p> bug# 1186 Pass managerKey to everything that pops up a dialog.
+ * <p>
  * <p> Revision 1.65  2009/01/20 20:18:46  sueh
  * <p> bug# 1102 Changed labeled panels to type EtomoPanel so that they can name themselves.
  * <p>
