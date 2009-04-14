@@ -44,6 +44,10 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.81  2009/04/13 22:29:00  sueh
+ * <p> bug# 1207 In isAxisBusy, if the process is running on a different host, put the host
+ * <p> name in the error message.
+ * <p>
  * <p> Revision 1.80  2009/04/06 22:38:49  sueh
  * <p> bug# 1206 Moved the popups to Tomosnapshot.run.
  * <p>
@@ -473,17 +477,6 @@ public abstract class BaseProcessManager {
     this.manager = manager;
     savedProcessDataA = new ProcessData(AxisID.FIRST, manager);
     savedProcessDataB = new ProcessData(AxisID.SECOND, manager);
-  }
-
-  /**
-   * Get saved process data and call ProcessData.setRunning().
-   * @param axisID
-   * @return processData
-   */
-  public final ProcessData getRunningProcessData(final AxisID axisID) {
-    ProcessData processData = getSavedProcessData(axisID);
-    processData.setRunning();
-    return processData;
   }
 
   public String toString() {
@@ -970,7 +963,7 @@ public abstract class BaseProcessManager {
     }
   }
 
-  final ProcessData getSavedProcessData(final AxisID axisID) {
+  public final ProcessData getSavedProcessData(final AxisID axisID) {
     if (axisID == AxisID.SECOND) {
       return savedProcessDataB;
     }
