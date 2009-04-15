@@ -114,12 +114,6 @@ public final class PsParam {
       command.add("-o");
     }
     command.add("pid,pgid," + START_TIME_COMMAND);
-
-    Iterator iterator = command.iterator();
-    while (iterator.hasNext()) {
-      System.err.print(iterator.next() + " ");
-    }
-    System.err.println();
   }
 
   public Row getRow() {
@@ -337,6 +331,9 @@ public final class PsParam {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.4  2009/04/13 22:24:23  sueh
+ * <p> bug# 1207 Placing ssh command before ps command when necessary.
+ * <p>
  * <p> Revision 1.3  2006/06/07 20:37:28  sueh
  * <p> bug# 766 Added ps command for mac
  * <p>
