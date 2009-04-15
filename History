@@ -1,5 +1,7 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+4/15/09: In Etomo fixed processchunks process messages.
+
 4/15/09: In Etomo logging reconnect attempts and major failures.  Preventing the
 deletion of the aligned stack while a process is running.
 
