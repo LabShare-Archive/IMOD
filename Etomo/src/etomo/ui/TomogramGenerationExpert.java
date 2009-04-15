@@ -114,11 +114,11 @@ public final class TomogramGenerationExpert extends ReconUIExpert {
     }
   }
 
-  public void reconnectTilt(ProcessName processName) {
+  public boolean reconnectTilt(ProcessName processName) {
     ProcessResultDisplay display = manager.getProcessResultDisplayFactory(
         axisID).getGenerateTomogram();
     sendMsgProcessStarting(display);
-    manager.reconnectTilt(axisID, processName, display);
+    return manager.reconnectTilt(axisID, processName, display);
   }
 
   public void setEnabledTiltParameters() {
@@ -728,6 +728,9 @@ public final class TomogramGenerationExpert extends ReconUIExpert {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.29  2009/03/17 00:46:24  sueh
+ * <p> bug# 1186 Pass managerKey to everything that pops up a dialog.
+ * <p>
  * <p> Revision 1.28  2009/02/13 02:37:54  sueh
  * <p> bug# 1148 In doneDialog no longer setting trialTomogramList to null
  * <p> because this causes a null pointer exception on close.

@@ -44,6 +44,9 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.82  2009/04/14 23:02:20  sueh
+ * <p> bug# 1207 Made getSavedProcessData public.  Removed getRunningProcessData.
+ * <p>
  * <p> Revision 1.81  2009/04/13 22:29:00  sueh
  * <p> bug# 1207 In isAxisBusy, if the process is running on a different host, put the host
  * <p> name in the error message.
@@ -513,7 +516,7 @@ public abstract class BaseProcessManager {
     return backgroundProcess.getName();
   }
 
-  public final void reconnectProcesschunks(final AxisID axisID,
+  public final boolean reconnectProcesschunks(final AxisID axisID,
       final ProcessData processData,
       final ParallelProgressDisplay parallelProgressDisplay,
       final ProcessResultDisplay processResultDisplay) {
@@ -521,6 +524,7 @@ public abstract class BaseProcessManager {
         .getReconnectInstance(manager, axisID, parallelProgressDisplay,
             processData);
     monitor.setSubdirName(processData.getSubDirName());
+    boolean ret;
     try {
       ReconnectProcess process = ReconnectProcess.getMonitorInstance(manager,
           this, monitor, getSavedProcessData(axisID), axisID, monitor
@@ -537,7 +541,9 @@ public abstract class BaseProcessManager {
       UIHarness.INSTANCE.openMessageDialog(
           "Unable to reconnect to processchunks.\n" + e.getMessage(),
           "Reconnect Failure", axisID, manager.getManagerKey());
+      return false;
     }
+    return true;
   }
 
   /**

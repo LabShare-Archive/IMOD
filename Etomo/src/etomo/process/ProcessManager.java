@@ -20,6 +20,9 @@
  * 
  * <p>
  * $Log$
+ * Revision 3.131  2009/03/23 17:08:50  sueh
+ * bug# 1187 Moved taError logging to ApplicationManager.
+ *
  * Revision 3.130  2009/03/17 00:43:42  sueh
  * bug# 1186 Pass managerKey to everything that pops up a dialog.
  *
@@ -1539,7 +1542,7 @@ public class ProcessManager extends BaseProcessManager {
     return comScriptProcess.getName();
   }
 
-  public void reconnectTilt(AxisID axisID,
+  public boolean reconnectTilt(AxisID axisID,
       ProcessResultDisplay processResultDisplay) {
     try {
       ReconnectProcess process = ReconnectProcess.getInstance(appManager, this,
@@ -1555,7 +1558,9 @@ public class ProcessManager extends BaseProcessManager {
       UIHarness.INSTANCE.openMessageDialog(
           "Unable to reconnect to processchunks.\n" + e.getMessage(),
           "Reconnect Failure", axisID, appManager.getManagerKey());
+      return false;
     }
+    return true;
   }
 
   /**
