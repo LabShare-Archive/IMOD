@@ -995,8 +995,12 @@ public abstract class BaseManager {
           return false;
         }
         if (processData.isRunning()) {
-          System.err.println("\nAttempting to reconnect\n" + processData);
-          reconnectProcesschunks(processData, axisID);
+          System.err.println("\nAttempting to reconnect in Axis "
+              + axisID.toString() + "\n" + processData);
+          if (!reconnectProcesschunks(processData, axisID)) {
+            System.err.println("\nReconnect in Axis" + axisID.toString()
+                + " failed");
+          }
           getProcessManager().unblockAxis(axisID);
           return true;
         }
@@ -1011,7 +1015,7 @@ public abstract class BaseManager {
     return false;
   }
 
-  public void reconnectProcesschunks(ProcessData processData, AxisID axisID) {
+  public boolean reconnectProcesschunks(ProcessData processData, AxisID axisID) {
     ProcessResultDisplayFactoryInterface factory = getProcessResultDisplayFactoryInterface(axisID);
     ProcessResultDisplay display = getProcessResultDisplayFactoryInterface(
         axisID).getProcessResultDisplay(processData.getDisplayKey().getInt());
@@ -1025,10 +1029,12 @@ public abstract class BaseManager {
     if (parallelPanel == null) {
       mainPanel.setParallelDialog(axisID, true);
     }
-    getProcessManager().reconnectProcesschunks(axisID, processData,
+    boolean ret = getProcessManager().reconnectProcesschunks(axisID,
+        processData,
         mainPanel.getParallelPanel(axisID).getParallelProgressDisplay(),
         display);
     setThreadName(processData.getProcessName().toString(), axisID);
+    return ret;
   }
 
   /**
@@ -1294,6 +1300,10 @@ public abstract class BaseManager {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.114  2009/04/14 23:00:43  sueh
+ * <p> bug# 1190 Logging reconnect.  Handling some situations where process data is not
+ * <p> running in reconnect.
+ * <p>
  * <p> Revision 1.113  2009/04/13 22:20:25  sueh
  * <p> bug# 1207 Implemented doAutomation in BaseManager.  Added handleDifferentHost.  Passed processData to reconnect.
  * <p>
