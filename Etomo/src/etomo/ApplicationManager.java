@@ -502,19 +502,24 @@ public final class ApplicationManager extends BaseManager implements
         return false;
       }
       if (processData.isRunning()) {
-        System.err.println("\nAttempting to reconnect\n" + processData);
-        ((TomogramGenerationExpert) getUIExpert(DialogType.TOMOGRAM_GENERATION,
-            axisID)).reconnectTilt(processData.getProcessName());
+        System.err.println("\nAttempting to reconnect in Axis "
+            + axisID.toString() + "\n" + processData);
+        if (!((TomogramGenerationExpert) getUIExpert(DialogType.TOMOGRAM_GENERATION,
+            axisID)).reconnectTilt(processData.getProcessName())) {
+          System.err.println("\nReconnect in Axis" + axisID.toString()
+              + " failed");
+        }
         return true;
       }
     }
     return false;
   }
 
-  public void reconnectTilt(AxisID axisID, ProcessName processName,
+  public boolean reconnectTilt(AxisID axisID, ProcessName processName,
       ProcessResultDisplay display) {
-    processMgr.reconnectTilt(axisID, display);
+    boolean ret =processMgr.reconnectTilt(axisID, display);
     setThreadName(processName.toString(), axisID);
+    return ret;
   }
 
   /**
@@ -3704,6 +3709,9 @@ public final class ApplicationManager extends BaseManager implements
   public void deleteAlignedStacks(AxisID axisID,
       ProcessResultDisplay processResultDisplay) {
     sendMsgProcessStarting(processResultDisplay);
+    if (isAxisBusy(axisID, processResultDisplay)) {
+      return;
+    }
     mainPanel.setProgressBar("Deleting aligned image stack", 1, axisID);
     //
     // Don't do preali now because users may do upto generation before
@@ -5940,6 +5948,10 @@ public final class ApplicationManager extends BaseManager implements
 }
 /**
  * <p> $Log$
+ * <p> Revision 3.323  2009/04/14 23:00:33  sueh
+ * <p> bug# 1190 Logging reconnect.  Handling some situations where process data is not
+ * <p> running in reconnect.
+ * <p>
  * <p> Revision 3.322  2009/04/13 22:18:49  sueh
  * <p> bug# 1207 Moved the call the ProcessData.isRunning to
  * <p> processMgr.getRunningProcess so it can be called fewer times.  Implemented
