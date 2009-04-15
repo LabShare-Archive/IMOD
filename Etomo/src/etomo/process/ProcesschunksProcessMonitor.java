@@ -163,6 +163,7 @@ class ProcesschunksProcessMonitor implements OutfileProcessMonitor,
   public final void endMonitor(ProcessEndState endState) {
     setProcessEndState(endState);
     processRunning = false;//the only place that this should be changed
+    setProgressBarTitle();
   }
 
   public final String getPid() {
@@ -482,14 +483,22 @@ class ProcesschunksProcessMonitor implements OutfileProcessMonitor,
     if (rootName != null) {
       title.append(" " + rootName);
     }
-    if (reassembling) {
-      title.append(":  reassembling");
+    if (processRunning) {
+      if (reassembling) {
+        title.append(":  reassembling");
+      }
+      else if (killing) {
+        title.append(" - killing:  exiting current chunks");
+      }
+      else if (pausing) {
+        title.append(" - pausing:  finishing current chunks");
+      }
     }
     else if (killing) {
-      title.append(" - killing:  exiting current chunks");
+      title.append(" - killed");
     }
     else if (pausing) {
-      title.append(" - pausing:  finishing current chunks");
+      title.append(" - paused");
     }
     manager.getMainPanel().setProgressBar(title.toString(), nChunks.getInt(),
         axisID, !reassembling && !killing, ProcessName.PROCESSCHUNKS);
@@ -574,6 +583,9 @@ class ProcesschunksProcessMonitor implements OutfileProcessMonitor,
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.46  2009/03/17 00:43:03  sueh
+ * <p> bug# 1186 Pass managerKey to everything that pops up a dialog.
+ * <p>
  * <p> Revision 1.45  2009/03/03 20:40:19  sueh
  * <p> bug# 1193 In updateState fixed comparison which checked
  * <p> ProcessData.isRunning to decide whether to pop up error message.
