@@ -1295,7 +1295,7 @@ void inputQDefaultKeys(QKeyEvent *event, ImodView *vw)
       vw->imod->drawmode -= (2 * vw->imod->drawmode);
       imodModelEditUpdate();
     }
-    imodDraw(vw, IMOD_DRAW_MOD);
+    imodDraw(vw, IMOD_DRAW_MOD | IMOD_DRAW_NOSYNC);
     break;
           
   case Qt::Key_U:
@@ -1482,6 +1482,9 @@ bool inputTestMetaKey(QKeyEvent *event)
 
 /*
 $Log$
+Revision 4.51  2009/03/26 05:41:01  mast
+Change nearest section function to work for an object passed as argument
+
 Revision 4.50  2009/03/10 04:36:11  mast
 Added hot key to toggle open/closed contours
 
