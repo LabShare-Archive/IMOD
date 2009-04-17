@@ -44,6 +44,7 @@ class DrawingTools : public DialogFrame
   
 public slots:
   void buttonPressed(int);
+  void initValues();
   void loadSettings();
   void saveSettings();
 
@@ -129,7 +130,8 @@ enum drawmodes      { DM_NORMAL, DM_SCULPT, DM_JOIN, DM_TRANSFORM, DM_ERASER,
 enum smoothmodes    { RD_TOL, RD_MINAREA };
 enum wheelbehaviour { WH_NONE, WH_SCULPTCIRCLE, WH_SLICES, WH_CONTS, WH_PTS, WH_PTSIZE };
 enum dkeybehavior   { DK_NONE, DK_TOEND, DK_NEARESTEND, DK_DELETEPT, DK_DELETECONT,
-                      DK_REMOVEPTSIZE, DK_REMOVEALLPTSIZES };
+                      DK_REMOVEPTSIZE, DK_REMOVEALLPTSIZES, DK_MOVEPT };
+enum sculptresize   { SR_STAGGERED, SR_LINEAR, SR_LOG };
 
 enum sortcriteria   { SORT_SURFACENUM,
                       SORT_NUMPTS, SORT_LENGTH, SORT_AREA, SORT_CLOCKWISEAREA,
@@ -139,7 +141,7 @@ enum sortcriteria   { SORT_SURFACENUM,
                       SORT_PTX, SORT_PTY, SORT_PTZ,
                       SORT_PTSIZE, SORT_PTGREY, SORT_NUMOPTIONS };
 
-const int NUM_SAVED_VALS = 18;
+const int NUM_SAVED_VALS = 20;
 
 //-------------------------------
 //## DRAWINGTOOLS DATA STRUCTURE:
@@ -166,6 +168,10 @@ struct DrawingToolsData   // contains all local plugin data
                                     //  algorithm in the "cont_addPtsSmooth" function
                                     //  NOTE: 0=straight, 1.5=smooth, 2.0>=very bendy
   float  draw_sculptRadius;         //  the radius, in pixels, of the sculpting circle
+  float  draw_warpRadius;           //  the radius, in pixels, of the warp circle
+  bool   draw_diffWarpSize;         // if false: draw_warpRadius always = draw_sculptRadius
+  int    draw_sculptResizeScheme;   // changes way in which sculpt circle is resized
+                                    //   (see: sculptresize)
   
   
   //## SETTINGS:
@@ -177,15 +183,17 @@ struct DrawingToolsData   // contains all local plugin data
   int  pgUpDownInc;             // the number of slices to iterate when
                                 //   PageUp or PageDown is pressed
   
+  
   bool   useNumKeys;            // intercepts number keys [1]-[5] to change draw mode
   bool   markTouchedContsAsKey; // if true: any contour modified with sculpt changes
                                 //  to unstippled
   int    wheelResistance;       // the higher the value, the slower mouse scrolling works
   bool   showMouseInModelView;  // shows the extra object in the model view
-  int    warpDisplay;           // warp tool display options (see: warpdisplay)
   
-  bool   testIntersetAllObjs;   // if true: [a] will test all contours for interesetion
-                                // with all other contours (not just in the same object)
+  bool   testIntersetAllObjs;   // if true: [a] will test contours for intersection
+                                //   with all other contours (not just in the same object)
+  bool   testOverlapping;       // if true: [a] will search for contours nested inside
+                                //   other contours in the same object
   
   int    selectedAction;        // the last selected action under "More Actions"
   int    sortCriteria;          // the lat sort criteria selected via:
@@ -298,10 +306,11 @@ float edit_selectClosestPtInCurrCont( Ipoint *givenPt );
 int   edit_addPtsCurrCont( float maxDistBetweenPts );
 int   edit_addPtsCurrContInRadius( Ipoint *centerPt, float radius, float maxDistPts );
 
-bool edit_selectNextOverlappingCont();
-bool edit_findOverlappingCont( int objIdx, int contIdx,
+bool edit_selectNextIntersectingCont();
+bool edit_findIntersectingCont( int objIdx, int contIdx,
                                int *pCross, int *objCross, int *contCross, bool *samePts,
                                int minObj, int maxObj, bool skipPrevContsInObj );
+int edit_countOverlappingContsCrude( int objIdx, int contIdx );
 
 string edit_getSortValString(int sortCriteria);
 

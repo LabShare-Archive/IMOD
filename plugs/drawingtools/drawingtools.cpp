@@ -15,6 +15,9 @@
     $Revision$
 
     $Log$
+    Revision 1.32  2009/04/14 04:13:23  tempuser
+    improved warp tool behavior
+
     Revision 1.31  2009/04/03 00:38:07  tempuser
     commented out test T key
 
@@ -198,7 +201,7 @@ int imodPlugKeys(ImodView *vw, QKeyEvent *event)
     case Qt::Key_A:
       if(shift)
         return 0;
-      edit_selectNextOverlappingCont();
+      edit_selectNextIntersectingCont();
       break;
     case Qt::Key_I:
       edit_inversePointsInContour(shift);
@@ -304,28 +307,8 @@ void imodPlugExecute(ImodView *inImodView)
   
   if( !plug.initialized )
   {
-    plug.drawMode                 = DM_SCULPT;
-    plug.draw_reducePts           = 0;
-    plug.draw_reducePtsTol        = 0.05;
-    plug.draw_reducePtsMinArea    = 0.5;
-    plug.draw_reducePtsOpt        = RD_TOL;
-    plug.draw_smoothMinDist       = 5;
-    plug.draw_smoothTensileFract  = 0.5;
-    plug.draw_sculptRadius        = 30.0;
+    plug.window->initValues();
     
-    plug.wheelBehav               = WH_SCULPTCIRCLE;
-    plug.dKeyBehav                = DK_TOEND;
-    plug.pgUpDownInc              = 1;
-    plug.useNumKeys               = true;
-    plug.markTouchedContsAsKey    = false;
-    plug.wheelResistance          = 100;
-    plug.showMouseInModelView     = false;
-    plug.testIntersetAllObjs      = true;
-    plug.selectedAction           = 0;
-    plug.sortCriteria             = SORT_NUMPTS;
-    plug.findCriteria             = SORT_NUMPTS;
-    
-    plug.sortCriteriaOfVals       = -1;
     Ipoint origin;
     setPt( &origin, 0,0,0);
     plug.copiedCont = imodContourNew();
@@ -334,10 +317,11 @@ void imodPlugExecute(ImodView *inImodView)
     
     plug.window->loadSettings();
     
-    if( plug.draw_sculptRadius <=0 )
+    if( plug.draw_sculptRadius <=0 || plug.draw_warpRadius <=0 )
     {
       wprint( "\aWARNING: Bad values may have been loaded into DrawingTools" );
       plug.draw_sculptRadius = 30;
+      plug.draw_warpRadius   = 30;
     }
     
     plug.initialized = true;
@@ -1147,6 +1131,7 @@ bool DrawingTools::drawExtraObject( bool redraw )
     
   case(DM_WARP):            // draw warp area
     {
+      float warpRadius = plug.draw_warpRadius;
       bool ptInContortRange = false;
       
       if( !plug.but2Down && !plug.but3Down )    // if mouse not down: check if cont close
@@ -1180,7 +1165,7 @@ bool DrawingTools::drawExtraObject( bool redraw )
         imodGetIndex(imod, &objIdx, &contIdx, &ptIdx);
         bool closed = isContClosed(obj,cont);
         float contLength = imodContourLength( cont, closed );
-        float distToWarp = MIN( plug.draw_sculptRadius, contLength * 0.25f );
+        float distToWarp = MIN( warpRadius, contLength * 0.25f );
         int numPts = psize(cont);
           
         int idxStart, idxEnd;
@@ -1218,21 +1203,21 @@ bool DrawingTools::drawExtraObject( bool redraw )
         imodObjectAddContour(xobj, xcontS);
         imodObjectAddContour(xobj, xcontE);
         
-                              // draw small lines to show radius
+                              // draw small lines to hint warp radius
         
-        float halfSmallLineLen = MAX( radius*0.05f, 0.5f );
+        float halfSmallLineLen = MAX( warpRadius*0.05f, 0.5f );
         Icont *xcontRL = imodContourNew();
         Icont *xcontRR = imodContourNew();
-        imodPointAppendXYZ( xcontRL, x-radius, y+halfSmallLineLen, z );
-        imodPointAppendXYZ( xcontRL, x-radius, y-halfSmallLineLen, z );
-        imodPointAppendXYZ( xcontRR, x+radius, y+halfSmallLineLen, z );
-        imodPointAppendXYZ( xcontRR, x+radius, y-halfSmallLineLen, z );
+        imodPointAppendXYZ( xcontRL, x-warpRadius, y+halfSmallLineLen, z );
+        imodPointAppendXYZ( xcontRL, x-warpRadius, y-halfSmallLineLen, z );
+        imodPointAppendXYZ( xcontRR, x+warpRadius, y+halfSmallLineLen, z );
+        imodPointAppendXYZ( xcontRR, x+warpRadius, y-halfSmallLineLen, z );
         imodObjectAddContour(xobj, xcontRL);
         imodObjectAddContour(xobj, xcontRR);
       }
       else        // draw warp circle
       {
-        cont_generateCircle( xcont, radius, 100, plug.mouse, true );
+        cont_generateCircle( xcont, warpRadius, 100, plug.mouse, true );
         setInterpolated( xcont, true );
         break;
       }
@@ -1270,6 +1255,38 @@ void DrawingTools::clearExtraObj()
 
 
 //------------------------
+//-- Used to initialize default values into DrawingToolsData.
+
+void DrawingTools::initValues()
+{
+  plug.drawMode                 = DM_SCULPT;
+  plug.draw_reducePts           = 0;
+  plug.draw_reducePtsTol        = 0.05;
+  plug.draw_reducePtsMinArea    = 0.5;
+  plug.draw_reducePtsOpt        = RD_MINAREA;
+  plug.draw_smoothMinDist       = 5;
+  plug.draw_smoothTensileFract  = 0.5;
+  plug.draw_sculptRadius        = 30.0;
+  plug.draw_warpRadius          = 30.0;
+  plug.draw_diffWarpSize        = false;
+  plug.draw_sculptResizeScheme  = SR_STAGGERED;
+  
+  plug.wheelBehav               = WH_SCULPTCIRCLE;
+  plug.dKeyBehav                = DK_TOEND;
+  plug.pgUpDownInc              = 1;
+  plug.useNumKeys               = true;
+  plug.markTouchedContsAsKey    = false;
+  plug.wheelResistance          = 100;
+  plug.showMouseInModelView     = false;
+  plug.testIntersetAllObjs      = true;
+  plug.selectedAction           = 0;
+  plug.sortCriteria             = SORT_NUMPTS;
+  plug.findCriteria             = SORT_NUMPTS;
+  
+  plug.sortCriteriaOfVals       = -1;
+}
+
+//------------------------
 //-- Loads most of the settings for DrawingTools from user preferences
 
 void DrawingTools::loadSettings()
@@ -1289,8 +1306,6 @@ void DrawingTools::loadSettings()
                         "                                   -- Andrew Noske" );
     return;
   }
-
-
   
   plug.drawMode                   = savedValues[0];
   plug.draw_reducePts             = savedValues[1];
@@ -1300,16 +1315,18 @@ void DrawingTools::loadSettings()
   plug.draw_smoothMinDist         = savedValues[5];
   plug.draw_smoothTensileFract    = savedValues[6];
   plug.draw_sculptRadius          = savedValues[7];
-  plug.wheelBehav                 = savedValues[8];
-  plug.dKeyBehav                  = savedValues[9];
-  plug.pgUpDownInc                = savedValues[10];
-  plug.useNumKeys                 = savedValues[11];
-  plug.markTouchedContsAsKey      = savedValues[12];
-  plug.wheelResistance            = savedValues[13];
-  plug.selectedAction             = savedValues[15];
-  plug.selectedAction             = savedValues[15];
-  plug.testIntersetAllObjs        = savedValues[16];
-  plug.findCriteria               = savedValues[17];
+  plug.draw_sculptResizeScheme    = savedValues[8];
+  plug.draw_diffWarpSize          = savedValues[9];
+  plug.wheelBehav                 = savedValues[10];
+  plug.dKeyBehav                  = savedValues[11];
+  plug.pgUpDownInc                = savedValues[12];
+  plug.useNumKeys                 = savedValues[13];
+  plug.markTouchedContsAsKey      = savedValues[14];
+  plug.wheelResistance            = savedValues[15];
+  plug.selectedAction             = savedValues[16];
+  plug.selectedAction             = savedValues[17];
+  plug.testIntersetAllObjs        = savedValues[18];
+  plug.findCriteria               = savedValues[19];
 }
 
 
@@ -1329,16 +1346,18 @@ void DrawingTools::saveSettings()
   saveValues[5]   = plug.draw_smoothMinDist;
   saveValues[6]   = plug.draw_smoothTensileFract;
   saveValues[7]   = plug.draw_sculptRadius;
-  saveValues[8]   = plug.wheelBehav;
-  saveValues[9]   = plug.dKeyBehav;
-  saveValues[10]  = plug.pgUpDownInc;
-  saveValues[11]  = plug.useNumKeys;
-  saveValues[12]  = plug.markTouchedContsAsKey;
-  saveValues[13]  = plug.wheelResistance;
-  saveValues[14]  = plug.selectedAction;
-  saveValues[15]  = plug.selectedAction;
-  saveValues[16]  = plug.testIntersetAllObjs;
+  saveValues[8]     = plug.draw_sculptResizeScheme; 
+  saveValues[9]   = plug.draw_diffWarpSize;
+  saveValues[10]   = plug.wheelBehav;
+  saveValues[11]  = plug.dKeyBehav;
+  saveValues[12]  = plug.pgUpDownInc;
+  saveValues[13]  = plug.useNumKeys;
+  saveValues[14]  = plug.markTouchedContsAsKey;
+  saveValues[15]  = plug.wheelResistance;
+  saveValues[16]  = plug.selectedAction;
   saveValues[17]  = plug.selectedAction;
+  saveValues[18]  = plug.testIntersetAllObjs;
+  saveValues[19]  = plug.selectedAction;
   
   prefSaveGenericSettings("DrawingTools",NUM_SAVED_VALS,saveValues);
 }
@@ -1764,6 +1783,12 @@ bool DrawingTools::executeDAction()
       wprint("%d point sizes removed\n", ptsChanged);
       break;
     }
+    
+    case( DK_MOVEPT ):
+    {
+      movePoint();
+      break;
+    }
   }
   
   
@@ -1801,7 +1826,6 @@ void DrawingTools::selectNextOverlappingContour()
   static int  overlapAction          = 1;
   
 	CustomDialog ds;
-  ds.addLabel   ( "action:" );
   ds.addRadioGrp( "action:",
                   "find next intersecting edge [a],"
                   "list all intersecting edges,"
@@ -1815,21 +1839,28 @@ void DrawingTools::selectNextOverlappingContour()
                   "Prints out all contours in the model \n"
                   "which have edges intersecting some other contour,"
                   "Deletes any contour in the current object \n"
-                  "which overlapping another contour in the \n"
+                  "which overlaps another contour in the \n"
                   "SAME object"
                   );
-	ds.addCheckBox( "test edges with all object",
+	ds.addCheckBox( "find edge intersections between different objects",
                   &plug.testIntersetAllObjs,
-                  "if true each contour will only be tested for "
-                  "crossing paths with other contours in all "
-                  "closed objects, not just the same object." );
+                  "If true: each contour will be tested for \n"
+                  "crossing paths with other contours in all \n"
+                  "closed objects, not just the same object. \n"
+                  "WARNING: This can make it much slower" );
+	ds.addCheckBox( "find nested contours\n"
+                  "(from the same object)",
+                  &plug.testOverlapping,
+                  "If true: will find any contours contained within \n"
+                  "(i.e. overlapping, but not necessarily intersecting) \n"
+                  "other contours in the same object." );
   ds.addLabel   ( "-----\n"
                   "NOTE:\n"
                   " > Only closed contours are tested for intersection \n"
                   " > A contour 'intersects' another only if their edges \n"
                   "    cross - not if one is completely inside the other\n"
                   " > Testing may take several minutes for large models" );
-	GuiDialogCustomizable dlg(&ds, "Find Overlapping Contours", this);
+	GuiDialogCustomizable dlg(&ds, "Find Intersecting Contours", this);
 	dlg.exec();
 	if( ds.cancelled )
 		return;
@@ -1839,7 +1870,7 @@ void DrawingTools::selectNextOverlappingContour()
   {
     case(0):
     {
-      edit_selectNextOverlappingCont();
+      edit_selectNextIntersectingCont();
       break;
     }
     
@@ -1869,12 +1900,20 @@ void DrawingTools::selectNextOverlappingContour()
                    o+1, c+1, pCross+1 );
             numNonSimpleConts++;
           }
-          if( edit_findOverlappingCont( o, c, &pCross, &objCross, &contCross, &samePts,
+          if( edit_findIntersectingCont( o, c, &pCross, &objCross, &contCross, &samePts,
                                         startObjIdx, endObjIdx, false ) )
           {
             wprint("  obj %d cont %d \tAND   obj %d cont %d @ pt %d%s\n",
                    o+1, c+1, objCross+1, contCross+1, pCross+1, (samePts) ? " (*)" : "");
             numOverlappingConts++;
+          }
+          
+          if( plug.testOverlapping )
+          {
+            int parents = edit_countOverlappingContsCrude( o, c );
+            if( parents )
+              wprint("  obj %d cont %d \tFALLS INSIDE   %d other conts\n", 
+                     o+1, c+1, parents );
           }
         }
       }
@@ -1897,7 +1936,7 @@ void DrawingTools::selectNextOverlappingContour()
         int pCross, objCross, contCross;
         bool samePts;
         
-        if( edit_findOverlappingCont( objIdx, c, &pCross, &objCross, &contCross, &samePts,
+        if( edit_findIntersectingCont( objIdx, c, &pCross, &objCross, &contCross, &samePts,
                                       startObjIdx, endObjIdx, false ) )
         {
           undoContourRemoval( plug.view, objIdx, c );            // REGISTER UNDO
@@ -2281,7 +2320,8 @@ void DrawingTools::moreActions()
                   "expand contours,"
                   "print basic model info,"
                   "print detailed object info,"
-                  "print detailed contour info",
+                  "print detailed contour info,"
+                  "reset values",
                   &plug.selectedAction,
                   "",
                   "Contains a number of options to clean multiple \n"
@@ -2305,7 +2345,7 @@ void DrawingTools::moreActions()
                     "which go outside the tomogram boundaries or rubber band area,"
                   "Use this to copy or move a range of contours from the "
                     "current object to another object,"
-                  "Use this to precisely translate, scale and/or rotate "
+                  "Use this to precisely translate; scale and/or rotate "
                     "a range of contours in the current object,"
                   "Use this to move the current point or the current "
                     "object to a precise position,"
@@ -2316,9 +2356,10 @@ void DrawingTools::moreActions()
                     "points; average points contour; and number of "
                     "empty contours.,"
                   "Prints detailed information about the "
-                    "current object"
+                    "current object,"
                   "Prints detailed information about the "
-                    "current contour, or a range of them");
+                    "current contour, or a range of them,"
+                  "Resets all setting to default" );
 	GuiDialogCustomizable dlg(&ds, "Perform Action", this);
 	dlg.exec();
 	if( ds.cancelled )
@@ -2367,6 +2408,12 @@ void DrawingTools::moreActions()
     case(12):      // print detailed contour info
       printContourDetailedInfo();
       break;
+    case(13):      // reset values
+      if( !MsgBoxYesNo(this, "Restore all default settings for this plugin?" ) )
+        return;
+      plug.window->initValues();
+      wprint("Default values restored\n");
+      break;
   }
   
   ivwRedraw( plug.view );
@@ -2394,7 +2441,8 @@ void DrawingTools::moreSettings()
   ds.addSpinBox ( "wheel resistance:",
                   10, 1000, &plug.wheelResistance, 10,
                   "The higher the value, the slower "
-                  "mouse scrolling works" );
+                  "mouse scrolling works. \n"
+                  "RECOMMENDED VALUE: 100" );
   
   ds.addLabel   ( "\n--- KEYBOARD ---" );
   ds.addCheckBox( "use number keys to change mode", 
@@ -2410,7 +2458,8 @@ void DrawingTools::moreSettings()
                   "current pt,"
                   "current contour,"
                   "pt size current pt,"
-                  "pt sizes current cont", &plug.dKeyBehav,
+                  "pt sizes current cont,"
+                  "move pt", &plug.dKeyBehav,
                   "Action performed when [d] is pressed. \n"
                   "\n"
                   " > do nothing - as it sounds \n"
@@ -2440,11 +2489,29 @@ void DrawingTools::moreSettings()
                   "\nsculpted using the 'sculpt' or 'join' "
                   "\ntool will become unstippled." );
   ds.addLineEditF( "sculpt circle radius:",
-                  &plug.draw_sculptRadius, 0, 200, 3,
+                  &plug.draw_sculptRadius, 0.01, 200, 3,
                   "The radius (in pixels) of the circle used "
                   "in sculpt and join drawing mode. \n"
-                  "NOTE: You can also change this using "
-                  "[q], [w] and the mouse wheel.");
+                  "NOTE: Change this using [q] and [w] or (better yet) use the \n"
+                  "   mouse wheel (so long as 'mouse behavior' is set correctly).");
+  ds.addCheckBox( "use a different radius for warp circle", 
+                  &plug.draw_diffWarpSize,
+                  "If off: the size of the warp circle will always be equal"
+                  "\nto the size of the sculpt circle." );
+  ds.addComboBox( "sculpt resize scheme:",
+                  "normal,"
+                  "linear,"
+                  "log",
+                  &plug.draw_sculptResizeScheme,
+                  "The method used to resize the sculpt circle using the mouse wheel \n"
+                  "or [q] and [w].\n"
+                  "\n"
+                  " > normal - staggered approach \n"
+                  " > linear - tends to be fast as circle gets small \n"
+                  " > log    - tends to be fast when circle is large \n"
+                  "\n"
+                  "TIP: Adjust 'wheel resistant' to make the circle reize "
+                  "    faster or slower as you scroll the mouse" );
   ds.addLabel   ( "\n--- OTHER ---" );
   ds.addComboBox( "smoothing meth:",
                   "segment threshold,"
@@ -2468,11 +2535,8 @@ void DrawingTools::moreSettings()
 	if( ds.cancelled )
 		return;
   
-  /*
-  float newSculptRadius      = string_getFloatFromString( sculptRadiusStr );
-  if( newSculptRadius != 0 && newSculptRadius > 0.2 && newSculptRadius < 5000 )
-    plug.draw_sculptRadius = newSculptRadius;
-  */
+  if( plug.draw_sculptRadius <= 0.01 )
+    plug.draw_sculptRadius == 0.01;
   
   if( newReducePtsOpt != plug.draw_reducePtsOpt )
     setReducePtsOptionAndChangeDisplay( newReducePtsOpt );
@@ -3436,7 +3500,7 @@ void DrawingTools::expandContourRange()
   int           contMin          = contIdx+1;
   int           contMax          = contIdx+1;
   int           objToIdx         =  osize(imod);
-  static float  radius   = 10;
+  static float  radius           = 10;
   static int    minAngleChamfers = 20;
   static bool   open = true;
   
@@ -3952,13 +4016,9 @@ void DrawingTools::changeTypeSelected( int newType) {
 
 void DrawingTools::changeSmoothTol( double value ) { 
   if( plug.draw_reducePtsOpt == RD_TOL )
-  {
     plug.draw_reducePtsTol = (float)value;
-  }
   else
-  {
     plug.draw_reducePtsMinArea = (float)value;
-  }
 }
 
 
@@ -4008,13 +4068,45 @@ void DrawingTools::changeReducePts() {
 //-- Change changeSculptCircleRadius
 
 void DrawingTools::changeSculptCircleRadius( float value, bool accel )
-{  
-  if(!accel)
-    plug.draw_sculptRadius += value;
-  else
-    plug.draw_sculptRadius *= (1 + (value*0.01) );
+{
+  if(accel)
+    value *= 0.2;
   
-  keepWithinRange( plug.draw_sculptRadius, 2.0f, 500.0f );
+  if( plug.drawMode == DM_WARP && plug.draw_diffWarpSize )
+  {
+    plug.draw_warpRadius += value;            // linear
+  }
+  else
+  {
+    switch( plug.draw_sculptResizeScheme )
+    {
+      case(SR_STAGGERED):                     // staggered
+      {
+        if( plug.draw_sculptRadius < 5.0f ) 
+          value *= 0.15;
+        else if( plug.draw_sculptRadius < 50.0f )
+          value *= 0.25;
+        else if( plug.draw_sculptRadius < 100.0f )
+          value *= 0.5;
+      }
+      case(SR_LINEAR):                        // linear
+      {
+        plug.draw_sculptRadius += value;
+        break;
+      }
+      case(SR_LOG):                            // log
+      {
+        plug.draw_sculptRadius *= (1 + (value*0.01) ); 
+        break;
+      }
+    }
+    
+    if( !plug.draw_diffWarpSize )
+      plug.draw_warpRadius = plug.draw_sculptRadius;
+  }
+  
+  keepWithinRange( plug.draw_warpRadius,   1.0f, 500.0f );
+  keepWithinRange( plug.draw_sculptRadius, 1.0f, 500.0f );
 }
 
 
@@ -4539,7 +4631,7 @@ void edit_executeSculptStart()
   else
   {
     Icont *newCont = imodContourNew();
-    cont_generateCircle(newCont, plug.draw_sculptRadius, 16, plug.mouse, false);
+    cont_generateCircle(newCont, radius, 16, plug.mouse, false);
     int newContPos = edit_addContourToObj(obj, newCont, true);
     int objIdx, contIdx, ptIdx;
     imodGetIndex(imod, &objIdx, &contIdx, &ptIdx);
@@ -4555,9 +4647,11 @@ void edit_executeSculptStart()
 
 void edit_executeSculpt()
 {
+  float radius = plug.draw_sculptRadius;
+  
   if(plug.shiftDown)      // pinch
   {
-    edit_executeSculptPinch( plug.mouse, plug.draw_sculptRadius );
+    edit_executeSculptPinch( plug.mouse, radius );
     return;
   }
   else                  // push
@@ -4565,7 +4659,7 @@ void edit_executeSculpt()
     float mouseMoveDist = imodPointDistance( &plug.mousePrev, &plug.mouse );       
             // the distance the mouse moved from its previously recorded position 
     
-    int numIntermediates = fDivide(mouseMoveDist+2.0f,plug.draw_sculptRadius);
+    int numIntermediates = fDivide(mouseMoveDist+2.0f, radius);
             // the number of extra circles we will have to add between the last
             // and current mouse position to sculpt smoothly.
     
@@ -4578,9 +4672,9 @@ void edit_executeSculpt()
       float fractAlong = float(i) / float(numIntermediates+1);
       Ipoint intermediateMousePos =
         line_findPtFractBetweenPts2D( &plug.mousePrev, &plug.mouse, fractAlong );
-      edit_executeSculptPush( intermediateMousePos, plug.draw_sculptRadius );
+      edit_executeSculptPush( intermediateMousePos, radius );
     }
-    edit_executeSculptPush( plug.mouse, plug.draw_sculptRadius );
+    edit_executeSculptPush( plug.mouse, radius );
     return;
   }
 }
@@ -4807,7 +4901,7 @@ void edit_executeWarpStart()
   
   plug.contortInProgress = false;
   
-  float radius = plug.draw_sculptRadius;
+  float warpRadius = plug.draw_warpRadius;
   
   float zapZoom = 1.0f;                 // gets the zoom of the top-most zap window
   int noZap = ivwGetTopZapZoom(plug.view, &zapZoom); 
@@ -4815,7 +4909,7 @@ void edit_executeWarpStart()
   float contortDistTol = 10.0f*sc;
   
   bool suitableContourSelected =
-    edit_selectNearPtInCurrObj( &plug.mouse, radius*2.0f, 0.0f, false );
+    edit_selectNearPtInCurrObj( &plug.mouse, warpRadius*2.0f, 0.0f, false );
   
   Imod *imod  = ivwGetModel(plug.view);
   Iobj *obj   = imodObjectGet(imod);
@@ -4828,7 +4922,7 @@ void edit_executeWarpStart()
   if( !suitableContourSelected || !isContValid(cont) || !isCurrPtValid() )
   {
     Icont *newCont = imodContourNew();
-    cont_generateCircle(newCont, plug.draw_sculptRadius, 16, plug.mouse, false);
+    cont_generateCircle(newCont, warpRadius, 16, plug.mouse, false);
     int newContPos = edit_addContourToObj(obj, newCont, true);
     int objIdx, contIdx, ptIdx;
     imodGetIndex(imod, &objIdx, &contIdx, &ptIdx);
@@ -4844,8 +4938,8 @@ void edit_executeWarpStart()
      plug.contortInProgress = true;
   
   undoContourDataChgCC( plug.view );      // REGISTER UNDO
-  edit_addPtsCurrContInRadius( &plug.mouse, plug.draw_sculptRadius,
-                               plug.draw_sculptRadius*0.2f );
+  edit_addPtsCurrContInRadius( &plug.mouse, warpRadius,
+                               warpRadius*0.2f );
 }
 
 
@@ -4857,6 +4951,8 @@ void edit_executeWarpStart()
 
 void edit_executeContort()
 {
+  float warpRadius = plug.draw_warpRadius;
+  
   Imod   *imod  = ivwGetModel(plug.view);
   Iobj   *obj   = imodObjectGet(imod);
   Icont  *cont  = imodContourGet(imod);
@@ -4870,7 +4966,7 @@ void edit_executeContort()
   bool  closed     = isContClosed( obj, cont );
   float contLength = imodContourLength(cont, closed);
   
-  float distToWarp = MIN( plug.draw_sculptRadius, contLength * 0.25f );
+  float distToWarp = MIN( warpRadius, contLength * 0.25f );
   
   if(distToWarp == 0)
     return;
@@ -4947,7 +5043,7 @@ void edit_executeContort()
     {
       Ipoint *currPt =  getPt(cont,p);
       float distFromMouse = line_distBetweenPts2D( currPt, &plug.mouse );
-      if( distFromMouse > plug.draw_sculptRadius )
+      if( distFromMouse > warpRadius )
         break;
       
       Ipoint estPos = line_getPtHalfwayBetween( getPt(cont,p-1), getPt(cont,p+1) );
@@ -4957,7 +5053,7 @@ void edit_executeContort()
     {
       Ipoint *currPt =  getPt(cont,p);
       float distFromMouse = line_distBetweenPts2D( currPt, &plug.mouse );
-      if( distFromMouse > plug.draw_sculptRadius )
+      if( distFromMouse > warpRadius )
         break;
       
       Ipoint estPos = line_getPtHalfwayBetween( getPt(cont,p-1), getPt(cont,p+1) );
@@ -4992,24 +5088,24 @@ void edit_executeWarp()
   bool  closed     = isContClosed( obj, cont );
   float contLength = imodContourLength(cont, closed);
   
-  float radius = plug.draw_sculptRadius;
+  float warpRadius = plug.draw_warpRadius;
   
-  if(radius == 0)
+  if(warpRadius == 0)
     return;
   
   float changeX =  plug.mouse.x - plug.mousePrev.x;
   float changeY =  plug.mouse.y - plug.mousePrev.y;
   
-  cont_addPtsCrude( cont, radius*0.25, closed );
+  cont_addPtsCrude( cont, warpRadius*0.25, closed );
   
   for( int p=0; p<psize(cont); p++ )
   {
     Ipoint *pt = getPt(cont,p);
     float distToCenter  = line_distBetweenPts2D( &plug.mouse, pt );
-    if( distToCenter > radius )
+    if( distToCenter > warpRadius )
       continue;
     
-    float fractToCenter = distToCenter / radius;
+    float fractToCenter = distToCenter / warpRadius;
     float moveWeight    = (1.0f - fractToCenter);
     
     pt->x += moveWeight * changeX;
@@ -5023,7 +5119,7 @@ void edit_executeWarp()
     {
       Ipoint *pt = getPt(cont,p);
       float distToCenter  = line_distBetweenPts2D( &plug.mouse, pt );
-      if( distToCenter > radius )
+      if( distToCenter > warpRadius )
         continue;
       
       Ipoint estPos = line_getPtHalfwayBetween( getPt(cont,p-1), getPt(cont,p+1) );
@@ -5600,7 +5696,7 @@ int edit_addPtsCurrContInRadius( Ipoint *centerPt, float radius, float maxDistPt
 //-- Finds and selects the next contour past the selected contour which
 //-- overlaps (contours cross) another contour in the model
 
-bool edit_selectNextOverlappingCont()
+bool edit_selectNextIntersectingCont()
 {
   Imod *imod = ivwGetModel(plug.view);
   
@@ -5644,7 +5740,7 @@ bool edit_selectNextOverlappingCont()
       
       int endObjIdx = (plug.testIntersetAllObjs) ? osize(imod)-1 : oNum;
       
-      if( edit_findOverlappingCont( oNum, i, &pCross, &objCross, &contCross, &samePts,
+      if( edit_findIntersectingCont( oNum, i, &pCross, &objCross, &contCross, &samePts,
                                     oNum, endObjIdx, true ) )
       {
         imodSetIndex( imod, o, i, ((pCross+1)%psize(contI)) );
@@ -5657,6 +5753,14 @@ bool edit_selectNextOverlappingCont()
         ivwRedraw( plug.view );
         return (true);
       }
+      
+      if( plug.testOverlapping && edit_countOverlappingContsCrude( oNum, i ) )
+      {
+        imodSetIndex( imod, o, i, ((pCross+1)%psize(contI)) );
+        wprint("Nested contour found!\n");
+        ivwRedraw( plug.view );
+        return (true);
+      }
     }
   }
   
@@ -5666,16 +5770,18 @@ bool edit_selectNextOverlappingCont()
 }
 
 
+
+
 //------------------------
 //-- Takes a contour, and returns true if it finds another contour within
-//-- the specified range of objects which overlap it.
+//-- the specified range of objects which overlaps it.
 //-- It also retunrs the object index (objCross) and contour index (objCross)
 //-- of the overlapping contour, plus the point index (pCross) of the first
 //-- line segment in the origional contour which overlaps it.
 //-- If (skipPrevContsInObj) is true, then it will skip all contours in the
 //-- current object (objIdx) beyond the current contour (contIdx).
 
-bool edit_findOverlappingCont( int objIdx, int contIdx,
+bool edit_findIntersectingCont( int objIdx, int contIdx,
                                int *pCross, int *objCross, int *contCross, bool *samePts,
                                int minObj, int maxObj, bool skipPrevContsInObj )
 {
@@ -5714,7 +5820,7 @@ bool edit_findOverlappingCont( int objIdx, int contIdx,
             && cont_doCountoursCrossAndWhere( contI, contJ,
                                               contIClosed, isContClosed(obj,contJ),
                                               &pt1Cross, &pt2Cross )
-            && !(o==objIdx && c == contIdx) )
+            && !(o==objIdx && c==contIdx) )
         {
           *pCross = pt1Cross;
           *objCross = o;
@@ -5730,6 +5836,38 @@ bool edit_findOverlappingCont( int objIdx, int contIdx,
   return (false);
 }
 
+//------------------------
+//-- Takes a contour, and checks it's centroid point falls inside any other contours
+//-- in the same object.
+//-- Returns the number of contours the contour is in.
+
+int edit_countOverlappingContsCrude( int objIdx, int contIdx )
+{
+  Imod *imod  = ivwGetModel(plug.view);
+  Imod *obj   = getObj(imod,objIdx);
+  Imod *contI  = getCont(obj,contIdx);
+  
+  if( isEmpty(contI) )
+    return (false);
+  
+  int numOverlappingConts = 0;
+  int slice = getZInt(contI);
+  
+  Ipoint* testPt = getPt(contI,0);
+  
+  for(int c=0; c<csize(obj); c++)     // for each contour ahead:
+  {
+    Icont *cont = getCont( obj, c );
+    if( isEmpty(cont) || c==contIdx )
+      continue;
+    
+    if( ( getZInt(cont) == slice )  )     // if on same slice:
+      if( imodPointInsideCont( cont, testPt ) )
+        numOverlappingConts++;
+  }
+  
+  return (numOverlappingConts);
+}
 
 
 //------------------------
