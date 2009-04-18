@@ -42,6 +42,7 @@ Additional documentation is at <ftp://ftp.sgi.com/graphics/tiff/doc>
 #include <stdarg.h>
 #include <string.h>
 #include <stdio.h>
+#include <time.h>
 #include "imodconfig.h"
 #ifdef NOTIFFLIBS
 #include "notiffio.h"
@@ -734,6 +735,10 @@ int tiffWriteSection(ImodImageFile *inFile, void *buf, int compression,
   int lines, linesDone, numStrips, strip, i;
   char *tmp;
   char *inbuf;
+  time_t curtime;
+  struct tm *tm;
+  char datetime[40];
+
   TIFF *tif = (TIFF *)inFile->header;
   if (!(inFile->format == IIFORMAT_RGB || 
         (inFile->format == IIFORMAT_LUMINANCE && 
@@ -805,6 +810,13 @@ int tiffWriteSection(ImodImageFile *inFile, void *buf, int compression,
       rowsPerStrip = 8 * (rowsPerStrip / 8);
   }
   TIFFSetField(tif, TIFFTAG_ROWSPERSTRIP, rowsPerStrip);
+
+  time(&curtime);
+  tm = localtime(&curtime);
+  sprintf(datetime, "%4d:%02d:%02d %02d:%02d:%02d", tm->tm_year + 1900, 
+          tm->tm_mon, tm->tm_mday, tm->tm_hour, tm->tm_min, tm->tm_sec);
+  TIFFSetField(tif, TIFFTAG_DATETIME, datetime);
+
   stripBytes = rowsPerStrip * lineBytes;
   numStrips = (inFile->ny + rowsPerStrip - 1) / rowsPerStrip;
   if (!inverted) {
@@ -842,6 +854,9 @@ int tiffWriteSection(ImodImageFile *inFile, void *buf, int compression,
 
 /*
   $Log$
+  Revision 3.16  2009/04/01 03:18:57  mast
+  Use routine to prevent buffer overrun in warning handler
+
   Revision 3.15  2009/03/31 23:47:35  mast
   Added writing function and support for multiple samples as images either
   in contiguous bytes or separate planes and for multiple sizes in file
