@@ -56,6 +56,9 @@ import etomo.util.InvalidParameterException;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.73  2009/03/17 00:46:24  sueh
+ * <p> bug# 1186 Pass managerKey to everything that pops up a dialog.
+ * <p>
  * <p> Revision 1.72  2009/02/26 17:26:44  sueh
  * <p> bug# 1184 Validating sxVol by passing the values to goodframe.
  * <p>
@@ -943,8 +946,8 @@ public final class PeetDialog implements ContextMenu, AbstractParallelDialog,
         .setToolTipText("The directory which will contain the .prm file, .epe file, other data files, intermediate files, and results.  "
             + "Only one .epe file per directory.");
     try {
-      ReadOnlyAutodoc autodoc = AutodocFactory
-          .getInstance(AutodocFactory.PEET_PRM, manager.getManagerKey());
+      ReadOnlyAutodoc autodoc = AutodocFactory.getInstance(
+          AutodocFactory.PEET_PRM, manager.getManagerKey());
       pnlInitMotl.setToolTipText(TooltipFormatter.INSTANCE.format(EtomoAutodoc
           .getTooltip(autodoc, MatlabParam.INIT_MOTL_KEY)));
       ReadOnlySection section = autodoc.getSection(
@@ -1461,47 +1464,56 @@ public final class PeetDialog implements ContextMenu, AbstractParallelDialog,
     }
     Goodframe goodframe = new Goodframe(manager.getPropertyUserDir(),
         AxisID.FIRST, manager.getManagerKey());
-    try {
-      goodframe.run(new String[] { ltfSzVolX.getText(), ltfSzVolY.getText(),
-          ltfSzVolZ.getText() });
-      if (!goodframe.getOutput(0).equals(ltfSzVolX.getText())) {
-        UIHarness.INSTANCE.openMessageDialog("In " + PARTICLE_VOLUME_LABEL
-            + ", " + X_LABEL + " is invalid.  Try " + goodframe.getOutput(0)
-            + ".", "Entry Error", manager.getManagerKey());
-        return false;
+    String szVolX = ltfSzVolX.getText();
+    String szVolY = ltfSzVolY.getText();
+    String szVolZ = ltfSzVolZ.getText();
+    if ((szVolX != null && !szVolX.matches("\\s*"))
+        || (szVolY != null && !szVolY.matches("\\s*"))
+        || (szVolZ != null && !szVolZ.matches("\\s*"))) {
+      try {
+        goodframe.run(new String[] { szVolX, szVolY, szVolZ });
+        if (szVolX != null && !szVolX.matches("\\s*")
+            && !goodframe.getOutput(0).equals(szVolX)) {
+          UIHarness.INSTANCE.openMessageDialog("In " + PARTICLE_VOLUME_LABEL
+              + ", " + X_LABEL + " is invalid.  Try " + goodframe.getOutput(0)
+              + ".", "Entry Error", manager.getManagerKey());
+          return false;
+        }
+        if (szVolY != null && !szVolY.matches("\\s*")
+            && !goodframe.getOutput(1).equals(szVolY)) {
+          UIHarness.INSTANCE.openMessageDialog("In " + PARTICLE_VOLUME_LABEL
+              + ", " + Y_LABEL + " is invalid.  Try " + goodframe.getOutput(1)
+              + ".", "Entry Error", manager.getManagerKey());
+          return false;
+        }
+        if (szVolZ != null && !szVolZ.matches("\\s*")
+            && !goodframe.getOutput(2).equals(szVolZ)) {
+          UIHarness.INSTANCE.openMessageDialog("In " + PARTICLE_VOLUME_LABEL
+              + ", " + Z_LABEL + " is invalid.  Try " + goodframe.getOutput(2)
+              + ".", "Entry Error", manager.getManagerKey());
+          return false;
+        }
       }
-      if (!goodframe.getOutput(1).equals(ltfSzVolY.getText())) {
-        UIHarness.INSTANCE.openMessageDialog("In " + PARTICLE_VOLUME_LABEL
-            + ", " + Y_LABEL + " is invalid.  Try " + goodframe.getOutput(1)
-            + ".", "Entry Error", manager.getManagerKey());
-        return false;
+      catch (IOException e) {
+        if (!UIHarness.INSTANCE.openYesNoDialog("Unable to validate "
+            + PARTICLE_VOLUME_LABEL + ".  Continue?\n\n" + e.getMessage(),
+            AxisID.ONLY, manager.getManagerKey())) {
+          return false;
+        }
       }
-      if (!goodframe.getOutput(2).equals(ltfSzVolZ.getText())) {
-        UIHarness.INSTANCE.openMessageDialog("In " + PARTICLE_VOLUME_LABEL
-            + ", " + Z_LABEL + " is invalid.  Try " + goodframe.getOutput(2)
-            + ".", "Entry Error", manager.getManagerKey());
-        return false;
+      catch (InvalidParameterException e) {
+        if (!UIHarness.INSTANCE.openYesNoDialog("Unable to validate "
+            + PARTICLE_VOLUME_LABEL + ".  Continue?\n\n" + e.getMessage(),
+            AxisID.ONLY, manager.getManagerKey())) {
+          return false;
+        }
       }
-    }
-    catch (IOException e) {
-      if (!UIHarness.INSTANCE.openYesNoDialog("Unable to validate "
-          + PARTICLE_VOLUME_LABEL + ".  Continue?\n\n" + e.getMessage(),
-          AxisID.ONLY, manager.getManagerKey())) {
-        return false;
-      }
-    }
-    catch (InvalidParameterException e) {
-      if (!UIHarness.INSTANCE.openYesNoDialog("Unable to validate "
-          + PARTICLE_VOLUME_LABEL + ".  Continue?\n\n" + e.getMessage(),
-          AxisID.ONLY, manager.getManagerKey())) {
-        return false;
-      }
-    }
-    catch (NumberFormatException e) {
-      if (!UIHarness.INSTANCE.openYesNoDialog("Unable to validate "
-          + PARTICLE_VOLUME_LABEL + ".  Continue?\n\n" + e.getMessage(),
-          AxisID.ONLY, manager.getManagerKey())) {
-        return false;
+      catch (NumberFormatException e) {
+        if (!UIHarness.INSTANCE.openYesNoDialog("Unable to validate "
+            + PARTICLE_VOLUME_LABEL + ".  Continue?\n\n" + e.getMessage(),
+            AxisID.ONLY, manager.getManagerKey())) {
+          return false;
+        }
       }
     }
     return true;
