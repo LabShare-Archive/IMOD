@@ -7,6 +7,7 @@ import javax.swing.JPanel;
 
 import etomo.ManagerKey;
 import etomo.storage.MatlabParam;
+import etomo.type.EtomoNumber;
 
 /**
  * <p>Description: </p>
@@ -22,6 +23,9 @@ import etomo.storage.MatlabParam;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.14  2009/03/17 00:46:24  sueh
+ * <p> bug# 1186 Pass managerKey to everything that pops up a dialog.
+ * <p>
  * <p> Revision 1.13  2008/08/21 00:08:53  sueh
  * <p> bug# 1132 In validateRun fixed phi, theta, and psi validation so that it
  * <p> only fails on an empty Max.
@@ -227,6 +231,33 @@ final class IterationRow implements Highlightable {
     refThreshold.add(panel, layout, constraints);
   }
 
+  /**
+   * Validates n.  Assumes that number is not null.
+   * @param n
+   * @return
+   */
+  private boolean validatePositiveNumber(EtomoNumber n, String[] headerArray) {
+    StringBuffer header = new StringBuffer();
+    if (headerArray != null) {
+      for (int i = 0; i < headerArray.length; i++) {
+        header.append(", " + headerArray[i]);
+      }
+    }
+    if (!n.isValid()) {
+      UIHarness.INSTANCE.openMessageDialog(IterationTable.TABLE_HEADER
+          + ":  In row " + number.toString() + header + " must be numeric.",
+          "Entry Error", managerKey);
+      return false;
+    }
+    if (n.isNegative()) {
+      UIHarness.INSTANCE.openMessageDialog(
+          IterationTable.TABLE_HEADER + ":  In row " + number.getText()
+              + header + " must not be negative.", "Entry Error", managerKey);
+      return false;
+    }
+    return true;
+  }
+
   boolean validateRun() {
     if (dPhiMax.isEmpty()) {
       UIHarness.INSTANCE.openMessageDialog(IterationTable.TABLE_HEADER
@@ -237,6 +268,21 @@ final class IterationRow implements Highlightable {
           "Entry Error", managerKey);
       return false;
     }
+    EtomoNumber n = new EtomoNumber(EtomoNumber.Type.DOUBLE);
+    n.set(dPhiMax.getValue());
+    if (!validatePositiveNumber(n, new String[] {
+        IterationTable.D_PHI_D_THETA_D_PSI_HEADER1,
+        IterationTable.D_PHI_HEADER2, IterationTable.MAX_HEADER })) {
+      return false;
+    }
+
+    n.set(dPhiIncrement.getValue());
+    if (!validatePositiveNumber(n, new String[] {
+        IterationTable.D_PHI_D_THETA_D_PSI_HEADER1,
+        IterationTable.D_PHI_HEADER2, IterationTable.INCR_HEADER })) {
+      return false;
+    }
+
     if (dThetaMax.isEnabled() && dThetaMax.isEmpty()) {
       UIHarness.INSTANCE.openMessageDialog(IterationTable.TABLE_HEADER
           + ":  In row " + number.getText() + ", "
@@ -246,6 +292,20 @@ final class IterationRow implements Highlightable {
           "Entry Error", managerKey);
       return false;
     }
+    n.set(dThetaMax.getValue());
+    if (!validatePositiveNumber(n, new String[] {
+        IterationTable.D_PHI_D_THETA_D_PSI_HEADER1,
+        IterationTable.D_THETA_HEADER2, IterationTable.MAX_HEADER })) {
+      return false;
+    }
+
+    n.set(dThetaIncrement.getValue());
+    if (!validatePositiveNumber(n, new String[] {
+        IterationTable.D_PHI_D_THETA_D_PSI_HEADER1,
+        IterationTable.D_THETA_HEADER2, IterationTable.INCR_HEADER })) {
+      return false;
+    }
+
     if (dPsiMax.isEnabled() && dPsiMax.isEmpty()) {
       UIHarness.INSTANCE.openMessageDialog(IterationTable.TABLE_HEADER
           + ":  In row " + number.getText() + ", "
@@ -255,6 +315,20 @@ final class IterationRow implements Highlightable {
           "Entry Error", managerKey);
       return false;
     }
+    n.set(dPsiMax.getValue());
+    if (!validatePositiveNumber(n, new String[] {
+        IterationTable.D_PHI_D_THETA_D_PSI_HEADER1,
+        IterationTable.D_PSI_HEADER2, IterationTable.MAX_HEADER })) {
+      return false;
+    }
+
+    n.set(dPsiIncrement.getValue());
+    if (!validatePositiveNumber(n, new String[] {
+        IterationTable.D_PHI_D_THETA_D_PSI_HEADER1,
+        IterationTable.D_THETA_HEADER2, IterationTable.INCR_HEADER })) {
+      return false;
+    }
+
     if (!searchRadius.getParsedArray().ge(1)) {
       UIHarness.INSTANCE.openMessageDialog(IterationTable.TABLE_HEADER
           + ":  In row " + number.getText() + ", "
