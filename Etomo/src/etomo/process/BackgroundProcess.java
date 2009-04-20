@@ -2,6 +2,7 @@ package etomo.process;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Map;
 
 import etomo.BaseManager;
 import etomo.comscript.Command;
@@ -27,6 +28,9 @@ import etomo.ui.UIHarness;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.40  2009/03/17 00:34:13  sueh
+ * <p> bug# 1186 Pass managerKey to everything that pops up a dialog.
+ * <p>
  * <p> Revision 3.39  2008/12/11 19:24:46  sueh
  * <p> bug# 1167 Made getProcessMessages public.
  * <p>
@@ -434,6 +438,12 @@ class BackgroundProcess extends Thread implements SystemProcessInterface {
     processDetails = null;
     command = null;
     commandDetails = null;
+  }
+
+  public final void setComputerMap(Map computerMap) {
+    if (processData != null) {
+      processData.setComputerMap(computerMap);
+    }
   }
 
   public final ConstProcessSeries getProcessSeries() {
