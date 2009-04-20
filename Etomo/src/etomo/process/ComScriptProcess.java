@@ -18,6 +18,9 @@
  * 
  * <p>
  * $Log$
+ * Revision 3.54  2009/03/17 00:35:01  sueh
+ * bug# 1186 Pass managerKey to everything that pops up a dialog.
+ *
  * Revision 3.53  2009/02/04 23:24:31  sueh
  * bug# 1158 Changed id and exceptions classes in LogFile.
  *
@@ -411,6 +414,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
+import java.util.Map;
 
 import etomo.ApplicationManager;
 import etomo.BaseManager;
@@ -616,6 +620,15 @@ public class ComScriptProcess extends Thread implements SystemProcessInterface {
     this.processSeries = processSeries;
     initialize();
   }
+  
+  /**
+   * Gets a computerMap and immediately sends it to processData.
+   */
+  public final void setComputerMap(Map computerMap) {
+    if (processData != null) {
+      processData.setComputerMap(computerMap);
+    }
+  }
 
   private void initialize() {
     try {
@@ -663,7 +676,6 @@ public class ComScriptProcess extends Thread implements SystemProcessInterface {
    * function for the thread.
    */
   public void run() {
-    processData.reset();
     if (demoMode) {
       try {
         started = true;
