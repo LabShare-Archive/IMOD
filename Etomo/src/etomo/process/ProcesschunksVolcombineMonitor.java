@@ -2,6 +2,7 @@ package etomo.process;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.util.Map;
 
 import etomo.BaseManager;
 import etomo.storage.LogFile;
@@ -23,6 +24,9 @@ import etomo.util.DatasetFiles;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.6  2009/03/17 00:43:11  sueh
+ * <p> bug# 1186 Pass managerKey to everything that pops up a dialog.
+ * <p>
  * <p> Revision 1.5  2009/02/04 23:26:53  sueh
  * <p> bug# 1158 Changed id and exceptions classes in LogFile.
  * <p>
@@ -52,8 +56,8 @@ final class ProcesschunksVolcombineMonitor extends ProcesschunksProcessMonitor {
 
   public ProcesschunksVolcombineMonitor(BaseManager manager, AxisID axisID,
       ParallelProgressDisplay parallelProgressDisplay, String rootName,
-      String computerList) {
-    super(manager, axisID, parallelProgressDisplay, rootName, computerList);
+      Map computerMap) {
+    super(manager, axisID, parallelProgressDisplay, rootName, computerMap);
   }
 
   boolean updateState() throws LogFile.LockException, FileNotFoundException,
