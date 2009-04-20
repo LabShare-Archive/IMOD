@@ -2,6 +2,9 @@ package etomo.comscript;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 import etomo.BaseManager;
 import etomo.storage.CpuAdoc;
@@ -38,7 +41,8 @@ public final class ProcesschunksParam implements DetachedCommand, ParallelParam 
 
   private final EtomoBoolean2 resume = new EtomoBoolean2();
   private final EtomoNumber nice = new EtomoNumber();
-  private final ArrayList machineNames = new ArrayList();
+  private final List machineNames = new ArrayList();
+  private final Map computerMap = new HashMap();
   private final EtomoNumber cpuNumber = new EtomoNumber();
 
   private final BaseManager manager;
@@ -80,8 +84,8 @@ public final class ProcesschunksParam implements DetachedCommand, ParallelParam 
 
   private void init() {
     nice.set(manager.getParallelProcessingDefaultNice());
-    nice.setFloor(CpuAdoc.getInstance(axisID, manager.getPropertyUserDir(), manager.getManagerKey())
-        .getMinNice());
+    nice.setFloor(CpuAdoc.getInstance(axisID, manager.getPropertyUserDir(),
+        manager.getManagerKey()).getMinNice());
     nice.setCeiling(NICE_CEILING);
   }
 
@@ -189,14 +193,8 @@ public final class ProcesschunksParam implements DetachedCommand, ParallelParam 
     return subdirName;
   }
 
-  public String getMachineList() {
-    if (machineList == null) {
-      buildMachineList();
-    }
-    if (machineList != null) {
-      return machineList.toString();
-    }
-    return "";
+  public Map getComputerMap() {
+    return computerMap;
   }
 
   public AxisID getAxisID() {
@@ -217,12 +215,22 @@ public final class ProcesschunksParam implements DetachedCommand, ParallelParam 
     machineNames.clear();
   }
 
-  public void addMachineName(final String machineName) {
+  /**
+   * Build machineNames and computerMap.
+   * @param machineName
+   * @param cpus
+   */
+  public void addMachineName(final String machineName, final int cpus) {
     if (commandArray != null) {
       throw new IllegalStateException(
           "can't change parameter values after command is built");
     }
-    machineNames.add(machineName);
+    for (int i = 0; i < cpus; i++) {
+      machineNames.add(machineName);
+    }
+    if (cpus > 0) {
+      computerMap.put(machineName, String.valueOf(cpus));
+    }
   }
 
   public String getCommandName() {
@@ -435,6 +443,9 @@ public final class ProcesschunksParam implements DetachedCommand, ParallelParam 
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.36  2009/03/17 00:32:39  sueh
+ * <p> bug# 1186 Pass managerKey to everything that pops up a dialog.
+ * <p>
  * <p> Revision 1.35  2008/07/19 00:24:22  sueh
  * <p> bug# 1125 Making it easier to access CpuAdoc by not passing the
  * <p> manager to it; all it needs is the current directory.
