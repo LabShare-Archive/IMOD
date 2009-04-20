@@ -2,6 +2,7 @@ package etomo.process;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.util.Map;
 
 import etomo.BaseManager;
 import etomo.EtomoDirector;
@@ -29,24 +30,20 @@ import etomo.util.Utilities;
  * 
  * @version $Revision$
  */
+
 class ProcesschunksProcessMonitor implements OutfileProcessMonitor,
     ParallelProcessMonitor {
   public static final String rcsid = "$Id$";
 
   private static final String TITLE = "Processchunks";
-
   static final String SUCCESS_TAG = "Finished reassembling";
-
   private static boolean debug = false;
-
   private final EtomoNumber nChunks = new EtomoNumber();
   private final EtomoNumber chunksFinished = new EtomoNumber();
   private final ParallelProgressDisplay parallelProgressDisplay;
   private final String rootName;
-  private final String computerList;
   private final ProcessMessages messages = ProcessMessages
       .getInstanceForParallelProcessing();
-
   private String subdirName = null;
   private boolean setProgressBarTitle = false;//turn on to changed the progress bar title
   private boolean reassembling = false;
@@ -69,18 +66,18 @@ class ProcesschunksProcessMonitor implements OutfileProcessMonitor,
   private boolean running = false;
   private boolean reconnect = false;
   private SystemProcessInterface process = null;
-
   final BaseManager manager;
   final AxisID axisID;
+  final Map computerMap;
 
   ProcesschunksProcessMonitor(BaseManager manager, AxisID axisID,
       ParallelProgressDisplay parallelProgressDisplay, String rootName,
-      String computerList) {
+      Map computerMap) {
     this.manager = manager;
     this.axisID = axisID;
     this.parallelProgressDisplay = parallelProgressDisplay;
     this.rootName = rootName;
-    this.computerList = computerList;
+    this.computerMap = computerMap;
     debug = EtomoDirector.INSTANCE.getArguments().isDebug();
   }
 
@@ -89,13 +86,21 @@ class ProcesschunksProcessMonitor implements OutfileProcessMonitor,
       ParallelProgressDisplay parallelProgressDisplay, ProcessData processData) {
     ProcesschunksProcessMonitor instance = new ProcesschunksProcessMonitor(
         manager, axisID, parallelProgressDisplay, processData
-            .getSubProcessName(), null);
+            .getSubProcessName(), processData.getComputerMap());
     instance.reconnect = true;
     return instance;
   }
 
+  /**
+   * Sets the process.  Then, because this is a parallel process monitor, it
+   * sets computerMap in the process if this isn't a reconnect.  This causes the
+   * process to set the computerMap in ProcessData.
+   */
   public final void setProcess(SystemProcessInterface process) {
     this.process = process;
+    if (!reconnect && process != null) {
+      process.setComputerMap(computerMap);
+    }
   }
 
   public final boolean isRunning() {
@@ -115,6 +120,9 @@ class ProcesschunksProcessMonitor implements OutfileProcessMonitor,
     catch (LogFile.LockException e) {
       UIHarness.INSTANCE.openMessageDialog(e.getMessage(),
           "Processchunks Error", axisID, manager.getManagerKey());
+    }
+    if (reconnect && parallelProgressDisplay != null) {
+      parallelProgressDisplay.setComputerMap(computerMap);
     }
     parallelProgressDisplay.msgStartingProcessOnSelectedComputers();
     nChunks.set(0);
@@ -255,7 +263,7 @@ class ProcesschunksProcessMonitor implements OutfileProcessMonitor,
   }
 
   public final void drop(String computer) {
-    if (computerList == null || computerList.indexOf(computer) != -1) {
+    if (computerMap == null || computerMap.containsKey(computer)) {
       if (EtomoDirector.INSTANCE.getArguments().isDebug()) {
         System.err.println("try to drop " + computer);
       }
@@ -583,6 +591,9 @@ class ProcesschunksProcessMonitor implements OutfileProcessMonitor,
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.47  2009/04/15 19:58:30  sueh
+ * <p> bug# 1205 Calling setProgressBarTitle from endMonitor.
+ * <p>
  * <p> Revision 1.46  2009/03/17 00:43:03  sueh
  * <p> bug# 1186 Pass managerKey to everything that pops up a dialog.
  * <p>
