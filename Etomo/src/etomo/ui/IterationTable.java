@@ -37,6 +37,9 @@ import etomo.type.EtomoAutodoc;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.19  2009/03/17 00:46:24  sueh
+ * <p> bug# 1186 Pass managerKey to everything that pops up a dialog.
+ * <p>
  * <p> Revision 1.18  2009/02/04 23:36:48  sueh
  * <p> bug# 1158 Changed id and exception classes in LogFile.
  * <p>
@@ -100,11 +103,9 @@ final class IterationTable implements Highlightable {
   public static final String rcsid = "$Id$";
   static final String D_PHI_D_THETA_D_PSI_HEADER1 = "Angular Search Range";
   static final String D_PHI_HEADER2 = "Phi";
-  static final String D_PHI_HEADER3 = "Incr.";
+  static final String INCR_HEADER = "Incr.";
   static final String D_THETA_HEADER2 = "Theta";
-  static final String D_THETA_HEADER3 = "Incr.";
   static final String D_PSI_HEADER2 = "Psi";
-  static final String D_PSI_HEADER3 = "Incr.";
   static final String SEARCH_RADIUS_HEADER1 = "Search";
   static final String SEARCH_RADIUS_HEADER2 = "Radius";
   static final String TABLE_HEADER = "Iteration Table";
@@ -125,15 +126,15 @@ final class IterationTable implements Highlightable {
   private final HeaderCell header2DPsi = new HeaderCell(D_PSI_HEADER2);
   private final HeaderCell header3DPhiMax = new HeaderCell(MAX_HEADER,
       UIParameters.INSTANCE.getNumericWidth());
-  private final HeaderCell header3DPhiIncrement = new HeaderCell(D_PHI_HEADER3,
+  private final HeaderCell header3DPhiIncrement = new HeaderCell(INCR_HEADER,
       UIParameters.INSTANCE.getNumericWidth());
   private final HeaderCell header3DThetaMax = new HeaderCell(MAX_HEADER,
       UIParameters.INSTANCE.getNumericWidth());
   private final HeaderCell header3DThetaIncrement = new HeaderCell(
-      D_THETA_HEADER3, UIParameters.INSTANCE.getNumericWidth());
+      INCR_HEADER, UIParameters.INSTANCE.getNumericWidth());
   private final HeaderCell header3DPsiMax = new HeaderCell(MAX_HEADER,
       UIParameters.INSTANCE.getNumericWidth());
-  private final HeaderCell header3DPsiIncrement = new HeaderCell(D_PSI_HEADER3,
+  private final HeaderCell header3DPsiIncrement = new HeaderCell(INCR_HEADER,
       UIParameters.INSTANCE.getNumericWidth());
   private final HeaderCell header1SearchRadius = new HeaderCell(
       SEARCH_RADIUS_HEADER1);
