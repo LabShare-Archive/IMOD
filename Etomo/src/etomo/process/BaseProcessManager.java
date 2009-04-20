@@ -44,6 +44,10 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.83  2009/04/15 16:52:25  sueh
+ * <p> bug# 1190 Returning false and logging failure for major reconnection
+ * <p> failures.
+ * <p>
  * <p> Revision 1.82  2009/04/14 23:02:20  sueh
  * <p> bug# 1207 Made getSavedProcessData public.  Removed getRunningProcessData.
  * <p>
@@ -562,11 +566,11 @@ public abstract class BaseProcessManager {
     ProcesschunksProcessMonitor monitor;
     if (param.equalsRootName(ProcessName.VOLCOMBINE, axisID)) {
       monitor = new ProcesschunksVolcombineMonitor(manager, axisID,
-          parallelProgressDisplay, param.getRootName(), param.getMachineList());
+          parallelProgressDisplay, param.getRootName(), param.getComputerMap());
     }
     else {
       monitor = new ProcesschunksProcessMonitor(manager, axisID,
-          parallelProgressDisplay, param.getRootName(), param.getMachineList());
+          parallelProgressDisplay, param.getRootName(), param.getComputerMap());
     }
     BackgroundProcess process;
     if (param.isSubdirNameEmpty()) {
