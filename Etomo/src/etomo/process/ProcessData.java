@@ -1,6 +1,12 @@
 package etomo.process;
 
+import java.util.Enumeration;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Map;
 import java.util.Properties;
+import java.util.Set;
+import java.util.Map.Entry;
 
 import etomo.BaseManager;
 import etomo.comscript.PsParam;
@@ -45,6 +51,7 @@ public final class ProcessData implements Storable {
   private static final String START_TIME_KEY = "StartTime";
   private static final String PROCESS_NAME_KEY = "ProcessName";
   private static final String OS_TYPE_KEY = "OS";
+  private static final String COMPUTER_KEY = "Computer";
 
   private final EtomoNumber displayKey = new EtomoNumber("DisplayKey");
   private final StringProperty subProcessName = new StringProperty(
@@ -63,6 +70,10 @@ public final class ProcessData implements Storable {
   private boolean doNotLoad = false;
   private OSType osType = null;
   private boolean sshFailed = false;
+  //Contains the computers and CPUs selected for parallel processing.  This is
+  //set by the process in a managed instance, but only if the process is
+  //parallel.
+  private Map computerMap = null;
 
   /**
    * Get an instance of ProcessData which is associated with a process managed
@@ -131,12 +142,6 @@ public final class ProcessData implements Storable {
     return pid == null || groupPid == null || startTime == null;
   }
 
-  void reset() {
-    pid = null;
-    groupPid = null;
-    startTime = null;
-  }
-
   /**
    * Look for the process data in the ps output.
    * Returns true if the process data is found in the ps output, false if the
@@ -163,12 +168,18 @@ public final class ProcessData implements Storable {
     return sshFailed;
   }
 
+  void setComputerMap(Map computerMap) {
+    this.computerMap = computerMap;
+  }
+
   /**
    * Use the pid to get the process data from the ps output.
    * @param pid
    */
   void setPid(String pid) {
-    reset();
+    this.pid = null;
+    groupPid = null;
+    startTime = null;
     if (pid == null || pid.matches("\\s*+")) {
       return;
     }
@@ -236,6 +247,10 @@ public final class ProcessData implements Storable {
     return hostName.toString();
   }
 
+  public Map getComputerMap() {
+    return computerMap;
+  }
+
   private String getPrepend(String prepend) {
     if (prepend == "") {
       prepend = processDataPrepend;
@@ -246,10 +261,25 @@ public final class ProcessData implements Storable {
     return prepend;
   }
 
+  private void removeComputerMap(Properties props, String group) {
+    Enumeration keyEnumeration = props.keys();
+    //Remove anything that starts with group.COMPUTER_KEY.
+    while (keyEnumeration.hasMoreElements()) {
+      String key = (String) keyEnumeration.nextElement();
+      if (key.trim().startsWith(group + COMPUTER_KEY + ".")) {
+        props.remove(key);
+      }
+    }
+  }
+
   private void store(Properties props, String prepend) {
     prepend = getPrepend(prepend);
     String group = prepend + ".";
+    //Remove everything containing COMPUTER_KEY to prevent entries that
+    //where removed from computerMap from remaining in props.
+    removeComputerMap(props, group);
     if (isEmpty()) {
+      //Remove everything if no process was added to processData.
       props.remove(group + PID_KEY);
       props.remove(group + GROUP_PID_KEY);
       props.remove(group + START_TIME_KEY);
@@ -280,11 +310,36 @@ public final class ProcessData implements Storable {
       else {
         osType.store(props, prepend);
       }
+      //Store everything in computerMap in props.
+      if (computerMap != null && !computerMap.isEmpty()) {
+        Set computerSet = computerMap.entrySet();
+        Iterator entryIterator = computerSet.iterator();
+        while (entryIterator.hasNext()) {
+          Entry entry = (Entry) entryIterator.next();
+          props.setProperty(group + COMPUTER_KEY + "."
+              + (String) entry.getKey(), (String) entry.getValue());
+        }
+      }
     }
   }
 
   public void load(Properties props) {
     load(props, "");
+  }
+
+  void reset() {
+    pid = null;
+    groupPid = null;
+    startTime = null;
+    processName = null;
+    subProcessName.reset();
+    subDirName.reset();
+    displayKey.reset();
+    osType = null;
+    hostName.reset();
+    if (computerMap != null) {
+      computerMap.clear();
+    }
   }
 
   private void load(Properties props, String prepend) {
@@ -293,6 +348,7 @@ public final class ProcessData implements Storable {
           "Trying to load into into thread data that belongs to a managed process.");
     }
     reset();
+    //load
     processName = null;
     prepend = getPrepend(prepend);
     String group = prepend + ".";
@@ -313,10 +369,29 @@ public final class ProcessData implements Storable {
     displayKey.load(props, prepend);
     hostName.load(props, prepend);
     osType = OSType.getInstance(props, prepend);
+    //Load from props to computerMap
+    Enumeration keyEnumeration = props.keys();
+    //Load anything that starts with group.COMPUTER_KEY.
+    String computerKey = group + COMPUTER_KEY + ".";
+    while (keyEnumeration.hasMoreElements()) {
+      String key = (String) keyEnumeration.nextElement();
+      if (key.trim().startsWith(computerKey)) {
+        if (computerMap == null) {
+          computerMap = new HashMap();
+        }
+        //Strip the generic part of the key from props to get the key for
+        //computerMap.
+        computerMap.put(key.substring(key.indexOf(computerKey)
+            + computerKey.length()), props.getProperty(key, "0"));
+      }
+    }
   }
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.10  2009/04/14 23:03:17  sueh
+ * <p> bug# 1190 Changed toString.  bug# 1207 Made isRunning run ps every time.
+ * <p>
  * <p> Revision 1.9  2009/04/13 22:38:01  sueh
  * <p> bug# 1207 Added hostName, osType, running, and sshFailed.
  * <p>
