@@ -232,7 +232,7 @@ final class ProcessorTableRow implements Storable {
   void deleteRow() {
     displayed = false;
   }
-  
+
   void setColumns() {
     setNumberColumn(table.useNumberColumn());
     setTypeColumn(table.useTypeColumn());
@@ -297,14 +297,14 @@ final class ProcessorTableRow implements Storable {
     cellFailureReason.add(panel, layout, constraints);
   }
 
-   void performAction() {
+  void performAction() {
     updateSelected(cellComputer.isSelected());
   }
 
-   void stateChangedCPU() {
+  void stateChangedCPU() {
     table.msgCPUsSelectedChanged();
   }
-  
+
   void stateChangedComputer() {
     if (!displayQueues) {
       return;
@@ -323,6 +323,10 @@ final class ProcessorTableRow implements Storable {
   public void setSelected(boolean selected) {
     cellComputer.setSelected(selected);
     updateSelected(selected);
+  }
+
+  public void setCPUsSelected(String cpusSelected) {
+    ((SpinnerCell) cellCPUsSelected).setValue(Integer.parseInt(cpusSelected));
   }
 
   private void updateSelected(boolean selected) {
@@ -359,10 +363,8 @@ final class ProcessorTableRow implements Storable {
 
   final void getParameters(ProcesschunksParam param) {
     int numCpus = getCPUsSelected();
-    if (!displayQueues) {
-      for (int i = 0; i < numCpus; i++) {
-        param.addMachineName(cellComputer.getLabel());
-      }
+    if (!displayQueues && numCpus > 0) {
+      param.addMachineName(cellComputer.getLabel(), numCpus);
     }
   }
 
@@ -568,7 +570,7 @@ final class ProcessorTableRow implements Storable {
       adaptee.stateChangedCPU();
     }
   }
-  
+
   private class PTRComputerChangeListener implements ChangeListener {
     ProcessorTableRow adaptee;
 
@@ -583,6 +585,9 @@ final class ProcessorTableRow implements Storable {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.34  2009/04/13 22:57:49  sueh
+ * <p> Removed unnecessary print.
+ * <p>
  * <p> Revision 1.33  2008/10/06 22:44:46  sueh
  * <p> bug# 1113 Changed addRow to display.  Display now takes index and viewport so it can check if it should display itself.
  * <p>
