@@ -18,6 +18,9 @@ import java.util.Properties;
  * @notthreadsafe
  * 
  * <p> $Log$
+ * <p> Revision 1.6  2009/04/13 22:55:22  sueh
+ * <p> bug# 1207 Fixed equals(String).
+ * <p>
  * <p> Revision 1.5  2008/11/20 01:39:55  sueh
  * <p> bug# 1149 Simplified StringProperty - set string to null when it is empty.
  * <p>
@@ -136,7 +139,7 @@ public final class StringProperty implements ConstStringProperty {
     props.remove(currentKey);
   }
 
-  void reset() {
+  public void reset() {
     string = null;
   }
 
