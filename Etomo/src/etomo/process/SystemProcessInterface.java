@@ -1,5 +1,7 @@
 package etomo.process;
 
+import java.util.Map;
+
 import etomo.type.AxisID;
 import etomo.type.ConstProcessSeries;
 import etomo.type.ProcessEndState;
@@ -35,9 +37,13 @@ public interface SystemProcessInterface {
   public ProcessData getProcessData();
   public boolean isNohup();
   public ConstProcessSeries getProcessSeries();
+  public void setComputerMap(Map computerMap);
 }
 /**
 * <p> $Log$
+* <p> Revision 3.11  2008/05/03 00:43:09  sueh
+* <p> bug# 847 Added getProcessSeries().
+* <p>
 * <p> Revision 3.10  2006/06/15 16:17:06  sueh
 * <p> bug# 871 Added isNohup().
 * <p>

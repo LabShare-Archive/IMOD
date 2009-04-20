@@ -1,5 +1,7 @@
 package etomo.ui;
 
+import java.util.Map;
+
 /**
  * <p>Description: </p>
  * 
@@ -14,6 +16,11 @@ package etomo.ui;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.11  2007/09/27 21:01:31  sueh
+ * <p> bug# 1044 Removed setParallelProcessMonitor because the parallel process
+ * <p> monitor was never used in any Parallel Progress Display.  Added
+ * <p> msgEndingProcess and resetResults.
+ * <p>
  * <p> Revision 1.10  2005/11/19 02:44:47  sueh
  * <p> bug# 744 Turned msgInterruptingProcess into msgKillingProcess and
  * <p> msgPausingProcess, so that the kill could turn off the pause button.
@@ -69,7 +76,15 @@ public interface ParallelProgressDisplay {
   public void msgPausingProcess();
 
   public void msgStartingProcessOnSelectedComputers();
-  
+
   public void msgEndingProcess();
+
   public void resetResults();
+
+  /**
+   * Used by reconnect.  Sets the computers and CPUs that where is use when the
+   * parallel process was last being tracked by Etomo.
+   * @param computerMap
+   */
+  public void setComputerMap(Map computerMap);
 }
