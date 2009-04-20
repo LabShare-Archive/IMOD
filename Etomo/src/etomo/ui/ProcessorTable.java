@@ -5,6 +5,7 @@ import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Properties;
 
 import javax.swing.BoxLayout;
@@ -504,6 +505,10 @@ final class ProcessorTable implements Storable, ParallelProgressDisplay,
     row.addSuccess();
   }
 
+  public void setComputerMap(final Map computerMap) {
+    rowList.setComputerMap(computerMap);
+  }
+
   public void msgDropped(final String computer, final String reason) {
     ProcessorTableRow row = getRow(computer);
     if (row == null) {
@@ -699,6 +704,27 @@ final class ProcessorTable implements Storable, ParallelProgressDisplay,
     private RowList() {
     }
 
+    /**
+     * Changes the selected computers and CPUs to match computerMap.
+     * @param computerMap
+     */
+    private void setComputerMap(final Map computerMap) {
+      if (computerMap == null || computerMap.isEmpty()) {
+        return;
+      }
+      for (int i = 0; i < list.size(); i++) {
+        //First unselect a computer.  Then select the computer if it is in
+        //computerMap.
+        ProcessorTableRow row = get(i);
+        row.setSelected(false);
+        String key = row.getComputer();
+        if (computerMap.containsKey(key)) {
+          row.setSelected(true);
+          row.setCPUsSelected((String) computerMap.get(key));
+        }
+      }
+    }
+
     private void add(final ProcessorTableRow row) {
       list.add(row);
     }
@@ -833,6 +859,9 @@ final class ProcessorTable implements Storable, ParallelProgressDisplay,
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.54  2009/03/17 00:46:24  sueh
+ * <p> bug# 1186 Pass managerKey to everything that pops up a dialog.
+ * <p>
  * <p> Revision 1.53  2009/02/04 23:36:48  sueh
  * <p> bug# 1158 Changed id and exception classes in LogFile.
  * <p>
