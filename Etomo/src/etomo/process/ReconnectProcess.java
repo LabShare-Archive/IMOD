@@ -3,6 +3,7 @@ package etomo.process;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.util.Map;
 import java.util.Vector;
 
 import etomo.BaseManager;
@@ -34,23 +35,15 @@ final class ReconnectProcess implements SystemProcessInterface, Runnable {
   private final BaseManager manager;
 
   private final BaseProcessManager processManager;
-
   private final ProcessMonitor monitor;
-
   private final ProcessData processData;
-
   private final AxisID axisID;
-
   private ProcessEndState endState = null;
-
   private ProcessResultDisplay processResultDisplay = null;
-
   private ProcessMessages messages = null;
-
   private LogFile logFile;
-
   private String logSuccessTag = null;
-
+  //When true the process is being controlled by the monitor.
   private boolean monitorControl = false;
 
   private ReconnectProcess(BaseManager manager,
@@ -92,6 +85,14 @@ final class ReconnectProcess implements SystemProcessInterface, Runnable {
     instance.logSuccessTag = logSuccessTag;
     instance.monitorControl = true;
     return instance;
+  }
+  
+  /**
+   * In a reconnect the computerMap is loaded from the data file.  Setting it
+   * here would override it.  Should never happen because the process monitor
+   * should not set the computer map in the process during a reconnect.
+   */
+  public final void setComputerMap(Map computerMap) {
   }
 
   public ConstProcessSeries getProcessSeries() {
@@ -295,6 +296,9 @@ final class ReconnectProcess implements SystemProcessInterface, Runnable {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.10  2009/04/13 22:52:17  sueh
+ * <p> bug# 1207
+ * <p>
  * <p> Revision 1.9  2009/03/17 00:43:53  sueh
  * <p> bug# 1186 Pass managerKey to everything that pops up a dialog.
  * <p>
