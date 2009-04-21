@@ -601,6 +601,7 @@ BeadHelper::BeadHelper(QWidget *parent, const char *name) :
   lineDisplayCombo = new QComboBox(grpDisplay);
   lineDisplayCombo->setFocusPolicy(Qt::NoFocus);
   lineDisplayCombo->addItem("off");
+  lineDisplayCombo->addItem("all objs");
   lineDisplayCombo->addItem("all contours");
   lineDisplayCombo->addItem("curr contour");
   lineDisplayCombo->addItem("missing pts");
