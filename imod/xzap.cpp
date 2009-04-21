@@ -1540,7 +1540,9 @@ void zapMousePress(ZapStruct *zap, QMouseEvent *event)
   firstmy = y;
   utilRaiseIfNeeded(zap->qtWindow, event);
 
-  /* imodPrintStderr("click at %d %d\n", event->x(), event->y()); */
+  if (imodDebug('m'))
+    imodPrintStderr("click at %d %d   buttons %d %d %d\n", x, y, button1, 
+                    button2, button3);
 
   // Check for starting a band move before offering to plugin
   if (event->button() == ImodPrefs->actualButton(2) && !button1 && !button3) {
@@ -1760,8 +1762,9 @@ void zapMouseMove(ZapStruct *zap, QMouseEvent *event, bool mousePressed)
   cumdx = ex - firstmx;
   cumdy = ey - firstmy;
   button2 = (button2 || insertDown) ? 1 : 0;
-  /* imodPrintStderr("mb  %d|%d|%d  c %x s %x\n", button1, button2, button3, 
-     ctrlDown, shiftDown); */
+  if (imodDebug('m'))
+    imodPrintStderr("move %d,%d  mb  %d|%d|%d  c %x s %x\n", ex, ey, button1,
+                    button2, button3, ctrlDown, shiftDown);
 
   if ( (button1) && (!button2) && (!button3)){
     if (ctrlDown) {
@@ -2295,6 +2298,9 @@ int zapB1Drag(ZapStruct *zap, int x, int y)
     zapSetCursor(zap, zap->mousemode, utilNeedToSetCursor());
   } else {
     /* Move the image */
+    if (imodDebug('m'))
+      imodPrintStderr("B1Drag: x,y %d,%d  lmx,y %d,%d  trans %d,%d\n",
+                      x, y, zap->lmx,  zap->lmy,  zap->xtrans,  zap->ytrans);
     zap->xtrans += (int)floor(transFac * (x - zap->lmx) + 0.5);
     zap->ytrans -= (int)floor(transFac * (y - zap->lmy) + 0.5);
   }
@@ -4705,6 +4711,9 @@ static void setDrawCurrentOnly(ZapStruct *zap, int value)
 /*
 
 $Log$
+Revision 4.144  2009/04/06 19:37:54  mast
+Changes to preserve cursor state in Mac Qt 4.5
+
 Revision 4.143  2009/03/30 18:27:09  mast
 Check in the right file
 
