@@ -15,6 +15,9 @@
     $Revision$
 
     $Log$
+    Revision 1.33  2009/04/17 13:33:56  tempuser
+    Added some options for Pete
+
     Revision 1.32  2009/04/14 04:13:23  tempuser
     improved warp tool behavior
 
@@ -220,12 +223,12 @@ int imodPlugKeys(ImodView *vw, QKeyEvent *event)
       return plug.window->copyCurrContToView(shift);
       break;
       
-    //case Qt::Key_T:                  // temporary testing purposes - comment out
+    case Qt::Key_T:                  // temporary testing purposes - comment out
     //  if(ctrl)
     //    plug.window->test();
     //  else
-    //    return 0;
-    //  break;
+        return 0;
+      break;
       
     case Qt::Key_X:
       if(ctrl)
@@ -497,7 +500,7 @@ int imodPlugMouse(ImodView *vw, QMouseEvent *event, float imx, float imy,
   if( !plug.window || !ivwGetMovieModelMode(plug.view) )
     return (0);
   
-//## UPDATE MOUSE VALUES:
+  //## UPDATE MOUSE VALUES:
 
   plug.mousePrev = plug.mouse;
   
@@ -508,13 +511,13 @@ int imodPlugMouse(ImodView *vw, QMouseEvent *event, float imx, float imy,
   plug.changeX = plug.mouse.x - plug.mousePrev.x;
   plug.changeY = plug.mouse.y - plug.mousePrev.y;
   
-//## REGENERATE SCULPT CIRCLE:
+  //## REGENERATE SCULPT CIRCLE:
   
   plug.window->drawExtraObject(false);
   if( plug.showMouseInModelView )
     ivwDraw( plug.view, IMOD_DRAW_ALL );
   
-//## UPDATE BUTTON PRESSED VALUES:
+  //## UPDATE BUTTON PRESSED VALUES:
   
   plug.but1Pressed  = (but1 == 1) && (plug.but1Down == 0);
   plug.but2Pressed  = (but2 == 1) && (plug.but2Down == 0);
@@ -531,7 +534,20 @@ int imodPlugMouse(ImodView *vw, QMouseEvent *event, float imx, float imy,
   plug.shiftDown = (event->modifiers() & Qt::ShiftModifier);
   
   
-//## IF ANY BUTTON WAS JUST PRESSED: GET THE CENTROID OF THE CURRENT CONTOUR
+  //## IF BUTTON 1 AND SHIFT ARE DOWN: SCROLL SLICES
+  
+  if( plug.but1Down && plug.shiftDown )
+  {
+    float zapZoom = 1.0f;
+    ivwGetTopZapZoom(plug.view, &zapZoom);
+    edit_changeSelectedSlice( plug.changeY * zapZoom, true );
+    return (1);
+  }
+  
+  if( plug.but1Down && !plug.but2Down && !plug.but3Down )
+    return (0);         // to fix Pete's problem.
+  
+  //## IF ANY BUTTON WAS JUST PRESSED: GET THE CENTROID OF THE CURRENT CONTOUR
   
   if ( plug.but3Pressed || plug.but2Pressed || plug.but1Pressed )
   {
@@ -544,17 +560,6 @@ int imodPlugMouse(ImodView *vw, QMouseEvent *event, float imx, float imy,
     plug.mouseDownPt = plug.mouse;
   }
   
-  
-  //## IF BUTTON 1 AND SHIFT ARE DOWN: SCROLL SLICES
-  
-  if( plug.but1Down && plug.shiftDown )
-  {
-    float zapZoom = 1.0f;
-    ivwGetTopZapZoom(plug.view, &zapZoom);
-    edit_changeSelectedSlice( plug.changeY * zapZoom, true );
-    return (1);
-  }
-   
   
   //## EXIT EARLY IF NO ACTION IS NEEDED:
     
@@ -570,7 +575,7 @@ int imodPlugMouse(ImodView *vw, QMouseEvent *event, float imx, float imy,
     return (2);
   
   
-//## PERFORM ACTION:
+  //## PERFORM ACTION:
   
   switch( plug.drawMode )
   {
@@ -598,7 +603,7 @@ int imodPlugMouse(ImodView *vw, QMouseEvent *event, float imx, float imy,
       }
       else if( plug.but2Released ) {
         edit_executeJoinEnd();
-        ivwDraw( plug.view, IMOD_DRAW_XYZ | IMOD_DRAW_NOSYNC );
+        ivwDraw( plug.view, IMOD_DRAW_MOD | IMOD_DRAW_NOSYNC );
       }
       break;
     }
@@ -692,7 +697,7 @@ int imodPlugMouse(ImodView *vw, QMouseEvent *event, float imx, float imy,
       }
       break;
     }      
-      
+    
     default:    // DM_NORMAL
     {
       return (2);
@@ -701,7 +706,7 @@ int imodPlugMouse(ImodView *vw, QMouseEvent *event, float imx, float imy,
   
       // NOTE if we get to here we have dealt with the action, so re redraw and return 1
   
-  ivwDraw( plug.view, IMOD_DRAW_XYZ | IMOD_DRAW_NOSYNC );    
+  ivwDraw( plug.view, IMOD_DRAW_MOD | IMOD_DRAW_NOSYNC );    
   return (1);
 }
 
@@ -1231,7 +1236,7 @@ bool DrawingTools::drawExtraObject( bool redraw )
   free(xcont);
   
   if( redraw )
-    ivwDraw( plug.view, IMOD_DRAW_XYZ | IMOD_DRAW_NOSYNC );
+    ivwDraw( plug.view, IMOD_DRAW_MOD | IMOD_DRAW_NOSYNC );
   
   return true;
 }
@@ -1346,9 +1351,9 @@ void DrawingTools::saveSettings()
   saveValues[5]   = plug.draw_smoothMinDist;
   saveValues[6]   = plug.draw_smoothTensileFract;
   saveValues[7]   = plug.draw_sculptRadius;
-  saveValues[8]     = plug.draw_sculptResizeScheme; 
+  saveValues[8]   = plug.draw_sculptResizeScheme; 
   saveValues[9]   = plug.draw_diffWarpSize;
-  saveValues[10]   = plug.wheelBehav;
+  saveValues[10]  = plug.wheelBehav;
   saveValues[11]  = plug.dKeyBehav;
   saveValues[12]  = plug.pgUpDownInc;
   saveValues[13]  = plug.useNumKeys;
@@ -4143,7 +4148,7 @@ void DrawingTools::closeEvent ( QCloseEvent * e )
   //imodContourDelete( plug.copiedCont );   // caused a crash on second close of plugin
   plug.window->saveSettings();
   
-  ivwDraw( plug.view, IMOD_DRAW_XYZ | IMOD_DRAW_NOSYNC );
+  ivwDraw( plug.view, IMOD_DRAW_MOD | IMOD_DRAW_NOSYNC );
   
   plug.view = NULL;
   plug.window = NULL;
@@ -4302,7 +4307,7 @@ int edit_setZapLocation( float x, int y, int z, bool redraw )
 {
   ivwSetLocation( plug.view, x, y, z );
   if( redraw )
-    ivwDraw( plug.view, IMOD_DRAW_XYZ | IMOD_DRAW_NOSYNC );
+    ivwDraw( plug.view, IMOD_DRAW_MOD | IMOD_DRAW_NOSYNC );
   return z;
 }
 
@@ -5756,8 +5761,8 @@ bool edit_selectNextIntersectingCont()
       
       if( plug.testOverlapping && edit_countOverlappingContsCrude( oNum, i ) )
       {
-        imodSetIndex( imod, o, i, ((pCross+1)%psize(contI)) );
-        wprint("Nested contour found!\n");
+        imodSetIndex( imod, o, i, 0 );
+        wprint("Nested contour found\n");
         ivwRedraw( plug.view );
         return (true);
       }
