@@ -1538,6 +1538,8 @@ void zapMousePress(ZapStruct *zap, QMouseEvent *event)
   but1downt.start();
   firstmx = x;
   firstmy = y;
+  zap->lmx = x;
+  zap->lmy = y;
   utilRaiseIfNeeded(zap->qtWindow, event);
 
   if (imodDebug('m'))
@@ -1561,8 +1563,6 @@ void zapMousePress(ZapStruct *zap, QMouseEvent *event)
           (dxll > 0 && dxur < 0 && (dyll < rcrit && dyll > -rcrit ||
                                     dyur < rcrit && dyur > -rcrit))) {
         moveband = 1;
-        zap->lmx = x;
-        zap->lmy = y;
         zapSetCursor(zap, zap->mousemode);
         return;
       }
@@ -1601,8 +1601,6 @@ void zapMousePress(ZapStruct *zap, QMouseEvent *event)
     else
       drew = zapButton3(zap, x, y, ctrlDown);
   }
-  zap->lmx = x;
-  zap->lmy = y;
   if (ifdraw && !drew)
     zapDraw(zap);
 }
@@ -4711,6 +4709,9 @@ static void setDrawCurrentOnly(ZapStruct *zap, int value)
 /*
 
 $Log$
+Revision 4.145  2009/04/21 05:43:29  mast
+debug version
+
 Revision 4.144  2009/04/06 19:37:54  mast
 Changes to preserve cursor state in Mac Qt 4.5
 
