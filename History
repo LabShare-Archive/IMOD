@@ -1,14 +1,17 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-4/20/09: In Etomo saving the selected computers and CPUs when Etomo exits during
-a parallel process.
+<<<<<<< History
+4/21/09: Fixed problem with panning while drawingtools is open on 64-bit Mac.
+
+4/20/09: In Etomo saving the selected computers and CPUs when Etomo exits
+during a parallel process.
 
 4/20/09: In Etomo - PEET added more validation.
 
 4/15/09: In Etomo fixed processchunks process messages.
 
-4/15/09: In Etomo logging reconnect attempts and major failures.  Preventing the
-deletion of the aligned stack while a process is running.
+4/15/09: In Etomo logging reconnect attempts and major failures.  Preventing
+the deletion of the aligned stack while a process is running.
 
 4/14/09: In Etomo fixed processchunks resume with a queue; it wasn't getting
 updated number of CPUs.
