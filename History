@@ -1,6 +1,5 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-<<<<<<< History
 4/21/09: Fixed problem with panning while drawingtools is open on 64-bit Mac.
 
 4/20/09: In Etomo saving the selected computers and CPUs when Etomo exits
