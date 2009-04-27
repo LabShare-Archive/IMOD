@@ -1,5 +1,11 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+4/27/09: In Etomo added a panel for changing the file paths when files are
+moved.
+
+4/27/09: In Etomo fixed a problem where PEET was not displaying its data file at
+the bottom of the dialog.
+
 4/21/09: Fixed problem with panning while drawingtools is open on 64-bit Mac.
 
 4/20/09: In Etomo saving the selected computers and CPUs when Etomo exits
