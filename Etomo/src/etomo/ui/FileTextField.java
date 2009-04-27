@@ -24,6 +24,10 @@ import etomo.type.ConstStringParameter;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.13  2009/01/20 20:03:28  sueh
+ * <p> bug# 1102 Changed the file button to a SimpleButton and named it after
+ * <p> the text field's label.
+ * <p>
  * <p> Revision 1.12  2008/11/22 00:18:34  sueh
  * <p> bug# 1155 Fixed problem with outputting a corrupted file path.  The
  * <p> actual file has to be saved because this class sometimes displays a
@@ -69,8 +73,8 @@ import etomo.type.ConstStringParameter;
 final class FileTextField {
   public static final String rcsid = "$Id$";
 
-  private final SimpleButton button = new SimpleButton(new ImageIcon(ClassLoader
-      .getSystemResource("images/openFile.gif")));
+  private final SimpleButton button = new SimpleButton(new ImageIcon(
+      ClassLoader.getSystemResource("images/openFile.gif")));
   private final SpacedPanel panel = SpacedPanel.getInstance();
   private final TextField field;
 
@@ -163,7 +167,14 @@ final class FileTextField {
   }
 
   boolean isEmpty() {
-    return file==null;
+    return file == null;
+  }
+
+  boolean exists() {
+    if (file == null) {
+      return false;
+    }
+    return file.exists();
   }
 
   void setFile(final File file) {
