@@ -11,6 +11,9 @@
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.30  2009/03/17 00:33:17  sueh
+ * <p> bug# 1186 Pass managerKey to everything that pops up a dialog.
+ * <p>
  * <p> Revision 3.29  2009/02/13 02:13:10  sueh
  * <p> bug# 1176 Checking return value of MRCHeader.read.
  * <p>
@@ -697,9 +700,6 @@ public class TrimvolParam implements CommandDetails {
   
   private boolean hasInputFileSizeChanged(MRCHeader mrcHeader,
       TomogramState state) {
-    System.out.println("\nstate.isNColumnsNull()="+state.isPostProcTrimVolInputNColumnsNull());
-    System.out.println("mrcHeader.getNColumns()="+mrcHeader.getNColumns());
-    System.out.println("state.getNColumns()="+state.getPostProcTrimVolInputNColumns());
     boolean changed = false;
     if (!state.isPostProcTrimVolInputNColumnsNull()
         && mrcHeader.getNColumns() != state.getPostProcTrimVolInputNColumns()) {
@@ -709,10 +709,6 @@ public class TrimvolParam implements CommandDetails {
     else {
       nColumnsChanged = false;
     }
-    System.out.println("NColumnsChanged="+nColumnsChanged);
-    System.out.println("\nstate.isNRowsNull()="+state.isPostProcTrimVolInputNRowsNull());
-    System.out.println("mrcHeader.genNRows()="+mrcHeader.getNRows());
-    System.out.println("state.getNRows()="+state.getPostProcTrimVolInputNRows());
     if (!state.isPostProcTrimVolInputNRowsNull()
         && mrcHeader.getNRows() != state.getPostProcTrimVolInputNRows()) {
       changed = true;
@@ -721,10 +717,6 @@ public class TrimvolParam implements CommandDetails {
     else {
       nRowsChanged = false;
     }
-    System.out.println("nRowsChanged="+nRowsChanged);
-    System.out.println("\nstate.isNSectionsNull()="+state.isPostProcTrimVolInputNSectionsNull());
-    System.out.println("mrcHeader.genNSections()="+mrcHeader.getNSections());
-    System.out.println("state.getNSections()="+state.getPostProcTrimVolInputNSections());
     if (!state.isPostProcTrimVolInputNSectionsNull()
         && mrcHeader.getNSections() != state.getPostProcTrimVolInputNSections()) {
       changed = true;
@@ -733,7 +725,6 @@ public class TrimvolParam implements CommandDetails {
     else {
       nSectionsChanged = false;
     }
-    System.out.println("nSectionsChanged="+nSectionsChanged);
     return changed;
   }
 
