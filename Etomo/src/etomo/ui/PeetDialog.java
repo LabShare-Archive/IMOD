@@ -56,6 +56,10 @@ import etomo.util.InvalidParameterException;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.74  2009/04/20 16:39:43  sueh
+ * <p> bug# 1214 In validateRun don't run goodframe if all of the szVol values
+ * <p> are empty.  Allow szVol to be empty.
+ * <p>
  * <p> Revision 1.73  2009/03/17 00:46:24  sueh
  * <p> bug# 1186 Pass managerKey to everything that pops up a dialog.
  * <p>
@@ -294,7 +298,7 @@ import etomo.util.InvalidParameterException;
  */
 
 public final class PeetDialog implements ContextMenu, AbstractParallelDialog,
-    Expandable, Run3dmodButtonContainer {
+    Expandable, Run3dmodButtonContainer, FileContainer {
   public static final String rcsid = "$Id$";
 
   public static final String FN_OUTPUT_LABEL = "Root name for output";
@@ -480,10 +484,16 @@ public final class PeetDialog implements ContextMenu, AbstractParallelDialog,
   private final VolumeTable volumeTable;
   private final PeetManager manager;
   private final AxisID axisID;
+  private final FixPathsPanel fixPathsPanel;
+  private File lastLocation = null;
+
+  private String correctPath = null;
 
   private PeetDialog(final PeetManager manager, final AxisID axisID) {
     this.manager = manager;
     this.axisID = axisID;
+    fixPathsPanel = FixPathsPanel.getInstance(this, manager, axisID,
+        DIALOG_TYPE);
     ftfReferenceFile.setFieldWidth(UIParameters.INSTANCE.getFileWidth());
     ftfMaskTypeVolume.setFieldWidth(UIParameters.INSTANCE.getFileWidth());
     phSetup = PanelHeader.getInstance("Setup", this, DIALOG_TYPE);
@@ -551,6 +561,98 @@ public final class PeetDialog implements ContextMenu, AbstractParallelDialog,
 
   public DialogType getDialogType() {
     return DIALOG_TYPE;
+  }
+
+  public void checkIncorrectPaths() {
+    boolean incorrectPaths = false;
+    if (volumeTable.isIncorrectPaths()) {
+      incorrectPaths = true;
+    }
+    else if (!ftfReferenceFile.isEmpty() && !ftfReferenceFile.exists()) {
+      incorrectPaths = true;
+    }
+    else if (!ftfMaskTypeVolume.isEmpty() && !ftfMaskTypeVolume.exists()) {
+      incorrectPaths = true;
+    }
+    fixPathsPanel.setIncorrectPaths(incorrectPaths);
+  }
+
+  public void fixIncorrectPaths(boolean choosePathEveryRow) {
+    if (!volumeTable.fixIncorrectPaths(choosePathEveryRow)) {
+      return;
+    }
+    if (!ftfReferenceFile.isEmpty() && !ftfReferenceFile.exists()
+        && !fixIncorrectPath(ftfReferenceFile, choosePathEveryRow)) {
+      return;
+    }
+    if (!ftfMaskTypeVolume.isEmpty() && !ftfMaskTypeVolume.exists()
+        && !fixIncorrectPath(ftfMaskTypeVolume, choosePathEveryRow)) {
+      return;
+    }
+    checkIncorrectPaths();
+  }
+
+  /**
+   * Fix an incorrect path.
+   * @param fileTextField
+   * @param choosePathEveryRow
+   * @return false if the user cancels the file selector
+   */
+  private boolean fixIncorrectPath(FileTextField fileTextField,
+      boolean choosePath) {
+    File newFile = null;
+    while (newFile == null || !newFile.exists()) {
+      //Have the user choose the location of the file if they haven't chosen
+      //before or they want to choose most of the files individuallly, otherwise
+      //just use the current correctPath.
+      if (correctPath == null || choosePath
+          || (newFile != null && !newFile.exists())) {
+        JFileChooser fileChooser = getFileChooserInstance();
+        fileChooser.setSelectedFile(fileTextField.getFile());
+        fileChooser.setPreferredSize(UIParameters.INSTANCE
+            .getFileChooserDimension());
+        fileChooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
+        int returnVal = fileChooser.showOpenDialog(rootPanel);
+        if (returnVal != JFileChooser.APPROVE_OPTION) {
+          return false;
+        }
+        newFile = fileChooser.getSelectedFile();
+        if (newFile != null && newFile.exists()) {
+          correctPath = newFile.getParent();
+          lastLocation = new File(correctPath);
+          fileTextField.setFile(newFile);
+        }
+      }
+      else if (correctPath != null) {
+        newFile = new File(correctPath, fileTextField.getFile().getName());
+        if (newFile.exists()) {
+          fileTextField.setFile(newFile);
+        }
+      }
+    }
+    return true;
+  }
+
+  JFileChooser getFileChooserInstance() {
+    return new JFileChooser(lastLocation == null ? new File(manager
+        .getPropertyUserDir()) : lastLocation);
+  }
+
+  void setLastLocation(File input) {
+    lastLocation = input;
+  }
+
+  boolean isCorrectPathNull() {
+    return correctPath == null;
+  }
+
+  void setCorrectPath(String correctPath) {
+    this.correctPath = correctPath;
+    lastLocation = new File(correctPath);
+  }
+
+  String getCorrectPath() {
+    return correctPath;
   }
 
   public void getParameters(final ParallelParam param) {
@@ -1240,6 +1342,7 @@ public final class PeetDialog implements ContextMenu, AbstractParallelDialog,
     pnlSetupBody.setComponentAlignmentX(Component.CENTER_ALIGNMENT);
     pnlSetupBody.add(pnlProject);
     pnlSetupBody.add(pnlUseExistingProject);
+    pnlSetupBody.add(fixPathsPanel.getRootComponent());
     pnlSetupBody.add(volumeTable.getContainer());
     pnlSetupBody.add(pnlReferenceAndMissingWedgeCompensation);
     pnlSetupBody.add(pnlMask);
