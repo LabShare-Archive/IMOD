@@ -58,6 +58,9 @@ import etomo.util.DatasetFiles;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.49  2009/04/14 23:01:38  sueh
+ * <p> bug# 1207  In reconnect:  handling some situations where process data is not running.
+ * <p>
  * <p> Revision 1.48  2009/04/13 22:22:22  sueh
  * <p> bug# 1207 Implemented doAutomation in BaseManager.
  * <p>
@@ -409,7 +412,6 @@ public final class PeetManager extends BaseManager {
     matlabParam.setFile(propertyUserDir);
     setPeetDialogParameters(matlabParamFile.getParentFile(), false,
         parametersOnly);
-    mainPanel.setStatusBarText(paramFile, metaData, logPanel);
     EtomoDirector.INSTANCE.renameCurrentManager(metaData.getName());
   }
 
@@ -551,6 +553,7 @@ public final class PeetManager extends BaseManager {
       return false;
     }
     imodManager.setMetaData(metaData);
+    mainPanel.setStatusBarText(paramFile, metaData, logPanel);
     if (matlabParam == null) {
       setMatlabParam(true);
     }
@@ -815,6 +818,7 @@ public final class PeetManager extends BaseManager {
         peetDialog.setParameters(matlabParam, importDir, parametersOnly);
       }
       peetDialog.setDirectory(propertyUserDir);
+      peetDialog.checkIncorrectPaths();
       peetDialog.updateDisplay(loadedParamFile);
     }
   }
