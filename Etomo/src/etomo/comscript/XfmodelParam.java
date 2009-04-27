@@ -30,6 +30,9 @@ import etomo.util.DatasetFiles;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.8  2009/03/17 00:33:36  sueh
+ * <p> bug# 1186 Pass managerKey to everything that pops up a dialog.
+ * <p>
  * <p> Revision 1.7  2008/11/20 01:31:05  sueh
  * <p> bug# 1147 Using xfmodel in both Join and Reconstruction.  Changed
  * <p> genOptions to genJoinOptions.  Added genReconOptions.  Added a
@@ -89,7 +92,7 @@ public final class XfmodelParam implements CommandDetails {
 
   private ArrayList genReconOptions() {
     if (join) {
-      System.out.println("ERROR:  calling genReconOptions when join is true.");
+      System.err.println("ERROR:  calling genReconOptions when join is true.");
       return null;
     }
     ArrayList options = new ArrayList();
@@ -102,7 +105,7 @@ public final class XfmodelParam implements CommandDetails {
 
   private ArrayList genJoinOptions() {
     if (!join) {
-      System.out.println("ERROR:  calling genJoinOptions when join is false.");
+      System.err.println("ERROR:  calling genJoinOptions when join is false.");
       return null;
     }
     ArrayList options = new ArrayList();
