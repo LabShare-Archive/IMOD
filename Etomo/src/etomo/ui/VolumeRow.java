@@ -4,6 +4,7 @@ import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.io.File;
 
+import javax.swing.JFileChooser;
 import javax.swing.JPanel;
 
 import etomo.BaseManager;
@@ -27,6 +28,9 @@ import etomo.type.Run3dmodMenuOptions;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.24  2009/03/17 00:46:24  sueh
+ * <p> bug# 1186 Pass managerKey to everything that pops up a dialog.
+ * <p>
  * <p> Revision 1.23  2008/10/10 20:44:13  sueh
  * <p> bug# 1142 Commented setParameters(ConstPeetMetaData).
  * <p>
@@ -231,6 +235,90 @@ final class VolumeRow implements Highlightable {
   }
 
   /**
+   * @return true if one or more paths are incorrect.
+   */
+  boolean isIncorrectPaths() {
+    if (!fnVolume.isEmpty() && !new File(fnVolume.getExpandedValue()).exists()) {
+      return true;
+    }
+    if (!fnModParticle.isEmpty()
+        && !new File(fnModParticle.getExpandedValue()).exists()) {
+      return true;
+    }
+    if (!initMotlFile.isEmpty()
+        && !new File(initMotlFile.getExpandedValue()).exists()) {
+      return true;
+    }
+    return false;
+  }
+
+  boolean fixIncorrectPaths(boolean choosePathEveryRow) {
+    if (!fnVolume.isEmpty() && !new File(fnVolume.getExpandedValue()).exists()) {
+      if (!fixIncorrectPath(fnVolume, choosePathEveryRow, table
+          .isFnVolumeExpanded())) {
+        return false;
+      }
+    }
+    if (!fnModParticle.isEmpty()
+        && !new File(fnModParticle.getExpandedValue()).exists()) {
+      if (!fixIncorrectPath(fnModParticle, false, table
+          .isFnModParticleExpanded())) {
+        return false;
+      }
+    }
+    if (!initMotlFile.isEmpty()
+        && !new File(initMotlFile.getExpandedValue()).exists()) {
+      if (!fixIncorrectPath(initMotlFile, false, table.isInitMotlFileExpanded())) {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  /**
+   * Fix an incorrect path.
+   * @param fileTextField
+   * @param choosePathEveryRow
+   * @return false if the user cancels the file selector
+   */
+  private boolean fixIncorrectPath(FieldCell fieldCell, boolean choosePath,
+      boolean expand) {
+    File newFile = null;
+    while (newFile == null || !newFile.exists()) {
+      //Have the user choose the location of the file if they haven't chosen
+      //before or they want to choose most of the files individuallly, otherwise
+      //just use the current correctPath.
+      if (table.isCorrectPathNull() || choosePath
+          || (newFile != null && !newFile.exists())) {
+        JFileChooser fileChooser = table.getFileChooserInstance();
+        fileChooser.setSelectedFile(new File(fieldCell.getExpandedValue()));
+        fileChooser.setPreferredSize(UIParameters.INSTANCE
+            .getFileChooserDimension());
+        fileChooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
+        int returnVal = fileChooser.showOpenDialog(table.getContainer());
+        if (returnVal != JFileChooser.APPROVE_OPTION) {
+          return false;
+        }
+        newFile = fileChooser.getSelectedFile();
+        if (newFile != null && newFile.exists()) {
+          table.setCorrectPath(newFile.getParent());
+          setExpandableValues(fieldCell, newFile);
+          fieldCell.expand(expand);
+        }
+      }
+      else if (!table.isCorrectPathNull()) {
+        newFile = new File(table.getCorrectPath(), fieldCell
+            .getContractedValue());
+        if (newFile.exists()) {
+          setExpandableValues(fieldCell, newFile);
+          fieldCell.expand(expand);
+        }
+      }
+    }
+    return true;
+  }
+
+  /**
    * Always set metaData before the functional data from the prm file, since
    * that may override the metaData.
    * @param metaData
@@ -261,7 +349,7 @@ final class VolumeRow implements Highlightable {
     MatlabParam.Volume volume = matlabParam.getVolume(index);
     if (useInitMotlFile) {
       setExpandableValues(initMotlFile, volume.getInitMotlString());
-    }
+      }
     if (useTiltRange) {
       setTiltRangeMin(volume.getTiltRangeStart());
       setTiltRangeMax(volume.getTiltRangeEnd());
