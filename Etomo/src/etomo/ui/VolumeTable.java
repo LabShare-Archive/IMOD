@@ -50,6 +50,9 @@ import etomo.type.Run3dmodMenuOptions;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.37  2009/03/17 00:46:24  sueh
+ * <p> bug# 1186 Pass managerKey to everything that pops up a dialog.
+ * <p>
  * <p> Revision 1.36  2009/02/04 23:36:48  sueh
  * <p> bug# 1158 Changed id and exception classes in LogFile.
  * <p>
@@ -225,7 +228,6 @@ final class VolumeTable implements Expandable, Highlightable,
   private final PeetManager manager;
   private final PeetDialog parent;
 
-  private File lastLocation = null;
   private boolean useInitMotlFile = true;
   private boolean useTiltRange = true;
 
@@ -252,6 +254,18 @@ final class VolumeTable implements Expandable, Highlightable,
     VolumeTable instance = new VolumeTable(manager, parent);
     instance.addListeners();
     return instance;
+  }
+  
+  boolean isFnVolumeExpanded() {
+    return btnExpandFnVolume.isExpanded();
+  }
+  
+  boolean isFnModParticleExpanded() {
+    return btnExpandFnModParticle.isExpanded();
+  }
+  
+  boolean isInitMotlFileExpanded() {
+    return btnExpandInitMotlFile.isExpanded();
   }
 
   public void expand(final ExpandButton button) {
@@ -292,6 +306,30 @@ final class VolumeTable implements Expandable, Highlightable,
 
   void setParameters(final ConstPeetMetaData metaData) {
     rowList.setParameters(metaData);
+  }
+
+  boolean isIncorrectPaths() {
+    return rowList.isIncorrectPaths();
+  }
+
+  boolean fixIncorrectPaths(boolean choosePathEveryRow) {
+    return rowList.fixIncorrectPaths(choosePathEveryRow);
+  }
+  
+  boolean isCorrectPathNull() {
+    return parent.isCorrectPathNull();
+  }
+  
+  JFileChooser getFileChooserInstance() {
+    return parent.getFileChooserInstance();
+  }
+  
+  void setCorrectPath(String correctPath) {
+    parent.setCorrectPath(correctPath);
+  }
+  
+  String getCorrectPath() {
+    return parent.getCorrectPath();
   }
 
   void setParameters(final MatlabParam matlabParamFile,
@@ -478,8 +516,8 @@ final class VolumeTable implements Expandable, Highlightable,
 
   private void setToolTipText() {
     try {
-      ReadOnlyAutodoc autodoc = AutodocFactory
-          .getInstance(AutodocFactory.PEET_PRM, manager.getManagerKey());
+      ReadOnlyAutodoc autodoc = AutodocFactory.getInstance(
+          AutodocFactory.PEET_PRM, manager.getManagerKey());
       String tooltip1 = EtomoAutodoc.getTooltip(autodoc,
           MatlabParam.FN_VOLUME_KEY);
       header1FnVolume.setToolTipText(tooltip1);
@@ -516,11 +554,6 @@ final class VolumeTable implements Expandable, Highlightable,
     }
   }
 
-  private JFileChooser getFileChooserInstance() {
-    return new JFileChooser(lastLocation == null ? new File(manager
-        .getPropertyUserDir()) : lastLocation);
-  }
-
   /**
    * Allow the user to choose a tomogram and a model and add them to the table
    * in a new row.  Only works if they choose both.
@@ -534,7 +567,7 @@ final class VolumeTable implements Expandable, Highlightable,
       return;
     }
     File fnVolume = null;
-    JFileChooser chooser = getFileChooserInstance();
+    JFileChooser chooser = parent.getFileChooserInstance();
     chooser.setFileFilter(new TomogramFileFilter());
     chooser.setPreferredSize(UIParameters.INSTANCE.getFileChooserDimension());
     chooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
@@ -543,8 +576,8 @@ final class VolumeTable implements Expandable, Highlightable,
       return;
     }
     fnVolume = chooser.getSelectedFile();
-    lastLocation = fnVolume.getParentFile();
-    chooser = getFileChooserInstance();
+    parent.setLastLocation(fnVolume.getParentFile());
+    chooser = parent.getFileChooserInstance();
     chooser.setFileFilter(new ModelFileFilter());
     chooser.setPreferredSize(UIParameters.INSTANCE.getFileChooserDimension());
     chooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
@@ -552,7 +585,7 @@ final class VolumeTable implements Expandable, Highlightable,
     File fnModParticle = null;
     if (returnVal == JFileChooser.APPROVE_OPTION) {
       fnModParticle = chooser.getSelectedFile();
-      lastLocation = fnModParticle.getParentFile();
+      parent.setLastLocation(fnModParticle.getParentFile());
     }
     if (fnVolume == null) {
       UIHarness.INSTANCE.openMessageDialog("Please choose a tomogram",
@@ -576,7 +609,7 @@ final class VolumeTable implements Expandable, Highlightable,
           "Entry Error", manager.getManagerKey());
       return;
     }
-    JFileChooser chooser = getFileChooserInstance();
+    JFileChooser chooser = parent.getFileChooserInstance();
     chooser.setFileFilter(new MotlFileFilter());
     chooser.setPreferredSize(UIParameters.INSTANCE.getFileChooserDimension());
     chooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
@@ -584,7 +617,7 @@ final class VolumeTable implements Expandable, Highlightable,
     if (returnVal == JFileChooser.APPROVE_OPTION) {
       File initMotlFile = chooser.getSelectedFile();
       row.setInitMotlFile(initMotlFile);
-      lastLocation = initMotlFile.getParentFile();
+      parent.setLastLocation(initMotlFile.getParentFile());
       row.expandInitMotlFile(btnExpandInitMotlFile.isExpanded());
       UIHarness.INSTANCE.pack(manager);
     }
@@ -597,7 +630,7 @@ final class VolumeTable implements Expandable, Highlightable,
           "Entry Error", manager.getManagerKey());
       return;
     }
-    JFileChooser chooser = getFileChooserInstance();
+    JFileChooser chooser = parent.getFileChooserInstance();
     chooser.setFileFilter(new ModelFileFilter());
     chooser.setPreferredSize(UIParameters.INSTANCE.getFileChooserDimension());
     chooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
@@ -605,7 +638,7 @@ final class VolumeTable implements Expandable, Highlightable,
     if (returnVal == JFileChooser.APPROVE_OPTION) {
       File fnModParticle = chooser.getSelectedFile();
       row.setFnModParticle(fnModParticle);
-      lastLocation = fnModParticle.getParentFile();
+      parent.setLastLocation(fnModParticle.getParentFile());
       row.expandFnModParticle(btnExpandInitMotlFile.isExpanded());
       UIHarness.INSTANCE.pack(manager);
     }
@@ -618,7 +651,7 @@ final class VolumeTable implements Expandable, Highlightable,
           "Entry Error", manager.getManagerKey());
       return;
     }
-    JFileChooser chooser = getFileChooserInstance();
+    JFileChooser chooser = parent.getFileChooserInstance();
     chooser.addChoosableFileFilter(new TiltFileFilter());
     //Add the default file filter (tilt log)
     TiltLogFileFilter tiltLogFileFilter = new TiltLogFileFilter();
@@ -628,7 +661,7 @@ final class VolumeTable implements Expandable, Highlightable,
     int returnVal = chooser.showOpenDialog(rootPanel);
     if (returnVal == JFileChooser.APPROVE_OPTION) {
       File file = chooser.getSelectedFile();
-      lastLocation = file.getParentFile();
+      parent.setLastLocation(file.getParentFile());
       if (tiltLogFileFilter.accept(file)) {
         try {
           TiltLog tiltLog = TiltLog.getInstance(file, manager.getManagerKey());
@@ -726,6 +759,29 @@ final class VolumeTable implements Expandable, Highlightable,
       //added, then set from metadata.
       row.setParameters(metaData);
       return row;
+    }
+
+    private boolean isIncorrectPaths() {
+      for (int i = 0; i < list.size(); i++) {
+        if (((VolumeRow) list.get(i)).isIncorrectPaths()) {
+          return true;
+        }
+      }
+      return false;
+    }
+
+    /**
+     * Fixs incorrect paths
+     * @param choosePathEveryRow
+     * @return false if the user canceled a file chooser.
+     */
+    private boolean fixIncorrectPaths(boolean choosePathEveryRow) {
+      for (int i = 0; i < list.size(); i++) {
+        if (!((VolumeRow) list.get(i)).fixIncorrectPaths(choosePathEveryRow)) {
+          return false;
+        }
+      }
+      return true;
     }
 
     private boolean validateRun() {
