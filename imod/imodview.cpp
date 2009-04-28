@@ -2541,6 +2541,44 @@ int ivwGetTopZapMouse(ImodView *inImodView, Ipoint *imagePt)
   return getTopZapMouse(imagePt);
 }
 
+int ivwGetTopZapCenter(ImodView *inImodView, float &imX, float &imY, int &imZ)
+{
+  ZapStruct *zap = getTopZapWindow(false);
+  if (!zap)
+    return 1;
+  if (zap->lock)
+    imZ = zap->section;
+  else
+    imZ = B3DNINT(inImodView->zmouse);
+  imX = (float)(inImodView->xsize / 2. - zap->xtrans);
+  imY = (float)(inImodView->ysize / 2. - zap->ytrans);
+  return 0;
+}
+
+int ivwSetTopZapCenter(ImodView *inImodView, float imX, float imY, int imZ,
+                       bool draw)
+{
+  if (imX < 0 || imX >= inImodView->xsize || imY < 0 || 
+      imY >= inImodView->ysize || imZ < 0 || imZ >= inImodView->zsize)
+    return 1;
+  ZapStruct *zap = getTopZapWindow(false);
+  if (!zap)
+    return 1;
+
+  zap->xtrans = B3DNINT(zap->vi->xsize / 2. - imX);
+  zap->ytrans = B3DNINT(zap->vi->ysize / 2. - imY);
+  if (zap->lock) {
+    zap->section = imZ;
+    if (draw)
+      zapDraw(zap);
+  } else {
+    inImodView->zmouse = imZ;
+    if (draw)
+      imodDraw(inImodView, IMOD_DRAW_XYZ);
+  }
+  return 0;
+}
+
 int prefSaveGenericSettings(char *key, int numVals, double *values)
 {
   return ImodPrefs->saveGenericSettings(key, numVals, values);
@@ -2793,6 +2831,9 @@ void ivwBinByN(unsigned char *array, int nxin, int nyin, int nbin,
 /*
 
 $Log$
+Revision 4.81  2009/03/26 05:41:44  mast
+Change to new near ghost mode as default
+
 Revision 4.80  2009/01/24 00:24:54  mast
 initialized bin variables for model view
 

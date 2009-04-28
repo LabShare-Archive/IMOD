@@ -263,6 +263,24 @@ int DLL_EX_IM ivwSetTopZapZoom(ImodView *inImodView, float inZoom, bool draw);
  */
 int DLL_EX_IM ivwGetTopZapMouse(ImodView *inImodView, Ipoint *imagePt);
 
+/*!
+ * Returns the image coordinates at the center of the top Zap window in [imX]
+ * and [imY], and its current Z coordinate in [imZ].  The return value is 1 if
+ * there is no top Zap window.
+ */
+int DLL_EX_IM ivwGetTopZapCenter(ImodView *inImodView, float &imX, float &imY,
+                                 int &imZ);
+
+/*!
+ * Sets the image coordinates at the center of the top Zap window to [imX]
+ * and [imY], and its current Z coordinate to [imZ].  If [draw] is true, 
+ * either draws the Zap window (if it is locked) or issues a general draw 
+ * command; otherwise the caller is responsible for drawing.  The return value 
+ * is 1 if there is no top Zap window or if coordinates are out of range.
+ */
+int DLL_EX_IM ivwSetTopZapCenter(ImodView *inImodView, float imX, float imY,
+                                 int imZ, bool draw);
+
 /*
  * Selection list functions in imod_edit.cpp
  */
@@ -326,6 +344,9 @@ int DLL_EX_IM prefGetGenericSettings(char *key, double *values, int maxVals);
 /* 
 
 $Log$
+Revision 1.19  2008/08/01 15:37:20  mast
+Added function to set top zap zoom
+
 Revision 1.18  2008/06/20 16:12:22  mast
 Documentation fix
 
