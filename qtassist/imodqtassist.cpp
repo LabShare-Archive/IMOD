@@ -53,6 +53,13 @@ int main(int argc, char *argv[])
   bool absPath = false;
   bool keepBar = false;
 
+#ifdef QT_THREAD_SUPPORT
+  if (argc == 2 && !strcmp(argv[ind], "-t")) {
+    printf("Ideal thread count = %d\n", QThread::idealThreadCount());
+    exit(0);
+  }
+#endif
+
   // Start the application 
   QApplication qapp(argc, argv);
 
@@ -63,6 +70,10 @@ int main(int argc, char *argv[])
             " $IMOD_DIR\n");
     fprintf(stderr, "\t-p file\tName of adp (document profile) file\n");
     fprintf(stderr, "\t-k\tKeep the sidebar (do not hide it)\n");
+#ifdef QT_THREAD_SUPPORT
+    fprintf(stderr, "\t-t\tReport ideal thread count (number of processors) "
+            "and exit\n");
+#endif
     exit(1);
   }
 
@@ -251,6 +262,9 @@ static int readLine(char *line)
 
 /*
     $Log$
+    Revision 1.12  2009/01/15 16:31:57  mast
+    Qt 4 port
+
     Revision 1.11  2006/06/20 23:39:27  mast
     Make page not found be a warning
 
