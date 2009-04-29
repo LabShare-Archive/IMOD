@@ -61,7 +61,9 @@ sidebar.  Use the
 .B -k
 option to omit this argument and keep the sidebar open if the user had opened
 it.
-
-
+.P
+A completely unrelated behavior is available by running the program with
+"imodqtassist -t".  In this case it will output the "Ideal thread count",
+equivalent to the number of processors reported by the system, and exit.
 .SH AUTHOR
 David Mastronarde,  mast@colorado.edu
