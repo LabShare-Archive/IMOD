@@ -434,6 +434,7 @@ static int checkDM3(FILE *fp, char *filename, RawImageInfo *info)
 
 
 #define BUFSIZE 160000
+#define MAX_TYPES 12
 /*!
  * Analyzes a file known to be a DigitalMicrograph version 3; the file pointer
  * is in [fp] and the filename in [filename].  Returns size, type, and other
@@ -443,7 +444,7 @@ static int checkDM3(FILE *fp, char *filename, RawImageInfo *info)
  */
 int analyzeDM3(FILE *fp, char *filename, RawImageInfo *info, int *dmtype)
 {
-  int i,c, toffset, typeOffset, maxread;
+  int i,c, toffset, typeOffset, maxread, typeIndex;
   char buf[BUFSIZE];
   char *found;
   int lowbyte, hibyte;
@@ -452,9 +453,9 @@ int analyzeDM3(FILE *fp, char *filename, RawImageInfo *info, int *dmtype)
 
   /* The type-dependent values that were found after 
      D a t a % % % % 0 0 0 3 0 0 0 24 0 0 0 */
-  int datacode[12] = {0, 2, 6, 0, 0, 0, 10, 3, 0, 9, 4, 5};
+  int datacode[MAX_TYPES] = {0, 2, 6, 0, 0, 0, 10, 3, 0, 9, 4, 5};
      
-  int dataSize[12] = {1, 2, 4, 1, 1, 1, 1, 4, 1, 1, 2, 4};
+  int dataSize[MAX_TYPES] = {1, 2, 4, 1, 1, 1, 1, 4, 1, 1, 2, 4};
 
   offset = 0;
   xsize = 0;
@@ -485,7 +486,12 @@ int analyzeDM3(FILE *fp, char *filename, RawImageInfo *info, int *dmtype)
   }
 
   buf[maxread - 1] = 0x00;
-  for (c = 0; c < maxread && (xsize == 0 || type < 0); c++) {
+  typeIndex = -1;
+
+  /* Look past a DataType enough to see another Dimensions - it is supposed
+     to be after it */
+  for (c = 0; c < maxread && (xsize == 0 || type < 0 || c < typeIndex + 64);
+       c++) {
 
     /* Look for D, then check if it is Dimensions or DataType */
     if (buf[c] == 68) {
@@ -499,10 +505,11 @@ int analyzeDM3(FILE *fp, char *filename, RawImageInfo *info, int *dmtype)
         ysize = lowbyte + 256 * hibyte;
       } else {
         found = strstr(&buf[c], "DataType");
-        if (found) {
+        if (found && buf[c + 20] < MAX_TYPES) {
           type = buf[c + 20];
           if (!typeOffset)
             typeOffset = c + statbuf.st_size - (maxread + 1);
+          typeIndex = c;
         } 
       }
     }
@@ -627,6 +634,9 @@ static int checkEM(FILE *fp, char *filename, RawImageInfo *info)
 /*  
 
 $Log$
+Revision 3.8  2008/11/24 23:58:33  mast
+Changes to stop leaks in SerialEM
+
 Revision 3.7  2008/01/11 17:19:22  mast
 Mac warning cleanup
 
