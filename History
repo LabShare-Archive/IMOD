@@ -1,10 +1,13 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+4/30/09: Fixed problems in dm2mrc for latest tcsh and in DM conversion when
+there is an unsupported image type in front of the one of interest.
+
 4/27/09: In Etomo added a panel for changing the file paths when files are
 moved.
 
-4/27/09: In Etomo fixed a problem where PEET was not displaying its data file at
-the bottom of the dialog.
+4/27/09: In Etomo fixed a problem where PEET was not displaying its data file
+at the bottom of the dialog.
 
 4/21/09: Fixed problem with panning while drawingtools is open on 64-bit Mac.
 
