@@ -122,6 +122,11 @@ while ($num < $#argv)
         set header = `hexdump -e '"%07.7_ao  " 16/1 "%3u " "\n"' "$argv[$num]" | head -n 2`
         if ("$swap" == 0) set ddump = `hexdump -d "$argv[1]" | head -n 1`
     endif
+
+    # Get rid of leading 0's to avoid numbers being converted as octal
+    #
+    set header = `echo $header | sed -e '/^0*\([^ ]\)/s//\1/g' -e '/ 0*\([^ ]\)/s// \1/g'`
+    set ddump = `echo $ddump | sed -e '/^0*\([^ ]\)/s//\1/g' -e '/ 0*\([^ ]\)/s// \1/g'`
     @ byte2 = $header[3]
     @ byte4 = $header[5]
 
@@ -305,6 +310,9 @@ clean:
 
 #
 #  $Log$
+#  Revision 3.11  2008/01/04 07:03:38  mast
+#  Fixed for space in IMOD_DIR, possibly for space in tmpdir
+#
 #  Revision 3.10  2006/03/23 06:08:41  mast
 #  Several changes to handle spaces in filenames, which Gatan guys love to use
 #
