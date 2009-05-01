@@ -124,6 +124,12 @@ echo "RAPTOR results for this run will be in $outdir"
 echo "DO NOT WORRY ABOUT THE FOLLOWING WARNING"
 $RAPTOR_BIN/RAPTOR -exec $RAPTOR_BIN -path . -inp $infile $options -track -out $outdir
 
+set stat = $status
+if ($stat) then
+    echo "ERROR: Runraptor - RAPTOR exited with an error status of $stat"
+    exit 1
+endif
+
 if (-e $outname) \mv $outname $outname~
 
 # Fix the pixel size and other features in the model
@@ -154,6 +160,9 @@ echo "The model that will load on the coarse aligned stack is:"
 echo "$outname"
 
 #  $Log$
+#  Revision 3.2  2009/05/01 17:01:53  mast
+#  Added PID output
+#
 #  Revision 3.1  2009/05/01 02:57:14  mast
 #  Added to package as interim script
 #
