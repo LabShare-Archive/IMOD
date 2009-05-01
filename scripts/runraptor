@@ -32,6 +32,7 @@ endif
 if ($?IMOD_DIR) then
     setenv PATH "$IMOD_DIR/bin:$PATH"
 endif
+echo2 Shell PID: $$
 
 # Set up a unique directory for the run
 @ i = 1
@@ -153,3 +154,6 @@ echo "The model that will load on the coarse aligned stack is:"
 echo "$outname"
 
 #  $Log$
+#  Revision 3.1  2009/05/01 02:57:14  mast
+#  Added to package as interim script
+#
