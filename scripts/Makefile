@@ -9,7 +9,7 @@ SCRIPTS = copytomocoms finishjoin makejoincom matchorwarp matchshifts\
  dm2mrc alignlog transferfid submfg imodpsview settmpdir matchrotpairs\
  chunksetup processchunks splittilt splitcombine tomosnapshot clipflipyz\
  archiveorig imodkillgroup collectmmm sampletilt runpyscript imodhelp\
- sirtsetup managesirt queuechunk splitcorrection $(GENERATED_SCRIPTS)
+ sirtsetup managesirt queuechunk splitcorrection runraptor $(GENERATED_SCRIPTS)
 
 all:
 
@@ -23,6 +23,9 @@ clean:
 	$(FIND) . -type f -name "*~"   -exec rm "{}" \;
 
 #  $Log$
+#  Revision 3.27  2009/01/02 06:53:32  mast
+#  Add imodhelp
+#
 #  Revision 3.26  2007/12/17 15:26:42  mast
 #  Removed splitblend
 #
