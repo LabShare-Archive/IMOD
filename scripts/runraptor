@@ -1,0 +1,155 @@
+#!/bin/csh -f
+# runraptor: runs RAPTOR and takes care of model file
+#
+#  $Id$
+#
+#  Log at end
+#
+if (! $?RAPTOR_BIN) setenv RAPTOR_BIN /usr/local/RAPTOR/bin
+
+if (! -r $RAPTOR_BIN) then
+    echo "ERROR: Runraptor - $RAPTOR_BIN does not exist or is not readable"
+    echo "ERROR: You need to define RAPTOR_BIN with the path to the RAPTOR executable"
+    exit 1
+endif
+
+if ($#argv < 5) then
+cat <<EOF
+Usage: runraptor [options] image_stack
+   Runs RAPTOR on the given image_stack, which may be a .st or .preali file
+   Options are RAPTOR options and MUST include:
+     -diam #  Bead diameter in pixels
+     -mark #  Number of markers to track
+
+   This script takes care of adding -exec, -path, -input, -track, and -output
+       options.
+   It must be run inside the data directory where files are located.
+   Coarse alignment must be run first
+EOF
+exit 1
+endif
+
+if ($?IMOD_DIR) then
+    setenv PATH "$IMOD_DIR/bin:$PATH"
+endif
+
+# Set up a unique directory for the run
+@ i = 1
+set outdir raptor1
+while ($i < 100)
+    if (! -e raptor$i) then
+        set outdir = raptor$i
+        break
+    endif
+    @ i++
+end
+
+# Get options and build option string for raptor
+set options = ()
+set gotmark = 0
+set gotdiam = 0
+while ($#argv > 1)
+    set options = ($options $argv[1])
+    switch ("$argv[1]")
+    case -ma*:
+       set gotmark = 1
+       breaksw
+    case -di*:
+       set gotdiam = 1
+       breaksw
+    endsw
+    shift
+end
+
+set infile = $argv[1]
+set ext = $infile:e
+set rootname = $infile:r
+set tail = $rootname:t
+if ("$tail" != "$rootname") then
+    echo "ERROR: Runraptor - You must run this script in the data directory"
+    exit 1
+endif
+if (! -e $infile) then
+    echo "ERROR: Runraptor - The input file $infile does not exist in the current directory"
+    exit 1
+endif
+
+if ("$ext" == "st" && ! -e $rootname.prexg) then
+    echo "ERROR: Runraptor - Should should be run on a raw stack only after running coarse alignment"
+    exit 1
+endif
+
+if ((! $gotmark) || (! $gotdiam)) then
+    echo "ERROR: Runraptor - You must enter options with a diameter in pixels and a number of markers"
+    exit 1
+endif
+
+set outname = ${rootname}_raptor.fid
+#if ("$ext" == "st") set outname = ${rootname}_raptor_st.fid
+
+
+set distort = ""
+set binning = ""
+set gradient = ""
+if ("$ext" == "st" && (-e prenewst.com || -e prenewsta.com)) then
+
+    # Figure out distortion options
+    foreach i (prenewst*.com)
+        set command = `grep "newstack.*$infile" $i`
+        if ("$command" != "") then
+            while ($#command > 1)
+                switch ("$command[1]")
+                    case -dist*:
+                        set distort = "-distort $command[2]"
+                        shift command
+                        breaksw
+                    case -image*:
+                        set binning = "-binning $command[2]"
+                        shift command
+                        breaksw
+                    case -grad*:
+                        set gradient = "-distort $command[2]"
+                        shift command
+                        breaksw
+                endsw
+                shift command
+            end
+            break
+        endif
+    end
+endif
+
+echo "RAPTOR results for this run will be in $outdir"
+echo "DO NOT WORRY ABOUT THE FOLLOWING WARNING"
+$RAPTOR_BIN/RAPTOR -exec $RAPTOR_BIN -path . -inp $infile $options -track -out $outdir
+
+if (-e $outname) \mv $outname $outname~
+
+# Fix the pixel size and other features in the model
+set sedout = $outname
+if ("$ext" == "st") set sedout = $rootname.$$
+
+set pixel = `header -p $infile`
+
+sed -e "/^units/a\\
+refcurscale $pixel\
+" \
+-e "/^drawmode/a\\
+symbol    0\
+" \
+-e "/^drawmode/a\\
+symsize   7\
+" < $outdir/IMOD/$rootname.fid.txt > $sedout
+
+if ("$ext" == "st") then
+
+    # If did raw stack, now align the model to the preali
+
+    xfmodel -xf $rootname.prexg $distort $binning $gradient $sedout $outname
+    \rm -f $sedout
+endif
+
+echo "The model that will load on the coarse aligned stack is:"
+echo "$outname"
+
+#  $Log$
