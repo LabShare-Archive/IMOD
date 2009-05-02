@@ -60,6 +60,10 @@ public final class ProcessResultDisplayFactory implements
 
   private final ProcessResultDisplay transferFiducials = FiducialModelDialog
       .getTransferFiducialsDisplay();
+  private final ProcessResultDisplay raptor = FiducialModelDialog
+      .getRaptorDisplay();
+  private final ProcessResultDisplay useRaptor = FiducialModelDialog
+  .getUseRaptorDisplay();
   private final ProcessResultDisplay seedFiducialModel = FiducialModelDialog
       .getSeedFiducialModelDisplay();
   private final ProcessResultDisplay trackFiducials = FiducialModelDialog
@@ -94,7 +98,7 @@ public final class ProcessResultDisplayFactory implements
   private final ProcessResultDisplay ccdEraserBeads = FinalAlignedStackDialog
       .getCcdEraser();
   private final ProcessResultDisplay useCcdEraserBeads = FinalAlignedStackDialog
-  .getUseCcdEraser();
+      .getUseCcdEraser();
   private final ProcessResultDisplay filter = FinalAlignedStackDialog
       .getFilterDisplay();
   private final ProcessResultDisplay useFilteredStack = FinalAlignedStackDialog
@@ -159,6 +163,8 @@ public final class ProcessResultDisplayFactory implements
     addDependency(midas);
     //fiducial model
     addDependency(transferFiducials);
+    addDependency(raptor);
+    addDependency(useRaptor);
     addDependency(seedFiducialModel);
     addDependency(trackFiducials);
     addDependency(fixFiducialModel);
@@ -218,6 +224,12 @@ public final class ProcessResultDisplayFactory implements
     //fiducial model
     transferFiducials.setScreenState(screenState);
     addDependents(transferFiducials);
+    //raptor is optional
+    raptor.setScreenState(screenState);
+    raptor.addDependentDisplay(useRaptor);
+    useRaptor.setScreenState(screenState);
+    addDependents(useRaptor);
+    //
     seedFiducialModel.setScreenState(screenState);
     addDependents(seedFiducialModel);
     trackFiducials.setScreenState(screenState);
@@ -368,6 +380,14 @@ public final class ProcessResultDisplayFactory implements
     return transferFiducials;
   }
 
+  public ProcessResultDisplay getRaptor() {
+    return raptor;
+  }
+
+  public ProcessResultDisplay getUseRaptor() {
+    return useRaptor;
+  }
+
   public ProcessResultDisplay getSeedFiducialModel() {
     return seedFiducialModel;
   }
@@ -417,11 +437,11 @@ public final class ProcessResultDisplayFactory implements
   public ProcessResultDisplay getXfModel() {
     return xfModel;
   }
-  
+
   public ProcessResultDisplay getCcdEraserBeads() {
     return ccdEraserBeads;
   }
-  
+
   public ProcessResultDisplay getUseCcdEraserBeads() {
     return useCcdEraserBeads;
   }
@@ -490,6 +510,9 @@ public final class ProcessResultDisplayFactory implements
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.10  2008/11/20 01:38:23  sueh
+ * <p> bug# 1147 added ccdEraserBeads, useCcdEraserBeads, and xfModel.
+ * <p>
  * <p> Revision 1.9  2008/10/27 20:15:32  sueh
  * <p> bug# 1141 Added ctfCorrection and useCtfCorrection.
  * <p>
