@@ -57,7 +57,7 @@ public final class ProcessMessages {
   static ProcessMessages getInstance() {
     return new ProcessMessages(false, false, null, null);
   }
-  
+
   static ProcessMessages getInstance(String successTag) {
     return new ProcessMessages(false, false, successTag, null);
   }
@@ -129,7 +129,7 @@ public final class ProcessMessages {
   }
 
   synchronized final void addProcessOutput(LogFile processOutput)
-      throws LogFile.LockException,FileNotFoundException {
+      throws LogFile.LockException, FileNotFoundException {
     //Open the log file
     logFile = processOutput;
     logFileReaderId = logFile.openReader();
@@ -469,13 +469,13 @@ public final class ProcessMessages {
     }
     //message found - add to list
     if (error) {
-      addElement(getErrorList(), line, errorIndex);
+      addElement(getErrorList(), line, errorIndex, ERROR_TAG.length());
     }
     else if (warning) {
-      addElement(getWarningList(), line, warningIndex);
+      addElement(getWarningList(), line, warningIndex, WARNING_TAG.length());
     }
     else if (info) {
-      addElement(getInfoList(), line, infoIndex);
+      addElement(getInfoList(), line, infoIndex, INFO_TAG.length());
     }
     nextLine();
     return true;
@@ -499,7 +499,8 @@ public final class ProcessMessages {
     }
     //message found - add to list
     if (chunkError) {
-      addElement(getChunkErrorList(), line, chunkErrorIndex);
+      addElement(getChunkErrorList(), line, chunkErrorIndex, CHUNK_ERROR_TAG
+          .length());
     }
     nextLine();
     return true;
@@ -724,7 +725,7 @@ public final class ProcessMessages {
     }
     return true;
   }
-  
+
   private final boolean nextLogFileLine() {
     try {
       if ((line = logFile.readLine(logFileReaderId)) == null) {
@@ -753,19 +754,21 @@ public final class ProcessMessages {
     return true;
   }
 
-
   /**
    * Add a substring of line, from startIndex to end of line, to list.
    * @param list
    * @param line
    * @param startIndex
    */
-  private final void addElement(Vector list, String line, int startIndex) {
-    if (startIndex > 0) {
-      list.add(line.substring(startIndex));
-    }
-    else {
-      list.add(line);
+  private final void addElement(Vector list, String line, int startIndex,
+      int tagSize) {
+    if (startIndex + tagSize < line.length()) {
+      if (startIndex > 0) {
+        list.add(line.substring(startIndex));
+      }
+      else {
+        list.add(line);
+      }
     }
   }
 
@@ -840,6 +843,9 @@ public final class ProcessMessages {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.10  2009/02/04 23:26:53  sueh
+ * <p> bug# 1158 Changed id and exceptions classes in LogFile.
+ * <p>
  * <p> Revision 1.9  2008/01/14 21:58:21  sueh
  * <p> bug# 1050 Added getInstance(String successTag) for finding message with one
  * <p> successTag.
