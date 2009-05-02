@@ -208,6 +208,25 @@ public final class DatasetFiles {
         + FIDUCIAL_MODEL_EXT;
   }
 
+  public static String getPrealignedStackName(BaseManager manager, AxisID axisID) {
+    BaseMetaData metaData = manager.getBaseMetaData();
+    axisID = correctAxisID(metaData, axisID);
+    return metaData.getName() + axisID.getExtension() + ".preali";
+  }
+
+  public static String getRaptorFiducialModelName(BaseManager manager,
+      AxisID axisID) {
+    BaseMetaData metaData = manager.getBaseMetaData();
+    axisID = correctAxisID(metaData, axisID);
+    return metaData.getName() + axisID.getExtension() + "_raptor"
+        + FIDUCIAL_MODEL_EXT;
+  }
+
+  public static File getRaptorFiducialModel(BaseManager manager, AxisID axisID) {
+    return new File(manager.getPropertyUserDir(), getRaptorFiducialModelName(
+        manager, axisID));
+  }
+
   public static String getTransformFileName(BaseManager manager, AxisID axisID) {
     BaseMetaData metaData = manager.getBaseMetaData();
     axisID = correctAxisID(metaData, axisID);
@@ -533,6 +552,9 @@ public final class DatasetFiles {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.49  2009/03/17 00:46:43  sueh
+ * <p> bug# 1186 Pass managerKey to everything that pops up a dialog.
+ * <p>
  * <p> Revision 1.48  2008/12/09 21:08:49  sueh
  * <p> bug# 1154 Made getCtfCorrectionFileName public.
  * <p>
