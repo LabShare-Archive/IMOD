@@ -40,6 +40,9 @@ import etomo.type.Run3dmodMenuOptions;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.28  2009/03/17 00:46:24  sueh
+ * <p> bug# 1186 Pass managerKey to everything that pops up a dialog.
+ * <p>
  * <p> Revision 3.27  2009/02/04 23:36:48  sueh
  * <p> bug# 1158 Changed id and exception classes in LogFile.
  * <p>
@@ -261,7 +264,7 @@ public final class BeadtrackPanel implements Expandable,
    * Construct a new beadtrack panel.
    * @param label specifies the suffix for the logfile
    */
-  private BeadtrackPanel(ApplicationManager manager, AxisID id,
+  private BeadtrackPanel(final ApplicationManager manager, AxisID id,
       DialogType dialogType) {
     this.manager = manager;
     axisID = id;
@@ -624,8 +627,7 @@ public final class BeadtrackPanel implements Expandable,
     return panelBeadtrack;
   }
 
-  protected void buttonAction(String command,
-      Run3dmodMenuOptions run3dmodMenuOptions) {
+  void buttonAction(String command, Run3dmodMenuOptions run3dmodMenuOptions) {
     if (command.equals(btnTrack.getActionCommand())) {
       manager.fiducialModelTrack(axisID, btnTrack, null);
     }
@@ -656,9 +658,17 @@ public final class BeadtrackPanel implements Expandable,
     }
   }
 
-  public void action(Run3dmodButton button,
-      Run3dmodMenuOptions run3dmodMenuOptions) {
+  public void action(final Run3dmodButton button,
+      final Run3dmodMenuOptions run3dmodMenuOptions) {
     buttonAction(button.getActionCommand(), run3dmodMenuOptions);
+  }
+
+  void pickSeed() {
+    btnTrack.setVisible(true);
+  }
+
+  void pickRaptor() {
+    btnTrack.setVisible(false);
   }
 
   private void setEnabled() {
@@ -782,15 +792,14 @@ public final class BeadtrackPanel implements Expandable,
             + "Your original seed model will be moved into an _orig.seed file.");
   }
 
-  private class BeadtrackPanelActionListener implements ActionListener {
+  private final class BeadtrackPanelActionListener implements ActionListener {
+    private final BeadtrackPanel adaptee;
 
-    BeadtrackPanel adaptee;
-
-    BeadtrackPanelActionListener(BeadtrackPanel adaptee) {
+    private BeadtrackPanelActionListener(final BeadtrackPanel adaptee) {
       this.adaptee = adaptee;
     }
 
-    public void actionPerformed(ActionEvent event) {
+    public void actionPerformed(final ActionEvent event) {
       adaptee.buttonAction(event.getActionCommand(), null);
     }
   }
