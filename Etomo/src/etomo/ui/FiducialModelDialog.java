@@ -8,14 +8,18 @@ import etomo.ApplicationManager;
 import etomo.process.ImodManager;
 import etomo.type.AxisID;
 import etomo.type.BaseScreenState;
+import etomo.type.ConstEtomoNumber;
+import etomo.type.ConstMetaData;
 import etomo.type.DialogType;
 import etomo.type.InvalidEtomoNumberException;
+import etomo.type.MetaData;
 import etomo.type.ProcessResultDisplay;
 import etomo.type.ProcessResultDisplayFactory;
 import etomo.type.ReconScreenState;
 import etomo.type.Run3dmodMenuOptions;
 import etomo.util.DatasetFiles;
 import etomo.comscript.BeadtrackParam;
+import etomo.comscript.RunraptorParam;
 import etomo.comscript.TransferfidParam;
 import etomo.comscript.FortranInputSyntaxException;
 
@@ -32,6 +36,9 @@ import etomo.comscript.FortranInputSyntaxException;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.44  2009/01/20 20:00:49  sueh
+ * <p> bug# 1102 Changed labeled panels to type EtomoPanel so that they can name themselves.
+ * <p>
  * <p> Revision 3.43  2008/11/20 01:41:16  sueh
  * <p> bug# 1147 Changed ApplicationManager.imodSeedFiducials to
  * <p> imodSeedModel.
@@ -287,6 +294,8 @@ public final class FiducialModelDialog extends ProcessDialog implements
 
   private static final String SEEDING_NOT_DONE_LABEL = "Seed Fiducial Model";
   private static final String SEEDING_DONE_LABEL = "View Seed Model";
+  private static final String MARK_LABEL = "# of beads to choose";
+  private static final String DIAM_LABEL = "Unbinned Bead diameter";
 
   private final EtomoPanel pnlFiducialModel = new EtomoPanel();
   private final FiducialModelActionListener actionListener = new FiducialModelActionListener(
@@ -296,28 +305,50 @@ public final class FiducialModelDialog extends ProcessDialog implements
   private final BeadtrackPanel pnlBeadtrack;
   private final TransferfidPanel pnlTransferfid;
 
+  private final ButtonGroup bgPick = new ButtonGroup();
+  private final RadioButton rbPickSeed = new RadioButton("Make seed and track",
+      bgPick);
+  private final RadioButton rbPickRaptor = new RadioButton(
+      "Run RAPTOR and fix", bgPick);
+
+  private final JPanel pnlRaptor = new JPanel();
+  private final ButtonGroup bpRaptorInput = new ButtonGroup();
+  private final RadioButton rbRaptorInputPreali = new RadioButton(
+      "Run against the coarse aligned stack", bpRaptorInput);
+  private final RadioButton rbRaptorInputRaw = new RadioButton(
+      "Run against the raw stack", bpRaptorInput);
+  private final Run3dmodButton btnOpenStack = Run3dmodButton.get3dmodInstance(
+      "Open Stack", this);
+  private final LabeledTextField ltfMark = new LabeledTextField(MARK_LABEL
+      + ": ");
+  private final LabeledTextField ltfDiam = new LabeledTextField(DIAM_LABEL
+      + "(in pixels): ");
+  private final Run3dmodButton btnOpenRaptorResult = Run3dmodButton
+      .get3dmodInstance("Open RAPTOR Result in 3dmod", this);
+
+  private final Run3dmodButton btnRaptor;
+  private final MultiLineButton btnUseRaptorResult;
+
   private boolean transferfidEnabled = false;
 
-  private FiducialModelDialog(ApplicationManager appMgr, AxisID axisID) {
+  private FiducialModelDialog(final ApplicationManager appMgr,
+      final AxisID axisID) {
     super(appMgr, axisID, DialogType.FIDUCIAL_MODEL);
+    //initialize final member variables
     ProcessResultDisplayFactory displayFactory = appMgr
         .getProcessResultDisplayFactory(axisID);
     btnSeed = (Run3dmodButton) displayFactory.getSeedFiducialModel();
-    btnSeed.setContainer(this);
-    setToolTipText();
+    btnRaptor = (Run3dmodButton) displayFactory.getRaptor();
+    btnUseRaptorResult = (MultiLineButton) displayFactory.getUseRaptor();
     pnlBeadtrack = BeadtrackPanel.getInstance(appMgr, axisID, dialogType);
-
-    btnExecute.setText("Done");
-
-    btnSeed.setAlignmentX(Component.CENTER_ALIGNMENT);
-    btnSeed.setSize();
-
+    //root panel
+    rootPanel.setLayout(new BoxLayout(rootPanel, BoxLayout.Y_AXIS));
+    rootPanel.add(pnlFiducialModel);
+    //fiducial model panel
     pnlFiducialModel
         .setLayout(new BoxLayout(pnlFiducialModel, BoxLayout.Y_AXIS));
-
-    BeveledBorder border = new BeveledBorder("Fiducial Model Generation");
-    pnlFiducialModel.setBorder(border.getBorder());
-
+    pnlFiducialModel.setBorder(new BeveledBorder("Fiducial Model Generation")
+        .getBorder());
     if (applicationManager.isDualAxis()) {
       pnlTransferfid = TransferfidPanel.getInstance(applicationManager, axisID,
           dialogType, this);
@@ -327,33 +358,98 @@ public final class FiducialModelDialog extends ProcessDialog implements
     else {
       pnlTransferfid = null;
     }
+    JPanel pnlPick = new JPanel();
+    pnlFiducialModel.add(pnlPick);
+    pnlFiducialModel.add(pnlRaptor);
     pnlFiducialModel.add(btnSeed.getComponent());
     pnlFiducialModel.add(Box.createRigidArea(FixedDim.x0_y5));
-
     pnlFiducialModel.add(pnlBeadtrack.getContainer());
     pnlFiducialModel.add(Box.createRigidArea(FixedDim.x0_y5));
-    rootPanel.setLayout(new BoxLayout(rootPanel, BoxLayout.Y_AXIS));
-    rootPanel.add(pnlFiducialModel);
-    addExitButtons();
+    //transfer fiducials panel
     if (pnlTransferfid != null) {
       pnlTransferfid.setDeferred3dmodButtons();
     }
-    //  Set the advanced state to the default
+    //Pick seed or RAPTOR panel
+    pnlPick.setLayout(new BoxLayout(pnlPick, BoxLayout.Y_AXIS));
+    pnlPick.setBorder(BorderFactory.createEtchedBorder());
+    pnlPick.setAlignmentX(Box.CENTER_ALIGNMENT);
+    pnlPick.add(rbPickSeed.getComponent());
+    pnlPick.add(rbPickRaptor.getComponent());
+    //RAPTOR panel
+    pnlRaptor.setLayout(new BoxLayout(pnlRaptor, BoxLayout.Y_AXIS));
+    pnlRaptor.setBorder(new EtchedBorder("Run RAPTOR").getBorder());
+    pnlRaptor.setAlignmentX(Box.CENTER_ALIGNMENT);
+    JPanel pnlRaptorInput = new JPanel();
+    pnlRaptor.add(pnlRaptorInput);
+    pnlRaptor.add(btnOpenStack.getComponent());
+    pnlRaptor.add(ltfMark.getContainer());
+    pnlRaptor.add(ltfDiam.getContainer());
+    JPanel pnlRaptorButton = new JPanel();
+    pnlRaptor.add(pnlRaptorButton);
+    //RAPTOR input source panel
+    pnlRaptorInput.setLayout(new BoxLayout(pnlRaptorInput, BoxLayout.Y_AXIS));
+    pnlRaptorInput.setBorder(BorderFactory.createEtchedBorder());
+    pnlRaptorInput.setAlignmentX(Box.CENTER_ALIGNMENT);
+    pnlRaptorInput.add(rbRaptorInputPreali.getComponent());
+    pnlRaptorInput.add(rbRaptorInputRaw.getComponent());
+    //RAPTOR button panel
+    pnlRaptorButton.setLayout(new BoxLayout(pnlRaptorButton, BoxLayout.X_AXIS));
+    pnlRaptorButton.add(btnRaptor.getComponent());
+    pnlRaptorButton.add(btnOpenRaptorResult.getComponent());
+    pnlRaptorButton.add(btnUseRaptorResult.getComponent());
+    //exit button panel
+    addExitButtons();
+    //set initial values
+    rbPickSeed.setSelected(true);
+    rbRaptorInputRaw.setSelected(true);
+    btnRaptor.setSize();
+    btnOpenRaptorResult.setSize();
+    btnUseRaptorResult.setSize();
+    btnOpenStack.setSize();
+    btnOpenStack.setAlignmentX(Box.CENTER_ALIGNMENT);
+    //raptor button
+    btnRaptor.setContainer(this);
+    btnRaptor.setDeferred3dmodButton(btnOpenRaptorResult);
+    //seed button
+    btnSeed.setAlignmentX(Component.CENTER_ALIGNMENT);
+    btnSeed.setSize();
+    btnSeed.setContainer(this);
+    //
+    btnExecute.setText("Done");
+    //tool tips
+    setToolTipText();
+    //set dialog display state
     updateAdvanced(isAdvanced);
     updateEnabled();
     updateDisplay();
   }
 
-  public static FiducialModelDialog getInstance(ApplicationManager appMgr,
-      AxisID axisID) {
+  public static FiducialModelDialog getInstance(
+      final ApplicationManager appMgr, final AxisID axisID) {
     FiducialModelDialog instance = new FiducialModelDialog(appMgr, axisID);
     instance.addListeners();
     return instance;
   }
 
   private void addListeners() {
-    btnSeed.addActionListener(actionListener);
     pnlFiducialModel.addMouseListener(new GenericMouseAdapter(this));
+    rbPickSeed.addActionListener(actionListener);
+    rbPickRaptor.addActionListener(actionListener);
+    btnOpenStack.addActionListener(actionListener);
+    btnRaptor.addActionListener(actionListener);
+    btnOpenRaptorResult.addActionListener(actionListener);
+    btnUseRaptorResult.addActionListener(actionListener);
+    btnSeed.addActionListener(actionListener);
+  }
+
+  public static ProcessResultDisplay getRaptorDisplay() {
+    return Run3dmodButton.getDeferredToggle3dmodInstance("Run RAPTOR",
+        DialogType.FIDUCIAL_MODEL);
+  }
+
+  public static ProcessResultDisplay getUseRaptorDisplay() {
+    return MultiLineButton.getToggleButtonInstance("Use RAPTOR Result",
+        DialogType.FIDUCIAL_MODEL);
   }
 
   public void updateDisplay() {
@@ -387,7 +483,7 @@ public final class FiducialModelDialog extends ProcessDialog implements
   /**
    * Set the advanced state for the dialog box
    */
-  private void updateAdvanced(boolean state) {
+  private void updateAdvanced(final boolean state) {
     pnlBeadtrack.updateAdvanced(state);
     if (pnlTransferfid != null) {
       pnlTransferfid.updateAdvanced(state);
@@ -404,7 +500,8 @@ public final class FiducialModelDialog extends ProcessDialog implements
   /**
    * Set the parameters for the specified beadtrack panel
    */
-  public void setBeadtrackParams(/*Const*/BeadtrackParam beadtrackParams) {
+  public void setBeadtrackParams(final/*Const*/BeadtrackParam beadtrackParams) {
+    ltfDiam.setText(Math.round(beadtrackParams.getBeadDiameter().getDouble()));
     pnlBeadtrack.setParameters(beadtrackParams);
   }
 
@@ -417,19 +514,62 @@ public final class FiducialModelDialog extends ProcessDialog implements
   /**
    * Get the parameters for the specified beadtrack command
    */
-  public void getBeadtrackParams(BeadtrackParam beadtrackParams)
+  public void getBeadtrackParams(final BeadtrackParam beadtrackParams)
       throws FortranInputSyntaxException, InvalidEtomoNumberException {
     pnlBeadtrack.getParameters(beadtrackParams);
   }
 
-  public void getParameters(BaseScreenState screenState) {
+  public void getParameters(final BaseScreenState screenState) {
     pnlBeadtrack.getParameters(screenState);
     if (pnlTransferfid != null) {
       pnlTransferfid.getParameters(screenState);
     }
   }
 
-  public final void setParameters(ReconScreenState screenState) {
+  public boolean getParameters(final RunraptorParam param) {
+    param.setUseRawStack(rbRaptorInputRaw.isSelected());
+    String errorMessage = param.setMark(ltfMark.getText());
+    if (errorMessage != null) {
+      UIHarness.INSTANCE.openMessageDialog("Error in " + MARK_LABEL + ": "
+          + errorMessage, "Entry Error", axisID, applicationManager
+          .getManagerKey());
+      return false;
+    }
+    errorMessage = param.setDiam(ltfDiam.getText(), rbRaptorInputPreali
+        .isSelected());
+    if (errorMessage != null) {
+      UIHarness.INSTANCE.openMessageDialog("Error in " + DIAM_LABEL + ": "
+          + errorMessage, "Entry Error", axisID, applicationManager
+          .getManagerKey());
+      return false;
+    }
+    return true;
+  }
+
+  public void getParameters(final MetaData metaData) {
+    metaData.setTrackUseRaptor(rbPickRaptor.isSelected(), axisID);
+    metaData.setTrackRaptorUseRawStack(rbRaptorInputRaw.isSelected(), axisID);
+    metaData.setTrackRaptorMark(ltfMark.getText(), axisID);
+    metaData.setTrackRaptorDiam(ltfDiam.getText(), axisID);
+  }
+
+  public void setParameters(final ConstMetaData metaData) {
+    rbPickRaptor.setSelected(metaData.getTrackUseRaptor(axisID));
+    if (metaData.getTrackRaptorUseRawStack(axisID)) {
+      rbRaptorInputRaw.setSelected(true);
+    }
+    else {
+      rbRaptorInputPreali.setSelected(true);
+    }
+    ltfMark.setText(metaData.getTrackRaptorMark(axisID));
+    ConstEtomoNumber diam = metaData.getTrackRaptorDiam(axisID);
+    if (!diam.isNull()) {
+      ltfDiam.setText(diam);
+    }
+    updatePick();
+  }
+
+  public final void setParameters(final ReconScreenState screenState) {
     if (pnlTransferfid != null) {
       pnlTransferfid.setParameters(screenState);
     }
@@ -444,20 +584,20 @@ public final class FiducialModelDialog extends ProcessDialog implements
     }
   }
 
-  public void getTransferFidParams(TransferfidParam transferFidParam) {
+  public void getTransferFidParams(final TransferfidParam transferFidParam) {
     if (pnlTransferfid != null) {
       pnlTransferfid.getParameters(transferFidParam);
     }
   }
 
-  public void setTransferfidEnabled(boolean fileExists) {
+  public void setTransferfidEnabled(final boolean fileExists) {
     transferfidEnabled = fileExists;
   }
 
   /**
    * Right mouse button context menu
    */
-  public void popUpContextMenu(MouseEvent mouseEvent) {
+  public void popUpContextMenu(final MouseEvent mouseEvent) {
     String[] manPagelabel = { "Transferfid", "Beadtrack", "3dmod" };
     String[] manPage = { "transferfid.html", "beadtrack.html", "3dmod.html" };
 
@@ -481,18 +621,59 @@ public final class FiducialModelDialog extends ProcessDialog implements
 
   public void action(final Run3dmodButton button,
       final Run3dmodMenuOptions run3dmodMenuOptions) {
-    buttonAction(button.getActionCommand(), run3dmodMenuOptions);
+    buttonAction(button.getActionCommand(), button.getDeferred3dmodButton(),
+        run3dmodMenuOptions);
   }
 
   //  Action function for buttons
   private void buttonAction(final String command,
+      Deferred3dmodButton deferred3dmodButton,
       final Run3dmodMenuOptions run3dmodMenuOptions) {
-    if (command.equals(btnSeed.getActionCommand())) {
-      applicationManager.imodSeedModel(axisID, run3dmodMenuOptions,
-          btnSeed, ImodManager.COARSE_ALIGNED_KEY, DatasetFiles
-              .getSeedFileName(applicationManager, axisID), DatasetFiles
-              .getRawTiltFile(applicationManager, axisID));
+    if (command.equals(rbPickSeed.getActionCommand())) {
+      updatePick();
     }
+    else if (command.equals(rbPickRaptor.getActionCommand())) {
+      updatePick();
+    }
+    else if (command.equals(btnOpenStack.getActionCommand())) {
+      if (rbRaptorInputRaw.isSelected()) {
+        applicationManager.imodRawStack(axisID, run3dmodMenuOptions);
+      }
+      else {
+        applicationManager.imodCoarseAlign(axisID, run3dmodMenuOptions);
+      }
+    }
+    else if (command.equals(btnRaptor.getActionCommand())) {
+      applicationManager.runraptor(btnRaptor, null, deferred3dmodButton,
+          run3dmodMenuOptions, DialogType.FIDUCIAL_MODEL, axisID);
+    }
+    else if (command.equals(btnOpenRaptorResult.getActionCommand())) {
+      applicationManager.imodRunraptorResult(axisID, run3dmodMenuOptions);
+    }
+    else if (command.equals(btnUseRaptorResult.getActionCommand())) {
+      applicationManager.useRunraptorResult(btnUseRaptorResult, axisID,
+          DialogType.FIDUCIAL_MODEL);
+    }
+    else if (command.equals(btnSeed.getActionCommand())) {
+      applicationManager.imodSeedModel(axisID, run3dmodMenuOptions, btnSeed,
+          ImodManager.COARSE_ALIGNED_KEY, DatasetFiles.getSeedFileName(
+              applicationManager, axisID), DatasetFiles.getRawTiltFile(
+              applicationManager, axisID));
+    }
+  }
+
+  private void updatePick() {
+    if (rbPickSeed.isSelected()) {
+      pnlRaptor.setVisible(false);
+      btnSeed.setVisible(true);
+      pnlBeadtrack.pickSeed();
+    }
+    else {
+      pnlRaptor.setVisible(true);
+      btnSeed.setVisible(false);
+      pnlBeadtrack.pickRaptor();
+    }
+    UIHarness.INSTANCE.pack(axisID, applicationManager);
   }
 
   boolean done() {
@@ -502,13 +683,15 @@ public final class FiducialModelDialog extends ProcessDialog implements
     if (pnlTransferfid != null) {
       pnlTransferfid.done();
     }
+    btnRaptor.removeActionListener(actionListener);
+    btnOpenRaptorResult.removeActionListener(actionListener);
     btnSeed.removeActionListener(actionListener);
     pnlBeadtrack.done();
     setDisplayed(false);
     return true;
   }
 
-  public void buttonAdvancedAction(ActionEvent event) {
+  public void buttonAdvancedAction(final ActionEvent event) {
     super.buttonAdvancedAction(event);
     updateAdvanced(isAdvanced);
   }
@@ -525,7 +708,7 @@ public final class FiducialModelDialog extends ProcessDialog implements
     }
 
     public void actionPerformed(final ActionEvent event) {
-      adaptee.buttonAction(event.getActionCommand(), null);
+      adaptee.buttonAction(event.getActionCommand(), null, null);
     }
   }
 }
