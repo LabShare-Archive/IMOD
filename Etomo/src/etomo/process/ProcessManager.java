@@ -20,6 +20,10 @@
  * 
  * <p>
  * $Log$
+ * Revision 3.132  2009/04/15 16:52:47  sueh
+ * bug# 1190 Returning false and logging failure for major reconnection
+ * failures.
+ *
  * Revision 3.131  2009/03/23 17:08:50  sueh
  * bug# 1187 Moved taError logging to ApplicationManager.
  *
@@ -923,6 +927,7 @@ import etomo.comscript.ExtractmagradParam;
 import etomo.comscript.ExtractpiecesParam;
 import etomo.comscript.ExtracttiltsParam;
 import etomo.comscript.NewstParam;
+import etomo.comscript.RunraptorParam;
 import etomo.comscript.SetupCombine;
 import etomo.comscript.SplitcombineParam;
 import etomo.comscript.SplittiltParam;
@@ -1863,6 +1868,15 @@ public class ProcessManager extends BaseProcessManager {
       ConstProcessSeries processSeries) throws SystemProcessException {
     BackgroundProcess backgroundProcess = startBackgroundProcess(param,
         AxisID.ONLY, true, ProcessName.ARCHIVEORIG, processSeries);
+    return backgroundProcess.getName();
+  }
+  
+  public String runraptor(RunraptorParam param,
+      ProcessResultDisplay processResultDisplay,
+      ConstProcessSeries processSeries, AxisID axisID) throws SystemProcessException {
+    BackgroundProcess backgroundProcess = startBackgroundProcess(
+        param.getCommandArray(), axisID, processResultDisplay,
+        param.getProcessName(), processSeries);
     return backgroundProcess.getName();
   }
 

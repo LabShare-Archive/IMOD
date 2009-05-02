@@ -17,6 +17,9 @@ import etomo.util.DatasetFiles;
  * @version $$Revision$$
  *
  * <p> $$Log$
+ * <p> $Revision 1.20  2009/04/01 20:07:39  sueh
+ * <p> $bug# 1208 Added CLIP.
+ * <p> $
  * <p> $Revision 1.19  2008/11/20 01:36:58  sueh
  * <p> $bug# 1147 Added CCD_ERASER - for running ccderaser from the
  * <p> $command line.
@@ -138,6 +141,7 @@ public class ProcessName {
   private static final String splitCorrection = "splitcorrection";
   private static final String ccderaser = "ccderaser";
   private static final String clip = "clip";
+  private static final String runraptor ="runraptor";
 
   private final String name;
 
@@ -196,6 +200,7 @@ public class ProcessName {
   public static final ProcessName SPLIT_CORRECTION = new ProcessName(splitCorrection);
   public static final ProcessName CCD_ERASER = new ProcessName(ccderaser);
   public static final ProcessName CLIP = new ProcessName(clip);
+  public static final ProcessName RUNRAPTOR = new ProcessName(runraptor);
 
   /**
    * Returns a string representation of the object.
