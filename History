@@ -1,5 +1,7 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+5/1/09 In Etomo added a simple interface to RAPTOR.
+
 4/30/09: Fixed problems in dm2mrc for latest tcsh and in DM conversion when
 there is an unsupported image type in front of the one of interest.
 
