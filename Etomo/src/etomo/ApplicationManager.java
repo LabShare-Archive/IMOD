@@ -39,6 +39,7 @@ import etomo.comscript.NewstParam;
 import etomo.comscript.Patchcrawl3DParam;
 import etomo.comscript.ProcessDetails;
 import etomo.comscript.ProcesschunksParam;
+import etomo.comscript.RunraptorParam;
 import etomo.comscript.SetParam;
 import etomo.comscript.SolvematchParam;
 import etomo.comscript.SolvematchmodParam;
@@ -504,8 +505,9 @@ public final class ApplicationManager extends BaseManager implements
       if (processData.isRunning()) {
         System.err.println("\nAttempting to reconnect in Axis "
             + axisID.toString() + "\n" + processData);
-        if (!((TomogramGenerationExpert) getUIExpert(DialogType.TOMOGRAM_GENERATION,
-            axisID)).reconnectTilt(processData.getProcessName())) {
+        if (!((TomogramGenerationExpert) getUIExpert(
+            DialogType.TOMOGRAM_GENERATION, axisID)).reconnectTilt(processData
+            .getProcessName())) {
           System.err.println("\nReconnect in Axis" + axisID.toString()
               + " failed");
         }
@@ -517,7 +519,7 @@ public final class ApplicationManager extends BaseManager implements
 
   public boolean reconnectTilt(AxisID axisID, ProcessName processName,
       ProcessResultDisplay display) {
-    boolean ret =processMgr.reconnectTilt(axisID, display);
+    boolean ret = processMgr.reconnectTilt(axisID, display);
     setThreadName(processName.toString(), axisID);
     return ret;
   }
@@ -1525,6 +1527,39 @@ public final class ApplicationManager extends BaseManager implements
   /**
    * Open 3dmod to view the coarsely aligned stack
    */
+  public void imodRawStack(AxisID axisID, Run3dmodMenuOptions menuOptions) {
+    try {
+      imodManager.setOpenLogOff(ImodManager.RAW_STACK_KEY, axisID);
+      File tiltFile = DatasetFiles.getRawTiltFile(this, axisID);
+      if (tiltFile.exists()) {
+        imodManager.setTiltFile(ImodManager.RAW_STACK_KEY, axisID, tiltFile
+            .getName());
+      }
+      else {
+        imodManager.resetTiltFile(ImodManager.RAW_STACK_KEY, axisID);
+      }
+      imodManager.open(ImodManager.RAW_STACK_KEY, axisID, menuOptions);
+    }
+    catch (AxisTypeException except) {
+      except.printStackTrace();
+      uiHarness.openMessageDialog(except.getMessage(), "AxisType problem",
+          axisID, getManagerKey());
+    }
+    catch (SystemProcessException except) {
+      except.printStackTrace();
+      uiHarness.openMessageDialog(except.getMessage(),
+          "Problem opening raw stack", axisID, getManagerKey());
+    }
+    catch (IOException e) {
+      e.printStackTrace();
+      uiHarness.openMessageDialog(e.getMessage(), "IO Exception", axisID,
+          getManagerKey());
+    }
+  }
+
+  /**
+   * Open 3dmod to view the coarsely aligned stack
+   */
   public void imodCoarseAlign(AxisID axisID, Run3dmodMenuOptions menuOptions) {
     try {
       imodManager.setOpenLogOff(ImodManager.COARSE_ALIGNED_KEY, axisID);
@@ -1747,6 +1782,7 @@ public final class ApplicationManager extends BaseManager implements
     fiducialModelDialog.setBeadtrackParams(comScriptMgr
         .getBeadtrackParam(axisID));
     fiducialModelDialog.setParameters(getScreenState(axisID));
+    fiducialModelDialog.setParameters(metaData);
     mainPanel.showProcess(fiducialModelDialog.getContainer(), axisID);
     setParallelDialog(axisID, fiducialModelDialog);
   }
@@ -1791,6 +1827,7 @@ public final class ApplicationManager extends BaseManager implements
     else {
       fiducialModelDialog.getParameters(getScreenState(axisID));
       fiducialModelDialog.getTransferFidParams();
+      fiducialModelDialog.getParameters(metaData);
       // Get the user input data from the dialog box
       if (!updateTrackCom(axisID)) {
         return false;
@@ -5320,6 +5357,157 @@ public final class ApplicationManager extends BaseManager implements
         ProcessName.TRIMVOL);
   }
 
+  RunraptorParam updateRunraptorParam(AxisID axisID) {
+    RunraptorParam param = new RunraptorParam(this, axisID);
+    FiducialModelDialog dialog = (FiducialModelDialog) getDialog(
+        DialogType.FIDUCIAL_MODEL, axisID);
+    if (dialog == null) {
+      uiHarness.openMessageDialog(
+          "Unable to get information from the fiducial model dialog.",
+          "Etomo Error", axisID, getManagerKey());
+      return null;
+    }
+    if (!dialog.getParameters(param)) {
+      return null;
+    }
+    return param;
+  }
+
+  /**
+   * Execute runraptor
+   */
+  public void runraptor(final ProcessResultDisplay processResultDisplay,
+      ProcessSeries processSeries,
+      final Deferred3dmodButton deferred3dmodButton,
+      final Run3dmodMenuOptions run3dmodMenuOptions,
+      final DialogType dialogType, final AxisID axisID) {
+    if (processSeries == null) {
+      processSeries = new ProcessSeries(this, dialogType);
+    }
+    sendMsgProcessStarting(processResultDisplay);
+    RunraptorParam param = updateRunraptorParam(axisID);
+    if (param == null) {
+      return;
+    }
+    //Attempt to backup the output file
+    try {
+      LogFile outputFile = LogFile.getInstance(DatasetFiles
+          .getRaptorFiducialModel(this, axisID), getManagerKey());
+      outputFile.backup();
+    }
+    catch (LogFile.LockException e) {
+      e.printStackTrace();
+    }
+    //Run process
+    if (processTrack != null) {
+      processTrack.setState(ProcessState.INPROGRESS, axisID, dialogType);
+    }
+    mainPanel.setState(ProcessState.INPROGRESS, axisID, dialogType);
+    processSeries.setRun3dmodDeferred(deferred3dmodButton, run3dmodMenuOptions);
+    String threadName;
+    try {
+      threadName = processMgr.runraptor(param, processResultDisplay,
+          processSeries, axisID);
+    }
+    catch (SystemProcessException e) {
+      e.printStackTrace();
+      String[] message = new String[2];
+      message[0] = "Can not execute runraptor";
+      message[1] = e.getMessage();
+      uiHarness.openMessageDialog(message, "Unable to execute command", axisID,
+          getManagerKey());
+      return;
+    }
+    setThreadName(threadName, axisID);
+    mainPanel.startProgressBar("Running runraptor", axisID,
+        ProcessName.RUNRAPTOR);
+  }
+
+  /**
+   * Open 3dmod with the runraptor result
+   */
+  public void imodRunraptorResult(AxisID axisID, Run3dmodMenuOptions menuOptions) {
+    String imodManagerKey;
+    imodManagerKey = ImodManager.COARSE_ALIGNED_KEY;
+    String model = DatasetFiles.getRaptorFiducialModelName(this, axisID);
+    try {
+      File tiltFile = DatasetFiles.getRawTiltFile(this, axisID);
+      if (tiltFile.exists()) {
+        imodManager.setTiltFile(imodManagerKey, axisID, tiltFile.getName());
+      }
+      else {
+        imodManager.resetTiltFile(imodManagerKey, axisID);
+      }
+      imodManager.open(imodManagerKey, axisID, model, true, menuOptions);
+    }
+    catch (AxisTypeException except) {
+      except.printStackTrace();
+      uiHarness.openMessageDialog(except.getMessage(), "AxisType problem",
+          axisID, getManagerKey());
+      return;
+    }
+    catch (SystemProcessException except) {
+      except.printStackTrace();
+      uiHarness.openMessageDialog(except.getMessage(), "Can't open 3dmod on "
+          + imodManagerKey + " with model: " + model, axisID, getManagerKey());
+      return;
+    }
+    catch (IOException e) {
+      e.printStackTrace();
+      uiHarness.openMessageDialog(e.getMessage(), "IO Exception", axisID,
+          getManagerKey());
+    }
+    state.setFixedFiducials(axisID, true);
+  }
+
+  /**
+   * Replace .fid with _raptor.fid
+   * 
+   * @param axisID
+   */
+  public void useRunraptorResult(ProcessResultDisplay processResultDisplay,
+      AxisID axisID, DialogType dialogType) {
+    sendMsgProcessStarting(processResultDisplay);
+    if (isAxisBusy(axisID, processResultDisplay)) {
+      return;
+    }
+    mainPanel
+        .setProgressBar("Using RAPTOR result as fiducial model", 1, axisID);
+    processTrack.setState(ProcessState.INPROGRESS, axisID, dialogType);
+    //Back up .fid file
+    LogFile fidFile = null;
+    try {
+      fidFile = LogFile.getInstance(DatasetFiles.getFiducialModelFile(this,
+          axisID), getManagerKey());
+      fidFile.backup();
+    }
+    catch (LogFile.LockException e) {
+      e.printStackTrace();
+      uiHarness.openMessageDialog("Unable to backup "
+          + DatasetFiles.getFiducialModelName(this, axisID), "File Error",
+          getManagerKey());
+      sendMsgProcessFailedToStart(processResultDisplay);
+      return;
+    }
+    //Rename _raptor.fid file
+    LogFile raptorFile = null;
+    try {
+      raptorFile = LogFile.getInstance(DatasetFiles.getRaptorFiducialModel(
+          this, axisID), getManagerKey());
+      raptorFile.move(fidFile);
+    }
+    catch (LogFile.LockException e) {
+      e.printStackTrace();
+      uiHarness.openMessageDialog("Unable to rename "
+          + DatasetFiles.getRaptorFiducialModelName(this, axisID),
+          "File Error", getManagerKey());
+      sendMsgProcessFailedToStart(processResultDisplay);
+      return;
+    }
+    mainPanel.stopProgressBar(axisID);
+    sendMsgProcessSucceeded(processResultDisplay);
+  }
+
   /**
    * Execute squeezevol
    */
@@ -5948,6 +6136,9 @@ public final class ApplicationManager extends BaseManager implements
 }
 /**
  * <p> $Log$
+ * <p> Revision 3.324  2009/04/15 16:51:27  sueh
+ * <p> bug# 1190 Logging reconnect attempts.  Returning false and logging failure for major reconnection failures.  Preventing deleteAlignedStacks from running on a busy axis.
+ * <p>
  * <p> Revision 3.323  2009/04/14 23:00:33  sueh
  * <p> bug# 1190 Logging reconnect.  Handling some situations where process data is not
  * <p> running in reconnect.
