@@ -28,6 +28,9 @@ import etomo.type.ScriptParameter;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.21  2009/03/17 00:30:34  sueh
+ * <p> bug# 1186 Pass managerKey to everything that pops up a dialog.
+ * <p>
  * <p> Revision 3.20  2009/02/04 23:15:15  sueh
  * <p> bug# 1158 Changed id and exceptions classes in LogFile.
  * <p>
@@ -410,8 +413,8 @@ public class BeadtrackParam extends OldBeadtrackParam implements CommandParam {
     return postFitRescueResidual;
   }
 
-  public String getBeadDiameter() {
-    return beadDiameter.toString();
+  public ConstEtomoNumber getBeadDiameter() {
+    return beadDiameter;
   }
 
   public ConstEtomoNumber getDensityRelaxationPostFit() {
