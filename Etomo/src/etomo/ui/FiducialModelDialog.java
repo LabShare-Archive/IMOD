@@ -36,6 +36,9 @@ import etomo.comscript.FortranInputSyntaxException;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.45  2009/05/02 01:13:28  sueh
+ * <p> bug# 1216 Added the raptor panel.
+ * <p>
  * <p> Revision 3.44  2009/01/20 20:00:49  sueh
  * <p> bug# 1102 Changed labeled panels to type EtomoPanel so that they can name themselves.
  * <p>
@@ -419,6 +422,9 @@ public final class FiducialModelDialog extends ProcessDialog implements
     //tool tips
     setToolTipText();
     //set dialog display state
+    if (axisID == AxisID.SECOND) {
+      pnlPick.setVisible(false);
+    }
     updateAdvanced(isAdvanced);
     updateEnabled();
     updateDisplay();
@@ -547,24 +553,28 @@ public final class FiducialModelDialog extends ProcessDialog implements
   }
 
   public void getParameters(final MetaData metaData) {
-    metaData.setTrackUseRaptor(rbPickRaptor.isSelected(), axisID);
-    metaData.setTrackRaptorUseRawStack(rbRaptorInputRaw.isSelected(), axisID);
-    metaData.setTrackRaptorMark(ltfMark.getText(), axisID);
-    metaData.setTrackRaptorDiam(ltfDiam.getText(), axisID);
+    if (axisID == AxisID.FIRST) {
+      metaData.setTrackUseRaptor(rbPickRaptor.isSelected());
+      metaData.setTrackRaptorUseRawStack(rbRaptorInputRaw.isSelected());
+      metaData.setTrackRaptorMark(ltfMark.getText());
+      metaData.setTrackRaptorDiam(ltfDiam.getText());
+    }
   }
 
   public void setParameters(final ConstMetaData metaData) {
-    rbPickRaptor.setSelected(metaData.getTrackUseRaptor(axisID));
-    if (metaData.getTrackRaptorUseRawStack(axisID)) {
-      rbRaptorInputRaw.setSelected(true);
-    }
-    else {
-      rbRaptorInputPreali.setSelected(true);
-    }
-    ltfMark.setText(metaData.getTrackRaptorMark(axisID));
-    ConstEtomoNumber diam = metaData.getTrackRaptorDiam(axisID);
-    if (!diam.isNull()) {
-      ltfDiam.setText(diam);
+    if (axisID == AxisID.FIRST) {
+      rbPickRaptor.setSelected(metaData.getTrackUseRaptor());
+      if (metaData.getTrackRaptorUseRawStack()) {
+        rbRaptorInputRaw.setSelected(true);
+      }
+      else {
+        rbRaptorInputPreali.setSelected(true);
+      }
+      ltfMark.setText(metaData.getTrackRaptorMark());
+      ConstEtomoNumber diam = metaData.getTrackRaptorDiam();
+      if (!diam.isNull()) {
+        ltfDiam.setText(diam);
+      }
     }
     updatePick();
   }
