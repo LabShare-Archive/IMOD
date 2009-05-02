@@ -100,10 +100,21 @@ public interface ConstMetaData {
   public int getFinalStackPolynomialOrder(AxisID axisID);
 
   public IntKeyList getTomoGenTrialTomogramNameList(AxisID axisID);
+
+  public boolean getTrackUseRaptor(AxisID axisID);
+
+  public boolean getTrackRaptorUseRawStack(AxisID axisID);
+
+  public String getTrackRaptorMark(AxisID axisID);
+
+  public ConstEtomoNumber getTrackRaptorDiam(AxisID axisID);
 }
 
 /**
  * <p> $Log$
+ * <p> Revision 3.49  2009/02/05 23:43:46  sueh
+ * <p> bug# 1148 Added getTomoGenTrialTomogramNameList.
+ * <p>
  * <p> Revision 3.48  2008/12/02 21:20:03  sueh
  * <p> bug# 1157 Added finalStackFiducialDiameterA and B.
  * <p>
