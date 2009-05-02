@@ -28,6 +28,9 @@ import etomo.util.Utilities;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.46  2009/02/05 23:44:39  sueh
+ * <p> bug# 1148 Added tomoGenTrialTomogramNameListA and B.
+ * <p>
  * <p> Revision 3.45  2009/02/04 23:30:30  sueh
  * <p> bug# 1158 Changed id and exception classes in LogFile.
  * <p>
@@ -251,6 +254,9 @@ import etomo.util.Utilities;
 public final class MetaData extends BaseMetaData implements ConstMetaData {
   public static final String rcsid = "$Id$";
 
+  //Strings and keys must not change without provisions for backwards
+  //capatibility.
+
   private static final String latestRevisionNumber = "1.10";
   private static final String newTomogramTitle = "Setup Tomogram";
 
@@ -275,6 +281,15 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
   private static final String THICKNESS_KEY = "THICKNESS";
   private static final String FINAL_STACK_BINNING_A_BACKWARD_COMPATABILITY_1_8 = "TomoGenBinningA";
   private static final String FINAL_STACK_BINNING_B_BACKWARD_COMPATABILITY_1_8 = "TomoGenBinningB";
+
+  private static final String TRACK_KEY = "Track";
+  private static final String FIRST_AXIS_KEY = "A";
+  private static final String SECOND_AXIS_KEY = "B";
+  private static final String USE_KEY = "Use";
+  private static final String RAPTOR_KEY = "Raptor";
+  private static final String RAW_STACK_KEY = "RawStack";
+  private static final String MARK_KEY = "Mark";
+  private static final String DIAM_KEY = "Diam";
 
   private final ApplicationManager manager;
 
@@ -416,6 +431,27 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
       .getStringInstance(DialogType.TOMOGRAM_GENERATION.getStorableName() + "."
           + AxisID.SECOND.getExtension() + "." + "TrialTomogramName");
 
+  private final EtomoBoolean2 trackUseRaptorA = new EtomoBoolean2(TRACK_KEY
+      + "." + FIRST_AXIS_KEY + "." + USE_KEY + RAPTOR_KEY);
+  private final EtomoBoolean2 trackUseRaptorB = new EtomoBoolean2(TRACK_KEY
+      + "." + SECOND_AXIS_KEY + "." + USE_KEY + RAPTOR_KEY);
+  private final EtomoBoolean2 trackRaptorUseRawStackA = new EtomoBoolean2(
+      TRACK_KEY + "." + FIRST_AXIS_KEY + "." + RAPTOR_KEY + "." + USE_KEY
+          + RAW_STACK_KEY);
+  private final EtomoBoolean2 trackRaptorUseRawStackB = new EtomoBoolean2(
+      TRACK_KEY + "." + SECOND_AXIS_KEY + "." + RAPTOR_KEY + "." + USE_KEY
+          + RAW_STACK_KEY);
+  private final EtomoNumber trackRaptorMarkA = new EtomoNumber(TRACK_KEY + "."
+      + FIRST_AXIS_KEY + "." + RAPTOR_KEY + "." + MARK_KEY);
+  private final EtomoNumber trackRaptorMarkB = new EtomoNumber(TRACK_KEY + "."
+      + SECOND_AXIS_KEY + "." + RAPTOR_KEY + "." + MARK_KEY);
+  private final EtomoNumber trackRaptorDiamA = new EtomoNumber(
+      EtomoNumber.Type.LONG, TRACK_KEY + "." + FIRST_AXIS_KEY + "."
+          + RAPTOR_KEY + "." + DIAM_KEY);
+  private final EtomoNumber trackRaptorDiamB = new EtomoNumber(
+      EtomoNumber.Type.LONG, TRACK_KEY + "." + SECOND_AXIS_KEY + "."
+          + RAPTOR_KEY + "." + DIAM_KEY);
+
   public MetaData(ApplicationManager manager) {
     this.manager = manager;
     squeezevolParam = new SqueezevolParam(manager);
@@ -440,6 +476,10 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
     tomoPosBinningB.setDisplayValue(3);
     finalStackBinningA.setDisplayValue(1);
     finalStackBinningB.setDisplayValue(1);
+    trackUseRaptorA.set(false);
+    trackUseRaptorB.set(false);
+    trackRaptorUseRawStackA.set(false);
+    trackRaptorUseRawStackB.set(false);
   }
 
   /**
@@ -825,6 +865,14 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
     finalStackPolynomialOrderB.reset();
     tomoGenTrialTomogramNameListA.reset();
     tomoGenTrialTomogramNameListB.reset();
+    trackUseRaptorA.reset();
+    trackUseRaptorB.reset();
+    trackRaptorUseRawStackA.reset();
+    trackRaptorUseRawStackB.reset();
+    trackRaptorMarkA.reset();
+    trackRaptorMarkB.reset();
+    trackRaptorDiamA.reset();
+    trackRaptorDiamB.reset();
     //load
     prepend = createPrepend(prepend);
     String group = prepend + ".";
@@ -982,6 +1030,14 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
     finalStackPolynomialOrderB.load(props, prepend);
     tomoGenTrialTomogramNameListA.load(props, prepend);
     tomoGenTrialTomogramNameListB.load(props, prepend);
+    trackUseRaptorA.load(props, prepend);
+    trackUseRaptorB.load(props, prepend);
+    trackRaptorUseRawStackA.load(props, prepend);
+    trackRaptorUseRawStackB.load(props, prepend);
+    trackRaptorMarkA.load(props, prepend);
+    trackRaptorMarkB.load(props, prepend);
+    trackRaptorDiamA.load(props, prepend);
+    trackRaptorDiamB.load(props, prepend);
   }
 
   public void setNoBeamTiltSelected(AxisID axisID, boolean selected) {
@@ -1157,8 +1213,80 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
     finalStackPolynomialOrderB.store(props, prepend);
     finalStackFiducialDiameterA.store(props, prepend);
     finalStackFiducialDiameterB.store(props, prepend);
-    tomoGenTrialTomogramNameListA.store(props,prepend);
-    tomoGenTrialTomogramNameListB.store(props,prepend);
+    tomoGenTrialTomogramNameListA.store(props, prepend);
+    tomoGenTrialTomogramNameListB.store(props, prepend);
+    trackUseRaptorA.store(props, prepend);
+    trackUseRaptorB.store(props, prepend);
+    trackRaptorUseRawStackA.store(props, prepend);
+    trackRaptorUseRawStackB.store(props, prepend);
+    trackRaptorMarkA.store(props, prepend);
+    trackRaptorMarkB.store(props, prepend);
+    trackRaptorDiamA.store(props, prepend);
+    trackRaptorDiamB.store(props, prepend);
+  }
+
+  public boolean getTrackUseRaptor(AxisID axisID) {
+    if (axisID == AxisID.SECOND) {
+      return trackUseRaptorB.is();
+    }
+    return trackUseRaptorA.is();
+  }
+
+  public void setTrackUseRaptor(boolean input, AxisID axisID) {
+    if (axisID == AxisID.SECOND) {
+      trackUseRaptorB.set(input);
+    }
+    else {
+      trackUseRaptorA.set(input);
+    }
+  }
+
+  public boolean getTrackRaptorUseRawStack(AxisID axisID) {
+    if (axisID == AxisID.SECOND) {
+      return trackRaptorUseRawStackB.is();
+    }
+    return trackRaptorUseRawStackA.is();
+  }
+
+  public void setTrackRaptorUseRawStack(boolean input, AxisID axisID) {
+    if (axisID == AxisID.SECOND) {
+      trackRaptorUseRawStackB.set(input);
+    }
+    else {
+      trackRaptorUseRawStackA.set(input);
+    }
+  }
+
+  public String getTrackRaptorMark(AxisID axisID) {
+    if (axisID == AxisID.SECOND) {
+      return trackRaptorMarkB.toString();
+    }
+    return trackRaptorMarkA.toString();
+  }
+
+  public void setTrackRaptorMark(String input, AxisID axisID) {
+    if (axisID == AxisID.SECOND) {
+      trackRaptorMarkB.set(input);
+    }
+    else {
+      trackRaptorMarkA.set(input);
+    }
+  }
+
+  public ConstEtomoNumber getTrackRaptorDiam(AxisID axisID) {
+    if (axisID == AxisID.SECOND) {
+      return trackRaptorDiamB;
+    }
+    return trackRaptorDiamA;
+  }
+
+  public void setTrackRaptorDiam(String input, AxisID axisID) {
+    if (axisID == AxisID.SECOND) {
+      trackRaptorDiamB.set(input);
+    }
+    else {
+      trackRaptorDiamA.set(input);
+    }
   }
 
   public ConstEtomoNumber getNoBeamTiltSelected(AxisID axisID) {
