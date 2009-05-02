@@ -101,17 +101,21 @@ public interface ConstMetaData {
 
   public IntKeyList getTomoGenTrialTomogramNameList(AxisID axisID);
 
-  public boolean getTrackUseRaptor(AxisID axisID);
+  public boolean getTrackUseRaptor();
 
-  public boolean getTrackRaptorUseRawStack(AxisID axisID);
+  public boolean getTrackRaptorUseRawStack();
 
-  public String getTrackRaptorMark(AxisID axisID);
+  public String getTrackRaptorMark();
 
-  public ConstEtomoNumber getTrackRaptorDiam(AxisID axisID);
+  public ConstEtomoNumber getTrackRaptorDiam();
 }
 
 /**
  * <p> $Log$
+ * <p> Revision 3.50  2009/05/02 01:09:37  sueh
+ * <p> bug# 1216 Added getTrackRaptorDiam, getTrackRaptorMark,
+ * <p> getTrackRaptorUseRawStack, and GetTrackUseRaptor.
+ * <p>
  * <p> Revision 3.49  2009/02/05 23:43:46  sueh
  * <p> bug# 1148 Added getTomoGenTrialTomogramNameList.
  * <p>

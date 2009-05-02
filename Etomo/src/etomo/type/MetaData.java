@@ -28,6 +28,10 @@ import etomo.util.Utilities;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.47  2009/05/02 01:11:02  sueh
+ * <p> bug# 1216 Added trackRaptorDiamA and B, trackRaptorMarkA and B,
+ * <p> trackRaptorUseRawStackA and B, and trackUseRaptorA and B.
+ * <p>
  * <p> Revision 3.46  2009/02/05 23:44:39  sueh
  * <p> bug# 1148 Added tomoGenTrialTomogramNameListA and B.
  * <p>
@@ -433,23 +437,13 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
 
   private final EtomoBoolean2 trackUseRaptorA = new EtomoBoolean2(TRACK_KEY
       + "." + FIRST_AXIS_KEY + "." + USE_KEY + RAPTOR_KEY);
-  private final EtomoBoolean2 trackUseRaptorB = new EtomoBoolean2(TRACK_KEY
-      + "." + SECOND_AXIS_KEY + "." + USE_KEY + RAPTOR_KEY);
   private final EtomoBoolean2 trackRaptorUseRawStackA = new EtomoBoolean2(
       TRACK_KEY + "." + FIRST_AXIS_KEY + "." + RAPTOR_KEY + "." + USE_KEY
           + RAW_STACK_KEY);
-  private final EtomoBoolean2 trackRaptorUseRawStackB = new EtomoBoolean2(
-      TRACK_KEY + "." + SECOND_AXIS_KEY + "." + RAPTOR_KEY + "." + USE_KEY
-          + RAW_STACK_KEY);
   private final EtomoNumber trackRaptorMarkA = new EtomoNumber(TRACK_KEY + "."
       + FIRST_AXIS_KEY + "." + RAPTOR_KEY + "." + MARK_KEY);
-  private final EtomoNumber trackRaptorMarkB = new EtomoNumber(TRACK_KEY + "."
-      + SECOND_AXIS_KEY + "." + RAPTOR_KEY + "." + MARK_KEY);
   private final EtomoNumber trackRaptorDiamA = new EtomoNumber(
       EtomoNumber.Type.LONG, TRACK_KEY + "." + FIRST_AXIS_KEY + "."
-          + RAPTOR_KEY + "." + DIAM_KEY);
-  private final EtomoNumber trackRaptorDiamB = new EtomoNumber(
-      EtomoNumber.Type.LONG, TRACK_KEY + "." + SECOND_AXIS_KEY + "."
           + RAPTOR_KEY + "." + DIAM_KEY);
 
   public MetaData(ApplicationManager manager) {
@@ -477,9 +471,7 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
     finalStackBinningA.setDisplayValue(1);
     finalStackBinningB.setDisplayValue(1);
     trackUseRaptorA.set(false);
-    trackUseRaptorB.set(false);
-    trackRaptorUseRawStackA.set(false);
-    trackRaptorUseRawStackB.set(false);
+    trackRaptorUseRawStackA.set(true);
   }
 
   /**
@@ -866,13 +858,9 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
     tomoGenTrialTomogramNameListA.reset();
     tomoGenTrialTomogramNameListB.reset();
     trackUseRaptorA.reset();
-    trackUseRaptorB.reset();
     trackRaptorUseRawStackA.reset();
-    trackRaptorUseRawStackB.reset();
     trackRaptorMarkA.reset();
-    trackRaptorMarkB.reset();
     trackRaptorDiamA.reset();
-    trackRaptorDiamB.reset();
     //load
     prepend = createPrepend(prepend);
     String group = prepend + ".";
@@ -1031,13 +1019,9 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
     tomoGenTrialTomogramNameListA.load(props, prepend);
     tomoGenTrialTomogramNameListB.load(props, prepend);
     trackUseRaptorA.load(props, prepend);
-    trackUseRaptorB.load(props, prepend);
     trackRaptorUseRawStackA.load(props, prepend);
-    trackRaptorUseRawStackB.load(props, prepend);
     trackRaptorMarkA.load(props, prepend);
-    trackRaptorMarkB.load(props, prepend);
     trackRaptorDiamA.load(props, prepend);
-    trackRaptorDiamB.load(props, prepend);
   }
 
   public void setNoBeamTiltSelected(AxisID axisID, boolean selected) {
@@ -1216,77 +1200,41 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
     tomoGenTrialTomogramNameListA.store(props, prepend);
     tomoGenTrialTomogramNameListB.store(props, prepend);
     trackUseRaptorA.store(props, prepend);
-    trackUseRaptorB.store(props, prepend);
     trackRaptorUseRawStackA.store(props, prepend);
-    trackRaptorUseRawStackB.store(props, prepend);
     trackRaptorMarkA.store(props, prepend);
-    trackRaptorMarkB.store(props, prepend);
     trackRaptorDiamA.store(props, prepend);
-    trackRaptorDiamB.store(props, prepend);
   }
 
-  public boolean getTrackUseRaptor(AxisID axisID) {
-    if (axisID == AxisID.SECOND) {
-      return trackUseRaptorB.is();
-    }
+  public boolean getTrackUseRaptor() {
     return trackUseRaptorA.is();
   }
 
-  public void setTrackUseRaptor(boolean input, AxisID axisID) {
-    if (axisID == AxisID.SECOND) {
-      trackUseRaptorB.set(input);
-    }
-    else {
-      trackUseRaptorA.set(input);
-    }
+  public void setTrackUseRaptor(boolean input) {
+    trackUseRaptorA.set(input);
   }
 
-  public boolean getTrackRaptorUseRawStack(AxisID axisID) {
-    if (axisID == AxisID.SECOND) {
-      return trackRaptorUseRawStackB.is();
-    }
+  public boolean getTrackRaptorUseRawStack() {
     return trackRaptorUseRawStackA.is();
   }
 
-  public void setTrackRaptorUseRawStack(boolean input, AxisID axisID) {
-    if (axisID == AxisID.SECOND) {
-      trackRaptorUseRawStackB.set(input);
-    }
-    else {
-      trackRaptorUseRawStackA.set(input);
-    }
+  public void setTrackRaptorUseRawStack(boolean input) {
+    trackRaptorUseRawStackA.set(input);
   }
 
-  public String getTrackRaptorMark(AxisID axisID) {
-    if (axisID == AxisID.SECOND) {
-      return trackRaptorMarkB.toString();
-    }
+  public String getTrackRaptorMark() {
     return trackRaptorMarkA.toString();
   }
 
-  public void setTrackRaptorMark(String input, AxisID axisID) {
-    if (axisID == AxisID.SECOND) {
-      trackRaptorMarkB.set(input);
-    }
-    else {
-      trackRaptorMarkA.set(input);
-    }
+  public void setTrackRaptorMark(String input) {
+    trackRaptorMarkA.set(input);
   }
 
-  public ConstEtomoNumber getTrackRaptorDiam(AxisID axisID) {
-    if (axisID == AxisID.SECOND) {
-      return trackRaptorDiamB;
-    }
+  public ConstEtomoNumber getTrackRaptorDiam() {
     return trackRaptorDiamA;
   }
 
-  public void setTrackRaptorDiam(String input, AxisID axisID) {
-    if (axisID == AxisID.SECOND) {
-      trackRaptorDiamB.set(input);
-    }
-    else {
-      trackRaptorDiamA.set(input);
-    }
+  public void setTrackRaptorDiam(String input) {
+    trackRaptorDiamA.set(input);
   }
 
   public ConstEtomoNumber getNoBeamTiltSelected(AxisID axisID) {
