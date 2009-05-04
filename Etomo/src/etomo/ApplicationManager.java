@@ -1763,7 +1763,7 @@ public final class ApplicationManager extends BaseManager implements
     // Create a new dialog panel and map it the generic reference
     Utilities.timestamp("new", "FiducialModelDialog", Utilities.STARTED_STATUS);
     FiducialModelDialog fiducialModelDialog = FiducialModelDialog.getInstance(
-        this, axisID);
+        this, axisID, metaData.getAxisType());
     Utilities
         .timestamp("new", "FiducialModelDialog", Utilities.FINISHED_STATUS);
     if (axisID == AxisID.SECOND) {
@@ -6136,6 +6136,10 @@ public final class ApplicationManager extends BaseManager implements
 }
 /**
  * <p> $Log$
+ * <p> Revision 3.325  2009/05/02 01:05:52  sueh
+ * <p> bug# 1216 Added imodRawStack, imodRunraptorResult, runraptor,
+ * <p> updateRunraptorParam, and useRunraptorResult.
+ * <p>
  * <p> Revision 3.324  2009/04/15 16:51:27  sueh
  * <p> bug# 1190 Logging reconnect attempts.  Returning false and logging failure for major reconnection failures.  Preventing deleteAlignedStacks from running on a busy axis.
  * <p>
