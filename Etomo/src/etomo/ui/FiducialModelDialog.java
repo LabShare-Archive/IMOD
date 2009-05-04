@@ -7,6 +7,7 @@ import javax.swing.*;
 import etomo.ApplicationManager;
 import etomo.process.ImodManager;
 import etomo.type.AxisID;
+import etomo.type.AxisType;
 import etomo.type.BaseScreenState;
 import etomo.type.ConstEtomoNumber;
 import etomo.type.ConstMetaData;
@@ -36,6 +37,10 @@ import etomo.comscript.FortranInputSyntaxException;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.46  2009/05/02 01:26:07  sueh
+ * <p> bug# 1216 For B axis, hiding the pick panel and not setting/getting raptor
+ * <p> data from metadata.
+ * <p>
  * <p> Revision 3.45  2009/05/02 01:13:28  sueh
  * <p> bug# 1216 Added the raptor panel.
  * <p>
@@ -335,7 +340,7 @@ public final class FiducialModelDialog extends ProcessDialog implements
   private boolean transferfidEnabled = false;
 
   private FiducialModelDialog(final ApplicationManager appMgr,
-      final AxisID axisID) {
+      final AxisID axisID, final AxisType axisType) {
     super(appMgr, axisID, DialogType.FIDUCIAL_MODEL);
     //initialize final member variables
     ProcessResultDisplayFactory displayFactory = appMgr
@@ -404,7 +409,7 @@ public final class FiducialModelDialog extends ProcessDialog implements
     addExitButtons();
     //set initial values
     rbPickSeed.setSelected(true);
-    rbRaptorInputRaw.setSelected(true);
+    rbRaptorInputPreali.setSelected(true);
     btnRaptor.setSize();
     btnOpenRaptorResult.setSize();
     btnUseRaptorResult.setSize();
@@ -422,7 +427,7 @@ public final class FiducialModelDialog extends ProcessDialog implements
     //tool tips
     setToolTipText();
     //set dialog display state
-    if (axisID == AxisID.SECOND) {
+    if (axisType != AxisType.DUAL_AXIS || axisID == AxisID.SECOND) {
       pnlPick.setVisible(false);
     }
     updateAdvanced(isAdvanced);
@@ -431,8 +436,10 @@ public final class FiducialModelDialog extends ProcessDialog implements
   }
 
   public static FiducialModelDialog getInstance(
-      final ApplicationManager appMgr, final AxisID axisID) {
-    FiducialModelDialog instance = new FiducialModelDialog(appMgr, axisID);
+      final ApplicationManager appMgr, final AxisID axisID,
+      final AxisType axisType) {
+    FiducialModelDialog instance = new FiducialModelDialog(appMgr, axisID,
+        axisType);
     instance.addListeners();
     return instance;
   }
