@@ -211,8 +211,10 @@ public final class PsParam {
    * @param startTime
    */
   public boolean findRow(String pid, String groupPid, Time startTime) {
+    System.err.println("findRow:pid"+pid);
     for (int i = 0; i < valuesArray.size(); i++) {
       Values values = (Values) valuesArray.get(i);
+      System.err.println("findRow:values.getPid()="+values.getPid());
       if (values.getPid().equals(pid) && values.getGroupPid().equals(groupPid)
           && values.getStartTime().almostEquals(startTime)) {
         return true;
@@ -331,6 +333,9 @@ public final class PsParam {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.5  2009/04/15 16:52:05  sueh
+ * <p> bug# 1207 Removed annoying print statement.
+ * <p>
  * <p> Revision 1.4  2009/04/13 22:24:23  sueh
  * <p> bug# 1207 Placing ssh command before ps command when necessary.
  * <p>
