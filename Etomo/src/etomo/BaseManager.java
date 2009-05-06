@@ -951,7 +951,8 @@ public abstract class BaseManager {
           + ", ssh to " + hostName
           + ", and run etomo in order to connect to this process.  Exit "
           + "Etomo Y/N?", axisID, managerKey)) {
-        EtomoDirector.INSTANCE.getArguments().setExit();
+        //Exit from etomo.
+        uiHarness.exit(AxisID.ONLY);
       }
     }
     else if (processData.isSshFailed()) {
@@ -1300,6 +1301,9 @@ public abstract class BaseManager {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.115  2009/04/15 16:51:42  sueh
+ * <p> bug# 1190 Logging reconnect attempts.  Returning false and logging failure for major reconnection failures.
+ * <p>
  * <p> Revision 1.114  2009/04/14 23:00:43  sueh
  * <p> bug# 1190 Logging reconnect.  Handling some situations where process data is not
  * <p> running in reconnect.
