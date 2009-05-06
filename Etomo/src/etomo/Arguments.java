@@ -23,6 +23,9 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.5  2009/04/13 22:19:26  sueh
+ * <p> bug# 1207 Added setExit so that exit automation can be turned on by Etomo.
+ * <p>
  * <p> Revision 1.4  2009/03/23 16:46:19  sueh
  * <p> bug# 1187 Added --listen parameter.
  * <p>
@@ -248,10 +251,6 @@ public final class Arguments {
 
   public boolean isExit() {
     return exit;
-  }
-  
-  public void setExit() {
-    exit = true;
   }
 
   public boolean isPrintNames() {
