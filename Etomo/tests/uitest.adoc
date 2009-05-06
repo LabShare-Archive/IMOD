@@ -75,6 +75,11 @@ set.dataset=BB
 set.var.single=
 set.var.fidless=
 
+[Test = nad]
+set.testdir = nad
+set.adoc.nad = parallel.adoc
+set.dataset = nad
+
 
 [dataset = BB]
 set.single.dataset = BBa
@@ -110,6 +115,11 @@ copy.file = %{dataset}1.rec
 copy.file = %{dataset}2.rec
 copy.file = %{dataset}3.rec
 set.interface.Join=
+
+[dataset = nad]
+set.var.volume=unicross.rec
+copy.file = %{volume}
+set.interface.Parallel=
 
 
 [interface = Recon]
@@ -147,5 +157,9 @@ open.dialog.toprun.tb.setup.1 =
 
 [Interface = Parallel]
 goto.frame.pnl.main-frame =
+[[open = interface]]
+mn.file=
+mn.new-parallel-process=
+[[]]
 open.dialog.generic-parallel-process.bn.generic-parallel-process =
 open.dialog.nonlinear-anisotropic-diffusion.bn.nonlinear-anisotropic-diffusion=
