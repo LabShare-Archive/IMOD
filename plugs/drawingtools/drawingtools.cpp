@@ -15,6 +15,9 @@
     $Revision$
 
     $Log$
+    Revision 1.34  2009/04/21 08:15:50  tempuser
+    Minor
+
     Revision 1.33  2009/04/17 13:33:56  tempuser
     Added some options for Pete
 
@@ -164,7 +167,7 @@ int imodPlugKeys(ImodView *vw, QKeyEvent *event)
   if (!plug.view)          // if plugin window isn't open: don't grab keys
     return 0;
   
-  int keysym = event->key();            // key value (Key_A, Key_Space... etc)
+  int keysym  = event->key();            // key value (Key_A, Key_Space... etc)
   int ctrl    = event->modifiers() & Qt::ControlModifier;   // ctrl modifier
   int shift   = event->modifiers() & Qt::ShiftModifier;     // shift modifier
   
@@ -173,7 +176,8 @@ int imodPlugKeys(ImodView *vw, QKeyEvent *event)
      keysym != Qt::Key_X && keysym != Qt::Key_C && keysym != Qt::Key_V )
     return 0;
   
-  if( !plug.useNumKeys && keysym >= Qt::Key_1 && keysym <= Qt::Key_6  )
+  if( !plug.useNumKeys && keysym >= Qt::Key_1 && keysym <= Qt::Key_6
+      && event->modifiers() & Qt::KeypadModifier )    // if user presses 1-6 on keypad
     return 0;
   
   switch(keysym)
@@ -251,14 +255,14 @@ int imodPlugKeys(ImodView *vw, QKeyEvent *event)
       
       
     case Qt::Key_PageUp:
-      if(shift)
+      if(shift || plug.pgUpDownInc==1)
         return 0;
       else
         edit_changeSelectedSlice( plug.pgUpDownInc,false, false );
       break;
       
     case Qt::Key_PageDown:
-      if(shift)
+      if(shift || plug.pgUpDownInc==1)
         return 0;
       else
         edit_changeSelectedSlice( -plug.pgUpDownInc,false, false );
@@ -363,7 +367,7 @@ int imodPlugEvent(ImodView *vw, QEvent *event, float imx, float imy)
   if (event->type() == QEvent::Wheel)
   {
     QWheelEvent *wheelEvent = static_cast<QWheelEvent*>(event);
-    float scrollAmount    = fDivide( wheelEvent->delta(), float(plug.wheelResistance) );
+    float scrollAmount    = fDiv( wheelEvent->delta(), float(plug.wheelResistance) );
     int   scrollAmountInt = floor(scrollAmount);
     
     //## ZOOM:
@@ -388,6 +392,28 @@ int imodPlugEvent(ImodView *vw, QEvent *event, float imx, float imy)
       }
       return 1;
     }
+    
+    //## SMART POINT RESIZE MODE:
+    
+    if ( plug.smartPtResizeMode )
+    {
+      Imod *imod  = ivwGetModel(plug.view);
+      Iobj *obj   = getCurrObj();
+      Icont *cont = getCurrCont();
+      if( cont && obj && !isObjClosed(obj) && imodPointGet(imod)!=NULL)
+      {
+        int objIdx, contIdx, ptIdx;
+        imodGetIndex(imod, &objIdx, &contIdx, &ptIdx);
+        float ptSize = imodPointGetSize(obj,cont,ptIdx);
+        ptSize = MAX(0.0f, ptSize+(0.1f*scrollAmount));
+        imodPointSetSize(cont,ptIdx,ptSize);
+        plug.window->drawExtraObject(false);
+        ivwRedraw(plug.view);
+        return (1);
+      }
+    }
+    
+    //## SWITCH WHEEL BEHAVIOR:
     
     switch( plug.wheelBehav )
     {
@@ -443,7 +469,7 @@ int imodPlugEvent(ImodView *vw, QEvent *event, float imx, float imy)
         return 1;
         break;
       }
-
+      
       case(WH_PTSIZE):
       {
         Imod *imod  = ivwGetModel(plug.view);
@@ -646,7 +672,7 @@ int imodPlugMouse(ImodView *vw, QMouseEvent *event, float imx, float imy,
           {
             float distMovedAway = line_distBetweenPts2D(&plug.centerPt,&plug.mouse) -
               line_distBetweenPts2D(&plug.centerPt,&plug.mousePrev);
-            float  stretchFactor = 1.0 + (fDivide((distMovedAway),
+            float  stretchFactor = 1.0 + (fDiv((distMovedAway),
                             (line_distBetweenPts2D(&plug.centerPt,&plug.mouse)+0.1f)));
             float  angle = line_getAngle2D( &plug.centerPt, &plug.mouse );
             undoContourDataChgCC( plug.view );
@@ -700,6 +726,37 @@ int imodPlugMouse(ImodView *vw, QMouseEvent *event, float imx, float imy,
     
     default:    // DM_NORMAL
     {
+      //%%%%%%%%%%%%%
+      if( plug.smartPtResizeMode && plug.but2Pressed )
+      {
+        Imod *imod  = ivwGetModel(plug.view);
+        Iobj *obj   = getCurrObj();
+        Iobj *cont  = getCurrCont();
+        int objIdx, contIdx, ptIdx;
+        imodGetIndex(imod, &objIdx, &contIdx, &ptIdx);
+        
+        if( !cont || !obj || isObjClosed(obj) )
+          return (2);
+        
+        float prevPtSize = imodPointGetSize(obj,cont,ptIdx);
+        
+        if( prevPtSize==0 )
+          return (2);
+        
+        undoPointAdditionCC( plug.view, ptIdx+1 );        // REGISTER UNDO
+        imodPointAdd( cont, &plug.mouse, ptIdx+1 );
+        imodSetIndex(imod, objIdx, contIdx, ptIdx+1);
+        undoFinishUnit( plug.view );                      // FINISH UNDO
+        
+        imodPointSetSize(cont, ptIdx+1, prevPtSize);
+        imodPointSetSize(cont, ptIdx,   prevPtSize);
+        
+        ivwDraw( plug.view, IMOD_DRAW_MOD | IMOD_DRAW_NOSYNC );    
+        
+        return (1);
+      }
+      //%%%%%%%%%%%%%
+      
       return (2);
     }
   }
@@ -726,7 +783,7 @@ static char *buttonLabels[] = {"Done", "Help"};
 static char *buttonTips[] = {"Close Drawing Tools", "Open help window"};
 
 DrawingTools::DrawingTools(QWidget *parent, const char *name) :
-DialogFrame(parent, 2, buttonLabels, buttonTips, true, "Drawing Tools", "", name)
+  DialogFrame(parent, 2, buttonLabels, buttonTips, true, "Drawing Tools", "", name)
 {
   const int LAYOUT_MARGIN   = 4;
   const int LAYOUT_SPACING  = 4;
@@ -767,6 +824,7 @@ DialogFrame(parent, 2, buttonLabels, buttonTips, true, "Drawing Tools", "", name
   typeRadio_Sculpt = diaRadioButton
     ("Warp           [6]", typeGbox, typeButtonGroup, gbLayout, 5,
      "Quickly correct bad regions of contour by dragging/warping the edges");
+  
   
   changeTypeSelected( plug.drawMode );
   
@@ -984,7 +1042,7 @@ bool DrawingTools::drawExtraObject( bool redraw )
   
   float zapZoom = 1.0f;                 // gets the zoom of the top-most zap window
   int noZap = ivwGetTopZapZoom(plug.view, &zapZoom); 
-  float sc = fDivide( 1.0f, zapZoom);   // tomogram distance for one screen pixel 
+  float sc = fDiv( 1.0f, zapZoom);   // tomogram distance for one screen pixel 
   
   //## IF CHANING Z HEIGHT: DRAW RECTANGLE REPRESENTING SLICES
   
@@ -1279,7 +1337,8 @@ void DrawingTools::initValues()
   plug.wheelBehav               = WH_SCULPTCIRCLE;
   plug.dKeyBehav                = DK_TOEND;
   plug.pgUpDownInc              = 1;
-  plug.useNumKeys               = true;
+  plug.useNumKeys               = false;
+  plug.smartPtResizeMode        = false;
   plug.markTouchedContsAsKey    = false;
   plug.wheelResistance          = 100;
   plug.showMouseInModelView     = false;
@@ -1301,13 +1360,13 @@ void DrawingTools::loadSettings()
   
   int nvals = prefGetGenericSettings("DrawingTools", savedValues, NUM_SAVED_VALS);
   
-  if(nvals!=NUM_SAVED_VALS)
+  if(nvals!=NUM_SAVED_VALS )
   {
     wprint("DrawingTools: Could not load saved values");
     QMessageBox::about( this, "-- Documentation --",
                         "If this is your first time using 'Drawing Tools' \n"
-                        "it is HIGHLY recommended you start by clicking 'Help' \n"
-                        "(at bottom of the plugin) and reading the documentation ! \n"
+                        "we HIGHLY recommended you click 'Help' \n"
+                        "(at bottom of the plugin) and watch the video tutorial! \n\n"
                         "                                   -- Andrew Noske" );
     return;
   }
@@ -1326,12 +1385,13 @@ void DrawingTools::loadSettings()
   plug.dKeyBehav                  = savedValues[11];
   plug.pgUpDownInc                = savedValues[12];
   plug.useNumKeys                 = savedValues[13];
-  plug.markTouchedContsAsKey      = savedValues[14];
-  plug.wheelResistance            = savedValues[15];
-  plug.selectedAction             = savedValues[16];
+  plug.smartPtResizeMode          = savedValues[14];
+  plug.markTouchedContsAsKey      = savedValues[15];
+  plug.wheelResistance            = savedValues[16];
   plug.selectedAction             = savedValues[17];
-  plug.testIntersetAllObjs        = savedValues[18];
-  plug.findCriteria               = savedValues[19];
+  plug.selectedAction             = savedValues[18];
+  plug.testIntersetAllObjs        = savedValues[19];
+  plug.selectedAction             = savedValues[20];
 }
 
 
@@ -1357,12 +1417,13 @@ void DrawingTools::saveSettings()
   saveValues[11]  = plug.dKeyBehav;
   saveValues[12]  = plug.pgUpDownInc;
   saveValues[13]  = plug.useNumKeys;
-  saveValues[14]  = plug.markTouchedContsAsKey;
-  saveValues[15]  = plug.wheelResistance;
-  saveValues[16]  = plug.selectedAction;
+  saveValues[14]  = plug.smartPtResizeMode;
+  saveValues[15]  = plug.markTouchedContsAsKey;
+  saveValues[16]  = plug.wheelResistance;
   saveValues[17]  = plug.selectedAction;
-  saveValues[18]  = plug.testIntersetAllObjs;
-  saveValues[19]  = plug.selectedAction;
+  saveValues[18]  = plug.selectedAction;
+  saveValues[19]  = plug.testIntersetAllObjs;
+  saveValues[20]  = plug.selectedAction;
   
   prefSaveGenericSettings("DrawingTools",NUM_SAVED_VALS,saveValues);
 }
@@ -2049,11 +2110,11 @@ void DrawingTools::printObjectDetailedInfo()
   int percentClockwise = calcPercentInt( cclockwiseConts, nonEmptyConts );
   int percentStippled  = calcPercentInt( stippledConts, nonEmptyConts );
   
-  float ptsPerCont = fDivide( totPts, nonEmptyConts );
-  float avgDistPts = fDivide( totLen, totPts - (openConts+singlePtConts)  );
-  float avgLen     = fDivide( totLen, nonEmptyConts );
-  float avgArea    = fDivide( totArea, nonEmptyConts );
-  float avgPtSize  = fDivide( totPtSize, nonEmptyConts );
+  float ptsPerCont = fDiv( totPts, nonEmptyConts );
+  float avgDistPts = fDiv( totLen, totPts - (openConts+singlePtConts)  );
+  float avgLen     = fDiv( totLen, nonEmptyConts );
+  float avgArea    = fDiv( totArea, nonEmptyConts );
+  float avgPtSize  = fDiv( totPtSize, nonEmptyConts );
   
   //## PRINT RESULTS:
   
@@ -2278,8 +2339,8 @@ void DrawingTools::printModelPointInfo()
     totConts += csize(obj);
     totEmpty += emptyConts;
     
-    float ptsPerCont = fDivide( totObjPts, csize(obj) );
-    float avgDistPts = fDivide( totObjLen, totObjPts  );    
+    float ptsPerCont = fDiv( totObjPts, csize(obj) );
+    float avgDistPts = fDiv( totObjLen, totObjPts  );    
           // NOTE: not accurate for open contours and single points (no length)
     
     if(emptyConts)
@@ -2290,8 +2351,8 @@ void DrawingTools::printModelPointInfo()
     wprint(" avg dist between pts = %g\n", avgDistPts );
   }
   
-  float ptsPerContAll = fDivide( totPts, totConts );
-  float avgDistPtsAll = fDivide( totLen, totPts );
+  float ptsPerContAll = fDiv( totPts, totConts );
+  float avgDistPtsAll = fDiv( totLen, totPts );
   
   wprint("\n------------\n");
   wprint("OVERALL:\n");
@@ -2364,7 +2425,7 @@ void DrawingTools::moreActions()
                     "current object,"
                   "Prints detailed information about the "
                     "current contour, or a range of them,"
-                  "Resets all setting to default" );
+                  "Resets all setting (for this plugin) to default" );
 	GuiDialogCustomizable dlg(&ds, "Perform Action", this);
 	dlg.exec();
 	if( ds.cancelled )
@@ -2450,12 +2511,24 @@ void DrawingTools::moreSettings()
                   "RECOMMENDED VALUE: 100" );
   
   ds.addLabel   ( "\n--- KEYBOARD ---" );
-  ds.addCheckBox( "use number keys to change mode", 
+  ds.addCheckBox( "use number keypad to change mode", 
                   &plug.useNumKeys,
-                  "if on: number keys [1]-[5] are intercepted \n"
-                  "and used to change the drawing mode, \n"
-                  "if off: can use number keys to move points \n"
-                  "as per normal");
+                  "If on: they keypad numbers [1]-[6] are intercepted \n"
+                  " and used to change the drawing mode. \n"
+                  "If off: the keypad can be used to move points \n"
+                  " as per normal... but mode can still be change with \n"
+                  " the normal number keys");
+  ds.addCheckBox( "smart point resize mode", 
+                  &plug.smartPtResizeMode,
+                  "If this mode is on, you can use the mouse wheel to resize points \n"
+                  "whenever and 'open' or 'scattered' object is selected. \n"
+                  "Furthermore, if you are in 'normal' drawing mode new points, \n"
+                  "created when button 2 is pressed, will have the same \n"
+                  "point size as the previous point in the contour. \n"
+                  "\n"
+                  "NOTE: This mode can be useful when drawing spheres or tubes \n"
+                  "of varying size. This mode has no effect on closed contour objects."
+                  );
   ds.addComboBox( "on [d] remove:",
                   "do nothing,"
                   "pts to end,"
@@ -2586,6 +2659,8 @@ void DrawingTools::sortContours()
                   "contour length,"
                   "area,"
                   "clockwise area,"
+                  "avg segment length,"
+                  "max segment length,"
                   "avg point size,"
                   "avg gray value,"
                   "interpolated,"
@@ -2604,6 +2679,8 @@ void DrawingTools::sortContours()
                   "Length of the contours (open or closed - depending on object/contour),"
                   "Area of the contour (smallest first),"
                   "From largest anti-clockwise to no area to largest clockwise area,"
+                  "From contour with least (average) distance between points to largest,"
+                  "From contour with smallest max distance between points to largest,"
                   "Average point size over all points in the contour "
                     "(using object default if not set),"
                   "Uses the average gray value of the pixel closest to each point,"
@@ -4507,7 +4584,7 @@ bool edit_selectVisiblePtNearCoords( Ipoint *mouse, float distScreenPix)
   
   float zoom = 1.0f;
   ivwGetTopZapZoom(plug.view, &zoom);
-  float dist = fDivide( distScreenPix, zoom );
+  float dist = fDiv( distScreenPix, zoom );
   float sqDist = dist*dist;
   
   //## TRY CURRENT CONTOUR FIRST:
@@ -4664,7 +4741,7 @@ void edit_executeSculpt()
     float mouseMoveDist = imodPointDistance( &plug.mousePrev, &plug.mouse );       
             // the distance the mouse moved from its previously recorded position 
     
-    int numIntermediates = fDivide(mouseMoveDist+2.0f, radius);
+    int numIntermediates = fDiv(mouseMoveDist+2.0f, radius);
             // the number of extra circles we will have to add between the last
             // and current mouse position to sculpt smoothly.
     
@@ -4910,7 +4987,7 @@ void edit_executeWarpStart()
   
   float zapZoom = 1.0f;                 // gets the zoom of the top-most zap window
   int noZap = ivwGetTopZapZoom(plug.view, &zapZoom); 
-  float sc = fDivide( 1.0f, zapZoom);   // tomogram distance for one screen pixel 
+  float sc = fDiv( 1.0f, zapZoom);   // tomogram distance for one screen pixel 
   float contortDistTol = 10.0f*sc;
   
   bool suitableContourSelected =
@@ -5888,6 +5965,8 @@ string edit_getSortValString(int sortCriteria)
     case(SORT_LENGTH):          returnStr = "CONTOUR'S LENGTH";  break;
     case(SORT_AREA):            returnStr = "CONTOUR'S AREA";  break;
     case(SORT_CLOCKWISEAREA):   returnStr = "CONTOUR'S CLOCKWISE AREA";  break;
+    case(SORT_AVGSEGLEN):       returnStr = "CONTOUR'S MEAN SEGMENT LENGTH";  break;
+    case(SORT_MAXSEGLEN):       returnStr = "CONTOUR'S MAX SEGMENT LENGTH";  break;
     case(SORT_AVGPTSIZE):       returnStr = "CONTOUR'S MEAN PT RADIUS";  break;
     case(SORT_AVGGRAY):         returnStr = "CONTOUR'S MEAN PT GRAY VALUE";  break;
     case(SORT_STIPPLED):        returnStr = "CONTOUR'S STIPPLED VALUE";  break;
@@ -6219,7 +6298,24 @@ float edit_getSortValue( int sortCriteria, Iobj *obj, Icont *cont, int ptIdx )
         returnValue *= -1;
     }
       break;
-        
+      
+    case(SORT_AVGSEGLEN):
+    {
+      int    closed = isContClosed( obj, cont ) ? 1 : 0;
+      float  length = imodContourLength(cont, closed); 
+      returnValue = fDiv( length , psize(cont) );
+    }
+      break;
+      
+    case(SORT_MAXSEGLEN):
+    {
+      float maxSegLen = 0;
+      for( int i=0; i<psize(cont); i++)
+        updateMax( maxSegLen, imodPointDistance( getPt(cont,i), getPt(cont,i+1) ) );
+      returnValue = maxSegLen;
+    }
+      break;
+      
     case(SORT_AVGPTSIZE):
       returnValue = edit_getAvgPtSize(obj,cont);
       break;

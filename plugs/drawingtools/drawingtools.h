@@ -126,7 +126,7 @@ public slots:
 //## CONSTANTS:
 
 enum drawmodes      { DM_NORMAL, DM_SCULPT, DM_JOIN, DM_TRANSFORM, DM_ERASER,
-                      DM_WARP };
+                      DM_WARP, DM_CIRCLE };
 enum smoothmodes    { RD_TOL, RD_MINAREA };
 enum wheelbehaviour { WH_NONE, WH_SCULPTCIRCLE, WH_SLICES, WH_CONTS, WH_PTS, WH_PTSIZE };
 enum dkeybehavior   { DK_NONE, DK_TOEND, DK_NEARESTEND, DK_DELETEPT, DK_DELETECONT,
@@ -135,13 +135,14 @@ enum sculptresize   { SR_STAGGERED, SR_LINEAR, SR_LOG };
 
 enum sortcriteria   { SORT_SURFACENUM,
                       SORT_NUMPTS, SORT_LENGTH, SORT_AREA, SORT_CLOCKWISEAREA,
+                      SORT_AVGSEGLEN, SORT_MAXSEGLEN,
                       SORT_AVGPTSIZE, SORT_AVGGRAY, SORT_STIPPLED, SORT_RANDOM, 
                       SORT_AVGX, SORT_AVGY, SORT_AVGZ,
                       SORT_MINX, SORT_MINY, SORT_MINZ,
                       SORT_PTX, SORT_PTY, SORT_PTZ,
                       SORT_PTSIZE, SORT_PTGREY, SORT_NUMOPTIONS };
 
-const int NUM_SAVED_VALS = 20;
+const int NUM_SAVED_VALS = 21;
 
 //-------------------------------
 //## DRAWINGTOOLS DATA STRUCTURE:
@@ -183,8 +184,8 @@ struct DrawingToolsData   // contains all local plugin data
   int  pgUpDownInc;             // the number of slices to iterate when
                                 //   PageUp or PageDown is pressed
   
-  
   bool   useNumKeys;            // intercepts number keys [1]-[5] to change draw mode
+  bool   smartPtResizeMode;     // if true: allows "smart point resize mode".
   bool   markTouchedContsAsKey; // if true: any contour modified with sculpt changes
                                 //  to unstippled
   int    wheelResistance;       // the higher the value, the slower mouse scrolling works
@@ -200,6 +201,9 @@ struct DrawingToolsData   // contains all local plugin data
                                 // "More Actions >> sort ... " (see: sortcriteria)
   int    findCriteria;          // the lat find criteria selected via:
                                 // "More Actions >> sort ... " (see: sortcriteria)
+  
+  //int    numSavedAction;        // is set to NUM_SAVED_VALS and helps ensure correct
+  //                              //  number of values are saved/loaded
   
   //## MOUSE:
   
