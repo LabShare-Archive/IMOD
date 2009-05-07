@@ -15,6 +15,9 @@
     $Revision$
 
     $Log$
+    Revision 1.16  2009/04/07 08:16:09  tempuser
+    another modification
+
     Revision 1.15  2009/03/31 04:53:33  tempuser
     fixed line_doLinesCrossAndWhere (I hope)
 
@@ -360,6 +363,32 @@ Ipoint getPtCardinalSpline( float fract, Ipoint p0, Ipoint p1, Ipoint p2,
 
 
 //------------------------
+//-- Sets MBR to default - with LL point all max value and UR point min value
+//-- ready to add points with mbr_addPt.
+
+void mbr_reset( Ipoint *ll, Ipoint *ur )
+{
+  setPt( ll, FLOAT_MAX, FLOAT_MAX, FLOAT_MAX );
+  setPt( ur, FLOAT_MIN, FLOAT_MIN, FLOAT_MIN );
+}
+
+
+//------------------------
+//-- Adjusts the MBR points so they include the point "pt" provided.
+
+void mbr_addPt( Ipoint *pt, Ipoint *ll, Ipoint *ur )
+{
+  if( pt->x < ll->x )   ll->x = pt->x;
+  if( pt->y < ll->y )   ll->y = pt->y;
+  if( pt->z < ll->z )   ll->z = pt->z;
+  
+  if( pt->x > ur->x )   ur->x = pt->x;
+  if( pt->y > ur->y )   ur->y = pt->y;
+  if( pt->z > ur->z )   ur->z = pt->z;
+}
+
+
+//------------------------
 //-- Used to calculate distance between a point and 2 edges.
 //-- (but does NOT check wrap around)
 
@@ -479,6 +508,32 @@ float line_getAngle2DPos ( Ipoint *linept1, Ipoint *linept2 )
 {
   return (float)fMod( (line_getAngle2D(linept1,linept2)+360.0f), 360.0f );
 }
+
+
+
+//------------------------
+//-- Calculates the angle (in RADIANS) of a line from the horizontal
+//-- (the angle formed when a ray projected left of the first point)
+//-- NOTE: Returned angle will be between -PI and PI.
+
+float line_getRadians2D ( Ipoint *linept1, Ipoint *linept2 )
+{
+	float oppY = linept2->y - linept1->y;
+	float adjX = linept2->x - linept1->x;
+	return atan2( oppY , adjX );
+}
+
+//------------------------
+//-- Calculates the angle theta (in RADIANS) between two connected lines defined by the points: {(x1,y1), (x2,y2)} and {(x2,y2), (x3,y3)}.
+//-- (i.e. two lines connected with pt2 in the middle).
+
+float line_radiansFormed3Pts( Ipoint *pt1, Ipoint *pt2, Ipoint *pt3  )
+{
+	float line1Rads = line_getRadians2D ( pt1, pt2 );
+	float line2Rads = line_getRadians2D ( pt3, pt2 );
+	return fModWithinRange(line2Rads-line1Rads , -PI, PI );
+}
+
 
 
 
@@ -668,11 +723,11 @@ bool line_doLinesCrossAndWhere( Ipoint *line1pt1, Ipoint *line1pt2,
   double a1 = line1pt2->y-line1pt1->y;      // rise  (difference Y)
   double b1 = line1pt1->x-line1pt2->x;      // run   (difference X)
   double c1 = line1pt2->x*line1pt1->y - line1pt1->x*line1pt2->y;
-  //{ a1*x + b1*y + c1 = 0 is line 1 }
+                                            //{ a1*x + b1*y + c1 = 0 is line 1 }
   double a2 = line2pt2->y-line2pt1->y;
   double b2 = line2pt1->x-line2pt2->x;
   double c2 = line2pt2->x*line2pt1->y - line2pt1->x*line2pt2->y;
-  //{ a2*x + b2*y + c2 = 0 is line 2 }
+                                            //{ a2*x + b2*y + c2 = 0 is line 2 }
   double denom = (a1*b2) - (a2*b1);
   
   if (denom == 0)     // lines are parallel
@@ -683,6 +738,247 @@ bool line_doLinesCrossAndWhere( Ipoint *line1pt1, Ipoint *line1pt2,
   intercept->z = line1pt1->z;
   return true;
 }
+
+
+//------------------------
+//-- Takes two ray (defined by two points) and determines the point they intersect.
+//-- NOTE: If the rays are parallen (thus don't intersect) returns false.
+
+bool line_getInterceptWhereRayCross( Ipoint *line1pt1, Ipoint *line1pt2,
+                                     Ipoint *line2pt1, Ipoint *line2pt2,
+                                     Ipoint *intercept )
+{
+  double a1 = line1pt2->y-line1pt1->y;      // rise  (difference Y)
+  double b1 = line1pt1->x-line1pt2->x;      // run   (difference X)
+  double c1 = line1pt2->x*line1pt1->y - line1pt1->x*line1pt2->y;
+                                            //{ a1*x + b1*y + c1 = 0 is line 1 }
+  double a2 = line2pt2->y-line2pt1->y;
+  double b2 = line2pt1->x-line2pt2->x;
+  double c2 = line2pt2->x*line2pt1->y - line2pt1->x*line2pt2->y;
+                                            //{ a2*x + b2*y + c2 = 0 is line 2 }
+  double denom = (a1*b2) - (a2*b1);
+  
+  if (denom == 0)     // lines are parallel
+    return false;
+  
+  intercept->x = (b1*c2 - b2*c1) / denom;
+  intercept->y = (a2*c1 - a1*c2) / denom;
+  intercept->z = line1pt1->z;
+  return true;
+}
+
+
+//------------------------
+//-- Takes two ray (each defined by two points) and a given point between them and calculates how close
+//-- the point is to the first ray, compared to the second ray.
+//-- 
+//-- ===================================================
+//--            X  intercept
+//--
+//--            o
+//--            |   o
+//--            |    \
+//--       ray1 |     \ ray2
+//--            o  X   \
+//--               pt   \
+//--                     o
+//--
+//--    In this example ray1-intercept-pt forms 15 degrees
+//--    and ray1-intercept-ray2 forms 30 degrees, so value
+//--    returned would be 0.5
+//-- ===================================================
+//--
+//--        o          o
+//--         \          \
+//--          \  pt      \
+//--   ray1X-- X  X       X --- ray2X
+//--            \          \
+//--             o          o
+//--
+//--    In this example the rays are parallel so it's calculated differently.
+//--    The pt is 1/4 the distance between the points ray1X and ray2X
+//--    so 0.25 is returned.
+//--
+
+double line_getFractPtBetweenTwoRays( Ipoint *ray1pt1, Ipoint *ray1pt2,
+                                      Ipoint *ray2pt1, Ipoint *ray2pt2, Ipoint *pt )
+{
+	double a1 = ray1pt2->y-ray1pt1->y;
+	double b1 = ray1pt1->x-ray1pt2->x;
+	double c1 = ray1pt2->x*ray1pt1->y - ray1pt1->x*ray1pt2->y;		//{ a1*x + b1*y + c1 = 0 is line 1 }
+	
+	double a2 = ray2pt2->y-ray2pt1->y;
+	double b2 = ray2pt1->x-ray2pt2->x;
+	double c2 = ray2pt2->x*ray2pt1->y - ray2pt1->x*ray2pt2->y;		//{ a2*x + b2*y + c2 = 0 is line 2 }
+	
+	double denom = a1*b2 - a2*b1;
+	
+	if (denom == 0)						// if rays are parallel.
+	{
+		if( a1 == 0 || a2 == 0 )			// if both lines are horizontal (no x-intercept) calculate y intercept.
+		{
+			double ray1Y = -(a1*pt->x + c1)/b1;
+			double ray2Y = -(a2*pt->x + c2)/b2;
+			//cout << " HORIZONTAL! ray1Y=" << ray1Y << " ray2Y=" << ray2Y << endl;
+			return fDiv( pt->y - ray1Y, ray2Y - ray1Y );
+		}
+		else
+		{
+			double ray1X = -(b1*pt->y + c1)/a1;
+			double ray2X = -(b2*pt->y + c2)/a2;
+			//cout << " PARALLEL!   ray1X=" << ray1X << " ray2X=" << ray2X << endl;
+			return fDiv( pt->x - ray1X , ray2X - ray1X );
+		}
+	}
+	else
+	{
+		//## CALCULATE INTERCEPT POINT:
+		Ipoint intercept;
+		intercept.x = (b1*c2 - b2*c1) / denom;
+		intercept.y = (a2*c1 - a1*c2) / denom;
+		intercept.z = ray1pt1->z;
+		
+		double angleBetweenRays               = line_radiansFormed3Pts( ray1pt1, &intercept, ray2pt1 );
+		double angleRayOneAndInterceptToPoint = line_radiansFormed3Pts( ray1pt1, &intercept, pt      );
+		
+		//cout << " angleBetweenRays=" << angleBetweenRays << " angleRayOneAndInterceptToPoint=" << angleRayOneAndInterceptToPoint << endl;                  //%%%%%%
+		
+		return fDiv( angleRayOneAndInterceptToPoint, angleBetweenRays );
+	}
+}
+
+
+//------------------------
+//-- Takes two lines (each defined by two points) and a given point between them and calculates how close
+//-- far along the lines the point lies, imagining the lines are joined to form a quadrilatral.
+//-- NOTE: If you are sure the point is inside the quadrilateral you can set checkOutsideNegative to false.
+//-- 
+//-- ===================================================
+//--          l1pt1     l1pt2
+//--            o--------o
+//--            `         ` 
+//--            X     pt   ` 
+//--            `     X     `   
+//--            o__          X
+//--      l2pt1    --__       ` 
+//--                   --__    ` 
+//--                       --__ ` 
+//--                           --o   l2pt2
+//--
+//--    In this example the fractBetweenLines = 0.5
+//-- ===================================================
+//--
+//--        o--------------o
+//--         `              `
+//--          `          pt  `
+//--           X           X  X           
+//--            `              `
+//--             o--------------o
+//--
+//--   In this example the fractBetweenLines = 0.9
+//--
+//-- ===================================================
+//--
+//--        o--------------o
+//--         `              `
+//--          `              `
+//--     X     X              X           
+//--            `              `
+//--             o--------------o
+//--
+//--   In this example the fractBetweenLines = -0.3
+//--   (but only if checkOutsideNegative==true)
+//--
+
+double line_getFractPtBetweenTwoLines( Ipoint *l1p1, Ipoint *l1p2,
+                                       Ipoint *l2p1, Ipoint *l2p2,
+                                       Ipoint *pt, bool checkOutsideNegative )
+{
+	//## CALCULATE FRACTRIGHT:
+	
+	double a1 = l1p2->y-l1p1->y;
+	double b1 = l1p1->x-l1p2->x;
+	double c1 = l1p2->x*l1p1->y - l1p1->x*l1p2->y;		//{ a1*x + b1*y + c1 = 0 is line 1 }
+	
+	double a2 = l2p2->y-l2p1->y;
+	double b2 = l2p1->x-l2p2->x;
+	double c2 = l2p2->x*l2p1->y - l2p1->x*l2p2->y;		//{ a2*x + b2*y + c2 = 0 is line 2 }
+	
+	double denom = a1*b2 - a2*b1;
+	
+	//## CALCULATE INTERCEPT POINT OF TOP AND BOTTOM LINES:
+	
+	Ipoint lineIntercept;		// where the two lines intercept each other
+	
+	if (denom == 0)						// if lines are parallel: make "lineIntercept" same offset/angle as first line
+	{
+		lineIntercept.x = pt->x + (l1p2->x - l1p1->x);
+		lineIntercept.y = pt->y + (l1p2->y - l1p1->y);
+		lineIntercept.z = l1p1->z;
+	}
+	else								// if lines not parallel: calculate "lineIntercept" where they cross
+	{
+		lineIntercept.x = (b1*c2 - b2*c1) / denom;
+		lineIntercept.y = (a2*c1 - a1*c2) / denom;
+		lineIntercept.z = l1p1->z;
+	}
+	
+	Ipoint incptBetweenPt1s;
+  line_getInterceptWhereRayCross( &lineIntercept, pt, l1p1, l2p1, &incptBetweenPt1s );
+	Ipoint incptBetweenPt2s;
+  line_getInterceptWhereRayCross( &lineIntercept, pt, l1p2, l2p2, &incptBetweenPt2s );
+	
+	double fractBetweenLines = fDiv( line_distBetweenPts2D( &incptBetweenPt1s, pt ), line_distBetweenPts2D( &incptBetweenPt1s, &incptBetweenPt2s ) );
+	
+	if (checkOutsideNegative)					
+		if( ABS( line_radiansFormed3Pts(pt,&incptBetweenPt1s,&incptBetweenPt2s) )  > 3 )	// if point occurs behind the line connecting l1p1 and l2p1: make fractBetweenLines negative		// if (incptBetweenPt1s < incptBetweenPt2s && pt < incptBetweenPt1s || incptBetweenPt1s > incptBetweenPt2s && pt > incptBetweenPt1s)
+			fractBetweenLines = -fractBetweenLines;
+  
+	return (fractBetweenLines);
+}
+
+
+//------------------------
+//-- Takes a given point inside quadrilateral 1 (defined by four points) and returns
+//-- the matching point inside quadrilateral 2.
+//-- 
+//-- ===================================================
+//--                                                                  
+//--            quad1                              quad2                            
+//--            o---X---o                       o----X----o                                 
+//--            |        \                       \         \                                  
+//--            X     pt  \                       \   ptR   \                                 
+//--            |     X    \                       X    X    X                                    
+//--            o__         X                       \         \                                 
+//--               --__      \                       \         \                       
+//--                   -X__   \                       o----X----o                                    
+//--                       --__\                                                        
+//--                           -o                                                        
+//--                                                                                                                
+//--    In this example the pt is fractionUp = 0.5 & fractionRight = 0.5
+//--    inside quad1 and cooresponding point in quad2 is shown as (ptR).
+//--
+
+Ipoint point_findPtInQuad1InMatchingQuad2( Ipoint *pt, 
+                                           Ipoint *q1BL, Ipoint *q1TL,
+                                           Ipoint *q1TR, Ipoint *q1BR,
+                                           Ipoint *q2BL, Ipoint *q2TL,
+                                           Ipoint *q2TR, Ipoint *q2BR )
+{
+	double q1FractUp       = line_getFractPtBetweenTwoLines( q1BL, q1TL, q1BR, q1TR, pt, true );
+	double q1FractRight    = line_getFractPtBetweenTwoLines( q1BL, q1BR, q1TL, q1TR, pt, true );
+	
+	Ipoint q2PartwayAlongBottom = line_findPtFractBetweenPts2D( q2BL, q2BR, q1FractRight );
+	Ipoint q2PartwayAlongTop    = line_findPtFractBetweenPts2D( q2TL, q2TR, q1FractRight );
+	Ipoint ptR = line_findPtFractBetweenPts2D( &q2PartwayAlongBottom, &q2PartwayAlongTop, q1FractUp );
+	
+	return (ptR);
+}
+
+
+
+
+
 
 
 
@@ -1325,7 +1621,7 @@ void cont_addChamferPts( Icont *cont, Ipoint *ptPrev, Ipoint *ptCurr, Ipoint *pt
 	else					// else if angle on outside is <= 180 degrees (obtuse or acute) then:
 	{             //   add a SINGLE point in the middle
 		float angleInset = angleMadeByPoint/2.0f;
-		float distFromCorner = fDivide( distOffset, sin(angleInset*DEGS_TO_RADS) );
+		float distFromCorner = fDiv( distOffset, sin(angleInset*DEGS_TO_RADS) );
 		
 		Ipoint midSegmentPt = line_getPtRelativeToEnd( ptPrev, ptCurr, distFromCorner,
                                                           180.0-angleInset );
@@ -1596,7 +1892,7 @@ int cont_addPtsSmooth( Icont *cont, float maxDist, float tensileFract, bool clos
       int numPtsToAdd = ceil(distToNextPt / maxDist) - 1;
       if( distToNextPt==0 || numPtsToAdd<=0 )
         continue;
-      float fractBetweenPts = fDivide( 1.0f, numPtsToAdd+1.0f );
+      float fractBetweenPts = fDiv( 1.0f, numPtsToAdd+1.0f );
       
       for(int j=1; j<=numPtsToAdd; j++)
       {
@@ -1637,7 +1933,7 @@ int cont_addPtsSmooth( Icont *cont, float maxDist, float tensileFract, bool clos
       
       if( numPtsToAdd<=0 )
         continue;
-      float fractBetweenPts = fDivide( 1.0f, numPtsToAdd+1.0f );
+      float fractBetweenPts = fDiv( 1.0f, numPtsToAdd+1.0f );
       
       for(int j=1; j<=numPtsToAdd; j++)
       {
@@ -3622,7 +3918,7 @@ Ipoint cont_getPtDistAlongLength( Icont *cont, float dist, bool closed, int star
     
 		if( dist <= distNextPt )
     {
-      float fractAlongSeg = fDivide((dist-distCurrPt),(distNextPt-distCurrPt));
+      float fractAlongSeg = fDiv((dist-distCurrPt),(distNextPt-distCurrPt));
       returnPt = line_findPtFractBetweenPts2D( ptCurr, ptNext, fractAlongSeg );
       return (returnPt);
     }
@@ -3667,7 +3963,7 @@ vector<float> cont_getFractPtsAlongLength( Icont *cont, bool closed, int startPt
     Ipoint *ptPrev = getPt( cont, startPt+(p-1) );
     
 		cumLengthToPt += imodPointDistance( ptCurr, ptPrev );
-		fractAlongLengthV.push_back( fDivide(cumLengthToPt,contLength) );
+		fractAlongLengthV.push_back( fDiv(cumLengthToPt,contLength) );
 	}
   
   return fractAlongLengthV;
@@ -3710,13 +4006,13 @@ int cont_addPtsFractsAlongLength( Icont *cont, Icont *contNew,
       imodPointAppend( contNew, ptCurr );
     
 		cumLengthToNextPt += imodPointDistance( ptCurr, ptNext );
-    fractNextPt       = fDivide( cumLengthToNextPt, contLength );
+    fractNextPt       = fDiv( cumLengthToNextPt, contLength );
     
     while( !allFractsFound )
     {
       if( fractsAlongLen[i] <= fractNextPt )
       {
-        float fractAlongSeg = fDivide( (fractsAlongLen[i] - fractCurrPt),
+        float fractAlongSeg = fDiv( (fractsAlongLen[i] - fractCurrPt),
                                        (fractNextPt - fractCurrPt) );
         Ipoint newPt = line_findPtFractBetweenPts2D( ptCurr, ptNext, fractAlongSeg );
         imodPointAppend( contNew, &newPt );

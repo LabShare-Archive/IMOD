@@ -97,6 +97,7 @@ inline Ipoint *getPtNoWrap(Icont *cont, int idx);
 inline Ipoint *getLastPt(Icont *cont );
 inline Ipoint *getFirstPt(Icont *cont );
 inline void setPt(Ipoint *pt, float x, float y, float z);
+inline Ipoint newPt( float x, float y, float z );
 inline bool ptsEqual( Ipoint *pt1, Ipoint *pt2 );
 inline bool ptsApproxEqual( Ipoint *pt1, Ipoint *pt2, float prec );
 inline void removePtsSize( Icont *cont );
@@ -140,6 +141,8 @@ Ipoint getPtCardinalSpline( float fract, Ipoint p0, Ipoint p1, Ipoint p2,  Ipoin
 //-------------------------------
 //## MINIMUM BOUNDING RECTANGLE (MBR) RELATED FUNCTIONS:
 
+void mbr_reset( Ipoint *ll, Ipoint *ur );
+void mbr_addPt( Ipoint *pt, Ipoint *ll, Ipoint *ur );
 float mbr_distToNearestEdge(float val, float min, float max);
 float mbr_distToNearestEdge(float min1, float max1, float min2, float max2);
 float mbr_distBetweenBBoxes2D(Ipoint *ll1, Ipoint *ur1, Ipoint *ll2, Ipoint *ur2);
@@ -156,6 +159,9 @@ bool mbr_doBBoxesOverlap2D(Ipoint *p1ll, Ipoint *p1ur, Ipoint *p2ll, Ipoint *p2u
 float line_getAngle2D ( Ipoint *linept1, Ipoint *linept2 );
 float line_getAngle2DPos ( Ipoint *pt1, Ipoint *pt2 );
 
+float line_getRadians2D ( Ipoint *linept1, Ipoint *linept2 );
+float line_radiansFormed3Pts( Ipoint *pt1, Ipoint *pt2, Ipoint *pt3  );
+
 Ipoint line_getPtHalfwayBetween(Ipoint *pt1, Ipoint *pt2);                    // NEW
 Ipoint line_findPtFractBetweenPts2D( const Ipoint *pt1, const Ipoint *pt2, float fractBetweenPts );
 Ipoint line_findPtFractBetweenPts( const Ipoint *pt1, const Ipoint *pt2, const float fractBetweenPts );
@@ -169,6 +175,11 @@ float line_crossProduct3Points( Ipoint *pt1, Ipoint *pt2, Ipoint *pt3);
 float line_angleFormed3Pts( Ipoint *pt1, Ipoint *pt2, Ipoint *pt3  );
 Ipoint line_getPtRelativeToEnd( Ipoint *start, Ipoint *end, float distFromEnd, float angleFromStraight );                         //NEW
 bool line_doLinesCrossAndWhere( Ipoint *line1pt1, Ipoint *line1pt2, Ipoint *line2pt1, Ipoint *line2pt2, Ipoint *intercept );
+bool line_getInterceptWhereRayCross( Ipoint *line1pt1, Ipoint *line1pt2, Ipoint *line2pt1, Ipoint *line2pt2, Ipoint *intercept );
+double line_getFractPtBetweenTwoRays( Ipoint *ray1pt1, Ipoint *ray1pt2, Ipoint *ray2pt1, Ipoint *ray2pt2, Ipoint *pt );
+double line_getFractPtBetweenTwoLines( Ipoint *l1p1, Ipoint *l1p2, Ipoint *l2p1, Ipoint *l2p2, Ipoint *pt, bool checkOutsideNegative );
+Ipoint point_findPtInQuad1InMatchingQuad2( Ipoint *pt, Ipoint *q1BL, Ipoint *q1TL, Ipoint *q1TR, Ipoint *q1BR, Ipoint *q2BL, Ipoint *q2TL, Ipoint *q2TR, Ipoint *q2BR );
+
 bool line_isKiss( Ipoint *pMid, Ipoint *p1,Ipoint *p2,    Ipoint *p3, Ipoint *p4 );
 bool line_twoKiss( Ipoint *a1, Ipoint *a2, Ipoint *a3,    Ipoint *b1, Ipoint *b2, Ipoint *b3 );
 
@@ -402,6 +413,17 @@ inline void setPt(Ipoint *pt, float x, float y, float z)
   pt->x = x;
   pt->y = y;
   pt->z = z;
+}
+
+//------------------------
+//-- Used to create a new point in one call.
+
+inline Ipoint newPt( float x, float y, float z )
+{
+  Ipoint pt;
+  pt.x = x;
+  pt.y = y;
+  pt.z = z;
 }
 
 

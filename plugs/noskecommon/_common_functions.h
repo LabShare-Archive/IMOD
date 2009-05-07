@@ -100,8 +100,8 @@ inline float fModWithinRange( float val, float min, float max );
 inline void changeIntWithinRange( int &val, int min, int max, int increment );
 inline void cycleIntWithinRange( int &val, int min, int max, int increment );
 template <typename type>  void changeNumWithinRange( type &val, type min, type max, type changeAmount );
-inline float fDivide( float numerator, float denominator );
-inline float fDivideCustom( float numerator, float denominator, float infinityValue=FLOAT_MAX );
+inline float fDiv( float numerator, float denominator );
+inline float fDivCustom( float numerator, float denominator, float infinityValue=FLOAT_MAX );
 inline bool isFactor( float value, float divisor );
 inline int roundToInt(float x);
 inline float roundPrec( float value, float precision );
@@ -373,7 +373,7 @@ inline void changeNumWithinRange( type &val, type min, type max,
 
 //----------------
 //-- Used to avoid divide by 0 error
-inline float fDivide( float numerator, float denominator )
+inline float fDiv( float numerator, float denominator )
 {
 	if (denominator == 0)
 		return FLOAT_MAX;
@@ -382,7 +382,7 @@ inline float fDivide( float numerator, float denominator )
 
 //----------------
 //-- Used to avoid divide by 0 error
-inline float fDivideCustom( float numerator, float denominator,
+inline float fDivCustom( float numerator, float denominator,
                              float infinityValue )
 {
 	if (denominator == 0)
@@ -928,7 +928,7 @@ inline vector<type> vector_sort( vector<type> v, int startIdx, int endIdx )
   
 #if defined (__APPLE__)			
         // NOTE: For some reason the "sort( )" command doesn't work on OSX, so
-        //       I've had to write my own bukket sort(which is far less as efficient)
+        //       I've had to write my own bucket sort(which is far less as efficient)
   
 	vector<type> returnVec = v;
   
@@ -936,7 +936,7 @@ inline vector<type> vector_sort( vector<type> v, int startIdx, int endIdx )
 	{
 		int minIdx = i;
 		
-		for(int j=i+1; j<(int)v.size(); j++)
+		for(int j=i+1; j<=endIdx; j++)
 			if( returnVec[j] < returnVec[minIdx] )
 				minIdx = j;
     
