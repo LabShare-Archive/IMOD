@@ -244,77 +244,7 @@ void imodPlugExecute(ImodView *inImodView)
     plug.middlePt.y = plug.ysize / 2;
     plug.middlePt.z = plug.zsize / 2;
     
-    //** MAIN OPTIONS:
-    
-    plug.viewMinN           = 1;
-    plug.viewMaxN           = plug.zsize;
-    plug.contMinN           = 6;
-    plug.contMaxN           = 9999;
-    
-    plug.viewMin            = plug.viewMinN - 1;
-    plug.viewMax            = plug.viewMaxN - 1;
-    plug.contMin            = plug.contMinN - 1;
-    plug.contMax            = plug.contMaxN - 1;
-    
-    plug.showExpectedPos    = 1;
-    plug.showSpheres        = true;
-    plug.sphereSize         = 3;
-    plug.lineDisplayType    = LD_ALL;
-    plug.tiltDisplayType    = TD_OFF;
-    plug.estPosMethod       = EM_NEARESTTWO;
-        
-    //** MORE SETTINGS:
-    
-    plug.seedView              = int(plug.zsize / 2);
-    plug.tiltIncrement         = 1.0;
-    plug.tiltAxisAngle         = -11.7;
-    plug.tiltOffsetX           = 0;
-    plug.biggestHoleGrid       = 20;
-    plug.biggestHoleInset      = -100;
-    
-    plug.expPtDisplayType      = ED_CROSS;
-    plug.expPtSize             = 6;
-    plug.sizeLineSpheres       = 0;
-    plug.lineDisplayWidth      = 1;
-    plug.sizePurpleSpheres     = 10;
-    plug.sizeCheckedPts        = 1.1;
-    
-    plug.selectedAction        = 0;
-    plug.sortCriteria          = 0;
-    plug.autoSaveSettings      = true;
-    
-    //** KEYBOARD AND MOUSE OPTIONS:
-    
-    plug.wheelBehav            = WH_SMART;
-    plug.wheelResistance       = 100;
-    plug.disableHotKeys        = false;
-    plug.includeEndsResid      = false;
-    plug.searchRangeOnly       = false;
-    plug.contsToSearch         = SC_ALL;
-    plug.dKeyBehav             = DK_OPPOSITEMIDDLE;
-    plug.mKeyBehav             = MK_GOTOMIDDLE;
-    plug.wCurrContOnly         = true;
-    plug.wWeightedDiv          = 15;
-    plug.uKeyBehav             = UK_TOGGLEPTCHECKED;
-    plug.enterAction           = EN_PREVUNCHECKED;
-    plug.minPtsEnter           = plug.zsize - 1;
-    plug.maxPtsEnter           = plug.zsize;
-    plug.enterPrint            = false;
-    
-    //** SMOOTHING OPTIONS:
-    
-    plug.smoothCurrContOnly    = 1;
-    plug.smoothFillGaps        = true;
-    plug.smoothBigResidFirst   = false;
-    plug.smoothMoveYOnly       = false;
-    plug.smoothLeaveSeed       = true;
-    plug.smoothLeaveEnds       = true;
-    plug.smoothLeaveCurrV      = false;
-    plug.smoothMoveFract       = 1.0;
-    plug.smoothMinResid        = 0;
-    plug.smoothIterations      = 1;
-    plug.smoothAdjacentV       = false;
-    plug.smoothNumViews        = 5;
+    plug.window->initValues();
     
     //** OTHER:
     
@@ -404,6 +334,13 @@ int imodPlugEvent(ImodView *vw, QEvent *event, float imx, float imy)
       case( WH_POINTS ):
       {
         plug.window->advanceSelectedPointInCurrCont( change );
+        if( plug.centerPtOnScroll )
+        {
+          Imod *imod = ivwGetModel(plug.view);
+          Ipoint *pt = imodPointGet(imod);
+          if (pt)
+            ivwSetTopZapCenter(plug.view, pt->x, pt->y, pt->z, false);
+        }
         plug.window->drawExtraObject(false);
         ivwRedraw( plug.view );
         return 1;
@@ -429,12 +366,34 @@ int imodPlugEvent(ImodView *vw, QEvent *event, float imx, float imy)
             int newPtIdx = bead_getPtIdxOnView( getCurrCont(), newView );
             imodSetIndex(imod, objIdx, contIdx, newPtIdx);
             
+            if( plug.centerPtOnScroll )
+            {
+              Ipoint *pt = imodPointGet(imod);
+              if (pt)
+                ivwSetTopZapCenter(plug.view, pt->x, pt->y, pt->z, false);
+            }
             plug.window->drawExtraObject(false);
             ivwRedraw( plug.view );
             return 1;
           }
+          
+          if( plug.centerPtOnScroll )
+          {
+            Ipoint estPt;
+            if ( bead_getExpectedPosOfPoint( getCurrCont(), newView, &estPt ) )
+            {
+              ivwSetTopZapCenter(plug.view, estPt.x, estPt.y, estPt.z, false);
+              plug.window->drawExtraObject(true);
+              return 1;
+            }
+          }
         }
         edit_changeSelectedView( change, true );
+        
+       
+        
+        
+        
         plug.window->drawExtraObject(true);
         return 1;
       }
@@ -916,7 +875,7 @@ bool BeadHelper::drawExtraObject( bool redraw )
   
   float zapZoom = 1.0f;
   ivwGetTopZapZoom(plug.view, &zapZoom);
-  float sc = fDivide( 1.0f, zapZoom);
+  float sc = fDiv( 1.0f, zapZoom);
   
   Imod *imod = ivwGetModel(plug.view);
   Iobj *obj = imodObjectGet(imod);
@@ -1128,8 +1087,8 @@ bool BeadHelper::drawExtraObject( bool redraw )
     {
       int colsX = int(plug.xsize / plug.biggestHoleGrid);
       int rowsY = int(plug.ysize / plug.biggestHoleGrid);
-      float sideLenX = fDivide(plug.xsize, colsX);
-      float sideLenY = fDivide(plug.ysize, rowsY);
+      float sideLenX = fDiv(plug.xsize, colsX);
+      float sideLenY = fDiv(plug.ysize, rowsY);
       
       float inset = plug.biggestHoleInset;
       float maxX  = plug.xsize-inset;
@@ -1175,6 +1134,85 @@ void BeadHelper::clearExtraObj()
 }
 
 
+//------------------------
+//-- Used to initialize default values into BeadHelperData.
+
+void BeadHelper::initValues()
+{
+  //** MAIN OPTIONS:
+  
+  plug.viewMinN           = 1;
+  plug.viewMaxN           = plug.zsize;
+  plug.contMinN           = 6;
+  plug.contMaxN           = 9999;
+  
+  plug.viewMin            = plug.viewMinN - 1;
+  plug.viewMax            = plug.viewMaxN - 1;
+  plug.contMin            = plug.contMinN - 1;
+  plug.contMax            = plug.contMaxN - 1;
+  
+  plug.showExpectedPos    = 1;
+  plug.showSpheres        = true;
+  plug.sphereSize         = 3;
+  plug.lineDisplayType    = LD_ALL;
+  plug.tiltDisplayType    = TD_OFF;
+  plug.estPosMethod       = EM_NEARESTTWO;
+  
+  //** MORE SETTINGS:
+  
+  plug.seedView              = int(plug.zsize / 2);
+  plug.tiltIncrement         = 1.0;
+  plug.tiltAxisAngle         = -11.7;
+  plug.tiltOffsetX           = 0;
+  plug.biggestHoleGrid       = 20;
+  plug.biggestHoleInset      = -100;
+  
+  plug.expPtDisplayType      = ED_CROSS;
+  plug.expPtSize             = 6;
+  plug.sizeLineSpheres       = 0;
+  plug.lineDisplayWidth      = 1;
+  plug.sizePurpleSpheres     = 10;
+  plug.sizeCheckedPts        = 1.1;
+  
+  plug.selectedAction        = 0;
+  plug.sortCriteria          = 0;
+  plug.autoSaveSettings      = true;
+  
+  //** KEYBOARD AND MOUSE OPTIONS:
+  
+  plug.wheelBehav            = WH_SMART;
+  plug.wheelResistance       = 100;
+  plug.centerPtOnScroll      = true;
+  plug.disableHotKeys        = false;
+  plug.includeEndsResid      = false;
+  plug.searchRangeOnly       = false;
+  plug.contsToSearch         = SC_ALL;
+  plug.dKeyBehav             = DK_OPPOSITEMIDDLE;
+  plug.mKeyBehav             = MK_GOTOMIDDLE;
+  plug.wCurrContOnly         = true;
+  plug.wWeightedDiv          = 15;
+  plug.uKeyBehav             = UK_TOGGLEPTCHECKED;
+  plug.enterAction           = EN_PREVUNCHECKED;
+  plug.minPtsEnter           = plug.zsize - 1;
+  plug.maxPtsEnter           = plug.zsize;
+  plug.enterPrint            = false;
+  
+  //** SMOOTHING OPTIONS:
+  
+  plug.smoothCurrContOnly    = 1;
+  plug.smoothFillGaps        = true;
+  plug.smoothBigResidFirst   = false;
+  plug.smoothMoveYOnly       = false;
+  plug.smoothLeaveSeed       = true;
+  plug.smoothLeaveEnds       = true;
+  plug.smoothLeaveCurrV      = false;
+  plug.smoothMoveFract       = 1.0;
+  plug.smoothMinResid        = 0;
+  plug.smoothIterations      = 1;
+  plug.smoothAdjacentV       = false;
+  plug.smoothNumViews        = 5;  
+}
+
 
 //------------------------
 //-- Loads most of the settings for BeadHelperData from user preferences
@@ -1191,8 +1229,8 @@ void BeadHelper::loadSettings()
     wprint("\aBeadHelper: Could not load saved values\n\n");
     QMessageBox::about( this, "-- Documentation --",
                         "If this is your first time using 'Bead Helper' \n"
-                        "it is HIGHLY recommended you start by clicking 'Help' \n"
-                        "(at bottom of the plugin) and reading the documentation ! \n"
+                        "we HIGHLY recommended you click 'Help' \n"
+                        "(at bottom of the plugin) and read the documentation ! \n"
                         "                                   -- Andrew Noske" );
     return;
   }
@@ -1220,29 +1258,30 @@ void BeadHelper::loadSettings()
   
   plug.wheelBehav           = savedValues[19];
   plug.wheelResistance      = savedValues[20];
-  plug.includeEndsResid     = savedValues[21];
-  plug.contsToSearch        = savedValues[22];
-  plug.dKeyBehav            = savedValues[23];
-  plug.mKeyBehav            = savedValues[24];
-  plug.wCurrContOnly        = savedValues[25];
-  plug.wWeightedDiv         = savedValues[26];
-  plug.uKeyBehav            = savedValues[27];
-  plug.enterAction          = savedValues[28];
-  plug.minPtsEnter          = savedValues[29];
-  plug.enterPrint           = savedValues[30];
+  plug.centerPtOnScroll     = savedValues[21];
+  plug.includeEndsResid     = savedValues[22];
+  plug.contsToSearch        = savedValues[23];
+  plug.dKeyBehav            = savedValues[24];
+  plug.mKeyBehav            = savedValues[25];
+  plug.wCurrContOnly        = savedValues[26];
+  plug.wWeightedDiv         = savedValues[27];
+  plug.uKeyBehav            = savedValues[28];
+  plug.enterAction          = savedValues[29];
+  plug.minPtsEnter          = savedValues[30];
+  plug.enterPrint           = savedValues[31];
   
-  plug.smoothCurrContOnly   = savedValues[31];
-  plug.smoothFillGaps       = savedValues[32];
-  plug.smoothBigResidFirst  = savedValues[33];
-  plug.smoothMoveYOnly      = savedValues[34];
-  plug.smoothLeaveSeed      = savedValues[35];
-  plug.smoothLeaveEnds      = savedValues[36];
-  plug.smoothLeaveCurrV     = savedValues[37];
-  plug.smoothMoveFract      = savedValues[38];
-  plug.smoothMinResid       = savedValues[39];
-  plug.smoothIterations     = savedValues[40];
-  plug.smoothAdjacentV      = savedValues[41];
-  plug.smoothNumViews       = savedValues[42];
+  plug.smoothCurrContOnly   = savedValues[32];
+  plug.smoothFillGaps       = savedValues[33];
+  plug.smoothBigResidFirst  = savedValues[34];
+  plug.smoothMoveYOnly      = savedValues[35];
+  plug.smoothLeaveSeed      = savedValues[36];
+  plug.smoothLeaveEnds      = savedValues[37];
+  plug.smoothLeaveCurrV     = savedValues[38];
+  plug.smoothMoveFract      = savedValues[39];
+  plug.smoothMinResid       = savedValues[40];
+  plug.smoothIterations     = savedValues[41];
+  plug.smoothAdjacentV      = savedValues[42];
+  plug.smoothNumViews       = savedValues[43];
 }
 
 
@@ -1277,29 +1316,30 @@ void BeadHelper::saveSettings()
   
   saveValues[19] = plug.wheelBehav;
   saveValues[20] = plug.wheelResistance;
-  saveValues[21] = plug.includeEndsResid;
-  saveValues[22] = plug.contsToSearch;
-  saveValues[23] = plug.dKeyBehav;
-  saveValues[24] = plug.mKeyBehav;
-  saveValues[25] = plug.wCurrContOnly;
-  saveValues[26] = plug.wWeightedDiv;
-  saveValues[27] = plug.uKeyBehav;
-  saveValues[28] = plug.enterAction;
-  saveValues[29] = plug.minPtsEnter;
-  saveValues[30] = plug.enterPrint;
+  saveValues[21] = plug.centerPtOnScroll;
+  saveValues[22] = plug.includeEndsResid;
+  saveValues[23] = plug.contsToSearch;
+  saveValues[24] = plug.dKeyBehav;
+  saveValues[25] = plug.mKeyBehav;
+  saveValues[26] = plug.wCurrContOnly;
+  saveValues[27] = plug.wWeightedDiv;
+  saveValues[28] = plug.uKeyBehav;
+  saveValues[29] = plug.enterAction;
+  saveValues[30] = plug.minPtsEnter;
+  saveValues[31] = plug.enterPrint;
   
-  saveValues[31] = plug.smoothCurrContOnly;
-  saveValues[32] = plug.smoothFillGaps;
-  saveValues[33] = plug.smoothBigResidFirst;
-  saveValues[34] = plug.smoothMoveYOnly;
-  saveValues[35] = plug.smoothLeaveSeed;
-  saveValues[36] = plug.smoothLeaveEnds;
-  saveValues[37] = plug.smoothLeaveCurrV;
-  saveValues[38] = plug.smoothMoveFract;
-  saveValues[39] = plug.smoothMinResid;
-  saveValues[40] = plug.smoothIterations;
-  saveValues[41] = plug.smoothAdjacentV;
-  saveValues[42] = plug.smoothNumViews;
+  saveValues[32] = plug.smoothCurrContOnly;
+  saveValues[33] = plug.smoothFillGaps;
+  saveValues[34] = plug.smoothBigResidFirst;
+  saveValues[35] = plug.smoothMoveYOnly;
+  saveValues[36] = plug.smoothLeaveSeed;
+  saveValues[37] = plug.smoothLeaveEnds;
+  saveValues[38] = plug.smoothLeaveCurrV;
+  saveValues[39] = plug.smoothMoveFract;
+  saveValues[40] = plug.smoothMinResid;
+  saveValues[41] = plug.smoothIterations;
+  saveValues[42] = plug.smoothAdjacentV;
+  saveValues[43] = plug.smoothNumViews;
   
   prefSaveGenericSettings("BeadHelper",NUM_SAVED_VALS,saveValues);
 }
@@ -1931,7 +1971,8 @@ void BeadHelper::moreActions()
                   "mark contours as checked/unchecked **,"
                   "mark points as checked/unchecked,"
                   "print contour info,"
-                  "load tilt angles",
+                  "load tilt angles,"
+                  "reset values",
                   &plug.selectedAction,
                   "",
                   "Estimates the angle of the tilt axis by averaging the \n"
@@ -1963,7 +2004,8 @@ void BeadHelper::moreActions()
                     "complete contours; incomplete contours; \n"
                     "checked contours and also number of missing points,"
                   "Loads the calculated tilt angle of all views from \n"
-                    "the appropriate a .tlt file");
+                    "the appropriate a .tlt file,"
+                  "Resets all setting (for this plugin) to default");
 	GuiDialogCustomizable dlg(&ds, "Perform Action", this);
 	dlg.exec();
 	if( ds.cancelled )
@@ -2018,54 +2060,52 @@ void BeadHelper::moreActions()
     } break;
     
     case(2):      // show contour turning points
-    {
       bead_showContourTurningPts();
-    } break;
+      break;
     
     case(3):      // show grid
-    {
       bead_showGrid();
-    } break;
+      break;
       
     case(4):      // clear purple object
-    {
       ivwClearAnExtraObject(plug.view, plug.extraObjExtra);
-    } break;
+      break;
     
     case(5):      // move points between objects
-    {
       moveMultipleContours();
-    } break;
+      break;
       
     case(6):      // move points between objects
-    {
       splitOrMergeContours();
-    } break;
+      break;
       
     case(7):      // remove duplicate pts from object
-    {
       correctCurrentObject();
-    } break;
+      break;
     
     case(8):      // mark all contours as stippled/unstippled
-    {
       markRangeAsStippled();
-    } break;
+      break;
     
     case(9):      // mark all points as checked/unchecked
-    {
       markRangePtsAsChecked();
-    } break;
+      break;
       
     case(10):      // print contour info
-    {
       printContourCheckedInfo();
-    } break;
+      break;
     
     case(11):      // load tilt angles
-    {
+    
       openTiltAngleFile();
-    } break;
+      break;
+      
+    case(12):     // reset values
+      if( !MsgBoxYesNo(this, "Restore all default settings for this plugin?" ) )
+        return;
+      plug.window->initValues();
+      wprint("Default values restored\n");
+      break;
   }
   
   ivwRedraw( plug.view );
@@ -2226,6 +2266,10 @@ void BeadHelper::keyboardSettings()
                   10, 1000, &wheelResistance, 10,
                   "The higher the value, the slower mouse scrolling works"
                   "(useful if you have a touchy mouse wheel)" );
+  ds.addCheckBox( "center point on scroll", 
+                  &plug.centerPtOnScroll,
+                  "Keeps ZAP centered on the point or estimated pos \n"
+                  "as you scroll with the mouse wheel");
   
   ds.addLabel   ("----- KEYBOARD: -----");
   
@@ -2661,7 +2705,7 @@ void BeadHelper::splitOrMergeContours()
   }
   
   int nConts = csize(firstObj);
-  int nObjectsNeeded = ceil( fDivide(nConts, numContsPerObj) );
+  int nObjectsNeeded = ceil( fDiv(nConts, numContsPerObj) );
   int nObjectsToAdd  = nObjectsNeeded - osize(imod);
   
   cout << "nConts         =" << nConts << endl;
@@ -2704,7 +2748,7 @@ void BeadHelper::splitOrMergeContours()
   {
     Icont *cont = getCont(firstObj,c);
     setDeleteFlag( cont, 0 );
-    int destObjIdx = int( fDivide(c,numContsPerObj) ) % osize(imod);
+    int destObjIdx = int( fDiv(c,numContsPerObj) ) % osize(imod);
     
     if(destObjIdx != 0)
     {
@@ -3443,7 +3487,7 @@ void BeadHelper::printContourCheckedInfo()
     }
   }
   
-  float avgMissingPtsPerCont = fDivide( totMissingPts, totConts );
+  float avgMissingPtsPerCont = fDiv( totMissingPts, totConts );
   int   percentSinglePt      = calcPercentInt( totSinglePtC,  totConts  );
   int   percentChecked       = calcPercentInt( totCheckedC,   totConts  );
   int   percentFull          = calcPercentInt( totFullC,      totConts  );
@@ -4452,7 +4496,7 @@ Ipoint bead_getPtOnLineWithZ( Ipoint *pt1, Ipoint *pt2, int z )
   
   Ipoint estPt;
   estPt.z = z;
-  float fractToExpectedPos = fDivide( (z - pt1->z) , ( pt2->z - pt1->z) ); 
+  float fractToExpectedPos = fDiv( (z - pt1->z) , ( pt2->z - pt1->z) ); 
   estPt = line_findPtFractBetweenPts( pt1, pt2, fractToExpectedPos );
   estPt.z = z;
   return (estPt);
@@ -4470,7 +4514,7 @@ Ipoint bead_getPtOnLineWithZUsingTiltAngles( Ipoint *pt1, Ipoint *pt2, int z )
   Ipoint estPt;
   estPt.z = z;
   
-  //float xDistBetweenPtsNorm = ABS(fDivide( (pt2->x - pt1->x) , ( pt2->z - pt1->z) )); 
+  //float xDistBetweenPtsNorm = ABS(fDiv( (pt2->x - pt1->x) , ( pt2->z - pt1->z) )); 
   
   float angle1 = bead_getTiltAngleAtZ( pt1->z+0.5 );
   float angle2 = bead_getTiltAngleAtZ( pt2->z+0.5 );
@@ -4482,11 +4526,11 @@ Ipoint bead_getPtOnLineWithZUsingTiltAngles( Ipoint *pt1, Ipoint *pt2, int z )
   // calculate the relative length of an adjacent side for each point
   // implied by the tilt angle at that Z value
   
-  float fractToExpectedPos = fDivide((adjSideZ - adjSide1), ( adjSide2 - adjSide1)); 
+  float fractToExpectedPos = fDiv((adjSideZ - adjSide1), ( adjSide2 - adjSide1)); 
   if( (adjSide2 == adjSide1) ||     // if length of both adjacent sides is equal
       (angle1<0 && angle2>0) ||     //  or one angle is positive and
       (angle1>0 && angle2<0) )      //  the other is negeative:
-    fractToExpectedPos = fDivide( (z - pt1->z) , ( pt2->z - pt1->z) );
+    fractToExpectedPos = fDiv( (z - pt1->z) , ( pt2->z - pt1->z) );
   
   estPt = line_findPtFractBetweenPts( pt1, pt2, fractToExpectedPos );
   estPt.z = z;
@@ -4710,7 +4754,7 @@ bool bead_getExpectedPosOfPointUsingPtsBefore( Icont *cont, int view, Ipoint *pt
   {
     Ipoint *pt     = getPt( prevPts, i );
     Ipoint *ptNext = getPt( prevPts, i+1 );
-    distXNorm.push_back( fDivide((pt->x - ptNext->x), ( pt->z - ptNext->z )) );
+    distXNorm.push_back( fDiv((pt->x - ptNext->x), ( pt->z - ptNext->z )) );
   }
   
   //## DETERMINE THE AVERAGE RATE AT WHICH THE DISTANCE IS INCREASING/DECREASING:
@@ -4721,7 +4765,7 @@ bool bead_getExpectedPosOfPointUsingPtsBefore( Icont *cont, int view, Ipoint *pt
     float increaseXFromLastNorm = ( distXNorm[i] - distXNorm[i+1] );
     totalIncreaseXNorm += increaseXFromLastNorm;
   }
-  float avgIncreaseXNorm = fDivide( totalIncreaseXNorm, distXNorm.size()-1 );
+  float avgIncreaseXNorm = fDiv( totalIncreaseXNorm, distXNorm.size()-1 );
   
   if( ABS(2*avgIncreaseXNorm) > ABS(distXNorm[0]) )   // if increase is > first x dist:
     avgIncreaseXNorm = 0;                               // don't use increase
@@ -5104,7 +5148,7 @@ float bead_calcDistanceFromExpected( Icont *cont, int idx, bool weighted )
     Ipoint *pt2 = (idx==psize(cont)-1) ? getPt( cont,idx+1 ) : getPt(cont,idx-2);
     
     float distPt1AndPt2 = line_distBetweenPts2D( pt1, pt2 );
-    float distPerView  = fDivide( distPt1AndPt2, pt2->z - pt1->z );
+    float distPerView  = fDiv( distPt1AndPt2, pt2->z - pt1->z );
     
     float crudeWeightDev = distFromExpected / (distPt1AndPt2 + plug.wWeightedDiv);
     return (crudeWeightDev);
@@ -5140,7 +5184,7 @@ float bead_calcCrudeWeightedDevFromMiddle( Icont *cont )
     Ipoint *pt1 = (p==0)             ? getPt( cont,p-1 ) : getPt(cont,p+2);
     Ipoint *pt2 = (p==psize(cont)-1) ? getPt( cont,p+1 ) : getPt(cont,p-2);
     
-    float fractToExpectedPt = fDivide( (pt->z - pt1->z) , ( pt2->z - pt1->z) ); 
+    float fractToExpectedPt = fDiv( (pt->z - pt1->z) , ( pt2->z - pt1->z) ); 
     Ipoint estimatedPosPt = line_findPtFractBetweenPts( pt1, pt2, fractToExpectedPt );
     
     float distFromExpected = line_distBetweenPts2D( pt, &estimatedPosPt );
@@ -5400,8 +5444,8 @@ bool bead_calcQuadraticCurve( float x1, float x2, float x3, float y1, float y2, 
   float divisorA = (x1-x3)*(SQ(x2)-SQ(x1)) + (x2-x1)*(SQ(x3)-SQ(x1));
   float divisorB = (x2-x1);
   
-  *a = fDivide ( ( (y2-y1)*(x1-x3) + (y3-y1)*(x2-x1) ), divisorA );
-  *b = fDivide (  ( (y2 - y1) - (*a)*(SQ(x2) - SQ(x1)) ), divisorB );
+  *a = fDiv ( ( (y2-y1)*(x1-x3) + (y3-y1)*(x2-x1) ), divisorA );
+  *b = fDiv (  ( (y2 - y1) - (*a)*(SQ(x2) - SQ(x1)) ), divisorB );
   *c = y1 - (*a)*SQ(x1) - (*b)*x1;
   
   return ( divisorA!=0 && divisorB != 0);
@@ -5780,8 +5824,8 @@ bool bead_goToNextBiggestHole( bool findNextBiggest )
   int colsX = int(plug.xsize / plug.biggestHoleGrid);
   int rowsY = int(plug.ysize / plug.biggestHoleGrid);
   
-  float sideLenX = fDivide(plug.xsize, colsX);
-  float sideLenY = fDivide(plug.ysize, rowsY);
+  float sideLenX = fDiv(plug.xsize, colsX);
+  float sideLenY = fDiv(plug.ysize, rowsY);
   
   vector< vector<float> > minDistGrid( colsX );
   
@@ -6147,8 +6191,8 @@ void bead_showGrid()
   Iobj *xobjX = ivwGetAnExtraObject(plug.view, plug.extraObjExtra);
   ivwClearAnExtraObject(plug.view, plug.extraObjExtra);
   
-  float colXSide = fDivide( plug.xsize, colsX );
-  float rowYSide = fDivide( plug.ysize, rowsY );
+  float colXSide = fDiv( plug.xsize, colsX );
+  float rowYSide = fDiv( plug.ysize, rowsY );
   float z = plug.seedView;
   
   if( showStyle == 0)

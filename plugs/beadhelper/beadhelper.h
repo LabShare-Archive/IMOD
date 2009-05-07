@@ -43,6 +43,7 @@ class BeadHelper : public DialogFrame
   
  public slots:
   void buttonPressed(int);
+   void initValues();
   void loadSettings();
   void saveSettings();
   
@@ -169,7 +170,7 @@ enum enterbehavior    { EN_NONE, EN_NEXTUNCHECKED, EN_PREVUNCHECKED, EN_NEXTCHEC
                         EN_NEXTCONT };
 
 const char DEGREE_SIGN = 0x00B0;      // degree sign
-const int NUM_SAVED_VALS = 43;
+const int NUM_SAVED_VALS = 44;
 
 
 //-------------------------------
@@ -232,7 +233,8 @@ struct BeadHelperData   // contains all local plugin data
   int  wheelBehav;            // changes the behaviour of the mouse wheel
                               //   (see: wheelbehavior)
   float wheelResistance;      // the higher the value, the slower mouse scrolling works
-    
+  bool centerPtOnScroll;      // keeps selected point/estimated point centered on scroll
+  
   bool disableHotKeys;        // disables all hotkeys for this plugin window
   bool includeEndsResid;      // include end points and seed when searching for 
                               // residuals with [y], [b] and [w]
