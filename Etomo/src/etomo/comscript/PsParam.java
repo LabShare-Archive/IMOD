@@ -9,7 +9,6 @@ import etomo.type.AxisID;
 import etomo.type.OSType;
 import etomo.type.Time;
 import etomo.util.RemotePath;
-import etomo.util.Utilities;
 
 /**
  * <p>Description:
@@ -35,10 +34,9 @@ public final class PsParam {
   private static final String WINDOW_PID_HEADER = "WINPID";
   private static final String TERMINAL_HEADER = "TTY";
   private static final String USER_ID_HEADER = "UID";
-  private static final String START_TIME_HEADER = Utilities.isWindowsOS() ? "STIME"
-      : "STARTED";
-  private static final String START_TIME_COMMAND = Utilities.isMacOS() ? "start"
-      : "lstart";
+
+  private final String startTimeHeader;
+  private final String startTimeCommand;
 
   private final ArrayList command = new ArrayList();
   private final ArrayList valuesArray = new ArrayList();
@@ -76,6 +74,8 @@ public final class PsParam {
    */
   public PsParam(BaseManager manager, AxisID axisID, String pid, OSType osType,
       String hostName, boolean willRunOnWorkerThread) {
+    startTimeHeader = osType == OSType.WINDOWS ? "STIME" : "STARTED";
+    startTimeCommand = osType == OSType.MAC ? "start" : "lstart";
     if (hostName != null && !hostName.matches("\\*")
         && !hostName.equals(RemotePath.getHostName(manager, axisID))) {
       //If the timeout option cannot be added to ssh then only ssh if the caller
@@ -113,7 +113,7 @@ public final class PsParam {
     if (osType != OSType.WINDOWS) {
       command.add("-o");
     }
-    command.add("pid,pgid," + START_TIME_COMMAND);
+    command.add("pid,pgid," + startTimeCommand);
   }
 
   public Row getRow() {
@@ -169,8 +169,8 @@ public final class PsParam {
     }
     if (startTimeColumn) {
       startTimeStartIndex = endIndex + 1;
-      startTimeEndIndex = output[0].indexOf(START_TIME_HEADER)
-          + START_TIME_HEADER.length();
+      startTimeEndIndex = output[0].indexOf(startTimeHeader)
+          + startTimeHeader.length();
     }
     loadValues();
   }
@@ -211,10 +211,8 @@ public final class PsParam {
    * @param startTime
    */
   public boolean findRow(String pid, String groupPid, Time startTime) {
-    System.err.println("findRow:pid"+pid);
     for (int i = 0; i < valuesArray.size(); i++) {
       Values values = (Values) valuesArray.get(i);
-      System.err.println("findRow:values.getPid()="+values.getPid());
       if (values.getPid().equals(pid) && values.getGroupPid().equals(groupPid)
           && values.getStartTime().almostEquals(startTime)) {
         return true;
@@ -270,6 +268,11 @@ public final class PsParam {
 
     private Values(String row) {
       this.row = row;
+    }
+
+    public String toString() {
+      return "[pid=" + getPid() + ",groupPid=" + getGroupPid() + ",startTime="
+          + getStartTime() + ",row=" + row + "]";
     }
 
     String getPid() {
@@ -333,6 +336,9 @@ public final class PsParam {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.6  2009/05/05 00:14:07  sueh
+ * <p> bug# 1207 In findRow adding prints to get more information on Mac.
+ * <p>
  * <p> Revision 1.5  2009/04/15 16:52:05  sueh
  * <p> bug# 1207 Removed annoying print statement.
  * <p>
