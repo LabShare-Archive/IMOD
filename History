@@ -1,7 +1,12 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-5/7/09: In Etomo attempting to prevent duplicate processes from being started on
-different computers.
+5/7/09: Fixed scalebar when data are loaded with binning.
+
+5/7/09: Added option to Extracttilts to get information for all frames of a 
+montage.
+
+5/7/09: In Etomo attempting to prevent duplicate processes from being started
+on different computers.
 
 5/4/09: In Etomo added a simple interface to RAPTOR.
 
