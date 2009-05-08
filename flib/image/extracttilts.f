@@ -19,13 +19,13 @@ c
       real*4 array(maxextra/4)
       integer*4 ixpiece(maxpiece),iypiece(maxpiece),izpiece(maxpiece)
 C       
-      CHARACTER*160 FILIN,filout
+      CHARACTER*320 FILIN,filout
       character*16 typeText(6) /'tilt angle', ' ', 'stage position',
      &    'magnification', 'intensity value', 'exposure dose'/
 C       
       integer*4 nz, ierr, iftilt, ifmag, ifstage, npiece, i, nbyte, iflags
       integer*4 maxz, iunout, lenText, mode, itype, ifc2, ntilt, nbsym
-      integer*4 ntiltout, lnblnk, ifdose, ifwarn
+      integer*4 ntiltout, lnblnk, ifdose, ifwarn, ifall
       real*4 dmin, dmax, dmean
       EQUIVALENCE (Nz,NXYZ(3))
 c       
@@ -36,13 +36,13 @@ c
 c       fallbacks from ../../manpages/autodoc2man -2 2  extracttilts
 c       
       integer numOptions
-      parameter (numOptions = 9)
+      parameter (numOptions = 10)
       character*(40 * numOptions) options(1)
       options(1) =
      &    'input:InputFile:FN:@output:OutputFile:FN:@tilts:TiltAngles:B:@'//
      &    'stage:StagePositions:B:@mag:Magnifications:B:@'//
      &    'intensities:Intensities:B:@exp:ExposureDose:B:@'//
-     &    'warn:WarnIfTiltsSuspicious:B:@help:usage:B:'
+     &    'warn:WarnIfTiltsSuspicious:B:@all:AllPieces:B:@help:usage:B:'
 C       
       filout = ' '
       ifmag = 0
@@ -51,6 +51,8 @@ C
       iftilt = 0
       ifdose = 0
       ifwarn = 0
+      npiece = 0
+      ifall = 0
 c       
 c       Pip startup: set error, parse options, check help, set flag if used
 c       
@@ -65,6 +67,7 @@ c
      &    'Name of output file, or return to print out values', filout)
 c       
       if (pipinput) then
+        ierr = PipGetBoolean('AllPieces', ifall)
         ierr = PipGetBoolean('TiltAngles', iftilt)
         ierr = PipGetBoolean('Magnifications', ifmag)
         ierr = PipGetBoolean('StagePositions', ifstage)
@@ -95,8 +98,8 @@ C
 
       call irtsym(1,nbsym,array)
       call irtsymtyp(1,nbyte,iflags)
-      call get_extra_header_pieces (array,nbsym,nbyte,iflags,nz,
-     &    ixpiece,iypiece,izpiece,npiece,maxpiece)
+      if (ifall .eq. 0) call get_extra_header_pieces (array,nbsym,nbyte,iflags,
+     &    nz,ixpiece,iypiece,izpiece,npiece,maxpiece)
       if(npiece.eq.0)then
         do i=1,nz
           izpiece(i)=i-1
@@ -174,6 +177,9 @@ c
       END
 
 c       $Log$
+c       Revision 3.9  2007/12/27 20:57:15  mast
+c       Added option to test for bad tilt angles and give warning
+c
 c       Revision 3.8  2007/07/15 21:21:47  mast
 c       Made usage of maxz consistent between montage and single frame
 c
