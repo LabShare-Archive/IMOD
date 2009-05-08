@@ -72,16 +72,17 @@ float scaleBarDraw(int winx, int winy, float zoom, int background)
 {
   Imod *imod;
   double expon, minlen, loglen, normlen, custlen;
-  float truelen;
+  float truelen, pixsize;
   int xst, yst, color, pixlen, xsize, ysize, i, j, red, green, blue, index;
   GLboolean depthEnabled;
   if (!params.draw || !sbDia)
     return -1.;
 
   imod = imodvStandalone() ? Imodv->imod : App->cvi->imod;
+  pixsize = imod->pixsize * (imodvStandalone() ? 1. : App->cvi->xybin);
 
   // Get minimum length in units, then reduce that to number between 0 and 1.
-  minlen = imod->pixsize * params.minLength / zoom;
+  minlen = pixsize * params.minLength / zoom;
   loglen = log10(minlen);
   expon = floor(loglen);
   normlen = pow(10., loglen - expon);
@@ -107,7 +108,7 @@ float scaleBarDraw(int winx, int winy, float zoom, int background)
 
   // Get real length then pixel length, starting points
   truelen = (float)normlen * pow(10., expon);
-  pixlen = B3DNINT(truelen * zoom / imod->pixsize);
+  pixlen = B3DNINT(truelen * zoom / pixsize);
   xsize = params.vertical ? params.thickness : pixlen;
   ysize = params.vertical ? pixlen : params.thickness;
   xst = params.indentX;
@@ -201,6 +202,9 @@ void scaleBarRedraw()
 /*
 
 $Log$
+Revision 1.7  2009/01/15 16:33:18  mast
+Qt 4 port
+
 Revision 1.6  2008/11/28 06:37:08  mast
 Made it redraw when closing to bars go away
 
