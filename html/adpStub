@@ -42,8 +42,7 @@ INSERT MAN PAGES
   <section ref="./man/pip.html" title="PIP Program Input"/>
   <section ref="./man/imodenv.html" title="IMOD Environment Variables"/>
   <section ref="./man/cpuadoc.html" title="Format of cpu.adoc"/>
-  <section ref="./man/uitestadoc.html" title="Etomo Test Scripting"/>
-  <section ref="./man/uitestaxisadoc.html" title="Axis-level Testing"/>
+  <section ref="./man/uitest.html" title="Etomo Test Scripting"/>
   </section>
 
   <section ref="./libraries.html" title="Library Documentation">

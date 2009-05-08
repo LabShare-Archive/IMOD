@@ -12,7 +12,7 @@ set instext2 = "INSERT MAN PAGES"
 set instext3 = "INSERT LIBRARY PAGES"
 set adpout = IMOD.adp
 set adpin = adpStub
-set excludes = (cpuadoc pip imodenv uitestadoc uitestaxisadoc)
+set excludes = (cpuadoc pip imodenv uitest)
 set instdir = .
 if ($#argv > 0) then
     set instdir = $argv[1]/html
@@ -50,6 +50,9 @@ awk "/$instext3/, /GobbledyGook/" $adpin | grep -v "INSERT" >> $adpout
 
 #
 #  $Log$
+#  Revision 3.6  2008/03/26 22:21:15  mast
+#  Fixed extraction of title from libray docs
+#
 #  Revision 3.5  2007/12/28 06:16:44  mast
 #  Fixed source for libhelp files
 #
