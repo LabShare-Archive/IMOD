@@ -1074,9 +1074,9 @@ void InfoWindow::editPointSlot(int item)
     wprint("\nDistance to previous point :\n2D = %g pixels, %g %s\n",
            dist2d, dist2d * imod->pixsize * vi->xybin,
            imodUnits(imod));
-    wprint("3D = %g pixels, %g %s\n",
-           dist3d, dist3d * imod->pixsize,
-           imodUnits(imod));
+    wprint("3D = %g %spixels, %g %s\n",
+           dist3d, vi->xybin * vi->zbin > 1 ? "unbinned " : "",
+           dist3d * imod->pixsize, imodUnits(imod));
     break;
   }
   case EPOINT_MENU_VALUE: /* value */
@@ -1331,6 +1331,9 @@ static int imodContourBreakByZ(ImodView *vi, Iobj *obj, int ob, int co)
 /*
 
 $Log$
+Revision 4.52  2009/01/16 02:21:12  mast
+removed imodhelp.h
+
 Revision 4.51  2009/01/15 16:33:17  mast
 Qt 4 port
 
