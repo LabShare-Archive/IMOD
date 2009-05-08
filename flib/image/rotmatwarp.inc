@@ -8,6 +8,9 @@ c
 c       $Revision$
 c       
 c       $Log$
+c       Revision 3.6  2008/08/29 21:34:47  mast
+c       Swapped array and brray to dodge bug in gfortran 4.3
+c
 c       Revision 3.5  2007/08/30 20:13:38  mast
 c       Change izinfile from i*2 3d to i*4 1D array
 c
@@ -28,7 +31,7 @@ c       keep limdim less than 2/3 of inpdim**2
 c       with this assumptiom, memory in MB is 16/3 * inpdim**3 + 10 * inpdim**2
 c       
       integer inpdim, limdim, lmcube, limout, limizfile
-      parameter (inpdim=450,limdim=130000,lmcube=limdim/inpdim)
+      parameter (inpdim=530,limdim=180000,lmcube=limdim/inpdim)
       parameter (limout=(inpdim*3)/2, limizfile=4*limout*lmcube)
 c       
       real*4 array(inpdim,inpdim,inpdim),brray(limout,limout)
