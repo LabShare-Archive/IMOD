@@ -65,6 +65,15 @@ tooltip =
 manpage = When extracting tilt angles, warn if more than half of them are near
 zero or any are bigger than 95 degrees.
 
+[Field = AllPieces]
+short = all
+type = B
+usage = Extract the selected item for all pieces of a montage
+tooltip = 
+manpage = Extract the selected item for all pieces of a montage.  The default
+is to output the value for the last piece of the montage at each Z value.
+
+
 [Field = usage]
 short = help
 long = usage
