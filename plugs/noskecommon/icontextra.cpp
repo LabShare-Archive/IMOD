@@ -15,6 +15,9 @@
     $Revision$
 
     $Log$
+    Revision 1.17  2009/05/07 01:08:11  tempuser
+    few extra functins
+
     Revision 1.16  2009/04/07 08:16:09  tempuser
     another modification
 
@@ -455,7 +458,7 @@ bool mbr_isPtInsideBBox2D(Ipoint *pt, Ipoint *ll, Ipoint *ur)
 
 bool mbr_doEdgesOverlap(float min1, float max1, float min2, float max2)
 {
-	return !( (max1 < min2) || (min1 > max2) );		// says: if edge1 to the LEFT or RIGHT of edge2: it does not overlap  (otherwise it does)
+  return !( (max1 < min2) || (min1 > max2) );    // says: if edge1 to the LEFT or RIGHT of edge2: it does not overlap  (otherwise it does)
 }
 
 
@@ -464,7 +467,7 @@ bool mbr_doEdgesOverlap(float min1, float max1, float min2, float max2)
 
 bool mbr_doBBoxesOverlap2D(Ipoint *p1ll, Ipoint *p1ur, Ipoint *p2ll, Ipoint *p2ur)
 {
-	return (  mbr_doEdgesOverlap( p1ll->x, p1ur->x,  p2ll->x, p2ur->x )
+  return (  mbr_doEdgesOverlap( p1ll->x, p1ur->x,  p2ll->x, p2ur->x )
          && mbr_doEdgesOverlap( p1ll->y, p1ur->y,  p2ll->y, p2ur->y )  );
 }
 
@@ -518,9 +521,9 @@ float line_getAngle2DPos ( Ipoint *linept1, Ipoint *linept2 )
 
 float line_getRadians2D ( Ipoint *linept1, Ipoint *linept2 )
 {
-	float oppY = linept2->y - linept1->y;
-	float adjX = linept2->x - linept1->x;
-	return atan2( oppY , adjX );
+  float oppY = linept2->y - linept1->y;
+  float adjX = linept2->x - linept1->x;
+  return atan2( oppY , adjX );
 }
 
 //------------------------
@@ -529,9 +532,9 @@ float line_getRadians2D ( Ipoint *linept1, Ipoint *linept2 )
 
 float line_radiansFormed3Pts( Ipoint *pt1, Ipoint *pt2, Ipoint *pt3  )
 {
-	float line1Rads = line_getRadians2D ( pt1, pt2 );
-	float line2Rads = line_getRadians2D ( pt3, pt2 );
-	return fModWithinRange(line2Rads-line1Rads , -PI, PI );
+  float line1Rads = line_getRadians2D ( pt1, pt2 );
+  float line2Rads = line_getRadians2D ( pt3, pt2 );
+  return fModWithinRange(line2Rads-line1Rads , -PI, PI );
 }
 
 
@@ -627,10 +630,10 @@ bool line_isPointOnLine( Ipoint *pt, Ipoint *lineStart, Ipoint *lineEnd )
 
 bool line_getLineEquation( Ipoint *pt1, Ipoint *pt2, float *gradient, float *offset )
 {
-	float diffY = pt2->y - pt1->y;
-	float diffX = pt2->x - pt1->x;
-	
-	if(diffX == 0)
+  float diffY = pt2->y - pt1->y;
+  float diffX = pt2->x - pt1->x;
+  
+  if(diffX == 0)
   {
     *gradient = FLOAT_MAX;
     *offset = pt1->y;
@@ -693,18 +696,18 @@ float line_angleFormed3Pts( Ipoint *pt1, Ipoint *pt2, Ipoint *pt3  )
 Ipoint line_getPtRelativeToEnd( Ipoint *start, Ipoint *end,
                                 float distFromEnd, float angleFromStraight )
 {
-	float angleFromHorz = line_getAngle2D( start, end );
-	float theta = (angleFromHorz + angleFromStraight) * DEGS_TO_RADS;
-	
-	float offsetX = distFromEnd*cos(theta);
-	float offsetY = distFromEnd*sin(theta);
-	
+  float angleFromHorz = line_getAngle2D( start, end );
+  float theta = (angleFromHorz + angleFromStraight) * DEGS_TO_RADS;
+  
+  float offsetX = distFromEnd*cos(theta);
+  float offsetY = distFromEnd*sin(theta);
+  
   Ipoint returnPt;
   returnPt.x = offsetX + end->x;
   returnPt.y = offsetY + end->y;
   returnPt.z = end->z;
   
-	return returnPt;
+  return returnPt;
 }
 
 
@@ -803,48 +806,48 @@ bool line_getInterceptWhereRayCross( Ipoint *line1pt1, Ipoint *line1pt2,
 double line_getFractPtBetweenTwoRays( Ipoint *ray1pt1, Ipoint *ray1pt2,
                                       Ipoint *ray2pt1, Ipoint *ray2pt2, Ipoint *pt )
 {
-	double a1 = ray1pt2->y-ray1pt1->y;
-	double b1 = ray1pt1->x-ray1pt2->x;
-	double c1 = ray1pt2->x*ray1pt1->y - ray1pt1->x*ray1pt2->y;		//{ a1*x + b1*y + c1 = 0 is line 1 }
-	
-	double a2 = ray2pt2->y-ray2pt1->y;
-	double b2 = ray2pt1->x-ray2pt2->x;
-	double c2 = ray2pt2->x*ray2pt1->y - ray2pt1->x*ray2pt2->y;		//{ a2*x + b2*y + c2 = 0 is line 2 }
-	
-	double denom = a1*b2 - a2*b1;
-	
-	if (denom == 0)						// if rays are parallel.
-	{
-		if( a1 == 0 || a2 == 0 )			// if both lines are horizontal (no x-intercept) calculate y intercept.
-		{
-			double ray1Y = -(a1*pt->x + c1)/b1;
-			double ray2Y = -(a2*pt->x + c2)/b2;
-			//cout << " HORIZONTAL! ray1Y=" << ray1Y << " ray2Y=" << ray2Y << endl;
-			return fDiv( pt->y - ray1Y, ray2Y - ray1Y );
-		}
-		else
-		{
-			double ray1X = -(b1*pt->y + c1)/a1;
-			double ray2X = -(b2*pt->y + c2)/a2;
-			//cout << " PARALLEL!   ray1X=" << ray1X << " ray2X=" << ray2X << endl;
-			return fDiv( pt->x - ray1X , ray2X - ray1X );
-		}
-	}
-	else
-	{
-		//## CALCULATE INTERCEPT POINT:
-		Ipoint intercept;
-		intercept.x = (b1*c2 - b2*c1) / denom;
-		intercept.y = (a2*c1 - a1*c2) / denom;
-		intercept.z = ray1pt1->z;
-		
-		double angleBetweenRays               = line_radiansFormed3Pts( ray1pt1, &intercept, ray2pt1 );
-		double angleRayOneAndInterceptToPoint = line_radiansFormed3Pts( ray1pt1, &intercept, pt      );
-		
-		//cout << " angleBetweenRays=" << angleBetweenRays << " angleRayOneAndInterceptToPoint=" << angleRayOneAndInterceptToPoint << endl;                  //%%%%%%
-		
-		return fDiv( angleRayOneAndInterceptToPoint, angleBetweenRays );
-	}
+  double a1 = ray1pt2->y-ray1pt1->y;
+  double b1 = ray1pt1->x-ray1pt2->x;
+  double c1 = ray1pt2->x*ray1pt1->y - ray1pt1->x*ray1pt2->y;    //{ a1*x + b1*y + c1 = 0 is line 1 }
+  
+  double a2 = ray2pt2->y-ray2pt1->y;
+  double b2 = ray2pt1->x-ray2pt2->x;
+  double c2 = ray2pt2->x*ray2pt1->y - ray2pt1->x*ray2pt2->y;    //{ a2*x + b2*y + c2 = 0 is line 2 }
+  
+  double denom = a1*b2 - a2*b1;
+  
+  if (denom == 0)            // if rays are parallel.
+  {
+    if( a1 == 0 || a2 == 0 )      // if both lines are horizontal (no x-intercept) calculate y intercept.
+    {
+      double ray1Y = -(a1*pt->x + c1)/b1;
+      double ray2Y = -(a2*pt->x + c2)/b2;
+      //cout << " HORIZONTAL! ray1Y=" << ray1Y << " ray2Y=" << ray2Y << endl;
+      return fDiv( pt->y - ray1Y, ray2Y - ray1Y );
+    }
+    else
+    {
+      double ray1X = -(b1*pt->y + c1)/a1;
+      double ray2X = -(b2*pt->y + c2)/a2;
+      //cout << " PARALLEL!   ray1X=" << ray1X << " ray2X=" << ray2X << endl;
+      return fDiv( pt->x - ray1X , ray2X - ray1X );
+    }
+  }
+  else
+  {
+    //## CALCULATE INTERCEPT POINT:
+    Ipoint intercept;
+    intercept.x = (b1*c2 - b2*c1) / denom;
+    intercept.y = (a2*c1 - a1*c2) / denom;
+    intercept.z = ray1pt1->z;
+    
+    double angleBetweenRays               = line_radiansFormed3Pts( ray1pt1, &intercept, ray2pt1 );
+    double angleRayOneAndInterceptToPoint = line_radiansFormed3Pts( ray1pt1, &intercept, pt      );
+    
+    //cout << " angleBetweenRays=" << angleBetweenRays << " angleRayOneAndInterceptToPoint=" << angleRayOneAndInterceptToPoint << endl;                  //%%%%%%
+    
+    return fDiv( angleRayOneAndInterceptToPoint, angleBetweenRays );
+  }
 }
 
 
@@ -894,47 +897,47 @@ double line_getFractPtBetweenTwoLines( Ipoint *l1p1, Ipoint *l1p2,
                                        Ipoint *l2p1, Ipoint *l2p2,
                                        Ipoint *pt, bool checkOutsideNegative )
 {
-	//## CALCULATE FRACTRIGHT:
-	
-	double a1 = l1p2->y-l1p1->y;
-	double b1 = l1p1->x-l1p2->x;
-	double c1 = l1p2->x*l1p1->y - l1p1->x*l1p2->y;		//{ a1*x + b1*y + c1 = 0 is line 1 }
-	
-	double a2 = l2p2->y-l2p1->y;
-	double b2 = l2p1->x-l2p2->x;
-	double c2 = l2p2->x*l2p1->y - l2p1->x*l2p2->y;		//{ a2*x + b2*y + c2 = 0 is line 2 }
-	
-	double denom = a1*b2 - a2*b1;
-	
-	//## CALCULATE INTERCEPT POINT OF TOP AND BOTTOM LINES:
-	
-	Ipoint lineIntercept;		// where the two lines intercept each other
-	
-	if (denom == 0)						// if lines are parallel: make "lineIntercept" same offset/angle as first line
-	{
-		lineIntercept.x = pt->x + (l1p2->x - l1p1->x);
-		lineIntercept.y = pt->y + (l1p2->y - l1p1->y);
-		lineIntercept.z = l1p1->z;
-	}
-	else								// if lines not parallel: calculate "lineIntercept" where they cross
-	{
-		lineIntercept.x = (b1*c2 - b2*c1) / denom;
-		lineIntercept.y = (a2*c1 - a1*c2) / denom;
-		lineIntercept.z = l1p1->z;
-	}
-	
-	Ipoint incptBetweenPt1s;
-  line_getInterceptWhereRayCross( &lineIntercept, pt, l1p1, l2p1, &incptBetweenPt1s );
-	Ipoint incptBetweenPt2s;
-  line_getInterceptWhereRayCross( &lineIntercept, pt, l1p2, l2p2, &incptBetweenPt2s );
-	
-	double fractBetweenLines = fDiv( line_distBetweenPts2D( &incptBetweenPt1s, pt ), line_distBetweenPts2D( &incptBetweenPt1s, &incptBetweenPt2s ) );
-	
-	if (checkOutsideNegative)					
-		if( ABS( line_radiansFormed3Pts(pt,&incptBetweenPt1s,&incptBetweenPt2s) )  > 3 )	// if point occurs behind the line connecting l1p1 and l2p1: make fractBetweenLines negative		// if (incptBetweenPt1s < incptBetweenPt2s && pt < incptBetweenPt1s || incptBetweenPt1s > incptBetweenPt2s && pt > incptBetweenPt1s)
-			fractBetweenLines = -fractBetweenLines;
+  //## CALCULATE FRACTRIGHT:
   
-	return (fractBetweenLines);
+  double a1 = l1p2->y-l1p1->y;
+  double b1 = l1p1->x-l1p2->x;
+  double c1 = l1p2->x*l1p1->y - l1p1->x*l1p2->y;    //{ a1*x + b1*y + c1 = 0 is line 1 }
+  
+  double a2 = l2p2->y-l2p1->y;
+  double b2 = l2p1->x-l2p2->x;
+  double c2 = l2p2->x*l2p1->y - l2p1->x*l2p2->y;    //{ a2*x + b2*y + c2 = 0 is line 2 }
+  
+  double denom = a1*b2 - a2*b1;
+  
+  //## CALCULATE INTERCEPT POINT OF TOP AND BOTTOM LINES:
+  
+  Ipoint lineIntercept;    // where the two lines intercept each other
+  
+  if (denom == 0)            // if lines are parallel: make "lineIntercept" same offset/angle as first line
+  {
+    lineIntercept.x = pt->x + (l1p2->x - l1p1->x);
+    lineIntercept.y = pt->y + (l1p2->y - l1p1->y);
+    lineIntercept.z = l1p1->z;
+  }
+  else                // if lines not parallel: calculate "lineIntercept" where they cross
+  {
+    lineIntercept.x = (b1*c2 - b2*c1) / denom;
+    lineIntercept.y = (a2*c1 - a1*c2) / denom;
+    lineIntercept.z = l1p1->z;
+  }
+  
+  Ipoint incptBetweenPt1s;
+  line_getInterceptWhereRayCross( &lineIntercept, pt, l1p1, l2p1, &incptBetweenPt1s );
+  Ipoint incptBetweenPt2s;
+  line_getInterceptWhereRayCross( &lineIntercept, pt, l1p2, l2p2, &incptBetweenPt2s );
+  
+  double fractBetweenLines = fDiv( line_distBetweenPts2D( &incptBetweenPt1s, pt ), line_distBetweenPts2D( &incptBetweenPt1s, &incptBetweenPt2s ) );
+  
+  if (checkOutsideNegative)          
+    if( ABS( line_radiansFormed3Pts(pt,&incptBetweenPt1s,&incptBetweenPt2s) )  > 3 )  // if point occurs behind the line connecting l1p1 and l2p1: make fractBetweenLines negative    // if (incptBetweenPt1s < incptBetweenPt2s && pt < incptBetweenPt1s || incptBetweenPt1s > incptBetweenPt2s && pt > incptBetweenPt1s)
+      fractBetweenLines = -fractBetweenLines;
+  
+  return (fractBetweenLines);
 }
 
 
@@ -965,14 +968,14 @@ Ipoint point_findPtInQuad1InMatchingQuad2( Ipoint *pt,
                                            Ipoint *q2BL, Ipoint *q2TL,
                                            Ipoint *q2TR, Ipoint *q2BR )
 {
-	double q1FractUp       = line_getFractPtBetweenTwoLines( q1BL, q1TL, q1BR, q1TR, pt, true );
-	double q1FractRight    = line_getFractPtBetweenTwoLines( q1BL, q1BR, q1TL, q1TR, pt, true );
-	
-	Ipoint q2PartwayAlongBottom = line_findPtFractBetweenPts2D( q2BL, q2BR, q1FractRight );
-	Ipoint q2PartwayAlongTop    = line_findPtFractBetweenPts2D( q2TL, q2TR, q1FractRight );
-	Ipoint ptR = line_findPtFractBetweenPts2D( &q2PartwayAlongBottom, &q2PartwayAlongTop, q1FractUp );
-	
-	return (ptR);
+  double q1FractUp       = line_getFractPtBetweenTwoLines( q1BL, q1TL, q1BR, q1TR, pt, true );
+  double q1FractRight    = line_getFractPtBetweenTwoLines( q1BL, q1BR, q1TL, q1TR, pt, true );
+  
+  Ipoint q2PartwayAlongBottom = line_findPtFractBetweenPts2D( q2BL, q2BR, q1FractRight );
+  Ipoint q2PartwayAlongTop    = line_findPtFractBetweenPts2D( q2TL, q2TR, q1FractRight );
+  Ipoint ptR = line_findPtFractBetweenPts2D( &q2PartwayAlongBottom, &q2PartwayAlongTop, q1FractUp );
+  
+  return (ptR);
 }
 
 
@@ -1120,7 +1123,7 @@ bool cont_getCenterOfMBR( Icont *cont, Ipoint *rpt )
     return true;
   }
   
-	Ipoint minPt;
+  Ipoint minPt;
   Ipoint maxPt;
   setPt( &minPt, FLOAT_MAX, FLOAT_MAX, FLOAT_MAX );
   setPt( &maxPt, FLOAT_MIN, FLOAT_MIN, FLOAT_MIN );
@@ -1147,34 +1150,34 @@ bool cont_getCenterOfMBR( Icont *cont, Ipoint *rpt )
 
 bool cont_getCentroid( Icont *cont, Ipoint *rpt )
 {  
-	if( isEmpty(cont) || psize(cont) == 0 )
+  if( isEmpty(cont) || psize(cont) == 0 )
   {
     setPt( rpt, 0, 0, 0 );
-		return false;
-	}
+    return false;
+  }
   else if( psize(cont) == 1 )
   {
-		setPt( rpt, getPt(cont,0)->x, getPt(cont,0)->y, getPt(cont,0)->z );
+    setPt( rpt, getPt(cont,0)->x, getPt(cont,0)->y, getPt(cont,0)->z );
     return true;
-	}
+  }
   
-	float totArea = 0;
-	float xCentroid = 0;
-	float yCentroid = 0;
-	
-	for(int i=0; i<psize(cont); i++) {
-		float boundingRecOverLine = (getPt(cont,i)->x * getPt(cont,i+1)->y)
+  float totArea = 0;
+  float xCentroid = 0;
+  float yCentroid = 0;
+  
+  for(int i=0; i<psize(cont); i++) {
+    float boundingRecOverLine = (getPt(cont,i)->x * getPt(cont,i+1)->y)
                                 - (getPt(cont,i+1)->x * getPt(cont,i)->y);
-		totArea += boundingRecOverLine;
-		xCentroid += (( getPt(cont,i)->x + getPt(cont,i+1)->x ) * boundingRecOverLine);
-		yCentroid += (( getPt(cont,i)->y + getPt(cont,i+1)->y ) * boundingRecOverLine);
-	}
-	totArea = 0.5*totArea;
-	xCentroid = 1.0/(6.0*totArea) * xCentroid;
-	yCentroid = 1.0/(6.0*totArea) * yCentroid;
+    totArea += boundingRecOverLine;
+    xCentroid += (( getPt(cont,i)->x + getPt(cont,i+1)->x ) * boundingRecOverLine);
+    yCentroid += (( getPt(cont,i)->y + getPt(cont,i+1)->y ) * boundingRecOverLine);
+  }
+  totArea = 0.5*totArea;
+  xCentroid = 1.0/(6.0*totArea) * xCentroid;
+  yCentroid = 1.0/(6.0*totArea) * yCentroid;
   
   setPt( rpt, xCentroid, yCentroid, getPt(cont,0)->z );
-	return true;
+  return true;
 }
 
 //------------------------
@@ -1589,45 +1592,45 @@ void cont_reversePts( Icont *c )
 void cont_addChamferPts( Icont *cont, Ipoint *ptPrev, Ipoint *ptCurr, Ipoint *ptNext, 
                          float distOffset, float minAngle )
 {
-	if(minAngle <= 0)
-		return;
+  if(minAngle <= 0)
+    return;
   
-	float angleMadeByPoint = 360 - line_angleFormed3Pts( ptPrev, ptCurr, ptNext );			
+  float angleMadeByPoint = 360 - line_angleFormed3Pts( ptPrev, ptCurr, ptNext );      
                   // the angle made by the corner on the "outside"
-	
-	if( angleMadeByPoint > 180 )			// if angle is reflex: add multiple points
-	{
-		float angleCurveSpan = angleMadeByPoint-180;
-		int numMidPtsToAdd = (int)floor( angleCurveSpan / minAngle );
-		
-		if( numMidPtsToAdd == 0 )   // if no extra points are needed to smooth the corner:
+  
+  if( angleMadeByPoint > 180 )      // if angle is reflex: add multiple points
+  {
+    float angleCurveSpan = angleMadeByPoint-180;
+    int numMidPtsToAdd = (int)floor( angleCurveSpan / minAngle );
+    
+    if( numMidPtsToAdd == 0 )   // if no extra points are needed to smooth the corner:
     {                           //   add two points
       Ipoint pt1 = line_getPtRelativeToEnd(ptPrev,ptCurr,distOffset, 90);
       
       Ipoint pt2 = line_getPtRelativeToEnd(ptPrev,ptCurr,distOffset, 90);
       Ipoint pt3 = line_getPtRelativeToEnd(ptNext,ptCurr,distOffset,-90);
       
-			imodPointAppend( cont, &pt2 );
-			imodPointAppend( cont, &pt3 );
-		}
-		else            // if extra points are needed to smooth the corner:
+      imodPointAppend( cont, &pt2 );
+      imodPointAppend( cont, &pt3 );
+    }
+    else            // if extra points are needed to smooth the corner:
     {               //   add multiple points in an arc around the current (central) pt
-			float angleBetweenPts = angleCurveSpan / (numMidPtsToAdd+1);
-			for(int i=0; i<numMidPtsToAdd+1; i++)
-				imodPointAppend( cont, &line_getPtRelativeToEnd( ptPrev, ptCurr, distOffset, 
+      float angleBetweenPts = angleCurveSpan / (numMidPtsToAdd+1);
+      for(int i=0; i<numMidPtsToAdd+1; i++)
+        imodPointAppend( cont, &line_getPtRelativeToEnd( ptPrev, ptCurr, distOffset, 
                                                          90-(i*angleBetweenPts) ) );
-		}
-	}
-	else					// else if angle on outside is <= 180 degrees (obtuse or acute) then:
-	{             //   add a SINGLE point in the middle
-		float angleInset = angleMadeByPoint/2.0f;
-		float distFromCorner = fDiv( distOffset, sin(angleInset*DEGS_TO_RADS) );
-		
-		Ipoint midSegmentPt = line_getPtRelativeToEnd( ptPrev, ptCurr, distFromCorner,
+    }
+  }
+  else          // else if angle on outside is <= 180 degrees (obtuse or acute) then:
+  {             //   add a SINGLE point in the middle
+    float angleInset = angleMadeByPoint/2.0f;
+    float distFromCorner = fDiv( distOffset, sin(angleInset*DEGS_TO_RADS) );
+    
+    Ipoint midSegmentPt = line_getPtRelativeToEnd( ptPrev, ptCurr, distFromCorner,
                                                           180.0-angleInset );
-		
-		imodPointAppend( cont, &midSegmentPt );
-	}
+    
+    imodPointAppend( cont, &midSegmentPt );
+  }
 }
 
 
@@ -1646,57 +1649,57 @@ void cont_expandOpenCont( Icont *contOrig, Icont *contR,
   deleteAllPts(contR);
   
   Icont *cont = imodContourDup(contOrig);
-	
-	//## DEAL WITH POSSIBLILTY THAT CONTOUR HAS ONE OR NO POINTS:
-	if ( thickness == 0 )
-		return;
-	if( psize(cont) == 0 )
-		return;
-  if ( psize(cont) == 1 ) {
-		cont_generateCircle( contR, thickness, 12, *getFirstPt(cont), false );
+  
+  //## DEAL WITH POSSIBLILTY THAT CONTOUR HAS ONE OR NO POINTS:
+  if ( thickness == 0 )
     return;
-	}
-	
-	//## PREPARE CONTOUR:
-	imodContourUnique( cont );
+  if( psize(cont) == 0 )
+    return;
+  if ( psize(cont) == 1 ) {
+    cont_generateCircle( contR, thickness, 12, *getFirstPt(cont), false );
+    return;
+  }
+  
+  //## PREPARE CONTOUR:
+  imodContourUnique( cont );
   imodContourMakeDirection( cont, IMOD_CONTOUR_CLOCKWISE );
   int N = psize(cont);
   
-	//## ADD START:
-	if( roundEnds )	{
-		cont_addChamferPts( contR, getPt(cont,1), getPt(cont,0), getPt(cont,1),
+  //## ADD START:
+  if( roundEnds )  {
+    cont_addChamferPts( contR, getPt(cont,1), getPt(cont,0), getPt(cont,1),
                         thickness, minAngleForChamfers);
-	}
-	else	{
-		imodPointAppend(contR,
+  }
+  else  {
+    imodPointAppend(contR,
         &line_getPtRelativeToEnd( getPt(cont,0),getPt(cont,1),thickness,-90 ) );
-		imodPointAppend(contR,
+    imodPointAppend(contR,
         &line_getPtRelativeToEnd( getPt(cont,0),getPt(cont,1),thickness, 90 ) );
-	}
-	
-	//## ADD POINTS AROUND OUTSIDE:
-	for(int i=1; i<N-1; i++)
-		cont_addChamferPts( contR, getPt(cont,i-1), getPt(cont,i), getPt(cont,i+1),
+  }
+  
+  //## ADD POINTS AROUND OUTSIDE:
+  for(int i=1; i<N-1; i++)
+    cont_addChamferPts( contR, getPt(cont,i-1), getPt(cont,i), getPt(cont,i+1),
                         thickness, minAngleForChamfers);
-		
-	//## ADD END POINT:
-	if( roundEnds )	{
+    
+  //## ADD END POINT:
+  if( roundEnds )  {
     cont_addChamferPts( contR, getPt(cont,N-2),getPt(cont,N-1),getPt(cont,N-2),
                         thickness,minAngleForChamfers);
-	}
-	else	{
-		imodPointAppend(contR,
+  }
+  else  {
+    imodPointAppend(contR,
           &line_getPtRelativeToEnd( getPt(cont,N-1), getPt(cont,N-2), thickness, -90 ) );
-		imodPointAppend(contR,
+    imodPointAppend(contR,
           &line_getPtRelativeToEnd( getPt(cont,N-1), getPt(cont,N-2), thickness,  90 ) );
-	}
-	
-	//## ADD POINTS AROUND INSIDE:
-	for(int i=N-2; i>0; i--)
-		cont_addChamferPts( contR, getPt(cont,i+1), getPt(cont,i), getPt(cont,i-1),
+  }
+  
+  //## ADD POINTS AROUND INSIDE:
+  for(int i=N-2; i>0; i--)
+    cont_addChamferPts( contR, getPt(cont,i+1), getPt(cont,i), getPt(cont,i-1),
                         thickness, minAngleForChamfers);
   
-	return;
+  return;
 }
 
 //------------------------
@@ -1714,34 +1717,34 @@ void cont_expandClosedCont( Icont *contOrig, Icont *innerCont, Icont *outerCont,
   deleteAllPts(outerCont);
   
   Icont *cont = imodContourDup(contOrig);
-	
-	//## DEAL WITH POSSIBLILTY THAT CONTOUR HAS ONE OR NO POINTS:
-	if ( thickness == 0 ) {
-		return;
-	}
-	if( psize(cont) == 0 ) {
-		return;
+  
+  //## DEAL WITH POSSIBLILTY THAT CONTOUR HAS ONE OR NO POINTS:
+  if ( thickness == 0 ) {
+    return;
   }
-	if ( psize(cont) == 1 ) {
-		cont_generateCircle( outerCont, thickness, 12, *getFirstPt(cont), false );
-		return;
-	}
-	
-	//## PREPARE CONTOUR:
-	imodContourUnique( cont );
+  if( psize(cont) == 0 ) {
+    return;
+  }
+  if ( psize(cont) == 1 ) {
+    cont_generateCircle( outerCont, thickness, 12, *getFirstPt(cont), false );
+    return;
+  }
+  
+  //## PREPARE CONTOUR:
+  imodContourUnique( cont );
   imodContourMakeDirection( cont, IMOD_CONTOUR_CLOCKWISE );
   
-	//## GET INNER CONTOURS:
-	for(int i=psize(cont); i>0; i--)
-		cont_addChamferPts( innerCont, getPt(cont,i+1), getPt(cont,i), getPt(cont,i-1),
-                        thickness, minAngleForChamfers);
-	
-	//## ADD OUTER CONTOUR:
-	for(int i=0; i<psize(cont); i++)
-		cont_addChamferPts( outerCont, getPt(cont,i-1), getPt(cont,i), getPt(cont,i+1),
+  //## GET INNER CONTOURS:
+  for(int i=psize(cont); i>0; i--)
+    cont_addChamferPts( innerCont, getPt(cont,i+1), getPt(cont,i), getPt(cont,i-1),
                         thickness, minAngleForChamfers);
   
-	return;
+  //## ADD OUTER CONTOUR:
+  for(int i=0; i<psize(cont); i++)
+    cont_addChamferPts( outerCont, getPt(cont,i-1), getPt(cont,i), getPt(cont,i+1),
+                        thickness, minAngleForChamfers);
+  
+  return;
 }
 
 
@@ -2468,6 +2471,7 @@ bool cont_isConvex( Icont *cont )
 //-- or a right turn for a anti-clockwise contour. Note that this crude method
 //-- can often fail on more convoluted contours with a concavity tree greater
 //-- than one deep (i.e. the concave regions have concave regions).
+//-- NOTE: It's a good idea to run "imodContourUnique" before running this.
 
 int cont_makeConvexCrude( Icont *cont )
 {
@@ -2476,7 +2480,6 @@ int cont_makeConvexCrude( Icont *cont )
   
   int pointsBefore = psize(cont);
   bool isClockwise = (imodContZDirection(cont) == IMOD_CONTOUR_CLOCKWISE);
-  
   
   for (int p=0; p<(psize(cont)+3) && psize(cont)>3; p++ )
   {
@@ -2491,7 +2494,7 @@ int cont_makeConvexCrude( Icont *cont )
       int ptIdx = intMod( p,psize(cont) );
       imodPointDelete(cont, ptIdx );
       p-=2;
-      p = MAX(0,p); 
+      p = MAX(0,p);
     }
   }
   
@@ -2507,6 +2510,7 @@ int cont_makeConvexCrude( Icont *cont )
 //-- relative this point, then removing points which form a "left turn".
 //-- Returns the number of points removed.
 //-- see: http://en.wikipedia.org/wiki/Graham_scan
+//-- NOTE: JUST DISCOVERED SOME SERIOUS PROBLEMS - RECOMMEND  :-(
 
 int cont_makeConvex( Icont *cont )
 {
@@ -2515,6 +2519,7 @@ int cont_makeConvex( Icont *cont )
   
   //## MAKE CONTOUR CLOCKWISE:
   
+  imodContourStrip(cont);
   imodContourMakeDirection( cont, IMOD_CONTOUR_CLOCKWISE );
   
   //## FIND THE LOWEST POINT IN THE CONTOUR:
@@ -2574,7 +2579,7 @@ int cont_makeConvex( Icont *cont )
     if( crossProduct < 0 ) // if this point makes a left turn:
     {
       imodPointDelete( cont, p );   // delete this point... and
-      p = MAX(0,p-2);               // go back two points
+      p = MAX(1,p-1);               // go back two points
     }
   }
   
@@ -3870,6 +3875,12 @@ bool cont_getOuterUnionPolygon( Icont *newCont, Icont *cont1O, Icont *cont2O )
         maxIdx = i;
       }
     }
+    
+    if( maxArea < imodContourArea(cont1O) || maxArea < imodContourArea(cont2O) )
+    {
+      wprint( "\aERROR: try smoothing contours more before joining\n" );
+      return (false);
+    }
     IcontPtr contWithBiggestArea = joinedConts[maxIdx];
     cont_copyPoints( contWithBiggestArea.cont, newCont, true );
   }
@@ -3914,9 +3925,9 @@ Ipoint cont_getPtDistAlongLength( Icont *cont, float dist, bool closed, int star
     Ipoint *ptCurr = getPt( cont, startPt+ p    );
     Ipoint *ptNext = getPt( cont, startPt+(p+1) );
     
-		distNextPt += imodPointDistance( ptCurr, ptNext );
+    distNextPt += imodPointDistance( ptCurr, ptNext );
     
-		if( dist <= distNextPt )
+    if( dist <= distNextPt )
     {
       float fractAlongSeg = fDiv((dist-distCurrPt),(distNextPt-distCurrPt));
       returnPt = line_findPtFractBetweenPts2D( ptCurr, ptNext, fractAlongSeg );
@@ -3924,7 +3935,7 @@ Ipoint cont_getPtDistAlongLength( Icont *cont, float dist, bool closed, int star
     }
     
     distCurrPt = distNextPt;
-	}
+  }
   
   wprint("\aERROR: cont_getPtDistAlongLength()\n");
   return (*getLastPt(cont));
@@ -3962,9 +3973,9 @@ vector<float> cont_getFractPtsAlongLength( Icont *cont, bool closed, int startPt
     Ipoint *ptCurr = getPt( cont, startPt+ p    );
     Ipoint *ptPrev = getPt( cont, startPt+(p-1) );
     
-		cumLengthToPt += imodPointDistance( ptCurr, ptPrev );
-		fractAlongLengthV.push_back( fDiv(cumLengthToPt,contLength) );
-	}
+    cumLengthToPt += imodPointDistance( ptCurr, ptPrev );
+    fractAlongLengthV.push_back( fDiv(cumLengthToPt,contLength) );
+  }
   
   return fractAlongLengthV;
 }
@@ -4005,7 +4016,7 @@ int cont_addPtsFractsAlongLength( Icont *cont, Icont *contNew,
     if( keepExistingPts )
       imodPointAppend( contNew, ptCurr );
     
-		cumLengthToNextPt += imodPointDistance( ptCurr, ptNext );
+    cumLengthToNextPt += imodPointDistance( ptCurr, ptNext );
     fractNextPt       = fDiv( cumLengthToNextPt, contLength );
     
     while( !allFractsFound )
@@ -4032,7 +4043,7 @@ int cont_addPtsFractsAlongLength( Icont *cont, Icont *contNew,
     }
     
     fractCurrPt = fractNextPt;
-	}
+  }
   
   if( !allFractsFound )       // should not happen... but sometimes does
   {

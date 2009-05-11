@@ -243,7 +243,8 @@ int  cont_breakIntoSimple( vector<IcontPtr> &conts, Icont *cont );
 int  cont_killVertAndHorzSegments( Icont *cont );                           // NEW
 void cont_nudgeAllPointsRandomly( Icont *cont );                            // NEW
 int  cont_nudgeAnyPointsLyingOnOtherContour( Icont *cont1, Icont *cont2 );  // NEW
-bool cont_isConvex( Icont *cont );                              
+bool cont_isConvex( Icont *cont );   
+int  cont_makeConvexCrude( Icont *cont );
 int  cont_makeConvex( Icont *cont );
 int  cont_markConvexPtsNegOne( Icont *cont );
 void cont_calcConvexProperties( Icont *cont, bool closed, int *numConvexPts, float *convexLen, float *hullLen, float *hullArea );
