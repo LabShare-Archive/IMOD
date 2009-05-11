@@ -117,6 +117,7 @@ enum wheelbehaviour { WH_NONE, WH_SCULPTCIRCLE, WH_SLICES, WH_CONTS, WH_PTS, WH_
 enum dkeybehavior   { DK_NONE, DK_TOEND, DK_NEARESTEND, DK_DELETEPT, DK_DELETECONT,
                       DK_REMOVEPTSIZE, DK_REMOVEALLPTSIZES, DK_MOVEPT };
 enum ekeybehavior   { EK_ADDONLY, EK_MOVEPTS, EK_REDUCEANDMOVE };
+enum warpbehavior   { WB_AUTO, WB_LINE, WB_AREA };
 
 enum sculptresize   { SR_STAGGERED, SR_LINEAR, SR_LOG };
 
@@ -129,7 +130,7 @@ enum sortcriteria   { SORT_SURFACENUM,
                       SORT_PTX, SORT_PTY, SORT_PTZ,
                       SORT_PTSIZE, SORT_PTGREY, SORT_NUMOPTIONS };
 
-const int NUM_SAVED_VALS = 21;
+const int NUM_SAVED_VALS = 27;
 
 //-------------------------------
 //## DRAWINGTOOLS DATA STRUCTURE:
@@ -169,7 +170,8 @@ struct DrawingToolsData   // contains all local plugin data
   bool   draw_diffWarpSize;         // if false: draw_warpRadius always = draw_sculptRadius
   int    draw_sculptResizeScheme;   // changes way in which sculpt circle is resized
                                     //   (see: sculptresize)
-  
+  int    draw_warpBehavior;         // changes the behavior of the warp tool
+                                    //   (see: warpbehavior) 
   
   //## SETTINGS:
   

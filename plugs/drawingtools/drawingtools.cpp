@@ -15,6 +15,9 @@
     $Revision$
 
     $Log$
+    Revision 1.36  2009/05/11 07:54:14  tempuser
+    Moved smoothing options to unclutter
+
     Revision 1.35  2009/05/07 01:08:41  tempuser
     Added point resize mode option
 
@@ -1101,13 +1104,23 @@ bool DrawingTools::drawExtraObject( bool redraw )
       
       if( !plug.but2Down && !plug.but3Down )    // if mouse not down: check if cont close
       {
-        float contortDistTol = 10.0f*sc; //MAX( radius*0.2f, 5.0f );
-        ptInContortRange =
-          edit_selectNearPtInCurrObj( &plug.mouse, contortDistTol, 0.0f, false );
+        if( plug.draw_warpBehavior == WB_AUTO )
+        {
+          float contortDistTol = 10.0f*sc; //MAX( radius*0.2f, 5.0f );
+          ptInContortRange =
+            edit_selectNearPtInCurrObj( &plug.mouse, contortDistTol, 0.0f, false );
+        }
+        else if( plug.draw_warpBehavior == WB_LINE )
+        {
+          float contortDistTol = warpRadius;
+          ptInContortRange =
+            edit_selectNearPtInCurrObj( &plug.mouse, contortDistTol, 0.0f, false );
+        }
+        
         plug.contortInProgress = false;
       }
       
-      bool showContort = isCurrPtValid() 
+      bool showContort = isCurrPtValid() && plug.draw_warpBehavior != WB_AREA
                           && ( plug.contortInProgress || ptInContortRange );
       
       if( showContort )    // draw contort area (instead of warp circle)
@@ -1241,10 +1254,10 @@ void DrawingTools::initValues()
   plug.draw_warpRadius          = 30.0;
   plug.draw_diffWarpSize        = false;
   plug.draw_sculptResizeScheme  = SR_STAGGERED;
+  plug.draw_warpBehavior        = WB_AUTO;
   
   plug.wheelBehav               = WH_SCULPTCIRCLE;
   plug.dKeyBehav                = DK_TOEND;
-  plug.eKeyBehav                = EK_ADDONLY;
   plug.pgUpDownInc              = 1;
   plug.useNumKeys               = false;
   plug.smartPtResizeMode        = false;
@@ -1287,20 +1300,27 @@ void DrawingTools::loadSettings()
   plug.draw_reducePtsOpt          = savedValues[4];
   plug.draw_smoothMinDist         = savedValues[5];
   plug.draw_smoothTensileFract    = savedValues[6];
-  plug.draw_sculptRadius          = savedValues[7];
-  plug.draw_sculptResizeScheme    = savedValues[8];
-  plug.draw_diffWarpSize          = savedValues[9];
-  plug.wheelBehav                 = savedValues[10];
-  plug.dKeyBehav                  = savedValues[11];
-  plug.pgUpDownInc                = savedValues[12];
-  plug.useNumKeys                 = savedValues[13];
-  plug.smartPtResizeMode          = savedValues[14];
-  plug.markTouchedContsAsKey      = savedValues[15];
-  plug.wheelResistance            = savedValues[16];
-  plug.selectedAction             = savedValues[17];
-  plug.selectedAction             = savedValues[18];
-  plug.testIntersetAllObjs        = savedValues[19];
-  plug.selectedAction             = savedValues[20];
+  plug.draw_smoothReduceFirst     = savedValues[7];
+  plug.draw_smoothMoveIts         = savedValues[8];
+  plug.draw_smoothMoveFract       = savedValues[9];
+  plug.draw_smoothMoveMinDist     = savedValues[10];
+  plug.draw_printSmoothResults    = savedValues[11];
+  plug.draw_sculptRadius          = savedValues[12];
+  plug.draw_sculptResizeScheme    = savedValues[13];
+  plug.draw_diffWarpSize          = savedValues[14];
+  plug.draw_warpBehavior          = savedValues[15];
+  
+  plug.wheelBehav                 = savedValues[16];
+  plug.dKeyBehav                  = savedValues[17];
+  plug.pgUpDownInc                = savedValues[18];
+  plug.useNumKeys                 = savedValues[19];
+  plug.smartPtResizeMode          = savedValues[20];
+  plug.markTouchedContsAsKey      = savedValues[21];
+  plug.wheelResistance            = savedValues[22];
+  plug.selectedAction             = savedValues[23];
+  plug.selectedAction             = savedValues[24];
+  plug.testIntersetAllObjs        = savedValues[25];
+  plug.selectedAction             = savedValues[26];
 }
 
 
@@ -1319,20 +1339,27 @@ void DrawingTools::saveSettings()
   saveValues[4]   = plug.draw_reducePtsOpt;
   saveValues[5]   = plug.draw_smoothMinDist;
   saveValues[6]   = plug.draw_smoothTensileFract;
-  saveValues[7]   = plug.draw_sculptRadius;
-  saveValues[8]   = plug.draw_sculptResizeScheme; 
-  saveValues[9]   = plug.draw_diffWarpSize;
-  saveValues[10]  = plug.wheelBehav;
-  saveValues[11]  = plug.dKeyBehav;
-  saveValues[12]  = plug.pgUpDownInc;
-  saveValues[13]  = plug.useNumKeys;
-  saveValues[14]  = plug.smartPtResizeMode;
-  saveValues[15]  = plug.markTouchedContsAsKey;
-  saveValues[16]  = plug.wheelResistance;
-  saveValues[17]  = plug.selectedAction;
-  saveValues[18]  = plug.selectedAction;
-  saveValues[19]  = plug.testIntersetAllObjs;
-  saveValues[20]  = plug.selectedAction;
+  saveValues[7]   = plug.draw_smoothReduceFirst;
+  saveValues[8]   = plug.draw_smoothMoveIts;
+  saveValues[9]   = plug.draw_smoothMoveFract;
+  saveValues[10]  = plug.draw_smoothMoveMinDist;
+  saveValues[11]  = plug.draw_printSmoothResults;
+  saveValues[12]  = plug.draw_sculptRadius;
+  saveValues[13]  = plug.draw_sculptResizeScheme; 
+  saveValues[14]  = plug.draw_diffWarpSize;
+  saveValues[15]  = plug.draw_warpBehavior;
+  
+  saveValues[16]  = plug.wheelBehav;
+  saveValues[17]  = plug.dKeyBehav;
+  saveValues[18]  = plug.pgUpDownInc;
+  saveValues[19]  = plug.useNumKeys;
+  saveValues[20]  = plug.smartPtResizeMode;
+  saveValues[21]  = plug.markTouchedContsAsKey;
+  saveValues[22]  = plug.wheelResistance;
+  saveValues[23]  = plug.selectedAction;
+  saveValues[24]  = plug.selectedAction;
+  saveValues[25]  = plug.testIntersetAllObjs;
+  saveValues[26]  = plug.selectedAction;
   
   prefSaveGenericSettings("DrawingTools",NUM_SAVED_VALS,saveValues);
 }
@@ -1387,7 +1414,7 @@ void DrawingTools::smoothCurrentContour( bool moveExistingPtsOnce )
   
   int numMoveIts = ( moveExistingPtsOnce ) ? 1 : plug.draw_smoothMoveIts;
   
-  for(int i=0; i<plug.draw_smoothMoveIts; i++)
+  for(int i=0; i<numMoveIts; i++)
     ptsMoved += cont_avgPtsPos( cont, plug.draw_smoothMoveFract,
                                 plug.draw_smoothMoveMinDist, closed, true );
   
@@ -1399,45 +1426,6 @@ void DrawingTools::smoothCurrentContour( bool moveExistingPtsOnce )
   
   if( plug.draw_printSmoothResults )
     wprint("%d pts added %d moved (contour smoothing)\n", ptsAdded-ptsDeleted, ptsMoved);
-  
-  
-  
-  /*
-  if(!moveExistingPtsOnce && plug.eKeyBehav == EK_REDUCEANDMOVE)
-  {
-    edit_reduceCurrContour();
-    edit_smoothCurrContour();
-    for(int i=0; i<10; i++)
-      cont_avgPtsPos( cont, plug.draw_smoothMoveFract,
-                      plug.draw_smoothMoveMinDist, closed, true );
-    undoFinishUnit( plug.view );            // FINISH UNDO
-    ivwRedraw( plug.view );
-    return;
-  }*/
-  
-  /*int pointsAdded = edit_smoothCurrContour();
-  if(pointsAdded)
-  {
-    undoFinishUnit( plug.view );            // FINISH UNDO
-    ivwRedraw( plug.view );
-  }*/
-  
-  /*
-  if( moveExistingPtsOnce )
-  {
-    int ptsMoved = cont_avgPtsPos( cont, plug.draw_smoothMoveFract,
-                                      plug.draw_smoothMoveMinDist, closed, true );
-    
-    if(pointsMoved) {
-      undoFinishUnit( plug.view );            // FINISH UNDO
-      ivwRedraw( plug.view );
-    }
-    //wprint("%d pts added %d moved (contour smoothing)\n", ptsAdded, ptsMoved);
-    return;
-  }
-  */
-  
-  //wprint("%d pts added (contour smoothing)\n", pointsAdded);
 }
 
 
@@ -1590,9 +1578,9 @@ void DrawingTools::smoothConts()
   static int  includeCType     = 0;
   static bool roundZOpenPts    = true;
   static bool addPtEveryZ      = true;
-  static bool movePts       = false;
-  static float moveFract = 0.25;
-  static float minDistToMove = 0.20f;
+  static bool movePts          = false;
+  static float moveFract       = plug.draw_smoothMoveFract;
+  static float minDistToMove   = plug.draw_smoothMoveMinDist;
   
   string msg =
     "-----"
@@ -1631,11 +1619,11 @@ void DrawingTools::smoothConts()
                   "   along the curve but no existing points moved \n"
                   "TICKED: points will be added and existing \n"
                   "   points moved to make a smoother contour." );
-  ds.addDblSpinBoxF ( "Move fraction:", 0.01, 2.0, &moveFract, 2, 0.01,
+  ds.addDblSpinBoxF ( "move fraction:", 0.01, 2.0, &moveFract, 2, 0.01,
                       "Points will be moved towards this percentage distance \n"
                       "from their current location, to the position halfway \n"
                       "between the point before and after (average pos). \n" );
-  ds.addDblSpinBoxF ( "Min distance to move:", 0.001, 10.0, &minDistToMove, 3, 0.01,
+  ds.addDblSpinBoxF ( "min distance to move:", 0.001, 10.0, &minDistToMove, 3, 0.01,
                       "Points closer than this distance to their 'average pos' \n"
                       "will NOT be moved." );
 	GuiDialogCustomizable dlg(&ds, "Smooth Contours",false);
@@ -2561,6 +2549,21 @@ void DrawingTools::moreSettings()
                   "\n"
                   "TIP: Adjust 'wheel resistant' to make the circle reize "
                   "    faster or slower as you scroll the mouse" );
+  ds.addComboBox( "warp tool behavior:",
+                  "auto,"
+                  "contort line,"
+                  "warp area",
+                  &plug.draw_warpBehavior,
+                  "The method used to warp the contour with the warp tool.\n"
+                  "\n"
+                  " > auto - the warp mode will depend on how close your mouse \n"
+                  "    is to the edge of the contour \n"
+                  " > contort line - moves points along an portion of the contour \n"
+                  "    (as indicated with a red line). This method uses a sine curve \n"
+                  "    with the selected point (i.e. nearest to mouse) at the center \n"
+                  " > warp area    - moves all points within the warp circle \n"
+                  "    (the stippled circle) with the most influence on points \n"
+                  "    near the center" );
   
   ds.addLabel   ( "\n--- CONTOUR REDUCTION [r] ---" );
   ds.addCheckBox( "reduce drawn contours", &plug.draw_reducePts,
@@ -2623,16 +2626,17 @@ void DrawingTools::moreSettings()
                       "between the point before and after (average pos). \n\n"
                       "RECOMMENDED VALUE: 0.25" );
   ds.addDblSpinBoxF ( "min distance to move:", 0.001, 10.0,
-                      &plug.draw_smoothMoveFract, 3, 0.01,
+                      &plug.draw_smoothMoveMinDist, 3, 0.01,
                       "Points closer than this distance to their 'average pos' \n"
                       "will NOT be moved. \n"
                       "NOTE: Without this limit, continuous smoothing would \n"
                       "eventually result in the contour turning into a circle! \n\n"
                       "RECOMMENDED VALUE: 0.20" );
   
+  ds.addLabel   ( "" );
   ds.addCheckBox( "print result of [e] and [r]", &plug.draw_printSmoothResults,
-                  "Will output a summary of changes each time [e] or [r]"
-                  "is pressed" );
+                  "Will output a single-line summary of changes each time \n"
+                  "[e] or [r] is pressed" );
   
 	GuiDialogCustomizable dlg(&ds, "More Settings", this);
 	dlg.exec();
@@ -4957,6 +4961,10 @@ void edit_executeWarpStart()
   int noZap = ivwGetTopZapZoom(plug.view, &zapZoom); 
   float sc = fDiv( 1.0f, zapZoom);   // tomogram distance for one screen pixel 
   float contortDistTol = 10.0f*sc;
+  if( plug.draw_warpBehavior == WB_LINE )
+    contortDistTol = warpRadius;
+  if( plug.draw_warpBehavior == WB_AREA )
+    contortDistTol = 0;
   
   bool suitableContourSelected =
     edit_selectNearPtInCurrObj( &plug.mouse, warpRadius*2.0f, 0.0f, false );
@@ -4977,6 +4985,7 @@ void edit_executeWarpStart()
     int objIdx, contIdx, ptIdx;
     imodGetIndex(imod, &objIdx, &contIdx, &ptIdx);
     imodSetIndex(imod, objIdx, newContPos, 0);
+    plug.contortInProgress = (plug.draw_warpBehavior == WB_LINE);
     return;
   }
   
@@ -4984,7 +4993,7 @@ void edit_executeWarpStart()
   
   float distToCurrPt = line_distBetweenPts2D( &plug.mouse, pt );
   
-  if( distToCurrPt <= contortDistTol )
+  if( distToCurrPt <= contortDistTol && plug.draw_warpBehavior != WB_AREA )
      plug.contortInProgress = true;
   
   undoContourDataChgCC( plug.view );      // REGISTER UNDO
