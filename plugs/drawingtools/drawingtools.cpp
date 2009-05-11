@@ -15,6 +15,9 @@
     $Revision$
 
     $Log$
+    Revision 1.35  2009/05/07 01:08:41  tempuser
+    Added point resize mode option
+
     Revision 1.34  2009/04/21 08:15:50  tempuser
     Minor
 
@@ -830,115 +833,9 @@ DrawingTools::DrawingTools(QWidget *parent, const char *name) :
   
   mLayout->addWidget(typeGbox);
   
+  //## Actions
   
-  //## Interpolation Options:
-  
-  grpOptions = new QGroupBox("Contour Smoothing Options:", this);
-  //grpOptions->setFocusPolicy(Qt::NoFocus);
-  //grpOptions->setMargin(GROUP_MARGIN);
-  
-  gridLayout1 = new QGridLayout(grpOptions);
-  gridLayout1->setSpacing(LAYOUT_SPACING);
-  gridLayout1->setContentsMargins(LAYOUT_MARGIN, LAYOUT_MARGIN, LAYOUT_MARGIN,
-                                  LAYOUT_MARGIN);
-  
-  // DNM: I don't understand why this was needed but when I switched to a 
-  // QGroupBox the space showed up
-  //gridLayout1->addItem( new QSpacerItem(1,SPACER_HEIGHT), 0, 0);
-  
-  reducePtsCheckbox = new QCheckBox("reduce drawn contours", grpOptions);
-  reducePtsCheckbox->setFocusPolicy(Qt::NoFocus);
-  reducePtsCheckbox->setChecked( plug.draw_reducePts );
-  QObject::connect(reducePtsCheckbox,SIGNAL(clicked()),this,
-                   SLOT(changeReducePts()));
-  reducePtsCheckbox->setToolTip
-    ("Automatically applies smoothing to any contour drawn with the "
-     "\n'sculpt' and 'join' tools upon release of the mouse button");
-  gridLayout1->addWidget(reducePtsCheckbox, 1, 0, 1, 2);
-  
-  
-  QString minAreaStr = 
-      "When a contour is reduced: wherever three consecutive points "
-      "\nform a triangular area less than this many pixels squared, "
-      "\nthe middle point is removed."
-      "\n"
-      "\nRECOMMENDED VALUE: 0.5";
-    
-  lblMinArea = new QLabel("reduction min area:", grpOptions);
-  lblMinArea->setFocusPolicy(Qt::NoFocus);
-  lblMinArea->setToolTip(minAreaStr);
-  gridLayout1->addWidget(lblMinArea, 2, 0);
-  QString tolStr = 
-      "When a contour is reduced: the higher this tolerance value "
-      "\nthe more points are removed. "
-      "\n"
-      "\nRECOMMENDED VALUE: 0.05";
-    
-  lblTol = new QLabel("reduction tolerance:", grpOptions);
-  lblTol->setFocusPolicy(Qt::NoFocus);
-  lblTol->setToolTip(tolStr);
-  gridLayout1->addWidget(lblTol, 2, 0);
-  
-  QHBoxLayout *box1 = new QHBoxLayout();
-  fSmoothSpinner = (QDoubleSpinBox*)diaLabeledSpin(2,0.01,20.0,0.01,"",grpOptions,box1);
-  diaSetDoubleSpinBox(fSmoothSpinner, plug.draw_reducePtsTol);
-  QObject::connect(fSmoothSpinner,SIGNAL(valueChanged(double)),this,
-                   SLOT(changeSmoothTol(double)));
-  fSmoothSpinner->setToolTip("The higher this value, the more point are removed "
-                 "when you press [r] or 'Reduce Contours'"
-                 "\n... a value of >1 is not recommended.");
-  gridLayout1->addLayout(box1, 2, 1);
-  
-  setReducePtsOptionAndChangeDisplay( plug.draw_reducePtsOpt ); 
-      // shows appropriate label and fSmoothSpinner value  
-  
-  QString smoothPtsDistStr = 
-    "When a contour is smoothed: wherever two consecutive points are"
-    "\ngreater than this many pixels apart, point(s) will be added between them. "
-    "\n"
-    "\nRECOMMENDED VALUE: 5";
-  
-  lblSmoothPtsDist = new QLabel("smooth point dist:", grpOptions);
-  lblSmoothPtsDist->setFocusPolicy(Qt::NoFocus);
-  lblSmoothPtsDist->setToolTip(smoothPtsDistStr);
-  gridLayout1->addWidget(lblSmoothPtsDist, 3, 0);
-  
-  // DNM 1/1/09: Made this one show one decimal
-  QHBoxLayout *box2 = new QHBoxLayout();
-  fSmoothPtsDist = (QDoubleSpinBox*)diaLabeledSpin(1,1.,50.,1.,"",grpOptions,box2);
-  diaSetDoubleSpinBox(fSmoothPtsDist, plug.draw_smoothMinDist );
-  QObject::connect(fSmoothPtsDist,SIGNAL(valueChanged(double)),
-                    this, SLOT(changeSmoothPtsDist(double)));
-  fSmoothPtsDist->setToolTip(smoothPtsDistStr);
-  gridLayout1->addLayout(box2, 3, 1);
-  
-  
-  QString smoothTensileFractStr = 
-    "When a contour is smoothed: a cardinal spline agorithm is used "
-    "\nwith a tensile fraction of this value. This value dictates how "
-    "\n'curvy' (sensitive to direction change) the contour will be when "
-    "\npoints are added --> 0 = straight line, 2 = very curvy."
-    "\n"
-    "\nRECOMMENDED VALUE: 0.5";
-  
-  lblSmoothTensileFract = new QLabel("smooth tensile value:", grpOptions);
-  lblSmoothTensileFract->setFocusPolicy(Qt::NoFocus);
-  lblSmoothTensileFract->setToolTip(smoothTensileFractStr);
-  gridLayout1->addWidget(lblSmoothTensileFract, 4, 0);
-  
-  QHBoxLayout *box3 = new QHBoxLayout();
-  fSmoothTensileFract = (QDoubleSpinBox*)diaLabeledSpin(1,0.,2.0,0.1,"",grpOptions,box3);
-  diaSetDoubleSpinBox(fSmoothTensileFract, plug.draw_smoothTensileFract );
-  QObject::connect(fSmoothTensileFract,SIGNAL(valueChanged(double)),this,
-                   SLOT(changeSmoothTensileFract(double)));
-  fSmoothTensileFract->setToolTip(smoothTensileFractStr);
-  gridLayout1->addLayout(box3, 4, 1);
-  mLayout->addWidget(grpOptions);
-  
-  
-  //## Object
-  
-  grpActions = new QGroupBox("Smoothing Actions:", this);
+  grpActions = new QGroupBox("Actions:", this);
   //grpActions->setFocusPolicy(Qt::NoFocus);
   //grpActions->setMargin(GROUP_MARGIN);
   
@@ -978,19 +875,24 @@ DrawingTools::DrawingTools(QWidget *parent, const char *name) :
   gridLayout2->setContentsMargins(LAYOUT_MARGIN, LAYOUT_MARGIN, LAYOUT_MARGIN,
                                   LAYOUT_MARGIN);
   
+  keyboardSettingsButton = new QPushButton("Mouse and Keyboard", widget1);
+  connect(keyboardSettingsButton, SIGNAL(clicked()), this, SLOT(keyboardSettings()));
+  keyboardSettingsButton->setToolTip( "Contains several mouse & keyboard "
+                                      "related settings");
+  gridLayout2->addWidget(keyboardSettingsButton, 0, 0, 1, 2);
+  
   moreActionsButton = new QPushButton("More Actions", widget1);
   connect(moreActionsButton, SIGNAL(clicked()), this, SLOT(moreActions()));
-  moreActionsButton->setToolTip(
-                "Contains several other actions I didn't want to sqeeze "
-                "into this window");
-  gridLayout2->addWidget(moreActionsButton, 0, 0);
+  moreActionsButton->setToolTip( "Contains several other actions I didn't "
+                                 "want to sqeeze into this window");
+  gridLayout2->addWidget(moreActionsButton, 1, 0);
   
   moreSettingsButton = new QPushButton("More Settings", widget1);
   connect(moreSettingsButton, SIGNAL(clicked()), this, SLOT(moreSettings()));
   moreSettingsButton->setToolTip(
                 "Contains several other settings I didn't want to sqeeze "
                 "into this window");
-  gridLayout2->addWidget(moreSettingsButton, 0, 1); 
+  gridLayout2->addWidget(moreSettingsButton, 1, 1); 
   
   mLayout->addWidget(widget1);
   
@@ -1329,6 +1231,12 @@ void DrawingTools::initValues()
   plug.draw_reducePtsOpt        = RD_MINAREA;
   plug.draw_smoothMinDist       = 5;
   plug.draw_smoothTensileFract  = 0.5;
+  plug.draw_smoothReduceFirst   = false;
+  plug.draw_smoothMoveIts       = 0;
+  plug.draw_smoothMoveFract     = 0.25;
+  plug.draw_smoothMoveMinDist   = 0.20;
+  plug.draw_printSmoothResults  = true;
+  
   plug.draw_sculptRadius        = 30.0;
   plug.draw_warpRadius          = 30.0;
   plug.draw_diffWarpSize        = false;
@@ -1336,6 +1244,7 @@ void DrawingTools::initValues()
   
   plug.wheelBehav               = WH_SCULPTCIRCLE;
   plug.dKeyBehav                = DK_TOEND;
+  plug.eKeyBehav                = EK_ADDONLY;
   plug.pgUpDownInc              = 1;
   plug.useNumKeys               = false;
   plug.smartPtResizeMode        = false;
@@ -1447,46 +1356,88 @@ void DrawingTools::reduceCurrentContour()
     undoFinishUnit( plug.view );            // FINISH UNDO
     ivwRedraw( plug.view );
   }
-  wprint("%d points deleted (contour reduction)\n", pointsRemoved);
+  if( plug.draw_printSmoothResults )
+    wprint("%d points deleted (contour reduction)\n", pointsRemoved);
 }
 
 //------------------------
 //-- Smooths the current contour by adding extra points using a spline
 //-- (existing points are not moved).
 
-void DrawingTools::smoothCurrentContour( bool moveExistingPts )
+void DrawingTools::smoothCurrentContour( bool moveExistingPtsOnce )
 {
   if( !isCurrContValid() )
     return;
   
+  Imod  *imod = ivwGetModel(plug.view);
+  Iobj  *obj  = imodObjectGet(imod);
+  Icont *cont = imodContourGet(imod);
+  bool closed = isContClosed(obj,cont);
+  
+  int ptsAdded   = 0;
+  int ptsDeleted = 0;
+  int ptsMoved   = 0;
+  
   undoContourDataChgCC( plug.view );      // REGISTER UNDO
-  int pointsAdded = edit_smoothCurrContour();
-  if(pointsAdded)
+  
+  if( plug.draw_smoothReduceFirst )
+    ptsDeleted = edit_reduceCurrContour();
+  
+  ptsAdded = edit_smoothCurrContour();
+  
+  int numMoveIts = ( moveExistingPtsOnce ) ? 1 : plug.draw_smoothMoveIts;
+  
+  for(int i=0; i<plug.draw_smoothMoveIts; i++)
+    ptsMoved += cont_avgPtsPos( cont, plug.draw_smoothMoveFract,
+                                plug.draw_smoothMoveMinDist, closed, true );
+  
+  if( ptsAdded || ptsDeleted || ptsMoved )
   {
     undoFinishUnit( plug.view );            // FINISH UNDO
     ivwRedraw( plug.view );
   }
   
-  if( moveExistingPts )
+  if( plug.draw_printSmoothResults )
+    wprint("%d pts added %d moved (contour smoothing)\n", ptsAdded-ptsDeleted, ptsMoved);
+  
+  
+  
+  /*
+  if(!moveExistingPtsOnce && plug.eKeyBehav == EK_REDUCEANDMOVE)
   {
-    Imod  *imod = ivwGetModel(plug.view);
-    Iobj  *obj  = imodObjectGet(imod);
-    Icont *cont = imodContourGet(imod);
-    
-    const float moveFract = 0.25;
-    const float minDistToMove = 0.20f;
-    bool closed = isContClosed(obj,cont);
-    int pointsMoved = cont_avgPtsPos( cont, moveFract, minDistToMove, closed, true );
+    edit_reduceCurrContour();
+    edit_smoothCurrContour();
+    for(int i=0; i<10; i++)
+      cont_avgPtsPos( cont, plug.draw_smoothMoveFract,
+                      plug.draw_smoothMoveMinDist, closed, true );
+    undoFinishUnit( plug.view );            // FINISH UNDO
+    ivwRedraw( plug.view );
+    return;
+  }*/
+  
+  /*int pointsAdded = edit_smoothCurrContour();
+  if(pointsAdded)
+  {
+    undoFinishUnit( plug.view );            // FINISH UNDO
+    ivwRedraw( plug.view );
+  }*/
+  
+  /*
+  if( moveExistingPtsOnce )
+  {
+    int ptsMoved = cont_avgPtsPos( cont, plug.draw_smoothMoveFract,
+                                      plug.draw_smoothMoveMinDist, closed, true );
     
     if(pointsMoved) {
       undoFinishUnit( plug.view );            // FINISH UNDO
       ivwRedraw( plug.view );
     }
-    wprint("%d points added %d moved (contour smoothing)\n", pointsAdded, pointsMoved);
+    //wprint("%d pts added %d moved (contour smoothing)\n", ptsAdded, ptsMoved);
     return;
   }
+  */
   
-  wprint("%d points added (contour smoothing)\n", pointsAdded);
+  //wprint("%d pts added (contour smoothing)\n", pointsAdded);
 }
 
 
@@ -2424,7 +2375,7 @@ void DrawingTools::moreActions()
                   "Prints detailed information about the "
                     "current object,"
                   "Prints detailed information about the "
-                    "current contour, or a range of them,"
+                    "current contour; or a range of them,"
                   "Resets all setting (for this plugin) to default" );
 	GuiDialogCustomizable dlg(&ds, "Perform Action", this);
 	dlg.exec();
@@ -2488,11 +2439,9 @@ void DrawingTools::moreActions()
 //------------------------
 //-- Allows user to change other plugin values/settings.
 
-void DrawingTools::moreSettings()
+void DrawingTools::keyboardSettings()
 {
   //## GET USER INPUT FROM CUSTOM DIALOG:
-  
-  int newReducePtsOpt = plug.draw_reducePtsOpt;
   
 	CustomDialog ds;
   ds.addLabel   ( "--- MOUSE ---" );
@@ -2509,15 +2458,6 @@ void DrawingTools::moreSettings()
                   "The higher the value, the slower "
                   "mouse scrolling works. \n"
                   "RECOMMENDED VALUE: 100" );
-  
-  ds.addLabel   ( "\n--- KEYBOARD ---" );
-  ds.addCheckBox( "use number keypad to change mode", 
-                  &plug.useNumKeys,
-                  "If on: they keypad numbers [1]-[6] are intercepted \n"
-                  " and used to change the drawing mode. \n"
-                  "If off: the keypad can be used to move points \n"
-                  " as per normal... but mode can still be change with \n"
-                  " the normal number keys");
   ds.addCheckBox( "smart point resize mode", 
                   &plug.smartPtResizeMode,
                   "If this mode is on, you can use the mouse wheel to resize points \n"
@@ -2526,9 +2466,22 @@ void DrawingTools::moreSettings()
                   "created when button 2 is pressed, will have the same \n"
                   "point size as the previous point in the contour. \n"
                   "\n"
-                  "NOTE: This mode can be useful when drawing spheres or tubes \n"
-                  "of varying size. This mode has no effect on closed contour objects."
-                  );
+                  "NOTE: This mode can be useful when drawing spheres or tubes of \n"
+                  "varying size. This mode has no effect on closed contour objects." );
+  ds.addCheckBox( "show mouse in model view", 
+                  &plug.showMouseInModelView,
+                  "Will show the mouse in any Model View "
+                  "windows as you move it in the ZAP window. \n"
+                  "WARNING: This will reduce performance!");
+ 
+  ds.addLabel   ( "\n--- KEYBOARD ---" );
+  ds.addCheckBox( "use number keypad to change mode", 
+                  &plug.useNumKeys,
+                  "If on: they keypad numbers [1]-[6] are intercepted \n"
+                  " and used to change the drawing mode. \n"
+                  "If off: the keypad can be used to move points \n"
+                  " as per normal... but mode can still be change with \n"
+                  " the normal number keys");
   ds.addComboBox( "on [d] remove:",
                   "do nothing,"
                   "pts to end,"
@@ -2560,22 +2513,40 @@ void DrawingTools::moreSettings()
                   "NOTE: Holding [Shift] when you press \n"
                   "[Page Up] or [Page Down] will cause it \n"
                   "to increment one slice (as normal)" );
-  ds.addLabel   ( "\n--- SCULPT CIRCLE ---" );
+  
+	GuiDialogCustomizable dlg(&ds, "Mouse and Keyboard Settings", this);
+	dlg.exec();
+	if( ds.cancelled )
+		return;
+  
+  ivwRedraw( plug.view );  
+}
+
+//------------------------
+//-- Allows user to change other plugin values/settings.
+
+void DrawingTools::moreSettings()
+{
+  //## GET USER INPUT FROM CUSTOM DIALOG:
+  
+	CustomDialog ds;
+  
+  ds.addLabel   ( "--- SCULPT CIRCLE ---" );
   ds.addCheckBox( "mark contours as key after sculpt", 
                   &plug.markTouchedContsAsKey,
                   "If on: any stippled contour selected and/or "
                   "\nsculpted using the 'sculpt' or 'join' "
                   "\ntool will become unstippled." );
+  ds.addCheckBox( "use a different radius for warp circle", 
+                  &plug.draw_diffWarpSize,
+                  "If off: the size of the warp circle will always be equal"
+                  "\nto the size of the sculpt circle." );
   ds.addLineEditF( "sculpt circle radius:",
                   &plug.draw_sculptRadius, 0.01, 200, 3,
                   "The radius (in pixels) of the circle used "
                   "in sculpt and join drawing mode. \n"
                   "NOTE: Change this using [q] and [w] or (better yet) use the \n"
                   "   mouse wheel (so long as 'mouse behavior' is set correctly).");
-  ds.addCheckBox( "use a different radius for warp circle", 
-                  &plug.draw_diffWarpSize,
-                  "If off: the size of the warp circle will always be equal"
-                  "\nto the size of the sculpt circle." );
   ds.addComboBox( "sculpt resize scheme:",
                   "normal,"
                   "linear,"
@@ -2590,23 +2561,78 @@ void DrawingTools::moreSettings()
                   "\n"
                   "TIP: Adjust 'wheel resistant' to make the circle reize "
                   "    faster or slower as you scroll the mouse" );
-  ds.addLabel   ( "\n--- OTHER ---" );
-  ds.addComboBox( "smoothing meth:",
+  
+  ds.addLabel   ( "\n--- CONTOUR REDUCTION [r] ---" );
+  ds.addCheckBox( "reduce drawn contours", &plug.draw_reducePts,
+                  "Automatically applies smoothing to any contour drawn with the \n"
+                  "'sculpt' and 'join' tools upon release of the mouse button" );
+  ds.addComboBox( "reduction method:",
                   "segment threshold,"
                   "min area",
-                  &newReducePtsOpt,
+                  &plug.draw_reducePtsOpt,
                   "The method used when [r] or 'Reduce Contours' "
                   "is used.\n"
                   "\n"
-                  " > segment threshold - better adjusted "
+                  " > segment threshold - better suited "
                   "to preserve the curvature of contour segments \n"
-                  " > min area - better adjusted "
+                  " > min area - better suited "
                   "to remove sharp contours of nearby points" );
-  ds.addCheckBox( "show mouse in model view", 
-                  &plug.showMouseInModelView,
-                  "Will show the mouse in any Model View "
-                  "windows as you move it in the ZAP window. \n"
-                  "WARNING: This will reduce performance!");
+  ds.addDblSpinBoxF("segment threshold:", 0, 3, &plug.draw_reducePtsTol, 2, 0.01,
+                    "When a contour is reduced: the higher this tolerance value \n"
+                    "the more points are removed. A value >1 is not advised. \n\n"
+                    "RECOMMENDED VALUE: 0.05");
+  ds.addDblSpinBoxF("min area:", 0, 3, &plug.draw_reducePtsMinArea, 2, 0.05,
+                    "When a contour is reduced: wherever three consecutive points \n"
+                    "form a triangular area less than this many pixels squared, \n"
+                    "the middle point is removed.\n\n"
+                    "RECOMMENDED VALUE: 0.5");
+  
+  ds.addLabel   ( "\n--- CONTOUR SMOOTHING [e] ---" );
+  
+  ds.addCheckBox( "reduce contour before smoothing", &plug.draw_smoothReduceFirst,
+                  "Will apply 'contour reduction' settings above, before \n"
+                  "smoothing the contour. With this ticked, densely spaced \n"
+                  "points will be elimiated and the smoothing results more \n"
+                  "dramatic." );
+  
+  ds.addDblSpinBoxF("smooth point dist:", 1, 50, &plug.draw_smoothMinDist, 0, 1,
+                    "When a contour is smoothed: wherever two consecutive points \n"
+                    "are greater than this many pixels apart, additional point(s) \n"
+                    "will be added between them. \n\n"
+                    "RECOMMENDED VALUE: 5" );
+  ds.addDblSpinBoxF("smooth tensile value:", 0, 2, &plug.draw_smoothTensileFract, 1, 0.1,
+                    "When a contour is smoothed: a cardinal spline agorithm is used \n"
+                    "with a tensile fraction of this value. This value dictates how \n"
+                    "'curvy' (sensitive to direction change) the contour will be when \n"
+                    "points are added --> 0 = straight line, 2 = very curvy.\n\n"
+                    "RECOMMENDED VALUE: 0.5");
+  
+  ds.addSpinBox ( "# times to move pts:", 0, 50,
+                   &plug.draw_smoothMoveIts, 1,
+                   "The number of iterations used to move point by averaging \n"
+                   "the position of consequtive points using the parameters \n"
+                   "below (when 'e' is pressed). \n\n"
+                   "NOTE: By default this is set to '0' - meaning points will \n"
+                   "be added, but no points will be moved. \n"
+                   "You can move points one iteration by pressing [Shift]+[e]" );
+  
+  ds.addDblSpinBoxF ( "move fraction:", 0.01, 2.0,
+                      &plug.draw_smoothMoveFract, 2, 0.01,
+                      "Points will be moved towards this percentage distance \n"
+                      "from their current location, to the position halfway \n"
+                      "between the point before and after (average pos). \n\n"
+                      "RECOMMENDED VALUE: 0.25" );
+  ds.addDblSpinBoxF ( "min distance to move:", 0.001, 10.0,
+                      &plug.draw_smoothMoveFract, 3, 0.01,
+                      "Points closer than this distance to their 'average pos' \n"
+                      "will NOT be moved. \n"
+                      "NOTE: Without this limit, continuous smoothing would \n"
+                      "eventually result in the contour turning into a circle! \n\n"
+                      "RECOMMENDED VALUE: 0.20" );
+  
+  ds.addCheckBox( "print result of [e] and [r]", &plug.draw_printSmoothResults,
+                  "Will output a summary of changes each time [e] or [r]"
+                  "is pressed" );
   
 	GuiDialogCustomizable dlg(&ds, "More Settings", this);
 	dlg.exec();
@@ -2615,9 +2641,6 @@ void DrawingTools::moreSettings()
   
   if( plug.draw_sculptRadius <= 0.01 )
     plug.draw_sculptRadius == 0.01;
-  
-  if( newReducePtsOpt != plug.draw_reducePtsOpt )
-    setReducePtsOptionAndChangeDisplay( newReducePtsOpt );
   
   ivwRedraw( plug.view );
 }
@@ -4089,61 +4112,6 @@ void DrawingTools::changeTypeSelected( int newType) {
   plug.drawMode = newType;
   diaSetGroup(typeButtonGroup, plug.drawMode);
   plug.window->drawExtraObject(true);
-}
-
-
-//------------------------
-//-- Change draw_reducePtsTol or draw_reducePtsMinArea
-//-- (depending on the value of draw_reducePtsOpt)
-
-void DrawingTools::changeSmoothTol( double value ) { 
-  if( plug.draw_reducePtsOpt == RD_TOL )
-    plug.draw_reducePtsTol = (float)value;
-  else
-    plug.draw_reducePtsMinArea = (float)value;
-}
-
-
-//------------------------
-//-- Change draw_reducePtsOpt
-
-void DrawingTools::setReducePtsOptionAndChangeDisplay( int value )
-{
-  plug.draw_reducePtsOpt = value;
-  
-  if( plug.draw_reducePtsOpt == RD_TOL )
-  {
-    lblTol->show();
-    lblMinArea->hide();
-    fSmoothSpinner->setValue( plug.draw_reducePtsTol );
-  }
-  else
-  {
-    lblTol->hide();
-    lblMinArea->show();
-    fSmoothSpinner->setValue( plug.draw_reducePtsMinArea );
-  }
-}
-
-//------------------------
-//-- Change draw_smoothMinDist
-
-void DrawingTools::changeSmoothPtsDist( double value ) {
-  plug.draw_smoothMinDist = (float)value;
-}
-
-//------------------------
-//-- Change draw_smoothTensileFract
-
-void DrawingTools::changeSmoothTensileFract( double value ) {
-  plug.draw_smoothTensileFract = (float)value;
-}
-
-//------------------------
-//-- Change changeReducePts
-
-void DrawingTools::changeReducePts() {
-  plug.draw_reducePts = reducePtsCheckbox->isChecked() ? 1 : 0;
 }
 
 //------------------------

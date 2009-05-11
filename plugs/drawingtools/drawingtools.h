@@ -60,6 +60,7 @@ public slots:
   void printContourDetailedInfo();
   void moreActions();
   void moreSettings();
+  void keyboardSettings();
   void sortContours();
   void findContours();
   void deleteRangeContours();
@@ -77,12 +78,6 @@ public slots:
   
   void changeType( int value );
   void changeTypeSelected( int newType );
-  void changeSmoothTol( double value );
-  void setReducePtsOptionAndChangeDisplay(int value);
-  void changeSmoothPtsDist( double value );
-  void changeSmoothTensileFract( double value );
-  void changeReducePts();
-  
   void changeSculptCircleRadius( float value, bool accel=false );
   void clearExtraObj();
   
@@ -100,17 +95,6 @@ public slots:
   QRadioButton *typeRadio_Transform;
   QRadioButton *typeRadio_Eraser;
   
-  QGroupBox    *grpOptions;
-  QGridLayout  *gridLayout1;
-  QLabel       *lblMinArea;
-  QLabel       *lblTol;
-  QDoubleSpinBox *fSmoothSpinner;
-  QCheckBox    *reducePtsCheckbox;
-  QLabel       *lblSmoothPtsDist;
-  QDoubleSpinBox *fSmoothPtsDist;
-  QLabel       *lblSmoothTensileFract;
-  QDoubleSpinBox *fSmoothTensileFract;
-  
   QGroupBox    *grpActions;
   QVBoxLayout  *vboxLayout1;
   QPushButton  *reduceContsButton;
@@ -118,6 +102,7 @@ public slots:
   
   QWidget      *widget1;
   QGridLayout  *gridLayout2;
+  QPushButton  *keyboardSettingsButton;
   QPushButton  *moreActionsButton;
   QPushButton  *moreSettingsButton;
 };
@@ -131,6 +116,8 @@ enum smoothmodes    { RD_TOL, RD_MINAREA };
 enum wheelbehaviour { WH_NONE, WH_SCULPTCIRCLE, WH_SLICES, WH_CONTS, WH_PTS, WH_PTSIZE };
 enum dkeybehavior   { DK_NONE, DK_TOEND, DK_NEARESTEND, DK_DELETEPT, DK_DELETECONT,
                       DK_REMOVEPTSIZE, DK_REMOVEALLPTSIZES, DK_MOVEPT };
+enum ekeybehavior   { EK_ADDONLY, EK_MOVEPTS, EK_REDUCEANDMOVE };
+
 enum sculptresize   { SR_STAGGERED, SR_LINEAR, SR_LOG };
 
 enum sortcriteria   { SORT_SURFACENUM,
@@ -156,7 +143,7 @@ struct DrawingToolsData   // contains all local plugin data
   
   int drawMode;        // the drawing tool type currently selected (see enum "drawmodes")
   
-  int    draw_reducePts;            // if 1: drawn conts will automatically be reduced
+  bool   draw_reducePts;            // if 1: drawn conts will automatically be reduced
   float  draw_reducePtsTol;         // the tolerance setting used in "imodContourReduce"
   float  draw_reducePtsMinArea;     // the minimum area which must be formed by three
                                     //  consecutive pts in a contour else the middle
@@ -168,6 +155,15 @@ struct DrawingToolsData   // contains all local plugin data
   float  draw_smoothTensileFract;   // tensile fraction used by the catumull-rom spline
                                     //  algorithm in the "cont_addPtsSmooth" function
                                     //  NOTE: 0=straight, 1.5=smooth, 2.0>=very bendy
+  bool   draw_smoothReduceFirst;    // reduces contour before smoothing when [e] pressed
+  int    draw_smoothMoveIts;        // number of iterations points are moved/averaged
+  float  draw_smoothMoveFract;      // the fraction of the distance a point is moved
+                                    //  towards the 'avg pos' of the next and prev point
+  float  draw_smoothMoveMinDist;    // the min distance from 'avg pos' a point must be
+                                    //  if it is to be moved
+  
+  bool   draw_printSmoothResults;   // prints output each time [e] or [r] is pressed
+  
   float  draw_sculptRadius;         //  the radius, in pixels, of the sculpting circle
   float  draw_warpRadius;           //  the radius, in pixels, of the warp circle
   bool   draw_diffWarpSize;         // if false: draw_warpRadius always = draw_sculptRadius
@@ -181,6 +177,8 @@ struct DrawingToolsData   // contains all local plugin data
                                 //   (see: wheelbehaviour)
   int  dKeyBehav;               // the action when [d] is pressed 
                                 //   (see: dkeybehavior)
+  int  eKeyBehav;               // the action when [e] is pressed 
+                                //   (see: ekeybehavior)       
   int  pgUpDownInc;             // the number of slices to iterate when
                                 //   PageUp or PageDown is pressed
   
