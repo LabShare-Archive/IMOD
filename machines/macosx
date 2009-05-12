@@ -215,7 +215,7 @@ echo '#define MAC103_BIGFILE' >> $hconfigure
 # Set the GLU_CALLBACK for OS 10.4 with gcc 4
 set unameout = `uname -r | sed '/\./s// /g'`
 @ darversion = $unameout[1]
-if ($darversion < 9) echo '#define GLU_CALLBACK GLvoid (*)(...)' >> $hconfigure
+if ($darversion < 9 && $ccomp == gcc) echo '#define GLU_CALLBACK GLvoid (*)(...)' >> $hconfigure
 
 set optimization = "-O3 -w"
 # 12/9/05: hurt more than helped on G5
