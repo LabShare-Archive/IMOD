@@ -11,6 +11,13 @@ set c_includes = ""
 # of #define in imodconfig because it must precede all system includes.
 set defines = '-D_FILE_OFFSET_BITS=64'
 
+# Set default compiler to intel if the fortran compiler is on the path
+#
+if ($compiler == default) then
+    set ifortout = `which ifort`
+    if (! $status) set compiler = intel
+endif
+
 set fcompFlags = ""
 set openmpFlags = ""
 if ($compiler == intel) then
