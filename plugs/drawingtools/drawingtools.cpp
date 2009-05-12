@@ -15,6 +15,9 @@
     $Revision$
 
     $Log$
+    Revision 1.37  2009/05/11 10:19:02  tempuser
+    Added few more save options
+
     Revision 1.36  2009/05/11 07:54:14  tempuser
     Moved smoothing options to unclutter
 
@@ -622,6 +625,19 @@ int imodPlugMouse(ImodView *vw, QMouseEvent *event, float imx, float imy,
       else if( plug.but2Released ) {
         edit_executeSculptEnd();
       }
+      else if( true ) 
+      {
+        if( plug.but3Pressed ) {
+          edit_executeWarpStart();
+        }
+        else if ( plug.but3Down ) {
+          edit_executeWarp();
+        }
+        else if( plug.but3Released ) {
+          edit_executeWarpEnd();
+        }
+      }
+      
       break;
     }
     
