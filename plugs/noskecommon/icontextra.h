@@ -250,6 +250,7 @@ int  cont_markConvexPtsNegOne( Icont *cont );
 void cont_calcConvexProperties( Icont *cont, bool closed, int *numConvexPts, float *convexLen, float *hullLen, float *hullArea );
 bool cont_breakContourEitherSide( Icont *cont, Icont *contBreak1, Icont *contBreak2, int idxPt1, int idxPt2, bool shareEdge );      
 bool cont_breakContourByLine( Icont *cont, Icont *contBreak1, Icont *contBreak2, Ipoint *linePt1, Ipoint *linePt2, Ipoint expectedPt, bool useExpectedPtInsteadOfMaxAreaSmallerSide );
+int  cont_breakContourByContour( vector<IcontPtr> &contSegs, Icont *contO, Icont *contBreakO, float minDist );    // NEW
 void cont_joinContsAtClosestApproach( Icont *newCont, Icont *cont1, Icont *cont2, bool addPtInMiddle );          
 void cont_joinContsAtClosestApproachVector( Icont *newCont, vector<IcontPtr> conts, bool addPtInMiddle );          
 void cont_getIntersectingConvexPolygon( Icont *newCont, Icont *cont1, Icont *cont2 );                    

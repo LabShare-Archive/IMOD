@@ -15,6 +15,9 @@
     $Revision$
 
     $Log$
+    Revision 1.18  2009/05/11 10:15:54  tempuser
+    Minor
+
     Revision 1.17  2009/05/07 01:08:11  tempuser
     few extra functins
 
@@ -2819,6 +2822,39 @@ bool cont_breakContourByLine( Icont *cont, Icont *contBreak1, Icont *contBreak2,
 
 
 //------------------------
+//-- Takes a single contours and breaks it into two contours at the
+//-- 
+
+int cont_breakContourByContour( vector<IcontPtr> &contSegs,
+                                 Icont *contO, Icont *contBreak, float minDist )
+{
+  if( isEmpty(contO) )
+    return 0;
+  
+  Imod *cont      = imodContourDup( contO );
+  imodContourUnique( cont );
+  imodContourMakeDirection( cont, IMOD_CONTOUR_CLOCKWISE );
+  imodContourUnique( contBreak );
+  cont_addPtsCrude( cont, minDist, true );
+  
+  int z = getZInt( cont );
+  const int PT_INSIDE = -2;
+  
+  for( int p=0; p<psize(cont); p++ )
+  {
+    Ipoint *pt = getPt(cont,p);
+    if( imodPointInsideCont( contBreak, pt ) )
+      pt->z = PT_INSIDE;
+  }
+  
+  cont_breakContByZValue( cont, contSegs, z, true );
+  imodContourDelete(cont);
+  
+  return contSegs.size();
+}
+
+
+//------------------------
 //-- Takes two contours and joins them together at the two points (one in each contour)
 //-- which are closest together. This is used in a branching strategy.
 //--  |      __     __     |      __     __          |
@@ -3182,7 +3218,7 @@ int cont_breakContByZValue( Icont *cont, vector<IcontPtr> &contSegs, int zValue,
   for (int p=0; p<numPts+1;p++)
   {
     int i = (p+pOffset) % numPts;
-    bool currPointOn = getPt(cont,i)->z   == z;
+    bool currPointOn = getPt(cont,i)->z == z;
     
     
     if( currPointOn )                         // if point is on: add it
@@ -3213,6 +3249,8 @@ int cont_breakContByZValue( Icont *cont, vector<IcontPtr> &contSegs, int zValue,
       }
     }
   }
+  
+  //cout << "T1" << endl; flush( cout );
   
   //## CLEAN ALL SEGMENTS, REMOVE ANY WITH ONLY ONE POINT OR LESS,
   //## AND ADD AN EXTRA POINT IN THE MIDDLE OF ANY TWO POINT SEGMENTS:
