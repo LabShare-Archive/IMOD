@@ -130,7 +130,7 @@ enum sortcriteria   { SORT_SURFACENUM,
                       SORT_PTX, SORT_PTY, SORT_PTZ,
                       SORT_PTSIZE, SORT_PTGREY, SORT_NUMOPTIONS };
 
-const int NUM_SAVED_VALS = 27;
+const int NUM_SAVED_VALS = 29;
 
 //-------------------------------
 //## DRAWINGTOOLS DATA STRUCTURE:
@@ -144,34 +144,38 @@ struct DrawingToolsData   // contains all local plugin data
   
   int drawMode;        // the drawing tool type currently selected (see enum "drawmodes")
   
-  bool   draw_reducePts;            // if 1: drawn conts will automatically be reduced
-  float  draw_reducePtsTol;         // the tolerance setting used in "imodContourReduce"
-  float  draw_reducePtsMinArea;     // the minimum area which must be formed by three
-                                    //  consecutive pts in a contour else the middle
-                                    //  one be removed - see the 
-                                    //  "cont_reducePtsMinArea" function
-  int    draw_reducePtsOpt;         // if 0: use tolerance, if 1: use min area
+  bool   reducePts;             // if 1: drawn conts will automatically be reduced
+  int    reducePtsOpt;          // if 0: use tolerance, if 1: use min area
+  float  reducePtsTol;          // the tolerance setting used in "imodContourReduce"
+  float  reducePtsMinArea;      // the minimum area which must be formed by three
+                                //  consecutive pts in a contour else the middle
+                                //  one be removed - see the 
+                                //  "cont_reducePtsMinArea" function
   
-  float  draw_smoothMinDist;        // min distance between consecutive points
-  float  draw_smoothTensileFract;   // tensile fraction used by the catumull-rom spline
-                                    //  algorithm in the "cont_addPtsSmooth" function
-                                    //  NOTE: 0=straight, 1.5=smooth, 2.0>=very bendy
-  bool   draw_smoothReduceFirst;    // reduces contour before smoothing when [e] pressed
-  int    draw_smoothMoveIts;        // number of iterations points are moved/averaged
-  float  draw_smoothMoveFract;      // the fraction of the distance a point is moved
-                                    //  towards the 'avg pos' of the next and prev point
-  float  draw_smoothMoveMinDist;    // the min distance from 'avg pos' a point must be
-                                    //  if it is to be moved
+  float  smoothMinDist;         // min distance between consecutive points
+  float  smoothTensileFract;    // tensile fraction used by the catumull-rom spline
+                                //  algorithm in the "cont_addPtsSmooth" function
+                                //  NOTE: 0=straight, 1.5=smooth, 2.0>=very bendy
+  bool   smoothReduceFirst;     // reduces contour before smoothing when [e] pressed
+  int    smoothMoveIts;         // number of iterations points are moved/averaged
+  float  smoothMoveFract;       // the fraction of the distance a point is moved
+                                //  towards the 'avg pos' of the next and prev point
+  float  smoothMoveMinDist;     // the min distance from 'avg pos' a point must be
+                                //  if it is to be moved
   
-  bool   draw_printSmoothResults;   // prints output each time [e] or [r] is pressed
+  bool   printSmoothResults;    // prints output each time [e] or [r] is pressed
   
-  float  draw_sculptRadius;         //  the radius, in pixels, of the sculpting circle
-  float  draw_warpRadius;           //  the radius, in pixels, of the warp circle
-  bool   draw_diffWarpSize;         // if false: draw_warpRadius always = draw_sculptRadius
-  int    draw_sculptResizeScheme;   // changes way in which sculpt circle is resized
-                                    //   (see: sculptresize)
-  int    draw_warpBehavior;         // changes the behavior of the warp tool
-                                    //   (see: warpbehavior) 
+  float  sculptRadius;          //  the radius, in pixels, of the sculpting circle
+  float  warpRadius;            //  the radius, in pixels, of the warp circle
+  bool   diffWarpSize;          // if false: warpRadius always = sculptRadius
+  int    sculptResizeScheme;    // changes way in which sculpt circle is resized
+                                //   (see: sculptresize)
+  int    warpBehavior;          // changes the behavior of the warp tool
+                                //   (see: warpbehavior) 
+  bool   scupltBut3Warp;        // if true: in sculpt mode the the third mouse button
+                                //   applies warp
+  
+  int    lineDisplayWidth;      // the thickness of the line used to show contours
   
   //## SETTINGS:
   
@@ -287,6 +291,10 @@ void edit_executeSculptPush( Ipoint center, float radius );
 void edit_executeSculptPinch( Ipoint center, float radius );
 void edit_executeSculptEnd();
 void edit_executeJoinEnd();
+
+void edit_executeJoinLineStart();
+void edit_executeJoinEnd();
+void edit_executeJoinRectEnd();
 
 void edit_executeWarpStart();
 void edit_executeWarp();
