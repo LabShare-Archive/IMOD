@@ -17,6 +17,9 @@ import etomo.util.DatasetFiles;
  * @version $$Revision$$
  *
  * <p> $$Log$
+ * <p> $Revision 1.21  2009/05/02 01:11:42  sueh
+ * <p> $bug# 1216 Added runraptor.
+ * <p> $
  * <p> $Revision 1.20  2009/04/01 20:07:39  sueh
  * <p> $bug# 1208 Added CLIP.
  * <p> $
@@ -142,6 +145,8 @@ public class ProcessName {
   private static final String ccderaser = "ccderaser";
   private static final String clip = "clip";
   private static final String runraptor ="runraptor";
+  private static final String flattenwarp = "flattenwarp";
+  private static final String flatten = "flatten";
 
   private final String name;
 
@@ -201,6 +206,8 @@ public class ProcessName {
   public static final ProcessName CCD_ERASER = new ProcessName(ccderaser);
   public static final ProcessName CLIP = new ProcessName(clip);
   public static final ProcessName RUNRAPTOR = new ProcessName(runraptor);
+  public static final ProcessName FLATTEN_WARP = new ProcessName(flattenwarp);
+  public static final ProcessName FLATTEN = new ProcessName(flatten);
 
   /**
    * Returns a string representation of the object.
@@ -446,6 +453,15 @@ public class ProcessName {
     }
     if (name.compareToIgnoreCase(clip) == 0) {
       return CLIP;
+    }
+    if (name.compareToIgnoreCase(runraptor) == 0) {
+      return RUNRAPTOR;
+    }
+    if (name.compareToIgnoreCase(flattenwarp) == 0) {
+      return FLATTEN_WARP;
+    }
+    if (name.compareToIgnoreCase(flatten) == 0) {
+      return FLATTEN;
     }
     return null;
   }
