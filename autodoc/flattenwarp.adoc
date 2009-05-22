@@ -66,3 +66,9 @@ between contours in Y, but if that will lead to too many patches, it will make
 the spacing bigger.  This option can be used to specify a spacing instead.
 This may be needed if too fine a spacing leads to problems when solving the
 linear equations for the shifts.
+
+[Field = PID]
+type = B
+usage = Output process ID to standard error
+tooltip = 
+manpage = 
