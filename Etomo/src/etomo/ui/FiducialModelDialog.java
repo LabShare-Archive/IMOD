@@ -37,6 +37,11 @@ import etomo.comscript.FortranInputSyntaxException;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.47  2009/05/04 16:46:44  sueh
+ * <p> bug# 1216 In FiducialModelDialog using AxisType to prevent the displaying
+ * <p> of the RAPTOR interface unless the dataset is dual axis.  Make .preali the
+ * <p> default file to use with RAPTOR.
+ * <p>
  * <p> Revision 3.46  2009/05/02 01:26:07  sueh
  * <p> bug# 1216 For B axis, hiding the pick panel and not setting/getting raptor
  * <p> data from metadata.
@@ -305,7 +310,7 @@ public final class FiducialModelDialog extends ProcessDialog implements
   private static final String MARK_LABEL = "# of beads to choose";
   private static final String DIAM_LABEL = "Unbinned Bead diameter";
 
-  private final EtomoPanel pnlFiducialModel = new EtomoPanel();
+  private final SpacedPanel pnlFiducialModel = SpacedPanel.getInstance();
   private final FiducialModelActionListener actionListener = new FiducialModelActionListener(
       this);
 
@@ -319,20 +324,20 @@ public final class FiducialModelDialog extends ProcessDialog implements
   private final RadioButton rbPickRaptor = new RadioButton(
       "Run RAPTOR and fix", bgPick);
 
-  private final JPanel pnlRaptor = new JPanel();
+  private final SpacedPanel pnlRaptor = SpacedPanel.getInstance();
   private final ButtonGroup bpRaptorInput = new ButtonGroup();
   private final RadioButton rbRaptorInputPreali = new RadioButton(
       "Run against the coarse aligned stack", bpRaptorInput);
   private final RadioButton rbRaptorInputRaw = new RadioButton(
       "Run against the raw stack", bpRaptorInput);
   private final Run3dmodButton btnOpenStack = Run3dmodButton.get3dmodInstance(
-      "Open Stack", this);
+      "Open Stack in 3dmod", this);
   private final LabeledTextField ltfMark = new LabeledTextField(MARK_LABEL
       + ": ");
   private final LabeledTextField ltfDiam = new LabeledTextField(DIAM_LABEL
-      + "(in pixels): ");
+      + " (in pixels): ");
   private final Run3dmodButton btnOpenRaptorResult = Run3dmodButton
-      .get3dmodInstance("Open RAPTOR Result in 3dmod", this);
+      .get3dmodInstance("Open RAPTOR Model in 3dmod", this);
 
   private final Run3dmodButton btnRaptor;
   private final MultiLineButton btnUseRaptorResult;
@@ -351,10 +356,9 @@ public final class FiducialModelDialog extends ProcessDialog implements
     pnlBeadtrack = BeadtrackPanel.getInstance(appMgr, axisID, dialogType);
     //root panel
     rootPanel.setLayout(new BoxLayout(rootPanel, BoxLayout.Y_AXIS));
-    rootPanel.add(pnlFiducialModel);
+    rootPanel.add(pnlFiducialModel.getContainer());
     //fiducial model panel
-    pnlFiducialModel
-        .setLayout(new BoxLayout(pnlFiducialModel, BoxLayout.Y_AXIS));
+    pnlFiducialModel.setBoxLayout(BoxLayout.Y_AXIS);
     pnlFiducialModel.setBorder(new BeveledBorder("Fiducial Model Generation")
         .getBorder());
     if (applicationManager.isDualAxis()) {
@@ -368,7 +372,7 @@ public final class FiducialModelDialog extends ProcessDialog implements
     }
     JPanel pnlPick = new JPanel();
     pnlFiducialModel.add(pnlPick);
-    pnlFiducialModel.add(pnlRaptor);
+    pnlFiducialModel.add(pnlRaptor.getContainer());
     pnlFiducialModel.add(btnSeed.getComponent());
     pnlFiducialModel.add(Box.createRigidArea(FixedDim.x0_y5));
     pnlFiducialModel.add(pnlBeadtrack.getContainer());
@@ -384,7 +388,7 @@ public final class FiducialModelDialog extends ProcessDialog implements
     pnlPick.add(rbPickSeed.getComponent());
     pnlPick.add(rbPickRaptor.getComponent());
     //RAPTOR panel
-    pnlRaptor.setLayout(new BoxLayout(pnlRaptor, BoxLayout.Y_AXIS));
+    pnlRaptor.setBoxLayout(BoxLayout.Y_AXIS);
     pnlRaptor.setBorder(new EtchedBorder("Run RAPTOR").getBorder());
     pnlRaptor.setAlignmentX(Box.CENTER_ALIGNMENT);
     JPanel pnlRaptorInput = new JPanel();
@@ -392,8 +396,8 @@ public final class FiducialModelDialog extends ProcessDialog implements
     pnlRaptor.add(btnOpenStack.getComponent());
     pnlRaptor.add(ltfMark.getContainer());
     pnlRaptor.add(ltfDiam.getContainer());
-    JPanel pnlRaptorButton = new JPanel();
-    pnlRaptor.add(pnlRaptorButton);
+    SpacedPanel pnlRaptorButtons = SpacedPanel.getInstance();
+    pnlRaptor.add(pnlRaptorButtons);
     //RAPTOR input source panel
     pnlRaptorInput.setLayout(new BoxLayout(pnlRaptorInput, BoxLayout.Y_AXIS));
     pnlRaptorInput.setBorder(BorderFactory.createEtchedBorder());
@@ -401,10 +405,10 @@ public final class FiducialModelDialog extends ProcessDialog implements
     pnlRaptorInput.add(rbRaptorInputPreali.getComponent());
     pnlRaptorInput.add(rbRaptorInputRaw.getComponent());
     //RAPTOR button panel
-    pnlRaptorButton.setLayout(new BoxLayout(pnlRaptorButton, BoxLayout.X_AXIS));
-    pnlRaptorButton.add(btnRaptor.getComponent());
-    pnlRaptorButton.add(btnOpenRaptorResult.getComponent());
-    pnlRaptorButton.add(btnUseRaptorResult.getComponent());
+    pnlRaptorButtons.setBoxLayout(BoxLayout.X_AXIS);
+    pnlRaptorButtons.add(btnRaptor.getComponent());
+    pnlRaptorButtons.add(btnOpenRaptorResult.getComponent());
+    pnlRaptorButtons.add(btnUseRaptorResult.getComponent());
     //exit button panel
     addExitButtons();
     //set initial values
@@ -461,8 +465,8 @@ public final class FiducialModelDialog extends ProcessDialog implements
   }
 
   public static ProcessResultDisplay getUseRaptorDisplay() {
-    return MultiLineButton.getToggleButtonInstance("Use RAPTOR Result",
-        DialogType.FIDUCIAL_MODEL);
+    return MultiLineButton.getToggleButtonInstance(
+        "Use RAPTOR Result as Fiducial Model", DialogType.FIDUCIAL_MODEL);
   }
 
   public void updateDisplay() {
@@ -624,16 +628,30 @@ public final class FiducialModelDialog extends ProcessDialog implements
     logFile[1] = "transferfid.log";
 
     //    ContextPopup contextPopup =
-    new ContextPopup(pnlFiducialModel, mouseEvent, "GETTING FIDUCIAL",
-        ContextPopup.TOMO_GUIDE, manPagelabel, manPage, logFileLabel, logFile,
-        applicationManager, axisID);
+    new ContextPopup(pnlFiducialModel.getContainer(), mouseEvent,
+        "GETTING FIDUCIAL", ContextPopup.TOMO_GUIDE, manPagelabel, manPage,
+        logFileLabel, logFile, applicationManager, axisID);
   }
 
   /**
    * Tooltip string initialization
    */
   private void setToolTipText() {
+    rbPickSeed
+        .setToolTipText("Create a seed model and use beadtracker to generate the "
+            + "fiducial model.");
+    rbPickRaptor.setToolTipText("Use RAPTOR to create the fiducial model.");
     btnSeed.setToolTipText("Open new or existing seed model in 3dmod.");
+    rbRaptorInputPreali
+        .setToolTipText("Run RAPTOR against the coarsely aligned stack.");
+    rbRaptorInputRaw.setToolTipText("Run RAPTOR against the raw stack.");
+    btnOpenStack
+        .setToolTipText("Opens the file that RAPTOR will be run against.");
+    ltfMark.setToolTipText("Number of markers to track.");
+    ltfDiam.setToolTipText("Bead diameter in pixels.");
+    btnRaptor.setToolTipText("Runs the runraptor script");
+    btnOpenRaptorResult.setToolTipText("Opens the model generated by RAPTOR and the file that RAPTOR was run against.");
+    btnUseRaptorResult.setToolTipText("Copies the model generated by RAPTOR to the .fid file.");
   }
 
   public void action(final Run3dmodButton button,
