@@ -73,6 +73,7 @@ int main( int argc, char *argv[])
   int binning = 1;
   int oneSurface = 0;
   int flipyz = -1;
+  int PID = 0;
   Ilist *clist = ilistNew(sizeof(ContData), 1000);
   char *strtmp;
   char *patchfile = NULL;
@@ -121,6 +122,11 @@ int main( int argc, char *argv[])
   PipGetBoolean("OneSurface", &oneSurface);
   PipGetInteger("FlipYandZ", &flipyz);
   PipGetString("PatchOutputFile", &patchfile);
+  PipGetBoolean("PID", &PID);
+  if (PID) {
+    fprintf(stderr, "Shell PID: %d\n", getpid());
+    fflush(stderr);
+  }
 
   /* Flip model so that z is depth unless user directs otherwise */
   if ((flipyz < 0 && model->zmax > model->ymax) || flipyz > 0)
