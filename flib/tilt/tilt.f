@@ -934,8 +934,10 @@ c
 c               
 c               compute left and right limits that come from legal data
 c               
-              xlft=(1.-zpart)/cbeta + xcen
-              xrt=(nprj-zpart)/cbeta + xcen
+              x = cbeta
+              if (abs(cbeta) .lt. 0.001) x = sign(0.001, cbeta)
+              xlft=(1.-zpart) / x + xcen
+              xrt=(nprj-zpart) / x + xcen
               if (xrt .lt. xlft) then
                 x = xlft
                 xlft = xrt
@@ -1522,7 +1524,7 @@ c
       integer*4 ifThickIn,ifSliceIn,ifWidthIn,imageBinned,ifSubsetIn,ierr
       real*4 pixelLocal, dmint,dmaxt,dmeant, frac, origx, origy, origz
       integer*4 nViewsReproj, iwideReproj, k, ind1, ind2, ifExpWeight
-      logical*4 adjustOrigin, projModel, readSmallMod
+      logical*4 adjustOrigin, projModel, readw_or_imod
       integer*4 licenseusfft,niceframe, parWrtInitialize
 c
       integer*4 numOptArg, numNonOptArg
@@ -1584,7 +1586,7 @@ c
 c       
 c       Get model file to project
       projModel = PipGetString('ProjectModel', recfile) .eq. 0
-      if (projModel .and. .not.readSmallMod(recfile)) call exitError(
+      if (projModel .and. .not.readw_or_imod(recfile)) call exitError(
      &    'READING MODEL FILE TO REPROJECT')
 c       
 c       Get entries for reprojection from rec file
@@ -3866,7 +3868,7 @@ c
       subroutine projectModel(filout, delta, nvorig, coords, values)
       implicit none
       include 'tilt.inc'
-      include 'smallmodel.inc'
+      include 'model.inc'
       character*(*) filout
       real*4 delta(3), orig(3), coords(3,*), values(*)
       integer*4 mapnv(limview), nvorig, ibase, numPt, iobj, ipt, ip1, iv, nv
@@ -3996,6 +3998,9 @@ c       Set to open contour, show values etc., and show sphere on section only
 
 c       
 c       $Log$
+c       Revision 3.44  2009/02/16 06:22:30  mast
+c       Modified to use new parallel write stuff
+c
 c       Revision 3.43  2008/12/12 16:40:21  mast
 c       Fixes for 180 degree tilting: modify angles to be 0.05 degree away from
 c       +/-90; disable cosine stretching of data above 80, and swap left and
