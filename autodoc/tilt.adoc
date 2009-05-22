@@ -113,7 +113,7 @@ each view.
 type = IA
 usage = Interpolation order and sampling factor for cosine stretching
 tooltip = 
-manpage = Interpolation order and sampling factor for cosine stretching
+manpage = Interpolation order and sampling factor
 for cosine stretching of the input data.  The order can be 1 for linear,
 2 for quadratic, 3 for cubic, or 0 to disable cosine stretching.
 The default is linear to provide some smoothing of the data; higher
