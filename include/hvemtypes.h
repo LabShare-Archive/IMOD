@@ -1,18 +1,18 @@
 #ifndef HVEMTYPES_H
 #define HVEMTYPES_H
-/*  $Author$
+/*
+  $Id$
 
-    $Date$
-
-    $Revision$
-
-    $Log$
-    Revision 3.2  2003/02/21 22:15:25  mast
-    Include new type definitions from imodconfig, eliminate old typedefs that
-    conflict with Qt, and eliminate X11 definitions
-
-    Revision 3.1  2002/11/30 07:24:00  mast
-    add ability to exclude X11 definitions for Qt use
+  $Log$
+  Revision 3.3  2003/02/27 20:20:16  mast
+  Change conditional definitions of X, Y, Z to defines of b3dX,Y,Z
+  
+  Revision 3.2  2003/02/21 22:15:25  mast
+  Include new type definitions from imodconfig, eliminate old typedefs that
+  conflict with Qt, and eliminate X11 definitions
+  
+  Revision 3.1  2002/11/30 07:24:00  mast
+  add ability to exclude X11 definitions for Qt use
 
 */
 
@@ -37,7 +37,7 @@
 #include <limits.h>
 
 #ifndef FLT_MAX 
-#define FLT_MAX         3.40282347E+38F
+#define FLT_MAX         1.E+37f
 #endif
 
 #ifndef SEEK_SET
