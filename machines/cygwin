@@ -109,7 +109,7 @@ else
     # tell the C routines being called by Fortran that they need two __
     #
     echo '#define G77__HACK' >> $hconfigure
-    echo '#define DLLEXPORT_H' >> $hconfigure
+    echo '#define DLLEXPORT_' >> $hconfigure
     echo '#define DLL_IM_EX' >> $hconfigure
 endif
 
@@ -119,6 +119,11 @@ SHELL     = /bin/sh
 CP        = /bin/cp
 FIND      = /usr/bin/find
 EOF
+
+# Under visual C there is really no strdup (enforced in 2005)
+echo '#ifdef _MSC_VER' >> $hconfigure
+echo '#define strdup _strdup' >> $hconfigure
+echo '#endif' >> $hconfigure
 
 
 #
