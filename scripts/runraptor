@@ -121,7 +121,6 @@ if ("$ext" == "st" && (-e prenewst.com || -e prenewsta.com)) then
 endif
 
 echo "RAPTOR results for this run will be in $outdir"
-echo "DO NOT WORRY ABOUT THE FOLLOWING WARNING"
 $RAPTOR_BIN/RAPTOR -exec $RAPTOR_BIN -path . -inp $infile $options -track -out $outdir
 
 set stat = $status
@@ -138,7 +137,10 @@ if ("$ext" == "st") set sedout = $rootname.$$
 
 set pixel = `header -p $infile`
 
-sed -e "/^units/a\\
+# Take out the erronous ones before the object is defined
+# Add symbol/symsize unconditionally, it won't hurt to have them twice
+sed -e "/symbol *circle/d" -e "/^size *7/d" \
+-e "/^units/a\\
 refcurscale $pixel\
 " \
 -e "/^drawmode/a\\
@@ -160,6 +162,9 @@ echo "The model that will load on the coarse aligned stack is:"
 echo "$outname"
 
 #  $Log$
+#  Revision 3.3  2009/05/01 18:23:03  mast
+#  Added error report if it crashes
+#
 #  Revision 3.2  2009/05/01 17:01:53  mast
 #  Added PID output
 #
