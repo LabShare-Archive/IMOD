@@ -2038,7 +2038,7 @@ static void mkMakeMesh_cb(int index)
 
   wMakeChecks[MAKE_MESH_SKIP] = diaCheckBox("Skip", oef->control, hLayout);
 
-  wMakePassSpin = (QSpinBox *)diaLabeledSpin(0, 1., 10., 1., "Passes", 
+  wMakePassSpin = (QSpinBox *)diaLabeledSpin(0, 1., 9999., 1., "Passes", 
                                              oef->control, hLayout);
   QObject::connect(wMakePassSpin, SIGNAL(valueChanged(int)), &imodvObjed, 
                    SLOT(makePassSlot(int)));
@@ -2558,6 +2558,9 @@ static QVBoxLayout *outerVBoxLayout(QWidget *parent)
 /*
 
 $Log$
+Revision 4.46  2009/03/22 19:54:25  mast
+Show with new geometry adjust routine for Mac OS X 10.5/cocoa
+
 Revision 4.45  2009/02/26 20:04:04  mast
 Turn off keyboard tracking of spin boxes
 
