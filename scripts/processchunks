@@ -50,7 +50,7 @@ endif
 # Set the ssh options based on ssh version
 #
 set sshopts = "-o PreferredAuthentications=publickey -o StrictHostKeyChecking=no"
-set sshvers = `ssh -V | & sed -e '/.*_\([0-9]\)\.\([0-9]\).*/s//\1\2/' -e '/[[:cntrl:]]/s///g'`
+set sshvers = `ssh -V | & sed -n -e '/[[:cntrl:]]/s///g' -e '/.*_\([0-9]\)\.\([0-9]\).*/s//\1\2/p'`
 if ("$sshvers" != "") then
     @ version = $sshvers
     if ($version >= 39) set sshopts = "-o ConnectTimeout=5 $sshopts"
@@ -898,6 +898,10 @@ exit 3
 
 #
 #  $Log$
+#  Revision 3.45  2009/03/04 01:24:36  mast
+#  Changes to handle up to 99999 files with constant or increasing digits
+#  Set noglob during the main loop to prevent problems from * in errors
+#
 #  Revision 3.44  2009/01/23 18:00:37  mast
 #  Made it say it is holding a machine if no chucks done yet, and drop it when
 #  one is done.
