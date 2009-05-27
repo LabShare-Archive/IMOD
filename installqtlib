@@ -98,6 +98,7 @@ end
 # Get a DLL destination dir
 #
 set dlldestdir = `sed -n '/DLLDESTDIR/s/^.*= *//p' configure`
+set dlldestorig = $dlldestdir
 if ("$dlldestdir" == "") set dlldestdir = $qtlibdir
 
 # Done if no destination location defined
@@ -142,7 +143,7 @@ endif
 # This should work for Mac too - but (4/7/09) the existing wrappers for Qt 4.5
 # need to have both DYLD_LIBRARY_PATH and DYLD_FRAMEWORK_PATH set
 #
-if ("$dlldestdir" == "qtlib") then
+if ("$dlldestorig" == "qtlib") then
     pushd $instdir/bin
     set envar = LD_LIBRARY_PATH
     if ("$dllext" == "dylib") set envar = DYLD_LIBRARY_PATH
@@ -241,6 +242,9 @@ exit 0
 
 #
 #  $Log$
+#  Revision 3.43  2009/04/08 20:20:00  mast
+#  Make wrapper scripts for all executables if general dll's are copied to qtlib
+#
 #  Revision 3.42  2009/03/20 21:50:04  mast
 #  Changes for installing framework
 #
