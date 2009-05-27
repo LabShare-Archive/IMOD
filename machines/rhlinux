@@ -65,6 +65,7 @@ else
         #
         echo '#define G77__HACK' >> $hconfigure
         if ($m64bit == false) set usfftdir = $source_dir/USFFTlib/pc
+        set openmp = false
     else
         #
         # gfortran needs unlimited fixed format, and date and time subroutines
@@ -75,9 +76,11 @@ else
         echo "DATESRC   = compat/datetime.f" >> $configure
         echo "DIRDATEOBJ  = compat/datetime.o" >> $configure
         echo "DATEOBJ  = datetime.o" >> $configure
+        if ($fortvers[1] == 4 && $minorvers == 0) set openmp = false
         if ($openmp == true) set openmpFlags = "-fopenmp"
     endif
     echo 'LDFLAGS = -L$(LIBDIR)'" $openmpFlags" >> $configure
+    if ($QMAKESPEC == "linux-icc") unsetenv QMAKESPEC
 endif
 
 # Needed under tcsh 6.12 in RH 8.0 to avoid getting two \ out
@@ -289,13 +292,15 @@ if ($compiler == intel) then
 else if ($packg2c == true) then
     set g2cdir = /usr/lib
     if ($m64bit == true) set g2cdir = /usr/lib64
-    if (`\find $g2cdir -maxdepth 1 -name 'libg2c.so*' -print` != "") then
+    set g2clib = libg2c
+    if ($compiler == "gfortran") set g2clib = libgfortran
+    if (`\find $g2cdir -maxdepth 1 -name "${g2clib}.so*" -print` != "") then
         echo "DLLDESTDIR = lib" >> $configure
         echo "DLLSOURCEDIR1 = $g2cdir" >> $configure
-        echo "DLLSTOCOPY1 = libg2c" >> $configure
-        echo "DLLSTORENAME = libg2c" >> $configure
+        echo "DLLSTOCOPY1 = $g2clib" >> $configure
+        if ($compiler != "gfortran") echo "DLLSTORENAME = libg2c" >> $configure
     else
-        echo "WARNING: Cannot find libg2c.so in $g2cdir"
+        echo "WARNING: Cannot find ${g2clib}.so in $g2cdir"
     endif
 endif
 
