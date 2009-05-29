@@ -160,6 +160,14 @@ EOF
         chmod a+rx $i
         endif
     end
+
+    # Fix 3dmodv link to have its own script with the -view option
+    #
+    if (-l 3dmodv) then
+        rm 3dmodv
+        sed '/mod\" \"/s/ / -view /' < 3dmod >! 3dmodv
+        chmod a+rx 3dmodv
+    endif
     popd
 endif
 
@@ -242,6 +250,9 @@ exit 0
 
 #
 #  $Log$
+#  Revision 3.44  2009/05/27 05:32:06  mast
+#  Create wrapper scripts only if DLLDESTDIR is defined in configure
+#
 #  Revision 3.43  2009/04/08 20:20:00  mast
 #  Make wrapper scripts for all executables if general dll's are copied to qtlib
 #
