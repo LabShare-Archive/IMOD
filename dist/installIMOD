@@ -442,10 +442,14 @@ if ($os == linux) then
     if ("$filetype" =~ "*64-bit*") set g2cdir = /usr/lib64
     set syshas = `\find $g2cdir -maxdepth 1 -name 'libg2c.so*' -print`
     set packhas = `\find lib -maxdepth 1 -name '*libg2c.so*' -print`
+    set hasgfort = `\find lib -maxdepth 1 -name 'libgfortran.so*' -print`
+    set hasintel = `\find qtlib -maxdepth 1 -name 'libintlc.so*' -print`
+    set needg2c = 1
+    if ("$hasgfort" != "" || "$hasintel" != "") set needg2c = 0
 
     # For ubuntu, set keepg2c if library not on the system
     #
-    if ($ubuntu && "$syshas" == "" && ! $keepg2c) then
+    if ($ubuntu && "$syshas" == "" && ! $keepg2c && $needg2c) then
         echo ""
         echo "Using the libg2c in this package because there is none on the system."
         set keepg2c = 1
@@ -469,7 +473,7 @@ if ($os == linux) then
         echo "WARNING: libg2c is already on the system; if library conflicts occur,"
         echo "         reinstall IMOD without the -libg2c option or"
         echo "         remove libg2c from $installdir/IMOD/lib"
-    else if ("$packhas" == "" && "$syshas" != "" && $keepg2c) then
+    else if ("$packhas" == "" && "$syshas" != "" && $keepg2c && $needg2c) then
         echo ""
         echo "WARNING: libg2c is already on the system and not in this package"
         echo "         your -libg2c option was ignored"
@@ -478,17 +482,20 @@ if ($os == linux) then
         echo "WARNING: there is no libg2c on this system."
         echo "         You should install a system package for this if at all possible."
         echo "     Otherwise, reinstall IMOD with the -libg2c option."
-    else if ("$packhas" == "" && "$syshas" == "" && ! $keepg2c) then
+    else if ("$packhas" == "" && "$syshas" == "" && ! $keepg2c && $needg2c) then
         echo ""
         echo "WARNING: there is no libg2c on this system and none in this package."
         echo "    You should install a system package for this if at all possible."
         echo "    Otherwise, reinstall IMOD from a package that has it, with -libg2c option."
-    else if ("$packhas" == "" && "$syshas" == "" && $keepg2c) then
+    else if ("$packhas" == "" && "$syshas" == "" && $keepg2c && $needg2c) then
         echo ""
         echo "WARNING: there is no libg2c on this system and none in this package."
         echo "         Your -libg2c option was ignored"
         echo "         You should install a system package for this if at all possible."
         echo "         Otherwise, reinstall IMOD from a package that has libg2c."
+    else if (! $needg2c && $keepg2c) then
+        echo "NOTE: This package contains gfortran or Intel libraries"
+        echo "         Your -libg2c option was ignored"
     endif
 
     # Manage link to libtiff.so.4 if it exists and so.3 does not
@@ -551,6 +558,9 @@ exit 0
 
 #
 #  $Log$
+#  Revision 3.24  2008/09/26 21:05:29  mast
+#  Added option to name directory, eliminated \n
+#
 #  Revision 3.23  2008/07/31 17:32:43  mast
 #  Modifications for Ubuntu/Debian installs
 #
