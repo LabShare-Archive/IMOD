@@ -252,7 +252,8 @@ Imesh *imeshContoursCost(Iobj *obj, Icont *bc, Icont *tc, Ipoint *scale,
 
     /* Still BOTH OPEN, now either type of object */
     /* Invert the direction of connections if bottom is reversed */
-    invertConnectors(connects, numCon, direction);
+    if (numCon)
+      invertConnectors(connects, numCon, direction);
 
     /* Invert the starting points for reversed directions and (re-)evaluate 
        if starts or ends are connected */
@@ -1464,6 +1465,9 @@ Imesh *joinTubeCont(Icont *c1, Icont *c2, Ipoint *norm,
 
 /*
 $Log$
+Revision 1.6  2009/03/10 02:52:54  mast
+Analyze for blocking connectors to skip regions of mesh
+
 Revision 1.5  2008/12/02 21:20:07  mast
 Store value in tube meshes
 
