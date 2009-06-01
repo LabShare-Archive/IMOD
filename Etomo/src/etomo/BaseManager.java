@@ -1239,6 +1239,16 @@ public abstract class BaseManager {
     metaData.resetCurrentProcesschunksSubdirName(axisID);
   }
 
+  /**
+   * Get the current processchunks root name from meta data.  If it exists,
+   * attempt to resume processchunks.
+   * @param axisID
+   * @param param
+   * @param processResultDisplay
+   * @param processSeries
+   * @param root
+   * @param subcommandDetails
+   */
   public final void resume(AxisID axisID, ProcesschunksParam param,
       ProcessResultDisplay processResultDisplay,
       ConstProcessSeries processSeries, Container root,
@@ -1301,6 +1311,9 @@ public abstract class BaseManager {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.116  2009/05/06 20:49:46  sueh
+ * <p> bug# 1207 In handleDifferentHost, exiting by calling UIHarness.exit.
+ * <p>
  * <p> Revision 1.115  2009/04/15 16:51:42  sueh
  * <p> bug# 1190 Logging reconnect attempts.  Returning false and logging failure for major reconnection failures.
  * <p>
