@@ -23,10 +23,16 @@ import etomo.util.DatasetFiles;
  * 
  * @version $Revision$
  * 
- * <p> $Log$ </p>
+ * <p> $Log$
+ * <p> Revision 1.1  2009/05/02 01:07:18  sueh
+ * <p> bug# 1216 Parameters for runraptor.
+ * <p> </p>
  */
 public final class RunraptorParam {
   public static final String rcsid = "$Id$";
+
+  private static final String DIAM_OPTION = "diam";
+  private static final String MARK_OPTION = "mark";
 
   private final List command = new ArrayList();
   private final EtomoNumber diam = new EtomoNumber(EtomoNumber.Type.LONG);
@@ -49,9 +55,9 @@ public final class RunraptorParam {
     command.add("-f");
     command
         .add(BaseManager.getIMODBinPath() + ProcessName.RUNRAPTOR.toString());
-    command.add("-diam");
+    command.add("-" + DIAM_OPTION);
     command.add(diam.toString());
-    command.add("-mark");
+    command.add("-" + MARK_OPTION);
     command.add(mark.toString());
     if (useRawStack) {
       command.add(DatasetFiles.getStackName(manager, axisID));
@@ -63,6 +69,9 @@ public final class RunraptorParam {
 
   public String setDiam(String input, boolean mayBeBinned) {
     diam.set(input);
+    if (diam.isNull()) {
+      return "Empty " + DIAM_OPTION + " parameter.";
+    }
     if (!diam.isValid()) {
       return diam.getInvalidReason();
     }
@@ -80,6 +89,9 @@ public final class RunraptorParam {
 
   public String setMark(String input) {
     mark.set(input);
+    if (mark.isNull()) {
+      return "Empty " + MARK_OPTION + " parameter.";
+    }
     if (!mark.isValid()) {
       return mark.getInvalidReason();
     }
