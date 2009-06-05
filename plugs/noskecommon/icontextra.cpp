@@ -15,6 +15,9 @@
     $Revision$
 
     $Log$
+    Revision 1.19  2009/05/13 03:05:49  tempuser
+    Added cont_breakContourByContour
+
     Revision 1.18  2009/05/11 10:15:54  tempuser
     Minor
 
@@ -2793,8 +2796,8 @@ bool cont_breakContourByLine( Icont *cont, Icont *contBreak1, Icont *contBreak2,
         
         if( distToExpectedPt < minDistToExpectedPt ) {
           minDistToExpectedPt = distToExpectedPt;
-          cont_copyPoints( contBreak1, contB1, true );
-          cont_copyPoints( contBreak2, contB2, true );
+          cont_copyPts( contBreak1, contB1, true );
+          cont_copyPts( contBreak2, contB2, true );
         }
       }
       else
@@ -2806,8 +2809,8 @@ bool cont_breakContourByLine( Icont *cont, Icont *contBreak1, Icont *contBreak2,
         
         if( areaOnSmallerSide > maxAreaOnSmallerSide ) {
           maxAreaOnSmallerSide = areaOnSmallerSide;
-          cont_copyPoints( contBreak1, contB1, true );
-          cont_copyPoints( contBreak2, contB2, true );
+          cont_copyPts( contBreak1, contB1, true );
+          cont_copyPts( contBreak2, contB2, true );
         }
       }
     }
@@ -2888,7 +2891,7 @@ void cont_joinContsAtClosestApproach( Icont *newCont, Icont *cont1Orig,
   
   //## CONSTRUCT JOINED CONTOUR:
   
-  cont_copyPoints( cont1, newCont, true );
+  cont_copyPts( cont1, newCont, true );
   cont_reorderPtsToStartAtIdx( newCont, closestPtInCont1 );
   imodPointAppend( newCont, getPt(newCont,0) );
   
@@ -2932,7 +2935,7 @@ void cont_joinContsAtClosestApproachVector( Icont *newCont, vector<IcontPtr> con
     return;
   }
   else if( (int)conts.size()==1 ) {
-    cont_copyPoints( conts[0].cont, newCont, true );
+    cont_copyPts( conts[0].cont, newCont, true );
     return;
   }
   else if( (int)conts.size()==2 ) {
@@ -2959,7 +2962,7 @@ void cont_joinContsAtClosestApproachVector( Icont *newCont, vector<IcontPtr> con
                                       conts[closestContIdx].cont,addPtInMiddle);
       eraseContour( conts, closestContIdx );
     }
-    cont_copyPoints( conts[0].cont, newCont, true );
+    cont_copyPts( conts[0].cont, newCont, true );
     return;
   }
 }
@@ -3058,7 +3061,7 @@ void cont_getIntersectingConvexPolygon( Icont *newCont,
   {
     if      (imodPointInsideCont(cont2, getPt(cont1,0)))  //(CASE 1) cont1 inside cont2
     {
-      cont_copyPoints(cont1, newCont, true);
+      cont_copyPts(cont1, newCont, true);
       imodContourDelete(cont1);
       imodContourDelete(cont2);
       imodContourDelete(contInters);
@@ -3066,14 +3069,14 @@ void cont_getIntersectingConvexPolygon( Icont *newCont,
     }
     else if (imodPointInsideCont(cont1, getPt(cont2,0)))  //(CASE 2) cont2 inside cont1
     {
-      cont_copyPoints(cont2, newCont, true);
+      cont_copyPts(cont2, newCont, true);
       imodContourDelete(cont1);
       imodContourDelete(cont2);
       imodContourDelete(contInters);
       return;
     }
     else {               // (CASE 3) don't touch/overlap at all: return empty set
-      cont_copyPoints(contInters, newCont, true);
+      cont_copyPts(contInters, newCont, true);
       imodContourDelete(cont1);
       imodContourDelete(cont2);
       imodContourDelete(contInters);
@@ -3170,7 +3173,7 @@ void cont_getIntersectingConvexPolygon( Icont *newCont,
     }
   }
   
-  cont_copyPoints(contInters, newCont, true);
+  cont_copyPts(contInters, newCont, true);
   imodContourDelete(cont1);
   imodContourDelete(cont2);
   imodContourDelete(contInters);
@@ -3704,7 +3707,7 @@ int cont_getIntersectingPolygons(vector<IcontPtr> &finConts, Icont *cont1, Icont
       if( ptsEqual( getLastPt( finConts[i].cont ), getLastPt( finConts[j].cont ) )
         || ptsEqual( getLastPt( finConts[i].cont ), getFirstPt( finConts[j].cont ) ) )
       {
-        cont_copyPoints( finConts[i].cont, tempCont, true );
+        cont_copyPts( finConts[i].cont, tempCont, true );
         cont_concat( finConts[i].cont, tempCont, finConts[j].cont, true );
         eraseContour( finConts, j );
         i--;
@@ -3828,7 +3831,7 @@ int cont_getUnionPolygons( vector<IcontPtr> &finConts, Icont *cont1, Icont *cont
       if(  ptsEqual( getLastPt( finConts[i].cont ), getLastPt( finConts[j].cont ) )
         || ptsEqual( getLastPt( finConts[i].cont ), getFirstPt( finConts[j].cont ) ) )
       {
-        cont_copyPoints( finConts[i].cont, tempCont, true );
+        cont_copyPts( finConts[i].cont, tempCont, true );
         cont_concat( finConts[i].cont, tempCont, finConts[j].cont, true );
         eraseContour( finConts, j );
         i--;
@@ -3900,7 +3903,7 @@ bool cont_getOuterUnionPolygon( Icont *newCont, Icont *cont1O, Icont *cont2O )
   }
   else if ( (int)joinedConts.size() == 1 ) {  // if is only one union polygon: return it
     //wprint("copying\n");
-    cont_copyPoints( joinedConts[0].cont, newCont, true );
+    cont_copyPts( joinedConts[0].cont, newCont, true );
   }
   else     // if there are > 1 union polygons: return the biggest one
   {
@@ -3920,7 +3923,7 @@ bool cont_getOuterUnionPolygon( Icont *newCont, Icont *cont1O, Icont *cont2O )
       return (false);
     }
     IcontPtr contWithBiggestArea = joinedConts[maxIdx];
-    cont_copyPoints( contWithBiggestArea.cont, newCont, true );
+    cont_copyPts( contWithBiggestArea.cont, newCont, true );
   }
   
   deleteContours( joinedConts );
@@ -4100,69 +4103,110 @@ int cont_addPtsFractsAlongLength( Icont *cont, Icont *contNew,
 
 
 //------------------------
-//-- Calculates a mass of information about the contour - especially with respect to point size
+//-- Calculate a mass of information about a contour regarding point size.
+//-- Is mostly designed for "tubes of varying thickness" - contours with
+//-- different point sizes. To get all results in pixels, set "pixelSize" to 1,
+//-- otherwise all values will be scaled by "pixelSize".
+//-- NOTE: the values "openVol", "fullVol" and "surfaceArea" are estimates only
+//--       they don't take into account the fact tubes can fold
+//--       over themselves.
 
-void cont_calcPtsizeInfo( Iobj *obj, Icont *cont, const float zScale,
+void cont_calcPtsizeInfo( Iobj *obj, Icont *cont, const float zScale, float pixelSize,
                           float &openLength, float &fullLength,
-                          float &openVol, float &fullVol,
-                          float &avgRadius, float &minRadius, float &maxRadius,
-                          float &minMidRadius, float &surfaceArea )
+                          float &avgR, float &firstR, float &lastR,
+                          float &minR, float &maxR, float &minMidR,
+                          float &openVol, float &fullVol, float &surfaceArea )
 {
-  int numPts = psize(cont);
-  if( psize( cont ) == 0 )
+  int numPts  = psize(cont);
+  openLength  = 0;              // length of the contour
+  fullLength  = 0;              // contour length + the radius of the first and last pt
+  firstR      = 0;              // radius of the first point
+  lastR       = 0;              // radius of the last point
+  avgR        = 0;              // average radius along the open portion of the contour
+  minR        = FLOAT_MAX;      // min point radius
+  maxR        = 0;              // max point radius
+  minMidR     = FLOAT_MAX;      // min point raidus excluding the first and last points
+  openVol     = 0;              // a crude estimate of the tube's volume in pixels cubed
+  fullVol     = 0;              // tubes volume estimate + hemisphere at start and end
+  surfaceArea = 0;              // crude surface area for hemisphere capped tube
+  
+  if( numPts == 0 )
     return;
   
-  openLength = 0;
-  openVol = 0;
-  float weightedRadius = 0;
-  
-  surfaceArea = 0;
+  firstR = imodPointGetSize(obj, cont, 0);
+  lastR  = imodPointGetSize(obj, cont, numPts-1);
+  float weightedR = 0;
   Ipoint scale;
   scale.x = 1.0;
   scale.y = 1.0;
   scale.z = zScale;
   
-  for(int i=0; i<psize(cont)-1; i++)
+  
+  //## FIND MAXIMUM AND MINIMUM POINT SIZE:
+  
+  float totalPtSize = 0;                  // only used if contour has no length
+  for(int p=0; p<psize(cont); p++)
   {
-    float lengthBetweenTwoPts = imodPoint3DScaleDistance( getPt(cont,i), getPt(cont,i+1),
-                                                          &scale );
-    float avgRadiusForTwoPts = ( imodPointGetSize(obj,cont,i) +
-                                 imodPointGetSize(obj,cont,i+1)) / 2.0;
-    float volBetweenTwoPs = geom_volumeConicalFrustrum( imodPointGetSize(obj,cont,i),
-                                                        imodPointGetSize(obj,cont,i+1),
-                                                        lengthBetweenTwoPts );
-    openLength += lengthBetweenTwoPts;
-    openVol += volBetweenTwoPs;
-    weightedRadius += lengthBetweenTwoPts * avgRadiusForTwoPts;
-    surfaceArea += geom_surfaceAreaConicalFrustrum( imodPointGetSize(obj,cont,i),
-                                                    imodPointGetSize(obj,cont,i+1),
-                                                    lengthBetweenTwoPts);
+    totalPtSize += imodPointGetSize(obj,cont,p);
+    updateMin( minR, imodPointGetSize(obj,cont,p) );
+    updateMax( maxR, imodPointGetSize(obj,cont,p) );
   }
   
-  avgRadius = weightedRadius / openLength; // NOTE: aveage radius along the open portion of the contour.
+  for(int p=1; p<(psize(cont)-1); p++) // for the second point to the second last:
+    updateMin( minMidR, imodPointGetSize(obj,cont,p) );
   
-  double radiusStart = imodPointGetSize(obj,cont,0);
-  double radiusEnd   = imodPointGetSize(obj,cont,numPts-1);
+  if (minMidR==FLOAT_MAX)    // can occur if only two points
+    minMidR = MIN(firstR,lastR);
   
-  fullLength = openLength + ( radiusStart + radiusEnd );
   
-  fullVol = openVol + 0.5*geom_volumeSphere( radiusStart )
-                    + 0.5*geom_volumeSphere( radiusEnd );
-  surfaceArea = surfaceArea + 0.5*geom_surfaceAreaSphere( radiusStart )
-                            + 0.5*geom_surfaceAreaSphere( radiusEnd );
-  minRadius = FLOAT_MAX;
-  maxRadius = 0;
+  //## CALCULATE LENGTH OF EACH SEGMENT AND USE IT TO MAKE A VOLUME
+  //## AND SURFACE AREA ESTIMATE:
   
-  for(int i=0; i<psize(cont); i++)
+  for(int p=0; p<psize(cont)-1; p++)
   {
-    updateMin( minRadius, imodPointGetSize(obj,cont,i) );
-    updateMax( maxRadius, imodPointGetSize(obj,cont,i) );
+    Ipoint *pt1     = getPt(cont,p);
+    Ipoint *pt2     = getPt(cont,p+1);
+    float pt1Size   = imodPointGetSize(obj,cont,p);
+    float pt2Size   = imodPointGetSize(obj,cont,p+1);
+    
+    float segmentLen      = imodPoint3DScaleDistance( pt1, pt2, &scale );
+    float avgRForTwoPts   = ( pt1Size + pt2Size) / 2.0;
+    float volBetweenTwoPs = geom_volumeConicalFrustrum( pt1Size, pt2Size, segmentLen );
+    openLength  += segmentLen;
+    openVol     += volBetweenTwoPs;
+    avgR        += pt1Size;
+    weightedR   += segmentLen * avgRForTwoPts;
+    surfaceArea += geom_surfaceAreaConicalFrustrum( pt1Size, pt2Size, segmentLen);
   }
   
-  minMidRadius = FLOAT_MAX;
+  if(openLength==0)
+    avgR = totalPtSize / numPts;
+  else
+    avgR = weightedR / openLength;
   
-  for(int i=1; i<(psize(cont)-1); i++) // for the second point to the second last:
-    updateMin( minMidRadius, imodPointGetSize(obj,cont,i) );
+  fullLength = openLength + (firstR + lastR);
+  
+  fullVol = openVol + 0.5*geom_volumeSphere(firstR) + 0.5*geom_volumeSphere(lastR);
+  surfaceArea = surfaceArea + 0.5*geom_surfaceAreaSphere(firstR)
+                            + 0.5*geom_surfaceAreaSphere(lastR);
+  
+  
+  //## CONVERT VALUES TO APPROPRIATE UNITS
+  
+  if(pixelSize != 1)
+  {
+    openLength  *= pixelSize;
+    fullLength  *= pixelSize;
+    avgR        *= pixelSize;
+    firstR      *= pixelSize;
+    lastR       *= pixelSize;
+    minR        *= pixelSize;
+    maxR        *= pixelSize;
+    minMidR     *= pixelSize;
+    openVol     *= CUBE(pixelSize);
+    fullVol     *= CUBE(pixelSize);
+    surfaceArea *= SQ(pixelSize);
+  }
   
 }
 

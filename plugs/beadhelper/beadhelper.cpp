@@ -628,14 +628,11 @@ BeadHelper::BeadHelper(QWidget *parent, const char *name) :
   //## Display:
   
   grpOptions = new QGroupBox("Options:", this);
-  //grpOptions->setFocusPolicy(Qt::NoFocus);
-  //grpOptions->setMargin(GROUP_MARGIN);
   
   gridLayout3 = new QGridLayout(grpOptions);
   gridLayout3->setSpacing(LAYOUT_SPACING);
   gridLayout3->setContentsMargins(LAYOUT_MARGIN, LAYOUT_MARGIN, LAYOUT_MARGIN,
                                   LAYOUT_MARGIN);
-  //gridLayout3->addItem( new QSpacerItem(1,SPACER_HEIGHT), 0, 0);
   
   lblEstMethod = new QLabel("estimation meth:", grpOptions);
   lblEstMethod->setToolTip( 
@@ -679,16 +676,14 @@ BeadHelper::BeadHelper(QWidget *parent, const char *name) :
   
   keyboardSettingsButton = new QPushButton("Mouse and Keyboard", grpOptions);
   connect(keyboardSettingsButton, SIGNAL(clicked()), this, SLOT(keyboardSettings()));
-  keyboardSettingsButton->setToolTip(
-                "Contains several other settings I didn't want to sqeeze "
-                "into this window");
+  keyboardSettingsButton->setToolTip( "Contains several mouse & keyboard "
+                                      "related settings");
   gridLayout3->addWidget(keyboardSettingsButton, 2, 0, 1, 2);
   
   moreActionsButton = new QPushButton("More Actions", grpOptions);
   connect(moreActionsButton, SIGNAL(clicked()), this, SLOT(moreActions()));
-  moreActionsButton->setToolTip(
-                "Contains several other actions I didn't want to sqeeze "
-                "into this window");
+  moreActionsButton->setToolTip( "Contains several other actions I didn't "
+                                 "want to sqeeze into this window");
   gridLayout3->addWidget(moreActionsButton, 3, 0);
   
   moreSettingsButton = new QPushButton("More Settings", grpOptions);
@@ -877,9 +872,9 @@ bool BeadHelper::drawExtraObject( bool redraw )
   ivwGetTopZapZoom(plug.view, &zapZoom);
   float sc = fDiv( 1.0f, zapZoom);
   
-  Imod *imod = ivwGetModel(plug.view);
-  Iobj *obj = imodObjectGet(imod);
-  Icont *cont = getCurrCont();
+  Imod *imod  = ivwGetModel(plug.view);
+  Iobj *obj   = imodObjectGet(imod);
+  Icont *cont = imodContourGet(imod);
   
   
   //## IF SHOW EXPECTED POSITION: DRAW CROSSHAIR AT EXPECTED POSITION
@@ -951,9 +946,9 @@ bool BeadHelper::drawExtraObject( bool redraw )
     
     case( LD_CURRENT ):
     {
-      if( isCurrContValid() )
+      if( isContValid(cont) )
       {
-        Icont *xcont = imodContourDup( getCurrCont() );
+        Icont *xcont = imodContourDup( cont );
         changeZValue( xcont, z );
         imodContourSetFlag(xcont, ICONT_DRAW_ALLZ, 1);
         imodObjectAddContour(xobjC, xcont);
@@ -963,10 +958,10 @@ bool BeadHelper::drawExtraObject( bool redraw )
     
     case( LD_CURRMISSING ):
     {
-      if( isCurrContValid() )
+      if( isContValid(cont) )
       {
         Icont *xcont = imodContourNew();
-        cont_makeContShowingMissingPoints( xcont, getCurrCont(), z, sc*2 );
+        cont_makeContShowingMissingPoints( xcont, cont, z, sc*2 );
         
         imodContourSetFlag(xcont, ICONT_DRAW_ALLZ, 1);
         imodObjectAddContour(xobjC, xcont);
@@ -976,15 +971,15 @@ bool BeadHelper::drawExtraObject( bool redraw )
     
     case( LD_RESULTSMOOTH ):
     {
-      if( isCurrContValid() )
+      if( isContValid(cont) )
       {
         Icont *xcont  = imodContourNew();
-        cont_makeContShowingMissingPoints( xcont, getCurrCont(), z, sc*2 );
+        cont_makeContShowingMissingPoints( xcont, cont, z, sc*2 );
         imodContourSetFlag(xcont, ICONT_DRAW_ALLZ | ICONT_STIPPLED, 1);
         imodObjectAddContour(xobjC, xcont);
         free(xcont);
         
-        Icont *xcontS = imodContourDup( getCurrCont() );
+        Icont *xcontS = imodContourDup( cont );
         int ptsMoved, ptsAdded;
         ivwDraw( plug.view, 0 );          // redraw to ensure correct z is selected
         bead_smoothPtsUsingPlugSettings( xcontS, ptsMoved, ptsAdded );
@@ -997,7 +992,7 @@ bool BeadHelper::drawExtraObject( bool redraw )
     
     case( LD_SLICE_RESID ):
     {
-      if( isCurrContValid() )
+      if( isContValid(cont) )
       {
         for(int p=0; p<psize(cont); p++)
         {
@@ -1014,7 +1009,7 @@ bool BeadHelper::drawExtraObject( bool redraw )
     
     case( LD_BEST_FIT ):
     {
-      if( isCurrContValid() )
+      if( isContValid(cont) )
       {
         float gradient, offset;
         bool success = bead_calcLineOfBestFit( cont, &gradient, &offset, 4 );
@@ -5338,7 +5333,7 @@ void bead_reorderConts( int sortCriteria, int minCont, int maxCont,
       imodSetIndex(imod, objIdx, c, 0);
       undoContourDataChg( plug.view, objIdx, c );      // REGISTER UNDO
       Icont *newCont = getCont( objCopy, plug.sortVals[c].idx );
-      cont_copyPoints( newCont, cont, true );
+      cont_copyPts( newCont, cont, true );
       if( isInterpolated(cont) != isInterpolated(newCont) )
       {
         undoContourPropChg( plug.view, objIdx, c );      // REGISTER UNDO

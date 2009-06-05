@@ -63,6 +63,7 @@ public slots:
   void keyboardSettings();
   void sortContours();
   void findContours();
+  void modifyRangeContours();
   void deleteRangeContours();
   void cropRangeContours();
   void copyOrMoveContourRange();
@@ -94,7 +95,9 @@ public slots:
   QRadioButton *typeRadio_Join;
   QRadioButton *typeRadio_Transform;
   QRadioButton *typeRadio_Eraser;
-  
+  QRadioButton *typeRadio_Warp;
+  QRadioButton *typeRadio_Curve;
+    
   QGroupBox    *grpActions;
   QVBoxLayout  *vboxLayout1;
   QPushButton  *reduceContsButton;
@@ -111,7 +114,7 @@ public slots:
 //## CONSTANTS:
 
 enum drawmodes      { DM_NORMAL, DM_SCULPT, DM_JOIN, DM_TRANSFORM, DM_ERASER,
-                      DM_WARP, DM_CIRCLE };
+                      DM_WARP, DM_CURVE, DM_CIRCLE };
 enum smoothmodes    { RD_TOL, RD_MINAREA };
 enum wheelbehaviour { WH_NONE, WH_SCULPTCIRCLE, WH_SLICES, WH_CONTS, WH_PTS, WH_PTSIZE };
 enum dkeybehavior   { DK_NONE, DK_TOEND, DK_NEARESTEND, DK_DELETEPT, DK_DELETECONT,
@@ -299,6 +302,8 @@ void edit_executeJoinRectEnd();
 void edit_executeWarpStart();
 void edit_executeWarp();
 void edit_executeWarpEnd();
+
+void edit_executeCurve( bool forceEndContour );
 
 void edit_inversePointsInContour(bool reorder);
 int  edit_reduceCurrContour();

@@ -15,6 +15,9 @@
     $Revision$
 
     $Log$
+    Revision 1.39  2009/05/13 03:06:16  tempuser
+    Added extra join mode
+
     Revision 1.38  2009/05/12 00:53:32  tempuser
     Added few more save options
 
@@ -233,10 +236,18 @@ int imodPlugKeys(ImodView *vw, QKeyEvent *event)
       edit_goToContNextBiggestFindVal(shift,true,false,(shift)?FLOAT_MAX:FLOAT_MIN );
           // recalculates
       break;
-    
+      
+    //case Qt::Key_N:           // can't seem to intercept N
+    //  if( plug.drawMode==DM_CURVE && !shift && !ctrl )
+    //    edit_executeCurve( true );
+    //  break;
+      
     case Qt::Key_Question:
     case Qt::Key_Space:
-      return plug.window->copyCurrContToView(shift);
+      if( plug.drawMode==DM_CURVE && !shift && !ctrl )
+        edit_executeCurve( true );
+      else
+        return plug.window->copyCurrContToView(shift);
       break;
       
     case Qt::Key_T:                  // temporary testing purposes - comment out
@@ -272,7 +283,6 @@ int imodPlugKeys(ImodView *vw, QKeyEvent *event)
       else
         edit_changeSelectedSlice( plug.pgUpDownInc,false, false );
       break;
-      
     case Qt::Key_PageDown:
       if(shift || plug.pgUpDownInc==1)
         return 0;
@@ -297,6 +307,9 @@ int imodPlugKeys(ImodView *vw, QKeyEvent *event)
       break;
     case Qt::Key_6:
       plug.window->changeTypeSelected( DM_WARP ); 
+      break;
+    case Qt::Key_7:
+      plug.window->changeTypeSelected( DM_CURVE ); 
       break;
       
     default:
@@ -756,6 +769,14 @@ int imodPlugMouse(ImodView *vw, QMouseEvent *event, float imx, float imy,
       break;
     }      
     
+    case (DM_CURVE):
+    {
+      if( plug.but2Pressed || plug.but2Down ) {
+        edit_executeCurve( false );
+      }
+      break;
+    }
+    
     default:    // DM_NORMAL
     {
       if( plug.smartPtResizeMode && plug.but2Pressed )
@@ -851,10 +872,13 @@ DrawingTools::DrawingTools(QWidget *parent, const char *name) :
     ("Eraser          [5]", typeGbox, typeButtonGroup, gbLayout, 4,
      "Erase contours instantly by clicking them");
   
-  typeRadio_Sculpt = diaRadioButton
+  typeRadio_Warp = diaRadioButton
     ("Warp           [6]", typeGbox, typeButtonGroup, gbLayout, 5,
      "Quickly correct bad regions of contour by dragging/warping the edges");
   
+  typeRadio_Curve = diaRadioButton
+    ("Curve        [7]", typeGbox, typeButtonGroup, gbLayout, 6,
+     "Quickly correct bad regions of contour by dragging/warping the edges");
   
   changeTypeSelected( plug.drawMode );
   
@@ -947,11 +971,18 @@ bool DrawingTools::drawExtraObject( bool redraw )
   //## CLEAR EXTRA OBJECT:
   
   Iobj *xobj = ivwGetAnExtraObject(plug.view, plug.extraObjNum);
+  if ( !xobj )
+    return false;
   imodObjectSetValue(xobj, IobjFlagExtraInModv, (plug.showMouseInModelView)?1:0);
   ivwClearAnExtraObject(plug.view, plug.extraObjNum);
-  Icont *xcont = imodContourNew();
-  if ( !xobj || !xcont )
-    return false;
+  Icont *xcont   = imodContourNew();    // primary closed contour used in extra object
+  Icont *xcontO1 = imodContourNew();    // open   contour used in extra object
+  Icont *xcontO2 = imodContourNew();    // open   contour used in extra object
+                                        // NOTE: it's rare to use all these at once
+  
+  imodContourSetFlag(xcont, ICONT_CURSOR_LIKE | ICONT_MMODEL_ONLY, 1);
+  setOpenFlag(xcontO1, 1);
+  setOpenFlag(xcontO2, 2);
   
   
   //## GET Z VALUE:
@@ -973,7 +1004,8 @@ bool DrawingTools::drawExtraObject( bool redraw )
   int noZap = ivwGetTopZapZoom(plug.view, &zapZoom); 
   float sc = fDiv( 1.0f, zapZoom);   // tomogram distance for one screen pixel 
   
-  //## IF CHANING Z HEIGHT: DRAW RECTANGLE REPRESENTING SLICES
+  
+  //## IF CHANGING Z HEIGHT: DRAW RECTANGLE REPRESENTING SLICES
   
   if( plug.but1Down && plug.shiftDown )   // draw rectangle and bar representing z slices
   {
@@ -993,120 +1025,99 @@ bool DrawingTools::drawExtraObject( bool redraw )
     imodPointAppendXYZ( xcont, xmax,     y, currSlice );
     imodPointAppendXYZ( xcont, xmin,     y, currSlice );
 		
-    imodContourSetFlag(xcont, ICONT_CURSOR_LIKE | ICONT_MMODEL_ONLY, 1);
     imodObjectAddContour(xobj, xcont);
     free(xcont);
+    imodContourDelete(xcontO1);
+    imodContourDelete(xcontO2);
     
 		if( redraw )
 			ivwRedraw( plug.view );
 		return true;
   }
   
-  //## CONSTRUCT REFERENCE CONTOUR:
+  //## CONSTRUCT EXTRA CONTOURS:
   
   switch( plug.drawMode )
   {
-  case (DM_NORMAL ):            // draw a tiny verticle line
+  case (DM_NORMAL ):            // draw a tiny verticle line:
     {
       imodPointAppendXYZ( xcont, x, y, z );
       imodPointAppendXYZ( xcont, x, y+1, z );
       break;
     }
-  case(DM_SCULPT):            // draw sculpt circle
+  case(DM_SCULPT):            // draw sculpt circle:
     {
       cont_generateCircle( xcont, radius, 100, plug.mouse, true );
       
       if( plug.scupltBut3Warp && plug.but3Down )
         setInterpolated( xcont, 1 );
       
-      if( plug.shiftDown )
+      if( plug.shiftDown )      // draw pinch lines:
       {
-        imodPointAppendXYZ( xcont, x+radius, y, z-1);
-        imodPointAppendXYZ( xcont, x+hRadius, y+qRadius, z-1 );
-        imodPointAppendXYZ( xcont, x+hRadius, y+qRadius, z );
-        imodPointAppendXYZ( xcont, x+qRadius, y, z );
-        imodPointAppendXYZ( xcont, x+hRadius, y-qRadius, z );
-        imodPointAppendXYZ( xcont, x+hRadius, y-qRadius, z-1 );
+        imodPointAppendXYZ( xcontO1, x+hRadius, y+qRadius, z );
+        imodPointAppendXYZ( xcontO1, x+qRadius, y, z );
+        imodPointAppendXYZ( xcontO1, x+hRadius, y-qRadius, z );
         
-        imodPointAppendXYZ( xcont, x-hRadius, y-qRadius, z-1 );
-        imodPointAppendXYZ( xcont, x-hRadius, y-qRadius, z );
-        imodPointAppendXYZ( xcont, x-qRadius, y, z );
-        imodPointAppendXYZ( xcont, x-hRadius, y+qRadius, z );
-        imodPointAppendXYZ( xcont, x-hRadius, y+qRadius, z-1 );
-        imodPointAppendXYZ( xcont, x-radius,  y, z-1);
+        imodPointAppendXYZ( xcontO2, x-hRadius, y-qRadius, z );
+        imodPointAppendXYZ( xcontO2, x-qRadius, y, z );
+        imodPointAppendXYZ( xcontO2, x-hRadius, y+qRadius, z );
       }
       
       break;
     }
-  case(DM_JOIN):              // draw sculpt circle with plus sign in middle
+  case(DM_JOIN):              // draw sculpt circle with plus sign in middle:
     {
-      cont_generateCircle( xcont, radius, 100, plug.mouse, true );
-      
-      imodPointAppendXYZ( xcont, x+radius,    y,      z-1  );
-      imodPointAppendXYZ( xcont, x+hRadius,   y,      z-1 );
-      imodPointAppendXYZ( xcont, x+hRadius,   y,      z );
-      imodPointAppendXYZ( xcont, x-hRadius,   y,      z );
-      imodPointAppendXYZ( xcont, x,           y,      z );
-      imodPointAppendXYZ( xcont, x,           y+hRadius,  z );
-      imodPointAppendXYZ( xcont, x,           y-hRadius,  z );;
-      imodPointAppendXYZ( xcont, x,           y,      z );  
-      imodPointAppendXYZ( xcont, x,           y,      z-1 );
-      imodPointAppendXYZ( xcont, x+radius,    y,      z-1);
-      
-      if( plug.but3Down )
+      if( !plug.but3Down )
+      {
+        cont_generateCircle( xcont, radius, 100, plug.mouse, true );
+        
+        imodPointAppendXYZ( xcontO1, x+hRadius,   y,      z );
+        imodPointAppendXYZ( xcontO1, x-hRadius,   y,      z );
+        imodPointAppendXYZ( xcontO2, x,           y+hRadius,  z );
+        imodPointAppendXYZ( xcontO2, x,           y-hRadius,  z );
+      }
+      else                      // draw line and rectangle from where user clicked down:
       {
         float xS = plug.mouseDownPt.x;
         float yS = plug.mouseDownPt.y;
         
-        imodContourDefault( xcont );
-        imodPointAppendXYZ( xcont, xS, yS, z );
-        imodPointAppendXYZ( xcont, x,  y,  z );
-        //imodObjectAddContour(xobj, contL);
+        imodPointAppendXYZ( xcontO1, xS, yS, z );
+        imodPointAppendXYZ( xcontO1, x,  y,  z );
         
         float xDiff = xS - x;
         float yDiff = yS - y;
         float dist  = sqrt( (xDiff*xDiff) + (yDiff*yDiff) );
         float sideScale = fDiv( radius , dist );
         
-        Icont *contR = imodContourNew();
-        imodPointAppendXYZ( contR, x +(yDiff*sideScale), y -(xDiff*sideScale), z );
-        imodPointAppendXYZ( contR, x -(yDiff*sideScale), y +(xDiff*sideScale), z );
-        imodPointAppendXYZ( contR, xS-(yDiff*sideScale), yS+(xDiff*sideScale), z );
-        imodPointAppendXYZ( contR, xS+(yDiff*sideScale), yS-(xDiff*sideScale), z );
-        imodObjectAddContour(xobj, contR);
+        imodPointAppendXYZ( xcont, x +(yDiff*sideScale), y -(xDiff*sideScale), z );
+        imodPointAppendXYZ( xcont, x -(yDiff*sideScale), y +(xDiff*sideScale), z );
+        imodPointAppendXYZ( xcont, xS-(yDiff*sideScale), yS+(xDiff*sideScale), z );
+        imodPointAppendXYZ( xcont, xS+(yDiff*sideScale), yS-(xDiff*sideScale), z );
       }
       
       break;
     }
   case(DM_TRANSFORM):         // draw rectangle around current contour or next to mouse 
     {
-
       Icont *cont = imodContourGet(imod);
       if( isContValid(cont) )
       {
         Ipoint ll, ur;
         imodContourGetBBox( cont, &ll, &ur);
-        imodPointAppendXYZ( xcont, ll.x, ll.y, z-1 );
         imodPointAppendXYZ( xcont, ll.x, ll.y, z );
         imodPointAppendXYZ( xcont, ur.x, ll.y, z );
         imodPointAppendXYZ( xcont, ur.x, ur.y, z );
         imodPointAppendXYZ( xcont, ll.x, ur.y, z );
-        imodPointAppendXYZ( xcont, ll.x, ll.y, z );
-        imodPointAppendXYZ( xcont, ll.x, ll.y, z-1 );
         
-        if(plug.but2Down)      // draw line from point clicked to mouse
+        if(plug.but2Down)      // draw line from point clicked to mouse:
         {
-          imodPointAppendXYZ( xcont, plug.mouseDownPt.x, plug.mouseDownPt.y, z-1 );
-          imodPointAppendXYZ( xcont, plug.mouseDownPt.x, plug.mouseDownPt.y, z );  
-          imodPointAppendXYZ( xcont, x, y, z );
-          imodPointAppendXYZ( xcont, x, y, z-1 );    
+          imodPointAppendXYZ( xcontO1, plug.mouseDownPt.x, plug.mouseDownPt.y, z );  
+          imodPointAppendXYZ( xcontO1, x, y, z );   
         }
-        else if(plug.but3Down)    // draw line from center of contour to mouse
+        else if(plug.but3Down)    // draw line from center of contour to mouse:
         {
-          imodPointAppendXYZ( xcont, plug.centerPt.x, plug.centerPt.y, z-1 );
-          imodPointAppendXYZ( xcont, plug.centerPt.x, plug.centerPt.y, z );  
-          imodPointAppendXYZ( xcont, x, y, z );      
-          imodPointAppendXYZ( xcont, x, y, z-1 );      
+          imodPointAppendXYZ( xcontO1, plug.centerPt.x, plug.centerPt.y, z );  
+          imodPointAppendXYZ( xcontO1, x, y, z );          
         }
       }
       else
@@ -1122,35 +1133,26 @@ bool DrawingTools::drawExtraObject( bool redraw )
       
       break;
     }
-  case(DM_ERASER):            // draw sculpt circle with a diagonal line through it
+  case(DM_ERASER):            // draw sculpt circle with a diagonal line through it:
     {
       if( plug.but2Down || plug.but3Down )  {
         cont_generateCircle( xcont, radius*0.99f, 100, plug.mouse, true );
         cont_generateCircle( xcont, radius*0.98f, 100, plug.mouse, true );
       }
       cont_generateCircle( xcont, radius, 100, plug.mouse, true );
+      imodPointAppendXYZ( xcontO1, x+hRadius, y+hRadius, z );
+      imodPointAppendXYZ( xcontO1, x-hRadius, y-hRadius, z );
       
-      imodPointAppendXYZ( xcont, x+hRadius, y, z-1);    
-      imodPointAppendXYZ( xcont, x+hRadius, y+hRadius, z-1 );
-      imodPointAppendXYZ( xcont, x+hRadius, y+hRadius, z );
-      imodPointAppendXYZ( xcont, x-hRadius, y-hRadius, z );
-      imodPointAppendXYZ( xcont, x-hRadius, y-hRadius, z-1 );
-      imodPointAppendXYZ( xcont, x+hRadius, y, z-1);    
-      if( plug.shiftDown )              // draw extra arrows on diagonal line
+      if( plug.shiftDown )              // draw extra arrows on diagonal line:
       {
-        imodPointAppendXYZ( xcont, x+hRadius, y, z-1);    
-        imodPointAppendXYZ( xcont, x+hRadius, y+qRadius, z-1 );
-        imodPointAppendXYZ( xcont, x+hRadius, y+qRadius, z );
-        imodPointAppendXYZ( xcont, x+hRadius, y+hRadius, z );
-        imodPointAppendXYZ( xcont, x-hRadius, y-hRadius, z );
-        imodPointAppendXYZ( xcont, x-hRadius, y-qRadius, z );
-        imodPointAppendXYZ( xcont, x-hRadius, y-qRadius, z-1 );
-        imodPointAppendXYZ( xcont, x+hRadius, y, z-1);
+        imodPointAppendXYZ( xcontO2, x+hRadius, y+qRadius, z );
+        imodPointAppendXYZ( xcontO2, x+hRadius, y+hRadius, z );
+        imodPointAppendXYZ( xcontO2, x-hRadius, y-hRadius, z );
+        imodPointAppendXYZ( xcontO2, x-hRadius, y-qRadius, z );
       }
       break;
     }
-    
-  case(DM_WARP):            // draw warp area
+  case(DM_WARP):            // draw warp area:
     {
       float warpRadius = plug.warpRadius;
       bool ptInContortRange = false;
@@ -1180,12 +1182,10 @@ bool DrawingTools::drawExtraObject( bool redraw )
       {
                               // draw thick circle around closest (current) point
         Ipoint *currPt = getCurrPt();
-        Icont *xcont2 = imodContourNew();
-        Icont *xcont3 = imodContourNew();
-        cont_generateCircle( xcont2, 4.0f*sc, 100, *currPt, true );
-        cont_generateCircle( xcont3, 4.5f*sc, 100, *currPt, true );
-        imodObjectAddContour(xobj, xcont2);
-        imodObjectAddContour(xobj, xcont3);
+        Icont *xcontCircle = imodContourNew();
+        cont_generateCircle( xcontCircle, 4.0f*sc, 100, *currPt, true );
+        cont_generateCircle( xcontCircle, 4.5f*sc, 100, *currPt, true );
+        imodObjectAddContour(xobj, xcontCircle);
         
                               // draw warp area
         
@@ -1198,7 +1198,7 @@ bool DrawingTools::drawExtraObject( bool redraw )
         float contLength = imodContourLength( cont, closed );
         float distToWarp = MIN( warpRadius, contLength * 0.25f );
         int numPts = psize(cont);
-          
+        
         int idxStart, idxEnd;
         float distFromSelPt = 0.0f;
         for( int p=numPts+(ptIdx-1); p>=ptIdx; p-- )
@@ -1221,15 +1221,15 @@ bool DrawingTools::drawExtraObject( bool redraw )
             break;
           }
         }
+        
         Icont *xcontS = imodContourNew();
         Icont *xcontE = imodContourNew();
         Icont *xcontL = imodContourNew();
+        setOpenFlag(xcontL,1);
         for( int p=idxStart; p<=idxEnd; p++ )
           imodPointAppend( xcontL, getPt(cont,p) );
-        for( int p=idxEnd; p>=idxStart; p-- )
-          imodPointAppend( xcontL, getPt(cont,p) );
-        cont_generateCircle( xcontS, 3.5f*sc, 4, *getPt(cont,idxStart), true );
-        cont_generateCircle( xcontE, 3.5f*sc, 4, *getPt(cont,idxEnd), true );
+        cont_generateCircle( xcontL, 3.5f*sc, 4, *getPt(cont,idxStart), true );
+        cont_generateCircle( xcontL, 3.5f*sc, 4, *getPt(cont,idxEnd), true );
         imodObjectAddContour(xobj, xcontL);
         imodObjectAddContour(xobj, xcontS);
         imodObjectAddContour(xobj, xcontE);
@@ -1237,14 +1237,10 @@ bool DrawingTools::drawExtraObject( bool redraw )
                               // draw small lines to hint warp radius
         
         float halfSmallLineLen = MAX( warpRadius*0.05f, 0.5f );
-        Icont *xcontRL = imodContourNew();
-        Icont *xcontRR = imodContourNew();
-        imodPointAppendXYZ( xcontRL, x-warpRadius, y+halfSmallLineLen, z );
-        imodPointAppendXYZ( xcontRL, x-warpRadius, y-halfSmallLineLen, z );
-        imodPointAppendXYZ( xcontRR, x+warpRadius, y+halfSmallLineLen, z );
-        imodPointAppendXYZ( xcontRR, x+warpRadius, y-halfSmallLineLen, z );
-        imodObjectAddContour(xobj, xcontRL);
-        imodObjectAddContour(xobj, xcontRR);
+        imodPointAppendXYZ( xcontO1, x-warpRadius, y+halfSmallLineLen, z );
+        imodPointAppendXYZ( xcontO1, x-warpRadius, y-halfSmallLineLen, z );
+        imodPointAppendXYZ( xcontO2, x+warpRadius, y+halfSmallLineLen, z );
+        imodPointAppendXYZ( xcontO2, x+warpRadius, y-halfSmallLineLen, z );
       }
       else        // draw warp circle
       {
@@ -1255,11 +1251,40 @@ bool DrawingTools::drawExtraObject( bool redraw )
       
       break;
     }
+  case (DM_CURVE):            // draw curve
+    {
+      Icont *cont = imodContourGet(imod);
+      int objIdx, contIdx, ptIdx;
+      imodGetIndex(imod, &objIdx, &contIdx, &ptIdx);
+      
+      if( isContValid(cont) )
+      {
+        float distFromFirstPt = imodPointDistance( getPt(cont,0), &plug.mouse );
+        bool readyToCloseCont = (psize(cont) > 3) && (distFromFirstPt < 10.0);
+        
+        cont_copyPts( cont, xcontO1, false );
+        if( !readyToCloseCont )
+          imodPointAdd( xcontO1, &plug.mouse, ptIdx+1 );
+        cont_addPtsSmooth( xcontO1, plug.smoothMinDist,
+                           plug.smoothTensileFract, (readyToCloseCont), false, false );
+        
+        if( readyToCloseCont )
+        {
+          cont_generateCircle( xcont, 4.0f*sc, 100, *getFirstPt(cont), true );
+          cont_generateCircle( xcont, 4.5f*sc, 100, *getFirstPt(cont), true );
+        }
+      }
+      
+      break;
+    }
   }
   
-  imodContourSetFlag(xcont, ICONT_CURSOR_LIKE | ICONT_MMODEL_ONLY, 1);
   imodObjectAddContour(xobj, xcont);
+  imodObjectAddContour(xobj, xcontO1);
+  imodObjectAddContour(xobj, xcontO2);
   free(xcont);
+  free(xcontO1);
+  free(xcontO2);
   
   if( redraw )
     ivwDraw( plug.view, IMOD_DRAW_MOD | IMOD_DRAW_NOSYNC );
@@ -2380,6 +2405,7 @@ void DrawingTools::moreActions()
                   "crop contours,"
                   "copy contours,"
                   "transform contours,"
+                  "modify contours,"
                   "move point,"
                   "expand contours,"
                   "print basic model info,"
@@ -2410,6 +2436,8 @@ void DrawingTools::moreActions()
                   "Use this to copy or move a range of contours from the "
                     "current object to another object,"
                   "Use this to precisely translate; scale and/or rotate "
+                    "a range of contours in the current object,"
+                  "Allows you to modify contour properties over "
                     "a range of contours in the current object,"
                   "Use this to move the current point or the current "
                     "object to a precise position,"
@@ -2457,22 +2485,25 @@ void DrawingTools::moreActions()
     case(7):      // transform contours
       tranformContourRange();
       break;
-    case(8):      // move point(s)
+    case(8):      // modify contours
+      modifyRangeContours();
+      break;
+    case(9):      // move point(s)
       movePoint();
       break;
-    case(9):      // expand contours
+    case(10):      // expand contours
       expandContourRange();
       break;
-    case(10):      // print basic model info
+    case(11):      // print basic model info
       printModelPointInfo();
       break;
-    case(11):      // print detailed object info
+    case(12):      // print detailed object info
       printObjectDetailedInfo();
       break;
-    case(12):      // print detailed contour info
+    case(13):      // print detailed contour info
       printContourDetailedInfo();
       break;
-    case(13):      // reset values
+    case(14):      // reset values
       if( !MsgBoxYesNo(this, "Restore all default settings for this plugin?" ) )
         return;
       plug.window->initValues();
@@ -2740,6 +2771,8 @@ void DrawingTools::sortContours()
   static bool reverseOrder = false;
   static bool printVals    = true;
   static bool calcValsOnly = false;
+  if( nConts > 100 )
+    printVals = false;
   
 	CustomDialog ds;
   ds.addLabel   ( "contours to sort (inclusive):" );
@@ -2840,10 +2873,13 @@ void DrawingTools::findContours()
   
   CustomDialog ds;
   ds.addComboBox( "Find property:",
+                  "contour surface number,"
                   "contour number of points,"
                   "contour length,"
                   "contour area,"
                   "contour clockwise area,"
+                  "contour avg segment length,"
+                  "contour max segment length,"
                   "contour avg point size,"
                   "contour avg gray value,"
                   "contour interpolated,"
@@ -2885,7 +2921,181 @@ void DrawingTools::findContours()
 }
 
 
+//------------------------
+//-- Allows the user to change several contour properties over a range of contours
+//-- in the selected object
 
+void DrawingTools::modifyRangeContours()
+{
+  if( !isCurrObjValidAndShown() )  {
+    wprint("\aMust select valid object\n");
+    return;
+  }
+  
+  
+  Imod  *imod  = ivwGetModel(plug.view);
+  Iobj  *obj   = getCurrObj();
+  int objIdx, contIdx, ptIdx;
+  imodGetIndex(imod, &objIdx, &contIdx, &ptIdx);
+  
+  int nConts = csize(obj);
+  
+  
+  //## GET USER INPUT FROM CUSTOM DIALOG:
+  
+  int         contMin         = 1;
+  int         contMax         = nConts;
+  static bool makeOpen        = false;
+  static bool makeClosed      = false;
+  static bool removePtSize    = false;
+  static bool removeFineGrain = false;
+  static bool makeStippled    = false;
+  static bool makeUnstippled  = false;
+  static bool roundToInc      = false;
+  static float roundIncrement = 1.0f;
+  
+	CustomDialog ds;
+  ds.addLabel   ( "contour range:" );
+  ds.addSpinBox ( "min:", 1, nConts, &contMin, 1,
+                  "Only contours AFTER this contour (inclusive) will be changed" );
+  ds.addSpinBox ( "max:", 1, nConts, &contMax, 1,
+                  "Only contours BEFORE this contour (inclusive) will be changed" );
+  ds.addLabel   ( "-----\n" );
+  ds.addCheckBox( "remove all point sizes", &removePtSize,
+                  "Any contour with a non-default point size (for the object) \n"
+                  "will have all it's points deleted and added again" );
+  ds.addCheckBox( "remove all fine grain info", &removeFineGrain,
+                  "Resets all fine grain info and the point size array, but \n"
+                  "keeps contour 'open' and 'stippled' flags" );
+  ds.addCheckBox( "make open", &makeOpen );
+  ds.addCheckBox( "make closed", &makeClosed );
+  ds.addCheckBox( "make stippled", &makeStippled );
+  ds.addCheckBox( "make unstippled", &makeUnstippled );
+  ds.addCheckBox( "round all pts to ", &roundToInc );
+  ds.addDblSpinBoxF( "   nearest increment:", 0.01, 999, &roundIncrement, 3, 0.5 );
+	GuiDialogCustomizable dlg(&ds, "Modify Contour Range",false);
+	dlg.exec();
+	if( ds.cancelled )
+		return;
+  
+  contMin  -= 1;
+  contMax  -= 1;
+  
+  if(roundIncrement<=0)
+    return;
+  
+  //## EXECUTE CHANGE CONTOURS:
+  
+  int contsProcessed   = 0;
+  int totContsMadeOpen = 0;
+  int totContsMadeClosed = 0;
+  int totContsPtSizeRemoved = 0;
+  int totContsMadeStippled = 0;
+  int totContsMadeUnstippled = 0;
+  int totContsRounded = 0;
+  long totPtsRounded = 0;
+  
+  for(int c=contMin; c<=contMax && c<csize(obj); c++)
+  {
+    Iobj *cont  = getCont( obj, c );
+    bool closed = isContClosed(obj,cont);
+    bool stippled = isInterpolated(cont);
+    contsProcessed++;
+    
+    if( isEmpty(cont) )
+      continue;
+    
+    //## CHANGE PROPERTIES:
+    
+    if( removePtSize )
+    {
+      bool nonDefaultSize = false;
+      
+      for(int p=0; p<psize(cont); p++)
+        if( !isDefaultSize(obj,cont,p))
+          nonDefaultSize = true;
+      if(nonDefaultSize)
+      {
+        undoContourPropChg( plug.view, objIdx, c );     // REGISTER UNDO
+        removePtsSize( cont );
+        totContsPtSizeRemoved++;
+      }
+    }
+    
+    if( removeFineGrain )
+    {
+      undoContourPropChg( plug.view, objIdx, c );     // REGISTER UNDO
+      removeExtraInfo( cont );
+    }
+    
+    if( makeOpen && closed )
+    {
+      undoContourPropChg( plug.view, objIdx, c );     // REGISTER UNDO
+      imodContourSetFlag( cont, ICONT_OPEN, 1 );
+      totContsMadeOpen++;
+    }
+    
+    if( makeClosed && !closed )
+    {
+      undoContourPropChg( plug.view, objIdx, c );     // REGISTER UNDO
+      imodContourSetFlag( cont, ICONT_OPEN, 0 );
+      totContsMadeClosed++;
+    }
+    
+    
+    if( makeStippled && !stippled )
+    {
+      undoContourPropChg( plug.view, objIdx, c );     // REGISTER UNDO
+      setInterpolated( cont, 1 );
+      totContsMadeStippled++;
+    }
+    if( makeUnstippled && stippled )
+    {
+      undoContourPropChg( plug.view, objIdx, c );     // REGISTER UNDO
+      setInterpolated( cont, 0 );
+      totContsMadeStippled++;
+    }
+    
+    if( roundToInc )
+    {
+      int numPtsNeedRounding = 0;
+      for(int p=0; p<psize(cont); p++)
+      {
+        Ipoint *pt = getPt(cont,p);
+        if( fMod(pt->x,roundIncrement) != 0 || fMod(pt->y,roundIncrement) != 0 )
+          numPtsNeedRounding++;
+      }
+      if( numPtsNeedRounding )
+      {
+        undoContourPropChg( plug.view, objIdx, c );     // REGISTER UNDO
+        for(int p=0; p<psize(cont); p++)
+        {
+          Ipoint *pt = getPt(cont,p);
+          pt->x = roundPrec( pt->x, roundIncrement );
+          pt->y = roundPrec( pt->y, roundIncrement );
+        }
+        setInterpolated( cont, 0 );
+        totContsRounded++;
+        totPtsRounded += numPtsNeedRounding;
+      }
+    }
+  }
+  
+  undoFinishUnit( plug.view );                      // FINISH UNDO
+  
+  
+  //## PRINT SUMMARY:
+  
+  wprint("\nCONTOUR CHANGE SUMMARY:\n" );
+  wprint("conts processed: %d\n", contsProcessed );
+  if(makeOpen)        wprint("conts made open: %d\n", totContsMadeOpen );
+  if(makeClosed)      wprint("conts made closed: %d\n", totContsMadeClosed );
+  if(removePtSize)    wprint("conts removed pt size: %d\n", totContsPtSizeRemoved );
+  if(makeStippled)    wprint("conts made stippled: %d\n", totContsMadeStippled );
+  if(makeUnstippled)  wprint("conts made unstippled: %d\n", totContsMadeUnstippled );
+  if(roundToInc)      wprint("conts rounded in X/Y: %d\n", totContsRounded );
+  if(roundToInc)      wprint("point rounded in X/Y: %d\n", (int)totPtsRounded );
+}
 
 //------------------------
 //-- Allows the user to delete contours which on certain slices,
@@ -3189,7 +3399,7 @@ void DrawingTools::cropRangeContours()
       if( contSeg.size() == 1 )
       {
         undoContourDataChgCC(plug.view);                  // REGISTER UNDO
-        cont_copyPoints( contSeg[0].cont, cont, true );
+        cont_copyPts( contSeg[0].cont, cont, true );
       }
       
       for (int i=(int)contSeg.size()-1; i>=0; i--)   // make any new contours open
@@ -3205,14 +3415,14 @@ void DrawingTools::cropRangeContours()
       if( contSeg.size() == 1 )
       {
         undoContourDataChg(plug.view, objIdx, c);                  // REGISTER UNDO
-        cont_copyPoints( contSeg[0].cont, cont, true );
+        cont_copyPts( contSeg[0].cont, cont, true );
         undoContourPropChg(plug.view, objIdx, c);                  // REGISTER UNDO
         setOpenFlag( cont, 1 );
       }
       else if( contSeg.size() > 1 )
       {
         undoContourDataChg(plug.view, objIdx, c);                  // REGISTER UNDO
-        cont_copyPoints( contSeg[0].cont, cont, true );
+        cont_copyPts( contSeg[0].cont, cont, true );
         undoContourPropChg(plug.view, objIdx, c);                  // REGISTER UNDO
         setOpenFlag( cont, 1 );
         for( int i=1; i<contSeg.size(); i++ )
@@ -3843,14 +4053,15 @@ void DrawingTools::cleanModelAndFixContours()
   
   //## EXECUTE CLEAN:
   
-  int totDupPtsRemoved = 0;
-  int totRedPtsRemoved = 0;
-  int totOutPtsRemoved = 0;
-  int totPtsRounded    = 0;
-  int totContsDeleted  = 0;
-  int totContsReversed = 0;
-  int totContsMadeSimp = 0;
-  int totPtsShiftedXY  = 0;
+  long contsProcessed   = 0;
+  long totDupPtsRemoved = 0;
+  long totRedPtsRemoved = 0;
+  long totOutPtsRemoved = 0;
+  long totPtsRounded    = 0;
+  long totContsDeleted  = 0;
+  long totContsReversed = 0;
+  long totContsMadeSimp = 0;
+  long totPtsShiftedXY  = 0;
   
   for( int o=objMin; o<=objMax && o<osize(imod); o++ )
   {
@@ -3860,6 +4071,8 @@ void DrawingTools::cleanModelAndFixContours()
     {
       Icont *cont = getCont(obj, c);
       bool closed = isContClosed(obj,cont);
+      
+      contsProcessed++;
       
       if( cleanConts && isEmpty(cont) )
       {
@@ -3946,6 +4159,7 @@ void DrawingTools::cleanModelAndFixContours()
   undoFinishUnit( plug.view );                      // FINISH UNDO
   
   wprint("\nCLEAN UP SUMMARY:\n" );
+  if(true)         wprint("  %d conts processed\n", contsProcessed );
   if(deleteDupPts) wprint("  %d duplicate points removed\n", totDupPtsRemoved );
   if(deleteRedPts) wprint("  %d redundant points removed\n", totRedPtsRemoved );
   if(deleteOutPts) wprint("  %d point outside tomogram removed\n", totOutPtsRemoved );
@@ -5127,8 +5341,8 @@ void edit_executeJoinRectEnd()
       setInterpolated( endCont, false );
       undoContourDataChgCC( plug.view );                  // REGISTER UNDO
       //cont_concat( endCont, cont1Segs[0].cont, cont2Segs[0].cont, true );
-      cont_copyPoints( cont1Segs[0].cont, endCont, true );
-      cont_copyPoints( cont2Segs[0].cont, endCont, false );
+      cont_copyPts( cont1Segs[0].cont, endCont, true );
+      cont_copyPts( cont2Segs[0].cont, endCont, false );
       cont_addPtsSmooth( endCont, plug.smoothMinDist, plug.smoothTensileFract,
                          isContClosed(obj,startCont) );
       changeZValue( endCont, z );
@@ -5157,7 +5371,7 @@ void edit_executeJoinRectEnd()
     if( nSegs == 1 )
     {
       undoContourDataChgCC( plug.view );      // REGISTER UNDO
-      cont_copyPoints( contSegs[0].cont, endCont, true );
+      cont_copyPts( contSegs[0].cont, endCont, true );
       cont_addPtsSmooth( endCont, plug.smoothMinDist, plug.smoothTensileFract,
                          isContClosed(obj,startCont) );
       changeZValue( endCont, z );
@@ -5175,7 +5389,7 @@ void edit_executeJoinRectEnd()
       changeZValue( cont2, z );
       
       undoContourDataChgCC( plug.view );      // REGISTER UNDO
-      cont_copyPoints( cont1, endCont, true );
+      cont_copyPts( cont1, endCont, true );
       
       edit_addContourToObj(obj, cont2, true);
       
@@ -5467,7 +5681,6 @@ void edit_executeWarpEnd()
   if( !isCurrContValid() )
     return;
   
-  
   if (plug.reducePts)
   {
     undoContourDataChgCC( plug.view );      // REGISTER UNDO
@@ -5476,6 +5689,81 @@ void edit_executeWarpEnd()
   
   undoFinishUnit( plug.view );        // FINISH UNDO
 }
+
+
+//------------------------
+//-- Decides wether to add a new point .
+
+void edit_executeCurve( bool forceEndContour )
+{
+  Imod  *imod  = ivwGetModel(plug.view);
+  Iobj  *obj   = imodObjectGet(imod);
+  Icont *cont  = imodContourGet(imod);
+  Ipoint *pt   = imodPointGet(imod);
+  int objIdx, contIdx, ptIdx;
+  imodGetIndex(imod, &objIdx, &contIdx, &ptIdx);
+  
+  if( !obj )
+    return;
+  
+  //## IF NO CONTOUR IS SELECTED: CREATE NEW ONE
+  
+  if( !cont )
+  {
+    if( !plug.but2Pressed )   // prevent mouse down creating new contour on top old one
+      return;
+    
+    Icont *newCont = imodContourNew();
+    setInterpolated( newCont, 1 );
+    imodPointAppendXYZ( newCont, plug.mouse.x, plug.mouse.y, plug.mouse.z );
+    edit_addContourToObj( obj, newCont, true );
+    imodSetIndex(imod, objIdx, csize(obj)-1, 0);
+    undoFinishUnit( plug.view );            // FINISH UNDO
+    return;
+  }
+  
+  //## DETERMINE WETHER TO ADD NEW POINT OR COMPLETE AND SMOOTH CONTOUR:
+  
+  if( plug.mouse.z != getZ(cont) && isContClosed(obj,cont) )
+  {
+    wprint("\aWrong slice\n");
+    return;
+  }
+  
+  float distFromCurrPt  = imodPointDistance( pt,            &plug.mouse );
+  float distFromFirstPt = imodPointDistance( getPt(cont,0), &plug.mouse );
+  
+  bool readyToCloseCont = (psize(cont) > 3) && (distFromFirstPt < 10.0);
+  bool readyToAddNewPt  = (distFromCurrPt  >= 20.0) || (plug.but2Pressed);
+  
+  if( readyToCloseCont || forceEndContour )
+  {
+    undoContourDataChgCC( plug.view );      // REGISTER UNDO
+    cont_addPtsSmooth( cont, plug.smoothMinDist,
+                       plug.smoothTensileFract, isContClosed(obj,cont), false, false );
+    imodContourUnique( cont );
+    undoContourPropChgCC( plug.view );      // REGISTER UNDO
+    setInterpolated( cont, 0 );
+    imodSetIndex(imod, objIdx, -1, -1);
+    undoFinishUnit( plug.view );            // FINISH UNDO
+  }
+  else if(readyToAddNewPt)
+  {
+    undoContourDataChgCC( plug.view );      // REGISTER UNDO
+    imodPointAdd( cont, &plug.mouse, ptIdx+1 );
+    imodSetIndex(imod, objIdx, contIdx, ptIdx+1);
+    undoFinishUnit( plug.view );            // FINISH UNDO
+  }  
+  
+  ivwDraw( plug.view, IMOD_DRAW_MOD | IMOD_DRAW_NOSYNC );
+}
+
+
+
+
+
+
+
 
 
 
@@ -5742,12 +6030,12 @@ bool edit_breakPointsInCircle( Ipoint center, float radius )
           if( contSegments.size() == 1 )
           {
             undoContourDataChgCC(plug.view);                  // REGISTER UNDO
-            cont_copyPoints( contSegments[0].cont, cont, true );
+            cont_copyPts( contSegments[0].cont, cont, true );
           }
           else if ( contSegments.size() > 1 )
           {
             undoContourDataChgCC(plug.view);                  // REGISTER UNDO
-            cont_copyPoints( contSegments[0].cont, cont, true );
+            cont_copyPts( contSegments[0].cont, cont, true );
             for( int i=1; i<contSegments.size(); i++ )
               edit_addContourToObj( obj, contSegments[i].cont, true );
           }
@@ -6025,7 +6313,6 @@ int edit_addPtsCurrContInRadius( Ipoint *centerPt, float radius, float maxDistPt
 }
 
 
-
 //------------------------
 //-- Finds and selects the next contour past the selected contour which
 //-- overlaps (contours cross) another contour in the model
@@ -6043,7 +6330,7 @@ bool edit_selectNextIntersectingCont()
   for (int o=objIdx; o<(nObjs+objIdx+1); o++)         // for each object:
   {
     if( o == nObjs )
-      wprint("Starting from beginning...\n");
+      wprint("Starting from beginning (first object)...\n");
     int oNum = (o%nObjs);
     
     Iobj *objO  = getObj(imod,oNum);

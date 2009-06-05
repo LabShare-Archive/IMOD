@@ -112,7 +112,7 @@ inline float getZ( Icont *cont );
 inline int getZInt( Icont *cont );
 inline float getZRange( Icont *cont );
 inline void changeZValue( Icont *cont, int newZValue );
-inline void cont_copyPoints( Icont *from, Icont *to, bool clearToCont );
+inline void cont_copyPts( Icont *from, Icont *to, bool clearToCont );
 inline void deleteContours( vector<IcontPtr> &conts );
 inline void eraseContour( vector<IcontPtr> &conts, int idx );
 
@@ -269,7 +269,13 @@ Ipoint cont_getPtDistAlongLength( Icont *cont, float dist, bool closed, int star
 Ipoint cont_getPtFractAlongLength( Icont *cont, float fract, bool closed, int startPt );
 vector<float> cont_getFractPtsAlongLength( Icont *cont, bool closed, int startPt );                                                    // NEW
 int cont_addPtsFractsAlongLength( Icont *cont, Icont *contNew, vector<float> fractsAlongLen, bool closed, bool keepExistingPts, int startPt );      // NEW
-void cont_calcPtsizeInfo( Iobj *obj, Icont *cont, const float zScale, float &openLength, float &fullLength, float &openVol, float &fullVol, float &avgRadius, float &minRadius, float &maxRadius, float &minMidRadius, float &surfaceArea );
+//void cont_calcPtsizeInfo( Iobj *obj, Icont *cont, const float zScale, float &openLength, float &fullLength, float &openVol, float &fullVol, float &avgRadius, float &minRadius, float &maxRadius, float &minMidRadius, float &surfaceArea );
+void cont_calcPtsizeInfo( Iobj *obj, Icont *cont, const float zScale, float pixelSize,
+                     float &openLength, float &fullLength,
+                     float &avgR, float &firstR, float &lastR,
+                     float &minR, float &maxR, float &minMidR,
+                     float &openVol, float &fullVol, float &surfaceArea );
+
 
 //############################################################
 
@@ -453,6 +459,25 @@ inline bool ptsApproxEqual( Ipoint *pt1, Ipoint *pt2, float prec )
 //-- Resets the point size and fine grain of all points in the current contour
 //-- to the default.
 
+inline void removeExtraInfo( Icont *cont )
+{
+  int openFlag = imodContourGetFlag( cont, ICONT_OPEN );
+  int stippledFlag = imodContourGetFlag( cont, ICONT_STIPPLED );
+  Icont *tempCont = imodContourDup( cont );
+  imodContourDefault( cont );
+  imodContourCopy( tempCont, cont );
+  cont_copyPts( tempCont, cont, true );
+  
+  imodContourSetFlag( cont, ICONT_OPEN, openFlag );
+  imodContourSetFlag( cont, ICONT_STIPPLED, stippledFlag );
+  imodContourDelete( tempCont );
+}
+
+
+//------------------------
+//-- Resets the point size and fine grain of all points in the current contour
+//-- to the default.
+
 inline void removePtsSize( Icont *cont )
 {
   for (int p=0; p<psize(cont); p++)
@@ -576,7 +601,7 @@ inline void changeZValue( Icont *cont, int newZValue )
 //------------------------
 //-- Copies all the points from the first contour to the second.
 
-inline void cont_copyPoints( Icont *from, Icont *to, bool clearToCont )
+inline void cont_copyPts( Icont *from, Icont *to, bool clearToCont )
 {
   if(clearToCont)
     imodContourDefault(to);

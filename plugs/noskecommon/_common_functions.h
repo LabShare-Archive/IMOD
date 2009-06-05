@@ -410,6 +410,8 @@ inline int roundToInt(float x)
 //-- Founds float to nearest multiple of "precision"
 inline float roundPrec( float value, float precision ) 				
 {
+  if(precision == 0)
+    return (value);
 	return (float)( roundToInt(value / precision) * precision );
 }
 
