@@ -622,7 +622,7 @@ void ZapGL::mouseReleaseEvent ( QMouseEvent * e )
 void ZapGL::mouseMoveEvent ( QMouseEvent * e )
 {
   mMouseInWindow = true;
-  zapMouseMove(mZap, e, mMousePressed);
+  zapMouseMove(mZap, e);
 }
 
 void ZapGL::enterEvent ( QEvent * e)
@@ -638,6 +638,9 @@ void ZapGL::leaveEvent ( QEvent * e)
 
 /*
 $Log$
+Revision 4.32  2009/01/15 16:33:18  mast
+Qt 4 port
+
 Revision 4.31  2008/05/27 22:48:33  mast
 Moved angle to separate label after Z slider
 

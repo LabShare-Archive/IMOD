@@ -132,7 +132,7 @@ void zapKeyInput(ZapStruct *zap, QKeyEvent *e);
 void zapKeyRelease(ZapStruct *zap, QKeyEvent *e);
 void zapMousePress(ZapStruct *zap, QMouseEvent *e);
 void zapMouseRelease(ZapStruct *zap, QMouseEvent *e);
-void zapMouseMove(ZapStruct *zap, QMouseEvent *e, bool mousePressed);
+void zapMouseMove(ZapStruct *zap, QMouseEvent *e);
 void zapGeneralEvent(ZapStruct *zap, QEvent *e);
 void zapHelp(ZapStruct *zap);
 void zapEnteredZoom(ZapStruct *zap, float newZoom);
@@ -157,6 +157,9 @@ void zapSetMouseTracking();
 
 /*
 $Log$
+Revision 3.32  2009/01/15 16:33:18  mast
+Qt 4 port
+
 Revision 3.31  2008/08/01 15:37:55  mast
 Moved draw routine to global so imodview can draw top zap
 
