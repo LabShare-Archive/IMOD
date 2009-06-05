@@ -15,6 +15,7 @@ import etomo.type.AxisTypeException;
 import etomo.type.BaseMetaData;
 import etomo.type.ConstMetaData;
 import etomo.type.ConstPeetMetaData;
+import etomo.type.FileType;
 import etomo.type.JoinMetaData;
 import etomo.type.ParallelMetaData;
 import etomo.type.Run3dmodMenuOptions;
@@ -38,6 +39,11 @@ import etomo.util.Utilities;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.72  2009/03/24 20:16:28  sueh
+ * <p> bug# 1187 Wasn't getting imodState after calling newImod in many of the
+ * <p> public functions, so the functions where returning without calling the
+ * <p> corresponding imodState function.
+ * <p>
  * <p> Revision 3.71  2009/03/23 16:56:24  sueh
  * <p> bug# 1187 Added setContinuousListenerTarget.  Only use requestHandler if the OS is
  * <p> Windows and the --listen parameter was used.
@@ -560,6 +566,7 @@ public class ImodManager {
   public static final String CTF_CORRECTION_KEY = new String("CtfCorrection");
   public static final String ERASED_FIDUCIALS_KEY = new String(
       "erased fiducials");
+  public static final String FLAT_VOLUME_KEY = new String("flattened volume");
 
   //private keys - used with imodMap
   private static final String rawStackKey = RAW_STACK_KEY;
@@ -595,6 +602,7 @@ public class ImodManager {
   private static final String anisotropicDiffusionVolumeKey = ANISOTROPIC_DIFFUSION_VOLUME_KEY;
   private static final String ctfCorrectionKey = CTF_CORRECTION_KEY;
   private static final String erasedFiducialsKey = ERASED_FIDUCIALS_KEY;
+  private static final String flatVolumeKey = FLAT_VOLUME_KEY;
 
   private boolean useMap = true;
   private final BaseManager manager;
@@ -1118,12 +1126,13 @@ public class ImodManager {
     }
   }
 
-  public void setSwapYZ(String key, boolean swapYZ) throws AxisTypeException {
+  public void setSwapYZ(String key, AxisID axisID, boolean swapYZ)
+      throws AxisTypeException {
     key = getPrivateKey(key);
-    ImodState imodState = get(key);
+    ImodState imodState = get(key, axisID);
     if (imodState == null) {
-      newImod(key);
-      imodState = get(key);
+      newImod(key, axisID);
+      imodState = get(key, axisID);
     }
     imodState.setSwapYZ(swapYZ);
   }
@@ -1278,7 +1287,8 @@ public class ImodManager {
   }
 
   public void setContinuousListenerTarget(String key, AxisID axisID,
-      ContinuousListenerTarget continuousListenerTarget)throws AxisTypeException {
+      ContinuousListenerTarget continuousListenerTarget)
+      throws AxisTypeException {
     key = getPrivateKey(key);
     ImodState imodState = get(key, axisID);
     if (imodState == null) {
@@ -1309,6 +1319,19 @@ public class ImodManager {
     }
     if (imodState != null) {
       imodState.setOpenContours(openContours);
+    }
+  }
+
+  public void setStartNewContoursAtNewZ(String key, AxisID axisID,
+      boolean startNewContoursAtNewZ) throws AxisTypeException {
+    key = getPrivateKey(key);
+    ImodState imodState = get(key, axisID);
+    if (imodState == null) {
+      newImod(key, axisID);
+      imodState = get(key, axisID);
+    }
+    if (imodState != null) {
+      imodState.setStartNewContoursAtNewZ(startNewContoursAtNewZ);
     }
   }
 
@@ -1550,6 +1573,9 @@ public class ImodManager {
     if (key.equals(ERASED_FIDUCIALS_KEY) && axisID != null) {
       return newErasedFiducials(axisID);
     }
+    if (key.equals(FLAT_VOLUME_KEY) && axisID != null) {
+      return newFlatVolume(axisID);
+    }
     throw new IllegalArgumentException(key + " cannot be created in "
         + axisType.toString() + " with axisID=" + axisID.getExtension());
   }
@@ -1754,6 +1780,12 @@ public class ImodManager {
   ImodState newErasedFiducials(AxisID axisID) {
     ImodState imodState = new ImodState(manager, axisID, datasetName,
         DatasetFiles.getErasedFiducialsFileExtension());
+    return imodState;
+  }
+
+  ImodState newFlatVolume(AxisID axisID) {
+    ImodState imodState = new ImodState(manager, axisID, datasetName,
+        FileType.FLATTEN_OUTPUT.getExtension());
     return imodState;
   }
 
