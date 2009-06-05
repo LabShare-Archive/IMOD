@@ -92,6 +92,11 @@ final class Autodoc extends WriteOnlyStatementList implements WritableAutodoc {
 
   private static String absoluteDir = null;
 
+  /**
+   * The autodoc file name, excluding the extension.
+   */
+  private final String autodocName;
+  
   private final boolean allowAltComment;
 
   private LogFile autodocFile = null;
@@ -106,11 +111,12 @@ final class Autodoc extends WriteOnlyStatementList implements WritableAutodoc {
   private boolean debug = false;
   private boolean writable = false;
 
-  Autodoc() {
-    this(false);
+  Autodoc( String autodocName) {
+    this(false,autodocName);
   }
 
-  Autodoc(boolean allowAltComment) {
+  Autodoc(boolean allowAltComment, String autodocName) {
+    this.autodocName=autodocName;
     this.allowAltComment = allowAltComment;
     attributeList = new AttributeList(this);
   }
@@ -125,6 +131,10 @@ final class Autodoc extends WriteOnlyStatementList implements WritableAutodoc {
 
   public void setDebug() {
     debug = true;
+  }
+  
+  public String getAutodocName() {
+    return autodocName;
   }
 
   public String getName() {
@@ -662,6 +672,9 @@ final class Autodoc extends WriteOnlyStatementList implements WritableAutodoc {
 }
 /**
  *<p> $$Log$
+ *<p> $Revision 1.30  2009/03/17 00:45:43  sueh
+ *<p> $bug# 1186 Pass managerKey to everything that pops up a dialog.
+ *<p> $
  *<p> $Revision 1.29  2009/03/09 17:26:24  sueh
  *<p> $bug# 1199 Documents version 1.3.
  *<p> $
