@@ -1,21 +1,26 @@
 package etomo.ui;
 
-import java.awt.Component;
 import java.awt.Container;
 import java.awt.event.*;
 
 import javax.swing.BoxLayout;
+import javax.swing.JPanel;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
 
 import etomo.ApplicationManager;
 import etomo.comscript.ConstSqueezevolParam;
+import etomo.comscript.ConstWarpVolParam;
+import etomo.comscript.FlattenWarpParam;
 import etomo.comscript.SqueezevolParam;
 import etomo.comscript.TrimvolParam;
+import etomo.comscript.WarpVolParam;
 import etomo.type.AxisID;
+import etomo.type.ConstMetaData;
 import etomo.type.DialogType;
+import etomo.type.MetaData;
 import etomo.type.ProcessResultDisplay;
 import etomo.type.ReconScreenState;
-import etomo.type.Run3dmodMenuOptions;
-import etomo.type.TomogramState;
 
 /**
  * <p>Description: </p>
@@ -31,75 +36,67 @@ import etomo.type.TomogramState;
  * @version $Revision$
  */
 public final class PostProcessingDialog extends ProcessDialog implements
-    ContextMenu, Run3dmodButtonContainer {
+    ContextMenu {
   public static final String rcsid = "$Id$";
 
-  private TrimvolPanel trimvolPanel;
+  private final TrimvolPanel trimvolPanel;
 
-  private LabeledTextField ltfReductionFactorXY;
-  private LabeledTextField ltfReductionFactorZ;
-  private CheckBox cbLinearInterpolation;
+  private final TabbedPane tabbedPane = new TabbedPane();
+  private Tab curTab = Tab.DEFAULT;
+  private final FlattenPanel flattenPanel;
+  private final SqueezeVolPanel squeezeVolPanel;
 
-  private final Run3dmodButton btnSqueezeVolume;
-  private final Run3dmodButton btnImodSqueezedVolume = Run3dmodButton
-      .get3dmodInstance("Open Squeezed Volume in 3dmod", this);
-
-  private PostProcessingDialogActionListener actionListener = new PostProcessingDialogActionListener(
-      this);
-
-  public PostProcessingDialog(ApplicationManager appMgr) {
+  private PostProcessingDialog(ApplicationManager appMgr) {
     super(appMgr, AxisID.ONLY, DialogType.POST_PROCESSING);
-    btnSqueezeVolume = (Run3dmodButton) appMgr.getProcessResultDisplayFactory(
-        axisID).getSqueezeVolume();
-    btnSqueezeVolume.setContainer(this);
-    btnSqueezeVolume.setDeferred3dmodButton(btnImodSqueezedVolume);
+    flattenPanel = FlattenPanel.getInstance(appMgr, axisID, dialogType);
+    squeezeVolPanel = SqueezeVolPanel.getInstance(appMgr, axisID, dialogType);
     rootPanel.setLayout(new BoxLayout(rootPanel, BoxLayout.Y_AXIS));
     rootPanel.setBorder(new BeveledBorder("Post Processing").getBorder());
+    rootPanel.add(tabbedPane);
     trimvolPanel = new TrimvolPanel(applicationManager, axisID, dialogType);
-    rootPanel.add(trimvolPanel.getContainer());
-    rootPanel.add(createSqueezeVolPanel());
+    JPanel trimvolRoot = new JPanel();
+    tabbedPane.addTab("Trim vol", trimvolRoot);
+    trimvolRoot.add(trimvolPanel.getContainer());
+    JPanel flattenRoot = new JPanel();
+    tabbedPane.addTab("Flatten", flattenRoot);
+    JPanel squeezeRoot = new JPanel();
+    tabbedPane.addTab("Squeeze vol", squeezeRoot);
     addExitButtons();
-
     btnAdvanced.setVisible(false);
     btnExecute.setText("Done");
-
-    // Mouse adapter for context menu
-    GenericMouseAdapter mouseAdapter = new GenericMouseAdapter(this);
-    rootPanel.addMouseListener(mouseAdapter);
-
     // Set the default advanced dialog state
     updateAdvanced();
-    setToolTipText();
   }
 
-  private Container createSqueezeVolPanel() {
-    SpacedPanel squeezeVolPanel = SpacedPanel.getInstance();
-    squeezeVolPanel.setBoxLayout(BoxLayout.Y_AXIS);
-    squeezeVolPanel.setBorder(new BeveledBorder("Squeeze Volume").getBorder());
-    //first component
-    SpacedPanel squeezeVolPanel1 = SpacedPanel.getInstance();
-    squeezeVolPanel1.setBoxLayout(BoxLayout.X_AXIS);
-    ltfReductionFactorXY = new LabeledTextField("Reduction factor in X and Y ");
-    squeezeVolPanel1.add(ltfReductionFactorXY);
-    ltfReductionFactorZ = new LabeledTextField("in Z ");
-    squeezeVolPanel1.add(ltfReductionFactorZ);
-    squeezeVolPanel.add(squeezeVolPanel1);
-    //second component
-    cbLinearInterpolation = new CheckBox("Linear interpolation");
-    cbLinearInterpolation.setAlignmentX(Component.RIGHT_ALIGNMENT);
-    squeezeVolPanel.add(cbLinearInterpolation);
-    //third component
-    SpacedPanel squeezeVolPanel2 = SpacedPanel.getInstance();
-    squeezeVolPanel2.setBoxLayout(BoxLayout.X_AXIS);
-    btnSqueezeVolume.addActionListener(actionListener);
-    btnSqueezeVolume.setSize();
-    squeezeVolPanel2.add(btnSqueezeVolume);
-    squeezeVolPanel2.addHorizontalGlue();
-    btnImodSqueezedVolume.addActionListener(actionListener);
-    btnImodSqueezedVolume.setSize();
-    squeezeVolPanel2.add(btnImodSqueezedVolume);
-    squeezeVolPanel.add(squeezeVolPanel2);
-    return squeezeVolPanel.getContainer();
+  public static PostProcessingDialog getInstance(ApplicationManager manager) {
+    PostProcessingDialog instance = new PostProcessingDialog(manager);
+    instance.addListeners();
+    instance.tabbedPane.setSelectedIndex(Tab.DEFAULT.toInt());
+    return instance;
+  }
+
+  private void addListeners() {
+    //  Mouse adapter for context menu
+    GenericMouseAdapter mouseAdapter = new GenericMouseAdapter(this);
+    rootPanel.addMouseListener(mouseAdapter);
+    tabbedPane.addMouseListener(mouseAdapter);
+    tabbedPane.addChangeListener(new TabChangeListener(this));
+  }
+
+  private void changeTab() {
+    ((Container) tabbedPane.getComponentAt(curTab.toInt())).removeAll();
+    curTab = Tab.getInstance(tabbedPane.getSelectedIndex());
+    Container panel = (Container) tabbedPane.getSelectedComponent();
+    if (curTab == Tab.TRIM_VOL) {
+      panel.add(trimvolPanel.getContainer());
+    }
+    else if (curTab == Tab.FLATTEN) {
+      panel.add(flattenPanel.getComponent());
+    }
+    else if (curTab == Tab.SQUEEZE_VOL) {
+      panel.add(squeezeVolPanel.getComponent());
+    }
+    UIHarness.INSTANCE.pack(axisID, applicationManager);
   }
 
   public static ProcessResultDisplay getSqueezeVolumeDisplay() {
@@ -117,23 +114,34 @@ public final class PostProcessingDialog extends ProcessDialog implements
    * @param squeezevolParam
    */
   public void setParameters(ConstSqueezevolParam squeezevolParam) {
-    ltfReductionFactorXY.setText(squeezevolParam.getReductionFactorX()
-        .toString());
-    if (isSqueezevolFlipped()) {
-      ltfReductionFactorZ.setText(squeezevolParam.getReductionFactorZ()
-          .toString());
-    }
-    else {
-      ltfReductionFactorZ.setText(squeezevolParam.getReductionFactorY()
-          .toString());
-    }
-    cbLinearInterpolation.setSelected(squeezevolParam.isLinearInterpolation());
+    squeezeVolPanel.setParameters(squeezevolParam);
   }
 
-  public final void setParameters(ReconScreenState screenState) {
+  public void setParameters(ReconScreenState screenState) {
     trimvolPanel.setParameters(screenState);
-    btnSqueezeVolume.setButtonState(screenState.getButtonState(btnSqueezeVolume
-        .getButtonStateKey()));
+    squeezeVolPanel.setParameters(screenState);
+  }
+
+  public void setParameters(ConstMetaData metaData) {
+    flattenPanel.setParameters(metaData);
+    squeezeVolPanel.setParameters(metaData);
+  }
+
+  public void getParameters(MetaData metaData) {
+    flattenPanel.getParameters(metaData);
+    squeezeVolPanel.getParameters(metaData);
+  }
+
+  public boolean getParameters(FlattenWarpParam param) {
+    return flattenPanel.getParameters(param);
+  }
+
+  public boolean getParameters(WarpVolParam param) {
+    return flattenPanel.getParameters(param);
+  }
+
+  public void setParameters(ConstWarpVolParam param) {
+    flattenPanel.setParameters(param);
   }
 
   /**
@@ -141,46 +149,7 @@ public final class PostProcessingDialog extends ProcessDialog implements
    * @param squeezevolParam
    */
   public void getParameters(SqueezevolParam squeezevolParam) {
-    squeezevolParam.setReductionFactorX(ltfReductionFactorXY.getText());
-    TomogramState state = applicationManager.getState();
-    boolean flipped = squeezevolParam.setFlipped(isTrimvolFlipped());
-    if (flipped) {
-      squeezevolParam.setReductionFactorY(ltfReductionFactorXY.getText());
-      squeezevolParam.setReductionFactorZ(ltfReductionFactorZ.getText());
-    }
-    else {
-      squeezevolParam.setReductionFactorY(ltfReductionFactorZ.getText());
-      squeezevolParam.setReductionFactorZ(ltfReductionFactorXY.getText());
-    }
-    squeezevolParam.setLinearInterpolation(cbLinearInterpolation.isSelected());
-  }
-
-  /**
-   * return true if the result of squeezevol is flipped.
-   * If squeezevol hasn't been done, return true if the result of trimvol is
-   * flipped.
-   * @return
-   */
-  public boolean isSqueezevolFlipped() {
-    TomogramState state = applicationManager.getState();
-    if (!state.getSqueezevolFlipped().isNull()) {
-      return state.getSqueezevolFlipped().is();
-    }
-    return isTrimvolFlipped();
-  }
-
-  /**
-   * return true if the result of squeezevol is flipped.
-   * If squeezevol hasn't been done, return true if the result of trimvol is
-   * flipped.
-   * @return
-   */
-  public boolean isTrimvolFlipped() {
-    TomogramState state = applicationManager.getState();
-    if (state.getTrimvolFlipped().isNull()) {
-      return state.getBackwardCompatibleTrimvolFlipped();
-    }
-    return state.getTrimvolFlipped().is();
+    squeezeVolPanel.getParameters(squeezevolParam);
   }
 
   /**
@@ -203,8 +172,9 @@ public final class PostProcessingDialog extends ProcessDialog implements
    * Right mouse button context menu
    */
   public void popUpContextMenu(MouseEvent mouseEvent) {
-    String[] manPagelabel = { "Trimvol", "Squeezevol" };
-    String[] manPage = { "trimvol.html", "squeezevol.html" };
+    String[] manPagelabel = { "Trimvol", "Flattenwarp", "Warpvol", "Squeezevol" };
+    String[] manPage = { "trimvol.html", "flattenwarp.html", "warpvol.html",
+        "squeezevol.html" };
 
     //    ContextPopup contextPopup =
     new ContextPopup(rootPanel, mouseEvent, "POST-PROCESSING",
@@ -219,30 +189,9 @@ public final class PostProcessingDialog extends ProcessDialog implements
     UIHarness.INSTANCE.pack(axisID, applicationManager);
   }
 
-  public void action(final Run3dmodButton button,
-      final Run3dmodMenuOptions run3dmodMenuOptions) {
-    action(button.getActionCommand(), button.getDeferred3dmodButton(),
-        run3dmodMenuOptions);
-  }
-
-  private void action(final String command,
-      Deferred3dmodButton deferred3dmodButton,
-      final Run3dmodMenuOptions run3dmodMenuOptions) {
-    if (command.equals(btnSqueezeVolume.getActionCommand())) {
-      applicationManager.squeezevol(btnSqueezeVolume, null,
-          deferred3dmodButton, run3dmodMenuOptions, dialogType);
-    }
-    else if (command.equals(btnImodSqueezedVolume.getActionCommand())) {
-      applicationManager.imodSqueezedVolume(run3dmodMenuOptions);
-    }
-    else {
-      throw new IllegalStateException("Unknown command " + command);
-    }
-  }
-
   boolean done() {
     if (applicationManager.donePostProcessing()) {
-      btnSqueezeVolume.removeActionListener(actionListener);
+      squeezeVolPanel.done();
       trimvolPanel.done();
       setDisplayed(false);
       return true;
@@ -250,34 +199,54 @@ public final class PostProcessingDialog extends ProcessDialog implements
     return false;
   }
 
-  private final class PostProcessingDialogActionListener implements
-      ActionListener {
+  private static final class TabChangeListener implements ChangeListener {
     private final PostProcessingDialog adaptee;
 
-    private PostProcessingDialogActionListener(
-        final PostProcessingDialog adaptee) {
-      this.adaptee = adaptee;
+    private TabChangeListener(final PostProcessingDialog dialog) {
+      adaptee = dialog;
     }
 
-    public void actionPerformed(final ActionEvent event) {
-      adaptee.action(event.getActionCommand(), null, null);
+    public void stateChanged(final ChangeEvent event) {
+      adaptee.changeTab();
     }
   }
 
-  private void setToolTipText() {
-    ltfReductionFactorXY.setToolTipText("Factor to squeeze by in X and Y.");
-    ltfReductionFactorZ.setToolTipText("Factor to squeeze by in Z.");
-    cbLinearInterpolation
-        .setToolTipText("Use linear instead of quadratic interpolation for transforming the "
-            + "volume with Matchvol.");
-    btnSqueezeVolume
-        .setToolTipText("Squeeze the trimmed volume by the given factors.");
-    btnImodSqueezedVolume.setToolTipText("View the squeezed volume.");
-  }
+  static final class Tab {
+    private static final Tab TRIM_VOL = new Tab(0);
+    private static final Tab FLATTEN = new Tab(1);
+    private static final Tab SQUEEZE_VOL = new Tab(2);
 
+    static final Tab DEFAULT = TRIM_VOL;
+
+    private final int index;
+
+    private Tab(final int index) {
+      this.index = index;
+    }
+
+    private static Tab getInstance(final int index) {
+      if (index == TRIM_VOL.index) {
+        return TRIM_VOL;
+      }
+      if (index == FLATTEN.index) {
+        return FLATTEN;
+      }
+      if (index == SQUEEZE_VOL.index) {
+        return SQUEEZE_VOL;
+      }
+      return DEFAULT;
+    }
+
+    private int toInt() {
+      return index;
+    }
+  }
 }
 /**
  * <p> $Log$
+ * <p> Revision 3.39  2008/10/16 22:30:27  sueh
+ * <p> bug# 1141 Removed fixRootPanel because it doesn't do anything.
+ * <p>
  * <p> Revision 3.38  2008/09/30 22:10:55  sueh
  * <p> bug# 1113 Using a private constructor in SpacedPanel.
  * <p>
