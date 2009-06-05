@@ -95,11 +95,11 @@ public class EtomoAutodoc {
       return null;
     }
     tooltip = tooltip.trim();
+    String source = "(" + autodoc.getAutodocName() + ":  " + fieldName + ")";
     if (tooltip.endsWith(".")) {
-      return tooltip.substring(0, tooltip.length() - 1) + " (" + fieldName
-          + ").";
+      return tooltip.substring(0, tooltip.length() - 1) + " " + source + ".";
     }
-    return tooltip + " (" + fieldName + ").";
+    return tooltip + " " + source + ".";
   }
 
   public static String getTooltip(ReadOnlySection section, String enumValueName) {
@@ -261,6 +261,9 @@ public class EtomoAutodoc {
 
 /**
  * <p> $Log$
+ * <p> Revision 1.18  2009/02/04 23:30:30  sueh
+ * <p> bug# 1158 Changed id and exception classes in LogFile.
+ * <p>
  * <p> Revision 1.17  2008/10/27 18:38:00  sueh
  * <p> bug# 1141 Added debug only print statements.
  * <p>
