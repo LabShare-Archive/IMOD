@@ -25,6 +25,9 @@ import javax.swing.SpinnerNumberModel;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.5  2008/09/30 20:55:55  sueh
+ * <p> bug# 1113 Using a private constructor in SpacedPanel.
+ * <p>
  * <p> Revision 1.4  2008/05/13 22:59:55  sueh
  * <p> bug# 847 Added getButton.
  * <p>
@@ -42,12 +45,12 @@ import javax.swing.SpinnerNumberModel;
 final class BinnedXY3dmodButton {
   public static final String rcsid = "$Id$";
   private final Run3dmodButton button;
-  private final LabeledSpinner spinner;
+  private final LabeledSpinner spBinningXY;
   private final JLabel label;
   private JPanel panel = null;
 
   BinnedXY3dmodButton(String label, Run3dmodButtonContainer container) {
-    spinner = new LabeledSpinner("Open binned by ", new SpinnerNumberModel(1,
+    spBinningXY = new LabeledSpinner("Open binned by ", new SpinnerNumberModel(1,
         1, 50, 1));
     this.label = new JLabel(" in X and Y");
     button = Run3dmodButton.get3dmodInstance(label, container);
@@ -55,22 +58,28 @@ final class BinnedXY3dmodButton {
 
   Container getContainer() {
     if (panel == null) {
-      panel = new JPanel();
-      panel.setLayout(new BoxLayout(panel, BoxLayout.X_AXIS));
+      panel =  new JPanel();
+      panel.setLayout(new BoxLayout(panel,BoxLayout.X_AXIS));
+      panel.setAlignmentX(Component.CENTER_ALIGNMENT);
       panel.add(Box.createHorizontalGlue());
       panel.add(Box.createHorizontalGlue());
       panel.add(Box.createHorizontalGlue());
       SpacedPanel borderPanel = SpacedPanel.getInstance();
       borderPanel.setBoxLayout(BoxLayout.Y_AXIS);
       borderPanel.setBorder(BorderFactory.createEtchedBorder());
-      borderPanel.setComponentAlignmentX(Component.CENTER_ALIGNMENT);
+      borderPanel.setAlignmentX(Component.CENTER_ALIGNMENT);
       JPanel spinnerPanel = new JPanel();
-      spinnerPanel.setLayout(new BoxLayout(spinnerPanel, BoxLayout.X_AXIS));
-      spinnerPanel.add(spinner.getContainer());
+      spinnerPanel.setLayout(new BoxLayout(spinnerPanel,BoxLayout.X_AXIS));
+      spinnerPanel.setAlignmentX(Component.CENTER_ALIGNMENT);
+      spinnerPanel.add(spBinningXY.getContainer());
       spinnerPanel.add(label);
       borderPanel.add(spinnerPanel);
+      JPanel pnlButtons = new JPanel();
+      pnlButtons.setLayout(new BoxLayout(pnlButtons,BoxLayout.X_AXIS));
+      pnlButtons.setAlignmentX(Component.CENTER_ALIGNMENT);
       button.setSize();
-      borderPanel.add(button);
+      pnlButtons.add(button.getComponent());
+      borderPanel.add(pnlButtons);
       panel.add(borderPanel.getContainer());
       panel.add(Box.createHorizontalGlue());
       panel.add(Box.createHorizontalGlue());
@@ -84,7 +93,7 @@ final class BinnedXY3dmodButton {
   }
 
   void setSpinnerToolTipText(String text) {
-    spinner.setToolTipText(text);
+    spBinningXY.setToolTipText(text);
     label.setToolTipText(TooltipFormatter.INSTANCE.format(text));
   }
 
@@ -100,12 +109,12 @@ final class BinnedXY3dmodButton {
     return button.getActionCommand();
   }
 
-  int getInt() {
-    return ((Integer) spinner.getValue()).intValue();
+  int getBinningInXandY() {
+    return ((Integer) spBinningXY.getValue()).intValue();
   }
 
   void setEnabled(boolean enabled) {
-    spinner.setEnabled(enabled);
+    spBinningXY.setEnabled(enabled);
     label.setEnabled(enabled);
     button.setEnabled(enabled);
   }
