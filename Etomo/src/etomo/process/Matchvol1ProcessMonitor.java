@@ -22,6 +22,9 @@ import etomo.type.ProcessName;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.5  2009/02/04 23:26:24  sueh
+ * <p> bug# 1158 Changed id and exceptions classes in LogFile.
+ * <p>
  * <p> Revision 1.4  2006/10/24 21:20:09  sueh
  * <p> bug# 947 Passing the ProcessName to AxisProcessPanel.
  * <p>
@@ -36,41 +39,66 @@ import etomo.type.ProcessName;
  * <p> bug# 83 Matchvol1 process monitor.
  * <p> </p>
  */
-public class Matchvol1ProcessMonitor extends LogFileProcessMonitor {
+final class Matchvol1ProcessMonitor extends LogFileProcessMonitor {
   public static final String rcsid = "$Id$";
 
-  String lastLineRead = null;
+  private final boolean calledFromFlatten;
+
+  private String lastLineRead = null;
 
   /**
    * Construct a matchvol1 process watcher
    * @param appMgr
    * @param id
    */
-  public Matchvol1ProcessMonitor(ApplicationManager appMgr, AxisID id) {
-    super(appMgr, id,ProcessName.MATCHVOL1);
-    logFileBasename = "matchvol1";
+  private Matchvol1ProcessMonitor(final ApplicationManager appMgr,
+      final AxisID id, final boolean calledFromFlatten) {
+    super(appMgr, id, ProcessName.MATCHVOL1);
+    this.calledFromFlatten = calledFromFlatten;
+    if (calledFromFlatten) {
+      logFileBasename = ProcessName.FLATTEN.toString();
+    }
+    else {
+      logFileBasename = "matchvol1";
+    }
   }
 
-  /* (non-Javadoc)
-   * @see etomo.process.LogFileProcessMonitor#intializeProgressBar()
+  Matchvol1ProcessMonitor(final ApplicationManager appMgr, final AxisID id) {
+    this(appMgr, id, false);
+  }
+
+  static Matchvol1ProcessMonitor getFlattenInstance(
+      final ApplicationManager appMgr, final AxisID id) {
+    return new Matchvol1ProcessMonitor(appMgr, id, true);
+  }
+
+  /**
+   * Sets the title and the number of steps of the progress bar.
    */
-  protected void initializeProgressBar() {
+  void initializeProgressBar() {
+    String title;
+    if (calledFromFlatten) {
+      title = ProcessName.FLATTEN.toString();
+    }
+    else {
+      title = "Combine: matchvol1";
+    }
     if (nSections == Integer.MIN_VALUE) {
-      applicationManager.getMainPanel().setProgressBar("Combine: matchvol1", 1,
-          axisID,processName);
+      applicationManager.getMainPanel().setProgressBar(title, 1, axisID,
+          processName);
       applicationManager.getMainPanel().setProgressBarValue(0, "Starting...",
           axisID);
       return;
     }
-    applicationManager.getMainPanel().setProgressBar("Combine: matchvol1",
-        nSections, axisID,processName);
+    applicationManager.getMainPanel().setProgressBar(title, nSections, axisID,
+        processName);
   }
 
   /* (non-Javadoc)
    * @see etomo.process.LogFileProcessMonitor#getCurrentSection()
    */
-  protected void getCurrentSection() throws NumberFormatException,
-      LogFile.LockException,IOException {
+  void getCurrentSection() throws NumberFormatException, LogFile.LockException,
+      IOException {
     String line;
     while ((line = readLogFileLine()) != null) {
       line = line.trim();
@@ -88,16 +116,16 @@ public class Matchvol1ProcessMonitor extends LogFileProcessMonitor {
   /**
    * Search matchvol1.log.out file for the number of positions
    */
-  protected void findNSections() throws InterruptedException,
-      NumberFormatException, LogFile.LockException, InvalidParameterException,IOException {
+  void findNSections() throws InterruptedException, NumberFormatException,
+      LogFile.LockException, InvalidParameterException, IOException {
     //  Search for the number of sections, we should see a header ouput first
     boolean foundNSections = false;
     nSections = -1;
-    Thread.sleep(updatePeriod);
+    Thread.sleep(UPDATE_PERIOD);
     while (!foundNSections) {
       String line = readLogFileLine();
       if (line == null) {
-        Thread.sleep(updatePeriod);
+        Thread.sleep(UPDATE_PERIOD);
       }
       if (line != null && line.trim().startsWith("Finished")) {
         line = line.trim();
@@ -106,6 +134,6 @@ public class Matchvol1ProcessMonitor extends LogFileProcessMonitor {
         foundNSections = true;
       }
     }
-    Thread.sleep(updatePeriod);
+    Thread.sleep(UPDATE_PERIOD);
   }
 }
