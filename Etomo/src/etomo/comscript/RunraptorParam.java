@@ -24,6 +24,9 @@ import etomo.util.DatasetFiles;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.2  2009/06/01 18:46:38  sueh
+ * <p> bug# 1216 Validation:  preventing null parameters.
+ * <p>
  * <p> Revision 1.1  2009/05/02 01:07:18  sueh
  * <p> bug# 1216 Parameters for runraptor.
  * <p> </p>
@@ -100,10 +103,6 @@ public final class RunraptorParam {
 
   public void setUseRawStack(boolean input) {
     useRawStack = input;
-  }
-
-  public CommandMode getCommandMode() {
-    return null;
   }
 
   public ProcessName getProcessName() {
