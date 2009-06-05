@@ -24,6 +24,9 @@ import etomo.type.AxisID;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.14  2009/03/17 00:45:53  sueh
+ * <p> bug# 1186 Pass managerKey to everything that pops up a dialog.
+ * <p>
  * <p> Revision 1.13  2009/03/09 17:27:54  sueh
  * <p> bug# 1199 Added a getInstance function that takes a File and doesn't
  * <p> require a version.
@@ -89,6 +92,8 @@ public final class AutodocFactory {
   public static final String NEWSTACK = "newstack";
   public static final String CTF_PLOTTER = "ctfplotter";
   public static final String CTF_PHASE_FLIP = "ctfphaseflip";
+  public static final String FLATTEN_WARP = "flattenwarp";
+  public static final String WARP_VOL = "warpvol";
 
   private static final String TEST = "test";
   private static final String UITEST_AXIS = "uitest_axis";
@@ -110,6 +115,8 @@ public final class AutodocFactory {
   private static Autodoc NEWSTACK_INSTANCE = null;
   private static Autodoc CTF_PLOTTER_INSTANCE = null;
   private static Autodoc CTF_PHASE_FLIP_INSTANCE = null;
+  private static Autodoc FLATTEN_WARP_INSTANCE = null;
+  private static Autodoc WARP_VOL_INSTANCE = null;
 
   private static final HashMap UITEST_AXIS_MAP = new HashMap();
 
@@ -131,7 +138,7 @@ public final class AutodocFactory {
     if (autodoc != null) {
       return autodoc;
     }
-    autodoc = new Autodoc();
+    autodoc = new Autodoc(name);
     if (name.equals(UITEST)) {
       autodoc.initializeUITest(name, axisID, managerKey);
     }
@@ -154,7 +161,7 @@ public final class AutodocFactory {
     if (autodoc != null) {
       return autodoc;
     }
-    autodoc = new Autodoc();
+    autodoc = new Autodoc(name);
     autodoc.setDebug(true);
     if (name.equals(UITEST)) {
       autodoc.initializeUITest(name, axisID, managerKey);
@@ -173,7 +180,7 @@ public final class AutodocFactory {
     if (file == null) {
       throw new IllegalStateException("file is null");
     }
-    Autodoc autodoc = new Autodoc(true);
+    Autodoc autodoc = new Autodoc(true, stripFileExtension(file));
     autodoc.setDebug(true);
     try {
       autodoc.initialize(file, true, false, true, managerKey);
@@ -189,7 +196,7 @@ public final class AutodocFactory {
     if (file == null) {
       throw new IllegalStateException("file is null");
     }
-    Autodoc autodoc = new Autodoc(true);
+    Autodoc autodoc = new Autodoc(true, stripFileExtension(file));
     try {
       autodoc.initialize(file, true, false, true, managerKey);
       return autodoc;
@@ -199,12 +206,24 @@ public final class AutodocFactory {
     }
   }
 
+  private static String stripFileExtension(File file) {
+    return stripFileExtension( file.getName());
+  }
+  
+  private static String stripFileExtension(String fileName) {
+    int extensionIndex = fileName.lastIndexOf('.');
+    if (extensionIndex == -1) {
+      return fileName;
+    }
+    return fileName.substring(0, extensionIndex);
+  }
+
   public static WritableAutodoc getEmptyMatlabInstance(File file,
       ManagerKey managerKey) throws IOException, LogFile.LockException {
     if (file == null) {
       throw new IllegalStateException("file is null");
     }
-    Autodoc autodoc = new Autodoc(true);
+    Autodoc autodoc = new Autodoc(true, stripFileExtension(file));
     try {
       autodoc.initialize(file, false, false, true, managerKey);
       return autodoc;
@@ -224,7 +243,7 @@ public final class AutodocFactory {
     if (file == null) {
       throw new IllegalStateException("file is null");
     }
-    Autodoc autodoc = new Autodoc();
+    Autodoc autodoc = new Autodoc(stripFileExtension(file));
     try {
       autodoc.initialize(file, true, versionRequired, false, managerKey);
       return autodoc;
@@ -248,7 +267,7 @@ public final class AutodocFactory {
     if (file == null) {
       throw new IllegalStateException("file is null");
     }
-    Autodoc autodoc = new Autodoc();
+    Autodoc autodoc = new Autodoc(stripFileExtension(file));
     try {
       autodoc.initialize(file, false, true, false, managerKey);
       return autodoc;
@@ -256,24 +275,6 @@ public final class AutodocFactory {
     catch (FileNotFoundException e) {
       return null;
     }
-  }
-
-  public static ReadOnlyAutodoc getInstance(String fileName, String name,
-      AxisID axisID, ManagerKey managerKey) throws FileNotFoundException,
-      IOException, LogFile.LockException {
-    if (name == null) {
-      throw new IllegalStateException("name is null");
-    }
-    Autodoc autodoc = getExistingAutodoc(fileName, name);
-    if (autodoc != null) {
-      return autodoc;
-    }
-    autodoc = new Autodoc();
-    if (name.equals(UITEST_AXIS)) {
-      autodoc.initializeUITest(fileName, axisID, managerKey);
-      return autodoc;
-    }
-    throw new IllegalArgumentException("Illegal autodoc name: " + name + ".");
   }
 
   /**
@@ -299,7 +300,7 @@ public final class AutodocFactory {
     if (autodoc != null) {
       return autodoc;
     }
-    autodoc = new Autodoc();
+    autodoc = new Autodoc(stripFileExtension(autodocFileName));
     UITEST_AXIS_MAP.put(autodocFile, autodoc);
     autodoc.initializeUITestAxis(LogFile.getInstance(autodocFile, managerKey),
         axisID, managerKey);
@@ -349,6 +350,12 @@ public final class AutodocFactory {
     }
     if (name.equals(CTF_PHASE_FLIP)) {
       return CTF_PHASE_FLIP_INSTANCE;
+    }
+    if (name.equals(FLATTEN_WARP)) {
+      return FLATTEN_WARP_INSTANCE;
+    }
+    if (name.equals(WARP_VOL)) {
+      return WARP_VOL_INSTANCE;
     }
     if (name.equals(COMBINE_FFT)) {
       return COMBINE_FFT_INSTANCE;
@@ -408,6 +415,12 @@ public final class AutodocFactory {
     }
     else if (name.equals(CTF_PHASE_FLIP)) {
       CTF_PHASE_FLIP_INSTANCE = null;
+    }
+    else if (name.equals(FLATTEN_WARP)) {
+      FLATTEN_WARP_INSTANCE = null;
+    }
+    else if (name.equals(WARP_VOL)) {
+      WARP_VOL_INSTANCE = null;
     }
     else if (name.equals(COMBINE_FFT)) {
       COMBINE_FFT_INSTANCE = null;
