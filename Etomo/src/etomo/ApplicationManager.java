@@ -30,6 +30,7 @@ import etomo.comscript.CtfPhaseFlipParam;
 import etomo.comscript.ExtractmagradParam;
 import etomo.comscript.ExtractpiecesParam;
 import etomo.comscript.ExtracttiltsParam;
+import etomo.comscript.FlattenWarpParam;
 import etomo.comscript.FortranInputSyntaxException;
 import etomo.comscript.GotoParam;
 import etomo.comscript.MatchorwarpParam;
@@ -52,6 +53,7 @@ import etomo.comscript.TiltalignParam;
 import etomo.comscript.TiltxcorrParam;
 import etomo.comscript.TransferfidParam;
 import etomo.comscript.TrimvolParam;
+import etomo.comscript.WarpVolParam;
 import etomo.comscript.XfmodelParam;
 import etomo.comscript.XfproductParam;
 import etomo.process.BaseProcessManager;
@@ -83,6 +85,7 @@ import etomo.type.DialogType;
 import etomo.type.EtomoNumber;
 import etomo.type.EtomoState;
 import etomo.type.FiducialMatch;
+import etomo.type.FileType;
 import etomo.type.InterfaceType;
 import etomo.type.InvalidEtomoNumberException;
 import etomo.type.MatchMode;
@@ -5059,7 +5062,7 @@ public final class ApplicationManager extends BaseManager implements
     if (postProcessingDialog == null) {
       Utilities.timestamp("new", "PostProcessingDialog",
           Utilities.STARTED_STATUS);
-      postProcessingDialog = new PostProcessingDialog(this);
+      postProcessingDialog = PostProcessingDialog.getInstance(this);
       Utilities.timestamp("new", "PostProcessingDialog",
           Utilities.FINISHED_STATUS);
       // Set the appropriate input and output files
@@ -5092,6 +5095,14 @@ public final class ApplicationManager extends BaseManager implements
       postProcessingDialog.setParameters(metaData.getSqueezevolParam());
     }
     postProcessingDialog.setParameters(getScreenState(AxisID.ONLY));
+    postProcessingDialog.setParameters(metaData);
+    comScriptMgr.loadFlatten(AxisID.ONLY);
+    //Set from flatten.com after meta data.  Flatten.com is not created by
+    //copytomocoms and may be empty.
+    if (comScriptMgr.isWarpVolParamInFlatten(AxisID.ONLY)) {
+      postProcessingDialog.setParameters(comScriptMgr
+          .getWarpVolParamFromFlatten(AxisID.ONLY));
+    }
     mainPanel.showProcess(postProcessingDialog.getContainer(), AxisID.ONLY);
     setParallelDialog(AxisID.ONLY, postProcessingDialog);
   }
@@ -5147,6 +5158,7 @@ public final class ApplicationManager extends BaseManager implements
         return false;
       }
       updateSqueezevolParam();
+      postProcessingDialog.getParameters(metaData);
       if (exitState == DialogExitState.POSTPONE) {
         processTrack.setPostProcessingState(ProcessState.INPROGRESS);
         mainPanel.setPostProcessingState(ProcessState.INPROGRESS);
@@ -5251,31 +5263,130 @@ public final class ApplicationManager extends BaseManager implements
   /**
    * Open the trimmed volume in 3dmod
    */
-  public void imodTrimmedVolume(Run3dmodMenuOptions menuOptions) {
+  public void imodTrimmedVolume(Run3dmodMenuOptions menuOptions, AxisID axisID) {
     TrimvolParam trimvolParam = new TrimvolParam(this);
     if (!postProcessingDialog.getTrimvolParams(trimvolParam)) {
       return;
     }
     try {
-      imodManager.setSwapYZ(ImodManager.TRIMMED_VOLUME_KEY, !trimvolParam
-          .isSwapYZ()
-          && !trimvolParam.isRotateX());
-      imodManager.open(ImodManager.TRIMMED_VOLUME_KEY, menuOptions);
+      imodManager.setSwapYZ(ImodManager.TRIMMED_VOLUME_KEY, axisID,
+          !trimvolParam.isSwapYZ() && !trimvolParam.isRotateX());
+      imodManager.setStartNewContoursAtNewZ(ImodManager.TRIMMED_VOLUME_KEY,
+          axisID, false);
+      imodManager.open(ImodManager.TRIMMED_VOLUME_KEY, axisID, menuOptions);
     }
     catch (SystemProcessException except) {
       except.printStackTrace();
       uiHarness.openMessageDialog(except.getMessage(),
-          "Can't open 3dmod on the trimmed tomogram", AxisID.ONLY,
-          getManagerKey());
+          "Can't open 3dmod on the trimmed tomogram", axisID, getManagerKey());
     }
     catch (AxisTypeException except) {
       except.printStackTrace();
       uiHarness.openMessageDialog(except.getMessage(), "AxisType problem",
-          AxisID.ONLY, getManagerKey());
+          axisID, getManagerKey());
     }
     catch (IOException e) {
       e.printStackTrace();
-      uiHarness.openMessageDialog(e.getMessage(), "IO Exception", AxisID.ONLY,
+      uiHarness.openMessageDialog(e.getMessage(), "IO Exception", axisID,
+          getManagerKey());
+    }
+  }
+
+  /**
+   * Open flatten.com output
+   * @param menuOptions
+   * @param axisID
+   */
+  public void imodFlatten(
+      Run3dmodMenuOptions menuOptions, AxisID axisID) {
+    String key = ImodManager.FLAT_VOLUME_KEY;
+    try {
+      imodManager.open(key, axisID, menuOptions);
+    }
+    catch (SystemProcessException except) {
+      except.printStackTrace();
+      uiHarness.openMessageDialog(except.getMessage(),
+          "Can't open 3dmod on the " + key, axisID, getManagerKey());
+    }
+    catch (AxisTypeException except) {
+      except.printStackTrace();
+      uiHarness.openMessageDialog(except.getMessage(), "AxisType problem",
+          axisID, getManagerKey());
+    }
+    catch (IOException e) {
+      e.printStackTrace();
+      uiHarness.openMessageDialog(e.getMessage(), "IO Exception", axisID,
+          getManagerKey());
+    }
+  }
+
+  public boolean isFlipped(FileType fileType) {
+    if (fileType==null) {
+      return false;
+    }
+    if (fileType == FileType.TRIM_VOL_OUTPUT) {
+      return isTrimvolFlipped();
+    }
+    else if (fileType == FileType.SQUEEZE_VOL_OUTPUT) {
+      return isSqueezevolFlipped();
+    }
+    throw new IllegalStateException("Unknown file type "+fileType);
+  }
+
+  /**
+   * return true if the result of squeezevol is flipped.
+   * If squeezevol hasn't been done, return true if the result of trimvol is
+   * flipped.
+   * @return
+   */
+  public boolean isSqueezevolFlipped() {
+    if (!state.getSqueezevolFlipped().isNull()) {
+      return state.getSqueezevolFlipped().is();
+    }
+    return isTrimvolFlipped();
+  }
+
+  /**
+   * return true if the result of squeezevol is flipped.
+   * If squeezevol hasn't been done, return true if the result of trimvol is
+   * flipped.
+   * @return
+   */
+  public boolean isTrimvolFlipped() {
+    if (state.getTrimvolFlipped().isNull()) {
+      return state.getBackwardCompatibleTrimvolFlipped();
+    }
+    return state.getTrimvolFlipped().is();
+  }
+
+  public void imodMakeSurfaceModel(
+      Run3dmodMenuOptions menuOptions, AxisID axisID,int binning,FileType fileType) {
+    //Pick ImodManager key
+    //Need to look at tomogram edge on.  Use -Y, unless using squeezevol and it
+    //is not flipped.
+    String key = fileType.getImodManagerKey();
+    boolean useSwapYZ = isFlipped(fileType);
+    try {
+      imodManager.setSwapYZ(key, axisID, useSwapYZ);
+      imodManager.setOpenContours(key, axisID, true);
+      imodManager.setStartNewContoursAtNewZ(key, axisID, true);
+      imodManager.setBinningXY(key, binning);
+      imodManager.open(key, axisID, DatasetFiles.getFlattenWarpInputName(this),
+          true, menuOptions);
+    }
+    catch (SystemProcessException except) {
+      except.printStackTrace();
+      uiHarness.openMessageDialog(except.getMessage(),
+          "Can't open 3dmod on the " + key, axisID, getManagerKey());
+    }
+    catch (AxisTypeException except) {
+      except.printStackTrace();
+      uiHarness.openMessageDialog(except.getMessage(), "AxisType problem",
+          axisID, getManagerKey());
+    }
+    catch (IOException e) {
+      e.printStackTrace();
+      uiHarness.openMessageDialog(e.getMessage(), "IO Exception", axisID,
           getManagerKey());
     }
   }
@@ -5283,32 +5394,33 @@ public final class ApplicationManager extends BaseManager implements
   /**
    * Open the squeezed volume in 3dmod
    */
-  public void imodSqueezedVolume(Run3dmodMenuOptions menuOptions) {
+  public void imodSqueezedVolume(Run3dmodMenuOptions menuOptions, AxisID axisID) {
     // Make sure that the post processing panel is open
     if (postProcessingDialog == null) {
       uiHarness.openMessageDialog("Post processing dialog not open",
-          "Program logic error", AxisID.ONLY, getManagerKey());
+          "Program logic error", axisID, getManagerKey());
       return;
     }
     try {
-      imodManager.setSwapYZ(ImodManager.SQUEEZED_VOLUME_KEY,
-          !postProcessingDialog.isSqueezevolFlipped());
-      imodManager.open(ImodManager.SQUEEZED_VOLUME_KEY, menuOptions);
+      imodManager.setSwapYZ(ImodManager.SQUEEZED_VOLUME_KEY, axisID,
+          !isSqueezevolFlipped());
+      imodManager.setStartNewContoursAtNewZ(ImodManager.SQUEEZED_VOLUME_KEY,
+          axisID, false);
+      imodManager.open(ImodManager.SQUEEZED_VOLUME_KEY, axisID, menuOptions);
     }
     catch (SystemProcessException except) {
       except.printStackTrace();
       uiHarness.openMessageDialog(except.getMessage(),
-          "Can't open 3dmod on the squeezed tomogram", AxisID.ONLY,
-          getManagerKey());
+          "Can't open 3dmod on the squeezed tomogram", axisID, getManagerKey());
     }
     catch (AxisTypeException except) {
       except.printStackTrace();
       uiHarness.openMessageDialog(except.getMessage(), "AxisType problem",
-          AxisID.ONLY, getManagerKey());
+          axisID, getManagerKey());
     }
     catch (IOException e) {
       e.printStackTrace();
-      uiHarness.openMessageDialog(e.getMessage(), "IO Exception", AxisID.ONLY,
+      uiHarness.openMessageDialog(e.getMessage(), "IO Exception", axisID,
           getManagerKey());
     }
   }
@@ -5355,6 +5467,121 @@ public final class ApplicationManager extends BaseManager implements
     setThreadName(threadName, AxisID.ONLY);
     mainPanel.startProgressBar("Trimming volume", AxisID.ONLY,
         ProcessName.TRIMVOL);
+  }
+
+  WarpVolParam updateWarpVolParam(final DialogType dialogType,
+      final AxisID axisID) {
+    WarpVolParam param = comScriptMgr.getWarpVolParamFromFlatten(axisID);
+    PostProcessingDialog dialog = (PostProcessingDialog) getDialog(dialogType,
+        axisID);
+    if (dialog == null) {
+      uiHarness.openMessageDialog(
+          "Unable to get information from the post processing dialog.",
+          "Etomo Error", axisID, getManagerKey());
+      return null;
+    }
+    if (!dialog.getParameters(param)) {
+      return null;
+    }
+    comScriptMgr.saveFlatten(param, axisID);
+    return param;
+  }
+
+  FlattenWarpParam updateFlattenWarpParam(final DialogType dialogType,
+      final AxisID axisID) {
+    FlattenWarpParam param = new FlattenWarpParam(this);
+    PostProcessingDialog dialog = (PostProcessingDialog) getDialog(dialogType,
+        axisID);
+    if (dialog == null) {
+      uiHarness.openMessageDialog(
+          "Unable to get information from the post processing dialog.",
+          "Etomo Error", axisID, getManagerKey());
+      return null;
+    }
+    if (!dialog.getParameters(param)) {
+      return null;
+    }
+    return param;
+  }
+
+  /**
+   * Execute flatten.com
+   */
+  public void flatten(final ProcessResultDisplay processResultDisplay,
+      ProcessSeries processSeries,
+      final Deferred3dmodButton deferred3dmodButton,
+      final Run3dmodMenuOptions run3dmodMenuOptions,
+      final DialogType dialogType, final AxisID axisID) {
+    if (processSeries == null) {
+      processSeries = new ProcessSeries(this, dialogType);
+    }
+    sendMsgProcessStarting(processResultDisplay);
+    WarpVolParam param = updateWarpVolParam(dialogType, axisID);
+    if (param == null) {
+      return;
+    }
+    //Run process
+    if (processTrack != null) {
+      processTrack.setState(ProcessState.INPROGRESS, axisID, dialogType);
+    }
+    mainPanel.setState(ProcessState.INPROGRESS, axisID, dialogType);
+    processSeries.setRun3dmodDeferred(deferred3dmodButton, run3dmodMenuOptions);
+    String threadName;
+    try {
+      threadName = processMgr.flatten(axisID, processResultDisplay,
+          processSeries);
+    }
+    catch (SystemProcessException e) {
+      e.printStackTrace();
+      String[] message = new String[2];
+      message[0] = "Can not execute " + ProcessName.FLATTEN;
+      message[1] = e.getMessage();
+      uiHarness.openMessageDialog(message, "Unable to execute command", axisID,
+          getManagerKey());
+      return;
+    }
+    setThreadName(threadName, axisID);
+  }
+
+  /**
+   * Execute flattenwarp
+   */
+  public void flattenWarp(final ProcessResultDisplay processResultDisplay,
+      ProcessSeries processSeries,
+      final Deferred3dmodButton deferred3dmodButton,
+      final Run3dmodMenuOptions run3dmodMenuOptions,
+      final DialogType dialogType, final AxisID axisID) {
+    if (processSeries == null) {
+      processSeries = new ProcessSeries(this, dialogType);
+    }
+    sendMsgProcessStarting(processResultDisplay);
+    FlattenWarpParam param = updateFlattenWarpParam(dialogType, axisID);
+    if (param == null) {
+      return;
+    }
+    //Run process
+    if (processTrack != null) {
+      processTrack.setState(ProcessState.INPROGRESS, axisID, dialogType);
+    }
+    mainPanel.setState(ProcessState.INPROGRESS, axisID, dialogType);
+    processSeries.setRun3dmodDeferred(deferred3dmodButton, run3dmodMenuOptions);
+    String threadName;
+    try {
+      threadName = processMgr.flattenWarp(param, processResultDisplay,
+          processSeries, axisID);
+    }
+    catch (SystemProcessException e) {
+      e.printStackTrace();
+      String[] message = new String[2];
+      message[0] = "Can not execute " + param.getProcessName();
+      message[1] = e.getMessage();
+      uiHarness.openMessageDialog(message, "Unable to execute command", axisID,
+          getManagerKey());
+      return;
+    }
+    setThreadName(threadName, axisID);
+    mainPanel.startProgressBar("Running " + param.getProcessName(), axisID,
+        param.getProcessName());
   }
 
   RunraptorParam updateRunraptorParam(AxisID axisID) {
@@ -6136,6 +6363,10 @@ public final class ApplicationManager extends BaseManager implements
 }
 /**
  * <p> $Log$
+ * <p> Revision 3.326  2009/05/04 16:44:38  sueh
+ * <p> bug# 1216 In openFiducialModelDialog using AxisType to prevent
+ * <p> displaying the RAPTOR interface unless the dataset is dual axis.
+ * <p>
  * <p> Revision 3.325  2009/05/02 01:05:52  sueh
  * <p> bug# 1216 Added imodRawStack, imodRunraptorResult, runraptor,
  * <p> updateRunraptorParam, and useRunraptorResult.
