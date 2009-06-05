@@ -52,6 +52,9 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.51  2009/04/01 20:08:25  sueh
+ * <p> bug# 1208 Calling clip rotx instead of clip flipyz when adding a flipped section.
+ * <p>
  * <p> Revision 1.50  2009/03/17 00:46:24  sueh
  * <p> bug# 1186 Pass managerKey to everything that pops up a dialog.
  * <p>
@@ -1167,7 +1170,7 @@ final class SectionTablePanel implements ContextMenu, Expandable,
     if (rowIndex == -1) {
       return;
     }
-    int binning = b3bOpen3dmod.getInt();
+    int binning = b3bOpen3dmod.getBinningInXandY();
     SectionTableRow row = rowList.get(rowIndex);
     if (isSetupTab()) {
       row.imodOpenSetupSectionFile(binning, menuOptions);
