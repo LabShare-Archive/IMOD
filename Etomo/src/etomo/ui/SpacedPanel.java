@@ -34,6 +34,9 @@ import javax.swing.border.TitledBorder;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.25  2009/01/20 20:29:05  sueh
+ * <p> bug# 1102 Changed panel to type EtomoPanel so that it can name itself.
+ * <p>
  * <p> Revision 1.24  2008/10/27 20:42:27  sueh
  * <p> bug# 1141 Added add(FioltTextField).
  * <p>
@@ -144,10 +147,7 @@ final class SpacedPanel {
   private final EtomoPanel panel = new EtomoPanel();
   private final JPanel innerPanel = new JPanel();
   private final JPanel outerPanel;
-  private final StringBuffer xDescription = new StringBuffer();
-  private final StringBuffer yDescription = new StringBuffer();
 
-  private boolean componentAdded = false;
   private boolean layoutSet = false;
   private boolean previousComponentWasSpaced = false;
   private Float componentAlignmentX = null;
@@ -192,22 +192,14 @@ final class SpacedPanel {
     innerPanel.setLayout(new BoxLayout(innerPanel, BoxLayout.X_AXIS));
     //innerPanel
     innerPanel.add(Box.createRigidArea(FixedDim.x5_y0));
-    xDescription.append("first FixedDim.x5_y0,");
     innerPanel.add(panel);
     innerPanel.add(Box.createRigidArea(FixedDim.x5_y0));
-    xDescription.append("last FixedDim.x5_y0,");
     //outerPanel
     if (yAxisPadding) {
       outerPanel.add(Box.createRigidArea(FixedDim.x0_y5));
     }
     outerPanel.add(innerPanel);
     outerPanel.add(Box.createRigidArea(FixedDim.x0_y5));
-    yDescription.append("last FixedDim.x0_y5,");
-  }
-
-  public String toString() {
-    return ",axis=" + axis + "\n,xDescription=" + xDescription
-        + "\n,yDescription=" + yDescription;
   }
 
   void requestFocus() {
@@ -221,20 +213,14 @@ final class SpacedPanel {
   }
 
   private final void addSpacing() {
-    if (!componentAdded) {
-      componentAdded = true;
-      return;
-    }
     if (!layoutSet) {
       return;
     }
     if (axis == BoxLayout.X_AXIS) {
       panel.add(Box.createRigidArea(FixedDim.x5_y0));
-      xDescription.append("FixedDim.x5_y0,");
     }
     else if (axis == BoxLayout.Y_AXIS && !previousComponentWasSpaced) {
       panel.add(Box.createRigidArea(FixedDim.x0_y5));
-      yDescription.append("FixedDim.x0_y5,");
     }
     if (previousComponentWasSpaced) {
       previousComponentWasSpaced = false;
@@ -246,178 +232,148 @@ final class SpacedPanel {
   }
 
   final void add(final Container container) {
-    addSpacing();
     panel.add(container);
-    xDescription.append("Container,");
-    yDescription.append("Container,");
-  }
-  
-  final void add(final Component component) {
     addSpacing();
+  }
+
+  final void add(final Component component) {
     panel.add(component);
-    xDescription.append("Component,");
-    yDescription.append("Component,");
+    addSpacing();
   }
 
   final void add(final SpacedPanel spacedPanel) {
-    addSpacing();
     panel.add(spacedPanel.getContainer());
+    addSpacing();
     if (componentAlignmentX != null) {
       spacedPanel.setComponentAlignmentX(componentAlignmentX.floatValue());
     }
-    xDescription.append("SpacedPanel,");
-    yDescription.append("SpacedPanel,");
     previousComponentWasSpaced = true;
-
   }
 
   final void add(final JScrollPane jScrollPane) {
-    addSpacing();
     panel.add(jScrollPane);
+    addSpacing();
     if (componentAlignmentX != null) {
       jScrollPane.setAlignmentX(componentAlignmentX.floatValue());
     }
-    xDescription.append("JScrollPane,");
-    yDescription.append("JScrollPane,");
   }
 
   final void add(final JPanel jPanel) {
-    addSpacing();
     panel.add(jPanel);
+    addSpacing();
     if (componentAlignmentX != null) {
       jPanel.setAlignmentX(componentAlignmentX.floatValue());
     }
-    xDescription.append("JPanel,");
-    yDescription.append("JPanel,");
   }
 
   final void add(final JComboBox jComboBox) {
-    addSpacing();
     panel.add(jComboBox);
+    addSpacing();
     if (componentAlignmentX != null) {
       jComboBox.setAlignmentX(componentAlignmentX.floatValue());
     }
-    xDescription.append("JComboBox,");
-    yDescription.append("JComboBox,");
   }
-  
+
   void add(final FileTextField fileTextField) {
-    addSpacing();
     panel.add(fileTextField.getContainer());
+    addSpacing();
     if (componentAlignmentX != null) {
       fileTextField.setAlignmentX(componentAlignmentX.floatValue());
     }
-    xDescription.append("FileTextField,");
-    yDescription.append("FileTextField,");
   }
 
   void add(final LabeledTextField labeledTextField) {
-    addSpacing();
     panel.add(labeledTextField.getContainer());
+    addSpacing();
     if (componentAlignmentX != null) {
       labeledTextField.setAlignmentX(componentAlignmentX.floatValue());
     }
-    xDescription.append("LabeledTextField,");
-    yDescription.append("LabeledTextField,");
   }
 
   void add(final Spinner spinner) {
-    addSpacing();
     panel.add(spinner.getContainer());
+    addSpacing();
     if (componentAlignmentX != null) {
       spinner.setAlignmentX(componentAlignmentX.floatValue());
     }
-    xDescription.append("LabeledTextField,");
-    yDescription.append("LabeledTextField,");
   }
 
   void add(final TextField textField) {
-    addSpacing();
     panel.add(textField.getComponent());
+    addSpacing();
     if (componentAlignmentX != null) {
       textField.setAlignmentX(componentAlignmentX.floatValue());
     }
-    xDescription.append("LabeledTextField,");
-    yDescription.append("LabeledTextField,");
   }
 
   void add(final JLabel jLabel) {
-    addSpacing();
     panel.add(jLabel);
+    addSpacing();
     if (componentAlignmentX != null) {
       jLabel.setAlignmentX(componentAlignmentX.floatValue());
     }
-    xDescription.append("JLabel,");
-    yDescription.append("JLabel,");
   }
 
   void add(final RadioButton radioButton) {
-    addSpacing();
+    //  addSpacing();
     panel.add(radioButton.getComponent());
+    addSpacing();
     if (componentAlignmentX != null) {
       radioButton.setAlignmentX(componentAlignmentX.floatValue());
     }
-    xDescription.append("RadioButton,");
-    yDescription.append("RadioButton,");
   }
 
   void add(final CheckBox checkBox) {
-    addSpacing();
+   // addSpacing();
     panel.add(checkBox);
+    addSpacing();
     if (componentAlignmentX != null) {
       checkBox.setAlignmentX(componentAlignmentX.floatValue());
     }
-    xDescription.append("CheckBox,");
-    yDescription.append("CheckBox,");
   }
 
   void add(final SpacedTextField spacedTextField) {
-    addSpacing();
+   // addSpacing();
     panel.add(spacedTextField.getContainer());
+    addSpacing();
     if (componentAlignmentX != null) {
       spacedTextField.setAlignmentX(componentAlignmentX.floatValue());
     }
-    xDescription.append("SpacedTextField,");
-    yDescription.append("SpacedTextField,");
     previousComponentWasSpaced = true;
   }
 
   void add(final PanelHeader panelHeader) {
-    addSpacing();
+    // addSpacing();
     panel.add(panelHeader);
-    xDescription.append("PanelHeader,");
-    yDescription.append("PanelHeader,");
+    addSpacing();
   }
 
   void add(final LabeledSpinner labeledSpinner) {
-    addSpacing();
+     //addSpacing();
     panel.add(labeledSpinner.getContainer());
+    addSpacing();
     if (componentAlignmentX != null) {
       labeledSpinner.setAlignmentX(componentAlignmentX.floatValue());
     }
-    xDescription.append("LabeledSpinner,");
-    yDescription.append("LabeledSpinner,");
   }
 
   void add(final MultiLineButton multiLineButton) {
-    addSpacing();
+    // addSpacing();
     //multiLineButton.setSize();
     panel.add(multiLineButton.getComponent());
+    addSpacing();
     if (componentAlignmentX != null) {
       multiLineButton.setAlignmentX(componentAlignmentX.floatValue());
     }
-    xDescription.append("MultiLineButton,");
-    yDescription.append("MultiLineButton,");
   }
 
   void add(final JButton button) {
-    addSpacing();
+    // addSpacing();
     panel.add(button);
+    addSpacing();
     if (componentAlignmentX != null) {
       button.setAlignmentX(componentAlignmentX.floatValue());
     }
-    xDescription.append("JButton,");
-    yDescription.append("JButton,");
   }
 
   void addMouseListener(final MouseListener mouseListener) {
@@ -426,33 +382,27 @@ final class SpacedPanel {
 
   void addHorizontalGlue() {
     panel.add(Box.createHorizontalGlue());
-    xDescription.append("HorizontalGlue,");
   }
 
   void addRigidArea() {
     if (axis == BoxLayout.X_AXIS) {
       panel.add(Box.createRigidArea(FixedDim.x5_y0));
-      xDescription.append("FixedDim.x5_y0,");
     }
     else if (axis == BoxLayout.Y_AXIS) {
       panel.add(Box.createRigidArea(FixedDim.x0_y5));
-      yDescription.append("FixedDim.x0_y5,");
     }
   }
 
   void addRigidArea(Dimension dim) {
     if (axis == BoxLayout.X_AXIS) {
       panel.add(Box.createRigidArea(dim));
-      xDescription.append("rigid area,");
     }
     else if (axis == BoxLayout.Y_AXIS) {
       panel.add(Box.createRigidArea(dim));
-      yDescription.append("rigid area,");
     }
   }
 
   void removeAll() {
-    componentAdded = false;
     panel.removeAll();
   }
 
@@ -488,11 +438,11 @@ final class SpacedPanel {
   JPanel getJPanel() {
     return (JPanel) getContainer();
   }
-  
+
   String getName() {
     return panel.getName();
   }
-  
+
   void setName(String name) {
     panel.setName(name);
   }
@@ -500,7 +450,7 @@ final class SpacedPanel {
   void setAlignmentX(final float alignmentX) {
     outerPanel.setAlignmentX(alignmentX);
   }
-  
+
   void setBorder(final Border border) {
     panel.setBorder(border);
   }
