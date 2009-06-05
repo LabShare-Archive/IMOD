@@ -175,6 +175,9 @@ import etomo.type.Run3dmodMenuOptions;
  * @version $$Revision$$
  * 
  * <p> $$Log$
+ * <p> $Revision 1.52  2009/03/23 17:08:21  sueh
+ * <p> $bug# 1187 Added setContinuousTarget.
+ * <p> $
  * <p> $Revision 1.51  2008/12/15 23:59:12  sueh
  * <p> $bug# 1160 Fixed the problem where 3dmod has the wrong diameter if
  * <p> $the button is pressed while it is running.
@@ -404,6 +407,7 @@ public final class ImodState {
   private boolean preserveContrast;
   private boolean openBeadFixer;
   private boolean openContours;
+  private boolean startNewContoursAtNewZ = false;
   private int pointLimit = -1;
 
   //sent with open bead fixer
@@ -664,6 +668,9 @@ public final class ImodState {
       if (openContours) {
         process.setNewContoursMessage(true);
       }
+      if (startNewContoursAtNewZ) {
+        process.setStartNewContoursAtNewZ();
+      }
       if (pointLimit != -1) {
         process.setPointLimitMessage(pointLimit);
       }
@@ -819,6 +826,7 @@ public final class ImodState {
     process.setPieceListFileName(null);
     manageNewContours = false;
     pointLimit = -1;
+    startNewContoursAtNewZ = false;
   }
 
   String getModeString(int mode) {
@@ -926,6 +934,10 @@ public final class ImodState {
    */
   public void setOpenContours(boolean openContours) {
     this.openContours = openContours;
+  }
+
+  public void setStartNewContoursAtNewZ(boolean startNewContoursAtNewZ) {
+    this.startNewContoursAtNewZ = startNewContoursAtNewZ;
   }
 
   void setPointLimit(int input) {
@@ -1155,7 +1167,8 @@ public final class ImodState {
     process.setWorkingDirectory(workingDirectory);
   }
 
-  void setContinuousListenerTarget(ContinuousListenerTarget continuousListenerTarget) {
+  void setContinuousListenerTarget(
+      ContinuousListenerTarget continuousListenerTarget) {
     process.setContinuousListenerTarget(continuousListenerTarget);
   }
 
@@ -1244,7 +1257,8 @@ public final class ImodState {
         && openContours == imodState.isOpenContours()
         && mode == imodState.getMode() && swapYZ == imodState.isSwapYZ()
         && preserveContrast == imodState.isPreserveContrast()
-        && openBeadFixer == imodState.isOpenBeadFixer()) {
+        && openBeadFixer == imodState.isOpenBeadFixer()
+        && startNewContoursAtNewZ == imodState.startNewContoursAtNewZ) {
       return true;
     }
     return false;
