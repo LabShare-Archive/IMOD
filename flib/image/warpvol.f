@@ -358,8 +358,6 @@ c
               enddo
               call cubeTestLimits(ixyzcube(2,iycube), nxyzcube(2,iycube),cyout,
      &            nlocy, ylocst, dyloc, ycubelo,ycubehi,iylo,iyhi,ylUse, dyUse)
-              write(*,'(3i4,6f10.2)')ixcube,iycube,izcube,xcubelo, xcubehi,
-     &            ycubelo,ycubehi,zcubelo, zcubehi
               do ifx=ixlo, ixhi
                 do ify=iylo, iyhi
                   do ifz=izlo, izhi
@@ -369,7 +367,6 @@ c
                       xcen = max(xcubelo, min(xcubehi, xlUse + ifx * dxUse))
                       ycen = max(ycubelo, min(ycubehi, ylUse + ify * dyUse))
                       zcen = max(zcubelo, min(zcubehi, zlUse + ifz * dzUse))
-                      write(*,'(6f10.2)')xcen,ycen,zcen
                       call interpinv(aloc,dloc,xlocst,dxloc,ylocst,dyloc,
      &                    zlocst,dzloc, nlocx, nlocy, nlocz, xcen,ycen,
      &                    zcen,minv,cxyzin) 
@@ -917,6 +914,11 @@ c     &              dloc(jx,ix,iy,iz)
 
 c       
 c       $Log$
+c       Revision 3.16  2009/06/05 19:36:29  mast
+c       Implemented extrapolation by weighted average of nearest transforms
+c       Assessed input limits for cube using all grid points of transform as well
+c       as corner points
+c
 c       Revision 3.15  2009/03/31 23:43:54  mast
 c       Give position number in error message when reading file
 c
