@@ -20,6 +20,9 @@ import etomo.storage.autodoc.Autodoc.InternalTestType;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.8  2009/02/04 23:30:00  sueh
+ * <p> bug# 1158 Changed id and exceptions classes in LogFile.
+ * <p>
  * <p> Revision 1.7  2009/01/20 19:36:41  sueh
  * <p> bug# 1102 Extending ReadOnlySectionList.
  * <p>
@@ -48,7 +51,8 @@ import etomo.storage.autodoc.Autodoc.InternalTestType;
  * <p> bug# 964 Limiting access to autodoc classes by using ReadOnly interfaces.
  * <p> </p>
  */
-public interface ReadOnlyAutodoc extends ReadOnlyStatementList, ReadOnlySectionList {
+public interface ReadOnlyAutodoc extends ReadOnlyStatementList,
+    ReadOnlySectionList {
   public static final String rcsid = "$Id$";
 
   public HashMap getAttributeValues(String sectionType, String attributeName);
@@ -72,8 +76,10 @@ public interface ReadOnlyAutodoc extends ReadOnlyStatementList, ReadOnlySectionL
 
   void runInternalTest(InternalTestType type, boolean showTokens,
       boolean showDetails) throws IOException, LogFile.LockException;
-  
+
   public boolean isDebug();
-  
+
   public void setDebug(boolean input);
+
+  public String getAutodocName();
 }
