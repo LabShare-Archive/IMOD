@@ -58,6 +58,9 @@ import etomo.util.DatasetFiles;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 1.67  2009/03/17 00:46:24  sueh
+ * <p> bug# 1186 Pass managerKey to everything that pops up a dialog.
+ * <p>
  * <p> Revision 1.66  2009/02/04 23:36:48  sueh
  * <p> bug# 1158 Changed id and exception classes in LogFile.
  * <p>
@@ -1838,19 +1841,19 @@ public final class JoinDialog implements ContextMenu, Run3dmodButtonContainer {
           run3dmodMenuOptions);
     }
     else if (command.equals(b3bOpenIn3dmod.getActionCommand())) {
-      manager.imodOpen(ImodManager.JOIN_KEY, b3bOpenIn3dmod.getInt(),
+      manager.imodOpen(ImodManager.JOIN_KEY, b3bOpenIn3dmod.getBinningInXandY(),
           run3dmodMenuOptions);
     }
     else if (command.equals(b3bOpenTrialIn3dmod.getActionCommand())) {
       manager.imodOpen(ImodManager.TRIAL_JOIN_KEY,
-          b3bOpenTrialIn3dmod.getInt(), run3dmodMenuOptions);
+          b3bOpenTrialIn3dmod.getBinningInXandY(), run3dmodMenuOptions);
     }
     else if (command.equals(btnMakeRefiningModel.getActionCommand())) {
       manager.imodOpen(AxisID.ONLY, ImodManager.MODELED_JOIN_KEY, DatasetFiles
           .getRefineModelFileName(manager), run3dmodMenuOptions);
     }
     else if (command.equals(b3bOpenRejoin.getActionCommand())) {
-      manager.imodOpen(ImodManager.JOIN_KEY, b3bOpenRejoin.getInt(),
+      manager.imodOpen(ImodManager.JOIN_KEY, b3bOpenRejoin.getBinningInXandY(),
           DatasetFiles.getRefineAlignedModelFileName(manager),
           run3dmodMenuOptions);
     }
@@ -1859,16 +1862,16 @@ public final class JoinDialog implements ContextMenu, Run3dmodButtonContainer {
       if (useEveryNSlices.isNull() || useEveryNSlices.gt(1)) {
         //don't open the model if all the slices have not been included
         manager.imodOpen(ImodManager.TRIAL_JOIN_KEY, b3bOpenTrialRejoin
-            .getInt(), run3dmodMenuOptions);
+            .getBinningInXandY(), run3dmodMenuOptions);
       }
       else {
         manager.imodOpen(ImodManager.TRIAL_JOIN_KEY, b3bOpenTrialRejoin
-            .getInt(), DatasetFiles.getRefineAlignedModelFileName(manager),
+            .getBinningInXandY(), DatasetFiles.getRefineAlignedModelFileName(manager),
             run3dmodMenuOptions);
       }
     }
     else if (command.equals(b3bOpenRejoinWithModel.getActionCommand())) {
-      manager.imodOpen(ImodManager.JOIN_KEY, b3bOpenRejoinWithModel.getInt(),
+      manager.imodOpen(ImodManager.JOIN_KEY, b3bOpenRejoinWithModel.getBinningInXandY(),
           ltfTransformedModel.getText(), run3dmodMenuOptions);
     }
     else {
