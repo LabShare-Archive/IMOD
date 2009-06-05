@@ -108,10 +108,18 @@ public interface ConstMetaData {
   public String getTrackRaptorMark();
 
   public ConstEtomoNumber getTrackRaptorDiam();
+  public boolean isPostFlattenWarpInputTrimVol();
+  public boolean isPostFlattenWarpContoursOnOneSurface();
+  public String getPostFlattenWarpSpacingInX();
+  public String getPostFlattenWarpSpacingInY();
+  public boolean isPostSqueezeVolInputTrimVol();
 }
 
 /**
  * <p> $Log$
+ * <p> Revision 3.51  2009/05/02 01:25:05  sueh
+ * <p> bug# 1216 Removed B axis raptor data.
+ * <p>
  * <p> Revision 3.50  2009/05/02 01:09:37  sueh
  * <p> bug# 1216 Added getTrackRaptorDiam, getTrackRaptorMark,
  * <p> getTrackRaptorUseRawStack, and GetTrackUseRaptor.
