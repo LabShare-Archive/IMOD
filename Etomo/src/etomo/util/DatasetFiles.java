@@ -63,6 +63,8 @@ public final class DatasetFiles {
   public static final String CTF_CORRECTION_EXT = "_ctfcorr" + FULL_ALIGNED_EXT;
   private static final String FIDUCIAL_MODEL_EXT = ".fid";
   private static final String ERASE_EXT = "_erase";
+  private static final String FLATTEN_WARP_EXT = "_flat";
+  private static final String XF_EXT = ".xf";
 
   private static File calibrationDir = null;
   private static File distortionDir = null;
@@ -137,13 +139,6 @@ public final class DatasetFiles {
     return new File(manager.getPropertyUserDir(), "sum" + TOMO_EXT);
   }
 
-  public static File getTrimmedTomogram(BaseManager manager, AxisID axisID) {
-    BaseMetaData metaData = manager.getBaseMetaData();
-    axisID = correctAxisID(metaData, axisID);
-    return new File(manager.getPropertyUserDir(), metaData.getName()
-        + axisID.getExtension() + TOMO_EXT);
-  }
-
   public static boolean isRotatedTomogram(File tomogram) {
     String tomogramName = tomogram.getName();
     if (tomogramName.substring(tomogramName.lastIndexOf('.')).equals(
@@ -198,6 +193,21 @@ public final class DatasetFiles {
   public static File getRawTiltFile(BaseManager manager, AxisID axisID) {
     return new File(manager.getPropertyUserDir(), getRawTiltName(manager,
         axisID));
+  }
+
+  public static String getFlattenWarpInputName(BaseManager manager) {
+    BaseMetaData metaData = manager.getBaseMetaData();
+    return metaData.getName() + FLATTEN_WARP_EXT + MODEL_EXT;
+  }
+
+  public static String getFlattenWarpOutputName(BaseManager manager) {
+    BaseMetaData metaData = manager.getBaseMetaData();
+    return metaData.getName() + FLATTEN_WARP_EXT + XF_EXT;
+  }
+
+  public static File getFlattenWarpOutputFile(BaseManager manager) {
+    return new File(manager.getPropertyUserDir(),
+        getFlattenWarpOutputName(manager));
   }
 
   public static String getEraseFiducialsModelName(BaseManager manager,
@@ -301,7 +311,7 @@ public final class DatasetFiles {
   }
 
   public static String getRefineXfFileName(BaseManager manager) {
-    return manager.getBaseMetaData().getName() + REFINE_NAME + ".xf";
+    return manager.getBaseMetaData().getName() + REFINE_NAME + XF_EXT;
   }
 
   public static String getRefineXgFileName(BaseManager manager) {
@@ -552,6 +562,10 @@ public final class DatasetFiles {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.50  2009/05/02 01:14:21  sueh
+ * <p> bug# 1216 Added getPrealignedStackName, getRaptorFiducialModel, and
+ * <p> getRaptorFiducialModelName.
+ * <p>
  * <p> Revision 1.49  2009/03/17 00:46:43  sueh
  * <p> bug# 1186 Pass managerKey to everything that pops up a dialog.
  * <p>
