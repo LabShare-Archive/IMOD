@@ -22,8 +22,9 @@ c
       include 'rotmatwarp.inc'
       integer maxloc
       parameter (maxloc=200000)
-      real*4 cell(6),dxyzin(3),trray(inpdim*inpdim*inpdim)
-      equivalence (array, trray)
+      real*4 cell(6),dxyzin(3)
+      logical*4 solved(maxloc),solvtmp(maxloc)
+      equivalence (array, solved), (array(maxloc+1), solvtmp)
       integer*4 mxyzin(3)
       real*4 mfor(3,3),mold(3,3),mnew(3,3),moldinv(3,3)
       real*4 angles(3),tiltold(3),tiltnew(3),orig(3),xtmp(3)
@@ -34,7 +35,7 @@ c
       integer*4 inmin(3),inmax(3)
       real*4 freinp(10)
 c       
-      character*320 filein,fileout,fileinv,tempdir,tempext
+      character*320 filein,fileout,fileinv,tempdir,tempext,patchfile,fillfile
 c       
 c	DNM 3/8/01: initialize the time in case time(tim) doesn't work
 c       
@@ -51,8 +52,11 @@ c
       real*4 xofsout,xp,yp,zp,bval,dx,dy,dz,v2,v4,v6,v5,v8,vu,vd,vmin,vmax
       real*4 a,b,c,d,e,f,tmin,tmax,tmean,dmean,dminin,dmaxin,d11,d12,d21,d22
       integer*4 iunit,longint,l,izp,izpp1,izpm1,nLinesOut,interpOrder, nExtra
-      integer*4 newExtra,nck, lForErr
-      real*4 baseInt,rnck
+      integer*4 newExtra,lForErr, newlocx, newlocy, newlocz
+      integer*4 nxloAdd, nyloAdd,nzloAdd,nxhiAdd, nyhiAdd,nzhiAdd
+      real*4 baseInt,xcubelo,xcubehi,ycubelo,ycubehi,zcubelo,zcubehi
+      integer*4 ixlo,ixhi,iylo,iyhi,izlo,izhi
+      real*4 dxUse,dyUse,dzUse, xlUse,ylUse,zlUse
 c       
       logical pipinput
       integer*4 numOptArg, numNonOptArg
@@ -63,24 +67,25 @@ c
 c       fallbacks from ../../manpages/autodoc2man -2 2  warpvol
 c       
       integer numOptions
-      parameter (numOptions = 9)
+      parameter (numOptions = 11)
       character*(40 * numOptions) options(1)
       options(1) =
      &    'input:InputFile:FN:@output:OutputFile:FN:@'//
      &    'xforms:TransformFile:FN:@tempdir:TemporaryDirectory:CH:@'//
      &    'size:OutputSizeXYZ:IT:@same:SameSizeAsInput:B:@'//
-     &    'order:InterpolationOrder:I:@param:ParameterFile:PF:@help:usage:B:'
+     &    'order:InterpolationOrder:I:@patch:PatchOutputFile:FN:@'//
+     &    'filled:FilledInOutputFile:FN:@param:ParameterFile:PF:@help:usage:B:'
 c       
 c       set defaults here
 c       
       interpOrder = 2
       baseInt = 0.5
-      nck = 2
-      rnck = nck
       tempdir = ' '
       tempext='wrp      1'
       call time(tim)
       call date(dat)
+      patchfile = ' '
+      fillfile = ' '
 c       
 c       
 c       Pip startup: set error, parse options, check help, set flag if used
@@ -98,8 +103,12 @@ c
       nyout=nyin
       nzout=nxin
 c       
+      ierr = PipGetString('PatchOutputFile', patchfile)
+      ierr = PipGetString('FilledInOutputFile', fillfile)
+
       if (PipGetInOutFile('OutputFile', 2, 'Name of output file', fileout)
-     &    .ne. 0) call exiterror('NO OUTPUT FILE SPECIFIED')
+     &    .ne. 0 .and. patchfile .eq. ' ' .and. fillfile .eq. ' ')
+     &    call exiterror('NO OUTPUT FILE SPECIFIED')
 c       
       if (pipinput) then
         ierr = PipGetString('TemporaryDirectory', tempdir)
@@ -167,6 +176,7 @@ c
           lForErr = l
           read(1,*,err=98,end=98)cenlocx,cenlocy,cenlocz
           read(1,*,err=98,end=98)((aloc(i,j,l),j=1,3),dloc(i,l),i=1,3)
+          solved(l) = .true.
           xlocst=min(cenlocx,xlocst)
           ylocst=min(cenlocy,ylocst)
           zlocst=min(cenlocz,zlocst)
@@ -180,9 +190,9 @@ c
       else
 c         
 c         Know min and interval, so read each entry, find where it goes in
-c         array and put it there, then copy into empty positions at end
+c         array and put it there, then 
         do l=1,nloctot
-          trray(l) = 0.
+          solved(l) = .false.
         enddo
         lForErr = 1
 10      read(1,*,err=98,end=12)cenlocx,cenlocy,cenlocz
@@ -191,13 +201,110 @@ c         array and put it there, then copy into empty positions at end
         iz = min(nlocz, max(1, nint((cenlocz - zlocst) / dzloc + 1.)))
         l = ix + (iy - 1) * nlocx + (iz - 1) * nlocx * nlocy
         read(1,*,err=98,end=98)((aloc(i,j,l),j=1,3),dloc(i,l),i=1,3)
-        trray(l) = 1.
+        solved(l) = .true.
         lForErr = lForErr + 1
         go to 10
-12      call fillInTransforms(aloc, dloc, trray, nlocx, nlocy, nlocz,
-     &      dxloc, dyloc, dzloc)
       endif
-      close(1)
+12    close(1)
+c       
+c       determine additional positions needed to cover plane of volume
+      nxloAdd = 0
+      nxhiAdd = 0
+      nyloAdd = 0
+      nyhiAdd = 0
+      nzloAdd = 0
+      nzhiAdd = 0
+      if (nlocx .gt. 1) then
+        nxloAdd = max(0, nint((xlocst + nxout / 2.) / dxloc))
+        nxhiAdd = max(0, nint((nxout / 2. - (xlocst+(nlocx-1)*dxloc)) / dxloc))
+      endif
+      if (nlocy .gt. nlocz) then
+        nyloAdd = max(0, nint((ylocst + nyout / 2.) / dyloc))
+        nyhiAdd = max(0, nint((nyout / 2. - (ylocst+(nlocy-1)*dyloc)) / dyloc))
+      elseif (nlocz .gt. 1) then
+        nzloAdd = max(0, nint((zlocst + nzout / 2.) / dzloc))
+        nzhiAdd = max(0, nint((nzout / 2. - (zlocst+(nlocz-1)*dzloc)) / dzloc))
+      endif
+c       
+c       If any are being added, shift the transforms up in the array
+c       and adjust the parameters
+      newlocx = nlocx + nxloAdd + nxhiAdd
+      newlocy = nlocy + nyloAdd + nyhiAdd
+      newlocz = nlocz + nzloAdd + nzhiAdd
+      if (nxloAdd + nxhiAdd + nyloAdd + nyhiAdd + nzloAdd + nzhiAdd .gt. 0
+     &    .and. newlocx * newlocy * newlocz .le. maxloc)then
+        do i = 1, nloctot
+          solvtmp(i) = solved(i)
+        enddo
+        nloctot = newlocx * newlocy * newlocz
+        do i = 1, nloctot
+          solved(i) = .false.
+        enddo
+        call shiftTransforms(aloc, dloc, solvtmp, nlocx, nlocy, nlocz,
+     &      aloc, dloc, solved, newlocx, newlocy, newlocz, nxloAdd, nyloAdd,
+     &      nzloAdd)
+        xlocst = xlocst - nxloAdd * dxloc
+        ylocst = ylocst - nyloAdd * dyloc
+        zlocst = zlocst - nzloAdd * dzloc
+        nlocx = newlocx
+        nlocy = newlocy
+        nlocz = newlocz
+      endif
+c       
+c       Fill in missing transforms by extrapolation amd weighted averaging
+      call fillInTransforms(aloc, dloc, solved, nlocx, nlocy, nlocz,
+     &    dxloc, dyloc, dzloc)
+      if (fillfile .ne. ' ') then
+c         
+c         Output file of filled in transforms
+        call dopen(1, fillfile, 'new', 'f')
+        write(1,104)nlocx,nlocy,nlocz,xlocst,ylocst,zlocst,dxloc,dyloc,dzloc
+104     format(i5,2i6,3f11.2,3f10.4)
+        do iz = 1, nlocz
+          do iy = 1, nlocy
+            do ix = 1, nlocx
+              l = ix + (iy - 1) * nlocx + (iz - 1) * nlocx * nlocy
+              write(1,103)xlocst + (ix - 1) * dxloc, ylocst + (iy - 1) * dyloc,
+     &            zlocst + (iz - 1) * dzloc
+103           format(3f9.1)
+              write(1,102)((aloc(i,j,l),j=1,3),dloc(i,l),i=1,3)
+102           format(3f10.6,f10.3)
+            enddo
+          enddo
+        enddo
+        close(1)
+      endif
+      if (patchfile .ne. ' ') then
+c         
+c         Output patch file of inverse vectors for positions in output volume
+        call dopen(1, patchfile, 'new', 'f')
+        write(1,'(i8,a)')nlocx*nlocy*nlocz, ' positions'
+        do iz = 1, nlocz
+          do iy = 1, nlocy
+            do ix = 1, nlocx
+              l = ix + (iy - 1) * nlocx + (iz - 1) * nlocx * nlocy
+              xp = xlocst + (ix - 1) * dxloc
+              yp = ylocst + (iy - 1) * dyloc
+              zp = zlocst + (iz - 1) * dzloc
+              dx = aloc(1,1,l) * xp + aloc(1,2,l) * yp + aloc(1,3,l) * zp +
+     &            dloc(1,l) - xp
+              dy = aloc(2,1,l) * xp + aloc(2,2,l) * yp + aloc(2,3,l) * zp +
+     &            dloc(2,l) - yp
+              dz = aloc(3,1,l) * xp + aloc(3,2,l) * yp + aloc(3,3,l) * zp +
+     &            dloc(3,l) - zp
+              ifx = nint(xp + nxout / 2.)
+              ify = nint(yp + nyout / 2.)
+              ifz = nint(zp + nzout / 2.)
+              write(1, 105)ifx,ify,ifz,dx,dy,dz
+105           format(3i8,3f12.2)
+            enddo
+          enddo
+        enddo
+        close(1)
+      endif
+c       
+c       Exit if patch or warp output files
+      if (patchfile .ne. ' ' .or. fillfile .ne. ' ') call exit(0)
 c       
 c       find maximum extent in input volume occupied by a back-transformed
 c       unit cube in output volume
@@ -234,24 +341,35 @@ c
 c         
         newExtra = 0
         do izcube=1,ncubes(3)
+          call cubeTestLimits(ixyzcube(3,izcube), nxyzcube(3,izcube), czout,
+     &        nlocz, zlocst, dzloc, zcubelo, zcubehi, izlo, izhi, zlUse, dzUse)
           do ixcube=1,ncubes(1)
+            call cubeTestLimits(ixyzcube(1,ixcube), nxyzcube(1,ixcube), cxout,
+     &          nlocx, xlocst, dxloc, xcubelo, xcubehi, ixlo, ixhi,xlUse,dxUse)
             do iycube=1,ncubes(2)
 c               
-c               back-transform the faces of the output cube to
+c               back-transform the faces of the output cube at the corners and
+c               at positions corresponding to transforms to
 c               find the limiting index coordinates of the input cube
 c               
               do i=1,3
                 inmin(i)=100000
                 inmax(i)=-100000
               enddo
-              do ifx=0,nck
-                do ify=0,nck
-                  do ifz=0,nck
-                    if (ifx .eq. 0 .or. ifx .eq. nck .or. ify .eq. 0 .or.
-     &                  ify .eq. nck .or. ifz .eq. 0 .or. ifz .eq. nck) then
-                      xcen=ixyzcube(1,ixcube)+ifx*nxyzcube(1,ixcube)/rnck-cxout
-                      ycen=ixyzcube(2,iycube)+ify*nxyzcube(2,iycube)/rnck-cyout
-                      zcen=ixyzcube(3,izcube)+ifz*nxyzcube(3,izcube)/rnck-czout
+              call cubeTestLimits(ixyzcube(2,iycube), nxyzcube(2,iycube),cyout,
+     &            nlocy, ylocst, dyloc, ycubelo,ycubehi,iylo,iyhi,ylUse, dyUse)
+              write(*,'(3i4,6f10.2)')ixcube,iycube,izcube,xcubelo, xcubehi,
+     &            ycubelo,ycubehi,zcubelo, zcubehi
+              do ifx=ixlo, ixhi
+                do ify=iylo, iyhi
+                  do ifz=izlo, izhi
+                    if (ifx .eq. ixlo .or. ifx .eq. ixhi .or. ify .eq. iylo.or.
+     &                  ify .eq. iyhi .or. ifz .eq. izlo .or. ifz .eq. izhi)
+     &                  then
+                      xcen = max(xcubelo, min(xcubehi, xlUse + ifx * dxUse))
+                      ycen = max(ycubelo, min(ycubehi, ylUse + ify * dyUse))
+                      zcen = max(zcubelo, min(zcubehi, zlUse + ifz * dzUse))
+                      write(*,'(6f10.2)')xcen,ycen,zcen
                       call interpinv(aloc,dloc,xlocst,dxloc,ylocst,dyloc,
      &                    zlocst,dzloc, nlocx, nlocy, nlocz, xcen,ycen,
      &                    zcen,minv,cxyzin) 
@@ -321,8 +439,14 @@ c
 c         
 c         loop on the cubes in the layer
 c         
+        call cubeTestLimits(ixyzcube(3,izcube), nxyzcube(3,izcube), czout,
+     &      nlocz, zlocst, dzloc, zcubelo, zcubehi, izlo, izhi, zlUse, dzUse)
         do ixcube=1,ncubes(1)
+          call cubeTestLimits(ixyzcube(1,ixcube), nxyzcube(1,ixcube), cxout,
+     &        nlocx, xlocst, dxloc, xcubelo, xcubehi, ixlo, ixhi,xlUse,dxUse)
           do iycube=1,ncubes(2)
+            call cubeTestLimits(ixyzcube(2,iycube), nxyzcube(2,iycube),cyout,
+     &          nlocy, ylocst, dyloc, ycubelo,ycubehi,iylo,iyhi,ylUse, dyUse)
 c             
 c             back-transform the faces of the output cube to
 c             find the limiting index coordinates of the input cube
@@ -331,14 +455,15 @@ c
               inmin(i)=100000
               inmax(i)=-100000
             enddo
-            do ifx=0,nck
-              do ify=0,nck
-                do ifz=0,nck
-                  if (ifx .eq. 0 .or. ifx .eq. nck .or. ify .eq. 0 .or.
-     &                ify .eq. nck .or. ifz .eq. 0 .or. ifz .eq. nck) then
-                    xcen=ixyzcube(1,ixcube)+ifx*nxyzcube(1,ixcube)/rnck-cxout
-                    ycen=ixyzcube(2,iycube)+ify*nxyzcube(2,iycube)/rnck-cyout
-                    zcen=ixyzcube(3,izcube)+ifz*nxyzcube(3,izcube)/rnck-czout
+            do ifx=ixlo, ixhi
+              do ify=iylo, iyhi
+                do ifz=izlo, izhi
+                  if (ifx .eq. ixlo .or. ifx .eq. ixhi .or. ify .eq. iylo.or.
+     &                ify .eq. iyhi .or. ifz .eq. izlo .or. ifz .eq. izhi)
+     &                then
+                    xcen = max(xcubelo, min(xcubehi, xlUse + ifx * dxUse))
+                    ycen = max(ycubelo, min(ycubehi, ylUse + ify * dyUse))
+                    zcen = max(zcubelo, min(zcubehi, zlUse + ifz * dzUse))
                     call interpinv(aloc,dloc,xlocst,dxloc,ylocst,dyloc,
      &                  zlocst,dzloc, nlocx, nlocy, nlocz, xcen,ycen,
      &                  zcen,minv,cxyzin) 
@@ -530,6 +655,27 @@ c
 99    call exiterror('READING IMAGE FILE')
       end
 
+      subroutine cubeTestLimits(icube, ncube, cout, nloc, stloc, dloc, cubelo,
+     &    cubehi, ilo, ihi, stluse, dluse)
+      implicit none
+      integer*4 icube, ncube, nloc, ilo, ihi
+      real*4 cout, stloc, dloc, cubelo, cubehi, stluse, dluse
+        cubelo = icube - cout
+        cubehi = icube + ncube - cout
+        if (nloc .gt. 1) then
+          ilo = floor((cubelo - stloc) / dloc)
+          ihi = ceiling((cubehi - stloc) / dloc)
+          stluse = stloc
+          dluse = dloc
+        else
+          stluse = cubelo
+          dluse = (cubehi - cubelo) / 2.
+          ilo = 0
+          ihi = 2
+        endif
+      return
+      end
+
 
       subroutine interpinv(aloc,dloc,xlocst,dxloc,ylocst,dyloc,zlocst,
      &    dzloc,nlocx, nlocy, nlocz, xcen,ycen,zcen,minv,dxyz)
@@ -597,24 +743,32 @@ c
 c       Fills in regular array of transforms by copying from the nearest
 c       transform to each missing one.
 c
-      subroutine fillInTransforms(aloc, dloc, array, nlocx, nlocy, nlocz,
+      subroutine fillInTransforms(aloc, dloc, solved, nlocx, nlocy, nlocz,
      &    dxloc, dyloc, dzloc)
       implicit none
       integer*4 nlocx, nlocy, nlocz, ix, iy, iz, jx, jy, jz, minx, miny, minz
       real*4 aloc(3,3,nlocx,nlocy,nlocz), dloc(3,nlocx,nlocy,nlocz)
-      real*4 array(nlocx,nlocy,nlocz),dxloc, dyloc, dzloc, dist, dmin
+      logical*4 solved(nlocx,nlocy,nlocz), boundary
+      real*4 dxloc, dyloc, dzloc, dist, dmin, angle
+      real*4 dx, dy, dz, dxyz(3), wsum, distcrit
+      equivalence (dx, dxyz(1)),(dy, dxyz(2)),(dz, dxyz(3))
+      integer*4 kx, ky, nayx, nayy, nayz, indyz, iysfac, izsfac, is, indDom
+      integer*4 jxmin, jxmax, jymin, jymax, jzmin, jzmax
+      integer*4 ixstep(12)/1,1,1,0,-1,-1,-1,0,1,1,1,0/
+      integer*4 iystep(12)/-1,0,1,1,1,0,-1,-1,-1,0,1,1/
+      real*4 range/2./
 c       
       do iz = 1, nlocz
         do iy = 1, nlocy
           do ix = 1, nlocx
             dmin = 1.e30
-            if (array(ix,iy,iz) .eq. 0) then
+            if (.not.solved(ix,iy,iz)) then
 c               
 c               Find closest position with transform
               do jz = 1, nlocz
                 do jy = 1, nlocy
                   do jx = 1, nlocx
-                    if (array(jx,jy,jz) .gt. 0) then
+                    if (solved(jx,jy,jz)) then
                       dist = ((jx - ix) * dxloc)**2 + ((jy - iy) * dyloc)**2 +
      &                    ((jz - iz) * dzloc)**2
                       if (dist .lt. dmin) then
@@ -627,13 +781,131 @@ c               Find closest position with transform
                   enddo
                 enddo
               enddo
-              array(ix,iy,iz) = -1.
 c               
-c               Copy transform from closest position
+c               zero out the sum
               do jx = 1, 3
-                dloc(jx,ix,iy,iz) = dloc(jx,minx,miny,minz)
+                dloc(jx,ix,iy,iz) = 0.
                 do jy = 1,3
-                  aloc(jx,jy,ix,iy,iz) = aloc(jx,jy,minx,miny,minz)
+                  aloc(jx,jy,ix,iy,iz) = 0.
+                enddo
+              enddo
+              wsum = 0.
+c              write(*,'(a,3i4,a,3i4,f8.2)')'Filling in',ix,iy,iz,'  nearest',
+c     &            minx,miny,minz,sqrt(dmin)
+c               
+c               Get actual distance to look, range of indexes to search, and
+c               the criterion which is square of maximum distance
+              dist = range * sqrt(dmin)
+              jxmin = max(1, nint(ix - dist / max(dxloc, 1.) - 1))
+              jxmax = min(nlocx, nint(ix + dist / max(dxloc, 1.) + 1))
+              jymin = max(1, nint(iy - dist / max(dyloc, 1.) - 1))
+              jymax = min(nlocy, nint(iy + dist / max(dyloc, 1.) + 1))
+              jzmin = max(1, nint(iz - dist / max(dzloc, 1.) - 1))
+              jzmax = min(nlocz, nint(iz + dist / max(dzloc, 1.) + 1))
+              distcrit = dist**2
+c              write(*,'(3i6)')jxmin,jxmax,jymin,jymax,jzmin,jzmax
+c               
+c               Get dominant index for second dimension
+              indyz = 2
+              iysfac = 1
+              izsfac = 0
+              if (nlocz .gt. nlocy) then
+                indyz = 3
+                izsfac = 1
+                iysfac = 0
+              endif
+c               
+c               Loop in the neighborhood, find boundary points within range
+              do jz = jzmin, jzmax
+                do jy = jymin, jymax
+                  do jx = jxmin, jxmax
+                    if (solved(jx,jy,jz)) then
+                      dx = (jx - ix) * dxloc
+                      dy = (jy - iy) * dyloc
+                      dz = (jz - iz) * dzloc
+                      dist = dx**2 + dy**2 + dz**2
+                      if (dist .le. distcrit) then
+c                         
+c                         Find dominant direction to the point
+                        angle = atan2d(dxyz(indyz), dx) + 157.5
+                        if (angle .lt. 0) angle = angle + 360.
+                        indDom = angle / 45. + 1.
+                        indDom = max(1, min(8, indDom))
+c                         
+c                         Check that this point is a boundary, i.e. does not
+c                         have a neighbor in any one of the 5 directions toward
+c                         or at right angles to the dominant direction
+                        boundary = .false.
+                        do is = indDom, indDom + 4
+                          nayx = jx + ixstep(is)
+                          nayy = jy + iysfac * iystep(is)
+                          nayz = jz + izsfac * iystep(is)
+                          if (nayx .ge. 1. and. nayx .le. nlocx .and.
+     &                        nayy .ge. 1. and. nayy .le. nlocy .and.
+     &                        nayz .ge. 1. and. nayz .le. nlocz) then
+                            if (.not. solved(nayx,nayy,nayz)) boundary = .true.
+                          endif
+                        enddo
+c                         
+c                         For boundary or min point, add to weighted sum
+                        if (boundary .or. (jx .eq. minx .and. jy .eq.
+     &                      miny .and. jz .eq. minz)) then
+c                        write(*,'(a,3i4,a,f7.1,i4,f12.8)')'Adding in',jx,jy,
+c     &                        jz,' angle, dir', angle, indDom, 1./dist
+                          do kx = 1, 3
+                            dloc(kx,ix,iy,iz) = dloc(kx,ix,iy,iz) +
+     &                          dloc(kx,jx,jy,jz) / dist
+                            do ky = 1,3
+                              aloc(kx,ky,ix,iy,iz) = aloc(kx,ky,ix,iy,iz) +
+     &                            aloc(kx,ky,jx,jy,jz) /dist
+                            enddo
+                          enddo
+                          wsum = wsum + 1. / dist
+                        endif
+                      endif
+                    endif
+                  enddo
+                enddo
+              enddo
+c               
+c               divide by weight sum
+c              write (*,'(a,f12.8)')'wsum=',wsum
+              do jx = 1, 3
+                dloc(jx,ix,iy,iz) = dloc(jx,ix,iy,iz) / wsum
+                do jy = 1,3
+                  aloc(jx,jy,ix,iy,iz) = aloc(jx,jy,ix,iy,iz) / wsum
+                enddo
+c                write(*,'(3f9.5,f9.2)')(aloc(jx,jy,ix,iy,iz),jy = 1,3),
+c     &              dloc(jx,ix,iy,iz)
+              enddo
+            endif
+          enddo
+        enddo
+      enddo
+      return
+      end
+
+      subroutine shiftTransforms(alocIn, dlocIn, solvtmp, nlocx, nlocy, nlocz,
+     &    aloc, dloc, solved, newlocx, newlocy, newlocz, nxadd, nyadd, nzadd)
+      implicit none
+      integer*4 nlocx, nlocy, nlocz, newlocx, newlocy, newlocz
+      integer*4 nxadd, nyadd, nzadd
+      logical*4 solvtmp(nlocx, nlocy, nlocz), solved(newlocx, newlocy, newlocz)
+      real*4 alocIn(3,3,nlocx, nlocy, nlocz), dlocIn(3,nlocx, nlocy, nlocz)
+      real*4 aloc(3,3,newlocx,newlocy,newlocz), dloc(3,newlocx,newlocy,newlocz)
+      integer*4 ix, iy, iz, ixn, iyn, izn, jx, jy
+      do iz = nlocz, 1, -1
+        izn = iz + nzadd
+        do iy = nlocy, 1, -1
+          iyn = iy + nyadd
+          do ix = nlocx, 1, -1
+            if (solvtmp(ix,iy,iz)) then
+              ixn = ix + nxadd
+              solved(ixn, iyn, izn) = .true.
+              do jy = 1,3
+                dloc(jy,ixn,iyn,izn) = dlocIn(jy,ix,iy,iz)
+                do jx = 1, 3
+                  aloc(jx,jy,ixn,iyn,izn) = alocIn(jx,jy,ix,iy,iz)
                 enddo
               enddo
             endif
@@ -645,6 +917,9 @@ c               Copy transform from closest position
 
 c       
 c       $Log$
+c       Revision 3.15  2009/03/31 23:43:54  mast
+c       Give position number in error message when reading file
+c
 c       Revision 3.14  2008/12/31 21:34:34  mast
 c       Added same size option
 c
