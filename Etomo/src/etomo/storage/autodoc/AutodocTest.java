@@ -111,6 +111,20 @@ public final class AutodocTest extends TestCase {
     assertFalse(autodoc.isError());
   }
 
+  public void testFlattenWarp() throws FileNotFoundException, IOException,
+      LogFile.LockException {
+    ReadOnlyAutodoc autodoc = AutodocFactory.getInstance(
+        AutodocFactory.FLATTEN_WARP, AxisID.ONLY, manager.getManagerKey());
+    assertFalse(autodoc.isError());
+  }
+
+  public void testWarpVol() throws FileNotFoundException, IOException,
+      LogFile.LockException {
+    ReadOnlyAutodoc autodoc = AutodocFactory.getInstance(
+        AutodocFactory.WARP_VOL, AxisID.ONLY, manager.getManagerKey());
+    assertFalse(autodoc.isError());
+  }
+
   public void testDensmatch() throws FileNotFoundException, IOException,
       LogFile.LockException {
     ReadOnlyAutodoc autodoc = AutodocFactory.getInstance(
@@ -354,6 +368,9 @@ public final class AutodocTest extends TestCase {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.23  2009/03/17 00:46:02  sueh
+ * <p> bug# 1186 Pass managerKey to everything that pops up a dialog.
+ * <p>
  * <p> Revision 1.22  2009/02/05 17:38:38  sueh
  * <p> bug# 1102 Removed tests on autodocs that had been deleted from the tests directory.  Added the rest of the tests on autodocs supported by Etomo.
  * <p>
