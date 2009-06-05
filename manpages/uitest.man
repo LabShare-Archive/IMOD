@@ -720,7 +720,8 @@ only copy the file if it is not already in the \fItest_directory\fR.
 
 .TP 4
 .B end =
-Ends the test.
+In axis A and single axis test this command ends the test.  In axis B, this
+command just ends the B axis test.
 
 .P
 .B [[if\fR[\fBnot\fR]\fB = \fIvariable_name\fB]]
