@@ -146,6 +146,7 @@ static int dragging[4];
 static int firstmx, firstmy;
 static int maxMultiZarea = 0;
 static int scaleSizes = 1;
+static bool mousePressed = false;
 
 void zapHelp(ZapStruct *zap)
 {
@@ -1540,6 +1541,7 @@ void zapMousePress(ZapStruct *zap, QMouseEvent *event)
   firstmy = y;
   zap->lmx = x;
   zap->lmy = y;
+  mousePressed = true;
   utilRaiseIfNeeded(zap->qtWindow, event);
 
   if (imodDebug('m'))
@@ -1616,7 +1618,11 @@ void zapMouseRelease(ZapStruct *zap, QMouseEvent *event)
   button1 = event->button() == ImodPrefs->actualButton(1) ? 1 : 0;
   button2 = event->button() == ImodPrefs->actualButton(2) ? 1 : 0;
   button3 = event->button() == ImodPrefs->actualButton(3) ? 1 : 0;
+  mousePressed = false;
 
+  if (imodDebug('m'))
+    imodPrintStderr("release at %d %d   buttons %d %d %d\n", event->x(), 
+                    event->y(), button1, button2, button3);
   if (zap->shiftRegistered) {
     zap->shiftRegistered = 0;
     zap->vi->undo->finishUnit();
@@ -1699,7 +1705,7 @@ void zapMouseRelease(ZapStruct *zap, QMouseEvent *event)
 /*
  * Respond to a mouse move event (mouse down)
  */
-void zapMouseMove(ZapStruct *zap, QMouseEvent *event, bool mousePressed)
+void zapMouseMove(ZapStruct *zap, QMouseEvent *event)
 {
   int imz;
   static int button1, button2, button3, ex, ey, processing = 0;
@@ -1716,7 +1722,7 @@ void zapMouseMove(ZapStruct *zap, QMouseEvent *event, bool mousePressed)
   ex = event->x();
   ey = event->y();
   button1 = (event->buttons() & ImodPrefs->actualButton(1)) ? 1 : 0;
-  button2 = (event->buttons() & ImodPrefs->actualButton(2)) ? 1 : 0; 
+  button2 = (event->buttons() & ImodPrefs->actualButton(2)) ? 1 : 0;
   button3 = (event->buttons() & ImodPrefs->actualButton(3)) ? 1 : 0;
   if (processing) {
     processing++;
@@ -1755,6 +1761,10 @@ void zapMouseMove(ZapStruct *zap, QMouseEvent *event, bool mousePressed)
     if (imodDebug('m') && processing > 1)
       imodPrintStderr("Flushed %d move events\n", processing - 1);
     processing = 0;
+
+    // If this processed a release, then turn off the buttons
+    if (!mousePressed)
+      button1 = button2 = button3 = 0;
   }
 
   cumdx = ex - firstmx;
@@ -4709,6 +4719,9 @@ static void setDrawCurrentOnly(ZapStruct *zap, int value)
 /*
 
 $Log$
+Revision 4.146  2009/04/22 03:43:44  mast
+Store last mouse position on mouse click
+
 Revision 4.145  2009/04/21 05:43:29  mast
 debug version
 
