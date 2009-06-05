@@ -33,6 +33,9 @@ import etomo.util.Utilities;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.54  2009/03/17 00:31:16  sueh
+ * <p> bug# 1186 Pass managerKey to everything that pops up a dialog.
+ * <p>
  * <p> Revision 3.53  2008/10/27 17:43:58  sueh
  * <p> bug# 1141 Added ctfCorrection and ctfPlotter scripts.
  * <p>
@@ -375,6 +378,7 @@ public class ComScriptManager {
   private ComScript scriptCtfCorrectionB;
   private ComScript scriptCtfPlotterA;
   private ComScript scriptCtfPlotterB;
+  private ComScript scriptFlatten;
 
   public ComScriptManager(ApplicationManager appManager) {
     this.appManager = appManager;
@@ -1563,6 +1567,32 @@ public class ComScriptManager {
       return null;
     }
     return echoParam;
+  }
+
+  public void loadFlatten(AxisID axisID) {
+    scriptFlatten = loadComScript(ProcessName.FLATTEN.toString(), axisID, true);
+  }
+
+  public boolean isWarpVolParamInFlatten(AxisID axisID) {
+    return loadComScript(ProcessName.FLATTEN.toString(), axisID, true)
+        .isCommandLoaded();
+  }
+
+  public WarpVolParam getWarpVolParamFromFlatten(AxisID axisID) {
+    // Initialize a WarpVolParam object from the com script command
+    // object
+    WarpVolParam param = new WarpVolParam(appManager,axisID);
+    initialize(param, scriptFlatten, WarpVolParam.COMMAND, axisID);
+    return param;
+  }
+
+  /**
+   * Save the WarpVolParam command to the flatten com script
+   * @param warpVolParam
+   */
+  public void saveFlatten(WarpVolParam param, AxisID axisID) {
+    modifyCommand(scriptFlatten, param, WarpVolParam.COMMAND, axisID, true,
+        false);
   }
 
   /**
