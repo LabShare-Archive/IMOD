@@ -1,18 +1,7 @@
 package etomo.comscript;
 
-import java.io.File;
-import java.util.ArrayList;
-import java.util.Hashtable;
-import java.util.Properties;
-
-import etomo.ApplicationManager;
-import etomo.BaseManager;
 import etomo.storage.Storable;
-import etomo.type.AxisID;
 import etomo.type.ConstEtomoNumber;
-import etomo.type.ConstIntKeyList;
-import etomo.type.ConstMetaData;
-import etomo.type.EtomoNumber;
 
 /**
  * <p>Description: </p>
@@ -28,6 +17,9 @@ import etomo.type.EtomoNumber;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.19  2007/12/13 01:03:41  sueh
+ * <p> bug# 1056 Changed etomo.comscript.Fields to etomo.comscript.Field.
+ * <p>
  * <p> Revision 1.18  2007/11/06 19:07:16  sueh
  * <p> bug# 1047 Added getSubcommandDetails.
  * <p>
@@ -99,231 +91,14 @@ import etomo.type.EtomoNumber;
  * <p> Stores parameters.
  * <p> </p>
  */
-public abstract class ConstSqueezevolParam implements CommandDetails, Storable {
+public interface ConstSqueezevolParam extends  CommandDetails, Storable{
   public static final String rcsid = "$Id$";
 
-  protected static final String groupString = "Squeezevol";
-  protected static final String linearInterpolationString = "LinearInterpolation";
-  protected static final boolean defaultLinearInterpolation = false;
-  private static final int commandSize = 3;
-  private static final String commandName = "squeezevol";
+  public ConstEtomoNumber getReductionFactorX();
 
-  protected EtomoNumber reductionFactorX = new EtomoNumber(
-      EtomoNumber.Type.DOUBLE, "ReductionFactorX");
-  protected EtomoNumber reductionFactorY = new EtomoNumber(
-      EtomoNumber.Type.DOUBLE, "ReductionFactorY");
-  protected EtomoNumber reductionFactorZ = new EtomoNumber(
-      EtomoNumber.Type.DOUBLE, "ReductionFactorZ");
-  protected boolean linearInterpolation;
-  protected boolean flipped = false;
-  private String[] commandArray = null;
-  private File outputFile;
-  private final ApplicationManager manager;
+  public ConstEtomoNumber getReductionFactorY();
 
-  public ConstSqueezevolParam(ApplicationManager manager) {
-    this.manager = manager;
-    reductionFactorX.setDisplayValue(1.25);
-    reductionFactorY.setDisplayValue(1.25);
-    reductionFactorZ.setDisplayValue(1.25);
-    reset();
-  }
+  public ConstEtomoNumber getReductionFactorZ();
 
-  public AxisID getAxisID() {
-    return AxisID.ONLY;
-  }
-
-  protected void reset() {
-    reductionFactorX.reset();
-    reductionFactorY.reset();
-    reductionFactorZ.reset();
-    linearInterpolation = defaultLinearInterpolation;
-  }
-
-  private ArrayList genOptions() {
-    ArrayList options = new ArrayList();
-    options.add("-x");
-    options.add(reductionFactorX.toString());
-    options.add("-y");
-    options.add(reductionFactorY.toString());
-    options.add("-z");
-    options.add(reductionFactorZ.toString());
-    if (linearInterpolation) {
-      options.add("-l");
-    }
-    options.add("-P");
-    //create input file name
-    String inputFileName;
-    ConstMetaData metaData = manager.getMetaData();
-    String datasetName = metaData.getDatasetName();
-    //try to take the trimvol output file as input
-    inputFileName = getInputFileName(datasetName);
-    options.add(inputFileName);
-    //output is dataset.sqz
-    outputFile = new File(manager.getPropertyUserDir(), datasetName + ".sqz");
-    options.add(outputFile.getName());
-    return options;
-  }
-
-  private final String getInputFileName(String datasetName) {
-    return TrimvolParam.getOutputFileName(datasetName);
-  }
-
-  public void store(Properties props) {
-    store(props, "");
-  }
-
-  public void store(Properties props, String prepend) {
-    prepend = createPrepend(prepend);
-    String group = prepend + ".";
-
-    reductionFactorX.store(props, prepend);
-    reductionFactorY.store(props, prepend);
-    reductionFactorZ.store(props, prepend);
-    props.setProperty(group + linearInterpolationString, Boolean
-        .toString(linearInterpolation));
-  }
-
-  protected static String createPrepend(String prepend) {
-    if (prepend == "") {
-      return groupString;
-    }
-    return prepend + "." + groupString;
-  }
-
-  private void createCommand() {
-    ArrayList options = genOptions();
-    commandArray = new String[options.size() + commandSize];
-    commandArray[0] = "tcsh";
-    commandArray[1] = "-f";
-    commandArray[2] = BaseManager.getIMODBinPath() + commandName;
-    for (int i = 0; i < options.size(); i++) {
-      commandArray[i + commandSize] = (String) options.get(i);
-    }
-  }
-
-  /**
-   * Get command array used to run command.  Not for running the command
-   * @return
-   */
-  public String getCommandLine() {
-    if (commandArray == null) {
-      return "";
-    }
-    StringBuffer buffer = new StringBuffer();
-    for (int i = 0; i < commandArray.length; i++) {
-      buffer.append(commandArray[i] + " ");
-    }
-    return buffer.toString();
-  }
-
-  /**
-   * Get command array to run
-   * @return
-   */
-  public String[] getCommandArray() {
-    createCommand();
-    return commandArray;
-  }
-
-  public boolean getBooleanValue(etomo.comscript.Field field) {
-    if (field == Fields.FLIPPED) {
-      return flipped;
-    }
-    throw new IllegalArgumentException("field=" + field);
-  }
-
-  public float getFloatValue(etomo.comscript.Field field) {
-    throw new IllegalArgumentException("field=" + field);
-  }
-
-  public String[] getStringArray(etomo.comscript.Field field) {
-    throw new IllegalArgumentException("field=" + field);
-  }
-
-  public String getString(etomo.comscript.Field field) {
-    throw new IllegalArgumentException("field=" + field);
-  }
-
-  public Hashtable getHashtable(etomo.comscript.Field field) {
-    throw new IllegalArgumentException("field=" + field);
-  }
-
-  public int getIntValue(etomo.comscript.Field field) {
-    throw new IllegalArgumentException("field=" + field);
-  }
-
-  public double getDoubleValue(etomo.comscript.Field field) {
-    throw new IllegalArgumentException("field=" + field);
-  }
-
-  public ConstEtomoNumber getEtomoNumber(etomo.comscript.Field field) {
-    throw new IllegalArgumentException("field=" + field);
-  }
-
-  public ConstIntKeyList getIntKeyList(etomo.comscript.Field field) {
-    throw new IllegalArgumentException("field=" + field);
-  }
-
-  public String getCommandName() {
-    return commandName;
-  }
-
-  public String getCommand() {
-    return commandName;
-  }
-
-  public static String getName() {
-    return commandName;
-  }
-
-  public CommandMode getCommandMode() {
-    return null;
-  }
-
-  public File getCommandOutputFile() {
-    return outputFile;
-  }
-
-  public ConstEtomoNumber getReductionFactorX() {
-    return reductionFactorX;
-  }
-
-  public ConstEtomoNumber getReductionFactorY() {
-    return reductionFactorY;
-  }
-
-  public ConstEtomoNumber getReductionFactorZ() {
-    return reductionFactorZ;
-  }
-
-  public boolean isLinearInterpolation() {
-    return linearInterpolation;
-  }
-
-  public boolean isFlipped() {
-    return flipped;
-  }
-
-  public boolean equals(ConstSqueezevolParam that) {
-    if (!reductionFactorX.equals(that.reductionFactorX)) {
-      return false;
-    }
-    if (!reductionFactorY.equals(that.reductionFactorY)) {
-      return false;
-    }
-    if (!reductionFactorZ.equals(that.reductionFactorZ)) {
-      return false;
-    }
-    if (linearInterpolation != that.linearInterpolation) {
-      return false;
-    }
-    return true;
-  }
-
-  public static final class Fields implements etomo.comscript.Field {
-    private Fields() {
-    }
-
-    public static final Fields FLIPPED = new Fields();
-  }
+  public boolean isLinearInterpolation();
 }
