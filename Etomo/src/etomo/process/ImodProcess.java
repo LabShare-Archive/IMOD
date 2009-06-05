@@ -37,6 +37,10 @@ import etomo.util.Utilities;
  * 
  * <p>
  * $Log$
+ * Revision 3.57  2009/03/24 21:10:24  sueh
+ * bug# 1187 In ContinuousListener.startThread create a new Thread instance when the
+ * old one is not alive.
+ *
  * Revision 3.56  2009/03/24 20:17:03  sueh
  * bug# 1187 Added some debug statements.
  *
@@ -1060,6 +1064,10 @@ public class ImodProcess {
 
   public void setPointLimitMessage(int pointLimit) {
     setMoreObjectPropertiesMessage(1, pointLimit, -1, -1);
+  }
+  
+  public void setStartNewContoursAtNewZ() {
+    setMoreObjectPropertiesMessage(1, -1, 1, -1);
   }
 
   /**
