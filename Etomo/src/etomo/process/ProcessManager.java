@@ -20,6 +20,9 @@
  * 
  * <p>
  * $Log$
+ * Revision 3.133  2009/05/02 01:07:51  sueh
+ * bug# 1216 Added runraptor.
+ *
  * Revision 3.132  2009/04/15 16:52:47  sueh
  * bug# 1190 Returning false and logging failure for major reconnection
  * failures.
@@ -917,6 +920,7 @@ import etomo.comscript.CommandDetails;
 import etomo.comscript.ConstSplitCorrectionParam;
 import etomo.comscript.ConstTiltParam;
 import etomo.comscript.CtfPhaseFlipParam;
+import etomo.comscript.FlattenWarpParam;
 import etomo.comscript.ProcessDetails;
 import etomo.comscript.ConstNewstParam;
 import etomo.comscript.ConstSqueezevolParam;
@@ -1870,13 +1874,42 @@ public class ProcessManager extends BaseProcessManager {
         AxisID.ONLY, true, ProcessName.ARCHIVEORIG, processSeries);
     return backgroundProcess.getName();
   }
-  
+
+  /**
+   * Run the appropriate flatten com file for the given axis ID
+   */
+  public String flatten(AxisID axisID,
+      ProcessResultDisplay processResultDisplay,
+      ConstProcessSeries processSeries) throws SystemProcessException {
+    //  Create the required tilt command
+    String command = ProcessName.FLATTEN.toString() + axisID.getExtension()
+        + ".com";
+    //  Instantiate the process monitor
+    Matchvol1ProcessMonitor monitor = Matchvol1ProcessMonitor.getFlattenInstance(appManager,
+        axisID);
+    //  Start the com script in the background
+    ComScriptProcess comScriptProcess = startComScript(command, monitor,
+        axisID, processResultDisplay, processSeries);
+    return comScriptProcess.getName();
+  }
+
+  public String flattenWarp(FlattenWarpParam param,
+      ProcessResultDisplay processResultDisplay,
+      ConstProcessSeries processSeries, AxisID axisID)
+      throws SystemProcessException {
+    BackgroundProcess backgroundProcess = startBackgroundProcess(param
+        .getCommandArray(), axisID, processResultDisplay, param
+        .getProcessName(), processSeries);
+    return backgroundProcess.getName();
+  }
+
   public String runraptor(RunraptorParam param,
       ProcessResultDisplay processResultDisplay,
-      ConstProcessSeries processSeries, AxisID axisID) throws SystemProcessException {
-    BackgroundProcess backgroundProcess = startBackgroundProcess(
-        param.getCommandArray(), axisID, processResultDisplay,
-        param.getProcessName(), processSeries);
+      ConstProcessSeries processSeries, AxisID axisID)
+      throws SystemProcessException {
+    BackgroundProcess backgroundProcess = startBackgroundProcess(param
+        .getCommandArray(), axisID, processResultDisplay, param
+        .getProcessName(), processSeries);
     return backgroundProcess.getName();
   }
 
@@ -2073,7 +2106,7 @@ public class ProcessManager extends BaseProcessManager {
     }
   }
 
-  protected void postProcess(BackgroundProcess process) {
+   void postProcess(BackgroundProcess process) {
     super.postProcess(process);
     if (process.getCommandLine().equals(transferfidCommandLine)) {
       writeLogFile(process, process.getAxisID(), DatasetFiles.TRANSFER_FID_LOG);
@@ -2090,8 +2123,8 @@ public class ProcessManager extends BaseProcessManager {
       }
       ProcessDetails processDetails = process.getProcessDetails();
       Command command = process.getCommand();
+      TomogramState state = appManager.getState();
       if (commandName.equals(TrimvolParam.getName())) {
-        TomogramState state = appManager.getState();
         AxisID axisID = process.getAxisID();
         state.setTrimvolFlipped(processDetails
             .getBooleanValue(TrimvolParam.Fields.SWAP_YZ)
