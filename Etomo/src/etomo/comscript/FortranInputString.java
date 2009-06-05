@@ -23,6 +23,10 @@ import etomo.type.ConstEtomoNumber;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.16  2007/08/16 16:28:46  sueh
+ * <p> bug# 1035 Added propertiesKey for saving to a Properties object.  Added
+ * <p> functions load(Properties, String) and makePrepend.
+ * <p>
  * <p> Revision 3.15  2007/03/03 00:34:40  sueh
  * <p> bug# 973 Added active and isEmpty().
  * <p>
@@ -376,7 +380,12 @@ public class FortranInputString {
   }
 
   public void set(int index, String newValue) {
-    value[index] = new Double(String.valueOf(newValue));
+    if (newValue == null || newValue.matches("\\s*")) {
+      setDefault(index);
+    }
+    else {
+      value[index] = new Double(String.valueOf(newValue));
+    }
   }
 
   public void set(int index, ConstEtomoNumber newValue) {
@@ -551,6 +560,32 @@ public class FortranInputString {
       throw new NullPointerException("value[" + index + "]");
     }
     return value[index].isInfinite();
+  }
+  
+  /**
+   * Checks for both NaN and infinity.
+   * @return true if the element is null or contains infinity or NaN
+   */
+  public boolean isNull(int index) {
+   if( value[index] == null) {
+     return true;
+   }
+   Double v = value[index];
+   return v.isInfinite() || v.isNaN();
+  }
+
+  /**
+   * Checks for both NaN and infinity.
+   * @return true unless an element of value does not contain infinity or NaN
+   */
+  public boolean isNull() {
+    for (int i = 0; i < nParams; i++) {
+      Double element = value[i];
+      if (!element.isInfinite() && !element.isNaN()) {
+        return false;
+      }
+    }
+    return true;
   }
 
   /**
