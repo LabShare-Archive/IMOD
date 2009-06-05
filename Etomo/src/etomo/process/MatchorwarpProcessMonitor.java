@@ -21,6 +21,9 @@ import etomo.type.ProcessName;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.6  2009/02/04 23:26:15  sueh
+ * <p> bug# 1158 Changed id and exceptions classes in LogFile.
+ * <p>
  * <p> Revision 1.5  2006/10/24 21:19:49  sueh
  * <p> bug# 947 Passing the ProcessName to AxisProcessPanel.
  * <p>
@@ -94,11 +97,11 @@ public class MatchorwarpProcessMonitor extends LogFileProcessMonitor {
     //  Search for the number of sections, we should see a header ouput first
     boolean foundNSections = false;
     nSections = -1;
-    Thread.sleep(updatePeriod);
+    Thread.sleep(UPDATE_PERIOD);
     while (!foundNSections) {
       String line = readLogFileLine();
       if (line == null) {
-        Thread.sleep(updatePeriod);
+        Thread.sleep(UPDATE_PERIOD);
       }
       if (line != null) {
         if (line.trim().startsWith("Finished")) {
@@ -112,6 +115,6 @@ public class MatchorwarpProcessMonitor extends LogFileProcessMonitor {
         }
       }
     }
-    Thread.sleep(updatePeriod);
+    Thread.sleep(UPDATE_PERIOD);
   }
 }

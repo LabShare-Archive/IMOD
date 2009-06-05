@@ -20,6 +20,9 @@ import etomo.type.ProcessName;
  * @version $$Revision$$
  * 
  * <p> $$Log$
+ * <p> $Revision 1.9  2009/02/04 23:26:53  sueh
+ * <p> $bug# 1158 Changed id and exceptions classes in LogFile.
+ * <p> $
  * <p> $Revision 1.8  2006/12/02 04:58:08  sueh
  * <p> $bug# 944 Made subprocess static so it could be used by
  * <p> $ProcesschunksVolcombineMonitor.
@@ -137,7 +140,7 @@ public class VolcombineProcessMonitor extends LogFileProcessMonitor {
 
     nSections = -1;
     while (!foundNSections) {
-      Thread.sleep(updatePeriod);
+      Thread.sleep(UPDATE_PERIOD);
       String line;
       while ((line = readLogFileLine()) != null && !foundNSections) {
         if (line.startsWith("STATUS:")) {

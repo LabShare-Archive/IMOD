@@ -94,7 +94,7 @@ public class TiltxcorrProcessWatcher extends LogFileProcessMonitor {
 
     nSections = -1;
     while (!foundNSections) {
-      Thread.sleep(updatePeriod);
+      Thread.sleep(UPDATE_PERIOD);
       String line;
       while ((line = readLogFileLine()) != null) {
         if (line.startsWith(" Number of columns, rows, sections")) {
@@ -121,6 +121,9 @@ public class TiltxcorrProcessWatcher extends LogFileProcessMonitor {
 }
 /**
 * <p> $Log$
+* <p> Revision 1.4  2009/02/04 23:26:53  sueh
+* <p> bug# 1158 Changed id and exceptions classes in LogFile.
+* <p>
 * <p> Revision 1.3  2006/10/24 21:41:01  sueh
 * <p> bug# 947 Passing the ProcessName to AxisProcessPanel.
 * <p>

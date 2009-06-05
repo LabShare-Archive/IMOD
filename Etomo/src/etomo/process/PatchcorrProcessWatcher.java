@@ -14,6 +14,9 @@ package etomo.process;
  * @version $$Revision$$
  * 
  * <p> $$Log$
+ * <p> $Revision 1.8  2009/02/04 23:26:43  sueh
+ * <p> $bug# 1158 Changed id and exceptions classes in LogFile.
+ * <p> $
  * <p> $Revision 1.7  2006/10/24 21:28:18  sueh
  * <p> $bug# 947 Passing the ProcessName to AxisProcessPanel.
  * <p> $
@@ -100,14 +103,14 @@ public class PatchcorrProcessWatcher extends LogFileProcessMonitor {
   /**
    * Search patch.out file for the number of positions
    */
-  protected void findNSections() throws InterruptedException,
+   void findNSections() throws InterruptedException,
       NumberFormatException, IOException, LogFile.LockException {
 
     //  Search for the number of sections, we should see a header ouput first
     boolean foundNSections = false;
     nSections = -1;
     while (!foundNSections) {
-      Thread.sleep(updatePeriod);
+      Thread.sleep(UPDATE_PERIOD);
       String line = readLogFileLine();
       if (line != null && line.trim().endsWith("positions")) {
         line = line.trim();
@@ -118,7 +121,7 @@ public class PatchcorrProcessWatcher extends LogFileProcessMonitor {
     }
   }
 
-  protected void postProcess() {
+   void postProcess() {
     applicationManager.postProcess(axisID, ProcessName.PATCHCORR, null, null);
   }
 }
