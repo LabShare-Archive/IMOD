@@ -28,6 +28,9 @@ import etomo.util.Utilities;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.48  2009/05/02 01:25:25  sueh
+ * <p> bug# 1216 Removed B axis raptor data.
+ * <p>
  * <p> Revision 3.47  2009/05/02 01:11:02  sueh
  * <p> bug# 1216 Added trackRaptorDiamA and B, trackRaptorMarkA and B,
  * <p> trackRaptorUseRawStackA and B, and trackUseRaptorA and B.
@@ -286,14 +289,30 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
   private static final String FINAL_STACK_BINNING_A_BACKWARD_COMPATABILITY_1_8 = "TomoGenBinningA";
   private static final String FINAL_STACK_BINNING_B_BACKWARD_COMPATABILITY_1_8 = "TomoGenBinningB";
 
-  private static final String TRACK_KEY = "Track";
+  //Axis keys
   private static final String FIRST_AXIS_KEY = "A";
   private static final String SECOND_AXIS_KEY = "B";
-  private static final String USE_KEY = "Use";
+  
+  //Dialog keys
+  private static final String TRACK_KEY = "Track";
+  private static final String POST_KEY = "Post";
+
+  //Panel keys
   private static final String RAPTOR_KEY = "Raptor";
-  private static final String RAW_STACK_KEY = "RawStack";
-  private static final String MARK_KEY = "Mark";
+  private static final String TRIM_VOL_KEY = "TrimVol";
+  private static final String FLATTEN_WARP_KEY = "FlattenWarp";
+  private static final String FLATTEN_KEY = "Flatten";
+  private static final String SQUEEZE_VOL_KEY = "SqueezeVol";
+
+  private static final String CONTOURS_ON_ONE_SURFACE_KEY = "ContoursOnOneSurface";
   private static final String DIAM_KEY = "Diam";
+  private static final String INPUT_KEY = "Input";
+  private static final String MARK_KEY = "Mark";
+  private static final String RAW_STACK_KEY = "RawStack";
+  private static final String SPACING_IN_KEY = "SpacingIn";
+  private static final String USE_KEY = "Use";
+  private static final String X_KEY = "X";
+  private static final String Y_KEY = "Y";
 
   private final ApplicationManager manager;
 
@@ -445,6 +464,21 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
   private final EtomoNumber trackRaptorDiamA = new EtomoNumber(
       EtomoNumber.Type.LONG, TRACK_KEY + "." + FIRST_AXIS_KEY + "."
           + RAPTOR_KEY + "." + DIAM_KEY);
+
+  private final EtomoBoolean2 postFlattenInputTrimVol = new EtomoBoolean2(
+      POST_KEY + "." + FLATTEN_KEY + "." + INPUT_KEY + TRIM_VOL_KEY);
+
+  private final EtomoBoolean2 postFlattenWarpContoursOnOneSurface = new EtomoBoolean2(
+      POST_KEY + "." + FLATTEN_WARP_KEY + "." + CONTOURS_ON_ONE_SURFACE_KEY);
+  private final EtomoNumber postFlattenWarpSpacingInX = new EtomoNumber(
+      EtomoNumber.Type.DOUBLE, POST_KEY + "." + FLATTEN_WARP_KEY + "."
+          + SPACING_IN_KEY + X_KEY);
+  private final EtomoNumber postFlattenWarpSpacingInY = new EtomoNumber(
+      EtomoNumber.Type.DOUBLE, POST_KEY + "." + FLATTEN_WARP_KEY + "."
+          + SPACING_IN_KEY + Y_KEY);
+
+  private final EtomoBoolean2 postSqueezeVolInputTrimVol = new EtomoBoolean2(
+      POST_KEY + "." + SQUEEZE_VOL_KEY + "." + INPUT_KEY + TRIM_VOL_KEY);
 
   public MetaData(ApplicationManager manager) {
     this.manager = manager;
@@ -861,6 +895,11 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
     trackRaptorUseRawStackA.reset();
     trackRaptorMarkA.reset();
     trackRaptorDiamA.reset();
+    postFlattenInputTrimVol.reset();
+    postFlattenWarpContoursOnOneSurface.reset();
+    postFlattenWarpSpacingInX.reset();
+    postFlattenWarpSpacingInY.reset();
+    postSqueezeVolInputTrimVol.reset();
     //load
     prepend = createPrepend(prepend);
     String group = prepend + ".";
@@ -1022,6 +1061,11 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
     trackRaptorUseRawStackA.load(props, prepend);
     trackRaptorMarkA.load(props, prepend);
     trackRaptorDiamA.load(props, prepend);
+    postFlattenInputTrimVol.load(props, prepend);
+    postFlattenWarpContoursOnOneSurface.load(props, prepend);
+    postFlattenWarpSpacingInX.load(props, prepend);
+    postFlattenWarpSpacingInY.load(props, prepend);
+    postSqueezeVolInputTrimVol.load(props,prepend);
   }
 
   public void setNoBeamTiltSelected(AxisID axisID, boolean selected) {
@@ -1203,6 +1247,11 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
     trackRaptorUseRawStackA.store(props, prepend);
     trackRaptorMarkA.store(props, prepend);
     trackRaptorDiamA.store(props, prepend);
+    postFlattenInputTrimVol.store(props, prepend);
+    postFlattenWarpContoursOnOneSurface.store(props, prepend);
+    postFlattenWarpSpacingInX.store(props, prepend);
+    postFlattenWarpSpacingInY.store(props, prepend);
+    postSqueezeVolInputTrimVol.store(props,prepend);
   }
 
   public boolean getTrackUseRaptor() {
@@ -1235,6 +1284,46 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
 
   public void setTrackRaptorDiam(String input) {
     trackRaptorDiamA.set(input);
+  }
+
+  public boolean isPostFlattenWarpInputTrimVol() {
+    return postFlattenWarpContoursOnOneSurface.is();
+  }
+
+  public void setPostFlattenWarpInputTrimVol(boolean input) {
+    postFlattenInputTrimVol.set(input);
+  }
+
+  public boolean isPostFlattenWarpContoursOnOneSurface() {
+    return postFlattenWarpContoursOnOneSurface.is();
+  }
+
+  public void setPostFlattenWarpContoursOnOneSurface(boolean input) {
+    postFlattenWarpContoursOnOneSurface.set(input);
+  }
+
+  public String getPostFlattenWarpSpacingInX() {
+    return postFlattenWarpSpacingInX.toString();
+  }
+
+  public void setPostFlattenWarpSpacingInX(String input) {
+    postFlattenWarpSpacingInX.set(input);
+  }
+
+  public String getPostFlattenWarpSpacingInY() {
+    return postFlattenWarpSpacingInY.toString();
+  }
+
+  public void setPostFlattenWarpSpacingInY(String input) {
+    postFlattenWarpSpacingInY.set(input);
+  }
+
+  public boolean isPostSqueezeVolInputTrimVol() {
+    return postSqueezeVolInputTrimVol.is();
+  }
+
+  public void setPostSqueezeVolInputTrimVol(boolean input) {
+    postSqueezeVolInputTrimVol.set(input);
   }
 
   public ConstEtomoNumber getNoBeamTiltSelected(AxisID axisID) {
