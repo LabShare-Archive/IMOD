@@ -36,6 +36,9 @@ import etomo.type.Run3dmodMenuOptions;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.34  2009/03/17 00:46:24  sueh
+ * <p> bug# 1186 Pass managerKey to everything that pops up a dialog.
+ * <p>
  * <p> Revision 3.33  2009/02/10 22:21:03  sueh
  * <p> bug# 1143 Added warning label.  In setParameters(TrimvolParam) set
  * <p> warning label text and show or hide it.
@@ -222,13 +225,13 @@ public final class TrimvolPanel implements Run3dmodButtonContainer,
 
   private EtomoPanel pnlRange = new EtomoPanel();
   private LabeledTextField ltfXMin = new LabeledTextField("X min: ");
-  private LabeledTextField ltfXMax = new LabeledTextField(" X max: ");
+  private LabeledTextField ltfXMax = new LabeledTextField("X max: ");
   private LabeledTextField ltfYMin = new LabeledTextField("Y min: ");
-  private LabeledTextField ltfYMax = new LabeledTextField(" Y max: ");
+  private LabeledTextField ltfYMax = new LabeledTextField("Y max: ");
   private LabeledTextField ltfZMin = new LabeledTextField("Z min: ");
-  private LabeledTextField ltfZMax = new LabeledTextField(" Z max: ");
+  private LabeledTextField ltfZMax = new LabeledTextField("Z max: ");
 
-  private EtomoPanel pnlScale = new EtomoPanel();
+  private SpacedPanel pnlScale = SpacedPanel.getInstance();
   private JPanel pnlScaleFixed = new JPanel();
   private CheckBox cbConvertToBytes = new CheckBox("Convert to bytes");
   private RadioButton rbScaleFixed = new RadioButton(
@@ -304,7 +307,7 @@ public final class TrimvolPanel implements Run3dmodButtonContainer,
     btnGetCoordinates.setSize();
 
     //  Layout the range panel
-    pnlRange.setLayout(new GridLayout(3, 2));
+    pnlRange.setLayout(new GridLayout(3, 2,5,5));
     pnlRange.setBorder(new EtchedBorder("Volume Range").getBorder());
 
     pnlRange.add(ltfXMin.getContainer());
@@ -334,7 +337,7 @@ public final class TrimvolPanel implements Run3dmodButtonContainer,
     bgScale.add(rbScaleFixed.getAbstractButton());
     bgScale.add(rbScaleSection.getAbstractButton());
 
-    pnlScale.setLayout(new BoxLayout(pnlScale, BoxLayout.Y_AXIS));
+    pnlScale.setBoxLayout(BoxLayout.Y_AXIS);
     pnlScale.setBorder(new EtchedBorder("Scaling").getBorder());
 
     cbConvertToBytes.setAlignmentX(Component.RIGHT_ALIGNMENT);
@@ -365,7 +368,7 @@ public final class TrimvolPanel implements Run3dmodButtonContainer,
     pnlTrimvol.add(pnlImodFull);
     pnlTrimvol.add(pnlRange);
     pnlTrimvol.add(Box.createRigidArea(FixedDim.x0_y10));
-    pnlTrimvol.add(pnlScale);
+    pnlTrimvol.add(pnlScale.getContainer());
     pnlTrimvol.add(Box.createRigidArea(FixedDim.x0_y10));
     SpacedPanel pnlReorientation = SpacedPanel.getInstance();
     pnlReorientation.setBoxLayout(BoxLayout.X_AXIS);
@@ -634,7 +637,7 @@ public final class TrimvolPanel implements Run3dmodButtonContainer,
       applicationManager.imodCombinedTomogram(run3dmodMenuOptions);
     }
     if (command == btnImodTrim.getActionCommand()) {
-      applicationManager.imodTrimmedVolume(run3dmodMenuOptions);
+      applicationManager.imodTrimmedVolume(run3dmodMenuOptions,axisID);
     }
   }
 
