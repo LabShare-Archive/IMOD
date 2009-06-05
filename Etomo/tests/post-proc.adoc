@@ -1,14 +1,54 @@
 Version = 1.2
 
 [function = build]
+# Run trimvol
+tb.trim-vol=
 tf.z-min = 5
 tf.z-max = 70
 bn.trim-volume =
 wait.process.trimming-volume = done
 bn.trim-volume =
 wait.process.trimming-volume = done
+
+# Run flattenwarp and warpvol
+tb.trim-vol.1 =
+# Run against the trimvol output
+rb.flatten-the-trimvol-output =
+bn.make-surface-model=
+copy.file=%{dataset}_flat.mod
+[[ifnot=montage]]
+tf.spacing-in-x=5
+tf.and-y=5
+[[]]
+[[if=montage]]
+tf.spacing-in-x=10
+tf.and-y=10
+[[]]
+bn.run-flattenwarp=
+wait.process.running-flattenwarp = done
+if.not.var.montage.tf.output-thickness-in-z=70
+bn.flatten=
+wait.process.flatten=done
+
+# Run squeezevol
+tb.trim-vol.2 =
+# Run against the flatten output
+rb.squeeze-the-flatten-output =
 bn.squeeze-volume =
 wait.process.squeezing-volume = done
+# Run against the trimvol output
+rb.squeeze-the-trimvol-output =
 bn.squeeze-volume =
 wait.process.squeezing-volume = done
-bn.done =
+
+# Run warpvol on squeezevol output
+tb.trim-vol.1 =
+rb.flatten-the-squeezevol-output = 
+if.not.var.montage.tf.output-thickness-in-z=60
+bn.flatten=
+wait.process.flatten=done
+bn.open-flattened-tomogram=
+
+bn.done=
+wait.popup.etomo-question=Yes
+
