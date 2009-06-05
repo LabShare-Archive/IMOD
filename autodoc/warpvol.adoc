@@ -54,6 +54,23 @@ tooltip =
 manpage = Order of interpolation to use.  Currently only quadratic (2) and
 linear (1) interpolation are available; the default is quadratic.
 
+[Field = PatchOutputFile]
+short = patch
+type = FN
+usage = Output text file for patch vectors at each transform
+tooltip = 
+manpage = Output text file for vectors representing the displacement produced
+by each transform.  It can be converted to a model with patch2imod(1).
+The program will exit without making an output file if this option is given.
+
+[Field = FilledInOutputFile]
+short = filled
+type = FN
+usage = Output file for warping transforms after filling in empty positions
+tooltip = 
+manpage = Output file for warping transforms after filling in empty positions.
+The program will exit without making an output file if this option is given.
+
 [Field = ParameterFile]
 short = param
 type = PF
