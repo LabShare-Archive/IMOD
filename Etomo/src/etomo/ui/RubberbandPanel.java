@@ -87,10 +87,10 @@ public final class RubberbandPanel {
         pnlButtons.add(btnRubberband);
         pnlButtons.addHorizontalGlue();
       }
-      pnlRange.setLayout(new GridLayout(3, 2, 4, 2));
+      pnlRange.setLayout(new GridLayout(3, 2, 5, 5));
     }
     else {
-      pnlRange.setLayout(new GridLayout(2, 2, 4, 2));
+      pnlRange.setLayout(new GridLayout(2, 2, 5, 5));
     }
     pnlRange.add(ltfXMin.getContainer());
     pnlRange.add(ltfXMax.getContainer());
@@ -320,6 +320,9 @@ public final class RubberbandPanel {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.9  2008/09/30 22:20:14  sueh
+ * <p> bug# 1113 Using a private constructor in SpacedPanel.
+ * <p>
  * <p> Revision 1.8  2008/07/15 21:22:33  sueh
  * <p> bug# 1127 Added placeButtons.  Don't place the buttons if placeButtons
  * <p> is false.
