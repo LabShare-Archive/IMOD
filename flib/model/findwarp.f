@@ -8,11 +8,7 @@ c       determined at a matrix of positions (patches).
 c       
 c       See man page for details
 c
-c       $Author$
-c       
-c       $Date$
-c       
-c       $Revision$
+c       $Id$
 c       Log at end
 c       
       implicit none
@@ -29,9 +25,9 @@ c
       logical solved(limpatch),exists(limpatch)
       integer*4 nxyz(3),idrop(idim), numRes(limpatch)
       integer*4 inddrop(idim),ntimes(idim)
-      real*4 dropsum(idim),debugxyz(3)
+      real*4 dropsum(idim),debugxyz(3),dxloc,dyloc,dzloc
       logical inside
-      real*4 xvert(limvert),yvert(limvert),zcont(idim)
+      real*4 xvert(limvert),yvert(limvert),zcont(idim),cenmin(3),cenmax(3)
       integer*4 indvert(idim),nvert(idim)
       integer*4 nfxauto(limpatch),nfyauto(limpatch),nfzauto(limpatch)
       integer*4 inrowx(limaxis),inrowy(limaxis),inrowz(limaxis)
@@ -584,11 +580,16 @@ c
      &        'Name of file to place warping transformations in', filename).ne.
      &        0) call exiterror('NO OUTPUT FILE FOR DISPLACEMENTS SPECIFIED')
           call dopen(1,filename,'new','f')
-          if(nlocy.eq.1)then
-            write(1,'(2i4)')nlocx,nlocz
-          else
-            write(1,'(3i4)')nlocx,nlocy,nlocz
-          endif
+c           
+c           Output new style header to allow missing data
+          dxloc = 1.
+          dyloc = 1.
+          dzloc = 1.
+          if (nlocx .gt. 1) dxloc = (cenmax(1) - cenmin(1)) / (nlocx - 1)
+          if (nlocy .gt. 1) dyloc = (cenmax(2) - cenmin(2)) / (nlocy - 1)
+          if (nlocz .gt. 1) dzloc = (cenmax(3) - cenmin(3)) / (nlocz - 1)
+          write(1,104)nlocx,nlocy,nlocz,(cenmin(i),i=1,3),dxloc,dyloc,dzloc
+104       format(i5,2i6,3f11.2,3f10.4)
 c
           do locz=1,nlocz
             do locy=1,nlocy
@@ -596,34 +597,16 @@ c
                 ind=indloc(locx,locy,locz)
                 induse=ind
 c                 
-c                 if this location was not solved, find nearest one that was
-c                 
-                if(.not.solved(ind))then
-                  distmin=1.e20
-                  do i=1,nlocx*nlocy*nlocz
-                    if(solved(i))then
-                      dist=(censave(1,i)-censave(1,ind))**2+
-     &                    (censave(2,i)-censave(2,ind))**2+
-     &                    (censave(3,i)-censave(3,ind))**2
-                      if(dist.lt.distmin)then
-                        distmin=dist
-                        induse=i
-                      endif
-                    endif
-                  enddo
-                  if (ifdebug .ne. 0 .and. (censave(1,ind) - debugxyz(1))**2 +
-     &                (censave(2,ind) - debugxyz(2))**2 +
-     &                (censave(3,ind) - debugxyz(3))**2 .le. 3)
-     &                write(*,'(5i4,6f8.1,3f8.1)')locx,locy,locz,ind,induse,
-     &                (censave(j,ind),censave(j,induse),j=1,3)
+c                 if this location was solved, combine and invert
+                if(solved(ind))then
+                  call xfmult3d(firstm,firstd,asave(1,1,induse),
+     &                dxyzsave(1,induse),atmp,dtmp)
+                  call xfinv3d(atmp,dtmp,a,dxyz)
+                  write(1,103)(censave(i,ind),i=1,3)
+103               format(3f9.1)
+                  write(1,102)((a(i,j),j=1,3),dxyz(i),i=1,3)
+102               format(3f10.6,f10.3)
                 endif
-                call xfmult3d(firstm,firstd,asave(1,1,induse),
-     &              dxyzsave(1,induse),atmp,dtmp)
-                call xfinv3d(atmp,dtmp,a,dxyz)
-                write(1,103)(censave(i,ind),i=1,3)
-103             format(3f9.1)
-                write(1,102)((a(i,j),j=1,3),dxyz(i),i=1,3)
-102             format(3f10.6,f10.3)
               enddo
             enddo
           enddo
@@ -656,6 +639,10 @@ c
       nlocdone=0
       numDevSum = 0.
       detmean = 0.
+      do i = 1,3
+        cenmin(i) = 1.e30
+        cenmax(i) = -1.e30
+      enddo
       do ind = 1, npatx * npaty * npatz
         numRes(ind) = 0
         resSum(ind) = 0
@@ -757,6 +744,8 @@ c
             debugHere = ifdebug .ne. 0
             do i=1,3
               censave(i,indlc)=xyzsum(i)/(nfitx*nfity*nfitz)
+              cenmin(i) = min(cenmin(i), censave(i,indlc))
+              cenmax(i) = max(cenmax(i), censave(i,indlc))
               if (debugHere)
      &            debugHere = abs(censave(i,indlc) - debugxyz(i)) .lt. 1.
             enddo
@@ -1017,6 +1006,10 @@ c
 
 c       
 c       $Log$
+c       Revision 3.18  2009/03/30 22:24:25  mast
+c       Make sure there aren't too many points on any diagonal.  The determinant
+c       of the solution isn't good enough, need it from right in multr
+c
 c       Revision 3.17  2008/12/29 20:42:07  mast
 c       Adjusted measured/unknown ratio for one layer of patches, issued
 c       error if discount ratio is too low and eliminates all fits
