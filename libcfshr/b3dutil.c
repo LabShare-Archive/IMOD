@@ -15,11 +15,14 @@
 #include <string.h>
 #include <math.h>
 #include <time.h>
-#include <sys/time.h>
 #include <sys/types.h>
 #include <sys/stat.h>
 #include "imodconfig.h"
 #include "b3dutil.h"
+
+#ifndef _WIN32
+#include <sys/time.h>
+#endif
 
 #ifdef WIN32_BIGFILE
 #include <io.h>
@@ -31,7 +34,6 @@
 #endif
 
 #ifdef MAC103_BIGFILE
-#include <sys/types.h>
 #include <sys/uio.h>
 #include <unistd.h>
 #endif
@@ -506,20 +508,35 @@ int b3dIMax(int narg, ...)
   return(extreme);
 }
 
+/* To use the high-performance clock on linux, uncomment and link the program
+   with -lrt   Otherwise the resolution is only 10 ms */
 double cputime(void)
 {
+  /*#ifdef __linux
+  struct timespec currTime;
+  clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &currTime);
+  return ((double)currTime.tv_sec + currTime.tv_nsec / 1.e9);
+  #else */
   return ((double)clock() / CLOCKS_PER_SEC);
+  /*#endif*/
 }
 
 double walltime(void)
 {
+#ifdef _WIN32
+  return 0.;
+#else
   struct timeval tv;
   gettimeofday(&tv, NULL);
   return ((double)tv.tv_sec + tv.tv_usec / 1000000.);
+#endif
 }
 
 /*
 $Log$
+Revision 1.8  2009/06/08 17:56:14  mast
+Add time tools for fortran
+
 Revision 1.7  2008/11/18 21:42:42  mast
 doc fix
 
