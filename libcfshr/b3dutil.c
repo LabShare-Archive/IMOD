@@ -14,6 +14,8 @@
 #include <stdarg.h>
 #include <string.h>
 #include <math.h>
+#include <time.h>
+#include <sys/time.h>
 #include <sys/types.h>
 #include <sys/stat.h>
 #include "imodconfig.h"
@@ -38,10 +40,14 @@
 #define imodbackupfile IMODBACKUPFILE
 #define imodgetenv IMODGETENV
 #define b3dheaderitembytes B3DHEADERITEMBYTES
+#define cputime CPUTIME
+#define walltime WALLTIME
 #else
 #define imodbackupfile imodbackupfile_
 #define imodgetenv imodgetenv_
 #define b3dheaderitembytes b3dheaderitembytes_
+#define cputime cputime_
+#define walltime walltime_
 #endif
 
 /* DNM 2/26/03: These need to be printf instead of fprintf(stderr) to not
@@ -500,8 +506,23 @@ int b3dIMax(int narg, ...)
   return(extreme);
 }
 
+double cputime(void)
+{
+  return ((double)clock() / CLOCKS_PER_SEC);
+}
+
+double walltime(void)
+{
+  struct timeval tv;
+  gettimeofday(&tv, NULL);
+  return ((double)tv.tv_sec + tv.tv_usec / 1000000.);
+}
+
 /*
 $Log$
+Revision 1.7  2008/11/18 21:42:42  mast
+doc fix
+
 Revision 1.6  2008/11/15 21:51:20  mast
 Add function for setting flags
 
