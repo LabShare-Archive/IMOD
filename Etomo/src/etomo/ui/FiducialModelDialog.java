@@ -20,6 +20,7 @@ import etomo.type.ProcessResultDisplay;
 import etomo.type.ProcessResultDisplayFactory;
 import etomo.type.ReconScreenState;
 import etomo.type.Run3dmodMenuOptions;
+import etomo.type.ViewType;
 import etomo.util.DatasetFiles;
 import etomo.util.EnvironmentVariable;
 import etomo.comscript.BeadtrackParam;
@@ -40,6 +41,10 @@ import etomo.comscript.FortranInputSyntaxException;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.49  2009/05/28 19:18:03  sueh
+ * <p> bug# 1216 Checking for the RAPTOR bin directory and the RAPTOR_BIN
+ * <p> environment variable.
+ * <p>
  * <p> Revision 3.48  2009/05/22 21:28:47  sueh
  * <p> bug# 1216 Spaced raptor panel, added tooltips, improved button titles.
  * <p>
@@ -345,6 +350,7 @@ public final class FiducialModelDialog extends ProcessDialog implements
       + " (in pixels): ");
   private final Run3dmodButton btnOpenRaptorResult = Run3dmodButton
       .get3dmodInstance("Open RAPTOR Model in 3dmod", this);
+  private final JPanel pnlRaptorInput = new JPanel();
 
   private final Run3dmodButton btnRaptor;
   private final MultiLineButton btnUseRaptorResult;
@@ -397,7 +403,6 @@ public final class FiducialModelDialog extends ProcessDialog implements
     pnlRaptor.setBoxLayout(BoxLayout.Y_AXIS);
     pnlRaptor.setBorder(new EtchedBorder("Run RAPTOR").getBorder());
     pnlRaptor.setAlignmentX(Box.CENTER_ALIGNMENT);
-    JPanel pnlRaptorInput = new JPanel();
     pnlRaptor.add(pnlRaptorInput);
     pnlRaptor.add(btnOpenStack.getComponent());
     pnlRaptor.add(ltfMark.getContainer());
@@ -437,8 +442,7 @@ public final class FiducialModelDialog extends ProcessDialog implements
     //tool tips
     setToolTipText();
     //set dialog display state
-
-    if (axisType != AxisType.DUAL_AXIS || axisID == AxisID.SECOND) {
+    if (axisType == AxisType.DUAL_AXIS && axisID == AxisID.SECOND) {
       turnOffRaptor();
     }
     else {
@@ -592,7 +596,7 @@ public final class FiducialModelDialog extends ProcessDialog implements
   }
 
   public void getParameters(final MetaData metaData) {
-    if (axisID == AxisID.FIRST) {
+    if (axisID != AxisID.SECOND) {
       metaData.setTrackUseRaptor(rbPickRaptor.isSelected());
       metaData.setTrackRaptorUseRawStack(rbRaptorInputRaw.isSelected());
       metaData.setTrackRaptorMark(ltfMark.getText());
@@ -601,7 +605,7 @@ public final class FiducialModelDialog extends ProcessDialog implements
   }
 
   public void setParameters(final ConstMetaData metaData) {
-    if (axisID == AxisID.FIRST) {
+    if (axisID != AxisID.SECOND) {
       rbPickRaptor.setSelected(metaData.getTrackUseRaptor());
       if (metaData.getTrackRaptorUseRawStack()) {
         rbRaptorInputRaw.setSelected(true);
@@ -613,6 +617,12 @@ public final class FiducialModelDialog extends ProcessDialog implements
       ConstEtomoNumber diam = metaData.getTrackRaptorDiam();
       if (!diam.isNull()) {
         ltfDiam.setText(diam);
+      }
+    }
+    if (pnlPick.isVisible()) {
+      if (applicationManager.getMetaData().getViewType() == ViewType.MONTAGE) {
+        rbRaptorInputPreali.setSelected(true);
+        pnlRaptorInput.setVisible(false);
       }
     }
     updatePick();
