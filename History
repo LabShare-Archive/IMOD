@@ -1,5 +1,7 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+6/10/09: Fixed problem running Xfmodel to find transforms with PIP input.
+
 6/10/09: Fixed imodhelp for Linux, broken since Qt 4 upgrade.
 
 6/10/09: Made Etomo compatible with the IMOD_BRIEF_HEADER environment variable.
