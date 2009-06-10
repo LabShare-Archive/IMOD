@@ -12,6 +12,9 @@
  * @version $$Revision$
  *
  * <p> $$Log$
+ * <p> $Revision 3.65  2009/03/17 00:46:43  sueh
+ * <p> $bug# 1186 Pass managerKey to everything that pops up a dialog.
+ * <p> $
  * <p> $Revision 3.64  2009/02/27 03:54:54  sueh
  * <p> $bug# 1188 Removed unnecessary Java version check.
  * <p> $
@@ -326,7 +329,7 @@ public class Utilities {
     int minutes = (int) Math.floor(milliseconds / 60000);
     int seconds = (int) Math.floor((milliseconds - minutes * 60000) / 1000.0);
     String strSeconds = "";
-    //  Add aleading zero if less than 10 seconds
+    //  Add a leading zero if less than 10 seconds
     if (seconds < 10) {
       strSeconds = "0";
     }
