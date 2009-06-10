@@ -19,7 +19,6 @@ import javax.swing.ButtonGroup;
 import javax.swing.ImageIcon;
 import javax.swing.JFileChooser;
 import javax.swing.JPanel;
-import javax.swing.SpinnerNumberModel;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
@@ -27,7 +26,6 @@ import etomo.ApplicationManager;
 import etomo.EtomoDirector;
 import etomo.comscript.CtfPhaseFlipParam;
 import etomo.comscript.CtfPlotterParam;
-import etomo.comscript.NewstParam;
 import etomo.storage.LogFile;
 import etomo.storage.MtfFileFilter;
 import etomo.storage.autodoc.AutodocFactory;
@@ -61,6 +59,9 @@ import etomo.util.DatasetFiles;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.14  2009/03/17 00:46:24  sueh
+ * <p> bug# 1186 Pass managerKey to everything that pops up a dialog.
+ * <p>
  * <p> Revision 1.13  2009/02/04 23:36:48  sueh
  * <p> bug# 1158 Changed id and exception classes in LogFile.
  * <p>
@@ -114,27 +115,12 @@ public final class FinalAlignedStackDialog extends ProcessDialog implements
 
   private static final String MTF_FILE_LABEL = "MTF file: ";
 
-  static final String SIZE_TO_OUTPUT_IN_X_AND_Y_LABEL = "Size to output";
   private static final DialogType DIALOG_TYPE = DialogType.FINAL_ALIGNED_STACK;
   public static final String CTF_CORRECTION_LABEL = "Correct CTF";
   public static final String CCD_ERASER_LABEL = "Erase Beads";
 
+  private final NewstackPanel newstackPanel;
   private final EtomoPanel pnlFinalAlignedStack = new EtomoPanel();
-
-  // Fiducialess parameters
-  private final CheckBox cbFiducialess = new CheckBox("Fiducialless alignment");
-  private final LabeledTextField ltfRotation = new LabeledTextField(
-      "Tilt axis rotation: ");
-
-  // Newst/Newstack objects
-  private final CheckBox cbUseLinearInterpolation = new CheckBox(
-      "Use linear interpolation");
-  private final LabeledSpinner spinBinning;
-
-  //  Aligned stack buttons
-  private final Run3dmodButton btnNewst;
-  private final Run3dmodButton btn3dmodFull = Run3dmodButton.get3dmodInstance(
-      "View Full Aligned Stack", this);
 
   // MTF Filter objects
   private final LabeledTextField ltfLowPassRadiusSigma = new LabeledTextField(
@@ -156,16 +142,12 @@ public final class FinalAlignedStackDialog extends ProcessDialog implements
       "Starting and ending views: ");
 
   //headers should not go into garbage collection
-  private final PanelHeader newstHeader;
   private final PanelHeader filterHeader = PanelHeader
       .getAdvancedBasicOnlyInstance("2D Filtering (optional)", this,
           DIALOG_TYPE);
   //panels that are changed in setAdvanced()
   private final SpacedPanel inverseParamsPanel;
   private final JPanel filterBodyPanel;
-  private final SpacedPanel newstBodyPanel;
-  private final LabeledTextField ltfSizeToOutputInXandY = new LabeledTextField(
-      SIZE_TO_OUTPUT_IN_X_AND_Y_LABEL + " (X,Y - unbinned): ");
 
   //backward compatibility functionality - if the metadata binning is missing
   //get binning from newst
@@ -206,7 +188,6 @@ public final class FinalAlignedStackDialog extends ProcessDialog implements
   private final TabbedPane tabbedPane = new TabbedPane();
   private final EtomoPanel ctfCorrectionMainPanel = new EtomoPanel();
   private final JPanel filterPanel = new JPanel();
-  private final JPanel newstPanel = new JPanel();
   private final JPanel ccdEraserMainPanel = new JPanel();
 
   private final Run3dmodButton btnXfModel;
@@ -234,12 +215,10 @@ public final class FinalAlignedStackDialog extends ProcessDialog implements
     super(appMgr, axisID, DIALOG_TYPE);
     this.expert = expert;
     this.curTab = curTab;
+    newstackPanel = NewstackPanel.getInstance(appMgr, axisID, DIALOG_TYPE,expert);
     screenState = appMgr.getScreenState(axisID);
     ProcessResultDisplayFactory displayFactory = appMgr
         .getProcessResultDisplayFactory(axisID);
-    btnNewst = (Run3dmodButton) displayFactory.getFullAlignedStack();
-    btnNewst.setContainer(this);
-    btnNewst.setDeferred3dmodButton(btn3dmodFull);
     btnFilter = (Run3dmodButton) displayFactory.getFilter();
     btnFilter.setContainer(this);
     btnFilter.setDeferred3dmodButton(btnViewFilter);
@@ -258,25 +237,13 @@ public final class FinalAlignedStackDialog extends ProcessDialog implements
     rootPanel.setBorder(new BeveledBorder("Final Aligned Stack").getBorder());
     filterBodyPanel = new JPanel();
     inverseParamsPanel = SpacedPanel.getInstance(true);
-    newstBodyPanel = SpacedPanel.getInstance();
-    //headers
-    if (applicationManager.getMetaData().getViewType() == ViewType.MONTAGE) {
-      newstHeader = PanelHeader.getAdvancedBasicOnlyInstance("Blendmont", this,
-          dialogType);
-    }
-    else {
-      newstHeader = PanelHeader.getAdvancedBasicOnlyInstance("Newstack", this,
-          dialogType);
-    }
+
     btnCtfCorrection = (Run3dmodButton) displayFactory.getCtfCorrection();
     btnCtfCorrection.setContainer(this);
     btnCtfCorrection.setDeferred3dmodButton(btnImodCtfCorrection);
     btnUseCtfCorrection = (MultiLineButton) displayFactory
         .getUseCtfCorrection();
     //field instantiation
-    SpinnerNumberModel integerModel = new SpinnerNumberModel(1, 1, 8, 1);
-    spinBinning = new LabeledSpinner("Aligned image stack binning ",
-        integerModel);
     layoutNewstPanel();
     layoutCtfCorrectionPanel();
     layoutCcdEraser();
@@ -284,7 +251,6 @@ public final class FinalAlignedStackDialog extends ProcessDialog implements
     rootPanel.add(tabbedPane);
     addExitButtons();
 
-    updateFiducialess();
     // Set the default advanced dialog state
     updateAdvanced();
     setToolTipText();
@@ -301,15 +267,12 @@ public final class FinalAlignedStackDialog extends ProcessDialog implements
 
   private void addListeners() {
     // Bind the buttons to the action listener
-    btnNewst.addActionListener(finalAlignedStackListener);
-    btn3dmodFull.addActionListener(finalAlignedStackListener);
     btnFilter.addActionListener(finalAlignedStackListener);
     btnViewFilter.addActionListener(finalAlignedStackListener);
     btnUseFilter.addActionListener(finalAlignedStackListener);
     btnMtfFile.addActionListener(new MtfFileActionListener(this));
     ltfStartingAndEndingZ
         .addKeyListener(new StartingAndEndingZKeyListener(this));
-    cbFiducialess.addActionListener(finalAlignedStackListener);
     cbParallelProcess.addActionListener(finalAlignedStackListener);
     cbUseExpectedDefocus.addActionListener(finalAlignedStackListener);
     ftfConfigFile.addActionListener(finalAlignedStackListener);
@@ -428,16 +391,15 @@ public final class FinalAlignedStackDialog extends ProcessDialog implements
   }
 
   void setFiducialessAlignment(boolean state) {
-    cbFiducialess.setSelected(state);
-    updateFiducialess();
+    newstackPanel.setFiducialessAlignment(state);
   }
 
   public boolean isFiducialess() {
-    return cbFiducialess.isSelected();
+    return newstackPanel.isFiducialess();
   }
 
   void setImageRotation(float tiltAxisAngle) {
-    ltfRotation.setText(tiltAxisAngle);
+    newstackPanel.setImageRotation(tiltAxisAngle);
   }
 
   void setInterpolationWidth(ConstEtomoNumber input) {
@@ -453,7 +415,7 @@ public final class FinalAlignedStackDialog extends ProcessDialog implements
   }
 
   void setNewstHeaderState(PanelHeaderState state) {
-    newstHeader.setState(state);
+    newstackPanel.setHeaderState(state);
   }
 
   void setFilterHeaderState(PanelHeaderState state) {
@@ -465,7 +427,7 @@ public final class FinalAlignedStackDialog extends ProcessDialog implements
   }
 
   public float getImageRotation() throws NumberFormatException {
-    return Float.parseFloat(ltfRotation.getText());
+    return newstackPanel.getImageRotation();
   }
 
   Tab getCurTab() {
@@ -523,7 +485,7 @@ public final class FinalAlignedStackDialog extends ProcessDialog implements
   }
 
   int getBinning() {
-    return ((Integer) spinBinning.getValue()).intValue();
+    return newstackPanel.getBinning();
   }
 
   void getFilterHeaderState(PanelHeaderState state) {
@@ -535,12 +497,11 @@ public final class FinalAlignedStackDialog extends ProcessDialog implements
   }
 
   void getNewstHeaderState(PanelHeaderState state) {
-    newstHeader.getState(state);
+    newstackPanel.getHeaderState(state);
   }
 
   void setNewstButtonState(ReconScreenState screenState) {
-    btnNewst.setButtonState(screenState.getButtonState(btnNewst
-        .getButtonStateKey()));
+    newstackPanel.setNewstButtonState(screenState);
   }
 
   void setParallelProcessEnabled(boolean enable) {
@@ -569,11 +530,6 @@ public final class FinalAlignedStackDialog extends ProcessDialog implements
         updateAdvancedFilter(button.isExpanded());
       }
     }
-    if (newstHeader != null) {
-      if (newstHeader.equalsAdvancedBasic(button)) {
-        updateAdvancedNewst(button.isExpanded());
-      }
-    }
     if (ctfCorrectionHeader != null) {
       if (ctfCorrectionHeader.equalsAdvancedBasic(button)) {
         updateAdvancedCtfCorrection(button.isExpanded());
@@ -592,13 +548,9 @@ public final class FinalAlignedStackDialog extends ProcessDialog implements
     ltfDefocusTol.setVisible(advanced);
   }
 
-  private void updateAdvancedNewst(boolean advanced) {
-    ltfSizeToOutputInXandY.setVisible(advanced);
-  }
-
   void setAdvanced() {
     boolean headerAdvanced = filterHeader.isAdvanced();
-    if (headerAdvanced != newstHeader.isAdvanced()) {
+    if (headerAdvanced != newstackPanel.isAdvanced()) {
       return;
     }
     if (headerAdvanced != isAdvanced) {
@@ -607,15 +559,15 @@ public final class FinalAlignedStackDialog extends ProcessDialog implements
   }
 
   void setBinning(int binning) {
-    spinBinning.setValue(binning);
+    newstackPanel.setBinning(binning);
   }
 
   void setBinning(ConstEtomoNumber binning) {
-    spinBinning.setValue(binning);
+    newstackPanel.setBinning(binning);
   }
 
   void setUseLinearInterpolation(boolean select) {
-    cbUseLinearInterpolation.setSelected(select);
+    newstackPanel.setUseLinearInterpolation(select);
   }
 
   /**
@@ -623,7 +575,7 @@ public final class FinalAlignedStackDialog extends ProcessDialog implements
    */
   private void updateAdvanced() {
     filterHeader.setAdvanced(isAdvanced);
-    newstHeader.setAdvanced(isAdvanced);
+    newstackPanel.setAdvanced(isAdvanced);
     ctfCorrectionHeader.setAdvanced(isAdvanced);
 
     UIHarness.INSTANCE.pack(axisID, applicationManager);
@@ -642,11 +594,11 @@ public final class FinalAlignedStackDialog extends ProcessDialog implements
   }
 
   String getSizeToOutputInXandY() {
-    return ltfSizeToOutputInXandY.getText();
+    return newstackPanel.getSizeToOutputInXandY();
   }
 
   void setSizeToOutputInXandY(String input) {
-    ltfSizeToOutputInXandY.setText(input);
+    newstackPanel.setSizeToOutputInXandY(input);
   }
 
   void setFiducialDiameter(String input) {
@@ -676,7 +628,7 @@ public final class FinalAlignedStackDialog extends ProcessDialog implements
   }
 
   boolean isUseLinearInterpolation() {
-    return cbUseLinearInterpolation.isSelected();
+    return newstackPanel.isUseLinearInterpolation();
   }
 
   private void layoutCcdEraser() {
@@ -787,33 +739,7 @@ public final class FinalAlignedStackDialog extends ProcessDialog implements
     //panels
     JPanel newstRoot = new JPanel();
     tabbedPane.addTab("Create", newstRoot);
-    newstRoot.add(newstPanel);
-    newstPanel.setLayout(new BoxLayout(newstPanel, BoxLayout.Y_AXIS));
-    newstPanel.setBorder(BorderFactory.createEtchedBorder());
-    newstBodyPanel.setBoxLayout(BoxLayout.Y_AXIS);
-    JPanel buttonPanel = new JPanel();
-    buttonPanel.setLayout(new BoxLayout(buttonPanel, BoxLayout.X_AXIS));
-    //buttonPanel
-    buttonPanel.add(Box.createHorizontalGlue());
-    buttonPanel.add(btnNewst.getComponent());
-    buttonPanel.add(Box.createHorizontalGlue());
-    buttonPanel.add(btn3dmodFull.getComponent());
-    buttonPanel.add(Box.createHorizontalGlue());
-    //newstBodyPanel
-    newstBodyPanel.add(cbUseLinearInterpolation);
-    newstBodyPanel.add(spinBinning);
-    newstBodyPanel.add(cbFiducialess);
-    newstBodyPanel.add(ltfRotation);
-    newstBodyPanel.add(ltfSizeToOutputInXandY);
-    newstBodyPanel.add(buttonPanel);
-    newstBodyPanel.alignComponentsX(Component.LEFT_ALIGNMENT);
-    //newstPanel
-    newstPanel.add(newstHeader.getContainer());
-    newstPanel.add(newstBodyPanel.getContainer());
-    UIUtilities.alignComponentsX(newstPanel, Component.LEFT_ALIGNMENT);
-    //configure
-    btnNewst.setSize();
-    btn3dmodFull.setSize();
+    newstRoot.add(newstackPanel.getComponent());
   }
 
   /**
@@ -937,13 +863,9 @@ public final class FinalAlignedStackDialog extends ProcessDialog implements
     expert.enableUseFilter();
   }
 
-  void updateFiducialess() {
-    ltfRotation.setEnabled(cbFiducialess.isSelected());
-  }
-
   boolean done() {
     if (expert.doneDialog()) {
-      btnNewst.removeActionListener(finalAlignedStackListener);
+      newstackPanel.done();
       btnUseFilter.removeActionListener(finalAlignedStackListener);
       btnFilter.removeActionListener(finalAlignedStackListener);
       btnXfModel.removeActionListener(finalAlignedStackListener);
@@ -996,24 +918,15 @@ public final class FinalAlignedStackDialog extends ProcessDialog implements
   void buttonAction(final String command,
       final Deferred3dmodButton deferred3dmodButton,
       final Run3dmodMenuOptions run3dmodMenuOptions) {
-    if (command.equals(btnNewst.getActionCommand())) {
-      expert.newst(btnNewst, null, deferred3dmodButton, run3dmodMenuOptions);
-    }
-    else if (command.equals(btnFilter.getActionCommand())) {
+     if (command.equals(btnFilter.getActionCommand())) {
       expert.mtffilter(btnFilter, null, deferred3dmodButton,
           run3dmodMenuOptions);
     }
     else if (command.equals(btnUseFilter.getActionCommand())) {
       expert.useMtfFilter(btnUseFilter);
     }
-    else if (command.equals(cbFiducialess.getActionCommand())) {
-      updateFiducialess();
-    }
     else if (command.equals(cbParallelProcess.getActionCommand())) {
       expert.updateParallelProcess();
-    }
-    else if (command.equals(btn3dmodFull.getActionCommand())) {
-      applicationManager.imodFineAlign(axisID, run3dmodMenuOptions);
     }
     else if (command.equals(btnViewFilter.getActionCommand())) {
       applicationManager.imodMTFFilter(axisID, run3dmodMenuOptions);
@@ -1061,7 +974,7 @@ public final class FinalAlignedStackDialog extends ProcessDialog implements
     curTab = Tab.getInstance(tabbedPane.getSelectedIndex());
     Container panel = (Container) tabbedPane.getSelectedComponent();
     if (curTab == Tab.NEWST) {
-      panel.add(newstPanel);
+      panel.add(newstackPanel.getComponent());
     }
     else if (curTab == Tab.CTF_CORRECTION) {
       panel.add(ctfCorrectionMainPanel);
@@ -1093,13 +1006,6 @@ public final class FinalAlignedStackDialog extends ProcessDialog implements
     catch (LogFile.LockException e) {
       e.printStackTrace();
     }
-    cbUseLinearInterpolation
-        .setToolTipText("Make aligned stack with linear instead of cubic "
-            + "interpolation to  reduce noise.");
-    btnNewst
-        .setToolTipText("Generate the complete aligned stack for input into the "
-            + "tilt process." + "  This runs the newst.com script.");
-    btn3dmodFull.setToolTipText("Open the complete aligned stack in 3dmod");
     if (autodoc != null) {
       ltfStartingAndEndingZ.setToolTipText(EtomoAutodoc.getTooltip(autodoc,
           "StartingAndEndingZ"));
@@ -1122,31 +1028,6 @@ public final class FinalAlignedStackDialog extends ProcessDialog implements
     btnUseFilter
         .setToolTipText("Use the results of running mtffilter as the new full "
             + "aligned stack.");
-    cbFiducialess.setToolTipText("Use cross-correlation alignment only.");
-    ltfRotation
-        .setToolTipText("Rotation angle of tilt axis for generating aligned "
-            + "stack from " + "cross-correlation alignment only.");
-    spinBinning
-        .setToolTipText("Set the binning for the aligned image stack and "
-            + "tomogram.  With a binned tomogram, all of the thickness, position, "
-            + "and size parameters below are still entered in unbinned pixels.");
-    try {
-      autodoc = AutodocFactory.getInstance(AutodocFactory.NEWSTACK, axisID,
-          applicationManager.getManagerKey());
-    }
-    catch (FileNotFoundException except) {
-      except.printStackTrace();
-    }
-    catch (IOException except) {
-      except.printStackTrace();
-    }
-    catch (LogFile.LockException e) {
-      e.printStackTrace();
-    }
-    if (autodoc != null) {
-      ltfSizeToOutputInXandY.setToolTipText(EtomoAutodoc.getTooltip(autodoc,
-          NewstParam.SIZE_TO_OUTPUT_IN_X_AND_Y));
-    }
     try {
       autodoc = AutodocFactory.getInstance(AutodocFactory.CTF_PLOTTER, axisID,
           applicationManager.getManagerKey());

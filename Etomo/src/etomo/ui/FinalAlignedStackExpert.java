@@ -62,6 +62,9 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.12  2009/03/17 00:46:23  sueh
+ * <p> bug# 1186 Pass managerKey to everything that pops up a dialog.
+ * <p>
  * <p> Revision 1.11  2009/02/13 02:32:50  sueh
  * <p> bug# 1176 Checking return value of MRCHeader.read.
  * <p>
@@ -104,7 +107,7 @@ import etomo.util.Utilities;
  * <p> bug# 1141 Dialog for running newst (full align) and filtering
  * <p> </p>
  */
-public final class FinalAlignedStackExpert extends ReconUIExpert {
+public final class FinalAlignedStackExpert extends ReconUIExpert implements NewstackPanelExpert {
   public static final String rcsid = "$Id$";
 
   private final ComScriptManager comScriptMgr;
@@ -1037,7 +1040,7 @@ public final class FinalAlignedStackExpert extends ReconUIExpert {
     catch (FortranInputSyntaxException e) {
       e.printStackTrace();
       throw new FortranInputSyntaxException(
-          FinalAlignedStackDialog.SIZE_TO_OUTPUT_IN_X_AND_Y_LABEL + ":  "
+          NewstackPanel.SIZE_TO_OUTPUT_IN_X_AND_Y_LABEL + ":  "
               + e.getMessage());
     }
   }
