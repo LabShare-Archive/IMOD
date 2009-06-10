@@ -299,7 +299,7 @@ c
         if (iftrans + ifrotrans + ifmagrot .gt. 0 .and. ifxfmod .ne. 0)
      &      call exitError('You cannot both find transforms '//
      &      'and transform a model')
-        if (ifxfmod .eq. 0 .and. shiftScale .ne. 0) call exitError
+        if (ifxfmod .eq. 0 .and. shiftScale .ne. 1.) call exitError
      &      ('You cannot enter -scale unless you are transforming a model')
         if (iftrans .ne. 0) ifxfmod = 2
         if (ifrotrans .ne. 0) ifxfmod = 3
@@ -892,6 +892,9 @@ c
 c       
 c       
 c       $Log$
+c       Revision 3.15  2008/11/21 22:05:24  mast
+c       Increased filename size
+c
 c       Revision 3.14  2007/02/01 05:12:53  mast
 c       Added option to specify scaling of shifts in transforms
 c
