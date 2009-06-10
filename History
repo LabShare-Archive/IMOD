@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+6/8/09: In Etomo added an interface for flattening to Post Processing.  It runs
+flattenwarp and warpvol.
+
 6/8/09: In Etomo improvements added to RAPTOR.
 
 6/5/09: Fixed problem with Zap HQ mode not being turned back on after pan or
