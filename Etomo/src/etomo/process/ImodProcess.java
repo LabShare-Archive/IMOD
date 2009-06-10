@@ -37,6 +37,9 @@ import etomo.util.Utilities;
  * 
  * <p>
  * $Log$
+ * Revision 3.58  2009/06/05 01:54:43  sueh
+ * bug# 1219 Added setStartNewContoursAtNewZ.
+ *
  * Revision 3.57  2009/03/24 21:10:24  sueh
  * bug# 1187 In ContinuousListener.startThread create a new Thread instance when the
  * old one is not alive.
@@ -1065,7 +1068,7 @@ public class ImodProcess {
   public void setPointLimitMessage(int pointLimit) {
     setMoreObjectPropertiesMessage(1, pointLimit, -1, -1);
   }
-  
+
   public void setStartNewContoursAtNewZ() {
     setMoreObjectPropertiesMessage(1, -1, 1, -1);
   }
@@ -1280,6 +1283,14 @@ public class ImodProcess {
       sendCommands(argArray);
     }
     sendArguments.clear();
+
+    //The 3dmod process may have started without a continuous listener target.
+    //If a target has been added and the continuous listener thread is not
+    //running, start the continuous listener thread.
+    if (isRunning() && continuousListenerTarget != null
+        && !continuousListener.isAlive()) {
+      continuousListener.startThread(imodThread, continuousListenerTarget);
+    }
   }
 
   private void send(String[] args) throws IOException, SystemProcessException {
@@ -1804,6 +1815,11 @@ public class ImodProcess {
         continuousListenerThread = new Thread(this);
         continuousListenerThread.start();
       }
+    }
+
+    private boolean isAlive() {
+      return continuousListenerThread != null
+          && continuousListenerThread.isAlive();
     }
 
     /**
