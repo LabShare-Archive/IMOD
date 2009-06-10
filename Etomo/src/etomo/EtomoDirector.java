@@ -67,6 +67,7 @@ public class EtomoDirector {
   private boolean testDone = false;
   private final EtomoNumber javaMemoryLimit = new EtomoNumber(
       EtomoNumber.Type.LONG);
+  private boolean imodBriefHeader = false;
 
   //state
   private ManagerKey currentManagerKey = null;
@@ -132,6 +133,8 @@ public class EtomoDirector {
           "Program Initialization Error", AxisID.ONLY, currentManagerKey);
       System.exit(1);
     }
+    imodBriefHeader = EnvironmentVariable.INSTANCE.exists(homeDirectory,
+        "IMOD_BRIEF_HEADER", AxisID.ONLY, currentManagerKey);
     //  Set the user preferences
     userConfig = new UserConfiguration();
     //  Create a File object specifying the user configuration file
@@ -948,6 +951,10 @@ public class EtomoDirector {
         - Runtime.getRuntime().totalMemory()
         + Runtime.getRuntime().freeMemory();
   }
+  
+  public boolean isImodBriefHeader() {
+    return imodBriefHeader;
+  }
 
   public boolean isMemoryAvailable() {
     long availableMemory = getAvailableMemory();
@@ -1083,6 +1090,9 @@ public class EtomoDirector {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.83  2009/04/13 22:21:03  sueh
+ * <p> bug# 1207 In exitProgram avoided null pointer exception.
+ * <p>
  * <p> Revision 1.82  2009/04/02 19:05:38  sueh
  * <p> bug# 1206 Handle managerKey is null.
  * <p>
