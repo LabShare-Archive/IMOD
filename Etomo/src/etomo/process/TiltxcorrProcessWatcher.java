@@ -97,16 +97,16 @@ public class TiltxcorrProcessWatcher extends LogFileProcessMonitor {
       Thread.sleep(UPDATE_PERIOD);
       String line;
       while ((line = readLogFileLine()) != null) {
-        if (line.startsWith(" Number of columns, rows, sections")) {
+        if (line.trim().startsWith(nSectionsHeader)) {
           String[] fields = line.split("\\s+");
-          if (fields.length > 9) {
+          if (fields.length > nSectionsIndex) {
             //Take the second header output if there is blendmont output in the
             //log file
             if (blendmontRan) {
               blendmontRan = false;
             }
             else {
-              nSections = Integer.parseInt(fields[9]);
+              nSections = Integer.parseInt(fields[nSectionsIndex]);
               foundNSections = true;
             }
             break;
@@ -121,6 +121,9 @@ public class TiltxcorrProcessWatcher extends LogFileProcessMonitor {
 }
 /**
 * <p> $Log$
+* <p> Revision 1.5  2009/06/05 01:59:55  sueh
+* <p> bug# 1219 Kept up with changes in parent class.
+* <p>
 * <p> Revision 1.4  2009/02/04 23:26:53  sueh
 * <p> bug# 1158 Changed id and exceptions classes in LogFile.
 * <p>

@@ -4,7 +4,9 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 
 import etomo.ApplicationManager;
+import etomo.EtomoDirector;
 import etomo.util.InvalidParameterException;
+import etomo.util.MRCHeader;
 import etomo.storage.LogFile;
 import etomo.type.AxisID;
 import etomo.type.ProcessEndState;
@@ -24,6 +26,9 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.32  2009/06/05 01:57:32  sueh
+ * <p> bug# 1219 Reduced visibility of functions.
+ * <p>
  * <p> Revision 3.31  2009/03/17 00:41:56  sueh
  * <p> bug# 1186 Pass managerKey to everything that pops up a dialog.
  * <p>
@@ -221,6 +226,9 @@ public abstract class LogFileProcessMonitor implements ProcessMonitor {
   final AxisID axisID;
   final ProcessName processName;
 
+   final String nSectionsHeader;
+   final int nSectionsIndex;
+
   abstract void initializeProgressBar();
 
   abstract void getCurrentSection() throws NumberFormatException,
@@ -236,6 +244,14 @@ public abstract class LogFileProcessMonitor implements ProcessMonitor {
     applicationManager = appMgr;
     axisID = id;
     this.processName = processName;
+    if (!EtomoDirector.INSTANCE.isImodBriefHeader()) {
+      nSectionsHeader = MRCHeader.SIZE_HEADER;
+      nSectionsIndex = MRCHeader.N_SECTIONS_INDEX;
+    }
+    else {
+      nSectionsHeader = MRCHeader.SIZE_HEADER_BRIEF;
+      nSectionsIndex = MRCHeader.N_SECTIONS_INDEX_BRIEF;
+    }
   }
 
   public final void stop() {
@@ -387,10 +403,11 @@ public abstract class LogFileProcessMonitor implements ProcessMonitor {
       Thread.sleep(UPDATE_PERIOD);
       String line;
       while ((line = logFile.readLine(logFileReaderId)) != null) {
-        if (line.startsWith(" Number of columns, rows, sections")) {
+        line = line.trim();
+        if (line.startsWith(nSectionsHeader)) {
           String[] fields = line.split("\\s+");
-          if (fields.length > 9) {
-            nSections = Integer.parseInt(fields[9]);
+          if (fields.length > nSectionsIndex) {
+            nSections = Integer.parseInt(fields[nSectionsIndex]);
             foundNSections = true;
             break;
           }
