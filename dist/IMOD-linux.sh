@@ -1,4 +1,4 @@
-# IMOD 3.13.1
+# IMOD 4.0.11
 #
 # Startup file for bash users of IMOD under Linux - place it in /etc/profile.d
 #
@@ -36,6 +36,12 @@ export LD_LIBRARY_PATH=$IMOD_DIR/lib:$LD_LIBRARY_PATH
 #
 export IMOD_CALIB_DIR=${IMOD_CALIB_DIR:=/usr/local/ImodCalib}
 
+# Source local startup file in ImodCalib if it exists
+#
+if [ -r $IMOD_CALIB_DIR/IMOD.sh ] ; then
+    . $IMOD_CALIB_DIR/IMOD.sh
+fi
+
 # This command allows fast backprojection if the USFFT license file exists
 # in either /usr/local/USFFT by hostname, or in IMOD_DIR
 #
@@ -45,11 +51,9 @@ else
     export USFFT2_LICENSE_FILE=$IMOD_DIR/license.clo
 fi
 
-# Source local startup file in ImodCalib if it exists
+# Set a variable to indicate where our copy of Qt library is
 #
-if [ -r $IMOD_CALIB_DIR/IMOD.sh ] ; then
-    . $IMOD_CALIB_DIR/IMOD.sh
-fi
+export IMOD_QTLIBDIR="$IMOD_DIR/qtlib"
 
 # A subm function to run command files in the background with submfg
 #

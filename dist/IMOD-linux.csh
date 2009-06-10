@@ -1,4 +1,4 @@
-# IMOD 3.13.1
+# IMOD 4.0.11
 #
 # Startup file for tcsh users of IMOD under Linux - place it in /etc/profile.d
 #
@@ -60,3 +60,7 @@ if (-d /usr/local/USFFT) then
 else
     setenv USFFT2_LICENSE_FILE "$IMOD_DIR/license.clo"
 endif
+
+# Set a variable to indicate where our copy of Qt library is
+#
+setenv IMOD_QTLIBDIR "$IMOD_DIR/qtlib"
