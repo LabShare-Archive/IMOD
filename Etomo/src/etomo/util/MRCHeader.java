@@ -28,6 +28,9 @@ import etomo.ui.UIHarness;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.26  2009/03/17 00:46:43  sueh
+ * <p> bug# 1186 Pass managerKey to everything that pops up a dialog.
+ * <p>
  * <p> Revision 3.25  2009/02/13 02:40:34  sueh
  * <p> bug# 1176 In read, when the file does not exist put a warning in the log
  * <p> file instead of throwing an exception.  Also return false in this case.
@@ -182,6 +185,17 @@ public class MRCHeader {
   private FileModifiedFlag modifiedFlag;
 
   private final ManagerKey managerKey;
+
+  public static final String SIZE_HEADER = "Number of columns, rows, sections";
+  public static int N_SECTIONS_INDEX = 8;
+  private static int N_ROWS_INDEX = N_SECTIONS_INDEX - 1;
+  private static int N_COLUMNS_INDEX = N_SECTIONS_INDEX - 2;
+  
+  //This is information about the header process.  Will only be used by
+  //MrcHeader if it is run with the "-brief" option.
+  public static String SIZE_HEADER_BRIEF = "Dimensions:";
+  public static int N_SECTIONS_INDEX_BRIEF = 3;
+
   //
   //other member variables
   //
@@ -333,17 +347,19 @@ public class MRCHeader {
     for (int i = 0; i < stdOutput.length; i++) {
       //  Parse the size of the data
       //  Note the initial space in the string below
-      if (stdOutput[i].startsWith(" Number of columns, rows, section")) {
-        String[] tokens = stdOutput[i].split("\\s+");
-        if (tokens.length < 10) {
+      //Need to get brief header and regular header in the same way, so change
+      //so that the output is trimmed for this parse.
+      if (stdOutput[i].trim().startsWith(SIZE_HEADER)) {
+        String[] tokens = stdOutput[i].trim().split("\\s+");
+        if (tokens.length < N_SECTIONS_INDEX+1) {
           Utilities.timestamp("read", "header", filename,
               Utilities.FAILED_STATUS);
           throw new IOException(
               "Header returned less than three parameters for image size");
         }
-        nColumns = Integer.parseInt(tokens[7]);
+        nColumns = Integer.parseInt(tokens[N_COLUMNS_INDEX]);
         try {
-          nRows = Integer.parseInt(tokens[8]);
+          nRows = Integer.parseInt(tokens[N_ROWS_INDEX]);
         }
         catch (NumberFormatException e) {
           e.printStackTrace();
@@ -351,10 +367,10 @@ public class MRCHeader {
           Utilities.timestamp("read", "header", filename,
               Utilities.FAILED_STATUS);
           throw new NumberFormatException("nRows not set, token is "
-              + tokens[8]);
+              + tokens[N_ROWS_INDEX]);
         }
         try {
-          nSections = Integer.parseInt(tokens[9]);
+          nSections = Integer.parseInt(tokens[N_SECTIONS_INDEX]);
         }
         catch (NumberFormatException e) {
           e.printStackTrace();
@@ -362,7 +378,7 @@ public class MRCHeader {
           Utilities.timestamp("read", "header", filename,
               Utilities.FAILED_STATUS);
           throw new NumberFormatException("nSections not set, token is "
-              + tokens[9]);
+              + tokens[N_SECTIONS_INDEX]);
         }
       }
 
