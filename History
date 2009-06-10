@@ -1,5 +1,7 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+6/10/09: Fixed imodhelp for Linux, broken since Qt 4 upgrade.
+
 6/10/09: Made Etomo compatible with the IMOD_BRIEF_HEADER environment variable.
 
 6/8/09: In Etomo added an interface for flattening to Post Processing.  It runs
