@@ -36,6 +36,13 @@ bn.fix-fiducial-model=
 bn.done =
 
 [function = axis-a]
+run.function.raptor=
+# Test beadtrack
+copy.always.file = %{dataset}%{axis}.seed
+
+
+[function = raptor]
+if.not-exists.rb.run-raptor-and-fix.return=
 # Test RAPTOR
 rb.run-raptor-and-fix=
 [[ifnot = montage]]
@@ -59,10 +66,7 @@ bn.run-raptor=
 wait.process.running-runraptor=done
 bn.open-raptor-model-in-3dmod=
 bn.use-raptor-result-as-fiducial-model=
-
-# Test beadtrack
 rb.make-seed-and-track=
-copy.always.file = %{dataset}%{axis}.seed
 
 
 [function = test-gui-beadtracker-enabled]
