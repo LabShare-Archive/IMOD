@@ -15,6 +15,9 @@
     $Revision$
 
     $Log$
+    Revision 1.40  2009/06/05 09:23:31  tempuser
+    Minor
+
     Revision 1.39  2009/05/13 03:06:16  tempuser
     Added extra join mode
 
@@ -1228,8 +1231,8 @@ bool DrawingTools::drawExtraObject( bool redraw )
         setOpenFlag(xcontL,1);
         for( int p=idxStart; p<=idxEnd; p++ )
           imodPointAppend( xcontL, getPt(cont,p) );
-        cont_generateCircle( xcontL, 3.5f*sc, 4, *getPt(cont,idxStart), true );
-        cont_generateCircle( xcontL, 3.5f*sc, 4, *getPt(cont,idxEnd), true );
+        cont_generateCircle( xcontS, 3.5f*sc, 4, *getPt(cont,idxStart), true );
+        cont_generateCircle( xcontE, 3.5f*sc, 4, *getPt(cont,idxEnd), true );
         imodObjectAddContour(xobj, xcontL);
         imodObjectAddContour(xobj, xcontS);
         imodObjectAddContour(xobj, xcontE);
