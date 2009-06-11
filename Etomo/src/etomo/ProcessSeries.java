@@ -6,6 +6,7 @@ import etomo.type.DialogType;
 import etomo.type.ProcessResultDisplay;
 import etomo.type.Run3dmodMenuOptions;
 import etomo.ui.Deferred3dmodButton;
+import etomo.ui.ProcessDisplay;
 
 /**
  * <p>Description: Represents a series of processes to be executed.</p>
@@ -110,6 +111,9 @@ import etomo.ui.Deferred3dmodButton;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.6  2008/06/24 20:08:19  sueh
+ * <p> bug# 1111 Added setDebug.
+ * <p>
  * <p> Revision 1.5  2008/05/28 02:48:12  sueh
  * <p> bug# 1111 Removed processDialogTypeA and B from BaseManager.
  * <p> The dialogType for processes should be handled by ProcessSeries.
@@ -146,6 +150,7 @@ public final class ProcessSeries implements ConstProcessSeries {
 
   private final BaseManager manager;
   private final DialogType dialogType;
+  private final ProcessDisplay processDisplay;
 
   private String nextProcess = null;
   private String lastProcess = null;
@@ -157,6 +162,14 @@ public final class ProcessSeries implements ConstProcessSeries {
   public ProcessSeries(final BaseManager manager, DialogType dialogType) {
     this.manager = manager;
     this.dialogType = dialogType;
+    this.processDisplay = null;
+  }
+
+  public ProcessSeries(final BaseManager manager, DialogType dialogType,
+      ProcessDisplay processDisplay) {
+    this.manager = manager;
+    this.dialogType = dialogType;
+    this.processDisplay = processDisplay;
   }
 
   /**
@@ -189,13 +202,13 @@ public final class ProcessSeries implements ConstProcessSeries {
     }
     sendMsgSecondaryProcess(processResultDisplay);
     if (debug) {
-      System.out.println("ProcessSeries.startNextProcess:process="+process);
+      System.out.println("ProcessSeries.startNextProcess:process=" + process);
     }
     manager.startNextProcess(axisID, process, processResultDisplay, this,
-        dialogType);
+        dialogType, processDisplay);
     return true;
   }
-  
+
   public void setDebug(boolean input) {
     debug = input;
   }
@@ -235,6 +248,10 @@ public final class ProcessSeries implements ConstProcessSeries {
    * @param process
    */
   void setLastProcess(final String process) {
+    lastProcess = process;
+  }
+
+  void setLastProcess(final String process, ProcessDisplay display) {
     lastProcess = process;
   }
 
