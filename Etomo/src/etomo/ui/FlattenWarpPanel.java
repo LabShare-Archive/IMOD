@@ -35,9 +35,13 @@ import etomo.type.Run3dmodMenuOptions;
  * 
  * @version $Revision$
  * 
- * <p> $Log$ </p>
+ * <p> $Log$
+ * <p> Revision 1.1  2009/06/05 02:11:44  sueh
+ * <p> bug# 1219 A panel that can run flattenwarp.
+ * <p> </p>
  */
-final class FlattenWarpPanel implements Run3dmodButtonContainer {
+final class FlattenWarpPanel implements Run3dmodButtonContainer,
+    FlattenWarpDisplay {
   public static final String rcsid = "$Id$";
 
   private static final String WARP_SPACING_X_LABEL = "Spacing in X";
@@ -129,7 +133,7 @@ final class FlattenWarpPanel implements Run3dmodButtonContainer {
     metaData.setPostFlattenWarpSpacingInY(ltfWarpSpacingY.getText());
   }
 
-  boolean getParameters(FlattenWarpParam param) {
+  public boolean getParameters(FlattenWarpParam param) {
     param.setOneSurface(cbOneSurface.isSelected());
     String errorMessage = param.setWarpSpacingX(ltfWarpSpacingX.getText());
     if (errorMessage != null) {
@@ -164,7 +168,7 @@ final class FlattenWarpPanel implements Run3dmodButtonContainer {
     }
     else if (command.equals(btnFlattenWarp.getActionCommand())) {
       manager.flattenWarp(btnFlattenWarp, null, deferred3dmodButton,
-          run3dmodMenuOptions, dialogType, axisID);
+          run3dmodMenuOptions, dialogType, axisID, this);
     }
     else {
       throw new IllegalStateException("Unknown command " + command);
