@@ -39,6 +39,7 @@ import etomo.ui.MainParallelPanel;
 import etomo.ui.ParallelChooser;
 import etomo.ui.ParallelDialog;
 import etomo.ui.ParallelPanel;
+import etomo.ui.ProcessDisplay;
 import etomo.ui.UIHarness;
 import etomo.util.InvalidParameterException;
 import etomo.util.MRCHeader;
@@ -215,7 +216,7 @@ public final class ParallelManager extends BaseManager {
 
   void startNextProcess(final AxisID axisID, final String nextProcess,
       final ProcessResultDisplay processResultDisplay,
-      ProcessSeries processSeries, DialogType dialogType) {
+      ProcessSeries processSeries, DialogType dialogType, ProcessDisplay display) {
     if (nextProcess.equals(ProcessName.ANISOTROPIC_DIFFUSION.toString())) {
       anisotropicDiffusion(processSeries);
     }
@@ -756,6 +757,9 @@ public final class ParallelManager extends BaseManager {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.35  2009/04/14 23:01:28  sueh
+ * <p> bug# 1207  In reconnect:  handling some situations where process data is not running.
+ * <p>
  * <p> Revision 1.34  2009/04/13 22:22:09  sueh
  * <p> bug# 1207 Implemented doAutomation in BaseManager.
  * <p>

@@ -42,6 +42,7 @@ import etomo.ui.MainPanel;
 import etomo.ui.MainPeetPanel;
 import etomo.ui.ParallelPanel;
 import etomo.ui.PeetDialog;
+import etomo.ui.ProcessDisplay;
 import etomo.util.DatasetFiles;
 
 /**
@@ -58,6 +59,10 @@ import etomo.util.DatasetFiles;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.50  2009/04/27 17:57:09  sueh
+ * <p> bug# 1213 Moved call to set status bar from loadMatlabParam to
+ * <p> setParamFile.
+ * <p>
  * <p> Revision 1.49  2009/04/14 23:01:38  sueh
  * <p> bug# 1207  In reconnect:  handling some situations where process data is not running.
  * <p>
@@ -761,7 +766,7 @@ public final class PeetManager extends BaseManager {
    */
   void startNextProcess(final AxisID axisID, final String nextProcess,
       final ProcessResultDisplay processResultDisplay,
-      ProcessSeries processSeries, DialogType dialogType) {
+      ProcessSeries processSeries, DialogType dialogType, ProcessDisplay display) {
     if (nextProcess.equals(ProcessName.PROCESSCHUNKS.toString())) {
       processchunks(processSeries);
     }

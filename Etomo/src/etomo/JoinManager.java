@@ -53,6 +53,7 @@ import etomo.ui.Deferred3dmodButton;
 import etomo.ui.JoinDialog;
 import etomo.ui.MainJoinPanel;
 import etomo.ui.MainPanel;
+import etomo.ui.ProcessDisplay;
 import etomo.util.DatasetFiles;
 import etomo.util.Utilities;
 
@@ -70,6 +71,9 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.78  2009/04/14 23:01:18  sueh
+ * <p> bug# 1207  In reconnect:  handling some situations where process data is not running.
+ * <p>
  * <p> Revision 1.77  2009/04/13 22:21:53  sueh
  * <p> bug# 1207 Implemented doAutomation in BaseManager.
  * <p>
@@ -1465,7 +1469,7 @@ public final class JoinManager extends BaseManager {
    */
   void startNextProcess(final AxisID axisID, final String nextProcess,
       final ProcessResultDisplay processResultDisplay,
-      ProcessSeries processSeries, DialogType dialogType) {
+      ProcessSeries processSeries, DialogType dialogType, ProcessDisplay display) {
     if (debug) {
       System.err.println("startNextProcess:axisID=" + axisID + ",nextProcess="
           + nextProcess);
