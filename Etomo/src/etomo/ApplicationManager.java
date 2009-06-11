@@ -105,10 +105,12 @@ import etomo.type.ViewType;
 import etomo.ui.AbstractParallelDialog;
 import etomo.ui.AlignmentEstimationDialog;
 import etomo.ui.BeadtrackPanel;
+import etomo.ui.CCDEraserDisplay;
 import etomo.ui.CleanUpDialog;
 import etomo.ui.CoarseAlignDialog;
 import etomo.ui.FiducialModelDialog;
 import etomo.ui.FinalAlignedStackExpert;
+import etomo.ui.FlattenWarpDisplay;
 import etomo.ui.MainPanel;
 import etomo.ui.MainTomogramPanel;
 import etomo.ui.ParallelPanel;
@@ -116,12 +118,14 @@ import etomo.ui.PostProcessingDialog;
 import etomo.ui.PreProcessingDialog;
 import etomo.ui.ProcessDialog;
 import etomo.ui.Deferred3dmodButton;
+import etomo.ui.ProcessDisplay;
 import etomo.ui.SetupDialogExpert;
 import etomo.ui.TomogramCombinationDialog;
 import etomo.ui.TomogramGenerationExpert;
 import etomo.ui.TomogramPositioningExpert;
 import etomo.ui.UIExpert;
 import etomo.ui.UIExpertUtilities;
+import etomo.ui.WarpVolDisplay;
 import etomo.util.DatasetFiles;
 import etomo.util.FidXyz;
 import etomo.util.InvalidParameterException;
@@ -608,7 +612,7 @@ public final class ApplicationManager extends BaseManager implements
       mainPanel.showBlankProcess(axisID);
     }
     else {
-      updateEraserCom(axisID, false);
+      updateEraserCom(preProcDialog.getCCDEraserDisplay(), axisID, false);
       if (exitState == DialogExitState.EXECUTE) {
         processTrack.setPreProcessingState(ProcessState.COMPLETE, axisID);
         mainPanel.setPreProcessingState(ProcessState.COMPLETE, axisID);
@@ -633,7 +637,8 @@ public final class ApplicationManager extends BaseManager implements
   /**
    * Open 3dmod to create the manual erase model
    */
-  public void imodManualErase(AxisID axisID, Run3dmodMenuOptions menuOptions) {
+  public void imodManualErase(AxisID axisID, Run3dmodMenuOptions menuOptions,
+      DialogType dialogType) {
     String eraseModelName = metaData.getDatasetName() + axisID.getExtension()
         + ".erase";
     try {
@@ -642,8 +647,8 @@ public final class ApplicationManager extends BaseManager implements
       }
       imodManager.open(ImodManager.RAW_STACK_KEY, axisID, eraseModelName, true,
           menuOptions);
-      processTrack.setPreProcessingState(ProcessState.INPROGRESS, axisID);
-      mainPanel.setPreProcessingState(ProcessState.INPROGRESS, axisID);
+      processTrack.setState(ProcessState.INPROGRESS, axisID, dialogType);
+      mainPanel.setState(ProcessState.INPROGRESS, axisID, dialogType);
     }
     catch (SystemProcessException except) {
       except.printStackTrace();
@@ -668,20 +673,14 @@ public final class ApplicationManager extends BaseManager implements
    * @param axisID The axisID to process
    * @param trialMode Set to trial mode if true
    */
-  private void updateEraserCom(AxisID axisID, boolean trialMode) {
-    PreProcessingDialog preProcDialog;
-    if (axisID == AxisID.SECOND) {
-      preProcDialog = preProcDialogB;
-    }
-    else {
-      preProcDialog = preProcDialogA;
-    }
+  private void updateEraserCom(CCDEraserDisplay display, AxisID axisID,
+      boolean trialMode) {
     // Get the user input data from the dialog box. The CCDEraserParam
     // is first initialized from the currently loaded com script to
     // provide deafault values for those not handled by the dialog box
     // get function needs some error checking
     CCDEraserParam ccdEraserParam = comScriptMgr.getCCDEraserParam(axisID);
-    preProcDialog.getCCDEraserParams(ccdEraserParam);
+    display.getParameters(ccdEraserParam);
     ccdEraserParam.setTrialMode(trialMode);
     comScriptMgr.saveEraser(ccdEraserParam, axisID);
   }
@@ -691,10 +690,11 @@ public final class ApplicationManager extends BaseManager implements
    * @param axisID
    */
   private void eraser(AxisID axisID, ProcessResultDisplay processResultDisplay,
-      ConstProcessSeries processSeries) {
-    updateEraserCom(axisID, false);
-    processTrack.setPreProcessingState(ProcessState.INPROGRESS, axisID);
-    mainPanel.setPreProcessingState(ProcessState.INPROGRESS, axisID);
+      ConstProcessSeries processSeries, DialogType dialogType,
+      CCDEraserDisplay display) {
+    updateEraserCom(display, axisID, false);
+    processTrack.setState(ProcessState.INPROGRESS, axisID, dialogType);
+    mainPanel.setState(ProcessState.INPROGRESS, axisID, dialogType);
     String threadName;
     try {
       threadName = processMgr.eraser(axisID, processResultDisplay,
@@ -720,14 +720,15 @@ public final class ApplicationManager extends BaseManager implements
       final ProcessResultDisplay processResultDisplay,
       ProcessSeries processSeries,
       final Deferred3dmodButton deferred3dmodButton,
-      final Run3dmodMenuOptions run3dmodMenuOptions, DialogType dialogType) {
+      final Run3dmodMenuOptions run3dmodMenuOptions, DialogType dialogType,
+      CCDEraserDisplay display) {
     if (processSeries == null) {
       processSeries = new ProcessSeries(this, dialogType);
     }
     sendMsgProcessStarting(processResultDisplay);
-    updateEraserCom(axisID, true);
-    processTrack.setPreProcessingState(ProcessState.INPROGRESS, axisID);
-    mainPanel.setPreProcessingState(ProcessState.INPROGRESS, axisID);
+    updateEraserCom(display, axisID, true);
+    processTrack.setState(ProcessState.INPROGRESS, axisID, dialogType);
+    mainPanel.setState(ProcessState.INPROGRESS, axisID, dialogType);
     processSeries.setRun3dmodDeferred(deferred3dmodButton, run3dmodMenuOptions);
     String threadName;
     try {
@@ -966,7 +967,7 @@ public final class ApplicationManager extends BaseManager implements
    * @param axisID
    */
   public void replaceRawStack(AxisID axisID,
-      ProcessResultDisplay processResultDisplay) {
+      ProcessResultDisplay processResultDisplay, DialogType dialogType) {
     sendMsgProcessStarting(processResultDisplay);
     mainPanel.setProgressBar("Using fixed stack", 1, axisID);
     // Instantiate file objects for the original raw stack and the fixed stack
@@ -982,8 +983,8 @@ public final class ApplicationManager extends BaseManager implements
       sendMsgProcessFailedToStart(processResultDisplay);
       return;
     }
-    processTrack.setPreProcessingState(ProcessState.INPROGRESS, axisID);
-    mainPanel.setPreProcessingState(ProcessState.INPROGRESS, axisID);
+    processTrack.setState(ProcessState.INPROGRESS, axisID, dialogType);
+    mainPanel.setState(ProcessState.INPROGRESS, axisID, dialogType);
 
     // Rename the fixed stack to the raw stack file name and save the orginal
     // raw stack to _orig.st if that does not already exist
@@ -1294,10 +1295,11 @@ public final class ApplicationManager extends BaseManager implements
       final ProcessResultDisplay processResultDisplay,
       ProcessSeries processSeries,
       final Deferred3dmodButton deferred3dmodButton,
-      final Run3dmodMenuOptions run3dmodMenuOptions, final DialogType dialogType) {
+      final Run3dmodMenuOptions run3dmodMenuOptions,
+      final DialogType dialogType, CCDEraserDisplay display) {
     sendMsgProcessStarting(processResultDisplay);
     if (processSeries == null) {
-      processSeries = new ProcessSeries(this, dialogType);
+      processSeries = new ProcessSeries(this, dialogType, display);
     }
     processSeries.setRun3dmodDeferred(deferred3dmodButton, run3dmodMenuOptions);
     if (axisID == AxisID.SECOND && processBStack()) {
@@ -1305,7 +1307,7 @@ public final class ApplicationManager extends BaseManager implements
       extracttilts(axisID, processResultDisplay, processSeries);
       return;
     }
-    eraser(axisID, processResultDisplay, processSeries);
+    eraser(axisID, processResultDisplay, processSeries, dialogType, display);
   }
 
   private final boolean processBStack() {
@@ -5297,8 +5299,7 @@ public final class ApplicationManager extends BaseManager implements
    * @param menuOptions
    * @param axisID
    */
-  public void imodFlatten(
-      Run3dmodMenuOptions menuOptions, AxisID axisID) {
+  public void imodFlatten(Run3dmodMenuOptions menuOptions, AxisID axisID) {
     String key = ImodManager.FLAT_VOLUME_KEY;
     try {
       imodManager.open(key, axisID, menuOptions);
@@ -5321,7 +5322,7 @@ public final class ApplicationManager extends BaseManager implements
   }
 
   public boolean isFlipped(FileType fileType) {
-    if (fileType==null) {
+    if (fileType == null) {
       return false;
     }
     if (fileType == FileType.TRIM_VOL_OUTPUT) {
@@ -5330,7 +5331,7 @@ public final class ApplicationManager extends BaseManager implements
     else if (fileType == FileType.SQUEEZE_VOL_OUTPUT) {
       return isSqueezevolFlipped();
     }
-    throw new IllegalStateException("Unknown file type "+fileType);
+    throw new IllegalStateException("Unknown file type " + fileType);
   }
 
   /**
@@ -5359,8 +5360,8 @@ public final class ApplicationManager extends BaseManager implements
     return state.getTrimvolFlipped().is();
   }
 
-  public void imodMakeSurfaceModel(
-      Run3dmodMenuOptions menuOptions, AxisID axisID,int binning,FileType fileType) {
+  public void imodMakeSurfaceModel(Run3dmodMenuOptions menuOptions,
+      AxisID axisID, int binning, FileType fileType) {
     //Pick ImodManager key
     //Need to look at tomogram edge on.  Use -Y, unless using squeezevol and it
     //is not flipped.
@@ -5469,36 +5470,32 @@ public final class ApplicationManager extends BaseManager implements
         ProcessName.TRIMVOL);
   }
 
-  WarpVolParam updateWarpVolParam(final DialogType dialogType,
+  WarpVolParam updateWarpVolParam(final WarpVolDisplay display,
       final AxisID axisID) {
     WarpVolParam param = comScriptMgr.getWarpVolParamFromFlatten(axisID);
-    PostProcessingDialog dialog = (PostProcessingDialog) getDialog(dialogType,
-        axisID);
-    if (dialog == null) {
+    if (display == null) {
       uiHarness.openMessageDialog(
-          "Unable to get information from the post processing dialog.",
-          "Etomo Error", axisID, getManagerKey());
+          "Unable to get information from the display.", "Etomo Error", axisID,
+          getManagerKey());
       return null;
     }
-    if (!dialog.getParameters(param)) {
+    if (!display.getParameters(param)) {
       return null;
     }
     comScriptMgr.saveFlatten(param, axisID);
     return param;
   }
 
-  FlattenWarpParam updateFlattenWarpParam(final DialogType dialogType,
+  FlattenWarpParam updateFlattenWarpParam(FlattenWarpDisplay display,
       final AxisID axisID) {
     FlattenWarpParam param = new FlattenWarpParam(this);
-    PostProcessingDialog dialog = (PostProcessingDialog) getDialog(dialogType,
-        axisID);
-    if (dialog == null) {
+    if (display == null) {
       uiHarness.openMessageDialog(
-          "Unable to get information from the post processing dialog.",
-          "Etomo Error", axisID, getManagerKey());
+          "Unable to get information from the display.", "Etomo Error", axisID,
+          getManagerKey());
       return null;
     }
-    if (!dialog.getParameters(param)) {
+    if (!display.getParameters(param)) {
       return null;
     }
     return param;
@@ -5511,12 +5508,12 @@ public final class ApplicationManager extends BaseManager implements
       ProcessSeries processSeries,
       final Deferred3dmodButton deferred3dmodButton,
       final Run3dmodMenuOptions run3dmodMenuOptions,
-      final DialogType dialogType, final AxisID axisID) {
+      final DialogType dialogType, final AxisID axisID, WarpVolDisplay display) {
     if (processSeries == null) {
       processSeries = new ProcessSeries(this, dialogType);
     }
     sendMsgProcessStarting(processResultDisplay);
-    WarpVolParam param = updateWarpVolParam(dialogType, axisID);
+    WarpVolParam param = updateWarpVolParam(display, axisID);
     if (param == null) {
       return;
     }
@@ -5550,12 +5547,13 @@ public final class ApplicationManager extends BaseManager implements
       ProcessSeries processSeries,
       final Deferred3dmodButton deferred3dmodButton,
       final Run3dmodMenuOptions run3dmodMenuOptions,
-      final DialogType dialogType, final AxisID axisID) {
+      final DialogType dialogType, final AxisID axisID,
+      FlattenWarpDisplay display) {
     if (processSeries == null) {
       processSeries = new ProcessSeries(this, dialogType);
     }
     sendMsgProcessStarting(processResultDisplay);
-    FlattenWarpParam param = updateFlattenWarpParam(dialogType, axisID);
+    FlattenWarpParam param = updateFlattenWarpParam(display, axisID);
     if (param == null) {
       return;
     }
@@ -5872,7 +5870,7 @@ public final class ApplicationManager extends BaseManager implements
    */
   void startNextProcess(AxisID axisID, String nextProcess,
       ProcessResultDisplay processResultDisplay, ProcessSeries processSeries,
-      DialogType dialogType) {
+      DialogType dialogType, ProcessDisplay display) {
     UIExpert uiExpert = getUIExpert(dialogType, axisID);
     if (uiExpert != null) {
       uiExpert.startNextProcess(nextProcess, processResultDisplay,
@@ -5901,7 +5899,8 @@ public final class ApplicationManager extends BaseManager implements
       crossCorrelate(axisID, processResultDisplay, processSeries);
     }
     else if (nextProcess.equals(ProcessName.ERASER.toString())) {
-      eraser(axisID, processResultDisplay, processSeries);
+      eraser(axisID, processResultDisplay, processSeries, dialogType,
+          (CCDEraserDisplay) display);
     }
   }
 
@@ -6363,6 +6362,11 @@ public final class ApplicationManager extends BaseManager implements
 }
 /**
  * <p> $Log$
+ * <p> Revision 3.327  2009/06/05 01:44:04  sueh
+ * <p> bug# 1219 Added flatten, flattenWarp, imodFlatten,
+ * <p> imodMakeSurfaceModel, isFlipped, isSqueezed, isTrimvolFlipped,
+ * <p> updateFlattenWarpParam, and updateWarpVolParam.
+ * <p>
  * <p> Revision 3.326  2009/05/04 16:44:38  sueh
  * <p> bug# 1216 In openFiducialModelDialog using AxisType to prevent
  * <p> displaying the RAPTOR interface unless the dataset is dual axis.
