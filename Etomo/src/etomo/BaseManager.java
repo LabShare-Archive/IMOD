@@ -47,6 +47,7 @@ import etomo.ui.LogPanel;
 import etomo.ui.MainPanel;
 import etomo.ui.AbstractParallelDialog;
 import etomo.ui.ParallelPanel;
+import etomo.ui.ProcessDisplay;
 import etomo.ui.UIHarness;
 import etomo.util.UniqueKey;
 import etomo.util.Utilities;
@@ -142,7 +143,7 @@ public abstract class BaseManager {
 
   abstract void startNextProcess(AxisID axisID, String nextProcess,
       ProcessResultDisplay processResultDisplay, ProcessSeries processSeries,
-      DialogType dialogType);
+      DialogType dialogType, ProcessDisplay display);
 
   abstract Storable[] getStorables(int offset);
 
@@ -1311,6 +1312,9 @@ public abstract class BaseManager {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.117  2009/06/01 18:45:48  sueh
+ * <p> Added comment.
+ * <p>
  * <p> Revision 1.116  2009/05/06 20:49:46  sueh
  * <p> bug# 1207 In handleDifferentHost, exiting by calling UIHarness.exit.
  * <p>
