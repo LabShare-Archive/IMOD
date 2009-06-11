@@ -40,7 +40,8 @@ import etomo.type.ProcessResultDisplayFactory;
 import etomo.type.ReconScreenState;
 import etomo.type.Run3dmodMenuOptions;
 
-final class CCDEraserPanel implements ContextMenu, Run3dmodButtonContainer {
+final class CCDEraserPanel implements ContextMenu, Run3dmodButtonContainer,
+    CCDEraserDisplay {
   public static final String rcsid = "$Id$";
 
   private final JPanel pnlCCDEraser = new JPanel();
@@ -296,7 +297,7 @@ final class CCDEraserPanel implements ContextMenu, Run3dmodButtonContainer {
     //    .getButtonStateKey()));
   }
 
-  void getParameters(final CCDEraserParam ccdEraserParams) {
+  public void getParameters(final CCDEraserParam ccdEraserParams) {
     ccdEraserParams.setFindPeaks(cbXrayReplacement.isSelected());
     ccdEraserParams.setPeakCriterion(ltfPeakCriterion.getText());
     ccdEraserParams.setDiffCriterion(ltfDiffCriterion.getText());
@@ -374,14 +375,15 @@ final class CCDEraserPanel implements ContextMenu, Run3dmodButtonContainer {
       final Run3dmodMenuOptions run3dmodMenuOptions) {
     if (command.equals(btnFindXRays.getActionCommand())) {
       applicationManager.findXrays(axisID, btnFindXRays, null,
-          deferred3dmodButton, run3dmodMenuOptions, dialogType);
+          deferred3dmodButton, run3dmodMenuOptions, dialogType, this);
     }
     else if (command.equals(btnErase.getActionCommand())) {
       applicationManager.preEraser(axisID, btnErase, null, deferred3dmodButton,
-          run3dmodMenuOptions, dialogType);
+          run3dmodMenuOptions, dialogType, this);
     }
     else if (command.equals(btnReplaceRawStack.getActionCommand())) {
-      applicationManager.replaceRawStack(axisID, btnReplaceRawStack);
+      applicationManager
+          .replaceRawStack(axisID, btnReplaceRawStack, dialogType);
     }
     else if (command.equals(cbXrayReplacement.getActionCommand())) {
       enableXRayReplacement();
@@ -393,7 +395,8 @@ final class CCDEraserPanel implements ContextMenu, Run3dmodButtonContainer {
       applicationManager.imodXrayModel(axisID, run3dmodMenuOptions);
     }
     else if (command.equals(btnCreateModel.getActionCommand())) {
-      applicationManager.imodManualErase(axisID, run3dmodMenuOptions);
+      applicationManager.imodManualErase(axisID, run3dmodMenuOptions,
+          dialogType);
     }
     else if (command.equals(btnViewErased.getActionCommand())) {
       applicationManager.imodErasedStack(axisID, run3dmodMenuOptions);
@@ -533,6 +536,9 @@ final class CCDEraserPanel implements ContextMenu, Run3dmodButtonContainer {
 
 /**
  * <p> $Log$
+ * <p> Revision 3.32  2009/03/17 00:46:24  sueh
+ * <p> bug# 1186 Pass managerKey to everything that pops up a dialog.
+ * <p>
  * <p> Revision 3.31  2009/02/04 23:36:48  sueh
  * <p> bug# 1158 Changed id and exception classes in LogFile.
  * <p>
