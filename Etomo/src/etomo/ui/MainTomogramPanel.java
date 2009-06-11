@@ -28,6 +28,9 @@ import etomo.type.ProcessTrack;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.23  2009/02/04 23:36:48  sueh
+ * <p> bug# 1158 Changed id and exception classes in LogFile.
+ * <p>
  * <p> Revision 1.22  2008/10/16 21:37:02  sueh
  * <p> bug# 1141 Created FinalAlignedStack dialog to run full aligned stack and mtf filter.
  * <p>
@@ -400,8 +403,9 @@ public class MainTomogramPanel extends MainPanel {
   /**
    * Set the status bar with the file name of the data parameter file
    */
-  public final void setStatusBarText(File paramFile, BaseMetaData metaData,LogPanel logPanel) {
-    super.setStatusBarText(paramFile, metaData,logPanel);
+  public final void setStatusBarText(File paramFile, BaseMetaData metaData,
+      LogPanel logPanel) {
+    super.setStatusBarText(paramFile, metaData, logPanel);
   }
 
   protected void resetAxisPanels() {
