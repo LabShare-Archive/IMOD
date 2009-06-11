@@ -11,7 +11,6 @@ import javax.swing.event.ChangeListener;
 import etomo.ApplicationManager;
 import etomo.comscript.ConstSqueezevolParam;
 import etomo.comscript.ConstWarpVolParam;
-import etomo.comscript.FlattenWarpParam;
 import etomo.comscript.SqueezevolParam;
 import etomo.comscript.TrimvolParam;
 import etomo.comscript.WarpVolParam;
@@ -132,10 +131,6 @@ public final class PostProcessingDialog extends ProcessDialog implements
     squeezeVolPanel.getParameters(metaData);
   }
 
-  public boolean getParameters(FlattenWarpParam param) {
-    return flattenPanel.getParameters(param);
-  }
-
   public boolean getParameters(WarpVolParam param) {
     return flattenPanel.getParameters(param);
   }
@@ -244,6 +239,10 @@ public final class PostProcessingDialog extends ProcessDialog implements
 }
 /**
  * <p> $Log$
+ * <p> Revision 3.40  2009/06/05 02:14:43  sueh
+ * <p> bug# 1219 Added tabs.  Factored out squeezevol.  Attached
+ * <p> SqueezeVolPanel and FlattenPanel.
+ * <p>
  * <p> Revision 3.39  2008/10/16 22:30:27  sueh
  * <p> bug# 1141 Removed fixRootPanel because it doesn't do anything.
  * <p>
