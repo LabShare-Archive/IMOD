@@ -15,7 +15,6 @@ import javax.swing.JPanel;
 
 import etomo.ApplicationManager;
 import etomo.comscript.ConstWarpVolParam;
-import etomo.comscript.FlattenWarpParam;
 import etomo.comscript.WarpVolParam;
 import etomo.storage.LogFile;
 import etomo.storage.autodoc.AutodocFactory;
@@ -41,9 +40,13 @@ import etomo.type.Run3dmodMenuOptions;
  * 
  * @version $Revision$
  * 
- * <p> $Log$ </p>
+ * <p> $Log$
+ * <p> Revision 1.1  2009/06/05 02:11:23  sueh
+ * <p> bug# 1219 Panel that can run warpvol using a file called flatten.com.
+ * <p> </p>
  */
-final class FlattenPanel implements Run3dmodButtonContainer, FlattenWarpParent {
+final class FlattenPanel implements Run3dmodButtonContainer, FlattenWarpParent,
+    WarpVolDisplay {
   public static final String rcsid = "$Id$";
 
   private static final String OUTPUT_SIZE_Z_LABEL = "Output thickness in Z";
@@ -60,10 +63,12 @@ final class FlattenPanel implements Run3dmodButtonContainer, FlattenWarpParent {
       OUTPUT_SIZE_Z_LABEL + ": ");
   private final Run3dmodButton btnImodFlatten = Run3dmodButton
       .get3dmodInstance("Open Flattened Tomogram", this);
-  private final FileTextField ftfTemporaryDirectory =  new FileTextField("Temporary directory:");
-  
+  private final FileTextField ftfTemporaryDirectory = new FileTextField(
+      "Temporary directory:");
+
   private final FlattenWarpPanel flattenWarpPanel;
   private final Run3dmodButton btnFlatten;
+  
   private final AxisID axisID;
   private final ApplicationManager manager;
   private final DialogType dialogType;
@@ -156,7 +161,7 @@ final class FlattenPanel implements Run3dmodButtonContainer, FlattenWarpParent {
       final Run3dmodMenuOptions run3dmodMenuOptions) {
     if (command.equals(btnFlatten.getActionCommand())) {
       manager.flatten(btnFlatten, null, deferred3dmodButton,
-          run3dmodMenuOptions, dialogType, axisID);
+          run3dmodMenuOptions, dialogType, axisID, this);
     }
     else if (command.equals(btnImodFlatten.getActionCommand())) {
       manager.imodFlatten(run3dmodMenuOptions, axisID);
@@ -168,7 +173,7 @@ final class FlattenPanel implements Run3dmodButtonContainer, FlattenWarpParent {
       throw new IllegalStateException("Unknown command " + command);
     }
   }
-  
+
   private void temporaryDirectoryAction() {
     //  Open up the file chooser in the current working directory
     JFileChooser chooser = new JFileChooser(new File(manager
@@ -200,11 +205,7 @@ final class FlattenPanel implements Run3dmodButtonContainer, FlattenWarpParent {
     flattenWarpPanel.getParameters(metaData);
   }
 
-  boolean getParameters(FlattenWarpParam param) {
-    return flattenWarpPanel.getParameters(param);
-  }
-
-  boolean getParameters(WarpVolParam param) {
+  public boolean getParameters(WarpVolParam param) {
     param.setInterpolationOrderLinear(cbInterpolationOrderLinear.isSelected());
     String errorMessage = param.setOutputSizeZ(ltfOutputSizeZ.getText());
     if (errorMessage != null) {
@@ -224,7 +225,7 @@ final class FlattenPanel implements Run3dmodButtonContainer, FlattenWarpParent {
     ltfOutputSizeZ.setText(param.getOutputSizeZ());
     ftfTemporaryDirectory.setText(param.getTemporaryDirectory());
   }
-  
+
   private void setToolTipText() {
     ReadOnlyAutodoc autodoc = null;
     try {
@@ -245,15 +246,14 @@ final class FlattenPanel implements Run3dmodButtonContainer, FlattenWarpParent {
           WarpVolParam.INPUT_FILE_OPTION));
       rbInputFileSqueezeVol.setToolTipText(EtomoAutodoc.getTooltip(autodoc,
           WarpVolParam.INPUT_FILE_OPTION));
-      cbInterpolationOrderLinear.setToolTipText(EtomoAutodoc.getTooltip(autodoc,
-          WarpVolParam.INTERPOLATION_ORDER_OPTION));
+      cbInterpolationOrderLinear.setToolTipText(EtomoAutodoc.getTooltip(
+          autodoc, WarpVolParam.INTERPOLATION_ORDER_OPTION));
       ltfOutputSizeZ.setToolTipText(EtomoAutodoc.getTooltip(autodoc,
           WarpVolParam.OUTPUT_SIZE_X_Y_Z_OPTION));
       ftfTemporaryDirectory.setToolTipText(EtomoAutodoc.getTooltip(autodoc,
           WarpVolParam.TEMPORARY_DIRECTORY_OPTION));
     }
-    btnFlatten
-        .setToolTipText("Run warpvol.");
+    btnFlatten.setToolTipText("Run warpvol.");
     btnImodFlatten.setToolTipText("Open warpvol output in 3dmod.");
   }
 
