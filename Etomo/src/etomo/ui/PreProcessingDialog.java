@@ -26,6 +26,9 @@ import etomo.comscript.CCDEraserParam;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.15  2009/01/20 20:19:22  sueh
+ * <p> bug# 1102 Changed labeled panels to type EtomoPanel so that they can name themselves.
+ * <p>
  * <p> Revision 3.14  2008/10/16 22:30:38  sueh
  * <p> bug# 1141 Removed fixRootPanel because it doesn't do anything.
  * <p>
@@ -191,6 +194,10 @@ public class PreProcessingDialog extends ProcessDialog {
 
   public final void setParameters(ReconScreenState screenState) {
     panelCCDEraser.setParameters(screenState);
+  }
+  
+  public CCDEraserDisplay getCCDEraserDisplay(){
+    return panelCCDEraser;
   }
 
   /**
