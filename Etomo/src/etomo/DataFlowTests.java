@@ -204,11 +204,11 @@ public class DataFlowTests {
   private static void preProcessing(AxisID axisID) {
     applicationManager.openPreProcDialog(axisID);
     uiHarness.pack(applicationManager);
-    applicationManager.findXrays(axisID, null, null, null, null, null);
+    applicationManager.findXrays(axisID, null, null, null, null, null, null);
     waitForThread(axisID);
-    applicationManager.preEraser(axisID, null, null, null, null, null);
+    applicationManager.preEraser(axisID, null, null, null, null, null, null);
     waitForThread(axisID);
-    applicationManager.replaceRawStack(axisID, null);
+    applicationManager.replaceRawStack(axisID, null, null);
     applicationManager.donePreProcDialog(axisID);
   }
 
@@ -353,6 +353,10 @@ public class DataFlowTests {
 }
 /**
  * <p> $Log$
+ * <p> Revision 3.28  2008/12/15 22:56:20  sueh
+ * <p> bug# 1161 Made EtomoDirector.getCurrentManager private.  Added a
+ * <p> public test version for public access.
+ * <p>
  * <p> Revision 3.27  2008/10/16 20:54:36  sueh
  * <p> bug# 1141 Moved newst to FinalAlignedStackDialog.  Not keeping
  * <p> DataFlowTests up to date.
