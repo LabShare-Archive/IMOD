@@ -35,6 +35,7 @@ bn.fix-fiducial-model=
 
 bn.done =
 
+
 [function = axis-a]
 run.function.raptor=
 # Test beadtrack
@@ -53,6 +54,11 @@ bn.open-stack-in-3dmod=
 # RAPTOR takes too long when the correct number of beads are used.
 tf.#-of-beads-to-choose=10
 assert.tf.unbinned-bead-diameter = %{int-unbinned-bead-diameter}
+if.var.raptor.run.function.run-raptor=
+rb.make-seed-and-track=
+
+
+[function = run-raptor]
 bn.run-raptor=
 wait.process.running-runraptor=done
 bn.open-raptor-model-in-3dmod=
@@ -66,7 +72,6 @@ bn.run-raptor=
 wait.process.running-runraptor=done
 bn.open-raptor-model-in-3dmod=
 bn.use-raptor-result-as-fiducial-model=
-rb.make-seed-and-track=
 
 
 [function = test-gui-beadtracker-enabled]
