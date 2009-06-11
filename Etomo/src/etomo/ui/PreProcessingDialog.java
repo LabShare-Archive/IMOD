@@ -1,16 +1,18 @@
 package etomo.ui;
 
-import java.awt.*;
-import java.awt.event.*;
+import java.awt.Component;
+import java.awt.event.ActionEvent;
 
 import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.JLabel;
 
 import etomo.ApplicationManager;
-import etomo.type.*;
 import etomo.comscript.ConstCCDEraserParam;
-import etomo.comscript.CCDEraserParam;
+import etomo.type.AxisID;
+import etomo.type.DialogType;
+import etomo.type.ProcessResultDisplay;
+import etomo.type.ReconScreenState;
 
 /**
  * <p>Description: </p>
@@ -26,6 +28,10 @@ import etomo.comscript.CCDEraserParam;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.16  2009/06/11 17:00:23  sueh
+ * <p> bug# 1221 Added getCCDEraserDisplay for the dialog specific function in
+ * <p> the manager (the save dialog function).
+ * <p>
  * <p> Revision 3.15  2009/01/20 20:19:22  sueh
  * <p> bug# 1102 Changed labeled panels to type EtomoPanel so that they can name themselves.
  * <p>
@@ -129,19 +135,20 @@ import etomo.comscript.CCDEraserParam;
  * <p> Initial CVS entry, basic functionality not including combining
  * <p> </p>
  */
-public class PreProcessingDialog extends ProcessDialog {
+public final class PreProcessingDialog extends ProcessDialog {
   public static final String rcsid = "$Id$";
 
-  private JLabel textDM2MRC = new JLabel(
+  private final JLabel textDM2MRC = new JLabel(
       "No digital micrograph files detected:  ");
-  private EtomoPanel pnlDMConvert = new EtomoPanel();
-  private CheckBox cbUniqueHeaders = new CheckBox(
+  private final EtomoPanel pnlDMConvert = new EtomoPanel();
+  private final CheckBox cbUniqueHeaders = new CheckBox(
       "Digital micrograph files have unique headers");
+  private final EtomoPanel pnlEraser = new EtomoPanel();
 
-  private EtomoPanel pnlEraser = new EtomoPanel();
-  private CCDEraserPanel panelCCDEraser;
+  private final CCDEraserPanel panelCCDEraser;
 
-  public PreProcessingDialog(ApplicationManager appManager, AxisID axisID) {
+  public PreProcessingDialog(final ApplicationManager appManager,
+      final AxisID axisID) {
     super(appManager, axisID, DialogType.PRE_PROCESSING);
     panelCCDEraser = CCDEraserPanel.getInstance(appManager, axisID, dialogType);
 
@@ -188,26 +195,19 @@ public class PreProcessingDialog extends ProcessDialog {
   /**
    * Set the parameters for the specified CCD eraser panel
    */
-  public void setCCDEraserParams(ConstCCDEraserParam ccdEraserParams) {
+  public void setCCDEraserParams(final ConstCCDEraserParam ccdEraserParams) {
     panelCCDEraser.setParameters(ccdEraserParams);
   }
 
-  public final void setParameters(ReconScreenState screenState) {
+  public void setParameters(final ReconScreenState screenState) {
     panelCCDEraser.setParameters(screenState);
   }
-  
-  public CCDEraserDisplay getCCDEraserDisplay(){
+
+  public CCDEraserDisplay getCCDEraserDisplay() {
     return panelCCDEraser;
   }
 
-  /**
-   * Get the input parameters from the dialog box.
-   */
-  public void getCCDEraserParams(CCDEraserParam ccdEraserParams) {
-    panelCCDEraser.getParameters(ccdEraserParams);
-  }
-
-  public void buttonAdvancedAction(ActionEvent event) {
+  public void buttonAdvancedAction(final ActionEvent event) {
     super.buttonAdvancedAction(event);
     updateAdvanced();
   }
