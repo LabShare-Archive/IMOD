@@ -11,6 +11,9 @@
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.32  2009/03/24 20:27:13  sueh
+ * <p> bug# 1201 Added angleOffset.
+ * <p>
  * <p> Revision 3.31  2009/03/17 00:46:24  sueh
  * <p> bug# 1186 Pass managerKey to everything that pops up a dialog.
  * <p>
@@ -190,7 +193,8 @@ import etomo.type.DialogType;
 import etomo.type.EtomoAutodoc;
 import etomo.type.ProcessResultDisplay;
 
-final class CrossCorrelationPanel implements ContextMenu, Expandable {
+final class CrossCorrelationPanel implements ContextMenu, Expandable,
+    TiltXcorrDisplay {
   public static final String rcsid = "$Id$";
 
   private final EtomoPanel pnlCrossCorrelation = new EtomoPanel();
@@ -228,7 +232,8 @@ final class CrossCorrelationPanel implements ContextMenu, Expandable {
   private final CheckBox cbNoCosineStretch = new CheckBox("No Cosine Stretch");
   private final LabeledTextField ltfViewRange = new LabeledTextField(
       "View range (start,end): ");
-  private final LabeledTextField ltfAngleOffset = new LabeledTextField("Tilt angle offset: ");
+  private final LabeledTextField ltfAngleOffset = new LabeledTextField(
+      "Tilt angle offset: ");
 
   private final AxisID axisID;
   private final DialogType dialogType;
@@ -440,7 +445,7 @@ final class CrossCorrelationPanel implements ContextMenu, Expandable {
   protected void buttonAction(ActionEvent event) {
     if (event.getActionCommand().equals(btnCrossCorrelate.getActionCommand())) {
       applicationManager.preCrossCorrelate(axisID, btnCrossCorrelate, null,
-          dialogType);
+          dialogType, this);
     }
     else {
       updateCrossCorrelationPanel();
@@ -532,7 +537,7 @@ final class CrossCorrelationPanel implements ContextMenu, Expandable {
     cbExcludeCentralPeak.setToolTipText(EtomoAutodoc.getTooltip(autodoc,
         "ExcludeCentralPeak"));
     ltfAngleOffset.setToolTipText(EtomoAutodoc.getTooltip(autodoc,
-    "AngleOffset"));
+        "AngleOffset"));
     btnCrossCorrelate
         .setToolTipText("Find alignment transformations between successive images by cross-correlation.");
   }

@@ -11,6 +11,9 @@
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.51  2009/01/20 19:50:53  sueh
+ * <p> bug# 1102 Changed labeled panels to type EtomoPanel so that they can name themselves.
+ * <p>
  * <p> Revision 3.50  2008/10/16 21:09:32  sueh
  * <p> bug# 1141 Removed fixRootPanel because it doesn't do anything.
  * <p>
@@ -261,9 +264,6 @@ import etomo.ApplicationManager;
 import etomo.comscript.BlendmontParam;
 import etomo.comscript.ConstNewstParam;
 import etomo.comscript.ConstTiltxcorrParam;
-import etomo.comscript.FortranInputSyntaxException;
-import etomo.comscript.NewstParam;
-import etomo.comscript.TiltxcorrParam;
 import etomo.type.AxisID;
 import etomo.type.BaseScreenState;
 import etomo.type.ConstMetaData;
@@ -428,12 +428,12 @@ public final class CoarseAlignDialog extends ProcessDialog implements
     pnlCrossCorrelation.setParameters(tiltXcorrParams);
   }
 
-  /**
-   * Get the parameters from the specified cross correlation panel
-   */
-  public void getCrossCorrelationParams(TiltxcorrParam tiltXcorrParams)
-      throws FortranInputSyntaxException {
-    pnlCrossCorrelation.getParameters(tiltXcorrParams);
+  public TiltXcorrDisplay getTiltXcorrDisplay() {
+    return pnlCrossCorrelation;
+  }
+  
+  public NewstackDisplay getNewstackDisplay() {
+    return pnlPrenewst;
   }
 
   /**
@@ -450,22 +450,6 @@ public final class CoarseAlignDialog extends ProcessDialog implements
    */
   public void setParams(BlendmontParam blendmontParam) {
     pnlPrenewst.setParameters(blendmontParam);
-  }
-
-  /**
-   * Get thre prenewst params from the prenewst panel
-   * @param prenewstParam
-   */
-  public void getPrenewstParams(NewstParam prenewstParam) {
-    pnlPrenewst.getParameters(prenewstParam);
-  }
-
-  /**
-   * Get the preblend params from the prenewst panel
-   * @param BlendmontParam
-   */
-  public void getParams(BlendmontParam blendmontParam) {
-    pnlPrenewst.getParameters(blendmontParam);
   }
 
   public void setParameters(ReconScreenState screenState) {
