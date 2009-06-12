@@ -12,6 +12,9 @@
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.29  2009/01/20 20:19:11  sueh
+ * <p> bug# 1102 Changed labeled panels to type EtomoPanel so that they can name themselves.
+ * <p>
  * <p> Revision 1.28  2008/05/28 02:50:37  sueh
  * <p> bug# 1111 Add a dialogType parameter to the ProcessSeries
  * <p> constructor.  DialogType must be passed to any function that constructs
@@ -142,7 +145,7 @@ import etomo.type.Run3dmodMenuOptions;
 import etomo.type.ViewType;
 
 final class PrenewstPanel implements ContextMenu, Expandable,
-    Run3dmodButtonContainer {
+    Run3dmodButtonContainer, NewstackDisplay, BlendmontDisplay {
   public static final String rcsid = "$Id$";
 
   private final EtomoPanel pnlPrenewst = new EtomoPanel();
@@ -373,7 +376,7 @@ final class PrenewstPanel implements ContextMenu, Expandable,
       Run3dmodMenuOptions menuOptions) {
     if (command.equals(btnCoarseAlign.getActionCommand())) {
       applicationManager.coarseAlign(axisID, btnCoarseAlign, null,
-          deferred3dmodButton, menuOptions, dialogType);
+          deferred3dmodButton, menuOptions, dialogType, this, this);
     }
   }
 
