@@ -26,6 +26,7 @@ import etomo.ApplicationManager;
 import etomo.EtomoDirector;
 import etomo.comscript.CtfPhaseFlipParam;
 import etomo.comscript.CtfPlotterParam;
+import etomo.comscript.FortranInputSyntaxException;
 import etomo.storage.LogFile;
 import etomo.storage.MtfFileFilter;
 import etomo.storage.autodoc.AutodocFactory;
@@ -36,6 +37,7 @@ import etomo.type.ConstStringParameter;
 import etomo.type.DialogType;
 import etomo.type.EnumeratedType;
 import etomo.type.EtomoAutodoc;
+import etomo.type.MetaData;
 import etomo.type.PanelHeaderState;
 import etomo.type.ProcessName;
 import etomo.type.ProcessResultDisplay;
@@ -59,6 +61,9 @@ import etomo.util.DatasetFiles;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.15  2009/06/10 22:16:55  sueh
+ * <p> bug# 1221 Factoring Newstack and blendmont into NewstackPanel.
+ * <p>
  * <p> Revision 1.14  2009/03/17 00:46:24  sueh
  * <p> bug# 1186 Pass managerKey to everything that pops up a dialog.
  * <p>
@@ -110,7 +115,7 @@ import etomo.util.DatasetFiles;
  * <p> </p>
  */
 public final class FinalAlignedStackDialog extends ProcessDialog implements
-    ContextMenu, FiducialessParams, Expandable, Run3dmodButtonContainer {
+    ContextMenu, Expandable, Run3dmodButtonContainer {
   public static final String rcsid = "$Id$";
 
   private static final String MTF_FILE_LABEL = "MTF file: ";
@@ -215,7 +220,7 @@ public final class FinalAlignedStackDialog extends ProcessDialog implements
     super(appMgr, axisID, DIALOG_TYPE);
     this.expert = expert;
     this.curTab = curTab;
-    newstackPanel = NewstackPanel.getInstance(appMgr, axisID, DIALOG_TYPE,expert);
+    newstackPanel = NewstackPanel.getInstance(appMgr, axisID, DIALOG_TYPE);
     screenState = appMgr.getScreenState(axisID);
     ProcessResultDisplayFactory displayFactory = appMgr
         .getProcessResultDisplayFactory(axisID);
@@ -480,12 +485,33 @@ public final class FinalAlignedStackDialog extends ProcessDialog implements
     return ltfSphericalAberration.getText();
   }
 
-  String getAmplitudeContrast() {
-    return ltfAmplitudeContrast.getText();
+  /**
+   * The Metadata values that are from the setup dialog should not be overrided
+   * by this dialog unless the Metadata values are empty.
+   * @param metaData
+   * @throws FortranInputSyntaxException
+   */
+  void getParameters(MetaData metaData) throws FortranInputSyntaxException {
+    metaData.setFinalStackCtfCorrectionParallel(axisID, isParallelProcess());
+    metaData.setFinalStackFiducialDiameter(axisID, getFiducialDiameter());
+    metaData.setFinalStackPolynomialOrder(axisID, getPolynomialOrder());
+    newstackPanel.getParameters(metaData);
   }
 
-  int getBinning() {
-    return newstackPanel.getBinning();
+  BlendmontDisplay getBlendmontDisplay() {
+    return newstackPanel;
+  }
+
+  NewstackDisplay getNewstackDisplay() {
+    return newstackPanel;
+  }
+
+  FiducialessParams getFiducialessParams() {
+    return newstackPanel;
+  }
+
+  String getAmplitudeContrast() {
+    return ltfAmplitudeContrast.getText();
   }
 
   void getFilterHeaderState(PanelHeaderState state) {
@@ -593,10 +619,6 @@ public final class FinalAlignedStackDialog extends ProcessDialog implements
     return cbUseExpectedDefocus.isSelected();
   }
 
-  String getSizeToOutputInXandY() {
-    return newstackPanel.getSizeToOutputInXandY();
-  }
-
   void setSizeToOutputInXandY(String input) {
     newstackPanel.setSizeToOutputInXandY(input);
   }
@@ -625,10 +647,6 @@ public final class FinalAlignedStackDialog extends ProcessDialog implements
     else if (rbPolynomialOrderFitAPlane.getEnumeratedType() == enumeratedType) {
       rbPolynomialOrderFitAPlane.setSelected(true);
     }
-  }
-
-  boolean isUseLinearInterpolation() {
-    return newstackPanel.isUseLinearInterpolation();
   }
 
   private void layoutCcdEraser() {
@@ -918,7 +936,7 @@ public final class FinalAlignedStackDialog extends ProcessDialog implements
   void buttonAction(final String command,
       final Deferred3dmodButton deferred3dmodButton,
       final Run3dmodMenuOptions run3dmodMenuOptions) {
-     if (command.equals(btnFilter.getActionCommand())) {
+    if (command.equals(btnFilter.getActionCommand())) {
       expert.mtffilter(btnFilter, null, deferred3dmodButton,
           run3dmodMenuOptions);
     }

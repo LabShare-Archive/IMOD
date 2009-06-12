@@ -13,6 +13,8 @@ import javax.swing.JPanel;
 import javax.swing.SpinnerNumberModel;
 
 import etomo.ApplicationManager;
+import etomo.comscript.BlendmontParam;
+import etomo.comscript.FortranInputSyntaxException;
 import etomo.comscript.NewstParam;
 import etomo.storage.LogFile;
 import etomo.storage.autodoc.AutodocFactory;
@@ -21,11 +23,13 @@ import etomo.type.AxisID;
 import etomo.type.ConstEtomoNumber;
 import etomo.type.DialogType;
 import etomo.type.EtomoAutodoc;
+import etomo.type.MetaData;
 import etomo.type.PanelHeaderState;
 import etomo.type.ProcessResultDisplayFactory;
 import etomo.type.ReconScreenState;
 import etomo.type.Run3dmodMenuOptions;
 import etomo.type.ViewType;
+import etomo.util.InvalidParameterException;
 
 /**
  * <p>Description: </p>
@@ -41,8 +45,12 @@ import etomo.type.ViewType;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.1  2009/06/10 22:17:14  sueh
+ * <p> bug# 1221 Factoring Newstack and blendmont into NewstackPanel.
+ * <p>
  */
-final class NewstackPanel implements Expandable, Run3dmodButtonContainer {
+final class NewstackPanel implements Expandable, Run3dmodButtonContainer,
+    FiducialessParams, BlendmontDisplay, NewstackDisplay {
   public static final String rcsid = "$Id$";
 
   static final String SIZE_TO_OUTPUT_IN_X_AND_Y_LABEL = "Size to output";
@@ -66,18 +74,16 @@ final class NewstackPanel implements Expandable, Run3dmodButtonContainer {
       "View Full Aligned Stack", this);
 
   private final Run3dmodButton btnNewst;
-  private final NewstackPanelExpert expert;
 
   private final AxisID axisID;
   private final ApplicationManager manager;
   private final DialogType dialogType;
 
   private NewstackPanel(ApplicationManager manager, AxisID axisID,
-      DialogType dialogType, NewstackPanelExpert expert) {
+      DialogType dialogType) {
     this.manager = manager;
     this.axisID = axisID;
     this.dialogType = dialogType;
-    this.expert = expert;
     if (manager.getMetaData().getViewType() == ViewType.MONTAGE) {
       header = PanelHeader.getAdvancedBasicOnlyInstance("Blendmont", this,
           dialogType);
@@ -92,9 +98,8 @@ final class NewstackPanel implements Expandable, Run3dmodButtonContainer {
   }
 
   static NewstackPanel getInstance(ApplicationManager manager, AxisID axisID,
-      DialogType dialogType, NewstackPanelExpert expert) {
-    NewstackPanel instance = new NewstackPanel(manager, axisID, dialogType,
-        expert);
+      DialogType dialogType) {
+    NewstackPanel instance = new NewstackPanel(manager, axisID, dialogType);
     instance.createPanel();
     instance.addListeners();
     instance.setToolTipText();
@@ -149,9 +154,53 @@ final class NewstackPanel implements Expandable, Run3dmodButtonContainer {
   void setUseLinearInterpolation(boolean select) {
     cbUseLinearInterpolation.setSelected(select);
   }
+  
+  /**
+   * The Metadata values that are from the setup dialog should not be overrided
+   * by this dialog unless the Metadata values are empty.
+   * @param metaData
+   * @throws FortranInputSyntaxException
+   */
+   void getParameters(MetaData metaData)
+      throws FortranInputSyntaxException {
+    metaData.setSizeToOutputInXandY(axisID, ltfSizeToOutputInXandY
+        .getText());
+    metaData.setFinalStackBinning(axisID, getBinning());
+  }
 
-  boolean isUseLinearInterpolation() {
-    return cbUseLinearInterpolation.isSelected();
+  public void getParameters(BlendmontParam blendmontParam)
+      throws FortranInputSyntaxException, InvalidParameterException,
+      IOException {
+    blendmontParam
+        .setLinearInterpolation(cbUseLinearInterpolation.isSelected());
+    blendmontParam.setBinByFactor(getBinning());
+    try {
+      blendmontParam.convertToStartingAndEndingXandY(ltfSizeToOutputInXandY
+          .getText(), manager.getMetaData().getImageRotation(axisID));
+    }
+    catch (FortranInputSyntaxException e) {
+      e.printStackTrace();
+      throw new FortranInputSyntaxException(
+          NewstackPanel.SIZE_TO_OUTPUT_IN_X_AND_Y_LABEL + ":  "
+              + e.getMessage());
+    }
+  }
+
+  //  Copy the newstack parameters from the GUI to the NewstParam object
+  public void getParameters(NewstParam newstParam)
+      throws FortranInputSyntaxException {
+    newstParam.setLinearInterpolation(cbUseLinearInterpolation.isSelected());
+    int binning = getBinning();
+    // Only explicitly write out the binning if its value is something other than
+    // the default of 1 to keep from cluttering up the com script  
+    if (binning > 1) {
+      newstParam.setBinByFactor(binning);
+    }
+    else {
+      newstParam.setBinByFactor(Integer.MIN_VALUE);
+    }
+    newstParam.setSizeToOutputInXandY(ltfSizeToOutputInXandY.getText(),
+        getBinning(), manager.getMetaData().getImageRotation(axisID), manager);
   }
 
   void setBinning(int binning) {
@@ -162,7 +211,7 @@ final class NewstackPanel implements Expandable, Run3dmodButtonContainer {
     spinBinning.setValue(binning);
   }
 
-  int getBinning() {
+  private int getBinning() {
     return ((Integer) spinBinning.getValue()).intValue();
   }
 
@@ -183,12 +232,8 @@ final class NewstackPanel implements Expandable, Run3dmodButtonContainer {
     ltfRotation.setText(tiltAxisAngle);
   }
 
-  float getImageRotation() throws NumberFormatException {
+  public float getImageRotation() throws NumberFormatException {
     return Float.parseFloat(ltfRotation.getText());
-  }
-
-  String getSizeToOutputInXandY() {
-    return ltfSizeToOutputInXandY.getText();
   }
 
   void setSizeToOutputInXandY(String input) {
@@ -239,7 +284,8 @@ final class NewstackPanel implements Expandable, Run3dmodButtonContainer {
       final Deferred3dmodButton deferred3dmodButton,
       final Run3dmodMenuOptions run3dmodMenuOptions) {
     if (command.equals(btnNewst.getActionCommand())) {
-      expert.newst(btnNewst, null, deferred3dmodButton, run3dmodMenuOptions);
+      manager.newst(btnNewst, null, deferred3dmodButton, axisID,
+          run3dmodMenuOptions, dialogType, this, this, this);
     }
     else if (command.equals(cbFiducialess.getActionCommand())) {
       updateFiducialess();

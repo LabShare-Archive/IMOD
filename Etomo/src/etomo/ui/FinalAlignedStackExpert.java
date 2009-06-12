@@ -18,7 +18,6 @@ import etomo.comscript.CtfPhaseFlipParam;
 import etomo.comscript.CtfPlotterParam;
 import etomo.comscript.FortranInputSyntaxException;
 import etomo.comscript.MTFFilterParam;
-import etomo.comscript.NewstParam;
 import etomo.comscript.SplitCorrectionParam;
 import etomo.comscript.XfmodelParam;
 import etomo.process.ImodManager;
@@ -34,7 +33,6 @@ import etomo.type.DialogExitState;
 import etomo.type.DialogType;
 import etomo.type.EnumeratedType;
 import etomo.type.EtomoNumber;
-import etomo.type.MetaData;
 import etomo.type.ProcessName;
 import etomo.type.ProcessResult;
 import etomo.type.ProcessResultDisplay;
@@ -62,6 +60,9 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.13  2009/06/10 22:17:04  sueh
+ * <p> bug# 1221 Factoring Newstack and blendmont into NewstackPanel.
+ * <p>
  * <p> Revision 1.12  2009/03/17 00:46:23  sueh
  * <p> bug# 1186 Pass managerKey to everything that pops up a dialog.
  * <p>
@@ -107,7 +108,7 @@ import etomo.util.Utilities;
  * <p> bug# 1141 Dialog for running newst (full align) and filtering
  * <p> </p>
  */
-public final class FinalAlignedStackExpert extends ReconUIExpert implements NewstackPanelExpert {
+public final class FinalAlignedStackExpert extends ReconUIExpert  {
   public static final String rcsid = "$Id$";
 
   private final ComScriptManager comScriptMgr;
@@ -238,20 +239,20 @@ public final class FinalAlignedStackExpert extends ReconUIExpert implements News
     advanced = dialog.isAdvanced();
     // Get the user input data from the dialog box
     try {
-      getParameters(metaData);
+      dialog.getParameters(metaData);
     }
     catch (FortranInputSyntaxException e) {
       UIHarness.INSTANCE.openMessageDialog(e.getMessage(), "Data File Error",
           manager.getManagerKey());
     }
     getParameters(screenState);
-    if (!UIExpertUtilities.INSTANCE.updateFiducialessParams(manager, dialog,
+    if (!UIExpertUtilities.INSTANCE.updateFiducialessParams(manager, dialog.getFiducialessParams(),
         axisID)) {
       return false;
     }
     if (metaData.getViewType() == ViewType.MONTAGE) {
       try {
-        updateBlendCom();
+        manager.updateBlendCom(dialog.getBlendmontDisplay(),axisID);
       }
       catch (FortranInputSyntaxException e) {
         UIHarness.INSTANCE.openMessageDialog(e.getMessage(),
@@ -267,7 +268,7 @@ public final class FinalAlignedStackExpert extends ReconUIExpert implements News
       }
     }
     else {
-      if (updateNewstCom() == null) {
+      if (manager.updateNewstCom(dialog.getNewstackDisplay(),axisID) == null) {
         return false;
       }
     }
@@ -278,24 +279,6 @@ public final class FinalAlignedStackExpert extends ReconUIExpert implements News
     updateCtfCorrectionCom();
     manager.saveStorables(axisID);
     return true;
-  }
-
-  /**
-   * Get the set the blendmont parameters and update the blend com script.
-   * @param axisID
-   * @return
-   */
-  private BlendmontParam updateBlendCom() throws FortranInputSyntaxException,
-      InvalidParameterException, IOException {
-    if (dialog == null) {
-      return null;
-    }
-    BlendmontParam blendParam = comScriptMgr.getBlendParam(axisID);
-    getParameters(blendParam);
-    blendParam.setMode(BlendmontParam.Mode.BLEND);
-    blendParam.setBlendmontState();
-    comScriptMgr.saveBlend(blendParam, axisID);
-    return blendParam;
   }
 
   private ConstCtfPlotterParam updateCtfPlotterCom() {
@@ -310,47 +293,6 @@ public final class FinalAlignedStackExpert extends ReconUIExpert implements News
     getParameters(param);
     comScriptMgr.saveCtfPhaseFlip(param, axisID);
     return param;
-  }
-
-  /**
-   * Update the newst.com from the FinalAlignedStackDialog.  Reads metaData.
-   * 
-   * @param axisID
-   * @return true if successful
-   */
-  private ConstNewstParam updateNewstCom() {
-    // Set a reference to the correct object
-    if (dialog == null) {
-      UIHarness.INSTANCE
-          .openMessageDialog(
-              "Can not update newst?.com without an active final aligned stack dialog",
-              "Program logic error", axisID, manager.getManagerKey());
-      return null;
-    }
-    NewstParam newstParam = null;
-    try {
-      newstParam = comScriptMgr.getNewstComNewstParam(axisID);
-      // Make sure the size output is removed, it was only there for a
-      // copytomocoms template
-      newstParam.setCommandMode(NewstParam.Mode.FULL_ALIGNED_STACK);
-      newstParam.setFiducialessAlignment(metaData
-          .isFiducialessAlignment(axisID));
-      getParameters(newstParam);
-      comScriptMgr.saveNewst(newstParam, axisID);
-    }
-    catch (NumberFormatException except) {
-      String[] errorMessage = new String[3];
-      errorMessage[0] = "newst Parameter Syntax Error";
-      errorMessage[1] = "Axis: " + axisID.getExtension();
-      errorMessage[2] = except.getMessage();
-      UIHarness.INSTANCE.openMessageDialog(errorMessage,
-          "Newst Parameter Syntax Error", axisID, manager.getManagerKey());
-      return null;
-    }
-    catch (FortranInputSyntaxException except) {
-      except.printStackTrace();
-    }
-    return newstParam;
   }
 
   /**
@@ -481,57 +423,6 @@ public final class FinalAlignedStackExpert extends ReconUIExpert implements News
       return param;
     }
     return null;
-  }
-
-  /**
-   * 
-   */
-  public void newst(ProcessResultDisplay processResultDisplay,
-      ProcessSeries processSeries, Deferred3dmodButton deferred3dmodButton,
-      Run3dmodMenuOptions run3dmodMenuOptions) {
-    if (dialog == null) {
-      return;
-    }
-    if (processSeries == null) {
-      processSeries = new ProcessSeries(manager, dialogType);
-    }
-    sendMsgProcessStarting(processResultDisplay);
-    // Get the user input from the dialog
-    if (!UIExpertUtilities.INSTANCE.updateFiducialessParams(manager, dialog,
-        axisID)) {
-      sendMsg(ProcessResult.FAILED_TO_START, processResultDisplay);
-      return;
-    }
-    ConstNewstParam newstParam = null;
-    BlendmontParam blendmontParam = null;
-    if (metaData.getViewType() == ViewType.MONTAGE) {
-      try {
-        blendmontParam = updateBlendCom();
-      }
-      catch (FortranInputSyntaxException e) {
-        UIHarness.INSTANCE.openMessageDialog(e.getMessage(),
-            "Update Com Error", manager.getManagerKey());
-      }
-      catch (InvalidParameterException e) {
-        UIHarness.INSTANCE.openMessageDialog(e.getMessage(),
-            "Update Com Error", manager.getManagerKey());
-      }
-      catch (IOException e) {
-        UIHarness.INSTANCE.openMessageDialog(e.getMessage(),
-            "Update Com Error", manager.getManagerKey());
-      }
-    }
-    else {
-      newstParam = updateNewstCom();
-      if (newstParam == null) {
-        sendMsg(ProcessResult.FAILED_TO_START, processResultDisplay);
-        return;
-      }
-    }
-    processSeries.setRun3dmodDeferred(deferred3dmodButton, run3dmodMenuOptions);
-    setDialogState(ProcessState.INPROGRESS);
-    sendMsg(manager.newst(axisID, processResultDisplay, processSeries,
-        newstParam, blendmontParam), processResultDisplay);
   }
 
   /**
@@ -969,48 +860,8 @@ public final class FinalAlignedStackExpert extends ReconUIExpert implements News
         .getStackCtfCorrectionHeaderState());
   }
 
-  /**
-   * The Metadata values that are from the setup dialog should not be overrided
-   * by this dialog unless the Metadata values are empty.
-   * @param metaData
-   * @throws FortranInputSyntaxException
-   */
-  private void getParameters(MetaData metaData)
-      throws FortranInputSyntaxException {
-    if (dialog == null) {
-      return;
-    }
-    metaData.setSizeToOutputInXandY(axisID, dialog.getSizeToOutputInXandY());
-    metaData.setFinalStackBinning(axisID, dialog.getBinning());
-    metaData.setFinalStackCtfCorrectionParallel(axisID, dialog
-        .isParallelProcess());
-    metaData
-        .setFinalStackFiducialDiameter(axisID, dialog.getFiducialDiameter());
-    metaData.setFinalStackPolynomialOrder(axisID, dialog.getPolynomialOrder());
-  }
-
   private void setParameters(BlendmontParam blendmontParam) {
     dialog.setUseLinearInterpolation(blendmontParam.isLinearInterpolation());
-  }
-
-  //  Copy the newstack parameters from the GUI to the NewstParam object
-  private void getParameters(NewstParam newstParam)
-      throws FortranInputSyntaxException {
-    if (dialog == null) {
-      return;
-    }
-    newstParam.setLinearInterpolation(dialog.isUseLinearInterpolation());
-    int binning = dialog.getBinning();
-    // Only explcitly write out the binning if its value is something other than
-    // the default of 1 to keep from cluttering up the com script  
-    if (binning > 1) {
-      newstParam.setBinByFactor(binning);
-    }
-    else {
-      newstParam.setBinByFactor(Integer.MIN_VALUE);
-    }
-    newstParam.setSizeToOutputInXandY(dialog.getSizeToOutputInXandY(), dialog
-        .getBinning(), metaData.getImageRotation(axisID), manager);
   }
 
   File getConfigDir() {
@@ -1025,25 +876,7 @@ public final class FinalAlignedStackExpert extends ReconUIExpert implements News
     return new File(manager.getPropertyUserDir());
   }
 
-  private void getParameters(BlendmontParam blendmontParam)
-      throws FortranInputSyntaxException, InvalidParameterException,
-      IOException {
-    if (dialog == null) {
-      return;
-    }
-    blendmontParam.setLinearInterpolation(dialog.isUseLinearInterpolation());
-    blendmontParam.setBinByFactor(dialog.getBinning());
-    try {
-      blendmontParam.convertToStartingAndEndingXandY(dialog
-          .getSizeToOutputInXandY(), metaData.getImageRotation(axisID));
-    }
-    catch (FortranInputSyntaxException e) {
-      e.printStackTrace();
-      throw new FortranInputSyntaxException(
-          NewstackPanel.SIZE_TO_OUTPUT_IN_X_AND_Y_LABEL + ":  "
-              + e.getMessage());
-    }
-  }
+
 
   private void getParameters(MTFFilterParam mtfFilterParam)
       throws FortranInputSyntaxException {
