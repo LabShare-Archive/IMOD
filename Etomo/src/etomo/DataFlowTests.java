@@ -215,10 +215,10 @@ public class DataFlowTests {
   private static void coarseAlignment(AxisID axisID) {
     applicationManager.openCoarseAlignDialog(axisID);
     uiHarness.pack(applicationManager);
-    applicationManager.preCrossCorrelate(axisID, null, null, null);
+    applicationManager.preCrossCorrelate(axisID, null, null, null, null);
     waitForThread(axisID);
     if (!applicationManager.getMetaData().isFiducialessAlignment(axisID)) {
-      applicationManager.coarseAlign(axisID, null, null, null, null, null);
+      applicationManager.coarseAlign(axisID, null, null, null, null, null,null,null);
       waitForThread(axisID);
     }
     applicationManager.doneCoarseAlignDialog(axisID);
@@ -353,6 +353,11 @@ public class DataFlowTests {
 }
 /**
  * <p> $Log$
+ * <p> Revision 3.29  2009/06/11 16:41:07  sueh
+ * <p> bug# 1221 Sending the process panel to the process function in the
+ * <p> manager wrapped in a ProcessDisplay interface.  Changed
+ * <p> preProcessing.
+ * <p>
  * <p> Revision 3.28  2008/12/15 22:56:20  sueh
  * <p> bug# 1161 Made EtomoDirector.getCurrentManager private.  Added a
  * <p> public test version for public access.

@@ -105,14 +105,17 @@ import etomo.type.ViewType;
 import etomo.ui.AbstractParallelDialog;
 import etomo.ui.AlignmentEstimationDialog;
 import etomo.ui.BeadtrackPanel;
+import etomo.ui.BlendmontDisplay;
 import etomo.ui.CCDEraserDisplay;
 import etomo.ui.CleanUpDialog;
 import etomo.ui.CoarseAlignDialog;
 import etomo.ui.FiducialModelDialog;
+import etomo.ui.FiducialessParams;
 import etomo.ui.FinalAlignedStackExpert;
 import etomo.ui.FlattenWarpDisplay;
 import etomo.ui.MainPanel;
 import etomo.ui.MainTomogramPanel;
+import etomo.ui.NewstackDisplay;
 import etomo.ui.ParallelPanel;
 import etomo.ui.PostProcessingDialog;
 import etomo.ui.PreProcessingDialog;
@@ -120,11 +123,13 @@ import etomo.ui.ProcessDialog;
 import etomo.ui.Deferred3dmodButton;
 import etomo.ui.ProcessDisplay;
 import etomo.ui.SetupDialogExpert;
+import etomo.ui.TiltXcorrDisplay;
 import etomo.ui.TomogramCombinationDialog;
 import etomo.ui.TomogramGenerationExpert;
 import etomo.ui.TomogramPositioningExpert;
 import etomo.ui.UIExpert;
 import etomo.ui.UIExpertUtilities;
+import etomo.ui.UIHarness;
 import etomo.ui.WarpVolDisplay;
 import etomo.util.DatasetFiles;
 import etomo.util.FidXyz;
@@ -1190,12 +1195,12 @@ public final class ApplicationManager extends BaseManager implements
     else {
       coarseAlignDialog.getParameters(getScreenState(axisID));
       // Get the user input data from the dialog box
-      if (updateXcorrCom(axisID) == null) {
+      if (updateXcorrCom(coarseAlignDialog.getTiltXcorrDisplay(), axisID) == null) {
         return false;
       }
       updateBlendmontInXcorrCom(axisID);
       if (metaData.getViewType() != ViewType.MONTAGE
-          && !updatePrenewstCom(axisID)) {
+          && !updatePrenewstCom(coarseAlignDialog.getNewstackDisplay(), axisID)) {
         return false;
       }
       if (!UIExpertUtilities.INSTANCE.updateFiducialessParams(this,
@@ -1228,19 +1233,20 @@ public final class ApplicationManager extends BaseManager implements
   }
 
   /**
-   * Get the parameters from dialog box and run the cross correlation script
+   * Get the parameters from the display and run the cross correlation script
    */
   private void crossCorrelate(AxisID axisID,
       ProcessResultDisplay processResultDisplay,
-      ConstProcessSeries processSeries) {
+      ConstProcessSeries processSeries, DialogType dialogType,
+      TiltXcorrDisplay display) {
     // Get the parameters from the dialog box
-    ConstTiltxcorrParam tiltxcorrParam = updateXcorrCom(axisID);
+    ConstTiltxcorrParam tiltxcorrParam = updateXcorrCom(display, axisID);
     if (tiltxcorrParam == null) {
       sendMsgProcessFailedToStart(processResultDisplay);
       return;
     }
-    processTrack.setCoarseAlignmentState(ProcessState.INPROGRESS, axisID);
-    mainPanel.setCoarseAlignState(ProcessState.INPROGRESS, axisID);
+    processTrack.setState(ProcessState.INPROGRESS, axisID, dialogType);
+    mainPanel.setState(ProcessState.INPROGRESS, axisID, dialogType);
     String threadName;
     try {
       BlendmontParam blendmontParam = updateBlendmontInXcorrCom(axisID);
@@ -1272,9 +1278,9 @@ public final class ApplicationManager extends BaseManager implements
    */
   public void preCrossCorrelate(AxisID axisID,
       ProcessResultDisplay processResultDisplay, ProcessSeries processSeries,
-      final DialogType dialogType) {
+      final DialogType dialogType, TiltXcorrDisplay display) {
     if (processSeries == null) {
-      processSeries = new ProcessSeries(this, dialogType);
+      processSeries = new ProcessSeries(this, dialogType, display);
     }
     sendMsgProcessStarting(processResultDisplay);
     sendMsgProcessStarting(processResultDisplay);
@@ -1283,7 +1289,8 @@ public final class ApplicationManager extends BaseManager implements
       extracttilts(axisID, processResultDisplay, processSeries);
       return;
     }
-    crossCorrelate(axisID, processResultDisplay, processSeries);
+    crossCorrelate(axisID, processResultDisplay, processSeries, dialogType,
+        display);
   }
 
   /**
@@ -1483,7 +1490,8 @@ public final class ApplicationManager extends BaseManager implements
       final ProcessResultDisplay processResultDisplay,
       ProcessSeries processSeries,
       final Deferred3dmodButton deferred3dmodButton,
-      final Run3dmodMenuOptions run3dmodMenuOptions, DialogType dialogType) {
+      final Run3dmodMenuOptions run3dmodMenuOptions, DialogType dialogType,
+      BlendmontDisplay blendmontDisplay, NewstackDisplay newstackDisplay) {
     if (processSeries == null) {
       processSeries = new ProcessSeries(this, dialogType);
     }
@@ -1491,18 +1499,32 @@ public final class ApplicationManager extends BaseManager implements
     ProcessName processName;
     BlendmontParam blendmontParam = null;
     if (metaData.getViewType() == ViewType.MONTAGE) {
-      blendmontParam = updatePreblendCom(axisID);
+      try {
+        blendmontParam = updatePreblendCom(blendmontDisplay, axisID);
+      }
+      catch (FortranInputSyntaxException e) {
+        UIHarness.INSTANCE.openMessageDialog(e.getMessage(),
+            "Update Com Error", getManagerKey());
+      }
+      catch (InvalidParameterException e) {
+        UIHarness.INSTANCE.openMessageDialog(e.getMessage(),
+            "Update Com Error", getManagerKey());
+      }
+      catch (IOException e) {
+        UIHarness.INSTANCE.openMessageDialog(e.getMessage(),
+            "Update Com Error", getManagerKey());
+      }
       processName = BlendmontParam.getProcessName(BlendmontParam.Mode.PREBLEND);
     }
     else {
-      if (!updatePrenewstCom(axisID)) {
+      if (!updatePrenewstCom(newstackDisplay, axisID)) {
         sendMsgProcessFailedToStart(processResultDisplay);
         return;
       }
       processName = ProcessName.PRENEWST;
     }
-    processTrack.setCoarseAlignmentState(ProcessState.INPROGRESS, axisID);
-    mainPanel.setCoarseAlignState(ProcessState.INPROGRESS, axisID);
+    processTrack.setState(ProcessState.INPROGRESS, axisID, dialogType);
+    mainPanel.setState(ProcessState.INPROGRESS, axisID, dialogType);
     String threadName = null;
     try {
       if (metaData.getViewType() == ViewType.MONTAGE) {
@@ -1634,12 +1656,12 @@ public final class ApplicationManager extends BaseManager implements
    * @return true if successful in getting the parameters and saving the com
    *         script
    */
-  private ConstTiltxcorrParam updateXcorrCom(AxisID axisID) {
-    CoarseAlignDialog coarseAlignDialog = mapCoarseAlignDialog(axisID);
+  private ConstTiltxcorrParam updateXcorrCom(TiltXcorrDisplay display,
+      AxisID axisID) {
     TiltxcorrParam tiltXcorrParam = null;
     try {
       tiltXcorrParam = comScriptMgr.getTiltxcorrParam(axisID);
-      coarseAlignDialog.getCrossCorrelationParams(tiltXcorrParam);
+      display.getParameters(tiltXcorrParam);
       comScriptMgr.saveXcorr(tiltXcorrParam, axisID);
     }
     catch (FortranInputSyntaxException except) {
@@ -1714,10 +1736,20 @@ public final class ApplicationManager extends BaseManager implements
    * @param axisID
    * @return
    */
-  private boolean updatePrenewstCom(AxisID axisID) {
-    CoarseAlignDialog coarseAlignDialog = mapCoarseAlignDialog(axisID);
+  private boolean updatePrenewstCom(NewstackDisplay display, AxisID axisID) {
     NewstParam prenewstParam = comScriptMgr.getPrenewstParam(axisID);
-    coarseAlignDialog.getPrenewstParams(prenewstParam);
+    try {
+    display.getParameters(prenewstParam);
+    }
+    catch (FortranInputSyntaxException except) {
+      String[] errorMessage = new String[3];
+      errorMessage[0] = "prenewst Parameter Syntax Error";
+      errorMessage[1] = "Axis: " + axisID.getExtension();
+      errorMessage[2] = except.getMessage();
+      UIHarness.INSTANCE.openMessageDialog(errorMessage,
+          "Prenewst Parameter Syntax Error", axisID, getManagerKey());
+      return false;
+    }
     comScriptMgr.savePrenewst(prenewstParam, axisID);
     return true;
   }
@@ -1727,10 +1759,11 @@ public final class ApplicationManager extends BaseManager implements
    * @param axisID
    * @return
    */
-  private BlendmontParam updatePreblendCom(AxisID axisID) {
-    CoarseAlignDialog coarseAlignDialog = mapCoarseAlignDialog(axisID);
+  private BlendmontParam updatePreblendCom(BlendmontDisplay display,
+      AxisID axisID)  throws FortranInputSyntaxException, InvalidParameterException,
+      IOException{
     BlendmontParam preblendParam = comScriptMgr.getPreblendParam(axisID);
-    coarseAlignDialog.getParams(preblendParam);
+    display.getParameters(preblendParam);
     preblendParam.setBlendmontState();
     comScriptMgr.savePreblend(preblendParam, axisID);
     return preblendParam;
@@ -3461,6 +3494,127 @@ public final class ApplicationManager extends BaseManager implements
       return;
     }
     coarseAlignDialog.setEnabledFixEdgesMidasButton();
+  }
+
+  /**
+   * Update the newst.com from the display.  Reads metaData.
+   * 
+   * @param axisID
+   * @return true if successful
+   */
+  public ConstNewstParam updateNewstCom(NewstackDisplay display, AxisID axisID) {
+    // Set a reference to the correct object
+    if (display == null) {
+      UIHarness.INSTANCE.openMessageDialog(
+          "Can not update newst?.com without an active display",
+          "Program logic error", axisID, getManagerKey());
+      return null;
+    }
+    NewstParam newstParam = null;
+    try {
+      newstParam = comScriptMgr.getNewstComNewstParam(axisID);
+      // Make sure the size output is removed, it was only there for a
+      // copytomocoms template
+      newstParam.setCommandMode(NewstParam.Mode.FULL_ALIGNED_STACK);
+      newstParam.setFiducialessAlignment(metaData
+          .isFiducialessAlignment(axisID));
+      display.getParameters(newstParam);
+      comScriptMgr.saveNewst(newstParam, axisID);
+    }
+    catch (NumberFormatException except) {
+      String[] errorMessage = new String[3];
+      errorMessage[0] = "newst Parameter Syntax Error";
+      errorMessage[1] = "Axis: " + axisID.getExtension();
+      errorMessage[2] = except.getMessage();
+      UIHarness.INSTANCE.openMessageDialog(errorMessage,
+          "Newst Parameter Syntax Error", axisID, getManagerKey());
+      return null;
+    }
+    catch (FortranInputSyntaxException except) {
+      String[] errorMessage = new String[3];
+      errorMessage[0] = "newst Parameter Syntax Error";
+      errorMessage[1] = "Axis: " + axisID.getExtension();
+      errorMessage[2] = except.getMessage();
+      UIHarness.INSTANCE.openMessageDialog(errorMessage,
+          "Newst Parameter Syntax Error", axisID, getManagerKey());
+      return null;
+    }
+    return newstParam;
+  }
+
+  /**
+   * Get the set the blendmont parameters and update the blend com script.
+   * @param axisID
+   * @return
+   */
+  public BlendmontParam updateBlendCom(BlendmontDisplay display, AxisID axisID)
+      throws FortranInputSyntaxException, InvalidParameterException,
+      IOException {
+    BlendmontParam blendParam = comScriptMgr.getBlendParam(axisID);
+    display.getParameters(blendParam);
+    blendParam.setMode(BlendmontParam.Mode.BLEND);
+    blendParam.setBlendmontState();
+    comScriptMgr.saveBlend(blendParam, axisID);
+    return blendParam;
+  }
+
+  /**
+   * 
+   */
+  public void newst(ProcessResultDisplay processResultDisplay,
+      ProcessSeries processSeries, Deferred3dmodButton deferred3dmodButton,
+      AxisID axisID, Run3dmodMenuOptions run3dmodMenuOptions,
+      DialogType dialogType, FiducialessParams fiducialessParams,
+      BlendmontDisplay blendmontDisplay, NewstackDisplay newstackDisplay) {
+    if (processSeries == null) {
+      processSeries = new ProcessSeries(this, dialogType);
+    }
+    sendMsgProcessStarting(processResultDisplay);
+    // Get the user input from the dialog
+    if (!UIExpertUtilities.INSTANCE.updateFiducialessParams(this,
+        fiducialessParams, axisID)) {
+      sendMsgProcessFailedToStart(processResultDisplay);
+      return;
+    }
+    ConstNewstParam newstParam = null;
+    BlendmontParam blendmontParam = null;
+    if (metaData.getViewType() == ViewType.MONTAGE) {
+      try {
+        blendmontParam = updateBlendCom(blendmontDisplay, axisID);
+      }
+      catch (FortranInputSyntaxException e) {
+        UIHarness.INSTANCE.openMessageDialog(e.getMessage(),
+            "Update Com Error", getManagerKey());
+      }
+      catch (InvalidParameterException e) {
+        UIHarness.INSTANCE.openMessageDialog(e.getMessage(),
+            "Update Com Error", getManagerKey());
+      }
+      catch (IOException e) {
+        UIHarness.INSTANCE.openMessageDialog(e.getMessage(),
+            "Update Com Error", getManagerKey());
+      }
+    }
+    else {
+      newstParam = updateNewstCom(newstackDisplay, axisID);
+      if (newstParam == null) {
+        sendMsgProcessFailedToStart(processResultDisplay);
+        return;
+      }
+    }
+    processSeries.setRun3dmodDeferred(deferred3dmodButton, run3dmodMenuOptions);
+    processTrack.setState(ProcessState.INPROGRESS, axisID, dialogType);
+    mainPanel.setState(ProcessState.INPROGRESS, axisID, dialogType);
+    sendMsg(newst(axisID, processResultDisplay, processSeries,
+        newstParam, blendmontParam), processResultDisplay);
+  }
+  
+  private void sendMsg(ProcessResult displayState,
+      ProcessResultDisplay processResultDisplay) {
+    if (displayState == null || processResultDisplay == null) {
+      return;
+    }
+    processResultDisplay.msg(displayState);
   }
 
   /**
@@ -5896,7 +6050,8 @@ public final class ApplicationManager extends BaseManager implements
       extractmagrad(axisID, processResultDisplay, processSeries);
     }
     else if (nextProcess.equals(ProcessName.XCORR.toString())) {
-      crossCorrelate(axisID, processResultDisplay, processSeries);
+      crossCorrelate(axisID, processResultDisplay, processSeries, dialogType,
+          (TiltXcorrDisplay) display);
     }
     else if (nextProcess.equals(ProcessName.ERASER.toString())) {
       eraser(axisID, processResultDisplay, processSeries, dialogType,
@@ -6362,6 +6517,14 @@ public final class ApplicationManager extends BaseManager implements
 }
 /**
  * <p> $Log$
+ * <p> Revision 3.328  2009/06/11 16:32:19  sueh
+ * <p> bug# 1221 Sending the process panel to the process function in the
+ * <p> manager wrapped in a ProcessDisplay interface.  Changing eraser,
+ * <p> findxrays, flatten, flattenWarp, imodFlatten, imodMakeSurface,
+ * <p> imodManualErase, isFlipped, preEraser, replaceRawStack,
+ * <p> savePreProcDialog, startNextProcess, updateEraserCom,
+ * <p> updateFlattenWarpParam, updateWarpVolParam.
+ * <p>
  * <p> Revision 3.327  2009/06/05 01:44:04  sueh
  * <p> bug# 1219 Added flatten, flattenWarp, imodFlatten,
  * <p> imodMakeSurfaceModel, isFlipped, isSqueezed, isTrimvolFlipped,
