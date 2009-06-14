@@ -17,46 +17,46 @@ c       See man page for more details
 c       
 c       $Id$
 c       Log at end
-c
+c       
+      program warpvol
+      use rotmatwarp
       implicit none
-      include 'rotmatwarp.inc'
-      integer maxloc
-      parameter (maxloc=200000)
       real*4 cell(6),dxyzin(3)
-      logical*4 solved(maxloc),solvtmp(maxloc)
-      equivalence (array, solved), (array(maxloc+1), solvtmp)
+      logical*4, allocatable :: solved(:),solvtmp(:)
       integer*4 mxyzin(3)
       real*4 mfor(3,3),mold(3,3),mnew(3,3),moldinv(3,3)
       real*4 angles(3),tiltold(3),tiltnew(3),orig(3),xtmp(3)
       real*4 atmp1(3,3),atmp2(3,3),dtmp1(3),dtmp2(3),delta(3)
-      real*4 aloc(3,3,maxloc),dloc(3,maxloc)
-      real*4 ofsin(3,limout),amx(3,3,limout)
-      integer*4 izsec(4)
-      integer*4 inmin(3),inmax(3)
-      real*4 freinp(10)
+      real*4, allocatable :: aloc(:,:,:),dloc(:,:),aloctmp(:,:,:),dloctmp(:,:)
+      real*4, allocatable :: ofsin(:,:,:),amx(:,:,:,:)
+
+      integer*4 izsec(6)
+      integer*4 inmin(3),inmax(3),icube(3)
+      real*4 freinp(10),xyzcen(3),xcen,ycen,zcen
+c      equivalence (xcen,xyzcen(1)), (ycen,xyzcen(2)), (zcen,xyzcen(3))
 c       
       character*320 filein,fileout,fileinv,tempdir,tempext,patchfile,fillfile
 c       
 c	DNM 3/8/01: initialize the time in case time(tim) doesn't work
 c       
       character dat*9,tim*8/'00:00:00'/
-c       
-c       7/7/00 CER: remove the encode's; titlech is the temp space
-c       
       character*80 titlech
       integer*4 nlocx,ninp,nlocy,nlocz,nloctot,i,j,kti,ja,ix,iy,ierr
       real*4 xlocst,ylocst,xlocmax,ylocmax,zlocst,zlocmax,cenlocx,cenlocy
-      real*4 cenlocz,dxloc,dyloc,dzloc,dmin,dmax,tsum,devmx,xcen,ycen,zcen
-      integer*4 idimout,ind,izcube,ixcube,iycube,ifx,ify,ifz,ival,ifempty
+      real*4 cenlocz,dxloc,dyloc,dzloc,dmin,dmax,tsum
+      integer*4 ind,izcube,ixcube,iycube,ifx,ify,ifz,ival,ifempty
       integer*4 iz,ixlim,iylim,izlim,ixp,iyp,ixpp1,ixpm1,iypp1,iypm1,numDone
       real*4 xofsout,xp,yp,zp,bval,dx,dy,dz,v2,v4,v6,v5,v8,vu,vd,vmin,vmax
       real*4 a,b,c,d,e,f,tmin,tmax,tmean,dmean,dminin,dmaxin,d11,d12,d21,d22
       integer*4 iunit,longint,l,izp,izpp1,izpm1,nLinesOut,interpOrder, nExtra
       integer*4 newExtra,lForErr, newlocx, newlocy, newlocz
       integer*4 nxloAdd, nyloAdd,nzloAdd,nxhiAdd, nyhiAdd,nzhiAdd
-      real*4 baseInt,xcubelo,xcubehi,ycubelo,ycubehi,zcubelo,zcubehi
-      integer*4 ixlo,ixhi,iylo,iyhi,izlo,izhi
-      real*4 dxUse,dyUse,dzUse, xlUse,ylUse,zlUse
+      real*4 baseInt,outerCen
+      integer*4 indInner, indOuter, iyxf
+      real*8 cputime, walltime, cpuStart, wallStart, wallCum, threadWall
+      integer*4 innerStart, innerEnd, iouterStart, iouterEnd,innerAxis
+      integer*4 iouterAxis,innerStride,iouterStride,indBase,iouter,numZtoDo
+      integer*4 izStart, izEnd, numZleft
 c       
       logical pipinput
       integer*4 numOptArg, numNonOptArg
@@ -86,6 +86,7 @@ c
       call date(dat)
       patchfile = ' '
       fillfile = ' '
+      wallCum = 0.
 c       
 c       
 c       Pip startup: set error, parse options, check help, set flag if used
@@ -103,8 +104,10 @@ c
       nyout=nyin
       nzout=nxin
 c       
-      ierr = PipGetString('PatchOutputFile', patchfile)
-      ierr = PipGetString('FilledInOutputFile', fillfile)
+      if (pipinput) then
+        ierr = PipGetString('PatchOutputFile', patchfile)
+        ierr = PipGetString('FilledInOutputFile', fillfile)
+      endif
 
       if (PipGetInOutFile('OutputFile', 2, 'Name of output file', fileout)
      &    .ne. 0 .and. patchfile .eq. ' ' .and. fillfile .eq. ' ')
@@ -113,6 +116,8 @@ c
       if (pipinput) then
         ierr = PipGetString('TemporaryDirectory', tempdir)
         ierr = PipGetInteger('InterpolationOrder', interpOrder)
+        ierr = PipGetInteger('MemoryLimit', memoryLim)
+        ierr = PipGetInteger('VerboseOutput', iVerbose)
         iz = 0
         ierr = PipGetBoolean('SameSizeAsInput', iz)
         if (iz .ne. 0) then
@@ -159,8 +164,12 @@ c
         endif
       endif
       nloctot=nlocx*nlocz*nlocy
-      if(nloctot.gt.maxloc)call exiterror(
-     &    'TOO MANY TRANSFORMATIONS TO FIT IN ARRAYS')
+      if (nloctot .eq. 0) call exitError(
+     &    'THE WARP FILE SPECIFIES 0 POSITIONS ON ONE AXIS')
+      allocate (aloctmp(3,3,nloctot), dloctmp(3,nloctot), solvtmp(nloctot),
+     &    stat = ierr)
+      if (ierr .ne. 0)call exiterror(
+     &    'ALLOCATING MEMORY FOR READING IN TRANSFORMATION ARRAYS')
       if (ninp .ne. 9) then
 c         
 c         Every position must be present, find min and max to deduce interval
@@ -175,8 +184,8 @@ c
         do l=1,nloctot
           lForErr = l
           read(1,*,err=98,end=98)cenlocx,cenlocy,cenlocz
-          read(1,*,err=98,end=98)((aloc(i,j,l),j=1,3),dloc(i,l),i=1,3)
-          solved(l) = .true.
+          read(1,*,err=98,end=98)((aloctmp(i,j,l),j=1,3),dloctmp(i,l),i=1,3)
+          solvtmp(l) = .true.
           xlocst=min(cenlocx,xlocst)
           ylocst=min(cenlocy,ylocst)
           zlocst=min(cenlocz,zlocst)
@@ -187,12 +196,18 @@ c
         dxloc=(xlocmax-xlocst)/max(1,nlocx-1)
         dyloc=(ylocmax-ylocst)/max(1,nlocy-1)
         dzloc=(zlocmax-zlocst)/max(1,nlocz-1)
-      else
+      endif
+c       
+c       Now fix the dlocs if only one position, then read other way
+      if (nlocx .eq. 1) dxloc = 1.
+      if (nlocy .eq. 1) dyloc = 1.
+      if (nlocz .eq. 1) dzloc = 1.
+      if (ninp .eq. 9) then
 c         
 c         Know min and interval, so read each entry, find where it goes in
-c         array and put it there, then 
+c         array and put it there
         do l=1,nloctot
-          solved(l) = .false.
+          solvtmp(l) = .false.
         enddo
         lForErr = 1
 10      read(1,*,err=98,end=12)cenlocx,cenlocy,cenlocz
@@ -200,8 +215,8 @@ c         array and put it there, then
         iy = min(nlocy, max(1, nint((cenlocy - ylocst) / dyloc + 1.)))
         iz = min(nlocz, max(1, nint((cenlocz - zlocst) / dzloc + 1.)))
         l = ix + (iy - 1) * nlocx + (iz - 1) * nlocx * nlocy
-        read(1,*,err=98,end=98)((aloc(i,j,l),j=1,3),dloc(i,l),i=1,3)
-        solved(l) = .true.
+        read(1,*,err=98,end=98)((aloctmp(i,j,l),j=1,3),dloctmp(i,l),i=1,3)
+        solvtmp(l) = .true.
         lForErr = lForErr + 1
         go to 10
       endif
@@ -231,27 +246,26 @@ c       and adjust the parameters
       newlocx = nlocx + nxloAdd + nxhiAdd
       newlocy = nlocy + nyloAdd + nyhiAdd
       newlocz = nlocz + nzloAdd + nzhiAdd
-      if (nxloAdd + nxhiAdd + nyloAdd + nyhiAdd + nzloAdd + nzhiAdd .gt. 0
-     &    .and. newlocx * newlocy * newlocz .le. maxloc)then
-        do i = 1, nloctot
-          solvtmp(i) = solved(i)
-        enddo
-        nloctot = newlocx * newlocy * newlocz
-        do i = 1, nloctot
-          solved(i) = .false.
-        enddo
-        call shiftTransforms(aloc, dloc, solvtmp, nlocx, nlocy, nlocz,
-     &      aloc, dloc, solved, newlocx, newlocy, newlocz, nxloAdd, nyloAdd,
-     &      nzloAdd)
-        xlocst = xlocst - nxloAdd * dxloc
-        ylocst = ylocst - nyloAdd * dyloc
-        zlocst = zlocst - nzloAdd * dzloc
-        nlocx = newlocx
-        nlocy = newlocy
-        nlocz = newlocz
-      endif
+      nloctot = newlocx * newlocy * newlocz
+      allocate (aloc(3,3,nloctot), dloc(3,nloctot), solved(nloctot), stat=ierr)
+      if (ierr .ne. 0)call exiterror(
+     &    'ALLOCATING MEMORY FOR TRANSFORMATION ARRAYS')
+
+      do i = 1, nloctot
+        solved(i) = .false.
+      enddo
+      call shiftTransforms(aloctmp, dloctmp, solvtmp, nlocx, nlocy, nlocz,
+     &    aloc, dloc, solved, newlocx, newlocy, newlocz, nxloAdd, nyloAdd,
+     &    nzloAdd)
+      xlocst = xlocst - nxloAdd * dxloc
+      ylocst = ylocst - nyloAdd * dyloc
+      zlocst = zlocst - nzloAdd * dzloc
+      nlocx = newlocx
+      nlocy = newlocy
+      nlocz = newlocz
+      deallocate (aloctmp, dloctmp, solvtmp, stat = ierr);
 c       
-c       Fill in missing transforms by extrapolation amd weighted averaging
+c       Fill in missing transforms by extrapolation and weighted averaging
       call fillInTransforms(aloc, dloc, solved, nlocx, nlocy, nlocz,
      &    dxloc, dyloc, dzloc)
       if (fillfile .ne. ' ') then
@@ -306,19 +320,11 @@ c
 c       Exit if patch or warp output files
       if (patchfile .ne. ' ' .or. fillfile .ne. ' ') call exit(0)
 c       
-c       find maximum extent in input volume occupied by a back-transformed
-c       unit cube in output volume
-c       
-      devmx=0.
+c       Get mean inverse transform
+      mfor = 0.
       do ja=1,nloctot
-        do ix=-1,1,2
-          do iy=-1,1,2
-            do i=1,3
-              devmx=max(devmx,abs(aloc(i,1,ja)*ix+aloc(i,2,ja)*iy+
-     &            aloc(i,3,ja)))
-            enddo
-          enddo
-        enddo
+        call inv_matrix(aloc(1,1,ja),minv)
+        mfor = mfor + minv / nloctot
       enddo
 c       
 c       DNM 7/26/02: transfer pixel spacing to same axes
@@ -330,6 +336,9 @@ c
         cxyzout(i)=nxyzout(i)/2.
       enddo
 c       
+c       Unless one layer in Y, allow 5% of memory for transforms
+      if (nlocy .gt. 1) memoryLim = 0.95 * memoryLim
+c       
 c       Get provisional setup of cubes then find actual limits of input
 c       cubes with this setup - loop until no new extra pixels needed
 c       
@@ -337,60 +346,16 @@ c
       newExtra = 1
       do while (newExtra .gt. 0)
 
-        call setup_cubes_scratch(devmx, nExtra, ' ', tempdir, tempext, tim)
+        call setup_cubes_scratch(mfor, aloc, nloctot, nExtra, ' ', tempdir,
+     &      tempext, tim, .true.)
 c         
         newExtra = 0
         do izcube=1,ncubes(3)
-          call cubeTestLimits(ixyzcube(3,izcube), nxyzcube(3,izcube), czout,
-     &        nlocz, zlocst, dzloc, zcubelo, zcubehi, izlo, izhi, zlUse, dzUse)
           do ixcube=1,ncubes(1)
-            call cubeTestLimits(ixyzcube(1,ixcube), nxyzcube(1,ixcube), cxout,
-     &          nlocx, xlocst, dxloc, xcubelo, xcubehi, ixlo, ixhi,xlUse,dxUse)
             do iycube=1,ncubes(2)
-c               
-c               back-transform the faces of the output cube at the corners and
-c               at positions corresponding to transforms to
-c               find the limiting index coordinates of the input cube
-c               
-              do i=1,3
-                inmin(i)=100000
-                inmax(i)=-100000
-              enddo
-              call cubeTestLimits(ixyzcube(2,iycube), nxyzcube(2,iycube),cyout,
-     &            nlocy, ylocst, dyloc, ycubelo,ycubehi,iylo,iyhi,ylUse, dyUse)
-              do ifx=ixlo, ixhi
-                do ify=iylo, iyhi
-                  do ifz=izlo, izhi
-                    if (ifx .eq. ixlo .or. ifx .eq. ixhi .or. ify .eq. iylo.or.
-     &                  ify .eq. iyhi .or. ifz .eq. izlo .or. ifz .eq. izhi)
-     &                  then
-                      xcen = max(xcubelo, min(xcubehi, xlUse + ifx * dxUse))
-                      ycen = max(ycubelo, min(ycubehi, ylUse + ify * dyUse))
-                      zcen = max(zcubelo, min(zcubehi, zlUse + ifz * dzUse))
-                      call interpinv(aloc,dloc,xlocst,dxloc,ylocst,dyloc,
-     &                    zlocst,dzloc, nlocx, nlocy, nlocz, xcen,ycen,
-     &                    zcen,minv,cxyzin) 
-                      do i=1,3
-                        ival=nint(minv(i,1)*xcen+minv(i,2)*ycen+
-     &                      minv(i,3)*zcen+cxyzin(i)+nxyzin(i)/2)
-                        inmin(i)=max(0,min(inmin(i),ival-2))
-                        inmax(i)=min(nxyzin(i)-1,max(inmax(i),ival+2))
-c                         
-c                         See if any extra pixels are needed in input
-c                       
-c                         if (newExtra .lt.inmax(i) + 1-inmin(i)-inpdim) then
-c                          print *,ixcube,iycube,izcube,xcen,ycen,zcen,
-c     &                        inmax(i) + 1 - inmin(i) -
-c     &                        inpdim,i, ival, inmin(i), inmax(i)
-c                          print *,minv(i,1),minv(i,2),minv(i,3),cxyzin(i)
-c                        endif
-                        newExtra = max(newExtra, inmax(i) + 1 - inmin(i) -
-     &                      inpdim)
-                      enddo
-                    endif
-                  enddo
-                enddo
-              enddo
+              call testCubeFaces(aloc,dloc,xlocst,dxloc,ylocst,dyloc, zlocst,
+     &            dzloc, nlocx, nlocy, nlocz, ixcube,iycube,izcube,newExtra,
+     &            inmin, inmax)
             enddo
           enddo
         enddo
@@ -402,17 +367,34 @@ c
 c       Get setup again for real this time and open output file after
 c       all potential errors are past
 c       
-      call setup_cubes_scratch(devmx, nExtra, filein, tempdir, tempext, tim)
+      call setup_cubes_scratch(mfor, aloc, nloctot, nExtra, filein, tempdir,
+     &    tempext, tim, .true.)
+c       
+c       Set up axes and strides and allocate the array for transforms
+      iy = idimOut(2)
+      if (nlocy .eq. 1) iy = 1
+      if (ioutXaxis .eq. 3) then
+        innerAxis = 3
+        iouterAxis = 1
+        innerStride = idimOut(1) * idimOut(2)
+        iouterStride = 1
+      else
+        innerAxis = 1
+        iouterAxis = 3
+        innerStride = 1
+        iouterStride = idimOut(1) * idimOut(2)
+      endif
+      ix = idimOut(innerAxis)
+      allocate (ofsin(3,ix,iy), amx(3,3,ix,iy), stat = ierr)
+c      print *,'allocated',ix,iy,innerAxis,iouterAxis, idimOut
+      if (ierr .ne. 0) call exitError(
+     &    'FAILED TO ALLOCATE ARRAYS FOR PRECOMPUTED TRANSFORMS')
 c       
       call imopen(6,fileout,'NEW')
 c       
       call icrhdr(6,nxyzout,nxyzout,mode,title,0)
       call ialcel(6,cell)
       call itrlab(6,5)
-c       
-c       7/7/00 CER: remove the encodes
-c       
-c       ENCODE(80,302,TITLE)dat,tim
       write(titlech,302) dat,tim
       read(titlech,'(20a4)')(TITLE(kti),kti=1,20)
 302   FORMAT('WARPVOL: 3-D warping of tomogram:',t57,a9,2x,a8)
@@ -425,209 +407,246 @@ c       ENCODE(80,302,TITLE)dat,tim
 c       
 c       loop on layers of cubes in Z, do all I/O to complete layer
 c       
+      izsec(6) = 0
       do izcube=1,ncubes(3)
+        icube(3) = izcube
 c         
 c         initialize files and counters
 c         
         do i=1,4
-          call imposn(i,0,0)
+          if (needScratch(i)) call imposn(i,0,0)
           izsec(i)=0
         enddo
 c         
 c         loop on the cubes in the layer
 c         
-        call cubeTestLimits(ixyzcube(3,izcube), nxyzcube(3,izcube), czout,
-     &      nlocz, zlocst, dzloc, zcubelo, zcubehi, izlo, izhi, zlUse, dzUse)
-        do ixcube=1,ncubes(1)
-          call cubeTestLimits(ixyzcube(1,ixcube), nxyzcube(1,ixcube), cxout,
-     &        nlocx, xlocst, dxloc, xcubelo, xcubehi, ixlo, ixhi,xlUse,dxUse)
-          do iycube=1,ncubes(2)
-            call cubeTestLimits(ixyzcube(2,iycube), nxyzcube(2,iycube),cyout,
-     &          nlocy, ylocst, dyloc, ycubelo,ycubehi,iylo,iyhi,ylUse, dyUse)
-c             
-c             back-transform the faces of the output cube to
-c             find the limiting index coordinates of the input cube
-c             
-            do i=1,3
-              inmin(i)=100000
-              inmax(i)=-100000
-            enddo
-            do ifx=ixlo, ixhi
-              do ify=iylo, iyhi
-                do ifz=izlo, izhi
-                  if (ifx .eq. ixlo .or. ifx .eq. ixhi .or. ify .eq. iylo.or.
-     &                ify .eq. iyhi .or. ifz .eq. izlo .or. ifz .eq. izhi)
-     &                then
-                    xcen = max(xcubelo, min(xcubehi, xlUse + ifx * dxUse))
-                    ycen = max(ycubelo, min(ycubehi, ylUse + ify * dyUse))
-                    zcen = max(zcubelo, min(zcubehi, zlUse + ifz * dzUse))
-                    call interpinv(aloc,dloc,xlocst,dxloc,ylocst,dyloc,
-     &                  zlocst,dzloc, nlocx, nlocy, nlocz, xcen,ycen,
-     &                  zcen,minv,cxyzin) 
-                    do i=1,3
-                      ival=nint(minv(i,1)*xcen+minv(i,2)*ycen+
-     &                    minv(i,3)*zcen+cxyzin(i)+nxyzin(i)/2)
-                      inmin(i)=max(0,min(inmin(i),ival-2))
-                      inmax(i)=min(nxyzin(i)-1,max(inmax(i),ival+2))
-                    enddo
-                  endif
-                enddo
-              enddo
-            enddo
+        do indOuter = 1, limOuter
+          do indInner = 1, limInner
+            cpuStart = cputime()
+            wallStart = walltime()
+            call cubeIndexes(ioutXaxis, indInner, indOuter, ixcube, iycube)
+            icube(1) = ixcube
+            icube(2) = iycube
+            newExtra = -1
+            call testCubeFaces(aloc,dloc,xlocst,dxloc,ylocst,dyloc, zlocst,
+     &          dzloc, nlocx, nlocy, nlocz, ixcube,iycube,izcube,newExtra,
+     &          inmin, inmax)
             ifempty=0
             do i=1,3
               if(inmin(i).gt.inmax(i))ifempty=1
             enddo
 c             
 c             load the input cube
-c             
             if(ifempty.eq.0)then
-c              print *,ixcube,iycube,izcube,inmin(3),inmax(3),
-c               inmax(3)+1-inmin(3)
+              if (iVerbose .gt. 1) print *,ixcube,iycube,izcube,inmin(3),
+     &            inmax(3), inmax(3)+1-inmin(3)
               do iz=inmin(3),inmax(3)
                 call imposn(5,iz,0)
-c                write(*,'(10i5)')ixcube,iycube,izcube,iz,iz+1-inmin(3)
-c     &              ,inmin(1), inmax(1),inmin(2),inmax(2)
-c                call flush(6)
-                call irdpas(5,array(1,1,iz+1-inmin(3)),inpdim,inpdim,
+                if (iVerbose .gt. 1) then
+                  write(*,'(10i5)')ixcube,iycube,izcube,iz,iz+1-inmin(3)
+     &                ,inmin(1), inmax(1),inmin(2),inmax(2)
+                  call flush(6)
+                endif
+                call irdpas(5,array(1,1,iz+1-inmin(3)),inpdim(1),inpdim(2),
      &              inmin(1),inmax(1),inmin(2),inmax(2),*99)
               enddo
             endif
 c             
 c             prepare offsets and limits
-c             
-            xofsout=ixyzcube(1,ixcube)-1-cxout
-c	      xofsin=cxin+1-inmin(1)
-c	      yofsin=cyin+1-inmin(2)
-c	      zofsin=czin+1-inmin(3)
+            xofsout=ixyzcube(innerAxis, icube(innerAxis))-1- cxyzout(innerAxis)
             ixlim=inmax(1)+1-inmin(1)
             iylim=inmax(2)+1-inmin(2)
             izlim=inmax(3)+1-inmin(3)
 c             
-c             loop over the output cube, doing and saving one section at a
-c             time
-c             
-c             
-            do iz=1,nxyzcube(3,izcube)
-              zcen=ixyzcube(3,izcube)+iz-1-czout
-c               
-c               if only one position in Y, get matrices for each X position
-c               
-              if(nlocy.eq.1)then
-                do ix=1,nxyzcube(1,ixcube)
-                  xcen=ix+xofsout
-                  call interpinv(aloc,dloc,xlocst,dxloc,ylocst,dyloc,
-     &                zlocst,dzloc, nlocx, nlocy, nlocz, xcen,ycen,
-     &                zcen, amx(1,1,ix),ofsin(1,ix))
-                  do i=1,3
-                    ofsin(i,ix)=ofsin(i,ix)+1+nxyzin(i)/2-inmin(i)
-                  enddo
-                enddo
-              endif
-c               
+c             If one layer of cubes in Z, precompute all transforms because it
+c             is invariant in Z
+            if (ifempty .eq. 0 .and. nlocz .eq. 1 .and. ioutXaxis .ne. 3) then
+              if (iVerbose .gt. 0) print *,'Precomputing for layer'
+              zcen=ixyzcube(3,izcube)+czout
               do iy=1,nxyzcube(2,iycube)
                 ycen=ixyzcube(2,iycube)+iy-1-cyout
-                if(ifempty.eq.0)then 
-                  do ix=1,nxyzcube(1,ixcube)
-                    xcen=ix+xofsout
-                    if(nlocy.gt.1)then
-                      call interpinv(aloc,dloc,xlocst,dxloc,ylocst,
-     &                    dyloc, zlocst,dzloc, nlocx, nlocy, nlocz,
-     &                    xcen,ycen, zcen, amx(1,1,ix),ofsin(1,ix))
-                      do i=1,3
-                        ofsin(i,ix)=ofsin(i,ix)+1+nxyzin(i)/2-inmin(i)
-                      enddo
-                    endif
-c                     
-c                     get indices in array of input data
-c                     
-                    xp=amx(1,1,ix)*xcen+amx(1,2,ix)*ycen+
-     &                  amx(1,3,ix)*zcen+ ofsin(1,ix)
-                    yp=amx(2,1,ix)*xcen+amx(2,2,ix)*ycen+
-     &                  amx(2,3,ix)*zcen+ ofsin(2,ix)
-                    zp=amx(3,1,ix)*xcen+amx(3,2,ix)*ycen+
-     &                  amx(3,3,ix)*zcen+ ofsin(3,ix)
-                    bval = DMEANIN
-c                     
-c                     do generalized evaluation of whether pixel is doable
-c                     
-                    ixp=int(xp + baseInt)
-                    iyp=int(yp + baseInt)
-                    izp=int(zp + baseInt)
-                    IF (IXP.GE.1 .AND. IXP.Le.IXLIM .AND.
-     &                  IYP.GE.1 .AND. IYP.Le.IYLIM .AND.
-     &                  IZP.GE.1 .AND. IZP.Le.IZLIM) THEN
-                      dx=xp-ixp
-                      dy=yp-iyp
-                      dz=zp-izp
-                      ixpp1=min(ixlim,ixp+1)
-                      iypp1=min(iylim,iyp+1)
-                      izpp1=min(izlim,izp+1)
-c                       
-                      if (interpOrder .ge. 2) then
-                        ixpm1=max(1,ixp-1)
-                        iypm1=max(1,iyp-1)
-                        izpm1=max(1,izp-1)
-C                         
-C                         Set up terms for quadratic interpolation with
-c                         higher-order terms omitted
-C                         
-                        V2 = ARRAY(IXP, IYPM1, IZP)
-                        V4 = ARRAY(IXPM1, IYP, IZP)
-                        V5 = ARRAY(IXP, IYP, IZP)
-                        V6 = ARRAY(IXPP1, IYP, IZP)
-                        V8 = ARRAY(IXP, IYPP1, IZP)
-                        VU = ARRAY(IXP, IYP, IZPP1)
-                        VD = ARRAY(IXP, IYP, IZPM1)
-                        vmax=max(v2,v4,v5,v6,v8,vu,vd)
-                        vmin=min(v2,v4,v5,v6,v8,vu,vd)
-C                         
-                        C = (V6 - V4)*.5
-                        A = C + V4 - V5
-                        D = (V8 - V2)*.5
-                        B = D + V2 - V5
-                        F = (VU - VD)*.5
-                        E = F + VD - V5
-                        bval = (a*dx+c)*dx + (b*dy+d)*dy
-     &                      + (e*dz+f)*dz + v5
-                        if(bval.gt.vmax)bval=vmax
-                        if(bval.lt.vmin)bval=vmin
-                      else
-C			  
-C                         Set up terms for linear interpolation
-C                         
-                        d11 = (1. - dx) * (1. - dy)
-                        d12 = (1. - dx) * dy
-                        d21 = dx * (1. - dy)
-                        d22 = dx * dy
-                        bval = (1. - dz) * (d11 * array(ixp, iyp, izp)
-     &                      + d12 * array(ixp, iypp1, izp)
-     &                      + d21 * array(ixpp1, iyp, izp)
-     &                      + d22 * array(ixpp1, iypp1, izp)) +
-     &                      dz * (d11 * array(ixp, iyp, izpp1)
-     &                      + d12 * array(ixp, iypp1, izpp1)
-     &                      + d21 * array(ixpp1, iyp, izpp1)
-     &                      + d22 * array(ixpp1, iypp1, izpp1))
-                      endif
-                    endif
-                    brray(ix,iy)=bval
+                do ix=1,nxyzcube(1,ixcube)
+                  xcen=ix+xofsout
+                  call interpinv(aloc,dloc,xlocst,dxloc,ylocst,
+     &                dyloc, zlocst,dzloc, nlocx, nlocy, nlocz,
+     &                xcen,ycen, zcen, amx(1,1,ix,iy),ofsin(1,ix,iy))
+                  do i=1,3
+                    ofsin(i,ix,iy)=ofsin(i,ix,iy)+1+nxyzin(i)/2-inmin(i)
                   enddo
-                else
-                  do ix=1,nxyzcube(1,ixcube)
-                    brray(ix,iy)=dmeanin
-                  enddo
-                endif
+                enddo
               enddo
+            endif
+c             
+c             loop over Z segments of the output cube (multiple slices in case
+c             where the X axis is being output as the Z axis)
+            izStart = 1
+            numZleft = nxyzcube(3,izcube)
+            do while (numZleft .gt. 0)
+              numZtoDo = min(numZleft, maxZout)
+              izEnd = izStart + numZtoDo - 1
+c              print *,ixcube,iycube,izStart,izEnd,numZleft
+              if(ifempty.eq.0)then
+                
+c                 Set up index limits for inner and outer loops
+                if (ioutXaxis .eq. 3) then
+                  innerStart = izStart
+                  innerEnd = izEnd
+                  iouterStart = 1
+                  iouterEnd = nxyzcube(1, ixcube)
+                else
+                  innerStart = 1
+                  innerEnd = nxyzcube(1, ixcube)
+                  iouterStart = izStart
+                  iouterEnd = izEnd
+                endif
+                indBase = -idimOut(1) - izStart * idimOut(1) * idimOut(2)
+c                print *,iouterStart, iouterEnd,innerStart,innerEnd
+c                 
+c                 Loop on the outer axis in the Z segment
+                do iouter = iouterStart, iouterEnd
+                  xyzcen(iouterAxis)=ixyzcube(iouterAxis,icube(iouterAxis))+
+     &                iouter-1- cxyzout(iouterAxis)
+                  outerCen = xyzcen(iouterAxis)
+c               
+c                   get matrices for each inner position either for the one
+c                   position in Y or for every one
+                  if(.not.(nlocz .eq. 1 .and. ioutXaxis .ne. 3)) then
+                    iyxf = nxyzcube(2,iycube)
+                    if (nlocy .eq. 1) iyxf = 1
+                    do iy=1,iyxf
+                      xyzcen(2)=ixyzcube(2,iycube)+iy-1-cyout
+                      do ix = innerStart, innerEnd
+                        xyzcen(innerAxis)=ix+xofsout
+                        call interpinv(aloc,dloc,xlocst,dxloc,ylocst,dyloc,
+     &                      zlocst,dzloc, nlocx, nlocy, nlocz, xyzcen(1),
+     &                      xyzcen(2),xyzcen(3), amx(1,1,ix,iy),ofsin(1,ix,iy))
+                        do i=1,3
+                          ofsin(i,ix,iy)=ofsin(i,ix,iy)+1+nxyzin(i)/2-inmin(i)
+                        enddo
+                      enddo
+                    enddo
+                  endif
+                  threadWall = walltime()
+c                   
+c                   parallelize loop on Y and inner axes
+c               
+C$OMP PARALLEL DO
+C$OMP& SHARED(nxyzcube, ixyzcube, outerCen,innerStart,innerEnd)
+C$OMP& SHARED(iycube,cyout, baseInt,indBase, innerStride,iouter)
+C$OMP& SHARED(interporder, xofsout, DMEANIN, array, brray,ixlim,iylim,izlim)
+C$OMP& SHARED(amx, ofsin, nlocy,iouterStride, idimOut,innerAxis,iouterAxis)
+C$OMP& DEFAULT(PRIVATE)
+                  do iy=1,nxyzcube(2,iycube)
+                    ycen=ixyzcube(2,iycube)+iy-1-cyout
+                    iyxf = iy
+                    if (nlocy .eq. 1) iyxf = 1
+                    do ix=innerStart, innerEnd
+                      xcen=ix+xofsout
+c                     
+c                       get indices in array of input data
+                      xp=amx(1,innerAxis,ix,iyxf)*xcen+amx(1,2,ix,iyxf)*ycen+
+     &                    amx(1,iouterAxis,ix,iyxf)*outerCen+ ofsin(1,ix,iyxf)
+                      yp=amx(2,innerAxis,ix,iyxf)*xcen+amx(2,2,ix,iyxf)*ycen+
+     &                    amx(2,iouterAxis,ix,iyxf)*outerCen+ ofsin(2,ix,iyxf)
+                      zp=amx(3,innerAxis,ix,iyxf)*xcen+amx(3,2,ix,iyxf)*ycen+
+     &                    amx(3,iouterAxis,ix,iyxf)*outerCen+ ofsin(3,ix,iyxf)
+                      bval = DMEANIN
+c                     
+c                       do generalized evaluation of whether pixel is doable
+c                     
+                      ixp=int(xp + baseInt)
+                      iyp=int(yp + baseInt)
+                      izp=int(zp + baseInt)
+                      IF (IXP.GE.1 .AND. IXP.Le.IXLIM .AND.
+     &                    IYP.GE.1 .AND. IYP.Le.IYLIM .AND.
+     &                    IZP.GE.1 .AND. IZP.Le.IZLIM) THEN
+                        dx=xp-ixp
+                        dy=yp-iyp
+                        dz=zp-izp
+                        ixpp1=min(ixlim,ixp+1)
+                        iypp1=min(iylim,iyp+1)
+                        izpp1=min(izlim,izp+1)
+c                         
+                        if (interpOrder .ge. 2) then
+                          ixpm1=max(1,ixp-1)
+                          iypm1=max(1,iyp-1)
+                          izpm1=max(1,izp-1)
+C                         
+C                           Set up terms for quadratic interpolation with
+c                           higher-order terms omitted
+C                           
+                          V2 = ARRAY(IXP, IYPM1, IZP)
+                          V4 = ARRAY(IXPM1, IYP, IZP)
+                          V5 = ARRAY(IXP, IYP, IZP)
+                          V6 = ARRAY(IXPP1, IYP, IZP)
+                          V8 = ARRAY(IXP, IYPP1, IZP)
+                          VU = ARRAY(IXP, IYP, IZPP1)
+                          VD = ARRAY(IXP, IYP, IZPM1)
+                          vmax=max(v2,v4,v5,v6,v8,vu,vd)
+                          vmin=min(v2,v4,v5,v6,v8,vu,vd)
+C                         
+                          C = (V6 - V4)*.5
+                          A = C + V4 - V5
+                          D = (V8 - V2)*.5
+                          B = D + V2 - V5
+                          F = (VU - VD)*.5
+                          E = F + VD - V5
+                          bval = (a*dx+c)*dx + (b*dy+d)*dy + (e*dz+f)*dz + v5
+                          bval=min(vmax,max(vmin,bval))
+                        else
+C			  
+C                           Set up terms for linear interpolation
+C                           
+                          d11 = (1. - dx) * (1. - dy)
+                          d12 = (1. - dx) * dy
+                          d21 = dx * (1. - dy)
+                          d22 = dx * dy
+                          bval = (1. - dz) * (d11 * array(ixp, iyp, izp)
+     &                        + d12 * array(ixp, iypp1, izp)
+     &                        + d21 * array(ixpp1, iyp, izp)
+     &                        + d22 * array(ixpp1, iypp1, izp)) +
+     &                        dz * (d11 * array(ixp, iyp, izpp1)
+     &                        + d12 * array(ixp, iypp1, izpp1)
+     &                        + d21 * array(ixpp1, iyp, izpp1)
+     &                        + d22 * array(ixpp1, iypp1, izpp1))
+                        endif
+                      endif
+                      brray(indBase + ix * innerStride + iy * idimOut(1) +
+     &                    iouter * iouterStride) = bval
+                    enddo
+                  enddo
+C$OMP END PARALLEL DO
+                  wallCum = wallCum + walltime() - threadWall
+                enddo
+              else
+                brray(1 : idimOut(1)*idimOut(2)*numZtoDo) = dmeanin
+              endif
+
               iunit=ifile(ixcube,iycube)
-              call irepak(brray,brray,limout,limout,
-     &            0,nxyzcube(1,ixcube)-1,0,nxyzcube(2,iycube)-1)
-              call iwrsec(iunit,brray)
-              izinfile(ixcube + (iycube-1) * ncubes(1) +
-     &            (iz-1) * ncubes(1) * ncubes(2)) = izsec(iunit)
-              izsec(iunit)=izsec(iunit)+1
+              do iz = 0, numZtoDo - 1
+                ix = iz * idimOut(1)*idimOut(2) + 1
+                if (iunit .eq. 6) then
+                  call iclden(brray(ix),idimOut(1),idimOut(2),1,
+     &                nxyzcube(1,ixcube),1,nxyzcube(2,iycube),tmin,tmax, tmean)
+                  dmin=min(dmin,tmin)
+                  dmax=max(dmax,tmax)
+                  tsum = tsum + tmean
+                endif
+                call irepak(brray(ix),brray(ix),idimOut(1),idimOut(2),
+     &              0,nxyzcube(1,ixcube)-1,0,nxyzcube(2,iycube)-1)
+                call iwrsec(iunit,brray(ix))
+                izinfile(ixcube, iycube, iz + izStart) = izsec(iunit)
+                izsec(iunit)=izsec(iunit)+1
+              enddo
+c
+c               End of do while: update start and number left to do
+              izStart = izEnd + 1
+              numZleft = numZleft - numZtoDo
             enddo
 c	      print *,ixcube,iycube,izcube
             numDone = numDone + 1
+            if (iVerbose .gt. 0) write(*,'(a,f10.4,a,f10.4)')'Cube CPU time:',
+     &          cputime()-cpuStart,'   Wall time:',walltime() - wallStart
             write(*,'(a,i6,a,i6)')'Finished',numDone,' of',
      &          ncubes(1)*ncubes(2)*ncubes(3)
             call flush(6)
@@ -640,40 +659,119 @@ c
         call recompose_cubes(izcube, dmin, dmax, tsum)
       enddo
 c       
+      if (iVerbose .gt. 0) write(*,'(a,f10.4)')'Thread wall time ', wallCum
       dmean=tsum/nzout
       call iwrhdr(6,title,1,dmin,dmax,dmean)
-      do i=1,6
-        call imclose(i)
+      do i=1,4
+        if (needScratch(i))call imclose(i)
       enddo
+      call imclose(5)
+      call imclose(6)
       call exit(0)
 98    write(*,'(/,a,i7)')'ERROR: WARPVOL - READING WARP FILE AT POSITION',
      &    lForErr
       call exit(1)
 99    call exiterror('READING IMAGE FILE')
-      end
+      end program warpvol
 
+c
+c       TESTCUBEFACES tests the faces of an output cube at its corners and 
+c       at all positions corresponding to transforms
+c       This was a nice internal subroutine but gfortran would not compile it
+c       with openmp enabled
+c
+      subroutine testCubeFaces(aloc,dloc,xlocst,dxloc,ylocst,dyloc, zlocst,
+     &    dzloc, nlocx, nlocy, nlocz, ixcube,iycube,izcube,newExtrarg, inmin,
+     &    inmax)
+      use rotmatwarp
+      implicit none
+      integer*4 newExtrarg,nlocx, nlocy, nlocz,inmin(3),inmax(3)
+      real*4 aloc(3,3,*),dloc(3,*),xlocst,dxloc,ylocst,dyloc,zlocst,dzloc
+      real*4 xcubelo,xcubehi,ycubelo,ycubehi,zcubelo,zcubehi
+      integer*4 ixcube,iycube,izcube
+      integer*4 ixlo,ixhi,iylo,iyhi,izlo,izhi
+      real*4 dxUse,dyUse,dzUse, xlUse,ylUse,zlUse,dxyz(3),ainv(3,3)
+      integer*4 jfx,jfy,jfz,jval,i
+      real*4 xcen,ycen,zcen
+c               
+c       back-transform the faces of the output cube at the corners and
+c       at positions corresponding to transforms to
+c       find the limiting index coordinates of the input cube
+c       
+      do i=1,3
+        inmin(i)=100000
+        inmax(i)=-100000
+      enddo
+      call cubeTestLimits(ixyzcube(2,iycube), nxyzcube(2,iycube),cyout,
+     &    nlocy, ylocst, dyloc, ycubelo,ycubehi,iylo,iyhi,ylUse, dyUse)
+      call cubeTestLimits(ixyzcube(3,izcube), nxyzcube(3,izcube), czout,
+     &    nlocz, zlocst, dzloc, zcubelo, zcubehi, izlo, izhi, zlUse, dzUse)
+      call cubeTestLimits(ixyzcube(1,ixcube), nxyzcube(1,ixcube), cxout,
+     &    nlocx, xlocst, dxloc, xcubelo, xcubehi, ixlo, ixhi,xlUse,dxUse)
+      do jfx=ixlo, ixhi
+        do jfy=iylo, iyhi
+          do jfz=izlo, izhi
+            if (jfx .eq. ixlo .or. jfx .eq. ixhi .or. jfy .eq. iylo.or.
+     &          jfy .eq. iyhi .or. jfz .eq. izlo .or. jfz .eq. izhi)
+     &          then
+              xcen = max(xcubelo, min(xcubehi, xlUse + jfx * dxUse))
+              ycen = max(ycubelo, min(ycubehi, ylUse + jfy * dyUse))
+              zcen = max(zcubelo, min(zcubehi, zlUse + jfz * dzUse))
+              call interpinv(aloc,dloc,xlocst,dxloc,ylocst,dyloc,
+     &            zlocst,dzloc, nlocx, nlocy, nlocz, xcen,ycen,
+     &            zcen,ainv,dxyz) 
+              do i=1,3
+                jval=nint(ainv(i,1)*xcen+ainv(i,2)*ycen+
+     &              ainv(i,3)*zcen+dxyz(i)+nxyzin(i)/2)
+                inmin(i)=max(0,min(inmin(i),jval-2))
+                inmax(i)=min(nxyzin(i)-1,max(inmax(i),jval+2))
+c                 
+c                 See if any extra pixels are needed in input
+c                 
+c                 if (newExtrarg .ge. 0 .and. newExtrarg .lt.inmax(i) +
+c     &              1-inmin(i)-inpdim) then
+c                   print *,ixcube,iycube,izcube,xcen,ycen,zcen,
+c     &                        inmax(i) + 1 - inmin(i) -
+c     &                        inpdim,i, jval, inmin(i), inmax(i)
+c                   print *,ainv(i,1),ainv(i,2),ainv(i,3),dxyz(i)
+c                   endif
+                if (newExtrarg .ge. 0) newExtrarg = max(newExtrarg,
+     &              inmax(i) + 1 - inmin(i) - inpdim(i))
+              enddo
+            endif
+          enddo
+        enddo
+      enddo
+      end subroutine testCubeFaces
+
+c       
+c       CUBETESTLIMITS determines limits for cube testing on one axis
+c
       subroutine cubeTestLimits(icube, ncube, cout, nloc, stloc, dloc, cubelo,
      &    cubehi, ilo, ihi, stluse, dluse)
       implicit none
       integer*4 icube, ncube, nloc, ilo, ihi
       real*4 cout, stloc, dloc, cubelo, cubehi, stluse, dluse
-        cubelo = icube - cout
-        cubehi = icube + ncube - cout
-        if (nloc .gt. 1) then
-          ilo = floor((cubelo - stloc) / dloc)
-          ihi = ceiling((cubehi - stloc) / dloc)
-          stluse = stloc
-          dluse = dloc
-        else
-          stluse = cubelo
-          dluse = (cubehi - cubelo) / 2.
-          ilo = 0
-          ihi = 2
-        endif
+      cubelo = icube - cout
+      cubehi = icube + ncube - cout
+      if (nloc .gt. 1) then
+        ilo = floor((cubelo - stloc) / dloc)
+        ihi = ceiling((cubehi - stloc) / dloc)
+        stluse = stloc
+        dluse = dloc
+      else
+        stluse = cubelo
+        dluse = (cubehi - cubelo) / 2.
+        ilo = 0
+        ihi = 2
+      endif
       return
       end
 
-
+c       
+c       INTERPINV takes the array of transforms and a given position
+c       xcen,ycen,zcen and determines the interpolated transform minv,dxyz
+c
       subroutine interpinv(aloc,dloc,xlocst,dxloc,ylocst,dyloc,zlocst,
      &    dzloc,nlocx, nlocy, nlocz, xcen,ycen,zcen,minv,dxyz)
       implicit none
@@ -684,35 +782,44 @@ c
       real*4 x,fx,fx1,y,fy,fy1,z,fz,fz1
       integer*4 ix,ix1,iy,iy1,iz,iz1,i,j
 c       
-      x=1.
-      if(nlocx.gt.0)then
-        x=1.+(xcen-xlocst)/dxloc
-        x=min(float(nlocx),max(1.,x))
+      if (nlocx .gt. 1) then
+        x=min(float(nlocx),max(1.,1.+(xcen-xlocst)/dxloc))
+        ix=x
+        ix1=min(ix+1,nlocx)
+        fx1=x-ix
+        fx=1.-fx1
+      else
+        ix = 1
+        ix1 = 1
+        fx1 = 0.
+        fx = 1.
       endif
-      ix=x
-      ix1=min(ix+1,nlocx)
-      fx1=x-ix
-      fx=1.-fx1
-c       
-      y=1.
-      if(nlocy.gt.0)then
-        y=1.+(ycen-ylocst)/dyloc
-        y=min(float(nlocy),max(1.,y))
+c
+      if (nlocy .gt. 1) then
+        y=min(float(nlocy),max(1.,1.+(ycen-ylocst)/dyloc))
+        iy=y
+        iy1=min(iy+1,nlocy)
+        fy1=y-iy
+        fy=1.-fy1
+      else
+        iy = 1
+        iy1 = 1
+        fy1 = 0.
+        fy = 1.
       endif
-      iy=y
-      iy1=min(iy+1,nlocy)
-      fy1=y-iy
-      fy=1.-fy1
-c       
-      z=1.
-      if(nlocz.gt.0)then
-        z=1.+(zcen-zlocst)/dzloc
-        z=min(float(nlocz),max(1.,z))
+c
+      if (nlocz .gt. 1) then
+        z=min(float(nlocz),max(1.,1.+(zcen-zlocst)/dzloc))
+        iz=z
+        iz1=min(iz+1,nlocz)
+        fz1=z-iz
+        fz=1.-fz1
+      else
+        iz = 1
+        iz1 = 1
+        fz1 = 0.
+        fz = 1.
       endif
-      iz=z
-      iz1=min(iz+1,nlocz)
-      fz1=z-iz
-      fz=1.-fz1
 c       
       do i=1,3
         do j=1,3
@@ -737,8 +844,10 @@ c
       return
       end
 
-c       Fills in regular array of transforms by copying from the nearest
-c       transform to each missing one.
+c       FILLINTRANSFORMS fills in a regular array of transforms by
+c       extrapolation from the nearest transforms to each missing one, where
+c       the extrapolation is a weighted mean with weights proportional to the
+c       square of distance from each existing transform.
 c
       subroutine fillInTransforms(aloc, dloc, solved, nlocx, nlocy, nlocz,
      &    dxloc, dyloc, dzloc)
@@ -754,6 +863,7 @@ c
       integer*4 ixstep(12)/1,1,1,0,-1,-1,-1,0,1,1,1,0/
       integer*4 iystep(12)/-1,0,1,1,1,0,-1,-1,-1,0,1,1/
       real*4 range/2./
+      real*4 atan2d
 c       
       do iz = 1, nlocz
         do iy = 1, nlocy
@@ -882,6 +992,10 @@ c     &              dloc(jx,ix,iy,iz)
       return
       end
 
+c       
+c       SHIFTTRANSFORMS shifts the transforms to fill the center of a larger
+c       array
+c
       subroutine shiftTransforms(alocIn, dlocIn, solvtmp, nlocx, nlocy, nlocz,
      &    aloc, dloc, solved, newlocx, newlocy, newlocz, nxadd, nyadd, nzadd)
       implicit none
@@ -914,10 +1028,13 @@ c     &              dloc(jx,ix,iy,iz)
 
 c       
 c       $Log$
+c       Revision 3.17  2009/06/05 19:38:18  mast
+c       Oops take out debug output
+c
 c       Revision 3.16  2009/06/05 19:36:29  mast
 c       Implemented extrapolation by weighted average of nearest transforms
-c       Assessed input limits for cube using all grid points of transform as well
-c       as corner points
+c       Assessed input limits for cube using all grid points of transform as
+c       well as corner points
 c
 c       Revision 3.15  2009/03/31 23:43:54  mast
 c       Give position number in error message when reading file
