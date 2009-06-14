@@ -16,7 +16,9 @@ set defines = '-D_FILE_OFFSET_BITS=64'
 if ($compiler == default) then
     set ifortout = `which ifort`
     if (! $status) set compiler = intel
+    if ($compiler == default) set compiler = gfortran
 endif
+if ($compiler == gnu) set compiler = gfortran
 
 set fcompFlags = ""
 set openmpFlags = ""
@@ -268,7 +270,10 @@ if ($compiler == intel) then
         else
             echo "DLLDESTDIR = lib" >> $configure
         endif
-        if ($openmp == true) set dllstocopy1 = "$dllstocopy1 libguide libifcoremt"
+        if ($openmp == true) then
+            set dllstocopy1 = "$dllstocopy1 libguide"
+            if ($iccversion <= 9) set dllstocopy1 = "$dllstocopy1 libifcoremt"
+        endif
     endif
     setenv QMAKESPEC linux-icc
 
