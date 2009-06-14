@@ -12,8 +12,8 @@ c
 c       $Id$
 c       Log and other history at end
 c       
+      use rotmatwarp
       implicit none
-      include 'rotmatwarp.inc'
       real*4 cell(12),dxyzin(3)
       real*4 mxyzin(3),cenind(3)
       real*4 mfor(3,3),mold(3,3),mnew(3,3),moldinv(3,3)
@@ -86,6 +86,8 @@ c
         ierr = PipGetThreeFloats('CenterXYZ', cenind(1),
      &      cenind(2), cenind(3))
         ierr = PipGetInteger('InterpolationOrder', interpOrder)
+        ierr = PipGetInteger('MemoryLimit', memoryLim)
+        ierr = PipGetInteger('VerboseOutput', iVerbose)
         ierr = PipGetThreeIntegers('OutputSizeXYZ', nxout, nyout, nzout)
 c         
 c         transforms
@@ -188,19 +190,9 @@ c
       endif
       call PipDone()
 c       
-c       find maximum extent in input volume occupied by a back-transformed
-c       unit cube in output volume
-c       
-      devmx=0.
-      do ix=-1,1,2
-        do iy=-1,1,2
-          do i=1,3
-            devmx=max(devmx,abs(minv(i,1)*ix+minv(i,2)*iy+minv(i,3)))
-          enddo
-        enddo
-      enddo
-
-      call setup_cubes_scratch(devmx, 0, filein, tempdir, tempext, tim)
+c       Set up the arrangement of input/output data, allocate arrays
+      call setup_cubes_scratch(mfor, minv, 1, 0, filein, tempdir, tempext, tim,
+     &    .false.)
 c       
       call imopen(6,imfileout,'NEW')
 c       
@@ -219,10 +211,7 @@ c
       call icrhdr(6,nxyzout,nxyzout,mode,title,0)
       call ialcel(6,cell)
       call itrlab(6,5)
-c       
-c       7/7/00 CER: remove the encodes
-c       
-c       ENCODE(80,302,TITLE)dat,tim
+c
       write(titlech,302) dat,tim
       read(titlech,'(20a4)')(TITLE(kti),kti=1,20)
 302   FORMAT('MATCHVOL: 3-D transformation of tomogram:',t57,a9,2x,a8)
@@ -234,11 +223,15 @@ c
       call irtorg(5, delta(1), delta(2), delta(3))
       call ialorg(6, delta(1), delta(2), delta(3))
 c       
+c       Do the work and exit
       call transform_cubes(interpOrder)
       end
 
 c       
 c       $Log$
+c       Revision 3.11  2007/11/18 04:53:46  mast
+c       Increased filename limits to 320
+c
 c       Revision 3.10  2006/09/23 16:30:23  mast
 c       Tested for negative output size
 c

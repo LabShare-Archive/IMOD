@@ -7,22 +7,22 @@ c       maintained so that the new data stack will have a coordinate system
 c       congruent with the old one.
 c       
 c       The program can work on an arbitrarily large volume.  It reconstructs
-c       a series of sub-cubes of the output volume (each cube is currently
-c       360x360x360).  For each cube, it reads into memory a cube from the
-c       input volume that contains all of the image area that rotates into
-c       that cube of output volume.  It then uses triquadratic interpolation
-c       to find each pixel of the output cube, and writes the cube to a
-c       scratch file.  When all of the cubes in one layer are done, it reads
-c       back data from the scratch files and assembles each section in that
-c       layer.
+c       a series of sub-regions of the output volume, referred to as cubes
+c       but actually rectangles. For each cube, it reads into memory a cube
+c       from the input volume that contains all of the image area that rotates
+c       into that cube of output volume.  It then uses linear or triquadrati
+c       interpolation to find each pixel of the output cube, and writes the
+c       cube to a scratch file.  When all of the cubes in one layer are done,
+c       it reads back data from the scratch files and assembles each section
+c       in that layer.
 c       
 c       See man page for more details
 c       
 c       $Id$
 c       Log and other history at end
 c       
+      use rotmatwarp
       implicit none
-      include 'rotmatwarp.inc'
       real*4 cell(6)
       integer*4 mxyzin(3),maxdim(3)
       real*4 cenind(3)
@@ -34,9 +34,6 @@ c
 c	DNM 3/8/01: initialize the time in case time(tim) doesn't work
 c       
       character dat*9,tim*8/'00:00:00'/
-c       
-c       7/7/00 CER: remove the encode's; titlech is the temp space
-c       
       character*80 titlech
       integer*4 i, ix, iy, kti, interpOrder, ierr, idiry, idirz
       real*4 dminin, dmaxin, devmx, xcen, ycen, zcen
@@ -51,14 +48,15 @@ c
 c       fallbacks from ../../manpages/autodoc2man -2 2  rotatevol
 c       
       integer numOptions
-      parameter (numOptions = 11)
+      parameter (numOptions = 13)
       character*(40 * numOptions) options(1)
       options(1) =
      &    'input:InputFile:FN:@output:OutputFile:FN:@'//
      &    'tempdir:TemporaryDirectory:CH:@size:OutputSizeXYZ:IT:@'//
      &    'center:RotationCenterXYZ:FT:@angles:RotationAnglesZYX:FT:@'//
      &    'order:InterpolationOrder:I:@query:QuerySizeNeeded:B:@'//
-     &    'fill:FillValue:F:@param:ParameterFile:PF:@help:usage:B:'
+     &    'fill:FillValue:F:@memory:MemoryLimit:I:@verbose:VerboseOutput:I:@'//
+     &    'param:ParameterFile:PF:@help:usage:B:'
 c       
 c       set defaults here
 c       
@@ -99,6 +97,8 @@ c
         ierr = PipGetThreeFloats('RotationCenterXYZ', cenind(1),
      &      cenind(2), cenind(3))
         ierr = PipGetInteger('InterpolationOrder', interpOrder)
+        ierr = PipGetInteger('MemoryLimit', memoryLim)
+        ierr = PipGetInteger('VerboseOutput', iVerbose)
         ierr = PipGetThreeIntegers('OutputSizeXYZ', nxout, nyout, nzout)
         ierr = PipGetThreeFloats('RotationAnglesZYX', angles(3), angles(2),
      &      angles(1))
@@ -169,9 +169,6 @@ c
       call date(dat)
       tempext='rot      1'
 c       
-c       7/7/00 CER: remove the encodes
-c       
-c       ENCODE(80,302,TITLE)(angles(i),i=1,3),dat,tim
       write(titlech,302) (angles(i),i=1,3),dat,tim
       read(titlech,'(20a4)')(TITLE(kti),kti=1,20)
 302   FORMAT('ROTATEVOL: 3D rotation by angles:',3f7.1,t57,a9,2x,a8)
@@ -203,25 +200,19 @@ c
       enddo
       call ialorg(6,orig(1),orig(2),orig(3))
 c       
-c       find maximum extent in input volume occupied by a back-transformed
-c       unit cube in output volume
+c       Set up the arrangement of input and output data
+      call setup_cubes_scratch(mfor, minv, 1, 0, filein, tempdir, tempext, tim,
+     &    .false.)
 c       
-      devmx=0.
-      do ix=-1,1,2
-        do iy=-1,1,2
-          do i=1,3
-            devmx=max(devmx,abs(minv(i,1)*ix+minv(i,2)*iy+minv(i,3)))
-          enddo
-        enddo
-      enddo
-c       
-      call setup_cubes_scratch(devmx, 0, filein, tempdir, tempext, tim)
+c       Do all the work and exit
       call transform_cubes(interpOrder)
-
       end
 
 c
 c       $Log$
+c       Revision 3.12  2007/11/18 04:53:46  mast
+c       Increased filename limits to 320
+c
 c       Revision 3.11  2007/01/31 16:24:05  mast
 c       Added option to set fill value
 c
