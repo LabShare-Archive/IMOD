@@ -111,6 +111,7 @@ else
     echo '#define G77__HACK' >> $hconfigure
     echo '#define DLLEXPORT_' >> $hconfigure
     echo '#define DLL_IM_EX' >> $hconfigure
+    set openmp = false
 endif
 
 # Needed under tcsh 6.12 in RH 8.0 to avoid getting two \ out
