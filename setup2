@@ -51,11 +51,8 @@ set inst_dir        = default
 set tifflibs        = default
 set dummytiff       =
 set usfftdir        = default
-set openmp          = false
-set openmpFlags     = ""
 set wrapintel       = true
-set openmp          = false
-set wrapintel       = true
+set openmp          = true
 set blockio         =
 set imsubsobj       = '*.o'
 set tiltalilib      =
@@ -216,8 +213,8 @@ while($#argv > 0)
                 set packg2c = true
                 breaksw
 
-        case -openmp:
-                set openmp = true
+        case -no_openmp:
+                set openmp = false
                 breaksw
 
         case -nowrap:
@@ -977,6 +974,7 @@ echo "             -no_xlibs    Do not try to make X version of plax routines"
 echo "             -compiler,-c Use specified compilers (intel or gfortran for"
 echo "                          rhlinux or mac, gnu for cygwin)"
 echo "             -static      Link to static Intel libraries"
+echo "             -no_openmp   Do not use OpenMP where available"
 echo "             -no_wrap     Do not put executables in bin/realbin and make"
 echo "                             script wrappers for Intel on Linux"
 echo "             -packg2c     Pack libg2c into distribution (Linux only)"
@@ -988,6 +986,9 @@ exit
 
 #
 #  $Log$
+#  Revision 1.48  2009/04/09 18:45:13  mast
+#  Output openmp flag to use in specific compiles
+#
 #  Revision 1.47  2009/04/08 22:22:15  mast
 #  Added openmp option and wrapintel option
 #
