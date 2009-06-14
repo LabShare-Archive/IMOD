@@ -114,8 +114,9 @@ goodframe$(E): goodframe.$(O)
 header$(E): header.$(O)
 	$(FC) -o header header.$(O) $(LDFLG) $(IMLIBS) $(LIBS)
 
-matchvol$(E): matchvol.$(O) rotmatwarpsubs.$(O)
-	$(FC) -o matchvol matchvol.$(O) rotmatwarpsubs.$(O) $(LDFLG) $(IMLIBS) $(LIBS)
+matchvol$(E): matchvol.$(O) rotmatwarpsubs.$(O) rotmatwarp.$(O)
+	$(FC) -o matchvol matchvol.$(O) rotmatwarpsubs.$(O) rotmatwarp.$(O) \
+	$(LDFLG) $(IMLIBS) $(LIBS)
 
 maxjoinsize$(E): maxjoinsize.$(O)
 	$(FC) -o maxjoinsize maxjoinsize.$(O) $(LDFLG) $(IMLIBS) $(LIBS)
@@ -138,10 +139,11 @@ newstack$(E): newstack.$(O)
 numericdiff$(E): numericdiff.$(O)
 	$(FC) -o numericdiff numericdiff.$(O) $(LDFLG) $(IMLIBS) $(LIBS)
 
-rotatevol$(E): rotatevol.$(O) rotmatwarpsubs.$(O)
-	$(FC) -o rotatevol rotatevol.$(O) rotmatwarpsubs.$(O) $(LDFLG) $(IMLIBS) $(LIBS)
+rotatevol$(E): rotatevol.$(O) rotmatwarpsubs.$(O) rotmatwarp.$(O)
+	$(FC) -o rotatevol rotatevol.$(O) rotmatwarpsubs.$(O) rotmatwarp.$(O) \
+	$(LDFLG) $(IMLIBS) $(LIBS)
 
-rotmatwarpsubs.$(O): rotmatwarpsubs.f
+rotmatwarpsubs.$(O): rotmatwarpsubs.f rotmatwarp.$(O)
 	$(FC) $(FFLAGS) $(OPENMP) -c rotmatwarpsubs.f
 
 rotmont$(E): rotmont.$(O)
@@ -174,8 +176,12 @@ tomopieces$(E): tomopieces.$(O)
 vmstocsh$(E): vmstocsh.$(O)
 	$(FC) -o vmstocsh vmstocsh.$(O) $(LDFLG) $(IMLIBS) $(LIBS)
 
-warpvol$(E): warpvol.$(O) rotmatwarpsubs.$(O)
-	$(FC) -o warpvol rotmatwarpsubs.$(O) warpvol.$(O) $(LDFLG) $(IMLIBS) $(LIBS)
+warpvol.$(O): warpvol.f
+	$(FC) $(FFLAGS) $(OPENMP) -c warpvol.f
+
+warpvol$(E): warpvol.$(O) rotmatwarpsubs.$(O) rotmatwarpsubs.$(O)
+	$(FC) -o warpvol rotmatwarpsubs.$(O) warpvol.$(O) rotmatwarp.$(O) \
+	$(LDFLG) $(IMLIBS) $(LIBS)
 
 xcorrstack$(E): xcorrstack.$(O)
 	$(FC) -o xcorrstack xcorrstack.$(O) $(LDFLG) $(IMLIBS) $(LIBS)
@@ -202,16 +208,18 @@ install: $(PROGS)
 clean:
 	-\rm -f *.o* *~ *.exe $(PROGS)
 
-rotatevol.$(O): rotmatwarp.inc
-matchvol.$(O): rotmatwarp.inc
-warpvol.$(O): rotmatwarp.inc
-rotmatwarpsubs.$(O): rotmatwarp.inc
+rotatevol.$(O): rotmatwarp.$(O)
+matchvol.$(O): rotmatwarp.$(O)
+warpvol.$(O): rotmatwarp.$(O)
 stitchalign.$(O): stitchvars.inc
 giantfft.$(O): $(INCDIR)/ftbuf.inc
 enhance.$(O): $(INCDIR)/ftbuf.inc
 fftrans.$(O): $(INCDIR)/ftbuf.inc
 
 #  $Log$
+#  Revision 3.19  2009/04/09 18:56:49  mast
+#  Add openmp flag for rotmatwarpsubs
+#
 #  Revision 3.18  2009/02/16 06:26:42  mast
 #  Added fixboundaries
 #
