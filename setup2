@@ -971,8 +971,8 @@ echo "             -no_shared   Make libraries non-shared"
 echo "             -tiff        Link with TIFF libraries"
 echo "             -no_tiff     Do not try to link with TIFF libraries"
 echo "             -no_xlibs    Do not try to make X version of plax routines"
-echo "             -compiler,-c Use specified compilers (intel or gfortran for"
-echo "                          rhlinux or mac, gnu for cygwin)"
+echo "             -compiler,-c Use specified compilers (intel or gnu/gfortran"
+echo "                          for rhlinux or mac, gnu for cygwin)"
 echo "             -static      Link to static Intel libraries"
 echo "             -no_openmp   Do not use OpenMP where available"
 echo "             -no_wrap     Do not put executables in bin/realbin and make"
@@ -986,6 +986,9 @@ exit
 
 #
 #  $Log$
+#  Revision 1.49  2009/06/14 23:43:46  mast
+#  Switch to openmp as default
+#
 #  Revision 1.48  2009/04/09 18:45:13  mast
 #  Output openmp flag to use in specific compiles
 #
