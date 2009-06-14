@@ -16,10 +16,12 @@ if ($compiler == default && $intel == true) then
     set ifortout = `which ifort`
     if ($status || "$ifortout:h" == "/usr/bin") then
 	set compiler = gfortran
+        set openmp = false
     else
 	set compiler = ifort
     endif
 endif
+if ($compiler == gnu) set compiler = gfortran
 
 # If using intel fortran compiler, check for C compiler too
 #
@@ -38,6 +40,8 @@ if ($compiler == ifort) then
             set openmpFlags = "-openmp"
             set libmt = "mt"
         endif
+    else
+        set openmp = false
     endif
 endif
 
@@ -107,6 +111,8 @@ else
     if ($#fortvers < 2) set fortvers = 3
     echo "DLLSOURCEDIR1 = /usr/local/lib" >> $configure
     if ($fortvers[1] == 3) then
+        echo "IMOD can no longer be compiled with g77"
+        exit 1
         set fcomp = "g77"
         set ctfplot_flibs = "-lg2c"
 
