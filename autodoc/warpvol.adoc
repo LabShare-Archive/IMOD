@@ -54,6 +54,23 @@ tooltip =
 manpage = Order of interpolation to use.  Currently only quadratic (2) and
 linear (1) interpolation are available; the default is quadratic.
 
+[Field = MemoryLimit]
+short = memory
+type = I
+usage = Memory to use for major arrays, in megabytes (default 768)
+tooltip = 
+manpage = Amount of memory to allocate for the major arrays needed by the
+program.  This always includes memory for input images and may include memory
+for a plane of transformations or for a stack of output slices, depending on
+whether transformations rotate the data by 90 degrees.
+
+[Field = VerboseOutput]
+short = verbose
+type = I
+usage = 1 for diagnostic output; 2 for output as each slice is loaded
+tooltip = 
+manpage = 
+
 [Field = PatchOutputFile]
 short = patch
 type = FN

@@ -73,6 +73,22 @@ usage = Value to fill regions without image data (default is file mean)
 tooltip = 
 manpage = 
 
+[Field = MemoryLimit]
+short = memory
+type = I
+usage = Memory to use for major arrays, in megabytes (default 768)
+tooltip = 
+manpage = Amount of memory to allocate for the major arrays needed by the
+program.  This always includes memory for input images and may include memory
+for a stack of output slices, depending on the orientation of the output.
+
+[Field = VerboseOutput]
+short = verbose
+type = I
+usage = 1 for diagnostic output
+tooltip = 
+manpage = 
+
 [Field = ParameterFile]
 short = param
 type = PF
