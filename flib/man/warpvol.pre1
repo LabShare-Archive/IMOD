@@ -10,8 +10,10 @@ SSYYNNOOPPSSIISS
 
 DDEESSCCRRIIPPTTIIOONN
   Warpvol will transform a volume using a series of general linear
-  transformations. Its main use is to "warp" one tomogram from
-  a two-axis tilt series so that it matches the other tomogram.
+  transformations. Its original use was to "warp" one tomogram from
+  a two-axis tilt series so that it matches the other tomogram, but it is
+  also used for volume flattening and for transforming adjacent, overlapping
+  tomograms into alignment so that theycan be stitched together.
   For each position in the volume, it interpolates between adjacent
   transformations to find the transformation appropriate for that
   position.  Any initial alignment transformation (from Solvematch) must
@@ -80,11 +82,19 @@ INSERT OPTION TEXT HERE
   volume, and (xi, yi, xi) are coordinates relative to the center of the input
   volume.  The center coordinates of the transforms are used to assign them to
   the regular array of positions, so transforms that are not located at these
-  regular positions will be relocated and will not perform as expected.  If
-  there are missing transforms, the array will be filled in by copying from
-  the nearest defined transform.
+  regular positions will be relocated and will not perform as expected.  
+
+  If there are missing transforms, the array will be filled in at each empty
+  spot by taking a weighted average of the nearest defined transforms.  Once
+  the nearest existing transform is found to a particular spot, transforms are
+  included from positions up to twice as far away as the nearest one, and
+  their weights are proportional to the square of their distances from the
+  position being filled in.  The same approach is used to extend the transform
+  array to cover all positions in the output volume being computed.
 
 HHIISSTTOORRYY
   Written by David Mastronarde  11/15/96; modified for 3-D matrix of
   transformations, 7/23/97
   Converted to PIP/autodoc 10/10/03
+  Changed the way transforms are filled in and extrapolated, 6/7/09
+  Converted to Fortran 95, parallelized with OpenMP, 6/14/09

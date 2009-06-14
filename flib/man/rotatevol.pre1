@@ -59,16 +59,16 @@ INSERT OPTION TEXT HERE
   
   Rotations around the Z, Y, and X axes
   
-  The program can work on an arbitrarily large volume.  It reconstructs
-  a series of sub-cubes of the output volume (each cube is currently
-  256x256x256).  For each cube, it reads into memory a cube from the
-  input volume that contains all of the image area that rotates into
-  that cube of output volume.  It then uses triquadratic interpolation
-  to find each pixel of the output cube, and writes the cube to a
-  scratch file.  When all of the cubes in one layer are done, it reads
-  back data from the scratch files and assembles each section in that
-  layer.
+  The program can work on an arbitrarily large volume.  It reconstructs a
+  series of rectangular sub-regions of the output volume.  For each region, it
+  reads into memory a rectangular region from the input volume that contains
+  all of the image area that rotates into that region of output volume.  It
+  then uses linear or triquadratic interpolation to find each pixel of the
+  output subvolume, and writes the subvolume to a scratch file if necessary.
+  When all of the regions in one layer are done, it reads back data from the
+  scratch files and assembles each section in that layer.
  	  
 HHIISSTTOORRYY
   Written by David Mastronarde 7/25/91
   Converted to PIP/autodoc 10/10/03
+  Converted to Fortran 95, parallelized with OpenMP, 6/14/09

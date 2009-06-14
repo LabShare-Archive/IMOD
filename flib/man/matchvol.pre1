@@ -58,3 +58,4 @@ INSERT OPTION TEXT HERE
 HHIISSTTOORRYY
   Written by David Mastronarde, 1995
   Converted to PIP/autodoc 10/10/03
+  Converted to Fortran 95, parallelized with OpenMP, 6/14/09
