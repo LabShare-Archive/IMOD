@@ -40,6 +40,9 @@ import etomo.type.Run3dmodMenuOptions;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.29  2009/05/02 01:13:01  sueh
+ * <p> bug# 1216 Added pickSeed and pickRaptor.
+ * <p>
  * <p> Revision 3.28  2009/03/17 00:46:24  sueh
  * <p> bug# 1186 Pass managerKey to everything that pops up a dialog.
  * <p>
@@ -174,7 +177,7 @@ import etomo.type.Run3dmodMenuOptions;
  * <p> </p>
  */
 public final class BeadtrackPanel implements Expandable,
-    Run3dmodButtonContainer {
+    Run3dmodButtonContainer, BeadTrackDisplay {
   public static final String rcsid = "$Id$";
 
   public static final String TRACK_LABEL = "Track Seed Model";
@@ -260,6 +263,8 @@ public final class BeadtrackPanel implements Expandable,
   private final BeadtrackPanelActionListener actionListener = new BeadtrackPanelActionListener(
       this);
 
+  private final DialogType dialogType;
+
   /**
    * Construct a new beadtrack panel.
    * @param label specifies the suffix for the logfile
@@ -267,6 +272,7 @@ public final class BeadtrackPanel implements Expandable,
   private BeadtrackPanel(final ApplicationManager manager, AxisID id,
       DialogType dialogType) {
     this.manager = manager;
+    this.dialogType = dialogType;
     axisID = id;
     btnTrack = (MultiLineButton) manager.getProcessResultDisplayFactory(axisID)
         .getTrackFiducials();
@@ -629,11 +635,11 @@ public final class BeadtrackPanel implements Expandable,
 
   void buttonAction(String command, Run3dmodMenuOptions run3dmodMenuOptions) {
     if (command.equals(btnTrack.getActionCommand())) {
-      manager.fiducialModelTrack(axisID, btnTrack, null);
+      manager.fiducialModelTrack(axisID, btnTrack, null, dialogType, this);
     }
     else if (command.equals(btnUseModel.getActionCommand())) {
       if (manager.makeFiducialModelSeedModel(axisID)) {
-        manager.fiducialModelTrack(axisID, btnUseModel, null);
+        manager.fiducialModelTrack(axisID, btnUseModel, null, dialogType, this);
       }
     }
     else if (command.equals(cbLocalAreaTracking.getText())) {
