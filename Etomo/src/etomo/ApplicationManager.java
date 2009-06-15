@@ -104,6 +104,7 @@ import etomo.type.TomogramState;
 import etomo.type.ViewType;
 import etomo.ui.AbstractParallelDialog;
 import etomo.ui.AlignmentEstimationDialog;
+import etomo.ui.BeadTrackDisplay;
 import etomo.ui.BeadtrackPanel;
 import etomo.ui.BlendmontDisplay;
 import etomo.ui.CCDEraserDisplay;
@@ -1739,7 +1740,7 @@ public final class ApplicationManager extends BaseManager implements
   private boolean updatePrenewstCom(NewstackDisplay display, AxisID axisID) {
     NewstParam prenewstParam = comScriptMgr.getPrenewstParam(axisID);
     try {
-    display.getParameters(prenewstParam);
+      display.getParameters(prenewstParam);
     }
     catch (FortranInputSyntaxException except) {
       String[] errorMessage = new String[3];
@@ -1760,8 +1761,8 @@ public final class ApplicationManager extends BaseManager implements
    * @return
    */
   private BlendmontParam updatePreblendCom(BlendmontDisplay display,
-      AxisID axisID)  throws FortranInputSyntaxException, InvalidParameterException,
-      IOException{
+      AxisID axisID) throws FortranInputSyntaxException,
+      InvalidParameterException, IOException {
     BlendmontParam preblendParam = comScriptMgr.getPreblendParam(axisID);
     display.getParameters(preblendParam);
     preblendParam.setBlendmontState();
@@ -1867,7 +1868,7 @@ public final class ApplicationManager extends BaseManager implements
       fiducialModelDialog.getTransferFidParams();
       fiducialModelDialog.getParameters(metaData);
       // Get the user input data from the dialog box
-      if (!updateTrackCom(axisID)) {
+      if (!updateTrackCom(fiducialModelDialog.getBeadTrackDisplay(), axisID)) {
         return false;
       }
       if (exitState == DialogExitState.EXECUTE) {
@@ -1989,17 +1990,18 @@ public final class ApplicationManager extends BaseManager implements
    */
   public void fiducialModelTrack(AxisID axisID,
       ProcessResultDisplay processResultDisplay,
-      ConstProcessSeries processSeries) {
+      ConstProcessSeries processSeries, DialogType dialogType,
+      BeadTrackDisplay display) {
     sendMsgProcessStarting(processResultDisplay);
-    if (!updateTrackCom(axisID)) {
+    if (!updateTrackCom(display, axisID)) {
       sendMsgProcessFailedToStart(processResultDisplay);
       return;
     }
     if (!okToFiducialModelTrack(axisID)) {
       return;
     }
-    processTrack.setFiducialModelState(ProcessState.INPROGRESS, axisID);
-    mainPanel.setFiducialModelState(ProcessState.INPROGRESS, axisID);
+    processTrack.setState(ProcessState.INPROGRESS, axisID, dialogType);
+    mainPanel.setState(ProcessState.INPROGRESS, axisID, dialogType);
     String threadName;
     try {
       threadName = processMgr.fiducialModelTrack(axisID, processResultDisplay,
@@ -2230,24 +2232,16 @@ public final class ApplicationManager extends BaseManager implements
   /**
    * Update the specified track com script
    */
-  private boolean updateTrackCom(AxisID axisID) {
-    // Set a reference to the correct object
-    FiducialModelDialog fiducialModelDialog;
-    if (axisID == AxisID.SECOND) {
-      fiducialModelDialog = fiducialModelDialogB;
-    }
-    else {
-      fiducialModelDialog = fiducialModelDialogA;
-    }
-    if (fiducialModelDialog == null) {
+  private boolean updateTrackCom(BeadTrackDisplay display, AxisID axisID) {
+    if (display == null) {
       uiHarness.openMessageDialog(
-          "Can not update track?.com without an active fiducial model dialog",
+          "Can not update track?.com without an active display",
           "Program logic error", axisID, getManagerKey());
       return false;
     }
     try {
       BeadtrackParam beadtrackParam = comScriptMgr.getBeadtrackParam(axisID);
-      fiducialModelDialog.getBeadtrackParams(beadtrackParam);
+      display.getParameters(beadtrackParam);
       comScriptMgr.saveTrack(beadtrackParam, axisID);
     }
     catch (FortranInputSyntaxException except) {
@@ -3605,10 +3599,10 @@ public final class ApplicationManager extends BaseManager implements
     processSeries.setRun3dmodDeferred(deferred3dmodButton, run3dmodMenuOptions);
     processTrack.setState(ProcessState.INPROGRESS, axisID, dialogType);
     mainPanel.setState(ProcessState.INPROGRESS, axisID, dialogType);
-    sendMsg(newst(axisID, processResultDisplay, processSeries,
-        newstParam, blendmontParam), processResultDisplay);
+    sendMsg(newst(axisID, processResultDisplay, processSeries, newstParam,
+        blendmontParam), processResultDisplay);
   }
-  
+
   private void sendMsg(ProcessResult displayState,
       ProcessResultDisplay processResultDisplay) {
     if (displayState == null || processResultDisplay == null) {
@@ -6517,6 +6511,10 @@ public final class ApplicationManager extends BaseManager implements
 }
 /**
  * <p> $Log$
+ * <p> Revision 3.329  2009/06/12 19:45:37  sueh
+ * <p> bug# 1221 Factored out running newst, making it dependent only on
+ * <p> NewstackPanel.
+ * <p>
  * <p> Revision 3.328  2009/06/11 16:32:19  sueh
  * <p> bug# 1221 Sending the process panel to the process function in the
  * <p> manager wrapped in a ProcessDisplay interface.  Changing eraser,

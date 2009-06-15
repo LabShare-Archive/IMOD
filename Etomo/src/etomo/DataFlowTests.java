@@ -218,7 +218,8 @@ public class DataFlowTests {
     applicationManager.preCrossCorrelate(axisID, null, null, null, null);
     waitForThread(axisID);
     if (!applicationManager.getMetaData().isFiducialessAlignment(axisID)) {
-      applicationManager.coarseAlign(axisID, null, null, null, null, null,null,null);
+      applicationManager.coarseAlign(axisID, null, null, null, null, null,
+          null, null);
       waitForThread(axisID);
     }
     applicationManager.doneCoarseAlignDialog(axisID);
@@ -243,7 +244,7 @@ public class DataFlowTests {
     }
     applicationManager.openFiducialModelDialog(axisID);
     uiHarness.pack(applicationManager);
-    applicationManager.fiducialModelTrack(axisID, null, null);
+    applicationManager.fiducialModelTrack(axisID, null, null, null, null);
     waitForThread(axisID);
     applicationManager.doneFiducialModelDialog(axisID);
   }
@@ -353,6 +354,10 @@ public class DataFlowTests {
 }
 /**
  * <p> $Log$
+ * <p> Revision 3.30  2009/06/12 19:45:48  sueh
+ * <p> bug# 1221 Factored out running newst, making it dependent only on
+ * <p> NewstackPanel.
+ * <p>
  * <p> Revision 3.29  2009/06/11 16:41:07  sueh
  * <p> bug# 1221 Sending the process panel to the process function in the
  * <p> manager wrapped in a ProcessDisplay interface.  Changed
