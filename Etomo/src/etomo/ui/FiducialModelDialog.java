@@ -13,7 +13,6 @@ import etomo.type.AxisType;
 import etomo.type.BaseScreenState;
 import etomo.type.ConstMetaData;
 import etomo.type.DialogType;
-import etomo.type.InvalidEtomoNumberException;
 import etomo.type.MetaData;
 import etomo.type.ProcessResultDisplay;
 import etomo.type.ProcessResultDisplayFactory;
@@ -24,7 +23,6 @@ import etomo.util.EnvironmentVariable;
 import etomo.comscript.BeadtrackParam;
 import etomo.comscript.RunraptorParam;
 import etomo.comscript.TransferfidParam;
-import etomo.comscript.FortranInputSyntaxException;
 
 /**
  * <p>Description: The dialog box for creating the fiducial model(s).</p>
@@ -39,6 +37,9 @@ import etomo.comscript.FortranInputSyntaxException;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.51  2009/06/10 22:16:26  sueh
+ * <p> bug# 1221 Factoring RAPTOR into RaptorPanel.
+ * <p>
  * <p> Revision 3.50  2009/06/08 20:45:47  sueh
  * <p> bug# 1216 Fixed the code that chooses whether to display RAPTOR as an
  * <p> option.  Add code to chooses whether to display a choice of input files.
@@ -347,7 +348,7 @@ public final class FiducialModelDialog extends ProcessDialog implements
     ProcessResultDisplayFactory displayFactory = appMgr
         .getProcessResultDisplayFactory(axisID);
     btnSeed = (Run3dmodButton) displayFactory.getSeedFiducialModel();
-    raptorPanel = RaptorPanel.getInstance(appMgr, axisID, dialogType,this);
+    raptorPanel = RaptorPanel.getInstance(appMgr, axisID, dialogType, this);
     pnlBeadtrack = BeadtrackPanel.getInstance(appMgr, axisID, dialogType);
     //root panel
     rootPanel.setLayout(new BoxLayout(rootPanel, BoxLayout.Y_AXIS));
@@ -510,12 +511,8 @@ public final class FiducialModelDialog extends ProcessDialog implements
     }
   }
 
-  /**
-   * Get the parameters for the specified beadtrack command
-   */
-  public void getBeadtrackParams(final BeadtrackParam beadtrackParams)
-      throws FortranInputSyntaxException, InvalidEtomoNumberException {
-    pnlBeadtrack.getParameters(beadtrackParams);
+  public BeadTrackDisplay getBeadTrackDisplay() {
+    return pnlBeadtrack;
   }
 
   public void getParameters(final BaseScreenState screenState) {
