@@ -28,6 +28,10 @@ import etomo.ui.UIHarness;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.27  2009/06/10 17:28:12  sueh
+ * <p> bug# 1202 Moved parsing information for columns, row, and sections info
+ * <p> constants.  Added brief header constants.
+ * <p>
  * <p> Revision 3.26  2009/03/17 00:46:43  sueh
  * <p> bug# 1186 Pass managerKey to everything that pops up a dialog.
  * <p>
@@ -190,7 +194,7 @@ public class MRCHeader {
   public static int N_SECTIONS_INDEX = 8;
   private static int N_ROWS_INDEX = N_SECTIONS_INDEX - 1;
   private static int N_COLUMNS_INDEX = N_SECTIONS_INDEX - 2;
-  
+
   //This is information about the header process.  Will only be used by
   //MrcHeader if it is run with the "-brief" option.
   public static String SIZE_HEADER_BRIEF = "Dimensions:";
@@ -351,7 +355,7 @@ public class MRCHeader {
       //so that the output is trimmed for this parse.
       if (stdOutput[i].trim().startsWith(SIZE_HEADER)) {
         String[] tokens = stdOutput[i].trim().split("\\s+");
-        if (tokens.length < N_SECTIONS_INDEX+1) {
+        if (tokens.length < N_SECTIONS_INDEX + 1) {
           Utilities.timestamp("read", "header", filename,
               Utilities.FAILED_STATUS);
           throw new IOException(

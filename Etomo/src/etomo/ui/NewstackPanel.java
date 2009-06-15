@@ -45,6 +45,10 @@ import etomo.util.InvalidParameterException;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.2  2009/06/12 19:50:09  sueh
+ * <p> bug# 1221 Factored running newst, making it independent of the
+ * <p> final aligned dialog and expert.
+ * <p>
  * <p> Revision 1.1  2009/06/10 22:17:14  sueh
  * <p> bug# 1221 Factoring Newstack and blendmont into NewstackPanel.
  * <p>
@@ -154,17 +158,15 @@ final class NewstackPanel implements Expandable, Run3dmodButtonContainer,
   void setUseLinearInterpolation(boolean select) {
     cbUseLinearInterpolation.setSelected(select);
   }
-  
+
   /**
    * The Metadata values that are from the setup dialog should not be overrided
    * by this dialog unless the Metadata values are empty.
    * @param metaData
    * @throws FortranInputSyntaxException
    */
-   void getParameters(MetaData metaData)
-      throws FortranInputSyntaxException {
-    metaData.setSizeToOutputInXandY(axisID, ltfSizeToOutputInXandY
-        .getText());
+  void getParameters(MetaData metaData) throws FortranInputSyntaxException {
+    metaData.setSizeToOutputInXandY(axisID, ltfSizeToOutputInXandY.getText());
     metaData.setFinalStackBinning(axisID, getBinning());
   }
 

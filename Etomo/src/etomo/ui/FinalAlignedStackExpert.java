@@ -60,6 +60,10 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.14  2009/06/12 19:49:24  sueh
+ * <p> bug# 1221 Factored running newst, making it independent of the
+ * <p> final aligned dialog and expert.
+ * <p>
  * <p> Revision 1.13  2009/06/10 22:17:04  sueh
  * <p> bug# 1221 Factoring Newstack and blendmont into NewstackPanel.
  * <p>
@@ -108,7 +112,7 @@ import etomo.util.Utilities;
  * <p> bug# 1141 Dialog for running newst (full align) and filtering
  * <p> </p>
  */
-public final class FinalAlignedStackExpert extends ReconUIExpert  {
+public final class FinalAlignedStackExpert extends ReconUIExpert {
   public static final String rcsid = "$Id$";
 
   private final ComScriptManager comScriptMgr;
@@ -246,13 +250,13 @@ public final class FinalAlignedStackExpert extends ReconUIExpert  {
           manager.getManagerKey());
     }
     getParameters(screenState);
-    if (!UIExpertUtilities.INSTANCE.updateFiducialessParams(manager, dialog.getFiducialessParams(),
-        axisID)) {
+    if (!UIExpertUtilities.INSTANCE.updateFiducialessParams(manager, dialog
+        .getFiducialessParams(), axisID)) {
       return false;
     }
     if (metaData.getViewType() == ViewType.MONTAGE) {
       try {
-        manager.updateBlendCom(dialog.getBlendmontDisplay(),axisID);
+        manager.updateBlendCom(dialog.getBlendmontDisplay(), axisID);
       }
       catch (FortranInputSyntaxException e) {
         UIHarness.INSTANCE.openMessageDialog(e.getMessage(),
@@ -268,7 +272,7 @@ public final class FinalAlignedStackExpert extends ReconUIExpert  {
       }
     }
     else {
-      if (manager.updateNewstCom(dialog.getNewstackDisplay(),axisID) == null) {
+      if (manager.updateNewstCom(dialog.getNewstackDisplay(), axisID) == null) {
         return false;
       }
     }
@@ -875,8 +879,6 @@ public final class FinalAlignedStackExpert extends ReconUIExpert  {
     }
     return new File(manager.getPropertyUserDir());
   }
-
-
 
   private void getParameters(MTFFilterParam mtfFilterParam)
       throws FortranInputSyntaxException {
