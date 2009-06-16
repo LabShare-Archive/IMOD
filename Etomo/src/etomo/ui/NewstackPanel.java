@@ -14,6 +14,7 @@ import javax.swing.SpinnerNumberModel;
 
 import etomo.ApplicationManager;
 import etomo.comscript.BlendmontParam;
+import etomo.comscript.ConstNewstParam;
 import etomo.comscript.FortranInputSyntaxException;
 import etomo.comscript.NewstParam;
 import etomo.storage.LogFile;
@@ -21,10 +22,10 @@ import etomo.storage.autodoc.AutodocFactory;
 import etomo.storage.autodoc.ReadOnlyAutodoc;
 import etomo.type.AxisID;
 import etomo.type.ConstEtomoNumber;
+import etomo.type.ConstMetaData;
 import etomo.type.DialogType;
 import etomo.type.EtomoAutodoc;
 import etomo.type.MetaData;
-import etomo.type.PanelHeaderState;
 import etomo.type.ProcessResultDisplayFactory;
 import etomo.type.ReconScreenState;
 import etomo.type.Run3dmodMenuOptions;
@@ -45,6 +46,9 @@ import etomo.util.InvalidParameterException;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.3  2009/06/15 20:26:46  sueh
+ * <p> bug# 1221 Reformatted.
+ * <p>
  * <p> Revision 1.2  2009/06/12 19:50:09  sueh
  * <p> bug# 1221 Factored running newst, making it independent of the
  * <p> final aligned dialog and expert.
@@ -154,10 +158,24 @@ final class NewstackPanel implements Expandable, Run3dmodButtonContainer,
   void done() {
     btnNewst.removeActionListener(actionListener);
   }
-
-  void setUseLinearInterpolation(boolean select) {
-    cbUseLinearInterpolation.setSelected(select);
+  
+   void setParameters(BlendmontParam blendmontParam) {
+    cbUseLinearInterpolation.setSelected(blendmontParam.isLinearInterpolation());
   }
+  
+   void setParameters(ConstNewstParam newstParam) {
+    cbUseLinearInterpolation.setSelected(newstParam.isLinearInterpolation());
+  }
+   
+   final void setParameters(ReconScreenState screenState) {
+     header.setState(screenState.getStackNewstHeaderState());
+     btnNewst.setButtonState(screenState.getButtonState(btnNewst
+         .getButtonStateKey()));
+   }
+   
+    void getParameters(ReconScreenState screenState) {
+     header.getState(screenState.getStackNewstHeaderState());
+   }
 
   /**
    * The Metadata values that are from the setup dialog should not be overrided
@@ -204,9 +222,11 @@ final class NewstackPanel implements Expandable, Run3dmodButtonContainer,
     newstParam.setSizeToOutputInXandY(ltfSizeToOutputInXandY.getText(),
         getBinning(), manager.getMetaData().getImageRotation(axisID), manager);
   }
-
-  void setBinning(int binning) {
-    spinBinning.setValue(binning);
+  
+   void setParameters(ConstMetaData metaData) {
+    spinBinning.setValue(metaData.getFinalStackBinning(axisID));
+    ltfSizeToOutputInXandY.setText(metaData.getSizeToOutputInXandY(axisID).toString(
+        true));
   }
 
   void setBinning(ConstEtomoNumber binning) {
@@ -236,23 +256,6 @@ final class NewstackPanel implements Expandable, Run3dmodButtonContainer,
 
   public float getImageRotation() throws NumberFormatException {
     return Float.parseFloat(ltfRotation.getText());
-  }
-
-  void setSizeToOutputInXandY(String input) {
-    ltfSizeToOutputInXandY.setText(input);
-  }
-
-  void setHeaderState(PanelHeaderState state) {
-    header.setState(state);
-  }
-
-  void getHeaderState(PanelHeaderState state) {
-    header.getState(state);
-  }
-
-  void setNewstButtonState(ReconScreenState screenState) {
-    btnNewst.setButtonState(screenState.getButtonState(btnNewst
-        .getButtonStateKey()));
   }
 
   void setAdvanced(boolean advanced) {
