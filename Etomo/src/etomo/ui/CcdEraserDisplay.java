@@ -15,10 +15,13 @@ import etomo.comscript.CCDEraserParam;
  * 
  * @version $Revision$
  * 
- * <p> $Log$ </p>
+ * <p> $Log$
+ * <p> Revision 1.1  2009/06/11 16:50:15  sueh
+ * <p> bug# 1221 Interface to a display which contains ccderaser parameters.
+ * <p> </p>
  */
-public interface CCDEraserDisplay extends ProcessDisplay {
+public interface CcdEraserDisplay extends ProcessDisplay {
   public static final String rcsid = "$Id$";
 
-  public void getParameters(final CCDEraserParam ccdEraserParams);
+  public boolean getParameters(final CCDEraserParam ccdEraserParams);
 }
