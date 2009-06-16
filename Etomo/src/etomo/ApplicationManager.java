@@ -107,7 +107,7 @@ import etomo.ui.AlignmentEstimationDialog;
 import etomo.ui.BeadTrackDisplay;
 import etomo.ui.BeadtrackPanel;
 import etomo.ui.BlendmontDisplay;
-import etomo.ui.CCDEraserDisplay;
+import etomo.ui.CcdEraserDisplay;
 import etomo.ui.CleanUpDialog;
 import etomo.ui.CoarseAlignDialog;
 import etomo.ui.FiducialModelDialog;
@@ -679,7 +679,7 @@ public final class ApplicationManager extends BaseManager implements
    * @param axisID The axisID to process
    * @param trialMode Set to trial mode if true
    */
-  private void updateEraserCom(CCDEraserDisplay display, AxisID axisID,
+  private void updateEraserCom(CcdEraserDisplay display, AxisID axisID,
       boolean trialMode) {
     // Get the user input data from the dialog box. The CCDEraserParam
     // is first initialized from the currently loaded com script to
@@ -697,7 +697,7 @@ public final class ApplicationManager extends BaseManager implements
    */
   private void eraser(AxisID axisID, ProcessResultDisplay processResultDisplay,
       ConstProcessSeries processSeries, DialogType dialogType,
-      CCDEraserDisplay display) {
+      CcdEraserDisplay display) {
     updateEraserCom(display, axisID, false);
     processTrack.setState(ProcessState.INPROGRESS, axisID, dialogType);
     mainPanel.setState(ProcessState.INPROGRESS, axisID, dialogType);
@@ -727,7 +727,7 @@ public final class ApplicationManager extends BaseManager implements
       ProcessSeries processSeries,
       final Deferred3dmodButton deferred3dmodButton,
       final Run3dmodMenuOptions run3dmodMenuOptions, DialogType dialogType,
-      CCDEraserDisplay display) {
+      CcdEraserDisplay display) {
     if (processSeries == null) {
       processSeries = new ProcessSeries(this, dialogType);
     }
@@ -1304,7 +1304,7 @@ public final class ApplicationManager extends BaseManager implements
       ProcessSeries processSeries,
       final Deferred3dmodButton deferred3dmodButton,
       final Run3dmodMenuOptions run3dmodMenuOptions,
-      final DialogType dialogType, CCDEraserDisplay display) {
+      final DialogType dialogType, CcdEraserDisplay display) {
     sendMsgProcessStarting(processResultDisplay);
     if (processSeries == null) {
       processSeries = new ProcessSeries(this, dialogType, display);
@@ -3614,7 +3614,7 @@ public final class ApplicationManager extends BaseManager implements
   /**
    * 
    */
-  public ProcessResult newst(AxisID axisID,
+  private ProcessResult newst(AxisID axisID,
       ProcessResultDisplay processResultDisplay,
       ConstProcessSeries processSeries, ConstNewstParam newstParam,
       BlendmontParam blendmontParam) {
@@ -6049,7 +6049,7 @@ public final class ApplicationManager extends BaseManager implements
     }
     else if (nextProcess.equals(ProcessName.ERASER.toString())) {
       eraser(axisID, processResultDisplay, processSeries, dialogType,
-          (CCDEraserDisplay) display);
+          (CcdEraserDisplay) display);
     }
   }
 
@@ -6233,7 +6233,107 @@ public final class ApplicationManager extends BaseManager implements
     return null;
   }
 
-  public ProcessResult ccdEraser(AxisID axisID,
+  /**
+   * Replace the full aligned stack with the ctf corrected full aligned stack
+   * created by ctfcorrection.com
+   */
+ public void useFileAsFullAlignedStack(ProcessResultDisplay processResultDisplay,
+      File output, String buttonLabel, AxisID axisID, DialogType dialogType) {
+    sendMsgProcessStarting(processResultDisplay);
+    if (isAxisBusy(axisID, processResultDisplay)) {
+      return;
+    }
+    mainPanel.setProgressBar("Using " + output.getName()
+        + " as full aligned stack", 1, axisID);
+    // Instantiate file objects for the original raw stack and the fixed
+    // stack
+    File fullAlignedStack = DatasetFiles.getFullAlignedStackFile(this, axisID);
+    if (!output.exists()) {
+      UIHarness.INSTANCE.openMessageDialog(output.getAbsolutePath()
+          + " doesn't exist.  Press " + buttonLabel + " to create this file.",
+          buttonLabel + " Output Missing", axisID, getManagerKey());
+      sendMsg(ProcessResult.FAILED_TO_START, processResultDisplay);
+      return;
+    }
+    if (processTrack != null) {
+      processTrack.setState(ProcessState.INPROGRESS, axisID, dialogType);
+    }
+    mainPanel.setState(ProcessState.INPROGRESS, axisID, dialogType);
+    if (fullAlignedStack.exists() && output.exists()) {
+      try {
+        Utilities.renameFile(fullAlignedStack, new File(fullAlignedStack
+            .getAbsolutePath()
+            + "~"));
+      }
+      catch (IOException except) {
+        UIHarness.INSTANCE.openMessageDialog("Unable to backup "
+            + fullAlignedStack.getAbsolutePath() + "\n" + except.getMessage(),
+            "File Rename Error", axisID, getManagerKey());
+        sendMsg(ProcessResult.FAILED, processResultDisplay);
+        return;
+      }
+    }
+    // don't have to rename full aligned stack because it is a generated
+    // file
+    try {
+      Utilities.renameFile(output, fullAlignedStack);
+    }
+    catch (IOException except) {
+      UIHarness.INSTANCE.openMessageDialog(except.getMessage(),
+          "File Rename Error", axisID, getManagerKey());
+      sendMsg(ProcessResult.FAILED, processResultDisplay);
+      return;
+    }
+    closeImod(ImodManager.FINE_ALIGNED_KEY, axisID,
+        "original full aligned stack");
+    mainPanel.stopProgressBar(axisID);
+    sendMsg(ProcessResult.SUCCEEDED, processResultDisplay);
+  }
+
+  public void useCcdEraser(ProcessResultDisplay processResultDisplay,
+      AxisID axisID, DialogType dialogType, String ccdEraserLabel) {
+    useFileAsFullAlignedStack(processResultDisplay, DatasetFiles
+        .getErasedFiducialsFile(this, axisID), ccdEraserLabel, axisID,
+        dialogType);
+  }
+
+  public void imodErasedFiducials(Run3dmodMenuOptions run3dmodMenuOptions,
+      AxisID axisID) {
+    imodOpen(axisID, ImodManager.ERASED_FIDUCIALS_KEY, DatasetFiles
+        .getEraseFiducialsModelName(this, axisID), run3dmodMenuOptions);
+  }
+
+  private CCDEraserParam updateCcdEraserParam(CcdEraserDisplay display) {
+    CCDEraserParam param = new CCDEraserParam();
+    if (display.getParameters(param)) {
+      return param;
+    }
+    return null;
+  }
+
+  public void ccdEraser(ProcessResultDisplay processResultDisplay,
+      ProcessSeries processSeries, Deferred3dmodButton deferred3dmodButton,
+      Run3dmodMenuOptions run3dmodMenuOptions, AxisID axisID,
+      DialogType dialogType, CcdEraserDisplay display) {
+    if (processSeries == null) {
+      processSeries = new ProcessSeries(this, dialogType);
+    }
+    processSeries.setRun3dmodDeferred(deferred3dmodButton, run3dmodMenuOptions);
+    sendMsgProcessStarting(processResultDisplay);
+    CCDEraserParam param = updateCcdEraserParam(display);
+    if (param == null) {
+      return;
+    }
+    if (processTrack != null) {
+      processTrack.setState(ProcessState.INPROGRESS, axisID, dialogType);
+    }
+    mainPanel.setState(ProcessState.INPROGRESS, axisID, dialogType);
+    ProcessResult processResult = ccdEraser(axisID, processResultDisplay,
+        processSeries, param, dialogType);
+    sendMsg(processResult, processResultDisplay);
+  }
+
+  private ProcessResult ccdEraser(AxisID axisID,
       ProcessResultDisplay processResultDisplay, ProcessSeries processSeries,
       final CCDEraserParam param, final DialogType dialogType) {
     if (processSeries == null) {
@@ -6511,6 +6611,9 @@ public final class ApplicationManager extends BaseManager implements
 }
 /**
  * <p> $Log$
+ * <p> Revision 3.330  2009/06/15 20:13:00  sueh
+ * <p> bug# 1221 Made beadtrack functionality dialog independant.
+ * <p>
  * <p> Revision 3.329  2009/06/12 19:45:37  sueh
  * <p> bug# 1221 Factored out running newst, making it dependent only on
  * <p> NewstackPanel.
