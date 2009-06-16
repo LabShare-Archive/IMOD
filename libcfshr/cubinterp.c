@@ -52,11 +52,15 @@ void cubinterp(float *array, float *bray, int nxa, int nya, int nxb, int nyb,
                float amat[2][2], float xc, float yc, float xt, float yt, 
                float scale, float dmean, int linear)
 {
+#ifdef _OPENMP
+#include <omp.h>
+#endif
   float xcen,ycen,xco,yco,denom,a11,a12,a22,a21,dyo,xbase,ybase;
   float xst,xnd,xlft,xrt,xp,yp,dennew,dx,dy,v2,v4,v6,v8,v5,a,b,c,d;
   float dxm1,dxdxm1,fx1,fx2,fx3,fx4,dym1,dydym1,v1,v3,vmin,vmax;
   int iy,ix,ixp,ixpp1,iyp,iypp1,ixpm1,iypm1,linefb;
   int ixnd,ixst,ixfbst,ixfbnd,iqst,iqnd,ifall,ind,indpnxa,indmnxa,indpnxa2;
+  int numThreads = 1, numProcs;
 
   /* Calc inverse transformation */
   xcen = nxb / 2. + xt + 0.5;
@@ -68,6 +72,22 @@ void cubinterp(float *array, float *bray, int nxa, int nya, int nxb, int nyb,
   a12 = -amat[1][0] / denom;
   a21 = -amat[0][1] / denom;
   a22 =  amat[0][0] / denom;
+
+  /* Limit the number of threads based on measurements indicating that this
+     formula gives at least 75% parallel efficiency */
+#ifdef _OPENMP
+  numThreads = B3DNINT(0.04 * sqrt((double)nxb * nyb));
+  numProcs = omp_get_num_procs();
+  numThreads = B3DMIN(numProcs, B3DMAX(1, numThreads));
+#endif
+#pragma omp parallel for num_threads(numThreads) \
+  shared(a11,a12,a21,a22,xco,yco,xcen,ycen,array,bray,nxa,nya,nxb,nyb,scale,\
+         dmean,linear) \
+  private(dyo,xbase,ybase)\
+  private(xst,xnd,xlft,xrt,xp,yp,dennew,dx,dy,v2,v4,v6,v8,v5,a,b,c,d)\
+  private(dxm1,dxdxm1,fx1,fx2,fx3,fx4,dym1,dydym1,v1,v3,vmin,vmax)\
+  private(ix,ixp,ixpp1,iyp,iypp1,ixpm1,iypm1,linefb)\
+  private(ixnd,ixst,ixfbst,ixfbnd,iqst,iqnd,ifall,ind,indpnxa,indmnxa,indpnxa2)
 
   /* loop over output image */
   for (iy = 1; iy <= nyb; iy++) {
@@ -278,6 +298,9 @@ void cubinterpfwrap(float *array, float *bray, int *nxa, int *nya, int *nxb,
 /*
 
 $Log$
+Revision 1.4  2009/06/16 04:17:06  mast
+Wrong check in
+
 Revision 1.3  2007/10/12 21:00:01  mast
 Made it rotate around center of image when input center is specified as nx/2.
 
