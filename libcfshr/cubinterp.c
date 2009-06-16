@@ -43,7 +43,10 @@
  * a12 = amat\[1\]\[0\], a21 = amat\[0\]\[1\], a22 = amat\[1\]\[1\]  ^
  * To call from Fortran, use arguments of the same type and in the same order.
  * Indices in [amat] are in logical order: a11 = amat(1,1), a12 = amat(1,2), 
- * etc.
+ * etc.  ^
+ * This routine is now parallelized with OpenMP.  The allowed threads is
+ * proportional to the square root of output image area, falling to 1 at about 
+ * 32x32.
  */   
 void cubinterp(float *array, float *bray, int nxa, int nya, int nxb, int nyb,
                float amat[2][2], float xc, float yc, float xt, float yt, 
@@ -275,6 +278,9 @@ void cubinterpfwrap(float *array, float *bray, int *nxa, int *nya, int *nxb,
 /*
 
 $Log$
+Revision 1.3  2007/10/12 21:00:01  mast
+Made it rotate around center of image when input center is specified as nx/2.
+
 Revision 1.2  2007/09/20 15:42:32  mast
 Documentation fixes
 
