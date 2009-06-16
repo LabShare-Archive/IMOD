@@ -1,5 +1,21 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+6/15/09: IMOD_4-0-11
+6/15/09: Cubic interpolation routine was parallelized with OpenMP, which will
+speed up Newstack somewhat.
+
+6/14/09: Rotatevol, Matchvol and Warpvol were improved by: converting to 
+Fortran 95 and using dynamic memory allocation, where the array size can be
+set by the user; setting up rectangular input and output volumes to use memory
+and read from disk more efficiently; computing data within cubes and cubes in
+a more efficient order; parallelizing with OpenMP.
+
+6/5/09: Implemented a new method of filling in missing transforms in Warpvol
+to avoid discontinuities in transforms and other problems when they are
+extrapolated to long distances from existing transforms.  Modified Findwarp to
+put out a warp file with missing transforms so that filling in and extending
+transforms is done only once, in Warpvol.
+
 6/10/09: Fixed problem running Xfmodel to find transforms with PIP input.
 
 6/10/09: Fixed imodhelp for Linux, broken since Qt 4 upgrade.
