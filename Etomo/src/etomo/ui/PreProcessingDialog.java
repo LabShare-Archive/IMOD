@@ -28,6 +28,10 @@ import etomo.type.ReconScreenState;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.17  2009/06/11 17:12:08  sueh
+ * <p> bug# 1221 Removed no longer used getCCDEraserParams(CCDEraserParam).
+ * <p> The manager is going straight to the panel now.
+ * <p>
  * <p> Revision 3.16  2009/06/11 17:00:23  sueh
  * <p> bug# 1221 Added getCCDEraserDisplay for the dialog specific function in
  * <p> the manager (the save dialog function).
@@ -145,12 +149,12 @@ public final class PreProcessingDialog extends ProcessDialog {
       "Digital micrograph files have unique headers");
   private final EtomoPanel pnlEraser = new EtomoPanel();
 
-  private final CCDEraserPanel panelCCDEraser;
+  private final EraseXRaysPanel eraseXRaysPanel;
 
   public PreProcessingDialog(final ApplicationManager appManager,
       final AxisID axisID) {
     super(appManager, axisID, DialogType.PRE_PROCESSING);
-    panelCCDEraser = CCDEraserPanel.getInstance(appManager, axisID, dialogType);
+    eraseXRaysPanel = EraseXRaysPanel.getInstance(appManager, axisID, dialogType);
 
     rootPanel.setLayout(new BoxLayout(rootPanel, BoxLayout.Y_AXIS));
 
@@ -171,7 +175,7 @@ public final class PreProcessingDialog extends ProcessDialog {
 
     pnlEraser.setLayout(new BoxLayout(pnlEraser, BoxLayout.Y_AXIS));
     pnlEraser.setBorder(new BeveledBorder("CCD Eraser").getBorder());
-    pnlEraser.add(panelCCDEraser.getContainer());
+    pnlEraser.add(eraseXRaysPanel.getContainer());
 
     rootPanel.add(pnlEraser);
     addExitButtons();
@@ -181,30 +185,30 @@ public final class PreProcessingDialog extends ProcessDialog {
   }
 
   public static ProcessResultDisplay getFindXRaysDisplay() {
-    return CCDEraserPanel.getFindXRaysDisplay(DialogType.PRE_PROCESSING);
+    return EraseXRaysPanel.getFindXRaysDisplay(DialogType.PRE_PROCESSING);
   }
 
   public static ProcessResultDisplay getCreateFixedStackDisplay() {
-    return CCDEraserPanel.getCreateFixedStackDisplay(DialogType.PRE_PROCESSING);
+    return EraseXRaysPanel.getCreateFixedStackDisplay(DialogType.PRE_PROCESSING);
   }
 
   public static ProcessResultDisplay getUseFixedStackDisplay() {
-    return CCDEraserPanel.getUseFixedStackDisplay(DialogType.PRE_PROCESSING);
+    return EraseXRaysPanel.getUseFixedStackDisplay(DialogType.PRE_PROCESSING);
   }
 
   /**
    * Set the parameters for the specified CCD eraser panel
    */
   public void setCCDEraserParams(final ConstCCDEraserParam ccdEraserParams) {
-    panelCCDEraser.setParameters(ccdEraserParams);
+    eraseXRaysPanel.setParameters(ccdEraserParams);
   }
 
   public void setParameters(final ReconScreenState screenState) {
-    panelCCDEraser.setParameters(screenState);
+    eraseXRaysPanel.setParameters(screenState);
   }
 
-  public CCDEraserDisplay getCCDEraserDisplay() {
-    return panelCCDEraser;
+  public CcdEraserDisplay getCCDEraserDisplay() {
+    return eraseXRaysPanel;
   }
 
   public void buttonAdvancedAction(final ActionEvent event) {
@@ -216,7 +220,7 @@ public final class PreProcessingDialog extends ProcessDialog {
    * Update the dialog with the current advanced state
    */
   private void updateAdvanced() {
-    panelCCDEraser.setAdvanced(isAdvanced);
+    eraseXRaysPanel.setAdvanced(isAdvanced);
     UIHarness.INSTANCE.pack(axisID, applicationManager);
   }
 
@@ -228,7 +232,7 @@ public final class PreProcessingDialog extends ProcessDialog {
 
   boolean done() {
     if (applicationManager.donePreProcDialog(axisID)) {
-      panelCCDEraser.done();
+      eraseXRaysPanel.done();
       setDisplayed(false);
       return true;
     }
