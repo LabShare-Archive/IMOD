@@ -113,6 +113,7 @@ extern "C" {
     int  planesPerImage;     /* # of planes per TIFF image */
     int  contigSamples;      /* # of contiguous samples per pixel in plane */
     int  multipleSizes;      /* Flag that TIFF file has multiple sizes */
+    int  rgbSamples;         /* Number of samples for RGB TIFF file */
 
     /* Callback functions used by different file formats. */
     int (*readSection)(ImodImageFile *inFile, char *buf, int inSection);
@@ -197,6 +198,9 @@ extern "C" {
 
 /*
 $Log$
+Revision 3.16  2009/03/31 23:44:30  mast
+New TIFF functions
+
 Revision 3.15  2009/01/02 05:19:19  mast
 const char * for Qt 4 port
 
