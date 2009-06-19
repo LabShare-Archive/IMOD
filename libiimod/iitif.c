@@ -752,8 +752,6 @@ static void copyLine(unsigned char *bdata, unsigned char *obuf, int xout,
     if (samples == 1) {
       /* RGB with extra samples - skip them */
       if (format == IIFORMAT_RGB && pixsize > 3) {
-        fprintf(stderr, "Copying 3 bytes out of %d\n", pixsize);
-        fflush(stderr);
         for (i = 0; i < xout; i++) {
           for (j = 0; j < 3; j++)
             *obuf++ = *bdata++;
@@ -934,6 +932,9 @@ int tiffWriteSection(ImodImageFile *inFile, void *buf, int compression,
 
 /*
   $Log$
+  Revision 3.18  2009/06/19 20:45:28  mast
+  Added ability to read long integer and RGBA files
+
   Revision 3.17  2009/04/18 19:11:32  mast
   Added date-time stamp to tiff file
 
