@@ -31,6 +31,7 @@ static float minmaxmean(unsigned char *tifdata, int mode, int unsign,
 static void convertrgb(unsigned char *tifdata, int xsize, int ysize, int ntsc);
 static void expandIndexToRGB(unsigned char **datap, ImodImageFile *iifile, 
                               int section);
+static void convertLongToFloat(unsigned char *tifdata, ImodImageFile *iifile);
 static void manageMode(Tf_info *tiff, int keepUshort, int forceSigned, 
                        int makegray, int *pixSize, int *mode);
 int main( int argc, char *argv[])
@@ -265,6 +266,9 @@ int main( int argc, char *argv[])
         if (tiff.PhotometricInterpretation / 2 == 1 && makegray)
           convertrgb(tifdata, xsize, ysize, useNTSC);
 
+        /* Convert long ints to floats */
+        convertLongToFloat(tifdata, tiff.iifile);
+
          
         mean += minmaxmean(tifdata, mode, unsign, divide, xsize, 
                            ysize, &min, &max);
@@ -407,6 +411,7 @@ int main( int argc, char *argv[])
 
     if ((tiff.BitsPerSample == 16 && mode != MRC_MODE_SHORT && mode != 
          MRC_MODE_USHORT) ||
+        (tiff.BitsPerSample == 32 &&  mode != MRC_MODE_FLOAT) ||
         (tiff.PhotometricInterpretation / 2 == 1 && !makegray 
         && mode != MRC_MODE_RGB)) {
       printf("ERROR: tif2mrc - All files must have the same"
@@ -420,6 +425,9 @@ int main( int argc, char *argv[])
     /* convert RGB to gray scale */
     if (tiff.PhotometricInterpretation / 2 == 1 && makegray)
       convertrgb(tifdata, xsize, ysize, useNTSC);
+
+    /* Convert long ints to floats */
+    convertLongToFloat(tifdata, tiff.iifile);
        
     /* Correct for bg */
     if (bg){
@@ -630,6 +638,25 @@ static void expandIndexToRGB(unsigned char **datap, ImodImageFile *iifile,
   }
 }
 
+/* Convert long int or uint to floats for now */
+static void convertLongToFloat(unsigned char *tifdata, ImodImageFile *iifile)
+{
+  b3dInt32 *iptr = (b3dInt32 *)tifdata;
+  b3dUInt32 *uiptr = (b3dUInt32 *)tifdata;
+  b3dFloat *fptr = (b3dFloat *)tifdata;
+  size_t i, xysize;
+  if (!iifile || (iifile->type != IITYPE_UINT && iifile->type != IITYPE_INT))
+    return;
+  xysize = (size_t)iifile->nx * (size_t)iifile->ny;
+  if (iifile->type == IITYPE_UINT) {
+    for (i = 0; i < xysize; i++)
+      *fptr++ = *uiptr++;
+  } else {    
+    for (i = 0; i < xysize; i++)
+      *fptr++ = *iptr++;
+  }
+}
+
 /* Find the min/max/mean of the data for the given mode and manage subtraction/
    division for unsigned to signed conversion */
 static float minmaxmean(unsigned char *tifdata, int mode, int unsign, 
@@ -707,6 +734,9 @@ static float minmaxmean(unsigned char *tifdata, int mode, int unsign,
 
 /* 
    $Log$
+   Revision 3.18  2009/04/01 00:00:47  mast
+   Suppress warnings on unrecognized tags, add pixel size option
+
    Revision 3.17  2008/05/23 22:56:08  mast
    Added float support, NTSC gray option, standardized error output
 
