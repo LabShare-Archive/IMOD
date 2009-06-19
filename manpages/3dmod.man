@@ -40,7 +40,8 @@ and DigitalMicrograph
 version 3 files.  MRC files of almost any
 mode can be read in: byte, 16-bit integer,
 real, complex real, complex integer, or color (RGB).  TIFF files may be byte,
-16-bit integer, real, or color, where the color can be either 24-bit (RGB) or 
+16-bit integer, 32-bit integer, real, or color, where the color can be either
+24-bit (RGB), 32-bit (RGBA), or 
 8-bit using an embedded color map.
 TIFF files may be organized in strips or in tiles, and files
 with various kinds of compression can be read, depending on the

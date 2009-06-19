@@ -11,9 +11,12 @@ into an MRC stack.
 tif2mrc can also convert a single multi-page TIFF file to an MRC stack.
 .P
 Only grayscale and color image files are supported.
-Grayscale images must be 8 or 16 bit integers or 32 bit floats.
-Color images must be either 24 bit with pixels stored as 
-red-green-blue triplets, or 8-bit with an embedded colormap.  Colormapped 8-bit
+Grayscale images can be 8 or 16 bit integers or 32 bit floats or integers,
+with 32-bit integers converted to floats in the MRC file.
+Color images can be 24 or more bits as long as pixels are stored as 
+8-bit red-green-blue triplets followed by the extra bytes if any (e.g., in
+RGBA images, the alpha is an extra byte).  Color images can also be
+8-bit with an embedded colormap.  All color
 images will be converted to 24 bit RGB images, since this is the kind of 
 color MRC file that IMOD defines.  If a grayscale image file has multiple
 sample values per pixel, then each sample will be converted to a separate
@@ -123,9 +126,10 @@ to its name.
 .SH AUTHORS
 Jim Kremer and David Mastronarde
 .SH SEE ALSO
-tomrc(1), raw2mrc(1)
+raw2mrc(1)
 .SH BUGS
 If a standard TIFF library is not installed, images must be uncompressed and
-must consist of strips rather than tiles, and colormap files cannot be read.
+must consist of strips rather than tiles, and only a subset of image types
+can be read.  
 
 Email bug reports to mast@colorado.edu.
