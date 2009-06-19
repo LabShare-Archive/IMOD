@@ -295,7 +295,9 @@ int tiff_open_file(char *filename, char *mode, Tf_info *tiff)
       if (tiff->iifile->mode == MRC_MODE_SHORT || 
           tiff->iifile->mode == MRC_MODE_USHORT)
         tiff->BitsPerSample = 16;
-      if (tiff->iifile->mode == MRC_MODE_FLOAT)
+      if (tiff->iifile->mode == MRC_MODE_FLOAT || 
+          tiff->iifile->type == IITYPE_UINT || 
+          tiff->iifile->type == IITYPE_INT)
         tiff->BitsPerSample = 32;
       tiff->PhotometricInterpretation = 
         (tiff->iifile->mode == MRC_MODE_RGB) ? 2 : 1;
@@ -863,6 +865,9 @@ int tiff_write_image(FILE *fout, int xsize, int ysize, int mode,
 /*
 
 $Log$
+Revision 3.8  2008/05/23 22:23:50  mast
+Error standardization and cleanup
+
 Revision 3.7  2008/05/23 22:17:43  mast
 Added ability to write stacks and support of floats
 
