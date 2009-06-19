@@ -62,8 +62,9 @@ void tiffDelete(ImodImageFile *inFile);
 static int ReadSection(ImodImageFile *inFile, char *buf, int inSection,
                        int byte);
 static void copyLine(unsigned char *bdata, unsigned char *obuf, int xout,
-                     int byte, int pixsize, int samples, float slope, 
-                     float offset, int doscale, unsigned char *map);
+                     int byte, int pixsize, int type, int format, int samples,
+                     float slope, float offset, int doscale,
+                     unsigned char *map);
 static TIFF *openWithoutBMode(ImodImageFile *inFile);
 static int setMatchingDirectory(ImodImageFile *inFile, int dirnum);
 static void closeWithError(ImodImageFile *inFile, char *message);
@@ -179,8 +180,8 @@ int iiTIFFCheck(ImodImageFile *inFile)
   if (mismatch || 
       !(((bits == 8 || bits ==16 || bits == 32) && 
          photometric < PHOTOMETRIC_RGB) ||
-        (samples == 3 && photometric == PHOTOMETRIC_RGB && bits == 8) || 
-        (photometric == PHOTOMETRIC_PALETTE && bits == 8))) {
+        (bits == 8 && (photometric == PHOTOMETRIC_RGB || 
+                       photometric == PHOTOMETRIC_PALETTE)))) {
     closeWithError(inFile, "ERROR: iiTIFFCheck - Unsupported type of TIFF "
                    "file\n");
     return(IIERR_NO_SUPPORT);
@@ -189,6 +190,10 @@ int iiTIFFCheck(ImodImageFile *inFile)
   inFile->nz     = dirnum;
   inFile->file   = IIFILE_TIFF;
   inFile->format = IIFORMAT_LUMINANCE;
+
+  /* Samples are assumed to be channels for RGB; record samples appropriately
+     and set Z size otherwise for multiple samples */
+  inFile->rgbSamples = samples;
   if (photometric < PHOTOMETRIC_RGB) {
     if (planarConfig == PLANARCONFIG_SEPARATE)
       inFile->planesPerImage = samples;
@@ -207,11 +212,11 @@ int iiTIFFCheck(ImodImageFile *inFile)
     inFile->amean  = 128;
     inFile->amax   = 255;
     inFile->mode   = MRC_MODE_BYTE;
-    if (samples == 3) {
+    if (photometric == PHOTOMETRIC_RGB) {
       inFile->format = IIFORMAT_RGB;
       inFile->mode   = MRC_MODE_RGB;
       inFile->readSectionByte = NULL;
-    } else if (photometric == 3) {
+    } else if (photometric == PHOTOMETRIC_PALETTE) {
 
       /* For palette images, define as colormap, better send byte reading
          to routine that will ignore any scaling, get the colormap and 
@@ -244,28 +249,50 @@ int iiTIFFCheck(ImodImageFile *inFile)
     /* If there is a field specifying signed numbers, set up for signed;
        otherwise set up for unsigned */
     defined = TIFFGetField(tif, TIFFTAG_SAMPLEFORMAT, &sampleformat);
-    if (defined && sampleformat == SAMPLEFORMAT_INT) {
-      inFile->type   = IITYPE_SHORT;
-      inFile->amean  = 0;
-      inFile->amin   = -32767;
-      inFile->amax   = 32767;
-      inFile->mode   = MRC_MODE_SHORT;
-    } else if ((defined && sampleformat == SAMPLEFORMAT_IEEEFP) || bits == 32){
-      inFile->type   = IITYPE_FLOAT;
-      inFile->amean  = 128.;
-      inFile->amin   = 0;
-      inFile->amax   = 255.;
-      inFile->mode   = MRC_MODE_FLOAT;
+    if (bits == 16) {
+      if (defined && sampleformat == SAMPLEFORMAT_INT) {
+        inFile->type   = IITYPE_SHORT;
+        inFile->amean  = 0;
+        inFile->amin   = -32767;
+        inFile->amax   = 32767;
+        inFile->mode   = MRC_MODE_SHORT;
+      } else {
+        inFile->type   = IITYPE_USHORT;
+        inFile->amean  = 32767;
+        inFile->amin   = 0;
+        inFile->amax   = 65535;
+        inFile->mode   = MRC_MODE_USHORT;   /* Why was this SHORT for both? */
+      }
     } else {
-      inFile->type   = IITYPE_USHORT;
-      inFile->amean  = 32767;
-      inFile->amin   = 0;
-      inFile->amax   = 65535;
-      inFile->mode   = MRC_MODE_USHORT;   /* Why was this SHORT for both? */
+
+      /* Set up for integer data: until there is an MRC mode, set to -1 */
+      if (defined && sampleformat == SAMPLEFORMAT_INT) {
+        inFile->type   = IITYPE_INT;
+        inFile->amean  = 0;
+        inFile->amin   = -65536;
+        inFile->amax   = 65536;
+        inFile->mode   = -1;
+      } else if (defined && sampleformat == SAMPLEFORMAT_UINT) {
+        inFile->type   = IITYPE_UINT;
+        inFile->amean  = 65536;
+        inFile->amin   = 0;
+        inFile->amax   = 130000;
+        inFile->mode   = -1;
+      } else if (defined && sampleformat == SAMPLEFORMAT_IEEEFP){
+        inFile->type   = IITYPE_FLOAT;
+        inFile->amean  = 128.;
+        inFile->amin   = 0;
+        inFile->amax   = 255.;
+        inFile->mode   = MRC_MODE_FLOAT;
+      } else {
+        closeWithError(inFile, "ERROR: iiTIFFCheck - 32-bit TIFF "
+                       "file with no data type defined\n");
+        return(IIERR_NO_SUPPORT);
+      }
     }
   }
   
-  /* Use min and max from file if defined (better be there for float) */
+  /* Use min and max from file if defined (better be there for float/int) */
   if (TIFFGetField(tif, TIFFTAG_SMINSAMPLEVALUE, &minmax))
     inFile->amin = minmax;
   if (TIFFGetField(tif, TIFFTAG_SMAXSAMPLEVALUE, &minmax))
@@ -479,6 +506,9 @@ static int ReadSection(ImodImageFile *inFile, char *buf, int inSection,
   setMatchingDirectory(inFile, row);
   plane = inSection % inFile->planesPerImage;
   sampOffset = inSection % samples;
+  
+  /* Set up pixsize which is the number of bytes in the input data, and 
+     movesize which is number of bytes of output.  Also get scale maps */
   if (byte) {
     if (inFile->type == IITYPE_SHORT) {
       pixsize = 2;
@@ -488,18 +518,20 @@ static int ReadSection(ImodImageFile *inFile, char *buf, int inSection,
       pixsize = 2;
       map = get_short_map(slope, offset, outmin, outmax, MRC_RAMP_LIN, 0, 0);
       freeMap = 1;
-    } else if (inFile->type == IITYPE_FLOAT) {
+    } else if (inFile->type == IITYPE_FLOAT || inFile->type == IITYPE_INT ||
+               inFile->type == IITYPE_UINT) {
       pixsize = 4;
     } else if (doscale)
       map = get_byte_map(slope, offset, outmin, outmax);
   } else {
     if (inFile->format == IIFORMAT_RGB)
-      pixsize = 3;
+      pixsize = inFile->rgbSamples;
     else if (inFile->type == IITYPE_SHORT || inFile->type == IITYPE_USHORT)
       pixsize = 2;
-    else if (inFile->type == IITYPE_FLOAT)
+    else if (inFile->type == IITYPE_FLOAT || inFile->type == IITYPE_INT ||
+             inFile->type == IITYPE_UINT)
       pixsize = 4;
-    movesize = pixsize;
+    movesize = inFile->format == IIFORMAT_RGB ? 3 : pixsize;
   }
 
   if (freeMap && !map)
@@ -544,8 +576,8 @@ static int ReadSection(ImodImageFile *inFile, char *buf, int inSection,
         ofsout = movesize * (y - ymin) * xout;
         obuf = (unsigned char *)buf + ofsout;
         bdata = tmp + ofsin;
-        copyLine(bdata, obuf, xout, byte, pixsize, samples, slope, offset,
-                 doscale, map);
+        copyLine(bdata, obuf, xout, byte, pixsize, inFile->type, 
+                 inFile->format, samples, slope, offset, doscale, map);
       }    
     }
   } else {
@@ -606,8 +638,8 @@ static int ReadSection(ImodImageFile *inFile, char *buf, int inSection,
             ((y - ymin) * xout + xstart - xmin);
           obuf = (unsigned char *)buf + ofsout;
           bdata = tmp + ofsin;
-          copyLine(bdata, obuf, xcopy, byte, pixsize, samples, slope, offset,
-                 doscale, map);
+          copyLine(bdata, obuf, xcopy, byte, pixsize, inFile->type,
+                   inFile->format, samples, slope, offset, doscale, map);
         }
       }               
     }
@@ -619,11 +651,17 @@ static int ReadSection(ImodImageFile *inFile, char *buf, int inSection,
   return 0;
 }
 
+/*
+ * Copy one line of data appropriately for the data type and conversion
+ */
 static void copyLine(unsigned char *bdata, unsigned char *obuf, int xout,
-                     int byte, int pixsize, int samples, float slope, 
-                     float offset, int doscale, unsigned char *map)
+                     int byte, int pixsize, int type, int format, int samples,
+                     float slope, float offset, int doscale,
+                     unsigned char *map)
 {
   b3dUInt16 *usdata;
+  b3dUInt32 *uldata;
+  b3dInt32 *ldata;
   b3dFloat *fdata;
   int i, j;
 
@@ -666,6 +704,34 @@ static void copyLine(unsigned char *bdata, unsigned char *obuf, int xout,
         }
       }
       
+    } else if (type == IITYPE_INT) {
+
+      /* Long ints */
+      ldata = (b3dInt32 *)bdata;
+      if (samples == 1) {
+        for (i = 0; i < xout; i++)
+          *obuf++ = slope * (*ldata++) + offset;
+      } else {
+        for (i = 0; i < xout; i++) {
+          *obuf++ = slope * (*ldata) + offset;
+          ldata += samples;
+        }
+      }
+
+    } else if (type == IITYPE_UINT) {
+
+      /* Unsigned Long ints */
+      uldata = (b3dUInt32 *)bdata;
+      if (samples == 1) {
+        for (i = 0; i < xout; i++)
+          *obuf++ = slope * (*uldata++) + offset;
+      } else {
+        for (i = 0; i < xout; i++) {
+          *obuf++ = slope * (*uldata) + offset;
+          uldata += samples;
+        }
+      }
+
     } else {
       
       /* Floats */
@@ -684,8 +750,22 @@ static void copyLine(unsigned char *bdata, unsigned char *obuf, int xout,
     
     /* Non-converted data */
     if (samples == 1) {
-      memcpy(obuf, bdata, xout * pixsize);
+      /* RGB with extra samples - skip them */
+      if (format == IIFORMAT_RGB && pixsize > 3) {
+        fprintf(stderr, "Copying 3 bytes out of %d\n", pixsize);
+        fflush(stderr);
+        for (i = 0; i < xout; i++) {
+          for (j = 0; j < 3; j++)
+            *obuf++ = *bdata++;
+          bdata += pixsize - 3;
+        }
+        
+        /* Straight copy */
+      } else
+        memcpy(obuf, bdata, xout * pixsize);
     } else {
+
+      /* Multiple samples (planes) interleaved - skip the other samples */
       for (i = 0; i < xout; i++) {
         for (j = 0; j < pixsize; j++)
           *obuf++ = *bdata++;
@@ -763,7 +843,7 @@ int tiffWriteSection(ImodImageFile *inFile, void *buf, int compression,
   } else {
     
     samples = 1;
-    photometric = PHOTOMETRIC_MINISWHITE;
+    photometric = PHOTOMETRIC_MINISBLACK;
     switch (inFile->type) {
     case IITYPE_BYTE:
       bits = 8;
@@ -854,6 +934,9 @@ int tiffWriteSection(ImodImageFile *inFile, void *buf, int compression,
 
 /*
   $Log$
+  Revision 3.17  2009/04/18 19:11:32  mast
+  Added date-time stamp to tiff file
+
   Revision 3.16  2009/04/01 03:18:57  mast
   Use routine to prevent buffer overrun in warning handler
 
