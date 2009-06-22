@@ -8,16 +8,12 @@ c       $Id$
 c       Log at end
 c       
       SUBROUTINE IMOPEN(ISTREAM,NAME,ATBUTE)
+      use imsubs
       implicit none
       CHARACTER*(*) NAME,ATBUTE
       character*7 at2
       CHARACTER*320 FULLNAME
       integer*4 istream
-      include 'imsubs.inc'
-      DATA NBHDR/1024/, NBW/4/, NBW3/12/, NB/1,2,4,4,8,2,2/, NBL/800/
-      DATA FLAG/maxunit*.TRUE./, NOCON/maxunit*.FALSE./, numopen/0/
-      data spider/maxunit*.false./, print/.true./, ifBrief/-1/
-      data ibleft/maxunit*0/
       real*4 buf(3)
       integer*4 intbuf(3)
       equivalence (buf,intbuf)
@@ -153,6 +149,9 @@ C
       END
 
 c       $Log$
+c       Revision 3.11  2008/08/22 00:10:45  mast
+c       Allow longer full name from qinquire
+c
 c       Revision 3.10  2007/10/14 17:09:40  mast
 c       Output K for file size
 c
