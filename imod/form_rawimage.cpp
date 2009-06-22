@@ -33,7 +33,6 @@ RawImageForm::RawImageForm(QWidget* parent, bool modal, Qt::WindowFlags fl)
 {
   setupUi(this);
   setModal(modal);
-  setAttribute(Qt::WA_DeleteOnClose);
   setAttribute(Qt::WA_AlwaysShowToolTips);
   
   dataTypeGroup = new QButtonGroup(this);
@@ -128,5 +127,8 @@ void RawImageForm::manageState()
 /*
 
 $Log$
+Revision 4.1  2009/01/15 16:33:17  mast
+Qt 4 port
+
 
 */
