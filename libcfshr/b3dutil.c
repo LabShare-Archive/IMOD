@@ -38,18 +38,24 @@
 #include <unistd.h>
 #endif
 
+#ifdef _OPENMP
+#include <omp.h>
+#endif
+
 #ifdef F77FUNCAP
 #define imodbackupfile IMODBACKUPFILE
 #define imodgetenv IMODGETENV
 #define b3dheaderitembytes B3DHEADERITEMBYTES
 #define cputime CPUTIME
 #define walltime WALLTIME
+#define numompthreads NUMOMPTHREADS
 #else
 #define imodbackupfile imodbackupfile_
 #define imodgetenv imodgetenv_
 #define b3dheaderitembytes b3dheaderitembytes_
 #define cputime cputime_
 #define walltime walltime_
+#define numompthreads numompthreads_
 #endif
 
 /* DNM 2/26/03: These need to be printf instead of fprintf(stderr) to not
@@ -521,7 +527,10 @@ double cputime(void)
   /*#endif*/
 }
 
-double walltime(void)
+/*!
+ * Returns elapsed real time with microsecond precision on Linux and Mac.
+ */
+double wallTime(void)
 {
 #ifdef _WIN32
   return 0.;
@@ -532,8 +541,52 @@ double walltime(void)
 #endif
 }
 
+/*! Fortran wrapper for @wallTime */
+double walltime(void)
+{ 
+  return wallTime();
+}
+
+/*!
+ * Computes the number of threads to specify in an OpenMP directive by taking
+ * the minimum of the given optimal thread number [optimalThreads], the number
+ * of processors, and the value of OMP_NUM_THREADS, if any.  It evaluates the
+ * number of processors and value of OMP_NUM_THREADS only on the first call.
+ */
+int numOMPthreads(int optimalThreads)
+{
+  int numThreads = optimalThreads;
+#ifdef _OPENMP
+  static int limThreads = -1;
+  static int numProcs = -1;
+  char *ompNum;
+  if (numProcs < 0)
+    numProcs = omp_get_num_procs();
+  numThreads = B3DMAX(1, B3DMIN(numProcs, numThreads));
+  if (limThreads < 0) {
+    ompNum = getenv("OMP_NUM_THREADS");
+    if (ompNum)
+      limThreads = atoi(ompNum);
+    limThreads = B3DMAX(0, limThreads);
+  }
+  if (limThreads > 0)
+    numThreads = B3DMIN(limThreads, numThreads);
+  /* printf("numProcs %d  limThreads %d  numThreads %d\n", numProcs,
+     limThreads, numThreads); */
+#endif
+  return numThreads;
+}
+
+int numompthreads(int optimalThreads)
+{
+  return numOMPthreads(optimalThreads);
+}
+
 /*
 $Log$
+Revision 1.9  2009/06/08 19:27:57  mast
+Fixed time functions for Windows, added commented out high-res for linux
+
 Revision 1.8  2009/06/08 17:56:14  mast
 Add time tools for fortran
 
