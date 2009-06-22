@@ -16,16 +16,12 @@ c
       implicit none
       integer maxdim,maxtemp,lmfil,lmsec,maxchunks,maxextra,lmGrid
       integer lmFields, lmAllGrid
-      parameter (maxdim=180000000,lmfil=1000,lmsec=50000,maxchunks=250)
+      parameter (lmfil=1000,lmsec=50000,maxchunks=250)
       parameter (maxextra=4000000, maxtemp=1000000)
       parameter (lmGrid = 200, lmFields = 1000, lmAllGrid = 1000000)
       integer*4 nx,ny,nz
-      COMMON //NX,NY,NZ
-c       
-c       9/25/01: make the buffer be in common to avoid stack limit size on
-c       the SGI
-      real*4 array(maxdim)
-      common /bigarr/ARRAY
+
+      real*4, allocatable :: array(:)
 C       
       integer*4 NXYZ(3),MXYZ(3),NXYZST(3), NXYZ2(3),MXYZ2(3)
       real*4 CELL2(6),cell(6), TITLE(20), delt(3), xorig, yorig, zorig
@@ -33,8 +29,7 @@ C
       CHARACTER*320 FILIN(lmfil),FILOUT(lmfil),xffil,filistin,filistout
       character*320 idfFile, magGradFile
       character*100000 listString
-      equivalence (listString, array)
-      EQUIVALENCE (NX,NXYZ)
+      EQUIVALENCE (NX,NXYZ(1)), (ny,nxyz(2)), (nz,nxyz(3))
 C       
       DATA NXYZST/0,0,0/
       character*20 floatxt/' '/,xftext/' '/,trunctxt/' '/
@@ -46,9 +41,12 @@ C
       integer*4 lineInSt(maxchunks+1),nLinesIn(maxchunks),listReplace(lmsec)
       real*4 scaleFacs(lmfil), scaleConsts(lmfil)
       integer*1 extrain(maxextra),extraout(maxextra)
+      equivalence (listString, extrain)
       data optmax/255.,32767.,255.,32767.,255.,255.,65535.,255.,255.,
      &    511.,1023.,2047.,4095.,8191., 16383.,32767./
 c       
+      integer(kind=8) idim, limdim, i8, npix,ibchunk,ibbase,istart, limIfFail
+      integer(kind=8) nmove,noff
       integer*4 ifDistort, idfBinning, iBinning, idfNx, idfNy
       integer*4 ixGridStrt, iyGridStrt, nxGrid, nyGrid, numFields, numIdfUse
       real*4 xGridIntrv, yGridIntrv, pixelIdf
@@ -68,30 +66,31 @@ c
       character*320 tempname,temp_filename
       logical nbytes_and_flags
       character*80 titlech
-      integer*4 inunit,nfilein,listot,noutot,nfileout,nx3,ny3,idim
+      integer*4 inunit,nfilein,listot,noutot,nfileout,nx3,ny3
       integer*4 newmode,ifoffset,ifxform,nxforms,nlineuse,ifmean,iffloat
       integer*4 nsum,ilis,ifil,nsecred,loadyst,loadynd,isec,isecout
       real*4 xofsall,yofsall,fraczero,dminspec,dmaxspec,conlo,conhi
       real*4 zmin,zmax,diffmin,diffmax,grandsum,sdsec
       real*4 grandmean,shiftmin,shiftmax,shiftmean,dminin,dmaxin,dmeanin
       integer*4 ifileout,ntrunclo,ntrunchi,ifheaderout,iftempopen,nbsymin
-      integer*4 nbytexin,iflagxin,mode,nbytexout,nbsymout,indxout
+      integer*4 nbytexin,iflagxin,mode,nbytexout,nbsymout,indxout,iVerbose
       real*4 dmin,dmax,dmean,dmin2,dmax2,dmean2,optin,optout,bottomin
       real*4 bottomout,xci,yci,dx,dy,xp1,yp1,xp2,yp2,xp3,yp3,xp4,yp4
       integer*4 linesleft,nchunk,nextline,ichunk,ifOutChunk,iscan,iytest
-      integer*4 iybase,iy1,iy2,lnu,maxin,ibbase,numScaleFacs,numXfLines
+      integer*4 iybase,iy1,iy2,lnu,maxin,numScaleFacs,numXfLines
       real*4 dmeansec,tmpmin,tmpmax,val,tsum2,sclfac
-      integer*4 needyst,needynd,nmove,noff,nload,nyload,nych,npix,ibchunk
-      integer*4 ix1,ix2,istart,nbcopy,nbclear,ifLinear
+      integer*4 needyst,needynd,nload,nyload,nych
+      integer*4 ix1,ix2,nbcopy,nbclear,ifLinear, limEntered
       real*4 const,denoutmin,den, tmin2,tmax2,tmean2,avgsec
       integer*4 numInputFiles, numSecLists, numOutputFiles, numToGet
       integer*4 numOutValues, numOutEntries, ierr, ierr2, i, kti, iy
       integer*4 maxFieldY, inputBinning, nxFirst, nyFirst, nxBin, nyBin
-      integer*4 ixOffset, iyOffset, lenTemp, limdim, ierr3, applyFirst
+      integer*4 ixOffset, iyOffset, lenTemp, ierr3, applyFirst
       integer*4 nLineTemp,ifOnePerFile,ifUseFill,listIncrement,indout
       integer*4 ixOriginOff,iyOriginOff, numReplace, isecReplace, modeOld
       real*4 fieldMaxY, binRatio, rotateAngle, expandFactor, fillVal
-      real*8 dsum,dsumsq,tsum,tsumsq
+      real*8 dsum,dsumsq,tsum,tsumsq, wallstart,walltime,loadtime,savetime
+      real*8 rottime
       real*4 cosd, sind
       integer*4 lnblnk
 c       
@@ -104,7 +103,7 @@ c
 c       fallbacks from ../../manpages/autodoc2man -2 2  newstack
 c       
       integer numOptions
-      parameter (numOptions = 33)
+      parameter (numOptions = 35)
       character*(40 * numOptions) options(1)
       options(1) =
      &    'input:InputFile:FNM:@output:OutputFile:FNM:@'//
@@ -122,7 +121,8 @@ c
      &    'fill:FillValue:F:@multadd:MultiplyAndAdd:FPM:@'//
      &    'distort:DistortionField:FN:@imagebinned:ImagesAreBinned:I:@'//
      &    'fields:UseFields:LIM:@gradient:GradientFile:FN:@'//
-     &    'test:TestLimits:IP:@param:ParameterFile:PF:@help:usage:B:'
+     &    'memory:MemoryLimit:IP:@test:TestLimits:IP:@'//
+     &    'verbose:VerboseOutput:I:@param:ParameterFile:PF:@help:usage:B:'
 c       
 c       Pip startup: set error, parse options, check help, set flag if used
 c       
@@ -148,8 +148,10 @@ c
       expandFactor = 0.
       iBinning = 1
       inputBinning = 1
-      limdim = maxdim
+      limdim = 4 * lmsec
       lenTemp = maxtemp
+      idim = limdim - 1
+      limEntered = 0
       applyFirst = 0
       ifLinear = 0
       numScaleFacs = 0
@@ -158,6 +160,15 @@ c
       adjustOrigin = .false.
       listIncrement = 1
       numReplace = 0
+      iVerbose = 0
+      limIfFail = 1950000000
+      loadtime=0.
+      savetime=0.
+      rottime = 0.
+c       
+c       Preliminary allocation of array
+      allocate(array(limdim), stat = ierr)
+      if (ierr. ne. 0) call exitError('ALLOCATING MAIN ARRAY')
 C       
 C       Read in list of input files
 C       
@@ -167,6 +178,7 @@ c
 c       get number of input files
 c       
       if (pipinput) then
+        ierr = PipGetInteger('VerboseOutput', iVerbose)
         ierr = PipGetString('FileOfInputs', filistin)
         call PipNumberOfEntries('InputFile', numInputFiles)
         nfilein = numInputFiles + max(0, numNonOptArg - 1)
@@ -572,9 +584,19 @@ c
         ierr = PipGetString('DistortionField', idfFile)
         ierr = PipGetString('GradientFile', magGradFile)
         ierr = PipGetLogical('AdjustOrigin', adjustOrigin)
-        ierr = PipGetTwoIntegers('TestLimits', limdim, lenTemp)
-        limdim = min(limdim, maxdim)
-        lenTemp = min(lenTemp, maxTemp)
+        limEntered = 1 - PipGetTwoIntegers('TestLimits', ierr, lenTemp)
+        if (limEntered) limdim = ierr
+        if (PipGetInteger('MemoryLimit', ierr) .eq. 0) then
+          limEntered = 1
+          limdim = int(ierr, kind = 8) * 1024 * 256
+        endif
+        if (limEntered .gt. 0) then
+          if (limdim .lt. 1000 .or. lenTemp .lt. 1 .or. lenTemp .gt.
+     &        limdim / 2) call exitError('INAPPROPRIATE MEMORY LIMITS ENTERED')
+          idim = limdim - lenTemp
+          call reallocateArray()
+        endif
+c
         if (iBinning .le. 0) call exitError
      &      ('BINNING FACTOR MUST BE A POSITIVE NUMBER')
 c         
@@ -736,10 +758,13 @@ c
             call getBinnedSize(nx, iBinning, nxbin, ixOffset)
             call getBinnedSize(ny, iBinning, nybin, iyOffset)
 c             
+            call reallocateIfNeeded()
+c                
             do ilis=1,nlist(ifil)
               nsecred=inlist(ilis+listind(ifil)-1)
               if (nsecred .ge. 0 .and. nsecred .lt. nz) then
 c                 
+                if (iVerbose .gt. 0) print *,'scanning for mean/sd',nsecred
                 call scansection(array,idim,nxbin,nybin, iBinning, ixOffset,
      &              iyOffset,nsecred,iffloat,dmin2, dmax2,dmean2,sdsec,
      &              loadyst,loadynd,array(idim + 1), lenTemp)
@@ -808,7 +833,8 @@ c         get the binned size to read
 c         
         call getBinnedSize(nx, iBinning, nxbin, ixOffset)
         call getBinnedSize(ny, iBinning, nybin, iyOffset)
-c	  print *,'Size and offsets X:',nxbin, ixOffset,', Y:',nybin, iyOffset
+        if (iVerbose.gt.0)
+     &      print *,'Size and offsets X:',nxbin, ixOffset,', Y:',nybin, iyOffset
 c         
 c         get extra header information if any
 c         
@@ -848,6 +874,9 @@ c
             if(ny3.le.0)ny3=nint(nybin * expandFactor)
             if(newmode.lt.0)newmode=mode
           endif
+c           
+c           Now that output size is finally known, make sure memory is enough
+        call reallocateIfNeeded()
 c           
 c           First see if this is the first section to replace
           if (numReplace .gt. 0 .and. isecReplace .eq. 1) then
@@ -982,8 +1011,16 @@ c
           if((newmode+1)/2.eq.2.or.(mode+1)/2.eq.2)then
             if((mode+1)/2.ne.2.or.(newmode+1)/2.ne.2)call exitError(
      &          'ALL INPUT FILES MUST BE COMPLEX IF ANY ARE')
-            if(nx*ny*2.gt.idim)call exitError(
-     &          'INPUT IMAGE TOO LARGE FOR ARRAY.')
+            
+            if (limEntered .eq. 0 .and. nx*ny*2.gt.idim) then
+              idim = nx*ny*2
+              lenTemp = 1
+              limdim = idim + 1
+              call reallocateArray()
+            endif
+            if(nx*ny*2.gt.idim)
+     &            call exitError('INPUT IMAGE TOO LARGE FOR ARRAY.')
+              
             call imposn(1,nsecred,0)
             call irdsec(1,array,*99)
             call iclcdn(array,nx,ny,1,nx,1,ny,dmin2,dmax2,dmean2)
@@ -1041,7 +1078,7 @@ c
             dmean2 = dmin2
             go to 80
           endif
-c          print *,'rescale', rescale
+          if (iVerbose.gt.0) print *,'rescale', rescale
 c           
 c           if transforming, and apply first is selected, get the shifts by
 c           applying the offset first then multiplying that by the transform
@@ -1150,6 +1187,7 @@ c
             linesleft=(idim-nxbin*nybin)/nx3
             nchunk=(ny3+linesleft-1)/linesleft
           endif
+          if (iVerbose.gt.0) print *,'linesleft',linesleft,'  nchunk',nchunk
           if(nchunk.eq.1.or.(nchunk.gt.0.and.nchunk.le.maxchunks.and.
      &        .not.rescale))then
 c             
@@ -1230,7 +1268,7 @@ c                 Will the input and output data now fit?  Then terminate.
 c                 
                 if(iscan.eq.2)iytest=nLinesOut(1)
                 if(idim/maxin .gt. nxbin .and. idim / iytest .gt. nx3 .and.
-     &              maxin*nxbin+iytest*nx3.le.idim)then
+     &              maxin*int(nxbin,kind=8)+iytest*int(nx3,kind=8).le.idim)then
                   ifOutChunk=iscan-1
                 else
                   nchunk=nchunk+1
@@ -1241,10 +1279,12 @@ c
             if(ifOutChunk.lt.0)call exitError(
      &          ' INPUT IMAGE TOO LARGE FOR ARRAY.')
           endif
-c	    print *,'number of chunks:',nchunk
-c	    do i=1,nchunk
-c           print *,i,lineInSt(i),nLinesIn(i),lineOutSt(i),nLinesOut(i)
-c	    enddo
+          if (iVerbose.gt.0) then
+	    print *,'number of chunks:',nchunk
+	    do i=1,nchunk
+              print *,i,lineInSt(i),nLinesIn(i),lineOutSt(i),nLinesOut(i)
+	    enddo
+          endif
 c           
 c           open temp file if one is needed
 c           
@@ -1261,7 +1301,7 @@ c
             iftempopen=1
           endif
 c           
-          ibbase=maxin*nxbin+1
+          ibbase=int(maxin,kind=8)*nxbin+1
 c           
 c           get the mean of section from previous scan, or a new scan
 c           
@@ -1274,10 +1314,13 @@ c
             loadyst=-1
             loadynd=-1
           else
+            if (iVerbose .gt. 0) print *,'scanning for mean for fill',nsecred
+            wallstart = walltime()
             call scansection(array,idim,nxbin,nybin,iBinning,ixOffset,
      &          iyOffset,nsecred,0,dmin2,
      &          dmax2,dmeansec,sdsec,loadyst,loadynd,array(idim+1), lenTemp)
             loadynd=min(loadynd,loadyst+maxin-1)
+            loadtime = loadtime + walltime() - wallstart
           endif
 c           
 c           loop on chunks
@@ -1292,15 +1335,17 @@ c
 c             
 c             first load data that is needed if not already loaded
 c             
+            wallstart = walltime()
             if(needyst.lt.loadyst.or.needynd.gt.loadynd)then
               if(loadyst.le.needyst.and.loadynd.ge.needyst)then
 c                 
 c                 move data down if it will fill a bottom region
 c                 
-                nmove=(loadynd+1-needyst)*nxbin
-                noff=(needyst-loadyst)*nxbin
-                do i=1,nmove
-                  array(i)=array(i+noff)
+                nmove=(loadynd+1-needyst)*int(nxbin,kind=8)
+                noff=(needyst-loadyst)*int(nxbin,kind=8)
+                if (iVerbose.gt.0) print *,'moving data down',nmove,noff
+                do i8=1,nmove
+                  array(i8)=array(i8+noff)
                 enddo
                 nload=needynd-loadynd
 c                 call imposn(1,nsecred,loadynd+1)
@@ -1313,10 +1358,11 @@ c		  call irdsecl(1,array(nmove+1),nload,*99)
 c                 
 c                 move data up if it will fill top
 c                 
-                nmove=(needynd+1-loadyst)*nxbin
-                noff=(loadyst-needyst)*nxbin
-                do i=nmove,1,-1
-                  array(i+noff)=array(i)
+                nmove=(needynd+1-loadyst)*int(nxbin,kind=8)
+                noff=(loadyst-needyst)*int(nxbin,kind=8)
+                if (iVerbose.gt.0) print *,'moving data up',nmove,noff
+                do i8=nmove,1,-1
+                  array(i8+noff)=array(i8)
                 enddo
                 nload=loadyst-needyst
 c		  call imposn(1,nsecred,needyst)
@@ -1325,10 +1371,12 @@ c		  call irdsecl(1,array,nload,*99)
      &              iyOffset + iBinning*(needyst), iBinning, nxbin, nload,
      &              array(idim+1), lenTemp, ierr)
                 if (ierr .ne. 0) go to 99
+
               else
 c                 
 c                 otherwise just get whole needed region
 c                 
+                if (iVerbose.gt.0) print *,'loading whole region'
                 nload=needynd+1-needyst
 c		  call imposn(1,nsecred,needyst)
 c		  call irdsecl(1,array,nload,*99)
@@ -1342,14 +1390,16 @@ c		  call irdsecl(1,array,nload,*99)
             endif
             nyload=loadynd+1-loadyst
             nych=nLinesOut(ichunk)
-            npix=nx3*nych
+            npix=int(nx3, kind=8)*nych
             ibchunk=ibbase
-            if(ifOutChunk.eq.0)ibchunk=ibbase+lineOutSt(ichunk)*nx3
+            if(ifOutChunk.eq.0)ibchunk=ibbase+lineOutSt(ichunk)*int(nx3,kind=8)
+            loadtime = loadtime + walltime() - wallstart
 
             if(ifxform.ne.0)then
 c               
 c               do transform if called for
 c               
+              wallstart = walltime()
               xci=nxbin/2.
               yci=nybin/2.-loadyst
               dx=fprod(1,3)
@@ -1365,6 +1415,7 @@ c		dy=(ny3-nych)/2.+f(2,3,lnu) - ycen(isec) - lineOutSt(ichunk)
      &              fieldDx, fieldDy, lmGrid, nxGrid, ixGridStrt, xGridIntrv,
      &              nyGrid, iyGridStrt, yGridIntrv)
               endif
+              rottime = rottime + walltime() - wallstart
             else
 c               
 c               otherwise repack array into output space nx3 by ny3, with
@@ -1379,7 +1430,7 @@ C
 c               
               CALL IREPAK2(array(ibchunk),ARRAY,nxbin,nyload,IX1,IX2,IY1,
      &            IY2,dmeansec)
-c              print *,'did repack'
+              if (iVerbose.gt.0) print *,'did repack'
             endif
 c	      
 c             if no rescaling, or if mean is needed now, accumulate sums for
@@ -1389,7 +1440,7 @@ c
               if(iffloat.eq.2)then
                 call iclavgsd(array(ibchunk),nx3,nych,1,nx3,1,nych,
      &              tmin2,tmax2,tsum, tsumsq, avgsec,sdsec)
-c		  print *,'chunk mean&sd',ichunk,avgsec,sdsec
+		  if (iVerbose.gt.0)print *,'chunk mean&sd',ichunk,avgsec,sdsec
                 dsumsq=dsumsq+tsumsq
               else
                 call iclden(array(ibchunk),nx3,nych,1,nx3,1,nych,tmin2,
@@ -1399,13 +1450,13 @@ c		  print *,'chunk mean&sd',ichunk,avgsec,sdsec
               tmpmin=min(tmpmin,tmin2)
               tmpmax=max(tmpmax,tmax2)
               dsum=dsum+tsum
-c               print *,'did iclden ',tmin2,tmax2,tmpmin,tmpmax
+              if (iVerbose.gt.0)print *,'did iclden ',tmin2,tmax2,tmpmin,tmpmax
             else
 c               
 c               otherwise get new min and max quickly
 c               
-              do i=1,npix
-                val=array(i+ibchunk-1)
+              do i8=1,npix
+                val=array(i8+ibchunk-1)
                 if(val.lt.tmpmin)tmpmin=val
                 if(val.gt.tmpmax)tmpmax=val
               enddo
@@ -1418,10 +1469,10 @@ c               truncate the data and adjust the min and max
 c               
               if(tmpmin.lt.bottomin.or.tmpmax.gt.optin)then
                 tsum2=0.
-                do i=1,npix
-                  val=max(bottomin,min(optin,array(i+ibchunk-1)))
+                do i8=1,npix
+                  val=max(bottomin,min(optin,array(i8+ibchunk-1)))
                   tsum2=tsum2+val
-                  array(i+ibchunk-1)=val
+                  array(i8+ibchunk-1)=val
                 enddo
                 tmpmin=max(tmpmin,bottomin)
                 tmpmax=min(tmpmax,optin)
@@ -1431,15 +1482,17 @@ c
 c             
 c             write all but last chunk
 c             
+            wallstart = walltime()
             if(.not.rescale)then
-c		print *,'writing to real file',ichunk
+		if (iVerbose.gt.0) print *,'writing to real file',ichunk
               call imposn(2,isecout-1,lineOutSt(ichunk))
               call iwrsecl(2,array(ibchunk),nLinesOut(ichunk))
             elseif(ichunk.ne.nchunk.and.ifOutChunk.gt.0)then
-c		print *,'writing to temp file',ichunk
+		if (iVerbose.gt.0) print *,'writing to temp file',ichunk
               call imposn(3,0,lineOutSt(ichunk))
               call iwrsecl(3,array(ibbase),nLinesOut(ichunk))
             endif
+            savetime = savetime + walltime() - wallstart
           enddo
 
           call findScaleFactors(iffloat, ifmean, rescale, bottomin, bottomout,
@@ -1469,15 +1522,15 @@ c
               ibchunk=ibbase
               if(ifOutChunk.eq.0)ibchunk=ibbase+lineOutSt(ichunk)*nx3
               if(ichunk.ne.nchunk.and.ifOutChunk.gt.0)then
-c		  print *,'reading',ichunk
+		  if (iVerbose.gt.0) print *,'reading',ichunk
                 call imposn(3,0,lineOutSt(ichunk))
                 call irdsecl(3,array(ibbase),nLinesOut(ichunk),*99)
               endif
               do iy=1,nLinesOut(ichunk)
-                istart=ibchunk+(iy-1)*nx3
+                istart=ibchunk+(iy-1)*int(nx3, kind=8)
                 tsum=0.
-                do i=istart,istart+nx3-1
-                  den=sclfac*array(i)+const
+                do i8=istart,istart+nx3-1
+                  den=sclfac*array(i8)+const
                   if(den.lt.denoutmin)then
                     ntrunclo=ntrunclo+1
                     den=denoutmin
@@ -1485,16 +1538,18 @@ c		  print *,'reading',ichunk
                     ntrunchi=ntrunchi+1
                     den=optout
                   endif
-                  array(i)=den
+                  array(i8)=den
                   tsum=tsum+den
                   dmin2=min(dmin2,den)
                   dmax2=max(dmax2,den)
                 enddo
                 dmean2=dmean2+tsum
               enddo
-c		print *,'writing',ichunk
+              waLlstart = walltime()
+              if (iVerbose.gt.0) print *,'writing',ichunk
               call imposn(2,isecout-1,lineOutSt(ichunk))
               call iwrsecl(2,array(ibchunk),nLinesOut(ichunk))
+              savetime = savetime + walltime() - wallstart
             enddo
           else
 c             
@@ -1561,9 +1616,50 @@ C
       if(ntrunclo+ntrunchi.gt.0)write(*,103)ntrunclo,ntrunchi
 103   format(' TRUNCATIONS OCCURRED:',i11,' at low end,',i11,
      &    ' at high end of range')
+      if (iVerbose.gt.0)write(*,'(a,f8.4,a,f8.4,a,f8.4,a,f8.4)')'loadtime',
+     &    loadtime,'  savetime', savetime,'  sum',loadtime+savetime,
+     &    '  rottime',rottime
       call exit(0)
 99    call exitError(' END OF IMAGE WHILE READING')
 96    call exitError('ERROR READING TRANSFORM FILE')
+
+      contains
+
+      subroutine reallocateIfNeeded()
+      integer(kind=8) needDim
+      integer*4 needTemp
+      if (limEntered .eq. 0) then
+        needTemp = 1
+        if (iBinning .gt. 1) needTemp = nx * iBinning
+        needDim = int(nxbin, kind=8) * nybin
+        if (nx3 .gt. 0 .and. ny3 .gt. 0)
+     &      needDim = needDim + int(nx3, kind=8) * ny3
+        if (iVerbose.gt.0) print *,nx3,ny3,nxbin,nybin,needDim
+        if (needDim + needTemp .gt. limdim) then
+          limdim = needDim + needTemp
+          call reallocateArray()
+        endif
+        idim = needDim
+        lenTemp = needTemp
+      endif
+      end subroutine reallocateIfNeeded
+
+      subroutine reallocateArray()
+      if (iVerbose.gt.0) print *, 'reallocating array to',limdim/(1024*256),
+     &    ' MB'
+      deallocate(array)
+      allocate(array(limdim), stat = ierr)
+      if (ierr .ne. 0 .and. limdim .gt. limIfFail) then
+        limdim = limIfFail
+        idim = limdim - lenTemp
+        if (iVerbose.gt.0) print *, 'failed, dropping reallocation to',
+     &      limdim/(1024*256),' MB'
+        allocate(array(limdim), stat = ierr)
+      endif
+      if (ierr .ne. 0) call exitError('REALLOCATING MEMORY FOR MAIN ARRAY')
+      return
+      end subroutine reallocateArray
+
       END
 
 
@@ -1843,7 +1939,8 @@ c
      &    nsecred,iffloat,dmin2, dmax2,dmean2,sdsec,loadyst,loadynd,
      &    temp, lenTemp)
       implicit none
-      integer*4 idim,nx,ny,nsecred,iffloat,loadyst,loadynd, nbin, lenTemp
+      integer(kind=8) idim
+      integer*4 nx,ny,nsecred,iffloat,loadyst,loadynd, nbin, lenTemp
       real*4 array(idim),temp(lenTemp),dmin2,dmax2,dmean2,sdsec
       integer*4 maxlines,nloads,iline,iload,nlines, ixOffset, iyOffset,ierr
       real*4 tmin2,tmax2,tmean2,avgsec
@@ -1935,6 +2032,9 @@ c
 ************************************************************************
 *       
 c       $Log$
+c       Revision 3.52  2008/11/02 13:58:21  mast
+c       Added option to overwrite sections in existing output file
+c
 c       Revision 3.51  2008/07/25 14:09:03  mast
 c       Increased even more, to 180M
 c
