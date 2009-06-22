@@ -52,6 +52,8 @@ extern "C" {
 
   int b3dIMin(int narg, ...);
   int b3dIMax(int narg, ...);
+  double wallTime(void);
+  int numOMPthreads(int optimalThreads);
 
 #ifdef __cplusplus
 }
@@ -62,6 +64,9 @@ extern "C" {
 
 /*
 $Log$
+Revision 1.16  2008/11/15 21:51:05  mast
+flag function
+
 Revision 1.15  2007/10/01 15:27:41  mast
 Split out everything not in b3dutil.c
 
