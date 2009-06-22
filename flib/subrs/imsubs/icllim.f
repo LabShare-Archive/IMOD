@@ -14,7 +14,7 @@ C	IXYZMAX(3)	Upper pixel limits
 C	MXYZ(3)		Number of pixels
 C
 	SUBROUTINE ICLLIM(ISTREAM,IXYZMIN,IXYZMAX,MXYZ)
-	include 'imsubs.inc'
+	use imsubs
 C
 	DIMENSION IXYZMIN(3),IXYZMAX(3),MXYZ(3)
 C

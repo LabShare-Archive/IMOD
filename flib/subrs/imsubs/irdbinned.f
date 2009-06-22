@@ -36,11 +36,14 @@ c
 c	  $Revision$
 c
 c	  $Log$
+c	  Revision 1.1  2003/12/17 22:11:44  mast
+c	  Initial creation
+c	
 c
 	subroutine irdBinned(imunit, iz, array, ixdim, iydim,
      &	    ixst, iyst, nbin, nxbin, nybin, temp, lenTemp, ierr)
+        use imsubs
 	implicit none
-	include 'imsubs.inc'
 	integer*4 imunit, ixdim, iydim, ix0, ix1, iy0, iy1, nbin, nx, ny
 	integer*4 lenTemp, nxbin, ixoffset, nybin, iyoffset, ierr, iz
 	integer*4 ixst,iyst
