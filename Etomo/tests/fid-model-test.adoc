@@ -1,0 +1,128 @@
+Version = 1.2
+
+# Allow the modifier to take variables and constants as parameters.
+
+# This is probably not enough.  Would also have to take fields as parameters.
+# This makes processing more complex because each command could contain multiple
+# fields
+
+# The basic problem is that this functionality has to be nested.  Nesting should
+# be done by the autodoc parsing, not regular code.  This isn't possible without
+# creating a second parser that parses the whole command language.  At that
+# point I might as well look for or write a Java parser.
+
+# Or I could try to create a library associated with each of the commands I want
+# to use, such as assertEnabled(), gotoFrame(), pressButton(), and write actual
+# Java test functions which call those library functions.  The basic
+# structure of running the tests and switching between axes would also have to
+# be in the library because it is complicated and should be reusable.  I would
+# keep uitest.adoc as a way to describe the test.  Then I would make Java
+# classes that each tested a single dialog, as a well as a class that
+# called each dialog test.
+
+
+
+# What does a return do inside an [[else = ]] statement?  Just break out to the
+# if statement?  That doesn't make sense.  But that's how returns work.  Maybe
+# add a break command.
+
+[function = main]
+[[if.test-gui = ]]
+	[[if.equals.var.axis = a]]
+		run.function.test-gui-transfer-fiducials-a =
+	[[]]
+	run.param(%{unbinned-bead-diameter}).function.test-gui-beadtracker =
+	run.function.test-gui-beadtracker =
+[[]]
+[[if.or(equals(%{axis}), is-empty(%{axis})) = ]]
+	# Axis A
+	run.function.raptor=
+	# Test beadtrack
+	copy.always.file = %{dataset}%{axis}.seed
+[[else-if.var.axis = b]]
+	# Axis B
+	mb.transfer-fiducials = +
+	bn.transfer-fiducials-from-other-axis =
+	wait.process.transferring-fiducials = done
+[[]]
+[[]]
+mb.beadtracker = +
+bn.track-seed-model =
+wait.process.tracking-fiducials = done
+assert.exists.file = track%{axis}.log
+bn.track-with-fiducial-model-as-seed = 
+assert.exists.file = track%{axis}.log~
+wait.process.tracking-fiducials = done
+bn.track-with-fiducial-model-as-seed =
+wait.process.tracking-fiducials = done
+tf.view-skip-list = 1, 2
+bn.fix-fiducial-model=
+wait.popup.entry-error = OK
+tf.view-skip-list =
+bn.fix-fiducial-model=
+tf.view-skip-list = 1,2
+bn.fix-fiducial-model=
+
+bn.done =
+
+
+[function = raptor]
+if.not-exists.rb.run-raptor-and-fix.return=
+# Test RAPTOR
+rb.run-raptor-and-fix=
+[[if.not.var.montage = ]]
+# Run RAPTOR against coarse aligned stack
+	rb.run-against-the-coarse-aligned-stack=
+[[]]
+bn.open-stack-in-3dmod=
+# RAPTOR takes too long when the correct number of beads are used.
+tf.#-of-beads-to-choose=10
+assert.tf.unbinned-bead-diameter = %{int-unbinned-bead-diameter}
+bn.run-raptor=
+wait.process.running-runraptor=done
+bn.open-raptor-model-in-3dmod=
+bn.use-raptor-result-as-fiducial-model=
+[[if.not.var.montage = ]]
+	# Montage raw stack cannot be used with RAPTOR
+	# Run RAPTOR against raw stack
+	rb.run-against-the-raw-stack=
+[[]]
+bn.run-raptor=
+wait.process.running-runraptor=done
+bn.open-raptor-model-in-3dmod=
+bn.use-raptor-result-as-fiducial-model=
+rb.make-seed-and-track=
+
+
+[function = test-gui-beadtracker]
+get.param.unbinned-bead-diameter =
+mb.beadtracker = +
+mb.beadtracker.1 = A
+assert.tf.unbinned-bead-diameter = %{unbinned-bead-diameter}
+mb.beadtracker.1 = B
+
+
+[function = test-gui-transfer-fiducials-a]
+mb.transfer-fiducials = +
+mb.transfer-fiducials.1 = A
+assert.disabled.cb.run-midas =
+assert.tf.center-view-a = 
+assert.disabled.tf.center-view-a =
+assert.tf.center-view-b = 
+assert.disabled.tf.center-view-b = 
+assert.tf.number-of-views-in-the-search = 5
+assert.disabled.tf.number-of-views-in-the-search =
+assert.rb.both-directions = 1
+assert.disabled.rb.both-directions =
+assert.rb.+90-only = 0
+assert.disabled.rb.+90-only =
+assert.rb.-90-only = 0
+assert.disabled.rb.-90-only = 
+assert.cb.mirror-one-image-around-the-x-axis = 0
+assert.disabled.cb.mirror-one-image-around-the-x-axis = 
+assert.bn.transfer-fiducials-from-other-axis = 0
+assert.disabled.bn.transfer-fiducials-from-other-axis = 
+mb.transfer-fiducials.1 = A
+assert.disabled.cb.run-midas = 
+assert.bn.transfer-fiducials-from-other-axis = 0
+assert.disabled.bn.transfer-fiducials-from-other-axis = 
