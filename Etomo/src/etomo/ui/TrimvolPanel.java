@@ -36,6 +36,9 @@ import etomo.type.Run3dmodMenuOptions;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.35  2009/06/05 02:19:27  sueh
+ * <p> bug# Improved formatting.
+ * <p>
  * <p> Revision 3.34  2009/03/17 00:46:24  sueh
  * <p> bug# 1186 Pass managerKey to everything that pops up a dialog.
  * <p>
@@ -412,6 +415,7 @@ public final class TrimvolPanel implements Run3dmodButtonContainer,
 
     buttonActonListener = new ButtonListener(this);
     btnImodFull.addActionListener(buttonActonListener);
+    System.err.println("adding action listener to btnTrimvol");
     btnTrimvol.addActionListener(buttonActonListener);
     btnImodTrim.addActionListener(buttonActonListener);
     btnGetCoordinates.addActionListener(buttonActonListener);
@@ -642,6 +646,7 @@ public final class TrimvolPanel implements Run3dmodButtonContainer,
   }
 
   void done() {
+    System.err.println("removing action listener from btnTrimvol.");
     btnTrimvol.removeActionListener(buttonActonListener);
   }
 
