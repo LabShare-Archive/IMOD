@@ -5,10 +5,14 @@ C
 c       modified by mast to position correctly in bit mode files
 c       DNM 3/1/01: change to include file, move initialization of 
 c       ibleft to imopen.f
+c
+c       $Id$
+c       
+c       $Log$
 c       
       SUBROUTINE IMPOSN(ISTREAM,NZ,NY)
+      use imsubs
       implicit none
-      include 'imsubs.inc'
       integer*4 istream, nz, ny, j, nsection, line, nbytes, npixel, nsize
 C       
       J = LSTREAM(ISTREAM)
@@ -29,10 +33,10 @@ c
      &      ncrs(1,j) * nbytes, ncrs(2,j))
       else                              !if bit modes, seek to start of section
         nsize = (ncrs(1,j)*ncrs(2,j)*mode(j)+7)/8
-        call qseek(j, 1+ nbhdr + nbsym(j), 0, nsection, nsize, 1)
+        call qseek(j, 1+ nbhdr + nbsym(j), 1, nsection, nsize, 1)
         npixel=line*ncrs(1,j)                   !# of pixels left to skip
         ibleft(j)=0                             !from an even boundary
-        call bitskip(j,npixel,1,*99)
+        call bitskip(j,npixel,*99)
       endif
 C       
       RETURN
