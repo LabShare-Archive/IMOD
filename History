@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+6/18/09: 3dmod and tif2mrc and now read 32-bit integer TIFF files and RGBA
+files.
+
 6/15/09: IMOD_4-0-11
 6/15/09: Cubic interpolation routine was parallelized with OpenMP, which will
 speed up Newstack somewhat.
