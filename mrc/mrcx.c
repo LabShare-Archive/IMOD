@@ -44,6 +44,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 3.13  2007/06/13 17:14:03  sueh
+bug# 1019 In main, setting hdata.sectionSkip to 0.
+
 Revision 3.12  2005/11/11 23:04:13  mast
 Changes to call size test routine and for unsigned ints
 
@@ -248,30 +251,30 @@ int main( int argc, char *argv[])
     break;
       
   case MRC_MODE_SHORT:
-    datasize *= sizeof(short);
+    datasize *= sizeof(b3dInt16);
     convertFunc = convertShorts;
-    size = sizeof(short);
+    size = sizeof(b3dInt16);
     factor = 1;
     break;
       
   case MRC_MODE_FLOAT:
-    datasize *= sizeof(float);
+    datasize *= sizeof(b3dFloat);
     convertFunc = floatFunc;
-    size = sizeof(float);
+    size = sizeof(b3dFloat);
     factor = 1;
     break;
       
   case MRC_MODE_COMPLEX_SHORT:
-    datasize *= 2 * sizeof(short);
+    datasize *= 2 * sizeof(b3dInt16);
     convertFunc = convertShorts;
-    size = sizeof(short);
+    size = sizeof(b3dInt16);
     factor = 2;
     break;
       
   case MRC_MODE_COMPLEX_FLOAT:
-    datasize *= 2 * sizeof(float);
+    datasize *= 2 * sizeof(b3dFloat);
     convertFunc = floatFunc;
-    size = sizeof(float);
+    size = sizeof(b3dFloat);
     factor = 2;
     break;
       
@@ -430,7 +433,7 @@ void convertFloats(FILE  *fp,       /*file to read from*/
   b3dUInt32  noBytes;
   b3dUByte temp;   /*temporary place holder*/
 
-  noBytes = noFloats * sizeof(float);
+  noBytes = noFloats * sizeof(b3dFloat);
 
   if (fread(buffer, 1, noBytes, fp) != noBytes)
     {
@@ -448,7 +451,7 @@ void convertFloats(FILE  *fp,       /*file to read from*/
    *In either case corrent byte swapping must be done for
    *converting from big endian to little endian and vice versa*/ 
 
-  for (lcv = 0; lcv < noBytes; lcv += sizeof(float))
+  for (lcv = 0; lcv < noBytes; lcv += sizeof(b3dFloat))
     {
       if (direction) /* FROM_VAX */
         {
@@ -570,7 +573,6 @@ void convertHeader(void (*floatFunc)(),
   }
   convertLongs(infp, (b3dUByte *)&header->nlabl, 1, direction);
 
-
   for (lcv = 0; lcv < MRC_NLABELS; lcv++){
     convertBytes(infp, (b3dUByte *)header->labels[lcv], MRC_LABEL_SIZE, 
                  direction);  
@@ -607,7 +609,7 @@ void convertLongs(FILE  *fp,        /*file to read from*/
 
   /* Read in data */
 
-  noBytes = noLongs * sizeof(long);
+  noBytes = noLongs * sizeof(b3dInt32);
 
   if (fread(buffer, 1, noBytes, fp) != noBytes)
     {
@@ -635,7 +637,7 @@ void convertShorts(FILE  *fp,       /*file to read from*/
 
   /* Read in data */
 
-  noBytes = noShorts * sizeof(short);
+  noBytes = noShorts * sizeof(b3dInt16);
 
   if (fread(buffer, 1, noBytes, fp) != noBytes)
     {
@@ -644,7 +646,7 @@ void convertShorts(FILE  *fp,       /*file to read from*/
 
   /* DNM 3/16/01: discovered that the code here did nothing on a little-endian
      machine!  Switch to call library routine */
-  mrc_swap_shorts((short *)buffer, noShorts);
+  mrc_swap_shorts((b3dInt16 *)buffer, noShorts);
 
 } /*convertShorts*/
 
