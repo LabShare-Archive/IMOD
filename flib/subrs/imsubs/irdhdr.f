@@ -35,25 +35,21 @@ c       the number of bytes of extra header.  This is essential to allow
 c       big enough extra headers, but it means values in the true locations
 c       of ispg and nbsym will not be treated correctly.
 c       
-c       $Author$
-c       
-c       $Date$
-c       
-c       $Revision$
+c       $Id$
 c       Log at end
 c
 c       
       SUBROUTINE IRDHDR(ISTREAM,INXYZ,MXYZ,IMODE,DMIN,DMAX,DMEAN)
+      use imsubs
       implicit none
       integer*4 INXYZ(3),MXYZ(3),LABELS(1),NXYZST(3),MCRS(3)
       real*4 TITLE(1),CELL(6),EXTRA(1),delta(3),delt(3)
       character*1 LXYZ(3)
       DATA LXYZ/'X','Y','Z'/
 C       
-      include 'imsubs.inc'
       integer limtmp
       parameter (limtmp = 4096)
-      integer*4 istuff(27,maxunit),jbsym(*)
+      integer*4 jbsym(*)
       real*4 header(256),tilt(3)
       real*4 amat1(3,3),amat2(3,3),amat3(3,3),spibuf(9)
       integer*4 headtmp(limtmp/4)
@@ -62,8 +58,12 @@ C
       character*(*) string
       character*80 string80
       character*4 feichar
-      equivalence (istuff,stuff)
       logical nbytes_and_flags
+      character*27 modeNames(8), modeLabel
+      data modeNames/'(byte)','(16-bit integer)', '(32-bit real)',
+     &    '(complex integer)', '(complex)', '(unknown)',
+     &    '(unsigned 16-bit integer)','RGB color'/
+      integer*4 nameMap(0:16) /1,2,3,4,5,6,7,6,6,0,0,0,0,0,0,0,8/
 c       SAVE /IMGCOM/
 c       
       integer*4 i,j,k,l,ier,lenrec,nbs,ispg,istream,imode,idtype,lens
@@ -219,12 +219,19 @@ C
       call move(idat,stuff(19,j),12)
       idtype = idat(1)
       lens = idat(2)
-      if (print .and. ifBrief .le. 0)WRITE(6,1000) INXYZ,IMODE,(NCRST(K,J),
-     &    K=1,3), MXYZ, delt,(CEL(K,J),K=4,6),(LXYZ(MAPCRS(K,J)),K=1,3),
-     &    (ORIGXYZ(K,J),K=1,3),DMIN,DMAX,DMEAN,
-     &    (stuff(k,j),k=22,27),ispg,nbsym(j),
-     &    idtype,lens,
-     &    nlab(j),((LABLS(I,K,J),I=1,20),K=1,NLAB(J))
+      if (imode .lt. 0 .or. imode .gt. 16) then
+        modeLabel = '(unknown)'
+      else if (imode .ge. 9 .and. imode .le. 15) then
+        write(modeLabel, '(a,i2,a)')'(',imode,'-bit integer)'
+      else
+        modeLabel = modeNames(nameMap(imode))
+      endif
+      if (print .and. ifBrief .le. 0)WRITE(6,1000) INXYZ,IMODE,modeLabel,
+     &      (NCRST(K,J), K=1,3), MXYZ, delt,(CEL(K,J),K=4,6),
+     &      (LXYZ(MAPCRS(K,J)),K=1,3), (ORIGXYZ(K,J),K=1,3),DMIN,DMAX,DMEAN,
+     &      (stuff(k,j),k=22,27),ispg,nbsym(j),
+     &      idtype,lens,
+     &      nlab(j),((LABLS(I,K,J),I=1,20),K=1,NLAB(J))
 C       
 C       for unix output without carriagecontrol:
 C       DNM changed leading 2X to 1X on each line, changed tilt angle output
@@ -232,18 +239,18 @@ C       from 6f6.1 to f5.1,5f6.1, eliminated 1X before titles, eliminated 80th
 C       char by changing 20A4 to 19A4,A3
 C       
 1000  FORMAT(/,
-     &    1X,'Number of columns, rows, sections .........',3I7,/,
-     &    1X,'Map mode ..................................',I5,/,
-     &    1X,'Start cols, rows, sects, grid x,y,z .......',3I5,2X,3i6,/,
-     &    1X,'Pixel spacing (Angstroms)..................',3G11.4,/,
-     &    1X,'Cell angles ...............................',3F9.3,/,
-     &    1X,'Fast, medium, slow axes ...................',3(4X,A1),/,
-     &    1X,'Origin on x,y,z ...........................',3G11.4,/,
-     &    1X,'Minimum density ...........................',G13.5,/,
-     &    1X,'Maximum density ...........................',G13.5,/,
-     &    1X,'Mean density ..............................',G13.5,/,
-     &    1X,'tilt angles (original,current) ............',f5.1,5f6.1,/,
-     &    1X,'Space group,# extra bytes,idtype,lens .....',4I8,//,
+     &    1X,'Number of columns, rows, sections .....',3I8,/,
+     &    1X,'Map mode ..............................',I5,3x,a,/,
+     &    1X,'Start cols, rows, sects, grid x,y,z ...',I5,2I6,1X,3I7,/,
+     &    1X,'Pixel spacing (Angstroms)..............',1x,3G11.4,/,
+     &    1X,'Cell angles ...........................',3F9.3,/,
+     &    1X,'Fast, medium, slow axes ...............',3(4X,A1),/,
+     &    1X,'Origin on x,y,z .......................',1x,3G11.4,/,
+     &    1X,'Minimum density .......................',G13.5,/,
+     &    1X,'Maximum density .......................',G13.5,/,
+     &    1X,'Mean density ..........................',G13.5,/,
+     &    1X,'tilt angles (original,current) ........',f5.1,5f6.1,/,
+     &    1X,'Space group,# extra bytes,idtype,lens .',4I9,//,
      &    1X,i5,' Titles :'/10(19A4,A3/))
 c
       if (print .and. ifBrief .gt. 0) then
@@ -1196,8 +1203,8 @@ c
       END
 
       subroutine swap_mrc_header(j)
+      use imsubs
       implicit none
-      include 'imsubs.inc'
       integer*4 j
       call convert_longs(ncrs(1,j),3)
       call convert_longs(mode(j),1)
@@ -1227,8 +1234,8 @@ c       call convert_floats(origxy(1,j),2)
 c       Set up cmap as 'MAP ' and stamp with first byte as 68 for little-
 c       endian or 17 for big-endian file
       subroutine set_cmap_stamp(j)
+      use imsubs
       implicit none
-      include 'imsubs.inc'
       include 'endian.inc'
       integer j
       logical b3dxor
@@ -1262,6 +1269,10 @@ c
       end
 
 c       $Log$
+c       Revision 3.17  2009/03/25 23:54:55  mast
+c       Switched to writing integer into character variable for testing Fei, it
+c       seems safer and corresponds to what is done when printing the labels
+c
 c       Revision 3.16  2007/12/25 16:00:09  mast
 c       Added extra header size to test of FEI #int bug
 c
