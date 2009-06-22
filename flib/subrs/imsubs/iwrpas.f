@@ -15,10 +15,14 @@ C
 C	ARRAY DIMENSIONS ARE FOR CORRECT TYPE FOR REALS!!
 C	MUST MULTIPLY MX*2 FOR COMPLEX!!!
 C	BUT NX1,NX2 REFER TO COMPLEX NUMBERS!!!
+c
+c       $Id$
+c       
+c       $Log$
 C
 	SUBROUTINE IWRPAS(ISTREAM,ARRAY,MX,MY,NX1,NX2,NY1,NY2)
+        use imsubs
         implicit none
-	include 'imsubs.inc'
 C
         integer*4 MX,MY,NX1,NX2,NY1,NY2,ISTREAM
 	real*4 ARRAY(MX,MY)

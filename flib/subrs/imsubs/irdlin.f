@@ -14,38 +14,78 @@ C       Byte data is stored with numbers from 128 to 255 interpreted
 C       as -128 to -1, but returned to the calling program as their
 C       original values 128 - 255.  
 C       NOTE:   The start of a line is ALWAYS 0 (ie NX1,NX2 are relative)
+c
+c       $Id$
+c       
+c       $Log$
 C       
       SUBROUTINE IRDLIN(ISTREAM,ARRAY,*)
+      implicit none
+      integer*4 ISTREAM
+      real*4 array
+      call irdlinCommon(ISTREAM,ARRAY, 1, 0, 0, 0, *99)
+      return
+99    return 1
+      end
+
+      SUBROUTINE IRDSEC(ISTREAM,ARRAY,*)
+      implicit none
+      integer*4 ISTREAM
+      real*4 array
+      call irdlinCommon(ISTREAM,ARRAY, 4, 0, 0, 0, *99)
+      return
+99    return 1
+      end
 C       
-      include 'imsubs.inc'
+      SUBROUTINE IRDSECL(ISTREAM,ARRAY, nlines,*)
+      implicit none
+      integer*4 ISTREAM, nlines
+      real*4 array
+      call irdlinCommon(ISTREAM,ARRAY, 2, nlines, 0, 0, *99)
+      return
+99    return 1
+      end
+
+      subroutine IRDPAL(ISTREAM,ARRAY,NX1,NX2,*)
+      implicit none
+      integer*4 ISTREAM, nx1, nx2
+      real*4 array
+      call irdlinCommon(ISTREAM,ARRAY, 3, 0, nx1, nx2, *99)
+      return
+99    return 1
+      end
+
+      subroutine irdlinCommon(ISTREAM,ARRAY, intype, mlines, inNx1, inNx2, *)
+      use imsubs
+      implicit none
+C       
       logical noconj
       include 'endian.inc'
 C       
-      DIMENSION ARRAY(*)
+      real ARRAY(*)
+      integer*4 ISTREAM, itype, mlines, inNx1, inNx2,intype
+      integer linesize
       parameter (linesize = 40960)
       INTEGER*2 LINE(linesize/2),IB,iscratch(7300)
       INTEGER*1 BLINE(linesize),QB(2),bstore(4),bcur
       integer*4 lcompos
       real*4 rline(linesize/4)
-      EQUIVALENCE (LINE,BLINE),(IB,QB),(lcompos,bstore(1)),
-     &    (line,rline)
+      EQUIVALENCE (LINE,BLINE),(IB,QB),(lcompos,bstore(1)), (line,rline)
+      integer*4  nlines, nx1, nx2, j, jmode, jb, n, k, maxpix, nbytes,indst,i
+      integer*4 ngetpix, mask, ibofset,indbyt,ival,inttmp, nskip,indnd,lrec,ier
+      integer(kind=8) nread, index
+      real*4 denval
 C       
-      nlines=1
-      ITYPE = 1
-      GOTO 1
-      ENTRY IRDSEC(ISTREAM,ARRAY,*)
-      nlines = ncrs(2,lstream(istream))
-      ITYPE = 2
-      GOTO 1
-      ENTRY IRDPAL(ISTREAM,ARRAY,NX1,NX2,*)
-      ITYPE = 3
-      GOTO 1
-      ENTRY IRDSECL(ISTREAM,ARRAY,mlines,*)
-      ITYPE = 2
       nlines = mlines
-      GOTO 1
-C       
-1     J = LSTREAM(ISTREAM)
+      nx1 = inNx1
+      nx2 = inNx2
+      itype = intype
+      J = LSTREAM(ISTREAM)
+      if (itype .eq. 4) then
+        nlines = ncrs(2,j)
+        itype = 2
+      endif
+      INDEX = 1
 c       
 c       for SPIDER file, read lines and pack into array in inverse order
 c       
@@ -95,7 +135,7 @@ C
       IF (ITYPE .EQ. 1) THEN                    !READ LINE
         NREAD = NCRS(1,J)*JB
       ELSE IF (ITYPE .EQ. 2) THEN               !READ SECTION
-        NREAD = NCRS(1,J)*nlines*JB
+        NREAD = NCRS(1,J)*int(nlines, kind=4)*JB
       ELSE IF (ITYPE .EQ. 3) THEN               !READ PART OF LINE
         NREAD = (NX2 - NX1  + 1)*JB
         NSKIP = NX1*JB                          !RELATIVE START!!!!
@@ -105,92 +145,102 @@ C
       IF (JMODE .EQ. 2 .OR. JMODE .EQ. 4 .OR.
      &    (NOCON(J) .AND. (JMODE. LT. 9))) THEN
 C         DNM: straight no-conversion is silly for bit modes, will return integer*2
-        CALL QREAD(J,ARRAY,NREAD,IER)
-        IF (IER .NE. 0) GOTO 99
-        if(mrcflip(j))then
-          if(jmode.eq.2 .or. jmode.eq.4)then
-            call convert_floats(array,nread/4)
-          elseif(jmode.eq.1.or.jmode.eq.3)then
-            call convert_shorts(array,nread/2)
-          endif
-        endif         
-      ELSE IF (JMODE .EQ. 0) THEN               !INTEGER*1
-        INDEX = 1
-10      N = MIN(linesize,NREAD)
-        CALL QREAD(J,BLINE,N,IER)
-        IF (IER .NE. 0) GOTO 99
-        QB(3-lowbyte) = 0
-        DO K = 1,N
-          QB(lowbyte) = BLINE(K)
-          ARRAY(INDEX) = IB
-          INDEX = INDEX + 1
+        do while (nread .gt. 0)
+          N = int(min(1000000000,nread), kind=4)
+          CALL QREAD(J,ARRAY(index),N,IER)
+          IF (IER .NE. 0) GOTO 99
+          if(mrcflip(j))then
+            if(jmode.eq.2 .or. jmode.eq.4)then
+              call convert_floats(array(index),n/4)
+            elseif(jmode.eq.1.or.jmode.eq.3)then
+              call convert_shorts(array(index),n/2)
+            endif
+          endif    
+          nread = nread - n
+          index = index + n / 4
         enddo
-        NREAD = NREAD - n
-        IF (NREAD .GT. 0) GOTO 10
+
+      ELSE IF (JMODE .EQ. 0) THEN               !INTEGER*1
+        do while (nread .gt. 0)
+          N = int(MIN(int(linesize, kind=8),NREAD), kind=4)
+          CALL QREAD(J,BLINE,N,IER)
+          IF (IER .NE. 0) GOTO 99
+          QB(3-lowbyte) = 0
+          DO K = 1,N
+            QB(lowbyte) = BLINE(K)
+            ARRAY(INDEX) = IB
+            INDEX = INDEX + 1
+          enddo
+          NREAD = NREAD - n
+        enddo
+
       ELSEIF(jmode.le.8)then                    !ELSE INTEGER*2
         NREAD = NREAD/2
-        INDEX = 1
-15      N = MIN(linesize/2,NREAD)
-        CALL QREAD(J,LINE,N*2,IER)
-        IF (IER .NE. 0) GOTO 99
-        if(mrcflip(j))call convert_shorts(line,n)
-        if (jmode .ne. 6) then                  ! SIGNED
-          DO  K = 1,N
-            ARRAY(INDEX) = LINE(K)
-            INDEX = INDEX + 1
-          enddo
-        else                                    ! UNSIGNED
-          lcompos = 0
-          DO K = 1,N
-            bstore(longb1) = BLINE(2 * K + lowbyte - 2)
-            bstore(longb2) = BLINE(2 * K + 1 - lowbyte)
-            ARRAY(INDEX) = lcompos
-            INDEX = INDEX + 1
-          enddo
-        endif
-        NREAD = NREAD - n
-        IF (NREAD .GT. 0) GOTO 15
+        do while (nread .gt. 0)
+          N = int(MIN(int(linesize/2, kind=8),NREAD), kind=4)
+          CALL QREAD(J,LINE,N*2,IER)
+          IF (IER .NE. 0) GOTO 99
+          if(mrcflip(j))call convert_shorts(line,n)
+          if (jmode .ne. 6) then                ! SIGNED
+            DO  K = 1,N
+              ARRAY(INDEX) = LINE(K)
+              INDEX = INDEX + 1
+            enddo
+          else                                  ! UNSIGNED
+            lcompos = 0
+            DO K = 1,N
+              bstore(longb1) = BLINE(2 * K + lowbyte - 2)
+              bstore(longb2) = BLINE(2 * K + 1 - lowbyte)
+              ARRAY(INDEX) = lcompos
+              INDEX = INDEX + 1
+            enddo
+          endif
+          NREAD = NREAD - n
+        enddo
+
       else                                      !bit modes
         index=1
         noconj=nocon(j)
-20      maxpix=(8*8191+ibleft(j))/jmode         !max pixels in one read
-        ngetpix=min(nread,maxpix)               !# of pixels to get this time
-        nbytes=(jmode*ngetpix-ibleft(j)+7)/8    !# of bytes needed to do that
-        mask=2**jmode-1                         !mask for the n bits
-        call qread(j,bline,nbytes,ier)
-        if(ier.ne.0)go to 99
-        if(mrcflip(j))call convert_shorts(bline,nbytes/2)
-        bcur=bytcur(j)                          !get left-over into bcur if any
-        ibofset=8-ibleft(j)                     !specify offset 8-#bits left
-        indbyt=1                       !pointer to next byte needed from array
-        do ival=1,ngetpix
-          lcompos=0                      !start with longword 0
-          bstore(longb1)=bcur            !set current word into longword byte 1
-          if(jmode+ibofset.lt.16)then    !if any leftover bits in next byte
-            bcur=bline(indbyt)           !just move next byte into current
-            bstore(longb2)=bcur          !and into longword byte 2
-            indbyt=indbyt+1              !and point to next
-          else                           !otherwise get next two bytes
-            bstore(longb2)=bline(indbyt)
-            bcur=bline(indbyt+1)         !this will be new current word
-            bstore(longb3)=bcur
-            indbyt=indbyt+2              !advance pointer by 2
-          endif
+        do while (nread .gt. 0)
+          maxpix=(8*8191+ibleft(j))/jmode       !max pixels in one read
+c           # of pixels to get this time
+          ngetpix=int(min(nread,int(maxpix,kind=8)), kind=4) 
+          nbytes=(jmode*ngetpix-ibleft(j)+7)/8  !# of bytes needed to do that
+          mask=2**jmode-1                       !mask for the n bits
+          call qread(j,bline,nbytes,ier)
+          if(ier.ne.0)go to 99
+          if(mrcflip(j))call convert_shorts(bline,nbytes/2)
+          bcur=bytcur(j)                        !get left-over into bcur if any
+          ibofset=8-ibleft(j)                   !specify offset 8-#bits left
+          indbyt=1                     !pointer to next byte needed from array
+          do ival=1,ngetpix
+            lcompos=0                           !start with longword 0
+            bstore(longb1)=bcur          !set current word into longword byte 1
+            if(jmode+ibofset.lt.16)then  !if any leftover bits in next byte
+              bcur=bline(indbyt)         !just move next byte into current
+              bstore(longb2)=bcur        !and into longword byte 2
+              indbyt=indbyt+1            !and point to next
+            else                         !otherwise get next two bytes
+              bstore(longb2)=bline(indbyt)
+              bcur=bline(indbyt+1)              !this will be new current word
+              bstore(longb3)=bcur
+              indbyt=indbyt+2                   !advance pointer by 2
+            endif
                                          !shift right by offset, mask to n bits
-          if(noconj)then                 !if no conversion, return integer*2
-            iscratch(ival)=iand(mask,ishft(lcompos,-ibofset))
-          else
-            array(index)=iand(mask,ishft(lcompos,-ibofset))
-            index=index+1
-          endif              
-          ibofset=mod(ibofset+jmode,8)     !new offset is old plus nbits, mod 8
+            if(noconj)then               !if no conversion, return integer*2
+              iscratch(ival)=iand(mask,ishft(lcompos,-ibofset))
+            else
+              array(index)=iand(mask,ishft(lcompos,-ibofset))
+              index=index+1
+            endif              
+            ibofset=mod(ibofset+jmode,8)   !new offset is old plus nbits, mod 8
+          enddo
+c           if "no conversion", have to pack the integer values into real array
+          if(noconj)call imintorl(iscratch,array,index,ngetpix)
+          bytcur(j)=bcur                        !save bcur
+          ibleft(j)=mod(8-ibofset,8)            !and # of bits left in it
+          nread=nread-ngetpix                   !# pixels left to get
         enddo
-c         if "no conversion", have to pack the integer values into real array
-        if(noconj)call imintorl(iscratch,array,index,ngetpix)
-        bytcur(j)=bcur                          !save bcur
-        ibleft(j)=mod(8-ibofset,8)              !and # of bits left in it
-        nread=nread-ngetpix                     !# pixels left to get
-        if(nread.gt.0)go to 20
       END IF
 C       
       IF (ITYPE .EQ. 3) THEN                    !SKIP TO END OF RECORD
@@ -205,7 +255,10 @@ C
 C       a kludge to return integer*2 values into an array that irdlin thinks
 C       is a real array (but which its caller thinks is integer*2!!!)
       subroutine imintorl(iscratch,iarray,index,ngetpix)
+      implicit none
+      integer*4 ngetpix, ival
       integer*2 iscratch(*),iarray(*)
+      integer(kind=8) index
       do ival=1,ngetpix
         iarray(index)=iscratch(ival)
         index=index+1

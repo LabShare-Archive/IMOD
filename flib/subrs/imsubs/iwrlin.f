@@ -16,12 +16,46 @@ c       $Id$
 c       Log at end
 C       
       SUBROUTINE IWRLIN(ISTREAM,ARRAY)
+      implicit none
+      integer*4 ISTREAM
+      real*4 array
+      call iwrlinCommon(ISTREAM,ARRAY, 1, 0, 0, 0)
+      return
+      end
+
+      SUBROUTINE IWRSEC(ISTREAM,ARRAY)
+      implicit none
+      integer*4 ISTREAM
+      real*4 array
+      call iwrlinCommon(ISTREAM,ARRAY, 4, 0, 0, 0)
+      return
+      end
 C       
-      include 'imsubs.inc'
+      SUBROUTINE IWRSECL(ISTREAM,ARRAY, nlines)
+      implicit none
+      integer*4 ISTREAM, nlines
+      real*4 array
+      call iwrlinCommon(ISTREAM,ARRAY, 2, nlines, 0, 0)
+      return
+      end
+
+      subroutine IWRPAL(ISTREAM,ARRAY,NX1,NX2)
+      implicit none
+      integer*4 ISTREAM, nx1, nx2
+      real*4 array
+      call iwrlinCommon(ISTREAM,ARRAY, 3, 0, nx1, nx2)
+      return
+      end
+
+      subroutine iwrlinCommon(ISTREAM,ARRAY, intype, mlines, inNx1, inNx2)
+      use imsubs
+      implicit none
       logical noconj
       include 'endian.inc'
 C       
-      DIMENSION ARRAY(*)
+      real*4 ARRAY(*)
+      integer*4 ISTREAM, itype, mlines, inNx1, inNx2, intype
+      integer linesize
       parameter (linesize = 40960)
       INTEGER*2 LINE(linesize/2),IB,iscratch(7300)
       INTEGER*1 BLINE(linesize),QB(2),bstore(4),bcur
@@ -29,22 +63,21 @@ C
       integer*4 lcompos
       logical bad /.true./
       EQUIVALENCE (LINE,BLINE),(IB,QB),(lcompos,bstore(1)),(fline,line)
+      integer*4  nlines, nx1, nx2, j, jmode, jb, n, k, maxpix, nbytes
+      integer*4 ngetpix, mask, ibofset,indbyt,ival,inttmp, nskip
+      integer(kind=8) nwrite, index
+      real*4 denval
 C       
-      ITYPE = 1
-      GOTO 1
-      ENTRY IWRSEC(ISTREAM,ARRAY)
-      nlines = ncrs(2,lstream(istream))
-      ITYPE = 2
-      GOTO 1
-      ENTRY IWRPAL(ISTREAM,ARRAY,NX1,NX2)
-      ITYPE = 3
-      GOTO 1
-      ENTRY IWRSECL(ISTREAM,ARRAY,mlines)
-      ITYPE = 2
       nlines = mlines
-      GOTO 1
+      nx1 = inNx1
+      nx2 = inNx2
+      itype = intype
+      J = LSTREAM(ISTREAM)
+      if (itype .eq. 4) then
+        nlines = ncrs(2,j)
+        itype = 2
+      endif
 C       
-1     J = LSTREAM(ISTREAM)
       if(spider(j))then
         print *
         print *,'ERROR: IWRLIN - TRYING TO WRITE TO SPIDER FILE'
@@ -68,7 +101,7 @@ C
       IF (ITYPE .EQ. 1) THEN                    !WRITE LINE
         NWRITE = NCRS(1,J)*JB
       ELSE IF (ITYPE .EQ. 2) THEN               !WRITE SECTION
-        NWRITE = NCRS(1,J)*nlines*JB
+        NWRITE = NCRS(1,J)*int(nlines*JB, kind=8)
       ELSE IF (ITYPE .EQ. 3) THEN               !WRITE PART OF LINE
         NWRITE = (NX2 - NX1  + 1)*JB
         INDEX = NX1 + 1                         !FOR START @0
@@ -86,7 +119,7 @@ c           for swapped ints, which are already ints in the "real" array
 c           
           NWRITE = NWRITE/2
           do while (NWRITE .GT. 0)
-            N = MIN(linesize/2,NWRITE)
+            N = int(MIN(int(linesize/2, kind=8),NWRITE), kind=4)
             call imrltoin(array,line,index,n)
             index=index+n
             call convert_shorts(line, n)
@@ -100,7 +133,7 @@ c           for swapped floats it is easier
 c           
           NWRITE = NWRITE/4
           do while (NWRITE .GT. 0)
-            N = MIN(linesize/4,NWRITE)
+            N = int(MIN(int(linesize/4, kind=8),NWRITE), kind=4)
             DO K = 1,N
               FLINE(K) = array(index)
               INDEX = INDEX + 1
@@ -112,12 +145,17 @@ c
           
         else
 c           everything else just writes out straight
-          CALL QWRITE(J,ARRAY(INDEX),NWRITE)
+          do while (NWRITE .GT. 0)
+            N = int(min(1000000000,NWRITE), kind=4)
+            CALL QWRITE(J,ARRAY(INDEX),N)
+            NWRITE = NWRITE - n
+            index = index + n/4
+          enddo
         endif
 
       ELSE IF (JMODE .EQ. 0) THEN               !INTEGER*1
         do while (NWRITE .GT. 0)
-          N = MIN(linesize,NWRITE)
+          N = int(MIN(int(linesize, kind=8),NWRITE), kind=4)
           DO K = 1,N
 c             DNM: changed this test to possibly speed it up; put value into
 c             denval, use a single if statement
@@ -138,7 +176,7 @@ c             denval, use a single if statement
       ELSEif(jmode.le.8)then                    !ELSE INTEGER*2
         NWRITE = NWRITE/2
         do while (NWRITE .GT. 0)
-          N = MIN(linesize/2,NWRITE)
+          N = int(MIN(int(linesize/2, kind=8),NWRITE), kind=4)
           if (jmode .ne. 6) then                ! SIGNED
             DO K = 1,N
 c               DNM: similar changes, also make limit 32767 instead of 32700.
@@ -179,53 +217,56 @@ c               DNM: similar changes, also make limit 32767 instead of 32700.
           call exit(1)
         endif
         noconj=nocon(j)
-20      maxpix=(8*8190)/jmode                   !max pixels in one write
-        ngetpix=min(nwrite,maxpix)              !# of pixels to do this time
-c         if "no conversion", have to get the integer*2 values out of "real" array
-        if(noconj)call imrltoin(array,iscratch,index,ngetpix)
-        mask=2**jmode-1                    !mask for the n bits
-        ibofset=mod(8-ibleft(j),8)         !# of bits left in current byte
-        bcur=bytcur(j)                     !current partial byte
-        if(ibofset.eq.0)bcur=0             !need a zero if nothing there
-        indbyt=1                           !pointer to next byte to store
-        do ival=1,ngetpix
-          lcompos=0
-          bstore(longb1)=bcur              !put byte in end of longword
-          if(noconj)then                   !if no-conversion
-            inttmp=iscratch(ival)          !put into integer*4 for iand etc
-          else                             !otherwise use real value
-            inttmp=nint(array(index))
-            index=index+1
-            if(inttmp.lt.0.or.inttmp.gt.mask)then
-              inttmp=min(mask,max(inttmp,0))
-              if(bad)print *,'** overflow packing into bit stream ***'
-              bad = .false.
+        do while (nwrite.gt.0)
+          maxpix=(8*8190)/jmode                 !max pixels in one write
+c           # of pixels to do this time
+          ngetpix=int(min(nwrite,int(maxpix,kind=8)), kind=4) 
+c           if "no conversion", have to get the integer*2 values out of "real"
+c           array
+          if(noconj)call imrltoin(array,iscratch,index,ngetpix)
+          mask=2**jmode-1                       !mask for the n bits
+          ibofset=mod(8-ibleft(j),8)            !# of bits left in current byte
+          bcur=bytcur(j)                        !current partial byte
+          if(ibofset.eq.0)bcur=0                !need a zero if nothing there
+          indbyt=1                              !pointer to next byte to store
+          do ival=1,ngetpix
+            lcompos=0
+            bstore(longb1)=bcur                 !put byte in end of longword
+            if(noconj)then                      !if no-conversion
+              inttmp=iscratch(ival)            !put into integer*4 for iand etc
+            else                                !otherwise use real value
+              inttmp=nint(array(index))
+              index=index+1
+              if(inttmp.lt.0.or.inttmp.gt.mask)then
+                inttmp=min(mask,max(inttmp,0))
+                if(bad)print *,'** overflow packing into bit stream ***'
+                bad = .false.
+              endif
             endif
-          endif
-          lcompos=ior(lcompos,ishft(iand(mask,inttmp),ibofset))
-          bline(indbyt)=bstore(longb1)      !always save the first byte
-          if(jmode+ibofset.lt.16)then       !if it doesn't fill the 2nd byte
-            indbyt=indbyt+1
-            bcur=bstore(longb2)             !make 2nd byte be bcur
+            lcompos=ior(lcompos,ishft(iand(mask,inttmp),ibofset))
+            bline(indbyt)=bstore(longb1)        !always save the first byte
+            if(jmode+ibofset.lt.16)then        !if it doesn't fill the 2nd byte
+              indbyt=indbyt+1
+              bcur=bstore(longb2)               !make 2nd byte be bcur
+            else
+              bline(indbyt+1)=bstore(longb2)    !otherwise save 2nd byte
+              indbyt=indbyt+2
+              bcur=bstore(longb3)               !and make 3rd byte be bcur
+            endif
+            ibofset=mod(ibofset+jmode,8)   !new offset is old plus nbits, mod 8
+          enddo            
+          if(ibleft(j).gt.0)call qback(j,1)  !back up if partial word at start
+          if(ibofset.eq.0)then
+            nbytes=indbyt-1                  !just write all the complete bytes
           else
-            bline(indbyt+1)=bstore(longb2)  !otherwise save 2nd byte
-            indbyt=indbyt+2
-            bcur=bstore(longb3)             !and make 3rd byte be bcur
+            nbytes=indbyt                 !otherwise stick partial byte out too
+            bline(indbyt)=bcur
           endif
-          ibofset=mod(ibofset+jmode,8)     !new offset is old plus nbits, mod 8
-        enddo            
-        if(ibleft(j).gt.0)call qback(j,1)   !back up if partial word at start
-        if(ibofset.eq.0)then
-          nbytes=indbyt-1                   !just write all the complete bytes
-        else
-          nbytes=indbyt                   !otherwise stick partial byte out too
-          bline(indbyt)=bcur
-        endif
-        call qwrite(j,bline,nbytes)
-        bytcur(j)=bcur
-        ibleft(j)=mod(8-ibofset,8)
-        nwrite=nwrite-ngetpix                   !# left to write
-        if(nwrite.gt.0)go to 20
+          call qwrite(j,bline,nbytes)
+          bytcur(j)=bcur
+          ibleft(j)=mod(8-ibofset,8)
+          nwrite=nwrite-ngetpix                 !# left to write
+        enddo
       END IF
 C       
 C       IF PARTIAL WRITE THEN MAKE CERTAIN POINTER IS CORRECTLY POSITIONED
@@ -244,7 +285,10 @@ c
 C       a kludge to get integer*2 values out of an array that iwrlin thinks
 C       is a real array (but which its caller thinks is integer*2!!!)
       subroutine imrltoin(iarray,iscratch,index,ngetpix)
+      implicit none
+      integer*4 ngetpix, ival
       integer*2 iscratch(*),iarray(*)
+      integer(kind=8) index
       do ival=1,ngetpix
         iscratch(ival)=iarray(index)
         index=index+1
@@ -253,6 +297,9 @@ C       is a real array (but which its caller thinks is integer*2!!!)
       end
 c       
 c       $Log$
+c       Revision 3.7  2009/06/16 04:39:17  mast
+c       Increased buffer size 10-fold
+c
 c       Revision 3.6  2006/09/28 21:19:47  mast
 c       Changes for seeking in slices > 2 Gpixel
 c       
