@@ -22,6 +22,7 @@ import etomo.storage.ParameterStore;
 import etomo.storage.PeetFileFilter;
 import etomo.type.AxisID;
 import etomo.type.EtomoNumber;
+import etomo.type.ImodVersion;
 import etomo.type.JoinMetaData;
 import etomo.type.MetaData;
 import etomo.type.ParallelMetaData;
@@ -251,6 +252,7 @@ public class EtomoDirector {
     System.err.println("user.name:  " + System.getProperty("user.name"));
     System.err.println("user.home:  " + System.getProperty("user.home"));
     System.err.println("user.dir:  " + originalUserDir);
+    System.err.println("IMOD version:  " + ImodVersion.CURRENT_VERSION);
     // Get the IMOD calibration directory so we know where to find documentation
     // Check to see if is defined on the command line first with -D
     // Otherwise check to see if we can get it from the environment
@@ -951,7 +953,7 @@ public class EtomoDirector {
         - Runtime.getRuntime().totalMemory()
         + Runtime.getRuntime().freeMemory();
   }
-  
+
   public boolean isImodBriefHeader() {
     return imodBriefHeader;
   }
@@ -1090,6 +1092,9 @@ public class EtomoDirector {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.84  2009/06/10 17:21:30  sueh
+ * <p> bug# 1202 Added imodBriefHeader.
+ * <p>
  * <p> Revision 1.83  2009/04/13 22:21:03  sueh
  * <p> bug# 1207 In exitProgram avoided null pointer exception.
  * <p>
