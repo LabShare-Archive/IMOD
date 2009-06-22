@@ -8,9 +8,10 @@ mrcx \- Convert MRC files between different operating systems
 mrcx [-vms|-ieee] filename [optional output filename]
 .SH DESCRIPTION
 Numbers are stored on computers in two different orders, termed
-"little-endian" (as on PCs and Vaxes or Alphas) and "big-endian" (as on SGIs
-and Suns).  Moreover, Unix machines store floating-point numbers in IEEE
-format, while VMS machines store them in a slightly different format.  Mrcx
+"little-endian" (as on Windows and Linux PCs and Macs with Intel processors)
+and "big-endian" (as on Macs with PowerPC processors and some older machines).
+Moreover, Unix machines store floating-point numbers in IEEE
+format, while VMS machines stored them in a slightly different format.  Mrcx
 can convert MRC image files from one machine's format to another by swapping
 bytes and, when necessary, converting the format of the floating-point
 numbers.
@@ -35,7 +36,11 @@ in place, just issue the same command to undo it.
 Ross Dargahi, Jim Kremer, and David Mastronarde
 
 .SH BUGS
-Extra data in the extended image header are not converted.
+Extra data in the extended image header are converted as short integers, which
+works for data from SerialEM but not for extended headers in the FEI/Agard
+format.
+
+Conversion to and from VMS format is available only on big-endian machines.
 
 There is no longer an attempt to write a new title for the conversion.
 

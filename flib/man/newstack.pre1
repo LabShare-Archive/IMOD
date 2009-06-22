@@ -166,6 +166,9 @@ AADDDDIITTIIOONNAALL NNOOTTEESS
   when images are rotated by large angles (30-90 degrees); in such cases the
   program will need at least enough memory to hold the whole input images.
 
+  The program can manipulate and transform images bigger than 4 gigapixels,
+  but distortion correction is currently limited to 2 gigapixel images.
+
   Each linear transformation in a transform file is specified by a line with 
   six numbers:
     A11 A12 A21 A22 DX DY
