@@ -185,6 +185,7 @@ public final class PostProcessingDialog extends ProcessDialog implements
   }
 
   boolean done() {
+    System.err.println("calling PostProcessingDialog.done.");
     if (applicationManager.donePostProcessing()) {
       squeezeVolPanel.done();
       trimvolPanel.done();
@@ -239,6 +240,10 @@ public final class PostProcessingDialog extends ProcessDialog implements
 }
 /**
  * <p> $Log$
+ * <p> Revision 3.41  2009/06/11 16:59:29  sueh
+ * <p> bug# 1221 Removed no longer used getParameters(FlattenWarpParam).
+ * <p> The manager is going straight to the panel now.
+ * <p>
  * <p> Revision 3.40  2009/06/05 02:14:43  sueh
  * <p> bug# 1219 Added tabs.  Factored out squeezevol.  Attached
  * <p> SqueezeVolPanel and FlattenPanel.
