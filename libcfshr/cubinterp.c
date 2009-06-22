@@ -7,6 +7,7 @@
  * Log at end
  */
 #include <math.h>
+#include <stdlib.h>
 #include "imodconfig.h"
 #include "b3dutil.h"
 
@@ -52,15 +53,13 @@ void cubinterp(float *array, float *bray, int nxa, int nya, int nxb, int nyb,
                float amat[2][2], float xc, float yc, float xt, float yt, 
                float scale, float dmean, int linear)
 {
-#ifdef _OPENMP
-#include <omp.h>
-#endif
   float xcen,ycen,xco,yco,denom,a11,a12,a22,a21,dyo,xbase,ybase;
   float xst,xnd,xlft,xrt,xp,yp,dennew,dx,dy,v2,v4,v6,v8,v5,a,b,c,d;
   float dxm1,dxdxm1,fx1,fx2,fx3,fx4,dym1,dydym1,v1,v3,vmin,vmax;
   int iy,ix,ixp,ixpp1,iyp,iypp1,ixpm1,iypm1,linefb;
-  int ixnd,ixst,ixfbst,ixfbnd,iqst,iqnd,ifall,ind,indpnxa,indmnxa,indpnxa2;
-  int numThreads = 1, numProcs;
+  int ixnd,ixst,ixfbst,ixfbnd,iqst,iqnd,ifall;
+  size_t ixbase, llnxa,ind,indpnxa,indmnxa,indpnxa2;
+  int numThreads;
 
   /* Calc inverse transformation */
   xcen = nxb / 2. + xt + 0.5;
@@ -72,25 +71,25 @@ void cubinterp(float *array, float *bray, int nxa, int nya, int nxb, int nyb,
   a12 = -amat[1][0] / denom;
   a21 = -amat[0][1] / denom;
   a22 =  amat[0][0] / denom;
+  llnxa = nxa;
 
   /* Limit the number of threads based on measurements indicating that this
      formula gives at least 75% parallel efficiency */
-#ifdef _OPENMP
   numThreads = B3DNINT(0.04 * sqrt((double)nxb * nyb));
-  numProcs = omp_get_num_procs();
-  numThreads = B3DMIN(numProcs, B3DMAX(1, numThreads));
-#endif
+  numThreads = numOMPthreads(numThreads);
+
 #pragma omp parallel for num_threads(numThreads) \
   shared(a11,a12,a21,a22,xco,yco,xcen,ycen,array,bray,nxa,nya,nxb,nyb,scale,\
-         dmean,linear) \
+         dmean,linear,llnxa)                                                 \
   private(dyo,xbase,ybase)\
   private(xst,xnd,xlft,xrt,xp,yp,dennew,dx,dy,v2,v4,v6,v8,v5,a,b,c,d)\
   private(dxm1,dxdxm1,fx1,fx2,fx3,fx4,dym1,dydym1,v1,v3,vmin,vmax)\
-  private(ix,ixp,ixpp1,iyp,iypp1,ixpm1,iypm1,linefb)\
+  private(ix,ixp,ixpp1,iyp,iypp1,ixpm1,iypm1,linefb,ixbase)            \
   private(ixnd,ixst,ixfbst,ixfbnd,iqst,iqnd,ifall,ind,indpnxa,indmnxa,indpnxa2)
 
   /* loop over output image */
   for (iy = 1; iy <= nyb; iy++) {
+    ixbase = ((size_t)iy - 1) * nxb - 1;
     dyo = iy - ycen;
     xbase = a12 * dyo +xco - a11 * xcen;
     ybase = a22 * dyo + yco - a21 * xcen;
@@ -143,9 +142,9 @@ void cubinterp(float *array, float *bray, int nxa, int nya, int nxb, int nyb,
      
     /* do fill outside of fallback */
     for (ix = 1; ix <= ixfbst - 1 ; ix++)
-      bray[ix + (iy - 1) * nxb - 1] = dmean;
+      bray[ix + ixbase] = dmean;
     for (ix = ixfbnd + 1; ix <= nxb; ix++)
-      bray[ix + (iy - 1) * nxb - 1] = dmean;
+      bray[ix + ixbase] = dmean;
      
     /* do fallback to quadratic with tests */
     iqst = ixfbst;
@@ -177,11 +176,11 @@ void cubinterp(float *array, float *bray, int nxa, int nya, int nxb, int nyb,
               iypp1 = nya;
 
       /* set up terms for quadratic interpolation */
-            v2 = array[ixp + (iypm1 - 1) * nxa - 1];
-            v4 = array[ixpm1 + (iyp - 1) * nxa - 1];
-            v5 = array[ixp + (iyp - 1) * nxa - 1];
-            v6 = array[ixpp1 + (iyp - 1) * nxa - 1];
-            v8 = array[ixp + (iypp1 - 1) * nxa - 1];
+            v2 = array[ixp + (iypm1 - 1) * llnxa - 1];
+            v4 = array[ixpm1 + (iyp - 1) * llnxa - 1];
+            v5 = array[ixp + (iyp - 1) * llnxa - 1];
+            v6 = array[ixpp1 + (iyp - 1) * llnxa - 1];
+            v8 = array[ixp + (iypp1 - 1) * llnxa - 1];
             vmax = B3DMAX(v2,v4);
             vmax = B3DMAX(vmax,v5);
             vmax = B3DMAX(vmax,v6);
@@ -202,7 +201,7 @@ void cubinterp(float *array, float *bray, int nxa, int nya, int nxb, int nyb,
             if (dennew < vmin)
               dennew = vmin;
           }
-          bray[ix + (iy - 1) * nxb - 1] = dennew;
+          bray[ix + ixbase] = dennew;
         }    
 
       } else {
@@ -217,13 +216,13 @@ void cubinterp(float *array, float *bray, int nxa, int nya, int nxb, int nyb,
           if (ixp  >=  1 && ixp  <  nxa && iyp  >=  1 && iyp  <  nya) {
             dx = xp - ixp;
             dy = yp - iyp;
-            ind = ixp + (iyp - 1) * nxa - 1;
+            ind = ixp + (iyp - 1) * llnxa - 1;
             dennew = (1. - dy) * ((1. - dx) * array[ind] + dx * array[ind+1]) +
-              dy * ((1. - dx) * array[ind+nxa] + dx * array[ind+nxa+1]);
+              dy * ((1. - dx) * array[ind+llnxa] + dx * array[ind+llnxa+1]);
             
           }
-          bray[ix +(iy - 1) * nxb - 1] = dennew;
-     }
+          bray[ix + ixbase] = dennew;
+        }
       }
       iqst = ixnd + 1;
       iqnd = ixfbnd;
@@ -249,10 +248,10 @@ void cubinterp(float *array, float *bray, int nxa, int nya, int nxb, int nyb,
        
         dym1 = dy - 1.;
         dydym1 = dy * dym1;
-        ind = ixp + (iyp - 1) * nxa - 1;
-        indmnxa = ind - nxa;
-        indpnxa = ind + nxa;
-        indpnxa2 = ind + 2 * nxa;
+        ind = ixp + (iyp - 1) * llnxa - 1;
+        indmnxa = ind - llnxa;
+        indpnxa = ind + llnxa;
+        indpnxa2 = ind + 2 * llnxa;
         v1 = fx1*array[indmnxa-1] + fx2*array[indmnxa] + 
           fx3*array[indmnxa+1] + fx4*array[indmnxa+2];
         v2 = fx1*array[ind-1] + fx2*array[ind] + 
@@ -262,7 +261,7 @@ void cubinterp(float *array, float *bray, int nxa, int nya, int nxb, int nyb,
         v4 = fx1*array[indpnxa2-1] + fx2*array[indpnxa2] + 
           fx3*array[indpnxa2+1] + fx4*array[indpnxa2+2];
        
-        bray[ix+(iy-1)*nxb-1] = -dym1*dydym1*v1 + (1. + dy*dy*(dy - 2.))*v2 +
+        bray[ix+ixbase] = -dym1*dydym1*v1 + (1. + dy*dy*(dy - 2.))*v2 +
           dy*(1. - dydym1)*v3 +dy*dydym1*v4;
   
       }
@@ -277,10 +276,10 @@ void cubinterp(float *array, float *bray, int nxa, int nya, int nxb, int nyb,
         iyp = yp;
         dx = xp - ixp;
         dy = yp - iyp;
-        ind = ixp + (iyp - 1) * nxa - 1;
-        bray[ix+(iy-1)*nxb-1] = (1. - dy) *
+        ind = ixp + (iyp - 1) * llnxa - 1;
+        bray[ix+ixbase] = (1. - dy) *
           ((1. - dx) * array[ind] + dx * array[ind+1]) +
-          dy * ((1. - dx) * array[ind+nxa] + dx * array[ind+nxa+1]);
+          dy * ((1. - dx) * array[ind+llnxa] + dx * array[ind+llnxa+1]);
       }
     }
   }
@@ -298,6 +297,9 @@ void cubinterpfwrap(float *array, float *bray, int *nxa, int *nya, int *nxb,
 /*
 
 $Log$
+Revision 1.5  2009/06/16 04:23:52  mast
+Parallelized with OpenMP
+
 Revision 1.4  2009/06/16 04:17:06  mast
 Wrong check in
 
