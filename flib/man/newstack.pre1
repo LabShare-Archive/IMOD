@@ -154,10 +154,17 @@ AADDDDIITTIIOONNAALL NNOOTTEESS
   identical operations on each of the three files, and recombine the data into
   a color file with "clip joinrgb".
          
-  The program operates on very large images by reading, operating on, and
-  writing strips of the image if necessary.  Images can be larger than 10K by
-  10K if they are not being rotated much, but when images are rotated by large
-  angles (30-90 degrees), input image size may be limited to 8K by 8K.
+  The program attempts to allocate enough memory to hold an entire input
+  image and output image in 4 bytes per pixel, but it can work on large images
+  with less memory than this by reading, operating on, and writing strips of
+  the image if necessary.  On a 32-bit system, if the memory allocation fails,
+  it will try to work with just under 2 GB of memory.  Memory allocation will
+  probably not fail on a 64-bit system.  In either case, system performance
+  will suffer if the program allocates more than the amount of memory
+  available, and it is up to the user to limit the memory as appropriate with
+  the "-memory" option.  The ability to work on the image in strips is limited
+  when images are rotated by large angles (30-90 degrees); in such cases the
+  program will need at least enough memory to hold the whole input images.
 
   Each linear transformation in a transform file is specified by a line with 
   six numbers:
