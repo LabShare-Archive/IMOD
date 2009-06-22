@@ -1,5 +1,7 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+6/22/09: Fixed raw image dialog.
+
 6/18/09: 3dmod and tif2mrc and now read 32-bit integer TIFF files and RGBA
 files.
 
