@@ -11,6 +11,9 @@ c
 c	  $Revision$
 c
 c	  $Log$
+c	  Revision 3.2  2005/05/26 04:40:45  mast
+c	  Switched to accumult sums as double and return them that way too
+c	
 c	  Revision 3.1  2002/08/18 23:01:39  mast
 c	  Added to library after discovering 2 versions in four programs
 c	
@@ -19,9 +22,11 @@ c
      &	    ,sumsq8,avg,sd)
 	implicit none
 	real*4 array(*)
-	integer*4 nx,ny,iy,ibas,i,nsum,ix0,ix1,iy0,iy1
+	integer*4 nx,ny,ix0,ix1,iy0,iy1
 	real*4 dmin,dmax,avg,sd,den
 	real*8 sum8,sumsq8,smtm,smtmsq
+        integer(kind=8) i, iy, ibas, nsum
+        
 	sum8=0.
 	sumsq8=0.
 	dmin=1.e10
@@ -40,7 +45,7 @@ c
 	  sum8=sum8+smtm
 	  sumsq8=sumsq8+smtmsq
 	enddo
-	nsum=(ix1+1-ix0)*(iy1+1-iy0)
+	nsum=int(ix1+1-ix0, kind=8)*(iy1+1-iy0)
 	avg=sum8/nsum
 	sd=sqrt((sumsq8-sum8**2/nsum)/(nsum-1))
 	return

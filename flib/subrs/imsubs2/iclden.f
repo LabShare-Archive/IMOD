@@ -14,23 +14,27 @@ C			: area of ARRAY
 C	  DNM 9/23/01: compute sub-sums to retain accuracy with big images
 C
 	SUBROUTINE ICLDEN(ARRAY,MX,MY,NX1,NX2,NY1,NY2,DMIN,DMAX,DMEAN)
-	DIMENSION ARRAY(MX,MY)
+        implicit none
+        integer*4 MX,MY,NX1,NX2,NY1,NY2
+	real*4 ARRAY(MX,MY),DMIN,DMAX,DMEAN
+        integer*4 ix, iy
+        real*4 val, tsum
 C
 	DMIN = 1.E30
 	DMAX = -1.E30
 	DMEAN = 0.0
-	DO 200 IY = NY1,NY2
+	DO IY = NY1,NY2
 	  tsum = 0.
-	  DO 100 IX = NX1,NX2
+	  DO IX = NX1,NX2
 	    VAL = ARRAY(IX,IY)
 	    tsum = tsum + VAL
 	    IF (VAL .LT. DMIN) DMIN = VAL
 	    IF (VAL .GT. DMAX) DMAX = VAL
-100	  CONTINUE
+          enddo
 	  dmean = dmean + tsum
-200	CONTINUE
+        enddo
 C
-	DMEAN = DMEAN/((NX2 - NX1 + 1)*(NY2 - NY1 + 1))
+	DMEAN = DMEAN/(int(NX2 - NX1 + 1, kind=8)*(NY2 - NY1 + 1))
 C
 	RETURN
 	END
