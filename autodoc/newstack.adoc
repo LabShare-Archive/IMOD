@@ -321,6 +321,19 @@ for each image, such as is produced by Extractmaggrad.  The mag gradient
 correction is applied before a distortion field correction and before any
 transformations.
 
+[Field = MemoryLimit]
+short = memory
+type = IP
+usage = Total size of working array to allocate, in megabytes
+tooltip = 
+manpage = Use this entry to specify the amount of memory used by the program
+for its main array, in megabytes.  By default, the program will try to use
+enough memory to hold both an input image and an output image in floating
+point form (4 bytes per pixel).  Limiting the memory can keep it from using
+more memory than available but may result in it operating on the images in
+chunks.  The main array is used to hold both the input image (in whole or in
+part) and a transformed image (in whole or in part).
+
 [Field = TestLimits]
 short = test
 type = IP
@@ -328,7 +341,14 @@ usage = Total size of working array, and size of binning array
 tooltip = 
 manpage = To test the code for reading in and binning images in chunks,
 enter limits for the total size of the working array, and for the size of 
-the array used for binning.
+the array used for binning.  The sizes are the number of 4-byte elements.
+
+[Field = VerboseOutput]
+short = verbose
+type = I
+usage = 1 for diagnostic output
+tooltip = 
+manpage = 
 
 [Field = ParameterFile]
 short = param
