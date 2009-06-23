@@ -585,7 +585,7 @@ c
         ierr = PipGetString('GradientFile', magGradFile)
         ierr = PipGetLogical('AdjustOrigin', adjustOrigin)
         limEntered = 1 - PipGetTwoIntegers('TestLimits', ierr, lenTemp)
-        if (limEntered) limdim = ierr
+        if (limEntered .gt. 0) limdim = ierr
         if (PipGetInteger('MemoryLimit', ierr) .eq. 0) then
           limEntered = 1
           limdim = int(ierr, kind = 8) * 1024 * 256
@@ -2032,6 +2032,9 @@ c
 ************************************************************************
 *       
 c       $Log$
+c       Revision 3.53  2009/06/22 20:47:49  mast
+c       Allocated the main array and made it work with > 4 Gpixel images
+c
 c       Revision 3.52  2008/11/02 13:58:21  mast
 c       Added option to overwrite sections in existing output file
 c
