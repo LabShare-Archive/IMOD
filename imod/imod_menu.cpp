@@ -556,7 +556,7 @@ void InfoWindow::editObjectSlot(int item)
         vol *= imod->pixsize * vi->xybin * imod->pixsize * vi->xybin
           * imod->pixsize;
       vol *= imod->zscale;
-      wprint("Object %d: Volume = %g %s^3.\n", 
+      wprint("Object %d: Cylinder volume = %g %s^3.\n", 
              imod->cindex.object + 1, vol, 
              imodUnits(imod));
 
@@ -580,10 +580,11 @@ void InfoWindow::editObjectSlot(int item)
 
       }
       sa *= imod->pixsize * vi->xybin * imod->pixsize * imod->zscale;
-      wprint("Object %d: Surface Area = %g%s^2.\n",
+      wprint("Object %d: Cylinder surface area = %g%s^2.\n",
              imod->cindex.object + 1,sa,
              imodUnits(imod));
-               
+      wprint("%s imodinfo for better measurements.\n", obj->meshsize ?
+             "Use" : "Mesh the object and use");
     }
     break;
 
@@ -1331,6 +1332,9 @@ static int imodContourBreakByZ(ImodView *vi, Iobj *obj, int ob, int co)
 /*
 
 $Log$
+Revision 4.53  2009/05/08 02:17:57  mast
+Add unbinned to info output
+
 Revision 4.52  2009/01/16 02:21:12  mast
 removed imodhelp.h
 
