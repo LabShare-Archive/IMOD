@@ -20,10 +20,10 @@ PROG = tilt$(BINEXT)
 
 all: $(PROG)
 
-$(PROG): tilt.$(O) licenseusfft.$(O) $(TILTOBJS) $(FBPLIB) 
-	$(FC) $(FFLAGS) -o tilt tilt.$(O) licenseusfft.$(O) $(TILTOBJS) \
-	 $(FBPLIB) $(LDFFLAGS) $(LWMOD) $(LIMOD) $(IMLIBS) $(USFFTLIBS) \
-	 $(FORTCLIBS)
+$(PROG): tilt.$(O) licenseusfft.$(O) tiltvars.$(O) $(TILTOBJS) $(FBPLIB) 
+	$(FC) $(FFLAGS) -o tilt tilt.$(O) licenseusfft.$(O)  tiltvars.$(O) \
+	$(TILTOBJS) $(FBPLIB) $(LDFFLAGS) $(LWMOD) $(LIMOD) $(IMLIBS) \
+	 $(USFFTLIBS) $(FORTCLIBS)
 
 libfbp.a: fbplib/*.f
 	(cd fbplib ; $(MAKE) )
@@ -36,7 +36,7 @@ handnox.$(O): handnox.s
 handxtilt.$(O): handxtilt.s
 handlocal.$(O): handlocal.s
 
-tilt.$(O): tilt.inc fbpswitch.inc
+tilt.$(O): tiltvars.$(O) fbpswitch.inc
 
 install: $(PROG)
 	$(STRIP) $(PROG)
@@ -47,6 +47,9 @@ clean:
 	-\rm -f *.o* *.exe *.a *~ tilt
 
 #  $Log$
+#  Revision 3.8  2009/05/22 22:55:16  mast
+#  Switch to large model
+#
 #  Revision 3.7  2008/11/14 17:16:10  mast
 #  Added smallmodel lib to link
 #
