@@ -10,8 +10,8 @@ C
 c       $Id$
 c       Log at end of file
 c       
+      use tiltvars
       implicit none
-      include 'tilt.inc'
       integer*4 nxyztmp(3),nxyzst(3)
       data nxyzst/0.,0.,0./
       character*20 radtxt1/'Radial weighting'/
@@ -30,9 +30,23 @@ c
       real*4 endmean,f,unscmin,unscmax,recscale,recflevl,DMEAN,pixelTot
       real*4 xprojf, xprojz, yprojf, yprojz, xproj, yproj
       real*8 dtot8
-
-      TMASK = -1.E+30
+c       
+c       This is a temporary measure to allow user control of allocation
+      integer*4 imodGetEnv,mblim
+      character*20 memString
+      if (imodGetEnv('TILT_MEMORY_LIMIT', memString) .eq. 0) then
+        read(memString, '(i)') mblim
+        if (mblim .gt. 8000) call exitError(
+     &      'VALUE OF TILT_MEMORY_LIMIT CANNOT BE MORE THAN 8000 MB')
+        limstack = mblim * 1024 * 256
+      endif
+      allocate (array(limstack), stat = itry)
+      if (itry .ne. 0) call exitError(
+     &    'FAILED TO ALLOCATE MEMORY FOR STACK ARRAY')
+      write(*,'(a,i5,a)') 'Allocated',limstack / (1024*256),
+     &    ' MB for stack array'
       maxSTACK=limstack
+      TMASK = -1.E+30
       interhsave=20
       nsliceout=0
       memBigCrit = 20000000
@@ -541,8 +555,8 @@ C       -----------------------------
 C       
 C       Set Radial Transform weighting
 C       Linear ramp plus Gaussian fall off
+      use tiltvars
       implicit none
-      include 'tilt.inc'
       integer*4 IRMAXin,IFALLin
       integer*4 nweight, numWgtAngles
       real*4 wincr(20), wgtAngles(limview)
@@ -661,8 +675,8 @@ C       ----------------
 C       
 C       This subroutine prepares the limits of the slice width to be computed
 c       if masking is used
+      use tiltvars
       implicit none
-      include 'tilt.inc'
       real*4 radlft,radrt,y, yy
       integer*4 i, ixlft, ixrt
 C       
@@ -696,8 +710,8 @@ C       ---------------------------------------------------------------------
 C       ----------------
 C       
 C       This subroutine zeros the slice and applies the mask if requested
+      use tiltvars
       implicit none
-      include 'tilt.inc'
       integer*4 index, i, j,iend
 c       
 c       Read in base slice and descale
@@ -744,8 +758,8 @@ C       This subroutine applies a one-dimensional Fourier transform to
 C       all views corresponding to a given slice, applies the radial 
 C       weighting function and then applies an inverse Fourier transform.
 C       
+      use tiltvars
       implicit none
-      include 'tilt.inc'
       integer*4 nprj2, istart, index, indrad, nv, i, ibfrom, ibto, ixp
       integer*4 ixpp1, ixpm1, ixpp2, ibase
       real*4 x, xp, dx, dxm1, v4, v5, v6, a, c, dennew, dxdxm1, diffmax
@@ -861,8 +875,8 @@ C
 C       This subroutine assembles one reconstructed slice perpendicular
 C       to the tilt axis, using a back projection method.
 C       
+      use tiltvars
       implicit none
-      include 'tilt.inc'
       real*4 xprojf(limwidth),xprojz(limwidth)
       real*4 yprojf(limwidth),yprojz(limwidth)
       integer*4 jstrt(3),jend(3)
@@ -1207,8 +1221,8 @@ c       reconstruction, and IRINGSTART is the position of LVSSTART in the
 c       ring buffer.
 c       
       subroutine compose(lsliceout,lvsstart,lvsend,idir,iringstart)
+      use tiltvars
       implicit none
-      include 'tilt.inc'
       integer*4 lsliceout,lvsstart,lvsend,idir,iringstart
       integer*4 ind1(4),ind2(4),ind3(4),ind4(4)
       real*4 tanalpha,vertcen,cenj,cenl,vsl,vycen,fx,vy,fy,f22,f23,f32,f33
@@ -1392,8 +1406,8 @@ C-------------------------------------------------------------------------
       SUBROUTINE DUMP(LSLICE,DMIN,DMAX,DTOT8)
 C       --------------------------------------
 C       
+      use tiltvars
       implicit none
-      include 'tilt.inc'
       integer*4 lslice,nparextra,iend,index,i,j,iaryBase
       real*4 DMIN,DMAX,fill,projline(limwidth)
       real*8 dtot8,dtmp8
@@ -1487,8 +1501,8 @@ C       -----------------------------------------------------------------
       SUBROUTINE INPUT()
 C       ----------------
       
+      use tiltvars
       implicit none
-      include 'tilt.inc'
       integer limnum
       parameter (limnum = 100)
       integer*4 nweight, numWgtAngles
@@ -3011,8 +3025,8 @@ c       the reconstruction adjusted to match coordinates of projections
 c
       subroutine local_factors(ix,iy,iv,ind1,ind2,ind3,ind4,f1,f2,f3,f4)
 c       
+      use tiltvars
       implicit none
-      include 'tilt.inc'
       integer*4 ix,iy,iv,ind1,ind2,ind3,ind4,ixt,ixpos,iyt,iypos
       real*4 f1,f2,f3,f4,fx,fy
 c       
@@ -3040,8 +3054,8 @@ c       j is X index in the reconstruction, lslice is slice # in aligned stack
 c
       subroutine localProjFactors(j, lslice, iv, xprojf, xprojz, yprojf,
      &    yprojz)
+      use tiltvars
       implicit none
-      include 'tilt.inc'
       integer*4 j, lslice, iv
       real*4 xprojf, xprojz, yprojf, yprojz
       integer*4 ind1,ind2,ind3,ind4,ixc
@@ -3207,8 +3221,8 @@ c       xproj, yproj in view iv of original projections.  xx is X index in
 c       reconstruction, yy is slice number in original projections
 c                        
       subroutine findProjectingPoint(xproj, yproj, zz, iv, xx, yy)
+      use tiltvars
       implicit none
-      include 'tilt.inc'
       real*4 xproj, yproj, zz, xx, yy
       integer*4 iv, iter, ifdone, ixassay, iyassay
       real*4 xprojf11, xprojz11, yprojf11, yprojz11, xprojf21, xprojz21,
@@ -3266,8 +3280,8 @@ c       Compute space needed for cosine stretched data, returning the
 c       number of needed input slices in NSNEED
 c       
       subroutine set_cos_stretch(nsneed)
+      use tiltvars
       implicit none
-      include 'tilt.inc'
       integer*4 nsneed,lsmin,lsmax,iv,ix,iy,lslice
       real*4 tanal,xpmax,xpmin,zz,zpart,yy,xproj
 c       make the indexes be bases, numbered from 0
@@ -3386,8 +3400,8 @@ c
 
       subroutine reprojectRec(lsStart, lsEnd, inloadstr, inloadend, DMIN,DMAX,
      &    DTOT8)
+      use tiltvars
       implicit none
-      include 'tilt.inc'
       integer*4 lsStart, lsEnd, inloadstr, inloadend
       real*4 dmin, dmax, warpDelz(2 * limwpos)
       integer*4 iv, ix, iy, iz, ixp, line, i, numz, kz, iys, ixnd, ixst, ind
@@ -3758,8 +3772,8 @@ c       Y coordinate is in slices of reconstruction
 c
       subroutine loadedProjectingPoint(xproj, yproj, zz, indbase, nxload,
      &    inloadstr, inloadend, xx, yy)
+      use tiltvars
       implicit none
-      include 'tilt.inc'
       real*4 xproj, yproj, zz,xx, yy
       integer*4 nxload, inloadstr, inloadend, indbase
       integer*4 iter, ifdone, ind, ix, iy, ifout,i
@@ -3828,8 +3842,8 @@ c
 c       Writes line LINE for view IV of a reprojection
 c
       subroutine writeReprojLine(iv, line,DMIN,DMAX,DTOT8)
+      use tiltvars
       implicit none
-      include 'tilt.inc'
       integer*4 line, i, iyout, iv
       real*4 dmin,dmax,val
       real*8 dtot8
@@ -3866,8 +3880,8 @@ c       constant mean levels.  Descale non-log data by exposure weights
 c       Projects model points onto the included views
 c
       subroutine projectModel(filout, delta, nvorig, coords, values)
+      use tiltvars
       implicit none
-      include 'tilt.inc'
       include 'model.inc'
       character*(*) filout
       real*4 delta(3), orig(3), coords(3,*), values(*)
@@ -3998,6 +4012,9 @@ c       Set to open contour, show values etc., and show sphere on section only
 
 c       
 c       $Log$
+c       Revision 3.45  2009/05/22 22:53:07  mast
+c       Switch to using full-sized model, protect against dividing by cos 90
+c
 c       Revision 3.44  2009/02/16 06:22:30  mast
 c       Modified to use new parallel write stuff
 c
