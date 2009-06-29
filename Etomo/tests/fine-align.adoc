@@ -19,6 +19,8 @@ Version = 1.2
 	run.function.set-general=
 [[]]
 run.function.compute-alignment=
+copy.file = %{dataset}%{axis}.fid
+run.function.compute-alignment=
 bn.done =
 wait.popup.etomo-question = Yes
 
