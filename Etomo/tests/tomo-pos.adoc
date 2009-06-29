@@ -15,7 +15,6 @@ bn.done =
 
 [function = create-sample-tomograms]
 cb.use-whole-tomogram = off
-copy.file = %{dataset}%{axis}.fid
 tf.sample-tomogram-thickness = %{sample-tomogram-thickness}
 bn.create-sample-tomograms =
 wait.process.creating-sample-tomogram = done
