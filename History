@@ -24,6 +24,10 @@ set by the user; setting up rectangular input and output volumes to use memory
 and read from disk more efficiently; computing data within cubes and cubes in
 a more efficient order; parallelizing with OpenMP.
 
+6/10/09: Fixed a bug in Etomo which preventing it from logging the residual when
+fine alignment was run from a 3dmod which has been opened from either the Coarse
+Alignment or the Fiducial Model dialogs.
+
 6/5/09: Implemented a new method of filling in missing transforms in Warpvol
 to avoid discontinuities in transforms and other problems when they are
 extrapolated to long distances from existing transforms.  Modified Findwarp to
