@@ -899,9 +899,9 @@ argument value(s).
 
 \fIiVal\fB = PipGetBoolean(\fIoption\fB,\fIiVal\fB)
 
-[ \fIiVal1\fB, ... ] = PipGetIntegerArray(\fIoption\fB, \fInumToGet\fB)
+\fIiArray\fB = PipGetIntegerArray(\fIoption\fB, \fInumToGet\fB)
 
-[ \fIfVal1\fB, ... ] = PipGetFloatArray(\fIoption\fB, \fInumToGet\fB)
+\fIfArray\fB = PipGetFloatArray(\fIoption\fB, \fInumToGet\fB)
 .ft R
 .fi
 These two functions return the arrays as lists of values.  As for the C
