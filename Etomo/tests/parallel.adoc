@@ -14,6 +14,7 @@ tf.y-max=389
 tf.z-min=16
 tf.z-max=29
 bn.extract-test-volume=
+wait.process.trimming-volume=done
 set.var.subdir=naddir.%{volume}
 assert.exists.file=%{subdir}
 sleep=
