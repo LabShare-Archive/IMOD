@@ -14,12 +14,19 @@ DDEESSCCRRIIPPTTIIOONN
   must be present in the extended header of the image file.  In addition, a
   file must be supplied with a table of mag gradients versus intensity.
 
-  Each line of the mag gradient table should contain a Tecnai scripting
+  The program can read either version 1 or version 2 of the mag gradient
+  table.  In a version 1 table, each line should contain a Tecnai scripting
   intensity value between 0 and 1 (not the scaled percent C2 readout), the
   magnification change in percent per micron of Z height, and the image
   rotation in degrees per micron of Z height.  The lines must be in order by
   increasing intensity.  The program will interpolate between values in this
-  table but not extrapolate beyond the first or last intensities.
+  table but not extrapolate beyond the first or last intensities.  A version 2
+  table starts with a line with the version number (2), followed by a line
+  with the Tecnai scripting intensity at crossover.  After this would be the
+  lines for the magnification and rotation at each intensity.  Given this kind
+  of table, the program will use the crossover intensity to linearize the
+  data, which improves the interpolation between measured points and allows it
+  to extrapolate reliably.
 
   The output of the program is a file containing pixel size and tilt axis
   information plus a tilt angle, mag gradient, and rotation for each image
