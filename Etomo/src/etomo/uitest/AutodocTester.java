@@ -61,6 +61,10 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.7  2009/06/10 17:26:41  sueh
+ * <p> bug# 1202, bug # 1216 Added if.not-exists.field.subcommand to handle
+ * <p> RAPTOR's not existing on all computers.
+ * <p>
  * <p> Revision 1.6  2009/03/17 00:46:33  sueh
  * <p> bug# 1186 Pass managerKey to everything that pops up a dialog.
  * <p>
@@ -913,7 +917,7 @@ final class AutodocTester extends Assert implements VariableList {
           return true;
         }
         try {
-          Thread.sleep(1000);
+          Thread.sleep(1500);
         }
         catch (InterruptedException e) {
         }
