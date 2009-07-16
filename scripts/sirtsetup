@@ -318,7 +318,7 @@ SLICE     $slices\
         -e "/THICKNESS/a\\
 FlatFilterFraction   $flatfrac\
 " < $comname | grep -v -i '^ *log' >! $sirtname.com
-    set splitout = `splittilt -n $numproc -o $recchunk $boundpixels -i $comnum $sirtname.com`
+    set splitout = `splittilt -n $numproc -o $recchunk -b $boundpixels -i $comnum $sirtname.com`
     if ($status) then
         echo "$splitout"
         echo "ERROR: $pn - splittilt failed on initial run"
@@ -368,7 +368,7 @@ ViewsToReproj     0\
 RecFileToReproj     $lastname\
 " < $comname | grep -v -i '^ *log' >! $sirtname.com
     
-    set splitout = `splittilt -n $numproc -o -i $comnum $projchunk $boundpixels $sirtname.com`
+    set splitout = `splittilt -n $numproc -o -i $comnum $projchunk -b $boundpixels $sirtname.com`
     if ($status) then
         echo "$splitout"
         echo "ERROR: $pn - splittilt failed setting up projection for iteration # $iter"
@@ -411,7 +411,7 @@ SLICE     $slices\
 FlatFilterFraction   2\
 " < $comname | grep -v -i '^ *log' >! $sirtname.com
 
-    set splitout = `splittilt -n $numproc -o -i $comnum $recchunk $boundpixels $sirtname.com`
+    set splitout = `splittilt -n $numproc -o -i $comnum $recchunk -b $boundpixels $sirtname.com`
     if ($status) then
         echo "$splitout"
         echo "ERROR: $pn - splittilt failed setting up difference reconstruction for iteration # $iter"
@@ -466,6 +466,9 @@ echo "  processchunks machine_list $sirtname"
 exit 0
 
 #  $Log$
+#  Revision 3.8  2009/02/16 06:21:49  mast
+#  Modified for new parallel write stuff and to allow > 100 iterations
+#
 #  Revision 3.7  2008/07/31 16:44:09  mast
 #  Remove continuation inside back-ticks: tcsh allows, csh does not
 #
