@@ -18,7 +18,7 @@ SIZE DATA    NAME	Description
                          6 = unsigned 16-bit integers (non-standard)
 			16 = unsigned char * 3 (for rgb data, non-standard)
 
-4    int     nxstart;     Starting point of sub image.  
+4    int     nxstart;     Starting point of sub image (not used in IMOD)  
 4    int     nystart;
 4    int     nzstart;
 
@@ -30,17 +30,16 @@ SIZE DATA    NAME	Description
 4    float   ylen;
 4    float   zlen;
 
-4    float   alpha;      cell angles 
+4    float   alpha;      cell angles - ignored by IMOD
 4    float   beta;
 4    float   gamma;
 
-			 Ignored by imod.
+			 Ignored by IMOD.
 4    int     mapc;       map column  1=x,2=y,3=z.       
 4    int     mapr;       map row     1=x,2=y,3=z.       
 4    int     maps;       map section 1=x,2=y,3=z.       
 
-                         These need to be set for proper scaling of
-	 		 non byte data.
+                         These need to be set for proper scaling of data
 4    float   amin;       Minimum pixel value.
 4    float   amax;       Maximum pixel value.
 4    float   amean;      Mean pixel value.
@@ -76,6 +75,7 @@ SIZE DATA    NAME	Description
                          are interpreted as ints and reals per section
 
 28   ---     extra data (not used)
+
                       Explanation of type of data.
 2    short   idtype;  ( 0 = mono, 1 = tilt, 2 = tilts, 3 = lina, 4 = lins)
 2    short   lens;
@@ -84,9 +84,17 @@ SIZE DATA    NAME	Description
 2    short   vd1;                       vd1 = 100. * tilt increment
 2    short   vd2;                       vd2 = 100. * starting angle
 
-        		Used to rotate model to match new rotated image.
+        		Current angles are used to rotate a model to match a
+                        new rotated image.  The three values in each set are
+                        rotations about X, Y, and Z axes, applied in the order
+                        Z, Y, X.
 24   float   tiltangles[6];  0,1,2 = original:  3,4,5 = current 
 
+                       The image origin is the location of the origin of the
+                       coordinate system relative to the first pixel in the
+                       file.  It is in pixel spacing units rather than in
+                       pixels.  If an original volume has an origin of 0, a
+                       subvolume should have negative origin values.
 OLD-STYLE MRC HEADER - IMOD 2.6.19 and below:
 2    short   nwave;     # of wavelengths and values
 2    short   wave1;
@@ -95,13 +103,13 @@ OLD-STYLE MRC HEADER - IMOD 2.6.19 and below:
 2    short   wave4;
 2    short   wave5;
 
-4    float   zorg;      Origin of image.  Used to auto translate model
-4    float   xorg;      to match a new image that has been translated.
+4    float   zorg;      Origin of image.
+4    float   xorg;
 4    float   yorg;
 
 NEW-STYLE MRC image2000 HEADER - IMOD 2.6.20 and above:
-4    float   xorg;      Origin of image.  Used to auto translate model
-4    float   yorg;      to match a new image that has been translated.
+4    float   xorg;      Origin of image
+4    float   yorg;
 4    float   zorg;
 
 4    char    cmap;      Contains "MAP "
