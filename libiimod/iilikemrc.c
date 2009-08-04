@@ -433,7 +433,8 @@ static int checkDM3(FILE *fp, char *filename, RawImageInfo *info)
 }
 
 
-#define BUFSIZE 160000
+/* 8/3/09: This was 160000, but a file with Data%%%% at 595098 turned up */
+#define BUFSIZE 1000000
 #define MAX_TYPES 12
 /*!
  * Analyzes a file known to be a DigitalMicrograph version 3; the file pointer
@@ -444,11 +445,12 @@ static int checkDM3(FILE *fp, char *filename, RawImageInfo *info)
  */
 int analyzeDM3(FILE *fp, char *filename, RawImageInfo *info, int *dmtype)
 {
-  int i,c, toffset, typeOffset, maxread, typeIndex;
+  int i,c, toffset, typeIndex;
   char buf[BUFSIZE];
   char *found;
   int lowbyte, hibyte;
-  int offset, type, xsize, ysize;
+  int offset, type, xsize, ysize, zsize;
+  off_t typeOffset, maxread;
   struct stat statbuf;
 
   /* The type-dependent values that were found after 
@@ -497,6 +499,18 @@ int analyzeDM3(FILE *fp, char *filename, RawImageInfo *info, int *dmtype)
     if (buf[c] == 68) {
       found = strstr(&buf[c], "Dimensions");
       if (found) {
+        lowbyte = (unsigned char)buf[c + 15];
+        if (lowbyte == 3) {
+          lowbyte =  (unsigned char)buf[c + 69];
+          hibyte =  (unsigned char)buf[c + 70];
+          zsize = lowbyte + 256 * hibyte;
+        } else if (lowbyte == 2) {
+          zsize = 1;
+        } else {
+          b3dError(stderr, "ERROR: analyzeDM3 - The number of dimensions seems"
+                   "to be %d, not 2 or 3, in %s\n", lowbyte, filename);
+          return IIERR_NO_SUPPORT;
+        }
         lowbyte =  (unsigned char)buf[c + 31];
         hibyte =  (unsigned char)buf[c + 32];
         xsize = lowbyte + 256 * hibyte;
@@ -538,8 +552,8 @@ int analyzeDM3(FILE *fp, char *filename, RawImageInfo *info, int *dmtype)
         /* If this is the first data string, or any data
            string that could still be far enough in front of the datatype
            string, save the offset */
-        if (!offset || 
-            toffset <= typeOffset - xsize * ysize * dataSize[type])
+        if (!offset || toffset <= 
+            typeOffset - (off_t)(xsize * ysize) * zsize * dataSize[type])
           offset = toffset;
              
         /* It used to be done with code types but that turned out to be
@@ -561,7 +575,7 @@ int analyzeDM3(FILE *fp, char *filename, RawImageInfo *info, int *dmtype)
 
   info->nx = xsize;
   info->ny = ysize;
-  info->nz = 1;
+  info->nz = zsize;
   info->headerSize = offset;
   *dmtype = type;
 #ifdef B3D_LITTLE_ENDIAN
@@ -634,6 +648,9 @@ static int checkEM(FILE *fp, char *filename, RawImageInfo *info)
 /*  
 
 $Log$
+Revision 3.9  2009/04/30 16:16:16  mast
+Fix DM3 scanning to not get fooled by unsupported image type or its size
+
 Revision 3.8  2008/11/24 23:58:33  mast
 Changes to stop leaks in SerialEM
 
