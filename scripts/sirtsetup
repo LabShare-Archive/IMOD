@@ -258,14 +258,21 @@ endif
 @ aliy = $aliy * $binval - 1
 set slices = (0 $aliy)
 
-# Get starting reconstruction #
+# Get starting reconstruction #: first look for 3 digit ones, then two
 #
 set setname = $recfile:r
 @ lastnum = 0
 if (! $startfirst) then
-    set reclist = `\find . -maxdepth 1 -name "$setname.${sirtext}[0-9]*[^~]" -print | sort`
+    set reclist = `\find . -maxdepth 1 -name "$setname.${sirtext}[0-9][0-9][0-9]" -print | sort`
     if ($#reclist) then
-        set lastnum = `echo $reclist[$#reclist] | sed '/.*\([0-9][0-9]*$\)/s//\1/'`
+        set lastnum = `echo $reclist[$#reclist] | sed '/.*\([0-9][0-9][0-9]$\)/s//\1/'`
+    else
+        set reclist = `\find . -maxdepth 1 -name "$setname.${sirtext}[0-9][0-9]" -print | sort`
+        if ($#reclist) then
+            set lastnum = `echo $reclist[$#reclist] | sed '/.*\([0-9][0-9]$\)/s//\1/'`
+        endif
+    endif
+    if ($#reclist) then
         if ($lastnum == "") then
             echo "ERROR: $pn - Cannot detect number of last reconstruction"
             exit 1
@@ -466,6 +473,9 @@ echo "  processchunks machine_list $sirtname"
 exit 0
 
 #  $Log$
+#  Revision 3.9  2009/07/16 17:55:42  mast
+#  Pass boundary pixels argument to splittilt properly
+#
 #  Revision 3.8  2009/02/16 06:21:49  mast
 #  Modified for new parallel write stuff and to allow > 100 iterations
 #
