@@ -284,6 +284,10 @@ while ($num < $#machines)
     set nameind = ($nameind $index)
 end
 
+# Set this to prevent errors from trying to substitute *'s in error messages
+# Quoting the assignments did not always work
+set noglob
+
 # remove logs if not restarting, and run starting file
 #
 @ numdone = 0
@@ -346,10 +350,6 @@ set anydone = 0
 @ holdcrit = ($#machines + 1) / 2
 set pausing = 0
 @ checkline = 0
-
-# Set this to prevent errors from trying to substitute *'s in error messages
-# Quoting the assignments did not always work
-set noglob
 
 continue:
 
@@ -898,6 +898,9 @@ exit 3
 
 #
 #  $Log$
+#  Revision 3.46  2009/05/26 18:37:12  mast
+#  Ignore error lines when getting version string
+#
 #  Revision 3.45  2009/03/04 01:24:36  mast
 #  Changes to handle up to 99999 files with constant or increasing digits
 #  Set noglob during the main loop to prevent problems from * in errors
