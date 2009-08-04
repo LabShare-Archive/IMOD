@@ -16,8 +16,6 @@ if ($#argv < 2) then
 cat <<EOF
 Usage: dm2mrc [options] Input_files Output_file
   Options:
-    -d    Files may have different headers, sizes, or types so scan each 
-             one for header offset, size, and type
     -s    Treat unsigned data as signed (use if < 32768)
     -r    Reduce (divide by 2) unsigned 16-bit data or 32-bit integer data
     -u    Save unsigned data in unsigned 16-bit file mode
@@ -26,7 +24,6 @@ EOF
 	exit 0
 endif
 
-set scan = 0
 set divide = ""
 set convert = ""
 set unsigned = ""
@@ -36,10 +33,6 @@ set signed = 0
 
 while ($#argv > 2 && $done == 0)
     switch ("$argv[1]")
-    case -d:
-        set scan = 1
-        shift
-        breaksw
 
     case -c:
         set convert = "-c"
@@ -75,7 +68,7 @@ if ($signopt > 1) then
     exit 1
 endif
 
-# Test for spaces in file names and do complete scan and individual stack
+# Test for spaces in file names and do individual files into a stack
 # (Building a wordlist of escaped names did not work)
 #
 set differ = 0
@@ -85,12 +78,11 @@ while ($num < $#argv)
     set spacetest = `echo "$argv[$num]" | sed -n '/ /p'`
     if ("$spacetest" != "") then
         set differ = 1
-        set scan = 1
     endif
     @ num++
 end
 
-# Build a wordlist of critical values if we do scan the data
+# Build a wordlist of critical values when we scan the data
 
 set xsizes = ( )
 set ysizes = ( )
@@ -106,11 +98,9 @@ set dm3 = 0
 set test = `which hexdump`
 set useod = $status
 
-# Read first file or all files
+# Read all files
 
 @ num = 1
-@ end = 2
-if ($scan == 1) @ end = $#argv
 while ($num < $#argv)
 
     # Byte dump is most easily interpreted, short decimal dump is used to
@@ -321,6 +311,10 @@ clean:
 
 #
 #  $Log$
+#  Revision 3.13  2009/08/04 15:49:03  mast
+#  Made it handle stack images, fixed problems with filenames starting in -
+#  and files not in current directory
+#
 #  Revision 3.12  2009/04/30 16:13:11  mast
 #  Fix problem of octal conversion by latest tcsh
 #
