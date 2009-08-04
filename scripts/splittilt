@@ -323,6 +323,7 @@ set recsed = $recfile
 set totsed = gibberish
 set boundsed = gibberish
 set boundfile = $rootname-bound.info
+if ($reproj) set boundfile = $rootname-rpbound.info
 if ($direct) then
     set totsed = THICKNESS
     set recsed = gibberish
@@ -462,6 +463,9 @@ echo "Command files for $numslabs chunks created and ready to run with:"
 echo "  processchunks machine_list $rootname"
 
 #  $Log$
+#  Revision 3.14  2009/02/16 06:21:21  mast
+#  Modified to use new parallel write stuff
+#
 #  Revision 3.13  2008/07/31 16:44:09  mast
 #  Remove continuation inside back-ticks: tcsh allows, csh does not
 #
