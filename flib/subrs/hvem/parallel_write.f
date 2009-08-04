@@ -3,6 +3,9 @@ c       in parallel to a file.
 c       
 c       $Id$
 c       $Log$
+c       Revision 1.2  2009/02/25 00:25:03  mast
+c       Fixed initialization of ierr and title
+c
 c       Revision 1.1  2009/02/16 06:23:33  mast
 c       Added to package
 c
@@ -91,17 +94,19 @@ c       and writes it to a boundary file if appropriate
 c
       subroutine parWrtLin(iunit, array)
       implicit none
-      integer*4 iunit, ierr
+      integer*4 iunit, ierr;
       real*4 array(*)
       include 'parallel_write.inc'
 c
       call iwrlin(iunit, array)
       if (linesBound .eq. 0) return
-      if (ifopen .eq. 0) call pwOpenIfNeeded(izcur, iycur, 1, ierr)
-      if (ierr .ne. 0) then
-        write(*,'(/,a,i5,a,i5,a,i2)')'ERROR: parWrtLin - Finding parallel'//
-     &      ' write boundary region at',izcur,',',iycur,' err',ierr
-        call exit(1)
+      if (ifopen .eq. 0) then
+        call pwOpenIfNeeded(izcur, iycur, 1, ierr)
+        if (ierr .ne. 0) then
+          write(*,'(/,a,i5,a,i5,a,i2)')'ERROR: parWrtLin - Finding parallel'//
+     &        ' write boundary region at',izcur,',',iycur,' err',ierr
+          call exit(1)
+        endif
       endif
 c     
 c      
