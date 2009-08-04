@@ -27,9 +27,9 @@ EOF
 endif
 
 set scan = 0
-set divide
-set convert
-set unsigned
+set divide = ""
+set convert = ""
+set unsigned = ""
 set done = 0
 set signed = 0
 @ signopt = 0
@@ -94,6 +94,7 @@ end
 
 set xsizes = ( )
 set ysizes = ( )
+set zsizes = ( )
 set dmtypes = ( )
 set offsets = ( )
 
@@ -116,11 +117,11 @@ while ($num < $#argv)
     # detect if swapping is needed
 
     if ($useod) then
-        set header = `od -t u1 "$argv[$num]" | head -n 2`
-        if ("$swap" == 0) set ddump = `od -d "$argv[1]" | head -n 1`
+        set header = `od -t u1 < "$argv[$num]" | head -n 2`
+        if ("$swap" == 0) set ddump = `od -d < "$argv[1]" | head -n 1`
     else
-        set header = `hexdump -e '"%07.7_ao  " 16/1 "%3u " "\n"' "$argv[$num]" | head -n 2`
-        if ("$swap" == 0) set ddump = `hexdump -d "$argv[1]" | head -n 1`
+        set header = `hexdump -e '"%07.7_ao  " 16/1 "%3u " "\n"' < "$argv[$num]" | head -n 2`
+        if ("$swap" == 0) set ddump = `hexdump -d < "$argv[1]" | head -n 1`
     endif
 
     # Get rid of leading 0's to avoid numbers being converted as octal
@@ -167,7 +168,7 @@ while ($num < $#argv)
 	@ xsizet = 256 * $xsize1 + $xsize2
 	@ ysizet = 256 * $ysize1 + $ysize2
 	@ dmtypet = $header[15]
-	set props = ($xsizet $ysizet $dmtypet 14)
+	set props = ($xsizet $ysizet 1 $dmtypet 14)
 	set dm2 = 1
 
     else if ($byte4 == 3) then
@@ -192,17 +193,20 @@ while ($num < $#argv)
 
     set xsizes = ($xsizes $props[1])
     set ysizes = ($ysizes $props[2])
-    set dmtypes = ($dmtypes $props[3])
-    set offsets = ($offsets $props[4])
+    set zsizes = ($zsizes $props[3])
+    set dmtypes = ($dmtypes $props[4])
+    set offsets = ($offsets $props[5])
     if ($num > 1) then
 	if ($props[1] != $xsize || $props[2] != $ysize) set sizedif = 1
-	if ($props[3] != $dmtype) set typedif = 1
-	if ($props[4] != $offset) set differ = 1
+	if ($props[3] != $zsize) set differ = 1
+	if ($props[4] != $dmtype) set typedif = 1
+	if ($props[5] != $offset) set differ = 1
     else
 	set xsize = $props[1]
 	set ysize = $props[2]
-	set dmtype = $props[3]
-	set offset = $props[4]
+	set zsize = $props[3]
+	set dmtype = $props[4]
+	set offset = $props[5]
     endif
 
     @ num++
@@ -266,8 +270,8 @@ endif
 # No differences: all in one operation
 
 if ($differ == 0) then
-    raw2mrc -f -o $offset $swap -t $type -x $xsize -y $ysize $convert $divide \
-      $unsigned $argv
+    raw2mrc -f -o $offset $swap -t $type -x $xsize -y $ysize -z $zsize \
+      $convert $divide $unsigned $argv
     exit 0
 endif
 
@@ -281,11 +285,18 @@ set newstfil = "$tmpdir/dmnewst.$$"
 echo $num >! "$newstfil"
 
 while ($i < $#argv)
-    set outfil = "$tmpdir/$argv[$i].$$"
+    set outfil = "$tmpdir/$argv[$i]:t.$$"
     raw2mrc -f -o $offsets[$i] $swap -t $types[$i] -x $xsizes[$i] \
-      -y $ysizes[$i] $convert $divide $unsigned "$argv[$i]" "$outfil"
+      -y $ysizes[$i] -z $zsizes[$i] $convert $divide $unsigned "$argv[$i]" \
+      "$outfil"
     echo "$outfil" >> "$newstfil"
-    echo 0 >> "$newstfil"
+    if ($zsizes[$i] == 1) then
+        echo 0 >> "$newstfil"
+    else
+        @ znum = $zsizes[$i]
+        @ znum--
+        echo 0-$znum >> "$newstfil"
+    endif
     @ i++
 end
 
@@ -310,6 +321,9 @@ clean:
 
 #
 #  $Log$
+#  Revision 3.12  2009/04/30 16:13:11  mast
+#  Fix problem of octal conversion by latest tcsh
+#
 #  Revision 3.11  2008/01/04 07:03:38  mast
 #  Fixed for space in IMOD_DIR, possibly for space in tmpdir
 #
