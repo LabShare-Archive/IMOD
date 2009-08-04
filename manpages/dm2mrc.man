@@ -17,22 +17,16 @@ The program will convert signed 16-bit integers, unsigned 16-bit integers
 This default behavior can be modified by the options listed below, which is
 highly desirable with data from 16-bit cameras that have been stored as
 32-bit numbers.
-.SH OPTIONS
-.TP
-.B -d
-Input files are different in some 
-respect and should be treated independently.
-Without this option, dm2mrc will examine the first input file to 
+.P
+The program will first scan through all of the files to 
 determine the version of DM file, the data type, the image dimensions, and
-the header offset to the beginning of the data in the file.  It will then
-assume that these same attributes apply to the rest of the input files, and
-run raw2mrc(1) in one step on all of the files.  If any of these attributes 
-might vary among the input files, or if the file sizes are not all identical,
-you must use the 
-.B -d
-option.  The program will then scan through all of the files to determine these
-attributes, convert each one independently into a temporary file, then
-make a stack from the temporary files with newstack(1).
+the header offset to the beginning of the data in the file.  If all of these
+attributes are the same, it will convert them in one call to raw2mrc(1).
+Otherwise, it will convert each one independently into a temporary file, then
+make a stack from the temporary files with newstack(1).  DM files that contain
+stacks of identically sized images will be handled; all of the images from each 
+file will be included in the output file.
+.SH OPTIONS
 .TP
 .B -s
 Treat unsigned data as signed.  Use this option for unsigned 16-bit data if

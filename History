@@ -1,5 +1,10 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+8/4/09: Implemented ability to read DigitalMicrograph stack files with dm2mrc
+and 3dmod, allowed dm2mrc and raw2mrc to work with filenames starting with dash,
+fixed problem with dm2mrc accessing files not in current directory, and
+removed -d option and cleaned up dm2mrc man page since all files are scanned. 
+
 6/22/09: Changed Newstack to allocate needed memory; added option for user to
 limit memory usage, and made newstack and Fortran I/O code work with images
 bigger than 2 gigapixel.
