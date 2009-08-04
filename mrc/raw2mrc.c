@@ -7,16 +7,10 @@
  *  Copyright (C) 1995-2005 by Boulder Laboratory for 3-Dimensional Electron
  *  Microscopy of Cells ("BL3DEMC") and the Regents of the University of 
  *  Colorado.  See dist/COPYRIGHT for full copyright notice.
+ *
+ *  $Id$
+ *  Log at end
  */
-
-/*  $Author$
-
-$Date$
-
-$Revision$
-
-Log at end
-*/
 
 #include <stdlib.h>
 #include <stdio.h>
@@ -127,7 +121,7 @@ int main( int argc, char *argv[] )
      
 
   for (i = 1; i < argc ; i++){
-    if (argv[i][0] == '-'){
+    if (argv[i][0] == '-' && strlen(argv[i]) <= 2){
       switch (argv[i][1]){
 
       case 't': /* input file type */
@@ -546,6 +540,9 @@ int setintype(char *stype, int *size, int *otype)
 
 /*
 $Log$
+Revision 3.16  2005/11/11 21:55:08  mast
+Outputs unsigned mode
+
 Revision 3.15  2005/02/11 01:42:34  mast
 Warning cleanup: implicit declarations, main return type, parentheses, etc.
 
