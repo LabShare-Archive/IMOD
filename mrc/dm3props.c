@@ -16,6 +16,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 3.6  2006/09/06 16:14:16  mast
+Added include for the exit
+
 Revision 3.5  2006/09/03 23:47:44  mast
 Moved analysis routine to library
 
@@ -55,7 +58,8 @@ int main(int argc, char **argv)
     if (analyzeDM3(fp, argv[i], &info, &type))
       exit(1);
       
-    printf("%d %d %d %d\n", info.nx, info.ny, type, info.headerSize);
+    printf("%d %d %d %d %d\n", info.nx, info.ny, info.nz, type,
+           info.headerSize);
     fclose(fp);
   }
   exit(0);
