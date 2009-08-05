@@ -1,8 +1,13 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+8/4/09: Fixes for SIRT: fixed Splittilt to use a different boundary info file
+for reprojection; fixed Sirtsetup to pass the boundary parameter properly and
+to detect last reconstruction correctly; fixed parallel writing in the
+reprojection.
+
 8/4/09: Implemented ability to read DigitalMicrograph stack files with dm2mrc
-and 3dmod, allowed dm2mrc and raw2mrc to work with filenames starting with dash,
-fixed problem with dm2mrc accessing files not in current directory, and
+and 3dmod, allowed dm2mrc and raw2mrc to work with filenames starting with
+dash, fixed problem with dm2mrc accessing files not in current directory, and
 removed -d option and cleaned up dm2mrc man page since all files are scanned. 
 
 6/22/09: Changed Newstack to allocate needed memory; added option for user to
@@ -29,9 +34,9 @@ set by the user; setting up rectangular input and output volumes to use memory
 and read from disk more efficiently; computing data within cubes and cubes in
 a more efficient order; parallelizing with OpenMP.
 
-6/10/09: Fixed a bug in Etomo which preventing it from logging the residual when
-fine alignment was run from a 3dmod which has been opened from either the Coarse
-Alignment or the Fiducial Model dialogs.
+6/10/09: Fixed a bug in Etomo which preventing it from logging the residual
+when fine alignment was run from a 3dmod which has been opened from either the
+Coarse Alignment or the Fiducial Model dialogs.
 
 6/5/09: Implemented a new method of filling in missing transforms in Warpvol
 to avoid discontinuities in transforms and other problems when they are
