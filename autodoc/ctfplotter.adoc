@@ -17,6 +17,17 @@ manpage = File containing tilt angles for the input stack.  Each line of this
 file is the tilt angle for a view of the input stack.  The angles are listed
 in order starting from view 1.
 
+[Field = InvertTiltAngles]
+short = invert
+type = B
+usage = Invert the sign of the tilt angles
+tooltip =
+manpage = Invert the sign of the tilt angles to compensate for a left-handed 
+coordinate system in the microscope.  When the sign of the tilt angles and 
+the value of the tilt axis rotation angle are such that reconstructions are
+generated with inverted handedness, then this option is needed to keep power 
+spectra for off-center tiles from being shifted in the wrong direction.
+
 [Field = ConfigFile]
 short = config
 type = FN
@@ -72,19 +83,13 @@ manpage = Microscope voltage in kV.
 [Field = MaxCacheSize ]
 short = cache
 type = I
-usage = cache size in Megs
+usage = cache size for tile power spectra in megabytes
 tooltip =
-manpage = To speed up computation, ctfplotter uses a cache to hold slices it recently accessed. 
-This option controls the cache size. If the user does not specify the option, it is
-defaulted to 1000Megs.
-
-[Field = DebugLevel ]
-short = debug
-type = I
-usage = 0-3, debug level, 3 means printing all messages
-tooltip =
-manpage = Debug level, 0-3. 0: quiet.  1: user messages.  2: cache, tile iteration messages.
-3: additional fitting messages. the default is 1.
+manpage = To speed up computation, ctfplotter uses a cache to hold the
+rotationally averaged power spectra of individual tiles at 20 times the final
+power spectrum resolution.  This option controls the cache size.  The default
+value is 1000 megabytes, which should be enough for all slices in a 4Kx4K tilt
+series with the default tile size.
 
 [Field = SphericalAberration]
 short = cs
@@ -157,6 +162,14 @@ usage = Starting and ending tilt angles for initial analysis
 tooltip =
 manpage = Starting and ending tilt angles for initial analysis.  Views with a
 tilt angle within this range are used to compute the CTF curve.
+
+[Field = DebugLevel ]
+short = debug
+type = I
+usage = 0-3, debug level, 3 means printing all messages
+tooltip =
+manpage = Debug level, 0-3. 0: quiet.  1: user messages.  2: cache, tile iteration messages.
+3: additional fitting messages. the default is 1.
 
 [Field = Parameter]
 short = param

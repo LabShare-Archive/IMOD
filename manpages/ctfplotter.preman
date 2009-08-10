@@ -31,6 +31,18 @@ If there are significant numbers of X-rays in the noise images, you should
 clean them with Ccderaser(1), such as with:
    ccderaser -find -peak 8 -diff 8  input_fle output_file
 
+When you start the program, it will first load and analyze all of the noise
+files.  Then it will read in the images within the specified initial angular
+range and compute power spectra from the central tiles.  This initial
+computation of tile power spectra is the most time-consuming step, whereas
+recomputing a summed power spectrum from the spectra of individual tiles is
+quick.  The program thus stores the power spectrum for each tile in a cache
+when it is computed.  You will have to wait several seconds whenever you add
+non-central tiles from the current angular range, or when you change the
+angular range to include views that have not been analyzed before.  However,
+once all of the tiles on all views have been analyzed, the program will
+respond quickly when you change angular ranges or defocus values.
+
 To read a general description of the plots and tool buttons, click the handbook
 icon to access the HTML help page.
 
@@ -50,11 +62,12 @@ INSERT OPTION TEXT HERE
 .B -StandardInput
 Read parameter entries from standard input
 
-.SH AUTHOR
+.SH AUTHORS
 .nf
 Quanren Xiong
+David Mastronarde
 .fi
 .SH SEE ALSO
 ctfphaseflip(1)
 .SH BUGS
-Email bug reports to xiongq@colorado.edu.
+Email bug reports to mast@colorado.edu.
