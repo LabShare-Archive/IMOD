@@ -23,6 +23,14 @@ AngleDialog::AngleDialog(QWidget *parent): QDialog(parent)
   defocusEdit=new QLineEdit("6.0", this);
   defocusLabel->setBuddy(defocusEdit);
 
+  lowAngleLabel=new QLabel(tr("Tilt angle starts: "), this);
+  lowAngleEdit=new QLineEdit(tr("-90.0"), this);
+  lowAngleLabel->setBuddy(lowAngleEdit);
+
+  highAngleLabel=new QLabel(tr("Tilt angle ends:  "), this);
+  highAngleEdit=new QLineEdit(tr("90.0"), this);
+  highAngleLabel->setBuddy(highAngleEdit);
+
   defTolLabel=new QLabel(tr("Center defocus tol (nm): "), this);
   defTolEdit=new QLineEdit(tr("200"), this);
   defTolLabel->setBuddy(defTolEdit);
@@ -35,14 +43,6 @@ AngleDialog::AngleDialog(QWidget *parent): QDialog(parent)
   rightTolEdit=new QLineEdit(tr("200"), this);
   rightTolLabel->setBuddy(rightTolEdit);
 
-  lowAngleLabel=new QLabel(tr("Tilt angle starts: "), this);
-  lowAngleEdit=new QLineEdit(tr("-90.0"), this);
-  lowAngleLabel->setBuddy(lowAngleEdit);
-
-  highAngleLabel=new QLabel(tr("Tilt angle ends:  "), this);
-  highAngleEdit=new QLineEdit(tr("90.0"), this);
-  highAngleLabel->setBuddy(highAngleEdit);
-
   tileSizeLabel=new QLabel(tr("Tile size:           "), this);
   tileSizeEdit=new QLineEdit(tr("256"),this);
   tileSizeLabel->setBuddy(tileSizeEdit);
@@ -52,9 +52,12 @@ AngleDialog::AngleDialog(QWidget *parent): QDialog(parent)
   axisAngleLabel->setBuddy(axisAngleEdit);
 
   defocusGroup=new QGroupBox(tr("Which defocus to use"), this);
+  QButtonGroup *butGroup = new QButtonGroup(this);
   expDefocusRadio=new QRadioButton(tr("Expected defocus"));
   currDefocusRadio=new QRadioButton(tr("Current defocus estimate"));
   expDefocusRadio->setChecked(true);
+  butGroup->addButton(expDefocusRadio);
+  butGroup->addButton(currDefocusRadio);
 
   QVBoxLayout *vbox=new QVBoxLayout;
   vbox->addWidget(expDefocusRadio);
@@ -63,9 +66,12 @@ AngleDialog::AngleDialog(QWidget *parent): QDialog(parent)
   
 
   ifAllGroup=new QGroupBox(tr("Initial tiles to include"), this);
+  butGroup = new QButtonGroup(this);
   onlyCenterRadio=new QRadioButton(tr("Only central tiles")); 
   allAtOnceRadio=new QRadioButton(tr("All tiles"));
   onlyCenterRadio->setChecked(true);
+  butGroup->addButton(allAtOnceRadio);
+  butGroup->addButton(onlyCenterRadio);
 
   QVBoxLayout *vbox2=new QVBoxLayout;
   vbox2->addWidget(onlyCenterRadio);
@@ -145,11 +151,11 @@ AngleDialog::AngleDialog(QWidget *parent): QDialog(parent)
 
   QVBoxLayout *leftVLayout=new QVBoxLayout;
   leftVLayout->addLayout(defHLayout);
+  leftVLayout->addLayout(lAngleHLayout);
+  leftVLayout->addLayout(hAngleHLayout);
   leftVLayout->addLayout(defTolHLayout);
   leftVLayout->addLayout(leftTolHLayout);
   leftVLayout->addLayout(rightTolHLayout);
-  leftVLayout->addLayout(lAngleHLayout);
-  leftVLayout->addLayout(hAngleHLayout);
   leftVLayout->addLayout(tileSizeHLayout);
   leftVLayout->addLayout(axisAngleHLayout);
 
@@ -252,6 +258,9 @@ void AngleDialog::allAtOnceChecked()
 /*
 
    $Log$
+   Revision 1.7  2009/01/15 16:31:36  mast
+   Qt 4 port
+
    Revision 1.6  2008/11/07 17:04:27  xiongq
    add the copyright heading
 
