@@ -1,7 +1,7 @@
 /*
 * defocusfinder.cpp - routines for finding defocus given a 1D power spectrum.
 *
-*  Author: Quanren Xiong
+*  Authors: Quanren Xiong and David Mastronarde
 *
 *  Copyright (C) 2008 by Boulder Laboratory for 3-Dimensional Electron
 *  Microscopy of Cells ("BL3DEMC") and the Regents of the University of 
@@ -20,24 +20,37 @@
 #define DEF_END -20.0
 #define ZERO_START 0.2
 #define ZERO_END 0.8
+#define MY_PI 3.1415926
 
 extern int debugLevel;
 
+/*
+ * Constructor: set the various constants and expected zero and defocus
+ */
 DefocusFinder::DefocusFinder(int volt, double pSize,
     double ampContrast, double inputCs, 
-    int dim, double expDef): voltage(volt), pixelSize(pSize), 
-  ampRatio(ampContrast), cs(inputCs), nDim(dim), expDefocus(expDef)
+    int dim, double expDef): mVoltage(volt), mPixelSize(pSize), 
+  mAmpRatio(ampContrast), mCs(inputCs), mDim(dim), mExpDefocus(expDef)
 { 
-  expDefocus=expDefocus/1000.0; //convert to microns;
+  mExpDefocus=mExpDefocus/1000.0; //convert to microns;
   //wavelength in nm;
-  wavelength=1.226/sqrt( 1000.0*voltage*(1+0.0009788*voltage) ); 
-  csOne=sqrt(cs*wavelength); // deltaZ=-deltaZ'/cs1;  In microns
-  csTwo=sqrt(sqrt(1000000.0*cs/wavelength)); //theta=theta'*cs2;
-  expZero=sqrt(csOne/expDefocus)*pixelSize*2.0/(wavelength*csTwo);
-  defocus=-1000.0;
+  mWavelength=1.226/sqrt( 1000.0*mVoltage*(1+0.0009788*mVoltage) ); 
+  mCsOne=sqrt(mCs*mWavelength); // deltaZ=-deltaZ'/mCs1;  In microns
+  mCsTwo=sqrt(sqrt(1000000.0*mCs/mWavelength)); //theta=theta'*mCs2;
+  mAmpAngle = 2. * atan(mAmpRatio / sqrt(1. - mAmpRatio * mAmpRatio)) / MY_PI;
+
+  // Compute and set expected zero
+  setExpDefocus(mExpDefocus);
+  mDefocus=-1000.0;
+  mAvgDefocus = -1000.;
 }
 
-int DefocusFinder::findZero(const double* simplexRes, const double* linearRes,
+/*
+ * Given the two fitted curves on the left and the right and an interval
+ * in which they should intersect, it finds the intersection and returns the
+ * zero from that.
+ */
+int DefocusFinder::findZero(const double* leftRes, const double* rightRes,
     int x1, int x2, double* zero)
 {
   if( (x2-x1)<2 ){
@@ -49,12 +62,12 @@ int DefocusFinder::findZero(const double* simplexRes, const double* linearRes,
   double minDiff; 
   int i, minIndex; 
   for(i=x1;i<x1+dim;i++){
-    diff[i-x1]=simplexRes[i]-linearRes[i];
+    diff[i-x1]=leftRes[i]-rightRes[i];
   }
 
   int middle=dim/2;
 
-  //find the minimiun;
+  //find the minimum difference in the first half;
   minDiff=fabs(diff[0]); 
   minIndex=0;
   for(i=1;i<middle;i++){
@@ -76,11 +89,13 @@ int DefocusFinder::findZero(const double* simplexRes, const double* linearRes,
     //linear interpolation
     double interpolate=-(diff[minIndex+1]+diff[minIndex-1])/
                      (diff[minIndex+1]-diff[minIndex-1]);
-    *zero=(double)(x1+minIndex+interpolate)/(nDim-1);
-    zeroCrossing=*zero;
+    *zero=(double)(x1+minIndex+interpolate)/(mDim-1);
+    mZeroCrossing=*zero;
     free(diff);
     return 0;
   }else{
+
+    // If that was not a zero crossing, find the minimum in the second half
     minDiff=fabs(diff[middle]);
     minIndex=middle;
     for(i=middle;i<dim;i++){
@@ -99,8 +114,8 @@ int DefocusFinder::findZero(const double* simplexRes, const double* linearRes,
       //linear interpolation
       double interpolate=-(diff[minIndex+1]+diff[minIndex-1])/
                          (diff[minIndex+1]-diff[minIndex-1]);
-      *zero=(double)(x1+minIndex+interpolate)/(nDim-1);
-      zeroCrossing=*zero;
+      *zero=(double)(x1+minIndex+interpolate)/(mDim-1);
+      mZeroCrossing=*zero;
       free(diff);
       return 0;
     }
@@ -110,187 +125,96 @@ int DefocusFinder::findZero(const double* simplexRes, const double* linearRes,
   free(diff);
   return -1;
 }
+
+// Removed by DNM 7/7/09, available in revision 1.7
 //older version, the same expected defocus may give slightly different defocus
 //estimate depending on the current defocus found.
-/*void DefocusFinder::setExpDefocus(double expDef)
+/*void DefocusFinder::setExpDefocus(double expDef) */
+
+/*
+ * Sets mExpDefocus and computes mExpZero from the input value expDef
+ */
+void DefocusFinder::setExpDefocus(double expDef)
 {
-  // convert relative frequency to absolute;
-  double q=(0.5/pixelSize)*zeroCrossing; 
-  // theta=theta'(cs/lambda)^0.25, theta'=q*lambda;
-  double theta=q*wavelength*csTwo; 
-
-  double defInc=0.001; //microns;
-  int dim=(ZERO_END-ZERO_START)/defInc+1;
-  double *wtheta=new double[dim];
-  int i,j;
-  for(i=0;i<dim;i++){
-    q=(0.5/pixelSize)*(i*defInc+ZERO_START);
-    theta=q*wavelength*csTwo;
-    wtheta[i]=2.0*MY_PI*( theta*theta*theta*theta/4.0-(theta*theta/2.0)
-              *(expDef/csOne) );
-    //wtheta=2*pi*(theta**4/4.0 - theta**2 * deltaZ); deltaZ=-deltaZ'/cs1;
-  }
-
-  if( debugLevel>=3){
-   printf("Searching first zero from %4.2f to %4.2f micron with %d knots\n",
-      ZERO_START, ZERO_END,dim);
-   printf("Zero: Original wtheta=");
-   for(i=0;i<6;i++) printf("%f \t", wtheta[i]);
-   printf("\n");
-  }
-  
-  for(i=0;i<dim;i++)
-   wtheta[i]= fabs( sqrt(1-ampRatio*ampRatio)*-sin(wtheta[i]) + 
-                    ampRatio*cos(wtheta[i]) );
- 
-  //sorting;
-  int tempIndex;
-  double temp;
-  int *index=new int[dim];
-  for(i=0;i<dim;i++) index[i]=i;
-  for(i=0;i<dim;i++)
-   for(j=i+1;j<dim;j++){
-      if( wtheta[i]>wtheta[j] ){
-        temp=wtheta[i];
-        wtheta[i]=wtheta[j];
-        wtheta[j]=temp;
-
-        tempIndex=index[i];
-        index[i]=index[j];
-        index[j]=tempIndex;
-      }
-   } 
-
-  if( debugLevel>=3){
-  printf("Zero: Sorted wtheta=");
-  for(i=0;i<6;i++) printf("%f \t", wtheta[i]);
-  printf("\n");
-
-  printf("Zero: index=");
-  for(i=0;i<6;i++) printf("%d \t", index[i]);
-  printf("\n");
-  }
-  //select the smallest value of index[0...5];
-  tempIndex=index[0];
-  for(i=1;i<6;i++) if(tempIndex>index[i]) tempIndex=index[i];
-
-  expZero=(ZERO_START+tempIndex*defInc);
-  delete[] wtheta;
-  delete[] index;
-  return ;
-}
-*/
-
-void DefocusFinder::setExpDefocus(double expDef){
-    expDefocus=expDef;
-    expZero=sqrt(csOne/expDefocus)*pixelSize*2.0/(wavelength*csTwo);
+  double theta;
+  double delz = expDef /mCsOne;
+  mExpDefocus=expDef;
+  theta = sqrt(delz - sqrt(delz * delz + mAmpAngle - 2.));
+  mExpZero = theta * mPixelSize*2.0/(mWavelength*mCsTwo);
+  //  mExpZero=sqrt(mCsOne/mExpDefocus)*mPixelSize*2.0/(mWavelength*mCsTwo);
 }
 
-/*int DefocusFinder::findDefocus(double *focus)
+/*
+ * Returns the first and second zero for the given focus
+ */
+void DefocusFinder::getTwoZeros(double focus, double &firstZero, 
+                             double &secondZero)
 {
-  *focus=zeroCrossing*wavelength*csTwo/(pixelSize*2.0);
-  *focus=csOne/((*focus)*(*focus));
-  defocus=*focus;
-}*/
+  double theta;
+  double delz = focus / mCsOne;
+  theta = sqrt(delz - sqrt(delz * delz + mAmpAngle - 2.));
+  firstZero = theta * mPixelSize*2.0/(mWavelength*mCsTwo);
+  theta = sqrt(delz - sqrt(delz * delz + mAmpAngle - 4.));
+  secondZero = theta * mPixelSize*2.0/(mWavelength*mCsTwo);
+}
 
-//use non-exact formula, good when defocus>2um
+/*
+ * Find the defocus from the current zero crossing
+ */
 int DefocusFinder::findDefocus(double *focus)
 {
-  double tmp;
-  tmp=( zeroCrossing * wavelength *csTwo )*0.5/pixelSize;
+  double theta;
+  theta=( mZeroCrossing * mWavelength *mCsTwo )*0.5/mPixelSize;
+  mDefocus = mCsOne * (pow(theta, 4.) + 2. - mAmpAngle) / ( 2. * theta * theta);
 
-  defocus=csOne/(tmp*tmp);
-
-  if(debugLevel>=1){
-     printf("find defocus using an approximating formula that is good when defocus>2um\n");
-     printf("defocus=%f   \n", defocus);
-  }
-  *focus=defocus;
+  if(debugLevel>=1)
+    printf("defocus=%f   \n", mDefocus);
+  *focus=mDefocus;
   return 0;
 }
-// older routine trying to solve the exact formula by searching, not reliable;
+
+/*
+ * Find the defocus from the second zero
+ */
+double DefocusFinder::defocusFromSecondZero(double zero)
+{
+  double theta;
+  theta=( zero * mWavelength *mCsTwo )*0.5/mPixelSize;
+  return(mCsOne * (pow(theta, 4.) + 4. - mAmpAngle) / ( 2. * theta * theta));
+}
+
+//older non-exact formula, good when defocus>2um but ignoring amp. contrast
 /*int DefocusFinder::findDefocus(double *focus)
 {
-  // convert relative frequency to absolute;
-  double q=(0.5/pixelSize)*zeroCrossing;
+  *focus=mZeroCrossing*mWavelength*mCsTwo/(mPixelSize*2.0);
+  *focus=mCsOne/((*focus)*(*focus));
+  mDefocus=*focus;
+}*/
 
-  // theta=theta'(cs/lambda)^0.25, theta'=q*lambda;
-  double theta=q*wavelength*csTwo; 
+// Removed by DNM 7/7/09, available in revision 1.7
+// older routine trying to solve the exact formula by searching, not reliable;
+/*int DefocusFinder::findDefocus(double *focus) */
 
-  double defInc=0.01; //microns;
-  int dim=-(DEF_END-DEF_START)/defInc+1;
-  double *wtheta=new double[dim];
-  int i,j;
-  for(i=0;i<dim;i++)
-    wtheta[i]=2.0*MY_PI*( theta*theta*theta*theta/4.0-(theta*theta/2.0)
-                         *-(DEF_START-i*defInc)/csOne );
-    //wtheta=2*pi*(theta**4/4.0 - theta**2 * deltaZ); deltaZ=-deltaZ'/cs1;
-
-  if (debugLevel>=1){
-  printf("Defocus without considering amp contrast=%f,  cs1=%f,  cs2=%f \n",
-      0.5*(theta*theta*theta*theta+2)*csOne/(theta*theta), csOne, csTwo );
-  printf("First zero=%f (1/nm) theta=%f voltage=%d Kv  wavelength=%f nm \n", 
-      q, theta, voltage, wavelength);
-  printf("Searching defocus from %4.2f to %4.2f micron with %d knots\n", 
-      DEF_START, DEF_END,dim);
-  }
-
-  if(debugLevel>=3){
-    printf("Original wtheta=");
-    for(i=0;i<6;i++) printf("%f \t", wtheta[i]);
-    printf("\n");
-  }
-  
-  for(i=0;i<dim;i++)
-   wtheta[i]= fabs( sqrt(1-ampRatio*ampRatio)*-sin(wtheta[i]) + 
-                         ampRatio*cos(wtheta[i]) );
- 
-  //sorting;
-  int tempIndex;
-  double temp;
-  int *index=new int[dim];
-  for(i=0;i<dim;i++) index[i]=i;
-  for(i=0;i<dim;i++)
-   for(j=i+1;j<dim;j++){
-      if( wtheta[i]>wtheta[j] ){
-        temp=wtheta[i];
-        wtheta[i]=wtheta[j];
-        wtheta[j]=temp;
-
-        tempIndex=index[i];
-        index[i]=index[j];
-        index[j]=tempIndex;
-      }
-   } 
-
-  if( debugLevel>=3){
-  printf("Sorted wtheta=");
-  for(i=0;i<6;i++) printf("%f \t", wtheta[i]);
-  printf("\n");
-
-  printf("index=");
-  for(i=0;i<6;i++) printf("%d \t", index[i]);
-  printf("\n");
-  }
-  //select the smallest value of index[0...5];
-  tempIndex=index[0];
-  for(i=1;i<6;i++) if(tempIndex>index[i]) tempIndex=index[i];
-
-  *focus=-(DEF_START-tempIndex*defInc);
-  defocus=*focus; 
-  delete[] wtheta;
-  delete[] index;
-  return 0;
+double DefocusFinder::CTFvalue(double freq, double def)
+{
+  double theta = (freq * mWavelength * mCsTwo ) * 0.5 / mPixelSize;
+  double delz = def / mCsOne;
+  double phi = 0.5 * MY_PI * (pow(theta, 4.) - 2. * theta * theta * delz);
+  return (-2. * (sqrt(1. - mAmpRatio * mAmpRatio) * sin(phi) - 
+                 mAmpRatio * cos(phi)));
 }
-*/
+
 
 /*
 
-   $Log$
-   Revision 1.6  2008/11/10 18:09:42  xiongq
-   switch to an approximating formula to find defocus
+$Log$
+Revision 1.7  2009/01/15 16:31:36  mast
+Qt 4 port
 
-   Revision 1.5  2008/11/07 17:26:24  xiongq
-   add the copyright heading
+Revision 1.6  2008/11/10 18:09:42  xiongq
+switch to an approximating formula to find defocus
+
+Revision 1.5  2008/11/07 17:26:24  xiongq
+add the copyright heading
 
 */
