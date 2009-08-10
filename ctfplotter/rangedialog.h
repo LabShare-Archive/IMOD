@@ -1,3 +1,11 @@
+/*
+ * rangedialog.h - Header for RangeDialog class
+ *
+ *  $Id$
+ *
+ *  $Log$
+ *
+ */
 #ifndef RANGEDIALOG_H
 #define RANGEDIALOG_H
 
@@ -8,6 +16,8 @@ class QLineEdit;
 class QPushButton;
 class QGroupBox;
 class QRadioButton;
+class QCheckBox;
+class QSpinBox;
 
 class RangeDialog :public QDialog
 {
@@ -21,29 +31,35 @@ signals:
 private slots:
     void rangeSetted();
     void enableApplyButton(const QString &text);
-    void enableApplyButtonX1(int);
-    void enableApplyButtonX2(int);
     void x1LinearChecked();
     void x1SimplexChecked();
     void x2LinearChecked();
     void x2SimplexChecked();
-  private:
-      QLabel *x1_label_1;
-      QLabel *x1_label_2;
-      QGroupBox *x1Group; 
-      QRadioButton *x1LinearRadio;
-      QRadioButton *x1SimplexRadio;
-      QLabel *x2_label_1;
-      QLabel *x2_label_2;
-      QLineEdit *x1_edit_1;
-      QLineEdit *x1_edit_2;
-      QLineEdit *x2_edit_1;
-      QLineEdit *x2_edit_2;
-      QGroupBox *x2Group;
-      QRadioButton *x2LinearRadio;
-      QRadioButton *x2SimplexRadio;
-      
-      QPushButton *applyButton;
-      QPushButton *closeButton;
+    void zeroMethodClicked(int which);
+    void fitPowerClicked(bool state);
+    void orderChanged(int value);
+ private:
+    void showHideWidget(QWidget *widget, bool state);
+    void manageWidgets(int which);
+    QLabel *mX1_label_1;
+    QLabel *mX1_label_2;
+    QGroupBox *mX1Group; 
+    QRadioButton *mX1LinearRadio;
+    QRadioButton *mX1SimplexRadio;
+    QLabel *mX2_label_1;
+    QLabel *mX2_label_2;
+    QLineEdit *mX1_edit_1;
+    QLineEdit *mX1_edit_2;
+    QLineEdit *mX2_edit_1;
+    QLineEdit *mX2_edit_2;
+    QGroupBox *mX2Group;
+    QRadioButton *mX2LinearRadio;
+    QRadioButton *mX2SimplexRadio;
+    QCheckBox *mPowerCheckBox;
+    QLabel *mOrderLabel;
+    QSpinBox *mOrderSpinBox;
+    
+    QPushButton *mApplyButton;
+    QPushButton *mCloseButton;
 };
 #endif

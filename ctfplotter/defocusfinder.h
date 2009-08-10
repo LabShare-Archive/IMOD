@@ -1,34 +1,50 @@
+/*
+ * defocusfinder.h - Header for DefocusFinder class
+ *
+ *  $Id$
+ *
+ *  $Log$
+ *
+ */
 #ifndef DEFOCUSFINDER_H
 #define DEFOCUSFINDER_H
 
-class DefocusFinder{
-  public:
-  DefocusFinder(int volt, double pixelSize, double ampContrast, double cs,
-      int nDim, double expDefocus);
+class DefocusFinder
+{
+ public:
+  DefocusFinder(int volt, double pSize, double ampContrast, double inputCs, 
+                int dim, double expDef);
   int findZero(const double* simplexFitting, const double* linearFitting, 
-      int x1, int x2, double* zeroCrossing);
-  int findDefocus(double *defocus);
-  double getZero(){return zeroCrossing;}
-  double getExpZero(){return expZero;}
-  void setZero( double zero){ zeroCrossing=zero;}
-  double getDefocus(){ return defocus;}
-  double getExpDefocus(){return expDefocus;}
-  void setDefocus(double def){defocus=def;}
+               int x1, int x2, double* zero);
+  int findDefocus(double *focus);
+  double defocusFromSecondZero(double zero);
+  double getZero(){return mZeroCrossing;}
+  double getExpZero(){return mExpZero;}
+  void setZero( double zero){ mZeroCrossing=zero;}
+  double getDefocus(){ return mDefocus;}
+  double getAvgDefocus(){ return mAvgDefocus;}
+  double getExpDefocus(){return mExpDefocus;}
+  void setDefocus(double def){mDefocus=def;}
+  void setAvgDefocus(double def){mAvgDefocus=def;}
   void setExpDefocus(double expDef);
-  double wavelength;
-  double csOne;
-  double csTwo;
-
-  private:
-      int voltage;
-      double pixelSize;
-      double ampRatio;
-      double cs;
-      double zeroCrossing;
-      double expZero;
-      int nDim;
-      double defocus;
-      double expDefocus;
+  void getTwoZeros(double focus, double &firstZero, double &secondZero);
+  double CTFvalue(double freq, double def);
+  double mWavelength;
+  double mCsOne;
+  double mCsTwo;
+  
+ private:
+  int mVoltage;
+  double mPixelSize;
+  double mAmpRatio;
+  double mCs;
+  double mZeroCrossing;
+  double mExpZero;
+  int mDim;
+  double mDefocus;
+  double mExpDefocus;
+  double mAmpAngle;
+  double mAvgDefocus;
 };
 
 #endif

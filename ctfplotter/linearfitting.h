@@ -1,3 +1,11 @@
+/*
+ * linearfitting.h - Header for LinearFitting class
+ *
+ *  $Id$
+ *
+ *  $Log$
+ *
+ */
 #ifndef LINEARFITTING_H
 #define LINEARFITTING_H
 #include "imodconfig.h"
@@ -110,7 +118,7 @@ class LinearFitting
      LinearFitting(int nRaw);
      ~LinearFitting();
      int computeFitting(double *result, double *model, int nModel, int index1,
-         int index2);
+                        int index2, double &xAtMin);
      int getDim() {return nDim;}
      void setRaw(double *rawData);
    private:

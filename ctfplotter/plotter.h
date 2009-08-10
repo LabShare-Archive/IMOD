@@ -1,3 +1,11 @@
+/*
+ * plotter.h - Header for Plotter class
+ *
+ *  $Id$
+ *
+ *  $Log$
+ *
+ */
 #ifndef PLOTTER_H
 #define PLOTTER_H
 
@@ -12,7 +20,7 @@ class QToolButton;
 class PlotSettings;
 class RangeDialog;
 class AngleDialog;
-
+class MyApp;
 
 class Plotter : public QWidget
 {
@@ -25,8 +33,8 @@ public:
     void clearCurve(int id);
     QSize minimumSizeHint() const;
     QSize sizeHint() const;
-    QLabel* zeroLabel;
-    QLabel* defocusLabel;
+    void manageLabels(double zero, double defocus, double def2, double defAvg,
+                      int type);
     QToolButton *tileButton;
     RangeDialog *rDialog;
     AngleDialog *aDialog;
@@ -60,6 +68,11 @@ private:
 
     enum { Margin = 40 };
 
+    MyApp *mApp;
+    QLabel* zeroLabel;
+    QLabel* defocusLabel;
+    QLabel* defoc2Label;
+    QLabel* defocAvgLabel;
     QToolButton *zoomInButton;
     QToolButton *zoomOutButton;
     QToolButton *printButton;
