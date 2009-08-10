@@ -37,16 +37,16 @@ int main(int argc, char *argv[])
 {
   // Fallbacks from   ../manpages/autodoc2man 2 1 ctfplotter
   int numOptArgs, numNonOptArgs;
-  int numOptions=19;
-
+  int numOptions = 20;
   char *options[] = {
-    "input:InputStack:FN:", "angleFn:AngleFile:FN:", "config:ConfigFile:FN:", 
-    "defFn:DefocusFile:FN:", "aAngle:AxisAngle:F:", "psRes:PSResolution:I:", 
-    "tileSize:TileSize:I:", "volt:Voltage:I:", "cache:MaxCacheSize :I:", 
-    "debug:DebugLevel :I:", "cs:SphericalAberration:F:", 
-    "defTol:DefocusTol:I:", "pixelSize:PixelSize:F:", 
-    "ampContrast:AmplitudeContrast:F:", "expDef:ExpectedDefocus:F:", 
-    "leftTol:LeftDefTol:F:", "rightTol:RightDefTol:F:", 
+    "input:InputStack:FN:", "angleFn:AngleFile:FN:",
+    "invert:InvertTiltAngles:B:", "config:ConfigFile:FN:",
+    "defFn:DefocusFile:FN:", "aAngle:AxisAngle:F:", "psRes:PSResolution:I:",
+    "tileSize:TileSize:I:", "volt:Voltage:I:", "cache:MaxCacheSize :I:",
+    "debug:DebugLevel :I:", "cs:SphericalAberration:F:",
+    "defTol:DefocusTol:I:", "pixelSize:PixelSize:F:",
+    "ampContrast:AmplitudeContrast:F:", "expDef:ExpectedDefocus:F:",
+    "leftTol:LeftDefTol:F:", "rightTol:RightDefTol:F:",
     "range:AngleRange:FP:", "param:Parameter:PF:"};
 
   char *cfgFn, *stackFn, *angleFn, *defFn;
@@ -55,6 +55,12 @@ int main(int argc, char *argv[])
   float defocusTol, pixelSize, lowAngle, highAngle;
   float expectedDef, leftDefTol, rightDefTol;
   float ampContrast, cs;
+  int invertAngles = 0;
+
+  // This amount of hyperresolution in the stored PS gave < 0.1% difference
+  // in the final PS from ones computed directly from summed FFTs for 
+  // frequencies higher than 0.2.
+  int hyperRes = 20;
 
   //PipReadOrParseOptions(argc, argv, options, numOptions, argv[0], 
   PipReadOrParseOptions(argc, argv, options, numOptions, "ctfplotter", 
@@ -108,14 +114,15 @@ int main(int argc, char *argv[])
     exitError("No right defocus  tolerance is specified");
   if(PipGetTwoFloats("AngleRange", &lowAngle, &highAngle))
     exitError("No AngleRange specified");
+  PipGetBoolean("InvertTiltAngles", &invertAngles);
  
   double *rAvg=(double *)malloc(nDim*sizeof(double));
 
   ctfHelp = new ImodAssistant("html","IMOD.adp", "ctfguide");
   MyApp app(argc, argv, volt, pixelSize, (double)ampContrast, cs, defFn,
-      (int)nDim, (double)defocusTol, tileSize, 
-      (double)tiltAxisAngle, -90.0, 90.0, (double)expectedDef, 
-      (double)leftDefTol, (double)rightDefTol, cacheSize);
+            (int)nDim, hyperRes, (double)defocusTol, tileSize, 
+            (double)tiltAxisAngle, -90.0, 90.0, (double)expectedDef, 
+            (double)leftDefTol, (double)rightDefTol, cacheSize, invertAngles);
   //set the angle range for noise PS computing;
   app.setPS(rAvg);
   
@@ -132,21 +139,35 @@ int main(int argc, char *argv[])
   int read;
   int noiseFileCounter=0;
 
-  QLabel *splash=NULL;
-  splash = new QLabel("Loading slices ...", NULL);
+  // It could be just a label, but this makes it bigger and lets the whole
+  // title show up
+  QWidget *splash= new QWidget();
+  QVBoxLayout *layout = new QVBoxLayout;
+  splash->setLayout(layout);
+  layout->setMargin(30);
+  QLabel *label = new QLabel("Loading noise files ...", splash);
+  layout->addWidget(label);
+  splash->setWindowTitle("ctfplotter");
   QSize hint = splash->sizeHint();
-       splash->move(QApplication::desktop()->width() / 2 - hint.width() / 2,
-                    QApplication::desktop()->height() / 2 - hint.height() / 2);
+  splash->move(QApplication::desktop()->width() / 2 - hint.width() / 2,
+               QApplication::desktop()->height() / 2 - hint.height() / 2);
   splash->show();
+
+  // At least 4 of these are needed to make it work reliably!
   qApp->flush();
   qApp->syncX();
   qApp->processEvents();
+  splash->repaint(0,0,-1,-1);
+  qApp->processEvents();
  
   // only to find how many noise files are provided;
-  while( (read=fgetline(fpCfg, p, 1024)) >0 ) noiseFileCounter++;
+  while( (read=fgetline(fpCfg, p, 1024)) >0 ) 
+    noiseFileCounter++;
   rewind(fpCfg);
   if(debugLevel>=1)
    printf("There are %d noise files specified\n", noiseFileCounter);
+  if (noiseFileCounter < 2)
+    exitError("There must be at least two noise files");
   
   double *noisePs=(double *)malloc( noiseFileCounter*nDim*sizeof(double));
   double *noiseMean=(double *)malloc( noiseFileCounter*sizeof(double) );
@@ -157,19 +178,20 @@ int main(int argc, char *argv[])
   fflush(stdout);
   
   noiseFileCounter=0;
-  while( (read=fgetline(fpCfg, p, 1024))>0){
+  while ((read=fgetline(fpCfg, p, 1024)) > 0) {
     //if(p[read-1]=='\n') p[read-1]='\0';  //remove '\n' at the end;
     app.setSlice(p, NULL);
     app.computeInitPS();
     currPS=app.getPS();
     //for(i=0;i<nDim;i++) noisePs[noiseFileCounter][i]=*(currPS+i);
-    for(i=0;i<nDim;i++) *(noisePs+noiseFileCounter*nDim+i)=*(currPS+i);
+    for (i = 0; i < nDim; i++)
+      noisePs[noiseFileCounter*nDim + i] = currPS[i];
     noiseMean[noiseFileCounter]=app.getStackMean();
     noiseFileCounter++;
   }
   for(i=0;i<noiseFileCounter;i++){
     if( debugLevel>=1)
-     printf("noiseMean[%d]=%f\n", i, noiseMean[i]);
+      printf("noiseMean[%d]=%f\n", i, noiseMean[i]);
     index[i]=i;
   }
   fflush(stdout);
@@ -188,42 +210,36 @@ int main(int argc, char *argv[])
          index[i]=index[j];
          index[j]=tempIndex;
       }
+  app.setNumNoiseFiles(noiseFileCounter);
+  app.setNoiseIndexes(index);
+  app.setNoiseMeans(noiseMean);
+  app.setAllNoisePS(noisePs);
   /****end of computing noise PS; ******/
-
+  
+  label->setText("Loading slices ...");
+  qApp->processEvents();
   app.setLowAngle(lowAngle);
   app.setHighAngle(highAngle);
   app.setSlice(stackFn, angleFn);
   double stackMean;
   app.computeInitPS();
-  stackMean=app.getStackMean(); //used to choose right noise PS below;
 
-  //binary search to set up the noise PS;
-  i=0;
-  j=noiseFileCounter-1;
-  while( i<(j-1) ){
-   if( stackMean > noiseMean[ (i+j)/2 ] ) i=(i+j)/2;
-   else j=(i+j)/2;
-  }
-  if( debugLevel>=1)
-    printf("Stack mean=%f, Interplating between noise file %d and file %d for \
-noise level of this mean\n", stackMean, i, j);
-  app.setNoisePS(noisePs+ index[i]*nDim, noisePs+index[j]*nDim);
-  app.setNoiseMean(noiseMean[i], noiseMean[j]);
+  // Removed setting of stack mean and noise files from here
 
-  if(app.defocusFinder.getExpDefocus()>0) {
-    int firstZeroIndex=B3DNINT( app.defocusFinder.getExpZero()*nDim );
-    app.setX1Range(firstZeroIndex-16, firstZeroIndex-1);
-    double coef=0.5*app.defocusFinder.wavelength*app.defocusFinder.csTwo/ \
-               pixelSize;
-    int secZeroIndex=B3DNINT( ( sqrt(2.0*app.defocusFinder.csOne/ \
-            app.defocusFinder.getExpDefocus())/coef )*nDim );
-    app.setX2Range(firstZeroIndex+1, secZeroIndex);
-    app.simplexEngine=new SimplexFitting(nDim);
-    app.linearEngine=new LinearFitting(nDim);
-    app.plotFitPS(true); //fit and plot the stack PS;
-  }else{
+  if (app.defocusFinder.getExpDefocus() <= 0)
     exitError("Invalid expected defocus, it must be >0");
-  }
+
+  // Switch to calling routine for zero, scale correctly, go back only 12
+  double firstZero, secondZero;
+  app.defocusFinder.getTwoZeros(app.defocusFinder.getExpDefocus(), firstZero,
+                                secondZero);
+  int firstZeroIndex=B3DNINT(firstZero * (nDim - 1));
+  app.setX1Range(firstZeroIndex-12, firstZeroIndex-1);
+  int secZeroIndex=B3DNINT(secondZero * (nDim - 1));
+  app.setX2Range(firstZeroIndex+1, secZeroIndex);
+  app.simplexEngine=new SimplexFitting(nDim);
+  app.linearEngine=new LinearFitting(nDim);
+  app.plotFitPS(true); //fit and plot the stack PS;
 
   fflush(stdout);
 
@@ -250,23 +266,26 @@ int ctfShowHelpPage(const char *page)
 
 /*
 
-   $Log$
-   Revision 1.12  2008/11/11 16:19:20  xiongq
-   delete qsplashscreen.h
+$Log$
+Revision 1.13  2009/01/15 16:31:36  mast
+Qt 4 port
 
-   Revision 1.11  2008/11/10 22:43:44  xiongq
-   improved splash display
+Revision 1.12  2008/11/11 16:19:20  xiongq
+delete qsplashscreen.h
 
-   Revision 1.10  2008/11/08 21:54:04  xiongq
-   adjust plotter setting for initializaion
+Revision 1.11  2008/11/10 22:43:44  xiongq
+improved splash display
 
-   Revision 1.9  2008/11/07 20:34:34  xiongq
-   call fflush to sync log  for each slice
+Revision 1.10  2008/11/08 21:54:04  xiongq
+adjust plotter setting for initializaion
 
-   Revision 1.8  2008/11/07 20:20:41  xiongq
-   add splash screen
+Revision 1.9  2008/11/07 20:34:34  xiongq
+call fflush to sync log  for each slice
 
-   Revision 1.7  2008/11/07 17:26:24  xiongq
-   add the copyright heading
+Revision 1.8  2008/11/07 20:20:41  xiongq
+add splash screen
+
+Revision 1.7  2008/11/07 17:26:24  xiongq
+add the copyright heading
 
 */
