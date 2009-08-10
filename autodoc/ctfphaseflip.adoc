@@ -24,6 +24,17 @@ manpage = File containing tilt angles for the input stack.  Each line of this
 file is the tilt angle for a view of the input stack.  The angles are listed
 in order starting from view 1.
 
+[Field = InvertTiltAngles]
+short = invert
+type = B
+usage = Invert the sign of the tilt angles
+tooltip =
+manpage = Invert the sign of the tilt angles to compensate for a left-handed 
+coordinate system in the microscope.  When the sign of the tilt angles and 
+the value of the tilt axis rotation angle are such that reconstructions are
+generated with inverted handedness, then this option is needed for a proper
+correction.
+
 [Field = DefocusFile]
 short = defFn
 type = FN
