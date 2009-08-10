@@ -28,23 +28,26 @@ LinearFitting::~LinearFitting()
 
 void LinearFitting::setRaw(double *rawData)
 {
-  for(int i=0;i<nDim;i++) raw[i]=rawData[i];
+  for(int i=0;i<nDim;i++)
+    raw[i]=rawData[i];
 }
 
 
 int LinearFitting::computeFitting(double *fitting, double *model, int nModel,
-    int index1, int index2)
+                                  int index1, int index2, double &xAtMin)
 //The model is represented by an array of real numbers that are the 
 //exponentials. For example, if model={0, 0.5, 1.0, 2.0}, then, 
 //nModel would be 4; and y=c_0*x^0 + c_1*x^0.5 + c_2*x + c_3*x^2.0 . 
 //index1 and index2 are the starting index and endind index of the 
 //fitting range.
 {
-  if( index1>index2 || index1<0 || index2>(nDim-1) ) return 1;
+  if( index1>index2 || index1<0 || index2>(nDim-1) ) 
+    return 1;
 
   int M=index2-index1+1;
   int N=nModel;
   int i, j;
+  double lastMin, xx, val;
   double inc=1.0/(nDim-1);
 
   double *a=(double *)malloc(N*M*sizeof(double));
@@ -65,7 +68,8 @@ int LinearFitting::computeFitting(double *fitting, double *model, int nModel,
   for(i=0;i<M;i++) {
     b[i]=raw[i+index1]; 
   }
-  for(i=0;i<nDim;i++)  fitting[i]=0.0;
+  for(i=0;i<nDim;i++)
+    fitting[i]=0.0;
 
   int NRHS=1;
   int LWORK=5*M*N;
@@ -87,11 +91,28 @@ int LinearFitting::computeFitting(double *fitting, double *model, int nModel,
   dgelss(&M, &N, &NRHS, a, &M, b, &M, sv, &RCOND, &RANK, work, &LWORK, 
           &INFO);
   for(i=0;i<nDim;i++)
-    for(j=0;j<N;j++) fitting[i]+=b[j]*(*(aa+j*nDim+i));
+    for(j=0;j<N;j++)
+      fitting[i]+=b[j]*(*(aa+j*nDim+i));
 
   printf("Linear fitting parameters for range %d to %d are:\n", index1, index2);
-  for(i=0;i<N;i++) printf("x[%d]=%f\t", i, b[i]);
+  for(i=0;i<N;i++)
+    printf("x[%d]=%f\t", i, b[i]);
   printf("RANK=%d INFO=%d \n", RANK, INFO);
+
+  // Find the first minimum after the starting point
+  xAtMin = index1 * inc;
+  lastMin = fitting[index1];
+  for (i = 0; i < (index2 + 1 - index1) * 10000; i++) {
+    xx = (index1 + (i + 1) / 10000.) * inc;
+    val = 0.;
+    for(j=0;j<N;j++)
+      val += b[j] * pow(xx, model[j]);
+    if (val > lastMin)
+      break;
+    xAtMin = xx;
+    lastMin = val;
+  }
+
   free(a);
   free(aa);
   free(b);
@@ -101,5 +122,8 @@ int LinearFitting::computeFitting(double *fitting, double *model, int nModel,
 }
 /*
 
-   $Log$
+$Log$
+Revision 1.4  2008/11/07 17:26:24  xiongq
+add the copyright heading
+
 */
