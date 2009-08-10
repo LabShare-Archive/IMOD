@@ -1,7 +1,7 @@
 /*
  *  ctfphaseflip.cpp  -  CTF correction of tilted images
  *
- *  Author: Quanren Xiong     email: xiongq@colorado.edu
+ *  Author: Quanren Xiong
  *
  *  Copyright (C) 2007-2008 by Boulder Laboratory for 3-Dimensional Electron
  *  Microscopy of Cells ("BL3DEMC") and the Regents of the University of 
@@ -34,14 +34,15 @@ int main(int argc, char *argv[])
   int numOptArgs, numNonOptArgs;
 
   // Fallbacks from   ../manpages/autodoc2man 2 1 ctfphaseflip
-  int numOptions = 15;
+  int numOptions = 16;
   char *options[] = {
-    "input:InputStack:FN:", "output:OutputFileName:FN:", 
-    "angleFn:AngleFile:FN:", "defFn:DefocusFile:FN:", "defTol:DefocusTol:I:", 
-    "iWidth:InterpolationWidth:I:", "pixelSize:PixelSize:F:", 
-    "volt:Voltage:I:", "cs:SphericalAberration:F:", 
-    "ampContrast:AmplitudeContrast:F:", "views:StartingEndingViews:IP:", 
-    "totalViews:TotalViews:IP:", "boundary:BoundaryInfoFile:FN:", 
+    "input:InputStack:FN:", "output:OutputFileName:FN:",
+    "angleFn:AngleFile:FN:", "invert:InvertTiltAngles:B:",
+    "defFn:DefocusFile:FN:", "defTol:DefocusTol:I:",
+    "iWidth:InterpolationWidth:I:", "pixelSize:PixelSize:F:",
+    "volt:Voltage:I:", "cs:SphericalAberration:F:",
+    "ampContrast:AmplitudeContrast:F:", "views:StartingEndingViews:IP:",
+    "totalViews:TotalViews:IP:", "boundary:BoundaryInfoFile:FN:",
     "aAngle:AxisAngle:F:", "param:Parameter:PF:"};
 
   char *stackFn, *angleFn, *outFn, *defFn;
@@ -50,6 +51,8 @@ int main(int argc, char *argv[])
   float tiltAxisAngle, pixelSize, cs, ampContrast, stripDefocus;
   int startingView, endingView, startingTotal, endingTotal;
   bool isSingleRun=false;
+  int invertAngles = 0;
+  double angleSign;
   char *progname = imodProgName(argv[0]);
 
   PipReadOrParseOptions(argc, argv, options, numOptions, progname, 
@@ -83,11 +86,14 @@ int main(int argc, char *argv[])
   if( PipGetString("OutputFileName", &outFn) )
     exitError("OutputFileName is not specified");
   PipGetString("BoundaryInfoFile", &boundFn);
+  PipGetBoolean("InvertTiltAngles", &invertAngles);
+  angleSign = invertAngles ? -1. : 1.;
   
-  printf("stackFn=%s, angleFn=%s\n", stackFn, angleFn);
+  printf("stackFn=%s, angleFn=%s,  invertAngles=%d\n", stackFn, angleFn, 
+         invertAngles);
   printf("volt=%d Kv, interpolationWidth=%d pixels, defocusTol=%d nm \n", 
       volt, iWidth, defocusTol);
-  printf("tiltAxixAngle=%f, pixelSize=%f nm, cs=%f mm, ampContrast=%f, \
+  printf("tiltAxisAngle=%f, pixelSize=%f nm, cs=%f mm, ampContrast=%f, \
    \n", tiltAxisAngle, pixelSize, cs, ampContrast);
 
   FILE *fpStack, *fpDef, *fpAngle=NULL;
@@ -255,6 +261,7 @@ int main(int argc, char *argv[])
   for(k=startingView;k<=endingView;k++){
     if( fpAngle && fgets(angleStr, 30, fpAngle) ){
       sscanf(angleStr, "%f", &currAngle);
+      currAngle *= angleSign;
       printf("Slice %d, tilt angle is %f degrees. \n", k, currAngle);
     }else{
       currAngle=0.0;
@@ -447,6 +454,9 @@ int main(int argc, char *argv[])
 /*
 
 $Log$
+Revision 3.13  2009/03/24 00:37:00  mast
+Fixed initialization of max at 0
+
 Revision 3.12  2009/02/16 06:22:48  mast
 Modified to use new parallel write stuff
 
