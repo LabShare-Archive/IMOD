@@ -87,6 +87,8 @@ Bead Fixer accepts the following commands:
    6  Set operation mode.  Follow with 0 for seed, 1 for gap, 2 for 
         residuals.
    7  Set skip list.  Follow with the skip list with no embedded spaces.
+   8  Set Delete on All Sections.  Follow with 1 to turn on, 0 to turn 
+        off.
 .P
 If 3dmod is run in standalone model-view mode (run as 3dmodv or 3dmod -view)
 it will accept the following commands:
