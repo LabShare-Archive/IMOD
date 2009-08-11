@@ -36,6 +36,7 @@
 #define MESSAGE_BEADFIX_DIAMETER   5
 #define MESSAGE_BEADFIX_OPERATION  6
 #define MESSAGE_BEADFIX_SKIPLIST   7
+#define MESSAGE_BEADFIX_DELALLSEC  8
 
 #include <qobject.h>
 #include <qstring.h>
@@ -92,6 +93,9 @@ class StdinThread : public QThread
 #endif /* IMOD_CLIENT_MESSAGE_H */
 /*
 $Log$
+Revision 3.22  2009/03/26 05:40:14  mast
+Changes for new ghost message
+
 Revision 3.21  2009/01/16 05:11:48  mast
 Switched to fancy new singleshot static for mcliptimer
 
