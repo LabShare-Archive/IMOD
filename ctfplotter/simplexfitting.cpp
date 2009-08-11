@@ -238,7 +238,7 @@ int SimplexFitting::fitCTF(double* fitting, int nvar, double &err,
     x = (double)i / (mDim - 1.);
     ctfval = mFinder->CTFvalue(x, focus);
     fitting[i] = mA[1] + mA[2] * exp(-mA[3] * (x - x0)) * 
-      pow(fabs(ctfval), mA[4]);
+      pow(fabs(ctfval), (double)mA[4]);
   } 
   if( debugLevel >= 1){
    printf("CTF fitting parameters for range %d to %d are:\n", mIndex1, mIndex2);
@@ -297,6 +297,9 @@ void SimplexFitting::funkCTF(float* param, float* fValue)
 /*
 
 $Log$
+Revision 1.4  2009/08/10 22:23:22  mast
+Added the CTF-like fitting method
+
 Revision 1.3  2008/11/07 17:26:24  xiongq
 add the copyright heading
 
