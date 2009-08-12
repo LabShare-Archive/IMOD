@@ -25,6 +25,9 @@ and 3dmod, allowed dm2mrc and raw2mrc to work with filenames starting with
 dash, fixed problem with dm2mrc accessing files not in current directory, and
 removed -d option and cleaned up dm2mrc man page since all files are scanned. 
 
+6/25/09: Changed Tilt to allocate its memory and added a temporary option to
+specify the memory size.
+
 6/22/09: Changed Newstack to allocate needed memory; added option for user to
 limit memory usage, and made newstack and Fortran I/O code work with images
 bigger than 2 gigapixel.
