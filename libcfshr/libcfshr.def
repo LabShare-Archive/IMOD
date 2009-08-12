@@ -33,6 +33,7 @@ EXPORTS
 	ilistSwap
 	PipDone
 	PipAddOption
+	numOMPthreads
 	ADOCGETINTEGERARRAY
 	PipGetNonOptionArg
 	ilistPop
@@ -70,6 +71,7 @@ EXPORTS
 	b3dFread
 	ADOCGETFLOATARRAY
 	sumsToAvgSD
+	wallTime
 	sliceClear
 	LSFIT
 	LSFIT2
@@ -114,6 +116,7 @@ EXPORTS
 	amatToRotmagstr
 	lsqr
 	AdocGetFloat
+	NUMOMPTHREADS
 	AdocGetNumberOfSections
 	cmapConvertRamp
 	SCANHISTOGRAM
