@@ -1257,7 +1257,7 @@ c
       peakmax = peakVal(indPeak(1))
       ierr = putimodflag(1, 2)
       ierr = putImodFlag(1, 7)
-      call putscatsize(1, max(1,nint(radius)))
+      call putscatsize(1, max(1, 1 + nint(radius)))
       do i = 1, n_point
         peak = peakVal(indPeak(i))
 c         
@@ -1324,6 +1324,9 @@ c
 
 c       
 c       $Log$
+c       Revision 3.2  2009/01/22 05:55:27  mast
+c       Set mean of average to zero for correlations
+c
 c       Revision 3.1  2008/12/11 06:05:43  mast
 c       Added to package
 c
