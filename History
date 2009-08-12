@@ -1,5 +1,20 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+8/11/09: IMOD_4-0-12
+8/10/09: Many changes to Ctfplotter: Eliminated two sources of inconsistency
+between Ctfplotter and Ctfphaseflip in the relation between defocus and
+frequency; implemented nearly exact shifting of spectra from off-center tiles
+instead of shifting by integer amounts; made the shifting variable so as to
+align both first and second zeros between off-center and central tiles;
+started caching power spectra for individual tiles so that after they are
+computed once it is quick to recompute a summed spectrum; added fitting to a
+CTF-like curve and to a polynomial and made the CTF-like fitting the default;
+reorganized the angle range dialog to put the important options at the top;
+revised the guide and added snapshots from various stages of working on an
+example set.  Also added an option to both programs to invert the sign of the
+tilt angles, in case the set of angles gives reconstructions with inverted
+handedness.
+
 8/4/09: Fixes for SIRT: fixed Splittilt to use a different boundary info file
 for reprojection; fixed Sirtsetup to pass the boundary parameter properly and
 to detect last reconstruction correctly; fixed parallel writing in the
