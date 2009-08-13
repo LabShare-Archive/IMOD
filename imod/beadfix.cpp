@@ -385,7 +385,8 @@ int BeadFixer::executeMessage(QStringList *strings, int *arg)
     return 0;
   case MESSAGE_BEADFIX_DELALLSEC:
     plug->delOnAllSec = (*strings)[++(*arg)].toInt();
-    diaSetChecked(delAllSecBut, plug->delOnAllSec != 0);
+    if (threshSlider)
+      diaSetChecked(delAllSecBut, plug->delOnAllSec != 0);
     return 0;
   }
   return 1;
@@ -2507,6 +2508,9 @@ void BeadFixer::keyReleaseEvent ( QKeyEvent * e )
 /*
 
 $Log$
+Revision 1.59  2009/08/11 15:51:38  mast
+Added message to control delete on all sec
+
 Revision 1.58  2009/03/22 19:54:24  mast
 Show with new geometry adjust routine for Mac OS X 10.5/cocoa
 
