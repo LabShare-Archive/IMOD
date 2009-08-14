@@ -1,5 +1,7 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+8/14/09: Fixed power option in densnorm.
+
 8/11/09: IMOD_4-0-12
 8/10/09: Many changes to Ctfplotter: Eliminated two sources of inconsistency
 between Ctfplotter and Ctfphaseflip in the relation between defocus and
