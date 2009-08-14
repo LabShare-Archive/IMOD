@@ -24,8 +24,8 @@ c
       integer*4 i,j,maxLines,numChunks, iChunk,numLines,ierr,ierr2,ierr3
       integer*4 ifRefMean,ifRefDose,ifLog,ifpack,ndose,maxzInput,npcInput
       integer*4 iunit, nzsrc,mode2,maxzSrc,npcSrc,nrefdose,maxzRef,npcRef
-      integer*4 modeIn,modeOut,ind,iz
-      real*4 cospower, refMean,refDose,dmin,dmax,dmean,dmin2,dmax2,dmean2
+      integer*4 modeIn,modeOut,ind,iz,cospower
+      real*4 refMean,refDose,dmin,dmax,dmean,dmin2,dmax2,dmean2
       real*4 tmin,tmax,tmean, sum, scale,rangeFrac,dosefac,valmin, baselog
       real*4 addback, resubval
       real*8 dsum8
@@ -433,6 +433,9 @@ c       pack the values down
       end
 
 c       $Log$
+c       Revision 3.2  2007/08/10 16:14:46  mast
+c       Added options for dealing with integers where 32768 was subtracted
+c
 c       Revision 3.1  2007/07/17 03:36:39  mast
 c       Added to package
 c
