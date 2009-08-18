@@ -15,6 +15,7 @@ headnode=
 queuename=
 qtype=
 action=
+maui=0
 
 # Current directory, with spaces escaped
 curdir=`pwd | sed '/ /s//\\ /g'`
@@ -116,6 +117,10 @@ while [ $# -gt 1 ]; do
         -w) curdir="$2"
             shift;;
         -t) qtype=$2
+            if [ $qtype == "pbs-maui" ] ; then
+                qtype=pbs
+                maui=1
+            fi
             shift;;
         *)  echo "ERROR: $pn - unknown option $1"
             exit 1
@@ -125,7 +130,12 @@ while [ $# -gt 1 ]; do
 done
 
 if ! [[ $qtype == "pbs" || $qtype == "sge" ]] ; then
-    echo "ERROR: $pn - queue type must be entered and be sge or pbs"
+    echo "ERROR: $pn - queue type must be entered and be sge, pbs, or pbs-maui"
+    exit 1
+fi
+
+if [[ $maui == "1" && -z $queuename ]] ; then
+    echo "ERROR: $pn - queue name must be entered for pbs-maui"
     exit 1
 fi
 
@@ -256,12 +266,22 @@ elif [ $action == "L" ] ; then
         # PBS is more complex and not satisfactory based on our one example
         #
         com="qstat -B | tail -n 1 > $qstattmp"
+
+        # PBS-MAUI can be set up to show processors used in the queue's set
+        #
+        if [ $maui == "1" ] ; then
+            com="showq -p $queuename | grep Processors > $qstattmp"
+        fi
+            
         runQcommand "$com" 1
         if [[ $runstat -eq 0 && -s $qstattmp ]] ; then
             statline=(`cat $qstattmp`)
             nrun=${statline[4]}
             nmax=${statline[1]}
-
+            if [ $maui == "1" ] ; then 
+                nrun=${statline[3]}
+                nmax=${statline[5]} ;fi
+            fi
             # If the max is 0, need to read all queues and get max
             #
             if [ $nmax -eq 0 ] ; then
@@ -293,6 +313,9 @@ exit 0
 
 #
 #  $Log$
+#  Revision 3.5  2009/04/11 00:44:28  mast
+#  At least report load as a number if no max is available
+#
 #  Revision 3.4  2007/09/28 21:11:13  mast
 #  Needed to request resurce on pbs queue to avoid all jobs on one node
 #
