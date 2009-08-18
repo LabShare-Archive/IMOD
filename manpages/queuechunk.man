@@ -24,11 +24,18 @@ If the action is L to report a load average, this argument may be omitted.
 .SS Options
 .TP
 .B -t <type>
-Type of queue.  This option must be entered with the value of either pbs (for
-a PBS queue) or sge (for a Grid Engine queue).
+Type of queue.  This option must be entered with the value of either pbs or
+pbs-maui (for a PBS queue) or sge (for a Grid Engine queue).  The type
+pbs-maui can be used if the queue software has been configured so that
+   showq -p queuename
+.br
+gives output for the processors assigned to that queue
+of the form
+     0 Active Jobs       0 of   40 Processors Active (0.00%)
 .TP
 .B -q <name>
-Name of queue to submit to.
+Name of queue to submit to.  This option must entered if the queue type is
+pbs-maui.
 .TP
 .B -h <name>
 Name of the head node.  When this option is entered, the qsub, qstat, and qdel
@@ -80,9 +87,6 @@ the .csh file could be run on the local host with "csh -ef".
 The program creates a script file named rootname.job and places queue
 submission output into a file named rootname.qid.  The job script deletes the
 rootname.csh file upon completion.
-
-.SH BUGS
-This script probably works only on the two systems on which it has been tested.
 
 .SH AUTHOR
 David Mastronarde  <mast@colorado.edu>
