@@ -157,8 +157,8 @@ comment = The threshold to generate the reference particle at each stage
 
 
 [Field = refFlagAllTom]
-comment = 0: use particles with best correlation scores among all particles of all tomos;
-^1: use equal number of particles from each tomo;
+comment = 1: use particles with best correlation scores among all particles of all tomos;
+^0: use equal number of particles from each tomo;
 
 [Field = tiltRange]
 comment = The tilt range used to acquire the tilt series [min max].
@@ -189,8 +189,8 @@ comment = The list of thresholds to use for computing the final volumes.
 ^fnOutout_AvgVol_navg_thresh_iteration.mrc
 
 [Field = lstFlagAllTom]
-comment = 0: use particles with best correlation scores among all particles of all tomos;
-^1: use equal number of particles from each tomo;
+comment = 1: use particles with best correlation scores among all particles of all tomos;
+^0: use equal number of particles from each tomo;
 
 [Field = flgMeanFill]
 comment = If any particles are partially out of the volume fill with the
