@@ -575,7 +575,7 @@ static bool skipDumping = false;
 void ivwGetFileStartPos(ImodImageFile *image)
 {
 #ifdef __linux
-  skipDumping = (getenv("IMOD_RETAIN_FSCACHE") != NULL);
+  skipDumping = (getenv("IMOD_DUMP_FSCACHE") == NULL);
   if (skipDumping || !image->fp || 
       (image->file != IIFILE_MRC && image->file != IIFILE_RAW))
     return;
@@ -2831,6 +2831,9 @@ void ivwBinByN(unsigned char *array, int nxin, int nyin, int nbin,
 /*
 
 $Log$
+Revision 4.82  2009/04/28 15:46:13  mast
+Added functions to get and set top zap center
+
 Revision 4.81  2009/03/26 05:41:44  mast
 Change to new near ghost mode as default
 
