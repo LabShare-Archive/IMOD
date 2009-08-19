@@ -13,17 +13,14 @@ c       $Id$
 c       Log at end of file
 c       
       implicit none
-      integer idim,limmtf,limstockcurves,limstockpoints
-      parameter (idim=8300*8300,limmtf=8193)
+      integer limmtf,limstockcurves,limstockpoints
+      parameter (limmtf=8193)
       parameter (limstockcurves=1,limstockpoints=36)
-      COMMON //NX,NY,NZ
 C       
       integer*4 nx,ny,nz,NXYZ(3),MXYZ(3),title(20),nxyzst(3)
+      equivalence (nx,nxyz(1)), (ny,nxyz(2)), (nz,nxyz(3))
       real*4 ctfa(8193),xmtf(limmtf),ymtf(limmtf),cell(6),pixel(3),ctfb(8193)
-      complex array(idim/2)
-      real*4 brray(idim)
-      equivalence (array, brray)
-      common /bigarr/ array
+      real*4, allocatable :: array(:)
       integer*4 nptstock(limstockcurves)
       real*4 stock(2,limstockpoints)
       data nptstock/36/
@@ -65,7 +62,6 @@ C
      &    0.4898, 0.00741/
 
 C       
-      EQUIVALENCE (NX,NXYZ)
       DATA NXYZST/0,0,0/
 c       
       character*120 filbig,filout
@@ -80,7 +76,8 @@ c
       real*4 DMIN2,DMAX2,DMEAN2,atten,beta1,deltap,delx, dely, delz,xa,ya,za
       real*4 zasq,yasq, sigma1b, radius1b,base
       integer*4 ind,j,ierr, indf,ix, iy, iz, izlo, izhi, izread, ibase, ixbase
-      integer*4 indWork, nxdim, nzpad, nyzmax
+      integer*4 nxdim, nzpad, nyzmax
+      integer (kind=8) indWork, idim
       logical fftInput, filter3d
       integer*4 niceframe
 c       
@@ -151,17 +148,19 @@ c
         nxpad = niceframe(nx + npad, 2, 19)
         nypad = niceframe(ny + npad, 2, 19)
         nzpad = niceframe(nz + npad, 2, 19)
-        nxdim = nxpad + 2
       endif
+        nxdim = nxpad + 2
 
       if (filter3d) then
-        indWork = nxdim * nypad * nzpad + 1
-        if (indWork + nxdim * nzpad .ge. idim) call exitError(
-     &      'IMAGE FILE IS TOO LARGE FOR 3D FFT; USE clip fft -3d')
+        indWork = int(nxdim,kind=8) * int(nypad,kind=8) * nzpad + 1
+        idim = indWork + int(nxdim,kind=8) * nzpad + 16
       else
-        IF (((NXpad+2)*NYpad.GT.idim)) call exitError(
-     &      'IMAGES TOO LARGE FOR ARRAYS')
+        idim = nxdim * nypad + 16
       endif
+      allocate(array(idim), stat = ierr)
+      if (ierr .ne. 0) call exitError(
+     &    'FAILED TO ALLOCATE MEMORY FOR IMAGE DATA')
+
       nyzmax = nypad
       if (filter3d .or. fftInput) nyzmax = max(nypad, nzpad)
 C       
@@ -341,7 +340,8 @@ c
                 S = sqrt(xa**2 + yasq + zasq)
                 indf = s / delta + 1.5
                 array(ind) = array(ind) * ctfa(indf)
-                ind = ind + 1
+                array(ind+1) = array(ind+1) * ctfa(indf)
+                ind = ind + 2
               enddo
             enddo
             CALL iclcdn(array,nx,ny,1,nx,1,ny,dmin2,dmax2,dmean2)
@@ -385,8 +385,8 @@ c         recast some variables to steal code from taperoutvol
           izread=max(izlo,min(izhi,iz))
           ibase = nxdim * nypad * (iz - izst)
           call imposn(1,izread,0)
-          call irdsec(1,brray(ibase + 1), *99)
-          call taperoutpad(brray(ibase+1),nx,ny,brray(ibase+1),nxdim,nxpad,
+          call irdsec(1,array(ibase + 1), *99)
+          call taperoutpad(array(ibase+1),nx,ny,array(ibase+1),nxdim,nxpad,
      &        nypad,1,dmeanin)
           if(iz.lt.izlo.or.iz.gt.izhi)then
             if(iz.lt.izlo)then
@@ -398,25 +398,25 @@ c         recast some variables to steal code from taperoutvol
             do iy = 1, nypad
               ixbase = ibase + (iy - 1) * nxdim
               do i=ixbase+1,ixbase+nxpad
-                brray(i)=base+atten*brray(i)
+                array(i)=base+atten*array(i)
               enddo
             enddo
           endif
         enddo
 c         
 c         Take fft and filter and inverse fft
-        call thrdfft(array, brray(indWork), nxpad, nypad, nzpad, 0)
+        call thrdfft(array, array(indWork), nxpad, nypad, nzpad, 0)
         call fftFilter3D(array, nxdim / 2, nypad, nzpad, ctfa, delta)
-        call thrdfft(array, brray(indWork), nxpad, nypad, nzpad, -1)
+        call thrdfft(array, array(indWork), nxpad, nypad, nzpad, -1)
 c         
 c         repack and write
         do iz = izlo, izhi
           call imposn(imfilout, iz, 0)
           ibase = nxdim * nypad * (iz - izst) + 1
-          call irepak(brray(ibase),brray(ibase),nxdim,nypad, ixst,ixst + nx-1,
+          call irepak(array(ibase),array(ibase),nxdim,nypad, ixst,ixst + nx-1,
      &        iyst, iyst+ny-1)
-          CALL IclDeN(brray(ibase),NX,NY,1,NX,1,NY,DMIN2,DMAX2,DMEAN2)
-          CALL IWRSEC(imfilout,brray(ibase))
+          CALL IclDeN(array(ibase),NX,NY,1,NX,1,NY,DMIN2,DMAX2,DMEAN2)
+          CALL IWRSEC(imfilout,array(ibase))
           DMAX = max(dmax,dmax2)
           DMIN = min(dmin,dmin2)
           DMsum = dmsum + dmean2
@@ -488,6 +488,9 @@ c
 
 c       
 c       $Log$
+c       Revision 1.5  2008/05/20 20:03:38  mast
+c       Added ability to filter a real volume in 3D
+c
 c       Revision 1.4  2007/05/31 17:52:53  mast
 c       Added options so all 4 standard filter parameters can be used to call
 c       the standard setctf function, but without scaling
