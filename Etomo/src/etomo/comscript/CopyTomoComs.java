@@ -18,6 +18,9 @@
  * 
  * <p>
  * $Log$
+ * Revision 3.24  2009/03/17 00:31:35  sueh
+ * bug# 1186 Pass managerKey to everything that pops up a dialog.
+ *
  * Revision 3.23  2009/02/25 00:14:09  sueh
  * bug# 1182 Made sphericalAberration a double.
  *
@@ -341,6 +344,10 @@ public final class CopyTomoComs {
     if (!sphericalAberration.isNull()) {
       command.add("-Cs");
       command.add(sphericalAberration.toString());
+    }
+    if (!ctfFiles.isNull()) {
+      command.add("-CTFfiles");
+      command.add(ctfFiles.toString());
     }
 
     //Undistort images with the given .idf file
