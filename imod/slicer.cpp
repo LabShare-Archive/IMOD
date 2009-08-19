@@ -97,6 +97,7 @@ static QTime but1downt;
 static int firstmx, firstmy, lastmx, lastmy;
 static int mousePanning = 0;
 static int mouseRotating = 0;
+static bool mousePressed = false;
 static float viewAxisSteps[] = {0.1f, 0.3f, 1., 3., 10., 0.};
 static int viewAxisIndex = 2;
 
@@ -1158,6 +1159,7 @@ void slicerMousePress(SlicerStruct *ss, QMouseEvent *event)
 {
   int shift = (event->modifiers() & Qt::ShiftModifier) + ss->shiftLock;
   int ctrl = (event->modifiers() & Qt::ControlModifier);
+  mousePressed = true;
   ivwControlPriority(ss->vi, ss->ctrl);
 
   utilRaiseIfNeeded(ss->qtWindow, event);
@@ -1184,6 +1186,8 @@ void slicerMousePress(SlicerStruct *ss, QMouseEvent *event)
 // Respond to mouse button up
 void slicerMouseRelease(SlicerStruct *ss, QMouseEvent *event)
 {
+  imodPuts("release");
+  mousePressed = false;
   ivwControlPriority(ss->vi, ss->ctrl);
 
   // For button 1 up, if not classic mode, either end panning or call attach
@@ -1223,6 +1227,7 @@ void slicerMouseMove(SlicerStruct *ss, QMouseEvent *event)
   button3 = event->buttons() & ImodPrefs->actualButton(3);
   ex = event->x();
   ey = event->y();
+  imodPrintStderr("move event %d %d\n", ex, ey);
   if (processing) {
     processing++;
     return;
@@ -1240,11 +1245,17 @@ void slicerMouseMove(SlicerStruct *ss, QMouseEvent *event)
     (ss->locked || !ss->classic) && imod->mousemode == IMOD_MMODEL;
   if (!addingPoints) {
     processing = 1;
+    imodPuts("flushing");
     imod_info_input();
     if (imodDebug('m') && processing > 1)
       imodPrintStderr("Flushed %d move events\n", processing - 1);
     processing = 0;
+    
+    // If this processed a release, then turn off the buttons
+    if (!mousePressed)
+      button1 = button2 = button3 = 0;
   }
+    imodPuts("processing");
 
   // Pan with button 1 if not classic mode
   if (button1 && !ss->classic) {
@@ -2723,6 +2734,9 @@ void slicerCubePaint(SlicerStruct *ss)
 
 /*
 $Log$
+Revision 4.67  2009/04/06 19:37:31  mast
+Changes to preserve model cursor in Mac Qt 4.5 when raising window
+
 Revision 4.66  2009/03/30 18:26:20  mast
 Call function to raise on mouse press if needed
 
