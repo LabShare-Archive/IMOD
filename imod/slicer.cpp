@@ -1186,7 +1186,6 @@ void slicerMousePress(SlicerStruct *ss, QMouseEvent *event)
 // Respond to mouse button up
 void slicerMouseRelease(SlicerStruct *ss, QMouseEvent *event)
 {
-  imodPuts("release");
   mousePressed = false;
   ivwControlPriority(ss->vi, ss->ctrl);
 
@@ -1227,7 +1226,7 @@ void slicerMouseMove(SlicerStruct *ss, QMouseEvent *event)
   button3 = event->buttons() & ImodPrefs->actualButton(3);
   ex = event->x();
   ey = event->y();
-  imodPrintStderr("move event %d %d\n", ex, ey);
+
   if (processing) {
     processing++;
     return;
@@ -1245,7 +1244,6 @@ void slicerMouseMove(SlicerStruct *ss, QMouseEvent *event)
     (ss->locked || !ss->classic) && imod->mousemode == IMOD_MMODEL;
   if (!addingPoints) {
     processing = 1;
-    imodPuts("flushing");
     imod_info_input();
     if (imodDebug('m') && processing > 1)
       imodPrintStderr("Flushed %d move events\n", processing - 1);
@@ -1255,7 +1253,6 @@ void slicerMouseMove(SlicerStruct *ss, QMouseEvent *event)
     if (!mousePressed)
       button1 = button2 = button3 = 0;
   }
-    imodPuts("processing");
 
   // Pan with button 1 if not classic mode
   if (button1 && !ss->classic) {
@@ -2734,6 +2731,9 @@ void slicerCubePaint(SlicerStruct *ss)
 
 /*
 $Log$
+Revision 4.68  2009/08/19 21:13:06  mast
+Don't process move events after mouse release
+
 Revision 4.67  2009/04/06 19:37:31  mast
 Changes to preserve model cursor in Mac Qt 4.5 when raising window
 
