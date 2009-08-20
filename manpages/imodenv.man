@@ -79,12 +79,15 @@ various graphics programs; Arial is good for going to Illustrator.
 Directory in which IMOD's copy of Qt lives, if any.  Set by startup IMOD
 scripts.
 .TP
-.B IMOD_RETAIN_FSCACHE
-Stops 3dmod from telling the system to dismiss the file system cache while
-loading a file on Linux.  Setting this variable (no value needed) will give 
-much faster loads when you open a file that was recently accessed, but risks
-having the system swap out data within 3dmod while loading, for files bigger
-than about half of the system memory capacity.
+.B IMOD_DUMP_FSCACHE
+Makes 3dmod tell the system to dismiss the file system cache while
+loading a file on Linux.  This behavior was originally the default because,
+on early 64-bit systems with files bigger
+than about half of the system memory capacity,
+the system would swap out data within 3dmod while loading.
+This bad system behavior is no longer observed in testing on FC4, RHEL4 and 
+RHEL5.  Set this variable (no value needed) for working on systems that
+show this problem.
 .TP
 .B IMOD_STEREO_COMMAND
 When using hardware stereo, system command for switching the monitor to
