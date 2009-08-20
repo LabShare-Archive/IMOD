@@ -16,10 +16,10 @@ DDEESSCCRRIIPPTTIIOONN
   high pass filter to eliminate low frequencies.  Any combination of these
   filters may be applied.  In fact, the program provides all of the options
   that Enhance(1) does for specifying a general Fourier filter.  It can filter
-  either real-space images in 2D planes, real-space images in 3D if they are
-  not too large, or 3D Fourier transforms in 3D.  The filter functions
-  produced by these options can be visualized with the program Filterplot(1);
-  see that man page a full description of their effects.
+  either real-space images in 2D planes, real-space images in 3D or 3D Fourier
+  transforms in 3D.  The filter functions produced by these options can be
+  visualized with the program Filterplot(1); see that man page for a full
+  description of their effects.
 
   Simply multiplying by the inverse of an MTF would amplify noise too much,
   so the inverse MTF filter is shaped by three parameters.  The first
@@ -56,14 +56,19 @@ DDEESSCCRRIIPPTTIIOONN
   If the input file is a real image, then without the "-3d" option the program
   will take the FFT of each section, apply the filter, take the inverse FFT,
   and write out the filtered section.  With the "-3d" option, it will load the
-  whole file into memory with tapered padded just as in Taperoutvol(1), take
+  whole file into memory, tapered and padded just as in Taperoutvol(1), take
   the 3D FFT, filter, inverse FFT, and write the volume.  If the input file is
   a Fourier transform, it must be a 3D FFT (obtained from "clip fft -3d" or
   "fftrans -3d").  In this case the program will apply the filter to the
   transforms in three dimensions and write out a filtered FFT.
 
-  To filter a large image file in 3D (i.e., bigger than ~60 megavoxels),
-  simply make a file filterbig.com with one line:
+  The program allocates memory dynamically, so it is capable of filtering a
+  rather large volume in 3D.  However, it will require 4 bytes of memory per
+  voxel; e.g., 4 GB for a 1 gigavoxel volume.  In addition, the time per voxel
+  increases as the log of the volume size, so it can be quicker to chop a
+  volume into pieces, filter them, and reassemble the result.  To filter a
+  large image file in 3D this way, simply make a file filterbig.com with one
+  line:
      $mtffilter -3d <filtering options> INPUTFILE OUTPUTFILE
   where you insert your filtering options, but INPUTFILE and OUTPUTFILE are
   exactly as shown, and not the names of your actual input and output files.

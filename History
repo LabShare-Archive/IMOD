@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+8/19/09: Made Mtffilter allocate memory dynamically, so it can filter
+moderately large volumes in 3D without breaking them into pieces.
+
 8/19/09: Stopped 3dmod from dismissing filesystem cache under Linux unless
 directed with an environment variable.  Files will now load faster when opened
 a second time.
