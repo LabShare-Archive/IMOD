@@ -18,6 +18,13 @@
  * 
  * <p>
  * $Log$
+ * Revision 3.22.2.1  2009/08/20 22:43:35  sueh
+ * bug# 1255 Added -CT option.  Preventing running without the -CT option
+ * except during setup.  Prevent deletion of .rawtlt except during setup.
+ *
+ * Revision 3.25  2009/08/19 00:27:17  sueh
+ * bug# 1255 Added -CT option to genOptions.
+ *
  * Revision 3.24  2009/03/17 00:31:35  sueh
  * bug# 1186 Pass managerKey to everything that pops up a dialog.
  *
@@ -211,7 +218,6 @@ import java.io.File;
 import java.util.ArrayList;
 
 import etomo.ApplicationManager;
-import etomo.BaseManager;
 import etomo.EtomoDirector;
 import etomo.process.ProcessMessages;
 import etomo.process.SystemProgram;
@@ -223,6 +229,7 @@ import etomo.type.DataSource;
 import etomo.type.EtomoNumber;
 import etomo.type.TiltAngleType;
 import etomo.type.ViewType;
+import etomo.ui.UIHarness;
 
 public final class CopyTomoComs {
   public static final String rcsid = "$Id$";
@@ -233,7 +240,7 @@ public final class CopyTomoComs {
       EtomoNumber.Type.DOUBLE);
   private final EtomoNumber ctfFiles = new EtomoNumber();
 
-  private final BaseManager manager;
+  private final ApplicationManager manager;
 
   private StringBuffer commandLine = null;
   private int exitValue;
@@ -247,7 +254,7 @@ public final class CopyTomoComs {
     debug = EtomoDirector.INSTANCE.getArguments().isDebug();
   }
 
-  public void setup() {
+  public boolean setup() {
     // Create a new SystemProgram object for copytomocom, set the
     // working directory and stdin array.
     // Do not use the -e flag for tcsh since David's scripts handle the failure 
@@ -256,10 +263,13 @@ public final class CopyTomoComs {
     command.add("tcsh");
     command.add("-f");
     command.add(ApplicationManager.getIMODBinPath() + "copytomocoms");
-    genOptions();
+    if (!genOptions()) {
+      return false;
+    }
     copytomocoms = new SystemProgram(manager.getPropertyUserDir(), command,
         AxisID.ONLY, manager.getManagerKey());
     //genStdInputSequence();
+    return true;
   }
 
   public void setVoltage(ConstEtomoNumber input) {
@@ -286,7 +296,16 @@ public final class CopyTomoComs {
     return copytomocoms.getCommandLine();
   }
 
-  private void genOptions() {
+  private boolean genOptions() {
+    //Copytomocoms overrides the existing .com files.  Make sure that the full
+    //functionality is only used during setup.
+    if (!manager.isNewManager() && ctfFiles.isNull()) {
+      UIHarness.INSTANCE
+          .openMessageDialog(
+              "ERROR:  Attempting to rebuild .com files when setup is already completed.",
+              "Etomo Error",manager.getManagerKey());
+      return false;
+    }
     boolean montage = false;
     boolean gradient = false;
     //  Dataset name
@@ -345,6 +364,7 @@ public final class CopyTomoComs {
       command.add("-Cs");
       command.add(sphericalAberration.toString());
     }
+    //Only create ctf files.
     if (!ctfFiles.isNull()) {
       command.add("-CTFfiles");
       command.add(ctfFiles.toString());
@@ -408,6 +428,7 @@ public final class CopyTomoComs {
     //  CCDEraser and local alignment entries
     //  Always yes tiltalign relies on local entries to save default values
     //  even if they are not used.
+    return true;
   }
 
   /**
@@ -594,11 +615,14 @@ public final class CopyTomoComs {
   }
 
   /**
-   * Check to see if the tilt angle files exist and the tilt angle type is not
-   * FILE. They need to be deleted because the copytomocoms script is not
-   * consistent in the sequence of responses expected.
+   * The raw tilt files still need to be deleted because the user might be
+   * restarting with a trimmed stack, making the old raw tilt files invalid.
+   * Only do this during setup.  Don't delete when using option -CT.
    */
   private void checkTiltAngleFiles() {
+    if (!manager.isNewManager() || !ctfFiles.isNull()) {
+      return;
+    }
     String workingDirectory = manager.getPropertyUserDir();
     if (metaData.getAxisType() == AxisType.SINGLE_AXIS) {
       if (metaData.getTiltAngleSpecA().getType() != TiltAngleType.FILE) {

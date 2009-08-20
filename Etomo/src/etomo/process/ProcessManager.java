@@ -20,6 +20,12 @@
  * 
  * <p>
  * $Log$
+ * Revision 3.126.2.1  2009/08/20 22:45:07  sueh
+ * bug# 1255 Checking the return value of CopyTomoComs.setup.
+ *
+ * Revision 3.134  2009/06/05 01:59:43  sueh
+ * bug# 1219 Added flatten and flattenWarp.
+ *
  * Revision 3.133  2009/05/02 01:07:51  sueh
  * bug# 1216 Added runraptor.
  *
@@ -996,7 +1002,9 @@ public class ProcessManager extends BaseProcessManager {
    *          copytomocoms script
    */
   private boolean setupComScripts(CopyTomoComs copyTomoComs, AxisID axisID) {
-    copyTomoComs.setup();
+    if (!copyTomoComs.setup()) {
+      return false;
+    }
     int exitValue = copyTomoComs.run();
     //process messages
     ProcessMessages messages = copyTomoComs.getProcessMessages();
