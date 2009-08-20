@@ -322,6 +322,8 @@ if dowarp:
                          'TransformFile ' + warpname]
                 if tempdir != ' ':
                     input.append('TemporaryDirectory ' + tempdir)
+                if verbose:
+                    print input
                 try:
                     print '\nRunning warpvol on frame %d %d\n' % (x, y)
                     runcmd('warpvol -StandardInput', input)
@@ -714,6 +716,9 @@ sys.exit(0)
 
 #
 # $Log$
+# Revision 1.8  2009/01/26 01:27:57  mast
+# Zrun is an integer, not integer pair
+#
 # Revision 1.7  2008/05/29 23:36:08  mast
 # Made ExcludeFill an option passed to Blendmont
 #
