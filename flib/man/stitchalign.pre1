@@ -62,6 +62,12 @@ DDEESSCCRRIIPPTTIIOONN
   Findwarp(1) so that the local fits will require about the same amount of
   original data as if the spacing were unchanged.
 
+  There is no automatic elimination of aberrant displacements from the patch 
+  vectors being used to find the local displacements, unlike the outlier
+  elimination available when combining dual-axis tomograms.  It is thus
+  critical to get as reliable a set of patch vectors from Edgepatches(1) as
+  possible, and to manually remove any aberrant vectors.
+
   You can run the alignment on subsets of the data either for experimentation
   or if that subset is going to be stitched.  Ultimately, all of the volumes
   to be stitched must be included in one run of the program - it is not

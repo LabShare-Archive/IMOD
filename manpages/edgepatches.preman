@@ -135,10 +135,20 @@ the -redo option to force it to redo the global correlations, or the -skip
 option to make it skip any patch correlations that were already done.
 .P
 The patch correlations are run similarly to when aligning dual-axis
-tomograms.  However, the default parameters are based on almost no experience
-and should not be relied on.  Another difference is that region models for
+tomograms.  However, the default parameters are based on binned data (~2 nm
+pixel) and should not be relied on in general; patch sizes and intervals may
+need to be doubled for unbinned data.  Another difference is that
+region models for
 both the upper and the lower piece are applied to determine the limits for
-patches in an overlap zone.
+patches in an overlap zone.  Another important difference is in the
+consequences of having bad vectors.  With dual-axis tomograms, the vectors are
+fed directly into Findwarp(1), which has outlier elimination that usually
+eliminates the most aberrant vectors.  The vectors produced here are going to
+be processed by Stitchalign(1), which lacks outlier elimination, so bad
+displacements will be carried through into the final warped volumes.  It is
+crucial to adjust the parameters here to produce the best vectors possible,
+and then to edit out bad vectors manually if necessary, using the procedure
+indicated below.
 .SS Options
 Edgepatches uses the PIP package for input (see the manual page
 for pip(1)).  Options can be specified either as command line
