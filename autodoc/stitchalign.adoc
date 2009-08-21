@@ -112,7 +112,7 @@ tooltip =
 manpage = Analyze all volumes in a single minimization procedure.  The default
 is to get a solution for each pair of overlapping volumes and resolve the
 results into a single solution.  When parameters are searched for all volumes
-togther, the results are poor, probably due to multiple minima.
+together, the results are poor, probably due to multiple minima.
 
 [Field = ParameterFile]
 short = param
