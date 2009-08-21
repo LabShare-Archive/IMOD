@@ -1,5 +1,9 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+8/20/09: Fixed eTomo bug that made it rerun copytomocoms completely
+(overwriting existing com files and their parameters) upon opening the Final
+Aligned Stack panel if the CTF correction com files are not present (In 3.13).
+
 8/19/09: Made Mtffilter allocate memory dynamically, so it can filter
 moderately large volumes in 3D without breaking them into pieces.
 
