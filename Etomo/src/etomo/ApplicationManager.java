@@ -1,6 +1,7 @@
 package etomo;
 
 import java.awt.Dimension;
+import java.awt.GraphicsEnvironment;
 import java.awt.Toolkit;
 import java.io.BufferedWriter;
 import java.io.File;
@@ -351,10 +352,12 @@ public final class ApplicationManager extends BaseManager implements
       setupDialogExpert.initializeFields((ConstMetaData) metaData, userConfig);
     }
     mainPanel.openSetupPanel(setupDialogExpert);
-    Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
-    Dimension frameSize = mainPanel.getSize();
-    mainPanel.setLocation((screenSize.width - frameSize.width) / 2,
-        (screenSize.height - frameSize.height) / 2);
+    if (!GraphicsEnvironment.isHeadless()) {
+      Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
+      Dimension frameSize = mainPanel.getSize();
+      mainPanel.setLocation((screenSize.width - frameSize.width) / 2,
+          (screenSize.height - frameSize.height) / 2);
+    }
   }
 
   /**
@@ -3030,6 +3033,13 @@ public final class ApplicationManager extends BaseManager implements
       return tomogramGenerationExpertA;
     }
     return null;
+  }
+
+  public SetupDialogExpert getSetupDialogExpert() {
+    if (!EtomoDirector.INSTANCE.getArguments().isTest()) {
+      throw new IllegalStateException("only for testing");
+    }
+    return setupDialogExpert;
   }
 
   /**
@@ -6237,8 +6247,9 @@ public final class ApplicationManager extends BaseManager implements
    * Replace the full aligned stack with the ctf corrected full aligned stack
    * created by ctfcorrection.com
    */
- public void useFileAsFullAlignedStack(ProcessResultDisplay processResultDisplay,
-      File output, String buttonLabel, AxisID axisID, DialogType dialogType) {
+  public void useFileAsFullAlignedStack(
+      ProcessResultDisplay processResultDisplay, File output,
+      String buttonLabel, AxisID axisID, DialogType dialogType) {
     sendMsgProcessStarting(processResultDisplay);
     if (isAxisBusy(axisID, processResultDisplay)) {
       return;
@@ -6611,6 +6622,9 @@ public final class ApplicationManager extends BaseManager implements
 }
 /**
  * <p> $Log$
+ * <p> Revision 3.331  2009/06/16 22:43:36  sueh
+ * <p> bug# 1221 Factor out gold eraser panel.
+ * <p>
  * <p> Revision 3.330  2009/06/15 20:13:00  sueh
  * <p> bug# 1221 Made beadtrack functionality dialog independant.
  * <p>
