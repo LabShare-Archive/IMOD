@@ -36,6 +36,7 @@ public class JUnitTests {
       Arguments.HEADLESS_TAG, Arguments.SELFTEST_TAG };
 
   public static Test suite() {
+    System.setProperty("java.awt.headless", "true"); 
     EtomoDirector.main(ETOMO_ARGUMENTS);
     TestSuite suite = new TestSuite("Test for etomo");
 
@@ -115,6 +116,9 @@ public class JUnitTests {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.11  2007/12/26 21:57:25  sueh
+ * <p> bug# 1052 Moved argument handling from EtomoDirector to a separate class.
+ * <p>
  * <p> Revision 1.10  2007/12/14 18:51:21  sueh
  * <p> Running system program is not working on windows.
  * <p>
