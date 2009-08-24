@@ -1,5 +1,6 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+8/23/09: IMOD_4-0-13
 8/20/09: Fixed eTomo bug that made it rerun copytomocoms completely
 (overwriting existing com files and their parameters) upon opening the Final
 Aligned Stack panel if the CTF correction com files are not present (In 3.13).
