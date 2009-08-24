@@ -1,6 +1,7 @@
 package etomo;
 
 import java.awt.Dimension;
+import java.awt.GraphicsEnvironment;
 import java.awt.Point;
 import java.io.File;
 import java.io.IOException;
@@ -252,6 +253,8 @@ public class EtomoDirector {
     System.err.println("user.name:  " + System.getProperty("user.name"));
     System.err.println("user.home:  " + System.getProperty("user.home"));
     System.err.println("user.dir:  " + originalUserDir);
+    System.err.println("java.awt.headless:  " + System.getProperty("java.awt.headless"));
+    System.err.println("GraphicsEnvironment.isHeadless()=" + GraphicsEnvironment.isHeadless());
     System.err.println("IMOD version:  " + ImodVersion.CURRENT_VERSION);
     // Get the IMOD calibration directory so we know where to find documentation
     // Check to see if is defined on the command line first with -D
@@ -1092,6 +1095,9 @@ public class EtomoDirector {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.85  2009/06/22 15:32:43  sueh
+ * <p> bug# 1224 Added ImodVersion to the log.
+ * <p>
  * <p> Revision 1.84  2009/06/10 17:21:30  sueh
  * <p> bug# 1202 Added imodBriefHeader.
  * <p>
