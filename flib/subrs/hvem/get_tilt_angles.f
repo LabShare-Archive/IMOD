@@ -13,25 +13,22 @@ c       options FirstTiltAngle, TiltIncrement, TiltFile, and TiltAngles.
 c       If a TiltFile is entered, or if TiltAngles are entered, they 
 c       supercede entries of FirstTiltAngle and TiltIncrement.
 c       !       
-c       $Author$
-c       
-c       $Date$
-c       
-c       $Revision$
-c       
+c       $Id$
 c       $Log$
+c       Revision 3.3  2006/01/26 15:11:43  mast
+c       Added function to read from file
+c
 c       Revision 3.2  2003/10/24 03:35:42  mast
 c       fix problem with reading set of angles with PIP
 c	
 c       Revision 3.1  2003/06/21 00:45:49  mast
 c       New version to use PIP as an option
-c	
 c       
       subroutine get_tilt_angles(nview,nunit,tilt, limtilt, ifpip)
       implicit none
       integer*4 nview, nunit, ifpip, limtilt
       real*4 tilt(*)
-      character*120 filename
+      character*320 filename
       integer*4 nvin, i, ierr, ierr2, numLines, index, ninLine
       real*4 tiltstr, tiltinc
       logical startIncOK
