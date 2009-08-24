@@ -41,6 +41,9 @@ import etomo.util.Montagesize;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.9  2009/03/17 00:46:24  sueh
+ * <p> bug# 1186 Pass managerKey to everything that pops up a dialog.
+ * <p>
  * <p> Revision 1.8  2009/02/13 02:36:47  sueh
  * <p> bug# 1152 Adding frame validation to isValid.  Factoring MRC header
  * <p> reading functionality to readMRCHeader and getStackFileName.
@@ -822,7 +825,7 @@ public final class SetupDialogExpert {
   }
 
   //  View type radio button
-  private void setViewType(ViewType viewType) {
+   void setViewType(ViewType viewType) {
     if (viewType == ViewType.SINGLE_VIEW) {
       dialog.setSingleView(true);
     }
