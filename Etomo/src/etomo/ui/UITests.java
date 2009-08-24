@@ -18,7 +18,11 @@ import etomo.JUnitTests;
 * 
 * @version $Revision$
 * 
-* <p> $Log$ </p>
+* <p> $Log$
+* <p> Revision 1.1  2007/03/03 01:09:39  sueh
+* <p> bug# 973 Unit test suite for etomo.ui.  A lot of gui class functionality can be
+* <p> tested in a headless environment.
+* <p> </p>
 */
 public final class UITests {
   public static  final String  rcsid =  "$Id$";
@@ -30,6 +34,7 @@ public final class UITests {
     TestSuite suite = new TestSuite("Tests:  " + TEST_DIR);
     //$JUnit-BEGIN$
     suite.addTestSuite(RadioTextFieldTest.class);
+    suite.addTestSuite(SetupDialogExpertTest.class);
     //$JUnit-END$
     return suite;
   }
