@@ -160,9 +160,7 @@ public abstract class BaseManager {
     debug = EtomoDirector.INSTANCE.getArguments().isDebug();
     debug = true;
     headless = EtomoDirector.INSTANCE.getArguments().isHeadless();
-    if (!headless) {
-      createMainPanel();
-    }
+    createMainPanel();
     imodManager = new ImodManager(this);
     initProgram();
   }
@@ -1312,6 +1310,11 @@ public abstract class BaseManager {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.118  2009/06/11 16:40:03  sueh
+ * <p> bug# 1221 Sending the process panel to the process function in the
+ * <p> manager wrapped in a ProcessDisplay interface.  Changed
+ * <p> startNextProcess.
+ * <p>
  * <p> Revision 1.117  2009/06/01 18:45:48  sueh
  * <p> Added comment.
  * <p>
