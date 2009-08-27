@@ -1,0 +1,84 @@
+<head>
+<title>Interpolator Plugin Help</title>
+</head>
+<body>
+<h3>Interpolator Plugin Help</h3><br>
+--------------------------<br><br>
+This plugin allows for rapid segmentation of surfaces
+by automatically generating <b>"interpolated"</b> contours between
+the <b>"key"</b> contours which you have manually drawn. 
+Each time you add a new contour, press <i>[Enter]</i> (instead of [n])
+and the program will generate interpolated contours between 
+any connected key contours either side of the contour you have
+just added or modifed.<br>
+Contours are <b>"connected"</b> if they are within <b>"Z Bridge"</b> slices
+of each other and the computer believes they are part of the same surface
+as according to the selected <b>"surface method"</b>.
+The shape of interpolated contours depends on which
+<b>"interpolation type"</b> you have selected.<br>
+<br>
+<br><i>Click here to see a <b>
+<a href='http://www.andrewnoske.com/student/imod.php'>
+video tutorial</a></b></i>
+<br>
+<br>
+<br>
+<b>List of Interpolation Types</b><br>
+--------------------------<br><br>
+<ol>
+<li><b>None</b> - lets you use normal contour drawing behavior.</li>
+<li><b>Linear</b> - generates interpolated contours with straight
+lines between key contours.</li>
+<li><b>Spherical</b> - generates interpolated contours in the profile
+of sphere, and does not deal with branching.</li>
+<li><b>Smooth</b> - generates interpolated contours such they they 
+form a smooth, curved surfaces. </li>
+</ol>
+<br>
+<b>Hot Key Summary</b><br>
+---------------------<br>
+<b>[Enter]</b>&nbsp;&nbsp;&nbsp;
+Interpolate selected contour and start new contour<br>
+<b>[n]</b>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+Start new contour (without interpolating current contour).<br>
+<b>[u]</b>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+Toggle current contour between key/interpolated<br>
+<br>
+<b>[g]</b>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+Find next gap or isolated contour<br>
+<b>[h]</b>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+Find next large hole between key contours (ie. a large region of 
+consecutive interpolated contours)<br>
+<br>
+<br>
+<b>Tips</b><br>
+---------------------<br>
+<br>
+If you are not happy with the shape of interpolated contours you can 
+either undo [apple+u], add/modify more contours, or change the 
+interpolation options and type.
+Select <b>'Clear all Interp'</b> to delete all interpolated contours
+and 'Regenerate Interp' to regenerate all key contours.<br>
+<br>
+All of these interpolation types are intended for use with closed 
+contours and so may give undesirable results for open or 
+scattered point objects which span multiple slices.<br>
+<br>
+Interpolation can become sluggish for objects with numerous contours. 
+To improve performance you should consider adding an extra object and 
+then use <i>'edit > object > move'</i> to merge the contours into the 
+desired object periodically.<br> 
+<br>
+To segment compartments even faster, try using this "Interpolator" 
+plugin in unison with the "Drawing Tools" plugin.<br>
+<br>
+---------------------<br>
+<br>
+This plugin was created by <b>Andrew Noske</b>
+(<u>a.noske@imb.uq.edu.au</u>).<br>
+<i>If you encounter bugs please e-mail me before e-mailing the
+IMOD group (to reduce traffic). <br>
+In your e-mail please tell me exactly how and when the problem
+occurred and attach the model file you were using with
+enough information that I can replicate the error/crash.
+</body>
