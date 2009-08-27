@@ -10,7 +10,7 @@ all : ALWAYS
 #	cd noskecommon    ;    $(MAKE) $@
 	cd beadhelper     ;    $(MAKE) $@
 	cd drawingtools   ;    $(MAKE) $@
-#	cd interpolator   ;    $(MAKE) $@
+	cd interpolator   ;    $(MAKE) $@
 
 install : 
 	cd beadhelper     ;    $(MAKE) $@
@@ -21,7 +21,7 @@ clean : ALWAYS
 #	cd noskecommon    ;    $(MAKE) $@
 	cd beadhelper     ;    $(MAKE) $@
 	cd drawingtools   ;    $(MAKE) $@
-#	cd interpolator   ;    $(MAKE) $@
+	cd interpolator   ;    $(MAKE) $@
 
 ALWAYS:
 
