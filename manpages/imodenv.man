@@ -118,5 +118,9 @@ location of the uitest script
 When running eTomo tests, the location of the uitest.adoc and all
 autodocs it refers to.
 .TP
+.B TILT_MEMORY_LIMIT
+Set this to an integer number of megabytes to get Tilt to allocate more
+memory than the default, which is 800 megabytes.
+.TP
 .B USFFT2_LICENSE_FILE
 Location of license file for USFFT.  Set by IMOD startup scripts.
