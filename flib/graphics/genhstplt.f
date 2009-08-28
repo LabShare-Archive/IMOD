@@ -159,6 +159,9 @@ c
 c	  $Revision$
 c
 c	  $Log$
+c	  Revision 3.4  2005/12/09 04:45:32  mast
+c	  gfortran: .xor., continuation, or byte fixes
+c	
 c	  Revision 3.3  2003/08/29 17:32:56  mast
 c	  Change to use new multithreaded Plax graphics
 c	
@@ -207,9 +210,10 @@ c
      &	    '(or 0 to read as first line before data): '
 	read(5,*)ncol
 c	  
+        nskip = 0
 	write(*,'(1x,a,$)')
      &	    'Number of lines to skip at start of file: '
-	read(5,*)nskip
+	read(5,*,err=10)nskip
 c
 10	call flnam(name,1,'0')
 	close(1)
