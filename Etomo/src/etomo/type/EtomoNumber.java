@@ -18,6 +18,9 @@ import etomo.comscript.FortranInputString;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.21  2008/10/27 18:38:15  sueh
+ * <p> bug# 1141 Added debug only print statements.
+ * <p>
  * <p> Revision 1.20  2008/08/21 00:02:42  sueh
  * <p> bug# 1132 Added multiply.
  * <p>
@@ -178,7 +181,7 @@ public class EtomoNumber extends ConstEtomoNumber {
   }
 
   public void load(Properties props, String prepend) {
-    if (prepend == null) {
+    if (prepend == null || prepend.matches("\\s*")) {
       load(props);
     }
     else {
@@ -192,9 +195,18 @@ public class EtomoNumber extends ConstEtomoNumber {
     }
     set(defaultValue);
   }
+  
+  public boolean isKeyPresent(Properties props, String prepend) {
+    if (props.getProperty(prepend == null || prepend.matches("\\s*") ? name
+        : prepend + "." + name) == null) {
+      return false;
+    }
+    return true;
+  }
 
   public boolean loadIfPresent(Properties props, String prepend) {
-    if (props.getProperty(prepend == null ? name : prepend + "." + name) == null) {
+    if (props.getProperty(prepend == null || prepend.matches("\\s*") ? name
+        : prepend + "." + name) == null) {
       return false;
     }
     load(props, prepend);
@@ -214,7 +226,9 @@ public class EtomoNumber extends ConstEtomoNumber {
    */
   public static EtomoNumber load(EtomoNumber instance, Type type, String name,
       Properties props, String prepend) {
-    String value = props.getProperty(prepend + '.' + name);
+    String value = props
+        .getProperty(prepend == null || prepend.matches("\\s*") ? name
+            : prepend + "." + name);
     if (value == null) {
       return null;
     }
@@ -237,7 +251,9 @@ public class EtomoNumber extends ConstEtomoNumber {
    */
   public static EtomoNumber load(EtomoNumber instance, String name,
       Properties props, String prepend) {
-    String value = props.getProperty(prepend + '.' + name);
+    String value = props
+        .getProperty(prepend == null || prepend.matches("\\s*") ? name
+            : prepend + "." + name);
     if (value == null) {
       return null;
     }
@@ -259,7 +275,7 @@ public class EtomoNumber extends ConstEtomoNumber {
    */
   public EtomoNumber set(String value) {
     if (isDebug()) {
-      System.out.println("value="+value);
+      System.out.println("value=" + value);
     }
     resetInvalidReason();
     if (value == null || value.matches("\\s*")) {
@@ -269,7 +285,8 @@ public class EtomoNumber extends ConstEtomoNumber {
       StringBuffer invalidBuffer = new StringBuffer();
       currentValue = newNumber(value, invalidBuffer);
       if (isDebug()) {
-        System.out.println("currentValue="+currentValue+",invalidBuffer="+invalidBuffer);
+        System.out.println("currentValue=" + currentValue + ",invalidBuffer="
+            + invalidBuffer);
       }
       if (invalidBuffer.length() > 0) {
         if (type == Type.INTEGER && stringArray != null) {
@@ -324,14 +341,14 @@ public class EtomoNumber extends ConstEtomoNumber {
       set(add(getValue(), number.getValue()));
     }
   }
-  
+
   public void add(int i) {
-      set(add(getValue(), newNumber(i)));
+    set(add(getValue(), newNumber(i)));
   }
-  
+
   public void multiply(int i) {
     set(multiply(getValue(), newNumber(i)));
-}
+  }
 
   public EtomoNumber set(int value) {
     return set(newNumber(value));
