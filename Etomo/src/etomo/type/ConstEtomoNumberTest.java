@@ -800,12 +800,7 @@ public final class ConstEtomoNumberTest extends TestCase {
     Double d = new Double(9);
     EtomoNumber test = new EtomoNumber();
     test.set(9);
-    try {
-      test.equals(d);
-      fail("Cannot compare incompatible types");
-    }
-    catch (IllegalStateException e) {
-    }
+    assertTrue("Values should be equal", test.equals(d));
     Integer i = new Integer(9);
     //this is an unfortunate side-effect of storing things in Number
     assertTrue("Values should be equal", test.equals(i));
@@ -1152,24 +1147,9 @@ public final class ConstEtomoNumberTest extends TestCase {
     assertFalse(test.gt(new Integer(smallInteger), new Integer(smallInteger)));
     assertFalse(test.gt(new Integer(smallInteger), new Integer(bigInteger)));
     test.internalTest();
-    //float
     test = new EtomoNumber(EtomoNumber.Type.FLOAT);
-    ///test: validateInputType(Number) is being called against the first
-    ////parameter
-    try {
-      test.gt(new Double(bigDouble), new Float(smallFloat));
-      fail("validateInputType(Number) is not being called against the first parameter");
-    }
-    catch (Exception e) {
-    }
-    ///test: validateInputType(Number) is being called against the second
-    ////parameter
-    try {
-      test.gt(new Float(bigFloat), new Double(smallDouble));
-      fail("validateInputType(Number) is not being called against the second parameter");
-    }
-    catch (Exception e) {
-    }
+    assertTrue("bigDouble is greater then smallFloat", test.gt(new Double(
+        bigDouble), new Float(smallFloat)));
     ///test: gt() is equivalent to ">"
     assertTrue(test.gt(new Float(bigFloat), new Float(smallFloat)));
     assertFalse(test.gt(new Float(smallFloat), new Float(smallFloat)));
@@ -1226,22 +1206,10 @@ public final class ConstEtomoNumberTest extends TestCase {
     test.internalTest();
     //float
     test = new EtomoNumber(EtomoNumber.Type.FLOAT);
-    ///test: validateInputType(Number) is being called against the first
-    ////parameter
-    try {
-      test.lt(new Double(bigDouble), new Float(smallFloat));
-      fail("validateInputType(Number) is not being called against the first parameter");
-    }
-    catch (Exception e) {
-    }
-    ///test: validateInputType(Number) is being called against the second
-    ////parameter
-    try {
-      test.lt(new Float(bigFloat), new Double(smallDouble));
-      fail("validateInputType(Number) is not being called against the second parameter");
-    }
-    catch (Exception e) {
-    }
+    assertFalse("bigDouble is not less then smallFloat", test.lt(new Double(
+        bigDouble), new Float(smallFloat)));
+    assertFalse("bigFloat is not less then smallDouble", test.lt(new Float(
+        bigFloat), new Double(smallDouble)));
     ///test: lt() is equivalent to "<"
     assertFalse(test.lt(new Float(bigFloat), new Float(smallFloat)));
     assertFalse(test.lt(new Float(smallFloat), new Float(smallFloat)));
@@ -1376,6 +1344,9 @@ public final class ConstEtomoNumberTest extends TestCase {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.48  2009/03/17 00:46:15  sueh
+ * <p> bug# 1186 Pass managerKey to everything that pops up a dialog.
+ * <p>
  * <p> Revision 1.47  2009/02/04 23:30:30  sueh
  * <p> bug# 1158 Changed id and exception classes in LogFile.
  * <p>

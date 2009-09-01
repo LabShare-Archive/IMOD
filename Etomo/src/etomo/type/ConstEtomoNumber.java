@@ -37,6 +37,9 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.62  2009/03/17 00:46:15  sueh
+ * <p> bug# 1186 Pass managerKey to everything that pops up a dialog.
+ * <p>
  * <p> Revision 1.61  2009/03/02 20:57:01  sueh
  * <p> bug# 1102 Added le(ConstEtomoNumber) and ge(ConstEtomoNumber).
  * <p>
@@ -992,7 +995,7 @@ public abstract class ConstEtomoNumber implements Storable {
       remove(props, prepend);
       return;
     }
-    if (prepend == null) {
+    if (prepend == null || prepend.matches("\\s*")) {
       store(props);
     }
     else {
@@ -1014,7 +1017,7 @@ public abstract class ConstEtomoNumber implements Storable {
   }
 
   public void remove(Properties props, String prepend) {
-    if (prepend == null) {
+    if (prepend == null || prepend.matches("\\s*")) {
       remove(props);
     }
     else {
@@ -1212,11 +1215,11 @@ public abstract class ConstEtomoNumber implements Storable {
   }
 
   public boolean gt(int value) {
-    return gt(getValue(), newNumber(value));
+    return gt(getValue(), value);
   }
 
   public boolean lt(int value) {
-    return lt(getValue(), newNumber(value));
+    return lt(getValue(), value);
   }
 
   public boolean le(int value) {
@@ -1225,13 +1228,11 @@ public abstract class ConstEtomoNumber implements Storable {
   }
 
   public boolean le(ConstEtomoNumber value) {
-    return lt(getValue(), value.getNumber())
-        || equals(getValue(), value.getNumber());
+    return le(getValue(), value.getNumber());
   }
 
   public boolean ge(ConstEtomoNumber value) {
-    return gt(getValue(), value.getNumber())
-        || equals(getValue(), value.getNumber());
+    return ge(getValue(), value.getNumber());
   }
 
   public boolean gt(ConstEtomoNumber etomoNumber) {
@@ -1249,15 +1250,19 @@ public abstract class ConstEtomoNumber implements Storable {
   }
 
   public boolean equals(int value) {
-    return equals(getValue(), newNumber(value));
+    return equals(getValue(), value);
   }
 
   public boolean equals(long value) {
-    return equals(getValue(), newNumber(value));
+    return equals(getValue(), value);
+  }
+
+  public boolean equals(float value) {
+    return equals(getValue(), value);
   }
 
   public boolean equals(double value) {
-    return equals(getValue(), newNumber(value));
+    return equals(getValue(), value);
   }
 
   /**
@@ -1460,6 +1465,23 @@ public abstract class ConstEtomoNumber implements Storable {
     }
   }
 
+  Number newNumber(Type type, int value) {
+    validateInputType(type, value);
+    if (type == Type.DOUBLE) {
+      return new Double(new Integer(value).doubleValue());
+    }
+    if (type == Type.FLOAT) {
+      return new Float(new Integer(value).floatValue());
+    }
+    if (type == Type.INTEGER) {
+      return new Integer(value);
+    }
+    if (type == Type.LONG) {
+      return new Long(new Integer(value).longValue());
+    }
+    throw new IllegalStateException("type=" + type);
+  }
+
   Number newNumber(int value) {
     validateInputType(value);
     if (type == Type.DOUBLE) {
@@ -1484,6 +1506,26 @@ public abstract class ConstEtomoNumber implements Storable {
     return newNumber(0);
   }
 
+  Number newNumber(Type type, double value) {
+    validateInputType(type, value);
+    if (Double.isNaN(value)) {
+      return newNumber();
+    }
+    if (type == Type.DOUBLE) {
+      return new Double(value);
+    }
+    if (type == Type.FLOAT) {
+      return new Float(new Double(value).floatValue());
+    }
+    if (type == Type.INTEGER) {
+      return new Integer(new Double(value).intValue());
+    }
+    if (type == Type.LONG) {
+      return new Long(new Double(value).longValue());
+    }
+    throw new IllegalStateException("type=" + type);
+  }
+
   Number newNumber(double value) {
     validateInputType(value);
     if (Double.isNaN(value)) {
@@ -1504,6 +1546,26 @@ public abstract class ConstEtomoNumber implements Storable {
     throw new IllegalStateException("type=" + type);
   }
 
+  Number newNumber(Type type, float value) {
+    validateInputType(type, value);
+    if (Double.isNaN(value)) {
+      return newNumber();
+    }
+    if (type == Type.DOUBLE) {
+      return new Double(new Float(value).doubleValue());
+    }
+    if (type == Type.FLOAT) {
+      return new Float(value);
+    }
+    if (type == Type.INTEGER) {
+      return new Integer(new Float(value).intValue());
+    }
+    if (type == Type.LONG) {
+      return new Long(new Float(value).longValue());
+    }
+    throw new IllegalStateException("type=" + type);
+  }
+
   Number newNumber(float value) {
     validateInputType(value);
     if (Double.isNaN(value)) {
@@ -1520,6 +1582,26 @@ public abstract class ConstEtomoNumber implements Storable {
     }
     if (type == Type.LONG) {
       return new Long(new Float(value).longValue());
+    }
+    throw new IllegalStateException("type=" + type);
+  }
+
+  Number newNumber(Type type, long value) {
+    validateInputType(type, value);
+    if (value == LONG_NULL_VALUE) {
+      return newNumber();
+    }
+    if (type == Type.DOUBLE) {
+      return new Double(new Long(value).doubleValue());
+    }
+    if (type == Type.FLOAT) {
+      return new Float(new Long(value).floatValue());
+    }
+    if (type == Type.INTEGER) {
+      return new Integer(new Long(value).intValue());
+    }
+    if (type == Type.LONG) {
+      return new Long(value);
     }
     throw new IllegalStateException("type=" + type);
   }
@@ -1571,63 +1653,98 @@ public abstract class ConstEtomoNumber implements Storable {
     if (isNull(number) || isNull(compValue)) {
       return false;
     }
-    validateInputType(number);
-    validateInputType(compValue);
-    if (type == Type.DOUBLE) {
-      return number.doubleValue() > compValue.doubleValue();
-    }
-    if (type == Type.FLOAT) {
-      return number.floatValue() > compValue.floatValue();
-    }
-    if (type == Type.INTEGER) {
-      return number.intValue() > compValue.intValue();
-    }
-    if (type == Type.LONG) {
+    //Compare as largest possible size.  Don't convert ints or longs to doubles.
+    boolean firstNumberDouble = number instanceof Float
+        || number instanceof Double;
+    boolean secondNumberDouble = compValue instanceof Float
+        || compValue instanceof Double;
+    if (!firstNumberDouble && !secondNumberDouble) {
       return number.longValue() > compValue.longValue();
     }
-    throw new IllegalStateException("type=" + type);
+    if (!firstNumberDouble && secondNumberDouble) {
+      return number.longValue() > compValue.doubleValue();
+    }
+    return number.doubleValue() > compValue.doubleValue();
+  }
+
+  boolean gt(Number number, int value) {
+    if (isNull(number) || value == INTEGER_NULL_VALUE) {
+      return false;
+    }
+    //Compare as largest possible size.  Don't convert ints or longs to doubles.
+    boolean firstNumberDouble = number instanceof Float
+        || number instanceof Double;
+    if (!firstNumberDouble) {
+      return number.longValue() > value;
+    }
+    return number.doubleValue() > value;
   }
 
   boolean ge(Number number, Number compValue) {
     if (isNull(number) || isNull(compValue)) {
       return false;
     }
-    validateInputType(number);
-    validateInputType(compValue);
-    if (type == Type.DOUBLE) {
-      return number.doubleValue() >= compValue.doubleValue();
-    }
-    if (type == Type.FLOAT) {
-      return number.floatValue() >= compValue.floatValue();
-    }
-    if (type == Type.INTEGER) {
-      return number.intValue() >= compValue.intValue();
-    }
-    if (type == Type.LONG) {
+    //Compare as largest possible size.  Don't convert ints or longs to doubles.
+    boolean firstNumberDouble = number instanceof Float
+        || number instanceof Double;
+    boolean secondNumberDouble = compValue instanceof Float
+        || compValue instanceof Double;
+    if (!firstNumberDouble && !secondNumberDouble) {
       return number.longValue() >= compValue.longValue();
     }
-    throw new IllegalStateException("type=" + type);
+    if (!firstNumberDouble && secondNumberDouble) {
+      return number.longValue() >= compValue.doubleValue();
+    }
+    return number.doubleValue() >= compValue.doubleValue();
   }
 
   boolean lt(Number number, Number compValue) {
     if (isNull(number) || isNull(compValue)) {
       return false;
     }
-    validateInputType(number);
-    validateInputType(compValue);
-    if (type == Type.DOUBLE) {
-      return number.doubleValue() < compValue.doubleValue();
-    }
-    if (type == Type.FLOAT) {
-      return number.floatValue() < compValue.floatValue();
-    }
-    if (type == Type.INTEGER) {
-      return number.intValue() < compValue.intValue();
-    }
-    if (type == Type.LONG) {
+    //Compare as largest possible size.  Don't convert ints or longs to doubles.
+    boolean firstNumberDouble = number instanceof Float
+        || number instanceof Double;
+    boolean secondNumberDouble = compValue instanceof Float
+        || compValue instanceof Double;
+    if (!firstNumberDouble && !secondNumberDouble) {
       return number.longValue() < compValue.longValue();
     }
-    throw new IllegalStateException("type=" + type);
+    if (!firstNumberDouble && secondNumberDouble) {
+      return number.longValue() < compValue.doubleValue();
+    }
+    return number.doubleValue() < compValue.doubleValue();
+  }
+
+  boolean le(Number number, Number compValue) {
+    if (isNull(number) || isNull(compValue)) {
+      return false;
+    }
+    //Compare as largest possible size.  Don't convert ints or longs to doubles.
+    boolean firstNumberDouble = number instanceof Float
+        || number instanceof Double;
+    boolean secondNumberDouble = compValue instanceof Float
+        || compValue instanceof Double;
+    if (!firstNumberDouble && !secondNumberDouble) {
+      return number.longValue() <= compValue.longValue();
+    }
+    if (!firstNumberDouble && secondNumberDouble) {
+      return number.longValue() <= compValue.doubleValue();
+    }
+    return number.doubleValue() <= compValue.doubleValue();
+  }
+
+  boolean lt(Number number, int value) {
+    if (isNull(number) || value == INTEGER_NULL_VALUE) {
+      return false;
+    }
+    //Compare as largest possible size.  Don't convert ints or longs to doubles.
+    boolean firstNumberDouble = number instanceof Float
+        || number instanceof Double;
+    if (!firstNumberDouble) {
+      return number.longValue() < value;
+    }
+    return number.doubleValue() < value;
   }
 
   boolean equals(Number number, Number compValue) {
@@ -1637,21 +1754,82 @@ public abstract class ConstEtomoNumber implements Storable {
     if (isNull(number) || isNull(compValue)) {
       return false;
     }
-    validateInputType(number);
-    validateInputType(compValue);
-    if (type == Type.DOUBLE) {
-      return number.doubleValue() == compValue.doubleValue();
-    }
-    if (type == Type.FLOAT) {
-      return number.floatValue() == compValue.floatValue();
-    }
-    if (type == Type.INTEGER) {
-      return number.intValue() == compValue.intValue();
-    }
-    if (type == Type.LONG) {
+    //Compare as largest possible size.  Don't convert ints or longs to doubles.
+    boolean firstNumberDouble = number instanceof Float
+        || number instanceof Double;
+    boolean secondNumberDouble = compValue instanceof Float
+        || compValue instanceof Double;
+    if (!firstNumberDouble && !secondNumberDouble) {
       return number.longValue() == compValue.longValue();
     }
-    throw new IllegalStateException("type=" + type);
+    if (!firstNumberDouble && secondNumberDouble) {
+      return number.longValue() == compValue.doubleValue();
+    }
+    return number.doubleValue() == compValue.doubleValue();
+  }
+
+  boolean equals(Number number, int value) {
+    if (isNull(number) && value == INTEGER_NULL_VALUE) {
+      return true;
+    }
+    if (isNull(number) || value == INTEGER_NULL_VALUE) {
+      return false;
+    }
+    //Compare as largest possible size.  Don't convert ints or longs to doubles.
+    boolean firstNumberDouble = number instanceof Float
+        || number instanceof Double;
+    if (!firstNumberDouble) {
+      return number.longValue() == value;
+    }
+    return number.doubleValue() == value;
+  }
+
+  boolean equals(Number number, long value) {
+    if (isNull(number) && value == LONG_NULL_VALUE) {
+      return true;
+    }
+    if (isNull(number) || value == LONG_NULL_VALUE) {
+      return false;
+    }
+    //Compare as largest possible size.  Don't convert ints or longs to doubles.
+    boolean firstNumberDouble = number instanceof Float
+        || number instanceof Double;
+    if (!firstNumberDouble) {
+      return number.longValue() == value;
+    }
+    return number.doubleValue() == value;
+  }
+
+  boolean equals(Number number, float value) {
+    if (isNull(number) && value == FLOAT_NULL_VALUE) {
+      return true;
+    }
+    if (isNull(number) || value == FLOAT_NULL_VALUE) {
+      return false;
+    }
+    //Compare as largest possible size.  Don't convert ints or longs to doubles.
+    boolean firstNumberDouble = number instanceof Float
+        || number instanceof Double;
+    if (!firstNumberDouble) {
+      return number.longValue() == value;
+    }
+    return number.doubleValue() == value;
+  }
+
+  boolean equals(Number number, double value) {
+    if (isNull(number) && value == DOUBLE_NULL_VALUE) {
+      return true;
+    }
+    if (isNull(number) || value == DOUBLE_NULL_VALUE) {
+      return false;
+    }
+    //Compare as largest possible size.  Don't convert ints or longs to doubles.
+    boolean firstNumberDouble = number instanceof Float
+        || number instanceof Double;
+    if (!firstNumberDouble) {
+      return number.longValue() == value;
+    }
+    return number.doubleValue() == value;
   }
 
   Number add(Number number1, Number number2) {
@@ -1792,11 +1970,26 @@ public abstract class ConstEtomoNumber implements Storable {
     }
   }
 
+  private void validateInputType(Type type, int input) {
+  }
+
   /**
    * Validation to avoid data corruption.  Currently nothing to do
    * @param input
    */
   private void validateInputType(int input) {
+  }
+
+  /**
+   * Validation to avoid data corruption
+   * @param input
+   */
+  private void validateInputType(Type type, float input) {
+    if (type != Type.FLOAT && type != Type.DOUBLE) {
+      throw new IllegalStateException(
+          "Cannot place a float into anything but a Double or Float.  Type="
+              + type);
+    }
   }
 
   /**
@@ -1815,10 +2008,33 @@ public abstract class ConstEtomoNumber implements Storable {
    * Validation to avoid data corruption
    * @param input
    */
+  private void validateInputType(Type type, double input) {
+    if (type != Type.DOUBLE) {
+      throw new IllegalStateException(
+          "Cannot place a double into anything but a Double.  Type=" + type);
+    }
+  }
+
+  /**
+   * Validation to avoid data corruption
+   * @param input
+   */
   private void validateInputType(double input) {
     if (type != Type.DOUBLE) {
       throw new IllegalStateException(
           "Cannot place a double into anything but a Double.  Type=" + type);
+    }
+  }
+
+  /**
+   * Validation to avoid data corruption
+   * @param input
+   */
+  private void validateInputType(Type type, long input) {
+    if (type != Type.DOUBLE && type != Type.LONG) {
+      throw new IllegalStateException(
+          "Cannot place a long into anything but a Double or Long.  Type="
+              + type);
     }
   }
 
