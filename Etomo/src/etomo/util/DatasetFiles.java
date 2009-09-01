@@ -61,8 +61,8 @@ public final class DatasetFiles {
   public static final String CTF_PLOTTER_EXT = ".defocus";
   public static final String SIMPLE_DEFOCUS_EXT = "_simple" + CTF_PLOTTER_EXT;
   public static final String CTF_CORRECTION_EXT = "_ctfcorr" + FULL_ALIGNED_EXT;
-  private static final String FIDUCIAL_MODEL_EXT = ".fid";
-  private static final String ERASE_EXT = "_erase";
+  public static final String FIDUCIAL_MODEL_EXT = ".fid";
+  public static final String ERASE_EXT = "_erase";
   private static final String FLATTEN_WARP_EXT = "_flat";
   private static final String XF_EXT = ".xf";
 
@@ -208,14 +208,6 @@ public final class DatasetFiles {
   public static File getFlattenWarpOutputFile(BaseManager manager) {
     return new File(manager.getPropertyUserDir(),
         getFlattenWarpOutputName(manager));
-  }
-
-  public static String getEraseFiducialsModelName(BaseManager manager,
-      AxisID axisID) {
-    BaseMetaData metaData = manager.getBaseMetaData();
-    axisID = correctAxisID(metaData, axisID);
-    return metaData.getName() + axisID.getExtension() + ERASE_EXT
-        + FIDUCIAL_MODEL_EXT;
   }
 
   public static String getPrealignedStackName(BaseManager manager, AxisID axisID) {
@@ -562,6 +554,11 @@ public final class DatasetFiles {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.51  2009/06/05 02:20:46  sueh
+ * <p> bug# 1219 Added FLATTEN_WARP_EXT, XF_EXT,
+ * <p> getFlattenWarpInputName, getFlattenWarpOutputFile, and
+ * <p> getFlattenWarpOutputName.  Removed getTrimmedTomogram.
+ * <p>
  * <p> Revision 1.50  2009/05/02 01:14:21  sueh
  * <p> bug# 1216 Added getPrealignedStackName, getRaptorFiducialModel, and
  * <p> getRaptorFiducialModelName.
