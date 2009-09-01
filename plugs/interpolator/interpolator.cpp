@@ -15,6 +15,9 @@
     $Revision$
 
     $Log$
+    Revision 1.1  2009/08/27 11:20:39  tempuser
+    First upload of interpolator
+
     Revision 0.0  2004/11/20 15:45:41  mast
     Made special module to be used in IMOD
 
@@ -1733,32 +1736,32 @@ findMiddleNextLargeInterpolatedSpan( Iobj *_obj, int _contIdx, int minSpanSize )
     interpConts.resize(0);
     interpConts.push_back(cIdxI);
     conti[cIdxI].checked = 1;
-    int i, cIdxPrev;
+    int j, cIdxPrev;
     
     for(int z=contZ+1; z<plug.zsize; z++)  // for each slice above current contour:
     {
-      for(i=0; i<numIntContsAtZ(z); i++)  // for each key contour at this z:
+      for(j=0; j<numIntContsAtZ(z); j++)  // for each key contour at this z:
       {
-        int cIdx = idxIntContZ(z,i);
-        if ( conti[cIdx].checked == 0
-             && contoursSameSurf(cIdx,cIdxI) )	{ // if belongs to same surface:
-          interpConts.push_back( cIdx );
-          conti[cIdx].checked = 1;
+        int cIdxJ = idxIntContZ(z,j);
+        if ( conti[cIdxJ].checked == 0
+             && contoursSameSurf(cIdxJ,cIdxI) )	{ // if belongs to same surface:
+          interpConts.push_back( cIdxJ );
+          conti[cIdxJ].checked = 1;
           break;
         }
       }
-      if(i==numIntContsAtZ(z))     // if no connected cont found at this z: break
+      if(j==numIntContsAtZ(z))     // if no connected cont found at this z: break
         break;
     }
     for(int z=contZ-1; z>=0; z--)           // for each slice below current contour:
     {
-      for(i=0; i<numIntContsAtZ(z); i++)  // for each key contour at this z:
+      for(j=0; j<numIntContsAtZ(z); j++)  // for each key contour at this z:
       {
-        int cIdx = idxIntContZ(z,i);
-        if ( conti[cIdx].checked == 0
-             && contoursSameSurf(cIdx,cIdxI) )	{ // if belongs to same surface:
-          interpConts.insert( interpConts.begin(), cIdx );
-          conti[cIdx].checked = 1;
+        int cIdxJ = idxIntContZ(z,j);
+        if ( conti[cIdxJ].checked == 0
+             && contoursSameSurf(cIdxJ,cIdxI) )	{ // if belongs to same surface:
+          interpConts.insert( interpConts.begin(), cIdxJ );
+          conti[cIdxJ].checked = 1;
           break;
         }
       }
