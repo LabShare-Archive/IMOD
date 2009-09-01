@@ -29,8 +29,14 @@ wait.process.ccd-eraser = done
 assert.exists.file = align%{axis}.com
 assert.exists.file = eraser%{axis}.com
 assert.exists.file = mtffilter%{axis}.com
-assert.exists.file = newst%{axis}.com
-assert.exists.file = prenewst%{axis}.com
+[[ifnot = montage]]
+	assert.exists.file = newst%{axis}.com
+	assert.exists.file = prenewst%{axis}.com
+[[]]
+[[if = montage]]
+	assert.exists.file = blend%{axis}.com
+	assert.exists.file = preblend%{axis}.com
+[[]]
 assert.exists.file = sample%{axis}.com
 assert.exists.file = tilt%{axis}.com
 assert.exists.file = tomopitch%{axis}.com
@@ -46,7 +52,7 @@ assert.tf.difference-criterion = 8.
 assert.cb.automatic-x-ray-replacement = 1
 assert.tf.grow-criterion = 4.
 assert.tf.edge-exclusion = 4
-assert.tf.maximum-radius = 2.1
+assert.tf.maximum-radius=%{maximum-radius}
 assert.tf.annulus-width = 2.0
 assert.tf.xy-scan-size = 100
 assert.tf.scan-criterion = 3.
