@@ -131,9 +131,6 @@ assert.enabled.bn.create-com-scripts =
 
 [function = assert-unchanged-fields]
 assert.tf.backup-directory =
-# type
-assert.rb.single-frame = on
-assert.rb.montage = off
 # data
 assert.bn.scan-header = 0
 assert.cb.parallel-processing = on
@@ -189,7 +186,6 @@ assert.disabled.tf.increment =
 assert.enabled.rb.tilt-angles-in-existing-rawtlt-file = 
 assert.enabled.tf.exclude-views = 
 assert.enabled.bn.view-raw-image-stack = 
-assert.disabled.cb.focus-was-adjusted-between-montage-frames =
 # done buttons
 assert.enabled.bn.cancel = 
 assert.enabled.bn.use-existing-coms = 
