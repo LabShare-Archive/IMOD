@@ -17,6 +17,9 @@ import etomo.util.DatasetFiles;
  * @version $$Revision$$
  *
  * <p> $$Log$
+ * <p> $Revision 1.22  2009/05/22 21:26:21  sueh
+ * <p> $bug# 1216 Added runraptor to getInstance.
+ * <p> $
  * <p> $Revision 1.21  2009/05/02 01:11:42  sueh
  * <p> $bug# 1216 Added runraptor.
  * <p> $
@@ -147,6 +150,12 @@ public class ProcessName {
   private static final String runraptor ="runraptor";
   private static final String flattenwarp = "flattenwarp";
   private static final String flatten = "flatten";
+  private static final String newst_3dfind = "newst_3dfind";
+  private static final String blend_3dfind = "blend_3dfind";
+  private static final String tilt_3dfind = "tilt_3dfind";
+  private static final String findbeads3d = "findbeads3d";
+  private static final String tilt_3dfind_reproject = "tilt_3dfind_reproject";
+  private static final String midas = "midas";
 
   private final String name;
 
@@ -208,6 +217,12 @@ public class ProcessName {
   public static final ProcessName RUNRAPTOR = new ProcessName(runraptor);
   public static final ProcessName FLATTEN_WARP = new ProcessName(flattenwarp);
   public static final ProcessName FLATTEN = new ProcessName(flatten);
+  public static final ProcessName NEWST_3D_FIND = new ProcessName(newst_3dfind);
+  public static final ProcessName BLEND_3D_FIND = new ProcessName(blend_3dfind);
+  public static final ProcessName TILT_3D_FIND = new ProcessName(tilt_3dfind);
+  public static final ProcessName FIND_BEADS_3D = new ProcessName(findbeads3d);
+  public static final ProcessName TILT_3D_FIND_REPROJECT = new ProcessName(tilt_3dfind_reproject);
+  public static final ProcessName MIDAS = new ProcessName(midas);
 
   /**
    * Returns a string representation of the object.
@@ -299,7 +314,7 @@ public class ProcessName {
    * static object.  The string is case insensitive.  Null is returned if the
    * string is not one of the known process names.
    */
-  private static ProcessName getInstance(String name) {
+  public static ProcessName getInstance(String name) {
     if (name == null) {
       return null;
     }
@@ -462,6 +477,24 @@ public class ProcessName {
     }
     if (name.compareToIgnoreCase(flatten) == 0) {
       return FLATTEN;
+    }
+    if (name.compareToIgnoreCase(newst_3dfind) == 0) {
+      return NEWST_3D_FIND;
+    }
+    if (name.compareToIgnoreCase(blend_3dfind) == 0) {
+      return BLEND_3D_FIND;
+    }
+    if (name.compareToIgnoreCase(tilt_3dfind) == 0) {
+      return TILT_3D_FIND;
+    }
+    if (name.compareToIgnoreCase(findbeads3d) == 0) {
+      return FIND_BEADS_3D;
+    }
+    if (name.compareToIgnoreCase(tilt_3dfind_reproject) == 0) {
+      return TILT_3D_FIND_REPROJECT;
+    }
+    if (name.compareToIgnoreCase(midas) == 0) {
+      return MIDAS;
     }
     return null;
   }
