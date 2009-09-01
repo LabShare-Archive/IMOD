@@ -1,4 +1,4 @@
-all: single dual join single-montage join-test-processes single-test-gui dual-test-gui single-fidless nad
+all: single dual join single-montage dual-montage join-test-processes single-test-gui dual-test-gui single-montage-test-gui dual-montage-test-gui single-fidless nad
 
 single: dummy
 	$(IMOD_UITEST_SCRIPT)/uitest single
@@ -16,6 +16,10 @@ single-test-gui: dummy
 	$(IMOD_UITEST_SCRIPT)/uitest single-test-gui
 dual-test-gui: dummy
 	$(IMOD_UITEST_SCRIPT)/uitest dual-test-gui
+single-montage-test-gui: dummy
+	$(IMOD_UITEST_SCRIPT)/uitest single-montage-test-gui
+dual-montage-test-gui: dummy
+	$(IMOD_UITEST_SCRIPT)/uitest dual-montage-test-gui
 single-fidless: dummy
 	$(IMOD_UITEST_SCRIPT)/uitest single-fidless
 nad: dummy
