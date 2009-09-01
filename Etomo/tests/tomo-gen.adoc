@@ -1,5 +1,227 @@
 Version = 1.2
 
+[function = main]
+run.function.tilt=
+bn.done=
+[[if = test-gui]]
+	wait.popup.etomo-question=Yes
+[[]]
+
+
+[function = tilt]
+# Different name output file with single axis:  dataset_full.rec
+set.var.tomo-ext=
+if.var.single.set.var.tomo-ext=_full
+mb.tilt=+
+[[if = test-gui]]
+	if.not.var.keep-dataset-dir.set.var.test-values=
+	return.var.test-values=
+[[]]
+[[if = test-values]]
+	# check values
+	assert.cb.parallel-processing=on
+	assert.tf.tomogram-thickness-in-z=%{tomogram-thickness-in-z}
+	assert.tf.x-axis-tilt=%{x-axis-tilt}
+	assert.tf.radial-filter-cutoff=0.35
+	assert.tf.falloff=0.05
+	assert.cb.use-local-alignments=on
+	assert.cb.use-z-factors=on
+	assert.bn.generate-tomogram=off
+	mb.tilt.1=A
+	assert.tf.log-offset=0.0
+	assert.tf.output-density-scaling-factor=1000.0
+	assert.tf.offset=0.0
+	assert.tf.tomogram-width-in-x=
+	assert.tf.first-slice=
+	assert.tf.last-slice=
+	assert.tf.slice-step-in-y=
+	assert.tf.x-shift=0.0
+	assert.tf.z-shift=0.0
+	assert.tf.tilt-angle-offset=0.0
+	assert.tf.extra-views-to-exclude=
+	mb.tilt.1=B
+[[]]
+[[if = test-gui]]
+	# check enabled/disabled
+	mb.tilt.1=B
+	assert.enabled.cb.parallel-processing=
+	assert.enabled.tf.tomogram-thickness-in-z=
+	assert.enabled.tf.x-axis-tilt=
+	assert.enabled.tf.radial-filter-cutoff=
+	assert.enabled.tf.falloff=
+	assert.enabled.cb.use-local-alignments=
+	assert.enabled.cb.use-z-factors=
+	assert.enabled.bn.generate-tomogram=
+	assert.enabled.bn.view-tomogram-in-3dmod=
+	assert.enabled.bn.delete-aligned-image-stack=
+	mb.tilt.1=A
+	assert.enabled.tf.log-offset=
+	assert.enabled.tf.output-density-scaling-factor=
+	assert.enabled.tf.offset=
+	assert.enabled.tf.tomogram-width-in-x=
+	assert.enabled.tf.first-slice=
+	assert.enabled.tf.last-slice=
+	assert.enabled.tf.slice-step-in-y=
+	assert.enabled.tf.x-shift=
+	assert.enabled.tf.z-shift=
+	assert.enabled.tf.tilt-angle-offset=
+	assert.enabled.tf.extra-views-to-exclude=
+	mb.tilt.1=B
+	# test trial tilt
+	run.function.trial-tilt=
+	# run with parallel processing
+	cb.parallel-processing=on
+	bn.generate-tomogram=
+	wait.process.processchunks-tilt%{axis}=done
+	# check files
+	assert.exists.file=tilt%{axis}.com
+	assert.exists.file=tilt%{axis}-start.com
+	assert.exists.file=tilt%{axis}-finish.com
+	assert.exists.file=tilt%{axis}.log
+	assert.exists.file=tilt%{axis}-start.log
+	assert.exists.file=tilt%{axis}-finish.log
+	assert.exists.file=processchunks%{axis}.csh
+	assert.exists.file=processchunks%{axis}.out
+	assert.exists.file=%{dataset}%{tomo-ext}%{axis}.rec
+	# check comscript
+	assert.equals.file=tilt%{axis}.com
+	# run again without parallel processing
+	cb.parallel-processing=off
+	bn.generate-tomogram=
+	wait.process.calculating-tomogram=done
+	# check files
+	assert.exists.file=tilt%{axis}.log~
+	assert.exists.file=%{dataset}%{tomo-ext}%{axis}.rec~
+	
+	assert.exists.file=tilt%{axis}.com
+	assert.exists.file=tilt%{axis}.log
+	assert.exists.file=%{dataset}%{tomo-ext}%{axis}.rec
+	# run again without parallel processing
+	bn.generate-tomogram=
+	wait.process.calculating-tomogram=done
+	# check files
+	assert.exists.file=tilt%{axis}.log~
+	assert.exists.file=%{dataset}%{tomo-ext}%{axis}.rec~
+	
+	assert.exists.file=tilt%{axis}.com
+	assert.exists.file=tilt%{axis}.log
+	assert.exists.file=%{dataset}%{tomo-ext}%{axis}.rec
+[[]]
+# run agains with parallel processing
+cb.parallel-processing=on
+bn.generate-tomogram=
+wait.process.processchunks-tilt%{axis}=done
+[[if = test-gui]]
+	# check files
+	assert.exists.file=tilt%{axis}.log~
+	assert.exists.file=tilt%{axis}-start.log~
+	assert.exists.file=tilt%{axis}-finish.log~
+	assert.exists.file=processchunks%{axis}.out~
+	assert.exists.file=%{dataset}%{tomo-ext}%{axis}.rec~
+	
+	assert.exists.file=tilt%{axis}.com
+	assert.exists.file=tilt%{axis}-start.com
+	assert.exists.file=tilt%{axis}-finish.com
+	assert.exists.file=tilt%{axis}.log
+	assert.exists.file=tilt%{axis}-start.log
+	assert.exists.file=tilt%{axis}-finish.log
+	assert.exists.file=processchunks%{axis}.csh
+	assert.exists.file=processchunks%{axis}.out
+	assert.exists.file=%{dataset}%{tomo-ext}%{axis}.rec
+	# run 3dmod
+	bn.view-tomogram-in-3dmod=
+	# check values
+	assert.bn.generate-tomogram=on
+[[]]
+# clean up
+bn.delete-aligned-image-stack=
+
+
+[function = trial-tilt]
+mb.tilt.1=A
+mb.trial-tilt=+
+[[ifnot = keep-dataset-dir]]
+	# check values
+	assert.cbb.trial-tomogram-filename=
+[[]]
+# check enabled/disabled
+assert.enabled.cbb.trial-tomogram-filename=
+assert.enabled.bn.generate-trial-tomogram=
+assert.enabled.bn.view-trial-in-3dmod=
+assert.enabled.bn.use-current-trial-tomogram=
+# run with parallel processing
+cb.parallel-processing=on
+cbb.trial-tomogram-filename=trial
+bn.generate-trial-tomogram=
+wait.process.processchunks-tilt%{axis}=done
+# check files
+assert.exists.file=tilt%{axis}.com
+assert.exists.file=tilt%{axis}-start.com
+assert.exists.file=tilt%{axis}-finish.com
+assert.exists.file=tilt%{axis}.log
+assert.exists.file=tilt%{axis}-start.log
+assert.exists.file=tilt%{axis}-finish.log
+assert.exists.file=processchunks%{axis}.csh
+assert.exists.file=processchunks%{axis}.out
+assert.exists.file=trial
+# run again without parallel processing
+cb.parallel-processing=off
+cbb.trial-tomogram-filename=trial
+bn.generate-trial-tomogram=
+wait.process.calculating-tomogram=done
+# check files
+assert.exists.file=tilt%{axis}.log~
+assert.exists.file=trial~
+
+assert.exists.file=tilt%{axis}.com
+assert.exists.file=tilt%{axis}.log
+assert.exists.file=trial
+# run again without parallel processing
+bn.generate-trial-tomogram=
+wait.process.calculating-tomogram=done
+# check files
+assert.exists.file=tilt%{axis}.log~
+assert.exists.file=trial~
+
+assert.exists.file=tilt%{axis}.com
+assert.exists.file=tilt%{axis}.log
+assert.exists.file=trial
+# run again with parallel processing
+cb.parallel-processing=on
+bn.generate-trial-tomogram=
+wait.process.processchunks-tilt%{axis}=done
+# check files
+assert.exists.file=tilt%{axis}.log~
+assert.exists.file=tilt%{axis}-start.log~
+assert.exists.file=tilt%{axis}-finish.log~
+assert.exists.file=processchunks%{axis}.out~
+assert.exists.file=trial~
+
+assert.exists.file=tilt%{axis}.com
+assert.exists.file=tilt%{axis}-start.com
+assert.exists.file=tilt%{axis}-finish.com
+assert.exists.file=tilt%{axis}.log
+assert.exists.file=tilt%{axis}-start.log
+assert.exists.file=tilt%{axis}-finish.log
+assert.exists.file=processchunks%{axis}.csh
+assert.exists.file=processchunks%{axis}.out
+assert.exists.file=trial
+# run 3dmod
+bn.view-trial-in-3dmod=
+# use
+bn.use-current-trial-tomogram=
+# check files
+assert.not-exists.file=trial
+assert.exists.file=%{dataset}%{tomo-ext}%{axis}.rec
+# check values
+assert.bn.use-current-trial-tomogram=on
+#
+mb.trial-tilt=-
+mb.tilt.1=B
+
+
+
+#not used
 [function = build]
 cb.parallel-processing = on
 mb.parallel-processing = +
@@ -27,5 +249,5 @@ wait.process.processchunks-tilt%{axis} = done
 	assert.exists.file = tilt%{axis}-finish.log~
 	#assert.exists.file = tilt%{axis}-start.log~
 [[]]
-bn.delete-aligned-image-stack =
+bn.delete-aligned-image-stack=
 bn.done =
