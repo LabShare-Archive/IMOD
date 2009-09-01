@@ -13,7 +13,10 @@ package etomo.type;
  * 
  * @version $Revision$
  * 
- * <p> $Log$ </p>
+ * <p> $Log$
+ * <p> Revision 1.1  2009/01/20 19:42:26  sueh
+ * <p> bug# 1102 Was UITestField.
+ * <p> </p>
  */
 
 public final class UITestFieldType {
@@ -22,6 +25,7 @@ public final class UITestFieldType {
   public static final UITestFieldType CHECK_BOX = new UITestFieldType("cb");
   public static final UITestFieldType CHECK_BOX_MENU_ITEM = new UITestFieldType(
       "cbmn");
+  public static final UITestFieldType COMBO_BOX = new UITestFieldType("cbb");
   public static final UITestFieldType MENU_ITEM = new UITestFieldType("mn");
   public static final UITestFieldType MINI_BUTTON = new UITestFieldType("mb");
   public static final UITestFieldType PANEL = new UITestFieldType("pnl");
@@ -45,6 +49,9 @@ public final class UITestFieldType {
     }
     if (string.equals(CHECK_BOX.toString())) {
       return CHECK_BOX;
+    }
+    if (string.equals(COMBO_BOX.toString())) {
+      return COMBO_BOX;
     }
     if (string.equals(MENU_ITEM.toString())) {
       return MENU_ITEM;
