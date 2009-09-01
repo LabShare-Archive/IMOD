@@ -92,7 +92,7 @@ public interface ProcessResultDisplay {
 
   /**
    * Add successDisplay to the successDisplayList member variable.  Displays in
-   * SuccessDisplayList will be turned on when the instance fails.
+   * SuccessDisplayList will be turned on when the instance succeeds.
    * @param successDisplay
    */
   public void addSuccessDisplay(ProcessResultDisplay successDisplay);
@@ -111,6 +111,10 @@ public interface ProcessResultDisplay {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.6  2007/09/10 20:33:10  sueh
+ * <p> bug# 925 Removed lazy initialization for ProcessResultDisplay so initialized is
+ * <p> no longer needed.
+ * <p>
  * <p> Revision 1.5  2006/07/26 16:36:45  sueh
  * <p> bug# 868 Added msg(ProcessResult)
  * <p>
