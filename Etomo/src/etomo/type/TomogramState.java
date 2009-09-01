@@ -25,6 +25,9 @@ import etomo.util.MRCHeader;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.36  2009/03/17 00:46:15  sueh
+ * <p> bug# 1186 Pass managerKey to everything that pops up a dialog.
+ * <p>
  * <p> Revision 1.35  2009/02/13 02:32:40  sueh
  * <p> bug# 1176 Checking return value of MRCHeader.read.
  * <p>
@@ -176,6 +179,9 @@ public class TomogramState extends BaseState {
   private static final String B_AXIS_KEY = "B";
   private static final String TOMOGRAM_SIZE_KEY = "tomogramSize";
 
+  //Dialog keys
+  private static final String STACK_KEY = "Stack";
+
   EtomoState trimvolFlipped = new EtomoState("TrimvolFlipped");
   EtomoState squeezevolFlipped = new EtomoState("SqueezevolFlipped");
   EtomoState madeZFactorsA = new EtomoState("MadeZFactors" + A_AXIS_KEY);
@@ -271,6 +277,26 @@ public class TomogramState extends BaseState {
       DialogType.POST_PROCESSING.getStorableName() + ".TrimVol.Input.NRows");
   private final EtomoNumber postProcTrimVolInputNSections = new EtomoNumber(
       DialogType.POST_PROCESSING.getStorableName() + ".TrimVol.Input.NSections");
+  private final EtomoBoolean2 stackUseLinearInterpolationA = new EtomoBoolean2(
+      STACK_KEY + "." + A_AXIS_KEY + ".UseLinearInterpolation");
+  private final EtomoBoolean2 stackUseLinearInterpolationB = new EtomoBoolean2(
+      STACK_KEY + "." + B_AXIS_KEY + ".UseLinearInterpolation");
+  private final StringProperty stackUserSizeToOutputInXandYA = new StringProperty(
+      STACK_KEY + "." + A_AXIS_KEY + ".SizeToOutputInXandY");
+  private final StringProperty stackUserSizeToOutputInXandYB = new StringProperty(
+      STACK_KEY + "." + B_AXIS_KEY + ".SizeToOutputInXandY");
+  private final EtomoNumber stackImageRotationA = new EtomoNumber(STACK_KEY
+      + "." + A_AXIS_KEY + ".ImageRotation");
+  private final EtomoNumber stackImageRotationB = new EtomoNumber(STACK_KEY
+      + "." + B_AXIS_KEY + ".ImageRotation");
+  private final EtomoNumber trackLightBeadsA = new EtomoNumber(
+      "Track.A.LightBeads");
+  private final EtomoNumber trackLightBeadsB = new EtomoNumber(
+      "Track.B.LightBeads");
+  private final EtomoBoolean2 stackUsingNewstOrBlend3dFindOutputA = new EtomoBoolean2(
+      "Track.A.UsingNewstOrBlend3dFindOutput");
+  private final EtomoBoolean2 stackUsingNewstOrBlend3dFindOutputB = new EtomoBoolean2(
+      "Track.B.UsingNewstOrBlend3dFindOutput");
 
   public TomogramState(ApplicationManager manager) {
     this.manager = manager;
@@ -348,6 +374,17 @@ public class TomogramState extends BaseState {
     postProcTrimVolInputNColumns.store(props, prepend);
     postProcTrimVolInputNRows.store(props, prepend);
     postProcTrimVolInputNSections.store(props, prepend);
+    stackUseLinearInterpolationA.store(props, prepend);
+    stackUseLinearInterpolationB.store(props, prepend);
+    stackUserSizeToOutputInXandYA.store(props, prepend);
+    stackUserSizeToOutputInXandYB.store(props, prepend);
+    stackImageRotationA.store(props, prepend);
+    stackImageRotationB.store(props, prepend);
+    trackLightBeadsA.store(props, prepend);
+    trackLightBeadsB.store(props, prepend);
+    stackUsingNewstOrBlend3dFindOutputA.store(props, prepend);
+    stackUsingNewstOrBlend3dFindOutputB.store(props, prepend);
+
     //backwards compatibility
     props.remove(COMBINE_MATCH_MODE_BACK_KEY);
     if (combineMatchMode == null) {
@@ -366,91 +403,6 @@ public class TomogramState extends BaseState {
       EtomoBoolean2.store(sampleFiducialessB, props, prepend, secondAxisGroup
           + SAMPLE_FIDUCIALESS_KEY);
     }
-  }
-
-  public boolean equals(TomogramState that) {
-    if (!super.equals(that)) {
-      return false;
-    }
-    if (!trimvolFlipped.equals(that.trimvolFlipped)) {
-      return false;
-    }
-    if (!squeezevolFlipped.equals(that.squeezevolFlipped)) {
-      return false;
-    }
-    if (!madeZFactorsA.equals(that.madeZFactorsA)) {
-      return false;
-    }
-    if (!madeZFactorsB.equals(that.madeZFactorsB)) {
-      return false;
-    }
-    if (!newstFiducialessAlignmentA.equals(that.newstFiducialessAlignmentA)) {
-      return false;
-    }
-    if (!newstFiducialessAlignmentB.equals(that.newstFiducialessAlignmentB)) {
-      return false;
-    }
-    if (!usedLocalAlignmentsA.equals(that.usedLocalAlignmentsA)) {
-      return false;
-    }
-    if (!usedLocalAlignmentsB.equals(that.usedLocalAlignmentsB)) {
-      return false;
-    }
-    if (!invalidEdgeFunctionsA.equals(that.invalidEdgeFunctionsA)) {
-      return false;
-    }
-    if (!invalidEdgeFunctionsB.equals(that.invalidEdgeFunctionsB)) {
-      return false;
-    }
-    if (!sampleAngleOffsetA.equals(that.sampleAngleOffsetA)) {
-      return false;
-    }
-    if (!sampleAngleOffsetB.equals(that.sampleAngleOffsetB)) {
-      return false;
-    }
-    if (!sampleAxisZShiftA.equals(that.sampleAxisZShiftA)) {
-      return false;
-    }
-    if (!sampleAxisZShiftB.equals(that.sampleAxisZShiftB)) {
-      return false;
-    }
-    if (!sampleXAxisTiltA.equals(that.sampleXAxisTiltA)) {
-      return false;
-    }
-    if (!sampleXAxisTiltB.equals(that.sampleXAxisTiltB)) {
-      return false;
-    }
-    if (!fidFileLastModifiedA.equals(that.fidFileLastModifiedA)) {
-      return false;
-    }
-    if (!fidFileLastModifiedB.equals(that.fidFileLastModifiedB)) {
-      return false;
-    }
-    if (!seedFileLastModifiedA.equals(that.seedFileLastModifiedA)) {
-      return false;
-    }
-    if (!seedFileLastModifiedB.equals(that.seedFileLastModifiedB)) {
-      return false;
-    }
-    if (fixedFiducialsA != that.fixedFiducialsA) {
-      return false;
-    }
-    if (fixedFiducialsB != that.fidFileLastModifiedB) {
-      return false;
-    }
-    if (combineMatchMode != that.combineMatchMode) {
-      return false;
-    }
-    if (!combineScriptsCreated.equals(that.combineScriptsCreated)) {
-      return false;
-    }
-    if (!EtomoBoolean2.equals(sampleFiducialessA, this.sampleFiducialessA)) {
-      return false;
-    }
-    if (!EtomoBoolean2.equals(sampleFiducialessB, this.sampleFiducialessB)) {
-      return false;
-    }
-    return true;
   }
 
   String createPrepend(String prepend) {
@@ -497,6 +449,26 @@ public class TomogramState extends BaseState {
     combineScriptsCreated.reset();
     sampleFiducialessA = null;
     sampleFiducialessB = null;
+    seedingDoneA.reset();
+    seedingDoneB.reset();
+    tomogramSizeA.reset();
+    tomogramSizeB.reset();
+    adjustOriginA.reset();
+    adjustOriginB.reset();
+    postProcTrimVolInputNColumns.reset();
+    postProcTrimVolInputNRows.reset();
+    postProcTrimVolInputNSections.reset();
+    stackUseLinearInterpolationA.reset();
+    stackUseLinearInterpolationB.reset();
+    stackUserSizeToOutputInXandYA.reset();
+    stackUserSizeToOutputInXandYB.reset();
+    stackImageRotationA.reset();
+    stackImageRotationB.reset();
+    trackLightBeadsA.reset();
+    trackLightBeadsB.reset();
+    stackUsingNewstOrBlend3dFindOutputA.reset();
+    stackUsingNewstOrBlend3dFindOutputB.reset();
+
     //load
     prepend = createPrepend(prepend);
     String group = prepend + ".";
@@ -536,6 +508,16 @@ public class TomogramState extends BaseState {
     postProcTrimVolInputNColumns.load(props, prepend);
     postProcTrimVolInputNRows.load(props, prepend);
     postProcTrimVolInputNSections.load(props, prepend);
+    stackUseLinearInterpolationA.load(props, prepend);
+    stackUseLinearInterpolationB.load(props, prepend);
+    stackUserSizeToOutputInXandYA.load(props, prepend);
+    stackUserSizeToOutputInXandYB.load(props, prepend);
+    stackImageRotationA.load(props, prepend);
+    stackImageRotationB.load(props, prepend);
+    trackLightBeadsA.load(props, prepend);
+    trackLightBeadsB.load(props, prepend);
+    stackUsingNewstOrBlend3dFindOutputA.load(props, prepend);
+    stackUsingNewstOrBlend3dFindOutputB.load(props, prepend);
     combineMatchMode = MatchMode.getInstance(props.getProperty(prepend + "."
         + COMBINE_MATCH_MODE_KEY));
     //backwards compatibility
@@ -635,7 +617,52 @@ public class TomogramState extends BaseState {
   public void setPostProcTrimVolInputNSections(int input) {
     postProcTrimVolInputNSections.set(input);
   }
-  
+
+  public void setStackUseLinearInterpolation(AxisID axisID, boolean input) {
+    if (axisID == AxisID.SECOND) {
+      stackUseLinearInterpolationB.set(input);
+    }
+    else {
+      stackUseLinearInterpolationA.set(input);
+    }
+  }
+
+  public void setStackUserSizeToOutputInXandY(AxisID axisID, String input) {
+    if (axisID == AxisID.SECOND) {
+      stackUserSizeToOutputInXandYB.set(input);
+    }
+    else {
+      stackUserSizeToOutputInXandYA.set(input);
+    }
+  }
+
+  public void setStackImageRotation(AxisID axisID, ConstEtomoNumber input) {
+    if (axisID == AxisID.SECOND) {
+      stackImageRotationB.set(input);
+    }
+    else {
+      stackImageRotationA.set(input);
+    }
+  }
+
+  public void setTrackLightBeads(AxisID axisID, boolean input) {
+    if (axisID == AxisID.SECOND) {
+      trackLightBeadsB.set(input);
+    }
+    else {
+      trackLightBeadsA.set(input);
+    }
+  }
+
+  public void setStackUsingNewstOrBlend3dFindOutput(AxisID axisID, boolean input) {
+    if (axisID == AxisID.SECOND) {
+      stackUsingNewstOrBlend3dFindOutputB.set(input);
+    }
+    else {
+      stackUsingNewstOrBlend3dFindOutputA.set(input);
+    }
+  }
+
   public boolean isPostProcTrimVolInputNColumnsNull() {
     return postProcTrimVolInputNColumns.isNull();
   }
@@ -643,9 +670,51 @@ public class TomogramState extends BaseState {
   public boolean isPostProcTrimVolInputNRowsNull() {
     return postProcTrimVolInputNRows.isNull();
   }
-  
+
   public boolean isPostProcTrimVolInputNSectionsNull() {
     return postProcTrimVolInputNSections.isNull();
+  }
+
+  public boolean isStackUseLinearInterpolation(AxisID axisID) {
+    if (axisID == AxisID.SECOND) {
+      return stackUseLinearInterpolationB.is();
+    }
+    return stackUseLinearInterpolationA.is();
+  }
+
+  public String getStackUserSizeToOutputInXandY(AxisID axisID) {
+    if (axisID == AxisID.SECOND) {
+      return stackUserSizeToOutputInXandYB.toString();
+    }
+    return stackUserSizeToOutputInXandYA.toString();
+  }
+
+  public ConstEtomoNumber getStackImageRotation(AxisID axisID) {
+    if (axisID == AxisID.SECOND) {
+      return stackImageRotationB;
+    }
+    return stackImageRotationA;
+  }
+
+  public boolean isTrackLightBeads(AxisID axisID) {
+    if (axisID == AxisID.SECOND) {
+      return trackLightBeadsB.is();
+    }
+    return trackLightBeadsA.is();
+  }
+
+  public boolean isStackUsingNewstOrBlend3dFindOutput(AxisID axisID) {
+    if (axisID == AxisID.SECOND) {
+      return stackUsingNewstOrBlend3dFindOutputB.is();
+    }
+    return stackUsingNewstOrBlend3dFindOutputA.is();
+  }
+
+  public boolean isTrackLightBeadsNull(AxisID axisID) {
+    if (axisID == AxisID.SECOND) {
+      return trackLightBeadsB.isNull();
+    }
+    return trackLightBeadsA.isNull();
   }
 
   public int getPostProcTrimVolInputNColumns() {
@@ -923,6 +992,13 @@ public class TomogramState extends BaseState {
       return newstFiducialessAlignmentB;
     }
     return newstFiducialessAlignmentA;
+  }
+
+  public boolean isNewstFiducialessAlignment(AxisID axisID) {
+    if (axisID == AxisID.SECOND) {
+      return newstFiducialessAlignmentB.is();
+    }
+    return newstFiducialessAlignmentA.is();
   }
 
   public ConstEtomoNumber getUsedLocalAlignments(AxisID axisID) {
