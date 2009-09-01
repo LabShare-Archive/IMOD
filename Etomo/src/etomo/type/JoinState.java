@@ -20,6 +20,9 @@ import etomo.BaseManager;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.14  2008/12/11 01:41:27  sueh
+ * <p> bug# 1165 In load fixing previous .ejf files when possible.  Added version.
+ * <p>
  * <p> Revision 1.13  2008/08/18 22:38:30  sueh
  * <p> bug# 1130 Added joinLocalFits and joinTrialLocalFits.
  * <p>
@@ -86,7 +89,7 @@ public final class JoinState extends BaseState implements ConstJoinState {
   private static final String SIZE_IN_Y_KEY = "SizeInY";
   private static final String LOCAL_FITS_KEY = "LocalFits";
   private static final String USE_EVERY_N_SLICES_KEY = "UseEveryNSlices";
-  public static final ConstEtomoVersion MIN_REFINE_VERSION = EtomoVersion
+  public static final EtomoVersion MIN_REFINE_VERSION = EtomoVersion
       .getDefaultInstance("1.1");
   private static final String CURRENT_VERSION = "1.0";
 
@@ -364,7 +367,7 @@ public final class JoinState extends BaseState implements ConstJoinState {
    * @param minimumVersion
    * @return
    */
-  public boolean isJoinVersionGe(boolean trial, ConstEtomoVersion minimumVersion) {
+  public boolean isJoinVersionGe(boolean trial, EtomoVersion minimumVersion) {
     if (trial) {
       return joinTrialVersion.ge(minimumVersion);
     }
