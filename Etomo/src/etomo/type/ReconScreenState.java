@@ -88,16 +88,27 @@ public final class ReconScreenState extends BaseScreenState {
   public static final String COMBINE_FINAL_VOLCOMBINE_HEADER_GROUP = FINAL_GROUP
       + VOLCOMBINE_GROUP + HEADER_GROUP;
 
-  /**
-   * @deprecated
-   */
-  private final PanelHeaderState tomoGenNewstHeaderState = new PanelHeaderState(
-      TOMO_GEN_NEWST_HEADER_GROUP);
+  //Dialog keys
+  private static final String STACK_KEY = "Stack";
+
+  //Panel keys
+  private static final String ERASE_GOLD_KEY = "EraseGold";
+  private static final String NEWSTACK_OR_BLENDMONT_KEY = "NewstackOrBlendmont";
+
+  //Header keys
+  private static final String HEADER_KEY = "Header";
+  private static final String NEWST_KEY = "Newst";
+
   /**
    * @deprecated
    */
   private final PanelHeaderState tomoGenMtffilterHeaderState = new PanelHeaderState(
       TOMO_GEN_MTFFILTER_HEADER_GROUP);
+  /**
+   * @deprecated
+   */
+  private final PanelHeaderState tomoGenNewstHeaderState = new PanelHeaderState(
+      TOMO_GEN_NEWST_HEADER_GROUP);
   private final PanelHeaderState stackNewstHeaderState = new PanelHeaderState(
       STACK_NEWST_HEADER_GROUP);
   private final PanelHeaderState stackMtffilterHeaderState = new PanelHeaderState(
@@ -136,6 +147,15 @@ public final class ReconScreenState extends BaseScreenState {
   private final PanelHeaderState fineAlignBeamTiltHeaderState = new PanelHeaderState(
       DialogType.FINE_ALIGNMENT.getStorableName() + ".BeamTilt" + HEADER_GROUP);
 
+  private final PanelHeaderState stackEraseGoldNewstHeaderState = new PanelHeaderState(
+      STACK_KEY + "." + ERASE_GOLD_KEY + "." + NEWSTACK_OR_BLENDMONT_KEY + "."
+          + NEWST_KEY + "." + HEADER_KEY);
+
+  private final PanelHeaderState stackFindBeads3dHeaderState = new PanelHeaderState(
+      STACK_KEY + ".FindBeads3d" + HEADER_KEY);
+  private final PanelHeaderState stackAlignAndTiltHeaderState = new PanelHeaderState(
+      STACK_KEY + ".AlignAndTilt" + HEADER_KEY);
+
   public ReconScreenState(AxisID axisID, AxisType axisType) {
     super(axisID, axisType);
   }
@@ -152,7 +172,10 @@ public final class ReconScreenState extends BaseScreenState {
     stackCtfCorrectionHeaderState.store(props, prepend);
     tomoGenTiltHeaderState.store(props, prepend);
     tomoGenTrialTiltHeaderState.store(props, prepend);
-    fineAlignBeamTiltHeaderState.store(props,prepend);
+    fineAlignBeamTiltHeaderState.store(props, prepend);
+    stackEraseGoldNewstHeaderState.store(props, prepend);
+    stackFindBeads3dHeaderState.store(props,prepend);
+    stackAlignAndTiltHeaderState.store(props,prepend);
     if (axisID == AxisID.FIRST) {
       combineSetupToSelectorHeaderState.store(props, prepend);
       combineSetupSolvematchHeaderState.store(props, prepend);
@@ -182,19 +205,22 @@ public final class ReconScreenState extends BaseScreenState {
     //backwards compatibility
     //Moved newst and mtffilter to final aligned stack dialog at version 1.1.
     if (version.lt(EtomoVersion.getDefaultInstance("1.1"))) {
-      tomoGenNewstHeaderState.load(props, prepend);
-      stackNewstHeaderState.set(tomoGenMtffilterHeaderState);
       tomoGenMtffilterHeaderState.load(props, prepend);
       stackMtffilterHeaderState.set(tomoGenMtffilterHeaderState);
+      tomoGenNewstHeaderState.load(props, prepend);
+      stackNewstHeaderState.set(tomoGenNewstHeaderState);
     }
     else {
-      stackNewstHeaderState.load(props, prepend);
       stackMtffilterHeaderState.load(props, prepend);
+      stackNewstHeaderState.load(props, prepend);
     }
     stackCtfCorrectionHeaderState.load(props, prepend);
     tomoGenTiltHeaderState.load(props, prepend);
     tomoGenTrialTiltHeaderState.load(props, prepend);
-    fineAlignBeamTiltHeaderState.load(props,prepend);
+    fineAlignBeamTiltHeaderState.load(props, prepend);
+    stackEraseGoldNewstHeaderState.load(props, prepend);
+    stackFindBeads3dHeaderState.load(props,prepend);
+    stackAlignAndTiltHeaderState.load(props,prepend);
     if (axisID == AxisID.FIRST) {
       combineSetupToSelectorHeaderState.load(props, prepend);
       combineSetupSolvematchHeaderState.load(props, prepend);
@@ -220,7 +246,14 @@ public final class ReconScreenState extends BaseScreenState {
     return axisID.getExtension().toUpperCase();
   }
 
-  public PanelHeaderState getStackNewstHeaderState() {
+  /**
+   * Get a newst header state; either the header from the main newstack tab, or
+   * the header from the erase gold newstack panel.
+   * @param dialogType
+   * @param parentPanelType
+   * @return
+   */
+  public PanelHeaderState getNewstHeaderState() {
     return stackNewstHeaderState;
   }
 
@@ -231,7 +264,15 @@ public final class ReconScreenState extends BaseScreenState {
   public PanelHeaderState getStackCtfCorrectionHeaderState() {
     return stackCtfCorrectionHeaderState;
   }
-
+  
+  public PanelHeaderState getStackFindBeads3dHeaderState() {
+    return stackFindBeads3dHeaderState;
+  }
+  
+  public PanelHeaderState getStackAlignAndTiltHeaderState() {
+    return stackAlignAndTiltHeaderState;
+  }
+  
   public PanelHeaderState getTomoGenTiltHeaderState() {
     return tomoGenTiltHeaderState;
   }
@@ -239,7 +280,7 @@ public final class ReconScreenState extends BaseScreenState {
   public PanelHeaderState getTomoGenTrialTiltHeaderState() {
     return tomoGenTrialTiltHeaderState;
   }
-  
+
   public PanelHeaderState getFineAlignBeamTiltHeaderState() {
     return fineAlignBeamTiltHeaderState;
   }
@@ -298,6 +339,9 @@ public final class ReconScreenState extends BaseScreenState {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.10  2008/11/21 17:10:56  sueh
+ * <p> bug# 1123 Added fineAlignBeamTiltHeaderState.
+ * <p>
  * <p> Revision 1.9  2008/10/27 20:17:48  sueh
  * <p> bug# 1141 Changed finalStackMtffilterHeaderState to
  * <p> stackMtffilterHeaderState.  Added stackCtfCorrectionHeaderState.
