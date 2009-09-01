@@ -1,6 +1,6 @@
 Version = 1.2
 
-[function = build]
+[function = main]
 # Run trimvol
 tb.trim-vol=
 tf.z-min = 5
@@ -51,4 +51,4 @@ bn.open-flattened-tomogram=
 
 bn.done=
 wait.popup.etomo-question=Yes
-
+wait.popup.etomo-question=Yes
