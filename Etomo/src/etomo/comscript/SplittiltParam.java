@@ -29,6 +29,7 @@ public class SplittiltParam {
   private EtomoNumber numMachines;
   private AxisID axisID;
   private boolean separateChunks = false;
+  private String name = "tilt";
   
   public SplittiltParam(AxisID axisID) {
     this.axisID = axisID;
@@ -54,7 +55,7 @@ public class SplittiltParam {
     if (separateChunks) {
       command.add("-c");
     }
-    command.add("tilt" + axisID.getExtension());
+    command.add(name + axisID.getExtension());
     int commandSize = command.size();
     commandArray = new String[commandSize];
     for (int i = 0; i < commandSize; i++) {
@@ -69,9 +70,16 @@ public class SplittiltParam {
   public void setSeparateChunks(boolean separateChunks) {
     this.separateChunks = separateChunks;
   }
+  
+  public void setName(String input) {
+    name = input;
+  }
 }
 /**
 * <p> $Log$
+* <p> Revision 1.2  2006/06/08 19:04:12  sueh
+* <p> bug# 867 Added separate chunks
+* <p>
 * <p> Revision 1.1  2005/07/21 21:33:12  sueh
 * <p> bug# 532 param object for the splittilt command.
 * <p> </p>

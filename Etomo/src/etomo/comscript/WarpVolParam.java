@@ -5,7 +5,7 @@ import java.util.List;
 
 import etomo.BaseManager;
 import etomo.type.AxisID;
-import etomo.type.FileType;
+import etomo.type.ImageFileType;
 import etomo.type.ScriptParameter;
 import etomo.type.StringParameter;
 import etomo.util.DatasetFiles;
@@ -25,7 +25,10 @@ import etomo.util.DatasetFiles;
  * 
  * @version $Revision$
  * 
- * <p> $Log$ </p>
+ * <p> $Log$
+ * <p> Revision 1.1  2009/06/05 01:51:06  sueh
+ * <p> bug# 1219 Represents any .com file which runs warpvol.
+ * <p> </p>
  */
 public final class WarpVolParam implements ConstWarpVolParam, CommandParam {
   public static final String rcsid = "$Id$";
@@ -73,7 +76,7 @@ public final class WarpVolParam implements ConstWarpVolParam, CommandParam {
     inputFile.updateComScript(scriptCommand);
     temporaryDirectory.updateComScript(scriptCommand);
     ParamUtilities.updateScriptParameter(scriptCommand, "OutputFile",
-        FileType.FLATTEN_OUTPUT.getFileName(manager), true);
+        ImageFileType.FLATTEN_OUTPUT.getFileName(manager), true);
     ParamUtilities.updateScriptParameter(scriptCommand, "TransformFile",
         DatasetFiles.getFlattenWarpOutputName(manager), true);
     outputSizeXYZ.updateScriptParameter(scriptCommand);
@@ -95,8 +98,8 @@ public final class WarpVolParam implements ConstWarpVolParam, CommandParam {
     temporaryDirectory.set(input);
   }
   
-  public void setInputFile(FileType fileType) {
-    inputFile.set(fileType.getFileName(manager));
+  public void setInputFile(ImageFileType imageFileType) {
+    inputFile.set(imageFileType.getFileName(manager));
   }
   
   public String getTemporaryDirectory() {

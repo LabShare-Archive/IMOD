@@ -13,6 +13,7 @@ import junit.extensions.jfcunit.JFCTestHelper;
 
 import etomo.Arguments;
 import etomo.EtomoDirector;
+import etomo.ManagerKey;
 import etomo.process.SystemProgram;
 import etomo.storage.LogFile;
 import etomo.storage.autodoc.AutodocFactory;
@@ -37,6 +38,9 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.4  2009/03/17 00:46:33  sueh
+ * <p> bug# 1186 Pass managerKey to everything that pops up a dialog.
+ * <p>
  * <p> Revision 1.3  2009/03/03 20:46:40  sueh
  * <p> bug# 1102 Added comments.
  * <p>
@@ -53,9 +57,11 @@ public final class TestRunner extends JFCTestCase implements VariableList {
   private static final String SOURCE_ENV_VAR = "IMOD_UITEST_SOURCE";
 
   private final Map variableMap = new HashMap();
+  private final Map variableMapA = new HashMap();
+  private final Map variableMapB = new HashMap();
   private final List parameterList = new ArrayList();
   private final Map autodocTesterMap = new HashMap();
-  private File dataDir;
+  private File uitestDataDir;
 
   private JFCTestHelper helper = null;
   private EtomoDirector etomo = null;
@@ -138,9 +144,9 @@ public final class TestRunner extends JFCTestCase implements VariableList {
                 "set.adoc command must specify section types to run in autodoc ("
                     + command + ")", sectionType);
             //Create an autodoc tester for this autodoc.
-            AutodocTester autodocTester = AutodocTester.getAutodocTester(this,
-                helper, AutodocFactory.getInstance(dir, value, AxisID.ONLY,
-                    null), dir, sectionType, axisID, this);
+            AutodocTester autodocTester = AutodocTester
+                .getAutodocTester(this, helper, AutodocFactory.getInstance(dir,
+                    value, AxisID.ONLY, null), dir, sectionType, axisID, this);
             autodocTesterList.add(autodocTester);
             //Assuming that AxisID can be a unique key for the testers
             autodocTesterMap.put(axisID, autodocTester);
@@ -218,8 +224,8 @@ public final class TestRunner extends JFCTestCase implements VariableList {
             AxisID.ONLY, this);
     //The directory where dataset files are stored is specified by the section
     //name.
-    dataDir = new File(Utilities
-        .getExistingDir("IMOD_UITEST_DATA", AxisID.ONLY, null), sectionName);
+    uitestDataDir = new File(Utilities.getExistingDir("IMOD_UITEST_DATA",
+        AxisID.ONLY, null), sectionName);
     Command command = null;
     while (!datasetSectionReader.isDone()) {
       command = datasetSectionReader.nextCommand(command);
@@ -262,7 +268,17 @@ public final class TestRunner extends JFCTestCase implements VariableList {
             interfaceSection = new InterfaceSection(subjectName);
           }
           else if (subjectType == UITestSubjectType.VAR) {
-            variableMap.put(subject.getName(), value);
+            AxisID axisID = subject.getAxisID();
+            String subjectName = subject.getName();
+            if (axisID == AxisID.FIRST) {
+              variableMapA.put(subjectName, value);
+            }
+            else if (axisID == AxisID.SECOND) {
+              variableMapB.put(subjectName, value);
+            }
+            else {
+              variableMap.put(subjectName, value);
+            }
           }
           else {
             fail("unexpected command (" + command.toString() + ")");
@@ -277,11 +293,46 @@ public final class TestRunner extends JFCTestCase implements VariableList {
         + variableMap.get(UITestSubjectType.DATASET.toString()));
   }
 
-  public String getVariableValue(String variableName) {
+  public void setVariable(String variableName, Object variableValue) {
+    variableMap.put(variableName, variableValue);
+  }
+
+  /**
+   * Get a variables value.  First try to get it from the axis level variable
+   * map.  If the variable is not in that map, get it from the global map.
+   * @param variableName
+   * @param axisID
+   * @return
+   */
+  public String getVariableValue(String variableName, AxisID axisID) {
+    if ((axisID == AxisID.FIRST || axisID == AxisID.ONLY)
+        && variableMapA.containsKey(variableName)) {
+      return (String) variableMapA.get(variableName);
+    }
+    if (axisID == AxisID.SECOND && variableMapB.containsKey(variableName)) {
+      return (String) variableMapB.get(variableName);
+    }
     return (String) variableMap.get(variableName);
   }
 
-  public boolean isVariableSet(String variableName) {
+  /**
+   * First check the axis level variables.  If nothing is found, check the
+   * global variables.
+   * @param variableName
+   * @param axisID
+   * @return
+   */
+  public boolean isVariableSet(String variableName, AxisID axisID) {
+    if (axisID == AxisID.FIRST || axisID == AxisID.ONLY) {
+      if (variableMapA.containsKey(variableName)) {
+        return true;
+      }
+    }
+    else if (axisID == AxisID.SECOND) {
+      if (variableMapB.containsKey(variableName)) {
+        return true;
+      }
+    }
     return variableMap.containsKey(variableName);
   }
 
@@ -302,6 +353,9 @@ public final class TestRunner extends JFCTestCase implements VariableList {
     variableMap.put(UITestSubjectType.TESTDIR.toString(), testDir
         .getAbsolutePath());
     keepDatasetDir = command.getModifierType() == UITestModifierType.KEEP;
+    if (keepDatasetDir) {
+      variableMap.put("keep-dataset-dir", "");
+    }
     if (!testDir.exists()) {
       testDir.mkdirs();
     }
@@ -325,7 +379,7 @@ public final class TestRunner extends JFCTestCase implements VariableList {
    * @param sourceDir
    */
   void copyFile(String fileName, boolean always) {
-    File file = new File(dataDir, fileName);
+    File file = new File(uitestDataDir, fileName);
     if (!file.exists() || file.isDirectory()) {
       throw new IllegalStateException(
           "file must exist and must not be a directory: "
@@ -342,5 +396,13 @@ public final class TestRunner extends JFCTestCase implements VariableList {
     SystemProgram copy = new SystemProgram(System.getProperty("user.dir"),
         new String[] { "cp", file.getAbsolutePath(), "." }, AxisID.ONLY, null);
     copy.run();
+  }
+  
+  File getUitestDataDir() {
+    return uitestDataDir;
+  }
+  
+  ManagerKey getManagerKey() {
+    return etomo.getCurrentManagerForTest().getManagerKey();
   }
 }

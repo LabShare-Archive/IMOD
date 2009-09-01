@@ -2,6 +2,7 @@ package etomo.uitest;
 
 import junit.framework.Assert;
 import etomo.storage.autodoc.ReadOnlyStatement;
+import etomo.type.AxisID;
 import etomo.type.EtomoNumber;
 import etomo.type.UITestFieldType;
 
@@ -19,6 +20,9 @@ import etomo.type.UITestFieldType;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.2  2009/01/28 00:58:29  sueh
+ * <p> bug# 1102 Allowing a subcommand after a field.
+ * <p>
  * <p> Revision 1.1  2009/01/20 20:47:15  sueh
  * <p> bug# 1102 Class that holds the field portion of a Command.
  * <p> </p>
@@ -27,11 +31,17 @@ import etomo.type.UITestFieldType;
 final class Field extends Assert {
   public static final String rcsid = "$Id$";
 
+  private final AxisID testAxisID;
+  
   private boolean empty = true;
   private UITestFieldType fieldType = null;
   private String name = null;
   private EtomoNumber index = new EtomoNumber();
   String string;
+
+  Field(AxisID testAxisID) {
+    this.testAxisID = testAxisID;
+  }
 
   void reset() {
     empty = true;
@@ -68,7 +78,8 @@ final class Field extends Assert {
     empty = false;
     string = statement.getString();
     //Set name
-    name = Command.replaceVariables(statement.getLeftSide(i), variableList);
+    name = Command.replaceVariables(statement.getLeftSide(i), variableList,
+        testAxisID);
     i++;
     //Set index - must be an integer
     String leftSide = statement.getLeftSide(i);

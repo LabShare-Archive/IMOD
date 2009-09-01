@@ -56,6 +56,10 @@ public class StartJoinParam implements CommandDetails {
   public CommandDetails getSubcommandDetails() {
     return null;
   }
+  
+  public ProcessName getSubcommandProcessName() {
+    return null;
+  }
 
   public String getCommand() {
     String command = PROCESS_NAME.getComscript(axisID);
@@ -69,49 +73,49 @@ public class StartJoinParam implements CommandDetails {
     return axisID;
   }
 
-  public Hashtable getHashtable(etomo.comscript.Field field) {
-    if (field == Fields.ROTATION_ANGLES_LIST) {
+  public Hashtable getHashtable(etomo.comscript.FieldInterface fieldInterface) {
+    if (fieldInterface == Fields.ROTATION_ANGLES_LIST) {
       return rotationAnglesList;
     }
-    throw new IllegalArgumentException("field=" + field);
+    throw new IllegalArgumentException("field=" + fieldInterface);
   }
 
-  public boolean getBooleanValue(etomo.comscript.Field field) {
-    if (field == Fields.ROTATE) {
+  public boolean getBooleanValue(etomo.comscript.FieldInterface fieldInterface) {
+    if (fieldInterface == Fields.ROTATE) {
       return rotate;
     }
-    throw new IllegalArgumentException("field=" + field);
+    throw new IllegalArgumentException("field=" + fieldInterface);
   }
 
-  public float getFloatValue(etomo.comscript.Field field) {
-    throw new IllegalArgumentException("field=" + field);
+  public float getFloatValue(etomo.comscript.FieldInterface fieldInterface) {
+    throw new IllegalArgumentException("field=" + fieldInterface);
   }
 
-  public String[] getStringArray(etomo.comscript.Field field) {
-    throw new IllegalArgumentException("field=" + field);
+  public String[] getStringArray(etomo.comscript.FieldInterface fieldInterface) {
+    throw new IllegalArgumentException("field=" + fieldInterface);
   }
 
-  public String getString(etomo.comscript.Field field) {
-    throw new IllegalArgumentException("field=" + field);
+  public String getString(etomo.comscript.FieldInterface fieldInterface) {
+    throw new IllegalArgumentException("field=" + fieldInterface);
   }
 
-  public double getDoubleValue(etomo.comscript.Field field) {
-    throw new IllegalArgumentException("field=" + field);
+  public double getDoubleValue(etomo.comscript.FieldInterface fieldInterface) {
+    throw new IllegalArgumentException("field=" + fieldInterface);
   }
 
-  public ConstEtomoNumber getEtomoNumber(etomo.comscript.Field field) {
-    throw new IllegalArgumentException("field=" + field);
+  public ConstEtomoNumber getEtomoNumber(etomo.comscript.FieldInterface fieldInterface) {
+    throw new IllegalArgumentException("field=" + fieldInterface);
   }
 
-  public ConstIntKeyList getIntKeyList(etomo.comscript.Field field) {
-    throw new IllegalArgumentException("field=" + field);
+  public ConstIntKeyList getIntKeyList(etomo.comscript.FieldInterface fieldInterface) {
+    throw new IllegalArgumentException("field=" + fieldInterface);
   }
 
-  public int getIntValue(etomo.comscript.Field field) {
-    if (field == Fields.TOTAL_ROWS) {
+  public int getIntValue(etomo.comscript.FieldInterface fieldInterface) {
+    if (fieldInterface == Fields.TOTAL_ROWS) {
       return totalRows;
     }
-    throw new IllegalArgumentException("field=" + field);
+    throw new IllegalArgumentException("field=" + fieldInterface);
   }
 
   public String[] getCommandArray() {
@@ -120,6 +124,10 @@ public class StartJoinParam implements CommandDetails {
 
   public String getCommandName() {
     return null;
+  }
+  
+  public ProcessName getProcessName() {
+    return PROCESS_NAME;
   }
 
   public CommandMode getCommandMode() {
@@ -130,7 +138,7 @@ public class StartJoinParam implements CommandDetails {
     return null;
   }
 
-  public static final class Fields implements etomo.comscript.Field {
+  public static final class Fields implements etomo.comscript.FieldInterface {
     private Fields() {
     }
 
@@ -141,6 +149,9 @@ public class StartJoinParam implements CommandDetails {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.8  2007/12/13 01:06:18  sueh
+ * <p> bug# 1056 Changed etomo.comscript.Fields to etomo.comscript.FieldInterface.
+ * <p>
  * <p> Revision 1.7  2007/11/06 19:17:19  sueh
  * <p> bug# 1047 Added getSubcommandDetails.
  * <p>

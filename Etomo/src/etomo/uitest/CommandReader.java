@@ -190,7 +190,7 @@ public final class CommandReader extends Assert {
       return null;
     }
     if (command == null) {
-      command = new Command();
+      command = new Command(axisID);
     }
     command.set(statement, variableList);
     if (debug) {
@@ -267,6 +267,9 @@ public final class CommandReader extends Assert {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.3  2009/01/20 20:46:35  sueh
+ * <p> bug# 1102 Class to read uitest commands.
+ * <p>
  * <p> Revision 1.1  2008/05/30 21:35:55  sueh
  * <p> bug# 1102 Moved uitest classes to etomo.uitest.
  * <p>

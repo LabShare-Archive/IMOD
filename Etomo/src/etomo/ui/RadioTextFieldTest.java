@@ -18,6 +18,9 @@ import junit.framework.TestCase;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.2  2007/03/07 21:13:40  sueh
+ * <p> bug# 981 reformatted
+ * <p>
  * <p> Revision 1.1  2007/03/03 01:06:18  sueh
  * <p> bug# 973 Unit test for RadioTextField.
  * <p> </p>
@@ -25,7 +28,7 @@ import junit.framework.TestCase;
 public final class RadioTextFieldTest extends TestCase {
   public static final String rcsid = "$Id$";
 
-  private static final String LABEL = "Radio Text Field";
+  private static final String LABEL = "Radio Text FieldInterface";
 
   private final ButtonGroup group;
   private final RadioTextField test;

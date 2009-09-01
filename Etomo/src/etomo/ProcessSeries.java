@@ -3,6 +3,7 @@ package etomo;
 import etomo.type.AxisID;
 import etomo.type.ConstProcessSeries;
 import etomo.type.DialogType;
+import etomo.type.ProcessName;
 import etomo.type.ProcessResultDisplay;
 import etomo.type.Run3dmodMenuOptions;
 import etomo.ui.Deferred3dmodButton;
@@ -111,6 +112,9 @@ import etomo.ui.ProcessDisplay;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.7  2009/06/11 16:48:45  sueh
+ * <p> bug# 1221 Added optional ProcessDisplay for running dialog independent processes.
+ * <p>
  * <p> Revision 1.6  2008/06/24 20:08:19  sueh
  * <p> bug# 1111 Added setDebug.
  * <p>
@@ -153,6 +157,7 @@ public final class ProcessSeries implements ConstProcessSeries {
   private final ProcessDisplay processDisplay;
 
   private String nextProcess = null;
+  private ProcessName nextProcessSubprocessName=null;
   private String lastProcess = null;
   //3dmod is opened after the last process.
   private Deferred3dmodButton run3dmodButton = null;
@@ -205,7 +210,7 @@ public final class ProcessSeries implements ConstProcessSeries {
       System.out.println("ProcessSeries.startNextProcess:process=" + process);
     }
     manager.startNextProcess(axisID, process, processResultDisplay, this,
-        dialogType, processDisplay);
+        dialogType, processDisplay,nextProcessSubprocessName);
     return true;
   }
 
@@ -214,12 +219,23 @@ public final class ProcessSeries implements ConstProcessSeries {
   }
 
   /**
-   * Keep final.  Adds process to the end of nextProcessQueue.
+   * Keep final.  Adds next process 
+   * @param axisID
+   * @param process
+   */
+  public void setNextProcess(final String process,final ProcessName subprocessName) {
+    nextProcess = process;
+    nextProcessSubprocessName = subprocessName;
+  }
+  
+  /**
+   * Keep final.  Adds next process
    * @param axisID
    * @param process
    */
   public void setNextProcess(final String process) {
     nextProcess = process;
+    nextProcessSubprocessName = null;
   }
 
   void clearProcesses() {

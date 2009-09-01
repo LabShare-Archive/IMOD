@@ -11,6 +11,9 @@
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.20  2009/03/17 00:42:47  sueh
+ * <p> bug# 1186 Pass managerKey to everything that pops up a dialog.
+ * <p>
  * <p> Revision 3.19  2009/02/13 02:14:49  sueh
  * <p> bug# 1176 Checking return value of MRCHeader.read.  Gave calcFileSize
  * <p> a return value.
@@ -200,6 +203,7 @@ final class NewstProcessMonitor extends FileSizeProcessMonitor {
       nY = rawStack.getNColumns();
     }
     nZ = rawStack.getNSections();
+    System.err.println("NewstProcessMonitor.calcFileSize:rawStack.getMode()="+rawStack.getMode());
     switch (rawStack.getMode()) {
     case 0:
       modeBytes = 1;
@@ -225,6 +229,7 @@ final class NewstProcessMonitor extends FileSizeProcessMonitor {
 
     // Get the binByFactor from newst.com script
     int binBy = newstParam.getBinByFactor();
+    System.err.println("NewstProcessMonitor.calcFileSize:binBy="+binBy);
     // If the bin by factor is unspecified it defaults to 1
     if (binBy > 1) {
       nX = nX / binBy;

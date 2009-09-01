@@ -40,6 +40,9 @@ import etomo.util.MRCHeader;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.41  2009/03/17 00:46:24  sueh
+ * <p> bug# 1186 Pass managerKey to everything that pops up a dialog.
+ * <p>
  * <p> Revision 3.40  2009/02/13 02:33:00  sueh
  * <p> bug# 1176 Checking return value of MRCHeader.read.
  * <p>
@@ -268,12 +271,13 @@ public class InitialCombinePanel implements ContextMenu, InitialCombineFields,
    * @param appMgr
    */
   public InitialCombinePanel(TomogramCombinationDialog parent,
-      ApplicationManager appMgr, DialogType dialogType) {
+      ApplicationManager appMgr, DialogType dialogType,GlobalExpandButton globalAdvancedButton) {
     this.dialogType = dialogType;
     tomogramCombinationDialog = parent;
     applicationManager = appMgr;
+    globalAdvancedButton.register(this);
     matchvol1Header = PanelHeader.getAdvancedBasicInstance("Matchvol1", this,
-        DialogType.TOMOGRAM_COMBINATION);
+        DialogType.TOMOGRAM_COMBINATION, globalAdvancedButton);
     btnMatchvolRestart = (Run3dmodButton) appMgr
         .getProcessResultDisplayFactory(AxisID.ONLY).getRestartMatchvol1();
     btnMatchvolRestart.setContainer(this);
@@ -395,9 +399,14 @@ public class InitialCombinePanel implements ContextMenu, InitialCombineFields,
     return pnlRoot;
   }
 
-  void setAdvanced(boolean state) {
-    matchvol1Header.setAdvanced(state);
-    pnlSolvematch.setAdvanced(state);
+  void updateAdvanced(boolean state) {
+    updateMatchvol1Advanced(state);
+    pnlSolvematch.updateAdvanced(state);
+  }
+
+  void updateMatchvol1Advanced(boolean advanced) {
+    ltfOutputSizeY.setVisible(advanced);
+    lOutputSizeYInfo.setVisible(advanced);
   }
 
   final void setVisible(boolean visible) {
@@ -416,6 +425,10 @@ public class InitialCombinePanel implements ContextMenu, InitialCombineFields,
   public void setParameters(MatchvolParam param) {
     ltfOutputSizeY.setText(param.getOutputSizeY());
   }
+  
+  public void expand(GlobalExpandButton button) {
+    
+  }
 
   public void expand(ExpandButton button) {
     boolean expanded = button.isExpanded();
@@ -424,8 +437,7 @@ public class InitialCombinePanel implements ContextMenu, InitialCombineFields,
     }
     else if (matchvol1Header != null
         && matchvol1Header.equalsAdvancedBasic(button)) {
-      ltfOutputSizeY.setVisible(expanded);
-      lOutputSizeYInfo.setVisible(expanded);
+      updateMatchvol1Advanced(expanded);
     }
     UIHarness.INSTANCE.pack(AxisID.ONLY, applicationManager);
   }

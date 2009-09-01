@@ -266,12 +266,14 @@ final class TiltalignPanel implements Expandable {
 
   private Tab currentTab = Tab.GENERAL;
 
-  private TiltalignPanel(final AxisID axis, final ApplicationManager appMgr) {
+  private TiltalignPanel(final AxisID axis, final ApplicationManager appMgr,
+      GlobalExpandButton globalAdvancedButton) {
     this.appMgr = appMgr;
     axisID = axis;
     tabPane.setBorder(new EtchedBorder("Tiltalign Parameters").getBorder());
     phBeamTilt = PanelHeader.getAdvancedBasicOnlyInstance("Beam Tilt", this,
-        DialogType.FINE_ALIGNMENT);
+        DialogType.FINE_ALIGNMENT, globalAdvancedButton);
+    globalAdvancedButton.register(this);
     //  Create the tabs
     createGeneralTab();
     createGlobalSolutionTab();
@@ -286,8 +288,9 @@ final class TiltalignPanel implements Expandable {
    * @return local instance of TiltalignPanel
    */
   static TiltalignPanel getInstance(final AxisID axis,
-      final ApplicationManager appMgr) {
-    TiltalignPanel tiltalignPanel = new TiltalignPanel(axis, appMgr);
+      final ApplicationManager appMgr, GlobalExpandButton globalAdvancedButton) {
+    TiltalignPanel tiltalignPanel = new TiltalignPanel(axis, appMgr,
+        globalAdvancedButton);
     tiltalignPanel.addListeners();
     return tiltalignPanel;
   }
@@ -428,6 +431,15 @@ final class TiltalignPanel implements Expandable {
     else if (actionCommand.equals(rbSolveForBeamTilt.getActionCommand())) {
       updateDisplay();
     }
+  }
+
+  /**
+   * The header only covers part of the advanced fields, so use the global
+   * advanced button directly to expand.
+   */
+  public void expand(GlobalExpandButton button) {
+    updateAdvanced(button.isExpanded());
+    UIHarness.INSTANCE.pack(axisID, appMgr);
   }
 
   public void expand(ExpandButton button) {
@@ -690,7 +702,7 @@ final class TiltalignPanel implements Expandable {
     rtfFixedBeamTilt.setText(metaData.getFixedBeamTilt(axisID));
     updateDisplay();
   }
-  
+
   public final void setParameters(ReconScreenState screenState) {
     phBeamTilt.setState(screenState.getFineAlignBeamTiltHeaderState());
   }
@@ -953,7 +965,8 @@ final class TiltalignPanel implements Expandable {
   boolean isValid() {
     if (rtfFixedBeamTilt.isSelected() && rtfFixedBeamTilt.getText().equals("")) {
       UIHarness.INSTANCE.openMessageDialog(rtfFixedBeamTilt.getLabel()
-          + " can not be empty when it is selected.", "Entry Error", appMgr.getManagerKey());
+          + " can not be empty when it is selected.", "Entry Error", appMgr
+          .getManagerKey());
       return false;
     }
     return true;
@@ -963,8 +976,8 @@ final class TiltalignPanel implements Expandable {
     tabPane.setSelectedComponent(pnlGeneral);
   }
 
-  void setAdvanced(final boolean state) {
-
+  void updateAdvanced(final boolean state) {
+    updateAdvancedBeamTilt(state);
     //    ltfMetroFactor.setVisible(state);
     //    ltfCycleLimit.setVisible(state);
     pnlMinimizationParams.setVisible(state);
@@ -982,7 +995,6 @@ final class TiltalignPanel implements Expandable {
     ltfLocalSkewNonDefaultGroups.setVisible(state);
     ltfMinLocalPatchSize.setVisible(state);
     cbFixXYZCoordinates.setVisible(state);
-    phBeamTilt.setAdvanced(state);
   }
 
   //  Local alignment state
@@ -1410,16 +1422,17 @@ final class TiltalignPanel implements Expandable {
     pnlLocalSolution.setVisible(false);
   }
 
-  private void createVariablePanel(final EtomoPanel panel, final CheckBox checkBox,
-      final LabeledTextField groupSize,
+  private void createVariablePanel(final EtomoPanel panel,
+      final CheckBox checkBox, final LabeledTextField groupSize,
       final LabeledTextField additionalGroups, final String title) {
     createVariablePanel(panel, checkBox, groupSize, additionalGroups, null,
         title);
   }
 
-  private void createVariablePanel(final EtomoPanel panel, final CheckBox checkBox,
-      final LabeledTextField field1, final LabeledTextField field2,
-      final LabeledTextField field3, final String title) {
+  private void createVariablePanel(final EtomoPanel panel,
+      final CheckBox checkBox, final LabeledTextField field1,
+      final LabeledTextField field2, final LabeledTextField field3,
+      final String title) {
     JPanel buttonPanel = new JPanel();
     buttonPanel.setLayout(new BoxLayout(buttonPanel, BoxLayout.Y_AXIS));
     buttonPanel.add(checkBox);
@@ -1627,7 +1640,8 @@ final class TiltalignPanel implements Expandable {
     ReadOnlySection section;
     ReadOnlyAutodoc autodoc = null;
     try {
-      autodoc = AutodocFactory.getInstance(AutodocFactory.TILTALIGN, axisID, appMgr.getManagerKey());
+      autodoc = AutodocFactory.getInstance(AutodocFactory.TILTALIGN, axisID,
+          appMgr.getManagerKey());
     }
     catch (FileNotFoundException except) {
       except.printStackTrace();
@@ -1855,6 +1869,9 @@ final class TiltalignPanel implements Expandable {
 
 /**
  * <p> $Log$
+ * <p> Revision 3.52  2009/03/17 00:46:24  sueh
+ * <p> bug# 1186 Pass managerKey to everything that pops up a dialog.
+ * <p>
  * <p> Revision 3.51  2009/02/04 23:36:48  sueh
  * <p> bug# 1158 Changed id and exception classes in LogFile.
  * <p>

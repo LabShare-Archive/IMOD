@@ -62,13 +62,14 @@ final class TransferfidPanel implements Expandable, Run3dmodButtonContainer {
   private final DialogType dialogType;
 
   private TransferfidPanel(ApplicationManager manager, AxisID axisID,
-      DialogType dialogType, FiducialModelDialog parent) {
+      DialogType dialogType, FiducialModelDialog parent,
+      GlobalExpandButton globalAdvancedButton) {
     this.dialogType = dialogType;
     this.manager = manager;
     this.axisID = axisID;
     this.parent = parent;
     header = PanelHeader.getAdvancedBasicInstance("Transfer Fiducials", this,
-        dialogType);
+        dialogType, globalAdvancedButton);
     panelTransferfidBody.setLayout(new BoxLayout(panelTransferfidBody,
         BoxLayout.Y_AXIS));
     cbRunMidas.setAlignmentX(Component.RIGHT_ALIGNMENT);
@@ -113,9 +114,10 @@ final class TransferfidPanel implements Expandable, Run3dmodButtonContainer {
   }
 
   static TransferfidPanel getInstance(ApplicationManager manager,
-      AxisID axisID, DialogType dialogType, FiducialModelDialog parent) {
+      AxisID axisID, DialogType dialogType, FiducialModelDialog parent,
+      GlobalExpandButton globalAdvancedButton) {
     TransferfidPanel instance = new TransferfidPanel(manager, axisID,
-        dialogType, parent);
+        dialogType, parent, globalAdvancedButton);
     instance.addListeners();
     return instance;
   }
@@ -151,11 +153,7 @@ final class TransferfidPanel implements Expandable, Run3dmodButtonContainer {
     return panelTransferfid;
   }
 
-  /**
-   * Update the header with the current advanced state
-   */
-  void updateAdvanced(boolean isAdvanced) {
-    header.setAdvanced(isAdvanced);
+  public void expand(GlobalExpandButton button) {
   }
 
   public void expand(ExpandButton button) {
@@ -163,7 +161,7 @@ final class TransferfidPanel implements Expandable, Run3dmodButtonContainer {
       panelTransferfidBody.setVisible(button.isExpanded());
     }
     else if (header.equalsAdvancedBasic(button)) {
-      setAdvanced(button.isExpanded());
+      updateAdvanced(button.isExpanded());
     }
     UIHarness.INSTANCE.pack(axisID, manager);
   }
@@ -252,7 +250,7 @@ final class TransferfidPanel implements Expandable, Run3dmodButtonContainer {
     buttonTransferfid.removeActionListener(actionListener);
   }
 
-  private void setAdvanced(boolean isAdvanced) {
+  void updateAdvanced(boolean isAdvanced) {
     ltfCenterViewA.setVisible(isAdvanced);
     ltfCenterViewB.setVisible(isAdvanced);
     ltfNumberViews.setVisible(isAdvanced);
@@ -311,6 +309,9 @@ final class TransferfidPanel implements Expandable, Run3dmodButtonContainer {
 
 /**
  * <p> $Log$
+ * <p> Revision 3.19  2009/01/20 20:32:54  sueh
+ * <p> bug# 1102 Changed labeled panels to type EtomoPanel so that they can name themselves.
+ * <p>
  * <p> Revision 3.18  2008/05/28 02:52:04  sueh
  * <p> bug# 1111 Add a dialogType parameter to the ProcessSeries
  * <p> constructor.  DialogType must be passed to any function that constructs

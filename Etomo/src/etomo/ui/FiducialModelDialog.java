@@ -37,6 +37,9 @@ import etomo.comscript.TransferfidParam;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.52  2009/06/15 20:21:10  sueh
+ * <p> bug# 1221 Added getBeadTrackDisplay.
+ * <p>
  * <p> Revision 3.51  2009/06/10 22:16:26  sueh
  * <p> bug# 1221 Factoring RAPTOR into RaptorPanel.
  * <p>
@@ -349,7 +352,7 @@ public final class FiducialModelDialog extends ProcessDialog implements
         .getProcessResultDisplayFactory(axisID);
     btnSeed = (Run3dmodButton) displayFactory.getSeedFiducialModel();
     raptorPanel = RaptorPanel.getInstance(appMgr, axisID, dialogType, this);
-    pnlBeadtrack = BeadtrackPanel.getInstance(appMgr, axisID, dialogType);
+    pnlBeadtrack = BeadtrackPanel.getInstance(appMgr, axisID, dialogType,btnAdvanced);
     //root panel
     rootPanel.setLayout(new BoxLayout(rootPanel, BoxLayout.Y_AXIS));
     rootPanel.add(pnlFiducialModel.getContainer());
@@ -359,7 +362,7 @@ public final class FiducialModelDialog extends ProcessDialog implements
         .getBorder());
     if (applicationManager.isDualAxis()) {
       pnlTransferfid = TransferfidPanel.getInstance(applicationManager, axisID,
-          dialogType, this);
+          dialogType, this,btnAdvanced);
       pnlFiducialModel.add(pnlTransferfid.getContainer());
       pnlFiducialModel.add(Box.createRigidArea(FixedDim.x0_y5));
     }
@@ -416,7 +419,7 @@ public final class FiducialModelDialog extends ProcessDialog implements
         turnOffRaptor();
       }
     }
-    updateAdvanced(isAdvanced);
+    updateAdvanced();
     updateEnabled();
     updateDisplay();
   }
@@ -483,10 +486,10 @@ public final class FiducialModelDialog extends ProcessDialog implements
   /**
    * Set the advanced state for the dialog box
    */
-  private void updateAdvanced(final boolean state) {
-    pnlBeadtrack.updateAdvanced(state);
+  private void updateAdvanced() {
+    pnlBeadtrack.updateAdvanced(isAdvanced());
     if (pnlTransferfid != null) {
-      pnlTransferfid.updateAdvanced(state);
+      pnlTransferfid.updateAdvanced(isAdvanced());
     }
     UIHarness.INSTANCE.pack(axisID, applicationManager);
   }
@@ -619,7 +622,7 @@ public final class FiducialModelDialog extends ProcessDialog implements
       applicationManager.imodSeedModel(axisID, run3dmodMenuOptions, btnSeed,
           ImodManager.COARSE_ALIGNED_KEY, DatasetFiles.getSeedFileName(
               applicationManager, axisID), DatasetFiles.getRawTiltFile(
-              applicationManager, axisID));
+              applicationManager, axisID), dialogType);
     }
   }
 
@@ -637,10 +640,8 @@ public final class FiducialModelDialog extends ProcessDialog implements
     UIHarness.INSTANCE.pack(axisID, applicationManager);
   }
 
-  boolean done() {
-    if (!applicationManager.doneFiducialModelDialog(axisID)) {
-      return false;
-    }
+  void done() {
+    applicationManager.doneFiducialModelDialog(axisID);
     if (pnlTransferfid != null) {
       pnlTransferfid.done();
     }
@@ -648,12 +649,6 @@ public final class FiducialModelDialog extends ProcessDialog implements
     btnSeed.removeActionListener(actionListener);
     pnlBeadtrack.done();
     setDisplayed(false);
-    return true;
-  }
-
-  public void buttonAdvancedAction(final ActionEvent event) {
-    super.buttonAdvancedAction(event);
-    updateAdvanced(isAdvanced);
   }
 
   //

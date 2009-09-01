@@ -59,6 +59,9 @@ import etomo.util.DatasetFiles;
  * 
  * <p>
  * $Log$
+ * Revision 3.72  2009/03/17 00:46:24  sueh
+ * bug# 1186 Pass managerKey to everything that pops up a dialog.
+ *
  * Revision 3.71  2009/02/04 23:36:48  sueh
  * bug# 1158 Changed id and exception classes in LogFile.
  *
@@ -527,7 +530,8 @@ public class FinalCombinePanel implements ContextMenu, FinalCombineFields,
    * @param appMgr
    */
   public FinalCombinePanel(TomogramCombinationDialog parent,
-      ApplicationManager appMgr, DialogType dialogType) {
+      ApplicationManager appMgr, DialogType dialogType,
+      GlobalExpandButton globalAdvancedButton) {
     this.dialogType = dialogType;
     tomogramCombinationDialog = parent;
     btnPatchcorrRestart = (Run3dmodButton) appMgr
@@ -631,7 +635,7 @@ public class FinalCombinePanel implements ContextMenu, FinalCombineFields,
     pnlPatchcorr.setLayout(new BoxLayout(pnlPatchcorr, BoxLayout.Y_AXIS));
     pnlPatchcorr.setBorder(BorderFactory.createEtchedBorder());
     patchcorrHeader = PanelHeader.getAdvancedBasicInstance(
-        "Patchcorr Parameters", this, dialogType);
+        "Patchcorr Parameters", this, dialogType, globalAdvancedButton);
     pnlPatchcorr.add(patchcorrHeader);
     pnlPatchcorr.add(pnlPatchcorrBody.getContainer());
 
@@ -672,7 +676,7 @@ public class FinalCombinePanel implements ContextMenu, FinalCombineFields,
     pnlMatchorwarp.setLayout(new BoxLayout(pnlMatchorwarp, BoxLayout.Y_AXIS));
     pnlMatchorwarp.setBorder(BorderFactory.createEtchedBorder());
     matchorwarpHeader = PanelHeader.getAdvancedBasicInstance(
-        "Matchorwarp Parameters", this, dialogType);
+        "Matchorwarp Parameters", this, dialogType, globalAdvancedButton);
     pnlMatchorwarp.add(matchorwarpHeader);
     pnlMatchorwarp.add(pnlMatchorwarpBody);
 
@@ -695,7 +699,7 @@ public class FinalCombinePanel implements ContextMenu, FinalCombineFields,
     pnlVolcombine.setLayout(new BoxLayout(pnlVolcombine, BoxLayout.Y_AXIS));
     pnlVolcombine.setBorder(BorderFactory.createEtchedBorder());
     volcombineHeader = PanelHeader.getAdvancedBasicInstance(
-        "Volcombine Parameters", this, dialogType);
+        "Volcombine Parameters", this, dialogType, globalAdvancedButton);
     pnlVolcombine.add(volcombineHeader);
     pnlVolcombine.add(pnlVolcombineBody);
 
@@ -764,33 +768,24 @@ public class FinalCombinePanel implements ContextMenu, FinalCombineFields,
         "Restart at Volcombine", dialogType);
   }
 
-  private final void setAdvanced() {
-    boolean headerAdvanced = patchcorrHeader.isAdvanced();
-    if (tomogramCombinationDialog.isAdvanced() != headerAdvanced
-        && headerAdvanced == matchorwarpHeader.isAdvanced()
-        && headerAdvanced == volcombineHeader.isAdvanced()) {
-      tomogramCombinationDialog.setAdvanced(headerAdvanced);
-    }
+  void updateAdvanced(boolean state) {
+    updateAdvancedPatchcorr(state);
+    updateAdvancedMatchorwarp(state);
+    updateAdvancedVolcombine(state);
   }
 
-  void setAdvanced(boolean state) {
-    patchcorrHeader.setAdvanced(state);
-    matchorwarpHeader.setAdvanced(state);
-    volcombineHeader.setAdvanced(state);
-  }
-
-  final void setAdvancedPatchcorr(boolean state) {
+  final void updateAdvancedPatchcorr(boolean state) {
     pnlBoundary.setVisible(state);
     pnlInitialShiftXYZ.setVisible(state);
     pnlKernelSigma.setVisible(state);
   }
 
-  final void setAdvancedMatchorwarp(boolean state) {
+  final void updateAdvancedMatchorwarp(boolean state) {
     ltfRefineLimit.setVisible(state);
     cbUseLinearInterpolation.setVisible(state);
   }
 
-  final void setAdvancedVolcombine(boolean state) {
+  final void updateAdvancedVolcombine(boolean state) {
     ltfReductionFactor.setVisible(state);
     ltfLowFromBothRadius.setVisible(state);
   }
@@ -905,7 +900,6 @@ public class FinalCombinePanel implements ContextMenu, FinalCombineFields,
         .getCombineFinalPatchcorrHeaderState());
     volcombineHeader.setState(screenState
         .getCombineFinalVolcombineHeaderState());
-    setAdvanced();
     btnPatchcorrRestart.setButtonState(screenState
         .getButtonState(btnPatchcorrRestart.getButtonStateKey()));
     btnMatchorwarpRestart.setButtonState(screenState
@@ -940,6 +934,10 @@ public class FinalCombinePanel implements ContextMenu, FinalCombineFields,
     pnlVolcombine.setVisible(visible);
     updatePatchVectorModelDisplay();
   }
+  
+  public void expand(GlobalExpandButton button) {
+    
+  }
 
   public void expand(ExpandButton button) {
     if (patchRegionModelHeader.equalsOpenClose(button)) {
@@ -949,19 +947,19 @@ public class FinalCombinePanel implements ContextMenu, FinalCombineFields,
       pnlPatchcorrBody.setVisible(button.isExpanded());
     }
     else if (patchcorrHeader.equalsAdvancedBasic(button)) {
-      setAdvancedPatchcorr(button.isExpanded());
+      updateAdvancedPatchcorr(button.isExpanded());
     }
     else if (matchorwarpHeader.equalsOpenClose(button)) {
       pnlMatchorwarpBody.setVisible(button.isExpanded());
     }
     else if (matchorwarpHeader.equalsAdvancedBasic(button)) {
-      setAdvancedMatchorwarp(button.isExpanded());
+      updateAdvancedMatchorwarp(button.isExpanded());
     }
     else if (volcombineHeader.equalsOpenClose(button)) {
       pnlVolcombineBody.setVisible(button.isExpanded());
     }
     else if (volcombineHeader.equalsAdvancedBasic(button)) {
-      setAdvancedVolcombine(button.isExpanded());
+      updateAdvancedVolcombine(button.isExpanded());
     }
     UIHarness.INSTANCE.pack(AxisID.ONLY, applicationManager);
   }

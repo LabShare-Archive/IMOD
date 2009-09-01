@@ -37,7 +37,6 @@ final class PanelHeader implements Expandable {
   private final JPanel rootPanel = new JPanel();
   private final JSeparator separator = new JSeparator();
 
-  private final Expandable parent;
   private final HeaderCell cellTitle;
 
   private final DialogType dialogType;
@@ -47,24 +46,38 @@ final class PanelHeader implements Expandable {
   private ExpandButton btnAdvancedBasic = null;
   private ExpandButton btnMoreLess = null;
 
-  static PanelHeader getInstance(String title, Expandable parent,
+  private final GlobalExpandButton globalAdvancedButton;
+
+  static PanelHeader getInstance(String title, Expandable expandable,
       DialogType dialogType) {
-    return new PanelHeader(title, parent, false, false, dialogType, true);
+    return new PanelHeader(title, expandable, false, false, dialogType, true,
+        null);
   }
 
-  static PanelHeader getAdvancedBasicInstance(String title, Expandable parent,
-      DialogType dialogType) {
-    return new PanelHeader(title, parent, true, false, dialogType, true);
+  static PanelHeader getAdvancedBasicInstance(String title,
+      Expandable expandable, DialogType dialogType) {
+    return new PanelHeader(title, expandable, true, false, dialogType, true,
+        null);
+  }
+
+  static PanelHeader getAdvancedBasicInstance(String title,
+      Expandable expandable, DialogType dialogType,
+      GlobalExpandButton globalAdvancedButton) {
+    return new PanelHeader(title, expandable, true, false, dialogType, true,
+        globalAdvancedButton);
   }
 
   static PanelHeader getAdvancedBasicOnlyInstance(String title,
-      Expandable parent, DialogType dialogType) {
-    return new PanelHeader(title, parent, true, false, dialogType, false);
+      Expandable expandable, DialogType dialogType,
+      GlobalExpandButton globalAdvancedButton) {
+    return new PanelHeader(title, expandable, true, false, dialogType, false,
+        globalAdvancedButton);
   }
 
-  static PanelHeader getMoreLessInstance(String title, Expandable parent,
+  static PanelHeader getMoreLessInstance(String title, Expandable expandable,
       DialogType dialogType) {
-    return new PanelHeader(title, parent, false, true, dialogType, true);
+    return new PanelHeader(title, expandable, false, true, dialogType, true,
+        null);
   }
 
   /**
@@ -77,11 +90,12 @@ final class PanelHeader implements Expandable {
    * @param advancedBasic - true if an advance/basic button should be created
    * @param moreLess - true if an more/less button should be created
    */
-  private PanelHeader(String title, Expandable parent, boolean advancedBasic,
-      boolean moreLess, DialogType dialogType, boolean openClose) {
-    this.parent = parent;
+  private PanelHeader(String title, Expandable expandable,
+      boolean advancedBasic, boolean moreLess, DialogType dialogType,
+      boolean openClose, GlobalExpandButton globalAdvancedButton) {
     this.dialogType = dialogType;
     this.title = title;
+    this.globalAdvancedButton = globalAdvancedButton;
     //panels
     rootPanel.setLayout(new BoxLayout(rootPanel, BoxLayout.Y_AXIS));
     JPanel northPanel = new JPanel();
@@ -95,7 +109,7 @@ final class PanelHeader implements Expandable {
     constraints.gridwidth = 1;
     if (openClose) {
       //open/close button - default: open
-      btnOpenClose = ExpandButton.getExpandedInstance(this,
+      btnOpenClose = ExpandButton.getExpandedInstance(expandable, this,
           ExpandButton.Type.OPEN);
       btnOpenClose.setName(title);
       layout.setConstraints(btnOpenClose.getComponent(), constraints);
@@ -115,8 +129,8 @@ final class PanelHeader implements Expandable {
       if (!moreLess) {
         constraints.gridwidth = GridBagConstraints.REMAINDER;
       }
-      btnAdvancedBasic = ExpandButton.getInstance(parent,
-          ExpandButton.Type.ADVANCED);
+      btnAdvancedBasic = ExpandButton.getGlobalInstance(expandable,
+          ExpandButton.Type.ADVANCED, globalAdvancedButton);
       btnAdvancedBasic.setName(title);
       layout.setConstraints(btnAdvancedBasic.getComponent(), constraints);
       northPanel.add(btnAdvancedBasic.getComponent());
@@ -125,7 +139,7 @@ final class PanelHeader implements Expandable {
     if (moreLess) {
       constraints.weightx = 0.0;
       constraints.weighty = 0.0;
-      btnMoreLess = ExpandButton.getExpandedInstance(parent,
+      btnMoreLess = ExpandButton.getExpandedInstance(expandable, null,
           ExpandButton.Type.MORE);
       btnMoreLess.setName(title);
       layout.setConstraints(btnMoreLess.getComponent(), constraints);
@@ -183,14 +197,22 @@ final class PanelHeader implements Expandable {
     return btnAdvancedBasic.isExpanded();
   }
 
+  public void expand(GlobalExpandButton button) {
+  }
+
+  /**
+   * Hide the separator when expand is called on an open/close button
+   */
   public void expand(ExpandButton button) {
     if (button == btnOpenClose) {
       separator.setVisible(button.isExpanded());
-      parent.expand(button);
     }
   }
 
   public void getState(PanelHeaderState state) {
+    if (state == null) {
+      return;
+    }
     if (btnOpenClose != null) {
       state.setOpenCloseState(btnOpenClose.getState());
     }
@@ -264,6 +286,9 @@ final class PanelHeader implements Expandable {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.28  2009/01/20 20:17:15  sueh
+ * <p> bug# 1102 Added title and getTitle.
+ * <p>
  * <p> Revision 1.26  2008/10/27 20:40:53  sueh
  * <p> bug# 1141 Added setOpen.
  * <p>

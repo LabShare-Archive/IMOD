@@ -34,6 +34,9 @@ import etomo.util.DatasetFiles;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.11  2009/03/17 00:30:26  sueh
+ * <p> bug# 1186 Pass managerKey to everything that pops up a dialog.
+ * <p>
  * <p> Revision 1.10  2009/03/06 23:36:43  sueh
  * <p> bug# 1196 Added getInputFileName and getSubdirName.
  * <p>
@@ -56,7 +59,7 @@ import etomo.util.DatasetFiles;
  * <p> Etomo and IMOD.
  * <p>
  * <p> Revision 1.4  2007/12/13 01:02:30  sueh
- * <p> bug# 1056 Changed etomo.comscript.Fields to etomo.comscript.Field.
+ * <p> bug# 1056 Changed etomo.comscript.Fields to etomo.comscript.FieldInterface.
  * <p>
  * <p> Revision 1.3  2007/11/09 17:43:25  sueh
  * <p> bug# 1047 In buildCommand, removed quotes from the iteration string.
@@ -75,6 +78,7 @@ public final class AnisotropicDiffusionParam implements CommandDetails {
   private static final String K_VALUE_TAG = "-k";
   private static final String ITERATION_TAG = "-n";
   private static final String COMMAND_CHAR = "$";
+  private static final ProcessName PROCESS_NAME = ProcessName.ANISOTROPIC_DIFFUSION;
 
   private final ParsedArray kValueList = ParsedArray
       .getInstance(EtomoNumber.Type.FLOAT);
@@ -163,15 +167,15 @@ public final class AnisotropicDiffusionParam implements CommandDetails {
         getFilterFullFileName()), manager.getManagerKey());
     filterFullFile.create();
     LogFile.WriterId writerId = filterFullFile.openWriter();
-    filterFullFile.write(COMMAND_CHAR + ProcessName.ANISOTROPIC_DIFFUSION + " "
-        + K_VALUE_TAG + " " + kValue + " " + ITERATION_TAG + " " + iteration
-        + " " + "INPUTFILE" + " " + "OUTPUTFILE", writerId);
+    filterFullFile.write(COMMAND_CHAR + PROCESS_NAME + " " + K_VALUE_TAG + " "
+        + kValue + " " + ITERATION_TAG + " " + iteration + " " + "INPUTFILE"
+        + " " + "OUTPUTFILE", writerId);
     filterFullFile.newLine(writerId);
     filterFullFile.closeWriter(writerId);
   }
 
   public static String getFilterFullFileName() {
-    return ProcessName.ANISOTROPIC_DIFFUSION + DatasetFiles.COMSCRIPT_EXT;
+    return PROCESS_NAME + DatasetFiles.COMSCRIPT_EXT;
   }
 
   public void createTestFiles() throws LogFile.LockException, IOException {
@@ -186,10 +190,10 @@ public final class AnisotropicDiffusionParam implements CommandDetails {
               + TestNADFileFilter.FILE_NAME_EXT), manager.getManagerKey());
       testFile.create();
       LogFile.WriterId writerId = testFile.openWriter();
-      testFile.write(COMMAND_CHAR + ProcessName.ANISOTROPIC_DIFFUSION + " "
-          + K_VALUE_TAG + " " + kValueList.getRawString(i) + " "
-          + ITERATION_TAG + " " + iteration.toString() + " " + inputFileName
-          + " " + getTestFileName(k, iteration), writerId);
+      testFile.write(COMMAND_CHAR + PROCESS_NAME + " " + K_VALUE_TAG + " "
+          + kValueList.getRawString(i) + " " + ITERATION_TAG + " "
+          + iteration.toString() + " " + inputFileName + " "
+          + getTestFileName(k, iteration), writerId);
       testFile.newLine(writerId);
       testFile.write(COMMAND_CHAR + "echo CHUNK DONE", writerId);
       testFile.newLine(writerId);
@@ -199,8 +203,7 @@ public final class AnisotropicDiffusionParam implements CommandDetails {
 
   private void buildCommand() {
     File subdir = new File(subdirName);
-    command.add(BaseManager.getIMODBinPath()
-        + ProcessName.ANISOTROPIC_DIFFUSION.toString());
+    command.add(BaseManager.getIMODBinPath() + PROCESS_NAME.toString());
     command.add(K_VALUE_TAG);
     command.add(kValue.toString());
     command.add("-i");
@@ -280,7 +283,11 @@ public final class AnisotropicDiffusionParam implements CommandDetails {
   }
 
   public String getCommandName() {
-    return ProcessName.ANISOTROPIC_DIFFUSION.toString();
+    return PROCESS_NAME.toString();
+  }
+
+  public ProcessName getProcessName() {
+    return PROCESS_NAME;
   }
 
   public String getCommandLine() {
@@ -305,62 +312,68 @@ public final class AnisotropicDiffusionParam implements CommandDetails {
   }
 
   public String getCommand() {
-    return ProcessName.ANISOTROPIC_DIFFUSION.toString();
+    return PROCESS_NAME.toString();
   }
 
   public CommandDetails getSubcommandDetails() {
     return null;
   }
-
-  public boolean getBooleanValue(etomo.comscript.Field field) {
-    throw new IllegalArgumentException("field=" + field);
+  
+  public ProcessName getSubcommandProcessName() {
+    return null;
   }
 
-  public String getString(etomo.comscript.Field field) {
-    if (field == Fields.K_VALUE_LIST) {
+  public boolean getBooleanValue(etomo.comscript.FieldInterface fieldInterface) {
+    throw new IllegalArgumentException("field=" + fieldInterface);
+  }
+
+  public String getString(etomo.comscript.FieldInterface fieldInterface) {
+    if (fieldInterface == Fields.K_VALUE_LIST) {
       return kValueList.getRawString();
     }
-    if (field == Fields.ITERATION_LIST) {
+    if (fieldInterface == Fields.ITERATION_LIST) {
       return iterationList.getRawString();
     }
-    throw new IllegalArgumentException("field=" + field);
+    throw new IllegalArgumentException("field=" + fieldInterface);
   }
 
-  public String[] getStringArray(etomo.comscript.Field field) {
-    throw new IllegalArgumentException("field=" + field);
+  public String[] getStringArray(etomo.comscript.FieldInterface fieldInterface) {
+    throw new IllegalArgumentException("field=" + fieldInterface);
   }
 
-  public Hashtable getHashtable(etomo.comscript.Field field) {
-    throw new IllegalArgumentException("field=" + field);
+  public Hashtable getHashtable(etomo.comscript.FieldInterface fieldInterface) {
+    throw new IllegalArgumentException("field=" + fieldInterface);
   }
 
-  public double getDoubleValue(etomo.comscript.Field field) {
-    throw new IllegalArgumentException("field=" + field);
+  public double getDoubleValue(etomo.comscript.FieldInterface fieldInterface) {
+    throw new IllegalArgumentException("field=" + fieldInterface);
   }
 
-  public int getIntValue(etomo.comscript.Field field) {
-    if (field == Fields.ITERATION) {
+  public int getIntValue(etomo.comscript.FieldInterface fieldInterface) {
+    if (fieldInterface == Fields.ITERATION) {
       return iteration.getInt();
     }
-    throw new IllegalArgumentException("field=" + field);
+    throw new IllegalArgumentException("field=" + fieldInterface);
   }
 
-  public float getFloatValue(etomo.comscript.Field field) {
-    if (field == Fields.K_VALUE) {
+  public float getFloatValue(etomo.comscript.FieldInterface fieldInterface) {
+    if (fieldInterface == Fields.K_VALUE) {
       return kValue.getFloat();
     }
-    throw new IllegalArgumentException("field=" + field);
+    throw new IllegalArgumentException("field=" + fieldInterface);
   }
 
-  public ConstEtomoNumber getEtomoNumber(etomo.comscript.Field field) {
-    throw new IllegalArgumentException("field=" + field);
+  public ConstEtomoNumber getEtomoNumber(
+      etomo.comscript.FieldInterface fieldInterface) {
+    throw new IllegalArgumentException("field=" + fieldInterface);
   }
 
-  public ConstIntKeyList getIntKeyList(etomo.comscript.Field field) {
-    throw new IllegalArgumentException("field=" + field);
+  public ConstIntKeyList getIntKeyList(
+      etomo.comscript.FieldInterface fieldInterface) {
+    throw new IllegalArgumentException("field=" + fieldInterface);
   }
 
-  public static final class Fields implements etomo.comscript.Field {
+  public static final class Fields implements etomo.comscript.FieldInterface {
     private Fields() {
     }
 
@@ -371,6 +384,16 @@ public final class AnisotropicDiffusionParam implements CommandDetails {
   }
 
   public final static class Mode implements CommandMode {
-    public static final Mode VARYING_K = new Mode();
+    public static final Mode VARYING_K = new Mode("VaryingK");
+
+    private final String string;
+
+    private Mode(String string) {
+      this.string = string;
+    }
+
+    public String toString() {
+      return string;
+    }
   }
 }

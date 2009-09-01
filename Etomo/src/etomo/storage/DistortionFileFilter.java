@@ -16,7 +16,10 @@ import javax.swing.filechooser.FileFilter;
  *
  * @version $$Revision$$
  *
- * <p> $$Log$$ </p>
+ * <p> $$Log$
+ * <p> $Revision 1.1  2004/02/20 23:43:25  sueh
+ * <p> $bug# 386 looks for .idf files
+ * <p> $$ </p>
  */
 public class DistortionFileFilter extends FileFilter {
   public static final String rcsid = "$$Id$$";
@@ -36,7 +39,7 @@ public class DistortionFileFilter extends FileFilter {
    * @see javax.swing.filechooser.FileFilter#getDescription()
    */
   public String getDescription() {
-    return "Image Distortion Field File";
+    return "Image Distortion FieldInterface File";
   }
 
 }

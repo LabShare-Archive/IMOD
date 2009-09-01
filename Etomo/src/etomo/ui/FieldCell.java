@@ -25,6 +25,10 @@ import etomo.type.UITestFieldType;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.27  2009/01/20 20:01:53  sueh
+ * <p> bug# 1102 Added getFieldType so that the ancestor class can name itself
+ * <p> and print out the name.
+ * <p>
  * <p> Revision 1.26  2008/09/30 20:59:24  sueh
  * <p> bug# 1113 Added toString.
  * <p>
@@ -210,8 +214,6 @@ final class FieldCell extends InputCell {
     return isEditable();
   }
 
-
-
   void setEditable(boolean editable) {
     //if this is not an editable instance, it can't be made editable
     if (!this.editable && editable) {
@@ -315,7 +317,7 @@ final class FieldCell extends InputCell {
     }
     return endValue;
   }
-  
+
   UITestFieldType getFieldType() {
     return UITestFieldType.TEXT_FIELD;
   }

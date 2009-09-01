@@ -23,6 +23,9 @@ import etomo.type.TiltAngleSpec;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.20  2009/03/24 20:26:49  sueh
+ * <p> bug# 1201 Added angleOffset.
+ * <p>
  * <p> Revision 3.19  2007/11/06 19:09:34  sueh
  * <p> bug# 1047 Added getSubcommandDetails.
  * <p>
@@ -215,6 +218,10 @@ public class ConstTiltxcorrParam implements ConstCommandParam, Command {
   public String getProcessNameString() {
     return processName.toString();
   }
+  
+  public ProcessName getProcessName() {
+    return processName;
+  }
 
   public String getInputFile() {
     return inputFile;
@@ -317,6 +324,10 @@ public class ConstTiltxcorrParam implements ConstCommandParam, Command {
   }
   
   public CommandDetails getSubcommandDetails() {
+    return null;
+  }
+  
+  public ProcessName getSubcommandProcessName() {
     return null;
   }
   

@@ -24,8 +24,9 @@ import etomo.type.ProcessName;
 public final class TomosnapshotParam implements Command {
   public static final String rcsid = "$Id$";
 
+  private static final ProcessName PROCESS_NAME = ProcessName.TOMOSNAPSHOT;
   public static final String OUTPUT_LINE = "Snapshot done";
-  private static final String COMMAND_NAME = ProcessName.TOMOSNAPSHOT
+  private static final String COMMAND_NAME = PROCESS_NAME
       .toString();
 
   private final AxisID axisID;
@@ -78,6 +79,10 @@ public final class TomosnapshotParam implements Command {
   public final String getCommandName() {
     return COMMAND_NAME;
   }
+  
+  public ProcessName getProcessName() {
+    return PROCESS_NAME;
+  }
 
   public final String getCommandLine() {
     getCommandArray();
@@ -101,9 +106,17 @@ public final class TomosnapshotParam implements Command {
   public CommandDetails getSubcommandDetails() {
     return null;
   }
+  
+  public ProcessName getSubcommandProcessName() {
+    return null;
+  }
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.8  2009/04/02 19:14:51  sueh
+ * <p> bug# 1206 Removed the manager member variable.  Calling tomosnapshot without
+ * <p> options or parameters.
+ * <p>
  * <p> Revision 1.7  2007/11/06 19:17:32  sueh
  * <p> bug# 1047 Added getSubcommandDetails.
  * <p>

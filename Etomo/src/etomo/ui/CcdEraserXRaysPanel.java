@@ -40,8 +40,8 @@ import etomo.type.ProcessResultDisplayFactory;
 import etomo.type.ReconScreenState;
 import etomo.type.Run3dmodMenuOptions;
 
-final class EraseXRaysPanel implements ContextMenu, Run3dmodButtonContainer,
-    CcdEraserDisplay {
+final class CcdEraserXRaysPanel implements ContextMenu,
+    Run3dmodButtonContainer, CcdEraserDisplay,Expandable {
   public static final String rcsid = "$Id$";
 
   private final JPanel pnlCCDEraser = new JPanel();
@@ -95,13 +95,14 @@ final class EraseXRaysPanel implements ContextMenu, Run3dmodButtonContainer,
   private final Run3dmodButton btnErase;
   private final MultiLineButton btnReplaceRawStack;
   private final DialogType dialogType;
-  private final CCDEraserActionListener ccdEraserActionListener;
+  private final CCDEraserXRaysActionListener ccdEraserActionListener;
 
-  private EraseXRaysPanel(final ApplicationManager appMgr, final AxisID id,
-      final DialogType dialogType) {
+  private CcdEraserXRaysPanel(final ApplicationManager appMgr, final AxisID id,
+      final DialogType dialogType,GlobalExpandButton globalAdvancedButton) {
     applicationManager = appMgr;
     axisID = id;
     this.dialogType = dialogType;
+    globalAdvancedButton.register(this);
     ProcessResultDisplayFactory displayFactory = appMgr
         .getProcessResultDisplayFactory(axisID);
     btnErase = (Run3dmodButton) displayFactory.getCreateFixedStack();
@@ -207,12 +208,13 @@ final class EraseXRaysPanel implements ContextMenu, Run3dmodButtonContainer,
     enableXRayReplacement();
     enableManualReplacement();
 
-    ccdEraserActionListener = new CCDEraserActionListener(this);
+    ccdEraserActionListener = new CCDEraserXRaysActionListener(this);
   }
 
-  static EraseXRaysPanel getInstance(final ApplicationManager appMgr,
-      final AxisID id, final DialogType dialogType) {
-    EraseXRaysPanel instance = new EraseXRaysPanel(appMgr, id, dialogType);
+  static CcdEraserXRaysPanel getInstance(final ApplicationManager appMgr,
+      final AxisID id, final DialogType dialogType,GlobalExpandButton globalAdvancedButton) {
+    CcdEraserXRaysPanel instance = new CcdEraserXRaysPanel(appMgr, id,
+        dialogType, globalAdvancedButton);
     instance.addListeners();
     return instance;
   }
@@ -341,7 +343,7 @@ final class EraseXRaysPanel implements ContextMenu, Run3dmodButtonContainer,
    * Makes the advanced components visible or invisible
    * @param state
    */
-  void setAdvanced(final boolean state) {
+  void updateAdvanced(final boolean state) {
     cbXrayReplacement.setVisible(state);
     ltfGrowCriterion.setVisible(state);
     ltfEdgeExclusion.setVisible(state);
@@ -355,6 +357,15 @@ final class EraseXRaysPanel implements ContextMenu, Run3dmodButtonContainer,
     ltfInputImage.setVisible(state);
     ltfOutputImage.setVisible(state);
   }
+  
+  public void expand(GlobalExpandButton button) {
+    updateAdvanced(button.isExpanded());
+    UIHarness.INSTANCE.pack(axisID, applicationManager);
+  }
+
+  public void expand(ExpandButton button) {
+  }
+
 
   public void action(final Run3dmodButton button,
       final Run3dmodMenuOptions run3dmodMenuOptions) {
@@ -521,11 +532,11 @@ final class EraseXRaysPanel implements ContextMenu, Run3dmodButtonContainer,
   }
 
   //  Action listener
-  private final class CCDEraserActionListener implements ActionListener {
+  private final class CCDEraserXRaysActionListener implements ActionListener {
 
-    private final EraseXRaysPanel adaptee;
+    private final CcdEraserXRaysPanel adaptee;
 
-    private CCDEraserActionListener(final EraseXRaysPanel adaptee) {
+    private CCDEraserXRaysActionListener(final CcdEraserXRaysPanel adaptee) {
       this.adaptee = adaptee;
     }
 
@@ -537,6 +548,10 @@ final class EraseXRaysPanel implements ContextMenu, Run3dmodButtonContainer,
 
 /**
  * <p> $Log$
+ * <p> Revision 1.1  2009/06/16 22:52:44  sueh
+ * <p> bug# 1221 Panel for erasing x-rays.  Runs ccderaser in several different
+ * <p> ways.
+ * <p>
  * <p> Revision 3.33  2009/06/11 16:51:04  sueh
  * <p> bug# 1221 Sending the process panel to the process function in the
  * <p> manager wrapped in a ProcessDisplay interface.  Implemented

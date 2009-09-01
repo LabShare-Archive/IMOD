@@ -1,0 +1,166 @@
+package etomo.ui;
+
+import java.awt.Component;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+
+import javax.swing.JPanel;
+import javax.swing.SpinnerNumberModel;
+
+import etomo.ApplicationManager;
+import etomo.ProcessSeries;
+import etomo.comscript.FortranInputSyntaxException;
+import etomo.type.AxisID;
+import etomo.type.ConstMetaData;
+import etomo.type.DialogType;
+import etomo.type.EtomoNumber;
+import etomo.type.MetaData;
+import etomo.type.Run3dmodMenuOptions;
+
+/**
+ * <p>Description: </p>
+ * 
+ * <p>Copyright: Copyright 2009</p>
+ *
+ * <p>Organization:
+ * Boulder Laboratory for 3-Dimensional Electron Microscopy of Cells (BL3DEMC),
+ * University of Colorado</p>
+ * 
+ * @author $Author$
+ * 
+ * @version $Revision$
+ * 
+ * <p> $Log$ </p>
+ */
+abstract class NewstackOrBlendmont3dFindPanel implements
+    Run3dmodButtonContainer {
+  public static final String rcsid = "$Id$";
+
+  private final JPanel pnlRoot = new JPanel();
+  private final ActionListener actionListener = new NewstackOrBlendmont3dFindPanelActionListener(
+      this);
+  private final LabeledSpinner spinBinning = new LabeledSpinner(
+      NewstackAndBlendmontParamPanel.BINNING_LABEL + ": ",
+      new SpinnerNumberModel(1, 1, 8, 1));
+  private final Run3dmodButton btn3dmodFull = Run3dmodButton.get3dmodInstance(
+      "View Full Aligned Stack", this);
+
+  private final NewstackOrBlendmont3dFindParent parent;
+  final AxisID axisID;
+  final ApplicationManager manager;
+  final DialogType dialogType;
+
+  NewstackOrBlendmont3dFindPanel(ApplicationManager manager, AxisID axisID,
+      DialogType dialogType, NewstackOrBlendmont3dFindParent parent) {
+    this.manager = manager;
+    this.axisID = axisID;
+    this.dialogType = dialogType;
+    this.parent = parent;
+  }
+
+  final void addListeners() {
+    btn3dmodFull.addActionListener(actionListener);
+  }
+
+  final Component getComponent() {
+    return pnlRoot;
+  }
+
+  final void createPanel() {
+    //Initialize
+    btn3dmodFull.setSize();
+    pnlRoot.add(spinBinning.getContainer());
+  }
+
+  final Component get3dmodButton() {
+    return btn3dmodFull.getComponent();
+  }
+
+  final String get3dmodFullButtonActionCommand() {
+    return btn3dmodFull.getActionCommand();
+  }
+
+  final int getBinning() {
+    return spinBinning.getValue().intValue();
+  }
+
+  final void setBinning(int input) {
+    spinBinning.setValue(input);
+  }
+
+  /**
+   * The Metadata values that are from the setup dialog should not be overrided
+   * by this dialog unless the Metadata values are empty.
+   * Must save data from the two instances under separate keys.
+   * @param metaData
+   * @throws FortranInputSyntaxException
+   */
+  final void getParameters(final MetaData metaData) {
+    metaData.setStackBinning(axisID, spinBinning.getValue().intValue());
+  }
+
+  final void setParameters(final ConstMetaData metaData) {
+    spinBinning.setValue(metaData.getStack3dFindBinning(axisID));
+  }
+
+  public final boolean validate() {
+    int binning = spinBinning.getValue().intValue();
+    //Warn if the pixel size is too small
+    if (binning > 1) {
+      EtomoNumber beadSize = new EtomoNumber(EtomoNumber.Type.FLOAT);
+      beadSize.set(parent.getBeadSize());
+      if (!beadSize.isNull() && beadSize.isValid()
+          && beadSize.getFloat() / binning < 4) {
+        if (!UIHarness.INSTANCE.openYesNoWarningDialog(
+            "The binned fiducial diameter will be less then 4 pixels.  Do you "
+                + "want to continue?", axisID, manager.getManagerKey())) {
+          return false;
+        }
+      }
+    }
+    return true;
+  }
+
+  abstract void runProcess(final ProcessSeries processSeries,
+      final Run3dmodMenuOptions run3dmodMenuOptions);
+
+  public final void action(final Run3dmodButton button,
+      final Run3dmodMenuOptions run3dmodMenuOptions) {
+    action(button.getActionCommand(), button.getDeferred3dmodButton(),
+        run3dmodMenuOptions);
+  }
+
+  /**
+   * Executes the action associated with command.  Deferred3dmodButton is null
+   * if it comes from the dialog's ActionListener.  Otherwise is comes from a
+   * Run3dmodButton which called action(Run3dmodButton, Run3dmoMenuOptions).  In
+   * that case it will be null unless it was set in the Run3dmodButton.
+   * @param command
+   * @param deferred3dmodButton
+   * @param run3dmodMenuOptions
+   */
+  abstract void action(final String command,
+      final Deferred3dmodButton deferred3dmodButton,
+      final Run3dmodMenuOptions run3dmodMenuOptions);
+
+  void setToolTipText() {
+    spinBinning
+        .setToolTipText("Set the binning for the aligned image stack and "
+            + "tomogram to use with findbeads3d.");
+    btn3dmodFull.setToolTipText("Open the complete aligned stack in 3dmod");
+  }
+
+  private static final class NewstackOrBlendmont3dFindPanelActionListener
+      implements ActionListener {
+    private final NewstackOrBlendmont3dFindPanel adaptee;
+
+    private NewstackOrBlendmont3dFindPanelActionListener(
+        final NewstackOrBlendmont3dFindPanel adaptee) {
+      this.adaptee = adaptee;
+    }
+
+    public void actionPerformed(final ActionEvent event) {
+      adaptee.action(event.getActionCommand(), null, null);
+    }
+  }
+}

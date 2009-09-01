@@ -1,4 +1,7 @@
 package etomo.uitest;
+
+import etomo.type.AxisID;
+
 /**
 * <p>Description: </p>
 * 
@@ -12,10 +15,15 @@ package etomo.uitest;
 * 
 * @version $Revision$
 * 
-* <p> $Log$ </p>
+* <p> $Log$
+* <p> Revision 1.1  2009/01/20 20:51:46  sueh
+* <p> bug# 1102 Interface for classes that hold list(s) of variable name/value
+* <p> pairs.
+* <p> </p>
 */
 interface VariableList {
   public static  final String  rcsid =  "$Id$";
-  public String getVariableValue(String variableName);
-  public boolean isVariableSet(String variableName);
+  public String getVariableValue(String variableName,AxisID axisID);
+  public boolean isVariableSet(String variableName,AxisID axisID);
+  public void setVariable(String variableName,Object variableValue);
 }

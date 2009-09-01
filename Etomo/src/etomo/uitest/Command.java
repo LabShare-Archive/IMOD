@@ -4,6 +4,7 @@ import junit.framework.Assert;
 import etomo.storage.autodoc.ReadOnlySection;
 import etomo.storage.autodoc.ReadOnlyStatement;
 import etomo.storage.autodoc.Statement;
+import etomo.type.AxisID;
 import etomo.type.UITestActionType;
 import etomo.type.UITestSubjectType;
 
@@ -23,6 +24,9 @@ import etomo.type.UITestSubjectType;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.3  2009/02/13 02:38:47  sueh
+ * <p> bug# 1102 Added optional modifier to subcommand.
+ * <p>
  * <p> Revision 1.2  2009/01/28 00:58:20  sueh
  * <p> bug# 1102 Allowing a subcommand after a field.
  * <p>
@@ -33,8 +37,10 @@ import etomo.type.UITestSubjectType;
 final class Command extends Assert {
   public static final String rcsid = "$Id$";
 
-  private final Subject subject = new Subject();
-  private final Field field = new Field();
+  private final Subject subject;
+  private final Field field;
+  //current axis being tested
+  private final AxisID testAxisID;
 
   private boolean empty = true;
   private UITestActionType actionType = null;
@@ -44,6 +50,12 @@ final class Command extends Assert {
   private ReadOnlySection subsection = null;
   private String string = null;
   private boolean known = false;
+
+  Command(AxisID testAxisID) {
+    this.testAxisID = testAxisID;
+    subject = new Subject(testAxisID);
+    field = new Field(testAxisID);
+  }
 
   private void reset() {
     empty = true;
@@ -104,14 +116,14 @@ final class Command extends Assert {
       i = subject.set(statement, i, variableList);
       i = field.set(statement, i, variableList);
       if (subcommand == null) {
-        subcommand = new Command();
+        subcommand = new Command(testAxisID);
       }
       i = subcommand.set(statement, i, variableList);
     }
     String leftSide = statement.getLeftSide(i);
     assertNull("unknown attributes at the end of the command - " + leftSide
         + " (" + string + ")", leftSide);
-    value = replaceVariables(statement.getRightSide(), variableList);
+    value = replaceVariables(statement.getRightSide(), variableList, testAxisID);
     known = true;
     //validate
     assertValid();
@@ -145,14 +157,15 @@ final class Command extends Assert {
     }
     i = subject.set(statement, i, variableList);
     String leftSide = statement.getLeftSide(i);
-    value = replaceVariables(statement.getRightSide(), variableList);
+    value = replaceVariables(statement.getRightSide(), variableList, testAxisID);
     known = true;
     //validate
     assertValid();
     return i;
   }
 
-  static String replaceVariables(String input, VariableList variableList) {
+  static String replaceVariables(String input, VariableList variableList,
+      AxisID axisID) {
     if (variableList == null || input == null
         || !input.matches(".*%\\{.+\\}.*")) {
       return input;
@@ -174,7 +187,8 @@ final class Command extends Assert {
         continue;
       }
       String variableName = buffer.substring(start + 2, end);
-      String variableValue = variableList.getVariableValue(variableName);
+      String variableValue = variableList
+          .getVariableValue(variableName, axisID);
       assertNotNull("Unknown variable " + variableName + " (" + input + ")",
           variableValue);
       buffer.replace(start, end + 1, variableValue);

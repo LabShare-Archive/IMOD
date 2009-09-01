@@ -70,10 +70,7 @@ public class CleanUpDialog extends ProcessDialog implements ContextMenu {
     //  Mouse adapter for context menu
     GenericMouseAdapter mouseAdapter = new GenericMouseAdapter(this);
     rootPanel.addMouseListener(mouseAdapter);
-
-    // Set the default advanced dialog state
     setToolTipText();
-    updateAdvanced();
   }
 
   public final void updateArchiveDisplay(boolean originalStacksExist) {
@@ -130,17 +127,9 @@ public class CleanUpDialog extends ProcessDialog implements ContextMenu {
         ContextPopup.TOMO_GUIDE, applicationManager, axisID);
   }
 
-  /**
-   * Update the dialog with the current advanced state
-   */
-  private void updateAdvanced() {
-    UIHarness.INSTANCE.pack(axisID, applicationManager);
-  }
-
-  protected boolean done() {
+   void done() {
     applicationManager.doneCleanUp();
     setDisplayed(false);
-    return true;
   }
 
   protected void buttonAction(ActionEvent event) {
@@ -180,6 +169,11 @@ public class CleanUpDialog extends ProcessDialog implements ContextMenu {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.16  2008/05/28 02:49:38  sueh
+ * <p> bug# 1111 Add a dialogType parameter to the ProcessSeries
+ * <p> constructor.  DialogType must be passed to any function that constructs
+ * <p> a ProcessSeries instance.
+ * <p>
  * <p> Revision 1.15  2008/05/03 00:48:59  sueh
  * <p> bug# 847 Passing null for ProcessSeries to process funtions.
  * <p>

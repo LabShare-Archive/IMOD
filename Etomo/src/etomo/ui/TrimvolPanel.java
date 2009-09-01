@@ -36,6 +36,10 @@ import etomo.type.Run3dmodMenuOptions;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.36  2009/06/22 15:34:00  sueh
+ * <p> bug# 1224 Added log messages when action listener is added to or
+ * <p> removed from the trimvol button..
+ * <p>
  * <p> Revision 3.35  2009/06/05 02:19:27  sueh
  * <p> bug# Improved formatting.
  * <p>
@@ -310,7 +314,7 @@ public final class TrimvolPanel implements Run3dmodButtonContainer,
     btnGetCoordinates.setSize();
 
     //  Layout the range panel
-    pnlRange.setLayout(new GridLayout(3, 2,5,5));
+    pnlRange.setLayout(new GridLayout(3, 2, 5, 5));
     pnlRange.setBorder(new EtchedBorder("Volume Range").getBorder());
 
     pnlRange.add(ltfXMin.getContainer());
@@ -633,15 +637,15 @@ public final class TrimvolPanel implements Run3dmodButtonContainer,
       applicationManager.trimVolume(btnTrimvol, null, deferred3dmodButton,
           run3dmodMenuOptions, dialogType);
     }
-    if (command == btnGetCoordinates.getActionCommand()) {
+    else if (command == btnGetCoordinates.getActionCommand()) {
       setXYMinAndMax(applicationManager.imodGetRubberbandCoordinates(
           ImodManager.COMBINED_TOMOGRAM_KEY, AxisID.ONLY));
     }
     else if (command == btnImodFull.getActionCommand()) {
       applicationManager.imodCombinedTomogram(run3dmodMenuOptions);
     }
-    if (command == btnImodTrim.getActionCommand()) {
-      applicationManager.imodTrimmedVolume(run3dmodMenuOptions,axisID);
+    else if (command == btnImodTrim.getActionCommand()) {
+      applicationManager.imodTrimmedVolume(run3dmodMenuOptions, axisID);
     }
   }
 

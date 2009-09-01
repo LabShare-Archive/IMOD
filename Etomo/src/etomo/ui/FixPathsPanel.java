@@ -27,7 +27,11 @@ import etomo.type.DialogType;
  * 
  * @version $Revision$
  * 
- * <p> $Log$ </p>
+ * <p> $Log$
+ * <p> Revision 1.1  2009/04/27 18:00:47  sueh
+ * <p> bug# 1211 Panel which allows the user to fix file paths when the files have
+ * <p> been moved.
+ * <p> </p>
  */
 final class FixPathsPanel implements Expandable {
   public static final String rcsid = "$Id$";
@@ -105,6 +109,9 @@ final class FixPathsPanel implements Expandable {
   
   private void action() {
     fileContainer.fixIncorrectPaths(cbChoosePathEveryRow.isSelected());
+  }
+  
+  public void expand(GlobalExpandButton button) {
   }
 
   public void expand(ExpandButton button) {

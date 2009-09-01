@@ -21,18 +21,29 @@ import etomo.type.ConstIntKeyList;
 public interface ProcessDetails {
   public static final String rcsid = "$Id$";
 
-  public int getIntValue(etomo.comscript.Field field);
-  public float getFloatValue(etomo.comscript.Field field);
-  public boolean getBooleanValue(etomo.comscript.Field field);
-  public double getDoubleValue(etomo.comscript.Field field);
-  public Hashtable getHashtable(etomo.comscript.Field field);
-  public ConstEtomoNumber getEtomoNumber(etomo.comscript.Field field);
-  public ConstIntKeyList getIntKeyList(etomo.comscript.Field field);
-  public String getString(etomo.comscript.Field field);
-  public String[] getStringArray(etomo.comscript.Field field);
+  public int getIntValue(FieldInterface field);
+
+  public float getFloatValue(FieldInterface field);
+
+  public boolean getBooleanValue(FieldInterface field);
+
+  public double getDoubleValue(FieldInterface field);
+
+  public Hashtable getHashtable(FieldInterface field);
+
+  public ConstEtomoNumber getEtomoNumber(FieldInterface field);
+
+  public ConstIntKeyList getIntKeyList(FieldInterface field);
+
+  public String getString(FieldInterface field);
+
+  public String[] getStringArray(FieldInterface field);
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.8  2007/12/13 01:06:08  sueh
+ * <p> bug# 1056 Changed etomo.comscript.Fields to etomo.comscript.FieldInterface.
+ * <p>
  * <p> Revision 1.7  2007/11/06 19:16:02  sueh
  * <p> bug# 1047 Added getFloatValue.
  * <p>

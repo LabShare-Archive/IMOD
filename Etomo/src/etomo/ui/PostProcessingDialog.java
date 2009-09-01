@@ -63,8 +63,6 @@ public final class PostProcessingDialog extends ProcessDialog implements
     addExitButtons();
     btnAdvanced.setVisible(false);
     btnExecute.setText("Done");
-    // Set the default advanced dialog state
-    updateAdvanced();
   }
 
   public static PostProcessingDialog getInstance(ApplicationManager manager) {
@@ -106,6 +104,14 @@ public final class PostProcessingDialog extends ProcessDialog implements
   public static ProcessResultDisplay getTrimVolumeDisplay() {
     return Run3dmodButton.getDeferredToggle3dmodInstance("Trim Volume",
         DialogType.POST_PROCESSING);
+  }
+
+  public static ProcessResultDisplay getFlattenDisplay() {
+    return FlattenPanel.getFlattenDisplay(DialogType.POST_PROCESSING);
+  }
+
+  public static ProcessResultDisplay getFlattenWarpDisplay() {
+    return FlattenWarpPanel.getFlattenWarpDisplay();
   }
 
   /**
@@ -177,22 +183,13 @@ public final class PostProcessingDialog extends ProcessDialog implements
         axisID);
   }
 
-  /**
-   * Update the dialog with the current advanced state
-   */
-  private void updateAdvanced() {
-    UIHarness.INSTANCE.pack(axisID, applicationManager);
-  }
-
-  boolean done() {
+  void done() {
     System.err.println("calling PostProcessingDialog.done.");
-    if (applicationManager.donePostProcessing()) {
-      squeezeVolPanel.done();
-      trimvolPanel.done();
-      setDisplayed(false);
-      return true;
-    }
-    return false;
+    applicationManager.donePostProcessing();
+    squeezeVolPanel.done();
+    trimvolPanel.done();
+    flattenPanel.done();
+    setDisplayed(false);
   }
 
   private static final class TabChangeListener implements ChangeListener {
@@ -240,6 +237,9 @@ public final class PostProcessingDialog extends ProcessDialog implements
 }
 /**
  * <p> $Log$
+ * <p> Revision 3.42  2009/06/22 15:33:19  sueh
+ * <p> bug# 1224 Added a log message to done().
+ * <p>
  * <p> Revision 3.41  2009/06/11 16:59:29  sueh
  * <p> bug# 1221 Removed no longer used getParameters(FlattenWarpParam).
  * <p> The manager is going straight to the panel now.

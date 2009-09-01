@@ -9,7 +9,7 @@ import etomo.BaseManager;
 import etomo.EtomoDirector;
 import etomo.comscript.Command;
 import etomo.comscript.CommandDetails;
-import etomo.comscript.DetachedCommand;
+import etomo.comscript.DetachedCommandDetails;
 import etomo.comscript.IntermittentCommand;
 import etomo.comscript.ProcessDetails;
 import etomo.comscript.ComscriptState;
@@ -44,6 +44,10 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.84  2009/04/20 19:23:09  sueh
+ * <p> bug# 1192 In processchunks added computerMap to
+ * <p> ProcesschunksVolcombineMonitor and ProcesschunksProcessMonitor.
+ * <p>
  * <p> Revision 1.83  2009/04/15 16:52:25  sueh
  * <p> bug# 1190 Returning false and logging failure for major reconnection
  * <p> failures.
@@ -1493,37 +1497,37 @@ public abstract class BaseProcessManager {
   }
 
   final BackgroundProcess startDetachedProcess(
-      final DetachedCommand detachedCommand, final AxisID axisID,
+      final DetachedCommandDetails detachedCommandDetails, final AxisID axisID,
       final OutfileProcessMonitor monitor,
       final ProcessResultDisplay processResultDisplay,
       final ProcessName processName, final ConstProcessSeries processSeries)
       throws SystemProcessException {
     DetachedProcess detachedProcess = new DetachedProcess(manager,
-        detachedCommand, this, axisID, monitor, processResultDisplay,
+        detachedCommandDetails, this, axisID, monitor, processResultDisplay,
         processName, processSeries);
     if (monitor != null) {
       monitor.setProcess(detachedProcess);
     }
-    return startBackgroundProcess(detachedProcess, detachedCommand
+    return startBackgroundProcess(detachedProcess, detachedCommandDetails
         .getCommandLine(), axisID, monitor);
   }
 
   final BackgroundProcess startDetachedProcess(
-      final DetachedCommand detachedCommand, final AxisID axisID,
+      final DetachedCommandDetails detachedCommandDetails, final AxisID axisID,
       final OutfileProcessMonitor monitor,
       final ProcessResultDisplay processResultDisplay,
       final ProcessName processName, final String subdirName,
       final String shortCommandName, final ConstProcessSeries processSeries)
       throws SystemProcessException {
     DetachedProcess detachedProcess = new DetachedProcess(manager,
-        detachedCommand, this, axisID, monitor, processResultDisplay,
+        detachedCommandDetails, this, axisID, monitor, processResultDisplay,
         processName, processSeries);
     detachedProcess.setSubdirName(subdirName);
     detachedProcess.setShortCommandName(shortCommandName);
     if (monitor != null) {
       monitor.setProcess(detachedProcess);
     }
-    return startBackgroundProcess(detachedProcess, detachedCommand
+    return startBackgroundProcess(detachedProcess, detachedCommandDetails
         .getCommandLine(), axisID, monitor);
   }
 
@@ -1624,12 +1628,12 @@ public abstract class BaseProcessManager {
     try {
       TomosnapshotProcess process = new TomosnapshotProcess(axisID);
       new Thread(process).start();
-        }
+    }
     catch (Exception e) {
       UIHarness.INSTANCE.openMessageDialog(e.getMessage(), "Process Exception",
           axisID, null);
     }
-    }
+  }
 
   /**
    * Start an arbitrary command as an unmanaged background thread
@@ -1790,14 +1794,20 @@ public abstract class BaseProcessManager {
   }
 
   void postProcess(final BackgroundProcess process) {
-    String commandName = process.getCommandName();
-    if (commandName == null) {
-      return;
+    try {
+      String commandName = process.getCommandName();
+      if (commandName == null) {
+        return;
+      }
+      if (ProcessName.TOMOSNAPSHOT.equals(commandName)) {
+        Utilities.findMessageAndOpenDialog(process.getAxisID(), process
+            .getStdOutput(), TomosnapshotParam.OUTPUT_LINE,
+            "Tomosnapshot Complete", manager.getManagerKey());
+      }
     }
-    if (ProcessName.TOMOSNAPSHOT.equals(commandName)) {
-      Utilities.findMessageAndOpenDialog(process.getAxisID(), process
-          .getStdOutput(), TomosnapshotParam.OUTPUT_LINE,
-          "Tomosnapshot Complete", manager.getManagerKey());
+    catch (Exception e) {
+      e.printStackTrace();
+      System.err.println("ERROR:  Unable to record state.");
     }
   }
 
@@ -1809,6 +1819,6 @@ public abstract class BaseProcessManager {
       }
     }
     catch (NullPointerException e) {
+    }
   }
-}
 }

@@ -1,8 +1,10 @@
 package etomo.comscript;
 
+import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.HashMap;
+import java.util.Hashtable;
 
 import etomo.BaseManager;
 import etomo.storage.LogFile;
@@ -10,9 +12,12 @@ import etomo.storage.autodoc.AutodocFactory;
 import etomo.storage.autodoc.ReadOnlyAutodoc;
 import etomo.type.AxisID;
 import etomo.type.ConstEtomoNumber;
+import etomo.type.ConstIntKeyList;
 import etomo.type.EtomoAutodoc;
 import etomo.type.EtomoBoolean2;
 import etomo.type.EtomoNumber;
+import etomo.type.FileType;
+import etomo.type.ProcessName;
 import etomo.type.ScriptParameter;
 
 /**
@@ -28,6 +33,10 @@ import etomo.type.ScriptParameter;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.22  2009/05/02 01:06:44  sueh
+ * <p> bug# 1216 In getBeadDiameter changed the return value to
+ * <p> ConstEtomoNumber.
+ * <p>
  * <p> Revision 3.21  2009/03/17 00:30:34  sueh
  * <p> bug# 1186 Pass managerKey to everything that pops up a dialog.
  * <p>
@@ -147,10 +156,11 @@ import etomo.type.ScriptParameter;
  * <p> </p>
  */
 
-public class BeadtrackParam extends OldBeadtrackParam implements CommandParam {
+public class BeadtrackParam extends OldBeadtrackParam implements CommandParam,
+    CommandDetails {
   public static final String rcsid = "$Id$";
-
-  //Const code
+  
+  public static final ProcessName PROCESS_NAME =  ProcessName.TRACK;
 
   public static final String INPUT_FILE_KEY = "ImageFile";
   private static final String PIECE_LIST_FILE_KEY = "PieceListFile";
@@ -360,6 +370,10 @@ public class BeadtrackParam extends OldBeadtrackParam implements CommandParam {
     }
     return autodoc.getAttributeValues(EtomoAutodoc.FIELD_SECTION_NAME,
         EtomoAutodoc.REQUIRED_ATTRIBUTE_NAME);
+  }
+
+  public String getCommand() {
+    return "track" + axisID.getExtension() + ".com";
   }
 
   public String getSkipViews() {
@@ -785,5 +799,90 @@ public class BeadtrackParam extends OldBeadtrackParam implements CommandParam {
 
   public ConstEtomoNumber setRoundsOfTracking(String roundsOfTracking) {
     return this.roundsOfTracking.set(roundsOfTracking);
+  }
+
+  public AxisID getAxisID() {
+    return axisID;
+  }
+
+  public String[] getCommandArray() {
+    String[] array = { getCommandLine() };
+    return array;
+  }
+
+  public String getCommandLine() {
+    return FileType.getInstance(PROCESS_NAME).getFileName(manager, axisID);
+  }
+
+  public CommandMode getCommandMode() {
+    return null;
+  }
+
+  public String getCommandName() {
+    return PROCESS_NAME.toString();
+  }
+  
+  public ProcessName getProcessName() {
+    return PROCESS_NAME;
+  }
+
+  public File getCommandOutputFile() {
+    return null;
+  }
+
+  public CommandDetails getSubcommandDetails() {
+    return null;
+  }
+  
+  public ProcessName getSubcommandProcessName() {
+    return null;
+  }
+
+  public boolean getBooleanValue(
+      final etomo.comscript.FieldInterface fieldInterface) {
+    if (fieldInterface == Field.LIGHT_BEADS) {
+      return lightBeads.is();
+    }
+    throw new IllegalArgumentException("field=" + fieldInterface);
+  }
+
+  public double getDoubleValue(final FieldInterface field) {
+    throw new IllegalArgumentException("field=" + field);
+  }
+  
+  public ConstEtomoNumber getEtomoNumber(final FieldInterface field) {
+    throw new IllegalArgumentException("field=" + field);
+  }
+  
+  public float getFloatValue(final FieldInterface field) {
+    throw new IllegalArgumentException("field=" + field);
+  }
+  
+  public Hashtable getHashtable(final FieldInterface field) {
+    throw new IllegalArgumentException("field=" + field);
+  }
+  
+  public ConstIntKeyList getIntKeyList(final FieldInterface field) {
+    throw new IllegalArgumentException("field=" + field);
+  }
+  
+  public int getIntValue(final FieldInterface field) {
+    throw new IllegalArgumentException("field=" + field);
+  }
+  
+  public String getString(final FieldInterface field) {
+    throw new IllegalArgumentException("field=" + field);
+  }
+  
+  public String[] getStringArray(final FieldInterface field) {
+    throw new IllegalArgumentException("field=" + field);
+  }
+
+  public static final class Field implements etomo.comscript.FieldInterface {
+
+    public static final Field LIGHT_BEADS = new Field();
+
+    private Field() {
+    }
   }
 }

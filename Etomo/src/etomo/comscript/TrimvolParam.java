@@ -11,6 +11,9 @@
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.31  2009/04/27 17:57:34  sueh
+ * <p> Removed unnecessary prints.
+ * <p>
  * <p> Revision 3.30  2009/03/17 00:33:17  sueh
  * <p> bug# 1186 Pass managerKey to everything that pops up a dialog.
  * <p>
@@ -184,6 +187,7 @@ import etomo.type.BaseMetaData;
 import etomo.type.ConstEtomoNumber;
 import etomo.type.ConstIntKeyList;
 import etomo.type.EtomoNumber;
+import etomo.type.ProcessName;
 import etomo.type.TomogramState;
 import etomo.util.MRCHeader;
 import etomo.util.InvalidParameterException;
@@ -817,42 +821,42 @@ public class TrimvolParam implements CommandDetails {
     outputFile = file;
   }
 
-  public boolean getBooleanValue(etomo.comscript.Field field) {
-    if (field == Fields.SWAP_YZ) {
+  public boolean getBooleanValue(etomo.comscript.FieldInterface fieldInterface) {
+    if (fieldInterface == Fields.SWAP_YZ) {
       return swapYZ;
     }
-    if (field == Fields.ROTATE_X) {
+    if (fieldInterface == Fields.ROTATE_X) {
       return rotateX;
     }
-    throw new IllegalArgumentException("field=" + field);
+    throw new IllegalArgumentException("field=" + fieldInterface);
   }
 
-  public float getFloatValue(etomo.comscript.Field field) {
-    throw new IllegalArgumentException("field=" + field);
+  public float getFloatValue(etomo.comscript.FieldInterface fieldInterface) {
+    throw new IllegalArgumentException("field=" + fieldInterface);
   }
 
-  public String[] getStringArray(etomo.comscript.Field field) {
-    throw new IllegalArgumentException("field=" + field);
+  public String[] getStringArray(etomo.comscript.FieldInterface fieldInterface) {
+    throw new IllegalArgumentException("field=" + fieldInterface);
   }
 
-  public String getString(etomo.comscript.Field field) {
-    throw new IllegalArgumentException("field=" + field);
+  public String getString(etomo.comscript.FieldInterface fieldInterface) {
+    throw new IllegalArgumentException("field=" + fieldInterface);
   }
 
-  public double getDoubleValue(etomo.comscript.Field field) {
-    throw new IllegalArgumentException("field=" + field);
+  public double getDoubleValue(etomo.comscript.FieldInterface fieldInterface) {
+    throw new IllegalArgumentException("field=" + fieldInterface);
   }
 
-  public ConstEtomoNumber getEtomoNumber(etomo.comscript.Field field) {
-    throw new IllegalArgumentException("field=" + field);
+  public ConstEtomoNumber getEtomoNumber(etomo.comscript.FieldInterface fieldInterface) {
+    throw new IllegalArgumentException("field=" + fieldInterface);
   }
 
-  public ConstIntKeyList getIntKeyList(etomo.comscript.Field field) {
-    throw new IllegalArgumentException("field=" + field);
+  public ConstIntKeyList getIntKeyList(etomo.comscript.FieldInterface fieldInterface) {
+    throw new IllegalArgumentException("field=" + fieldInterface);
   }
 
-  public Hashtable getHashtable(etomo.comscript.Field field) {
-    throw new IllegalArgumentException("field=" + field);
+  public Hashtable getHashtable(etomo.comscript.FieldInterface fieldInterface) {
+    throw new IllegalArgumentException("field=" + fieldInterface);
   }
 
   public String[] getCommandArray() {
@@ -874,17 +878,25 @@ public class TrimvolParam implements CommandDetails {
   public CommandDetails getSubcommandDetails() {
     return null;
   }
+  
+  public ProcessName getSubcommandProcessName() {
+    return null;
+  }
 
   public String getCommandName() {
     return commandName;
+  }
+  
+  public ProcessName getProcessName() {
+    return ProcessName.TRIMVOL;
   }
 
   public String getCommand() {
     return commandName;
   }
 
-  public int getIntValue(etomo.comscript.Field field) {
-    throw new IllegalArgumentException("field=" + field);
+  public int getIntValue(etomo.comscript.FieldInterface fieldInterface) {
+    throw new IllegalArgumentException("field=" + fieldInterface);
   }
 
   public CommandMode getCommandMode() {
@@ -962,7 +974,7 @@ public class TrimvolParam implements CommandDetails {
     return true;
   }
 
-  public static final class Fields implements etomo.comscript.Field {
+  public static final class Fields implements etomo.comscript.FieldInterface {
     private Fields() {
     }
 

@@ -36,6 +36,11 @@ import etomo.type.Run3dmodMenuOptions;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.2  2009/06/11 16:52:52  sueh
+ * <p> bug# 1221 Sending the process panel to the process function in the
+ * <p> manager wrapped in a ProcessDisplay interface.  Implemented
+ * <p> FlattenWarpDisplay.
+ * <p>
  * <p> Revision 1.1  2009/06/05 02:11:44  sueh
  * <p> bug# 1219 A panel that can run flattenwarp.
  * <p> </p>
@@ -56,13 +61,12 @@ final class FlattenWarpPanel implements Run3dmodButtonContainer,
       WARP_SPACING_X_LABEL + ": ");
   private final LabeledTextField ltfWarpSpacingY = new LabeledTextField(" "
       + WARP_SPACING_Y_LABEL + ": ");
-  private final MultiLineButton btnFlattenWarp = new MultiLineButton(
-      "Run Flattenwarp");
+  private final MultiLineButton btnFlattenWarp; //= new MultiLineButton("Run Flattenwarp");
 
+  private final FlattenWarpParent parent;
   private final AxisID axisID;
   private final ApplicationManager manager;
   private final DialogType dialogType;
-  private final FlattenWarpParent parent;
 
   private FlattenWarpPanel(ApplicationManager manager, AxisID axisID,
       DialogType dialogType, FlattenWarpParent parent) {
@@ -70,6 +74,8 @@ final class FlattenWarpPanel implements Run3dmodButtonContainer,
     this.axisID = axisID;
     this.dialogType = dialogType;
     this.parent = parent;
+    btnFlattenWarp = (MultiLineButton) manager.getProcessResultDisplayFactory(
+        axisID).getFlattenWarp();
   }
 
   static FlattenWarpPanel getInstance(ApplicationManager manager,
@@ -80,6 +86,10 @@ final class FlattenWarpPanel implements Run3dmodButtonContainer,
     instance.addListeners();
     instance.setToolTipText();
     return instance;
+  }
+
+  static MultiLineButton getFlattenWarpDisplay() {
+    return new MultiLineButton("Run Flattenwarp");
   }
 
   private void addListeners() {

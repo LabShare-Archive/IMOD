@@ -52,6 +52,9 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.52  2009/06/05 02:17:07  sueh
+ * <p> bug# 1219 Renamed BinnedXY3dmodButton.getInt to setBinningInXandY.
+ * <p>
  * <p> Revision 1.51  2009/04/01 20:08:25  sueh
  * <p> bug# 1208 Calling clip rotx instead of clip flipyz when adding a flipped section.
  * <p>
@@ -885,6 +888,9 @@ final class SectionTablePanel implements ContextMenu, Expandable,
       btnDeleteSection.setEnabled(highlightedRowIndex > -1);
       btnGetAngles.setEnabled(highlightedRowIndex > -1);
     }
+  }
+  
+  public void expand(final GlobalExpandButton button) {
   }
 
   /**

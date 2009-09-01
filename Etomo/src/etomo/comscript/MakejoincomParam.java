@@ -12,6 +12,7 @@ import etomo.type.ConstIntKeyList;
 import etomo.type.ConstJoinMetaData;
 import etomo.type.ConstSectionTableRowData;
 import etomo.type.JoinState;
+import etomo.type.ProcessName;
 import etomo.type.ScriptParameter;
 import etomo.type.SectionTableRowData;
 import etomo.type.SlicerAngles;
@@ -37,6 +38,9 @@ import etomo.util.DatasetFiles;
  * <p> </p>
  * 
  * <p> $Log$
+ * <p> Revision 1.27  2007/12/13 01:05:20  sueh
+ * <p> bug# 1056 Changed etomo.comscript.Fields to etomo.comscript.FieldInterface.
+ * <p>
  * <p> Revision 1.26  2007/11/06 19:11:27  sueh
  * <p> bug# 1047 Added getSubcommandDetails.
  * <p>
@@ -188,6 +192,7 @@ public final class MakejoincomParam implements CommandDetails {
   public static final int MIDAS_LIMIT_DEFAULT = 1024;
 
   private static final int commandSize = 3;
+  private static final ProcessName PROCESS_NAME = ProcessName.MAKEJOINCOM;
   private static final String commandName = "makejoincom";
   private static final boolean debug = true;
 
@@ -338,54 +343,62 @@ public final class MakejoincomParam implements CommandDetails {
   public String getCommandName() {
     return commandName;
   }
-
-  public int getIntValue(etomo.comscript.Field field) {
-    if (field == Fields.TOTAL_ROWS) {
-      return totalRows;
-    }
-    throw new IllegalArgumentException("field=" + field);
+  
+  public ProcessName getProcessName() {
+    return PROCESS_NAME;
   }
 
-  public double getDoubleValue(etomo.comscript.Field field) {
-    throw new IllegalArgumentException("field=" + field);
+  public int getIntValue(etomo.comscript.FieldInterface fieldInterface) {
+    if (fieldInterface == Fields.TOTAL_ROWS) {
+      return totalRows;
+    }
+    throw new IllegalArgumentException("field=" + fieldInterface);
+  }
+
+  public double getDoubleValue(etomo.comscript.FieldInterface fieldInterface) {
+    throw new IllegalArgumentException("field=" + fieldInterface);
   }
 
   public CommandDetails getSubcommandDetails() {
     return null;
   }
-
-  public ConstEtomoNumber getEtomoNumber(etomo.comscript.Field field) {
-    throw new IllegalArgumentException("field=" + field);
+  
+  public ProcessName getSubcommandProcessName() {
+    return null;
   }
 
-  public ConstIntKeyList getIntKeyList(etomo.comscript.Field field) {
-    throw new IllegalArgumentException("field=" + field);
+  public ConstEtomoNumber getEtomoNumber(etomo.comscript.FieldInterface fieldInterface) {
+    throw new IllegalArgumentException("field=" + fieldInterface);
   }
 
-  public boolean getBooleanValue(etomo.comscript.Field field) {
-    if (field == Fields.ROTATE) {
+  public ConstIntKeyList getIntKeyList(etomo.comscript.FieldInterface fieldInterface) {
+    throw new IllegalArgumentException("field=" + fieldInterface);
+  }
+
+  public boolean getBooleanValue(etomo.comscript.FieldInterface fieldInterface) {
+    if (fieldInterface == Fields.ROTATE) {
       return rotate;
     }
-    throw new IllegalArgumentException("field=" + field);
+    throw new IllegalArgumentException("field=" + fieldInterface);
   }
 
-  public float getFloatValue(etomo.comscript.Field field) {
-    throw new IllegalArgumentException("field=" + field);
+  public float getFloatValue(etomo.comscript.FieldInterface fieldInterface) {
+    throw new IllegalArgumentException("field=" + fieldInterface);
   }
 
-  public String[] getStringArray(etomo.comscript.Field field) {
-    throw new IllegalArgumentException("field=" + field);
+  public String[] getStringArray(etomo.comscript.FieldInterface fieldInterface) {
+    throw new IllegalArgumentException("field=" + fieldInterface);
   }
 
-  public String getString(etomo.comscript.Field field) {
-    throw new IllegalArgumentException("field=" + field);
+  public String getString(etomo.comscript.FieldInterface fieldInterface) {
+    throw new IllegalArgumentException("field=" + fieldInterface);
   }
 
-  public Hashtable getHashtable(etomo.comscript.Field field) {
-    if (field == Fields.ROTATION_ANGLES_LIST) {
+  public Hashtable getHashtable(etomo.comscript.FieldInterface fieldInterface) {
+    if (fieldInterface == Fields.ROTATION_ANGLES_LIST) {
       return rotationAnglesList;
     }
-    throw new IllegalArgumentException("field=" + field);
+    throw new IllegalArgumentException("field=" + fieldInterface);
   }
 
   public CommandMode getCommandMode() {
@@ -400,7 +413,7 @@ public final class MakejoincomParam implements CommandDetails {
     return commandName;
   }
 
-  public static final class Fields implements etomo.comscript.Field {
+  public static final class Fields implements etomo.comscript.FieldInterface {
     private Fields() {
     }
 

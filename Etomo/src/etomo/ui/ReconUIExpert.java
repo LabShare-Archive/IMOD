@@ -41,9 +41,9 @@ public abstract class ReconUIExpert implements UIExpert {
 
   private boolean dialogOutOfDate = false;
 
-  abstract boolean doneDialog();
+  abstract void doneDialog();
 
-  abstract boolean saveDialog();
+  abstract void saveDialog();
 
   abstract ProcessDialog getDialog();
 
@@ -209,6 +209,9 @@ public abstract class ReconUIExpert implements UIExpert {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.10  2009/03/17 00:46:24  sueh
+ * <p> bug# 1186 Pass managerKey to everything that pops up a dialog.
+ * <p>
  * <p> Revision 1.9  2008/05/28 02:51:12  sueh
  * <p> bug# 1111 Add a dialogType parameter to the ProcessSeries
  * <p> constructor.  DialogType must be passed to any function that constructs

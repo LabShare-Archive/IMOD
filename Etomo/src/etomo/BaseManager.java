@@ -45,7 +45,6 @@ import etomo.type.Run3dmodMenuOptions;
 import etomo.type.UserConfiguration;
 import etomo.ui.LogPanel;
 import etomo.ui.MainPanel;
-import etomo.ui.AbstractParallelDialog;
 import etomo.ui.ParallelPanel;
 import etomo.ui.ProcessDisplay;
 import etomo.ui.UIHarness;
@@ -143,7 +142,7 @@ public abstract class BaseManager {
 
   abstract void startNextProcess(AxisID axisID, String nextProcess,
       ProcessResultDisplay processResultDisplay, ProcessSeries processSeries,
-      DialogType dialogType, ProcessDisplay display);
+      DialogType dialogType, ProcessDisplay display,ProcessName subProcessName);
 
   abstract Storable[] getStorables(int offset);
 
@@ -725,9 +724,9 @@ public abstract class BaseManager {
   }
 
   public void imodOpen(AxisID axisID, String imodKey, String model,
-      Run3dmodMenuOptions menuOptions) {
+      Run3dmodMenuOptions menuOptions,boolean modelMode) {
     try {
-      imodManager.open(imodKey, axisID, model, true, menuOptions);
+      imodManager.open(imodKey, axisID, model, modelMode, menuOptions);
     }
     catch (AxisTypeException except) {
       except.printStackTrace();
@@ -1294,14 +1293,9 @@ public abstract class BaseManager {
     setThreadName(threadName, axisID);
   }
 
-  /**
-   * 
-   * @param axisID
-   * @param dialog
-   */
   public final void setParallelDialog(AxisID axisID,
-      AbstractParallelDialog dialog) {
-    getMainPanel().setParallelDialog(axisID, dialog.usingParallelProcessing());
+      boolean usingParallelProcessing) {
+    getMainPanel().setParallelDialog(axisID, usingParallelProcessing);
   }
 
   public final void tomosnapshot(AxisID axisID) {
@@ -1310,6 +1304,9 @@ public abstract class BaseManager {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.119  2009/08/25 15:50:31  sueh
+ * <p> bug# 1218 Creating main panel even when headless.
+ * <p>
  * <p> Revision 1.118  2009/06/11 16:40:03  sueh
  * <p> bug# 1221 Sending the process panel to the process function in the
  * <p> manager wrapped in a ProcessDisplay interface.  Changed

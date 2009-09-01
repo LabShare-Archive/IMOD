@@ -12,6 +12,10 @@
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.30  2009/06/12 19:50:45  sueh
+ * <p> bug# 1221 Factored running prenewst, making it independent of the
+ * <p> coarse align dialog.
+ * <p>
  * <p> Revision 1.29  2009/01/20 20:19:11  sueh
  * <p> bug# 1102 Changed labeled panels to type EtomoPanel so that they can name themselves.
  * <p>
@@ -140,6 +144,7 @@ import etomo.type.AxisID;
 import etomo.type.BaseScreenState;
 import etomo.type.ConstEtomoNumber;
 import etomo.type.DialogType;
+import etomo.type.ProcessName;
 import etomo.type.ProcessResultDisplay;
 import etomo.type.Run3dmodMenuOptions;
 import etomo.type.ViewType;
@@ -166,7 +171,7 @@ final class PrenewstPanel implements ContextMenu, Expandable,
   private final DialogType dialogType;
 
   PrenewstPanel(ApplicationManager applicationManager, AxisID id,
-      DialogType dialogType, CoarseAlignDialog parent) {
+      DialogType dialogType, CoarseAlignDialog parent,GlobalExpandButton globalAdvancedButton) {
     this.parent = parent;
     axisID = id;
     this.applicationManager = applicationManager;
@@ -191,11 +196,11 @@ final class PrenewstPanel implements ContextMenu, Expandable,
     UIUtilities.addWithYSpace(pnlBody, spinBinning.getContainer());
     if (applicationManager.getMetaData().getViewType() == ViewType.MONTAGE) {
       header = PanelHeader.getAdvancedBasicInstance("Blendmont", this,
-          dialogType);
+          dialogType,globalAdvancedButton);
     }
     else {
       header = PanelHeader.getAdvancedBasicInstance("Newstack", this,
-          dialogType);
+          dialogType,globalAdvancedButton);
       UIUtilities.addWithYSpace(pnlCheckBoxes, cbByteModeToOutput);
       UIUtilities.addWithYSpace(pnlCheckBoxes, cbMeanFloatDensities);
     }
@@ -225,25 +230,21 @@ final class PrenewstPanel implements ContextMenu, Expandable,
   void setDeferred3dmodButtons() {
     btnCoarseAlign.setDeferred3dmodButton(parent.btnImod);
   }
+  
+  public void expand(GlobalExpandButton button) {
+  }
 
   public void expand(ExpandButton button) {
     if (header.equalsOpenClose(button)) {
       pnlBody.setVisible(button.isExpanded());
     }
     else if (header.equalsAdvancedBasic(button)) {
-      setAdvanced(button.isExpanded());
+      updateAdvanced(button.isExpanded());
     }
     UIHarness.INSTANCE.pack(axisID, applicationManager);
   }
 
-  /**
-   * Update the header with the current advanced state
-   */
-  void updateAdvanced(boolean isAdvanced) {
-    header.setAdvanced(isAdvanced);
-  }
-
-  void setAdvanced(boolean state) {
+  void updateAdvanced(boolean state) {
     spinBinning.setVisible(state);
     cbByteModeToOutput.setVisible(state);
     cbMeanFloatDensities.setVisible(state);
@@ -272,9 +273,9 @@ final class PrenewstPanel implements ContextMenu, Expandable,
       spinBinning.setValue(binning);
     }
     cbByteModeToOutput
-        .setSelected(prenewstParams.getModeToOutput() == ConstNewstParam.DATA_MODE_BYTE);
+        .setSelected(prenewstParams.getModeToOutput() == NewstParam.DATA_MODE_BYTE);
     cbMeanFloatDensities
-        .setSelected(prenewstParams.getFloatDensities() == ConstNewstParam.FLOAT_DENSITIES_MEAN);
+        .setSelected(prenewstParams.getFloatDensities() == NewstParam.FLOAT_DENSITIES_MEAN);
   }
 
   public void setParameters(BaseScreenState screenState) {
@@ -306,17 +307,24 @@ final class PrenewstPanel implements ContextMenu, Expandable,
       prenewstParams.setBinByFactor(Integer.MIN_VALUE);
     }
     if (cbByteModeToOutput.isSelected()) {
-      prenewstParams.setModeToOutput(ConstNewstParam.DATA_MODE_BYTE);
+      prenewstParams.setModeToOutput(NewstParam.DATA_MODE_BYTE);
     }
     else {
-      prenewstParams.setModeToOutput(ConstNewstParam.DATA_MODE_DEFAULT);
+      prenewstParams.setModeToOutput(NewstParam.DATA_MODE_DEFAULT);
     }
     if (cbMeanFloatDensities.isSelected()) {
-      prenewstParams.setFloatDensities(ConstNewstParam.FLOAT_DENSITIES_MEAN);
+      prenewstParams.setFloatDensities(NewstParam.FLOAT_DENSITIES_MEAN);
     }
     else {
-      prenewstParams.setFloatDensities(ConstNewstParam.FLOAT_DENSITIES_DEFAULT);
+      prenewstParams.setFloatDensities(NewstParam.FLOAT_DENSITIES_DEFAULT);
     }
+  }
+
+  public ProcessName getProcessName() {
+    if (applicationManager.getMetaData().getViewType() == ViewType.MONTAGE) {
+      return ProcessName.PREBLEND;
+    }
+    return ProcessName.PRENEWST;
   }
 
   public void getParameters(BlendmontParam blendmontParam) {
@@ -346,14 +354,14 @@ final class PrenewstPanel implements ContextMenu, Expandable,
         .setToolTipText("Binning for the image stack used to generate and fix the fiducial model.");
     cbByteModeToOutput
         .setToolTipText("Set the storage mode of the output file to bytes.  When unchecked the storage mode is the same as that of the first input file.  This option should be turned off when the dynamic range is still too poor after X ray removal.  Command:  "
-            + ConstNewstParam.DATA_MODE_OPTION
+            + NewstParam.DATA_MODE_OPTION
             + " "
-            + ConstNewstParam.DATA_MODE_BYTE);
+            + NewstParam.DATA_MODE_BYTE);
     cbMeanFloatDensities
         .setToolTipText("Adjust densities of sections individually.  Scale sections to common mean and standard deviation.  Command:  "
-            + ConstNewstParam.FLOAT_DENSITIES_OPTION
+            + NewstParam.FLOAT_DENSITIES_OPTION
             + " "
-            + ConstNewstParam.FLOAT_DENSITIES_MEAN);
+            + NewstParam.FLOAT_DENSITIES_MEAN);
     btnCoarseAlign
         .setToolTipText("Use transformations to produce stack of aligned images.");
   }
@@ -361,6 +369,10 @@ final class PrenewstPanel implements ContextMenu, Expandable,
   public void action(Run3dmodButton button, Run3dmodMenuOptions menuOptions) {
     buttonAction(button.getActionCommand(), button.getDeferred3dmodButton(),
         menuOptions);
+  }
+  
+  public boolean validate() {
+    return true;
   }
 
   /**

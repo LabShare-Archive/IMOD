@@ -33,6 +33,10 @@ import etomo.util.Utilities;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.55  2009/06/05 01:44:55  sueh
+ * <p> bug# 1219 Added scriptFlatten, getWarpVolParamFromFlatten,
+ * <p> isWarpVolParamInFlatten, loadFlatten, and saveFlatten.
+ * <p>
  * <p> Revision 3.54  2009/03/17 00:31:16  sueh
  * <p> bug# 1186 Pass managerKey to everything that pops up a dialog.
  * <p>
@@ -379,6 +383,16 @@ public class ComScriptManager {
   private ComScript scriptCtfPlotterA;
   private ComScript scriptCtfPlotterB;
   private ComScript scriptFlatten;
+  private ComScript scriptNewst3dFindA;
+  private ComScript scriptNewst3dFindB;
+  private ComScript scriptBlend3dFindA;
+  private ComScript scriptBlend3dFindB;
+  private ComScript scriptTilt3dFindA;
+  private ComScript scriptTilt3dFindB;
+  private ComScript scriptFindBeads3dA;
+  private ComScript scriptFindBeads3dB;
+  private ComScript scriptTilt3dFindReprojectA;
+  private ComScript scriptTilt3dFindReprojectB;
 
   public ComScriptManager(ApplicationManager appManager) {
     this.appManager = appManager;
@@ -605,6 +619,18 @@ public class ComScriptManager {
     }
   }
 
+  public void loadBlend3dFind(AxisID axisID) {
+    //  Assign the new ComScriptObject object to the appropriate reference
+    if (axisID == AxisID.SECOND) {
+      scriptBlend3dFindB = loadComScript(ProcessName.BLEND_3D_FIND, axisID,
+          true);
+    }
+    else {
+      scriptBlend3dFindA = loadComScript(ProcessName.BLEND_3D_FIND, axisID,
+          true);
+    }
+  }
+
   /**
    * @param axisID
    * @param required
@@ -697,6 +723,50 @@ public class ComScriptManager {
   }
 
   /**
+   * Get BlendmontParam from blend_3dfind.com
+   * @param axisID
+   * @return
+   */
+  public BlendmontParam getBlendParamFromBlend3dFind(AxisID axisID) {
+    //  Get a reference to the appropriate script object
+    ComScript scriptBlend3dFind;
+    if (axisID == AxisID.SECOND) {
+      scriptBlend3dFind = scriptBlend3dFindB;
+    }
+    else {
+      scriptBlend3dFind = scriptBlend3dFindA;
+    }
+
+    // Initialize a BlendmontParam object from the com script command object
+    BlendmontParam blendParam = new BlendmontParam(appManager, appManager
+        .getMetaData().getDatasetName(), axisID, BlendmontParam.Mode.BLEND);
+    initialize(blendParam, scriptBlend3dFind, BlendmontParam.COMMAND_NAME,
+        axisID);
+    return blendParam;
+  }
+
+  /**
+   * Get MrcTaperParam from blend_3dfind.com
+   * @param axisID
+   * @return
+   */
+  public MrcTaperParam getMrcTaperParamFromBlend3dFind(AxisID axisID) {
+    //  Get a reference to the appropriate script object
+    ComScript scriptBlend3dFind;
+    if (axisID == AxisID.SECOND) {
+      scriptBlend3dFind = scriptBlend3dFindB;
+    }
+    else {
+      scriptBlend3dFind = scriptBlend3dFindA;
+    }
+
+    // Initialize a MrcTaperParam object from the com script command object
+    MrcTaperParam param = new MrcTaperParam(appManager, axisID);
+    initialize(param, scriptBlend3dFind, MrcTaperParam.COMMAND_NAME, axisID);
+    return param;
+  }
+
+  /**
    * Save the specified prenewst com script updating the newst parameters
    * @param axisID the AxisID to load.
    * @param tiltXcorrParam a TiltxcorrParam object that will be used to update
@@ -749,6 +819,42 @@ public class ComScriptManager {
         axisID);
   }
 
+  public void saveBlend3dFind(BlendmontParam blendmontParam, AxisID axisID) {
+    //  Get a reference to the appropriate script object
+    ComScript scriptBlend3dFind;
+    if (axisID == AxisID.SECOND) {
+      scriptBlend3dFind = scriptBlend3dFindB;
+    }
+    else {
+      scriptBlend3dFind = scriptBlend3dFindA;
+    }
+    modifyCommand(scriptBlend3dFind, blendmontParam,
+        BlendmontParam.COMMAND_NAME, axisID);
+  }
+
+  public void saveBlend3dFind(MrcTaperParam param, AxisID axisID) {
+    //  Get a reference to the appropriate script object
+    ComScript scriptBlend3dFind;
+    if (axisID == AxisID.SECOND) {
+      scriptBlend3dFind = scriptBlend3dFindB;
+    }
+    else {
+      scriptBlend3dFind = scriptBlend3dFindA;
+    }
+    modifyCommand(scriptBlend3dFind, param, MrcTaperParam.COMMAND_NAME, axisID);
+  }
+
+  public void saveFindBeads3d(FindBeads3dParam param, AxisID axisID) {
+    ComScript script;
+    if (axisID == AxisID.SECOND) {
+      script = scriptFindBeads3dB;
+    }
+    else {
+      script = scriptFindBeads3dA;
+    }
+    modifyCommand(script, param, ProcessName.FIND_BEADS_3D.toString(), axisID);
+  }
+
   public void saveCtfPlotter(CtfPlotterParam param, AxisID axisID) {
     ComScript script;
     if (axisID == AxisID.SECOND) {
@@ -783,6 +889,23 @@ public class ComScriptManager {
     }
     else {
       scriptTrackA = loadComScript("track", axisID, true);
+    }
+  }
+
+  /**
+   * Load the specified findbeads3d com script
+   * @param axisID the AxisID to load.
+   */
+  public void loadFindBeads3d(AxisID axisID) {
+
+    //  Assign the new ComScriptObject object to the appropriate reference
+    if (axisID == AxisID.SECOND) {
+      scriptFindBeads3dB = loadComScript(ProcessName.FIND_BEADS_3D.toString(),
+          axisID, true);
+    }
+    else {
+      scriptFindBeads3dA = loadComScript(ProcessName.FIND_BEADS_3D.toString(),
+          axisID, true);
     }
   }
 
@@ -944,6 +1067,46 @@ public class ComScriptManager {
   }
 
   /**
+   * Load the specified newst_3dfind com script
+   * @param axisID the AxisID to load.
+   */
+  public void loadNewst3dFind(AxisID axisID) {
+    //  Assign the new ComScriptObject object to the appropriate reference
+    if (axisID == AxisID.SECOND) {
+      scriptNewst3dFindB = loadComScript(ProcessName.NEWST_3D_FIND, axisID,
+          true);
+    }
+    else {
+      scriptNewst3dFindA = loadComScript(ProcessName.NEWST_3D_FIND, axisID,
+          true);
+    }
+  }
+
+  /**
+   * Return true if scriptNewst3dFind is null.
+   * @param axisID
+   * @return
+   */
+  public boolean isScriptNewst3dFindNull(AxisID axisID) {
+    if (axisID == AxisID.SECOND) {
+      return scriptNewst3dFindB == null;
+    }
+    return scriptNewst3dFindA == null;
+  }
+
+  /**
+   * Return true if scriptBlend3dFind is null.
+   * @param axisID
+   * @return
+   */
+  public boolean isScriptBlend3dFindNull(AxisID axisID) {
+    if (axisID == AxisID.SECOND) {
+      return scriptBlend3dFindB == null;
+    }
+    return scriptBlend3dFindA == null;
+  }
+
+  /**
    * Get the newst parameters from the specified newst script object
    * @param axisID the AxisID to read.
    * @return a NewstParam object that will be created and initialized
@@ -968,6 +1131,70 @@ public class ComScriptManager {
     String cmdName = newstOrNewstack(scriptNewst);
     initialize(newstParam, scriptNewst, cmdName, axisID);
     return newstParam;
+  }
+
+  /**
+   * Get the newst_3dfind parameters from the specified newst_3dfind script object
+   * @param axisID the AxisID to read.
+   * @return a NewstParam object that will be created and initialized
+   * with the input arguments from newst in the com script.
+   */
+  public NewstParam getNewstParamFromNewst3dFind(AxisID axisID) {
+    //  Get a reference to the appropriate script object
+    ComScript scriptNewst3dfind;
+    if (axisID == AxisID.SECOND) {
+      scriptNewst3dfind = scriptNewst3dFindB;
+    }
+    else {
+      scriptNewst3dfind = scriptNewst3dFindA;
+    }
+
+    // Initialize a NewstParam object from the com script command object
+    NewstParam newstParam = new NewstParam(axisID);
+
+    // Implementation note: since the name of the command newst was changed to
+    // newstack we need to figure out which one it is before calling initialize.
+    String cmdName = newstOrNewstack(scriptNewst3dfind);
+    initialize(newstParam, scriptNewst3dfind, cmdName, axisID);
+    return newstParam;
+  }
+
+  public FindBeads3dParam getFindBeads3dParam(AxisID axisID) {
+    ComScript script;
+    if (axisID == AxisID.SECOND) {
+      script = scriptFindBeads3dB;
+    }
+    else {
+      script = scriptFindBeads3dA;
+    }
+    FindBeads3dParam param = new FindBeads3dParam(appManager, axisID);
+    initialize(param, script, ProcessName.FIND_BEADS_3D.toString(), axisID);
+    return param;
+  }
+
+  /**
+   * Get the newst_3dfind parameters from the specified newst_3dfind script object
+   * @param axisID the AxisID to read.
+   * @return a MrcTaperParam object that will be created and initialized
+   * with the input arguments from newst in the com script.
+   */
+  public MrcTaperParam getMrcTaperParamFromNewst3dFind(AxisID axisID) {
+    //  Get a reference to the appropriate script object
+    ComScript scriptNewst3dfind;
+    if (axisID == AxisID.SECOND) {
+      scriptNewst3dfind = scriptNewst3dFindB;
+    }
+    else {
+      scriptNewst3dfind = scriptNewst3dFindA;
+    }
+
+    // Initialize a NewstParam object from the com script command object
+    MrcTaperParam param = new MrcTaperParam(appManager, axisID);
+
+    // Implementation note: since the name of the command newst was changed to
+    // newstack we need to figure out which one it is before calling initialize.
+    initialize(param, scriptNewst3dfind, MrcTaperParam.COMMAND_NAME, axisID);
+    return param;
   }
 
   /**
@@ -996,6 +1223,49 @@ public class ComScriptManager {
   }
 
   /**
+   * Save the specified newst_3dfind com script updating the newst_3dfind parameters
+   * @param axisID the AxisID to load.
+   * @param newstParam a NewstParam object that will be used to update
+   * NewstParam command in the newst_3dfind com script
+   */
+  public void saveNewst3dFind(NewstParam newstParam, AxisID axisID) {
+    //  Get a reference to the appropriate script object
+    ComScript scriptNewst3dFind;
+    if (axisID == AxisID.SECOND) {
+      scriptNewst3dFind = scriptNewst3dFindB;
+    }
+    else {
+      scriptNewst3dFind = scriptNewst3dFindA;
+    }
+
+    // Implementation note: since the name of the command newst was changed to
+    // newstack we need to figure out which one it is before calling initialize.
+    String cmdName = newstOrNewstack(scriptNewst3dFind);
+
+    // update the newst parameters
+    modifyCommand(scriptNewst3dFind, newstParam, cmdName, axisID);
+  }
+
+  /**
+   * Save the specified newst_3dfind com script updating the newst_3dfind parameters
+   * @param axisID the AxisID to load.
+   * @param param a MrcTaperParam object that will be used to update
+   * MrcTaperParam command in the newst_3dfind com script
+   */
+  public void saveNewst3dFind(MrcTaperParam param, AxisID axisID) {
+    //  Get a reference to the appropriate script object
+    ComScript scriptNewst3dFind;
+    if (axisID == AxisID.SECOND) {
+      scriptNewst3dFind = scriptNewst3dFindB;
+    }
+    else {
+      scriptNewst3dFind = scriptNewst3dFindA;
+    }
+    // update the newst parameters
+    modifyCommand(scriptNewst3dFind, param, MrcTaperParam.COMMAND_NAME, axisID);
+  }
+
+  /**
    * Load the specified tilt com script
    * @param axisID the AxisID to load.
    */
@@ -1006,6 +1276,33 @@ public class ComScriptManager {
     }
     else {
       scriptTiltA = loadComScript("tilt", axisID, false);
+    }
+  }
+
+  /**
+   * Load the specified tilt_3dfind com script
+   * @param axisID the AxisID to load.
+   */
+  public void loadTilt3dFind(AxisID axisID) {
+    //  Assign the new ComScriptObject object to the appropriate reference
+    if (axisID == AxisID.SECOND) {
+      scriptTilt3dFindB = loadComScript("tilt_3dfind", axisID, false);
+    }
+    else {
+      scriptTilt3dFindA = loadComScript("tilt_3dfind", axisID, false);
+    }
+  }
+  
+  /**
+   * Load the specified tilt_3dfind_reproject com script
+   * @param axisID the AxisID to load.
+   */
+  public void loadTilt3dFindReproject(AxisID axisID) {
+    if (axisID == AxisID.SECOND) {
+      scriptTilt3dFindReprojectB = loadComScript(ProcessName.TILT_3D_FIND_REPROJECT, axisID, false);
+    }
+    else {
+      scriptTilt3dFindReprojectA = loadComScript(ProcessName.TILT_3D_FIND_REPROJECT, axisID, false);
     }
   }
 
@@ -1032,6 +1329,56 @@ public class ComScriptManager {
     initialize(tiltParam, tilt, "tilt", axisID);
     return tiltParam;
   }
+  
+  /**
+   * Get the tilt parameters from the specified tilt_3dfind script object
+   * @param axisID the AxisID to read.
+   * @return a TiltParam object that will be created and initialized
+   * with the input arguments from tilt in the tilt_3dfind com script.
+   */
+  public TiltParam getTiltParamFromTilt3dFind(AxisID axisID) {
+
+    //  Get a reference to the appropriate script object
+    ComScript tilt;
+    if (axisID == AxisID.SECOND) {
+      tilt = scriptTilt3dFindB;
+    }
+    else {
+      tilt = scriptTilt3dFindA;
+    }
+
+    // Initialize a TiltParam object from the com script command object
+    TiltParam tiltParam = new TiltParam(appManager, appManager.getMetaData()
+        .getDatasetName(), axisID);
+    initialize(tiltParam, tilt, "tilt", axisID);
+    return tiltParam;
+  }
+
+
+  /**
+   * Get the tilt parameters from the specified tilt_3dfind_reproject script
+   * object.
+   * @param axisID the AxisID to read.
+   * @return a TiltParam object that will be created and initialized
+   * with the input arguments from tilt in the tilt_3dfind_reproject com script.
+   */
+  public TiltParam getTiltParamFromTilt3dFindReproject(AxisID axisID) {
+
+    //  Get a reference to the appropriate script object
+    ComScript tilt;
+    if (axisID == AxisID.SECOND) {
+      tilt = scriptTilt3dFindReprojectB;
+    }
+    else {
+      tilt = scriptTilt3dFindReprojectA;
+    }
+
+    // Initialize a TiltParam object from the com script command object
+    TiltParam tiltParam = new TiltParam(appManager, appManager.getMetaData()
+        .getDatasetName(), axisID);
+    initialize(tiltParam, tilt, "tilt", axisID);
+    return tiltParam;
+  }
 
   /**
    * Save the specified tilt com script updating the tilt parameters
@@ -1047,6 +1394,43 @@ public class ComScriptManager {
     }
     else {
       scriptTilt = scriptTiltA;
+    }
+    modifyCommand(scriptTilt, tiltParam, "tilt", axisID);
+  }
+
+  /**
+   * Save the specified tilt_3dfind com script updating the tilt parameters
+   * @param axisID the AxisID to load.
+   * @param tiltParam a TiltParam object that will be used to update
+   * tilt command in the tilt_3dfind com script
+   */
+  public void saveTilt3dFind(TiltParam tiltParam, AxisID axisID) {
+    //  Get a reference to the appropriate script object
+    ComScript scriptTilt;
+    if (axisID == AxisID.SECOND) {
+      scriptTilt = scriptTilt3dFindB;
+    }
+    else {
+      scriptTilt = scriptTilt3dFindA;
+    }
+    modifyCommand(scriptTilt, tiltParam, "tilt", axisID);
+  }
+  
+  /**
+   * Save the specified tilt_3dfind_reproject com script updating the tilt
+   * parameters
+   * @param axisID the AxisID to load.
+   * @param tiltParam a TiltParam object that will be used to update
+   * tilt command in the tilt_3dfind_reproject com script
+   */
+  public void saveTilt3dFindReproject(TiltParam tiltParam, AxisID axisID) {
+    //  Get a reference to the appropriate script object
+    ComScript scriptTilt;
+    if (axisID == AxisID.SECOND) {
+      scriptTilt = scriptTilt3dFindReprojectB;
+    }
+    else {
+      scriptTilt = scriptTilt3dFindReprojectA;
     }
     modifyCommand(scriptTilt, tiltParam, "tilt", axisID);
   }
@@ -1581,7 +1965,7 @@ public class ComScriptManager {
   public WarpVolParam getWarpVolParamFromFlatten(AxisID axisID) {
     // Initialize a WarpVolParam object from the com script command
     // object
-    WarpVolParam param = new WarpVolParam(appManager,axisID);
+    WarpVolParam param = new WarpVolParam(appManager, axisID);
     initialize(param, scriptFlatten, WarpVolParam.COMMAND, axisID);
     return param;
   }

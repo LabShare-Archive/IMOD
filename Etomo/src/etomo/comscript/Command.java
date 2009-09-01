@@ -3,6 +3,7 @@ package etomo.comscript;
 import java.io.File;
 
 import etomo.type.AxisID;
+import etomo.type.ProcessName;
 
 /**
 * <p>Description: </p>
@@ -28,9 +29,15 @@ public interface Command {
   public AxisID getAxisID();
   public String getCommand();//return the command or comscript file name
   public CommandDetails getSubcommandDetails();
+  public ProcessName getSubcommandProcessName();
+  public ProcessName getProcessName();
 }
 /**
 * <p> $Log$
+* <p> Revision 1.12  2007/11/06 19:04:49  sueh
+* <p> bug# 1047 Added getSubcommandDetails to allow a Command to contain
+* <p> another command.  This is useful for processchunks.
+* <p>
 * <p> Revision 1.11  2007/02/05 21:34:29  sueh
 * <p> bug# 962 Changed getCommandMode to return an interface for inner Mode classes (CommandMode) instead of an int.
 * <p>

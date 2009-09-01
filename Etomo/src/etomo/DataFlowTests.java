@@ -301,7 +301,7 @@ public class DataFlowTests {
     waitForThread(axisID);
     //applicationManager.mtffilter(axisID);
     //waitForThread(axisID);
-    expert.tilt(null, null);
+    applicationManager.tiltAction(null, null, null, null, null,null,null);
     waitForThread(axisID);
     applicationManager.deleteAlignedStacks(axisID, null);
   }
@@ -354,6 +354,9 @@ public class DataFlowTests {
 }
 /**
  * <p> $Log$
+ * <p> Revision 3.31  2009/06/15 20:13:18  sueh
+ * <p> bug# 1221 Made beadtrack functionality dialog independant.
+ * <p>
  * <p> Revision 3.30  2009/06/12 19:45:48  sueh
  * <p> bug# 1221 Factored out running newst, making it dependent only on
  * <p> NewstackPanel.

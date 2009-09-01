@@ -1,7 +1,6 @@
 package etomo.ui;
 
 import java.awt.Component;
-import java.awt.event.ActionEvent;
 import java.awt.event.MouseEvent;
 
 import javax.swing.BoxLayout;
@@ -48,6 +47,9 @@ import etomo.type.TomogramState;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.62  2009/03/17 00:46:24  sueh
+ * <p> bug# 1186 Pass managerKey to everything that pops up a dialog.
+ * <p>
  * <p> Revision 3.61  2008/10/16 22:31:44  sueh
  * <p> bug# 1141 Removed fixRootPanel because it doesn't do anything.
  * <p>
@@ -423,8 +425,8 @@ public final class TomogramCombinationDialog extends ProcessDialog implements
     }
     // Instantiate the tab pane contents
     pnlSetup = new SetupCombinePanel(this, applicationManager, dialogType);
-    pnlInitial = new InitialCombinePanel(this, applicationManager, dialogType);
-    pnlFinal = new FinalCombinePanel(this, applicationManager, dialogType);
+    pnlInitial = new InitialCombinePanel(this, applicationManager, dialogType,btnAdvanced);
+    pnlFinal = new FinalCombinePanel(this, applicationManager, dialogType,btnAdvanced);
 
     rootPanel.setLayout(new BoxLayout(rootPanel, BoxLayout.Y_AXIS));
     rootPanel.add(parallelPanelContainer);
@@ -446,7 +448,7 @@ public final class TomogramCombinationDialog extends ProcessDialog implements
     tabbedPane.addChangeListener(tabChangeListener);
 
     // Set the default advanced dialog state
-    updateAdvanced(isAdvanced);
+    updateAdvanced();
 
     idxLastTab = tabbedPane.getSelectedIndex();
     setVisible(lblSetup);
@@ -581,7 +583,7 @@ public final class TomogramCombinationDialog extends ProcessDialog implements
   }
 
   void updateParallelProcess() {
-    applicationManager.setParallelDialog(axisID, this);
+    applicationManager.setParallelDialog(axisID, usingParallelProcessing());
   }
 
   public boolean usingParallelProcessing() {
@@ -785,25 +787,17 @@ public final class TomogramCombinationDialog extends ProcessDialog implements
     synchronize(tabbedPane.getTitleAt(idxLastTab), true);
   }
 
-  public boolean done() {
-    if (applicationManager.doneTomogramCombinationDialog()) {
+  public void done() {
+    applicationManager.doneTomogramCombinationDialog();
       setDisplayed(false);
-      return true;
-    }
-    return false;
-  }
-
-  public void buttonAdvancedAction(ActionEvent event) {
-    super.buttonAdvancedAction(event);
-    updateAdvanced(isAdvanced);
   }
 
   /**
    * Update the dialog with the current advanced state
    */
-  private void updateAdvanced(boolean isAdvanced) {
-    pnlInitial.setAdvanced(isAdvanced);
-    pnlFinal.setAdvanced(isAdvanced);
+  private void updateAdvanced() {
+    pnlInitial.updateAdvanced(isAdvanced());
+    pnlFinal.updateAdvanced(isAdvanced());
     UIHarness.INSTANCE.pack(axisID, applicationManager);
   }
 

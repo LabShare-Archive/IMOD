@@ -6,7 +6,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 
 import etomo.BaseManager;
-import etomo.comscript.DetachedCommand;
+import etomo.comscript.DetachedCommandDetails;
 import etomo.storage.LogFile;
 import etomo.type.AxisID;
 import etomo.type.ConstProcessSeries;
@@ -47,11 +47,11 @@ final class DetachedProcess extends BackgroundProcess {
   private String subdirName = null;
   private String shortCommandName = "";
 
-  DetachedProcess(BaseManager manager, DetachedCommand command,
+  DetachedProcess(BaseManager manager, DetachedCommandDetails commandDetails,
       BaseProcessManager processManager, AxisID axisID,
       OutfileProcessMonitor monitor, ProcessResultDisplay processResultDisplay,
       ProcessName processName, ConstProcessSeries processSeries) {
-    super(manager, command, processManager, axisID, processName, processSeries);
+    super(manager, commandDetails, processManager, axisID, processName, processSeries);
     this.axisID = axisID;
     this.manager = manager;
     this.monitor = monitor;
@@ -142,12 +142,12 @@ final class DetachedProcess extends BackgroundProcess {
       bufferedWriter.write("cd " + subdirName);
       bufferedWriter.newLine();
     }
-    DetachedCommand detachedCommand = getDetachedCommand();
-    bufferedWriter.write(detachedCommand.getCommandString() + " >& ");
+    DetachedCommandDetails detachedCommandDetails = getDetachedCommand();
+    bufferedWriter.write(detachedCommandDetails.getCommandString() + " >& ");
     bufferedWriter.write(monitor.getProcessOutputFileName() + "&");
     bufferedWriter.newLine();
-    if (detachedCommand.isSecondCommandLine()) {
-      bufferedWriter.write(detachedCommand.getSecondCommandLine());
+    if (detachedCommandDetails.isSecondCommandLine()) {
+      bufferedWriter.write(detachedCommandDetails.getSecondCommandLine());
       bufferedWriter.newLine();
     }
     bufferedWriter.close();
@@ -205,8 +205,8 @@ final class DetachedProcess extends BackgroundProcess {
     return monitor.getStatusString();
   }
 
-  private DetachedCommand getDetachedCommand() {
-    return (DetachedCommand) getCommand();
+  private DetachedCommandDetails getDetachedCommand() {
+    return (DetachedCommandDetails) getCommand();
   }
 
   private final class PidThread implements Runnable {
@@ -253,6 +253,9 @@ final class DetachedProcess extends BackgroundProcess {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.19  2009/03/17 00:35:46  sueh
+ * <p> bug# 1186 Pass managerKey to everything that pops up a dialog.
+ * <p>
  * <p> Revision 1.18  2009/02/04 23:24:42  sueh
  * <p> bug# 1158 Changed id and exceptions classes in LogFile.
  * <p>

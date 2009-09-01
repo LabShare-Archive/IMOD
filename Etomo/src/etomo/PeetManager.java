@@ -59,6 +59,11 @@ import etomo.util.DatasetFiles;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.51  2009/06/11 16:46:26  sueh
+ * <p> bug# 1221 Sending the process panel to the process function in the
+ * <p> manager wrapped in a ProcessDisplay interface.  Changed
+ * <p> startNextProcess.
+ * <p>
  * <p> Revision 1.50  2009/04/27 17:57:09  sueh
  * <p> bug# 1213 Moved call to set status bar from loadMatlabParam to
  * <p> setParamFile.
@@ -695,7 +700,8 @@ public final class PeetManager extends BaseManager {
       }
       removeComFiles();
       String threadName = processMgr.peetParser(param, processSeries);
-      processSeries.setNextProcess(ProcessName.PROCESSCHUNKS.toString());
+      processSeries.setNextProcess(ProcessName.PROCESSCHUNKS.toString(),
+          ProcessName.PEET_PARSER);
       setThreadName(threadName, AxisID.ONLY);
       mainPanel.startProgressBar("Running " + ProcessName.PEET_PARSER,
           AxisID.ONLY, ProcessName.PEET_PARSER);
@@ -766,7 +772,8 @@ public final class PeetManager extends BaseManager {
    */
   void startNextProcess(final AxisID axisID, final String nextProcess,
       final ProcessResultDisplay processResultDisplay,
-      ProcessSeries processSeries, DialogType dialogType, ProcessDisplay display) {
+      ProcessSeries processSeries, DialogType dialogType,
+      ProcessDisplay display, ProcessName subProcessName) {
     if (nextProcess.equals(ProcessName.PROCESSCHUNKS.toString())) {
       processchunks(processSeries);
     }

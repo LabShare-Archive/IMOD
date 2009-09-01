@@ -25,6 +25,9 @@ import etomo.util.DatasetFiles;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.3  2007/11/06 19:16:14  sueh
+ * <p> bug# 1047 Added getSubcommandDetails.
+ * <p>
  * <p> Revision 1.2  2007/03/01 01:13:07  sueh
  * <p> bug# 964 Saving immutable Number elements instead of EtomoNumber elements
  * <p> in IntKeyList.
@@ -35,7 +38,9 @@ import etomo.util.DatasetFiles;
  */
 public final class RemapmodelParam implements Command {
   public static final String rcsid = "$Id$";
-  public static final String COMMAND_NAME = ProcessName.REMAPMODEL.toString();
+  
+  private static final ProcessName PROCESS_NAME = ProcessName.REMAPMODEL;
+  public static final String COMMAND_NAME = PROCESS_NAME.toString();
 
   private static final int COMMAND_SIZE = 1;
   private static final boolean debug = true;
@@ -130,9 +135,17 @@ public final class RemapmodelParam implements Command {
   public CommandDetails getSubcommandDetails() {
     return null;
   }
+  
+  public ProcessName getSubcommandProcessName() {
+    return null;
+  }
 
   public String getCommandName() {
     return COMMAND_NAME;
+  }
+  
+  public ProcessName getProcessName() {
+    return PROCESS_NAME;
   }
 
   public File getCommandOutputFile() {

@@ -15,7 +15,7 @@ import etomo.comscript.SqueezevolParam;
 import etomo.type.AxisID;
 import etomo.type.ConstMetaData;
 import etomo.type.DialogType;
-import etomo.type.FileType;
+import etomo.type.ImageFileType;
 import etomo.type.MetaData;
 import etomo.type.ReconScreenState;
 import etomo.type.Run3dmodMenuOptions;
@@ -33,7 +33,11 @@ import etomo.type.Run3dmodMenuOptions;
  * 
  * @version $Revision$
  * 
- * <p> $Log$ </p>
+ * <p> $Log$
+ * <p> Revision 1.1  2009/06/05 02:19:04  sueh
+ * <p> bug# 1219 A panel that can run squeezevol.  Factored out of the post
+ * <p> processing dialog.
+ * <p> </p>
  */
 final class SqueezeVolPanel implements Run3dmodButtonContainer {
   public static final String rcsid = "$Id$";
@@ -176,10 +180,10 @@ final class SqueezeVolPanel implements Run3dmodButtonContainer {
     }
     squeezevolParam.setLinearInterpolation(cbLinearInterpolation.isSelected());
     if (rbInputFileTrimVol.isSelected()) {
-      squeezevolParam.setInputFile(FileType.TRIM_VOL_OUTPUT);
+      squeezevolParam.setInputFile(ImageFileType.TRIM_VOL_OUTPUT);
     }
     else {
-      squeezevolParam.setInputFile(FileType.FLATTEN_OUTPUT);
+      squeezevolParam.setInputFile(ImageFileType.FLATTEN_OUTPUT);
     }
   }
 
@@ -206,12 +210,12 @@ final class SqueezeVolPanel implements Run3dmodButtonContainer {
       Deferred3dmodButton deferred3dmodButton,
       final Run3dmodMenuOptions run3dmodMenuOptions) {
     if (command.equals(btnSqueezeVolume.getActionCommand())) {
-      FileType fileType;
+      ImageFileType imageFileType;
       if (rbInputFileTrimVol.isSelected()) {
-        fileType = FileType.TRIM_VOL_OUTPUT;
+        imageFileType = ImageFileType.TRIM_VOL_OUTPUT;
       }
       else {
-        fileType = FileType.SQUEEZE_VOL_OUTPUT;
+        imageFileType = ImageFileType.SQUEEZE_VOL_OUTPUT;
       }
       manager.squeezevol(btnSqueezeVolume, null, deferred3dmodButton,
           run3dmodMenuOptions, dialogType);

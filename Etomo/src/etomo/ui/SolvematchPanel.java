@@ -44,6 +44,9 @@ import etomo.type.Run3dmodMenuOptions;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.38  2009/03/17 00:46:24  sueh
+ * <p> bug# 1186 Pass managerKey to everything that pops up a dialog.
+ * <p>
  * <p> Revision 3.37  2009/02/04 23:36:48  sueh
  * <p> bug# 1158 Changed id and exception classes in LogFile.
  * <p>
@@ -408,19 +411,22 @@ final class SolvematchPanel implements Run3dmodButtonContainer, Expandable {
           .getButtonStateKey()));
     }
   }
+  
+  public void expand(final GlobalExpandButton button) {
+  }
 
   public void expand(ExpandButton button) {
     if (header.equalsOpenClose(button)) {
       pnlBody.setVisible(button.isExpanded());
     }
     else if (initialPanel && header.equalsAdvancedBasic(button)) {
-      ltfCenterShiftLimit.setVisible(button.isExpanded());
+      updateAdvanced(button.isExpanded());
     }
     UIHarness.INSTANCE.pack(AxisID.ONLY, applicationManager);
   }
 
-  void setAdvanced(boolean state) {
-    header.setAdvanced(state);
+  void updateAdvanced(boolean state) {
+    ltfCenterShiftLimit.setVisible(state);
   }
 
   public void setVisible(boolean visible) {

@@ -19,7 +19,10 @@ import etomo.util.InvalidParameterException;
  * 
  * @version $Revision$
  * 
- * <p> $Log$ </p>
+ * <p> $Log$
+ * <p> Revision 1.1  2009/06/12 19:47:05  sueh
+ * <p> bug# 1221 Interface for a display containing the blendmont parameters.
+ * <p> </p>
  */
 public interface BlendmontDisplay {
   public static final String rcsid = "$Id$";
@@ -27,4 +30,8 @@ public interface BlendmontDisplay {
   public void getParameters(BlendmontParam blendmontParam)
       throws FortranInputSyntaxException, InvalidParameterException,
       IOException;
+
+  public void setParameters(BlendmontParam param);
+
+  public boolean validate();
 }

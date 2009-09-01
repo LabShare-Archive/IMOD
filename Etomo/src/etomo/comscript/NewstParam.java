@@ -1,3 +1,20 @@
+package etomo.comscript;
+
+import java.io.File;
+import java.util.ArrayList;
+import java.util.Hashtable;
+import java.util.Iterator;
+import java.util.Vector;
+
+import etomo.BaseManager;
+import etomo.type.AxisID;
+import etomo.type.ConstEtomoNumber;
+import etomo.type.ConstIntKeyList;
+import etomo.type.EtomoBoolean2;
+import etomo.type.EtomoNumber;
+import etomo.type.ProcessName;
+import etomo.util.MRCHeader;
+
 /**
  * <p>Description: Newstack command model</p>
  *
@@ -11,6 +28,9 @@
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.19  2009/03/17 00:32:21  sueh
+ * <p> bug# 1186 Pass managerKey to everything that pops up a dialog.
+ * <p>
  * <p> Revision 3.18  2008/12/15 23:00:26  sueh
  * <p> bug# 1161 In setSizeToOutputInXandY handle 90 degree tilt axis angles.
  * <p>
@@ -126,23 +146,106 @@
  * <p> </p>
  */
 
-package etomo.comscript;
-
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.Vector;
-
-import etomo.BaseManager;
-import etomo.type.AxisID;
-import etomo.util.MRCHeader;
-
-public class NewstParam extends ConstNewstParam implements CommandParam {
+public final class NewstParam implements ConstNewstParam, CommandParam {
   public static final String rcsid = "$Id$";
 
   public static final String SIZE_TO_OUTPUT_IN_X_AND_Y = "SizeToOutputInXandY";
+  //data mode
+  public static final String DATA_MODE_OPTION = "-mo";
+  public static final int DATA_MODE_DEFAULT = Integer.MIN_VALUE;
+  public static final int DATA_MODE_BYTE = 0;
 
-  public NewstParam(AxisID axisID) {
-    super(axisID);
+  //float densities
+  public static final String FLOAT_DENSITIES_OPTION = "-fl";
+  public static final int FLOAT_DENSITIES_DEFAULT = Integer.MIN_VALUE;
+  public static final int FLOAT_DENSITIES_MEAN = 2;
+
+  //defaults
+  public static final int BIN_BY_FACTOR_DEFAULT = 1;
+
+  private static final String COMMAND_FILE_EXTENSION = ".com";
+
+  private final Vector inputFile = new Vector();
+  private final Vector outputFile = new Vector();
+  private final Vector sectionsToRead = new Vector();
+  private final FortranInputString sizeToOutputInXandY = new FortranInputString(
+      2);
+  private final FortranInputString userSizeToOutputInXandY = new FortranInputString(
+      2);
+  private final Vector offsetsInXandY = new Vector();
+  private final FortranInputString contrastBlackWhite = new FortranInputString(
+      2);
+  private final FortranInputString testLimits = new FortranInputString(2);
+  private final EtomoNumber imageRotation = new EtomoNumber(
+      EtomoNumber.Type.FLOAT);
+  
+  private  ProcessName processName = ProcessName.NEWST;
+  /**
+   * @version 3.10
+   * Script is from an earlier version if false.
+   */
+  private final EtomoBoolean2 adjustOrigin = new EtomoBoolean2();
+
+  private Vector numberToOutput;
+  private FortranInputString scaleMinAndMax = new FortranInputString(2);
+  private String fileOfInputs;
+  private String fileOfOutputs;
+  private int modeToOutput;
+  private boolean applyOffsetsFirst;
+  private String transformFile;
+  private String useTransformLines;
+  private float rotateByAngle;
+  private float expandByFactor;
+  private int binByFactor;
+  private boolean linearInterpolation;
+  private int floatDensities;
+  private String distortionField;
+  private int imagesAreBinned;
+  private String parameterFile;
+  private boolean fiducialessAlignment;
+  private String magGradientFile;
+  private Mode commandMode;
+  private AxisID axisID;
+
+  public NewstParam(final AxisID axisID) {
+    this.axisID = axisID;
+    boolean[] allIntegerType = new boolean[] { true, true };
+    sizeToOutputInXandY.setIntegerType(allIntegerType);
+    userSizeToOutputInXandY.setIntegerType(allIntegerType);
+    contrastBlackWhite.setIntegerType(allIntegerType);
+    testLimits.setIntegerType(allIntegerType);
+    reset();
+  }
+
+  private void reset() {
+    inputFile.clear();
+    outputFile.clear();
+    fileOfInputs = "";
+    fileOfOutputs = "";
+    sectionsToRead.clear();
+    numberToOutput = new Vector();
+    sizeToOutputInXandY.reset();
+    userSizeToOutputInXandY.reset();
+    modeToOutput = Integer.MIN_VALUE;
+    offsetsInXandY.clear();
+    applyOffsetsFirst = false;
+    transformFile = "";
+    useTransformLines = "";
+    rotateByAngle = Float.NaN;
+    expandByFactor = Float.NaN;
+    binByFactor = Integer.MIN_VALUE;
+    linearInterpolation = false;
+    floatDensities = Integer.MIN_VALUE;
+    contrastBlackWhite.reset();
+    scaleMinAndMax = new FortranInputString(2);
+    distortionField = "";
+    imagesAreBinned = Integer.MIN_VALUE;
+    testLimits.reset();
+    parameterFile = "";
+    fiducialessAlignment = false;
+    magGradientFile = null;
+    adjustOrigin.reset();
+    imageRotation.reset();
   }
 
   /**
@@ -150,7 +253,7 @@ public class NewstParam extends ConstNewstParam implements CommandParam {
    * @param scriptCommand the ComScriptCommand containg the newst command
    * and parameters.
    */
-  public void parseComScriptCommand(ComScriptCommand scriptCommand)
+  public void parseComScriptCommand(final ComScriptCommand scriptCommand)
       throws FortranInputSyntaxException, InvalidParameterException {
     String[] cmdLineArgs = scriptCommand.getCommandLineArgs();
     reset();
@@ -275,7 +378,7 @@ public class NewstParam extends ConstNewstParam implements CommandParam {
    * object
    * @param scriptCommand the script command to be updated
    */
-  public void updateComScriptCommand(ComScriptCommand scriptCommand)
+  public void updateComScriptCommand(final ComScriptCommand scriptCommand)
       throws BadComScriptException {
     // Create a new command line argument array
 
@@ -390,19 +493,16 @@ public class NewstParam extends ConstNewstParam implements CommandParam {
   public void initializeDefaults() {
   }
 
-  public void setOffset(String newOffset) throws FortranInputSyntaxException {
+  public void setOffset(final String newOffset)
+      throws FortranInputSyntaxException {
     offsetsInXandY.clear();
     offsetsInXandY.add(newOffset);
-  }
-
-  private void reset() {
-    initializeEmpty();
   }
 
   /**
    * @param applyOffsetsFirst The applyOffsetsFirst to set.
    */
-  public void setApplyOffsetsFirst(boolean applyOffsetsFirst) {
+  public void setApplyOffsetsFirst(final boolean applyOffsetsFirst) {
     this.applyOffsetsFirst = applyOffsetsFirst;
   }
 
@@ -416,7 +516,7 @@ public class NewstParam extends ConstNewstParam implements CommandParam {
   /**
    * @param contrast The contrastBlackWhite to set.
    */
-  public void setContrastBlackWhite(String contrast)
+  public void setContrastBlackWhite(final String contrast)
       throws FortranInputSyntaxException {
     contrastBlackWhite.validateAndSet(contrast);
   }
@@ -424,53 +524,53 @@ public class NewstParam extends ConstNewstParam implements CommandParam {
   /**
    * @param distortionField The distortionField to set.
    */
-  public void setDistortionField(String distortionField) {
+  public void setDistortionField(final String distortionField) {
     this.distortionField = distortionField;
   }
 
   /**
    * @param expandByFactor The expandByFactor to set.
    */
-  public void setExpandByFactor(float expandByFactor) {
+  public void setExpandByFactor(final float expandByFactor) {
     this.expandByFactor = expandByFactor;
   }
 
   /**
    * @param fileOfInputs The fileOfInputs to set.
    */
-  public void setFileOfInputs(String fileOfInputs) {
+  public void setFileOfInputs(final String fileOfInputs) {
     this.fileOfInputs = fileOfInputs;
   }
 
   /**
    * @param fileOfOutputs The fileOfOutputs to set.
    */
-  public void setFileOfOutputs(String fileOfOutputs) {
+  public void setFileOfOutputs(final String fileOfOutputs) {
     this.fileOfOutputs = fileOfOutputs;
   }
 
   /**
    * @param floatDensities The floatDensities to set.
    */
-  public void setFloatDensities(int floatDensities) {
+  public void setFloatDensities(final int floatDensities) {
     this.floatDensities = floatDensities;
   }
 
-  public void setFiducialessAlignment(boolean fiducialessAlignment) {
+  public void setFiducialessAlignment(final boolean fiducialessAlignment) {
     this.fiducialessAlignment = fiducialessAlignment;
   }
 
   /**
    * @param imagesAreBinned The imagesAreBinned to set.
    */
-  public void setImagesAreBinned(int imagesAreBinned) {
+  public void setImagesAreBinned(final int imagesAreBinned) {
     this.imagesAreBinned = imagesAreBinned;
   }
 
   /**
    * @param inputFile The inputFile to set.
    */
-  public void setInputFile(Vector files) {
+  public void setInputFile(final Vector files) {
     // Defensively copy argument, since the objects are strings we only need
     // copy the collection of references
     inputFile.clear();
@@ -480,28 +580,28 @@ public class NewstParam extends ConstNewstParam implements CommandParam {
   /**
    * @param linearInterpolation The linearInterpolation to set.
    */
-  public void setLinearInterpolation(boolean linearInterpolation) {
+  public void setLinearInterpolation(final boolean linearInterpolation) {
     this.linearInterpolation = linearInterpolation;
   }
 
   /**
    * @param modeToOutput The modeToOutput to set.
    */
-  public void setModeToOutput(int modeToOutput) {
+  public void setModeToOutput(final int modeToOutput) {
     this.modeToOutput = modeToOutput;
   }
 
   /**
    * @param numberToOutput The numberToOutput to set.
    */
-  public void setNumberToOutput(Vector numberToOutput) {
+  public void setNumberToOutput(final Vector numberToOutput) {
     this.numberToOutput = numberToOutput;
   }
 
   /**
    * @param offsetsInXandY The offsetsInXandY to set.
    */
-  public void setOffsetsInXandY(Vector offsets) {
+  public void setOffsetsInXandY(final Vector offsets) {
     // Defensively copy argument, since the objects are primatives we only need
     // copy the collection of references
     offsetsInXandY.clear();
@@ -511,7 +611,7 @@ public class NewstParam extends ConstNewstParam implements CommandParam {
   /**
    * @param outputFile The outputFile to set.
    */
-  public void setOutputFile(Vector files) {
+  public void setOutputFile(final Vector files) {
     // Defensively copy argument, since the objects are strings we only need
     // copy the collection of references
     outputFile.clear();
@@ -521,28 +621,28 @@ public class NewstParam extends ConstNewstParam implements CommandParam {
   /**
    * @param parameterFile The parameterFile to set.
    */
-  public void setParameterFile(String parameterFile) {
+  public void setParameterFile(final String parameterFile) {
     this.parameterFile = parameterFile;
   }
 
   /**
    * @param rotateByAngle The rotateByAngle to set.
    */
-  public void setRotateByAngle(float rotateByAngle) {
+  public void setRotateByAngle(final float rotateByAngle) {
     this.rotateByAngle = rotateByAngle;
   }
 
   /**
    * @param scaleMinAndMax The scaleMinAndMax to set.
    */
-  public void setScaleMinAndMax(FortranInputString scaleMinAndMax) {
+  public void setScaleMinAndMax(final FortranInputString scaleMinAndMax) {
     this.scaleMinAndMax = scaleMinAndMax;
   }
 
   /**
    * @param sectionsToRead The sectionsToRead to set.
    */
-  public void setSectionsToRead(Vector sections) {
+  public void setSectionsToRead(final Vector sections) {
     // Defensively copy argument, since the objects are primatives we only need
     // copy the collection of references
     sectionsToRead.clear();
@@ -551,6 +651,8 @@ public class NewstParam extends ConstNewstParam implements CommandParam {
 
   public void resetSizeToOutputInXandY() throws FortranInputSyntaxException {
     sizeToOutputInXandY.validateAndSet("/");
+    userSizeToOutputInXandY.validateAndSet("/");
+    imageRotation.reset();
   }
 
   /**
@@ -562,15 +664,22 @@ public class NewstParam extends ConstNewstParam implements CommandParam {
    * binning.
    * 
    * Will be called with an empty string by Positioning - whole tomogram.
+   * 
+   * Save the userSize so it can be stored as a state value.  It may be reused
+   * to run newst_3dfind.com, which may have a different binning.  Also save
+   * image rotation so that fiducialess parameters, which usually come from the
+   * dialog, can be set for newst_3dfind.com.
    */
-  public void setSizeToOutputInXandY(String userSize, int binning,
-      float imageRotation, BaseManager manager)
+  public void setSizeToOutputInXandY(String userSize, final int binning,
+      final float imageRotation, final BaseManager manager)
       throws FortranInputSyntaxException {
     //make sure an empty string really causes sizeToOutputInXandY to be empty.
     if (userSize.equals("")) {
       userSize = "/";
     }
     sizeToOutputInXandY.validateAndSet(userSize);
+    userSizeToOutputInXandY.validateAndSet(userSize);
+    this.imageRotation.set(imageRotation);
     //UserSize is empty, check for an angle close to 90 degrees.
     if ((sizeToOutputInXandY.isDefault() || sizeToOutputInXandY.isEmpty())
         && Utilities.is90DegreeImageRotation(imageRotation)) {
@@ -593,25 +702,361 @@ public class NewstParam extends ConstNewstParam implements CommandParam {
   /**
    * @param testLimits The testLimits to set.
    */
-  public void setTestLimits(String limits) throws FortranInputSyntaxException {
+  public void setTestLimits(final String limits)
+      throws FortranInputSyntaxException {
     testLimits.validateAndSet(limits);
   }
 
   /**
    * @param transformFile The transformFile to set.
    */
-  public void setTransformFile(String transformFile) {
+  public void setTransformFile(final String transformFile) {
     this.transformFile = transformFile;
   }
 
   /**
    * @param useTransformLines The useTransformLines to set.
    */
-  public void setUseTransformLines(String useTransformLines) {
+  public void setUseTransformLines(final String useTransformLines) {
     this.useTransformLines = useTransformLines;
   }
+  
+  public void setProcessName(final ProcessName input) {
+    processName=input;
+  }
 
-  public void setCommandMode(Mode commandMode) {
+  public void setCommandMode(final Mode commandMode) {
     this.commandMode = commandMode;
+  }
+
+  public AxisID getAxisID() {
+    return axisID;
+  }
+
+  /**
+   * @return Returns the applyOffsetsFirst.
+   */
+  public boolean isApplyOffsetsFirst() {
+    return applyOffsetsFirst;
+  }
+
+  /**
+   * @return Returns the binByFactor.
+   */
+  public int getBinByFactor() {
+    return ParamUtilities.get(binByFactor, BIN_BY_FACTOR_DEFAULT);
+  }
+
+  /**
+   * @return Returns the contrastBlackWhite.
+   */
+  public String getContrastBlackWhite() {
+    return contrastBlackWhite.toString();
+  }
+
+  /**
+   * @return Returns the distortionField.
+   */
+  public String getDistortionField() {
+    return distortionField;
+  }
+
+  /**
+   * @return Returns the expandByFactor.
+   */
+  public float getExpandByFactor() {
+    return expandByFactor;
+  }
+
+  public CommandDetails getSubcommandDetails() {
+    return null;
+  }
+  
+  public ProcessName getSubcommandProcessName() {
+    return null;
+  }
+
+  /**
+   * @return Returns the fileOfInputs.
+   */
+  public String getFileOfInputs() {
+    return fileOfInputs;
+  }
+
+  /**
+   * @return Returns the fileOfOutputs.
+   */
+  public String getFileOfOutputs() {
+    return fileOfOutputs;
+  }
+
+  /**
+   * @return Returns the floatDensities.
+   */
+  public int getFloatDensities() {
+    return floatDensities;
+  }
+
+  /**
+   * @return Returns the imagesAreBinned.
+   */
+  public int getImagesAreBinned() {
+    return imagesAreBinned;
+  }
+
+  /**
+   * Backward compatibility with pre PIP structure, just return the first input
+   * file
+   * @return Returns the inputFile.
+   */
+  public String getInputFile() {
+    return (String) inputFile.get(0);
+  }
+
+  /**
+   * Create a defensive copy of the internal object inputFile
+   * @return
+   */
+  public Vector getInputFiles() {
+    Vector copy = new Vector(inputFile);
+    return copy;
+  }
+
+  /**
+   * @return Returns the linearInterpolation.
+   */
+  public boolean isLinearInterpolation() {
+    return linearInterpolation;
+  }
+
+  /**
+   * @return Returns the modeToOutput.
+   */
+  public int getModeToOutput() {
+    return modeToOutput;
+  }
+
+  /**
+   * @return Returns the numberToOutput.
+   */
+  public Vector getNumberToOutput() {
+    return numberToOutput;
+  }
+
+  /**
+   * @return Returns the offsetsInXandY.
+   */
+  public String getOffsetsInXandY() {
+    StringBuffer buffer = new StringBuffer();
+    for (Iterator i = offsetsInXandY.iterator(); i.hasNext();) {
+      buffer.append((String) i.next());
+      buffer.append(",");
+    }
+    // Remove the trailing comma
+    if (buffer.length() > 0) {
+      buffer.deleteCharAt(buffer.length() - 1);
+    }
+    return buffer.toString();
+  }
+
+  /**
+   * Backward compatibility with pre PIP structure, just return the first ouput
+   * file
+   * @return Returns the inputFile.
+   */
+  public String getOutputFile() {
+    if (outputFile.size() == 0) {
+      return "";
+    }
+    return (String) outputFile.get(0);
+  }
+
+  /**
+   * Create a defensive copy of the internal object inputFile
+   * @return
+   */
+  public Vector getOutputFiles() {
+    Vector copy = new Vector(outputFile);
+    return copy;
+  }
+
+  /**
+   * @return Returns the parameterFile.
+   */
+  public String getParameterFile() {
+    return parameterFile;
+  }
+
+  /**
+   * @return Returns the rotateByAngle.
+   */
+  public float getRotateByAngle() {
+    return rotateByAngle;
+  }
+
+  /**
+   * @return Returns the scaleMinAndMax.
+   */
+  public FortranInputString getScaleMinAndMax() {
+    return scaleMinAndMax;
+  }
+
+  /**
+   * @return Returns the sectionsToRead.
+   */
+  public Vector getSectionsToRead() {
+    Vector copy = new Vector(sectionsToRead);
+    return copy;
+  }
+
+  /**
+   * @return Returns the sizeToOutputInXandY.
+   */
+  public String getSizeToOutputInXandY() {
+    return sizeToOutputInXandY.toString();
+  }
+
+  public int getSizeToOutputInX() {
+    return sizeToOutputInXandY.getInt(0);
+  }
+
+  public int getSizeToOutputInY() {
+    return sizeToOutputInXandY.getInt(1);
+  }
+
+  /**
+   * @return Returns the testLimits.
+   */
+  public String getTestLimits() {
+    return testLimits.toString();
+  }
+
+  /**
+   * @return Returns the transformFile.
+   */
+  public String getTransformFile() {
+    return transformFile;
+  }
+
+  /**
+   * @return Returns the useTransformLines.
+   */
+  public String getUseTransformLines() {
+    return useTransformLines;
+  }
+
+  public boolean isSizeToOutputInXandYSet() {
+    return sizeToOutputInXandY.valuesSet()
+        && (!sizeToOutputInXandY.isDefault());
+  }
+
+  public String getCommand() {
+    return getCommandFileName(axisID);
+  }
+
+  public  String getCommandFileName(final AxisID axisID) {
+    return processName.toString() + axisID.getExtension() + COMMAND_FILE_EXTENSION;
+  }
+
+  public String getCommandLine() {
+    return getCommandFileName(axisID);
+  }
+
+  public String getCommandName() {
+    return processName.toString();
+  }
+  
+  public ProcessName getProcessName() {
+    return processName;
+  }
+
+  public String[] getCommandArray() {
+    String[] array = { getCommandLine() };
+    return array;
+  }
+
+  public CommandMode getCommandMode() {
+    return commandMode;
+  }
+
+  public File getCommandOutputFile() {
+    return null;
+  }
+
+  public int getIntValue(final FieldInterface field) {
+    if (field == Field.BINNING) {
+      return getBinByFactor();
+    }
+    throw new IllegalArgumentException("field=" + field);
+  }
+
+  public boolean getBooleanValue(final FieldInterface field) {
+    if (field == Field.FIDUCIALESS_ALIGNMENT) {
+      return fiducialessAlignment;
+    }
+    if (field == Field.USE_LINEAR_INTERPOLATION) {
+      return linearInterpolation;
+    }
+    throw new IllegalArgumentException("field=" + field);
+  }
+
+  public float getFloatValue(final FieldInterface field) {
+    throw new IllegalArgumentException("field=" + field);
+  }
+
+  public String[] getStringArray(final FieldInterface field) {
+    throw new IllegalArgumentException("field=" + field);
+  }
+
+  public String getString(final FieldInterface field) {
+    if (field == Field.USER_SIZE_TO_OUTPUT_IN_X_AND_Y) {
+      return userSizeToOutputInXandY.toString();
+    }
+    throw new IllegalArgumentException("field=" + field);
+  }
+
+  public double getDoubleValue(final FieldInterface field) {
+    throw new IllegalArgumentException("field=" + field);
+  }
+
+  public ConstEtomoNumber getEtomoNumber(final FieldInterface field) {
+    if (field == Field.IMAGE_ROTATION) {
+      return imageRotation;
+    }
+    throw new IllegalArgumentException("field=" + field);
+  }
+
+  public ConstIntKeyList getIntKeyList(final FieldInterface field) {
+    throw new IllegalArgumentException("field=" + field);
+  }
+
+  public Hashtable getHashtable(final FieldInterface field) {
+    throw new IllegalArgumentException("field=" + field);
+  }
+
+  public static final class Field implements FieldInterface {
+    private Field() {
+    }
+
+    public static final Field FIDUCIALESS_ALIGNMENT = new Field();
+    public static final Field BINNING = new Field();
+    public static final Field USE_LINEAR_INTERPOLATION = new Field();
+    public static final Field USER_SIZE_TO_OUTPUT_IN_X_AND_Y = new Field();
+    public static final Field IMAGE_ROTATION = new Field();
+  }
+
+  public static final class Mode implements CommandMode {
+    public static final Mode WHOLE_TOMOGRAM_SAMPLE = new Mode("WholeTomogramSample");
+    public static final Mode FULL_ALIGNED_STACK = new Mode("FullAlignedStack");
+    
+    private final String string;
+
+    private Mode(String string) {
+      this.string = string;
+    }
+
+    public String toString() {
+      return string;
+    }
   }
 }

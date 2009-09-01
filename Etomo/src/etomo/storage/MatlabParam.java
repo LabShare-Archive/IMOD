@@ -44,6 +44,10 @@ import etomo.util.DatasetFiles;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.28  2009/04/02 21:47:55  sueh
+ * <p> bug# 1203 In SearchAngleArea.setIncrement(String), corrected function so that it
+ * <p> passes the modified value to descriptor.
+ * <p>
  * <p> Revision 1.27  2009/03/17 00:45:24  sueh
  * <p> bug# 1186 Pass managerKey to everything that pops up a dialog.
  * <p>
@@ -211,7 +215,7 @@ import etomo.util.DatasetFiles;
  * <p> for the file to be read.  Fixed the parsing of lists of arrays.
  * <p>
  * <p> Revision 1.5  2007/03/23 20:28:00  sueh
- * <p> bug# 964 Added the ability to write the autodoc based on the order of Field sections in another autodoc.  Also has the ability to write the autodoc without
+ * <p> bug# 964 Added the ability to write the autodoc based on the order of FieldInterface sections in another autodoc.  Also has the ability to write the autodoc without
  * <p> referring to the other autodoc.  Can write a new autodoc.  Can also update existing attributes or add new attributes to an existing autodoc.  Tries to add
  * <p> comments to add attributes or a new autodoc based on comment attributes from
  * <p> the other autodoc.
@@ -320,7 +324,7 @@ public final class MatlabParam {
   private final ParsedQuotedString referenceFile = ParsedQuotedString
       .getInstance();
   private final ParsedArray reference = ParsedArray.getMatlabInstance();
-  private final ParsedArray yaxisContour = ParsedArray.getMatlabInstance();
+  private final ParsedArray yAxisContour = ParsedArray.getMatlabInstance();
   private final ParsedNumber flgWedgeWeight = ParsedNumber.getMatlabInstance();
   private final ParsedQuotedString sampleSphere = ParsedQuotedString
       .getInstance();
@@ -339,7 +343,7 @@ public final class MatlabParam {
   private InitMotlCode initMotlCode = InitMotlCode.DEFAULT;
   private CCMode ccMode = CCMode.DEFAULT;
   private boolean useReferenceFile = REFERENCE_FILE_DEFAULT;
-  private YaxisType yaxisType = YaxisType.DEFAULT;
+  private YAxisType yAxisType = YAxisType.DEFAULT;
   private boolean useYaxisContour = false;
   private boolean useNWeightGroup = false;
   private boolean tiltRangeEmpty = false;
@@ -407,11 +411,11 @@ public final class MatlabParam {
     //Place the string representation of each value in a map.
     //This allows the values to be passed to updateOrBuildAutodoc().
     //When building a new .prm autodoc, this also allows the values to be
-    //accessed in the same order as the Field sections in peetprm.adoc.
+    //accessed in the same order as the FieldInterface sections in peetprm.adoc.
     Map valueMap = new HashMap();
     buildParsableValues(valueMap);
     //try to get the peetprm.adoc, which contains the comments for the .prm file
-    //in its Field sections.
+    //in its FieldInterface sections.
     ReadOnlyAutodoc commentAutodoc = null;
     try {
       commentAutodoc = AutodocFactory.getInstance(AutodocFactory.PEET_PRM,
@@ -442,18 +446,18 @@ public final class MatlabParam {
         updateOrBuildAutodoc(valueMap, autodoc, null);
       }
       else {
-        //Get the Field sections from the peetprm.adoc
+        //Get the FieldInterface sections from the peetprm.adoc
         SectionLocation secLoc = commentAutodoc
             .getSectionLocation(EtomoAutodoc.FIELD_SECTION_NAME);
         if (secLoc == null) {
-          //There are no Field sections in the peetprm.adoc.
+          //There are no FieldInterface sections in the peetprm.adoc.
           //Build a new .prm autodoc with no comments
           updateOrBuildAutodoc(valueMap, autodoc, null);
         }
         else {
-          //Build a new .prm autodoc.  Use the Field sections from the
+          //Build a new .prm autodoc.  Use the FieldInterface sections from the
           //peetprm.adoc to dictate the order of the name/value pairs.
-          //Also use the comments from the peetprm.adoc Field sections.
+          //Also use the comments from the peetprm.adoc FieldInterface sections.
           //This makes MatlabParam dependent on peetprm.adoc so peetprm.adoc
           //must be the responsibility of the Etomo developer.
           updateOrBuildAutodoc(valueMap, autodoc, commentAutodoc);
@@ -523,8 +527,8 @@ public final class MatlabParam {
     return ccMode;
   }
 
-  public YaxisType getYaxisType() {
-    return yaxisType;
+  public YAxisType getYAxisType() {
+    return yAxisType;
   }
 
   public void setInitMotlCode(EnumeratedType enumeratedType) {
@@ -536,8 +540,8 @@ public final class MatlabParam {
   }
 
   public void setYaxisType(EnumeratedType enumeratedType) {
-    yaxisType = (YaxisType) enumeratedType;
-    useYaxisContour = yaxisType == YaxisType.CONTOUR;
+    yAxisType = (YAxisType) enumeratedType;
+    useYaxisContour = yAxisType == YAxisType.CONTOUR;
   }
 
   public void setSampleSphere(EnumeratedType enumeratedType) {
@@ -646,8 +650,8 @@ public final class MatlabParam {
     maskModelPts.setRawString(VOLUME_INDEX, input.toString());
   }
 
-  public void setYaxisContourModelNumber(final Number input) {
-    yaxisContour.setRawString(MODEL_INDEX, input.toString());
+  public void setYAxisContourModelNumber(final Number input) {
+    yAxisContour.setRawString(MODEL_INDEX, input.toString());
   }
 
   public String getMaskModelPtsParticle() {
@@ -666,16 +670,16 @@ public final class MatlabParam {
     return reference.getElement(VOLUME_INDEX);
   }
 
-  public ParsedElement getYaxisContourModelNumber() {
-    return yaxisContour.getElement(MODEL_INDEX);
+  public ParsedElement getYAxisContourModelNumber() {
+    return yAxisContour.getElement(MODEL_INDEX);
   }
 
-  public String getYaxisContourObjectNumber() {
-    return yaxisContour.getRawString(OBJECT_INDEX);
+  public String getYAxisContourObjectNumber() {
+    return yAxisContour.getRawString(OBJECT_INDEX);
   }
 
-  public String getYaxisContourContourNumber() {
-    return yaxisContour.getRawString(CONTOUR_INDEX);
+  public String getYAxisContourContourNumber() {
+    return yAxisContour.getRawString(CONTOUR_INDEX);
   }
 
   public SampleSphere getSampleSphere() {
@@ -710,9 +714,9 @@ public final class MatlabParam {
     initMotlCode = InitMotlCode.DEFAULT;
     ccMode = CCMode.DEFAULT;
     useReferenceFile = false;
-    yaxisType = YaxisType.DEFAULT;
+    yAxisType = YAxisType.DEFAULT;
     useYaxisContour = false;
-    yaxisContour.clear();
+    yAxisContour.clear();
     flgWedgeWeight.setRawString(FLG_WEDGE_WEIGHT_DEFAULT);
     sampleInterval.clear();
     sampleSphere.clear();
@@ -852,11 +856,11 @@ public final class MatlabParam {
   }
 
   public void setYaxisContourObjectNumber(final String input) {
-    yaxisContour.setRawString(OBJECT_INDEX, input);
+    yAxisContour.setRawString(OBJECT_INDEX, input);
   }
 
   public void setYaxisContourContourNumber(final String input) {
-    yaxisContour.setRawString(CONTOUR_INDEX, input);
+    yAxisContour.setRawString(CONTOUR_INDEX, input);
   }
 
   public void setReferenceFile(final String referenceFile) {
@@ -984,10 +988,10 @@ public final class MatlabParam {
     //debugLevel
     debugLevel.parse(autodoc.getAttribute(DEBUG_LEVEL_KEY));
     //YaxisType
-    yaxisType = YaxisType.getInstance(autodoc.getAttribute(YAXIS_TYPE_KEY));
-    useYaxisContour = yaxisType == YaxisType.CONTOUR;
+    yAxisType = YAxisType.getInstance(autodoc.getAttribute(YAXIS_TYPE_KEY));
+    useYaxisContour = yAxisType == YAxisType.CONTOUR;
     //YaxisContour
-    yaxisContour.parse(autodoc.getAttribute(YAXIS_CONTOUR_KEY));
+    yAxisContour.parse(autodoc.getAttribute(YAXIS_CONTOUR_KEY));
     //flgWedgeWeight
     flgWedgeWeight.parse(autodoc.getAttribute(FLG_WEDGE_WEIGHT_KEY));
     //sampleSphere
@@ -1147,9 +1151,9 @@ public final class MatlabParam {
     valueMap.put(REF_FLAG_ALL_TOM_KEY, refFlagAllTom.getParsableString());
     valueMap.put(LST_FLAG_ALL_TOM_KEY, lstFlagAllTom.getParsableString());
     valueMap.put(PARTICLE_PER_CPU_KEY, particlePerCpu.getParsableString());
-    valueMap.put(YAXIS_TYPE_KEY, yaxisType.toString());
+    valueMap.put(YAXIS_TYPE_KEY, yAxisType.toString());
     if (useYaxisContour) {
-      valueMap.put(YAXIS_CONTOUR_KEY, yaxisContour.getParsableString());
+      valueMap.put(YAXIS_CONTOUR_KEY, yAxisContour.getParsableString());
     }
     valueMap.put(FLG_WEDGE_WEIGHT_KEY, flgWedgeWeight.getParsableString());
     valueMap.put(SAMPLE_SPHERE_KEY, sampleSphere.getParsableString());
@@ -1470,21 +1474,15 @@ public final class MatlabParam {
   }
 
   public static final class InitMotlCode implements EnumeratedType {
-    private static final EtomoNumber ZERO_VALUE = new EtomoNumber().set(0);
-    private static final EtomoNumber Z_AXIS_VALUE = new EtomoNumber().set(1);
-    private static final EtomoNumber X_AND_Z_AXIS_VALUE = new EtomoNumber()
-        .set(2);
-
-    public static final InitMotlCode ZERO = new InitMotlCode(ZERO_VALUE);
-    public static final InitMotlCode Z_AXIS = new InitMotlCode(Z_AXIS_VALUE);
-    public static final InitMotlCode X_AND_Z_AXIS = new InitMotlCode(
-        X_AND_Z_AXIS_VALUE);
+    public static final InitMotlCode ZERO = new InitMotlCode(0);
+    public static final InitMotlCode Z_AXIS = new InitMotlCode(1);
+    public static final InitMotlCode X_AND_Z_AXIS = new InitMotlCode(2);
     public static final InitMotlCode DEFAULT = ZERO;
 
-    private final EtomoNumber value;
+    private final EtomoNumber value = new EtomoNumber();
 
-    private InitMotlCode(final EtomoNumber value) {
-      this.value = value;
+    private InitMotlCode(final int value) {
+      this.value.set(value);
     }
 
     public String toString() {
@@ -1506,16 +1504,20 @@ public final class MatlabParam {
       if (value == null) {
         return DEFAULT;
       }
-      if (ZERO_VALUE.equals(value)) {
+      if (ZERO.value.equals(value)) {
         return ZERO;
       }
-      if (Z_AXIS_VALUE.equals(value)) {
+      if (Z_AXIS.value.equals(value)) {
         return Z_AXIS;
       }
-      if (X_AND_Z_AXIS_VALUE.equals(value)) {
+      if (X_AND_Z_AXIS.value.equals(value)) {
         return X_AND_Z_AXIS;
       }
       return DEFAULT;
+    }
+
+    public ConstEtomoNumber getValue() {
+      return value;
     }
   }
 
@@ -1538,6 +1540,10 @@ public final class MatlabParam {
 
     public String toString() {
       return value.toString();
+    }
+
+    public ConstEtomoNumber getValue() {
+      return null;
     }
 
     public boolean isDefault() {
@@ -1594,6 +1600,10 @@ public final class MatlabParam {
       return value.toString();
     }
 
+    public ConstEtomoNumber getValue() {
+      return null;
+    }
+
     public boolean isDefault() {
       if (this == DEFAULT) {
         return true;
@@ -1618,21 +1628,21 @@ public final class MatlabParam {
     }
   }
 
-  public static final class YaxisType implements EnumeratedType {
+  public static final class YAxisType implements EnumeratedType {
     private static final EtomoNumber Y_AXIS_VALUE = new EtomoNumber().set(0);
     private static final EtomoNumber PARTICLE_MODEL_VALUE = new EtomoNumber()
         .set(1);
     private static final EtomoNumber CONTOUR_VALUE = new EtomoNumber().set(2);
 
-    public static final YaxisType Y_AXIS = new YaxisType(Y_AXIS_VALUE);
-    public static final YaxisType PARTICLE_MODEL = new YaxisType(
+    public static final YAxisType Y_AXIS = new YAxisType(Y_AXIS_VALUE);
+    public static final YAxisType PARTICLE_MODEL = new YAxisType(
         PARTICLE_MODEL_VALUE);
-    public static final YaxisType CONTOUR = new YaxisType(CONTOUR_VALUE);
-    public static final YaxisType DEFAULT = Y_AXIS;
+    public static final YAxisType CONTOUR = new YAxisType(CONTOUR_VALUE);
+    public static final YAxisType DEFAULT = Y_AXIS;
 
     private final ConstEtomoNumber value;
 
-    private YaxisType(final ConstEtomoNumber value) {
+    private YAxisType(final ConstEtomoNumber value) {
       this.value = value;
     }
 
@@ -1644,7 +1654,11 @@ public final class MatlabParam {
       return value.toString();
     }
 
-    private static YaxisType getInstance(final ReadOnlyAttribute attribute) {
+    public ConstEtomoNumber getValue() {
+      return null;
+    }
+
+    private static YAxisType getInstance(final ReadOnlyAttribute attribute) {
       if (attribute == null) {
         return DEFAULT;
       }
@@ -1666,18 +1680,14 @@ public final class MatlabParam {
   }
 
   public static final class CCMode implements EnumeratedType {
-    private static final EtomoNumber NORMALIZED_VALUE = new EtomoNumber()
-        .set(0);
-    private static final EtomoNumber LOCAL_VALUE = new EtomoNumber().set(1);
-
-    public static final CCMode NORMALIZED = new CCMode(NORMALIZED_VALUE);
-    public static final CCMode LOCAL = new CCMode(LOCAL_VALUE);
+    public static final CCMode NORMALIZED = new CCMode(0);
+    public static final CCMode LOCAL = new CCMode(1);
     public static final CCMode DEFAULT = NORMALIZED;
 
-    private final ConstEtomoNumber value;
+    private final EtomoNumber value = new EtomoNumber();
 
-    private CCMode(final ConstEtomoNumber value) {
-      this.value = value;
+    private CCMode(final int value) {
+      this.value.set(value);
     }
 
     public boolean isDefault() {
@@ -1692,13 +1702,17 @@ public final class MatlabParam {
       if (value == null) {
         return DEFAULT;
       }
-      if (NORMALIZED_VALUE.equals(value)) {
+      if (NORMALIZED.value.equals(value)) {
         return NORMALIZED;
       }
-      if (LOCAL_VALUE.equals(value)) {
+      if (LOCAL.value.equals(value)) {
         return LOCAL;
       }
       return DEFAULT;
+    }
+
+    public ConstEtomoNumber getValue() {
+      return value;
     }
 
     public String toString() {

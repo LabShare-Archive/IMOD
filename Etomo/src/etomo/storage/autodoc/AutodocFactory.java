@@ -24,6 +24,10 @@ import etomo.type.AxisID;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.15  2009/06/05 02:01:14  sueh
+ * <p> bug# 1219 Added FLATTEN_WARP, FLATTEN_WARP_INSTANCE,
+ * <p> WARP_VOL, and WARP_VOL_INSTANCE.
+ * <p>
  * <p> Revision 1.14  2009/03/17 00:45:53  sueh
  * <p> bug# 1186 Pass managerKey to everything that pops up a dialog.
  * <p>
@@ -94,6 +98,7 @@ public final class AutodocFactory {
   public static final String CTF_PHASE_FLIP = "ctfphaseflip";
   public static final String FLATTEN_WARP = "flattenwarp";
   public static final String WARP_VOL = "warpvol";
+  public static final String FIND_BEADS_3D = "findbeads3d";
 
   private static final String TEST = "test";
   private static final String UITEST_AXIS = "uitest_axis";
@@ -117,6 +122,7 @@ public final class AutodocFactory {
   private static Autodoc CTF_PHASE_FLIP_INSTANCE = null;
   private static Autodoc FLATTEN_WARP_INSTANCE = null;
   private static Autodoc WARP_VOL_INSTANCE = null;
+  private static Autodoc FIND_BEADS_3D_INSTANCE = null;
 
   private static final HashMap UITEST_AXIS_MAP = new HashMap();
 
@@ -357,6 +363,9 @@ public final class AutodocFactory {
     if (name.equals(WARP_VOL)) {
       return WARP_VOL_INSTANCE;
     }
+    if (name.equals(FIND_BEADS_3D)) {
+      return FIND_BEADS_3D_INSTANCE;
+    }
     if (name.equals(COMBINE_FFT)) {
       return COMBINE_FFT_INSTANCE;
     }
@@ -421,6 +430,9 @@ public final class AutodocFactory {
     }
     else if (name.equals(WARP_VOL)) {
       WARP_VOL_INSTANCE = null;
+    }
+    else if (name.equals(FIND_BEADS_3D)) {
+      FIND_BEADS_3D_INSTANCE = null;
     }
     else if (name.equals(COMBINE_FFT)) {
       COMBINE_FFT_INSTANCE = null;

@@ -40,6 +40,9 @@ import etomo.type.Run3dmodMenuOptions;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.30  2009/06/15 20:16:26  sueh
+ * <p> bug# 1221 Implemented BeadTrackDisplay.
+ * <p>
  * <p> Revision 3.29  2009/05/02 01:13:01  sueh
  * <p> bug# 1216 Added pickSeed and pickRaptor.
  * <p>
@@ -75,7 +78,9 @@ import etomo.type.Run3dmodMenuOptions;
  * <p> button state load in the dialogs.
  * <p>
  * <p> Revision 3.19  2007/07/27 16:53:57  sueh
- * <p> bug# 979 Rearranged "Track Seed Model", "Fix Fiducial Model", and "Use fid as seed".  Changed "Use fid as seed" to "Track with Fiducial Model as Seed", which copies the fid to the seed and then tracks.
+ * <p> bug# 979 Rearranged "Track Seed Model", "Fix Fiducial Model", and "Use
+ * <p> fid as seed".  Changed "Use fid as seed" to "Track with Fiducial Model as
+ * <p> Seed", which copies the fid to the seed and then tracks.
  * <p>
  * <p> Revision 3.18  2007/03/21 19:44:49  sueh
  * <p> bug# 964 Limiting access to autodoc classes by using ReadOnly interfaces.
@@ -85,8 +90,8 @@ import etomo.type.Run3dmodMenuOptions;
  * <p> bug# 964 Added LogFile to Autodoc.
  * <p>
  * <p> Revision 3.16  2007/02/09 00:44:07  sueh
- * <p> bug# 962 Made TooltipFormatter a singleton and moved its use to low-level ui
- * <p> classes.
+ * <p> bug# 962 Made TooltipFormatter a singleton and moved its use to low-level
+ * <p> ui classes.
  * <p>
  * <p> Revision 3.15  2006/07/19 15:33:01  sueh
  * <p> bug# 903 Take the use fid as seed button out of advanced.
@@ -96,9 +101,9 @@ import etomo.type.Run3dmodMenuOptions;
  * <p> advanced button is pressed.
  * <p>
  * <p> Revision 3.13  2006/06/16 15:24:59  sueh
- * <p> bug# 734 Moved track and use buttons from fiducial model dialog to beadtracker
- * <p> dialog.  Added open/close and adv/basic button.  Placed expert parameters in
- * <p> a separate box with an open/close button.
+ * <p> bug# 734 Moved track and use buttons from fiducial model dialog to
+ * <p> beadtracker dialog.  Added open/close and adv/basic button.  Placed
+ * <p> expert parameters in a separate box with an open/close button.
  * <p>
  * <p> Revision 3.12  2006/01/12 17:06:14  sueh
  * <p> bug# 798 Moved the autodoc classes to etomo.storage.autodoc.
@@ -183,6 +188,7 @@ public final class BeadtrackPanel implements Expandable,
   public static final String TRACK_LABEL = "Track Seed Model";
   public static final String USE_MODEL_LABEL = "Track with Fiducial Model as Seed";
   private static final String VIEW_SKIP_LIST_LABEL = "View skip list";
+  static final String LIGHT_BEADS_LABEL = "Light fiducial markers";
 
   private final EtomoPanel panelBeadtrack = new EtomoPanel();
   private final JPanel panelBeadtrackBody = new JPanel();
@@ -205,7 +211,7 @@ public final class BeadtrackPanel implements Expandable,
       "Minimum # of views for tilt alignment: ");
   private final LabeledTextField ltfBeadDiameter = new LabeledTextField(
       "Unbinned bead diameter: ");
-  private final CheckBox cbLightBeads = new CheckBox("Light fiducial markers");
+  private final CheckBox cbLightBeads = new CheckBox(LIGHT_BEADS_LABEL);
   CheckBox cbFillGaps = new CheckBox("Fill seed model gaps");
   private final LabeledTextField ltfMaxGap = new LabeledTextField(
       "Maximum gap size: ");
@@ -270,7 +276,7 @@ public final class BeadtrackPanel implements Expandable,
    * @param label specifies the suffix for the logfile
    */
   private BeadtrackPanel(final ApplicationManager manager, AxisID id,
-      DialogType dialogType) {
+      DialogType dialogType,GlobalExpandButton globalAdvancedButton) {
     this.manager = manager;
     this.dialogType = dialogType;
     axisID = id;
@@ -282,7 +288,7 @@ public final class BeadtrackPanel implements Expandable,
     expertParametersHeader = PanelHeader.getInstance("Expert Parameters", this,
         dialogType);
     header = PanelHeader.getAdvancedBasicInstance("Beadtracker", this,
-        dialogType);
+        dialogType,globalAdvancedButton);
 
     panelBeadtrackBody.setLayout(new BoxLayout(panelBeadtrackBody,
         BoxLayout.Y_AXIS));
@@ -371,8 +377,8 @@ public final class BeadtrackPanel implements Expandable,
   }
 
   public static BeadtrackPanel getInstance(ApplicationManager manager,
-      AxisID id, DialogType dialogType) {
-    BeadtrackPanel instance = new BeadtrackPanel(manager, id, dialogType);
+      AxisID id, DialogType dialogType,GlobalExpandButton globalAdvancedButton) {
+    BeadtrackPanel instance = new BeadtrackPanel(manager, id, dialogType, globalAdvancedButton);
     instance.addListeners();
     return instance;
   }
@@ -388,12 +394,8 @@ public final class BeadtrackPanel implements Expandable,
       DialogType dialogType) {
     return MultiLineButton.getToggleButtonInstance(TRACK_LABEL, dialogType);
   }
-
-  /**
-   * Update the header with the current advanced state
-   */
-  void updateAdvanced(boolean isAdvanced) {
-    header.setAdvanced(isAdvanced);
+  
+  public void expand(GlobalExpandButton button) {
   }
 
   public void expand(ExpandButton button) {
@@ -404,7 +406,7 @@ public final class BeadtrackPanel implements Expandable,
       panelBeadtrackBody.setVisible(button.isExpanded());
     }
     else if (header.equalsAdvancedBasic(button)) {
-      setAdvanced(button.isExpanded());
+      updateAdvanced(button.isExpanded());
     }
     UIHarness.INSTANCE.pack(axisID, manager);
   }
@@ -486,7 +488,7 @@ public final class BeadtrackPanel implements Expandable,
     beadtrackParams.setFillGaps(cbFillGaps.isSelected());
     beadtrackParams.setImagesAreBinned(UIExpertUtilities.INSTANCE
         .getStackBinning(manager, axisID, ".preali"));
-    String errorTitle = "Field Error";
+    String errorTitle = "FieldInterface Error";
     String badParameter = "";
     //handle field that throw FortranInputSyntaxException
     try {
@@ -686,7 +688,7 @@ public final class BeadtrackPanel implements Expandable,
   /**
    * Makes the advanced components visible or invisible
    */
-  void setAdvanced(boolean state) {
+  void updateAdvanced(boolean state) {
     ltfTiltAngleGroupSize.setVisible(state);
     ltfTiltAngleGroups.setVisible(state);
     ltfMagnificationGroupSize.setVisible(state);

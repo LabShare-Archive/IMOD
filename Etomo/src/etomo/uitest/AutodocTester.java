@@ -13,6 +13,7 @@ import java.util.Set;
 import javax.swing.AbstractButton;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
+import javax.swing.JComboBox;
 import javax.swing.JFileChooser;
 import javax.swing.JLabel;
 import javax.swing.JMenuItem;
@@ -61,6 +62,10 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.8  2009/07/13 20:19:42  sueh
+ * <p> Increased sleep for wait.process.  Ubuntu may have had a problem with
+ * <p> checking the process bar too soon after the kill button is disabled.
+ * <p>
  * <p> Revision 1.7  2009/06/10 17:26:41  sueh
  * <p> bug# 1202, bug # 1216 Added if.not-exists.field.subcommand to handle
  * <p> RAPTOR's not existing on all computers.
@@ -247,6 +252,19 @@ final class AutodocTester extends Assert implements VariableList {
   }
 
   /**
+   * Passes a variable up to the enclosing scope, if it exists, and exits the
+   * current scope.
+   * @param variableName
+   */
+  private void setReturn(final String variableName) {
+    if (variableMap != null && variableMap.containsKey(variableName)) {
+      parentVariableList.setVariable(variableName, variableMap
+          .get(variableName));
+    }
+    setReturn();
+  }
+
+  /**
    * Exit from the current scope.
    */
   private void setReturn() {
@@ -320,7 +338,7 @@ final class AutodocTester extends Assert implements VariableList {
         //Wait until frame can be opened.
         wait = true;
         try {
-          Thread.sleep(1);
+          Thread.sleep(1000);
         }
         catch (InterruptedException e) {
         }
@@ -451,7 +469,7 @@ final class AutodocTester extends Assert implements VariableList {
     if (axisID == AxisID.SECOND && isAutodocTester) {
       UIHarness.INSTANCE.moveSubFrame();
       try {
-        Thread.sleep(1);
+        Thread.sleep(1000);
       }
       catch (InterruptedException e) {
       }
@@ -541,7 +559,7 @@ final class AutodocTester extends Assert implements VariableList {
     }
     Field field = command.getField();
     String value = command.getValue();
-    //Field
+    //FieldInterface
     if (actionType == null) {
       executeField(command);
     }
@@ -550,8 +568,14 @@ final class AutodocTester extends Assert implements VariableList {
       //assert.file
       if (subjectType == UITestSubjectType.FILE) {
         File file = new File(System.getProperty("user.dir"), value);
+        //assert.equals.file = file_name
+        if (modifierType == UITestModifierType.EQUALS) {
+          String errorMessage = compareFiles(file, value);
+          assertNull("file does not equal stored file - " + value + " ("
+              + command + ")\n" + errorMessage, errorMessage);
+        }
         //assert.exists.file = file_name
-        if (modifierType == UITestModifierType.EXISTS) {
+        else if (modifierType == UITestModifierType.EXISTS) {
           assertTrue("file does not exist - " + value + " (" + command + ")",
               file.exists());
         }
@@ -593,14 +617,14 @@ final class AutodocTester extends Assert implements VariableList {
             modifierType);
         assertFalse("illegal section name - " + value + " (" + command + ")",
             value.startsWith("="));
-        if (isVariableSet(value)) {
+        if (isVariableSet(value, axisID)) {
           childTester = AutodocTester.getSubsectionTester(command
               .getSubsection(), this);
         }
       }
       //if.var
       else if (subjectType == UITestSubjectType.VAR) {
-        boolean variableSet = isVariableSet(subjectName);
+        boolean variableSet = isVariableSet(subjectName, axisID);
         if (modifierType == null) {
           if (variableSet) {
             //if.var.action
@@ -627,7 +651,7 @@ final class AutodocTester extends Assert implements VariableList {
           }
         }
         else {
-          String variableValue = getVariableValue(subjectName);
+          String variableValue = getVariableValue(subjectName, axisID);
           assertNotNull("subcommand required in an if.comparison command - ("
               + command + ")", subcommand);
           //if.equals.var.variable_name.subcommand = variable_value
@@ -672,7 +696,7 @@ final class AutodocTester extends Assert implements VariableList {
             modifierType);
         assertFalse("illegal section name - " + value + " (" + command + ")",
             value.startsWith("="));
-        if (!isVariableSet(value)) {
+        if (!isVariableSet(value, axisID)) {
           childTester = AutodocTester.getSubsectionTester(command
               .getSubsection(), this);
         }
@@ -741,7 +765,15 @@ final class AutodocTester extends Assert implements VariableList {
     }
     //RETURN
     else if (actionType == UITestActionType.RETURN) {
-      setReturn();
+      //return.var.variable_name
+      if (subjectType == UITestSubjectType.VAR) {
+        assertNotNull("missing variable name (" + command + ")", subjectName);
+        setReturn(subjectName);
+      }
+      else {
+        //return
+        setReturn();
+      }
     }
     //RUN
     else if (actionType == UITestActionType.RUN) {
@@ -846,7 +878,7 @@ final class AutodocTester extends Assert implements VariableList {
         setupNamedComponentFinder(JFileChooser.class, subjectName);
         JFileChooser fileChooser = (JFileChooser) finder.find();
         File file = new File(getVariableValue(UITestSubjectType.TESTDIR
-            .toString()), value);
+            .toString(), axisID), value);
         fileChooser.setSelectedFile(file);
         fileChooser.approveSelection();
       }
@@ -969,13 +1001,21 @@ final class AutodocTester extends Assert implements VariableList {
     return axisID;
   }
 
+  public void setVariable(String variableName, Object variableValue) {
+    if (variableMap == null) {
+      variableMap = new HashMap();
+    }
+    variableMap.put(variableName, variableValue);
+  }
+
   /**
-   * Attempts to find variableName in variableMap.  If it can't, if calls
-   * parentVariableList.getVariableValue().
+   * Attempts to find variableName in variableMap.  It checks the global map.
+   * If the variable isn't there, is calls this function in the parent variable
+   * list.
    * @param variableName
    * @return variableValue
    */
-  public String getVariableValue(String variableName) {
+  public String getVariableValue(String variableName, AxisID axisID) {
     if (variableMap != null && variableMap.containsKey(variableName)) {
       return (String) variableMap.get(variableName);
     }
@@ -983,7 +1023,7 @@ final class AutodocTester extends Assert implements VariableList {
         && globalVariableMap.containsKey(variableName)) {
       return (String) globalVariableMap.get(variableName);
     }
-    return parentVariableList.getVariableValue(variableName);
+    return parentVariableList.getVariableValue(variableName, axisID);
   }
 
   /**
@@ -992,7 +1032,7 @@ final class AutodocTester extends Assert implements VariableList {
    * @param variableName
    * @return variableExists
    */
-  public boolean isVariableSet(String variableName) {
+  public boolean isVariableSet(String variableName, AxisID axisID) {
     if (variableMap != null && variableMap.containsKey(variableName)) {
       return true;
     }
@@ -1000,7 +1040,7 @@ final class AutodocTester extends Assert implements VariableList {
         && globalVariableMap.containsKey(variableName)) {
       return true;
     }
-    return parentVariableList.isVariableSet(variableName);
+    return parentVariableList.isVariableSet(variableName, axisID);
   }
 
   public String toString() {
@@ -1133,6 +1173,72 @@ final class AutodocTester extends Assert implements VariableList {
   }
 
   /**
+   * Compares ascii files.
+   * Returns null if file is equals with uitestDataDir/storedFileName.
+   * Otherwise returns an error message.
+   * @param file
+   * @param storedFileName
+   * @return
+   * @throws LogFile.LockException
+   * @throws FileNotFoundException
+   * @throws IOException
+   */
+  private String compareFiles(File file, String storedFileName)
+      throws LogFile.LockException, FileNotFoundException, IOException {
+    File storedFile = new File(testRunner.getUitestDataDir(), storedFileName);
+    if (file == null || storedFileName == null) {
+      //One or more of the files are missing.
+      return file.getAbsolutePath() + " or " + storedFile.getAbsolutePath()
+          + " is null.";
+    }
+    if (!file.exists() || !file.isFile() || !storedFile.exists()
+        || !storedFile.isFile()) {
+      //Can't compare directories right now.
+      //Nonexistant files are not equal.
+      return file.getAbsolutePath() + " or " + storedFile.getAbsolutePath()
+          + " does not exist or is not a file.";
+    }
+    //Use LogFile to read files.
+    LogFile logFile = LogFile.getInstance(file, testRunner.getManagerKey());
+    LogFile storedLogFile = LogFile.getInstance(storedFile, testRunner
+        .getManagerKey());
+    LogFile.ReaderId readerId = logFile.openReader();
+    LogFile.ReaderId storedReaderId = storedLogFile.openReader();
+    if (readerId == null || storedReaderId == null) {
+      logFile.closeReader(readerId);
+      storedLogFile.closeReader(storedReaderId);
+      return "Unable to open reader for " + file.getAbsolutePath() + " or "
+          + storedFile.getAbsolutePath() + ".";
+    }
+    String line = logFile.readLine(readerId);
+    String storedLine = storedLogFile.readLine(storedReaderId);
+    //Compare lines while there are lines in both files.
+    while (line != null || storedLine != null) {
+      System.out.println(line + "\n" + storedLine);
+      if (!line.equals(storedLine)) {
+        logFile.closeReader(readerId);
+        storedLogFile.closeReader(storedReaderId);
+        //Found an unequal line.
+        return "Unequal lines:" + file.getAbsolutePath() + ":\n" + line + "\n"
+            + storedFile.getAbsolutePath() + ":\n" + storedLine;
+      }
+      line = logFile.readLine(readerId);
+      storedLine = storedLogFile.readLine(storedReaderId);
+    }
+    //At least one file ran out of lines
+    if (line != null || storedLine != null) {
+      logFile.closeReader(readerId);
+      storedLogFile.closeReader(storedReaderId);
+      //One file still has lines left - not equals.
+      return "Either " + file.getAbsolutePath() + " or "
+          + storedFile.getAbsolutePath() + " is longer.";
+    }
+    logFile.closeReader(readerId);
+    storedLogFile.closeReader(storedReaderId);
+    return null;
+  }
+
+  /**
    * Handle assert.ge/le.  Checks text field value against command value.
    * @param textComponent
    * @param command
@@ -1180,6 +1286,7 @@ final class AutodocTester extends Assert implements VariableList {
    */
   private boolean executeField(Command command, boolean throwExceptionIfNotFound)
       throws FileNotFoundException, IOException, LogFile.LockException {
+    int buttonSleep = 1;
     UITestActionType actionType = command.getActionType();
     UITestModifierType modifierType = command.getModifierType();
     Field field = command.getField();
@@ -1207,6 +1314,11 @@ final class AutodocTester extends Assert implements VariableList {
         assertNull("value not valid in a button command (" + command + ")",
             value);
         helper.enterClickAndLeave(new MouseEventData(testRunner, button, 1));
+        try {
+          Thread.sleep(buttonSleep);
+        }
+        catch (InterruptedException e) {
+        }
       }
       //if.not-exists
       else if (actionType == UITestActionType.IF
@@ -1244,6 +1356,11 @@ final class AutodocTester extends Assert implements VariableList {
         if (value == null || checkBox.isSelected() != convertToBoolean(value)) {
           helper
               .enterClickAndLeave(new MouseEventData(testRunner, checkBox, 1));
+          try {
+            Thread.sleep(buttonSleep);
+          }
+          catch (InterruptedException e) {
+          }
         }
       }
       //if.not-exists
@@ -1270,6 +1387,56 @@ final class AutodocTester extends Assert implements VariableList {
         }
       }
     }
+    //COMBO BOX
+    else if (fieldType == UITestFieldType.COMBO_BOX) {
+      setupNamedComponentFinder(JComboBox.class, name);
+      JComboBox comboBox = (JComboBox) finder.find(currentPanel, index);
+      if (comboBox == null) {
+        return notExistsField(command, throwExceptionIfNotFound);
+      }
+      //cbb.combo_box_label
+      if (!fieldActionSet) {
+        comboBox.addItem(value);
+        comboBox.setSelectedItem(value);
+      }
+      //if.not-exists
+      else if (actionType == UITestActionType.IF
+          || modifierType == UITestModifierType.NOT_EXISTS) {
+        //The field exists so the "if" test failed - nothing to do.
+        return true;
+      }
+      //assert
+      //if
+      else {
+        if (modifierType != null) {
+          if (modifierType == UITestModifierType.ENABLED
+              || modifierType == UITestModifierType.DISABLED) {
+            //assert.enabled
+            //assert.disabled
+            enabled(comboBox, command);
+          }
+          else {
+            fail("unknown action/modifier - " + comboBox.getSelectedItem()
+                + "," + value + " (" + command + ")");
+          }
+        }
+        //assert.cbb.combo_box_label
+        else {
+          //assert.cbb.combo_box_label = value
+          if (value != null) {
+            assertTrue("combo box selected text is not equal to value - "
+                + comboBox.getSelectedItem() + "," + value + " (" + command
+                + ")", ((String) comboBox.getSelectedItem()).equals(value));
+          }
+          //assert.cbb.combo_box_label =
+          else {
+            assertEquals("combo box selected text is not empty - "
+                + comboBox.getSelectedItem() + "," + value + " (" + command
+                + ")", comboBox.getSelectedItem(), null);
+          }
+        }
+      }
+    }
     //MENU_ITEM
     else if (fieldType == UITestFieldType.MENU_ITEM) {
       setupNamedComponentFinder(JMenuItem.class, name);
@@ -1283,7 +1450,7 @@ final class AutodocTester extends Assert implements VariableList {
         helper.enterClickAndLeave(new MouseEventData(testRunner, menuItem));
         //wait for menu to open
         try {
-          Thread.sleep(1);
+          Thread.sleep(1000);
         }
         catch (InterruptedException e) {
         }
@@ -1317,6 +1484,11 @@ final class AutodocTester extends Assert implements VariableList {
         if (value == null
             || miniButton.getText().equals("<html><b>" + value + "</b>")) {
           helper.enterClickAndLeave(new MouseEventData(testRunner, miniButton));
+          try {
+            Thread.sleep(buttonSleep);
+          }
+          catch (InterruptedException e) {
+          }
         }
       }
       //if.not-exists
@@ -1362,7 +1534,7 @@ final class AutodocTester extends Assert implements VariableList {
       }
       else {
         try {
-          Thread.sleep(1);
+          Thread.sleep(1000);
         }
         catch (InterruptedException e) {
         }
@@ -1381,6 +1553,11 @@ final class AutodocTester extends Assert implements VariableList {
         assertNull("value not valid in a radio command (" + command + ")",
             value);
         helper.enterClickAndLeave(new MouseEventData(testRunner, radioButton));
+        try {
+          Thread.sleep(buttonSleep);
+        }
+        catch (InterruptedException e) {
+        }
       }
       //if.not-exists
       else if (actionType == UITestActionType.IF
@@ -1477,6 +1654,11 @@ final class AutodocTester extends Assert implements VariableList {
       }
       helper.enterClickAndLeave(new JTabbedPaneMouseEventData(testRunner,
           tabbedPane, index, 1));
+      try {
+        Thread.sleep(buttonSleep);
+      }
+      catch (InterruptedException e) {
+      }
     }
     //TEXT FIELD
     else if (fieldType == UITestFieldType.TEXT_FIELD) {

@@ -8,6 +8,7 @@ import etomo.BaseManager;
 import etomo.type.AxisID;
 import etomo.type.ConstEtomoNumber;
 import etomo.type.ConstIntKeyList;
+import etomo.type.ProcessName;
 
 /**
  * <p>Description: </p>
@@ -23,6 +24,9 @@ import etomo.type.ConstIntKeyList;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.15  2007/12/13 01:05:12  sueh
+ * <p> bug# 1056 Changed etomo.comscript.Fields to etomo.comscript.FieldInterface.
+ * <p>
  * <p> Revision 1.14  2007/11/06 19:10:50  sueh
  * <p> bug# 1047 Added getSubcommandDetails.
  * <p>
@@ -95,6 +99,7 @@ import etomo.type.ConstIntKeyList;
 public class FlipyzParam implements CommandDetails {
   public static final String rcsid = "$Id$";
 
+  private static final ProcessName PROCESS_NAME = ProcessName.CLIPFLIPYZ;
   public static final String command = "clipflipyz";
   private static final int commandSize = 3;
   private File flipFile;
@@ -147,6 +152,10 @@ public class FlipyzParam implements CommandDetails {
   public String getCommandName() {
     return command;
   }
+  
+  public ProcessName getProcessName() {
+    return PROCESS_NAME;
+  }
 
   public String getCommand() {
     return command;
@@ -167,41 +176,45 @@ public class FlipyzParam implements CommandDetails {
   public CommandDetails getSubcommandDetails() {
     return null;
   }
-
-  public int getIntValue(etomo.comscript.Field field) {
-    throw new IllegalArgumentException("field=" + field);
+  
+  public ProcessName getSubcommandProcessName() {
+    return null;
   }
 
-  public boolean getBooleanValue(etomo.comscript.Field field) {
-    throw new IllegalArgumentException("field=" + field);
+  public int getIntValue(etomo.comscript.FieldInterface fieldInterface) {
+    throw new IllegalArgumentException("field=" + fieldInterface);
   }
 
-  public float getFloatValue(etomo.comscript.Field field) {
-    throw new IllegalArgumentException("field=" + field);
+  public boolean getBooleanValue(etomo.comscript.FieldInterface fieldInterface) {
+    throw new IllegalArgumentException("field=" + fieldInterface);
   }
 
-  public String[] getStringArray(etomo.comscript.Field field) {
-    throw new IllegalArgumentException("field=" + field);
+  public float getFloatValue(etomo.comscript.FieldInterface fieldInterface) {
+    throw new IllegalArgumentException("field=" + fieldInterface);
   }
 
-  public String getString(etomo.comscript.Field field) {
-    throw new IllegalArgumentException("field=" + field);
+  public String[] getStringArray(etomo.comscript.FieldInterface fieldInterface) {
+    throw new IllegalArgumentException("field=" + fieldInterface);
   }
 
-  public Hashtable getHashtable(etomo.comscript.Field field) {
-    throw new IllegalArgumentException("field=" + field);
+  public String getString(etomo.comscript.FieldInterface fieldInterface) {
+    throw new IllegalArgumentException("field=" + fieldInterface);
   }
 
-  public double getDoubleValue(Field field) {
-    throw new IllegalArgumentException("field=" + field);
+  public Hashtable getHashtable(etomo.comscript.FieldInterface fieldInterface) {
+    throw new IllegalArgumentException("field=" + fieldInterface);
   }
 
-  public ConstEtomoNumber getEtomoNumber(etomo.comscript.Field field) {
-    throw new IllegalArgumentException("field=" + field);
+  public double getDoubleValue(FieldInterface fieldInterface) {
+    throw new IllegalArgumentException("field=" + fieldInterface);
   }
 
-  public ConstIntKeyList getIntKeyList(etomo.comscript.Field field) {
-    throw new IllegalArgumentException("field=" + field);
+  public ConstEtomoNumber getEtomoNumber(etomo.comscript.FieldInterface fieldInterface) {
+    throw new IllegalArgumentException("field=" + fieldInterface);
+  }
+
+  public ConstIntKeyList getIntKeyList(etomo.comscript.FieldInterface fieldInterface) {
+    throw new IllegalArgumentException("field=" + fieldInterface);
   }
 
   public CommandMode getCommandMode() {

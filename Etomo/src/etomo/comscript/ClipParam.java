@@ -8,6 +8,7 @@ import etomo.BaseManager;
 import etomo.type.AxisID;
 import etomo.type.ConstEtomoNumber;
 import etomo.type.ConstIntKeyList;
+import etomo.type.ProcessName;
 
 /**
  * <p>Description: Runs clip command.  Currently always uses the rotx option.</p>
@@ -22,12 +23,15 @@ import etomo.type.ConstIntKeyList;
  * 
  * @version $Revision$
  * 
- * <p> $Log$ </p>
+ * <p> $Log$
+ * <p> Revision 1.1  2009/04/01 20:04:46  sueh
+ * <p> bug# 1208 Param class for running clip.
+ * <p> </p>
  */
 public final class ClipParam implements CommandDetails{
   public static final String rcsid = "$Id$";
   
-  public static final String command = "clip";
+  public static final ProcessName PROCESS_NAME  = ProcessName.CLIP;
   private static final int commandSize = 1;
   private File clipFile;
   private String[] commandArray;
@@ -37,7 +41,7 @@ public final class ClipParam implements CommandDetails{
     //TODO use array for command string
     ArrayList options = genOptions(tomogram, workingDir);
     commandArray = new String[options.size() + commandSize];
-    commandArray[0] = BaseManager.getIMODBinPath() + command;
+    commandArray[0] = BaseManager.getIMODBinPath() + PROCESS_NAME.toString();
     for (int i = 0; i < options.size(); i++) {
       commandArray[i + commandSize] = (String) options.get(i);
     }
@@ -85,15 +89,19 @@ public final class ClipParam implements CommandDetails{
   }
 
   public String getCommandName() {
-    return command;
+    return PROCESS_NAME.toString();
   }
 
   public String getCommand() {
-    return command;
+    return PROCESS_NAME.toString();
   }
 
   public static String getName() {
-    return command;
+    return PROCESS_NAME.toString();
+  }
+  
+  public ProcessName getProcessName() {
+    return PROCESS_NAME;
   }
 
   public String[] getCommandArray() {
@@ -107,41 +115,45 @@ public final class ClipParam implements CommandDetails{
   public CommandDetails getSubcommandDetails() {
     return null;
   }
-
-  public int getIntValue(etomo.comscript.Field field) {
-    throw new IllegalArgumentException("field=" + field);
+  
+  public ProcessName getSubcommandProcessName() {
+    return null;
   }
 
-  public boolean getBooleanValue(etomo.comscript.Field field) {
-    throw new IllegalArgumentException("field=" + field);
+  public int getIntValue(etomo.comscript.FieldInterface fieldInterface) {
+    throw new IllegalArgumentException("field=" + fieldInterface);
   }
 
-  public float getFloatValue(etomo.comscript.Field field) {
-    throw new IllegalArgumentException("field=" + field);
+  public boolean getBooleanValue(etomo.comscript.FieldInterface fieldInterface) {
+    throw new IllegalArgumentException("field=" + fieldInterface);
   }
 
-  public String[] getStringArray(etomo.comscript.Field field) {
-    throw new IllegalArgumentException("field=" + field);
+  public float getFloatValue(etomo.comscript.FieldInterface fieldInterface) {
+    throw new IllegalArgumentException("field=" + fieldInterface);
   }
 
-  public String getString(etomo.comscript.Field field) {
-    throw new IllegalArgumentException("field=" + field);
+  public String[] getStringArray(etomo.comscript.FieldInterface fieldInterface) {
+    throw new IllegalArgumentException("field=" + fieldInterface);
   }
 
-  public Hashtable getHashtable(etomo.comscript.Field field) {
-    throw new IllegalArgumentException("field=" + field);
+  public String getString(etomo.comscript.FieldInterface fieldInterface) {
+    throw new IllegalArgumentException("field=" + fieldInterface);
   }
 
-  public double getDoubleValue(Field field) {
-    throw new IllegalArgumentException("field=" + field);
+  public Hashtable getHashtable(etomo.comscript.FieldInterface fieldInterface) {
+    throw new IllegalArgumentException("field=" + fieldInterface);
   }
 
-  public ConstEtomoNumber getEtomoNumber(etomo.comscript.Field field) {
-    throw new IllegalArgumentException("field=" + field);
+  public double getDoubleValue(FieldInterface fieldInterface) {
+    throw new IllegalArgumentException("field=" + fieldInterface);
   }
 
-  public ConstIntKeyList getIntKeyList(etomo.comscript.Field field) {
-    throw new IllegalArgumentException("field=" + field);
+  public ConstEtomoNumber getEtomoNumber(etomo.comscript.FieldInterface fieldInterface) {
+    throw new IllegalArgumentException("field=" + fieldInterface);
+  }
+
+  public ConstIntKeyList getIntKeyList(etomo.comscript.FieldInterface fieldInterface) {
+    throw new IllegalArgumentException("field=" + fieldInterface);
   }
 
   public CommandMode getCommandMode() {

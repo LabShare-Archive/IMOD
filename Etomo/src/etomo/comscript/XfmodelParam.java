@@ -11,6 +11,7 @@ import etomo.type.ConstEtomoNumber;
 import etomo.type.ConstIntKeyList;
 import etomo.type.ConstJoinState;
 import etomo.type.EtomoNumber;
+import etomo.type.FileType;
 import etomo.type.IntKeyList;
 import etomo.type.ProcessName;
 import etomo.ui.UIHarness;
@@ -30,6 +31,10 @@ import etomo.util.DatasetFiles;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.9  2009/04/27 17:58:17  sueh
+ * <p> In getJoinOptions and getReconOptions directed error messages to stderr
+ * <p> instead of stdout.
+ * <p>
  * <p> Revision 1.8  2009/03/17 00:33:36  sueh
  * <p> bug# 1186 Pass managerKey to everything that pops up a dialog.
  * <p>
@@ -39,7 +44,7 @@ import etomo.util.DatasetFiles;
  * <p> second constructor for BaseManager.
  * <p>
  * <p> Revision 1.6  2007/12/13 01:07:20  sueh
- * <p> bug# 1056 Changed etomo.comscript.Fields to etomo.comscript.Field.
+ * <p> bug# 1056 Changed etomo.comscript.Fields to etomo.comscript.FieldInterface.
  * <p>
  * <p> Revision 1.5  2007/11/06 19:18:13  sueh
  * <p> bug# 1047 Added getSubcommandDetails.
@@ -61,7 +66,8 @@ import etomo.util.DatasetFiles;
 public final class XfmodelParam implements CommandDetails {
   public static final String rcsid = "$Id$";
 
-  public static final String COMMAND_NAME = ProcessName.XFMODEL.toString();
+  private static final ProcessName PROCESS_NAME = ProcessName.XFMODEL;
+  public static final String COMMAND_NAME = PROCESS_NAME.toString();
 
   private static final boolean debug = true;
   private static final int COMMAND_SIZE = 1;
@@ -99,7 +105,8 @@ public final class XfmodelParam implements CommandDetails {
     options.add("-XformsToApply");
     options.add(DatasetFiles.getTransformFileName(manager, axisID));
     options.add(DatasetFiles.getFiducialModelName(manager, axisID));
-    options.add(DatasetFiles.getEraseFiducialsModelName(manager, axisID));
+    options.add(FileType.CCD_ERASER_BEADS_INPUT_MODEL.getFileName(manager,
+        axisID));
     return options;
   }
 
@@ -157,6 +164,10 @@ public final class XfmodelParam implements CommandDetails {
   }
 
   public CommandDetails getSubcommandDetails() {
+    return null;
+  }
+  
+  public ProcessName getSubcommandProcessName() {
     return null;
   }
 
@@ -262,52 +273,58 @@ public final class XfmodelParam implements CommandDetails {
   public String getCommandName() {
     return COMMAND_NAME;
   }
+  
+  public ProcessName getProcessName() {
+    return PROCESS_NAME;
+  }
 
   public File getCommandOutputFile() {
     return DatasetFiles.getRefineAlignedModelFile(manager);
   }
 
-  public ConstEtomoNumber getEtomoNumber(etomo.comscript.Field field) {
-    throw new IllegalArgumentException("field=" + field);
+  public ConstEtomoNumber getEtomoNumber(
+      etomo.comscript.FieldInterface fieldInterface) {
+    throw new IllegalArgumentException("field=" + fieldInterface);
   }
 
-  public ConstIntKeyList getIntKeyList(etomo.comscript.Field field) {
+  public ConstIntKeyList getIntKeyList(
+      etomo.comscript.FieldInterface fieldInterface) {
 
-    throw new IllegalArgumentException("field=" + field);
+    throw new IllegalArgumentException("field=" + fieldInterface);
   }
 
-  public int getIntValue(etomo.comscript.Field field) {
-    throw new IllegalArgumentException("field=" + field);
+  public int getIntValue(etomo.comscript.FieldInterface fieldInterface) {
+    throw new IllegalArgumentException("field=" + fieldInterface);
   }
 
-  public boolean getBooleanValue(etomo.comscript.Field field) {
-    throw new IllegalArgumentException("field=" + field);
+  public boolean getBooleanValue(etomo.comscript.FieldInterface fieldInterface) {
+    throw new IllegalArgumentException("field=" + fieldInterface);
   }
 
-  public float getFloatValue(etomo.comscript.Field field) {
-    throw new IllegalArgumentException("field=" + field);
+  public float getFloatValue(etomo.comscript.FieldInterface fieldInterface) {
+    throw new IllegalArgumentException("field=" + fieldInterface);
   }
 
-  public String[] getStringArray(etomo.comscript.Field field) {
-    throw new IllegalArgumentException("field=" + field);
+  public String[] getStringArray(etomo.comscript.FieldInterface fieldInterface) {
+    throw new IllegalArgumentException("field=" + fieldInterface);
   }
 
-  public String getString(etomo.comscript.Field field) {
-    if (field == Fields.OUTPUT_FILE) {
+  public String getString(etomo.comscript.FieldInterface fieldInterface) {
+    if (fieldInterface == Fields.OUTPUT_FILE) {
       return outputFile;
     }
-    throw new IllegalArgumentException("field=" + field);
+    throw new IllegalArgumentException("field=" + fieldInterface);
   }
 
-  public Hashtable getHashtable(etomo.comscript.Field field) {
-    throw new IllegalArgumentException("field=" + field);
+  public Hashtable getHashtable(etomo.comscript.FieldInterface fieldInterface) {
+    throw new IllegalArgumentException("field=" + fieldInterface);
   }
 
-  public double getDoubleValue(etomo.comscript.Field field) {
-    throw new IllegalArgumentException("field=" + field);
+  public double getDoubleValue(etomo.comscript.FieldInterface fieldInterface) {
+    throw new IllegalArgumentException("field=" + fieldInterface);
   }
 
-  public static final class Fields implements etomo.comscript.Field {
+  public static final class Fields implements etomo.comscript.FieldInterface {
     public static final Fields OUTPUT_FILE = new Fields();
 
     private Fields() {

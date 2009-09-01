@@ -20,16 +20,26 @@ import etomo.type.UITestSubjectType;
  * 
  * @version $Revision$
  * 
- * <p> $Log$ </p>
+ * <p> $Log$
+ * <p> Revision 1.1  2009/01/20 20:48:59  sueh
+ * <p> bug# 1102 Class that holds the subject portion of a Command.
+ * <p> </p>
  */
 class Subject extends Assert {
   public static final String rcsid = "$Id$";
+  
+  private final AxisID testAxisID;
 
   private boolean empty = true;
   private UITestSubjectType subjectType = null;
   private String name = null;
   private AxisID axisID = null;
   String string;
+  
+  Subject(AxisID testAxisID)
+  {
+    this.testAxisID=testAxisID;
+  }
 
   void reset() {
     //Using empty in Command to avoid constructing subject every time a
@@ -76,7 +86,7 @@ class Subject extends Assert {
       UITestFieldType fieldType = UITestFieldType.getInstance(leftSide);
       if (actionType == null && fieldType == null) {
         //Set name
-        name = Command.replaceVariables(leftSide, variableList);
+        name = Command.replaceVariables(leftSide, variableList, testAxisID);
         i++;
         //set axis
         axisID = AxisID.getInstance(statement.getLeftSide(i));

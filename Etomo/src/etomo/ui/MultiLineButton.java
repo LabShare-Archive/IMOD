@@ -44,6 +44,9 @@ import java.lang.String;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.39  2009/04/13 22:57:09  sueh
+ * <p> Removed newstuff.
+ * <p>
  * <p> Revision 3.38  2009/02/27 03:54:11  sueh
  * <p> bug# 1172 Added experimental automation recording border color
  * <p> (newstuff only).
@@ -291,7 +294,10 @@ class MultiLineButton implements ProcessResultDisplay {
    * @return
    */
   String createButtonStateKey(DialogType dialogType) {
-    stateKey = dialogType.getStorableName() + '.' + button.getName() + ".done";
+    if (dialogType != null) {
+      stateKey = dialogType.getStorableName() + '.' + button.getName()
+          + ".done";
+    }
     return stateKey;
   }
 

@@ -9,6 +9,7 @@ import etomo.process.SystemProgram;
 import etomo.type.AxisID;
 import etomo.type.ConstJoinMetaData;
 import etomo.type.ConstSectionTableRowData;
+import etomo.type.ProcessName;
 import etomo.type.SectionTableRowData;
 
 /**
@@ -25,6 +26,9 @@ import etomo.type.SectionTableRowData;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.14  2009/03/17 00:32:12  sueh
+ * <p> bug# 1186 Pass managerKey to everything that pops up a dialog.
+ * <p>
  * <p> Revision 1.13  2007/11/06 19:11:40  sueh
  * <p> bug# 1047 Added getSubcommandDetails.
  * <p>
@@ -102,6 +106,7 @@ public class MidasParam implements Command {
   public static final String rcsid = "$Id$";
 
   private static final int commandSize = 1;
+  private static final ProcessName PROCESS_NAME = ProcessName.MIDAS;
   private static final String commandName = "midas";
   private static final String outputFileExtension = "_midas.xf";
 
@@ -145,6 +150,10 @@ public class MidasParam implements Command {
   public CommandDetails getSubcommandDetails() {
     return null;
   }
+  
+  public ProcessName getSubcommandProcessName() {
+    return null;
+  }
 
   public String getCommandLine() {
     StringBuffer buffer = new StringBuffer();
@@ -156,6 +165,10 @@ public class MidasParam implements Command {
 
   public String getCommandName() {
     return commandName;
+  }
+  
+  public ProcessName getProcessName() {
+    return PROCESS_NAME;
   }
 
   public String getCommand() {

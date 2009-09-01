@@ -216,7 +216,8 @@ public final class ParallelManager extends BaseManager {
 
   void startNextProcess(final AxisID axisID, final String nextProcess,
       final ProcessResultDisplay processResultDisplay,
-      ProcessSeries processSeries, DialogType dialogType, ProcessDisplay display) {
+      ProcessSeries processSeries, DialogType dialogType,
+      ProcessDisplay display, ProcessName subProcessName) {
     if (nextProcess.equals(ProcessName.ANISOTROPIC_DIFFUSION.toString())) {
       anisotropicDiffusion(processSeries);
     }
@@ -757,6 +758,11 @@ public final class ParallelManager extends BaseManager {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.36  2009/06/11 16:46:07  sueh
+ * <p> bug# 1221 Sending the process panel to the process function in the
+ * <p> manager wrapped in a ProcessDisplay interface.  Changed
+ * <p> startNextProcess.
+ * <p>
  * <p> Revision 1.35  2009/04/14 23:01:28  sueh
  * <p> bug# 1207  In reconnect:  handling some situations where process data is not running.
  * <p>

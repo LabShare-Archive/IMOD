@@ -28,6 +28,10 @@ import etomo.ui.UIHarness;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.41  2009/04/20 19:20:21  sueh
+ * <p> bug# 1192 Added setComputerMap to set the computerMap in
+ * <p> processData.
+ * <p>
  * <p> Revision 3.40  2009/03/17 00:34:13  sueh
  * <p> bug# 1186 Pass managerKey to everything that pops up a dialog.
  * <p>
@@ -328,6 +332,23 @@ class BackgroundProcess extends Thread implements SystemProcessInterface {
     forceNextProcess = false;
   }
 
+  BackgroundProcess(BaseManager manager, Command command,
+      BaseProcessManager processManager, AxisID axisID,
+      ProcessName processName, ConstProcessSeries processSeries) {
+    this.manager = manager;
+    this.axisID = axisID;
+    this.command = command;
+    this.commandArray = command.getCommandArray();
+    this.processManager = processManager;
+    commandProcessID = new StringBuffer("");
+    processData = ProcessData.getManagedInstance(axisID, manager, processName);
+    this.processSeries = processSeries;
+    commandArrayList = null;
+    processDetails = null;
+    commandDetails = null;
+    forceNextProcess = false;
+  }
+
   BackgroundProcess(BaseManager manager, CommandDetails commandDetails,
       BaseProcessManager processManager, AxisID axisID,
       ProcessResultDisplay processResultDisplay, ProcessName processName,
@@ -399,23 +420,6 @@ class BackgroundProcess extends Thread implements SystemProcessInterface {
     commandArrayList = null;
     processDetails = null;
     command = null;
-    commandDetails = null;
-    forceNextProcess = false;
-  }
-
-  BackgroundProcess(BaseManager manager, Command command,
-      BaseProcessManager processManager, AxisID axisID,
-      ProcessName processName, ConstProcessSeries processSeries) {
-    this.manager = manager;
-    this.axisID = axisID;
-    this.command = command;
-    this.commandArray = command.getCommandArray();
-    this.processManager = processManager;
-    commandProcessID = new StringBuffer("");
-    processData = ProcessData.getManagedInstance(axisID, manager, processName);
-    this.processSeries = processSeries;
-    commandArrayList = null;
-    processDetails = null;
     commandDetails = null;
     forceNextProcess = false;
   }

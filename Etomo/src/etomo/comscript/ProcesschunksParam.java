@@ -3,6 +3,7 @@ package etomo.comscript;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Hashtable;
 import java.util.List;
 import java.util.Map;
 
@@ -10,6 +11,7 @@ import etomo.BaseManager;
 import etomo.storage.CpuAdoc;
 import etomo.type.AxisID;
 import etomo.type.ConstEtomoNumber;
+import etomo.type.ConstIntKeyList;
 import etomo.type.EtomoBoolean2;
 import etomo.type.EtomoNumber;
 import etomo.type.ProcessName;
@@ -32,9 +34,10 @@ import etomo.util.RemotePath.InvalidMountRuleException;
  * 
  * @version $Revision$
  */
-public final class ProcesschunksParam implements DetachedCommand, ParallelParam {
+public final class ProcesschunksParam implements DetachedCommandDetails, ParallelParam {
   public static final String rcsid = "$Id$";
 
+  private static final ProcessName PROCESS_NAME = ProcessName.PROCESSCHUNKS;
   public static final int NICE_CEILING = 19;
   public static final int DROP_VALUE = 5;
   public static final String WORKING_DIR_OPTION = "-w";
@@ -59,6 +62,7 @@ public final class ProcesschunksParam implements DetachedCommand, ParallelParam 
   private String subdirName = "";
   private boolean test = false;
   private CommandMode subcommandMode = null;
+  private ProcessName subcommandProcessName=null;
 
   public ProcesschunksParam(final BaseManager manager, final AxisID axisID,
       final String rootName) {
@@ -79,6 +83,7 @@ public final class ProcesschunksParam implements DetachedCommand, ParallelParam 
     this.manager = manager;
     this.axisID = axisID;
     this.rootName = processName.toString() + axisID.getExtension();
+    subcommandProcessName=processName;
     init();
   }
 
@@ -90,7 +95,7 @@ public final class ProcesschunksParam implements DetachedCommand, ParallelParam 
   }
 
   public String getCommand() {
-    return ProcessName.PROCESSCHUNKS.toString();
+    return PROCESS_NAME.toString();
   }
 
   public CommandMode getCommandMode() {
@@ -153,6 +158,10 @@ public final class ProcesschunksParam implements DetachedCommand, ParallelParam 
 
   public CommandDetails getSubcommandDetails() {
     return subcommandDetails;
+  }
+  
+  public ProcessName getSubcommandProcessName() {
+    return subcommandProcessName;
   }
 
   public void setQueue(final String queue) {
@@ -234,7 +243,11 @@ public final class ProcesschunksParam implements DetachedCommand, ParallelParam 
   }
 
   public String getCommandName() {
-    return ProcessName.PROCESSCHUNKS.toString();
+    return PROCESS_NAME.toString();
+  }
+  
+  public ProcessName getProcessName() {
+    return PROCESS_NAME;
   }
 
   public String getShortCommandName() {
@@ -332,7 +345,7 @@ public final class ProcesschunksParam implements DetachedCommand, ParallelParam 
     command.add("tcsh");
     command.add("-f");
     command.add("'" + BaseManager.getIMODBinPath()
-        + ProcessName.PROCESSCHUNKS.toString() + "'");
+        + PROCESS_NAME.toString() + "'");
     if (resume.is()) {
       command.add("-r");
     }
@@ -348,7 +361,7 @@ public final class ProcesschunksParam implements DetachedCommand, ParallelParam 
     }
     catch (InvalidMountRuleException e) {
       UIHarness.INSTANCE.openMessageDialog("ERROR:  Remote path error.  "
-          + "Unabled to run " + ProcessName.PROCESSCHUNKS + ".\n\n"
+          + "Unabled to run " + PROCESS_NAME + ".\n\n"
           + e.getMessage(), "Processchunks Error", axisID, manager
           .getManagerKey());
       valid = false;
@@ -440,9 +453,48 @@ public final class ProcesschunksParam implements DetachedCommand, ParallelParam 
     }
     return directoryPath;
   }
+
+  public int getIntValue(etomo.comscript.FieldInterface fieldInterface) {
+    throw new IllegalArgumentException("field=" + fieldInterface);
+  }
+
+  public boolean getBooleanValue(etomo.comscript.FieldInterface fieldInterface) {
+    throw new IllegalArgumentException("field=" + fieldInterface);
+  }
+
+  public float getFloatValue(etomo.comscript.FieldInterface fieldInterface) {
+    throw new IllegalArgumentException("field=" + fieldInterface);
+  }
+
+  public String[] getStringArray(etomo.comscript.FieldInterface fieldInterface) {
+    throw new IllegalArgumentException("field=" + fieldInterface);
+  }
+
+  public String getString(etomo.comscript.FieldInterface fieldInterface) {
+    throw new IllegalArgumentException("field=" + fieldInterface);
+  }
+
+  public Hashtable getHashtable(etomo.comscript.FieldInterface fieldInterface) {
+    throw new IllegalArgumentException("field=" + fieldInterface);
+  }
+
+  public double getDoubleValue(FieldInterface fieldInterface) {
+    throw new IllegalArgumentException("field=" + fieldInterface);
+  }
+
+  public ConstEtomoNumber getEtomoNumber(etomo.comscript.FieldInterface fieldInterface) {
+    throw new IllegalArgumentException("field=" + fieldInterface);
+  }
+
+  public ConstIntKeyList getIntKeyList(etomo.comscript.FieldInterface fieldInterface) {
+    throw new IllegalArgumentException("field=" + fieldInterface);
+  }
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.37  2009/04/20 19:19:36  sueh
+ * <p> bug# 1192 Added computerMap to hold selected computers and the number of CPUs selected.  Using computerMap instead of machinesNames to add the computer names to the command.
+ * <p>
  * <p> Revision 1.36  2009/03/17 00:32:39  sueh
  * <p> bug# 1186 Pass managerKey to everything that pops up a dialog.
  * <p>

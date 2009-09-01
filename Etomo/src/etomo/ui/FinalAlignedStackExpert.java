@@ -16,13 +16,11 @@ import etomo.comscript.CtfPlotterParam;
 import etomo.comscript.FortranInputSyntaxException;
 import etomo.comscript.MTFFilterParam;
 import etomo.comscript.SplitCorrectionParam;
-import etomo.comscript.XfmodelParam;
 import etomo.process.ImodManager;
 import etomo.process.ProcessState;
 import etomo.storage.LogFile;
 import etomo.type.AxisID;
 import etomo.type.AxisType;
-import etomo.type.ConstProcessSeries;
 import etomo.type.DialogExitState;
 import etomo.type.DialogType;
 import etomo.type.ProcessName;
@@ -52,6 +50,10 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.16  2009/06/16 22:54:30  sueh
+ * <p> bug# 1221 Moved some newst, blendmont, and ccderaser functionality
+ * <p> into process panels to avoid factoring into panels to happen.
+ * <p>
  * <p> Revision 1.15  2009/06/15 20:23:25  sueh
  * <p> bug# 1221 Reformatted.
  * <p>
@@ -144,6 +146,9 @@ public final class FinalAlignedStackExpert extends ReconUIExpert {
     dialog = FinalAlignedStackDialog.getInstance(manager, this, axisID, curTab);
     Utilities.timestamp("new", "FinalAlignedStackDialog",
         Utilities.FINISHED_STATUS);
+
+    dialog.setParameters(metaData);//TEMP metadata
+
     // no longer managing image size
 
     // Read in the newst{|a|b}.com parameters. WARNING this needs to be done
@@ -153,12 +158,82 @@ public final class FinalAlignedStackExpert extends ReconUIExpert {
     if (metaData.getViewType() == ViewType.MONTAGE) {
       comScriptMgr.loadBlend(axisID);
       dialog.setParameters(comScriptMgr.getBlendParam(axisID));
+      //if blend_3dfind.com doesn't exist copy blend.com to blend_3dfind.com.
+      File blend3dFindCom = new File(manager.getPropertyUserDir(),
+          ProcessName.BLEND_3D_FIND.getComscript(axisID));
+      try {
+        if (!blend3dFindCom.exists()) {
+          Utilities.copyFile(new File(manager.getPropertyUserDir(),
+              ProcessName.BLEND.getComscript(axisID)), blend3dFindCom);
+        }
+        comScriptMgr.loadBlend3dFind(axisID);
+        dialog.setEraseGoldParameters(comScriptMgr
+            .getBlendParamFromBlend3dFind(axisID));
+      }
+      catch (IOException e) {
+        UIHarness.INSTANCE.openMessageDialog(
+            "Unable to copy to blend.com to blend_3d_find.com.  Will not be "
+                + "able to use findbeads3d when erasing gold.", "Etomo Error",
+            manager.getManagerKey());
+      }
     }
     else {
       comScriptMgr.loadNewst(axisID);
       dialog.setParameters(comScriptMgr.getNewstComNewstParam(axisID));//TEMP newstparam
+      //if newst_3dfind.com doesn't exist copy newst.com to newst_3dfind.com.
+      File newst3dFindCom = new File(manager.getPropertyUserDir(),
+          ProcessName.NEWST_3D_FIND.getComscript(axisID));
+      try {
+        if (!newst3dFindCom.exists()) {
+          Utilities.copyFile(new File(manager.getPropertyUserDir(),
+              ProcessName.NEWST.getComscript(axisID)), newst3dFindCom);
+        }
+        comScriptMgr.loadNewst3dFind(axisID);
+        dialog.setEraseGoldParameters(comScriptMgr
+            .getNewstParamFromNewst3dFind(axisID));
+      }
+      catch (IOException e) {
+        UIHarness.INSTANCE.openMessageDialog(
+            "Unable to copy to newst.com to newst_3d_find.com.  Will not be "
+                + "able to use findbeads3d when erasing gold.", "Etomo Error",
+            manager.getManagerKey());
+      }
     }
-    dialog.setParameters(metaData);//TEMP metadata
+    //if tilt_3dfind.com doesn't exist copy tilt.com to tilt_3dfind.com.
+    File tilt3dFindCom = new File(manager.getPropertyUserDir(),
+        ProcessName.TILT_3D_FIND.getComscript(axisID));
+    boolean newTilt3dFindCom = false;
+    try {
+      if (!tilt3dFindCom.exists()) {
+        newTilt3dFindCom = true;
+        Utilities.copyFile(new File(manager.getPropertyUserDir(),
+            ProcessName.TILT.getComscript(axisID)), tilt3dFindCom);
+      }
+      comScriptMgr.loadTilt3dFind(axisID);
+      dialog.setParameters(comScriptMgr.getTiltParamFromTilt3dFind(axisID),
+          newTilt3dFindCom);
+    }
+    catch (IOException e) {
+      UIHarness.INSTANCE.openMessageDialog(
+          "Unable to copy to blend.com to blend_3d_find.com.  Will not be "
+              + "able to use findbeads3d when erasing gold.", "Etomo Error",
+          manager.getManagerKey());
+    }
+    catch (LogFile.LockException e) {
+      UIHarness.INSTANCE.openMessageDialog(
+          "Unable to copy to blend.com to blend_3d_find.com.  Will not be "
+              + "able to use findbeads3d when erasing gold.", "Etomo Error",
+          manager.getManagerKey());
+    }
+    //Backwards compatibility
+    //If track light beads isn't be saved to state, get light beads from
+    //track.com.
+    comScriptMgr.loadTrack(axisID);
+    comScriptMgr.loadFindBeads3d(axisID);
+    dialog.setParameters(comScriptMgr.getFindBeads3dParam(axisID),
+        newTilt3dFindCom);
+    comScriptMgr.loadTilt3dFindReproject(axisID);
+
     //backward compatibility
     //Try loading ctfcorrection.com first.  If it isn't there, copy it with
     //copytomocoms and load it.
@@ -186,6 +261,7 @@ public final class FinalAlignedStackExpert extends ReconUIExpert {
     updateFilter(Utilities.fileExists(manager, ".ali", axisID));
 
     // Set the fidcialess state and tilt axis angle
+    // From updateFiducialessParams
     dialog.setFiducialessAlignment(metaData.isFiducialessAlignment(axisID));
     dialog.setImageRotation(metaData.getImageRotation(axisID));
     openDialog(dialog);
@@ -199,17 +275,21 @@ public final class FinalAlignedStackExpert extends ReconUIExpert {
    * Start the next process specified by the nextProcess string
    */
   public void startNextProcess(String nextProcess,
-      ProcessResultDisplay processResultDisplay,
-      ConstProcessSeries processSeries, DialogType dialogType) {
+      ProcessResultDisplay processResultDisplay, ProcessSeries processSeries,
+      DialogType dialogType, ProcessDisplay display, ProcessName subprocessName) {
     if (nextProcess.equals(ProcessName.PROCESSCHUNKS.toString())) {
       processchunks(manager, dialog, processResultDisplay, processSeries,
-          ProcessName.CTF_CORRECTION);
+          subprocessName);
+    }
+    else if (nextProcess.equals(ProcessName.TILT_3D_FIND.toString())) {
+      manager.tilt3dFindAction(processResultDisplay, processSeries, null, null,
+          (TiltDisplay) display, axisID, dialogType);
     }
   }
 
-  boolean doneDialog() {
+  void doneDialog() {
     if (dialog == null) {
-      return false;
+      return;
     }
     curTab = dialog.getCurTab();
     DialogExitState exitState = dialog.getExitState();
@@ -218,22 +298,25 @@ public final class FinalAlignedStackExpert extends ReconUIExpert {
           "MTF filtered stack");
       manager.closeImod(ImodManager.CTF_CORRECTION_KEY, axisID,
           "CTF corrected stack");
+      manager.closeImod(ImodManager.ERASED_FIDUCIALS_KEY, axisID,
+      "Erased beads stack");
+      manager.closeImod(ImodManager.FINE_ALIGNED_3D_FIND_KEY, axisID,
+      "Aligned stack for 3d find");
+      manager.closeImod(ImodManager.FULL_VOLUME_3D_FIND_KEY, axisID,
+      "tomogram 3d find");
     }
     if (exitState != DialogExitState.CANCEL) {
-      if (!saveDialog()) {
-        return false;
-      }
+      saveDialog();
     }
     // Clean up the existing dialog
     leaveDialog(exitState);
-    //Hold onto the finished dialog in case anything is running that needs it or
-    //there are next processes that need it.
-    return true;
+    //Hold onto the finished dialog (don't set dialog to null) in case anything
+    //is running that needs it or there are next processes that need it.
   }
 
-  boolean saveDialog() {
+  void saveDialog() {
     if (dialog == null) {
-      return false;
+      return;
     }
     advanced = dialog.isAdvanced();
     // Get the user input data from the dialog box
@@ -245,13 +328,12 @@ public final class FinalAlignedStackExpert extends ReconUIExpert {
           manager.getManagerKey());
     }
     dialog.getParameters(screenState);
-    if (!UIExpertUtilities.INSTANCE.updateFiducialessParams(manager, dialog
-        .getFiducialessParams(), axisID)) {
-      return false;
-    }
+    UIExpertUtilities.INSTANCE.updateFiducialessParams(manager, dialog
+        .getFiducialessParams(), axisID);
     if (metaData.getViewType() == ViewType.MONTAGE) {
       try {
         manager.updateBlendCom(dialog.getBlendmontDisplay(), axisID);
+        manager.updateBlend3dFindCom(dialog.getBlendmont3dFindDisplay(),axisID);
       }
       catch (FortranInputSyntaxException e) {
         UIHarness.INSTANCE.openMessageDialog(e.getMessage(),
@@ -267,17 +349,17 @@ public final class FinalAlignedStackExpert extends ReconUIExpert {
       }
     }
     else {
-      if (manager.updateNewstCom(dialog.getNewstackDisplay(), axisID) == null) {
-        return false;
-      }
+      manager.updateNewstCom(dialog.getNewstackDisplay(), axisID);
+      manager
+          .updateNewst3dFindCom(dialog.getNewstack3dFindDisplay(), axisID);
     }
-    if (!updateMTFFilterCom()) {
-      return false;
-    }
+    updateMTFFilterCom();
     updateCtfPlotterCom();
     updateCtfCorrectionCom();
+    manager.updateTilt3dFindCom(dialog.getTilt3dFindDisplay(), axisID);
+    manager.updateFindBeads3dCom(dialog.getFindBeads3dDisplay(), axisID);
+    manager.updateCcdEraserParam(dialog.getCcdEraserBeadsDisplay());
     manager.saveStorables(axisID);
-    return true;
   }
 
   private ConstCtfPlotterParam updateCtfPlotterCom() {
@@ -353,31 +435,6 @@ public final class FinalAlignedStackExpert extends ReconUIExpert {
 
   ProcessDialog getDialog() {
     return dialog;
-  }
-
-  void xfmodel(ProcessResultDisplay processResultDisplay,
-      ProcessSeries processSeries, Deferred3dmodButton deferred3dmodButton,
-      Run3dmodMenuOptions run3dmodMenuOptions) {
-    if (dialog == null) {
-      return;
-    }
-    if (processSeries == null) {
-      processSeries = new ProcessSeries(manager, dialogType);
-    }
-    processSeries.setRun3dmodDeferred(deferred3dmodButton, run3dmodMenuOptions);
-    sendMsgProcessStarting(processResultDisplay);
-    XfmodelParam param = new XfmodelParam(manager, axisID);
-    setDialogState(ProcessState.INPROGRESS);
-    ProcessResult processResult = manager.xfmodel(axisID, processResultDisplay,
-        processSeries, param, dialogType);
-    sendMsg(processResult, processResultDisplay);
-  }
-
-  void seedEraseFiducialModel(Run3dmodMenuOptions run3dmodMenuOptions,
-      Run3dmodButton run3dmodButton) {
-    manager.imodSeedModel(axisID, run3dmodMenuOptions, run3dmodButton,
-        ImodManager.FINE_ALIGNED_KEY, DatasetFiles.getEraseFiducialsModelName(
-            manager, axisID), null);
   }
 
   /**
@@ -558,7 +615,8 @@ public final class FinalAlignedStackExpert extends ReconUIExpert {
     ProcessResult processResult = manager.splitCorrection(axisID,
         processResultDisplay, processSeries, param, dialogType);
     if (processResult == null) {
-      processSeries.setNextProcess(ProcessName.PROCESSCHUNKS.toString());
+      processSeries.setNextProcess(ProcessName.PROCESSCHUNKS.toString(),
+          ProcessName.CTF_CORRECTION);
     }
     sendMsg(processResult, processResultDisplay);
   }

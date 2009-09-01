@@ -79,8 +79,8 @@ public final class TomogramPositioningExpert extends ReconUIExpert {
    * Start the next process specified by the nextProcess string
    */
   public void startNextProcess(String nextProcess,
-      ProcessResultDisplay processResultDisplay,
-      ConstProcessSeries processSeries, DialogType dialogType) {
+      ProcessResultDisplay processResultDisplay, ProcessSeries processSeries,
+      DialogType dialogType, ProcessDisplay display,ProcessName subProcessName) {
     //whole tomogram
     if (nextProcess.equals(ProcessName.TILT.toString())) {
       sampleTilt(processResultDisplay, processSeries);
@@ -229,9 +229,9 @@ public final class TomogramPositioningExpert extends ReconUIExpert {
     }
   }
 
-  boolean doneDialog() {
+  void doneDialog() {
     if (dialog == null) {
-      return false;
+      return;
     }
     DialogExitState exitState = dialog.getExitState();
     if (exitState == DialogExitState.EXECUTE) {
@@ -239,25 +239,20 @@ public final class TomogramPositioningExpert extends ReconUIExpert {
       if ((sampleFiducialess == null || !sampleFiducialess.is())
           && dialog.isTomopitchButton() && dialog.isAlignButtonEnabled()
           && !dialog.isAlignButton()) {
-        if (!UIHarness.INSTANCE
-            .openYesNoWarningDialog(
-                "Final alignment is not done or is out of date.\nReally leave Tomogram Positioning?",
-                axisID, manager.getManagerKey())) {
-          return false;
-        }
+        UIHarness.INSTANCE.openMessageDialog(
+            "ERROR:  Final alignment is not done or is out of date.  Run "
+                + "final aligment in positioning before continuing.",
+            "User Error", axisID, manager.getManagerKey());
       }
       manager
           .closeImod(ImodManager.SAMPLE_KEY, axisID, "sample reconstruction");
     }
     if (exitState != DialogExitState.CANCEL) {
-      if (!saveDialog()) {
-        return false;
-      }
+      saveDialog();
     }
     leaveDialog(exitState);
     //Hold onto the finished dialog in case anything is running that needs it or
     //there are next processes that need it.
-    return true;
   }
 
   void fiducialessAction() {
@@ -283,30 +278,21 @@ public final class TomogramPositioningExpert extends ReconUIExpert {
     UIHarness.INSTANCE.pack(axisID, manager);
   }
 
-  protected boolean saveDialog() {
+  protected void saveDialog() {
     if (dialog == null) {
-      return false;
+      return ;
     }
     advanced = dialog.isAdvanced();
     //  Get all of the parameters from the panel
-    if (updateAlignCom() == null) {
-      return false;
-    }
-    if (updateTomoPosTiltCom(false) == null) {
-      return false;
-    }
-    if (!updateTomopitchCom()) {
-      return false;
-    }
-    if (!UIExpertUtilities.INSTANCE.updateFiducialessParams(manager, dialog,
-        axisID)) {
-      return false;
-    }
-    if (metaData.getViewType() != ViewType.MONTAGE && updateNewstCom() == null) {
-      return false;
+    updateAlignCom();
+   updateTomoPosTiltCom(false);
+   updateTomopitchCom();
+   UIExpertUtilities.INSTANCE.updateFiducialessParams(manager, dialog,
+        axisID);
+    if (metaData.getViewType() != ViewType.MONTAGE) {
+      updateNewstCom();
     }
     manager.saveStorables(axisID);
-    return true;
   }
 
   /**
@@ -700,7 +686,7 @@ public final class TomogramPositioningExpert extends ReconUIExpert {
     if (wholeTomogram != metaData.isWholeTomogramSample(axisID)) {
       metaData.setWholeTomogramSample(axisID, wholeTomogram);
     }
-    metaData.setTomoPosBinning(axisID, dialog.getBinningValue());
+    metaData.setPosBinning(axisID, dialog.getBinningValue());
   }
 
   void rollAlignComAngles() {
@@ -834,7 +820,7 @@ public final class TomogramPositioningExpert extends ReconUIExpert {
     if (dialog == null) {
       return;
     }
-    dialog.setBinning(metaData.getTomoPosBinning(axisID));
+    dialog.setBinning(metaData.getPosBinning(axisID));
     dialog.setSampleThickness(metaData.getSampleThickness(axisID));
   }
 
@@ -948,6 +934,9 @@ public final class TomogramPositioningExpert extends ReconUIExpert {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.32  2009/03/17 00:46:23  sueh
+ * <p> bug# 1186 Pass managerKey to everything that pops up a dialog.
+ * <p>
  * <p> Revision 1.31  2009/01/20 20:32:19  sueh
  * <p> bug# 1102 Removed unnecessary print.
  * <p>

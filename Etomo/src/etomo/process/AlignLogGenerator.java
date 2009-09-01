@@ -11,6 +11,9 @@
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.9  2009/03/17 00:33:49  sueh
+ * <p> bug# 1186 Pass managerKey to everything that pops up a dialog.
+ * <p>
  * <p> Revision 3.8  2009/02/04 23:15:50  sueh
  * <p> bug# 1158 Sharing the name of the error log.
  * <p>
@@ -45,6 +48,7 @@ import etomo.type.AxisID;
 
 public class AlignLogGenerator {
   public static final String ERROR_LOG_NAME = "taError";
+  public static final String ANGLES_LOG_NAME = "taAngles";
 
   AxisID axisID;
   String[] alignLogCommand = null;
@@ -71,7 +75,7 @@ public class AlignLogGenerator {
   }
 
   public void run() throws IOException {
-    runArgument("-a", "taAngles");
+    runArgument("-a", ANGLES_LOG_NAME);
     runArgument("-c", "taCoordinates");
     runArgument("-e", ERROR_LOG_NAME);
     runArgument("-l", "taLocals");

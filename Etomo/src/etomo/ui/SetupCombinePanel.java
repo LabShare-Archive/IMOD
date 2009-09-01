@@ -55,6 +55,9 @@ import etomo.util.MRCHeader;
  * 
  * <p>
  * $Log$
+ * Revision 3.60  2009/03/17 00:46:24  sueh
+ * bug# 1186 Pass managerKey to everything that pops up a dialog.
+ *
  * Revision 3.59  2009/02/13 02:34:57  sueh
  * bug# 1176 Checking return value of MRCHeader.read.
  *
@@ -875,6 +878,9 @@ public final class SetupCombinePanel implements ContextMenu,
     pnlPatchParams.setVisible(visible);
     pnlVolcombineControls.setVisible(visible);
     pnlTempDirectory.setVisible(visible);
+  }
+  
+  public void expand(final GlobalExpandButton button) {
   }
 
   public void expand(ExpandButton button) {

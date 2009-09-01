@@ -36,6 +36,9 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.21  2009/03/17 22:14:21  sueh
+ * <p> bug# 1200 In createButtonStateKey() added type.getExapndedState() to key.
+ * <p>
  * <p> Revision 1.20  2009/01/20 20:00:36  sueh
  * <p> bug# 1102 Changed UITestField to UITestFieldType.  Simplified the name
  * <p> by removing the expanded state portion.
@@ -135,25 +138,38 @@ public final class ExpandButton extends MultiLineButton {
   private static final Type DEFAULT_TYPE = Type.MORE;
 
   private final Type type;
-  private final Expandable container;
+  private final Expandable expandable1;
+  private final Expandable expandable2;
+  private final GlobalExpandButton globalExpandButton;
 
   private boolean expanded;
   private JPanel jpanelContainer = null;
 
-  static ExpandButton getInstance(Expandable container, ExpandButton.Type type) {
+  static ExpandButton getInstance(Expandable expandable, ExpandButton.Type type) {
     if (type == null) {
       type = DEFAULT_TYPE;
     }
-    ExpandButton instance = new ExpandButton(container, type);
+    ExpandButton instance = new ExpandButton(expandable, null, type, null);
     return instance;
   }
 
-  static ExpandButton getExpandedInstance(Expandable container,
-      ExpandButton.Type type) {
+  static ExpandButton getGlobalInstance(Expandable expandable1,
+      ExpandButton.Type type, GlobalExpandButton globalExpandButton) {
     if (type == null) {
       type = DEFAULT_TYPE;
     }
-    ExpandButton instance = new ExpandButton(container, type, true);
+    ExpandButton instance = new ExpandButton(expandable1, null, type,
+        globalExpandButton);
+    return instance;
+  }
+
+  static ExpandButton getExpandedInstance(Expandable expandable1,
+      Expandable expandable2, ExpandButton.Type type) {
+    if (type == null) {
+      type = DEFAULT_TYPE;
+    }
+    ExpandButton instance = new ExpandButton(expandable1, expandable2, type,
+        true, null);
     return instance;
   }
 
@@ -165,16 +181,24 @@ public final class ExpandButton extends MultiLineButton {
    * The button can be used on any ui.
    * @param component
    */
-  private ExpandButton(Expandable container, ExpandButton.Type type) {
-    this(container, type, false);
+  private ExpandButton(Expandable expandable1, Expandable expandable2,
+      ExpandButton.Type type, GlobalExpandButton globalExpandButton) {
+    this(expandable1, expandable2, type, false, globalExpandButton);
   }
 
-  private ExpandButton(Expandable container, ExpandButton.Type type,
-      boolean expanded) {
+  private ExpandButton(Expandable expandable1, Expandable expandable2,
+      ExpandButton.Type type, boolean expanded,
+      GlobalExpandButton globalExpandButton) {
     super();
-    this.container = container;
+    this.expandable1 = expandable1;
+    this.expandable2 = expandable2;
+    this.globalExpandButton = globalExpandButton;
     this.type = type;
     this.expanded = expanded;
+    //Registor with the global expand button, if it exists.
+    if (globalExpandButton != null) {
+      globalExpandButton.register(this);
+    }
     super.setManualName();
     super.setText(type.getSymbol(expanded));
     setToolTipText(type.getToolTip(expanded));
@@ -206,7 +230,7 @@ public final class ExpandButton extends MultiLineButton {
    * 
    * @return expanded
    */
-  boolean isExpanded() {
+  public boolean isExpanded() {
     return expanded;
   }
 
@@ -297,17 +321,23 @@ public final class ExpandButton extends MultiLineButton {
   /**
    * Called by the action listener.  Changes the expanded state of the button.
    * Changes the text to "<" when button is expanded, or ">" when button is not
-   * expanded.  Calls the Expandable.expand(ExpandButton) when finished setting
-   * the expand state.
+   * expanded.  Calls the expand(ExpandButton) for the three Expandables when
+   * finished setting the expand state.
    */
   void buttonAction() {
     expanded = !expanded;
     super.setText(type.getSymbol(expanded));
     setToolTipText(type.getToolTip(expanded));
-    if (container == null) {
-      return;
+    if (expandable1 != null) {
+      expandable1.expand(this);
     }
-    container.expand(this);
+    if (expandable2 != null) {
+      expandable2.expand(this);
+    }
+    //Tell global expand button about this action.
+    if (globalExpandButton != null) {
+      globalExpandButton.msgExpandButtonAction(this, expanded);
+    }
   }
 
   /**
@@ -341,7 +371,7 @@ public final class ExpandButton extends MultiLineButton {
 
     //Backwards compatibility issue:  expandedState is a key in the .edf file.
     private final String expandedState;
-    
+
     private final String expandedSymbol;
     private final String expandedToolTip;
     private final String contractedState;

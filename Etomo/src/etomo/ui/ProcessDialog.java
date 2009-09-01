@@ -14,6 +14,9 @@
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.35  2009/01/20 20:21:29  sueh
+ * <p> bug# 1102 Changed labeled panels to type EtomoPanel so that they can name themselves.
+ * <p>
  * <p> Revision 3.34  2008/10/16 22:31:14  sueh
  * <p> bug# 1141 Removed fixRootPanel because it doesn't do anything.
  * <p>
@@ -177,7 +180,6 @@ import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.JPanel;
 
-
 import etomo.ApplicationManager;
 import etomo.comscript.ParallelParam;
 import etomo.type.AxisID;
@@ -197,18 +199,13 @@ public abstract class ProcessDialog implements AbstractParallelDialog {
   final MultiLineButton btnCancel = new MultiLineButton("Cancel");
   final MultiLineButton btnPostpone = new MultiLineButton("Postpone");
   final MultiLineButton btnExecute = new MultiLineButton("Execute");
-  final MultiLineButton btnAdvanced = new MultiLineButton("Advanced");
-
-  boolean isAdvanced;
+  final GlobalExpandButton btnAdvanced = GlobalExpandButton.getInstance(
+      "Advanced", "Basic");
 
   private DialogExitState exitState = DialogExitState.SAVE;
   private boolean displayed = false;
 
-  /**
-   * set display to false if done functionality succeeds
-   * @return true if done functionality succeeds
-   */
-  abstract boolean done();
+  abstract void done();
 
   /**
    * Create a new process dialog with a set of exit buttons (cancel, postpone
@@ -221,9 +218,9 @@ public abstract class ProcessDialog implements AbstractParallelDialog {
     applicationManager = appManager;
     this.axisID = axisID;
     this.dialogType = dialogType;
-    //  Get the default initial advanced state
-    isAdvanced = appManager.isAdvanced(dialogType, axisID);
-    setAdvanced(isAdvanced);
+    //Get the default initial advanced state - dialog must set themselves up
+    //according to this state.
+    btnAdvanced.changeState(appManager.isAdvanced(dialogType, axisID));
     setToolTipText();
 
     //  Layout the buttons
@@ -245,7 +242,6 @@ public abstract class ProcessDialog implements AbstractParallelDialog {
     btnCancel.addActionListener(new buttonCancelActionAdapter(this));
     btnPostpone.addActionListener(new buttonPostponeActionAdapter(this));
     btnExecute.addActionListener(new buttonExecuteActionAdapter(this));
-    btnAdvanced.addActionListener(new buttonAdvancedActionAdapter(this));
   }
 
   void setExitState(DialogExitState exitState) {
@@ -274,7 +270,7 @@ public abstract class ProcessDialog implements AbstractParallelDialog {
   }
 
   public boolean isAdvanced() {
-    return isAdvanced;
+    return btnAdvanced.isExpanded();
   }
 
   void setDisplayed(final boolean displayed) {
@@ -309,38 +305,16 @@ public abstract class ProcessDialog implements AbstractParallelDialog {
    * Action to take when the execute button is pressed, the default action is
    * to set the exitState attribute to EXECUTE.
    */
-  public boolean buttonExecuteAction() {
+  public void buttonExecuteAction() {
     Utilities.buttonTimestamp("done", dialogType.toString());
     exitState = DialogExitState.EXECUTE;
-    return done();
+    done();
   }
 
   public void saveAction() {
     Utilities.timestamp("save", dialogType.toString());
     exitState = DialogExitState.SAVE;
     done();
-  }
-
-  /**
-   * Action to take when the advanced button is pressed, this method
-   * toggles the the isAdvanced attribute as well as the state of the advanced
-   * button.  Call this method first before checking the state of isAdvanced.
-   */
-  public void buttonAdvancedAction(final ActionEvent event) {
-    setAdvanced(!isAdvanced);
-  }
-
-  /**
-   * Set the advanced state variable and update the button text
-   */
-  void setAdvanced(final boolean state) {
-    isAdvanced = state;
-    if (isAdvanced) {
-      btnAdvanced.setText("Basic");
-    }
-    else {
-      btnAdvanced.setText("Advanced");
-    }
   }
 
   public DialogExitState getExitState() {
@@ -416,19 +390,5 @@ final class buttonExecuteActionAdapter implements java.awt.event.ActionListener 
 
   public void actionPerformed(ActionEvent e) {
     adaptee.buttonExecuteAction();
-  }
-}
-
-final class buttonAdvancedActionAdapter implements
-    java.awt.event.ActionListener {
-
-  ProcessDialog adaptee;
-
-  buttonAdvancedActionAdapter(final ProcessDialog adaptee) {
-    this.adaptee = adaptee;
-  }
-
-  public void actionPerformed(final ActionEvent e) {
-    adaptee.buttonAdvancedAction(e);
   }
 }

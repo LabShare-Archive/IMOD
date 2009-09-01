@@ -1,8 +1,9 @@
 package etomo.ui;
 
-import etomo.type.ConstProcessSeries;
+import etomo.ProcessSeries;
 import etomo.type.DialogExitState;
 import etomo.type.DialogType;
+import etomo.type.ProcessName;
 import etomo.type.ProcessResultDisplay;
 
 /**
@@ -24,8 +25,8 @@ public interface UIExpert {
   public void openDialog();
 
   public void startNextProcess(String nextProcess,
-      ProcessResultDisplay processResultDisplay,
-      ConstProcessSeries processSeries, DialogType dialogType);
+      ProcessResultDisplay processResultDisplay, ProcessSeries processSeries,
+      DialogType dialogType, ProcessDisplay display, ProcessName processName);
 
   public void saveAction();
 
@@ -33,6 +34,10 @@ public interface UIExpert {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.6  2008/05/28 02:53:12  sueh
+ * <p> bug# 1111 Adding dialogType to startNextProcess since its been added to
+ * <p> manager.startNextProcess.  It probably won't be used in UIExpert.
+ * <p>
  * <p> Revision 1.5  2008/05/03 00:58:38  sueh
  * <p> bug# 847 Passing ProcessSeries to startNextProcess.
  * <p>

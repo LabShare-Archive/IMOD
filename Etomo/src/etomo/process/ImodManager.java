@@ -16,6 +16,7 @@ import etomo.type.BaseMetaData;
 import etomo.type.ConstMetaData;
 import etomo.type.ConstPeetMetaData;
 import etomo.type.FileType;
+import etomo.type.ImageFileType;
 import etomo.type.JoinMetaData;
 import etomo.type.ParallelMetaData;
 import etomo.type.Run3dmodMenuOptions;
@@ -39,6 +40,10 @@ import etomo.util.Utilities;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.73  2009/06/05 01:52:24  sueh
+ * <p> bug# 1219 Added FLAT_VOLUME_KEY, flatVolumeKey, newFlatVolume, and
+ * <p> setStartNewContoursAtNewZ.  Added the axisID to setSwapYZ.
+ * <p>
  * <p> Revision 3.72  2009/03/24 20:16:28  sueh
  * <p> bug# 1187 Wasn't getting imodState after calling newImod in many of the
  * <p> public functions, so the functions where returning without calling the
@@ -567,6 +572,10 @@ public class ImodManager {
   public static final String ERASED_FIDUCIALS_KEY = new String(
       "erased fiducials");
   public static final String FLAT_VOLUME_KEY = new String("flattened volume");
+  public static final String FINE_ALIGNED_3D_FIND_KEY = new String(
+      "fine aligned for findbeads3d");
+  public static final String FULL_VOLUME_3D_FIND_KEY = new String(
+      "full volume for findbeads3d");
 
   //private keys - used with imodMap
   private static final String rawStackKey = RAW_STACK_KEY;
@@ -603,6 +612,8 @@ public class ImodManager {
   private static final String ctfCorrectionKey = CTF_CORRECTION_KEY;
   private static final String erasedFiducialsKey = ERASED_FIDUCIALS_KEY;
   private static final String flatVolumeKey = FLAT_VOLUME_KEY;
+  private static final String fineAligned3dFindKey = FINE_ALIGNED_3D_FIND_KEY;
+  private static final String fullVolume3dFindKey = FULL_VOLUME_3D_FIND_KEY;
 
   private boolean useMap = true;
   private final BaseManager manager;
@@ -898,8 +909,7 @@ public class ImodManager {
       imodState = get(key, axisID);
     }
     //TEMP
-    System.err.println("key=" + key + ",imodState:dataset="
-        + imodState.getDatasetName() + ",axis=" + imodState.getAxisID());
+    System.err.println("key=" + key + ",axis=" + imodState.getAxisID());
     if (imodState != null) {
       imodState.open(model, modelMode, menuOptions);
     }
@@ -1167,6 +1177,15 @@ public class ImodManager {
       return;
     }
     imodState.setSkipList(skipList);
+  }
+
+  public void setDeleteAllSections(String key, AxisID axisID, boolean on)
+      throws AxisTypeException {
+    ImodState imodState = get(key, axisID);
+    if (imodState == null) {
+      return;
+    }
+    imodState.setDeleteAllSections(on);
   }
 
   public void setBeadfixerMode(String key, AxisID axisID, String mode)
@@ -1576,6 +1595,12 @@ public class ImodManager {
     if (key.equals(FLAT_VOLUME_KEY) && axisID != null) {
       return newFlatVolume(axisID);
     }
+    if (key.equals(FINE_ALIGNED_3D_FIND_KEY) && axisID != null) {
+      return newFineAligned3dFind(axisID);
+    }
+    if (key.equals(FULL_VOLUME_3D_FIND_KEY) && axisID != null) {
+      return newFullVolume3dFind(axisID);
+    }
     throw new IllegalArgumentException(key + " cannot be created in "
         + axisType.toString() + " with axisID=" + axisID.getExtension());
   }
@@ -1664,36 +1689,36 @@ public class ImodManager {
     imodMap.put(patchVectorCCCModelKey, newVector(newPatchVectorCCCModel()));
   }
 
-  protected ImodState newRawStack(AxisID axisID) {
+  private ImodState newRawStack(AxisID axisID) {
     ImodState imodState = new ImodState(manager, axisID, datasetName, ".st");
     return imodState;
   }
 
-  protected ImodState newErasedStack(AxisID axisID) {
+  private ImodState newErasedStack(AxisID axisID) {
     ImodState imodState = new ImodState(manager, axisID, datasetName,
         "_fixed.st");
     return imodState;
   }
 
-  protected ImodState newCoarseAligned(AxisID axisID) {
+  private ImodState newCoarseAligned(AxisID axisID) {
     ImodState imodState;
     imodState = new ImodState(manager, axisID, datasetName, ".preali");
     return imodState;
   }
 
-  protected ImodState newFineAligned(AxisID axisID) {
+  private ImodState newFineAligned(AxisID axisID) {
     ImodState imodState = new ImodState(manager, axisID, datasetName, ".ali");
     return imodState;
   }
 
-  protected ImodState newSample(AxisID axisID) {
+  private ImodState newSample(AxisID axisID) {
     ImodState imodState = new ImodState(manager, axisID, "top", "mid", "bot",
         ".rec", "tomopitch", ".mod");
     imodState.setInitialMode(ImodState.MODEL_MODE);
     return imodState;
   }
 
-  protected ImodState newFullVolume(AxisID axisID) {
+  private ImodState newFullVolume(AxisID axisID) {
     ImodState imodState;
     if (axisType == AxisType.SINGLE_AXIS) {
       imodState = new ImodState(manager, datasetName + "_full.rec", axisID);
@@ -1706,14 +1731,14 @@ public class ImodManager {
     return imodState;
   }
 
-  protected ImodState newCombinedTomogram() {
+  private ImodState newCombinedTomogram() {
     ImodState imodState = new ImodState(manager, "sum.rec", AxisID.ONLY);
     imodState.setAllowMenuBinningInZ(true);
     imodState.setInitialSwapYZ(true);
     return imodState;
   }
 
-  protected ImodState newPatchVectorModel() {
+  private ImodState newPatchVectorModel() {
     ImodState imodState = new ImodState(manager,
         DatasetFiles.PATCH_VECTOR_MODEL, ImodState.MODEL_VIEW, AxisID.ONLY,
         ImodProcess.WindowOpenOption.IMODV_OBJECTS);
@@ -1722,7 +1747,7 @@ public class ImodManager {
     return imodState;
   }
 
-  protected ImodState newPatchVectorCCCModel() {
+  private ImodState newPatchVectorCCCModel() {
     ImodState imodState = new ImodState(manager,
         DatasetFiles.PATCH_VECTOR_CCC_MODEL, ImodState.MODV, AxisID.ONLY,
         ImodProcess.WindowOpenOption.IMODV_OBJECTS);
@@ -1730,14 +1755,14 @@ public class ImodManager {
     return imodState;
   }
 
-  protected ImodState newTransformedModel() {
+  private ImodState newTransformedModel() {
     ImodState imodState = new ImodState(manager, DatasetFiles
         .getRefineAlignedModelFileName(manager), ImodState.MODV, AxisID.ONLY);
     imodState.setNoMenuOptions(true);
     return imodState;
   }
 
-  protected ImodState newMatchCheck() {
+  private ImodState newMatchCheck() {
     ImodState imodState = new ImodState(manager, "matchcheck.mat",
         "matchcheck.rec", AxisID.ONLY);
     imodState.setAllowMenuBinningInZ(true);
@@ -1745,61 +1770,61 @@ public class ImodManager {
     return imodState;
   }
 
-  protected ImodState newFiducialModel(AxisID axisID) {
+  private ImodState newFiducialModel(AxisID axisID) {
     ImodState imodState = new ImodState(manager, ImodState.MODV, axisID);
     imodState.setNoMenuOptions(true);
     return imodState;
   }
 
-  protected ImodState newTrimmedVolume() {
+  private ImodState newTrimmedVolume() {
     ImodState imodState = new ImodState(manager, datasetName + ".rec",
         AxisID.ONLY);
     imodState.setAllowMenuBinningInZ(true);
     return imodState;
   }
 
-  protected ImodState newTrialTomogram(AxisID axisID, String datasetName) {
+  private ImodState newTrialTomogram(AxisID axisID, String datasetName) {
     ImodState imodState = new ImodState(manager, datasetName, axisID);
     imodState.setAllowMenuBinningInZ(true);
     imodState.setInitialSwapYZ(true);
     return imodState;
   }
 
-  protected ImodState newMtfFilter(AxisID axisID) {
+  private ImodState newMtfFilter(AxisID axisID) {
     ImodState imodState = new ImodState(manager, axisID, datasetName,
         "_filt.ali");
     return imodState;
   }
 
-  ImodState newCtfCorrection(AxisID axisID) {
+  private ImodState newCtfCorrection(AxisID axisID) {
     ImodState imodState = new ImodState(manager, axisID, datasetName,
         DatasetFiles.CTF_CORRECTION_EXT);
     return imodState;
   }
 
-  ImodState newErasedFiducials(AxisID axisID) {
+  private ImodState newErasedFiducials(AxisID axisID) {
     ImodState imodState = new ImodState(manager, axisID, datasetName,
         DatasetFiles.getErasedFiducialsFileExtension());
     return imodState;
   }
 
-  ImodState newFlatVolume(AxisID axisID) {
+  private ImodState newFlatVolume(AxisID axisID) {
     ImodState imodState = new ImodState(manager, axisID, datasetName,
-        FileType.FLATTEN_OUTPUT.getExtension());
+        ImageFileType.FLATTEN_OUTPUT.getExtension());
     return imodState;
   }
 
-  ImodState newPreview(AxisID axisID) {
+  private ImodState newPreview(AxisID axisID) {
     ImodState imodState = new ImodState(manager, axisID, datasetName, ".st");
     return imodState;
   }
 
-  ImodState newTomogram(File file, AxisID axisID) {
+  private ImodState newTomogram(File file, AxisID axisID) {
     ImodState imodState = new ImodState(manager, file, axisID);
     return imodState;
   }
 
-  ImodState newJoinSamples() {
+  private ImodState newJoinSamples() {
     if (datasetName.equals("")) {
       new IllegalStateException("DatasetName is empty.").printStackTrace();
       System.err.println("manager=" + manager);
@@ -1809,7 +1834,7 @@ public class ImodManager {
     return imodState;
   }
 
-  protected ImodState newJoinSampleAverages() {
+  private ImodState newJoinSampleAverages() {
     if (datasetName.equals("")) {
       new IllegalStateException("DatasetName is empty.").printStackTrace();
       System.err.println("manager=" + manager);
@@ -1819,7 +1844,7 @@ public class ImodManager {
     return imodState;
   }
 
-  protected ImodState newJoin() {
+  private ImodState newJoin() {
     ImodState imodState = new ImodState(manager, datasetName + ".join",
         AxisID.ONLY);
     return imodState;
@@ -1889,6 +1914,21 @@ public class ImodManager {
     ImodState imodState = new ImodState(manager, datasetName + ".sqz",
         AxisID.ONLY);
     imodState.setAllowMenuBinningInZ(true);
+    return imodState;
+  }
+
+  private ImodState newFineAligned3dFind(AxisID axisID) {
+    //FileType.NEWST_3D_FIND_OUTPUT is the same as FileType.BLEND_3D_FIND_OUTPUT.
+    ImodState imodState = new ImodState(manager, axisID,
+        FileType.NEWST_OR_BLEND_3D_FIND_OUTPUT.getFileName(manager, axisID));
+    return imodState;
+  }
+
+  private ImodState newFullVolume3dFind(AxisID axisID) {
+    ImodState imodState = new ImodState(manager, axisID,
+        FileType.TILT_3D_FIND_OUTPUT.getFileName(manager, axisID));
+    imodState.setAllowMenuBinningInZ(true);
+    imodState.setInitialSwapYZ(true);
     return imodState;
   }
 

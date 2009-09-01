@@ -15,6 +15,7 @@ import etomo.type.ConstSectionTableRowData;
 import etomo.type.EtomoBoolean2;
 import etomo.type.EtomoNumber;
 import etomo.type.IntKeyList;
+import etomo.type.ProcessName;
 import etomo.type.ScriptParameter;
 import etomo.type.SectionTableRowData;
 import etomo.ui.UIHarness;
@@ -34,6 +35,9 @@ import etomo.util.DatasetFiles;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.35  2009/03/17 00:31:52  sueh
+ * <p> bug# 1186 Pass managerKey to everything that pops up a dialog.
+ * <p>
  * <p> Revision 1.34  2009/02/05 23:42:12  sueh
  * <p> bug# 1148 Changed IntKeyList.put to add.
  * <p>
@@ -49,7 +53,7 @@ import etomo.util.DatasetFiles;
  * <p> bug# 1101 Put "tcsh -f" back.
  * <p>
  * <p> Revision 1.30  2007/12/13 01:05:03  sueh
- * <p> bug# 1056 Changed etomo.comscript.Fields to etomo.comscript.Field.
+ * <p> bug# 1056 Changed etomo.comscript.Fields to etomo.comscript.FieldInterface.
  * <p>
  * <p> Revision 1.29  2007/11/06 19:10:36  sueh
  * <p> bug# 1047 Added getSubcommandDetails.
@@ -202,6 +206,7 @@ public final class FinishjoinParam implements CommandDetails {
   public static final int OFFSET_IN_X_INDEX = 4;
   public static final int OFFSET_IN_Y_INDEX = 5;
 
+  private static final ProcessName PROCESS_NAME = ProcessName.FINISHJOIN;
   private static final String COMMAND_NAME = "finishjoin";
   private final int debug;
   private String[] commandArray;
@@ -275,76 +280,76 @@ public final class FinishjoinParam implements CommandDetails {
     return AxisID.ONLY;
   }
 
-  public ConstEtomoNumber getEtomoNumber(etomo.comscript.Field field) {
-    if (field == Fields.ALIGNMENT_REF_SECTION) {
+  public ConstEtomoNumber getEtomoNumber(etomo.comscript.FieldInterface fieldInterface) {
+    if (fieldInterface == Fields.ALIGNMENT_REF_SECTION) {
       return alignmentRefSection;
     }
-    if (field == Fields.SIZE_IN_X) {
+    if (fieldInterface == Fields.SIZE_IN_X) {
       return sizeInX;
     }
-    if (field == Fields.SIZE_IN_Y) {
+    if (fieldInterface == Fields.SIZE_IN_Y) {
       return sizeInY;
     }
-    if (field == Fields.SHIFT_IN_X) {
+    if (fieldInterface == Fields.SHIFT_IN_X) {
       return shiftInX;
     }
-    if (field == Fields.SHIFT_IN_Y) {
+    if (fieldInterface == Fields.SHIFT_IN_Y) {
       return shiftInY;
     }
-    if (field == Fields.BINNING) {
+    if (fieldInterface == Fields.BINNING) {
       return binning;
     }
-    if (field == Fields.USE_EVERY_N_SLICES) {
+    if (fieldInterface == Fields.USE_EVERY_N_SLICES) {
       return useEveryNSlices;
     }
-    if (field == Fields.LOCAL_FITS) {
+    if (fieldInterface == Fields.LOCAL_FITS) {
       return localFits;
     }
-    throw new IllegalArgumentException("field=" + field);
+    throw new IllegalArgumentException("field=" + fieldInterface);
   }
 
-  public ConstIntKeyList getIntKeyList(etomo.comscript.Field field) {
-    if (field == Fields.JOIN_START_LIST) {
+  public ConstIntKeyList getIntKeyList(etomo.comscript.FieldInterface fieldInterface) {
+    if (fieldInterface == Fields.JOIN_START_LIST) {
       return joinStartList;
     }
-    if (field == Fields.JOIN_END_LIST) {
+    if (fieldInterface == Fields.JOIN_END_LIST) {
       return joinEndList;
     }
-    if (field == Fields.REFINE_START_LIST) {
+    if (fieldInterface == Fields.REFINE_START_LIST) {
       return refineStartList;
     }
-    if (field == Fields.REFINE_END_LIST) {
+    if (fieldInterface == Fields.REFINE_END_LIST) {
       return refineEndList;
     }
-    throw new IllegalArgumentException("field=" + field);
+    throw new IllegalArgumentException("field=" + fieldInterface);
   }
 
-  public String getString(etomo.comscript.Field field) {
-    throw new IllegalArgumentException("field=" + field);
+  public String getString(etomo.comscript.FieldInterface fieldInterface) {
+    throw new IllegalArgumentException("field=" + fieldInterface);
   }
 
-  public int getIntValue(etomo.comscript.Field field) {
-    throw new IllegalArgumentException("field=" + field);
+  public int getIntValue(etomo.comscript.FieldInterface fieldInterface) {
+    throw new IllegalArgumentException("field=" + fieldInterface);
   }
 
-  public boolean getBooleanValue(etomo.comscript.Field field) {
-    throw new IllegalArgumentException("field=" + field);
+  public boolean getBooleanValue(etomo.comscript.FieldInterface fieldInterface) {
+    throw new IllegalArgumentException("field=" + fieldInterface);
   }
 
-  public float getFloatValue(etomo.comscript.Field field) {
-    throw new IllegalArgumentException("field=" + field);
+  public float getFloatValue(etomo.comscript.FieldInterface fieldInterface) {
+    throw new IllegalArgumentException("field=" + fieldInterface);
   }
 
-  public String[] getStringArray(etomo.comscript.Field field) {
-    throw new IllegalArgumentException("field=" + field);
+  public String[] getStringArray(etomo.comscript.FieldInterface fieldInterface) {
+    throw new IllegalArgumentException("field=" + fieldInterface);
   }
 
-  public Hashtable getHashtable(etomo.comscript.Field field) {
-    throw new IllegalArgumentException("field=" + field);
+  public Hashtable getHashtable(etomo.comscript.FieldInterface fieldInterface) {
+    throw new IllegalArgumentException("field=" + fieldInterface);
   }
 
-  public double getDoubleValue(etomo.comscript.Field field) {
-    throw new IllegalArgumentException("field=" + field);
+  public double getDoubleValue(etomo.comscript.FieldInterface fieldInterface) {
+    throw new IllegalArgumentException("field=" + fieldInterface);
   }
 
   public String[] getCommandArray() {
@@ -361,6 +366,10 @@ public final class FinishjoinParam implements CommandDetails {
 
   public String getCommandName() {
     return COMMAND_NAME;
+  }
+  
+  public ProcessName getProcessName() {
+    return PROCESS_NAME;
   }
 
   public String getCommand() {
@@ -389,6 +398,10 @@ public final class FinishjoinParam implements CommandDetails {
   }
 
   public CommandDetails getSubcommandDetails() {
+    return null;
+  }
+  
+  public ProcessName getSubcommandProcessName() {
     return null;
   }
 
@@ -566,7 +579,7 @@ public final class FinishjoinParam implements CommandDetails {
     return options;
   }
 
-  public static final class Fields implements etomo.comscript.Field {
+  public static final class Fields implements etomo.comscript.FieldInterface {
     public static final Fields ALIGNMENT_REF_SECTION = new Fields();
     public static final Fields SIZE_IN_X = new Fields();
     public static final Fields SIZE_IN_Y = new Fields();

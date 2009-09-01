@@ -12,6 +12,9 @@
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.25  2009/04/13 22:55:56  sueh
+ * <p> Removed newstuff.
+ * <p>
  * <p> Revision 1.24  2009/02/27 03:53:01  sueh
  * <p> bug# 1172 Added experimental automation recording background color
  * <p> (newstuff only).
@@ -125,7 +128,7 @@ import etomo.type.ConstEtomoNumber;
 import etomo.type.UITestFieldType;
 import etomo.util.Utilities;
 
-public class LabeledSpinner {
+final class LabeledSpinner {
   public static final String rcsid = "$Id$";
 
   private final JPanel panel = new JPanel();
@@ -137,7 +140,7 @@ public class LabeledSpinner {
   /**
    * @param spinner
    */
-  public LabeledSpinner(String spinLabel, SpinnerNumberModel model) {
+  LabeledSpinner(String spinLabel, SpinnerNumberModel model) {
     this.model = model;
     //set name
     String name = Utilities.convertLabelToName(spinLabel);
@@ -170,45 +173,45 @@ public class LabeledSpinner {
     model.setMaximum(new Integer(max));
   }
 
-  public void setModel(SpinnerNumberModel model) {
+  void setModel(SpinnerNumberModel model) {
     this.model = model;
     spinner.setModel(model);
   }
 
-  public Container getContainer() {
+  Container getContainer() {
     return panel;
   }
 
-  public String getLabel() {
+  String getLabel() {
     return label.getText();
   }
 
-  public Number getValue() {
+  Number getValue() {
     return (Number) spinner.getValue();
   }
 
-  public void setValue(Object value) {
+  void setValue(Object value) {
     spinner.setValue(value);
   }
 
-  public void setValue(ConstEtomoNumber value) {
+  void setValue(ConstEtomoNumber value) {
     spinner.setValue(value.getNumber());
   }
 
-  public void setValue(int value) {
+  void setValue(int value) {
     spinner.setValue(new Integer(value));
   }
 
-  public void setEnabled(boolean isEnabled) {
+  void setEnabled(boolean isEnabled) {
     spinner.setEnabled(isEnabled);
     label.setEnabled(isEnabled);
   }
 
-  public boolean isEnabled() {
+  boolean isEnabled() {
     return (spinner.isEnabled());
   }
 
-  public void setVisible(boolean isVisible) {
+  void setVisible(boolean isVisible) {
     panel.setVisible(isVisible);
   }
 
@@ -230,7 +233,7 @@ public class LabeledSpinner {
    * Set the absolute preferred size of the text field
    * @param size
    */
-  public void setTextPreferredSize(Dimension size) {
+  void setTextPreferredSize(Dimension size) {
     spinner.setPreferredSize(size);
   }
 
@@ -238,7 +241,7 @@ public class LabeledSpinner {
    * Set the absolute maximum size of the text field
    * @param size
    */
-  public void setTextMaxmimumSize(Dimension size) {
+  void setTextMaxmimumSize(Dimension size) {
     spinner.setMaximumSize(size);
   }
 
@@ -246,7 +249,7 @@ public class LabeledSpinner {
    * Set the absolute preferred size of the panel
    * @param size
    */
-  public void setPreferredSize(Dimension size) {
+  void setPreferredSize(Dimension size) {
     panel.setPreferredSize(size);
   }
 
@@ -254,19 +257,19 @@ public class LabeledSpinner {
    * Set the absolute maximum size of the panel
    * @param size
    */
-  public void setMaximumSize(Dimension size) {
+  void setMaximumSize(Dimension size) {
     panel.setMaximumSize(size);
   }
 
-  public Dimension getLabelPreferredSize() {
+  Dimension getLabelPreferredSize() {
     return label.getPreferredSize();
   }
 
-  public void setAlignmentX(float alignment) {
+  void setAlignmentX(float alignment) {
     panel.setAlignmentX(alignment);
   }
 
-  public void setToolTipText(String text) {
+  void setToolTipText(String text) {
     String tooltip = TooltipFormatter.INSTANCE.format(text);
     panel.setToolTipText(tooltip);
     spinner.setToolTipText(tooltip);
@@ -274,10 +277,9 @@ public class LabeledSpinner {
     label.setToolTipText(tooltip);
   }
 
-  public void addMouseListener(MouseListener listener) {
+  void addMouseListener(MouseListener listener) {
     panel.addMouseListener(listener);
     label.addMouseListener(listener);
     spinner.addMouseListener(listener);
   }
-
 }

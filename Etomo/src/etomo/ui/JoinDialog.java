@@ -58,6 +58,9 @@ import etomo.util.DatasetFiles;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 1.68  2009/06/05 02:13:25  sueh
+ * <p> bug# 1219 Reformatted.
+ * <p>
  * <p> Revision 1.67  2009/03/17 00:46:24  sueh
  * <p> bug# 1186 Pass managerKey to everything that pops up a dialog.
  * <p>
@@ -1850,7 +1853,7 @@ public final class JoinDialog implements ContextMenu, Run3dmodButtonContainer {
     }
     else if (command.equals(btnMakeRefiningModel.getActionCommand())) {
       manager.imodOpen(AxisID.ONLY, ImodManager.MODELED_JOIN_KEY, DatasetFiles
-          .getRefineModelFileName(manager), run3dmodMenuOptions);
+          .getRefineModelFileName(manager), run3dmodMenuOptions,true);
     }
     else if (command.equals(b3bOpenRejoin.getActionCommand())) {
       manager.imodOpen(ImodManager.JOIN_KEY, b3bOpenRejoin.getBinningInXandY(),

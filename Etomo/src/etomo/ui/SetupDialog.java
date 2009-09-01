@@ -46,7 +46,7 @@ final class SetupDialog extends ProcessDialog implements ContextMenu,
   static final String AXIS_TYPE_LABEL = "Axis Type";
   static final String FRAME_TYPE_LABEL = "Frame Type";
   static final String SINGLE_AXIS_LABEL = "Single axis";
-  static final String MONTAGE_LABEL ="Montage";
+  static final String MONTAGE_LABEL = "Montage";
   static final String SINGLE_FRAME_LABEL = "Single frame";
   private final String BACKUP_DIRECTORY_LABEL = "Backup directory: ";
 
@@ -167,7 +167,7 @@ final class SetupDialog extends ProcessDialog implements ContextMenu,
     UIUtilities.setButtonSizeAll(pnlExitButtons, UIParameters.INSTANCE
         .getButtonDimension());
     if (!calibrationAvailable) {
-      setAdvanced(isAdvanced);
+      setAdvanced();
     }
     // Calcute the necessary window size
     UIHarness.INSTANCE.pack(axisID, applicationManager);
@@ -190,12 +190,9 @@ final class SetupDialog extends ProcessDialog implements ContextMenu,
         "INITIAL STEPS", applicationManager, axisID);
   }
 
-  public boolean done() {
-    if (applicationManager.doneSetupDialog()) {
-      setDisplayed(false);
-      return true;
-    }
-    return false;
+  public void done() {
+    applicationManager.doneSetupDialog();
+    setDisplayed(false);
   }
 
   public void action(final Run3dmodButton button,
@@ -468,11 +465,11 @@ final class SetupDialog extends ProcessDialog implements ContextMenu,
     return actionCommand.equals(btnScanHeader.getActionCommand());
   }
 
-  void setAdvanced(final boolean advanced) {
-    super.setAdvanced(advanced);
+  void setAdvanced() {
     if (calibrationAvailable || pnlDistortionInfo == null) {
       return;
     }
+    boolean advanced = isAdvanced();
     ltfDistortionFile.setVisible(advanced);
     btnDistortionFile.setVisible(advanced);
     spnBinning.setVisible(advanced);
@@ -859,6 +856,9 @@ final class SetupDialog extends ProcessDialog implements ContextMenu,
 }
 /**
  * <p> $Log$
+ * <p> Revision 3.65  2009/02/12 00:03:20  sueh
+ * <p> bug# 1152 Shared Single frame label.
+ * <p>
  * <p> Revision 3.64  2009/01/20 20:27:11  sueh
  * <p> bug# 1102 Changed labeled panels to type EtomoPanel so that they can name themselves.  Changed icon buttons to type SimpleButton and
  * <p> naming them.

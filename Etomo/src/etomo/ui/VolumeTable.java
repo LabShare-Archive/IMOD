@@ -50,6 +50,11 @@ import etomo.type.Run3dmodMenuOptions;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.38  2009/04/27 18:07:10  sueh
+ * <p> bug# 1211 Moved last location functionality from VolumeTable to
+ * <p> PeetDialog.  Added checkIncorrectPaths, fixIncorrectPaths, and
+ * <p> fixIncorrectPath.
+ * <p>
  * <p> Revision 1.37  2009/03/17 00:46:24  sueh
  * <p> bug# 1186 Pass managerKey to everything that pops up a dialog.
  * <p>
@@ -266,6 +271,9 @@ final class VolumeTable implements Expandable, Highlightable,
   
   boolean isInitMotlFileExpanded() {
     return btnExpandInitMotlFile.isExpanded();
+  }
+  
+  public void expand(final GlobalExpandButton button) {
   }
 
   public void expand(final ExpandButton button) {

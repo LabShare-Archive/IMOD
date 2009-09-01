@@ -37,6 +37,9 @@ import etomo.type.Run3dmodMenuOptions;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.36  2009/01/20 19:43:25  sueh
+ * <p> bug# 1102 Changed labeled panels to EtomoPanel so that they can name themselves.
+ * <p>
  * <p> Revision 3.35  2008/12/05 00:53:41  sueh
  * <p> bug# 1156 Added a skipList parameter to
  * <p> ApplicationManager.imodFixFiducials.  Passing null when in
@@ -322,7 +325,7 @@ public final class AlignmentEstimationDialog extends ProcessDialog implements
     super(appMgr, axisID, DialogType.FINE_ALIGNMENT);
     btnComputeAlignment = (MultiLineButton) appMgr
         .getProcessResultDisplayFactory(axisID).getComputeAlignment();
-    pnlTiltalign = TiltalignPanel.getInstance(axisID, appMgr);
+    pnlTiltalign = TiltalignPanel.getInstance(axisID, appMgr, btnAdvanced);
     btnExecute.setText("Done");
 
     //  Create the first tiltalign panel
@@ -377,7 +380,7 @@ public final class AlignmentEstimationDialog extends ProcessDialog implements
     pnlTiltalign.getContainer().addMouseListener(mouseAdapter);
 
     // Set the default advanced state
-    updateAdvanced(isAdvanced);
+    updateAdvanced();
     pnlTiltalign.setFirstTab();
     setToolTipText();
   }
@@ -387,7 +390,6 @@ public final class AlignmentEstimationDialog extends ProcessDialog implements
         DialogType.FINE_ALIGNMENT);
   }
 
- 
   public final void setParameters(ReconScreenState screenState) {
     pnlTiltalign.setParameters(screenState);
   }
@@ -472,24 +474,16 @@ public final class AlignmentEstimationDialog extends ProcessDialog implements
         logFile, applicationManager, alignCommandName, axisID);
   }
 
-  boolean done() {
-    if (applicationManager.doneAlignmentEstimationDialog(axisID)) {
-      btnComputeAlignment.removeActionListener(actionListener);
-      setDisplayed(false);
-      return true;
-    }
-    return false;
-  }
-
-  public void buttonAdvancedAction(final ActionEvent event) {
-    super.buttonAdvancedAction(event);
-    updateAdvanced(isAdvanced);
+  void done() {
+    applicationManager.doneAlignmentEstimationDialog(axisID);
+    btnComputeAlignment.removeActionListener(actionListener);
+    setDisplayed(false);
   }
 
   //  This is a separate function so it can be called at initialization time
   //  as well as from the button action above
-  private void updateAdvanced(final boolean state) {
-    pnlTiltalign.setAdvanced(isAdvanced);
+  private void updateAdvanced() {
+    pnlTiltalign.updateAdvanced(isAdvanced());
     UIHarness.INSTANCE.pack(axisID, applicationManager);
   }
 
@@ -509,7 +503,7 @@ public final class AlignmentEstimationDialog extends ProcessDialog implements
     }
     else if (command.equals(btnImod.getActionCommand())) {
       applicationManager.imodFixFiducials(axisID, run3dmodMenuOptions, null,
-          ImodProcess.RESIDUAL_MODE,null);
+          ImodProcess.RESIDUAL_MODE, null);
     }
     else if (command.equals(btnViewResiduals.getActionCommand())) {
       applicationManager.imodViewResiduals(axisID, run3dmodMenuOptions);

@@ -17,8 +17,12 @@ import etomo.type.ConstEtomoNumber;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.20  2009/06/05 01:45:43  sueh
+ * <p> bug# 1219 Changed class to an interface.  Moved functionality to
+ * <p> SqueezevolParam.
+ * <p>
  * <p> Revision 1.19  2007/12/13 01:03:41  sueh
- * <p> bug# 1056 Changed etomo.comscript.Fields to etomo.comscript.Field.
+ * <p> bug# 1056 Changed etomo.comscript.Fields to etomo.comscript.FieldInterface.
  * <p>
  * <p> Revision 1.18  2007/11/06 19:07:16  sueh
  * <p> bug# 1047 Added getSubcommandDetails.

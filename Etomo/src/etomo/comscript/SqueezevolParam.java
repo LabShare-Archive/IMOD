@@ -11,7 +11,8 @@ import etomo.type.AxisID;
 import etomo.type.ConstEtomoNumber;
 import etomo.type.ConstIntKeyList;
 import etomo.type.EtomoNumber;
-import etomo.type.FileType;
+import etomo.type.ImageFileType;
+import etomo.type.ProcessName;
 
 /**
  * <p>Description: </p>
@@ -27,6 +28,10 @@ import etomo.type.FileType;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.8  2009/06/05 01:50:15  sueh
+ * <p> bug# 1219 Made constant class into an interface.  Moved the functionality
+ * <p> to this class.  Added setInputFile.
+ * <p>
  * <p> Revision 1.7  2007/11/06 19:17:07  sueh
  * <p> bug# 1047 Added getSubcommandDetails.
  * <p>
@@ -113,6 +118,10 @@ public final class SqueezevolParam implements ConstSqueezevolParam
   public CommandDetails getSubcommandDetails() {
     return null;
   }
+  
+  public ProcessName getSubcommandProcessName() {
+    return null;
+  }
 
   public void setReductionFactorY(final String reductionFactorY) {
     this.reductionFactorY.set(reductionFactorY);
@@ -130,8 +139,8 @@ public final class SqueezevolParam implements ConstSqueezevolParam
     return this.flipped = flipped;
   }
 
-  public void setInputFile(FileType fileType) {
-    inputFile = fileType.getFileName(manager);
+  public void setInputFile(ImageFileType imageFileType) {
+    inputFile = imageFileType.getFileName(manager);
   }
 
   public AxisID getAxisID() {
@@ -159,7 +168,7 @@ public final class SqueezevolParam implements ConstSqueezevolParam
     options.add("-P");
     options.add(inputFile);
     //output is dataset.sqz
-    outputFile = FileType.SQUEEZE_VOL_OUTPUT.getFile(manager);
+    outputFile = ImageFileType.SQUEEZE_VOL_OUTPUT.getFile(manager);
     options.add(outputFile.getName());
     return options;
   }
@@ -225,47 +234,51 @@ public final class SqueezevolParam implements ConstSqueezevolParam
     return commandArray;
   }
 
-  public boolean getBooleanValue(etomo.comscript.Field field) {
-    if (field == Fields.FLIPPED) {
+  public boolean getBooleanValue(etomo.comscript.FieldInterface fieldInterface) {
+    if (fieldInterface == Fields.FLIPPED) {
       return flipped;
     }
-    throw new IllegalArgumentException("field=" + field);
+    throw new IllegalArgumentException("field=" + fieldInterface);
   }
 
-  public float getFloatValue(etomo.comscript.Field field) {
-    throw new IllegalArgumentException("field=" + field);
+  public float getFloatValue(etomo.comscript.FieldInterface fieldInterface) {
+    throw new IllegalArgumentException("field=" + fieldInterface);
   }
 
-  public String[] getStringArray(etomo.comscript.Field field) {
-    throw new IllegalArgumentException("field=" + field);
+  public String[] getStringArray(etomo.comscript.FieldInterface fieldInterface) {
+    throw new IllegalArgumentException("field=" + fieldInterface);
   }
 
-  public String getString(etomo.comscript.Field field) {
-    throw new IllegalArgumentException("field=" + field);
+  public String getString(etomo.comscript.FieldInterface fieldInterface) {
+    throw new IllegalArgumentException("field=" + fieldInterface);
   }
 
-  public Hashtable getHashtable(etomo.comscript.Field field) {
-    throw new IllegalArgumentException("field=" + field);
+  public Hashtable getHashtable(etomo.comscript.FieldInterface fieldInterface) {
+    throw new IllegalArgumentException("field=" + fieldInterface);
   }
 
-  public int getIntValue(etomo.comscript.Field field) {
-    throw new IllegalArgumentException("field=" + field);
+  public int getIntValue(etomo.comscript.FieldInterface fieldInterface) {
+    throw new IllegalArgumentException("field=" + fieldInterface);
   }
 
-  public double getDoubleValue(etomo.comscript.Field field) {
-    throw new IllegalArgumentException("field=" + field);
+  public double getDoubleValue(etomo.comscript.FieldInterface fieldInterface) {
+    throw new IllegalArgumentException("field=" + fieldInterface);
   }
 
-  public ConstEtomoNumber getEtomoNumber(etomo.comscript.Field field) {
-    throw new IllegalArgumentException("field=" + field);
+  public ConstEtomoNumber getEtomoNumber(etomo.comscript.FieldInterface fieldInterface) {
+    throw new IllegalArgumentException("field=" + fieldInterface);
   }
 
-  public ConstIntKeyList getIntKeyList(etomo.comscript.Field field) {
-    throw new IllegalArgumentException("field=" + field);
+  public ConstIntKeyList getIntKeyList(etomo.comscript.FieldInterface fieldInterface) {
+    throw new IllegalArgumentException("field=" + fieldInterface);
   }
 
   public String getCommandName() {
     return COMMAND_NAME;
+  }
+  
+  public ProcessName getProcessName() {
+    return ProcessName.SQUEEZEVOL;
   }
 
   public String getCommand() {
@@ -320,7 +333,7 @@ public final class SqueezevolParam implements ConstSqueezevolParam
     return true;
   }
 
-  public static final class Fields implements etomo.comscript.Field {
+  public static final class Fields implements etomo.comscript.FieldInterface {
     private Fields() {
     }
 

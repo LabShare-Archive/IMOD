@@ -323,6 +323,9 @@ public final class ParallelPanel implements Expandable {
         .getManagerKey());
     return false;
   }
+  
+  public void expand(final GlobalExpandButton button) {
+  }
 
   /**
    * set the visible boolean based on whether the panel is visible
@@ -382,6 +385,9 @@ public final class ParallelPanel implements Expandable {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.67  2009/04/14 20:43:26  sueh
+ * <p> bug# 1212 In getResumeParameters set cpuNumber.
+ * <p>
  * <p> Revision 1.66  2009/03/17 00:46:24  sueh
  * <p> bug# 1186 Pass managerKey to everything that pops up a dialog.
  * <p>

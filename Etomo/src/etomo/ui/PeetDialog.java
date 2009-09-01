@@ -56,6 +56,11 @@ import etomo.util.InvalidParameterException;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.75  2009/04/27 18:02:36  sueh
+ * <p> bug# 1211 Implemented FileContainer.  Moved last location functionality
+ * <p> from VolumeTable to PeetDialog.  Added checkIncorrectPaths,
+ * <p> fixIncorrectPaths, and fixIncorrectPath.  Added correctPath.
+ * <p>
  * <p> Revision 1.74  2009/04/20 16:39:43  sueh
  * <p> bug# 1214 In validateRun don't run goodframe if all of the szVol values
  * <p> are empty.  Allow szVol to be empty.
@@ -372,9 +377,9 @@ public final class PeetDialog implements ContextMenu, AbstractParallelDialog,
       LST_THRESHOLD_END_TITLE + ": ");
   private final LabeledTextField ltfLstThresholdsAdditional = new LabeledTextField(
       " " + LST_THRESHOLD_ADDITIONAL_NUMBERS_TITLE + ": ");
-  private final LabeledTextField ltfYaxisContourObjectNumber = new LabeledTextField(
+  private final LabeledTextField ltfYAxisContourObjectNumber = new LabeledTextField(
       " " + Y_AXIS_CONTOUR_OBJECT_NUMBER_LABEL + ": ");
-  private final LabeledTextField ltfYaxisContourContourNumber = new LabeledTextField(
+  private final LabeledTextField ltfYAxisContourContourNumber = new LabeledTextField(
       " " + Y_AXIS_CONTOUR_CONTOUR_NUMBER_LABEL + ": ");
   private final CheckBox cbLstFlagAllTom = new CheckBox(
       "Use equal numbers of particles from all tomograms for averages");
@@ -386,7 +391,7 @@ public final class PeetDialog implements ContextMenu, AbstractParallelDialog,
       REFERENCE_VOLUME_LABEL + ": ", bgReference);
   private final Spinner sReferenceVolume = Spinner
       .getInstance(REFERENCE_VOLUME_LABEL + ": ");
-  private final Spinner sYaxisContourModelNumber = Spinner
+  private final Spinner sYAxisContourModelNumber = Spinner
       .getLabeledInstance(MODEL_LABEL);
   private final RadioButton rbReferenceFile = new RadioButton(
       REFERENCE_FILE_LABEL, bgReference);
@@ -395,14 +400,14 @@ public final class PeetDialog implements ContextMenu, AbstractParallelDialog,
       new SpinnerNumberModel(MatlabParam.PARTICLE_PER_CPU_DEFAULT,
           MatlabParam.PARTICLE_PER_CPU_MIN, MatlabParam.PARTICLE_PER_CPU_MAX, 1));
   private final IterationTable iterationTable;
-  private final ButtonGroup bgYaxisType = new ButtonGroup();
-  private final RadioButton rbYaxisTypeYAxis = new RadioButton(
-      "Original Y axis", MatlabParam.YaxisType.Y_AXIS, bgYaxisType);
-  private final RadioButton rbYaxisTypeParticleModel = new RadioButton(
-      "Particle model points", MatlabParam.YaxisType.PARTICLE_MODEL,
-      bgYaxisType);
-  private final RadioButton rbYaxisTypeContour = new RadioButton(
-      Y_AXIS_CONTOUR_LABEL + ":  ", MatlabParam.YaxisType.CONTOUR, bgYaxisType);
+  private final ButtonGroup bgYAxisType = new ButtonGroup();
+  private final RadioButton rbYAxisTypeYAxis = new RadioButton(
+      "Original Y axis", MatlabParam.YAxisType.Y_AXIS, bgYAxisType);
+  private final RadioButton rbYAxisTypeParticleModel = new RadioButton(
+      "Particle model points", MatlabParam.YAxisType.PARTICLE_MODEL,
+      bgYAxisType);
+  private final RadioButton rbYAxisTypeContour = new RadioButton(
+      Y_AXIS_CONTOUR_LABEL + ":  ", MatlabParam.YAxisType.CONTOUR, bgYAxisType);
 
   private final ButtonGroup bgSampleSphere = new ButtonGroup();
   private final RadioButton rbSampleSphereNone = new RadioButton("None",
@@ -675,9 +680,9 @@ public final class PeetDialog implements ContextMenu, AbstractParallelDialog,
     metaData.setReferenceParticle(ltfReferenceParticle.getText());
     metaData.setReferenceFile(ftfReferenceFile.getText());
     metaData.setEdgeShift(ltfEdgeShift.getText());
-    metaData.setYaxisContourModelNumber(sYaxisContourModelNumber.getValue());
-    metaData.setYaxisContourObjectNumber(ltfYaxisContourObjectNumber.getText());
-    metaData.setYaxisContourContourNumber(ltfYaxisContourContourNumber
+    metaData.setYaxisContourModelNumber(sYAxisContourModelNumber.getValue());
+    metaData.setYaxisContourObjectNumber(ltfYAxisContourObjectNumber.getText());
+    metaData.setYaxisContourContourNumber(ltfYAxisContourContourNumber
         .getText());
     metaData.setFlgWedgeWeight(cbFlgWedgeWeight.isSelected());
     metaData.setMaskUseReferenceParticle(cbMaskUseReferenceParticle
@@ -707,11 +712,11 @@ public final class PeetDialog implements ContextMenu, AbstractParallelDialog,
       ftfReferenceFile.setText(metaData.getReferenceFile());
       sReferenceVolume.setValue(metaData.getReferenceVolume());
       ltfReferenceParticle.setText(metaData.getReferenceParticle());
-      sYaxisContourModelNumber.setValue(metaData.getYaxisContourModelNumber());
-      ltfYaxisContourObjectNumber.setText(metaData
-          .getYaxisContourObjectNumber());
-      ltfYaxisContourContourNumber.setText(metaData
-          .getYaxisContourContourNumber());
+      sYAxisContourModelNumber.setValue(metaData.getYAxisContourModelNumber());
+      ltfYAxisContourObjectNumber.setText(metaData
+          .getYAxisContourObjectNumber());
+      ltfYAxisContourContourNumber.setText(metaData
+          .getYAxisContourContourNumber());
       cbFlgWedgeWeight.setSelected(metaData.isFlgWedgeWeight());
     }
     ltfEdgeShift.setText(metaData.getEdgeShift());
@@ -805,22 +810,22 @@ public final class PeetDialog implements ContextMenu, AbstractParallelDialog,
     cbRefFlagAllTom.setSelected(!matlabParam.isRefFlagAllTom());
     cbLstFlagAllTom.setSelected(!matlabParam.isLstFlagAllTom());
     lsParticlePerCPU.setValue(matlabParam.getParticlePerCPU());
-    MatlabParam.YaxisType yaxisType = matlabParam.getYaxisType();
-    if (yaxisType == MatlabParam.YaxisType.Y_AXIS) {
-      rbYaxisTypeYAxis.setSelected(true);
+    MatlabParam.YAxisType yaxisType = matlabParam.getYAxisType();
+    if (yaxisType == MatlabParam.YAxisType.Y_AXIS) {
+      rbYAxisTypeYAxis.setSelected(true);
     }
-    else if (yaxisType == MatlabParam.YaxisType.PARTICLE_MODEL) {
-      rbYaxisTypeParticleModel.setSelected(true);
+    else if (yaxisType == MatlabParam.YAxisType.PARTICLE_MODEL) {
+      rbYAxisTypeParticleModel.setSelected(true);
     }
-    else if (yaxisType == MatlabParam.YaxisType.CONTOUR) {
-      rbYaxisTypeContour.setSelected(true);
+    else if (yaxisType == MatlabParam.YAxisType.CONTOUR) {
+      rbYAxisTypeContour.setSelected(true);
       if (!parametersOnly) {
-        sYaxisContourModelNumber.setValue(matlabParam
-            .getYaxisContourModelNumber());
-        ltfYaxisContourObjectNumber.setText(matlabParam
-            .getYaxisContourObjectNumber());
-        ltfYaxisContourContourNumber.setText(matlabParam
-            .getYaxisContourContourNumber());
+        sYAxisContourModelNumber.setValue(matlabParam
+            .getYAxisContourModelNumber());
+        ltfYAxisContourObjectNumber.setText(matlabParam
+            .getYAxisContourObjectNumber());
+        ltfYAxisContourContourNumber.setText(matlabParam
+            .getYAxisContourContourNumber());
       }
     }
     if (!parametersOnly) {
@@ -913,14 +918,14 @@ public final class PeetDialog implements ContextMenu, AbstractParallelDialog,
     matlabParam.setRefFlagAllTom(!cbRefFlagAllTom.isSelected());
     matlabParam.setLstFlagAllTom(!cbLstFlagAllTom.isSelected());
     matlabParam.setParticlePerCPU(lsParticlePerCPU.getValue());
-    matlabParam.setYaxisType(((RadioButton.RadioButtonModel) bgYaxisType
+    matlabParam.setYaxisType(((RadioButton.RadioButtonModel) bgYAxisType
         .getSelection()).getEnumeratedType());
-    if (rbYaxisTypeContour.isSelected()) {
-      matlabParam.setYaxisContourModelNumber(sYaxisContourModelNumber
+    if (rbYAxisTypeContour.isSelected()) {
+      matlabParam.setYAxisContourModelNumber(sYAxisContourModelNumber
           .getValue());
-      matlabParam.setYaxisContourObjectNumber(ltfYaxisContourObjectNumber
+      matlabParam.setYaxisContourObjectNumber(ltfYAxisContourObjectNumber
           .getText());
-      matlabParam.setYaxisContourContourNumber(ltfYaxisContourContourNumber
+      matlabParam.setYaxisContourContourNumber(ltfYAxisContourContourNumber
           .getText());
     }
     matlabParam.setSampleSphere(((RadioButton.RadioButtonModel) bgSampleSphere
@@ -962,6 +967,9 @@ public final class PeetDialog implements ContextMenu, AbstractParallelDialog,
 
   public boolean usingParallelProcessing() {
     return true;
+  }
+  
+  public void expand(final GlobalExpandButton button) {
   }
 
   public void expand(final ExpandButton button) {
@@ -1008,16 +1016,16 @@ public final class PeetDialog implements ContextMenu, AbstractParallelDialog,
     ltfLstThresholdsIncrement.clear();
     ltfLstThresholdsEnd.clear();
     ltfLstThresholdsAdditional.clear();
-    ltfYaxisContourObjectNumber.clear();
-    ltfYaxisContourContourNumber.clear();
+    ltfYAxisContourObjectNumber.clear();
+    ltfYAxisContourContourNumber.clear();
     cbLstFlagAllTom.setSelected(false);
     rbReferenceParticle.setSelected(false);
     sReferenceVolume.reset();
-    sYaxisContourModelNumber.reset();
+    sYAxisContourModelNumber.reset();
     rbReferenceFile.setSelected(false);
-    rbYaxisTypeYAxis.setSelected(false);
-    rbYaxisTypeParticleModel.setSelected(false);
-    rbYaxisTypeContour.setSelected(false);
+    rbYAxisTypeYAxis.setSelected(false);
+    rbYAxisTypeParticleModel.setSelected(false);
+    rbYAxisTypeContour.setSelected(false);
     rbInitMotlZero.setSelected(false);
     rbInitMotlZAxis.setSelected(false);
     rbInitMotlXAndZAxis.setSelected(false);
@@ -1116,12 +1124,12 @@ public final class PeetDialog implements ContextMenu, AbstractParallelDialog,
       ltfFnOutput.setToolTipText(tooltip);
       section = autodoc.getSection(EtomoAutodoc.FIELD_SECTION_NAME,
           MatlabParam.YAXIS_TYPE_KEY);
-      rbYaxisTypeYAxis.setToolTipText(section);
-      rbYaxisTypeParticleModel.setToolTipText(section);
-      tooltip = rbYaxisTypeContour.setToolTipText(section);
-      sYaxisContourModelNumber.setToolTipText(tooltip);
-      ltfYaxisContourObjectNumber.setToolTipText(tooltip);
-      ltfYaxisContourContourNumber.setToolTipText(tooltip);
+      rbYAxisTypeYAxis.setToolTipText(section);
+      rbYAxisTypeParticleModel.setToolTipText(section);
+      tooltip = rbYAxisTypeContour.setToolTipText(section);
+      sYAxisContourModelNumber.setToolTipText(tooltip);
+      ltfYAxisContourObjectNumber.setToolTipText(tooltip);
+      ltfYAxisContourContourNumber.setToolTipText(tooltip);
       btnImportMatlabParamFile
           .setToolTipText("Create a new PEET project from a .prm file.");
       btnDuplicateProject
@@ -1313,23 +1321,23 @@ public final class PeetDialog implements ContextMenu, AbstractParallelDialog,
     pnlInitMotl.add(rbInitMotlXAndZAxis.getComponent());
     pnlInitMotl.add(rbInitMotlFiles.getComponent());
     //YaxisContour
-    JPanel pnlYaxisContour = new JPanel();
-    pnlYaxisContour.setLayout(new BoxLayout(pnlYaxisContour, BoxLayout.X_AXIS));
-    pnlYaxisContour.add(rbYaxisTypeContour.getComponent());
-    pnlYaxisContour.add(sYaxisContourModelNumber.getContainer());
-    ltfYaxisContourObjectNumber.setTextPreferredWidth(UIParameters.INSTANCE
+    JPanel pnlYAxisContour = new JPanel();
+    pnlYAxisContour.setLayout(new BoxLayout(pnlYAxisContour, BoxLayout.X_AXIS));
+    pnlYAxisContour.add(rbYAxisTypeContour.getComponent());
+    pnlYAxisContour.add(sYAxisContourModelNumber.getContainer());
+    ltfYAxisContourObjectNumber.setTextPreferredWidth(UIParameters.INSTANCE
         .getIntegerWidth());
-    pnlYaxisContour.add(ltfYaxisContourObjectNumber.getContainer());
-    ltfYaxisContourContourNumber.setTextPreferredWidth(UIParameters.INSTANCE
+    pnlYAxisContour.add(ltfYAxisContourObjectNumber.getContainer());
+    ltfYAxisContourContourNumber.setTextPreferredWidth(UIParameters.INSTANCE
         .getIntegerWidth());
-    pnlYaxisContour.add(ltfYaxisContourContourNumber.getContainer());
+    pnlYAxisContour.add(ltfYAxisContourContourNumber.getContainer());
     //YaxisType
     pnlYaxisType.setBoxLayout(BoxLayout.Y_AXIS);
     pnlYaxisType.setBorder(new EtchedBorder(Y_AXIS_TYPE_LABEL).getBorder());
     pnlYaxisType.setComponentAlignmentX(Component.LEFT_ALIGNMENT);
-    pnlYaxisType.add(rbYaxisTypeYAxis);
-    pnlYaxisType.add(rbYaxisTypeParticleModel);
-    pnlYaxisType.add(pnlYaxisContour);
+    pnlYaxisType.add(rbYAxisTypeYAxis);
+    pnlYaxisType.add(rbYAxisTypeParticleModel);
+    pnlYaxisType.add(pnlYAxisContour);
     //init MOTL and Y axis type
     JPanel pnlInitMotlAndYAxisType = new JPanel();
     pnlInitMotlAndYAxisType.setLayout(new BoxLayout(pnlInitMotlAndYAxisType,
@@ -1467,9 +1475,9 @@ public final class PeetDialog implements ContextMenu, AbstractParallelDialog,
         || actionCommand.equals(rbReferenceParticle.getActionCommand())
         || actionCommand.equals(rbReferenceFile.getActionCommand())
         || actionCommand.equals(cbTiltRange.getActionCommand())
-        || actionCommand.equals(rbYaxisTypeYAxis.getActionCommand())
-        || actionCommand.equals(rbYaxisTypeParticleModel.getActionCommand())
-        || actionCommand.equals(rbYaxisTypeContour.getActionCommand())
+        || actionCommand.equals(rbYAxisTypeYAxis.getActionCommand())
+        || actionCommand.equals(rbYAxisTypeParticleModel.getActionCommand())
+        || actionCommand.equals(rbYAxisTypeContour.getActionCommand())
         || actionCommand.equals(cbFlgWedgeWeight.getActionCommand())
         || actionCommand.equals(cbNWeightGroup.getActionCommand())
         || actionCommand.equals(rbSampleSphereNone.getActionCommand())
@@ -1535,10 +1543,10 @@ public final class PeetDialog implements ContextMenu, AbstractParallelDialog,
       return false;
     }
     //If end points of contour is checked, must have object # and contour#
-    if (rbYaxisTypeContour.isSelected()
-        && ((ltfYaxisContourObjectNumber.isEnabled() && ltfYaxisContourObjectNumber
-            .getText().matches("\\s*")) || (ltfYaxisContourContourNumber
-            .isEnabled() && ltfYaxisContourContourNumber.getText().matches(
+    if (rbYAxisTypeContour.isSelected()
+        && ((ltfYAxisContourObjectNumber.isEnabled() && ltfYAxisContourObjectNumber
+            .getText().matches("\\s*")) || (ltfYAxisContourContourNumber
+            .isEnabled() && ltfYAxisContourContourNumber.getText().matches(
             "\\s*")))) {
       changeTab(0);
       UIHarness.INSTANCE.openMessageDialog("In " + Y_AXIS_TYPE_LABEL + ", "
@@ -1759,14 +1767,14 @@ public final class PeetDialog implements ContextMenu, AbstractParallelDialog,
         && rbReferenceParticle.isSelected());
     ftfReferenceFile.setEnabled(volumeRows && rbReferenceFile.isSelected());
     //yaxisType and yaxisContour
-    rbYaxisTypeContour.setEnabled(volumeRows);
-    sYaxisContourModelNumber.setEnabled(volumeRows
-        && rbYaxisTypeContour.isSelected());
-    sYaxisContourModelNumber.setMax(size);
-    ltfYaxisContourObjectNumber.setEnabled(volumeRows
-        && rbYaxisTypeContour.isSelected());
-    ltfYaxisContourContourNumber.setEnabled(volumeRows
-        && rbYaxisTypeContour.isSelected());
+    rbYAxisTypeContour.setEnabled(volumeRows);
+    sYAxisContourModelNumber.setEnabled(volumeRows
+        && rbYAxisTypeContour.isSelected());
+    sYAxisContourModelNumber.setMax(size);
+    ltfYAxisContourObjectNumber.setEnabled(volumeRows
+        && rbYAxisTypeContour.isSelected());
+    ltfYAxisContourContourNumber.setEnabled(volumeRows
+        && rbYAxisTypeContour.isSelected());
     //spherical sampling
     ltfSampleInterval.setEnabled(!rbSampleSphereNone.isSelected());
     iterationTable.updateDisplay(!rbSampleSphereNone.isSelected());
@@ -1835,9 +1843,9 @@ public final class PeetDialog implements ContextMenu, AbstractParallelDialog,
     cbTiltRange.addActionListener(actionListener);
     btnRun.addActionListener(actionListener);
     tabPane.addChangeListener(new TabChangeListener(this));
-    rbYaxisTypeYAxis.addActionListener(actionListener);
-    rbYaxisTypeParticleModel.addActionListener(actionListener);
-    rbYaxisTypeContour.addActionListener(actionListener);
+    rbYAxisTypeYAxis.addActionListener(actionListener);
+    rbYAxisTypeParticleModel.addActionListener(actionListener);
+    rbYAxisTypeContour.addActionListener(actionListener);
     btnImportMatlabParamFile.addActionListener(actionListener);
     btnAvgVol.addActionListener(actionListener);
     btnRef.addActionListener(actionListener);

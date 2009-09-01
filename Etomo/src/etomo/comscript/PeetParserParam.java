@@ -27,6 +27,9 @@ import etomo.util.EnvironmentVariable;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.8  2009/03/31 22:34:09  sueh
+ * <p> bug# 1204 Porting from 3-13.
+ * <p>
  * <p> Revision 1.7  2009/03/31 21:06:28  sueh
  * <p> bug# 1204 In getCommandArray, changed error message to give the typical location
  * <p> of the PEET software.
@@ -39,7 +42,7 @@ import etomo.util.EnvironmentVariable;
  * <p> bug# 1186 Pass managerKey to everything that pops up a dialog.
  * <p>
  * <p> Revision 1.4  2007/12/13 01:05:49  sueh
- * <p> bug# 1056 Changed etomo.comscript.Fields to etomo.comscript.Field.
+ * <p> bug# 1056 Changed etomo.comscript.Fields to etomo.comscript.FieldInterface.
  * <p>
  * <p> Revision 1.3  2007/11/06 19:14:58  sueh
  * <p> bug# 1047 Added getSubcommandDetails.
@@ -57,6 +60,7 @@ import etomo.util.EnvironmentVariable;
 public final class PeetParserParam implements CommandDetails {
   public static final String rcsid = "$Id$";
 
+  private static final ProcessName PROCESS_NAME = ProcessName.PEET_PARSER;
   private final File prmFile;
   private final BaseManager manager;
 
@@ -91,7 +95,7 @@ public final class PeetParserParam implements CommandDetails {
     }
     File commandFile = new File(new File(EnvironmentVariable.INSTANCE.getValue(
         manager.getPropertyUserDir(), "PARTICLE_DIR", AxisID.ONLY, manager
-            .getManagerKey()), "bin"), ProcessName.PEET_PARSER.toString());
+            .getManagerKey()), "bin"), PROCESS_NAME.toString());
     command[1] = commandFile.getAbsolutePath();
     command[2] = prmFile.getName();
     if (debug) {
@@ -126,6 +130,10 @@ public final class PeetParserParam implements CommandDetails {
   public String getCommandName() {
     return null;
   }
+  
+  public ProcessName getProcessName() {
+    return PROCESS_NAME;
+  }
 
   public String getCommandLine() {
     return getCommand();
@@ -134,62 +142,66 @@ public final class PeetParserParam implements CommandDetails {
   public CommandDetails getSubcommandDetails() {
     return null;
   }
+  
+  public ProcessName getSubcommandProcessName() {
+    return null;
+  }
 
   public AxisID getAxisID() {
     return AxisID.ONLY;
   }
 
   public String getCommand() {
-    String command = ProcessName.PEET_PARSER.getComscript(AxisID.ONLY);
+    String command = PROCESS_NAME.getComscript(AxisID.ONLY);
     if (debug) {
       System.err.println(command);
     }
     return command;
   }
 
-  public int getIntValue(etomo.comscript.Field field) {
-    if (field == Fields.ITERATION_LIST_SIZE) {
+  public int getIntValue(etomo.comscript.FieldInterface fieldInterface) {
+    if (fieldInterface == Fields.ITERATION_LIST_SIZE) {
       return iterationListSize;
     }
-    throw new IllegalArgumentException("field=" + field);
+    throw new IllegalArgumentException("field=" + fieldInterface);
   }
 
-  public String[] getStringArray(etomo.comscript.Field field) {
-    if (field == Fields.LST_THRESHOLDS_ARRAY) {
+  public String[] getStringArray(etomo.comscript.FieldInterface fieldInterface) {
+    if (fieldInterface == Fields.LST_THRESHOLDS_ARRAY) {
       return lstThresholdsArray;
     }
-    throw new IllegalArgumentException("field=" + field);
+    throw new IllegalArgumentException("field=" + fieldInterface);
   }
 
-  public boolean getBooleanValue(etomo.comscript.Field field) {
-    throw new IllegalArgumentException("field=" + field);
+  public boolean getBooleanValue(etomo.comscript.FieldInterface fieldInterface) {
+    throw new IllegalArgumentException("field=" + fieldInterface);
   }
 
-  public float getFloatValue(etomo.comscript.Field field) {
-    throw new IllegalArgumentException("field=" + field);
+  public float getFloatValue(etomo.comscript.FieldInterface fieldInterface) {
+    throw new IllegalArgumentException("field=" + fieldInterface);
   }
 
-  public double getDoubleValue(etomo.comscript.Field field) {
-    throw new IllegalArgumentException("field=" + field);
+  public double getDoubleValue(etomo.comscript.FieldInterface fieldInterface) {
+    throw new IllegalArgumentException("field=" + fieldInterface);
   }
 
-  public Hashtable getHashtable(etomo.comscript.Field field) {
-    throw new IllegalArgumentException("field=" + field);
+  public Hashtable getHashtable(etomo.comscript.FieldInterface fieldInterface) {
+    throw new IllegalArgumentException("field=" + fieldInterface);
   }
 
-  public ConstEtomoNumber getEtomoNumber(etomo.comscript.Field field) {
-    throw new IllegalArgumentException("field=" + field);
+  public ConstEtomoNumber getEtomoNumber(etomo.comscript.FieldInterface fieldInterface) {
+    throw new IllegalArgumentException("field=" + fieldInterface);
   }
 
-  public ConstIntKeyList getIntKeyList(etomo.comscript.Field field) {
-    throw new IllegalArgumentException("field=" + field);
+  public ConstIntKeyList getIntKeyList(etomo.comscript.FieldInterface fieldInterface) {
+    throw new IllegalArgumentException("field=" + fieldInterface);
   }
 
-  public String getString(etomo.comscript.Field field) {
-    throw new IllegalArgumentException("field=" + field);
+  public String getString(etomo.comscript.FieldInterface fieldInterface) {
+    throw new IllegalArgumentException("field=" + fieldInterface);
   }
 
-  public static final class Fields implements etomo.comscript.Field {
+  public static final class Fields implements etomo.comscript.FieldInterface {
     private Fields() {
     }
 

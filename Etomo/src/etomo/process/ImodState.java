@@ -7,6 +7,7 @@ import java.io.IOException;
 import etomo.ApplicationManager;
 import etomo.BaseManager;
 import etomo.type.AxisID;
+import etomo.type.EtomoBoolean2;
 import etomo.type.Run3dmodMenuOptions;
 
 /**
@@ -175,6 +176,10 @@ import etomo.type.Run3dmodMenuOptions;
  * @version $$Revision$$
  * 
  * <p> $$Log$
+ * <p> $Revision 1.53  2009/06/05 01:55:27  sueh
+ * <p> $bug# 1219 Added startNewContoursAtNewZ and
+ * <p> $setStartNewContoursAtNewZ.
+ * <p> $
  * <p> $Revision 1.52  2009/03/23 17:08:21  sueh
  * <p> $bug# 1187 Added setContinuousTarget.
  * <p> $
@@ -393,7 +398,6 @@ public final class ImodState {
   public static final int MODV = -4;
 
   //unchanging state information
-  private String datasetName = "";
   private boolean modelView = false;
   private boolean useModv = false;
   private AxisID axisID;
@@ -450,6 +454,10 @@ public final class ImodState {
 
   private String logName = null;
   private boolean debug = false;
+  //Should be turned off after each use.  This is because it is rarely used and
+  //should not be on for most situations.  This way I don't have to keep track
+  //of when it is on.
+  private EtomoBoolean2 deleteAllSections = null;
 
   //constructors
   //they can set final state variables
@@ -485,7 +493,6 @@ public final class ImodState {
   ImodState(BaseManager manager, String datasetName, AxisID axisID) {
     this.manager = manager;
     this.axisID = axisID;
-    this.datasetName = datasetName;
     process = new ImodProcess(manager, datasetName, axisID);
     reset();
   }
@@ -498,7 +505,6 @@ public final class ImodState {
       AxisID axisID) {
     this.manager = manager;
     this.axisID = axisID;
-    this.datasetName = datasetName;
     process = new ImodProcess(manager, datasetName, axisID);
     setModelViewType(modelViewType);
     reset();
@@ -513,7 +519,6 @@ public final class ImodState {
       AxisID axisID, ImodProcess.WindowOpenOption option) {
     this.manager = manager;
     this.axisID = axisID;
-    this.datasetName = datasetName;
     process = new ImodProcess(manager, datasetName, axisID);
     setModelViewType(modelViewType);
     process.addWindowOpenOption(option);
@@ -528,7 +533,6 @@ public final class ImodState {
       AxisID axisID) {
     this.manager = manager;
     this.axisID = axisID;
-    this.datasetName = datasetName;
     initialModelName = modelName;
     process = new ImodProcess(manager, datasetName, modelName);
     reset();
@@ -560,6 +564,19 @@ public final class ImodState {
   }
 
   /**
+   * Build ImodState with a complete file name.
+   * @param manager
+   * @param axisID
+   * @param fileName
+   */
+  ImodState(BaseManager manager, AxisID axisID, String fileName) {
+    this.manager = manager;
+    this.axisID = axisID;
+    process = new ImodProcess(manager, fileName, axisID);
+    reset();
+  }
+
+  /**
    * Use this constructor to insert the axis letter and create an instance of
    * ImodProcess using ImodProcess(String dataset).  This will work for any kind
    * of AxisID.
@@ -571,16 +588,16 @@ public final class ImodState {
    * ImodProcess("dataseta_fixed.st");
    * ImodProcess("datasetb_fixed.st");
    */
-  ImodState(BaseManager manager, AxisID axisID, String datasetName,
-      String datasetExt) {
+  ImodState(final BaseManager manager, final AxisID axisID, String datasetName,
+      final String datasetExt) {
     this.manager = manager;
     this.axisID = axisID;
     String axisExtension = axisID.getExtension();
     if (axisExtension == "ERROR") {
       throw new IllegalArgumentException(axisID.toString());
     }
-    this.datasetName = datasetName + axisExtension + datasetExt;
-    process = new ImodProcess(manager, this.datasetName, axisID);
+    datasetName = datasetName + axisExtension + datasetExt;
+    process = new ImodProcess(manager, datasetName, axisID);
     reset();
   }
 
@@ -596,9 +613,10 @@ public final class ImodState {
    * ImodProcess("topa.rec mida.rec bota.rec", "tomopitcha.mod");
    * ImodProcess("topb.rec midb.rec botb.rec", "tomopitchb.mod");
    */
-  ImodState(BaseManager manager, AxisID tempAxisID, String datasetName1,
-      String datasetName2, String datasetName3, String datasetExt,
-      String modelName, String modelExt) {
+  ImodState(final BaseManager manager, final AxisID tempAxisID,
+      final String datasetName1, final String datasetName2,
+      final String datasetName3, final String datasetExt,
+      final String modelName, final String modelExt) {
     this.manager = manager;
     axisID = tempAxisID;
     String axisExtension = tempAxisID.getExtension();
@@ -608,7 +626,7 @@ public final class ImodState {
     String[] datasetNameArray = { datasetName1 + axisExtension + datasetExt,
         datasetName2 + axisExtension + datasetExt,
         datasetName3 + axisExtension + datasetExt };
-    datasetName = datasetNameArray[0] + " " + datasetNameArray[1] + " "
+    String datasetName = datasetNameArray[0] + " " + datasetNameArray[1] + " "
         + datasetNameArray[2];
     initialModelName = modelName + axisExtension + modelExt;
     process = new ImodProcess(manager, datasetNameArray, modelName);
@@ -637,6 +655,20 @@ public final class ImodState {
       //open
       process.open(menuOptions);
       warnedStaleFile = false;
+      //model will be opened
+      if (modelName != null && modelName.matches("\\S+") && preserveContrast) {
+        process.setOpenModelPreserveContrastMessage(modelName);
+      }
+      //This message can only be sent after opening the model
+      if (openContours) {
+        process.setNewContoursMessage(true);
+      }
+      if (startNewContoursAtNewZ) {
+        process.setStartNewContoursAtNewZ();
+      }
+      if (pointLimit != -1) {
+        process.setPointLimitMessage(pointLimit);
+      }
       //open bead fixer
       if (openBeadFixer) {
         process.setOpenBeadFixerMessage();
@@ -659,20 +691,10 @@ public final class ImodState {
         if (skipList != null) {
           process.setSkipList(skipList);
         }
-      }
-      //model will be opened
-      if (modelName != null && modelName.matches("\\S+") && preserveContrast) {
-        process.setOpenModelPreserveContrastMessage(modelName);
-      }
-      //This message can only be sent after opening the model
-      if (openContours) {
-        process.setNewContoursMessage(true);
-      }
-      if (startNewContoursAtNewZ) {
-        process.setStartNewContoursAtNewZ();
-      }
-      if (pointLimit != -1) {
-        process.setPointLimitMessage(pointLimit);
+        if (deleteAllSections != null) {
+          process.setDeleteAllSections(deleteAllSections.is());
+          deleteAllSections.set(false);
+        }
       }
     }
     else {
@@ -683,6 +705,19 @@ public final class ImodState {
       }
       else {
         process.setRaise3dmodMessage();
+      }
+      //reopen model
+      if (!useModv && modelName != null && modelName.matches("\\S+")) {
+        if (preserveContrast) {
+          process.setOpenModelPreserveContrastMessage(modelName);
+        }
+        else {
+          process.setOpenModelMessage(modelName);
+        }
+      }
+      //This message can only be sent after opening the model
+      if (openContours) {
+        process.setNewContoursMessage(true);
       }
       //open bead fixer
       if (openBeadFixer) {
@@ -703,19 +738,10 @@ public final class ImodState {
         if (logName != null) {
           process.setOpenLog(logName);
         }
-      }
-      //reopen model
-      if (!useModv && modelName != null && modelName.matches("\\S+")) {
-        if (preserveContrast) {
-          process.setOpenModelPreserveContrastMessage(modelName);
+        if (deleteAllSections != null) {
+          process.setDeleteAllSections(deleteAllSections.is());
+          deleteAllSections.set(false);
         }
-        else {
-          process.setOpenModelMessage(modelName);
-        }
-      }
-      //This message can only be sent after opening the model
-      if (openContours) {
-        process.setNewContoursMessage(true);
       }
     }
     //set mode
@@ -873,12 +899,6 @@ public final class ImodState {
   }
 
   //unchanging state information
-  /**
-   * @return datasetName
-   */
-  String getDatasetName() {
-    return datasetName;
-  }
 
   /**
    * 
@@ -1049,6 +1069,13 @@ public final class ImodState {
     skipList = input;
   }
 
+  void setDeleteAllSections(boolean on) {
+    if (deleteAllSections == null) {
+      deleteAllSections = new EtomoBoolean2();
+    }
+    deleteAllSections.set(on);
+  }
+
   void setBeadfixerMode(String mode) {
     beadfixerMode = mode;
   }
@@ -1200,7 +1227,6 @@ public final class ImodState {
    */
   protected String paramString() {
     Vector params = new Vector(17);
-    params.add("datasetName=" + getDatasetName());
     params.add("modelView=" + isModelView());
     params.add("useModv=" + isUseModv());
 
@@ -1232,8 +1258,7 @@ public final class ImodState {
    * @return true if unchanging and initial state information is the same
    */
   public boolean equalsInitialConfiguration(ImodState imodState) {
-    if (datasetName.equals(imodState.getDatasetName())
-        && modelView == imodState.isModelView()
+    if (modelView == imodState.isModelView()
         && useModv == imodState.isUseModv()
         && initialModelName.equals(imodState.getInitialModelName())
         && initialMode == imodState.getInitialMode()
@@ -1249,8 +1274,7 @@ public final class ImodState {
    * @return true if unchanging and current state information is the same
    */
   public boolean equalsCurrentConfiguration(ImodState imodState) {
-    if (datasetName.equals(imodState.getDatasetName())
-        && modelView == imodState.isModelView()
+    if (modelView == imodState.isModelView()
         && useModv == imodState.isUseModv()
         && modelName.equals(imodState.getModelName())
         && usingMode == imodState.isUsingMode()

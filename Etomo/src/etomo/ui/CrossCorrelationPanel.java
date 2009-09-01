@@ -11,6 +11,10 @@
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.33  2009/06/12 19:48:34  sueh
+ * <p> bug# 1221 Factored running correlation, making it independent of the
+ * <p> coarse align dialog.
+ * <p>
  * <p> Revision 3.32  2009/03/24 20:27:13  sueh
  * <p> bug# 1201 Added angleOffset.
  * <p>
@@ -243,12 +247,12 @@ final class CrossCorrelationPanel implements ContextMenu, Expandable,
   private final PanelHeader header;
 
   public CrossCorrelationPanel(ApplicationManager applicationManager,
-      AxisID id, DialogType dialogType) {
+      AxisID id, DialogType dialogType,GlobalExpandButton globalAdvancedButton) {
     this.dialogType = dialogType;
     axisID = id;
     this.applicationManager = applicationManager;
     header = PanelHeader
-        .getAdvancedBasicInstance("Tiltxcorr", this, dialogType);
+        .getAdvancedBasicInstance("Tiltxcorr", this, dialogType,globalAdvancedButton);
     btnCrossCorrelate = (MultiLineButton) applicationManager
         .getProcessResultDisplayFactory(axisID).getCrossCorrelate();
 
@@ -309,15 +313,14 @@ final class CrossCorrelationPanel implements ContextMenu, Expandable,
     btnCrossCorrelate.removeActionListener(actionListener);
   }
 
-  /**
-   * Update the header with the current advanced state
-   */
-  void updateAdvanced(boolean isAdvanced) {
-    header.setAdvanced(isAdvanced);
-  }
-
-  void setAdvanced(boolean state) {
+  void updateAdvanced(boolean state) {
     pnlAdvanced.setVisible(state);
+  }
+  
+  /**
+   * All expansion is done through the header.
+   */
+  public void expand(GlobalExpandButton button) {
   }
 
   public void expand(ExpandButton button) {
@@ -325,7 +328,7 @@ final class CrossCorrelationPanel implements ContextMenu, Expandable,
       pnlBody.setVisible(button.isExpanded());
     }
     else if (header.equalsAdvancedBasic(button)) {
-      setAdvanced(button.isExpanded());
+      updateAdvanced(button.isExpanded());
     }
     UIHarness.INSTANCE.pack(axisID, applicationManager);
   }

@@ -37,6 +37,10 @@ import etomo.util.Utilities;
  * 
  * <p>
  * $Log$
+ * Revision 3.59  2009/06/10 22:13:54  sueh
+ * bug# 1220 In sendMessages start the continuous listener thread if the
+ * target is set and it is not already started.
+ *
  * Revision 3.58  2009/06/05 01:54:43  sueh
  * bug# 1219 Added setStartNewContoursAtNewZ.
  *
@@ -578,6 +582,7 @@ public class ImodProcess {
   public static final String BF_MESSAGE_DIAMETER = "5";
   public static final String BF_MESSAGE_MODE = "6";
   public static final String BF_MESSAGE_SKIP_LIST = "7";
+  public static final String BF_MESSAGE_DELETE_ALL_SECTIONS = "8";
   public static final String MESSAGE_ON = "1";
   public static final String MESSAGE_OFF = "0";
   public static final String MESSAGE_STOP_LISTENING = "\n";
@@ -1179,6 +1184,15 @@ public class ImodProcess {
 
   public void setSkipList(String skipList) {
     addPluginMessage(BEAD_FIXER_PLUGIN, BF_MESSAGE_SKIP_LIST, skipList);
+  }
+
+  public void setDeleteAllSections(boolean on) {
+    if (on) {
+      addPluginMessage(BEAD_FIXER_PLUGIN, BF_MESSAGE_DELETE_ALL_SECTIONS, TRUE);
+    }
+    else {
+      addPluginMessage(BEAD_FIXER_PLUGIN, BF_MESSAGE_DELETE_ALL_SECTIONS, FALSE);
+    }
   }
 
   public void setBeadfixerDiameter(long beadfixerDiameter) {

@@ -15,6 +15,7 @@ import etomo.type.AxisID;
 import etomo.type.ConstMetaData;
 import etomo.type.DialogType;
 import etomo.type.EtomoNumber;
+import etomo.type.FileType;
 import etomo.util.FidXyz;
 import etomo.util.InvalidParameterException;
 import etomo.util.MRCHeader;
@@ -57,18 +58,48 @@ public final class UIExpertUtilities {
    * Gets the binning that can be used to run tilt against a stack (.preali or
    * .ali).  Function calculates the binning from the stack's pixel spacing and
    * the raw stack's pixel spacing.
+   * @param manager
    * @param axisID
-   * @param stackExtension .ali or .preali
+   * @param stackExtension
+   * @param nullIfFailed
+   * @return
+   */
+  public long getStackBinning(BaseManager manager, AxisID axisID,
+      String stackExtension, boolean nullIfFailed) {
+    return getStackBinning(manager, axisID, MRCHeader.getInstance(manager,
+        axisID, stackExtension, manager.getManagerKey()), false);
+  }
+
+  /**
+   * Gets the binning that can be used to run tilt against a stack (.preali or
+   * .ali).  Function calculates the binning from the stack's pixel spacing and
+   * the raw stack's pixel spacing.
+   * @param manager
+   * @param axisID
+   * @param stackFileType
+   * @return
+   */
+  public long getStackBinning(BaseManager manager, AxisID axisID,
+      FileType stackFileType) {
+    return getStackBinning(manager, axisID, MRCHeader.getInstance(manager
+        .getPropertyUserDir(), stackFileType.getFileName(manager, axisID),
+        axisID, manager.getManagerKey()), false);
+  }
+
+  /**
+   * Gets the binning that can be used to run tilt against a stack (.preali or
+   * .ali).  Function calculates the binning from the stack's pixel spacing and
+   * the raw stack's pixel spacing.
+   * @param axisID
+   * @param stackHeader MRCHeader (.ali or .preali)
    * @param nullIfFailed when true returns null on failure, otherwise returns 1
    * on failure.
    * @return
    */
   public long getStackBinning(BaseManager manager, AxisID axisID,
-      String stackExtension, boolean nullIfFailed) {
+      MRCHeader stackHeader, boolean nullIfFailed) {
     MRCHeader rawstackHeader = MRCHeader.getInstance(manager, axisID, ".st",
         manager.getManagerKey());
-    MRCHeader stackHeader = MRCHeader.getInstance(manager, axisID,
-        stackExtension, manager.getManagerKey());
     long defaultValue = nullIfFailed ? EtomoNumber.LONG_NULL_VALUE : 1;
     try {
       if (!rawstackHeader.read() || !stackHeader.read()) {
@@ -107,7 +138,8 @@ public final class UIExpertUtilities {
       FiducialessParams dialog, AxisID axisID) {
     float tiltAxisAngle;
     try {
-      tiltAxisAngle = dialog.getImageRotation();
+      return updateFiducialessParams(manager, dialog.getImageRotation(), dialog
+          .isFiducialess(), axisID);
     }
     catch (NumberFormatException except) {
       String[] errorMessage = new String[2];
@@ -117,8 +149,30 @@ public final class UIExpertUtilities {
           "Tilt axis rotation syntax error", axisID, manager.getManagerKey());
       return false;
     }
-    manager.getMetaData().setFiducialessAlignment(axisID,
-        dialog.isFiducialess());
+  }
+
+  /**
+   * Set the metaData and rotationXF script.
+   * 
+   * @param axisID
+   * @param dialog
+   * @return
+   */
+  public boolean updateFiducialessParams(ApplicationManager manager,
+      float imageRotation, boolean fiducialess, AxisID axisID) {
+    float tiltAxisAngle;
+    try {
+      tiltAxisAngle = imageRotation;
+    }
+    catch (NumberFormatException except) {
+      String[] errorMessage = new String[2];
+      errorMessage[0] = "Tilt axis rotation format error";
+      errorMessage[1] = except.getMessage();
+      UIHarness.INSTANCE.openMessageDialog(errorMessage,
+          "Tilt axis rotation syntax error", axisID, manager.getManagerKey());
+      return false;
+    }
+    manager.getMetaData().setFiducialessAlignment(axisID, fiducialess);
     manager.getMetaData().setImageRotation(tiltAxisAngle, axisID);
     updateRotationXF(manager.getPropertyUserDir(), tiltAxisAngle, axisID,
         manager.getManagerKey());
@@ -373,6 +427,9 @@ public final class UIExpertUtilities {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.6  2009/03/17 00:46:24  sueh
+ * <p> bug# 1186 Pass managerKey to everything that pops up a dialog.
+ * <p>
  * <p> Revision 1.5  2009/02/13 02:38:12  sueh
  * <p> bug# 1176 Checking return value of MRCHeader.read.
  * <p>

@@ -11,6 +11,9 @@
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.33  2009/03/17 00:33:07  sueh
+ * <p> bug# 1186 Pass managerKey to everything that pops up a dialog.
+ * <p>
  * <p> Revision 3.32  2009/02/26 17:25:32  sueh
  * <p> bug# 1184 Changed Goodframe so that it can handle any number of
  * <p> inputs and outputs.
@@ -198,6 +201,7 @@ import etomo.type.ConstEtomoNumber;
 import etomo.type.ConstIntKeyList;
 import etomo.type.EtomoBoolean2;
 import etomo.type.EtomoNumber;
+import etomo.type.FileType;
 import etomo.type.ProcessName;
 import etomo.type.ScriptParameter;
 import etomo.ui.UIExpertUtilities;
@@ -260,15 +264,16 @@ public final class TiltParam implements ConstTiltParam, CommandParam {
   private boolean useZFactors = false;
   private String zFactorFileName;
   private boolean loadedFromFile = false;
-  private Mode commandMode = Mode.TILT;
+  private Mode commandMode = Mode.DEFAULT;
+  private ProcessName processName = ProcessName.TILT;
 
   private final StringList excludeList2 = new StringList(0);
   private final StringList excludeList = new StringList(0);
   private final ScriptParameter imageBinned = new ScriptParameter(
       EtomoNumber.Type.LONG, "IMAGEBINNED");
   private final EtomoNumber tiltAngleOffset = new EtomoNumber(
-      EtomoNumber.Type.FLOAT, "OFFSET");
-  private final EtomoNumber zShift = new EtomoNumber(EtomoNumber.Type.FLOAT,
+      EtomoNumber.Type.DOUBLE, "OFFSET");
+  private final EtomoNumber zShift = new EtomoNumber(EtomoNumber.Type.DOUBLE,
       "SHIFT");
   private final EtomoBoolean2 fiducialess = new EtomoBoolean2("Fiducialess");
   /**
@@ -276,6 +281,7 @@ public final class TiltParam implements ConstTiltParam, CommandParam {
    * Script is from an earlier version if false.
    */
   private final EtomoBoolean2 adjustOrigin = new EtomoBoolean2("AdjustOrigin");
+  private String projectModel = "";
 
   private final String datasetName;
   private final ApplicationManager manager;
@@ -299,11 +305,15 @@ public final class TiltParam implements ConstTiltParam, CommandParam {
   }
 
   public String getCommandName() {
-    return ProcessName.TILT.toString();
+    return processName.toString();
+  }
+
+  public ProcessName getProcessName() {
+    return processName;
   }
 
   public String getCommand() {
-    return ProcessName.TILT.getComscript(axisID);
+    return processName.getComscript(axisID);
   }
 
   public String getCommandLine() {
@@ -311,7 +321,7 @@ public final class TiltParam implements ConstTiltParam, CommandParam {
   }
 
   public String[] getCommandArray() {
-    return ProcessName.TILT.getComscriptArray(axisID);
+    return processName.getComscriptArray(axisID);
   }
 
   public CommandMode getCommandMode() {
@@ -319,6 +329,10 @@ public final class TiltParam implements ConstTiltParam, CommandParam {
   }
 
   public CommandDetails getSubcommandDetails() {
+    return null;
+  }
+  
+  public ProcessName getSubcommandProcessName() {
     return null;
   }
 
@@ -334,8 +348,44 @@ public final class TiltParam implements ConstTiltParam, CommandParam {
     return logOffset;
   }
 
+  public void setAdjustOrigin(boolean input) {
+    adjustOrigin.set(input);
+  }
+
+  public void setAngles(String input) {
+    angles = input;
+  }
+
   public void setCommandMode(Mode input) {
     commandMode = input;
+  }
+
+  public void setCommandMode(String input) {
+    commandMode = Mode.getInstance(input);
+  }
+
+  public void setCompression(String input) {
+    compression = input;
+  }
+
+  public void setCompressionFraction(float input) {
+    compressionFraction = input;
+  }
+
+  public void setCosInterpFactor(float input) {
+    cosInterpFactor = input;
+  }
+
+  public void setCosInterpOrder(int input) {
+    cosInterpOrder = input;
+  }
+
+  public void setDensityWeightParams(String input) {
+    densityWeightParams = input;
+  }
+
+  public void setExclude(String input) {
+    exclude = input;
   }
 
   public boolean hasLogOffset() {
@@ -577,29 +627,116 @@ public final class TiltParam implements ConstTiltParam, CommandParam {
     return loadedFromFile && imageBinned.isNull();
   }
 
-  public boolean getBooleanValue(final etomo.comscript.Field field) {
+  public boolean getBooleanValue(final FieldInterface field) {
     if (field == Field.FIDUCIALESS) {
       return fiducialess.is();
     }
     if (field == Field.ADJUST_ORIGIN) {
       return adjustOrigin.is();
     }
+    if (field == Field.LOADED_FROM_FILE) {
+      return loadedFromFile;
+    }
+    if (field == Field.PARALLEL) {
+      return parallel;
+    }
+    if (field == Field.PERPENDICULAR) {
+      return perpendicular;
+    }
+    if (field == Field.USE_Z_FACTORS) {
+      return useZFactors;
+    }
     throw new IllegalArgumentException("field=" + field);
   }
 
-  public float getFloatValue(etomo.comscript.Field field) {
+  public float getFloatValue(FieldInterface field) {
+    if (field == Field.COMPRESSION_FRACTION) {
+      return compressionFraction;
+    }
+    if (field == Field.COS_INTERP_FACTOR) {
+      return cosInterpFactor;
+    }
+    if (field == Field.LOCAL_SCALE) {
+      return localScale;
+    }
+    if (field == Field.LOG_OFFSET) {
+      return logOffset;
+    }
+    if (field == Field.MASK) {
+      return mask;
+    }
+    if (field == Field.RADIAL_BANDWIDTH) {
+      return radialBandwidth;
+    }
+    if (field == Field.RADIAL_FALLOFF) {
+      return radialFalloff;
+    }
+    if (field == Field.SCALE_COEFF) {
+      return scaleCoeff;
+    }
+    if (field == Field.SCALE_F_LEVEL) {
+      return scaleFLevel;
+    }
+    if (field == Field.TILT_AXIS_OFFSET) {
+      return tiltAxisOffset;
+    }
+    if (field == Field.X_SHIFT) {
+      return xShift;
+    }
     throw new IllegalArgumentException("field=" + field);
   }
 
-  public String[] getStringArray(etomo.comscript.Field field) {
+  public String[] getStringArray(FieldInterface field) {
     throw new IllegalArgumentException("field=" + field);
   }
 
-  public String getString(etomo.comscript.Field field) {
+  public String getString(FieldInterface field) {
+    if (field == Field.ANGLES) {
+      return angles;
+    }
+    if (field == Field.COMPRESSION) {
+      return compression;
+    }
+    if (field == Field.DENSITY_WEIGHT_PARAMS) {
+      return densityWeightParams;
+    }
+    if (field == Field.EXCLUDE) {
+      return exclude;
+    }
+    if (field == Field.EXCLUDE_LIST) {
+      return excludeList.toString();
+    }
+    if (field == Field.EXCLUDE_LIST_2) {
+      return excludeList2.toString();
+    }
+    if (field == Field.INCLUDE) {
+      return include;
+    }
+    if (field == Field.INPUT_FILE) {
+      return inputFile;
+    }
+    if (field == Field.LOCAL_ALIGN_FILE) {
+      return localAlignFile;
+    }
+    if (field == Field.OUTPUT_FILE) {
+      return outputFile;
+    }
+    if (field == Field.TILT_FILE) {
+      return tiltFile;
+    }
+    if (field == Field.TITLE) {
+      return title;
+    }
+    if (field == Field.X_TILT_FILE) {
+      return xTiltFile;
+    }
+    if (field == Field.Z_FACTOR_FILE_NAME) {
+      return zFactorFileName;
+    }
     throw new IllegalArgumentException("field=" + field);
   }
 
-  public double getDoubleValue(etomo.comscript.Field field) {
+  public double getDoubleValue(FieldInterface field) {
     if (field == Field.X_AXIS_TILT) {
       return xAxisTilt;
     }
@@ -612,19 +749,67 @@ public final class TiltParam implements ConstTiltParam, CommandParam {
     throw new IllegalArgumentException("field=" + field);
   }
 
-  public ConstEtomoNumber getEtomoNumber(etomo.comscript.Field field) {
+  public ConstEtomoNumber getEtomoNumber(FieldInterface field) {
+    if (field == Field.IMAGE_BINNED) {
+      return imageBinned;
+    }
     throw new IllegalArgumentException("field=" + field);
   }
 
-  public ConstIntKeyList getIntKeyList(etomo.comscript.Field field) {
+  public ConstIntKeyList getIntKeyList(FieldInterface field) {
     throw new IllegalArgumentException("field=" + field);
   }
 
-  public int getIntValue(etomo.comscript.Field field) {
+  public int getIntValue(FieldInterface field) {
+    if (field == Field.COS_INTERP_ORDER) {
+      return cosInterpOrder;
+    }
+    if (field == Field.FAST_BACK_PROJ_INTERP_ORDER) {
+      return fastBackProjInterpOrder;
+    }
+    if (field == Field.FULL_IMAGE_X) {
+      return fullImageX;
+    }
+    if (field == Field.FULL_IMAGE_Y) {
+      return fullImageY;
+    }
+    if (field == Field.IDX_SLICE_START) {
+      return idxSliceStart;
+    }
+    if (field == Field.IDX_SLICE_STOP) {
+      return idxSliceStop;
+    }
+    if (field == Field.IDX_X_SUBSET_START) {
+      return idxXSubsetStart;
+    }
+    if (field == Field.IDX_Y_SUBSET_START) {
+      return idxYSubsetStart;
+    }
+    if (field == Field.INCR_SLICE) {
+      return incrSlice;
+    }
+    if (field == Field.INC_REPLICATE) {
+      return incReplicate;
+    }
+    if (field == Field.MODE) {
+      return mode;
+    }
+    if (field == Field.THICKNESS) {
+      return thickness;
+    }
+    if (field == Field.N_REPLICATE) {
+      return nReplicate;
+    }
+    if (field == Field.WIDTH) {
+      return width;
+    }
+    if (field == Field.X_TILT_INTERP) {
+      return xTiltInterp;
+    }
     throw new IllegalArgumentException("field=" + field);
   }
 
-  public Hashtable getHashtable(etomo.comscript.Field field) {
+  public Hashtable getHashtable(FieldInterface field) {
     throw new IllegalArgumentException("field=" + field);
   }
 
@@ -785,6 +970,9 @@ public final class TiltParam implements ConstTiltParam, CommandParam {
       }
       if (adjustOrigin.equalsNameIgnoreCase(tokens[0])) {
         adjustOrigin.set(true);
+      }
+      if (tokens[0].equals("ProjectModel")) {
+        projectModel = tokens[1];
       }
     }
     loadedFromFile = true;
@@ -1012,6 +1200,11 @@ public final class TiltParam implements ConstTiltParam, CommandParam {
       newArg.setArgument("ZFACTORFILE " + zFactorFileName);
       cmdLineArgs.add(newArg);
     }
+    if (!projectModel.equals("")) {
+      newArg = new ComScriptInputArg();
+      newArg.setArgument("ProjectModel " + projectModel);
+      cmdLineArgs.add(newArg);
+    }
     newArg = new ComScriptInputArg();
     newArg.setArgument("DONE");
     cmdLineArgs.add(newArg);
@@ -1025,6 +1218,18 @@ public final class TiltParam implements ConstTiltParam, CommandParam {
 
   public ConstEtomoNumber setImageBinned(final int imageBinned) {
     return this.imageBinned.set(imageBinned);
+  }
+
+  public void setImageBinned(final long input) {
+    imageBinned.set(input);
+  }
+
+  public void setInclude(final String input) {
+    include = input;
+  }
+
+  public void setIncReplicate(final int input) {
+    incReplicate = input;
   }
 
   /**
@@ -1065,6 +1270,10 @@ public final class TiltParam implements ConstTiltParam, CommandParam {
     excludeList2.parseString(list);
   }
 
+  public void setFastBackProjInterpOrder(final int input) {
+    fastBackProjInterpOrder = input;
+  }
+
   public void resetExcludeList() {
     excludeList.setNElements(0);
   }
@@ -1082,7 +1291,8 @@ public final class TiltParam implements ConstTiltParam, CommandParam {
     Goodframe goodframe = etomo.comscript.Utilities
         .getGoodframeFromMontageSize(axisID, manager);
     if (goodframe != null) {
-      MRCHeader header = MRCHeader.getInstance(manager, axisID, ".ali", manager.getManagerKey());
+      MRCHeader header = MRCHeader.getInstance(manager, axisID, ".ali", manager
+          .getManagerKey());
       try {
         if (!header.read()) {
           //ok if tilt is being updated before .ali exists
@@ -1111,6 +1321,10 @@ public final class TiltParam implements ConstTiltParam, CommandParam {
     }
   }
 
+  public void setNReplicate(final int input) {
+    nReplicate = input;
+  }
+
   public void resetSubsetStart() {
     idxXSubsetStart = 0;
     idxYSubsetStart = 0;
@@ -1124,12 +1338,14 @@ public final class TiltParam implements ConstTiltParam, CommandParam {
    */
   public boolean setSubsetStart() {
     resetSubsetStart();
-    MRCHeader stackHeader = MRCHeader.getInstance(manager, axisID, ".st", manager.getManagerKey());
+    MRCHeader stackHeader = MRCHeader.getInstance(manager, axisID, ".st",
+        manager.getManagerKey());
     try {
       if (!stackHeader.read()) {
         return true;
       }
-      MRCHeader aliHeader = MRCHeader.getInstance(manager, axisID, ".ali", manager.getManagerKey());
+      MRCHeader aliHeader = MRCHeader.getInstance(manager, axisID, ".ali",
+          manager.getManagerKey());
       if (!aliHeader.read()) {
         return true;
       }
@@ -1221,6 +1437,14 @@ public final class TiltParam implements ConstTiltParam, CommandParam {
     }
   }
 
+  public void setFullImageX(int input) {
+    fullImageX = input;
+  }
+
+  public void setFullImageY(int input) {
+    fullImageY = input;
+  }
+
   /**
    * @param i
    */
@@ -1246,6 +1470,14 @@ public final class TiltParam implements ConstTiltParam, CommandParam {
     idxSliceStop = i;
   }
 
+  public void setIdxXSubsetStart(final int input) {
+    idxXSubsetStart = input;
+  }
+
+  public void setIdxYSubsetStart(final int input) {
+    idxYSubsetStart = input;
+  }
+
   public void resetIdxSlice() {
     idxSliceStart = Integer.MIN_VALUE;
     idxSliceStop = Integer.MIN_VALUE;
@@ -1256,6 +1488,10 @@ public final class TiltParam implements ConstTiltParam, CommandParam {
     inputFile = file;
   }
 
+  public void setLoadedFromFile(final boolean input) {
+    loadedFromFile = input;
+  }
+
   public void resetInputFile() {
     inputFile = "";
   }
@@ -1264,12 +1500,28 @@ public final class TiltParam implements ConstTiltParam, CommandParam {
     localAlignFile = filename;
   }
 
+  public void setLocalScale(final float input) {
+    localScale = input;
+  }
+
+  public void setLogOffset(final float input) {
+    logOffset = input;
+  }
+
+  public void setProjectModel(final FileType input) {
+    projectModel = input.getFileName(manager, axisID);
+  }
+
   public void resetLocalAlignFile() {
     localAlignFile = "";
   }
 
   public void setLogShift(final float shift) {
     logOffset = shift;
+  }
+
+  public void setMask(final float input) {
+    mask = input;
   }
 
   public void resetLogShift() {
@@ -1297,9 +1549,28 @@ public final class TiltParam implements ConstTiltParam, CommandParam {
     perpendicular = false;
   }
 
+  public void setParallel(final boolean input) {
+    parallel = input;
+  }
+
   public void setPerpendicular() {
     parallel = false;
     perpendicular = true;
+  }
+
+  public void setPerpendicular(final boolean input) {
+    perpendicular = input;
+  }
+
+  public void setProcessName(ProcessName input) {
+    processName = input;
+  }
+
+  public void setProcessName(String input) {
+    processName = ProcessName.getInstance(input);
+    if (processName == null) {
+      processName = ProcessName.TILT;
+    }
   }
 
   public void resetAxisOrder() {
@@ -1347,12 +1618,20 @@ public final class TiltParam implements ConstTiltParam, CommandParam {
     this.scaleFLevel = scaleFLevel;
   }
 
+  public void setThickness(final int input) {
+    thickness = input;
+  }
+
   public void setThickness(final String newThickness) {
     thickness = Integer.parseInt(newThickness);
   }
 
   public void resetThickness() {
     thickness = Integer.MIN_VALUE;
+  }
+
+  public void setTiltAngleOffset(final double input) {
+    tiltAngleOffset.set(input);
   }
 
   /**
@@ -1385,6 +1664,10 @@ public final class TiltParam implements ConstTiltParam, CommandParam {
     tiltFile = filename;
   }
 
+  public void setTitle(final String input) {
+    title = input;
+  }
+
   /**
    * @param i
    */
@@ -1394,6 +1677,10 @@ public final class TiltParam implements ConstTiltParam, CommandParam {
 
   public void resetWidth() {
     width = Integer.MIN_VALUE;
+  }
+
+  public void setXAxisTilt(final double input) {
+    xAxisTilt = input;
   }
 
   public void setXAxisTilt(final String angle) {
@@ -1411,6 +1698,18 @@ public final class TiltParam implements ConstTiltParam, CommandParam {
     xShift = d;
   }
 
+  public void setXTiltFile(final String input) {
+    xTiltFile = input;
+  }
+  
+  public void setXTiltInterp(final int input) {
+    xTiltInterp=input;
+  }
+  
+  public void setZFactorFileName(final String input) {
+    zFactorFileName=input;
+  }
+
   public void resetXShift() {
     xShift = Float.NaN;
   }
@@ -1418,7 +1717,7 @@ public final class TiltParam implements ConstTiltParam, CommandParam {
   /**
    * @param d
    */
-  public void setZShift(final float d) {
+  public void setZShift(final double d) {
     zShift.set(d);
   }
 
@@ -1515,33 +1814,90 @@ public final class TiltParam implements ConstTiltParam, CommandParam {
     return true;
   }
 
-  public static final class Field implements etomo.comscript.Field {
+  public static final class Field implements etomo.comscript.FieldInterface {
     private Field() {
     }
 
+    public static final Field ANGLES = new Field();
+    public static final Field COMPRESSION = new Field();
+    public static final Field COS_INTERP_ORDER = new Field();
+    public static final Field COMPRESSION_FRACTION = new Field();
+    public static final Field COS_INTERP_FACTOR = new Field();
     public static final Field X_AXIS_TILT = new Field();
     public static final Field FIDUCIALESS = new Field();
     public static final Field Z_SHIFT = new Field();
     public static final Field TILT_ANGLE_OFFSET = new Field();
     public static final Field ADJUST_ORIGIN = new Field();
+    public static final Field DENSITY_WEIGHT_PARAMS = new Field();
+    public static final Field EXCLUDE = new Field();
+    public static final Field EXCLUDE_LIST = new Field();
+    public static final Field EXCLUDE_LIST_2 = new Field();
+    public static final Field FAST_BACK_PROJ_INTERP_ORDER = new Field();
+    public static final Field FULL_IMAGE_X = new Field();
+    public static final Field FULL_IMAGE_Y = new Field();
+    public static final Field IDX_SLICE_START = new Field();
+    public static final Field IDX_SLICE_STOP = new Field();
+    public static final Field IDX_X_SUBSET_START = new Field();
+    public static final Field IDX_Y_SUBSET_START = new Field();
+    public static final Field IMAGE_BINNED = new Field();
+    public static final Field INCLUDE = new Field();
+    public static final Field INCR_SLICE = new Field();
+    public static final Field INC_REPLICATE = new Field();
+    public static final Field INPUT_FILE = new Field();
+    public static final Field LOADED_FROM_FILE = new Field();
+    public static final Field LOCAL_ALIGN_FILE = new Field();
+    public static final Field LOCAL_SCALE = new Field();
+    public static final Field LOG_OFFSET = new Field();
+    public static final Field MASK = new Field();
+    public static final Field MODE = new Field();
+    public static final Field N_REPLICATE = new Field();
+    public static final Field OUTPUT_FILE = new Field();
+    public static final Field PARALLEL = new Field();
+    public static final Field PERPENDICULAR = new Field();
+    public static final Field RADIAL_BANDWIDTH = new Field();
+    public static final Field RADIAL_FALLOFF = new Field();
+    public static final Field SCALE_COEFF = new Field();
+    public static final Field SCALE_F_LEVEL = new Field();
+    public static final Field THICKNESS = new Field();
+    public static final Field TILT_AXIS_OFFSET = new Field();
+    public static final Field TILT_FILE = new Field();
+    public static final Field TITLE = new Field();
+    public static final Field USE_Z_FACTORS = new Field();
+    public static final Field WIDTH = new Field();
+    public static final Field X_SHIFT = new Field();
+    public static final Field X_TILT_FILE = new Field();
+    public static final Field  X_TILT_INTERP = new Field();
+    public static final Field  Z_FACTOR_FILE_NAME = new Field();
   }
 
   public static final class Mode implements CommandMode {
-    public static final Mode SAMPLE = new Mode();
-    public static final Mode WHOLE = new Mode();
-    public static final Mode TILT = new Mode();
+    public static final Mode SAMPLE = new Mode("SAMPLE");
+    public static final Mode WHOLE = new Mode("WHOLE");
+    public static final Mode TILT = new Mode("TILT");
+
+    private static final Mode DEFAULT = TILT;
+
+    private final String string;
+
+    private Mode(String string) {
+      this.string = string;
+    }
+
+    private static Mode getInstance(String input) {
+      if (SAMPLE.string.equals(input)) {
+        return SAMPLE;
+      }
+      if (WHOLE.string.equals(input)) {
+        return WHOLE;
+      }
+      if (TILT.string.equals(input)) {
+        return TILT;
+      }
+      return DEFAULT;
+    }
 
     public String toString() {
-      if (this == SAMPLE) {
-        return "SAMPLE";
-      }
-      if (this == WHOLE) {
-        return "WHOLE";
-      }
-      if (this == TILT) {
-        return "TILT";
-      }
-      return "";
+      return string;
     }
   }
 }

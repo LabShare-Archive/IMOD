@@ -35,6 +35,9 @@ import etomo.type.Run3dmodMenuOptions;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.65  2009/01/20 20:31:55  sueh
+ * <p> bug# 1102 Changed labeled panels to type EtomoPanel so that they can name themselves.
+ * <p>
  * <p> Revision 3.64  2008/10/16 22:32:47  sueh
  * <p> bug# 1141 Removed fixRootPanel because it doesn't do anything.
  * <p>
@@ -454,8 +457,6 @@ final class TomogramPositioningDialog extends ProcessDialog implements
     //  Create dialog content pane
     rootPanel.add(pnlPosition);
     addExitButtons();
-
-    // Set the default advanced dialog state
     setToolTipText();
     UIHarness.INSTANCE.pack(axisID, applicationManager);
   }
@@ -791,20 +792,12 @@ final class TomogramPositioningDialog extends ProcessDialog implements
     btnSample.setToolTipText(formattedToolTip);
   }
 
-  public boolean done() {
-    if (expert.doneDialog()) {
-      btnSample.removeActionListener(localActionListener);
-      btnTomopitch.removeActionListener(localActionListener);
-      btnAlign.removeActionListener(localActionListener);
-      setDisplayed(false);
-      return true;
-    }
-    return false;
-  }
-
-  public void buttonAdvancedAction(ActionEvent event) {
-    super.buttonAdvancedAction(event);
-    UIHarness.INSTANCE.pack(axisID, applicationManager);
+  public void done() {
+    expert.doneDialog();
+    btnSample.removeActionListener(localActionListener);
+    btnTomopitch.removeActionListener(localActionListener);
+    btnAlign.removeActionListener(localActionListener);
+    setDisplayed(false);
   }
 
   //

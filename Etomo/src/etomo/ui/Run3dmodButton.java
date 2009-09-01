@@ -102,6 +102,13 @@ final class Run3dmodButton extends MultiLineButton implements ContextMenu,
     instance.init();
     return instance;
   }
+  
+  static Run3dmodButton getDeferredToggle3dmodInstance(final String label) {
+    Run3dmodButton instance = new Run3dmodButton(label, null, true, null,
+        true, null);
+    instance.init();
+    return instance;
+  }
 
   static Run3dmodButton getDeferredToggle3dmodInstance(final String label,
       final DialogType dialogType) {
@@ -197,6 +204,9 @@ final class Run3dmodButton extends MultiLineButton implements ContextMenu,
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.13  2009/01/20 20:24:18  sueh
+ * <p> bug# 1102 Changed JMenuItem variables to type MenuItem so that they can name themselves.
+ * <p>
  * <p> Revision 1.12  2008/05/13 23:06:06  sueh
  * <p> bug# 847 Added deferred3dmodButton, which holds to method of
  * <p> running 3dmod that the button instance will use.

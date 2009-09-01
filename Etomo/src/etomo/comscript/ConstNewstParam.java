@@ -1,14 +1,8 @@
 package etomo.comscript;
 
-import java.io.File;
-import java.util.Hashtable;
-import java.util.Iterator;
 import java.util.Vector;
 
 import etomo.type.AxisID;
-import etomo.type.ConstEtomoNumber;
-import etomo.type.ConstIntKeyList;
-import etomo.type.EtomoBoolean2;
 
 /**
  * <p>Description: </p>
@@ -23,6 +17,9 @@ import etomo.type.EtomoBoolean2;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.23  2008/12/15 22:58:47  sueh
+ * <p> bug# 1161 Made axisID package private so that NewstParam could use it.
+ * <p>
  * <p> Revision 3.22  2007/12/13 01:03:27  sueh
  * <p> bug# 1056 Added adjustOrigin.
  * <p>
@@ -140,399 +137,145 @@ import etomo.type.EtomoBoolean2;
  * <p> </p>
  */
 
-public class ConstNewstParam implements CommandDetails {
+public  interface ConstNewstParam extends CommandDetails {
   public static final String rcsid = "$Id$";
-  //data mode
-  public static final String DATA_MODE_OPTION = "-mo";
-  public static final int DATA_MODE_DEFAULT = Integer.MIN_VALUE;
-  public static final int DATA_MODE_BYTE = 0;
 
-  //float densities
-  public static final String FLOAT_DENSITIES_OPTION = "-fl";
-  public static final int FLOAT_DENSITIES_DEFAULT = Integer.MIN_VALUE;
-  public static final int FLOAT_DENSITIES_MEAN = 2;
-
-  private static final String commandFileName = "newst";
-  private static final String commandFileExtension = ".com";
-
-  Vector inputFile;
-  Vector outputFile;
-  String fileOfInputs;
-  String fileOfOutputs;
-  Vector sectionsToRead;
-  Vector numberToOutput;
-  FortranInputString sizeToOutputInXandY;
-  int modeToOutput;
-  Vector offsetsInXandY;
-  boolean applyOffsetsFirst;
-  String transformFile;
-  String useTransformLines;
-  float rotateByAngle;
-  float expandByFactor;
-  int binByFactor;
-  boolean linearInterpolation;
-  int floatDensities;
-  FortranInputString contrastBlackWhite;
-  FortranInputString scaleMinAndMax;
-  String distortionField;
-  int imagesAreBinned;
-  FortranInputString testLimits;
-  String parameterFile;
-  boolean fiducialessAlignment;
-  Mode commandMode;
-  String magGradientFile;
-  /**
-   * @version 3.10
-   * Script is from an earlier version if false.
-   */
-  final EtomoBoolean2 adjustOrigin = new EtomoBoolean2();
-
-   AxisID axisID;
-
-  //defaults
-  public static final int BIN_BY_FACTOR_DEFAULT = 1;
-
-  //TODO
-  public ConstNewstParam(AxisID axisID) {
-    this.axisID = axisID;
-    initializeEmpty();
-  }
-
-  public AxisID getAxisID() {
-    return axisID;
-  }
+  public AxisID getAxisID();
 
   /**
    * @return Returns the applyOffsetsFirst.
    */
-  public boolean isApplyOffsetsFirst() {
-    return applyOffsetsFirst;
-  }
+  public boolean isApplyOffsetsFirst();
 
   /**
    * @return Returns the binByFactor.
    */
-  public int getBinByFactor() {
-    return ParamUtilities.get(binByFactor, BIN_BY_FACTOR_DEFAULT);
-  }
+  public int getBinByFactor();
 
   /**
    * @return Returns the contrastBlackWhite.
    */
-  public String getContrastBlackWhite() {
-    return contrastBlackWhite.toString();
-  }
+  public String getContrastBlackWhite();
 
   /**
    * @return Returns the distortionField.
    */
-  public String getDistortionField() {
-    return distortionField;
-  }
+  public String getDistortionField();
 
   /**
    * @return Returns the expandByFactor.
    */
-  public float getExpandByFactor() {
-    return expandByFactor;
-  }
-
-  public CommandDetails getSubcommandDetails() {
-    return null;
-  }
+  public float getExpandByFactor();
 
   /**
    * @return Returns the fileOfInputs.
    */
-  public String getFileOfInputs() {
-    return fileOfInputs;
-  }
+  public String getFileOfInputs();
 
   /**
    * @return Returns the fileOfOutputs.
    */
-  public String getFileOfOutputs() {
-    return fileOfOutputs;
-  }
+  public String getFileOfOutputs();
 
   /**
    * @return Returns the floatDensities.
    */
-  public int getFloatDensities() {
-    return floatDensities;
-  }
+  public int getFloatDensities();
 
   /**
    * @return Returns the imagesAreBinned.
    */
-  public int getImagesAreBinned() {
-    return imagesAreBinned;
-  }
+  public int getImagesAreBinned();
 
   /**
    * Backward compatibility with pre PIP structure, just return the first input
    * file
    * @return Returns the inputFile.
    */
-  public String getInputFile() {
-    return (String) inputFile.get(0);
-  }
+  public String getInputFile();
 
   /**
    * Create a defensive copy of the internal object inputFile
    * @return
    */
-  public Vector getInputFiles() {
-    Vector copy = new Vector(inputFile);
-    return copy;
-  }
+  public Vector getInputFiles();
 
   /**
    * @return Returns the linearInterpolation.
    */
-  public boolean isLinearInterpolation() {
-    return linearInterpolation;
-  }
+  public boolean isLinearInterpolation();
 
   /**
    * @return Returns the modeToOutput.
    */
-  public int getModeToOutput() {
-    return modeToOutput;
-  }
+  public int getModeToOutput();
 
   /**
    * @return Returns the numberToOutput.
    */
-  public Vector getNumberToOutput() {
-    return numberToOutput;
-  }
+  public Vector getNumberToOutput();
 
   /**
    * @return Returns the offsetsInXandY.
    */
-  public String getOffsetsInXandY() {
-    StringBuffer buffer = new StringBuffer();
-    for (Iterator i = offsetsInXandY.iterator(); i.hasNext();) {
-      buffer.append((String) i.next());
-      buffer.append(",");
-    }
-    // Remove the trailing comma
-    if (buffer.length() > 0) {
-      buffer.deleteCharAt(buffer.length() - 1);
-    }
-    return buffer.toString();
-  }
+  public String getOffsetsInXandY();
 
   /**
    * Backward compatibility with pre PIP structure, just return the first ouput
    * file
    * @return Returns the inputFile.
    */
-  public String getOutputFile() {
-    if (outputFile.size() == 0) {
-      return "";
-    }
-    return (String) outputFile.get(0);
-  }
+  public String getOutputFile();
 
   /**
    * Create a defensive copy of the internal object inputFile
    * @return
    */
-  public Vector getOutputFiles() {
-    Vector copy = new Vector(outputFile);
-    return copy;
-  }
+  public Vector getOutputFiles();
 
   /**
    * @return Returns the parameterFile.
    */
-  public String getParameterFile() {
-    return parameterFile;
-  }
+  public String getParameterFile();
 
   /**
    * @return Returns the rotateByAngle.
    */
-  public float getRotateByAngle() {
-    return rotateByAngle;
-  }
+  public float getRotateByAngle();
 
   /**
    * @return Returns the scaleMinAndMax.
    */
-  public FortranInputString getScaleMinAndMax() {
-    return scaleMinAndMax;
-  }
+  public FortranInputString getScaleMinAndMax();
 
   /**
    * @return Returns the sectionsToRead.
    */
-  public Vector getSectionsToRead() {
-    Vector copy = new Vector(sectionsToRead);
-    return copy;
-  }
+  public Vector getSectionsToRead();
 
   /**
    * @return Returns the sizeToOutputInXandY.
    */
-  public String getSizeToOutputInXandY() {
-    return sizeToOutputInXandY.toString();
-  }
+  public String getSizeToOutputInXandY();
 
-  public int getSizeToOutputInX() {
-    return sizeToOutputInXandY.getInt(0);
-  }
+  public int getSizeToOutputInX();
 
-  public int getSizeToOutputInY() {
-    return sizeToOutputInXandY.getInt(1);
-  }
+  public int getSizeToOutputInY();
 
   /**
    * @return Returns the testLimits.
    */
-  public String getTestLimits() {
-    return testLimits.toString();
-  }
+  public String getTestLimits();
 
   /**
    * @return Returns the transformFile.
    */
-  public String getTransformFile() {
-    return transformFile;
-  }
+  public String getTransformFile();
 
   /**
    * @return Returns the useTransformLines.
    */
-  public String getUseTransformLines() {
-    return useTransformLines;
-  }
+  public String getUseTransformLines();
 
-  public boolean isSizeToOutputInXandYSet() {
-    return sizeToOutputInXandY.valuesSet()
-        && (!sizeToOutputInXandY.isDefault());
-  }
-
-  /**
-   * Initialize all of the attributes of this class to their empty
-   * (unspecified) values.
-   */
-  protected void initializeEmpty() {
-    inputFile = new Vector();
-    outputFile = new Vector();
-    fileOfInputs = "";
-    fileOfOutputs = "";
-    sectionsToRead = new Vector();
-    numberToOutput = new Vector();
-    sizeToOutputInXandY = new FortranInputString(2);
-    boolean[] bothTrue = { true, true };
-    sizeToOutputInXandY.setIntegerType(bothTrue);
-    modeToOutput = Integer.MIN_VALUE;
-    offsetsInXandY = new Vector();
-    applyOffsetsFirst = false;
-    transformFile = "";
-    useTransformLines = "";
-    rotateByAngle = Float.NaN;
-    expandByFactor = Float.NaN;
-    binByFactor = Integer.MIN_VALUE;
-    linearInterpolation = false;
-    floatDensities = Integer.MIN_VALUE;
-    contrastBlackWhite = new FortranInputString(2);
-    contrastBlackWhite.setIntegerType(bothTrue);
-    scaleMinAndMax = new FortranInputString(2);
-    distortionField = "";
-    imagesAreBinned = Integer.MIN_VALUE;
-    testLimits = new FortranInputString(2);
-    testLimits.setIntegerType(bothTrue);
-    parameterFile = "";
-    fiducialessAlignment = false;
-    magGradientFile = null;
-    adjustOrigin.reset();
-  }
-
-  public String getCommand() {
-    return getCommandFileName(axisID);
-  }
-
-  public static String getCommandFileName(AxisID axisID) {
-    return commandFileName + axisID.getExtension() + commandFileExtension;
-  }
-
-  public String getCommandLine() {
-    return getCommandFileName(axisID);
-  }
-
-  public String getCommandName() {
-    return commandFileName;
-  }
-
-  public String[] getCommandArray() {
-    String[] array = { getCommandLine() };
-    return array;
-  }
-
-  public CommandMode getCommandMode() {
-    return commandMode;
-  }
-
-  public File getCommandOutputFile() {
-    return null;
-  }
-
-  public int getIntValue(etomo.comscript.Field field) {
-    if (field == Fields.BINNING) {
-      return getBinByFactor();
-    }
-    throw new IllegalArgumentException("field=" + field);
-  }
-
-  public boolean getBooleanValue(etomo.comscript.Field field) {
-    if (field == Fields.FIDUCIALESS_ALIGNMENT) {
-      return fiducialessAlignment;
-    }
-    throw new IllegalArgumentException("field=" + field);
-  }
-
-  public float getFloatValue(etomo.comscript.Field field) {
-    throw new IllegalArgumentException("field=" + field);
-  }
-
-  public String[] getStringArray(etomo.comscript.Field field) {
-    throw new IllegalArgumentException("field=" + field);
-  }
-
-  public String getString(etomo.comscript.Field field) {
-    throw new IllegalArgumentException("field=" + field);
-  }
-
-  public double getDoubleValue(etomo.comscript.Field field) {
-    throw new IllegalArgumentException("field=" + field);
-  }
-
-  public ConstEtomoNumber getEtomoNumber(etomo.comscript.Field field) {
-    throw new IllegalArgumentException("field=" + field);
-  }
-
-  public ConstIntKeyList getIntKeyList(etomo.comscript.Field field) {
-    throw new IllegalArgumentException("field=" + field);
-  }
-
-  public Hashtable getHashtable(etomo.comscript.Field field) {
-    throw new IllegalArgumentException("field=" + field);
-  }
-
-  public static final class Fields implements etomo.comscript.Field {
-    private Fields() {
-    }
-
-    public static final Fields FIDUCIALESS_ALIGNMENT = new Fields();
-    public static final Fields BINNING = new Fields();
-  }
-
-  public static final class Mode implements CommandMode {
-    public static final Mode WHOLE_TOMOGRAM_SAMPLE = new Mode();
-    public static final Mode FULL_ALIGNED_STACK = new Mode();
-  }
+  public boolean isSizeToOutputInXandYSet();
 }

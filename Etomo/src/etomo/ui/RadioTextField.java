@@ -26,6 +26,9 @@ import etomo.type.EnumeratedType;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.7  2009/02/19 01:45:50  sueh
+ * <p> bug# 1178 In setToolTipText stop formatting tooltip twice.
+ * <p>
  * <p> Revision 1.6  2009/02/19 01:44:19  sueh
  * <p> bug# 1178 In setToolTipText stop formatting tooltip twice.
  * <p>
@@ -81,7 +84,7 @@ final class RadioTextField implements RadioButtonInterface {
     radioTextField.addListeners();
     return radioTextField;
   }*/
-
+  
   private RadioTextField(final String label, final ButtonGroup group) {
     radioButton = new RadioButton(label);
     textField = new TextField(label);
@@ -117,6 +120,10 @@ final class RadioTextField implements RadioButtonInterface {
 
   Container getContainer() {
     return rootPanel;
+  }
+  
+  void setText(final float value) {
+    textField.setText(String.valueOf(value));
   }
 
   void setText(final String text) {

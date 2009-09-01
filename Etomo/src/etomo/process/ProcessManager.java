@@ -20,6 +20,9 @@
  * 
  * <p>
  * $Log$
+ * Revision 3.135  2009/08/20 23:37:16  sueh
+ * bug# 1255 Ported from 3.13.
+ *
  * Revision 3.126.2.1  2009/08/20 22:45:07  sueh
  * bug# 1255 Checking the return value of CopyTomoComs.setup.
  *
@@ -918,11 +921,13 @@ import etomo.util.InvalidParameterException;
 import etomo.util.MRCHeader;
 import etomo.util.Utilities;
 import etomo.comscript.ArchiveorigParam;
+import etomo.comscript.BeadtrackParam;
 import etomo.comscript.BlendmontParam;
 import etomo.comscript.CCDEraserParam;
 import etomo.comscript.CombineComscriptState;
 import etomo.comscript.Command;
 import etomo.comscript.CommandDetails;
+import etomo.comscript.ConstFindBeads3dParam;
 import etomo.comscript.ConstSplitCorrectionParam;
 import etomo.comscript.ConstTiltParam;
 import etomo.comscript.CtfPhaseFlipParam;
@@ -1173,14 +1178,12 @@ public class ProcessManager extends BaseProcessManager {
   public String blend(BlendmontParam blendmontParam, AxisID axisID,
       ProcessResultDisplay processResultDisplay,
       ConstProcessSeries processSeries) throws SystemProcessException {
-    //  Create the required tiltalign command
-    String command = blendmontParam.getProcessName().getComscript(axisID);
     //  Start the com script in the background
     BlendmontProcessMonitor blendmontProcessMonitor = new BlendmontProcessMonitor(
         appManager, axisID, blendmontParam.getMode());
 
     //  Start the com script in the background
-    ComScriptProcess comScriptProcess = startComScript(command,
+    ComScriptProcess comScriptProcess = startComScript(blendmontParam,
         blendmontProcessMonitor, axisID, processResultDisplay, processSeries);
     return comScriptProcess.getName();
   }
@@ -1360,16 +1363,11 @@ public class ProcessManager extends BaseProcessManager {
    * @param axisID
    *          the AxisID to run track.com on.
    */
-  public String fiducialModelTrack(AxisID axisID,
+  public String fiducialModelTrack(BeadtrackParam param, AxisID axisID,
       ProcessResultDisplay processResultDisplay,
       ConstProcessSeries processSeries) throws SystemProcessException {
-    //
-    //  Create the required beadtrack command
-    //
-    String command = "track" + axisID.getExtension() + ".com";
-
     //  Start the com script in the background
-    ComScriptProcess comScriptProcess = startComScript(command, null, axisID,
+    ComScriptProcess comScriptProcess = startComScript(param, null, axisID,
         processResultDisplay, processSeries);
     return comScriptProcess.getName();
   }
@@ -1505,7 +1503,7 @@ public class ProcessManager extends BaseProcessManager {
   }
 
   /**
-   * Run the appropriate newst com file for the given axis ID
+   * Run the appropriate newst com (or newst_3dfind.com) file for the given axis ID
    * 
    * @param axisID
    *          the AxisID to run newst on.
@@ -1520,7 +1518,15 @@ public class ProcessManager extends BaseProcessManager {
     ComScriptProcess comScriptProcess = startComScript(newstParam,
         newstProcessMonitor, axisID, processResultDisplay, processSeries);
     return comScriptProcess.getName();
+  }
 
+  public String findBeads3d(ConstFindBeads3dParam param, AxisID axisID,
+      ProcessResultDisplay processResultDisplay,
+      ConstProcessSeries processSeries) throws SystemProcessException {
+    //  Start the com script in the background
+    ComScriptProcess comScriptProcess = startComScript(param, null, axisID,
+        processResultDisplay, processSeries);
+    return comScriptProcess.getName();
   }
 
   /**
@@ -1587,20 +1593,15 @@ public class ProcessManager extends BaseProcessManager {
    *          the AxisID to run tilt on.
    */
   public String tilt(AxisID axisID, ProcessResultDisplay processResultDisplay,
-      ConstProcessSeries processSeries, ConstTiltParam param)
-      throws SystemProcessException {
-    //
-    //  Create the required tilt command
-    //
-    String command = "tilt" + axisID.getExtension() + ".com";
-
+      ConstProcessSeries processSeries, ConstTiltParam param,
+      String processTitle) throws SystemProcessException {
     //  Instantiate the process monitor
     TiltProcessMonitor tiltProcessMonitor = new TiltProcessMonitor(appManager,
         axisID);
-
+    tiltProcessMonitor.setProcessTitle(processTitle);
     //  Start the com script in the background
-    ComScriptProcess comScriptProcess = startComScript(command,
-        tiltProcessMonitor, axisID, processResultDisplay, param, processSeries);
+    ComScriptProcess comScriptProcess = startComScript(param,
+        tiltProcessMonitor, axisID, processResultDisplay, processSeries);
 
     return comScriptProcess.getName();
   }
@@ -1777,7 +1778,7 @@ public class ProcessManager extends BaseProcessManager {
    * 
    * @return String
    */
-  public String solvematch(ConstProcessSeries processSeries)
+  private String solvematch(ConstProcessSeries processSeries)
       throws SystemProcessException {
     //  Create the required solvematch command
     String command = "solvematch.com";
@@ -1794,7 +1795,7 @@ public class ProcessManager extends BaseProcessManager {
    * 
    * @return String
    */
-  public String matchvol1(ConstProcessSeries processSeries)
+  private String matchvol1(ConstProcessSeries processSeries)
       throws SystemProcessException {
     //  Create the required matchvol1 command
     String command = "matchvol1.com";
@@ -1893,8 +1894,8 @@ public class ProcessManager extends BaseProcessManager {
     String command = ProcessName.FLATTEN.toString() + axisID.getExtension()
         + ".com";
     //  Instantiate the process monitor
-    Matchvol1ProcessMonitor monitor = Matchvol1ProcessMonitor.getFlattenInstance(appManager,
-        axisID);
+    Matchvol1ProcessMonitor monitor = Matchvol1ProcessMonitor
+        .getFlattenInstance(appManager, axisID);
     //  Start the com script in the background
     ComScriptProcess comScriptProcess = startComScript(command, monitor,
         axisID, processResultDisplay, processSeries);
@@ -2016,74 +2017,139 @@ public class ProcessManager extends BaseProcessManager {
   protected void postProcess(ReconnectProcess script) {
   }
 
-  protected void postProcess(ComScriptProcess script) {
-    // Script specific post processing
-    ProcessName processName = script.getProcessName();
-    ProcessDetails processDetails = script.getProcessDetails();
-    CommandDetails commandDetails = script.getCommandDetails();
-    TomogramState state = appManager.getState();
-    AxisID axisID = script.getAxisID();
-    if (processName == ProcessName.ALIGN) {
-      generateAlignLogs(axisID);
-      copyFiducialAlignFiles(axisID);
-      state.setMadeZFactors(axisID, processDetails
-          .getBooleanValue(TiltalignParam.Fields.USE_OUTPUT_Z_FACTOR_FILE));
-      state.setUsedLocalAlignments(axisID, processDetails
-          .getBooleanValue(TiltalignParam.Fields.LOCAL_ALIGNMENTS));
-      appManager.setEnabledTiltParameters(script.getAxisID());
-      state.setAlignAxisZShift(axisID, processDetails
-          .getDoubleValue(TiltalignParam.Fields.AXIS_Z_SHIFT));
-      state.setAlignAngleOffset(axisID, processDetails
-          .getDoubleValue(TiltalignParam.Fields.ANGLE_OFFSET));
-      appManager.postProcess(axisID, processName, processDetails, script
-          .getProcessResultDisplay());
-      appManager.logTaErrorLogMessage(axisID);
-    }
-    else if (processName == ProcessName.TOMOPITCH) {
-      appManager.setTomopitchOutput(axisID);
-    }
-    else if (processName == ProcessName.NEWST) {
-      if (commandDetails.getCommandMode() == NewstParam.Mode.FULL_ALIGNED_STACK) {
-        appManager.getState().setNewstFiducialessAlignment(
-            axisID,
-            commandDetails
-                .getBooleanValue(NewstParam.Fields.FIDUCIALESS_ALIGNMENT));
-        appManager.setEnabledTiltParameters(script.getAxisID());
+  void postProcess(final DetachedProcess process) {
+    super.postProcess(process);
+    try {
+      if (process.getCommand().getCommandName().equals(
+          ProcessName.PROCESSCHUNKS.toString())) {
+        CommandDetails commandDetails = process.getCommandDetails();
+        if (commandDetails != null) {
+          postProcess(commandDetails.getSubcommandProcessName(), process
+              .getAxisID());
+        }
       }
     }
-    else if (processName == ProcessName.UNDISTORT) {
-      appManager.setEnabledFixEdgesWithMidas(script.getAxisID());
+    catch (NullPointerException e) {
     }
-    else if (processName == ProcessName.XCORR) {
-      setInvalidEdgeFunctions(script.getCommand(), true);
+  }
+
+  /**
+   * Post process for processes that may or may not be done with processchunks.
+   * @param processName
+   * @param axisID
+   */
+  private void postProcess(ProcessName processName, AxisID axisID) {
+    if (processName == ProcessName.TILT_3D_FIND) {
+      appManager.copyTilt3dFindReprojectCom(axisID);
     }
-    else if (processName == ProcessName.PREBLEND) {
-      setInvalidEdgeFunctions(script.getCommand(), true);
-    }
-    else if (processName == ProcessName.SAMPLE) {
-      appManager.tomogramPositioningPostProcess(script.getAxisID(),
-          processDetails);
-    }
-    else if (processName == ProcessName.TILT) {
-      if (commandDetails.getCommandMode() == TiltParam.Mode.WHOLE) {
+  }
+
+  protected void postProcess(ComScriptProcess script) {
+    try {
+      // Script specific post processing
+      ProcessName processName = script.getProcessName();
+      ProcessDetails processDetails = script.getProcessDetails();
+      CommandDetails commandDetails = script.getCommandDetails();
+      TomogramState state = appManager.getState();
+      AxisID axisID = script.getAxisID();
+      if (processName == ProcessName.ALIGN) {
+        generateAlignLogs(axisID);
+        copyFiducialAlignFiles(axisID);
+        state.setMadeZFactors(axisID, processDetails
+            .getBooleanValue(TiltalignParam.Fields.USE_OUTPUT_Z_FACTOR_FILE));
+        state.setUsedLocalAlignments(axisID, processDetails
+            .getBooleanValue(TiltalignParam.Fields.LOCAL_ALIGNMENTS));
+        appManager.setEnabledTiltParameters(script.getAxisID());
+        state.setAlignAxisZShift(axisID, processDetails
+            .getDoubleValue(TiltalignParam.Fields.AXIS_Z_SHIFT));
+        state.setAlignAngleOffset(axisID, processDetails
+            .getDoubleValue(TiltalignParam.Fields.ANGLE_OFFSET));
+        appManager.postProcess(axisID, processName, processDetails, script
+            .getProcessResultDisplay());
+        appManager.logTaErrorLogMessage(axisID);
+      }
+      else if (processName == ProcessName.TOMOPITCH) {
+        appManager.setTomopitchOutput(axisID);
+      }
+      else if (processName == ProcessName.NEWST) {
+        if (commandDetails.getCommandMode() == NewstParam.Mode.FULL_ALIGNED_STACK) {
+          state.setNewstFiducialessAlignment(axisID, commandDetails
+              .getBooleanValue(NewstParam.Field.FIDUCIALESS_ALIGNMENT));
+          appManager.setEnabledTiltParameters(axisID);
+          state.setStackUseLinearInterpolation(axisID, commandDetails
+              .getBooleanValue(NewstParam.Field.USE_LINEAR_INTERPOLATION));
+          state.setStackUserSizeToOutputInXandY(axisID, commandDetails
+              .getString(NewstParam.Field.USER_SIZE_TO_OUTPUT_IN_X_AND_Y));
+          state.setStackImageRotation(axisID, commandDetails
+              .getEtomoNumber(NewstParam.Field.IMAGE_ROTATION));
+        }
+      }
+      else if (processName == ProcessName.BLEND) {
+        if (commandDetails.getCommandMode() == BlendmontParam.Mode.BLEND) {
+          state.setStackUseLinearInterpolation(axisID, commandDetails
+              .getBooleanValue(BlendmontParam.Field.LINEAR_INTERPOLATION));
+          state.setStackUserSizeToOutputInXandY(axisID, commandDetails
+              .getString(BlendmontParam.Field.USER_SIZE_TO_OUTPUT_IN_X_AND_Y));
+          state.setStackImageRotation(axisID, commandDetails
+              .getEtomoNumber(BlendmontParam.Field.IMAGE_ROTATION));
+          state.setNewstFiducialessAlignment(axisID, commandDetails
+              .getBooleanValue(BlendmontParam.Field.FIDUCIALESS));
+        }
+      }
+      else if (processName == ProcessName.UNDISTORT) {
+        appManager.setEnabledFixEdgesWithMidas(script.getAxisID());
+      }
+      else if (processName == ProcessName.XCORR) {
+        setInvalidEdgeFunctions(script.getCommand(), true);
+      }
+      else if (processName == ProcessName.PREBLEND) {
+        setInvalidEdgeFunctions(script.getCommand(), true);
+      }
+      else if (processName == ProcessName.SAMPLE) {
         appManager.tomogramPositioningPostProcess(script.getAxisID(),
             processDetails);
       }
-      if (commandDetails.getCommandMode() != TiltParam.Mode.SAMPLE) {
-        state.setAdjustOrigin(script.getAxisID(), processDetails
-            .getBooleanValue(TiltParam.Field.ADJUST_ORIGIN));
+      else if (processName == ProcessName.TILT) {
+        if (commandDetails.getCommandMode() == TiltParam.Mode.WHOLE) {
+          appManager.tomogramPositioningPostProcess(script.getAxisID(),
+              processDetails);
+        }
+        if (commandDetails.getCommandMode() != TiltParam.Mode.SAMPLE) {
+          state.setAdjustOrigin(script.getAxisID(), processDetails
+              .getBooleanValue(TiltParam.Field.ADJUST_ORIGIN));
+        }
       }
-    }
-    else if (processName == ProcessName.TRACK) {
-      File fiducialFile = DatasetFiles.getFiducialModelFile(appManager, axisID);
-      if (fiducialFile.exists()) {
-        state.setFidFileLastModified(axisID, fiducialFile.lastModified());
-        appManager.logMessage(TrackLog.getInstance(appManager
-            .getPropertyUserDir(), axisID), axisID, appManager.getManagerKey());
+      else if (processName == ProcessName.NEWST_3D_FIND) {
+        state.setStackUsingNewstOrBlend3dFindOutput(axisID, true);
+      }
+      else if (processName == ProcessName.BLEND_3D_FIND) {
+        state.setStackUsingNewstOrBlend3dFindOutput(axisID, true);
+      }
+      else if (processName == ProcessName.TRACK) {
+        File fiducialFile = DatasetFiles.getFiducialModelFile(appManager,
+            axisID);
+        if (fiducialFile.exists()) {
+          state.setFidFileLastModified(axisID, fiducialFile.lastModified());
+          appManager.logMessage(TrackLog.getInstance(appManager
+              .getPropertyUserDir(), axisID), axisID, appManager
+              .getManagerKey());
+        }
+        else {
+          state.resetFidFileLastModified(axisID);
+        }
+        state.setTrackLightBeads(axisID, commandDetails
+            .getBooleanValue(BeadtrackParam.Field.LIGHT_BEADS));
       }
       else {
-        state.resetFidFileLastModified(axisID);
+        //For processes that can also be done with processchunks.
+        if (processName != null) {
+          postProcess(processName, axisID);
+        }
       }
+    }
+    catch (Exception e) {
+      e.printStackTrace();
+      System.err.println("ERROR:  Unable to record state.");
     }
   }
 
@@ -2091,16 +2157,22 @@ public class ProcessManager extends BaseProcessManager {
   }
 
   protected void errorProcess(ComScriptProcess script) {
-    ProcessName processName = script.getProcessName();
-    if (processName == ProcessName.XCORR) {
-      setInvalidEdgeFunctions(script.getCommand(), false);
+    try {
+      ProcessName processName = script.getProcessName();
+      if (processName == ProcessName.XCORR) {
+        setInvalidEdgeFunctions(script.getCommand(), false);
+      }
+      else if (processName == ProcessName.PREBLEND) {
+        setInvalidEdgeFunctions(script.getCommand(), false);
+      }
+      else if (processName == ProcessName.COMBINE) {
+        appManager.errorProcess(script.getAxisID(), processName, script
+            .getProcessDetails());
+      }
     }
-    else if (processName == ProcessName.PREBLEND) {
-      setInvalidEdgeFunctions(script.getCommand(), false);
-    }
-    else if (processName == ProcessName.COMBINE) {
-      appManager.errorProcess(script.getAxisID(), processName, script
-          .getProcessDetails());
+    catch (Exception e) {
+      e.printStackTrace();
+      System.err.println("ERROR:  Unable to record state.");
     }
   }
 
@@ -2114,61 +2186,75 @@ public class ProcessManager extends BaseProcessManager {
     }
   }
 
-   void postProcess(BackgroundProcess process) {
-    super.postProcess(process);
-    if (process.getCommandLine().equals(transferfidCommandLine)) {
-      writeLogFile(process, process.getAxisID(), DatasetFiles.TRANSFER_FID_LOG);
-      //showTransferfidLogFile(process.getAxisID());
-      appManager.getState().setSeedingDone(process.getAxisID(), true);
-      appManager.logMessage(TransferFidLog.getInstance(appManager
-          .getPropertyUserDir(), process.getAxisID()), process.getAxisID(),
-          appManager.getManagerKey());
-    }
-    else {
-      String commandName = process.getCommandName();
-      if (commandName == null) {
-        return;
+  void postProcess(BackgroundProcess process) {
+    try {
+      super.postProcess(process);
+      if (process.getCommandLine().equals(transferfidCommandLine)) {
+        writeLogFile(process, process.getAxisID(),
+            DatasetFiles.TRANSFER_FID_LOG);
+        //showTransferfidLogFile(process.getAxisID());
+        appManager.getState().setSeedingDone(process.getAxisID(), true);
+        appManager.logMessage(TransferFidLog.getInstance(appManager
+            .getPropertyUserDir(), process.getAxisID()), process.getAxisID(),
+            appManager.getManagerKey());
       }
-      ProcessDetails processDetails = process.getProcessDetails();
-      Command command = process.getCommand();
-      TomogramState state = appManager.getState();
-      if (commandName.equals(TrimvolParam.getName())) {
-        AxisID axisID = process.getAxisID();
-        state.setTrimvolFlipped(processDetails
-            .getBooleanValue(TrimvolParam.Fields.SWAP_YZ)
-            || processDetails.getBooleanValue(TrimvolParam.Fields.ROTATE_X));
-        MRCHeader mrcHeader = MRCHeader.getInstance(appManager
-            .getPropertyUserDir(), TrimvolParam.getInputFileName(appManager
-            .getBaseMetaData().getAxisType(), appManager.getBaseMetaData()
-            .getName()), AxisID.ONLY, appManager.getManagerKey());
-        try {
-          if (mrcHeader.read()) {
-            state.setPostProcTrimVolInputNColumns(mrcHeader.getNColumns());
-            state.setPostProcTrimVolInputNRows(mrcHeader.getNRows());
-            state.setPostProcTrimVolInputNSections(mrcHeader.getNSections());
+      else {
+        String commandName = process.getCommandName();
+        if (commandName == null) {
+          return;
+        }
+        ProcessDetails processDetails = process.getProcessDetails();
+        Command command = process.getCommand();
+        TomogramState state = appManager.getState();
+        if (commandName.equals(TrimvolParam.getName())) {
+          AxisID axisID = process.getAxisID();
+          state.setTrimvolFlipped(processDetails
+              .getBooleanValue(TrimvolParam.Fields.SWAP_YZ)
+              || processDetails.getBooleanValue(TrimvolParam.Fields.ROTATE_X));
+          MRCHeader mrcHeader = MRCHeader.getInstance(appManager
+              .getPropertyUserDir(), TrimvolParam.getInputFileName(appManager
+              .getBaseMetaData().getAxisType(), appManager.getBaseMetaData()
+              .getName()), AxisID.ONLY, appManager.getManagerKey());
+          try {
+            if (mrcHeader.read()) {
+              state.setPostProcTrimVolInputNColumns(mrcHeader.getNColumns());
+              state.setPostProcTrimVolInputNRows(mrcHeader.getNRows());
+              state.setPostProcTrimVolInputNSections(mrcHeader.getNSections());
+            }
+          }
+          catch (IOException e) {
+            e.printStackTrace();
+          }
+          catch (InvalidParameterException e) {
+            e.printStackTrace();
           }
         }
-        catch (IOException e) {
-          e.printStackTrace();
+        else if (commandName.equals(SqueezevolParam.getName())) {
+          appManager.getState().setSqueezevolFlipped(
+              processDetails.getBooleanValue(SqueezevolParam.Fields.FLIPPED));
         }
-        catch (InvalidParameterException e) {
-          e.printStackTrace();
+        else if (commandName.equals(ArchiveorigParam.COMMAND_NAME)) {
+          appManager.deleteOriginalStack(command, process.getStdOutput());
         }
       }
-      else if (commandName.equals(SqueezevolParam.getName())) {
-        appManager.getState().setSqueezevolFlipped(
-            processDetails.getBooleanValue(SqueezevolParam.Fields.FLIPPED));
-      }
-      else if (commandName.equals(ArchiveorigParam.COMMAND_NAME)) {
-        appManager.deleteOriginalStack(command, process.getStdOutput());
-      }
+    }
+    catch (Exception e) {
+      e.printStackTrace();
+      System.err.println("ERROR:  Unable to record state.");
     }
   }
 
   protected void errorProcess(BackgroundProcess process) {
-    if (process.getCommandLine().equals(transferfidCommandLine)) {
-      writeLogFile(process, process.getAxisID(), DatasetFiles.TRANSFER_FID_LOG);
-      showTransferfidLogFile(process.getAxisID());
+    try {
+      if (process.getCommandLine().equals(transferfidCommandLine)) {
+        writeLogFile(process, process.getAxisID(),
+            DatasetFiles.TRANSFER_FID_LOG);
+        showTransferfidLogFile(process.getAxisID());
+      }
+    }
+    catch (Exception e) {
+      e.printStackTrace();
+      System.err.println("ERROR:  Unable to record state.");
     }
   }
 

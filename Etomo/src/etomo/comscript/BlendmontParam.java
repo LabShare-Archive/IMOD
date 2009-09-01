@@ -29,7 +29,7 @@ import etomo.util.Montagesize;
  * 
  * @version $Revision$
  */
-public class BlendmontParam implements CommandParam, CommandDetails {
+public final class BlendmontParam implements CommandParam, CommandDetails {
   public static final String rcsid = "$Id$";
 
   public static final String GOTO_LABEL = "doblend";
@@ -50,6 +50,10 @@ public class BlendmontParam implements CommandParam, CommandDetails {
   private String imageOutputFile;
   private Mode mode = Mode.XCORR;
   private ScriptParameter binByFactor;
+  private boolean fiducialess = false;
+  private String userSizeToOutputInXandY;
+  private ProcessName processName = ProcessName.XCORR;
+
   /**
    * @version 3.10
    * Script is from an earlier version if false.
@@ -61,14 +65,18 @@ public class BlendmontParam implements CommandParam, CommandDetails {
       "StartingAndEndingX", 2);
   private final FortranInputString startingAndEndingY = new FortranInputString(
       "StartingAndEndingY", 2);
+  private final EtomoNumber imageRotation = new EtomoNumber(
+      EtomoNumber.Type.FLOAT);
 
-  public BlendmontParam(ApplicationManager manager, String datasetName,
-      AxisID axisID) {
+  private boolean overrideModeForImageOutputFile = false;
+
+  public BlendmontParam(final ApplicationManager manager,
+      final String datasetName, final AxisID axisID) {
     this(manager, datasetName, axisID, Mode.XCORR);
   }
 
-  public BlendmontParam(ApplicationManager manager, String datasetName,
-      AxisID axisID, Mode mode) {
+  public BlendmontParam(final ApplicationManager manager,
+      final String datasetName, final AxisID axisID, final Mode mode) {
     this.manager = manager;
     this.datasetName = datasetName;
     this.axisID = axisID;
@@ -89,9 +97,10 @@ public class BlendmontParam implements CommandParam, CommandDetails {
     startingAndEndingX.setDivider(' ');
     startingAndEndingY.setIntegerType(new boolean[] { true, true });
     startingAndEndingY.setDivider(' ');
+    setProcessName();
   }
 
-  public void parseComScriptCommand(ComScriptCommand scriptCommand)
+  public void parseComScriptCommand(final ComScriptCommand scriptCommand)
       throws BadComScriptException, InvalidParameterException,
       FortranInputSyntaxException {
     reset();
@@ -106,7 +115,7 @@ public class BlendmontParam implements CommandParam, CommandDetails {
     adjustOrigin.parse(scriptCommand);
   }
 
-  public void updateComScriptCommand(ComScriptCommand scriptCommand)
+  public void updateComScriptCommand(final ComScriptCommand scriptCommand)
       throws BadComScriptException {
     readInXcorrs.updateComScript(scriptCommand);
     oldEdgeFunctions.updateComScript(scriptCommand);
@@ -125,10 +134,14 @@ public class BlendmontParam implements CommandParam, CommandDetails {
     interpolationOrder.reset();
     justUndistort.reset();
     imageOutputFile = null;
+    overrideModeForImageOutputFile = false;
     binByFactor.reset();
     startingAndEndingX.reset();
     startingAndEndingY.reset();
     adjustOrigin.reset();
+    fiducialess = false;
+    userSizeToOutputInXandY = "";
+    imageRotation.reset();
   }
 
   public void initializeDefaults() {
@@ -154,7 +167,7 @@ public class BlendmontParam implements CommandParam, CommandDetails {
    * @throws IOException
    */
   public void convertToStartingAndEndingXandY(String sizeToOutputInXandY,
-      float imageRotation) throws FortranInputSyntaxException,
+      final float imageRotation) throws FortranInputSyntaxException,
       etomo.util.InvalidParameterException, IOException {
     //make sure an empty string really causes sizeToOutputInXandY to be empty.
     if (sizeToOutputInXandY.equals("")) {
@@ -162,6 +175,8 @@ public class BlendmontParam implements CommandParam, CommandDetails {
     }
     startingAndEndingX.reset();
     startingAndEndingY.reset();
+    userSizeToOutputInXandY = sizeToOutputInXandY;
+    this.imageRotation.set(imageRotation);
     FortranInputString fisSizeToOutputInXandY = new FortranInputString(2);
     fisSizeToOutputInXandY.setIntegerType(new boolean[] { true, true });
     fisSizeToOutputInXandY.validateAndSet(sizeToOutputInXandY);
@@ -190,9 +205,14 @@ public class BlendmontParam implements CommandParam, CommandDetails {
   public CommandDetails getSubcommandDetails() {
     return null;
   }
+  
+  public ProcessName getSubcommandProcessName() {
+    return null;
+  }
 
-  private void convertToStartingAndEnding(FortranInputString startingAndEnding,
-      int montageSize, int size) {
+  private void convertToStartingAndEnding(
+      final FortranInputString startingAndEnding, final int montageSize,
+      final int size) {
     int starting = ((int) montageSize / 2) - ((int) (size + 1) / 2);
     startingAndEnding.set(0, starting);
     if (size == 0) {
@@ -205,14 +225,23 @@ public class BlendmontParam implements CommandParam, CommandDetails {
 
   public void resetStartingAndEndingXandY() {
     startingAndEndingX.reset();
+    userSizeToOutputInXandY = "";
+    imageRotation.reset();
   }
 
-  public void setMode(Mode mode) {
+  public void setMode(final Mode mode) {
     this.mode = mode;
+    setProcessName();
   }
 
   public Mode getMode() {
     return mode;
+  }
+
+  public void setImageOutputFile(final String input) {
+    overrideModeForImageOutputFile = true;
+    imageOutputFile = input;
+    setProcessName();
   }
 
   /**
@@ -224,22 +253,26 @@ public class BlendmontParam implements CommandParam, CommandDetails {
     //TEMP
     System.err.println("setBlendmontState:mode=" + mode);
     if (mode == Mode.UNDISTORT) {
-      imageOutputFile = datasetName + axisID.getExtension()
-          + DISTORTION_CORRECTED_STACK_EXTENSION;
+      if (!overrideModeForImageOutputFile) {
+        imageOutputFile = datasetName + axisID.getExtension()
+            + DISTORTION_CORRECTED_STACK_EXTENSION;
+      }
       justUndistort.set(true);
       return true;
     }
     else {
       justUndistort.set(false);
-      if (mode == Mode.XCORR) {
-        imageOutputFile = datasetName + axisID.getExtension()
-            + BLENDMONT_STACK_EXTENSION;
-      }
-      else if (mode == Mode.PREBLEND) {
-        imageOutputFile = datasetName + axisID.getExtension() + ".preali";
-      }
-      else if (mode == Mode.BLEND || mode == Mode.WHOLE_TOMOGRAM_SAMPLE) {
-        imageOutputFile = datasetName + axisID.getExtension() + ".ali";
+      if (!overrideModeForImageOutputFile) {
+        if (mode == Mode.XCORR) {
+          imageOutputFile = datasetName + axisID.getExtension()
+              + BLENDMONT_STACK_EXTENSION;
+        }
+        else if (mode == Mode.PREBLEND) {
+          imageOutputFile = datasetName + axisID.getExtension() + ".preali";
+        }
+        else if (mode == Mode.BLEND || mode == Mode.WHOLE_TOMOGRAM_SAMPLE) {
+          imageOutputFile = datasetName + axisID.getExtension() + ".ali";
+        }
       }
     }
     File ecdFile = new File(manager.getPropertyUserDir(), datasetName
@@ -285,11 +318,11 @@ public class BlendmontParam implements CommandParam, CommandDetails {
   }
 
   public String getCommand() {
-    return getProcessName().getComscript(axisID);
+    return processName.getComscript(axisID);
   }
 
   public String[] getCommandArray() {
-    return getProcessName().getComscriptArray(axisID);
+    return processName.getComscriptArray(axisID);
   }
 
   public CommandMode getCommandMode() {
@@ -304,42 +337,54 @@ public class BlendmontParam implements CommandParam, CommandDetails {
     return imageOutputFile;
   }
 
-  public int getIntValue(etomo.comscript.Field field) {
+  public int getIntValue(final FieldInterface field) {
     throw new IllegalArgumentException("field=" + field);
   }
 
-  public boolean getBooleanValue(etomo.comscript.Field field) {
-    if (field == Fields.OLD_EDGE_FUNCTIONS) {
+  public boolean getBooleanValue(final FieldInterface field) {
+    if (field == Field.OLD_EDGE_FUNCTIONS) {
       return oldEdgeFunctions.is();
+    }
+    if (field == Field.FIDUCIALESS) {
+      return fiducialess;
+    }
+    if (field == Field.LINEAR_INTERPOLATION) {
+      return isLinearInterpolation();
     }
     throw new IllegalArgumentException("field=" + field);
   }
 
-  public String getString(etomo.comscript.Field field) {
+  public String getString(final FieldInterface field) {
+    if (field == Field.USER_SIZE_TO_OUTPUT_IN_X_AND_Y) {
+      return userSizeToOutputInXandY;
+    }
     throw new IllegalArgumentException("field=" + field);
   }
 
-  public String[] getStringArray(etomo.comscript.Field field) {
+  public String[] getStringArray(final FieldInterface field) {
     throw new IllegalArgumentException("field=" + field);
   }
 
-  public Hashtable getHashtable(etomo.comscript.Field field) {
+  public Hashtable getHashtable(final FieldInterface field) {
     throw new IllegalArgumentException("field=" + field);
   }
 
-  public double getDoubleValue(etomo.comscript.Field field) {
+  public double getDoubleValue(final FieldInterface field) {
     throw new IllegalArgumentException("field=" + field);
   }
 
-  public float getFloatValue(etomo.comscript.Field field) {
+  public float getFloatValue(final FieldInterface field) {
     throw new IllegalArgumentException("field=" + field);
   }
 
-  public ConstEtomoNumber getEtomoNumber(etomo.comscript.Field field) {
+  public ConstEtomoNumber getEtomoNumber(final FieldInterface field) {
+    if (field == Field.IMAGE_ROTATION) {
+      return imageRotation;
+    }
     throw new IllegalArgumentException("field=" + field);
   }
 
-  public ConstIntKeyList getIntKeyList(etomo.comscript.Field field) {
+  public ConstIntKeyList getIntKeyList(final FieldInterface field) {
     throw new IllegalArgumentException("field=" + field);
   }
 
@@ -347,11 +392,25 @@ public class BlendmontParam implements CommandParam, CommandDetails {
     return axisID;
   }
 
+  /**
+   * Call every time mode or overrideModeForImageOutputFile changes.
+   */
+  private void setProcessName() {
+    processName = getProcessName(mode, overrideModeForImageOutputFile);
+  }
+
   public static ProcessName getProcessName(Mode mode) {
+    return getProcessName(mode, false);
+  }
+
+  public static ProcessName getProcessName(Mode mode, boolean for3dFind) {
     if (mode == Mode.PREBLEND) {
       return ProcessName.PREBLEND;
     }
     if (mode == Mode.BLEND) {
+      if (for3dFind) {
+        return ProcessName.BLEND_3D_FIND;
+      }
       return ProcessName.BLEND;
     }
     if (mode == Mode.UNDISTORT) {
@@ -367,10 +426,10 @@ public class BlendmontParam implements CommandParam, CommandDetails {
   }
 
   public ProcessName getProcessName() {
-    return getProcessName(mode);
+    return processName;
   }
 
-  public static File getDistortionCorrectedFile(String workingDir,
+  public static File getDistortionCorrectedFile(final String workingDir,
       String datasetName, AxisID axisID) {
     return new File(workingDir, datasetName + axisID.getExtension()
         + DISTORTION_CORRECTED_STACK_EXTENSION);
@@ -380,7 +439,7 @@ public class BlendmontParam implements CommandParam, CommandDetails {
     return interpolationOrder.getInt() == LINEAR_INTERPOLATION_ORDER;
   }
 
-  public void setLinearInterpolation(boolean linearInterpolation) {
+  public void setLinearInterpolation(final boolean linearInterpolation) {
     if (linearInterpolation) {
       interpolationOrder.set(LINEAR_INTERPOLATION_ORDER);
     }
@@ -389,7 +448,15 @@ public class BlendmontParam implements CommandParam, CommandDetails {
     }
   }
 
-  public final void setBinByFactor(int binByFactor) {
+  public void setFiducialess(final boolean input) {
+    fiducialess = input;
+  }
+
+  public boolean isFiducialess() {
+    return fiducialess;
+  }
+
+  public final void setBinByFactor(final int binByFactor) {
     this.binByFactor.set(binByFactor);
   }
 
@@ -397,23 +464,41 @@ public class BlendmontParam implements CommandParam, CommandDetails {
     return binByFactor;
   }
 
-  public static final class Fields implements etomo.comscript.Field {
-    private Fields() {
+  public static final class Field implements FieldInterface {
+    private Field() {
     }
 
-    public static final Fields OLD_EDGE_FUNCTIONS = new Fields();
+    public static final Field OLD_EDGE_FUNCTIONS = new Field();
+    public static final Field FIDUCIALESS = new Field();
+    public static final Field IMAGE_ROTATION = new Field();
+    public static final Field LINEAR_INTERPOLATION = new Field();
+    public static final Field USER_SIZE_TO_OUTPUT_IN_X_AND_Y = new Field();
   }
 
   public final static class Mode implements CommandMode {
-    public static final Mode XCORR = new Mode();
-    public static final Mode PREBLEND = new Mode();
-    public static final Mode BLEND = new Mode();
-    public static final Mode UNDISTORT = new Mode();
-    public static final Mode WHOLE_TOMOGRAM_SAMPLE = new Mode();
+    public static final Mode XCORR = new Mode("XCorr");
+    public static final Mode PREBLEND = new Mode("Preblend");
+    public static final Mode BLEND = new Mode("Blend");
+    public static final Mode UNDISTORT = new Mode("Undistort");
+    public static final Mode WHOLE_TOMOGRAM_SAMPLE = new Mode(
+        "WholeTomogramSample");
+
+    private final String string;
+
+    private Mode(String string) {
+      this.string = string;
+    }
+
+    public String toString() {
+      return string;
+    }
   }
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.30  2009/03/17 00:30:45  sueh
+ * <p> bug# 1186 Pass managerKey to everything that pops up a dialog.
+ * <p>
  * <p> Revision 1.29  2009/02/26 17:25:23  sueh
  * <p> bug# 1184 Changed Goodframe so that it can handle any number of
  * <p> inputs and outputs.

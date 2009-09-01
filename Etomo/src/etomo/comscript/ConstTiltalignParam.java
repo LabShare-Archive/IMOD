@@ -9,6 +9,7 @@ import etomo.type.ConstEtomoNumber;
 import etomo.type.ConstIntKeyList;
 import etomo.type.EtomoBoolean2;
 import etomo.type.EtomoNumber;
+import etomo.type.ProcessName;
 import etomo.type.ScriptParameter;
 import etomo.type.TiltAngleSpec;
 
@@ -121,7 +122,7 @@ public class ConstTiltalignParam implements CommandDetails {
   private static final int[] rotOptionValidValues = { FIXED_OPTION, ALL_OPTION,
       AUTOMAPPED_OPTION, SINGLE_OPTION };
   private static final int[] surfacesToAnalyzeValidValues = { 0, 1, 2 };
-  private static final String commandFileName = "align";
+  private static final ProcessName PROCESS_NAME = ProcessName.ALIGN;
   private static final String commandFileExtension = ".com";
   public static final String TARGET_PATCH_SIZE_X_AND_Y_DEFAULT = "700,700";
   public static final String NUMBER_OF_LOCAL_PATCHES_X_AND_Y_DEFAULT = "5,5";
@@ -205,8 +206,7 @@ public class ConstTiltalignParam implements CommandDetails {
     this.axisID = axisID;
     this.datasetName = datasetName;
     this.manager = manager;
-    rotationAngle = new ScriptParameter(EtomoNumber.Type.DOUBLE,
-        ROT_ANGLE_KEY);
+    rotationAngle = new ScriptParameter(EtomoNumber.Type.DOUBLE, ROT_ANGLE_KEY);
     tiltAngleSpec = new TiltAngleSpec();
     tiltAngleSpec.setRangeMinKey("FirstTiltAngle", "first");
     tiltAngleSpec.setRangeStepKey("TiltIncrement", "increment");
@@ -456,7 +456,8 @@ public class ConstTiltalignParam implements CommandDetails {
   }
 
   public String getCommand() {
-    return commandFileName + axisID.getExtension() + commandFileExtension;
+    return PROCESS_NAME.toString() + axisID.getExtension()
+        + commandFileExtension;
   }
 
   public String getCommandLine() {
@@ -464,7 +465,11 @@ public class ConstTiltalignParam implements CommandDetails {
   }
 
   public String getCommandName() {
-    return commandFileName;
+    return PROCESS_NAME.toString();
+  }
+
+  public ProcessName getProcessName() {
+    return PROCESS_NAME;
   }
 
   public String[] getCommandArray() {
@@ -479,57 +484,63 @@ public class ConstTiltalignParam implements CommandDetails {
   public CommandDetails getSubcommandDetails() {
     return null;
   }
+  
+  public ProcessName getSubcommandProcessName() {
+    return null;
+  }
 
   public File getCommandOutputFile() {
     return null;
   }
 
-  public int getIntValue(etomo.comscript.Field field) {
-    throw new IllegalArgumentException("field=" + field);
+  public int getIntValue(etomo.comscript.FieldInterface fieldInterface) {
+    throw new IllegalArgumentException("field=" + fieldInterface);
   }
 
-  public boolean getBooleanValue(etomo.comscript.Field field) {
-    if (field == Fields.USE_OUTPUT_Z_FACTOR_FILE) {
+  public boolean getBooleanValue(etomo.comscript.FieldInterface fieldInterface) {
+    if (fieldInterface == Fields.USE_OUTPUT_Z_FACTOR_FILE) {
       return useOutputZFactorFile();
     }
-    if (field == Fields.LOCAL_ALIGNMENTS) {
+    if (fieldInterface == Fields.LOCAL_ALIGNMENTS) {
       return localAlignments.is();
     }
-    throw new IllegalArgumentException("field=" + field);
+    throw new IllegalArgumentException("field=" + fieldInterface);
   }
 
-  public float getFloatValue(etomo.comscript.Field field) {
-    throw new IllegalArgumentException("field=" + field);
+  public float getFloatValue(etomo.comscript.FieldInterface fieldInterface) {
+    throw new IllegalArgumentException("field=" + fieldInterface);
   }
 
-  public String getString(etomo.comscript.Field field) {
-    throw new IllegalArgumentException("field=" + field);
+  public String getString(etomo.comscript.FieldInterface fieldInterface) {
+    throw new IllegalArgumentException("field=" + fieldInterface);
   }
 
-  public String[] getStringArray(etomo.comscript.Field field) {
-    throw new IllegalArgumentException("field=" + field);
+  public String[] getStringArray(etomo.comscript.FieldInterface fieldInterface) {
+    throw new IllegalArgumentException("field=" + fieldInterface);
   }
 
-  public double getDoubleValue(etomo.comscript.Field field) {
-    if (field == Fields.AXIS_Z_SHIFT) {
+  public double getDoubleValue(etomo.comscript.FieldInterface fieldInterface) {
+    if (fieldInterface == Fields.AXIS_Z_SHIFT) {
       return axisZShift.getDouble();
     }
-    if (field == Fields.ANGLE_OFFSET) {
+    if (fieldInterface == Fields.ANGLE_OFFSET) {
       return angleOffset.getDouble();
     }
-    throw new IllegalArgumentException("field=" + field);
+    throw new IllegalArgumentException("field=" + fieldInterface);
   }
 
-  public ConstEtomoNumber getEtomoNumber(etomo.comscript.Field field) {
-    throw new IllegalArgumentException("field=" + field);
+  public ConstEtomoNumber getEtomoNumber(
+      etomo.comscript.FieldInterface fieldInterface) {
+    throw new IllegalArgumentException("field=" + fieldInterface);
   }
 
-  public ConstIntKeyList getIntKeyList(etomo.comscript.Field field) {
-    throw new IllegalArgumentException("field=" + field);
+  public ConstIntKeyList getIntKeyList(
+      etomo.comscript.FieldInterface fieldInterface) {
+    throw new IllegalArgumentException("field=" + fieldInterface);
   }
 
-  public Hashtable getHashtable(etomo.comscript.Field field) {
-    throw new IllegalArgumentException("field=" + field);
+  public Hashtable getHashtable(etomo.comscript.FieldInterface fieldInterface) {
+    throw new IllegalArgumentException("field=" + fieldInterface);
   }
 
   /**
@@ -994,7 +1005,7 @@ public class ConstTiltalignParam implements CommandDetails {
     return loadedFromFile && imagesAreBinned.isNull();
   }
 
-  public static final class Fields implements etomo.comscript.Field {
+  public static final class Fields implements etomo.comscript.FieldInterface {
     private Fields() {
     }
 
@@ -1007,8 +1018,11 @@ public class ConstTiltalignParam implements CommandDetails {
 
 /**
  * <p> $Log$
+ * <p> Revision 3.34  2008/07/16 20:13:31  sueh
+ * <p> bug# 1126 Added ROT_ANGLE_KEY.
+ * <p>
  * <p> Revision 3.33  2007/12/13 01:03:50  sueh
- * <p> bug# 1056 Changed etomo.comscript.Fields to etomo.comscript.Field.
+ * <p> bug# 1056 Changed etomo.comscript.Fields to etomo.comscript.FieldInterface.
  * <p>
  * <p> Revision 3.32  2007/11/06 19:07:52  sueh
  * <p> bug# 1047 Added getSubcommandDetails.

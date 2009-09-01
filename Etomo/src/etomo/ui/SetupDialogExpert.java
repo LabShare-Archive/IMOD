@@ -41,6 +41,9 @@ import etomo.util.Montagesize;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.10  2009/08/24 20:23:54  sueh
+ * <p> bug# 1254 Made setViewType package private.
+ * <p>
  * <p> Revision 1.9  2009/03/17 00:46:24  sueh
  * <p> bug# 1186 Pass managerKey to everything that pops up a dialog.
  * <p>
@@ -103,7 +106,7 @@ public final class SetupDialogExpert {
    * functions in ApplicationManager.
    * @return true the automation does not generate errors
    */
-  public boolean doAutomation() {
+  public void doAutomation() {
     Arguments arguments = EtomoDirector.INSTANCE.getArguments();
     //build and set dataset
     StringBuffer buffer = new StringBuffer();
@@ -145,11 +148,8 @@ public final class SetupDialogExpert {
     }
     //complete the dialog
     if (arguments.isCreate()) {
-      if (!dialog.buttonExecuteAction()) {
-        return false;
-      }
+      dialog.buttonExecuteAction();
     }
-    return true;
   }
 
   public String getDataset() {

@@ -668,6 +668,14 @@ public final class LogFile {
     return true;
   }
 
+  /**
+   * Reads a line from the file.  Returns null when there are no more lines to
+   * read.
+   * @param readId
+   * @return
+   * @throws LockException
+   * @throws IOException
+   */
   public synchronized String readLine(ReaderId readId) throws LockException,
       IOException {
     if (!lock.isLocked(LockType.READ, readId)) {
@@ -1361,6 +1369,9 @@ public final class LogFile {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.26  2009/03/25 15:32:06  sueh
+ * <p> In backup() printing the Lock.throwException state when there is a problem.
+ * <p>
  * <p> Revision 1.25  2009/03/17 00:44:52  sueh
  * <p> bug# 1186 Pass managerKey to everything that pops up a dialog.
  * <p>

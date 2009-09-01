@@ -1,35 +1,22 @@
 package etomo.ui;
 
 import java.awt.Component;
-import java.awt.Container;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.awt.event.MouseEvent;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 
-import javax.swing.BorderFactory;
-import javax.swing.Box;
 import javax.swing.BoxLayout;
-import javax.swing.JComboBox;
-import javax.swing.JLabel;
-import javax.swing.JPanel;
 import etomo.ApplicationManager;
-import etomo.storage.CpuAdoc;
-import etomo.storage.LogFile;
-import etomo.storage.autodoc.AutodocFactory;
-import etomo.storage.autodoc.ReadOnlyAutodoc;
+import etomo.comscript.ConstTiltParam;
+import etomo.comscript.FortranInputSyntaxException;
+import etomo.comscript.TiltParam;
 import etomo.type.AxisID;
-import etomo.type.ConstEtomoNumber;
-import etomo.type.ConstIntKeyList;
+import etomo.type.ConstMetaData;
 import etomo.type.DialogType;
-import etomo.type.IntKeyList;
-import etomo.type.PanelHeaderState;
+import etomo.type.MetaData;
 import etomo.type.ProcessResultDisplay;
-import etomo.type.ProcessResultDisplayFactory;
 import etomo.type.ReconScreenState;
-import etomo.type.Run3dmodMenuOptions;
 import etomo.type.ViewType;
+import etomo.util.InvalidParameterException;
 
 /**
  * <p>
@@ -50,6 +37,9 @@ import etomo.type.ViewType;
  * 
  * <p>
  * $Log$
+ * Revision 3.122  2009/03/17 00:46:24  sueh
+ * bug# 1186 Pass managerKey to everything that pops up a dialog.
+ *
  * Revision 3.121  2009/02/05 23:45:18  sueh
  * bug# 1148 Added setTrialTomogramNameList.
  *
@@ -651,648 +641,99 @@ import etomo.type.ViewType;
  */
 
 public class TomogramGenerationDialog extends ProcessDialog implements
-    ContextMenu, Expandable, Run3dmodButtonContainer {
+    ContextMenu, TiltParent {
   public static final String rcsid = "$Id$";
 
   public static final String X_AXIS_TILT_TOOLTIP = "This line allows one to rotate the reconstruction around the X axis, so "
       + "that a section that appears to be tilted around the X axis can be "
       + "made flat to fit into a smaller volume.";
 
-  private EtomoPanel pnlTilt = new EtomoPanel();
+  private final EtomoPanel pnlTilt = new EtomoPanel();
 
-  //  Tilt objects
-  private SpacedTextField ltfXShift = new SpacedTextField("X shift:");
-  private SpacedTextField ltfZShift = new SpacedTextField("Z shift: ");
-  private SpacedTextField ltfSliceStart = new SpacedTextField("First slice: ");
-  private SpacedTextField ltfSliceStop = new SpacedTextField("Last slice: ");
-  private SpacedLabel lblInY = new SpacedLabel(" in Y");
-  private SpacedTextField ltfSliceIncr = new SpacedTextField(
-      "Slice step in Y: ");
-  private SpacedTextField ltfTomoWidth = new SpacedTextField(
-      "Tomogram width in X: ");
-  private SpacedTextField ltfTomoThickness = new SpacedTextField(
-      "Tomogram thickness in Z: ");
-  private SpacedTextField ltfXAxisTilt = new SpacedTextField("X axis tilt: ");
-  private SpacedTextField ltfTiltAngleOffset = new SpacedTextField(
-      "Tilt angle offset: ");
-  private SpacedTextField ltfRadialMax = new SpacedTextField(
-      "Radial filter cutoff: ");
-  private SpacedTextField ltfRadialFallOff = new SpacedTextField("Falloff: ");
-  private SpacedTextField ltfDensityOffset = new SpacedTextField("Offset: ");
-  private SpacedTextField ltfDensityScale = new SpacedTextField(
-      "Output density scaling factor: ");
-  private SpacedTextField ltfLogOffset = new SpacedTextField("Log offset: ");
-  private CheckBox cbUseLocalAlignment = new CheckBox("Use local alignments");
+  private final TiltPanel tiltPanel;
 
-  //  Trial tomogram objects
-
-  private JLabel lblTrialTomogramName = new JLabel("Trial tomogram filename: ");
-  private JComboBox cmboTrialTomogramName = new JComboBox();
-  private MultiLineButton btnTrial = new MultiLineButton(
-      "Generate Trial Tomogram");
-  private Run3dmodButton btn3dmodTrial = Run3dmodButton.get3dmodInstance(
-      "View Trial in 3dmod", this);
-  private final MultiLineButton btnUseTrial;
-
-  //  Tomogram generation buttons
-  private final Run3dmodButton btnTilt;
-  private Run3dmodButton btn3dmodTomogram = Run3dmodButton.get3dmodInstance(
-      "View Tomogram In 3dmod", this);
-  private final MultiLineButton btnDeleteStack;
-  private CheckBox cbUseZFactors = new CheckBox("Use Z factors");
-  private SpacedTextField ltfExtraExcludeList = new SpacedTextField(
-      "Extra views to exclude: ");
-  private CheckBox cbParallelProcess;
-  //headers should not go into garbage collection
-  private PanelHeader tiltHeader = null;
-  private PanelHeader trialHeader = null;
-  //panels that are changed in setAdvanced()
-  private EtomoPanel trialPanel;
-  private JPanel tiltBodyPanel;
-  private SpacedPanel trialBodyPanel;
-
-  //backward compatibility functionality - if the metadata binning is missing
-  //get binning from newst
-  private boolean trialTilt = false;
-  private final ReconScreenState screenState;
-  private final ButtonListener tomogramGenerationListener;
   private final TomogramGenerationExpert expert;
 
   public TomogramGenerationDialog(ApplicationManager appMgr,
       TomogramGenerationExpert expert, AxisID axisID) {
     super(appMgr, axisID, DialogType.TOMOGRAM_GENERATION);
     this.expert = expert;
-    screenState = appMgr.getScreenState(axisID);
-    ProcessResultDisplayFactory displayFactory = appMgr
-        .getProcessResultDisplayFactory(axisID);
-    btnUseTrial = (MultiLineButton) displayFactory.getUseTrialTomogram();
-    btnTilt = (Run3dmodButton) displayFactory.getGenerateTomogram();
-    btnTilt.setContainer(this);
-    btnTilt.setDeferred3dmodButton(btn3dmodTomogram);
-    btnDeleteStack = (MultiLineButton) displayFactory.getDeleteAlignedStack();
+    tiltPanel = TiltPanel.getInstance(appMgr, axisID, dialogType, this,
+        btnAdvanced);
     rootPanel.setLayout(new BoxLayout(rootPanel, BoxLayout.Y_AXIS));
     btnExecute.setText("Done");
     // Layout the main panel (and sub panels) and add it to the root panel
     pnlTilt.setBorder(new BeveledBorder("Tomogram Generation").getBorder());
     pnlTilt.setLayout(new BoxLayout(pnlTilt, BoxLayout.Y_AXIS));
-    UIUtilities.addWithYSpace(pnlTilt, layoutTiltPanel());
+    UIUtilities.addWithYSpace(pnlTilt, tiltPanel.getComponent());
     UIUtilities.alignComponentsX(pnlTilt, Component.CENTER_ALIGNMENT);
-
     rootPanel.add(pnlTilt);
     addExitButtons();
-
-    // Bind the buttons to the action listener
-    tomogramGenerationListener = new ButtonListener(this);
-    btnTrial.addActionListener(tomogramGenerationListener);
-    btn3dmodTrial.addActionListener(tomogramGenerationListener);
-    btnUseTrial.addActionListener(tomogramGenerationListener);
-    btnTilt.addActionListener(tomogramGenerationListener);
-    btn3dmodTomogram.addActionListener(tomogramGenerationListener);
-    btnDeleteStack.addActionListener(tomogramGenerationListener);
-    cbParallelProcess.addActionListener(tomogramGenerationListener);
-
     //  Mouse adapter for context menu
     GenericMouseAdapter mouseAdapter = new GenericMouseAdapter(this);
     rootPanel.addMouseListener(mouseAdapter);
-
     // Set the default advanced dialog state
     updateAdvanced();
-    setToolTipText();
   }
 
-  public static ProcessResultDisplay getUseTrialTomogramDisplay() {
-    return MultiLineButton.getToggleButtonInstance(
-        "Use Current Trial Tomogram", DialogType.TOMOGRAM_GENERATION);
+  public static ProcessResultDisplay getUseTrialTomogramResultDisplay() {
+    return TrialTiltPanel
+        .getUseTrialTomogramResultDisplay(DialogType.TOMOGRAM_GENERATION);
   }
 
-  public static ProcessResultDisplay getGenerateTomogramDisplay() {
-    return Run3dmodButton.getDeferredToggle3dmodInstance("Generate Tomogram",
-        DialogType.TOMOGRAM_GENERATION);
+  public static ProcessResultDisplay getGenerateTomogramResultDisplay() {
+    return TiltPanel
+        .getGenerateTomogramResultDisplay(DialogType.TOMOGRAM_GENERATION);
   }
 
-  void setTrialTomogramNameList(ConstIntKeyList input) {
-    IntKeyList.Walker walker = input.getWalker();
-    while (walker.hasNext()) {
-      cmboTrialTomogramName.addItem(walker.nextString());
-    }
+  public static ProcessResultDisplay getDeleteAlignedStackResultDisplay() {
+    return TiltPanel
+        .getDeleteAlignedStackResultDisplay(DialogType.TOMOGRAM_GENERATION);
   }
 
-  void addToTrialTomogramName(String trialTomogramName) {
-    cmboTrialTomogramName.addItem(trialTomogramName);
+  void getParameters(MetaData metaData) throws FortranInputSyntaxException {
+    tiltPanel.getParameters(metaData);
   }
 
-  public static ProcessResultDisplay getDeleteAlignedStackDisplay() {
-    return MultiLineButton.getToggleButtonInstance(
-        "Delete Aligned Image Stack", DialogType.TOMOGRAM_GENERATION);
+  boolean getParameters(TiltParam tiltParam) throws NumberFormatException,
+      InvalidParameterException, IOException {
+    return tiltPanel.getParameters(tiltParam);
   }
 
-  void setXShift(float xShift) {
-    ltfXShift.setText(xShift);
+  void getParameters(ReconScreenState screenState) {
+    tiltPanel.getParameters(screenState);
   }
 
-  void setZShift(ConstEtomoNumber zShift) {
-    ltfZShift.setText(zShift);
-  }
-
-  void setUseTrialButtonState(ReconScreenState screenState) {
-    btnUseTrial.setButtonState(screenState.getButtonState(btnUseTrial
-        .getButtonStateKey()));
-  }
-
-  public boolean isDensityOffsetSet() {
-    return ltfDensityOffset.getText().matches("\\S+");
-  }
-
-  public boolean isDensityScaleSet() {
-    return ltfDensityScale.getText().matches("\\S+");
-  }
-
-  boolean isLogOffsetSet() {
-    return ltfLogOffset.getText().matches("\\S+");
-  }
-
-  float getLogOffset() {
-    return Float.parseFloat(ltfLogOffset.getText());
-  }
-
-  String getLogOffsetLabel() {
-    return ltfLogOffset.getLabel();
-  }
-
-  float getTiltAngleOffset() {
-    return Float.parseFloat(ltfTiltAngleOffset.getText());
-  }
-
-  String getTiltAngleOffsetLabel() {
-    return ltfTiltAngleOffset.getLabel();
-  }
-
-  void getTiltHeaderState(PanelHeaderState state) {
-    tiltHeader.getState(state);
-  }
-
-  String getTomoThickness() {
-    return ltfTomoThickness.getText();
-  }
-
-  String getTomoThicknessLabel() {
-    return ltfTomoThickness.getLabel();
-  }
-
-  int getTomoWidth() {
-    return Integer.parseInt(ltfTomoWidth.getText());
-  }
-
-  String getTomoWidthLabel() {
-    return ltfTomoWidth.getLabel();
-  }
-
-  void setTrialHeaderState(PanelHeaderState state) {
-    trialHeader.setState(state);
-  }
-
-  float getDensityOffset() {
-    return Float.parseFloat(ltfDensityOffset.getText());
-  }
-
-  String getDensityOffsetLabel() {
-    return ltfDensityOffset.getLabel();
-  }
-
-  float getDensityScale() {
-    return Float.parseFloat(ltfDensityScale.getText());
-  }
-
-  String getExtraExcludeList() {
-    return ltfExtraExcludeList.getText();
-  }
-
-  String getDensityScaleLabel() {
-    return ltfDensityScale.getLabel();
-  }
-
-  void getTrialHeaderState(PanelHeaderState state) {
-    trialHeader.getState(state);
-  }
-
-  void setParallelProcessEnabled(boolean enable) {
-    cbParallelProcess.setEnabled(enable);
-  }
-
-  void setSliceStart(int sliceStart) {
-    ltfSliceStart.setText(sliceStart);
-  }
-
-  void setSliceStop(int sliceStop) {
-    ltfSliceStop.setText(sliceStop);
-  }
-
-  void setSliceIncr(int sliceIncr) {
-    ltfSliceIncr.setText(sliceIncr);
-  }
-
-  void setXAxisTilt(double xAxisTilt) {
-    ltfXAxisTilt.setText(xAxisTilt);
-  }
-
-  void setTiltAngleOffset(ConstEtomoNumber tiltAngleOffset) {
-    ltfTiltAngleOffset.setText(tiltAngleOffset);
-  }
-
-  void setRadialMax(float radialMax) {
-    ltfRadialMax.setText(radialMax);
-  }
-
-  void setRadialFallOff(float radialFallOff) {
-    ltfRadialFallOff.setText(radialFallOff);
-  }
-
-  void setDensityOffset(float densityOffset) {
-    ltfDensityOffset.setText(densityOffset);
-  }
-
-  void setDensityScale(float densityScale) {
-    ltfDensityScale.setText(densityScale);
-  }
-
-  void setExtraExcludeList(String extraExcludeList) {
-    ltfExtraExcludeList.setText(extraExcludeList);
-  }
-
-  void setLogOffset(float logOffset) {
-    ltfLogOffset.setText(logOffset);
-  }
-
-  void setParallelProcess(boolean select) {
-    cbParallelProcess.setSelected(select);
-  }
-
-  void setTiltButtonState(ReconScreenState screenState) {
-    btnTilt.setButtonState(screenState.getButtonState(btnTilt
-        .getButtonStateKey()));
-  }
-
-  void setTiltHeaderState(PanelHeaderState state) {
-    tiltHeader.setState(state);
-  }
-
-  void setTomoThickness(int tomoThickness) {
-    ltfTomoThickness.setText(tomoThickness);
-  }
-
-  void setTomoWidth(int tomoWidth) {
-    ltfTomoWidth.setText(tomoWidth);
+  void setParameters(ConstMetaData metaData) {
+    tiltPanel.setParameters(metaData);
   }
 
   /**
-   * Return the selected trial tomogram name
-   * 
-   * @return
+   * Set the UI parameters with the specified tiltParam values
+   * WARNING: be sure the setNewstParam is called first so the binning value for
+   * the stack is known.  The thickness, first and last slice, width and x,y,z
+   * offsets are scaled so that they are represented to the user in unbinned
+   * dimensions.
+   * @param tiltParam
    */
-  public String getTrialTomogramName() {
-    String trialTomogramName = (String) cmboTrialTomogramName.getSelectedItem();
-    if (trialTomogramName == null) {
-      trialTomogramName = "";
-    }
-    return trialTomogramName;
+  void setParameters(ConstTiltParam tiltParam) {
+    tiltPanel.setParameters(tiltParam, false);
   }
 
-  String getXAxisTilt() {
-    return ltfXAxisTilt.getText();
-  }
-
-  String getXAxisTiltLabel() {
-    return ltfXAxisTilt.getLabel();
-  }
-
-  float getXShift() {
-    return Float.parseFloat(ltfXShift.getText());
-  }
-
-  String getXShiftLabel() {
-    return ltfXShift.getLabel();
-  }
-
-  float getZShift() {
-    return Float.parseFloat(ltfZShift.getText());
-  }
-
-  String getZShiftLabel() {
-    return ltfZShift.getLabel();
-  }
-
-  float getRadialFallOff() {
-    return Float.parseFloat(ltfRadialFallOff.getText());
-  }
-
-  String getRadialFallOffLabel() {
-    return ltfRadialFallOff.getLabel();
-  }
-
-  float getRadialMax() {
-    return Float.parseFloat(ltfRadialMax.getText());
-  }
-
-  String getRadialMaxLabel() {
-    return ltfRadialMax.getLabel();
-  }
-
-  int getSliceIncr() {
-    return Integer.parseInt(ltfSliceIncr.getText());
-  }
-
-  String getSliceIncrLabel() {
-    return ltfSliceIncr.getLabel();
-  }
-
-  int getSliceStart() {
-    return Integer.parseInt(ltfSliceStart.getText());
-  }
-
-  String getSliceStartLabel() {
-    return ltfSliceStart.getLabel();
-  }
-
-  int getSliceStop() {
-    return Integer.parseInt(ltfSliceStop.getText());
-  }
-
-  String getSliceStopLabel() {
-    return ltfSliceStop.getLabel();
-  }
-
-  public void expand(ExpandButton button) {
-    if (tiltHeader != null) {
-      if (tiltHeader.equalsOpenClose(button)) {
-        tiltBodyPanel.setVisible(button.isExpanded());
-      }
-      else if (tiltHeader.equalsAdvancedBasic(button)) {
-        updateAdvancedTilt(button.isExpanded());
-      }
-    }
-    if (trialHeader != null && trialHeader.equalsOpenClose(button)) {
-      trialBodyPanel.setVisible(button.isExpanded());
-    }
-    UIHarness.INSTANCE.pack(axisID, applicationManager);
-  }
-
-  private void updateAdvancedTilt(boolean advanced) {
-    ltfLogOffset.setVisible(advanced);
-    ltfDensityOffset.setVisible(advanced);
-    ltfDensityScale.setVisible(advanced);
-    ltfTomoWidth.setVisible(advanced);
-    //ltfTomoThickness
-    ltfSliceStart.setVisible(advanced);
-    ltfSliceStop.setVisible(advanced);
-    lblInY.setVisible(advanced);
-    ltfSliceIncr.setVisible(advanced);
-    ltfXShift.setVisible(advanced);
-    ltfZShift.setVisible(advanced);
-    //ltfXAxisTilt
-    ltfTiltAngleOffset.setVisible(advanced);
-    //ltfRadialMax
-    //ltfRadialFallOff
-    ltfExtraExcludeList.setVisible(advanced);
-    //cbUseLocalAlignment
-    //cbUseZFactors
-    //cbParallelProcess
-    trialPanel.setVisible(advanced);
-    //btnTilt
-    //btn3dmodTomogram
-    //btnDeleteStacks
-  }
-
-  void setAdvanced() {
-    boolean headerAdvanced = tiltHeader.isAdvanced();
-    if (headerAdvanced != isAdvanced) {
-      super.setAdvanced(headerAdvanced);
-    }
-  }
-
-  void setDeleteStackButtonState(ReconScreenState screenState) {
-    btnDeleteStack.setButtonState(screenState.getButtonState(btnDeleteStack
-        .getButtonStateKey()));
+  final void setParameters(ReconScreenState screenState) {
+    tiltPanel.setParameters(screenState);
   }
 
   /**
    * Update the dialog with the current advanced state
    */
-  private void updateAdvanced() {
-    tiltHeader.setAdvanced(isAdvanced);
+  public void updateAdvanced() {
+    tiltPanel.updateAdvanced(isAdvanced());
     UIHarness.INSTANCE.pack(axisID, applicationManager);
   }
 
   public boolean usingParallelProcessing() {
-    return cbParallelProcess.isEnabled() && cbParallelProcess.isSelected();
-  }
-
-  boolean isParallelProcess() {
-    return cbParallelProcess.isSelected();
-  }
-
-  boolean isRadialFallOffSet() {
-    return ltfRadialFallOff.getText().matches("\\S+");
-  }
-
-  boolean isRadialMaxSet() {
-    return ltfRadialMax.getText().matches("\\S+");
-  }
-
-  boolean isSliceIncrSet() {
-    return ltfSliceIncr.getText().matches("\\S+");
-  }
-
-  boolean isSliceStartSet() {
-    return ltfSliceStart.getText().matches("\\S+");
-  }
-
-  boolean isSliceStartNull() {
-    return ltfSliceStart.getText().matches("^\\s*$");
-  }
-
-  boolean isSliceStopNull() {
-    return ltfSliceStop.getText().matches("^\\s*$");
-  }
-
-  boolean isSliceStopSet() {
-    return ltfSliceStop.getText().matches("\\S+");
-  }
-
-  boolean isTiltAngleOffsetSet() {
-    return ltfTiltAngleOffset.getText().matches("\\S+");
-  }
-
-  boolean isTomoThicknessSet() {
-    return ltfTomoThickness.getText().matches("\\S+");
-  }
-
-  boolean isTomoWidthSet() {
-    return ltfTomoWidth.getText().matches("\\S+");
-  }
-
-  boolean isUseLocalAlignment() {
-    return cbUseLocalAlignment.isSelected();
-  }
-
-  boolean isUseLocalAlignmentEnabled() {
-    return cbUseLocalAlignment.isEnabled();
-  }
-
-  boolean isUseZFactors() {
-    return cbUseZFactors.isSelected();
-  }
-
-  boolean isUseZFactorsEnabled() {
-    return cbUseZFactors.isEnabled();
-  }
-
-  boolean isXAxisTiltSet() {
-    return ltfXAxisTilt.getText().matches("\\S+");
-  }
-
-  boolean isXShiftSet() {
-    return ltfXShift.getText().matches("\\S+");
-  }
-
-  boolean isZShiftSet() {
-    return ltfZShift.getText().matches("\\S+");
-  }
-
-  /**
-   * Layout the tilt panel
-   */
-  private Container layoutTiltPanel() {
-    //fields
-    ConstEtomoNumber maxCPUs = CpuAdoc.getInstance(axisID,
-        applicationManager.getPropertyUserDir(),
-        applicationManager.getManagerKey()).getMaxTilt();
-    if (maxCPUs != null && !maxCPUs.isNull()) {
-      cbParallelProcess = new CheckBox(ParallelPanel.FIELD_LABEL
-          + ParallelPanel.MAX_CPUS_STRING + maxCPUs.toString());
-    }
-    else {
-      cbParallelProcess = new CheckBox(ParallelPanel.FIELD_LABEL);
-    }
-    //panels
-    EtomoPanel tiltPanel = new EtomoPanel();
-    tiltPanel.setLayout(new BoxLayout(tiltPanel, BoxLayout.Y_AXIS));
-    tiltPanel.setBorder(BorderFactory.createEtchedBorder());
-    tiltBodyPanel = new JPanel();
-    tiltBodyPanel.setLayout(new BoxLayout(tiltBodyPanel, BoxLayout.Y_AXIS));
-    JPanel densityPanel = new JPanel();
-    densityPanel.setLayout(new BoxLayout(densityPanel, BoxLayout.X_AXIS));
-    JPanel slicesInYPanel = new JPanel();
-    slicesInYPanel.setLayout(new BoxLayout(slicesInYPanel, BoxLayout.X_AXIS));
-    JPanel offsetPanel = new JPanel();
-    offsetPanel.setLayout(new BoxLayout(offsetPanel, BoxLayout.X_AXIS));
-    JPanel radialPanel = new JPanel();
-    radialPanel.setLayout(new BoxLayout(radialPanel, BoxLayout.X_AXIS));
-    JPanel checkBoxPanel = new JPanel();
-    checkBoxPanel.setLayout(new BoxLayout(checkBoxPanel, BoxLayout.Y_AXIS));
-    SpacedPanel trialPanel = SpacedPanel.getInstance();
-    trialPanel.setBoxLayout(BoxLayout.X_AXIS);
-    SpacedPanel buttonPanel = SpacedPanel.getInstance(true);
-    buttonPanel.setBoxLayout(BoxLayout.X_AXIS);
-    //header
-    tiltHeader = PanelHeader.getAdvancedBasicInstance("Tilt", this, dialogType);
-    //buttonPanel
-    btnTilt.setSize();
-    buttonPanel.add(btnTilt);
-    btn3dmodTomogram.setSize();
-    buttonPanel.add(btn3dmodTomogram);
-    btnDeleteStack.setSize();
-    buttonPanel.add(btnDeleteStack);
-    buttonPanel.alignComponentsX(Component.LEFT_ALIGNMENT);
-    //trialPanel
-    trialPanel.add(layoutTrialPanel());
-    trialPanel.alignComponentsX(Component.LEFT_ALIGNMENT);
-    //checkBoxPanel
-    checkBoxPanel.add(cbUseLocalAlignment);
-    checkBoxPanel.add(cbUseZFactors);
-    UIUtilities.alignComponentsX(checkBoxPanel, Component.LEFT_ALIGNMENT);
-    //radialPanel
-    radialPanel.add(ltfRadialMax.getContainer());
-    radialPanel.add(ltfRadialFallOff.getContainer());
-    UIUtilities.alignComponentsX(radialPanel, Component.LEFT_ALIGNMENT);
-    //offsetPanel
-    offsetPanel.add(ltfXShift.getContainer());
-    offsetPanel.add(ltfZShift.getContainer());
-    UIUtilities.alignComponentsX(offsetPanel, Component.LEFT_ALIGNMENT);
-    //slicesInYPanel
-    slicesInYPanel.add(ltfSliceStart.getContainer());
-    slicesInYPanel.add(ltfSliceStop.getContainer());
-    slicesInYPanel.add(lblInY.getContainer());
-    UIUtilities.alignComponentsX(slicesInYPanel, Component.LEFT_ALIGNMENT);
-    //densityPanel
-    densityPanel.add(ltfDensityScale.getContainer());
-    densityPanel.add(ltfDensityOffset.getContainer());
-    UIUtilities.alignComponentsX(densityPanel, Component.LEFT_ALIGNMENT);
-    //tiltBodyPanel
-    tiltBodyPanel.add(Box.createRigidArea(FixedDim.x0_y5));
-    tiltBodyPanel.add(cbParallelProcess);
-    tiltBodyPanel.add(ltfLogOffset.getContainer());
-    tiltBodyPanel.add(densityPanel);
-    tiltBodyPanel.add(ltfTomoWidth.getContainer());
-    tiltBodyPanel.add(ltfTomoThickness.getContainer());
-    tiltBodyPanel.add(slicesInYPanel);
-    tiltBodyPanel.add(ltfSliceIncr.getContainer());
-    tiltBodyPanel.add(offsetPanel);
-    tiltBodyPanel.add(ltfXAxisTilt.getContainer());
-    tiltBodyPanel.add(ltfTiltAngleOffset.getContainer());
-    tiltBodyPanel.add(radialPanel);
-    tiltBodyPanel.add(ltfExtraExcludeList.getContainer());
-    tiltBodyPanel.add(checkBoxPanel);
-    tiltBodyPanel.add(trialPanel.getContainer());
-    tiltBodyPanel.add(buttonPanel.getContainer());
-    UIUtilities.alignComponentsX(tiltBodyPanel, Component.LEFT_ALIGNMENT);
-    //tiltPanel
-    tiltPanel.add(tiltHeader);
-    tiltPanel.add(tiltBodyPanel);
-    UIUtilities.alignComponentsX(tiltPanel, Component.LEFT_ALIGNMENT);
-    //configure
-    btnTilt.setSize();
-    btn3dmodTomogram.setSize();
-    btnDeleteStack.setSize();
-    return tiltPanel;
-  }
-
-  /**
-   * Layout the trial tomogram panel
-   */
-  private JPanel layoutTrialPanel() {
-    //panels
-    trialPanel = new EtomoPanel();
-    trialPanel.setLayout(new BoxLayout(trialPanel, BoxLayout.Y_AXIS));
-    trialPanel.setBorder(BorderFactory.createEtchedBorder());
-    trialBodyPanel = SpacedPanel.getInstance();
-    trialBodyPanel.setBoxLayout(BoxLayout.Y_AXIS);
-    SpacedPanel northPanel = SpacedPanel.getInstance();
-    northPanel.setBoxLayout(BoxLayout.X_AXIS);
-    SpacedPanel buttonPanel = SpacedPanel.getInstance();
-    buttonPanel.setBoxLayout(BoxLayout.X_AXIS);
-    //header
-    trialHeader = PanelHeader.getInstance("Trial Tilt", this, dialogType);
-    //buttonPanel
-    btnTrial.setSize();
-    buttonPanel.add(btnTrial);
-    btn3dmodTrial.setSize();
-    buttonPanel.add(btn3dmodTrial);
-    btnUseTrial.setSize();
-    buttonPanel.add(btnUseTrial);
-    //northPanel
-    northPanel.add(lblTrialTomogramName);
-    northPanel.add(cmboTrialTomogramName);
-    //trialBodyPanel
-    trialBodyPanel.addRigidArea();
-    trialBodyPanel.add(northPanel);
-    trialBodyPanel.add(buttonPanel);
-    //trialPanel
-    trialPanel.add(trialHeader);
-    trialPanel.add(trialBodyPanel.getContainer());
-    //configure
-    //trialHeader.setOpen(true);
-    cmboTrialTomogramName.setEditable(true);
-    return trialPanel;
+    return tiltPanel.usingParallelProcessing();
   }
 
   /**
@@ -1326,208 +767,25 @@ public class TomogramGenerationDialog extends ProcessDialog implements
         logFileLabel, logFile, applicationManager, axisID);
   }
 
-  public void setUseZFactors(boolean select) {
-    cbUseZFactors.setSelected(select);
+  void setUseZFactorsEnabled(boolean enable) {
+    tiltPanel.setUseZFactorsEnabled(enable);
   }
 
-  public void setUseZFactorsEnabled(boolean enable) {
-    cbUseZFactors.setEnabled(enable);
+  void setUseLocalAlignmentEnabled(boolean enable) {
+    tiltPanel.setUseLocalAlignmentEnabled(enable);
   }
 
-  public void setUseLocalAlignment(boolean select) {
-    cbUseLocalAlignment.setSelected(select);
+  void done() {
+    expert.doneDialog();
+    tiltPanel.done();
+    setDisplayed(false);
   }
 
-  public void setUseLocalAlignmentEnabled(boolean enable) {
-    cbUseLocalAlignment.setEnabled(enable);
+  TiltDisplay getTiltDisplay() {
+    return tiltPanel;
   }
 
-  boolean done() {
-    if (expert.doneDialog()) {
-      btnTilt.removeActionListener(tomogramGenerationListener);
-      btnDeleteStack.removeActionListener(tomogramGenerationListener);
-      btnUseTrial.removeActionListener(tomogramGenerationListener);
-      setDisplayed(false);
-      return true;
-    }
-    return false;
-  }
-
-  public void buttonAdvancedAction(ActionEvent event) {
-    super.buttonAdvancedAction(event);
-    updateAdvanced();
-  }
-
-  public void action(final Run3dmodButton button,
-      final Run3dmodMenuOptions run3dmodMenuOptions) {
-    buttonAction(button.getActionCommand(), button.getDeferred3dmodButton(),
-        run3dmodMenuOptions);
-  }
-
-  /**
-   * Executes the action associated with command.  Deferred3dmodButton is null
-   * if it comes from the dialog's ActionListener.  Otherwise is comes from a
-   * Run3dmodButton which called action(Run3dmodButton, Run3dmoMenuOptions).  In
-   * that case it will be null unless it was set in the Run3dmodButton.
-   * @param command
-   * @param deferred3dmodButton
-   * @param run3dmodMenuOptions
-   */
-  void buttonAction(final String command,
-      final Deferred3dmodButton deferred3dmodButton,
-      final Run3dmodMenuOptions run3dmodMenuOptions) {
-    if (command.equals(btnTrial.getActionCommand())) {
-      expert.trialAction(btnTrial, null);
-    }
-    else if (command.equals(btnUseTrial.getActionCommand())) {
-      expert.commitTestVolume(btnUseTrial);
-    }
-    else if (command.equals(btnTilt.getActionCommand())) {
-      expert
-          .tiltAction(btnTilt, null, deferred3dmodButton, run3dmodMenuOptions);
-    }
-    else if (command.equals(btnDeleteStack.getActionCommand())) {
-      applicationManager.deleteAlignedStacks(axisID, btnDeleteStack);
-    }
-    else if (command.equals(cbParallelProcess.getActionCommand())) {
-      expert.updateParallelProcess();
-    }
-    else if (command.equals(btn3dmodTrial.getActionCommand())) {
-      expert.imodTestVolume(run3dmodMenuOptions);
-    }
-    else if (command.equals(btn3dmodTomogram.getActionCommand())) {
-      applicationManager.imodFullVolume(axisID, run3dmodMenuOptions);
-    }
-  }
-
-  private class ButtonListener implements ActionListener {
-    private final TomogramGenerationDialog adaptee;
-
-    private ButtonListener(final TomogramGenerationDialog adaptee) {
-      this.adaptee = adaptee;
-    }
-
-    public void actionPerformed(final ActionEvent event) {
-      adaptee.buttonAction(event.getActionCommand(), null, null);
-    }
-  }
-
-  /**
-   * Initialize the tooltip text for the axis panel objects
-   */
-  private void setToolTipText() {
-    ReadOnlyAutodoc autodoc = null;
-
-    try {
-      autodoc = AutodocFactory.getInstance(AutodocFactory.MTF_FILTER, axisID,
-          applicationManager.getManagerKey());
-    }
-    catch (FileNotFoundException except) {
-      except.printStackTrace();
-    }
-    catch (IOException except) {
-      except.printStackTrace();
-    }
-    catch (LogFile.LockException e) {
-      e.printStackTrace();
-    }
-    cbParallelProcess
-        .setToolTipText("Check to distribute the tilt process across multiple computers.");
-    ltfTomoThickness
-        .setToolTipText("Thickness, in pixels, along the z-axis of the reconstructed volume.");
-    ltfSliceStart
-        .setToolTipText("The first slice in the Y dimension to include in the reconstructed "
-            + " volume.  Slices are numbered from 0, a last slice must also "
-            + "be specified.");
-    ltfSliceStop
-        .setToolTipText("The last slice in the Y dimension to include in the reconstructed "
-            + " volume.  Slices are numbered from 0, a first slice must also "
-            + "be specified.");
-    ltfSliceIncr
-        .setToolTipText("Step between slices in the Y dimension.  A first and last slice must "
-            + "also be entered. Default is 1.");
-    ltfTomoWidth
-        .setToolTipText("This entry specifies the width of the output image; the default is the "
-            + "width of the input image.");
-    ltfXShift
-        .setToolTipText("Amount to shift the reconstructed slices in X before output.  A "
-            + "positive value will shift the slice to the right, and the "
-            + "output will contain the left part of the whole potentially "
-            + "reconstructable area.");
-    ltfZShift
-        .setToolTipText("Amount to shift the reconstructed slices in Z before output.  A "
-            + "positive value will shift the slice upward.");
-    ltfXAxisTilt.setToolTipText(X_AXIS_TILT_TOOLTIP);
-    ltfTiltAngleOffset
-        .setToolTipText("Offset in degrees to apply to the tilt angles; a positive offset will "
-            + "rotate the reconstructed slices counterclockwise.");
-    ltfRadialMax
-        .setToolTipText("The spatial frequency at which to switch from the R-weighted radial "
-            + "filter to a Gaussian falloff.  Frequency is in cycles/pixel and "
-            + "ranges from 0-0.5.  Both a cutoff and a falloff must be entered.");
-    ltfRadialFallOff
-        .setToolTipText("The sigma value of a Gaussian which determines how fast the radial "
-            + "filter falls off at spatial frequencies above the cutoff frequency."
-            + "  Frequency is in cycles/pixel and ranges from 0-0.5.  Both a "
-            + "cutoff and a falloff must be entered ");
-    ltfDensityOffset
-        .setToolTipText("Amount to add to reconstructed density values before multiplying by"
-            + " the scale factor and outputting the values.");
-    ltfDensityScale
-        .setToolTipText("Amount to multiply reconstructed density values by, after adding the "
-            + "offset value.");
-    ltfLogOffset
-        .setToolTipText("This parameter allows one to generate a reconstruction using the "
-            + "logarithm of the densities in the input file, with the value "
-            + "specified added before taking the logarithm.  If no parameter is "
-            + "specified the logarithm of the input data is not taken.");
-    cbUseLocalAlignment
-        .setToolTipText("Select this checkbox to use local alignments.  You must have "
-            + "created the local alignments in the Fine Alignment step");
-    btnTilt
-        .setToolTipText("Compute the tomogram from the full aligned stack.  This runs "
-            + "the tilt.com script.");
-    btn3dmodTomogram.setToolTipText("View the reconstructed volume in 3dmod.");
-    String text = "Current name of trial tomogram, which will be generated, viewed, or"
-        + " used by the buttons below.";
-    lblTrialTomogramName.setToolTipText(text);
-    cmboTrialTomogramName
-        .setToolTipText(TooltipFormatter.INSTANCE.format(text));
-    btnTrial
-        .setToolTipText("Compute a trial tomogram with the current parameters, using the "
-            + "filename in the \" Trial tomogram filename \" box.");
-    btn3dmodTrial
-        .setToolTipText("View the trial tomogram whose name is shown in \"Trial "
-            + "tomogram filename\" box.");
-    btnUseTrial
-        .setToolTipText("Rename the trial tomogram whose name is shown in the \"Trial "
-            + "tomogram filename\" box to be the final tomogram.");
-    btnDeleteStack
-        .setToolTipText("Delete the aligned stack for this axis.  Once the "
-            + "tomogram is calculated this intermediate file is not used and can be "
-            + "" + "deleted to free up disk space.");
-    cbUseZFactors
-        .setToolTipText("Use the file containing factors for adjusting the backprojection position "
-            + "in each image as a function of Z height in the output slice (.zfac file).  "
-            + "These factors are necessary when input images have been transformed to "
-            + "correct for an apparent specimen stretch.  "
-            + "If this box is not checked, "
-            + "Z factors in a local alignment file will not be applied.");
-    ltfExtraExcludeList
-        .setToolTipText("List of views to exclude from the reconstruction, in addition to the ones"
-            + "excluded from fine alignment.");
-    try {
-      autodoc = AutodocFactory.getInstance(AutodocFactory.NEWSTACK, axisID,
-          applicationManager.getManagerKey());
-    }
-    catch (FileNotFoundException except) {
-      except.printStackTrace();
-    }
-    catch (IOException except) {
-      except.printStackTrace();
-    }
-    catch (LogFile.LockException e) {
-      e.printStackTrace();
-    }
+  public void updateParallelProcess() {
+    applicationManager.setParallelDialog(axisID, usingParallelProcessing());
   }
 }

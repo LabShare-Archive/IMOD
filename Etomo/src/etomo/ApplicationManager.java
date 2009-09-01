@@ -20,6 +20,7 @@ import etomo.comscript.CombineComscriptState;
 import etomo.comscript.CombineParams;
 import etomo.comscript.Command;
 import etomo.comscript.ConstCombineParams;
+import etomo.comscript.ConstFindBeads3dParam;
 import etomo.comscript.ConstNewstParam;
 import etomo.comscript.ConstSetParam;
 import etomo.comscript.ConstSplitCorrectionParam;
@@ -31,12 +32,14 @@ import etomo.comscript.CtfPhaseFlipParam;
 import etomo.comscript.ExtractmagradParam;
 import etomo.comscript.ExtractpiecesParam;
 import etomo.comscript.ExtracttiltsParam;
+import etomo.comscript.FindBeads3dParam;
 import etomo.comscript.FlattenWarpParam;
 import etomo.comscript.FortranInputSyntaxException;
 import etomo.comscript.GotoParam;
 import etomo.comscript.MatchorwarpParam;
 import etomo.comscript.MatchshiftsParam;
 import etomo.comscript.MatchvolParam;
+import etomo.comscript.MrcTaperParam;
 import etomo.comscript.NewstParam;
 import etomo.comscript.Patchcrawl3DParam;
 import etomo.comscript.ProcessDetails;
@@ -66,6 +69,7 @@ import etomo.process.ProcessManager;
 import etomo.process.ProcessResultDisplayFactoryInterface;
 import etomo.process.ProcessState;
 import etomo.process.SystemProcessException;
+import etomo.storage.CpuAdoc;
 import etomo.storage.LogFile;
 import etomo.storage.Storable;
 import etomo.storage.TaErrorLog;
@@ -87,6 +91,7 @@ import etomo.type.EtomoNumber;
 import etomo.type.EtomoState;
 import etomo.type.FiducialMatch;
 import etomo.type.FileType;
+import etomo.type.ImageFileType;
 import etomo.type.InterfaceType;
 import etomo.type.InvalidEtomoNumberException;
 import etomo.type.MatchMode;
@@ -113,7 +118,9 @@ import etomo.ui.CleanUpDialog;
 import etomo.ui.CoarseAlignDialog;
 import etomo.ui.FiducialModelDialog;
 import etomo.ui.FiducialessParams;
+import etomo.ui.FinalAlignedStackDialog;
 import etomo.ui.FinalAlignedStackExpert;
+import etomo.ui.FindBeads3dDisplay;
 import etomo.ui.FlattenWarpDisplay;
 import etomo.ui.MainPanel;
 import etomo.ui.MainTomogramPanel;
@@ -125,10 +132,12 @@ import etomo.ui.ProcessDialog;
 import etomo.ui.Deferred3dmodButton;
 import etomo.ui.ProcessDisplay;
 import etomo.ui.SetupDialogExpert;
+import etomo.ui.TiltDisplay;
 import etomo.ui.TiltXcorrDisplay;
 import etomo.ui.TomogramCombinationDialog;
 import etomo.ui.TomogramGenerationExpert;
 import etomo.ui.TomogramPositioningExpert;
+import etomo.ui.TrialTiltDisplay;
 import etomo.ui.UIExpert;
 import etomo.ui.UIExpertUtilities;
 import etomo.ui.UIHarness;
@@ -229,9 +238,7 @@ public final class ApplicationManager extends BaseManager implements
 
   public void doAutomation() {
     if (setupDialogExpert != null) {
-      if (!setupDialogExpert.doAutomation()) {
-        return;
-      }
+      setupDialogExpert.doAutomation();
     }
     super.doAutomation();
   }
@@ -577,7 +584,7 @@ public final class ApplicationManager extends BaseManager implements
     preProcDialog.setCCDEraserParams(comScriptMgr.getCCDEraserParam(axisID));
     preProcDialog.setParameters(getScreenState(axisID));
     mainPanel.showProcess(preProcDialog.getContainer(), axisID);
-    setParallelDialog(axisID, preProcDialog);
+    setParallelDialog(axisID, preProcDialog.usingParallelProcessing());
   }
 
   /**
@@ -1162,7 +1169,7 @@ public final class ApplicationManager extends BaseManager implements
     coarseAlignDialog.setImageRotation(metaData.getImageRotation(axisID));
     coarseAlignDialog.setParameters(getScreenState(axisID));
     mainPanel.showProcess(coarseAlignDialog.getContainer(), axisID);
-    setParallelDialog(axisID, coarseAlignDialog);
+    setParallelDialog(axisID, coarseAlignDialog.usingParallelProcessing());
   }
 
   /**
@@ -1826,7 +1833,7 @@ public final class ApplicationManager extends BaseManager implements
     fiducialModelDialog.setParameters(getScreenState(axisID));
     fiducialModelDialog.setParameters(metaData);
     mainPanel.showProcess(fiducialModelDialog.getContainer(), axisID);
-    setParallelDialog(axisID, fiducialModelDialog);
+    setParallelDialog(axisID, fiducialModelDialog.usingParallelProcessing());
   }
 
   /**
@@ -1871,7 +1878,7 @@ public final class ApplicationManager extends BaseManager implements
       fiducialModelDialog.getTransferFidParams();
       fiducialModelDialog.getParameters(metaData);
       // Get the user input data from the dialog box
-      if (!updateTrackCom(fiducialModelDialog.getBeadTrackDisplay(), axisID)) {
+      if (updateTrackCom(fiducialModelDialog.getBeadTrackDisplay(), axisID) == null) {
         return false;
       }
       if (exitState == DialogExitState.EXECUTE) {
@@ -1892,9 +1899,53 @@ public final class ApplicationManager extends BaseManager implements
   /**
    * Open 3dmod in seed mode with model and tilt file
    */
+  public void imodFindBeads3d(AxisID axisID, Run3dmodMenuOptions menuOptions,
+      ProcessResultDisplay processResultDisplay, String key, String model,
+      File tiltFile, DialogType dialogType) {
+    sendMsgProcessStarting(processResultDisplay);
+    try {
+      imodManager.setPreserveContrast(key, axisID, true);
+      imodManager.setOpenBeadFixer(key, axisID, true);
+      imodManager.setBeadfixerMode(key, axisID, ImodProcess.SEED_MODE);
+      imodManager.setOpenLogOff(key, axisID);
+      imodManager.setDeleteAllSections(key, axisID, true);
+      if (tiltFile != null && tiltFile.exists()) {
+        imodManager.setTiltFile(key, axisID, tiltFile.getName());
+      }
+      else {
+        imodManager.resetTiltFile(key, axisID);
+      }
+      imodManager.open(key, axisID, model, true, menuOptions);
+      processTrack.setState(ProcessState.INPROGRESS, axisID, dialogType);
+      mainPanel.setState(ProcessState.INPROGRESS, axisID, dialogType);
+      sendMsgProcessSucceeded(processResultDisplay);
+    }
+    catch (AxisTypeException except) {
+      except.printStackTrace();
+      uiHarness.openMessageDialog(except.getMessage(), "AxisType problem",
+          axisID, getManagerKey());
+      sendMsgProcessFailedToStart(processResultDisplay);
+    }
+    catch (SystemProcessException except) {
+      except.printStackTrace();
+      uiHarness.openMessageDialog(except.getMessage(), "Can't open 3dmod on "
+          + key + " with model: " + model, axisID, getManagerKey());
+      sendMsgProcessFailedToStart(processResultDisplay);
+    }
+    catch (IOException e) {
+      e.printStackTrace();
+      uiHarness.openMessageDialog(e.getMessage(), "IO Exception", axisID,
+          getManagerKey());
+      sendMsgProcessFailedToStart(processResultDisplay);
+    }
+  }
+
+  /**
+   * Open 3dmod in seed mode with model and tilt file
+   */
   public void imodSeedModel(AxisID axisID, Run3dmodMenuOptions menuOptions,
       ProcessResultDisplay processResultDisplay, String key, String model,
-      File tiltFile) {
+      File tiltFile, DialogType dialogType) {
     sendMsgProcessStarting(processResultDisplay);
     try {
       imodManager.setPreserveContrast(key, axisID, true);
@@ -1909,8 +1960,8 @@ public final class ApplicationManager extends BaseManager implements
         imodManager.resetTiltFile(key, axisID);
       }
       imodManager.open(key, axisID, model, true, menuOptions);
-      processTrack.setFiducialModelState(ProcessState.INPROGRESS, axisID);
-      mainPanel.setFiducialModelState(ProcessState.INPROGRESS, axisID);
+      processTrack.setState(ProcessState.INPROGRESS, axisID, dialogType);
+      mainPanel.setState(ProcessState.INPROGRESS, axisID, dialogType);
       sendMsgProcessSucceeded(processResultDisplay);
     }
     catch (AxisTypeException except) {
@@ -1996,7 +2047,8 @@ public final class ApplicationManager extends BaseManager implements
       ConstProcessSeries processSeries, DialogType dialogType,
       BeadTrackDisplay display) {
     sendMsgProcessStarting(processResultDisplay);
-    if (!updateTrackCom(display, axisID)) {
+    BeadtrackParam beadtrackParam;
+    if ((beadtrackParam = updateTrackCom(display, axisID)) == null) {
       sendMsgProcessFailedToStart(processResultDisplay);
       return;
     }
@@ -2007,8 +2059,8 @@ public final class ApplicationManager extends BaseManager implements
     mainPanel.setState(ProcessState.INPROGRESS, axisID, dialogType);
     String threadName;
     try {
-      threadName = processMgr.fiducialModelTrack(axisID, processResultDisplay,
-          processSeries);
+      threadName = processMgr.fiducialModelTrack(beadtrackParam, axisID,
+          processResultDisplay, processSeries);
     }
     catch (SystemProcessException e) {
       e.printStackTrace();
@@ -2235,15 +2287,16 @@ public final class ApplicationManager extends BaseManager implements
   /**
    * Update the specified track com script
    */
-  private boolean updateTrackCom(BeadTrackDisplay display, AxisID axisID) {
+  private BeadtrackParam updateTrackCom(BeadTrackDisplay display, AxisID axisID) {
     if (display == null) {
       uiHarness.openMessageDialog(
           "Can not update track?.com without an active display",
           "Program logic error", axisID, getManagerKey());
-      return false;
+      return null;
     }
+    BeadtrackParam beadtrackParam;
     try {
-      BeadtrackParam beadtrackParam = comScriptMgr.getBeadtrackParam(axisID);
+      beadtrackParam = comScriptMgr.getBeadtrackParam(axisID);
       display.getParameters(beadtrackParam);
       comScriptMgr.saveTrack(beadtrackParam, axisID);
     }
@@ -2255,7 +2308,7 @@ public final class ApplicationManager extends BaseManager implements
       errorMessage[2] = "New value: " + except.getNewString();
       uiHarness.openMessageDialog(errorMessage,
           "Beadtrack Parameter Syntax Error", axisID, getManagerKey());
-      return false;
+      return null;
     }
     catch (NumberFormatException except) {
       except.printStackTrace();
@@ -2265,12 +2318,12 @@ public final class ApplicationManager extends BaseManager implements
       errorMessage[2] = except.getMessage();
       uiHarness.openMessageDialog(errorMessage,
           "Beadtrack Parameter Syntax Error", axisID, getManagerKey());
-      return false;
+      return null;
     }
     catch (InvalidEtomoNumberException e) {
-      return false;
+      return null;
     }
-    return true;
+    return beadtrackParam;
   }
 
   /**
@@ -2318,7 +2371,7 @@ public final class ApplicationManager extends BaseManager implements
     fineAlignmentDialog.setParameters(getScreenState(axisID));
     // Create a default transferfid object to populate the alignment dialog
     mainPanel.showProcess(fineAlignmentDialog.getContainer(), axisID);
-    setParallelDialog(axisID, fineAlignmentDialog);
+    setParallelDialog(axisID, fineAlignmentDialog.usingParallelProcessing());
   }
 
   /**
@@ -2491,7 +2544,7 @@ public final class ApplicationManager extends BaseManager implements
   /**
    * 
    */
-  public boolean doneAlignmentEstimationDialog(AxisID axisID) {
+  public void doneAlignmentEstimationDialog(AxisID axisID) {
     // Set a reference to the correct object
     AlignmentEstimationDialog fineAlignmentDialog;
     if (axisID == AxisID.SECOND) {
@@ -2500,9 +2553,7 @@ public final class ApplicationManager extends BaseManager implements
     else {
       fineAlignmentDialog = fineAlignmentDialogA;
     }
-    if (!saveAlignmentEstimationDialog(fineAlignmentDialog, axisID)) {
-      return false;
-    }
+    saveAlignmentEstimationDialog(fineAlignmentDialog, axisID);
     // Clean up the existing dialog
     if (axisID == AxisID.SECOND) {
       fineAlignmentDialogB = null;
@@ -2511,7 +2562,6 @@ public final class ApplicationManager extends BaseManager implements
       fineAlignmentDialogA = null;
     }
     fineAlignmentDialog = null;
-    return true;
   }
 
   /**
@@ -2750,8 +2800,46 @@ public final class ApplicationManager extends BaseManager implements
     }
   }
 
+  public void imodFineAlign3dFind(AxisID axisID, Run3dmodMenuOptions menuOptions) {
+    //Get the correct ImodManager key.  The file to bring up is whatever file
+    //was last used as input for tilt_3dfind.
+    String key;
+    if (state.isStackUsingNewstOrBlend3dFindOutput(axisID)) {
+      key = FileType.NEWST_OR_BLEND_3D_FIND_OUTPUT.getImodManagerKey();
+    }
+    else {
+      key = FileType.NEWST_OR_BLEND_OUTPUT.getImodManagerKey();
+    }
+    try {
+      File tiltFile = DatasetFiles.getTiltFile(this, axisID);
+      if (tiltFile.exists()) {
+        imodManager.setTiltFile(key, axisID, tiltFile.getName());
+      }
+      else {
+        imodManager.resetTiltFile(key, axisID);
+      }
+      imodManager.open(key, axisID, menuOptions);
+    }
+    catch (AxisTypeException except) {
+      except.printStackTrace();
+      uiHarness.openMessageDialog(except.getMessage(), "AxisType problem",
+          axisID, getManagerKey());
+    }
+    catch (SystemProcessException except) {
+      except.printStackTrace();
+      uiHarness.openMessageDialog(except.getMessage(), "Can't open 3dmod on "
+          + key, axisID, getManagerKey());
+    }
+    catch (IOException e) {
+      e.printStackTrace();
+      uiHarness.openMessageDialog(e.getMessage(), "IO Exception", axisID,
+          getManagerKey());
+    }
+  }
+
   /**
-   * Open 3dmod to view the coarsely aligned stack
+   * Open 3dmod to view the fine aligned stack or the fine aligned stack for
+   * findbeads3d.
    * 
    * @param axisID the AxisID to coarse align.
    */
@@ -2774,8 +2862,8 @@ public final class ApplicationManager extends BaseManager implements
     }
     catch (SystemProcessException except) {
       except.printStackTrace();
-      uiHarness.openMessageDialog(except.getMessage(),
-          "Can't open 3dmod on fine aligned stack", axisID, getManagerKey());
+      uiHarness.openMessageDialog(except.getMessage(), "Can't open 3dmod on "
+          + ImodManager.FINE_ALIGNED_KEY, axisID, getManagerKey());
     }
     catch (IOException e) {
       e.printStackTrace();
@@ -3547,14 +3635,63 @@ public final class ApplicationManager extends BaseManager implements
   }
 
   /**
-   * Get the set the blendmont parameters and update the blend com script.
+   * Update the newst3dfind.com from the display.  Reads metaData.
+   * 
+   * @param axisID
+   * @return true if successful
+   */
+  public ConstNewstParam updateNewst3dFindCom(NewstackDisplay display,
+      AxisID axisID) {
+    // Set a reference to the correct object
+    if (display == null) {
+      UIHarness.INSTANCE.openMessageDialog(
+          "Can not update newst3dfind?.com without an active display",
+          "Program logic error", axisID, getManagerKey());
+      return null;
+    }
+    NewstParam newstParam = null;
+    try {
+      newstParam = comScriptMgr.getNewstParamFromNewst3dFind(axisID);
+      display.getParameters(newstParam);
+      comScriptMgr.saveNewst3dFind(newstParam, axisID);
+    }
+    catch (NumberFormatException except) {
+      String[] errorMessage = new String[3];
+      errorMessage[0] = "newst Parameter Syntax Error";
+      errorMessage[1] = "Axis: " + axisID.getExtension();
+      errorMessage[2] = except.getMessage();
+      UIHarness.INSTANCE.openMessageDialog(errorMessage,
+          "Newst Parameter Syntax Error", axisID, getManagerKey());
+      return null;
+    }
+    catch (FortranInputSyntaxException except) {
+      String[] errorMessage = new String[3];
+      errorMessage[0] = "newst Parameter Syntax Error";
+      errorMessage[1] = "Axis: " + axisID.getExtension();
+      errorMessage[2] = except.getMessage();
+      UIHarness.INSTANCE.openMessageDialog(errorMessage,
+          "Newst Parameter Syntax Error", axisID, getManagerKey());
+      return null;
+    }
+    //Update mrctaper
+    MrcTaperParam mrcTaperParam = comScriptMgr
+        .getMrcTaperParamFromNewst3dFind(axisID);
+    mrcTaperParam.setInputFile(FileType.NEWST_OR_BLEND_3D_FIND_OUTPUT
+        .getFileName(this, axisID));
+    comScriptMgr.saveNewst3dFind(mrcTaperParam, axisID);
+    return newstParam;
+  }
+
+  /**
+   * Get the set the blendmont parameters and update the blend.com script.
    * @param axisID
    * @return
    */
   public BlendmontParam updateBlendCom(BlendmontDisplay display, AxisID axisID)
       throws FortranInputSyntaxException, InvalidParameterException,
       IOException {
-    BlendmontParam blendParam = comScriptMgr.getBlendParam(axisID);
+    BlendmontParam blendParam;
+    blendParam = comScriptMgr.getBlendParam(axisID);
     display.getParameters(blendParam);
     blendParam.setMode(BlendmontParam.Mode.BLEND);
     blendParam.setBlendmontState();
@@ -3563,71 +3700,76 @@ public final class ApplicationManager extends BaseManager implements
   }
 
   /**
-   * 
+   * Get the set the blendmont parameters and update the blend3dfin.com script.
+   * @param axisID
+   * @return
    */
-  public void newst(ProcessResultDisplay processResultDisplay,
+  public BlendmontParam updateBlend3dFindCom(BlendmontDisplay display,
+      AxisID axisID) throws FortranInputSyntaxException,
+      InvalidParameterException, IOException {
+    //Update blendmont
+    BlendmontParam blendParam = comScriptMgr
+        .getBlendParamFromBlend3dFind(axisID);
+    display.getParameters(blendParam);
+    blendParam.setMode(BlendmontParam.Mode.BLEND);
+    blendParam.setBlendmontState();
+    blendParam.setImageOutputFile(FileType.NEWST_OR_BLEND_3D_FIND_OUTPUT
+        .getFileName(this, axisID));
+    comScriptMgr.saveBlend3dFind(blendParam, axisID);
+    //Update mrctaper
+    MrcTaperParam mrcTaperParam = comScriptMgr
+        .getMrcTaperParamFromBlend3dFind(axisID);
+    mrcTaperParam.setInputFile(FileType.NEWST_OR_BLEND_3D_FIND_OUTPUT
+        .getFileName(this, axisID));
+    comScriptMgr.saveBlend3dFind(mrcTaperParam, axisID);
+    return blendParam;
+  }
+
+  /**
+   * Run blend_3dfind.com
+   * @param processResultDisplay
+   * @param processSeries
+   * @param deferred3dmodButton
+   * @param axisID
+   * @param run3dmodMenuOptions
+   * @param dialogType
+   * @param fiducialessParams
+   * @param blendmontDisplay
+   */
+  public void blend3dFind(ProcessResultDisplay processResultDisplay,
       ProcessSeries processSeries, Deferred3dmodButton deferred3dmodButton,
       AxisID axisID, Run3dmodMenuOptions run3dmodMenuOptions,
-      DialogType dialogType, FiducialessParams fiducialessParams,
-      BlendmontDisplay blendmontDisplay, NewstackDisplay newstackDisplay) {
+      DialogType dialogType, BlendmontDisplay blendmontDisplay) {
     if (processSeries == null) {
       processSeries = new ProcessSeries(this, dialogType);
     }
     sendMsgProcessStarting(processResultDisplay);
     // Get the user input from the dialog
-    if (!UIExpertUtilities.INSTANCE.updateFiducialessParams(this,
-        fiducialessParams, axisID)) {
+    if (!UIExpertUtilities.INSTANCE.updateFiducialessParams(this, state
+        .getStackImageRotation(axisID).getFloat(), state
+        .isNewstFiducialessAlignment(axisID), axisID)) {
       sendMsgProcessFailedToStart(processResultDisplay);
       return;
     }
-    ConstNewstParam newstParam = null;
-    BlendmontParam blendmontParam = null;
-    if (metaData.getViewType() == ViewType.MONTAGE) {
-      try {
-        blendmontParam = updateBlendCom(blendmontDisplay, axisID);
-      }
-      catch (FortranInputSyntaxException e) {
-        UIHarness.INSTANCE.openMessageDialog(e.getMessage(),
-            "Update Com Error", getManagerKey());
-      }
-      catch (InvalidParameterException e) {
-        UIHarness.INSTANCE.openMessageDialog(e.getMessage(),
-            "Update Com Error", getManagerKey());
-      }
-      catch (IOException e) {
-        UIHarness.INSTANCE.openMessageDialog(e.getMessage(),
-            "Update Com Error", getManagerKey());
-      }
+    BlendmontParam param = null;
+    try {
+      param = updateBlend3dFindCom(blendmontDisplay, axisID);
     }
-    else {
-      newstParam = updateNewstCom(newstackDisplay, axisID);
-      if (newstParam == null) {
-        sendMsgProcessFailedToStart(processResultDisplay);
-        return;
-      }
+    catch (FortranInputSyntaxException e) {
+      UIHarness.INSTANCE.openMessageDialog(e.getMessage(), "Update Com Error",
+          getManagerKey());
+    }
+    catch (InvalidParameterException e) {
+      UIHarness.INSTANCE.openMessageDialog(e.getMessage(), "Update Com Error",
+          getManagerKey());
+    }
+    catch (IOException e) {
+      UIHarness.INSTANCE.openMessageDialog(e.getMessage(), "Update Com Error",
+          getManagerKey());
     }
     processSeries.setRun3dmodDeferred(deferred3dmodButton, run3dmodMenuOptions);
     processTrack.setState(ProcessState.INPROGRESS, axisID, dialogType);
     mainPanel.setState(ProcessState.INPROGRESS, axisID, dialogType);
-    sendMsg(newst(axisID, processResultDisplay, processSeries, newstParam,
-        blendmontParam), processResultDisplay);
-  }
-
-  private void sendMsg(ProcessResult displayState,
-      ProcessResultDisplay processResultDisplay) {
-    if (displayState == null || processResultDisplay == null) {
-      return;
-    }
-    processResultDisplay.msg(displayState);
-  }
-
-  /**
-   * 
-   */
-  private ProcessResult newst(AxisID axisID,
-      ProcessResultDisplay processResultDisplay,
-      ConstProcessSeries processSeries, ConstNewstParam newstParam,
-      BlendmontParam blendmontParam) {
     // Make sure we have a current prexg and _nonfid.xf if fiducialess is
     // selected
     if (metaData.isFiducialessAlignment(axisID)) {
@@ -3646,16 +3788,171 @@ public final class ApplicationManager extends BaseManager implements
             "Unable to copy fiducial alignment files", axisID, getManagerKey());
       }
     }
-    String threadName;
+    String threadName = null;
     try {
-      if (metaData.getViewType() == ViewType.MONTAGE) {
-        threadName = processMgr.blend(blendmontParam, axisID,
-            processResultDisplay, processSeries);
+      threadName = processMgr.blend(param, axisID, processResultDisplay,
+          processSeries);
+    }
+    catch (SystemProcessException e) {
+      e.printStackTrace();
+      String[] message = new String[2];
+      message[0] = "Can not execute blend_3dfind";
+      message[1] = e.getMessage();
+      uiHarness.openMessageDialog(message, "Unable to execute com script",
+          axisID, getManagerKey());
+      sendMsg(ProcessResult.FAILED_TO_START, processResultDisplay);
+    }
+    setThreadName(threadName, axisID);
+  }
+
+  /**
+   * Run blend.com
+   * @param processResultDisplay
+   * @param processSeries
+   * @param deferred3dmodButton
+   * @param axisID
+   * @param run3dmodMenuOptions
+   * @param dialogType
+   * @param fiducialessParams
+   * @param blendmontDisplay
+   */
+  public void blend(ProcessResultDisplay processResultDisplay,
+      ProcessSeries processSeries, Deferred3dmodButton deferred3dmodButton,
+      AxisID axisID, Run3dmodMenuOptions run3dmodMenuOptions,
+      DialogType dialogType, FiducialessParams fiducialessParams,
+      BlendmontDisplay blendmontDisplay) {
+    if (processSeries == null) {
+      processSeries = new ProcessSeries(this, dialogType);
+    }
+    sendMsgProcessStarting(processResultDisplay);
+    // Get the user input from the dialog
+    if (!UIExpertUtilities.INSTANCE.updateFiducialessParams(this,
+        fiducialessParams, axisID)) {
+      sendMsgProcessFailedToStart(processResultDisplay);
+      return;
+    }
+    BlendmontParam param = null;
+    try {
+      param = updateBlendCom(blendmontDisplay, axisID);
+    }
+    catch (FortranInputSyntaxException e) {
+      UIHarness.INSTANCE.openMessageDialog(e.getMessage(), "Update Com Error",
+          getManagerKey());
+    }
+    catch (InvalidParameterException e) {
+      UIHarness.INSTANCE.openMessageDialog(e.getMessage(), "Update Com Error",
+          getManagerKey());
+    }
+    catch (IOException e) {
+      UIHarness.INSTANCE.openMessageDialog(e.getMessage(), "Update Com Error",
+          getManagerKey());
+    }
+    processSeries.setRun3dmodDeferred(deferred3dmodButton, run3dmodMenuOptions);
+    processTrack.setState(ProcessState.INPROGRESS, axisID, dialogType);
+    mainPanel.setState(ProcessState.INPROGRESS, axisID, dialogType);
+    // Make sure we have a current prexg and _nonfid.xf if fiducialess is
+    // selected
+    if (metaData.isFiducialessAlignment(axisID)) {
+      generateFiducialessTransforms(axisID);
+    }
+    else {
+      try {
+        processMgr.setupFiducialAlign(axisID);
       }
-      else {
-        threadName = processMgr.newst(newstParam, axisID, processResultDisplay,
-            processSeries);
+      catch (IOException except) {
+        except.printStackTrace();
+        String[] message = new String[2];
+        message[0] = "Problem copying fiducial alignment files";
+        message[1] = except.getMessage();
+        uiHarness.openMessageDialog(message,
+            "Unable to copy fiducial alignment files", axisID, getManagerKey());
       }
+    }
+    String threadName = null;
+    try {
+      threadName = processMgr.blend(param, axisID, processResultDisplay,
+          processSeries);
+    }
+    catch (SystemProcessException e) {
+      e.printStackTrace();
+      String[] message = new String[2];
+      message[0] = "Can not execute blend";
+      message[1] = e.getMessage();
+      uiHarness.openMessageDialog(message, "Unable to execute com script",
+          axisID, getManagerKey());
+      sendMsg(ProcessResult.FAILED_TO_START, processResultDisplay);
+    }
+    setThreadName(threadName, axisID);
+  }
+
+  public boolean equalsBinning(AxisID axisID, int binning, FileType fileType) {
+    long fileBinning = UIExpertUtilities.INSTANCE.getStackBinning(this, axisID,
+        fileType);
+    return binning == fileBinning;
+  }
+
+  public double calcUnbinnedBeadDiameterPixels() {
+    return (double) (Math.round(metaData.getFiducialDiameter()
+        / metaData.getPixelSize() * 100)) / 100.0;
+  }
+
+  /**
+   * Run newst.com.
+   * @param processResultDisplay
+   * @param processSeries
+   * @param deferred3dmodButton
+   * @param axisID
+   * @param run3dmodMenuOptions
+   * @param dialogType
+   * @param fiducialessParams
+   * @param newstackDisplay
+   */
+  public void newst(ProcessResultDisplay processResultDisplay,
+      ProcessSeries processSeries, Deferred3dmodButton deferred3dmodButton,
+      AxisID axisID, Run3dmodMenuOptions run3dmodMenuOptions,
+      DialogType dialogType, FiducialessParams fiducialessParams,
+      NewstackDisplay newstackDisplay) {
+    if (processSeries == null) {
+      processSeries = new ProcessSeries(this, dialogType);
+    }
+    sendMsgProcessStarting(processResultDisplay);
+    // Get the user input from the dialog
+    if (!UIExpertUtilities.INSTANCE.updateFiducialessParams(this,
+        fiducialessParams, axisID)) {
+      sendMsgProcessFailedToStart(processResultDisplay);
+      return;
+    }
+    ConstNewstParam param = null;
+    param = updateNewstCom(newstackDisplay, axisID);
+    if (param == null) {
+      sendMsgProcessFailedToStart(processResultDisplay);
+      return;
+    }
+    processSeries.setRun3dmodDeferred(deferred3dmodButton, run3dmodMenuOptions);
+    processTrack.setState(ProcessState.INPROGRESS, axisID, dialogType);
+    mainPanel.setState(ProcessState.INPROGRESS, axisID, dialogType);
+    // Make sure we have a current prexg and _nonfid.xf if fiducialess is
+    // selected
+    if (metaData.isFiducialessAlignment(axisID)) {
+      generateFiducialessTransforms(axisID);
+    }
+    else {
+      try {
+        processMgr.setupFiducialAlign(axisID);
+      }
+      catch (IOException except) {
+        except.printStackTrace();
+        String[] message = new String[2];
+        message[0] = "Problem copying fiducial alignment files";
+        message[1] = except.getMessage();
+        uiHarness.openMessageDialog(message,
+            "Unable to copy fiducial alignment files", axisID, getManagerKey());
+      }
+    }
+    String threadName = null;
+    try {
+      threadName = processMgr.newst(param, axisID, processResultDisplay,
+          processSeries);
     }
     catch (SystemProcessException e) {
       e.printStackTrace();
@@ -3664,10 +3961,157 @@ public final class ApplicationManager extends BaseManager implements
       message[1] = e.getMessage();
       uiHarness.openMessageDialog(message, "Unable to execute com script",
           axisID, getManagerKey());
-      return ProcessResult.FAILED_TO_START;
+      sendMsg(ProcessResult.FAILED_TO_START, processResultDisplay);
     }
     setThreadName(threadName, axisID);
-    return null;
+  }
+
+  /**
+   * Run newst_3dfind.com.
+   * @param processResultDisplay
+   * @param processSeries
+   * @param deferred3dmodButton
+   * @param axisID
+   * @param run3dmodMenuOptions
+   * @param dialogType
+   * @param fiducialessParams
+   * @param newstackDisplay
+   */
+  public void newst3dFind(ProcessResultDisplay processResultDisplay,
+      ProcessSeries processSeries, Deferred3dmodButton deferred3dmodButton,
+      AxisID axisID, Run3dmodMenuOptions run3dmodMenuOptions,
+      DialogType dialogType, NewstackDisplay newstackDisplay) {
+    if (processSeries == null) {
+      processSeries = new ProcessSeries(this, dialogType);
+    }
+    sendMsgProcessStarting(processResultDisplay);
+    // Get the user input from the dialog
+    if (!UIExpertUtilities.INSTANCE.updateFiducialessParams(this, state
+        .getStackImageRotation(axisID).getFloat(), state
+        .isNewstFiducialessAlignment(axisID), axisID)) {
+      sendMsgProcessFailedToStart(processResultDisplay);
+      return;
+    }
+    ConstNewstParam param = null;
+    param = updateNewst3dFindCom(newstackDisplay, axisID);
+    if (param == null) {
+      sendMsgProcessFailedToStart(processResultDisplay);
+      return;
+    }
+    processSeries.setRun3dmodDeferred(deferred3dmodButton, run3dmodMenuOptions);
+    processTrack.setState(ProcessState.INPROGRESS, axisID, dialogType);
+    mainPanel.setState(ProcessState.INPROGRESS, axisID, dialogType);
+    // Make sure we have a current prexg and _nonfid.xf if fiducialess is
+    // selected
+    if (metaData.isFiducialessAlignment(axisID)) {
+      generateFiducialessTransforms(axisID);
+    }
+    else {
+      try {
+        processMgr.setupFiducialAlign(axisID);
+      }
+      catch (IOException except) {
+        except.printStackTrace();
+        String[] message = new String[2];
+        message[0] = "Problem copying fiducial alignment files";
+        message[1] = except.getMessage();
+        uiHarness.openMessageDialog(message,
+            "Unable to copy fiducial alignment files", axisID, getManagerKey());
+      }
+    }
+    String threadName = null;
+    try {
+      threadName = processMgr.newst(param, axisID, processResultDisplay,
+          processSeries);
+    }
+    catch (SystemProcessException e) {
+      e.printStackTrace();
+      String[] message = new String[2];
+      message[0] = "Can not execute newst" + axisID.getExtension() + ".com";
+      message[1] = e.getMessage();
+      uiHarness.openMessageDialog(message, "Unable to execute com script",
+          axisID, getManagerKey());
+      sendMsg(ProcessResult.FAILED_TO_START, processResultDisplay);
+    }
+    setThreadName(threadName, axisID);
+  }
+
+  /**
+   * Run newst_3dfind.com.
+   * @param processResultDisplay
+   * @param processSeries
+   * @param deferred3dmodButton
+   * @param axisID
+   * @param run3dmodMenuOptions
+   * @param dialogType
+   * @param fiducialessParams
+   * @param newstackDisplay
+   */
+  public void findBeads3d(ProcessResultDisplay processResultDisplay,
+      ProcessSeries processSeries, Deferred3dmodButton deferred3dmodButton,
+      AxisID axisID, Run3dmodMenuOptions run3dmodMenuOptions,
+      DialogType dialogType, FindBeads3dDisplay display) {
+    if (processSeries == null) {
+      processSeries = new ProcessSeries(this, dialogType);
+    }
+    sendMsgProcessStarting(processResultDisplay);
+    // Get the user input from the dialog
+    if (!UIExpertUtilities.INSTANCE.updateFiducialessParams(this, state
+        .getStackImageRotation(axisID).getFloat(), state
+        .isNewstFiducialessAlignment(axisID), axisID)) {
+      sendMsgProcessFailedToStart(processResultDisplay);
+      return;
+    }
+    ConstFindBeads3dParam param = null;
+    param = updateFindBeads3dCom(display, axisID);
+    if (param == null) {
+      sendMsgProcessFailedToStart(processResultDisplay);
+      return;
+    }
+    processSeries.setRun3dmodDeferred(deferred3dmodButton, run3dmodMenuOptions);
+    processTrack.setState(ProcessState.INPROGRESS, axisID, dialogType);
+    mainPanel.setState(ProcessState.INPROGRESS, axisID, dialogType);
+    String threadName = null;
+    try {
+      threadName = processMgr.findBeads3d(param, axisID, processResultDisplay,
+          processSeries);
+    }
+    catch (SystemProcessException e) {
+      e.printStackTrace();
+      String[] message = new String[2];
+      message[0] = "Can not execute newst" + axisID.getExtension() + ".com";
+      message[1] = e.getMessage();
+      uiHarness.openMessageDialog(message, "Unable to execute com script",
+          axisID, getManagerKey());
+      sendMsg(ProcessResult.FAILED_TO_START, processResultDisplay);
+    }
+    setThreadName(threadName, axisID);
+    mainPanel.startProgressBar(ProcessName.FIND_BEADS_3D.toString(),
+        axisID, ProcessName.FIND_BEADS_3D);
+  }
+
+  public FindBeads3dParam updateFindBeads3dCom(FindBeads3dDisplay display,
+      AxisID axisID) {
+    FindBeads3dParam param = comScriptMgr.getFindBeads3dParam(axisID);
+    if (!state.isTrackLightBeadsNull(axisID)) {
+      param.setLightBeads(state.isTrackLightBeads(axisID));
+    }
+    else {
+      //backwards compatibility
+      //Get light beads from track.com.
+      BeadtrackParam beadtrackParam = comScriptMgr.getBeadtrackParam(axisID);
+    }
+    display.getParameters(param);
+    comScriptMgr.saveFindBeads3d(param, axisID);
+    return param;
+  }
+
+  private void sendMsg(ProcessResult displayState,
+      ProcessResultDisplay processResultDisplay) {
+    if (displayState == null || processResultDisplay == null) {
+      return;
+    }
+    processResultDisplay.msg(displayState);
   }
 
   public boolean isAxisBusy(AxisID axisID,
@@ -3749,7 +4193,338 @@ public final class ApplicationManager extends BaseManager implements
     String threadName;
     try {
       threadName = processMgr.tilt(axisID, processResultDisplay, processSeries,
-          tiltParam);
+          tiltParam, null);
+    }
+    catch (SystemProcessException e) {
+      e.printStackTrace();
+      String[] message = new String[2];
+      message[0] = "Can not execute tilt" + axisID.getExtension() + ".com";
+      message[1] = e.getMessage();
+      uiHarness.openMessageDialog(message, "Unable to execute com script",
+          axisID, getManagerKey());
+      return ProcessResult.FAILED_TO_START;
+    }
+    setThreadName(threadName, axisID);
+    return null;
+  }
+
+  public void reprojectModelAction(ProcessResultDisplay processResultDisplay,
+      ProcessSeries processSeries, Deferred3dmodButton deferred3dmodButton,
+      Run3dmodMenuOptions run3dmodMenuOptions, TiltDisplay display,
+      AxisID axisID, DialogType dialogType) {
+    if (display == null) {
+      return;
+    }
+    if (processSeries == null) {
+      processSeries = new ProcessSeries(this, dialogType);
+    }
+    processSeries.setRun3dmodDeferred(deferred3dmodButton, run3dmodMenuOptions);
+    reprojectModel(processResultDisplay, processSeries, display, axisID,
+        dialogType);
+  }
+
+  public void tilt3dFindAction(ProcessResultDisplay tilt,
+      ProcessSeries processSeries, Deferred3dmodButton deferred3dmodButton,
+      Run3dmodMenuOptions run3dmodMenuOptions, TiltDisplay display,
+      AxisID axisID, DialogType dialogType) {
+    if (display == null) {
+      return;
+    }
+    if (processSeries == null) {
+      processSeries = new ProcessSeries(this, dialogType);
+    }
+    processSeries.setRun3dmodDeferred(deferred3dmodButton, run3dmodMenuOptions);
+    if (display.isParallelProcess()) {
+      splittilt3dFind(tilt, processSeries, display, axisID, dialogType);
+    }
+    else {
+      tilt3dFind(tilt, processSeries, display, axisID, dialogType);
+    }
+  }
+
+  public void tiltAction(ProcessResultDisplay tilt,
+      ProcessSeries processSeries, Deferred3dmodButton deferred3dmodButton,
+      Run3dmodMenuOptions run3dmodMenuOptions, TiltDisplay display,
+      AxisID axisID, DialogType dialogType) {
+    if (display == null) {
+      return;
+    }
+    if (processSeries == null) {
+      processSeries = new ProcessSeries(this, dialogType);
+    }
+    processSeries.setRun3dmodDeferred(deferred3dmodButton, run3dmodMenuOptions);
+    if (display.isParallelProcess()) {
+      splittilt(tilt, processSeries, display, axisID, dialogType);
+    }
+    else {
+      tilt(tilt, processSeries, display, axisID, dialogType);
+    }
+  }
+
+  /**
+   * Open 3dmod on the current test volume
+   * 
+   * @param axisID
+   */
+  public void imodTestVolume(Run3dmodMenuOptions menuOptions, AxisID axisID,
+      TrialTiltDisplay display) {
+    if (display == null) {
+      return;
+    }
+    imodTestVolume(axisID, menuOptions, display.getTrialTomogramName());
+  }
+
+  public void commitTestVolume(ProcessResultDisplay processResultDisplay,
+      AxisID axisID, TrialTiltDisplay display) {
+    if (display == null) {
+      return;
+    }
+    sendMsgProcessStarting(processResultDisplay);
+    sendMsg(commitTestVolume(axisID, processResultDisplay, display
+        .getTrialTomogramName()), processResultDisplay);
+  }
+
+  public void trialAction(ProcessResultDisplay trial,
+      ProcessSeries processSeries, TrialTiltDisplay display, AxisID axisID,
+      DialogType dialogType) {
+    if (display == null) {
+      return;
+    }
+    if (processSeries == null) {
+      processSeries = new ProcessSeries(this, dialogType);
+    }
+    String trialTomogramName = display.getTrialTomogramName();
+    if (trialTomogramName == "") {
+      String[] errorMessage = new String[2];
+      errorMessage[0] = "Missing trial tomogram filename:";
+      errorMessage[1] = "A filename for the trial tomogram must be entered in the Trial"
+          + " tomogram filename edit box.";
+      UIHarness.INSTANCE.openMessageDialog(errorMessage,
+          "Tilt Parameter Syntax Error", axisID, getManagerKey());
+      return;
+    }
+    if (!display.containsTrialTomogramName(trialTomogramName)) {
+      display.addTrialTomogramName(trialTomogramName);
+    }
+    if (display.isParallelProcess()) {
+      splitTrialTilt(trial, processSeries, display, axisID, dialogType);
+    }
+    else {
+      trialTilt(trial, processSeries, display, axisID, dialogType);
+    }
+  }
+
+  private void splittilt3dFind(ProcessResultDisplay processResultDisplay,
+      ProcessSeries processSeries, TiltDisplay display, AxisID axisID,
+      DialogType dialogType) {
+    if (display == null) {
+      return;
+    }
+    sendMsgProcessStarting(processResultDisplay);
+    ConstTiltParam tiltParam = updateTilt3dFindCom(display, axisID);
+    if (tiltParam == null) {
+      sendMsg(ProcessResult.FAILED_TO_START, processResultDisplay);
+      return;
+    }
+    SplittiltParam splittiltParam = updateSplittiltParam(display, axisID);
+    if (splittiltParam == null) {
+      sendMsg(ProcessResult.FAILED_TO_START, processResultDisplay);
+      return;
+    }
+    if (processTrack != null) {
+      processTrack.setState(ProcessState.INPROGRESS, axisID, dialogType);
+    }
+    mainPanel.setState(ProcessState.INPROGRESS, axisID, dialogType);
+    ProcessResult processResult = splittilt(axisID, processResultDisplay,
+        processSeries, splittiltParam, dialogType);
+    if (processResult == null) {
+      processSeries.setNextProcess(ProcessName.PROCESSCHUNKS.toString(),
+          ProcessName.TILT_3D_FIND);
+    }
+    sendMsg(processResult, processResultDisplay);
+  }
+
+  private void splittilt(ProcessResultDisplay processResultDisplay,
+      ProcessSeries processSeries, TiltDisplay display, AxisID axisID,
+      DialogType dialogType) {
+    if (display == null) {
+      return;
+    }
+    sendMsgProcessStarting(processResultDisplay);
+    ConstTiltParam tiltParam = updateTiltCom(display, axisID);
+    if (tiltParam == null) {
+      sendMsg(ProcessResult.FAILED_TO_START, processResultDisplay);
+      return;
+    }
+    SplittiltParam splittiltParam = updateSplittiltParam(display, axisID);
+    if (splittiltParam == null) {
+      sendMsg(ProcessResult.FAILED_TO_START, processResultDisplay);
+      return;
+    }
+    if (processTrack != null) {
+      processTrack.setState(ProcessState.INPROGRESS, axisID, dialogType);
+    }
+    mainPanel.setState(ProcessState.INPROGRESS, axisID, dialogType);
+    ProcessResult processResult = splittilt(axisID, processResultDisplay,
+        processSeries, splittiltParam, dialogType);
+    if (processResult == null) {
+      processSeries.setNextProcess(ProcessName.PROCESSCHUNKS.toString(),
+          ProcessName.TILT);
+    }
+    sendMsg(processResult, processResultDisplay);
+  }
+
+  private void splitTrialTilt(ProcessResultDisplay processResultDisplay,
+      ProcessSeries processSeries, TrialTiltDisplay display, AxisID axisID,
+      DialogType dialogType) {
+    if (display == null) {
+      return;
+    }
+    sendMsgProcessStarting(processResultDisplay);
+    ConstTiltParam tiltParam = updateTrialTiltCom(display, axisID);
+    if (tiltParam == null) {
+      sendMsg(ProcessResult.FAILED_TO_START, processResultDisplay);
+      return;
+    }
+    SplittiltParam splittiltParam = updateSplittiltParam(display, axisID);
+    if (splittiltParam == null) {
+      sendMsg(ProcessResult.FAILED_TO_START, processResultDisplay);
+      return;
+    }
+    if (processTrack != null) {
+      processTrack.setState(ProcessState.INPROGRESS, axisID, dialogType);
+    }
+    mainPanel.setState(ProcessState.INPROGRESS, axisID, dialogType);
+    ProcessResult processResult = splittilt(axisID, processResultDisplay,
+        processSeries, splittiltParam, dialogType);
+    if (processResult == null) {
+      processSeries.setNextProcess(ProcessName.PROCESSCHUNKS.toString(),
+          ProcessName.TILT);
+    }
+    sendMsg(processResult, processResultDisplay);
+  }
+
+  /**
+   * Run the tilt_3dfind command script for the specified axis
+   */
+  private void reprojectModel(ProcessResultDisplay processResultDisplay,
+      ConstProcessSeries processSeries, TiltDisplay display, AxisID axisID,
+      DialogType dialogType) {
+    if (display == null) {
+      return;
+    }
+    sendMsgProcessStarting(processResultDisplay);
+    File tilt3dFindReprojectCom = new File(getPropertyUserDir(),
+        ProcessName.TILT_3D_FIND_REPROJECT.getComscript(axisID));
+    if (!tilt3dFindReprojectCom.exists()) {
+      UIHarness.INSTANCE.openMessageDialog(tilt3dFindReprojectCom.getName()
+          + " does not exist.  Run "
+          + FinalAlignedStackDialog.getTilt3dFindButtonLabel()
+          + " before running "
+          + FinalAlignedStackDialog.getReprojectModelButtonLabel(),
+          "Entry Error", axisID, getManagerKey());
+      sendMsg(ProcessResult.FAILED_TO_START, processResultDisplay);
+      return;
+    }
+    ConstTiltParam param = updateTilt3dFindReprojectCom(display, axisID);
+    if (param == null) {
+      sendMsg(ProcessResult.FAILED_TO_START, processResultDisplay);
+      return;
+    }
+    if (processTrack != null) {
+      processTrack.setState(ProcessState.INPROGRESS, axisID, dialogType);
+    }
+    mainPanel.setState(ProcessState.INPROGRESS, axisID, dialogType);
+    sendMsg(tiltProcess(axisID, processResultDisplay, processSeries, param,
+        "Reprojecting Model"), processResultDisplay);
+  }
+
+  /**
+   * Run the tilt_3dfind command script for the specified axis
+   */
+  private void tilt3dFind(ProcessResultDisplay processResultDisplay,
+      ConstProcessSeries processSeries, TiltDisplay display, AxisID axisID,
+      DialogType dialogType) {
+    if (display == null) {
+      return;
+    }
+    sendMsgProcessStarting(processResultDisplay);
+    ConstTiltParam param = updateTilt3dFindCom(display, axisID);
+    if (param == null) {
+      sendMsg(ProcessResult.FAILED_TO_START, processResultDisplay);
+      return;
+    }
+    if (processTrack != null) {
+      processTrack.setState(ProcessState.INPROGRESS, axisID, dialogType);
+    }
+    mainPanel.setState(ProcessState.INPROGRESS, axisID, dialogType);
+    sendMsg(tiltProcess(axisID, processResultDisplay, processSeries, param,
+        null), processResultDisplay);
+  }
+
+  /**
+   * Run the tilt command script for the specified axis
+   */
+  private void tilt(ProcessResultDisplay processResultDisplay,
+      ConstProcessSeries processSeries, TiltDisplay display, AxisID axisID,
+      DialogType dialogType) {
+    if (display == null) {
+      return;
+    }
+    sendMsgProcessStarting(processResultDisplay);
+    ConstTiltParam param = updateTiltCom(display, axisID);
+    if (param == null) {
+      sendMsg(ProcessResult.FAILED_TO_START, processResultDisplay);
+      return;
+    }
+    if (processTrack != null) {
+      processTrack.setState(ProcessState.INPROGRESS, axisID, dialogType);
+    }
+    mainPanel.setState(ProcessState.INPROGRESS, axisID, dialogType);
+    sendMsg(tiltProcess(axisID, processResultDisplay, processSeries, param,
+        null), processResultDisplay);
+  }
+
+  /**
+   * Start a tilt process in trial mode
+   * 
+   * @param axisID
+   */
+  private void trialTilt(ProcessResultDisplay processResultDisplay,
+      ConstProcessSeries processSeries, TrialTiltDisplay display,
+      AxisID axisID, DialogType dialogType) {
+    if (display == null) {
+      return;
+    }
+    sendMsgProcessStarting(processResultDisplay);
+    ConstTiltParam param = updateTrialTiltCom(display, axisID);
+    if (param == null) {
+      sendMsg(ProcessResult.FAILED_TO_START, processResultDisplay);
+      return;
+    }
+    if (processTrack != null) {
+      processTrack.setState(ProcessState.INPROGRESS, axisID, dialogType);
+    }
+    mainPanel.setState(ProcessState.INPROGRESS, axisID, dialogType);
+    sendMsg(tiltProcess(axisID, processResultDisplay, processSeries, param,
+        null), processResultDisplay);
+  }
+
+  /**
+   * Tilt process initiator. Since tilt can be started from multiple points in
+   * the process chain we need separate the execution from the parameter
+   * collection and state updating
+   * 
+   * @param axisID
+   */
+  private ProcessResult tiltProcess(AxisID axisID,
+      ProcessResultDisplay processResultDisplay,
+      ConstProcessSeries processSeries, ConstTiltParam param,
+      String processTitle) {
+    String threadName;
+    try {
+      threadName = processMgr.tilt(axisID, processResultDisplay, processSeries,
+          param, processTitle);
     }
     catch (SystemProcessException e) {
       e.printStackTrace();
@@ -3765,31 +4540,319 @@ public final class ApplicationManager extends BaseManager implements
   }
 
   /**
-   * Tilt process initiator. Since tilt can be started from multiple points in
-   * the process chain we need separate the execution from the parameter
-   * collection and state updating
-   * 
+   * Update the non-dialog dependent parts of the tilt param in
+   * tilt_3dfind_reproject.com.
+   * @param param
    * @param axisID
    */
-  public ProcessResult tiltProcess(AxisID axisID,
-      ProcessResultDisplay processResultDisplay,
-      ConstProcessSeries processSeries, ConstTiltParam param) {
-    String threadName;
+  private void getParametersForTilt3dFindReproject(TiltParam param,
+      AxisID axisID) {
+    param.setProjectModel(FileType.FIND_BEADS_3D_OUTPUT_MODEL);
+    param.setOutputFile(FileType.CCD_ERASER_BEADS_INPUT_MODEL.getFileName(this,
+        axisID));
+    param.setProcessName(ProcessName.TILT_3D_FIND_REPROJECT);
+  }
+
+  /**
+   * Backup tilt_3dfind_reproject.com.
+   * Copy tilt_3dfind_reproject.com from tilt_3dfind.com.  Modify it so that it
+   * is correct for reprojecting and save it.
+   * @param axisID
+   */
+  public void copyTilt3dFindReprojectCom(AxisID axisID) {
+    File tilt3dFindCom = new File(getPropertyUserDir(),
+        ProcessName.TILT_3D_FIND.getComscript(axisID));
+    File tilt3dFindReprojectCom = new File(getPropertyUserDir(),
+        ProcessName.TILT_3D_FIND_REPROJECT.getComscript(axisID));
+    if (!tilt3dFindCom.exists()) {
+      System.err.println("ERROR:  " + tilt3dFindCom.getName()
+          + " does not exist.  Unable to create "
+          + tilt3dFindReprojectCom.getName());
+      return;
+    }
+    if (tilt3dFindReprojectCom.exists()) {
+      //Backup tilt_3dfind_reproject.com
+      try {
+        LogFile logFile = LogFile.getInstance(tilt3dFindReprojectCom,
+            getManagerKey());
+        logFile.backup();
+      }
+      catch (LogFile.LockException e) {
+        e.printStackTrace();
+      }
+    }
+    //Copy file
     try {
-      threadName = processMgr.tilt(axisID, processResultDisplay, processSeries,
-          param);
+      Utilities.copyFile(new File(getPropertyUserDir(),
+          ProcessName.TILT_3D_FIND.getComscript(axisID)),
+          tilt3dFindReprojectCom);
+      comScriptMgr.loadTilt3dFindReproject(axisID);
     }
-    catch (SystemProcessException e) {
+    catch (IOException e) {
       e.printStackTrace();
-      String[] message = new String[2];
-      message[0] = "Can not execute tilt" + axisID.getExtension() + ".com";
-      message[1] = e.getMessage();
-      uiHarness.openMessageDialog(message, "Unable to execute com script",
-          axisID, getManagerKey());
-      return ProcessResult.FAILED_TO_START;
+      System.err.println("ERROR:  Unable to create "
+          + tilt3dFindReprojectCom.getName());
     }
-    setThreadName(threadName, axisID);
-    return null;
+    //Update the tilt command in the com file.
+    TiltParam tiltParam = null;
+    try {
+      tiltParam = comScriptMgr.getTiltParamFromTilt3dFindReproject(axisID);
+      getParametersForTilt3dFindReproject(tiltParam, axisID);
+      comScriptMgr.saveTilt3dFindReproject(tiltParam, axisID);
+    }
+    catch (NumberFormatException except) {
+      except.printStackTrace();
+    }
+  }
+
+  /**
+   * Update the tilt_3dfind_reproject.com.
+   * 
+   * @param axisID
+   * @return true if successful
+   */
+  public ConstTiltParam updateTilt3dFindReprojectCom(TiltDisplay display,
+      AxisID axisID) {
+    TiltParam tiltParam = null;
+    try {
+      tiltParam = comScriptMgr.getTiltParamFromTilt3dFindReproject(axisID);
+      getParametersForTilt3dFindReproject(tiltParam, axisID);
+      if (display != null) {
+        display.getParameters(tiltParam);
+      }
+      comScriptMgr.saveTilt3dFindReproject(tiltParam, axisID);
+    }
+    catch (NumberFormatException except) {
+      String[] errorMessage = new String[3];
+      errorMessage[0] = "Tilt Parameter Syntax Error";
+      errorMessage[1] = "Axis: " + axisID.getExtension();
+      errorMessage[2] = except.getMessage();
+      UIHarness.INSTANCE.openMessageDialog(errorMessage,
+          "Tilt Parameter Syntax Error", axisID, getManagerKey());
+      return null;
+    }
+    catch (InvalidParameterException except) {
+      String[] errorMessage = new String[3];
+      errorMessage[0] = "Tilt Parameter Syntax Error";
+      errorMessage[1] = "Axis: " + axisID.getExtension();
+      errorMessage[2] = except.getMessage();
+      UIHarness.INSTANCE.openMessageDialog(errorMessage,
+          "Tilt Parameter Syntax Error", axisID, getManagerKey());
+      return null;
+    }
+    catch (IOException e) {
+      String[] errorMessage = new String[3];
+      errorMessage[0] = "Tilt Parameter";
+      errorMessage[1] = "Axis: " + axisID.getExtension();
+      errorMessage[2] = e.getMessage();
+      UIHarness.INSTANCE.openMessageDialog(errorMessage, "Tilt Parameter",
+          axisID, getManagerKey());
+      return null;
+    }
+    return tiltParam;
+  }
+
+  /**
+   * Update the tilt_3dfind.com from the TomogramGenerationDialog
+   * 
+   * @param axisID
+   * @return true if successful
+   */
+  public ConstTiltParam updateTilt3dFindCom(TiltDisplay display, AxisID axisID) {
+    // Set a reference to the correct object
+    if (display == null) {
+      UIHarness.INSTANCE.openMessageDialog(
+          "Can not update tilt_3dfind?.com without an active display",
+          "Program logic error", axisID, getManagerKey());
+      return null;
+    }
+    TiltParam tiltParam = null;
+    try {
+      tiltParam = comScriptMgr.getTiltParamFromTilt3dFind(axisID);
+      tiltParam.setFiducialess(metaData.isFiducialess(axisID));
+      if (!display.getParameters(tiltParam)) {
+        return null;
+      }
+      comScriptMgr.saveTilt3dFind(tiltParam, axisID);
+    }
+    catch (NumberFormatException except) {
+      String[] errorMessage = new String[3];
+      errorMessage[0] = "Tilt Parameter Syntax Error";
+      errorMessage[1] = "Axis: " + axisID.getExtension();
+      errorMessage[2] = except.getMessage();
+      UIHarness.INSTANCE.openMessageDialog(errorMessage,
+          "Tilt Parameter Syntax Error", axisID, getManagerKey());
+      return null;
+    }
+    catch (InvalidParameterException except) {
+      String[] errorMessage = new String[3];
+      errorMessage[0] = "Tilt Parameter Syntax Error";
+      errorMessage[1] = "Axis: " + axisID.getExtension();
+      errorMessage[2] = except.getMessage();
+      UIHarness.INSTANCE.openMessageDialog(errorMessage,
+          "Tilt Parameter Syntax Error", axisID, getManagerKey());
+      return null;
+    }
+    catch (IOException e) {
+      String[] errorMessage = new String[3];
+      errorMessage[0] = "Tilt Parameter";
+      errorMessage[1] = "Axis: " + axisID.getExtension();
+      errorMessage[2] = e.getMessage();
+      UIHarness.INSTANCE.openMessageDialog(errorMessage, "Tilt Parameter",
+          axisID, getManagerKey());
+      return null;
+    }
+    return tiltParam;
+  }
+
+  /**
+   * Update the tilt.com from the TomogramGenerationDialog
+   * 
+   * @param axisID
+   * @return true if successful
+   */
+  public ConstTiltParam updateTiltCom(TiltDisplay display, AxisID axisID) {
+    // Set a reference to the correct object
+    if (display == null) {
+      UIHarness.INSTANCE
+          .openMessageDialog(
+              "Can not update tilt?.com without an active tomogram generation dialog",
+              "Program logic error", axisID, getManagerKey());
+      return null;
+    }
+    TiltParam tiltParam = null;
+    try {
+      tiltParam = comScriptMgr.getTiltParam(axisID);
+      tiltParam.setFiducialess(metaData.isFiducialess(axisID));
+      if (!display.getParameters(tiltParam)) {
+        return null;
+      }
+      String outputFileName;
+      if (metaData.getAxisType() == AxisType.SINGLE_AXIS) {
+        outputFileName = metaData.getDatasetName() + "_full.rec";
+      }
+      else {
+        outputFileName = metaData.getDatasetName() + axisID.getExtension()
+            + ".rec";
+      }
+      tiltParam.setOutputFile(outputFileName);
+      if (metaData.getViewType() == ViewType.MONTAGE) {
+        // binning is currently always 1 and correct size should be coming from
+        // copytomocoms
+        // tiltParam.setMontageFullImage(propertyUserDir,
+        // tomogramGenerationDialog.getBinning());
+      }
+      UIExpertUtilities.INSTANCE.rollTiltComAngles(this, axisID);
+      comScriptMgr.saveTilt(tiltParam, axisID);
+      metaData.setFiducialess(axisID, tiltParam.isFiducialess());
+    }
+    catch (NumberFormatException except) {
+      String[] errorMessage = new String[3];
+      errorMessage[0] = "Tilt Parameter Syntax Error";
+      errorMessage[1] = "Axis: " + axisID.getExtension();
+      errorMessage[2] = except.getMessage();
+      UIHarness.INSTANCE.openMessageDialog(errorMessage,
+          "Tilt Parameter Syntax Error", axisID, getManagerKey());
+      return null;
+    }
+    catch (InvalidParameterException except) {
+      String[] errorMessage = new String[3];
+      errorMessage[0] = "Tilt Parameter Syntax Error";
+      errorMessage[1] = "Axis: " + axisID.getExtension();
+      errorMessage[2] = except.getMessage();
+      UIHarness.INSTANCE.openMessageDialog(errorMessage,
+          "Tilt Parameter Syntax Error", axisID, getManagerKey());
+      return null;
+    }
+    catch (IOException e) {
+      String[] errorMessage = new String[3];
+      errorMessage[0] = "Tilt Parameter";
+      errorMessage[1] = "Axis: " + axisID.getExtension();
+      errorMessage[2] = e.getMessage();
+      UIHarness.INSTANCE.openMessageDialog(errorMessage, "Tilt Parameter",
+          axisID, getManagerKey());
+      return null;
+    }
+    return tiltParam;
+  }
+
+  /**
+   * Update the tilt.com from the TomogramGenerationDialog
+   * Use the trial tomogram filename specified in the TomogramGenerationDialog
+   * @return a ConstTiltParam instance if successful
+   */
+  public ConstTiltParam updateTrialTiltCom(TrialTiltDisplay display,
+      AxisID axisID) {
+    // Set a reference to the correct object
+    if (display == null) {
+      UIHarness.INSTANCE
+          .openMessageDialog(
+              "Can not update tilt?.com without an active tomogram generation dialog",
+              "Program logic error", axisID, getManagerKey());
+      return null;
+    }
+    TiltParam tiltParam = null;
+    try {
+      tiltParam = comScriptMgr.getTiltParam(axisID);
+      tiltParam.setFiducialess(metaData.isFiducialess(axisID));
+      if (!display.getParameters(tiltParam)) {
+        return null;
+      }
+      String trialTomogramName = display.getTrialTomogramName();
+      tiltParam.setOutputFile(trialTomogramName);
+
+      if (metaData.getViewType() == ViewType.MONTAGE) {
+        // binning is currently always 1 and correct size should be coming from
+        // copytomocoms
+        // tiltParam.setMontageFullImage(propertyUserDir,
+        // tomogramGenerationDialog.getBinning());
+      }
+      UIExpertUtilities.INSTANCE.rollTiltComAngles(this, axisID);
+      comScriptMgr.saveTilt(tiltParam, axisID);
+      metaData.setFiducialess(axisID, tiltParam.isFiducialess());
+    }
+    catch (NumberFormatException except) {
+      String[] errorMessage = new String[3];
+      errorMessage[0] = "Tilt Parameter Syntax Error";
+      errorMessage[1] = "Axis: " + axisID.getExtension();
+      errorMessage[2] = except.getMessage();
+      UIHarness.INSTANCE.openMessageDialog(errorMessage,
+          "Tilt Parameter Syntax Error", axisID, getManagerKey());
+      return null;
+    }
+    catch (InvalidParameterException except) {
+      String[] errorMessage = new String[3];
+      errorMessage[0] = "Tilt Parameter Syntax Error";
+      errorMessage[1] = "Axis: " + axisID.getExtension();
+      errorMessage[2] = except.getMessage();
+      UIHarness.INSTANCE.openMessageDialog(errorMessage,
+          "Tilt Parameter Syntax Error", axisID, getManagerKey());
+      return null;
+    }
+    catch (IOException e) {
+      String[] errorMessage = new String[3];
+      errorMessage[0] = "Tilt Parameter";
+      errorMessage[1] = "Axis: " + axisID.getExtension();
+      errorMessage[2] = e.getMessage();
+      UIHarness.INSTANCE.openMessageDialog(errorMessage, "Tilt Parameter",
+          axisID, getManagerKey());
+      return null;
+    }
+    return tiltParam;
+  }
+
+  private SplittiltParam updateSplittiltParam(TiltDisplay tiltDisplay,
+      AxisID axisID) {
+    if (tiltDisplay == null) {
+      return null;
+    }
+    SplittiltParam param = new SplittiltParam(axisID);
+    if (!tiltDisplay.getParameters(param)) {
+      return null;
+    }
+    param.setSeparateChunks(CpuAdoc.getInstance(axisID, getPropertyUserDir(),
+        getManagerKey()).isSeparateChunks());
+    return param;
   }
 
   /**
@@ -3810,6 +4873,96 @@ public final class ApplicationManager extends BaseManager implements
       except.printStackTrace();
       uiHarness.openMessageDialog(except.getMessage(),
           "Can't open 3dmod with the tomogram", axisID, getManagerKey());
+    }
+    catch (IOException e) {
+      e.printStackTrace();
+      uiHarness.openMessageDialog(e.getMessage(), "IO Exception", axisID,
+          getManagerKey());
+    }
+  }
+
+  /**
+   * Open 3dmod to view a file
+   * 
+   * @param axisID the AxisID of the file to open.
+   */
+  public void imod(FileType fileType, AxisID axisID,
+      Run3dmodMenuOptions menuOptions) {
+    try {
+      imodManager.open(fileType.getImodManagerKey(), axisID, menuOptions);
+    }
+    catch (AxisTypeException except) {
+      except.printStackTrace();
+      uiHarness.openMessageDialog(except.getMessage(), "AxisType problem",
+          axisID, getManagerKey());
+    }
+    catch (SystemProcessException except) {
+      except.printStackTrace();
+      uiHarness.openMessageDialog(except.getMessage(), "Can't open 3dmod",
+          axisID, getManagerKey());
+    }
+    catch (IOException e) {
+      e.printStackTrace();
+      uiHarness.openMessageDialog(e.getMessage(), "IO Exception", axisID,
+          getManagerKey());
+    }
+  }
+
+  /**
+   * Open 3dmod to view a file with a model
+   * 
+   * @param axisID the AxisID of the file to open.
+   */
+  public void imod(FileType fileType, FileType modelFileType, AxisID axisID,
+      Run3dmodMenuOptions menuOptions) {
+    try {
+      imodManager.open(fileType.getImodManagerKey(), axisID, modelFileType
+          .getFileName(this, axisID), menuOptions);
+    }
+    catch (AxisTypeException except) {
+      except.printStackTrace();
+      uiHarness.openMessageDialog(except.getMessage(), "AxisType problem",
+          axisID, getManagerKey());
+    }
+    catch (SystemProcessException except) {
+      except.printStackTrace();
+      uiHarness.openMessageDialog(except.getMessage(), "Can't open 3dmod",
+          axisID, getManagerKey());
+    }
+    catch (IOException e) {
+      e.printStackTrace();
+      uiHarness.openMessageDialog(e.getMessage(), "IO Exception", axisID,
+          getManagerKey());
+    }
+  }
+
+  /**
+   * Open 3dmod to view a file with a model
+   * 
+   * @param axisID the AxisID of the file to open.
+   */
+  public void imodReprojectModel(AxisID axisID, Run3dmodMenuOptions menuOptions) {
+    FileType fileType;
+    if (state.isStackUsingNewstOrBlend3dFindOutput(axisID)) {
+      fileType = FileType.NEWST_OR_BLEND_3D_FIND_OUTPUT;
+    }
+    else {
+      fileType = FileType.NEWST_OR_BLEND_OUTPUT;
+    }
+    try {
+      imodManager.open(fileType.getImodManagerKey(), axisID,
+          FileType.CCD_ERASER_BEADS_INPUT_MODEL.getFileName(this, axisID),
+          menuOptions);
+    }
+    catch (AxisTypeException except) {
+      except.printStackTrace();
+      uiHarness.openMessageDialog(except.getMessage(), "AxisType problem",
+          axisID, getManagerKey());
+    }
+    catch (SystemProcessException except) {
+      except.printStackTrace();
+      uiHarness.openMessageDialog(except.getMessage(), "Can't open 3dmod",
+          axisID, getManagerKey());
     }
     catch (IOException e) {
       e.printStackTrace();
@@ -4086,7 +5239,8 @@ public final class ApplicationManager extends BaseManager implements
     // Show the process panel
     mainPanel.showProcess(tomogramCombinationDialog.getContainer(),
         AxisID.FIRST);
-    setParallelDialog(AxisID.FIRST, tomogramCombinationDialog);
+    setParallelDialog(AxisID.FIRST, tomogramCombinationDialog
+        .usingParallelProcessing());
   }
 
   /**
@@ -5264,7 +6418,8 @@ public final class ApplicationManager extends BaseManager implements
           .getWarpVolParamFromFlatten(AxisID.ONLY));
     }
     mainPanel.showProcess(postProcessingDialog.getContainer(), AxisID.ONLY);
-    setParallelDialog(AxisID.ONLY, postProcessingDialog);
+    setParallelDialog(AxisID.ONLY, postProcessingDialog
+        .usingParallelProcessing());
   }
 
   /**
@@ -5289,7 +6444,7 @@ public final class ApplicationManager extends BaseManager implements
     }
     updateArchiveDisplay();
     mainPanel.showProcess(cleanUpDialog.getContainer(), AxisID.ONLY);
-    setParallelDialog(AxisID.ONLY, cleanUpDialog);
+    setParallelDialog(AxisID.ONLY, cleanUpDialog.usingParallelProcessing());
   }
 
   /**
@@ -5479,17 +6634,17 @@ public final class ApplicationManager extends BaseManager implements
     }
   }
 
-  public boolean isFlipped(FileType fileType) {
-    if (fileType == null) {
+  public boolean isFlipped(ImageFileType imageFileType) {
+    if (imageFileType == null) {
       return false;
     }
-    if (fileType == FileType.TRIM_VOL_OUTPUT) {
+    if (imageFileType == ImageFileType.TRIM_VOL_OUTPUT) {
       return isTrimvolFlipped();
     }
-    else if (fileType == FileType.SQUEEZE_VOL_OUTPUT) {
+    else if (imageFileType == ImageFileType.SQUEEZE_VOL_OUTPUT) {
       return isSqueezevolFlipped();
     }
-    throw new IllegalStateException("Unknown file type " + fileType);
+    throw new IllegalStateException("Unknown file type " + imageFileType);
   }
 
   /**
@@ -5519,12 +6674,12 @@ public final class ApplicationManager extends BaseManager implements
   }
 
   public void imodMakeSurfaceModel(Run3dmodMenuOptions menuOptions,
-      AxisID axisID, int binning, FileType fileType) {
+      AxisID axisID, int binning, ImageFileType imageFileType) {
     //Pick ImodManager key
     //Need to look at tomogram edge on.  Use -Y, unless using squeezevol and it
     //is not flipped.
-    String key = fileType.getImodManagerKey();
-    boolean useSwapYZ = isFlipped(fileType);
+    String key = imageFileType.getImodManagerKey();
+    boolean useSwapYZ = isFlipped(imageFileType);
     try {
       imodManager.setSwapYZ(key, axisID, useSwapYZ);
       imodManager.setOpenContours(key, axisID, true);
@@ -6028,11 +7183,11 @@ public final class ApplicationManager extends BaseManager implements
    */
   void startNextProcess(AxisID axisID, String nextProcess,
       ProcessResultDisplay processResultDisplay, ProcessSeries processSeries,
-      DialogType dialogType, ProcessDisplay display) {
+      DialogType dialogType, ProcessDisplay display, ProcessName subprocessName) {
     UIExpert uiExpert = getUIExpert(dialogType, axisID);
     if (uiExpert != null) {
       uiExpert.startNextProcess(nextProcess, processResultDisplay,
-          processSeries, dialogType);
+          processSeries, dialogType, display, subprocessName);
     }
     else if (nextProcess.equals("checkUpdateFiducialModel")) {
       checkUpdateFiducialModel(axisID, processResultDisplay, processSeries);
@@ -6040,8 +7195,8 @@ public final class ApplicationManager extends BaseManager implements
     else if (nextProcess.equals(ArchiveorigParam.COMMAND_NAME)) {
       archiveOriginalStack(AxisID.SECOND, processSeries, dialogType);
     }
-    else if (nextProcess
-        .equals(getNextProcessProcesschunksString(ProcessName.VOLCOMBINE))) {
+    else if (nextProcess.equals(ProcessName.PROCESSCHUNKS.toString())
+        && subprocessName == ProcessName.VOLCOMBINE) {
       processchunksVolcombine(processResultDisplay, processSeries);
     }
     else if (nextProcess.equals(SplitcombineParam.COMMAND_NAME)) {
@@ -6217,7 +7372,33 @@ public final class ApplicationManager extends BaseManager implements
     return (ConstMetaData) metaData;
   }
 
-  public ProcessResult xfmodel(AxisID axisID,
+  public void xfmodel(ProcessResultDisplay processResultDisplay,
+      ProcessSeries processSeries, Deferred3dmodButton deferred3dmodButton,
+      Run3dmodMenuOptions run3dmodMenuOptions, AxisID axisID,
+      DialogType dialogType) {
+    if (processSeries == null) {
+      processSeries = new ProcessSeries(this, dialogType);
+    }
+    processSeries.setRun3dmodDeferred(deferred3dmodButton, run3dmodMenuOptions);
+    sendMsgProcessStarting(processResultDisplay);
+    XfmodelParam param = new XfmodelParam(this, axisID);
+    if (processTrack != null) {
+      processTrack.setState(ProcessState.INPROGRESS, axisID, dialogType);
+    }
+    mainPanel.setState(ProcessState.INPROGRESS, axisID, dialogType);
+    ProcessResult processResult = xfmodel(axisID, processResultDisplay,
+        processSeries, param, dialogType);
+    sendMsg(processResult, processResultDisplay);
+  }
+
+  public void seedEraseFiducialModel(Run3dmodMenuOptions run3dmodMenuOptions,
+      AxisID axisID, DialogType dialogType) {
+    imodSeedModel(axisID, run3dmodMenuOptions, null,
+        ImodManager.FINE_ALIGNED_KEY, FileType.CCD_ERASER_BEADS_INPUT_MODEL
+            .getFileName(this, axisID), null, dialogType);
+  }
+
+  private ProcessResult xfmodel(AxisID axisID,
       ProcessResultDisplay processResultDisplay, ProcessSeries processSeries,
       final XfmodelParam param, final DialogType dialogType) {
     if (processSeries == null) {
@@ -6310,11 +7491,12 @@ public final class ApplicationManager extends BaseManager implements
 
   public void imodErasedFiducials(Run3dmodMenuOptions run3dmodMenuOptions,
       AxisID axisID) {
-    imodOpen(axisID, ImodManager.ERASED_FIDUCIALS_KEY, DatasetFiles
-        .getEraseFiducialsModelName(this, axisID), run3dmodMenuOptions);
+    imodOpen(axisID, ImodManager.ERASED_FIDUCIALS_KEY,
+        FileType.CCD_ERASER_BEADS_INPUT_MODEL.getFileName(this, axisID),
+        run3dmodMenuOptions, false);
   }
 
-  private CCDEraserParam updateCcdEraserParam(CcdEraserDisplay display) {
+  public CCDEraserParam updateCcdEraserParam(CcdEraserDisplay display) {
     CCDEraserParam param = new CCDEraserParam();
     if (display.getParameters(param)) {
       return param;
@@ -6428,7 +7610,7 @@ public final class ApplicationManager extends BaseManager implements
     processMgr.touch(absolutePath);
   }
 
-  public ProcessResult splittilt(AxisID axisID, boolean trialMode,
+  private ProcessResult splittilt(AxisID axisID,
       ProcessResultDisplay processResultDisplay, ProcessSeries processSeries,
       SplittiltParam param, final DialogType dialogType) {
     if (processSeries == null) {
@@ -6448,8 +7630,8 @@ public final class ApplicationManager extends BaseManager implements
           getManagerKey());
       return ProcessResult.FAILED_TO_START;
     }
-    processSeries
-        .setNextProcess(getNextProcessProcesschunksString(ProcessName.TILT));
+    processSeries.setNextProcess(ProcessName.PROCESSCHUNKS.toString(),
+        ProcessName.TILT);
     setThreadName(threadName, axisID);
     mainPanel.startProgressBar("Running " + SplittiltParam.COMMAND_NAME,
         axisID, ProcessName.SPLITTILT);
@@ -6476,8 +7658,8 @@ public final class ApplicationManager extends BaseManager implements
           getManagerKey());
       return ProcessResult.FAILED_TO_START;
     }
-    processSeries
-        .setNextProcess(getNextProcessProcesschunksString(ProcessName.CTF_CORRECTION));
+    processSeries.setNextProcess(ProcessName.PROCESSCHUNKS.toString(),
+        ProcessName.CTF_CORRECTION);
     setThreadName(threadName, axisID);
     mainPanel.startProgressBar("Running " + ProcessName.SPLIT_CORRECTION,
         axisID, ProcessName.SPLIT_CORRECTION);
@@ -6513,15 +7695,11 @@ public final class ApplicationManager extends BaseManager implements
           AxisID.ONLY, getManagerKey());
       return;
     }
-    processSeries
-        .setNextProcess(getNextProcessProcesschunksString(ProcessName.VOLCOMBINE));
+    processSeries.setNextProcess(ProcessName.PROCESSCHUNKS.toString(),
+        ProcessName.VOLCOMBINE);
     setThreadName(threadName, AxisID.ONLY);
     mainPanel.startProgressBar("Running " + SplitcombineParam.COMMAND_NAME,
         AxisID.ONLY, ProcessName.SPLITCOMBINE);
-  }
-
-  private String getNextProcessProcesschunksString(ProcessName processName) {
-    return ProcessName.PROCESSCHUNKS + " " + processName;
   }
 
   private void processchunksVolcombine(
@@ -6622,6 +7800,10 @@ public final class ApplicationManager extends BaseManager implements
 }
 /**
  * <p> $Log$
+ * <p> Revision 3.332  2009/08/24 20:20:28  sueh
+ * <p> bug# 1254 Don't use Toolkit unless the GraphicsEnvironment is not
+ * <p> headless.
+ * <p>
  * <p> Revision 3.331  2009/06/16 22:43:36  sueh
  * <p> bug# 1221 Factor out gold eraser panel.
  * <p>

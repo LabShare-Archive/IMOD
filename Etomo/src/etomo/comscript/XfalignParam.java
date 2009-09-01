@@ -7,6 +7,7 @@ import etomo.BaseManager;
 import etomo.JoinManager;
 import etomo.type.AxisID;
 import etomo.type.ConstJoinMetaData;
+import etomo.type.ProcessName;
 import etomo.type.ScriptParameter;
 import etomo.type.Transform;
 
@@ -24,6 +25,9 @@ import etomo.type.Transform;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.18  2007/11/06 19:17:59  sueh
+ * <p> bug# 1047 Added getSubcommandDetails.
+ * <p>
  * <p> Revision 1.17  2007/03/07 21:04:08  sueh
  * <p> bug# 981 Changed ScriptParameter.isUseInScript to isNotNullAndNotDefault for
  * <p> clarity.
@@ -164,9 +168,15 @@ public class XfalignParam implements Command {
   public String[] getCommandArray() {
     return commandArray;
   }
+
   public CommandDetails getSubcommandDetails() {
     return null;
   }
+
+  public ProcessName getSubcommandProcessName() {
+    return null;
+  }
+
   public String getCommandLine() {
     StringBuffer buffer = new StringBuffer();
     for (int i = 0; i < commandArray.length; i++) {
@@ -177,6 +187,10 @@ public class XfalignParam implements Command {
 
   public String getCommandName() {
     return commandName;
+  }
+
+  public ProcessName getProcessName() {
+    return ProcessName.XFALIGN;
   }
 
   public String getCommand() {
@@ -265,7 +279,17 @@ public class XfalignParam implements Command {
   }
 
   public final static class Mode implements CommandMode {
-    public static final Mode INITIAL = new Mode();
-    public static final Mode REFINE = new Mode();
+    public static final Mode INITIAL = new Mode("Initial");
+    public static final Mode REFINE = new Mode("Refine");
+
+    private final String string;
+
+    private Mode(String string) {
+      this.string = string;
+    }
+
+    public String toString() {
+      return string;
+    }
   }
 }

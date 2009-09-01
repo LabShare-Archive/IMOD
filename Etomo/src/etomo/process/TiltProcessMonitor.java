@@ -26,6 +26,9 @@ import etomo.util.MRCHeader;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.22  2009/03/17 00:44:12  sueh
+ * <p> bug# 1186 Pass managerKey to everything that pops up a dialog.
+ * <p>
  * <p> Revision 3.21  2009/02/13 02:31:59  sueh
  * <p> bug# 1176 Checking return value of MRCHeader.read.  Gave calcFileSize
  * <p> a return value.
@@ -133,6 +136,7 @@ final class TiltProcessMonitor extends FileSizeProcessMonitor {
   public static final String rcsid = "$Id$";
 
   private TiltParam tiltParam = null;
+  private String processTitle = "Calculating tomogram";
 
   public TiltProcessMonitor(ApplicationManager appMgr, AxisID id) {
     super(appMgr, id, ProcessName.TILT);
@@ -231,9 +235,15 @@ final class TiltProcessMonitor extends FileSizeProcessMonitor {
           + ",nX=" + nX + ",nY=" + nY + ",nZ=" + nZ + ",imageBinned="
           + imageBinned);
     }
-    applicationManager.getMainPanel().setProgressBar("Calculating tomogram",
-        nKBytes, axisID, ProcessName.TILT);
+    applicationManager.getMainPanel().setProgressBar(processTitle, nKBytes,
+        axisID, ProcessName.TILT);
     return true;
+  }
+
+  void setProcessTitle(String input) {
+    if (input != null && !input.matches("\\*s")) {
+      processTitle = input;
+    }
   }
 
   protected void reloadWatchedFile() {

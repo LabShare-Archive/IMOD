@@ -11,6 +11,10 @@
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.52  2009/06/12 19:48:13  sueh
+ * <p> bug# 1221 Factored running correlation, making it independent of the
+ * <p> coarse align dialog.
+ * <p>
  * <p> Revision 3.51  2009/01/20 19:50:53  sueh
  * <p> bug# 1102 Changed labeled panels to type EtomoPanel so that they can name themselves.
  * <p>
@@ -310,9 +314,9 @@ public final class CoarseAlignDialog extends ProcessDialog implements
     btnMidas = (MultiLineButton) displayFactory.getMidas();
     setToolTipText();
     pnlCrossCorrelation = new CrossCorrelationPanel(applicationManager, axisID,
-        dialogType);
+        dialogType, btnAdvanced);
     pnlPrenewst = new PrenewstPanel(applicationManager, axisID, dialogType,
-        this);
+        this, btnAdvanced);
     btnExecute.setText("Done");
 
     pnlFiducialess.setLayout(new BoxLayout(pnlFiducialess, BoxLayout.Y_AXIS));
@@ -431,7 +435,7 @@ public final class CoarseAlignDialog extends ProcessDialog implements
   public TiltXcorrDisplay getTiltXcorrDisplay() {
     return pnlCrossCorrelation;
   }
-  
+
   public NewstackDisplay getNewstackDisplay() {
     return pnlPrenewst;
   }
@@ -484,14 +488,9 @@ public final class CoarseAlignDialog extends ProcessDialog implements
     return Float.parseFloat(ltfRotation.getText());
   }
 
-  public void buttonAdvancedAction(ActionEvent event) {
-    super.buttonAdvancedAction(event);
-    updateAdvanced();
-  }
-
   void updateAdvanced() {
-    pnlCrossCorrelation.updateAdvanced(isAdvanced);
-    pnlPrenewst.updateAdvanced(isAdvanced);
+    pnlCrossCorrelation.updateAdvanced(isAdvanced());
+    pnlPrenewst.updateAdvanced(isAdvanced());
     UIHarness.INSTANCE.pack(axisID, applicationManager);
   }
 
@@ -570,17 +569,14 @@ public final class CoarseAlignDialog extends ProcessDialog implements
     }
   }
 
-  boolean done() {
-    if (applicationManager.doneCoarseAlignDialog(axisID)) {
-      pnlCrossCorrelation.done();
-      pnlPrenewst.done();
-      btnDistortionCorrectedStack.removeActionListener(actionListener);
-      btnFixEdgesMidas.removeActionListener(actionListener);
-      btnMidas.removeActionListener(actionListener);
-      setDisplayed(false);
-      return true;
-    }
-    return false;
+  void done() {
+    applicationManager.doneCoarseAlignDialog(axisID);
+    pnlCrossCorrelation.done();
+    pnlPrenewst.done();
+    btnDistortionCorrectedStack.removeActionListener(actionListener);
+    btnFixEdgesMidas.removeActionListener(actionListener);
+    btnMidas.removeActionListener(actionListener);
+    setDisplayed(false);
   }
 
   class CoarseAlignActionListener implements ActionListener {

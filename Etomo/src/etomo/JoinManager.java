@@ -71,6 +71,11 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.79  2009/06/11 16:45:53  sueh
+ * <p> bug# 1221 Sending the process panel to the process function in the
+ * <p> manager wrapped in a ProcessDisplay interface.  Changed
+ * <p> startNextProcess.
+ * <p>
  * <p> Revision 1.78  2009/04/14 23:01:18  sueh
  * <p> bug# 1207  In reconnect:  handling some situations where process data is not running.
  * <p>
@@ -1469,7 +1474,7 @@ public final class JoinManager extends BaseManager {
    */
   void startNextProcess(final AxisID axisID, final String nextProcess,
       final ProcessResultDisplay processResultDisplay,
-      ProcessSeries processSeries, DialogType dialogType, ProcessDisplay display) {
+      ProcessSeries processSeries, DialogType dialogType, ProcessDisplay display,ProcessName subProcessName) {
     if (debug) {
       System.err.println("startNextProcess:axisID=" + axisID + ",nextProcess="
           + nextProcess);
