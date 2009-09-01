@@ -21,6 +21,9 @@ import junit.framework.TestSuite;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.12  2007/12/14 18:51:42  sueh
+ * <p> Running system program is not working on windows.
+ * <p>
  * <p> Revision 3.11  2007/12/10 22:39:42  sueh
  * <p> bug# 1041 Merged ConstMetaDataTest with MetaDataTest.
  * <p>
@@ -75,6 +78,9 @@ public class TypeTests {
     }
     suite.addTestSuite(AxisIDTest.class);
     //suite.addTest(new MetaDataTest("testIsValid"));
+    suite.addTestSuite(FortranInputStringPropertyListTest.class);
+    suite.addTestSuite(EtomoNumberPropertyListTest.class);
+    suite.addTestSuite(PanelHeaderStatePropertyListTest.class);
     //$JUnit-END$
     return suite;
   }
