@@ -77,11 +77,13 @@ public interface ConstMetaData {
 
   public EtomoNumber getSampleThickness(AxisID axisID);
 
-  public int getTomoPosBinning(AxisID axisID);
-
   public FortranInputString getSizeToOutputInXandY(AxisID axisID);
 
-  public int getFinalStackBinning(AxisID axisID);
+  public int getPosBinning(AxisID axisID);
+
+  public int getStackBinning(AxisID axisID);
+
+  public int getStack3dFindBinning(AxisID axisID);
 
   public ConstEtomoNumber getTomoGenTiltParallel(AxisID axisID);
 
@@ -108,15 +110,29 @@ public interface ConstMetaData {
   public String getTrackRaptorMark();
 
   public ConstEtomoNumber getTrackRaptorDiam();
+
+  public boolean getEraseGoldModelUseFid(final AxisID axisID);
+
   public boolean isPostFlattenWarpInputTrimVol();
+
   public boolean isPostFlattenWarpContoursOnOneSurface();
+
   public String getPostFlattenWarpSpacingInX();
+
   public String getPostFlattenWarpSpacingInY();
+
   public boolean isPostSqueezeVolInputTrimVol();
+
+  public boolean isFiducialessAlignment(AxisID axisID);
 }
 
 /**
  * <p> $Log$
+ * <p> Revision 3.52  2009/06/05 02:03:13  sueh
+ * <p> bug# 1219 Added getPostFlattenWarpSpacingInX,
+ * <p> getPostFlattenWarpSpacingInY, isPostFlattenWarpContoursOnOneSurface,
+ * <p> isPostFlattenWarpInputTrimVol, and isPostSqueezeVolInputTrimVol.
+ * <p>
  * <p> Revision 3.51  2009/05/02 01:25:05  sueh
  * <p> bug# 1216 Removed B axis raptor data.
  * <p>
