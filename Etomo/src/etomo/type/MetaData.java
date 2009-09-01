@@ -28,6 +28,18 @@ import etomo.util.Utilities;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.49  2009/06/05 02:09:20  sueh
+ * <p> bug# 1219 Added CONTOURS_ON_ONE_SURFACE_KEY, FLATTEN_KEY,
+ * <p> FLATTEN_WARP_KEY, INPUT_KEY, POST_KEY, postFlattenInputTrimVol,
+ * <p> postFlattenWarpContoursOnOneSurface, postFlattenWarpSpacingInX,
+ * <p> postFlattenWarpSpacingInY, postSqueezeVolInputTrimVol, SPACING_IN_KEY,
+ * <p> SQUEEZE_VOL_KEY, TRIM_VOL_KEY, X_KEY, Y_KEY,
+ * <p> getPostFlattenWarpSpacingInX, getPostFlattenWarpSpacingInY,
+ * <p> isPostFlattenWarpContoursOnOneSurface, isPostFlattenWarpInputTrimVol,
+ * <p> isPostSqueezeVolInputTrimVol, setPostFlattenWarpContoursOnOneSurface,
+ * <p> setPostFlattenWarpInputTrimVol, setPostFlattenWarpSpacingInX, and
+ * <p> setPostFlattenWarpSpacingInY, setPostSqueezeVolInputTrimVol.
+ * <p>
  * <p> Revision 3.48  2009/05/02 01:25:25  sueh
  * <p> bug# 1216 Removed B axis raptor data.
  * <p>
@@ -292,27 +304,37 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
   //Axis keys
   private static final String FIRST_AXIS_KEY = "A";
   private static final String SECOND_AXIS_KEY = "B";
-  
+
   //Dialog keys
   private static final String TRACK_KEY = "Track";
+  private static final String STACK_KEY = "Stack";
   private static final String POST_KEY = "Post";
 
   //Panel keys
+  private static final String NEWSTACK_OR_BLENDMONT_KEY = "NewstackOrBlendmont";
+  private static final String ERASE_GOLD_KEY = "EraseGold";
+  private static final String FLATTEN_KEY = "Flatten";
+  private static final String FLATTEN_WARP_KEY = "FlattenWarp";
   private static final String RAPTOR_KEY = "Raptor";
   private static final String TRIM_VOL_KEY = "TrimVol";
-  private static final String FLATTEN_WARP_KEY = "FlattenWarp";
-  private static final String FLATTEN_KEY = "Flatten";
   private static final String SQUEEZE_VOL_KEY = "SqueezeVol";
 
+  //FieldInterface keys
+  private static final String BINNING_KEY = "Binning";
   private static final String CONTOURS_ON_ONE_SURFACE_KEY = "ContoursOnOneSurface";
   private static final String DIAM_KEY = "Diam";
   private static final String INPUT_KEY = "Input";
   private static final String MARK_KEY = "Mark";
+  private static final String MODEL_USE_FID_KEY = "ModelUseFid";
   private static final String RAW_STACK_KEY = "RawStack";
+  private static final String SIZE_TO_OUTPUT_IN_X_AND_Y_KEY = "SizeToOutputInXandY";
   private static final String SPACING_IN_KEY = "SpacingIn";
   private static final String USE_KEY = "Use";
   private static final String X_KEY = "X";
   private static final String Y_KEY = "Y";
+
+  //Defaults
+  private static final boolean ERASE_GOLD_MODEL_USE_FID_DEFAULT = true;
 
   private final ApplicationManager manager;
 
@@ -331,18 +353,11 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
   private float imageRotationA = Float.NaN;
   private float imageRotationB = Float.NaN;
   private int binning = 1;
+
   private boolean fiducialessAlignmentA = false;
   private boolean fiducialessAlignmentB = false;
   private boolean wholeTomogramSampleA = false;
   private boolean wholeTomogramSampleB = false;
-  private EtomoNumber tomoPosBinningA = new EtomoNumber(
-      EtomoNumber.Type.INTEGER, "TomoPosBinningA");
-  private EtomoNumber tomoPosBinningB = new EtomoNumber(
-      EtomoNumber.Type.INTEGER, "TomoPosBinningB");
-  private EtomoNumber finalStackBinningA = new EtomoNumber(
-      EtomoNumber.Type.INTEGER, "FinalStackBinningA");
-  private EtomoNumber finalStackBinningB = new EtomoNumber(
-      EtomoNumber.Type.INTEGER, "FinalStackBinningB");
 
   //  Axis specific data
   private TiltAngleSpec tiltAngleSpecA = new TiltAngleSpec();
@@ -465,6 +480,23 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
       EtomoNumber.Type.LONG, TRACK_KEY + "." + FIRST_AXIS_KEY + "."
           + RAPTOR_KEY + "." + DIAM_KEY);
 
+  private final EtomoBoolean2 stackEraseGoldModelUseFidA = new EtomoBoolean2(
+      STACK_KEY + "." + FIRST_AXIS_KEY + "." + ERASE_GOLD_KEY + "."
+          + MODEL_USE_FID_KEY);
+  private final EtomoBoolean2 stackEraseGoldModelUseFidB = new EtomoBoolean2(
+      STACK_KEY + "." + SECOND_AXIS_KEY + "." + ERASE_GOLD_KEY + "."
+          + MODEL_USE_FID_KEY);
+  private final EtomoNumber posBinningA = new EtomoNumber("TomoPosBinningA");
+  private final EtomoNumber posBinningB = new EtomoNumber("TomoPosBinningB");
+  private final EtomoNumber stackBinningA = new EtomoNumber(
+      "FinalStackBinningA");
+  private final EtomoNumber stackBinningB = new EtomoNumber(
+      "FinalStackBinningB");
+  private final EtomoNumber stack3dFindBinningA = new EtomoNumber(STACK_KEY
+      + "." + FIRST_AXIS_KEY + "." + "3dFind.Binning");
+  private final EtomoNumber stack3dFindBinningB = new EtomoNumber(STACK_KEY
+      + "." + SECOND_AXIS_KEY + "." + "3dFind.Binning");
+
   private final EtomoBoolean2 postFlattenInputTrimVol = new EtomoBoolean2(
       POST_KEY + "." + FLATTEN_KEY + "." + INPUT_KEY + TRIM_VOL_KEY);
 
@@ -494,18 +526,27 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
     sampleThicknessB.setDisplayValue(DEFAULT_SAMPLE_THICKNESS);
     noBeamTiltSelectedA.setDisplayValue(true);//backwards compatibility
     noBeamTiltSelectedB.setDisplayValue(true);//backwards compatibility
-    sizeToOutputInXandYA.setIntegerType(new boolean[] { true, true });
-    sizeToOutputInXandYA.setPropertiesKey("A.SizeToOutputInXandY");
-    sizeToOutputInXandYA.setDefault();
-    sizeToOutputInXandYB.setIntegerType(new boolean[] { true, true });
-    sizeToOutputInXandYB.setPropertiesKey("B.SizeToOutputInXandY");
-    sizeToOutputInXandYB.setDefault();
-    tomoPosBinningA.setDisplayValue(3);
-    tomoPosBinningB.setDisplayValue(3);
-    finalStackBinningA.setDisplayValue(1);
-    finalStackBinningB.setDisplayValue(1);
     trackUseRaptorA.set(false);
     trackRaptorUseRawStackA.set(true);
+
+    sizeToOutputInXandYA.setIntegerType(new boolean[] { true, true });
+    sizeToOutputInXandYB.setIntegerType(new boolean[] { true, true });
+
+    sizeToOutputInXandYA.setPropertiesKey("A.SizeToOutputInXandY");
+    sizeToOutputInXandYA.setDefault();
+    sizeToOutputInXandYB.setPropertiesKey("B.SizeToOutputInXandY");
+    sizeToOutputInXandYB.setDefault();
+
+    posBinningA.setDisplayValue(3);
+    stackBinningA.setDisplayValue(1);
+    stackBinningB.setDisplayValue(1);
+    stack3dFindBinningA.setDisplayValue(1);
+    stack3dFindBinningB.setDisplayValue(1);
+
+    stackEraseGoldModelUseFidA
+        .setDisplayValue(ERASE_GOLD_MODEL_USE_FID_DEFAULT);
+    stackEraseGoldModelUseFidB
+        .setDisplayValue(ERASE_GOLD_MODEL_USE_FID_DEFAULT);
   }
 
   /**
@@ -613,15 +654,6 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
     }
   }
 
-  public void setTomoPosBinning(AxisID axisID, int tomoPosBinning) {
-    if (axisID == AxisID.SECOND) {
-      tomoPosBinningB.set(tomoPosBinning);
-    }
-    else {
-      tomoPosBinningA.set(tomoPosBinning);
-    }
-  }
-
   public final void setBStackProcessed(boolean bStackProcessed) {
     if (this.bStackProcessed == null) {
       this.bStackProcessed = new EtomoBoolean2(B_STACK_PROCESSED_GROUP);
@@ -646,12 +678,30 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
     }
   }
 
-  public void setFinalStackBinning(AxisID axisID, int finalStackBinning) {
+  public void setPosBinning(AxisID axisID, int binning) {
     if (axisID == AxisID.SECOND) {
-      finalStackBinningB.set(finalStackBinning);
+      posBinningB.set(binning);
     }
     else {
-      finalStackBinningA.set(finalStackBinning);
+      posBinningA.set(binning);
+    }
+  }
+
+  public void setStackBinning(AxisID axisID, int binning) {
+    if (axisID == AxisID.SECOND) {
+      stackBinningB.set(binning);
+    }
+    else {
+      stackBinningA.set(binning);
+    }
+  }
+
+  public void setStack3dFindBinning(AxisID axisID, int binning) {
+    if (axisID == AxisID.SECOND) {
+      stack3dFindBinningB.set(binning);
+    }
+    else {
+      stack3dFindBinningA.set(binning);
     }
   }
 
@@ -854,10 +904,6 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
     useLocalAlignmentsB = true;
     useZFactorsA.reset();
     useZFactorsB.reset();
-    tomoPosBinningA.reset();
-    tomoPosBinningB.reset();
-    finalStackBinningA.reset();
-    finalStackBinningB.reset();
     if (tomoGenTiltParallelA != null) {
       tomoGenTiltParallelA.reset();
     }
@@ -895,11 +941,19 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
     trackRaptorUseRawStackA.reset();
     trackRaptorMarkA.reset();
     trackRaptorDiamA.reset();
+    stackEraseGoldModelUseFidA.reset();
+    stackEraseGoldModelUseFidB.reset();
     postFlattenInputTrimVol.reset();
     postFlattenWarpContoursOnOneSurface.reset();
     postFlattenWarpSpacingInX.reset();
     postFlattenWarpSpacingInY.reset();
     postSqueezeVolInputTrimVol.reset();
+    posBinningA.reset();
+    posBinningB.reset();
+    stackBinningA.reset();
+    stackBinningB.reset();
+    stack3dFindBinningA.reset();
+    stack3dFindBinningB.reset();
     //load
     prepend = createPrepend(prepend);
     String group = prepend + ".";
@@ -919,14 +973,14 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
       fiducialessB.load(props, prepend);
     }
     if (revisionNumber.le(EtomoVersion.getDefaultInstance("1.8"))) {
-      finalStackBinningA.loadWithAlternateKey(props, prepend,
+      stackBinningA.loadWithAlternateKey(props, prepend,
           FINAL_STACK_BINNING_A_BACKWARD_COMPATABILITY_1_8);
-      finalStackBinningB.loadWithAlternateKey(props, prepend,
+      stackBinningB.loadWithAlternateKey(props, prepend,
           FINAL_STACK_BINNING_B_BACKWARD_COMPATABILITY_1_8);
     }
     else {
-      finalStackBinningA.load(props, prepend);
-      finalStackBinningB.load(props, prepend);
+      stackBinningA.load(props, prepend);
+      stackBinningB.load(props, prepend);
     }
     if (revisionNumber.le(EtomoVersion.getDefaultInstance("1.9"))) {
       //better radius needs to be converted to final stack fiducial diameter.
@@ -1003,8 +1057,6 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
     useZFactorsB.load(props, prepend);
     transferfidParamA.load(props, prepend);
     transferfidParamB.load(props, prepend);
-    tomoPosBinningA.load(props, prepend);
-    tomoPosBinningB.load(props, prepend);
     sizeToOutputInXandYA.load(props, prepend);
     sizeToOutputInXandYB.load(props, prepend);
     String propertyValue = props.getProperty(group
@@ -1061,11 +1113,17 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
     trackRaptorUseRawStackA.load(props, prepend);
     trackRaptorMarkA.load(props, prepend);
     trackRaptorDiamA.load(props, prepend);
+    stackEraseGoldModelUseFidA.load(props, prepend);
+    stackEraseGoldModelUseFidB.load(props, prepend);
     postFlattenInputTrimVol.load(props, prepend);
     postFlattenWarpContoursOnOneSurface.load(props, prepend);
     postFlattenWarpSpacingInX.load(props, prepend);
     postFlattenWarpSpacingInY.load(props, prepend);
-    postSqueezeVolInputTrimVol.load(props,prepend);
+    postSqueezeVolInputTrimVol.load(props, prepend);
+    posBinningA.load(props, prepend);
+    posBinningB.load(props, prepend);
+    stack3dFindBinningA.load(props, prepend);
+    stack3dFindBinningB.load(props, prepend);
   }
 
   public void setNoBeamTiltSelected(AxisID axisID, boolean selected) {
@@ -1197,10 +1255,6 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
     useZFactorsB.store(props, prepend);
     transferfidParamA.store(props, prepend);
     transferfidParamB.store(props, prepend);
-    tomoPosBinningA.store(props, prepend);
-    tomoPosBinningB.store(props, prepend);
-    finalStackBinningA.store(props, prepend);
-    finalStackBinningB.store(props, prepend);
     if (tomoGenTiltParallelA != null) {
       tomoGenTiltParallelA.store(props, prepend);
     }
@@ -1247,11 +1301,19 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
     trackRaptorUseRawStackA.store(props, prepend);
     trackRaptorMarkA.store(props, prepend);
     trackRaptorDiamA.store(props, prepend);
+    stackEraseGoldModelUseFidA.store(props, prepend);
+    stackEraseGoldModelUseFidB.store(props, prepend);
     postFlattenInputTrimVol.store(props, prepend);
     postFlattenWarpContoursOnOneSurface.store(props, prepend);
     postFlattenWarpSpacingInX.store(props, prepend);
     postFlattenWarpSpacingInY.store(props, prepend);
-    postSqueezeVolInputTrimVol.store(props,prepend);
+    postSqueezeVolInputTrimVol.store(props, prepend);
+    posBinningA.store(props, prepend);
+    posBinningB.store(props, prepend);
+    stackBinningA.store(props, prepend);
+    stackBinningB.store(props, prepend);
+    stack3dFindBinningA.store(props, prepend);
+    stack3dFindBinningB.store(props, prepend);
   }
 
   public boolean getTrackUseRaptor() {
@@ -1284,6 +1346,22 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
 
   public void setTrackRaptorDiam(String input) {
     trackRaptorDiamA.set(input);
+  }
+
+  public boolean getEraseGoldModelUseFid(final AxisID axisID) {
+    if (axisID == AxisID.SECOND) {
+      return stackEraseGoldModelUseFidB.is();
+    }
+    return stackEraseGoldModelUseFidA.is();
+  }
+
+  public void setEraseGoldModelUseFid(final AxisID axisID, boolean input) {
+    if (axisID == AxisID.SECOND) {
+      stackEraseGoldModelUseFidB.set(input);
+    }
+    else {
+      stackEraseGoldModelUseFidA.set(input);
+    }
   }
 
   public boolean isPostFlattenWarpInputTrimVol() {
@@ -1501,18 +1579,25 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
     return useLocalAlignmentsA;
   }
 
-  public int getTomoPosBinning(AxisID axisID) {
+  public int getPosBinning(AxisID axisID) {
     if (axisID == AxisID.SECOND) {
-      return tomoPosBinningB.getDefaultedInt();
+      return posBinningB.getDefaultedInt();
     }
-    return tomoPosBinningA.getDefaultedInt();
+    return posBinningA.getDefaultedInt();
   }
 
-  public int getFinalStackBinning(AxisID axisID) {
+  public int getStackBinning(AxisID axisID) {
     if (axisID == AxisID.SECOND) {
-      return finalStackBinningB.getDefaultedInt();
+      return stackBinningB.getDefaultedInt();
     }
-    return finalStackBinningA.getDefaultedInt();
+    return stackBinningA.getDefaultedInt();
+  }
+
+  public int getStack3dFindBinning(AxisID axisID) {
+    if (axisID == AxisID.SECOND) {
+      return stack3dFindBinningB.getDefaultedInt();
+    }
+    return stack3dFindBinningA.getDefaultedInt();
   }
 
   public ConstEtomoNumber getCombineVolcombineParallel() {
@@ -1860,35 +1945,37 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
       return false;
 
     MetaData cmd = (MetaData) object;
-    if (!datasetName.equals(cmd.getDatasetName()))
+    if (!datasetName.equals(cmd.datasetName))
       return false;
-    if (!backupDirectory.equals(cmd.getBackupDirectory()))
+    if (!backupDirectory.equals(cmd.backupDirectory))
       return false;
-    if (!distortionFile.equals(cmd.getDistortionFile()))
+    if (!distortionFile.equals(cmd.distortionFile))
       return false;
-    if (!dataSource.equals(cmd.getDataSource()))
+    if (!magGradientFile.equals(cmd.magGradientFile))
       return false;
-    if (axisType != cmd.getAxisType())
+    if (!dataSource.equals(cmd.dataSource))
       return false;
-    if (!viewType.equals(cmd.getViewType()))
+    if (axisType != cmd.axisType)
       return false;
-    if (!(pixelSize == cmd.getPixelSize()))
+    if (!viewType.equals(cmd.viewType))
       return false;
-    if (!(useLocalAlignmentsA == cmd.getUseLocalAlignments(AxisID.FIRST)))
+    if (!(pixelSize == cmd.pixelSize))
       return false;
-    if (!(useLocalAlignmentsB == cmd.getUseLocalAlignments(AxisID.SECOND)))
+    if (!(useLocalAlignmentsA == cmd.useLocalAlignmentsA))
       return false;
-    if (!(fiducialDiameter == cmd.getFiducialDiameter()))
+    if (!(useLocalAlignmentsB == cmd.useLocalAlignmentsB))
       return false;
-    if (!(imageRotationA == cmd.getImageRotation(AxisID.FIRST)))
+    if (!(fiducialDiameter == cmd.fiducialDiameter))
       return false;
-    if (!(imageRotationB == cmd.getImageRotation(AxisID.SECOND)))
+    if (!(imageRotationA == cmd.imageRotationA))
       return false;
-    if (!(binning == cmd.getBinning()))
+    if (!(imageRotationB == cmd.imageRotationB))
       return false;
-    if (!(fiducialessAlignmentA == cmd.isFiducialessAlignment(AxisID.FIRST)))
+    if (!(binning == cmd.binning))
       return false;
-    if (!(fiducialessAlignmentB == cmd.isFiducialessAlignment(AxisID.SECOND)))
+    if (!(fiducialessAlignmentA == cmd.fiducialessAlignmentA))
+      return false;
+    if (!(fiducialessAlignmentB == cmd.fiducialessAlignmentB))
       return false;
 
     // TODO tilt angle spec needs to be more complete
@@ -1912,16 +1999,28 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
     if (!squeezevolParam.equals(cmd.getSqueezevolParam())) {
       return false;
     }
-    if (!tomoPosBinningA.equals(cmd.tomoPosBinningA)) {
+    if (!posBinningA.equals(cmd.posBinningA)) {
       return false;
     }
-    if (!tomoPosBinningB.equals(cmd.tomoPosBinningB)) {
+    if (!posBinningB.equals(cmd.posBinningB)) {
       return false;
     }
-    if (!finalStackBinningA.equals(cmd.finalStackBinningA)) {
+    if (!stackBinningA.equals(cmd.stackBinningA)) {
       return false;
     }
-    if (!finalStackBinningB.equals(cmd.finalStackBinningB)) {
+    if (!stackBinningB.equals(cmd.stackBinningB)) {
+      return false;
+    }
+    if (!stack3dFindBinningA.equals(cmd.stack3dFindBinningA)) {
+      return false;
+    }
+    if (!stack3dFindBinningB.equals(cmd.stack3dFindBinningB)) {
+      return false;
+    }
+    if (!stackEraseGoldModelUseFidA.equals(cmd.stackEraseGoldModelUseFidA)) {
+      return false;
+    }
+    if (!stackEraseGoldModelUseFidB.equals(cmd.stackEraseGoldModelUseFidB)) {
       return false;
     }
     return true;
