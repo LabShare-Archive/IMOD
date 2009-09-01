@@ -66,6 +66,23 @@ set.dataset = BB
 set.var.dual=
 set.var.test-gui=
 
+[Test = single-montage-test-gui]
+set.testdir = single-montage-test-gui
+set.adoc.dialog = recon.adoc
+set.dataset = midzone2
+set.var.single=
+set.var.montage=
+set.var.test-gui=
+
+[Test = dual-montage-test-gui]
+set.testdir = dual-montage-test-gui
+set.adoc.dialog.a=recon.adoc
+set.adoc.bdialog.b=recon.adoc
+set.dataset = midzone2
+set.var.dual=
+set.var.montage=
+set.var.test-gui=
+
 [Test = single-fidless]
 set.testdir=single-fidless
 set.adoc.dialog = recon.adoc
@@ -93,6 +110,23 @@ set.var.z-axis-min = 5
 set.var.z-axis-max = 70
 set.var.unbinned-bead-diameter = 4.95
 set.var.int-unbinned-bead-diameter = 5
+set.var.rounded-unbinned-bead-diameter = 5.0
+#PreProc
+set.var.maximum-radius=2.1
+#FinalStack
+set.var.size-to-output=550,550
+set.var.center-to-center-thickness = 83.0
+# center-to-center-thickness + additional-unbinned-diameters-to-add*int-unbinned-bead-diameter
+set.var.erase-gold-thickness=98
+set.var.incremental-shift-to-center.a=-12.9
+set.var.incremental-shift-to-center.b=-13.9
+set.var.final-align-comscript=newst
+set.var.final-align-command=newstack
+#TomoGen
+set.var.tomogram-thickness-in-z.a=76
+set.var.tomogram-thickness-in-z.b=78
+set.var.x-axis-tilt.a=1.76
+set.var.x-axis-tilt.b=0.13
 set.interface.Recon=
 
 [dataset = midzone2]
@@ -103,12 +137,27 @@ copy.file.b = %{dataset}b.st
 set.var.montage=
 set.var.pixel-size = 1.42
 set.var.fiducial-diameter = 15
-set.var.image-rotation = 0
+set.var.image-rotation = 0.0
 set.var.sample-tomogram-thickness = 200
 set.var.z-axis-min = 5
 set.var.z-axis-max = 70
 set.var.unbinned-bead-diameter = 10.56
 set.var.int-unbinned-bead-diameter = 11
+#PreProc
+set.var.maximum-radius=2.6
+#FinalStack
+set.var.size-to-output.a=2000,1050
+set.var.size-to-output.b=1050,2000
+set.var.center-to-center-thickness.a = 122.0
+set.var.center-to-center-thickness.b = 116.0
+# center-to-center-thickness + additional-unbinned-diameters-to-add*int-unbinned-bead-diameter
+set.var.erase-gold-thickness.a=154
+set.var.erase-gold-thickness.b=148
+set.var.incremental-shift-to-center.a=28.9
+set.var.incremental-shift-to-center.b=38.7
+set.var.final-align-comscript=blend
+set.var.final-align-command=blendmont
+#TomoGen
 set.interface.Recon=
 
 [dataset = unicross]
