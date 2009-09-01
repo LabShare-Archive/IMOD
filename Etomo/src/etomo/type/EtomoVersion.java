@@ -21,6 +21,9 @@ import etomo.storage.Storable;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.8  2009/02/19 21:37:59  sueh
+ * <p> bug# 1180
+ * <p>
  * <p> Revision 1.7  2009/02/19 21:31:51  sueh
  * <p> bug# 1180 Ported change from branch IMOD_3-13, Revision 1.6.2.1.
  * <p>
@@ -50,11 +53,12 @@ import etomo.storage.Storable;
  * <p> bug# 578 A class to parse and compare version numbers.
  * <p> </p>
  */
-public final class EtomoVersion implements ConstEtomoVersion, Storable {
+public final class EtomoVersion implements Storable {
   public static final String rcsid = "$Id$";
 
   public static final String DEFAULT_KEY = "Version";
-  private final List sectionList = new ArrayList();
+
+  private final SectionList sectionList = new SectionList();
   private String key;
   private boolean debug = false;
 
@@ -68,13 +72,13 @@ public final class EtomoVersion implements ConstEtomoVersion, Storable {
     return instance;
   }
 
-  public static EtomoVersion getEmptyInstance(String key) {
+  public static EtomoVersion getEmptyInstance(final String key) {
     EtomoVersion instance = new EtomoVersion();
     instance.key = key;
     return instance;
   }
 
-  public static EtomoVersion getInstance(String key, String version) {
+  public static EtomoVersion getInstance(final String key, final String version) {
     EtomoVersion instance = getEmptyInstance(key);
     instance.set(version);
     return instance;
@@ -84,7 +88,7 @@ public final class EtomoVersion implements ConstEtomoVersion, Storable {
     return key;
   }
 
-  public void setDebug(boolean debug) {
+  public void setDebug(final boolean debug) {
     this.debug = debug;
   }
 
@@ -92,7 +96,11 @@ public final class EtomoVersion implements ConstEtomoVersion, Storable {
     key = DEFAULT_KEY;
   }
 
-  private boolean equals(EtomoVersion version) {
+  public int hashCode() {
+    return sectionList.hashCode();
+  }
+
+  public boolean equals(final EtomoVersion version) {
     //treat null as the earliest version
     if ((version == null || version.isNull()) && isNull()) {
       return true;
@@ -104,8 +112,7 @@ public final class EtomoVersion implements ConstEtomoVersion, Storable {
       return false;
     }
     for (int i = 0; i < sectionList.size(); i++) {
-      if (!((String) sectionList.get(i)).equals((String) version.sectionList
-          .get(i))) {
+      if (!sectionList.equals(version.sectionList, i)) {
         return false;
       }
     }
@@ -116,7 +123,7 @@ public final class EtomoVersion implements ConstEtomoVersion, Storable {
    * @param version
    * @return true if this is less then version
    */
-  public boolean lt(EtomoVersion version) {
+  public boolean lt(final EtomoVersion version) {
     //treat null as the earliest version
     if (isNull() && (version != null && !version.isNull())) {
       return true;
@@ -125,14 +132,12 @@ public final class EtomoVersion implements ConstEtomoVersion, Storable {
       return false;
     }
     int length = Math.min(sectionList.size(), version.sectionList.size());
-    //loop until a section is not equal then corresponding version section
+    //loop until a section is not equal to corresponding version section
     for (int i = 0; i < length; i++) {
-      if (((String) sectionList.get(i)).compareTo((String) version.sectionList
-          .get(i)) > 0) {
+      if (sectionList.gt(version.sectionList, i)) {
         return false;
       }
-      if (((String) sectionList.get(i)).compareTo((String) version.sectionList
-          .get(i)) < 0) {
+      if (sectionList.lt(version.sectionList, i)) {
         return true;
       }
     }
@@ -147,7 +152,7 @@ public final class EtomoVersion implements ConstEtomoVersion, Storable {
    * @param version
    * @return true if this is less then or equal to version
    */
-  public boolean le(EtomoVersion version) {
+  public boolean le(final EtomoVersion version) {
     //treat null as the earliest version
     if (isNull()) {
       return true;
@@ -156,14 +161,12 @@ public final class EtomoVersion implements ConstEtomoVersion, Storable {
       return false;
     }
     int length = Math.min(sectionList.size(), version.sectionList.size());
-    //loop until a section is not equal then corresponding version section
+    //loop until a section is not equal to corresponding version section
     for (int i = 0; i < length; i++) {
-      if (((String) sectionList.get(i)).compareTo((String) version.sectionList
-          .get(i)) > 0) {
+      if (sectionList.gt(version.sectionList, i)) {
         return false;
       }
-      if (((String) sectionList.get(i)).compareTo((String) version.sectionList
-          .get(i)) < 0) {
+      if (sectionList.lt(version.sectionList, i)) {
         return true;
       }
     }
@@ -174,7 +177,7 @@ public final class EtomoVersion implements ConstEtomoVersion, Storable {
     return false;
   }
 
-  public boolean gt(EtomoVersion version) {
+  public boolean gt(final EtomoVersion version) {
     //treat null as the earliest version
     if ((version == null || version.isNull()) && !isNull()) {
       return true;
@@ -185,12 +188,10 @@ public final class EtomoVersion implements ConstEtomoVersion, Storable {
     int length = Math.min(sectionList.size(), version.sectionList.size());
     //loop until a section is not equal then corresponding version section
     for (int i = 0; i < length; i++) {
-      if (((String) sectionList.get(i)).compareTo((String) version.sectionList
-          .get(i)) > 0) {
+      if (sectionList.gt(version.sectionList, i)) {
         return true;
       }
-      if (((String) sectionList.get(i)).compareTo((String) version.sectionList
-          .get(i)) < 0) {
+      if (sectionList.lt(version.sectionList, i)) {
         return false;
       }
     }
@@ -205,7 +206,7 @@ public final class EtomoVersion implements ConstEtomoVersion, Storable {
    * @param version
    * @return true if this is greater then or equal to version
    */
-  public boolean ge(EtomoVersion version) {
+  public boolean ge(final EtomoVersion version) {
     //treat null as the earliest version
     if (version == null || version.isNull()) {
       return true;
@@ -216,12 +217,10 @@ public final class EtomoVersion implements ConstEtomoVersion, Storable {
     int length = Math.min(sectionList.size(), version.sectionList.size());
     //loop until a section is not equal then corresponding version section
     for (int i = 0; i < length; i++) {
-      if (((String) sectionList.get(i)).compareTo((String) version.sectionList
-          .get(i)) > 0) {
+      if (sectionList.gt(version.sectionList, i)) {
         return true;
       }
-      if (((String) sectionList.get(i)).compareTo((String) version.sectionList
-          .get(i)) < 0) {
+      if (sectionList.lt(version.sectionList, i)) {
         return false;
       }
     }
@@ -230,10 +229,6 @@ public final class EtomoVersion implements ConstEtomoVersion, Storable {
       return true;
     }
     return false;
-  }
-
-  public boolean ge(ConstEtomoVersion version) {
-    return ge((EtomoVersion) version);
   }
 
   public String toString() {
@@ -247,7 +242,7 @@ public final class EtomoVersion implements ConstEtomoVersion, Storable {
     return buffer.toString();
   }
 
-  public void store(Properties props) {
+  public void store(final Properties props) {
     if (isNull()) {
       props.remove(key);
     }
@@ -256,7 +251,7 @@ public final class EtomoVersion implements ConstEtomoVersion, Storable {
     }
   }
 
-  public void store(Properties props, String prepend) {
+  public void store(final Properties props, final String prepend) {
     if (debug) {
       System.err.println("store:prepend=" + prepend + ",key=" + key
           + ",toString()=" + toString());
@@ -285,9 +280,9 @@ public final class EtomoVersion implements ConstEtomoVersion, Storable {
    * @param sectionIndex
    * @return
    */
-  public String get(int sectionIndex) {
-    if (sectionIndex<sectionList.size()) {
-      return (String) sectionList.get(sectionIndex);
+  public String get(final int sectionIndex) {
+    if (sectionIndex < sectionList.size()) {
+      return sectionList.get(sectionIndex);
     }
     return null;
   }
@@ -296,8 +291,8 @@ public final class EtomoVersion implements ConstEtomoVersion, Storable {
    * Split the parameter version into a list by ".".  Ignore any empty sections.
    * @param version
    */
-  public void set(String version) {
-    sectionList.clear();
+  public void set(final String version) {
+    sectionList.reset();
     if (version == null || version.matches("\\s*")) {
       return;
     }
@@ -306,33 +301,149 @@ public final class EtomoVersion implements ConstEtomoVersion, Storable {
       return;
     }
     for (int i = 0; i < stringList.length; i++) {
-      String section = stringList[i].trim();
-      //Ignore empty sections
-      if (section != null && !section.equals("") && !section.matches("\\s+")) {
-        sectionList.add(section);
-      }
+      sectionList.add(stringList[i].trim());
     }
   }
 
-  public void set(EtomoVersion that) {
-    sectionList.clear();
-    if (that.isNull()) {
+  public void set(final EtomoVersion etomoVersion) {
+    sectionList.reset();
+    if (etomoVersion.isNull()) {
       return;
     }
-    for (int i = 0; i < that.sectionList.size(); i++) {
-      sectionList.add(that.sectionList.get(i));
-    }
+    sectionList.add(etomoVersion.sectionList);
   }
 
-  public void load(Properties props) {
+  public void load(final Properties props) {
     set(props.getProperty(key));
   }
 
-  public void load(Properties props, String prepend) {
+  public void load(final Properties props, final String prepend) {
     set(props.getProperty(prepend + "." + key));
   }
 
   public void reset() {
-    sectionList.clear();
+    sectionList.reset();
+  }
+
+  private static final class SectionList {
+    private final List list = new ArrayList();
+
+    private int size() {
+      return list.size();
+    }
+
+    private void reset() {
+      list.clear();
+    }
+
+    /**
+     * Returns true if list[index] equals sectionList.list[index].
+     * @param sectionList
+     * @param index
+     * @return
+     */
+    private boolean equals(final SectionList sectionList, final int index) {
+      Object section = list.get(index);
+      Object otherSection = sectionList.list.get(index);
+      if (section instanceof EtomoNumber) {
+        //Do a numeric comparison.
+        EtomoNumber numericSection = (EtomoNumber) section;
+        if (otherSection instanceof EtomoNumber) {
+          EtomoNumber numericOtherSection = (EtomoNumber) otherSection;
+          return numericSection.equals(numericOtherSection);
+        }
+        else {
+          //One is numeric and the other non-numeric; can't be equal.
+          return false;
+        }
+      }
+      //Non-numeric - do a string comparison.
+      return ((String) section).equals((String) otherSection);
+    }
+
+    /**
+     * Returns true if list[index] is greater then sectionList.list[index].
+     * Does a numeric comparison if both elements are numeric.
+     * @param sectionList
+     * @param index
+     * @return
+     */
+    private boolean gt(final SectionList sectionList, final int index) {
+      Object section = list.get(index);
+      Object otherSection = sectionList.list.get(index);
+      if (section instanceof EtomoNumber) {
+        //Do a numeric comparison.
+        EtomoNumber numericSection = (EtomoNumber) section;
+        if (otherSection instanceof EtomoNumber) {
+          EtomoNumber numericOtherSection = (EtomoNumber) otherSection;
+          return numericSection.gt(numericOtherSection);
+        }
+      }
+      //One or both are non-numeric - do a string comparison.
+      return ((String) section).compareTo((String) otherSection) > 0;
+    }
+
+    /**
+     * Returns true if list[index] is less then sectionList.list[index].
+     * Does a numeric comparison if both elements are numeric.
+     * @param sectionList
+     * @param index
+     * @return
+     */
+    private boolean lt(final SectionList sectionList, final int index) {
+      Object section = list.get(index);
+      Object otherSection = sectionList.list.get(index);
+      if (section instanceof EtomoNumber) {
+        //Do a numeric comparison.
+        EtomoNumber numericSection = (EtomoNumber) section;
+        if (otherSection instanceof EtomoNumber) {
+          EtomoNumber numericOtherSection = (EtomoNumber) otherSection;
+          return numericSection.lt(numericOtherSection);
+        }
+      }
+      //One or both are non-numeric - do a string comparison.
+      return ((String) section).compareTo((String) otherSection) < 0;
+    }
+
+    /**
+     * Adds section to list.  Doesn't add empty sections.  Adds numeric sections
+     * as EtomoNumbers.
+     * @param section
+     */
+    private void add(final String section) {
+      //Ignore empty sections
+      if (section == null || section.matches("\\s*")) {
+        return;
+      }
+      //Try to store a numeric section
+      EtomoNumber numericSection = new EtomoNumber();
+      numericSection.set(section);
+      if (numericSection.isValid() && !numericSection.isNull()) {
+        //Store a numeric section.
+        list.add(numericSection);
+      }
+      else {
+        //Store a non-numeric section.
+        list.add(section);
+      }
+    }
+
+    /**
+     * Add the sections from one sectionList to another.
+     * @param sectionList
+     */
+    private void add(final SectionList sectionList) {
+      for (int i = 0; i < sectionList.size(); i++) {
+        list.add(sectionList.get(i));
+      }
+    }
+
+    private String get(final int index) {
+      Object section = list.get(index);
+      if (section instanceof EtomoNumber) {
+        return ((EtomoNumber) section).toString();
+      }
+      return (String) section;
+    }
   }
 }
