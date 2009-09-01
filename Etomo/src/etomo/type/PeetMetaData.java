@@ -22,6 +22,9 @@ import etomo.util.Utilities;
  * @notthreadsafe
  * 
  * <p> $Log$
+ * <p> Revision 1.24  2009/01/13 19:37:18  sueh
+ * <p> bug# 1170 Added useNWeightGroup.
+ * <p>
  * <p> Revision 1.23  2008/12/10 18:34:18  sueh
  * <p> bug# 1162 Added a manager stamp to setName.
  * <p>
@@ -132,11 +135,11 @@ public class PeetMetaData extends BaseMetaData implements ConstPeetMetaData {
   private final StringProperty referenceFile = new StringProperty(REFERENCE_KEY
       + ".File");
   private final EtomoNumber edgeShift = new EtomoNumber("EdgeShift");
-  private final EtomoNumber yaxisContourModelNumber = new EtomoNumber(
+  private final EtomoNumber yAxisContourModelNumber = new EtomoNumber(
       YAXIS_CONTOUR_KEY + "." + MODEL_NUMBER_KEY);
-  private final EtomoNumber yaxisContourObjectNumber = new EtomoNumber(
+  private final EtomoNumber yAxisContourObjectNumber = new EtomoNumber(
       YAXIS_CONTOUR_KEY + ".ObjectNumber");
-  private final EtomoNumber yaxisContourContourNumber = new EtomoNumber(
+  private final EtomoNumber yAxisContourContourNumber = new EtomoNumber(
       YAXIS_CONTOUR_KEY + ".ContourNumber");
   private final EtomoBoolean2 flgWedgeWeight = new EtomoBoolean2(
       "FlgWedgeWeight");
@@ -169,9 +172,9 @@ public class PeetMetaData extends BaseMetaData implements ConstPeetMetaData {
     referenceParticle.set(input.referenceParticle);
     referenceFile.set(input.referenceFile);
     edgeShift.set(input.edgeShift);
-    yaxisContourModelNumber.set(input.yaxisContourModelNumber);
-    yaxisContourObjectNumber.set(input.yaxisContourObjectNumber);
-    yaxisContourContourNumber.set(input.yaxisContourContourNumber);
+    yAxisContourModelNumber.set(input.yAxisContourModelNumber);
+    yAxisContourObjectNumber.set(input.yAxisContourObjectNumber);
+    yAxisContourContourNumber.set(input.yAxisContourContourNumber);
     flgWedgeWeight.set(input.flgWedgeWeight);
     maskUseReferenceParticle.set(input.maskUseReferenceParticle);
     maskModelPtsModelNumber.set(input.maskModelPtsModelNumber);
@@ -238,9 +241,9 @@ public class PeetMetaData extends BaseMetaData implements ConstPeetMetaData {
     referenceVolume.reset();
     referenceParticle.reset();
     referenceFile.reset();
-    yaxisContourModelNumber.reset();
-    yaxisContourObjectNumber.reset();
-    yaxisContourContourNumber.reset();
+    yAxisContourModelNumber.reset();
+    yAxisContourObjectNumber.reset();
+    yAxisContourContourNumber.reset();
     maskUseReferenceParticle.reset();
     useNWeightGroup.reset();
     nWeightGroup.reset();
@@ -257,9 +260,9 @@ public class PeetMetaData extends BaseMetaData implements ConstPeetMetaData {
     referenceParticle.load(props, prepend);
     referenceFile.load(props, prepend);
     edgeShift.load(props, prepend);
-    yaxisContourModelNumber.load(props, prepend);
-    yaxisContourObjectNumber.load(props, prepend);
-    yaxisContourContourNumber.load(props, prepend);
+    yAxisContourModelNumber.load(props, prepend);
+    yAxisContourObjectNumber.load(props, prepend);
+    yAxisContourContourNumber.load(props, prepend);
     flgWedgeWeight.load(props, prepend);
     maskUseReferenceParticle.load(props, prepend);
     maskModelPtsModelNumber.load(props, prepend);
@@ -304,9 +307,9 @@ public class PeetMetaData extends BaseMetaData implements ConstPeetMetaData {
     referenceParticle.store(props, prepend);
     referenceFile.store(props, prepend);
     edgeShift.store(props, prepend);
-    yaxisContourModelNumber.store(props, prepend);
-    yaxisContourObjectNumber.store(props, prepend);
-    yaxisContourContourNumber.store(props, prepend);
+    yAxisContourModelNumber.store(props, prepend);
+    yAxisContourObjectNumber.store(props, prepend);
+    yAxisContourContourNumber.store(props, prepend);
     flgWedgeWeight.store(props, prepend);
     maskUseReferenceParticle.store(props, prepend);
     maskModelPtsModelNumber.store(props, prepend);
@@ -422,16 +425,16 @@ public class PeetMetaData extends BaseMetaData implements ConstPeetMetaData {
     return tiltRange.is();
   }
 
-  public ConstEtomoNumber getYaxisContourModelNumber() {
-    return yaxisContourModelNumber;
+  public ConstEtomoNumber getYAxisContourModelNumber() {
+    return yAxisContourModelNumber;
   }
 
-  public String getYaxisContourObjectNumber() {
-    return yaxisContourObjectNumber.toString();
+  public String getYAxisContourObjectNumber() {
+    return yAxisContourObjectNumber.toString();
   }
 
-  public String getYaxisContourContourNumber() {
-    return yaxisContourContourNumber.toString();
+  public String getYAxisContourContourNumber() {
+    return yAxisContourContourNumber.toString();
   }
 
   public void setReferenceFile(String referenceFile) {
@@ -463,15 +466,15 @@ public class PeetMetaData extends BaseMetaData implements ConstPeetMetaData {
   }
   
   public void setYaxisContourModelNumber(Number input) {
-    yaxisContourModelNumber.set(input);
+    yAxisContourModelNumber.set(input);
   }
 
   public void setYaxisContourObjectNumber(String input) {
-    yaxisContourObjectNumber.set(input);
+    yAxisContourObjectNumber.set(input);
   }
 
   public void setYaxisContourContourNumber(String input) {
-    yaxisContourContourNumber.set(input);
+    yAxisContourContourNumber.set(input);
   }
 
   String createPrepend(String prepend) {
