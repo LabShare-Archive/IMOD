@@ -63,7 +63,7 @@ public final class ProcessResultDisplayFactory implements
   private final ProcessResultDisplay raptor = FiducialModelDialog
       .getRaptorDisplay();
   private final ProcessResultDisplay useRaptor = FiducialModelDialog
-  .getUseRaptorDisplay();
+      .getUseRaptorDisplay();
   private final ProcessResultDisplay seedFiducialModel = FiducialModelDialog
       .getSeedFiducialModelDisplay();
   private final ProcessResultDisplay trackFiducials = FiducialModelDialog
@@ -95,10 +95,16 @@ public final class ProcessResultDisplayFactory implements
       .getUseCtfCorrectionDisplay();
   private final ProcessResultDisplay xfModel = FinalAlignedStackDialog
       .getXfModelDisplay();
+  private final ProcessResultDisplay tilt3dFind = FinalAlignedStackDialog
+      .getTilt3dFindButton();
+  private final ProcessResultDisplay findBeads3d = FinalAlignedStackDialog
+      .getFindBeads3dButton();
+  private final ProcessResultDisplay reprojectModel = FinalAlignedStackDialog
+      .getReprojectModelDisplay();
   private final ProcessResultDisplay ccdEraserBeads = FinalAlignedStackDialog
-      .getCcdEraser();
+      .getCcdEraserButton();
   private final ProcessResultDisplay useCcdEraserBeads = FinalAlignedStackDialog
-      .getUseCcdEraser();
+      .getUseCcdEraserDisplay();
   private final ProcessResultDisplay filter = FinalAlignedStackDialog
       .getFilterDisplay();
   private final ProcessResultDisplay useFilteredStack = FinalAlignedStackDialog
@@ -107,11 +113,11 @@ public final class ProcessResultDisplayFactory implements
   //generation
 
   private final ProcessResultDisplay useTrialTomogram = TomogramGenerationDialog
-      .getUseTrialTomogramDisplay();
+      .getUseTrialTomogramResultDisplay();
   private final ProcessResultDisplay generateTomogram = TomogramGenerationDialog
-      .getGenerateTomogramDisplay();
+      .getGenerateTomogramResultDisplay();
   private final ProcessResultDisplay deleteAlignedStack = TomogramGenerationDialog
-      .getDeleteAlignedStackDisplay();
+      .getDeleteAlignedStackResultDisplay();
 
   //combination
 
@@ -133,6 +139,10 @@ public final class ProcessResultDisplayFactory implements
   //post processing
   private final ProcessResultDisplay trimVolume = PostProcessingDialog
       .getTrimVolumeDisplay();
+  private final ProcessResultDisplay flatten = PostProcessingDialog
+      .getFlattenDisplay();
+  private final ProcessResultDisplay flattenWarp = PostProcessingDialog
+      .getFlattenWarpDisplay();
   private final ProcessResultDisplay squeezeVolume = PostProcessingDialog
       .getSqueezeVolumeDisplay();
 
@@ -163,9 +173,9 @@ public final class ProcessResultDisplayFactory implements
     addDependency(midas);
     //fiducial model
     addDependency(transferFiducials);
+    addDependency(seedFiducialModel);
     addDependency(raptor);
     addDependency(useRaptor);
-    addDependency(seedFiducialModel);
     addDependency(trackFiducials);
     addDependency(fixFiducialModel);
     //fine alignment
@@ -179,6 +189,9 @@ public final class ProcessResultDisplayFactory implements
     addDependency(ctfCorrection);
     addDependency(useCtfCorrection);
     addDependency(xfModel);
+    addDependency(tilt3dFind);
+    addDependency(findBeads3d);
+    addDependency(reprojectModel);
     addDependency(ccdEraserBeads);
     addDependency(useCcdEraserBeads);
     addDependency(filter);
@@ -196,114 +209,133 @@ public final class ProcessResultDisplayFactory implements
     addDependency(restartMatchorwarp);
     addDependency(restartVolcombine);
     //post processing
-    addDependency(squeezeVolume);
     addDependency(trimVolume);
+    addDependency(flattenWarp);
+    addDependency(flatten);
+    addDependency(squeezeVolume);
 
-    //add dependents
+    //set screeen state
 
     //preprocessing
     findXRays.setScreenState(screenState);
-    addDependents(findXRays);
     createFixedStack.setScreenState(screenState);
-    addDependents(createFixedStack);
     useFixedStack.setScreenState(screenState);
-    addDependents(useFixedStack);
-
     //coarse alignment
     crossCorrelate.setScreenState(screenState);
-    addDependents(crossCorrelate);
     distortionCorrectedStack.setScreenState(screenState);
-    addDependents(distortionCorrectedStack);
     fixEdgesMidas.setScreenState(screenState);
-    addDependents(fixEdgesMidas);
     coarseAlign.setScreenState(screenState);
-    addDependents(coarseAlign);
     midas.setScreenState(screenState);
-    addDependents(midas);
-
     //fiducial model
     transferFiducials.setScreenState(screenState);
-    addDependents(transferFiducials);
-    //raptor is optional
     raptor.setScreenState(screenState);
-    raptor.addDependentDisplay(useRaptor);
     useRaptor.setScreenState(screenState);
-    addDependents(useRaptor);
-    //
     seedFiducialModel.setScreenState(screenState);
-    addDependents(seedFiducialModel);
     trackFiducials.setScreenState(screenState);
-    addDependents(trackFiducials);
     fixFiducialModel.setScreenState(screenState);
-    addDependents(fixFiducialModel);
-
     //fine alignment
     computeAlignment.setScreenState(screenState);
-    addDependents(computeAlignment);
-
     //positioning
     sampleTomogram.setScreenState(screenState);
-    addDependents(sampleTomogram);
     computePitch.setScreenState(screenState);
-    addDependents(computePitch);
     finalAlignment.setScreenState(screenState);
-    addDependents(finalAlignment);
-
     //stack
     fullAlignedStack.setScreenState(screenState);
-    addDependents(fullAlignedStack);
-    //ctfCorrection is optional
     ctfCorrection.setScreenState(screenState);
-    ctfCorrection.addDependentDisplay(useCtfCorrection);
     useCtfCorrection.setScreenState(screenState);
-    addDependents(useCtfCorrection);
-    //erase gold is optional
     xfModel.setScreenState(screenState);
+    tilt3dFind.setScreenState(screenState);
+    findBeads3d.setScreenState(screenState);
+    reprojectModel.setScreenState(screenState);
     ccdEraserBeads.setScreenState(screenState);
-    ccdEraserBeads.addDependentDisplay(useCcdEraserBeads);
     useCcdEraserBeads.setScreenState(screenState);
-    //filter is optional
     filter.setScreenState(screenState);
-    filter.addDependentDisplay(useFilteredStack);
     useFilteredStack.setScreenState(screenState);
-    addDependents(useFilteredStack);
-
     //generation
     useTrialTomogram.setScreenState(screenState);
-    //use trial tomogram and generate tomogram are equals in the dependency order
-    addDependents(generateTomogram);
     generateTomogram.setScreenState(screenState);
-    addDependents(generateTomogram);
     deleteAlignedStack.setScreenState(screenState);
-    addDependents(deleteAlignedStack);
-
     //combination
     createCombine.setScreenState(screenState);
-    addDependents(createCombine);
     combine.setScreenState(screenState);
-    //combine and restart combine are equals in the dependency order
-    addDependents(restartCombine);
-    //combine and restart combine run the same process (solvematch)
-    restartCombine.addFailureDisplay(restartCombine);
-    restartCombine.addSuccessDisplay(restartCombine);
     restartCombine.setScreenState(screenState);
-    addDependents(restartCombine);
-    //combine and restart combine run the same process (solvematch)
-    restartCombine.addFailureDisplay(getCombine());
-    restartCombine.addSuccessDisplay(combine);
     restartMatchvol1.setScreenState(screenState);
-    addDependents(restartMatchvol1);
     restartPatchcorr.setScreenState(screenState);
-    addDependents(restartPatchcorr);
     restartMatchorwarp.setScreenState(screenState);
-    addDependents(restartMatchorwarp);
     restartVolcombine.setScreenState(screenState);
-    addDependents(restartVolcombine);
-
     //post processing
     trimVolume.setScreenState(screenState);
-    addDependents(trimVolume);
+    flattenWarp.setScreenState(screenState);
+    flatten.setScreenState(screenState);
     squeezeVolume.setScreenState(screenState);
+
+    //turn off everything after display
+
+    //preprocessing
+    addDependents(findXRays);
+    addDependents(createFixedStack);
+    addDependents(useFixedStack);
+    //coarse alignment
+    addDependents(crossCorrelate);
+    addDependents(distortionCorrectedStack);
+    addDependents(fixEdgesMidas);
+    addDependents(coarseAlign);
+    //fiducial model
+    addDependents(transferFiducials);
+    addDependents(seedFiducialModel);
+    addDependents(useRaptor);
+    addDependents(trackFiducials);
+    addDependents(fixFiducialModel);
+    //fine alignment
+    addDependents(computeAlignment);
+    //positioning
+    addDependents(sampleTomogram);
+    addDependents(computePitch);
+    addDependents(finalAlignment);
+    //stack
+    addDependents(fullAlignedStack);
+    addDependents(useCtfCorrection);
+    addDependents(useCcdEraserBeads);
+    addDependents(useFilteredStack);
+    //generation
+    addDependents(generateTomogram);
+    //combination
+    addDependents(createCombine);
+    addDependents(combine);
+    addDependents(restartCombine);
+    addDependents(restartMatchvol1);
+    addDependents(restartPatchcorr);
+    addDependents(restartMatchorwarp);
+    addDependents(restartVolcombine);
+    //post processing
+    addDependents(trimVolume);
+
+    //turn off selected displays
+
+    //fiducial model
+    raptor.addDependentDisplay(useRaptor);
+    //stack
+    ctfCorrection.addDependentDisplay(useCtfCorrection);
+    xfModel.addDependentDisplay(ccdEraserBeads);
+    xfModel.addDependentDisplay(useCcdEraserBeads);
+    tilt3dFind.addDependentDisplay(findBeads3d);
+    tilt3dFind.addDependentDisplay(reprojectModel);
+    tilt3dFind.addDependentDisplay(ccdEraserBeads);
+    tilt3dFind.addDependentDisplay(useCcdEraserBeads);
+    findBeads3d.addDependentDisplay(reprojectModel);
+    findBeads3d.addDependentDisplay(ccdEraserBeads);
+    findBeads3d.addDependentDisplay(useCcdEraserBeads);
+    reprojectModel.addDependentDisplay(ccdEraserBeads);
+    reprojectModel.addDependentDisplay(useCcdEraserBeads);
+    ccdEraserBeads.addDependentDisplay(useCcdEraserBeads);
+    filter.addDependentDisplay(useFilteredStack);
+    //combination
+    combine.addFailureDisplay(restartCombine);
+    combine.addSuccessDisplay(restartCombine);
+    restartCombine.addFailureDisplay(combine);
+    restartCombine.addSuccessDisplay(combine);
+    //post processing
+    flattenWarp.addDependentDisplay(flatten);
   }
 
   private synchronized void addDependency(ProcessResultDisplay display) {
@@ -438,6 +470,18 @@ public final class ProcessResultDisplayFactory implements
     return xfModel;
   }
 
+  public ProcessResultDisplay getFindBeads3d() {
+    return findBeads3d;
+  }
+
+  public ProcessResultDisplay getTilt3dFind() {
+    return tilt3dFind;
+  }
+
+  public ProcessResultDisplay getReprojectModel() {
+    return reprojectModel;
+  }
+
   public ProcessResultDisplay getCcdEraserBeads() {
     return ccdEraserBeads;
   }
@@ -504,12 +548,23 @@ public final class ProcessResultDisplayFactory implements
     return trimVolume;
   }
 
+  public ProcessResultDisplay getFlatten() {
+    return flatten;
+  }
+
+  public ProcessResultDisplay getFlattenWarp() {
+    return flattenWarp;
+  }
+
   public ProcessResultDisplay getSqueezeVolume() {
     return squeezeVolume;
   }
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.11  2009/05/02 01:12:06  sueh
+ * <p> bug# 1216 Added raptor and useRaptor.
+ * <p>
  * <p> Revision 1.10  2008/11/20 01:38:23  sueh
  * <p> bug# 1147 added ccdEraserBeads, useCcdEraserBeads, and xfModel.
  * <p>
