@@ -37,11 +37,12 @@ run.function.build=
 
 [dialog = FinalStack]
 set.adoc.function = stack.adoc
-run.function.build=
+run.function.main=
 
 [dialog = TomoGen]
+#set.var.test-gui=
 set.adoc.function = tomo-gen.adoc
-run.function.build=
+run.function.main=
 [[if = dual]]
 	if.equals.var.axis.return = b
 	wait.test.b = TomoGen
@@ -56,7 +57,7 @@ run.function.main=
 
 [dialog = PostProc]
 set.adoc.function = post-proc.adoc
-run.function.build=
+run.function.main=
 
 [dialog = CleanUp]
 set.adoc.function = clean-up.adoc
