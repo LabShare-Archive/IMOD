@@ -32,7 +32,7 @@ tf.view-skip-list =
 bn.fix-fiducial-model=
 tf.view-skip-list = 1,2
 bn.fix-fiducial-model=
-
+copy.file = %{dataset}%{axis}.fid
 bn.done =
 
 
