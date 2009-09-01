@@ -28,7 +28,8 @@ UITESTPATH = "$(JFCUNIT_HOME)/jfcunit.jar$(CLASS_SEPARATOR)$(JFCUNIT_HOME)/jakar
 
 PACKAGES = etomo etomo.comscript etomo.process etomo.storage etomo.storage.autodoc etomo.type etomo.ui etomo.uitest etomo.util
 
-#JAVAC_OPTIONS = -verbose
+JAVAC_OPTIONS = -warn:-unused,serial
+#JAVAC_OPTIONS = -verbose -warn:-unused,serial
 JAVAC = $(JAVAC_EXE) -d $(CLASSPATH) -sourcepath $(SOURCEPATH) $(JAVAC_OPTIONS)
 
 JAVADOC_OPTIONS = -author -version -private -use -breakiterator -doctitle "Etomo API" -windowtitle "Etomo API"
@@ -143,6 +144,9 @@ linecount:
 	awk '/^[ \t]*\/\*/, /\*\//' src/etomo/util/*.java | wc -l
 
 # $Log$
+# Revision 2.22  2008/07/23 05:24:37  mast
+# Added comments to line count, got rid of semicolon count
+#
 # Revision 2.21  2008/05/30 22:15:51  sueh
 # bug# 1102 Moved JfcUnitTests to etomo.uitest.
 #
