@@ -105,28 +105,43 @@ cb.cumulative-correlation = off
 cb.no-cosine-stretch = off
 mb.tiltxcorr.1 = B
 #
-# newstack
+# newstack/blendmont
 #
-mb.newstack = +
-# values
-mb.newstack.1 = A
+[[ifnot = montage]]
+	mb.newstack = +
+	# values
+	mb.newstack.1 = A
+[[]]
+[[if = montage]]
+	mb.blendmont = +
+	# values
+	mb.blendmont.1 = A
+[[]]
 assert.sp.coarse-aligned-image-stack-binning = 1
-assert.cb.convert-to-bytes = 1
-assert.cb.float-intensities-to-mean = 1
-# enabled
-assert.enabled.mb.newstack.1 = 
+[[ifnot = montage]]
+	assert.cb.convert-to-bytes = 1
+	assert.cb.float-intensities-to-mean = 1
+	# enabled
+	assert.enabled.mb.newstack.1 = 
+[[]]
+[[if = montage]]
+	assert.enabled.mb.blendmont.1 = 
+[[]]
 assert.enabled.sp.coarse-aligned-image-stack-binning = 
-assert.enabled.cb.convert-to-bytes = 
-assert.enabled.cb.float-intensities-to-mean = 
+[[ifnot = montage]]
+	assert.enabled.cb.convert-to-bytes = 
+	assert.enabled.cb.float-intensities-to-mean = 
+[[]]
 assert.enabled.bn.generate-coarse-aligned-stack = 
-mb.newstack.1 = B
+if.not.var.montage.mb.newstack.1 = B
+if.var.montage.mb.blendmont.1 = B
 #
 # view and fix
 #
 # values
 assert.bn.view-aligned-stack-in-3dmod = 0
 assert.cb.fiducialless-alignment = off
-assert.tf.tilt-axis-rotation = -12.5
+assert.tf.tilt-axis-rotation = %{image-rotation}
 assert.bn.fix-alignment-with-midas = 0
 # enabled
 assert.enabled.bn.view-aligned-stack-in-3dmod =
