@@ -13,6 +13,9 @@ package etomo.type;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.12  2009/01/13 19:36:27  sueh
+* <p> bug# 1170 Added isUseNWeightGroup.
+* <p>
 * <p> Revision 1.11  2008/09/10 20:56:22  sueh
 * <p> bug# 1135 Added EtomoBoolean2 tiltRange to MetaData so that the state
 * <p> of the check box on the screen can be saved.
@@ -60,9 +63,9 @@ public interface ConstPeetMetaData {
   public ConstEtomoNumber getReferenceParticle();
   public ConstEtomoNumber getReferenceVolume();
   public String getEdgeShift();
-  public ConstEtomoNumber getYaxisContourModelNumber();
-  public String getYaxisContourObjectNumber();
-  public String getYaxisContourContourNumber();
+  public ConstEtomoNumber getYAxisContourModelNumber();
+  public String getYAxisContourObjectNumber();
+  public String getYAxisContourContourNumber();
   public boolean isFlgWedgeWeight();
   public boolean isMaskUseReferenceParticle();
   public ConstEtomoNumber getMaskModelPtsModelNumber();
