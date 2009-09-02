@@ -12,6 +12,9 @@
  * @version $$Revision$
  *
  * <p> $$Log$
+ * <p> $Revision 3.66  2009/06/10 17:28:44  sueh
+ * <p> $bug# 1202 Corrected comment.
+ * <p> $
  * <p> $Revision 3.65  2009/03/17 00:46:43  sueh
  * <p> $bug# 1186 Pass managerKey to everything that pops up a dialog.
  * <p> $
@@ -404,6 +407,31 @@ public class Utilities {
       }
     }
     return new File(propertyUserDir, filename);
+  }
+
+  /**
+   * Returns false if MRCHeader throws an exception when it reads file.
+   * @param file
+   * @param manager
+   * @param axisID
+   * @return
+   */
+  public static boolean isValidStack(File file, BaseManager manager,
+      AxisID axisID) {
+    MRCHeader header = MRCHeader.getInstance(manager.getPropertyUserDir(), file
+        .getName(), axisID, manager.getManagerKey());
+    boolean validMrcFile = false;
+    try {
+      header.read();
+      validMrcFile = true;
+    }
+    catch (InvalidParameterException e) {
+      e.printStackTrace();
+    }
+    catch (IOException e) {
+      e.printStackTrace();
+    }
+    return validMrcFile;
   }
 
   /**
