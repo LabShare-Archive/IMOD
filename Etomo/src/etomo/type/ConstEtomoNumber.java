@@ -37,6 +37,9 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.63  2009/09/01 02:33:26  sueh
+ * <p> bug# 1222 Fixed comparisons between different types.
+ * <p>
  * <p> Revision 1.62  2009/03/17 00:46:15  sueh
  * <p> bug# 1186 Pass managerKey to everything that pops up a dialog.
  * <p>
@@ -1150,8 +1153,6 @@ public abstract class ConstEtomoNumber implements Storable {
   }
 
   public void setDefault(ConstEtomoNumber input) {
-    if (debug)
-      System.out.println("ConstEtomoNumber.setDefault:input=" + input);
     if (input == null) {
       defaultValue = newNumber();
     }
