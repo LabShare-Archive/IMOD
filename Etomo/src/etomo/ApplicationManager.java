@@ -999,6 +999,14 @@ public final class ApplicationManager extends BaseManager implements
       sendMsgProcessFailedToStart(processResultDisplay);
       return;
     }
+    if (!Utilities.isValidStack(fixedStack, this, axisID)) {
+      uiHarness
+          .openMessageDialog(
+              fixedStack.getName() + " is not a valid MRC file.",
+              "Entry Error", axisID, getManagerKey());
+      sendMsgProcessFailedToStart(processResultDisplay);
+      return;
+    }
     processTrack.setState(ProcessState.INPROGRESS, axisID, dialogType);
     mainPanel.setState(ProcessState.INPROGRESS, axisID, dialogType);
 
@@ -7224,7 +7232,7 @@ public final class ApplicationManager extends BaseManager implements
       updateDialog(fiducialModelDialogB, AxisID.SECOND);
       updateDialog(fiducialModelDialogA, AxisID.FIRST);
     }
-    if (processName == ProcessName.NEWST) {
+    if (processName == ProcessName.NEWST||processName == ProcessName.BLEND) {
       ((FinalAlignedStackExpert) getUIExpert(DialogType.FINAL_ALIGNED_STACK,
           axisID)).updateDialog();
     }
@@ -7452,6 +7460,14 @@ public final class ApplicationManager extends BaseManager implements
     }
     mainPanel.setState(ProcessState.INPROGRESS, axisID, dialogType);
     if (fullAlignedStack.exists() && output.exists()) {
+      if (!Utilities.isValidStack(output, this, axisID)) {
+        uiHarness
+            .openMessageDialog(
+                output.getName() + " is not a valid MRC file.",
+                "Entry Error", axisID, getManagerKey());
+        sendMsgProcessFailedToStart(processResultDisplay);
+        return;
+      }
       try {
         Utilities.renameFile(fullAlignedStack, new File(fullAlignedStack
             .getAbsolutePath()
@@ -7800,6 +7816,9 @@ public final class ApplicationManager extends BaseManager implements
 }
 /**
  * <p> $Log$
+ * <p> Revision 3.333  2009/09/01 03:17:35  sueh
+ * <p> bug# 1222
+ * <p>
  * <p> Revision 3.332  2009/08/24 20:20:28  sueh
  * <p> bug# 1254 Don't use Toolkit unless the GraphicsEnvironment is not
  * <p> headless.
