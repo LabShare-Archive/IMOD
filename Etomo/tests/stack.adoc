@@ -1,7 +1,6 @@
 Version = 1.2
 
 [function = main]
-end=
 [[if = test-gui]]
 # Created by copytomocoms when missing
 assert.exists.file=ctfplotter%{axis}.com
