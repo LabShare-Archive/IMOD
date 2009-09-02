@@ -38,6 +38,9 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.5  2009/09/01 03:18:33  sueh
+ * <p> bug# 1222
+ * <p>
  * <p> Revision 1.4  2009/03/17 00:46:33  sueh
  * <p> bug# 1186 Pass managerKey to everything that pops up a dialog.
  * <p>
@@ -98,6 +101,7 @@ public final class TestRunner extends JFCTestCase implements VariableList {
     //Add the default arguments to the parameter list.
     parameterList.add(Arguments.SELFTEST_TAG);
     parameterList.add(Arguments.TEST_TAG);
+    //parameterList.add(Arguments.NAMES_TAG);
     //get uitest.adoc
     ReadOnlyAutodoc autodoc = AutodocFactory.getInstance(AutodocFactory.UITEST,
         AxisID.ONLY, null);
