@@ -2123,7 +2123,7 @@ int zapButton2(ZapStruct *zap, int x, int y, int controlDown)
     // and just call InsertPoint with it
     // Set insertion point to next point and adjust it down if going backwards
     pt = vi->imod->cindex.point + 1;
-    if (pt > 0)
+    if (pt > 0 && cont->psize)
       lastz = cont->pts[pt - 1].z;
     else
       lastz = point.z;
@@ -4719,6 +4719,10 @@ static void setDrawCurrentOnly(ZapStruct *zap, int value)
 /*
 
 $Log$
+Revision 4.147  2009/06/05 15:44:02  mast
+Keep track of mouse press/release and adjust button state after flushing
+mouse moves so there is no move after a release
+
 Revision 4.146  2009/04/22 03:43:44  mast
 Store last mouse position on mouse click
 
