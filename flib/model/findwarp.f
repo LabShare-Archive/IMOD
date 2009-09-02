@@ -553,7 +553,7 @@ c
           if (numLowDet .gt. 0) write(*,'(/,i4,a)')numLowDet,
      &        ' fits were eliminated due to low matrix determinant'
 c
-         if(ifauto.ne.0)write(*,*)
+          if(ifauto.ne.0)write(*,*)
           if (pipinput) then
             ierr = PipGetString('InitialTransformFile', filename)
           else
@@ -577,39 +577,41 @@ c
           endif
 c           
           if (PipGetInOutFile('OutputFile', 2,
-     &        'Name of file to place warping transformations in', filename).ne.
-     &        0) call exiterror('NO OUTPUT FILE FOR DISPLACEMENTS SPECIFIED')
-          call dopen(1,filename,'new','f')
+     &        'Name of file to place warping transformations in', filename).eq.
+     &        0) then
+            call dopen(1,filename,'new','f')
 c           
-c           Output new style header to allow missing data
-          dxloc = 1.
-          dyloc = 1.
-          dzloc = 1.
-          if (nlocx .gt. 1) dxloc = (cenmax(1) - cenmin(1)) / (nlocx - 1)
-          if (nlocy .gt. 1) dyloc = (cenmax(2) - cenmin(2)) / (nlocy - 1)
-          if (nlocz .gt. 1) dzloc = (cenmax(3) - cenmin(3)) / (nlocz - 1)
-          write(1,104)nlocx,nlocy,nlocz,(cenmin(i),i=1,3),dxloc,dyloc,dzloc
-104       format(i5,2i6,3f11.2,3f10.4)
-c
-          do locz=1,nlocz
-            do locy=1,nlocy
-              do locx=1,nlocx
-                ind=indloc(locx,locy,locz)
-                induse=ind
-c                 
-c                 if this location was solved, combine and invert
-                if(solved(ind))then
-                  call xfmult3d(firstm,firstd,asave(1,1,induse),
-     &                dxyzsave(1,induse),atmp,dtmp)
-                  call xfinv3d(atmp,dtmp,a,dxyz)
-                  write(1,103)(censave(i,ind),i=1,3)
-103               format(3f9.1)
-                  write(1,102)((a(i,j),j=1,3),dxyz(i),i=1,3)
-102               format(3f10.6,f10.3)
-                endif
+c             Output new style header to allow missing data
+            dxloc = 1.
+            dyloc = 1.
+            dzloc = 1.
+            if (nlocx .gt. 1) dxloc = (cenmax(1) - cenmin(1)) / (nlocx - 1)
+            if (nlocy .gt. 1) dyloc = (cenmax(2) - cenmin(2)) / (nlocy - 1)
+            if (nlocz .gt. 1) dzloc = (cenmax(3) - cenmin(3)) / (nlocz - 1)
+            write(1,104)nlocx,nlocy,nlocz,(cenmin(i),i=1,3),dxloc,dyloc,dzloc
+104         format(i5,2i6,3f11.2,3f10.4)
+c             
+            do locz=1,nlocz
+              do locy=1,nlocy
+                do locx=1,nlocx
+                  ind=indloc(locx,locy,locz)
+                  induse=ind
+c                   
+c                   if this location was solved, combine and invert
+                  if(solved(ind))then
+                    call xfmult3d(firstm,firstd,asave(1,1,induse),
+     &                  dxyzsave(1,induse),atmp,dtmp)
+                    call xfinv3d(atmp,dtmp,a,dxyz)
+                    write(1,103)(censave(i,ind),i=1,3)
+103                 format(3f9.1)
+                    write(1,102)((a(i,j),j=1,3),dxyz(i),i=1,3)
+102                 format(3f10.6,f10.3)
+                  endif
+                enddo
               enddo
             enddo
-          enddo
+            close(1)
+          endif
         else
 c           
 c           Save a single transform if fit to whole area; won't happen if auto
@@ -619,11 +621,11 @@ c
           read(5,'(a)')filename
           call dopen(1,filename,'new','f')
           write(1,102)((a(i,j),j=1,3),dxyz(i),i=1,3)
+          close(1)
         endif
-        close(1)
 
         call outputPatchRes(resFile, nFileDat, npatx * npaty * npatz,
-     &      exists, resSum, numRes, cx, dx, limpatch)
+     &      exists, resSum, numRes, inddrop, ntimes, nlistd, cx, dx, limpatch)
 
         call exit(0)
       endif
@@ -717,10 +719,10 @@ c
                       xr(j,ndat)=xr(j+4,ndat)+dx(ind,j)
                     enddo
 c                     
-c                     Solve_wo_outliers uses columns 8-14; save indexi in 15
+c                     Solve_wo_outliers uses columns 8-17; save indexi in 18
 c                     Add to row counts and to diagonal counts
 c                     
-                    xr(15,ndat)=ind
+                    xr(18,ndat)=ind
                     ix = lx+1-locx-nofsx
                     iy = ly+1-locy-nofsy
                     iz = lz+1-locz-nofsz
@@ -796,7 +798,7 @@ c
               do i=1,ndrop
                 ifon=0
                 do j=1,nlistd
-                  if(nint(xr(15,idrop(i))).eq.inddrop(j))then
+                  if(nint(xr(18,idrop(i))).eq.inddrop(j))then
                     ifon=1
                     ntimes(j)=ntimes(j)+1
                     dropsum(j)=dropsum(j)+xr(4,ndat+i-ndrop)
@@ -804,7 +806,7 @@ c
                 enddo
                 if(ifon.eq.0.and.ifon.lt.idim)then
                   nlistd=nlistd+1
-                  inddrop(nlistd)=nint(xr(15,idrop(i)))
+                  inddrop(nlistd)=nint(xr(18,idrop(i)))
                   ntimes(nlistd)=1
                   dropsum(nlistd)=xr(4,ndat+i-ndrop)
                 endif
@@ -815,9 +817,9 @@ c               if residual output asked for, accumulate info about all resids
 c               
               if (resFile .ne. ' ') then
                 do i = 1, ndat
-                  ind = nint(xr(15,i))
+                  ind = nint(xr(18,nint(xr(5,i))))
                   numRes(ind) = numRes(ind) + 1
-                  resSum(ind) = resSum(ind) + xr(4,nint(xr(5,i)))
+                  resSum(ind) = resSum(ind) + xr(4,i)
                 enddo
               endif
 c               
@@ -889,7 +891,8 @@ c
 c             write patch file if desired on last fit before error message
 c
             call outputPatchRes(resFile, nFileDat, npatx * npaty * npatz,
-     &          exists, resSum, numRes, cx, dx, limpatch)
+     &          exists, resSum, numRes, inddrop, ntimes, nlistd, cx, dx,
+     &          limpatch)
             if (discount .gt. 0. .and. nlocdone .gt. 0 .and. numDevSum .eq. 0)
      &          call exitError('ALL FITS HAD TOO MANY ZERO VECTORS: RAISE '//
      &          '-discount FRACTION OR SET IT TO ZERO')
@@ -975,21 +978,29 @@ c
 c         Output new patch file with mean residuals if requested
 c
       subroutine outputPatchRes(resFile, nFileDat, npatTot, exists, resSum,
-     &    numRes, cx, dx, limpatch)
+     &    numRes, inddrop, ntimes, nlistd, cx, dx, limpatch)
       implicit none
       character*(*)resFile
-      integer*4 nFileDat, npatTot,limpatch,numRes(*), ind, i
-      real*4 cx(limpatch,3), dx(limpatch,3), resSum(*), dist
+      integer*4 nFileDat, npatTot,limpatch,numRes(*), ind, i,inddrop(*),nlistd
+      integer*4 ntimes(*)
+      real*4 cx(limpatch,3), dx(limpatch,3), resSum(*), dist, dropFrac
       logical exists(*)
       if (resFile .eq. ' ') return
       call dopen(1,resFile,'new','f')
       write(1,'(i7,a)')nFiledat,' positions'
       do ind = 1, npatTot
         if (exists(ind)) then
+          dropFrac = 0.
+          do i = 1, nlistd
+            if (ind .eq. inddrop(i)) then
+              dropFrac = float(ntimes(i)) / max(ntimes(i), 1, numRes(ind))
+              exit
+            endif
+          enddo
           dist = resSum(ind) / max(1, numRes(ind))
           write(1, 110) (nint(cx(ind, i)), i = 1, 3), (dx(ind, i), i = 1,3)
-     &        , dist
-110       format(3i6,3f9.2,f10.2)
+     &        , dist, dropFrac
+110       format(3i6,3f9.2,f10.2,f7.3)
         endif
       enddo
       close(1)
@@ -1006,6 +1017,10 @@ c
 
 c       
 c       $Log$
+c       Revision 3.19  2009/06/05 18:24:07  mast
+c       Eliminate inferior filling in method and put out file with missing
+c       transforms
+c
 c       Revision 3.18  2009/03/30 22:24:25  mast
 c       Make sure there aren't too many points on any diagonal.  The determinant
 c       of the solution isn't good enough, need it from right in multr

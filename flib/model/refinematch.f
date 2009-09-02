@@ -27,17 +27,17 @@ c
       include 'statsize.inc'
       integer idim,limvert
       parameter (idim=100000,limvert=100000)
-      real*4 xr(msiz,idim)
+      real*4 xr(msiz,idim),ccc(idim)
       real*4 cx(3),dx(3),a(3,3),dxyz(3),devxyz(3)
-      real*4 devxyzmax(3),cenloc(3),cxlast(3)
+      real*4 devxyzmax(3),cenloc(3),cxlast(3),freinp(20)
       integer*4 nxyz(3),idrop(idim)
-      logical inside,onelayer(3)
+      logical inside,onelayer(3),haveCCC
       real*4 xvert(limvert),yvert(limvert),zcont(idim)
       integer*4 indvert(idim),nvert(idim)
-      character*160 filename
+      character*320 filename
 c       
-      integer*4 ncont,ierr,ifflip,i,indy,indz,indcur,iobj,ndat,nfill
-      real*4 fracdrop
+      integer*4 ncont,ierr,ifflip,i,indy,indz,indcur,iobj,ndat,nfill,ninp
+      real*4 fracdrop,cccres
       integer*4 ifuse,icont,icmin,j,ind,maxdrop,ndrop,ipntmax,ip,ipt
       real*4 dzmin,crit,elimmin,critabs,devavg,devsd,devmax,stoplim,dz
       integer*4 icolfix
@@ -65,6 +65,7 @@ c
       crit=0.01
       elimmin=0.5
       critabs=0.002
+      haveCCC = .false.
 c
       call PipReadOrParseOptions(options, numOptions, 'refinematch',
      &    'ERROR: REFINEMATCH - ', .true., 3, 1, 1, numOptArg,
@@ -114,18 +115,29 @@ c
 
       do j=1,3
         onelayer(j)=.true.
+        cxlast(j) = 0.
       enddo
       nfill=0
       do i=1,ndat
+        ccc(i) = 0.
 c         
 c         these are center coordinates and location of the second volume
 c         relative to the first volume
 c         
-        read(1,*)(cx(j),j=1,3),(dx(j),j=1,3)
-        do j = 1,3
+        read(1,'(a)')filename
+        call frefor(filename, freinp, ninp)
+        do j = 1, 3
+          cx(j) = freinp(j)
+          dx(j) = freinp(j + 3)
+c        read(1,*)(cx(j),j=1,3),(dx(j),j=1,3)
+c        do j = 1,3
           if (i.gt.1 .and. cx(j).ne.cxlast(j)) onelayer(j)=.false.
           cxlast(j) = cx(j)
         enddo
+        if (ninp .gt. 6) then
+          haveCCC = .true.
+          ccc(i) = freinp(7)
+        endif
 
         ifuse=1
         if(ncont.gt.0)then
@@ -215,14 +227,33 @@ c
       if (pipinput) then
 c
 c         For patch residual output, painfully recompute the original data!
-c
+c         First make a proper index from original to ordered rows
+        do i = 1, ndat
+          xr(6, nint(xr(5,i))) = i
+        enddo
         if (PipGetString('ResidualPatchOutput', filename) .eq. 0) then
           call dopen(1, filename, 'new', 'f')
           write(1,'(i7,a)')ndat,' positions'
           do i = 1, ndat
             write(1, 110) (nint(xr(j+11, i) + 0.5 * nxyz(j)), j = 1,3),
-     &          ((xr(j,i)-xr(j+4,i)),j=8,10), xr(4, nint(xr(5,i)))
+     &          ((xr(j,i)-xr(j+4,i)),j=8,10), xr(4, nint(xr(6,i)))
 110         format(3i6,3f9.2,f10.2)
+          enddo
+          close(1)
+        endif
+c         
+c         For reduced vectors, put out the residual vector stored in cols 15-17
+c         or ordered data
+        if (PipGetString('ReducedVectorOutput', filename) .eq. 0) then
+          call dopen(1, filename, 'new', 'f')
+          write(1,'(i7,a)')ndat,' positions'
+          do i = 1, ndat
+            ind = nint(xr(6,i))
+            cccres = xr(4,ind)
+            if (haveCCC) cccres = ccc(i)
+            write(1, 111) (nint(xr(j+11, i) + 0.5 * nxyz(j)), j = 1,3),
+     &          (xr(j,ind),j=15,17),cccres
+111         format(3i6,3f9.2,f12.4)
           enddo
           close(1)
         endif
@@ -247,6 +278,9 @@ c
       end
 
 c       $Log$
+c       Revision 3.8  2006/08/21 23:05:39  mast
+c       Needed to clear out filename before getting model name
+c
 c       Revision 3.7  2006/08/21 16:39:09  mast
 c       Converted to PIP, made it handle both orientations of volume better,
 c       changed outlier output to be a summary, added option for getting
