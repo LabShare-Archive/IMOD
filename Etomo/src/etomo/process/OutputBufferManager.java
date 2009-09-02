@@ -98,9 +98,6 @@ final class OutputBufferManager implements Runnable {
    * @return
    */
   String get(int index) {
-    if (debug) {
-      System.out.println((String) outputList.get(index));
-    }
     return (String) outputList.get(index);
   }
 
@@ -117,9 +114,6 @@ final class OutputBufferManager implements Runnable {
    * @param line
    */
   private synchronized void add(String line) {
-    if (debug) {
-      System.out.println(line);
-    }
     if (keyPhrase == null || line.indexOf(keyPhrase) != -1) {
       //Add line to outputList and/or to all listeners; if there are listeners,
       //of them is using outputList.
@@ -220,6 +214,11 @@ final class OutputBufferManager implements Runnable {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.4  2008/02/16 01:52:16  sueh
+ * <p> bug# 1080 Rewrote functionality to handle multiple listeners.  The first
+ * <p> listener listens to outputList.  New output list are added for the other
+ * <p> listeners.
+ * <p>
  * <p> Revision 1.3  2007/05/26 00:29:24  sueh
  * <p> bug# 994 Added setDebug().
  * <p>
