@@ -28,8 +28,8 @@ UITESTPATH = "$(JFCUNIT_HOME)/jfcunit.jar$(CLASS_SEPARATOR)$(JFCUNIT_HOME)/jakar
 
 PACKAGES = etomo etomo.comscript etomo.process etomo.storage etomo.storage.autodoc etomo.type etomo.ui etomo.uitest etomo.util
 
-JAVAC_OPTIONS = -warn:-unused,serial
-#JAVAC_OPTIONS = -verbose -warn:-unused,serial
+JAVAC_OPTIONS = -nowarn
+#JAVAC_OPTIONS = -verbose -nowarn
 JAVAC = $(JAVAC_EXE) -d $(CLASSPATH) -sourcepath $(SOURCEPATH) $(JAVAC_OPTIONS)
 
 JAVADOC_OPTIONS = -author -version -private -use -breakiterator -doctitle "Etomo API" -windowtitle "Etomo API"
@@ -144,6 +144,10 @@ linecount:
 	awk '/^[ \t]*\/\*/, /\*\//' src/etomo/util/*.java | wc -l
 
 # $Log$
+# Revision 2.23  2009/09/01 22:30:38  sueh
+# bug# 1264 Suppressing unused and serialization warnings to correspond
+# to the settings used in Eclipse.
+#
 # Revision 2.22  2008/07/23 05:24:37  mast
 # Added comments to line count, got rid of semicolon count
 #
