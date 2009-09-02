@@ -50,6 +50,9 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.17  2009/09/01 03:18:25  sueh
+ * <p> bug# 1222
+ * <p>
  * <p> Revision 1.16  2009/06/16 22:54:30  sueh
  * <p> bug# 1221 Moved some newst, blendmont, and ccderaser functionality
  * <p> into process panels to avoid factoring into panels to happen.
@@ -299,11 +302,11 @@ public final class FinalAlignedStackExpert extends ReconUIExpert {
       manager.closeImod(ImodManager.CTF_CORRECTION_KEY, axisID,
           "CTF corrected stack");
       manager.closeImod(ImodManager.ERASED_FIDUCIALS_KEY, axisID,
-      "Erased beads stack");
+          "Erased beads stack");
       manager.closeImod(ImodManager.FINE_ALIGNED_3D_FIND_KEY, axisID,
-      "Aligned stack for 3d find");
+          "Aligned stack for 3d find");
       manager.closeImod(ImodManager.FULL_VOLUME_3D_FIND_KEY, axisID,
-      "tomogram 3d find");
+          "tomogram 3d find");
     }
     if (exitState != DialogExitState.CANCEL) {
       saveDialog();
@@ -333,7 +336,8 @@ public final class FinalAlignedStackExpert extends ReconUIExpert {
     if (metaData.getViewType() == ViewType.MONTAGE) {
       try {
         manager.updateBlendCom(dialog.getBlendmontDisplay(), axisID);
-        manager.updateBlend3dFindCom(dialog.getBlendmont3dFindDisplay(),axisID);
+        manager
+            .updateBlend3dFindCom(dialog.getBlendmont3dFindDisplay(), axisID);
       }
       catch (FortranInputSyntaxException e) {
         UIHarness.INSTANCE.openMessageDialog(e.getMessage(),
@@ -350,8 +354,7 @@ public final class FinalAlignedStackExpert extends ReconUIExpert {
     }
     else {
       manager.updateNewstCom(dialog.getNewstackDisplay(), axisID);
-      manager
-          .updateNewst3dFindCom(dialog.getNewstack3dFindDisplay(), axisID);
+      manager.updateNewst3dFindCom(dialog.getNewstack3dFindDisplay(), axisID);
     }
     updateMTFFilterCom();
     updateCtfPlotterCom();
@@ -667,6 +670,13 @@ public final class FinalAlignedStackExpert extends ReconUIExpert {
     }
     setDialogState(ProcessState.INPROGRESS);
     if (fullAlignedStack.exists() && filteredFullAlignedStack.exists()) {
+      if (!Utilities.isValidStack(filteredFullAlignedStack, manager, axisID)) {
+        UIHarness.INSTANCE.openMessageDialog(filteredFullAlignedStack.getName()
+            + " is not a valid MRC file.", "Entry Error", axisID, manager
+            .getManagerKey());
+        sendMsg(ProcessResult.FAILED_TO_START, processResultDisplay);
+        return;
+      }
       try {
         Utilities.renameFile(fullAlignedStack, new File(fullAlignedStack
             .getAbsolutePath()
