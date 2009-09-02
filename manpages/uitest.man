@@ -235,7 +235,17 @@ are present on a panel.
 
 .TP 4
 .I subcommand
-.I action\fR[\fB.\fImodifier\fR]\fB.\fIsubject
+.RS
+
+.P
+.I action\fR[\fB.\fImodifier\fR]\fB.\fIfield \fB=\fR [\fIvalue]
+
+.P
+.I action\fR[\fB.\fImodifier\fR]\fB.\fIsubject \fB=\fR [\fIvalue]
+
+.P
+.I action\fR[\fB.\fImodifier\fR]\fB.\fIsubject\fB.\fIfield \fB=\fR [\fIvalue]
+.RE
 
 .TP 4
 .I value

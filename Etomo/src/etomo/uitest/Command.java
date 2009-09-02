@@ -24,6 +24,9 @@ import etomo.type.UITestSubjectType;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.4  2009/09/01 03:18:33  sueh
+ * <p> bug# 1222
+ * <p>
  * <p> Revision 1.3  2009/02/13 02:38:47  sueh
  * <p> bug# 1102 Added optional modifier to subcommand.
  * <p>
@@ -118,7 +121,7 @@ final class Command extends Assert {
       if (subcommand == null) {
         subcommand = new Command(testAxisID);
       }
-      i = subcommand.set(statement, i, variableList);
+      i = subcommand.setSubcommand(statement, i, variableList);
     }
     String leftSide = statement.getLeftSide(i);
     assertNull("unknown attributes at the end of the command - " + leftSide
@@ -136,15 +139,11 @@ final class Command extends Assert {
    * @param variableList
    * @return
    */
-  public int set(ReadOnlyStatement statement, int startAt,
+  public int setSubcommand(ReadOnlyStatement statement, int startAt,
       VariableList variableList) {
     reset();
     assertNotNull("statement is null", statement);
     string = statement.getString();
-    Statement.Type type = statement.getType();
-    if (type == Statement.Type.EMPTY_LINE || type == Statement.Type.COMMENT) {
-      return startAt;
-    }
     actionType = UITestActionType.getInstance(statement.getLeftSide(startAt));
     if (actionType == null) {
       return startAt;
@@ -156,6 +155,7 @@ final class Command extends Assert {
       i++;
     }
     i = subject.set(statement, i, variableList);
+    i = field.set(statement, i, variableList);
     String leftSide = statement.getLeftSide(i);
     value = replaceVariables(statement.getRightSide(), variableList, testAxisID);
     known = true;
