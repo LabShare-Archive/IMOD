@@ -88,7 +88,7 @@ manpage = Options for Running Findwarp or Warpvol
 [Field = TargetMeanResidual]
 short = target
 type = FA
-usage = Target mean residuals to achieve in Warpvol (default 0.1,0.2,0.3)
+usage = Target mean residuals to achieve in Findwarp (default 0.1,0.2,0.3)
 tooltip = 
 manpage = One or more mean residual values to try to reach when Findwarp(1)
 searches for the best warping.  Multiple values should be entered in increasing
