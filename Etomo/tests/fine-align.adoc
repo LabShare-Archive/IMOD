@@ -183,7 +183,8 @@ tb.general=
 	assert.tf.min-local-patch-size-or-overlap-factor=0.5,0.5
 	rb.target-patch-size=
 	cb.enable-local-alignments=off
-	assert.cb.use-global-x-y-z-coordinates=off
+	if.var.single.assert.cb.use-global-x-y-z-coordinates=off
+	if.var.dual.assert.cb.use-global-x-y-z-coordinates=on
 	bn.basic=
 [[]]
 # check enabled/disabled
