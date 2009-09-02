@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+9/2/09: In eTomo preventing "Use..." buttons from causing invalid stacks to be
+used.
+
 9/2/09: Fixed residual outputs into patch files from Refinematch and Findwarp;
 residuals were being assigned to the wrong vectors.
 
