@@ -44,6 +44,7 @@
 #define GEN_STORE_SYMSIZE 9    /* Symbol size */
 #define GEN_STORE_VALUE1  10   /* Arbitrary value */
 #define GEN_STORE_MINMAX1 11   /* Min and max of value1 */
+#define GEN_STORE_VALUE2  12   /* Arbitrary value 2 */
 
 /* Defined flags for indicating changes */
 #define CHANGED_COLOR     (1l << 0)    /* Color change */
@@ -172,6 +173,9 @@ extern "C" {
 
 /*    
 $Log$
+Revision 3.12  2008/11/12 03:43:24  mast
+Added function for find/set min/min
+
 Revision 3.11  2006/09/12 15:11:06  mast
 Added some missing declarations
 
