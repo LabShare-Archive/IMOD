@@ -6,15 +6,8 @@
  *  Copyright (C) 1995-2005 by Boulder Laboratory for 3-Dimensional Electron
  *  Microscopy of Cells ("BL3DEMC") and the Regents of the University of 
  *  Colorado.  See dist/COPYRIGHT for full copyright notice.
+ *  Log at end
  */
-
-/*  $Author$
-
-$Date$
-
-$Revision$
-Log at end
-*/
 
 #include <stdio.h>
 #include <string.h>
@@ -32,13 +25,15 @@ int main( int argc, char *argv[])
   FILE *fin, *fout;
   struct Mod_Model *mod;
   int npatch = 0;
-  int nvalue = 0;
+  int nvalue = 0, nvalue2 = 0;
   int ix, iy, iz;
   float dx, dy, dz;
   float value, maxval = -1.e30;
-  int ob, co, listInd;
+  float value2, maxval2 = -1.e30;
+  int ob, co, listInd, listStart;
   Ipoint *pts;
-  char format[10] = "%10.4f\n";
+  char format[10] = "%10.4f";
+  char format2[10] = "%10.4f";
 
   setExitPrefix("ERROR: imod2patch - ");
 
@@ -69,12 +64,19 @@ int main( int argc, char *argv[])
   for (ob = 0; ob < mod->objsize; ob++) {
     listInd = 0;
     for (co = 0; co < mod->obj[ob].contsize; co++) {
+      listStart = listInd;
       if (mod->obj[ob].cont[co].psize >= 2) {
         npatch++;
         if (istoreFindValue(mod->obj[ob].store, co, GEN_STORE_VALUE1, &value,
                             &listInd)) {
           maxval = B3DMAX(maxval, value);
           nvalue++;
+        }
+        listInd = listStart;
+        if (istoreFindValue(mod->obj[ob].store, co, GEN_STORE_VALUE2, &value2,
+                            &listInd)) {
+          maxval2 = B3DMAX(maxval2, value2);
+          nvalue2++;
         }
       }
     }
@@ -83,12 +85,15 @@ int main( int argc, char *argv[])
   /* If values are greater than one they are probably residuals and only need
      2 decimal places */
   if (nvalue && maxval > 1.01)
-    strcpy(format, "%10.2f\n");
+    strcpy(format, "%10.2f");
+  if (nvalue2 && maxval2 > 1.01)
+    strcpy(format, "%10.2f");
 
   fprintf(fout, "%d   edited positions\n", npatch);
   for (ob = 0; ob < mod->objsize; ob++) {
     listInd = 0;
     for (co = 0; co < mod->obj[ob].contsize; co++) {
+      listStart = listInd;
       if (mod->obj[ob].cont[co].psize >= 2) {
         pts = mod->obj[ob].cont[co].pts;
         ix = pts[0].x + 0.5;
@@ -109,8 +114,16 @@ int main( int argc, char *argv[])
                           &listInd);
           fprintf(fout, format, value);
           
-        } else
-          fprintf(fout, "\n");
+        }
+        if (nvalue2) {
+          listInd = listStart;
+          value2 = 0.;
+          istoreFindValue(mod->obj[ob].store, co, GEN_STORE_VALUE2, &value2,
+                          &listInd);
+          fprintf(fout, format2, value2);
+          
+        }
+        fprintf(fout, "\n");
 
       }
     }
@@ -142,6 +155,9 @@ static int istoreFindValue(Ilist *list, int index, int type, float *value,
 
 /*
 $Log$
+Revision 3.8  2006/09/12 15:02:55  mast
+add include
+
 Revision 3.7  2006/08/31 20:58:26  mast
 Extract values from model and put back in patch file
 
