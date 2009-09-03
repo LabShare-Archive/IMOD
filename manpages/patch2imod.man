@@ -29,6 +29,11 @@ The correlation or residual values can be visualized by opening the "Values"
 panel in the model view Object Edit window and selecting "Show stored values".
 The color display can be manipulated and subsets of vectors can be selected.
 .P
+If the patch file contains a column of numbers after the correlation
+coefficient or residual values, these will
+also be stored in the model but cannot be visualized.  They will be
+output to a new patch file by imod2patch(1). 
+.P
 One can also
 read the model in on top of a tomogram; by default it is marked as flipped so
 that it will display correctly on tomograms in their original orientations.

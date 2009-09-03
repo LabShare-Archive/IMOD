@@ -4,7 +4,9 @@ IMOD History
 used.
 
 9/2/09: Fixed residual outputs into patch files from Refinematch and Findwarp;
-residuals were being assigned to the wrong vectors.
+residuals were being assigned to the wrong vectors.  Added ability for
+Refinematch to put out the residual vectors as "reduced patches", and for
+Findwarp to put out the fraction of fits in which each patch is an outlier.
 
 9/2/09: Fixed 3dmod crash when starting a new contour with limited points per 
 contour and there are two empty contours.

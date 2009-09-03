@@ -44,6 +44,17 @@ manpage = Output file for positions, displacements, and residual values. If
 the patch input file has correlation coefficients, they will be replaced by
 the residuals.  
 
+[Field = ReducedVectorOutput]
+short = reduced
+type = FN
+usage = Output file for residual vectors after removing linear component
+tooltip = 
+manpage = Output file for residual vectors from the fit, which represent the
+vectors remaining after removing the linear component of the vector field.
+These are referred to as reduced vectors.  If the input patch file has
+correlation coefficients, they will be passed into this output file; otherwise
+the residual values will be placed into the file.
+
 [Field = MeanResidualLimit]
 short = limit
 type = F
