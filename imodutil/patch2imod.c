@@ -118,11 +118,11 @@ Imod *imod_from_patches(FILE *fin, float scale, int clipSize, char *name,
   char line[MAXLINE];
   Imod *mod;
   Iobj *obj;
-  Istore store;
+  Istore store, store2;
   Ipoint *pts;
   int ix, iy, iz, itmp;
   int xmin, ymin, zmin, xmax, ymax, zmax;
-  float dx, dy, dz, xx, yy, value, valmin, valmax, tmp;
+  float dx, dy, dz, xx, yy, value, value2, valmin, valmax, tmp;
   double valsum, sumsq, valsd, sdmax;
   int residuals = 0;
   int nvals = 0;
@@ -158,6 +158,8 @@ Imod *imod_from_patches(FILE *fin, float scale, int clipSize, char *name,
   dz = 0.;
   store.type = GEN_STORE_VALUE1;
   store.flags = GEN_STORE_FLOAT << 2;
+  store2.type = GEN_STORE_VALUE2;
+  store2.flags = GEN_STORE_FLOAT << 2;
 
   for (i = 0; i < npatch; i++) {
     pts = (Ipoint *)malloc(2 * sizeof(Ipoint));
@@ -182,8 +184,8 @@ Imod *imod_from_patches(FILE *fin, float scale, int clipSize, char *name,
         nread = sscanf(line, "%d %d %d %f, %f, %f", &ix, &iz, &iy, &dx,
            &dz, &dy);
       else
-        nread = sscanf(line, "%d %d %d %f %f %f %f", &ix, &iz, &iy, &dx, &dz,
-               &dy, &value);
+        nread = sscanf(line, "%d %d %d %f %f %f %f %f", &ix, &iz, &iy, &dx,
+                       &dz, &dy, &value, &value2);
       if (noflip) {
         itmp = iy;
         iy = iz;
@@ -218,6 +220,12 @@ Imod *imod_from_patches(FILE *fin, float scale, int clipSize, char *name,
       store.index.i = i;
       store.value.f = value;
       if (istoreInsert(&obj->store, &store))
+        exitError("Could not add general storage item");
+    }
+    if (nread > 7) {
+      store2.index.i = i;
+      store2.value.f = value2;
+      if (istoreInsert(&obj->store, &store2))
         exitError("Could not add general storage item");
     }
   }
@@ -280,6 +288,9 @@ Imod *imod_from_patches(FILE *fin, float scale, int clipSize, char *name,
 
 /*
 $Log$
+Revision 3.12  2007/12/14 23:59:34  mast
+Hard-coded name
+
 Revision 3.11  2006/10/03 14:37:30  mast
 Added option to prevent flipping of vector model.
 
