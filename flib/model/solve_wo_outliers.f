@@ -20,6 +20,13 @@ c       DEVAVG, DEVSD, DEVMAX are mean, SD, and maximum deviations
 c       IPNTMAX and DEVXYZMAX given the point number and deviation in X,y,Z
 c       at which the maximum occurred
 c       
+c       The routine copies original data to columns 8 to 14 (or ncol + 5 to
+c       2*(ncol + 4)), puts a cross index from the ordered data to the
+c       original row in column 5 (or ncol + 2), returns a mean residual in
+c       column 4 (ncol + 1) for the ordered data, and puts a residual vector
+c       components for the ordered data in columns 15 to 17 (2*(ncol + 4) + 
+c       1,2,3).
+c       
       subroutine solve_wo_outliers(xr,ndat,ncol,icolfix,maxdrop,
      &    critprob, critabs, elimmin, idrop,ndrop,a,dxyz,cenloc,
      &    devavg,devsd, devmax, ipntmax, devxyzmax)
@@ -43,7 +50,7 @@ c
       probperpt=(1.-critprob)**(1./ndat)
       absperpt=(1.-critabs)**(1./ndat)
 c       
-c       copy the data into columns 8-14
+c       copy the data into columns 8-14 (for ncol = 3)
 c       
       do i=1,ndat
         do j=1,ncol+4
@@ -58,7 +65,7 @@ c
 c       If returning right away, load cross-indexes into col 5
       if(maxdrop.eq.0.or.devmax.lt.elimmin) then 
         do i=1,ndat
-          xr(5,i)=i
+          xr(ncol+2,i)=i
         enddo
         return
       endif
@@ -343,6 +350,7 @@ c
 c       
 c       compute deviations for all the data (ndat), keep track of max
 c       for the ones in the fit (ndo)
+c       return residual vector components in columns 15 to 17
 c       
       devsum=0.
       devmax=-1.
@@ -353,6 +361,7 @@ c
           do j=1,ncolin
             devxyz(ixyz)=devxyz(ixyz)+a(ixyz,j)*xr(j,ipnt)
           enddo
+          xr(2 * (ncolin + 4) + ixyz, ipnt) = devxyz(ixyz)
         enddo
         devpnt=sqrt(devxyz(1)**2+devxyz(2)**2+devxyz(3)**2)
         xr(ncolin+1,ipnt)=devpnt
@@ -494,6 +503,9 @@ c
       end
 
 c       $Log$
+c       Revision 3.9  2008/06/25 22:08:44  mast
+c       Load cross-indexes if returning right away on first fit
+c
 c       Revision 3.8  2006/08/21 16:43:01  mast
 c       Placed index to ordered data in column after the residual, increased
 c       dimension to 100000
