@@ -20,7 +20,8 @@ If the original patch file contained correlation coefficients (from
 corrsearch3d(1)) or residual values (from refinematch(1) or findwarp(1)),
 and these were stored as values in the model file by patch2imod(1), then
 imod2patch will add these values to each line, or a 0 if there is no value
-for a particular point.
+for a particular point.  In addition, if there outlier fractions output by
+findwarp(1) and stored in the model, these will be output as well.
 .SH FILES
 If the output file already exists, it becomes a backup file with ~ added to its
 name.

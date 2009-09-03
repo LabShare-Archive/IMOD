@@ -52,7 +52,9 @@ tooltip =
 manpage = Output file for positions, displacements, and mean residual values,
 averaged over all the fits that include a position.  This value will be zero
 for patches excluded from all fits.  If the patch input file
-has correlation coefficients, they will be replaced by the residuals.  
+has correlation coefficients, they will be replaced by the residuals.  After
+the residual value, this file will also have a value for the fraction of fits 
+in which the vector was removed as an outlier.
 
 [Field = TargetMeanResidual]
 short = target
