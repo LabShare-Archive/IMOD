@@ -53,6 +53,9 @@ import etomo.ui.Token;
  * @version $$Revision$$
  *
  * <p> $$Log$
+ * <p> $Revision 1.13  2009/02/04 23:38:24  sueh
+ * <p> $bug# 1158 Changed id and exception classes in LogFile.
+ * <p> $
  * <p> $Revision 1.12  2007/06/07 21:34:12  sueh
  * <p> $bug# 1012 Passing debug in constructor.  In initializeStreamTokenizer
  * <p> $catching FileNotFoundException so that the file can be closed.
@@ -116,11 +119,17 @@ public final class PrimativeTokenizer {
   public static final String rcsid = "$$Id$$";
 
   private static final String RETURN = "\r";
+
+  private final boolean separateAlphabeticAndNumeric;
+
   private LogFile file = null;
   private LogFile.ReadingId readingId = null;
   private String string = null;
   private StreamTokenizer tokenizer = null;
   private String symbols = new String("!\"#$%&'()*+,-./:;<=>?@[\\]^_`{|}~");
+  private String digits = new String("0123456789");
+  private String letters = new String(
+      "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ");
   private Token token = new Token();
   private boolean nextTokenFound = false;
   private Token nextToken = new Token();
@@ -128,14 +137,27 @@ public final class PrimativeTokenizer {
   private boolean fileClosed = false;
   private int streamTokenizerNothingValue;
   private boolean debug = false;
+  private String valueBeingBrokenUp = null;
+  private int valueIndex = -1;
 
   public PrimativeTokenizer(LogFile file, boolean debug) {
     this.file = file;
     this.debug = debug;
+    separateAlphabeticAndNumeric = false;
   }
 
   public PrimativeTokenizer(String string) {
     this.string = string;
+    separateAlphabeticAndNumeric = false;
+  }
+
+  public static PrimativeTokenizer getNumericInstance(String string) {
+    return new PrimativeTokenizer(string, true);
+  }
+
+  private PrimativeTokenizer(String string, boolean separateAlphabeticAndNumeric) {
+    this.string = string;
+    this.separateAlphabeticAndNumeric = separateAlphabeticAndNumeric;
   }
 
   /**
@@ -193,89 +215,176 @@ public final class PrimativeTokenizer {
    * @throws IOException
    */
   public Token next() throws IOException {
-    if (fileClosed) {
-      return token;
-    }
-    boolean found = false;
-    token.reset();
-    boolean whitespaceFound = false;
-    StringBuffer whitespaceBuffer = null;
-    boolean returnFound = false;
+    if (valueBeingBrokenUp == null) {
+      if (fileClosed) {
+        return token;
+      }
+      boolean found = false;
+      token.reset();
+      boolean whitespaceFound = false;
+      StringBuffer whitespaceBuffer = null;
+      boolean returnFound = false;
 
-    if (nextTokenFound) {
-      found = true;
-      token.copy(nextToken);
-      nextToken.reset();
-      nextTokenFound = false;
-      nextToken();
-    }
-    while (!found) {
-      if (tokenizer.ttype == StreamTokenizer.TT_EOF) {
-        token.set(Token.Type.EOF);
+      if (nextTokenFound) {
         found = true;
-        returnFound = false;
-        if (file != null) {
-          closeFile();
-        }
-      }
-      else if (tokenizer.ttype == StreamTokenizer.TT_EOL) {
-        token.set(Token.Type.EOL);
-        found = true;
-        //If "\r" was found before an EOL, roll it into the EOL.  This is
-        //necessary because StreamTokenizer is not working according to its
-        //definition:  It is supposed to return both "\n" and "\r\n" as EOL, but
-        //it does not do this for "\r\n".  If this bug is fixed, then "\r\r\n"
-        //will appear as an EOL, but this is OK because this is character string
-        //that usually means that there was an error in transfering the file
-        //between Windows and Linux.
-        if (returnFound && whitespaceFound) {
-          returnFound = false;
-          whitespaceBuffer.deleteCharAt(whitespaceBuffer.length() - 1);
-          if (whitespaceBuffer.length() == 0) {
-            whitespaceFound = false;
-            whitespaceBuffer = null;
-          }
-        }
-      }
-      else if (tokenizer.ttype == StreamTokenizer.TT_WORD) {
-        token.set(Token.Type.ALPHANUM, tokenizer.sval);
-        found = true;
-        returnFound = false;
-      }
-      else if (symbols.indexOf(tokenizer.ttype) != -1) {
-        token.set(Token.Type.SYMBOL, (char) tokenizer.ttype);
-        found = true;
-        returnFound = false;
-      }
-      else {
-        if (RETURN.indexOf(tokenizer.ttype) != -1) {
-          returnFound = true;
-        }
-        else {
-          returnFound = false;
-        }
-        if (!whitespaceFound) {
-          whitespaceFound = true;
-          whitespaceBuffer = new StringBuffer().append((char) tokenizer.ttype);
-        }
-        else {
-          whitespaceBuffer.append((char) tokenizer.ttype);
-        }
-      }
-      if (found) {
-        if (whitespaceFound) {
-          nextTokenFound = true;
-          nextToken.copy(token);
-          token.set(Token.Type.WHITESPACE, whitespaceBuffer);
-          whitespaceBuffer = null;
-          whitespaceFound = false;
-        }
-      }
-      if (!nextTokenFound) {
+        token.copy(nextToken);
+        nextToken.reset();
+        nextTokenFound = false;
         nextToken();
       }
+      while (!found) {
+        if (tokenizer.ttype == StreamTokenizer.TT_EOF) {
+          token.set(Token.Type.EOF);
+          if (debug) {
+            System.out.println(token);
+          }
+          found = true;
+          returnFound = false;
+          if (file != null) {
+            closeFile();
+          }
+        }
+        else if (tokenizer.ttype == StreamTokenizer.TT_EOL) {
+          token.set(Token.Type.EOL);
+          if (debug) {
+            System.out.println(token);
+          }
+          found = true;
+          //If "\r" was found before an EOL, roll it into the EOL.  This is
+          //necessary because StreamTokenizer is not working according to its
+          //definition:  It is supposed to return both "\n" and "\r\n" as EOL, but
+          //it does not do this for "\r\n".  If this bug is fixed, then "\r\r\n"
+          //will appear as an EOL, but this is OK because this is character string
+          //that usually means that there was an error in transfering the file
+          //between Windows and Linux.
+          if (returnFound && whitespaceFound) {
+            returnFound = false;
+            whitespaceBuffer.deleteCharAt(whitespaceBuffer.length() - 1);
+            if (whitespaceBuffer.length() == 0) {
+              whitespaceFound = false;
+              whitespaceBuffer = null;
+            }
+          }
+        }
+        else if (tokenizer.ttype == StreamTokenizer.TT_WORD) {
+          token.set(Token.Type.ALPHANUM, tokenizer.sval);
+          if (debug && !separateAlphabeticAndNumeric) {
+            System.out.println(token);
+          }
+          found = true;
+          returnFound = false;
+        }
+        else if (symbols.indexOf(tokenizer.ttype) != -1) {
+          token.set(Token.Type.SYMBOL, (char) tokenizer.ttype);
+          if (debug) {
+            System.out.println(token);
+          }
+          found = true;
+          returnFound = false;
+        }
+        else {
+          if (RETURN.indexOf(tokenizer.ttype) != -1) {
+            returnFound = true;
+          }
+          else {
+            returnFound = false;
+          }
+          if (!whitespaceFound) {
+            whitespaceFound = true;
+            whitespaceBuffer = new StringBuffer()
+                .append((char) tokenizer.ttype);
+          }
+          else {
+            whitespaceBuffer.append((char) tokenizer.ttype);
+          }
+        }
+        if (found) {
+          if (whitespaceFound) {
+            nextTokenFound = true;
+            nextToken.copy(token);
+            token.set(Token.Type.WHITESPACE, whitespaceBuffer);
+            if (debug) {
+              System.out.println(token);
+            }
+            whitespaceBuffer = null;
+            whitespaceFound = false;
+          }
+        }
+        if (!nextTokenFound) {
+          nextToken();
+        }
+      }
+    }
+    if (separateAlphabeticAndNumeric) {
+      token = separateAlphabeticAndNumeric(token);
     }
     return token;
+  }
+
+  /**
+   * Take an ALPHANUM token and break it up.  Called multiple times.
+   * ValueBeingBrokenUp and valueIndex are preserve outside the function and
+   * managed inside the function.
+   * @return
+   */
+  private Token separateAlphabeticAndNumeric(Token token) {
+    if (valueBeingBrokenUp == null && !token.is(Token.Type.ALPHANUM)) {
+      //Only ALPHANUM tokens are broken up.
+      return token;
+    }
+    if (valueBeingBrokenUp == null) {
+      //Start breaking up a token.
+      valueBeingBrokenUp = token.getValue();
+      valueIndex = 0;
+    }
+    //Grab an as large as possible NUMERIC or ALPHABETIC token starting at
+    //valueIndex.
+    Token newToken = new Token();
+    for (int i = valueIndex; i < valueBeingBrokenUp.length(); i++) {
+      char ch = valueBeingBrokenUp.charAt(i);
+      if (digits.indexOf(ch) != -1) {
+        //A NUMERIC token.
+        if (newToken.is(Token.Type.NULL)) {
+          //Start the NUMERIC token.
+          newToken.set(Token.Type.NUMERIC);
+        }
+        else if (newToken.is(Token.Type.ALPHABETIC)) {
+          //Found the end of the NUMERIC token.  Add the value to the new token
+          //and return.
+          newToken.set(valueBeingBrokenUp.substring(valueIndex, i));
+          if (debug) {
+            System.out.println(newToken);
+          }
+          return newToken;
+        }
+      }
+      else if (letters.indexOf(ch) != -1) {
+        //An ALPHABETIC token
+        if (newToken.is(Token.Type.NULL)) {
+          //Start the ALPHABETIC token.
+          newToken.set(Token.Type.ALPHABETIC);
+        }
+        else if (newToken.is(Token.Type.NUMERIC)) {
+          //Found the end of the ALPHABETIC token.  Add the value to the new
+          //token and return.
+          newToken.set(valueBeingBrokenUp.substring(valueIndex, i));
+          if (debug) {
+            System.out.println(newToken);
+          }
+          return newToken;
+        }
+      }
+    }
+    //Found the end of the last token in valueBeingBrokenUp.  Add the value to
+    //the new token and reset valueBeingBrokenUp and valueIndex.
+    newToken.set(valueBeingBrokenUp.substring(valueIndex, valueBeingBrokenUp
+        .length()));
+    if (debug) {
+      System.out.println(newToken);
+    }
+    valueBeingBrokenUp = null;
+    valueIndex = -1;
+    return newToken;
   }
 
   public String getSymbols() {
