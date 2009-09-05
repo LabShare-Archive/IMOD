@@ -51,4 +51,6 @@ bn.open-flattened-tomogram=
 
 bn.done=
 wait.popup.etomo-question=Yes
-wait.popup.etomo-question=Yes
+[[if = test-gui]]
+	wait.popup.etomo-question=Yes
+[[]]
