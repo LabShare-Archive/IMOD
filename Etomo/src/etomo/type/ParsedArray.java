@@ -32,6 +32,10 @@ import etomo.util.PrimativeTokenizer;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.19  2008/09/10 21:00:32  sueh
+ * <p> bug# 1135 Check for null when calling ParsedElementList.get(int).  Check
+ * <p> for null when calling ParsedElement.getElement or getRawNumber.  ParsedElementList will no longer create an empty element, so null returns will happen.  Handle lstThreshold with more flexibility.  Added functions the handle array descriptors which are simpler to call.  Can get the other items in lstThreshold without knowing where they are now; just added an exclude index to the getString function to exclude the first array descriptor.
+ * <p>
  * <p> Revision 1.18  2008/06/20 18:58:15  sueh
  * <p> bug# 1119 ParsedArrayDescriptor can be either Matlab or non-Matlab now, so I need to explicitly choose an iterator array when I need one.
  * <p>
@@ -150,19 +154,9 @@ public final class ParsedArray extends ParsedElement {
         null, false, null);
   }
 
-  public static ParsedArray getIteratorInstance() {
-    return new ParsedArray(ParsedElementType.NON_MATLAB_ITERATOR_ARRAY, null,
-        null, false, null);
-  }
-
   public static ParsedArray getInstance(EtomoNumber.Type etomoNumberType) {
     return new ParsedArray(ParsedElementType.NON_MATLAB_ARRAY, etomoNumberType,
         null, false, null);
-  }
-
-  public static ParsedArray getIteratorInstance(String key) {
-    return new ParsedArray(ParsedElementType.NON_MATLAB_ITERATOR_ARRAY, null,
-        key, false, null);
   }
 
   public static ParsedArray getInstance(EtomoNumber.Type etomoNumberType,
@@ -591,7 +585,7 @@ public final class ParsedArray extends ParsedElement {
     }
     return parsedNumberExpandedArray;
   }
-  
+
   boolean isDescriptor() {
     return false;
   }
@@ -699,6 +693,9 @@ public final class ParsedArray extends ParsedElement {
     for (int i = startIndex; i < array.size(); i++) {
       if (exclusionIndex != i) {
         ParsedElement element = array.get(i);
+        if (debug) {
+          System.out.println("i=" + i + ",element=" + element);
+        }
         if (element != null) {
           if (!emptyString) {
             buffer.append(DIVIDER_SYMBOL + " ");
@@ -773,13 +770,14 @@ public final class ParsedArray extends ParsedElement {
     //Array descriptors don't have their own open and close symbols, so they
     //look like numbers until to you get to the first divider (":"or "-").
     if (debug) {
-      System.out.println("ParsedArray.parseElement");
+      System.out.println("ParsedArray.parseElement:token="+token+",type="+type);
     }
     ParsedElement element;
     //First assume that there might be an array descriptor.
     ParsedDescriptor descriptor = ParsedDescriptor.getInstance(type,
         etomoNumberType, debug, defaultValue);
     if (descriptor != null) {
+      descriptor.setDebug(debug);
       token = descriptor.parse(token, tokenizer);
       //create the correct type of element
       if (descriptor.isEmpty()) {
