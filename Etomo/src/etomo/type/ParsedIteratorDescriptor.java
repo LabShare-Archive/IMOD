@@ -14,6 +14,12 @@ package etomo.type;
  * @version $Revision$`
  * 
  * <p> $Log$
+ * <p> Revision 1.6  2008/09/10 21:04:25  sueh
+ * <p> bug# 1135 Check for null when calling ParsedElementList.get(int).  Check
+ * <p> for null when calling ParsedElement.getElement or getRawNumber.
+ * <p> arsedElementList will no longer create an empty element, so null returns
+ * <p> will happen.
+ * <p>
  * <p> Revision 1.5  2008/06/20 20:01:52  sueh
  * <p> bug# 1119 NON_MATLAB_ITERATOR_ARRAY is the only type to use with
  * <p> ParsedIteratorDescriptor.
@@ -36,9 +42,9 @@ package etomo.type;
  * <p> bug# 1047 Class to parsed iterator descriptors such as 4-9 and 5-2.
  * <p> </p>
  */
-final class ParsedIteratorDescriptor extends ParsedDescriptor {
+final class ParsedIteratorDescriptor/* extends ParsedDescriptor */{
   public static final String rcsid = "$Id$";
-
+/*
   static final Character DIVIDER_SYMBOL = new Character('-');
 
   private boolean debug = false;
@@ -73,5 +79,5 @@ final class ParsedIteratorDescriptor extends ParsedDescriptor {
 
   Character getDividerSymbol() {
     return DIVIDER_SYMBOL;
-  }
+  }*/
 }
