@@ -44,6 +44,9 @@ import etomo.util.DatasetFiles;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.29  2009/09/01 03:18:06  sueh
+ * <p> bug# 1222
+ * <p>
  * <p> Revision 1.28  2009/04/02 21:47:55  sueh
  * <p> bug# 1203 In SearchAngleArea.setIncrement(String), corrected function so that it
  * <p> passes the modified value to descriptor.
@@ -430,7 +433,7 @@ public final class MatlabParam {
           + ".adoc.\nLogFile.ReadException:  " + e.getMessage());
     }
     try {
-      WritableAutodoc autodoc = AutodocFactory.getMatlabDebugInstance(file,
+      WritableAutodoc autodoc = AutodocFactory.getMatlabInstance(file,
           managerKey);
       if (autodoc == null) {
         //get an empty .prm autodoc if the file doesn't exist
