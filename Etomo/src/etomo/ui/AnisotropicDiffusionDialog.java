@@ -41,6 +41,9 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.16  2009/03/17 00:46:24  sueh
+ * <p> bug# 1186 Pass managerKey to everything that pops up a dialog.
+ * <p>
  * <p> Revision 1.15  2009/03/06 23:37:27  sueh
  * <p> bug# 1194 Made labels public.
  * <p>
@@ -105,7 +108,7 @@ public final class AnisotropicDiffusionDialog implements ContextMenu,
   public static final String CLEANUP_LABEL = "Clean Up Subdirectory";
 
   private static final String K_VALUE_LIST_LABEL = "List of K values: ";
-  private static final String ITERATION_LIST_LABEL = "List of iterations: ";
+  public static final String ITERATION_LIST_LABEL = "List of iterations: ";
   private static final String K_VALUE_LABEL = "K value: ";
   private static final String ITERATION_LABEL = "Iterations: ";
   private static final DialogType DIALOG_TYPE = DialogType.ANISOTROPIC_DIFFUSION;
@@ -506,10 +509,7 @@ public final class AnisotropicDiffusionDialog implements ContextMenu,
       AnisotropicDiffusionParam param) {
     String errorMessage = null;
     param.setKValue(ltfTestKValue.getText());
-    errorMessage = param.setIterationList(ltfTestIterationList.getText());
-    if (errorMessage != null) {
-      UIHarness.INSTANCE.openMessageDialog(ITERATION_LIST_LABEL + errorMessage,
-          "Entry Error", manager.getManagerKey());
+    if (!param.setIterationList(ltfTestIterationList.getText())) {
       return false;
     }
     param.setSubdirName(subdirName);
