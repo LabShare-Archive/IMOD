@@ -2,6 +2,8 @@ package etomo.type;
 
 import java.util.Properties;
 
+import etomo.BaseManager;
+
 /**
  * <p>Description: </p>
  * 
@@ -16,6 +18,9 @@ import java.util.Properties;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.4  2008/06/20 18:57:42  sueh
+ * <p> bug# 1119 ParsedArrayDescriptor can be either Matlab or non-Matlab now, so I need to explicitly choose an iterator array when I need one.
+ * <p>
  * <p> Revision 1.3  2008/04/02 02:01:20  sueh
  * <p> bug# 1097 Made non-matlab syntax the default in the ParsedElements
  * <p> classes.  This is because matlab uses "NaN", which is unhealthy for
@@ -36,14 +41,19 @@ public final class ParallelState extends BaseState {
   private final ParsedArray testKValueList = ParsedArray.getInstance(
       EtomoNumber.Type.FLOAT, "TestKValueList");
   private final EtomoNumber testIteration = new EtomoNumber("TestIteration");
+  private final EtomoNumber testKValue = new EtomoNumber(
+      EtomoNumber.Type.FLOAT, "TestKValue");
+  
   /**
    * IterationList may contain array descriptors in the form start-end.
    * Example: "2,4 - 9,10".
    */
-  private final ParsedArray testIterationList = ParsedArray
-      .getIteratorInstance("TestIterationList");
-  private final EtomoNumber testKValue = new EtomoNumber(
-      EtomoNumber.Type.FLOAT, "TestKValue");
+  private final IteratorElementList testIterationList;
+  
+  public ParallelState(BaseManager manager,AxisID axisID) {
+    testIterationList = new IteratorElementList(manager,axisID,
+    "TestIterationList");
+  }
 
   public void store(final Properties props) {
     store(props, "");
@@ -95,11 +105,11 @@ public final class ParallelState extends BaseState {
     return testIteration;
   }
 
-  public void setTestIterationList(String input) {
-    testIterationList.setRawString(input);
+  public void setTestIterationList(IteratorElementList input) {
+    testIterationList.setList(input);
   }
 
-  public ParsedArray getTestIterationList() {
+  public IteratorElementList getTestIterationList() {
     return testIterationList;
   }
 
