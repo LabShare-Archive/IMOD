@@ -8,6 +8,7 @@ import etomo.BaseManager;
 import etomo.type.AxisID;
 import etomo.type.ConstEtomoNumber;
 import etomo.type.ConstIntKeyList;
+import etomo.type.IteratorElementList;
 import etomo.type.ProcessName;
 
 /**
@@ -24,6 +25,9 @@ import etomo.type.ProcessName;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.16  2009/09/01 03:17:46  sueh
+ * <p> bug# 1222
+ * <p>
  * <p> Revision 1.15  2007/12/13 01:05:12  sueh
  * <p> bug# 1056 Changed etomo.comscript.Fields to etomo.comscript.FieldInterface.
  * <p>
@@ -183,6 +187,11 @@ public class FlipyzParam implements CommandDetails {
 
   public int getIntValue(etomo.comscript.FieldInterface fieldInterface) {
     throw new IllegalArgumentException("field=" + fieldInterface);
+  }
+  
+  public IteratorElementList getIteratorElementList(
+      final FieldInterface field) {
+    throw new IllegalArgumentException("field=" + field);
   }
 
   public boolean getBooleanValue(etomo.comscript.FieldInterface fieldInterface) {

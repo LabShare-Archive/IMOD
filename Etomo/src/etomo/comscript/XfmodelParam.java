@@ -13,6 +13,7 @@ import etomo.type.ConstJoinState;
 import etomo.type.EtomoNumber;
 import etomo.type.FileType;
 import etomo.type.IntKeyList;
+import etomo.type.IteratorElementList;
 import etomo.type.ProcessName;
 import etomo.ui.UIHarness;
 import etomo.util.DatasetFiles;
@@ -31,6 +32,9 @@ import etomo.util.DatasetFiles;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.10  2009/09/01 03:17:46  sueh
+ * <p> bug# 1222
+ * <p>
  * <p> Revision 1.9  2009/04/27 17:58:17  sueh
  * <p> In getJoinOptions and getReconOptions directed error messages to stderr
  * <p> instead of stdout.
@@ -295,6 +299,11 @@ public final class XfmodelParam implements CommandDetails {
 
   public int getIntValue(etomo.comscript.FieldInterface fieldInterface) {
     throw new IllegalArgumentException("field=" + fieldInterface);
+  }
+  
+  public IteratorElementList getIteratorElementList(
+      final FieldInterface field) {
+    throw new IllegalArgumentException("field=" + field);
   }
 
   public boolean getBooleanValue(etomo.comscript.FieldInterface fieldInterface) {

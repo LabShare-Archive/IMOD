@@ -8,6 +8,7 @@ import etomo.storage.MatlabParam;
 import etomo.type.AxisID;
 import etomo.type.ConstEtomoNumber;
 import etomo.type.ConstIntKeyList;
+import etomo.type.IteratorElementList;
 
 import etomo.type.ProcessName;
 import etomo.ui.UIHarness;
@@ -27,6 +28,9 @@ import etomo.util.EnvironmentVariable;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.9  2009/09/01 03:17:46  sueh
+ * <p> bug# 1222
+ * <p>
  * <p> Revision 1.8  2009/03/31 22:34:09  sueh
  * <p> bug# 1204 Porting from 3-13.
  * <p>
@@ -164,6 +168,11 @@ public final class PeetParserParam implements CommandDetails {
       return iterationListSize;
     }
     throw new IllegalArgumentException("field=" + fieldInterface);
+  }
+  
+  public IteratorElementList getIteratorElementList(
+      final FieldInterface field) {
+    throw new IllegalArgumentException("field=" + field);
   }
 
   public String[] getStringArray(etomo.comscript.FieldInterface fieldInterface) {

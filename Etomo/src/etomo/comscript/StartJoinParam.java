@@ -6,6 +6,7 @@ import java.util.Hashtable;
 import etomo.type.AxisID;
 import etomo.type.ConstEtomoNumber;
 import etomo.type.ConstIntKeyList;
+import etomo.type.IteratorElementList;
 import etomo.type.ProcessName;
 
 /**
@@ -117,6 +118,11 @@ public class StartJoinParam implements CommandDetails {
     }
     throw new IllegalArgumentException("field=" + fieldInterface);
   }
+  
+  public IteratorElementList getIteratorElementList(
+      final FieldInterface field) {
+    throw new IllegalArgumentException("field=" + field);
+  }
 
   public String[] getCommandArray() {
     return null;
@@ -149,6 +155,9 @@ public class StartJoinParam implements CommandDetails {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.9  2009/09/01 03:17:47  sueh
+ * <p> bug# 1222
+ * <p>
  * <p> Revision 1.8  2007/12/13 01:06:18  sueh
  * <p> bug# 1056 Changed etomo.comscript.Fields to etomo.comscript.FieldInterface.
  * <p>

@@ -9,6 +9,7 @@ import etomo.type.ConstEtomoNumber;
 import etomo.type.ConstIntKeyList;
 import etomo.type.EtomoBoolean2;
 import etomo.type.EtomoNumber;
+import etomo.type.IteratorElementList;
 import etomo.type.ProcessName;
 import etomo.type.ScriptParameter;
 import etomo.type.TiltAngleSpec;
@@ -495,6 +496,11 @@ public class ConstTiltalignParam implements CommandDetails {
 
   public int getIntValue(etomo.comscript.FieldInterface fieldInterface) {
     throw new IllegalArgumentException("field=" + fieldInterface);
+  }
+  
+  public IteratorElementList getIteratorElementList(
+      final FieldInterface field) {
+    throw new IllegalArgumentException("field=" + field);
   }
 
   public boolean getBooleanValue(etomo.comscript.FieldInterface fieldInterface) {
@@ -1018,6 +1024,9 @@ public class ConstTiltalignParam implements CommandDetails {
 
 /**
  * <p> $Log$
+ * <p> Revision 3.35  2009/09/01 03:17:46  sueh
+ * <p> bug# 1222
+ * <p>
  * <p> Revision 3.34  2008/07/16 20:13:31  sueh
  * <p> bug# 1126 Added ROT_ANGLE_KEY.
  * <p>

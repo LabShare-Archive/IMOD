@@ -11,6 +11,7 @@ import etomo.type.ConstEtomoNumber;
 import etomo.type.ConstIntKeyList;
 import etomo.type.ConstJoinMetaData;
 import etomo.type.ConstSectionTableRowData;
+import etomo.type.IteratorElementList;
 import etomo.type.JoinState;
 import etomo.type.ProcessName;
 import etomo.type.ScriptParameter;
@@ -38,6 +39,9 @@ import etomo.util.DatasetFiles;
  * <p> </p>
  * 
  * <p> $Log$
+ * <p> Revision 1.28  2009/09/01 03:17:46  sueh
+ * <p> bug# 1222
+ * <p>
  * <p> Revision 1.27  2007/12/13 01:05:20  sueh
  * <p> bug# 1056 Changed etomo.comscript.Fields to etomo.comscript.FieldInterface.
  * <p>
@@ -353,6 +357,11 @@ public final class MakejoincomParam implements CommandDetails {
       return totalRows;
     }
     throw new IllegalArgumentException("field=" + fieldInterface);
+  }
+  
+  public IteratorElementList getIteratorElementList(
+      final FieldInterface field) {
+    throw new IllegalArgumentException("field=" + field);
   }
 
   public double getDoubleValue(etomo.comscript.FieldInterface fieldInterface) {

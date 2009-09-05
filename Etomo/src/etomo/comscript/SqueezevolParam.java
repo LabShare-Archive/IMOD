@@ -12,6 +12,7 @@ import etomo.type.ConstEtomoNumber;
 import etomo.type.ConstIntKeyList;
 import etomo.type.EtomoNumber;
 import etomo.type.ImageFileType;
+import etomo.type.IteratorElementList;
 import etomo.type.ProcessName;
 
 /**
@@ -28,6 +29,9 @@ import etomo.type.ProcessName;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.9  2009/09/01 03:17:46  sueh
+ * <p> bug# 1222
+ * <p>
  * <p> Revision 1.8  2009/06/05 01:50:15  sueh
  * <p> bug# 1219 Made constant class into an interface.  Moved the functionality
  * <p> to this class.  Added setInputFile.
@@ -259,6 +263,11 @@ public final class SqueezevolParam implements ConstSqueezevolParam
 
   public int getIntValue(etomo.comscript.FieldInterface fieldInterface) {
     throw new IllegalArgumentException("field=" + fieldInterface);
+  }
+  
+  public IteratorElementList getIteratorElementList(
+      final FieldInterface field) {
+    throw new IllegalArgumentException("field=" + field);
   }
 
   public double getDoubleValue(etomo.comscript.FieldInterface fieldInterface) {

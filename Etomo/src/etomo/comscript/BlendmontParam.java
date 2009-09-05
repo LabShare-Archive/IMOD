@@ -11,6 +11,7 @@ import etomo.type.ConstIntKeyList;
 import etomo.type.EtomoBoolean2;
 import etomo.type.EtomoNumber;
 import etomo.type.EtomoState;
+import etomo.type.IteratorElementList;
 import etomo.type.ProcessName;
 import etomo.type.ScriptParameter;
 import etomo.util.Goodframe;
@@ -340,6 +341,11 @@ public final class BlendmontParam implements CommandParam, CommandDetails {
   public int getIntValue(final FieldInterface field) {
     throw new IllegalArgumentException("field=" + field);
   }
+  
+  public IteratorElementList getIteratorElementList(
+      final FieldInterface field) {
+    throw new IllegalArgumentException("field=" + field);
+  }
 
   public boolean getBooleanValue(final FieldInterface field) {
     if (field == Field.OLD_EDGE_FUNCTIONS) {
@@ -496,6 +502,9 @@ public final class BlendmontParam implements CommandParam, CommandDetails {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.31  2009/09/01 03:17:46  sueh
+ * <p> bug# 1222
+ * <p>
  * <p> Revision 1.30  2009/03/17 00:30:45  sueh
  * <p> bug# 1186 Pass managerKey to everything that pops up a dialog.
  * <p>

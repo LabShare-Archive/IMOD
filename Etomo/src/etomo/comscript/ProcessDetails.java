@@ -4,6 +4,7 @@ import java.util.Hashtable;
 
 import etomo.type.ConstEtomoNumber;
 import etomo.type.ConstIntKeyList;
+import etomo.type.IteratorElementList;
 
 /**
  * <p>Description: </p>
@@ -38,9 +39,14 @@ public interface ProcessDetails {
   public String getString(FieldInterface field);
 
   public String[] getStringArray(FieldInterface field);
+  
+  public IteratorElementList getIteratorElementList(FieldInterface field);
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.9  2009/09/01 03:17:46  sueh
+ * <p> bug# 1222
+ * <p>
  * <p> Revision 1.8  2007/12/13 01:06:08  sueh
  * <p> bug# 1056 Changed etomo.comscript.Fields to etomo.comscript.FieldInterface.
  * <p>

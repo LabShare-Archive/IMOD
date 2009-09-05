@@ -8,6 +8,7 @@ import etomo.BaseManager;
 import etomo.type.AxisID;
 import etomo.type.ConstEtomoNumber;
 import etomo.type.ConstIntKeyList;
+import etomo.type.IteratorElementList;
 import etomo.type.ProcessName;
 
 /**
@@ -24,6 +25,9 @@ import etomo.type.ProcessName;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.2  2009/09/01 03:17:47  sueh
+ * <p> bug# 1222
+ * <p>
  * <p> Revision 1.1  2009/04/01 20:04:46  sueh
  * <p> bug# 1208 Param class for running clip.
  * <p> </p>
@@ -120,40 +124,45 @@ public final class ClipParam implements CommandDetails{
     return null;
   }
 
-  public int getIntValue(etomo.comscript.FieldInterface fieldInterface) {
-    throw new IllegalArgumentException("field=" + fieldInterface);
+  public int getIntValue( final FieldInterface field) {
+    throw new IllegalArgumentException("field=" + field);
+  }
+  
+  public IteratorElementList getIteratorElementList(
+      final FieldInterface field) {
+    throw new IllegalArgumentException("field=" + field);
   }
 
-  public boolean getBooleanValue(etomo.comscript.FieldInterface fieldInterface) {
-    throw new IllegalArgumentException("field=" + fieldInterface);
+  public boolean getBooleanValue( final FieldInterface field) {
+    throw new IllegalArgumentException("field=" + field);
   }
 
-  public float getFloatValue(etomo.comscript.FieldInterface fieldInterface) {
-    throw new IllegalArgumentException("field=" + fieldInterface);
+  public float getFloatValue( final FieldInterface field) {
+    throw new IllegalArgumentException("field=" + field);
   }
 
-  public String[] getStringArray(etomo.comscript.FieldInterface fieldInterface) {
-    throw new IllegalArgumentException("field=" + fieldInterface);
+  public String[] getStringArray( final FieldInterface field) {
+    throw new IllegalArgumentException("field=" + field);
   }
 
-  public String getString(etomo.comscript.FieldInterface fieldInterface) {
-    throw new IllegalArgumentException("field=" + fieldInterface);
+  public String getString( final FieldInterface field) {
+    throw new IllegalArgumentException("field=" + field);
   }
 
-  public Hashtable getHashtable(etomo.comscript.FieldInterface fieldInterface) {
-    throw new IllegalArgumentException("field=" + fieldInterface);
+  public Hashtable getHashtable( final FieldInterface field) {
+    throw new IllegalArgumentException("field=" + field);
   }
 
-  public double getDoubleValue(FieldInterface fieldInterface) {
-    throw new IllegalArgumentException("field=" + fieldInterface);
+  public double getDoubleValue( final FieldInterface field) {
+    throw new IllegalArgumentException("field=" + field);
   }
 
-  public ConstEtomoNumber getEtomoNumber(etomo.comscript.FieldInterface fieldInterface) {
-    throw new IllegalArgumentException("field=" + fieldInterface);
+  public ConstEtomoNumber getEtomoNumber( final FieldInterface field) {
+    throw new IllegalArgumentException("field=" + field);
   }
 
-  public ConstIntKeyList getIntKeyList(etomo.comscript.FieldInterface fieldInterface) {
-    throw new IllegalArgumentException("field=" + fieldInterface);
+  public ConstIntKeyList getIntKeyList( final FieldInterface field) {
+    throw new IllegalArgumentException("field=" + field);
   }
 
   public CommandMode getCommandMode() {

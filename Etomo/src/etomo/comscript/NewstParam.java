@@ -12,6 +12,7 @@ import etomo.type.ConstEtomoNumber;
 import etomo.type.ConstIntKeyList;
 import etomo.type.EtomoBoolean2;
 import etomo.type.EtomoNumber;
+import etomo.type.IteratorElementList;
 import etomo.type.ProcessName;
 import etomo.util.MRCHeader;
 
@@ -28,6 +29,9 @@ import etomo.util.MRCHeader;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.20  2009/09/01 03:17:46  sueh
+ * <p> bug# 1222
+ * <p>
  * <p> Revision 3.19  2009/03/17 00:32:21  sueh
  * <p> bug# 1186 Pass managerKey to everything that pops up a dialog.
  * <p>
@@ -987,6 +991,11 @@ public final class NewstParam implements ConstNewstParam, CommandParam {
     if (field == Field.BINNING) {
       return getBinByFactor();
     }
+    throw new IllegalArgumentException("field=" + field);
+  }
+  
+  public IteratorElementList getIteratorElementList(
+      final FieldInterface field) {
     throw new IllegalArgumentException("field=" + field);
   }
 

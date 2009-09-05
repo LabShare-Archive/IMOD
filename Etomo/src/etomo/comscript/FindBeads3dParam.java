@@ -10,6 +10,7 @@ import etomo.type.ConstIntKeyList;
 import etomo.type.EtomoBoolean2;
 import etomo.type.EtomoNumber;
 import etomo.type.FileType;
+import etomo.type.IteratorElementList;
 import etomo.type.ProcessName;
 import etomo.type.ScriptParameter;
 import etomo.type.StringParameter;
@@ -27,7 +28,10 @@ import etomo.type.StringParameter;
  * 
  * @version $Revision$
  * 
- * <p> $Log$ </p>
+ * <p> $Log$
+ * <p> Revision 3.1  2009/09/01 03:17:46  sueh
+ * <p> bug# 1222
+ * <p> </p>
  */
 public final class FindBeads3dParam implements ConstFindBeads3dParam,
     CommandParam {
@@ -252,6 +256,11 @@ public final class FindBeads3dParam implements ConstFindBeads3dParam,
   }
   
   public int getIntValue(final FieldInterface field) {
+    throw new IllegalArgumentException("field=" + field);
+  }
+  
+  public IteratorElementList getIteratorElementList(
+      final FieldInterface field) {
     throw new IllegalArgumentException("field=" + field);
   }
   

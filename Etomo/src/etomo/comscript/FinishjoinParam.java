@@ -15,6 +15,7 @@ import etomo.type.ConstSectionTableRowData;
 import etomo.type.EtomoBoolean2;
 import etomo.type.EtomoNumber;
 import etomo.type.IntKeyList;
+import etomo.type.IteratorElementList;
 import etomo.type.ProcessName;
 import etomo.type.ScriptParameter;
 import etomo.type.SectionTableRowData;
@@ -35,6 +36,9 @@ import etomo.util.DatasetFiles;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.36  2009/09/01 03:17:46  sueh
+ * <p> bug# 1222
+ * <p>
  * <p> Revision 1.35  2009/03/17 00:31:52  sueh
  * <p> bug# 1186 Pass managerKey to everything that pops up a dialog.
  * <p>
@@ -330,6 +334,11 @@ public final class FinishjoinParam implements CommandDetails {
 
   public int getIntValue(etomo.comscript.FieldInterface fieldInterface) {
     throw new IllegalArgumentException("field=" + fieldInterface);
+  }
+  
+  public IteratorElementList getIteratorElementList(
+      final FieldInterface field) {
+    throw new IllegalArgumentException("field=" + field);
   }
 
   public boolean getBooleanValue(etomo.comscript.FieldInterface fieldInterface) {

@@ -11,6 +11,9 @@
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.32  2009/09/01 03:17:46  sueh
+ * <p> bug# 1222
+ * <p>
  * <p> Revision 3.31  2009/04/27 17:57:34  sueh
  * <p> Removed unnecessary prints.
  * <p>
@@ -187,6 +190,7 @@ import etomo.type.BaseMetaData;
 import etomo.type.ConstEtomoNumber;
 import etomo.type.ConstIntKeyList;
 import etomo.type.EtomoNumber;
+import etomo.type.IteratorElementList;
 import etomo.type.ProcessName;
 import etomo.type.TomogramState;
 import etomo.util.MRCHeader;
@@ -897,6 +901,11 @@ public class TrimvolParam implements CommandDetails {
 
   public int getIntValue(etomo.comscript.FieldInterface fieldInterface) {
     throw new IllegalArgumentException("field=" + fieldInterface);
+  }
+  
+  public IteratorElementList getIteratorElementList(
+      final FieldInterface field) {
+    throw new IllegalArgumentException("field=" + field);
   }
 
   public CommandMode getCommandMode() {

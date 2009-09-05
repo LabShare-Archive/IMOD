@@ -17,6 +17,7 @@ import etomo.type.EtomoAutodoc;
 import etomo.type.EtomoBoolean2;
 import etomo.type.EtomoNumber;
 import etomo.type.FileType;
+import etomo.type.IteratorElementList;
 import etomo.type.ProcessName;
 import etomo.type.ScriptParameter;
 
@@ -33,6 +34,9 @@ import etomo.type.ScriptParameter;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.23  2009/09/01 03:17:46  sueh
+ * <p> bug# 1222
+ * <p>
  * <p> Revision 3.22  2009/05/02 01:06:44  sueh
  * <p> bug# 1216 In getBeadDiameter changed the return value to
  * <p> ConstEtomoNumber.
@@ -867,6 +871,11 @@ public class BeadtrackParam extends OldBeadtrackParam implements CommandParam,
   }
   
   public int getIntValue(final FieldInterface field) {
+    throw new IllegalArgumentException("field=" + field);
+  }
+  
+  public IteratorElementList getIteratorElementList(
+      final FieldInterface field) {
     throw new IllegalArgumentException("field=" + field);
   }
   

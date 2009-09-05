@@ -14,6 +14,7 @@ import etomo.type.ConstEtomoNumber;
 import etomo.type.ConstIntKeyList;
 import etomo.type.EtomoBoolean2;
 import etomo.type.EtomoNumber;
+import etomo.type.IteratorElementList;
 import etomo.type.ProcessName;
 import etomo.ui.UIHarness;
 import etomo.util.DatasetFiles;
@@ -457,6 +458,11 @@ public final class ProcesschunksParam implements DetachedCommandDetails, Paralle
   public int getIntValue(etomo.comscript.FieldInterface fieldInterface) {
     throw new IllegalArgumentException("field=" + fieldInterface);
   }
+  
+  public IteratorElementList getIteratorElementList(
+      final FieldInterface field) {
+    throw new IllegalArgumentException("field=" + field);
+  }
 
   public boolean getBooleanValue(etomo.comscript.FieldInterface fieldInterface) {
     throw new IllegalArgumentException("field=" + fieldInterface);
@@ -492,6 +498,9 @@ public final class ProcesschunksParam implements DetachedCommandDetails, Paralle
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.38  2009/09/01 03:17:46  sueh
+ * <p> bug# 1222
+ * <p>
  * <p> Revision 1.37  2009/04/20 19:19:36  sueh
  * <p> bug# 1192 Added computerMap to hold selected computers and the number of CPUs selected.  Using computerMap instead of machinesNames to add the computer names to the command.
  * <p>

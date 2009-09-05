@@ -11,6 +11,9 @@
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.34  2009/09/01 03:17:46  sueh
+ * <p> bug# 1222
+ * <p>
  * <p> Revision 3.33  2009/03/17 00:33:07  sueh
  * <p> bug# 1186 Pass managerKey to everything that pops up a dialog.
  * <p>
@@ -202,6 +205,7 @@ import etomo.type.ConstIntKeyList;
 import etomo.type.EtomoBoolean2;
 import etomo.type.EtomoNumber;
 import etomo.type.FileType;
+import etomo.type.IteratorElementList;
 import etomo.type.ProcessName;
 import etomo.type.ScriptParameter;
 import etomo.ui.UIExpertUtilities;
@@ -806,6 +810,11 @@ public final class TiltParam implements ConstTiltParam, CommandParam {
     if (field == Field.X_TILT_INTERP) {
       return xTiltInterp;
     }
+    throw new IllegalArgumentException("field=" + field);
+  }
+  
+  public IteratorElementList getIteratorElementList(
+      final FieldInterface field) {
     throw new IllegalArgumentException("field=" + field);
   }
 
