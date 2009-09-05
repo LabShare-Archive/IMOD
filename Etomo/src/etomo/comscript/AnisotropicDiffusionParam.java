@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Hashtable;
+import java.util.Iterator;
 import java.util.List;
 
 import etomo.BaseManager;
@@ -14,10 +15,10 @@ import etomo.type.ConstEtomoNumber;
 import etomo.type.ConstIntKeyList;
 import etomo.type.DebugLevel;
 import etomo.type.EtomoNumber;
+import etomo.type.IteratorElementList;
 import etomo.type.ParsedArray;
-import etomo.type.ParsedElementList;
-import etomo.type.ParsedNumber;
 import etomo.type.ProcessName;
+import etomo.ui.AnisotropicDiffusionDialog;
 import etomo.util.DatasetFiles;
 
 /**
@@ -34,6 +35,9 @@ import etomo.util.DatasetFiles;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.12  2009/09/01 03:17:46  sueh
+ * <p> bug# 1222
+ * <p>
  * <p> Revision 1.11  2009/03/17 00:30:26  sueh
  * <p> bug# 1186 Pass managerKey to everything that pops up a dialog.
  * <p>
@@ -84,14 +88,14 @@ public final class AnisotropicDiffusionParam implements CommandDetails {
       .getInstance(EtomoNumber.Type.FLOAT);
   private final EtomoNumber iteration = new EtomoNumber();
   private final EtomoNumber kValue = new EtomoNumber(EtomoNumber.Type.FLOAT);
+  private final List command = new ArrayList();
+
+  private final BaseManager manager;
   /**
    * IterationList may contain array descriptors in the form start-end.
    * Example: "2,4 - 9,10".
    */
-  private final ParsedArray iterationList = ParsedArray.getIteratorInstance();
-  private final List command = new ArrayList();
-
-  private final BaseManager manager;
+  private final IteratorElementList iterationList;
 
   private String subdirName = "";
   private String inputFileName = "";
@@ -100,6 +104,8 @@ public final class AnisotropicDiffusionParam implements CommandDetails {
 
   public AnisotropicDiffusionParam(final BaseManager manager) {
     this.manager = manager;
+    iterationList = new IteratorElementList(manager, AxisID.ONLY,
+        AnisotropicDiffusionDialog.ITERATION_LIST_LABEL);
   }
 
   /**
@@ -123,9 +129,9 @@ public final class AnisotropicDiffusionParam implements CommandDetails {
     iteration.set(input);
   }
 
-  public String setIterationList(final String input) {
-    iterationList.setRawString(input);
-    return iterationList.validate();
+  public boolean setIterationList(final String input) {
+    iterationList.setList(input);
+    return iterationList.isValid();
   }
 
   public void setDebugLevel(DebugLevel input) {
@@ -186,14 +192,14 @@ public final class AnisotropicDiffusionParam implements CommandDetails {
       index.set(i + 1);
       k.set(kValueList.getRawString(i));
       LogFile testFile = LogFile.getInstance(new File(subdir,
-          TestNADFileFilter.FILE_NAME_BODY + index.toStringWithLeadingZeros(3)
+          TestNADFileFilter.FILE_NAME_BODY + addLeadingZeros(index.toString(),3)
               + TestNADFileFilter.FILE_NAME_EXT), manager.getManagerKey());
       testFile.create();
       LogFile.WriterId writerId = testFile.openWriter();
       testFile.write(COMMAND_CHAR + PROCESS_NAME + " " + K_VALUE_TAG + " "
           + kValueList.getRawString(i) + " " + ITERATION_TAG + " "
           + iteration.toString() + " " + inputFileName + " "
-          + getTestFileName(k, iteration), writerId);
+          + getTestFileName(k, iteration.toString()), writerId);
       testFile.newLine(writerId);
       testFile.write(COMMAND_CHAR + "echo CHUNK DONE", writerId);
       testFile.newLine(writerId);
@@ -207,7 +213,7 @@ public final class AnisotropicDiffusionParam implements CommandDetails {
     command.add(K_VALUE_TAG);
     command.add(kValue.toString());
     command.add("-i");
-    command.add(iterationList.getRawString());
+    command.add(iterationList.toString());
     command.add("-P");
     command.add(new File(subdir, inputFileName).getPath());
     command.add(new File(subdir, getTestFileRoot(kValue)).getPath());
@@ -234,36 +240,56 @@ public final class AnisotropicDiffusionParam implements CommandDetails {
     list.add(testVolumeName);
     for (int i = 0; i < kValueList.size(); i++) {
       kValue.set(kValueList.getRawString(i));
-      list.add(getTestFileName(kValue, iteration));
+      list.add(getTestFileName(kValue, iteration.toString()));
     }
     return list;
   }
 
-  public static List getTestFileNameList(BaseManager manager,
-      ConstEtomoNumber kValue, ParsedArray iterationList, String testVolumeName) {
-    EtomoNumber index = new EtomoNumber();
-    EtomoNumber iteration = new EtomoNumber();
+  public static List getTestFileNameList(ConstEtomoNumber kValue,
+      IteratorElementList iterationList, String testVolumeName) {
     List list = new ArrayList();
     list.add(testVolumeName);
-    ParsedElementList expandedArray = iterationList
-        .getParsedNumberExpandedArray(null);
-    for (int i = 0; i < expandedArray.size(); i++) {
-      ParsedNumber number = (ParsedNumber) expandedArray.get(i);
-      if (number != null) {
-        iteration.set(number.getRawString());
-      }
-      list.add(getTestFileName(kValue, iteration));
+    Iterator iterator = iterationList.getExpandedList().iterator();
+    while (iterator.hasNext()) {
+      list.add(getTestFileName(kValue, (String) iterator.next()));
     }
     return list;
   }
 
-  private static String getTestFileName(ConstEtomoNumber k,
-      ConstEtomoNumber iteration) {
-    return getTestFileRoot(k) + "-" + iteration.toStringWithLeadingZeros(3);
+  private static String getTestFileName(ConstEtomoNumber k, String iteration) {
+    return getTestFileRoot(k) + "-" + addLeadingZeros(iteration, 3);
   }
 
   private static String getTestFileRoot(ConstEtomoNumber k) {
-    return "test.K" + k.toStringWithLeadingZeros(1);
+    return "test.K" + addLeadingZeros(k.toString(), 1);
+  }
+
+  /**
+   * Add leading zeros to the number up to maxZeros.  If the size of the number
+   * (or the size of the number left of the decimal if the type is float or
+   * double) is greater or equal to maxZeros then nothing is done.
+   * Examples:
+   * If the number is 1 and maxZeros is 3, returns 001
+   * If the number is .08 and maxZeros is 1, return 0.08
+   * @param maxZeros
+   * @return
+   */
+  private static String addLeadingZeros(String number, int maxZeros) {
+    String digits = number;
+    int decimalPlace = digits.indexOf('.');
+    if (decimalPlace != -1) {
+      digits = digits.substring(0, decimalPlace);
+    }
+    int length = digits.length();
+    if (length > maxZeros || length == maxZeros) {
+      return number;
+    }
+    StringBuffer retval = new StringBuffer();
+    for (int i = 0; i < maxZeros - length; i++) {
+      retval.append("0");
+    }
+    retval.append(number);
+    return retval.toString();
   }
 
   public AxisID getAxisID() {
@@ -318,7 +344,7 @@ public final class AnisotropicDiffusionParam implements CommandDetails {
   public CommandDetails getSubcommandDetails() {
     return null;
   }
-  
+
   public ProcessName getSubcommandProcessName() {
     return null;
   }
@@ -328,11 +354,19 @@ public final class AnisotropicDiffusionParam implements CommandDetails {
   }
 
   public String getString(etomo.comscript.FieldInterface fieldInterface) {
-    if (fieldInterface == Fields.K_VALUE_LIST) {
+    if (fieldInterface == Field.K_VALUE_LIST) {
       return kValueList.getRawString();
     }
-    if (fieldInterface == Fields.ITERATION_LIST) {
-      return iterationList.getRawString();
+    if (fieldInterface == Field.ITERATION_LIST) {
+      return iterationList.toString();
+    }
+    throw new IllegalArgumentException("field=" + fieldInterface);
+  }
+
+  public IteratorElementList getIteratorElementList(
+      etomo.comscript.FieldInterface fieldInterface) {
+    if (fieldInterface == Field.ITERATION_LIST) {
+      return iterationList;
     }
     throw new IllegalArgumentException("field=" + fieldInterface);
   }
@@ -350,14 +384,14 @@ public final class AnisotropicDiffusionParam implements CommandDetails {
   }
 
   public int getIntValue(etomo.comscript.FieldInterface fieldInterface) {
-    if (fieldInterface == Fields.ITERATION) {
+    if (fieldInterface == Field.ITERATION) {
       return iteration.getInt();
     }
     throw new IllegalArgumentException("field=" + fieldInterface);
   }
 
   public float getFloatValue(etomo.comscript.FieldInterface fieldInterface) {
-    if (fieldInterface == Fields.K_VALUE) {
+    if (fieldInterface == Field.K_VALUE) {
       return kValue.getFloat();
     }
     throw new IllegalArgumentException("field=" + fieldInterface);
@@ -373,14 +407,14 @@ public final class AnisotropicDiffusionParam implements CommandDetails {
     throw new IllegalArgumentException("field=" + fieldInterface);
   }
 
-  public static final class Fields implements etomo.comscript.FieldInterface {
-    private Fields() {
+  public static final class Field implements etomo.comscript.FieldInterface {
+    private Field() {
     }
 
-    public static final Fields K_VALUE_LIST = new Fields();
-    public static final Fields ITERATION = new Fields();
-    public static final Fields K_VALUE = new Fields();
-    public static final Fields ITERATION_LIST = new Fields();
+    public static final Field K_VALUE_LIST = new Field();
+    public static final Field ITERATION = new Field();
+    public static final Field K_VALUE = new Field();
+    public static final Field ITERATION_LIST = new Field();
   }
 
   public final static class Mode implements CommandMode {
