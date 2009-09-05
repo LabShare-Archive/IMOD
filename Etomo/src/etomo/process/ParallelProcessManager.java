@@ -69,9 +69,9 @@ public final class ParallelProcessManager extends BaseProcessManager {
         ProcessName.ANISOTROPIC_DIFFUSION.toString())) {
       ParallelState state = manager.getState();
       state.setTestKValue(commandDetails
-          .getFloatValue(AnisotropicDiffusionParam.Fields.K_VALUE));
+          .getFloatValue(AnisotropicDiffusionParam.Field.K_VALUE));
       state.setTestIterationList(commandDetails
-          .getString(AnisotropicDiffusionParam.Fields.ITERATION_LIST));
+          .getIteratorElementList(AnisotropicDiffusionParam.Field.ITERATION_LIST));
     }
   }
 
@@ -111,15 +111,19 @@ public final class ParallelProcessManager extends BaseProcessManager {
           && subcommandDetails.getCommandMode() == AnisotropicDiffusionParam.Mode.VARYING_K) {
         ParallelState state = manager.getState();
         state.setTestKValueList(subcommandDetails
-            .getString(AnisotropicDiffusionParam.Fields.K_VALUE_LIST));
+            .getString(AnisotropicDiffusionParam.Field.K_VALUE_LIST));
         state.setTestIteration(subcommandDetails
-            .getIntValue(AnisotropicDiffusionParam.Fields.ITERATION));
+            .getIntValue(AnisotropicDiffusionParam.Field.ITERATION));
       }
     }
   }
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.7  2008/05/03 00:41:51  sueh
+ * <p> bug# 847 Passing a ProcessSeries instance to all processes that use
+ * <p> process objects.  The goal is to pass then back to process done functions.
+ * <p>
  * <p> Revision 1.6  2007/12/10 22:20:28  sueh
  * <p> bug# 1041 Call the base postProcess function for detached processes to handle
  * <p> saving data for resume processchunks.
