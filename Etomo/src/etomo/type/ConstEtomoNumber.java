@@ -37,6 +37,9 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.64  2009/09/02 22:44:55  sueh
+ * <p> bug# 1254 Getting rid of excessive debug prints.
+ * <p>
  * <p> Revision 1.63  2009/09/01 02:33:26  sueh
  * <p> bug# 1222 Fixed comparisons between different types.
  * <p>
@@ -1064,7 +1067,7 @@ public abstract class ConstEtomoNumber implements Storable {
    * If the number is .08 and maxZeros is 1, return 0.08
    * @param maxZeros
    * @return
-   */
+   
   public String toStringWithLeadingZeros(int maxZeros) {
     String wholeNumbers = toString();
     int decimalPlace = wholeNumbers.indexOf('.');
@@ -1081,7 +1084,7 @@ public abstract class ConstEtomoNumber implements Storable {
     }
     retval.append(toString());
     return retval.toString();
-  }
+  }*/
 
   /**
    * If default is set and isNull() is true, defaultValue will be returned, even
