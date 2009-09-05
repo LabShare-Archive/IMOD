@@ -14,6 +14,9 @@ package etomo.type;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.4  2008/09/10 21:03:49  sueh
+ * <p> bug# 1135 ParsedArrayDescriptor now has its own type.  This is because a ParsedNumber which is of type MATLAB_ARRAY_DESCRIPTOR must never show a "NaN" value.
+ * <p>
  * <p> Revision 1.3  2008/06/20 20:01:23  sueh
  * <p> bug# 1119 Added NON_MATLAB_ITERATOR_ARRAY, which is the only type
  * <p> to use with ParsedIteratorDescriptor.  For clarity _NUMBER to MATLAB and
@@ -31,7 +34,6 @@ public final class ParsedElementType {
   public static final ParsedElementType NON_MATLAB_NUMBER = new ParsedElementType();
   public static final ParsedElementType MATLAB_NUMBER = new ParsedElementType();
   static final ParsedElementType NON_MATLAB_ARRAY = new ParsedElementType();
-  static final ParsedElementType NON_MATLAB_ITERATOR_ARRAY = new ParsedElementType();
   public static final ParsedElementType MATLAB_ARRAY = new ParsedElementType();
   public static final ParsedElementType MATLAB_ARRAY_DESCRIPTOR = new ParsedElementType();
   static final ParsedElementType STRING = new ParsedElementType();
@@ -42,9 +44,6 @@ public final class ParsedElementType {
     }
     if (this == NON_MATLAB_ARRAY) {
       return "Non Matlab Array";
-    }
-    if (this == NON_MATLAB_ITERATOR_ARRAY) {
-      return "Non Matlab Iterator Array";
     }
     if (this == MATLAB_NUMBER) {
       return "Matlab Number";
@@ -63,14 +62,7 @@ public final class ParsedElementType {
 
   boolean isArray() {
     if (this == NON_MATLAB_ARRAY || this == MATLAB_ARRAY
-        || this == MATLAB_ARRAY_DESCRIPTOR || this == NON_MATLAB_ITERATOR_ARRAY) {
-      return true;
-    }
-    return false;
-  }
-
-  boolean isIterator() {
-    if (this == NON_MATLAB_ITERATOR_ARRAY) {
+        || this == MATLAB_ARRAY_DESCRIPTOR) {
       return true;
     }
     return false;
@@ -86,8 +78,7 @@ public final class ParsedElementType {
 
   ParsedElementType toArrayInstance() {
     if (this == NON_MATLAB_ARRAY || this == MATLAB_ARRAY
-        || this == MATLAB_ARRAY_DESCRIPTOR || this == NON_MATLAB_ITERATOR_ARRAY
-        || this == STRING) {
+        || this == MATLAB_ARRAY_DESCRIPTOR || this == STRING) {
       //Already an array or has no array equivalent
       return this;
     }

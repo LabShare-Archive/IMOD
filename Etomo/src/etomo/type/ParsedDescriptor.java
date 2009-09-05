@@ -19,6 +19,13 @@ import etomo.util.PrimativeTokenizer;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.6  2008/09/10 21:05:17  sueh
+ * <p> bug# 1135 Check for null when calling ParsedElementList.get(int).  Check
+ * <p> for null when calling ParsedElement.getElement or getRawNumber.
+ * <p> arsedElementList will no longer create an empty element, so null returns
+ * <p> will happen.  Make sure that the type is matlab before creating a
+ * <p> ParsedArrayDescriptor.
+ * <p>
  * <p> Revision 1.5  2008/06/20 19:59:19  sueh
  * <p> bug# 1119 ParsedArrayDescriptor can be either Matlab or non-Matlab now, so I need to explicitly choose an iterator array when I need one.
  * <p>
@@ -65,9 +72,6 @@ abstract class ParsedDescriptor extends ParsedElement {
   }
 
   static Character getDividerSymbol(ParsedElementType type) {
-    if (type.isIterator()) {
-      return ParsedIteratorDescriptor.DIVIDER_SYMBOL;
-    }
     return ParsedArrayDescriptor.DIVIDER_SYMBOL;
   }
 
@@ -88,9 +92,6 @@ abstract class ParsedDescriptor extends ParsedElement {
       EtomoNumber.Type etomoNumberType, boolean debug, EtomoNumber defaultValue) {
     if (debug) {
       System.out.println("ParsedDescriptor.getInstance");
-    }
-    if (type.isIterator()) {
-      return ParsedIteratorDescriptor.getInstance(debug, defaultValue);
     }
     if (type.isMatlab()) {
       return new ParsedArrayDescriptor(etomoNumberType, debug, defaultValue);
@@ -128,12 +129,13 @@ abstract class ParsedDescriptor extends ParsedElement {
   }
 
   /**
-   * Parse the array descriptor.  Also figures out if this actually is an array
+   * Parse the array descriptor.  Also figures out if this actually is an array.
+   * Whitespace are not allowed around the divider in an array descriptor.
    * descriptor
    */
   Token parse(Token token, PrimativeTokenizer tokenizer) {
     if (isDebug()) {
-      System.out.println("ParsedDescriptor.parse");
+      System.out.println("ParsedDescriptor.parse:token=" + token);
     }
     clear();
     if (token == null) {
@@ -160,27 +162,19 @@ abstract class ParsedDescriptor extends ParsedElement {
           System.out.println("ParsedDescriptor.parse:descriptor=" + descriptor);
         }
         //Find the divider.
-        //Whitespace may be used as a divider or the divider may be preceded by
-        //whitespace.
         dividerFound = false;
         if (token != null
-            && (token.is(Token.Type.WHITESPACE) || token.equals(
-                Token.Type.SYMBOL, getDividerSymbol().charValue()))) {
+            && (token.equals(Token.Type.SYMBOL, getDividerSymbol().charValue()))) {
           //Until the first divider is found this may not be a descriptor.
           setDividerParsed();
           dividerFound = true;
           token = tokenizer.next();
         }
-        if (dividerFound) {
-          //If whitespace was found, it may precede the divider.
-          if (token != null
-              && token
-                  .equals(Token.Type.SYMBOL, getDividerSymbol().charValue())) {
-            token = tokenizer.next();
-          }
-        }
         //Don't worry about whitespace after the divider.  It should be handled
         //by the element.
+      }
+      if (validate()!=null) {
+        clear();
       }
     }
     catch (IOException e) {
@@ -295,6 +289,9 @@ abstract class ParsedDescriptor extends ParsedElement {
     return descriptor.size();
   }
 
+  /**
+   * @return null if valid.
+   */
   String validate() {
     for (int i = 0; i < descriptor.size(); i++) {
       ParsedElement element = descriptor.get(i);
@@ -474,7 +471,7 @@ abstract class ParsedDescriptor extends ParsedElement {
     }
     return "";
   }
-  
+
   final boolean isDescriptor() {
     return true;
   }
@@ -482,7 +479,7 @@ abstract class ParsedDescriptor extends ParsedElement {
   final boolean isCollection() {
     return true;
   }
-  
+
   public ParsedElement getElement(int index) {
     return descriptor.get(index);
   }
