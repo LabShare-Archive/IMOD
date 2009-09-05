@@ -65,7 +65,7 @@ public final class ParallelManager extends BaseManager {
 
   private final BaseScreenState screenState = new BaseScreenState(AXIS_ID,
       AxisType.SINGLE_AXIS);
-  private final ParallelState state = new ParallelState();
+  private final ParallelState state = new ParallelState(this, AXIS_ID);
   private final ProcessResultDisplayFactoryBlank processResultDisplayFactory = new ProcessResultDisplayFactoryBlank();
 
   private final ParallelMetaData metaData;
@@ -404,8 +404,8 @@ public final class ParallelManager extends BaseManager {
   public void imodVaryingIteration(final String key,
       final Run3dmodMenuOptions menuOptions, final String subdirName,
       final String testVolumeName, final boolean flip) {
-    List fileNameList = AnisotropicDiffusionParam.getTestFileNameList(this,
-        state.getTestKValue(), state.getTestIterationList(), testVolumeName);
+    List fileNameList = AnisotropicDiffusionParam.getTestFileNameList(state
+        .getTestKValue(), state.getTestIterationList(), testVolumeName);
     imod(key, menuOptions, subdirName, fileNameList, flip);
   }
 
@@ -758,6 +758,9 @@ public final class ParallelManager extends BaseManager {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.37  2009/09/01 03:17:35  sueh
+ * <p> bug# 1222
+ * <p>
  * <p> Revision 1.36  2009/06/11 16:46:07  sueh
  * <p> bug# 1221 Sending the process panel to the process function in the
  * <p> manager wrapped in a ProcessDisplay interface.  Changed
