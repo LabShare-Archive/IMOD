@@ -70,6 +70,9 @@ import etomo.storage.LogFile;
  * @version $$Revision$$
  *
  * <p> $$Log$
+ * <p> $Revision 1.20  2009/02/04 23:36:48  sueh
+ * <p> $bug# 1158 Changed id and exception classes in LogFile.
+ * <p> $
  * <p> $Revision 1.19  2007/08/01 22:45:20  sueh
  * <p> $bug# 985 Changed the type of AutodocTokenizer.OPEN_CHAR and
  * <p> $CLOSE_CHAR to Character.
@@ -395,6 +398,16 @@ public final class Token {
    * @param type
    * @param value
    */
+  public void set(Type type, double value) {
+    setType(type);
+    set(String.valueOf(value));
+  }
+
+  /**
+   * Sets the type and value of the token.
+   * @param type
+   * @param value
+   */
   public void set(Type type, char value) {
     setType(type);
     set(new StringBuffer().append(value).toString());
@@ -591,9 +604,10 @@ public final class Token {
     public static final Type ANYTHING = new Type();
     public static final Type SUBOPEN = new Type();
     public static final Type SUBCLOSE = new Type();
+    public static final Type NUMERIC = new Type();
+    public static final Type ALPHABETIC = new Type();
 
     public String toString() {
-
       if (this == NULL) {
         return "NULL";
       }
@@ -641,6 +655,12 @@ public final class Token {
       }
       else if (this == SUBCLOSE) {
         return "SUBCLOSE";
+      }
+      else if (this == NUMERIC) {
+        return "NUMERIC";
+      }
+      else if (this == ALPHABETIC) {
+        return "ALPHABETICAL";
       }
       return "UNKNOWN";
     }
