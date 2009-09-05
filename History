@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+9/4/09: In Nonanisotrophic Diffusion correcting the handling of spaces in the
+iteration list.
+
 9/2/09: In eTomo preventing "Use..." buttons from causing invalid stacks to be
 used.
 
