@@ -62,6 +62,9 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.9  2009/09/01 03:18:33  sueh
+ * <p> bug# 1222
+ * <p>
  * <p> Revision 1.8  2009/07/13 20:19:42  sueh
  * <p> Increased sleep for wait.process.  Ubuntu may have had a problem with
  * <p> checking the process bar too soon after the kill button is disabled.
@@ -1322,7 +1325,7 @@ final class AutodocTester extends Assert implements VariableList {
       }
       //if.not-exists
       else if (actionType == UITestActionType.IF
-          || modifierType == UITestModifierType.NOT_EXISTS) {
+          && modifierType == UITestModifierType.NOT_EXISTS) {
         //The field exists so the "if" test failed - nothing to do.
         return true;
       }
