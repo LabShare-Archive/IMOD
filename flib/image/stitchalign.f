@@ -11,9 +11,9 @@ c
 c       $Id$
 c       Log at end of file
 c
+      use stitchvars
       implicit none
       integer maxvar, maxsec, limoutgrid
-      include 'stitchvars.inc'
       parameter (maxvar = 10*maxvols, maxsec = 1000, limoutgrid=500000)
       real*4 var(maxvar), grad(maxvar), hess(maxvar*(maxvar+3))
       real*4 rmat(3,3)
@@ -36,6 +36,7 @@ c
       integer*4 ixpstr, ixpend, iypstr, iypend, ivf, jvf, numPairs, iPair
       logical*4 findMag, findStretch, findThin, pairwise, allTogether
       real*4 cosrot, sinrot, dist, finalErr, gridPad, sampleFactor
+      real*4 residCrit, outlierCrit
       real*8 dsum, dsumsq
       integer*4 kstr, kend, k, nvarsrch, mapAngles, numEdge, numVecOut, ndim
       integer*4 ixpos, iypos, maxNumVecZ
@@ -60,7 +61,7 @@ c
 c       fallbacks from ../../manpages/autodoc2man -2 2  stitchalign
 c
       integer numOptions
-      parameter (numOptions = 15)
+      parameter (numOptions = 17)
       character*(40 * numOptions) options(1)
       options(1) =
      &    'info:InfoFile:FN:@zvalues:ZvaluesToDo:LI:@'//
@@ -68,6 +69,8 @@ c
      &    'mag:FindMagnification:B:@stretch:FindStretch:B:@'//
      &    'thinning:FindThinning:B:@angles:FindAngles:IT:@'//
      &    'metro:MetroFactor:F:@xrun:XRunStartEnd:IP:@yrun:YRunStartEnd:IP:@'//
+     &    'residual:WarpFitResidualCriterion:F:@'//
+     &    'outlier:OutlierFractionCriterion:F:@'//
      &    'spacing:VectorSpacingFactor:F:@all:AllTogether:B:@'//
      &    'param:ParameterFile:PF:@help:usage:B:'
 
@@ -87,6 +90,8 @@ c
       iypend = ixpend
       dtor = 0.0174532
       sampleFactor = 0.7
+      outlierCrit = 0.33
+      residCrit = 100.
 c	  
 c	  Pip startup: set error, parse options, do help output
 c
@@ -107,6 +112,8 @@ c       Get various options
       ierr = PipGetTwoIntegers('YRunStartEnd', iypstr, iypend)
       ierr = PipGetLogical('AllTogether', allTogether)
       ierr = PipGetFloat('VectorSpacingFactor', sampleFactor)
+      ierr = PipGetFloat('WarpFitResidualCriterion', residCrit)
+      ierr = PipGetFloat('OutlierFractionCriterion', outlierCrit)
       ifMaxSize = PipGetTwoIntegers('SizeOfOutputFramesXandY', nxout, nyout)
 c       
 c       Open the smi file and make a list of Z values there
@@ -183,15 +190,25 @@ c
 c         Now load the edges at this value and link them back to volumes
         numEdge = 0
         indVec = 1
-        indG2Vbase = 0
+        indG2Vbase = 1
         maxNumVecZ = 0
         do i = 1, numAllEdges
           if (AdocGetThreeIntegers('Edge', i, 'lower', ix, iy, iz).ne. 0)
      &        call exitError('GETTING LOWER FRAME NUMBER FOR AN EDGE')
+          if (AdocGetString('Edge', i, 'XorY', xoryStr) .ne. 0)
+     &        call exitError('GETTING XorY FOR AN EDGE')
           j = AdocGetString('Edge', i, 'patches', listString)
           if (j .lt. 0) call exitError('GETTING PATCH FILE NAME FOR AN EDGE')
+          if (xoryStr .eq. 'X') then
+            ixhi = ix + 1
+            iyhi = iy
+          else
+            ixhi = ix
+            iyhi = iy + 1
+          endif
           if (j .eq. 0 .and. iz .eq. izval .and. ix .ge. ixpstr .and.
-     &        ix .le. ixpend .and. iy .ge. iypstr .and. iy .le.iypend) then
+     &        ix .le. ixpend .and. iy .ge. iypstr .and. iy .le.iypend .and.
+     &        ixhi .le. ixpend .and. iyhi .le.iypend) then
 c             
 c             A valid edge has a patch file - get shifts and x/y index
             numEdge = numEdge + 1
@@ -200,23 +217,14 @@ c             A valid edge has a patch file - get shifts and x/y index
             if (AdocGetThreeFloats('Edge', i, 'shift', edgeShift(1, numEdge),
      &          edgeShift(2, numEdge), edgeShift(3, numEdge)) .ne. 0)
      &          call exitError('GETTING SHIFTS FOR AN EDGE')
-            if (AdocGetString('Edge', i, 'XorY', xoryStr) .ne. 0)
-     &          call exitError('GETTING XorY FOR AN EDGE')
             indXorY(numEdge) = 1
             if (xoryStr .eq. 'Y') indXorY(numEdge) = 2
 c             
 c             read the patches in
-            call dopen(1, listString, 'ro', 'f')
-            read(1, *, end=98,err=98) numVectors(numEdge)
-            if (indVec + numVectors(numEdge) .gt. maxvecs) call exitError(
-     &          'TOO MANY PATCH VECTORS IN EDGES FOR ARRAYS')
             istrVector(numEdge) = indVec
-            do j = 1, numVectors(numEdge)
-              read(1, *, end=98,err=98)(center(k,indVec),k=1,3),
-     &            (vector(k,indVec), k=1,3)
-              indVec = indVec + 1
-            enddo
-            close(1)
+            call readConsensusVectors(i, listString, indVec, residCrit,
+     &          outlierCrit)
+            numVectors(numEdge) = indVec - istrVector(numEdge)
             call setVectorGrid(numEdge)
             maxNumVecZ = max(maxNumVecZ, numVecGrid(3,numEdge))
 c             
@@ -391,7 +399,10 @@ c         Set up pairs or set up to run whole set at once
         else
           numSolve = numVols
           numPairs = 1
-          do i = 1, numVols
+c           
+c           Initialize ivolSolve(0) to 0 so that tests below can test on
+c           ivolSolve alone and not on the index too.
+          do i = 0, numVols
             iVolSolve(i) = i
             iVolFull(i) = i
           enddo
@@ -400,7 +411,7 @@ c
 c         Loop on the pairs
         do iPair = 1, numPairs
           if (pairwise) then
-            do i = 1, numVols
+            do i = 0, numVols
               iVolSolve(i) = 0
             enddo
             iVolFull(1) = iPairLower(iPair)
@@ -501,7 +512,7 @@ c           dxyz from the existing variable values
             comp(i) = exp(comp(i))
           enddo
           numSolve = numVols
-          do i = 1, numVols
+          do i = 0, numVols
             iVolSolve(i) = i
             iVolFull(i) = i
           enddo
@@ -787,8 +798,119 @@ c
       ierr = AdocWrite(infofile)
       if (ierr .ne. 0) print *,'Error',ierr,' writing to info file'
       call exit(0)
-98    write(filename, '(a,a)')'READING PATCH VECTOR FILE ',listString
-      call exitError(filename)
+      end
+
+c       Reads the main patch vector file, and reads reduced vector file from
+c       Refinematch and residual vector file from Findwarp if they exist.
+c       Stores a vector in the arrays if it is still in all files and if
+c       its residual and outlier fraction are less than the criteria
+c
+      subroutine readConsensusVectors(iedge, patchfile, indVec, residCrit,
+     &    outlierCrit)
+      use stitchvars
+      implicit none
+      integer*4 iedge, indVec
+      character*(*) patchfile
+      real*4 residCrit, outlierCrit
+      logical keep
+      integer*4 numVecs, numReduce, numResid, i,j,k,numResLeft,ierr
+      real*4 residual,outFrac,dum1, dum2, dum3
+      character*320 filename, errString
+      real*4, allocatable :: reduceCen(:,:), residCen(:,:)
+      integer*4 AdocGetString
+      
+      numReduce = 0
+      numResid = 0
+      numResLeft = 0
+      filename = patchfile
+      call dopen(1, patchfile, 'ro', 'f')
+      read(1, *, end=98,err=98) numVecs
+c       
+      if (AdocGetString('Edge', iedge, 'reducePatch', filename) .eq. 0) then
+        call dopen(2, filename, 'ro', 'f')
+        read(2, *, end=98,err=98) numReduce
+        if (numReduce .gt. 0) then
+          allocate(reduceCen(3,numReduce), stat = ierr)
+          if (ierr .ne. 0) call exitError(
+     &        'ALLOCATING MEMORY FOR REDUCED PATCHES')
+          do j = 1, numReduce
+            read(2, *, end=98,err=98)(reduceCen(k, j), k = 1,3)
+          enddo
+        endif
+        close(2)
+      endif
+c      
+      if (AdocGetString('Edge', iedge, 'residPatch', filename) .eq. 0) then
+        call dopen(2, filename, 'ro', 'f')
+        read(2, *, end=98,err=98) numResid
+        if (numResid .gt. 0) then
+          allocate(residCen(3,numResid), stat = ierr)
+          if (ierr .ne. 0) call exitError(
+     &        'ALLOCATING MEMORY FOR RESIDUAL PATCH DATA')
+c           
+c           Read the residual vectors and eliminate outliers right here
+          numResLeft = 0
+          do j = 1, numResid
+            read(2, *, end=98,err=98)(residCen(k, numResLeft + 1), k = 1,3),
+     &          dum1, dum2, dum3, residual, outFrac
+            if (residual .lt. residCrit .and. outFrac .lt. outlierCrit)
+     &          numResLeft = numResLeft + 1
+          enddo
+         write(*,'(i5,a,/,5x,a)') numResid - numResleft,' patches eliminated'//
+     &        ' by high residual or outlier fraction from', trim(patchfile)
+        endif
+        close(2)
+      else
+        write(*,'(/,a,a)')'WARNING: NO RESIDUAL OR OUTLIER INFORMATION '//
+     &      'AVAILABLE FOR PATCHES IN ',trim(patchfile)
+      endif
+c       
+c       Read in the vectors
+      filename = patchfile
+      do j = 1, numVecs
+        if (indVec .ge. maxvecs) call exitError(
+     &    'TOO MANY PATCH VECTORS IN EDGES FOR ARRAYS')
+        read(1, *, end=98,err=98)(center(k,indVec),k=1,3),
+     &      (vector(k,indVec), k=1,3)
+c         
+c         Look the vector up in the reduced vectors
+        keep = .true.
+        if (numReduce .gt. 0) then
+          keep = .false.
+          do i = 1, numReduce
+            if (abs(center(1,indVec) - reduceCen(1,i)) .le. 0.1 .and.
+     &          abs(center(2,indVec) - reduceCen(2,i)) .le. 0.1 .and.
+     &          abs(center(3,indVec) - reduceCen(3,i)) .le. 0.1) then
+              keep = .true.
+              exit
+            endif
+          enddo
+c          if (.not.keep) print *,(nint(center(i,indVec)),i=1,3),
+c     &        ' not found in reduced patches'
+        endif
+c         
+c         If still in, look it up in the residual vectors
+        if (keep .and. numResLeft .gt. 0) then
+          keep = .false.
+          do i = 1, numresLeft
+            if (abs(center(1,indVec) - residCen(1,i)) .le. 0.1 .and.
+     &          abs(center(2,indVec) - residCen(2,i)) .le. 0.1 .and.
+     &          abs(center(3,indVec) - residCen(3,i)) .le. 0.1) then
+              keep = .true.
+              exit
+            endif
+          enddo
+c          if (.not.keep) print *,(nint(center(i,indVec)),i=1,3),
+c     &        ' not found in resid patches'
+        endif
+        if (keep) indVec = indVec + 1
+      enddo
+      close(1)
+      if (numReduce .gt. 0) deallocate(reduceCen, stat = ierr)
+      if (numResid .gt. 0) deallocate(residCen, stat = ierr)
+      return
+98    write(errString, '(a,a)')'READING PATCH VECTOR FILE ',filename
+      call exitError(errString)
       end
 
 
@@ -796,21 +918,21 @@ c       STITCHFUNC for evaluating matrices, error and gradient
 c
       subroutine stitchfunc(nvarsrch,var,ferror,grad)
 c       
+      use stitchvars
       implicit none
-      include 'stitchvars.inc'
       integer mv
       parameter (mv = maxvols)
       integer*4 nvarsrch
       real*4 var(*),ferror,grad(*)
       real*4 xmat(9,mv), ymat(9,mv), zmat(9,mv), dmat(9,mv)
-      real*4 aa(3,3,mv), dermat(3,3), da(9), dan(9)
+      real*4 dermat(3,3), da(9), dan(9)
       real*4 calf(mv), salf(mv), cbet(mv), sbet(mv), cgam(mv), sgam(mv)
       real*4 cdel(mv), sdel(mv), fac
       real*8 derror, dsum
       integer*4 ivar, igrad, i, k, iexy, kstr, kend, ixyz, itype, j
       integer*4 numVec, ivs, jvs, ivf, jvf
       real*8 gradientSum
-      equivalence (aa, fitMat)
+c      equivalence (aa, fitMat)
 c       
 c       ivs, jvs are used to access arrays indexed on volumes beings solved,
 c       ivf, jvf are used to access the full list of loaded volumes
@@ -838,7 +960,7 @@ c       Compute the residual error components needed to solve for dxyz
         ivf = iVolFull(ivs)
         do iexy = 1, 2
           jvf = iVolUpper(iexy,ivf)
-          if (jvf .gt. 0 .and. iVolSolve(jvf) .gt. 0) then
+          if (iVolSolve(jvf) .gt. 0) then
             jvs = iVolSolve(jvf)
             kstr = istrVector(indVector(iexy,ivf))
             kend = kstr + numVectors(indVector(iexy,ivf)) - 1
@@ -870,7 +992,7 @@ c       Solve for dxyz
           ivf = iVolFull(ivs)
           do iexy = 1, 2
             jvf = iVolUpper(iexy,ivf)
-            if (jvf .gt. 0 .and. iVolSolve(jvf) .gt. 0) then
+            if (iVolSolve(jvf) .gt. 0) then
               jvs = iVolSolve(jvf)
               numVec = numVectors(indVector(iexy,ivf))
               fac = 0.
@@ -914,7 +1036,7 @@ c
 c       Get solution and copy the dxyz out, compose the N one
 c        write(*,'(8f6.0,3f10.2)')((daa(ivar,i),i=1,numSolve-1),(dbb(ivar,i),i=1,3)
 c     &      ,ivar=1,numSolve-1)
-      call gaussjd(daa, numSolve - 1, maxvols, dbb, 3, maxvols, 3)
+      call gaussjd(daa, numSolve - 1, maxvols, dbb, 3, maxvols, 7)
 c        print *,'Solution:'
 c        write(*,'(8f6.3,3f10.2)')((daa(ivar,i),i=1,numSolve-1),(dbb(ivar,i),i=1,3)
 c     &      ,ivar=1,numSolve-1)
@@ -925,7 +1047,7 @@ c     &      ,ivar=1,numSolve-1)
           dxyz(numSolve,j) = dxyz(numSolve,j) - dbb(i,j)
         enddo
       enddo
-c      write(*,'(9f8.1)')((dxyz(i,i)/scalexyz,i=1,3),i = 1, numSolve)
+c      write(*,'(9f8.1)')((dxyz(i,j)/scalexyz,i=1,3),j = 1, numSolve)
 c       
 c       Now correct the residuals and get the error
       derror = 0.
@@ -933,7 +1055,7 @@ c       Now correct the residuals and get the error
         ivf = iVolFull(ivs)
         do iexy = 1, 2
           jvf = iVolUpper(iexy,ivf)
-          if (jvf .gt. 0 .and. iVolSolve(jvf) .gt. 0) then
+          if (iVolSolve(jvf) .gt. 0) then
             jvs = iVolSolve(jvf)
             kstr = istrVector(indVector(iexy,ivf))
             kend = kstr + numVectors(indVector(iexy,ivf)) - 1
@@ -1037,7 +1159,7 @@ c               for real variables, get the appropriate gradient sums
                 ivf = iVolFull(ivs)
                 do iexy = 1, 2
                   jvf = iVolUpper(iexy,ivf)
-                  if (jvf .gt. 0 .and. iVolSolve(jvf) .gt. 0) then
+                  if (iVolSolve(jvf) .gt. 0) then
                     jvs = iVolSolve(jvf)
                     kstr = istrVector(indVector(iexy,ivf))
                     kend = kstr + numVectors(indVector(iexy,ivf)) - 1
@@ -1106,8 +1228,8 @@ c
 c       Unloads all variables from the VAR array
 c
       subroutine unloadVars(var)
+      use stitchvars
       implicit none
-      include 'stitchvars.inc'
       real*4 var(*)
       call unloadOneVar(var, gmag, mapGmag, numSolve, 1.)
       call unloadOneVar(var, comp, mapComp, numSolve, 1.)
@@ -1254,10 +1376,10 @@ c       amount to be applied to each volume (shift, rotation, etc).
 c
       subroutine resolveEdgesToVolumes(edgeArray, maxcols, volArray, numCols,
      &    icolStride, ivolStride)
+      use stitchvars
       implicit none
       integer*4 maxcols, numCols, icolStride, ivolStride
       real*4 edgeArray(maxcols,*),volArray(*), sum
-      include 'stitchvars.inc'
       integer*4 ivar, iexy, j, m, iv, jv
 
 c       The shifts in coordinates correspond to amount upper is displaced
@@ -1314,7 +1436,7 @@ c         write(*,'(8f6.0,3f10.2)')(daa(ivar,j),j=1,numVols-1),(dbb(ivar,j),j=1,
       enddo
 c       
 c       Get the solution and store the shifts
-      call gaussjd(daa, numVols - 1, maxvols, dbb, maxcols, maxvols, numCols)
+      call gaussjd(daa, numVols - 1, maxvols, dbb, numCols, maxvols, 7)
 c       print *,'Solution:'
 c       write(*,'(8f6.3,3f10.2)')((daa(ivar,j),j=1,numVols-1),(dbb(ivar,j),j=1,3)
 c     &     ,ivar=1,numVols-1)
@@ -1335,8 +1457,8 @@ c       shift of the volumes, and computes corresponding positions in the two
 c       volumes to be used in the search.
 c
       subroutine transformVectors(rmat, volShift, edgeShift)
+      use stitchvars
       implicit none
-      include 'stitchvars.inc'
       real*4 rmat(3,3,*), volShift(3,*), edgeShift(3,*), ysum
       integer*4 iv, iexy, jv, j, k, kstr, kend, i, m
       do iv = 1, numVols
@@ -1376,8 +1498,8 @@ c     &              (rmat(i,m,iv),m=1,3)
 c       Scales the results from a minimization and reports the results
 c
       subroutine scaleAndReport(ixPiece, iyPiece)
+      use stitchvars
       implicit none
-      include 'stitchvars.inc'
       integer*4 ixPiece(*), iyPiece(*)
       integer*4 iexy, j, m, iv, jv, ivf, jvf, nsum,kstr, kend, k, i
       real*8 dsum, dsumsq
@@ -1437,8 +1559,8 @@ c       Determines properties of the grid of vectors in the original volume
 c       for edge IEDGE.
 c
       subroutine setVectorGrid(iedge)
+      use stitchvars
       implicit none
-      include 'stitchvars.inc'
       integer maxpos, iedge, lstr, lend, l, j, i, k, ipos, inlist, itmp
       integer*4 intmin, numPos, ix, iy, iz
       real*4 span, delmax, delta
@@ -1534,21 +1656,22 @@ c       Go through vectors filling in indices to them
 
 
 c       Determines the volumes and edges that position XX, YY in volume IVOL
-c       falls into.  The number of volumes is palced in numPieces, the number
+c       falls into.  The number of volumes is placed in numPieces, the number
 c       of edges in X and Y in numEdges.  The actual volume numbers are placed
 c       in inPiece, the actual edge numbers in inEdge.  The index of the pieces
 c       below and above an edge (indexes in the inPiece list, not the actual
-c       volume numbers) are stoerd in inEdLower and inEdUpper, and an edge
+c       volume numbers) are stored in inEdLower and inEdUpper, and an edge
 c       fraction is returned in edgeFrac4.  Positions within each piece are
 c       returned in xInPiece, yInPiece.
 c       The position is assumed to lie in the given volume, which will be first
 c       on the list.  Another volume is added to the list only if the position
 c       falls within the limits of the edge between that volume and an existing
-c       volume on the list.
+c       volume on the list.  However, if both volumes on the two sides of an
+c       edge are on the list alredy, the edge is added regardless.
 c
       subroutine countedges(xx, yy, ivol)
+      use stitchvars
       implicit none
-      include 'stitchvars.inc'
       real*4 xx,yy,xinp,yinp,xyinp(2)
       integer*4 ivol, iexy, i, j, jv, ifup, iv, indpiece, indinp, indedge
       equivalence (xinp,xyinp(1)), (yinp,xyinp(2))
@@ -1583,64 +1706,70 @@ c             But if coordinate is low, check for lower piece instead
             xinp = xinp + intervals(iexy,1)
             yinp = yinp + intervals(iexy,2)
           endif
-            
-          if (jv .ne. 0 .and. xinp .ge. edgeMin(1,j) .and.
-     &        xinp .le. edgeMax(1,j) .and. yinp .ge. edgeMin(2,j) .and.
-     &        yinp .le. edgeMax(2,j)) then
-c               
-c               In an edge.  See if piece is on list already
+          if (jv .ne. 0) then
+c
+c           See if piece is on list already
             indpiece = 0
             do i = 1, numPieces
               if (jv .eq. inPiece(i)) indpiece = i
             enddo
-c             
-c             Add piece if not already on list, and position in piece
-            if (indpiece .eq. 0) then
-              numPieces = numPieces + 1
-              indpiece = numPieces
-              inPiece(indpiece) = jv
-              if (ifup .eq. 0) then
-                xInPiece(indpiece) = xinp - intervals(iexy,1)
-                yInPiece(indpiece) = yinp - intervals(iexy,2)
-              else
-                xInPiece(indpiece) = xinp
-                yInPiece(indpiece) = yinp
-              endif
-            endif
-c             
-c             Add edge if not already on list
-            indedge = 0
-            do i = 1, numEdges(iexy)
-              if (inedge(i,iexy) .eq. j) indedge = i
-            enddo
-            if (indedge .eq. 0) then
-              numEdges(iexy) = numEdges(iexy) + 1
-              indedge = numEdges(iexy)
-              inEdge(indedge,iexy) = j
-              if (ifup .eq. 0) then
-                inEdLower(indedge,iexy) = indinp
-                inEdUpper(indedge,iexy) = indpiece
-              else
-                inEdLower(indedge,iexy) = indpiece
-                inEdUpper(indedge,iexy) = indinp
-              endif
+c
+c           Accept edge if in the edge or the other piece is on list already
+            if (indpiece .gt. 0 .or. (xinp .ge. edgeMin(1,j)
+     &        .and. xinp .le. edgeMax(1,j) .and. yinp .ge. edgeMin(2,j) .and.
+     &        yinp .le. edgeMax(2,j))) then
 c               
-c               Get the edge fraction based on position in band that this
-c               point is in along the edge
-              i = (xyinp(3-iexy) - edgeMin(3-iexy,j)) / bandDel(j) + 1.
-              i = max(1, min(numBands(j), i))
-              if (bandMax(iexy,j) .lt. bandMin(iexy,j)) then
-                edgefrac4(indedge,iexy) = (xyinp(iexy) - bandMin(iexy,j)) /
-     &              (bandMax(iexy,j) - bandMin(iexy,j))
-              else
-                edgefrac4(indedge,iexy) = (xyinp(iexy) - edgeMin(iexy,j)) /
-     &              (edgeMax(iexy,j) - edgeMin(iexy,j))
+c               In an edge.  
+c               Add piece if not already on list, and position in piece
+              if (indpiece .eq. 0) then
+                numPieces = numPieces + 1
+                indpiece = numPieces
+                inPiece(indpiece) = jv
+                if (ifup .eq. 0) then
+                  xInPiece(indpiece) = xinp - intervals(iexy,1)
+                  yInPiece(indpiece) = yinp - intervals(iexy,2)
+                else
+                  xInPiece(indpiece) = xinp
+                  yInPiece(indpiece) = yinp
+                endif
+              endif
+c             
+c               Add edge if not already on list
+              indedge = 0
+              do i = 1, numEdges(iexy)
+                if (inedge(i,iexy) .eq. j) indedge = i
+              enddo
+              if (indedge .eq. 0) then
+                numEdges(iexy) = numEdges(iexy) + 1
+                indedge = numEdges(iexy)
+                inEdge(indedge,iexy) = j
+                if (ifup .eq. 0) then
+                  inEdLower(indedge,iexy) = indinp
+                  inEdUpper(indedge,iexy) = indpiece
+                else
+                  inEdLower(indedge,iexy) = indpiece
+                  inEdUpper(indedge,iexy) = indinp
+                endif
+c               
+c                 Get the edge fraction based on position in band that this
+c                 point is in along the edge
+                i = (xyinp(3-iexy) - edgeMin(3-iexy,j)) / bandDel(j) + 1.
+                i = max(1, min(numBands(j), i))
+                if (bandMax(i,j) .gt. bandMin(i,j)) then
+                  edgefrac4(indedge,iexy) = (xyinp(iexy) - bandMin(i,j)) /
+     &                (bandMax(i,j) - bandMin(i,j))
+                else
+                  edgefrac4(indedge,iexy) = (xyinp(iexy) - edgeMin(iexy,j)) /
+     &                (edgeMax(iexy,j) - edgeMin(iexy,j))
+                endif
               endif
             endif
           endif
         enddo
         indinp = indinp + 1
       enddo
+      if (numPieces .eq. 4 .and. numEdges(1) + numEdges(2) .ne. 4) print *,
+     &    'WARNING: Incomplete edge list:',xx,yy,numEdges(1),numEdges(2)
 c      if (numPieces .gt. 1) print *,xx,yy,numPieces,numEdges(2),(inPiece(i),
 c     &    xinpiece(i),yinpiece(i),i=1,2),edgefrac4(1,2)
       return
@@ -1657,8 +1786,8 @@ c       the section of Blendmont that resolves edge functions for getting a
 c       pixel.
 c
       subroutine findWarpVector(ipos, ivol, outvec, ndim)
+      use stitchvars
       implicit none
-      include 'stitchvars.inc'
       integer*4 ipos(*), ivol, ndim
       real*4 outvec(*)
       real*4 pos(3), xpos, ypos, zpos, vec(3)
@@ -1719,8 +1848,8 @@ c          if (ndim .eq. 0) then
           if(edgefrac4(ied,ixy).gt.1.)edgefrac4(ied,ixy)=1.
         enddo
       enddo
-      if (debug) print *,'fractions',nedgesum,((edgefrac4(ied,ixy),ied=1,2),
-     &    ixy=1,2)
+      if (debug) print *,'fractions',numpieces,nedgesum,((edgefrac4(ied,ixy),
+     &    ied=1,2), ixy=1,2)
 c       
 c       get indices of pieces and edges: for now, numbers
 c       1 to 4 represent lower left, lower right, upper left,
@@ -1772,7 +1901,6 @@ c
           if(inde34.ne.0)f34=edgefrac4(inde34,1)
           if(inde13.ne.0)f13=edgefrac4(inde13,2)
           if(inde24.ne.0)f24=edgefrac4(inde24,2)
-
         else
 c           
 c           two piece case - identify as upper or lower to
@@ -2450,8 +2578,8 @@ c       returned.
 c
       subroutine interpolateVector(xpos, ypos, zpos, ivol, iedge, extraplim,
      &    nExtendXY, vec, ndim)
+      use stitchvars
       implicit none
-      include 'stitchvars.inc'
       integer*4 ivol, iedge, ndim, nExtendXY
       real*4 xpos, ypos, zpos, pos(3), vec(3), extraplim, back(3)
       logical*4 completeCube, completeSquare
@@ -2516,14 +2644,15 @@ c         Reset iz to 1, set flag, find out if in a complete square
       endif
 c       
 c       Next see if closest cube is complete
-      if (ndim .eq. 0 .and. completeCube(ixg, iyg, izg, indGridToVec(istr),
-     &    nxg, nyg)) then
-        ndim = 1
-        fz = (back(3) - (vgStartZ + (izg - 1) * vgDeltaZ)) / vgDeltaZ
-        fzout = abs(fz - 0.5) - 0.5
-        if (debug) write(*,'(6f9.4)')fx,fy,fz,fxout,fyout,fzout
-        if ((fxout .le. 0. .and. fyout .le. 0.) .or. (max(0., fxout) +
-     &      max(0., fyout) + max(0., fzout) .le. extraplim)) ndim = 3
+      if (ndim .eq. 0) then
+        if (completeCube(ixg, iyg, izg, indGridToVec(istr), nxg, nyg)) then
+          ndim = 1
+          fz = (back(3) - (vgStartZ + (izg - 1) * vgDeltaZ)) / vgDeltaZ
+          fzout = abs(fz - 0.5) - 0.5
+          if (debug) write(*,'(6f9.4)')fx,fy,fz,fxout,fyout,fzout
+          if ((fxout .le. 0. .and. fyout .le. 0.) .or. (max(0., fxout) +
+     &        max(0., fyout) + max(0., fzout) .le. extraplim)) ndim = 3
+        endif
       endif
 
       if (ndim .eq. 0) then
@@ -2535,29 +2664,30 @@ c         Loop over 6 directions from central cube
           iy = iyg + idy(idir)
           iz = izg + idz(idir)
           if (ix .gt. 0 .and. ix .lt. nxg .and. iy .gt. 0 .and. iy .lt. nyg
-     &        .and. iz .gt. 0 .and. iz .lt. nzg .and.
-     &        completeCube(ix, iy, iz, indGridToVec(istr), nxg, nyg)) then
+     &        .and. iz .gt. 0 .and. iz .lt. nzg) then
+            if (completeCube(ix, iy, iz, indGridToVec(istr), nxg, nyg)) then
 c             
-c             If cube is legal and complete, get the interpolation fractions
-            fx = (back(1) - (vgStartX + (ix - 1) * vgDeltaX)) / vgDeltaX
-            fy = (back(2) - (vgStartY + (iy - 1) * vgDeltaY)) / vgDeltaY
-            fz = (back(3) - (vgStartZ + (iz - 1) * vgDeltaZ)) / vgDeltaZ
+c               If cube is legal and complete, get the interpolation fractions
+              fx = (back(1) - (vgStartX + (ix - 1) * vgDeltaX)) / vgDeltaX
+              fy = (back(2) - (vgStartY + (iy - 1) * vgDeltaY)) / vgDeltaY
+              fz = (back(3) - (vgStartZ + (iz - 1) * vgDeltaZ)) / vgDeltaZ
 c             
-c             Get the fractions that they are outside in each direction
-            fxout = max(0., abs(fx - 0.5) - 0.5)
-            fyout = max(0., abs(fy - 0.5) - 0.5)
-            fzout = max(0., abs(fz - 0.5) - 0.5)
-            fxmax = fxout + fyout + fzout
-            if ((fxout .le. 0. .and. fyout .le. 0.) .or. fxmax .le. extraplim)
-     &          then
-c               
-c               If it is within bounds in X/Y, or within bounds in Z and X or
-c               Y and within the extrapolation fraction in Y or X, then it is
-c               an acceptable one, so keep track of one with the maximum
-c               fraction out of bounds
-              if (mindir .eq. 0 .or. fxmax .lt. fxoutmin) then
-                fxoutmin = fxmax
-                mindir = idir
+c               Get the fractions that they are outside in each direction
+              fxout = max(0., abs(fx - 0.5) - 0.5)
+              fyout = max(0., abs(fy - 0.5) - 0.5)
+              fzout = max(0., abs(fz - 0.5) - 0.5)
+              fxmax = fxout + fyout + fzout
+              if ((fxout .le. 0. .and. fyout .le. 0.) .or.
+     &            fxmax .le. extraplim) then
+c                 
+c                 If it is within bounds in X/Y, or within bounds in Z and X or
+c                 Y and within the extrapolation fraction in Y or X, then it is
+c                 an acceptable one, so keep track of one with the maximum
+c                 fraction out of bounds
+                if (mindir .eq. 0 .or. fxmax .lt. fxoutmin) then
+                  fxoutmin = fxmax
+                  mindir = idir
+                endif
               endif
             endif
           endif
@@ -2585,17 +2715,19 @@ c           First test squares below and above, pick the closest one if one
 c           exists
           iz = izg - idir
           dz = -1.
-          if (iz .gt. 0 .and.
-     &        completeSquare(ixg, iyg, iz, indGridToVec(istr), nxg, nyg)) then
-            dz = abs(back(3) - (vgStartZ + (iz - 1) * vgDeltaZ)) / vgDeltaZ
+          if (iz .gt. 0) then
+            if (completeSquare(ixg, iyg, iz, indGridToVec(istr), nxg, nyg))
+     &          dz = abs(back(3) - (vgStartZ + (iz - 1) * vgDeltaZ)) / vgDeltaZ
           endif
           iz = izg + 1 + idir
-          if (iz .le. nzg .and.
-     &        completeSquare(ixg, iyg, iz, indGridToVec(istr), nxg, nyg)) then
-            dz2 = abs(back(3) - (vgStartZ + (iz - 1) * vgDeltaZ)) / vgDeltaZ
-            if (dz .lt. 0. .or. dz2 .lt. dz) then
-              izg = iz
-              ndim = 2
+          if (iz .le. nzg) then
+            if (completeSquare(ixg, iyg, iz, indGridToVec(istr), nxg, nyg))
+     &          then
+              dz2 = abs(back(3) - (vgStartZ + (iz - 1) * vgDeltaZ)) / vgDeltaZ
+              if (dz .lt. 0. .or. dz2 .lt. dz) then
+                izg = iz
+                ndim = 2
+              endif
             endif
           endif
           if (ndim .eq. 0 .and. dz .ge. 0.) then
@@ -2607,17 +2739,18 @@ c           Next test cubes farther away
           if (ndim .eq. 0) then
             dz = -1.
             iz = izg - 2 - idir
-            if (iz .gt. 0 .and. 
-     &          completeCube(ixg, iyg, iz, indGridToVec(istr), nxg, nyg)) then
-              dz = abs(back(3) - (vgStartZ + iz * vgDeltaZ)) / vgDeltaZ
+            if (iz .gt. 0) then
+              if (completeCube(ixg, iyg, iz, indGridToVec(istr), nxg, nyg))
+     &            dz = abs(back(3) - (vgStartZ + iz * vgDeltaZ)) / vgDeltaZ
             endif
             iz = izg + 2 + idir
-            if (iz .lt. nzg .and.
-     &          completeCube(ixg, iyg, iz, indGridToVec(istr), nxg, nyg)) then
-              dz2 = abs(back(3) - (vgStartZ + (iz - 1) * vgDeltaZ)) / vgDeltaZ
-              if (dz .lt. 0. .or. dz2 .lt. dz) then
-                izg = iz
-                ndim = 2
+            if (iz .lt. nzg) then
+              if (completeCube(ixg, iyg, iz, indGridToVec(istr), nxg, nyg))then
+                dz2 = abs(back(3) - (vgStartZ + (iz - 1) * vgDeltaZ)) /vgDeltaZ
+                if (dz .lt. 0. .or. dz2 .lt. dz) then
+                  izg = iz
+                  ndim = 2
+                endif
               endif
             endif
             if (ndim .eq. 0 .and. dz .ge. 0.) then
@@ -2784,6 +2917,10 @@ c
 
 
 c       $Log$
+c       Revision 3.6  2008/12/29 20:43:18  mast
+c       Avoid multiple vector outputs at same Z level and enforce only one
+c       level of output if input has only one level
+c
 c       Revision 3.5  2008/10/16 23:15:36  mast
 c       Added piece number to lines with overall transformation output
 c
