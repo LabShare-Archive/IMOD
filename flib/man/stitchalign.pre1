@@ -62,11 +62,25 @@ DDEESSCCRRIIPPTTIIOONN
   Findwarp(1) so that the local fits will require about the same amount of
   original data as if the spacing were unchanged.
 
-  There is no automatic elimination of aberrant displacements from the patch 
-  vectors being used to find the local displacements, unlike the outlier
-  elimination available when combining dual-axis tomograms.  It is thus
-  critical to get as reliable a set of patch vectors from Edgepatches(1) as
-  possible, and to manually remove any aberrant vectors.
+  Within this program, there is no local fitting to patch vectors in order to
+  determine the quality of fit and to identify aberrant displacements.  Bad
+  vectors in the input files will generally produce bad warping vectors that
+  are hard to eliminate.  It is thus critical to get as reliable a set of
+  patch vectors from Edgepatches(1) as possible, to use Fitpatches(1) to
+  assess the quality of fit and provide local fitting information for
+  Stitchalign, and to manually remove aberrant vectors from patch models where
+  necessary.  Stitchalign will use the output from Fitpatches(1) in several
+  ways.  It will read all available patch vector files for an overlap zone:
+  the original patch vectors, the "reduced" patch vectors with correlation
+  coefficients produced by removing the large linear component from the patch
+  vectors, and the patch vectors that have been passed through Findwarp(1) to
+  obtain residual and outlier information.  A vector will be eliminated from
+  the analysis if it is not still present in all available patch files; thus,
+  you can edit whichever patch model you prefer.  A vector will be eliminated
+  if the fraction of times it has been removed from Findwarp(1) fits as an
+  outlier exceeds a criterion.  Vectors with high residuals can also be
+  eliminated based on a criterion, but this does not happen by default because
+  it is hard to set a default criterion.
 
   You can run the alignment on subsets of the data either for experimentation
   or if that subset is going to be stitched.  Ultimately, all of the volumes

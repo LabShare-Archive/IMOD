@@ -93,6 +93,26 @@ tooltip =
 manpage = Starting and ending volumes in Y to analyze, numbered from 1.  The
 default is to do all volumes in Y.
 
+[Field = WarpFitResidualCriterion]
+short = residual
+type = F
+usage = Criterion residual in findwarp fits for excluding vectors (default 100)
+tooltip =
+manpage = Criterion residual from fits in Findwarp(1) for excluding vectors;
+vectors with mean residual greater than or equal this to value will be
+excluded.  The default value of 100 will generally not exclude any vectors. 
+Use Fitpatches(1) to produce an appropriate patch file with residuals.
+
+[Field = OutlierFractionCriterion]
+short = outlier
+type = F
+usage = Criterion outlier fraction for excluding a vector (default 0.33)
+tooltip =
+manpage = Criterion fraction of times that a vector was excluded as an outlier
+from fits in Findwarp(1); vectors with an outlier fraction greater than or
+equal this to value will be excluded here.  The default is 0.33.  Use
+Fitpatches(1) to produce an appropriate patch file with outlier fractions.
+
 [Field = VectorSpacingFactor]
 short = spacing
 type = F
