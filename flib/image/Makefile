@@ -152,8 +152,9 @@ rotmont$(E): rotmont.$(O)
 subimage$(E): subimage.$(O)
 	$(FC) -o subimage subimage.$(O) $(LDFLG) $(IMLIBS) $(LIBS)
 
-stitchalign$(E): stitchalign.$(O)
-	$(FC) -o stitchalign stitchalign.$(O) $(LDFLG) $(IMLIBS) $(LIBS)
+stitchalign$(E): stitchalign.$(O) stitchvars.$(O)
+	$(FC) -o stitchalign stitchalign.$(O) stitchvars.$(O) $(LDFLG) \
+	$(IMLIBS) $(LIBS)
 
 subimanova$(E): subimanova.$(O)
 	$(FC) -o subimanova subimanova.$(O) $(LDFLG) $(IMLIBS) $(LIBS)
@@ -179,7 +180,7 @@ vmstocsh$(E): vmstocsh.$(O)
 warpvol.$(O): warpvol.f
 	$(FC) $(FFLAGS) $(OPENMP) -c warpvol.f
 
-warpvol$(E): warpvol.$(O) rotmatwarpsubs.$(O) rotmatwarpsubs.$(O)
+warpvol$(E): warpvol.$(O) rotmatwarpsubs.$(O) rotmatwarp.$(O)
 	$(FC) -o warpvol rotmatwarpsubs.$(O) warpvol.$(O) rotmatwarp.$(O) \
 	$(LDFLG) $(IMLIBS) $(LIBS)
 
@@ -211,12 +212,15 @@ clean:
 rotatevol.$(O): rotmatwarp.$(O)
 matchvol.$(O): rotmatwarp.$(O)
 warpvol.$(O): rotmatwarp.$(O)
-stitchalign.$(O): stitchvars.inc
+stitchalign.$(O): stitchvars.$(O)
 giantfft.$(O): $(INCDIR)/ftbuf.inc
 enhance.$(O): $(INCDIR)/ftbuf.inc
 fftrans.$(O): $(INCDIR)/ftbuf.inc
 
 #  $Log$
+#  Revision 3.20  2009/06/14 22:39:30  mast
+#  Changes for module and openmp in rotmatwarpsubs etc
+#
 #  Revision 3.19  2009/04/09 18:56:49  mast
 #  Add openmp flag for rotmatwarpsubs
 #
