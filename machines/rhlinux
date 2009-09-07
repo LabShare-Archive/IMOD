@@ -32,7 +32,7 @@ if ($compiler == intel) then
     echo "CXX       = icpc"              >> $configure
     set fcomp = "ifort"
     set ctfplotopt = '-nofor-main'
-    set fcompFlags = '-132 -assume bscc'
+    set fcompFlags = '-132 -assume bscc -vec-report0'
     echo "      parameter (nbytes_recl_item=4)" >! $endian_dir/recl_bytes.inc
 
     icc -v >&! icc.tmp
@@ -175,7 +175,9 @@ echo '#define SENDEVENT_RETRY_HACK 0' >> $hconfigure
 if ($compiler == intel) then
     set optimization = "-O2 -w"
     if ($m64bit == true) set optimization = "-O2 -unroll -w -axWPT"
-    if ($debug == true) set optimization = "-g -O0"
+    if ($debug == true) then
+        set optimization = "-g -O0"
+        set fcompFlags = ($fcompFlags -CB)
 else
     set optimization = "-O3 -w"
     if ($debug == true) set optimization = "-ggdb -O0 -Wno-unused-parameter -Wimplicit -Wreturn-type"
