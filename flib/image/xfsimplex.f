@@ -650,8 +650,8 @@ C
       integer*4 ispir,ixa,iya,icomp,ix,iy
       real*4 delfac,outsideMultiplier
 C       
-      XCEN=FLOAT(NX)*0.5+1
-      YCEN=FLOAT(NY)*0.5+1
+      XCEN=FLOAT(NX)*0.5+0.5
+      YCEN=FLOAT(NY)*0.5+0.5
 C       
       DELTA = 0.
 C       
@@ -720,8 +720,8 @@ C
       sxy = 0.
       sxsq = 0.
       sysq = 0.
-      XCEN=FLOAT(NX)*0.5+1			!use +1 to be consistent
-      YCEN=FLOAT(NY)*0.5+1			!with qdinterp usage
+      XCEN=FLOAT(NX)*0.5+0.5			!use +0.5 to be consistent
+      YCEN=FLOAT(NY)*0.5+0.5			!with new cubinterp usage
 C       
       if(natural.eq.0)then
         amat(1,1)=a(3)
@@ -964,6 +964,11 @@ c       SCALING = 1 BUT THIS SHOULD BE DOCUMENTED
       end
 c       
 c       $Log$
+c       Revision 3.11  2008/07/01 14:26:27  mast
+c       Converted to PIP, added fourier and sobel filtering, limits to search,
+c       subarea specification, correlation coefficient, sections to use,
+c       transform line to use (with an eye to stripping xfalign down).
+c
 c       Revision 3.10  2006/06/22 01:06:59  mast
 c       Changed initialization to avoid big executable on Intel Mac
 c
