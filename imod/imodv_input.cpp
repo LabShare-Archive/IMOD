@@ -132,14 +132,16 @@ void imodvKeyPress(QKeyEvent *event)
   case Qt::Key_C: /* print the current clipping plane parameters */
     if (shifted){
       imodv_control(a, 1);
-    }else{
+    } else if (ctrl) {
+      imodvObjedToggleClip();
+    } else {
       objedObject();
       if (a->obj){
         clips = a->imod->editGlobalClip ? 
           &a->imod->view->clips : &a->obj->clips;
         ip = clips->plane;
 
-        /* DNM 7/31/01 remove pixsize from D */
+        // DNM 7/31/01 remove pixsize from D
         qstr.sprintf("Current %s clip data = (A B C D) = %g %g %g %g.\n", 
                      a->imod->editGlobalClip ? "Global": "Object",
                      clips->normal[ip].x,
@@ -149,9 +151,9 @@ void imodvKeyPress(QKeyEvent *event)
                       (clips->normal[ip].y * clips->point[ip].y) +
                       (clips->normal[ip].z * clips->point[ip].z)));
         imodPrintInfo(LATIN1(qstr));
-        /* imodPrintStderr("%.2f %.2f %.2f\n", clips->point[ip].x, 
-           clips->point[ip].y, clips->point[ip].z); */
-      }
+        // imodPrintStderr("%.2f %.2f %.2f\n", clips->point[ip].x, 
+        //   clips->point[ip].y, clips->point[ip].z);
+        }
     }
     break;
 
@@ -1305,6 +1307,9 @@ void imodvMovieTimeout()
 /*
 
 $Log$
+Revision 4.48  2009/03/30 18:26:20  mast
+Call function to raise on mouse press if needed
+
 Revision 4.47  2009/02/25 05:34:26  mast
 Consume mouse move events to get to current one
 
