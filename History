@@ -1,5 +1,11 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+9/8/09: Added Fitpatches to do linear and local fitting on patch vectors in
+supermontage overlap zones and manage patch files and vector models when
+edited.
+
+9/8/09: Added hot key for toggling the clipping plane in model view.
+
 9/8/09: This time thread number really will be controlled by OMP_NUM_THREADS.
 
 9/7/09: Made Stitchalign able to eliminate vectors if they are not present in 
