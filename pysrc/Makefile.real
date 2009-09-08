@@ -6,7 +6,7 @@ include ../configure
 # Log at end
 #
 
-SCRIPTS = vmstopy tomostitch edgepatches
+SCRIPTS = vmstopy tomostitch edgepatches fitpatches
 MODULES = imodpy.py pysed.py supermont.py pip.py
 
 all:
@@ -24,6 +24,9 @@ clean:
 
 #
 #  $Log$
+#  Revision 1.4  2008/01/05 17:28:36  mast
+#  Removed extension module, added python module for pip
+#
 #  Revision 1.3  2007/04/10 19:43:12  mast
 #  Change for new copywrapper script
 #
