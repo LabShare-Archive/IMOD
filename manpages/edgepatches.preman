@@ -8,14 +8,20 @@ edgepatches options supermontage_info_file
 .SH DESCRIPTION
 Edgepatches is a Python program that performs the first steps in stitching
 together tomograms that overlap laterally, which are referred to as a
-supermontage.  Stitching is done by running three different programs in
-sequence: Edgepatches, Stitchalign(1), and Tomostitch(1).  
+supermontage.  Stitching is done by running four different programs in
+sequence: Edgepatches, Fitpatches(1), Stitchalign(1), and Tomostitch(1).  
 Edgepatches allows you to
 set up a master file with information about the tomograms and their overlap
 regions, referred to as a supermontage info file.  It performs 2D and 3D
 cross-correlations to determine the shifts between the volumes, then
 correlates local patches between overlapping volumes to obtain a set of 
-local displacements in the overlap zones.  You next run Stitchalign(1)
+local displacements in the overlap zones.  Next, you run Fitpatches(1) to
+assess the quality of the patch displacements by seeing how well local
+transformations fit
+to them.  Fitpatches(1) also generates patch vector models that you can edit
+to improve these fits and to prevent aberrant vectors from subsequently giving
+bad warping transformations. 
+The next step is to run Stitchalign(1)
 to take this information and determine how the volumes can be transformed into
 alignment.  That program first derives an overall linear transformation
 (including shifts, rotations, size changes, and stretches as appropriate) to
@@ -136,19 +142,25 @@ option to make it skip any patch correlations that were already done.
 .P
 The patch correlations are run similarly to when aligning dual-axis
 tomograms.  However, the default parameters are based on binned data (~2 nm
-pixel) and should not be relied on in general; patch sizes and intervals may
-need to be doubled for unbinned data.  Another difference is that
-region models for
+pixel) and should not be relied on in general; patch sizes may
+need to be increased substantially for unbinned data.  Another difference is
+that region models for
 both the upper and the lower piece are applied to determine the limits for
 patches in an overlap zone.  Another important difference is in the
 consequences of having bad vectors.  With dual-axis tomograms, the vectors are
 fed directly into Findwarp(1), which has outlier elimination that usually
 eliminates the most aberrant vectors.  The vectors produced here are going to
-be processed by Stitchalign(1), which lacks outlier elimination, so bad
+be processed by Stitchalign(1), which does not do its own outlier elimination,
+so bad
 displacements will be carried through into the final warped volumes.  It is
-crucial to adjust the parameters here to produce the best vectors possible,
-and then to edit out bad vectors manually if necessary, using the procedure
-indicated below.
+thus crucial to run Fitpatches(1) after running this program, and after
+editing any patches.  Fitpatches(1) will show you the results of finding
+local transformations in Findwarp(1) and will store information on residuals
+and on which vectors are outliers into a new patch file.  This information
+will be used by Stitchalign(1) to eliminate some bad vectors.  In general, you
+should use the information from Fitpatches(1) in order to adjust the
+parameters used in Edgepatches to produce the best vectors possible, and then
+edit out bad vectors manually if necessary.
 .SS Options
 Edgepatches uses the PIP package for input (see the manual page
 for pip(1)).  Options can be specified either as command line
@@ -160,19 +172,16 @@ INSERT OPTION TEXT HERE
 Read parameter entries from standard input
 
 .SH FILES
-The patch correlation output for each edge is in "edgename.patch".  The program
-runs "patch2imod -s" on each patch file to produce "edgename_ccc.mod".  This
-model can be edited and the patch file replaced with
-  imod2patch edgename_ccc.mod edgename.patch
-.P
-Every time the info file is modified, the existing copy is renamed to a backup
-with the ~ extension.  
+When the info file is modified, the existing copy is renamed to a backup
+with the ~ extension.  This is done only once per run of the program, although
+the program will save the info file after each overlap zone is processed.
 .SH AUTHOR
 .nf
 David Mastronarde
 .fi
 .SH SEE ALSO
-corrsearch3d(1), xyzproj(1), tiltxcorr(1), stitchalign(1), tomostitch(1)
+corrsearch3d(1), xyzproj(1), tiltxcorr(1), fitpatches(1), stitchalign(1),
+tomostitch(1)
 .SH BUGS
 Comments in the info file will not be preserved.
 .P
