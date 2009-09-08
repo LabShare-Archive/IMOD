@@ -12,292 +12,302 @@
 
 # The meat of the computations - a function to find shifts on edges
 def findEdgeShifts(lower, upper, edge):
-    print "Finding global shifts for edge " + edge['name']
-    
-    # Compute the starting and ending coordinates in long
-    # dimension and overlap dimension
-    xyminlo = [0, 0]
-    xymaxlo = [0, 0]
-    xyminup = [0, 0]
-    xymaxup = [0, 0]
-    intshift = [int(round(edge[kShift][0])), int(round(edge[kShift][1])),
-                int(round(edge[kShift][2]))]
-    losize = lower[kSize]
-    upsize = upper[kSize]
+   print "Finding global shifts for edge " + edge['name']
+   
+   # Compute the starting and ending coordinates in long
+   # dimension and overlap dimension
+   xyminlo = [0, 0]
+   xymaxlo = [0, 0]
+   xyminup = [0, 0]
+   xymaxup = [0, 0]
+   intshift = [int(round(edge[kShift][0])), int(round(edge[kShift][1])),
+              int(round(edge[kShift][2]))]
+   losize = lower[kSize]
+   upsize = upper[kSize]
 
-    # Allow for existing shift and cut long dimension to fit
-    longhalf = int(longFrac * min(losize[delx], upsize[delx])) / 2
-    mid = (losize[delx] - intshift[delx]) / 2
-    longhalf = min((longhalf, mid, losize[delx] - 1 - mid, \
-                    mid + intshift[delx], \
-                    upsize[delx] - 1 - mid - intshift[delx]))
-    xyminlo[delx] = mid - longhalf
-    xymaxlo[delx] = xyminlo[delx] + 2 * longhalf - 1
-    xyminup[delx] = xyminlo[delx] + intshift[delx]
-    xymaxup[delx] = xymaxlo[delx] + intshift[delx]
+   # Allow for existing shift and cut long dimension to fit
+   longhalf = int(longFrac * min(losize[delx], upsize[delx])) / 2
+   mid = (losize[delx] - intshift[delx]) / 2
+   longhalf = min((longhalf, mid, losize[delx] - 1 - mid, \
+                   mid + intshift[delx], \
+                   upsize[delx] - 1 - mid - intshift[delx]))
+   xyminlo[delx] = mid - longhalf
+   xymaxlo[delx] = xyminlo[delx] + 2 * longhalf - 1
+   xyminup[delx] = xyminlo[delx] + intshift[delx]
+   xymaxup[delx] = xymaxlo[delx] + intshift[delx]
 
-    # get coordinates in short dimension, trim some here
-    ovsize = losize[dely] + intshift[dely]
-    trim = int(trimFrac * ovsize)
-    xyminlo[dely] = trim - intshift[dely]
-    xymaxlo[dely] = losize[dely] - 1 - trim
-    xyminup[dely] = trim
-    xymaxup[dely] = ovsize - 1 - trim
-    tmpproj1 = edge['name'] + '.proj1'
-    tmpproj2 = edge['name'] + '.proj2'
-    tmpprojst = edge['name'] + '.projst'
-    tmpxf = edge['name'] + '.projxf'
-    try:
-        print "Projecting overlap zones"
-        projcom = 'xyzproj -ax Y -an 0,0,0 -mo 2 -xm %d,%d -ym %d,%d %s %s' % \
-                  (xyminlo[0], xymaxlo[0], xyminlo[1], xymaxlo[1], \
-                   lower['file'], tmpproj1)
-        if verbose:
-            print projcom
-        runcmd(projcom, None)
-        projcom = 'xyzproj -ax Y -an 0,0,0 -mo 2 -xm %d,%d -ym %d,%d %s %s' % \
-                  (xyminup[0], xymaxup[0], xyminup[1], xymaxup[1], \
-                   upper['file'], tmpproj2)
-        if verbose:
-            print projcom
-        runcmd(projcom, None)
-        runcmd('newstack %s %s %s' % (tmpproj1, tmpproj2, tmpprojst), None)
-        padx = int(padFrac * (xymaxup[0] + 1 - xyminup[0]))
-        pady = int(padFrac * (xymaxup[1] + 1 - xyminup[1]))
+   # get coordinates in short dimension, trim some here
+   ovsize = losize[dely] + intshift[dely]
+   trim = int(trimFrac * ovsize)
+   xyminlo[dely] = trim - intshift[dely]
+   xymaxlo[dely] = losize[dely] - 1 - trim
+   xyminup[dely] = trim
+   xymaxup[dely] = ovsize - 1 - trim
+   tmpproj1 = edge['name'] + '.proj1'
+   tmpproj2 = edge['name'] + '.proj2'
+   tmpprojst = edge['name'] + '.projst'
+   tmpxf = edge['name'] + '.projxf'
+   try:
+      print "Projecting overlap zones"
+      projcom = 'xyzproj -ax Y -an 0,0,0 -mo 2 -xm %d,%d -ym %d,%d %s %s' % \
+                (xyminlo[0], xymaxlo[0], xyminlo[1], xymaxlo[1], \
+                 lower['file'], tmpproj1)
+      if verbose:
+         print projcom
+      runcmd(projcom, None)
+      projcom = 'xyzproj -ax Y -an 0,0,0 -mo 2 -xm %d,%d -ym %d,%d %s %s' % \
+                (xyminup[0], xymaxup[0], xyminup[1], xymaxup[1], \
+                 upper['file'], tmpproj2)
+      if verbose:
+         print projcom
+      runcmd(projcom, None)
+      runcmd('newstack %s %s %s' % (tmpproj1, tmpproj2, tmpprojst), None)
+      padx = int(padFrac * (xymaxup[0] + 1 - xyminup[0]))
+      pady = int(padFrac * (xymaxup[1] + 1 - xyminup[1]))
 
-        print "Correlating projections of overlap zones"
-        txccom = 'tiltxcorr -ang 0,0 -pad %d,%d -sigma1 0.03 -rot 0. %s %s' % \
-                 (padx, pady, tmpprojst, tmpxf)
-        if verbose:
-            print txccom
-        txcout = runcmd(txccom, None)
-        verboseOutput('TILTXCORR OUTPUT:', txcout)
-            
-        txcout.reverse()
-        failed = 0
-        for line in txcout:
-            if re.search('View.*shifts', line):
-                line = re.sub('View.*shifts *(\S+) *(\S+).*', '\\1 \\2', \
-                              line).strip()
-                line = line.split(' ')
-                if isinstance(line, str) or len(line) < 2:
-                    failed = 1
-                break
-        else:
-            failed = 1
-        if failed:
-            print '%s Cannot find shift in output of tiltxcorr on edge %s' %\
-                  (prefix, edge['name'])
-            sys.exit(1)
+      print "Correlating projections of overlap zones"
+      txccom = 'tiltxcorr -ang 0,0 -pad %d,%d -sigma1 0.03 -rot 0. %s %s' % \
+               (padx, pady, tmpprojst, tmpxf)
+      if verbose:
+         print txccom
+      txcout = runcmd(txccom, None)
+      verboseOutput('TILTXCORR OUTPUT:', txcout)
+         
+      txcout.reverse()
+      failed = 0
+      for line in txcout:
+         if re.search('View.*shifts', line):
+            line = re.sub('View.*shifts *(\S+) *(\S+).*', '\\1 \\2', \
+                          line).strip()
+            line = line.split(' ')
+            if isinstance(line, str) or len(line) < 2:
+               failed = 1
+            break
+      else:
+         failed = 1
+      if failed:
+         print '%s Cannot find shift in output of tiltxcorr on edge %s' %\
+               (prefix, edge['name'])
+         sys.exit(1)
 
-        # Subtract amount to shift upper to get new coordinate shift
-        if verbose:
-            print 'Initial shift: %d, %d' % (intshift[0], intshift[1])
-        intshift[0] -= int(round(float(line[0])))
-        intshift[1] -= int(round(float(line[1])))
-        print 'Shift from correlation: %.1f, %.1f     Total shift %d, %d' % \
-              (-float(line[0]), -float(line[1]), intshift[0], intshift[1])
-        
-        # Get coordinates for extracting subvolumes
-        cenlo = [0, 0, 0]
-        cenup = [0, 0, 0]
-        size = [0, 0, 0]
-        pad = [0, 0, 0]
-        taper = [0, 0, 0]
-        for i in [0, 1, 2]:
-            mid = (losize[i] - intshift[i]) / 2
-            half = min((blockSize / 2, mid, losize[i] - 1 - mid, \
-                        mid + intshift[i], upsize[i] - 1 - mid - intshift[i]))
-            cenlo[i] = mid
-            cenup[i] = mid + intshift[i]
-            size[i] = 2 * half
-            pad[i] = size[i] / 5
-            taper[i] = size[i] / 10
+      # Subtract amount to shift upper to get new coordinate shift
+      if verbose:
+         print 'Initial shift: %d, %d' % (intshift[0], intshift[1])
+      intshift[0] -= int(round(float(line[0])))
+      intshift[1] -= int(round(float(line[1])))
+      print 'Shift from correlation: %.1f, %.1f     Total shift %d, %d' % \
+            (-float(line[0]), -float(line[1]), intshift[0], intshift[1])
+      
+      # Get coordinates for extracting subvolumes
+      cenlo = [0, 0, 0]
+      cenup = [0, 0, 0]
+      size = [0, 0, 0]
+      pad = [0, 0, 0]
+      taper = [0, 0, 0]
+      for i in [0, 1, 2]:
+         mid = (losize[i] - intshift[i]) / 2
+         half = min((blockSize / 2, mid, losize[i] - 1 - mid, \
+                     mid + intshift[i], upsize[i] - 1 - mid - intshift[i]))
+         cenlo[i] = mid
+         cenup[i] = mid + intshift[i]
+         size[i] = 2 * half
+         pad[i] = size[i] / 5
+         taper[i] = size[i] / 10
 
-        # Extract the volumes
-        print "Extracting subvolumes at center of overlap"
-        tmpvol1 = edge['name'] + '.vol1'
-        tmpvol2 = edge['name'] + '.vol2'
-        tmpcor = edge['name'] + '.cor'
-        input = [lower['file'],
-                 tmpvol1,
-                 '%d,%d,%d' % (size[0], size[1], size[2]),
-                 '%d,%d,%d' % (cenlo[0], cenlo[1], cenlo[2]),
-                 '%d,%d,%d' % (pad[0], pad[1], pad[2]),
-                 '%d,%d,%d' % (taper[0], taper[1], taper[2])]
-        verboseOutput('tapervoledge input for run 1', input)
-        runcmd('tapervoledge', input)
+      # Extract the volumes
+      print "Extracting subvolumes at center of overlap"
+      tmpvol1 = edge['name'] + '.vol1'
+      tmpvol2 = edge['name'] + '.vol2'
+      tmpcor = edge['name'] + '.cor'
+      input = [lower['file'],
+               tmpvol1,
+               '%d,%d,%d' % (size[0], size[1], size[2]),
+               '%d,%d,%d' % (cenlo[0], cenlo[1], cenlo[2]),
+               '%d,%d,%d' % (pad[0], pad[1], pad[2]),
+               '%d,%d,%d' % (taper[0], taper[1], taper[2])]
+      verboseOutput('tapervoledge input for run 1', input)
+      runcmd('tapervoledge', input)
 
-        input[0] = upper['file']
-        input[1] = tmpvol2
-        input[3] = '%d,%d,%d' % (cenup[0], cenup[1], cenup[2])
-        verboseOutput('tapervoledge input for run 2', input)
-        runcmd('tapervoledge', input)
+      input[0] = upper['file']
+      input[1] = tmpvol2
+      input[3] = '%d,%d,%d' % (cenup[0], cenup[1], cenup[2])
+      verboseOutput('tapervoledge input for run 2', input)
+      runcmd('tapervoledge', input)
 
-        # Run clip, this order of files should give shift of B coordinates
-        print "Correlating subvolumes to find 3D shift"
-        clipcom = 'clip corr -3d -n 0 %s %s %s' % (tmpvol1, tmpvol2, tmpcor)
-        if verbose:
-            print clipcom
-        clipout = runcmd(clipcom, None)
-        verboseOutput('CLIP OUTPUT:', clipout)
-        for line in clipout:
-            if line.startswith('('):
-                line = re.sub('^.*\((.*)\).*', '\\1', line).strip().split(',')
-                break
-        if isinstance(line, str) or len(line) < 3:
-            print '%s Cannot find shift in output of clip on edge %s' %\
-                  (prefix, edge['name'])
-            sys.exit(1)
-        for i in [0, 1, 2]:
-            edge[kShift][i] = intshift[i] + float(line[i])
-        edge[kShiftDone] = '1'
-        print 'Shift from correlation: %f, %f, %f    Total shift %d, %d %d' % \
-              (float(line[0]), float(line[1]), float(line[2]), \
-               edge[kShift][0], edge[kShift][1], edge[kShift][2])
+      # Run clip, this order of files should give shift of B coordinates
+      print "Correlating subvolumes to find 3D shift"
+      clipcom = 'clip corr -3d -n 0 %s %s %s' % (tmpvol1, tmpvol2, tmpcor)
+      if verbose:
+         print clipcom
+      clipout = runcmd(clipcom, None)
+      verboseOutput('CLIP OUTPUT:', clipout)
+      for line in clipout:
+         if line.startswith('('):
+            line = re.sub('^.*\((.*)\).*', '\\1', line).strip().split(',')
+            break
+      if isinstance(line, str) or len(line) < 3:
+         print '%s Cannot find shift in output of clip on edge %s' %\
+               (prefix, edge['name'])
+         sys.exit(1)
+      for i in [0, 1, 2]:
+         edge[kShift][i] = intshift[i] + float(line[i])
+      edge[kShiftDone] = '1'
+      print 'Shift from correlation: %f, %f, %f    Total shift %d, %d %d' % \
+            (float(line[0]), float(line[1]), float(line[2]), \
+             edge[kShift][0], edge[kShift][1], edge[kShift][2])
 
-        # Clean up
-        os.remove(tmpcor)
-        if leavetmp:
-            return
-        os.remove(tmpprojst)
-        os.remove(tmpproj1)
-        os.remove(tmpproj2)
-        os.remove(tmpxf)
-        os.remove(tmpvol1)
-        os.remove(tmpvol2)
-        return
+      # Clean up
+      os.remove(tmpcor)
+      if leavetmp:
+         return
+      os.remove(tmpprojst)
+      os.remove(tmpproj1)
+      os.remove(tmpproj2)
+      os.remove(tmpxf)
+      os.remove(tmpvol1)
+      os.remove(tmpvol2)
+      return
 
-    except ImodpyError, errout:
-        exitFromImodError(progname, errout)
+   except ImodpyError, errout:
+      exitFromImodError(progname, errout)
 
 # And a function to find the patches
 def findPatches(lower, upper, edge):
-    global borderXY
-    print 'Computing patch correlations in edge ' + edge['name']
+   global borderXY
+   print 'Computing patch correlations in edge ' + edge['name']
 
-    # Find limits in lower volume; Z limits are numbered from 1 but min and
-    # max are numbered from zero
-    sizes = patchSize
-    patchname = edge['name'] + '.patch'
-    mins = [0, 0, 0]
-    maxes = [0, 0, 0]
-    numpat = [0, 0, 0]
+   # Find limits in lower volume; Z limits are numbered from 1 but min and
+   # max are numbered from zero
+   sizes = patchSize
+   patchname = edge['name'] + '.patch'
+   mins = [0, 0, 0]
+   maxes = [0, 0, 0]
+   numpat = [0, 0, 0]
 
-    # Heirarchy for Z limits is the option entry, then the entry for the lower
-    # piece, then an entry for the edge
-    mins[2] = max(0, borderZ)
-    maxes[2] = lower[kSize][2] - 1 - mins[2]
-    if lower.has_key(kZlimit):
-        mins[2] = max(0, lower[kZlimit][0] - 1)
-        maxes[2] = min(lower[kSize][2] - 1, lower[kZlimit][1] - 1)
-    if edge.has_key(kZlimit):
-        mins[2] = max(0, edge[kZlimit][0] - 1)
-        maxes[2] = min(lower[kSize][2] - 1, edge[kZlimit][1] - 1)
-    if maxes[2] - mins[2] < 0.5 * sizes[2]:
-        print '%s Z limits (%d and %d) too narrow for patch Z size (%d) for' \
-              ' edge %s' % (prefix, mins[2] + 1, maxes[2] + 1, sizes[2], \
-                            edge['name'])
-        sys.exit(1)
+   # Heirarchy for Z limits is the option entry, then the entry for the lower
+   # piece, then an entry for the edge
+   mins[2] = max(0, borderZ)
+   maxes[2] = lower[kSize][2] - 1 - mins[2]
+   if lower.has_key(kZlimit):
+      mins[2] = max(0, lower[kZlimit][0] - 1)
+      maxes[2] = min(lower[kSize][2] - 1, lower[kZlimit][1] - 1)
+   if edge.has_key(kZlimit):
+      mins[2] = max(0, edge[kZlimit][0] - 1)
+      maxes[2] = min(lower[kSize][2] - 1, edge[kZlimit][1] - 1)
+   if maxes[2] - mins[2] < 0.5 * sizes[2]:
+      print '%s Z limits (%d and %d) too narrow for patch Z size (%d) for' \
+            ' edge %s' % (prefix, mins[2] + 1, maxes[2] + 1, sizes[2], \
+                          edge['name'])
+      sys.exit(1)
 
-    if maxes[2] - mins[2] < sizes[2]:
-        sizes[2] = maxes[2] - mins[2]
+   if maxes[2] - mins[2] < sizes[2]:
+      sizes[2] = maxes[2] - mins[2]
 
-    borderXY = max(0, borderXY)
-    for i in [0, 1]:
-        mins[i] = max(borderXY, borderXY - edge[kShift][i])
-        maxes[i] = min(lower[kSize][i] - 1 - borderXY, \
-                       upper[kSize][i] - 1 - borderXY - edge[kShift][i])
-        if maxes[i] - mins[i] <= sizes[i]:
-            print '%s Border in X and Y and/or patch size in %s needs to be\n'\
-                  'ERROR:     reduced to fit in overlap for edge %s' % \
-                  (prefix, ('X','Y')[i], edge['name'])
-            overspace = min(lower[kSize][i], upper[kSize][i] -edge[kShift][i])\
-                        - max(0, -edge[kShift][i])
-            wanted = 2. * borderXY + sizes[i]
-            frac = overspace / wanted
-            print 'ERROR:     Overlap = %d; e.g., X/Y border %d and patch ' \
-                  'size %d would work' % (overspace, int(frac * borderXY), \
-                                          int(frac * sizes[i]))
-            sys.exit(1)
+   borderXY = max(0, borderXY)
+   for i in [0, 1]:
+      mins[i] = max(borderXY, borderXY - edge[kShift][i])
+      maxes[i] = min(lower[kSize][i] - 1 - borderXY, \
+                     upper[kSize][i] - 1 - borderXY - edge[kShift][i])
+      if maxes[i] - mins[i] <= sizes[i]:
+         print '%s Border in X and Y and/or patch size in %s needs to be\n'\
+               'ERROR:     reduced to fit in overlap for edge %s' % \
+               (prefix, ('X','Y')[i], edge['name'])
+         overspace = min(lower[kSize][i], upper[kSize][i] -edge[kShift][i])\
+                     - max(0, -edge[kShift][i])
+         wanted = 2. * borderXY + sizes[i]
+         frac = overspace / wanted
+         print 'ERROR:     Overlap = %d; e.g., X/Y border %d and patch ' \
+               'size %d would work' % (overspace, int(frac * borderXY), \
+                                       int(frac * sizes[i]))
+         sys.exit(1)
 
-    # Get number of patches
-    delta = intervals
-    if edge[kXorY] == 'Y':
-        delta = [intervals[1], intervals[0], intervals[2]]
-    for i in [0, 1, 2]:
-        numpat[i] = max(1, int(round(float(maxes[i] - mins[i] - sizes[i]) / \
-                                     delta[i])) + 1)
-    if forceZ > 0:
-        numpat[2] = forceZ
+   # Get number of patches
+   delta = intervals
+   if edge[kXorY] == 'Y':
+      delta = [intervals[1], intervals[0], intervals[2]]
+   for i in [0, 1, 2]:
+      numpat[i] = max(1, int(round(float(maxes[i] - mins[i] - sizes[i]) / \
+                                   delta[i])) + 1)
+   if forceZ > 0:
+      numpat[2] = forceZ
 
-    print 'Number of patches in X, Y, and Z: %d %d %d' % \
-          (numpat[0], numpat[1], numpat[2])
-    input = ['ReferenceFile ' + lower['file'],
-             'FileToAlign ' + upper['file'],
-             'OutputFile ' + patchname,
-             'VolumeShiftXYZ %f %f %f' % (edge[kShift][0], edge[kShift][1],
-                                          edge[kShift][2]),
-             'PatchSizeXYZ %d %d %d' % (sizes[0], sizes[1], sizes[2]),
-             'XMinAndMax %d %d' % (mins[0], maxes[0]),
-             'YMinAndMax %d %d' % (mins[1], maxes[1]),
-             'ZMinAndMax %d %d' % (mins[2], maxes[2]),
-             'BSourceBorderXLoHi %d %d' % (borderXY, borderXY),
-             'BSourceBorderYZLoHi %d %d' % (borderXY, borderXY),
-             'NumberOfPatchesXYZ %d %d %d' % (numpat[0], numpat[1], numpat[2])]
+   print 'Number of patches in X, Y, and Z: %d %d %d' % \
+         (numpat[0], numpat[1], numpat[2])
+   input = ['ReferenceFile ' + lower['file'],
+            'FileToAlign ' + upper['file'],
+            'OutputFile ' + patchname,
+            'VolumeShiftXYZ %f %f %f' % (edge[kShift][0], edge[kShift][1],
+                                         edge[kShift][2]),
+            'PatchSizeXYZ %d %d %d' % (sizes[0], sizes[1], sizes[2]),
+            'XMinAndMax %d %d' % (mins[0], maxes[0]),
+            'YMinAndMax %d %d' % (mins[1], maxes[1]),
+            'ZMinAndMax %d %d' % (mins[2], maxes[2]),
+            'BSourceBorderXLoHi %d %d' % (borderXY, borderXY),
+            'BSourceBorderYZLoHi %d %d' % (borderXY, borderXY),
+            'NumberOfPatchesXYZ %d %d %d' % (numpat[0], numpat[1], numpat[2])]
 
-    if lower.has_key(kModel):
-        input.append('RegionModel ' + lower[kModel])
-    if upper.has_key(kModel):
-        input.append('BRegionModel ' + upper[kModel])
-    if kernel > 0.:
-        input.append('KernelSigma %f' % kernel)
+   if lower.has_key(kModel):
+       input.append('RegionModel ' + lower[kModel])
+   if upper.has_key(kModel):
+      input.append('BRegionModel ' + upper[kModel])
+   if kernel > 0.:
+      input.append('KernelSigma %f' % kernel)
 
-    try:
-        verboseOutput('CORRSEARCH3D COMMAND:', input)
-        csout = runcmd('corrsearch3d -StandardInput', input)
-        verboseOutput('CORRSEARCH3D OUTPUT:', csout)
-        edge[kPatch] = patchname
-        csout.reverse()
-        for line in csout:
-            if line.find('per position') >= 0:
-                print line,
-                break
-            
-        modname = edge['name'] + '_ccc.mod'
-        patchcom = 'patch2imod -n "Values are correlation coefficients" ' + \
-                   '-s 5 -f %s %s' % (patchname, modname)
-        runcmd(patchcom, None)
-        return
-    
-    except ImodpyError, errout:
-        exitFromImodError(progname, errout)
+   try:
+      verboseOutput('CORRSEARCH3D COMMAND:', input)
+      csout = runcmd('corrsearch3d -StandardInput', input)
+      verboseOutput('CORRSEARCH3D OUTPUT:', csout)
+
+      # There are new patches: clear out all keys for derived patches
+      edge[kPatch] = patchname
+      if edge.has_key(kReduce):
+         del edge[kReduce]
+      if edge.has_key(kResid):
+         del edge[kResid]
+      if edge.has_key(kResEdit):
+         del edge[kResEdit]
+      if edge.has_key(kResEdit):
+         del edge[kResEdit]
+      csout.reverse()
+      for line in csout:
+         if line.find('per position') >= 0:
+            print line,
+            break
+         
+      modname = edge['name'] + '_ccc.mod'
+      patchcom = 'patch2imod -n "Values are correlation coefficients" ' + \
+                 '-s 5 -f %s %s' % (patchname, modname)
+      runcmd(patchcom, None)
+      return
+   
+   except ImodpyError, errout:
+      exitFromImodError(progname, errout)
 
 # Function to compose a name given the rootname, string values for positions,
 # and flags for whether to add z and whether to put _ between x, y, z
 def composeName(root, x, y, z, noz, under):
-    name = root + '_x' + x
-    if under:
-        name += '_'
-    name += 'y' + y
-    if noz:
-        return name
-    if under:
-        name += '_'
-    name += 'z' + z
-    return name
+   name = root + '_x' + x
+   if under:
+      name += '_'
+   name += 'y' + y
+   if noz:
+      return name
+   if under:
+      name += '_'
+   name += 'z' + z
+   return name
 
 # Function for verbose multiline output
 def verboseOutput(startLine, outputLines):
-    if verbose:
-        if len(startLine):
-            print startLine
-        for line in outputLines:
-            if line.endswith('\n'):
-                print line,
-            else:
-                print line
-    return
+   if verbose:
+      if len(startLine):
+         print startLine
+      for line in outputLines:
+         if line.endswith('\n'):
+            print line,
+         else:
+            print line
+   return
 
 #### MAIN PROGRAM  ####
 #
@@ -310,16 +320,16 @@ prefix = 'ERROR: ' + progname + ' - '
 #
 # Setup runtime environment
 if sys.platform.find("win32") < 0:
-    try:
-        signal.signal(signal.SIGHUP, signal.SIG_IGN)
-    except:
-        pass
+   try:
+      signal.signal(signal.SIGHUP, signal.SIG_IGN)
+   except:
+      pass
 if os.getenv('IMOD_DIR') != None:
-    os.environ['PATH'] = os.path.join(os.environ['IMOD_DIR'], 'bin') + os.pathsep + os.environ['PATH']
-    sys.path.append(os.path.join(os.environ['IMOD_DIR'], 'pylib'))
+   os.environ['PATH'] = os.path.join(os.environ['IMOD_DIR'], 'bin') + os.pathsep + os.environ['PATH']
+   sys.path.append(os.path.join(os.environ['IMOD_DIR'], 'pylib'))
 else:
-    print prefix + " IMOD_DIR is not defined!"
-    sys.exit(1)
+   print prefix + " IMOD_DIR is not defined!"
+   sys.exit(1)
 
 #
 # load IMOD Libraries
@@ -361,11 +371,11 @@ options = ["info:InfoFile:FN:", "noz:NoZValues:B:", "root:RootName:CH:",
            "test:TestMode:I:"]
 
 (numOpts, numNonOpts) = PipReadOrParseOptions(sys.argv, options, progname, 2, \
-        1, 0)
+                                              1, 0)
 infofile = PipGetInOutFile('InfoFile', 0)
 if not infofile:
-    print prefix + " Info file name must be entered"
-    sys.exit(1)
+   print prefix + " Info file name must be entered"
+   sys.exit(1)
 
 # Get the options for adding montage and check for legality
 infoExists = os.path.exists(infofile)
@@ -378,37 +388,37 @@ addingy = 1 - PipGetErrNo()
 (addZlo, addZhi) = PipGetTwoIntegers('AddMontageZRange', addZlo, addZhi)
 addingz = 1 - PipGetErrNo()
 if addingz and not (addingxy or (addingx and addingy)):
-    print prefix +" You must enter -xyadd or -xadd and -yadd if you enter " + \
-          "-zadd"
-    sys.exit(1)
+   print prefix +" You must enter -xyadd or -xadd and -yadd if you enter " + \
+         "-zadd"
+   sys.exit(1)
 if addingxy and (addingx or addingy):
-    print prefix + "You cannot enter -addxy with -addx or -addy"
-    sys.exit(1)
+   print prefix + "You cannot enter -addxy with -addx or -addy"
+   sys.exit(1)
 if (addingx and not addingy) or (addingy and not addingx):
-    print prefix + "You must enter both -xadd and -yadd if you enter one"
-    sys.exit(1)
+   print prefix + "You must enter both -xadd and -yadd if you enter one"
+   sys.exit(1)
 if addingxy and (addx <= 0 or addy <= 0):
-    print prefix + " Illegal montage size in X or Y"
-    sys.exit(1)
+   print prefix + " Illegal montage size in X or Y"
+   sys.exit(1)
 if addingx and (addXlo > addXhi or addXlo < 0 or addXhi < 0):
-    print prefix + " X values out of order or negative"
-    sys.exit(1)
+   print prefix + " X values out of order or negative"
+   sys.exit(1)
 if addingy and (addYlo > addYhi or addYlo < 0 or addYhi < 0):
-    print prefix + " Y values out of order or negative"
-    sys.exit(1)
+   print prefix + " Y values out of order or negative"
+   sys.exit(1)
 if addingz and (addZlo > addZhi or addZlo < 0 or addZhi < 0):
-    print prefix + " Z values out of order or negative"
-    sys.exit(1)
+   print prefix + " Z values out of order or negative"
+   sys.exit(1)
 if infoExists and (addingxy or addingx or addingy) and not addingz:
-    print prefix + " Info file exists; you must enter -zadd along with " + \
-          "-xyadd or -xadd and -yadd"
-    sys.exit(1)
+   print prefix + " Info file exists; you must enter -zadd along with " + \
+         "-xyadd or -xadd and -yadd"
+   sys.exit(1)
 if addingxy:
-    addXlo = 1
-    addXhi = addx
-    addYlo = 1
-    addYhi = addy
-    addingx = 1
+   addXlo = 1
+   addXhi = addx
+   addYlo = 1
+   addYhi = addy
+   addingx = 1
 
 # Get other options needed for composing names and doing edges
 underscore = PipGetBoolean('UnderscoreXYZ', 0)
@@ -418,9 +428,9 @@ recExt = PipGetString('ExtensionOnVolumes', recExt)
 longFrac = PipGetFloat('LongFraction', longFrac)
 nozopt = PipGetBoolean('NoZValues', 0)
 if nozopt and (addingx and infoExists or addingz):
-    print prefix + " You cannot enter -noz with -zadd or if adding a " + \
-          "montage with an existing Info file"
-    sys.exit(1)
+   print prefix + " You cannot enter -noz with -zadd or if adding a " + \
+         "montage with an existing Info file"
+   sys.exit(1)
 
 # Get running options
 anyrun = 0
@@ -429,12 +439,12 @@ xrunEnd, yrunEnd, zrunEnd = 10000, 10000, 10000
 
 anyrun = PipGetBoolean('RunAll', anyrun)
 if not anyrun:
-    xrunStart, xrunEnd = PipGetTwoIntegers('XRunStartEnd', xrunStart, xrunEnd)
-    anyrun += 1 - PipGetErrNo()
-    yrunStart, yrunEnd = PipGetTwoIntegers('YRunStartEnd', yrunStart, yrunEnd)
-    anyrun += 1 - PipGetErrNo()
-    zrunStart, zrunEnd = PipGetTwoIntegers('ZRunStartEnd', zrunStart, zrunEnd)
-    anyrun += 1 - PipGetErrNo()
+   xrunStart, xrunEnd = PipGetTwoIntegers('XRunStartEnd', xrunStart, xrunEnd)
+   anyrun += 1 - PipGetErrNo()
+   yrunStart, yrunEnd = PipGetTwoIntegers('YRunStartEnd', yrunStart, yrunEnd)
+   anyrun += 1 - PipGetErrNo()
+   zrunStart, zrunEnd = PipGetTwoIntegers('ZRunStartEnd', zrunStart, zrunEnd)
+   anyrun += 1 - PipGetErrNo()
 skipDone = PipGetBoolean('SkipDone', 0)
 redoShifts = PipGetBoolean('RedoShifts', 0)
 
@@ -449,9 +459,17 @@ forceZ = PipGetInteger('ForceNumberInZ', forceZ)
 kernel = PipGetFloat('KernelSigma', kernel)
 testMode = PipGetInteger('TestMode', testMode)
 if testMode > 1:
-    leavetmp = 1
+   leavetmp = 1
 if testMode % 2:
-    verbose = 1
+   verbose = 1
+
+patchParams = "-size %d,%d,%d -interval %d,%d,%d -border %d,%d" % \
+              (patchSize[0], patchSize[1], patchSize[2], intervals[0],
+               intervals[1], intervals[2], borderXY, borderZ)
+if forceZ:
+   patchParams += "-force %d" % (forceZ)
+if kernel:
+   patchParams += "-kernel %.2f" % (kernel)
 
 PipDone()
 
@@ -463,69 +481,69 @@ slices = []
 neededges = addingx
 
 if nozopt:
-    predata[kNoZvals] = "1"
+   predata[kNoZvals] = "1"
 if infoExists:
-    readMontInfo(infofile, predata, slices, pieces, edges)
-    if not len(pieces):
-        print prefix + " No pieces are defined in the Info file " + infofile
-        sys.exit(1)
-    (xmin, xmax, ymin, ymax, zmin, zmax, zlist) = montMinMax(pieces)
+   readMontInfo(infofile, predata, slices, pieces, edges)
+   if not len(pieces):
+      print prefix + " No pieces are defined in the Info file " + infofile
+      sys.exit(1)
+   (xmin, xmax, ymin, ymax, zmin, zmax, zlist) = montMinMax(pieces)
 
-    # Figure out if we need to do edges here: are there any edges for each z?
-    if not len(edges):
-        neededges = 1
-    if not neededges:
-        for z in zlist:
-            for edge in edges:
-                if edge[kLower][2] == z:
-                    break
-            else:
-                neededges = 1
+   # Figure out if we need to do edges here: are there any edges for each z?
+   if not len(edges):
+      neededges = 1
+   if not neededges:
+      for z in zlist:
+         for edge in edges:
+            if edge[kLower][2] == z:
+               break
+         else:
+            neededges = 1
 
-    # Check for non-conflict between added and existing Z values
-    if addingx:
-        for z in range(addZlo, addZhi + 1):
-            if z in zlist:
-               print '%s Z value %d is in Z list from'  % (prefix, z) + \
-               ' existing file and in list to add'
-               sys.exit(1)
+   # Check for non-conflict between added and existing Z values
+   if addingx:
+      for z in range(addZlo, addZhi + 1):
+         if z in zlist:
+            print '%s Z value %d is in Z list from'  % (prefix, z) + \
+            ' existing file and in list to add'
+            sys.exit(1)
 
 # Check that options have been entered for making edges
 if neededges and (not rootname or (xOverlap <= 0 and yOverlap <= 0)):
-    print prefix + ' You must enter a rootname and overlap values with' + \
-          ' new pieces'
-    sys.exit(1)
+   print prefix + ' You must enter a rootname and overlap values with' + \
+         ' new pieces'
+   sys.exit(1)
 if addingx and addXhi > addXlo and xOverlap <= 0:
-    print prefix + 'You must enter a positive value for overlap in X ' + \
-          'when adding multiple pieces in X'
-    sys.exit(1)
+   print prefix + 'You must enter a positive value for overlap in X ' + \
+         'when adding multiple pieces in X'
+   sys.exit(1)
 if addingx and addYhi > addYlo and yOverlap <= 0:
-    print prefix + 'You must enter a positive value for overlap in Y ' + \
-          'when adding multiple pieces in Y'
-    sys.exit(1)
+   print prefix + 'You must enter a positive value for overlap in Y ' + \
+         'when adding multiple pieces in Y'
+   sys.exit(1)
 
 # Add the new pieces
 addedData = 0
 if addingx:
-    predata[kNoZvals] = str(nozopt)
-    for z in range(addZlo, addZhi + 1):
-        for x in range(addXlo, addXhi + 1):
-            for y in range(addYlo, addYhi + 1):
-                fileroot = composeName(rootname, str(x), str(y), str(z), \
-                                       nozopt, underscore)
-                filename = fileroot + recExt
-                if os.path.exists(filename):
-                    addedData = 1
-                    piece = {}
-                    pieces.append(piece)
-                    piece[kFrame] = [x, y, z]
-                    piece['file'] = filename
-                    print 'Adding piece ' + filename
-                    filename = fileroot + '_region.mod'
-                    if os.path.exists(filename):
-                        piece[kModel] = filename
-                    elif defaultModel:
-                        piece[kModel] = defaultModel
+   predata[kNoZvals] = str(nozopt)
+   for z in range(addZlo, addZhi + 1):
+      for x in range(addXlo, addXhi + 1):
+         for y in range(addYlo, addYhi + 1):
+            fileroot = composeName(rootname, str(x), str(y), str(z), \
+                                   nozopt, underscore)
+            filename = fileroot + recExt
+            if os.path.exists(filename):
+               addedData = 1
+               piece = {}
+               pieces.append(piece)
+               piece[kFrame] = [x, y, z]
+               piece['file'] = filename
+               print 'Adding piece ' + filename
+               filename = fileroot + '_region.mod'
+               if os.path.exists(filename):
+                  piece[kModel] = filename
+               elif defaultModel:
+                  piece[kModel] = defaultModel
 
 # Rescan Z values
 (xmin, xmax, ymin, ymax, zmin, zmax, zlist) = montMinMax(pieces)
@@ -537,131 +555,138 @@ maxPieces = (zmax + 1 - zmin) * xysize
 
 pieceMap = []
 for i in range(maxPieces):
-    pieceMap.append(-1)
+   pieceMap.append(-1)
 for i in range(len(pieces)):
-    fxyz = pieces[i][kFrame]
-    pieceMap[fxyz[0] - xmin + xsize * (fxyz[1] - ymin) + \
-             xysize * (fxyz[2] - zmin)] = i
-    if not pieces[i].has_key(kSize):
-        addedData = 1
-        try:
-            pieces[i][kSize] = getmrcsize(pieces[i]['file'])
-        except ImodpyError, errout:
-            exitFromImodError(progname, errout)
-    
+   fxyz = pieces[i][kFrame]
+   pieceMap[fxyz[0] - xmin + xsize * (fxyz[1] - ymin) + \
+          xysize * (fxyz[2] - zmin)] = i
+   if not pieces[i].has_key(kSize):
+      addedData = 1
+      try:
+         pieces[i][kSize] = getmrcsize(pieces[i]['file'])
+      except ImodpyError, errout:
+         exitFromImodError(progname, errout)
+   
 # Add edges for Z values that don't have any
 for z in zlist:
-    for edge in edges:
-        if edge[kLower][2] == z:
-            break
-    else:
-        delx = 1
-        dely = 0
-        zbase = xysize * (z - zmin)
-        for xory in ('X', 'Y'):
-            for x in range(xmin, xmax + dely):
-                for y in range(ymin, ymax + delx):
-                    lower = pieceMap[x - xmin + xsize * (y - ymin) + zbase]
-                    upper =  pieceMap[x + delx - xmin + xsize * \
-                                      (y + dely - ymin) + zbase]
+   for edge in edges:
+      if edge[kLower][2] == z:
+         break
+   else:
+      delx = 1
+      dely = 0
+      zbase = xysize * (z - zmin)
+      for xory in ('X', 'Y'):
+         for x in range(xmin, xmax + dely):
+            for y in range(ymin, ymax + delx):
+               lower = pieceMap[x - xmin + xsize * (y - ymin) + zbase]
+               upper =  pieceMap[x + delx - xmin + xsize * \
+                                 (y + dely - ymin) + zbase]
 
-                    # An edge exists if lower and upper pieces exist
-                    if lower >= 0 and upper >= 0:
-                        addedData = 1
-                        edge = {}
-                        edges.append(edge)
-                        xstr = str(x)
-                        ystr = str(y)
+               # An edge exists if lower and upper pieces exist
+               if lower >= 0 and upper >= 0:
+                  addedData = 1
+                  edge = {}
+                  edges.append(edge)
+                  xstr = str(x)
+                  ystr = str(y)
 
-                        # Set up shift as default for corrsearch3d: half the
-                        # difference in sizes
-                        shift = []
-                        for i in [0, 1, 2]:
-                            shift.append(pieces[upper][kSize][i] / 2. - \
-                                         pieces[lower][kSize][i] / 2.)
+                  # Set up shift as default for corrsearch3d: half the
+                  # difference in sizes
+                  shift = []
+                  for i in [0, 1, 2]:
+                     shift.append(pieces[upper][kSize][i] / 2. - \
+                                  pieces[lower][kSize][i] / 2.)
 
-                        # Set name and shift based on X or Y edge
-                        if delx:
-                            xstr += '-' + str(x + 1)
-                            shift[0] = xOverlap - pieces[lower][kSize][0]
-                        else:
-                            ystr += '-' + str(y + 1)
-                            shift[1] = yOverlap - pieces[lower][kSize][1]
-                        edge['name'] = composeName(rootname, xstr, ystr, \
-                                                   str(z), nozopt, underscore)
-                        edge[kXorY] = xory
-                        edge[kLower] = [x, y, z]
-                        edge[kShift] = shift
-            delx = 0
-            dely = 1
+                  # Set name and shift based on X or Y edge
+                  if delx:
+                     xstr += '-' + str(x + 1)
+                     shift[0] = xOverlap - pieces[lower][kSize][0]
+                  else:
+                     ystr += '-' + str(y + 1)
+                     shift[1] = yOverlap - pieces[lower][kSize][1]
+                  edge['name'] = composeName(rootname, xstr, ystr, \
+                                             str(z), nozopt, underscore)
+                  edge[kXorY] = xory
+                  edge[kLower] = [x, y, z]
+                  edge[kShift] = shift
+         delx = 0
+         dely = 1
 
-    # Add a Section section with name and z value
-    for slice in slices:
-        if int(slice[kZvalue]) == z:
-            break
-    else:
-        addedData = 1
-        slice = {}
-        slices.append(slice)
-        if predata.has_key(kNoZvals) and predata[kNoZvals] != '0':
-            slice['name'] = rootname
-            slice[kZvalue] = '0'
-        else:
-            slice['name'] = rootname + '_' + str(z)
-            slice[kZvalue] = str(z)
-            
-        
+   # Add a Section section with name and z value
+   for slice in slices:
+      if int(slice[kZvalue]) == z:
+         break
+   else:
+      addedData = 1
+      slice = {}
+      slices.append(slice)
+      if predata.has_key(kNoZvals) and predata[kNoZvals] != '0':
+         slice['name'] = rootname
+         slice[kZvalue] = '0'
+      else:
+         slice['name'] = rootname + '_' + str(z)
+         slice[kZvalue] = str(z)
+         
+# Write the info file now in case of failure, and after each edge
+if addedData:
+    writeMontInfo(infofile, predata, slices, pieces, edges)
+
 
 # Run the desired edges if any
 if anyrun:
-    xrunStart = max(xmin, xrunStart)
-    xrunEnd = min(xmax, xrunEnd)
-    yrunStart = max(ymin, yrunStart)
-    yrunEnd = min(ymax, yrunEnd)
-    zrunStart = max(zmin, zrunStart)
-    zrunEnd = min(zmax, zrunEnd)
-    for z in range(zrunStart, zrunEnd + 1):
-        delx = 1
-        dely = 0
-        zbase = xysize * (z - zmin)
-        for xory in ('X', 'Y'):
-            for x in range(xrunStart, xrunEnd + dely):
-                for y in range(yrunStart, yrunEnd + delx):
-                    lower = pieceMap[x - xmin + xsize * (y - ymin) + zbase]
-                    upper =  pieceMap[x + delx - xmin + xsize * \
-                                      (y + dely - ymin) + zbase]
-                    if lower >= 0 and upper >= 0:
-                        for edge in edges:
-                            if edge[kXorY] == xory and edge[kLower][0] == x \
-                                   and edge[kLower][1] == y and \
-                                   edge[kLower][2] == z:
-                                break
-                        else:
-                            print '%s Failed to find %s edge in edges array '\
-                                  'for lower piece %d %d %d' % (prefix, xory, \
-                                                                x, y, z)
-                            sys.exit(1)
+   xrunStart = max(xmin, xrunStart)
+   xrunEnd = min(xmax, xrunEnd)
+   yrunStart = max(ymin, yrunStart)
+   yrunEnd = min(ymax, yrunEnd)
+   zrunStart = max(zmin, zrunStart)
+   zrunEnd = min(zmax, zrunEnd)
+   for z in range(zrunStart, zrunEnd + 1):
+      delx = 1
+      dely = 0
+      zbase = xysize * (z - zmin)
+      for xory in ('X', 'Y'):
+         for x in range(xrunStart, xrunEnd + dely):
+            for y in range(yrunStart, yrunEnd + delx):
+               lower = pieceMap[x - xmin + xsize * (y - ymin) + zbase]
+               upper =  pieceMap[x + delx - xmin + xsize * \
+                                 (y + dely - ymin) + zbase]
+               if lower >= 0 and upper >= 0:
+                  for edge in edges:
+                     if edge[kXorY] == xory and edge[kLower][0] == x and \
+                            edge[kLower][1] == y and edge[kLower][2] == z:
+                        break
+                  else:
+                     print '%s Failed to find %s edge in edges array '\
+                           'for lower piece %d %d %d' % (prefix, xory, \
+                                                            x, y, z)
+                     sys.exit(1)
 
-                        if redoShifts or not edge.has_key(kShiftDone):
-                            addedData = 1
-                            findEdgeShifts(pieces[lower], pieces[upper], edge)
-                        if not (skipDone and edge.has_key(kPatch)):
-                            addedData = 1
-                            findPatches(pieces[lower], pieces[upper], edge)
-                        
-            delx = 0
-            dely = 1
+                  if redoShifts or not edge.has_key(kShiftDone):
+                     addedData = 1
+                     findEdgeShifts(pieces[lower], pieces[upper], edge)
+                     writeMontInfo(infofile, predata, slices, pieces, edges)
+                  if not (skipDone and edge.has_key(kPatch)):
+                     addedData = 1
+                     findPatches(pieces[lower], pieces[upper], edge)
+                     edge[kPatchParam] = patchParams
+                     writeMontInfo(infofile, predata, slices, pieces, edges)
+                  
+         delx = 0
+         dely = 1
 
 # Write the info file 
 if addedData:
-    writeMontInfo(infofile, predata, slices, pieces, edges)
-    print 'New info file written'
+   print 'New info file written'
 else:
-    print 'Nothing was done'
+   print 'Nothing was done'
 sys.exit(0)
 
 #
 # $Log$
+# Revision 1.8  2008/12/23 03:28:29  mast
+# Fix output of total shift after 3D correlation
+#
 # Revision 1.7  2008/04/08 21:37:43  mast
 # Added options for setting range to add in X or Y separately, fixed problem
 # with Section entry, and allowed 0 overlap value in one direction
