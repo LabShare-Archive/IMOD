@@ -1,5 +1,14 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+9/8/09: This time thread number really will be controlled by OMP_NUM_THREADS.
+
+9/7/09: Made Stitchalign able to eliminate vectors if they are not present in 
+all the versions of a patch file managed by Fitpatches, and if they are
+outliers or had high residuals in fits in Findwarp.
+
+9/7/09: Switched centering of transform in Xfsimplex to conform to centering
+in interpolation routine.
+
 9/4/09: In Nonanisotrophic Diffusion correcting the handling of spaces in the
 iteration list.
 
