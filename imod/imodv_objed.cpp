@@ -1507,6 +1507,22 @@ void ImodvObjed::clipToggleSlot(bool state)
   finishChangeAndDraw(1, 0);
 }
 
+// External call to toggle the clipping plane
+void imodvObjedToggleClip(void)
+{
+  bool state;
+  Iobj *obj = objedObject();     
+  if (!obj && !Imodv->imod->editGlobalClip)
+    return;
+  IclipPlanes *clips = Imodv->imod->editGlobalClip ? 
+    &Imodv->imod->view->clips : &obj->clips;
+  state = (clips->flags & (1 << clips->plane)) == 0;
+  imodvObjed.clipToggleSlot(state);
+  if (objed_dialog)
+    diaSetChecked(wClipToggle, state);
+}
+
+
 void ImodvObjed::clipMoveAllSlot(bool state)
 {
   int m, mst, mnd;
@@ -1597,7 +1613,8 @@ static void mkClip_cb(int index)
   wClipToggle = diaCheckBox("Clipping plane ON", oef->control, layout1);
   QObject::connect(wClipToggle, SIGNAL(toggled(bool)), &imodvObjed, 
           SLOT(clipToggleSlot(bool)));
-  wClipToggle->setToolTip("Toggle selected clipping plane");
+  wClipToggle->setToolTip("Toggle selected clipping plane (hot key "
+                          CTRL_STRING"-C)");
 
   // 3 mapped reset buttons
   QSignalMapper *mapper = new QSignalMapper(oef->control);
@@ -2558,6 +2575,9 @@ static QVBoxLayout *outerVBoxLayout(QWidget *parent)
 /*
 
 $Log$
+Revision 4.47  2009/05/26 20:20:31  mast
+Make max passes 9999 for Andrew
+
 Revision 4.46  2009/03/22 19:54:25  mast
 Show with new geometry adjust routine for Mac OS X 10.5/cocoa
 
