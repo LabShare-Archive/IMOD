@@ -1,0 +1,273 @@
+#!/usr/bin/python -u
+# fitpatches - program to manage patch models and patch text files and do
+# global and local fitting to them
+#
+# Author: David Mastronarde
+#
+# $Id$
+# Log at end
+#
+
+progname = 'fitpatches'
+prefix = 'ERROR: ' + progname + ' - '
+
+def updatePatchFromModel(patchname, modelname):
+   retval = 0
+   if os.path.exists(modelname):
+      tmpname = changeExtension(patchname, ".tmppatch")
+      try:
+         runcmd('imod2patch ' + modelname + ' ' + tmpname, None)
+      except ImodpyError, errout:
+         exitFromImodError(progname, errout)
+
+      try:
+         patchfile = open(patchname, 'r')
+         patchline = patchfile.readline()
+         patchfile.close()
+      except:
+         print "Opening or reading from " + patchname
+         sys.exit(1)
+
+      try:
+         tmpfile = open(tmpname, 'r')
+         tmpline = tmpfile.readline()
+         tmpfile.close()
+      except:
+         print "Opening or reading from " + tmpname
+         sys.exit(1)
+
+      # Use split without an argument to throw away separators
+      numstr = patchline.split()
+      oldnum = int(numstr[0])
+      numstr = tmpline.split()
+      newnum = int(numstr[0])
+      if (newnum < oldnum):
+         imodpy.makeBackupFile(patchname)
+         try:
+            os.rename(tmpname, patchname)
+         except:
+            print "Renaming " + tmpname + " to " + patchname
+            sys.exit(1)
+            
+         print "Replaced %s from model: the model has %d fewer vectors" %\
+               (patchname, oldnum - newnum)
+         retval = 1
+      else:
+         os.remove(tmpname)
+
+   return retval
+
+
+
+#### MAIN PROGRAM  ####
+#
+# load System Libraries
+import os, sys, os.path, signal
+
+#
+# Setup runtime environment
+if sys.platform.find("win32") < 0:
+   try:
+      signal.signal(signal.SIGHUP, signal.SIG_IGN)
+   except:
+      pass
+if os.getenv('IMOD_DIR') != None:
+   os.environ['PATH'] = os.path.join(os.environ['IMOD_DIR'], 'bin') + \
+                        os.pathsep + os.environ['PATH']
+   sys.path.append(os.path.join(os.environ['IMOD_DIR'], 'pylib'))
+else:
+   print prefix + " IMOD_DIR is not defined!"
+   sys.exit(1)
+
+#
+# load IMOD Libraries
+from imodpy import *
+from pip import *
+from supermont import *
+
+setSMErrorPrefix(prefix)
+
+# Initializations
+scale = 10.
+targets = '0.3,0.5,0.75,1.,1.25,1.5'
+clipsize = 600
+
+
+# Fallbacks from ../manpages/autodoc2man 3 1 fitpatches
+options = ["info:InfoFile:FN:", "xrun:XRunStartEnd:IP:",
+           "yrun:YRunStartEnd:IP:", "zrun:ZRunStartEnd:IP:",
+           "target:TargetMeanResidual:FA:", "clip:ClippingPlaneBoxSize:I:",
+           "scale:ScaleFactor:F:", "rescale:RescaleModels:B:"]
+
+(numOpts, numNonOpts) = PipReadOrParseOptions(sys.argv, options, progname, 1, \
+                                              1, 0)
+infofile = PipGetInOutFile('InfoFile', 0)
+if not infofile:
+   print prefix + " Info file name must be entered"
+   sys.exit(1)
+
+if not os.path.exists(infofile):
+   print prefix + " Info file %s does not exist" % (infofile)
+   sys.exit(1)
+
+# Initialize dictionary arrays, then read existing info file 
+predata = {}
+pieces = []
+edges = []
+slices = []
+readMontInfo(infofile, predata, slices, pieces, edges)
+
+xrunStart, yrunStart, zrunStart = -10000, -10000, -10000
+xrunEnd, yrunEnd, zrunEnd = 10000, 10000, 10000
+
+xrunStart, xrunEnd = PipGetTwoIntegers('XRunStartEnd', xrunStart, xrunEnd)
+yrunStart, yrunEnd = PipGetTwoIntegers('YRunStartEnd', yrunStart, yrunEnd)
+zrunStart, zrunEnd = PipGetTwoIntegers('ZRunStartEnd', zrunStart, zrunEnd)
+targets = PipGetString('TargetMeanResidual', targets)
+scale = PipGetFloat('ScaleFactor', scale)
+rescale = PipGetBoolean('RescaleModels', 0)
+
+
+# Scan Z values
+(xmin, xmax, ymin, ymax, zmin, zmax, zlist) = montMinMax(pieces)
+
+xrunStart = max(xmin, xrunStart)
+xrunEnd = min(xmax, xrunEnd)
+yrunStart = max(ymin, yrunStart)
+yrunEnd = min(ymax, yrunEnd)
+zrunStart = max(zmin, zrunStart)
+zrunEnd = min(zmax, zrunEnd)
+wroteFile = 0
+for z in range(zrunStart, zrunEnd + 1):
+   delx = 1
+   dely = 0
+   for xory in ('X', 'Y'):
+      for x in range(xrunStart, xrunEnd + dely):
+         for y in range(yrunStart, yrunEnd + delx):
+            addedKeys = 0
+            for edge in edges:
+               if edge[kXorY] == xory and edge[kLower][0] == x \
+                  and edge[kLower][1] == y and edge[kLower][2] == z and \
+                  edge.has_key(kPatch):
+
+                  print "\n\nPROCESSING PATCH FILES FOR EDGE " + edge['name']
+                  madeReduced = 0
+
+                  # Update the patch files from the models
+                  modname = changeExtension(edge[kPatch], "_ccc.mod")
+                  updatedOrig = updatePatchFromModel(edge[kPatch], modname)
+                  updatedReduce = 0
+                  if edge.has_key(kReduce):
+                     modname = changeExtension(edge[kReduce], ".mod")
+                     updatedReduce = updatePatchFromModel(edge[kReduce],
+                                                          modname)
+                     if updatedReduce:
+                        if not edge.has_key(kRedEdit):
+                           addedKeys = 1
+                        edge[kRedEdit] = 1
+                  updatedResid = 0
+                  if edge.has_key(kResid):
+                     modname = changeExtension(edge[kResid], ".mod")
+                     updatedResid = updatePatchFromModel(edge[kResid], modname)
+                     if updatedResid:
+                        if not edge.has_key(kResEdit):
+                           addedKeys = 1
+                        edge[kResEdit] = 1
+
+                  try:
+
+                     # Process original to reduced if reduced wasn't ever
+                     # edited and original was updated, or if reduced doesn't
+                     # exist
+                     if (updatedOrig and not edge.has_key(kRedEdit)) or \
+                            not edge.has_key(kReduce):
+                        reduceName = edge['name'] + "_reduce.patch"
+                        input = ['PatchFile ' + edge[kPatch],
+                                 'VolumeOrSizeXYZ 6000 6000 200',
+                                 'ReducedVectorOutput ' + reduceName,
+                                 'MeanResidualLimit 1000']
+                        print "\nRunning Refinematch to make reduced vector "+\
+                              "patches with CCC values"
+                        runcmd('refinematch -StandardInput', input)
+                        if not edge.has_key(kReduce):
+                           addedKeys = 1
+                        edge[kReduce] = reduceName
+                        madeReduced = 1
+
+                     elif updatedOrig and not updatedReduce:
+                        print "Not updating reduced patches from original " +\
+                              "patches because\n reduced patches were " + \
+                              "edited previously"
+
+                     if madeReduced or rescale:
+                        modname = edge['name'] + '_reduce.mod'
+                        patchcom = 'patch2imod -s %f -c %d -f -n ' % \
+                                   (scale, clipsize) + \
+                                   '"Values are CCCs; clip planes exist" ' + \
+                                   '%s %s' % (edge[kReduce], modname)
+                        runcmd(patchcom, None)
+
+                     # We are going to run findwarp regardless - set up to run
+                     # it in place on existing resid patches, then see if it
+                     # should be run on reduce instead
+                     residInFile = edge['name'] + "_resid.patch"
+                     residname = residInFile
+                     if (((updatedOrig and madeReduced) or updatedReduce) and \
+                         not edge.has_key(kResEdit)) or \
+                         not edge.has_key(kResid):
+                        residInFile = edge['name'] + "_reduce.patch"
+                     elif ((updatedOrig and madeReduced) or updatedReduce) \
+                          and not updatedResid:
+                        print "Not updating residual patches from reduced " +\
+                              "patches because\n residual patches were " +\
+                              "edited previously"
+                          
+                     tmpname = edge['name'] + "_resid.tmppatch"
+                     input = ['PatchFile ' + residInFile,
+                              'VolumeOrSizeXYZ 6000 6000 200',
+                              'ResidualPatchOutput ' + tmpname,
+                              'TargetMeanResidual ' + targets]
+                     print '\nRunning Findwarp on patches in ' + residInFile +\
+                           " to make new patches with residual values"
+                     try:
+                        fwout = runcmd('findwarp -StandardInput', input, \
+                                       'stdout')
+                     except ImodpyError, errout:
+                        print " "
+
+                     # And now we rename the temp file and make a new model
+                     makeBackupFile(residname)
+                     try:
+                        os.rename(tmpname, residname)
+                     except:
+                        print "Error renaming " + tmpname + " to " + residname
+                        sys.exit(1)
+
+                     if not edge.has_key(kResid):
+                        addedKeys = 1
+                     edge[kResid] = residname
+                     modname = edge['name'] + '_resid.mod'
+                     patchcom = 'patch2imod -s %f -c %d -f -n ' % \
+                                (scale, clipsize) + \
+                                '"Values are residuals; clip planes exist" ' +\
+                                '%s %s' % (residname, modname)
+                     runcmd(patchcom, None)
+
+
+                  except ImodpyError, errout:
+                     exitFromImodError(progname, errout)
+
+            if addedKeys:
+               writeMontInfo(infofile, predata, slices, pieces, edges)
+               wroteFile = 1
+
+      # Bottom of loop on x or y: switch direction increments
+      delx = 0
+      dely = 1
+
+
+if wroteFile:
+   print '\nNew info file written'
+
+#
+#  $Log$
