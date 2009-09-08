@@ -18,7 +18,7 @@
 #define DEFAULT_SCALE 10.0
 
 Imod *imod_from_patches(FILE *fin, float scale, int clipSize, char *name,
-                        int noflip);
+                        int noflip, int ignoreZero);
 static void usage(char *prog)
 {
   imodVersion(prog);
@@ -30,6 +30,8 @@ static void usage(char *prog)
   printf("\t-f\tDo NOT flip the Y and Z coordinates\n");
   printf("\t-n name\tAdd given name to model object\n");
   printf("\t-c #\tSet up clipping planes enclosing area of given size\n");
+  printf("\t-z\tIgnore zero values when using SD to limit stored "
+         "maximum value\n");
   exit(1);
 }
 
@@ -41,6 +43,7 @@ int main( int argc, char *argv[])
   float scale = 10.0;
   int clipSize = 0;
   int noflip = 0;
+  int ignoreZero = 0;
   char *name = NULL;
 
   /* This name is hard-coded because of the script wrapper needed in Vista */
@@ -71,6 +74,10 @@ int main( int argc, char *argv[])
         noflip = 1;
         break;
 
+      case 'z':
+        ignoreZero = 1;
+        break;
+
       default:
         exitError("Illegal argument %s\n", argv[i]);
         break;
@@ -95,7 +102,8 @@ int main( int argc, char *argv[])
   fout = fopen(argv[i], "wb");
   if (!fout)
     exitError("Could not open %s\n", argv[i]);
-  Model = (Imod *)imod_from_patches(fin, scale, clipSize, name, noflip);
+  Model = (Imod *)imod_from_patches(fin, scale, clipSize, name, noflip, 
+                                    ignoreZero);
      
   imodWrite(Model, fout);
 
@@ -110,7 +118,7 @@ int main( int argc, char *argv[])
 #define MAXLINE 128
 
 Imod *imod_from_patches(FILE *fin, float scale, int clipSize, char *name,
-                        int noflip)
+                        int noflip, int ignoreZero)
 {
   int len;
   int i, npatch, nread;
@@ -212,11 +220,13 @@ Imod *imod_from_patches(FILE *fin, float scale, int clipSize, char *name,
     zmax = B3DMAX(zmax, iz);
 
     if (nread > 6) {
-      nvals++;
       valmin = B3DMIN(valmin, value);
       valmax = B3DMAX(valmax, value);
-      valsum += value;
-      sumsq += value * value;
+      if (value || !ignoreZero) {
+        nvals++;
+        valsum += value;
+        sumsq += value * value;
+      }
       store.index.i = i;
       store.value.f = value;
       if (istoreInsert(&obj->store, &store))
@@ -287,7 +297,11 @@ Imod *imod_from_patches(FILE *fin, float scale, int clipSize, char *name,
 }
 
 /*
+
 $Log$
+Revision 3.13  2009/09/03 04:44:11  mast
+Added ability to store another column in general value 2
+
 Revision 3.12  2007/12/14 23:59:34  mast
 Hard-coded name
 
