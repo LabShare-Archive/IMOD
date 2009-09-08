@@ -23,6 +23,8 @@ all : $(LIBI)
 
 cubinterp.$(O) : cubinterp.c
 	$(CC) $(CFLAGS) $(OPENMP) -c cubinterp.c
+b3dutil.$(O) : b3dutil.c
+	$(CC) $(CFLAGS) $(OPENMP) -c b3dutil.c
 
 $(LIBI) : $(UTILOBJS) $(PIPOBJS)
 	$(FIND) . -type f -name $(LIBI) -exec rm "{}" \;
@@ -53,6 +55,9 @@ adoc_fwrap.$(O) : $(INCDIR)/autodoc.h
 lsqr.$(O) : $(INCDIR)/lsqr.h cblas.h stdbool.h
 
 #  $Log$
+#  Revision 1.12  2009/04/09 18:56:23  mast
+#  Add openmp flag for cubinterp
+#
 #  Revision 1.11  2009/02/16 06:15:43  mast
 #  Added parallelwrite
 #
