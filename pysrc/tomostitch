@@ -10,13 +10,6 @@
 
 # FUNCTIONS
 
-# Remove an extension and add a new one
-def changeExtension(name, newext):
-    ind = name.rfind('.')
-    if ind < 0:
-        ind = len(name)
-    return name[0:ind] + newext
-
 # Run densmatch 
 def runDensmatch(args):
     denscom = 'densmatch -report ' + args
@@ -88,6 +81,7 @@ discount = 0.5
 numMatchIter = 100
 matchWidthFrac = 0.3
 matchLengthFrac = 0.7
+clipsize = 600
 
 # Fallbacks from ../manpages/autodoc2man 3 1 tomostitch
 options = ["info:InfoFile:FN:", "xrun:XRunStartEnd:IP:",
@@ -286,8 +280,9 @@ if dofind:
                     failed.append((x, y))
 
                 if os.path.exists(resname):
-                    patchcom = 'patch2imod -n "Values are residuals" ' + \
-                               '-s 5 -f %s %s' % (resname, resmod)
+                    patchcom = 'patch2imod -s 5 -f -c %d -n  ' % (clipsize) +\
+                    '"Values are residuals; clip planes exist" ' + \
+                               '-z %s %s' % (resname, resmod)
                     runcmd(patchcom, None)
 
     if len(failed):
@@ -716,6 +711,9 @@ sys.exit(0)
 
 #
 # $Log$
+# Revision 1.9  2009/08/20 22:19:54  mast
+# Add some debug output
+#
 # Revision 1.8  2009/01/26 01:27:57  mast
 # Zrun is an integer, not integer pair
 #
