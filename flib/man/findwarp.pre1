@@ -180,7 +180,8 @@ INSERT OPTION TEXT HERE
   
   Name of file with initial 3D transformation that was applied to one of the
      volumes before the patch correlation, or Return if there was no such
-     file.  
+     file.  The format of such a file is described in the Matchvol(1) man
+     page.
 
   Name of output file in which to place the transformations.  These will be
      inverse transformations, ready for use by Warpvol(1).

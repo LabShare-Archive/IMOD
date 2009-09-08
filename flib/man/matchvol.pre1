@@ -17,6 +17,20 @@ DDEESSCCRRIIPPTTIIOONN
   any number of successive refining transformations.  The program
   uses the same algorithm as Rotatevol for rotating large volumes.
 
+  The format of the 3D transform when stored in a file is to consist of 3
+  lines:
+      a11  a12  a13  dx
+      a21  a22  a23  dy
+      a31  a32  a33  dz
+  which specify a transformation for getting from a location in the input
+  volume to a location in the output volume:
+      xo = a11 * xi + a12 * yi + a13 * zi + dx
+      yo = a21 * xi + a22 * yi + a23 * zi + dy
+      zo = a31 * xi + a32 * yi + a33 * zi + dz
+  where (xo, yo, zo) are coordinates relative to the center of the output
+  volume, and (xi, yi, xi) are coordinates relative to the center of the input
+  volume.
+
   Matchvol uses the PIP package for input (see the manual page for pip(1))
   and can take input interactively for options that existed when it was
   converted, to maintain compatibility with old command files.  The

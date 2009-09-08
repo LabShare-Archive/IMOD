@@ -42,7 +42,8 @@ usage = File with initial 3D transform for second volume
 tooltip = 
 manpage = File with initial 3D transform used to make the second volume for
 the patch correlations.  This transform will be incorporated into the warping
-transformations written to the output file
+transformations written to the output file.  The format of such a file is 
+described in the Matchvol(1) man page.
 
 [Field = ResidualPatchOutput]
 short = residual
