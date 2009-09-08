@@ -59,6 +59,7 @@ void imodvObjedName(const char *name);
 void imodvObjedSelect(int which);
 void imodvObjedMakeOnOffs(QFrame *frame);
 void imodvObjedMoveToAxis(int which);
+void imodvObjedToggleClip(void);
 
 #ifdef QT_THREAD_SUPPORT
 #include <qthread.h>
@@ -144,7 +145,11 @@ class ImodvObjed : public QObject
 #endif
 
 /*
+
 $Log$
+Revision 4.17  2009/01/15 16:33:18  mast
+Qt 4 port
+
 Revision 4.16  2008/11/16 04:24:01  mast
 Function for processing meshing spin boxes
 
