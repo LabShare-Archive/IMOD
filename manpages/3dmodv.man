@@ -151,6 +151,9 @@ Increase or decrease the quality (and time) of sphere drawing.
 .B c
 Print clip plane information to standard output.
 .TP
+.B Ctrl-C
+Toggle clipping plane on/off.
+.TP
 .B o
 Print model transformations to standard output.
 .TP
