@@ -4,16 +4,15 @@ Version = 2.1
 [[if = single]]
 	if.disabled.bn.archive-original-stack.return = 
 	bn.archive-original-stack =
+	wait.popup.delete-file? = Delete
+	wait.process.archiving-only-stack = done
 [[]]
 [[if = dual]]
 	if.disabled.bn.archive-original-stacks.return = 
 	bn.archive-original-stacks =
-[[]]
-wait.popup.delete-file? = Delete
-[[if = dual]]
-	if.var.dual.wait.popup.delete-file? = Delete
+	wait.popup.delete-file? = Delete
+	wait.popup.delete-file? = Delete
 	wait.process.archiving-second-stack = done
 [[]]
-if.var.single.wait.process.archiving-only-stack = done
-bn.done =
-
+bn.done=
+sleep=
