@@ -65,6 +65,13 @@ model is rotated.
 .B -n <name>
 Give this name to the model object.  The name is useful for indicating what
 kind of values are stored with the vectors.
+.TP
+.B -z
+Ignore zero values when computing the mean and SD of values.  The program
+computes the actual maximum value and the mean and SD, and then stores a
+maximum value that is limited to 10 SDs above the mean.  This stored value
+determines the maximum that is shown in the model view object edit window of
+3dmod.  This option is needed when there a very large numbers of zero values.
 .SH FILES
 If the model file already exists, it becomes a backup file with ~ added to its
 name.

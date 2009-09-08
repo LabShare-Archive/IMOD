@@ -1,0 +1,101 @@
+.na
+.nh
+.TH fitpatches 1 4.0.14 BL3DEMC
+.SH NAME
+fitpatches \- manage and fit to patch vector files for supermontaging
+.SH SYNOPSIS
+fitpatches options supermontage_info_file
+.SH DESCRIPTION
+Fitpatches is a Python program that assists with the evaluation and editing of
+patch vector files produced by Edgepatches(1) and provides information on
+aberrant vectors to Stitchalign(1).  It uses Refinematch(1) to fit a single
+linear transformation to the original patch vectors and produce a set of
+"reduced" vectors with the often large linear component removed.  The resulting
+patch vector file retains the correlation coefficients originally produced by
+Corrsearch3d(1).  The program also runs
+Findwarp(1) on these reduced vectors and shows the mean and maximum residual
+and outlier information provided by fitting in Findwarp(1).  The resulting
+patch vector file contains a residual value for each vector and a value for
+the fraction of fits on which the vector was excluded as an outlier.  This
+file will be used by Stitchalign(1) to determine which vectors to exclude as
+outliers or because of their high residuals.  Fitpatches also manages making
+vector models from the patch files when the latter are newly derived, and
+converting vector models back to patch files after they have been edited.
+.P
+The files managed by this program have the following names:
+.nf
+edgename.patch         -  Original patch vectors with CCCs
+edgename_ccc.mod       -  Original vector model with CCCs
+edgename_reduce.patch  -  Reduced patch vectors with CCCs
+edgename_reduce.mod    -  Reduced vector model with CCCs
+edgename_resid.patch   -  Reduced vectors with residuals/outlier fractions
+edgename_resid.mod     -  Reduced vector model with residuals
+.fi
+.P
+The program is designed to perform appropriate operations after you edit any
+one of the patch vector models.  Specifically,
+each time it is run, it first determines whether the vector model
+corresponding to each of the three kinds of patch files has been edited; i.e.,
+whether it contains fewer vectors than the current patch file does.  If so,
+that vector model is converted back to a patch file, and the current file is
+saved as a backup by adding "~" to its name.
+.P
+Next, the program determines whether to make new reduced vectors from the
+original vectors.  It will do this if the reduced vectors do not yet exist, or
+if the original vectors have been edited while the reduced vectors have not
+been edited, either now or on a previous run of the program.  In other words,
+once you have edited the reduced vectors with CCCs, they are protected from
+being overwritten.  When the program makes a new set of reduced vectors, it
+will also make a vector model from the patch file.
+.P
+Finally, the program always runs Findwarp(1) to make a new set of vectors with
+residual and outlier information.  The input patch vectors for this are either
+the reduced vectors or the existing set of vectors with residuals.  The
+reduced vectors are used if the vectors with residuals do not exist yet, or if
+the vectors with residuals have not been edited yet and the reduced vectors
+are new in some manner (i.e., have just been edited, or have just been
+produced from the original vectors).  Otherwise, the residual vectors
+themselves are used as input to Findwarp(1) to make a new set of vectors with
+residuals.  In other words, once you have edited the vectors with
+residuals, they will not be overwritten by running Findwarp(1) on the reduced
+vectors.  After running Findwarp(1), the program makes a new vector model from
+the patch file.
+.P
+If you go back to Edgepatches(1) to make new original patches, Edgepatches(1)
+will remove the entries for the derived patches from the supermontage info
+file, and Fitpatches will make new patch files unconditionally when you run it
+again.
+.P
+You should run Fitpatches immediately after Edgepatches(1), and also after any
+editing of the vector models, to ensure that Stitchalign(1) has up-to-date
+information on the residuals and outliers.  You are free to edit any of
+the vector models in any sequence, but there is no reason to edit the original
+vectors, since it is easier to see problems in reduced vectors.  It is
+probably more useful to edit the patches with residuals than the reduced
+patches with CCCs.  If you do want to edit both kinds of patches, it is
+recommended that you first edit the reduced patches with CCCs, then run
+Fitpatches to make new patches with residuals, then edit the patches with
+residuals.
+.SS Options
+Edgepatches uses the PIP package for input (see the manual page
+for pip(1)).  Options can be specified either as command line
+arguments (with the -) or one per line in a command file
+(without the -):
+INSERT OPTION TEXT HERE
+.TP
+.B -StandardInput
+Read parameter entries from standard input
+
+.SH FILES
+The files managed by the program are listed above.
+Every time the info file is modified, the existing copy is renamed to a backup
+with the ~ extension.  
+.SH AUTHOR
+.nf
+David Mastronarde
+.fi
+.SH SEE ALSO
+corrsearch3d(1), edgepatches(1), patch2imod(1), imod2patch(1), stitchalign(1)
+.P
+Email bug reports to mast@colorado.edu.
+

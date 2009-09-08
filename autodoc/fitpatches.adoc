@@ -1,0 +1,75 @@
+Version = 1.0
+Pip = 1
+
+[Field = InfoFile]
+short = info
+type = FN
+usage = Name of supermontage info file
+tooltip =
+manpage = Name of a supermontage info file in which all data about files
+is be stored.  It will be read in when the program
+starts, and renamed to filename~ before writing a new version when the program
+exits.  If this option is not entered, the first non-option argument will be
+taken as the name of the info file.
+
+[Field = XRunStartEnd]
+short = xrun
+type = IP
+usage = Starting and ending frame number in X for patch files to analyze
+tooltip =
+manpage =
+
+[Field = YRunStartEnd]
+short = yrun
+type = IP
+usage = Starting and ending frame number in Y for patch files to analyze
+tooltip =
+manpage =
+
+[Field = ZRunStartEnd]
+short = zrun
+type = IP
+usage = Starting and ending Z value for patch files to analyze
+tooltip =
+manpage =
+
+[Field = TargetMeanResidual]
+short = target
+type = FA
+usage = Target mean residuals to achieve in Findwarp (default 
+0.3,0.5,0.75,1.,1.25,1.5)
+tooltip = 
+manpage = One or more mean residual values to try to reach when Findwarp(1)
+searches for the best warping.  Multiple values should be entered in increasing
+order.  Findwarp(1) will try to find a warping with the largest number of
+included patches that gives a mean residual below the first value; then it
+tries again with the second value, etc.  The default values are designed to 
+produce a successful fit even with rather bad patches.
+
+[Field = ClippingPlaneBoxSize]
+short = clip
+type = I
+usage = Size of square area enclosed by 4 clipping planes (default 600)
+tooltip =
+manpage = Four clipping planes will be added to the reduced and residual models
+to allow a small square of the patch vector model to be viewed in isolation.
+Use this option to change the size from the default of 600 pixels.
+
+[Field = ScaleFactor]
+short = scale
+type = F
+usage = Factor for scaling vectors in reduced and residual models (default 10)
+tooltip =
+manpage = Factor for scaling vectors in reduced and residual models.  The
+default is 10, is is used for vectors when combining tomograms.  Note that the
+original vectors are always scaled by 5 in Edgepatches(1) because they tend to
+be so long.
+
+[Field = RescaleModels]
+short = rescale
+type = B
+usage = Remake the reduced and residual models with the current scale factor.
+tooltip =
+manpage =
+
+
