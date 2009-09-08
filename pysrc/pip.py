@@ -156,7 +156,7 @@ def PipAddOption(optionString):
 
     parts = optionString.split(':', 3)
     if len(parts) < 4:
-        PipSetError("Option does not have three colons in it:\n" + \
+        PipSetError("Option does not have three colons in it:  " + \
                     optionString)
         return -1
 
@@ -918,7 +918,7 @@ def ReadParamFile(pFile):
         while (indst < lineLen):
             if (lineStr[indst] == '='):
                 if (gotEquals):
-                    PipSetError("Two = signs in input line:\n" + lineStr)
+                    PipSetError("Two = signs in input line:  " + lineStr)
                     return -1
                 gotEquals = 1
 
@@ -933,7 +933,7 @@ def ReadParamFile(pFile):
         elif (optTable[optNum].type == 'B'):
             token = "1"
         else:
-            PipSetError("Missing a value on the input line:\n" + lineStr)
+            PipSetError("Missing a value on the input line:  " + lineStr)
             return -1
 
         # Add the token as a value string and increment argument number
@@ -1044,7 +1044,7 @@ def PipGetLineOfValues(option, strPtr, valType, numToGet):
                     numGot = numToGet
                     break
         
-                tempStr = "Default entry with a / is not allowed in value entry:\n%s  %s" % \
+                tempStr = "Default entry with a / is not allowed in value entry:  %s  %s" % \
                           (option, fullStr)
                 PipSetError(tempStr)
                 pipErrno =  -1
@@ -1061,7 +1061,7 @@ def PipGetLineOfValues(option, strPtr, valType, numToGet):
                         if (numGot >= numToGet):
                             break
                     else:
-                        tempStr = "Default entries with commas are not allowed in value entry:\n%s  %s" % \
+                        tempStr = "Default entries with commas are not allowed in value entry:  %s  %s" % \
                                   (option, fullStr)
                         PipSetError(tempStr)
                         pipErrno =  -1
@@ -1084,7 +1084,7 @@ def PipGetLineOfValues(option, strPtr, valType, numToGet):
                 array.append(float(strPtr[0:endPtr]))
             numGot += 1
         except:
-            tempStr = "Illegal character in value entry:\n%s  %s" % \
+            tempStr = "Illegal character in value entry:  %s  %s" % \
                       (option, fullStr)
             PipSetError(tempStr)
             pipErrno =  -1
@@ -1103,7 +1103,7 @@ def PipGetLineOfValues(option, strPtr, valType, numToGet):
 
     # If not enough values found, return error
     if (numToGet > 0 and numGot < numToGet):
-        tempStr = "%d values expected but only %d values found in value entry:\n%s %s" % \
+        tempStr = "%d values expected but only %d values found in value entry:  %s %s" % \
                   (numToGet, numGot, option, fullStr)
         PipSetError(tempStr)
         pipErrno =  -1
@@ -1247,4 +1247,7 @@ def CheckKeyword(line, keyword, index):
     return (line[valStart:], index)
 
 # $Log$
+# Revision 1.1  2008/01/05 17:19:09  mast
+# Added to package
+#
 #
