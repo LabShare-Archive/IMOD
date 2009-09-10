@@ -2,6 +2,9 @@ c       stitchvars.f: module file for stitchalign
 c       
 c       $Id$
 c       $Log$
+c       Revision 3.1  2009/09/07 17:21:34  mast
+c       Convert to module
+c
 c       Revision 3.1  2007/04/08 16:13:55  mast
 c       Added to package
 c
@@ -45,8 +48,10 @@ c       Size of input volumes and of output volume
       integer*4 nxyzin(3, maxvols), nxyzout(3), nxout, nyout, nzout
       equivalence (nxout, nxyzout(1)), (nyout, nxyzout(2)), (nzout, nxyzout(3))
 c       
+c       Original piece numbers
 c       Index from volume to upper one in each direction, 
 c       index to overlap vector set in each direction; number of volumes loaded
+      integer*4 ixPiece(maxvols), iyPiece(maxvols)
       integer*4 iVolUpper(2, maxvols), indVector(2, maxvols)
       integer*4 iVolLower(2,maxvols), numVols
 c       
@@ -83,6 +88,7 @@ c
 c       Overall min and max of edges, and min and max within bands along the
 c       long dimension, for finding edge fractions
       real*4 edgeMin(3,2*maxvols), edgeMax(3,2*maxvols), bandDel(2*maxvols)
+      real*4 extendedEdMin(3,2*maxvols), extendedEdMax(3,2*maxvols)
       real*4 bandMin(maxband,2*maxvols), bandMax(maxband,2*maxvols)
       integer*4 numBands(2*maxvols)
 c       
