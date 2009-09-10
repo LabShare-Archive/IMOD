@@ -17,8 +17,7 @@ c
       parameter (maxvar = 10*maxvols, maxsec = 1000, limoutgrid=500000)
       real*4 var(maxvar), grad(maxvar), hess(maxvar*(maxvar+3))
       real*4 rmat(3,3)
-      integer*4 listAllZ(maxsec), listZdo(maxsec), ixPiece(maxvols)
-      integer*4 iyPiece(maxvols), indSection(maxvols)
+      integer*4 listAllZ(maxsec), listZdo(maxsec), indSection(maxvols)
       integer*4 indXorY(2*maxvols)
       real*4 fitdxyz(3,maxvols), fullMat(3,3,maxvols)
       real*4 edgeShift(3, 2*maxvols), volShift(3, maxvols), fulldxyz(3,maxvols)
@@ -44,7 +43,7 @@ c
       character*1024 listString,filename
       character*4 xoryStr
       real*4 atan2d, cosd, sind
-      integer*4 lnblnk
+      logical pieceExists
       external stitchfunc
 
       integer*4 AdocRead, AdocGetNumberOfSections, AdocGetThreeIntegers
@@ -253,7 +252,7 @@ c         Check that each volume is connected - just quit if not
      &        iVolLower(2,i) .eq. 0) then
             write(listString,'(a,3i4,a)')'THE VOLUME AT',ixPiece(i), iyPiece(
      &          i), izval ,' HAS NO EDGES WITH OTHER VOLUMES'
-            call exitError(listString(1:lnblnk(listString)))
+            call exitError(trim(listString))
           endif
         enddo
         print *,numVols,' piece volumes and', numEdge, ' edges found'
@@ -496,7 +495,7 @@ c             it - these will work the same as shift displacements
             edgeGeomVars(6,j) = beta(1) - beta(2)
             edgeGeomVars(7,j) = gamma(1) - gamma(2)
           endif
-          call scaleAndReport(ixPiece, iyPiece)
+          call scaleAndReport()
         enddo
         if (pairwise) then
 c           
@@ -518,7 +517,7 @@ c           dxyz from the existing variable values
           enddo
           ifUnload = 0
           call stitchfunc(nvarsrch,var,finalErr,Grad)
-          call scaleAndReport(ixPiece, iyPiece)
+          call scaleAndReport()
         endif
 c         
 c         compute full transform and output to file
@@ -591,8 +590,28 @@ c                 own grid spacing for X and Y, not for Z
                   edgeMin(i,j) = min(edgeMin(i,j), cenRot(i,k) - gridPad)
                   edgeMax(i,j) = max(edgeMax(i,j), cenRot(i,k) + gridPad)
                 enddo
+                extendedEdMin(i,j) = edgeMin(i,j)
+                extendedEdMax(i,j) = edgeMax(i,j)
               enddo
               edgeWidthMean = edgeWidthMean + edgeMax(iexy,j) - edgeMin(iexy,j)
+c               
+c               Set extended min/max to edge of volume if there is no edge
+c               butting up in that direction
+              if (iexy .eq. 1) then
+                if (.not.(pieceExists(ixPiece(iv), iyPiece(iv) - 1) .and.
+     &              pieceExists(ixPiece(jv), iyPiece(jv) - 1)))
+     &              extendedEdMin(2,j) = min(extendedEdMin(2,j), 0.)
+                if (.not.(pieceExists(ixPiece(iv), iyPiece(iv) + 1) .and.
+     &              pieceExists(ixPiece(jv), iyPiece(jv) + 1)))
+     &              extendedEdMax(2,j) = max(extendedEdMax(2,j), nyout - 0.1)
+              else
+                if (.not.(pieceExists(ixPiece(iv) - 1, iyPiece(iv)) .and.
+     &              pieceExists(ixPiece(jv) - 1, iyPiece(jv))))
+     &              extendedEdMin(1,j) = min(extendedEdMin(1,j), 0.)
+                if (.not.(pieceExists(ixPiece(iv) + 1, iyPiece(iv)) .and.
+     &              pieceExists(ixPiece(jv) + 1, iyPiece(jv))))
+     &              extendedEdMax(1,j) = max(extendedEdMax(1,j), nxout - 0.1)
+              endif
 c               
 c               Determine min and max in bands across the edge for better
 c               estimation of edge fractions
@@ -613,7 +632,8 @@ c     &              (cenRot(i,k),i=1,3),
 c     &              (vector(i,k),i=1,3),(vecRot(i,k),i=1,3),
 c     &              (resid(i,k)/scalexyz,i=1,3)
               enddo
-c              print *,iv,iexy,(edgeMin(i,j), edgeMax(i,j), i=1,3)
+c              print *,iv,iexy,(edgeMin(i,j), edgeMax(i,j), i=1,3),
+c     &            (extendedEdMin(i,j), extendedEdMax(i,j),i=1,2)
 c              print *,numBands(j), ' bands'
 c              print *,(bandMin(i,j), bandMax(i,j), i=1,numBands(j))
             endif
@@ -713,7 +733,7 @@ c         spaced data
           enddo 
         enddo
 c         
-c         Loop on the creating the output grids
+c         Loop on creating the output grids
         do iv = 1, numVols
           numVecOut = 0
           do ix = 1, numOutGrid(1,iv)
@@ -724,25 +744,30 @@ c
 c               Prescan all the positions in a column for each edge and enforce
 c               consistency in whether an edge is kept active in the initial
 c               test: if any points in column give a vector and not all points
-c               do so, then set up to extend to nearest vector
+c               do so, then set up to extend to nearest vector  HUH? STILL?
               call countedges(float(ixpos), float(iypos), iv)
-              do iexy=1,2
-                do i=1,numedges(iexy)
-                  j=inedge(i,iexy)
-                  k = inedlower(i,iexy)
-                  nsum = 0
-                  do iz = 1, numOutGrid(3,iv)
-                    xsum = ioutGridStart(3,iv) + (iz-1)*ioutGridDelta(3,iv)
-                    call interpolateVector(xInPiece(k), yInPiece(k), xsum,
-     &                  inPiece(k), j, 0.5, 0, fitdxyz, ndim)
-                    if (ndim .gt. 0) nsum = nsum + 1
-                  enddo
-                  nIniExtend(i,iexy) = 0
-c                  if (nsum .gt. 0 .and. nsum .lt. numOutGrid(3,iv))
-                  if (nsum .eq. numOutGrid(3,iv))
-     &                nIniExtend(i,iexy) = 5
-                enddo
-              enddo
+c               
+c               With the current behavior in findWarpVector, this whole loop
+c               has no function
+c$$$              do iexy=1,2
+c$$$                do i=1,numedges(iexy)
+c$$$                  j=inedge(i,iexy)
+c$$$                  k = inedlower(i,iexy)
+c$$$                  nsum = 0
+c$$$                  if (ixpos .eq. -1 .and. iypos .eq. -1)
+c$$$     &                print *,xInPiece(k), yInPiece(k)
+c$$$                  do iz = 1, numOutGrid(3,iv)
+c$$$                    xsum = ioutGridStart(3,iv) + (iz-1)*ioutGridDelta(3,iv)
+c$$$                    call interpolateVector(xInPiece(k), yInPiece(k), xsum,
+c$$$     &                  inPiece(k), j, 0.5, 0, fitdxyz, ndim)
+c$$$                    if (ndim .gt. 0) nsum = nsum + 1
+c$$$                  enddo
+c$$$                  nIniExtend(i,iexy) = 0
+c$$$c                  if (nsum .gt. 0 .and. nsum .lt. numOutGrid(3,iv))
+c$$$                  if (nsum .eq. numOutGrid(3,iv))
+c$$$     &                nIniExtend(i,iexy) = 5
+c$$$                enddo
+c$$$              enddo
 
               do iz = 1, numOutGrid(3,iv)
                 i = numVecOut + 1
@@ -752,6 +777,8 @@ c                  if (nsum .gt. 0 .and. nsum .lt. numOutGrid(3,iv))
                 iposOut(2,i) = iypos
                 iposOut(3,i) = ioutGridStart(3,iv) + (iz-1)*ioutGridDelta(3,iv)
                 call findWarpVector(iposOut(1,i), iv, vecOut(1,i), ndim)
+                if (ixpos .eq. -1 .and. iypos .eq. -1)
+     &              print *,iposOut(3,i),ndim,(vecOut(j,i),j=1,3)
                 if (ndim .gt. 0) numVecOut = i
               enddo
             enddo
@@ -1497,10 +1524,9 @@ c     &              (rmat(i,m,iv),m=1,3)
 
 c       Scales the results from a minimization and reports the results
 c
-      subroutine scaleAndReport(ixPiece, iyPiece)
+      subroutine scaleAndReport()
       use stitchvars
       implicit none
-      integer*4 ixPiece(*), iyPiece(*)
       integer*4 iexy, j, m, iv, jv, ivf, jvf, nsum,kstr, kend, k, i
       real*8 dsum, dsumsq
       real*4 distMax,avg,sd,dist
@@ -1715,9 +1741,9 @@ c           See if piece is on list already
             enddo
 c
 c           Accept edge if in the edge or the other piece is on list already
-            if (indpiece .gt. 0 .or. (xinp .ge. edgeMin(1,j)
-     &        .and. xinp .le. edgeMax(1,j) .and. yinp .ge. edgeMin(2,j) .and.
-     &        yinp .le. edgeMax(2,j))) then
+            if (indpiece .gt. 0 .or. (xinp .ge. extendedEdMin(1,j)
+     &          .and. xinp .le. extendedEdMax(1,j) .and. yinp .ge.
+     &          extendedEdMin(2,j) .and. yinp .le. extendedEdMax(2,j))) then
 c               
 c               In an edge.  
 c               Add piece if not already on list, and position in piece
@@ -1828,18 +1854,18 @@ c       and if not, set edge fraction to limit and make the edge inactive
         do ied=1,numedges(ixy)
           iedge=inedge(ied,ixy)
           indlower=inedlower(ied,ixy)
-          call interpolateVector(xInPiece(indlower), yInPiece(indlower), zpos,
-     &        inPiece(indlower), iedge, 0.7, 0, vec, ndim)
+c          call interpolateVector(xInPiece(indlower), yInPiece(indlower), zpos,
+c     &        inPiece(indlower), iedge, 0.7, 0, vec, ndim)
 c     &        inPiece(indlower), iedge, 0.5, nIniExtend(ied,ixy), vec, ndim)
-c          print *,xpos,ypos,zpos,inPiece(indlower), iedge,(vec(i),i=1,3), ndim
-          if (ndim .eq. 0 .or. nIniExtend(ied,ixy) .eq. 0) then
+c          if (debug)print *,xpos,ypos,zpos,inPiece(indlower), iedge,(vec(i),i=1,3), ndim
+c          if (ndim .eq. 0 .or. nIniExtend(ied,ixy) .eq. 0) then
 c          if (ndim .eq. 0) then
-            if (edgefrac4(ied,ixy) .lt. 0.5) then
-              edgefrac4(ied,ixy) = 0.
-            else
-              edgefrac4(ied,ixy) = 1.
-            endif
-          endif
+c            if (edgefrac4(ied,ixy) .lt. 0.5) then
+c              edgefrac4(ied,ixy) = 0.
+c            else
+c              edgefrac4(ied,ixy) = 1.
+c            endif
+c          endif
           
           active4(ied,ixy)=edgefrac4(ied,ixy).lt..999
      &        .and.edgefrac4(ied,ixy).gt..001
@@ -2597,8 +2623,7 @@ c       backtransform position to the original volume for looking up in grid
       pos(1) = xpos
       pos(2) = ypos
       pos(3) = zpos
-c       debug = xpos .eq. 3213. .and. ypos .eq. 2916.
-      debug = .false.
+      debug = xpos .eq. -10000. .and. ypos .eq. -10000.
       call transformPos(pos, finvMat(1,1,ivol), finvDxyz(1,ivol), nxyzout,
      &    nxyzin(1,ivol), back)
       nxg = numVecGrid(1,iedge)
@@ -2649,7 +2674,7 @@ c       Next see if closest cube is complete
           ndim = 1
           fz = (back(3) - (vgStartZ + (izg - 1) * vgDeltaZ)) / vgDeltaZ
           fzout = abs(fz - 0.5) - 0.5
-          if (debug) write(*,'(6f9.4)')fx,fy,fz,fxout,fyout,fzout
+          if (debug) write(*,'(a,6f9.4)')'complete',fx,fy,fz,fxout,fyout,fzout
           if ((fxout .le. 0. .and. fyout .le. 0.) .or. (max(0., fxout) +
      &        max(0., fyout) + max(0., fzout) .le. extraplim)) ndim = 3
         endif
@@ -2699,6 +2724,7 @@ c         If one was found, set cube there
           ixg = ixg + idx(mindir)
           iyg = iyg + idy(mindir)
           izg = izg + idz(mindir)
+          if (debug) write(*,'(a,6f9.4)')'nearest',fx,fy,fz,fxout,fyout,fzout
         endif
       endif
 c       
@@ -2708,6 +2734,7 @@ c       farther away, but require being in X/Y range
         fx = (back(1) - (vgStartX + (ixg - 1) * vgDeltaX)) / vgDeltaX
         fy = (back(2) - (vgStartY + (iyg - 1) * vgDeltaY)) / vgDeltaY
         if (abs(fx - 0.5) .gt. 0.5 .or. abs(fy - 0.5) .gt. 0.5) ndim = 1
+        if (debug) print *,'ndim',ndim,fx,fy
         idir = 0
         do while (idir .lt. nzg - 1 .and. ndim .eq. 0)
 c           
@@ -2761,6 +2788,7 @@ c           Next test cubes farther away
           idir = idir + 1
         enddo
       endif
+      if (debug) print *,'ndim',ndim
 c       
 c       Here we are at last with something theoretically usable
       if (ndim .eq. 3) then
@@ -2916,7 +2944,28 @@ c
       end
 
 
+c       Looks up whether a piece exists
+c       
+      logical function pieceExists(ix, iy)
+      use stitchvars
+      implicit none
+      integer*4 ix, iy, iv
+      pieceExists = .true.
+      do iv = 1, numVols
+        if (ixPiece(iv) .eq. ix .and. iyPiece(iv) .eq. iy) return
+      enddo
+      pieceExists = .false.
+      return
+      end
+
+
 c       $Log$
+c       Revision 3.7  2009/09/07 17:20:56  mast
+c       Added ability to read in multiple patch files, eliminate vectors unless
+c       present in all files, and eliminated based on outlier fraction and
+c       residual from findwarp.  Fixed bugs from shortcut evaluation of if
+c       statements and in use of bands.
+c
 c       Revision 3.6  2008/12/29 20:43:18  mast
 c       Avoid multiple vector outputs at same Z level and enforce only one
 c       level of output if input has only one level
