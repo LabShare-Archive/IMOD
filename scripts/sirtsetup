@@ -176,8 +176,8 @@ endif
 set sirtname = ${rootname}_sirt
 
 set slices = `grep -i slice $comname | grep -v '^#' | sed '/[^ 0-9\.]/s///g'`
-set alifile = `grep -i inputproj $comname | grep -v '^#' | sed '/[^ 0-9\.]/s///g'`
-set recfile = `grep -i outputfile $comname | grep -v '^#' | sed '/[^ 0-9\.]/s///g'`
+set alifile = `grep -i inputproj $comname | grep -v '^#' | awk '{print $2}' | sed '/[[:cntrl:]]/s///g'`
+set recfile = `grep -i outputfile $comname | grep -v '^#' | awk '{print $2}' | sed '/[[:cntrl:]]/s///g'`
 set width = `grep -i width $comname | grep -v '^#' | sed '/[^ 0-9\.]/s///g'`
 set thickness = `grep -i thickness $comname | grep -v '^#' | sed '/[^0-9\.]/s///g'`
 set logbase = `grep -i '^ *log' $comname | sed '/[^ 0-9\.]/s///g'`
@@ -473,6 +473,9 @@ echo "  processchunks machine_list $sirtname"
 exit 0
 
 #  $Log$
+#  Revision 3.10  2009/08/04 22:44:00  mast
+#  Fixed detection of last reconstruction and made it work if > 100
+#
 #  Revision 3.9  2009/07/16 17:55:42  mast
 #  Pass boundary pixels argument to splittilt properly
 #
