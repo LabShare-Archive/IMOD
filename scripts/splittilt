@@ -137,9 +137,9 @@ set thickness = `grep -i thickness $comname | grep -v '^#' | sed '/[^0-9\.]/s///
 set slices = `grep -i slice $comname | grep -v '^#' | sed '/[^ 0-9\.]/s///g'`
 set local = `grep -i localfile $comname | grep -v '^#'`
 set binning = `grep -i imagebinned $comname | grep -v '^#' | sed '/[^0-9\.]/s///g'`
-set alifile = `grep -i inputproj $comname | grep -v '^#' | sed '/[^ 0-9\.]/s///g'`
-set recfile = `grep -i outputfile $comname | grep -v '^#' | sed '/[^ 0-9\.]/s///g'`
-set rectoproj = `grep -i recfiletoreproj $comname | grep -v '^#' | sed '/[^ 0-9\.]/s///g'`
+set alifile = `grep -i inputproj $comname | grep -v '^#' | awk '{print $2}' | sed '/[[:cntrl:]]/s///g'`
+set recfile = `grep -i outputfile $comname | grep -v '^#' | awk '{print $2}' | sed '/[[:cntrl:]]/s///g'`
+set rectoproj = `grep -i recfiletoreproj $comname | grep -v '^#' | awk '{print $2}' | sed '/[[:cntrl:]]/s///g'`
 set sliceproj = `grep -i "^ *reproject" $comname`
 set width = `grep -i width $comname | grep -v '^#' | sed '/[^ 0-9\.]/s///g'`
 
@@ -463,6 +463,9 @@ echo "Command files for $numslabs chunks created and ready to run with:"
 echo "  processchunks machine_list $rootname"
 
 #  $Log$
+#  Revision 3.15  2009/08/04 22:43:06  mast
+#  Use different boundary info file name for reprojection so sirt works
+#
 #  Revision 3.14  2009/02/16 06:21:21  mast
 #  Modified to use new parallel write stuff
 #
