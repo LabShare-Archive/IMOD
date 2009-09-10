@@ -245,7 +245,7 @@ C
      &    1X,'Pixel spacing (Angstroms)..............',1x,3G11.4,/,
      &    1X,'Cell angles ...........................',3F9.3,/,
      &    1X,'Fast, medium, slow axes ...............',3(4X,A1),/,
-     &    1X,'Origin on x,y,z .......................',1x,3G11.4,/,
+     &    1X,'Origin on x,y,z .......................',1x,3G12.4,/,
      &    1X,'Minimum density .......................',G13.5,/,
      &    1X,'Maximum density .......................',G13.5,/,
      &    1X,'Mean density ..........................',G13.5,/,
@@ -1269,6 +1269,9 @@ c
       end
 
 c       $Log$
+c       Revision 3.18  2009/06/22 20:19:46  mast
+c       Switch to module, add mode label output
+c
 c       Revision 3.17  2009/03/25 23:54:55  mast
 c       Switched to writing integer into character variable for testing Fei, it
 c       seems safer and corresponds to what is done when printing the labels
