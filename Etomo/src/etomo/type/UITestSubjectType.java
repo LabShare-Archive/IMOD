@@ -13,12 +13,16 @@ package etomo.type;
  * 
  * @version $Revision$
  * 
- * <p> $Log$ </p>
+ * <p> $Log$
+ * <p> Revision 1.1  2009/01/20 19:42:50  sueh
+ * <p> bug# 1102 Describes the subject of a uitest command.
+ * <p> </p>
  */
 public final class UITestSubjectType {
   public static final String rcsid = "$Id$";
 
   public static final UITestSubjectType ADOC = new UITestSubjectType("adoc");
+  public static final UITestSubjectType COM = new UITestSubjectType("com");
   public static final UITestSubjectType DATASET = new UITestSubjectType(
       "dataset");
   public static final UITestSubjectType DIALOG = new UITestSubjectType("dialog");

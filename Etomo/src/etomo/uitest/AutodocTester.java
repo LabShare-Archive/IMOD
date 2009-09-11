@@ -34,6 +34,7 @@ import junit.extensions.jfcunit.finder.AbstractButtonFinder;
 import junit.extensions.jfcunit.finder.NamedComponentFinder;
 import junit.framework.Assert;
 import etomo.EtomoDirector;
+import etomo.process.SystemProgram;
 import etomo.storage.LogFile;
 import etomo.storage.autodoc.AutodocFactory;
 import etomo.storage.autodoc.ReadOnlyAutodoc;
@@ -62,6 +63,9 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.10  2009/09/06 01:40:21  sueh
+ * <p> bug# 1259 Fixed a uitest bug.
+ * <p>
  * <p> Revision 1.9  2009/09/01 03:18:33  sueh
  * <p> bug# 1222
  * <p>
@@ -571,14 +575,8 @@ final class AutodocTester extends Assert implements VariableList {
       //assert.file
       if (subjectType == UITestSubjectType.FILE) {
         File file = new File(System.getProperty("user.dir"), value);
-        //assert.equals.file = file_name
-        if (modifierType == UITestModifierType.EQUALS) {
-          String errorMessage = compareFiles(file, value);
-          assertNull("file does not equal stored file - " + value + " ("
-              + command + ")\n" + errorMessage, errorMessage);
-        }
         //assert.exists.file = file_name
-        else if (modifierType == UITestModifierType.EXISTS) {
+        if (modifierType == UITestModifierType.EXISTS) {
           assertTrue("file does not exist - " + value + " (" + command + ")",
               file.exists());
         }
@@ -589,6 +587,15 @@ final class AutodocTester extends Assert implements VariableList {
         }
         else {
           fail("unexpected command (" + command + ")");
+        }
+      }
+      if (subjectType == UITestSubjectType.COM) {
+        File comFile = new File(System.getProperty("user.dir"), value);
+        //assert.equals.com = com_file_name
+        if (modifierType == UITestModifierType.EQUALS) {
+          String errorMessage = compareComFiles(comFile, value);
+          assertNull("com file does not equal stored com file - " + value + " ("
+              + command + ")\n" + errorMessage, errorMessage);
         }
       }
       //assert.field = value
@@ -1176,7 +1183,8 @@ final class AutodocTester extends Assert implements VariableList {
   }
 
   /**
-   * Compares ascii files.
+   * Compares com files.  Sorts the files and them compares them line by line.
+   * The sorting is necessary because the order of a command may change
    * Returns null if file is equals with uitestDataDir/storedFileName.
    * Otherwise returns an error message.
    * @param file
@@ -1186,58 +1194,53 @@ final class AutodocTester extends Assert implements VariableList {
    * @throws FileNotFoundException
    * @throws IOException
    */
-  private String compareFiles(File file, String storedFileName)
+  private String compareComFiles(File comFile, String storedComFileName)
       throws LogFile.LockException, FileNotFoundException, IOException {
-    File storedFile = new File(testRunner.getUitestDataDir(), storedFileName);
-    if (file == null || storedFileName == null) {
+    if (comFile == null || storedComFileName == null) {
       //One or more of the files are missing.
-      return file.getAbsolutePath() + " or " + storedFile.getAbsolutePath()
+      return comFile.getAbsolutePath() + " or " + storedComFileName
           + " is null.";
     }
-    if (!file.exists() || !file.isFile() || !storedFile.exists()
-        || !storedFile.isFile()) {
+    File storedComFile = new File(testRunner.getUitestDataDir(), storedComFileName);
+    if (!comFile.exists() || !comFile.isFile() || !storedComFile.exists()
+        || !storedComFile.isFile()) {
       //Can't compare directories right now.
       //Nonexistant files are not equal.
-      return file.getAbsolutePath() + " or " + storedFile.getAbsolutePath()
+      return comFile.getAbsolutePath() + " or " + storedComFile.getAbsolutePath()
           + " does not exist or is not a file.";
     }
-    //Use LogFile to read files.
-    LogFile logFile = LogFile.getInstance(file, testRunner.getManagerKey());
-    LogFile storedLogFile = LogFile.getInstance(storedFile, testRunner
-        .getManagerKey());
-    LogFile.ReaderId readerId = logFile.openReader();
-    LogFile.ReaderId storedReaderId = storedLogFile.openReader();
-    if (readerId == null || storedReaderId == null) {
-      logFile.closeReader(readerId);
-      storedLogFile.closeReader(storedReaderId);
-      return "Unable to open reader for " + file.getAbsolutePath() + " or "
-          + storedFile.getAbsolutePath() + ".";
+    //Sort com files because order may not be the same in the commands
+    SystemProgram sortComFile = new SystemProgram(System.getProperty("user.dir"),
+        new String[] { "sort",  comFile.getAbsolutePath() }, AxisID.ONLY,
+        null);
+    sortComFile.run();
+    String[] stdOut= sortComFile.getStdOutput();
+    SystemProgram sortStoredComFile = new SystemProgram(System.getProperty("user.dir"),
+        new String[] { "sort",  storedComFile.getAbsolutePath() }, AxisID.ONLY,
+        null);
+    sortStoredComFile.run();
+    String[] storedStdOut= sortStoredComFile.getStdOutput();
+    if (stdOut == null && storedStdOut == null) {
+      //Both files are empty so they are equal.
+      return null;
     }
-    String line = logFile.readLine(readerId);
-    String storedLine = storedLogFile.readLine(storedReaderId);
-    //Compare lines while there are lines in both files.
-    while (line != null || storedLine != null) {
-      System.out.println(line + "\n" + storedLine);
-      if (!line.equals(storedLine)) {
-        logFile.closeReader(readerId);
-        storedLogFile.closeReader(storedReaderId);
+    if (stdOut == null || storedStdOut == null) {
+      return "Unable to sort " + comFile.getAbsolutePath() + " or "
+          + storedComFile.getAbsolutePath() + ".";
+    }
+    //Compare file lengths
+    if (stdOut.length!=storedStdOut.length) {
+      return comFile.getAbsolutePath() + " and "
+      + storedComFile.getAbsolutePath() + " have unequal lengths.";
+    }
+    //Compare lines.
+    for (int i = 0;i<stdOut.length;i++) {
+      if (!stdOut[i].equals(storedStdOut[i])) {
         //Found an unequal line.
-        return "Unequal lines:" + file.getAbsolutePath() + ":\n" + line + "\n"
-            + storedFile.getAbsolutePath() + ":\n" + storedLine;
+        return "Unequal lines:" + comFile.getAbsolutePath() + ":\n" + stdOut[i] + "\n"
+            + storedComFile.getAbsolutePath() + ":\n" + storedStdOut[i];
       }
-      line = logFile.readLine(readerId);
-      storedLine = storedLogFile.readLine(storedReaderId);
     }
-    //At least one file ran out of lines
-    if (line != null || storedLine != null) {
-      logFile.closeReader(readerId);
-      storedLogFile.closeReader(storedReaderId);
-      //One file still has lines left - not equals.
-      return "Either " + file.getAbsolutePath() + " or "
-          + storedFile.getAbsolutePath() + " is longer.";
-    }
-    logFile.closeReader(readerId);
-    storedLogFile.closeReader(storedReaderId);
     return null;
   }
 

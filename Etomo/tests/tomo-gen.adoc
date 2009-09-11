@@ -84,7 +84,7 @@ mb.tilt=+
 	assert.exists.file=processchunks%{axis}.out
 	assert.exists.file=%{dataset}%{tomo-ext}%{axis}.rec
 	# check comscript
-	assert.equals.file=tilt%{axis}.com
+	assert.equals.com=tilt%{axis}.com
 	# run again without parallel processing
 	cb.parallel-processing=off
 	bn.generate-tomogram=
