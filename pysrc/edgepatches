@@ -467,9 +467,9 @@ patchParams = "-size %d,%d,%d -interval %d,%d,%d -border %d,%d" % \
               (patchSize[0], patchSize[1], patchSize[2], intervals[0],
                intervals[1], intervals[2], borderXY, borderZ)
 if forceZ:
-   patchParams += "-force %d" % (forceZ)
+   patchParams += " -force %d" % (forceZ)
 if kernel:
-   patchParams += "-kernel %.2f" % (kernel)
+   patchParams += " -kernel %.2f" % (kernel)
 
 PipDone()
 
@@ -684,6 +684,10 @@ sys.exit(0)
 
 #
 # $Log$
+# Revision 1.9  2009/09/08 23:27:36  mast
+# Clear out keys for dependent data when making new patches; save command
+# parameters for each patch; write info file after each operation
+#
 # Revision 1.8  2008/12/23 03:28:29  mast
 # Fix output of total shift after 3D correlation
 #
