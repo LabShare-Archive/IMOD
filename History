@@ -1,5 +1,7 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+9/14/09: Made Stitchalign vary metro factor when search fails.
+
 9/8/09: Added hot key for toggling the clipping plane in model view.
 
 9/8/09: This time thread number really will be controlled by OMP_NUM_THREADS.
