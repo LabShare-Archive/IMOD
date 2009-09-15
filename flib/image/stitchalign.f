@@ -38,10 +38,13 @@ c
       real*4 residCrit, outlierCrit
       real*8 dsum, dsumsq
       integer*4 kstr, kend, k, nvarsrch, mapAngles, numEdge, numVecOut, ndim
-      integer*4 ixpos, iypos, maxNumVecZ
+      integer*4 ixpos, iypos, maxNumVecZ,metroLoop
       character*160 infofile
       character*1024 listString,filename
       character*4 xoryStr
+      integer maxMetroTrials
+      parameter (maxMetroTrials = 5)
+      real*4 trialScale(maxMetroTrials) /1.0, 0.9, 1.1, 0.75, 0.5/
       real*4 atan2d, cosd, sind
       logical pieceExists
       external stitchfunc
@@ -421,65 +424,84 @@ c         Loop on the pairs
      &          ixPiece(iVolFull(2)), iyPiece(iVolFull(2))
 108         format(/,'Analyzing overlap between piece',2i3,'  and piece',2i3)
           endif
-c         
-c           Set up variables for minimization
-          nvarsrch = 0
-          do i = 1, 7
-            mapArray(i) = 0
-          enddo
-          if (findMag) then
-            mapGmag = nvarsrch + 1
-            nvarsrch = nvarsrch + numSolve - 1
-          endif
-          if (findThin) then
-            mapComp = nvarsrch + 1
-            nvarsrch = nvarsrch + numSolve - 1
-          endif
-          if (findStretch) then
-            mapDmag = nvarsrch + 1
-            mapSkew = mapDmag + numSolve - 1
-            nvarsrch = nvarsrch + 2 * (numSolve - 1)
-            mapAngles = mapSkew
-          else
-            mapAngles = nvarsrch + 1
-          endif
-          if (ifAlpha .ne. 0) then
-            mapAlpha = nvarsrch + 1
-            nvarsrch = nvarsrch + numSolve - 1
-          endif
-          if (ifBeta .ne. 0) then
-            mapBeta = nvarsrch + 1
-            nvarsrch = nvarsrch + numSolve - 1
-          endif
-          if (ifGamma .ne. 0) then
-            mapGamma = nvarsrch + 1
-            nvarsrch = nvarsrch + numSolve - 1
-          endif
-          call initializeVar(var, gmag, mapGmag, numSolve, 1.)
-          call initializeVar(var, comp, mapComp, numSolve, 1.)
-          call initializeVar(var, dmag, mapDmag, numSolve, 0.)
-          call initializeVar(var, skew, mapSkew, numSolve, 0.)
-          call initializeVar(var, alpha, mapAlpha, numSolve, 0.)
-          call initializeVar(var, beta, mapBeta, numSolve, 0.)
-          call initializeVar(var, gamma, mapGamma, numSolve, 0.)
 c           
-          ifUnload = 1
-          call stitchfunc(nvarsrch,var,finalErr,Grad)
-          write(6,106)nvarsrch,finalErr
-106       format(i5,' variables in search',/,T48,'Initial F : ',T65,E14.7)
-          call metro(nvarsrch, var, stitchfunc, finalErr, grad, facMetro, eps,
-     &        maxCycle, ierr, hess, ncycle)
-          if (ierr.eq.1) call exitError('Minimization error #1 - DG > 0')
-          if (ierr.eq.2) call exitError(
-     &        'Minimization error #2 - Linear search lost')
-          if (ierr.eq.4) call exitError(
-     &        'Minimization error #4 - Matrix non-positive definite')
-          if (ierr.eq.3) call exitError(
-     &        'Minimization error #3 - Iteration limit exceeded')
-
+c           Loop on the metro factors
+          metroLoop = 1
+          ierr = 1
+          do while (metroLoop.le.maxMetroTrials .and. ierr.ne.0 .and. ierr.ne.3)
+c         
+c             Set up variables for minimization
+            nvarsrch = 0
+            do i = 1, 7
+              mapArray(i) = 0
+            enddo
+            if (findMag) then
+              mapGmag = nvarsrch + 1
+              nvarsrch = nvarsrch + numSolve - 1
+            endif
+            if (findThin) then
+              mapComp = nvarsrch + 1
+              nvarsrch = nvarsrch + numSolve - 1
+            endif
+            if (findStretch) then
+              mapDmag = nvarsrch + 1
+              mapSkew = mapDmag + numSolve - 1
+              nvarsrch = nvarsrch + 2 * (numSolve - 1)
+              mapAngles = mapSkew
+            else
+              mapAngles = nvarsrch + 1
+            endif
+            if (ifAlpha .ne. 0) then
+              mapAlpha = nvarsrch + 1
+              nvarsrch = nvarsrch + numSolve - 1
+            endif
+            if (ifBeta .ne. 0) then
+              mapBeta = nvarsrch + 1
+              nvarsrch = nvarsrch + numSolve - 1
+            endif
+            if (ifGamma .ne. 0) then
+              mapGamma = nvarsrch + 1
+              nvarsrch = nvarsrch + numSolve - 1
+            endif
+            call initializeVar(var, gmag, mapGmag, numSolve, 1.)
+            call initializeVar(var, comp, mapComp, numSolve, 1.)
+            call initializeVar(var, dmag, mapDmag, numSolve, 0.)
+            call initializeVar(var, skew, mapSkew, numSolve, 0.)
+            call initializeVar(var, alpha, mapAlpha, numSolve, 0.)
+            call initializeVar(var, beta, mapBeta, numSolve, 0.)
+            call initializeVar(var, gamma, mapGamma, numSolve, 0.)
+c             
+            ifUnload = 1
+            call stitchfunc(nvarsrch,var,finalErr,Grad)
+            if (metroLoop .eq. 1) write(6,106)nvarsrch,finalErr
+106         format(i5,' variables in search',/,T48,'Initial F : ',T65,E14.7)
+            call metro(nvarsrch, var, stitchfunc, finalErr, grad, facMetro *
+     &          trialScale(metroLoop), eps,
+     &          maxCycle, ierr, hess, ncycle)
+            metroLoop = metroLoop +1
+c             
+c             For errors except limit reached, give warning message and restart
+            if (ierr .ne. 0 .and. ierr .ne. 3) then
+              print *
+              if (ierr.eq.1) print *,'Minimization error #1 - DG > 0'
+              if (ierr.eq.2) print *,
+     &            'Minimization error #2 - Linear search lost'
+              if (ierr.eq.4) print *,
+     &            'Minimization error #4 - Matrix non-positive definite'
+              if (ierr.eq.3) call exitError(
+     &            'Minimization error #3 - Iteration limit exceeded')
+              if (metroLoop .le. maxMetroTrials) print *, 'Restarting with ',
+     &            'metro step factor of ', facMetro * trialScale(metroLoop)
+            endif
+          enddo
+          if(ierr.ne.0)
+     &        call exitError('Search failed even after varying step factor')
+c
           call stitchfunc(nvarsrch,var,finalErr,Grad)
           write(6,101)finalErr,ncycle
 101       format(T48,'Final   F : ',T65,E14.7,/,' Number of cycles : ',I5)
+          if (ierr.eq.0 .and. metroLoop .gt. 2)
+     &        print *,'Search succeeded with this step factor'
           call flush(6)
           if (pairwise) then
             j = iPairEdge(iPair)
@@ -2960,6 +2982,11 @@ c
 
 
 c       $Log$
+c       Revision 3.8  2009/09/10 03:23:59  mast
+c       Made it drop output vectors when a needed edge does not provide a
+c       vector and added protection against zero vectors past the end of an
+c       edge where there is no butting edge
+c
 c       Revision 3.7  2009/09/07 17:20:56  mast
 c       Added ability to read in multiple patch files, eliminate vectors unless
 c       present in all files, and eliminated based on outlier fraction and
