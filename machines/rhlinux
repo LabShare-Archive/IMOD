@@ -178,6 +178,7 @@ if ($compiler == intel) then
     if ($debug == true) then
         set optimization = "-g -O0"
         set fcompFlags = ($fcompFlags -CB)
+    endif
 else
     set optimization = "-O3 -w"
     if ($debug == true) set optimization = "-ggdb -O0 -Wno-unused-parameter -Wimplicit -Wreturn-type"
