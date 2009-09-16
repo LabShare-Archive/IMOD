@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+9/16/09: Fixed the PEET tab, which was not being set properly when a new dataset
+was created.
+
 9/15/09: IMOD_4-0-14
 9/14/09: Made Stitchalign vary metro factor when search fails.
 
