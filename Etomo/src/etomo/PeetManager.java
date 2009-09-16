@@ -59,6 +59,9 @@ import etomo.util.DatasetFiles;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.52  2009/09/01 03:17:35  sueh
+ * <p> bug# 1222
+ * <p>
  * <p> Revision 1.51  2009/06/11 16:46:26  sueh
  * <p> bug# 1221 Sending the process panel to the process function in the
  * <p> manager wrapped in a ProcessDisplay interface.  Changed
@@ -564,6 +567,7 @@ public final class PeetManager extends BaseManager {
     }
     imodManager.setMetaData(metaData);
     mainPanel.setStatusBarText(paramFile, metaData, logPanel);
+    EtomoDirector.INSTANCE.renameCurrentManager(metaData.getName());
     if (matlabParam == null) {
       setMatlabParam(true);
     }
