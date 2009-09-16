@@ -22,6 +22,9 @@ import etomo.util.Utilities;
  * @notthreadsafe
  * 
  * <p> $Log$
+ * <p> Revision 1.25  2009/09/01 03:11:07  sueh
+ * <p> bug# 1222 Changed yaxis... to yAxis...
+ * <p>
  * <p> Revision 1.24  2009/01/13 19:37:18  sueh
  * <p> bug# 1170 Added useNWeightGroup.
  * <p>
@@ -151,7 +154,8 @@ public class PeetMetaData extends BaseMetaData implements ConstPeetMetaData {
       MASK_MODEL_PTS_KEY + "." + PARTICLE_KEY);
   private final StringProperty maskTypeVolume = new StringProperty("MastType."
       + VOLUME_KEY);
-  private final EtomoBoolean2 useNWeightGroup = new EtomoBoolean2("UseNWeightGroup");
+  private final EtomoBoolean2 useNWeightGroup = new EtomoBoolean2(
+      "UseNWeightGroup");
   private final EtomoNumber nWeightGroup = new EtomoNumber("NWeightGroup");
   private final EtomoBoolean2 tiltRange = new EtomoBoolean2("TiltRange");
 
@@ -194,7 +198,8 @@ public class PeetMetaData extends BaseMetaData implements ConstPeetMetaData {
   }
 
   public String getName() {
-    if (rootName.equals("")) {
+    if (rootName == null || rootName.toString() == null
+        || rootName.toString().matches("\\s*")) {
       return NEW_TITLE;
     }
     return rootName.toString();
@@ -206,7 +211,7 @@ public class PeetMetaData extends BaseMetaData implements ConstPeetMetaData {
 
   public void setName(String name) {
     rootName.set(name);
-    Utilities.managerStamp(null,rootName.toString());
+    Utilities.managerStamp(null, rootName.toString());
   }
 
   public boolean isValid() {
@@ -268,9 +273,9 @@ public class PeetMetaData extends BaseMetaData implements ConstPeetMetaData {
     maskModelPtsModelNumber.load(props, prepend);
     maskModelPtsParticle.load(props, prepend);
     maskTypeVolume.load(props, prepend);
-    useNWeightGroup.load(props,prepend);
-    nWeightGroup.load(props,prepend);
-    tiltRange.load(props,prepend);
+    useNWeightGroup.load(props, prepend);
+    nWeightGroup.load(props, prepend);
+    tiltRange.load(props, prepend);
 
     revisionNumber.load(props, prepend);
     if (revisionNumber.isNull() || revisionNumber.lt(LATEST_VERSION)) {
@@ -315,9 +320,9 @@ public class PeetMetaData extends BaseMetaData implements ConstPeetMetaData {
     maskModelPtsModelNumber.store(props, prepend);
     maskModelPtsParticle.store(props, prepend);
     maskTypeVolume.store(props, prepend);
-    useNWeightGroup.store(props,prepend);
-    nWeightGroup.store(props,prepend);
-    tiltRange.store(props,prepend);
+    useNWeightGroup.store(props, prepend);
+    nWeightGroup.store(props, prepend);
+    tiltRange.store(props, prepend);
     revisionNumber.store(props, prepend);
   }
 
@@ -408,19 +413,19 @@ public class PeetMetaData extends BaseMetaData implements ConstPeetMetaData {
   public ConstEtomoNumber getReferenceVolume() {
     return referenceVolume;
   }
-  
+
   public boolean isUseNWeightGroup() {
     return useNWeightGroup.is();
   }
-  
+
   public ConstEtomoNumber getNWeightGroup() {
     return nWeightGroup;
   }
-  
+
   public void setTiltRange(boolean input) {
     tiltRange.set(input);
   }
-  
+
   public boolean isTiltRange() {
     return tiltRange.is();
   }
@@ -456,15 +461,15 @@ public class PeetMetaData extends BaseMetaData implements ConstPeetMetaData {
   public void setReferenceVolume(Number referenceVolume) {
     this.referenceVolume.set(referenceVolume);
   }
-  
+
   public void setUseNWeightGroup(boolean input) {
     useNWeightGroup.set(input);
   }
-  
+
   public void setNWeightGroup(Number input) {
     nWeightGroup.set(input);
   }
-  
+
   public void setYaxisContourModelNumber(Number input) {
     yAxisContourModelNumber.set(input);
   }
