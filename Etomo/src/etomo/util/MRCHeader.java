@@ -28,6 +28,9 @@ import etomo.ui.UIHarness;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.28  2009/06/15 20:27:19  sueh
+ * <p> bug# 1221 Reformatted.
+ * <p>
  * <p> Revision 3.27  2009/06/10 17:28:12  sueh
  * <p> bug# 1202 Moved parsing information for columns, row, and sections info
  * <p> constants.  Added brief header constants.
@@ -222,6 +225,8 @@ public class MRCHeader {
   private AxisID axisID;
   private final String fileLocation;
 
+  private boolean debug = false;
+
   private MRCHeader(String fileLocation, File file, AxisID axisID,
       ManagerKey managerKey) {
     this.fileLocation = fileLocation;
@@ -355,6 +360,14 @@ public class MRCHeader {
       //so that the output is trimmed for this parse.
       if (stdOutput[i].trim().startsWith(SIZE_HEADER)) {
         String[] tokens = stdOutput[i].trim().split("\\s+");
+        if (debug) {
+          System.out.print("tokens=");
+          if (tokens != null) {
+            for (int j = 0; j < tokens.length; j++) {
+              System.out.print(tokens[j] + ",");
+            }
+          }
+        }
         if (tokens.length < N_SECTIONS_INDEX + 1) {
           Utilities.timestamp("read", "header", filename,
               Utilities.FAILED_STATUS);
