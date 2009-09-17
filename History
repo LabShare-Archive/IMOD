@@ -1,5 +1,7 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+9/17/09: In Etomo, fixed final aligned stack progress message.
+
 9/16/09: Xyzproj modified to make projections suitable for common line
 analysis and to make simple vertical projection more efficient.
 
