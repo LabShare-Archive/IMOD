@@ -80,7 +80,7 @@ public final class TomogramPositioningExpert extends ReconUIExpert {
    */
   public void startNextProcess(String nextProcess,
       ProcessResultDisplay processResultDisplay, ProcessSeries processSeries,
-      DialogType dialogType, ProcessDisplay display,ProcessName subProcessName) {
+      DialogType dialogType, ProcessDisplay display, ProcessName subProcessName) {
     //whole tomogram
     if (nextProcess.equals(ProcessName.TILT.toString())) {
       sampleTilt(processResultDisplay, processSeries);
@@ -280,15 +280,14 @@ public final class TomogramPositioningExpert extends ReconUIExpert {
 
   protected void saveDialog() {
     if (dialog == null) {
-      return ;
+      return;
     }
     advanced = dialog.isAdvanced();
     //  Get all of the parameters from the panel
     updateAlignCom();
-   updateTomoPosTiltCom(false);
-   updateTomopitchCom();
-   UIExpertUtilities.INSTANCE.updateFiducialessParams(manager, dialog,
-        axisID);
+    updateTomoPosTiltCom(false);
+    updateTomopitchCom();
+    UIExpertUtilities.INSTANCE.updateFiducialessParams(manager, dialog, axisID);
     if (metaData.getViewType() != ViewType.MONTAGE) {
       updateNewstCom();
     }
@@ -632,8 +631,20 @@ public final class TomogramPositioningExpert extends ReconUIExpert {
       // Make sure the size output is removed, it was only there as a 
       // copytomocoms template
       newstParam.setCommandMode(NewstParam.Mode.WHOLE_TOMOGRAM_SAMPLE);
-      newstParam.setSizeToOutputInXandY("", getBinning(), metaData
-          .getImageRotation(axisID), manager);
+      try {
+        newstParam.setSizeToOutputInXandY("", getBinning(), metaData
+            .getImageRotation(axisID), manager);
+      }
+      catch (InvalidParameterException e) {
+        e.printStackTrace();
+        UIHarness.INSTANCE.openMessageDialog("Unable to update newst com: "
+            + e.getMessage(), "Etomo Error", axisID, manager.getManagerKey());
+      }
+      catch (IOException e) {
+        e.printStackTrace();
+        UIHarness.INSTANCE.openMessageDialog("Unable to update newst com: "
+            + e.getMessage(), "Etomo Error", axisID, manager.getManagerKey());
+      }
     }
     catch (FortranInputSyntaxException e) {
       e.printStackTrace();
@@ -934,6 +945,9 @@ public final class TomogramPositioningExpert extends ReconUIExpert {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.33  2009/09/01 03:18:24  sueh
+ * <p> bug# 1222
+ * <p>
  * <p> Revision 1.32  2009/03/17 00:46:23  sueh
  * <p> bug# 1186 Pass managerKey to everything that pops up a dialog.
  * <p>

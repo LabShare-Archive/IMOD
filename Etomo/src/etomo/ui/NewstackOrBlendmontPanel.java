@@ -37,7 +37,10 @@ import etomo.util.InvalidParameterException;
  * 
  * @version $Revision$
  * 
- * <p> $Log$ </p>
+ * <p> $Log$
+ * <p> Revision 3.1  2009/09/01 03:18:25  sueh
+ * <p> bug# 1222
+ * <p> </p>
  */
 abstract class NewstackOrBlendmontPanel implements Run3dmodButtonContainer,
     Expandable, NewstackDisplay, BlendmontDisplay {
@@ -137,7 +140,7 @@ abstract class NewstackOrBlendmontPanel implements Run3dmodButtonContainer,
 
   //  Copy the newstack parameters from the GUI to the NewstParam object
   public final void getParameters(NewstParam newstParam)
-      throws FortranInputSyntaxException {
+      throws FortranInputSyntaxException,InvalidParameterException,IOException {
     newstackAndBlendmontParamPanel.getParameters(newstParam);
   }
 

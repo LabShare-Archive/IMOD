@@ -1218,8 +1218,23 @@ public final class ApplicationManager extends BaseManager implements
         return false;
       }
       updateBlendmontInXcorrCom(axisID);
-      if (metaData.getViewType() != ViewType.MONTAGE
-          && !updatePrenewstCom(coarseAlignDialog.getNewstackDisplay(), axisID)) {
+      try {
+        if (metaData.getViewType() != ViewType.MONTAGE
+            && !updatePrenewstCom(coarseAlignDialog.getNewstackDisplay(),
+                axisID)) {
+          return false;
+        }
+      }
+      catch (InvalidParameterException e) {
+        e.printStackTrace();
+        uiHarness.openMessageDialog("Unable to update prenewst com:  "
+            + e.getMessage(), "Etomo Error", axisID, getManagerKey());
+        return false;
+      }
+      catch (IOException e) {
+        e.printStackTrace();
+        uiHarness.openMessageDialog("Unable to update prenewst com:  "
+            + e.getMessage(), "Etomo Error", axisID, getManagerKey());
         return false;
       }
       if (!UIExpertUtilities.INSTANCE.updateFiducialessParams(this,
@@ -1536,11 +1551,25 @@ public final class ApplicationManager extends BaseManager implements
       processName = BlendmontParam.getProcessName(BlendmontParam.Mode.PREBLEND);
     }
     else {
-      if (!updatePrenewstCom(newstackDisplay, axisID)) {
-        sendMsgProcessFailedToStart(processResultDisplay);
+      try {
+        if (!updatePrenewstCom(newstackDisplay, axisID)) {
+          sendMsgProcessFailedToStart(processResultDisplay);
+          return;
+        }
+        processName = ProcessName.PRENEWST;
+      }
+      catch (InvalidParameterException e) {
+        e.printStackTrace();
+        uiHarness.openMessageDialog("Unable to update prenewst com:  "
+            + e.getMessage(), "Etomo Error", axisID, getManagerKey());
         return;
       }
-      processName = ProcessName.PRENEWST;
+      catch (IOException e) {
+        e.printStackTrace();
+        uiHarness.openMessageDialog("Unable to update prenewst com:  "
+            + e.getMessage(), "Etomo Error", axisID, getManagerKey());
+        return;
+      }
     }
     processTrack.setState(ProcessState.INPROGRESS, axisID, dialogType);
     mainPanel.setState(ProcessState.INPROGRESS, axisID, dialogType);
@@ -1755,7 +1784,8 @@ public final class ApplicationManager extends BaseManager implements
    * @param axisID
    * @return
    */
-  private boolean updatePrenewstCom(NewstackDisplay display, AxisID axisID) {
+  private boolean updatePrenewstCom(NewstackDisplay display, AxisID axisID)
+      throws InvalidParameterException, IOException {
     NewstParam prenewstParam = comScriptMgr.getPrenewstParam(axisID);
     try {
       display.getParameters(prenewstParam);
@@ -3639,6 +3669,18 @@ public final class ApplicationManager extends BaseManager implements
           "Newst Parameter Syntax Error", axisID, getManagerKey());
       return null;
     }
+    catch (InvalidParameterException e) {
+      e.printStackTrace();
+      uiHarness.openMessageDialog("Unable to update newst com:  "
+          + e.getMessage(), "Etomo Error", axisID, getManagerKey());
+      return null;
+    }
+    catch (IOException e) {
+      e.printStackTrace();
+      uiHarness.openMessageDialog("Unable to update newst com:  "
+          + e.getMessage(), "Etomo Error", axisID, getManagerKey());
+      return null;
+    }
     return newstParam;
   }
 
@@ -3679,6 +3721,18 @@ public final class ApplicationManager extends BaseManager implements
       errorMessage[2] = except.getMessage();
       UIHarness.INSTANCE.openMessageDialog(errorMessage,
           "Newst Parameter Syntax Error", axisID, getManagerKey());
+      return null;
+    }
+    catch (InvalidParameterException e) {
+      e.printStackTrace();
+      uiHarness.openMessageDialog("Unable to update newst 3dfind com:  "
+          + e.getMessage(), "Etomo Error", axisID, getManagerKey());
+      return null;
+    }
+    catch (IOException e) {
+      e.printStackTrace();
+      uiHarness.openMessageDialog("Unable to update newst 3dfind com:  "
+          + e.getMessage(), "Etomo Error", axisID, getManagerKey());
       return null;
     }
     //Update mrctaper
@@ -4094,8 +4148,8 @@ public final class ApplicationManager extends BaseManager implements
       sendMsg(ProcessResult.FAILED_TO_START, processResultDisplay);
     }
     setThreadName(threadName, axisID);
-    mainPanel.startProgressBar(ProcessName.FIND_BEADS_3D.toString(),
-        axisID, ProcessName.FIND_BEADS_3D);
+    mainPanel.startProgressBar(ProcessName.FIND_BEADS_3D.toString(), axisID,
+        ProcessName.FIND_BEADS_3D);
   }
 
   public FindBeads3dParam updateFindBeads3dCom(FindBeads3dDisplay display,
@@ -7232,7 +7286,7 @@ public final class ApplicationManager extends BaseManager implements
       updateDialog(fiducialModelDialogB, AxisID.SECOND);
       updateDialog(fiducialModelDialogA, AxisID.FIRST);
     }
-    if (processName == ProcessName.NEWST||processName == ProcessName.BLEND) {
+    if (processName == ProcessName.NEWST || processName == ProcessName.BLEND) {
       ((FinalAlignedStackExpert) getUIExpert(DialogType.FINAL_ALIGNED_STACK,
           axisID)).updateDialog();
     }
@@ -7461,10 +7515,9 @@ public final class ApplicationManager extends BaseManager implements
     mainPanel.setState(ProcessState.INPROGRESS, axisID, dialogType);
     if (fullAlignedStack.exists() && output.exists()) {
       if (!Utilities.isValidStack(output, this, axisID)) {
-        uiHarness
-            .openMessageDialog(
-                output.getName() + " is not a valid MRC file.",
-                "Entry Error", axisID, getManagerKey());
+        uiHarness.openMessageDialog(output.getName()
+            + " is not a valid MRC file.", "Entry Error", axisID,
+            getManagerKey());
         sendMsgProcessFailedToStart(processResultDisplay);
         return;
       }
@@ -7816,6 +7869,9 @@ public final class ApplicationManager extends BaseManager implements
 }
 /**
  * <p> $Log$
+ * <p> Revision 3.334  2009/09/02 22:41:45  sueh
+ * <p> bug# 1254 Checking for a valid stack before using the stack.  Turning on 2d filtering for blendmont.
+ * <p>
  * <p> Revision 3.333  2009/09/01 03:17:35  sueh
  * <p> bug# 1222
  * <p>

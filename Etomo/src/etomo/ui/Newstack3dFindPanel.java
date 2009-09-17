@@ -1,5 +1,6 @@
 package etomo.ui;
 
+import java.io.IOException;
 import java.util.Vector;
 
 import etomo.ApplicationManager;
@@ -13,6 +14,7 @@ import etomo.type.FileType;
 import etomo.type.ProcessName;
 import etomo.type.Run3dmodMenuOptions;
 import etomo.type.TomogramState;
+import etomo.util.InvalidParameterException;
 
 /**
  * <p>Description: </p>
@@ -27,7 +29,10 @@ import etomo.type.TomogramState;
  * 
  * @version $Revision$
  * 
- * <p> $Log$ </p>
+ * <p> $Log$
+ * <p> Revision 3.1  2009/09/01 03:18:25  sueh
+ * <p> bug# 1222
+ * <p> </p>
  */
 final class Newstack3dFindPanel extends NewstackOrBlendmont3dFindPanel
     implements NewstackDisplay {
@@ -54,7 +59,7 @@ final class Newstack3dFindPanel extends NewstackOrBlendmont3dFindPanel
   }
 
   public void getParameters(NewstParam newstParam)
-      throws FortranInputSyntaxException {
+      throws FortranInputSyntaxException,InvalidParameterException,IOException {
     newstParam.setCommandMode(NewstParam.Mode.FULL_ALIGNED_STACK);
     newstParam.setFiducialessAlignment(manager.getMetaData()
         .isFiducialessAlignment(axisID));
