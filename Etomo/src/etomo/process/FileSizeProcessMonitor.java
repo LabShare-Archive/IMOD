@@ -28,6 +28,9 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.34  2009/03/17 00:35:55  sueh
+ * <p> bug# 1186 Pass managerKey to everything that pops up a dialog.
+ * <p>
  * <p> Revision 3.33  2009/02/13 02:14:27  sueh
  * <p> bug# 1176 Checking return value of calcFileSize.
  * <p>
@@ -230,6 +233,21 @@ abstract class FileSizeProcessMonitor implements ProcessMonitor {
   //   value should be the expected size of the file in k bytes
   // - set the watchedFile reference to the output file being monitored.
   abstract boolean calcFileSize() throws InvalidParameterException, IOException;
+
+  public int getModeBytes(int mode) throws InvalidParameterException {
+    switch (mode) {
+    case 0:
+      return 1;
+    case 1:
+      return 2;
+    case 2:
+      return 4;
+    case 6:
+      return 2;
+    default:
+      throw new InvalidParameterException("Unknown mode parameter");
+    }
+  }
 
   abstract void reloadWatchedFile();
 
