@@ -26,6 +26,9 @@ import etomo.util.MRCHeader;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.23  2009/09/01 03:17:56  sueh
+ * <p> bug# 1222
+ * <p>
  * <p> Revision 3.22  2009/03/17 00:44:12  sueh
  * <p> bug# 1186 Pass managerKey to everything that pops up a dialog.
  * <p>
@@ -178,33 +181,7 @@ final class TiltProcessMonitor extends FileSizeProcessMonitor {
 
     nZ = tiltParam.getThickness();
     if (tiltParam.hasMode()) {
-      switch (tiltParam.getMode()) {
-      case 0:
-        modeBytes = 1;
-        break;
-      case 1:
-        modeBytes = 2;
-        break;
-
-      case 2:
-        modeBytes = 4;
-        break;
-
-      case 3:
-        modeBytes = 4;
-        break;
-
-      case 4:
-        modeBytes = 8;
-        break;
-
-      case 16:
-        modeBytes = 3;
-        break;
-
-      default:
-        throw new InvalidParameterException("Unknown mode parameter");
-      }
+      modeBytes = getModeBytes(tiltParam.getMode());
     }
     // Get the imageBinned from prenewst.com script
     long imageBinned = 1;

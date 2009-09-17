@@ -28,6 +28,9 @@ import etomo.util.MRCHeader;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.14  2009/03/17 00:42:04  sueh
+ * <p> bug# 1186 Pass managerKey to everything that pops up a dialog.
+ * <p>
  * <p> Revision 1.13  2009/02/13 02:14:38  sueh
  * <p> bug# 1176 Checking return value of MRCHeader.read.  Gave calcFileSize
  * <p> a return value.
@@ -124,28 +127,8 @@ final class MtffilterProcessMonitor extends FileSizeProcessMonitor {
     nX = (double) outputHeader.getNRows();
     nY = (double) outputHeader.getNColumns();
     nZ = (double) outputHeader.getNSections();
-    switch (outputHeader.getMode()) {
-    case 0:
-      modeBytes = 1.0d;
-      break;
-    case 1:
-      modeBytes = 2.0d;
-      break;
-    case 2:
-      modeBytes = 4.0d;
-      break;
-    case 3:
-      modeBytes = 4.0d;
-      break;
-    case 4:
-      modeBytes = 8.0d;
-      break;
-    case 16:
-      modeBytes = 3.0d;
-      break;
-    default:
-      throw new InvalidParameterException("Unknown mode parameter");
-    }
+    modeBytes = (double)getModeBytes(outputHeader.getMode());
+
     loadMtfFilterParam();
     //take starting and ending Z into account
     if (mtfFilterParam.isStartingZSet()) {
