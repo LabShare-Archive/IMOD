@@ -1,6 +1,7 @@
 package etomo.comscript;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Hashtable;
 import java.util.Iterator;
@@ -29,6 +30,9 @@ import etomo.util.MRCHeader;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.21  2009/09/05 00:35:39  sueh
+ * <p> bug# 1256 Added blank getIteratorElementList.
+ * <p>
  * <p> Revision 3.20  2009/09/01 03:17:46  sueh
  * <p> bug# 1222
  * <p>
@@ -676,7 +680,7 @@ public final class NewstParam implements ConstNewstParam, CommandParam {
    */
   public void setSizeToOutputInXandY(String userSize, final int binning,
       final float imageRotation, final BaseManager manager)
-      throws FortranInputSyntaxException {
+      throws FortranInputSyntaxException,etomo.util.InvalidParameterException ,IOException{
     //make sure an empty string really causes sizeToOutputInXandY to be empty.
     if (userSize.equals("")) {
       userSize = "/";
@@ -689,6 +693,7 @@ public final class NewstParam implements ConstNewstParam, CommandParam {
         && Utilities.is90DegreeImageRotation(imageRotation)) {
       MRCHeader header = MRCHeader.getInstance(manager, axisID, ".st", manager
           .getManagerKey());
+      header.read();
       //Set y from columns (x)
       sizeToOutputInXandY.set(1, header.getNColumns());
       //Set x from rows (y)
