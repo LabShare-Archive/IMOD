@@ -11,10 +11,12 @@ c       Log at end of file
 c	
       implicit none
       integer limpix,limstack,limproj,limray
-      parameter (limstack=20000000,limpix=40000,
+c       
+c       9/16/09: Increased stack size increases page faulting and CPU time
+      parameter (limstack=40000000,limpix=40000,
      &    limproj=1440,limray=180*40000)
       real*4 array(limstack)
-      character*160 filin,filout
+      character*320 filin,filout
       character*1 xyz
       integer*4 nxyzin(3),mxyzin(3),nxyzout(3),nxyzst(3)
       real*4 cell(6),title(20)
@@ -24,19 +26,24 @@ c
       equivalence (nxyzin(1),nxin),(nxyzout(1),nxout)
       integer*4 nrayinc(limray),nraymax(0:limproj)
       real*4 xraystr(limray),yraystr(limray),pixtmp(limpix)
-      real*4 cosang(0:limproj),sinang(0:limproj)
-      integer*4 ix0, ix1,iy0,iy1,iz0,iz1,modein
+      real*4 cosang(0:limproj),sinang(0:limproj),tiltAngles(limproj)
+      integer*4 ixBoxLo(limproj), iyBoxLo(limproj), ixBoxHi(limproj)
+      integer*4 ix0, ix1,iy0,iy1,iz0,iz1,modein,iyBoxHi(limproj)
       integer*4 nxblock,nyblock,nzblock,idirz,nxslice,nyslice,lenload
-      integer*4 load0,loaddir,modeout,ifrayscale
+      integer*4 ixload0, ixload1, iyload0, iyload1, loadxlo, loadxhi
+      integer*4 load0,loaddir,modeout,ifrayscale, loadylo, loadyhi
       real*4 dmin,dmax,dmean,tiltstr,tiltend,tiltinc,scaladd,scalfac
-      real*4 fill,dmin2,dmax2,dmean2,dsum,angle
+      real*4 fill,dmin2,dmax2,dmean2,dsum,angle,projMiddle
       integer*4 istackdel,limslices,nloads,ioutbase,iproj,ixout
-      integer*4 iyoutstr,nslices,load1,invertAng
+      integer*4 iyoutstr,nslices,load1,invertAng,nview
       integer*4 izsec,indstack,iraybase,nraypts,iray,ipix
       real*4 xray,yray,dx,dy,v2,v4,v5,v6,v8,vmin,vmax,a,b,c,d
-      real*4 sumtmp,rayfac,rayadd,tmin,tmax,tmean
+      real*4 sumtmp,rayfac,rayadd,tmin,tmax,tmean,tiltmax
       integer*4 ixr,iyr,ixy,ixy4,ixy6,ixy8,ixy2,indout,kti,i,ind,iload,ierr
+      integer*4 ixdir, ixostr, ixoend
+      logical*4 commonLine, fullImage
       real*4 sind,cosd
+c      real*8 readtime,readstart,readdone,walltime,transtime,projtime
       common /bigarr/ array,xraystr,yraystr,nrayinc
 c       
 c       7/7/00 CER: remove the encode's; titlech is the temp space
@@ -46,14 +53,14 @@ c
 c
       logical pipinput
       integer*4 numOptArg, numNonOptArg
-      integer*4 PipGetInteger,PipGetTwoFloats,PipGetFloat
+      integer*4 PipGetInteger,PipGetTwoFloats,PipGetFloat,PipNumberOfEntries
       integer*4 PipGetString,PipGetTwoIntegers,PipGetThreeFloats
-      integer*4 PipGetInOutFile, PipGetBoolean
+      integer*4 PipGetInOutFile, PipGetBoolean, PipGetLogical
 c       
 c       fallbacks from ../../manpages/autodoc2man -2 2  xyzproj
 c       
       integer numOptions
-      parameter (numOptions = 14)
+      parameter (numOptions = 18)
       character*(40 * numOptions) options(1)
       options(1) =
      &    'input:InputFile:FN:@output:OutputFile:FN:@'//
@@ -62,6 +69,8 @@ c
      &    'angles:StartEndIncAngle:FT:@mode:ModeToOutput:I:@'//
      &    'width:WidthToOutput:I:@addmult:AddThenMultiply:FP:@'//
      &    'fill:FillValue:F:@constant:ConstantScaling:B:@'//
+     &    'first:FirstTiltAngle:F:@increment:TiltIncrement:F:@'//
+     &    'tiltfile:TiltFile:FN:@tangles:TiltAngles:FAM:@'//
      &    'param:ParameterFile:PF:@help:usage:B:'
 c       
       tiltstr = 0.
@@ -70,6 +79,10 @@ c
       scaladd=0.
       scalfac=1. 
       ifrayscale=1
+      commonLine = .false.
+c      transtime = 0.
+c      readtime = 0.
+c      projtime = 0.
 c       
 c       Pip startup: set error, parse options, check help, set flag if used
 c       
@@ -112,8 +125,23 @@ c
       if(ix0.gt.ix1.or.iy0.gt.iy1)call exiterror('No volume specified')
 c       
       if (pipinput) then
-        if (PipGetString('AxisToTiltAround', xyz) .ne. 0) call exiterror(
-     &      'YOU MUST ENTER AN AXIS TO TILT AROUND')
+        ierr = PipNumberOfEntries('TiltAngles', ixload0)
+        ierr = PipNumberOfEntries('TiltFile', ixload1)
+        ierr = PipNumberOfEntries('FirstTiltAngle', iyload0)
+        ierr = PipGetLogical('FullAreaAtTilt', fullImage)
+        if (ixload0 + ixload1 + iyload0.gt. 0) then
+          commonLine = .true.
+          nview = nzin
+          call get_tilt_angles(nview, 3, tiltAngles, limproj, 1)
+          if (nview .ne. nzin) call exitError(
+     &        'THERE MUST BE A TILT ANGLE FOR EACH VIEW')
+          xyz = 'Z'
+        endif
+          
+        if (PipGetString('AxisToTiltAround', xyz) .ne. 0 .and. .not.commonLine)
+     &      call exiterror( 'YOU MUST ENTER AN AXIS TO TILT AROUND')
+        if (commonLine .and. xyz .ne. 'Z' .and. xyz .ne. 'z') call exitError(
+     &      'YOU CAN ENTER TILT ANGLES ONLY FOR PROJECTIONS AROUND THE Z AXIS')
         ierr = PipGetThreeFloats('StartEndIncAngle', tiltstr,tiltend,tiltinc)
       else
         write(*,'(1x,a,$)')'Axis to project around (enter X, Y or Z): '
@@ -186,6 +214,35 @@ c
       modeout=1
       if(modein.eq.2)modeout=2
       fill=dmean
+      ixload0 = ix0
+      ixload1 = ix1
+      iyload0 = iy0
+      iyload1 = iy1
+      if (commonLine) then
+        nxout = 0
+        ixload0 = nxin
+        ixload1 = 0
+        iyload0 = nyin
+        iyload1 = 0
+        tiltmax = 0.;
+        do izsec = iz0, iz1
+          tiltmax = max(tiltmax, abs(tiltAngles(izsec + 1)))
+        enddo
+        projMiddle = invertAng * (tiltstr+nzout*tiltinc/2.)
+        do iproj=0,nzout-1
+          angle=invertAng * (tiltstr+iproj*tiltinc)
+          call commonLineBox(ix0, ix1, iy0, iy1, nxin, nyin, angle, tiltmax,
+     &        projMiddle, ixBoxLo(iproj), iyBoxLo(iproj), ixBoxHi(iproj),
+     &        iyBoxHi(iproj), loadxlo, loadxhi, loadylo, loadyhi, fullImage)
+          nxout = max(nxout, ixBoxHi(iproj) + 1 - ixBoxLo(iproj))
+          ixload0 = min(ixload0, loadxlo)
+          ixload1 = max(ixload1, loadxhi)
+          iyload0 = min(iyload0, loadylo)
+          iyload1 = max(iyload1, loadyhi)
+        enddo
+        nxslice = ixload1 + 1 - ixload0
+        nyslice = iyload1 + 1 - iyload0
+      endif
 c
       if (pipinput) then
         ierr = PipGetInteger('WidthToOutput', nxout)
@@ -196,12 +253,10 @@ c
         ierr = PipGetBoolean('ConstantScaling', ixr)
         ifrayscale = 1 - ixr
       else
-        write(*,'(1x,a,i5,a,$)')'Width of output image [/ for',
-     &      nxout,']: '
+        write(*,'(1x,a,i5,a,$)')'Width of output image [/ for', nxout,']: '
         read(*,*)nxout
 c         
-        write(*,'(1x,a,i2,a,$)')'Output data mode [/ ',modeout,
-     &      ']: '
+        write(*,'(1x,a,i2,a,$)')'Output data mode [/ ',modeout, ']: '
         read(*,*)modeout
 c         
 c         write(*,'(1x,a,$)')'0 to scale by 1/(vertical thickness),'//
@@ -235,9 +290,6 @@ c
       call time(tim)
       call date(dat)
 c       
-c       7/7/00 CER: remove the encodes
-c       
-C       encode(80,301,title)ix0,ix1,iy0,iy1,iz0,iz1,xyz
       write(titlech,301) ix0,ix1,iy0,iy1,iz0,iz1,xyz,dat,tim
       read(titlech,'(20a4)')(title(kti),kti=1,20)
 301   format('XYZPROJ: x',2i5,', y',2i5,', z ',2i5,' about ',a1,t57,a9,2x,a8)
@@ -249,6 +301,7 @@ c       set up stack loading with slices
 c       
       istackdel=nxslice*nyslice
       limslices=min(limpix,limstack/(istackdel + max(nxout,lenload)))
+      if (commonLine) limslices = 1
       if(limslices.lt.1)call exiterror('IMAGES TOO LARGE FOR STACK')
       if(nxout*nzout.gt.limray)call exiterror(
      &    'TOO MANY PROJECTIONS FOR OUTPUT THIS WIDE')
@@ -262,9 +315,9 @@ c
         sinang(iproj)=sind(angle)
         cosang(iproj)=cosd(angle)
         iraybase=iproj*nxout
-        call set_projection_rays(sinang(iproj), cosang(iproj), nxslice,
-     &      nyslice, nxout, xraystr(irayBase+1), yraystr(irayBase+1),
-     &      nrayinc(irayBase+1), nraymax(iproj))
+        if (.not.commonLine) call set_projection_rays(sinang(iproj),
+     &      cosang(iproj), nxslice, nyslice, nxout, xraystr(irayBase+1),
+     &      yraystr(irayBase+1), nrayinc(irayBase+1), nraymax(iproj))
       enddo
 c       
 c       loop on loads of several to many slices at once
@@ -291,11 +344,15 @@ c           transpose differently into slice array
 c           
         elseif(xyz.eq.'y'.or.xyz.eq.'Y')then
           do izsec=iz0,iz1,idirz
+c            readstart = walltime()
             call imposn(1,izsec,0)
             call irdpas(1,array(ioutbase),nxblock,nslices,ix0,ix1,
      &          load0, load1,*99)
+c            readdone = walltime()
+c            readtime = readtime + readdone - readstart
             call ytransp(array(ioutbase),idirz*(izsec-iz0)+1,
      &          array, nxslice,nyslice,nslices) 
+c            transtime =  transtime +  walltime() - readdone
           enddo
 c           
 c           for Z, just get slices directly from sections in file
@@ -304,8 +361,8 @@ c
           indstack=1
           do izsec=load0,load1,loaddir
             call imposn(1,izsec,0)
-            call irdpas(1,array(indstack),nxslice,nyslice,ix0,ix1,
-     &          iy0,iy1,*99)
+            call irdpas(1,array(indstack),nxslice,nyslice,ixload0,ixload1,
+     &          iyload0,iyload1,*99)
             indstack=indstack+istackdel
           enddo
         endif
@@ -313,34 +370,49 @@ c
 c         
 c         loop on different projection views
 c         
+c        readdone = walltime()
         do iproj=0,nzout-1
           iraybase=iproj*nxout
+          if (commonLine) then
+            angle=invertAng * (tiltstr+iproj*tiltinc)
+            call commonLineRays(ix0, ix1, iy0, iy1, nxin, nyin, ixload0,
+     &          iyload0, nxout, angle, tiltAngles(load0+1), ixBoxLo(iproj),
+     &          iyBoxLo(iproj), ixBoxHi(iproj), iyBoxHi(iproj),
+     &          xraystr(iraybase+1), yraystr(iraybase+1),nrayinc(iraybase+1),
+     &          nxslice, nyslice, fullImage)
+            nraymax(iproj) = nrayinc(iraybase+1)
+          endif
+c           
+c           Set x-independent part of scaling
+          if(ifrayscale.eq.0)then
+            rayfac=scalfac/nyslice
+          else
+            rayfac=scalfac/nraymax(iproj)
+          endif
 c           
 c           set the output lines for this view to the fill value
-c           
           rayadd = fill
           if(ifrayscale.eq.0) rayadd = (fill * nraymax(iproj)) / nyslice
           do ind=ioutbase,ioutbase+nslices*nxout-1
             array(ind)=rayadd
           enddo
 c           
-c           loop on pixels along line
-c           
-          do ixout=1,nxout
-            nraypts=nrayinc(ixout+iraybase)
-c	      print *,nraypts
-            if(nraypts.gt.0)then
+c           For projections at an angle, process multiple slices at once
+          if (sinang(iproj) .ne. 0.)then
+c             
+c             loop on pixels along line
+            do ixout=1,nxout
+              nraypts=nrayinc(ixout+iraybase)
+c               print *,nraypts
+              if(nraypts.gt.0)then
+c                 
+c                 if block along ray, clear temporary array for output pixels
+                do ipix=1,nslices
+                  pixtmp(ipix)=0.
+                enddo
 c               
-c               if block along ray, clear temporary array for output pixels
-c               
-              do ipix=1,nslices
-                pixtmp(ipix)=0.
-              enddo
-c               
-c               move along ray, computing at each point indexes and factors
-c               for quadratic interpolation
-c               
-              if (sinang(iproj) .ne. 0.)then
+c                 move along ray, computing at each point indexes and factors
+c                 for quadratic interpolation
                 do iray=0,nraypts-1
                   xray=xraystr(ixout+iraybase)+iray*sinang(iproj)
                   yray=yraystr(ixout+iraybase)+iray*cosang(iproj)
@@ -356,7 +428,6 @@ c
 c                   
 c                   loop through pixels in different slices, do quadratic
 c                   interpolation limited by values of surrounding pixels
-c                   
                   do ipix=1,nslices
                     v2=array(ixy2)
                     v4=array(ixy4)
@@ -381,42 +452,65 @@ c
                     ixy8=ixy8+istackdel
                   enddo
                 enddo
-              else
-c                 
-c                 simple case of straight projection
-c                 
-                ixr=nint(xraystr(ixout+iraybase))
-                iyr=nint(yraystr(ixout+iraybase))
-                ixy8 = sign(1., cosang(iproj))
+c               
+c                 set up scaling and put pixels out in different lines
+                rayadd=scaladd*scalfac + rayfac * (nraymax(iproj) - nraypts) *
+     &              (fill / scalfac - scaladd)
+c                   
+                indout=ixout+ioutbase-1
                 do ipix=1,nslices
-                  ixy=ixr+(iyr-1)*nxslice
-                  sumtmp=0.
-                  do iray=0,nraypts-1
-                    sumtmp=sumtmp+array(ixy)
-                    ixy=ixy+nxslice*ixy8
-                  enddo
-                  ixr=ixr+istackdel
-                  pixtmp(ipix)=sumtmp
+                  array(indout)=rayfac*pixtmp(ipix)+rayadd
+                  indout=indout+nxout
                 enddo
               endif
-c               
-c               set up scaling and put pixels out in different lines
-c               
-              if(ifrayscale.eq.0)then
-                rayfac=scalfac/nyslice
-              else
-                rayfac=scalfac/nraymax(iproj)
-              endif
-              rayadd=scaladd*scalfac + rayfac * (nraymax(iproj) - nraypts) *
-     &            (fill / scalfac - scaladd)
-c               
-              indout=ixout+ioutbase-1
-              do ipix=1,nslices
-                array(indout)=rayfac*pixtmp(ipix)+rayadd
-                indout=indout+nxout
+            enddo
+
+          else
+c                 
+c             simple case of straight projection
+c             find limits of x to loop on
+            ixostr = 0
+            do ixout = 1, nxout
+              if (ixostr .eq. 0 .and. nrayinc(ixout+iraybase) .gt. 0)
+     &            ixostr = ixout
+              if (nrayinc(ixout+iraybase) .gt. 0) ixoend = ixout
+            enddo
+c             
+c             Get starting positions in X, Y, and directions
+            ixdir = 1
+            ixr=nint(xraystr(ixostr+iraybase))
+            if (xraystr(ixoend+iraybase) .lt. ixr) ixdir = -1
+            iyr=nint(yraystr(ixostr+iraybase))
+            ixy8 = sign(1., cosang(iproj))
+            nraypts = nrayinc(ixostr+iraybase)
+            rayadd=scaladd*scalfac + rayfac * (nraymax(iproj) - nraypts) *
+     &          (fill / scalfac - scaladd)
+c             
+c             loop on slices; clear the array segment for the slice
+            do ipix=1,nslices
+              indout = nxout * (ipix - 1) + ioutbase - 1
+              do ixout = ixostr,ixoend
+                array(indout + ixout) = 0.
               enddo
-            endif
-          enddo
+              
+c               Loop on levels in Y (the ray points) and set starting index
+              do iray=0,nraypts-1
+                ixy=ixr+(iyr-1)*nxslice + iray*nxslice*ixy8 +
+     &              (ipix-1)*istackdel
+c                 
+c                 Add line into array
+                do ixout = ixostr,ixoend
+                  array(indout + ixout) = array(indout + ixout) + array(ixy)
+                  ixy = ixy + ixdir
+                enddo
+              enddo
+c               
+c                 Scale the data
+              do ixout = ixostr,ixoend
+                array(indout+ixout) = array(indout+ixout) * rayfac + rayadd
+              enddo
+            enddo
+          endif
 c           
 c           get min, max, mean; output the lines to proper section
 c           
@@ -429,6 +523,7 @@ c
           call iwrsecl(2,array(ioutbase),nslices)
         enddo
         iyoutstr=iyoutstr+nslices
+c        projtime = projtime + walltime() - readdone
       enddo
 c       
 c       finish up file header
@@ -437,6 +532,8 @@ c
       call iwrhdr(2,title,1,dmin2,dmax2,dmean2)
       call imclose(2)
       call imclose (1)
+c      print *,'read time',readtime, '  transpose time',transtime,'
+c       project time',projtime
       call exit(0)
 99    call exiterror('READING FILE')
       end
@@ -465,8 +562,198 @@ c
       return
       end
 
+c       Compute the needed box for common line projections that fits within
+c       the given area and within the image at the given projection angle
+c       and when tilt-foreshortened at the maximum tilt angle.  Return the
+c       coordinates defining the limits of the projection box in rotated
+c       space, and the coordinates that need loading
+c
+      subroutine commonLineBox(ix0, ix1, iy0, iy1, nxin, nyin, projAng,
+     &    tiltmax, projMiddle, ixlo, iylo, ixhi, iyhi, loadxlo, loadxhi,
+     &    loadylo, loadyhi, fullImage)
+      implicit none
+      integer*4 ix0, ix1, iy0, iy1, nxin, nyin
+      integer*4 ixlo, iylo, ixhi, iyhi, loadxlo, loadxhi, loadylo, loadyhi
+      logical*4 fullImage
+      real*4 projAng, tiltmax, projMiddle
+c       
+      real*4 cosrot, sinrot, xcen, ycen, x0, y0, x1, y1, xstep, ystep
+      real*4 cosang, sinang
+      integer*4 maxSteps, istep
+      real*4 xll, xul, xlr, xur, yll, yul, ylr, yur, rotang,axisy,ylotfs,yhitfs
+      real*4 xllr, xulr, xlrr, xurr, yllr, yulr, ylrr, yurr
+      real*4 xllt, xult, xlrt, xurt, yllt, yult, ylrt, yurt
+      real*4 cosd, sind
+c       
+c       Determine rotation of area so that it is within 45 deg, so that the
+c       box that is projected is oriented as closely as possible to the
+c       specified box at the middle angle
+      rotang = projAng
+      cosang = projMiddle
+      do while (abs(cosang) .gt. 45.01)
+        rotang = rotang - sign(90., cosang)
+        cosang = cosang - sign(90., cosang)
+      enddo
+c      print *,'Proj angle', projAng,'  Reduced angle',rotang
+c
+c       Incoming and outgoing coordinates are all numbered from 0
+      cosrot = cosd(rotang)
+      sinrot = -sind(rotang)
+      cosang = cosd(projAng)
+      sinang = sind(projAng)
+      xcen = (ix1 + ix0) / 2.
+      ycen = (iy1 + iy0) / 2.
+c       
+c       Set up to loop on area, stepping size down symmetrically until rotated
+c       box fits within the image
+      x0 = ix0
+      y0 = iy0
+      x1 = ix1
+      y1 = iy1
+      maxSteps = max(ix1 + 1 - ix0, iy1 + 1 - iy0) / 2
+      xstep = (ix1 + 1 - ix0) / maxSteps
+      ystep = (iy1 + 1 - iy0) / maxSteps
+      do istep = 1, maxsteps
+c         
+c         Rotate the box by negative of angle and see if it fits
+        call rotatePoint(cosrot, sinrot, x0, y0, xll, yll)
+        call rotatePoint(cosrot, sinrot, x0, y1, xul, yul)
+        call rotatePoint(cosrot, sinrot, x1, y0, xlr, ylr)
+        call rotatePoint(cosrot, sinrot, x1, y1, xur, yur)
+c       
+c       Back-rotate these boundaries by the original, unconstrained angle
+c       and get the coordinates defining limits of projection box
+        call rotatePoint(cosang, sinang, xll, yll, xllr, yllr)
+        call rotatePoint(cosang, sinang, xul, yul, xulr, yulr)
+        call rotatePoint(cosang, sinang, xlr, ylr, xlrr, ylrr)
+        call rotatePoint(cosang, sinang, xur, yur, xurr, yurr)
+        ixlo = ceiling(min(xllr, xulr, xlrr, xurr))
+        ixhi = floor(max(xllr, xulr, xlrr, xurr))
+        iylo = ceiling(min(yllr, yulr, ylrr, yurr))
+        iyhi = floor(max(yllr, yulr, ylrr, yurr))
+c       
+c         tilt-foreshorten the y limits of projection box and recompute corners
+        axisy = -(nxin / 2. - xcen) * sinang + (nyin / 2. - ycen) * cosang +
+     &      ycen
+        if (fullImage) then
+          ylotfs = iylo
+          yhitfs = iyhi
+        else
+          ylotfs = nint((iylo - axisy) * cosd(tiltmax) + axisy)
+          yhitfs = nint((iyhi - axisy) * cosd(tiltmax) + axisy)
+        endif
+        call rotatePoint(cosang, -sinang, float(ixlo), ylotfs, xllt, yllt)
+        call rotatePoint(cosang, -sinang, float(ixlo), yhitfs, xult, yult)
+        call rotatePoint(cosang, -sinang, float(ixhi), ylotfs, xlrt, ylrt)
+        call rotatePoint(cosang, -sinang, float(ixhi), yhitfs, xurt, yurt)
+c        
+c         Get limits of the box needing loading - allow for quadratic
+c         interpolation with the margins here, no extra margin is needed
+        loadxlo = floor(min(xll, xul, xlr, xur, xllt, xult, xlrt, xurt)) - 2
+        loadxhi = ceiling(max(xll, xul, xlr, xur, xllt, xult, xlrt, xurt)) + 2
+        loadylo = floor(min(yll, yul, ylr, yur, yllt, yult, ylrt, yurt)) - 2
+        loadyhi = ceiling(max(yll, yul, ylr, yur, yllt, yult, ylrt, yurt)) + 2
+c         
+c         Test and see if this fits; if not reduce box
+        if (loadxlo .ge. 0 .and. loadxhi .lt. nxin .and.
+     &      loadylo .ge. 0 .and. loadyhi .lt. nyin) exit
+        x0 = x0 + xstep
+        x1 = x1 - xstep
+        y0 = y0 + ystep
+        y1 = y1 - ystep
+        if (istep .gt. maxsteps - 10) call exitError(
+     &      'CANNOT FIND ROTATED BOX THAT FITS WITHIN IMAGE')
+      enddo
+c      print *,istep,' steps, new box:',x0,x1,y0,y1       
+c      print *,'Projection box limits:',ixlo,ixhi,iylo,iyhi
+c      print *,'load limits:', loadxlo, loadxhi, loadylo, loadyhi
+      return 
+
+      contains
+      subroutine rotatePoint(cosa, sina, xin, yin, xout, yout)
+      implicit none
+      real*4 xin, yin, xout, yout, cosa, sina
+      xout = (xin - xcen) * cosa - (yin - ycen) * sina + xcen
+      yout = (xin - xcen) * sina + (yin - ycen) * cosa + ycen
+      end subroutine rotatePoint
+      
+      end subroutine commonLineBox
+
+
+c       Compute the ray parameters for a common line projection given the
+c       original coordinate limits, the start of loaded data, and coordinates
+c       defining the projection box computed before
+c
+      subroutine commonLineRays(ix0, ix1, iy0, iy1, nxin, nyin, loadXst,
+     &    loadYst, nxout, projAng, tilt, inIxlo, iylo, inIxhi, iyhi, xraystr,
+     &    yraystr, nrayinc, nxslice, nyslice, fullImage)
+      implicit none
+      integer*4 ix0, ix1, iy0, iy1, nxin, nyin, loadXst, loadYst, nxout
+      integer*4 inIxlo, iylo, inIxhi, iyhi, nrayinc(*)
+      real*4 projAng, tilt, xraystr(*), yraystr(*)
+      integer*4 nxslice, nyslice
+      logical*4 fullImage
+c       
+      integer*4 iylotfs, iyhitfs, ix, i, ixlo, ixhi
+      real*4 cosrot, sinrot, xcen, ycen, axisy,xend, yend
+      real*4 cosd, sind
+c
+      cosrot = cosd(projAng)
+      sinrot = -sind(projAng)
+      xcen = (ix1 + ix0) / 2.
+      ycen = (iy1 + iy0) / 2.
+c       
+c       Trim the X limits if they are bigger than nxout
+      ixlo = inIxlo
+      ixhi = inIxhi
+      if (ixhi + 1 - ixlo .gt. nxout) then
+        ix = ixhi + 1 - ixlo - nxout
+        ixlo = ixlo + ix / 2
+        ixhi = ixhi - (ix - ix / 2)
+      endif
+c       
+c       Rotate the center of the image to determine the Y value of tilt axis
+c       then tilt-foreshorten the lower and upper Y limits
+      axisy = (nxin / 2. - xcen) * sinrot + (nyin / 2. - ycen) * cosrot + ycen
+      if (fullImage) then
+        iylotfs = iylo
+        iyhitfs = iyhi
+      else
+        iylotfs = nint((iylo - axisy) * cosd(tilt) + axisy)
+        iyhitfs = nint((iyhi - axisy) * cosd(tilt) + axisy)
+      endif
+c       
+c       Rotate the bottom line of this box to get ray starts, adjust by load
+c       Also, incoming coordinates are numbered from 0 but we need array index
+c       coordinates numbered from 1, so add 1 at this stage
+      do ix = ixlo, ixhi
+        i = ix + 1 - ixlo
+        xraystr(i) = (ix - xcen) * cosrot - (iylotfs - ycen) * sinrot + xcen +
+     &      1. - loadXst
+        yraystr(i) = (ix - xcen) * sinrot + (iylotfs - ycen) * cosrot + ycen +
+     &      1. - loadYst
+        nrayinc(i) = iyhitfs + 1 - iylotfs
+c$$$        xend = xraystr(i) - (nrayinc(i)-1)*sinrot
+c$$$        yend = yraystr(i) + (nrayinc(i)-1)*cosrot
+c$$$        if (xraystr(i) .lt. 1.5 .or. yraystr(i) .lt. 1.5 .or. xraystr(i) .gt.
+c$$$     &      nxslice - 0.5 .or.yraystr(i) .gt. nyslice - 0.5) print *,'OOPS',
+c$$$     &      projang, tilt, axisy, ix, xraystr(i),yraystr(i),iylo,iylotfs,
+c$$$     &      iyhi,iyhitfs
+c$$$        if (xend .lt. 1.5 .or. yend .lt. 1.5 .or. xend .gt.
+c$$$     &      nxslice - 0.5 .or.yend .gt. nyslice - 0.5) print *,'OOPSend',
+c$$$     &      projang, tilt, axisy, ix, xend,yend,iylo,iylotfs,iyhi,iyhitfs
+      enddo
+      do i = ixhi + 1 - ixlo, nxout
+        nrayinc(i) = 0
+      enddo
+      return
+      end
+
 c       
 c       $Log$
+c       Revision 3.7  2007/07/15 20:57:03  mast
+c       Fixed edge fill with the constant scaling option
+c
 c       Revision 3.6  2007/04/26 19:16:01  mast
 c       Added option to give constant scaling
 c
