@@ -97,6 +97,48 @@ thickness of the slab being projected.  The default is to
 divide each projection sum by the number of pixels along the projection ray.
 Constant scaling is more appropriate when projecting a largely empty volume.
 
+[Field = TiltFile]
+short = tiltfile
+type = FN
+usage = File with tilt angles for input images from a tilt series
+tooltip = 
+manpage = File with tilt angles for input images from a tilt series.  Use this
+option if tilt angles are in a file, one per line.
+
+[Field = FirstTiltAngle]
+short = first
+type = F
+usage = Tilt angle of first view in degrees for tilt series images
+tooltip = 
+manpage = Tilt angle of first view, in degrees, for images from a tilt series.
+Use this option together with TiltIncrement.
+
+[Field = TiltIncrement]
+short = increment
+type = F
+usage = Increment between tilt angles of input images
+tooltip = 
+manpage = Increment between tilt angles, in degrees, for input images from a
+tilt series.  Use this option together with FirstTiltAngle.
+
+[Field = TiltAngles]
+short = tangles
+type = FAM
+usage = Individual tilt angles for each view for tilt series images
+tooltip = 
+manpage = Use this option to enter the tilt angles for each view individually,
+in degrees, for input images from a tilt series.
+
+[Field = FullAreaAtTilt]
+short = full
+type = B
+usage = Do not tilt-foreshorten when projecting a tilt series
+tooltip =
+manpage = Use this option to keep the projection box the same size on all
+images of a tilt series, rather than making it smaller at higher tilt.  The
+box will thus include new material at each higher tilt.
+
+
 [Field = ParameterFile]
 short = param
 type = PF
