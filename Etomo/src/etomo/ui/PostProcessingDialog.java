@@ -184,7 +184,6 @@ public final class PostProcessingDialog extends ProcessDialog implements
   }
 
   void done() {
-    System.err.println("calling PostProcessingDialog.done.");
     applicationManager.donePostProcessing();
     squeezeVolPanel.done();
     trimvolPanel.done();
@@ -237,6 +236,9 @@ public final class PostProcessingDialog extends ProcessDialog implements
 }
 /**
  * <p> $Log$
+ * <p> Revision 3.43  2009/09/01 03:18:25  sueh
+ * <p> bug# 1222
+ * <p>
  * <p> Revision 3.42  2009/06/22 15:33:19  sueh
  * <p> bug# 1224 Added a log message to done().
  * <p>

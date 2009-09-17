@@ -36,6 +36,9 @@ import etomo.type.Run3dmodMenuOptions;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.37  2009/09/01 03:18:25  sueh
+ * <p> bug# 1222
+ * <p>
  * <p> Revision 3.36  2009/06/22 15:34:00  sueh
  * <p> bug# 1224 Added log messages when action listener is added to or
  * <p> removed from the trimvol button..
@@ -650,7 +653,6 @@ public final class TrimvolPanel implements Run3dmodButtonContainer,
   }
 
   void done() {
-    System.err.println("removing action listener from btnTrimvol.");
     btnTrimvol.removeActionListener(buttonActonListener);
   }
 
