@@ -11,6 +11,9 @@
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.21  2009/09/01 03:17:56  sueh
+ * <p> bug# 1222
+ * <p>
  * <p> Revision 3.20  2009/03/17 00:42:47  sueh
  * <p> bug# 1186 Pass managerKey to everything that pops up a dialog.
  * <p>
@@ -194,7 +197,9 @@ final class NewstProcessMonitor extends FileSizeProcessMonitor {
     if (!rawStack.read()) {
       return false;
     }
+    boolean binningAlreadyApplied = false;
     if (newstParam.isSizeToOutputInXandYSet()) {
+      binningAlreadyApplied = true;
       nX = newstParam.getSizeToOutputInX();
       nY = newstParam.getSizeToOutputInY();
     }
@@ -203,35 +208,12 @@ final class NewstProcessMonitor extends FileSizeProcessMonitor {
       nY = rawStack.getNColumns();
     }
     nZ = rawStack.getNSections();
-    System.err.println("NewstProcessMonitor.calcFileSize:rawStack.getMode()="+rawStack.getMode());
-    switch (rawStack.getMode()) {
-    case 0:
-      modeBytes = 1;
-      break;
-    case 1:
-      modeBytes = 2;
-      break;
-    case 2:
-      modeBytes = 4;
-      break;
-    case 3:
-      modeBytes = 4;
-      break;
-    case 4:
-      modeBytes = 8;
-      break;
-    case 16:
-      modeBytes = 3;
-      break;
-    default:
-      throw new InvalidParameterException("Unknown mode parameter");
-    }
+    modeBytes = getModeBytes(rawStack.getMode());
 
     // Get the binByFactor from newst.com script
     int binBy = newstParam.getBinByFactor();
-    System.err.println("NewstProcessMonitor.calcFileSize:binBy="+binBy);
     // If the bin by factor is unspecified it defaults to 1
-    if (binBy > 1) {
+    if (!binningAlreadyApplied && binBy > 1) {
       nX = nX / binBy;
       nY = nY / binBy;
     }
