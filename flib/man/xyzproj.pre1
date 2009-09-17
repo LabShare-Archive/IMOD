@@ -11,12 +11,28 @@ SSYYNNOOPPSSIISS
 DDEESSCCRRIIPPTTIIOONN
   This program will compute projections of a 3-dimensional block of an
   image file at a series of tilts around either the X, the Y or the Z
-  axis.  The block may be any arbitrary subset of the image file.
+  axis.  The block may be any arbitrary subset of the image file.  In addition
+  to projecting a fixed block of data, it can project a rectangle of data in
+  each X/Y image plane that is aligned with the angle of projection, which is
+  useful for common line analysis.
   
   A projection along a ray line is simply the average of the pixels in
   the block along that line.  However, rather than taking the values of
   the pixels that lie near the ray, interpolation is used to sample
   density at points evenly spaced at one pixel intervals along the ray.
+
+  When the input images are a tilt series and any one of the options are
+  entered to provide the tilt angles for each image (e.g., -tiltfile), the
+  program operates differently.  It automatically produces projections at
+  angles around the Z axis, i.e., within the plane of each image.  The
+  projections are within a rectangular box that is rotated so its sides are
+  parallel to the projection rays.  The size of the box is constrained so that
+  it is completely within the image area on the zero-degree view, or within
+  the area specified by the -xminmax and -yminmax options.  In addition, the
+  box will be made smaller in the direction of projection for images at higher
+  tilts by the cosine of the tilt angle, so that it will contain approximately
+  the same image features in the different images being projected at a given
+  angle.  This tilt foreshortening can be suppressed with the -full option.
   
   Xyzproj uses the PIP package for input (see the manual page for pip(1))
   and can still take sequential input interactively.  The following options
@@ -36,7 +52,7 @@ INSERT OPTION TEXT HERE
   
   Output image file
   
-  Index coordinates (with numbering starting from 0 in X, Y and Y) of
+  Index coordinates (with numbering starting from 0 in X, Y and Z) of
   the starting and ending X, Y then Z coordinates of the block.  The
   default is the whole image file.  The Z coordinates may be entered
   in inverted order (e.g. 56,34) and should be so entered if the input
