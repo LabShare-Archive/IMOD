@@ -161,8 +161,9 @@ int main(int argc, char *argv[])
   qApp->processEvents();
  
   // only to find how many noise files are provided;
-  while( (read=fgetline(fpCfg, p, 1024)) >0 ) 
-    noiseFileCounter++;
+  while( (read=fgetline(fpCfg, p, 1024)) >= 0 ) 
+    if (read)
+      noiseFileCounter++;
   rewind(fpCfg);
   if(debugLevel>=1)
    printf("There are %d noise files specified\n", noiseFileCounter);
@@ -178,7 +179,9 @@ int main(int argc, char *argv[])
   fflush(stdout);
   
   noiseFileCounter=0;
-  while ((read=fgetline(fpCfg, p, 1024)) > 0) {
+  while ((read=fgetline(fpCfg, p, 1024)) >= 0) {
+    if (!read)
+      continue;
     //if(p[read-1]=='\n') p[read-1]='\0';  //remove '\n' at the end;
     app.setSlice(p, NULL);
     app.computeInitPS();
@@ -267,6 +270,9 @@ int ctfShowHelpPage(const char *page)
 /*
 
 $Log$
+Revision 1.14  2009/08/10 22:14:59  mast
+Adjust to changes in other modules, add inversion option
+
 Revision 1.13  2009/01/15 16:31:36  mast
 Qt 4 port
 
