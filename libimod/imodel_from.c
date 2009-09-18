@@ -33,158 +33,163 @@ float Wmod_Colors[9][3]  =   { 0.90, 0.82, 0.37,  /* Dim Yellow  */
 
 struct Mod_Model *imod_from_wmod(FILE *fin)
 {
-     int display_switch;
-     int points;
-     int len;
-     int i;
+  int display_switch;
+  int points;
+  int len;
+  int i;
      
-     char cont_string[] = "Object #:";
-     char line[MAXLINE];
-     char *tline;
+  char cont_string[] = "Object #:";
+  char line[MAXLINE];
+  char *tline;
 
-     int objlookup[MAXOBJ];
-     int nobj = 0;
+  int objlookup[MAXOBJ];
+  int nobj = 0;
 
-     struct Mod_Model *mod;
-     struct Mod_Object *obj;
-     struct Mod_Point point;
+  struct Mod_Model *mod;
+  struct Mod_Object *obj;
+  struct Mod_Point point;
      
-     for(i = 0; i < MAXOBJ; i++)
-	  objlookup[i] = 0;
+  for(i = 0; i < MAXOBJ; i++)
+    objlookup[i] = 0;
 
-     while ( ((len = fgetline(fin,line, MAXLINE)) > 0)){
-	  tline = NULL;
-	  for(i = 0; line[i]; i++){
-	       if (line[i] == 'O'){
-		    tline = &(line[i]);
-		    break;
-	       }
-	  }
-	  if (!tline)
-	       continue;
-	  if (!substr(tline, cont_string))
-	       continue;
+  while ( ((len = fgetline(fin,line, MAXLINE)) >= 0)){
+    if (!len)
+      continue;
+    tline = NULL;
+    for(i = 0; line[i]; i++){
+      if (line[i] == 'O'){
+        tline = &(line[i]);
+        break;
+      }
+    }
+    if (!tline)
+      continue;
+    if (!substr(tline, cont_string))
+      continue;
 	  
-	  fgetline(fin,line,MAXLINE);
-	  sscanf(line, "%*s %*s %*s %d", &points);
-	  fgetline(fin,line,MAXLINE);
-	  sscanf(line, "%*s %*s %d", &display_switch);
-	  if (display_switch > 0){
-	       objlookup[display_switch] = 1;
-	  }
-     }
+    fgetline(fin,line,MAXLINE);
+    sscanf(line, "%*s %*s %*s %d", &points);
+    fgetline(fin,line,MAXLINE);
+    sscanf(line, "%*s %*s %d", &display_switch);
+    if (display_switch > 0){
+      objlookup[display_switch] = 1;
+    }
+  }
      
-     for(i = 0; i < MAXOBJ; i++){
-	  if (objlookup[i]){
-	       objlookup[i] = nobj;
+  for(i = 0; i < MAXOBJ; i++){
+    if (objlookup[i]){
+      objlookup[i] = nobj;
 
 	       
-	       imodNewObject(mod);
+      imodNewObject(mod);
 
-	       if (i >= 247){
-		    mod->obj[nobj].red   = Wmod_Colors[i-247][0];
-		    mod->obj[nobj].green = Wmod_Colors[i-247][1];
-		    mod->obj[nobj].blue  = Wmod_Colors[i-247][2];
+      if (i >= 247){
+        mod->obj[nobj].red   = Wmod_Colors[i-247][0];
+        mod->obj[nobj].green = Wmod_Colors[i-247][1];
+        mod->obj[nobj].blue  = Wmod_Colors[i-247][2];
 
-	       }else{
-		    mod->obj[nobj].red   = (float)i / 255.0f;
-		    mod->obj[nobj].green = (float)i / 255.0f;
-		    mod->obj[nobj].blue  = (float)i / 255.0f;
-	       }
-	       sprintf(mod->obj[nobj].name, "Wimp no. %d", i);
-	       nobj++;
+      }else{
+        mod->obj[nobj].red   = (float)i / 255.0f;
+        mod->obj[nobj].green = (float)i / 255.0f;
+        mod->obj[nobj].blue  = (float)i / 255.0f;
+      }
+      sprintf(mod->obj[nobj].name, "Wimp no. %d", i);
+      nobj++;
 
-	  }else{
-	       objlookup[i] = -1;
-	  }
-     }
+    }else{
+      objlookup[i] = -1;
+    }
+  }
 
-     mod = imodNew();
+  mod = imodNew();
      
      
-     if (!mod){
-	  b3dError(stderr, "Couldn't get new model\n");
-	  return(NULL);
-     }
+  if (!mod){
+    b3dError(stderr, "Couldn't get new model\n");
+    return(NULL);
+  }
      
-/*
-     for (i = 0; i < 9; i++){
-	  imodNewObject(mod);
-	  mod->obj[i].red   = Wmod_Colors[i][0];
-	  mod->obj[i].green = Wmod_Colors[i][1];
-	  mod->obj[i].blue  = Wmod_Colors[i][2];
-     }
-*/   
-     rewind(fin);
+  /*
+    for (i = 0; i < 9; i++){
+    imodNewObject(mod);
+    mod->obj[i].red   = Wmod_Colors[i][0];
+    mod->obj[i].green = Wmod_Colors[i][1];
+    mod->obj[i].blue  = Wmod_Colors[i][2];
+    }
+  */   
+  rewind(fin);
 
-     while ( ((len = fgetline(fin,line, MAXLINE)) > 0)){
-	  /* Search for the given type of contour. */
+  while ( ((len = fgetline(fin,line, MAXLINE)) >= 0)){
+    if (!len)
+      continue;
+
+    /* Search for the given type of contour. */
 	  
-	  tline = NULL;
-	  for(i = 0; line[i]; i++){
-	       if (line[i] == 'O'){
-		    tline = &(line[i]);
-		    break;
-	       }
-	  }
-	  if (!tline)
-	       continue;
-	  if (!substr(tline, cont_string))
-	       continue;
+    tline = NULL;
+    for(i = 0; line[i]; i++){
+      if (line[i] == 'O'){
+        tline = &(line[i]);
+        break;
+      }
+    }
+    if (!tline)
+      continue;
+    if (!substr(tline, cont_string))
+      continue;
 
-	  fgetline(fin,line,MAXLINE);
-	  sscanf(line, "%*s %*s %*s %d", &points);
-	  fgetline(fin,line,MAXLINE);
-	  sscanf(line, "%*s %*s %d", &display_switch);
+    fgetline(fin,line,MAXLINE);
+    sscanf(line, "%*s %*s %*s %d", &points);
+    fgetline(fin,line,MAXLINE);
+    sscanf(line, "%*s %*s %d", &display_switch);
 	  
-	  fgetline(fin,line,MAXLINE);
+    fgetline(fin,line,MAXLINE);
 	  
 
 
-	  mod->cindex.object = objlookup[display_switch];
-	  if (mod->cindex.object < 0){
-	       mod->cindex.object;
+    mod->cindex.object = objlookup[display_switch];
+    if (mod->cindex.object < 0){
+      mod->cindex.object;
 	       
-	  }
-	  if (mod->cindex.object > 8)
-	       mod->cindex.object = 8;
+    }
+    if (mod->cindex.object > 8)
+      mod->cindex.object = 8;
 
 
-	  obj = &(mod->obj[mod->cindex.object]);
-	  mod->cindex.contour = obj->contsize - 1;
-	  imodNewContour(mod);
+    obj = &(mod->obj[mod->cindex.object]);
+    mod->cindex.contour = obj->contsize - 1;
+    imodNewContour(mod);
 
-	  /* Go through and collect points. */
-	  for (i = 0; i < points; i++){
-	       fgetline(fin,line,MAXLINE);
-	       sscanf(line,"%*d %f %f %f", &(point.x), &(point.y), &(point.z));
-	       imodPointAdd( &(obj->cont[mod->cindex.contour]), 
-				&point, i);
+    /* Go through and collect points. */
+    for (i = 0; i < points; i++){
+      fgetline(fin,line,MAXLINE);
+      sscanf(line,"%*d %f %f %f", &(point.x), &(point.y), &(point.z));
+      imodPointAdd( &(obj->cont[mod->cindex.contour]), 
+                    &point, i);
 	       
-	  }
-	  obj->cont[mod->cindex.contour].psize = points;
+    }
+    obj->cont[mod->cindex.contour].psize = points;
 	  
-	  for (i = 0; i < mod->objsize; i++){
-	       obj = &(mod->obj[i]);
-	       if (obj->contsize){
-		    if (obj->cont[0].psize < 2)
-			 obj->flags |= IMOD_OBJFLAG_OPEN;
-		    else
-			 if (obj->cont[0].pts[0].z != obj->cont[0].pts[1].z)
-			      obj->flags |= IMOD_OBJFLAG_OPEN;
-	       }
-	  }
+    for (i = 0; i < mod->objsize; i++){
+      obj = &(mod->obj[i]);
+      if (obj->contsize){
+        if (obj->cont[0].psize < 2)
+          obj->flags |= IMOD_OBJFLAG_OPEN;
+        else
+          if (obj->cont[0].pts[0].z != obj->cont[0].pts[1].z)
+            obj->flags |= IMOD_OBJFLAG_OPEN;
+      }
+    }
 	  
 		  
-     }
+  }
 
-     for(i = 0; i < mod->objsize; i++){
-	  if (!mod->obj[i].contsize)
-	       imodDeleteObject(mod, i--);
-     }
+  for(i = 0; i < mod->objsize; i++){
+    if (!mod->obj[i].contsize)
+      imodDeleteObject(mod, i--);
+  }
 
 
-     return(mod);
+  return(mod);
      
 }
 
@@ -193,24 +198,24 @@ struct Mod_Model *imod_from_wmod(FILE *fin)
 
 
 /*
-struct Mod_Model *imod_from_synu(FILE *fin)
-{
-     return(NULL);
-}
+  struct Mod_Model *imod_from_synu(FILE *fin)
+  {
+  return(NULL);
+  }
 */
 
 int substr(char bs[], char ls[])
 {
-     int i,len;
+  int i,len;
      
-     len = strlen(ls);
+  len = strlen(ls);
      
-     for (i = 0; i < len; i++){
-	  if (bs[i] == ls[i])
-	       continue;
-	  else
-	       return(0);
-     }
-     return(1);
+  for (i = 0; i < len; i++){
+    if (bs[i] == ls[i])
+      continue;
+    else
+      return(0);
+  }
+  return(1);
      
 }

@@ -110,6 +110,8 @@ int do_batch(FILE *fin, int force)
      if (Verbose)
 	  puts("Begin");
      while ((len = fgetline(fin, line, 128)) >= 0){
+       if (!len)
+         continue;
 	  if (parse_line(line, fin) != 0){
 	       if (Verbose)
 		    printf("All done.\n");

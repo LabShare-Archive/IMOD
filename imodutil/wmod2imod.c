@@ -140,7 +140,9 @@ struct Mod_Model *imod_from_wmod(FILE *fin)
   for(i = 0; i < MAXOBJ; i++)
     objlookup[i] = 0;
 
-  while ( ((len = fgetline(fin,line, MAXLINE)) > 0)){
+  while ( ((len = fgetline(fin,line, MAXLINE)) >= 0)){
+    if (!len)
+      continue;
     tline = NULL;
     for(i = 0; line[i]; i++){
       if (line[i] == 'O'){
@@ -205,7 +207,9 @@ struct Mod_Model *imod_from_wmod(FILE *fin)
   */   
   rewind(fin);
 
-  while ( ((len = fgetline(fin,line, MAXLINE)) > 0)){
+  while ( ((len = fgetline(fin,line, MAXLINE)) >= 0)){
+    if (!len)
+      continue;
     /* Search for the given type of contour. */
       
     tline = NULL;
