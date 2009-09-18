@@ -406,6 +406,7 @@ static int filetrans(char *filename, Imod *model, int mode, int oneLine,
   char line[80];
   float mat[6];
   int k = 0;
+  int nread;
   float xc, yc, dx, dy;
   Imat *mat3d = imodMatNew(3);
 
@@ -417,12 +418,14 @@ static int filetrans(char *filename, Imod *model, int mode, int oneLine,
   }
      
   if (mode == 2) {
-    while (fgetline(fin, line, 80)){
+    while (fgetline(fin, line, 80) >= 0){
       
-      sscanf(line, "%f %f %f %f %f %f", 
-             &(mat[0]), &(mat[1]), 
-             &(mat[2]), &(mat[3]),
-             &(mat[4]), &(mat[5]));
+      nread = sscanf(line, "%f %f %f %f %f %f", 
+                     &(mat[0]), &(mat[1]), 
+                     &(mat[2]), &(mat[3]),
+                     &(mat[4]), &(mat[5]));
+      if (nread <= 0)
+        continue;
       if (oneLine < 0) {
         trans_model_slice(model, mat, k, newCen);
       } else if (k == oneLine) {
@@ -453,7 +456,7 @@ static int filetrans(char *filename, Imod *model, int mode, int oneLine,
 
   } else {
     for (k = 0; k < 3; k++) {
-      if (!fgetline(fin, line, 80)) {
+      if (fgetline(fin, line, 80) <= 0) {
         fprintf(stderr, "ERROR: imodtrans - Reading line %d from  %s\n", k,
                 filename);
         return(-1);
@@ -598,6 +601,9 @@ static int trans_model_3d(Imod *model, Imat *mat, Imat *normMat, Ipoint newCen,
 
 /*
     $Log$
+    Revision 3.8  2006/10/05 19:44:47  mast
+    Set the model maxes if the -n optionis used
+
     Revision 3.7  2006/09/13 02:37:08  mast
     Call imodDefault since imodRead will not
 
