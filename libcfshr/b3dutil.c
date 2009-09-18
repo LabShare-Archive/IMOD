@@ -401,8 +401,9 @@ int mrcHugeSeek(FILE *fp, int base, int x, int y, int z, int nx, int ny,
  * Reads a line of characters from the file pointed to by [fp] and places it 
  * into array [s] of size [limit].  Replaces newline with a null or 
  * terminates the string with null if reading stops because the array limit is
- * reached.  Returns the length of the string, or the negative of the length 
- * of the string on error or end of file.
+ * reached.  Returns the length of the string, -1 for an error, -2 for end of 
+ * file after a newline, or the negative of the length 
+ * of the string plus two for end of file on a line not terminated by newline.
  */
 int fgetline(FILE *fp, char s[], int limit)
 {
@@ -410,33 +411,25 @@ int fgetline(FILE *fp, char s[], int limit)
 
   if (fp == NULL){
     b3dError(stderr, "fgetline: file pointer not valid\n");
-    return(0);
+    return(-1);
   }
 
   if (limit < 3){
     b3dError(stderr, "fgetline: limit (%d) must be > 2\n", limit);
-    return(0);
+    return(-1);
   }
      
   for (i=0; ( ((c = getc(fp)) != EOF) && (i < (limit-1)) && (c != '\n') ); i++)
     s[i]=c;
-     
-  if (i == 1){
-    if (c == EOF){
-      return(0);
-    }
-    if (c == '\n'){
-      s[++i] = '\0';
-      return(1);
-    }
-  }
-               
 
+  /* A \n or EOF on the first character leaves i at 0, so there is nothing
+     special to be handled about i being 1, 9/18/09 */
+               
   s[i]='\0';
   length = i;
 
   if (c == EOF)
-    return (-1 * length);
+    return (-1 * (length + 2));
   else
     return (length);
 }
@@ -584,6 +577,9 @@ int numompthreads(int optimalThreads)
 
 /*
 $Log$
+Revision 1.10  2009/06/22 22:46:22  mast
+Add function to compute thread number
+
 Revision 1.9  2009/06/08 19:27:57  mast
 Fixed time functions for Windows, added commented out high-res for linux
 
