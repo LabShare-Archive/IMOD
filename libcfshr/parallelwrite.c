@@ -92,7 +92,7 @@ int parWrtInitialize(char *filename, int nxin, int nyin)
     regions[i].file = strdup(line);
     if (!regions[i].file)
       return 4;
-    if (fgetline(fp, line, MAXLINE) == 0)
+    if (fgetline(fp, line, MAXLINE) <= 0)
       return 2;
     sscanf(line, "%d %d %d %d", &regions[i].section[0], 
            &regions[i].startLine[0], &regions[i].section[1], 
@@ -233,5 +233,8 @@ int parwrtgetregion(int *regionNum, char *filename, int *sections,
 /*
 
 $Log$
+Revision 1.1  2009/02/16 06:15:03  mast
+Added to package
+
 
 */
