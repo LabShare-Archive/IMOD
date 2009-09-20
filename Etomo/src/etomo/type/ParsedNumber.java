@@ -30,6 +30,9 @@ import etomo.util.PrimativeTokenizer;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.21  2009/03/17 00:46:15  sueh
+ * <p> bug# 1186 Pass managerKey to everything that pops up a dialog.
+ * <p>
  * <p> Revision 1.20  2009/01/13 19:36:47  sueh
  * <p> bug# 1170 Added setFloor.
  * <p>
@@ -206,6 +209,10 @@ public final class ParsedNumber extends ParsedElement {
 
   public Number getRawNumber() {
     return rawNumber.getDefaultedNumber();
+  }
+
+  public ConstEtomoNumber getEtomoNumber() {
+    return rawNumber;
   }
 
   public Number getNegatedRawNumber() {
