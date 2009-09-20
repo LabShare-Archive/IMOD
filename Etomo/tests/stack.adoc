@@ -373,7 +373,6 @@ assert.exists.file=tilt_3dfind_reproject%{axis}.com
 assert.exists.file=tilt_3dfind%{axis}.log~
 assert.exists.file=%{dataset}%{axis}_3dfind.rec~
 # check comscript
-assert.equals.com=tilt_3dfind%{axis}.com
 # run 3dmod
 bn.view-full-aligned-stack=
 bn.view-tomogram-in-3dmod=
