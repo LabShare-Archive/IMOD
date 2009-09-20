@@ -63,6 +63,9 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.11  2009/09/11 22:41:36  sueh
+ * <p> bug# 1259 comparing com files by sorting them first.
+ * <p>
  * <p> Revision 1.10  2009/09/06 01:40:21  sueh
  * <p> bug# 1259 Fixed a uitest bug.
  * <p>
@@ -589,7 +592,7 @@ final class AutodocTester extends Assert implements VariableList {
           fail("unexpected command (" + command + ")");
         }
       }
-      if (subjectType == UITestSubjectType.COM) {
+      else if (subjectType == UITestSubjectType.COM) {
         File comFile = new File(System.getProperty("user.dir"), value);
         //assert.equals.com = com_file_name
         if (modifierType == UITestModifierType.EQUALS) {
