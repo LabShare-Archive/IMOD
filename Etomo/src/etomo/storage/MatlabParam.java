@@ -44,6 +44,10 @@ import etomo.util.DatasetFiles;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.30  2009/09/05 00:33:52  sueh
+ * <p> bug# 1256 In write, stopped turning on debug when getting the matlab
+ * <p> autodoc.
+ * <p>
  * <p> Revision 1.29  2009/09/01 03:18:06  sueh
  * <p> bug# 1222
  * <p>
@@ -821,12 +825,12 @@ public final class MatlabParam {
     particlePerCpu.setRawString(input.toString());
   }
 
-  public Number getDebugLevel() {
-    return debugLevel.getRawNumber();
+  public ConstEtomoNumber getDebugLevel() {
+    return debugLevel.getEtomoNumber();
   }
 
-  public Number getParticlePerCPU() {
-    return particlePerCpu.getRawNumber();
+  public ConstEtomoNumber getParticlePerCPU() {
+    return particlePerCpu.getEtomoNumber();
   }
 
   public String getSzVolX() {
