@@ -16,6 +16,9 @@ import java.util.ArrayList;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.16  2008/08/18 22:37:20  sueh
+ * <p> bug# 1130 Added isLocalFits.
+ * <p>
  * <p> Revision 1.15  2007/12/10 22:34:49  sueh
  * <p> bug# 1041 Made class an interface so inheritance can come from BaseMetaData.
  * <p>
@@ -150,51 +153,94 @@ import java.util.ArrayList;
  * <p> get functions.
  * <p> </p>
  */
-public interface  ConstJoinMetaData  {
+public interface ConstJoinMetaData {
   public static final String rcsid = "$Id$";
 
   public ConstEtomoNumber getAlignmentRefSection();
+
   public Transform getAlignTransform();
+
   public String getBoundariesToAnalyze();
+
   public int getCoordinate(ConstEtomoNumber coordinate, JoinState state);
+
   public ConstEtomoNumber getSigmaLowFrequency();
+
   public String getDatasetName();
+
   public ConstEtomoNumber getDensityRefSection();
+
   public ConstEtomoNumber getCutoffHighFrequency();
+
   public ConstEtomoNumber getSigmaHighFrequency();
+
   public boolean isUseAlignmentRefSection();
+
   public ConstEtomoNumber getShiftInX();
+
   public ConstEtomoNumber getSizeInX();
+
   public ConstEtomoNumber getShiftInY();
+
   public ConstEtomoNumber getSizeInY();
+
   public boolean isLocalFits();
+
   public ConstEtomoNumber getUseEveryNSlices();
+
   public ConstEtomoNumber getRejoinUseEveryNSlices();
+
   public ConstEtomoNumber getTrialBinning();
+
   public Transform getModelTransform();
+
   public ConstEtomoNumber getMidasLimit();
+
   public String getObjectsToInclude();
+
   public ConstEtomoNumber getGap();
+
   public ConstEtomoNumber getGapStart();
+
   public ConstEtomoNumber getGapEnd();
+
   public ConstEtomoNumber getGapInc();
+
   public ConstEtomoNumber getPointsToFitMin();
+
   public ConstEtomoNumber getPointsToFitMax();
+
   public ConstEtomoNumber getRejoinTrialBinning();
+
   public ConstEtomoNumber getBoundaryRowEnd(int key);
+
   public boolean isBoundaryRowEndListEmpty();
+
   public ArrayList getSectionTableData();
+
   public IntKeyList.Walker getBoundaryRowEndListWalker();
+
   public IntKeyList.Walker getBoundaryRowStartListWalker();
+
   public ScriptParameter getSizeInXParameter();
+
   public ScriptParameter getSizeInYParameter();
+
   public ScriptParameter getShiftInXParameter();
+
   public ScriptParameter getShiftInYParameter();
+
   public ScriptParameter getRejoinTrialBinningParameter();
+
   public ScriptParameter getTrialBinningParameter();
+
   public ScriptParameter getCutoffHighFrequencyParameter();
+
   public ScriptParameter getSigmaLowFrequencyParameter();
+
   public ScriptParameter getSigmaHighFrequencyParameter();
+
   public String getName();
+
   public ScriptParameter getDensityRefSectionParameter();
 }

@@ -25,6 +25,9 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.14  2009/03/17 00:46:15  sueh
+ * <p> bug# 1186 Pass managerKey to everything that pops up a dialog.
+ * <p>
  * <p> Revision 1.13  2008/12/10 18:32:18  sueh
  * <p> bug# 1162 Added a manager stamp to setRootName.
  * <p>
@@ -289,7 +292,7 @@ public final class JoinMetaData extends BaseMetaData implements
     sizeInY.load(props, prepend);
     shiftInX.load(props, prepend);
     shiftInY.load(props, prepend);
-    localFits.load(props,prepend);
+    localFits.load(props, prepend);
     useEveryNSlices.load(props, prepend);
     trialBinning.load(props, prepend);
     rejoinTrialBinning.load(props, prepend);
@@ -365,7 +368,7 @@ public final class JoinMetaData extends BaseMetaData implements
 
   public void setRootName(String rootName) {
     this.rootName = rootName;
-    Utilities.managerStamp(null,this.rootName);
+    Utilities.managerStamp(null, this.rootName);
   }
 
   public void setBoundariesToAnalyze(String boundariesToAnalyze) {
@@ -387,7 +390,7 @@ public final class JoinMetaData extends BaseMetaData implements
   public void setPointsToFitMin(String pointsToFitMin) {
     this.pointsToFitMin.set(pointsToFitMin);
   }
-  
+
   public void setLocalFits(boolean input) {
     localFits.set(input);
   }
@@ -525,7 +528,7 @@ public final class JoinMetaData extends BaseMetaData implements
     sizeInY.store(props, prepend);
     shiftInX.store(props, prepend);
     shiftInY.store(props, prepend);
-    localFits.store(props,prepend);
+    localFits.store(props, prepend);
     useEveryNSlices.store(props, prepend);
     trialBinning.store(props, prepend);
     rejoinTrialBinning.store(props, prepend);
@@ -812,7 +815,7 @@ public final class JoinMetaData extends BaseMetaData implements
   public ConstEtomoNumber getShiftInY() {
     return shiftInY;
   }
-  
+
   public boolean isLocalFits() {
     return localFits.is();
   }
