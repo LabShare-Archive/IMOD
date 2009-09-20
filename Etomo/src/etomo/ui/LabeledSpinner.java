@@ -12,6 +12,9 @@
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.26  2009/09/01 03:18:24  sueh
+ * <p> bug# 1222
+ * <p>
  * <p> Revision 1.25  2009/04/13 22:55:56  sueh
  * <p> Removed newstuff.
  * <p>
@@ -125,6 +128,7 @@ import javax.swing.SpinnerNumberModel;
 import etomo.EtomoDirector;
 import etomo.storage.autodoc.AutodocTokenizer;
 import etomo.type.ConstEtomoNumber;
+import etomo.type.EtomoNumber;
 import etomo.type.UITestFieldType;
 import etomo.util.Utilities;
 
@@ -137,11 +141,15 @@ final class LabeledSpinner {
 
   private SpinnerNumberModel model;
 
+  private final Integer defaultValue;
+
   /**
    * @param spinner
    */
-  LabeledSpinner(String spinLabel, SpinnerNumberModel model) {
+  LabeledSpinner(final String spinLabel, final SpinnerNumberModel model,
+      final int defaultValue) {
     this.model = model;
+    this.defaultValue = new Integer(defaultValue);
     //set name
     String name = Utilities.convertLabelToName(spinLabel);
     spinner.setName(name);
@@ -169,11 +177,11 @@ final class LabeledSpinner {
     spinner.setMaximumSize(maxSize);
   }
 
-  void setMax(int max) {
+  void setMax(final int max) {
     model.setMaximum(new Integer(max));
   }
 
-  void setModel(SpinnerNumberModel model) {
+  void setModel(final SpinnerNumberModel model) {
     this.model = model;
     spinner.setModel(model);
   }
@@ -190,19 +198,21 @@ final class LabeledSpinner {
     return (Number) spinner.getValue();
   }
 
-  void setValue(Object value) {
-    spinner.setValue(value);
-  }
-
-  void setValue(ConstEtomoNumber value) {
+  void setValue(final ConstEtomoNumber value) {
+    if (value.isNull()) {
+      spinner.setValue(defaultValue);
+    }
     spinner.setValue(value.getNumber());
   }
 
-  void setValue(int value) {
+  void setValue(final int value) {
+    if (value == EtomoNumber.INTEGER_NULL_VALUE) {
+      spinner.setValue(defaultValue);
+    }
     spinner.setValue(new Integer(value));
   }
 
-  void setEnabled(boolean isEnabled) {
+  void setEnabled(final boolean isEnabled) {
     spinner.setEnabled(isEnabled);
     label.setEnabled(isEnabled);
   }
@@ -211,11 +221,11 @@ final class LabeledSpinner {
     return (spinner.isEnabled());
   }
 
-  void setVisible(boolean isVisible) {
+  void setVisible(final boolean isVisible) {
     panel.setVisible(isVisible);
   }
 
-  void setHighlight(boolean highlight) {
+  void setHighlight(final boolean highlight) {
     JFormattedTextField textField = getTextField();
     if (highlight) {
       textField.setBackground(Colors.HIGHLIGHT_BACKGROUND);
@@ -233,7 +243,7 @@ final class LabeledSpinner {
    * Set the absolute preferred size of the text field
    * @param size
    */
-  void setTextPreferredSize(Dimension size) {
+  void setTextPreferredSize(final Dimension size) {
     spinner.setPreferredSize(size);
   }
 
@@ -241,7 +251,7 @@ final class LabeledSpinner {
    * Set the absolute maximum size of the text field
    * @param size
    */
-  void setTextMaxmimumSize(Dimension size) {
+  void setTextMaxmimumSize(final Dimension size) {
     spinner.setMaximumSize(size);
   }
 
@@ -249,7 +259,7 @@ final class LabeledSpinner {
    * Set the absolute preferred size of the panel
    * @param size
    */
-  void setPreferredSize(Dimension size) {
+  void setPreferredSize(final Dimension size) {
     panel.setPreferredSize(size);
   }
 
@@ -257,7 +267,7 @@ final class LabeledSpinner {
    * Set the absolute maximum size of the panel
    * @param size
    */
-  void setMaximumSize(Dimension size) {
+  void setMaximumSize(final Dimension size) {
     panel.setMaximumSize(size);
   }
 
@@ -265,11 +275,11 @@ final class LabeledSpinner {
     return label.getPreferredSize();
   }
 
-  void setAlignmentX(float alignment) {
+  void setAlignmentX(final float alignment) {
     panel.setAlignmentX(alignment);
   }
 
-  void setToolTipText(String text) {
+  void setToolTipText(final String text) {
     String tooltip = TooltipFormatter.INSTANCE.format(text);
     panel.setToolTipText(tooltip);
     spinner.setToolTipText(tooltip);
@@ -277,7 +287,7 @@ final class LabeledSpinner {
     label.setToolTipText(tooltip);
   }
 
-  void addMouseListener(MouseListener listener) {
+  void addMouseListener(final MouseListener listener) {
     panel.addMouseListener(listener);
     label.addMouseListener(listener);
     spinner.addMouseListener(listener);
