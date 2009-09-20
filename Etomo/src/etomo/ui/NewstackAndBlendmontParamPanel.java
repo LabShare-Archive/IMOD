@@ -41,6 +41,11 @@ import etomo.util.InvalidParameterException;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.2  2009/09/17 19:12:58  sueh
+ * <p> bug# 1257 In NewstParam.setSizeToOutputInXandY forgot to read the
+ * <p> header.  Adding read call and throwing InvalidParameterException and
+ * <p> IOException.
+ * <p>
  * <p> Revision 3.1  2009/09/01 03:18:25  sueh
  * <p> bug# 1222
  * <p>
@@ -66,7 +71,7 @@ final class NewstackAndBlendmontParamPanel implements FiducialessParams {
 
   private final SpacedPanel pnlRoot = SpacedPanel.getInstance(true);
   private final LabeledSpinner spinBinning = new LabeledSpinner(BINNING_LABEL
-      + ": ", new SpinnerNumberModel(1, 1, 8, 1));
+      + ": ", new SpinnerNumberModel(1, 1, 8, 1), 1);
 
   private final LabeledTextField ltfSizeToOutputInXandY = new LabeledTextField(
       SIZE_TO_OUTPUT_IN_X_AND_Y_LABEL + " (X,Y - unbinned): ");
@@ -165,7 +170,8 @@ final class NewstackAndBlendmontParamPanel implements FiducialessParams {
 
   //  Copy the newstack parameters from the GUI to the NewstParam object
   public void getParameters(NewstParam newstParam)
-      throws FortranInputSyntaxException,InvalidParameterException,IOException {
+      throws FortranInputSyntaxException, InvalidParameterException,
+      IOException {
     int binning = getBinning();
     // Only explicitly write out the binning if its value is something other than
     // the default of 1 to keep from cluttering up the com script  

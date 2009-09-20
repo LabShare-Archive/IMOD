@@ -100,7 +100,7 @@ final class SetupDialog extends ProcessDialog implements ContextMenu,
       "Image distortion field file: ");
   private final JButton btnDistortionFile = new JButton(iconFolder);
   private final LabeledSpinner spnBinning = new LabeledSpinner("Binning: ",
-      new SpinnerNumberModel(1, 1, 50, 1));
+      new SpinnerNumberModel(1, 1, 50, 1), 1);
 
   private final JPanel pnlMagGradientInfo = new JPanel();
   private final LabeledTextField ltfMagGradientFile = new LabeledTextField(
@@ -856,6 +856,9 @@ final class SetupDialog extends ProcessDialog implements ContextMenu,
 }
 /**
  * <p> $Log$
+ * <p> Revision 3.66  2009/09/01 03:18:25  sueh
+ * <p> bug# 1222
+ * <p>
  * <p> Revision 3.65  2009/02/12 00:03:20  sueh
  * <p> bug# 1152 Shared Single frame label.
  * <p>

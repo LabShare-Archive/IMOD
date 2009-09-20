@@ -25,6 +25,10 @@ import javax.swing.SpinnerNumberModel;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.6  2009/06/05 02:10:29  sueh
+ * <p> bug# 1219 Renamed spinner to spBinningXY.  Renamed getInt to
+ * <p> setBinningInXandY.
+ * <p>
  * <p> Revision 1.5  2008/09/30 20:55:55  sueh
  * <p> bug# 1113 Using a private constructor in SpacedPanel.
  * <p>
@@ -50,16 +54,16 @@ final class BinnedXY3dmodButton {
   private JPanel panel = null;
 
   BinnedXY3dmodButton(String label, Run3dmodButtonContainer container) {
-    spBinningXY = new LabeledSpinner("Open binned by ", new SpinnerNumberModel(1,
-        1, 50, 1));
+    spBinningXY = new LabeledSpinner("Open binned by ", new SpinnerNumberModel(
+        1, 1, 50, 1), 1);
     this.label = new JLabel(" in X and Y");
     button = Run3dmodButton.get3dmodInstance(label, container);
   }
 
   Container getContainer() {
     if (panel == null) {
-      panel =  new JPanel();
-      panel.setLayout(new BoxLayout(panel,BoxLayout.X_AXIS));
+      panel = new JPanel();
+      panel.setLayout(new BoxLayout(panel, BoxLayout.X_AXIS));
       panel.setAlignmentX(Component.CENTER_ALIGNMENT);
       panel.add(Box.createHorizontalGlue());
       panel.add(Box.createHorizontalGlue());
@@ -69,13 +73,13 @@ final class BinnedXY3dmodButton {
       borderPanel.setBorder(BorderFactory.createEtchedBorder());
       borderPanel.setAlignmentX(Component.CENTER_ALIGNMENT);
       JPanel spinnerPanel = new JPanel();
-      spinnerPanel.setLayout(new BoxLayout(spinnerPanel,BoxLayout.X_AXIS));
+      spinnerPanel.setLayout(new BoxLayout(spinnerPanel, BoxLayout.X_AXIS));
       spinnerPanel.setAlignmentX(Component.CENTER_ALIGNMENT);
       spinnerPanel.add(spBinningXY.getContainer());
       spinnerPanel.add(label);
       borderPanel.add(spinnerPanel);
       JPanel pnlButtons = new JPanel();
-      pnlButtons.setLayout(new BoxLayout(pnlButtons,BoxLayout.X_AXIS));
+      pnlButtons.setLayout(new BoxLayout(pnlButtons, BoxLayout.X_AXIS));
       pnlButtons.setAlignmentX(Component.CENTER_ALIGNMENT);
       button.setSize();
       pnlButtons.add(button.getComponent());

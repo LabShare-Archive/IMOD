@@ -30,7 +30,10 @@ import etomo.type.Run3dmodMenuOptions;
  * 
  * @version $Revision$
  * 
- * <p> $Log$ </p>
+ * <p> $Log$
+ * <p> Revision 3.1  2009/09/01 03:18:25  sueh
+ * <p> bug# 1222
+ * <p> </p>
  */
 abstract class NewstackOrBlendmont3dFindPanel implements
     Run3dmodButtonContainer {
@@ -41,7 +44,7 @@ abstract class NewstackOrBlendmont3dFindPanel implements
       this);
   private final LabeledSpinner spinBinning = new LabeledSpinner(
       NewstackAndBlendmontParamPanel.BINNING_LABEL + ": ",
-      new SpinnerNumberModel(1, 1, 8, 1));
+      new SpinnerNumberModel(1, 1, 8, 1), 1);
   private final Run3dmodButton btn3dmodFull = Run3dmodButton.get3dmodInstance(
       "View Full Aligned Stack", this);
 

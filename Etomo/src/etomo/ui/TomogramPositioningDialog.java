@@ -35,6 +35,9 @@ import etomo.type.Run3dmodMenuOptions;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.66  2009/09/01 03:18:25  sueh
+ * <p> bug# 1222
+ * <p>
  * <p> Revision 3.65  2009/01/20 20:31:55  sueh
  * <p> bug# 1102 Changed labeled panels to type EtomoPanel so that they can name themselves.
  * <p>
@@ -362,7 +365,7 @@ final class TomogramPositioningDialog extends ProcessDialog implements
   private final LabeledTextField ltfRotation = new LabeledTextField(
       "Tilt axis rotation:");
   private final LabeledSpinner spinBinning = new LabeledSpinner("   Binning ",
-      new SpinnerNumberModel(1, 1, 8, 1));
+      new SpinnerNumberModel(3, 1, 8, 1), 3);
   private final CheckBox cbWholeTomogram = new CheckBox("Use whole tomogram");
   private final Run3dmodButton btnCreateBoundary = Run3dmodButton
       .get3dmodInstance("Create Boundary Model", this);
