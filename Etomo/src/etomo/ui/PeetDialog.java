@@ -41,6 +41,7 @@ import etomo.type.PeetScreenState;
 import etomo.type.Run3dmodMenuOptions;
 import etomo.util.Goodframe;
 import etomo.util.InvalidParameterException;
+import etomo.util.Utilities;
 
 /**
  * <p>Description: </p>
@@ -56,6 +57,9 @@ import etomo.util.InvalidParameterException;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.76  2009/09/01 03:18:25  sueh
+ * <p> bug# 1222
+ * <p>
  * <p> Revision 1.75  2009/04/27 18:02:36  sueh
  * <p> bug# 1211 Implemented FileContainer.  Moved last location functionality
  * <p> from VolumeTable to PeetDialog.  Added checkIncorrectPaths,
@@ -398,7 +402,8 @@ public final class PeetDialog implements ContextMenu, AbstractParallelDialog,
   private final LabeledSpinner lsParticlePerCPU = new LabeledSpinner(
       "Particles per CPU: ",
       new SpinnerNumberModel(MatlabParam.PARTICLE_PER_CPU_DEFAULT,
-          MatlabParam.PARTICLE_PER_CPU_MIN, MatlabParam.PARTICLE_PER_CPU_MAX, 1));
+          MatlabParam.PARTICLE_PER_CPU_MIN, MatlabParam.PARTICLE_PER_CPU_MAX, 1),
+      MatlabParam.PARTICLE_PER_CPU_DEFAULT);
   private final IterationTable iterationTable;
   private final ButtonGroup bgYAxisType = new ButtonGroup();
   private final RadioButton rbYAxisTypeYAxis = new RadioButton(
@@ -460,7 +465,8 @@ public final class PeetDialog implements ContextMenu, AbstractParallelDialog,
       "True local correlation coefficent", MatlabParam.CCMode.LOCAL, bgCcMode);
   private final LabeledSpinner lsDebugLevel = new LabeledSpinner(
       "Debug level: ", new SpinnerNumberModel(MatlabParam.DEBUG_LEVEL_DEFAULT,
-          MatlabParam.DEBUG_LEVEL_MIN, MatlabParam.DEBUG_LEVEL_MAX, 1));
+          MatlabParam.DEBUG_LEVEL_MIN, MatlabParam.DEBUG_LEVEL_MAX, 1),
+      MatlabParam.DEBUG_LEVEL_DEFAULT);
   private final MultiLineButton btnImportMatlabParamFile = new MultiLineButton(
       "Import a .prm File");
   private final Run3dmodButton btnAvgVol = Run3dmodButton.get3dmodInstance(
@@ -495,6 +501,8 @@ public final class PeetDialog implements ContextMenu, AbstractParallelDialog,
   private String correctPath = null;
 
   private PeetDialog(final PeetManager manager, final AxisID axisID) {
+    System.err.println(Utilities.getDateTimeStamp() + "\nDialog: "
+        + DialogType.PEET);
     this.manager = manager;
     this.axisID = axisID;
     fixPathsPanel = FixPathsPanel.getInstance(this, manager, axisID,
@@ -968,7 +976,7 @@ public final class PeetDialog implements ContextMenu, AbstractParallelDialog,
   public boolean usingParallelProcessing() {
     return true;
   }
-  
+
   public void expand(final GlobalExpandButton button) {
   }
 

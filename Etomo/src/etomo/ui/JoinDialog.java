@@ -44,6 +44,7 @@ import etomo.type.JoinState;
 import etomo.type.Run3dmodMenuOptions;
 import etomo.type.Transform;
 import etomo.util.DatasetFiles;
+import etomo.util.Utilities;
 
 /**
  * <p>Description: The dialog box for creating the fiducial model(s).</p>
@@ -58,6 +59,9 @@ import etomo.util.DatasetFiles;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 1.69  2009/09/01 03:18:25  sueh
+ * <p> bug# 1222
+ * <p>
  * <p> Revision 1.68  2009/06/05 02:13:25  sueh
  * <p> bug# 1219 Reformatted.
  * <p>
@@ -619,6 +623,8 @@ public final class JoinDialog implements ContextMenu, Run3dmodButtonContainer {
    */
   private JoinDialog(JoinManager manager, String workingDirName,
       ConstJoinMetaData metaData, JoinState state) {
+    System.err.println(Utilities.getDateTimeStamp() + "\nDialog: "
+        + DialogType.JOIN);
     this.state = state;
     axisID = AxisID.ONLY;
     this.manager = manager;
@@ -1020,7 +1026,7 @@ public final class JoinDialog implements ContextMenu, Run3dmodButtonContainer {
     SpinnerNumberModel spinnerModel = new SpinnerNumberModel(1, 1,
         numSections < 1 ? 1 : numSections, 1);
     spinDensityRefSection = new LabeledSpinner(
-        "Reference section for density matching: ", spinnerModel);
+        "Reference section for density matching: ", spinnerModel, 1);
     //sixth component
     setupPanel2 = SpacedPanel.getInstance();
     setupPanel2.setBoxLayout(BoxLayout.X_AXIS);
@@ -1192,9 +1198,11 @@ public final class JoinDialog implements ContextMenu, Run3dmodButtonContainer {
     SpacedPanel pnlUseEvery = SpacedPanel.getInstance();
     pnlUseEvery.setBoxLayout(BoxLayout.X_AXIS);
     int zMax = pnlSectionTable.getZMax();
-    SpinnerNumberModel spinnerModel = new SpinnerNumberModel(zMax < 1 ? 1
-        : zMax < 10 ? zMax : 10, 1, zMax < 1 ? 1 : zMax, 1);
-    spinRejoinUseEveryNSlices = new LabeledSpinner("Use every ", spinnerModel);
+    int currentValue = zMax < 1 ? 1 : zMax < 10 ? zMax : 10;
+    SpinnerNumberModel spinnerModel = new SpinnerNumberModel(currentValue, 1,
+        zMax < 1 ? 1 : zMax, 1);
+    spinRejoinUseEveryNSlices = new LabeledSpinner("Use every ", spinnerModel,
+        currentValue);
     pnlUseEvery.add(spinRejoinUseEveryNSlices);
     pnlUseEvery.add(new JLabel("slices"));
     //trial rejoin button
@@ -1204,7 +1212,7 @@ public final class JoinDialog implements ContextMenu, Run3dmodButtonContainer {
     pnlTrialRejoinButton.add(pnlUseEvery.getContainer());
     spinnerModel = new SpinnerNumberModel(1, 1, 50, 1);
     spinRejoinTrialBinning = new LabeledSpinner("Binning in X and Y: ",
-        spinnerModel);
+        spinnerModel, 1);
     pnlTrialRejoinButton.add(spinRejoinTrialBinning.getContainer());
     btnTrialRejoin.setDeferred3dmodButton(b3bOpenTrialRejoin);
     btnTrialRejoin.setAlignmentX(Component.CENTER_ALIGNMENT);
@@ -1326,15 +1334,18 @@ public final class JoinDialog implements ContextMenu, Run3dmodButtonContainer {
     SpacedPanel trialJoinPanel1 = SpacedPanel.getInstance();
     trialJoinPanel1.setBoxLayout(BoxLayout.X_AXIS);
     int zMax = pnlSectionTable.getZMax();
-    SpinnerNumberModel spinnerModel = new SpinnerNumberModel(zMax < 1 ? 1
-        : zMax < 10 ? zMax : 10, 1, zMax < 1 ? 1 : zMax, 1);
-    spinUseEveryNSlices = new LabeledSpinner("Use every ", spinnerModel);
+    int currentValue = zMax < 1 ? 1 : zMax < 10 ? zMax : 10;
+    SpinnerNumberModel spinnerModel = new SpinnerNumberModel(currentValue, 1,
+        zMax < 1 ? 1 : zMax, 1);
+    spinUseEveryNSlices = new LabeledSpinner("Use every ", spinnerModel,
+        currentValue);
     trialJoinPanel1.add(spinUseEveryNSlices);
     trialJoinPanel1.add(new JLabel("slices"));
     pnlTrialJoin.add(trialJoinPanel1);
     //second component
     spinnerModel = new SpinnerNumberModel(1, 1, 50, 1);
-    spinTrialBinning = new LabeledSpinner("Binning in X and Y: ", spinnerModel);
+    spinTrialBinning = new LabeledSpinner("Binning in X and Y: ", spinnerModel,
+        1);
     pnlTrialJoin.add(spinTrialBinning);
     //third component
     btnTrialJoin.setDeferred3dmodButton(b3bOpenTrialIn3dmod);
@@ -1535,10 +1546,9 @@ public final class JoinDialog implements ContextMenu, Run3dmodButtonContainer {
         .getNumber());
     ltfShiftInX.setText(metaData.getShiftInX().toString());
     ltfShiftInY.setText(metaData.getShiftInY().toString());
-    spinUseEveryNSlices.setValue(metaData.getUseEveryNSlices().getNumber());
-    spinRejoinUseEveryNSlices.setValue(metaData.getRejoinUseEveryNSlices()
-        .getNumber());
-    spinTrialBinning.setValue(metaData.getTrialBinning().getNumber());
+    spinUseEveryNSlices.setValue(metaData.getUseEveryNSlices());
+    spinRejoinUseEveryNSlices.setValue(metaData.getRejoinUseEveryNSlices());
+    spinTrialBinning.setValue(metaData.getTrialBinning());
     ltfMidasLimit.setText(metaData.getMidasLimit().toString());
     pnlSectionTable.setMetaData(metaData);
     ltfSizeInX.setText(metaData.getSizeInX().toString());
@@ -1554,8 +1564,7 @@ public final class JoinDialog implements ContextMenu, Run3dmodButtonContainer {
     ltfGapInc.setText(metaData.getGapInc());
     ltfPointsToFitMin.setText(metaData.getPointsToFitMin());
     ltfPointsToFitMax.setText(metaData.getPointsToFitMax());
-    spinRejoinTrialBinning.setValue(metaData.getRejoinTrialBinning()
-        .getNumber());
+    spinRejoinTrialBinning.setValue(metaData.getRejoinTrialBinning());
   }
 
   public void setScreenState(JoinScreenState screenState) {
@@ -1844,16 +1853,16 @@ public final class JoinDialog implements ContextMenu, Run3dmodButtonContainer {
           run3dmodMenuOptions);
     }
     else if (command.equals(b3bOpenIn3dmod.getActionCommand())) {
-      manager.imodOpen(ImodManager.JOIN_KEY, b3bOpenIn3dmod.getBinningInXandY(),
-          run3dmodMenuOptions);
+      manager.imodOpen(ImodManager.JOIN_KEY,
+          b3bOpenIn3dmod.getBinningInXandY(), run3dmodMenuOptions);
     }
     else if (command.equals(b3bOpenTrialIn3dmod.getActionCommand())) {
-      manager.imodOpen(ImodManager.TRIAL_JOIN_KEY,
-          b3bOpenTrialIn3dmod.getBinningInXandY(), run3dmodMenuOptions);
+      manager.imodOpen(ImodManager.TRIAL_JOIN_KEY, b3bOpenTrialIn3dmod
+          .getBinningInXandY(), run3dmodMenuOptions);
     }
     else if (command.equals(btnMakeRefiningModel.getActionCommand())) {
       manager.imodOpen(AxisID.ONLY, ImodManager.MODELED_JOIN_KEY, DatasetFiles
-          .getRefineModelFileName(manager), run3dmodMenuOptions,true);
+          .getRefineModelFileName(manager), run3dmodMenuOptions, true);
     }
     else if (command.equals(b3bOpenRejoin.getActionCommand())) {
       manager.imodOpen(ImodManager.JOIN_KEY, b3bOpenRejoin.getBinningInXandY(),
@@ -1869,13 +1878,14 @@ public final class JoinDialog implements ContextMenu, Run3dmodButtonContainer {
       }
       else {
         manager.imodOpen(ImodManager.TRIAL_JOIN_KEY, b3bOpenTrialRejoin
-            .getBinningInXandY(), DatasetFiles.getRefineAlignedModelFileName(manager),
-            run3dmodMenuOptions);
+            .getBinningInXandY(), DatasetFiles
+            .getRefineAlignedModelFileName(manager), run3dmodMenuOptions);
       }
     }
     else if (command.equals(b3bOpenRejoinWithModel.getActionCommand())) {
-      manager.imodOpen(ImodManager.JOIN_KEY, b3bOpenRejoinWithModel.getBinningInXandY(),
-          ltfTransformedModel.getText(), run3dmodMenuOptions);
+      manager.imodOpen(ImodManager.JOIN_KEY, b3bOpenRejoinWithModel
+          .getBinningInXandY(), ltfTransformedModel.getText(),
+          run3dmodMenuOptions);
     }
     else {
       throw new IllegalStateException("Unknown command " + command);

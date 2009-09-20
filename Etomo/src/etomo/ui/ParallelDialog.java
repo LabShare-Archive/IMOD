@@ -16,6 +16,7 @@ import etomo.type.AxisID;
 import etomo.type.BaseScreenState;
 import etomo.type.DialogType;
 import etomo.type.ParallelMetaData;
+import etomo.util.Utilities;
 
 /**
  * <p>Description: </p>
@@ -53,6 +54,7 @@ public final class ParallelDialog implements AbstractParallelDialog {
   private File workingDir = null;
 
   private ParallelDialog(ParallelManager manager, AxisID axisID) {
+    System.err.println(Utilities.getDateTimeStamp()+"\nDialog: "+DialogType.PARALLEL);
     actionListener = new ParallelActionListener(this);
     this.manager = manager;
     this.axisID = axisID;
@@ -188,6 +190,9 @@ public final class ParallelDialog implements AbstractParallelDialog {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.22  2009/02/26 19:56:11  sueh
+ * <p> bug# 1185 Allowing a larger string of zeros in the comscript name.
+ * <p>
  * <p> Revision 1.21  2009/01/20 20:18:28  sueh
  * <p> bug# 1102 Changing the icon button to a simple button and naming it.
  * <p>

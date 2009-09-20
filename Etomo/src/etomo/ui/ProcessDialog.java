@@ -14,6 +14,9 @@
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.36  2009/09/01 03:18:25  sueh
+ * <p> bug# 1222
+ * <p>
  * <p> Revision 3.35  2009/01/20 20:21:29  sueh
  * <p> bug# 1102 Changed labeled panels to type EtomoPanel so that they can name themselves.
  * <p>
@@ -214,6 +217,8 @@ public abstract class ProcessDialog implements AbstractParallelDialog {
    */
   public ProcessDialog(final ApplicationManager appManager,
       final AxisID axisID, DialogType dialogType) {
+    System.err
+        .println(Utilities.getDateTimeStamp() + "\nDialog: " + dialogType);
     displayed = true;
     applicationManager = appManager;
     this.axisID = axisID;

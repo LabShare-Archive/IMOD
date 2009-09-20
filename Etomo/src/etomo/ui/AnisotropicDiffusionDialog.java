@@ -41,6 +41,9 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.17  2009/09/05 00:38:08  sueh
+ * <p> bug# 1256 Made ITERATION_LIST_LABEL public.  Moved error reporting when iteration list is set to functions called by the set... function.
+ * <p>
  * <p> Revision 1.16  2009/03/17 00:46:24  sueh
  * <p> bug# 1186 Pass managerKey to everything that pops up a dialog.
  * <p>
@@ -234,6 +237,7 @@ public final class AnisotropicDiffusionDialog implements ContextMenu,
   }
 
   private AnisotropicDiffusionDialog(final ParallelManager manager) {
+    System.err.println(Utilities.getDateTimeStamp()+"\nDialog: "+DialogType.ANISOTROPIC_DIFFUSION);
     this.manager = manager;
     //root
     rootPanel.setBoxLayout(BoxLayout.X_AXIS);
