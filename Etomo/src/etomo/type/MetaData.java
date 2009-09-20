@@ -28,6 +28,9 @@ import etomo.util.Utilities;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.50  2009/09/01 03:06:34  sueh
+ * <p> bug# 1222 Added settings for erase gold with findbeads3d.
+ * <p>
  * <p> Revision 3.49  2009/06/05 02:09:20  sueh
  * <p> bug# 1219 Added CONTOURS_ON_ONE_SURFACE_KEY, FLATTEN_KEY,
  * <p> FLATTEN_WARP_KEY, INPUT_KEY, POST_KEY, postFlattenInputTrimVol,
@@ -538,6 +541,7 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
     sizeToOutputInXandYB.setDefault();
 
     posBinningA.setDisplayValue(3);
+    posBinningB.setDisplayValue(3);
     stackBinningA.setDisplayValue(1);
     stackBinningB.setDisplayValue(1);
     stack3dFindBinningA.setDisplayValue(1);
