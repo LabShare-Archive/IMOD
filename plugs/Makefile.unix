@@ -15,6 +15,7 @@ all : ALWAYS
 install : 
 	cd beadhelper     ;    $(MAKE) $@
 	cd drawingtools   ;    $(MAKE) $@
+	cd interpolator   ;    $(MAKE) $@
 
 clean : ALWAYS
 	cd beadfix        ;    $(MAKE) $@
