@@ -20,7 +20,10 @@ import etomo.type.Run3dmodMenuOptions;
  * 
  * @version $Revision$
  * 
- * <p> $Log$ </p>
+ * <p> $Log$
+ * <p> Revision 3.1  2009/09/01 03:18:25  sueh
+ * <p> bug# 1222
+ * <p> </p>
  */
 final class Blendmont3dFindPanel extends NewstackOrBlendmont3dFindPanel
     implements BlendmontDisplay {
@@ -47,7 +50,7 @@ final class Blendmont3dFindPanel extends NewstackOrBlendmont3dFindPanel
 
   public void getParameters(BlendmontParam param) {
     param.setBinByFactor(getBinning());
-    param.setMode(BlendmontParam.Mode.BLEND);
+    param.setMode(BlendmontParam.Mode.BLEND_3DFIND);
   }
 
   void runProcess(final ProcessSeries processSeries,
