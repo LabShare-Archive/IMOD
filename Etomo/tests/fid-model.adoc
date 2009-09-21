@@ -19,9 +19,14 @@ Version = 1.2
 mb.beadtracker = +
 bn.track-seed-model =
 wait.process.tracking-fiducials = done
-assert.exists.file = track%{axis}.log
+[[if = test-gui]]
+	assert.exists.file = track%{axis}.log
+[[]]
 bn.track-with-fiducial-model-as-seed = 
-assert.exists.file = track%{axis}.log~
+[[if = test-gui]]
+	assert.exists.file = track%{axis}.log~
+[[]]
+
 wait.process.tracking-fiducials = done
 bn.track-with-fiducial-model-as-seed =
 wait.process.tracking-fiducials = done
