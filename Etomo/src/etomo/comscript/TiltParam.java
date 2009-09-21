@@ -11,6 +11,9 @@
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.35  2009/09/05 00:35:39  sueh
+ * <p> bug# 1256 Added blank getIteratorElementList.
+ * <p>
  * <p> Revision 3.34  2009/09/01 03:17:46  sueh
  * <p> bug# 1222
  * <p>
@@ -335,7 +338,7 @@ public final class TiltParam implements ConstTiltParam, CommandParam {
   public CommandDetails getSubcommandDetails() {
     return null;
   }
-  
+
   public ProcessName getSubcommandProcessName() {
     return null;
   }
@@ -812,9 +815,8 @@ public final class TiltParam implements ConstTiltParam, CommandParam {
     }
     throw new IllegalArgumentException("field=" + field);
   }
-  
-  public IteratorElementList getIteratorElementList(
-      final FieldInterface field) {
+
+  public IteratorElementList getIteratorElementList(final FieldInterface field) {
     throw new IllegalArgumentException("field=" + field);
   }
 
@@ -1248,8 +1250,8 @@ public final class TiltParam implements ConstTiltParam, CommandParam {
    */
   public ConstEtomoNumber setImageBinned() {
     EtomoNumber currentBinning = new EtomoNumber(EtomoNumber.Type.LONG);
-    currentBinning.set(UIExpertUtilities.INSTANCE.getStackBinning(manager,
-        axisID, ".ali", true));
+    currentBinning.set(UIExpertUtilities.INSTANCE.getStackBinningFromFileName(
+        manager, axisID, inputFile, true));
     if (!currentBinning.isNull()) {
       imageBinned.set(currentBinning);
     }
@@ -1289,8 +1291,8 @@ public final class TiltParam implements ConstTiltParam, CommandParam {
 
   /**
    * If the tilt axis angle is closer to 90 degree, x and y need to be transposed.
-   * The .ali file will already be transposed.  So just transpose the goodframe
-   * outputs.
+   * The .ali or _3dfind.ali file will already be transposed.  So just transpose
+   * the goodframe outputs.
    * @throws InvalidParameterException
    * @throws IOException
    */
@@ -1300,8 +1302,8 @@ public final class TiltParam implements ConstTiltParam, CommandParam {
     Goodframe goodframe = etomo.comscript.Utilities
         .getGoodframeFromMontageSize(axisID, manager);
     if (goodframe != null) {
-      MRCHeader header = MRCHeader.getInstance(manager, axisID, ".ali", manager
-          .getManagerKey());
+      MRCHeader header = MRCHeader.getInstanceFromFileName(manager, axisID,
+          inputFile, manager.getManagerKey());
       try {
         if (!header.read()) {
           //ok if tilt is being updated before .ali exists
@@ -1353,8 +1355,8 @@ public final class TiltParam implements ConstTiltParam, CommandParam {
       if (!stackHeader.read()) {
         return true;
       }
-      MRCHeader aliHeader = MRCHeader.getInstance(manager, axisID, ".ali",
-          manager.getManagerKey());
+      MRCHeader aliHeader = MRCHeader.getInstanceFromFileName(manager, axisID,
+          inputFile, manager.getManagerKey());
       if (!aliHeader.read()) {
         return true;
       }
@@ -1710,13 +1712,13 @@ public final class TiltParam implements ConstTiltParam, CommandParam {
   public void setXTiltFile(final String input) {
     xTiltFile = input;
   }
-  
+
   public void setXTiltInterp(final int input) {
-    xTiltInterp=input;
+    xTiltInterp = input;
   }
-  
+
   public void setZFactorFileName(final String input) {
-    zFactorFileName=input;
+    zFactorFileName = input;
   }
 
   public void resetXShift() {
@@ -1875,8 +1877,8 @@ public final class TiltParam implements ConstTiltParam, CommandParam {
     public static final Field WIDTH = new Field();
     public static final Field X_SHIFT = new Field();
     public static final Field X_TILT_FILE = new Field();
-    public static final Field  X_TILT_INTERP = new Field();
-    public static final Field  Z_FACTOR_FILE_NAME = new Field();
+    public static final Field X_TILT_INTERP = new Field();
+    public static final Field Z_FACTOR_FILE_NAME = new Field();
   }
 
   public static final class Mode implements CommandMode {
