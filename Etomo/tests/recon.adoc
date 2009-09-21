@@ -40,7 +40,6 @@ set.adoc.function = stack.adoc
 run.function.main=
 
 [dialog = TomoGen]
-#set.var.test-gui=
 set.adoc.function = tomo-gen.adoc
 run.function.main=
 [[if = dual]]
