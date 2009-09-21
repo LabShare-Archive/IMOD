@@ -30,6 +30,11 @@ import etomo.util.InvalidParameterException;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.2  2009/09/17 19:12:58  sueh
+ * <p> bug# 1257 In NewstParam.setSizeToOutputInXandY forgot to read the
+ * <p> header.  Adding read call and throwing InvalidParameterException and
+ * <p> IOException.
+ * <p>
  * <p> Revision 3.1  2009/09/01 03:18:25  sueh
  * <p> bug# 1222
  * <p> </p>
@@ -59,7 +64,8 @@ final class Newstack3dFindPanel extends NewstackOrBlendmont3dFindPanel
   }
 
   public void getParameters(NewstParam newstParam)
-      throws FortranInputSyntaxException,InvalidParameterException,IOException {
+      throws FortranInputSyntaxException, InvalidParameterException,
+      IOException {
     newstParam.setCommandMode(NewstParam.Mode.FULL_ALIGNED_STACK);
     newstParam.setFiducialessAlignment(manager.getMetaData()
         .isFiducialessAlignment(axisID));
@@ -77,7 +83,8 @@ final class Newstack3dFindPanel extends NewstackOrBlendmont3dFindPanel
     newstParam.setLinearInterpolation(state
         .isStackUseLinearInterpolation(axisID));
     newstParam.setSizeToOutputInXandY(state
-        .getStackUserSizeToOutputInXandY(axisID), getBinning(), manager.getMetaData().getImageRotation(axisID), manager);
+        .getStackUserSizeToOutputInXandY(axisID), getBinning(), manager
+        .getMetaData().getImageRotation(axisID), manager);
     //Set output file because this file was copied from newst.com
     Vector outputFile = new Vector();
     outputFile.add(FileType.NEWST_OR_BLEND_3D_FIND_OUTPUT.getFileName(manager,
