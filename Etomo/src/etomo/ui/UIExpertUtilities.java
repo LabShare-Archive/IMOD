@@ -87,6 +87,25 @@ public final class UIExpertUtilities {
   }
 
   /**
+   * Gets the binning that can be used to run tilt against a stack (.preali,
+   * _3dfind.ali, or .ali).  Function calculates the binning from the stack's
+   * pixel spacing and the raw stack's pixel spacing.
+   * @param manager
+   * @param axisID
+   * @param file
+   * @param nullIfFailed
+   * @return
+   */
+  public long getStackBinningFromFileName(BaseManager manager, AxisID axisID,
+      String fileName, boolean nullIfFailed) {
+    if (fileName==null||fileName.matches("\\s*")) {
+      throw new IllegalStateException("Empty file name");
+    }
+    return getStackBinning(manager, axisID, MRCHeader.getInstance(manager
+        .getPropertyUserDir(), fileName, axisID, manager.getManagerKey()), false);
+  }
+
+  /**
    * Gets the binning that can be used to run tilt against a stack (.preali or
    * .ali).  Function calculates the binning from the stack's pixel spacing and
    * the raw stack's pixel spacing.
@@ -427,6 +446,9 @@ public final class UIExpertUtilities {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.7  2009/09/01 03:18:25  sueh
+ * <p> bug# 1222
+ * <p>
  * <p> Revision 1.6  2009/03/17 00:46:24  sueh
  * <p> bug# 1186 Pass managerKey to everything that pops up a dialog.
  * <p>
