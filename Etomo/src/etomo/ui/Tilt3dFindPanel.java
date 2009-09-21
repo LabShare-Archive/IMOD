@@ -33,7 +33,10 @@ import etomo.util.InvalidParameterException;
  * 
  * @version $Revision$
  * 
- * <p> $Log$ </p>
+ * <p> $Log$
+ * <p> Revision 3.1  2009/09/01 03:18:24  sueh
+ * <p> bug# 1222
+ * <p> </p>
  */
 final class Tilt3dFindPanel extends AbstractTiltPanel {
   public static final String rcsid = "$Id$";
@@ -130,7 +133,6 @@ final class Tilt3dFindPanel extends AbstractTiltPanel {
    */
   public boolean getParameters(final TiltParam param)
       throws NumberFormatException, InvalidParameterException, IOException {
-    super.getParameters(param);
     //param.setThickness(ltfTomoThickness.getText());
     //param.setZShift(ltfZShift.getText());
     if (manager.getState().isStackUsingNewstOrBlend3dFindOutput(axisID)) {
@@ -144,6 +146,7 @@ final class Tilt3dFindPanel extends AbstractTiltPanel {
     param.setOutputFile(FileType.TILT_3D_FIND_OUTPUT.getFileName(manager,
         axisID));
     param.setProcessName(ProcessName.TILT_3D_FIND);
+    super.getParameters(param);
     return true;
   }
 
