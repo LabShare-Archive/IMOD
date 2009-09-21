@@ -11,6 +11,11 @@
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.22  2009/09/17 19:16:52  sueh
+ * <p> bug# 1257 Added FileSizeProcessMonitor.getModeBytes to handle getting the right number of bytes based on the mode in a single location.  Also
+ * <p> fixing a problem where binning was applied twice when
+ * <p> NewstParam.sizeToOutputInXandY is used.
+ * <p>
  * <p> Revision 3.21  2009/09/01 03:17:56  sueh
  * <p> bug# 1222
  * <p>
@@ -108,8 +113,7 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import etomo.ApplicationManager;
-import etomo.comscript.ComScriptManager;
-import etomo.comscript.NewstParam;
+import etomo.comscript.ConstNewstParam;
 import etomo.storage.LogFile;
 import etomo.type.AxisID;
 import etomo.type.ProcessName;
@@ -121,10 +125,12 @@ final class NewstProcessMonitor extends FileSizeProcessMonitor {
 
   //private BufferedReader logReader = null;
   private boolean gotStatusFromLog = false;
-  private NewstParam newstParam = null;
+//NewstParam must be passed in because it can be loaded from more then one com file.
+  private final ConstNewstParam newstParam ;
 
-  public NewstProcessMonitor(ApplicationManager appMgr, AxisID id) {
-    super(appMgr, id, ProcessName.NEWST);
+  public NewstProcessMonitor(ApplicationManager appMgr, AxisID id,ProcessName processName,ConstNewstParam newstParam) {
+    super(appMgr, id, processName);
+    this.newstParam=newstParam;
   }
 
   /**
@@ -187,7 +193,6 @@ final class NewstProcessMonitor extends FileSizeProcessMonitor {
 
     // Get the depth, mode, any mods to the X and Y size from the tilt 
     // command script and the input and output filenames. 
-    loadNewstParam();
     // Get the header from the raw stack to calculate the aligned stack stize
     String rawStackFilename = applicationManager.getPropertyUserDir() + "/"
         + newstParam.getInputFile();
@@ -227,18 +232,7 @@ final class NewstProcessMonitor extends FileSizeProcessMonitor {
     return true;
   }
 
-  private void loadNewstParam() {
-    if (newstParam != null) {
-      return;
-    }
-    ComScriptManager comScriptManager = applicationManager
-        .getComScriptManager();
-    comScriptManager.loadNewst(axisID);
-    newstParam = comScriptManager.getNewstComNewstParam(axisID);
-  }
-
   protected void reloadWatchedFile() {
-    loadNewstParam();
     // Create a file object describing the file to be monitored
     watchedFile = new File(applicationManager.getPropertyUserDir(), newstParam
         .getOutputFile());
