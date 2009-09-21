@@ -33,6 +33,9 @@ import etomo.util.Utilities;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.56  2009/09/01 03:17:46  sueh
+ * <p> bug# 1222
+ * <p>
  * <p> Revision 3.55  2009/06/05 01:44:55  sueh
  * <p> bug# 1219 Added scriptFlatten, getWarpVolParamFromFlatten,
  * <p> isWarpVolParamInFlatten, loadFlatten, and saveFlatten.
@@ -739,7 +742,7 @@ public class ComScriptManager {
 
     // Initialize a BlendmontParam object from the com script command object
     BlendmontParam blendParam = new BlendmontParam(appManager, appManager
-        .getMetaData().getDatasetName(), axisID, BlendmontParam.Mode.BLEND);
+        .getMetaData().getDatasetName(), axisID, BlendmontParam.Mode.BLEND_3DFIND);
     initialize(blendParam, scriptBlend3dFind, BlendmontParam.COMMAND_NAME,
         axisID);
     return blendParam;
