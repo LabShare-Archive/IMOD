@@ -28,6 +28,9 @@ import etomo.ui.UIHarness;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.29  2009/09/17 19:13:26  sueh
+ * <p> bug# 1257 Adding debug functionality.
+ * <p>
  * <p> Revision 3.28  2009/06/15 20:27:19  sueh
  * <p> bug# 1221 Reformatted.
  * <p>
@@ -237,9 +240,16 @@ public class MRCHeader {
   }
 
   public static MRCHeader getInstance(BaseManager manager, AxisID axisID,
-      String filename, ManagerKey managerKey) {
+      String fileExt, ManagerKey managerKey) {
     return MRCHeader.getInstance(manager.getPropertyUserDir(), DatasetFiles
-        .getDatasetFile(manager, axisID, filename).getAbsolutePath(), axisID,
+        .getDatasetFile(manager, axisID, fileExt).getAbsolutePath(), axisID,
+        managerKey);
+  }
+  
+  public static MRCHeader getInstanceFromFileName(BaseManager manager, AxisID axisID,
+      String fileName, ManagerKey managerKey) {
+    return MRCHeader.getInstance(manager.getPropertyUserDir(), DatasetFiles
+        .getDatasetFileFromFileName(manager, axisID, fileName).getAbsolutePath(), axisID,
         managerKey);
   }
 
