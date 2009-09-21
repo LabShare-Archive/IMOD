@@ -16,6 +16,12 @@ either 1 or 0.  These forms correspond to the different forms that can be
 output by the companion program, Model2point(1).  When contour numbers are not
 contained in the file, there are options to place points into different 
 contours based on the number of points or their Z values.
+.P
+In addition to options for processing the coordinates, there are several
+options for setting properties of the model or objects.  These are provided
+to save having to edit a model in 3dmod, a convenience that becomes
+significant when models are produced repeatedly at the command line or by a
+script.  Other such options could be added easily.
 .SS Options
 Point2model uses the PIP package for input (see the manual page for pip(1)).
 Options can be specified either as command line arguments (with the -)
@@ -26,6 +32,6 @@ INSERT OPTION TEXT HERE
 Read parameter entries from standard input
 
 .SH AUTHOR
-David Mastronarde
+David Mastronarde  (mast@colorado.edu)
 .SH SEE ALSO
 model2point(1)

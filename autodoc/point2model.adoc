@@ -59,3 +59,39 @@ type = B
 usage = Objects and contours are numbered from 0 instead of 1
 tooltip = 
 manpage = 
+
+[Field = CircleSize]
+short = circle
+type = I
+usage = Turn on display of circles of this size (radius) at each point
+tooltip = 
+manpage = Turn on display of circles of this size (radius) at each point.  If
+the points form open contours that progress through Z, this option will let
+you see them in the Zap window of 3dmod without having to edit the object.
+
+[Field = SphereRadius]
+short = sphere
+type = I
+usage = Turn on display of spheres of this radius at each point
+tooltip = 
+manpage = Turn on display of spheres of this radius at each point.  Use this
+option to see scattered points in 3dmod without having to edit the object.
+
+[Field = ColorOfObject]
+short = color
+type = ITM
+usage = Color to make object (red, green, blue ranging from 0 to 255)
+tooltip =
+manpage = Color to make an object; enter red, green, and blue values ranging
+from 0 to 255.  To assign colors to multiple objects, enter this option
+multiple times.
+
+[Field = ImageForCoordinates]
+short = image
+type = FN
+usage = Make the model's coordinate system match this image file
+tooltip = 
+manpage = Make the model's coordinate system match this image file.  This
+is not needed for loading the model onto this image in 3dmod, but will allow
+the model to be used together with this image file in various programs
+(e.g., Beadtrack) without having to load it into 3dmod and save it.
