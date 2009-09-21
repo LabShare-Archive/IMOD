@@ -206,7 +206,7 @@ public final class BlendmontParam implements CommandParam, CommandDetails {
   public CommandDetails getSubcommandDetails() {
     return null;
   }
-  
+
   public ProcessName getSubcommandProcessName() {
     return null;
   }
@@ -341,9 +341,8 @@ public final class BlendmontParam implements CommandParam, CommandDetails {
   public int getIntValue(final FieldInterface field) {
     throw new IllegalArgumentException("field=" + field);
   }
-  
-  public IteratorElementList getIteratorElementList(
-      final FieldInterface field) {
+
+  public IteratorElementList getIteratorElementList(final FieldInterface field) {
     throw new IllegalArgumentException("field=" + field);
   }
 
@@ -419,6 +418,9 @@ public final class BlendmontParam implements CommandParam, CommandDetails {
       }
       return ProcessName.BLEND;
     }
+    if (mode == Mode.BLEND_3DFIND) {
+      return ProcessName.BLEND_3D_FIND;
+    }
     if (mode == Mode.UNDISTORT) {
       return ProcessName.UNDISTORT;
     }
@@ -485,6 +487,7 @@ public final class BlendmontParam implements CommandParam, CommandDetails {
     public static final Mode XCORR = new Mode("XCorr");
     public static final Mode PREBLEND = new Mode("Preblend");
     public static final Mode BLEND = new Mode("Blend");
+    public static final Mode BLEND_3DFIND = new Mode("Blend_3dfind");
     public static final Mode UNDISTORT = new Mode("Undistort");
     public static final Mode WHOLE_TOMOGRAM_SAMPLE = new Mode(
         "WholeTomogramSample");
@@ -502,6 +505,9 @@ public final class BlendmontParam implements CommandParam, CommandDetails {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.32  2009/09/05 00:35:39  sueh
+ * <p> bug# 1256 Added blank getIteratorElementList.
+ * <p>
  * <p> Revision 1.31  2009/09/01 03:17:46  sueh
  * <p> bug# 1222
  * <p>
