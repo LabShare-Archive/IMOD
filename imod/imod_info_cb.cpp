@@ -15,6 +15,7 @@
 #include <stdlib.h>
 #include <math.h>
 #include <qapplication.h>
+#include <QTime>
 #include "b3dutil.h"
 #include "imod_object_edit.h"
 #include "form_info.h"
@@ -794,8 +795,17 @@ void imodStartAutoDumpCache()
 
 void imod_imgcnt(const char *string)
 {
-  wprint("%s\r", string);
-  imod_info_input();
+  static int started = 0;
+  static QTime timer;
+  if (!started)
+    timer.start();
+  if (!started || timer.elapsed() > 100 || string[0] == '\n' || 
+      string[0] == 0x00) {
+    wprint("%s\r", string);
+    imod_info_input();
+    timer.restart();
+    started = 1;
+  }
   if (App->exiting)
     exit(0);
 
@@ -813,7 +823,11 @@ void imod_imgcnt(const char *string)
 }
 
 /*
+
 $Log$
+Revision 4.34  2009/02/25 05:36:43  mast
+Function for turning off updating of any dialogs but info
+
 Revision 4.33  2009/01/02 16:07:38  mast
 Change to const char for Qt4 port
 
