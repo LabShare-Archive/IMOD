@@ -6,7 +6,7 @@ import java.io.IOException;
 import etomo.ApplicationManager;
 import etomo.EtomoDirector;
 import etomo.comscript.ComScriptManager;
-import etomo.comscript.TiltParam;
+import etomo.comscript.ConstTiltParam;
 import etomo.type.AxisID;
 import etomo.type.ConstEtomoNumber;
 import etomo.type.ProcessName;
@@ -26,6 +26,9 @@ import etomo.util.MRCHeader;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.24  2009/09/17 19:15:51  sueh
+ * <p> bug# 1257 Added FileSizeProcessMonitor.getModeBytes to handle getting the right number of bytes based on the mode in a single location.
+ * <p>
  * <p> Revision 3.23  2009/09/01 03:17:56  sueh
  * <p> bug# 1222
  * <p>
@@ -135,19 +138,21 @@ import etomo.util.MRCHeader;
  * <p> </p>
  */
 
-final class TiltProcessMonitor extends FileSizeProcessMonitor {
+class TiltProcessMonitor extends FileSizeProcessMonitor {
   public static final String rcsid = "$Id$";
 
-  private TiltParam tiltParam = null;
+  private ConstTiltParam tiltParam = null;
   private String processTitle = "Calculating tomogram";
 
-  public TiltProcessMonitor(ApplicationManager appMgr, AxisID id) {
-    super(appMgr, id, ProcessName.TILT);
+  public TiltProcessMonitor(final ApplicationManager appMgr, final AxisID id,
+      final ProcessName processName) {
+    super(appMgr, id, processName);
   }
 
   public static TiltProcessMonitor getReconnectInstance(
-      ApplicationManager appMgr, AxisID id) {
-    TiltProcessMonitor instance = new TiltProcessMonitor(appMgr, id);
+      final ApplicationManager appMgr, final AxisID id) {
+    TiltProcessMonitor instance = new TiltProcessMonitor(appMgr, id,
+        ProcessName.TILT);
     instance.setReconnect(true);
     return instance;
   }
@@ -155,7 +160,7 @@ final class TiltProcessMonitor extends FileSizeProcessMonitor {
   /* (non-Javadoc)
    * @see etomo.process.FileSizeProcessMonitor#calcFileSize()
    */
-  boolean calcFileSize() throws InvalidParameterException, IOException {
+  final boolean calcFileSize() throws InvalidParameterException, IOException {
     long nX;
     long nY;
     long nZ;
@@ -217,28 +222,36 @@ final class TiltProcessMonitor extends FileSizeProcessMonitor {
     return true;
   }
 
-  void setProcessTitle(String input) {
+  final void setProcessTitle(final String input) {
     if (input != null && !input.matches("\\*s")) {
       processTitle = input;
     }
   }
 
-  protected void reloadWatchedFile() {
+  final void reloadWatchedFile() {
     loadTiltParam();
     // Create a file object describing the file to be monitored
     watchedFile = new File(applicationManager.getPropertyUserDir(), tiltParam
         .getOutputFile());
   }
 
-  private void loadTiltParam() {
+  private final void loadTiltParam() {
     if (tiltParam != null) {
       return;
     }
+    tiltParam = getTiltParam();
+    applicationManager.getMetaData().setFiducialess(axisID,
+        tiltParam.isFiducialess());
+  }
+
+  /**
+   * Returns a loaded instance of TiltParam from ComScriptManager.
+   * @return
+   */
+  ConstTiltParam getTiltParam() {
     ComScriptManager comScriptManager = applicationManager
         .getComScriptManager();
     comScriptManager.loadTilt(axisID);
-    tiltParam = comScriptManager.getTiltParam(axisID);
-    applicationManager.getMetaData().setFiducialess(axisID,
-        tiltParam.isFiducialess());
+    return comScriptManager.getTiltParam(axisID);
   }
 }
