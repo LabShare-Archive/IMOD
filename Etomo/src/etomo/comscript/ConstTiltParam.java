@@ -11,6 +11,10 @@
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.15  2007/12/13 01:04:29  sueh
+ * <p> bug# 1056 Added adjustOrigin.  Merged ConstTiltParam with TiltParam and made
+ * <p> ConstTiltParam an interface.
+ * <p>
  * <p> Revision 3.14  2007/11/06 19:08:14  sueh
  * <p> bug# 1047 Added getFloatValue.
  * <p>
@@ -102,7 +106,19 @@ import etomo.type.ConstEtomoNumber;
 public interface ConstTiltParam extends CommandDetails {
   public static final String rcsid = "$Id$";
 
+  public String getInputFile();
+
+  public boolean hasMode();
+
   public String getExcludeList2();
+
+  public ConstEtomoNumber getImageBinned();
+
+  public int getMode();
+
+  public String getOutputFile();
+
+  public boolean isFiducialess();
 
   public int getFullImageX();
 
