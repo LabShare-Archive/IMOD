@@ -31,6 +31,9 @@ import etomo.type.Run3dmodMenuOptions;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.2  2009/09/20 21:33:02  sueh
+ * <p> bug# 1268 Added a default value to LabeledSpinner.
+ * <p>
  * <p> Revision 3.1  2009/09/01 03:18:25  sueh
  * <p> bug# 1222
  * <p> </p>
@@ -99,7 +102,7 @@ abstract class NewstackOrBlendmont3dFindPanel implements
    * @throws FortranInputSyntaxException
    */
   final void getParameters(final MetaData metaData) {
-    metaData.setStackBinning(axisID, spinBinning.getValue().intValue());
+    metaData.setStack3dFindBinning(axisID, spinBinning.getValue().intValue());
   }
 
   final void setParameters(final ConstMetaData metaData) {
