@@ -20,6 +20,9 @@
  * 
  * <p>
  * $Log$
+ * Revision 3.136  2009/09/01 03:17:56  sueh
+ * bug# 1222
+ *
  * Revision 3.135  2009/08/20 23:37:16  sueh
  * bug# 1255 Ported from 3.13.
  *
@@ -1510,10 +1513,11 @@ public class ProcessManager extends BaseProcessManager {
    */
   public String newst(ConstNewstParam newstParam, AxisID axisID,
       ProcessResultDisplay processResultDisplay,
-      ConstProcessSeries processSeries) throws SystemProcessException {
+      ConstProcessSeries processSeries, ProcessName processName)
+      throws SystemProcessException {
     //  Start the com script in the background
     NewstProcessMonitor newstProcessMonitor = new NewstProcessMonitor(
-        appManager, axisID);
+        appManager, axisID, processName, newstParam);
     //  Start the com script in the background
     ComScriptProcess comScriptProcess = startComScript(newstParam,
         newstProcessMonitor, axisID, processResultDisplay, processSeries);
@@ -1597,11 +1601,49 @@ public class ProcessManager extends BaseProcessManager {
       String processTitle) throws SystemProcessException {
     //  Instantiate the process monitor
     TiltProcessMonitor tiltProcessMonitor = new TiltProcessMonitor(appManager,
-        axisID);
+        axisID, ProcessName.TILT);
     tiltProcessMonitor.setProcessTitle(processTitle);
     //  Start the com script in the background
     ComScriptProcess comScriptProcess = startComScript(param,
         tiltProcessMonitor, axisID, processResultDisplay, processSeries);
+
+    return comScriptProcess.getName();
+  }
+
+  /**
+   * Run the appropriate tilt_3dfind com file for the given axis ID
+   * @param axisID
+   *          the AxisID to run tilt on.
+   */
+  public String tilt3dFind(AxisID axisID,
+      ProcessResultDisplay processResultDisplay,
+      ConstProcessSeries processSeries, ConstTiltParam param,
+      String processTitle, ProcessName processName)
+      throws SystemProcessException {
+    //  Instantiate the process monitor
+    TiltProcessMonitor monitor = new Tilt3dFindProcessMonitor(appManager,
+        axisID, processName, param);
+    monitor.setProcessTitle(processTitle);
+    //  Start the com script in the background
+    ComScriptProcess comScriptProcess = startComScript(param, monitor, axisID,
+        processResultDisplay, processSeries);
+
+    return comScriptProcess.getName();
+  }
+
+  /**
+   * Run the appropriate tilt_3dfind com file in reproject mode for the given axis ID
+   * @param axisID
+   *          the AxisID to run tilt on.
+   */
+  public String tilt3dFindReproject(AxisID axisID,
+      ProcessResultDisplay processResultDisplay,
+      ConstProcessSeries processSeries, ConstTiltParam param,
+      String processTitle, ProcessName processName)
+      throws SystemProcessException {
+    //  Start the com script in the background
+    ComScriptProcess comScriptProcess = startComScript(param, null, axisID,
+        processResultDisplay, processSeries);
 
     return comScriptProcess.getName();
   }
@@ -2120,9 +2162,11 @@ public class ProcessManager extends BaseProcessManager {
         }
       }
       else if (processName == ProcessName.NEWST_3D_FIND) {
+        System.out.println("using 3d find");
         state.setStackUsingNewstOrBlend3dFindOutput(axisID, true);
       }
       else if (processName == ProcessName.BLEND_3D_FIND) {
+        System.out.println("using 3d find");
         state.setStackUsingNewstOrBlend3dFindOutput(axisID, true);
       }
       else if (processName == ProcessName.TRACK) {
