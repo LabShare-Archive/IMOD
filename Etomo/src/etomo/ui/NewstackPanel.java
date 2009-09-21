@@ -3,6 +3,7 @@ package etomo.ui;
 import etomo.ApplicationManager;
 import etomo.type.AxisID;
 import etomo.type.DialogType;
+import etomo.type.ProcessName;
 import etomo.type.Run3dmodMenuOptions;
 
 /**
@@ -18,7 +19,10 @@ import etomo.type.Run3dmodMenuOptions;
  * 
  * @version $Revision$
  * 
- * <p> $Log$ </p>
+ * <p> $Log$
+ * <p> Revision 1.5  2009/09/01 03:18:25  sueh
+ * <p> bug# 1222
+ * <p> </p>
  */
 final class NewstackPanel extends NewstackOrBlendmontPanel {
   public static final String rcsid = "$Id$";
@@ -55,10 +59,9 @@ final class NewstackPanel extends NewstackOrBlendmontPanel {
       final Deferred3dmodButton deferred3dmodButton,
       final Run3dmodMenuOptions run3dmodMenuOptions) {
     if (command.equals(getRunProcessButtonActionCommand())) {
-      manager
-          .newst(getRunProcessResultDisplay(), null, deferred3dmodButton,
-              axisID, run3dmodMenuOptions, dialogType, getFiducialessParams(),
-              this);
+      manager.newst(getRunProcessResultDisplay(), null, deferred3dmodButton,
+          axisID, run3dmodMenuOptions, dialogType, getFiducialessParams(),
+          this, ProcessName.NEWST);
     }
     else if (command.equals(get3dmodFullButtonActionCommand())) {
       manager.imodFineAlign(axisID, run3dmodMenuOptions);
