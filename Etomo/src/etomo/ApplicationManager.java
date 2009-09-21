@@ -3242,7 +3242,7 @@ public final class ApplicationManager extends BaseManager implements
     String threadName;
     try {
       threadName = processMgr.newst(param, axisID, processResultDisplay,
-          processSeries);
+          processSeries,ProcessName.NEWST);
     }
     catch (SystemProcessException e) {
       e.printStackTrace();
@@ -3773,7 +3773,7 @@ public final class ApplicationManager extends BaseManager implements
     BlendmontParam blendParam = comScriptMgr
         .getBlendParamFromBlend3dFind(axisID);
     display.getParameters(blendParam);
-    blendParam.setMode(BlendmontParam.Mode.BLEND);
+    blendParam.setMode(BlendmontParam.Mode.BLEND_3DFIND);
     blendParam.setBlendmontState();
     blendParam.setImageOutputFile(FileType.NEWST_OR_BLEND_3D_FIND_OUTPUT
         .getFileName(this, axisID));
@@ -3973,7 +3973,7 @@ public final class ApplicationManager extends BaseManager implements
       ProcessSeries processSeries, Deferred3dmodButton deferred3dmodButton,
       AxisID axisID, Run3dmodMenuOptions run3dmodMenuOptions,
       DialogType dialogType, FiducialessParams fiducialessParams,
-      NewstackDisplay newstackDisplay) {
+      NewstackDisplay newstackDisplay,ProcessName processName) {
     if (processSeries == null) {
       processSeries = new ProcessSeries(this, dialogType);
     }
@@ -4014,7 +4014,7 @@ public final class ApplicationManager extends BaseManager implements
     String threadName = null;
     try {
       threadName = processMgr.newst(param, axisID, processResultDisplay,
-          processSeries);
+          processSeries,processName);
     }
     catch (SystemProcessException e) {
       e.printStackTrace();
@@ -4084,7 +4084,7 @@ public final class ApplicationManager extends BaseManager implements
     String threadName = null;
     try {
       threadName = processMgr.newst(param, axisID, processResultDisplay,
-          processSeries);
+          processSeries,ProcessName.NEWST_3D_FIND);
     }
     catch (SystemProcessException e) {
       e.printStackTrace();
@@ -4497,8 +4497,8 @@ public final class ApplicationManager extends BaseManager implements
       processTrack.setState(ProcessState.INPROGRESS, axisID, dialogType);
     }
     mainPanel.setState(ProcessState.INPROGRESS, axisID, dialogType);
-    sendMsg(tiltProcess(axisID, processResultDisplay, processSeries, param,
-        "Reprojecting Model"), processResultDisplay);
+    sendMsg(tilt3dFindReprojectProcess(axisID, processResultDisplay, processSeries, param,
+        "Reprojecting Model",ProcessName.TILT_3D_FIND_REPROJECT), processResultDisplay);
   }
 
   /**
@@ -4520,8 +4520,8 @@ public final class ApplicationManager extends BaseManager implements
       processTrack.setState(ProcessState.INPROGRESS, axisID, dialogType);
     }
     mainPanel.setState(ProcessState.INPROGRESS, axisID, dialogType);
-    sendMsg(tiltProcess(axisID, processResultDisplay, processSeries, param,
-        null), processResultDisplay);
+    sendMsg(tilt3dFindProcess(axisID, processResultDisplay, processSeries, param,
+        null,ProcessName.TILT_3D_FIND), processResultDisplay);
   }
 
   /**
@@ -4570,6 +4570,66 @@ public final class ApplicationManager extends BaseManager implements
     mainPanel.setState(ProcessState.INPROGRESS, axisID, dialogType);
     sendMsg(tiltProcess(axisID, processResultDisplay, processSeries, param,
         null), processResultDisplay);
+  }
+  
+  /**
+   * Tilt process initiator. Since tilt can be started from multiple points in
+   * the process chain we need separate the execution from the parameter
+   * collection and state updating
+   * 
+   * @param axisID
+   */
+  private ProcessResult tilt3dFindReprojectProcess(AxisID axisID,
+      ProcessResultDisplay processResultDisplay,
+      ConstProcessSeries processSeries, ConstTiltParam param,
+      String processTitle,ProcessName processName) {
+    String threadName;
+    try {
+      threadName = processMgr.tilt3dFindReproject(axisID, processResultDisplay, processSeries,
+          param, processTitle,processName);
+    }
+    catch (SystemProcessException e) {
+      e.printStackTrace();
+      String[] message = new String[2];
+      message[0] = "Can not execute tilt_3dfind" + axisID.getExtension() + ".com";
+      message[1] = e.getMessage();
+      uiHarness.openMessageDialog(message, "Unable to execute com script",
+          axisID, getManagerKey());
+      return ProcessResult.FAILED_TO_START;
+    }
+    setThreadName(threadName, axisID);
+    mainPanel.startProgressBar(ProcessName.TILT_3D_FIND_REPROJECT.toString(), axisID,
+        ProcessName.TILT_3D_FIND_REPROJECT);
+    return null;
+  }
+  
+  /**
+   * Tilt_3dfind process initiator. Since tilt 3dfind can be started from multiple points in
+   * the process chain we need separate the execution from the parameter
+   * collection and state updating
+   * 
+   * @param axisID
+   */
+  private ProcessResult tilt3dFindProcess(AxisID axisID,
+      ProcessResultDisplay processResultDisplay,
+      ConstProcessSeries processSeries, ConstTiltParam param,
+      String processTitle,ProcessName processName) {
+    String threadName;
+    try {
+      threadName = processMgr.tilt3dFind(axisID, processResultDisplay, processSeries,
+          param, processTitle,processName);
+    }
+    catch (SystemProcessException e) {
+      e.printStackTrace();
+      String[] message = new String[2];
+      message[0] = "Can not execute tilt_3dfind" + axisID.getExtension() + ".com";
+      message[1] = e.getMessage();
+      uiHarness.openMessageDialog(message, "Unable to execute com script",
+          axisID, getManagerKey());
+      return ProcessResult.FAILED_TO_START;
+    }
+    setThreadName(threadName, axisID);
+    return null;
   }
 
   /**
@@ -7869,6 +7929,11 @@ public final class ApplicationManager extends BaseManager implements
 }
 /**
  * <p> $Log$
+ * <p> Revision 3.335  2009/09/17 19:11:11  sueh
+ * <p> bug# 1257 In NewstParam.setSizeToOutputInXandY forgot to read the
+ * <p> header.  Adding read call and throwing InvalidParameterException and
+ * <p> IOException.
+ * <p>
  * <p> Revision 3.334  2009/09/02 22:41:45  sueh
  * <p> bug# 1254 Checking for a valid stack before using the stack.  Turning on 2d filtering for blendmont.
  * <p>
