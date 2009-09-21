@@ -15,6 +15,7 @@
 #include <stdlib.h>
 #include "imodel.h"
 #include "b3dutil.h"
+#include "mrcfiles.h"
 #include "parse_params.h"
 
 /* 
@@ -28,21 +29,28 @@ int main( int argc, char *argv[])
   FILE *infp;
   char line[1024];
   int open = 0, zsort = 0, scat = 0, numPerCont = 0, fromZero = 0;
-  int err, nvals, nread, ob, co, lineNum, needcont, i, numOffset;
+  int err, nvals, nread, ob, co, lineNum, needcont, i, numOffset, linelen;
   int numPts = 0, numConts = 0, numObjs = 0;
+  int sphere = 0, circle = 0;
   float tst1, tst2, xx, yy, zz;
+  int numColors = 0;
+  int *red, *green, *blue;
 
   char *progname = imodProgName(argv[0]);
-  char *filename;
+  char *filename, *imagename;
+  MrcHeader hdata;
+  FILE *fpimage = NULL;
   char *errString;
   int numOptArgs, numNonOptArgs;
 
   /* Fallbacks from    ../manpages/autodoc2man 2 1 point2model  */
-  int numOptions = 7;
+  int numOptions = 11;
   char *options[] = {
     "input:InputFile:FN:", "output:OutputFile:FN:", "open:OpenContours:B:",
     "scat:ScatteredPoints:B:", "number:PointsPerContour:B:",
-    "planar:PlanarContours:B:", "zero:NumberedFromZero:B:"};
+    "planar:PlanarContours:B:", "zero:NumberedFromZero:B:",
+    "circle:CircleSize:I:", "sphere:SphereRadius:I:",
+    "color:ColorOfObject:ITM:", "image:ImageForCoordinates:FN:"};
 
   /* Startup with fallback */
   PipReadOrParseOptions(argc, argv, options, numOptions, progname, 
@@ -58,7 +66,18 @@ int main( int argc, char *argv[])
   if (PipGetInOutFile("OutputFile", 1, &filename))
       exitError("No output file specified");
 
+  if (!PipGetString("ImageForCoordinates", &imagename)) {
+    fpimage = fopen(imagename, "rb");
+    if (!fpimage)
+      exitError("Could not open image file for coordinates: %s", imagename);
+    if (mrc_head_read(fpimage, &hdata))
+      exitError("Reading header from %s", imagename);
+    free(imagename);
+  }
+
   err = PipGetInteger("PointsPerContour", &numPerCont);
+  err = PipGetInteger("SphereRadius", &sphere);
+  err = PipGetInteger("CircleSize", &circle);
   err = PipGetBoolean("OpenContours", &open);
   err = PipGetBoolean("ScatteredPoints", &scat);
   err = PipGetBoolean("PlanarContours", &zsort);
@@ -68,6 +87,19 @@ int main( int argc, char *argv[])
     exitError("Number of points per contour must be positive or zero");
   if (open + scat > 1)
     exitError("Only one of -open or -scat may be entered");
+
+  // Get colors
+  err = PipNumberOfEntries("ColorOfObject", &numColors);
+  if (numColors) {
+    red = (int *)malloc(numColors * sizeof(int));
+    green = (int *)malloc(numColors * sizeof(int));
+    blue = (int *)malloc(numColors * sizeof(int));
+    if (!red || !green || !blue)
+      exitError("Allocating memory for colors");
+    for (co = 0; co < numColors; co++)
+      err = PipGetThreeIntegers("ColorOfObject", &red[co], &green[co], 
+                                &blue[co]);
+  }
 
   PipDone();
 
@@ -93,6 +125,11 @@ int main( int argc, char *argv[])
   if (!imod)
     exitError("Failed to get model structure");
 
+  if (fpimage) {
+    imodSetRefImage(imod, &hdata);
+    fclose(fpimage);
+  }
+
   ob = 0;
   co = 0;
   lineNum = 0;
@@ -102,8 +139,14 @@ int main( int argc, char *argv[])
 
   // To do: error check contour and object #'s, and they are numbered from 1.
   while (1) {
-    if (fgetline(infp, line, 1024) <= 0)
+
+    // get line, done on EOF, skip blank line
+    linelen = fgetline(infp, line, 1024);
+    if (linelen < 0)
       break;
+    if (linelen == 0) 
+      continue;
+ 
     if (nvals == 3)
       nread = sscanf(line, "%f %f %f", &xx, &yy, &zz);
     else if (nvals == 4) {
@@ -115,6 +158,10 @@ int main( int argc, char *argv[])
       ob -= numOffset;
     }
     lineNum++;
+
+    // Skip line with no values
+    if (nread <= 0)
+      continue;
     if (B3DMIN(5, nread) != nvals) 
       exitError("Every line should have %d entries; line %d has %d",
                 nvals, lineNum, nread);
@@ -133,6 +180,16 @@ int main( int argc, char *argv[])
         if (scat)
           imod->obj[i].flags |= IMOD_OBJFLAG_SCAT | IMOD_OBJFLAG_OPEN;
         numObjs++;
+        imod->obj[i].pdrawsize = B3DMAX(0, sphere);
+        if (circle > 0) {
+          imod->obj[i].symsize = circle;
+          imod->obj[i].symbol = IOBJ_SYM_CIRCLE;
+        }
+        if (i < numColors) {
+          imod->obj[i].red = red[i] / 255.;
+          imod->obj[i].green = green[i] / 255.;
+          imod->obj[i].blue = blue[i] / 255.;
+        }
       }
     }
 
@@ -160,9 +217,9 @@ int main( int argc, char *argv[])
     point.x = xx;
     point.y = yy;
     point.z = zz;
-    imod->xmax = B3DMAX(imod->xmax, B3DNINT(xx));
-    imod->ymax = B3DMAX(imod->ymax, B3DNINT(yy));
-    imod->zmax = B3DMAX(imod->zmax, B3DNINT(zz));
+    imod->xmax = B3DMAX(imod->xmax, B3DNINT(xx + 10.));
+    imod->ymax = B3DMAX(imod->ymax, B3DNINT(yy + 10.));
+    imod->zmax = B3DMAX(imod->zmax, B3DNINT(zz + 1.));
     if (!imodPointAppend(&obj->cont[co], &point))
       exitError("Failed to add point to contour");
     numPts++;
@@ -187,6 +244,9 @@ int main( int argc, char *argv[])
 
 /*
   $Log$
+  Revision 3.3  2009/02/16 06:38:40  mast
+  Fixed initialization of maxes
+
   Revision 3.2  2008/01/28 19:42:12  mast
   Switched from close to fclose
 
