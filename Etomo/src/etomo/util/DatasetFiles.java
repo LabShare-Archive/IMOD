@@ -172,11 +172,18 @@ public final class DatasetFiles {
   }
 
   public static File getDatasetFile(BaseManager manager, AxisID axisID,
-      String filename) {
+      String fileExt) {
     BaseMetaData metaData = manager.getBaseMetaData();
     axisID = correctAxisID(metaData, axisID);
     return new File(manager.getPropertyUserDir(), metaData.getName()
-        + axisID.getExtension() + filename);
+        + axisID.getExtension() + fileExt);
+  }
+
+  public static File getDatasetFileFromFileName(BaseManager manager,
+      AxisID axisID, String fileName) {
+    BaseMetaData metaData = manager.getBaseMetaData();
+    axisID = correctAxisID(metaData, axisID);
+    return new File(manager.getPropertyUserDir(), fileName);
   }
 
   public static File getRawTilt(BaseManager manager, AxisID axisID) {
@@ -554,6 +561,11 @@ public final class DatasetFiles {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.52  2009/09/01 02:29:45  sueh
+ * <p> bug# 1222 Made ERASE_EXT and FIDUCIAL_MODEL_EXT public.  Removed
+ * <p> getEraseFiducialsModelName.  This is because of the introduction of
+ * <p> FileType.
+ * <p>
  * <p> Revision 1.51  2009/06/05 02:20:46  sueh
  * <p> bug# 1219 Added FLATTEN_WARP_EXT, XF_EXT,
  * <p> getFlattenWarpInputName, getFlattenWarpOutputFile, and
