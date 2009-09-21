@@ -42,7 +42,8 @@ public class BlendmontProcessMonitor extends LogFileProcessMonitor {
     else if (mode == BlendmontParam.Mode.PREBLEND) {
       title = "Coarse alignment";
     }
-    else if (mode == BlendmontParam.Mode.BLEND) {
+    else if (mode == BlendmontParam.Mode.BLEND
+        || mode == BlendmontParam.Mode.BLEND_3DFIND) {
       title = "Full alignment";
     }
     else if (mode == BlendmontParam.Mode.UNDISTORT) {
@@ -76,6 +77,7 @@ public class BlendmontProcessMonitor extends LogFileProcessMonitor {
         currentSection = Integer.parseInt(strings[4]) + 1;
       }
       else if (mode == BlendmontParam.Mode.BLEND
+          || mode == BlendmontParam.Mode.BLEND_3DFIND
           || mode == BlendmontParam.Mode.WHOLE_TOMOGRAM_SAMPLE) {
         if (line.startsWith("Doing section #") && !doingMrctaper) {
           doingMrctaper = true;
@@ -89,7 +91,8 @@ public class BlendmontProcessMonitor extends LogFileProcessMonitor {
     }
     //Start timeout on last section
     if (currentSection >= nSections
-        && ((mode != BlendmontParam.Mode.BLEND && mode != BlendmontParam.Mode.WHOLE_TOMOGRAM_SAMPLE) || lastLineFound)) {
+        && ((mode != BlendmontParam.Mode.BLEND
+            && mode != BlendmontParam.Mode.BLEND_3DFIND && mode != BlendmontParam.Mode.WHOLE_TOMOGRAM_SAMPLE) || lastLineFound)) {
       waitingForExit++;
     }
   }
@@ -106,6 +109,9 @@ public class BlendmontProcessMonitor extends LogFileProcessMonitor {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.17  2009/03/17 00:34:39  sueh
+ * <p> bug# 1186 Pass managerKey to everything that pops up a dialog.
+ * <p>
  * <p> Revision 1.16  2009/02/04 23:23:29  sueh
  * <p> bug# 1158 Changed id and exceptions classes in LogFile.
  * <p>
