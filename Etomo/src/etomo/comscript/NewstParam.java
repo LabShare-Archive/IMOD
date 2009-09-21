@@ -30,6 +30,10 @@ import etomo.util.MRCHeader;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.22  2009/09/17 19:10:43  sueh
+ * <p> bug# 1257 In setSizeToOutputInXandY forgot to read the header.  Adding
+ * <p> read call and throwing InvalidParameterException and IOException.
+ * <p>
  * <p> Revision 3.21  2009/09/05 00:35:39  sueh
  * <p> bug# 1256 Added blank getIteratorElementList.
  * <p>
@@ -186,8 +190,8 @@ public final class NewstParam implements ConstNewstParam, CommandParam {
   private final FortranInputString testLimits = new FortranInputString(2);
   private final EtomoNumber imageRotation = new EtomoNumber(
       EtomoNumber.Type.FLOAT);
-  
-  private  ProcessName processName = ProcessName.NEWST;
+
+  private ProcessName processName = ProcessName.NEWST;
   /**
    * @version 3.10
    * Script is from an earlier version if false.
@@ -680,7 +684,8 @@ public final class NewstParam implements ConstNewstParam, CommandParam {
    */
   public void setSizeToOutputInXandY(String userSize, final int binning,
       final float imageRotation, final BaseManager manager)
-      throws FortranInputSyntaxException,etomo.util.InvalidParameterException ,IOException{
+      throws FortranInputSyntaxException, etomo.util.InvalidParameterException,
+      IOException {
     //make sure an empty string really causes sizeToOutputInXandY to be empty.
     if (userSize.equals("")) {
       userSize = "/";
@@ -729,9 +734,9 @@ public final class NewstParam implements ConstNewstParam, CommandParam {
   public void setUseTransformLines(final String useTransformLines) {
     this.useTransformLines = useTransformLines;
   }
-  
+
   public void setProcessName(final ProcessName input) {
-    processName=input;
+    processName = input;
   }
 
   public void setCommandMode(final Mode commandMode) {
@@ -780,7 +785,7 @@ public final class NewstParam implements ConstNewstParam, CommandParam {
   public CommandDetails getSubcommandDetails() {
     return null;
   }
-  
+
   public ProcessName getSubcommandProcessName() {
     return null;
   }
@@ -963,8 +968,9 @@ public final class NewstParam implements ConstNewstParam, CommandParam {
     return getCommandFileName(axisID);
   }
 
-  public  String getCommandFileName(final AxisID axisID) {
-    return processName.toString() + axisID.getExtension() + COMMAND_FILE_EXTENSION;
+  public String getCommandFileName(final AxisID axisID) {
+    return processName.toString() + axisID.getExtension()
+        + COMMAND_FILE_EXTENSION;
   }
 
   public String getCommandLine() {
@@ -974,7 +980,7 @@ public final class NewstParam implements ConstNewstParam, CommandParam {
   public String getCommandName() {
     return processName.toString();
   }
-  
+
   public ProcessName getProcessName() {
     return processName;
   }
@@ -998,9 +1004,8 @@ public final class NewstParam implements ConstNewstParam, CommandParam {
     }
     throw new IllegalArgumentException("field=" + field);
   }
-  
-  public IteratorElementList getIteratorElementList(
-      final FieldInterface field) {
+
+  public IteratorElementList getIteratorElementList(final FieldInterface field) {
     throw new IllegalArgumentException("field=" + field);
   }
 
@@ -1060,9 +1065,10 @@ public final class NewstParam implements ConstNewstParam, CommandParam {
   }
 
   public static final class Mode implements CommandMode {
-    public static final Mode WHOLE_TOMOGRAM_SAMPLE = new Mode("WholeTomogramSample");
+    public static final Mode WHOLE_TOMOGRAM_SAMPLE = new Mode(
+        "WholeTomogramSample");
     public static final Mode FULL_ALIGNED_STACK = new Mode("FullAlignedStack");
-    
+
     private final String string;
 
     private Mode(String string) {
