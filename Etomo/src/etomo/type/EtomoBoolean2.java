@@ -20,6 +20,9 @@ import etomo.comscript.InvalidParameterException;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.19  2007/12/13 01:12:17  sueh
+ * <p> bug# 1056 Reformatted.
+ * <p>
  * <p> Revision 1.18  2007/02/05 23:25:40  sueh
  * <p> bug# 962 Added static load().
  * <p>
@@ -326,9 +329,9 @@ public class EtomoBoolean2 extends ScriptParameter {
    * integer in the script (use super.toString()).  Also handle writing the
    * boolean as a parameter without a value.
    */
-  public ConstEtomoNumber updateComScript(ComScriptCommand scriptCommand) {
+  public void updateComScript(ComScriptCommand scriptCommand) {
     if (!isUseInScript()) {
-      return this;
+      return ;
     }
     if (!displayAsInteger && !is()) {
       scriptCommand.deleteKey(name);
@@ -339,7 +342,6 @@ public class EtomoBoolean2 extends ScriptParameter {
     else {
       scriptCommand.setValue(name, "");
     }
-    return this;
   }
 
   public ConstEtomoNumber setOn() {
