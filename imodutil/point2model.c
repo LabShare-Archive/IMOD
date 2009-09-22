@@ -227,7 +227,7 @@ int main( int argc, char *argv[])
 
   fclose(infp);
   if (imodBackupFile(filename)) 
-    printf("Warning: %d - Failed to make old version of %d be a backup file\n",
+    printf("Warning: %s - Failed to make old version of %s be a backup file\n",
            progname, filename);
 
   imod->file = fopen(filename, "wb");
@@ -243,15 +243,20 @@ int main( int argc, char *argv[])
 
 
 /*
-  $Log$
-  Revision 3.3  2009/02/16 06:38:40  mast
-  Fixed initialization of maxes
 
-  Revision 3.2  2008/01/28 19:42:12  mast
-  Switched from close to fclose
+$Log$
+Revision 3.4  2009/09/21 18:34:07  mast
+Fixed problem with reading stopping at a blank line, and added options for
+setting color, sizes, and reference coordinates.
 
-  Revision 3.1  2007/10/18 22:17:10  mast
-  Added to package
+Revision 3.3  2009/02/16 06:38:40  mast
+Fixed initialization of maxes
+
+Revision 3.2  2008/01/28 19:42:12  mast
+Switched from close to fclose
+
+Revision 3.1  2007/10/18 22:17:10  mast
+Added to package
 
 
 */
