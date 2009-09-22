@@ -46,7 +46,10 @@ import etomo.util.InvalidParameterException;
  * 
  * @version $Revision$
  * 
- * <p> $Log$ </p>
+ * <p> $Log$
+ * <p> Revision 3.1  2009/09/01 03:18:25  sueh
+ * <p> bug# 1222
+ * <p> </p>
  */
 abstract class AbstractTiltPanel implements Expandable, TrialTiltParent,
     Run3dmodButtonContainer, TiltDisplay {
@@ -240,7 +243,7 @@ abstract class AbstractTiltPanel implements Expandable, TrialTiltParent,
   final ProcessResultDisplay getTiltProcessResultDisplay() {
     return btnTilt;
   }
-  
+
   final void setTiltButtonTooltip(String tooltip) {
     btnTilt.setToolTipText(tooltip);
   }
@@ -328,16 +331,41 @@ abstract class AbstractTiltPanel implements Expandable, TrialTiltParent,
     return cbUseLocalAlignment.isSelected();
   }
 
-  public final void setUseLocalAlignmentEnabled(final boolean enable) {
-    cbUseLocalAlignment.setEnabled(enable);
+  void setEnabledTiltParameters(TomogramState state, ConstMetaData metaData) {
+    boolean madeZFactors = false;
+    boolean newstFiducialessAlignment = false;
+    boolean usedLocalAlignments = false;
+    // madeZFactors
+    if (!state.getMadeZFactors(axisID).isNull()) {
+      madeZFactors = state.getMadeZFactors(axisID).is();
+    }
+    else {
+      madeZFactors = state.getBackwardCompatibleMadeZFactors(axisID);
+    }
+    // newstFiducialessAlignment
+    if (!state.getNewstFiducialessAlignment(axisID).isNull()) {
+      newstFiducialessAlignment = state.getNewstFiducialessAlignment(axisID)
+          .is();
+    }
+    else {
+      newstFiducialessAlignment = metaData.isFiducialessAlignment(axisID);
+    }
+    // usedLocalAlignments
+    if (!state.getUsedLocalAlignments(axisID).isNull()) {
+      usedLocalAlignments = state.getUsedLocalAlignments(axisID).is();
+    }
+    else {
+      usedLocalAlignments = state
+          .getBackwardCompatibleUsedLocalAlignments(axisID);
+    }
+    // enable parameters
+    cbUseZFactors.setEnabled(madeZFactors && !newstFiducialessAlignment);
+    cbUseLocalAlignment.setEnabled(usedLocalAlignments
+        && !newstFiducialessAlignment);
   }
 
   boolean isUseZFactors() {
     return cbUseZFactors.isSelected();
-  }
-
-  public final void setUseZFactorsEnabled(final boolean enable) {
-    cbUseZFactors.setEnabled(enable);
   }
 
   final void getParameters(final MetaData metaData)
@@ -379,8 +407,7 @@ abstract class AbstractTiltPanel implements Expandable, TrialTiltParent,
    * @param tiltParam
    * @param initialize - used by child classes - has no effect in this class
    */
-  void setParameters(final ConstTiltParam tiltParam, boolean initialize)
-  {
+  void setParameters(final ConstTiltParam tiltParam, boolean initialize) {
     if (tiltParam.hasWidth()) {
       ltfTomoWidth.setText(tiltParam.getWidth());
     }
@@ -468,7 +495,7 @@ abstract class AbstractTiltPanel implements Expandable, TrialTiltParent,
       //set Z Shift
       if (isZShiftSet()) {
         badParameter = ltfZShift.getLabel();
-        
+
         tiltParam.setZShift(ltfZShift.getText());
       }
       else {
@@ -655,7 +682,7 @@ abstract class AbstractTiltPanel implements Expandable, TrialTiltParent,
   /**
    * Initialize the tooltip text for the axis panel objects
    */
-   void setToolTipText() {
+  void setToolTipText() {
     ReadOnlyAutodoc autodoc = null;
 
     try {
