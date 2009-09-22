@@ -38,6 +38,10 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.6  2009/09/02 22:46:47  sueh
+ * <p> bug# 1254 Added commented out --names argument to the parameter list
+ * <p> for convenience.
+ * <p>
  * <p> Revision 1.5  2009/09/01 03:18:33  sueh
  * <p> bug# 1222
  * <p>
@@ -102,6 +106,7 @@ public final class TestRunner extends JFCTestCase implements VariableList {
     parameterList.add(Arguments.SELFTEST_TAG);
     parameterList.add(Arguments.TEST_TAG);
     //parameterList.add(Arguments.NAMES_TAG);
+    //parameterList.add(Arguments.DEBUG_TAG);
     //get uitest.adoc
     ReadOnlyAutodoc autodoc = AutodocFactory.getInstance(AutodocFactory.UITEST,
         AxisID.ONLY, null);
@@ -148,9 +153,9 @@ public final class TestRunner extends JFCTestCase implements VariableList {
                 "set.adoc command must specify section types to run in autodoc ("
                     + command + ")", sectionType);
             //Create an autodoc tester for this autodoc.
-            AutodocTester autodocTester = AutodocTester
-                .getAutodocTester(this, helper, AutodocFactory.getInstance(dir,
-                    value, AxisID.ONLY, null), dir, sectionType, axisID, this);
+            AutodocTester autodocTester = AutodocTester.getAutodocTester(this,
+                helper, AutodocFactory.getInstance(dir, value, AxisID.ONLY,
+                    null), dir, sectionType, axisID, this);
             autodocTesterList.add(autodocTester);
             //Assuming that AxisID can be a unique key for the testers
             autodocTesterMap.put(axisID, autodocTester);
@@ -171,8 +176,23 @@ public final class TestRunner extends JFCTestCase implements VariableList {
           else if (subjectType == UITestSubjectType.VAR) {
             variableMap.put(subject.getName(), value);
           }
+          else if (subjectType == UITestSubjectType.INTERFACE) {
+            String subjectName = command.getSubject().getName();
+            assertNotNull("set.interface command requires a subject name ("
+                + command + ")", subjectName);
+            interfaceSection = new InterfaceSection(subjectName);
+          }
           else {
             fail("unexpected command (" + command.toString() + ")");
+          }
+        }
+        //COPY
+        else if (actionType == UITestActionType.COPY
+            && subjectType == UITestSubjectType.FILE) {
+          //Only copy axes that are specified in the Test section in the
+          //set.adoc commands.
+          if (autodocTesterMap.containsKey(subject.getAxisID())) {
+            copyFile(value, false);
           }
         }
         else {
@@ -378,11 +398,13 @@ public final class TestRunner extends JFCTestCase implements VariableList {
 
   /**
    * copy a file from dataDir to the working directory.  If keepDatasetDir is
-   * true, only copy if file is not in the working directory.
+   * true, only copy if file is not in the working directory.  Dataset must be
+   * set before a copy can be done.
    * @param attrib
    * @param sourceDir
    */
   void copyFile(String fileName, boolean always) {
+    assertNotNull(variableMap.get(UITestSubjectType.DATASET.toString()));
     File file = new File(uitestDataDir, fileName);
     if (!file.exists() || file.isDirectory()) {
       throw new IllegalStateException(
@@ -401,11 +423,11 @@ public final class TestRunner extends JFCTestCase implements VariableList {
         new String[] { "cp", file.getAbsolutePath(), "." }, AxisID.ONLY, null);
     copy.run();
   }
-  
+
   File getUitestDataDir() {
     return uitestDataDir;
   }
-  
+
   ManagerKey getManagerKey() {
     return etomo.getCurrentManagerForTest().getManagerKey();
   }
