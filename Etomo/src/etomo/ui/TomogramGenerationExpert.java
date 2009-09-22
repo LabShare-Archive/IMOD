@@ -113,36 +113,7 @@ public final class TomogramGenerationExpert extends ReconUIExpert {
     if (dialog == null) {
       return;
     }
-    boolean madeZFactors = false;
-    boolean newstFiducialessAlignment = false;
-    boolean usedLocalAlignments = false;
-    // madeZFactors
-    if (!state.getMadeZFactors(axisID).isNull()) {
-      madeZFactors = state.getMadeZFactors(axisID).is();
-    }
-    else {
-      madeZFactors = state.getBackwardCompatibleMadeZFactors(axisID);
-    }
-    // newstFiducialessAlignment
-    if (!state.getNewstFiducialessAlignment(axisID).isNull()) {
-      newstFiducialessAlignment = state.getNewstFiducialessAlignment(axisID)
-          .is();
-    }
-    else {
-      newstFiducialessAlignment = metaData.isFiducialessAlignment(axisID);
-    }
-    // usedLocalAlignments
-    if (!state.getUsedLocalAlignments(axisID).isNull()) {
-      usedLocalAlignments = state.getUsedLocalAlignments(axisID).is();
-    }
-    else {
-      usedLocalAlignments = state
-          .getBackwardCompatibleUsedLocalAlignments(axisID);
-    }
-    // enable parameters
-    dialog.setUseZFactorsEnabled(madeZFactors && !newstFiducialessAlignment);
-    dialog.setUseLocalAlignmentEnabled(usedLocalAlignments
-        && !newstFiducialessAlignment);
+    dialog.setEnabledTiltParameters(state, metaData);
   }
 
   void doneDialog() {
@@ -242,6 +213,9 @@ public final class TomogramGenerationExpert extends ReconUIExpert {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.31  2009/09/01 03:18:25  sueh
+ * <p> bug# 1222
+ * <p>
  * <p> Revision 1.30  2009/04/15 16:52:58  sueh
  * <p> bug# 1190 Returning false and logging failure for major reconnection
  * <p> failures.
