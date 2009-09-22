@@ -29,7 +29,7 @@ mb.tilt=+
 	assert.bn.generate-tomogram=off
 	mb.tilt.1=A
 	assert.tf.log-offset=0.0
-	assert.tf.output-density-scaling-factor=1000.0
+	assert.tf.output-density-scaling-factor=%{output-density-scaling-factor}
 	assert.tf.offset=0.0
 	assert.tf.tomogram-width-in-x=
 	assert.tf.first-slice=
@@ -84,6 +84,7 @@ mb.tilt=+
 	assert.exists.file=processchunks%{axis}.out
 	assert.exists.file=%{dataset}%{tomo-ext}%{axis}.rec
 	# check comscript
+	assert.same.file=tilt%{axis}.com
 	# run again without parallel processing
 	cb.parallel-processing=off
 	bn.generate-tomogram=
@@ -150,7 +151,7 @@ assert.enabled.bn.view-trial-in-3dmod=
 assert.enabled.bn.use-current-trial-tomogram=
 # run with parallel processing
 cb.parallel-processing=on
-cbb.trial-tomogram-filename=trial
+cbb.trial-tomogram-filename=trial%{axis}
 bn.generate-trial-tomogram=
 wait.process.processchunks-tilt%{axis}=done
 # check files
@@ -162,29 +163,28 @@ assert.exists.file=tilt%{axis}-start.log
 assert.exists.file=tilt%{axis}-finish.log
 assert.exists.file=processchunks%{axis}.csh
 assert.exists.file=processchunks%{axis}.out
-assert.exists.file=trial
+assert.exists.file=trial%{axis}
 # run again without parallel processing
 cb.parallel-processing=off
-cbb.trial-tomogram-filename=trial
 bn.generate-trial-tomogram=
 wait.process.calculating-tomogram=done
 # check files
 assert.exists.file=tilt%{axis}.log~
-assert.exists.file=trial~
+assert.exists.file=trial%{axis}~
 
 assert.exists.file=tilt%{axis}.com
 assert.exists.file=tilt%{axis}.log
-assert.exists.file=trial
+assert.exists.file=trial%{axis}
 # run again without parallel processing
 bn.generate-trial-tomogram=
 wait.process.calculating-tomogram=done
 # check files
 assert.exists.file=tilt%{axis}.log~
-assert.exists.file=trial~
+assert.exists.file=trial%{axis}~
 
 assert.exists.file=tilt%{axis}.com
 assert.exists.file=tilt%{axis}.log
-assert.exists.file=trial
+assert.exists.file=trial%{axis}
 # run again with parallel processing
 cb.parallel-processing=on
 bn.generate-trial-tomogram=
@@ -194,7 +194,7 @@ assert.exists.file=tilt%{axis}.log~
 assert.exists.file=tilt%{axis}-start.log~
 assert.exists.file=tilt%{axis}-finish.log~
 assert.exists.file=processchunks%{axis}.out~
-assert.exists.file=trial~
+assert.exists.file=trial%{axis}~
 
 assert.exists.file=tilt%{axis}.com
 assert.exists.file=tilt%{axis}-start.com
@@ -204,13 +204,13 @@ assert.exists.file=tilt%{axis}-start.log
 assert.exists.file=tilt%{axis}-finish.log
 assert.exists.file=processchunks%{axis}.csh
 assert.exists.file=processchunks%{axis}.out
-assert.exists.file=trial
+assert.exists.file=trial%{axis}
 # run 3dmod
 bn.view-trial-in-3dmod=
 # use
 bn.use-current-trial-tomogram=
 # check files
-assert.not-exists.file=trial
+assert.not-exists.file=trial%{axis}
 assert.exists.file=%{dataset}%{tomo-ext}%{axis}.rec
 # check values
 assert.bn.use-current-trial-tomogram=on
