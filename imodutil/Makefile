@@ -85,7 +85,7 @@ imodfindbeads$(E) : imodfindbeads.$(O)
 	$(LIFFT) $(CLIBS)
 
 point2model$(E) : point2model.$(O)
-	$(CC) -o point2model point2model.$(O) $(LDFLAGS) $(MODLIBS) \
+	$(CC) -o point2model point2model.$(O) $(LDFLAGS) $(IILIBS) \
 	$(CLIBS)
 
 flattenwarp$(E) : flattenwarp.$(O)
@@ -135,6 +135,9 @@ imodmkhv : imodmkhv.$(O)
 
 
 #  $Log$
+#  Revision 3.22  2009/01/21 04:47:46  mast
+#  Step deleting mode 755 files
+#
 #  Revision 3.21  2009/01/07 03:13:29  mast
 #  Added flattenwarp
 #
