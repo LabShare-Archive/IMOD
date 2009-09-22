@@ -2,9 +2,9 @@ Version = 1.2
 
 [function = main]
 [[if = test-gui]]
-# Created by copytomocoms when missing
-assert.exists.file=ctfplotter%{axis}.com
-assert.exists.file=ctfcorrection%{axis}.com
+	# Created by copytomocoms when missing
+	assert.exists.file=ctfplotter%{axis}.com
+	assert.exists.file=ctfcorrection%{axis}.com
 [[]]
 run.function.create=
 [[if = test-gui]]
@@ -256,14 +256,14 @@ assert.enabled.bn.view-model=
 # run
 bn.reproject-model=
 assert.exists.file=%{dataset}%{axis}.xf
-wait.process.reprojecting-model = done
+wait.process.tilt_3dfind_reproject = done
 # check files
 assert.exists.file=tilt_3dfind_reproject%{axis}.com
 assert.exists.file=tilt_3dfind_reproject%{axis}.log
 assert.exists.file=%{dataset}%{axis}_erase.fid
 # run again
 bn.reproject-model=
-wait.process.reprojecting-model = done
+wait.process.tilt_3dfind_reproject = done
 # check files
 assert.exists.file=tilt_3dfind_reproject%{axis}.com
 assert.exists.file=tilt_3dfind_reproject%{axis}.log
@@ -373,6 +373,7 @@ assert.exists.file=tilt_3dfind_reproject%{axis}.com
 assert.exists.file=tilt_3dfind%{axis}.log~
 assert.exists.file=%{dataset}%{axis}_3dfind.rec~
 # check comscript
+assert.same.file=tilt_3dfind%{axis}.com
 # run 3dmod
 bn.view-full-aligned-stack=
 bn.view-tomogram-in-3dmod=
