@@ -50,6 +50,9 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.18  2009/09/02 22:45:48  sueh
+ * <p> bug# 1254 Checking for a valid stack before using the stack.
+ * <p>
  * <p> Revision 1.17  2009/09/01 03:18:25  sueh
  * <p> bug# 1222
  * <p>
@@ -267,6 +270,7 @@ public final class FinalAlignedStackExpert extends ReconUIExpert {
     // From updateFiducialessParams
     dialog.setFiducialessAlignment(metaData.isFiducialessAlignment(axisID));
     dialog.setImageRotation(metaData.getImageRotation(axisID));
+    dialog.setEnabledTiltParameters(state,metaData);
     openDialog(dialog);
   }
 
@@ -777,6 +781,13 @@ public final class FinalAlignedStackExpert extends ReconUIExpert {
     param.setAmplitudeContrast(dialog.getAmplitudeContrast());
     param.setExpectedDefocus(dialog.getExpectedDefocus());
     param.setConfigFile(dialog.getConfigFile());
+  }
+  
+  public void setEnabledTiltParameters() {
+    if (dialog == null) {
+      return;
+    }
+    dialog.setEnabledTiltParameters(state, metaData);
   }
 
   private void setParameters(ConstCtfPhaseFlipParam param) {
