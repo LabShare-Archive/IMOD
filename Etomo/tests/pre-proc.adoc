@@ -79,13 +79,13 @@ wait.popup.etomo-question=Yes
 	# check values
 	assert.tf.peak-criterion=10.
 	assert.tf.difference-criterion=8.
-	assert.tf.maximum-radius=2.1
+	assert.tf.maximum-radius=%{maximum-radius}
 	assert.bn.find-x-rays=off
 	bn.advanced=
 	assert.cb.automatic-x-ray-replacement=on
 	assert.tf.grow-criterion=4.
 	assert.tf.edge-exclusion=4
-	assert.tf.maximum-radius=2.1
+	assert.tf.maximum-radius=%{maximum-radius}
 	assert.tf.annulus-width=2.0
 	assert.tf.xy-scan-size=100
 	assert.tf.scan-criterion=3.
