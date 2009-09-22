@@ -15,7 +15,7 @@ wait.process.finishjoin=done
 	assert.ge.tf.shift-in-x=-9
 	assert.le.tf.shift-in-x=-7
 	assert.ge.tf.y.1=-12
-	assert.le.tf.y.1=-8
+	assert.le.tf.y.1=-7
 	bn.trial-join=
 	wait.process.finishjoin=done
 [[]]
