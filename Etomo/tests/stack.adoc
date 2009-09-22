@@ -1,6 +1,8 @@
 Version = 1.2
 
 [function = main]
+# bug# 1269
+if.var.simple-align.set.var.test-gui=
 [[if = test-gui]]
 	# Created by copytomocoms when missing
 	assert.exists.file=ctfplotter%{axis}.com
@@ -214,7 +216,9 @@ assert.bn.use-ctf-correction=on
 
 
 [function = erase-gold]
-assert.exists.file=%{dataset}%{axis}local.xf
+[[ifnot = simple-align]]
+	assert.exists.file=%{dataset}%{axis}local.xf
+[[]]
 tb.create.2=
 rb.use-the-existing-fiducial-model=
 [[ifnot = keep-dataset-dir]]
@@ -373,7 +377,9 @@ assert.exists.file=tilt_3dfind_reproject%{axis}.com
 assert.exists.file=tilt_3dfind%{axis}.log~
 assert.exists.file=%{dataset}%{axis}_3dfind.rec~
 # check comscript
-assert.same.file=tilt_3dfind%{axis}.com
+[[ifnot = simple-align]]
+	assert.same.file=tilt_3dfind%{axis}.com
+[[]]
 # run 3dmod
 bn.view-full-aligned-stack=
 bn.view-tomogram-in-3dmod=
