@@ -24,6 +24,9 @@ import etomo.type.UITestSubjectType;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.5  2009/09/02 22:46:08  sueh
+ * <p> bug# 1254 Adding field to subcommand.
+ * <p>
  * <p> Revision 1.4  2009/09/01 03:18:33  sueh
  * <p> bug# 1222
  * <p>
@@ -187,10 +190,13 @@ final class Command extends Assert {
         continue;
       }
       String variableName = buffer.substring(start + 2, end);
+      assertTrue("Unknown variable " + variableName + " (" + input + ")",
+          variableList.isVariableSet(variableName, axisID));
       String variableValue = variableList
           .getVariableValue(variableName, axisID);
-      assertNotNull("Unknown variable " + variableName + " (" + input + ")",
-          variableValue);
+      if (variableValue == null) {
+        variableValue = "";
+      }
       buffer.replace(start, end + 1, variableValue);
     }
     return buffer.toString();
