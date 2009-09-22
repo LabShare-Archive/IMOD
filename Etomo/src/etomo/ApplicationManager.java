@@ -3460,6 +3460,8 @@ public final class ApplicationManager extends BaseManager implements
   }
 
   public void setEnabledTiltParameters(AxisID axisID) {
+    ((FinalAlignedStackExpert) getUIExpert(DialogType.FINAL_ALIGNED_STACK,
+        axisID)).setEnabledTiltParameters();
     ((TomogramGenerationExpert) getUIExpert(DialogType.TOMOGRAM_GENERATION,
         axisID)).setEnabledTiltParameters();
   }
@@ -7929,6 +7931,9 @@ public final class ApplicationManager extends BaseManager implements
 }
 /**
  * <p> $Log$
+ * <p> Revision 3.336  2009/09/21 17:38:40  sueh
+ * <p> bug# 1267 Newst process monitor now takes newst and newst_3dfind.  Tilt process monitor has a child class which handles tilt_3dfind.
+ * <p>
  * <p> Revision 3.335  2009/09/17 19:11:11  sueh
  * <p> bug# 1257 In NewstParam.setSizeToOutputInXandY forgot to read the
  * <p> header.  Adding read call and throwing InvalidParameterException and
