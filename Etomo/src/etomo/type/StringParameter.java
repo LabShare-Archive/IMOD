@@ -19,6 +19,10 @@ import etomo.comscript.InvalidParameterException;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.2  2008/11/20 01:39:27  sueh
+ * <p> bug# 1149 Simplified StringParameter - set string to null when it is empty.
+ * <p> Added getName and isEmpty.
+ * <p>
  * <p> Revision 1.1  2008/10/27 20:28:51  sueh
  * <p> bug# 1141 Class to update and read strings in a comscript.
  * <p> </p>
@@ -70,7 +74,15 @@ public final class StringParameter implements ConstStringParameter {
     return string == null || string.matches("\\s*");
   }
 
+  /**
+   * If isEmpty(), delete name from scriptCommand.  Else set name and value in
+   * scriptCommand.
+   * @param scriptCommand
+   */
   public void updateComScript(ComScriptCommand scriptCommand) {
+    if (debug) {
+      scriptCommand.setDebug(true);
+    }
     if (isEmpty()) {
       scriptCommand.deleteKey(name);
     }
@@ -107,8 +119,8 @@ public final class StringParameter implements ConstStringParameter {
     }
     return value;
   }
-  
-  public void setDebug() {
-    debug = true;
+
+  public void setDebug(boolean input) {
+    debug = input;
   }
 }
