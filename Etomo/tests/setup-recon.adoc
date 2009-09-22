@@ -204,7 +204,6 @@ assert.disabled.tf.increment.1 =
 assert.enabled.rb.tilt-angles-in-existing-rawtlt-file.1 = 
 assert.enabled.tf.exclude-views.1 = 
 assert.enabled.bn.view-raw-image-stack.1 = 
-assert.disabled.cb.focus-was-adjusted-between-montage-frames.1 =
 
 # Functionality tests
 #####################
