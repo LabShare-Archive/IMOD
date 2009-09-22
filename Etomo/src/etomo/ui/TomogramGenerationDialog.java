@@ -15,6 +15,7 @@ import etomo.type.DialogType;
 import etomo.type.MetaData;
 import etomo.type.ProcessResultDisplay;
 import etomo.type.ReconScreenState;
+import etomo.type.TomogramState;
 import etomo.type.ViewType;
 import etomo.util.InvalidParameterException;
 
@@ -37,6 +38,9 @@ import etomo.util.InvalidParameterException;
  * 
  * <p>
  * $Log$
+ * Revision 3.123  2009/09/01 03:18:25  sueh
+ * bug# 1222
+ *
  * Revision 3.122  2009/03/17 00:46:24  sueh
  * bug# 1186 Pass managerKey to everything that pops up a dialog.
  *
@@ -766,13 +770,10 @@ public class TomogramGenerationDialog extends ProcessDialog implements
         "TOMOGRAM GENERATION", ContextPopup.TOMO_GUIDE, manPagelabel, manPage,
         logFileLabel, logFile, applicationManager, axisID);
   }
-
-  void setUseZFactorsEnabled(boolean enable) {
-    tiltPanel.setUseZFactorsEnabled(enable);
-  }
-
-  void setUseLocalAlignmentEnabled(boolean enable) {
-    tiltPanel.setUseLocalAlignmentEnabled(enable);
+  
+  public void setEnabledTiltParameters(TomogramState state,
+      ConstMetaData metaData) {
+    tiltPanel.setEnabledTiltParameters(state, metaData);
   }
 
   void done() {
