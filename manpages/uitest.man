@@ -157,7 +157,7 @@ button (\fBbn\fR) is to push it.
 .I modifier
 .B always\fR, \fBdisabled\fR, \fBenabled\fR, \fBequals\fR, \fBexists\fR,
 \fBge\fR, \fBkeep\fR, \fBle\fR, \fBnot\fR, \fBnot-equals\fR, \fBnot-exists\fR,
-or \fBsingle.
+\fBsame\fR, or \fBsingle.
 
 .TP 4
 .I subject
@@ -455,6 +455,23 @@ suite to be read and executed.  Creates a global variable called \fBdataset\fR,
 which is set to \fIdataset_dir\fR.  See the Dataset Section below.
 
 .TP 4
+.B copy.file\fR[\fB.\fR(\fBa\fR|\fBb\fR)]\fB = \fIfile_name
+Causes a file called \fIfile_name\fR to be copied from \fIdataset_dir\fR (see
+the Dataset Section header) to the \fBtestdir\fR (see Test Section above).  The
+file will only be copied if the axis matches the axis of one of the autodocs
+listed in the Test Section.  If the \fBset.dataset\fR command in the
+Test Section used the \fBkeep\fR modifier, then the file is only copied if
+it is not already in the \fBtestdir\fR.  Must appear after the \fBset.dataset\fR
+command.
+
+.TP 4
+.B set.interface.\fIinterface_section_name\fB =
+Required to be in either the Test section or the Dataset section.  Sets the
+Interface Section associated with the dataset.  Must appear after the \fBset.dataset\fR
+command.
+.RE
+
+.TP 4
 .B set.param = \fIparameter
 Causes \fBetomo\fR to be run with \fIparameter\fR added to the commmand line.
 More then one \fBset.param\fR command can be used.  \fIParameter\fRs will be
@@ -528,7 +545,8 @@ only set for that axis.
 
 .TP 4
 .B set.interface.\fIinterface_section_name\fB =
-Required.  Sets the Interface Section associated with the dataset.
+Required to be in either the Test section or the Dataset section.  Sets the
+Interface Section associated with the dataset.
 .RE
 
 .TP 4
@@ -695,10 +713,6 @@ that has been pressed is dark), the check box is checked, or the radio button is
 selected.
 
 .TP 4
-.B assert.equals.file = \fR(\fIfile_name\fR|\fIrelative_path\fR)
-Compare a file to a file of the same name stored in $IMOD_UITEST_DATA.
-
-.TP 4
 .B assert.\fR(\fBexists\fR|\fBnot-exists\fR)\fB.file = \fR(\fIfile_name\fR|\fIrelative_path\fR)
 Tests whether a file exists or does not exist.  \fIFile_name\fR or
 \fIrelative_path\fR is assumed to be in the \fItest_directory\fR.  See
@@ -712,6 +726,11 @@ mini-button.
 .TP 4
 .B assert.sp.\fIspinner_name\fR[\fB.\fIindex\fR]\fB = \fInumber
 Tests whether \fInumber\fR equals the number in the text field of the spinner.
+
+.TP 4
+.B assert.same.file = \fR(\fIfile_name\fR|\fIrelative_path\fR)
+Compare a file to another file of the same name stored in $IMOD_UITEST_DATA.
+Files are sorted and then compared line by line.
 
 .TP 4
 .B assert.\fR(\fBge\fR|\fBle\fR)\fB.\fBtf.\fItext_field_name\fR[\fB.\fIindex\fR]\fB = \fIvalue
