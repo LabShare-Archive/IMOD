@@ -44,6 +44,15 @@ set.dataset=BB
 set.var.single=
 set.var.fidless=
 
+[Test = single-simple-align]
+set.testdir=single-simple-align
+#set.keep.testdir=single
+set.adoc.dialog = recon.adoc
+set.dataset=BB
+#set.param = %{dataset}.edf
+set.var.single=
+set.var.simple-align=
+
 
 [Test = single-montage]
 set.testdir = single-montage

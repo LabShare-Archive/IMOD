@@ -2,8 +2,10 @@ Version = 1.2
 
 [function = main]
 run.function.general=
-run.function.global-variables=
-run.function.local-variables=
+[[ifnot = simple-align]]
+	run.function.global-variables=
+	run.function.local-variables=
+[[]]
 copy.file=%{dataset}%{axis}.xtilt
 copy.file=%{dataset}%{axis}.xf
 copy.file=%{dataset}%{axis}.tlt
@@ -14,8 +16,10 @@ copy.file=%{dataset}%{axis}fid.xyz
 copy.file=%{dataset}%{axis}.3dmod
 copy.file=%{dataset}%{axis}_fid.xf
 copy.file=%{dataset}%{axis}_fid.tlt
-copy.file=%{dataset}%{axis}.zfac
-copy.file=%{dataset}%{axis}local.xf
+[[ifnot = simple-align]]
+	copy.file=%{dataset}%{axis}.zfac
+	copy.file=%{dataset}%{axis}local.xf
+[[]]
 # run with best alignment
 bn.compute-alignment=
 wait.process.aligning-stack=done
