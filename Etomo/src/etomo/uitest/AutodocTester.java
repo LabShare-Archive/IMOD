@@ -63,6 +63,9 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.12  2009/09/20 21:34:47  sueh
+ * <p> bug# 1268 In executeCommand, fixed bug in ASSERT.
+ * <p>
  * <p> Revision 1.11  2009/09/11 22:41:36  sueh
  * <p> bug# 1259 comparing com files by sorting them first.
  * <p>
@@ -588,17 +591,14 @@ final class AutodocTester extends Assert implements VariableList {
           assertFalse("file exists - " + value + " (" + command + ")", file
               .exists());
         }
+        //assert.same.file = file_name
+        else if (modifierType == UITestModifierType.SAME) {
+          String errorMessage = areFilesSame(file, value);
+          assertNull("file does not have the same lines as stored file - "
+              + value + " (" + command + ")\n" + errorMessage, errorMessage);
+        }
         else {
           fail("unexpected command (" + command + ")");
-        }
-      }
-      else if (subjectType == UITestSubjectType.COM) {
-        File comFile = new File(System.getProperty("user.dir"), value);
-        //assert.equals.com = com_file_name
-        if (modifierType == UITestModifierType.EQUALS) {
-          String errorMessage = compareComFiles(comFile, value);
-          assertNull("com file does not equal stored com file - " + value + " ("
-              + command + ")\n" + errorMessage, errorMessage);
         }
       }
       //assert.field = value
@@ -615,7 +615,7 @@ final class AutodocTester extends Assert implements VariableList {
           + command + ")", modifierType == null
           || modifierType == UITestModifierType.ALWAYS);
       //copy.file = file_name
-      assertEquals("can only copy a file", subjectType, UITestSubjectType.FILE);
+      assertEquals("can only copy a file", UITestSubjectType.FILE, subjectType);
       testRunner.copyFile(value, modifierType == UITestModifierType.ALWAYS);
     }
     //END
@@ -978,7 +978,7 @@ final class AutodocTester extends Assert implements VariableList {
         wait = false;
         //Check the end_state
         assertEquals("process ended with the wrong state -" + value + " ("
-            + command + ")", progressBar.getString(), value);
+            + command + ")", value, progressBar.getString());
       }
       //wait.test
       else if (subjectType == UITestSubjectType.TEST) {
@@ -1118,7 +1118,7 @@ final class AutodocTester extends Assert implements VariableList {
       assertNull("assert.enabled/disabled command does not use a value ("
           + command + ")", command.getValue());
       assertEquals("component is not enabled/disabled (" + command + ")",
-          component.isEnabled(), enabled);
+          enabled, component.isEnabled());
     }
     //if.enabled.field.subcommand
     //if.disabled.field.subcommand
@@ -1186,7 +1186,7 @@ final class AutodocTester extends Assert implements VariableList {
   }
 
   /**
-   * Compares com files.  Sorts the files and them compares them line by line.
+   * Compares files.  Sorts the files and them compares them line by line.
    * The sorting is necessary because the order of a command may change
    * Returns null if file is equals with uitestDataDir/storedFileName.
    * Otherwise returns an error message.
@@ -1197,51 +1197,50 @@ final class AutodocTester extends Assert implements VariableList {
    * @throws FileNotFoundException
    * @throws IOException
    */
-  private String compareComFiles(File comFile, String storedComFileName)
+  private String areFilesSame(File file, String storeFileName)
       throws LogFile.LockException, FileNotFoundException, IOException {
-    if (comFile == null || storedComFileName == null) {
+    if (file == null || storeFileName == null) {
       //One or more of the files are missing.
-      return comFile.getAbsolutePath() + " or " + storedComFileName
-          + " is null.";
+      return file.getAbsolutePath() + " or " + storeFileName + " is null.";
     }
-    File storedComFile = new File(testRunner.getUitestDataDir(), storedComFileName);
-    if (!comFile.exists() || !comFile.isFile() || !storedComFile.exists()
-        || !storedComFile.isFile()) {
+    File storedFile = new File(testRunner.getUitestDataDir(), storeFileName);
+    if (!file.exists() || !file.isFile() || !storedFile.exists()
+        || !storedFile.isFile()) {
       //Can't compare directories right now.
       //Nonexistant files are not equal.
-      return comFile.getAbsolutePath() + " or " + storedComFile.getAbsolutePath()
+      return file.getAbsolutePath() + " or " + storedFile.getAbsolutePath()
           + " does not exist or is not a file.";
     }
-    //Sort com files because order may not be the same in the commands
-    SystemProgram sortComFile = new SystemProgram(System.getProperty("user.dir"),
-        new String[] { "sort",  comFile.getAbsolutePath() }, AxisID.ONLY,
-        null);
-    sortComFile.run();
-    String[] stdOut= sortComFile.getStdOutput();
-    SystemProgram sortStoredComFile = new SystemProgram(System.getProperty("user.dir"),
-        new String[] { "sort",  storedComFile.getAbsolutePath() }, AxisID.ONLY,
-        null);
-    sortStoredComFile.run();
-    String[] storedStdOut= sortStoredComFile.getStdOutput();
+    //Sort files because order may not be the same in the commands
+    SystemProgram sortFile = new SystemProgram(System.getProperty("user.dir"),
+        new String[] { "sort", file.getAbsolutePath() }, AxisID.ONLY, null);
+    sortFile.run();
+    String[] stdOut = sortFile.getStdOutput();
+    SystemProgram sortStoredFile = new SystemProgram(System
+        .getProperty("user.dir"), new String[] { "sort",
+        storedFile.getAbsolutePath() }, AxisID.ONLY, null);
+    sortStoredFile.run();
+    String[] storedStdOut = sortStoredFile.getStdOutput();
     if (stdOut == null && storedStdOut == null) {
       //Both files are empty so they are equal.
       return null;
     }
     if (stdOut == null || storedStdOut == null) {
-      return "Unable to sort " + comFile.getAbsolutePath() + " or "
-          + storedComFile.getAbsolutePath() + ".";
+      return "Unable to sort " + file.getAbsolutePath() + " or "
+          + storedFile.getAbsolutePath() + ".";
     }
     //Compare file lengths
-    if (stdOut.length!=storedStdOut.length) {
-      return comFile.getAbsolutePath() + " and "
-      + storedComFile.getAbsolutePath() + " have unequal lengths.";
+    if (stdOut.length != storedStdOut.length) {
+      return "Files have unequal lengths:  " + file.getAbsolutePath() + ": "
+          + stdOut.length + ", " + storedFile.getAbsolutePath() + ": "
+          + storedStdOut.length;
     }
     //Compare lines.
-    for (int i = 0;i<stdOut.length;i++) {
+    for (int i = 0; i < stdOut.length; i++) {
       if (!stdOut[i].equals(storedStdOut[i])) {
         //Found an unequal line.
-        return "Unequal lines:" + comFile.getAbsolutePath() + ":\n" + stdOut[i] + "\n"
-            + storedComFile.getAbsolutePath() + ":\n" + storedStdOut[i];
+        return "Unequal lines:" + file.getAbsolutePath() + ":\n" + stdOut[i]
+            + "\n" + storedFile.getAbsolutePath() + ":\n" + storedStdOut[i];
       }
     }
     return null;
@@ -1343,12 +1342,12 @@ final class AutodocTester extends Assert implements VariableList {
         }
         //assert.bn.button_name = button_state
         else {
-          assertEquals("only assert doesn't require a modifier", actionType,
-              UITestActionType.ASSERT);
+          assertEquals("only assert doesn't require a modifier",
+              UITestActionType.ASSERT, actionType);
           assertNotNull("value is required in an assert.bn command (" + command
               + ")", value);
           assertEquals("button state is not equal to value - " + value + " ("
-              + command + ")", button.isSelected(), convertToBoolean(value));
+              + command + ")", convertToBoolean(value), button.isSelected());
         }
       }
     }
@@ -1386,13 +1385,13 @@ final class AutodocTester extends Assert implements VariableList {
         }
         //assert.cb.check_box_name = check_box_state
         else {
-          assertEquals("only assert doesn't require a modifier", actionType,
-              UITestActionType.ASSERT);
+          assertEquals("only assert doesn't require a modifier",
+              UITestActionType.ASSERT, actionType);
           assertNotNull("value is required in an assert.cb command (" + command
               + ")", value);
           assertEquals("check box state is not equal to value - "
               + checkBox.getText() + "," + value + " (" + command + ")",
-              checkBox.isSelected(), convertToBoolean(value));
+              convertToBoolean(value), checkBox.isSelected());
         }
       }
     }
@@ -1441,7 +1440,7 @@ final class AutodocTester extends Assert implements VariableList {
           else {
             assertEquals("combo box selected text is not empty - "
                 + comboBox.getSelectedItem() + "," + value + " (" + command
-                + ")", comboBox.getSelectedItem(), null);
+                + ")", null, comboBox.getSelectedItem());
           }
         }
       }
@@ -1514,8 +1513,8 @@ final class AutodocTester extends Assert implements VariableList {
         }
         //assert.mb.title_with_mini_button = current_label
         else {
-          assertEquals("only assert doesn't require a modifier", actionType,
-              UITestActionType.ASSERT);
+          assertEquals("only assert doesn't require a modifier",
+              UITestActionType.ASSERT, actionType);
           assertNotNull("value is required in an assert.mb command (" + command
               + ")", value);
           assertTrue("mini-button label is not equal to value - "
@@ -1582,13 +1581,13 @@ final class AutodocTester extends Assert implements VariableList {
         }
         //assert.rb.radio_button_label = radio_button_state
         else {
-          assertEquals("only assert doesn't require a modifier", actionType,
-              UITestActionType.ASSERT);
+          assertEquals("only assert doesn't require a modifier",
+              UITestActionType.ASSERT, actionType);
           assertNotNull("value is required in an assert.rb command (" + command
               + ")", value);
           assertEquals("radio button state is not equal to value - "
               + radioButton.getText() + "," + value + " (" + command + ")",
-              radioButton.isSelected(), convertToBoolean(value));
+              convertToBoolean(value), radioButton.isSelected());
         }
       }
     }
@@ -1628,8 +1627,8 @@ final class AutodocTester extends Assert implements VariableList {
         }
         //assert.sp.spinner_label = integer_value
         else {
-          assertEquals("only assert doesn't require a modifier", actionType,
-              UITestActionType.ASSERT);
+          assertEquals("only assert doesn't require a modifier",
+              UITestActionType.ASSERT, actionType);
           if (value != null) {
             assertTrue("field text is not equal to value - "
                 + spinner.getValue() + "," + value + " (" + command + ")",
