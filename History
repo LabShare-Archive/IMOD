@@ -1,5 +1,7 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+9/22/09: In Etomo fixed monitors in Final Stack - Erase Gold.
+
 9/22/09: Fixed Point2model so that there can be blank lines in the file,
 and added options for setting color, symbol and point sizes, and image
 reference coordinates.
