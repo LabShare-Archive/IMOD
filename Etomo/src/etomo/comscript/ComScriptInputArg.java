@@ -15,6 +15,9 @@ package etomo.comscript;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.0  2003/11/07 23:19:00  rickg
+ * <p> Version 1.0.0
+ * <p>
  * <p> Revision 2.0  2003/01/24 20:30:31  rickg
  * <p> Single window merge to main branch
  * <p>
@@ -27,11 +30,11 @@ package etomo.comscript;
  */
 
 public class ComScriptInputArg {
-  public static final String rcsid =
-    "$Id$";
+  public static final String rcsid = "$Id$";
 
   private String[] comments = new String[0];
   private String argument = null;
+  private boolean debug = false;
 
   /**
    * Default constructor.  A zero length String is created to represent the
@@ -65,6 +68,10 @@ public class ComScriptInputArg {
    * @param a boolean specifying whether to parse the comments or not
    */
   public void setArgument(String argument, boolean parseComments) {
+    if (debug) {
+      System.out.println("ComScriptInputArg:setArgument:argument=" + argument
+          + ",parseComments=" + parseComments);
+    }
     if (parseComments) {
       String[] parse = argument.split("\\s+", 2);
       this.argument = parse[0];
@@ -140,6 +147,16 @@ public class ComScriptInputArg {
     for (int i = 0; i < comments.length; i++) {
       this.comments[i] = comments[i];
     }
+  }
+
+  public boolean setDebug(boolean input) {
+    boolean oldDebug = debug;
+    debug = input;
+    return oldDebug;
+  }
+
+  public String toString() {
+    return "[" + argument + "]";
   }
 
   /**
