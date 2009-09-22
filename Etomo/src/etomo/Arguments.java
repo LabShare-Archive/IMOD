@@ -23,6 +23,9 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.6  2009/05/06 20:45:02  sueh
+ * <p> bug# 1207 Found a simpler way of exiting etomo.  Removed setExit.
+ * <p>
  * <p> Revision 1.5  2009/04/13 22:19:26  sueh
  * <p> bug# 1207 Added setExit so that exit automation can be turned on by Etomo.
  * <p>
@@ -48,7 +51,7 @@ public final class Arguments {
   static final String HEADLESS_TAG = "--headless";
   private static final String HELP1_TAG = "-h";
   private static final String HELP2_TAG = "--help";
-  private static final String DEBUG_TAG = "--debug";
+  public static final String DEBUG_TAG = "--debug";
   private static final String MEMORY_TAG = "--memory";
   private static final String NEWSTUFF_TAG = "--newstuff";
   private static final String TIMESTAMP_TAG = "--timestamp";
