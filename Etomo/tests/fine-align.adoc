@@ -25,7 +25,6 @@ wait.popup.etomo-question=Yes
 	wait.popup.etomo-question=Yes
 [[]]
 
-
 # General tab
 
 
