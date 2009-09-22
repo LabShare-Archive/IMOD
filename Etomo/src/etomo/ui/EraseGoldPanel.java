@@ -24,6 +24,7 @@ import etomo.type.DialogType;
 import etomo.type.MetaData;
 import etomo.type.ReconScreenState;
 import etomo.type.Run3dmodMenuOptions;
+import etomo.type.TomogramState;
 
 /**
  * <p>Description: </p>
@@ -38,9 +39,12 @@ import etomo.type.Run3dmodMenuOptions;
  * 
  * @version $Revision$
  * 
- * <p> $Log$ </p>
+ * <p> $Log$
+ * <p> Revision 1.2  2009/09/01 03:18:25  sueh
+ * <p> bug# 1222
+ * <p> </p>
  */
-final class EraseGoldPanel implements Beads3dFileParent {
+final class EraseGoldPanel implements Beads3dFindParent {
   public static final String rcsid = "$Id$";
 
   private final JPanel pnlRoot = new JPanel();
@@ -170,6 +174,11 @@ final class EraseGoldPanel implements Beads3dFileParent {
 
   void getParameters(ReconScreenState screenState) {
     beads3dFindPanel.getParameters(screenState);
+  }
+  
+  public void setEnabledTiltParameters(TomogramState state,
+      ConstMetaData metaData) {
+    beads3dFindPanel.setEnabledTiltParameters(state, metaData);
   }
 
   void setParameters(BlendmontParam param) {

@@ -49,6 +49,7 @@ import etomo.type.ProcessResultDisplay;
 import etomo.type.ProcessResultDisplayFactory;
 import etomo.type.ReconScreenState;
 import etomo.type.Run3dmodMenuOptions;
+import etomo.type.TomogramState;
 import etomo.type.ViewType;
 import etomo.util.DatasetFiles;
 
@@ -66,6 +67,9 @@ import etomo.util.DatasetFiles;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.18  2009/09/01 03:18:25  sueh
+ * <p> bug# 1222
+ * <p>
  * <p> Revision 1.17  2009/06/16 22:53:53  sueh
  * <p> bug# 1221 Factored out newst and ccderaser.  Move some of the expert
  * <p> functionality back into the dialog because it doesn't seem to be compatible
@@ -400,6 +404,11 @@ public final class FinalAlignedStackDialog extends ProcessDialog implements
 
   String getDefocusTol() {
     return ltfDefocusTol.getText();
+  }
+  
+  public void setEnabledTiltParameters(TomogramState state,
+      ConstMetaData metaData) {
+    eraseGoldPanel.setEnabledTiltParameters(state, metaData);
   }
 
   String getExpectedDefocus() {

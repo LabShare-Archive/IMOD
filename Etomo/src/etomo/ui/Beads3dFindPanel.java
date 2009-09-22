@@ -23,6 +23,7 @@ import etomo.type.MetaData;
 import etomo.type.ProcessName;
 import etomo.type.ReconScreenState;
 import etomo.type.Run3dmodMenuOptions;
+import etomo.type.TomogramState;
 import etomo.type.ViewType;
 
 /**
@@ -39,7 +40,10 @@ import etomo.type.ViewType;
  * 
  * @version $Revision$
  * 
- * <p> $Log$ </p>
+ * <p> $Log$
+ * <p> Revision 3.1  2009/09/01 03:18:25  sueh
+ * <p> bug# 1222
+ * <p> </p>
  */
 final class Beads3dFindPanel implements NewstackOrBlendmont3dFindParent,
     Tilt3dFindParent, Expandable {
@@ -55,10 +59,10 @@ final class Beads3dFindPanel implements NewstackOrBlendmont3dFindParent,
   private final AxisID axisID;
   private final DialogType dialogType;
   private final PanelHeader header;
-  private final Beads3dFileParent parent;
+  private final Beads3dFindParent parent;
 
   Beads3dFindPanel(ApplicationManager manager, AxisID axisID,
-      DialogType dialogType, Beads3dFileParent parent,
+      DialogType dialogType, Beads3dFindParent parent,
       GlobalExpandButton globalAdvancedButton) {
     this.manager = manager;
     this.axisID = axisID;
@@ -83,7 +87,7 @@ final class Beads3dFindPanel implements NewstackOrBlendmont3dFindParent,
   }
 
   static Beads3dFindPanel getInstance(ApplicationManager manager,
-      AxisID axisID, DialogType dialogType, Beads3dFileParent parent,
+      AxisID axisID, DialogType dialogType, Beads3dFindParent parent,
       GlobalExpandButton globalAdvancedButton) {
     Beads3dFindPanel instance = new Beads3dFindPanel(manager, axisID,
         dialogType, parent, globalAdvancedButton);
@@ -168,6 +172,11 @@ final class Beads3dFindPanel implements NewstackOrBlendmont3dFindParent,
 
   public boolean usingParallelProcessing() {
     return tilt3dFindPanel.usingParallelProcessing();
+  }
+  
+  public void setEnabledTiltParameters(TomogramState state,
+      ConstMetaData metaData) {
+    tilt3dFindPanel.setEnabledTiltParameters(state, metaData);
   }
 
   void setParameters(ConstTiltParam param, boolean initialize)
