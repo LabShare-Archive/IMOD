@@ -19,6 +19,9 @@ import etomo.comscript.InvalidParameterException;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.13  2008/10/27 20:24:34  sueh
+ * <p> bug# 1141 Added debug only print statements.
+ * <p>
  * <p> Revision 1.12  2007/03/07 21:10:19  sueh
  * <p> bug# 981 Changed ScriptParameter.isUseInScript to isNotNullAndNotDefault for
  * <p> clarity.  Added a second updateComScript function to choose whether to include
@@ -142,8 +145,8 @@ public class ScriptParameter extends EtomoNumber {
     return this;
   }
 
-  public ConstEtomoNumber updateComScript(ComScriptCommand scriptCommand) {
-    return updateComScript(scriptCommand, false);
+  public void updateComScript(ComScriptCommand scriptCommand) {
+    updateComScript(scriptCommand, false);
   }
 
   /**
@@ -156,7 +159,7 @@ public class ScriptParameter extends EtomoNumber {
    * @param includeWhenDefaulted
    * @return
    */
-  public ConstEtomoNumber updateComScript(ComScriptCommand scriptCommand,
+  public void updateComScript(ComScriptCommand scriptCommand,
       boolean includeWhenDefaulted) {
     if (isActive()
         && ((includeWhenDefaulted && !isNull()) || (!includeWhenDefaulted && isNotNullAndNotDefault()))) {
@@ -165,7 +168,6 @@ public class ScriptParameter extends EtomoNumber {
     else {
       scriptCommand.deleteKey(name);
     }
-    return this;
   }
 
   /**
@@ -196,7 +198,8 @@ public class ScriptParameter extends EtomoNumber {
       boolean setActive) throws InvalidParameterException {
     boolean found = false;
     if (isDebug()) {
-      System.out.println("name="+name+",scriptCommand.hasKeyword(name)="+scriptCommand.hasKeyword(name));
+      System.out.println("name=" + name + ",scriptCommand.hasKeyword(name)="
+          + scriptCommand.hasKeyword(name));
     }
     if (!scriptCommand.hasKeyword(name)) {
       if (shortName == null || !scriptCommand.hasKeyword(shortName)) {
@@ -210,11 +213,12 @@ public class ScriptParameter extends EtomoNumber {
     else {
       found = true;
       if (isDebug()) {
-        System.out.println("scriptCommand.getValue(name)="+scriptCommand.getValue(name));
+        System.out.println("scriptCommand.getValue(name)="
+            + scriptCommand.getValue(name));
       }
       set(scriptCommand.getValue(name));
       if (isDebug()) {
-        System.out.println("toString()="+toString());
+        System.out.println("toString()=" + toString());
       }
     }
     if (setActive) {
