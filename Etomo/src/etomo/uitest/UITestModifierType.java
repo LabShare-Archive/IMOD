@@ -14,6 +14,9 @@ package etomo.uitest;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.2  2009/03/02 20:58:14  sueh
+ * <p> bug# 1102 Added GE and LE.
+ * <p>
  * <p> Revision 1.1  2009/01/20 20:50:54  sueh
  * <p> bug# 1102 List of action modifiers of commands.
  * <p> </p>
@@ -32,6 +35,7 @@ final class UITestModifierType {
   static final UITestModifierType NOT_EQUALS = new UITestModifierType("not-equals");
   static final UITestModifierType NOT_EXISTS = new UITestModifierType(
       "not-exists");
+  static final UITestModifierType SAME = new UITestModifierType("same");
   static final UITestModifierType SINGLE = new UITestModifierType("single");
   static final UITestModifierType GE = new UITestModifierType("ge");//greater then or equal to
   static final UITestModifierType LE = new UITestModifierType("le");//less then or equal to
@@ -72,6 +76,9 @@ final class UITestModifierType {
     }
     if (NOT_EXISTS.equals(string)) {
       return NOT_EXISTS;
+    }
+    if (SAME.equals(string)) {
+      return SAME;
     }
     if (SINGLE.equals(string)) {
       return SINGLE;
