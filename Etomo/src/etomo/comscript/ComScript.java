@@ -11,6 +11,10 @@
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.12  2007/09/07 00:17:21  sueh
+ * <p> bug# 989 Using a public INSTANCE to refer to the EtomoDirector singleton
+ * <p> instead of getInstance and createInstance.
+ * <p>
  * <p> Revision 3.11  2006/10/13 22:19:03  sueh
  * <p> bug# 927 Added getScriptCommandIndex(String,int,boolean).
  * <p>
@@ -139,8 +143,8 @@ public class ComScript {
    * @throws IOException from BufferedReader.
    * @throws BadComScriptException if the com script has a syntax error.
    */
-  public void readComFile() throws FileNotFoundException, IOException,
-      BadComScriptException {
+  public void readComFile(boolean caseInsensitive, boolean separateWithASpace)
+      throws FileNotFoundException, IOException, BadComScriptException {
 
     // Open the com file for reading using a buffered reader
     if (!comFile.exists()) {
@@ -171,7 +175,8 @@ public class ComScript {
       //    parse the command line setting the command and command line
       //      arguments
       else if (line.matches("^\\$[^!].*")) {
-        currentScriptCommand = new ComScriptCommand();
+        currentScriptCommand = new ComScriptCommand(caseInsensitive,
+            separateWithASpace);
         scriptCommands.add(currentScriptCommand);
 
         if (currentCommentBlock.size() > 0) {
@@ -295,10 +300,11 @@ public class ComScript {
    * @return the first ComScriptCommand in the collection that matches cmdName,
    * null if no command with the specified name is found.
    */
-  public ComScriptCommand getScriptCommand(String cmdName)
+  public ComScriptCommand getScriptCommand(String cmdName,
+      boolean caseInsensitive, boolean separateWithASpace)
       throws BadComScriptException {
     if (!commandLoaded) {
-      createCommand(cmdName);
+      createCommand(cmdName, caseInsensitive, separateWithASpace);
     }
     for (int i = 0; i < scriptCommands.size(); i++) {
       ComScriptCommand command = (ComScriptCommand) scriptCommands.get(i);
@@ -317,9 +323,10 @@ public class ComScript {
    * null if no command with the specified name is found.
    */
   public ComScriptCommand getScriptCommand(String cmdName, int commandIndex,
-      boolean addNew) throws BadComScriptException {
+      boolean addNew, boolean caseInsensitive, boolean separateWithASpace)
+      throws BadComScriptException {
     if (!commandLoaded) {
-      createCommand(cmdName, commandIndex);
+      createCommand(cmdName, commandIndex, caseInsensitive, separateWithASpace);
     }
     ComScriptCommand command = (ComScriptCommand) scriptCommands
         .get(commandIndex);
@@ -327,7 +334,7 @@ public class ComScript {
       return command;
     }
     if (addNew) {
-      createCommand(cmdName, commandIndex);
+      createCommand(cmdName, commandIndex, caseInsensitive, separateWithASpace);
       command = (ComScriptCommand) scriptCommands.get(commandIndex);
       if (command.getCommand().equals(cmdName)) {
         return command;
@@ -342,8 +349,10 @@ public class ComScript {
    * @param cmdName
    * @return
    */
-  protected int createCommand(String cmdName) {
-    ComScriptCommand currentScriptCommand = new ComScriptCommand();
+  protected int createCommand(String cmdName, boolean caseInsensitive,
+      boolean separateWithASpace) {
+    ComScriptCommand currentScriptCommand = new ComScriptCommand(
+        caseInsensitive, separateWithASpace);
     scriptCommands.add(currentScriptCommand);
     currentScriptCommand.setCommand(cmdName);
     commandLoaded = true;
@@ -356,8 +365,10 @@ public class ComScript {
    * @param commandIndex
    * @return
    */
-  protected void createCommand(String cmdName, int commandIndex) {
-    ComScriptCommand currentScriptCommand = new ComScriptCommand();
+  protected void createCommand(String cmdName, int commandIndex,
+      boolean caseInsensitive, boolean separateWithASpace) {
+    ComScriptCommand currentScriptCommand = new ComScriptCommand(
+        caseInsensitive, separateWithASpace);
     scriptCommands.add(commandIndex, currentScriptCommand);
     currentScriptCommand.setCommand(cmdName);
     commandLoaded = true;
@@ -376,13 +387,16 @@ public class ComScript {
    * @param cmdName the name of the command to find
    * @return index of the command or -1 if not present
    */
-  public int getScriptCommandIndex(String cmdName) {
-    return getScriptCommandIndex(cmdName, false);
+  public int getScriptCommandIndex(String cmdName, boolean caseInsensitive,
+      boolean separateWithASpace) {
+    return getScriptCommandIndex(cmdName, false, caseInsensitive,
+        separateWithASpace);
   }
 
-  public int getScriptCommandIndex(String cmdName, boolean addNew) {
+  public int getScriptCommandIndex(String cmdName, boolean addNew,
+      boolean caseInsensitive, boolean separateWithASpace) {
     if (!commandLoaded) {
-      createCommand(cmdName);
+      createCommand(cmdName, caseInsensitive, separateWithASpace);
     }
     for (int i = 0; i < scriptCommands.size(); i++) {
       ComScriptCommand command = (ComScriptCommand) scriptCommands.get(i);
@@ -391,15 +405,15 @@ public class ComScript {
       }
     }
     if (addNew) {
-      return createCommand(cmdName);
+      return createCommand(cmdName, caseInsensitive, separateWithASpace);
     }
     return -1;
   }
 
   public int getScriptCommandIndex(String cmdName, int commandIndex,
-      boolean addNew) {
+      boolean addNew, boolean caseInsensitive, boolean separateWithASpace) {
     if (!commandLoaded) {
-      createCommand(cmdName);
+      createCommand(cmdName, caseInsensitive, separateWithASpace);
     }
     ComScriptCommand command = (ComScriptCommand) scriptCommands
         .get(commandIndex);
@@ -407,7 +421,7 @@ public class ComScript {
       return commandIndex;
     }
     if (addNew) {
-      return createCommand(cmdName);
+      return createCommand(cmdName, caseInsensitive, separateWithASpace);
     }
     return -1;
   }
@@ -418,9 +432,10 @@ public class ComScript {
    * @param commandIndex
    * @return
    */
-  public int getScriptCommandIndex(String cmdName, int commandIndex) {
+  public int getScriptCommandIndex(String cmdName, int commandIndex,
+      boolean caseInsensitive, boolean separateWithASpace) {
     if (!commandLoaded) {
-      createCommand(cmdName);
+      createCommand(cmdName, caseInsensitive, separateWithASpace);
     }
     ComScriptCommand command = (ComScriptCommand) scriptCommands
         .get(commandIndex);

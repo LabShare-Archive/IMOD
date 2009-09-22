@@ -1,4 +1,3 @@
-
 package etomo.comscript;
 
 import java.util.Iterator;
@@ -20,6 +19,9 @@ import java.util.Vector;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.5  2005/05/09 22:44:40  sueh
+ * <p> bug# 658 Handling keyword equals null in hasKeyword() and findKey().
+ * <p>
  * <p> Revision 3.4  2005/01/25 21:25:18  sueh
  * <p> bug 567 Return a null from getValue() instead of throwing an
  * <p> InvalidParameterException, when a parameter has no value.  Since a
@@ -65,6 +67,12 @@ import java.util.Vector;
 public class ComScriptCommand {
   public static final String rcsid = "$Id$";
 
+  //Case insensitive when finding keywords
+  private final boolean caseInsensitive;
+  //Use a space instead of \t - tab doesn't work when tilt.com to create samples
+  //in tomo pos.
+  private final String divider;
+
   private boolean keywordValuePairs = false;
 
   private String[] headerComments = new String[0];
@@ -72,18 +80,29 @@ public class ComScriptCommand {
   private String[] commandLineArgs = new String[0];
   private LinkedList stdinArgs = new LinkedList();
 
+  private boolean debug = false;
+
   /**
    * Default constructor.  A zero length String array is created to represent
    * the header comments and command line arguments, the command is null.  A
    * zero length String array will be returned for the input argument array.
    */
-  public ComScriptCommand() {
+  public ComScriptCommand(boolean caseInsensitive, boolean separateWithASpace) {
+    this.caseInsensitive = caseInsensitive;
+    if (separateWithASpace) {
+      divider = " ";
+    }
+    else {
+      divider = "\t";
+    }
   }
 
   /**
    * Copy constructor.
    */
   public ComScriptCommand(ComScriptCommand src) {
+    this.caseInsensitive = src.caseInsensitive;
+    this.divider = src.divider;
     keywordValuePairs = src.isKeywordValuePairs();
     headerComments = src.getHeaderComments();
     command = src.getCommand();
@@ -156,8 +175,9 @@ public class ComScriptCommand {
    * .
    */
   public void setCommandLineArgs(String[] args) {
-
-    if (args.length == 1 && args[0].equals("-StandardInput")) {
+    if (args.length == 1
+        && (args[0].equals("-StandardInput") || (caseInsensitive && args[0]
+            .equalsIgnoreCase("-StandardInput")))) {
       commandLineArgs = new String[args.length];
       commandLineArgs[0] = args[0];
       keywordValuePairs = true;
@@ -169,6 +189,17 @@ public class ComScriptCommand {
         commandLineArgs[i] = args[i];
       }
     }
+  }
+
+  /**
+   * Sets debug.
+   * @param debug
+   * @return the previous setting of debug
+   */
+  public boolean setDebug(boolean input) {
+    boolean oldDebug = debug;
+    debug = input;
+    return oldDebug;
   }
 
   /**
@@ -294,7 +325,6 @@ public class ComScriptCommand {
     return false;
   }
 
-
   /**
    * Returns the (first) value associated with the specified keyword or an empty
    * string if the keyowrd is not present.
@@ -327,7 +357,8 @@ public class ComScriptCommand {
       ComScriptInputArg inputArg = (ComScriptInputArg) itStdinArgs.next();
 
       String[] tokens = inputArg.getArgument().trim().split("\\s+", 2);
-      if (tokens[0].equals(keyword)) {
+      if (tokens[0].equals(keyword)
+          || (caseInsensitive && tokens[0].equalsIgnoreCase(keyword))) {
         if (tokens.length > 1) {
           values.add(tokens[1]);
         }
@@ -346,6 +377,9 @@ public class ComScriptCommand {
    * @param value
    */
   public void setValue(String keyword, String value) {
+    if (debug) {
+      System.out.println("setValue:keyword=" + keyword + ",value=" + value);
+    }
     ComScriptInputArg inputArg;
     int idx = findKey(keyword);
     if (idx == -1) {
@@ -355,9 +389,18 @@ public class ComScriptCommand {
     else {
       inputArg = (ComScriptInputArg) stdinArgs.get(idx);
     }
-    inputArg.setArgument(keyword + "\t" + value);
+    boolean oldDebug = false;
+    if (debug) {
+      System.out.println("ComScriptCommand:setValue:keyword=" + keyword
+          + ",divider=" + divider + ",value=" + value);
+      inputArg.setDebug(debug);
+    }
+    inputArg.setArgument(keyword + divider + value);
+    if (debug) {
+      inputArg.setDebug(oldDebug);
+    }
   }
-  
+
   /**
    * Sets the keyword the values specified replacing any existing values
    * @param keyword
@@ -366,11 +409,15 @@ public class ComScriptCommand {
   public void setValues(String keyword, String[] values) {
     deleteKeyAll(keyword);
     ComScriptInputArg inputArg;
-    for(int i=0; i < values.length; i++){
+    for (int i = 0; i < values.length; i++) {
       inputArg = new ComScriptInputArg();
       stdinArgs.add(inputArg);
-      inputArg.setArgument(keyword + "\t" + values[i]);
+      inputArg.setArgument(keyword + divider + values[i]);
     }
+  }
+
+  public String toString() {
+    return "[" + getCommand() + " " + stdinArgs + "]";
   }
 
   /**
@@ -380,7 +427,7 @@ public class ComScriptCommand {
    */
   public void addKey(String keyword, String value) {
     ComScriptInputArg newArg = new ComScriptInputArg();
-    newArg.setArgument(keyword + "\t" + value);
+    newArg.setArgument(keyword + divider + value);
     stdinArgs.add(newArg);
   }
 
@@ -394,7 +441,7 @@ public class ComScriptCommand {
       stdinArgs.remove(idx);
     }
   }
-  
+
   /**
    * Delete all instances of the the keyword the std input arguments
    * @param keyword
@@ -405,7 +452,8 @@ public class ComScriptCommand {
       ComScriptInputArg inputArg = (ComScriptInputArg) itStdinArgs.next();
 
       String[] tokens = inputArg.getArgument().trim().split("\\s+", 2);
-      if (tokens[0].equals(keyword)) {
+      if (tokens[0].equals(keyword)
+          || (caseInsensitive && tokens[0].equalsIgnoreCase(keyword))) {
         itStdinArgs.remove();
       }
     }
@@ -425,7 +473,8 @@ public class ComScriptCommand {
     for (int i = 0; i < stdinArgs.size(); i++) {
       ComScriptInputArg inputArg = (ComScriptInputArg) stdinArgs.get(i);
       String[] tokens = inputArg.getArgument().trim().split("\\s+", 2);
-      if (tokens[0].equals(keyword)) {
+      if (tokens[0].equals(keyword)
+          || (caseInsensitive && tokens[0].equalsIgnoreCase(keyword))) {
         return i;
       }
     }
