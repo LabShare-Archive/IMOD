@@ -18,6 +18,9 @@ import etomo.comscript.FortranInputString;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.22  2009/09/01 02:48:05  sueh
+ * <p> bug# 1222 In load functions improved checking for an empty prepend.
+ * <p>
  * <p> Revision 1.21  2008/10/27 18:38:15  sueh
  * <p> bug# 1141 Added debug only print statements.
  * <p>
@@ -346,6 +349,10 @@ public class EtomoNumber extends ConstEtomoNumber {
     set(add(getValue(), newNumber(i)));
   }
 
+  /**
+   * Multiply the current value by i and store the result as the current value.
+   * @param i
+   */
   public void multiply(int i) {
     set(multiply(getValue(), newNumber(i)));
   }
