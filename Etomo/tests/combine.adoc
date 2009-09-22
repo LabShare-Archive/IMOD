@@ -48,3 +48,7 @@ assert.exists.file = solvematch.log~
 sleep = 
 bn.replace-patch-vectors =
 bn.done =
+[[if = test-gui]]
+	wait.popup.etomo-question=Yes
+  wait.popup.etomo-question=Yes
+[[]]
