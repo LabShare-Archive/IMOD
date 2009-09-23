@@ -21,7 +21,10 @@ import java.util.List;
  * 
  * @version $Revision$
  * 
- * <p> $Log$ </p>
+ * <p> $Log$
+ * <p> Revision 3.1  2009/09/01 03:18:25  sueh
+ * <p> bug# 1222
+ * <p> </p>
  */
 final class GlobalExpandButton {
   private final MultiLineButton button;
@@ -145,10 +148,7 @@ final class GlobalExpandButton {
   }
 
   /**
-   * Change the state of this button and notify lists.  If notifyExpandButtons
-   * is false then action was called by msgExpandButtonAction, so the expand
-   * buttons are already correct.
-   * @param notifyExpandButtons
+   * Change the state of this button and notify lists.
    */
   private void action() {
     toggleState();
