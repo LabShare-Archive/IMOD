@@ -38,7 +38,7 @@ import etomo.type.DialogType;
 import etomo.type.Run3dmodMenuOptions;
 
 final class SetupDialog extends ProcessDialog implements ContextMenu,
-    Run3dmodButtonContainer {
+    Run3dmodButtonContainer,Expandable {
   public static final String rcsid = "$Id$";
 
   static final String DATASET_NAME_LABEL = "Dataset name: ";
@@ -167,7 +167,8 @@ final class SetupDialog extends ProcessDialog implements ContextMenu,
     UIUtilities.setButtonSizeAll(pnlExitButtons, UIParameters.INSTANCE
         .getButtonDimension());
     if (!calibrationAvailable) {
-      setAdvanced();
+      updateAdvanced(btnAdvanced.isExpanded());
+      btnAdvanced.register(this);
     }
     // Calcute the necessary window size
     UIHarness.INSTANCE.pack(axisID, applicationManager);
@@ -464,17 +465,23 @@ final class SetupDialog extends ProcessDialog implements ContextMenu,
   boolean equalsScanHeaderActionCommand(final String actionCommand) {
     return actionCommand.equals(btnScanHeader.getActionCommand());
   }
+  
+  public void expand(GlobalExpandButton button) {
+    updateAdvanced(button.isExpanded());
+    UIHarness.INSTANCE.pack(axisID, applicationManager);
+  }
+  
+  public final void expand(final ExpandButton button) {
+  }
 
-  void setAdvanced() {
+  void updateAdvanced(boolean advanced) {
     if (calibrationAvailable || pnlDistortionInfo == null) {
       return;
     }
-    boolean advanced = isAdvanced();
     ltfDistortionFile.setVisible(advanced);
     btnDistortionFile.setVisible(advanced);
     spnBinning.setVisible(advanced);
     pnlMagGradientInfo.setVisible(advanced);
-    UIHarness.INSTANCE.pack(AxisID.ONLY, applicationManager);
   }
 
   void setMagGradientInfoVisible(final boolean visible) {
@@ -856,6 +863,9 @@ final class SetupDialog extends ProcessDialog implements ContextMenu,
 }
 /**
  * <p> $Log$
+ * <p> Revision 3.67  2009/09/20 21:33:58  sueh
+ * <p> bug# 1268 Added a default value to LabeledSpinner.
+ * <p>
  * <p> Revision 3.66  2009/09/01 03:18:25  sueh
  * <p> bug# 1222
  * <p>
