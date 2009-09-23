@@ -5,6 +5,7 @@ import java.awt.GridBagLayout;
 
 import javax.swing.JPanel;
 
+import etomo.EtomoDirector;
 import etomo.ManagerKey;
 import etomo.storage.MatlabParam;
 import etomo.type.EtomoNumber;
@@ -23,6 +24,9 @@ import etomo.type.EtomoNumber;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.15  2009/04/20 16:37:34  sueh
+ * <p> bug# 1214 Make sure that phi, theta, and psi aren't negative.
+ * <p>
  * <p> Revision 1.14  2009/03/17 00:46:24  sueh
  * <p> bug# 1186 Pass managerKey to everything that pops up a dialog.
  * <p>
@@ -329,12 +333,19 @@ final class IterationRow implements Highlightable {
       return false;
     }
 
-    if (!searchRadius.getParsedArray().ge(1)) {
+    int minSearchRadius;
+    if (EtomoDirector.INSTANCE.getArguments().isNewstuff()) {
+      minSearchRadius = 0;
+    }
+    else {
+      minSearchRadius = 1;
+    }
+    if (!searchRadius.getParsedArray().ge(minSearchRadius)) {
       UIHarness.INSTANCE.openMessageDialog(IterationTable.TABLE_HEADER
           + ":  In row " + number.getText() + ", "
           + IterationTable.SEARCH_RADIUS_HEADER1 + " "
-          + IterationTable.SEARCH_RADIUS_HEADER2 + " must not be less then 1.",
-          "Entry Error", managerKey);
+          + IterationTable.SEARCH_RADIUS_HEADER2 + " must not be less then "
+          + minSearchRadius + ".", "Entry Error", managerKey);
       return false;
     }
     return true;
