@@ -5,7 +5,6 @@ import java.awt.GridBagLayout;
 
 import javax.swing.JPanel;
 
-import etomo.EtomoDirector;
 import etomo.ManagerKey;
 import etomo.storage.MatlabParam;
 import etomo.type.EtomoNumber;
@@ -24,6 +23,9 @@ import etomo.type.EtomoNumber;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.16  2009/09/23 17:09:07  sueh
+ * <p> Set minium search radius to 0 for John.  Functionality is only available when --newstuff is used.
+ * <p>
  * <p> Revision 1.15  2009/04/20 16:37:34  sueh
  * <p> bug# 1214 Make sure that phi, theta, and psi aren't negative.
  * <p>
@@ -333,13 +335,7 @@ final class IterationRow implements Highlightable {
       return false;
     }
 
-    int minSearchRadius;
-    if (EtomoDirector.INSTANCE.getArguments().isNewstuff()) {
-      minSearchRadius = 0;
-    }
-    else {
-      minSearchRadius = 1;
-    }
+    int minSearchRadius = 0;
     if (!searchRadius.getParsedArray().ge(minSearchRadius)) {
       UIHarness.INSTANCE.openMessageDialog(IterationTable.TABLE_HEADER
           + ":  In row " + number.getText() + ", "
