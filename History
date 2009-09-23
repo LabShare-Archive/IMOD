@@ -1,5 +1,7 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+9/23/09: In Etomo fixed the Advanced/Basic button in the Setup dialog.
+
 9/22/09: IMOD_4-0-15
 9/22/09: In Etomo corrected tilt_3dfind.com, which wasn't working with no local
 alignments or zfactors.
