@@ -1,10 +1,11 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+9/22/09: IMOD_4-0-15
 9/22/09: In Etomo corrected tilt_3dfind.com, which wasn't working with no local
 alignments or zfactors.
 
-9/22/09: In Etomo preserving unrecognized parameters in tilt.com and
-tilt_3dfind.com.
+9/22/09: In Etomo preserving unrecognized parameters edited in by hand in
+tilt.com and tilt_3dfind.com.
 
 9/22/09: In Etomo fixed monitors in Final Stack - Erase Gold.
 
@@ -23,6 +24,8 @@ analysis and to make simple vertical projection more efficient.
 9/16/09: Fixed the PEET tab, which was not being set properly when a new
 dataset was created.
 
+9/4/09: Andrew Noske's Interpolator plugin added to 3dmod.
+
 9/15/09: IMOD_4-0-14
 9/14/09: Made Stitchalign vary metro factor when search fails.
 
@@ -40,8 +43,6 @@ outliers or had high residuals in fits in Findwarp.
 
 9/7/09: Switched centering of transform in Xfsimplex to conform to centering
 in interpolation routine.
-
-9/4/09: Andrew Noske's Interpolator plugin added to 3dmod.
 
 9/4/09: In Nonanisotrophic Diffusion correcting the handling of spaces in the
 iteration list.
