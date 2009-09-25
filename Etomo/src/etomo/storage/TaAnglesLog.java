@@ -23,6 +23,9 @@ import etomo.type.EtomoNumber;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.1  2009/09/01 03:18:06  sueh
+ * <p> bug# 1222
+ * <p>
  */
 public final class TaAnglesLog {
   public static final String rcsid = "$Id$";
@@ -73,8 +76,9 @@ public final class TaAnglesLog {
     if (taAnglesLog.exists()) {
       LogFile.ReaderId readerId = taAnglesLog.openReader();
       if (readerId != null && !readerId.isEmpty()) {
-        String line = taAnglesLog.readLine(readerId).trim();
+        String line = taAnglesLog.readLine(readerId);
         while (line != null) {
+          line = line.trim();
           if (line
               .startsWith("Unbinned thickness needed to contain centers of all fiducials")) {
             String[] stringArray = line.split("\\s+");
@@ -82,14 +86,14 @@ public final class TaAnglesLog {
             taAnglesLog.closeReader(readerId);
             return centerToCenterThickness;
           }
-          line = taAnglesLog.readLine(readerId).trim();
+          line = taAnglesLog.readLine(readerId);
         }
         taAnglesLog.closeReader(readerId);
       }
     }
     return centerToCenterThickness;
   }
-  
+
   /**
    * Get incremental shift to center from the log.
    */
@@ -103,8 +107,9 @@ public final class TaAnglesLog {
     if (taAnglesLog.exists()) {
       LogFile.ReaderId readerId = taAnglesLog.openReader();
       if (readerId != null && !readerId.isEmpty()) {
-        String line = taAnglesLog.readLine(readerId).trim();
+        String line = taAnglesLog.readLine(readerId);
         while (line != null) {
+          line = line.trim();
           if (line
               .startsWith("Incremental unbinned shift needed to center range of fiducials in Z")) {
             String[] stringArray = line.split("\\s+");
@@ -112,7 +117,7 @@ public final class TaAnglesLog {
             taAnglesLog.closeReader(readerId);
             return incrementalShiftToCenter;
           }
-          line = taAnglesLog.readLine(readerId).trim();
+          line = taAnglesLog.readLine(readerId);
         }
         taAnglesLog.closeReader(readerId);
       }
