@@ -10,6 +10,7 @@ import java.io.File;
 import javax.swing.BoxLayout;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
+import javax.swing.JScrollBar;
 import javax.swing.JScrollPane;
 
 import etomo.BaseManager;
@@ -34,6 +35,9 @@ import etomo.type.ProcessName;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 1.41  2009/02/04 23:36:48  sueh
+ * <p> bug# 1158 Changed id and exception classes in LogFile.
+ * <p>
  * <p> Revision 1.40  2009/01/20 20:14:01  sueh
  * <p> bug# 1102 Inheriting EtomoPanel so that MainPanel can name itself.
  * <p>
@@ -262,9 +266,9 @@ public abstract class MainPanel extends EtomoPanel {
 
   //  These panels get instantiated as needed
   ScrollPanel scrollA;
-  JScrollPane scrollPaneA;
+  private JScrollPane scrollPaneA;
   ScrollPanel scrollB;
-  JScrollPane scrollPaneB;
+  private JScrollPane scrollPaneB;
   //JSplitPane splitPane;
   BaseManager manager = null;
   private boolean showingBothAxis = false;
@@ -547,6 +551,8 @@ public abstract class MainPanel extends EtomoPanel {
       scrollA = new ScrollPanel();
       addAxisPanelA();
       scrollPaneA = new JScrollPane(scrollA);
+      setScrollBarIncrements(scrollPaneA.getVerticalScrollBar());
+      setScrollBarIncrements(scrollPaneA.getHorizontalScrollBar());
       panelCenter.add(scrollPaneA);
     }
     else {
@@ -554,13 +560,21 @@ public abstract class MainPanel extends EtomoPanel {
       scrollA = new ScrollPanel();
       addAxisPanelA();
       scrollPaneA = new JScrollPane(scrollA);
-
+      setScrollBarIncrements(scrollPaneA.getVerticalScrollBar());
+      setScrollBarIncrements(scrollPaneA.getHorizontalScrollBar());
       createAxisPanelB();
       scrollB = new ScrollPanel();
       addAxisPanelB();
       scrollPaneB = new JScrollPane(scrollB);
+      setScrollBarIncrements(scrollPaneB.getVerticalScrollBar());
+      setScrollBarIncrements(scrollPaneB.getHorizontalScrollBar());
       setAxisA();
     }
+  }
+
+  private void setScrollBarIncrements(JScrollBar scrollBar) {
+    scrollBar.setUnitIncrement(10);
+    scrollBar.setBlockIncrement(50);
   }
 
   JScrollPane showBothAxis() {
