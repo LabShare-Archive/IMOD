@@ -98,7 +98,8 @@ public final class TiltxcorrProcessWatcher extends LogFileProcessMonitor {
     while (!foundNSections) {
       Thread.sleep(UPDATE_PERIOD);
       String line;
-      while ((line = readLogFileLine().trim()) != null) {
+      while ((line = readLogFileLine()) != null) {
+        line = line.trim();
         if (line.startsWith(nSectionsHeader)) {
           String[] fields = line.split("\\s+");
           if (fields.length > nSectionsIndex) {
@@ -123,6 +124,9 @@ public final class TiltxcorrProcessWatcher extends LogFileProcessMonitor {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.7  2009/09/24 19:07:28  sueh
+ * <p> bug# 1258 In findNSections trimmed line before splitting it.
+ * <p>
  * <p> Revision 1.6  2009/06/10 17:25:08  sueh
  * <p> bug# 1202 Parse the mrc header based on
  * <p> EtomoDirector.ImodBriefHeader.
