@@ -54,7 +54,7 @@ bn.scan-header=
 [[]]
 tf.fiducial-diameter = %{fiducial-diameter}
 #check error
-[[if = montage]]
+[[ifnot = montage]]
 if.not.var.test-gui.return=
 rb.montage=
 bn.create-com-scripts=
