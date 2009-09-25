@@ -151,6 +151,7 @@ assert.enabled.bn.view-trial-in-3dmod=
 assert.enabled.bn.use-current-trial-tomogram=
 # run with parallel processing
 cb.parallel-processing=on
+mb.parallel-processing=-
 cbb.trial-tomogram-filename=trial%{axis}
 bn.generate-trial-tomogram=
 wait.process.processchunks-tilt%{axis}=done
@@ -217,6 +218,7 @@ assert.bn.use-current-trial-tomogram=on
 #
 mb.trial-tilt=-
 mb.tilt.1=B
+mb.parallel-processing=+
 
 
 
