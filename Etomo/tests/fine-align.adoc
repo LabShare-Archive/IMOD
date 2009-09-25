@@ -597,6 +597,7 @@ bn.basic=
 rb.full-solution=
 assert.enabled.tf.x-stretch-group-size=
 assert.enabled.tf.skew-group-size=
+sleep=1
 bn.advanced=
 assert.enabled.tf.x-stretch-non-default-grouping=
 assert.enabled.tf.skew-non-default-grouping=
