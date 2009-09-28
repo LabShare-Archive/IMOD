@@ -37,6 +37,9 @@ import etomo.type.EtomoAutodoc;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.20  2009/04/20 16:38:12  sueh
+ * <p> bug# 1214 Share the increment header.
+ * <p>
  * <p> Revision 1.19  2009/03/17 00:46:24  sueh
  * <p> bug# 1186 Pass managerKey to everything that pops up a dialog.
  * <p>
@@ -108,7 +111,7 @@ final class IterationTable implements Highlightable {
   static final String D_PSI_HEADER2 = "Psi";
   static final String SEARCH_RADIUS_HEADER1 = "Search";
   static final String SEARCH_RADIUS_HEADER2 = "Radius";
-  static final String TABLE_HEADER = "Iteration Table";
+  static final String LABEL = "Iteration Table";
   static final String MAX_HEADER = "Max";
 
   private final JPanel rootPanel = new JPanel();
@@ -130,8 +133,8 @@ final class IterationTable implements Highlightable {
       UIParameters.INSTANCE.getNumericWidth());
   private final HeaderCell header3DThetaMax = new HeaderCell(MAX_HEADER,
       UIParameters.INSTANCE.getNumericWidth());
-  private final HeaderCell header3DThetaIncrement = new HeaderCell(
-      INCR_HEADER, UIParameters.INSTANCE.getNumericWidth());
+  private final HeaderCell header3DThetaIncrement = new HeaderCell(INCR_HEADER,
+      UIParameters.INSTANCE.getNumericWidth());
   private final HeaderCell header3DPsiMax = new HeaderCell(MAX_HEADER,
       UIParameters.INSTANCE.getNumericWidth());
   private final HeaderCell header3DPsiIncrement = new HeaderCell(INCR_HEADER,
@@ -158,7 +161,7 @@ final class IterationTable implements Highlightable {
 
   private IterationTable(BaseManager manager) {
     this.manager = manager;
-    rowList = new RowList(manager.getManagerKey());
+    rowList = new RowList(manager.getManagerKey(), this);
     createTable();
     rowList.add(this, pnlTable, layout, constraints);
     display();
@@ -352,7 +355,7 @@ final class IterationTable implements Highlightable {
     //border
     SpacedPanel pnlBorder = SpacedPanel.getInstance();
     pnlBorder.setBoxLayout(BoxLayout.Y_AXIS);
-    pnlBorder.setBorder(new EtchedBorder(TABLE_HEADER).getBorder());
+    pnlBorder.setBorder(new EtchedBorder(LABEL).getBorder());
     pnlBorder.add(pnlTable);
     //root
     rootPanel.setLayout(new BoxLayout(rootPanel, BoxLayout.Y_AXIS));
@@ -407,6 +410,22 @@ final class IterationTable implements Highlightable {
     rowList.display();
   }
 
+  HeaderCell getDPhiDThetaDPsiHeaderCell() {
+    return header1DPhiDThetaDPsi;
+  }
+
+  HeaderCell getSearchRadiusHeaderCell() {
+    return header1SearchRadius;
+  }
+
+  HeaderCell getHiCutoffHeaderCell() {
+    return header1HiCutoff;
+  }
+
+  HeaderCell getRefThresholdHeaderCell() {
+    return header1RefThreshold;
+  }
+
   private class ITActionListener implements ActionListener {
     private final IterationTable iterationTable;
 
@@ -422,9 +441,11 @@ final class IterationTable implements Highlightable {
   private static final class RowList {
     private final List list = new ArrayList();
     private final ManagerKey managerKey;
+    private final IterationTable table;
 
-    private RowList(ManagerKey managerKey) {
+    private RowList(ManagerKey managerKey, IterationTable table) {
       this.managerKey = managerKey;
+      this.table = table;
     }
 
     private synchronized IterationRow add(final Highlightable parent,
@@ -432,7 +453,8 @@ final class IterationTable implements Highlightable {
         final GridBagConstraints constraints) {
       int index = list.size();
       IterationRow row = new IterationRow(index, parent, panel, layout,
-          constraints, managerKey);
+          constraints, managerKey, table);
+      row.setNames();
       list.add(row);
       return row;
     }
@@ -474,7 +496,8 @@ final class IterationTable implements Highlightable {
         final Highlightable parent, final JPanel panel,
         final GridBagLayout layout, final GridBagConstraints constraints) {
       int index = list.size();
-      IterationRow copy = new IterationRow(index, row, managerKey);
+      IterationRow copy = new IterationRow(index, row, managerKey, table);
+      copy.setNames();
       list.add(copy);
       copy.display();
     }
