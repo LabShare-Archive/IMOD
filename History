@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+9/28/09: In Etomo, no long turning off "Automatic new contour" in 3dmod.  The
+checkbox is ignored in "Fill gaps" mode.
+
 9/28/09: In Etomo - PEET, removing edgeShift when it is empty.
 
 9/25/09: In Etomo making the scroll bars work properly.
