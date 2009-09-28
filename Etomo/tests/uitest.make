@@ -1,6 +1,6 @@
-all: single dual single-test-gui dual-test-gui single-fidless single-simple-align single-montage dual-montage single-montage-test-gui dual-montage-test-gui join join-test-processes nad
+all: single dual single-test-gui dual-test-gui single-fidless single-simple-align single-montage dual-montage single-montage-test-gui dual-montage-test-gui join join-test-processes nad peet
 recon: single dual single-test-gui dual-test-gui single-fidless single-simple-align single-montage dual-montage single-montage-test-gui dual-montage-test-gui
-build: single dual single-fidless single-simple-align single-montage dual-montage join nad
+build: single dual single-fidless single-simple-align single-montage dual-montage join nad peet
 bc: single-test-gui dual-test-gui dual-montage-test-gui
 temp: 
 
@@ -30,5 +30,7 @@ join-test-processes: dummy
 	$(IMOD_UITEST_SCRIPT)/uitest join-test-processes
 nad: dummy
 	$(IMOD_UITEST_SCRIPT)/uitest nad
+peet: dummy
+	$(IMOD_UITEST_SCRIPT)/uitest peet
 dummy:
 	

@@ -1,0 +1,11 @@
+Version = 1.2
+
+[tab = setup]
+open.interface=
+set.adoc.function = peet-setup.adoc
+run.function.main =
+
+[tab = align]
+open.dialog.runtab=
+set.adoc.function = peet-runtab.adoc
+run.function.main =

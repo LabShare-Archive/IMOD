@@ -118,6 +118,18 @@ set.var.volume=unicross1.rec
 set.interface.Parallel=
 
 
+[Test = peet]
+set.testdir = peet
+set.adoc.tab = peet.adoc
+set.dataset = pi
+
+[Test = peet-test-gui]
+set.testdir = peet-test-gui
+set.adoc.tab = peet.adoc
+set.dataset = pi
+set.var.test-gui=
+
+
 [dataset = BB]
 set.single.dataset = BBa
 copy.file = %{dataset}.st
@@ -192,6 +204,16 @@ set.interface.Recon=
 [dataset = unicross]
 copy.file = %{dataset}1.rec
 
+[dataset = pi]
+copy.file = %{dataset}-a.rec
+copy.file = %{dataset}-a.mod
+copy.file = %{dataset}-b.rec
+copy.file = %{dataset}-b.mod
+set.var.angular-search-range-max=20
+set.var.angular-search-range-incr=4
+set.var.particle-volume=80
+set.interface.peet=
+
 
 [interface = Recon]
 goto.frame.pnl.main-frame =
@@ -222,9 +244,13 @@ open.dialog.model.tb.setup.3 =
 open.dialog.rejoin.tb.setup.4 =
 
 [interface = PEET]
+[[open = interface]]
+mn.file=
+mn.new-peet=
+[[]]
 goto.frame.pnl.main-frame =
 open.dialog.setup.tb.setup =
-open.dialog.toprun.tb.setup.1 =
+open.dialog.runtab.tb.setup.1 =
 
 [Interface = Parallel]
 goto.frame.pnl.main-frame =

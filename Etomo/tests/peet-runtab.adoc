@@ -1,0 +1,38 @@
+Version = 1.2
+
+[function = main]
+run.function.iteration-table=
+[[if = test-gui]]
+	run.function.spherical-sampling-for-theta-and-psi=
+[[]]
+tf.particle-volume-x=%{particle-volume}
+tf.y=%{particle-volume}
+tf.z=%{particle-volume}
+cb.use-equal-numbers-of-particles-from-all-tomograms-for-new-reference=on
+run.function.number-of-particles-in-averages=
+cb.use-equal-numbers-of-particles-from-all-tomograms-for-averages=on
+sp.particles-per-cpu=1
+bn.run=
+
+
+[function = iteration-table]
+tf.iteration-table-1-angular-search-range=%{angular-search-range-max}
+tf.iteration-table-1-angular-search-range.1=%{angular-search-range-incr}
+tf.iteration-table-1-angular-search-range.2=%{angular-search-range-max}
+tf.iteration-table-1-angular-search-range.3=%{angular-search-range-incr}
+tf.iteration-table-1-angular-search-range.4=%{angular-search-range-max}
+tf.iteration-table-1-angular-search-range.5=%{angular-search-range-incr}
+tf.iteration-table-1-search=5
+tf.iteration-table-1-high-freq=.5
+tf.iteration-table-1-high-freq.1=.05
+tf.iteration-table-1-reference=4
+
+
+[function = spherical-sampling-for-theta-and-psi]
+
+
+[function = number-of-particles-in-averages]
+tf.start=3
+tf.incr=3
+tf.end=9
+
