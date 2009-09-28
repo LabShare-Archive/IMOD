@@ -4,9 +4,10 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
-* <p>Description: </p>
+* <p>Description: Makes it possible to enable/disable an entire column of a
+* table with one fuction call.</p>
 * 
-* <p>Copyright: Copyright 2006</p>
+* <p>Copyright: Copyright 2007, 2008, 2009</p>
 *
 * <p>Organization:
 * Boulder Laboratory for 3-Dimensional Electron Microscopy of Cells (BL3DEMC),
@@ -16,7 +17,10 @@ import java.util.List;
 * 
 * @version $Revision$
 * 
-* <p> $Log$ </p>
+* <p> $Log$
+* <p> Revision 1.1  2007/04/02 21:48:17  sueh
+* <p> bug# 964 Class to manipulate columns in a table.
+* <p> </p>
 */
 final class Column {
   public static  final String  rcsid =  "$Id$";
