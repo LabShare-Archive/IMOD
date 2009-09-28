@@ -2256,7 +2256,6 @@ public final class ApplicationManager extends BaseManager implements
       imodManager.setSkipList(ImodManager.COARSE_ALIGNED_KEY, axisID, skipList);
       imodManager.setBeadfixerMode(ImodManager.COARSE_ALIGNED_KEY, axisID,
           beadfixerMode);
-      imodManager.setNewContours(ImodManager.COARSE_ALIGNED_KEY, axisID, false);
       imodManager.setOpenLog(ImodManager.COARSE_ALIGNED_KEY, axisID,
           beadfixerMode == ImodProcess.RESIDUAL_MODE, DatasetFiles.getLogName(
               this, axisID, ProcessName.ALIGN));
@@ -7931,6 +7930,9 @@ public final class ApplicationManager extends BaseManager implements
 }
 /**
  * <p> $Log$
+ * <p> Revision 3.337  2009/09/22 23:41:46  sueh
+ * <p> bug# 1269 Added a call to FinalAlignedStackExpert.setEnabledTiltParameters.
+ * <p>
  * <p> Revision 3.336  2009/09/21 17:38:40  sueh
  * <p> bug# 1267 Newst process monitor now takes newst and newst_3dfind.  Tilt process monitor has a child class which handles tilt_3dfind.
  * <p>
