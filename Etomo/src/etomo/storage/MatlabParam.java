@@ -44,6 +44,9 @@ import etomo.util.DatasetFiles;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.31  2009/09/20 21:27:59  sueh
+ * <p> bug# 1268 Removed LabeledSpinner.setValue(Object).
+ * <p>
  * <p> Revision 1.30  2009/09/05 00:33:52  sueh
  * <p> bug# 1256 In write, stopped turning on debug when getting the matlab
  * <p> autodoc.
@@ -1143,7 +1146,7 @@ public final class MatlabParam {
       }
     }
     valueMap.put(SZ_VOL_KEY, szVol.getParsableString());
-    if (!isTiltRangeEmpty()) {
+    if (!isTiltRangeEmpty() && !edgeShift.isEmpty()) {
       valueMap.put(EDGE_SHIFT_KEY, edgeShift.getParsableString());
     }
     valueMap.put(CC_MODE_KEY, ccMode.toString());
