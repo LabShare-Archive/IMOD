@@ -23,6 +23,9 @@ import etomo.type.EtomoNumber;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.17  2009/09/23 19:54:26  sueh
+ * <p> bug# 1271 Made search min search radius = 0 the standard.
+ * <p>
  * <p> Revision 1.16  2009/09/23 17:09:07  sueh
  * <p> Set minium search radius to 0 for John.  Functionality is only available when --newstuff is used.
  * <p>
@@ -99,30 +102,33 @@ final class IterationRow implements Highlightable {
   private final HighlighterButton btnHighlighter;
   private final Highlightable parent;
   private final ManagerKey managerKey;
+  private final IterationTable table;
 
   private int index;
 
   IterationRow(final int index, final Highlightable parent, final JPanel panel,
       final GridBagLayout layout, final GridBagConstraints constraints,
-      ManagerKey managerKey) {
+      ManagerKey managerKey, IterationTable table) {
     this.index = index;
     this.parent = parent;
     this.panel = panel;
     this.layout = layout;
     this.constraints = constraints;
     this.managerKey = managerKey;
+    this.table = table;
     btnHighlighter = HighlighterButton.getInstance(this, parent);
     number.setText(String.valueOf(index + 1));
   }
 
   IterationRow(final int index, final IterationRow iterationRow,
-      ManagerKey managerKey) {
+      ManagerKey managerKey, IterationTable table) {
     this.index = index;
     this.parent = iterationRow.parent;
     this.panel = iterationRow.panel;
     this.layout = iterationRow.layout;
     this.constraints = iterationRow.constraints;
     this.managerKey = managerKey;
+    this.table = table;
     btnHighlighter = HighlighterButton.getInstance(this, parent);
     number.setText(String.valueOf(index + 1));
     dPhiMax.setValue(iterationRow.dPhiMax.getValue());
@@ -135,6 +141,29 @@ final class IterationRow implements Highlightable {
     hiCutoffCutoff.setValue(iterationRow.hiCutoffCutoff.getValue());
     hiCutoffSigma.setValue(iterationRow.hiCutoffSigma.getValue());
     refThreshold.setValue(iterationRow.refThreshold.getValue());
+  }
+
+  void setNames() {
+    dPhiMax.setHeaders(IterationTable.LABEL, number, table
+        .getDPhiDThetaDPsiHeaderCell());
+    dPhiIncrement.setHeaders(IterationTable.LABEL, number, table
+        .getDPhiDThetaDPsiHeaderCell());
+    dThetaMax.setHeaders(IterationTable.LABEL, number, table
+        .getDPhiDThetaDPsiHeaderCell());
+    dThetaIncrement.setHeaders(IterationTable.LABEL, number, table
+        .getDPhiDThetaDPsiHeaderCell());
+    dPsiMax.setHeaders(IterationTable.LABEL, number, table
+        .getDPhiDThetaDPsiHeaderCell());
+    dPsiIncrement.setHeaders(IterationTable.LABEL, number, table
+        .getDPhiDThetaDPsiHeaderCell());
+    searchRadius.setHeaders(IterationTable.LABEL, number, table
+        .getSearchRadiusHeaderCell());
+    hiCutoffCutoff.setHeaders(IterationTable.LABEL, number, table
+        .getHiCutoffHeaderCell());
+    hiCutoffSigma.setHeaders(IterationTable.LABEL, number, table
+        .getHiCutoffHeaderCell());
+    refThreshold.setHeaders(IterationTable.LABEL, number, table
+        .getRefThresholdHeaderCell());
   }
 
   public void highlight(final boolean highlight) {
@@ -250,15 +279,15 @@ final class IterationRow implements Highlightable {
       }
     }
     if (!n.isValid()) {
-      UIHarness.INSTANCE.openMessageDialog(IterationTable.TABLE_HEADER
-          + ":  In row " + number.toString() + header + " must be numeric.",
-          "Entry Error", managerKey);
+      UIHarness.INSTANCE.openMessageDialog(IterationTable.LABEL + ":  In row "
+          + number.toString() + header + " must be numeric.", "Entry Error",
+          managerKey);
       return false;
     }
     if (n.isNegative()) {
-      UIHarness.INSTANCE.openMessageDialog(
-          IterationTable.TABLE_HEADER + ":  In row " + number.getText()
-              + header + " must not be negative.", "Entry Error", managerKey);
+      UIHarness.INSTANCE.openMessageDialog(IterationTable.LABEL + ":  In row "
+          + number.getText() + header + " must not be negative.",
+          "Entry Error", managerKey);
       return false;
     }
     return true;
@@ -266,8 +295,8 @@ final class IterationRow implements Highlightable {
 
   boolean validateRun() {
     if (dPhiMax.isEmpty()) {
-      UIHarness.INSTANCE.openMessageDialog(IterationTable.TABLE_HEADER
-          + ":  In row " + number.getText() + ", "
+      UIHarness.INSTANCE.openMessageDialog(IterationTable.LABEL + ":  In row "
+          + number.getText() + ", "
           + IterationTable.D_PHI_D_THETA_D_PSI_HEADER1 + " "
           + IterationTable.D_PHI_HEADER2 + " " + IterationTable.MAX_HEADER
           + " must not be empty.  Use 0 to not search on the angle.",
@@ -290,8 +319,8 @@ final class IterationRow implements Highlightable {
     }
 
     if (dThetaMax.isEnabled() && dThetaMax.isEmpty()) {
-      UIHarness.INSTANCE.openMessageDialog(IterationTable.TABLE_HEADER
-          + ":  In row " + number.getText() + ", "
+      UIHarness.INSTANCE.openMessageDialog(IterationTable.LABEL + ":  In row "
+          + number.getText() + ", "
           + IterationTable.D_PHI_D_THETA_D_PSI_HEADER1 + " "
           + IterationTable.D_THETA_HEADER2 + " " + IterationTable.MAX_HEADER
           + " must not be empty.  Use 0 to not search on the angle.",
@@ -313,8 +342,8 @@ final class IterationRow implements Highlightable {
     }
 
     if (dPsiMax.isEnabled() && dPsiMax.isEmpty()) {
-      UIHarness.INSTANCE.openMessageDialog(IterationTable.TABLE_HEADER
-          + ":  In row " + number.getText() + ", "
+      UIHarness.INSTANCE.openMessageDialog(IterationTable.LABEL + ":  In row "
+          + number.getText() + ", "
           + IterationTable.D_PHI_D_THETA_D_PSI_HEADER1 + " "
           + IterationTable.D_PSI_HEADER2 + " " + IterationTable.MAX_HEADER
           + " must not be empty.  Use 0 to not search on the angle.",
@@ -337,11 +366,11 @@ final class IterationRow implements Highlightable {
 
     int minSearchRadius = 0;
     if (!searchRadius.getParsedArray().ge(minSearchRadius)) {
-      UIHarness.INSTANCE.openMessageDialog(IterationTable.TABLE_HEADER
-          + ":  In row " + number.getText() + ", "
-          + IterationTable.SEARCH_RADIUS_HEADER1 + " "
-          + IterationTable.SEARCH_RADIUS_HEADER2 + " must not be less then "
-          + minSearchRadius + ".", "Entry Error", managerKey);
+      UIHarness.INSTANCE.openMessageDialog(IterationTable.LABEL + ":  In row "
+          + number.getText() + ", " + IterationTable.SEARCH_RADIUS_HEADER1
+          + " " + IterationTable.SEARCH_RADIUS_HEADER2
+          + " must not be less then " + minSearchRadius + ".", "Entry Error",
+          managerKey);
       return false;
     }
     return true;

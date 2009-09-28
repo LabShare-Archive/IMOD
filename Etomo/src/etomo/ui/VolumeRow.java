@@ -28,6 +28,10 @@ import etomo.type.Run3dmodMenuOptions;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.25  2009/04/27 18:06:42  sueh
+ * <p> bug# 1211 Added checkIncorrectPaths, fixIncorrectPaths, and
+ * <p> fixIncorrectPath.
+ * <p>
  * <p> Revision 1.24  2009/03/17 00:46:24  sueh
  * <p> bug# 1186 Pass managerKey to everything that pops up a dialog.
  * <p>
@@ -158,6 +162,19 @@ final class VolumeRow implements Highlightable {
     setExpandableValues(fnModParticle, fnModParticleFile);
     btnHighlighter = HighlighterButton.getInstance(this, table);
     number.setText(String.valueOf(index + 1));
+  }
+  
+  void setNames() {
+    tiltRangeMin.setHeaders(VolumeTable.LABEL, number, table
+        .getTiltRangeHeaderCell());
+    tiltRangeMax.setHeaders(VolumeTable.LABEL, number, table
+        .getTiltRangeHeaderCell());
+    relativeOrientX.setHeaders(VolumeTable.LABEL, number, table
+        .getRelativeOrientHeaderCell());
+    relativeOrientY.setHeaders(VolumeTable.LABEL, number, table
+        .getRelativeOrientHeaderCell());
+    relativeOrientZ.setHeaders(VolumeTable.LABEL, number, table
+        .getRelativeOrientHeaderCell());
   }
 
   public void highlight(final boolean highlight) {
@@ -379,7 +396,7 @@ final class VolumeRow implements Highlightable {
 
   boolean validateRun() {
     if (fnModParticle.isEmpty()) {
-      UIHarness.INSTANCE.openMessageDialog(VolumeTable.TABLE_HEADER
+      UIHarness.INSTANCE.openMessageDialog(VolumeTable.LABEL
           + ":  In row " + number.getText() + ", "
           + VolumeTable.FN_MOD_PARTICLE_HEADER1 + " must not be empty.",
           "Entry Error", manager.getManagerKey());
