@@ -50,6 +50,9 @@ import etomo.type.Run3dmodMenuOptions;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.39  2009/09/01 03:18:25  sueh
+ * <p> bug# 1222
+ * <p>
  * <p> Revision 1.38  2009/04/27 18:07:10  sueh
  * <p> bug# 1211 Moved last location functionality from VolumeTable to
  * <p> PeetDialog.  Added checkIncorrectPaths, fixIncorrectPaths, and
@@ -185,7 +188,7 @@ final class VolumeTable implements Expandable, Highlightable,
   public static final String rcsid = "$Id$";
 
   static final String FN_MOD_PARTICLE_HEADER1 = "Model";
-  static final String TABLE_HEADER = "Volume Table";
+  static final String LABEL = "Volume Table";
 
   private final RowList rowList = new RowList();
   private final JPanel rootPanel = new JPanel();
@@ -402,7 +405,7 @@ final class VolumeTable implements Expandable, Highlightable,
     //border
     EtomoPanel pnlBorder = new EtomoPanel();
     pnlBorder.setLayout(new BoxLayout(pnlBorder, BoxLayout.X_AXIS));
-    pnlBorder.setBorder(new EtchedBorder(TABLE_HEADER).getBorder());
+    pnlBorder.setBorder(new EtchedBorder(LABEL).getBorder());
     pnlBorder.add(pnlTable);
     pnlBorder.add(viewport.getPagingPanel());
     //buttons 1
@@ -480,6 +483,14 @@ final class VolumeTable implements Expandable, Highlightable,
     header2RelativeOrientY.add(pnlTable, layout, constraints);
     constraints.gridwidth = GridBagConstraints.REMAINDER;
     header2RelativeOrientZ.add(pnlTable, layout, constraints);
+  }
+  
+  HeaderCell getRelativeOrientHeaderCell() {
+    return header1RelativeOrient;
+  }
+  
+  HeaderCell getTiltRangeHeaderCell() {
+    return header1TiltRange;
   }
 
   public void msgViewportPaged() {
@@ -762,6 +773,7 @@ final class VolumeTable implements Expandable, Highlightable,
       list.add(row);
       row.registerInitMotlFileColumn(initMotlFileColumn);
       row.registerTiltRangeColumn(tiltRangeColumn);
+      row.setNames();
       //When this function is used to load from the .epe and .prm files,
       //metadata must be set before MatlabParamFile data.  Wait until row is
       //added, then set from metadata.
