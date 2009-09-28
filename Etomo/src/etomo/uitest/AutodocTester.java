@@ -63,6 +63,9 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.13  2009/09/22 21:04:34  sueh
+ * <p> bug# 1259 Changed assert.equals.com to assert.same.file.
+ * <p>
  * <p> Revision 1.12  2009/09/20 21:34:47  sueh
  * <p> bug# 1268 In executeCommand, fixed bug in ASSERT.
  * <p>
@@ -886,12 +889,19 @@ final class AutodocTester extends Assert implements VariableList {
       }
       assertNull("modifier not used with this actionType (" + command + ")",
           modifierType);
+      assertNotNull("value is required (" + command + ")", value);
       //wait.file-chooser.file_chooser_title = chosen_file
       if (subjectType == UITestSubjectType.FILE_CHOOSER) {
         setupNamedComponentFinder(JFileChooser.class, subjectName);
         JFileChooser fileChooser = (JFileChooser) finder.find();
-        File file = new File(getVariableValue(UITestSubjectType.TESTDIR
-            .toString(), axisID), value);
+        File file;
+        if (value.startsWith(File.separator)) {
+          file = new File(value);
+        }
+        else {
+          file = new File(getVariableValue(
+              UITestSubjectType.TESTDIR.toString(), axisID), value);
+        }
         fileChooser.setSelectedFile(file);
         fileChooser.approveSelection();
       }
