@@ -29,6 +29,9 @@ import etomo.type.ConstLogProperties;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.2  2009/03/05 23:28:43  sueh
+ * <p> bug# 1194 Get the LogProperties from either the LogPanel or user config.
+ * <p>
  * <p> Revision 1.1  2009/02/04 23:34:34  sueh
  * <p> bug# 1158 Frame for the log window.  Hold the log window for the
  * <p> current manager.  Can be fitted independently of the rest of Etomo.
@@ -134,8 +137,7 @@ final class LogFrame extends JFrame {
           .getFrameLocationY());
       setVisible(curLogPanel.isFrameVisible());
       if (isVisible()) {
-        repaint();
-        pack();
+        refresh();
       }
     }
     else {
@@ -144,15 +146,19 @@ final class LogFrame extends JFrame {
       setVisible(false);
     }
   }
+  
+  private void refresh() {
+    repaint();
+    pack();
+  }
 
   /**
-   * Toggles _hide and shows or hides the frame.
+   * Toggles setVisible().
    */
   void showHide() {
     setVisible(!isVisible());
     if (isVisible()) {
-      repaint();
-      pack();
+      refresh();
     }
   }
 
@@ -173,8 +179,7 @@ final class LogFrame extends JFrame {
   void msgChanged(LogPanel logPanel) {
     if (curLogPanel == logPanel) {
       setTitle(curLogPanel.getTitle());
-      repaint();
-      pack();
+      refresh();
     }
   }
 
@@ -219,8 +224,7 @@ final class LogFrame extends JFrame {
       //Getting rid of preferred size lets the frame fit to original size of the
       //text area.
       setPreferredSize(null);
-      pack();
-      repaint();
+      refresh();
     }
   }
 
