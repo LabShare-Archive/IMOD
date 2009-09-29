@@ -35,6 +35,10 @@ import etomo.util.Utilities;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.55  2009/04/02 19:19:14  sueh
+ * <p> bug# 1206 Only need one call to setEnabled in
+ * <p> setCurrentManager(BaseManager,ManagerKey).
+ * <p>
  * <p> Revision 3.54  2009/03/17 00:46:24  sueh
  * <p> bug# 1186 Pass managerKey to everything that pops up a dialog.
  * <p>
@@ -539,6 +543,7 @@ public final class MainFrame extends EtomoFrame implements ContextMenu {
       title = currentManager.getName() + " - " + etomoTitle;
       rootPanel.add(windowSwitch.getPanel(managerKey));
       logFrame.setPanel(currentManager.getLogPanel());
+      toFront();
       mainPanel.addMouseListener(mouseAdapter);
       mainPanel.repaint();
 
@@ -565,6 +570,7 @@ public final class MainFrame extends EtomoFrame implements ContextMenu {
 
   void msgLogChanged(LogPanel logPanel) {
     logFrame.msgChanged(logPanel);
+    toFront();
   }
 
   void msgUpdateLogProperties(LogPanel logPanel) {
