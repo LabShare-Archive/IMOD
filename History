@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+9/28/09: In Etomo, keeping the Project Log behind the main windows when the
+Project Log is refreshed from the one of the main windows.
+
 9/28/09: In Etomo, no long turning off "Automatic new contour" in 3dmod.  The
 checkbox is ignored in "Fill gaps" mode.
 
