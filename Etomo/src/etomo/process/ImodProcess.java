@@ -37,6 +37,9 @@ import etomo.util.Utilities;
  * 
  * <p>
  * $Log$
+ * Revision 3.60  2009/09/01 03:17:56  sueh
+ * bug# 1222
+ *
  * Revision 3.59  2009/06/10 22:13:54  sueh
  * bug# 1220 In sendMessages start the continuous listener thread if the
  * target is set and it is not already started.
@@ -1940,7 +1943,7 @@ public class ImodProcess {
       String response = null;
       StringBuffer userMessage = new StringBuffer();
       // wait for the response for at most 5 seconds
-      for (int timeout = 0; timeout < 10; timeout++) {
+      for (int timeout = 0; timeout < 20; timeout++) {
         if (responseReceived) {
           break;
         }
