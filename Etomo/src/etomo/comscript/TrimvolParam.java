@@ -11,6 +11,9 @@
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.33  2009/09/05 00:35:39  sueh
+ * <p> bug# 1256 Added blank getIteratorElementList.
+ * <p>
  * <p> Revision 3.32  2009/09/01 03:17:46  sueh
  * <p> bug# 1222
  * <p>
@@ -699,13 +702,15 @@ public class TrimvolParam implements CommandDetails {
   public boolean isNColumnsChanged() {
     return nColumnsChanged;
   }
+
   public boolean isNRowsChanged() {
     return nRowsChanged;
   }
+
   public boolean isNSectionsChanged() {
     return nSectionsChanged;
   }
-  
+
   private boolean hasInputFileSizeChanged(MRCHeader mrcHeader,
       TomogramState state) {
     boolean changed = false;
@@ -752,12 +757,21 @@ public class TrimvolParam implements CommandDetails {
         && !hasInputFileSizeChanged(mrcHeader, state)) {
       return;
     }
-    xMin.set(1);
-    xMax.set(mrcHeader.getNColumns());
-    yMin.set(1);
-    yMax.set(mrcHeader.getNRows());
-    zMin.set(1);
-    zMax.set(mrcHeader.getNSections());
+
+    //Refresh X and Y together.  Refresh Z separately.
+    if (nColumnsChanged || ((swapYZ || rotateX) && nSectionsChanged) || !swapYZ
+        && !rotateX && nRowsChanged) {
+      xMin.set(1);
+      xMax.set(mrcHeader.getNColumns());
+    }
+    if (nRowsChanged) {
+      yMin.set(1);
+      yMax.set(mrcHeader.getNRows());
+    }
+    if (nSectionsChanged) {
+      zMin.set(1);
+      zMax.set(mrcHeader.getNSections());
+    }
 
     // Check the swapped YZ state or rotateX state to decide which dimension to use for the 
     // section range
@@ -851,11 +865,13 @@ public class TrimvolParam implements CommandDetails {
     throw new IllegalArgumentException("field=" + fieldInterface);
   }
 
-  public ConstEtomoNumber getEtomoNumber(etomo.comscript.FieldInterface fieldInterface) {
+  public ConstEtomoNumber getEtomoNumber(
+      etomo.comscript.FieldInterface fieldInterface) {
     throw new IllegalArgumentException("field=" + fieldInterface);
   }
 
-  public ConstIntKeyList getIntKeyList(etomo.comscript.FieldInterface fieldInterface) {
+  public ConstIntKeyList getIntKeyList(
+      etomo.comscript.FieldInterface fieldInterface) {
     throw new IllegalArgumentException("field=" + fieldInterface);
   }
 
@@ -882,7 +898,7 @@ public class TrimvolParam implements CommandDetails {
   public CommandDetails getSubcommandDetails() {
     return null;
   }
-  
+
   public ProcessName getSubcommandProcessName() {
     return null;
   }
@@ -890,7 +906,7 @@ public class TrimvolParam implements CommandDetails {
   public String getCommandName() {
     return commandName;
   }
-  
+
   public ProcessName getProcessName() {
     return ProcessName.TRIMVOL;
   }
@@ -902,9 +918,8 @@ public class TrimvolParam implements CommandDetails {
   public int getIntValue(etomo.comscript.FieldInterface fieldInterface) {
     throw new IllegalArgumentException("field=" + fieldInterface);
   }
-  
-  public IteratorElementList getIteratorElementList(
-      final FieldInterface field) {
+
+  public IteratorElementList getIteratorElementList(final FieldInterface field) {
     throw new IllegalArgumentException("field=" + field);
   }
 
