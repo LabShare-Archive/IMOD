@@ -362,7 +362,8 @@ public final class RemotePath {
 
     ReadOnlyAutodoc autodoc;
     try {
-      autodoc = AutodocFactory.getInstance(AUTODOC, axisID, manager.getManagerKey());
+      autodoc = AutodocFactory.getInstance(AUTODOC, axisID, manager
+          .getManagerKey());
     }
     catch (IOException e) {
       e.printStackTrace();
@@ -382,14 +383,16 @@ public final class RemotePath {
         hostName, true)) == null) {
       //try looking for a section name that is the same as the stripped version
       //of the hostname.
-      int stripIndex = hostName.indexOf('.');
-      if (stripIndex == -1
-          || (localSection = loadMountRules(autodoc,
-              CpuAdoc.COMPUTER_SECTION_TYPE, hostName.substring(0, stripIndex),
-              true)) == null) {
-        //look for a section name called "localhost"
-        localSection = loadMountRules(autodoc, CpuAdoc.COMPUTER_SECTION_TYPE,
-            CpuAdoc.LOCAL_HOST, false);
+      if (hostName != null) {
+        int stripIndex = hostName.indexOf('.');
+        if (stripIndex == -1
+            || (localSection = loadMountRules(autodoc,
+                CpuAdoc.COMPUTER_SECTION_TYPE, hostName
+                    .substring(0, stripIndex), true)) == null) {
+          //look for a section name called "localhost"
+          localSection = loadMountRules(autodoc, CpuAdoc.COMPUTER_SECTION_TYPE,
+              CpuAdoc.LOCAL_HOST, false);
+        }
       }
     }
     //load global mount rules
@@ -677,6 +680,9 @@ public final class RemotePath {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.22  2009/04/13 22:58:35  sueh
+ * <p> bug# 1207 Made getHostName available to other classes.
+ * <p>
  * <p> Revision 1.21  2009/03/17 00:46:43  sueh
  * <p> bug# 1186 Pass managerKey to everything that pops up a dialog.
  * <p>
