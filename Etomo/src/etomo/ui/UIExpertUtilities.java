@@ -99,7 +99,7 @@ public final class UIExpertUtilities {
   public long getStackBinningFromFileName(BaseManager manager, AxisID axisID,
       String fileName, boolean nullIfFailed) {
     if (fileName==null||fileName.matches("\\s*")) {
-      throw new IllegalStateException("Empty file name");
+      return 1;
     }
     return getStackBinning(manager, axisID, MRCHeader.getInstance(manager
         .getPropertyUserDir(), fileName, axisID, manager.getManagerKey()), false);
@@ -446,6 +446,10 @@ public final class UIExpertUtilities {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.8  2009/09/21 18:10:07  sueh
+ * <p> bug# 1267 Added getStackBinningFromFileName to get binning using a full
+ * <p> file name instead of an extension.
+ * <p>
  * <p> Revision 1.7  2009/09/01 03:18:25  sueh
  * <p> bug# 1222
  * <p>
