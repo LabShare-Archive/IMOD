@@ -95,7 +95,7 @@ run.function.final-align-command=
 # run unbinned with increased size
 sp.aligned-image-stack-binning=1
 mb.%{final-align-command}=A
-tf.size-to-output=%{size-to-output}
+tf.size-to-output=%{size-to-output-x},%{size-to-output-y}
 bn.create-full-aligned-stack=
 if.not.var.montage.wait.process.creating-aligned-stack = done
 if.var.montage.wait.process.full-alignment = done
