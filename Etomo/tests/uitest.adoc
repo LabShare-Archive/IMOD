@@ -146,7 +146,8 @@ set.var.int-unbinned-bead-diameter = 5
 #PreProc
 set.var.maximum-radius=2.1
 #FinalStack
-set.var.size-to-output=550,550
+set.var.size-to-output-x=550
+set.var.size-to-output-y=550
 set.var.center-to-center-thickness = 83.0
 set.var.rounded-unbinned-bead-diameter = 5.0
 # center-to-center-thickness + additional-unbinned-diameters-to-add*int-unbinned-bead-diameter
@@ -161,6 +162,11 @@ set.var.tomogram-thickness-in-z.a=76
 set.var.tomogram-thickness-in-z.b=78
 set.var.x-axis-tilt.a=1.76
 set.var.x-axis-tilt.b=0.13
+#PostProc
+set.var.volume-range-z-max=70
+set.var.scaling-z-min=25
+set.var.scaling-z-max=50
+set.var.flatten-spacing=5
 set.interface.Recon=
 
 [dataset = midzone2]
@@ -180,8 +186,10 @@ set.var.int-unbinned-bead-diameter = 11
 #PreProc
 set.var.maximum-radius=2.6
 #FinalStack
-set.var.size-to-output.a=2000,1050
-set.var.size-to-output.b=1050,2000
+set.var.size-to-output-x.a=2000
+set.var.size-to-output-y.a=1050
+set.var.size-to-output-x.b=1050
+set.var.size-to-output-y.b=2000
 set.var.center-to-center-thickness.a = 122.0
 set.var.center-to-center-thickness.b = 116.0
 set.var.rounded-unbinned-bead-diameter = 10.6
@@ -195,10 +203,14 @@ set.var.final-align-command=blendmont
 #TomoGen
 set.var.output-density-scaling-factor.a=500.0
 set.var.output-density-scaling-factor.b=1000.0
-set.var.tomogram-thickness-in-z.a=84
-set.var.tomogram-thickness-in-z.b=84
+set.var.tomogram-thickness-in-z=84
 set.var.x-axis-tilt.a=1.71
 set.var.x-axis-tilt.b=0.18
+#PostProc
+set.var.volume-range-z-max=79
+set.var.scaling-z-min=28
+set.var.scaling-z-max=56
+set.var.flatten-spacing=10
 set.interface.Recon=
 
 [dataset = unicross]
