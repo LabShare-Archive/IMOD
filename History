@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+10/1/09: In Etomo, fix a bug in Post Processing where the X and Y trim values
+where unecessarily refreshed.
+
 9/28/09: In Etomo, keeping the Project Log behind the main windows when the
 Project Log is refreshed from the one of the main windows.
 
