@@ -36,6 +36,9 @@ import etomo.type.Run3dmodMenuOptions;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.3  2009/09/01 03:18:25  sueh
+ * <p> bug# 1222
+ * <p>
  * <p> Revision 1.2  2009/06/11 16:52:52  sueh
  * <p> bug# 1221 Sending the process panel to the process function in the
  * <p> manager wrapped in a ProcessDisplay interface.  Implemented
@@ -88,7 +91,7 @@ final class FlattenWarpPanel implements Run3dmodButtonContainer,
     return instance;
   }
 
-  static MultiLineButton getFlattenWarpDisplay() {
+  static MultiLineButton getFlattenWarpButton() {
     return new MultiLineButton("Run Flattenwarp");
   }
 

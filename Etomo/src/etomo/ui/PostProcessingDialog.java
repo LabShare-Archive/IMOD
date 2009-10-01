@@ -110,8 +110,8 @@ public final class PostProcessingDialog extends ProcessDialog implements
     return FlattenPanel.getFlattenDisplay(DialogType.POST_PROCESSING);
   }
 
-  public static ProcessResultDisplay getFlattenWarpDisplay() {
-    return FlattenWarpPanel.getFlattenWarpDisplay();
+  public static ProcessResultDisplay getFlattenWarpButton() {
+    return FlattenWarpPanel.getFlattenWarpButton();
   }
 
   /**
@@ -130,6 +130,10 @@ public final class PostProcessingDialog extends ProcessDialog implements
   public void setParameters(ConstMetaData metaData) {
     flattenPanel.setParameters(metaData);
     squeezeVolPanel.setParameters(metaData);
+  }
+  
+  public FlattenWarpDisplay getFlattenWarpDisplay() {
+    return flattenPanel.getFlattenWarpDisplay();
   }
 
   public void getParameters(MetaData metaData) {
@@ -236,6 +240,9 @@ public final class PostProcessingDialog extends ProcessDialog implements
 }
 /**
  * <p> $Log$
+ * <p> Revision 3.44  2009/09/17 19:12:40  sueh
+ * <p> Removed unnecessary print.
+ * <p>
  * <p> Revision 3.43  2009/09/01 03:18:25  sueh
  * <p> bug# 1222
  * <p>
