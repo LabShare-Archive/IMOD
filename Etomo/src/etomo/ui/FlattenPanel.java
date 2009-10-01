@@ -41,6 +41,9 @@ import etomo.type.Run3dmodMenuOptions;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.3  2009/09/01 03:18:25  sueh
+ * <p> bug# 1222
+ * <p>
  * <p> Revision 1.2  2009/06/11 16:51:57  sueh
  * <p> bug# 1221 Sending the process panel to the process function in the
  * <p> manager wrapped in a ProcessDisplay interface.  Implemented
@@ -57,8 +60,7 @@ final class FlattenPanel implements Run3dmodButtonContainer, FlattenWarpParent,
   private static final String OUTPUT_SIZE_Z_LABEL = "Output thickness in Z";
 
   private final SpacedPanel pnlRoot = SpacedPanel.getInstance();
-  ActionListener actionListener = new FlattenPanelActionListener(
-      this);
+  ActionListener actionListener = new FlattenPanelActionListener(this);
   private final ButtonGroup bgInputFile = new ButtonGroup();
   private final RadioButton rbInputFileTrimVol = new RadioButton(
       "Flatten the trimvol output", bgInputFile);
@@ -75,7 +77,7 @@ final class FlattenPanel implements Run3dmodButtonContainer, FlattenWarpParent,
 
   private final FlattenWarpPanel flattenWarpPanel;
   private final Run3dmodButton btnFlatten;
-  
+
   private final AxisID axisID;
   private final ApplicationManager manager;
   private final DialogType dialogType;
@@ -87,8 +89,8 @@ final class FlattenPanel implements Run3dmodButtonContainer, FlattenWarpParent,
     this.dialogType = dialogType;
     flattenWarpPanel = FlattenWarpPanel.getInstance(manager, axisID,
         dialogType, this);
-    btnFlatten = (Run3dmodButton)manager
-    .getProcessResultDisplayFactory(axisID).getFlatten();
+    btnFlatten = (Run3dmodButton) manager
+        .getProcessResultDisplayFactory(axisID).getFlatten();
   }
 
   static FlattenPanel getInstance(ApplicationManager manager, AxisID axisID,
@@ -99,10 +101,9 @@ final class FlattenPanel implements Run3dmodButtonContainer, FlattenWarpParent,
     instance.setToolTipText();
     return instance;
   }
-  
+
   static Run3dmodButton getFlattenDisplay(DialogType dialogType) {
-    return Run3dmodButton.getDeferredToggle3dmodInstance("Flatten",
-        dialogType);
+    return Run3dmodButton.getDeferredToggle3dmodInstance("Flatten", dialogType);
   }
 
   private void addListeners() {
@@ -110,7 +111,7 @@ final class FlattenPanel implements Run3dmodButtonContainer, FlattenWarpParent,
     btnImodFlatten.addActionListener(actionListener);
     ftfTemporaryDirectory.addActionListener(actionListener);
   }
-  
+
   void done() {
     btnFlatten.removeActionListener(actionListener);
   }
@@ -212,6 +213,10 @@ final class FlattenPanel implements Run3dmodButtonContainer, FlattenWarpParent,
       rbInputFileSqueezeVol.setSelected(true);
     }
     flattenWarpPanel.setParameters(metaData);
+  }
+
+  FlattenWarpDisplay getFlattenWarpDisplay() {
+    return flattenWarpPanel;
   }
 
   void getParameters(MetaData metaData) {
