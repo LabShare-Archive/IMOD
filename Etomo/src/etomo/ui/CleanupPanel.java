@@ -38,6 +38,9 @@ import etomo.util.Utilities;
  * 
  * <p>
  * $Log$
+ * Revision 3.17  2009/03/17 00:46:24  sueh
+ * bug# 1186 Pass managerKey to everything that pops up a dialog.
+ *
  * Revision 3.16  2009/01/20 19:50:37  sueh
  * bug# 1102 Changed labeled panels to type EtomoPanel so that they can name themselves.
  *
@@ -238,9 +241,11 @@ final class CleanupPanel {
     File[] fileList = new File(applicationManager.getPropertyUserDir())
         .listFiles();
     long dirSize = 0;
-    for (int i = 0; i < fileList.length; i++) {
-      if (fileList[i].isFile()) {
-        dirSize += fileList[i].length();
+    if (fileList != null) {
+      for (int i = 0; i < fileList.length; i++) {
+        if (fileList[i].isFile()) {
+          dirSize += fileList[i].length();
+        }
       }
     }
     lDirSize.setText("Directory size (MB): " + dirSize / 1000000);
