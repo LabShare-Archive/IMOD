@@ -142,7 +142,7 @@ public final class ProcessResultDisplayFactory implements
   private final ProcessResultDisplay flatten = PostProcessingDialog
       .getFlattenDisplay();
   private final ProcessResultDisplay flattenWarp = PostProcessingDialog
-      .getFlattenWarpDisplay();
+      .getFlattenWarpButton();
   private final ProcessResultDisplay squeezeVolume = PostProcessingDialog
       .getSqueezeVolumeDisplay();
 
@@ -562,6 +562,10 @@ public final class ProcessResultDisplayFactory implements
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.12  2009/09/01 03:14:14  sueh
+ * <p> bug# 1222 Added findBeads3d, flatten, flattenWarp, reprojectModel, and
+ * <p> tilt3dFind.  Clarified code the adds dependancies.
+ * <p>
  * <p> Revision 1.11  2009/05/02 01:12:06  sueh
  * <p> bug# 1216 Added raptor and useRaptor.
  * <p>
