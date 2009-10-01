@@ -28,6 +28,9 @@ import etomo.ui.UIHarness;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.42  2009/09/01 03:17:56  sueh
+ * <p> bug# 1222
+ * <p>
  * <p> Revision 3.41  2009/04/20 19:20:21  sueh
  * <p> bug# 1192 Added setComputerMap to set the computerMap in
  * <p> processData.
@@ -719,7 +722,7 @@ class BackgroundProcess extends Thread implements SystemProcessInterface {
       //make sure script knows about failure
       setProcessEndState(ProcessEndState.FAILED);
       //popup error messages
-      UIHarness.INSTANCE.openErrorMessageDialog(errorMessage, getCommandName()
+      UIHarness.INSTANCE.openErrorMessageDialog(errorMessage, getProcessName()
           + " terminated", axisID, manager.getManagerKey());
     }
     processDone(exitValue, errorFound);
