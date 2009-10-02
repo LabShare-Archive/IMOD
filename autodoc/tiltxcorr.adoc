@@ -6,7 +6,9 @@ short = input
 type = FN
 usage = Input image file
 tooltip = Image file to correlate.
-manpage = 
+manpage = Input file with images to correlate.  If this option
+is not entered, the first non-option argument will be used for this input
+file.
 
 [Field = PieceListFile]
 short = piece
@@ -18,9 +20,11 @@ manpage = Piece list file for reordering the Z values in the stack
 [Field = OutputFile]
 short = output
 type = FN
-usage = Output file for transforms
-tooltip = Output file for transformations.
-manpage = 
+usage = Output file for transforms or for patch tracking model
+tooltip = Output file for transformations or for patch tracking model
+manpage = Output file for transformations or for patch tracking model.  If
+this option is not entered, the second non-option argument will be used for
+this input file.
 
 [Field = RotationAngle]
 short = rotation
@@ -69,8 +73,8 @@ tooltip =
 manpage = Amount to add to all entered tilt angles.  If the specimen is 
 significantly tilted at zero tilt, then the amount of cosine stretching become
 inaccurate at high tilt.  Sharper correlations can be obtained by adding this
-angle offset, which is same as the offset needed in Tiltalign(1) or Tilt(1) to
-make the specimen flat in the reconstruction.
+angle offset, which is the same as the offset needed in Tiltalign(1) or
+Tilt(1) to make the specimen flat in the reconstruction.
 
 [Field = FilterRadius1]
 short = radius1
@@ -115,10 +119,21 @@ frequencies specified by FilterRadius1 and FilterRadius2
 short = exclude
 type = B
 usage = Exclude central correlation peak due to fixed pattern noise
-tooltip = Ignore correlation peaks near (0, 0); do not use unless necessary because
-nearly aligned images will become misaligned.
+tooltip = Ignore correlation peaks near (0, 0); do not use unless necessary
+because nearly aligned images will become misaligned.
 manpage = Exclude central correlation peak due to fixed pattern noise in the
 images.  This option will misalign images that are already nearly aligned.
+
+[Field = ShiftLimitsXandY]
+short = shift
+type = IP
+usage = Limit on distance in X and Y to search for correlation peak
+tooltip = 
+manpage = Limit on distance in X and Y to search for correlation peak, in
+pixels.  This option can be used to prevent a spurious correlation peak outside
+these limits from giving a bad alignment.  If the program does not find an
+actual peak, i.e. a pixel higher than all its neighbors, within these limits,
+then it will give a zero shift.
 
 [Field = BordersInXandY]
 short = border
@@ -147,6 +162,25 @@ trimming in Y)
 manpage = Starting and ending Y coordinates of a region to correlate.  This
 entry will override a Y border value entered with BordersInXandY.
 
+[Field = BoundaryModel]
+short = boundary
+type = FN
+usage = Model file with boundary contours around areas to correlate
+tooltip =
+manpage = Model file with boundary contours around areas to correlate.  When
+correlating whole images to obtain transforms, the area outside the contours
+is masked out; when tracking patches, only patches inside the contours will be
+tracked (see above for details).
+
+[Field = BoundaryObject]
+short = objbound
+type = I
+usage = Object number to use from boundary model; default is all closed objects
+tooltip =
+manpage = The number of the object to use from the model with boundary
+contours.  The default is to use all the contours in closed-contour objects,
+but with this option only the given object will be used.
+
 [Field = BinningToApply]
 short = binning
 type = I
@@ -167,13 +201,19 @@ usage = Do not adjust tilt axis back to center if correlated box is not
 centered
 tooltip = 
 manpage = Leave the tilt axis in the center of the region that was correlated;
-the default is to shift it back to the center of the whole image.
+the default is to shift it back to the center of the whole image.  With this
+option, the program will output global transforms ready to use in Newstack(1),
+rather than the transforms relating one view to the next that would need to be
+converted to global transforms with Xftoxg(1).  The reason for this difference
+is that the transforms must contain a net shift away from the center of the
+image, which would be lost in Xftoxg(1).
 
 [Field = PadsInXandY]
 short = pad
 type = IP
 usage = Number of pixels to pad images in X and in Y
-tooltip = Padding in X, and in Y; the default is 5% of the image size up to 20 pixels.
+tooltip = Padding in X, and in Y; the default is 5% of the image size up to 20
+pixels.
 manpage = Number of pixels to pad images in X and in Y.  The default is 5% of
 the image dimensions up to 20 pixels.
 
@@ -181,7 +221,8 @@ the image dimensions up to 20 pixels.
 short = taper
 type = IP
 usage = Number of pixels to taper images in X and in Y
-tooltip = Pixels to taper in X, and in Y; the default is 10% of the image size up to 100 pixels.
+tooltip = Pixels to taper in X, and in Y; the default is 10% of the image size
+up to 100 pixels.
 manpage = Number of pixels to taper images in X and in Y.  The default
 is 10% of the image dimensions up to 100 pixels.
 
@@ -219,6 +260,80 @@ into the reference (overrides -absstretch)
 tooltip = 
 manpage = Do not do any cosine stretching for correlations or for accumulating
 into the reference (this option overrides AbsoluteCosineStretch).
+
+[Field = IterateCorrelations]
+short = iterate
+type = I
+usage = Number of iterations to reduce interpolation of peak position
+tooltip =
+manpage = Number of iterations of the correlation.  After finding the
+pixel with the peak correlation, the program achieves subpixel accuracy by
+fitting a parabola to the correlation values in X or Y and interpolating from
+the parabola.  If the correlation is iterated, this subpixel shift is applied
+to the cosine-stretched image
+before the correlation, which tends to shift the peak to being exactly on a
+pixel.  As a result, the shift has slightly higher subpixel accuracy than when
+it is derived by parabolic interpolation.  The program will terminate the
+iterations if the remaining fractional shift is less than 0.02 pixel or if 
+a lower correlation value is obtained than on the previous iteration.  In the
+latter case it reverts to the shift that gave the highest correlation.  Two or
+three iterations are generally sufficient.  Iteration is not programmed
+efficiently, so computation time will be proportional to the number of
+iterations.
+
+[Field = SizeOfPatchesXandY]
+short = size
+type = IP
+usage = Size in X and Y of patches to track by correlation
+tooltip =
+manpage = Size in X and Y of patches to track by correlation.  This option
+will cause the program to track a set of patches of the given size from the
+starting view to the high tilt view in each direction, and to output the
+positions of the patch centers in an IMOD model.  You must also enter either
+the -number option for a regular array of patches, or the -seed option for
+patches at modeled locations.  This option cannot be used with cumulative
+correlation.
+
+[Field = NumberOfPatchesXandY]
+short = number
+type = IP
+usage = Number of patches in X and Y to track by correlation
+tooltip =
+manpage = Number of patches in X and Y to track by correlation.  The given
+number of patches will be regularly spaced apart and fill the X and Y ranges
+of the trimmed image area.
+
+[Field = SeedModel]
+short = seed
+type = FN
+usage = Input model file with center points to track by correlation
+tooltip =
+manpage = Input model file with center points to track by correlation.  Only
+points whose patches fit entirely within the trimmed image area at zero
+degrees will be tracked.  See above for details.
+
+[Field = SeedObject]
+short = objseed
+type = I
+usage = Number of object to use in seed model; default is all scattered objects
+tooltip =
+manpage = Number of the object from the seed model with the points for
+tracking patches.  The default is to
+use all objects containing scattered points; with this option only the given
+object will be used. 
+
+[Field = LengthAndOverlap]
+short = length
+type = IP
+usage = Contour length and minimum overlap for breaking contour into pieces
+tooltip = 
+manpage = When tracking patches by correlation, the default is to produce one
+contour per patch passing through the whole set of views.  With this option,
+the contour will be broken into pieces of the given length, and overlapping
+by at least the given amount.  If the centers of the tracked areas wander
+enough to give a bad fit when the resulting model is used in Tiltalign(1),
+then breaking the contours into overlapping pieces might improve the fit.
+Some overlap is needed to use the model in Tiltalign (1).  
 
 [Field = TestOutput]
 short = test
