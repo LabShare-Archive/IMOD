@@ -17,7 +17,8 @@ PROGS = convertmod$(E) model2point$(E) imavgstat$(E) solvematch$(E) \
  smoothsurf$(E) reducecont$(E) fenestra$(E) ccderaser$(E) edgeeraser$(E) \
  refinematch$(E) findwarp$(E) sumdensity$(E) mtrotlong$(E) howflared$(E) \
  tomopitch$(E) fiberpitch$(E) corrsearch3d$(E) repackseed$(E) resamplemod$(E) \
- findhotpixels$(E) xfjointomo$(E) boxavg$(E) findbeads3d$(E)
+ findhotpixels$(E) xfjointomo$(E) boxavg$(E) tiltxcorr$(E) findbeads3d$(E) \
+# mtteach$(E)
 
 WLIBS = $(LWMOD) $(LIMOD) $(IMLIBS) $(FORTCLIBS)
 SMALLLIBS = $(LSMLMOD) $(LIMOD) $(IMLIBS) $(FORTCLIBS)
@@ -85,6 +86,9 @@ mtlengths$(E): mtlengths.$(O)
 mtrotlong$(E): mtrotlong.$(O)
 	$(FC) -o mtrotlong mtrotlong.$(O) $(LDFLG) $(WLIBS)
 
+mtteach$(E): mtteach.$(O) mtsubs.$(O)
+	$(FC) -o mtteach mtteach.$(O) mtsubs.$(O) $(LDFLG) $(SMALLLIBS)
+
 contourmod$(E): contourmod.$(O)
 	$(FC) -o contourmod contourmod.$(O) $(LDFLG) $(WLIBS)
 
@@ -145,6 +149,12 @@ boxavg$(E): boxavg.$(O)
 findbeads3d$(E): findbeads3d.$(O)
 	$(FC) -o findbeads3d findbeads3d.$(O) $(LDFLG) $(SMALLLIBS)
 
+tiltxcorr$(E): tiltxcorr.$(O)
+	$(FC) -o tiltxcorr tiltxcorr.$(O) $(LDFLG) $(SMALLLIBS)
+
+tiltxcorr.$(O): tiltxcorr.f
+	$(FC) $(FFLAGS) $(OPENMP) -c tiltxcorr.f
+
 install: $(PROGS)
 	$(STRIP) $(PROGS)
 	$(CP) $(PROGS) $(INSTBINDIR)
@@ -153,6 +163,9 @@ clean:
 	-\rm -f *.o* *~ *.exe $(PROGS)
 
 #  $Log$
+#  Revision 3.17  2008/12/11 06:08:09  mast
+#  Added findbeads3d
+#
 #  Revision 3.16  2007/12/05 21:41:56  mast
 #  *** empty log message ***
 #
