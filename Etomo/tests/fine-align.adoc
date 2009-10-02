@@ -321,6 +321,7 @@ tb.general.1=
 	assert.tf.reference-view=1
 	assert.tf.non-default-grouping.1=
 	bn.basic=
+	sleep=1
 [[]]
 # check enabled/disabled
 rb.fixed-magnification-at-10=
