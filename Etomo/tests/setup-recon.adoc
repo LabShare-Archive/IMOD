@@ -68,20 +68,10 @@ rb.single-frame=
 [[]]
 bn.create-com-scripts=
 [[if = test-gui]]
-	run.function.wait-popup=
+	wait.popup.etomo-question = Yes
+	if.var.dual.wait.popup.etomo-question = Yes
 	sleep=1
 [[]]
-
-
-#Stupid way of saying that the second popup is only there when it is not single and not montage.
-[function = wait-popup]
-wait.popup.etomo-question = Yes
-[[if = single]]
-	if.not.montage.set.var.done=
-	return.var.done=
-[[]]
-if.var.done.return=
-wait.popup.etomo-question = Yes
 
 
 [function = data-type]
