@@ -14,7 +14,7 @@ PROGS = addtostack$(E) alterheader$(E) assemblevol$(E) avganova$(E) \
  filltomo$(E) findcontrast$(E) findsection$(E) fixmont$(E) goodframe$(E) \
  header$(E) matchvol$(E) montagesize$(E) mtdetect$(E) mtteach$(E) \
  newstack$(E) rotatevol$(E) rotmont$(E) subimage$(E) subimanova$(E) \
- subimstat$(E) taperoutvol$(E) tapervoledge$(E) tiltxcorr$(E) tomopieces$(E) \
+ subimstat$(E) taperoutvol$(E) tapervoledge$(E) tomopieces$(E) \
  vmstocsh$(E) warpvol$(E) xcorrstack$(E) xfinverse$(E) xfproduct$(E) \
  xftoxg$(E) xyzproj$(E) extractmagrad$(E) mtffilter$(E) maxjoinsize$(E) \
  binvol$(E) numericdiff$(E) stitchalign$(E) densnorm$(E) xfsimplex$(E) \
@@ -168,9 +168,6 @@ taperoutvol$(E): taperoutvol.$(O)
 tapervoledge$(E): tapervoledge.$(O)
 	$(FC) -o tapervoledge tapervoledge.$(O) $(LDFLG) $(IMLIBS) $(LIBS)
 
-tiltxcorr$(E): tiltxcorr.$(O)
-	$(FC) -o tiltxcorr tiltxcorr.$(O) $(LDFLG) $(IMLIBS) $(LIBS)
-
 tomopieces$(E): tomopieces.$(O)
 	$(FC) -o tomopieces tomopieces.$(O) $(LDFLG) $(IMLIBS) $(LIBS)
 
@@ -218,6 +215,9 @@ enhance.$(O): $(INCDIR)/ftbuf.inc
 fftrans.$(O): $(INCDIR)/ftbuf.inc
 
 #  $Log$
+#  Revision 3.21  2009/09/07 17:22:13  mast
+#  Convert stitchvars to module
+#
 #  Revision 3.20  2009/06/14 22:39:30  mast
 #  Changes for module and openmp in rotmatwarpsubs etc
 #
