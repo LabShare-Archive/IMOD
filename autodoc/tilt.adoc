@@ -472,10 +472,11 @@ a reconstruction file (numbered from 0).  The default is the whole extent in X.
 type = FN
 usage = File with variable tilts around the X-axis
 tooltip = 
-manpage = Use this entry to specify a file containing a list of tilts around
-the X axis for the individual views.  A global tilt specified by the
-XAXISTILT entry, if any, will be added to these tilts.  If this file contains
-all zeros, the program runs the same as if the file was not entered.
+manpage = Use this entry to specify a file containing a list of tilts to be
+applied around the X axis for the individual views.  A global tilt specified
+by the XAXISTILT entry, if any, will be subtracted from these tilts.  If this
+file contains all zeros, the program runs the same as if the file was not
+entered.
 
 [Field = XTILTINTERP]
 type = I
