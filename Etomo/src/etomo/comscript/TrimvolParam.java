@@ -11,6 +11,10 @@
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.34  2009/10/01 18:47:01  sueh
+ * <p> bug# 1233 In setDefaultRange check the individual columns and don't
+ * <p> reset X and Y if only Z has been changed.
+ * <p>
  * <p> Revision 3.33  2009/09/05 00:35:39  sueh
  * <p> bug# 1256 Added blank getIteratorElementList.
  * <p>
@@ -757,18 +761,19 @@ public class TrimvolParam implements CommandDetails {
         && !hasInputFileSizeChanged(mrcHeader, state)) {
       return;
     }
-
+    boolean newFile = !(new File(TrimvolParam.getInputFileName(metaData
+        .getAxisType(), metaData.getName())).exists());
     //Refresh X and Y together.  Refresh Z separately.
-    if (nColumnsChanged || ((swapYZ || rotateX) && nSectionsChanged) || !swapYZ
-        && !rotateX && nRowsChanged) {
+    if (newFile || nColumnsChanged || ((swapYZ || rotateX) && nSectionsChanged)
+        || !swapYZ && !rotateX && nRowsChanged) {
       xMin.set(1);
       xMax.set(mrcHeader.getNColumns());
     }
-    if (nRowsChanged) {
+    if (newFile || nRowsChanged) {
       yMin.set(1);
       yMax.set(mrcHeader.getNRows());
     }
-    if (nSectionsChanged) {
+    if (newFile || nSectionsChanged) {
       zMin.set(1);
       zMax.set(mrcHeader.getNSections());
     }
