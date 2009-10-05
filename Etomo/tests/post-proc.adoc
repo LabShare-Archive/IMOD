@@ -180,14 +180,14 @@ tb.trim-vol.1=
 	#run 3dmod
 	bn.make-surface-model=
 [[]]
+copy.file=%{dataset}_flat.mod
+tf.spacing-in-x=%{flatten-spacing}
+tf.and-y=%{flatten-spacing}
 [[if = test-values]]
 	#check error - can't run flattenwarp when the model hasn't been created.
 	bn.run-flattenwarp=
 	wait.popup.flattenwarp-terminated=OK
 [[]]
-copy.file=%{dataset}_flat.mod
-tf.spacing-in-x=%{flatten-spacing}
-tf.and-y=%{flatten-spacing}
 [[if = test-values]]
 	#check error - can't run from squeezevol output when it hasn't been created.
 	rb.flatten-the-squeezevol-output=
