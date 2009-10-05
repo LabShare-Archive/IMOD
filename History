@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+10/5/09: In Etomo, fixed a bug in Post Processing where the X and Y trim values
+were unecessarily refreshed.
+
 10/2/09: In Tiltxcorr, added the ability to track the centers of multiple
 patches specified as a regular array or by a model, and output a model that 
 can be used for fiducial alignment; added anility to use boundary contours to
@@ -8,9 +11,6 @@ tracked; added an option to iterate the correlation to increase the subpixel
 accuracy of the result; fixed the transform output when leaving the tilt
 axis at the center of a subarea; added an option to limit the range of shifts
 in the peak search.
-
-10/1/09: In Etomo, fix a bug in Post Processing where the X and Y trim values
-were unecessarily refreshed.
 
 9/28/09: In Etomo, keeping the Project Log behind the main windows when the
 Project Log is refreshed from the one of the main windows.
