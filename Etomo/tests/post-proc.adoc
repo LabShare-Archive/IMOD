@@ -1,7 +1,6 @@
 Version = 1.2
 
 [function = main]
-set.var.test-gui=
 [[if = test-gui]]
 	# Set test-values if this is a new dataset and test-gui is on
 	if.not.var.keep-dataset-dir.set.var.test-values=
@@ -181,8 +180,6 @@ tb.trim-vol.1=
 	bn.make-surface-model=
 [[]]
 copy.file=%{dataset}_flat.mod
-tf.spacing-in-x=%{flatten-spacing}
-tf.and-y=%{flatten-spacing}
 [[if = test-values]]
 	#check error - can't run flattenwarp when the model hasn't been created.
 	bn.run-flattenwarp=
