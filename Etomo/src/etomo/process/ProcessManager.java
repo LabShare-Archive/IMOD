@@ -20,6 +20,10 @@
  * 
  * <p>
  * $Log$
+ * Revision 3.137  2009/09/21 17:49:35  sueh
+ * bug# 1267 Added tilt3dFind because it uses a child of the tilt monitor.
+ * Added tilt3dFindReproject because is doesn't need a monitor.
+ *
  * Revision 3.136  2009/09/01 03:17:56  sueh
  * bug# 1222
  *
@@ -904,6 +908,7 @@
 
 package etomo.process;
 
+import etomo.storage.FlattenWarpLog;
 import etomo.storage.LogFile;
 import etomo.storage.TrackLog;
 import etomo.storage.TransferFidLog;
@@ -2240,6 +2245,11 @@ public class ProcessManager extends BaseProcessManager {
         appManager.getState().setSeedingDone(process.getAxisID(), true);
         appManager.logMessage(TransferFidLog.getInstance(appManager
             .getPropertyUserDir(), process.getAxisID()), process.getAxisID(),
+            appManager.getManagerKey());
+      }
+      else if (process.getProcessName() == ProcessName.FLATTEN_WARP) {
+        FlattenWarpLog.INSTANCE.setLog(process.getStdOutput());
+        appManager.logMessage(FlattenWarpLog.INSTANCE, process.getAxisID(),
             appManager.getManagerKey());
       }
       else {
