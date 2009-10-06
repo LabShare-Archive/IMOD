@@ -37,6 +37,10 @@ import etomo.util.Utilities;
  * 
  * <p>
  * $Log$
+ * Revision 3.61  2009/09/30 19:12:19  sueh
+ * iutest on salsa:  In readResponse changed timeout to 20 because timeout equals 10 was timing
+ out, even when the file opened normally.
+ *
  * Revision 3.60  2009/09/01 03:17:56  sueh
  * bug# 1222
  *
@@ -976,16 +980,18 @@ public class ImodProcess {
   }
 
   /**
-   * When Windows 3dmod is listening to stdin, it can't quit properly, so send
+   * When 3dmod is listening to stdin, it can't quit properly, so send
    * it a command to stop listening to stdin.
    * @throws IOException
    */
   public void disconnect() throws IOException {
-    if (listenToStdin && Utilities.isWindowsOS()) {
+    if (listenToStdin) {
       if (isRunning()) {
         String[] messages = new String[1];
         messages[0] = MESSAGE_STOP_LISTENING;
         sendCommandsNoWait(messages);
+        System.err.println("Telling 3dmod " + datasetName
+            + " to stop listening.");
       }
     }
   }
