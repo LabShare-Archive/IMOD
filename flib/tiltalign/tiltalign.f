@@ -541,11 +541,12 @@ c
 85        if(ncompsrch.eq.0)then
             if (mapProjStretch .gt. 0) write(iunit,'(/,a,f8.2,a)')
      &          'Projection skew is',projSkew / dtor,' degrees'
-     &          
             if (mapBeamTilt .gt. 0 .or. ifBTSearch .ne. 0)
      &          write(iunit,'(/,a,f8.2,a)') 'Beam tilt angle is',
      &          beamTilt / dtor, ' degrees'
             if(mapalfstart.gt.mapalfend)then
+              write(iunit,'(/,a,f7.2)')
+     &            ' At minimum tilt, rotation angle is',rot(imintilt)
               write(iunit,'(/,a)') ' view   rotation    tilt    '//
      &            'deltilt     mag      dmag      skew    mean resid'
               do i=1,nview
@@ -1488,6 +1489,9 @@ c
 
 c       
 c       $Log$
+c       Revision 3.41  2008/12/12 00:47:36  mast
+c       Call find_surfaces with binnig and z shift
+c
 c       Revision 3.40  2008/11/02 13:51:25  mast
 c       Call new function for converting angles for beam tilt
 c
