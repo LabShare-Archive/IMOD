@@ -1015,7 +1015,9 @@ void slicerKeyInput(SlicerStruct *ss, QKeyEvent *event)
     if ((keypad && !(shift || ss->shiftLock) && keysym == Qt::Key_PageUp) || 
         (keypad && (shift || ss->shiftLock) && keysym == Qt::Key_Insert) ||
         (!keypad && ((!ss->locked && ss->classic) || keysym == Qt::Key_End || 
-                     keysym == Qt::Key_Insert))) {
+                     keysym == Qt::Key_Insert || 
+                     (shift && (keysym == Qt::Key_PageUp || 
+                                keysym == Qt::Key_PageDown))))) {
       handled = 0;
       break;
     }
@@ -2731,6 +2733,9 @@ void slicerCubePaint(SlicerStruct *ss)
 
 /*
 $Log$
+Revision 4.69  2009/08/19 23:41:08  mast
+Got rid of debug statements
+
 Revision 4.68  2009/08/19 21:13:06  mast
 Don't process move events after mouse release
 
