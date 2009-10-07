@@ -25,14 +25,16 @@ with patch2imod(1).
 
 [Field = BinningOfTomogram]
 short = binning
-type = I
-usage = Binning of tomogram that model was built on relative to tomogram to be
-warped
+type = IP
+usage = X/Y and Z binning of tomogram that model was built on relative to
+tomogram to be warped
 tooltip = 
-manpage = Binning of tomogram that model was built on, relative to the
-tomoagrm to be warped.  Positions and vectors
-will be scaled up by this amount so that the transformations can be validly
-applied to the unbinned tomogram.
+manpage = Binning in X/Y, and binning in Z, of tomogram that model was built
+on, relative to the tomogram to be warped.  Positions and vectors will be
+scaled up by this amount so that the transformations can be validly
+applied to the unbinned tomogram.  This option is needed only if the tomogram
+file itself is binned form, not if an unbinned tomogram is read into 3dmod
+with binning.
 
 [Field = OneSurface]
 short = one

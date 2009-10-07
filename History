@@ -1,5 +1,7 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+10/7/09: Changed Flattenwarp to allow separate binning in X/Y and Z.
+
 10/7/09: Made Slicer pass on Shift-PageUp/Down so it will still work to make
 a step to next Z with contours.
 
