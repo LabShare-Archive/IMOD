@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+10/7/09: Fixed mean value used for masking in Tiltxcorr and added output of
+raw peak strength.
+
 10/6/09: In Etomo, sending selected output from flattenwarp to the project log.
 
 10/5/09: In Etomo, fixed a bug in Post Processing where the X and Y trim values
