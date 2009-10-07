@@ -61,7 +61,7 @@ int main( int argc, char *argv[])
   int numOptions = 7;
   char *options[] = {
     "input:InputFile:FN:", "output:OutputFile:FN:", 
-    "patch:PatchOutputFile:FN:", "binning:BinningOfTomogram:I:", 
+    "patch:PatchOutputFile:FN:", "binning:BinningOfTomogram:IP:", 
     "one:OneSurface:B:", "flipyz:FlipYandZ:I:", 
     "spacing:WarpSpacingXandY:FP:"};
 
@@ -70,7 +70,7 @@ int main( int argc, char *argv[])
   int maxLocations = 50000;
   float xSpacing = 0, ySpacing = 0;
   float xSpaceFac = 4.5f, ySpaceFac = 3;
-  int binning = 1;
+  int xyBinning = 1, zBinning = 1;
   int oneSurface = 0;
   int flipyz = -1;
   int PID = 0;
@@ -118,7 +118,7 @@ int main( int argc, char *argv[])
 
   /* Process options */
   PipGetTwoFloats("WarpSpacingXandY", &xSpacing, &ySpacing);
-  PipGetInteger("BinningOfTomogram", &binning);
+  PipGetTwoIntegers("BinningOfTomogram", &xyBinning, &zBinning);
   PipGetBoolean("OneSurface", &oneSurface);
   PipGetInteger("FlipYandZ", &flipyz);
   PipGetString("PatchOutputFile", &patchfile);
@@ -292,9 +292,9 @@ int main( int argc, char *argv[])
   xSpacing = (xmax - xmin) / (numXloc - 1);
   ySpacing = (ymax - ymin) / (numYloc - 1);
 
-  xcen = binning * model->xmax / 2.;
-  ycen = binning * model->ymax / 2.;
-  zcen = binning * model->zmax / 2.;
+  xcen = xyBinning * model->xmax / 2.;
+  ycen = xyBinning * model->ymax / 2.;
+  zcen = zBinning * model->zmax / 2.;
 
   warps = (WarpData *)malloc(numXloc * numYloc * sizeof(WarpData));
   indWarp = (int *)malloc(numXloc * numYloc * sizeof(int));
@@ -319,10 +319,10 @@ int main( int argc, char *argv[])
       xloc = xmin + i * xSpacing;
       if (interpolateCont(cdptr->cont, xloc, &zval) >= 0 && 
           interpolateCont(cdptr2->cont, xloc, &zval2) >= 0) {
-        warps[numLoc].xpos = xloc * binning - xcen;
-        warps[numLoc].ypos = yloc * binning - ycen;
+        warps[numLoc].xpos = xloc * xyBinning - xcen;
+        warps[numLoc].ypos = yloc * xyBinning - ycen;
         frac = (yloc - cdptr->yval) / (cdptr2->yval - cdptr->yval);
-        warps[numLoc].dz = binning * ((1. - frac) * zval + frac *zval2);
+        warps[numLoc].dz = zBinning * ((1. - frac) * zval + frac *zval2);
         zsum += warps[numLoc].dz;
         warps[numLoc].aa = -999.;
         indWarp[i + j * numXloc] = numLoc++;
@@ -332,7 +332,7 @@ int main( int argc, char *argv[])
   }  
 
   zsum /= numLoc;
-  printf("Mean Z height is %.1f\n", zsum / binning);
+  printf("Mean Z height is %.1f\n", zsum / zBinning);
   zmid = oneSurface ? zsum : zcen;
   for (i = 0; i < numLoc; i++)
     warps[i].dz -= zmid;
@@ -415,9 +415,9 @@ int main( int argc, char *argv[])
 
   /* Set up and solve equations for dx, dy */
   numRows = 0;
-  dxScale = 1. / (binning * xSpacing);
-  dyScale = 1. / (binning * ySpacing);
-  dxyScale = 1. / (binning * sqrt(xSpacing * ySpacing));
+  dxScale = 1. / (xyBinning * xSpacing);
+  dyScale = 1. / (xyBinning * ySpacing);
+  dxyScale = 1. / (xyBinning * sqrt(xSpacing * ySpacing));
   numTied = 0;
   for (j = 0; j < numYloc; j++) {
     for (i = 0; i < numXloc; i++) {
@@ -467,9 +467,9 @@ int main( int argc, char *argv[])
         addValueToRow(-dxyScale, ind11+1, valRow, icolRow, &numInRow);
         addValueToRow(dxyScale, ind22+1, valRow, icolRow, &numInRow);
         uu1[numRows] = ((a11 - 1.) * xSpacing + a12 * ySpacing) * dxyScale *
-          binning;
+          xyBinning;
         uu2[numRows] = ((a22 - 1.) * ySpacing + a21 * xSpacing) * dxyScale *
-          binning;
+          xyBinning;
         err += addRowToMatrix(valRow, icolRow, numInRow, rwrk, ia, ja,
                               &numRows, maxRows, maxVals);
 
@@ -561,8 +561,8 @@ int main( int argc, char *argv[])
   if (!fp)
     exitError("Opening output file %s", filename);
   fprintf(fp, "%d %d 1 %.2f %.2f 0. %.4f %.4f 1.\n", numXloc, numYloc,
-          xmin * binning - xcen, ymin * binning - ycen, xSpacing * binning,
-          ySpacing * binning);
+          xmin * xyBinning - xcen, ymin * xyBinning - ycen, 
+          xSpacing * xyBinning, ySpacing * xyBinning);
   for (i = 0; i < numLoc; i++) {
 
     /* Get the matrix that rotates the normal to vertical */
