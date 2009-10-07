@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+10/7/09: Made Slicer pass on Shift-PageUp/Down so it will still work to make
+a step to next Z with contours.
+
 10/7/09: Fixed mean value used for masking in Tiltxcorr and added output of
 raw peak strength.
 
