@@ -31,7 +31,7 @@ C
       integer*4 NXYZ(3),MXYZ(3),nxyzs(3),mxyzs(3) ,label(20,20)
       real*4 title(20),tmprray(lenTemp), delta(3), origin(3)
       real*4 ctfa(8193),ctfb(8193),ctfp(8193),sumray(idim2),crray(idim2)
-      real*4 array(idim2/2),brray(idim2/2)
+      real*4 array(idim2),brray(idim2)
 C       
       EQUIVALENCE (NX,NXYZ),(nxs,nxyzs)
       common /bigarr/ array,sumray,brray,crray
@@ -792,17 +792,17 @@ C
      &            ixstCen+ixBoxCur, iystCen+iyBoxCur, nbin,
      &            nxusebin, nyusebin, tmprray, lentemp, ierr)
               if (ierr .ne. 0) goto 99
-              if (.not. tracking .and. numBound .gt. 0) then
-                wallstart = walltime()
-                call maskOutsideBoundaries(array, nxusebin, nyusebin)
-                wallmask = wallmask + walltime() - wallstart
-              endif
 c               
 c               7/11/03: We have to feed the interpolation the right mean or
 c               it will create a bad edge mean for padding
 c               
               call iclden(array,nxusebin,nyusebin,1,nxusebin,1,nyusebin,
      &            usemin, usemax, usemean)
+              if (.not. tracking .and. numBound .gt. 0) then
+                wallstart = walltime()
+                call maskOutsideBoundaries(array, nxusebin, nyusebin)
+                wallmask = wallmask + walltime() - wallstart
+              endif
               wallstart = walltime()
               call cubinterp(array,brray,nxusebin,nyusebin,nxusebin,nyusebin,
      &            fs, nxusebin/2., nyusebin/2.,xpeakFrac, ypeakFrac ,1.,
@@ -910,6 +910,7 @@ c               Skip out and restore last peak if the peak strength is less
               if (iter .gt. 1 .and. peakval .lt. peakLast) then
                 xpeakcum = xpeakLast
                 ypeakcum = ypeakLast
+                peakVal = peakLast
                 exit
               endif 
               xpeakLast = xpeakCum
@@ -1009,8 +1010,9 @@ c
               yshift = cumYshift
             endif
           
-            if (.not.tracking) write(*,111)'View',iview,', shifts',xshift,yshift
-111         format(a,i4,a,2f10.2)
+            if (.not.tracking) write(*,111)'View',iview,', shifts',xshift,
+     &          yshift,'      peak',peakVal
+111         format(a,i4,a,2f10.2,a,g15.6)
 c           
 c           DNM 10/22/03: Only do flush for large stacks because of problem
 c           inside shell scripts in Windows/Intel
@@ -1382,6 +1384,10 @@ c	print *,xpeak,ypeak
 
 c       
 c       $Log$
+c       Revision 3.1  2009/10/02 20:27:07  mast
+c       Added patch tracking, boundary models, iteration for greater subpixel
+c       accuracy.  Fixed output when leaving axis at center of box.
+c
 c       Revision 3.30  2009/03/17 21:29:33  mast
 c       Added angle offset entry
 c
