@@ -88,6 +88,7 @@ set.adoc.dialog.a=recon.adoc
 set.adoc.bdialog.b=recon.adoc
 set.dataset = midzone2
 #set.param = %{dataset}.edf
+set.param= --names
 set.var.dual=
 set.var.montage=
 set.var.test-gui=
