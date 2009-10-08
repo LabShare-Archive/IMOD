@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+10/8/09: Changed startup scripts for Linux and Mac to put IMOD man pages on
+the MANPATH if it exists.
+
 10/7/09: Changed Flattenwarp to allow separate binning in X/Y and Z.
 
 10/7/09: Made Slicer pass on Shift-PageUp/Down so it will still work to make
