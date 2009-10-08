@@ -167,6 +167,7 @@ bn.advanced=
 assert.enabled.tf.metro-factor=
 assert.enabled.tf.cycle-limit=
 bn.basic=
+sleep=1
 
 
 [function = local-alignment-parameters]
@@ -511,6 +512,7 @@ assert.enabled.tf.group-size=
 bn.advanced=
 assert.enabled.tf.non-default-grouping=
 bn.basic=
+sleep=1
 cb.enable=off
 assert.disabled.tf.group-size=
 bn.advanced=
