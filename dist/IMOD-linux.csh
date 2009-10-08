@@ -1,4 +1,4 @@
-# IMOD 4.0.11
+# IMOD 4.0.16
 #
 # Startup file for tcsh users of IMOD under Linux - place it in /etc/profile.d
 #
@@ -35,9 +35,15 @@ setenv IMOD_PLUGIN_DIR "$IMOD_DIR/lib/imodplug"
 # Tell the system where the IMOD libraries are located.
 #
 if ($?LD_LIBRARY_PATH) then
-	setenv LD_LIBRARY_PATH "$IMOD_DIR/lib:$LD_LIBRARY_PATH"
+    setenv LD_LIBRARY_PATH "$IMOD_DIR/lib:$LD_LIBRARY_PATH"
 else
-	setenv LD_LIBRARY_PATH "$IMOD_DIR/lib"
+    setenv LD_LIBRARY_PATH "$IMOD_DIR/lib"
+endif
+
+# Put the man pages on the man path only if it exists
+#
+if ($?MANPATH) then
+    setenv MANPATH "$IMOD_DIR/man:$MANPATH"
 endif
 
 # Set a variable with the location of configuration/calibration/data files

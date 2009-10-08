@@ -1,4 +1,4 @@
-# IMOD 3.13.1
+# IMOD 4.0.16
 #
 # Startup file for users of IMOD on a Macintosh, running bash
 #
@@ -24,6 +24,12 @@ export IMOD_PLUGIN_DIR=$IMOD_DIR/lib/imodplug
 # Tell the system where the IMOD libraries are located.
 #
 export DYLD_LIBRARY_PATH=$IMOD_DIR/lib:$DYLD_LIBRARY_PATH
+
+# Put the man pages on the man path only if it exists
+#
+if [ ! -z "$MANPATH" ] ; then
+    export MANPATH=$IMOD_DIR/man:$MANPATH
+fi
 
 # Set a variable with the location of calibration/data files
 #
