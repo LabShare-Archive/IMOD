@@ -449,7 +449,7 @@ def PipPrintHelp(progName, useStdErr, inputFiles, outputFiles):
             out.write(" ")
             if len(sname):
                 out.write("-%s" % sname)
-            if len(sname) or len(lname):
+            if len(sname) and len(lname):
                 out.write(" OR ")
             if len(lname):
                 out.write("-%s" % lname)
@@ -1247,6 +1247,9 @@ def CheckKeyword(line, keyword, index):
     return (line[valStart:], index)
 
 # $Log$
+# Revision 1.2  2009/09/08 19:03:59  mast
+# Avoid multiline error messages
+#
 # Revision 1.1  2008/01/05 17:19:09  mast
 # Added to package
 #
