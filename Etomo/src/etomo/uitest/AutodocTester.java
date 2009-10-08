@@ -37,6 +37,7 @@ import etomo.EtomoDirector;
 import etomo.process.SystemProgram;
 import etomo.storage.LogFile;
 import etomo.storage.autodoc.AutodocFactory;
+import etomo.storage.autodoc.AutodocTokenizer;
 import etomo.storage.autodoc.ReadOnlyAutodoc;
 import etomo.storage.autodoc.ReadOnlySection;
 import etomo.type.AxisID;
@@ -63,6 +64,10 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.14  2009/09/28 18:37:28  sueh
+ * <p> bug# 1235 In executeCommand, for wait.file-chooser, make sure that
+ * <p> value isn't null and handle a fully qualified chosen_file.
+ * <p>
  * <p> Revision 1.13  2009/09/22 21:04:34  sueh
  * <p> bug# 1259 Changed assert.equals.com to assert.same.file.
  * <p>
@@ -1488,7 +1493,10 @@ final class AutodocTester extends Assert implements VariableList {
     }
     //MINI BUTTON
     else if (fieldType == UITestFieldType.MINI_BUTTON) {
-      setupNamedComponentFinder(AbstractButton.class, name);
+      //The name for a mini-button is actually mb.name.
+      setupNamedComponentFinder(AbstractButton.class,
+          UITestFieldType.MINI_BUTTON.toString()
+              + AutodocTokenizer.SEPARATOR_CHAR + name);
       AbstractButton miniButton = (AbstractButton) finder.find(currentPanel,
           index);
       if (miniButton == null) {
