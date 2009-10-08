@@ -18,7 +18,8 @@ import etomo.type.UITestFieldType;
 import etomo.util.Utilities;
 
 /**
- * <p>Description: Button with a expanded state variable.  When expanded is true,
+ * <p>Description: Small square buttons with a expanded state variable.  When
+ * expanded is true,
  * the button displays "<" so that the state can be changed to expanded == false.
  * When expanded is false, the button displays ">" so that the state can be
  * changed to expanded == true.  The button is created with a component which
@@ -36,6 +37,9 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.22  2009/09/01 03:18:25  sueh
+ * <p> bug# 1222
+ * <p>
  * <p> Revision 1.21  2009/03/17 22:14:21  sueh
  * <p> bug# 1200 In createButtonStateKey() added type.getExapndedState() to key.
  * <p>
@@ -213,16 +217,19 @@ public final class ExpandButton extends MultiLineButton {
 
   /**
    * Calls the setName function of the button.  Called when the text is set,
-   * unless manualName is true.
+   * unless manualName is true.  To distinguish these buttons from regular sized
+   * labeled buttons, which are called "bn" in the uitest software, the name
+   * includes the mini-button tag.
    * @param label
    */
   void setName(String associatedLabel) {
     String name = Utilities.convertLabelToName(associatedLabel);
-    getButton().setName(name);
+    getButton().setName(
+        UITestFieldType.MINI_BUTTON.toString()
+            + AutodocTokenizer.SEPARATOR_CHAR + name);
     if (EtomoDirector.INSTANCE.getArguments().isPrintNames()) {
-      System.out.println(UITestFieldType.MINI_BUTTON.toString()
-          + AutodocTokenizer.SEPARATOR_CHAR + name + ' '
-          + AutodocTokenizer.DEFAULT_DELIMITER + ' ');
+      System.out.println(getName() + ' ' + AutodocTokenizer.DEFAULT_DELIMITER
+          + ' ');
     }
   }
 
