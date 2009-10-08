@@ -1,6 +1,10 @@
 Version = 1.2
 
 [function = main]
+[[if = test-gui]]
+	mb.run=-
+	mb.run=+
+[[]]
 run.function.iteration-table=
 [[if = test-gui]]
 	run.function.spherical-sampling-for-theta-and-psi=
@@ -13,7 +17,7 @@ run.function.number-of-particles-in-averages=
 cb.use-equal-numbers-of-particles-from-all-tomograms-for-averages=on
 sp.particles-per-cpu=1
 bn.run=
-
+wait.process.processchunks-%{dataset}=done
 
 [function = iteration-table]
 tf.iteration-table-1-angular-search-range=%{angular-search-range-max}
