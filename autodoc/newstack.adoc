@@ -284,11 +284,16 @@ once only, or once per input file.
 [Field = TaperAtFill]
 short = taper
 type = IP
-usage = Distance to taper at fill border and 0/1 for tapering outside/inside
+usage = Distance to taper at fill border or 1 for default, and 0/1 for 
+tapering outside/inside
 tooltip = 
-manpage = Distance in pixels over which to taper an image at a border between
-real image and a filled area, and 0 for tapering outside or 1 for tapering
-inside the border.  This performs the same operation as mrctaper(1).  The
+manpage = To taper an output image at a border between
+real image and a filled area, just as is done with Mrctaper(1), enter this
+option with two values: 1) the distance over which to taper or 1 for a default
+distance, and 2) a 0 for tapering outside or 1 for tapering
+inside the border.  The default distance is 1%
+of the mean of the X and Y sizes of the output image, but at least 16
+pixels and no more than 127.  The
 program will exit with an error if there is not enough memory to hold the
 entire output image.
 
