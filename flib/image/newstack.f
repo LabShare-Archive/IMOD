@@ -80,19 +80,19 @@ c
       integer*4 iybase,iy1,iy2,lnu,maxin,numScaleFacs,numXfLines
       real*4 dmeansec,tmpmin,tmpmax,val,tsum2,sclfac
       integer*4 needyst,needynd,nload,nyload,nych
-      integer*4 ix1,ix2,nbcopy,nbclear,ifLinear, limEntered
+      integer*4 ix1,ix2,nbcopy,nbclear,ifLinear, limEntered,insideTaper
       real*4 const,denoutmin,den, tmin2,tmax2,tmean2,avgsec
       integer*4 numInputFiles, numSecLists, numOutputFiles, numToGet
       integer*4 numOutValues, numOutEntries, ierr, ierr2, i, kti, iy
       integer*4 maxFieldY, inputBinning, nxFirst, nyFirst, nxBin, nyBin
-      integer*4 ixOffset, iyOffset, lenTemp, ierr3, applyFirst
+      integer*4 ixOffset, iyOffset, lenTemp, ierr3, applyFirst,numTaper
       integer*4 nLineTemp,ifOnePerFile,ifUseFill,listIncrement,indout
       integer*4 ixOriginOff,iyOriginOff, numReplace, isecReplace, modeOld
       real*4 fieldMaxY, binRatio, rotateAngle, expandFactor, fillVal
       real*8 dsum,dsumsq,tsum,tsumsq, wallstart,walltime,loadtime,savetime
       real*8 rottime
       real*4 cosd, sind
-      integer*4 lnblnk
+      integer*4 lnblnk, taperAtFill
 c       
       logical pipinput
       integer*4 numOptArg, numNonOptArg
@@ -161,7 +161,9 @@ c
       listIncrement = 1
       numReplace = 0
       iVerbose = 0
-      limIfFail = 1950000000
+      limIfFail = 1950000000 / 4
+      numTaper = 0
+      insideTaper = 0
       loadtime=0.
       savetime=0.
       rottime = 0.
@@ -584,6 +586,7 @@ c
         ierr = PipGetString('DistortionField', idfFile)
         ierr = PipGetString('GradientFile', magGradFile)
         ierr = PipGetLogical('AdjustOrigin', adjustOrigin)
+        ierr = PipGetTwoIntegers('TaperAtFill', numTaper, insideTaper)
         limEntered = 1 - PipGetTwoIntegers('TestLimits', ierr, lenTemp)
         if (limEntered .gt. 0) limdim = ierr
         if (PipGetInteger('MemoryLimit', ierr) .eq. 0) then
@@ -876,7 +879,7 @@ c
           endif
 c           
 c           Now that output size is finally known, make sure memory is enough
-        call reallocateIfNeeded()
+          call reallocateIfNeeded()
 c           
 c           First see if this is the first section to replace
           if (numReplace .gt. 0 .and. isecReplace .eq. 1) then
@@ -1285,6 +1288,9 @@ c
               print *,i,lineInSt(i),nLinesIn(i),lineOutSt(i),nLinesOut(i)
 	    enddo
           endif
+          if (nchunk .gt. 1 .and. numTaper .gt. 0)
+     &        call exitError('CANNOT TAPER OUTPUT IMAGE - IT DOES NOT '//
+     &        'FIT COMPLETELY IN MEMORY')
 c           
 c           open temp file if one is needed
 c           
@@ -1431,6 +1437,11 @@ c
               CALL IREPAK2(array(ibchunk),ARRAY,nxbin,nyload,IX1,IX2,IY1,
      &            IY2,dmeansec)
               if (iVerbose.gt.0) print *,'did repack'
+            endif
+            if (numTaper .gt. 0) then
+              if (taperAtFill(array(ibchunk), nx3, ny3, numTaper, insideTaper)
+     &            .ne. 0) call exitError(
+     &            'MEMORY ALLOCATION ERROR TAPERING IMAGE')
             endif
 c	      
 c             if no rescaling, or if mean is needed now, accumulate sums for
@@ -2032,6 +2043,9 @@ c
 ************************************************************************
 *       
 c       $Log$
+c       Revision 3.54  2009/06/23 13:31:22  mast
+c       fix if with integer expression.
+c
 c       Revision 3.53  2009/06/22 20:47:49  mast
 c       Allocated the main array and made it work with > 4 Gpixel images
 c
