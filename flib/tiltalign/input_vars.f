@@ -483,6 +483,7 @@ c
       if(iflocal.eq.0)then
         if (pipinput) then
           ioptcomp = 0
+          irefcomp = 1
           ierr = PipGetInteger('CompReferenceView', irefcomp)
           ierr = PipGetInteger('CompOption', ioptcomp)
           if (ioptcomp .eq. 0) irefcomp = 0
@@ -534,7 +535,8 @@ c
      &        PrependLocal('CompNondefaultGroup', iflocal), ninview, ninThresh,
      &        iflocal,nmapDefXtilt,nRanSpecXtilt,nmapSpecXtilt,ivSpecStrXtilt,
      &        ivSpecEndXtilt)
-          if (.not.pipinput) write(6,111)(maplist(i),i=1,nview)
+c          if (.not.pipinput)
+          write(6,111)(maplist(i),i=1,nview)
         endif
       endif
 c       
@@ -548,8 +550,8 @@ c
             if(maplist(iv).eq.maplist(jv).and.
      &          (tilt(jv).ne.0..or.maptilt(jv).ne.0))iffix=0
           enddo
+          if(iffix.eq.1)maplist(iv)=maplist(irefcomp)
         endif
-        if(iffix.eq.1)maplist(iv)=maplist(irefcomp)
       enddo
 c       
 c       analyze map list
@@ -1125,6 +1127,9 @@ c
 c       2/16/07: removed filetoview function that errored on nonexistent views
 
 c       $Log$
+c       Revision 3.18  2007/12/11 22:23:11  mast
+c       Removed X tilt/rotation warning if solving for only one X-tilt variable
+c
 c       Revision 3.17  2007/11/18 04:57:10  mast
 c       Redeclared concat at 320
 c
