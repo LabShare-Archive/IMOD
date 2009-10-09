@@ -281,6 +281,17 @@ manpage = Rescale the densities of all sections by multiplying by the first
 entered value then adding the second value.  This option must be entered either
 once only, or once per input file.
 
+[Field = TaperAtFill]
+short = taper
+type = IP
+usage = Distance to taper at fill border and 0/1 for tapering outside/inside
+tooltip = 
+manpage = Distance in pixels over which to taper an image at a border between
+real image and a filled area, and 0 for tapering outside or 1 for tapering
+inside the border.  This performs the same operation as mrctaper(1).  The
+program will exit with an error if there is not enough memory to hold the
+entire output image.
+
 [Field = DistortionField]
 short = distort
 type = FN
