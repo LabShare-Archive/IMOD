@@ -1,5 +1,7 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+10/9/09: Fixed some problems with solving for thinning in Tiltalign.
+
 10/8/09: Changed startup scripts for Linux and Mac to put IMOD man pages on
 the MANPATH if it exists.
 
