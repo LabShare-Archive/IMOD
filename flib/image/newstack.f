@@ -880,6 +880,11 @@ c
 c           
 c           Now that output size is finally known, make sure memory is enough
           call reallocateIfNeeded()
+          if (numTaper .eq. 1) then
+            numTaper = min(127, max(16, nint((nx3 + ny3) / 200.)))
+            write(*,'(/,a,i4,a)')'Tapering will be done over',numTaper,
+     &          ' pixels'
+          endif
 c           
 c           First see if this is the first section to replace
           if (numReplace .gt. 0 .and. isecReplace .eq. 1) then
@@ -2043,6 +2048,9 @@ c
 ************************************************************************
 *       
 c       $Log$
+c       Revision 3.55  2009/10/09 21:00:41  mast
+c       Added tapering
+c
 c       Revision 3.54  2009/06/23 13:31:22  mast
 c       fix if with integer expression.
 c
