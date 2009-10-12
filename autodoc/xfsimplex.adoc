@@ -116,7 +116,7 @@ is entered, this filter will be zero from 0 to |radius1| then decay up to 1.
 [Field = FilterRadius1]
 short = rad1
 type = F
-usage = Left cutoff radius for filter
+usage = Left cutoff radius for Gaussian filter
 tooltip = 
 manpage = Low spatial frequencies in both images will be attenuated
 by a Gaussian curve that is 1 at this cutoff radius and falls off below this
@@ -127,7 +127,7 @@ for more predictable attenuation of low frequencies.
 [Field = FilterRadius2]
 short = rad2
 type = F
-usage = Right cutoff radius for filter
+usage = Right cutoff radius for Gaussian filter
 tooltip = High frequency cutoff radius for Gaussian filter
 manpage = High spatial frequencies in both images will be attenuated
 by a Gaussian curve that is 1 at this cutoff radius and falls off above this
@@ -177,8 +177,26 @@ type = B
 usage = Compute correlation coefficient instead of image difference
 tooltip = 
 manpage = Compute the standard cross-correlation coefficient instead of
-difference between images.  The difference measure will be 1 minus the CCC.
-Low frequency filtering will probably be needed with this option.
+difference between images.  The difference measure that is minimized will
+be 1 minus the CCC, but the CCC itself is printed in the trace and final 
+output.  It takes < 5% more time to compute the CCC.
+
+[Field = LocalPatchSize]
+short = local
+type = I
+usage = Size of square subareas within which to compute SD of difference or CCC
+tooltip = 
+manpage = Size of square subareas (patches) within which to compute a measure
+of image difference, in pixels before binning, if any.  The image will be
+divided into patches of this size and the measure will be computed separately
+within each patch; then a weighted average will be formed, weighted by the
+number of pixels actually available for comparison within each patch.  If
+image difference is being computed, the measure will be the standard deviation
+of the difference; otherwise the correlation coefficient is computed.  Patches
+with less than half the full number of pixels will be pooled with the nearest
+patches containing enough pixels.  This option should prevent the need for low
+frequency filtering, which would increase execution time by roughly 10%.
+Patch sizes on the order of 1/20 to 1/10 of the image size should be effective.
 
 [Field = LinearInterpolation]
 short = linear

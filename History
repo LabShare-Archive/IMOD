@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+10/12/09: Added option to Xfsimplex to measure difference or correlations in 
+patches, to save having to do low frequency filtering.
+
 10/9/09: Added option to Newstack to taper image as in Mrctaper.
 
 10/9/09: Fixed some problems with solving for thinning in Tiltalign.
@@ -7,7 +10,8 @@ IMOD History
 10/8/09: Changed startup scripts for Linux and Mac to put IMOD man pages on
 the MANPATH if it exists.
 
-10/7/09: In Etomo fixed bug that caused 3dmod to always close when Etomo closed.
+10/7/09: In Etomo fixed bug that caused 3dmod to always close when Etomo 
+closed.
 
 10/7/09: Changed Flattenwarp to allow separate binning in X/Y and Z.
 

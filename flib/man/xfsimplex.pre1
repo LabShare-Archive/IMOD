@@ -37,9 +37,10 @@ DDEESSCCRRIIPPTTIIOONN
   displacement to be found by cross-correlation and passed to this program.
 
   To find the best fit between images, the search can optimize either a simple
-  point-by-point difference between the images, or a measure of the distance
-  between points of similar intensities in the images.  The resulting
-  transformation is applied to the second image to align it to the first.
+  point-by-point difference between the images, the cross-correlation
+  coefficient, or a measure of the distance between points of similar
+  intensities in the images.  The resulting transformation is applied to the
+  second image to align it to the first.
 
   The search uses a so-called simplex minimization routine which starts
   searching with an initial step size and refines the step size near a
@@ -61,14 +62,14 @@ DDEESSCCRRIIPPTTIIOONN
   minimization by specifying tolerances of zero for it.
 
   At the end of the search, the program outputs the number of iterations,
-  the minimum difference/distance value found, and the transformation
-  parameters.  If semi-natural parameters were searched for, first those
-  parameters are output, then the formal parameter matrix is output.  The
-  difference measure is normalized to be the mean difference per pixel as a
-  multiple of the standard deviation of the first image.  If correlation
-  coefficients are used, then the measure of difference being minimized is one
-  minus the correlation coefficient.  The distance measure is expressed as the
-  mean distance per comparison point.
+  the minimum difference/distance or maximum correlation value found, and the
+  transformation parameters.  If semi-natural parameters were searched for,
+  first those parameters are output, then the formal parameter matrix is
+  output.  The difference measure is normalized to be the mean difference per
+  pixel as a multiple of the standard deviation of the first image.  If
+  correlation coefficients are used, then the measure of difference being
+  minimized is one minus the correlation coefficient.  The distance measure is
+  expressed as the mean distance per comparison point.
 
   Xfsimplex uses the PIP package for input (see the manual page for pip(1))
   and can still take sequential input interactively, to maintain compatibility
