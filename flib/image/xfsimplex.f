@@ -14,20 +14,43 @@ c
 c       $Id$
 c       Log at end of file
 *       
+      module xfsimplex
       implicit none
-      integer idima, idimb, lenTemp, isub,limspir,isubp1,isubt2,isubt25
-      parameter (idima=8200*8200, idimb = 4100*4100, lenTemp = 32000*64)
+      integer idima, idimb, isub,limspir,isubp1,isubt2,isubt25
+      parameter (idima=8200*8200, idimb = 4100*4100)
       parameter (isub=idimb/3,limspir=1000)
       parameter (isubp1=isub+1, isubt2=2*isub+1, isubt25=2.5*isub+2)
-      integer*4 NX,NY,NZ, NXYZ(3),MXYZ(3),NXYZST(3), nxyz2(3)
-      COMMON //NX,NY,NZ
-      EQUIVALENCE (NX,NXYZ)
+      integer*4 NX,NY,NZ, NXYZ(3)
+      EQUIVALENCE (NX,NXYZ(1)), (NY,NXYZ(2)), (NZ,NXYZ(3))
+c
+c       array for second image if doing diffs, using same storage as
+c       all the arrays for doing distances
+      real*4 brray(idimb),ARRAY(idima)
+      integer*2 ixcomp(isub),iycomp(isub)
+      real*4 denlo(isub),denhi(isub)
+      equivalence (brray(1),denlo(1)),(brray(isubp1),denhi(1))
+     &    ,(brray(isubt2),ixcomp(1)),(brray(isubt25),iycomp(1))
+      integer*4 nx1,nx2,ny1,ny2, interp,natural,ncompare,nspiral,ifdist,iftrace
+      real*4 rds, deltmin,sd1,distspir(limspir),acall(6),alimits(2,6)
+      integer*4 ntrial, ivend,ifccc,idxspir(limspir),idyspir(limspir)
+      real*8, allocatable :: sxa(:,:),sya(:,:),sxsqa(:,:),sysqa(:,:),sxya(:,:) 
+      integer*4, allocatable :: npixa(:,:)
+      integer*4 numXpatch, numYpatch, nxyPatch
+      end module xfsimplex
+
+c       MAIN PROGRAM
+c
+      use xfsimplex
+      implicit none
+      integer lenTemp
+      parameter (lenTemp = 32000*64)
+      integer*4 MXYZ(3),NXYZST(3), nxyz2(3)
 C       
-      CHARACTER*160 FILIN1,FILIN2,DATOUT,xfinfile
+      CHARACTER*320 FILIN1,FILIN2,DATOUT,xfinfile
 C       
       real*4 temp(lenTemp)
       data NXYZST/0,0,0/
-      real*4 a(6),da(6),amat(2,2),anat(6),danat(6),acall(6),alimits(2,6)
+      real*4 a(6),da(6),amat(2,2),anat(6),danat(6)
       real*4 pp(7,7),yy(7),ptmp(6),ptol(6), ctf(8193)
 c       if doing formal params, the a(i) are DX, DY, a11,a12,a21, and a22
 c       for natural paramas, the a(i) are DX and DY, Global rotation, global
@@ -43,24 +66,12 @@ c       starting values of a and da for natural search
       data danat/1.,1.,2.,.02,.02,2./
       real*8 tsum, tsumsq
 c       
-      integer*4 ihist(0:1000),idxspir(limspir),idyspir(limspir)
-      integer*2 ixcomp(isub),iycomp(isub)
-      real*4 distspir(limspir),denlo(isub),denhi(isub),range(10,2)
-     &    ,ranlo(10),ranhi(10),percen(10,2),pclo(10),pchi(10)
+      integer*4 ihist(0:1000)
+      real*4 range(10,2),pmlim(6),ranlo(10),ranhi(10),percen(10,2),
+     &    pclo(10),pchi(10)
       equivalence (ranlo(1),range(1,1)),(ranhi(1),range(1,2))
       equivalence (pclo(1),percen(1,1)),(pchi(1),percen(1,2))
-c       array for second image if doing diffs, using same storage as
-c       all the arrays for doing distances
-      real*4 brray(idimb),ARRAY(idima)
       external func
-      equivalence (brray(1),denlo(1)),(brray(isubp1),denhi(1))
-     &    ,(brray(isubt2),ixcomp(1)),(brray(isubt25),iycomp(1))
-      integer*4 nx1,nx2,ny1,ny2, interp,natural,ncompare,nspiral,ifdist,iftrace
-      real*4 rds, deltmin,sd1,pmlim(6)
-      integer*4 ntrial, ivend,ifccc
-      common /funcom/ array,brray,idxspir,idyspir,distspir,nx1,nx2,ny1,ny2,
-     &    interp,natural,ncompare,nspiral,ifdist,iftrace,rds,
-     &    ntrial, deltmin,sd1,ivend,acall,alimits, ifccc
 C       
 c       default values for potentially input parameters
       real*4 ftol1/5.e-4/,ptol1/.02/,ftol2/5.e-3/,ptol2/.2/
@@ -107,7 +118,7 @@ c
      &    'after:FilterAfterBinning:B:@sobel:SobelFilter:B:@'//
      &    'ccc:CorrelationCoefficient:B:@param:ParameterFile:PF:@help:usage:B:'
 c       
-c       default values for parameters in common and equivalenced arrays
+c       default values for parameters in module and equivalenced arrays
 c       
       pclo(1) = 0.
       pclo(2) = 92.
@@ -118,6 +129,7 @@ c
       ifdist=0
       natural=0
       interp=0
+      nxyPatch = 0
       izref = 0
       izali = 0
       do i = 1,6
@@ -248,12 +260,13 @@ c
         ibinning = max(1, ibinning)
         ifXminmax = 1 - PipGetTwoIntegers('XMinAndMax', nx1, nx2)
         ifYminmax = 1 - PipGetTwoIntegers('YMinAndMax', ny1, ny2)
+        ierr = PipGetInteger('LocalPatchSize', nxyPatch)
 c         
 c         Get search limits
         if (PipGetFloatArray('LimitsOnSearch', pmlim, numLimit, 6) .eq. 0) then
           if (natural .eq. 0 .and. numLimit .gt. 2) call exitError(
      &        'YOU CAN LIMIT ONLY X AND Y SHIFTS WHEN SEARCHING FOR FORMAL '//
-     &        'PARAMETERS; TRY -variables O6')
+     &        'PARAMETERS; TRY -variables 6')
           if (natural .gt. 0) numLimit = min(numLimit, natural)
           pmlim(1) = pmlim(1) / ibinning
           pmlim(2) = pmlim(2) / ibinning
@@ -274,7 +287,6 @@ c
      &      ' 1 for distance measure [',ifdist,']: '
         read(*,*)ifdist
       endif
-c       
       if(ifdist.eq.0)then
         if (pipinput) then
           ierr = PipGetBoolean('LinearInterpolation', interp)
@@ -430,8 +442,20 @@ c       Just deal with points in central portion
         NY1 = 1+matty 
         NY2 = NY-matty
       endif
-C       
-      print *,nx1,nx2,ny1,ny2
+c       
+c       Adjust patch size for binning, set to one patch if none, and allocate
+      nxyPatch = nxyPatch / ibinning
+      if (nxyPatch .ne. 0 .and. nxyPatch .lt. 10) call exitError(
+     &      'LOCAL PATCH SIZE MUST BE AT LEAST 10 BINNED PIXELS')
+      if (nxyPatch .eq. 0) nxyPatch = max(nx2 + 1 - nx1, ny2 + 1 - ny1)
+      numXpatch = (nx2 + 1 - nx1 + nxyPatch - 1) / nxyPatch
+      numYpatch = (ny2 + 1 - ny1 + nxyPatch - 1) / nxyPatch
+c      print *,nxyPatch, numXpatch,numYpatch
+      allocate(sxa(numXpatch,numYpatch), sya(numXpatch,numYpatch),
+     &    sxsqa(numXpatch,numYpatch), sysqa(numXpatch,numYpatch),
+     &    sxya(numXpatch,numYpatch), npixa(numXpatch,numYpatch), stat = ierr)
+      if (ierr .ne. 0) call exitError('ALLOCATING ARRAYS FOR PATCHES')
+c
       CALL ICLavgsd(ARRAY,nx,ny,NX1,NX2,NY1,NY2 ,DMIN2,DMAX2,tsum,tsumsq,
      &    DMEAN2,sd2)
 C       
@@ -535,8 +559,7 @@ c         for simple difference, rescale whole array
         do ixy=1,nx*ny
           brray(ixy)=SCALE*brray(ixy)+dadd
         enddo
-        CALL DIFF(DELMIN,ARRAY,BRRAY,sd1,A,alimits,NX,NY,nx1,nx2,ny1,ny2,
-     &      interp,natural, ifCCC)
+        CALL DIFF(DELMIN,ARRAY,BRRAY,A,NX,NY)
       else
 c         otherwise, for distance,
 c         rescale list of densities and add lower and upper window
@@ -609,7 +632,9 @@ C
 c       
 c       DEPENDENCY: transferfid expects two lines with natural params
       PRINT *,' FINAL VALUES'
-      write(*,72)ntrial,yy(jmin),(a(ii),ii=3,6),rds*a(1),rds*a(2)
+      deltmin = yy(jmin)
+      if (ifCCC) deltmin = 1 - deltmin
+      write(*,72)ntrial,deltmin,(a(ii),ii=3,6),rds*a(1),rds*a(2)
 72    format(i5,f14.7,4f10.5,2f10.3)
 C       
       if(natural.ne.0)then 
@@ -635,7 +660,253 @@ C
 *       FIND MISFIT OF IMAGES
 *       
 *******************************************************************
+c
+c       Taking the difference or correlation between images
 C       
+      SUBROUTINE DIFF(DELTA,CRRAY,DRRAY,A,NXin,NYin)
+C       
+      use xfsimplex
+      implicit none
+      real*4 CRRAY(nxin,nyin),DRRAY(nxin,nyin),A(6),amat(2,2)
+      real*4 DELTA
+      integer*4 nxin, nyin
+C       
+      real*4 deltalast/0./
+      save deltalast
+      real*4 xcen,ycen, xadd,yadd,fj,fi,x,y,fx,fx1,fy,fy1,den, delfac,ccc
+      real*4 delsum,dend
+      integer*4 npix,j, i, ix, iy, ix1, iy1, ixp, iyp, idirx, idiry, idx, idy
+      integer*4 numCrit, mindist, ixmin, iymin
+      logical*4 oldDiff
+      real*8 sx
+      real*4 outsideMultiplier
+
+      DELTA=0.
+
+      sx = 0.
+      npix = 0
+      do iyp = 1, numYpatch
+        do ixp = 1, numXpatch
+          sxa(ixp,iyp) = 0.
+          sya(ixp,iyp) = 0.
+          sxya(ixp,iyp) = 0.
+          sxsqa(ixp,iyp) = 0.
+          sysqa(ixp,iyp) = 0.
+          npixa(ixp,iyp) = 0
+        enddo
+      enddo
+      oldDiff = numXpatch * numYpatch .eq. 1 .and. ifCCC .eq. 0
+      XCEN=FLOAT(NX)*0.5+0.5			!use +0.5 to be consistent
+      YCEN=FLOAT(NY)*0.5+0.5			!with new cubinterp usage
+C       
+      if(natural.eq.0)then
+        amat(1,1)=a(3)
+        amat(1,2)=a(4)
+        amat(2,1)=a(5)
+        amat(2,2)=a(6)
+      else
+        call rotmag_to_amat(a(3),a(6),a(4),a(5),amat)
+      endif
+c	print *,((amat(i,j),j=1,2),i=1,2)
+      xadd=xcen+a(1)
+      yadd=ycen+a(2)
+      if(interp.eq.0)then
+        xadd=xcen+a(1)+0.5			!the 0.5 here gets nearest int
+        yadd=ycen+a(2)+0.5
+      endif
+      DO J=NY1,NY2
+        FJ=FLOAT(J) - YCEN
+        iyp = (j - ny1) / nxyPatch + 1
+        if (interp .eq. 0) then
+C           
+          DO I=NX1,NX2
+            FI=FLOAT(I) - XCEN
+C	      
+            IX=amat(1,1)*FI + amat(1,2)*FJ + xadd
+            IY= amat(2,1)*FI + amat(2,2)*FJ + yadd
+C             
+            if(ix.ge.1.and.ix.le.nx.and.iy.ge.1.and.iy.le.ny)then
+              den = crray(ix,iy)
+C               
+c               DUPLICATION FROM HERE (sorry, it saves 5% over an internal sub)
+              dend = drray(i,j)
+              if (oldDiff) then
+                sx = sx + abs(den- dend)
+                npix=npix+1
+              else if (ifCCC .eq. 0) then
+                ixp = (i - nx1) / nxyPatch + 1
+                sxa(ixp,iyp) = sxa(ixp,iyp) + den - dend
+                sxsqa(ixp,iyp) = sxsqa(ixp,iyp) + (den - dend)**2
+                npixa(ixp,iyp) = npixa(ixp,iyp) + 1
+              else
+                ixp = (i - nx1) / nxyPatch + 1
+                sxa(ixp,iyp) = sxa(ixp,iyp) + den
+                sya(ixp,iyp) = sya(ixp,iyp) + dend
+                sxya(ixp,iyp) = sxya(ixp,iyp) + den * dend
+                sxsqa(ixp,iyp) = sxsqa(ixp,iyp) + den**2
+                sysqa(ixp,iyp) = sysqa(ixp,iyp) + dend**2
+                npixa(ixp,iyp) = npixa(ixp,iyp) + 1
+              endif
+c               DUPLICATION TO HERE
+            endif
+C             
+          ENDDO
+c           
+        else  
+          DO I=NX1,NX2
+            FI=FLOAT(I) - XCEN
+C	      
+            X= amat(1,1)*FI + amat(1,2)*FJ + xadd
+            Y= amat(2,1)*FI + amat(2,2)*FJ + yadd
+C             
+            ix=x
+            iy=y
+            if(ix.ge.1.and.ix.lt.nx.and.iy.ge.1.and.iy.lt.ny)then
+c               IX = MIN(NX-1,MAX(IX,1))
+c               IY = MIN(NY-1,MAX(IY,1))
+              ix1=ix+1
+              iy1=iy+1
+              fx=1+ix-x
+              fx1=1.-fx
+              fy=1+iy-y
+              fy1=1.-fy
+              den=crray(ix,iy)*fx*fy+crray(ix1,iy)*fx1*fy+
+     &            crray(ix,iy1)*fx*fy1+crray(ix1,iy1)*fx1*fy1
+C               
+c               DUPLICATED SECTION
+              dend = drray(i,j)
+              if (oldDiff) then
+                sx = sx + abs(den- dend)
+                npix=npix+1
+              else if (ifCCC .eq. 0) then
+                ixp = (i - nx1) / nxyPatch + 1
+                sxa(ixp,iyp) = sxa(ixp,iyp) + den - dend
+                sxsqa(ixp,iyp) = sxsqa(ixp,iyp) + (den - dend)**2
+                npixa(ixp,iyp) = npixa(ixp,iyp) + 1
+              else
+                ixp = (i - nx1) / nxyPatch + 1
+                sxa(ixp,iyp) = sxa(ixp,iyp) + den
+                sya(ixp,iyp) = sya(ixp,iyp) + dend
+                sxya(ixp,iyp) = sxya(ixp,iyp) + den * dend
+                sxsqa(ixp,iyp) = sxsqa(ixp,iyp) + den**2
+                sysqa(ixp,iyp) = sysqa(ixp,iyp) + dend**2
+                npixa(ixp,iyp) = npixa(ixp,iyp) + 1
+              endif
+            endif
+C             
+          ENDDO
+C	    
+        endif
+      ENDDO
+      if (oldDiff) then
+        if (npix .gt. 0) delta = sx / (npix * sd1)
+      else
+c         
+c         Combine patches with less than half the pixels with nearest patch
+c         with more than half
+        numCrit = nxyPatch**2 / 2
+        do iyp = 1, numYpatch
+          do ixp = 1, numXpatch
+            if (npixa(ixp,iyp) .gt. 0 .and. npixa(ixp,iyp) .lt. numCrit) then
+              mindist = 1000000000
+c               
+c               Find nearest qualifying patch
+              do idy = 0, max(iyp, numYpatch - iyp)
+                if (idy**2 .le. mindist) then
+                  do idiry = -1,1,2
+                    iy = iyp + idiry * idy
+                    if (iy .ge. 1 .and. iy .le. numYpatch) then
+                      do idx = 0, max(ixp, numXpatch - ixp)
+                        if (idx**2 .le. mindist) then
+                          do idirx = -1,1,2
+                            ix = ixp + idirx * idx
+                            if (ix .ge. 1 .and. ix .le. numXpatch) then
+                              if (npixa(ix,iy) .ge. numCrit .and.
+     &                            idx**2 + idy**2 .lt. mindist) then
+                                mindist = idx**2 + idy**2
+                                ixmin = ix
+                                iymin = iy
+                              endif
+                            endif
+                          enddo
+                        endif
+                      enddo
+                    endif
+                  enddo
+                endif
+              enddo
+c               
+c               If found a qualifying closest patch, add the data into it
+              if (mindist .lt. 100000000) then
+c                write(*,'(a,6i6)')'Pooling',ixp,iyp,npixa(ixp,iyp),ixmin,
+c     &              iymin, npixa(ixmin,iymin)
+                npixa(ixmin,iymin) = npixa(ixmin,iymin) + npixa(ixp,iyp)
+                sxa(ixmin,iymin) = sxa(ixmin,iymin) + sxa(ixp,iyp)
+                sxsqa(ixmin,iymin) = sxsqa(ixmin,iymin) + sxsqa(ixp,iyp)
+                sxya(ixmin,iymin) = sxya(ixmin,iymin) + sxya(ixp,iyp)
+                sya(ixmin,iymin) = sya(ixmin,iymin) + sya(ixp,iyp)
+                sysqa(ixmin,iymin) = sysqa(ixmin,iymin) + sysqa(ixp,iyp)
+                npixa(ixp,iyp) = 0
+              endif
+            endif
+          enddo
+        enddo
+c         
+c         Now add up the delta values from the patches, weighted by number of
+c         pixels
+        delsum = 0.
+        npix = 0
+        do iyp = 1, numYpatch
+          do ixp = 1, numXpatch
+            if (npixa(ixp,iyp) .gt. 1) then
+              if (ifCCC .eq. 0) then
+c                 
+c                 Get the SD of the diff and scale it by the sd of the data
+                den = (sxsqa(ixp,iyp) - sxa(ixp,iyp)**2 / npixa(ixp,iyp)) /
+     &              (npixa(ixp,iyp) - 1.)
+                if (den .gt. 0) then
+                  delsum = delsum + npixa(ixp,iyp) * sqrt(den) / sd1
+                  npix = npix + npixa(ixp,iyp)
+                endif
+              else
+c                  
+c                 Or get the ccc and use 1 - ccc
+                den = (npixa(ixp,iyp) * sxsqa(ixp,iyp) - sxa(ixp,iyp)**2) *
+     &              (npixa(ixp,iyp) * sysqa(ixp,iyp) - sya(ixp,iyp)**2)
+                if (den .gt. 0) then
+                  ccc = (npixa(ixp,iyp) * sxya(ixp,iyp) -
+     &                sxa(ixp,iyp) * sya(ixp,iyp)) / sqrt(den)
+                  delsum = delsum + npixa(ixp,iyp) * (1. - ccc)
+                  npix = npix + npixa(ixp,iyp)
+                endif
+              endif
+            endif
+          enddo
+        enddo
+c         
+c         Take the weighted average
+        if (npix .gt. 0) delta = delsum / npix
+      endif
+c       
+      delfac = outsideMultiplier(a, alimits)
+      delta = delta * delfac
+C       
+c       DNM 5/17/02: if the number of pixels falls below a small threshold
+c       return a big delta; otherwise adjust for # of pixels and save value
+c       5/13/06: Normalize to # of Sds difference per pixel
+c       
+      if (delfac .gt. 1. .or. npix.gt.0.02*(nx2+1-nx1)*(ny2+1-ny1))then
+        deltalast=delta
+      else
+        delta = 10.*deltalast
+      endif
+      RETURN
+C       
+      END
+      
+
+c       Or measure distance between features
+c
       subroutine DIST(DELTA,ARRAY,A,alimits,NX,NY, ixcomp,iycomp,denlo,denhi,
      &    ncompare, idxspir,idyspir,distspir,nspiral,natural)
       implicit none
@@ -699,141 +970,6 @@ c
 C       
       END
 C       
-      SUBROUTINE DIFF(DELTA,ARRAY,BRRAY,sd,A,alimits,NX,NY,nx1,nx2,ny1,ny2
-     &    ,interp,natural, ifCCC)
-C       
-      implicit none
-      integer*4 NX,NY,nx1,nx2,ny1,ny2,interp,natural, ifCCC
-      real*4 ARRAY(nx,ny),BRRAY(nx,ny),A(6),amat(2,2),alimits(2,6)
-      real*4 DELTA,sd
-C       
-      real*4 deltalast/0./
-      save deltalast
-      real*4 xcen, ycen, xadd,yadd,fj,fi,x,y,fx,fx1,fy,fy1,den, delfac, ccc
-      integer*4 npix,j, i, ix, iy, ix1, iy1
-      real*8 sx, sy, sxy, sxsq, sysq
-      real*4 outsideMultiplier
-
-      DELTA=0.
-      sx = 0.
-      sy = 0.
-      sxy = 0.
-      sxsq = 0.
-      sysq = 0.
-      XCEN=FLOAT(NX)*0.5+0.5			!use +0.5 to be consistent
-      YCEN=FLOAT(NY)*0.5+0.5			!with new cubinterp usage
-C       
-      if(natural.eq.0)then
-        amat(1,1)=a(3)
-        amat(1,2)=a(4)
-        amat(2,1)=a(5)
-        amat(2,2)=a(6)
-      else
-        call rotmag_to_amat(a(3),a(6),a(4),a(5),amat)
-      endif
-c	print *,((amat(i,j),j=1,2),i=1,2)
-      npix=0
-      if(interp.eq.0)then
-        xadd=xcen+a(1)+0.5			!the 0.5 here gets nearest int
-        yadd=ycen+a(2)+0.5
-        DO J=NY1,NY2
-          FJ=FLOAT(J) - YCEN
-C           
-          DO I=NX1,NX2
-            FI=FLOAT(I) - XCEN
-C	      
-            IX=amat(1,1)*FI + amat(1,2)*FJ + xadd
-            IY= amat(2,1)*FI + amat(2,2)*FJ + yadd
-C             
-            if(ix.ge.1.and.ix.le.nx.and.iy.ge.1.and.iy.le.ny)then
-C               
-              if (ifCCC .eq. 0) then
-                sx = sx + abs(array(ix,iy)- brray(I,J))
-              else
-                sx = sx + array(ix,iy)
-                sy = sy + brray(i,j)
-                sxy = sxy + array(ix,iy) * brray(i,j)
-                sxsq = sxsq + array(ix,iy)**2
-                sysq = sysq + brray(i,j)**2
-              endif
-              npix=npix+1
-            endif
-C             
-          ENDDO
-C	    
-        ENDDO
-
-      else
-        xadd=xcen+a(1)
-        yadd=ycen+a(2)
-        DO J=NY1,NY2
-          FJ=FLOAT(J) - YCEN
-C           
-          DO I=NX1,NX2
-            FI=FLOAT(I) - XCEN
-C	      
-            X= amat(1,1)*FI + amat(1,2)*FJ + xadd
-            Y= amat(2,1)*FI + amat(2,2)*FJ + yadd
-C             
-            ix=x
-            iy=y
-            if(ix.ge.1.and.ix.lt.nx.and.iy.ge.1.and.iy.lt.ny)then
-c               IX = MIN(NX-1,MAX(IX,1))
-c               IY = MIN(NY-1,MAX(IY,1))
-              ix1=ix+1
-              iy1=iy+1
-              fx=1+ix-x
-              fx1=1.-fx
-              fy=1+iy-y
-              fy1=1.-fy
-              den=array(ix,iy)*fx*fy+array(ix1,iy)*fx1*fy+
-     &            array(ix,iy1)*fx*fy1+array(ix1,iy1)*fx1*fy1
-C               
-              if (ifCCC .eq. 0) then
-                sx = sx + abs(den- brray(I,J))
-              else
-                sx = sx + den
-                sy = sy + brray(i,j)
-                sxy = sxy + den * brray(i,j)
-                sxsq = sxsq + den**2
-                sysq = sysq + brray(i,j)**2
-              endif
-              npix=npix+1
-            endif
-c	      
-C             
-          ENDDO
-C	    
-        ENDDO
-      endif
-      if (ifCCC .eq. 0) then
-        delta = sx / (npix * sd)
-      else
-        den = (npix * sxsq - sx**2) * (npix * sysq - sy**2)
-        if (den .le. 0) then
-          ccc = 0.
-        else
-          ccc = (npix * sxy - sx * sy) / sqrt(den)
-        endif
-        delta = 1. - ccc
-      endif
-c       
-      delfac = outsideMultiplier(a, alimits)
-      delta = delta * delfac
-C       
-c       DNM 5/17/02: if the number of pixels falls below a small threshold
-c       return a big delta; otherwise adjust for # of pixels and save value
-c       5/13/06: Normalize to # of Sds difference per pixel
-c       
-      if (delfac .gt. 1. .or. npix.gt.0.02*(nx2+1-nx1)*(ny2+1-ny1))then
-        deltalast=delta
-      else
-        delta = 10.*deltalast
-      endif
-      RETURN
-C       
-      END
-      
 c       
 c       find a multiplier for the delta factor if outside limits
 c
@@ -857,26 +993,10 @@ c
 c       Function to be called by minimization routine
 c       
       subroutine func(x, error)
+      use xfsimplex
       implicit none
-      integer idima, idimb, lenTemp, isub,limspir,isubp1,isubt2,isubt25
-      real*4 x(*),a(6), error, alimits(2,6)
-      parameter (limspir=1000,idima=8200*8200,idimb=4100*4100)
-      parameter (isub=idimb/3)
-      parameter (isubp1=isub+1, isubt2=2*isub+1, isubt25=2.5*isub+2)
-      integer*4 nx,ny,nz
-      COMMON //NX,NY,NZ
-      real*4 array(idima),brray(idimb)
-      integer*4 idxspir(limspir),idyspir(limspir)
-      integer*2 ixcomp(isub),iycomp(isub)
-      real*4 distspir(limspir),denlo(isub),denhi(isub),delta
-      equivalence (brray(1),denlo(1)),(brray(isubp1),denhi(1))
-     &    ,(brray(isubt2),ixcomp(1)),(brray(isubt25),iycomp(1))
-      integer*4 nx1,nx2,ny1,ny2, interp,natural,ncompare,nspiral,ifdist,iftrace
-      real*4 rds, deltmin,sd1
-      integer*4 ntrial, ivend, ifCCC
-      common /funcom/ array,brray,idxspir,idyspir,distspir,nx1,nx2,ny1,ny2,
-     &    interp,natural,ncompare,nspiral,ifdist,iftrace,rds,ntrial,
-     &    deltmin,sd1,ivend,a,alimits,ifCCC
+      real*4 x(*),a(6), error
+      real*4 delta,deltout
       character*1 starout
       integer*4 i,ii
 c       
@@ -885,8 +1005,7 @@ c
       enddo
 c       
       if(ifdist.eq.0)then
-        CALL DIFF(DELTA,ARRAY,BRRAY,sd1,A,alimits,NX,NY,nx1,nx2,ny1,ny2,interp,
-     &      natural, ifCCC)
+        CALL DIFF(DELTA,ARRAY,BRRAY,A,NX,NY)
       else
         CALL DIST(DELTA,ARRAY,A,alimits,NX,NY,ixcomp,iycomp,denlo,denhi,
      &      ncompare,idxspir,idyspir,distspir,nspiral,natural)
@@ -899,8 +1018,10 @@ c
           starout='*'
           deltmin=delta
         endif
+        deltout = delta
+        if (ifCCC .ne. 0) deltout = 1. - delta
         if(iftrace.eq.1.or.starout.eq.'*') write(*,72)
-     &      starout,ntrial,delta,(a(ii),ii=3,6),rds*a(1),rds*a(2)
+     &      starout,ntrial,deltout,(a(ii),ii=3,6),rds*a(1),rds*a(2)
 72      format(1x,a1,i3,f14.7,4f10.5,2f10.3)
       endif
       return
@@ -964,6 +1085,9 @@ c       SCALING = 1 BUT THIS SHOULD BE DOCUMENTED
       end
 c       
 c       $Log$
+c       Revision 3.12  2009/09/07 17:24:20  mast
+c       Switched centering of transform to be consistent with cubinterp
+c
 c       Revision 3.11  2008/07/01 14:26:27  mast
 c       Converted to PIP, added fourier and sobel filtering, limits to search,
 c       subarea specification, correlation coefficient, sections to use,
