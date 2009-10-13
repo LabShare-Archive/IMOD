@@ -33,6 +33,10 @@ import etomo.util.Utilities;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.58  2009/09/22 20:58:18  sueh
+ * <p> bug# 1259 In order to process nonstandard tilt.com, added
+ * <p> caseInsensitive and separateWithASpace.
+ * <p>
  * <p> Revision 3.57  2009/09/21 17:44:04  sueh
  * <p> bug# 1267 Corrected the blendmont mode in getBlendParamFromBlend3dFind.
  * <p>
@@ -655,11 +659,11 @@ public class ComScriptManager {
     //  Assign the new ComScriptObject object to the appropriate reference
     if (axisID == AxisID.SECOND) {
       scriptCtfPlotterB = loadComScript(ProcessName.CTF_PLOTTER, axisID, true,
-          required, false);
+          required, false, false);
       return scriptCtfPlotterB != null;
     }
     scriptCtfPlotterA = loadComScript(ProcessName.CTF_PLOTTER, axisID, true,
-        required, false);
+        required, false, false);
     return scriptCtfPlotterA != null;
   }
 
@@ -667,11 +671,11 @@ public class ComScriptManager {
     //  Assign the new ComScriptObject object to the appropriate reference
     if (axisID == AxisID.SECOND) {
       scriptCtfCorrectionB = loadComScript(ProcessName.CTF_CORRECTION, axisID,
-          true, required, false);
+          true, required, false, false);
       return scriptCtfCorrectionB != null;
     }
     scriptCtfCorrectionA = loadComScript(ProcessName.CTF_CORRECTION, axisID,
-        true, required, false);
+        true, required, false, false);
     return scriptCtfCorrectionA != null;
   }
 
@@ -755,7 +759,8 @@ public class ComScriptManager {
 
     // Initialize a BlendmontParam object from the com script command object
     BlendmontParam blendParam = new BlendmontParam(appManager, appManager
-        .getMetaData().getDatasetName(), axisID, BlendmontParam.Mode.BLEND_3DFIND);
+        .getMetaData().getDatasetName(), axisID,
+        BlendmontParam.Mode.BLEND_3DFIND);
     initialize(blendParam, scriptBlend3dFind, BlendmontParam.COMMAND_NAME,
         axisID, false, false);
     return blendParam;
