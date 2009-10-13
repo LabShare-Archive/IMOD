@@ -633,7 +633,7 @@ c
 c       DEPENDENCY: transferfid expects two lines with natural params
       PRINT *,' FINAL VALUES'
       deltmin = yy(jmin)
-      if (ifCCC) deltmin = 1 - deltmin
+      if (ifCCC .ne. 0) deltmin = 1 - deltmin
       write(*,72)ntrial,deltmin,(a(ii),ii=3,6),rds*a(1),rds*a(2)
 72    format(i5,f14.7,4f10.5,2f10.3)
 C       
@@ -1085,6 +1085,10 @@ c       SCALING = 1 BUT THIS SHOULD BE DOCUMENTED
       end
 c       
 c       $Log$
+c       Revision 3.13  2009/10/12 17:54:42  mast
+c       Added weighted averaging of local patch cross-correlation or SD of
+c       difference
+c
 c       Revision 3.12  2009/09/07 17:24:20  mast
 c       Switched centering of transform to be consistent with cubinterp
 c
