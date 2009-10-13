@@ -50,6 +50,9 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.19  2009/09/22 23:55:24  sueh
+ * <p> bug# 1269 Added setEnabledTiltParameters and called it from openDialog.
+ * <p>
  * <p> Revision 1.18  2009/09/02 22:45:48  sueh
  * <p> bug# 1254 Checking for a valid stack before using the stack.
  * <p>
@@ -270,7 +273,7 @@ public final class FinalAlignedStackExpert extends ReconUIExpert {
     // From updateFiducialessParams
     dialog.setFiducialessAlignment(metaData.isFiducialessAlignment(axisID));
     dialog.setImageRotation(metaData.getImageRotation(axisID));
-    dialog.setEnabledTiltParameters(state,metaData);
+    dialog.setEnabledTiltParameters(state, metaData);
     openDialog(dialog);
   }
 
@@ -782,7 +785,7 @@ public final class FinalAlignedStackExpert extends ReconUIExpert {
     param.setExpectedDefocus(dialog.getExpectedDefocus());
     param.setConfigFile(dialog.getConfigFile());
   }
-  
+
   public void setEnabledTiltParameters() {
     if (dialog == null) {
       return;
