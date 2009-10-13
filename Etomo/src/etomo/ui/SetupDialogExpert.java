@@ -41,6 +41,9 @@ import etomo.util.Montagesize;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.11  2009/09/01 03:18:25  sueh
+ * <p> bug# 1222
+ * <p>
  * <p> Revision 1.10  2009/08/24 20:23:54  sueh
  * <p> bug# 1254 Made setViewType package private.
  * <p>
@@ -455,8 +458,10 @@ public final class SetupDialogExpert {
       return null;
     }
     metaData.setBinning(dialog.getBinning());
-    metaData.setExcludeProjectionsA(dialog.getExcludeList(AxisID.FIRST));
-    metaData.setExcludeProjectionsB(dialog.getExcludeList(AxisID.SECOND));
+    metaData.setExcludeProjections(dialog.getExcludeList(AxisID.FIRST),
+        AxisID.FIRST);
+    metaData.setExcludeProjections(dialog.getExcludeList(AxisID.SECOND),
+        AxisID.SECOND);
     if (axisType == AxisType.DUAL_AXIS) {
       File bStack = DatasetFiles.getStack(manager.getPropertyUserDir(),
           metaData, AxisID.SECOND);
@@ -825,7 +830,7 @@ public final class SetupDialogExpert {
   }
 
   //  View type radio button
-   void setViewType(ViewType viewType) {
+  void setViewType(ViewType viewType) {
     if (viewType == ViewType.SINGLE_VIEW) {
       dialog.setSingleView(true);
     }
