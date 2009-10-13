@@ -28,6 +28,9 @@ import etomo.util.Utilities;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.51  2009/09/20 21:30:28  sueh
+ * <p> bug# 1268 In MetaData constructor set a display value for posBinningB.
+ * <p>
  * <p> Revision 3.50  2009/09/01 03:06:34  sueh
  * <p> bug# 1222 Added settings for erase gold with findbeads3d.
  * <p>
@@ -836,16 +839,33 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
     tiltAngleSpecA = tiltAngleSpec;
   }
 
-  public void setExcludeProjectionsA(String list) {
-    excludeProjectionsA = list;
+  public void setExcludeProjections(String list, AxisID axisID) {
+    //Strip whitespace.
+    String[] array = list.trim().split("\\s+");
+    if (array != null && array.length > 1) {
+      StringBuffer buffer = new StringBuffer();
+      for (int i = 0; i < array.length; i++) {
+        buffer.append(array[i]);
+      }
+      if (axisID == AxisID.SECOND) {
+        excludeProjectionsB = buffer.toString();
+      }
+      else {
+        excludeProjectionsB = buffer.toString();
+      }
+    }
+    else {
+      if (axisID == AxisID.SECOND) {
+        excludeProjectionsB = list.trim();
+      }
+      else {
+        excludeProjectionsA = list.trim();
+      }
+    }
   }
 
   public void setTiltAngleSpecB(TiltAngleSpec tiltAngleSpec) {
     tiltAngleSpecB = tiltAngleSpec;
-  }
-
-  public void setExcludeProjectionsB(String list) {
-    excludeProjectionsB = list;
   }
 
   public void setComScriptCreated(boolean state) {
