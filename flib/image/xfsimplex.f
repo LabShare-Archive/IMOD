@@ -25,7 +25,8 @@ c       Log at end of file
 c
 c       array for second image if doing diffs, using same storage as
 c       all the arrays for doing distances
-      real*4 brray(idimb),ARRAY(idima)
+      real*4, allocatable :: array(:)
+      real*4 brray(idimb)
       integer*2 ixcomp(isub),iycomp(isub)
       real*4 denlo(isub),denhi(isub)
       equivalence (brray(1),denlo(1)),(brray(isubp1),denhi(1))
@@ -170,6 +171,10 @@ c
         READ (5,40)xfinfile
 40      FORMAT (A)
       endif
+c       
+c       Allocate big array
+      allocate(array(idima), stat = ierr)
+      if (ierr .ne. 0) call exitError('ALLOCATING LARGE IMAGE ARRAY')
 c       
 c       open file now to get sizes and try to adjust defaults
 c       
@@ -1085,6 +1090,9 @@ c       SCALING = 1 BUT THIS SHOULD BE DOCUMENTED
       end
 c       
 c       $Log$
+c       Revision 3.14  2009/10/13 13:44:05  mast
+c       bad if test
+c
 c       Revision 3.13  2009/10/12 17:54:42  mast
 c       Added weighted averaging of local patch cross-correlation or SD of
 c       difference
