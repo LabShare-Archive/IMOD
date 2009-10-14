@@ -14,16 +14,16 @@ c       $Id$
 c       Log at end of file
 c       
       implicit none
-      integer maxdim,maxtemp,lmfil,lmsec,maxchunks,maxextra,lmGrid
+      integer maxdim,maxtemp,lmfil,lmsec,maxchunks,lmGrid
       integer lmFields, lmAllGrid
       parameter (lmfil=1000,lmsec=50000,maxchunks=250)
-      parameter (maxextra=4000000, maxtemp=1000000)
+      parameter (maxtemp=1000000)
       parameter (lmGrid = 200, lmFields = 1000, lmAllGrid = 1000000)
       integer*4 nx,ny,nz
 
       real*4, allocatable :: array(:)
 C       
-      integer*4 NXYZ(3),MXYZ(3),NXYZST(3), NXYZ2(3),MXYZ2(3)
+      integer*4 NXYZ(3),MXYZ(3),NXYZST(3), NXYZ2(3),MXYZ2(3), maxextra
       real*4 CELL2(6),cell(6), TITLE(20), delt(3), xorig, yorig, zorig
 C       
       CHARACTER*320 FILIN(lmfil),FILOUT(lmfil),xffil,filistin,filistout
@@ -40,8 +40,7 @@ C
       integer*4 lineOutSt(maxchunks+1),nLinesOut(maxchunks)
       integer*4 lineInSt(maxchunks+1),nLinesIn(maxchunks),listReplace(lmsec)
       real*4 scaleFacs(lmfil), scaleConsts(lmfil)
-      integer*1 extrain(maxextra),extraout(maxextra)
-      equivalence (listString, extrain)
+      integer*1, allocatable :: extrain(:),extraout(:)
       data optmax/255.,32767.,255.,32767.,255.,255.,65535.,255.,255.,
      &    511.,1023.,2047.,4095.,8191., 16383.,32767./
 c       
@@ -167,6 +166,7 @@ c
       loadtime=0.
       savetime=0.
       rottime = 0.
+      maxextra = 0
 c       
 c       Preliminary allocation of array
       allocate(array(limdim), stat = ierr)
@@ -843,20 +843,28 @@ c         get extra header information if any
 c         
         call irtnbsym(1,nbsymin)
         if(nbsymin.gt.0)then
-          if(nbsymin.gt.maxextra)then
-            print *,'Extra header data too large for array and not',
-     &          ' accessed for input file ',filin(ifil)
-            nbsymin=0
-          else
-            call irtsym(1,nbsymin,extrain)
-            call irtsymtyp(1,nbytexin,iflagxin)
+c           
+c           Deallocate array if it was allocated an is not big enough
+          if (maxextra .gt. 0 .and. nbsymin.gt.maxextra) then
+            deallocate(extrain, extraout, stat = ierr)
+            maxextra = 0
+          endif
+c           
+c           Allocate array if needed
+          if (maxextra .eq. 0) then
+            maxextra = nbsymin + 1024
+            allocate(extrain(maxextra),extraout(maxextra), stat = ierr)
+            if (ierr .ne. 0) call exitError(
+     &          'ALLOCATING MEMORY FOR EXTRA HEADER ARRAYS')
+          endif
+          call irtsym(1,nbsymin,extrain)
+          call irtsymtyp(1,nbytexin,iflagxin)
 c             
 c             DNM 4/18/02: if these numbers do not represent bytes and
 c             flags, then number of bytes is 4 times nint + nreal
-c             
-            if(.not.nbytes_and_flags(nbytexin,iflagxin))
-     &          nbytexin=4*(nbytexin+iflagxin)
-          endif
+c           
+          if(.not.nbytes_and_flags(nbytexin,iflagxin))
+     &        nbytexin=4*(nbytexin+iflagxin)
         endif
 C         
 c         get each section in input file
@@ -2048,6 +2056,9 @@ c
 ************************************************************************
 *       
 c       $Log$
+c       Revision 3.56  2009/10/09 21:34:27  mast
+c       Provided default tapering if number is entered as 1
+c
 c       Revision 3.55  2009/10/09 21:00:41  mast
 c       Added tapering
 c

@@ -12,22 +12,27 @@ c
 c       $Revision$
 c       
 c       $Log$
+c       Revision 3.2  2006/02/06 21:46:09  mast
+c       Read version 2 mgt file with crossover, use linearized intensity for
+c       interpolation
+c
 c       Revision 3.1  2004/03/22 05:43:54  mast
 c       Initial creation
 c	
 c	
 c       
       implicit none
-      integer maxextra, maxtilts, maxpiece, maxtab
-      parameter (maxextra = 1000000, maxtilts = 2000, maxpiece=50000)
+      integer maxtab
       parameter (maxtab = 1000)
       integer*4 NXYZ(3),MXYZ(3)
-      real*4 tilt(maxtilts), c2val(maxtilts), delta(3)
+      integer*4 maxextra, maxtilts, maxpiece
+      real*4 delta(3)
       real*4 tableC2(maxtab), tableGrad(maxtab), tableRot(maxtab)
-      real*4 array(maxextra/4), tableLin(maxtab)
-      integer*4 ixpiece(maxpiece),iypiece(maxpiece),izpiece(maxpiece)
+      real*4 tableLin(maxtab)
+      real*4, allocatable :: tilt(:), c2val(:), array(:)
+      integer*4, allocatable :: ixpiece(:),iypiece(:),izpiece(:)
 C       
-      CHARACTER*120 FILIN,filout, gradTable,line
+      CHARACTER*320 FILIN,filout, gradTable,line
       character*16 typeText(5) /'tilt angle', ' ', 'stage position',
      &    'magnification', 'intensity value'/
 C       
@@ -94,8 +99,13 @@ C
       endif
 c       
       call irtnbsym(1,nbsym)
-      if(nbsym.gt.maxextra) call errorexit(
-     &    'ARRAYS NOT LARGE ENOUGH FOR EXTRA HEADER DATA')
+      maxextra = nbsym + 1024
+      maxpiece = nz + 1024
+      maxtilts = maxpiece
+      allocate(tilt(maxtilts), c2val(maxtilts), array(maxextra/4), 
+     &    ixpiece(maxpiece),iypiece(maxpiece),izpiece(maxpiece), stat = ierr)
+      if (ierr .ne. 0) call exitError(
+     &    'ALLOCATING ARRAYS FOR EXTRA HEADER DATA')
 
       call irtsym(1,nbsym,array)
       call irtsymtyp(1,nbyte,iflags)

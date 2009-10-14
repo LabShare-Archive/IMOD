@@ -12,12 +12,10 @@ c       $Id$
 c       Log at end of file
 c       
       implicit none
-      integer maxextra, maxtilts, maxpiece
-      parameter (maxextra = 4000000, maxtilts = 4000, maxpiece=100000)
+      integer*4 maxextra, maxtilts, maxpiece
       integer*4 NXYZ(3),MXYZ(3)
-      real*4 tilt(maxtilts), val2(maxtilts)
-      real*4 array(maxextra/4)
-      integer*4 ixpiece(maxpiece),iypiece(maxpiece),izpiece(maxpiece)
+      real*4, allocatable :: tilt(:), val2(:), array(:)
+      integer*4, allocatable :: ixpiece(:),iypiece(:),izpiece(:)
 C       
       CHARACTER*320 FILIN,filout
       character*16 typeText(6) /'tilt angle', ' ', 'stage position',
@@ -93,8 +91,14 @@ c
       CALL IRDHDR(1,NXYZ,MXYZ,MODE,DMIN,DMAX,DMEAN)
 C       
       call irtnbsym(1,nbsym)
-      if(nbsym.gt.maxextra) call exitError(
-     &    'ARRAYS NOT LARGE ENOUGH FOR EXTRA HEADER DATA')
+      maxextra = nbsym + 1024
+      maxpiece = nz + 1024
+      maxtilts = maxpiece
+      allocate(tilt(maxtilts), val2(maxtilts), array(maxextra/4), 
+     &    ixpiece(maxpiece),iypiece(maxpiece),izpiece(maxpiece), stat = ierr)
+
+      if (ierr .ne. 0) call exitError(
+     &    'ALLOCATING ARRAYS FOR EXTRA HEADER DATA')
 
       call irtsym(1,nbsym,array)
       call irtsymtyp(1,nbyte,iflags)
@@ -177,6 +181,9 @@ c
       END
 
 c       $Log$
+c       Revision 3.10  2009/05/08 02:19:10  mast
+c       Add option to get items at all frames
+c
 c       Revision 3.9  2007/12/27 20:57:15  mast
 c       Added option to test for bad tilt angles and give warning
 c
