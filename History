@@ -1,7 +1,10 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-10/12/09: In Etomo, Removed embedded spaces from the Exclude Views parameters to
-prevent copytomocoms from failing.
+10/14/09: In Extractpieces, Extracttilts, Extractmaggrad, and Newstack,
+switched to  allocating arrays for extra header data.
+
+10/12/09: In Etomo, Removed embedded spaces from the Exclude Views parameters
+to prevent copytomocoms from failing.
 
 10/12/09: In Etomo, fixed a bug which prevented the ctf com files from being
 created when the Final Stack dialog was opened.
