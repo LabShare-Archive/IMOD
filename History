@@ -3,6 +3,9 @@ IMOD History
 10/14/09: In Extractpieces, Extracttilts, Extractmaggrad, and Newstack,
 switched to  allocating arrays for extra header data.
 
+10/14/09: Fixed a problem with Corrsearch3d (no patches fit within
+constraints) when no transformation or shift was specified.
+
 10/12/09: In Etomo, Removed embedded spaces from the Exclude Views parameters
 to prevent copytomocoms from failing.
 
