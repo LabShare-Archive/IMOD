@@ -345,23 +345,24 @@ c
       if (ifdebug .gt. 0) print *,'flips',ifflip, ifflipb
 c       
 c       compute transformed locations of corners of b source volume
-c       
+c       10/14/09: This used to be done inside the if below, but it is needed
+c       for all evaluations of the patches.
+      call xformBsrcToA(float(nbsrcxlo), float(nbsrczlo),
+     &    nxyzbsrc, nxyz, ifflipb, ifflip, asrc, dxyzsrc,
+     &    xvertbsrc(1), yvertbsrc(1))
+      call xformBsrcToA(float(nxyzbsrc(1) - nbsrcxhi), float(nbsrczlo),
+     &    nxyzbsrc, nxyz, ifflipb, ifflip, asrc, dxyzsrc,
+     &    xvertbsrc(2), yvertbsrc(2))
+      call xformBsrcToA(float(nxyzbsrc(1) - nbsrcxhi),
+     &    float(nxyzbsrc(indyb) - nbsrczhi),
+     &    nxyzbsrc, nxyz, ifflipb, ifflip, asrc, dxyzsrc,
+     &    xvertbsrc(3), yvertbsrc(3))
+      call xformBsrcToA(float(nbsrcxlo), float(nxyzbsrc(indyb) - nbsrczhi),
+     &    nxyzbsrc, nxyz, ifflipb, ifflip, asrc, dxyzsrc,
+     &    xvertbsrc(4), yvertbsrc(4))
+      if (ifdebug .gt. 0)
+     &    print *,'bverts',(xvertbsrc(i), yvertbsrc(i), i = 1,4)
       if (ifShiftIn .ne. 0 .or. xffile .ne. ' ') then
-        call xformBsrcToA(float(nbsrcxlo), float(nbsrczlo),
-     &      nxyzbsrc, nxyz, ifflipb, ifflip, asrc, dxyzsrc,
-     &      xvertbsrc(1), yvertbsrc(1))
-        call xformBsrcToA(float(nxyzbsrc(1) - nbsrcxhi), float(nbsrczlo),
-     &      nxyzbsrc, nxyz, ifflipb, ifflip, asrc, dxyzsrc,
-     &      xvertbsrc(2), yvertbsrc(2))
-        call xformBsrcToA(float(nxyzbsrc(1) - nbsrcxhi),
-     &      float(nxyzbsrc(indyb) - nbsrczhi),
-     &      nxyzbsrc, nxyz, ifflipb, ifflip, asrc, dxyzsrc,
-     &      xvertbsrc(3), yvertbsrc(3))
-        call xformBsrcToA(float(nbsrcxlo), float(nxyzbsrc(indyb) - nbsrczhi),
-     &      nxyzbsrc, nxyz, ifflipb, ifflip, asrc, dxyzsrc,
-     &      xvertbsrc(4), yvertbsrc(4))
-        if (ifdebug .gt. 0)
-     &      print *,'bverts',(xvertbsrc(i), yvertbsrc(i), i = 1,4)
 c         
 c         now order the coordinates to find middle values that can be
 c         used to adjust the entered lower and upper limits, so that the
@@ -470,11 +471,11 @@ c
      &            print *,xcen,ymod,' eliminated by B model'
             endif
 c
-            if(ifuse .eq. 1 .and. nxyzbsrc(1) .gt. 0)then
+            if(ifuse .eq. 1)then
               ifuse=0
 c               
-c               if b source volume was given, make sure all corners of
-c               the patch are inside transformed area
+c               now make sure all corners of the patch are inside transformed
+c               area from B borders
 c               
               xpatlo = xcen - (nxpatch - nxtap) / 2
               xpathi = xcen + (nxpatch - nxtap) / 2
@@ -1810,6 +1811,9 @@ c
 
 
 c       $Log$
+c       Revision 3.20  2008/02/28 20:03:34  mast
+c       Increased main array size 40%
+c
 c       Revision 3.19  2008/02/28 19:19:02  mast
 c       Increased size of working array for 3D FFT 6-fold
 c
