@@ -16,7 +16,11 @@ import javax.swing.JToggleButton;
 import javax.swing.border.Border;
 import javax.swing.plaf.ColorUIResource;
 
+import etomo.EtomoDirector;
+import etomo.storage.autodoc.AutodocTokenizer;
 import etomo.type.EtomoNumber;
+import etomo.type.UITestFieldType;
+import etomo.util.Utilities;
 
 /**
  * <p>Description: </p>
@@ -41,15 +45,58 @@ final class HeaderCell implements Cell {
   private static final ColorUIResource warningBackground = Colors
       .subtractColor(Colors.WARNING_BACKGROUND, greyout);
 
+  private final UITestFieldType uiTestFieldType;
+
   private AbstractButton cell;
   private JPanel jpanelContainer = null;
   private String text = "";
   private final boolean controlColor;
   private String pad = "";
   private List children = null;
+  private String tableHeader = null;
+  private HeaderCell rowHeader = null, columnHeader = null;
 
   public String toString() {
     return text;
+  }
+
+  private HeaderCell(String text, int width, boolean controlColor,
+      boolean toggle) {
+    if (toggle) {
+      uiTestFieldType = UITestFieldType.MINI_BUTTON;
+    }
+    else {
+      uiTestFieldType = UITestFieldType.BUTTON;
+    }
+    this.text = text;
+    this.controlColor = controlColor;
+    if (text == null) {
+      if (toggle) {
+        cell = new JToggleButton();
+      }
+      else {
+        cell = new JButton();
+      }
+    }
+    else {
+      if (toggle) {
+        cell = new JToggleButton(formatText());
+      }
+      else {
+        cell = new JButton(formatText());
+      }
+    }
+    cell.setBorder(BorderFactory.createEtchedBorder());
+    cell.setEnabled(false);
+    if (width > 0) {
+      Dimension size = cell.getPreferredSize();
+      size.width = width;
+      cell.setSize(size);
+      cell.setPreferredSize(size);
+    }
+    if (controlColor) {
+      cell.setBackground(background);
+    }
   }
 
   HeaderCell() {
@@ -156,12 +203,12 @@ final class HeaderCell implements Cell {
     cell.setText(formatText());
     if (children != null) {
       for (int i = 0; i < children.size(); i++) {
-        ((FieldCell) children.get(i)).msgLabelChanged();
+        ((Cell) children.get(i)).msgLabelChanged();
       }
     }
   }
 
-  void addChild(InputCell child) {
+  void addChild(Cell child) {
     if (children == null) {
       children = new ArrayList();
     }
@@ -171,6 +218,54 @@ final class HeaderCell implements Cell {
   void setText() {
     text = "";
     setText("");
+  }
+
+  /**
+   * Message from row header or column header that their label has changed.
+   */
+  public void msgLabelChanged() {
+    setName();
+  }
+
+  /**
+   * Build the name.  May be either a button or a mini-button.
+   */
+  void setName() {
+    String prefix;
+    if (uiTestFieldType == UITestFieldType.MINI_BUTTON) {
+      //Mini-buttons have a prefix of "mb.".
+      prefix = uiTestFieldType.toString() + AutodocTokenizer.SEPARATOR_CHAR;
+    }
+    else {
+      prefix = "";
+    }
+    String name;
+    if (tableHeader == null && rowHeader == null && columnHeader == null) {
+      name = Utilities.convertLabelToName(text);
+    }
+    else {
+      name = Utilities.convertLabelToName(tableHeader,
+          rowHeader != null ? rowHeader.getText() : null,
+          columnHeader != null ? columnHeader.getText() : null);
+    }
+    getComponent().setName(prefix + name);
+    if (EtomoDirector.INSTANCE.getArguments().isPrintNames()) {
+      System.out.println(uiTestFieldType.toString()
+          + AutodocTokenizer.SEPARATOR_CHAR + name + ' '
+          + AutodocTokenizer.DEFAULT_DELIMITER + ' ');
+    }
+  }
+
+  void setTableHeader(String input) {
+    tableHeader = input;
+  }
+
+  void setRowHeader(HeaderCell input) {
+    rowHeader = input;
+  }
+
+  void setColumnHeader(HeaderCell input) {
+    columnHeader = input;
   }
 
   boolean isSelected() {
@@ -197,45 +292,17 @@ final class HeaderCell implements Cell {
     cell.setText(formatText());
   }
 
-  private HeaderCell(String text, int width, boolean controlColor,
-      boolean toggle) {
-    this.text = text;
-    this.controlColor = controlColor;
-    if (text == null) {
-      if (toggle) {
-        cell = new JToggleButton();
-      }
-      else {
-        cell = new JButton();
-      }
-    }
-    else {
-      if (toggle) {
-        cell = new JToggleButton(formatText());
-      }
-      else {
-        cell = new JButton(formatText());
-      }
-    }
-    cell.setBorder(BorderFactory.createEtchedBorder());
-    cell.setEnabled(false);
-    if (width > 0) {
-      Dimension size = cell.getPreferredSize();
-      size.width = width;
-      cell.setSize(size);
-      cell.setPreferredSize(size);
-    }
-    if (controlColor) {
-      cell.setBackground(background);
-    }
-  }
-
   private String formatText() {
     return "<html><b>" + text + pad + "</b>";
   }
 }
 /**
  * * <p> $Log$
+ * * <p> Revision 1.19  2009/01/20 20:08:12  sueh
+ * * <p> bug# 1102 Added addChild to keep track of the input cells in the column
+ * * <p> headed by a header cell.  Changed setText to tell the child cells when the
+ * * <p> header has changed.  This allows the child cells to set their names.
+ * * <p>
  * * <p> Revision 1.18  2007/04/02 21:49:40  sueh
  * * <p> bug# 964 Implementing Cell interface.
  * * <p>
