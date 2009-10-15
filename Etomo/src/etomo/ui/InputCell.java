@@ -166,7 +166,7 @@ abstract class InputCell implements Cell {
   /**
    * Message from row header or column header that their label has changed.
    */
-  void msgLabelChanged() {
+ public void msgLabelChanged() {
     setName();
   }
 
@@ -187,6 +187,11 @@ abstract class InputCell implements Cell {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.12  2009/01/20 20:11:41  sueh
+ * <p> bug# 1102 Added functionality to self-name; added columnHeader,
+ * <p> rowHeader, tableHeader, getFieldType, msgLabelChanged, setHeaders,
+ * <p> and setName.
+ * <p>
  * <p> Revision 1.11  2008/08/21 00:07:42  sueh
  * <p> bug# 1132 Added isEditable.
  * <p>
