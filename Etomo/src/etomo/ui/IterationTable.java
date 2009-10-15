@@ -16,7 +16,6 @@ import javax.swing.JPanel;
 import javax.swing.border.LineBorder;
 
 import etomo.BaseManager;
-import etomo.ManagerKey;
 import etomo.storage.LogFile;
 import etomo.storage.MatlabParam;
 import etomo.storage.autodoc.AutodocFactory;
@@ -37,6 +36,9 @@ import etomo.type.EtomoAutodoc;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.21  2009/09/28 18:35:30  sueh
+ * <p> bug# 1235 Added IterationRow.setNames.
+ * <p>
  * <p> Revision 1.20  2009/04/20 16:38:12  sueh
  * <p> bug# 1214 Share the increment header.
  * <p>
@@ -106,13 +108,19 @@ final class IterationTable implements Highlightable {
   public static final String rcsid = "$Id$";
   static final String D_PHI_D_THETA_D_PSI_HEADER1 = "Angular Search Range";
   static final String D_PHI_HEADER2 = "Phi";
-  static final String INCR_HEADER = "Incr.";
+  static final String INCR_HEADER3 = "Incr.";
   static final String D_THETA_HEADER2 = "Theta";
   static final String D_PSI_HEADER2 = "Psi";
   static final String SEARCH_RADIUS_HEADER1 = "Search";
   static final String SEARCH_RADIUS_HEADER2 = "Radius";
   static final String LABEL = "Iteration Table";
-  static final String MAX_HEADER = "Max";
+  static final String MAX_HEADER3 = "Max";
+  static final String CUTOFF_HEADER1="High-Freq.";
+  static final String CUTOFF_HEADER2="Filter";
+  static final String HI_CUTOFF_HEADER3="Cutoff";
+  static final String LOW_CUTOFF_HEADER3="Sigma";
+  static final String REF_THRESHOLD_HEADER1="Reference";
+  static final String REF_THRESHOLD_HEADER2="Threshold";
 
   private final JPanel rootPanel = new JPanel();
   private final JPanel pnlTable = new JPanel();
@@ -127,17 +135,17 @@ final class IterationTable implements Highlightable {
   private final HeaderCell header2DPhi = new HeaderCell(D_PHI_HEADER2);
   private final HeaderCell header2DTheta = new HeaderCell(D_THETA_HEADER2);
   private final HeaderCell header2DPsi = new HeaderCell(D_PSI_HEADER2);
-  private final HeaderCell header3DPhiMax = new HeaderCell(MAX_HEADER,
+  private final HeaderCell header3DPhiMax = new HeaderCell(MAX_HEADER3,
       UIParameters.INSTANCE.getNumericWidth());
-  private final HeaderCell header3DPhiIncrement = new HeaderCell(INCR_HEADER,
+  private final HeaderCell header3DPhiIncrement = new HeaderCell(INCR_HEADER3,
       UIParameters.INSTANCE.getNumericWidth());
-  private final HeaderCell header3DThetaMax = new HeaderCell(MAX_HEADER,
+  private final HeaderCell header3DThetaMax = new HeaderCell(MAX_HEADER3,
       UIParameters.INSTANCE.getNumericWidth());
-  private final HeaderCell header3DThetaIncrement = new HeaderCell(INCR_HEADER,
+  private final HeaderCell header3DThetaIncrement = new HeaderCell(INCR_HEADER3,
       UIParameters.INSTANCE.getNumericWidth());
-  private final HeaderCell header3DPsiMax = new HeaderCell(MAX_HEADER,
+  private final HeaderCell header3DPsiMax = new HeaderCell(MAX_HEADER3,
       UIParameters.INSTANCE.getNumericWidth());
-  private final HeaderCell header3DPsiIncrement = new HeaderCell(INCR_HEADER,
+  private final HeaderCell header3DPsiIncrement = new HeaderCell(INCR_HEADER3,
       UIParameters.INSTANCE.getNumericWidth());
   private final HeaderCell header1SearchRadius = new HeaderCell(
       SEARCH_RADIUS_HEADER1);
@@ -145,14 +153,14 @@ final class IterationTable implements Highlightable {
       SEARCH_RADIUS_HEADER2);
   private final HeaderCell header3SearchRadius = new HeaderCell(
       UIParameters.INSTANCE.getIntegerTripletWidth());
-  private final HeaderCell header1HiCutoff = new HeaderCell("High-Freq.");
-  private final HeaderCell header2HiCutoff = new HeaderCell("Filter");
-  private final HeaderCell header3HiCutoff = new HeaderCell("Cutoff",
+  private final HeaderCell header1Cutoff = new HeaderCell(CUTOFF_HEADER1);
+  private final HeaderCell header2Cutoff = new HeaderCell(CUTOFF_HEADER2);
+  private final HeaderCell header3HiCutoff = new HeaderCell(HI_CUTOFF_HEADER3,
       UIParameters.INSTANCE.getWideNumericWidth());
-  private final HeaderCell header3HiCutoffSigma = new HeaderCell("Sigma",
+  private final HeaderCell header3LowCutoff = new HeaderCell(LOW_CUTOFF_HEADER3,
       UIParameters.INSTANCE.getWideNumericWidth());
-  private final HeaderCell header1RefThreshold = new HeaderCell("Reference");
-  private final HeaderCell header2RefThreshold = new HeaderCell("Threshold");
+  private final HeaderCell header1RefThreshold = new HeaderCell(REF_THRESHOLD_HEADER1);
+  private final HeaderCell header2RefThreshold = new HeaderCell(REF_THRESHOLD_HEADER2);
   private final HeaderCell header3RefThreshold = new HeaderCell();
   private final MultiLineButton btnAddRow = new MultiLineButton("Add Row");
   private final MultiLineButton btnCopyRow = new MultiLineButton("Copy Row");
@@ -161,7 +169,7 @@ final class IterationTable implements Highlightable {
 
   private IterationTable(BaseManager manager) {
     this.manager = manager;
-    rowList = new RowList(manager.getManagerKey(), this);
+    rowList = new RowList(manager, this);
     createTable();
     rowList.add(this, pnlTable, layout, constraints);
     display();
@@ -269,10 +277,10 @@ final class IterationTable implements Highlightable {
       header2SearchRadius.setToolTipText(tooltip);
       header3SearchRadius.setToolTipText(tooltip);
       tooltip = EtomoAutodoc.getTooltip(autodoc, MatlabParam.HI_CUTOFF_KEY);
-      header1HiCutoff.setToolTipText(tooltip);
-      header2HiCutoff.setToolTipText(tooltip);
+      header1Cutoff.setToolTipText(tooltip);
+      header2Cutoff.setToolTipText(tooltip);
       header3HiCutoff.setToolTipText(tooltip);
-      header3HiCutoffSigma.setToolTipText(tooltip);
+      header3LowCutoff.setToolTipText(tooltip);
       tooltip = EtomoAutodoc.getTooltip(autodoc, MatlabParam.REF_THRESHOLD_KEY);
       header1RefThreshold.setToolTipText(tooltip);
       header2RefThreshold.setToolTipText(tooltip);
@@ -375,7 +383,7 @@ final class IterationTable implements Highlightable {
     constraints.gridwidth = 1;
     header1SearchRadius.add(pnlTable, layout, constraints);
     constraints.gridwidth = 2;
-    header1HiCutoff.add(pnlTable, layout, constraints);
+    header1Cutoff.add(pnlTable, layout, constraints);
     constraints.gridwidth = GridBagConstraints.REMAINDER;
     header1RefThreshold.add(pnlTable, layout, constraints);
     //Second header row
@@ -388,7 +396,7 @@ final class IterationTable implements Highlightable {
     constraints.gridwidth = 1;
     header2SearchRadius.add(pnlTable, layout, constraints);
     constraints.gridwidth = 2;
-    header2HiCutoff.add(pnlTable, layout, constraints);
+    header2Cutoff.add(pnlTable, layout, constraints);
     constraints.gridwidth = GridBagConstraints.REMAINDER;
     header2RefThreshold.add(pnlTable, layout, constraints);
     //Third header row
@@ -404,7 +412,7 @@ final class IterationTable implements Highlightable {
     header3DPsiIncrement.add(pnlTable, layout, constraints);
     header3SearchRadius.add(pnlTable, layout, constraints);
     header3HiCutoff.add(pnlTable, layout, constraints);
-    header3HiCutoffSigma.add(pnlTable, layout, constraints);
+    header3LowCutoff.add(pnlTable, layout, constraints);
     constraints.gridwidth = GridBagConstraints.REMAINDER;
     header3RefThreshold.add(pnlTable, layout, constraints);
     rowList.display();
@@ -418,12 +426,16 @@ final class IterationTable implements Highlightable {
     return header1SearchRadius;
   }
 
-  HeaderCell getHiCutoffHeaderCell() {
-    return header1HiCutoff;
+  HeaderCell getCutoffHeaderCell() {
+    return header1Cutoff;
   }
 
   HeaderCell getRefThresholdHeaderCell() {
     return header1RefThreshold;
+  }
+  
+  HeaderCell getIterationNumberHeaderCell() {
+    return header1IterationNumber;
   }
 
   private class ITActionListener implements ActionListener {
@@ -440,11 +452,11 @@ final class IterationTable implements Highlightable {
 
   private static final class RowList {
     private final List list = new ArrayList();
-    private final ManagerKey managerKey;
+    private final BaseManager manager;
     private final IterationTable table;
 
-    private RowList(ManagerKey managerKey, IterationTable table) {
-      this.managerKey = managerKey;
+    private RowList(BaseManager manager, IterationTable table) {
+      this.manager = manager;
       this.table = table;
     }
 
@@ -453,7 +465,7 @@ final class IterationTable implements Highlightable {
         final GridBagConstraints constraints) {
       int index = list.size();
       IterationRow row = new IterationRow(index, parent, panel, layout,
-          constraints, managerKey, table);
+          constraints, manager, table);
       row.setNames();
       list.add(row);
       return row;
@@ -477,6 +489,11 @@ final class IterationTable implements Highlightable {
     }
 
     private boolean validateRun() {
+      if (list.size() < 1) {
+        UIHarness.INSTANCE.openMessageDialog("Must enter at least one row in "
+            + LABEL, "Entry Error", manager.getManagerKey());
+        return false;
+      }
       for (int i = 0; i < list.size(); i++) {
         IterationRow row = (IterationRow) list.get(i);
         if (!row.validateRun()) {
@@ -496,7 +513,7 @@ final class IterationTable implements Highlightable {
         final Highlightable parent, final JPanel panel,
         final GridBagLayout layout, final GridBagConstraints constraints) {
       int index = list.size();
-      IterationRow copy = new IterationRow(index, row, managerKey, table);
+      IterationRow copy = new IterationRow(index, row, manager, table);
       copy.setNames();
       list.add(copy);
       copy.display();
@@ -527,7 +544,7 @@ final class IterationTable implements Highlightable {
         }
       }
       UIHarness.INSTANCE.openMessageDialog("Please highlight a row.",
-          "Entry Error", managerKey);
+          "Entry Error", manager.getManagerKey());
       return null;
     }
 
