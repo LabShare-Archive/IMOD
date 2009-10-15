@@ -1,11 +1,218 @@
 Version = 1.2
 
-[tab = setup]
+[dialog = peet]
 open.interface=
-set.adoc.function = peet-setup.adoc
+set.adoc.function=peet.adoc
 run.function.main =
 
-[tab = align]
-open.dialog.runtab=
-set.adoc.function = peet-runtab.adoc
-run.function.main =
+
+[function = main]
+[[if = test-gui]]
+	if.not.var.keep-dataset-dir.set.var.test-values=
+	return.var.test-values=
+[[]]
+run.function.setup=
+run.function.runtab=
+
+
+[function = setup]
+tb.setup=
+mb.parallel-processing=-
+#check empty directory error
+run.function.setup-test-gui=
+bn.directory=
+wait.file-chooser.open=%{testdir}
+#check empty root name error
+run.function.setup-test-gui=
+tf.root-name-for-output=%{dataset}
+run.function.volume-table=
+run.function.reference=
+[[if = test-gui]]
+	run.function.missing-wedge-compensation=
+	run.function.masking=
+	run.function.cylinder-orientation=
+	run.function.initial-motive-list=
+	run.function.y-axis-type=
+[[]]
+
+
+[function = setup-test-gui]
+if.not.var.test-values.return=
+tb.setup.1=
+bn.run=
+wait.popup.entry-error=OK
+#error message sends it back to setup tab
+
+
+[function = volume-table]
+#check empty table error
+run.function.setup-test-gui=
+bn.add-volume-and-model=
+wait.file-chooser.open=%{dataset}-a.rec
+wait.file-chooser.open=%{dataset}-a.mod
+bn.add-volume-and-model=
+wait.file-chooser.open=%{dataset}-b.rec
+wait.file-chooser.open=%{dataset}-b.mod
+tf.volume-table-2-rel-orient=-38
+tf.volume-table-2-rel-orient.1=-21
+tf.volume-table-2-rel-orient.2=40.5
+bn.add-volume-and-model=
+wait.file-chooser.open=%{dataset}-a.rec
+wait.file-chooser.open=%{dataset}-a.mod
+
+
+[function = reference]
+#check empty particle # error
+run.function.setup-test-gui=
+tf.particle-#=2
+#check empty reference file error
+[[if = test-values]]
+	rb.reference-file=
+	run.function.setup-test-gui=
+	rb.volume-#=
+[[]]
+
+
+[function = missing-wedge-compensation]
+if.not.var.test-values.return=
+cb.use-tilt-range-in-averaging=on
+tf.volume-table-1-tilt-range=-10
+tf.volume-table-1-tilt-range.1=10
+tf.edge-shift=
+#check empty edge shift error
+run.function.setup-test-gui=
+#check that edge shift is not saved when it is not in the dialog
+mn.file=
+mn.save=
+assert.same.file=pi.prm
+tf.edge-shift=2
+tf.volume-table-1-tilt-range=
+tf.volume-table-1-tilt-range.1=
+cb.use-tilt-range-in-averaging=off
+
+
+[function = masking]
+if.not.var.test-values.return=
+#check empty volume masking volume
+rb.volume=
+run.function.setup-test-gui=
+rb.none=
+
+
+[function = cylinder-orientation]
+if.not.var.test-values.return=
+#check particle empty error
+rb.cylinder=
+cb.set-cylinder-orientation-from-reference-particle=off
+run.function.setup-test-gui=
+rb.none=
+
+[function = initial-motive-list]
+
+
+[function = y-axis-type]
+if.not.var.test-values.return=
+rb.end-points-of-contour=
+#check object empty error
+run.function.setup-test-gui=
+tf.object-#=1
+#check contour empty error
+run.function.setup-test-gui=
+tf.object-#=
+rb.original-y-axis=
+
+
+[function = runtab]
+tb.setup.1=
+[[if = test-gui]]
+	mb.run=-
+	mb.run=+
+[[]]
+run.function.iteration-table=
+[[if = test-gui]]
+	run.function.spherical-sampling-for-theta-and-psi=
+[[]]
+#check particle volume x empty error
+run.function.run-test-gui=
+tf.particle-volume-x=%{particle-volume}
+#check particle volume y empty error
+run.function.run-test-gui=
+tf.y=%{particle-volume}
+#check particle volume z empty error
+run.function.run-test-gui=
+tf.z=%{particle-volume}
+cb.use-equal-numbers-of-particles-from-all-tomograms-for-new-reference=on
+run.function.number-of-particles-in-averages=
+cb.use-equal-numbers-of-particles-from-all-tomograms-for-averages=on
+sp.particles-per-cpu=1
+bn.run=
+wait.process.processchunks-%{dataset}=done
+
+
+[function = iteration-table]
+[[if = test-values]]
+	#check empty iteration table error
+	mb.iteration-table-1-run-#=
+	bn.delete-row=
+	run.function.run-test-gui=
+	bn.add-row=
+	#check phi max empty error
+	run.function.run-test-gui=
+[[]]
+tf.iteration-table-1-angular-search-range=%{angular-search-range-max}
+#check phi incr empty error
+run.function.run-test-gui=
+tf.iteration-table-1-angular-search-range.1=%{angular-search-range-incr}
+#check theta max empty error
+run.function.run-test-gui=
+tf.iteration-table-1-angular-search-range.2=%{angular-search-range-max}
+#check theta incr empty error
+run.function.run-test-gui=
+tf.iteration-table-1-angular-search-range.3=%{angular-search-range-incr}
+#check psi max empty error
+run.function.run-test-gui=
+tf.iteration-table-1-angular-search-range.4=%{angular-search-range-max}
+#check psi incr empty error
+run.function.run-test-gui=
+tf.iteration-table-1-angular-search-range.5=%{angular-search-range-incr}
+#check search radius empty error
+run.function.run-test-gui=
+tf.iteration-table-1-search=5
+#check cutoff empty error
+run.function.run-test-gui=
+tf.iteration-table-1-high-freq=.5
+#check sigma empty error
+run.function.run-test-gui=
+tf.iteration-table-1-high-freq.1=.05
+#check reference threshold empty error
+run.function.run-test-gui=
+tf.iteration-table-1-reference=4
+
+
+[function = run-test-gui]
+if.not.var.test-values.return=
+bn.run=
+wait.popup.entry-error=OK
+
+
+[function = spherical-sampling-for-theta-and-psi]
+if.not.var.test-values.return=
+#check sample interval empty error
+rb.full-sphere=
+run.function.run-test-gui=
+rb.half-sphere=
+run.function.run-test-gui=
+rb.none=
+
+
+[function = number-of-particles-in-averages]
+#check number of particles empty error
+run.function.run-test-gui=
+tf.start=3
+#check missing end empty error
+run.function.run-test-gui=
+tf.incr=3
+#check missing end empty error
+run.function.run-test-gui=
+tf.end=9
+
