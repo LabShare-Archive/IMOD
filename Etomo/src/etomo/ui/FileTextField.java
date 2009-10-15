@@ -24,6 +24,9 @@ import etomo.type.ConstStringParameter;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.14  2009/04/27 18:00:07  sueh
+ * <p> bug# 1211 Added exists, which calls File.exists.
+ * <p>
  * <p> Revision 1.13  2009/01/20 20:03:28  sueh
  * <p> bug# 1102 Changed the file button to a SimpleButton and named it after
  * <p> the text field's label.
@@ -167,7 +170,7 @@ final class FileTextField {
   }
 
   boolean isEmpty() {
-    return file == null;
+    return field.getText().matches("\\s*");
   }
 
   boolean exists() {
