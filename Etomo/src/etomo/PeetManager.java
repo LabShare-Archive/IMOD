@@ -59,6 +59,9 @@ import etomo.util.DatasetFiles;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.53  2009/09/16 16:31:21  sueh
+ * <p> bug# 1227 In setParamFile(), setting the tab after setting the status bar.
+ * <p>
  * <p> Revision 1.52  2009/09/01 03:17:35  sueh
  * <p> bug# 1222
  * <p>
@@ -443,7 +446,7 @@ public final class PeetManager extends BaseManager {
           getManagerKey());
       return;
     }
-    String newDirName = peetDialog.getDirectory();
+    String newDirName = peetDialog.getDirectoryString();
     File newDir = new File(newDirName);
     if (origParamFile.getParentFile().equals(newDir)) {
       uiHarness.openMessageDialog(
@@ -546,7 +549,7 @@ public final class PeetManager extends BaseManager {
     if (name == null || name.matches("\\s*")) {
       return false;
     }
-    String dirName = peetDialog.getDirectory();
+    String dirName = peetDialog.getDirectoryString();
     if (!isUserDirValid(new File(dirName), name)) {
       return false;
     }
