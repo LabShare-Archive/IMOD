@@ -25,6 +25,9 @@ import etomo.util.Utilities;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.34  2009/04/13 22:56:07  sueh
+ * <p> Removed newstuff.
+ * <p>
  * <p> Revision 3.33  2009/02/27 03:53:18  sueh
  * <p> bug# 1172 Added experimental automation recording background color
  * <p> (newstuff only).
@@ -266,7 +269,7 @@ final class LabeledTextField {
 
   boolean isEmpty() {
     String text = textField.getText();
-    return text == null | text.matches("\\s*");
+    return text == null || text.matches("\\s*");
   }
 
   void setText(ConstEtomoNumber text) {
