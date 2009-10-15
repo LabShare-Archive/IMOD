@@ -26,6 +26,9 @@ import javax.swing.border.BevelBorder;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.2  2007/03/27 00:03:25  sueh
+ * <p> bug# 964 Automatically added tooltip.  Made class more thread-safe.
+ * <p>
  * <p> Revision 1.1  2007/03/01 01:38:00  sueh
  * <p> bug# 964 Wraps a toggle HeaderCell button.  When pressed in runs the highlight
  * <p> function in parent and group.  Also tells the other highlighter buttons with the
@@ -46,7 +49,8 @@ final class HighlighterButton {
    * @param parent
    * @param group
    */
-  private HighlighterButton(final Highlightable parent, final Highlightable group) {
+  private HighlighterButton(final Highlightable parent,
+      final Highlightable group) {
     this.parent = parent;
     this.group = group;
     //group
@@ -61,11 +65,22 @@ final class HighlighterButton {
     cell.addActionListener(new HBActionListener(this));
     setToolTipText();
   }
-  
-  static HighlighterButton getInstance(final Highlightable parent, final Highlightable group) {
-    HighlighterButton instance = new HighlighterButton(parent,group);
+
+  static HighlighterButton getInstance(final Highlightable parent,
+      final Highlightable group) {
+    HighlighterButton instance = new HighlighterButton(parent, group);
     instance.addListeners();
     return instance;
+  }
+
+  void setHeaders(String tableHeader, HeaderCell rowHeader,
+      HeaderCell columnHeader) {
+    cell.setTableHeader(tableHeader);
+    cell.setRowHeader(rowHeader);
+    cell.setColumnHeader(columnHeader);
+    cell.setName();
+    rowHeader.addChild(cell);
+    columnHeader.addChild(cell);
   }
 
   boolean isHighlighted() {
@@ -80,7 +95,8 @@ final class HighlighterButton {
     cell.setToolTipText(text);
   }
 
-  void add(final JPanel panel, final GridBagLayout layout, final GridBagConstraints constraints) {
+  void add(final JPanel panel, final GridBagLayout layout,
+      final GridBagConstraints constraints) {
     cell.add(panel, layout, constraints);
   }
 
@@ -119,11 +135,11 @@ final class HighlighterButton {
 
   void setForeground() {
   }
-  
+
   private void setToolTipText() {
     cell.setToolTipText("Press to highlight row.");
   }
-  
+
   private void addListeners() {
     cell.addActionListener(new HBActionListener(this));
   }
