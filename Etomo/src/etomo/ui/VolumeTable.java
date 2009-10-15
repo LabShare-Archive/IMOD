@@ -50,6 +50,9 @@ import etomo.type.Run3dmodMenuOptions;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.40  2009/09/28 18:35:55  sueh
+ * <p> bug# 1235 Added VolumeRow.setNames.
+ * <p>
  * <p> Revision 1.39  2009/09/01 03:18:25  sueh
  * <p> bug# 1222
  * <p>
@@ -263,19 +266,19 @@ final class VolumeTable implements Expandable, Highlightable,
     instance.addListeners();
     return instance;
   }
-  
+
   boolean isFnVolumeExpanded() {
     return btnExpandFnVolume.isExpanded();
   }
-  
+
   boolean isFnModParticleExpanded() {
     return btnExpandFnModParticle.isExpanded();
   }
-  
+
   boolean isInitMotlFileExpanded() {
     return btnExpandInitMotlFile.isExpanded();
   }
-  
+
   public void expand(final GlobalExpandButton button) {
   }
 
@@ -326,19 +329,19 @@ final class VolumeTable implements Expandable, Highlightable,
   boolean fixIncorrectPaths(boolean choosePathEveryRow) {
     return rowList.fixIncorrectPaths(choosePathEveryRow);
   }
-  
+
   boolean isCorrectPathNull() {
     return parent.isCorrectPathNull();
   }
-  
+
   JFileChooser getFileChooserInstance() {
     return parent.getFileChooserInstance();
   }
-  
+
   void setCorrectPath(String correctPath) {
     parent.setCorrectPath(correctPath);
   }
-  
+
   String getCorrectPath() {
     return parent.getCorrectPath();
   }
@@ -484,11 +487,11 @@ final class VolumeTable implements Expandable, Highlightable,
     constraints.gridwidth = GridBagConstraints.REMAINDER;
     header2RelativeOrientZ.add(pnlTable, layout, constraints);
   }
-  
+
   HeaderCell getRelativeOrientHeaderCell() {
     return header1RelativeOrient;
   }
-  
+
   HeaderCell getTiltRangeHeaderCell() {
     return header1TiltRange;
   }
@@ -521,7 +524,11 @@ final class VolumeTable implements Expandable, Highlightable,
     }
   }
 
-  boolean validateRun() {
+  /**
+   * Validate for running.  Returns error message.
+   * @return null if valid
+   */
+  String validateRun() {
     return rowList.validateRun();
   }
 
@@ -804,14 +811,22 @@ final class VolumeTable implements Expandable, Highlightable,
       return true;
     }
 
-    private boolean validateRun() {
+    /**
+     * Validate for running.  Returns error message.
+     * @return null if valid
+     */
+    private String validateRun() {
+      if (list.size()<1) {
+        return "Must enter at least one row in "+ LABEL;
+      }
       for (int i = 0; i < list.size(); i++) {
         VolumeRow row = (VolumeRow) list.get(i);
-        if (!row.validateRun()) {
-          return false;
+        String errorMessage = row.validateRun();
+        if (errorMessage != null) {
+          return errorMessage;
         }
       }
-      return true;
+      return null;
     }
 
     private void getParameters(final PeetMetaData metaData) {

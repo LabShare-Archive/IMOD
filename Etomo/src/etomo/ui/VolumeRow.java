@@ -28,6 +28,9 @@ import etomo.type.Run3dmodMenuOptions;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.26  2009/09/28 18:35:39  sueh
+ * <p> bug# 1235 Added setNames.
+ * <p>
  * <p> Revision 1.25  2009/04/27 18:06:42  sueh
  * <p> bug# 1211 Added checkIncorrectPaths, fixIncorrectPaths, and
  * <p> fixIncorrectPath.
@@ -394,15 +397,17 @@ final class VolumeRow implements Highlightable {
         .getExpandedValue(), fnModParticle.getExpandedValue(), menuOptions);
   }
 
-  boolean validateRun() {
+  /**
+   * Validate for running.  Returns error message.
+   * @return null if valid
+   */
+  String validateRun() {
     if (fnModParticle.isEmpty()) {
-      UIHarness.INSTANCE.openMessageDialog(VolumeTable.LABEL
-          + ":  In row " + number.getText() + ", "
-          + VolumeTable.FN_MOD_PARTICLE_HEADER1 + " must not be empty.",
-          "Entry Error", manager.getManagerKey());
-      return false;
+      return VolumeTable.LABEL
+      + ":  In row " + number.getText() + ", "
+      + VolumeTable.FN_MOD_PARTICLE_HEADER1 + " must not be empty.";
     }
-    return true;
+    return null;
   }
 
   private void setExpandableValues(final FieldCell fieldCell,
