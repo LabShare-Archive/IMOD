@@ -50,6 +50,11 @@ import etomo.type.Run3dmodMenuOptions;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.41  2009/10/15 23:41:04  sueh
+ * <p> bug# 1274 In validateRun returning the error string instead of boolean
+ * <p> because the tab must be changed before the error message can be
+ * <p> popped up.
+ * <p>
  * <p> Revision 1.40  2009/09/28 18:35:55  sueh
  * <p> bug# 1235 Added VolumeRow.setNames.
  * <p>
@@ -192,6 +197,7 @@ final class VolumeTable implements Expandable, Highlightable,
 
   static final String FN_MOD_PARTICLE_HEADER1 = "Model";
   static final String LABEL = "Volume Table";
+  static final String TILT_RANGE_HEADER1_LABEL = "Tilt Range";
 
   private final RowList rowList = new RowList();
   private final JPanel rootPanel = new JPanel();
@@ -209,7 +215,7 @@ final class VolumeTable implements Expandable, Highlightable,
   private final HeaderCell header1FnModParticle = new HeaderCell(
       FN_MOD_PARTICLE_HEADER1);
   private final HeaderCell header1InitMotlFile = new HeaderCell("Initial");
-  private final HeaderCell header1TiltRange = new HeaderCell("Tilt Range");
+  private final HeaderCell header1TiltRange = new HeaderCell(TILT_RANGE_HEADER1_LABEL);
   private final HeaderCell header1RelativeOrient = new HeaderCell(
       "Rel. Orient.");
   private final HeaderCell header2VolumeNumber = new HeaderCell();
@@ -528,8 +534,8 @@ final class VolumeTable implements Expandable, Highlightable,
    * Validate for running.  Returns error message.
    * @return null if valid
    */
-  String validateRun() {
-    return rowList.validateRun();
+  String validateRun(boolean tiltRangeRequired) {
+    return rowList.validateRun(tiltRangeRequired);
   }
 
   private void deleteRow(VolumeRow row) {
@@ -815,13 +821,13 @@ final class VolumeTable implements Expandable, Highlightable,
      * Validate for running.  Returns error message.
      * @return null if valid
      */
-    private String validateRun() {
+    private String validateRun(boolean tiltRangeRequired) {
       if (list.size()<1) {
         return "Must enter at least one row in "+ LABEL;
       }
       for (int i = 0; i < list.size(); i++) {
         VolumeRow row = (VolumeRow) list.get(i);
-        String errorMessage = row.validateRun();
+        String errorMessage = row.validateRun(tiltRangeRequired);
         if (errorMessage != null) {
           return errorMessage;
         }
