@@ -1906,10 +1906,12 @@ c
         call dopen(3,card,'ro','f')
         read(3,*,err=2412,end=2412)(alpha(i),i=1,nviews)
         close(3)
+        ifalpha = 1
         do i=1,nviews
-          if(abs(alpha(i)).gt.1.e-5)ifalpha=2
+          if(abs(alpha(i) - alpha(1)) .gt. 1.e-5)ifalpha=2
         enddo
         if (ifalpha .eq. 2) write(6,2201)
+        if (ifalpha .eq. 1) write(6,2202)-alpha(1)
       endif
 c       
       if (PipGetString('WeightFile', card) .eq. 0) then
@@ -2572,6 +2574,7 @@ c       be computed, and find number of vertical planes that are needed
 c       
       if (ifZfac .gt. 0 .and. ifalpha .eq. 0) ifalpha = 1
       ithickout=ithick
+      ycenModProj = ITHICK / 2 + 0.5 + yoffset
       if(ifalpha.eq.1.and.nxwarp.eq.0.and.intordxtilt.gt.0 .and.
      &    ifZfac .eq. 0 .and. .not.recReproj)then
         ifalpha=-1
@@ -2971,6 +2974,8 @@ C
 2101  format(/,' Output slice shifted up',f7.1,' and to right',f7.1,
      &    ' pixels')
 2201  format(/,' Alpha tilting to be applied with angles from file')
+2202  format(/,' Constant alpha tilt of',f6.1,' to be applied based on ',
+     &    'angles from file')
 2301  format(/,' Global alpha tilt of',f6.1,' will be applied')
 2401  format(/,' Local tilt alignment information read from file')
 2501  format(/,' Local alignment positions and shifts reduced by',f7.4)
@@ -3953,7 +3958,7 @@ c         Loop on the views in the file
         do nv = 1, nvorig
           iv = mapnv(nv)
           if (iv .gt. 0) then
-            zz = (ri-ycen) * compress(iv)
+            zz = (ri-ycenModProj) * compress(iv)
             yy = rlslice-slicen
             if (nxwarp.eq.0) then
               zpart = yy*sal(iv)*sbet(iv) + zz*(cal(iv)*sbet(iv) +xzfac(iv)) +
@@ -4012,6 +4017,9 @@ c       Set to open contour, show values etc., and show sphere on section only
 
 c       
 c       $Log$
+c       Revision 3.46  2009/06/26 05:17:08  mast
+c       Memory allocation with environment variable to control it
+c
 c       Revision 3.45  2009/05/22 22:53:07  mast
 c       Switch to using full-sized model, protect against dividing by cos 90
 c
