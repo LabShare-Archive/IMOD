@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+10/15/09: In Tilt, fixed reprojection from model when there is a single X axis
+tilt and untilted slices are computed.  Points at high tilt were miscentered.
+
 10/15/09: In Etomo, added more error checking to PEET.
 
 10/14/09: In Extractpieces, Extracttilts, Extractmaggrad, and Newstack,
