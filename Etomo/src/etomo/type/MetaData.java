@@ -28,6 +28,11 @@ import etomo.util.Utilities;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.52  2009/10/13 17:39:54  sueh
+ * <p> bug# 1278 Changed setExcludeProjectionsA and B to
+ * <p> setExcludeProjections.  Removed whitespace so that copytomocoms won't
+ * <p> failed.
+ * <p>
  * <p> Revision 3.51  2009/09/20 21:30:28  sueh
  * <p> bug# 1268 In MetaData constructor set a display value for posBinningB.
  * <p>
@@ -518,6 +523,8 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
   private final EtomoBoolean2 postSqueezeVolInputTrimVol = new EtomoBoolean2(
       POST_KEY + "." + SQUEEZE_VOL_KEY + "." + INPUT_KEY + TRIM_VOL_KEY);
 
+  private final EtomoNumber postCurTab = new EtomoNumber(POST_KEY + ".CurTab");
+
   public MetaData(ApplicationManager manager) {
     this.manager = manager;
     squeezevolParam = new SqueezevolParam(manager);
@@ -710,6 +717,10 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
     else {
       stack3dFindBinningA.set(binning);
     }
+  }
+
+  public void setPostCurTab(int input) {
+    postCurTab.set(input);
   }
 
   public void setCombineVolcombineParallel(boolean combineVolcombineParallel) {
@@ -978,6 +989,7 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
     stackBinningB.reset();
     stack3dFindBinningA.reset();
     stack3dFindBinningB.reset();
+    postCurTab.reset();
     //load
     prepend = createPrepend(prepend);
     String group = prepend + ".";
@@ -1148,6 +1160,7 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
     posBinningB.load(props, prepend);
     stack3dFindBinningA.load(props, prepend);
     stack3dFindBinningB.load(props, prepend);
+    postCurTab.load(props,prepend);
   }
 
   public void setNoBeamTiltSelected(AxisID axisID, boolean selected) {
@@ -1338,6 +1351,7 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
     stackBinningB.store(props, prepend);
     stack3dFindBinningA.store(props, prepend);
     stack3dFindBinningB.store(props, prepend);
+    postCurTab.store(props,prepend);
   }
 
   public boolean getTrackUseRaptor() {
@@ -1622,6 +1636,10 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
       return stack3dFindBinningB.getDefaultedInt();
     }
     return stack3dFindBinningA.getDefaultedInt();
+  }
+  
+  public ConstEtomoNumber getPostCurTab() {
+    return postCurTab;
   }
 
   public ConstEtomoNumber getCombineVolcombineParallel() {
