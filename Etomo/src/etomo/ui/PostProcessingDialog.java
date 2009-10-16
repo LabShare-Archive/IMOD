@@ -15,6 +15,7 @@ import etomo.comscript.SqueezevolParam;
 import etomo.comscript.TrimvolParam;
 import etomo.comscript.WarpVolParam;
 import etomo.type.AxisID;
+import etomo.type.ConstEtomoNumber;
 import etomo.type.ConstMetaData;
 import etomo.type.DialogType;
 import etomo.type.MetaData;
@@ -80,6 +81,14 @@ public final class PostProcessingDialog extends ProcessDialog implements
     tabbedPane.addChangeListener(new TabChangeListener(this));
   }
 
+  private void changeTab(ConstEtomoNumber index) {
+    if (index == null || index.isNull()) {
+      return;
+    }
+    tabbedPane.setSelectedIndex(index.getInt());
+    changeTab();
+  }
+
   private void changeTab() {
     ((Container) tabbedPane.getComponentAt(curTab.toInt())).removeAll();
     curTab = Tab.getInstance(tabbedPane.getSelectedIndex());
@@ -130,8 +139,9 @@ public final class PostProcessingDialog extends ProcessDialog implements
   public void setParameters(ConstMetaData metaData) {
     flattenPanel.setParameters(metaData);
     squeezeVolPanel.setParameters(metaData);
+    changeTab(metaData.getPostCurTab());
   }
-  
+
   public FlattenWarpDisplay getFlattenWarpDisplay() {
     return flattenPanel.getFlattenWarpDisplay();
   }
@@ -139,6 +149,7 @@ public final class PostProcessingDialog extends ProcessDialog implements
   public void getParameters(MetaData metaData) {
     flattenPanel.getParameters(metaData);
     squeezeVolPanel.getParameters(metaData);
+    metaData.setPostCurTab(curTab.index);
   }
 
   public boolean getParameters(WarpVolParam param) {
@@ -240,6 +251,9 @@ public final class PostProcessingDialog extends ProcessDialog implements
 }
 /**
  * <p> $Log$
+ * <p> Revision 3.45  2009/10/01 18:51:19  sueh
+ * <p> bug# 1239 Changed getFlattenWarpDisplay to getFlattenWarpButton.
+ * <p>
  * <p> Revision 3.44  2009/09/17 19:12:40  sueh
  * <p> Removed unnecessary print.
  * <p>
