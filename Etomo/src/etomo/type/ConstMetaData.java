@@ -19,6 +19,7 @@ import etomo.comscript.FortranInputString;
 public interface ConstMetaData {
   public static final String rcsid = "$Id$";
 
+  public ConstEtomoNumber getPostCurTab();
   public AxisType getAxisType();
 
   public String getDatasetName();
@@ -128,6 +129,9 @@ public interface ConstMetaData {
 
 /**
  * <p> $Log$
+ * <p> Revision 3.53  2009/09/01 02:38:06  sueh
+ * <p> bug# 1222 Added 3d find binning.
+ * <p>
  * <p> Revision 3.52  2009/06/05 02:03:13  sueh
  * <p> bug# 1219 Added getPostFlattenWarpSpacingInX,
  * <p> getPostFlattenWarpSpacingInY, isPostFlattenWarpContoursOnOneSurface,
