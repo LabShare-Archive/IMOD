@@ -54,6 +54,9 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.79  2009/10/16 21:13:55  sueh
+ * <p> Reformatted some comments.
+ * <p>
  * <p> Revision 1.78  2009/10/15 23:38:53  sueh
  * <p> bug# 1274 Added validations.  Factored out UseExistingProjectPanel.
  * <p>
@@ -356,8 +359,9 @@ public final class PeetDialog implements ContextMenu, AbstractParallelDialog,
   private static final String Z_LABEL = "Z";
   private static final String MISSING_WEDGE_COMPENSATION_LABEL = "Missing Wedge Compensation";
   private static final String EDGE_SHIFT_LABEL = "Edge shift";
-  private static final String TILT_RANGE_LABEL = "Use tilt range in averaging";
+   static final String TILT_RANGE_LABEL = "Use tilt range in averaging";
   private static final String LST_THRESHOLDS_LABEL = "Number of Particles in Averages";
+  static final String FLG_WEDGE_WEIGHT_LABEL = "Use tilt range in alignment";
 
   private final EtomoPanel rootPanel = new EtomoPanel();
   private final FileTextField ftfDirectory = new FileTextField(DIRECTORY_LABEL
@@ -490,7 +494,7 @@ public final class PeetDialog implements ContextMenu, AbstractParallelDialog,
   private final Run3dmodButton btnRef = Run3dmodButton.get3dmodInstance(
       "Open Reference Files in 3dmod", this);
   private final CheckBox cbFlgWedgeWeight = new CheckBox(
-      "Use tilt range in alignment");
+      FLG_WEDGE_WEIGHT_LABEL);
   private final CheckBox cbNWeightGroup = new CheckBox(N_WEIGHT_GROUP_LABEL);
   private final Spinner sNWeightGroup = Spinner.getInstance(
       N_WEIGHT_GROUP_LABEL, MatlabParam.N_WEIGHT_GROUP_DEFAULT,
@@ -1514,7 +1518,8 @@ public final class PeetDialog implements ContextMenu, AbstractParallelDialog,
       return false;
     }
     //Validate volume table
-    String errorMessage = volumeTable.validateRun();
+    String errorMessage = volumeTable.validateRun(cbTiltRange.isSelected()
+        || cbFlgWedgeWeight.isSelected());
     if (errorMessage != null) {
       changeTab(0);
       UIHarness.INSTANCE.openMessageDialog(errorMessage, "Entry Error", manager
