@@ -48,7 +48,7 @@ c
 c       
       real*4 DELXX,xcenin,slicen,XCEN,YCEN,baselog,compress(limview),yoffset
       real*4 xzfac(limview), yzfac(limview), edgeFill, zeroWeight, flatFrac
-      real*4 expWeight(limview)
+      real*4 expWeight(limview),ycenModProj
       integer*4 IMAP,nbase,ITHWID ,idelslice,newmode,mapuse(limview),
      &    iflog,nreplic ,iplane,ipextra,interpfac,interpord ,ifbpwrk,
      &    ifbpzwrk,ifbpiw,ifbprw,ifbpzw,nprjfbp ,nvertneed,intordxtilt,
