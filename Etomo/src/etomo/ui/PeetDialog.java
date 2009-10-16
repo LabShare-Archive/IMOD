@@ -54,6 +54,9 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.78  2009/10/15 23:38:53  sueh
+ * <p> bug# 1274 Added validations.  Factored out UseExistingProjectPanel.
+ * <p>
  * <p> Revision 1.77  2009/09/20 21:33:28  sueh
  * <p> bug# 1268 Added timestamp and dialog identification to log.
  * <p>
@@ -82,10 +85,15 @@ import etomo.util.Utilities;
  * <p> bug# 1158 Changed id and exception classes in LogFile.
  * <p>
  * <p> Revision 1.69  2009/01/20 20:19:01  sueh
- * <p> bug# 1102 Changed labeled panels to type EtomoPanel so that they can name themselves.
+ * <p> bug# 1102 Changed labeled panels to type EtomoPanel so that they can name
+ * <p> themselves.
  * <p>
  * <p> Revision 1.68  2009/01/13 19:39:36  sueh
- * <p> bug# 1170 Added cbNWeightGroup so that nWeightGroup can be enabled independently of flgWedgeWeight.  Getting the minimum of the nWeightGroup spinner from MatlabParam.  Saving cbNWeightGroup in metadata, so that its setting is not lost when it is disabled.  CbNWeightGroup enables sNWeightGroup.
+ * <p> bug# 1170 Added cbNWeightGroup so that nWeightGroup can be enabled
+ * <p> independently of flgWedgeWeight.  Getting the minimum of the nWeightGroup
+ * <p> spinner from MatlabParam.  Saving cbNWeightGroup in metadata, so that its
+ * <p> setting is not lost when it is disabled.  CbNWeightGroup enables
+ * <p> sNWeightGroup.
  * <p>
  * <p> Revision 1.67  2008/10/10 20:43:24  sueh
  * <p> bug# 1142 Clear tiltRange when tiltRange check box is unchecked.
@@ -132,8 +140,8 @@ import etomo.util.Utilities;
  * <p> bug# 1060 Changed meanFill to flgMeanFill.
  * <p>
  * <p> Revision 1.54  2007/12/10 22:45:08  sueh
- * <p> bug# 1041 Passing the ProcessName to processchunks instead of setting it in
- * <p> getParameters because it is required and has been added to the
+ * <p> bug# 1041 Passing the ProcessName to processchunks instead of setting it
+ * <p> in getParameters because it is required and has been added to the
  * <p> ProcesschunksParam constructor.
  * <p>
  * <p> Revision 1.53  2007/08/02 22:38:55  sueh
