@@ -75,11 +75,30 @@ tf.particle-#=2
 
 [function = missing-wedge-compensation]
 if.not.var.test-values.return=
+#check empty tilt range error
+#tilt range required with averaging
 cb.use-tilt-range-in-averaging=on
+run.function.setup-test-gui=
+#tilt range required with alignment alone (bug# 1234)
+cb.use-tilt-range-in-alignment=on
+cb.use-tilt-range-in-averaging=off
+run.function.setup-test-gui=
+cb.use-tilt-range-in-averaging=on
+cb.use-tilt-range-in-alignment=off
 tf.volume-table-1-tilt-range=-10
 tf.volume-table-1-tilt-range.1=10
-tf.edge-shift=
+run.function.setup-test-gui=
+tf.volume-table-2-tilt-range=-10
+tf.volume-table-2-tilt-range.1=10
+run.function.setup-test-gui=
+tf.volume-table-3-tilt-range=-10
+tf.volume-table-3-tilt-range.1=10
+tf.volume-table-2-tilt-range=
+tf.volume-table-2-tilt-range.1=
+tf.volume-table-3-tilt-range=
+tf.volume-table-3-tilt-range.1=
 #check empty edge shift error
+tf.edge-shift=
 run.function.setup-test-gui=
 #check that edge shift is not saved when it is not in the dialog
 mn.file=
@@ -127,6 +146,13 @@ tb.setup.1=
 [[if = test-gui]]
 	mb.run=-
 	mb.run=+
+[[]]
+[[if = test-values]]
+	#ccmode should have changed when flgwedgeweight was checked
+	mb.run.1=A
+	assert.rb.true-local-correlation-coefficent=on
+	rb.local-energy-normalized-cross-correlation=
+	mb.run.1=B
 [[]]
 run.function.iteration-table=
 [[if = test-gui]]
