@@ -1,5 +1,7 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+10/16/09: In Etomo, saving the currently open tab in Post Processing.
+
 10/15/09: In Tilt, fixed reprojection from model when there is a single X axis
 tilt and untilted slices are computed.  Points at high tilt were miscentered.
 
