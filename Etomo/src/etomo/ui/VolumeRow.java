@@ -28,6 +28,11 @@ import etomo.type.Run3dmodMenuOptions;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.27  2009/10/15 23:40:52  sueh
+ * <p> bug# 1274 In validateRun returning the error string instead of boolean
+ * <p> because the tab must be changed before the error message can be
+ * <p> popped up.
+ * <p>
  * <p> Revision 1.26  2009/09/28 18:35:39  sueh
  * <p> bug# 1235 Added setNames.
  * <p>
@@ -166,7 +171,7 @@ final class VolumeRow implements Highlightable {
     btnHighlighter = HighlighterButton.getInstance(this, table);
     number.setText(String.valueOf(index + 1));
   }
-  
+
   void setNames() {
     tiltRangeMin.setHeaders(VolumeTable.LABEL, number, table
         .getTiltRangeHeaderCell());
@@ -369,7 +374,7 @@ final class VolumeRow implements Highlightable {
     MatlabParam.Volume volume = matlabParam.getVolume(index);
     if (useInitMotlFile) {
       setExpandableValues(initMotlFile, volume.getInitMotlString());
-      }
+    }
     if (useTiltRange) {
       setTiltRangeMin(volume.getTiltRangeStart());
       setTiltRangeMax(volume.getTiltRangeEnd());
@@ -401,11 +406,16 @@ final class VolumeRow implements Highlightable {
    * Validate for running.  Returns error message.
    * @return null if valid
    */
-  String validateRun() {
+  String validateRun(boolean tiltRangeRequired) {
     if (fnModParticle.isEmpty()) {
-      return VolumeTable.LABEL
-      + ":  In row " + number.getText() + ", "
-      + VolumeTable.FN_MOD_PARTICLE_HEADER1 + " must not be empty.";
+      return VolumeTable.LABEL + ":  In row " + number.getText() + ", "
+          + VolumeTable.FN_MOD_PARTICLE_HEADER1 + " must not be empty.";
+    }
+    if (tiltRangeRequired && (tiltRangeMin.isEmpty() || tiltRangeMax.isEmpty())) {
+      return VolumeTable.LABEL + ":  In row " + number.getText() + ", "
+          + VolumeTable.TILT_RANGE_HEADER1_LABEL + " is required when either "
+          + PeetDialog.TILT_RANGE_LABEL + " or "
+          + PeetDialog.FLG_WEDGE_WEIGHT_LABEL + " is checked.";
     }
     return null;
   }
