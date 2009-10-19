@@ -37,6 +37,9 @@ import etomo.type.Run3dmodMenuOptions;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.37  2009/09/01 03:18:25  sueh
+ * <p> bug# 1222
+ * <p>
  * <p> Revision 3.36  2009/01/20 19:43:25  sueh
  * <p> bug# 1102 Changed labeled panels to EtomoPanel so that they can name themselves.
  * <p>
@@ -301,24 +304,16 @@ public final class AlignmentEstimationDialog extends ProcessDialog implements
   public static final String rcsid = "$Id$";
 
   private EtomoPanel pnlAlignEst = new EtomoPanel();
-
   private BeveledBorder border = new BeveledBorder("Fine Alignment");
-
   private TiltalignPanel pnlTiltalign;
-
   private JPanel panelButton = new JPanel();
-
   private final MultiLineButton btnComputeAlignment;
-
   private Run3dmodButton btnImod = Run3dmodButton.get3dmodInstance(
       "View/Edit Fiducial Model", this);
-
   private MultiLineButton btnView3DModel = new MultiLineButton(
       "<html><b>View 3D Model</b>");
-
   private Run3dmodButton btnViewResiduals = Run3dmodButton.get3dmodInstance(
       "View Residual Vectors", this);
-
   private final AlignmentEstimationActionListner actionListener;
 
   public AlignmentEstimationDialog(ApplicationManager appMgr, AxisID axisID) {
