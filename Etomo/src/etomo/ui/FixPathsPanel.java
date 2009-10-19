@@ -28,6 +28,9 @@ import etomo.type.DialogType;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.2  2009/09/01 03:18:25  sueh
+ * <p> bug# 1222
+ * <p>
  * <p> Revision 1.1  2009/04/27 18:00:47  sueh
  * <p> bug# 1211 Panel which allows the user to fix file paths when the files have
  * <p> been moved.
@@ -39,10 +42,12 @@ final class FixPathsPanel implements Expandable {
   private final JPanel pnlRoot = new JPanel();
   private final EtomoPanel pnlMain = new EtomoPanel();
   private final JPanel pnlBody = new JPanel();
-  private final JLabel lblwarning = new JLabel("Files cannot be found.  PEET may not run.");
+  private final JLabel lblwarning = new JLabel(
+      "Files cannot be found.  PEET may not run.");
   private final CheckBox cbChoosePathEveryRow = new CheckBox(
-      "Choose a path for every row and separate file");
-  private final MultiLineButton bnFixPaths= new MultiLineButton("Fix Incorrect Paths");
+      "Files may be in separate directories");
+  private final MultiLineButton bnFixPaths = new MultiLineButton(
+      "Fix Incorrect Paths");
 
   private final PanelHeader header;
 
@@ -50,14 +55,25 @@ final class FixPathsPanel implements Expandable {
   private final BaseManager manager;
   private final AxisID axisID;
 
-  private FixPathsPanel(FileContainer fileContainer, BaseManager manager, AxisID axisID,
-      DialogType dialogType) {
-    this.fileContainer=fileContainer;
+  private void setTooltips() {
+    cbChoosePathEveryRow
+        .setToolTipText("Causes a file chooser to be brought up for each row in "
+            + "the Volume Table.  Otherwise the file chooser will only be "
+            + "brought up when a file cannot be found in either the original "
+            + "path or the most recent new path.");
+    bnFixPaths
+        .setToolTipText("Brings up file chooser(s) so that the new location(s) "
+            + "of any files that cannot be found can be specified.");
+  }
+
+  private FixPathsPanel(FileContainer fileContainer, BaseManager manager,
+      AxisID axisID, DialogType dialogType) {
+    this.fileContainer = fileContainer;
     this.manager = manager;
     this.axisID = axisID;
     header = PanelHeader.getInstance("Fix File Paths", this, dialogType);
     //root panel
-    pnlRoot.setLayout(new BoxLayout(pnlRoot,BoxLayout.X_AXIS));
+    pnlRoot.setLayout(new BoxLayout(pnlRoot, BoxLayout.X_AXIS));
     pnlRoot.setVisible(false);
     pnlRoot.add(pnlMain);
     //main panel
@@ -72,7 +88,7 @@ final class FixPathsPanel implements Expandable {
     pnlBody.add(lblwarning);
     pnlBody.add(cbChoosePathEveryRow);
     JPanel pnlButton = new JPanel();
-    pnlButton.setLayout(new BoxLayout(pnlButton,BoxLayout.X_AXIS));
+    pnlButton.setLayout(new BoxLayout(pnlButton, BoxLayout.X_AXIS));
     pnlButton.add(Box.createHorizontalGlue());
     bnFixPaths.setSize();
     pnlButton.add(bnFixPaths.getComponent());
@@ -82,9 +98,11 @@ final class FixPathsPanel implements Expandable {
     pnlMain.setMaximumSize(boxLayout.preferredLayoutSize(pnlMain));
   }
 
-  static FixPathsPanel getInstance(FileContainer fileContainer,BaseManager manager, AxisID axisID,
-      DialogType dialogType) {
-    FixPathsPanel instance = new FixPathsPanel(fileContainer,manager, axisID, dialogType);
+  static FixPathsPanel getInstance(FileContainer fileContainer,
+      BaseManager manager, AxisID axisID, DialogType dialogType) {
+    FixPathsPanel instance = new FixPathsPanel(fileContainer, manager, axisID,
+        dialogType);
+    instance.setTooltips();
     instance.addListeners();
     return instance;
   }
@@ -96,7 +114,7 @@ final class FixPathsPanel implements Expandable {
   Component getRootComponent() {
     return pnlRoot;
   }
-  
+
   void setIncorrectPaths(boolean incorrectPaths) {
     if (incorrectPaths) {
       pnlRoot.setVisible(true);
@@ -106,11 +124,11 @@ final class FixPathsPanel implements Expandable {
       lblwarning.setVisible(false);
     }
   }
-  
+
   private void action() {
     fileContainer.fixIncorrectPaths(cbChoosePathEveryRow.isSelected());
   }
-  
+
   public void expand(GlobalExpandButton button) {
   }
 
@@ -120,7 +138,7 @@ final class FixPathsPanel implements Expandable {
     }
     UIHarness.INSTANCE.pack(axisID, manager);
   }
-  
+
   private final class FixPathsPanelListener implements ActionListener {
     private final FixPathsPanel adaptee;
 
