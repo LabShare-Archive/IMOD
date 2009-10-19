@@ -1,5 +1,7 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+10/19/09: In Etomo - PEET, made the "fix file paths" panel more understandable.
+
 10/16/09: In Etomo - PEET, added error checking for the volume table.
 
 10/16/09: In Etomo, saving the currently open tab in Post Processing.
