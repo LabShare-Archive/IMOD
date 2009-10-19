@@ -54,6 +54,10 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.80  2009/10/16 23:56:08  sueh
+ * <p> bug# 1234 In validateRun, passed cbTiltRange and cbFlgWedgeWeight
+ * <p> selection state to VolumeTable.validateRun.
+ * <p>
  * <p> Revision 1.79  2009/10/16 21:13:55  sueh
  * <p> Reformatted some comments.
  * <p>
@@ -359,7 +363,7 @@ public final class PeetDialog implements ContextMenu, AbstractParallelDialog,
   private static final String Z_LABEL = "Z";
   private static final String MISSING_WEDGE_COMPENSATION_LABEL = "Missing Wedge Compensation";
   private static final String EDGE_SHIFT_LABEL = "Edge shift";
-   static final String TILT_RANGE_LABEL = "Use tilt range in averaging";
+  static final String TILT_RANGE_LABEL = "Use tilt range in averaging";
   private static final String LST_THRESHOLDS_LABEL = "Number of Particles in Averages";
   static final String FLG_WEDGE_WEIGHT_LABEL = "Use tilt range in alignment";
 
@@ -493,8 +497,7 @@ public final class PeetDialog implements ContextMenu, AbstractParallelDialog,
   private final EtomoPanel pnlCcMode = new EtomoPanel();
   private final Run3dmodButton btnRef = Run3dmodButton.get3dmodInstance(
       "Open Reference Files in 3dmod", this);
-  private final CheckBox cbFlgWedgeWeight = new CheckBox(
-      FLG_WEDGE_WEIGHT_LABEL);
+  private final CheckBox cbFlgWedgeWeight = new CheckBox(FLG_WEDGE_WEIGHT_LABEL);
   private final CheckBox cbNWeightGroup = new CheckBox(N_WEIGHT_GROUP_LABEL);
   private final Spinner sNWeightGroup = Spinner.getInstance(
       N_WEIGHT_GROUP_LABEL, MatlabParam.N_WEIGHT_GROUP_DEFAULT,
@@ -989,8 +992,11 @@ public final class PeetDialog implements ContextMenu, AbstractParallelDialog,
     return ltfFnOutput.getText();
   }
 
+  /**
+   * 
+   */
   public boolean usingParallelProcessing() {
-    return true;
+    return tabPane.getSelectedIndex() == 1;
   }
 
   public void expand(final GlobalExpandButton button) {
@@ -1724,7 +1730,12 @@ public final class PeetDialog implements ContextMenu, AbstractParallelDialog,
       pnlRun.add(pnlRunBody.getContainer());
       pnlSetup.remove(pnlSetupBody);
     }
+    updateParallelProcess();
     UIHarness.INSTANCE.pack(axisID, manager);
+  }
+  
+  public void updateParallelProcess() {
+    manager.setParallelDialog(axisID, usingParallelProcessing());
   }
 
   private void referenceFileAction(ActionEvent action) {
