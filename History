@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+10/19/09: In Etomo, only displaying the parallel process panel when the current
+tab uses it.
+
 10/19/09: In Etomo - CTF Correction, added the InvertTiltAngles parameters,
 which is used in ctfplotter and ctfphaseflip.
 
