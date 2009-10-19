@@ -67,6 +67,9 @@ import etomo.util.DatasetFiles;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.19  2009/09/22 23:54:54  sueh
+ * <p> bug# 1269 Added setEnabledTiltParameters.
+ * <p>
  * <p> Revision 1.18  2009/09/01 03:18:25  sueh
  * <p> bug# 1222
  * <p>
@@ -189,6 +192,8 @@ public final class FinalAlignedStackDialog extends ProcessDialog implements
   private final LabeledTextField ltfVoltage = new LabeledTextField("Voltage: ");
   private final LabeledTextField ltfSphericalAberration = new LabeledTextField(
       "Spherical Aberration: ");
+  private final CheckBox cbInvertTiltAngles = new CheckBox(
+      "Invert sign of tilt angles");
   private final LabeledTextField ltfAmplitudeContrast = new LabeledTextField(
       "Amplitude contrast: ");
   private final LabeledTextField ltfExpectedDefocus = new LabeledTextField(
@@ -390,6 +395,10 @@ public final class FinalAlignedStackDialog extends ProcessDialog implements
     ltfSphericalAberration.setText(input);
   }
 
+  void setInvertTiltAngles(boolean input) {
+    cbInvertTiltAngles.setSelected(input);
+  }
+
   void setAmplitudeContrast(ConstEtomoNumber input) {
     ltfAmplitudeContrast.setText(input);
   }
@@ -405,7 +414,7 @@ public final class FinalAlignedStackDialog extends ProcessDialog implements
   String getDefocusTol() {
     return ltfDefocusTol.getText();
   }
-  
+
   public void setEnabledTiltParameters(TomogramState state,
       ConstMetaData metaData) {
     eraseGoldPanel.setEnabledTiltParameters(state, metaData);
@@ -495,6 +504,10 @@ public final class FinalAlignedStackDialog extends ProcessDialog implements
 
   String getSphericalAberration() {
     return ltfSphericalAberration.getText();
+  }
+
+  boolean getInvertTiltAngles() {
+    return cbInvertTiltAngles.isSelected();
   }
 
   /**
@@ -717,6 +730,7 @@ public final class FinalAlignedStackDialog extends ProcessDialog implements
     ctfCorrectionBodyPanel.add(ltfVoltage);
     ctfCorrectionBodyPanel.add(ltfSphericalAberration);
     ctfCorrectionBodyPanel.add(ltfAmplitudeContrast);
+    ctfCorrectionBodyPanel.add(cbInvertTiltAngles);
     //ctf plotter
     SpacedPanel ctfPlotterPanel = SpacedPanel.getInstance();
     ctfPlotterPanel.setBoxLayout(BoxLayout.Y_AXIS);
@@ -1051,11 +1065,17 @@ public final class FinalAlignedStackDialog extends ProcessDialog implements
       ftfConfigFile.setToolTipText(EtomoAutodoc.getTooltip(autodoc,
           "ConfigFile"));
       ltfVoltage.setToolTipText(EtomoAutodoc.getTooltip(autodoc,
-          CtfPhaseFlipParam.VOLTAGE_OPTION));
+          CtfPhaseFlipParam.VOLTAGE_OPTION)
+          + "  Also used in " + CtfPhaseFlipParam.COMMAND + ".");
       ltfSphericalAberration.setToolTipText(EtomoAutodoc.getTooltip(autodoc,
-          CtfPhaseFlipParam.SPHERICAL_ABERRATION_OPTION));
+          CtfPhaseFlipParam.SPHERICAL_ABERRATION_OPTION)
+          + "  Also used in " + CtfPhaseFlipParam.COMMAND + ".");
+      cbInvertTiltAngles.setToolTipText(EtomoAutodoc.getTooltip(autodoc,
+          CtfPhaseFlipParam.INVERT_TILT_ANGLES_OPTION)
+          + "  Also used in " + CtfPhaseFlipParam.COMMAND + ".");
       ltfAmplitudeContrast.setToolTipText(EtomoAutodoc.getTooltip(autodoc,
-          CtfPhaseFlipParam.AMPLITUDE_CONTRAST_OPTION));
+          CtfPhaseFlipParam.AMPLITUDE_CONTRAST_OPTION)
+          + "  Also used in " + CtfPhaseFlipParam.COMMAND + ".");
       ltfExpectedDefocus.setToolTipText(EtomoAutodoc.getTooltip(autodoc,
           CtfPlotterParam.EXPECTED_DEFOCUS_OPTION));
     }

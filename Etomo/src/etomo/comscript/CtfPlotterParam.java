@@ -4,6 +4,7 @@ import java.io.File;
 
 import etomo.type.ConstEtomoNumber;
 import etomo.type.ConstStringParameter;
+import etomo.type.EtomoBoolean2;
 import etomo.type.EtomoNumber;
 import etomo.type.ScriptParameter;
 import etomo.type.StringParameter;
@@ -22,6 +23,9 @@ import etomo.type.StringParameter;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.2  2009/02/25 00:14:32  sueh
+ * <p> bug# 1182 Made sphericalAberration a double.
+ * <p>
  * <p> Revision 1.1  2008/10/27 17:48:52  sueh
  * <p> bug# 1141 Class to update a ctfplotter call.
  * <p> </p>
@@ -38,6 +42,8 @@ public final class CtfPlotterParam implements ConstCtfPlotterParam,
       CtfPhaseFlipParam.VOLTAGE_OPTION);
   private final ScriptParameter sphericalAberration = new ScriptParameter(
       EtomoNumber.Type.DOUBLE, CtfPhaseFlipParam.SPHERICAL_ABERRATION_OPTION);
+  private final EtomoBoolean2 invertTiltAngles = new EtomoBoolean2(
+      CtfPhaseFlipParam.INVERT_TILT_ANGLES_OPTION);
   private final ScriptParameter amplitudeContrast = new ScriptParameter(
       EtomoNumber.Type.FLOAT, CtfPhaseFlipParam.AMPLITUDE_CONTRAST_OPTION);
   private final StringParameter configFile = new StringParameter(
@@ -51,6 +57,7 @@ public final class CtfPlotterParam implements ConstCtfPlotterParam,
     reset();
     voltage.parse(scriptCommand);
     sphericalAberration.parse(scriptCommand);
+    invertTiltAngles.parse(scriptCommand);
     amplitudeContrast.parse(scriptCommand);
     configFile.parse(scriptCommand);
     expectedDefocus.parse(scriptCommand);
@@ -60,6 +67,7 @@ public final class CtfPlotterParam implements ConstCtfPlotterParam,
       throws BadComScriptException {
     voltage.updateComScript(scriptCommand);
     sphericalAberration.updateComScript(scriptCommand);
+    invertTiltAngles.updateComScript(scriptCommand);
     amplitudeContrast.updateComScript(scriptCommand);
     configFile.updateComScript(scriptCommand);
     expectedDefocus.updateComScript(scriptCommand);
@@ -71,6 +79,7 @@ public final class CtfPlotterParam implements ConstCtfPlotterParam,
   private void reset() {
     voltage.reset();
     sphericalAberration.reset();
+    invertTiltAngles.reset();
     amplitudeContrast.reset();
     expectedDefocus.reset();
   }
@@ -81,6 +90,10 @@ public final class CtfPlotterParam implements ConstCtfPlotterParam,
 
   public void setSphericalAberration(String input) {
     sphericalAberration.set(input);
+  }
+
+  public void setInvertTiltAngles(boolean input) {
+    invertTiltAngles.set(input);
   }
 
   public void setAmplitudeContrast(String input) {

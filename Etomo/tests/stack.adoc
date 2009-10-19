@@ -127,6 +127,7 @@ run.function.ctf-correction=
 	mb.ctf-correction=B
 	assert.tf.voltage=200
 	assert.tf.spherical-aberration=2.0
+	assert.cb.invert-sign-of-tilt-angles=off
 	mb.ctf-correction=A
 	assert.tf.amplitude-contrast=0.07
 	mb.ctf-correction=B

@@ -50,6 +50,9 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.20  2009/10/13 17:40:25  sueh
+ * <p> bug# 1273 Formatted.
+ * <p>
  * <p> Revision 1.19  2009/09/22 23:55:24  sueh
  * <p> bug# 1269 Added setEnabledTiltParameters and called it from openDialog.
  * <p>
@@ -781,6 +784,7 @@ public final class FinalAlignedStackExpert extends ReconUIExpert {
     }
     param.setVoltage(dialog.getVoltage());
     param.setSphericalAberration(dialog.getSphericalAberration());
+    param.setInvertTiltAngles(dialog.getInvertTiltAngles());
     param.setAmplitudeContrast(dialog.getAmplitudeContrast());
     param.setExpectedDefocus(dialog.getExpectedDefocus());
     param.setConfigFile(dialog.getConfigFile());
@@ -799,6 +803,7 @@ public final class FinalAlignedStackExpert extends ReconUIExpert {
     }
     dialog.setVoltage(param.getVoltage());
     dialog.setSphericalAberration(param.getSphericalAberration());
+    dialog.setInvertTiltAngles(param.getInvertTiltAngles());
     dialog.setAmplitudeContrast(param.getAmplitudeContrast());
     dialog.setUseExpectedDefocus(param.getDefocusFile().endsWith(
         DatasetFiles.SIMPLE_DEFOCUS_EXT));
@@ -813,6 +818,7 @@ public final class FinalAlignedStackExpert extends ReconUIExpert {
     }
     param.setVoltage(dialog.getVoltage());
     param.setSphericalAberration(dialog.getSphericalAberration());
+    param.setInvertTiltAngles(dialog.getInvertTiltAngles());
     param.setAmplitudeContrast(dialog.getAmplitudeContrast());
     if (dialog.isUseExpectedDefocus()) {
       param.setDefocusFile(DatasetFiles.getSimpleDefocusFileName(manager,

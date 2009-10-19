@@ -2,6 +2,7 @@ package etomo.comscript;
 
 import etomo.type.ConstEtomoNumber;
 import etomo.type.ConstStringParameter;
+import etomo.type.EtomoBoolean2;
 import etomo.type.EtomoNumber;
 import etomo.type.ScriptParameter;
 import etomo.type.StringParameter;
@@ -20,6 +21,9 @@ import etomo.type.StringParameter;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.3  2009/02/25 00:14:20  sueh
+ * <p> bug# 1182 Made sphericalAberration a double.
+ * <p>
  * <p> Revision 1.2  2008/12/09 21:07:04  sueh
  * <p> bug# 1154 Added outputFileName, for updating in the comscript only -
  * <p> not necessary to parse from the comscript because it is always set to the
@@ -37,6 +41,7 @@ public final class CtfPhaseFlipParam implements ConstCtfPhaseFlipParam,
   public static final String COMMAND = "ctfphaseflip";
   public static final String VOLTAGE_OPTION = "Voltage";
   public static final String SPHERICAL_ABERRATION_OPTION = "SphericalAberration";
+  public static final String INVERT_TILT_ANGLES_OPTION = "InvertTiltAngles";
   public static final String AMPLITUDE_CONTRAST_OPTION = "AmplitudeContrast";
   public static final String INTERPOLATION_WIDTH_OPTION = "InterpolationWidth";
   public static final String DEFOCUS_TOL_OPTION = "DefocusTol";
@@ -44,6 +49,8 @@ public final class CtfPhaseFlipParam implements ConstCtfPhaseFlipParam,
   private final ScriptParameter voltage = new ScriptParameter(VOLTAGE_OPTION);
   private final ScriptParameter sphericalAberration = new ScriptParameter(
       EtomoNumber.Type.DOUBLE, SPHERICAL_ABERRATION_OPTION);
+  private final EtomoBoolean2 invertTiltAngles = new EtomoBoolean2(
+      INVERT_TILT_ANGLES_OPTION);
   private final ScriptParameter amplitudeContrast = new ScriptParameter(
       EtomoNumber.Type.FLOAT, AMPLITUDE_CONTRAST_OPTION);
   private final StringParameter defocusFile = new StringParameter("DefocusFile");
@@ -60,6 +67,7 @@ public final class CtfPhaseFlipParam implements ConstCtfPhaseFlipParam,
     reset();
     voltage.parse(scriptCommand);
     sphericalAberration.parse(scriptCommand);
+    invertTiltAngles.parse(scriptCommand);
     amplitudeContrast.parse(scriptCommand);
     defocusFile.parse(scriptCommand);
     interpolationWidth.parse(scriptCommand);
@@ -70,6 +78,7 @@ public final class CtfPhaseFlipParam implements ConstCtfPhaseFlipParam,
       throws BadComScriptException {
     voltage.updateComScript(scriptCommand);
     sphericalAberration.updateComScript(scriptCommand);
+    invertTiltAngles.updateComScript(scriptCommand);
     amplitudeContrast.updateComScript(scriptCommand);
     defocusFile.updateComScript(scriptCommand);
     interpolationWidth.updateComScript(scriptCommand);
@@ -83,6 +92,7 @@ public final class CtfPhaseFlipParam implements ConstCtfPhaseFlipParam,
   private void reset() {
     voltage.reset();
     sphericalAberration.reset();
+    invertTiltAngles.reset();
     amplitudeContrast.reset();
     defocusFile.reset();
     interpolationWidth.reset();
@@ -105,8 +115,16 @@ public final class CtfPhaseFlipParam implements ConstCtfPhaseFlipParam,
     return sphericalAberration;
   }
 
+  public boolean getInvertTiltAngles() {
+    return invertTiltAngles.is();
+  }
+
   public void setSphericalAberration(String input) {
     sphericalAberration.set(input);
+  }
+
+  public void setInvertTiltAngles(boolean input) {
+    invertTiltAngles.set(input);
   }
 
   public ConstEtomoNumber getAmplitudeContrast() {
