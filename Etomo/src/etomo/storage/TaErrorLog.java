@@ -24,6 +24,9 @@ import etomo.type.ProcessName;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.3  2009/03/17 00:45:24  sueh
+ * <p> bug# 1186 Pass managerKey to everything that pops up a dialog.
+ * <p>
  * <p> Revision 1.2  2009/02/19 18:20:23  sueh
  * <p> bug# 1179 Excluding local area output lines.
  * <p>
@@ -75,8 +78,8 @@ public final class TaErrorLog implements Loggable {
   /**
    * Get a message to be logged in the LogPanel.
    */
-  public List getLogMessage(ManagerKey managerKey) throws LogFile.LockException,
-      FileNotFoundException, IOException {
+  public List getLogMessage(ManagerKey managerKey)
+      throws LogFile.LockException, FileNotFoundException, IOException {
     lineList.clear();
     //refresh the log file
     LogFile taErrorLog = LogFile.getInstance(userDir, axisID,
@@ -85,9 +88,19 @@ public final class TaErrorLog implements Loggable {
       LogFile.ReaderId readerId = taErrorLog.openReader();
       if (readerId != null && !readerId.isEmpty()) {
         String line = taErrorLog.readLine(readerId);
+        boolean globalRatioFound = false;
         while (line != null) {
-          if (line.trim().startsWith("Residual error")
+          if (!globalRatioFound
+              && line.trim().startsWith(
+                  "Ratio of total measured values to all unknowns")) {
+            globalRatioFound = true;
+            lineList.add(line);
+          }
+          else if (line.trim().startsWith("Residual error mean and sd")
               && line.indexOf("Local area") == -1) {
+            lineList.add(line);
+          }
+          else if (line.trim().startsWith("Residual error local mean")) {
             lineList.add(line);
           }
           line = taErrorLog.readLine(readerId);
