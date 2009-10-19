@@ -17,7 +17,6 @@ run.function.runtab=
 
 [function = setup]
 tb.setup=
-mb.parallel-processing=-
 #check empty directory error
 run.function.setup-test-gui=
 bn.directory=
@@ -143,6 +142,7 @@ rb.original-y-axis=
 
 [function = runtab]
 tb.setup.1=
+mb.parallel-processing=-
 [[if = test-gui]]
 	mb.run=-
 	mb.run=+
