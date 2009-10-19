@@ -47,6 +47,9 @@ import etomo.type.TomogramState;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.63  2009/09/01 03:18:25  sueh
+ * <p> bug# 1222
+ * <p>
  * <p> Revision 3.62  2009/03/17 00:46:24  sueh
  * <p> bug# 1186 Pass managerKey to everything that pops up a dialog.
  * <p>
@@ -425,8 +428,10 @@ public final class TomogramCombinationDialog extends ProcessDialog implements
     }
     // Instantiate the tab pane contents
     pnlSetup = new SetupCombinePanel(this, applicationManager, dialogType);
-    pnlInitial = new InitialCombinePanel(this, applicationManager, dialogType,btnAdvanced);
-    pnlFinal = new FinalCombinePanel(this, applicationManager, dialogType,btnAdvanced);
+    pnlInitial = new InitialCombinePanel(this, applicationManager, dialogType,
+        btnAdvanced);
+    pnlFinal = new FinalCombinePanel(this, applicationManager, dialogType,
+        btnAdvanced);
 
     rootPanel.setLayout(new BoxLayout(rootPanel, BoxLayout.Y_AXIS));
     rootPanel.add(parallelPanelContainer);
@@ -588,7 +593,8 @@ public final class TomogramCombinationDialog extends ProcessDialog implements
 
   public boolean usingParallelProcessing() {
     synchronize(lblFinal, false);
-    return pnlSetup.usingParallelProcessing();
+    return tabbedPane.getSelectedIndex() != 1
+        && pnlSetup.usingParallelProcessing();
   }
 
   /**
@@ -789,7 +795,7 @@ public final class TomogramCombinationDialog extends ProcessDialog implements
 
   public void done() {
     applicationManager.doneTomogramCombinationDialog();
-      setDisplayed(false);
+    setDisplayed(false);
   }
 
   /**
@@ -840,6 +846,7 @@ public final class TomogramCombinationDialog extends ProcessDialog implements
     //  Set the last tab index to current tab so that we are ready for tab
     // change
     idxLastTab = tabbedPane.getSelectedIndex();
+    updateParallelProcess();
   }
 
   void setVisible(String showTabTitle) {
