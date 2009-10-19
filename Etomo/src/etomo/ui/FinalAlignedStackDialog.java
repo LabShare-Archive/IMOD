@@ -67,6 +67,9 @@ import etomo.util.DatasetFiles;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.20  2009/10/19 16:28:56  sueh
+ * <p> bug# 1253 Added invertTiltAngles.
+ * <p>
  * <p> Revision 1.19  2009/09/22 23:54:54  sueh
  * <p> bug# 1269 Added setEnabledTiltParameters.
  * <p>
@@ -697,9 +700,15 @@ public final class FinalAlignedStackDialog extends ProcessDialog implements
     UIHarness.INSTANCE.pack(axisID, applicationManager);
   }
 
+  /**
+   * Returns true if the current tab is one that uses parallel processing and
+   * parallel processing has been turned on in that tab.
+   */
   public boolean usingParallelProcessing() {
-    return cbParallelProcess.isEnabled() && cbParallelProcess.isSelected()
-        || eraseGoldPanel.usingParallelProcessing();
+    return (curTab == Tab.CTF_CORRECTION && cbParallelProcess.isEnabled() && cbParallelProcess
+        .isSelected())
+        || (curTab == Tab.CCD_ERASER && eraseGoldPanel
+            .usingParallelProcessing());
   }
 
   boolean isParallelProcess() {
@@ -1005,6 +1014,7 @@ public final class FinalAlignedStackDialog extends ProcessDialog implements
     else if (curTab == Tab.MTF_FILTER) {
       panel.add(filterPanel);
     }
+    updateParallelProcess();
     UIHarness.INSTANCE.pack(axisID, applicationManager);
   }
 
