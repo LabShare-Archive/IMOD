@@ -14,6 +14,7 @@ unknowns to the project log.
 
 10/15/09: In Tilt, fixed reprojection from model when there is a single X axis
 tilt and untilted slices are computed.  Points at high tilt were miscentered.
+also fixed incremental mode when untilted slices are being computed.
 
 10/15/09: In Etomo, added more error checking to PEET.
 
