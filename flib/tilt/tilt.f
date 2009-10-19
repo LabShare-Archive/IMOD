@@ -715,7 +715,7 @@ C       This subroutine zeros the slice and applies the mask if requested
       integer*4 index, i, j,iend
 c       
 c       Read in base slice and descale
-      if (readBase) then
+      if (readBase .and. ifalpha .ge. 0) then
         call irdsec(3, array(imap))
         do i = imap, imap + ithick * iwide - 1
           array(i) = array(i) / baseScale - baseFlevl
@@ -1229,7 +1229,19 @@ c
       integer*4 ivsl,ifmiss,i,lvsl,iring,ibase,ivy,indcen,jnd5,jnd2,j,k
       real*4 fx1,fx2,fx3,fx4,fy1,fy2,fy3,fy4,v1,v2,v3,v4,f5,f2,f8,f4,f6
       integer*4 jnd8,jnd4,jnd6
-
+c       
+c       If adding to base, read in and descale; otherwise zero slice
+      if (readBase) then
+        call irdsec(3, array(imap))
+        do i = imap, imap + ithickOut * iwide - 1
+          array(i) = array(i) / baseScale - baseFlevl
+        enddo
+      ELSE
+        DO I=IMAP,imap + ithickOut * iwide - 1
+          ARRAY(I)=0.   
+        enddo
+      ENDIF
+c
       tanalpha=sal(1)/cal(1)
       vertcen=ithick/2+0.5
 c       
@@ -1298,7 +1310,7 @@ c
      &          fx3*array(ind3(3))+fx4*array(ind3(4))
             v4=fx1*array(ind4(1))+fx2*array(ind4(2))+
      &          fx3*array(ind4(3))+fx4*array(ind4(4))
-            array(ibase+i)=fy1*v1+fy2*v2+fy3*v3+fy4*v4
+            array(ibase+i) = array(ibase+i) + fy1*v1+fy2*v2+fy3*v3+fy4*v4
             do k=1,4
               ind1(k)=ind1(k)+1
               ind2(k)=ind2(k)+1
@@ -1339,7 +1351,7 @@ c
           f4=(fx**2-fx)/2.
           f6=f4+fx
           do i=1,iwide
-            array(ibase+i)=f5*array(jnd5)+f2*array(jnd2)+
+            array(ibase+i) = array(ibase+i) + f5*array(jnd5)+f2*array(jnd2)+
      &          f4*array(jnd4)+f6*array(jnd6)+f8*array(jnd8)
             jnd5=jnd5+1
             jnd2=jnd2+1
@@ -1384,8 +1396,8 @@ c
             f32=fy*(1.-fx)
             f33=fy*fx
             do i=1,iwide
-              array(ibase+i)=f22*array(ind2(2))+f23*array(ind2(3))+
-     &            f32*array(ind3(2))+f33*array(ind3(3))
+              array(ibase+i) = array(ibase+i) + f22*array(ind2(2))+
+     &            f23*array(ind2(3))+ f32*array(ind3(2))+f33*array(ind3(3))
               ind2(2)=ind2(2)+1
               ind2(3)=ind2(3)+1
               ind3(2)=ind3(2)+1
@@ -1394,7 +1406,7 @@ c
           else
 c             print *,'filling',j
             do i=1,iwide
-              array(i+ibase)=edgeFill*nviews
+              array(i+ibase) = array(ibase+i) + edgeFill*nviews
             enddo
           endif
         endif
@@ -4017,6 +4029,11 @@ c       Set to open contour, show values etc., and show sphere on section only
 
 c       
 c       $Log$
+c       Revision 3.47  2009/10/16 04:40:41  mast
+c       Fixed reprojection from model when there are X axis tilts and no Z
+c       factor/local alignments; made it treat fixed alpha in xtilt file like
+c       regular x axis tilt
+c
 c       Revision 3.46  2009/06/26 05:17:08  mast
 c       Memory allocation with environment variable to control it
 c
