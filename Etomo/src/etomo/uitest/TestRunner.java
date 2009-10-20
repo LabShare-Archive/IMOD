@@ -38,6 +38,9 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.7  2009/09/22 21:06:09  sueh
+ * <p> bug# 1259 Handling copy.file and set.interface in Test Sections.
+ * <p>
  * <p> Revision 1.6  2009/09/02 22:46:47  sueh
  * <p> bug# 1254 Added commented out --names argument to the parameter list
  * <p> for convenience.
@@ -250,6 +253,7 @@ public final class TestRunner extends JFCTestCase implements VariableList {
     //name.
     uitestDataDir = new File(Utilities.getExistingDir("IMOD_UITEST_DATA",
         AxisID.ONLY, null), sectionName);
+    System.err.println("uitestDataDir="+uitestDataDir);
     Command command = null;
     while (!datasetSectionReader.isDone()) {
       command = datasetSectionReader.nextCommand(command);
