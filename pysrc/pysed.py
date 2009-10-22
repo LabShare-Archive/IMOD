@@ -3,13 +3,12 @@
 #
 # Author: David Mastronarde
 #
-#  $Author$
-#
-#  $Date$
-#
-#  $Revision$
+# $Id$
 #
 #  $Log$
+#  Revision 1.1  2006/09/26 23:02:48  mast
+#  Added to package
+#
 #
 
 import sys, re
@@ -188,7 +187,7 @@ converted to ( and ), ( and ) need to be converted to \( and \), and
     sedin.close()
     if dstfile :
         try:
-            sedout.write(outlines)
+            sedout.writelines(outlines)
         except:
             print "%s Writing to output file" % prefix
             sys.exit(1)
