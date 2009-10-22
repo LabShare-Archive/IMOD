@@ -431,6 +431,10 @@ if nozopt and (addingx and infoExists or addingz):
    print prefix + " You cannot enter -noz with -zadd or if adding a " + \
          "montage with an existing Info file"
    sys.exit(1)
+if not nozopt and addingx and not addingz:
+   print prefix + " You must enter either -zadd to add volumes that have Z" + \
+         "values"
+   sys.exit(1)
 
 # Get running options
 anyrun = 0
@@ -684,6 +688,9 @@ sys.exit(0)
 
 #
 # $Log$
+# Revision 1.10  2009/09/11 05:49:46  mast
+# Fix spaces in patch params
+#
 # Revision 1.9  2009/09/08 23:27:36  mast
 # Clear out keys for dependent data when making new patches; save command
 # parameters for each patch; write info file after each operation
