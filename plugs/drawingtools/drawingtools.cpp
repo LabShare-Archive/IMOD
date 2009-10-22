@@ -15,6 +15,9 @@
     $Revision$
 
     $Log$
+    Revision 1.41  2009/06/11 01:00:42  tempuser
+    Minor
+
     Revision 1.40  2009/06/05 09:23:31  tempuser
     Minor
 
@@ -5101,8 +5104,11 @@ void  edit_executeSculptPush( Ipoint center, float radius )
             float fractToShiftPoint = radius / distFromCenter;
             newPt = line_findPtFractBetweenPts2D( &center, &newPt, fractToShiftPoint );
             newPt.z = POINT_SHIFTED;
-            
             imodPointAdd( cont, &newPt, i+1 );
+
+            // DNM 10/21/09: clear the flag that was just set because of
+            // the non-matching Z values
+            imodContourSetFlag(cont, ICONT_WILD, 0);
             i--;
           }
         }
