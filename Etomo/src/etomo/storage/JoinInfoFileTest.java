@@ -5,6 +5,8 @@ import java.io.IOException;
 
 import etomo.BaseManager;
 import etomo.EtomoDirector;
+import etomo.process.BaseProcessManager;
+import etomo.type.AxisID;
 import etomo.util.DatasetFiles;
 import etomo.util.Utilities;
 import junit.framework.TestCase;
@@ -23,6 +25,9 @@ import junit.framework.TestCase;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.7  2009/03/17 00:44:42  sueh
+ * <p> bug# 1186 Pass managerKey to everything that pops up a dialog.
+ * <p>
  * <p> Revision 1.6  2009/02/04 23:29:40  sueh
  * <p> bug# 1158 Changed id and exceptions classes in LogFile.
  * <p>
@@ -56,14 +61,14 @@ public class JoinInfoFileTest extends TestCase {
       return;
     }
     testDir.mkdirs();
+    EtomoDirector.INSTANCE.openJoin(true, AxisID.ONLY);
     BaseManager manager = EtomoDirector.INSTANCE.getCurrentManagerForTest();
     LogFile infoFile = LogFile.getInstance(testDir.getAbsolutePath(),
         DatasetFiles.getJoinInfoName(manager), manager.getManagerKey());
     infoFile.delete();
     JoinInfoFile test = JoinInfoFile.getTestInstance(manager, infoFile);
     assertNull("Should return null when there is no file", test.getInverted(0));
-    EtomoDirector.INSTANCE.getCurrentManagerForTest().touch(
-        infoFile.getAbsolutePath());
+    BaseProcessManager.touch(infoFile.getAbsolutePath(), manager);
     try {
       Thread.sleep(500);
     }

@@ -7,6 +7,8 @@ import java.util.Properties;
 
 import etomo.BaseManager;
 import etomo.EtomoDirector;
+import etomo.ManagerKey;
+import etomo.process.BaseProcessManager;
 import etomo.type.AxisID;
 import etomo.type.ProcessName;
 import etomo.util.DatasetFiles;
@@ -27,6 +29,9 @@ import junit.framework.TestCase;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.11  2009/03/17 00:45:12  sueh
+ * <p> bug# 1186 Pass managerKey to everything that pops up a dialog.
+ * <p>
  * <p> Revision 1.10  2009/02/04 23:29:40  sueh
  * <p> bug# 1158 Changed id and exceptions classes in LogFile.
  * <p>
@@ -450,7 +455,7 @@ public class LogFileTest extends TestCase {
     test.delete();
     assertTrue(test.noLocks());
     LogFile target = LogFile.getInstance(testDir.getAbsolutePath(), "target",
-        manager.getManagerKey());
+        getManagerKey());
     target.delete();
     LogFile.WriterId writerId = test.openWriter();
     try {
@@ -613,7 +618,7 @@ public class LogFileTest extends TestCase {
       IOException {
     LogFile testa = getInstance();
     LogFile testb = LogFile.getInstance(log.getParent(), AxisID.ONLY,
-        ProcessName.ALIGN, manager.getManagerKey());
+        ProcessName.ALIGN, getManagerKey());
     LogFile.InputStreamId id0a = testa.openInputStream();
     LogFile.WritingId id0b = testb.openForWriting();
     assertEquals("Ids in different instances do not affect each other", id0a
@@ -712,13 +717,20 @@ public class LogFileTest extends TestCase {
 
   private LogFile getInstance() throws LogFile.LockException {
     LogFile logFile = LogFile.getInstance(testDir.getAbsolutePath(),
-        AxisID.ONLY, ProcessName.BLEND, manager.getManagerKey());
+        AxisID.ONLY, ProcessName.BLEND, getManagerKey());
     return logFile;
+  }
+
+  private ManagerKey getManagerKey() {
+    if (manager == null) {
+      return null;
+    }
+    return manager.getManagerKey();
   }
 
   private void createLog() {
     if (!log.exists()) {
-      manager.touch(log.getAbsolutePath());
+      BaseProcessManager.touch(log.getAbsolutePath(), manager);
       try {
         Thread.sleep(500);
       }
