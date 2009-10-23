@@ -6471,7 +6471,8 @@ public final class ApplicationManager extends BaseManager implements
       // Set the appropriate input and output files
       TrimvolParam trimvolParam = metaData.getTrimvolParam();
       try {
-        trimvolParam.setDefaultRange(state, getManagerKey());
+        trimvolParam.setDefaultRange(state, getManagerKey(), metaData
+            .isPostExists());
       }
       catch (InvalidParameterException except) {
         String[] detailedMessage = new String[4];
@@ -6494,6 +6495,8 @@ public final class ApplicationManager extends BaseManager implements
         mainPanel.showBlankProcess(AxisID.ONLY);
         return;
       }
+      metaData.setPostExists(true);
+      saveStorables(AxisID.ONLY);
       postProcessingDialog.setTrimvolParams(trimvolParam);
       postProcessingDialog.setParameters(metaData.getSqueezevolParam());
     }
@@ -7893,6 +7896,10 @@ public final class ApplicationManager extends BaseManager implements
 }
 /**
  * <p> $Log$
+ * <p> Revision 3.339  2009/10/01 18:44:34  sueh
+ * <p> bug# 1233 In save... functions always try to save everything and don't
+ * <p> pass back a boolean.
+ * <p>
  * <p> Revision 3.338  2009/09/28 19:05:05  sueh
  * <p> bug# 1223 In imodFixFiducials removing call to turn off auto new contour.
  * <p>
