@@ -332,6 +332,7 @@ assert.enabled.rb.solve-for-all-magnifications=
 bn.advanced=
 assert.enabled.tf.reference-view=
 bn.basic=
+sleep=1
 rb.fixed-magnification-at-10=
 assert.disabled.tf.group-size.1=
 bn.advanced=
