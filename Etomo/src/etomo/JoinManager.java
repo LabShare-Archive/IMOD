@@ -71,6 +71,9 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.80  2009/09/01 03:17:35  sueh
+ * <p> bug# 1222
+ * <p>
  * <p> Revision 1.79  2009/06/11 16:45:53  sueh
  * <p> bug# 1221 Sending the process panel to the process function in the
  * <p> manager wrapped in a ProcessDisplay interface.  Changed
@@ -1186,18 +1189,14 @@ public final class JoinManager extends BaseManager {
   public void revertXfFileToMidas() {
     File midasOutputFile = new File(propertyUserDir, metaData.getDatasetName()
         + MidasParam.getOutputFileExtension());
-    touch(midasOutputFile.getAbsolutePath());
+    BaseProcessManager.touch(midasOutputFile.getAbsolutePath(), this);
     copyXfFile(midasOutputFile);
-  }
-
-  public void touch(String absolutePath) {
-    processMgr.touch(absolutePath);
   }
 
   public void revertXfFileToEmpty() {
     File emptyFile = new File(propertyUserDir, metaData.getDatasetName()
         + "_empty.xf");
-    touch(emptyFile.getAbsolutePath());
+    BaseProcessManager.touch(emptyFile.getAbsolutePath(), this);
     copyXfFile(emptyFile);
   }
 
@@ -1474,7 +1473,8 @@ public final class JoinManager extends BaseManager {
    */
   void startNextProcess(final AxisID axisID, final String nextProcess,
       final ProcessResultDisplay processResultDisplay,
-      ProcessSeries processSeries, DialogType dialogType, ProcessDisplay display,ProcessName subProcessName) {
+      ProcessSeries processSeries, DialogType dialogType,
+      ProcessDisplay display, ProcessName subProcessName) {
     if (debug) {
       System.err.println("startNextProcess:axisID=" + axisID + ",nextProcess="
           + nextProcess);

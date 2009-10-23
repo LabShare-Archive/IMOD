@@ -239,10 +239,6 @@ public final class ParallelManager extends BaseManager {
     }
   }
 
-  public void touch(final String absolutePath) {
-    processMgr.touch(absolutePath);
-  }
-
   public String getName() {
     return metaData.getName();
   }
@@ -774,6 +770,10 @@ public final class ParallelManager extends BaseManager {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.39  2009/10/23 19:43:04  sueh
+ * <p> bug# 1275 Separate generic parallel process and NAD.  Only use the
+ * <p> openParallelChooser if there is no way to tell which dialog is requested.
+ * <p>
  * <p> Revision 1.38  2009/09/05 00:39:22  sueh
  * <p> bug# 1256 Passed manager and axisID to state constructor.
  * <p>

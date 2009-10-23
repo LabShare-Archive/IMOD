@@ -124,8 +124,6 @@ public abstract class BaseManager {
 
   public abstract void pause(AxisID axisID);
 
-  public abstract void touch(String absolutePath);
-
   abstract BaseProcessManager getProcessManager();
 
   public abstract BaseScreenState getBaseScreenState(AxisID axisID);
@@ -142,7 +140,7 @@ public abstract class BaseManager {
 
   abstract void startNextProcess(AxisID axisID, String nextProcess,
       ProcessResultDisplay processResultDisplay, ProcessSeries processSeries,
-      DialogType dialogType, ProcessDisplay display,ProcessName subProcessName);
+      DialogType dialogType, ProcessDisplay display, ProcessName subProcessName);
 
   abstract Storable[] getStorables(int offset);
 
@@ -724,7 +722,7 @@ public abstract class BaseManager {
   }
 
   public void imodOpen(AxisID axisID, String imodKey, String model,
-      Run3dmodMenuOptions menuOptions,boolean modelMode) {
+      Run3dmodMenuOptions menuOptions, boolean modelMode) {
     try {
       imodManager.open(imodKey, axisID, model, modelMode, menuOptions);
     }
@@ -1304,6 +1302,9 @@ public abstract class BaseManager {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.120  2009/09/01 03:17:35  sueh
+ * <p> bug# 1222
+ * <p>
  * <p> Revision 1.119  2009/08/25 15:50:31  sueh
  * <p> bug# 1218 Creating main panel even when headless.
  * <p>

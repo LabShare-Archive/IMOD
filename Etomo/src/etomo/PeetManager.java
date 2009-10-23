@@ -59,6 +59,9 @@ import etomo.util.DatasetFiles;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.54  2009/10/15 23:26:59  sueh
+ * <p> bug# 1274 Changed String PeetDialog.getDirectory() to getDirectoryString.
+ * <p>
  * <p> Revision 1.53  2009/09/16 16:31:21  sueh
  * <p> bug# 1227 In setParamFile(), setting the tab after setting the status bar.
  * <p>
@@ -355,15 +358,6 @@ public final class PeetManager extends BaseManager {
 
   public void pause(AxisID axisID) {
     processMgr.pause(axisID);
-  }
-
-  public void touch(String absolutePath) {
-    processMgr.touch(absolutePath);
-    try {
-      Thread.sleep(20);
-    }
-    catch (InterruptedException e) {
-    }
   }
 
   /**
