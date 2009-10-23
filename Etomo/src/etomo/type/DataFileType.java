@@ -12,19 +12,22 @@ package etomo.type;
 * 
 * @version $Revision$
 */
-public final class TabType {
+public final class DataFileType {
   public static  final String  rcsid =  "$Id$";
   
-  public static final TabType RECON = new TabType();
-  public static final TabType JOIN = new TabType();
-  public static final TabType PARALLEL = new TabType();
-  public static final TabType PEET = new TabType();
+  public static final DataFileType RECON = new DataFileType();
+  public static final DataFileType JOIN = new DataFileType();
+  public static final DataFileType PARALLEL = new DataFileType();
+  public static final DataFileType PEET = new DataFileType();
   
-  private TabType() {
+  private DataFileType() {
   }
 }
 /**
 * <p> $Log$
+* <p> Revision 1.2  2007/02/19 22:00:03  sueh
+* <p> bug# 964 Added PEET tab type.
+* <p>
 * <p> Revision 1.1  2006/03/20 18:00:26  sueh
 * <p> bug# 835 Type of manager (ApplicationManager, JoinManager, or
 * <p> ParallelManager).

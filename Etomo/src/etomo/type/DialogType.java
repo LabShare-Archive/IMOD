@@ -16,6 +16,9 @@ import java.util.Properties;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.14  2009/02/05 23:44:13  sueh
+ * <p> bug# 1148 Documenting storable names.
+ * <p>
  * <p> Revision 1.13  2008/10/16 20:57:06  sueh
  * <p> bug# 1141 Added FINAL_ALIGNED_STACK.
  * <p>
@@ -116,12 +119,12 @@ public final class DialogType {
 
   private final String name;
   private final int index;
-  private final TabType tabType;
+  private final DataFileType dataFileType;
 
-  private DialogType(TabType tabType, int index) {
+  private DialogType(DataFileType dataFileType, int index) {
     this.index = index;
-    name = toString(tabType, index);
-    this.tabType = tabType;
+    name = toString(dataFileType, index);
+    this.dataFileType = dataFileType;
   }
 
   /**
@@ -137,52 +140,52 @@ public final class DialogType {
    * @return
    */
   public String getStorableName() {
-    return getStorableName(tabType, index);
+    return getStorableName(dataFileType, index);
   }
 
   public String getCompactLabel() {
-    return getCompactLabel(tabType, index);
+    return getCompactLabel(dataFileType, index);
   }
 
   public int toIndex() {
     return index;
   }
 
-  public static final DialogType SETUP_RECON = new DialogType(TabType.RECON,
+  public static final DialogType SETUP_RECON = new DialogType(DataFileType.RECON,
       setupIndex);
-  public static final DialogType PRE_PROCESSING = new DialogType(TabType.RECON,
+  public static final DialogType PRE_PROCESSING = new DialogType(DataFileType.RECON,
       preProcessingIndex);
   public static final DialogType COARSE_ALIGNMENT = new DialogType(
-      TabType.RECON, coarseAlignmentIndex);
-  public static final DialogType FIDUCIAL_MODEL = new DialogType(TabType.RECON,
+      DataFileType.RECON, coarseAlignmentIndex);
+  public static final DialogType FIDUCIAL_MODEL = new DialogType(DataFileType.RECON,
       fiducialModelIndex);
-  public static final DialogType FINE_ALIGNMENT = new DialogType(TabType.RECON,
+  public static final DialogType FINE_ALIGNMENT = new DialogType(DataFileType.RECON,
       fineAlignmentIndex);
 
   public static final DialogType TOMOGRAM_POSITIONING = new DialogType(
-      TabType.RECON, tomogramPositioningIndex);
+      DataFileType.RECON, tomogramPositioningIndex);
   public static final DialogType FINAL_ALIGNED_STACK = new DialogType(
-      TabType.RECON, finalAlignedStackIndex);
+      DataFileType.RECON, finalAlignedStackIndex);
   public static final DialogType TOMOGRAM_GENERATION = new DialogType(
-      TabType.RECON, tomogramGenerationIndex);
+      DataFileType.RECON, tomogramGenerationIndex);
   public static final DialogType TOMOGRAM_COMBINATION = new DialogType(
-      TabType.RECON, tomogramCombinationIndex);
+      DataFileType.RECON, tomogramCombinationIndex);
   public static final DialogType POST_PROCESSING = new DialogType(
-      TabType.RECON, postProcessingIndex);
-  public static final DialogType CLEAN_UP = new DialogType(TabType.RECON,
+      DataFileType.RECON, postProcessingIndex);
+  public static final DialogType CLEAN_UP = new DialogType(DataFileType.RECON,
       cleanUpIndex);
 
-  public static final DialogType JOIN = new DialogType(TabType.JOIN, joinIndex);
+  public static final DialogType JOIN = new DialogType(DataFileType.JOIN, joinIndex);
 
-  public static final DialogType PARALLEL = new DialogType(TabType.PARALLEL,
+  public static final DialogType PARALLEL = new DialogType(DataFileType.PARALLEL,
       parallelIndex);
   public static final DialogType ANISOTROPIC_DIFFUSION = new DialogType(
-      TabType.PARALLEL, anisotropicDiffusionIndex);
+      DataFileType.PARALLEL, anisotropicDiffusionIndex);
 
-  public static final DialogType PEET = new DialogType(TabType.PEET, peetIndex);
+  public static final DialogType PEET = new DialogType(DataFileType.PEET, peetIndex);
 
-  private String toString(TabType tabType, int index) {
-    if (tabType == TabType.RECON) {
+  private String toString(DataFileType dataFileType, int index) {
+    if (dataFileType == DataFileType.RECON) {
       switch (index) {
       case setupIndex:
         return "Setup Tomogram";
@@ -208,7 +211,7 @@ public final class DialogType {
         return "Clean Up";
       }
     }
-    else if (tabType == TabType.PARALLEL) {
+    else if (dataFileType == DataFileType.PARALLEL) {
       switch (index) {
       case parallelIndex:
         return "Parallel";
@@ -216,7 +219,7 @@ public final class DialogType {
         return "Anisotropic Diffusion";
       }
     }
-    else if (tabType == TabType.PEET) {
+    else if (dataFileType == DataFileType.PEET) {
       switch (index) {
       case peetIndex:
         return "PEET";
@@ -228,12 +231,12 @@ public final class DialogType {
   /**
    * Return a name without spaces.  All storable names must be unique to
    * DialogType.
-   * @param tabType
+   * @param dataFileType
    * @param index
    * @return
    */
-  private String getCompactLabel(TabType tabType, int index) {
-    if (tabType == TabType.RECON) {
+  private String getCompactLabel(DataFileType dataFileType, int index) {
+    if (dataFileType == DataFileType.RECON) {
       switch (index) {
       case setupIndex:
         return "Setup";
@@ -259,7 +262,7 @@ public final class DialogType {
         return "Clean";
       }
     }
-    else if (tabType == TabType.PARALLEL) {
+    else if (dataFileType == DataFileType.PARALLEL) {
       switch (index) {
       case parallelIndex:
         return "Para";
@@ -267,7 +270,7 @@ public final class DialogType {
         return "NAD";
       }
     }
-    else if (tabType == TabType.PEET) {
+    else if (dataFileType == DataFileType.PEET) {
       switch (index) {
       case peetIndex:
         return "PEET";
@@ -281,12 +284,12 @@ public final class DialogType {
    * compatibility errors.
    * Return a name without spaces.  All storable names must be unique to
    * DialogType.
-   * @param tabType
+   * @param dataFileType
    * @param index
    * @return
    */
-  private String getStorableName(TabType tabType, int index) {
-    if (tabType == TabType.RECON) {
+  private String getStorableName(DataFileType dataFileType, int index) {
+    if (dataFileType == DataFileType.RECON) {
       switch (index) {
       case setupIndex:
         return SETUP_RECON_NAME;
@@ -312,7 +315,7 @@ public final class DialogType {
         return CLEAN_UP_NAME;
       }
     }
-    else if (tabType == TabType.PARALLEL) {
+    else if (dataFileType == DataFileType.PARALLEL) {
       switch (index) {
       case parallelIndex:
         return PARALLEL_NAME;
@@ -320,7 +323,7 @@ public final class DialogType {
         return ANISOTROPIC_DIFFUSION_NAME;
       }
     }
-    else if (tabType == TabType.PEET) {
+    else if (dataFileType == DataFileType.PEET) {
       switch (index) {
       case peetIndex:
         return PEET_NAME;
@@ -333,11 +336,11 @@ public final class DialogType {
     if (storableName == null) {
       return false;
     }
-    return getStorableName(tabType, index).equals(storableName);
+    return getStorableName(dataFileType, index).equals(storableName);
   }
 
   public void store(Properties props, String key) {
-    props.setProperty(key, getStorableName(tabType, index));
+    props.setProperty(key, getStorableName(dataFileType, index));
   }
 
   /**
@@ -394,19 +397,19 @@ public final class DialogType {
     return null;
   }
 
-  public static DialogType load(TabType tabType, Properties props, String key) {
-    DialogType defaultType = getDefault(tabType);
+  public static DialogType load(DataFileType dataFileType, Properties props, String key) {
+    DialogType defaultType = getDefault(dataFileType);
     if (defaultType != null) {
       return getInstance(props.getProperty(key, defaultType.toString()));
     }
     return getInstance(props.getProperty(key));
   }
 
-  public static DialogType getDefault(TabType tabType) {
-    if (tabType == TabType.PARALLEL) {
+  public static DialogType getDefault(DataFileType dataFileType) {
+    if (dataFileType == DataFileType.PARALLEL) {
       return PARALLEL;
     }
-    if (tabType == TabType.PEET) {
+    if (dataFileType == DataFileType.PEET) {
       return PEET;
     }
     return null;
