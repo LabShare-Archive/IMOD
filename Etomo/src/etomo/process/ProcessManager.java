@@ -20,6 +20,9 @@
  * 
  * <p>
  * $Log$
+ * Revision 3.138  2009/10/06 01:24:46  sueh
+ * bug# 1246 In postProcess(BackgroundProcess) send flattenwarp output to the project log.
+ *
  * Revision 3.137  2009/09/21 17:49:35  sueh
  * bug# 1267 Added tilt3dFind because it uses a child of the tilt monitor.
  * Added tilt3dFindReproject because is doesn't need a monitor.
@@ -1319,7 +1322,7 @@ public class ProcessManager extends BaseProcessManager {
         DatasetFiles.getRawTiltName(appManager, axisID), stack, xform };
 
     //  Start the system program thread
-    startSystemProgramThread(command, axisID);
+    startSystemProgramThread(command, axisID, appManager);
   }
 
   public void midasBlendStack(AxisID axisID, float imageRotation) {
@@ -1337,7 +1340,7 @@ public class ProcessManager extends BaseProcessManager {
         DatasetFiles.getRawTiltName(appManager, axisID), stack, xform };
 
     //  Start the system program thread
-    startSystemProgramThread(command, axisID);
+    startSystemProgramThread(command, axisID, appManager);
   }
 
   public void midasFixEdges(AxisID axisID) {
@@ -1362,7 +1365,7 @@ public class ProcessManager extends BaseProcessManager {
         stack, xform };
 
     //  Start the system program thread
-    startSystemProgramThread(command, axisID);
+    startSystemProgramThread(command, axisID, appManager);
   }
 
   /**

@@ -44,6 +44,9 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.85  2009/09/01 03:17:56  sueh
+ * <p> bug# 1222
+ * <p>
  * <p> Revision 1.84  2009/04/20 19:23:09  sueh
  * <p> bug# 1192 In processchunks added computerMap to
  * <p> ProcesschunksVolcombineMonitor and ProcesschunksProcessMonitor.
@@ -627,29 +630,30 @@ public abstract class BaseProcessManager {
    * run touch command on file
    * @param file
    */
-  public final void touch(final String absolutePath) {
+  public static final void touch(final String absolutePath, BaseManager manager) {
     File file = new File(absolutePath);
     File dir = file.getParentFile();
     if (!dir.exists()) {
       if (!dir.mkdirs()) {
-        uiHarness.openMessageDialog(
-            "Unable to create " + dir.getAbsolutePath(), "File Error", manager
-                .getManagerKey());
+        UIHarness.INSTANCE.openMessageDialog("Unable to create "
+            + dir.getAbsolutePath(), "File Error", manager == null ? null
+            : manager.getManagerKey());
         return;
       }
     }
     if (!dir.canWrite()) {
-      uiHarness.openMessageDialog("Cannot write to " + dir.getAbsolutePath(),
-          "File Error", manager.getManagerKey());
+      UIHarness.INSTANCE.openMessageDialog("Cannot write to "
+          + dir.getAbsolutePath(), "File Error", manager == null ? null
+          : manager.getManagerKey());
       return;
     }
     String[] commandArray = { "touch", absolutePath };
-    startSystemProgramThread(commandArray, AxisID.ONLY);
+    startSystemProgramThread(commandArray, AxisID.ONLY, manager);
     final int timeout = 5;
     int t = 0;
     while (!file.exists() && t < timeout) {
       try {
-        Thread.sleep(1000);
+        Thread.sleep(1020);
       }
       catch (InterruptedException e) {
       }
@@ -1638,12 +1642,13 @@ public abstract class BaseProcessManager {
   /**
    * Start an arbitrary command as an unmanaged background thread
    */
-  public final void startSystemProgramThread(final String[] command,
-      final AxisID axisID) {
+  public static final void startSystemProgramThread(final String[] command,
+      final AxisID axisID, BaseManager manager) {
     // Initialize the SystemProgram object
-    SystemProgram sysProgram = new SystemProgram(manager.getPropertyUserDir(),
-        command, axisID, manager.getManagerKey());
-    startSystemProgramThread(sysProgram);
+    SystemProgram sysProgram = new SystemProgram(manager == null ? null
+        : manager.getPropertyUserDir(), command, axisID, manager == null ? null
+        : manager.getManagerKey());
+    startSystemProgramThread(sysProgram, manager);
   }
 
   /*
@@ -1654,15 +1659,20 @@ public abstract class BaseProcessManager {
    startSystemProgramThread(sysProgram);
    }*/
 
-  private void startSystemProgramThread(final SystemProgram sysProgram) {
-    sysProgram.setWorkingDirectory(new File(manager.getPropertyUserDir()));
-    sysProgram.setDebug(etomoDirector.getArguments().isDebug());
+  private static void startSystemProgramThread(final SystemProgram sysProgram,
+      BaseManager manager) {
+    if (manager != null) {
+      sysProgram.setWorkingDirectory(new File(manager.getPropertyUserDir()));
+    }
+    sysProgram.setDebug(EtomoDirector.INSTANCE.getArguments().isDebug());
 
     // Start the system program thread
     Thread sysProgThread = new Thread(sysProgram);
-    manager.saveStorables(sysProgram.getAxisID());
+    if (manager != null) {
+      manager.saveStorables(sysProgram.getAxisID());
+    }
     sysProgThread.start();
-    if (etomoDirector.getArguments().isDebug()) {
+    if (EtomoDirector.INSTANCE.getArguments().isDebug()) {
       System.err.println("Started " + sysProgram.getCommandLine());
       System.err
           .println("  working directory: " + manager.getPropertyUserDir());
