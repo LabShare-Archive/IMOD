@@ -28,6 +28,9 @@ import etomo.util.Utilities;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.53  2009/10/16 21:13:07  sueh
+ * <p> bug# 1230 Added postCurTab.
+ * <p>
  * <p> Revision 3.52  2009/10/13 17:39:54  sueh
  * <p> bug# 1278 Changed setExcludeProjectionsA and B to
  * <p> setExcludeProjections.  Removed whitespace so that copytomocoms won't
@@ -524,6 +527,10 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
       POST_KEY + "." + SQUEEZE_VOL_KEY + "." + INPUT_KEY + TRIM_VOL_KEY);
 
   private final EtomoNumber postCurTab = new EtomoNumber(POST_KEY + ".CurTab");
+  /**
+   * postExists is true if the post processing dialog has opened at least once.
+   */
+  private final EtomoBoolean2 postExists = new EtomoBoolean2(POST_KEY +".Exists");
 
   public MetaData(ApplicationManager manager) {
     this.manager = manager;
@@ -721,6 +728,10 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
 
   public void setPostCurTab(int input) {
     postCurTab.set(input);
+  }
+  
+  public void setPostExists (boolean input ) {
+    postExists.set(input);
   }
 
   public void setCombineVolcombineParallel(boolean combineVolcombineParallel) {
@@ -990,6 +1001,7 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
     stack3dFindBinningA.reset();
     stack3dFindBinningB.reset();
     postCurTab.reset();
+    postExists.reset();
     //load
     prepend = createPrepend(prepend);
     String group = prepend + ".";
@@ -1161,6 +1173,7 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
     stack3dFindBinningA.load(props, prepend);
     stack3dFindBinningB.load(props, prepend);
     postCurTab.load(props,prepend);
+    postExists.load(props,prepend);
   }
 
   public void setNoBeamTiltSelected(AxisID axisID, boolean selected) {
@@ -1352,6 +1365,7 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
     stack3dFindBinningA.store(props, prepend);
     stack3dFindBinningB.store(props, prepend);
     postCurTab.store(props,prepend);
+    postExists.store(props,prepend);
   }
 
   public boolean getTrackUseRaptor() {
@@ -1640,6 +1654,10 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
   
   public ConstEtomoNumber getPostCurTab() {
     return postCurTab;
+  }
+  
+  public boolean isPostExists() {
+    return postExists.is();
   }
 
   public ConstEtomoNumber getCombineVolcombineParallel() {
