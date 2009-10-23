@@ -33,6 +33,8 @@ lines between key contours.</li>
 of sphere, and does not deal with branching.</li>
 <li><b>Smooth</b> - generates interpolated contours such they they 
 form a smooth, curved surfaces. </li>
+<li><b>Smooth Pts</b> - as previous, but more sensitive to changes
+on different sides of the contour. </li>
 </ol>
 <br>
 <b>Hot Key Summary</b><br>
@@ -45,7 +47,8 @@ Start new contour (without interpolating current contour).<br>
 Toggle current contour between key/interpolated<br>
 <br>
 <b>[g]</b>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-Find next gap or isolated contour<br>
+Find next gap or isolated contour (NOTE: to enable ghosting, 
+try pressing [ctrl+g])<br>
 <b>[h]</b>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
 Find next large hole between key contours (ie. a large region of 
 consecutive interpolated contours)<br>
@@ -71,6 +74,17 @@ desired object periodically.<br>
 <br>
 To segment compartments even faster, try using this "Interpolator" 
 plugin in unison with the "Drawing Tools" plugin.<br>
+<br>
+The best settings to use depend on the shape and complexity of the
+surfaces you are segmeting. For relatively simple medium-to-large surfaces
+I suggest 'Spherical' interpolation with a Z Bridge of maybe 40. If your
+surfaces are highly branched you may want to change the surface method to
+'touching', branching to 'merge conts', reduce Z Bridge and use either
+'Linear' or 'Smooth' interpolation. In the end trial and error is the only
+way to find the best settings - don't forget you can fine tune some of these
+settings by clicking the 'More Settings' button.
+<br>
+For more information on what each button/option does hover your mouse over it.
 <br>
 ---------------------<br>
 <br>

@@ -15,6 +15,9 @@
     $Revision$
 
     $Log$
+    Revision 1.2  2009/09/01 01:17:57  tempuser
+    Changed second int i to j
+
     Revision 1.1  2009/08/27 11:20:39  tempuser
     First upload of interpolator
 
@@ -3087,7 +3090,7 @@ interp_SmoothCrude_BetweenConts( int c0, int c1, int c2, int c3 )
     
     //## ADD THE INTERPOLATED CONTOUR TO THE OBJECT:
     
-    changeZValue( cont, interpCurrZ );
+    setZValue( cont, interpCurrZ );
     addInterpolatedContToObj( obj, cont );
   }
   
@@ -3510,9 +3513,9 @@ interp_Spherical_OnSingleCont( int cMiddleIdx )
                                   // fit the sphere's profile
 		Icont *contNewUpper = imodContourDup( contNewLower );
 		
-		changeZValue(contNewUpper,contZ+i);           //|- add this same scaled down  
+		setZValue(contNewUpper,contZ+i);           //|- add this same scaled down  
     addInterpolatedContToObj(obj,contNewUpper);		//|  contour appropriate distance 
-		changeZValue(contNewLower,contZ-i);           //|  above and below the middle 
+		setZValue(contNewLower,contZ-i);           //|  above and below the middle 
     addInterpolatedContToObj(obj,contNewLower);		//|  contour
     
     imodContourDelete( contNewLower );
@@ -3694,7 +3697,7 @@ interp_Spherical( int baseContIdx, int maxDist )
 		newConts.push_back( IcontPtr( getC( idxInSurf[0] ) ) );		
 		cont_scaleAboutPt(newConts.back().cont, &contCenter[0], scaleFactor, true );			
                       // copy lowest contour, but scale it down to appropriate size ...
-		changeZValue( newConts.back().cont, z );      // then copy it to desired z slice
+		setZValue( newConts.back().cont, z );      // then copy it to desired z slice
 	}
 	
 	for(int z=highestZInt; z>getZ(highestCont); z-- )			// for each slice above the
@@ -3707,7 +3710,7 @@ interp_Spherical( int baseContIdx, int maxDist )
 		newConts.push_back( IcontPtr( getC( idxInSurf[idxLastCont] ) ) );		
 		cont_scaleAboutPt(newConts.back().cont,&contCenter[idxLastCont],scaleFactor,true);			
                       // copy lowest contour, but scale it down to appropriate size ...
-		changeZValue( newConts.back().cont, z );     // then copy it to desired z slice
+		setZValue( newConts.back().cont, z );     // then copy it to desired z slice
 	}
 	
 	for(int i=0; i<int(newConts.size()); i++)
@@ -4394,7 +4397,7 @@ void test_showInterpolationBetweenConts()
   {
     Iobj *objLines = getObj(imod,objForLinesIdx);
     for( int c=0; c<csize(objLines); c++ )
-      changeZValue( getCont( objLines, c) , zToFlattenTo  );
+      setZValue( getCont( objLines, c) , zToFlattenTo  );
   }
   
   
@@ -4576,7 +4579,7 @@ void test_showInterpolatedContoursNicely()
   if(flattenLines )
   {
     for( int c=0; c<csize(objLines); c++ )
-      changeZValue( getCont( objLines, c) , zToFlattenTo  );
+      setZValue( getCont( objLines, c) , zToFlattenTo  );
   }
 }
 
@@ -5226,7 +5229,7 @@ void test_copyContourToEnd()
     float scale = pow( scaleRate, (numContAdded+1) );
     if( reduceScale )
       cont_scaleAboutPtXY( contNew, &centerMBR, scale, scale );
-    changeZValue( contNew, z );
+    setZValue( contNew, z );
     addInterpolatedContToObj( obj, contNew );
     numContAdded++;
   }

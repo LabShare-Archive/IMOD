@@ -924,7 +924,7 @@ bool BeadHelper::drawExtraObject( bool redraw )
         for(int c=0; c<csize(objO);c++)
         {
           Icont *xcont = imodContourDup( getCont(objO,c) );
-          changeZValue( xcont, z );
+          setZValue( xcont, z );
           imodContourSetFlag(xcont, ICONT_DRAW_ALLZ | ICONT_MMODEL_ONLY, 1);
           imodObjectAddContour(xobjC, xcont);
           free(xcont);
@@ -937,7 +937,7 @@ bool BeadHelper::drawExtraObject( bool redraw )
       for(int c=0; c<csize(obj);c++)
       {
         Icont *xcont = imodContourDup( getCont(obj,c) );
-        changeZValue( xcont, z );
+        setZValue( xcont, z );
         imodContourSetFlag(xcont, ICONT_DRAW_ALLZ | ICONT_MMODEL_ONLY, 1);
         imodObjectAddContour(xobjC, xcont);
         free(xcont);
@@ -949,7 +949,7 @@ bool BeadHelper::drawExtraObject( bool redraw )
       if( isContValid(cont) )
       {
         Icont *xcont = imodContourDup( cont );
-        changeZValue( xcont, z );
+        setZValue( xcont, z );
         imodContourSetFlag(xcont, ICONT_DRAW_ALLZ, 1);
         imodObjectAddContour(xobjC, xcont);
         free(xcont);
@@ -983,7 +983,7 @@ bool BeadHelper::drawExtraObject( bool redraw )
         int ptsMoved, ptsAdded;
         ivwDraw( plug.view, 0 );          // redraw to ensure correct z is selected
         bead_smoothPtsUsingPlugSettings( xcontS, ptsMoved, ptsAdded );
-        changeZValue( xcontS, z );
+        setZValue( xcontS, z );
         imodContourSetFlag(xcontS, ICONT_DRAW_ALLZ, 1);
         imodObjectAddContour(xobjC, xcontS);
         free(xcontS);

@@ -15,6 +15,9 @@
     $Revision$
 
     $Log$
+    Revision 1.20  2009/06/05 09:20:50  tempuser
+    Minor
+
     Revision 1.19  2009/05/13 03:05:49  tempuser
     Added cont_breakContourByContour
 
@@ -222,6 +225,7 @@ using namespace std;
   }
 
 
+
 //############################################################
 
 
@@ -286,6 +290,308 @@ void point_scalePtAboutPt2D( Ipoint *pt, Ipoint *center, float scaleX, float sca
   pt->x += center->x;      //|-- translate back point 
   pt->y += center->y;      //|   (so center returns to its original position)
 }
+
+
+
+
+
+
+
+
+//------------------------
+//-- Takes a series of points, and return their average distance from the startPt,
+//-- and also records the distance of each in the radius value of the points.
+
+float point_findAvgDistToPt( Icont *pts, Ipoint *startPt, Ipoint *scalePt )
+{
+	float totalDist = 0.0;			// tallys the total distance from each point to the start point
+  
+	//## FIND AVERAGE DISTANCE FROM THE POINTS TO THE START POINT:
+	
+	for(int p=0; p<psize(pts); p++ )
+	{
+		double dist = imodPoint3DScaleDistance( getPt(pts,p), startPt, scalePt );
+		totalDist += dist;
+    imodPointSetSize( pts, p, dist );       // store distance to point in point radius
+		//pts[p].radius = dist;										// NOTE: stores distance as points radius so we don't have to calculate a second time.
+	}
+	
+	return ( fDiv( totalDist, psize(pts) ) );
+}
+
+
+//------------------------
+//-- Takes a series of points, and return the "maxDeviation" as the furthest distance
+//-- minus the closest distance, divided by the furthest distance.
+
+float point_maxDiffInDistToPoint( Icont *pts, Ipoint *startPt, Ipoint *scalePt )
+{
+	float minDist = FLOAT_MAX;
+	float maxDist = 0.0;
+  
+	//## FIND CLOSEST AND FURTHEST DISTANCE FROM A POINT:
+	
+	for(int p=0; p<psize(pts); p++ )
+	{
+		float dist = imodPoint3DScaleDistance( getPt(pts,p), startPt, scalePt );
+		minDist = MIN( minDist, dist );
+		maxDist = MAX( maxDist, dist );
+	}
+	
+	return ( fDiv( (maxDist-minDist), maxDist ) );
+}
+
+//------------------------
+//-- Takes a series of points, and return the standard devaition these are
+//-- from the "startPt".
+
+float point_stdDevDistToPoint( Icont *pts, Ipoint *startPt, Ipoint *scalePt )
+{
+	float avgDist = point_findAvgDistToPt( pts, startPt, scalePt );
+	float sumDifferenceSquared = 0.0;
+	
+	//## FIND CLOSEST AND FURTHEST DISTANCE FROM A POINT:
+	
+	for(int p=0; p<psize(pts); p++ )
+	{
+		float dist = imodPoint3DScaleDistance( getPt(pts,p), startPt, scalePt );
+		sumDifferenceSquared += SQ(dist - avgDist);
+	}
+	
+	return sqrt( fDiv( sumDifferenceSquared, (psize(pts) - 1) ) );
+}
+
+
+
+//------------------------
+//-- Takes a series of points, and a starting points, and tries to find the
+//-- "equidistant center" such that all points are an equal distance from it.
+//-- In other words, it tries to find the best "center" of a sphere/circle,
+//-- where the set of points are points around the edge of the sphere but they
+//-- DON'T have to be evenly distributed. It also sets the radius to the average
+//-- distance to the points. The best starting point is one that is already
+//-- inside the bounding polygon and/or close to the center.
+//-- 
+//-- NOTE: The illustration below demonstrates the difference between a center of points
+//--       and the centroid using the same set of 4 points.
+//--
+//--      CENTER OF POINTS:           |     CENTER OF AREA:                     |
+//--                                  |                                         |
+//--                  2               |        2                                |
+//--            1     o     3         |  1  __-o-__  3                          |
+//--             o    |    o          |   o-       -o                           |
+//--              \   |   /           |    \__       \   center of area         |
+//--               \  |  /            |       \  X    \  <-- centroid           |
+//--  startPt -> X  \ | /             |        \__     \      (center of area)  |
+//--                 \|/              |           \___  \                       |
+//--     center ->    X---------o 4   |               \__o 4                    |
+//--    of points                     |                                         |
+//--                                  |                                         |
+
+Ipoint point_findCenterOfPts( Iobj *obj, Icont *pts, Ipoint *startPt, float &avgRadius,
+                              float zScale, float &avgResidual, int maxIts )
+{
+	int numPoints = psize(pts);
+	if( numPoints <= 0 )
+		return (*startPt);
+  
+  Ipoint scalePt;
+  setPt( &scalePt, 1, 1, zScale );
+  
+	float  prevAvgDist = FLOAT_MAX;
+	Ipoint prevStartPt;
+  setPt( &prevStartPt, startPt->x, startPt->y, startPt->z);
+	
+  //cout << "TEST" << endl;      //%%%%%%%%%%%%%%%
+  
+	for(int i=0; i<maxIts; i++)
+	{
+		//## FIND AVERAGE DISTANCE FROM THE POINTS TO THE START POINT:
+		
+		float totalDist = 0.0;			// tallys the total distance from each point to the start point
+		for(int p=0; p<psize(pts); p++ )
+		{
+			float dist = imodPoint3DScaleDistance( getPt(pts,p), startPt, &scalePt );
+			totalDist += dist;
+      imodPointSetSize( pts, p, dist );
+			//pts[p].radius = dist;														// NOTE: stores the distance as the points radius so we don't have to calculate a second time.
+		}
+		float avgDist = fDiv( totalDist, numPoints );
+    
+    //cout << "iteration=" << i;      //%%%%%%%%%%%%%%%
+    
+		
+		//## CHECK IF IMPROVEMENT HAS BEEN MADE:
+		
+		float improvementDist = prevAvgDist - avgDist;
+		if( improvementDist == 0 )						// if no improvement has been made: early exit
+		{
+			//cout << "EARLY EXIT... i=" << i << endl;				// %%%%%%%%%
+			break;
+		}
+		else if( improvementDist < 0 )							// if we are going the WRONG way from the center (which can happen if the start point is too far outside the sphereical profile):
+		{
+			//cout << "WRONG WAY!" << endl;				// %%%%%%%%%
+			//startPt = line_findPtFractBetweenPts( startPt, pts[0], 0.5 );		// put the start point on the other side
+			//continue;
+		}
+		prevAvgDist = avgDist;
+		prevStartPt = *startPt;
+		
+		//## PROJECT LINES FROM EACH POINT THROUGH THE START POINT, AND AVERAGE THE PROJECTED POINTS TO FIND A NEW START POINT:
+		
+		Ipoint totalProjectedVals;			// tally's the total distance in X, Y and Z of the projected points, so that a averaged "middle point" can be found.
+		setPt( &totalProjectedVals, 0,0,0 );
+		float totalResidual = 0;
+		for(int p=0; p<numPoints; p++ )
+		{
+      float radius = imodPointGetSize(obj, pts, p);
+      //cout << "radius=" << radius << endl;      //%%%%%%%%%%%%%%%
+			float fractBetweenPts = fDivCustom( avgDist, radius, 1 );
+			Ipoint projectedPt = line_findPtFractBetweenPts( getPt(pts,p), startPt, fractBetweenPts );
+			totalProjectedVals.x += projectedPt.x;
+			totalProjectedVals.y += projectedPt.y;
+      totalProjectedVals.z += projectedPt.z;
+      
+			float residual = ABS( avgDist - radius );
+			totalResidual += residual;
+		}
+		Ipoint newStartPt;
+		newStartPt.x = totalProjectedVals.x / numPoints;
+		newStartPt.y = totalProjectedVals.y / numPoints;
+		newStartPt.z = totalProjectedVals.z / numPoints;
+		avgRadius = avgDist;
+		
+		avgResidual = totalResidual / numPoints;
+		
+		*startPt = newStartPt;
+	}
+  
+	return *startPt;
+}
+
+Ipoint point_findCenterOfPtsX( Iobj *obj, Icont *pts, Ipoint *startPt, float avgRadius, float zScale, int maxIts )
+{
+	float avgResidual;
+	return point_findCenterOfPts( obj, pts, startPt, avgRadius, zScale, avgResidual, maxIts );
+}
+
+
+//------------------------
+//-- Makes multiple calls to "point_findCenterOfPts" in an attempt to find the zScale
+//-- and center point (for this zScale) which give the lowest average residual.
+//-- 
+//-- NOTE: This uses a system where five evenly spaced zScales (ranging from "low" to "high")
+//-- are tested, and the value with the lowest residual becomes the new middle,
+//-- and the increment reduces until the "best Z scale" is found.
+//-- The diagram below shows how the guess gets closer and closer to the local minimum.
+//-- Each round two more values have to be calculate.
+//-- 
+//-- 
+//--                  Low    MidLow   Mid   MidHigh   High
+//--     round 1:      |       |       |       |       |
+//--                                           *        
+//--     round 2:                      |   |   |   |   |
+//--                                       *    
+//--     round 3:                      | | | | |             
+//--                                       *                       
+//--               \___                                      ____/ 
+//--                   \______                          ____/            ^ avgResidual  (Y AXIS)
+//--                          \________.         ______/                                          
+//--                                    \_    _./                        > zScale       (X AXIS)
+//--                                      \._/                             
+//--                                        ^               
+
+int MAX_GUESSES = 50;
+
+Ipoint point_findOptimalZScaleAndCenterOfPts( Iobj *obj, Icont *pts, Ipoint *startPt, float &avgR, float zScale,
+                                              float &bestZScale, float &bestAvgResidual, float startChangeZ,
+                                              float accuracyZScale, int maxIts )
+{
+	float zScaleLow     = zScale - startChangeZ;
+	float zScaleHigh    = zScale + startChangeZ;
+	float zScaleMid     = getFractBetween( zScaleLow, zScaleHigh, 0.5);
+	float zScaleMidLow  = getFractBetween( zScaleLow, zScaleHigh, 0.25);
+	float zScaleMidHigh = getFractBetween( zScaleLow, zScaleHigh, 0.75);
+	
+	float zScaleLow_resid     = 0;
+	float zScaleHigh_resid    = 0;
+	float zScaleMid_resid     = 0;
+	float zScaleMidLow_resid  = 0;
+	float zScaleMidHigh_resid = 0;
+  
+	Ipoint centerMid      = point_findCenterOfPts( obj, pts, startPt,    avgR, zScaleMid,  zScaleMid_resid,  maxIts );
+	Ipoint centerLow      = point_findCenterOfPts( obj, pts, &centerMid, avgR, zScaleLow,  zScaleLow_resid,  maxIts );
+	Ipoint centerHigh     = point_findCenterOfPts( obj, pts, &centerMid, avgR, zScaleHigh, zScaleHigh_resid, maxIts );
+	Ipoint centerMidHigh  = centerMid;
+	Ipoint centerMidLow   = centerMid;
+	
+	for (int i=0; i<MAX_GUESSES; i++)
+	{
+		//## CALCULATE THE NEW MID POINTS:
+		
+		zScaleMidLow  = getFractBetween( zScaleLow, zScaleHigh, 0.25);
+		zScaleMidHigh = getFractBetween( zScaleLow, zScaleHigh, 0.75);
+
+		centerMidHigh = point_findCenterOfPts( obj, pts, &centerMid, avgR, zScaleMidLow, zScaleMidLow_resid, maxIts );
+		centerMidLow  = point_findCenterOfPts( obj, pts, &centerMid, avgR, zScaleMidHigh, zScaleMidHigh_resid, maxIts );
+		
+		//## DETERMINE MINIMUM AND MAXIMUM AVERAGE RESIDUAL OVER FIVE Z-SCALES:
+		
+		float min_resid = MIN(MIN(MIN(MIN( zScaleLow_resid, zScaleHigh_resid ), zScaleMid_resid), zScaleMidLow_resid), zScaleMidHigh_resid);
+		float max_resid = MAX(MAX(MAX(MAX( zScaleLow_resid, zScaleHigh_resid ), zScaleMid_resid), zScaleMidLow_resid), zScaleMidHigh_resid);
+		
+		
+		//## ADJUST FIVE POINTS SO THAT ZSCALE WITH THE LOWEST VALUE BECOMES THE NEW MID POINT:
+
+		if( min_resid == zScaleLow_resid )
+		{
+			zScaleHigh = zScaleMid;		zScaleHigh_resid = zScaleMid_resid;		centerHigh = centerMid;
+			zScaleMid  = zScaleLow;		zScaleMid_resid  = zScaleLow_resid;		centerMid = centerLow;
+			zScaleLow  = getFractBetween( zScaleHigh, zScaleMid, 2.0 );			centerLow = point_findCenterOfPts( obj, pts, &centerMid, avgR, zScaleLow, zScaleLow_resid,  maxIts );
+		}
+		else if( min_resid == zScaleHigh_resid )
+		{
+			zScaleLow  = zScaleMid;		zScaleLow_resid  = zScaleMid_resid;		centerLow = centerMid;
+			zScaleMid  = zScaleHigh;	zScaleMid_resid  = zScaleHigh_resid;	centerMid = centerHigh;
+			zScaleHigh = getFractBetween( zScaleLow, zScaleMid, 2.0 );			centerHigh = point_findCenterOfPts( obj, pts, &centerMid, avgR, zScaleHigh, zScaleHigh_resid,  maxIts );
+		}
+		else if( min_resid == zScaleMid_resid )
+		{
+			zScaleLow  = zScaleMidLow;		zScaleLow_resid  = zScaleMidLow_resid;		centerLow  = centerMidLow;
+			zScaleHigh = zScaleMidHigh;		zScaleHigh_resid = zScaleMidHigh_resid;		centerHigh = centerMidHigh;
+		}
+		else if( min_resid == zScaleMidLow_resid )
+		{
+			zScaleHigh = zScaleMid;       zScaleHigh_resid = zScaleMid_resid;       centerHigh = centerMid;
+			zScaleMid  = zScaleMidLow;		zScaleMid_resid  = zScaleMidLow_resid;		centerMid  = centerMidLow;
+		}
+		else if( min_resid == zScaleMidHigh_resid )
+		{
+			zScaleLow  = zScaleMid;       zScaleLow_resid  = zScaleMid_resid;       centerLow  = centerMid;
+			zScaleMid  = zScaleMidHigh;		zScaleMid_resid  = zScaleMidHigh_resid;		centerMid  = centerMidHigh;
+		}
+		
+		//cout << " i=" << i << " zScaleMid=" << zScaleMid << "low=" << zScaleLow << "high=" << zScaleHigh << " min_resid=" << min_resid << " diff=" << (max_resid-min_resid) << endl;                  //%%%%%%
+		
+		//## CHECK IF SUFFICIENT ACCURACY TO EXIT EARLY:
+		
+		if( (zScaleHigh - zScaleLow) < accuracyZScale )
+			break;
+	}
+	
+	bestZScale = zScaleMid;
+	bestAvgResidual = zScaleMid_resid;
+  
+	return centerMid;
+}
+
+
+
+
+
+
+
 
 
 //------------------------
@@ -478,6 +784,16 @@ bool mbr_doBBoxesOverlap2D(Ipoint *p1ll, Ipoint *p1ur, Ipoint *p2ll, Ipoint *p2u
 }
 
 
+//------------------------
+//-- Returns true if the first box is completely inside the second box
+//-- (along all dimensions)
+
+bool mbr_isBBoxInsideBBox(Ipoint *ll1, Ipoint *ur1, Ipoint *ll2, Ipoint *ur2)
+{
+  return (   ( ll1->x >= ll2->x  &&  ur1->x <= ur2->x )
+          && ( ll1->y >= ll2->y  &&  ur1->y <= ur2->y )
+          && ( ll1->z >= ll2->z  &&  ur1->z <= ur2->z ) );
+}
 
 
 
@@ -1234,6 +1550,30 @@ void cont_findClosestPtInContToGivenPt( Ipoint *pt, Icont *cont, float *closestD
   *closestDist = sqrt(closestDist2);
 }
 
+//------------------------
+//-- Find the minimum, average and maximum distance in 3D from the specified
+//-- point to the points in the contour.
+
+void cont_findMinMaxAndAvgDistFromPt( Ipoint *pt, Icont *cont, float zScale,
+                                      float &minDist,  float &maxDist,  float &avgDist )
+{
+	minDist = FLOAT_MAX;
+	maxDist = 0;
+	avgDist = 0;
+  Ipoint scalePt;
+  setPt( &scalePt, 1,1,zScale );
+  
+	for(int p=0; p<psize(cont); p++ )
+	{
+		float distToPt = imodPoint3DScaleDistance( getPt(cont,p), pt, &scalePt );
+		minDist = MIN( minDist, distToPt );
+		maxDist = MAX( maxDist, distToPt );
+		avgDist += distToPt;
+	}
+	
+	if( psize(cont) > 0 )
+		avgDist = avgDist / psize(cont);
+}
 
 
 
@@ -1424,7 +1764,7 @@ void cont_scaleAboutPt( Icont *cont, Ipoint *pt, float scaleFactor, bool ignoreZ
     *getPt(cont,i) = line_findPtFractBetweenPts( pt, getPt(cont,i), scaleFactor );
   
   if(ignoreZ)
-    changeZValue( cont, (int)zOrig );
+    setZValue( cont, (int)zOrig );
 }
 
 //------------------------
@@ -3033,8 +3373,8 @@ void cont_getIntersectingConvexPolygon( Icont *newCont,
       // (the are all original)
       // for intersection points the z value is set to an idx in the intercepts vector.
       
-  changeZValue( cont1, NOT_INTERSECT_PT );          
-  changeZValue( cont2, NOT_INTERSECT_PT );
+  setZValue( cont1, NOT_INTERSECT_PT );          
+  setZValue( cont2, NOT_INTERSECT_PT );
   
 //## FIND ALL INTERCEPTION POINTS WHERE CONTOURS CROSS AND 
 //## ADD THEM TO THE LIST OF INTERCEPTS:
@@ -3262,7 +3602,7 @@ int cont_breakContByZValue( Icont *cont, vector<IcontPtr> &contSegs, int zValue,
   {
     Icont *seg = contSegs[i].cont;
     imodContourUnique( seg );
-    changeZValue( seg,zValue );
+    setZValue( seg,zValue );
     if( psize(seg) <= 1 )
       eraseContour( contSegs, i );
     else if( psize(seg) == 2  )
@@ -3450,8 +3790,8 @@ int cont_getIntersectingSegments( Icont *cont1Orig, Icont *cont2Orig,
   int cont1ZVal = getZInt(cont1);
   int cont2ZVal = getZInt(cont2);
   
-  changeZValue( cont1, cont1ZVal );
-  changeZValue( cont2, cont2ZVal );
+  setZValue( cont1, cont1ZVal );
+  setZValue( cont2, cont2ZVal );
   
   const float INTERSECT_PT = -2.0f;
   

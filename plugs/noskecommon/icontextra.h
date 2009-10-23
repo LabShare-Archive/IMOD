@@ -97,6 +97,7 @@ inline Ipoint *getPtNoWrap(Icont *cont, int idx);
 inline Ipoint *getLastPt(Icont *cont );
 inline Ipoint *getFirstPt(Icont *cont );
 inline void setPt(Ipoint *pt, float x, float y, float z);
+inline void copyPt(Ipoint *to, Ipoint *from);
 inline Ipoint newPt( float x, float y, float z );
 inline bool ptsEqual( Ipoint *pt1, Ipoint *pt2 );
 inline bool ptsApproxEqual( Ipoint *pt1, Ipoint *pt2, float prec );
@@ -111,7 +112,7 @@ inline void deleteAllPts( Icont *cont );
 inline float getZ( Icont *cont );
 inline int getZInt( Icont *cont );
 inline float getZRange( Icont *cont );
-inline void changeZValue( Icont *cont, int newZValue );
+inline void setZValue( Icont *cont, int newZValue );
 inline void cont_copyPts( Icont *from, Icont *to, bool clearToCont );
 inline void deleteContours( vector<IcontPtr> &conts );
 inline void eraseContour( vector<IcontPtr> &conts, int idx );
@@ -134,9 +135,18 @@ void point_rotatePointAroundPoint2D( Ipoint *pt, Ipoint *center, float theta );
 void point_scalePtAboutPt( Ipoint *pt, Ipoint *center, float scaleX, float scaleY, float scaleZ );
 void point_scalePtAboutPt2D( Ipoint *pt, Ipoint *center, float scaleX, float scaleY );
 
+float point_findAvgDistToPt( Icont *pts, Ipoint *startPt, Ipoint *scalePt );
+float point_maxDiffInDistToPoint( Icont *pts, Ipoint *startPt, Ipoint *scalePt );
+float point_stdDevDistToPoint( Icont *pts, Ipoint *startPt, Ipoint *scalePt );
+Ipoint point_findCenterOfPts( Iobj *obj, Icont *pts, Ipoint *startPt, float &avgRadius,
+                              float zScale, float &avgResidual, int maxIts );
+Ipoint point_findCenterOfPtsX( Iobj *obj, Icont *pts, Ipoint *startPt, float avgRadius, float zScale, int maxIts );
+Ipoint point_findOptimalZScaleAndCenterOfPts( Iobj *obj, Icont *pts, Ipoint *startPt, float &avgRadius, float zScale,
+                                              float &bestZScale, float &bestAvgResidual, float startChangeZ,
+                                              float accuracyZScale, int maxIts );
+
 float getValCardinalSpline( float fract, float p0, float p1, float p2,  float p3, float tensileFract );
 Ipoint getPtCardinalSpline( float fract, Ipoint p0, Ipoint p1, Ipoint p2,  Ipoint p3, float tensileFract ); 
-
 
 //-------------------------------
 //## MINIMUM BOUNDING RECTANGLE (MBR) RELATED FUNCTIONS:
@@ -151,7 +161,7 @@ bool mbr_isPtInsideBBox(Ipoint *pt, Ipoint *ll, Ipoint *ur);                  //
 bool mbr_isPtInsideBBox2D(Ipoint *pt, Ipoint *ll, Ipoint *ur);                // NEW
 bool mbr_doEdgesOverlap(float min1, float max1, float min2, float max2);
 bool mbr_doBBoxesOverlap2D(Ipoint *p1ll, Ipoint *p1ur, Ipoint *p2ll, Ipoint *p2ur);
-
+bool mbr_isBBoxInsideBBox(Ipoint *ll1, Ipoint *ur1, Ipoint *ll2, Ipoint *ur2);
 
 //-------------------------------
 //## LINE RELATED FUNCTIONS:  
@@ -197,6 +207,7 @@ bool cont_insideCrude( Icont *cont1, Icont *cont2 );            // NEW
 
 float cont_getRadius( Icont *c );
 void  cont_findClosestPtInContToGivenPt( Ipoint *pt, Icont *cont, float *closestDist, Ipoint *closestPt, int *closestPtIdx );
+void cont_findMinMaxAndAvgDistFromPt( Ipoint *pt, Icont *cont, float zScale, float &minDist,  float &maxDist,  float &avgDist );
 bool  cont_doContsTouch( Icont *cont1, Icont *cont2 );
 float cont_minDistPtAndContourPts2D( Ipoint *pt, Icont *cont, bool returnZeroIfPtInside );
 float cont_minDistBetweenContPts2D( Icont *cont1, Icont *cont2, bool returnZeroIfTouch );
@@ -424,6 +435,16 @@ inline void setPt(Ipoint *pt, float x, float y, float z)
 }
 
 //------------------------
+//-- Used to set the three coordinates of a point in one call.
+
+inline void copyPt(Ipoint *to, Ipoint *from)
+{
+  to->x = from->x;
+  to->y = from->y;
+  to->z = from->z;
+}
+
+//------------------------
 //-- Used to create a new point in one call.
 
 inline Ipoint newPt( float x, float y, float z )
@@ -590,12 +611,14 @@ inline float getZRange( Icont *cont )
 
 
 //------------------------
-//-- Changes the z value of all the points tot he given value.
+//-- Changes the z value of all the points to the given value.
 
-inline void changeZValue( Icont *cont, int newZValue )
+inline void setZValue( Icont *cont, int newZValue )
 {
   for (int i=0; i<psize( cont ); i++)
     getPt( cont, i )->z = (float)newZValue;
+  imodContourSetFlag( cont, ICONT_WILD, 0 );
+  //imodel_contour_check_wild(cont)
 }
 
 //------------------------
