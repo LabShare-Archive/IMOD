@@ -33,7 +33,9 @@ import junit.extensions.jfcunit.eventdata.MouseEventData;
 import junit.extensions.jfcunit.finder.AbstractButtonFinder;
 import junit.extensions.jfcunit.finder.NamedComponentFinder;
 import junit.framework.Assert;
+import etomo.BaseManager;
 import etomo.EtomoDirector;
+import etomo.ManagerKey;
 import etomo.process.SystemProgram;
 import etomo.storage.LogFile;
 import etomo.storage.autodoc.AutodocFactory;
@@ -64,6 +66,9 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.15  2009/10/08 20:59:53  sueh
+ * <p> bug# 1277 In executeField changed the name of minibuttons to mb.name.
+ * <p>
  * <p> Revision 1.14  2009/09/28 18:37:28  sueh
  * <p> bug# 1235 In executeCommand, for wait.file-chooser, make sure that
  * <p> value isn't null and handle a fully qualified chosen_file.
@@ -533,8 +538,8 @@ final class AutodocTester extends Assert implements VariableList {
   }
 
   /**
-   * Execute optional command to open a dialog called dialogName.  Called when "open.dialog ="
-   * executed.
+   * Execute optional command to open the interface.  Called when "open.interface"
+   * is executed.
    * @throws FileNotFoundException
    * @throws IOException
    * @throws LogFile.ReadException
@@ -777,8 +782,15 @@ final class AutodocTester extends Assert implements VariableList {
       }
       //open.interface
       else if (subjectType == UITestSubjectType.INTERFACE) {
-        //probably a command from the interface section
-        openInterface();
+        if (field == null) {
+          //call from the test autodoc to the open.interface command in the
+          //interface section
+          openInterface();
+        }
+        else {
+          //open.interface.field
+          executeField(command);
+        }
       }
       else {
         fail("unexpected command (" + command.toString() + ")");
@@ -832,9 +844,14 @@ final class AutodocTester extends Assert implements VariableList {
         }
         //set.adoc.section_type = autodoc_name
         else {
+          ManagerKey managerKey = null;
+          BaseManager manager = EtomoDirector.INSTANCE
+              .getCurrentManagerForTest();
+          if (manager != null) {
+            managerKey = manager.getManagerKey();
+          }
           functionAutodoc = AutodocFactory.getInstance(sourceDir, value,
-              AxisID.ONLY, EtomoDirector.INSTANCE.getCurrentManagerForTest()
-                  .getManagerKey());
+              AxisID.ONLY, managerKey);
         }
       }
       //set.var.variable_name
