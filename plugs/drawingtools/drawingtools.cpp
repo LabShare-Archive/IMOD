@@ -15,6 +15,9 @@
     $Revision$
 
     $Log$
+    Revision 1.42  2009/10/22 05:41:51  mast
+    Clear contour WILD flag after adding a point with Z marked as shifted
+
     Revision 1.41  2009/06/11 01:00:42  tempuser
     Minor
 
@@ -3985,6 +3988,7 @@ void DrawingTools::cleanModelAndFixContours()
   int         objMin         = 1;
   int         objMax         = nObjects;
   static bool cleanConts     = true;
+  static bool checkWild      = true;
   static bool deleteDupPts   = true;
   static bool deleteRedPts   = true;
   static bool deleteOutPts   = false;
@@ -4020,6 +4024,9 @@ void DrawingTools::cleanModelAndFixContours()
                    "contour options:" );
   ds.addCheckBox( "remove empty contours", &cleanConts,
                   "same effect as Edt >> Object >> Clean");
+  ds.addCheckBox( "check wild flag", &checkWild,
+                  "sets a wild flag to on for any contour spanning multiple slices "
+                  "or off if on a single slice (used for optimization and ghosting)");
   ds.addCheckBox( "make contours clockwise", &makeCW,
                   "makes all contours clockwise or "
                   "anti-clockwise (if ticked below).\n"
@@ -4065,6 +4072,7 @@ void DrawingTools::cleanModelAndFixContours()
   long totOutPtsRemoved = 0;
   long totPtsRounded    = 0;
   long totContsDeleted  = 0;
+  long totContsWildTog  = 0;
   long totContsReversed = 0;
   long totContsMadeSimp = 0;
   long totPtsShiftedXY  = 0;
@@ -4158,6 +4166,13 @@ void DrawingTools::cleanModelAndFixContours()
         totPtsShiftedXY += cont_killVertAndHorzSegments(cont);
       }
         
+      if( checkWild )
+      {
+        int wildBefore = imodContourGetFlag( cont, ICONT_WILD );
+        imodel_contour_check_wild(cont);  
+        if ( (int)wildBefore != (int)imodContourGetFlag( cont, ICONT_WILD ) )
+          totContsWildTog++;
+      }
     }
     
   }
@@ -4171,13 +4186,13 @@ void DrawingTools::cleanModelAndFixContours()
   if(deleteOutPts) wprint("  %d point outside tomogram removed\n", totOutPtsRemoved );
   if(roundPts)     wprint("  %d point rounded in Z\n", totPtsRounded );
   if(cleanConts)   wprint("  %d empty contours removed\n", totContsDeleted );
+  if(checkWild)    wprint("  %d contour wild flags changed\n", totContsWildTog );
   if(makeCW)       wprint("  %d contours made %s\n", totContsReversed,
                           (antiCW)? "anti-clockwise" : "clockwise" );
   if(makeSimple)   wprint("  %d non-simple contours fixed\n", totContsMadeSimp );
   if(killVertSegs) wprint("  %d points nudged to prevent vert or horz segments\n",
                           totPtsShiftedXY );
 }
-
 
 
 
@@ -4369,7 +4384,7 @@ int  DrawingTools::copyCurrContToView(bool smartSize)
   }
   
   Icont *contNew = imodContourDup( cont );
-  changeZValue( contNew, currZ );
+  setZValue( contNew, currZ );
   if(smartSize)
   {
     Ipoint centerMBR;
@@ -5130,7 +5145,7 @@ void  edit_executeSculptPush( Ipoint center, float radius )
       }
     }
     
-    changeZValue( cont, (int)center.z );    
+    setZValue( cont, (int)center.z );    
   }
 }
 
@@ -5354,7 +5369,7 @@ void edit_executeJoinRectEnd()
       cont_copyPts( cont2Segs[0].cont, endCont, false );
       cont_addPtsSmooth( endCont, plug.smoothMinDist, plug.smoothTensileFract,
                          isContClosed(obj,startCont) );
-      changeZValue( endCont, z );
+      setZValue( endCont, z );
       
       changeMade = true;
     }
@@ -5383,19 +5398,19 @@ void edit_executeJoinRectEnd()
       cont_copyPts( contSegs[0].cont, endCont, true );
       cont_addPtsSmooth( endCont, plug.smoothMinDist, plug.smoothTensileFract,
                          isContClosed(obj,startCont) );
-      changeZValue( endCont, z );
+      setZValue( endCont, z );
     }
     else if( nSegs == 2 )
     {
       Icont *cont1 = imodContourDup(contSegs[0].cont);
       cont_addPtsSmooth( cont1, plug.smoothMinDist, plug.smoothTensileFract,
                          isContClosed(obj,startCont) );
-      changeZValue( cont1, z );
+      setZValue( cont1, z );
       
       Icont *cont2 = imodContourDup(contSegs[1].cont);
       cont_addPtsSmooth( cont2, plug.smoothMinDist, plug.smoothTensileFract,
                          isContClosed(obj,startCont) );
-      changeZValue( cont2, z );
+      setZValue( cont2, z );
       
       undoContourDataChgCC( plug.view );      // REGISTER UNDO
       cont_copyPts( cont1, endCont, true );
