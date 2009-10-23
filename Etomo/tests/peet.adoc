@@ -38,6 +38,7 @@ run.function.reference=
 [function = setup-test-gui]
 if.not.var.test-values.return=
 tb.setup.1=
+mb.parallel-processing=-
 bn.run=
 wait.popup.entry-error=OK
 #error message sends it back to setup tab
