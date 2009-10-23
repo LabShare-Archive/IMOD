@@ -22,7 +22,8 @@ import etomo.util.Utilities;
 public final class ParallelMetaData extends BaseMetaData {
   public static final String rcsid = "$Id$";
 
-  public static final String NEW_TITLE = "Parallel Processing";
+  public static final String NEW_GENERIC_PARALLEL_PROCESS_TITLE = "Parallel Processing";
+  public static final String NEW_ANISOTROPIC_DIFFUSION_TITLE = "Nonlinear Anisotropic Diffusion";
 
   private static final String REVISION_KEY = "Revision";
   private static final String CURRENT_REVISION = "1.0";
@@ -51,7 +52,7 @@ public final class ParallelMetaData extends BaseMetaData {
   private final EtomoNumber iteration = new EtomoNumber("Iteration");
   private final EtomoNumber memoryPerChunk = new EtomoNumber("MemoryPerChunk");
 
-  private DialogType dialogType = DialogType.getDefault(TabType.PARALLEL);
+  private DialogType dialogType = DialogType.getDefault(DataFileType.PARALLEL);
   private String revision = null;
   private String rootName = null;
 
@@ -71,11 +72,14 @@ public final class ParallelMetaData extends BaseMetaData {
 
   public String getName() {
     if (rootName == null) {
-      return NEW_TITLE;
+      if (dialogType == DialogType.ANISOTROPIC_DIFFUSION) {
+        return NEW_ANISOTROPIC_DIFFUSION_TITLE;
+      }
+      return NEW_GENERIC_PARALLEL_PROCESS_TITLE;
     }
     return rootName;
   }
-  
+
   public String getDatasetName() {
     return rootName;
   }
@@ -104,7 +108,7 @@ public final class ParallelMetaData extends BaseMetaData {
 
   public void setRootName(String rootName) {
     this.rootName = rootName;
-    Utilities.managerStamp(null,this.rootName);
+    Utilities.managerStamp(null, this.rootName);
   }
 
   public void setLoadWithFlipping(boolean input) {
@@ -258,14 +262,14 @@ public final class ParallelMetaData extends BaseMetaData {
     zMax.reset();
     testKValueList.reset();
     testIteration.reset();
-    dialogType = DialogType.getDefault(TabType.PARALLEL);
+    dialogType = DialogType.getDefault(DataFileType.PARALLEL);
     testKValue.reset();
     testIterationList.reset();
     kValue.reset();
     iteration.reset();
     memoryPerChunk.reset();
     //load
-    dialogType = DialogType.load(TabType.PARALLEL, props,
+    dialogType = DialogType.load(DataFileType.PARALLEL, props,
         DialogType.PROPERTIES_KEY);
     prepend = createPrepend(prepend);
     String group = prepend + ".";
@@ -329,6 +333,9 @@ public final class ParallelMetaData extends BaseMetaData {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.7  2008/12/10 18:34:05  sueh
+ * <p> bug# 1162 Added a manager stamp to setRootName.
+ * <p>
  * <p> Revision 1.6  2007/12/10 22:37:48  sueh
  * <p> bug# 1041 Moved resets to load since they are only done once.
  * <p>
