@@ -4,6 +4,7 @@ Version = 1.2
 #======
 
 [dialog = SetupRecon]
+open.interface=
 #partial test
 #open.dialog.FinalStack =
 #skipto.dialog.FinalStack =
