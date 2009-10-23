@@ -7,6 +7,7 @@ set.adoc.dialog = recon.adoc
 set.dataset=BB
 #set.param = %{dataset}.edf
 set.var.single=
+set.interface.Recon=
 
 [Test = dual]
 set.testdir = dual
@@ -16,6 +17,7 @@ set.adoc.bdialog.b=recon.adoc
 set.dataset = BB
 #set.param = %{dataset}.edf
 set.var.dual=
+set.interface.Recon=
 
 [Test = single-test-gui]
 set.testdir = single-test-gui
@@ -25,6 +27,7 @@ set.dataset = BB
 #set.param = %{dataset}.edf
 set.var.single=
 set.var.test-gui=
+set.interface.Recon=
 
 [Test = dual-test-gui]
 set.testdir = dual-test-gui
@@ -35,6 +38,7 @@ set.dataset = BB
 #set.param = %{dataset}.edf
 set.var.dual=
 set.var.test-gui=
+set.interface.Recon=
 
 [Test = single-fidless]
 set.testdir=single-fidless
@@ -43,6 +47,7 @@ set.dataset=BB
 #set.param = %{dataset}.edf
 set.var.single=
 set.var.fidless=
+set.interface.Recon=
 
 [Test = single-simple-align]
 set.testdir=single-simple-align
@@ -52,6 +57,13 @@ set.dataset=BB
 #set.param = %{dataset}.edf
 set.var.single=
 set.var.simple-align=
+set.interface.Recon=
+
+[Test = generic]
+set.testdir = generic
+set.adoc.dialog = generic.adoc
+set.dataset = BB
+set.interface.Generic=
 
 
 [Test = single-montage]
@@ -88,7 +100,7 @@ set.adoc.dialog.a=recon.adoc
 set.adoc.bdialog.b=recon.adoc
 set.dataset = midzone2
 #set.param = %{dataset}.edf
-set.param= --names
+#set.param= --names
 set.var.dual=
 set.var.montage=
 set.var.test-gui=
@@ -113,10 +125,10 @@ set.interface.Join=
 
 [Test = nad]
 set.testdir = nad
-set.adoc.nad = parallel.adoc
+set.adoc.dialog = nad.adoc
 set.dataset = unicross
 set.var.volume=unicross1.rec
-set.interface.Parallel=
+set.interface.Nad=
 
 
 [Test = peet]
@@ -167,7 +179,6 @@ set.var.x-axis-tilt.b=0.13
 set.var.volume-range-z-max=70
 set.var.scaling-z-min=25
 set.var.scaling-z-max=50
-set.interface.Recon=
 
 [dataset = midzone2]
 set.single.dataset = midzone2a
@@ -228,6 +239,7 @@ set.interface.peet=
 
 [interface = Recon]
 goto.frame.pnl.main-frame =
+open.interface.bn.tomographic-reconstruction=
 goto.frame.a.pnl.main-frame =
 open.frame.b.bn.both =
 goto.frame.b.pnl.sub-frame =
@@ -244,10 +256,7 @@ open.dialog.CleanUp.bn.clean =
 
 [interface = Join]
 goto.frame.pnl.main-frame =
-[[open = interface]]
-mn.file=
-mn.new-join=
-[[]]
+open.interface.bn.join-tomograms=
 open.dialog.setup.tb.setup =
 open.dialog.align.tb.setup.1 =
 open.dialog.join.tb.setup.2 =
@@ -255,17 +264,14 @@ open.dialog.model.tb.setup.3 =
 open.dialog.rejoin.tb.setup.4 =
 
 [interface = PEET]
-[[open = interface]]
-mn.file=
-mn.new-peet=
-[[]]
 goto.frame.pnl.main-frame =
+open.interface.bn.peet=
 
-[Interface = Parallel]
+[Interface = Nad]
 goto.frame.pnl.main-frame =
-[[open = interface]]
-mn.file=
-mn.new-parallel-process=
-[[]]
-open.dialog.generic-parallel-process.bn.generic-parallel-process =
-open.dialog.nonlinear-anisotropic-diffusion.bn.nonlinear-anisotropic-diffusion=
+open.interface.bn.nonlinear-anisotropic-diffusion=
+
+[Interface = Generic]
+goto.frame.pnl.main-frame =
+open.interface.bn.generic-parallel-process=
+
