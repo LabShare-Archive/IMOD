@@ -7702,10 +7702,6 @@ public final class ApplicationManager extends BaseManager implements
     processMgr.pause(axisID);
   }
 
-  public void touch(String absolutePath) {
-    processMgr.touch(absolutePath);
-  }
-
   private ProcessResult splittilt(AxisID axisID,
       ProcessResultDisplay processResultDisplay, ProcessSeries processSeries,
       SplittiltParam param, final DialogType dialogType) {
@@ -7896,6 +7892,11 @@ public final class ApplicationManager extends BaseManager implements
 }
 /**
  * <p> $Log$
+ * <p> Revision 3.340  2009/10/23 21:22:33  sueh
+ * <p> bug# 1281 In openPostProcessingDialog, checking, setting, and saving
+ * <p> metaData.postExists, which keeps track of whether the post processing
+ * <p> dialog has been brought up before.
+ * <p>
  * <p> Revision 3.339  2009/10/01 18:44:34  sueh
  * <p> bug# 1233 In save... functions always try to save everything and don't
  * <p> pass back a boolean.
