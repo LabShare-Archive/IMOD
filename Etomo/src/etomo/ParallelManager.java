@@ -77,10 +77,18 @@ public final class ParallelManager extends BaseManager {
   private ParallelProcessManager processMgr;
 
   public ParallelManager() {
-    this("");
+    this("", null);
+  }
+
+  public ParallelManager(final DialogType dialogType) {
+    this("", dialogType);
   }
 
   public ParallelManager(final String paramFileName) {
+    this(paramFileName, null);
+  }
+
+  public ParallelManager(final String paramFileName, final DialogType dialogType) {
     super();
     this.metaData = new ParallelMetaData();
     createState();
@@ -90,7 +98,15 @@ public final class ParallelManager extends BaseManager {
       openProcessingPanel();
       mainPanel.setStatusBarText(paramFile, metaData, logPanel);
       if (paramFile == null) {
-        openParallelChooser();
+        if (dialogType == DialogType.PARALLEL) {
+          openParallelDialog();
+        }
+        else if (dialogType == DialogType.ANISOTROPIC_DIFFUSION) {
+          openAnisotropicDiffusionDialog();
+        }
+        else {
+          openParallelChooser();
+        }
       }
       else {
         if (metaData.getDialogType() == DialogType.PARALLEL) {
@@ -758,6 +774,9 @@ public final class ParallelManager extends BaseManager {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.38  2009/09/05 00:39:22  sueh
+ * <p> bug# 1256 Passed manager and axisID to state constructor.
+ * <p>
  * <p> Revision 1.37  2009/09/01 03:17:35  sueh
  * <p> bug# 1222
  * <p>
