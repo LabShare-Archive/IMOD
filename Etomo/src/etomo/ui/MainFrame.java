@@ -35,6 +35,9 @@ import etomo.util.Utilities;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.56  2009/09/29 00:23:00  sueh
+ * <p> bug# 1228 Move MainFrame to the front after a call to LogFrame.refresh().
+ * <p>
  * <p> Revision 3.55  2009/04/02 19:19:14  sueh
  * <p> bug# 1206 Only need one call to setEnabled in
  * <p> setCurrentManager(BaseManager,ManagerKey).
@@ -462,7 +465,7 @@ public final class MainFrame extends EtomoFrame implements ContextMenu {
   private static final Dimension frameBorder = new Dimension(10, 48);
   private static final String aAxisTitle = "A Axis - ";
   private static final String bAxisTitle = "B Axis - ";
-  private static final String etomoTitle = "Etomo";
+  public static final String etomoTitle = "Etomo";
 
   //private JPanel contentPane;
   private final JPanel rootPanel;
@@ -473,6 +476,7 @@ public final class MainFrame extends EtomoFrame implements ContextMenu {
   private String[] mRUList;
   private boolean registered = false;
   private LogFrame logFrame = LogFrame.getInstance();
+  private FrontPageDialog frontPageDialog = null;
 
   /**
    * Main window constructor.  This sets up the menus and status line.
@@ -515,6 +519,19 @@ public final class MainFrame extends EtomoFrame implements ContextMenu {
     main = true;
   }
 
+  /**
+   * Create frontPageDialog if necessary.  Remove everything from the rootPanel.
+   * Add frontPageDialog to the root panel.
+   */
+  void displayFrontPage() {
+    if (frontPageDialog == null) {
+      frontPageDialog = FrontPageDialog.getInstance();
+    }
+    rootPanel.removeAll();
+    rootPanel.add(frontPageDialog.getComponent());
+    pack(null);
+  }
+
   void setCurrentManager(BaseManager currentManager, ManagerKey managerKey,
       boolean newWindow) {
     setEnabled(currentManager);
@@ -530,7 +547,10 @@ public final class MainFrame extends EtomoFrame implements ContextMenu {
       Utilities.managerStamp(currentManager.getPropertyUserDir(),
           currentManager.getName());
     }
-    if (mainPanel != null) {
+    //Remove everything from rootPanel if the main panel has been set from the
+    //previous manager, or if frontPageDialog was create, which means that
+    //displayFrontPage was called from EtomoDirector.
+    if (mainPanel != null || frontPageDialog != null) {
       rootPanel.removeAll();
     }
     if (currentManager == null) {
@@ -615,7 +635,7 @@ public final class MainFrame extends EtomoFrame implements ContextMenu {
   void selectWindowMenuItem(ManagerKey currentManagerKey) {
     selectWindowMenuItem(currentManagerKey, false);
   }
-  
+
   void selectWindowMenuItem(UniqueKey currentKey) {
     selectWindowMenuItem(currentKey, false);
   }
@@ -623,7 +643,7 @@ public final class MainFrame extends EtomoFrame implements ContextMenu {
   void selectWindowMenuItem(ManagerKey currentManagerKey, boolean newWindow) {
     windowSwitch.selectWindow(currentManagerKey, newWindow);
   }
-  
+
   void selectWindowMenuItem(UniqueKey currentKey, boolean newWindow) {
     windowSwitch.selectWindow(currentKey, newWindow);
   }
