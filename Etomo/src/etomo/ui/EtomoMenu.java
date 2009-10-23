@@ -37,8 +37,10 @@ public final class EtomoMenu {
   private final JMenuItem menuNewTomogram = new MenuItem("New Tomogram",
       KeyEvent.VK_N);
   private final JMenuItem menuNewJoin = new MenuItem("New Join", KeyEvent.VK_J);
-  private final JMenuItem menuNewParallel = new MenuItem(
-      "New Parallel Process", KeyEvent.VK_P);
+  private final JMenuItem menuNewGenericParallel = new MenuItem(
+      "New Generic Parallel Process", KeyEvent.VK_P);
+  private final JMenuItem menuNewAnisotropicDiffusion = new MenuItem(
+      "New Nonlinear Anisotropic Diffusion Process", KeyEvent.VK_D);
   private final JMenuItem menuNewPeet = new MenuItem("New PEET", KeyEvent.VK_E);
   private final JMenuItem menuOpen = new MenuItem("Open...", KeyEvent.VK_O);
   private final JMenuItem menuSave = new MenuItem("Save", KeyEvent.VK_S);
@@ -105,7 +107,8 @@ public final class EtomoMenu {
     FileActionListener fileActionListener = new FileActionListener(frame);
     menuNewTomogram.addActionListener(fileActionListener);
     menuNewJoin.addActionListener(fileActionListener);
-    menuNewParallel.addActionListener(fileActionListener);
+    menuNewGenericParallel.addActionListener(fileActionListener);
+    menuNewAnisotropicDiffusion.addActionListener(fileActionListener);
     menuNewPeet.addActionListener(fileActionListener);
     menuOpen.addActionListener(fileActionListener);
     menuSave.addActionListener(fileActionListener);
@@ -138,7 +141,8 @@ public final class EtomoMenu {
     //  File menu
     menuFile.add(menuNewTomogram);
     menuFile.add(menuNewJoin);
-    menuFile.add(menuNewParallel);
+    menuFile.add(menuNewGenericParallel);
+    menuFile.add(menuNewAnisotropicDiffusion);
     menuFile.add(menuNewPeet);
     menuFile.add(menuOpen);
     menuFile.add(menuSave);
@@ -222,7 +226,10 @@ public final class EtomoMenu {
   void setEnabled(final EtomoMenu mainFrameMenu) {
     menuNewTomogram.setEnabled(mainFrameMenu.menuNewTomogram.isEnabled());
     menuNewJoin.setEnabled(mainFrameMenu.menuNewJoin.isEnabled());
-    menuNewParallel.setEnabled(mainFrameMenu.menuNewParallel.isEnabled());
+    menuNewGenericParallel.setEnabled(mainFrameMenu.menuNewGenericParallel
+        .isEnabled());
+    menuNewAnisotropicDiffusion
+        .setEnabled(mainFrameMenu.menuNewAnisotropicDiffusion.isEnabled());
     menuNewPeet.setEnabled(mainFrameMenu.menuNewPeet.isEnabled());
     menuSaveAs.setEnabled(mainFrameMenu.menuSaveAs.isEnabled());
     menuAxisA.setEnabled(mainFrameMenu.menuAxisA.isEnabled());
@@ -271,7 +278,7 @@ public final class EtomoMenu {
   void doClickFileExit() {
     menuExit.doClick();
   }
-  
+
   void setEnabledLogWindow(final boolean enable) {
     menuLogWindow.setEnabled(enable);
   }
@@ -284,8 +291,12 @@ public final class EtomoMenu {
     menuNewJoin.setEnabled(enable);
   }
 
-  void setEnabledNewParallel(final boolean enable) {
-    menuNewParallel.setEnabled(enable);
+  void setEnabledNewGenericParallel(final boolean enable) {
+    menuNewGenericParallel.setEnabled(enable);
+  }
+  
+  void setEnabledNewAnisotropicDiffusion(final boolean enable) {
+    menuNewAnisotropicDiffusion.setEnabled(enable);
   }
 
   void setEnabledNewPeet(final boolean enable) {
@@ -300,8 +311,12 @@ public final class EtomoMenu {
     return equals(menuNewJoin, event);
   }
 
-  boolean equalsNewParallel(final ActionEvent event) {
-    return equals(menuNewParallel, event);
+  boolean equalsNewGenericParallel(final ActionEvent event) {
+    return equals(menuNewGenericParallel, event);
+  }
+  
+  boolean equalsNewAnisotropicDiffusion(final ActionEvent event) {
+    return equals(menuNewAnisotropicDiffusion, event);
   }
 
   boolean equalsNewPeet(final ActionEvent event) {
@@ -460,6 +475,9 @@ public final class EtomoMenu {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.15  2009/04/02 19:17:28  sueh
+ * <p> bug# 1206 Leave tomosnapshot enabled all the time.
+ * <p>
  * <p> Revision 1.14  2009/02/04 23:32:25  sueh
  * <p> bug# 1158 Add a View pull down menu and menu options for the log
  * <p> frame.

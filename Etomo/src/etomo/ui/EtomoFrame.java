@@ -122,8 +122,11 @@ abstract class EtomoFrame extends JFrame {
     else if (menu.equalsNewJoin(event)) {
       EtomoDirector.INSTANCE.openJoin(true, axisID);
     }
-    else if (menu.equalsNewParallel(event)) {
-      EtomoDirector.INSTANCE.openParallel(true, axisID);
+    else if (menu.equalsNewGenericParallel(event)) {
+      EtomoDirector.INSTANCE.openGenericParallel(true, axisID);
+    }
+    else if (menu.equalsNewAnisotropicDiffusion(event)) {
+      EtomoDirector.INSTANCE.openAnisotropicDiffusion(true, axisID);
     }
     else if (menu.equalsNewPeet(event)) {
       EtomoDirector.INSTANCE.openPeet(true, axisID);
@@ -365,11 +368,19 @@ abstract class EtomoFrame extends JFrame {
     }
   }
 
-  void setEnabledNewParallelMenuItem(boolean enable) {
-    menu.setEnabledNewParallel(enable);
+  void setEnabledNewGenericParallelMenuItem(boolean enable) {
+    menu.setEnabledNewGenericParallel(enable);
     EtomoFrame otherFrame = getOtherFrame();
     if (otherFrame != null) {
-      getOtherFrame().menu.setEnabledNewParallel(enable);
+      getOtherFrame().menu.setEnabledNewGenericParallel(enable);
+    }
+  }
+  
+  void setEnabledNewAnisotropicDiffusionMenuItem(boolean enable) {
+    menu.setEnabledNewAnisotropicDiffusion(enable);
+    EtomoFrame otherFrame = getOtherFrame();
+    if (otherFrame != null) {
+      getOtherFrame().menu.setEnabledNewAnisotropicDiffusion(enable);
     }
   }
 
@@ -915,6 +926,9 @@ abstract class EtomoFrame extends JFrame {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.43  2009/04/02 19:16:58  sueh
+ * <p> bug# 1206 Tomosnapshot no longer uses a process display.
+ * <p>
  * <p> Revision 1.42  2009/03/16 23:51:36  sueh
  * <p> bug# 1186 In showOptionDialog pass the managerKey parameter to
  * <p> BaseManager.logMessage.  Add managerKey to every function which calls
