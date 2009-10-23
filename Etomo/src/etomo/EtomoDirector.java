@@ -22,6 +22,7 @@ import etomo.storage.ParallelFileFilter;
 import etomo.storage.ParameterStore;
 import etomo.storage.PeetFileFilter;
 import etomo.type.AxisID;
+import etomo.type.DialogType;
 import etomo.type.EtomoNumber;
 import etomo.type.ImodVersion;
 import etomo.type.JoinMetaData;
@@ -29,6 +30,7 @@ import etomo.type.MetaData;
 import etomo.type.ParallelMetaData;
 import etomo.type.PeetMetaData;
 import etomo.type.UserConfiguration;
+import etomo.ui.MainFrame;
 import etomo.ui.SettingsDialog;
 import etomo.ui.UIHarness;
 import etomo.ui.UIParameters;
@@ -116,8 +118,10 @@ public class EtomoDirector {
     if (managerList == null) {
       return;
     }
-    BaseManager manager = (BaseManager) managerList.get(currentManagerKey
-        .getKey());
+    BaseManager manager = null;
+    if (currentManagerKey != null) {
+      manager = (BaseManager) managerList.get(currentManagerKey.getKey());
+    }
     if (manager != null) {
       manager.doAutomation();
     }
@@ -181,11 +185,7 @@ public class EtomoDirector {
     String paramFileName = null;
     managerList = new UniqueHashedArray();
     //if no param file is found bring up AppMgr.SetupDialog
-    if (paramFileNameListSize == 0) {
-      defaultWindow = true;
-      openTomogram(true, AxisID.ONLY);
-    }
-    else {
+    if (paramFileNameListSize != 0) {
       ManagerKey saveKey = null;
       for (int i = 0; i < paramFileNameListSize; i++) {
         paramFileName = (String) paramFileNameList.get(i);
@@ -209,8 +209,10 @@ public class EtomoDirector {
       currentManagerKey = saveKey;
     }
     initProgram();
-    BaseManager manager = (BaseManager) managerList.get(currentManagerKey
-        .getKey());
+    BaseManager manager = null;
+    if (currentManagerKey != null) {
+      manager = (BaseManager) managerList.get(currentManagerKey.getKey());
+    }
     if (manager != null) {
       UIHarness.INSTANCE.setCurrentManager(manager, currentManagerKey, true);
     }
@@ -220,6 +222,10 @@ public class EtomoDirector {
     UIHarness.INSTANCE.pack(manager);
     UIHarness.INSTANCE.setVisible(true);
     System.err.println("imod:  " + getIMODDirectory());
+    if (manager == null) {
+      UIHarness.INSTANCE.setTitle(MainFrame.etomoTitle);
+      UIHarness.INSTANCE.displayFrontPage();
+    }
   }
 
   /**
@@ -253,8 +259,10 @@ public class EtomoDirector {
     System.err.println("user.name:  " + System.getProperty("user.name"));
     System.err.println("user.home:  " + System.getProperty("user.home"));
     System.err.println("user.dir:  " + originalUserDir);
-    System.err.println("java.awt.headless:  " + System.getProperty("java.awt.headless"));
-    System.err.println("GraphicsEnvironment.isHeadless()=" + GraphicsEnvironment.isHeadless());
+    System.err.println("java.awt.headless:  "
+        + System.getProperty("java.awt.headless"));
+    System.err.println("GraphicsEnvironment.isHeadless()="
+        + GraphicsEnvironment.isHeadless());
     System.err.println("IMOD version:  " + ImodVersion.CURRENT_VERSION);
     // Get the IMOD calibration directory so we know where to find documentation
     // Check to see if is defined on the command line first with -D
@@ -379,7 +387,7 @@ public class EtomoDirector {
       throw new IllegalStateException("Illegal use of getCurrentManagerForTest");
     }
     if (currentManagerKey == null) {
-      throw new IllegalStateException("No current manager");
+      return null;
     }
     return (BaseManager) managerList.get(currentManagerKey.getKey());
   }
@@ -482,7 +490,19 @@ public class EtomoDirector {
 
   public ManagerKey openParallel(boolean makeCurrent, AxisID axisID) {
     closeDefaultWindow(axisID);
-    return openParallel(ParallelMetaData.NEW_TITLE, makeCurrent, axisID);
+    return openParallel((String)null, makeCurrent, axisID);
+  }
+
+  public ManagerKey openGenericParallel(boolean makeCurrent, AxisID axisID) {
+    closeDefaultWindow(axisID);
+    return openParallel(ParallelMetaData.NEW_GENERIC_PARALLEL_PROCESS_TITLE,
+        makeCurrent, axisID);
+  }
+
+  public ManagerKey openAnisotropicDiffusion(boolean makeCurrent, AxisID axisID) {
+    closeDefaultWindow(axisID);
+    return openParallel(ParallelMetaData.NEW_ANISOTROPIC_DIFFUSION_TITLE,
+        makeCurrent, axisID);
   }
 
   public ManagerKey openPeet(boolean makeCurrent, AxisID axisID) {
@@ -532,10 +552,18 @@ public class EtomoDirector {
   private ManagerKey openParallel(String parallelFileName, boolean makeCurrent,
       AxisID axisID) {
     ParallelManager manager;
-    if (parallelFileName == null
-        || parallelFileName.equals(ParallelMetaData.NEW_TITLE)) {
+    if (parallelFileName == null) {
       manager = new ParallelManager();
-      UIHarness.INSTANCE.setEnabledNewParallelMenuItem(false);
+    }
+    else if (parallelFileName
+        .equals(ParallelMetaData.NEW_GENERIC_PARALLEL_PROCESS_TITLE)) {
+      manager = new ParallelManager(DialogType.PARALLEL);
+      UIHarness.INSTANCE.setEnabledNewGenericParallelMenuItem(false);
+    }
+    else if (parallelFileName
+        .equals(ParallelMetaData.NEW_ANISOTROPIC_DIFFUSION_TITLE)) {
+      manager = new ParallelManager(DialogType.ANISOTROPIC_DIFFUSION);
+      UIHarness.INSTANCE.setEnabledNewAnisotropicDiffusionMenuItem(false);
     }
     else {
       manager = new ParallelManager(parallelFileName);
@@ -677,8 +705,13 @@ public class EtomoDirector {
     else if (key.getName().equals(JoinMetaData.getNewFileTitle())) {
       UIHarness.INSTANCE.setEnabledNewJoinMenuItem(true);
     }
-    else if (key.getName().equals(ParallelMetaData.NEW_TITLE)) {
-      UIHarness.INSTANCE.setEnabledNewParallelMenuItem(true);
+    else if (key.getName().equals(
+        ParallelMetaData.NEW_GENERIC_PARALLEL_PROCESS_TITLE)) {
+      UIHarness.INSTANCE.setEnabledNewGenericParallelMenuItem(true);
+    }
+    else if (key.getName().equals(
+        ParallelMetaData.NEW_ANISOTROPIC_DIFFUSION_TITLE)) {
+      UIHarness.INSTANCE.setEnabledNewAnisotropicDiffusionMenuItem(true);
     }
     else if (key.getName().equals(PeetMetaData.NEW_TITLE)) {
       UIHarness.INSTANCE.setEnabledNewPeetMenuItem(true);
@@ -1095,6 +1128,9 @@ public class EtomoDirector {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.86  2009/08/24 20:22:20  sueh
+ * <p> bug# 1254 Printing headless state.
+ * <p>
  * <p> Revision 1.85  2009/06/22 15:32:43  sueh
  * <p> bug# 1224 Added ImodVersion to the log.
  * <p>
