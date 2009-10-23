@@ -13,6 +13,9 @@
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.22  2009/03/17 00:46:43  sueh
+ * <p> bug# 1186 Pass managerKey to everything that pops up a dialog.
+ * <p>
  * <p> Revision 1.21  2009/02/23 21:38:01  sueh
  * <p> bug# 1180 Ported from 3.13.
  * <p>
@@ -175,10 +178,11 @@ public class TestUtilites {
     File target = new File(testDir, vectorName);
     //save time by looking for already checked out files in workspace directory
     String homeDirName = EnvironmentVariable.INSTANCE.getValue(null, "HOME",
-        AxisID.ONLY, manager.getManagerKey());
+        AxisID.ONLY, manager == null ? null : manager.getManagerKey());
     if (homeDirName != null && !homeDirName.matches("\\s*+")) {
-      File homeDir = new File(EnvironmentVariable.INSTANCE.getValue(null,
-          "HOME", AxisID.ONLY, manager.getManagerKey()));
+      File homeDir = new File(EnvironmentVariable.INSTANCE
+          .getValue(null, "HOME", AxisID.ONLY, manager == null ? null : manager
+              .getManagerKey()));
       if (homeDir.exists() && homeDir.canRead()) {
         File vector = new File(new File(homeDir, "workspace/"
             + workspaceLocation), vectorName);
@@ -193,8 +197,9 @@ public class TestUtilites {
           copyCommand[0] = "cp";
           copyCommand[1] = vector.getAbsolutePath();
           copyCommand[2] = testDir.getAbsolutePath();
-          SystemProgram copy = new SystemProgram(manager.getPropertyUserDir(),
-              copyCommand, AxisID.ONLY, manager.getManagerKey());
+          SystemProgram copy = new SystemProgram(manager == null ? null
+              : manager.getPropertyUserDir(), copyCommand, AxisID.ONLY,
+              manager == null ? null : manager.getManagerKey());
           copy.setDebug(true);
           copy.run();
           if (target.exists()) {
@@ -300,9 +305,9 @@ public class TestUtilites {
       String message = cvs.getStdErrorString()
           + "\nCVSROOT="
           + EnvironmentVariable.INSTANCE.getValue(manager.getPropertyUserDir(),
-              "CVSROOT", AxisID.ONLY, manager.getManagerKey()) + ",manager.getPropertyUserDir()="
-          + manager.getPropertyUserDir() + ",testRootDir="
-          + testRootDir.getAbsolutePath() + "\ntestDir="
+              "CVSROOT", AxisID.ONLY, manager.getManagerKey())
+          + ",manager.getPropertyUserDir()=" + manager.getPropertyUserDir()
+          + ",testRootDir=" + testRootDir.getAbsolutePath() + "\ntestDir="
           + testDir.getAbsolutePath() + ",target=" + target.getAbsolutePath()
           + ",working dir=" + System.getProperty("user.dir");
       EtomoDirector.INSTANCE.setCurrentPropertyUserDir(originalDirName);

@@ -2,6 +2,7 @@ package etomo.ui;
 
 import etomo.ApplicationManager;
 import etomo.EtomoDirector;
+import etomo.type.AxisID;
 import etomo.type.AxisType;
 import etomo.type.ViewType;
 import junit.framework.TestCase;
@@ -19,10 +20,17 @@ import junit.framework.TestCase;
  * 
  * @version $Revision$
  * 
- * <p> $Log$ </p>
+ * <p> $Log$
+ * <p> Revision 1.1  2009/08/24 20:24:19  sueh
+ * <p> bug# 1254 Unit tests for SetupDialogExpert.
+ * <p> </p>
  */
 public final class SetupDialogExpertTest extends TestCase {
   public static final String rcsid = "$Id$";
+  
+  protected void setUp() throws Exception {
+    EtomoDirector.INSTANCE.openTomogram(true,AxisID.ONLY);
+  }
 
   public void testGetInstance() {
     ApplicationManager manager = (ApplicationManager) EtomoDirector.INSTANCE

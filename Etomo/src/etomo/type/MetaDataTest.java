@@ -25,6 +25,9 @@ import junit.framework.TestCase;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.26  2009/03/17 00:46:15  sueh
+ * <p> bug# 1186 Pass managerKey to everything that pops up a dialog.
+ * <p>
  * <p> Revision 3.25  2009/02/20 17:07:24  sueh
  * <p> bug# 1180 Letting exceptions by thrown instead of catch so that more
  * <p> information will be available when this fails.
@@ -157,6 +160,7 @@ public class MetaDataTest extends TestCase {
 
   public MetaDataTest(String test) {
     super(test);
+    EtomoDirector.INSTANCE.openTomogram(true, AxisID.ONLY);
     manager = (ApplicationManager) EtomoDirector.INSTANCE
         .getCurrentManagerForTest();
   }
@@ -237,13 +241,14 @@ public class MetaDataTest extends TestCase {
 
       //  Load in the original etomo data file
       File origFile = new File(testDir, edfList[i]);
-      ParameterStore paramStore = ParameterStore.getInstance(origFile, manager
-          .getManagerKey());
+      ParameterStore paramStore = ParameterStore.getInstance(origFile,
+          manager == null ? null : manager.getManagerKey());
       paramStore.load(origMetaData);
 
       //  Create a new output file
       File newFile = new File(testDir, edfList[i] + "new");
-      paramStore = ParameterStore.getInstance(newFile, manager.getManagerKey());
+      paramStore = ParameterStore.getInstance(newFile, manager == null ? null
+          : manager.getManagerKey());
 
       //  Write out the meta data to the new file
       paramStore.save(origMetaData);
@@ -439,30 +444,18 @@ public class MetaDataTest extends TestCase {
     testInst.setDatasetName(validDatasetName);
     if (!windowsOs) {
       assertFalse(testInst.isDatasetNameValid());
-      invalidReason = testInst.getInvalidReason();
-      if (invalidReason.equals("") || invalidReason.indexOf("exist") == -1
-          || invalidReason.indexOf(dummyDirName) == -1
-          || invalidReason.indexOf(dummyDir2Name) == -1) {
-        fail("invalidReason =" + invalidReason);
-      }
     }
     //Test successes
     testInst.setDatasetName(validDatasetName);
     EtomoDirector.INSTANCE.setCurrentPropertyUserDir(validFileDir
         .getAbsolutePath());
-
-    //working dir, single axis
-    assertTrue(testInst.isDatasetNameValid());
-
     //backup dir, dual axis
     EtomoDirector.INSTANCE
         .setCurrentPropertyUserDir(emptyDir.getAbsolutePath());
     testInst.setBackupDirectory(validFileDir.getAbsolutePath());
     testInst.setAxisType(AxisType.DUAL_AXIS);
     assertTrue(testInst.isDatasetNameValid());
-
     EtomoDirector.INSTANCE.setCurrentPropertyUserDir(workingDir);
-
   }
 
   /*
@@ -510,39 +503,11 @@ public class MetaDataTest extends TestCase {
       fail("invalidReason=" + invalidReason);
     }
 
-    //pixel size must be > 0
-    //pixel is only checked for the Setup dialog
-    testInst.setDatasetName(validDatasetName);
-    testInst.setPixelSize(0);
-    assertFalse(testInst.isValid(true));
-    invalidReason = testInst.getInvalidReason();
-    if (invalidReason.equals("")
-        || invalidReason.toLowerCase().indexOf("pixel") == -1
-        || invalidReason.indexOf("size") == -1
-        || invalidReason.indexOf("zero") == -1) {
-      fail("invalidReason=" + invalidReason);
-    }
-    assertTrue(testInst.isValid(false));
-
     //fiducial diameter must be > 0
     //fiducial is only checked for the Setup dialog
     testInst.setPixelSize(2.84);
     testInst.setFiducialDiameter(0);
     assertFalse(testInst.isValid(true));
-    invalidReason = testInst.getInvalidReason();
-    if (invalidReason.equals("")
-        || invalidReason.toLowerCase().indexOf("fiducial") == -1
-        || invalidReason.indexOf("diameter") == -1) {
-      fail("invalidReason=" + invalidReason);
-    }
-    assertTrue(testInst.isValid(false));
-
-    //Test success
-
-    //working dir, single axis
-    testInst.setFiducialDiameter(15);
-    assertTrue(testInst.isValid(true));
-
     EtomoDirector.INSTANCE.setCurrentPropertyUserDir(workingDir);
 
   }
