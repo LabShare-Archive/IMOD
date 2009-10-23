@@ -1,0 +1,32 @@
+Version = 1.2
+
+[dialog = generic]
+open.interface=
+set.adoc.function=generic.adoc
+run.function.main =
+
+
+[function = main]
+copy.file=tilt-start.com
+copy.file=tilt-finish.com
+copy.file=tilt-001.com
+copy.file=tilt-002.com
+copy.file=tilt-003.com
+copy.file=tilt-004.com
+copy.file=tilt-005.com
+copy.file=tilt-006.com
+copy.file=tilt-007.com
+copy.file=tilt-008.com
+copy.file=tilt-009.com
+copy.file=tilt-010.com
+copy.file=tilt-011.com
+copy.file=BBa.ali
+copy.file=BBa.tlt
+copy.file=BBa.xtilt
+copy.file=tilt-bound.info
+copy.file=BBa.zfac
+copy.file=BBalocal.xf
+bn.process-name=
+wait.file-chooser.open=tilt-001.com
+bn.run-parallel-process=
+wait.process.processchunks-tilt=done
