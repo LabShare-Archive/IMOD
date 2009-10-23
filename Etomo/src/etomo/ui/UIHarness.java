@@ -50,6 +50,18 @@ public final class UIHarness {
       mainFrame.setVerbose(verbose);
     }
   }
+  
+  public void setTitle(String title) {
+    if (isHead()) {
+      mainFrame.setTitle(title);
+    }
+  }
+  
+  public void displayFrontPage() {
+    if (isHead()) {
+      mainFrame.displayFrontPage();
+    }
+  }
 
   public void moveSubFrame() {
     if (isHead()) {
@@ -212,17 +224,15 @@ public final class UIHarness {
   }
 
   public void pack(BaseManager manager) {
-    if (isHead() && manager != null) {
+    if (isHead()) {
       mainFrame.repaint();
       mainFrame.pack();
-      Component focusComponent = manager.getFocusComponent();
-      //System.out.println("focusComponent=" + focusComponent);
-      if (focusComponent != null) {
-        focusComponent.requestFocus();
+      if (manager != null) {
+        Component focusComponent = manager.getFocusComponent();
+        if (focusComponent != null) {
+          focusComponent.requestFocus();
+        }
       }
-      //else {
-      //  new Exception().printStackTrace();
-      //}
     }
   }
 
@@ -230,14 +240,12 @@ public final class UIHarness {
     if (isHead()) {
       mainFrame.repaint();
       mainFrame.pack(force);
-      Component focusComponent = manager.getFocusComponent();
-      //System.out.println("focusComponent=" + focusComponent);
-      if (focusComponent != null) {
-        focusComponent.requestFocus();
+      if (manager != null) {
+        Component focusComponent = manager.getFocusComponent();
+        if (focusComponent != null) {
+          focusComponent.requestFocus();
+        }
       }
-      //else {
-      //  new Exception().printStackTrace();
-      //}
     }
   }
 
@@ -336,7 +344,8 @@ public final class UIHarness {
     }
   }
 
-  public void setCurrentManager(BaseManager currentManager, ManagerKey managerKey) {
+  public void setCurrentManager(BaseManager currentManager,
+      ManagerKey managerKey) {
     if (isHead()) {
       mainFrame.setCurrentManager(currentManager, managerKey);
     }
@@ -347,7 +356,7 @@ public final class UIHarness {
       mainFrame.selectWindowMenuItem(currentManagerKey);
     }
   }
-  
+
   public void selectWindowMenuItem(UniqueKey currentKey) {
     if (isHead()) {
       mainFrame.selectWindowMenuItem(currentKey);
@@ -379,9 +388,15 @@ public final class UIHarness {
     }
   }
 
-  public void setEnabledNewParallelMenuItem(boolean enable) {
+  public void setEnabledNewGenericParallelMenuItem(boolean enable) {
     if (isHead()) {
-      mainFrame.setEnabledNewParallelMenuItem(enable);
+      mainFrame.setEnabledNewGenericParallelMenuItem(enable);
+    }
+  }
+  
+  public void setEnabledNewAnisotropicDiffusionMenuItem(boolean enable) {
+    if (isHead()) {
+      mainFrame.setEnabledNewAnisotropicDiffusionMenuItem(enable);
     }
   }
 
@@ -557,6 +572,9 @@ public final class UIHarness {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.35  2009/03/17 00:46:24  sueh
+ * <p> bug# 1186 Pass managerKey to everything that pops up a dialog.
+ * <p>
  * <p> Revision 1.34  2009/03/05 23:31:41  sueh
  * <p> bug# 1194 Added msgUpdateLogProperties.
  * <p>
