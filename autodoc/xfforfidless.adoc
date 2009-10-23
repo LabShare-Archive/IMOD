@@ -1,0 +1,101 @@
+[Field = InputTransforms]
+short = input
+type = FN
+usage = Input file, usually of post-rotation transforms
+tooltip = 
+manpage = 
+
+[Field = OutputTransforms]
+short = output
+type = FN
+usage = Output file, usually for complete transforms
+tooltip = 
+manpage = 
+
+[Field = FullToPostRotation]
+short = full
+type = B
+tooltip = 
+manpage = 
+
+[Field = RotationAngle]
+short = rotation
+type = F
+usage = Rotation angle from the Y axis to the tilt axis
+tooltip = 
+manpage = Angle of rotation of the tilt axis in the images; specifically, the
+angle from the vertical to the tilt axis (counterclockwise positive).
+
+[Field = BeamTilt]
+short = beam
+type = F
+usage = Angle between the beam axis and perpendicular to the tilt axis
+tooltip = 
+manpage = 
+
+[Field = FirstTiltAngle]
+short = first
+type = F
+usage = Tilt angle of first view in degrees
+tooltip = 
+manpage = Tilt angle of first view, in degrees.  Use this option together with
+TiltIncrement.
+
+[Field = TiltIncrement]
+short = increment
+type = F
+usage = Increment between tilt angles
+tooltip = 
+manpage = Increment between tilt angles, in degrees.  Use this option together
+with FirstTiltAngle.
+
+[Field = TiltFile]
+short = tiltfile
+type = FN
+usage = File with tilt angles
+tooltip = 
+manpage = Use this option if tilt angles are in a file, one per line.
+
+[Field = TiltAngles]
+short = angles
+type = FAM
+usage = Individual tilt angles for each view
+tooltip = 
+manpage = Use this option to enter the tilt angles for each view individually,
+in degrees.
+
+[Field = NewTiltFile]
+short = newtilt
+type = FN
+usage = Output file for new tilt angles
+tooltip = 
+manpage = 
+
+[Field = XAxisTilt]
+short = xtilt
+type = F
+usage = X axis tilt of the unrotated reconstruction
+tooltip = 
+manpage = 
+
+[Field = XTiltFile]
+short = xfile
+type = FN
+usage = Input file with X-axis tilts to be applied in reconstruction
+tooltip = 
+manpage = 
+
+[Field = NewXTiltFile]
+short = newxtilt
+type = FN
+usage = Output file for new X-axis tilts
+tooltip = 
+manpage = 
+
+
+[Field = usage]
+short = help
+type = B
+usage = Print help output
+tooltip = 
+manpage = 

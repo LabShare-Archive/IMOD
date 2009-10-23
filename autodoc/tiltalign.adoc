@@ -97,9 +97,18 @@ manpage =
 [Field = OutputTiltFile]
 short = 
 type = FN
-usage = Output file for the solved tilt angles
+usage = Output file for the solved tilt angles after adjustment for beam tilt
 tooltip = 
-manpage = 
+manpage = Output file for the solved tilt angles after adjustment for beam
+tilt, if any
+
+[Field = OutputUnadjustedTiltFile]
+short = 
+type = FN
+usage = Output file for the solved tilt angles before adjustment for beam tilt
+tooltip = 
+manpage = Output file for the solved tilt angles before adjustment for beam
+tilt, if any
 
 [Field = OutputXAxisTiltFile]
 short = 

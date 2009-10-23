@@ -1,5 +1,9 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+10/22/09: IMOD_4-0-16
+10/22/09: Fixed problems with ghost mode when using Drawing Tools and other
+Noske plugins.
+
 10/19/09: In Etomo, only displaying the parallel process panel when the current
 tab uses it.
 
