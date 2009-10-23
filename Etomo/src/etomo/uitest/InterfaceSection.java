@@ -7,7 +7,9 @@ import java.util.Map;
 
 import junit.framework.Assert;
 
+import etomo.BaseManager;
 import etomo.EtomoDirector;
+import etomo.ManagerKey;
 import etomo.storage.LogFile;
 import etomo.storage.autodoc.AutodocFactory;
 import etomo.storage.autodoc.ReadOnlyAutodoc;
@@ -29,6 +31,9 @@ import etomo.type.UITestSubjectType;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.5  2009/03/17 00:46:33  sueh
+ * <p> bug# 1186 Pass managerKey to everything that pops up a dialog.
+ * <p>
  * <p> Revision 1.4  2009/02/04 23:37:32  sueh
  * <p> bug# 1158 Changed id and exception classes in LogFile.
  * <p>
@@ -94,7 +99,7 @@ final class InterfaceSection extends Assert {
   Command getOpenInterfaceCommand() throws FileNotFoundException, IOException,
       LogFile.LockException {
     readSection();
-    Command command= (Command) commandMap.get(UITestActionType.OPEN.toString()
+    Command command = (Command) commandMap.get(UITestActionType.OPEN.toString()
         + UITestSubjectType.INTERFACE.toString());
     return command;
   }
@@ -127,8 +132,13 @@ final class InterfaceSection extends Assert {
       return;
     }
     commandMap = new HashMap();
+    ManagerKey managerKey = null;
+    BaseManager manager = EtomoDirector.INSTANCE.getCurrentManagerForTest();
+    if (manager != null) {
+      managerKey = manager.getManagerKey();
+    }
     ReadOnlyAutodoc autodoc = AutodocFactory.getInstance(AutodocFactory.UITEST,
-        AxisID.ONLY, EtomoDirector.INSTANCE.getCurrentManagerForTest().getManagerKey());
+        AxisID.ONLY, managerKey);
     CommandReader reader = CommandReader.getSectionReader(autodoc,
         SectionType.INTERFACE.toString(), sectionName, null, null);
     Command command = null;
