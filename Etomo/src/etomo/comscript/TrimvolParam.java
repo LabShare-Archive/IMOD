@@ -11,6 +11,10 @@
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.35  2009/10/05 23:21:53  sueh
+ * <p> bug# 1239 In setDefaultRange always set min and max when the file
+ * <p> doesn't exist yet.
+ * <p>
  * <p> Revision 3.34  2009/10/01 18:47:01  sueh
  * <p> bug# 1233 In setDefaultRange check the individual columns and don't
  * <p> reset X and Y if only Z has been changed.
@@ -745,8 +749,17 @@ public class TrimvolParam implements CommandDetails {
     return changed;
   }
 
-  public void setDefaultRange(TomogramState state, ManagerKey managerKey)
-      throws InvalidParameterException, IOException {
+  /**
+   * Set the default range if the dialog is new (!dialogExists) or partially
+   * set the default range if the input tomogram size has changed.
+   * @param state
+   * @param managerKey
+   * @param dialogExists
+   * @throws InvalidParameterException
+   * @throws IOException
+   */
+  public void setDefaultRange(TomogramState state, ManagerKey managerKey,
+      boolean dialogExists) throws InvalidParameterException, IOException {
     // Get the data size limits from the image stack
     BaseMetaData metaData = manager.getBaseMetaData();
     MRCHeader mrcHeader = MRCHeader.getInstance(manager.getPropertyUserDir(),
@@ -757,25 +770,51 @@ public class TrimvolParam implements CommandDetails {
     }
     //Don't override existing values unless the size of the trimvol input file
     //has changed since the last time trimvol was run.
-    if (xMin.getInt() != Integer.MIN_VALUE
+    if (dialogExists && xMin.getInt() != Integer.MIN_VALUE
         && !hasInputFileSizeChanged(mrcHeader, state)) {
       return;
     }
-    boolean newFile = !(new File(TrimvolParam.getInputFileName(metaData
-        .getAxisType(), metaData.getName())).exists());
     //Refresh X and Y together.  Refresh Z separately.
-    if (newFile || nColumnsChanged || ((swapYZ || rotateX) && nSectionsChanged)
-        || !swapYZ && !rotateX && nRowsChanged) {
+    //Make sure that the dialog is refreshed the first time the dialog is
+    //displayed.  Also fix any null values that may have appeared.  This is
+    //done because there was a bug which caused null values.
+    if (!dialogExists || nColumnsChanged
+        || ((swapYZ || rotateX) && nSectionsChanged) || !swapYZ && !rotateX
+        && nRowsChanged) {
       xMin.set(1);
       xMax.set(mrcHeader.getNColumns());
     }
-    if (newFile || nRowsChanged) {
+    else {
+      if (xMin.isNull()) {
+        xMin.set(1);
+      }
+      if (xMax.isNull()) {
+        xMax.set(mrcHeader.getNColumns());
+      }
+    }
+    if (!dialogExists || nRowsChanged) {
       yMin.set(1);
       yMax.set(mrcHeader.getNRows());
     }
-    if (newFile || nSectionsChanged) {
+    else {
+      if (yMin.isNull()) {
+        yMin.set(1);
+      }
+      if (yMax.isNull()) {
+        yMax.set(mrcHeader.getNRows());
+      }
+    }
+    if (!dialogExists || nSectionsChanged) {
       zMin.set(1);
       zMax.set(mrcHeader.getNSections());
+    }
+    else {
+      if (zMin.isNull()) {
+        zMin.set(1);
+      }
+      if (zMax.isNull()) {
+        zMax.set(mrcHeader.getNSections());
+      }
     }
 
     // Check the swapped YZ state or rotateX state to decide which dimension to use for the 
