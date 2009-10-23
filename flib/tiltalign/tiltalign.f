@@ -54,7 +54,7 @@ c
       real*4 viewmeanres(maxview),viewsdres(maxview)
       
       logical ordererr,nearbyerr
-      character*160 modelfile,residualfile,pointFile
+      character*320 modelfile,residualfile,pointFile,unadjTiltFile
 c       
       real*4 fl(2,3,maxview),fa(2,3),fb(2,3),fc(2,3),fpstr(2,3)
 c       
@@ -627,7 +627,21 @@ c
      &    ' Midpoint of Z range relative to centroid in Z:',zmiddle
 
       ifanyalf = 0
+      unadjTiltFile = ' '
       if (mapalfend .gt. mapalfstart)ifanyalf = 1
+c       
+c       Output unmodified tilt angles
+      if (pipinput .and. iflocal.eq.0) then
+        if (PipGetString('OutputUnadjustedTiltFile', unadjTiltFile) .eq. 0) then
+          call dopen(13, unadjTiltFile, 'new', 'f')
+          do i=1,nfileviews
+            tiltout=tiltorig(i)
+            if(mapfiletoview(i).ne.0)tiltout=tilt(mapfiletoview(i))
+            write(13,'(f7.2)')tiltout
+          enddo
+          close(13)
+        endif
+      endif
 c       
 c       Modify angles to account for beam tilt
 c
@@ -647,8 +661,8 @@ c
           write(iuangle,'(f7.2)')tiltout
         enddo
         close(iuangle)
-        if (iuxtilt .eq. 0 .and. (ifanyalf .ne. 0 .or. beamTilt .ne. 0.))
-     &      write(*,122)
+        if (iuxtilt .eq. 0 .and. (ifanyalf .ne. 0 .or. beamTilt .ne. 0.) .and.
+     &      unadjTiltFile .eq. ' ') write(*,122)
 122     format(/,'WARNING: THE SOLUTION INCLUDES X-AXIS TILTS THAT CHANGE',
      &      ' THROUGH THE SERIES',/,'WARNING: X-AXIS TILTS SHOULD BE OUTPUT',
      &      ' TO A FILE AND FED TO THE TILT PROGRAM')
@@ -831,17 +845,18 @@ c
 c           
 c           output the z factors if option requested
 c           
-          if (pipinput .and.
-     &        PipGetString('OutputZFactorFile', residualFile) .eq. 0) then
-            ifZfac = 1
-            call dopen(13,residualfile, 'new', 'f')
-            do iv=1,nfileviews
-              i=nearest_view(iv)
-              glbxzfac(iv) = xzfac(i)
-              glbyzfac(iv) = yzfac(i)
-              write(13, '(2f12.6)')xzfac(i),yzfac(i)
-            enddo
-            close(13)
+          if (pipinput) then
+            if (PipGetString('OutputZFactorFile', residualFile) .eq. 0) then
+              ifZfac = 1
+              call dopen(13,residualfile, 'new', 'f')
+              do iv=1,nfileviews
+                i=nearest_view(iv)
+                glbxzfac(iv) = xzfac(i)
+                glbyzfac(iv) = yzfac(i)
+                write(13, '(2f12.6)')xzfac(i),yzfac(i)
+              enddo
+              close(13)
+            endif
           endif
         else
 c           
@@ -1062,33 +1077,34 @@ c
 c       
 c       Write separate residual outputs now that surfaces are known
 c       
-      if (pipinput .and. nsurface .gt. 1 .and. PipGetString(
-     &    'OutputTopBotResiduals', modelfile) .eq. 0) then
-        residualfile = concat(modelfile,'.botres')
-        do j = 1, 2
-          nbot = 0
-          do jpt=1,nrealpt
-            if (igroup(jpt) .eq. j) then
-              nbot = nbot + irealstr(jpt+1) - irealstr(jpt)
-            endif
-          enddo
-          if (nbot .gt. 0) then
-            call dopen(13,residualfile, 'new', 'f')
-            write(13,'(i6,a)')nbot,' residuals'
+      if (pipinput .and. nsurface .gt. 1) then
+        if (PipGetString('OutputTopBotResiduals', modelfile) .eq. 0) then
+          residualfile = concat(modelfile,'.botres')
+          do j = 1, 2
+            nbot = 0
             do jpt=1,nrealpt
               if (igroup(jpt) .eq. j) then
-                do i=irealstr(jpt),irealstr(jpt+1)-1
-                  write(13, '(2f10.2,i5,3f8.2)')xx(i)+xcen,yy(i)+ycen,
-     &                mapviewtofile(isecview(i))-1,
-     &                xresid(i),yresid(i)
-                enddo
+                nbot = nbot + irealstr(jpt+1) - irealstr(jpt)
               endif
             enddo
-            close(13)
-            
-          endif
-          residualfile = concat(modelfile,'.topres')
-        enddo
+            if (nbot .gt. 0) then
+              call dopen(13,residualfile, 'new', 'f')
+              write(13,'(i6,a)')nbot,' residuals'
+              do jpt=1,nrealpt
+                if (igroup(jpt) .eq. j) then
+                  do i=irealstr(jpt),irealstr(jpt+1)-1
+                    write(13, '(2f10.2,i5,3f8.2)')xx(i)+xcen,yy(i)+ycen,
+     &                  mapviewtofile(isecview(i))-1,
+     &                  xresid(i),yresid(i)
+                  enddo
+                endif
+              enddo
+              close(13)
+              
+            endif
+            residualfile = concat(modelfile,'.topres')
+          enddo
+        endif
       endif
 c       
 c       Ask about local alignments
@@ -1489,6 +1505,9 @@ c
 
 c       
 c       $Log$
+c       Revision 3.42  2009/10/06 02:30:38  mast
+c       Output rotation angle at minimum tilt
+c
 c       Revision 3.41  2008/12/12 00:47:36  mast
 c       Call find_surfaces with binnig and z shift
 c
