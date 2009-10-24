@@ -1,6 +1,9 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-10/22/09: In Etomo fixed a bug where trimvol min and max parameters where null.
+10/23/09: In Etomo displaying a button panel instead of automatically starting a
+reconstruction.
+
+10/23/09: In Etomo fixed a bug where trimvol min and max parameters where null.
 
 10/22/09: IMOD_4-0-16
 10/22/09: Fixed problems with ghost mode when using Drawing Tools and other
