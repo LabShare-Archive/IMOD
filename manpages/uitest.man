@@ -608,6 +608,12 @@ matches a test's axis will be run.
 .br
 Example:  open.frame.b.bn.both =
 
+.TP 4
+<\fBopen.interface\fR>.field_command =
+Optional.  Provides a way to open an interface.  May be used instead of the
+Open Interface Subsection below when one field command is all that is needed to
+open the interface.
+
 .P
 <\fB[[open = interface]]\fR>
 .br
