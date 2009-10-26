@@ -59,6 +59,9 @@ import etomo.util.DatasetFiles;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.55  2009/10/23 22:22:34  sueh
+ * <p> bug# 1275 Made touch() a start function in BaseProcessManager.
+ * <p>
  * <p> Revision 1.54  2009/10/15 23:26:59  sueh
  * <p> bug# 1274 Changed String PeetDialog.getDirectory() to getDirectoryString.
  * <p>
@@ -309,7 +312,7 @@ public final class PeetManager extends BaseManager {
   }
 
   public boolean canChangeParamFileName() {
-    return !loadedParamFile;
+    return false;
   }
 
   public ProcessResultDisplayFactoryInterface getProcessResultDisplayFactoryInterface(
