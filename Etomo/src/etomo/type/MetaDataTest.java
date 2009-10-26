@@ -6,9 +6,6 @@ import java.io.IOException;
 import etomo.ApplicationManager;
 import etomo.EtomoDirector;
 import etomo.process.SystemProgram;
-import etomo.storage.LogFile;
-import etomo.storage.ParameterStore;
-import etomo.util.TestUtilites;
 import junit.framework.TestCase;
 
 /**
@@ -25,6 +22,9 @@ import junit.framework.TestCase;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.27  2009/10/23 23:50:17  sueh
+ * <p> bug# 1275 No default manager.
+ * <p>
  * <p> Revision 3.26  2009/03/17 00:46:15  sueh
  * <p> bug# 1186 Pass managerKey to everything that pops up a dialog.
  * <p>
@@ -151,9 +151,6 @@ public class MetaDataTest extends TestCase {
   private SystemProgram program;
 
   private static final String testDirectory = "MetaData";
-  private String[] edfList = { "setup_revision_1_2.edf",
-      "setup_revision_1_3.edf", "setup_revision_1_4.edf",
-      "setup_revision_1_5.edf" };
 
   private File testDir;
   private final ApplicationManager manager;
@@ -173,12 +170,6 @@ public class MetaDataTest extends TestCase {
       assertTrue(testDir.mkdirs());
     }
     assertTrue(testDir.isDirectory() && testDir.canRead() && testDir.canWrite());
-
-    //  Check out the test vectors from the CVS repository
-    for (int i = 0; i < edfList.length; i++) {
-      TestUtilites.getVector(manager,
-          TypeTests.TEST_ROOT_DIR.getAbsolutePath(), testDirectory, edfList[i]);
-    }
 
     //Don't do tests involving file permissions in Windows, since they can't be set.
     String osName = System.getProperty("os.name").toLowerCase();
@@ -230,37 +221,6 @@ public class MetaDataTest extends TestCase {
     //create valid files
     validFile = createValidFile(validFileDir, validFileName);
     validAFile = createValidFile(validFileDir, validAFileName);
-  }
-
-  /*
-   * Class to test for void store(Properties)
-   */
-  public void testStoreProperties() throws LogFile.LockException, IOException {
-    for (int i = 0; i < edfList.length; i++) {
-      MetaData origMetaData = new MetaData(manager);
-
-      //  Load in the original etomo data file
-      File origFile = new File(testDir, edfList[i]);
-      ParameterStore paramStore = ParameterStore.getInstance(origFile,
-          manager == null ? null : manager.getManagerKey());
-      paramStore.load(origMetaData);
-
-      //  Create a new output file
-      File newFile = new File(testDir, edfList[i] + "new");
-      paramStore = ParameterStore.getInstance(newFile, manager == null ? null
-          : manager.getManagerKey());
-
-      //  Write out the meta data to the new file
-      paramStore.save(origMetaData);
-
-      //  Load in the new file
-      MetaData newMetaData = new MetaData(manager);
-      paramStore.load(newMetaData);
-
-      //  Compare it to the old metadata object
-      assertTrue("MetaData not invariant in : " + origFile.getAbsolutePath()
-          + ", " + newFile.getAbsolutePath(), origMetaData.equals(newMetaData));
-    }
   }
 
   protected File createUnreadableFile(File dir, String name) throws IOException {
