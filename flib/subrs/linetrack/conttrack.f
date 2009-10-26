@@ -1,27 +1,31 @@
-c       $Author$
-c       
-c       $Date$
-c       
-c       $Revision$
-c       
-c       $Log$
-c       Revision 1.5  2005/12/09 04:39:44  mast
-c       gfortran: .xor., continuation, byte, or open fixes
-c	
-c       Revision 1.4  2004/11/05 19:03:22  mast
-c       Skip over bad spot if not needed, use b3dputs for diagnostics
-c	
-c	
-c       Revision 1.2  2004/06/04 16:56:04  mast
-c       Eliminated degree-type trig functions
-c	
-c       Revision 1.1  2003/10/25 16:15:12  mast
-c       convert to library for 3dmod internal module
-c	
-c       Revision 3.1  2002/08/22 05:55:27  mast
-c       Changed to take p_copy as an argument to avoid memory problems
-c	
-
+c       $Id$
+c       Log at end
+c
+c
+c       CONTTRACK adjusts the positions of points in a contour perpendicular
+c       to the path of the contour to fit the image data.  It does this by
+c       making kernels shaped like the contour and finding the location that
+c       maximizes the product of these kernels with the image data
+c       ARRAY has the image data, bytes, size NX by NY
+c       P_COORD(3,*) has the points of an existing contour and is returned with
+c       the adjusted positions.
+c       NINOBJ is the number of points in the contour
+c       IPTCUR is a current point number, which is modified if NINOBJ changes
+c       P_COPY(3,*) is an array for temporary storage of the contour
+c       MAXLEN is the maximum number of points in the contour arrays
+c       inKSIZE is the kernel size
+c       inKERN is the number of kernels to make if line tracking to fill in
+c       wiaps between points
+c       SIGMA is the sigma for the gaussian perpendicular to the contour
+c       H is the h for the parabola along the contour length
+c       IFDARK is non zero for dark centers
+c       STEP is a step size for line tracking
+c       REDTOL is the tolerance for reduction if line tracking
+c       OFFSET is an offset from the center of the line
+c       LIMSHIFT is a limit on how far to shift laterally
+c       inPOOL is the number of contour points to pool the kernel product over
+c       inFIT is the number of points to fit over for smoothing the contour
+c
       subroutine conttrack(array,nx,ny,p_coord,ninobj,iptcur,p_copy,
      &    maxlen, inksize,inkern,sigma,h,ifdark,step,redtol,offset,
      &    limshift ,inpool,infit)
@@ -61,18 +65,24 @@ C
         kbase(k)=1+ksize**2*(k-1)
       enddo
 c       
-c       
+c       Loop over all points in contour
 c       
       indkcen=npool/2+1
       wdenom=indkcen
       do iptcen=1,ninobj
 c         call b3dputs('top of loop')
+c         
+c         Make a set of contour kernels at a number of points equal to the
+c         pooling size - after the first point, just need to make one more
+c         kernel at new point of set and advance kernel center index indkcen
         ipdst=-npool/2
         ipdnd=npool+ipdst-1
         if(iptcen.ne.1)ipdst=ipdnd
         do ipdel=ipdst,ipdnd
           ipt=indmap(iptcen+ipdel,ninobj)
           indk=indmap(indkcen+ipdel,npool)
+c           
+c           Store kernel, its angles and offsets, and center position
           call makecontkern(bkern(kbase(indk)),ksize,ksize,sigma,h,
      &        ifdark,p_coord,ipt,ninobj,theta(indk),sinth(indk),
      &        costh(indk), ixofs(indk),iyofs(indk))
@@ -80,6 +90,8 @@ c         call b3dputs('top of loop')
           ycen(indk)=p_coord(2,ipt)+orig(2)+0.5
 c	    print *,'kernel',ipt,theta(indk),sinth(indk),costh(indk)
 c	    print *,'origin',xcen(indk),ycen(indk)
+c           
+c           If offsetting from center of line, adjust center positions
           if(offset.ne.0)then
             xcen(indk)=xcen(indk)+sinth(indk)*offset
             ycen(indk)=ycen(indk)-costh(indk)*offset
@@ -87,27 +99,40 @@ c             print *,'offset',xcen(indk),ycen(indk)
           endif
           ixcn(indk)=nint(xcen(indk))
           iycn(indk)=nint(ycen(indk))
+c           
+c           Initialize that we don't have products for any positions of new
+c           kernel
           do i=-ndlim,ndlim
             do j=-ndlim,ndlim
               needprod(i,j,indk)=.true.
             enddo
           enddo
         enddo
+c
+c         Get angle perpendicular to center kernel and dx,dy for search on that
+c         perpendicular axis
         thetasrch=goodangle(theta(indkcen)+90.)
         dxsrch=cos(thetasrch * dtor)
         dysrch=sin(thetasrch * dtor)
         ndmax=0
         pmax=-1.e10
+c         
+c         Loop until an evaluation stops moving the center point
         moved=1
         do while(moved.eq.1)
 c           call b3dputs('move loop')
           ndcur=ndmax
           moved=0
+c           
+c           Evaluate a summed product moving to left or right along normal
           do norminc=-1,1
             nd=ndcur+norminc
             if(abs(nd).le.limshift)then
               ipdst=-npool/2
               psum(nd)=0.
+c              
+c               Evaluate kernel product it each of the point positions in the
+c               pool
               do ipdel=ipdst,ipdnd
                 indk=indmap(indkcen+ipdel,npool)
                 xtry=xcen(indk)+nd*dxsrch
@@ -126,6 +151,8 @@ c           call b3dputs('move loop')
                     endif
                   enddo
                 enddo
+c                 
+c                 Interpolate the product bilinearly
                 fx=xtry-ixtry
                 fy=ytry-iytry
                 idx=ixtry-ixcn(indk)
@@ -134,6 +161,9 @@ c           call b3dputs('move loop')
      &              fx*aprod(idx+1,idy,indk))*(1.-fy)+
      &              ((1.-fx)*aprod(idx,idy+1,indk)+
      &              fx*aprod(idx+1,idy+1,indk))*fy
+c                 
+c                 Add product into sum with weight if inpool > 0, or equally
+c                 if inpool < 0
                 if(inpool.gt.0)then
                   psum(nd)=psum(nd)+(1.-abs(ipdel)/wdenom)*prod
                 else
@@ -141,10 +171,10 @@ c           call b3dputs('move loop')
                 endif
               enddo
 c               
+c               If product is bigget than max, move along normal
 c               Fancy comparison needed because psum(nd) is not committed
 c               as a float and looks bigger than pmax on Win-Intel 8+ 
 c               Double fix to do this and make it a real*8
-c               
               if(psum(nd)-pmax .gt. 1.e-6 * abs(max(psum(nd),pmax)))then
                 moved=1
                 pmax=psum(nd)
@@ -154,7 +184,7 @@ c
           enddo
         enddo
 c	  
-c	  interpolate offset if not at edge of allowable shifts
+c	  interpolate offset along normal if not at edge of allowable shifts
 c	  
         cx=0.
         if(abs(ndmax).lt.limshift)then
@@ -167,6 +197,8 @@ c
         cxnew=xcen(indkcen)+(ndmax+cx)*dxsrch
         cynew=ycen(indkcen)+(ndmax+cx)*dysrch
 c	  print *,'origin',cxnew,cynew
+c         
+c         Reapply offset from line center if any and save contour point
         if(offset.ne.0)then
           cxnew=cxnew-sinth(indkcen)*offset
           cynew=cynew+costh(indkcen)*offset
@@ -205,6 +237,8 @@ c	    print *,'eliminating segment',iseg,' of',ninobj
           iseg=iseg+1
         endif
       enddo
+c       
+c       Replace original contour
       do i=1,ninobj
         p_coord(1,i)=p_copy(1,i)
         p_coord(2,i)=p_copy(2,i)
@@ -241,6 +275,9 @@ c
 	  xmid=p_copy(1,iptcen)
 	  ymid=p_copy(2,iptcen)
 	  if(iorder.gt.0.and.nfit.gt.iorder.and.nfit.le.ninobj)then
+c             
+c             Copy points into fitting array, then rotate so X is along
+c             line from first to last point being fit
 	    do i=1,nfit
 	      ipt=indmap(iptcen+i-1-nfit/2,ninobj)
 	      xt(i)=p_copy(1,ipt)
@@ -256,6 +293,8 @@ c
 	      xt(i)=costs*xtmp-sints*(yt(i)-ymid)
 	      yt(i)=sints*xtmp+costs*(yt(i)-ymid)
 	    enddo
+c             
+c             Fit line or parabola to the Y versus X
 	    if(iorder.eq.1)then
 	      call lsfit(xt,yt,nfit,slop1,bint,ro)
 	    else
@@ -265,6 +304,8 @@ c
 	    ymid=costs*bint+ymid
 c             print *,nfit,iptcen,p_copy(1,iptcen),p_copy(2,iptcen),bint,xmid,ymid
 	  endif
+c           
+c           Replace with midpoint of fit
 	  p_coord(1,iptcen)=xmid
 	  p_coord(2,iptcen)=ymid
 	enddo
@@ -281,7 +322,20 @@ c
       end
 
 
-
+c       MAKECONTKERN makes a kernel shaped like the contour around one point
+c       ARRAY receives the kernel
+c       NX, NY are the sizes of the kernel in X and Y
+c       SIGMA is the sigma of the gaussian in direction across the contour
+c       H is the H of the parabola along the contour
+c       IFDARK nonzero for dark lines
+c       P_COPY(3,*) is the contour array
+c       IPT is the index of the center point
+c       NINOBJ is the number of points in contour
+c       THETA is returned with the angle of a line connecting the points before
+c       and after the center point
+c       SINTH and COSTH are returned with the angle's sine and cosine
+c       IXOFS, IYOFS are offsets to start of kernel in array
+c
       subroutine makecontkern(array,nx,ny,sigma,h, ifdark,p_copy,ipt,
      &    ninobj,theta, sinth,costh,ixofs,iyofs)
       real*4 array(nx,ny),p_copy(3,*)
@@ -297,12 +351,16 @@ c
       if(ifdark.eq.0)const=-const
       ipnex=indmap(ipt+1,ninobj)
       iplas=indmap(ipt-1,ninobj)
+c       
+c       Get angle of line through previous and next points to the center point
       dx=p_copy(1,ipnex)-p_copy(1,iplas)
       dy=p_copy(2,ipnex)-p_copy(2,iplas)
       dlen=sqrt(dx**2+dy**2)
       sinth=dy/dlen
       costh=dx/dlen
       theta=atan2(dy,dx) / dtor
+c       
+c       Set up to go each direction from the center point
       xmid=p_copy(1,ipt)
       ymid=p_copy(2,ipt)
       xt(0)=0.
@@ -313,6 +371,9 @@ c
         ifterm=0
         iptr=ipt
         pathlen=0.
+c         
+c         Rotate points so the previous-next line is the X axis
+c         Build list of rotated points and path length at each point
         do while (abs(irot).lt.limrot.and.ifterm.eq.0)
           iptr=indmap(iptr+idir,ninobj)
           xr=costh*(p_copy(1,iptr)-xmid)+sinth*(p_copy(2,iptr)-ymid)
@@ -335,8 +396,12 @@ c
       miny=ny
       maxx=0
       maxy=0
+c       
+c       Loop over the points in the kernel
       do iy=1,ny
         do ix=1,nx
+c           
+c           Rotate each point around kernel center as contour points were above
           xx=ix-xcen
           yy=iy-ycen
           xr=xx*costh+yy*sinth
@@ -344,9 +409,14 @@ c
           idir=nint(sign(1.,xr))
           irot=0
           ifgot=0
+c           
+c           Find point along rotated contour that is at same X
           do while(irot.ne.irlim(idir).and.ifgot.eq.0)
             if(idir*xt(irot+idir).gt.idir*xr)then
               ifgot=1
+c               
+c               Get Y deviation of the point from the contour and the path
+c               length along contour from center
               yint=yt(irot)+(xr-xt(irot))*(yt(irot+idir)-yt(irot))/
      &            (xt(irot+idir)-xt(irot))
               ydiff=yr-yint
@@ -356,6 +426,8 @@ c
             irot=irot+idir
           enddo
           if(abs(pathlen).lt.h.and.ifgot.eq.1)then
+c             
+c             If path length within range, compute kernel value
             yrat=ydiff**2/sigma**2
             array(ix,iy)=
      &          const*(1.-pathlen**2/h**2)*(yrat-1.)*exp(-yrat/2.)
@@ -392,3 +464,23 @@ c
       enddo
       return
       END
+
+c       $Log$
+c       Revision 1.6  2006/05/04 14:57:21  mast
+c       Fixed test for maximum product to avoid infinite loop on Windows
+c
+c       Revision 1.5  2005/12/09 04:39:44  mast
+c       gfortran: .xor., continuation, byte, or open fixes
+c	
+c       Revision 1.4  2004/11/05 19:03:22  mast
+c       Skip over bad spot if not needed, use b3dputs for diagnostics
+c	
+c       Revision 1.2  2004/06/04 16:56:04  mast
+c       Eliminated degree-type trig functions
+c	
+c       Revision 1.1  2003/10/25 16:15:12  mast
+c       convert to library for 3dmod internal module
+c	
+c       Revision 3.1  2002/08/22 05:55:27  mast
+c       Changed to take p_copy as an argument to avoid memory problems
+c	
