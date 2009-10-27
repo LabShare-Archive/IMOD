@@ -1,9 +1,10 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+10/26/09: IMOD_4-0-17
 10/26/09: In Etomo disabled non-working Save As functionality in PEET.
 
-10/23/09: In Etomo displaying a button panel instead of automatically starting a
-reconstruction.
+10/23/09: In Etomo displaying a button panel instead of automatically starting
+a reconstruction.
 
 10/23/09: In Etomo fixed a bug where trimvol min and max parameters where null.
 
