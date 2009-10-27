@@ -3,6 +3,7 @@ package etomo.util;
 import java.io.File;
 import java.io.IOException;
 
+import etomo.BaseManager;
 import etomo.EtomoDirector;
 import etomo.ManagerKey;
 import etomo.process.SystemProcessException;
@@ -23,6 +24,9 @@ import junit.framework.TestCase;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.28  2009/03/17 22:15:21  sueh
+ * <p> testReadBadFilename():  Corrected failure message.
+ * <p>
  * <p> Revision 3.27  2009/03/17 00:46:44  sueh
  * <p> bug# 1186 Pass managerKey to everything that pops up a dialog.
  * <p>
@@ -162,8 +166,11 @@ public class MRCHeaderTest extends TestCase {
     if (!testDir.exists()) {
       testDir.mkdirs();
     }
-    ManagerKey managerKey = EtomoDirector.INSTANCE.getCurrentManagerForTest()
-        .getManagerKey();
+    ManagerKey managerKey = null;
+    BaseManager manager = EtomoDirector.INSTANCE.getCurrentManagerForTest();
+    if (manager != null) {
+      managerKey = manager.getManagerKey();
+    }
     emptyFilename = MRCHeader.getInstance(testDirPath, "", AxisID.ONLY,
         managerKey);
     badFilename = MRCHeader.getInstance(testDirPath, testDirectory1
