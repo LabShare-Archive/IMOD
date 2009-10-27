@@ -38,6 +38,7 @@ import etomo.type.ProcessEndState;
 import etomo.type.ProcessName;
 import etomo.type.ProcessResultDisplay;
 import etomo.type.Run3dmodMenuOptions;
+import etomo.ui.LogPanel;
 import etomo.ui.MainPanel;
 import etomo.ui.MainPeetPanel;
 import etomo.ui.ParallelPanel;
@@ -59,6 +60,10 @@ import etomo.util.DatasetFiles;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.56  2009/10/26 21:28:28  sueh
+ * <p> bug# 1175 Save as is not a good idea when the param file is not loaded,
+ * <p> so don't allow it at all.
+ * <p>
  * <p> Revision 1.55  2009/10/23 22:22:34  sueh
  * <p> bug# 1275 Made touch() a start function in BaseProcessManager.
  * <p>
@@ -326,6 +331,10 @@ public final class PeetManager extends BaseManager {
 
   public InterfaceType getInterfaceType() {
     return InterfaceType.PEET;
+  }
+  
+  public LogPanel createLogPanel() {
+    return LogPanel.getInstance(getManagerKey());
   }
 
   public BaseMetaData getBaseMetaData() {
@@ -751,7 +760,7 @@ public final class PeetManager extends BaseManager {
   void createComScriptManager() {
   }
 
-  BaseProcessManager getProcessManager() {
+ public BaseProcessManager getProcessManager() {
     return processMgr;
   }
 

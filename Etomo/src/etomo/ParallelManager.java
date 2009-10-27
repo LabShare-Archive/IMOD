@@ -34,6 +34,7 @@ import etomo.type.ProcessResultDisplay;
 import etomo.type.Run3dmodMenuOptions;
 import etomo.ui.AnisotropicDiffusionDialog;
 import etomo.ui.Deferred3dmodButton;
+import etomo.ui.LogPanel;
 import etomo.ui.MainPanel;
 import etomo.ui.MainParallelPanel;
 import etomo.ui.ParallelChooser;
@@ -146,6 +147,10 @@ public final class ParallelManager extends BaseManager {
 
   protected void createComScriptManager() {
   }
+  
+  public LogPanel createLogPanel() {
+    return LogPanel.getInstance(getManagerKey());
+  }
 
   protected void processSucceeded(final AxisID axisID,
       final ProcessName processName) {
@@ -186,7 +191,7 @@ public final class ParallelManager extends BaseManager {
     return storables;
   }
 
-  protected BaseProcessManager getProcessManager() {
+  public BaseProcessManager getProcessManager() {
     return processMgr;
   }
 
@@ -770,6 +775,9 @@ public final class ParallelManager extends BaseManager {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.40  2009/10/23 22:22:24  sueh
+ * <p> bug# 1275 Made touch() a start function in BaseProcessManager.
+ * <p>
  * <p> Revision 1.39  2009/10/23 19:43:04  sueh
  * <p> bug# 1275 Separate generic parallel process and NAD.  Only use the
  * <p> openParallelChooser if there is no way to tell which dialog is requested.

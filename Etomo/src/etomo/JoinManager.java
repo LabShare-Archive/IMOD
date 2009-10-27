@@ -51,6 +51,7 @@ import etomo.type.Run3dmodMenuOptions;
 import etomo.type.SlicerAngles;
 import etomo.ui.Deferred3dmodButton;
 import etomo.ui.JoinDialog;
+import etomo.ui.LogPanel;
 import etomo.ui.MainJoinPanel;
 import etomo.ui.MainPanel;
 import etomo.ui.ProcessDisplay;
@@ -71,6 +72,9 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.81  2009/10/23 22:22:15  sueh
+ * <p> bug# 1275 Made touch() a start function in BaseProcessManager.
+ * <p>
  * <p> Revision 1.80  2009/09/01 03:17:35  sueh
  * <p> bug# 1222
  * <p>
@@ -600,6 +604,10 @@ public final class JoinManager extends BaseManager {
   }
 
   protected void createComScriptManager() {
+  }
+  
+  public LogPanel createLogPanel() {
+    return LogPanel.getInstance(getManagerKey());
   }
 
   protected void createProcessTrack() {
@@ -1556,7 +1564,7 @@ public final class JoinManager extends BaseManager {
   public final void packDialogs() {
   }
 
-  protected BaseProcessManager getProcessManager() {
+  public BaseProcessManager getProcessManager() {
     return processMgr;
   }
 
