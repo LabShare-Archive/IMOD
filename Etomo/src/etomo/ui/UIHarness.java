@@ -56,12 +56,6 @@ public final class UIHarness {
       mainFrame.setTitle(title);
     }
   }
-  
-  public void displayFrontPage() {
-    if (isHead()) {
-      mainFrame.displayFrontPage();
-    }
-  }
 
   public void moveSubFrame() {
     if (isHead()) {
@@ -572,6 +566,9 @@ public final class UIHarness {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.36  2009/10/23 19:47:59  sueh
+ * <p> bug# 1275 Added setTitle and displayFromPage.
+ * <p>
  * <p> Revision 1.35  2009/03/17 00:46:24  sueh
  * <p> bug# 1186 Pass managerKey to everything that pops up a dialog.
  * <p>

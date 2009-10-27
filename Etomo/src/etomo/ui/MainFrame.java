@@ -35,6 +35,10 @@ import etomo.util.Utilities;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.57  2009/10/23 19:47:26  sueh
+ * <p> bug# 1275 Make separate menu items for generic parallel process and
+ * <p> NAD.  Added default display FrontPageDialog.
+ * <p>
  * <p> Revision 3.56  2009/09/29 00:23:00  sueh
  * <p> bug# 1228 Move MainFrame to the front after a call to LogFrame.refresh().
  * <p>
@@ -476,7 +480,6 @@ public final class MainFrame extends EtomoFrame implements ContextMenu {
   private String[] mRUList;
   private boolean registered = false;
   private LogFrame logFrame = LogFrame.getInstance();
-  private FrontPageDialog frontPageDialog = null;
 
   /**
    * Main window constructor.  This sets up the menus and status line.
@@ -519,19 +522,6 @@ public final class MainFrame extends EtomoFrame implements ContextMenu {
     main = true;
   }
 
-  /**
-   * Create frontPageDialog if necessary.  Remove everything from the rootPanel.
-   * Add frontPageDialog to the root panel.
-   */
-  void displayFrontPage() {
-    if (frontPageDialog == null) {
-      frontPageDialog = FrontPageDialog.getInstance();
-    }
-    rootPanel.removeAll();
-    rootPanel.add(frontPageDialog.getComponent());
-    pack(null);
-  }
-
   void setCurrentManager(BaseManager currentManager, ManagerKey managerKey,
       boolean newWindow) {
     setEnabled(currentManager);
@@ -548,9 +538,8 @@ public final class MainFrame extends EtomoFrame implements ContextMenu {
           currentManager.getName());
     }
     //Remove everything from rootPanel if the main panel has been set from the
-    //previous manager, or if frontPageDialog was create, which means that
-    //displayFrontPage was called from EtomoDirector.
-    if (mainPanel != null || frontPageDialog != null) {
+    //previous manager.
+    if (mainPanel != null) {
       rootPanel.removeAll();
     }
     if (currentManager == null) {
