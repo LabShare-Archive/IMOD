@@ -1,6 +1,6 @@
 package etomo.ui;
 
-import java.awt.Component;
+import java.awt.Container;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
@@ -22,10 +22,14 @@ import etomo.type.AxisID;
  * 
  * @version $Revision$
  * 
- * <p> $Log$ </p>
+ * <p> $Log$
+ * <p> Revision 1.1  2009/10/23 19:46:48  sueh
+ * <p> bug# 1275 Default display.  Contains buttons for choosing one of five
+ * <p> interfaces.
+ * <p> </p>
  */
 
-final class FrontPageDialog {
+public final class FrontPageDialog {
   public static final String rcsid = "$Id$";
 
   private final SpacedPanel pnlRoot = SpacedPanel.getInstance(true);
@@ -41,7 +45,7 @@ final class FrontPageDialog {
   private FrontPageDialog() {
   }
 
-  static FrontPageDialog getInstance() {
+  public static FrontPageDialog getInstance() {
     FrontPageDialog instance = new FrontPageDialog();
     instance.createPanel();
     instance.setTooltips();
@@ -87,11 +91,18 @@ final class FrontPageDialog {
     btnPeet.addActionListener(actionListener);
   }
 
-  Component getComponent() {
+  public Container getContainer() {
     return pnlRoot.getContainer();
   }
 
+  public boolean usingParallelProcessing() {
+    return false;
+  }
+
   private void action(ActionEvent actionEvent) {
+    //Front page only appears as the default.  Close it when a regular manager
+    //is opened.
+    EtomoDirector.INSTANCE.closeCurrentManager(AxisID.ONLY, false);
     String actionCommand = actionEvent.getActionCommand();
     if (actionCommand.equals(btnRecon.getActionCommand())) {
       EtomoDirector.INSTANCE.openTomogram(true, AxisID.ONLY);
