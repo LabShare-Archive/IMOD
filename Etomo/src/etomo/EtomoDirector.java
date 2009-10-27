@@ -184,8 +184,12 @@ public class EtomoDirector {
     int paramFileNameListSize = paramFileNameList.size();
     String paramFileName = null;
     managerList = new UniqueHashedArray();
-    //if no param file is found bring up AppMgr.SetupDialog
-    if (paramFileNameListSize != 0) {
+    //if no param file is found bring up Parallel manager
+    if (paramFileNameListSize == 0) {
+      defaultWindow = true;
+      openFrontPage(true, AxisID.ONLY);
+    }
+    else {
       ManagerKey saveKey = null;
       for (int i = 0; i < paramFileNameListSize; i++) {
         paramFileName = (String) paramFileNameList.get(i);
@@ -224,7 +228,6 @@ public class EtomoDirector {
     System.err.println("imod:  " + getIMODDirectory());
     if (manager == null) {
       UIHarness.INSTANCE.setTitle(MainFrame.etomoTitle);
-      UIHarness.INSTANCE.displayFrontPage();
     }
   }
 
@@ -490,7 +493,7 @@ public class EtomoDirector {
 
   public ManagerKey openParallel(boolean makeCurrent, AxisID axisID) {
     closeDefaultWindow(axisID);
-    return openParallel((String)null, makeCurrent, axisID);
+    return openParallel((String) null, makeCurrent, axisID);
   }
 
   public ManagerKey openGenericParallel(boolean makeCurrent, AxisID axisID) {
@@ -516,6 +519,12 @@ public class EtomoDirector {
       return openJoin(makeCurrent, axisID);
     }
     return openJoin(etomoJoinFile.getAbsolutePath(), makeCurrent, axisID);
+  }
+
+  public ManagerKey openFrontPage(boolean makeCurrent, AxisID axisID) {
+    closeDefaultWindow(axisID);
+    FrontPageManager manager = new FrontPageManager();
+    return setManager(manager, makeCurrent);
   }
 
   private ManagerKey openParallel(File etomoParallelFile, boolean makeCurrent,
@@ -1128,6 +1137,10 @@ public class EtomoDirector {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.87  2009/10/23 19:42:06  sueh
+ * <p> bug# 1275 No longer using a default manager.  Added FrontPagePanel
+ * <p> instead.  Separate options for generic parallel process and NAD.
+ * <p>
  * <p> Revision 1.86  2009/08/24 20:22:20  sueh
  * <p> bug# 1254 Printing headless state.
  * <p>
