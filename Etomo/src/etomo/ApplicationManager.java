@@ -122,6 +122,7 @@ import etomo.ui.FinalAlignedStackDialog;
 import etomo.ui.FinalAlignedStackExpert;
 import etomo.ui.FindBeads3dDisplay;
 import etomo.ui.FlattenWarpDisplay;
+import etomo.ui.LogPanel;
 import etomo.ui.MainPanel;
 import etomo.ui.MainTomogramPanel;
 import etomo.ui.NewstackDisplay;
@@ -245,6 +246,10 @@ public final class ApplicationManager extends BaseManager implements
 
   public boolean setParamFile() {
     return loadedParamFile;
+  }
+
+  public LogPanel createLogPanel() {
+    return LogPanel.getInstance(getManagerKey());
   }
 
   /**
@@ -7831,7 +7836,7 @@ public final class ApplicationManager extends BaseManager implements
     processchunks(axisID, param, processResultDisplay, processSeries);
   }
 
-  BaseProcessManager getProcessManager() {
+  public BaseProcessManager getProcessManager() {
     return processMgr;
   }
 
@@ -7892,6 +7897,9 @@ public final class ApplicationManager extends BaseManager implements
 }
 /**
  * <p> $Log$
+ * <p> Revision 3.341  2009/10/23 22:12:07  sueh
+ * <p> bug# 1275 Made touch() a start function in BaseProcessManager.
+ * <p>
  * <p> Revision 3.340  2009/10/23 21:22:33  sueh
  * <p> bug# 1281 In openPostProcessingDialog, checking, setting, and saving
  * <p> metaData.postExists, which keeps track of whether the post processing
