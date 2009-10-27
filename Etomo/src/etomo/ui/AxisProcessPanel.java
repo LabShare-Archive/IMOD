@@ -29,6 +29,9 @@ import etomo.type.ProcessName;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.39  2009/01/20 19:44:29  sueh
+ * <p> bug# 1102 Changed button to type SimpleButton so that they can name themselves.
+ * <p>
  * <p> Revision 3.38  2008/10/06 22:37:41  sueh
  * <p> bug# 1113 Removed pack, which is unecessary since scrolling was
  * <p> removed.
@@ -276,7 +279,8 @@ public abstract class AxisProcessPanel implements ContextMenu {
 
   //  Progress panel
   final ProgressPanel progressPanel;
-  private final SimpleButton buttonKillProcess = new SimpleButton(KILL_BUTTON_LABEL);
+  private final SimpleButton buttonKillProcess = new SimpleButton(
+      KILL_BUTTON_LABEL);
   private ParallelPanel parallelPanel = null;
 
   //  Process select panel
@@ -320,7 +324,9 @@ public abstract class AxisProcessPanel implements ContextMenu {
     panelProcessInfo.setAlignmentY(Component.TOP_ALIGNMENT);
 
     panelProcessInfo.setLayout(new BorderLayout());
-    panelProcessInfo.add(outerStatusPanel, BorderLayout.NORTH);
+    if (manager.getProcessManager() != null) {
+      panelProcessInfo.add(outerStatusPanel, BorderLayout.NORTH);
+    }
     panelProcessInfo.add(panelDialog, BorderLayout.CENTER);
 
     panelRoot.setLayout(new BoxLayout(panelRoot, BoxLayout.X_AXIS));
