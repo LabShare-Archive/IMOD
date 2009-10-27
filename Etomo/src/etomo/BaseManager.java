@@ -98,7 +98,7 @@ public abstract class BaseManager {
   private boolean reconnectRunA = false;
   private boolean reconnectRunB = false;
   private final ManagerKey managerKey = new ManagerKey();
-  final LogPanel logPanel = LogPanel.getInstance(managerKey);
+  final LogPanel logPanel;
 
   abstract public InterfaceType getInterfaceType();
 
@@ -124,7 +124,7 @@ public abstract class BaseManager {
 
   public abstract void pause(AxisID axisID);
 
-  abstract BaseProcessManager getProcessManager();
+  public abstract BaseProcessManager getProcessManager();
 
   public abstract BaseScreenState getBaseScreenState(AxisID axisID);
 
@@ -135,6 +135,8 @@ public abstract class BaseManager {
   public abstract boolean canSnapshot();
 
   public abstract boolean setParamFile();
+
+  abstract LogPanel createLogPanel();
 
   abstract void processSucceeded(AxisID axisID, ProcessName processName);
 
@@ -150,6 +152,7 @@ public abstract class BaseManager {
       AxisID axisID);
 
   public BaseManager() {
+    logPanel = createLogPanel();
     propertyUserDir = System.getProperty("user.dir");
     createProcessTrack();
     createComScriptManager();
@@ -187,16 +190,22 @@ public abstract class BaseManager {
   }
 
   public void logMessage(Loggable loggable, AxisID axisID, ManagerKey managerKey) {
-    logPanel.logMessage(loggable, axisID, managerKey);
+    if (logPanel != null) {
+      logPanel.logMessage(loggable, axisID, managerKey);
+    }
   }
 
   public void logMessage(String[] message, String title, AxisID axisID,
       ManagerKey managerKey) {
-    logPanel.logMessage(title, axisID, message, managerKey);
+    if (logPanel != null) {
+      logPanel.logMessage(title, axisID, message, managerKey);
+    }
   }
 
   public void saveLog() {
-    logPanel.save();
+    if (logPanel != null) {
+      logPanel.save();
+    }
   }
 
   void setManagerKey(UniqueKey uniqueKey) {
@@ -410,54 +419,55 @@ public abstract class BaseManager {
   }
 
   private boolean checkNextProcess(AxisID axisID) {
-    SystemProcessInterface processA = getProcessManager().getThread(
-        AxisID.FIRST);
-    SystemProcessInterface processB = getProcessManager().getThread(
-        AxisID.SECOND);
-    // Check to see if next processes have to be done
-    ArrayList messageArray = new ArrayList();
-    ConstProcessSeries processSeriesA = null;
-    ConstProcessSeries processSeriesB = null;
-    String nextProcessA = null;
-    String nextProcessB = null;
-    if (processA != null
-        && (processSeriesA = processA.getProcessSeries()) != null) {
-      nextProcessA = processSeriesA.peekNextProcess();
-    }
-    if (processB != null
-        && (processSeriesB = processB.getProcessSeries()) != null) {
-      nextProcessB = processSeriesB.peekNextProcess();
-    }
-    if (nextProcessA != null || nextProcessB != null) {
-      boolean twoProcesses = nextProcessA != null && nextProcessB != null;
-      StringBuffer message = new StringBuffer(
-          "WARNING!!!\nIf you exit now then the current process(es) will not finish.  The subprocess(es)");
-      if (nextProcessA != null) {
-        message.append(" " + nextProcessA + " on Axis A");
+    BaseProcessManager processManager = getProcessManager();
+    if (processManager != null) {
+      SystemProcessInterface processA = processManager.getThread(AxisID.FIRST);
+      SystemProcessInterface processB = processManager.getThread(AxisID.SECOND);
+      // Check to see if next processes have to be done
+      ArrayList messageArray = new ArrayList();
+      ConstProcessSeries processSeriesA = null;
+      ConstProcessSeries processSeriesB = null;
+      String nextProcessA = null;
+      String nextProcessB = null;
+      if (processA != null
+          && (processSeriesA = processA.getProcessSeries()) != null) {
+        nextProcessA = processSeriesA.peekNextProcess();
       }
-      if (twoProcesses) {
-        message.append(" and");
+      if (processB != null
+          && (processSeriesB = processB.getProcessSeries()) != null) {
+        nextProcessB = processSeriesB.peekNextProcess();
       }
-      if (nextProcessB != null) {
-        message.append(" " + nextProcessB + " on Axis B");
+      if (nextProcessA != null || nextProcessB != null) {
+        boolean twoProcesses = nextProcessA != null && nextProcessB != null;
+        StringBuffer message = new StringBuffer(
+            "WARNING!!!\nIf you exit now then the current process(es) will not finish.  The subprocess(es)");
+        if (nextProcessA != null) {
+          message.append(" " + nextProcessA + " on Axis A");
+        }
+        if (twoProcesses) {
+          message.append(" and");
+        }
+        if (nextProcessB != null) {
+          message.append(" " + nextProcessB + " on Axis B");
+        }
+        message.append(" should run next.\n");
+        if (exiting) {
+          message.append("Do you still wish to exit the program?");
+        }
+        else {
+          message.append("Do you still wish to close this interface?");
+        }
+        if (!uiHarness.openYesNoWarningDialog(message.toString(), axisID,
+            managerKey)) {
+          exiting = false;
+          return false;
+        }
       }
-      message.append(" should run next.\n");
-      if (exiting) {
-        message.append("Do you still wish to exit the program?");
-      }
-      else {
-        message.append("Do you still wish to close this interface?");
-      }
-      if (!uiHarness.openYesNoWarningDialog(message.toString(), axisID,
-          managerKey)) {
+      if (!checkUnidentifiedProcess(AxisID.FIRST)
+          || !checkUnidentifiedProcess(AxisID.SECOND)) {
         exiting = false;
         return false;
       }
-    }
-    if (!checkUnidentifiedProcess(AxisID.FIRST)
-        || !checkUnidentifiedProcess(AxisID.SECOND)) {
-      exiting = false;
-      return false;
     }
     return true;
   }
@@ -518,19 +528,22 @@ public abstract class BaseManager {
     exiting = true;
     try {
       // Check for processes that will die if etomo exits
-      SystemProcessInterface processA = getProcessManager().getThread(
-          AxisID.FIRST);
-      SystemProcessInterface processB = getProcessManager().getThread(
-          AxisID.SECOND);
-      boolean nohupA = processA == null || processA.isNohup();
-      boolean nohupB = processB == null || processB.isNohup();
-      if (!nohupA || !nohupB) {
-        if (!uiHarness
-            .openYesNoWarningDialog(
-                "WARNING!!\nThere is process running which will stop if eTomo exits.\nDo you still wish to exit the program?"
-                    .toString(), axisID, managerKey)) {
-          exiting = false;
-          return false;
+      BaseProcessManager processManager = getProcessManager();
+      if (processManager != null) {
+        SystemProcessInterface processA = getProcessManager().getThread(
+            AxisID.FIRST);
+        SystemProcessInterface processB = getProcessManager().getThread(
+            AxisID.SECOND);
+        boolean nohupA = processA == null || processA.isNohup();
+        boolean nohupB = processB == null || processB.isNohup();
+        if (!nohupA || !nohupB) {
+          if (!uiHarness
+              .openYesNoWarningDialog(
+                  "WARNING!!\nThere is process running which will stop if eTomo exits.\nDo you still wish to exit the program?"
+                      .toString(), axisID, managerKey)) {
+            exiting = false;
+            return false;
+          }
         }
       }
       if (!checkNextProcess(axisID)) {
@@ -1302,6 +1315,9 @@ public abstract class BaseManager {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.121  2009/10/23 22:20:59  sueh
+ * <p> bug# 1275 Made touch() a start function in BaseProcessManager.
+ * <p>
  * <p> Revision 1.120  2009/09/01 03:17:35  sueh
  * <p> bug# 1222
  * <p>
