@@ -58,6 +58,7 @@ public class ImodManagerTest extends TestCase {
    */
   public ImodManagerTest(String arg0) {
     super(arg0);
+    EtomoDirector.INSTANCE.openTomogram(true, AxisID.ONLY);
     manager = EtomoDirector.INSTANCE.getCurrentManagerForTest();
     metaData = new MetaData((ApplicationManager) manager);
   }
