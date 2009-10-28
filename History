@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+10/28/09: In Etomo closing default button panel with an interface is opened in
+all cases.
+
 10/27/09: IMOD_4-0-18
 10/27/09: Fixed setupcombine to clean up files with find due to a change in
 tcsh in RHEL5.
