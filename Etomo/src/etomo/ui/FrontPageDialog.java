@@ -23,6 +23,9 @@ import etomo.type.AxisID;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.2  2009/10/27 20:41:58  sueh
+ * <p> bug# 1275 Made class a top-level dialog for FrontPageManager.
+ * <p>
  * <p> Revision 1.1  2009/10/23 19:46:48  sueh
  * <p> bug# 1275 Default display.  Contains buttons for choosing one of five
  * <p> interfaces.
@@ -100,9 +103,6 @@ public final class FrontPageDialog {
   }
 
   private void action(ActionEvent actionEvent) {
-    //Front page only appears as the default.  Close it when a regular manager
-    //is opened.
-    EtomoDirector.INSTANCE.closeCurrentManager(AxisID.ONLY, false);
     String actionCommand = actionEvent.getActionCommand();
     if (actionCommand.equals(btnRecon.getActionCommand())) {
       EtomoDirector.INSTANCE.openTomogram(true, AxisID.ONLY);
