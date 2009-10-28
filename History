@@ -1,6 +1,9 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 10/27/09: IMOD_4-0-18
+10/27/09: Fixed setupcombine to clean up files with find due to a change in
+tcsh in RHEL5.
+
 10/27/09: In Etomo created a more stable version of the default button panel.
 
 10/26/09: IMOD_4-0-17
