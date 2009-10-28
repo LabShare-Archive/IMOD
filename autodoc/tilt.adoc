@@ -415,7 +415,7 @@ type = LI
 usage = List of views to reproject (0 for all, not just included ones)
 tooltip = 
 manpage = List of views to reproject from a reconstruction file, numbered from
-0.  The default
+1.  The default
 is to project just the views that were included in the reconstruction.  To
 project all views in the input projection file, enter 0.
 
