@@ -717,8 +717,12 @@ endif
 
 
 cat <<EOF | cat >> $volcombine
-\$touch prevent-error
-\$\\rm prevent-err* ${tmppath}*.mat~ ${tmppath}mat.fft* ${tmppath}rec.fft* ${tmppath}sum.fft* $sumname* ${tmppath}sum[1-9]*.rec*
+\$\\find . -name "${tmppath}*.mat~" -exec rm "{}" \;
+\$\\find . -name "${tmppath}mat.fft*" -exec rm "{}" \;
+\$\\find . -name "${tmppath}rec.fft*" -exec rm "{}" \;
+\$\\find . -name "${tmppath}sum.fft*" -exec rm "{}" \;
+\$\\find . -name "$sumname*" -exec rm "{}" \;
+\$\\find . -name "${tmppath}sum[1-9]*.rec*" -exec rm "{}" \;
 #
 \$echo STATUS: RUNNING FILLTOMO TO FILL IN GRAY AREAS IN THE .MAT FILE
 \$echo 
@@ -877,6 +881,9 @@ EOF
 
 #
 #  $Log$
+#  Revision 3.38  2008/01/04 07:03:38  mast
+#  Fixed for space in IMOD_DIR, possibly for space in tmpdir
+#
 #  Revision 3.37  2006/09/13 22:32:35  mast
 #  Added LowFromBoth entry for combinefft
 #
