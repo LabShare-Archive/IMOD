@@ -1,5 +1,9 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+10/29/09: In Etomo - PEET added buttons to move volume row up and down.  Added a
+button to add a new row with data from an existing row.  And made the volume
+file chooser more flexible.
+
 10/29/09: In Etomo - PEET removed the "Duplicate an Existing Project" button.
 Moved the functionality to the "Import..." button.
 
