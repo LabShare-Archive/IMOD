@@ -1,6 +1,9 @@
 package etomo.storage;
 
 import java.io.File;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
 
 import javax.swing.filechooser.FileFilter;
 
@@ -18,6 +21,9 @@ import javax.swing.filechooser.FileFilter;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.4  2006/08/08 20:48:56  sueh
+ * <p> bug# 592 Accepting .join files.
+ * <p>
  * <p> Revision 1.3  2004/12/04 01:26:53  sueh
  * <p> bug# 557 Added.sqz files to the filter.
  * <p>
@@ -35,17 +41,59 @@ public class TomogramFileFilter extends FileFilter implements
     java.io.FileFilter {
   public static final String rcsid = "$Id$";
 
+  private static final List extraExtensionList = new ArrayList();
+
+  private boolean allowAll = false;
+
   /**
-   * @see javax.swing.filechooser.FileFilter#accept(File)
+   * Accept the if it is a directory or has one of the defined extensions (.rec,
+   * .flip, .sqz, or .join).  Also accept if allowAll is on, or if its extension
+   * is in extraExtensionList.
    */
-  public boolean accept(File f) {
-    String filePath = f.getAbsolutePath();
-    //  If this is a file test its extension, all others should return true
-    if (f.isFile() && !filePath.endsWith(".rec") && !filePath.endsWith(".flip")
-        && !filePath.endsWith(".sqz") && !filePath.endsWith(".join")) {
-      return false;
+  public boolean accept(File file) {
+    if (!file.isFile()) {
+      return true;
     }
-    return true;
+    if (allowAll) {
+      return true;
+    }
+    String filePath = file.getAbsolutePath();
+    //  If this is a file test its extension, all others should return true
+    if (filePath.endsWith(".rec") || filePath.endsWith(".flip")
+        || filePath.endsWith(".sqz") || filePath.endsWith(".join")) {
+      return true;
+    }
+    Iterator iterator = extraExtensionList.iterator();
+    while (iterator.hasNext()) {
+      if (filePath.endsWith((String) iterator.next())) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  /**
+   * If accept fails with this file, adds its extension to extraExtensionList.
+   * If the file has no extension, turn on allowAll.
+   * @param file
+   */
+  public void addExtension(File file) {
+    if (accept(file)) {
+      return;
+    }
+    //New extension
+    String fileName = file.getName();
+    int extensionIndex = fileName.lastIndexOf(".");
+    if (extensionIndex == -1) {
+      allowAll = true;
+    }
+    else {
+      extraExtensionList.add(fileName.substring(extensionIndex));
+    }
+  }
+  
+  int getExtraExtensionListSize() {
+    return extraExtensionList.size();
   }
 
   /**
