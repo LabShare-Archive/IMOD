@@ -66,6 +66,9 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.16  2009/10/23 19:48:43  sueh
+ * <p> bug# 1275 In executeCommand implemented open.interface.field.
+ * <p>
  * <p> Revision 1.15  2009/10/08 20:59:53  sueh
  * <p> bug# 1277 In executeField changed the name of minibuttons to mb.name.
  * <p>
@@ -916,16 +919,22 @@ final class AutodocTester extends Assert implements VariableList {
       if (subjectType == UITestSubjectType.FILE_CHOOSER) {
         setupNamedComponentFinder(JFileChooser.class, subjectName);
         JFileChooser fileChooser = (JFileChooser) finder.find();
-        File file;
-        if (value.startsWith(File.separator)) {
-          file = new File(value);
+        if (fileChooser == null) {
+          wait = true;
         }
         else {
-          file = new File(getVariableValue(
-              UITestSubjectType.TESTDIR.toString(), axisID), value);
+          wait = false;
+          File file;
+          if (value.startsWith(File.separator)) {
+            file = new File(value);
+          }
+          else {
+            file = new File(getVariableValue(UITestSubjectType.TESTDIR
+                .toString(), axisID), value);
+          }
+          fileChooser.setSelectedFile(file);
+          fileChooser.approveSelection();
         }
-        fileChooser.setSelectedFile(file);
-        fileChooser.approveSelection();
       }
       //wait.popup.popup_title = dismiss_button_label
       else if (subjectType == UITestSubjectType.POPUP) {
