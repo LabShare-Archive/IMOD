@@ -54,6 +54,11 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.81  2009/10/19 21:07:34  sueh
+ * <p> bug# 1263 Calling updateParallelProcess from changeTab.  In
+ * <p> usingParallelProcessing take the current tab into account.  Added
+ * <p> updateParallelProcess.
+ * <p>
  * <p> Revision 1.80  2009/10/16 23:56:08  sueh
  * <p> bug# 1234 In validateRun, passed cbTiltRange and cbFlgWedgeWeight
  * <p> selection state to VolumeTable.validateRun.
@@ -745,6 +750,7 @@ public final class PeetDialog implements ContextMenu, AbstractParallelDialog,
       ltfYAxisContourContourNumber.setText(metaData
           .getYAxisContourContourNumber());
       cbFlgWedgeWeight.setSelected(metaData.isFlgWedgeWeight());
+      ftfMaskTypeVolume.setText(metaData.getMaskTypeVolume());
     }
     ltfEdgeShift.setText(metaData.getEdgeShift());
     cbMaskUseReferenceParticle.setSelected(metaData
@@ -752,7 +758,6 @@ public final class PeetDialog implements ContextMenu, AbstractParallelDialog,
     sMaskModelPtsVolumeModelNumber.setValue(metaData
         .getMaskModelPtsModelNumber());
     ltfMaskModelPtsVolumeParticle.setText(metaData.getMaskModelPtsParticle());
-    ftfMaskTypeVolume.setText(metaData.getMaskTypeVolume());
     cbNWeightGroup.setSelected(metaData.isUseNWeightGroup());
     //backwards compatibility - raised nWeightGroup minimum from 0 to 2
     int nWeightGroup = metaData.getNWeightGroup().getInt();
@@ -879,7 +884,9 @@ public final class PeetDialog implements ContextMenu, AbstractParallelDialog,
     }
     else if (maskType == MatlabParam.MaskType.VOLUME) {
       rbMaskTypeVolume.setSelected(true);
-      ftfMaskTypeVolume.setText(maskTypeValue);
+      if (!parametersOnly) {
+        ftfMaskTypeVolume.setText(maskTypeValue);
+      }
     }
     else if (maskType == MatlabParam.MaskType.SPHERE) {
       rbMaskTypeSphere.setSelected(true);
@@ -1733,7 +1740,7 @@ public final class PeetDialog implements ContextMenu, AbstractParallelDialog,
     updateParallelProcess();
     UIHarness.INSTANCE.pack(axisID, manager);
   }
-  
+
   public void updateParallelProcess() {
     manager.setParallelDialog(axisID, usingParallelProcessing());
   }
