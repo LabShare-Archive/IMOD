@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+10/29/09: In Etomo - PEET removed the "Duplicate an Existing Project" button.
+Moved the functionality to the "Import..." button.
+
 10/28/09: In Etomo closing default button panel with an interface is opened in
 all cases.
 
