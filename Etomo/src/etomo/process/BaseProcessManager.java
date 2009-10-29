@@ -44,6 +44,9 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.86  2009/10/23 22:22:52  sueh
+ * <p> bug# 1275 Made touch() a static function in BaseProcessManager.
+ * <p>
  * <p> Revision 1.85  2009/09/01 03:17:56  sueh
  * <p> bug# 1222
  * <p>
@@ -623,6 +626,41 @@ public abstract class BaseProcessManager {
       e.printStackTrace();
       uiHarness.openMessageDialog("Cannot create  " + file.getAbsolutePath()
           + ".\n" + e.getMessage(), "File Error", manager.getManagerKey());
+    }
+  }
+  
+  /**
+   * run mkdir
+   * @param file
+   */
+  public static final void mkdir(final String absolutePath, BaseManager manager) {
+    File file = new File(absolutePath);
+    File dir = file.getParentFile();
+    if (!dir.exists()) {
+      if (!dir.mkdirs()) {
+        UIHarness.INSTANCE.openMessageDialog("Unable to create "
+            + dir.getAbsolutePath(), "File Error", manager == null ? null
+            : manager.getManagerKey());
+        return;
+      }
+    }
+    if (!dir.canWrite()) {
+      UIHarness.INSTANCE.openMessageDialog("Cannot write to "
+          + dir.getAbsolutePath(), "File Error", manager == null ? null
+          : manager.getManagerKey());
+      return;
+    }
+    String[] commandArray = { "mkdir", absolutePath };
+    startSystemProgramThread(commandArray, AxisID.ONLY, manager);
+    final int timeout = 5;
+    int t = 0;
+    while (!file.exists() && t < timeout) {
+      try {
+        Thread.sleep(1020);
+      }
+      catch (InterruptedException e) {
+      }
+      t++;
     }
   }
 
