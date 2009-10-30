@@ -1,5 +1,7 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+10/30/09: In Etomo - PEET changed the ccMode default to one.
+
 10/29/09: In Etomo - PEET added buttons to move volume row up and down.  Added a
 button to add a new row with data from an existing row.  And made the volume
 file chooser more flexible.
