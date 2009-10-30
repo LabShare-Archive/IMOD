@@ -44,6 +44,9 @@ import etomo.util.DatasetFiles;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.32  2009/09/28 18:34:23  sueh
+ * <p> bug# 1235 In buildParsableValues, removing edgeShift if it is empty.
+ * <p>
  * <p> Revision 1.31  2009/09/20 21:27:59  sueh
  * <p> bug# 1268 Removed LabeledSpinner.setValue(Object).
  * <p>
@@ -1692,7 +1695,7 @@ public final class MatlabParam {
   public static final class CCMode implements EnumeratedType {
     public static final CCMode NORMALIZED = new CCMode(0);
     public static final CCMode LOCAL = new CCMode(1);
-    public static final CCMode DEFAULT = NORMALIZED;
+    public static final CCMode DEFAULT = LOCAL;
 
     private final EtomoNumber value = new EtomoNumber();
 
