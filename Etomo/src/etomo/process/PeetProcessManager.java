@@ -22,6 +22,10 @@ import etomo.type.ProcessName;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.7  2008/05/03 00:42:20  sueh
+ * <p> bug# 847 Passing a ProcessSeries instance to all processes that use
+ * <p> process objects.  The goal is to pass then back to process done functions.
+ * <p>
  * <p> Revision 1.6  2007/12/10 22:28:52  sueh
  * <p> bug# 1041 Call the base postProcess function for detached processes to handle
  * <p> saving data for resume processchunks.
@@ -101,6 +105,7 @@ public final class PeetProcessManager extends BaseProcessManager {
   void postProcess(DetachedProcess process) {
     super.postProcess(process);
     PeetState state = manager.getState();
+    //For processchunks, save the values saved when prmparser finished.
     state.setIterationListSize(state.getParserIterationListSize());
     state.setLstThresholdsArray(state.getParserLstThresholdsArray());
   }
