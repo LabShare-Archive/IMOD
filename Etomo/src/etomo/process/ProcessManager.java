@@ -20,6 +20,9 @@
  * 
  * <p>
  * $Log$
+ * Revision 3.139  2009/10/23 22:24:06  sueh
+ * bug# 1275 Made touch() a static function in BaseProcessManager.
+ *
  * Revision 3.138  2009/10/06 01:24:46  sueh
  * bug# 1246 In postProcess(BackgroundProcess) send flattenwarp output to the project log.
  *
@@ -2170,11 +2173,9 @@ public class ProcessManager extends BaseProcessManager {
         }
       }
       else if (processName == ProcessName.NEWST_3D_FIND) {
-        System.out.println("using 3d find");
         state.setStackUsingNewstOrBlend3dFindOutput(axisID, true);
       }
       else if (processName == ProcessName.BLEND_3D_FIND) {
-        System.out.println("using 3d find");
         state.setStackUsingNewstOrBlend3dFindOutput(axisID, true);
       }
       else if (processName == ProcessName.TRACK) {
