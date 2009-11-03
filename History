@@ -1,5 +1,7 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+11/2/09: Fixed bug in Edgepatches when it had to reduce patch thickness.
+
 10/30/09: In Etomo - PEET changed the ccMode default to one.
 
 10/29/09: In Etomo - PEET added buttons to move volume row up and down.  Added a
