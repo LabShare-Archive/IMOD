@@ -69,7 +69,7 @@ the final averaging operation.</p>
 
 <p>Specify the base name that PEET will use to name the files it
 creates.&nbsp;  To make this manual concrete, we assume the user
-inputs <q>myRun</q> for the field. 
+inputs "myRun" for the field. 
 </p>
 
 <H4><A NAME="Directory Field"></A>2.2. Directory Field </H4>
@@ -80,7 +80,7 @@ directory.&nbsp;  A new directory is required for each separate PEET
 run because a large number of files can be created.&nbsp;  Note that
 tomograms and models do not need to be copied to the data directory.</p>
 
-<p>Assuming the root name is <q>myRun</q>, the important text files in
+<p>Assuming the root name is "myRun", the important text files in
 this directory are (#k and #m stand for integer numbers):</p>
 
 <TABLE WIDTH=639 BORDER=1 BORDERCOLOR="#000000" CELLPADDING=7 CELLSPACING=0>
@@ -236,7 +236,7 @@ useful.</p>
 to approximately align each particle with the reference so that
 PEET only needs to search over small angular ranges to find the
 optimal alignment.&nbsp;  This file is used only if the <b>Use
-files</b> option is selected in the <q>Initial Motive List</q>
+files</b> option is selected in the "Initial Motive List"
 group box (see below); the entry is disabled unless this option is
 selected</p>
 </TD>
@@ -252,8 +252,8 @@ selected</p>
 <p>The tilt range used to collect the tomogram, which is needed to
 compensate correlation coefficients for the effects of the missing
 wedge.&nbsp;  This entry is disabled by default.&nbsp;  To enable
-it, check <b>Use tilt range in averaging</b> in the <q>Missing
-Wedge Compensation</q> checkbox group.&nbsp;  You can find out the
+it, check <b>Use tilt range in averaging</b> in the "Missing
+Wedge Compensation" checkbox group.&nbsp;  You can find out the
 range used by pressing the <b>Read Tilt File</b> button if you
 have .tlt file.&nbsp;  If you want to use missing wedge
 compensation, the range has to be specified.</p>
@@ -292,7 +292,7 @@ volume.&nbsp;  Open the average from each of the other tomograms in
 3dmod and rotate it in Slicer until it approximately matches the
 orientation of the reference average.&nbsp;  One way to do this is to
 open all of the averages together in 3dmod and use Edit-Angles to
-open the Slicer Angles dialog.&nbsp;  After you turn on <q>Auto</q> in
+open the Slicer Angles dialog.&nbsp;  After you turn on "Auto" in
 the toolbar that appears in the Slicer, angles are continuously saved
 in the Angles table as you change them in the Slicer, and when you
 switch between different volumes (times) the saved angles will be
@@ -350,7 +350,7 @@ field or use the file chooser to find it.</p>
 
 <H4><A NAME="Missing Wedge Compensation Group"></A>2.9. Missing Wedge Compensation Group</H4>
 
-<p>Check <b>Use tilt range in averaging</b> to use PEET’s missing
+<p>Check <b>Use tilt range in averaging</b> to use PEET's missing
 wedge compensation for averaging.&nbsp;  Instead of forming a sum in
 real space of all of the aligned particles, it forms a sum of their
 Fourier transforms and divides each voxel component of the FFT by the
@@ -358,7 +358,7 @@ number of particles contributing data outside the missing wedge to
 that voxel.</p>
 
 <p>If the first option is selected, you can also check <b>Use tilt
-range in alignment</b> to use PEET’s missing wedge compensation of
+range in alignment</b> to use PEET's missing wedge compensation of
 correlation coefficients during alignment.&nbsp;  This compensation
 involves boosting up the correlation coefficients when there is less
 overlap between non-missing wedge regions of the particle and the
@@ -375,8 +375,8 @@ is available for performing a second kind of compensation for the
 missing wedge when selecting particles to be averaged on the first
 round.&nbsp;  After optimal alignment is computed for each particle,
 the particles can be divided into groups based on how much a
-particle’s non-missing area overlaps with that of the reference in
-Fourier space.&nbsp;  After grouping, particles’ correlation scores
+particle's non-missing area overlaps with that of the reference in
+Fourier space.&nbsp;  After grouping, particles' correlation scores
 are scaled so that each group has about the same median score.&nbsp;
 The adjusted scores are then used to select particles to form the
 reference for the second iteration, and the averages if the user
@@ -385,7 +385,7 @@ that nearly equal numbers of particles from each of the orientation
 groups are included in the reference, thus minimizing a missing wedge
 bias in that reference that would be reinforced on the second
 iteration.&nbsp;  To use this option, turn on <b># of weight groups
-fro equalizing CCCs</b> and select the desired number.&nbsp;  The
+for equalizing CCCs</b> and select the desired number.&nbsp;  The
 number of groups to pick depends on the number of particles.&nbsp;  It
 is probably best to have at least 20 particles per group, but there
 is little to be gained from having more than 10 groups even if there
@@ -424,7 +424,7 @@ voxels of the mask volume.&nbsp;  A convenient way to generate a mask
 volume is to use the IMOD program imodmop, which can be used to
 retain pixels inside of spheres and cylinders as well as inside of
 closed contours.&nbsp;  For this purpose, it does not matter that this
-program leaves original density values rather than 1’s in the
+program leaves original density values rather than 1's in the
 region that is retained.</p>
 
 <p>If the mask is a sphere or a cylinder, the user has to specify the
@@ -434,7 +434,7 @@ the inner radius and outside the outer radius will be masked out.</p>
 <p>The orientation of a cylinder is determined by a line passing
 through one specified particle and the next particle in sequence.&nbsp;
 In the most general case, you can specify the particle by setting the
-model number and particle number in the <q>Cylinder Orientation</q>
+model number and particle number in the "Cylinder Orientation"
 box.&nbsp;  When the reference is a particle, already specified by
 such a pair of integers, the <b>Set cylinder orientation from
 reference particle</b> check box is enabled.&nbsp;  If the box is
@@ -548,7 +548,7 @@ spurious correlation peaks at higher translations from being picked.&nbsp;
 Also, before correlation, regions as wide as the search radius at
 each edge of the particle volume are set to zero to keep the
 correlation from being affected by data that wraps around in the
-FFT’s.&nbsp;  Thus, the larger the search radius, the fewer voxels
+FFT's.&nbsp;  Thus, the larger the search radius, the fewer voxels
 are actually included in the correlation and the lower the
 signal-to-noise ratio of the correlation.</p>
 
@@ -563,7 +563,7 @@ Both the reference and the particle are filtered separately, so the
 correlation is essentially filtered twice.&nbsp;  One way to see what
 a reference or particle looks like with a particular filter is apply
 the same filter to a file with the IMOD program mtffilter, e.g., with
-the command <q>mtffilter -3d -low cutoff,sigma input_file output_file</q>.&nbsp;
+the command "mtffilter -3d -low cutoff,sigma input_file output_file".&nbsp;
 You can do this with the reference particle
 extracted by PEET, or you can extract a particle from the tomogram in
 3dmod using the rubber band in the Zap window and the Extract entry
@@ -594,7 +594,7 @@ will avoid this oversampling.&nbsp;  If <b>Full sphere</b> is checked,
 PEET will sample the whole sphere.&nbsp;  If <b>Half sphere</b> is
 checked, PEET will only sample one half of the sphere.&nbsp;  The
 <b>Sample interval</b> field specifies the interval in degrees.&nbsp;
-Typically, you would enter a <q>max</q> of 180 for For a unit sample
+Typically, you would enter a "max" of 180 for For a unit sample
 sphere, sample points are placed on latitude lines separated by the
 sample interval, and the points along each latitude line are
 separated by 2*Pi*sampleInterval/360 along.&nbsp;  This means there
@@ -659,7 +659,7 @@ processchunks.&nbsp;  The first command file initializes the motive
 lists and prepares the reference particle.&nbsp;  This can take some
 time, because the program needs to figure out how big to make the
 reference.&nbsp;  Command files for aligning the particles are run
-next, with a <q>-sync.com</q> file run at the end of each iteration to
+next, with a "-sync.com" file run at the end of each iteration to
 combine the results from the different chunks and compute a reference
 for the next iteration.</p>
 
