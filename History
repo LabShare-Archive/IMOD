@@ -1,5 +1,7 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+11/4/09: Added a PEET manual to the PEET right-click pop up menu.
+
 11/2/09: Fixed bug in Edgepatches when it had to reduce patch thickness.
 
 10/30/09: In Etomo - PEET changed the ccMode default to one.
