@@ -32,6 +32,9 @@ import etomo.type.AxisID;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.16  2009/03/17 00:46:24  sueh
+ * <p> bug# 1186 Pass managerKey to everything that pops up a dialog.
+ * <p>
  * <p> Revision 3.15  2009/01/20 19:51:31  sueh
  * <p> bug# 1102 Changed menu items to type MenuItem so that they can
  * <p> name themselves.
@@ -170,6 +173,7 @@ public class ContextPopup {
   private JMenuItem it3dmodGuide = new MenuItem("3dmod Users Guide ...");
   private JMenuItem etomoGuideItem = new MenuItem("Etomo Users Guide ...");
   private JMenuItem joinGuideItem = new MenuItem("Join Users Guide ...");
+  private JMenuItem peetGuideItem = new MenuItem("PEET Users Guide ...");
   private ActionListener actionListener;
   private MouseEvent mouseEvent;
 
@@ -207,7 +211,7 @@ public class ContextPopup {
     };
 
     // add the menu items
-    addStandardMenuItems();
+    addStandardMenuItems(false);
     showMenu(component);
   }
 
@@ -261,7 +265,7 @@ public class ContextPopup {
 
     addManPageMenuItems(manPageLabel, manPage);
     contextMenu.add(new JPopupMenu.Separator());
-    addStandardMenuItems();
+    addStandardMenuItems(false);
     showMenu(component);
   }
 
@@ -296,7 +300,7 @@ public class ContextPopup {
     };
 
     contextMenu.add(new JPopupMenu.Separator());
-    addStandardMenuItems();
+    addStandardMenuItems(false);
     showMenu(component);
   }
 
@@ -376,7 +380,7 @@ public class ContextPopup {
     contextMenu.add(new JPopupMenu.Separator());
     addManPageMenuItems(manPageLabel, manPage);
     contextMenu.add(new JPopupMenu.Separator());
-    addStandardMenuItems();
+    addStandardMenuItems(false);
     showMenu(component);
   }
 
@@ -458,13 +462,13 @@ public class ContextPopup {
     contextMenu.add(new JPopupMenu.Separator());
     addManPageMenuItems(manPageLabel, manPage);
     contextMenu.add(new JPopupMenu.Separator());
-    addStandardMenuItems();
+    addStandardMenuItems(false);
     showMenu(component);
   }
 
   /**
-   * Constructor to show a man page list and log file items in addition to the
-   * the standard menu items.
+   * Shows a man page list and log file items in addition
+   * to the standard menu items (including the peet guide if required).
    * @param component The component to which the popup is attached.
    * @param mouseEvent The mouse event that opened the menu.
    * @param tomoAnchor The guide HTML anchor for the current popup.
@@ -477,7 +481,8 @@ public class ContextPopup {
    */
   public ContextPopup(Component component, MouseEvent mouseEvent,
       String[] manPageLabel, String[] manPage, String[] logFileLabel,
-      String[] logFile, final BaseManager manager, final AxisID axisID) {
+      String[] logFile, boolean addPeetGuide, final BaseManager manager,
+      final AxisID axisID) {
 
     // Check to make sure that the menu label and man page arrays are the same
     // length
@@ -531,7 +536,7 @@ public class ContextPopup {
     contextMenu.add(new JPopupMenu.Separator());
     addManPageMenuItems(manPageLabel, manPage);
     contextMenu.add(new JPopupMenu.Separator());
-    addStandardMenuItems();
+    addStandardMenuItems(true);
     showMenu(component);
   }
 
@@ -650,15 +655,19 @@ public class ContextPopup {
     contextMenu.add(new JPopupMenu.Separator());
     addManPageMenuItems(manPageLabel, manPage);
     contextMenu.add(new JPopupMenu.Separator());
-    addStandardMenuItems();
+    addStandardMenuItems(false);
     showMenu(component);
   }
 
   /**
    *
    */
-  private void addStandardMenuItems() {
+  private void addStandardMenuItems(boolean addPeetGuide) {
     //  Construct the context menu
+    if (addPeetGuide) {
+      contextMenu.add(peetGuideItem);
+      peetGuideItem.addActionListener(actionListener);
+    }
     contextMenu.add(tomoGuideItem);
     tomoGuideItem.addActionListener(actionListener);
     contextMenu.add(modelGuideItem);
@@ -754,6 +763,10 @@ public class ContextPopup {
       else {
         ImodqtassistProcess.INSTANCE.open(manager, JOIN_GUIDE, axisID);
       }
+    }
+
+    if (actionEvent.getActionCommand() == peetGuideItem.getText()) {
+      ImodqtassistProcess.INSTANCE.open(manager, "PEETmanual.html", axisID);
     }
   }
 
