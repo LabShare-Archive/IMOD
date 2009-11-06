@@ -110,6 +110,7 @@ void wprint(const char *fmt, ...)
   str += msgstr;
   //  Wprint_text_output->setText(str);
 
+#if QT_VERSION >= 0x040400
   if (beep) {
     Wprint_text_output->setTextBackgroundColor
       (lastbeep ? "yellow" : "magenta");
@@ -118,6 +119,7 @@ void wprint(const char *fmt, ...)
     Wprint_text_output->setTextBackgroundColor("white");
     lastbeep = 0;
   }
+#endif
   if (returnPending)
     Wprint_text_output->append(msgstr);
   else
@@ -129,6 +131,9 @@ void wprint(const char *fmt, ...)
 /*
 
 $Log$
+Revision 4.9  2009/04/01 03:24:43  mast
+Switched to vsnprintf call to prevent buffer overruns
+
 Revision 4.8  2009/01/15 16:33:18  mast
 Qt 4 port
 
