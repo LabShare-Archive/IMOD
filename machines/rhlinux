@@ -233,12 +233,28 @@ if ($tifflibs == default) set tifflibs = true
 #
 set fbpswitch       = fbpswitch-pc.inc
 
+# If Qt is not unitary, set up various variable
+#
+set midasglinc = $QTDIR/include
+if (! -e "$QTDIR/include") then
+    set qtincdir = /usr/include
+
+    # This is for Unbuntu
+    if (! -e /usr/include/Qt) set qtincdir = /usr/include/qt4
+    set midasglinc = $qtincdir
+    if ($m64bit == true) then
+        echo "QTLIBSRC = /usr/lib64" >> $configure
+    else
+        echo "QTLIBSRC = /usr/lib" >> $configure
+    endif
+endif
+    
 #
 # Set up things for Qt include files
 #
 cat << EOF  >! $midas_qconf
 DEFINES	+= _FILE_OFFSET_BITS=64
-INCLUDEPATH += $QTDIR/include/QtOpenGL
+INCLUDEPATH += $midasglinc/QtOpenGL
 EOF
 
 cat << EOF >! $imod_qconf
