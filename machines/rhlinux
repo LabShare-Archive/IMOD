@@ -233,7 +233,7 @@ if ($tifflibs == default) set tifflibs = true
 #
 set fbpswitch       = fbpswitch-pc.inc
 
-# If Qt is not unitary, set up various variable
+# If Qt is not unitary, set up various variables
 #
 set midasglinc = $QTDIR/include
 if (! -e "$QTDIR/include") then
@@ -247,6 +247,7 @@ if (! -e "$QTDIR/include") then
     else
         echo "QTLIBSRC = /usr/lib" >> $configure
     endif
+    if (! -e $QTDIR/bin/moc) set moc = `which moc`
 endif
     
 #
