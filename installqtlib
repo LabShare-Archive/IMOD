@@ -58,7 +58,7 @@ if (! -e $instdir/$assistdir) mkdir -p $instdir/$assistdir
 #
 set assistname = `\find $QTDIR/bin -maxdepth 1 -name '*ssistant_ad*[^g]' -print`
 if ("$assistname" != "") then
-    \cp -r $assistname $instdir/$assistdir
+    \cp -rL $assistname $instdir/$assistdir
 else
     echo "Qt Assistant not found in $QTDIR/bin"
     exit 1
@@ -185,15 +185,20 @@ if (! -e $instdir/$qtlibdir) mkdir -p $instdir/$qtlibdir
 #
 set qtlibs = `sed -n '/QTLIBSTOCOPY/s/^.*= *//p' configure`
 
+# Get source for Qt libs if any
+#
+set qtlibsrc = `sed -n '/QTLIBSRC/s/^.*= *//p' configure`
+if ("$qtlibsrc" == "") set qtlibsrc = $QTDIR/lib
+
 # If the library goes to bin, it is Windows and need to copy a dll
 # First get rid of any lib's that installed into the bin with the dll's
 #
 if ($qtlibdir == "bin") then
     \find $instdir/$qtlibdir -name '*.lib' -print -exec \rm '{}' \;
     foreach i ($qtlibs)  
-        \cp  $QTDIR/lib/${i}4.dll $instdir/$qtlibdir
+        \cp  $qtlibsrc/${i}4.dll $instdir/$qtlibdir
         if ($status) then
-            echo "INSTALLQTLIB CANNOT FIND LIBRARY ${i}4.dll IN $QTDIR/lib"
+            echo "INSTALLQTLIB CANNOT FIND LIBRARY ${i}4.dll IN $qtlibsrc"
             exit 1
         endif
     end
@@ -232,15 +237,15 @@ endif
 # Mac and Linux: add lib to front of name
 #
 foreach i ($qtlibs)  
-    if (-d $QTDIR/lib/$i.framework) then
+    if (-d $qtlibsrc/$i.framework) then
 
         # A Framework 
-        cp -R $QTDIR/lib/$i.framework $instdir/$qtlibdir
+        cp -R $qtlibsrc/$i.framework $instdir/$qtlibdir
         \find $instdir/$qtlibdir/$i.framework -depth -name Headers -exec \rm -rf '{}' \;
     else
-        set files = `\find $QTDIR/lib -name "lib${i}*${dllext}*" -print | grep -v debug`
+        set files = `\find $qtlibsrc -maxdepth 1 -name "lib${i}*${dllext}*" -print | grep -v debug`
         if ("$files" == "") then
-            echo "INSTALLQTLIB CANNOT FIND ANY lib${i}.${dllext} in $QTDIR/lib"
+            echo "INSTALLQTLIB CANNOT FIND ANY lib${i}.${dllext} in $qtlibsrc"
             exit 1
         endif
         \cp -R $files $instdir/$qtlibdir 
@@ -250,6 +255,9 @@ exit 0
 
 #
 #  $Log$
+#  Revision 3.45  2009/05/29 17:22:24  mast
+#  Make a separate wrapper for 3dmodv with -view option added
+#
 #  Revision 3.44  2009/05/27 05:32:06  mast
 #  Create wrapper scripts only if DLLDESTDIR is defined in configure
 #
