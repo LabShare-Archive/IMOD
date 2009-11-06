@@ -35,7 +35,7 @@ c       This is a temporary measure to allow user control of allocation
       integer*4 imodGetEnv,mblim
       character*20 memString
       if (imodGetEnv('TILT_MEMORY_LIMIT', memString) .eq. 0) then
-        read(memString, '(i)') mblim
+        read(memString, *) mblim
         if (mblim .gt. 8000) call exitError(
      &      'VALUE OF TILT_MEMORY_LIMIT CANNOT BE MORE THAN 8000 MB')
         limstack = mblim * 1024 * 256
@@ -4029,6 +4029,9 @@ c       Set to open contour, show values etc., and show sphere on section only
 
 c       
 c       $Log$
+c       Revision 3.48  2009/10/19 19:06:09  mast
+c       Make it able to do incremental projection with vertical slices
+c
 c       Revision 3.47  2009/10/16 04:40:41  mast
 c       Fixed reprojection from model when there are X axis tilts and no Z
 c       factor/local alignments; made it treat fixed alpha in xtilt file like
