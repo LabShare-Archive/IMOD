@@ -25,6 +25,8 @@
 //## INCLUDES:
 
 #include <math.h>       // for some simple maths algorithms
+#include <limits.h>     // for INT_MAX
+#include <stdio.h>      // for file I/O
 #include <vector>       // for use of vectors
 #include <sstream>			// for formatting string output
 #include <iostream>			// for redirecting cout
