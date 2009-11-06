@@ -10,6 +10,29 @@
 #
 set instdir = `sed -n '/INSTDIR/s/^.*= *//p' configure`
 
+# Copy Qt plugins to imodplug since it is present everywhere
+#
+@ plugnum = 1
+while ($plugnum < 100)
+    set plugdir = `sed -n "/QTPLUG_SRCDIR$plugnum/s/^.*= *//p" configure`
+    if ("$plugdir" == "") break
+    set pluglist = `sed -n "/QTPLUGS_TOCOPY$plugnum/s/^.*= *//p" configure`
+    mkdir -p $instdir/lib/imodplug/$plugdir
+    foreach i ($pluglist)
+        if (-e $QTDIR/plugins/$plugdir/$i) then
+            \cp $QTDIR/plugins/$plugdir/$i $instdir/lib/imodplug/$plugdir
+            chmod -R 755 $instdir/lib/imodplug/$plugdir
+        endif
+    end
+    @ plugnum++
+end
+
+if ($#argv > 0) then
+    if ("$argv[1]" == '-p') exit 0
+    echo "The only allowed argument is '-p' to install Qt plugins only"
+    exit 1
+endif
+
 #
 # Get list of install files and copy them to install directory
 #
@@ -77,23 +100,6 @@ if (-e $instdir/qtlib) then
         endif
     endif
 endif
-
-# Copy Qt plugins to imodplug since it is present everywhere
-#
-@ plugnum = 1
-while ($plugnum < 100)
-    set plugdir = `sed -n "/QTPLUG_SRCDIR$plugnum/s/^.*= *//p" configure`
-    if ("$plugdir" == "") break
-    set pluglist = `sed -n "/QTPLUGS_TOCOPY$plugnum/s/^.*= *//p" configure`
-    mkdir -p $instdir/lib/imodplug/$plugdir
-    foreach i ($pluglist)
-        if (-e $QTDIR/plugins/$plugdir/$i) then
-            \cp $QTDIR/plugins/$plugdir/$i $instdir/lib/imodplug/$plugdir
-            chmod -R 755 $instdir/lib/imodplug/$plugdir
-        endif
-    end
-    @ plugnum++
-end
 
 # Get a DLL destination dir
 #
@@ -255,6 +261,9 @@ exit 0
 
 #
 #  $Log$
+#  Revision 3.46  2009/11/06 18:55:11  mast
+#  Use variable for where to get Qt libs from, dereference assistant link
+#
 #  Revision 3.45  2009/05/29 17:22:24  mast
 #  Make a separate wrapper for 3dmodv with -view option added
 #
