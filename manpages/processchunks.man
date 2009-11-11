@@ -9,7 +9,8 @@ processchunks [options] <machine list> <root name of command files>
 processchunks [options] -q # <queue command and arguments> <root name>
 .SH DESCRIPTION
 processchunks will process a set of command files in parallel on multiple
-machines or processors that have access to a common filesystem.  
+machines or processors that have access to a common filesystem.  It can also
+be used to run a single command file on a remote machine.
 
 .SS Command Files
 The command
@@ -18,7 +19,7 @@ and be named like files produced by Chunksetup(1).  Specifically, the files
 for processing individual components should be named
 rootname-001.com, rootname-002.com, etc., where "rootname" is the root name
 of the command files, entered as the last command line argument.  Each
-file must end with the line
+numbered file must end with the line
 .br
 $echo CHUNK DONE
 .br
@@ -31,12 +32,13 @@ individual command files with statements like
 $if (-e /usr/tmp/tmpfil.$$) rm -f /usr/tmp/tmpfil.$$
 
 In addition to the files for individual chunks, there may
-also be two additinal files: rootname-start.com, to perform initial
+also be two additional files: rootname-start.com, to perform initial
 tasks, and rootname-finish.com, for final assembly and cleanup.
-If the start file exists, Processchunks will run this on the current
+If the start file exists, Processchunks will run this on the first
 machine before starting to distribute the chunks; and if the finish file
-exists, it will also be run on the current machine when all chunks are
-finished.
+exists, it will also be run on the first machine when all chunks are
+finished.  It will add the "$echo CHUNK DONE" to the end of these files so
+that it can detect successful completion.
 
 It is also possible to execute groups of command files in parallel, then run
 one command file when all of these are done, then go on to another group of
@@ -45,9 +47,13 @@ file to be run for synchronization.  The files should all still have unique,
 sequential numbers.  For example, if the 10th and 20th files are named
 rootname-010-sync.com and rootname-020-sync.com, then files 1 to 9 will be run
 to completion in parallel, then rootname-010-sync.com will be run alone on the
-local machine, then 11 to 19 will be run in parallel, then
+first machine, then 11 to 19 will be run in parallel, then
 rootname-020-sync.com will be run alone, then all remaining files will be run
 in parallel.
+
+To run any single command file on a remote machine, simply use the
+.B -s
+option and provide the machine name and the name of the command file.
 
 .SS Running Processchunks
 The machine list provided on the command line should be a list of machine
@@ -175,9 +181,17 @@ environment variable IMOD_PROCESSORS to the number of processors, e.g.,
 .B -r
 Resume processing and retain all existing log files.  The default is to 
 remove all existing log files, run rootname-start.com if it exists, and
-then run all of the individual command files.  With this option, the program
-will not run rootname-finish.com and will not rerun any command files whose
-corresponding log files end with "CHUNK DONE".
+then run all of the individual command files, finishing with
+rootname-finish.com if it exists.  With this option, the program
+will not rerun any command files whose
+corresponding log files end with "CHUNK DONE", including the start and finish
+files.
+.TP
+.B -s
+Run a single command file on a remote machine (i.e., the first machine in
+machine list).  The command file is not required to be numbered or to
+end in "$echo CHUNK DONE".  The rootname given on the command line can be
+either the full name or the name excluding ".com".
 .TP
 .B -g
 Go start processing after probing the machines, without waiting for 

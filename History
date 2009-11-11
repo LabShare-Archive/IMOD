@@ -6,6 +6,7 @@ for breaking a contour.
 11/9/09: Processchunks will now run start, sync, and finish chunks
 asynchronously on the first machine instead of synchronously on the local host,
 so start and finish are now killable, and will be treated properly on resume.
+It can also be used to run a single command file on a remote machine.
 
 11/4/09: Added a PEET manual to the PEET right-click pop up menu.
 
