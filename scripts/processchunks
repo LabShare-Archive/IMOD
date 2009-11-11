@@ -30,6 +30,7 @@ Will process multiple command files on multiple processors or machines
   Options:
     -r     Resume, retaining existing finished files (the default is to remove
              all log files and redo everything)
+    -s     Run a single command file named root_name or root_name.com
     -g     Go process, without asking for confirmation after probing machines
     -n #   Set the "nice" value to the given number (default $nice, range 0-19)
     -d #   Drop a machine after given number of failures in a row (default $dropcrit)
@@ -61,6 +62,7 @@ set justgo = 0
 set skipprobe = 0
 set checkfile = ""
 @ queue = 0
+set singleFile = 0
 set sshext = ssh
 set pidext = pid
 
@@ -73,6 +75,11 @@ while ($#argv > 2)
 
     case -g:
       set justgo = 1
+      shift
+      breaksw
+
+    case -s:
+      set singleFile = 1
       shift
       breaksw
 
@@ -124,6 +131,11 @@ while ($#argv > 2)
   endsw
 end
 
+if ($retain && $singleFile) then
+    echo "ERROR: $pn - You cannot use the retain option with a single command file"
+    exit 1
+endif
+
 if ($queue) then
 
     # For a queue, make a machine list that is all the same name
@@ -158,25 +170,38 @@ if ($#machines < 1) then
     exit 1
 endif
 
-# Build up lists in order -nnn, -nnnn, -nnnnn*, which should work both for
-# lists that are all 5 digits or lists that are 3, 4, 5 digits
-# Put -start.com on front and -finish.com on end
-#
 set rootname = $argv[2]
-set endroot = $rootname-finish
-set comlist = ()
-if (-e $rootname-start.com) set comlist = ($rootname-start.com)
+set endroot = $rootname-gobbledygook
+if ($singleFile) then
 
-set hundlist = `\find . -maxdepth 1 -name "$rootname-[0-9][0-9][0-9][^0-9]*com" -print | sed '/\.\//s///' | sort`
-if ($#hundlist > 0) set comlist = ($comlist $hundlist)
+    # Make the list for a single file
+    set rootname = $rootname:r
+    set comlist = ($rootname.com)
+    if (! -e "$rootname.com") then
+        echo "ERROR: $pn - The single command file $rootname.com does not exist"
+        exit 1
+    endif
+else
 
-set thoulist = `\find . -maxdepth 1 -name "$rootname-[0-9][0-9][0-9][0-9][^0-9]*com" -print | sed '/\.\//s///' | sort`
-if ($#thoulist > 0) set comlist = ($comlist $thoulist)
+    # Build up lists in order -nnn, -nnnn, -nnnnn*, which should work both for
+    # lists that are all 5 digits or lists that are 3, 4, 5 digits
+    # Put -start.com on front and -finish.com on end
+    #
+    set endroot = $rootname-finish
+    set comlist = ()
+    if (-e $rootname-start.com) set comlist = ($rootname-start.com)
 
-set tenthoulist = `\find . -maxdepth 1 -name "$rootname-[0-9][0-9][0-9][0-9][0-9]*com" -print | sed '/\.\//s///' | sort`
-if ($#tenthoulist > 0) set comlist = ($comlist $tenthoulist)
+    set hundlist = `\find . -maxdepth 1 -name "$rootname-[0-9][0-9][0-9][^0-9]*com" -print | sed '/\.\//s///' | sort`
+    if ($#hundlist > 0) set comlist = ($comlist $hundlist)
 
-if (-e $endroot.com) set comlist = ($comlist $endroot.com)
+    set thoulist = `\find . -maxdepth 1 -name "$rootname-[0-9][0-9][0-9][0-9][^0-9]*com" -print | sed '/\.\//s///' | sort`
+    if ($#thoulist > 0) set comlist = ($comlist $thoulist)
+
+    set tenthoulist = `\find . -maxdepth 1 -name "$rootname-[0-9][0-9][0-9][0-9][0-9]*com" -print | sed '/\.\//s///' | sort`
+    if ($#tenthoulist > 0) set comlist = ($comlist $tenthoulist)
+
+    if (-e $endroot.com) set comlist = ($comlist $endroot.com)
+endif
 
 if ($#comlist < 1) then
     echo "ERROR: $pn - There are no command files matching $rootname-nnn.com"
@@ -253,9 +278,7 @@ while ($num < $#comlist)
     @ num++
     set sync = 0
     set comname = $comlist[$num]
-#    set test = `echo $comlist[$num] | grep -i '[0-9]-sync.com'`
-#    if (! $status) set sync = -1
-    if ($comname =~ *-start.com || $comname =~ *-finish.com || \
+    if ($singleFile || $comname =~ *-start.com || $comname =~ *-finish.com || \
         $comname =~ *-sync.com ) set sync = -1
     set flags = ($flags $sync)
     set numchunkerr = ($numchunkerr 0)
@@ -334,9 +357,11 @@ if ($firstundone == -1) @ firstundone = 1
 # remove logs if not restarting
 #
 if ($retain == 0) then
-    \find . -type f -name  "$rootname-[0-9]*.log" -exec rm -f "{}" \;
-    \find . -type f -name  "$rootname-start.log" -exec rm -f "{}" \;
-    \find . -type f -name  "$endroot.log" -exec rm -f "{}" \;
+    \find . -maxdepth 1 -type f -name  "$rootname-[0-9]*.log" -exec rm -f "{}" \;
+    \find . -maxdepth 1 -type f -name  "$rootname-start.log" -exec rm -f "{}" \;
+    
+    \find . -maxdepth 1 -type f -name  "$endroot.log" -exec rm -f "{}" \;
+    if ($singleFile) \find . -maxdepth 1 -type f -name  "$rootname.log" -exec rm -f "{}" \;
 endif
 
 # Clean up .ssh and .pid files to avoid confusion
@@ -345,7 +370,7 @@ endif
 \find . -type f -name  "$rootname-[0-9]*.$pidext" -exec rm -f "{}" \;
 
 onintr report
-echo $numdone OF $#comlist DONE SO FAR
+if (! $singleFile || $skipprobe) echo $numdone OF $#comlist DONE SO FAR
 
 # Loop until all appear to be done
 #
@@ -457,7 +482,9 @@ while ($numdone < $#comlist)
                     if ($numchunkerr[$ind] != 0) set chunkerred[$name] = 0
                     @ numdone++
                     echo "$comlist[$ind] finished on $machines[$proc]"
-
+                    if ($singleFile && ! $skipprobe) exit 0
+                    if ($singleFile) break
+                    
                     # If this is the first one done, issue drop messages now
                     # on ones that chunk errored and exceeded failure count
                     #
@@ -680,7 +707,7 @@ EOF
                     #
                     if ($syncing) then
                         set syncing = 2
-                        if ($comname !~ *sync.com) \
+                        if ($singleFile || $comname !~ *sync.com) \
                             echo "echo CHUNK DONE > $logname" >> $cshname
                     endif
                     if ($queue) then
@@ -715,7 +742,7 @@ EOF
         set nochunks = 0
     endif
 
-    sleep $sleepsec
+    if (! ($singleFile && $numdone > 0)) sleep $sleepsec
 end
 
 # Etomo is looking for "to reassemble"
@@ -882,6 +909,11 @@ exit 2
 
 #
 #  $Log$
+#  Revision 3.48  2009/11/11 05:56:04  mast
+#  Made start, sync, and finish all run asynchronously on first machine;
+#  they are now killable, and resume will treat start and finish properly.
+#  Backed up logs of undone chunks on fresh start.
+#
 #  Revision 3.47  2009/08/04 22:41:08  mast
 #  Move the noglob up so it works when scanning existing logs
 #
