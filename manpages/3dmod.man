@@ -829,7 +829,9 @@ D  -  Delete current contour
 Ctrl-D - Truncate current contour at current point
 Ctrl-Shift-D - Delete current surface
 M  -  Move contour to selected object
+k  -  Copy contour (when Contour Copy dialog is open)
 J  -  Join two selected contours
+Ctrl-B - Break contour (when Contour Break dialog is open)
 Ctrl-Z - Undo a change in the model
 Ctrl-Y - Redo a change that was undone
 m  -  Toggle model edit mode and movie mode

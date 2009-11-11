@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+11/10/09: Added option to break contour at current model point, and a hot key
+for breaking a contour.
+
 11/9/09: Processchunks will now run start, sync, and finish chunks
 asynchronously on the first machine instead of synchronously on the local host,
 so start and finish are now killable, and will be treated properly on resume.
