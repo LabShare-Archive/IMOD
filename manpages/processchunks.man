@@ -156,6 +156,22 @@ and not in your ~/.bashrc, since the latter is not run by the non-interactive
 shell.  Similarly, if you are running programs outside IMOD whose environment
 is set up in your own startup files, you need to do that in .bash_profile.
 
+To diagnose problems, there are a few tests that you can run by issuing the
+same kind of command that Processchunks uses to run jobs, of the form:
+   ssh -x machine bash --login -c \\'"command"\\'
+.br
+where the command can be relatively complex because of the quoting; but the
+quoting can be omitted for simple commands.  Specifically, use
+   ssh -x machine bash --login -c \\'"cd directory"\\'
+.br
+to test if you can change to the given directory.  Use
+   ssh -x machine bash --login -c imodinfo
+.br
+to test if the remote machine can run IMOD this way, and use
+   ssh -x machine bash --login -c env > env.out
+.br
+to collect the environment if there is trouble running IMOD.
+
 Parallel processing through eTomo uses Processchunks.  The available machines
 are generally defined in a file "cpu.adoc" that is located in the directory
 pointed to by the environment variable IMOD_CALIB_DIR (default
