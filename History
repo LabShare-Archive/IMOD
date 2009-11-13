@@ -1,5 +1,29 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+11/10/09: Added option to break contour at current model point, and a hot key
+for breaking a contour.
+
+11/9/09: Processchunks will now run start, sync, and finish chunks
+asynchronously on the first machine instead of synchronously on the local host,
+so start and finish are now killable, and will be treated properly on resume.
+It can also be used to run a single command file on a remote machine.
+
+11/4/09: Added a PEET manual to the PEET right-click pop up menu.
+
+11/2/09: Fixed bug in Edgepatches when it had to reduce patch thickness.
+
+10/30/09: In Etomo - PEET changed the ccMode default to one.
+
+10/29/09: In Etomo - PEET added buttons to move volume row up and down.  Added a
+button to add a new row with data from an existing row.  And made the volume
+file chooser more flexible.
+
+10/29/09: In Etomo - PEET removed the "Duplicate an Existing Project" button.
+Moved the functionality to the "Import..." button.
+
+10/28/09: In Etomo closing default button panel with an interface is opened in
+all cases.
+
 10/27/09: IMOD_4-0-18
 10/27/09: Fixed setupcombine to clean up files with find due to a change in
 tcsh in RHEL5.

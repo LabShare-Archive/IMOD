@@ -5,10 +5,26 @@
 <P>
 Break a single contour into two contours.  The break will occur at one or two
 set points.  To set a point, first select the current point then select the
-<B>Set 1</B> or <B>Set 2</B> button.  If only one set point is set then the
-original contour will contain all the points before the set point and a new
-contour will contain the set point and all the points after the set point.  If
-both points are set the second contour will contain points between and including
-the two set points and the first contour will contain the remaining points.
+<B>Set 1</B> or <B>Set 2</B> button.  
+<P>
+If only one set point is set, then the
+original contour will contain all the points before the set point, and a new
+contour will contain the set point and all the points after the set point.  
+This is usually what you want for breaking open contours but is
+much less useful for breaking closed contours.
+<P>
+If both points are set, the second contour will contain points between and
+including the two set points and the first contour will contain the remaining
+points.  This is usually the best way to obtain the desired break with a closed
+contour. 
+<P>
+Use <B>Unset</B> to undefine the second point and use only a single point for
+breaking.
+<P>
+If <B>Use current point for 1</B> is selected, then the current model point
+will automatically be used for set point 1.
+<P>
+The hot key <B>Ctrl-B</B> can be used in any window to break the contour, as
+long as this dialog is open.
 <P>
 <A HREF=index.html>Help Index<A>

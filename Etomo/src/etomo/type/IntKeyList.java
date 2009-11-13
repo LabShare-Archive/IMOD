@@ -34,6 +34,11 @@ import java.util.Properties;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.8  2009/02/05 23:41:43  sueh
+ * <p> bug# 1148 Changed put(ConstEtomoNumber) to add since it acts like the
+ * <p> list function of the same name.  Added more functions for string
+ * <p> instance.  Added containsValue().
+ * <p>
  * <p> Revision 1.7  2008/05/22 00:15:57  sueh
  * <p> bug# 1110 Corrected a comment in class description.
  * <p>
@@ -282,10 +287,16 @@ public final class IntKeyList implements ConstIntKeyList {
   }
 
   public void load(Properties props, String prepend) {
+    if (debug) {
+      System.out.println("load:prepend="+prepend);
+    }
     if (listKey == null) {
       return;
     }
     prepend = getPrepend(prepend);
+    if (debug) {
+      System.out.println("prepend="+prepend);
+    }
     String group = prepend + ".";
     rowKey.load(props, prepend);
     for (int i = getFirstKey(); i <= getLastKey(); i++) {
@@ -352,6 +363,7 @@ public final class IntKeyList implements ConstIntKeyList {
 
   public void setDebug(boolean debug) {
     this.debug = debug;
+    rowKey.setDebug(debug);
   }
 
   /**
@@ -573,6 +585,8 @@ public final class IntKeyList implements ConstIntKeyList {
 
     private final EtomoNumber firstKey = new EtomoNumber(FIRST_KEY);
     private final EtomoNumber lastKey = new EtomoNumber(LAST_KEY);
+    
+    private boolean debug = false;
 
     private int startKey = DEFAULT_START_KEY;
 
@@ -595,6 +609,10 @@ public final class IntKeyList implements ConstIntKeyList {
       firstKey.reset();
       lastKey.reset();
       startKey = DEFAULT_START_KEY;
+    }
+    
+    public void setDebug(boolean debug) {
+      this.debug = debug;
     }
 
     void reset(int startKey) {
@@ -643,6 +661,9 @@ public final class IntKeyList implements ConstIntKeyList {
     void load(Properties props, String prepend) {
       firstKey.load(props, prepend);
       lastKey.load(props, prepend);
+      if (debug) {
+        System.out.println("firstKey="+firstKey+",lastKey="+lastKey);
+      }
     }
 
     void remove(Properties props, String prepend) {

@@ -54,6 +54,15 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.82  2009/10/29 12:03:57  sueh
+ * <p> bug# 1245 In setParameters only set ftfMaskTypeVolume if
+ * <p> parametersOnly is off.
+ * <p>
+ * <p> Revision 1.81  2009/10/19 21:07:34  sueh
+ * <p> bug# 1263 Calling updateParallelProcess from changeTab.  In
+ * <p> usingParallelProcessing take the current tab into account.  Added
+ * <p> updateParallelProcess.
+ * <p>
  * <p> Revision 1.80  2009/10/16 23:56:08  sueh
  * <p> bug# 1234 In validateRun, passed cbTiltRange and cbFlgWedgeWeight
  * <p> selection state to VolumeTable.validateRun.
@@ -587,8 +596,7 @@ public final class PeetDialog implements ContextMenu, AbstractParallelDialog,
     logFile[0] = ltfFnOutput.getText() + ".prm.log";
     logFile[1] = ltfFnOutput.getText() + "-start.log";
     ContextPopup contextPopup = new ContextPopup(rootPanel, mouseEvent,
-    /* "PEET", ContextPopup.TOMO_GUIDE,*/manPagelabel, manPage, logFileLabel,
-        logFile, manager, axisID);
+        manPagelabel, manPage, logFileLabel, logFile, true, manager, axisID);
   }
 
   public DialogType getDialogType() {
@@ -745,6 +753,7 @@ public final class PeetDialog implements ContextMenu, AbstractParallelDialog,
       ltfYAxisContourContourNumber.setText(metaData
           .getYAxisContourContourNumber());
       cbFlgWedgeWeight.setSelected(metaData.isFlgWedgeWeight());
+      ftfMaskTypeVolume.setText(metaData.getMaskTypeVolume());
     }
     ltfEdgeShift.setText(metaData.getEdgeShift());
     cbMaskUseReferenceParticle.setSelected(metaData
@@ -752,7 +761,6 @@ public final class PeetDialog implements ContextMenu, AbstractParallelDialog,
     sMaskModelPtsVolumeModelNumber.setValue(metaData
         .getMaskModelPtsModelNumber());
     ltfMaskModelPtsVolumeParticle.setText(metaData.getMaskModelPtsParticle());
-    ftfMaskTypeVolume.setText(metaData.getMaskTypeVolume());
     cbNWeightGroup.setSelected(metaData.isUseNWeightGroup());
     //backwards compatibility - raised nWeightGroup minimum from 0 to 2
     int nWeightGroup = metaData.getNWeightGroup().getInt();
@@ -879,7 +887,9 @@ public final class PeetDialog implements ContextMenu, AbstractParallelDialog,
     }
     else if (maskType == MatlabParam.MaskType.VOLUME) {
       rbMaskTypeVolume.setSelected(true);
-      ftfMaskTypeVolume.setText(maskTypeValue);
+      if (!parametersOnly) {
+        ftfMaskTypeVolume.setText(maskTypeValue);
+      }
     }
     else if (maskType == MatlabParam.MaskType.SPHERE) {
       rbMaskTypeSphere.setSelected(true);
@@ -1087,8 +1097,12 @@ public final class PeetDialog implements ContextMenu, AbstractParallelDialog,
 
   private void setTooltipText() {
     ftfDirectory
-        .setToolTipText("The directory which will contain the .prm file, .epe file, other data files, intermediate files, and results.  "
-            + "Only one .epe file per directory.");
+        .setToolTipText("The directory which will contain the .prm file, .epe "
+            + "file, other data files, intermediate files, and results.  Only "
+            + "one .epe file per directory.");
+    btnRun.setToolTipText("Run prmParser with processchunks.");
+    btnAvgVol.setToolTipText("Open all of the computed averages in 3dmod.");
+    btnRef.setToolTipText("Open the references in 3dmod.");
     try {
       ReadOnlyAutodoc autodoc = AutodocFactory.getInstance(
           AutodocFactory.PEET_PRM, manager.getManagerKey());
@@ -1733,7 +1747,7 @@ public final class PeetDialog implements ContextMenu, AbstractParallelDialog,
     updateParallelProcess();
     UIHarness.INSTANCE.pack(axisID, manager);
   }
-  
+
   public void updateParallelProcess() {
     manager.setParallelDialog(axisID, usingParallelProcessing());
   }

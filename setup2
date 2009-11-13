@@ -111,8 +111,9 @@ set jfcunit_home      = /usr/local/jfcunit
 set class_sep       = ':'
 set strip           = strip
 set rmcmd           = '/bin/rm -f'
-set qt_flags        = '-I$(QTDIR)/include -I$(QTDIR)/include/Qt -I$(QTDIR)/include/QtCore -I$(QTDIR)/include/QtGui'
-set qt3_flags       = '-DQT3_SUPPORT -I$(QTDIR)/include/Qt3Support'
+set qtincdir        = '$(QTDIR)/include'
+set qt_flags        = '-I$(QTINCDIR) -I$(QTINCDIR)/Qt -I$(QTINCDIR)/QtCore -I$(QTINCDIR)/QtGui'
+set qt3_flags       = '-DQT3_SUPPORT -I$(QTINCDIR)/Qt3Support'
 # assistant_adp needs Xml.  assistant will need Sql
 set qt4libstocopy   = 'QtOpenGL QtNetwork QtCore QtGui QtXml'
 set qt3supportcopy = ""
@@ -858,6 +859,7 @@ echo "SOURCEDOC_EXE = $sourcedoc_exe" >> $configure
 echo "STRIP = $strip" >> $configure
 echo "RM = $rmcmd" >> $configure
 if ($no_qt3 == false) set qt_flags = "$qt3_flags"' '"$qt_flags"
+echo "QTINCDIR = $qtincdir" >> $configure
 echo "QTFLAGS = $qt_flags" >> $configure
 if ("$qt4libstocopy" != "") \
     echo "QTLIBSTOCOPY = $qt4libstocopy $assistantcopy $qt3supportcopy" >> $configure
@@ -986,6 +988,9 @@ exit
 
 #
 #  $Log$
+#  Revision 1.50  2009/06/14 23:51:09  mast
+#  Allow gnu as alternative to gfortran
+#
 #  Revision 1.49  2009/06/14 23:43:46  mast
 #  Switch to openmp as default
 #

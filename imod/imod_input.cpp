@@ -1127,6 +1127,11 @@ void inputQDefaultKeys(QKeyEvent *event, ImodView *vw)
       handled = 0;
     break;
 
+  case Qt::Key_B:
+    if (!ctrl || imodContEditBreak())
+      handled = 0;
+    break;
+
   case Qt::Key_C:
     if (shifted)
       inputNextContour(vw);
@@ -1482,6 +1487,9 @@ bool inputTestMetaKey(QKeyEvent *event)
 
 /*
 $Log$
+Revision 4.52  2009/04/16 15:00:23  mast
+Do not sync image when toggling with t/T
+
 Revision 4.51  2009/03/26 05:41:01  mast
 Change nearest section function to work for an object passed as argument
 

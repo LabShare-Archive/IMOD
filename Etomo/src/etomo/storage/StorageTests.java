@@ -21,6 +21,9 @@ import etomo.JUnitTests;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.3  2006/11/15 20:41:17  sueh
+* <p> bug# 872 Changed getParamFileStorableArray to getStorables in the managers.
+* <p>
 * <p> Revision 1.2  2006/10/16 22:48:39  sueh
 * <p> bug# 919  Added JoinInfoFileTest.
 * <p>
@@ -41,6 +44,7 @@ public class StorageTests {
     suite.addTestSuite(LogFileTest.class);
     suite.addTestSuite(ParameterStoreTest.class);
     suite.addTestSuite(JoinInfoFileTest.class);
+    suite.addTestSuite(TomogramFileFilterTest.class);
     
     //suite.addTest(new LogFileTest("testIds"));
     //$JUnit-END$

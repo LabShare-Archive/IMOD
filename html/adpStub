@@ -19,6 +19,7 @@
   <section ref="./ctfHelp/ctfguide.html" title="Guide to CTF Plotter"/>
   <section ref="./serialalign.txt" title="Aligning Serial Sections"/>
   <section ref="./program_listing.html" title="Program Listing"/>
+  <section ref="./PEETmanual.html" title="PEET Manual"/>
   <section ref="./binspec.html" title="Binary Model Format"/>
   <section ref="./asciispec.html" title="Ascii Model Format"/>
   <section ref="./mrc_format.txt" title="MRC Format"/>

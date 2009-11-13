@@ -31,6 +31,7 @@ import etomo.storage.TiltLogFileFilter;
 import etomo.storage.TomogramFileFilter;
 import etomo.storage.autodoc.AutodocFactory;
 import etomo.storage.autodoc.ReadOnlyAutodoc;
+import etomo.type.AxisID;
 import etomo.type.ConstPeetMetaData;
 import etomo.type.EtomoAutodoc;
 import etomo.type.PeetMetaData;
@@ -50,6 +51,9 @@ import etomo.type.Run3dmodMenuOptions;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.42  2009/10/16 23:57:31  sueh
+ * <p> bug# 1234 Added tiltRangeRequired parameter to validateRun.
+ * <p>
  * <p> Revision 1.41  2009/10/15 23:41:04  sueh
  * <p> bug# 1274 In validateRun returning the error string instead of boolean
  * <p> because the tab must be changed before the error message can be
@@ -210,12 +214,13 @@ final class VolumeTable implements Expandable, Highlightable,
   private final MultiLineButton btnReadTiltFile = new MultiLineButton(
       "Read Tilt File");
   private final Run3dmodButton r3bVolume;
-  private final HeaderCell header1VolumeNumber = new HeaderCell();
+  private final HeaderCell header1VolumeNumber = new HeaderCell("Vol #");
   private final HeaderCell header1FnVolume = new HeaderCell("Volume");
   private final HeaderCell header1FnModParticle = new HeaderCell(
       FN_MOD_PARTICLE_HEADER1);
   private final HeaderCell header1InitMotlFile = new HeaderCell("Initial");
-  private final HeaderCell header1TiltRange = new HeaderCell(TILT_RANGE_HEADER1_LABEL);
+  private final HeaderCell header1TiltRange = new HeaderCell(
+      TILT_RANGE_HEADER1_LABEL);
   private final HeaderCell header1RelativeOrient = new HeaderCell(
       "Rel. Orient.");
   private final HeaderCell header2VolumeNumber = new HeaderCell();
@@ -238,6 +243,11 @@ final class VolumeTable implements Expandable, Highlightable,
   private final Column initMotlFileColumn = new Column();
   private final Column tiltRangeColumn = new Column();
   private final MultiLineButton btnDeleteRow = new MultiLineButton("Delete Row");
+  private final TomogramFileFilter tomogramFileFilter = new TomogramFileFilter();
+  private final MultiLineButton btnMoveUp = new MultiLineButton("Move Up");
+  private final MultiLineButton btnMoveDown = new MultiLineButton("Move Down");
+  private final MultiLineButton btnAddWithCopy = new MultiLineButton("Add with Copied Data");
+
   private Viewport viewport;
   private final ExpandButton btnExpandFnVolume;
   private final ExpandButton btnExpandFnModParticle;
@@ -398,6 +408,10 @@ final class VolumeTable implements Expandable, Highlightable,
   }
 
   private void createTable() {
+    //initialize
+    btnAddWithCopy.setSize();
+    btnMoveUp.setSize();
+    btnMoveDown.setSize();
     //columns
     initMotlFileColumn.add(header1InitMotlFile);
     initMotlFileColumn.add(header2InitMotlFile);
@@ -434,6 +448,9 @@ final class VolumeTable implements Expandable, Highlightable,
     JPanel pnlButtons2 = new JPanel();
     pnlButtons2.setLayout(new BoxLayout(pnlButtons2, BoxLayout.X_AXIS));
     r3bVolume.setSize();
+    pnlButtons2.add(btnAddWithCopy.getComponent());
+    pnlButtons2.add(btnMoveUp.getComponent());
+    pnlButtons2.add(btnMoveDown.getComponent());
     pnlButtons2.add(r3bVolume.getComponent());
     //root
     rootPanel.setLayout(new BoxLayout(rootPanel, BoxLayout.Y_AXIS));
@@ -494,6 +511,18 @@ final class VolumeTable implements Expandable, Highlightable,
     header2RelativeOrientZ.add(pnlTable, layout, constraints);
   }
 
+  HeaderCell getVolumeNumberHeaderCell() {
+    return header1VolumeNumber;
+  }
+
+  HeaderCell getFnVolumeHeaderCell() {
+    return header1FnVolume;
+  }
+
+  HeaderCell getFnModParticleHeaderCell() {
+    return header1FnModParticle;
+  }
+
   HeaderCell getRelativeOrientHeaderCell() {
     return header1RelativeOrient;
   }
@@ -511,7 +540,7 @@ final class VolumeTable implements Expandable, Highlightable,
   private void action(final String command,
       final Run3dmodMenuOptions run3dmodMenuOptions) {
     if (command.equals(btnAddFnVolume.getActionCommand())) {
-      addVolumeRow();
+      addVolumeRow(false);
     }
     else if (command.equals(btnSetInitMotlFile.getActionCommand())) {
       setInitMotlFile();
@@ -528,6 +557,15 @@ final class VolumeTable implements Expandable, Highlightable,
     else if (command.equals(r3bVolume.getActionCommand())) {
       imodVolume(run3dmodMenuOptions);
     }
+    else if (command.equals(btnMoveUp.getActionCommand())) {
+      moveRowUp();
+    }
+    else if (command.equals(btnMoveDown.getActionCommand())) {
+      moveRowDown();
+    }
+    else if (command.equals(btnAddWithCopy.getActionCommand())) {
+      addVolumeRow(true);
+    }
   }
 
   /**
@@ -543,6 +581,7 @@ final class VolumeTable implements Expandable, Highlightable,
     int index = rowList.delete(row, this, pnlTable, layout, constraints);
     viewport.adjustViewport(index);
     rowList.display(viewport);
+    updateDisplay();
     UIHarness.INSTANCE.pack(manager);
   }
 
@@ -588,9 +627,9 @@ final class VolumeTable implements Expandable, Highlightable,
 
   /**
    * Allow the user to choose a tomogram and a model and add them to the table
-   * in a new row.  Only works if they choose both.
+   * in a new row.  The tomogram is required.  The model is optional.
    */
-  private void addVolumeRow() {
+  private void addVolumeRow(boolean withCopiedData) {
     if (!manager.setParamFile()) {
       UIHarness.INSTANCE.openMessageDialog("Please set the "
           + PeetDialog.DIRECTORY_LABEL + " and " + PeetDialog.FN_OUTPUT_LABEL
@@ -600,11 +639,12 @@ final class VolumeTable implements Expandable, Highlightable,
     }
     File fnVolume = null;
     JFileChooser chooser = parent.getFileChooserInstance();
-    chooser.setFileFilter(new TomogramFileFilter());
+    chooser.setFileFilter(tomogramFileFilter);
     chooser.setPreferredSize(UIParameters.INSTANCE.getFileChooserDimension());
     chooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
     int returnVal = chooser.showOpenDialog(rootPanel);
     if (returnVal != JFileChooser.APPROVE_OPTION) {
+      //The tomogram is required.  Exist if one wasn't chosen.
       return;
     }
     fnVolume = chooser.getSelectedFile();
@@ -624,7 +664,13 @@ final class VolumeTable implements Expandable, Highlightable,
           "Entry Error", manager.getManagerKey());
     }
     else {
-      addRow(fnVolume, fnModParticle);
+      //Add any unusual file extensions to the file filter so that the files are
+      //easier to open in the next row.
+      tomogramFileFilter.addExtension(fnVolume);
+    VolumeRow row=  addRow(fnVolume, fnModParticle);
+      if (withCopiedData) {
+        copyData(rowList.getHighlightedRow(),row);
+      }
       viewport.adjustViewport(rowList.size() - 1);
       rowList.remove();
       rowList.display(viewport);
@@ -724,18 +770,83 @@ final class VolumeTable implements Expandable, Highlightable,
     return row;
   }
 
+  /**
+   * Swap the highlighted row with the one above it.  Move it in the rows 
+   * ArrayList.  Move it in the table by removing and adding the two involved
+   * rows and everything below them.  Renumber the row numbers in the table.
+   */
+  private void moveRowUp() {
+    int index = rowList.getHighlightedRowIndex();
+    if (index == -1) {
+      return;
+    }
+    if (index == 0) {
+      UIHarness.INSTANCE.openMessageDialog(
+          "Can't move the row up.  Its at the top.", "Wrong Row", AxisID.ONLY,
+          manager.getManagerKey());
+      return;
+    }
+    // rowList.removeRows(index - 1);
+    rowList.moveRowUp(index);
+    viewport.adjustViewport(index - 1);
+    rowList.remove();
+    rowList.display(viewport);
+    rowList.reindex(index - 1);
+    updateDisplay();
+    manager.getMainPanel().repaint();
+  }
+
+  /**
+   * Swap the highlighted row with the one below it.  Move it in the rows 
+   * ArrayList.  Move it in the table by removing and adding the two involved
+   * rows and everything below them.  Renumber the row numbers in the table.
+   */
+  private void moveRowDown() {
+    int index = rowList.getHighlightedRowIndex();
+    if (index == -1) {
+      return;
+    }
+    if (index == rowList.size() - 1) {
+      UIHarness.INSTANCE.openMessageDialog(
+          "Can't move the row down.  Its at the bottom.", "Wrong Row",
+          AxisID.ONLY, manager.getManagerKey());
+      return;
+    }
+    rowList.moveRowDown(index);
+    viewport.adjustViewport(index + 1);
+    rowList.remove();
+    rowList.display(viewport);
+    rowList.reindex(index);
+    updateDisplay();
+    manager.getMainPanel().repaint();
+  }
+  
+  private void copyData(VolumeRow fromRow,VolumeRow toRow) {
+    toRow.setInitMotlFile(fromRow.getInitMotlFile());
+    toRow.expandInitMotlFile(btnExpandInitMotlFile.isExpanded());
+    toRow.setTiltRangeMin(fromRow.getTiltRangeMin());
+    toRow.setTiltRangeMax(fromRow.getTiltRangeMax());
+    toRow.setRelativeOrientX(fromRow.getRelativeOrientX());
+    toRow.setRelativeOrientY(fromRow.getRelativeOrientY());
+    toRow.setRelativeOrientZ(fromRow.getRelativeOrientZ());
+  }
+
   private void updateDisplay() {
     boolean enable = rowList.size() > 0;
+    boolean highlighted = rowList.isHighlighted();
     btnExpandFnVolume.setEnabled(enable);
     btnExpandFnModParticle.setEnabled(enable);
     btnExpandInitMotlFile.setEnabled(enable);
-    btnSetInitMotlFile.setEnabled(enable && rowList.isHighlighted()
-        && useInitMotlFile);
-    btnChangeFnModParticle.setEnabled(enable && rowList.isHighlighted());
-    btnReadTiltFile.setEnabled(enable && rowList.isHighlighted()
-        && useTiltRange);
-    r3bVolume.setEnabled(enable && rowList.isHighlighted());
-    btnDeleteRow.setEnabled(enable && rowList.isHighlighted());
+    btnSetInitMotlFile.setEnabled(enable && highlighted && useInitMotlFile);
+    btnChangeFnModParticle.setEnabled(enable && highlighted);
+    btnReadTiltFile.setEnabled(enable && highlighted && useTiltRange);
+    r3bVolume.setEnabled(enable && highlighted);
+    btnDeleteRow.setEnabled(enable && highlighted);
+    btnMoveUp.setEnabled(enable && highlighted
+        && rowList.getHighlightedRowIndex() > 0);
+    btnMoveDown.setEnabled(enable && highlighted
+        && rowList.getHighlightedRowIndex() < rowList.size() - 1);
+    btnAddWithCopy.setEnabled(enable && highlighted);
   }
 
   private void addListeners() {
@@ -746,6 +857,9 @@ final class VolumeTable implements Expandable, Highlightable,
     r3bVolume.addActionListener(actionListener);
     btnDeleteRow.addActionListener(actionListener);
     btnChangeFnModParticle.addActionListener(actionListener);
+    btnMoveUp.addActionListener(actionListener);
+    btnMoveDown.addActionListener(actionListener);
+    btnAddWithCopy.addActionListener(actionListener);
   }
 
   private static final class RowList {
@@ -818,12 +932,39 @@ final class VolumeTable implements Expandable, Highlightable,
     }
 
     /**
+     * Swap two rows.
+     */
+    private void moveRowUp(final int rowIndex) {
+      Object rowMoveUp = list.remove(rowIndex);
+      Object rowMoveDown = list.remove(rowIndex - 1);
+      list.add(rowIndex - 1, rowMoveUp);
+      list.add(rowIndex, rowMoveDown);
+    }
+
+    private void moveRowDown(final int rowIndex) {
+      Object rowMoveUp = list.remove(rowIndex + 1);
+      Object rowMoveDown = list.remove(rowIndex);
+      list.add(rowIndex, rowMoveUp);
+      list.add(rowIndex + 1, rowMoveDown);
+    }
+
+    /**
+     * Renumber the table starting from the row in the ArrayList at startIndex.
+     * @param startIndex
+     */
+    private void reindex(final int startIndex) {
+      for (int i = startIndex; i < list.size(); i++) {
+        ((VolumeRow) list.get(i)).setIndex(i);
+      }
+    }
+
+    /**
      * Validate for running.  Returns error message.
      * @return null if valid
      */
     private String validateRun(boolean tiltRangeRequired) {
-      if (list.size()<1) {
-        return "Must enter at least one row in "+ LABEL;
+      if (list.size() < 1) {
+        return "Must enter at least one row in " + LABEL;
       }
       for (int i = 0; i < list.size(); i++) {
         VolumeRow row = (VolumeRow) list.get(i);
@@ -905,6 +1046,16 @@ final class VolumeTable implements Expandable, Highlightable,
         }
       }
       return null;
+    }
+
+    private int getHighlightedRowIndex() {
+      for (int i = 0; i < list.size(); i++) {
+        VolumeRow row = (VolumeRow) list.get(i);
+        if (row.isHighlighted()) {
+          return i;
+        }
+      }
+      return -1;
     }
   }
 

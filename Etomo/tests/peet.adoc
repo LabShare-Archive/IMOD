@@ -50,15 +50,52 @@ run.function.setup-test-gui=
 bn.add-volume-and-model=
 wait.file-chooser.open=%{dataset}-a.rec
 wait.file-chooser.open=%{dataset}-a.mod
+mb.volume-table-1-vol-#=
+bn.add-with-copied-data=
+wait.file-chooser.open=%{dataset}-a.rec
+wait.file-chooser.open=%{dataset}-a.mod
 bn.add-volume-and-model=
 wait.file-chooser.open=%{dataset}-b.rec
 wait.file-chooser.open=%{dataset}-b.mod
+mb.volume-table-3-vol-#=
+bn.move-up=
 tf.volume-table-2-rel-orient=-38
 tf.volume-table-2-rel-orient.1=-21
 tf.volume-table-2-rel-orient.2=40.5
-bn.add-volume-and-model=
-wait.file-chooser.open=%{dataset}-a.rec
-wait.file-chooser.open=%{dataset}-a.mod
+[[if = test-gui]]
+	#test move up and move down
+	mb.volume-table-3-vol-#=
+	#check enable/disable for bottom row
+	assert.enabled.bn.move-up=
+	assert.disabled.bn.move-down=
+	bn.move-up=
+	#highlight should follow the moved row
+	assert.enabled.bn.move-up=
+	assert.enabled.bn.move-down=
+	assert.tf.volume-table-2-volume=%{dataset}-a.rec
+	assert.tf.volume-table-2-model=%{dataset}-a.mod
+	assert.tf.volume-table-2-rel-orient=
+	assert.tf.volume-table-2-rel-orient.1=
+	assert.tf.volume-table-2-rel-orient.2=
+	bn.move-down=
+	assert.tf.volume-table-3-volume=%{dataset}-a.rec
+	assert.tf.volume-table-3-model=%{dataset}-a.mod
+	assert.tf.volume-table-3-rel-orient=
+	assert.tf.volume-table-3-rel-orient.1=
+	assert.tf.volume-table-3-rel-orient.2=
+	#check enable/disable for middle row
+	mb.volume-table-2-vol-#=
+	assert.enabled.bn.move-up=
+	assert.enabled.bn.move-down=
+	#check enable/disable for top row
+	mb.volume-table-1-vol-#=
+	assert.disabled.bn.move-up=
+	assert.enabled.bn.move-down=
+	#check enable/disable when nothing is highlighted
+	mb.volume-table-1-vol-#=
+	assert.disabled.bn.move-up=
+	assert.disabled.bn.move-down=
+[[]]
 
 
 [function = reference]

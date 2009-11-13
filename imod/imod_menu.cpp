@@ -888,7 +888,7 @@ void InfoWindow::editContourSlot(int item)
     break;
 
   case ECONTOUR_MENU_BREAK: /* break a contour into two */
-    imodContEditBreak(vi);
+    imodContEditBreakOpen(vi);
     break;
 
   case ECONTOUR_MENU_FIXZ: /* break a contour at z transitions */
@@ -1332,6 +1332,9 @@ static int imodContourBreakByZ(ImodView *vi, Iobj *obj, int ob, int co)
 /*
 
 $Log$
+Revision 4.54  2009/06/24 15:29:06  mast
+Put out caveats on the object info output
+
 Revision 4.53  2009/05/08 02:17:57  mast
 Add unbinned to info output
 

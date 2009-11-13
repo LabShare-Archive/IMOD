@@ -83,6 +83,7 @@ struct contour_break_struct{
   ImodView  *vw;
   ContourBreak *dia;
   Iindex    i1, i2;
+  bool    useCurrent;
 };
 
 enum {OPEN_TYPE_CONCAT = 0, OPEN_TYPE_SPLICE};
@@ -103,9 +104,10 @@ static bool indexGood(Iindex ind)
 /*                  CONTOUR BREAKING                                       */
 /***************************************************************************/
 
-static struct contour_break_struct cobrk = {NULL, NULL, {0,0,0}, {0,0,0}};
+static struct contour_break_struct cobrk = {NULL, NULL, {0,0,0}, {0,0,0},
+                                            false};
 
-void imodContEditBreak(ImodView *vw)
+void imodContEditBreakOpen(ImodView *vw)
 {
   if (cobrk.dia){
     cobrk.dia->raise();
@@ -118,6 +120,15 @@ void imodContEditBreak(ImodView *vw)
   cobrk.dia = new ContourBreak(imodDialogManager.parent(IMOD_DIALOG), 
                                "contour break");
   adjustGeometryAndShow((QWidget *)cobrk.dia, IMOD_DIALOG);
+}
+
+// External call to break a contour; returns 1 if dialog not open
+int imodContEditBreak()
+{
+  if (!cobrk.dia)
+    return 1;
+  cobrk.dia->breakCont();
+  return 0;
 }
 
 static void setlabel(QLabel *label, Iindex ind)
@@ -134,8 +145,9 @@ static void setlabel(QLabel *label, Iindex ind)
 /*
  * THE CONTOUR BREAK CLASS IMPLEMENTATION
  */
-static char *breakTips[] = {"Break contour at the selected point(s)",
-                           "Close dialog box", "Open help window"};
+static char *breakTips[] = 
+  {"Break contour at the selected point(s) (hot key "CTRL_STRING"-B)", 
+   "Close dialog box", "Open help window"};
 
 ContourBreak::ContourBreak(QWidget *parent, const char *name)
   : ContourFrame(parent, 3, applyDoneHelp, breakTips, name)
@@ -165,6 +177,17 @@ ContourBreak::ContourBreak(QWidget *parent, const char *name)
   mSet2Label = new QLabel(" ", this);
   grid->addWidget(mSet2Label, 1, 1);
 
+  mUnsetBut = new QPushButton("Unset", this);
+  grid->addWidget(mUnsetBut, 1, 2);
+  mUnsetBut->setFocusPolicy(Qt::NoFocus);
+  connect(mUnsetBut, SIGNAL(clicked()), this, SLOT(unsetPressed()));
+  mUnsetBut->setToolTip("Remove second break point");
+
+  mCurrentBox = diaCheckBox("Use current point for 1", this, mLayout);
+  diaSetChecked(mCurrentBox, cobrk.useCurrent);
+  connect(mCurrentBox, SIGNAL(toggled(bool)), this,SLOT(currentToggled(bool)));
+  mCurrentBox->setToolTip("Break using current model point for point 1");
+
   setWindowTitle(imodCaption("3dmod Break Contours"));
   connect(this, SIGNAL(actionClicked(int)), this, SLOT(buttonPressed(int)));
 
@@ -176,6 +199,7 @@ void ContourBreak::setFontDependentWidths()
 {
   int width = diaSetButtonWidth(mButton1, mRoundedStyle, 1.2, "Set 2");
   mButton2->setFixedWidth(width);
+  diaSetButtonWidth(mUnsetBut, mRoundedStyle, 1.2, "Unset");
 }
 
 void ContourBreak::fontChange( const QFont & oldFont )
@@ -191,7 +215,7 @@ void ContourBreak::setLabels()
   QString str;
   int ob = -1, co = -1;
 
-  if (indexGood(cobrk.i1)) {
+  if (indexGood(cobrk.i1) && !cobrk.useCurrent) {
     str.sprintf("Point %d", cobrk.i1.point+1);
     ob = cobrk.i1.object;
     co = cobrk.i1.contour;
@@ -199,6 +223,8 @@ void ContourBreak::setLabels()
     str = "Pt None ";
 
   mSet1Label->setText(str);
+  mSet1Label->setEnabled(!cobrk.useCurrent);
+  mButton1->setEnabled(!cobrk.useCurrent);
 
   if (indexGood(cobrk.i2)) {
     str.sprintf("Point %d", cobrk.i2.point+1);
@@ -237,6 +263,19 @@ void ContourBreak::set2Pressed()
   setLabels();
 }
 
+void ContourBreak::unsetPressed()
+{
+  cobrk.i2 = nullIndex;
+  setLabels();
+}
+
+
+void ContourBreak::currentToggled(bool state)
+{
+  cobrk.useCurrent = state;
+  setLabels();
+}
+
 /*
  * The breaking routine
  */
@@ -245,11 +284,20 @@ void ContourBreak::breakCont()
   ImodView *vw = cobrk.vw;
   Iindex *i1p = &cobrk.i1;
   Iindex *i2p = &cobrk.i2;
+  Iindex current;
 
   Icont *cont1, *cont;
   Iobj *obj;
   int ob, co, pt;
   int pt1, pt2;
+
+  imodGetIndex(vw->imod, &ob, &co, &pt);
+  if (cobrk.useCurrent) {
+    current.object = ob;
+    current.contour = co;
+    current.point = pt;
+    i1p = &current;
+  }
 
   /*
    * Check that at least the first break point is set.
@@ -291,7 +339,6 @@ void ContourBreak::breakCont()
   }
 
   /* DNM: now set up to save and restore current location upon error */
-  imodGetIndex(vw->imod, &ob, &co, &pt);
   imodSetIndex(vw->imod,
                i1p->object, i1p->contour, i1p->point);
   obj = imodObjectGet(vw->imod);
@@ -1902,6 +1949,9 @@ void ContourFrame::keyReleaseEvent ( QKeyEvent * e )
 /*
 
 $Log$
+Revision 4.37  2009/03/22 19:54:25  mast
+Show with new geometry adjust routine for Mac OS X 10.5/cocoa
+
 Revision 4.36  2009/03/10 04:35:50  mast
 Made open-closed toggle change multiple contours
 

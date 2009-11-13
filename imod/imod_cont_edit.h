@@ -118,11 +118,14 @@ class ContourBreak : public ContourFrame
  public:
   ContourBreak(QWidget *parent, const char *name = NULL);
   ~ContourBreak() {};
+  void breakCont();
 
   public slots:
   void buttonPressed(int which);
   void set1Pressed();
   void set2Pressed();
+  void unsetPressed();
+  void currentToggled(bool state);
 
  protected:
   void closeEvent ( QCloseEvent * e );
@@ -134,13 +137,15 @@ class ContourBreak : public ContourFrame
   QLabel *mSet2Label;
   QPushButton *mButton1;
   QPushButton *mButton2;
+  QPushButton *mUnsetBut;
+  QCheckBox *mCurrentBox;
   void setLabels();
-  void breakCont();
   void setFontDependentWidths();
 };
 
 /* Entries from the rest of imod */
-void imodContEditBreak(ImodView *vw);
+void imodContEditBreakOpen(ImodView *vw);
+int imodContEditBreak();
 void imodContEditJoinOpen(ImodView *vw);
 void imodContEditJoin(ImodView *vw);
 void imodContEditSurf(ImodView *vw);
@@ -169,6 +174,9 @@ int iceGetWheelForSize();
 /*  
 
 $Log$
+Revision 4.9  2009/01/15 16:33:17  mast
+Qt 4 port
+
 Revision 4.8  2008/09/23 15:13:44  mast
 Added mouse wheel scrolling of point size
 

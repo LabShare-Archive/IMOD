@@ -1,0 +1,132 @@
+<head>
+<title>Analysis Tools Plugin Help</title>
+</head>
+<body>
+<h3>Analysis Tools Plugin Help</h3><br>
+--------------------------<br><br>
+This plugin provides a number of <b>analysis tools</b>, 
+tools for deformation and dealing with with joined volumes and 
+several other functions. Many of these tools are experimental 
+and yes, poorly documented, and so it is highly advised you save
+your work before trying to run them.<br>
+<br>
+<br>
+<b>Hot Key Summary</b><br>
+---------------------<br>
+<b>[up arrow]</b>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+Go to next slice (up)<br>
+<b>[down arrow]</b>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+Go to previous slice (down)<br>
+<br>
+<br>
+<b>Actions</b><br>
+---------------------<br>
+<br>
+<ul>
+
+<li><b>Analysis Tools</b></li>
+  <ul>
+  <li><b>Estimate Z Scale</b> -
+  Estimates the zScale of your section based on an closed contour object
+  which contains multiple roughly spherical and/or randomly oriented
+  compartments. The basic premise of this function is that a spherical
+  compartment should span the same distance in Z that it does in X and Y.
+  In reality however, many compartments are truncated, and thus more
+  sophisticated algorithms are used here to analyze the surfaces.
+  Details of this algorithm have been submitted for publication at PLoS 
+  computational biology as "Improved Isotropic Reconstruction for 3D 
+  Surface Models of Cellular Compartments by Mathematical Analysis of 
+  Spherical Organelles by Electron Tomography".
+  </li>
+  <li><b>Analysis of Concave Points</b> -
+  Allows you to specify a range of objects and outputs an 'analysis 
+  of concave points' on each closed contour in these objects. This 
+  analysis includes a count of the total number of concave points,
+  the fraction of contour length which is convex, the area of the
+  convex hull, the contour's 'compactness' and so on. This information
+  can give insight into  the relative 'complexity' of contours in
+  each object.
+  </li>
+  <li><b>Analyze Tubes</b> -
+  Designed to be used in situations where open contours have been used 
+  to describe tubes of variable thickness, such that the radius of each
+  point reflects the tube's radius at that point. After specifying a  
+  range of objects (with open contours) it outputs a mean width,  
+  max width, estimated total volume and so on, by analyzing the size of
+  points and distance between them. 
+  </li>
+  <li><b>Analyze Branching</b> -
+  Designed to be used in situations where open contours have been used to
+  describe tubes, and some of these tubes 'branch' off others. The output
+  shows the length of each tube, and their organization hierarchy (i.e
+  which contour branches off which other contour) based on the proximity
+  of the contours first point to other contours. 
+  </li>
+  <li><b>Volume-Distance Analysis</b> -
+  This very crude function allows you to estimate how much volume is
+  within a certain distance of an object, but not in another object.
+  An example: 'How much volume is within 100 nm of my Golgi AND inside
+  the cell membrane AND not inside the Nucleus'. Note that all analyzed
+  objects must be segmented with closed contours on every slice. To
+  estimate volume random points are generated within a boxed region and 
+  tested wether or not they are inside and/or within a specified distance
+  of a closed contour, thus the more points generated, the more accurate 
+  results are likely to be.
+  </li>
+  </ul>
+  
+<li><b>Deformation Grid:</b></li>
+  <ul>
+  <li><b>Generate</b> -
+  Designed to generate a 'deformation grid' - a uniform grid of 
+  (non-uniform) displacement vectors - between the 'section boundaries' 
+  of joined tomograms. To work, this requires an object called
+  'deformation_points' containing a series of two-point open contour
+  which span across each section  boundary and map the displacement
+  of some recognizable structure. Once a deformation grid is generated
+  it can be used to 'Deform Objects'.
+  </li>
+  <li><b>Deform Objects</b> -
+  Uses a deformation grid (see above) to deform all points over a 
+  range of objects specified by the user.
+  </li>
+  <li><b>Analyze Deformation Points</b> -
+  Analyzes the XY offset of points in the 'deformation grid' object.
+  </li>
+  <li><b>Display Options</b> -
+  Presents a number of options to change the appearance of the
+  deformation grid.
+  </li>
+  </ul>
+
+<li><b>Section Tools:</b></li>
+  <ul>
+  <li><b>Delimit Tomogram Boundaries</b> -
+  Constructions contours around the boundaries of the material
+  over a range of Z values specified by the user.
+  Note that the 'background pixel' is considered any pixel
+  outside the section material, and these typically have a value of 174.
+  </li>
+  <li><b>Delimit Grey Values</b> -
+  Allows the user to specify a range of pixel values, and either:
+  (a) generates scattered point on each of these values, or
+  (b) generates a series of new closed contours either around
+  these regions.
+  </li>
+  <li><b>Delete Slice</b> -
+  Deletes the a range of slices from the model by removing contours
+  from those slices and shifting down all points above.
+  If specified, it will shifting open contour or scattered points
+  up or down so they won't be lost.
+  </li>
+  </ul>
+</ul>
+<br>
+<br>
+---------------------<br>
+<br>
+This plugin was created by <b>Andrew Noske</b>
+(<u>andrew_noske@yahoo.com</u>).<br>
+<i>If you encounter bugs please e-mail me before e-mailing the
+IMOD group (to reduce traffic). <br>
+</body>

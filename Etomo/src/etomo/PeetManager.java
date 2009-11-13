@@ -60,6 +60,11 @@ import etomo.util.DatasetFiles;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.57  2009/10/27 20:39:14  sueh
+ * <p> bug# 1275 Moving the resposibility for creating the log panel to the child
+ * <p> classes.  That way the Front Page manager doesn't have to have a log
+ * <p> panel.  Handling a null process manager.
+ * <p>
  * <p> Revision 1.56  2009/10/26 21:28:28  sueh
  * <p> bug# 1175 Save as is not a good idea when the param file is not loaded,
  * <p> so don't allow it at all.
@@ -395,12 +400,12 @@ public final class PeetManager extends BaseManager {
     return false;
   }
 
-  public void copyParameters(final File file) {
+  public void loadParam(final File file,boolean parametersOnly) {
     if (new PeetFileFilter().accept(file)) {
-      loadParamFile(file, true);
+      loadParamFile(file, parametersOnly);
     }
     else {
-      loadMatlabParam(file, true);
+      loadMatlabParam(file, parametersOnly);
     }
   }
 

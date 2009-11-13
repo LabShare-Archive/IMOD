@@ -24,7 +24,8 @@ short = float
 type = B
 usage = Output model coordinates as floating point, not integer
 tooltip = 
-manpage = 
+manpage = Output model coordinates as floating point; otherwise the nearest 
+integer value is output.
 
 [Field = ScaledCoordinates]
 short = scaled

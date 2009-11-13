@@ -178,7 +178,7 @@ def findPatches(lower, upper, edge):
 
    # Find limits in lower volume; Z limits are numbered from 1 but min and
    # max are numbered from zero
-   sizes = patchSize
+   sizes = list(patchSize)
    patchname = edge['name'] + '.patch'
    mins = [0, 0, 0]
    maxes = [0, 0, 0]
@@ -688,6 +688,9 @@ sys.exit(0)
 
 #
 # $Log$
+# Revision 1.11  2009/10/22 05:46:17  mast
+# Add error message if no -zadd
+#
 # Revision 1.10  2009/09/11 05:49:46  mast
 # Fix spaces in patch params
 #

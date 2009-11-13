@@ -1325,7 +1325,7 @@ void zapKeyInput(ZapStruct *zap, QKeyEvent *event)
     break;
 
   case Qt::Key_B:
-    if (zap->numXpanels)
+    if (zap->numXpanels || ctrl)
       break;
     if (shifted) { 
       zapToggleRubberband(zap);
@@ -4719,6 +4719,9 @@ static void setDrawCurrentOnly(ZapStruct *zap, int value)
 /*
 
 $Log$
+Revision 4.148  2009/09/02 18:41:02  mast
+Fixed crash when adding with limited points per contour and empty contours
+
 Revision 4.147  2009/06/05 15:44:02  mast
 Keep track of mouse press/release and adjust button state after flushing
 mouse moves so there is no move after a release

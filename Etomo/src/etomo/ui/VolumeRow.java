@@ -28,6 +28,9 @@ import etomo.type.Run3dmodMenuOptions;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.28  2009/10/16 23:56:48  sueh
+ * <p> bug# 1234 In validateRun added tiltRange validation.
+ * <p>
  * <p> Revision 1.27  2009/10/15 23:40:52  sueh
  * <p> bug# 1274 In validateRun returning the error string instead of boolean
  * <p> because the tab must be changed before the error message can be
@@ -173,6 +176,12 @@ final class VolumeRow implements Highlightable {
   }
 
   void setNames() {
+    btnHighlighter.setHeaders(VolumeTable.LABEL, number, table
+        .getVolumeNumberHeaderCell());
+    fnVolume.setHeaders(VolumeTable.LABEL, number, table
+        .getFnVolumeHeaderCell());
+    fnModParticle.setHeaders(VolumeTable.LABEL, number, table
+        .getFnModParticleHeaderCell());
     tiltRangeMin.setHeaders(VolumeTable.LABEL, number, table
         .getTiltRangeHeaderCell());
     tiltRangeMax.setHeaders(VolumeTable.LABEL, number, table
@@ -440,6 +449,13 @@ final class VolumeRow implements Highlightable {
   void setInitMotlFile(File initMotlFile) {
     setExpandableValues(this.initMotlFile, initMotlFile);
   }
+  
+  File getInitMotlFile() {
+    if (initMotlFile.isEmpty()) {
+      return null;
+    }
+    return new File(initMotlFile.getExpandedValue());
+  }
 
   void setFnModParticle(File input) {
     setExpandableValues(fnModParticle, input);
@@ -451,12 +467,44 @@ final class VolumeRow implements Highlightable {
     }
     tiltRangeMin.setValue(input);
   }
+  
+  String getTiltRangeMin() {
+    return tiltRangeMin.getValue();
+  }
+  
+  String getTiltRangeMax() {
+    return tiltRangeMax.getValue();
+  }
 
   void setTiltRangeMax(final String input) {
     if (input == null) {
       return;
     }
     tiltRangeMax.setValue(input);
+  }
+  
+  void setRelativeOrientX(final String input) {
+    relativeOrientX.setValue(input);
+  }
+  
+  String getRelativeOrientX() {
+    return relativeOrientX.getValue();
+  }
+  
+  void setRelativeOrientY(final String input) {
+    relativeOrientY.setValue(input);
+  }
+  
+  String getRelativeOrientY() {
+    return relativeOrientY.getValue();
+  }
+  
+  void setRelativeOrientZ(final String input) {
+    relativeOrientZ.setValue(input);
+  }
+  
+  String getRelativeOrientZ() {
+    return relativeOrientZ.getValue();
   }
 
   boolean isHighlighted() {

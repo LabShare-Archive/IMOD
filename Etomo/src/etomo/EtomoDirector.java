@@ -621,12 +621,9 @@ public class EtomoDirector {
     if (defaultWindow && managerList.size() == 1) {
       BaseManager manager = ((BaseManager) managerList.get(currentManagerKey
           .getKey()));
-      if (manager instanceof ApplicationManager) {
-        ApplicationManager appManager = (ApplicationManager) manager;
-        if (appManager.isNewManager() && !appManager.isSetupChanged()) {
-          defaultWindow = false;
-          closeCurrentManager(axisID, false);
-        }
+      if (manager instanceof FrontPageManager) {
+        defaultWindow = false;
+        closeCurrentManager(axisID, false);
       }
     }
   }
@@ -1137,6 +1134,10 @@ public class EtomoDirector {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.88  2009/10/27 20:38:19  sueh
+ * <p> bug# 1275 Making FrontPageManager the default manager.  Added
+ * <p> openFrontPage.
+ * <p>
  * <p> Revision 1.87  2009/10/23 19:42:06  sueh
  * <p> bug# 1275 No longer using a default manager.  Added FrontPagePanel
  * <p> instead.  Separate options for generic parallel process and NAD.
