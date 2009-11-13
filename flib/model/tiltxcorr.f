@@ -34,7 +34,7 @@ C
       real*4 array(idim2),brray(idim2)
 C       
       EQUIVALENCE (NX,NXYZ),(nxs,nxyzs)
-      common /bigarr/ array,sumray,brray,crray
+      common /bigarr/ array,sumray,brray,crray,tmprray
 c       
       character*320 filin,plfile,imfilout,ptfilout,xffilout
       real*4 f(2,3,limview),fs(2,3),fsinv(2,3),funit(2,3)
@@ -1384,6 +1384,9 @@ c	print *,xpeak,ypeak
 
 c       
 c       $Log$
+c       Revision 3.2  2009/10/07 16:28:13  mast
+c       Fixed mean value for masking, added peak value output
+c
 c       Revision 3.1  2009/10/02 20:27:07  mast
 c       Added patch tracking, boundary models, iteration for greater subpixel
 c       accuracy.  Fixed output when leaving axis at center of box.
@@ -1490,13 +1493,3 @@ c
 c       Revision 3.1  2002/01/10 01:44:58  mast
 c       Increased limview to 720 and added check on number of views
 c	
-
-      subroutine evaldiff(array, brray, nxy)
-      real*4 array(*), brray(*)
-      diffmax = 0.
-      do i = 1, nxy
-        diffmax=max(diffmax, array(i) - brray(i))
-      enddo
-      print *,'Maximum read/bin difference:', diffmax
-      return
-      end
