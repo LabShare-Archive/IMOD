@@ -15,7 +15,7 @@
 
 <h3>Table of Contents</h3>
 
-<br /><a HREF="#Introdution to PEET">1. Introdution to PEET</a>
+<br /><a HREF="#Introduction to PEET">1. Introduction to PEET</a>
 <br /><a HREF="#The Setup Tab">2. The Setup Tab</a>
 <br /><a HREF="#Root Name for Output Field">2.1. Root Name for Output Field</a>
 <br /><a HREF="#Directory Field">2.2. Directory Field</a>
@@ -41,7 +41,7 @@
 
 <hr />
 
-<h3><a NAME="Introdution to PEET"></a>1. Introdution to PEET</h3>
+<h3><a NAME="Introduction to PEET"></a>1. Introdution to PEET</h3>
 
 <p>PEET is a set of programs to align and average particles extracted
 from 3D volumes.&nbsp;  It finds the optimal alignment of each
@@ -418,9 +418,10 @@ that volume.&nbsp;  A voxel of the reference volume is masked out if
 the value of its corresponding voxel in the mask volume is zero.&nbsp;
 The dimensions of the mask volume can be smaller than the dimensions
 of the reference volume.&nbsp;  In this case, the mask volume is
-centered inside the reference (TRUE?) and voxel values outside the
-mask volume are determined by the value of the majority of 8 corner
-voxels of the mask volume.&nbsp;  A convenient way to generate a mask
+centered inside the reference, and masking values outside the
+mask volume are determined by the mask value of the majority of the 8 corner
+voxels of the mask volume (i.e., if 5 or more corners are zero, the mask will
+be zero outside the volume).&nbsp;  A convenient way to generate a mask
 volume is to use the IMOD program imodmop, which can be used to
 retain pixels inside of spheres and cylinders as well as inside of
 closed contours.&nbsp;  For this purpose, it does not matter that this
