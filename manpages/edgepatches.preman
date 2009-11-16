@@ -89,8 +89,9 @@ conventions and have the volumes named appropriately.  Your choice will depend
 on whether you have multiple sections, and whether you want the section number
 to be represented by a Z at the end or as part of the rootname.  Then run
 Edgepatches with entries for -root, -xyadd (the number of frames in X and Y),
--overlap (the expected overlap between frames in X and Y), and possibly for
--zadd (if you are doing multiple sections with the above naming convention).
+-overlap (the expected overlap between frames in X and Y), and either
+-zadd (if you are doing multiple sections with the above naming convention)
+or -noz (to indicate there are no Z values in the names).
 The other option to specify at this time is -model (a default patch region
 model that is used if no specific model is found for a piece.)  When you run
 the program will all of these options, it will search for the piece volumes
