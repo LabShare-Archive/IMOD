@@ -113,13 +113,15 @@ typedef struct
   int    delOnAllSec;
   int    delInAllObj;
   int    ignoreSkips;
+  int    lastMoveGlobal;
+  int    lastMoveAllAll;
   char   *skipList;
   char   *filename;
 }PlugData;
 
 
 static PlugData thisPlug = { NULL, NULL, 0, 0, 0, 0, 10, 0, 4, 0, 0, 0, 0, 0,
-                             1, NULL, NULL };
+                             1, 0, 0, NULL, NULL };
 static PlugData *plug = &thisPlug;
 
 #define ERROR_NO_IMOD_DIR -64352
@@ -196,7 +198,10 @@ int imodPlugKeys(ImodView *vw, QKeyEvent *event)
     if (plug->showMode != RES_MODE)
       break;
     keyhandled = 1;
-    plug->window->moveAll();
+    if (ctrl)
+      plug->window->moveAllAll();
+    else
+      plug->window->moveAllSlot();
     break;
   case Qt::Key_U:
     if (plug->showMode != RES_MODE)
@@ -477,12 +482,6 @@ int BeadFixer::reread()
         if (strList.size() > 5)
           globalResLine = "Global mean residual: " + strList[5];
       }
-      if (strstr(line, "Residual error local mean:")) {
-        strList = QString(line).split(" ", QString::SkipEmptyParts);
-        if (strList.size() > 8)
-          localResLine = "Local mean residual: " + strList[4] + " (" + 
-            strList[6] + " - " + strList[8].trimmed() + ")";
-      }
     }
         
     newstyle = strstr(line,"   #     #     #      X         Y        X")
@@ -596,6 +595,12 @@ int BeadFixer::reread()
           mAreaList[mNumAreas].numPts = 0;
           mAreaList[mNumAreas++].firstPt = mNumResid;
         }
+        if (strstr(line, "Residual error local mean:")) {
+          strList = QString(line).split(" ", QString::SkipEmptyParts);
+          if (strList.size() > 8)
+            localResLine = "Local mean residual: " + strList[4] + " (" + 
+              strList[6] + " - " + strList[8].trimmed() + ")";
+        }
       }
 
       // If none found, this breaks the top loop scanning for residual top line
@@ -606,6 +611,8 @@ int BeadFixer::reread()
   fclose(fp);
 
   setCurArea(0);
+  moveAllBut->setText(mNumAreas > 1 ? "Move All in Local Area" :
+                      "Move All by Residual");
   nextResBut->setEnabled(mNumResid);
   backUpBut->setEnabled(false);    
   if (!globalResLine.isEmpty())
@@ -618,6 +625,7 @@ int BeadFixer::reread()
     wprint(" %d total residuals.\n", mNumResid);
   else
     wprint(" %d total residuals, %d to examine.\n", mNumResid, numToSee);
+  manageDoneLabel();
   return 0;
 }
 
@@ -628,7 +636,8 @@ void BeadFixer::setCurArea(int area)
   nextLocalBut->setEnabled(mCurArea < mNumAreas - 1);
   nextLocalBut->setText(mCurArea ? 
                         "Go to Next Local Set" : "Go to First Local Set");
-  moveAllBut->setEnabled(mCurArea > 0);
+  moveAllBut->setEnabled(mCurArea > 0 || mNumAreas == 1);
+  moveAllAllBut->setEnabled(mCurArea > 0);
 }
 
 /* Jump to the next point with a big residual */
@@ -636,7 +645,7 @@ void BeadFixer::setCurArea(int area)
 void BeadFixer::nextRes()
 {
   int inobj, incont, inview, curpt, obj, nobj, cont, ncont, ipt, npnt;
-  int obsav, cosav, ptsav, i;
+  int obsav, cosav, ptsav, i, j, numToSee;
   int found = 0;
   float  xr, yr, resval, dx, dy;
   Iobj *ob = NULL;
@@ -717,9 +726,25 @@ void BeadFixer::nextRes()
     if (mMovingAll)
       wprint("Moved %d points\n", mNumAllMoved);
     mMovingAll = false;
-    wprint("Entering local area %d  %d,  %d residuals\n",
+    numToSee = mAreaList[rpt->area].numPts;
+    if (mLookonce) {
+      numToSee = 1;
+      for (j = mCurrentRes + 1; j < mNumResid; j++) {
+        if (mResidList[j].area != rpt->area)
+          break;
+        found = 0;
+        for (i = 0; i < mNumLooked && !found; i++)
+          if (mResidList[j].obj == mLookedList[i].obj && 
+              mResidList[j].cont == mLookedList[i].cont
+              && mResidList[j].view == mLookedList[i].view)
+            found = 1;
+        if (!found)
+          numToSee++;
+      }
+    }
+    wprint("Entering local area %d  %d,  %d res.,  %d to examine\n",
            mAreaList[rpt->area].areaX,
-           mAreaList[rpt->area].areaY, mAreaList[rpt->area].numPts);
+           mAreaList[rpt->area].areaY, mAreaList[rpt->area].numPts, numToSee);
     setCurArea(rpt->area);
     if (!bell)
       bell = 1;
@@ -832,8 +857,10 @@ void BeadFixer::nextRes()
         }
         free(con);
       }
-      if (!mMovingAll)
+      if (!mMovingAll) {
         ivwRedraw(plug->view);
+        manageDoneLabel();
+      }
 
       backUpBut->setEnabled(mCurrentRes > 0);    
       return;
@@ -1029,10 +1056,14 @@ void BeadFixer::undoMove()
 /*
  * Move all points in current area by residual
  */
-void BeadFixer::moveAll()
+void BeadFixer::moveAll(bool globalOK, bool skipDisplay)
 {
   int startArea = mCurArea;
-  if (mCurArea <= 0 || mCurrentRes >= mNumResid)
+  
+  // Do not allow it for the global area unless the flag allows it and there
+  // are no locals
+  if ((mCurArea <= 0 && (mNumAreas > 1 || !globalOK)) ||
+      mCurrentRes >= mNumResid)
     return;
   mMovingAll = true;
   mNumAllMoved = 0;
@@ -1045,8 +1076,66 @@ void BeadFixer::moveAll()
     nextRes();
   }
   mMovingAll = false;
-  ivwRedraw(plug->view);
+  if (!skipDisplay || mCurrentRes >= mNumResid) {
+    ivwRedraw(plug->view);
+    manageDoneLabel();
+  }
 }
+
+void BeadFixer::moveAllSlot()
+{
+  if (mCurArea <= 0) {
+    if (mNumAreas > 1) {
+      wprint("\aYou cannot move all global residuals when there are local "
+             "areas.\n");
+      return;
+    }
+    if (plug->lastMoveGlobal < 2 && mCurrentRes < mNumResid) {
+      plug->lastMoveGlobal = dia_ask_forever
+        ("Are you sure you want to move all points by residual?\n"
+         "This may not be appropriate if:\n"
+         "1) you have not looked at many residuals yet, or\n"
+         "2) you are going to be using local alignments, or\n"
+         "3) the large residuals were reported relative to residuals on\n"
+         "  all views rather than neighboring views\n"
+         "See Help for details.");
+      if (!plug->lastMoveGlobal)
+        return;
+    }
+
+  }
+  moveAll(mNumAreas <= 1, false);
+}
+
+void BeadFixer::moveAllAll()
+{
+  if (plug->lastMoveAllAll < 2 && mCurrentRes < mNumResid) {
+    plug->lastMoveAllAll = dia_ask_forever
+      ("Are you sure you want to move points in all local areas?\n"
+       "This may not be appropriate if:\n"
+       "1) you have not looked at many residuals yet, or\n"
+       "2) the large residuals were reported relative to residuals on\n"
+       "  all views rather than neighboring views\n"
+       "See Help for details.");
+    if (!plug->lastMoveAllAll)
+      return;
+  }
+  while (mCurrentRes < mNumResid)
+    moveAll(false, true);
+}
+
+void BeadFixer::manageDoneLabel()
+{
+  QString str = "Progress:  --%";
+  int value = 0;
+  if (mNumResid > 0) {
+    value = B3DNINT((100. * B3DMAX(0, B3DMIN(mCurrentRes + 1, mNumResid))) / 
+                    mNumResid);
+    str.sprintf("Progress:  %d%%", value);
+  }
+  doneLabel->setText(str);
+}
+
 
 int BeadFixer::foundgap(int obj, int cont, int ipt, int before)
 {
@@ -1902,9 +1991,11 @@ void BeadFixer::modeSelected(int value)
       showWidget(movePointBut, value == RES_MODE);
       showWidget(undoMoveBut, value == RES_MODE);
       showWidget(moveAllBut, value == RES_MODE);
+      showWidget(moveAllAllBut, value == RES_MODE);
       showWidget(backUpBut, value == RES_MODE);
       showWidget(clearListBut, value == RES_MODE);
       showWidget(examineBox, value == RES_MODE);
+      showWidget(doneLabel, value == RES_MODE);
     }
   }
 
@@ -2228,10 +2319,16 @@ BeadFixer::BeadFixer(QWidget *parent, const char *name)
                 "Move point back to previous position - Hot key: U");
 
   moveAllBut = diaPushButton("Move All in Local Area", this, mLayout);
-  connect(moveAllBut, SIGNAL(clicked()), this, SLOT(moveAll()));
+  connect(moveAllBut, SIGNAL(clicked()), this, SLOT(moveAllSlot()));
   moveAllBut->setEnabled(false);
-  moveAllBut->setToolTip("Move all points in current area by residual"
-                " - Hot key: colon");
+  moveAllBut->setToolTip("Move all remaining points in current area by "
+                         "residual - Hot key: colon");
+
+  moveAllAllBut = diaPushButton("Move in All Local Areas", this, mLayout);
+  connect(moveAllAllBut, SIGNAL(clicked()), this, SLOT(moveAllAll()));
+  moveAllAllBut->setEnabled(false);
+  moveAllAllBut->setToolTip("Move all points in all remaining local areas by"
+                            " residual - Hot key: "CTRL_STRING"-colon");
 
   backUpBut = diaPushButton("Back Up to Last Point", this, mLayout);
   connect(backUpBut, SIGNAL(clicked()), this, SLOT(backUp()));
@@ -2247,6 +2344,8 @@ BeadFixer::BeadFixer(QWidget *parent, const char *name)
   clearListBut = diaPushButton("Clear Examined List", this, mLayout);
   connect(clearListBut, SIGNAL(clicked()), this, SLOT(clearList()));
   clearListBut->setToolTip("Allow all points to be examined again");
+
+  doneLabel = diaLabel("Progress:  --%", this, mLayout);
 
   connect(this, SIGNAL(actionClicked(int)), this, SLOT(buttonPressed(int)));
   modeSelected(plug->showMode);
@@ -2494,7 +2593,7 @@ void BeadFixer::fontChange( const QFont & oldFont )
 // Close on escape, pass on keys
 void BeadFixer::keyPressEvent ( QKeyEvent * e )
 {
-  if (e->key() == Qt::Key_Escape)
+ if (e->key() == Qt::Key_Escape)
     close();
   else
     ivwControlKey(0, e);
@@ -2508,6 +2607,9 @@ void BeadFixer::keyReleaseEvent ( QKeyEvent * e )
 /*
 
 $Log$
+Revision 1.60  2009/08/13 02:16:40  mast
+Add check on threshold slider before setting del on all sec
+
 Revision 1.59  2009/08/11 15:51:38  mast
 Added message to control delete on all sec
 
