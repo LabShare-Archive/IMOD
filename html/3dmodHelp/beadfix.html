@@ -23,6 +23,8 @@ contours below the threshold.
 <LI> <B>; (semicolon)</B> &nbsp;Moves point by residual.
 <LI> <B>U</B> &nbsp;Undoes move of current point.
 <LI> <B>: (colon)</B> &nbsp;Moves all points in current local area by residual.
+<LI> <B>Ctrl-: (Ctrl-colon)</B> &nbsp;Moves all points in current and
+following local areas by residual.
 <LI> <B>/ (slash)</B> &nbsp;Toggles color overlay of two views in seed mode.
 </UL>
 <P>
@@ -157,14 +159,20 @@ using the button in eTomo rather than this button.
 <LI> Press the <B>Go to Next Local Set</B> button if you have a log file 
 with a series of local alignments and want to skip to the 
 residuals from the next local alignment.
-<LI> When local alignments were used, the <B>Move All in Local Area</B> button can
+<LI> When local alignments were used, the next button is labeled
+<B>Move All in Local Area</B> and can
 be used to move all remaining points with big residuals in the current local 
-area.  Points that would ordinarily be skipped over because they have been
-examined already will not be moved.  This is a somewhat controversial approach
-to alignment that should be
-used with caution.  One suggested practice is to examine the first few points
-in a local area by hand to see that the suggested movements are appropriate,
-then press this button to move the rest.
+area.  Without local alignments, the button is labeled <B>Move All Points by
+Residual</B> and will move all remaining points in the big residual list
+by their residuals.  
+In either case, points that would ordinarily be skipped over because they have
+been examined already will not be moved.  This approach should be used with
+caution; see the section below on <A HREF = "#MovingResid">Moving All Points by
+Residual</A>
+<LI> When local alignments were used, <B>Move in All Local Areas</B> can be
+used to move the remaining points in the current local area, and all points in 
+the following local areas, by their residuals.  Again, points that have been
+examined before will be skipped if appropriate.
 <LI> Select the <B>Back Up to Last Point</B> button if you want to go back to 
 the last residual that you examined.  This will not necessarily be the 
 previous residual in the file, if you skipped over points by going to 
@@ -186,7 +194,39 @@ points for the second time, turn off <B>Examine Points Once</B>; to
 see all points again, push <B>Clear Examined List</B>.  When you <B>Back Up
 to Last Point</B>, the current point is removed from the list so that 
 you will come back to it when you go forward again.
+<LI> The <B>Progress</B> lines shows a percentage that is based on the
+number of the current residual point divided by the total number of residuals
+read in.
 </UL>
+<P>
+<A NAME = "MovingResid"><H4>Moving All Points by Residual</H4></A>
+The guiding principle when deciding whether to move one or many points by
+residual is that model points should not be moved away from the gold
+particles.  If many points are displaced from their proper location, this will
+lead to a poorer alignment of the views where such points are located
+(typically the high tilt views).  Here are some guidelines for moving large
+numbers of points by their residuals:
+<OL>
+<LI> To avoid misaligning high tilt views, where residuals tend to be higher,
+in favor of the lower tilt views, you should have the large residuals be
+selected relative to other residuals on nearby views.  Do this by choosing 
+<B>Neighboring views</B> rather than <B>All views</B> in the <B>Residual
+Reporting</B> box in eTomo.
+<LI> You should always go through enough points manually so that you can
+become confident that the large majority of points are being moved correctly.
+If you are just doing global alignments, perhaps do one round manually after
+switching to reporting residuals relative to neighboring views.  If you have a
+small number of local areas, perhaps do one complete round through all of them
+manually.  If you have many local areas, 
+perhaps examine the first few points
+in each local area by hand to see that the suggested movements are appropriate,
+then move the rest in that area automatically.  On the next round, you could
+then move points in all areas automatically.
+<LI> If you know that you are going to be using local alignments, do not
+move points by the global residuals automatically, as it is quite likely to
+move model points off of the gold.  Do the automatic refinements only with
+local residuals.
+</OL>
 <P>
 <H4>Seed Model Mode with Contour Values</H4>
 If any objects in the model contain stored values (e.g., correlation peak
