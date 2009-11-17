@@ -33,6 +33,7 @@ class QPushButton;
 class QCheckBox;
 class QSpinBox;
 class QWidget;
+class QLabel;
 class QButtonGroup;
 class MultiSlider;
 class ToolEdit;
@@ -97,7 +98,8 @@ class BeadFixer : public DialogFrame
   void nextLocal();
   void backUp();
   void movePoint();
-  void moveAll();
+  void moveAllSlot();
+  void moveAllAll();
   void undoMove();
   void clearList();
   void modeSelected(int value);
@@ -137,6 +139,8 @@ class BeadFixer : public DialogFrame
   void showWidget(QWidget *widget, bool state);
   void newSkipList(QString list);
   bool inSkipList(int zval);
+  void moveAll(bool globalOK, bool skipDisplay);
+  void manageDoneLabel();
 
   int    mIfdidgap;
   int    mLastco, mLastpt, mLastbefore;
@@ -171,6 +175,7 @@ class BeadFixer : public DialogFrame
   QPushButton *backUpBut;
   QPushButton *movePointBut;
   QPushButton *moveAllBut;
+  QPushButton *moveAllAllBut;
   QPushButton *undoMoveBut;
   QPushButton *clearListBut;
   QPushButton *runAlignBut;
@@ -194,6 +199,7 @@ class BeadFixer : public DialogFrame
   QCheckBox *delAllObjBut;
   QCheckBox *turnOffBut;
   QCheckBox *ignoreSkipBut;
+  QLabel *doneLabel;
   int mNumSkip;
   int *mSkipSecs;
   int mExtraObj;
@@ -209,6 +215,9 @@ class BeadFixer : public DialogFrame
 /*
 
 $Log$
+Revision 1.26  2009/01/16 06:06:59  mast
+FUnction to fix the size in Qt 4
+
 Revision 1.25  2009/01/15 16:33:17  mast
 Qt 4 port
 
