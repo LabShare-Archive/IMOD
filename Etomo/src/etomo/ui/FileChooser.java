@@ -6,7 +6,6 @@ import javax.swing.JFileChooser;
 
 import etomo.EtomoDirector;
 import etomo.storage.autodoc.AutodocTokenizer;
-import etomo.type.UITestFieldType;
 import etomo.util.Utilities;
 
 /**
@@ -22,13 +21,17 @@ import etomo.util.Utilities;
  * 
  * @version $Revision$
  * 
- * <p> $Log$ </p>
+ * <p> $Log$
+ * <p> Revision 1.1  2009/01/20 20:02:12  sueh
+ * <p> bug# 1102 A self-naming JFileChooser.
+ * <p> </p>
  */
-final class FileChooser extends JFileChooser {
+public final class FileChooser extends JFileChooser {
   public static final String rcsid = "$Id$";
 
   public FileChooser(File currentDirectory) {
     super(currentDirectory);
+    setName("Open");
   }
 
   public void setDialogTitle(String dialogTitle) {
@@ -40,10 +43,8 @@ final class FileChooser extends JFileChooser {
     String name = Utilities.convertLabelToName(text);
     super.setName(name);
     if (EtomoDirector.INSTANCE.getArguments().isPrintNames()) {
-      System.out.println(UITestFieldType.MENU_ITEM.toString()
-          + AutodocTokenizer.SEPARATOR_CHAR + name + ' '
-          + AutodocTokenizer.DEFAULT_DELIMITER + ' ');
+      System.out.println(getName() + ' ' + AutodocTokenizer.DEFAULT_DELIMITER
+          + ' ');
     }
   }
-
 }
