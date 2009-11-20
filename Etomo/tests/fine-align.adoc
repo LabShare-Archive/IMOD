@@ -167,7 +167,7 @@ bn.advanced=
 assert.enabled.tf.metro-factor=
 assert.enabled.tf.cycle-limit=
 bn.basic=
-sleep=2
+sleep=1
 
 
 [function = local-alignment-parameters]
@@ -322,7 +322,6 @@ tb.general.1=
 	assert.tf.reference-view=1
 	assert.tf.non-default-grouping.1=
 	bn.basic=
-	sleep=1
 [[]]
 # check enabled/disabled
 rb.fixed-magnification-at-10=
@@ -332,7 +331,6 @@ assert.enabled.rb.solve-for-all-magnifications=
 bn.advanced=
 assert.enabled.tf.reference-view=
 bn.basic=
-sleep=1
 rb.fixed-magnification-at-10=
 assert.disabled.tf.group-size.1=
 bn.advanced=
@@ -389,6 +387,7 @@ tb.general.1=
 bn.advanced=
 rb.no-beam-tilt=
 bn.basic=
+sleep=1
 [[ifnot = keep-dataset-dir]]
 	# check values
 	assert.rb.disabled=on
@@ -513,7 +512,6 @@ assert.enabled.tf.group-size=
 bn.advanced=
 assert.enabled.tf.non-default-grouping=
 bn.basic=
-sleep=1
 cb.enable=off
 assert.disabled.tf.group-size=
 bn.advanced=
@@ -601,7 +599,6 @@ bn.basic=
 rb.full-solution=
 assert.enabled.tf.x-stretch-group-size=
 assert.enabled.tf.skew-group-size=
-sleep=1
 bn.advanced=
 assert.enabled.tf.x-stretch-non-default-grouping=
 assert.enabled.tf.skew-non-default-grouping=
