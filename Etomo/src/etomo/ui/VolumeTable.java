@@ -51,6 +51,11 @@ import etomo.type.Run3dmodMenuOptions;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.43  2009/10/29 20:02:36  sueh
+ * <p> bug# Added btnMoveDown, btnMoveUp, copyData,
+ * <p> getFnModMParticleHeaderCell, getFnVolumeHeaderCell, moveRowDown,
+ * <p> and moveRowUp.
+ * <p>
  * <p> Revision 1.42  2009/10/16 23:57:31  sueh
  * <p> bug# 1234 Added tiltRangeRequired parameter to validateRun.
  * <p>
@@ -246,7 +251,7 @@ final class VolumeTable implements Expandable, Highlightable,
   private final TomogramFileFilter tomogramFileFilter = new TomogramFileFilter();
   private final MultiLineButton btnMoveUp = new MultiLineButton("Move Up");
   private final MultiLineButton btnMoveDown = new MultiLineButton("Move Down");
-  private final MultiLineButton btnAddWithCopy = new MultiLineButton("Add with Copied Data");
+  private final MultiLineButton btnCopyRow = new MultiLineButton("Copy Row");
 
   private Viewport viewport;
   private final ExpandButton btnExpandFnVolume;
@@ -409,9 +414,10 @@ final class VolumeTable implements Expandable, Highlightable,
 
   private void createTable() {
     //initialize
-    btnAddWithCopy.setSize();
+    btnCopyRow.setSize();
     btnMoveUp.setSize();
     btnMoveDown.setSize();
+    btnDeleteRow.setSize();
     //columns
     initMotlFileColumn.add(header1InitMotlFile);
     initMotlFileColumn.add(header2InitMotlFile);
@@ -442,16 +448,16 @@ final class VolumeTable implements Expandable, Highlightable,
     pnlButtons1.add(btnSetInitMotlFile.getComponent());
     btnReadTiltFile.setSize();
     pnlButtons1.add(btnReadTiltFile.getComponent());
-    btnDeleteRow.setSize();
-    pnlButtons1.add(btnDeleteRow.getComponent());
+    pnlButtons1.add(r3bVolume.getComponent());
     //buttons 2
     JPanel pnlButtons2 = new JPanel();
     pnlButtons2.setLayout(new BoxLayout(pnlButtons2, BoxLayout.X_AXIS));
     r3bVolume.setSize();
-    pnlButtons2.add(btnAddWithCopy.getComponent());
+    pnlButtons2.add(btnCopyRow.getComponent());
     pnlButtons2.add(btnMoveUp.getComponent());
     pnlButtons2.add(btnMoveDown.getComponent());
-    pnlButtons2.add(r3bVolume.getComponent());
+    pnlButtons2.add(btnDeleteRow.getComponent());
+
     //root
     rootPanel.setLayout(new BoxLayout(rootPanel, BoxLayout.Y_AXIS));
     rootPanel.setBorder(BorderFactory.createEtchedBorder());
@@ -540,7 +546,7 @@ final class VolumeTable implements Expandable, Highlightable,
   private void action(final String command,
       final Run3dmodMenuOptions run3dmodMenuOptions) {
     if (command.equals(btnAddFnVolume.getActionCommand())) {
-      addVolumeRow(false);
+      addVolumeRow();
     }
     else if (command.equals(btnSetInitMotlFile.getActionCommand())) {
       setInitMotlFile();
@@ -563,8 +569,8 @@ final class VolumeTable implements Expandable, Highlightable,
     else if (command.equals(btnMoveDown.getActionCommand())) {
       moveRowDown();
     }
-    else if (command.equals(btnAddWithCopy.getActionCommand())) {
-      addVolumeRow(true);
+    else if (command.equals(btnCopyRow.getActionCommand())) {
+      copyRow();
     }
   }
 
@@ -626,10 +632,23 @@ final class VolumeTable implements Expandable, Highlightable,
   }
 
   /**
+   * Made a new that contains data copied from the highlighted row.
+   */
+  private void copyRow() {
+    addRow(rowList.getHighlightedRow());
+    viewport.adjustViewport(rowList.size() - 1);
+    rowList.remove();
+    rowList.display(viewport);
+    updateDisplay();
+    parent.msgVolumeTableSizeChanged();
+    UIHarness.INSTANCE.pack(manager);
+  }
+
+  /**
    * Allow the user to choose a tomogram and a model and add them to the table
    * in a new row.  The tomogram is required.  The model is optional.
    */
-  private void addVolumeRow(boolean withCopiedData) {
+  private void addVolumeRow() {
     if (!manager.setParamFile()) {
       UIHarness.INSTANCE.openMessageDialog("Please set the "
           + PeetDialog.DIRECTORY_LABEL + " and " + PeetDialog.FN_OUTPUT_LABEL
@@ -667,10 +686,7 @@ final class VolumeTable implements Expandable, Highlightable,
       //Add any unusual file extensions to the file filter so that the files are
       //easier to open in the next row.
       tomogramFileFilter.addExtension(fnVolume);
-    VolumeRow row=  addRow(fnVolume, fnModParticle);
-      if (withCopiedData) {
-        copyData(rowList.getHighlightedRow(),row);
-      }
+      addRow(fnVolume, fnModParticle);
       viewport.adjustViewport(rowList.size() - 1);
       rowList.remove();
       rowList.display(viewport);
@@ -771,6 +787,23 @@ final class VolumeTable implements Expandable, Highlightable,
   }
 
   /**
+   * Copy volume, model, initial motl, and tilt range.  Don't copy the rel.
+   * orientation.
+   */
+  private void addRow(VolumeRow fromRow) {
+    VolumeRow row = rowList.add(manager, fromRow.getFnVolumeFile(), fromRow
+        .getFnModParticleFile(), this, pnlTable, layout, constraints,
+        initMotlFileColumn, tiltRangeColumn);
+    row.expandFnVolume(btnExpandFnVolume.isExpanded());
+    row.expandFnModParticle(btnExpandFnModParticle.isExpanded());
+    row.setInitMotlFile(fromRow.getInitMotlFile());
+    row.expandInitMotlFile(btnExpandInitMotlFile.isExpanded());
+    row.setTiltRangeMin(fromRow.getTiltRangeMin());
+    row.setTiltRangeMax(fromRow.getTiltRangeMax());
+
+  }
+
+  /**
    * Swap the highlighted row with the one above it.  Move it in the rows 
    * ArrayList.  Move it in the table by removing and adding the two involved
    * rows and everything below them.  Renumber the row numbers in the table.
@@ -820,16 +853,6 @@ final class VolumeTable implements Expandable, Highlightable,
     updateDisplay();
     manager.getMainPanel().repaint();
   }
-  
-  private void copyData(VolumeRow fromRow,VolumeRow toRow) {
-    toRow.setInitMotlFile(fromRow.getInitMotlFile());
-    toRow.expandInitMotlFile(btnExpandInitMotlFile.isExpanded());
-    toRow.setTiltRangeMin(fromRow.getTiltRangeMin());
-    toRow.setTiltRangeMax(fromRow.getTiltRangeMax());
-    toRow.setRelativeOrientX(fromRow.getRelativeOrientX());
-    toRow.setRelativeOrientY(fromRow.getRelativeOrientY());
-    toRow.setRelativeOrientZ(fromRow.getRelativeOrientZ());
-  }
 
   private void updateDisplay() {
     boolean enable = rowList.size() > 0;
@@ -846,7 +869,7 @@ final class VolumeTable implements Expandable, Highlightable,
         && rowList.getHighlightedRowIndex() > 0);
     btnMoveDown.setEnabled(enable && highlighted
         && rowList.getHighlightedRowIndex() < rowList.size() - 1);
-    btnAddWithCopy.setEnabled(enable && highlighted);
+    btnCopyRow.setEnabled(enable && highlighted);
   }
 
   private void addListeners() {
@@ -859,7 +882,7 @@ final class VolumeTable implements Expandable, Highlightable,
     btnChangeFnModParticle.addActionListener(actionListener);
     btnMoveUp.addActionListener(actionListener);
     btnMoveDown.addActionListener(actionListener);
-    btnAddWithCopy.addActionListener(actionListener);
+    btnCopyRow.addActionListener(actionListener);
   }
 
   private static final class RowList {
