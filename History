@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+11/20/09: In Etomo - PEET added flgRemoveDuplicates, duplicateShiftTolerance,
+and duplicateAngularTolerance.
+
 11/10/09: Added option to break contour at current model point, and a hot key
 for breaking a contour.
 
