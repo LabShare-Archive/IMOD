@@ -21,7 +21,10 @@ import etomo.util.Utilities;
  * 
  * @version $Revision$
  * 
- * <p> $Log$ </p>
+ * <p> $Log$
+ * <p> Revision 1.1  2009/01/20 19:59:28  sueh
+ * <p> bug# 1102 A self-naming JPanel.
+ * <p> </p>
  */
 class EtomoPanel extends JPanel {
   public static final String rcsid = "$Id$";
@@ -38,11 +41,11 @@ class EtomoPanel extends JPanel {
 
   public void setName(String text) {
     String name = Utilities.convertLabelToName(text);
-    super.setName(name);
+    super.setName(UITestFieldType.PANEL.toString()
+        + AutodocTokenizer.SEPARATOR_CHAR + name);
     if (EtomoDirector.INSTANCE.getArguments().isPrintNames()) {
-      System.out.println(UITestFieldType.PANEL.toString()
-          + AutodocTokenizer.SEPARATOR_CHAR + name + ' '
-          + AutodocTokenizer.DEFAULT_DELIMITER + ' ');
+      System.out.println(getName() + ' ' + AutodocTokenizer.DEFAULT_DELIMITER
+          + ' ');
     }
   }
 }

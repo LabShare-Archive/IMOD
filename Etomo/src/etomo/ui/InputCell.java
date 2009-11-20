@@ -43,6 +43,7 @@ abstract class InputCell implements Cell {
   private HeaderCell rowHeader = null, columnHeader = null;
 
   abstract Component getComponent();
+
   abstract UITestFieldType getFieldType();
 
   abstract int getWidth();
@@ -152,7 +153,7 @@ abstract class InputCell implements Cell {
   private void setBackground(ColorUIResource color) {
     getComponent().setBackground(color);
   }
-  
+
   void setHeaders(String tableHeader, HeaderCell rowHeader,
       HeaderCell columnHeader) {
     this.tableHeader = tableHeader;
@@ -166,7 +167,7 @@ abstract class InputCell implements Cell {
   /**
    * Message from row header or column header that their label has changed.
    */
- public void msgLabelChanged() {
+  public void msgLabelChanged() {
     setName();
   }
 
@@ -177,16 +178,19 @@ abstract class InputCell implements Cell {
     String name = Utilities.convertLabelToName(tableHeader,
         rowHeader != null ? rowHeader.getText() : null,
         columnHeader != null ? columnHeader.getText() : null);
-    getComponent().setName(name);
+    getComponent().setName(
+        getFieldType().toString() + AutodocTokenizer.SEPARATOR_CHAR + name);
     if (EtomoDirector.INSTANCE.getArguments().isPrintNames()) {
-      System.out.println(getFieldType().toString()
-          + AutodocTokenizer.SEPARATOR_CHAR + name + ' '
+      System.out.println(getComponent().getName() + ' '
           + AutodocTokenizer.DEFAULT_DELIMITER + ' ');
     }
   }
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.13  2009/10/15 23:32:56  sueh
+ * <p> bug# 1274 Made msgLabelChanged public so it can be added to Cell.
+ * <p>
  * <p> Revision 1.12  2009/01/20 20:11:41  sueh
  * <p> bug# 1102 Added functionality to self-name; added columnHeader,
  * <p> rowHeader, tableHeader, getFieldType, msgLabelChanged, setHeaders,
