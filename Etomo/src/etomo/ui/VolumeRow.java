@@ -28,6 +28,10 @@ import etomo.type.Run3dmodMenuOptions;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.29  2009/10/29 20:01:10  sueh
+ * <p> bug# 1280 Added sets and gets for copying row data.  Named more fields
+ * <p> for ui testing.
+ * <p>
  * <p> Revision 1.28  2009/10/16 23:56:48  sueh
  * <p> bug# 1234 In validateRun added tiltRange validation.
  * <p>
@@ -456,6 +460,20 @@ final class VolumeRow implements Highlightable {
     }
     return new File(initMotlFile.getExpandedValue());
   }
+  
+  File getFnVolumeFile() {
+    if (fnVolume.isEmpty()) {
+      return null;
+    }
+    return new File(fnVolume.getExpandedValue());
+  }
+  
+  File getFnModParticleFile() {
+    if (fnModParticle.isEmpty()) {
+      return null;
+    }
+    return new File(fnModParticle.getExpandedValue());
+  }
 
   void setFnModParticle(File input) {
     setExpandableValues(fnModParticle, input);
@@ -487,24 +505,12 @@ final class VolumeRow implements Highlightable {
     relativeOrientX.setValue(input);
   }
   
-  String getRelativeOrientX() {
-    return relativeOrientX.getValue();
-  }
-  
   void setRelativeOrientY(final String input) {
     relativeOrientY.setValue(input);
   }
   
-  String getRelativeOrientY() {
-    return relativeOrientY.getValue();
-  }
-  
   void setRelativeOrientZ(final String input) {
     relativeOrientZ.setValue(input);
-  }
-  
-  String getRelativeOrientZ() {
-    return relativeOrientZ.getValue();
   }
 
   boolean isHighlighted() {
