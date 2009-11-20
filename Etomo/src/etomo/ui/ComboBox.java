@@ -21,7 +21,10 @@ import etomo.util.Utilities;
 * 
 * @version $Revision$
 * 
-* <p> $Log$ </p>
+* <p> $Log$
+* <p> Revision 3.1  2009/09/01 03:18:25  sueh
+* <p> bug# 1222
+* <p> </p>
 */
 
 final class ComboBox extends JComboBox{
@@ -33,11 +36,11 @@ final class ComboBox extends JComboBox{
   
   public void setName(String text) {
     String name = Utilities.convertLabelToName(text);
-    super.setName(name);
+    super.setName(UITestFieldType.COMBO_BOX.toString()
+        + AutodocTokenizer.SEPARATOR_CHAR + name);
     if (EtomoDirector.INSTANCE.getArguments().isPrintNames()) {
-      System.out.println(UITestFieldType.COMBO_BOX.toString()
-          + AutodocTokenizer.SEPARATOR_CHAR + name + ' '
-          + AutodocTokenizer.DEFAULT_DELIMITER + ' ');
+      System.out.println(getName() + ' ' + AutodocTokenizer.DEFAULT_DELIMITER
+          + ' ');
     }
   }
 }

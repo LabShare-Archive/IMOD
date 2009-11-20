@@ -19,7 +19,10 @@ import etomo.util.Utilities;
 * 
 * @version $Revision$
 * 
-* <p> $Log$ </p>
+* <p> $Log$
+* <p> Revision 1.1  2009/01/20 19:50:21  sueh
+* <p> bug# 1102 A self-naming JCheckBoxMenuItem.
+* <p> </p>
 */
 final class CheckBoxMenuItem extends JCheckBoxMenuItem {
   public static  final String  rcsid =  "$Id$";
@@ -39,11 +42,11 @@ final class CheckBoxMenuItem extends JCheckBoxMenuItem {
 
   public void setName(String text) {
     String name = Utilities.convertLabelToName(text);
-    super.setName(name);
+    super.setName(UITestFieldType.CHECK_BOX_MENU_ITEM.toString()
+        + AutodocTokenizer.SEPARATOR_CHAR + name);
     if (EtomoDirector.INSTANCE.getArguments().isPrintNames()) {
-      System.out.println(UITestFieldType.CHECK_BOX_MENU_ITEM.toString()
-          + AutodocTokenizer.SEPARATOR_CHAR + name + ' '
-          + AutodocTokenizer.DEFAULT_DELIMITER + ' ');
+      System.out.println(getName() + ' ' + AutodocTokenizer.DEFAULT_DELIMITER
+          + ' ');
     }
   }
 

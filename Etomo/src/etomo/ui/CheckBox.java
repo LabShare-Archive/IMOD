@@ -23,6 +23,9 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.17  2009/04/13 22:55:46  sueh
+ * <p> Removed newstuff.
+ * <p>
  * <p> Revision 1.16  2009/02/27 03:50:23  sueh
  * <p> bug# 1172 Added experimental automation recording background color
  * <p> (newstuff only).
@@ -95,11 +98,11 @@ final class CheckBox extends JCheckBox {
 
   public void setName(String text) {
     String name = Utilities.convertLabelToName(text);
-    super.setName(name);
+    super.setName(UITestFieldType.CHECK_BOX.toString()
+        + AutodocTokenizer.SEPARATOR_CHAR + name);
     if (EtomoDirector.INSTANCE.getArguments().isPrintNames()) {
-      System.out.println(UITestFieldType.CHECK_BOX.toString()
-          + AutodocTokenizer.SEPARATOR_CHAR + name + ' '
-          + AutodocTokenizer.DEFAULT_DELIMITER + ' ');
+      System.out.println(getName() + ' ' + AutodocTokenizer.DEFAULT_DELIMITER
+          + ' ');
     }
   }
 
@@ -127,6 +130,9 @@ final class CheckBox extends JCheckBox {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.17  2009/04/13 22:55:46  sueh
+ * <p> Removed newstuff.
+ * <p>
  * <p> Revision 1.16  2009/02/27 03:50:23  sueh
  * <p> bug# 1172 Added experimental automation recording background color
  * <p> (newstuff only).
