@@ -344,6 +344,14 @@ public final class UIHarness {
       mainFrame.setCurrentManager(currentManager, managerKey);
     }
   }
+  
+  public void save(AxisID axisID) {
+    if (isHead()) {
+      if (mainFrame.isMenuSaveEnabled()) {
+        mainFrame.save(axisID);
+      }
+    }
+  }
 
   public void selectWindowMenuItem(ManagerKey currentManagerKey) {
     if (isHead()) {
@@ -566,6 +574,9 @@ public final class UIHarness {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.37  2009/10/27 20:43:15  sueh
+ * <p> bug# 1275 Moved FrontPageDialog to FrontPageManager.
+ * <p>
  * <p> Revision 1.36  2009/10/23 19:47:59  sueh
  * <p> bug# 1275 Added setTitle and displayFromPage.
  * <p>
