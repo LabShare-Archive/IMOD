@@ -41,6 +41,9 @@ import etomo.type.Run3dmodMenuOptions;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.4  2009/10/01 18:50:38  sueh
+ * <p> bug# 1239 Added getFlattenWarpDisplay.
+ * <p>
  * <p> Revision 1.3  2009/09/01 03:18:25  sueh
  * <p> bug# 1222
  * <p>
@@ -191,7 +194,7 @@ final class FlattenPanel implements Run3dmodButtonContainer, FlattenWarpParent,
 
   private void temporaryDirectoryAction() {
     //  Open up the file chooser in the current working directory
-    JFileChooser chooser = new JFileChooser(new File(manager
+    JFileChooser chooser = new FileChooser(new File(manager
         .getPropertyUserDir()));
     chooser.setPreferredSize(UIParameters.INSTANCE.getFileChooserDimension());
     chooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);

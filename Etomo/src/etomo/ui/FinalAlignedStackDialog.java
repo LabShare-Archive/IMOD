@@ -67,6 +67,10 @@ import etomo.util.DatasetFiles;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.21  2009/10/19 21:07:03  sueh
+ * <p> bug# 1263 Calling updateParallelProcess from changeTab.  In
+ * <p> usingParallelProcessing take the current tab into account.
+ * <p>
  * <p> Revision 1.20  2009/10/19 16:28:56  sueh
  * <p> bug# 1253 Added invertTiltAngles.
  * <p>
@@ -858,7 +862,7 @@ public final class FinalAlignedStackDialog extends ProcessDialog implements
         currentMtfDirectory = applicationManager.getPropertyUserDir();
       }
     }
-    JFileChooser chooser = new JFileChooser(new File(currentMtfDirectory));
+    JFileChooser chooser = new FileChooser(new File(currentMtfDirectory));
     MtfFileFilter mtfFileFilter = new MtfFileFilter();
     chooser.setFileFilter(mtfFileFilter);
     chooser.setPreferredSize(new Dimension(400, 400));
@@ -931,7 +935,7 @@ public final class FinalAlignedStackDialog extends ProcessDialog implements
   }
 
   private void chooseConfigFile(FileTextField fileTextField) {
-    JFileChooser chooser = new JFileChooser(expert.getConfigDir());
+    JFileChooser chooser = new FileChooser(expert.getConfigDir());
     chooser.setPreferredSize(UIParameters.INSTANCE.getFileChooserDimension());
     chooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
     int returnVal = chooser.showOpenDialog(rootPanel);
