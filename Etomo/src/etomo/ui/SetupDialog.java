@@ -489,7 +489,7 @@ final class SetupDialog extends ProcessDialog implements ContextMenu,
   }
 
   File getFile(String dir, FileFilter fileFilter, int selectionMode) {
-    JFileChooser chooser = new JFileChooser(new File(dir));
+    JFileChooser chooser = new FileChooser(new File(dir));
     if (fileFilter != null) {
       chooser.setFileFilter(fileFilter);
     }
@@ -863,6 +863,9 @@ final class SetupDialog extends ProcessDialog implements ContextMenu,
 }
 /**
  * <p> $Log$
+ * <p> Revision 3.68  2009/09/23 23:25:26  sueh
+ * <p> bug# 1270 Implemented expand.  Changed setAdvanced to updateAdvanced.
+ * <p>
  * <p> Revision 3.67  2009/09/20 21:33:58  sueh
  * <p> bug# 1268 Added a default value to LabeledSpinner.
  * <p>
