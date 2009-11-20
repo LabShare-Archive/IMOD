@@ -149,15 +149,33 @@ button (\fBbn\fR) is to push it.
 .RE
 
 .TP 4
+.I subcommand
+.RS
+
+.P
+.I subcommand_action\fR[\fB.\fImodifier\fR]\fB.\fIfield \fB=\fR [\fIvalue]
+
+.P
+.I subcommand_action\fR[\fB.\fImodifier\fR]\fB.\fIsubject \fB=\fR [\fIvalue]
+
+.P
+.I subcommand_action\fR[\fB.\fImodifier\fR]\fB.\fIsubject\fB.\fIfield \fB=\fR [\fIvalue]
+.RE
+
+.TP 4
 .I action
 .B assert\fR, \fBcopy\fR, \fBend\fR, \fBif\fR, \fBgoto\fR, \fBopen\fR,
-\fBreturn\fR, \fBrun\fR, \fBset\fR, \fBskipto\fR, \fBstart\fR, or \fBwait\fR.
+\fBreturn\fR, \fBrun\fR, \fBset\fR, \fBskipto\fR, \fBstart\fR, \fBwait
+
+.TP 4
+.I subcommand_action
+.B assert\fR, \fBreturn\fR, \fBrun\fR, \fBset, \fBwait
 
 .TP 4
 .I modifier
-.B always\fR, \fBdisabled\fR, \fBenabled\fR, \fBequals\fR, \fBexists\fR,
+.B always\fR, \fBcontains\fR, \fBdisabled\fR, \fBenabled\fR, \fBequals\fR, \fBexists\fR,
 \fBge\fR, \fBkeep\fR, \fBle\fR, \fBnot\fR, \fBnot-equals\fR, \fBnot-exists\fR,
-\fBsame\fR, or \fBsingle.
+\fBsame\fR, \fBsingle
 
 .TP 4
 .I subject
@@ -168,12 +186,12 @@ button (\fBbn\fR) is to push it.
 .I subject_type
 .B adoc\fR, \fBdataset\fR, \fBdialog\fR, \fBfile\fR, \fBfile-chooser\fR,
 \fBframe\fR, \fBfunction\fR, \fBinterface\fR, \fBparam\fR, \fBpopup\fR,
-\fBprocess\fR, \fBsection\fR, \fBtest\fR, \fBtestdir\fR, or \fBvar.
+\fBprocess\fR, \fBsection\fR, \fBtest\fR, \fBtestdir\fR, \fBvar
 
 .TP 4
 .I subject_name
 Name of the subject.  May contains variables.  May not be \fBa\fR, \fBb\fR, an
-\fIaction\fR string, or a \fIfield\fR string.
+\fIsubcommand_action\fR string, or a \fIfield\fR string.
 
 .TP 4
 .I axis
@@ -234,23 +252,10 @@ are present on a panel.
 .RE
 
 .TP 4
-.I subcommand
-.RS
-
-.P
-.I action\fR[\fB.\fImodifier\fR]\fB.\fIfield \fB=\fR [\fIvalue]
-
-.P
-.I action\fR[\fB.\fImodifier\fR]\fB.\fIsubject \fB=\fR [\fIvalue]
-
-.P
-.I action\fR[\fB.\fImodifier\fR]\fB.\fIsubject\fB.\fIfield \fB=\fR [\fIvalue]
-.RE
-
-.TP 4
 .I value
+May contain a single value or a list divided by "\fB|\fR".
 May contain a directory, file name, process result, command line parameter,
-button state, or field value.
+button state, or field value.  See the \fBVariables\fR section.
 .RS
 
 .P
@@ -308,6 +313,28 @@ Booleans are case insensitive
 .B down
 .RE
 
+.TP 4
+Operators
+.RS
+
+.TP 4
+.B |
+List separator.  Only valid in values.  Whitespace surrounding separator is stripped.
+
+.TP 4
+\fB" "
+Ignore variable operator.  Valid everywhere.
+
+.TP 4
+.B %{ }
+Reference to a variable.  The current value of the variable is substituted.
+Valid everywhere.
+
+.TP 4
+Precedence
+\fB|\fR, \fB" "\fR, \fB%{ }
+.RE
+
 
 .SS Scope
 Autodocs, sections, and subsections have scope.  Settings defined in a section
@@ -328,11 +355,22 @@ these variables are global but limited to a single axis.
 Variable references cannot exist inside of other variable references, but
 variables references can be placed in variable values.
 
+.P
+To avoid variable substitution, use double quotes (\fB" "\fR).  The area inside
+the quotes will no be changed and the quotes will be removed.
+
 .TP 4
-Example
-# If %{axis} is b, then %{axisbob} would be robertb.
-.br
+Examples:
+.P
 set.var.axisbob = robert%{axis}
+.br
+When the axis is b, %{axisbob} equals robertb.
+.P
+assert.contains.file=log%{axis}.txt|"%{axis} is a variable"
+.br
+When the axis is b, the assert statement becomes:
+.br
+assert.contains.file=logb.txt|%{axis} is a variable
 
 .P
 .B Built in variables
@@ -719,8 +757,26 @@ that has been pressed is dark), the check box is checked, or the radio button is
 selected.
 
 .TP 4
+.B assert.contains.file = \fIfile_name\fB|\fR[\fB"\fR]\fIliteral_string\fR[\fB"\fR]
+Tests whether a file in the \fItest_directory\fR called \fIfile_name\fR contains
+\fIliteral_string\fR.  Quoting the string is optional and prevents variable substitute.  Note
+that the "\fB|\fR" is part of the command.  It is used for making a list of values.
+
+.TP 4
 .B assert.\fR(\fBexists\fR|\fBnot-exists\fR)\fB.file = \fR(\fIfile_name\fR|\fIrelative_path\fR)
 Tests whether a file exists or does not exist.  \fIFile_name\fR or
+\fIrelative_path\fR is assumed to be in the \fItest_directory\fR.  See
+\fBset.testdir\fR in UITest Autodoc.
+
+.TP 4
+.B assert.same.file = \fR(\fIfile_name\fR|\fIrelative_path\fR)[\fB,\fIcompare_to_file_name\fR]
+Compare a file to another file.  If \fIcompare_to_file_name\fR is not used,
+the file is compared to another file of the same name stored in
+$IMOD_UITEST_DATA.  If \fIcompare_to_file_name\fR is used, the file is compared
+to a file called \fIcompare_to_file_name\fR, which is stored in
+$IMOD_UITEST_DATA.
+Files are sorted and then compared line by line, with comments and blank lines
+being ignored.  \fIFile_name\fR or
 \fIrelative_path\fR is assumed to be in the \fItest_directory\fR.  See
 \fBset.testdir\fR in UITest Autodoc.
 
@@ -732,11 +788,6 @@ mini-button.
 .TP 4
 .B assert.sp.\fIspinner_name\fR[\fB.\fIindex\fR]\fB = \fInumber
 Tests whether \fInumber\fR equals the number in the text field of the spinner.
-
-.TP 4
-.B assert.same.file = \fR(\fIfile_name\fR|\fIrelative_path\fR)
-Compare a file to another file of the same name stored in $IMOD_UITEST_DATA.
-Files are sorted and then compared line by line.
 
 .TP 4
 .B assert.\fR(\fBge\fR|\fBle\fR)\fB.\fBtf.\fItext_field_name\fR[\fB.\fIindex\fR]\fB = \fIvalue
@@ -909,6 +960,12 @@ then jumps back.  The function will be in the file specified by the most recent
 \fBset.adoc\fR command.  The section type of the function must be set by a
 \fBset.adoc\fR command prior to running the function.  Functions contain the
 same commands used in Dialog Sections.  For exampes see \fBset.adoc\fR.
+
+.TP 4
+.B save =
+Saves the dataset.  Equivalent to \fBmn.file\fR followed by \fBmn.save\fR, but
+more reliable for when it is the result of the save and not the menu functionality
+that is being tested.  Command is ignored if the "Save" menu option is disabled.
 
 .TP 4
 .B set.adoc.\fIfunction_section_type\fB = \fR[\fIfile_name\fB.adoc\fR]
