@@ -326,6 +326,10 @@ public final class EtomoMenu {
   boolean equalsOpen(final ActionEvent event) {
     return equals(menuOpen, event);
   }
+  
+  boolean isMenuSaveEnabled() {
+    return menuSave.isEnabled();
+  }
 
   boolean equalsSave(final ActionEvent event) {
     return equals(menuSave, event);
@@ -475,6 +479,10 @@ public final class EtomoMenu {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.16  2009/10/23 19:46:02  sueh
+ * <p> bug# 1275 Make separate menu items for generic parallel process and
+ * <p> NAD.
+ * <p>
  * <p> Revision 1.15  2009/04/02 19:17:28  sueh
  * <p> bug# 1206 Leave tomosnapshot enabled all the time.
  * <p>
