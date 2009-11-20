@@ -27,6 +27,11 @@ import etomo.type.Run3dmodMenuOptions;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.2  2009/10/29 12:14:37  sueh
+ * <p> bug# 1245 Removed btnDuplicateProject.  Removed
+ * <p> duplicateExistingProject.  Changed importMatlabParam to importParam.
+ * <p> Call PeetManager.loadParam() from importParam and copyParameters.
+ * <p>
  * <p> Revision 1.1  2009/10/15 23:39:17  sueh
  * <p> bug# 1274 Factored UseExistingProjectPanel out of PeetDialog.
  * <p> </p>
@@ -126,7 +131,7 @@ final class UseExistingProjectPanel {
       return;
     }
     File file = null;
-    JFileChooser chooser = new JFileChooser(dir);
+    JFileChooser chooser = new FileChooser(dir);
     chooser.setFileFilter(new PeetAndMatlabParamFileFilter());
     chooser.setPreferredSize(UIParameters.INSTANCE.getFileChooserDimension());
     chooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
@@ -157,7 +162,7 @@ final class UseExistingProjectPanel {
           manager.getManagerKey());
       return;
     }
-    JFileChooser chooser = new JFileChooser(dir);
+    JFileChooser chooser = new FileChooser(dir);
     chooser.setFileFilter(new PeetAndMatlabParamFileFilter());
     chooser.setPreferredSize(UIParameters.INSTANCE.getFileChooserDimension());
     chooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
