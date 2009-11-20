@@ -14,6 +14,9 @@ package etomo.uitest;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.3  2009/09/22 21:06:32  sueh
+ * <p> bug# 1259 Added SAME.
+ * <p>
  * <p> Revision 1.2  2009/03/02 20:58:14  sueh
  * <p> bug# 1102 Added GE and LE.
  * <p>
@@ -26,6 +29,7 @@ final class UITestModifierType {
 
   //Cannot be the same as AxisID ("a" or "b")
   static final UITestModifierType ALWAYS = new UITestModifierType("always");
+  static final UITestModifierType CONTAINS = new UITestModifierType("contains");
   static final UITestModifierType ENABLED = new UITestModifierType("enabled");
   static final UITestModifierType EQUALS = new UITestModifierType("equals");
   static final UITestModifierType EXISTS = new UITestModifierType("exists");
@@ -52,6 +56,9 @@ final class UITestModifierType {
     }
     if (ALWAYS.equals(string)) {
       return ALWAYS;
+    }
+    if (CONTAINS.equals(string)) {
+      return CONTAINS;
     }
     if (ENABLED.equals(string)) {
       return ENABLED;
