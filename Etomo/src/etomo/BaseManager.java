@@ -43,6 +43,7 @@ import etomo.type.ProcessName;
 import etomo.type.ProcessResultDisplay;
 import etomo.type.Run3dmodMenuOptions;
 import etomo.type.UserConfiguration;
+import etomo.ui.FileChooser;
 import etomo.ui.LogPanel;
 import etomo.ui.MainPanel;
 import etomo.ui.ParallelPanel;
@@ -1229,7 +1230,7 @@ public abstract class BaseManager {
 
   public static File chunkComscriptAction(Container root) {
     // Open up the file chooser in the working directory
-    JFileChooser chooser = new JFileChooser(new File(EtomoDirector.INSTANCE
+    JFileChooser chooser = new FileChooser(new File(EtomoDirector.INSTANCE
         .getOriginalUserDir()));
     ChunkComscriptFileFilter filter = new ChunkComscriptFileFilter();
     chooser.setFileFilter(filter);
@@ -1315,6 +1316,11 @@ public abstract class BaseManager {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.122  2009/10/27 19:56:43  sueh
+ * <p> bug# 1275 Moving the resposibility for creating thelog panel to the child
+ * <p> classes.  That way the Front Page manager doesn't have to have a log
+ * <p> panel.  Handling a null process manager.
+ * <p>
  * <p> Revision 1.121  2009/10/23 22:20:59  sueh
  * <p> bug# 1275 Made touch() a start function in BaseProcessManager.
  * <p>
