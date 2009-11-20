@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+11/20/09: In Etomo - PEET Added a button to make a copy of a row (excluding
+relative orientation).
+
 11/20/09: In Etomo - PEET added flgRemoveDuplicates, duplicateShiftTolerance,
 and duplicateAngularTolerance.
 
@@ -17,9 +20,8 @@ It can also be used to run a single command file on a remote machine.
 
 10/30/09: In Etomo - PEET changed the ccMode default to one.
 
-10/29/09: In Etomo - PEET added buttons to move volume row up and down.  Added a
-button to add a new row with data from an existing row.  And made the volume
-file chooser more flexible.
+10/29/09: In Etomo - PEET added buttons to move volume row up and down.  And
+made the volume file chooser more flexible.
 
 10/29/09: In Etomo - PEET removed the "Duplicate an Existing Project" button.
 Moved the functionality to the "Import..." button.
