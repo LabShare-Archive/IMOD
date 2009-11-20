@@ -184,7 +184,6 @@ assert.exists.file = %{dataset}%{axis}_ctfcorr.ali
 # run again with parallel processing
 bn.correct-ctf=
 wait.process.processchunks-ctfcorrection%{axis} = done
-#sleep=
 # check files
 assert.exists.file = ctfcorrection%{axis}.log
 assert.exists.file = %{dataset}%{axis}_simple.defocus
@@ -343,8 +342,6 @@ assert.exists.file=%{dataset}%{axis}_3dfind.ali
 assert.exists.file=%{dataset}%{axis}_3dfind.rec
 assert.exists.file=tilt_3dfind_reproject%{axis}.com
 assert.exists.file=tilt_3dfind%{axis}.log~
-assert.exists.file=tilt_3dfind%{axis}-start.log~
-assert.exists.file=tilt_3dfind%{axis}-finish.log~
 assert.exists.file=%{final-align-comscript}_3dfind%{axis}.log~
 assert.exists.file=%{dataset}%{axis}_3dfind.ali~
 assert.exists.file=%{dataset}%{axis}_3dfind.rec~

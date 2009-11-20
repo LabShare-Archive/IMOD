@@ -114,8 +114,6 @@ wait.process.processchunks-tilt%{axis}=done
 [[if = test-gui]]
 	# check files
 	assert.exists.file=tilt%{axis}.log~
-	assert.exists.file=tilt%{axis}-start.log~
-	assert.exists.file=tilt%{axis}-finish.log~
 	assert.exists.file=processchunks%{axis}.out~
 	assert.exists.file=%{dataset}%{tomo-ext}%{axis}.rec~
 	
@@ -192,8 +190,6 @@ bn.generate-trial-tomogram=
 wait.process.processchunks-tilt%{axis}=done
 # check files
 assert.exists.file=tilt%{axis}.log~
-assert.exists.file=tilt%{axis}-start.log~
-assert.exists.file=tilt%{axis}-finish.log~
 assert.exists.file=processchunks%{axis}.out~
 assert.exists.file=trial%{axis}~
 
@@ -247,8 +243,6 @@ wait.process.processchunks-tilt%{axis} = done
 	#assert.exists.file = tilt%{axis}-start.log
 	bn.generate-tomogram =
 	wait.process.processchunks-tilt%{axis} = done
-	assert.exists.file = tilt%{axis}-finish.log~
-	#assert.exists.file = tilt%{axis}-start.log~
 [[]]
 bn.delete-aligned-image-stack=
 bn.done =
