@@ -53,10 +53,10 @@ run.function.setup-test-gui=
 bn.add-volume-and-model=
 wait.file-chooser.open=%{dataset}-a.rec
 wait.file-chooser.open=%{dataset}-a.mod
+#highlight the first row
 mb.volume-table-1-vol-#=
-bn.add-with-copied-data=
-wait.file-chooser.open=%{dataset}-a.rec
-wait.file-chooser.open=%{dataset}-a.mod
+#copy the highlighted row
+bn.copy-row=
 bn.add-volume-and-model=
 wait.file-chooser.open=%{dataset}-b.rec
 wait.file-chooser.open=%{dataset}-b.mod
