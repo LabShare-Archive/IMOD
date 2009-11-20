@@ -97,16 +97,19 @@ final class TextField {
 
   private void setName(String reference) {
     String name = Utilities.convertLabelToName(reference);
-    textField.setName(name);
+    textField.setName(UITestFieldType.TEXT_FIELD.toString()
+        + AutodocTokenizer.SEPARATOR_CHAR + name);
     if (EtomoDirector.INSTANCE.getArguments().isPrintNames()) {
-      System.out.println(UITestFieldType.TEXT_FIELD.toString()
-          + AutodocTokenizer.SEPARATOR_CHAR + name + ' '
-          + AutodocTokenizer.DEFAULT_DELIMITER + ' ');
+      System.out.println(getName() + ' ' + AutodocTokenizer.DEFAULT_DELIMITER
+          + ' ');
     }
   }
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.9  2009/01/20 20:31:23  sueh
+ * <p> bug# 1102 Changed UITestField to UITestFieldType.
+ * <p>
  * <p> Revision 1.8  2008/05/30 22:36:39  sueh
  * <p> bug# 1102 Isolating the etomo.uitest package so it is not need for
  * <p> running EtomoDirector.

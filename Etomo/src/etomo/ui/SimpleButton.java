@@ -21,7 +21,10 @@ import etomo.util.Utilities;
  * 
  * @version $Revision$
  * 
- * <p> $Log$ </p>
+ * <p> $Log$
+ * <p> Revision 1.1  2009/01/20 20:27:35  sueh
+ * <p> bug# 1102 A self-naming JButton.
+ * <p> </p>
  */
 final class SimpleButton extends JButton {
   public static final String rcsid = "$Id$";
@@ -47,11 +50,11 @@ final class SimpleButton extends JButton {
   public void setName(String text) {
     String 
       name = Utilities.convertLabelToName(text);
-    super.setName(name);
+    super.setName(UITestFieldType.BUTTON.toString()
+        + AutodocTokenizer.SEPARATOR_CHAR + name);
     if (EtomoDirector.INSTANCE.getArguments().isPrintNames()) {
-      System.out.println(UITestFieldType.BUTTON.toString()
-          + AutodocTokenizer.SEPARATOR_CHAR + name + ' '
-          + AutodocTokenizer.DEFAULT_DELIMITER + ' ');
+      System.out.println(getName() + ' ' + AutodocTokenizer.DEFAULT_DELIMITER
+          + ' ');
     }
   }
 }

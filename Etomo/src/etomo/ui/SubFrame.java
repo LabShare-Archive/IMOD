@@ -68,7 +68,8 @@ public final class SubFrame extends EtomoFrame {
     rootPanel.setLayout(new BorderLayout());
     //set name
     String name = Utilities.convertLabelToName(NAME);
-    rootPanel.setName(name);
+    rootPanel.setName(UITestFieldType.PANEL.toString()
+        + AutodocTokenizer.SEPARATOR_CHAR + name);
     if (EtomoDirector.INSTANCE.getArguments().isPrintNames()) {
       System.out.println(UITestFieldType.PANEL.toString()
           + AutodocTokenizer.SEPARATOR_CHAR + name + ' '
@@ -169,6 +170,10 @@ public final class SubFrame extends EtomoFrame {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.11  2009/02/04 23:36:26  sueh
+ * <p> bug# 1158 Add a View pull down menu and menu options for the log
+ * <p> frame.
+ * <p>
  * <p> Revision 1.10  2009/01/20 20:30:16  sueh
  * <p> bug# 1102 Printing out the name of the sub-frame.
  * <p>

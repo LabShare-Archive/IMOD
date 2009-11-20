@@ -106,10 +106,10 @@ final class RadioButton implements RadioButtonInterface {
 
   void setName(final String text) {
     String name = Utilities.convertLabelToName(text);
-    radioButton.setName(name);
+    radioButton.setName(UITestFieldType.RADIO_BUTTON.toString()
+        + AutodocTokenizer.SEPARATOR_CHAR + name);
     if (EtomoDirector.INSTANCE.getArguments().isPrintNames()) {
-      System.out.println(UITestFieldType.RADIO_BUTTON.toString()
-          + AutodocTokenizer.SEPARATOR_CHAR + name + ' '
+      System.out.println(radioButton.getName() + ' '
           + AutodocTokenizer.DEFAULT_DELIMITER + ' ');
     }
   }
@@ -225,6 +225,9 @@ final class RadioButton implements RadioButtonInterface {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.23  2009/04/13 22:58:01  sueh
+ * <p> Removed newstuff.
+ * <p>
  * <p> Revision 1.22  2009/02/27 03:54:22  sueh
  * <p> bug# 1172 Added experimental automation recording background color
  * <p> (newstuff only).

@@ -12,6 +12,11 @@
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.27  2009/09/20 21:27:19  sueh
+ * <p> bug# 1268 Added a default value.  Set spinner value to default value in
+ * <p> setValue when parameter value is null.  Removed setValue(Object)
+ * <p> because it would be hard to tell if the parameter value was null.
+ * <p>
  * <p> Revision 1.26  2009/09/01 03:18:24  sueh
  * <p> bug# 1222
  * <p>
@@ -152,10 +157,10 @@ final class LabeledSpinner {
     this.defaultValue = new Integer(defaultValue);
     //set name
     String name = Utilities.convertLabelToName(spinLabel);
-    spinner.setName(name);
+    spinner.setName(UITestFieldType.SPINNER.toString()
+        + AutodocTokenizer.SEPARATOR_CHAR + name);
     if (EtomoDirector.INSTANCE.getArguments().isPrintNames()) {
-      System.out.println(UITestFieldType.SPINNER.toString()
-          + AutodocTokenizer.SEPARATOR_CHAR + name + ' '
+      System.out.println(spinner.getName() + ' '
           + AutodocTokenizer.DEFAULT_DELIMITER + ' ');
     }
     //set label

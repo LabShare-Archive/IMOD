@@ -25,6 +25,10 @@ import etomo.util.Utilities;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.35  2009/10/15 23:36:45  sueh
+ * <p> bug# 1274 in isEmpty, corrected compare, which was using "|" instead of
+ * <p> "||".
+ * <p>
  * <p> Revision 3.34  2009/04/13 22:56:07  sueh
  * <p> Removed newstuff.
  * <p>
@@ -212,10 +216,10 @@ final class LabeledTextField {
 
   private void setName(final String tfLabel) {
     String name = Utilities.convertLabelToName(tfLabel);
-    textField.setName(name);
+    textField.setName(UITestFieldType.TEXT_FIELD.toString()
+        + AutodocTokenizer.SEPARATOR_CHAR + name);
     if (EtomoDirector.INSTANCE.getArguments().isPrintNames()) {
-      System.out.println(UITestFieldType.TEXT_FIELD.toString()
-          + AutodocTokenizer.SEPARATOR_CHAR + name + ' '
+      System.out.println(textField.getName() + ' '
           + AutodocTokenizer.DEFAULT_DELIMITER + ' ');
     }
   }

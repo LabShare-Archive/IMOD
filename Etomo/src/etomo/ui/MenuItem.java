@@ -20,7 +20,10 @@ import etomo.util.Utilities;
  * 
  * @version $Revision$
  * 
- * <p> $Log$ </p>
+ * <p> $Log$
+ * <p> Revision 1.3  2009/01/20 20:15:32  sueh
+ * <p> bug# 1102 A self-naming JMenuItem.
+ * <p> </p>
  */
 final class MenuItem extends JMenuItem {
   public static final String rcsid = "$Id$";
@@ -44,11 +47,11 @@ final class MenuItem extends JMenuItem {
 
   public void setName(String text) {
     String name = Utilities.convertLabelToName(text);
-    super.setName(name);
+    super.setName(UITestFieldType.MENU_ITEM.toString()
+        + AutodocTokenizer.SEPARATOR_CHAR + name);
     if (EtomoDirector.INSTANCE.getArguments().isPrintNames()) {
-      System.out.println(UITestFieldType.MENU_ITEM.toString()
-          + AutodocTokenizer.SEPARATOR_CHAR + name + ' '
-          + AutodocTokenizer.DEFAULT_DELIMITER + ' ');
+      System.out.println(getName() + ' ' + AutodocTokenizer.DEFAULT_DELIMITER
+          + ' ');
     }
   }
 }

@@ -56,16 +56,19 @@ final class TabbedPane extends JTabbedPane {
 
   public void setName(String text) {
     String name = Utilities.convertLabelToName(text);
-    super.setName(name);
+    super.setName(UITestFieldType.TAB.toString()
+        + AutodocTokenizer.SEPARATOR_CHAR + name);
     if (EtomoDirector.INSTANCE.getArguments().isPrintNames()) {
-      System.out.println(UITestFieldType.TAB.toString()
-          + AutodocTokenizer.SEPARATOR_CHAR + name
-          + AutodocTokenizer.DEFAULT_DELIMITER + ' ');
+      System.out.println(getName() + ' ' + AutodocTokenizer.DEFAULT_DELIMITER
+          + ' ');
     }
   }
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.6  2009/01/20 20:31:03  sueh
+ * <p> bug# 1102 Added setName.
+ * <p>
  * <p> Revision 1.5  2008/05/30 22:36:28  sueh
  * <p> bug# 1102 Isolating the etomo.uitest package so it is not need for
  * <p> running EtomoDirector.

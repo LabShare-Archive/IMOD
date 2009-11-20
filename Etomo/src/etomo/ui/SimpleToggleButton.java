@@ -20,7 +20,10 @@ import etomo.util.Utilities;
  * 
  * @version $Revision$
  * 
- * <p> $Log$ </p>
+ * <p> $Log$
+ * <p> Revision 1.1  2009/01/20 20:27:49  sueh
+ * <p> bug# 1102 A self-naming JToggleButton.
+ * <p> </p>
  */
 final class SimpleToggleButton extends JToggleButton  {
   public static final String rcsid = "$Id$";
@@ -41,11 +44,11 @@ final class SimpleToggleButton extends JToggleButton  {
 
   public void setName(String text) {
     String name= Utilities.convertLabelToName(text);
-    super.setName(name);
+    super.setName(UITestFieldType.BUTTON.toString()
+        + AutodocTokenizer.SEPARATOR_CHAR + name);
     if (EtomoDirector.INSTANCE.getArguments().isPrintNames()) {
-      System.out.println(UITestFieldType.BUTTON.toString()
-          + AutodocTokenizer.SEPARATOR_CHAR + name + ' '
-          + AutodocTokenizer.DEFAULT_DELIMITER + ' ');
+      System.out.println(getName() + ' ' + AutodocTokenizer.DEFAULT_DELIMITER
+          + ' ');
     }
   }
 }

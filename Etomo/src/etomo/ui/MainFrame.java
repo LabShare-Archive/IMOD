@@ -35,6 +35,9 @@ import etomo.util.Utilities;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.58  2009/10/27 20:42:53  sueh
+ * <p> bug# 1275 Moved FrontPageDialog to FrontPageManager.
+ * <p>
  * <p> Revision 3.57  2009/10/23 19:47:26  sueh
  * <p> bug# 1275 Make separate menu items for generic parallel process and
  * <p> NAD.  Added default display FrontPageDialog.
@@ -498,7 +501,8 @@ public final class MainFrame extends EtomoFrame implements ContextMenu {
     rootPanel.setMaximumSize(rootPanelSize);
     //set name
     String name = Utilities.convertLabelToName(NAME);
-    rootPanel.setName(name);
+    rootPanel.setName(UITestFieldType.PANEL.toString()
+        + AutodocTokenizer.SEPARATOR_CHAR + name);
     if (EtomoDirector.INSTANCE.getArguments().isPrintNames()) {
       System.out.println(UITestFieldType.PANEL.toString()
           + AutodocTokenizer.SEPARATOR_CHAR + name + ' '

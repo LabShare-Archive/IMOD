@@ -44,6 +44,9 @@ import java.lang.String;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.40  2009/09/01 03:18:25  sueh
+ * <p> bug# 1222
+ * <p>
  * <p> Revision 3.39  2009/04/13 22:57:09  sueh
  * <p> Removed newstuff.
  * <p>
@@ -350,11 +353,11 @@ class MultiLineButton implements ProcessResultDisplay {
    */
   void setName(String label) {
     String name = Utilities.convertLabelToName(label);
-    button.setName(name);
+    button.setName(UITestFieldType.BUTTON.toString()
+        + AutodocTokenizer.SEPARATOR_CHAR + name);
     if (EtomoDirector.INSTANCE.getArguments().isPrintNames()) {
-      System.out.println(UITestFieldType.BUTTON.toString()
-          + AutodocTokenizer.SEPARATOR_CHAR + name + ' '
-          + AutodocTokenizer.DEFAULT_DELIMITER + ' ');
+      System.out.println(getName() + ' ' + AutodocTokenizer.DEFAULT_DELIMITER
+          + ' ');
     }
   }
 

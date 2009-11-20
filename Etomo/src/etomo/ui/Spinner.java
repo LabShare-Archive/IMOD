@@ -32,6 +32,9 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.15  2009/01/20 20:29:33  sueh
+ * <p> bug# 1102 Changed UITestField to UITestFieldType.
+ * <p>
  * <p> Revision 1.14  2009/01/13 19:40:12  sueh
  * <p> bug# 1170 Added a static getInstance function which takes value, min, and max.
  * <p>
@@ -92,11 +95,11 @@ final class Spinner {
     model = new SpinnerNumberModel(value, minimum, maximum, step);
     spinner = new JSpinner(model);
     this.defaultValue = new Integer(value);
-    String name = Utilities.convertLabelToName(label);
+    String name = UITestFieldType.SPINNER.toString()
+        + AutodocTokenizer.SEPARATOR_CHAR + Utilities.convertLabelToName(label);
     spinner.setName(name);
     if (EtomoDirector.INSTANCE.getArguments().isPrintNames()) {
-      System.out.println(UITestFieldType.SPINNER.toString()
-          + AutodocTokenizer.SEPARATOR_CHAR + name + ' '
+      System.out.println(spinner.getName() + ' '
           + AutodocTokenizer.DEFAULT_DELIMITER + ' ');
     }
     if (labeled) {
@@ -126,7 +129,7 @@ final class Spinner {
   static Spinner getInstance(final String name) {
     return new Spinner(name, false, 1, 1, 1, 1);
   }
-  
+
   static Spinner getInstance(final String label, final int value,
       final int minimum, final int maximum) {
     return new Spinner(label, false, value, minimum, maximum, 1);
