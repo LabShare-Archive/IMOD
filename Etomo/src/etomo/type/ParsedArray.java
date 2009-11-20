@@ -32,6 +32,10 @@ import etomo.util.PrimativeTokenizer;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.20  2009/09/05 00:31:59  sueh
+ * <p> bug# 1256 Removed instance types associated with non-matlab iterator
+ * <p> arrays.
+ * <p>
  * <p> Revision 1.19  2008/09/10 21:00:32  sueh
  * <p> bug# 1135 Check for null when calling ParsedElementList.get(int).  Check
  * <p> for null when calling ParsedElement.getElement or getRawNumber.  ParsedElementList will no longer create an empty element, so null returns will happen.  Handle lstThreshold with more flexibility.  Added functions the handle array descriptors which are simpler to call.  Can get the other items in lstThreshold without knowing where they are now; just added an exclude index to the getString function to exclude the first array descriptor.
@@ -551,6 +555,12 @@ public final class ParsedArray extends ParsedElement {
     element.setDebug(debug);
     element.setDefault(defaultValue);
     array.set(index, element);
+  }
+  
+  public void addElement(ParsedElement element) {
+    element.setDebug(debug);
+    element.setDefault(defaultValue);
+    array.add(element);
   }
 
   void store(final Properties props, String prepend) {
