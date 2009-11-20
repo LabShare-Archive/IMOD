@@ -59,6 +59,9 @@ import etomo.util.Utilities;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 1.70  2009/09/20 21:32:41  sueh
+ * <p> bug# 1268 Added timestamp and dialog identification to log.
+ * <p>
  * <p> Revision 1.69  2009/09/01 03:18:25  sueh
  * <p> bug# 1222
  * <p>
@@ -2012,7 +2015,7 @@ public final class JoinDialog implements ContextMenu, Run3dmodButtonContainer {
 
   protected void workingDirAction() {
     //  Open up the file chooser in the current working directory
-    JFileChooser chooser = new JFileChooser(new File(manager
+    JFileChooser chooser = new FileChooser(new File(manager
         .getPropertyUserDir()));
     chooser.setPreferredSize(UIParameters.INSTANCE.getFileChooserDimension());
     chooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
@@ -2030,7 +2033,7 @@ public final class JoinDialog implements ContextMenu, Run3dmodButtonContainer {
 
   protected void modelFileAction() {
     //  Open up the file chooser in the current working directory
-    JFileChooser chooser = new JFileChooser(new File(manager
+    JFileChooser chooser = new FileChooser(new File(manager
         .getPropertyUserDir()));
     ModelFileFilter modelFilter = new ModelFileFilter();
     chooser.setFileFilter(modelFilter);
