@@ -44,6 +44,9 @@ import etomo.util.DatasetFiles;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.33  2009/10/30 20:53:34  sueh
+ * <p> bug# 1284 Changed the CCMode default to local.
+ * <p>
  * <p> Revision 1.32  2009/09/28 18:34:23  sueh
  * <p> bug# 1235 In buildParsableValues, removing edgeShift if it is empty.
  * <p>
@@ -307,6 +310,9 @@ public final class MatlabParam {
   public static final String N_WEIGHT_GROUP_KEY = "nWeightGroup";
   public static final int N_WEIGHT_GROUP_DEFAULT = 8;
   public static final int N_WEIGHT_GROUP_MIN = 2;
+  public static final String FLG_REMOVE_DUPLICATES_KEY = "flgRemoveDuplicates";
+  public static final String DUPLICATE_SHIFT_TOLERANCE_KEY = "duplicateShiftTolerance";
+  public static final String DUPLICATE_ANGULAR_TOLERANCE_KEY = "duplicateAngularTolerance";
 
   private static final int VOLUME_INDEX = 0;
   private static final int PARTICLE_INDEX = 1;
@@ -349,6 +355,8 @@ public final class MatlabParam {
   private final ParsedNumber outsideMaskRadius = ParsedNumber
       .getMatlabInstance();
   private final ParsedNumber nWeightGroup = ParsedNumber.getMatlabInstance();
+  private final ParsedNumber flgRemoveDuplicates = ParsedNumber
+      .getMatlabInstance();
 
   private final ManagerKey managerKey;
 
@@ -569,6 +577,10 @@ public final class MatlabParam {
     this.fnOutput.setRawString(fnOutput);
   }
 
+  public void setFlgRemoveDuplicates(boolean input) {
+    flgRemoveDuplicates.setRawString(input);
+  }
+
   public boolean useReferenceFile() {
     return useReferenceFile;
   }
@@ -624,6 +636,10 @@ public final class MatlabParam {
       }
     }
     return true;
+  }
+
+  public boolean isFlgRemoveDuplicates() {
+    return flgRemoveDuplicates.getRawBoolean();
   }
 
   public boolean isRefFlagAllTom() {
@@ -740,6 +756,7 @@ public final class MatlabParam {
     nWeightGroup.clear();
     useNWeightGroup = false;
     tiltRangeEmpty = false;
+    flgRemoveDuplicates.clear();
   }
 
   public void clearEdgeShift() {
@@ -1021,6 +1038,8 @@ public final class MatlabParam {
     outsideMaskRadius.parse(autodoc.getAttribute(OUTSIDE_MASK_RADIUS_KEY));
     //nWeightGroup
     nWeightGroup.parse(autodoc.getAttribute(N_WEIGHT_GROUP_KEY));
+    //flgRemoveDuplicates
+    flgRemoveDuplicates.parse(autodoc.getAttribute(FLG_REMOVE_DUPLICATES_KEY));
   }
 
   /**
@@ -1108,6 +1127,14 @@ public final class MatlabParam {
     ParsedList refThreshold = ParsedList
         .getMatlabInstance(EtomoNumber.Type.FLOAT);
     refThreshold.parse(autodoc.getAttribute(REF_THRESHOLD_KEY));
+    //duplicateShiftTolerance
+    ParsedArray duplicateShiftTolerance = ParsedArray.getMatlabInstance();
+    duplicateShiftTolerance.parse(autodoc
+        .getAttribute(DUPLICATE_SHIFT_TOLERANCE_KEY));
+    //duplicateAngularTolerance
+    ParsedArray duplicateAngularTolerance = ParsedArray.getMatlabInstance();
+    duplicateAngularTolerance.parse(autodoc
+        .getAttribute(DUPLICATE_ANGULAR_TOLERANCE_KEY));
     size = Math.max(size, refThreshold.size());
     //add elements to iterationList
     for (int i = 0; i < size; i++) {
@@ -1119,6 +1146,10 @@ public final class MatlabParam {
       iteration.setLowCutoff(lowCutoff.getElement(i));
       iteration.setHiCutoff(hiCutoff.getElement(i));
       iteration.setRefThreshold(refThreshold.getElement(i));
+      iteration.setDuplicateShiftTolerance(duplicateShiftTolerance
+          .getElement(i));
+      iteration.setDuplicateAngularTolerance(duplicateAngularTolerance
+          .getElement(i));
       iterationList.add(iteration);
     }
   }
@@ -1179,6 +1210,8 @@ public final class MatlabParam {
     if (useNWeightGroup) {
       valueMap.put(N_WEIGHT_GROUP_KEY, nWeightGroup.getParsableString());
     }
+    valueMap.put(FLG_REMOVE_DUPLICATES_KEY, flgRemoveDuplicates
+        .getParsableString());
   }
 
   /**
@@ -1234,6 +1267,8 @@ public final class MatlabParam {
     ParsedList hiCutoff = ParsedList.getMatlabInstance(EtomoNumber.Type.FLOAT);
     ParsedList refThreshold = ParsedList
         .getMatlabInstance(EtomoNumber.Type.FLOAT);
+    ParsedArray duplicateShiftTolerance = ParsedArray.getMatlabInstance();
+    ParsedArray duplicateAngularTolerance = ParsedArray.getMatlabInstance();
     //build the lists
     for (int i = 0; i < iterationList.size(); i++) {
       Iteration iteration = (Iteration) iterationList.get(i);
@@ -1244,6 +1279,11 @@ public final class MatlabParam {
       lowCutoff.addElement(iteration.getLowCutoff());
       hiCutoff.addElement(iteration.getHiCutoff());
       refThreshold.addElement(iteration.getRefThreshold());
+      duplicateShiftTolerance
+          .addElement(iteration.getDuplicateShiftTolerance());
+      duplicateAngularTolerance.addElement(iteration
+          .getDuplicateAngularTolerance());
+
     }
     valueMap.put(D_PHI_KEY, dPhi.getParsableString());
     valueMap.put(D_THETA_KEY, dTheta.getParsableString());
@@ -1252,6 +1292,10 @@ public final class MatlabParam {
     valueMap.put(LOW_CUTOFF_KEY, lowCutoff.getParsableString());
     valueMap.put(HI_CUTOFF_KEY, hiCutoff.getParsableString());
     valueMap.put(REF_THRESHOLD_KEY, refThreshold.getParsableString());
+    valueMap.put(DUPLICATE_SHIFT_TOLERANCE_KEY, duplicateShiftTolerance
+        .getParsableString());
+    valueMap.put(DUPLICATE_ANGULAR_TOLERANCE_KEY, duplicateAngularTolerance
+        .getParsableString());
   }
 
   /**
@@ -1342,6 +1386,8 @@ public final class MatlabParam {
     else {
       removeNameValuePair(autodoc, N_WEIGHT_GROUP_KEY);
     }
+    setNameValuePairValue(autodoc, FLG_REMOVE_DUPLICATES_KEY, (String) valueMap
+        .get(FLG_REMOVE_DUPLICATES_KEY), commentMap);
   }
 
   /**
@@ -1386,6 +1432,10 @@ public final class MatlabParam {
         .get(HI_CUTOFF_KEY), commentMap);
     setNameValuePairValue(autodoc, REF_THRESHOLD_KEY, (String) valueMap
         .get(REF_THRESHOLD_KEY), commentMap);
+    setNameValuePairValue(autodoc, DUPLICATE_SHIFT_TOLERANCE_KEY, (String) valueMap
+        .get(DUPLICATE_SHIFT_TOLERANCE_KEY), commentMap);
+    setNameValuePairValue(autodoc, DUPLICATE_ANGULAR_TOLERANCE_KEY, (String) valueMap
+        .get(DUPLICATE_ANGULAR_TOLERANCE_KEY), commentMap);
   }
 
   /**
@@ -1927,6 +1977,10 @@ public final class MatlabParam {
         .getMatlabInstance(EtomoNumber.Type.FLOAT);
     private final ParsedNumber refThreshold = ParsedNumber
         .getMatlabInstance(EtomoNumber.Type.FLOAT);
+    private final ParsedNumber duplicateShiftTolerance = ParsedNumber
+        .getMatlabInstance();
+    private final ParsedNumber duplicateAngularTolerance = ParsedNumber
+        .getMatlabInstance();
 
     //search spaces
     private final SearchAngleArea dPhi = new SearchAngleArea();
@@ -1988,6 +2042,14 @@ public final class MatlabParam {
       refThreshold.setRawString(input);
     }
 
+    public void setDuplicateShiftTolerance(String input) {
+      duplicateShiftTolerance.setRawString(input);
+    }
+
+    public void setDuplicateAngularTolerance(String input) {
+      duplicateAngularTolerance.setRawString(input);
+    }
+
     /**
      * assume that the current format is start:inc:end even if inc is empty
      * @return inc
@@ -2026,6 +2088,14 @@ public final class MatlabParam {
 
     public String getRefThresholdString() {
       return refThreshold.getRawString();
+    }
+
+    public String getDuplicateShiftToleranceString() {
+      return duplicateShiftTolerance.getRawString();
+    }
+
+    public String getDuplicateAngularToleranceString() {
+      return duplicateAngularTolerance.getRawString();
     }
 
     private void setDPhi(final ParsedElement input) {
@@ -2091,8 +2161,26 @@ public final class MatlabParam {
       return refThreshold;
     }
 
+    public ParsedElement getDuplicateShiftTolerance() {
+      return duplicateShiftTolerance;
+    }
+
+    public ParsedElement getDuplicateAngularTolerance() {
+      return duplicateAngularTolerance;
+    }
+
     private void setRefThreshold(final ParsedElement refThreshold) {
       this.refThreshold.setElement(refThreshold);
+    }
+
+    private void setDuplicateShiftTolerance(
+        final ParsedElement duplicateShiftTolerance) {
+      this.duplicateShiftTolerance.setElement(duplicateShiftTolerance);
+    }
+
+    private void setDuplicateAngularTolerance(
+        final ParsedElement duplicateAngularTolerance) {
+      this.duplicateAngularTolerance.setElement(duplicateAngularTolerance);
     }
   }
 }
