@@ -21,6 +21,9 @@ import etomo.type.UITestSubjectType;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.2  2009/09/01 03:18:33  sueh
+ * <p> bug# 1222
+ * <p>
  * <p> Revision 1.1  2009/01/20 20:48:59  sueh
  * <p> bug# 1102 Class that holds the subject portion of a Command.
  * <p> </p>
@@ -81,8 +84,8 @@ class Subject extends Assert {
     }
     else {
       axisID = AxisID.ONLY;
-      //name can't be axis, or action, field type
-      UITestActionType actionType = UITestActionType.getInstance(leftSide);
+      //name can't be axis, or a subcommand action, field type
+      UITestActionType actionType = UITestActionType.getSubcommandInstance(leftSide);
       UITestFieldType fieldType = UITestFieldType.getInstance(leftSide);
       if (actionType == null && fieldType == null) {
         //Set name
