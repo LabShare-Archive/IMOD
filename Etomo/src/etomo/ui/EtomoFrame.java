@@ -94,6 +94,10 @@ abstract class EtomoFrame extends JFrame {
     return menu.isMenu3dmodStartupWindow();
   }
 
+  final boolean isMenuSaveEnabled() {
+    return menu.isMenuSaveEnabled();
+  }
+
   final boolean isMenu3dmodBinBy2() {
     return menu.isMenu3dmodBinBy2();
   }
@@ -154,7 +158,7 @@ abstract class EtomoFrame extends JFrame {
     }
   }
 
-  private void save(AxisID axisID) {
+  void save(AxisID axisID) {
     ManagerKey managerKey = currentManager.getManagerKey();
     try {
       if (currentManager.saveParamFile()) {
@@ -375,7 +379,7 @@ abstract class EtomoFrame extends JFrame {
       getOtherFrame().menu.setEnabledNewGenericParallel(enable);
     }
   }
-  
+
   void setEnabledNewAnisotropicDiffusionMenuItem(boolean enable) {
     menu.setEnabledNewAnisotropicDiffusion(enable);
     EtomoFrame otherFrame = getOtherFrame();
@@ -782,7 +786,7 @@ abstract class EtomoFrame extends JFrame {
   private boolean getParamFilename() {
     //  Open up the file chooser in current working directory
     File workingDir = new File(currentManager.getPropertyUserDir());
-    JFileChooser chooser = new JFileChooser(workingDir);
+    JFileChooser chooser = new FileChooser(workingDir);
     DataFileFilter fileFilter = mainPanel.getDataFileFilter();
     chooser.setFileFilter(fileFilter);
     chooser.setDialogTitle("Save " + fileFilter.getDescription());
@@ -867,7 +871,7 @@ abstract class EtomoFrame extends JFrame {
    */
   private File openDataFileDialog() {
     //  Open up the file chooser in current working directory
-    JFileChooser chooser = new JFileChooser(new File(System
+    JFileChooser chooser = new FileChooser(new File(System
         .getProperty("user.dir")));
     DataFileFilter fileFilter = new DataFileFilter();
     chooser.setFileFilter(fileFilter);
@@ -926,6 +930,10 @@ abstract class EtomoFrame extends JFrame {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.44  2009/10/23 19:45:53  sueh
+ * <p> bug# 1275 Make separate menu items for generic parallel process and
+ * <p> NAD.
+ * <p>
  * <p> Revision 1.43  2009/04/02 19:16:58  sueh
  * <p> bug# 1206 Tomosnapshot no longer uses a process display.
  * <p>
