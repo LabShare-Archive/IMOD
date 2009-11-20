@@ -41,6 +41,9 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.18  2009/09/20 21:31:56  sueh
+ * <p> bug# 1268 Added timestamp and dialog identification to log.
+ * <p>
  * <p> Revision 1.17  2009/09/05 00:38:08  sueh
  * <p> bug# 1256 Made ITERATION_LIST_LABEL public.  Moved error reporting when iteration list is set to functions called by the set... function.
  * <p>
@@ -604,7 +607,7 @@ public final class AnisotropicDiffusionDialog implements ContextMenu,
 
   private void openVolume() {
     File volume = null;
-    JFileChooser chooser = new JFileChooser(new File(manager
+    JFileChooser chooser = new FileChooser(new File(manager
         .getPropertyUserDir()));
     chooser.setPreferredSize(UIParameters.INSTANCE.getFileChooserDimension());
     chooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
