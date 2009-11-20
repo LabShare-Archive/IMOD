@@ -24,6 +24,9 @@ import etomo.type.UITestSubjectType;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.6  2009/09/22 21:05:27  sueh
+ * <p> bug# 1259 In replaceVariables handling empty variable.
+ * <p>
  * <p> Revision 1.5  2009/09/02 22:46:08  sueh
  * <p> bug# 1254 Adding field to subcommand.
  * <p>
@@ -43,6 +46,9 @@ import etomo.type.UITestSubjectType;
 final class Command extends Assert {
   public static final String rcsid = "$Id$";
 
+  private static final String SEPARATOR_OPERATOR = "|";
+  private static final char IGNORE_VARIABLE_OPERATOR = '"';
+
   private final Subject subject;
   private final Field field;
   //current axis being tested
@@ -53,6 +59,7 @@ final class Command extends Assert {
   private UITestModifierType modifierType = null;
   private Command subcommand = null;
   private String value = null;
+  private String[] valueArray = null;
   private ReadOnlySection subsection = null;
   private String string = null;
   private boolean known = false;
@@ -74,6 +81,7 @@ final class Command extends Assert {
       subcommand.reset();
     }
     value = null;
+    valueArray = null;
     string = null;
     known = false;
   }
@@ -129,7 +137,7 @@ final class Command extends Assert {
     String leftSide = statement.getLeftSide(i);
     assertNull("unknown attributes at the end of the command - " + leftSide
         + " (" + string + ")", leftSide);
-    value = replaceVariables(statement.getRightSide(), variableList, testAxisID);
+    setValue(statement.getRightSide(), variableList);
     known = true;
     //validate
     assertValid();
@@ -147,7 +155,7 @@ final class Command extends Assert {
     reset();
     assertNotNull("statement is null", statement);
     string = statement.getString();
-    actionType = UITestActionType.getInstance(statement.getLeftSide(startAt));
+    actionType = UITestActionType.getSubcommandInstance(statement.getLeftSide(startAt));
     if (actionType == null) {
       return startAt;
     }
@@ -160,44 +168,119 @@ final class Command extends Assert {
     i = subject.set(statement, i, variableList);
     i = field.set(statement, i, variableList);
     String leftSide = statement.getLeftSide(i);
-    value = replaceVariables(statement.getRightSide(), variableList, testAxisID);
+    setValue(statement.getRightSide(), variableList);
     known = true;
     //validate
     assertValid();
     return i;
   }
 
+  private void setValue(String rightSide, VariableList variableList) {
+    if (rightSide != null) {
+      valueArray = rightSide.trim().split(
+          "\\s*\\" + SEPARATOR_OPERATOR + "\\s*");
+    }
+    if (valueArray != null) {
+      StringBuffer buffer = new StringBuffer();
+      for (int i = 0; i < valueArray.length; i++) {
+        valueArray[i] = replaceVariables(valueArray[i], variableList,
+            testAxisID);
+        buffer.append(valueArray[i]
+            + (i < valueArray.length - 1 ? SEPARATOR_OPERATOR : ""));
+      }
+      if (buffer.length() > 0) {
+        value = buffer.toString();
+      }
+    }
+  }
+
+  /**
+   * Replace variables references.  They have the syntax %{variablie_name}.  Do
+   * not replace variable references inside of matching double quotes.  Strip
+   * matching double quotes.
+   * @param input
+   * @param variableList
+   * @param axisID
+   * @return
+   */
   static String replaceVariables(String input, VariableList variableList,
       AxisID axisID) {
-    if (variableList == null || input == null
-        || !input.matches(".*%\\{.+\\}.*")) {
+    //Return input as is if it is empty.
+    if (variableList == null || input == null) {
       return input;
     }
     StringBuffer buffer = new StringBuffer();
-    buffer.append(input);
-    boolean done = false;
-    int start;
-    int end;
-    while (!done) {
-      start = buffer.indexOf("%{");
-      if (start == -1) {
-        done = true;
-        continue;
+    boolean ignoringVariables = false;
+    int variableRefStart = -1;
+    int bufferVariableRefStart = -1;
+    int index = 0;
+    //Walk through input looking for quotes and variable references.  Put each
+    //character into the buffer, replacing variable references.
+    while (index < input.length()) {
+      char curChar = input.charAt(index);
+      if (curChar == IGNORE_VARIABLE_OPERATOR) {
+        //Found a quote.  Decide whether this is a start quote, an end quote, or
+        //an unmatched quote.
+        if (ignoringVariables) {
+          //Found end quote.
+          ignoringVariables = false;
+        }
+        //This is a start quote if a matching end quote can be found, otherwise
+        //ignore it.
+        else if (index + 1 < input.length()
+            && input.indexOf(IGNORE_VARIABLE_OPERATOR, index + 1) != -1) {
+          //Found start quote.
+          ignoringVariables = true;
+          //Quotes take precedence over variable references, so a matched quote
+          //in the middle of a variable reference invalidates the variable
+          //reference.
+          variableRefStart = -1;
+          bufferVariableRefStart = -1;
+        }
+        else {
+          //Not a start or end quote so don't strip it.
+          buffer.append(curChar);
+        }
       }
-      end = buffer.indexOf("}", start);
-      if (end == -1) {
-        done = true;
-        continue;
+      else {
+        //Only matching quotes are stripped.
+        buffer.append(curChar);
+        //If not ignoring variables, check for a variable reference.
+        if (!ignoringVariables) {
+          //If not already in a variable reference, check for the start of a
+          //variable reference %{.
+          if (variableRefStart == -1 && curChar == '%'
+              && input.length() > index + 1 && input.charAt(index + 1) == '{') {
+            //May be the start of a variable reference.
+            variableRefStart = index;
+            bufferVariableRefStart = buffer.length() - 1;
+            //Move the index forward to the {.
+            index++;
+            buffer.append(input.charAt(index));
+          }
+          //If currently inside a variables reference, check for the end of the
+          //variable reference.  Ignore empty variable references.
+          else if (variableRefStart != -1 && curChar == '}'
+              && bufferVariableRefStart + 2 < buffer.length() - 1) {
+            //Found the end of the variable reference - substitute.
+            String variableName = buffer.substring(bufferVariableRefStart + 2, buffer.length() - 1);
+            assertTrue("Unknown variable " + variableName + " (" + input + ")",
+                variableList.isVariableSet(variableName, axisID));
+            String variableValue = variableList.getVariableValue(variableName,
+                axisID);
+            if (variableValue == null) {
+              variableValue = "";
+            }
+            //Replace the variable reference, including the %{} characters, in the
+            //buffer.
+            buffer.replace(bufferVariableRefStart, buffer.length(),
+                variableValue);
+            variableRefStart = -1;
+            bufferVariableRefStart = -1;
+          }
+        }
       }
-      String variableName = buffer.substring(start + 2, end);
-      assertTrue("Unknown variable " + variableName + " (" + input + ")",
-          variableList.isVariableSet(variableName, axisID));
-      String variableValue = variableList
-          .getVariableValue(variableName, axisID);
-      if (variableValue == null) {
-        variableValue = "";
-      }
-      buffer.replace(start, end + 1, variableValue);
+      index++;
     }
     return buffer.toString();
   }
@@ -251,6 +334,27 @@ final class Command extends Assert {
 
   String getValue() {
     return value;
+  }
+
+  /**
+   * Return the valueArray[index].  ValueArray is value, broken up by dividers
+   * (commas).  Whitespace around the commas is considered to be part of the
+   * divider.
+   * @param index
+   * @return valueArray[index] or null for an invalid request
+   */
+  String getValue(int index) {
+    if (valueArray == null || valueArray.length == 0) {
+      if (index == 0) {
+        return value;
+      }
+      else
+        return null;
+    }
+    if (index >= valueArray.length) {
+      return null;
+    }
+    return valueArray[index];
   }
 
   boolean isSubsection() {
