@@ -13,6 +13,9 @@ run.function.main =
 [[]]
 run.function.setup=
 run.function.runtab=
+[[if = test-gui]]
+	run.function.check-prm=
+[[]]
 
 
 [function = setup]
@@ -98,6 +101,8 @@ tf.volume-table-2-rel-orient.2=40.5
 [[]]
 
 
+
+
 [function = reference]
 #check empty particle # error
 run.function.setup-test-gui=
@@ -128,8 +133,8 @@ run.function.setup-test-gui=
 tf.volume-table-2-tilt-range=-10
 tf.volume-table-2-tilt-range.1=10
 run.function.setup-test-gui=
-tf.volume-table-3-tilt-range=-10
-tf.volume-table-3-tilt-range.1=10
+tf.volume-table-3-tilt-range=
+tf.volume-table-3-tilt-range.1=
 tf.volume-table-2-tilt-range=
 tf.volume-table-2-tilt-range.1=
 tf.volume-table-3-tilt-range=
@@ -137,13 +142,7 @@ tf.volume-table-3-tilt-range.1=
 #check empty edge shift error
 tf.edge-shift=
 run.function.setup-test-gui=
-#check that edge shift is not saved when it is not in the dialog
-mn.file=
-mn.save=
-assert.same.file=pi.prm
 tf.edge-shift=2
-tf.volume-table-1-tilt-range=
-tf.volume-table-1-tilt-range.1=
 cb.use-tilt-range-in-averaging=off
 
 
@@ -195,15 +194,40 @@ mb.parallel-processing=-
 run.function.iteration-table=
 [[if = test-gui]]
 	run.function.spherical-sampling-for-theta-and-psi=
+	#check remove duplicates
+	#check enable/disable
+	cb.remove-duplicates=off
+	assert.disabled.tf.iteration-table-1-duplicate=
+	assert.disabled.tf.iteration-table-1-duplicate.1=
+	cb.remove-duplicates=on
+	assert.enabled.tf.iteration-table-1-duplicate=
+	assert.enabled.tf.iteration-table-1-duplicate.1=
+	#check enable/disable on an added row
+	bn.add-row=
+	cb.remove-duplicates=off
+	assert.disabled.tf.iteration-table-2-duplicate=
+	assert.disabled.tf.iteration-table-2-duplicate.1=
+	cb.remove-duplicates=on
+	assert.enabled.tf.iteration-table-2-duplicate=
+	assert.enabled.tf.iteration-table-2-duplicate.1=
+	#remove extra row
+	mb.iteration-table-2-run-#=
+	bn.delete-row=
+	#check run error checking
+	run.function.test-run-error=
+	tf.iteration-table-1-duplicate=1
+	run.function.test-run-error=
+	tf.iteration-table-1-duplicate=
+	cb.remove-duplicates=off
 [[]]
 #check particle volume x empty error
-run.function.run-test-gui=
+run.function.test-run-error=
 tf.particle-volume-x=%{particle-volume}
 #check particle volume y empty error
-run.function.run-test-gui=
+run.function.test-run-error=
 tf.y=%{particle-volume}
 #check particle volume z empty error
-run.function.run-test-gui=
+run.function.test-run-error=
 tf.z=%{particle-volume}
 cb.use-equal-numbers-of-particles-from-all-tomograms-for-new-reference=on
 run.function.number-of-particles-in-averages=
@@ -218,42 +242,42 @@ wait.process.processchunks-%{dataset}=done
 	#check empty iteration table error
 	mb.iteration-table-1-run-#=
 	bn.delete-row=
-	run.function.run-test-gui=
+	run.function.test-run-error=
 	bn.add-row=
 	#check phi max empty error
-	run.function.run-test-gui=
+	run.function.test-run-error=
 [[]]
 tf.iteration-table-1-angular-search-range=%{angular-search-range-max}
 #check phi incr empty error
-run.function.run-test-gui=
+run.function.test-run-error=
 tf.iteration-table-1-angular-search-range.1=%{angular-search-range-incr}
 #check theta max empty error
-run.function.run-test-gui=
+run.function.test-run-error=
 tf.iteration-table-1-angular-search-range.2=%{angular-search-range-max}
 #check theta incr empty error
-run.function.run-test-gui=
+run.function.test-run-error=
 tf.iteration-table-1-angular-search-range.3=%{angular-search-range-incr}
 #check psi max empty error
-run.function.run-test-gui=
+run.function.test-run-error=
 tf.iteration-table-1-angular-search-range.4=%{angular-search-range-max}
 #check psi incr empty error
-run.function.run-test-gui=
+run.function.test-run-error=
 tf.iteration-table-1-angular-search-range.5=%{angular-search-range-incr}
 #check search radius empty error
-run.function.run-test-gui=
+run.function.test-run-error=
 tf.iteration-table-1-search=5
 #check cutoff empty error
-run.function.run-test-gui=
+run.function.test-run-error=
 tf.iteration-table-1-high-freq=.5
 #check sigma empty error
-run.function.run-test-gui=
+run.function.test-run-error=
 tf.iteration-table-1-high-freq.1=.05
 #check reference threshold empty error
-run.function.run-test-gui=
+run.function.test-run-error=
 tf.iteration-table-1-reference=4
 
 
-[function = run-test-gui]
+[function = test-run-error]
 if.not.var.test-values.return=
 bn.run=
 wait.popup.entry-error=OK
@@ -263,20 +287,193 @@ wait.popup.entry-error=OK
 if.not.var.test-values.return=
 #check sample interval empty error
 rb.full-sphere=
-run.function.run-test-gui=
+run.function.test-run-error=
 rb.half-sphere=
-run.function.run-test-gui=
+run.function.test-run-error=
 rb.none=
 
 
 [function = number-of-particles-in-averages]
 #check number of particles empty error
-run.function.run-test-gui=
+run.function.test-run-error=
 tf.start=3
 #check missing end empty error
-run.function.run-test-gui=
+run.function.test-run-error=
 tf.incr=3
 #check missing end empty error
-run.function.run-test-gui=
+run.function.test-run-error=
 tf.end=9
 
+[function = check-prm]
+KeyValueDelimiter = ==
+tb.setup==
+run.function.volume-table-check-prm==
+run.function.reference-check-prm==
+run.function.missing-wedge-compensation-check-prm==
+run.function.masking-check-prm==
+run.function.initial-motive-list-check-prm==
+run.function.y-axis-type-check-prm==
+tb.setup.1==
+run.function.spherical-sampling-for-theta-and-psi-check-prm==
+#check remove duplicates
+cb.remove-duplicates==on
+bn.add-row==
+tf.iteration-table-1-duplicate==1
+tf.iteration-table-1-duplicate.1==2
+tf.iteration-table-2-duplicate==0
+tf.iteration-table-2-duplicate.1==0
+save==
+assert.contains.file==pi.prm|"flgRemoveDuplicates = 1"
+assert.contains.file==pi.prm|"duplicateShiftTolerance = [1, 0]"
+assert.contains.file==pi.prm|"duplicateAngularTolerance = [2, 0]"
+cb.remove-duplicates==off
+#aligned base name
+mb.run.1==A
+tf.aligned-base-name==bob
+save==
+assert.contains.file==pi.prm|"alignedBaseName = 'bob'"
+mb.run.1==B
+
+
+[function == volume-table-check-prm]
+#enable tilt range
+cb.use-tilt-range-in-averaging==on
+tf.volume-table-1-tilt-range==-10
+tf.volume-table-1-tilt-range.1==10
+tf.volume-table-2-tilt-range==-20
+tf.volume-table-2-tilt-range.1==20
+tf.volume-table-3-tilt-range==-10
+tf.volume-table-3-tilt-range.1==10
+#enable initial MOTL
+rb.use-files==
+mb.volume-table-1-vol-#==
+bn.set-initial-motive-list-file==
+wait.file-chooser.open==%{dataset}_MOTL_Tom1_Iter0.csv
+mb.volume-table-2-vol-#==
+bn.set-initial-motive-list-file==
+wait.file-chooser.open==%{dataset}_MOTL_Tom2_Iter0.csv
+mb.volume-table-3-vol-#==
+bn.set-initial-motive-list-file==
+wait.file-chooser.open==%{dataset}_MOTL_Tom3_Iter0.csv
+save==
+assert.contains.file==pi.prm|"initMOTL = {'/home/sueh/current data/UITests/peet-test-gui/pi_MOTL_Tom1_Iter0.csv', '/home/sueh/current data/UITests/peet-test-gui/pi_MOTL_Tom2_Iter0.csv', '/home/sueh/current data/UITests/peet-test-gui/pi_MOTL_Tom3_Iter0.csv'}"
+assert.contains.file==pi.prm|"tiltRange = {[-10, 10], [-20, 20], [-10, 10]}"
+cb.use-tilt-range-in-averaging==off
+rb.set-all-rotational-values-to-zero==
+
+
+[function == reference-check-prm]
+rb.reference-file==
+bn.reference-file==
+wait.file-chooser.open==unMaskedpi_Ref1.mrc
+save==
+assert.contains.file==pi.prm|"reference = '/home/sueh/current data/UITests/peet-test-gui/unMaskedpi_Ref1.mrc'"
+rb.volume-#==
+
+
+[function == missing-wedge-compensation-check-prm]
+cb.use-tilt-range-in-averaging==on
+cb.use-tilt-range-in-alignment==on
+cb.#-of-weight-groups-for-equalizing-cccs==on
+save==
+assert.contains.file==pi.prm|"tiltRange = {[-10, 10], [-20, 20], [-10, 10]}"
+assert.contains.file==pi.prm|"edgeShift = 2"
+assert.contains.file==pi.prm|"nWeightGroup = 8"
+assert.contains.file==pi.prm|"flgWedgeWeight = 1"
+cb.use-tilt-range-in-alignment==off
+cb.use-tilt-range-in-averaging==off
+
+
+[function == masking-check-prm]
+#test volume
+rb.volume==
+bn.volume==
+wait.file-chooser.open==unMaskedpi_Ref1.mrc
+save==
+assert.contains.file==pi.prm|"maskType = '/home/sueh/current data/UITests/peet-test-gui/unMaskedpi_Ref1.mrc'"
+#test sphere
+rb.sphere==
+tf.inner==10
+tf.outer==20
+save==
+assert.contains.file==pi.prm|"maskType = 'sphere'"
+#test cylinder
+rb.cylinder==
+#test cylinder orientation from reference particle
+cb.set-cylinder-orientation-from-reference-particle==on
+save==
+assert.contains.file==pi.prm|"maskType = 'cylinder'"
+#test cylinder with mask model points
+cb.set-cylinder-orientation-from-reference-particle==off
+tf.particle-#.1==3
+save==
+assert.contains.file==pi.prm|"maskType = 'cylinder'"
+assert.contains.file==pi.prm|"maskModelPts = [1, 3]"
+rb.none==
+
+
+[function == initial-motive-list-check-prm]
+#test initialize Z axis
+rb.initialize-z-axis==
+save==
+assert.contains.file==pi.prm|"initMOTL = 1"
+#test initialize X and Z axis
+rb.initialize-x-and-z-axis==
+save==
+assert.contains.file==pi.prm|"initMOTL = 2"
+#use files is tested in volume-table-check-prm
+rb.set-all-rotational-values-to-zero==
+
+
+[function == y-axis-type-check-prm]
+#test particle model points
+rb.particle-model-points==
+save==
+assert.contains.file==pi.prm|"yaxisType = 1"
+#test end ponts of contour
+rb.end-points-of-contour==
+tf.object-#==2
+tf.contour-#==3
+save==
+assert.contains.file==pi.prm|"yaxisType = 2"
+assert.contains.file==pi.prm|"yaxisContour = [1, 2, 3]"
+rb.original-y-axis==
+
+
+[function == iteration-table-check-prm]
+cb.remove-duplicates==on
+mb.iteration-table-1-duplicate==2
+mb.iteration-table-1-duplicate.1==3
+save==
+assert.contains.file==pi.prm|"flgRemoveDuplicates = 1"
+assert.contains.file==pi.prm|"duplicateShiftTolerance = {2}"
+assert.contains.file==pi.prm|"duplicateAngularTolerance = {3}"
+cb.remove-duplicates==off
+
+[function == spherical-sampling-for-theta-and-psi-check-prm]
+#test full sphere
+rb.full-sphere==
+tf.sample-interval==3
+save==
+assert.contains.file==pi.prm|"sampleSphere = 'full'"
+assert.contains.file==pi.prm|"sampleInterval = 3"
+#test half sphere
+rb.half-sphere==
+save==
+assert.contains.file==pi.prm|"sampleSphere = 'half'"
+assert.contains.file==pi.prm|"sampleInterval = 3"
+rb.none==
+
+
+[function == number-of-particles-in-averages-check-prm]
+tf.additional-numbers==4
+save==
+assert.contains.file==pi.prm|"lstThresholds = [3:3:9, 4]"
+
+
+[function == cross-correlation-measure-check-prm]
+rb.local-energy-normalized-cross-correlation==
+save==
+assert.contains.file==pi.prm|"CCMode = 0"
+rb.true-local-correlation-coefficent==
+KeyValueDelimiter == =
