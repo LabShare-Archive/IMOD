@@ -23,6 +23,12 @@ import etomo.type.EtomoNumber;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.19  2009/10/15 23:35:41  sueh
+ * <p> bug# 1274 Made header names avaible becauese of increased error
+ * <p> checking in the row.  Changed hiCutoffCutoff to hiCutoff.  Change
+ * <p> hiCutoffSigma to lowCutoff.  Passing manager rather then the
+ * <p> managerKey, which can change, to rows.
+ * <p>
  * <p> Revision 1.18  2009/09/28 18:35:10  sueh
  * <p> bug# 1235 Added setNames.
  * <p>
@@ -97,6 +103,10 @@ final class IterationRow implements Highlightable {
   private final FieldCell hiCutoff = FieldCell.getEditableMatlabInstance();
   private final FieldCell lowCutoff = FieldCell.getEditableMatlabInstance();
   private final FieldCell refThreshold = FieldCell.getEditableMatlabInstance();
+  private final FieldCell duplicateShiftTolerance = FieldCell
+      .getEditableMatlabInstance();
+  private final FieldCell duplicateAngularTolerance = FieldCell
+      .getEditableMatlabInstance();
 
   private final JPanel panel;
   private final GridBagLayout layout;
@@ -143,6 +153,10 @@ final class IterationRow implements Highlightable {
     hiCutoff.setValue(iterationRow.hiCutoff.getValue());
     lowCutoff.setValue(iterationRow.lowCutoff.getValue());
     refThreshold.setValue(iterationRow.refThreshold.getValue());
+    duplicateShiftTolerance.setValue(iterationRow.duplicateShiftTolerance
+        .getValue());
+    duplicateAngularTolerance.setValue(iterationRow.duplicateAngularTolerance
+        .getValue());
   }
 
   void setNames() {
@@ -168,6 +182,10 @@ final class IterationRow implements Highlightable {
         .getCutoffHeaderCell());
     refThreshold.setHeaders(IterationTable.LABEL, number, table
         .getRefThresholdHeaderCell());
+    duplicateShiftTolerance.setHeaders(IterationTable.LABEL, number, table
+        .getDuplicateToleranceHeaderCell());
+    duplicateAngularTolerance.setHeaders(IterationTable.LABEL, number, table
+        .getDuplicateToleranceHeaderCell());
   }
 
   public void highlight(final boolean highlight) {
@@ -181,17 +199,25 @@ final class IterationRow implements Highlightable {
     hiCutoff.setHighlight(highlight);
     lowCutoff.setHighlight(highlight);
     refThreshold.setHighlight(highlight);
+    duplicateShiftTolerance.setHighlight(highlight);
+    duplicateAngularTolerance.setHighlight(highlight);
   }
 
   /**
-   * Turn off theta and psi when sampleSphere is on.
+   * In the first row, turn off theta and psi when sampleSphere is on.  In all
+   * rows turn off duplicates columns when flgRemoveDuplicates is off.
    * @param sampleSphere
+   * @param flgRemoveDuplicates
    */
-  void updateDisplay(boolean sampleSphere) {
-    dThetaMax.setEnabled(!sampleSphere);
-    dThetaIncrement.setEnabled(!sampleSphere);
-    dPsiMax.setEnabled(!sampleSphere);
-    dPsiIncrement.setEnabled(!sampleSphere);
+  void updateDisplay(final boolean sampleSphere, final boolean flgRemoveDuplicates) {
+    if (getIndex() == 0) {
+      dThetaMax.setEnabled(!sampleSphere);
+      dThetaIncrement.setEnabled(!sampleSphere);
+      dPsiMax.setEnabled(!sampleSphere);
+      dPsiIncrement.setEnabled(!sampleSphere);
+    }
+    duplicateShiftTolerance.setEnabled(flgRemoveDuplicates);
+    duplicateAngularTolerance.setEnabled(flgRemoveDuplicates);
   }
 
   void getParameters(final MatlabParam matlabParamFile) {
@@ -206,6 +232,9 @@ final class IterationRow implements Highlightable {
     iteration.setHiCutoffCutoff(hiCutoff.getValue());
     iteration.setHiCutoffSigma(lowCutoff.getValue());
     iteration.setRefThreshold(refThreshold.getValue());
+    iteration.setDuplicateShiftTolerance(duplicateShiftTolerance.getValue());
+    iteration
+        .setDuplicateAngularTolerance(duplicateAngularTolerance.getValue());
   }
 
   void setParameters(final MatlabParam matlabParamFile) {
@@ -220,6 +249,10 @@ final class IterationRow implements Highlightable {
     hiCutoff.setValue(iteration.getHiCutoffCutoff());
     lowCutoff.setValue(iteration.getHiCutoffSigma());
     refThreshold.setValue(iteration.getRefThresholdString());
+    duplicateShiftTolerance.setValue(iteration
+        .getDuplicateShiftToleranceString());
+    duplicateAngularTolerance.setValue(iteration
+        .getDuplicateAngularToleranceString());
   }
 
   boolean isHighlighted() {
@@ -248,6 +281,8 @@ final class IterationRow implements Highlightable {
     hiCutoff.remove();
     lowCutoff.remove();
     refThreshold.remove();
+    duplicateShiftTolerance.remove();
+    duplicateAngularTolerance.remove();
   }
 
   void display() {
@@ -266,8 +301,10 @@ final class IterationRow implements Highlightable {
     searchRadius.add(panel, layout, constraints);
     hiCutoff.add(panel, layout, constraints);
     lowCutoff.add(panel, layout, constraints);
-    constraints.gridwidth = GridBagConstraints.REMAINDER;
     refThreshold.add(panel, layout, constraints);
+    duplicateShiftTolerance.add(panel, layout, constraints);
+    constraints.gridwidth = GridBagConstraints.REMAINDER;
+    duplicateAngularTolerance.add(panel, layout, constraints);
   }
 
   private String buildHeaderDescription(String[] headerArray) {
@@ -394,6 +431,26 @@ final class IterationRow implements Highlightable {
         IterationTable.REF_THRESHOLD_HEADER1,
         IterationTable.REF_THRESHOLD_HEADER2 }, null)) {
       return false;
+    }
+    //duplicateShiftTolerance
+    if (duplicateShiftTolerance.isEnabled()) {
+      n.set(duplicateShiftTolerance.getValue());
+      if (!validateRun(duplicateShiftTolerance.isEmpty(), n, new String[] {
+          IterationTable.DUPLICATE_TOLERANCE_HEADER1,
+          IterationTable.DUPLICATE_TOLERANCE_HEADER2,
+          IterationTable.DUPLICATE_SHIFT_TOLERANCE_HEADER3 }, null)) {
+        return false;
+      }
+    }
+    //duplicateAngularTolerance
+    if (duplicateAngularTolerance.isEnabled()) {
+      n.set(duplicateAngularTolerance.getValue());
+      if (!validateRun(duplicateAngularTolerance.isEmpty(), n, new String[] {
+          IterationTable.DUPLICATE_TOLERANCE_HEADER1,
+          IterationTable.DUPLICATE_TOLERANCE_HEADER2,
+          IterationTable.DUPLICATE_ANGULAR_TOLERANCE_HEADER3 }, null)) {
+        return false;
+      }
     }
     return true;
   }
