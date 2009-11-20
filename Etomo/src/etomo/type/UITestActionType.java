@@ -14,6 +14,9 @@ package etomo.type;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.2  2009/01/28 00:51:53  sueh
+ * <p> bug# 1102 Added subsection type ifnot.
+ * <p>
  * <p> Revision 1.1  2009/01/20 19:41:53  sueh
  * <p> bug# 1102 Was UITestAction.
  * <p> </p>
@@ -23,19 +26,23 @@ public final class UITestActionType {
   public static final String rcsid = "$Id$";
 
   //Cannot use the same strings as etomo.type.UITestFieldType.
-  public  static final UITestActionType ASSERT = new UITestActionType("assert");
-  public  static final UITestActionType END = new UITestActionType("end");
-  public  static final UITestActionType COPY = new UITestActionType("copy");
+  public static final UITestActionType ASSERT = new UITestActionType("assert");
+  public static final UITestActionType END = new UITestActionType("end");
+  public static final UITestActionType COPY = new UITestActionType("copy");
   public static final UITestActionType GOTO = new UITestActionType("goto");
   public static final UITestActionType IF = new UITestActionType("if");
   public static final UITestActionType IFNOT = new UITestActionType("ifnot");
   public static final UITestActionType OPEN = new UITestActionType("open");
   public static final UITestActionType RETURN = new UITestActionType("return");
   public static final UITestActionType RUN = new UITestActionType("run");
+  public static final UITestActionType SAVE = new UITestActionType("save");
   public static final UITestActionType SET = new UITestActionType("set");
   public static final UITestActionType SKIPTO = new UITestActionType("skipto");
   public static final UITestActionType SLEEP = new UITestActionType("sleep");
   public static final UITestActionType WAIT = new UITestActionType("wait");
+  //Not a command
+  public static final UITestActionType DELIMETER_CHANGER = new UITestActionType(
+      "KeyValueDelimiter");
 
   private final String string;
 
@@ -65,6 +72,9 @@ public final class UITestActionType {
     if (IFNOT.equals(string)) {
       return IFNOT;
     }
+    if (DELIMETER_CHANGER.equals(string)) {
+      return DELIMETER_CHANGER;
+    }
     if (OPEN.equals(string)) {
       return OPEN;
     }
@@ -73,6 +83,9 @@ public final class UITestActionType {
     }
     if (RUN.equals(string)) {
       return RUN;
+    }
+    if (SAVE.equals(string)) {
+      return SAVE;
     }
     if (SET.equals(string)) {
       return SET;
@@ -87,6 +100,40 @@ public final class UITestActionType {
       return WAIT;
     }
     return null;
+  }
+
+  public static UITestActionType getSubcommandInstance(String string) {
+    UITestActionType instance = getInstance(string);
+    if (instance == null) {
+      return instance;
+    }
+    if (!instance.isSubcommandAction()) {
+      return null;
+    }
+    return instance;
+  }
+
+  public boolean isSubcommandAction() {
+    if (this == ASSERT) {
+      return true;
+    }
+    if (this == RETURN) {
+      return true;
+    }
+    if (this == RUN) {
+      return true;
+    }
+    if (this == SET) {
+      return true;
+    }
+    if (this == WAIT) {
+      return true;
+    }
+    return false;
+  }
+
+  public boolean isNoOp() {
+    return this == DELIMETER_CHANGER;
   }
 
   public boolean equals(String string) {
