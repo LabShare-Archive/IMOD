@@ -36,6 +36,12 @@ import etomo.type.EtomoAutodoc;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.22  2009/10/15 23:36:04  sueh
+ * <p> bug# 1274 Made header names avaible becauese of increased error
+ * <p> checking in the row.  Changed hiCutoffCutoff to hiCutoff.  Change
+ * <p> hiCutoffSigma to lowCutoff.  Passing manager rather then the
+ * <p> managerKey, which can change, to rows.
+ * <p>
  * <p> Revision 1.21  2009/09/28 18:35:30  sueh
  * <p> bug# 1235 Added IterationRow.setNames.
  * <p>
@@ -115,12 +121,16 @@ final class IterationTable implements Highlightable {
   static final String SEARCH_RADIUS_HEADER2 = "Radius";
   static final String LABEL = "Iteration Table";
   static final String MAX_HEADER3 = "Max";
-  static final String CUTOFF_HEADER1="High-Freq.";
-  static final String CUTOFF_HEADER2="Filter";
-  static final String HI_CUTOFF_HEADER3="Cutoff";
-  static final String LOW_CUTOFF_HEADER3="Sigma";
-  static final String REF_THRESHOLD_HEADER1="Reference";
-  static final String REF_THRESHOLD_HEADER2="Threshold";
+  static final String CUTOFF_HEADER1 = "High-Freq.";
+  static final String CUTOFF_HEADER2 = "Filter";
+  static final String HI_CUTOFF_HEADER3 = "Cutoff";
+  static final String LOW_CUTOFF_HEADER3 = "Sigma";
+  static final String REF_THRESHOLD_HEADER1 = "Reference";
+  static final String REF_THRESHOLD_HEADER2 = "Threshold";
+  static final String DUPLICATE_TOLERANCE_HEADER1 = "Duplicate";
+  static final String DUPLICATE_TOLERANCE_HEADER2 = "Tolerance";
+  static final String DUPLICATE_SHIFT_TOLERANCE_HEADER3 = "Shift";
+  static final String DUPLICATE_ANGULAR_TOLERANCE_HEADER3 = "Angular";
 
   private final JPanel rootPanel = new JPanel();
   private final JPanel pnlTable = new JPanel();
@@ -141,8 +151,8 @@ final class IterationTable implements Highlightable {
       UIParameters.INSTANCE.getNumericWidth());
   private final HeaderCell header3DThetaMax = new HeaderCell(MAX_HEADER3,
       UIParameters.INSTANCE.getNumericWidth());
-  private final HeaderCell header3DThetaIncrement = new HeaderCell(INCR_HEADER3,
-      UIParameters.INSTANCE.getNumericWidth());
+  private final HeaderCell header3DThetaIncrement = new HeaderCell(
+      INCR_HEADER3, UIParameters.INSTANCE.getNumericWidth());
   private final HeaderCell header3DPsiMax = new HeaderCell(MAX_HEADER3,
       UIParameters.INSTANCE.getNumericWidth());
   private final HeaderCell header3DPsiIncrement = new HeaderCell(INCR_HEADER3,
@@ -157,14 +167,24 @@ final class IterationTable implements Highlightable {
   private final HeaderCell header2Cutoff = new HeaderCell(CUTOFF_HEADER2);
   private final HeaderCell header3HiCutoff = new HeaderCell(HI_CUTOFF_HEADER3,
       UIParameters.INSTANCE.getWideNumericWidth());
-  private final HeaderCell header3LowCutoff = new HeaderCell(LOW_CUTOFF_HEADER3,
-      UIParameters.INSTANCE.getWideNumericWidth());
-  private final HeaderCell header1RefThreshold = new HeaderCell(REF_THRESHOLD_HEADER1);
-  private final HeaderCell header2RefThreshold = new HeaderCell(REF_THRESHOLD_HEADER2);
+  private final HeaderCell header3LowCutoff = new HeaderCell(
+      LOW_CUTOFF_HEADER3, UIParameters.INSTANCE.getWideNumericWidth());
+  private final HeaderCell header1RefThreshold = new HeaderCell(
+      REF_THRESHOLD_HEADER1);
+  private final HeaderCell header2RefThreshold = new HeaderCell(
+      REF_THRESHOLD_HEADER2);
   private final HeaderCell header3RefThreshold = new HeaderCell();
   private final MultiLineButton btnAddRow = new MultiLineButton("Add Row");
   private final MultiLineButton btnCopyRow = new MultiLineButton("Copy Row");
   private final MultiLineButton btnDeleteRow = new MultiLineButton("Delete Row");
+  private final HeaderCell header1DuplicateTolerance = new HeaderCell(
+      DUPLICATE_TOLERANCE_HEADER1);
+  private final HeaderCell header2DuplicateTolerance = new HeaderCell(
+      DUPLICATE_TOLERANCE_HEADER2);
+  private final HeaderCell header3DuplicateShiftTolerance = new HeaderCell(
+      DUPLICATE_SHIFT_TOLERANCE_HEADER3);
+  private final HeaderCell header3DuplicateAngularTolerance = new HeaderCell(
+      DUPLICATE_ANGULAR_TOLERANCE_HEADER3);
   private final BaseManager manager;
 
   private IterationTable(BaseManager manager) {
@@ -207,15 +227,13 @@ final class IterationTable implements Highlightable {
   }
 
   /**
-   * SampleSphere effects the first row only.
+   * Update display in rows.
    * @param sampleSphere
+   * @param flgRemoveDuplicates
    */
-  void updateDisplay(final boolean sampleSphere) {
-    IterationRow row = rowList.getRow(0);
-    if (row == null) {
-      return;
-    }
-    row.updateDisplay(sampleSphere);
+  void updateDisplay(final boolean sampleSphere,
+      final boolean flgRemoveDuplicates) {
+    rowList.updateDisplay(sampleSphere, flgRemoveDuplicates);
   }
 
   void setParameters(final MatlabParam matlabParamFile) {
@@ -285,6 +303,14 @@ final class IterationTable implements Highlightable {
       header1RefThreshold.setToolTipText(tooltip);
       header2RefThreshold.setToolTipText(tooltip);
       header3RefThreshold.setToolTipText(tooltip);
+      tooltip = EtomoAutodoc.getTooltip(autodoc,
+          MatlabParam.FLG_REMOVE_DUPLICATES_KEY);
+      header1DuplicateTolerance.setToolTipText(tooltip);
+      header2DuplicateTolerance.setToolTipText(tooltip);
+      header3DuplicateShiftTolerance.setToolTipText(EtomoAutodoc.getTooltip(
+          autodoc, MatlabParam.DUPLICATE_SHIFT_TOLERANCE_KEY));
+      header3DuplicateAngularTolerance.setToolTipText(EtomoAutodoc.getTooltip(
+          autodoc, MatlabParam.DUPLICATE_ANGULAR_TOLERANCE_KEY));
     }
     catch (FileNotFoundException e) {
       e.printStackTrace();
@@ -384,8 +410,11 @@ final class IterationTable implements Highlightable {
     header1SearchRadius.add(pnlTable, layout, constraints);
     constraints.gridwidth = 2;
     header1Cutoff.add(pnlTable, layout, constraints);
-    constraints.gridwidth = GridBagConstraints.REMAINDER;
+    constraints.gridwidth = 1;
     header1RefThreshold.add(pnlTable, layout, constraints);
+    constraints.gridwidth = GridBagConstraints.REMAINDER;
+    header1DuplicateTolerance.add(pnlTable, layout, constraints);
+
     //Second header row
     constraints.weightx = 0.0;
     constraints.gridwidth = 2;
@@ -397,8 +426,11 @@ final class IterationTable implements Highlightable {
     header2SearchRadius.add(pnlTable, layout, constraints);
     constraints.gridwidth = 2;
     header2Cutoff.add(pnlTable, layout, constraints);
-    constraints.gridwidth = GridBagConstraints.REMAINDER;
+    constraints.gridwidth = 1;
     header2RefThreshold.add(pnlTable, layout, constraints);
+    constraints.gridwidth = GridBagConstraints.REMAINDER;
+    header2DuplicateTolerance.add(pnlTable, layout, constraints);
+
     //Third header row
     constraints.weightx = 0.0;
     constraints.gridwidth = 2;
@@ -413,8 +445,10 @@ final class IterationTable implements Highlightable {
     header3SearchRadius.add(pnlTable, layout, constraints);
     header3HiCutoff.add(pnlTable, layout, constraints);
     header3LowCutoff.add(pnlTable, layout, constraints);
-    constraints.gridwidth = GridBagConstraints.REMAINDER;
     header3RefThreshold.add(pnlTable, layout, constraints);
+    header3DuplicateShiftTolerance.add(pnlTable, layout, constraints);
+    constraints.gridwidth = GridBagConstraints.REMAINDER;
+    header3DuplicateAngularTolerance.add(pnlTable, layout, constraints);
     rowList.display();
   }
 
@@ -433,7 +467,11 @@ final class IterationTable implements Highlightable {
   HeaderCell getRefThresholdHeaderCell() {
     return header1RefThreshold;
   }
-  
+
+  HeaderCell getDuplicateToleranceHeaderCell() {
+    return header1DuplicateTolerance;
+  }
+
   HeaderCell getIterationNumberHeaderCell() {
     return header1IterationNumber;
   }
@@ -501,6 +539,19 @@ final class IterationTable implements Highlightable {
         }
       }
       return true;
+    }
+
+    /**
+     * Update display in all rows.
+     * @param sampleSphere
+     * @param flgRemoveDuplicates
+     */
+    private void updateDisplay(final boolean sampleSphere,
+        final boolean flgRemoveDuplicates) {
+      for (int i = 0; i < list.size(); i++) {
+        IterationRow row = (IterationRow) list.get(i);
+        row.updateDisplay(sampleSphere, flgRemoveDuplicates);
+      }
     }
 
     private void remove() {
