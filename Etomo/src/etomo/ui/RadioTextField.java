@@ -26,6 +26,9 @@ import etomo.type.EnumeratedType;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.8  2009/09/01 03:18:25  sueh
+ * <p> bug# 1222
+ * <p>
  * <p> Revision 1.7  2009/02/19 01:45:50  sueh
  * <p> bug# 1178 In setToolTipText stop formatting tooltip twice.
  * <p>
@@ -192,8 +195,8 @@ final class RadioTextField implements RadioButtonInterface {
    * @return null if instance is in a valid state
    */
   String validate() {
-    if (!radioButton.getName().equals(textField.getName())) {
-      return "Fields should have the same name";
+    if (!radioButton.getName().endsWith(textField.getName().substring(2))) {
+      return "Fields should have the same name, except for the prefix";
     }
     if (!radioButton.isEnabled() && textField.isEnabled()) {
       return "Fields should enable and disable together";
