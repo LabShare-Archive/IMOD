@@ -247,6 +247,11 @@ dialog.
 <LI><B>Second Button Click:</B>  (if <B>Sh</B> not on) Insert a point after the
 current point.  This button can be held down to insert points continuously.
 (Classic mode: continuous tracing only works with the window position locked.)
+A new contour will be started automatically after a change in the slice angle 
+or the position perpendicular to the slice, if you are 
+modeling either closed contours or open contours in an object with the option
+set to start new
+contours automatically at new Z values.
 
 <LI><B>Third Button Click:</B> (if <B>Sh</B> not on) Move the current model
 point to the selected location 
@@ -318,18 +323,27 @@ Decrease/Increase increment for these rotations; the increment can be 0.1,
 It is possible to mesh contours that have been modeled at an oblique
 orientation in the slicer, provided that all of the contours in a surface are
 at the same orientation, and that the contours are properly spaced apart.
-Follow these procedures:
+By default, the slicer will automatically start a new surface at the same
+time as it starts a new contour when it detects that the slicer
+angles have changed enough from the angles at which the current contour was
+drawn.  This behavior can be turned off with an option in the 3dmod
+preferences dialog (menu entry Edit - Options).  If you are going to model at
+multiple angles, it is advisable to open the Surface-Contour-Point dialog to
+monitor the surface number (menu entry Edit - Surface - Go to).
+<P>
+To model tilted slices, follow these procedures:
 <OL>
 <LI>Select an area to model and center it in the window.  You may wish to lock
 the slicer to keep other windows from affecting its position.
 <LI>If there are already contours in this object, start a new surface with 
-<B>N</B>.
+<B>N</B> or allow the slicer to start the new surface for you.
 <LI>Model a contour by clicking or dragging with the second mouse button.
 <LI>Step between slices with the <B>PageUp</B> and <B>PageDown</B> keys in
 this slicer.  Start new contours in the same surface with
-<B>n</B>.
-<LI>To model another area at a different orientation, be sure to start a new
-surface (use the <B>N</B> hot key instead of <B>n</B>). 
+<B>n</B>, or rely on new contours starting automatically.
+<LI>If you start modeling another area at a different orientation, the
+slicer should start a new surface automatically.  Otherwise, you can start a
+new surface manually (use the <B>N</B> hot key instead of <B>n</B>). 
 <LI>To return to modeling a surface after changing the angles, or after the
 plane of the data has been changed by stepping in Z in another window,
 select one of the existing contours with the first
@@ -351,16 +365,14 @@ many slices, the computation time could take hundreds of milliseconds.  The
 slicer uses several methods to manage the computation time, and you can affect
 them, as follows:
 <UL>
-<LI> By default, the slicer uses 4 threads executing simultaneously to compute
-the image.  With one processor, this will make no difference, with 2
-processors the time will be
-cut in half; with 4 or more processors the time will be one quarter.  
+<LI> If there are multiple processors in your system, the slicer uses 
+multiple threads executing simultaneously to compute
+the image.  By default, the number of threads is the number of processors
+detected in the system, and the speedup will be nearly linear with the number
+of processors.  
 If the environment variable
 IMOD_PROCESSORS is set, it will set the number of threads to the value of this
-variable.  
-Thus, if you
-have more than 4 processors, you can set IMOD_PROCESSORS to make
-the slicer work even faster.
+variable instead.
 <LI> When you pan or rotate the image with the mouse, the slicer will evaluate
 the number of voxels that needs to be computed and, if necessary, turn off the
 high quality interpolation and reduce the number of slices to keep the
@@ -372,12 +384,10 @@ quality as much as it does, increase the value.
 <LI> This dynamic reduction in quality will not occur when dragging the angle
 sliders, unless you check the box to apply the voxel limit to this operation
 as well in the Appearances tab of the 3dmod Preferences dialog.
-<LI> The evaluation of computation time assumes a single processor unless
-IMOD_PROCESSORS is set, in which case it divides by the number of processors,
-with the result that it reduces the quality at a higher number of voxels.
-If you work on several computers with radically different capabilities on a
-single home filesystem, you could set IMOD_PROCESSORS appropriately on each to
-make a single voxel limit work more comparably on all of them.
+<LI> The evaluation of computation time is
+divided by the number of processors,
+with the result that it reduces the quality at a higher number of voxels when
+there are more processors.
 </OL>
 In general, whenever performance is an issue, it is advisable to keep the
 size of the slicer window to just what is needed to examine the area of
