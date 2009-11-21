@@ -1,10 +1,27 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+11/21/09: The number of threads in Slicer will now equal the number of
+processors on the system, unless specified otherwise with IMOD_PROCESSORS.
+
+11/21/09: Slicer will start a new closed contour automatically when you step
+to a new position perpendicular to the slice or when you change angles, and it
+will also start a new surface when you change angles.
+
+11/21/09: Clip has an option to number Z values from 1 and options for clip
+stat to mark slices with min and max values that are outliers.
+
+11/21/09: Tiltalign now reports the mean residual for each contour (fiducial)
+in the table of 3D positions.
+
 11/20/09: In Etomo - PEET Added a button to make a copy of a row (excluding
 relative orientation).
 
 11/20/09: In Etomo - PEET added flgRemoveDuplicates, duplicateShiftTolerance,
 and duplicateAngularTolerance.
+
+11/16/09: Added button and hot key to bead fixer for moving all points in
+all local areas by residual, and added ability to move all points by global
+residuals when there are no local alignments.
 
 11/10/09: Added option to break contour at current model point, and a hot key
 for breaking a contour.
