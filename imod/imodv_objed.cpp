@@ -2088,8 +2088,8 @@ static void mkMakeMesh_cb(int index)
 
   hLayout = diaHBoxLayout(layout1);
   wMakeChecks[MAKE_MESH_CAP] = diaCheckBox("Cap", oef->control, hLayout);
-  wMakeFlatSpin = (QDoubleSpinBox *)diaLabeledSpin(1, 0., 10., 5., "Flat crit",
-                                                   oef->control, hLayout);
+  wMakeFlatSpin = (QDoubleSpinBox *)diaLabeledSpin
+    (1, 0., 10., 0.5, "Flat crit", oef->control, hLayout);
   QObject::connect(wMakeFlatSpin, SIGNAL(valueChanged(double)), &imodvObjed, 
                    SLOT(makeFlatSlot(double)));
   wMakeFlatSpin->setToolTip("Set criterion Z difference for analyzing for "
@@ -2575,6 +2575,9 @@ static QVBoxLayout *outerVBoxLayout(QWidget *parent)
 /*
 
 $Log$
+Revision 4.48  2009/09/08 23:54:41  mast
+Added function to toggle current clipping plane
+
 Revision 4.47  2009/05/26 20:20:31  mast
 Make max passes 9999 for Andrew
 
