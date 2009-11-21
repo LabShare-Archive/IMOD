@@ -120,6 +120,7 @@ void MovieController::init()
   diaSetChecked(wholeCheckBox, imcGetSnapWholeMont());
   diaSetChecked(scaleCheckBox, imcGetScaleSizes());
   diaSetSpinBox(scaleSpinBox, imcGetSizeScaling());
+  setFontDependentWidths();
 }
 
 void MovieController::setFontDependentWidths()
@@ -294,5 +295,8 @@ void MovieController::fontChange( const QFont & oldFont )
 /*
 
 $Log$
+Revision 4.1  2009/01/15 16:33:17  mast
+Qt 4 port
+
 
 */

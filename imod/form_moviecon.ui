@@ -100,7 +100,7 @@
     </widget>
    </item>
    <item>
-    <layout class="QHBoxLayout" >
+    <layout class="QHBoxLayout" name="rateLayout" >
      <property name="spacing" >
       <number>6</number>
      </property>
