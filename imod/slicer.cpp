@@ -1381,13 +1381,75 @@ static void slicer_attach_point(SlicerStruct *ss, int x, int y)
 
 static void slicer_insert_point(SlicerStruct *ss, int x, int y, int ctrl)
 {
-  int zmouse;
-  if (ss->vi->imod->mousemode == IMOD_MMODEL) {
+  int zmouse, pt;
+  Icont *cont;
+  Ipoint zvec = {0., 0., 1.};
+  Ipoint zn;
+  Imat *mat = ss->mat;
+  ImodView *vi = ss->vi;
+  float dist, mindist, maxdist, dplane, distsum;
+  float flatCrit = 1.5f;
+  float zcrit = 0.75f;
+  bool newsurf;
+  Iobj *obj = imodObjectGet(vi->imod);
+  if (vi->imod->mousemode == IMOD_MMODEL) {
+
+    // Get the mouse position, get the contour
     zmouse = sslice_setxyz(ss, x, y);
+    cont = ivwGetOrMakeContour(vi, obj, ss->timeLock);
+    if (!cont)
+      return;
+    if (cont->psize > 0 && iobjPlanar(obj->flags)) {
+
+      // For existing contour, get plane equation of current plane and
+      // compute distance of each point from plane
+      setInverseMatrix(ss);
+      imodMatTransform3D(mat, &zvec, &zn);
+      dplane = vi->xmouse * zn.x + vi->ymouse * zn.y + vi->zmouse * zn.z;
+      distsum = 0.;
+      mindist = 1.e10;
+      maxdist = -1.e10;
+      for (pt = 0; pt < cont->psize; pt++) {
+        dist = imodPointDot(&cont->pts[pt], &zn) - dplane;
+        mindist = B3DMIN(dist, mindist);
+        maxdist = B3DMAX(dist, maxdist);
+        distsum += dist;
+      }
+      if (imodDebug('s'))
+        imodPrintStderr("dplane %f  mindist  %f  maxdist %f  mean %f\n",
+                        dplane, mindist, maxdist, distsum / cont->psize);
+
+      // If the contour is not flat to current plane, start a new surface
+      // If it is just too far away, start a new contour
+
+      newsurf = maxdist - mindist > flatCrit && ImodPrefs->slicerNewSurf();
+      if (newsurf || fabs(distsum / cont->psize) > zcrit){
+        if (cont->psize == 1) {
+          wprint("Started a new contour even though last "
+                 "contour had only 1 pt.  ");
+          if (iobjClose(obj->flags))
+            wprint("\aUse open contours to model across different slices.\n");
+          else
+            wprint("\aTurn off \"Start new contour at new Z\" to model "
+                   "across different slices.\n");
+        }
+        if (newsurf)
+          inputNewSurface(vi);
+         else
+          inputNewContour(vi);
+        cont = imodContourGet(vi->imod);
+        if (!cont)
+          return;
+        if (newsurf)
+          wprint("Started new surface # %d due to change in angles\n", 
+                 cont->surf);
+      }
+    }
     if (!ss->classic)
       ss->ignoreCurPtChg = 1;
-    inputInsertPoint(ss->vi);
-    ss->vi->zmouse = zmouse;
+
+    inputInsertPoint(vi);
+    vi->zmouse = zmouse;
   } else if (ctrl)
     startMovieCheckSnap(ss, 1);
   else
@@ -2733,6 +2795,9 @@ void slicerCubePaint(SlicerStruct *ss)
 
 /*
 $Log$
+Revision 4.70  2009/10/07 23:06:54  mast
+Made it pass on Shift PageUp and PageDown
+
 Revision 4.69  2009/08/19 23:41:08  mast
 Got rid of debug statements
 
