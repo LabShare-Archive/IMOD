@@ -1365,18 +1365,28 @@ int clip_get_stat3d(Istack *v,
   return(0);
 }
 
+struct zstats {
+  float x, y;
+  double mean, std;
+  int xmin, ymin, outlier;
+};
+
 int grap_stat(MrcHeader *hin, ClipOptions *opt)
 {
-  int i, j, k, iz, di, dj;
+  int i, j, k, iz, di, dj, nsum, length, kk, outlast;
   int xmax, ymax, xmin, ymin, zmin, zmax;
   Istack *v;
   Islice *slice;
-  float min, max, m, ptnum;
+  float min, max, m, ptnum, minsum, minsq, maxsum, maxsq;
   double mean, std, sumsq, vmean, vsumsq, cx, cy, data[3][3];
   float x,y;
-  float vmin, vmax;
+  float vmin, vmax, kcrit = 2.24f;
   FILE *fout;
+  char starmin, starmax;
   b3dInt16 *sdata;
+  struct zstats *stats;
+  float *allmins, *allmaxes, *ifdrop;
+  int outliers = (opt->val != IP_DEFAULT || opt->low != IP_DEFAULT) ? 1 : 0;
 
   /*     if (opt->dim == 3){
          v = grap_volume_read(hin, opt);
@@ -1388,10 +1398,28 @@ int grap_stat(MrcHeader *hin, ClipOptions *opt)
 
   /* printf("headersize %d\n", hin->headerSize); */
 
-  printf("slice|   min   |(   x,   y)|    max  |(      x,      y)|   mean    |  std dev.\n");
+  printf("%s|   min   |(   x,   y)|    max  |(      x,      y)|   mean    |  "
+         "std dev.\n", opt->fromOne ? "view " : "slice");
   printf("-----|---------|-----------|---------|-----------------|-----------|----------\n");
      
   set_input_options(opt, hin);
+  stats = (struct zstats *)malloc(opt->nofsecs * sizeof(struct zstats));
+  allmins = (float *)malloc(opt->nofsecs * sizeof(float));
+  allmaxes = (float *)malloc(opt->nofsecs * sizeof(float));
+  ifdrop = (float *)malloc(opt->nofsecs * sizeof(float));
+  if (!stats || !allmins || !allmaxes || !ifdrop) {
+    show_error("stat: error allocating array for statistics.");
+    return(-1);
+  }
+  if (outliers) {
+    length = opt->nofsecs;
+    if (opt->low != IP_DEFAULT)
+      length = B3DNINT(opt->low);
+    if (opt->val != IP_DEFAULT)
+      kcrit = opt->val;
+    length = B3DMIN(opt->nofsecs, B3DMAX(5, length));
+    outlast = -1;
+  }
 
   for (k = 0; k < opt->nofsecs; k++) {
     iz = opt->secs[k];
@@ -1504,10 +1532,49 @@ int grap_stat(MrcHeader *hin, ClipOptions *opt)
     vmean += mean;
     vsumsq += sumsq;
 
-    printf("%4d  %9.4f (%4d,%4d) %9.4f (%7.2f,%7.2f) %9.4f  %9.4f\n", 
-           iz, min, xmin, ymin, max, x, y, mean, std);
+    allmins[k] = min;
+    stats[k].xmin = xmin;
+    stats[k].ymin = ymin;
+    allmaxes[k] = max;
+    stats[k].x = x;
+    stats[k].y = y;
+    stats[k].mean = mean;
+    stats[k].std = std;
+    if (!outliers)
+      printf("%4d  %9.4f (%4d,%4d) %9.4f (%7.2f,%7.2f) %9.4f  %9.4f\n", iz + 
+             (opt->fromOne ? 1 : 0), min, xmin, ymin, max, x, y, mean, std);
+    else if (k >= length - 1) {
+      for (kk = outlast + 1; kk <= k; kk++) {
+        starmin = ' ';
+        starmax = ' ';
+        di = B3DMAX(0, kk - length / 2);
+        dj = B3DMIN(opt->nofsecs, di + length);
+        di = B3DMAX(0, dj - length);
+        if (dj > k + 1)
+          break;
+        //printf("kk %d  di %d  dj %d  kcrit %f\n", kk, di, dj, kcrit);
+        rsMadMedianOutliers(&allmins[di], dj-di, kcrit, &ifdrop[di]);
+        stats[kk].outlier = 0;
+        if (ifdrop[kk] < 0.) {
+          starmin = '*';
+          stats[kk].outlier = 1;
+        }
+        rsMadMedianOutliers(&allmaxes[di], dj-di, kcrit, &ifdrop[di]);
+        if (ifdrop[kk] > 0.) {
+          starmax = '*';
+          stats[kk].outlier = 1;
+        }
+        printf("%4d  %9.4f%c(%4d,%4d) %9.4f%c(%7.2f,%7.2f) %9.4f  %9.4f\n", 
+               opt->secs[kk]+ (opt->fromOne ? 1 : 0), allmins[kk], starmin,
+               stats[kk].xmin, stats[kk].ymin, allmaxes[kk], starmax,
+               stats[kk].x, stats[kk].y, stats[kk].mean, stats[kk].std);
+        outlast = kk;
+      }
+      
+    }
     sliceFree(slice);
   }
+
   vmean /= (float)opt->nofsecs;
   ptnum *= opt->nofsecs;
   std = (vsumsq - ptnum * vmean * vmean) / B3DMAX(1.,(ptnum - 1.));
@@ -1515,7 +1582,27 @@ int grap_stat(MrcHeader *hin, ClipOptions *opt)
 
   printf(" all  %9.4f (@ z=%5d) %9.4f (@ z=%5d      ) %9.4f  %9.4f\n",
          vmin, zmin, vmax, zmax, vmean, std);
-     
+
+  if (outliers) {
+    printf("\n%s with %sextreme values:", opt->fromOne ? "Views" : "Slices",
+           opt->low != IP_DEFAULT ? "locally " : "");
+    nsum = 0;
+    length = 28 + (opt->low != IP_DEFAULT ? 8 : 0);
+    for (k = 0; k < opt->nofsecs; k++) {
+      if (stats[k].outlier) {
+        printf(" %3d", opt->secs[k] + (opt->fromOne ? 1 : 0));
+        length += 4;
+        if (length > 74) {
+          printf("\n");
+          length = 0;
+        }
+        nsum++;
+      }
+    }
+    if (!nsum)
+      printf(" None");
+    printf("\n");
+  }
   return(0);
 }
 
@@ -1586,6 +1673,9 @@ int free_vol(Islice **vol, int z)
 */
 /*
 $Log$
+Revision 3.27  2009/03/24 02:33:32  mast
+Switch from centroid to parabolic fit for stat 2d
+
 Revision 3.26  2008/12/11 23:51:15  mast
 Remove diagnostic output
 
