@@ -81,7 +81,7 @@ Apply Sobel filter as in 3dmod image processing.
 Split an RGB file into 3 byte files.
 .TP
 .I stats
-Print min, max, location of max and std. dev.
+Print min, max, mean, standard deviation, and location of min and max.
 .PD
 .SH Options
 These options are available to most processes.
@@ -109,7 +109,9 @@ options.
 .B -ov <section>
 Overwrite output starting at section number
 .I section.
-Range is from 0 (first section) to z size - 1 (last section).
+Range is from 0 (first section) to z size - 1 (last section) unless the
+.B -1
+option is entered to number sections from 1.
 .TP
 .B \-p <value>
 Image coordinates with no image data are padded with the given 
@@ -177,6 +179,19 @@ the
 options sets the y output size and the
 .B -oz
 option sets the z output size.
+.TP
+.B -1
+Z values are numbered from 1 instead of 0, the default.  This option affects
+the interpretation of lists of Z values entered with 
+.B -iz
+when the 
+.B -2d
+option is given, and the interpretation of the Z value entered with the
+.B -oz
+and
+.B -cz
+options.  When running "clip stat", slices will be referred to as views
+instead and numbered from 1 with this option.
 
 .SH Selected options
 The following options are valid for selected processes:
@@ -201,7 +216,8 @@ Has multiple uses: 1) Level for low pass filter. Range is (0.0 - 0.71 / pixel).
 The default value is 1.0.  2) Sigma of Gaussian kernel for smoothing; the
 default is to use the standard kernel shown below.
 3) With diffusion, this specifies the lambda value or 
-step size; the default is 0.2.
+step size; the default is 0.2. 4) With statistics, sets the number of slices
+over which to determine outliers in the min and max values.
 .TP
 .B -cc <value>
 Specifies type of edge stopping function for diffusion: 1 for exponential
@@ -211,7 +227,7 @@ function, 2 for rational function, 3 for Tukey biweight.  The default is 2.
 Input number. Use depends on process: threshold for averaging, scaling factor
 for brightness/contrast/shadow, padding for correlations,
 iterations for smoothing or anisotropic diffusion, size for
-median filter. 
+median filter, criterion for determining outliers in statistics. 
 .TP
 .B -r <value>
 Red value;   Range is (0.0 - 1.0) Default is 1.0.
@@ -224,7 +240,7 @@ Blue value;  Range is (0.0 - 1.0) Default is 1.0.
 
 .SH PROCESSES
 
-A brief discription of each process is given below.
+A brief description of each process is given below.
 .TP
 .B average 
 (avg) Average images together.
@@ -465,10 +481,29 @@ will work with this process.
 .TP
 .B stat
 Calculate stats on a file. A table is printed with the
-Min, Max and Std. Deviation.  The location of the maximum
-is also printed.  The location is calculated by doing a
-quadratic fit to the maximum value.  The -s option is
-used to report the location for a cross-correlation.
+minimum, maximum, mean and standard deviation.  The locations of the max and 
+min
+are also printed.  The locations are calculated by doing a
+quadratic fit around the extreme value.  If the
+.B -s
+option is given, the location of the max is adjusted by half the image
+size, which may be appropriate for a cross-correlation.  If either the 
+.B -l
+or the
+.B -n
+option is given, min and max values will be analyzed for outliers
+by comparing the min or max value for a slice with the respective
+values for nearby slices or for all slices.  The comparison is by the ratio of the
+distance of a value from the median, to the median of such distances.  The
+criterion for this ratio is set with the
+.B -n
+option and has a default of 2.24; use higher values to have fewer slices
+marked as outliers.  The number of nearby slices used for comparison is set
+with the
+.B -l
+option; otherwise the comparison is with the values for all slices.  Each
+outlier is marked with a star, and at the end the slices with outlier values
+are listed.
 
 .SH HISTORY
 Originally most processes loaded all data into memory unless the -2d option
