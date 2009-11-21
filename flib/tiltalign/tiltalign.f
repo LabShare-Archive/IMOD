@@ -608,10 +608,16 @@ c
       if(ifxyzout.ne.0)then
         write(iunit2,111)
 111     format(/,21x,'3-D point coordinates (with centroid zero)'
-     &      ,/,'   #',7x,'X',9x,'Y',9x,'Z',6x,'obj  cont')
-        write(iunit2,'(i4,3f10.2,i7,i5)',err=86)
-     &      (indallreal(j),(xyz(i,j),i=1,3),imodobj(indallreal(j)),
-     &      imodcont(indallreal(j)),j=1,nrealpt)
+     &      ,/,'   #',7x,'X',9x,'Y',9x,'Z',6x,'obj  cont   mean resid')
+        do j = 1, nrealpt
+          vwerrsum = 0.
+          do i = irealstr(j), irealstr(j+1) - 1
+            vwerrsum = vwerrsum + sqrt(xresid(i)**2 + yresid(i)**2)
+          enddo
+          write(iunit2,'(i4,3f10.2,i7,i5,f12.2)',err=86)
+     &        indallreal(j),(xyz(i,j),i=1,3),imodobj(indallreal(j)),
+     &        imodcont(indallreal(j)),vwerrsum/ninreal(j)
+        enddo
       endif
 c       
 c       get min, max and midpoint of z values
@@ -1505,6 +1511,10 @@ c
 
 c       
 c       $Log$
+c       Revision 3.43  2009/10/23 02:15:06  mast
+c       Provided output of tilt angles before beam tilt adjustment and fixed
+c       potential shortcircuit evaluation problems.
+c
 c       Revision 3.42  2009/10/06 02:30:38  mast
 c       Output rotation angle at minimum tilt
 c
