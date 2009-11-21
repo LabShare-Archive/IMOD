@@ -60,6 +60,7 @@ typedef struct Grap_options
 
   int   ocanresize; /* output size can be changed. */
   int   ocanchmode;  /* output mode can be changed. */
+  int   fromOne;     /* Number Z from 1 not 0 */
   char *ofname;
 } ClipOptions;
 
@@ -150,6 +151,9 @@ double parabolic_fit(double *outX, double *outY, double i[3][3]);
 /*  
 
 $Log$
+Revision 3.5  2009/03/24 02:32:54  mast
+Add decalartion of parabolic fit routine
+
 Revision 3.4  2005/01/27 05:55:17  mast
 Added anisotropic diffusion option
 
