@@ -124,6 +124,13 @@ extern "C" {
                   float *c, float x1pred, float x2pred, float *ypred,
                   float *prederr);
 
+  /* robuststat.c */
+  void rsSortFloats(float *x, int n);
+  void rsMedianOfSorted(float *x, int n, float *median);
+  void rsMedian(float *x, int n, float *tmp, float *median);
+  void rsMADN(float *x, int n, float median, float *tmp, float *MADN);
+  void rsMadMedianOutliers(float *x, int n, float kcrit, float *out);
+
   /* amat_to_rotamgstr.c */
   void amatToRotmagstr(float a11, float a12, float a21, float a22, 
                          float *theta, float *smag, float *str, float *phi);
@@ -155,6 +162,9 @@ extern "C" {
 /*
 
 $Log$
+Revision 3.14  2009/02/16 06:16:12  mast
+Add parallel write routines
+
 Revision 3.13  2009/01/02 05:19:19  mast
 const char * for Qt 4 port
 

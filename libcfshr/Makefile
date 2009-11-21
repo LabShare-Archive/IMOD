@@ -15,7 +15,8 @@ UTILOBJS = b3dutil.$(O) ilist.$(O) parselist.$(O) amoeba.$(O) \
 	scaledsobel.$(O) filtxcorr.$(O) taperpad.$(O) circlefit.$(O) \
 	insidecontour.$(O) islice.$(O) taperatfill.$(O) histogram.$(O) \
 	simplestat.$(O) amat_to_rotmagstr.$(O) percentile.$(O) beadutil.$(O) \
-	lsqr.$(O) lsqrblas.$(O) sparselsqr.$(O) parallelwrite.$(O)
+	lsqr.$(O) lsqrblas.$(O) sparselsqr.$(O) parallelwrite.$(O) \
+	robuststat.$(O)
 
 PIPOBJS = parse_params.$(O) pip_fwrap.$(O) autodoc.$(O) adoc_fwrap.$(O)
 
@@ -55,6 +56,9 @@ adoc_fwrap.$(O) : $(INCDIR)/autodoc.h
 lsqr.$(O) : $(INCDIR)/lsqr.h cblas.h stdbool.h
 
 #  $Log$
+#  Revision 1.13  2009/09/08 23:48:54  mast
+#  Added openmp flag for b3dutil
+#
 #  Revision 1.12  2009/04/09 18:56:23  mast
 #  Add openmp flag for cubinterp
 #
