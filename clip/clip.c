@@ -80,6 +80,7 @@ void usage(void)
   fprintf(stderr, "\t[-ov #] Overwrite output starting at section #\n");
   fprintf(stderr, "\t[-m (mode#)] output data mode.\n");
   fprintf(stderr, "\t[-p (pad#)] pad empty data value.\n");
+  fprintf(stderr, "\t[-1] Number Z values from 1 instead of 0.\n");
   fprintf(stderr, "\n");
 }
 
@@ -124,6 +125,7 @@ void default_options(ClipOptions *opt)
   opt->nofsecs = IP_DEFAULT;
   opt->ocanresize = TRUE;
   opt->ocanchmode = TRUE;
+  opt->fromOne = FALSE;
   opt->ofname = NULL;
 }
 
@@ -137,7 +139,7 @@ int main( int argc, char *argv[] )
   int process = IP_NONE;  /* command to run.             */
   int view    = FALSE;    /* view file at end?           */
   int procout = TRUE;     /* will process write output?. */
-  int i;
+  int i, j;
   int retval = 0;
 
   char viewcmd[1024];
@@ -249,6 +251,9 @@ int main( int argc, char *argv[] )
 
       case '2':
         opt.dim = 2; break;
+
+      case '1':
+        opt.fromOne = TRUE; break;
 
       case 's':
         opt.sano = TRUE; break;		    
@@ -462,6 +467,23 @@ int main( int argc, char *argv[] )
   opt.hin = &hin;
   opt.hout = &hout;
 
+  /* Massage the Z values if numbered from one */
+  if (opt.fromOne) {
+    if (opt.add2file == IP_APPEND_OVERWRITE)
+      opt.isec--;
+    if (opt.nofsecs != IP_DEFAULT)
+      for (j = 0; j < opt.nofsecs; j++)
+        opt.secs[j]--;
+    if (opt.cz != IP_DEFAULT)
+        opt.cz--;
+    if (opt.dim == 2) {
+      if (opt.iz != IP_DEFAULT)
+        opt.iz--;
+      if (opt.iz2 != IP_DEFAULT)
+        opt.iz2--;
+    }
+  }
+
   /* run the selected process */
   switch(process){
   case IP_ADD:
@@ -608,6 +630,9 @@ int *clipMakeSecList(char *clst, int *nofsecs)
 
 /*
 $Log$
+Revision 3.21  2008/07/04 21:30:42  mast
+Fixed splitrgb the right way this time
+
 Revision 3.20  2008/01/10 05:19:38  mast
 Fixed double close of file with splitrgb
 
