@@ -344,10 +344,17 @@ c               check for two points on same view
 c               
               do i = nprojpt + 1, nprojtmp
                 if (.not.stereopair .and. inlist .eq. isecview(i)) then
+c                   
+c                   Find the other point
+                  do j = 1, ipt-1
+                    if (nint((p_coord(3,object(j+ibase)) + zorig) / delta(3))
+     &                  .eq. iz)inlist = j
+                  enddo
                   call objtocont(iobject,obj_color,ibase,ninobj)
-                  write(*,'(/,a,i5,a,i4,a,i5)')
-     &                'ERROR: TILTALIGN - TWO POINTS ON VIEW',
-     &                iz + 1,' IN CONTOUR', ninobj,' OF OBJECT',ibase
+                  write(*,'(/,a,i5,a,i5,a,i5,a,i5,a,i4)')
+     &                'ERROR: TILTALIGN - TWO POINTS (#',inlist,' AND',ipt,
+     &                ') ON VIEW', iz + 1,' IN CONTOUR', ninobj,' OF OBJECT',
+     &                ibase
                   call exit(1)
                 endif
               enddo
@@ -480,6 +487,10 @@ c
 
 c       
 c       $Log$
+c       Revision 3.19  2008/12/12 00:46:49  mast
+c       Stop inverting points for output; add error if no points or points on
+c       only one view
+c
 c       Revision 3.18  2007/11/18 04:57:10  mast
 c       Redeclared concat at 320
 c
