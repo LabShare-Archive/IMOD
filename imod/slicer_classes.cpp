@@ -57,7 +57,6 @@
 #define TOOLBUT_SIZE 20
 
 #define MAX_THREADS 16
-#define NUM_THREADS 4
 
 static void fillArraySegment(int jstart, int jlimit);
 static void findIndexLimits(int isize, int xsize, float xo, float xsx,
@@ -718,15 +717,14 @@ void fillImageArray(SlicerStruct *ss, int panning, int meanOnly)
   ksize = (ss->vi->colormapImage || meanOnly) ? 1 : ss->nslice;
  
   // Set up number of threads early so pan limit can be modified
-  // Start with defined number of threads and modify with environment variable
-  numThreads = NUM_THREADS;
+  // Start with ideal number of threads and modify with environment variable
+  numThreads = QThread::idealThreadCount();
 #ifdef QT_THREAD_SUPPORT
   procChar = getenv("IMOD_PROCESSORS");
-  if (procChar) {
+  if (procChar)
     numThreads = atoi(procChar);
-    numThreads = B3DMIN(MAX_THREADS, B3DMAX(1, numThreads));
-    maxPanPixels *= numThreads;
-  }
+  numThreads = B3DMIN(MAX_THREADS, B3DMAX(1, numThreads));
+  maxPanPixels *= numThreads;
 #endif
 
   // When panning, drop HQ and/or reduce number of slices to maintain
@@ -1504,6 +1502,9 @@ static void fillArraySegment(int jstart, int jlimit)
 /*
 
 $Log$
+Revision 4.32  2009/02/26 22:39:35  mast
+Fix keyboard tracking of image thickness
+
 Revision 4.31  2009/01/24 01:04:49  mast
 Turn of keyboard tracking on spin boxes
 
