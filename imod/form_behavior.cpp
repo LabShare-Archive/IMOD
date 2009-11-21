@@ -75,6 +75,7 @@ void BehaviorForm::update()
   //  diaSetChecked(tooltipBox, mPrefs->tooltipsOn);
   diaSetChecked(startAtMidZBox, mPrefs->startAtMidZ);
   diaSetChecked(selectONcheckBox, mPrefs->attachToOnObj);
+  diaSetChecked(slicerNewSurfBox, mPrefs->slicerNewSurf);
   autoConAtStartBox->setCurrentIndex(mPrefs->autoConAtStart);
   diaSetChecked(geomCheckBox, mPrefs->rememberGeom);
   diaSetSpinBox(f1f8StepSpinBox, mPrefs->bwStep);
@@ -104,6 +105,7 @@ void BehaviorForm::unload()
   //  mPrefs->tooltipsOn = tooltipBox->isChecked();
   mPrefs->startAtMidZ = startAtMidZBox->isChecked();
   mPrefs->attachToOnObj = selectONcheckBox->isChecked();
+  mPrefs->slicerNewSurf = slicerNewSurfBox->isChecked();
   mPrefs->autoConAtStart = autoConAtStartBox->currentIndex();
   mPrefs->rememberGeom = geomCheckBox->isChecked();
   mPrefs->bwStep = f1f8StepSpinBox->value();
@@ -129,6 +131,9 @@ void BehaviorForm::toolTipsToggled( bool state )
 /*
 
 $Log$
+Revision 4.2  2009/02/26 20:03:32  mast
+Add paging by big steps
+
 Revision 4.1  2009/01/15 16:33:17  mast
 Qt 4 port
 

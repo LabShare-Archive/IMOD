@@ -66,6 +66,7 @@ typedef struct imod_pref_struct
   TRIPLET(bool, startAtMidZ);         // Go to middle Z at start
   TRIPLET(int, autoConAtStart);      // Do autocontrast at start
   TRIPLET(bool, attachToOnObj);      // Attach to ON objects only
+  TRIPLET(bool, slicerNewSurf);      // Slicer make new surfaces automatically 
   QFont font;              // Font
   bool fontChgd;
   QString styleKey;        // Style
@@ -140,6 +141,7 @@ class ImodPreferences : public QObject
   bool classicSlicer() {return mCurrentPrefs.classicSlicer;};
   bool classicWarned();
   bool attachToOnObj() {return mCurrentPrefs.attachToOnObj;};
+  bool slicerNewSurf() {return mCurrentPrefs.slicerNewSurf;};
   int actualButton(int logicalButton);
   int actualModvButton(int logicalButton);
   QString autosaveDir();
@@ -213,6 +215,9 @@ extern ImodPreferences *ImodPrefs;
 
 /*
 $Log$
+Revision 1.23  2009/03/22 19:44:46  mast
+Switched to taking all styles that exist
+
 Revision 1.22  2009/02/26 20:03:32  mast
 Add paging by big steps
 

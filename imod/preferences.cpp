@@ -19,7 +19,8 @@
  * In donePressed, record change in value
  * In defaultPressed, restore value in appropriate section
  * Update program state if needed in timerEvent or pointSizeChanged
- * In designer, build interface, load interface and unload it
+ * In designer, add interface element
+ * In the form_xxx.cpp, load interface and unload it
  *
  * Do not despair, just saving/restoring a program state variable just takes
  * one line in each place, see usewheelforsize, etc.
@@ -134,6 +135,7 @@ ImodPreferences::ImodPreferences(char *cmdLineStyle)
   prefs->startAtMidZDflt = true;
   prefs->autoConAtStartDflt = 1;
   prefs->attachToOnObjDflt = true;
+  prefs->slicerNewSurfDflt = true;
   prefs->bwStepDflt = 3;
   prefs->pageStepDflt = 10;
   prefs->iconifyImodvDlgDflt = 1;
@@ -186,6 +188,7 @@ ImodPreferences::ImodPreferences(char *cmdLineStyle)
   READNUM(autoConAtStart);
   READBOOL(startAtMidZ);
   READBOOL(attachToOnObj);
+  READBOOL(slicerNewSurf);
 
   READNUM(bwStep);
   READNUM(pageStep);
@@ -489,6 +492,7 @@ void ImodPreferences::saveSettings(int modvAlone)
   WRITE_IF_CHANGED(autoConAtStart);
   WRITE_IF_CHANGED(startAtMidZ);
   WRITE_IF_CHANGED(attachToOnObj);
+  WRITE_IF_CHANGED(slicerNewSurf);
   WRITE_IF_CHANGED(bwStep);
   WRITE_IF_CHANGED(pageStep);
   WRITE_IF_CHANGED(iconifyImodvDlg);
@@ -621,6 +625,7 @@ void ImodPreferences::donePressed()
   curp->autoConAtStartChgd |= newp->autoConAtStart != oldp->autoConAtStart;
   curp->startAtMidZChgd |= !equiv(newp->startAtMidZ, oldp->startAtMidZ);
   curp->attachToOnObjChgd |= !equiv(newp->attachToOnObj, oldp->attachToOnObj);
+  curp->slicerNewSurfChgd |= !equiv(newp->slicerNewSurf, oldp->slicerNewSurf);
   curp->classicSlicerChgd |= !equiv(newp->classicSlicer, oldp->classicSlicer);
   /*if (!equiv(newp->tooltipsOn, oldp->tooltipsOn)) {
     curp->tooltipsOnChgd = true;
@@ -739,6 +744,7 @@ void ImodPreferences::defaultPressed()
     prefs->autoConAtStart = prefs->autoConAtStartDflt;
     prefs->startAtMidZ = prefs->startAtMidZDflt;
     prefs->attachToOnObj = prefs->attachToOnObjDflt;
+    prefs->slicerNewSurf = prefs->slicerNewSurfDflt;
     prefs->bwStep = prefs->bwStepDflt;
     prefs->pageStep = prefs->pageStepDflt;
     prefs->iconifyImodvDlg = prefs->iconifyImodvDlgDflt;
@@ -1197,6 +1203,10 @@ void PrefsDialog::closeEvent ( QCloseEvent * e )
 
 /*
 $Log$
+Revision 1.42  2009/03/22 19:45:57  mast
+Switched to taking all styles that exist and picking better default style
+than Windows for Mac.
+
 Revision 1.41  2009/02/26 20:03:32  mast
 Add paging by big steps
 

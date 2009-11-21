@@ -6,7 +6,7 @@
     <x>0</x>
     <y>0</y>
     <width>378</width>
-    <height>565</height>
+    <height>589</height>
    </rect>
   </property>
   <property name="windowTitle" >
@@ -44,6 +44,16 @@
      </property>
      <property name="text" >
       <string>First mouse button selects points only in visible objects</string>
+     </property>
+    </widget>
+   </item>
+   <item>
+    <widget class="QCheckBox" name="slicerNewSurfBox" >
+     <property name="toolTip" >
+      <string>When modeling closed contours in slicer, start a new surface when the angle changes</string>
+     </property>
+     <property name="text" >
+      <string>Start new surfaces upon angle change in Slicer</string>
      </property>
     </widget>
    </item>
