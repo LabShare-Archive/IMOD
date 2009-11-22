@@ -4,6 +4,7 @@ LIBRARY      "libcfshr"
 
 EXPORTS
 	CUBINTERP
+	RSMADN
 	amoebaInit
 	PipGetFloat
 	percentileFloat
@@ -72,6 +73,7 @@ EXPORTS
 	ADOCGETFLOATARRAY
 	sumsToAvgSD
 	wallTime
+	RSMEDIANOFSORTED
 	sliceClear
 	LSFIT
 	LSFIT2
@@ -85,6 +87,7 @@ EXPORTS
 	PipInitialize
 	PipNumberOfEntries
 	PipGetIntegerArray
+	rsMadMedianOutliers
 	beadIntegral
 	sliceCreate
 	PARWRTFINDREGION
@@ -104,6 +107,7 @@ EXPORTS
 	cmapInvertedRamp
 	sumsToAvgSDdbl
 	PIPSETMANPAGEOUTPUT
+	RSMADMEDIANOUTLIERS
 	normalizeColumns
 	NORMALIZECOLUMNS
 	cubinterp
@@ -142,6 +146,7 @@ EXPORTS
 	AdocSetFloat
 	sliceTaperInPad
 	PipPrintHelp
+	rsMADN
 	AMAT_TO_ROTMAGSTR
 	ADOCSETINTEGER
 	ilistNew
@@ -149,6 +154,7 @@ EXPORTS
 	AdocClear
 	PipNextArg
 	ilistDup
+	rsMedianOfSorted
 	AdocSetTwoFloats
 	sliceTaperOutPad
 	addValueToRow
@@ -164,6 +170,7 @@ EXPORTS
 	sliceModeIfReal
 	AVGSD
 	ADDVALUETOROW
+	RSSORTFLOATS
 	AdocSetTwoIntegers
 	cblas_dcopy
 	PIPREADSTDINIFSET
@@ -187,6 +194,7 @@ EXPORTS
 	ADOCGETSECTIONNAME
 	CONJUGATEPRODUCT
 	XCORRPEAKFIND
+	rsMedian
 	XCorrCCCoefficient
 	PIPGETINTEGERARRAY
 	XCorrSetCTF
@@ -198,6 +206,7 @@ EXPORTS
 	PIPADDOPTION
 	ADOCSETCURRENT
 	PipMemoryError
+	RSMEDIAN
 	ADOCGETTHREEINTEGERS
 	PIPGETNONOPTIONARG
 	ADOCDELETEKEYVALUE
@@ -241,6 +250,7 @@ EXPORTS
 	lsFit
 	PIPPRINTHELP
 	TAPERINPAD
+	rsSortFloats
 	scaledSobel
 	ADOCDONE
 	sampleMeanSD
