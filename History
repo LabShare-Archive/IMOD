@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+11/23/09: Fixed crash when opening 3dmod without image on model with multiple
+times.
+
 11/21/09: The number of threads in Slicer will now equal the number of
 processors on the system, unless specified otherwise with IMOD_PROCESSORS.
 
