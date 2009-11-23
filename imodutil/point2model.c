@@ -13,6 +13,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include "imodel.h"
 #include "b3dutil.h"
 #include "mrcfiles.h"
@@ -34,7 +35,9 @@ int main( int argc, char *argv[])
   int sphere = 0, circle = 0;
   float tst1, tst2, xx, yy, zz;
   int numColors = 0;
+  int numNames = 0;
   int *red, *green, *blue;
+  char **names = NULL;
 
   char *progname = imodProgName(argv[0]);
   char *filename, *imagename;
@@ -99,6 +102,16 @@ int main( int argc, char *argv[])
     for (co = 0; co < numColors; co++)
       err = PipGetThreeIntegers("ColorOfObject", &red[co], &green[co], 
                                 &blue[co]);
+  }
+
+  // Get names
+  err = PipNumberOfEntries("NameOfObject", &numNames);
+  if (numNames) {
+    names = (char **)malloc(numNames * sizeof(char *));
+    if (!names)
+      exitError("Allocating memory for names");
+    for (co = 0; co < numNames; co++)
+      err = PipGetString("NameOfObject", &names[co]);
   }
 
   PipDone();
@@ -190,6 +203,10 @@ int main( int argc, char *argv[])
           imod->obj[i].green = green[i] / 255.;
           imod->obj[i].blue = blue[i] / 255.;
         }
+        if (i < numNames) {
+          strncpy(imod->obj[i].name, names[i], IOBJ_STRSIZE - 1);
+          imod->obj[i].name[IOBJ_STRSIZE - 1] = 0x00;
+        }
       }
     }
 
@@ -245,6 +262,9 @@ int main( int argc, char *argv[])
 /*
 
 $Log$
+Revision 3.5  2009/09/22 14:35:19  mast
+Fixed warning statement
+
 Revision 3.4  2009/09/21 18:34:07  mast
 Fixed problem with reading stopping at a blank line, and added options for
 setting color, sizes, and reference coordinates.
