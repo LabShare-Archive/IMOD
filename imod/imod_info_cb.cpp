@@ -433,7 +433,7 @@ int imod_info_bwfloat(ImodView *vw, int section, int time)
   int retval = 0;
 
   // Skip through if this is the first call; there is no reference
-  if (float_on && last_section >= 0) {
+  if (float_on && last_section >= 0 && !vw->fakeImage) {
 
     /* Make sure table exists and is the right size */
     tdim = ivwGetMaxTime(vw) + 1;
@@ -825,6 +825,9 @@ void imod_imgcnt(const char *string)
 /*
 
 $Log$
+Revision 4.35  2009/09/21 23:24:34  mast
+Made it update image reading display every 100 ms
+
 Revision 4.34  2009/02/25 05:36:43  mast
 Function for turning off updating of any dialogs but info
 
