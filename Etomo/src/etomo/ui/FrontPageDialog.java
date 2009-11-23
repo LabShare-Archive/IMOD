@@ -8,6 +8,7 @@ import javax.swing.BoxLayout;
 
 import etomo.EtomoDirector;
 import etomo.type.AxisID;
+import etomo.util.EnvironmentVariable;
 
 /**
  * <p>Description: </p>
@@ -23,6 +24,10 @@ import etomo.type.AxisID;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.3  2009/10/28 17:47:16  sueh
+ * <p> bug# 1275 Moved responsibility for closing FrontPageManager to
+ * <p> EtomoDirector.
+ * <p>
  * <p> Revision 1.2  2009/10/27 20:41:58  sueh
  * <p> bug# 1275 Made class a top-level dialog for FrontPageManager.
  * <p>
@@ -117,7 +122,17 @@ public final class FrontPageDialog {
       EtomoDirector.INSTANCE.openGenericParallel(true, AxisID.ONLY);
     }
     else if (actionCommand.equals(btnPeet.getActionCommand())) {
-      EtomoDirector.INSTANCE.openPeet(true, AxisID.ONLY);
+      if (EnvironmentVariable.INSTANCE.exists(EtomoDirector.INSTANCE
+          .getOriginalUserDir(), "PARTICLE_DIR", AxisID.ONLY, null)) {
+        EtomoDirector.INSTANCE.openPeet(true, AxisID.ONLY);
+      }
+      else {
+        UIHarness.INSTANCE.openMessageDialog(
+            "PEET is an optional package for particle averaging, which has "
+                + "not been installed and correctly configured.  See the "
+                + "PEET link under Other Programs at "
+                + "http://bio3d.colorado.edu/.", "Interface Unavailable", null);
+      }
     }
   }
 
