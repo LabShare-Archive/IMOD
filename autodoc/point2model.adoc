@@ -86,6 +86,15 @@ manpage = Color to make an object; enter red, green, and blue values ranging
 from 0 to 255.  To assign colors to multiple objects, enter this option
 multiple times.
 
+[Field = NameOfObject]
+short = name
+type = CHM
+usage = Name to give object
+tooltip =
+manpage = Name to give an object; enter a text string, enclosed in quotes if
+it contains spaces.  To assign names to multiple objects, enter this option
+multiple times.
+
 [Field = ImageForCoordinates]
 short = image
 type = FN

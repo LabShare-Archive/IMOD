@@ -1,5 +1,7 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+11/23/09: Added object name option to point2model.
+
 11/23/09: Fixed crash when opening 3dmod without image on model with multiple
 times.
 
