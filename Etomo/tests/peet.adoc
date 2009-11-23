@@ -436,7 +436,8 @@ tf.object-#==2
 tf.contour-#==3
 save==
 assert.contains.file==pi.prm|"yaxisType = 2"
-assert.contains.file==pi.prm|"yaxisContour = [1, 2, 3]"
+assert.contains.file==pi.prm|"yaxisObjectNum = 2"
+assert.contains.file==pi.prm|"yaxisContourNum = 3"
 rb.original-y-axis==
 
 

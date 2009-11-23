@@ -44,6 +44,10 @@ import etomo.util.DatasetFiles;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.34  2009/11/20 16:56:22  sueh
+ * <p> bug# 1282 Added flgRemoveDuplicates, duplicateShiftTolerance, and
+ * <p> duplicateAngularTolerance.
+ * <p>
  * <p> Revision 1.33  2009/10/30 20:53:34  sueh
  * <p> bug# 1284 Changed the CCMode default to local.
  * <p>
@@ -297,7 +301,8 @@ public final class MatlabParam {
   public static final int PARTICLE_PER_CPU_MAX = 50;
   public static final int PARTICLE_PER_CPU_DEFAULT = 5;
   public static final String YAXIS_TYPE_KEY = "yaxisType";
-  public static final String YAXIS_CONTOUR_KEY = "yaxisContour";
+  public static final String YAXIS_OBJECT_NUM_KEY = "yaxisObjectNum";
+  public static final String YAXIS_CONTOUR_NUM_KEY = "yaxisContourNum";
   public static final boolean REFERENCE_FILE_DEFAULT = false;
   public static final String FLG_WEDGE_WEIGHT_KEY = "flgWedgeWeight";
   public static final boolean FLG_WEDGE_WEIGHT_DEFAULT = false;
@@ -316,9 +321,6 @@ public final class MatlabParam {
 
   private static final int VOLUME_INDEX = 0;
   private static final int PARTICLE_INDEX = 1;
-  private static final int MODEL_INDEX = 0;
-  private static final int OBJECT_INDEX = 1;
-  private static final int CONTOUR_INDEX = 2;
   private static final int RELATIVE_ORIENT_DEFAULT = 0;
 
   private final ParsedNumber particlePerCpu = ParsedNumber.getMatlabInstance();
@@ -343,7 +345,8 @@ public final class MatlabParam {
   private final ParsedQuotedString referenceFile = ParsedQuotedString
       .getInstance();
   private final ParsedArray reference = ParsedArray.getMatlabInstance();
-  private final ParsedArray yAxisContour = ParsedArray.getMatlabInstance();
+  private final ParsedNumber yaxisObjectNum = ParsedNumber.getMatlabInstance();
+  private final ParsedNumber yaxisContourNum = ParsedNumber.getMatlabInstance();
   private final ParsedNumber flgWedgeWeight = ParsedNumber.getMatlabInstance();
   private final ParsedQuotedString sampleSphere = ParsedQuotedString
       .getInstance();
@@ -365,7 +368,6 @@ public final class MatlabParam {
   private CCMode ccMode = CCMode.DEFAULT;
   private boolean useReferenceFile = REFERENCE_FILE_DEFAULT;
   private YAxisType yAxisType = YAxisType.DEFAULT;
-  private boolean useYaxisContour = false;
   private boolean useNWeightGroup = false;
   private boolean tiltRangeEmpty = false;
 
@@ -562,7 +564,6 @@ public final class MatlabParam {
 
   public void setYaxisType(EnumeratedType enumeratedType) {
     yAxisType = (YAxisType) enumeratedType;
-    useYaxisContour = yAxisType == YAxisType.CONTOUR;
   }
 
   public void setSampleSphere(EnumeratedType enumeratedType) {
@@ -679,10 +680,6 @@ public final class MatlabParam {
     maskModelPts.setRawString(VOLUME_INDEX, input.toString());
   }
 
-  public void setYAxisContourModelNumber(final Number input) {
-    yAxisContour.setRawString(MODEL_INDEX, input.toString());
-  }
-
   public String getMaskModelPtsParticle() {
     return maskModelPts.getRawString(PARTICLE_INDEX);
   }
@@ -699,16 +696,12 @@ public final class MatlabParam {
     return reference.getElement(VOLUME_INDEX);
   }
 
-  public ParsedElement getYAxisContourModelNumber() {
-    return yAxisContour.getElement(MODEL_INDEX);
+  public String getYaxisObjectNum() {
+    return yaxisObjectNum.getRawString();
   }
 
-  public String getYAxisContourObjectNumber() {
-    return yAxisContour.getRawString(OBJECT_INDEX);
-  }
-
-  public String getYAxisContourContourNumber() {
-    return yAxisContour.getRawString(CONTOUR_INDEX);
+  public String getYaxisContourNum() {
+    return yaxisContourNum.getRawString();
   }
 
   public SampleSphere getSampleSphere() {
@@ -744,8 +737,8 @@ public final class MatlabParam {
     ccMode = CCMode.DEFAULT;
     useReferenceFile = false;
     yAxisType = YAxisType.DEFAULT;
-    useYaxisContour = false;
-    yAxisContour.clear();
+    yaxisObjectNum.clear();
+    yaxisContourNum.clear();
     flgWedgeWeight.setRawString(FLG_WEDGE_WEIGHT_DEFAULT);
     sampleInterval.clear();
     sampleSphere.clear();
@@ -885,12 +878,12 @@ public final class MatlabParam {
     maskModelPts.clear();
   }
 
-  public void setYaxisContourObjectNumber(final String input) {
-    yAxisContour.setRawString(OBJECT_INDEX, input);
+  public void setYaxisObjectNum(final String input) {
+    yaxisObjectNum.setRawString(input);
   }
 
-  public void setYaxisContourContourNumber(final String input) {
-    yAxisContour.setRawString(CONTOUR_INDEX, input);
+  public void setYaxisContourNum(final String input) {
+    yaxisContourNum.setRawString(input);
   }
 
   public void setReferenceFile(final String referenceFile) {
@@ -1019,9 +1012,10 @@ public final class MatlabParam {
     debugLevel.parse(autodoc.getAttribute(DEBUG_LEVEL_KEY));
     //YaxisType
     yAxisType = YAxisType.getInstance(autodoc.getAttribute(YAXIS_TYPE_KEY));
-    useYaxisContour = yAxisType == YAxisType.CONTOUR;
-    //YaxisContour
-    yAxisContour.parse(autodoc.getAttribute(YAXIS_CONTOUR_KEY));
+    //YaxisObjectNum
+    yaxisObjectNum.parse(autodoc.getAttribute(YAXIS_OBJECT_NUM_KEY));
+    //YaxisContourNum
+    yaxisContourNum.parse(autodoc.getAttribute(YAXIS_CONTOUR_NUM_KEY));
     //flgWedgeWeight
     flgWedgeWeight.parse(autodoc.getAttribute(FLG_WEDGE_WEIGHT_KEY));
     //sampleSphere
@@ -1196,9 +1190,8 @@ public final class MatlabParam {
     valueMap.put(LST_FLAG_ALL_TOM_KEY, lstFlagAllTom.getParsableString());
     valueMap.put(PARTICLE_PER_CPU_KEY, particlePerCpu.getParsableString());
     valueMap.put(YAXIS_TYPE_KEY, yAxisType.toString());
-    if (useYaxisContour) {
-      valueMap.put(YAXIS_CONTOUR_KEY, yAxisContour.getParsableString());
-    }
+    valueMap.put(YAXIS_OBJECT_NUM_KEY, yaxisObjectNum.getParsableString());
+    valueMap.put(YAXIS_CONTOUR_NUM_KEY, yaxisContourNum.getParsableString());
     valueMap.put(FLG_WEDGE_WEIGHT_KEY, flgWedgeWeight.getParsableString());
     valueMap.put(SAMPLE_SPHERE_KEY, sampleSphere.getParsableString());
     valueMap.put(SAMPLE_INTERVAL_KEY, sampleInterval.getParsableString());
@@ -1363,8 +1356,10 @@ public final class MatlabParam {
         .get(PARTICLE_PER_CPU_KEY), commentMap);
     setNameValuePairValue(autodoc, YAXIS_TYPE_KEY, (String) valueMap
         .get(YAXIS_TYPE_KEY), commentMap);
-    setNameValuePairValue(autodoc, YAXIS_CONTOUR_KEY, (String) valueMap
-        .get(YAXIS_CONTOUR_KEY), commentMap);
+    setNameValuePairValue(autodoc, YAXIS_OBJECT_NUM_KEY, (String) valueMap
+        .get(YAXIS_OBJECT_NUM_KEY), commentMap);
+    setNameValuePairValue(autodoc, YAXIS_CONTOUR_NUM_KEY, (String) valueMap
+        .get(YAXIS_CONTOUR_NUM_KEY), commentMap);
     setNameValuePairValue(autodoc, FLG_WEDGE_WEIGHT_KEY, (String) valueMap
         .get(FLG_WEDGE_WEIGHT_KEY), commentMap);
     setNameValuePairValue(autodoc, SAMPLE_SPHERE_KEY, (String) valueMap
@@ -1432,10 +1427,10 @@ public final class MatlabParam {
         .get(HI_CUTOFF_KEY), commentMap);
     setNameValuePairValue(autodoc, REF_THRESHOLD_KEY, (String) valueMap
         .get(REF_THRESHOLD_KEY), commentMap);
-    setNameValuePairValue(autodoc, DUPLICATE_SHIFT_TOLERANCE_KEY, (String) valueMap
-        .get(DUPLICATE_SHIFT_TOLERANCE_KEY), commentMap);
-    setNameValuePairValue(autodoc, DUPLICATE_ANGULAR_TOLERANCE_KEY, (String) valueMap
-        .get(DUPLICATE_ANGULAR_TOLERANCE_KEY), commentMap);
+    setNameValuePairValue(autodoc, DUPLICATE_SHIFT_TOLERANCE_KEY,
+        (String) valueMap.get(DUPLICATE_SHIFT_TOLERANCE_KEY), commentMap);
+    setNameValuePairValue(autodoc, DUPLICATE_ANGULAR_TOLERANCE_KEY,
+        (String) valueMap.get(DUPLICATE_ANGULAR_TOLERANCE_KEY), commentMap);
   }
 
   /**
