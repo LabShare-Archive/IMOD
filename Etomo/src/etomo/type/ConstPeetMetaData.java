@@ -13,6 +13,9 @@ package etomo.type;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.13  2009/09/01 02:43:00  sueh
+* <p> bug# 1222 Made functions public.
+* <p>
 * <p> Revision 1.12  2009/01/13 19:36:27  sueh
 * <p> bug# 1170 Added isUseNWeightGroup.
 * <p>
@@ -63,9 +66,6 @@ public interface ConstPeetMetaData {
   public ConstEtomoNumber getReferenceParticle();
   public ConstEtomoNumber getReferenceVolume();
   public String getEdgeShift();
-  public ConstEtomoNumber getYAxisContourModelNumber();
-  public String getYAxisContourObjectNumber();
-  public String getYAxisContourContourNumber();
   public boolean isFlgWedgeWeight();
   public boolean isMaskUseReferenceParticle();
   public ConstEtomoNumber getMaskModelPtsModelNumber();
