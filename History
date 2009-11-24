@@ -1,5 +1,7 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+11/23/09: In Etomo blocking the PEET interface when PARTICLE_DIR is not set.
+
 11/23/09: In Etomo - PEET supporting yaxisObjectNum and yaxisContourNum instead
 of yaxisContour.
 
