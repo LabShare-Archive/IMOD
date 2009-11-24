@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+11/23/09: In Etomo - PEET supporting yaxisObjectNum and yaxisContourNum instead
+of yaxisContour.
+
 11/23/09: Added object name option to point2model.
 
 11/23/09: Fixed crash when opening 3dmod without image on model with multiple
