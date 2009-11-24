@@ -22,6 +22,7 @@ import javax.swing.JOptionPane;
 import etomo.BaseManager;
 import etomo.EtomoDirector;
 import etomo.ManagerKey;
+import etomo.PeetManager;
 import etomo.process.ImodqtassistProcess;
 import etomo.process.ProcessMessages;
 import etomo.storage.DataFileFilter;
@@ -133,7 +134,9 @@ abstract class EtomoFrame extends JFrame {
       EtomoDirector.INSTANCE.openAnisotropicDiffusion(true, axisID);
     }
     else if (menu.equalsNewPeet(event)) {
-      EtomoDirector.INSTANCE.openPeet(true, axisID);
+      if (PeetManager.isInterfaceAvailable()) {
+        EtomoDirector.INSTANCE.openPeet(true, axisID);
+      }
     }
     else if (menu.equalsOpen(event)) {
       File dataFile = openDataFileDialog();
@@ -930,6 +933,11 @@ abstract class EtomoFrame extends JFrame {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.45  2009/11/20 17:04:12  sueh
+ * <p> bug# 1282 Naming all the file choosers by constructing a FileChooser
+ * <p> instance instead of a JFileChooser instance.  Added isMenuSaveEnabled to
+ * <p> allow a save function to have the same limits as the save menu option.
+ * <p>
  * <p> Revision 1.44  2009/10/23 19:45:53  sueh
  * <p> bug# 1275 Make separate menu items for generic parallel process and
  * <p> NAD.
