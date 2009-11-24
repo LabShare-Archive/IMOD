@@ -7,8 +7,8 @@ import java.awt.event.ActionListener;
 import javax.swing.BoxLayout;
 
 import etomo.EtomoDirector;
+import etomo.PeetManager;
 import etomo.type.AxisID;
-import etomo.util.EnvironmentVariable;
 
 /**
  * <p>Description: </p>
@@ -24,6 +24,10 @@ import etomo.util.EnvironmentVariable;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.4  2009/11/23 17:52:21  sueh
+ * <p> bug# 1289 Popping up a message instead of opening the PEET interface if
+ * <p> PARTICLE_DIR doesn't exist.
+ * <p>
  * <p> Revision 1.3  2009/10/28 17:47:16  sueh
  * <p> bug# 1275 Moved responsibility for closing FrontPageManager to
  * <p> EtomoDirector.
@@ -122,16 +126,8 @@ public final class FrontPageDialog {
       EtomoDirector.INSTANCE.openGenericParallel(true, AxisID.ONLY);
     }
     else if (actionCommand.equals(btnPeet.getActionCommand())) {
-      if (EnvironmentVariable.INSTANCE.exists(EtomoDirector.INSTANCE
-          .getOriginalUserDir(), "PARTICLE_DIR", AxisID.ONLY, null)) {
+      if (PeetManager.isInterfaceAvailable()) {
         EtomoDirector.INSTANCE.openPeet(true, AxisID.ONLY);
-      }
-      else {
-        UIHarness.INSTANCE.openMessageDialog(
-            "PEET is an optional package for particle averaging, which has "
-                + "not been installed and correctly configured.  See the "
-                + "PEET link under Other Programs at "
-                + "http://bio3d.colorado.edu/.", "Interface Unavailable", null);
       }
     }
   }
