@@ -44,6 +44,10 @@ import etomo.util.DatasetFiles;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.35  2009/11/23 23:25:39  sueh
+ * <p> bug# 1292 Removing yaxisContour.  Added yaxisObjectNum and
+ * <p> yaxisContourNum.
+ * <p>
  * <p> Revision 1.34  2009/11/20 16:56:22  sueh
  * <p> bug# 1282 Added flgRemoveDuplicates, duplicateShiftTolerance, and
  * <p> duplicateAngularTolerance.
@@ -301,6 +305,10 @@ public final class MatlabParam {
   public static final int PARTICLE_PER_CPU_MAX = 50;
   public static final int PARTICLE_PER_CPU_DEFAULT = 5;
   public static final String YAXIS_TYPE_KEY = "yaxisType";
+  /**
+   * @deprecated replaced by yaxisObject and yaxisContour.
+   */
+    public static final String YAXIS_CONTOUR_KEY = "yaxisContour";
   public static final String YAXIS_OBJECT_NUM_KEY = "yaxisObjectNum";
   public static final String YAXIS_CONTOUR_NUM_KEY = "yaxisContourNum";
   public static final boolean REFERENCE_FILE_DEFAULT = false;
@@ -1356,6 +1364,7 @@ public final class MatlabParam {
         .get(PARTICLE_PER_CPU_KEY), commentMap);
     setNameValuePairValue(autodoc, YAXIS_TYPE_KEY, (String) valueMap
         .get(YAXIS_TYPE_KEY), commentMap);
+    removeNameValuePair(autodoc, YAXIS_CONTOUR_KEY);
     setNameValuePairValue(autodoc, YAXIS_OBJECT_NUM_KEY, (String) valueMap
         .get(YAXIS_OBJECT_NUM_KEY), commentMap);
     setNameValuePairValue(autodoc, YAXIS_CONTOUR_NUM_KEY, (String) valueMap
