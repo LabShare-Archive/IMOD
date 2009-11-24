@@ -44,7 +44,9 @@ import etomo.ui.MainPeetPanel;
 import etomo.ui.ParallelPanel;
 import etomo.ui.PeetDialog;
 import etomo.ui.ProcessDisplay;
+import etomo.ui.UIHarness;
 import etomo.util.DatasetFiles;
+import etomo.util.EnvironmentVariable;
 
 /**
  * <p>Description: </p>
@@ -60,6 +62,9 @@ import etomo.util.DatasetFiles;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.58  2009/10/29 12:01:52  sueh
+ * <p> bug# 1245 Changed copyParameters, which called either loadParamFile or loadMatlabParam with parameteresOnly set to true, to loadParam(File, boolean parametersOnly).  It is being called by both buttons in UseExistingProjectPanel.
+ * <p>
  * <p> Revision 1.57  2009/10/27 20:39:14  sueh
  * <p> bug# 1275 Moving the resposibility for creating the log panel to the child
  * <p> classes.  That way the Front Page manager doesn't have to have a log
@@ -321,6 +326,19 @@ public final class PeetManager extends BaseManager {
     }
   }
 
+  static public boolean isInterfaceAvailable() {
+    if (!EnvironmentVariable.INSTANCE.exists(EtomoDirector.INSTANCE
+        .getOriginalUserDir(), "PARTICLE_DIR", AxisID.ONLY, null)) {
+      UIHarness.INSTANCE.openMessageDialog(
+          "PEET is an optional package for particle averaging, which has "
+              + "not been installed and correctly configured.  See the "
+              + "PEET link under Other Programs at "
+              + "http://bio3d.colorado.edu/.", "Interface Unavailable", null);
+      return false;
+    }
+    return true;
+  }
+
   public boolean canChangeParamFileName() {
     return false;
   }
@@ -337,7 +355,7 @@ public final class PeetManager extends BaseManager {
   public InterfaceType getInterfaceType() {
     return InterfaceType.PEET;
   }
-  
+
   public LogPanel createLogPanel() {
     return LogPanel.getInstance(getManagerKey());
   }
@@ -400,7 +418,7 @@ public final class PeetManager extends BaseManager {
     return false;
   }
 
-  public void loadParam(final File file,boolean parametersOnly) {
+  public void loadParam(final File file, boolean parametersOnly) {
     if (new PeetFileFilter().accept(file)) {
       loadParamFile(file, parametersOnly);
     }
@@ -765,7 +783,7 @@ public final class PeetManager extends BaseManager {
   void createComScriptManager() {
   }
 
- public BaseProcessManager getProcessManager() {
+  public BaseProcessManager getProcessManager() {
     return processMgr;
   }
 
