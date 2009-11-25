@@ -70,23 +70,26 @@ comment == radius in pixels. Voxels residing outside this radius is masked out;
 KeyValueDelimiter == =
 
 [Field = yaxisType]
-comment = 0: use original Y axis as the twisting yaxis;
-^1: use particle model points to determine the twisting yaxis; It is computed point to point.
-^2: end points of the contour specified by the "yaxisContour" parameter.
-enum.0.tooltip = use original Y axis as the twisting yaxis;
-enum.1.tooltip = use particle model points to determine the twisting yaxis; It is computed point to point.
-enum.2.tooltip = end points of the contour specified by the "yaxisContour" parameter.
+comment = 0: use the volume's Y axis as the particle's Y axis.
+^1: use the vector between neighboring model points as the Y axis.
+^2: use end points of the contour specified by the "yaxisContour" parameter
+^   as the Y axis.
+enum.0.tooltip = use volume's Y axis as the particle's Y axis;
+enum.1.tooltip = use vector between neighboring model points as the Y axis.
+enum.2.tooltip = use end points of the contour specified by the "yaxisObjectNum" and "yaxisContourNum" parameters.
 
-[Field = yaxisContour]
-comment = specify the contour of a model  whose points are used to determine the Y axis.
-^format: [modelNumber objectNumber contourNumber]
+[Field = yaxisObjectNum]
+comment =  An integer specifying the index of the model object used for Y axis determination when yaxisType is 2. 
 
+[Field = yaxisContourNum]
+comment =  An integer specifying the index of the contour in object
+"yaxisObjecNum" whose endpoints will determine the Y axis for the associated volume when when yaxisType is 2.
+ 
 [Field = relativeOrient]
 comment = Specify the slicer angles in degrees needed to rotate particles in each tomogram to the
 ^reference orientation.  For the first iteration, those angles are combined with a particle's
 ^angles in the motive list to determine the rotation needed to align the particle with the
 ^reference.  It is only applied before the first iteration.
-
 
 [Field = particlePerCPU]
 comment = Specify how to distribute workload among all CPUs.  # of particles per CPU for each
@@ -205,3 +208,28 @@ comment = The basename for the aligned particle MRC files (default: '').
 
 [Field = debugLevel]
 comment = How much debugging info to print {0|1|2|3}
+
+[Field = flgAlignAverages]
+comment = If non-zero, and if "yaxisType" is also non-zero, rotate average
+^volumes to have the particle's Y axes approximately vertical.
+tooltip = Align averages to have the particle's Y axis approximately vertical.
+
+[Field = flgRemoveDuplicates]
+comment = If non-zero, search for and mark duplicate particles after
+^each alignment iteration. Particles marked as duplicates will be
+^excluded from averages and resolution estimates.
+tooltip = Remove mulitple references to the same particle after each iteration.
+
+[Field = duplicateShiftTolerance]
+comment = An arry of integers giving the maximum distance in pixels at
+^which particles can be considered duplicates at each iteration. Applied 
+^separately to each dimension, so the region defined is a cube rather
+^than a sphere. 
+tooltip = The maximum distance in pixels at which particles can be
+considered duplicates.
+
+[Field = flgDuplicateAngularTolerance]
+comment = An array of integers giving the maximum orientation difference in
+^degrees at which particles can be considered duplicates at each iteration.
+tooltip = The maximum orientation difference in degrees at which particles can be considered duplicates.
+
