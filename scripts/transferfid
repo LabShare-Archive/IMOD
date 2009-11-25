@@ -336,7 +336,8 @@ if ($#pixela < 1 || $#pixelb < 1) then
     echo "ERROR: $pn - reading pixel size from image file headers"
     exit 1
 endif
-if ($pixela[1] != $pixelb[1]) then
+set thoudiff = `echo $pixela[1] $pixelb[1] | awk '{print int(1000. * ($2 - $1)/ $2)}'`
+if ($thoudiff < -25 || $thoudiff > 25) then
     echo "ERROR: $pn - pixel sizes do not match:"
     echo "  $imagea = $pixela[1], $imageb = $pixelb[1]"
     exit 1
@@ -826,6 +827,9 @@ exit 1
 
 #
 #  $Log$
+#  Revision 3.34  2008/12/10 21:27:03  mast
+#  Made it work if fiducial model last loaded at different binning from stacks
+#
 #  Revision 3.33  2008/12/09 15:35:59  mast
 #  Modified to work with diameter instead of centroid radius
 #
