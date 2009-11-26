@@ -1,5 +1,6 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+11/25/09: IMOD_4-0-19
 11/25/09: Transferfid now allows pixel sizes of two axes to differ by 2.5%.
 
 11/23/09: In Etomo blocking the PEET interface when PARTICLE_DIR is not set.
