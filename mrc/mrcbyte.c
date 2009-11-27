@@ -220,14 +220,14 @@ int main( int argc, char *argv[] )
   mrc_head_label(&hout, "mrcbyte: Converted and scaled to byte mode.");
 
   xysize = hout.nx * hout.ny;
-  buf = (unsigned int *)malloc(xysize);
+  buf = (unsigned char *)malloc(xysize);
   if (!buf) {
-    printf("ERROR: % - Allocating memory to read data into\n", progname);
+    printf("ERROR: %s - Allocating memory to read data into\n", progname);
     exit(1);
   }
 
   if (!data_only && mrc_head_write(fout, &hout)) {
-    printf("ERROR: % - Writing header to output file\n", progname);
+    printf("ERROR: %s - Writing header to output file\n", progname);
     exit(1);
   }
 
@@ -235,7 +235,7 @@ int main( int argc, char *argv[] )
     printf("Converting Image # %3d\r", k + li.zmin);
     fflush(stdout);
     if (mrcReadZByte(&hdata, &li, buf, k + li.zmin)) {
-      printf("ERROR: % - Reading section %d from file\n", progname, k+li.zmin);
+      printf("ERROR: %s - Reading section %d from file\n", progname,k+li.zmin);
       exit(1);
     }
     if (reverse_video){
@@ -254,7 +254,7 @@ int main( int argc, char *argv[] )
     }
     meansum += slice.mean;
     if (mrc_write_slice(buf, fout, &hout, k, 'Z')) {
-      printf("ERROR: % - Writing section %d to file\n", progname, k);
+      printf("ERROR: %s - Writing section %d to file\n", progname, k);
       exit(1);
     }
 
@@ -263,7 +263,7 @@ int main( int argc, char *argv[] )
   hout.amean = meansum / hout.nz;
 
   if (!data_only && mrc_head_write(fout, &hout)) {
-    printf("ERROR: % - Writing header to output file\n", progname);
+    printf("ERROR: %s - Writing header to output file\n", progname);
     exit(1);
   }
   fclose(fout);
@@ -275,6 +275,9 @@ int main( int argc, char *argv[] )
 /*
 
 $Log$
+Revision 3.8  2008/05/31 03:48:37  mast
+Fixed min/max computation
+
 Revision 3.7  2008/05/31 03:11:33  mast
 Rewrote to read and write by sections
 
