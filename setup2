@@ -94,7 +94,7 @@ set lifft           = -lifft
 set limesh          = -limesh
 set lapacklibs      = '-llapack -lblas'
 set lapack_flibs    = ''
-set lapack_link     = '$(CC)'
+set lapacklink     = '$(CC)'
 set ldfflags        = '$(LDFLAGS)'
 set dllext          = '$(LIBEXT)'
 set moc             = '$(QTDIR)/bin/moc'
@@ -994,6 +994,9 @@ exit
 
 #
 #  $Log$
+#  Revision 1.52  2009/11/27 05:56:54  mast
+#  Changes for lapack
+#
 #  Revision 1.51  2009/11/06 18:54:33  mast
 #  Add a variable for Qt include directory
 #
