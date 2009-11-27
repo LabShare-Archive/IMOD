@@ -18,6 +18,7 @@
 #include "mrcfiles.h"
 #include "b3dtiff.h"
 #include "b3dutil.h"
+#include "parse_params.h"
 static FILE *openEitherWay(ImodImageFile *iifile, char *iname, char *progname,
                            int oldcode);
 
@@ -247,6 +248,9 @@ static FILE *openEitherWay(ImodImageFile *iifile, char *iname, char *progname,
 /*
 
 $Log$
+Revision 3.11  2009/04/01 00:20:34  mast
+Call new writing routine with libtiff and add compression option
+
 Revision 3.10  2008/05/24 14:52:45  mast
 Fixed string length allocation
 
