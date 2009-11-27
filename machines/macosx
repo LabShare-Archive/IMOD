@@ -114,7 +114,7 @@ else
         echo "IMOD can no longer be compiled with g77"
         exit 1
         set fcomp = "g77"
-        set ctfplot_flibs = "-lg2c"
+        set lapack_flibs = "-lg2c"
 
         # tell the C routines being called by Fortran that they need two __
         #
@@ -132,7 +132,7 @@ else
         set fcomp = "gfortran"
 
         # Sometimes this is needed, sometimes not, just put it in
-        set ctfplot_flibs = "-lgfortran"
+        set lapack_flibs = "-lgfortran"
         echo "DATESRC   = compat/datetime.f" >> $configure
         echo "DIRDATEOBJ  = compat/datetime.o" >> $configure
         echo "DATEOBJ  = datetime.o" >> $configure

@@ -6,6 +6,7 @@
 # 3/28/03: eliminated all X includes and libs
 #
 set c_includes = ""
+set ccompFlags = ""
 
 # DNM 8/27/01: Needed for large files to work right.  Use a -D define instead
 # of #define in imodconfig because it must precede all system includes.
@@ -31,8 +32,9 @@ if ($compiler == intel) then
     echo "CC        = icc"              >> $configure
     echo "CXX       = icpc"              >> $configure
     set fcomp = "ifort"
-    set ctfplotopt = '-nofor-main'
+    set lapackopt = '-nofor-main'
     set fcompFlags = '-132 -assume bscc -vec-report0'
+    set ccompFlags = '-vec-report0'
     echo "      parameter (nbytes_recl_item=4)" >! $endian_dir/recl_bytes.inc
 
     icc -v >&! icc.tmp
@@ -52,7 +54,7 @@ else
     echo "CXX       = g++"              >> $configure
     set fcompFlags = "-ffixed-line-length-0"
     set fortvers = 3
-    set ctfplotopt = ''
+    set lapackopt = ''
 
     if ($compiler == gfortran) then
         gfortran -v >&! gfortran.tmp
@@ -186,7 +188,7 @@ endif
 
 # 4/8/04: Use intermediate variables to simplify all the defines that are needed
 #
-set cflags = "$flags $m64flags $optimization $defines $include_flags $c_includes"
+set cflags = "$flags $m64flags $ccompFlags $optimization $defines $include_flags $c_includes"
 set fflags = "$flags $m64flags $fcompFlags $optimization $include_flags"
 
 echo "CFLAGS  = $cflags" >> $configure
@@ -227,6 +229,10 @@ if ($m64bit == false) echo '#define QTPLAX_ATEXIT_HACK' >> $hconfigure
 #   default is to assume tifflib exists
 #
 if ($tifflibs == default) set tifflibs = true
+
+# Link lapack programs with fortran compiler
+#
+set lapacklink = "$fcomp $lapackopt"
 
 #
 # Set the switch point include file for the FBP algorithm in Tilt

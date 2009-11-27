@@ -92,6 +92,9 @@ set ltiff           = -ltiff
 set ldnmncar        = -ldnmncar
 set lifft           = -lifft
 set limesh          = -limesh
+set lapacklibs      = '-llapack -lblas'
+set lapack_flibs    = ''
+set lapack_link     = '$(CC)'
 set ldfflags        = '$(LDFLAGS)'
 set dllext          = '$(LIBEXT)'
 set moc             = '$(QTDIR)/bin/moc'
@@ -608,6 +611,9 @@ echo "LCFSHR =    $lcfshr" >> $configure
 echo "LIIMOD =    $liimod" >> $configure
 echo "LIFFT =     $lifft" >> $configure
 echo "LIMESH =    $limesh" >> $configure
+echo "LAPACKLIBS =    $lapacklibs" >> $configure
+echo "LAPACKLINK =    $lapacklink" >> $configure
+echo "LAPACK_FLIBS =    $lapack_flibs" >> $configure
 echo "BLOCKIO =   $blockio"  >> $configure
 echo "IMSUBSOBJ = $imsubsobj"  >> $configure
 echo "TILTALILIB = $tiltalilib"  >> $configure
@@ -657,7 +663,7 @@ if ($machine != cygwin) then
     # manage qconfigure files
     #
     echo LIBS += -L$lib_dir -liimod -limod -lcfshr -ldiaqt $ltiff $midasGL >> $midas_qconf
-    echo LIBS += -L$lib_dir -lm -llapack -lblas -liimod -lcfshr $ltiff -lifft $ctfplot_flibs >! $ctfplot_qconf
+    echo LIBS += -L$lib_dir -lm -llapack -lblas -liimod -lcfshr $ltiff -lifft lapack_flibs >! $ctfplot_qconf
     foreach i ($midas_qconf $ctfplot_qconf)
         echo INCLUDEPATH += $inc_dir >> $i
         echo MOC_DIR = tmp >> $i
@@ -774,7 +780,7 @@ EOF
     # Set ctfplotter to link with fortran compiler in Linux
     #
     if ($machine != "macosx") then
-        sed -e "/^LINK.*=/s/=.*/= $fcomp $ctfplotopt/" \
+        sed -e "/^LINK.*=/s/=.*/= $lapacklink/" \
             < $ctfplot_dir/Makefile >! $ctfplot_dir/Makefile.tmp
         \mv $ctfplot_dir/Makefile.tmp $ctfplot_dir/Makefile
 
@@ -988,6 +994,9 @@ exit
 
 #
 #  $Log$
+#  Revision 1.51  2009/11/06 18:54:33  mast
+#  Add a variable for Qt include directory
+#
 #  Revision 1.50  2009/06/14 23:51:09  mast
 #  Allow gnu as alternative to gfortran
 #
