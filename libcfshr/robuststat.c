@@ -17,12 +17,14 @@
 
 #ifdef F77FUNCAP
 #define rssortfloats RSSORTFLOATS
+#define rssortindexedfloats RSSORTINDEXEDFLOATS
 #define rsmedianofsorted RSMEDIANOFSORTED
 #define rsmedian RSMEDIAN
 #define rsmadn RSMADN
 #define rsmadmedianoutliers RSMADMEDIANOUTLIERS
 #else
 #define rssortfloats rssortfloats_
+#define rssortindexedfloats rssortindexedfloats_
 #define rsmedianofsorted rsmedianofsorted_
 #define rsmedian rsmedian_
 #define rsmadn rsmadn_
@@ -55,6 +57,37 @@ void rssortfloats(float *x, int *n)
 {
   rsSortFloats(x, *n);
 }
+
+static float *valArray;
+static int indexedFloatCompar(const void *val1, const void *val2)
+{
+  int *i1 = (int *)val1;
+  int *i2 = (int *)val2;
+  if (valArray[*i1] < valArray[*i2])
+    return -1;
+  else if (valArray[*i1] > valArray[*i2])
+    return 1;
+  return 0;
+}
+
+
+/*!
+ * Uses {qsort} to sort indexes in [index] to the [n] floats in the array [x].
+ */
+void rsSortIndexedFloats(float *x, int *index, int n)
+{  
+  valArray = x;
+  qsort(index, n, sizeof(int), indexedFloatCompar);
+}
+
+/*!
+ * Fortran wrapper for @rsSortIndexedFloats
+ */
+void rssortindexedfloats(float *x, int *index, int *n)
+{
+  rsSortIndexedFloats(x, index, *n);
+}
+
 
 /*!
  * Computes the median of the [n] values in the array [x], which has already 
@@ -152,5 +185,8 @@ void rsmadmedianoutliers(float *x, int *n, float *kcrit, float *out)
 /*
 
 $Log$
+Revision 1.1  2009/11/21 21:15:10  mast
+Added to package
+
 
 */
