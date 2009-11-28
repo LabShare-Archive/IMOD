@@ -20,6 +20,7 @@ EXPORTS
 	AdocGetSectionName
 	sliceGetValMagnitude
 	PARWRTGETREGION
+	convexBound
 	PIPNUMBEROFARGS
 	cblas_ddot
 	PipGetInOutFile
@@ -98,11 +99,13 @@ EXPORTS
 	sliceSmoothOutPad
 	PIPGETERROR
 	AdocSetInteger
+	RSSORTINDEXEDFLOATS
 	b3dGetError
 	ADOCGETTWOFLOATS
 	AdocGetString
 	mrc_big_seek
 	avgSD
+	rsSortIndexedFloats
 	XCorrMeanZero
 	cmapInvertedRamp
 	sumsToAvgSDdbl
@@ -209,6 +212,7 @@ EXPORTS
 	RSMEDIAN
 	ADOCGETTHREEINTEGERS
 	PIPGETNONOPTIONARG
+	CONVEXBOUND
 	ADOCDELETEKEYVALUE
 	LSFITPRED
 	ADDROWTOMATRIX
