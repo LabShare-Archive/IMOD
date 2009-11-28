@@ -126,6 +126,7 @@ extern "C" {
 
   /* robuststat.c */
   void rsSortFloats(float *x, int n);
+  void rsSortIndexedFloats(float *x, int *index, int n);
   void rsMedianOfSorted(float *x, int n, float *median);
   void rsMedian(float *x, int n, float *tmp, float *median);
   void rsMADN(float *x, int n, float median, float *tmp, float *MADN);
@@ -138,6 +139,11 @@ extern "C" {
   /* percentile.c */
   float percentileFloat(int s, float *r, int num);
   int percentileInt(int s, int *r, int num);
+
+  /* convexbound.c */
+  void convexBound(float *sx, float *syin, int npnts, float fracomit,
+                   float pad, float *bx, float *by, int *nvert, float *xcen,
+                   float *ycen, int maxverts);
 
   /* beadfind.c */
   void makeModelBead(int boxSize, float beadSize, float *array);
@@ -162,6 +168,9 @@ extern "C" {
 /*
 
 $Log$
+Revision 3.15  2009/11/21 21:16:24  mast
+Added robuststat
+
 Revision 3.14  2009/02/16 06:16:12  mast
 Add parallel write routines
 
