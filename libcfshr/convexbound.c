@@ -5,6 +5,9 @@
  * $Id$
  *      
  * $Log$
+ * Revision 1.1  2009/11/28 20:09:32  mast
+ * translated to C
+ *
  *
  */      
 
@@ -23,8 +26,9 @@
 
 static void cenorder(float *sx, float *sy, int npnts, int *inddist, 
                      float *cendist, float *xcen,float *ycen);
-static void angorder(int *sx, int *sy, int nptuse, int *inddist, float xcen, 
-                     float ycen, int *iangtopt, int *ipttoang, float *angles);
+static void angorder(float *sx, float *sy, int nptuse, int *inddist,
+                     float xcen, float ycen, int *iangtopt, int *ipttoang,
+                     float *angles);
 
 /*!
  * Finds the smallest convex boundary around an arbitrary
@@ -207,8 +211,8 @@ void convexbound(float *sx, float *syin, int *npnts, float *fracomit,
  * the array INDDIST to point to the points in order by increasing
  * CENDIST
  */
-void cenorder(float *sx, float *sy, int npnts, int *inddist, float *cendist,
-              float *xcen,float *ycen)
+static void cenorder(float *sx, float *sy, int npnts, int *inddist,
+                     float *cendist, float *xcen,float *ycen)
 {
   double xsum, ysum;
   int i, ind;
@@ -241,8 +245,9 @@ void cenorder(float *sx, float *sy, int npnts, int *inddist, float *cendist,
  * the points in order by increasing angle, while IPTTOANG is the
  * inverse pointer, used to get back from point number to angle number.
  */
-void angorder(float *sx, float *sy, int nptuse, int *inddist, float xcen, 
-              float ycen, int *iangtopt, int *ipttoang, float *angle)
+static void angorder(float *sx, float *sy, int nptuse, int *inddist, 
+                     float xcen, float ycen, int *iangtopt, int *ipttoang,
+                     float *angle)
 {
   int i, ind;
   int j, jnd;
