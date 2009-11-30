@@ -91,9 +91,9 @@ by the calling program.
 
 For use from C, the header file \fBparse_params.h\fR is in the IMOD/include
 directory.  The PIP package and Fortran-callable wrappers are in the
-\fBlibimod\fR library.  The Fortran versions of \fBPipParseInput\fR and
+\fBlibcfshr\fR library.  The Fortran versions of \fBPipParseInput\fR and
 \fBPipReadOptionFile\fR are in the
-\fBlibhvem\fR library, which requires \fBlibimod\fR.
+\fBlibhvem\fR library, which requires \fBlibcfshr\fR.
 
 Fortran-callable wrappers to the C functions have been given the same name as 
 the C functions, although internally they are all lower case with an
