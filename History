@@ -1,5 +1,7 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+12/1/09: In Etomo - PEET added more error checking to the Iteration table.
+
 11/30/09: In Etomo - PEET fixing a bug where the "Open Averaged Volumes in
 3dmod" button doesn't work when processchunks finishes when Etomo isn't running.
 
