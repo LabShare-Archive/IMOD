@@ -34,6 +34,9 @@ import java.util.Properties;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.9  2009/10/30 20:53:58  sueh
+ * <p> bug# 1285 Added debugging.
+ * <p>
  * <p> Revision 1.8  2009/02/05 23:41:43  sueh
  * <p> bug# 1148 Changed put(ConstEtomoNumber) to add since it acts like the
  * <p> list function of the same name.  Added more functions for string
@@ -413,6 +416,10 @@ public final class IntKeyList implements ConstIntKeyList {
     private boolean debug = false;
     private int key;
     private final ConstIntKeyList list;
+    
+    public boolean isEmpty() {
+      return list.isEmpty();
+    }
 
     /**
      * Increments the key until it points to the next value.  Returns true if
