@@ -12,7 +12,6 @@ import javax.swing.JPanel;
 
 import etomo.BaseManager;
 import etomo.storage.MatlabParam;
-import etomo.type.AxisID;
 import etomo.type.ConstPeetMetaData;
 import etomo.type.PeetMetaData;
 
@@ -29,7 +28,10 @@ import etomo.type.PeetMetaData;
  * 
  * @version $Revision$
  * 
- * <p> $Log$ </p>
+ * <p> $Log$
+ * <p> Revision 1.1  2009/11/20 17:32:14  sueh
+ * <p> bug# 1282 Reference panel factored out of PeetDialog.
+ * <p> </p>
  */
 final class ReferencePanel {
   public static final String rcsid = "$Id$";
@@ -70,12 +72,10 @@ final class ReferencePanel {
   }
 
   private void addListeners() {
-    ftfReferenceFile.addActionListener(new ReferenceFileActionListener(this));
-  }
-
-  void addActionListener(final ActionListener actionListener) {
+    ActionListener actionListener = new ReferenceActionListener(this);
     rbReferenceParticle.addActionListener(actionListener);
     rbReferenceFile.addActionListener(actionListener);
+    ftfReferenceFile.addActionListener(new ReferenceFileActionListener(this));
   }
 
   private void createPanel() {
@@ -204,42 +204,30 @@ final class ReferencePanel {
     }
   }
 
-  /**
-   * Returns true if actionCommand equals the actionCommand of either
-   * rbReferenceParticle or rbReferenceFile.
-   * @param actionCommand
-   * @return 
-   */
-  boolean equalsActionCommand(final String actionCommand) {
-    return actionCommand.equals(rbReferenceParticle.getActionCommand())
-        || actionCommand.equals(rbReferenceFile.getActionCommand());
+  private void action(final String actionCommand) {
+    if (actionCommand.equals(rbReferenceParticle.getActionCommand())
+        || actionCommand.equals(rbReferenceFile.getActionCommand())) {
+      parent.updateDisplay();
+    }
   }
 
   /**
    * Validatation for fields to be used when prmParser is run.
-   * @return true if valid
+   * @return error string if invalid
    */
-  boolean validateRun() {
+  String validateRun() {
     //Must either have a volume and particle or a reference file.
     //Must have particle number if volume is selected
     if (rbReferenceParticle.isSelected() && ltfReferenceParticle.isEmpty()) {
-      parent.gotoSetupTab();
-      UIHarness.INSTANCE.openMessageDialog("In " + REFERENCE_LABEL + ", "
-          + PARTICLE_LABEL + " is required when " + REFERENCE_VOLUME_LABEL
-          + " is selected.", "Entry Error", AxisID.ONLY, manager
-          .getManagerKey());
-      return false;
+      return "In " + REFERENCE_LABEL + ", " + PARTICLE_LABEL
+          + " is required when " + REFERENCE_VOLUME_LABEL + " is selected.";
     }
     //Must have a reference file if reference file is selected
     if (rbReferenceFile.isSelected() && ftfReferenceFile.isEmpty()) {
-      parent.gotoSetupTab();
-      UIHarness.INSTANCE.openMessageDialog("In " + REFERENCE_LABEL + ", "
-          + REFERENCE_FILE_LABEL + " is required when " + REFERENCE_FILE_LABEL
-          + " is selected.", "Entry Error", AxisID.ONLY, manager
-          .getManagerKey());
-      return false;
+      return "In " + REFERENCE_LABEL + ", " + REFERENCE_FILE_LABEL
+          + " is required when " + REFERENCE_FILE_LABEL + " is selected.";
     }
-    return true;
+    return null;
   }
 
   /**
@@ -284,6 +272,18 @@ final class ReferencePanel {
     sReferenceVolume.setToolTipText(tooltip);
     ltfReferenceParticle.setToolTipText(tooltip);
     ftfReferenceFile.setToolTipText(tooltip);
+  }
+
+  private static final class ReferenceActionListener implements ActionListener {
+    private final ReferencePanel panel;
+
+    private ReferenceActionListener(final ReferencePanel panel) {
+      this.panel = panel;
+    }
+
+    public void actionPerformed(final ActionEvent event) {
+      panel.action(event.getActionCommand());
+    }
   }
 
   private static final class ReferenceFileActionListener implements
