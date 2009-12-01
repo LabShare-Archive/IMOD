@@ -16,6 +16,10 @@ import etomo.type.IntKeyList.Walker;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.3  2009/02/05 23:43:24  sueh
+* <p> bug# 1148 Added getWalker.  IntKeyList.Walker cannot modify the main
+* <p> class.
+* <p>
 * <p> Revision 1.2  2007/03/01 01:24:05  sueh
 * <p> bug# 964 Saving immutable Number elements instead of EtomoNumber elements
 * <p> in IntKeyList.
@@ -34,4 +38,5 @@ public interface ConstIntKeyList {
   public boolean containsKey(int key);
   public int size();
   public Walker getWalker();
+  public boolean isEmpty();
 }

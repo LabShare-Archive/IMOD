@@ -51,6 +51,11 @@ import etomo.type.Run3dmodMenuOptions;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.44  2009/11/20 23:07:37  sueh
+ * <p> bug# 1280 Changed btnAddWithCopy to btnCopyRow.  Removed boolean
+ * <p> from addVolumeRow.  Removed copyData.  Added copyRow.  Added
+ * <p> RowList.addRow(VolumeRow).
+ * <p>
  * <p> Revision 1.43  2009/10/29 20:02:36  sueh
  * <p> bug# Added btnMoveDown, btnMoveUp, copyData,
  * <p> getFnModMParticleHeaderCell, getFnVolumeHeaderCell, moveRowDown,
@@ -402,6 +407,10 @@ final class VolumeTable implements Expandable, Highlightable,
 
   public int size() {
     return rowList.size();
+  }
+  
+  boolean isEmpty() {
+    return rowList.isEmpty();
   }
 
   void updateDisplay(boolean useInitMotlFile, boolean useTiltRange) {
@@ -891,6 +900,10 @@ final class VolumeTable implements Expandable, Highlightable,
 
     private int size() {
       return list.size();
+    }
+    
+    private boolean isEmpty() {
+      return list.isEmpty();
     }
 
     private void remove() {
