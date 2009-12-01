@@ -28,6 +28,10 @@ import etomo.type.Run3dmodMenuOptions;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.30  2009/11/20 23:05:24  sueh
+ * <p> bug# 1280 Added getFnVolumeFile and getFnModParticleFile.  Removed
+ * <p> getRelativeOrientX, Y, and Z.
+ * <p>
  * <p> Revision 1.29  2009/10/29 20:01:10  sueh
  * <p> bug# 1280 Added sets and gets for copying row data.  Named more fields
  * <p> for ui testing.
@@ -427,8 +431,9 @@ final class VolumeRow implements Highlightable {
     if (tiltRangeRequired && (tiltRangeMin.isEmpty() || tiltRangeMax.isEmpty())) {
       return VolumeTable.LABEL + ":  In row " + number.getText() + ", "
           + VolumeTable.TILT_RANGE_HEADER1_LABEL + " is required when either "
-          + PeetDialog.TILT_RANGE_LABEL + " or "
-          + PeetDialog.FLG_WEDGE_WEIGHT_LABEL + " is checked.";
+          + MissingWedgeCompensationPanel.TILT_RANGE_LABEL + " or "
+          + MissingWedgeCompensationPanel.FLG_WEDGE_WEIGHT_LABEL
+          + " is checked.";
     }
     return null;
   }
@@ -453,21 +458,21 @@ final class VolumeRow implements Highlightable {
   void setInitMotlFile(File initMotlFile) {
     setExpandableValues(this.initMotlFile, initMotlFile);
   }
-  
+
   File getInitMotlFile() {
     if (initMotlFile.isEmpty()) {
       return null;
     }
     return new File(initMotlFile.getExpandedValue());
   }
-  
+
   File getFnVolumeFile() {
     if (fnVolume.isEmpty()) {
       return null;
     }
     return new File(fnVolume.getExpandedValue());
   }
-  
+
   File getFnModParticleFile() {
     if (fnModParticle.isEmpty()) {
       return null;
@@ -485,11 +490,11 @@ final class VolumeRow implements Highlightable {
     }
     tiltRangeMin.setValue(input);
   }
-  
+
   String getTiltRangeMin() {
     return tiltRangeMin.getValue();
   }
-  
+
   String getTiltRangeMax() {
     return tiltRangeMax.getValue();
   }
@@ -500,15 +505,15 @@ final class VolumeRow implements Highlightable {
     }
     tiltRangeMax.setValue(input);
   }
-  
+
   void setRelativeOrientX(final String input) {
     relativeOrientX.setValue(input);
   }
-  
+
   void setRelativeOrientY(final String input) {
     relativeOrientY.setValue(input);
   }
-  
+
   void setRelativeOrientZ(final String input) {
     relativeOrientZ.setValue(input);
   }

@@ -54,6 +54,10 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.85  2009/11/23 23:29:21  sueh
+ * <p> bug# 1292 Removing model #.  Attaching object and contour to
+ * <p> yaxisObjectNum and yaxisContourNum instead of yaxisContour.
+ * <p>
  * <p> Revision 1.84  2009/11/20 17:30:41  sueh
  * <p> bug# 1282 Naming all the file choosers by constructing a FileChooser
  * <p> instance instead of a JFileChooser instance.  Factored out ReferencePanel.
@@ -341,7 +345,7 @@ import etomo.util.Utilities;
 
 public final class PeetDialog implements ContextMenu, AbstractParallelDialog,
     Expandable, Run3dmodButtonContainer, FileContainer,
-    UseExistingProjectParent, ReferenceParent {
+    UseExistingProjectParent, ReferenceParent, MissingWedgeCompensationParent {
   public static final String rcsid = "$Id$";
 
   public static final String FN_OUTPUT_LABEL = "Root name for output";
@@ -355,7 +359,6 @@ public final class PeetDialog implements ContextMenu, AbstractParallelDialog,
   private static final String LST_THRESHOLD_INCREMENT_TITLE = "Incr.";
   private static final String LST_THRESHOLD_END_TITLE = "End";
   private static final String LST_THRESHOLD_ADDITIONAL_NUMBERS_TITLE = "Additional numbers";
-  private static final String N_WEIGHT_GROUP_LABEL = "# of weight groups for equalizing CCCs: ";
   private static final String Y_AXIS_TYPE_LABEL = "Y Axis Type";
   private static final String YAXIS_OBJECT_NUM_LABEL = "Object #";
   private static final String YAXIS_CONTOUR_NUM_LABEL = "Contour #";
@@ -376,11 +379,7 @@ public final class PeetDialog implements ContextMenu, AbstractParallelDialog,
   private static final String X_LABEL = "X";
   private static final String Y_LABEL = "Y";
   private static final String Z_LABEL = "Z";
-  private static final String MISSING_WEDGE_COMPENSATION_LABEL = "Missing Wedge Compensation";
-  private static final String EDGE_SHIFT_LABEL = "Edge shift";
-  static final String TILT_RANGE_LABEL = "Use tilt range in averaging";
   private static final String LST_THRESHOLDS_LABEL = "Number of Particles in Averages";
-  static final String FLG_WEDGE_WEIGHT_LABEL = "Use tilt range in alignment";
 
   private final EtomoPanel rootPanel = new EtomoPanel();
   private final FileTextField ftfDirectory = new FileTextField(DIRECTORY_LABEL
@@ -388,15 +387,12 @@ public final class PeetDialog implements ContextMenu, AbstractParallelDialog,
   private final LabeledTextField ltfFnOutput = new LabeledTextField(
       FN_OUTPUT_LABEL + ": ");
   private final SpacedPanel pnlSetupBody = SpacedPanel.getInstance();
-  private final CheckBox cbTiltRange = new CheckBox(TILT_RANGE_LABEL);
   private final LabeledTextField ltfSzVolX = new LabeledTextField(
       PARTICLE_VOLUME_LABEL + " " + X_LABEL + ": ");
   private final LabeledTextField ltfSzVolY = new LabeledTextField(Y_LABEL
       + ": ");
   private final LabeledTextField ltfSzVolZ = new LabeledTextField(Z_LABEL
       + ": ");
-  private final LabeledTextField ltfEdgeShift = new LabeledTextField(
-      EDGE_SHIFT_LABEL + ": ");
   private final CheckBox cbFlgMeanFill = new CheckBox("Mean fill");
   private final LabeledTextField ltfAlignedBaseName = new LabeledTextField(
       "Aligned base name: ");
@@ -412,10 +408,10 @@ public final class PeetDialog implements ContextMenu, AbstractParallelDialog,
       LST_THRESHOLD_END_TITLE + ": ");
   private final LabeledTextField ltfLstThresholdsAdditional = new LabeledTextField(
       " " + LST_THRESHOLD_ADDITIONAL_NUMBERS_TITLE + ": ");
-  private final LabeledTextField ltfYaxisObjectNum = new LabeledTextField(
-      " " + YAXIS_OBJECT_NUM_LABEL + ": ");
-  private final LabeledTextField ltfYaxisContourNum = new LabeledTextField(
-      " " + YAXIS_CONTOUR_NUM_LABEL + ": ");
+  private final LabeledTextField ltfYaxisObjectNum = new LabeledTextField(" "
+      + YAXIS_OBJECT_NUM_LABEL + ": ");
+  private final LabeledTextField ltfYaxisContourNum = new LabeledTextField(" "
+      + YAXIS_CONTOUR_NUM_LABEL + ": ");
   private final CheckBox cbLstFlagAllTom = new CheckBox(
       "Use equal numbers of particles from all tomograms for averages");
   private final SpacedPanel pnlRunBody = SpacedPanel.getInstance(true);
@@ -499,15 +495,11 @@ public final class PeetDialog implements ContextMenu, AbstractParallelDialog,
   private final EtomoPanel pnlCcMode = new EtomoPanel();
   private final Run3dmodButton btnRef = Run3dmodButton.get3dmodInstance(
       "Open Reference Files in 3dmod", this);
-  private final CheckBox cbFlgWedgeWeight = new CheckBox(FLG_WEDGE_WEIGHT_LABEL);
-  private final CheckBox cbNWeightGroup = new CheckBox(N_WEIGHT_GROUP_LABEL);
-  private final Spinner sNWeightGroup = Spinner.getInstance(
-      N_WEIGHT_GROUP_LABEL, MatlabParam.N_WEIGHT_GROUP_DEFAULT,
-      MatlabParam.N_WEIGHT_GROUP_MIN, 20);
   private final CheckBox cbFlgRemoveDuplicates = new CheckBox(
       "Remove duplicates");
-  private final ReferencePanel referencePanel;
+  private final MissingWedgeCompensationPanel missingWedgeCompensationPanel;
 
+  private final ReferencePanel referencePanel;
   private final UseExistingProjectPanel useExistingProjectPanel;
   private final PanelHeader phRun;
   private final PanelHeader phSetup;
@@ -527,6 +519,8 @@ public final class PeetDialog implements ContextMenu, AbstractParallelDialog,
     useExistingProjectPanel = UseExistingProjectPanel
         .getInstance(manager, this);
     referencePanel = ReferencePanel.getInstance(this, manager);
+    missingWedgeCompensationPanel = MissingWedgeCompensationPanel.getInstance(
+        this, manager);
     fixPathsPanel = FixPathsPanel.getInstance(this, manager, axisID,
         DIALOG_TYPE);
     ftfMaskTypeVolume.setFieldWidth(UIParameters.INSTANCE.getFileWidth());
@@ -710,16 +704,12 @@ public final class PeetDialog implements ContextMenu, AbstractParallelDialog,
   public void getParameters(final PeetMetaData metaData) {
     volumeTable.getParameters(metaData);
     referencePanel.getParameters(metaData);
-    metaData.setEdgeShift(ltfEdgeShift.getText());
-    metaData.setFlgWedgeWeight(cbFlgWedgeWeight.isSelected());
+    missingWedgeCompensationPanel.getParameters(metaData);
     metaData.setMaskUseReferenceParticle(cbMaskUseReferenceParticle
         .isSelected());
     metaData.setMaskModelPtsModelNumber(sMaskModelPtsModelNumber.getValue());
     metaData.setMaskModelPtsParticle(ltfMaskModelPtsParticle.getText());
     metaData.setMaskTypeVolume(ftfMaskTypeVolume.getText());
-    metaData.setUseNWeightGroup(cbNWeightGroup.isSelected());
-    metaData.setNWeightGroup(sNWeightGroup.getValue());
-    metaData.setTiltRange(cbTiltRange.isSelected());
   }
 
   /**
@@ -736,25 +726,13 @@ public final class PeetDialog implements ContextMenu, AbstractParallelDialog,
     if (!parametersOnly) {
       volumeTable.setParameters(metaData);
       referencePanel.setParameters(metaData);
-      cbFlgWedgeWeight.setSelected(metaData.isFlgWedgeWeight());
       ftfMaskTypeVolume.setText(metaData.getMaskTypeVolume());
     }
-    ltfEdgeShift.setText(metaData.getEdgeShift());
+    missingWedgeCompensationPanel.setParameters(metaData, parametersOnly);
     cbMaskUseReferenceParticle.setSelected(metaData
         .isMaskUseReferenceParticle());
     sMaskModelPtsModelNumber.setValue(metaData.getMaskModelPtsModelNumber());
     ltfMaskModelPtsParticle.setText(metaData.getMaskModelPtsParticle());
-    cbNWeightGroup.setSelected(metaData.isUseNWeightGroup());
-    //backwards compatibility - raised nWeightGroup minimum from 0 to 2
-    int nWeightGroup = metaData.getNWeightGroup().getInt();
-    if (nWeightGroup < MatlabParam.N_WEIGHT_GROUP_MIN) {
-      nWeightGroup = MatlabParam.N_WEIGHT_GROUP_MIN;
-    }
-    sNWeightGroup.setValue(nWeightGroup);
-    //Distinguish between what is set in the tilt range numbers and the check
-    //box by saving them separately.  This works better then trying to tell the
-    //difference between [] and {} in the .prm file.
-    cbTiltRange.setSelected(metaData.isTiltRange());
   }
 
   /**
@@ -776,11 +754,7 @@ public final class PeetDialog implements ContextMenu, AbstractParallelDialog,
     if (!parametersOnly) {
       referencePanel.setParameters(matlabParam);
     }
-    //Backwards compatibility:  if the tilt range has numbers in it, then check
-    //cbTiltRange.  If not, rely on the new variable in MetaData.
-    if (!matlabParam.isTiltRangeEmpty()) {
-      cbTiltRange.setSelected(true);
-    }
+    missingWedgeCompensationPanel.setParameters(matlabParam);
     MatlabParam.InitMotlCode initMotlCode = matlabParam.getInitMotlCode();
     if (initMotlCode == null) {
       rbInitMotlFiles.setSelected(true);
@@ -793,10 +767,6 @@ public final class PeetDialog implements ContextMenu, AbstractParallelDialog,
     }
     else if (initMotlCode == MatlabParam.InitMotlCode.X_AND_Z_AXIS) {
       rbInitMotlXAndZAxis.setSelected(true);
-    }
-    if (cbTiltRange.isSelected()) {
-      ltfEdgeShift.setText(matlabParam.getEdgeShift());
-      cbFlgWedgeWeight.setSelected(matlabParam.isFlgWedgeWeight());
     }
     ltfSzVolX.setText(matlabParam.getSzVolX());
     ltfSzVolY.setText(matlabParam.getSzVolY());
@@ -831,12 +801,10 @@ public final class PeetDialog implements ContextMenu, AbstractParallelDialog,
       rbYAxisTypeContour.setSelected(true);
     }
     if (!parametersOnly) {
-      ltfYaxisObjectNum.setText(matlabParam
-          .getYaxisObjectNum());
-      ltfYaxisContourNum.setText(matlabParam
-          .getYaxisContourNum());
+      ltfYaxisObjectNum.setText(matlabParam.getYaxisObjectNum());
+      ltfYaxisContourNum.setText(matlabParam.getYaxisContourNum());
       volumeTable.setParameters(matlabParam, rbInitMotlFiles.isSelected(),
-          cbTiltRange.isSelected(), importDir);
+          missingWedgeCompensationPanel.isTiltRangeSelected(), importDir);
     }
     MatlabParam.SampleSphere sampleSphere = matlabParam.getSampleSphere();
     if (sampleSphere == MatlabParam.SampleSphere.NONE) {
@@ -874,12 +842,6 @@ public final class PeetDialog implements ContextMenu, AbstractParallelDialog,
     }
     ltfInsideMaskRadius.setText(matlabParam.getInsideMaskRadius());
     ltfOutsideMaskRadius.setText(matlabParam.getOutsideMaskRadius());
-    if (isEnableNWeightGroup()) {
-      cbNWeightGroup.setSelected(!matlabParam.isNWeightGroupEmpty());
-    }
-    if (isEnableNWeightGroup() && cbNWeightGroup.isSelected()) {
-      sNWeightGroup.setValue(matlabParam.getNWeightGroup());
-    }
     cbFlgRemoveDuplicates.setSelected(matlabParam.isFlgRemoveDuplicates());
     updateDisplay();
   }
@@ -890,18 +852,9 @@ public final class PeetDialog implements ContextMenu, AbstractParallelDialog,
     iterationTable.getParameters(matlabParam);
     matlabParam.setFnOutput(ltfFnOutput.getText());
     referencePanel.getParameters(matlabParam);
+    missingWedgeCompensationPanel.getParameters(matlabParam);
     matlabParam.setInitMotlCode(((RadioButton.RadioButtonModel) bgInitMotl
         .getSelection()).getEnumeratedType());
-    //If cbTiltRange is off, this overrides what was set in the volumeTable.
-    if (!cbTiltRange.isSelected()) {
-      matlabParam.setTiltRangeEmpty();
-    }
-    if (ltfEdgeShift.isEnabled()) {
-      matlabParam.setEdgeShift(ltfEdgeShift.getText());
-    }
-    if (cbFlgWedgeWeight.isEnabled()) {
-      matlabParam.setFlgWedgeWeight(cbFlgWedgeWeight.isSelected());
-    }
     matlabParam.setSzVolX(ltfSzVolX.getText());
     matlabParam.setSzVolY(ltfSzVolY.getText());
     matlabParam.setSzVolZ(ltfSzVolZ.getText());
@@ -921,10 +874,8 @@ public final class PeetDialog implements ContextMenu, AbstractParallelDialog,
     matlabParam.setParticlePerCPU(lsParticlePerCPU.getValue());
     matlabParam.setYaxisType(((RadioButton.RadioButtonModel) bgYAxisType
         .getSelection()).getEnumeratedType());
-      matlabParam.setYaxisObjectNum(ltfYaxisObjectNum
-          .getText());
-      matlabParam.setYaxisContourNum(ltfYaxisContourNum
-          .getText());
+    matlabParam.setYaxisObjectNum(ltfYaxisObjectNum.getText());
+    matlabParam.setYaxisContourNum(ltfYaxisContourNum.getText());
     matlabParam.setSampleSphere(((RadioButton.RadioButtonModel) bgSampleSphere
         .getSelection()).getEnumeratedType());
     matlabParam.setSampleInterval(ltfSampleInterval.getText());
@@ -947,14 +898,15 @@ public final class PeetDialog implements ContextMenu, AbstractParallelDialog,
     }
     matlabParam.setInsideMaskRadius(ltfInsideMaskRadius.getText());
     matlabParam.setOutsideMaskRadius(ltfOutsideMaskRadius.getText());
-    if (sNWeightGroup.isEnabled()) {
-      matlabParam.setUseNWeightGroup(true);
-      matlabParam.setNWeightGroup(sNWeightGroup.getValue());
-    }
-    else {
-      matlabParam.setUseNWeightGroup(false);
-    }
     matlabParam.setFlgRemoveDuplicates(cbFlgRemoveDuplicates.isSelected());
+  }
+
+  public boolean isVolumeTableEmpty() {
+    return volumeTable.isEmpty();
+  }
+
+  public boolean isReferenceParticleSelected() {
+    return referencePanel.isReferenceParticleSelected();
   }
 
   public String getFnOutput() {
@@ -1004,12 +956,11 @@ public final class PeetDialog implements ContextMenu, AbstractParallelDialog,
    * Reset values and set defaults.
    */
   public void reset() {
-    cbTiltRange.setSelected(false);
     referencePanel.reset();
+    missingWedgeCompensationPanel.reset();
     ltfSzVolX.clear();
     ltfSzVolY.clear();
     ltfSzVolZ.clear();
-    ltfEdgeShift.clear();
     cbFlgMeanFill.setSelected(false);
     ltfAlignedBaseName.clear();
     ltfLowCutoff.clear();
@@ -1030,13 +981,10 @@ public final class PeetDialog implements ContextMenu, AbstractParallelDialog,
     rbInitMotlFiles.setSelected(false);
     rbCcModeNormalized.setSelected(false);
     rbCcModeLocal.setSelected(false);
-    cbFlgWedgeWeight.setSelected(false);
     volumeTable.reset();
     iterationTable.reset();
     ltfSampleInterval.clear();
     cbMaskUseReferenceParticle.setSelected(false);
-    cbNWeightGroup.setSelected(false);
-    sNWeightGroup.reset();
     cbFlgRemoveDuplicates.setSelected(false);
     setDefaults();
     updateDisplay();
@@ -1069,14 +1017,9 @@ public final class PeetDialog implements ContextMenu, AbstractParallelDialog,
       rbInitMotlXAndZAxis.setToolTipText(section);
       rbInitMotlZAxis.setToolTipText(section);
       rbInitMotlFiles.setToolTipText(section);
-      String tooltip = EtomoAutodoc.getTooltip(autodoc,
-          MatlabParam.TILT_RANGE_KEY);
-      cbTiltRange.setToolTipText(tooltip);
       referencePanel.setTooltip(EtomoAutodoc.getTooltip(autodoc,
           MatlabParam.REFERENCE_KEY));
-      ltfEdgeShift.setToolTipText(EtomoAutodoc.getTooltip(autodoc,
-          MatlabParam.EDGE_SHIFT_KEY));
-      tooltip = EtomoAutodoc.getTooltip(autodoc, MatlabParam.SZ_VOL_KEY);
+      String tooltip = EtomoAutodoc.getTooltip(autodoc, MatlabParam.SZ_VOL_KEY);
       ltfSzVolX.setToolTipText(tooltip);
       ltfSzVolY.setToolTipText(tooltip);
       ltfSzVolZ.setToolTipText(tooltip);
@@ -1126,10 +1069,10 @@ public final class PeetDialog implements ContextMenu, AbstractParallelDialog,
       rbYAxisTypeYAxis.setToolTipText(section);
       rbYAxisTypeParticleModel.setToolTipText(section);
       tooltip = rbYAxisTypeContour.setToolTipText(section);
-      ltfYaxisObjectNum.setToolTipText(EtomoAutodoc.getTooltip(autodoc, MatlabParam.YAXIS_OBJECT_NUM_KEY));
-      ltfYaxisContourNum.setToolTipText(EtomoAutodoc.getTooltip(autodoc, MatlabParam.YAXIS_CONTOUR_NUM_KEY));
-      cbFlgWedgeWeight.setToolTipText(EtomoAutodoc.getTooltip(autodoc,
-          MatlabParam.FLG_WEDGE_WEIGHT_KEY));
+      ltfYaxisObjectNum.setToolTipText(EtomoAutodoc.getTooltip(autodoc,
+          MatlabParam.YAXIS_OBJECT_NUM_KEY));
+      ltfYaxisContourNum.setToolTipText(EtomoAutodoc.getTooltip(autodoc,
+          MatlabParam.YAXIS_CONTOUR_NUM_KEY));
       tooltip = EtomoAutodoc.getTooltip(autodoc, MatlabParam.SAMPLE_SPHERE_KEY);
       rbSampleSphereNone.setToolTipText(tooltip);
       rbSampleSphereFull.setToolTipText(tooltip);
@@ -1151,10 +1094,6 @@ public final class PeetDialog implements ContextMenu, AbstractParallelDialog,
           MatlabParam.INSIDE_MASK_RADIUS_KEY));
       ltfOutsideMaskRadius.setToolTipText(EtomoAutodoc.getTooltip(autodoc,
           MatlabParam.OUTSIDE_MASK_RADIUS_KEY));
-      tooltip = EtomoAutodoc
-          .getTooltip(autodoc, MatlabParam.N_WEIGHT_GROUP_KEY);
-      cbNWeightGroup.setToolTipText(tooltip);
-      sNWeightGroup.setToolTipText(tooltip);
       cbFlgRemoveDuplicates.setToolTipText(EtomoAutodoc.getTooltip(autodoc,
           MatlabParam.FLG_REMOVE_DUPLICATES_KEY));
     }
@@ -1175,14 +1114,13 @@ public final class PeetDialog implements ContextMenu, AbstractParallelDialog,
 
   private void setDefaults() {
     lsDebugLevel.setValue(MatlabParam.DEBUG_LEVEL_DEFAULT);
-    ltfEdgeShift.setText(MatlabParam.EDGE_SHIFT_DEFAULT);
     cbFlgMeanFill.setSelected(MatlabParam.FLG_MEAN_FILL_DEFAULT);
     ltfLowCutoff.setText(MatlabParam.LOW_CUTOFF_DEFAULT);
     referencePanel.setDefaults();
+    missingWedgeCompensationPanel.setDefaults();
     rbSampleSphereNone.setSelected(true);
     lsParticlePerCPU.setValue(MatlabParam.PARTICLE_PER_CPU_DEFAULT);
     rbMaskTypeNone.setSelected(true);
-    sNWeightGroup.setValue(MatlabParam.N_WEIGHT_GROUP_DEFAULT);
   }
 
   private void createSetupPanel() {
@@ -1191,34 +1129,6 @@ public final class PeetDialog implements ContextMenu, AbstractParallelDialog,
     pnlProject.setLayout(new BoxLayout(pnlProject, BoxLayout.X_AXIS));
     pnlProject.add(ftfDirectory.getContainer());
     pnlProject.add(ltfFnOutput.getContainer());
-    //tiltRange and edgeShift
-    SpacedPanel pnlTiltRange = SpacedPanel.getInstance();
-    pnlTiltRange.setBoxLayout(BoxLayout.X_AXIS);
-    pnlTiltRange.setComponentAlignmentX(Component.LEFT_ALIGNMENT);
-    pnlTiltRange.add(cbTiltRange);
-    pnlTiltRange.addRigidArea(FixedDim.x20_y0);
-    ltfEdgeShift.setTextPreferredWidth(UIParameters.INSTANCE.getIntegerWidth());
-    pnlTiltRange.add(ltfEdgeShift.getContainer());
-    //flgWedgeWeight
-    SpacedPanel pnlFlgWedgeWeight = SpacedPanel.getInstance();
-    pnlFlgWedgeWeight.setBoxLayout(BoxLayout.X_AXIS);
-    pnlFlgWedgeWeight.setComponentAlignmentX(Component.LEFT_ALIGNMENT);
-    pnlFlgWedgeWeight.add(cbFlgWedgeWeight);
-    pnlFlgWedgeWeight.addHorizontalGlue();
-    //missing wedge compensation
-    SpacedPanel pnlMissingWedgeCompensation = SpacedPanel.getInstance();
-    pnlMissingWedgeCompensation.setBoxLayout(BoxLayout.Y_AXIS);
-    pnlMissingWedgeCompensation.setBorder(new EtchedBorder(
-        MISSING_WEDGE_COMPENSATION_LABEL).getBorder());
-    pnlMissingWedgeCompensation
-        .setComponentAlignmentX(Component.LEFT_ALIGNMENT);
-    pnlMissingWedgeCompensation.add(pnlTiltRange);
-    pnlMissingWedgeCompensation.add(pnlFlgWedgeWeight);
-    SpacedPanel pnlNWeightGroup = SpacedPanel.getInstance();
-    pnlNWeightGroup.setBoxLayout(BoxLayout.X_AXIS);
-    pnlNWeightGroup.add(cbNWeightGroup);
-    pnlNWeightGroup.add(sNWeightGroup.getContainer());
-    pnlMissingWedgeCompensation.add(pnlNWeightGroup);
     //reference and missing wedge compensation
     JPanel pnlReferenceAndMissingWedgeCompensation = new JPanel();
     pnlReferenceAndMissingWedgeCompensation.setLayout(new BoxLayout(
@@ -1226,8 +1136,8 @@ public final class PeetDialog implements ContextMenu, AbstractParallelDialog,
     pnlReferenceAndMissingWedgeCompensation.add(referencePanel.getComponent());
     pnlReferenceAndMissingWedgeCompensation.add(Box
         .createRigidArea(FixedDim.x20_y0));
-    pnlReferenceAndMissingWedgeCompensation.add(pnlMissingWedgeCompensation
-        .getContainer());
+    pnlReferenceAndMissingWedgeCompensation.add(missingWedgeCompensationPanel
+        .getComponent());
     //mask type
     JPanel pnlMaskType = new JPanel();
     pnlMaskType.setLayout(new BoxLayout(pnlMaskType, BoxLayout.Y_AXIS));
@@ -1422,13 +1332,9 @@ public final class PeetDialog implements ContextMenu, AbstractParallelDialog,
         || actionCommand.equals(rbInitMotlZAxis.getActionCommand())
         || actionCommand.equals(rbInitMotlXAndZAxis.getActionCommand())
         || actionCommand.equals(rbInitMotlFiles.getActionCommand())
-        || referencePanel.equalsActionCommand(actionCommand)
-        || actionCommand.equals(cbTiltRange.getActionCommand())
         || actionCommand.equals(rbYAxisTypeYAxis.getActionCommand())
         || actionCommand.equals(rbYAxisTypeParticleModel.getActionCommand())
         || actionCommand.equals(rbYAxisTypeContour.getActionCommand())
-        || actionCommand.equals(cbFlgWedgeWeight.getActionCommand())
-        || actionCommand.equals(cbNWeightGroup.getActionCommand())
         || actionCommand.equals(rbSampleSphereNone.getActionCommand())
         || actionCommand.equals(rbSampleSphereFull.getActionCommand())
         || actionCommand.equals(rbSampleSphereHalf.getActionCommand())
@@ -1467,8 +1373,9 @@ public final class PeetDialog implements ContextMenu, AbstractParallelDialog,
       return false;
     }
     //Validate volume table
-    String errorMessage = volumeTable.validateRun(cbTiltRange.isSelected()
-        || cbFlgWedgeWeight.isSelected());
+    String errorMessage = volumeTable.validateRun(missingWedgeCompensationPanel
+        .isTiltRangeSelected()
+        || missingWedgeCompensationPanel.isFlgWedgeWeightSelected());
     if (errorMessage != null) {
       gotoSetupTab();
       UIHarness.INSTANCE.openMessageDialog(errorMessage, "Entry Error", manager
@@ -1476,16 +1383,19 @@ public final class PeetDialog implements ContextMenu, AbstractParallelDialog,
       return false;
     }
     //Must either have a volume and particle or a reference file.
-    if (!referencePanel.validateRun()) {
+    errorMessage = referencePanel.validateRun();
+    if (errorMessage != null) {
+      gotoSetupTab();
+      UIHarness.INSTANCE.openMessageDialog(errorMessage, "Entry Error", manager
+          .getManagerKey());
       return false;
     }
-    //Edge shift cannot be empty if use tilt range in averaging is checked.
-    if (cbTiltRange.isSelected() && ltfEdgeShift.getText().matches("\\s*")) {
+    //Validate missing wedge compensation panel
+     errorMessage = missingWedgeCompensationPanel.validateRun();
+    if (errorMessage != null) {
       gotoSetupTab();
-      UIHarness.INSTANCE.openMessageDialog("In "
-          + MISSING_WEDGE_COMPENSATION_LABEL + ", " + EDGE_SHIFT_LABEL
-          + " is required when " + TILT_RANGE_LABEL + " is selected.",
-          "Entry Error", manager.getManagerKey());
+      UIHarness.INSTANCE.openMessageDialog(errorMessage, "Entry Error", manager
+          .getManagerKey());
       return false;
     }
     //Masking
@@ -1526,16 +1436,14 @@ public final class PeetDialog implements ContextMenu, AbstractParallelDialog,
     }
     //If end points of contour is checked, must have object # and contour#
     if (rbYAxisTypeContour.isSelected()
-        && ((ltfYaxisObjectNum.isEnabled() && ltfYaxisObjectNum
-            .getText().matches("\\s*")) || (ltfYaxisContourNum
-            .isEnabled() && ltfYaxisContourNum.getText().matches(
-            "\\s*")))) {
+        && ((ltfYaxisObjectNum.isEnabled() && ltfYaxisObjectNum.getText()
+            .matches("\\s*")) || (ltfYaxisContourNum.isEnabled() && ltfYaxisContourNum
+            .getText().matches("\\s*")))) {
       gotoSetupTab();
       UIHarness.INSTANCE.openMessageDialog("In " + Y_AXIS_TYPE_LABEL + ", "
-          + YAXIS_OBJECT_NUM_LABEL + " and "
-          + YAXIS_CONTOUR_NUM_LABEL + " are required when "
-          + Y_AXIS_CONTOUR_LABEL + " is selected.", "Entry Error", manager
-          .getManagerKey());
+          + YAXIS_OBJECT_NUM_LABEL + " and " + YAXIS_CONTOUR_NUM_LABEL
+          + " are required when " + Y_AXIS_CONTOUR_LABEL + " is selected.",
+          "Entry Error", manager.getManagerKey());
       return false;
     }
 
@@ -1644,7 +1552,7 @@ public final class PeetDialog implements ContextMenu, AbstractParallelDialog,
     return true;
   }
 
-  public void gotoSetupTab() {
+  private void gotoSetupTab() {
     tabPane.setSelectedIndex(0);
     changeTab();
   }
@@ -1674,31 +1582,33 @@ public final class PeetDialog implements ContextMenu, AbstractParallelDialog,
     return volumeTable.size();
   }
 
-  private void updateDisplay() {
+  /**
+   * Enabled/disables fields.  Calls updateDisplay() in subordinate panels.
+   */
+  public void updateDisplay() {
     //tilt range
-    ltfEdgeShift.setEnabled(cbTiltRange.isSelected());
-    cbFlgWedgeWeight.setEnabled(cbTiltRange.isSelected());
-    rbCcModeNormalized.setEnabled(!cbFlgWedgeWeight.isSelected());
-    if (cbFlgWedgeWeight.isSelected()) {
+    rbCcModeNormalized.setEnabled(!missingWedgeCompensationPanel
+        .isFlgWedgeWeightSelected());
+    if (missingWedgeCompensationPanel.isFlgWedgeWeightSelected()) {
       rbCcModeLocal.setSelected(true);
     }
     int size = volumeTable.size();
     boolean volumeRows = size > 0;
     referencePanel.updateDisplay();
+    missingWedgeCompensationPanel.updateDisplay();
     //yaxisType and yaxisContour
     rbYAxisTypeContour.setEnabled(volumeRows);
-    ltfYaxisObjectNum.setEnabled(volumeRows
-        && rbYAxisTypeContour.isSelected());
-    ltfYaxisContourNum.setEnabled(volumeRows
-        && rbYAxisTypeContour.isSelected());
+    ltfYaxisObjectNum.setEnabled(volumeRows && rbYAxisTypeContour.isSelected());
+    ltfYaxisContourNum
+        .setEnabled(volumeRows && rbYAxisTypeContour.isSelected());
     //spherical sampling
     ltfSampleInterval.setEnabled(!rbSampleSphereNone.isSelected());
     //iteration table - spherical sampling and FlgRemoveDuplicates
     iterationTable.updateDisplay(!rbSampleSphereNone.isSelected(),
         cbFlgRemoveDuplicates.isSelected());
     //volume table
-    volumeTable.updateDisplay(rbInitMotlFiles.isSelected(), cbTiltRange
-        .isSelected());
+    volumeTable.updateDisplay(rbInitMotlFiles.isSelected(),
+        missingWedgeCompensationPanel.isTiltRangeSelected());
     //mask
     ftfMaskTypeVolume.setEnabled(rbMaskTypeVolume.isSelected());
     boolean sphere = rbMaskTypeSphere.isSelected();
@@ -1712,15 +1622,6 @@ public final class PeetDialog implements ContextMenu, AbstractParallelDialog,
     sMaskModelPtsModelNumber.setEnabled(cylinder && !useReferenceParticle);
     sMaskModelPtsModelNumber.setMax(size);
     ltfMaskModelPtsParticle.setEnabled(cylinder && !useReferenceParticle);
-    cbNWeightGroup.setEnabled(isEnableNWeightGroup());
-    sNWeightGroup.setEnabled(isEnableNWeightGroup()
-        && cbNWeightGroup.isSelected());
-  }
-
-  private boolean isEnableNWeightGroup() {
-    return volumeTable.size() > 0 && cbTiltRange.isSelected()
-        && cbFlgWedgeWeight.isSelected()
-        && referencePanel.isReferenceParticleSelected();
   }
 
   private void chooseDirectory() {
@@ -1755,8 +1656,6 @@ public final class PeetDialog implements ContextMenu, AbstractParallelDialog,
     rbInitMotlZAxis.addActionListener(actionListener);
     rbInitMotlXAndZAxis.addActionListener(actionListener);
     rbInitMotlFiles.addActionListener(actionListener);
-    referencePanel.addActionListener(actionListener);
-    cbTiltRange.addActionListener(actionListener);
     btnRun.addActionListener(actionListener);
     tabPane.addChangeListener(new TabChangeListener(this));
     rbYAxisTypeYAxis.addActionListener(actionListener);
@@ -1764,8 +1663,6 @@ public final class PeetDialog implements ContextMenu, AbstractParallelDialog,
     rbYAxisTypeContour.addActionListener(actionListener);
     btnAvgVol.addActionListener(actionListener);
     btnRef.addActionListener(actionListener);
-    cbFlgWedgeWeight.addActionListener(actionListener);
-    cbNWeightGroup.addActionListener(actionListener);
     rbSampleSphereNone.addActionListener(actionListener);
     rbSampleSphereFull.addActionListener(actionListener);
     rbSampleSphereHalf.addActionListener(actionListener);
