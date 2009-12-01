@@ -23,6 +23,11 @@ import etomo.type.EtomoNumber;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.20  2009/11/20 17:15:12  sueh
+ * <p> bug# 1282 Added duplicateShiftTolerance and duplicateAngularTolerance.
+ * <p> When updating the display, moved the responsibility for responding to
+ * <p> sample sphere in the first row only to this class.
+ * <p>
  * <p> Revision 1.19  2009/10/15 23:35:41  sueh
  * <p> bug# 1274 Made header names avaible becauese of increased error
  * <p> checking in the row.  Changed hiCutoffCutoff to hiCutoff.  Change
@@ -209,7 +214,8 @@ final class IterationRow implements Highlightable {
    * @param sampleSphere
    * @param flgRemoveDuplicates
    */
-  void updateDisplay(final boolean sampleSphere, final boolean flgRemoveDuplicates) {
+  void updateDisplay(final boolean sampleSphere,
+      final boolean flgRemoveDuplicates) {
     if (getIndex() == 0) {
       dThetaMax.setEnabled(!sampleSphere);
       dThetaIncrement.setEnabled(!sampleSphere);
@@ -340,8 +346,8 @@ final class IterationRow implements Highlightable {
       if (!n.isValid()) {
         UIHarness.INSTANCE.openMessageDialog(IterationTable.LABEL
             + ":  In row " + number.toString()
-            + buildHeaderDescription(headerArray) + " must be numeric.",
-            "Entry Error", manager.getManagerKey());
+            + buildHeaderDescription(headerArray) + ":   "
+            + n.getInvalidReason(), "Entry Error", manager.getManagerKey());
         return false;
       }
       if (n.isNegative()) {
@@ -357,24 +363,25 @@ final class IterationRow implements Highlightable {
 
   boolean validateRun() {
     //Phi
-    EtomoNumber n = new EtomoNumber(EtomoNumber.Type.DOUBLE);
-    n.set(dPhiMax.getValue());
-    if (!validateRun(dPhiMax.isEmpty(), n, new String[] {
+    EtomoNumber d = new EtomoNumber(EtomoNumber.Type.DOUBLE);
+    EtomoNumber i = new EtomoNumber();
+    d.set(dPhiMax.getValue());
+    if (!validateRun(dPhiMax.isEmpty(), d, new String[] {
         IterationTable.D_PHI_D_THETA_D_PSI_HEADER1,
         IterationTable.D_PHI_HEADER2, IterationTable.MAX_HEADER3 },
         "Use 0 to not search on the angle.")) {
       return false;
     }
-    n.set(dPhiIncrement.getValue());
-    if (!validateRun(dPhiIncrement.isEmpty(), n, new String[] {
+    d.set(dPhiIncrement.getValue());
+    if (!validateRun(dPhiIncrement.isEmpty(), d, new String[] {
         IterationTable.D_PHI_D_THETA_D_PSI_HEADER1,
         IterationTable.D_PHI_HEADER2, IterationTable.INCR_HEADER3 }, null)) {
       return false;
     }
     //Theta
     if (dThetaMax.isEnabled()) {
-      n.set(dThetaMax.getValue());
-      if (!validateRun(dThetaMax.isEmpty(), n, new String[] {
+      d.set(dThetaMax.getValue());
+      if (!validateRun(dThetaMax.isEmpty(), d, new String[] {
           IterationTable.D_PHI_D_THETA_D_PSI_HEADER1,
           IterationTable.D_THETA_HEADER2, IterationTable.MAX_HEADER3 },
           "Use 0 to not search on the angle.")) {
@@ -382,8 +389,8 @@ final class IterationRow implements Highlightable {
       }
     }
     if (dThetaIncrement.isEnabled()) {
-      n.set(dThetaIncrement.getValue());
-      if (!validateRun(dThetaIncrement.isEmpty(), n, new String[] {
+      d.set(dThetaIncrement.getValue());
+      if (!validateRun(dThetaIncrement.isEmpty(), d, new String[] {
           IterationTable.D_PHI_D_THETA_D_PSI_HEADER1,
           IterationTable.D_THETA_HEADER2, IterationTable.INCR_HEADER3 }, null)) {
         return false;
@@ -391,8 +398,8 @@ final class IterationRow implements Highlightable {
     }
     //Psi
     if (dPsiMax.isEnabled()) {
-      n.set(dPsiMax.getValue());
-      if (!validateRun(dPsiMax.isEmpty(), n, new String[] {
+      d.set(dPsiMax.getValue());
+      if (!validateRun(dPsiMax.isEmpty(), d, new String[] {
           IterationTable.D_PHI_D_THETA_D_PSI_HEADER1,
           IterationTable.D_PSI_HEADER2, IterationTable.MAX_HEADER3 },
           "Use 0 to not search on the angle.")) {
@@ -400,16 +407,16 @@ final class IterationRow implements Highlightable {
       }
     }
     if (dPsiIncrement.isEnabled()) {
-      n.set(dPsiIncrement.getValue());
-      if (!validateRun(dPsiIncrement.isEmpty(), n, new String[] {
+      d.set(dPsiIncrement.getValue());
+      if (!validateRun(dPsiIncrement.isEmpty(), d, new String[] {
           IterationTable.D_PHI_D_THETA_D_PSI_HEADER1,
           IterationTable.D_PSI_HEADER2, IterationTable.INCR_HEADER3 }, null)) {
         return false;
       }
     }
     //search radius
-    n.set(searchRadius.getValue());
-    if (!validateRun(searchRadius.isEmpty(), n, new String[] {
+    i.set(searchRadius.getValue());
+    if (!validateRun(searchRadius.isEmpty(), i, new String[] {
         IterationTable.SEARCH_RADIUS_HEADER1,
         IterationTable.SEARCH_RADIUS_HEADER2 }, null)) {
       return false;
@@ -434,8 +441,8 @@ final class IterationRow implements Highlightable {
     }
     //duplicateShiftTolerance
     if (duplicateShiftTolerance.isEnabled()) {
-      n.set(duplicateShiftTolerance.getValue());
-      if (!validateRun(duplicateShiftTolerance.isEmpty(), n, new String[] {
+      i.set(duplicateShiftTolerance.getValue());
+      if (!validateRun(duplicateShiftTolerance.isEmpty(), i, new String[] {
           IterationTable.DUPLICATE_TOLERANCE_HEADER1,
           IterationTable.DUPLICATE_TOLERANCE_HEADER2,
           IterationTable.DUPLICATE_SHIFT_TOLERANCE_HEADER3 }, null)) {
@@ -444,8 +451,8 @@ final class IterationRow implements Highlightable {
     }
     //duplicateAngularTolerance
     if (duplicateAngularTolerance.isEnabled()) {
-      n.set(duplicateAngularTolerance.getValue());
-      if (!validateRun(duplicateAngularTolerance.isEmpty(), n, new String[] {
+      i.set(duplicateAngularTolerance.getValue());
+      if (!validateRun(duplicateAngularTolerance.isEmpty(), i, new String[] {
           IterationTable.DUPLICATE_TOLERANCE_HEADER1,
           IterationTable.DUPLICATE_TOLERANCE_HEADER2,
           IterationTable.DUPLICATE_ANGULAR_TOLERANCE_HEADER3 }, null)) {
