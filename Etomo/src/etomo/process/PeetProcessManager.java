@@ -22,6 +22,9 @@ import etomo.type.ProcessName;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.8  2009/10/30 20:52:44  sueh
+ * <p> bug# 1285 Put a comment in postProcess(DetachedProcess).
+ * <p>
  * <p> Revision 1.7  2008/05/03 00:42:20  sueh
  * <p> bug# 847 Passing a ProcessSeries instance to all processes that use
  * <p> process objects.  The goal is to pass then back to process done functions.
@@ -97,6 +100,11 @@ public final class PeetProcessManager extends BaseProcessManager {
       }
       state.setParserIterationListSize(processDetails
           .getIntValue(PeetParserParam.Fields.ITERATION_LIST_SIZE));
+      //Using ParserLstThresholds as a backup for LstThresholds when
+      //processchunks completes when Etomo is not running.  Reset LstThresholds
+      //here so it will use ParserLstThresholds in preference to an out of date
+      //LstThresholds.
+      state.resetLstThresholdsArray();
       state.setParserLstThresholdsArray(processDetails
           .getStringArray(PeetParserParam.Fields.LST_THRESHOLDS_ARRAY));
     }
