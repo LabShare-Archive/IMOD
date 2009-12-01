@@ -21,11 +21,11 @@ run.function.runtab=
 [function = setup]
 tb.setup=
 #check empty directory error
-run.function.setup-test-gui=
+run.function.setup-test-run-error=
 bn.directory=
 wait.file-chooser.open=%{testdir}
 #check empty root name error
-run.function.setup-test-gui=
+run.function.setup-test-run-error=
 tf.root-name-for-output=%{dataset}
 run.function.volume-table=
 run.function.reference=
@@ -38,7 +38,7 @@ run.function.reference=
 [[]]
 
 
-[function = setup-test-gui]
+[function = setup-test-run-error]
 if.not.var.test-values.return=
 tb.setup.1=
 mb.parallel-processing=-
@@ -49,7 +49,7 @@ wait.popup.entry-error=OK
 
 [function = volume-table]
 #check empty table error
-run.function.setup-test-gui=
+run.function.setup-test-run-error=
 bn.add-volume-and-model=
 wait.file-chooser.open=%{dataset}-a.rec
 wait.file-chooser.open=%{dataset}-a.mod
@@ -105,12 +105,12 @@ tf.volume-table-2-rel-orient.2=40.5
 
 [function = reference]
 #check empty particle # error
-run.function.setup-test-gui=
+run.function.setup-test-run-error=
 tf.particle-#=2
 #check empty reference file error
 [[if = test-values]]
 	rb.reference-file=
-	run.function.setup-test-gui=
+	run.function.setup-test-run-error=
 	rb.volume-#=
 [[]]
 
@@ -120,19 +120,19 @@ if.not.var.test-values.return=
 #check empty tilt range error
 #tilt range required with averaging
 cb.use-tilt-range-in-averaging=on
-run.function.setup-test-gui=
+run.function.setup-test-run-error=
 #tilt range required with alignment alone (bug# 1234)
 cb.use-tilt-range-in-alignment=on
 cb.use-tilt-range-in-averaging=off
-run.function.setup-test-gui=
+run.function.setup-test-run-error=
 cb.use-tilt-range-in-averaging=on
 cb.use-tilt-range-in-alignment=off
 tf.volume-table-1-tilt-range=-10
 tf.volume-table-1-tilt-range.1=10
-run.function.setup-test-gui=
+run.function.setup-test-run-error=
 tf.volume-table-2-tilt-range=-10
 tf.volume-table-2-tilt-range.1=10
-run.function.setup-test-gui=
+run.function.setup-test-run-error=
 tf.volume-table-3-tilt-range=
 tf.volume-table-3-tilt-range.1=
 tf.volume-table-2-tilt-range=
@@ -141,7 +141,7 @@ tf.volume-table-3-tilt-range=
 tf.volume-table-3-tilt-range.1=
 #check empty edge shift error
 tf.edge-shift=
-run.function.setup-test-gui=
+run.function.setup-test-run-error=
 tf.edge-shift=2
 cb.use-tilt-range-in-averaging=off
 
@@ -150,7 +150,7 @@ cb.use-tilt-range-in-averaging=off
 if.not.var.test-values.return=
 #check empty volume masking volume
 rb.volume=
-run.function.setup-test-gui=
+run.function.setup-test-run-error=
 rb.none=
 
 
@@ -159,7 +159,7 @@ if.not.var.test-values.return=
 #check particle empty error
 rb.cylinder=
 cb.set-cylinder-orientation-from-reference-particle=off
-run.function.setup-test-gui=
+run.function.setup-test-run-error=
 rb.none=
 
 [function = initial-motive-list]
@@ -169,10 +169,10 @@ rb.none=
 if.not.var.test-values.return=
 rb.end-points-of-contour=
 #check object empty error
-run.function.setup-test-gui=
+run.function.setup-test-run-error=
 tf.object-#=1
 #check contour empty error
-run.function.setup-test-gui=
+run.function.setup-test-run-error=
 tf.object-#=
 rb.original-y-axis=
 
@@ -194,31 +194,6 @@ mb.parallel-processing=-
 run.function.iteration-table=
 [[if = test-gui]]
 	run.function.spherical-sampling-for-theta-and-psi=
-	#check remove duplicates
-	#check enable/disable
-	cb.remove-duplicates=off
-	assert.disabled.tf.iteration-table-1-duplicate=
-	assert.disabled.tf.iteration-table-1-duplicate.1=
-	cb.remove-duplicates=on
-	assert.enabled.tf.iteration-table-1-duplicate=
-	assert.enabled.tf.iteration-table-1-duplicate.1=
-	#check enable/disable on an added row
-	bn.add-row=
-	cb.remove-duplicates=off
-	assert.disabled.tf.iteration-table-2-duplicate=
-	assert.disabled.tf.iteration-table-2-duplicate.1=
-	cb.remove-duplicates=on
-	assert.enabled.tf.iteration-table-2-duplicate=
-	assert.enabled.tf.iteration-table-2-duplicate.1=
-	#remove extra row
-	mb.iteration-table-2-run-#=
-	bn.delete-row=
-	#check run error checking
-	run.function.test-run-error=
-	tf.iteration-table-1-duplicate=1
-	run.function.test-run-error=
-	tf.iteration-table-1-duplicate=
-	cb.remove-duplicates=off
 [[]]
 #check particle volume x empty error
 run.function.test-run-error=
@@ -238,15 +213,27 @@ wait.process.processchunks-%{dataset}=done
 
 
 [function = iteration-table]
-[[if = test-values]]
+[[if = test-gui]]
 	#check empty iteration table error
 	mb.iteration-table-1-run-#=
 	bn.delete-row=
 	run.function.test-run-error=
 	bn.add-row=
-	#check phi max empty error
-	run.function.test-run-error=
+	#check enable/disable on an added row
+	bn.add-row=
+	cb.remove-duplicates=off
+	assert.disabled.tf.iteration-table-2-duplicate=
+	assert.disabled.tf.iteration-table-2-duplicate.1=
+	cb.remove-duplicates=on
+	assert.enabled.tf.iteration-table-2-duplicate=
+	assert.enabled.tf.iteration-table-2-duplicate.1=
+	#remove extra row
+	mb.iteration-table-2-run-#=
+	bn.delete-row=
+	cb.remove-duplicates=off
 [[]]
+#check phi max empty error
+run.function.test-run-error=
 tf.iteration-table-1-angular-search-range=%{angular-search-range-max}
 #check phi incr empty error
 run.function.test-run-error=
@@ -275,6 +262,29 @@ tf.iteration-table-1-high-freq.1=.05
 #check reference threshold empty error
 run.function.test-run-error=
 tf.iteration-table-1-reference=4
+[[if = test-gui]]
+	#check remove duplicates
+	#check enable/disable
+	cb.remove-duplicates=off
+	assert.disabled.tf.iteration-table-1-duplicate=
+	assert.disabled.tf.iteration-table-1-duplicate.1=
+	cb.remove-duplicates=on
+	assert.enabled.tf.iteration-table-1-duplicate=
+	assert.enabled.tf.iteration-table-1-duplicate.1=
+	#check run error checking on duplicate shift tolerance
+	run.function.test-run-error=
+	tf.iteration-table-1-duplicate=1.2
+	run.function.test-run-error=
+	#check run error checking on duplicate angular tolerance
+	tf.iteration-table-1-duplicate=1
+	run.function.test-run-error=
+	tf.iteration-table-1-duplicate.1=1.2
+	run.function.test-run-error=
+	#remove changes
+	tf.iteration-table-1-duplicate=
+	tf.iteration-table-1-duplicate.1=
+	cb.remove-duplicates=off
+[[]]
 
 
 [function = test-run-error]
