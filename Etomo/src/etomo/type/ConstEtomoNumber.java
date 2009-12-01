@@ -37,6 +37,10 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.65  2009/09/05 00:09:10  sueh
+ * <p> bug# 1256 Moved toStringWithLeadingZeros to the nad param because it
+ * <p> is only being used there.
+ * <p>
  * <p> Revision 1.64  2009/09/02 22:44:55  sueh
  * <p> bug# 1254 Getting rid of excessive debug prints.
  * <p>
@@ -1068,23 +1072,23 @@ public abstract class ConstEtomoNumber implements Storable {
    * @param maxZeros
    * @return
    
-  public String toStringWithLeadingZeros(int maxZeros) {
-    String wholeNumbers = toString();
-    int decimalPlace = wholeNumbers.indexOf('.');
-    if (decimalPlace != -1) {
-      wholeNumbers = wholeNumbers.substring(0, decimalPlace);
-    }
-    int length = wholeNumbers.length();
-    if (length > maxZeros || length == maxZeros) {
-      return toString();
-    }
-    StringBuffer retval = new StringBuffer();
-    for (int i = 0; i < maxZeros - length; i++) {
-      retval.append("0");
-    }
-    retval.append(toString());
-    return retval.toString();
-  }*/
+   public String toStringWithLeadingZeros(int maxZeros) {
+   String wholeNumbers = toString();
+   int decimalPlace = wholeNumbers.indexOf('.');
+   if (decimalPlace != -1) {
+   wholeNumbers = wholeNumbers.substring(0, decimalPlace);
+   }
+   int length = wholeNumbers.length();
+   if (length > maxZeros || length == maxZeros) {
+   return toString();
+   }
+   StringBuffer retval = new StringBuffer();
+   for (int i = 0; i < maxZeros - length; i++) {
+   retval.append("0");
+   }
+   retval.append(toString());
+   return retval.toString();
+   }*/
 
   /**
    * If default is set and isNull() is true, defaultValue will be returned, even
@@ -1461,10 +1465,7 @@ public abstract class ConstEtomoNumber implements Storable {
       throw new IllegalStateException("type=" + type);
     }
     catch (NumberFormatException e) {
-      invalidBuffer.append(value + " is not a valid number.  ");
-      if (type == Type.INTEGER || type == Type.LONG) {
-        invalidBuffer.append("Only a whole number is allowed.  ");
-      }
+      invalidBuffer.append(value + " is not a valid " + type + ".");
       return newNumber();
     }
   }
