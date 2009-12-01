@@ -36,6 +36,12 @@ import etomo.type.EtomoAutodoc;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.23  2009/11/20 17:16:09  sueh
+ * <p> bug# 1282 Added headers for duplicateShiftTolerance and
+ * <p> duplicateAngularTolerance.  When updating the display, moved the
+ * <p> responsibility for responding to sample sphere in the first row only to this
+ * <p> class.
+ * <p>
  * <p> Revision 1.22  2009/10/15 23:36:04  sueh
  * <p> bug# 1274 Made header names avaible becauese of increased error
  * <p> checking in the row.  Changed hiCutoffCutoff to hiCutoff.  Change
@@ -185,10 +191,13 @@ final class IterationTable implements Highlightable {
       DUPLICATE_SHIFT_TOLERANCE_HEADER3);
   private final HeaderCell header3DuplicateAngularTolerance = new HeaderCell(
       DUPLICATE_ANGULAR_TOLERANCE_HEADER3);
-  private final BaseManager manager;
 
-  private IterationTable(BaseManager manager) {
+  private final BaseManager manager;
+  private final IterationParent parent;
+
+  private IterationTable(BaseManager manager, IterationParent parent) {
     this.manager = manager;
+    this.parent = parent;
     rowList = new RowList(manager, this);
     createTable();
     rowList.add(this, pnlTable, layout, constraints);
@@ -197,8 +206,8 @@ final class IterationTable implements Highlightable {
     setToolTipText();
   }
 
-  static IterationTable getInstance(BaseManager manager) {
-    IterationTable instance = new IterationTable(manager);
+  static IterationTable getInstance(BaseManager manager, IterationParent parent) {
+    IterationTable instance = new IterationTable(manager, parent);
     instance.addListeners();
     return instance;
   }
@@ -254,6 +263,7 @@ final class IterationTable implements Highlightable {
   private IterationRow addRow() {
     IterationRow row = rowList.add(this, pnlTable, layout, constraints);
     row.display();
+    parent.updateDisplay();
     return row;
   }
 
