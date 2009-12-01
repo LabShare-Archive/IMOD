@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+11/30/09: In Etomo - PEET fixing a bug where the "Open Averaged Volumes in
+3dmod" button doesn't work when processchunks finishes when Etomo isn't running.
+
 11/25/09: IMOD_4-0-19
 11/25/09: Transferfid now allows pixel sizes of two axes to differ by 2.5%.
 
