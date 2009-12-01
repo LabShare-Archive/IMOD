@@ -62,6 +62,10 @@ import etomo.util.EnvironmentVariable;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.59  2009/11/24 00:42:59  sueh
+ * <p> bug# 1289 Added isInterfaceAvailable to check for PARTICLE_DIR and pop
+ * <p> up message if it is not available.
+ * <p>
  * <p> Revision 1.58  2009/10/29 12:01:52  sueh
  * <p> bug# 1245 Changed copyParameters, which called either loadParamFile or loadMatlabParam with parameteresOnly set to true, to loadParam(File, boolean parametersOnly).  It is being called by both buttons in UseExistingProjectPanel.
  * <p>
@@ -643,6 +647,9 @@ public final class PeetManager extends BaseManager {
   public void imodAvgVol(Run3dmodMenuOptions menuOptions) {
     //build the list of files - they should be in order
     IntKeyList.Walker lstThresholds = state.getLstThresholds();
+    if (lstThresholds.isEmpty()) {
+      lstThresholds=state.getParserLstThresholds();
+    }
     final StringBuffer name = new StringBuffer(metaData.getName());
     name.append("_AvgVol_").append(state.getIterationListSize()).append('P');
     StringBuffer fileName;
