@@ -16,6 +16,9 @@ import java.util.Properties;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.2  2007/08/29 21:44:54  sueh
+* <p> bug# 1041 Made BaseState an abstract class.
+* <p>
 * <p> Revision 1.1  2007/05/11 16:05:45  sueh
 * <p> bug# 964 Class to store the states of variables used in processes after
 * <p> the processes are finished.
@@ -55,6 +58,10 @@ public final class PeetState extends BaseState {
     lstThresholdsArray.set(input);
   }
   
+  public void resetLstThresholdsArray() {
+    lstThresholdsArray.reset();
+  }
+  
   public void setParserIterationListSize(final int input) {
     parserIterationListSize.set(input);
   }
@@ -73,6 +80,10 @@ public final class PeetState extends BaseState {
   
   public IntKeyList.Walker getLstThresholds(){
     return lstThresholdsArray.getWalker();
+  }
+  
+  public IntKeyList.Walker getParserLstThresholds(){
+    return parserLstThresholdsArray.getWalker();
   }
   
   public void store(final Properties props, String prepend) {
