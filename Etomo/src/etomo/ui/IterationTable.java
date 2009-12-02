@@ -20,6 +20,7 @@ import etomo.storage.LogFile;
 import etomo.storage.MatlabParam;
 import etomo.storage.autodoc.AutodocFactory;
 import etomo.storage.autodoc.ReadOnlyAutodoc;
+import etomo.type.AxisID;
 import etomo.type.EtomoAutodoc;
 
 /**
@@ -36,6 +37,9 @@ import etomo.type.EtomoAutodoc;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.24  2009/12/01 23:42:20  sueh
+ * <p> bug# 1290 In addRow calling PeetDialog.updateDisplay.
+ * <p>
  * <p> Revision 1.23  2009/11/20 17:16:09  sueh
  * <p> bug# 1282 Added headers for duplicateShiftTolerance and
  * <p> duplicateAngularTolerance.  When updating the display, moved the
@@ -191,6 +195,8 @@ final class IterationTable implements Highlightable {
       DUPLICATE_SHIFT_TOLERANCE_HEADER3);
   private final HeaderCell header3DuplicateAngularTolerance = new HeaderCell(
       DUPLICATE_ANGULAR_TOLERANCE_HEADER3);
+  private final MultiLineButton btnMoveUp = new MultiLineButton("Move Up");
+  private final MultiLineButton btnMoveDown = new MultiLineButton("Move Down");
 
   private final BaseManager manager;
   private final IterationParent parent;
@@ -338,6 +344,8 @@ final class IterationTable implements Highlightable {
     btnAddRow.addActionListener(actionListener);
     btnCopyRow.addActionListener(actionListener);
     btnDeleteRow.addActionListener(actionListener);
+    btnMoveUp.addActionListener(actionListener);
+    btnMoveDown.addActionListener(actionListener);
   }
 
   private void action(final ActionEvent event) {
@@ -360,10 +368,17 @@ final class IterationTable implements Highlightable {
       }
       deleteRow(row);
     }
+    else if (actionCommand.equals(btnMoveUp.getActionCommand())) {
+      moveRowUp();
+    }
+    else if (actionCommand.equals(btnMoveDown.getActionCommand())) {
+      moveRowDown();
+    }
   }
 
   private void copyRow(IterationRow row) {
     rowList.copy(row, this, pnlTable, layout, constraints);
+    parent.updateDisplay();
     UIHarness.INSTANCE.pack(manager);
   }
 
@@ -375,27 +390,88 @@ final class IterationTable implements Highlightable {
     UIHarness.INSTANCE.pack(manager);
   }
 
+  /**
+   * Swap the highlighted row with the one above it.  Move it in the rows 
+   * ArrayList.  Move it in the table by removing and adding the two involved
+   * rows and everything below them.  Renumber the row numbers in the table.
+   */
+  private void moveRowUp() {
+    int index = rowList.getHighlightIndex();
+    if (index == -1) {
+      return;
+    }
+    if (index == 0) {
+      UIHarness.INSTANCE.openMessageDialog(
+          "Can't move the row up.  Its at the top.", "Wrong Row", AxisID.ONLY,
+          manager.getManagerKey());
+      return;
+    }
+    rowList.moveRowUp(index);
+    rowList.remove();
+    rowList.reindex(index - 1);
+    rowList.display();
+    updateDisplay();
+    manager.getMainPanel().repaint();
+  }
+
+  /**
+   * Swap the highlighted row with the one below it.  Move it in the rows 
+   * ArrayList.  Move it in the table by removing and adding the two involved
+   * rows and everything below them.  Renumber the row numbers in the table.
+   */
+  private void moveRowDown() {
+    int index = rowList.getHighlightIndex();
+    if (index == -1) {
+      return;
+    }
+    if (index == rowList.size() - 1) {
+      UIHarness.INSTANCE.openMessageDialog(
+          "Can't move the row down.  Its at the bottom.", "Wrong Row",
+          AxisID.ONLY, manager.getManagerKey());
+      return;
+    }
+    rowList.moveRowDown(index);
+    rowList.remove();
+    rowList.reindex(index);
+    rowList.display();
+    updateDisplay();
+    manager.getMainPanel().repaint();
+  }
+
   private void updateDisplay() {
-    btnCopyRow.setEnabled(rowList.isHighlighted());
-    btnDeleteRow.setEnabled(rowList.isHighlighted());
+    int highlightIndex = rowList.getHighlightIndex();
+    btnCopyRow.setEnabled(highlightIndex != -1);
+    btnDeleteRow.setEnabled(highlightIndex != -1);
+    btnMoveUp.setEnabled(highlightIndex > 0);
+    btnMoveDown.setEnabled(highlightIndex != -1
+        && highlightIndex < rowList.size() - 1);
   }
 
   private void createTable() {
+    //initialize
+    btnMoveUp.setSize();
+    btnMoveDown.setSize();
+    //local panels
+    JPanel pnlButtons2 = new JPanel();
     //table
     pnlTable.setLayout(layout);
     pnlTable.setBorder(LineBorder.createBlackLineBorder());
     constraints.fill = GridBagConstraints.BOTH;
     constraints.anchor = GridBagConstraints.CENTER;
     constraints.gridheight = 1;
-    //buttons
+    //button panel
     JPanel pnlButtons = new JPanel();
     pnlButtons.setLayout(new BoxLayout(pnlButtons, BoxLayout.X_AXIS));
     btnAddRow.setSize();
     pnlButtons.add(btnAddRow.getComponent());
+    //button panel 2
+    pnlButtons2.setLayout(new BoxLayout(pnlButtons2, BoxLayout.X_AXIS));
     btnCopyRow.setSize();
-    pnlButtons.add(btnCopyRow.getComponent());
+    pnlButtons2.add(btnCopyRow.getComponent());
+    pnlButtons2.add(btnMoveUp.getComponent());
+    pnlButtons2.add(btnMoveDown.getComponent());
     btnDeleteRow.setSize();
-    pnlButtons.add(btnDeleteRow.getComponent());
+    pnlButtons2.add(btnDeleteRow.getComponent());
     //border
     SpacedPanel pnlBorder = SpacedPanel.getInstance();
     pnlBorder.setBoxLayout(BoxLayout.Y_AXIS);
@@ -406,6 +482,7 @@ final class IterationTable implements Highlightable {
     rootPanel.setBorder(BorderFactory.createEtchedBorder());
     rootPanel.add(pnlBorder.getContainer());
     rootPanel.add(pnlButtons);
+    rootPanel.add(pnlButtons2);
   }
 
   private void display() {
@@ -609,13 +686,46 @@ final class IterationTable implements Highlightable {
       return null;
     }
 
-    private boolean isHighlighted() {
+    private int getHighlightIndex() {
       for (int i = 0; i < list.size(); i++) {
         if (((IterationRow) list.get(i)).isHighlighted()) {
-          return true;
+          return i;
         }
       }
-      return false;
+      return -1;
+    }
+    
+    /**
+     * Swap two rows.
+     * @param rowIndex
+     */
+    private void moveRowUp(final int rowIndex) {
+      Object rowMoveUp = list.remove(rowIndex);
+      Object rowMoveDown = list.remove(rowIndex - 1);
+      list.add(rowIndex - 1, rowMoveUp);
+      list.add(rowIndex, rowMoveDown);
+    }
+
+    /**
+     * Swap two rows
+     * @param rowIndex
+     */
+    private void moveRowDown(final int rowIndex) {
+      Object rowMoveUp = list.remove(rowIndex + 1);
+      Object rowMoveDown = list.remove(rowIndex);
+      list.add(rowIndex, rowMoveUp);
+      list.add(rowIndex + 1, rowMoveDown);
+    }
+    
+
+    /**
+     * Renumber the table starting from the row in the ArrayList at startIndex.
+     * @param startIndex
+     */
+    private void reindex(final int startIndex) {
+      for (int i = startIndex; i < list.size(); i++) {
+        ((IterationRow) list.get(i)).setIndex(i);
+      }
     }
   }
 }
