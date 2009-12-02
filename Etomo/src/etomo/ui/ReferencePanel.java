@@ -5,6 +5,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
 
+import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.ButtonGroup;
 import javax.swing.JFileChooser;
@@ -29,6 +30,9 @@ import etomo.type.PeetMetaData;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.2  2009/12/01 00:26:20  sueh
+ * <p> bug# 1285 Gave panel is own action listener.
+ * <p>
  * <p> Revision 1.1  2009/11/20 17:32:14  sueh
  * <p> bug# 1282 Reference panel factored out of PeetDialog.
  * <p> </p>
@@ -37,7 +41,7 @@ final class ReferencePanel {
   public static final String rcsid = "$Id$";
 
   private static final String REFERENCE_VOLUME_LABEL = "Volume #";
-  private static final String REFERENCE_FILE_LABEL = "Reference file";
+  static final String REFERENCE_FILE_LABEL = "Reference file";
   private static final String PARTICLE_LABEL = "Particle #";
   private static final String REFERENCE_LABEL = "Reference";
 
@@ -93,6 +97,7 @@ final class ReferencePanel {
         BoxLayout.X_AXIS));
     pnlVolumeReference.add(rbReferenceParticle.getComponent());
     pnlVolumeReference.add(sReferenceVolume.getContainer());
+    pnlVolumeReference.add(Box.createRigidArea(FixedDim.x5_y0));
     pnlVolumeReference.add(ltfReferenceParticle.getContainer());
     //volume file panel
     pnlVolumeFile.setLayout(new BoxLayout(pnlVolumeFile, BoxLayout.X_AXIS));
