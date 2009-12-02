@@ -1,5 +1,7 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+12/1/09: In Etomo - PEET added move up and move down buttons.
+
 12/1/09: In Etomo - PEET removed the "Set cylinder orientation from reference
 particle" checkbox.  Enabling Cylinder Orientation when reference file is used.
 
