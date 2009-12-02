@@ -297,6 +297,19 @@ tf.iteration-table-1-reference=4
 	tf.iteration-table-1-duplicate=
 	tf.iteration-table-1-duplicate.1=
 	cb.remove-duplicates=off
+	#test copy row
+	mb.iteration-table-1-run-#=
+	bn.copy-row=
+	assert.tf.iteration-table-2-angular-search-range=%{angular-search-range-max}
+	#test move up
+	tf.iteration-table-2-angular-search-range=99
+	mb.iteration-table-2-run-#=
+	bn.move-up=
+	assert.tf.iteration-table-1-angular-search-range=99
+	#test move down
+	bn.move-down=
+	assert.tf.iteration-table-2-angular-search-range=99
+	bn.delete-row=
 [[]]
 
 
