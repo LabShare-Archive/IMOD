@@ -1154,7 +1154,7 @@ c
 c       
 c       invert the Z coordinates because the tomogram built by TILT is
 c       inverted relative to the solution produced by TILTALIGN
-c       
+c         12/1/09: THIS IS NOT TRUE AFTER ACCOUNTING FOR FLIPPING IN 3dMOD
         pnta(3,npnta) = -pnta(3,npnta)
         read(1,'(a)',end=15,err=10)line
       enddo
@@ -1240,7 +1240,8 @@ c
 c       use the negative of the angle to account for the inversion of the
 c       tomogram; rotate the 3-d points about the Y axis first, then the Z
 c       axis; add Z shift
-c       
+c       12/1/09: THE NEGATIVE COMPENSATES FOR THE FLIPPING OF Z ABOVE, BUT
+c       ARE THERE OTHER CONSEQUENCES?  IS ALL THIS RIGHT?
       cosa=cosd(-xtilt) * scale
       sina=sind(-xtilt) * scale
       sinb = sind(-angleOffset)
@@ -1299,6 +1300,9 @@ c
 
 c
 c       $Log$
+c       Revision 3.22  2009/04/07 14:26:50  mast
+c       Increase size of filename variable
+c
 c       Revision 3.21  2009/02/17 00:03:24  mast
 c       Improved messages when center shift is above limit
 c
