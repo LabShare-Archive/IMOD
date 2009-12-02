@@ -155,11 +155,24 @@ rb.none=
 
 
 [function = cylinder-orientation]
-if.not.var.test-values.return=
-#check particle empty error
+[[if = test-values]]
+	#check values
+	assert.sp.model-#=1
+	assert.tf.particle-#.1=
+[[]]
+#check enabled/disabled
 rb.cylinder=
-cb.set-cylinder-orientation-from-reference-particle=off
-run.function.setup-test-run-error=
+rb.volume-#=
+assert.disabled.sp.model-#=
+assert.disabled.tf.particle-#.1=
+rb.reference-file=
+assert.enabled.sp.model-#=
+assert.enabled.tf.particle-#.1=
+[[if = test-values]]
+	#check particle empty error
+	run.function.setup-test-run-error=
+[[]]
+rb.volume-#=
 rb.none=
 
 [function = initial-motive-list]
@@ -321,6 +334,7 @@ run.function.volume-table-check-prm==
 run.function.reference-check-prm==
 run.function.missing-wedge-compensation-check-prm==
 run.function.masking-check-prm==
+run.function.cylinder-orientation-check-prm==
 run.function.initial-motive-list-check-prm==
 run.function.y-axis-type-check-prm==
 tb.setup.1==
@@ -407,18 +421,23 @@ tf.inner==10
 tf.outer==20
 save==
 assert.contains.file==pi.prm|"maskType = 'sphere'"
+assert.contains.file==pi.prm|"insideMaskRadius = 10"
+assert.contains.file==pi.prm|"outsideMaskRadius = 20"
+rb.none==
+
+
+[function == cylinder-orientation-check-prm]
 #test cylinder
 rb.cylinder==
-#test cylinder orientation from reference particle
-cb.set-cylinder-orientation-from-reference-particle==on
 save==
 assert.contains.file==pi.prm|"maskType = 'cylinder'"
 #test cylinder with mask model points
-cb.set-cylinder-orientation-from-reference-particle==off
+rb.reference-file==
 tf.particle-#.1==3
 save==
 assert.contains.file==pi.prm|"maskType = 'cylinder'"
 assert.contains.file==pi.prm|"maskModelPts = [1, 3]"
+rb.volume-#==
 rb.none==
 
 
