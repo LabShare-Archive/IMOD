@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+12/1/09: In Etomo - PEET removed the "Set cylinder orientation from reference
+particle" checkbox.  Enabling Cylinder Orientation when reference file is used.
+
 12/1/09: In Etomo - PEET added more error checking to the Iteration table.
 
 11/30/09: In Etomo - PEET fixing a bug where the "Open Averaged Volumes in
