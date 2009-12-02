@@ -54,6 +54,9 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.87  2009/12/02 00:01:23  sueh
+ * <p> bug# 1290 Removed cbMaskUseReferenceParticle.
+ * <p>
  * <p> Revision 1.86  2009/12/01 00:25:48  sueh
  * <p> bug# 1285 Factored MissingWedgeCompensation out of PeetDialog.
  * <p>
@@ -349,7 +352,7 @@ import etomo.util.Utilities;
 public final class PeetDialog implements ContextMenu, AbstractParallelDialog,
     Expandable, Run3dmodButtonContainer, FileContainer,
     UseExistingProjectParent, ReferenceParent, MissingWedgeCompensationParent,
-    IterationParent {
+    IterationParent, RadiiOfSphereOrCylinderParent {
   public static final String rcsid = "$Id$";
 
   public static final String FN_OUTPUT_LABEL = "Root name for output";
@@ -370,9 +373,6 @@ public final class PeetDialog implements ContextMenu, AbstractParallelDialog,
   private static final String MASK_TYPE_LABEL = "Masking";
   private static final String MASK_TYPE_SPHERE_LABEL = "Sphere";
   private static final String MASK_TYPE_CYLINDER_LABEL = "Cylinder";
-  private static final String INSIDE_MASK_RADIUS_LABEL = "Inner";
-  private static final String OUTSIDE_MASK_RADIUS_LABEL = "Outer";
-  private static final String MASK_RADII_LABEL = "Radii of Sphere or Cylinder";
   private static final String MASK_CYLINDER_LABEL = "Cylinder Orientation";
   private static final String SPHERICAL_SAMPLING_LABEL = "Spherical Sampling for Theta and Psi";
   private static final String SAMPLE_SPHERE_FULL_LABEL = "Full sphere";
@@ -460,10 +460,6 @@ public final class PeetDialog implements ContextMenu, AbstractParallelDialog,
       .getLabeledInstance(MODEL_LABEL);
   private final LabeledTextField ltfMaskModelPtsParticle = new LabeledTextField(
       PARTICLE_LABEL + ": ");
-  private final LabeledTextField ltfInsideMaskRadius = new LabeledTextField(
-      INSIDE_MASK_RADIUS_LABEL + ": ");
-  private final LabeledTextField ltfOutsideMaskRadius = new LabeledTextField(
-      OUTSIDE_MASK_RADIUS_LABEL + ": ");
 
   private final ButtonGroup bgInitMotl = new ButtonGroup();
   private final RadioButton rbInitMotlZero = new RadioButton(
@@ -498,8 +494,9 @@ public final class PeetDialog implements ContextMenu, AbstractParallelDialog,
       "Open Reference Files in 3dmod", this);
   private final CheckBox cbFlgRemoveDuplicates = new CheckBox(
       "Remove duplicates");
-  private final MissingWedgeCompensationPanel missingWedgeCompensationPanel;
+  private final RadiiOfSphereOrCylinderPanel radiiOfSphereOrCylinderPanel;
 
+  private final MissingWedgeCompensationPanel missingWedgeCompensationPanel;
   private final ReferencePanel referencePanel;
   private final UseExistingProjectPanel useExistingProjectPanel;
   private final PanelHeader phRun;
@@ -522,6 +519,8 @@ public final class PeetDialog implements ContextMenu, AbstractParallelDialog,
     referencePanel = ReferencePanel.getInstance(this, manager);
     missingWedgeCompensationPanel = MissingWedgeCompensationPanel.getInstance(
         this, manager);
+    radiiOfSphereOrCylinderPanel = RadiiOfSphereOrCylinderPanel.getInstance(
+        manager, this);
     fixPathsPanel = FixPathsPanel.getInstance(this, manager, axisID,
         DIALOG_TYPE);
     ftfMaskTypeVolume.setFieldWidth(UIParameters.INSTANCE.getFileWidth());
@@ -838,8 +837,7 @@ public final class PeetDialog implements ContextMenu, AbstractParallelDialog,
       sMaskModelPtsModelNumber.setValue(matlabParam.getMaskModelPtsVolume());
       ltfMaskModelPtsParticle.setText(matlabParam.getMaskModelPtsParticle());
     }
-    ltfInsideMaskRadius.setText(matlabParam.getInsideMaskRadius());
-    ltfOutsideMaskRadius.setText(matlabParam.getOutsideMaskRadius());
+    radiiOfSphereOrCylinderPanel.setParameters(matlabParam);
     cbFlgRemoveDuplicates.setSelected(matlabParam.isFlgRemoveDuplicates());
     updateDisplay();
   }
@@ -893,8 +891,7 @@ public final class PeetDialog implements ContextMenu, AbstractParallelDialog,
     else {
       matlabParam.clearMaskModelPts();
     }
-    matlabParam.setInsideMaskRadius(ltfInsideMaskRadius.getText());
-    matlabParam.setOutsideMaskRadius(ltfOutsideMaskRadius.getText());
+    radiiOfSphereOrCylinderPanel.getParameters(matlabParam);
     matlabParam.setFlgRemoveDuplicates(cbFlgRemoveDuplicates.isSelected());
   }
 
@@ -1085,10 +1082,6 @@ public final class PeetDialog implements ContextMenu, AbstractParallelDialog,
           .getTooltip(autodoc, MatlabParam.MASK_MODEL_PTS_KEY);
       sMaskModelPtsModelNumber.setToolTipText(tooltip);
       ltfMaskModelPtsParticle.setToolTipText(tooltip);
-      ltfInsideMaskRadius.setToolTipText(EtomoAutodoc.getTooltip(autodoc,
-          MatlabParam.INSIDE_MASK_RADIUS_KEY));
-      ltfOutsideMaskRadius.setToolTipText(EtomoAutodoc.getTooltip(autodoc,
-          MatlabParam.OUTSIDE_MASK_RADIUS_KEY));
       cbFlgRemoveDuplicates.setToolTipText(EtomoAutodoc.getTooltip(autodoc,
           MatlabParam.FLG_REMOVE_DUPLICATES_KEY));
     }
@@ -1140,17 +1133,12 @@ public final class PeetDialog implements ContextMenu, AbstractParallelDialog,
     pnlMaskType.add(rbMaskTypeVolume.getComponent());
     pnlMaskType.add(rbMaskTypeSphere.getComponent());
     pnlMaskType.add(rbMaskTypeCylinder.getComponent());
-    EtomoPanel pnlMaskRadii = new EtomoPanel();
-    pnlMaskRadii.setLayout(new BoxLayout(pnlMaskRadii, BoxLayout.X_AXIS));
-    pnlMaskRadii.setBorder(new EtchedBorder(MASK_RADII_LABEL).getBorder());
-    pnlMaskRadii.add(ltfInsideMaskRadius.getContainer());
-    pnlMaskRadii.add(ltfOutsideMaskRadius.getContainer());
     //mask type volume and sphere details
     JPanel pnlMaskVolumeRadii = new JPanel();
     pnlMaskVolumeRadii.setLayout(new BoxLayout(pnlMaskVolumeRadii,
         BoxLayout.Y_AXIS));
     pnlMaskVolumeRadii.add(ftfMaskTypeVolume.getContainer());
-    pnlMaskVolumeRadii.add(pnlMaskRadii);
+    pnlMaskVolumeRadii.add(radiiOfSphereOrCylinderPanel.getComponent());
     //use maskModelPts
     JPanel pnlUseMaskModelPts = new JPanel();
     pnlUseMaskModelPts.setLayout(new BoxLayout(pnlUseMaskModelPts,
@@ -1401,16 +1389,12 @@ public final class PeetDialog implements ContextMenu, AbstractParallelDialog,
           "Entry Error", manager.getManagerKey());
       return false;
     }
-    //if sphere or cylinder is selected, require inner or outer or both.
-    if ((rbMaskTypeSphere.isSelected() || rbMaskTypeCylinder.isSelected())
-        && ltfInsideMaskRadius.isEnabled() && ltfInsideMaskRadius.isEmpty()
-        && ltfOutsideMaskRadius.isEnabled() && ltfOutsideMaskRadius.isEmpty()) {
+    //if sphere or cylinder is selected, require inner or outer or both.  
+    errorMessage = radiiOfSphereOrCylinderPanel.validateRun();
+    if (errorMessage != null) {
       gotoSetupTab();
-      UIHarness.INSTANCE.openMessageDialog("In " + MASK_TYPE_LABEL + ", "
-          + INSIDE_MASK_RADIUS_LABEL + " and/or " + OUTSIDE_MASK_RADIUS_LABEL
-          + " " + MASK_RADII_LABEL + " are required when either "
-          + MASK_TYPE_SPHERE_LABEL + " or " + MASK_TYPE_CYLINDER_LABEL
-          + " is selected.", "Entry Error", manager.getManagerKey());
+      UIHarness.INSTANCE.openMessageDialog(errorMessage, "Entry Error", manager
+          .getManagerKey());
       return false;
     }
     //if Cylinder is selected and "set cylinder orientation from reference
@@ -1545,6 +1529,26 @@ public final class PeetDialog implements ContextMenu, AbstractParallelDialog,
     return true;
   }
 
+  public boolean isMaskTypeSphereSelected() {
+    return rbMaskTypeSphere.isSelected();
+  }
+
+  public boolean isMaskTypeCylinderSelected() {
+    return rbMaskTypeCylinder.isSelected();
+  }
+
+  public String getMaskTypeLabel() {
+    return MASK_TYPE_LABEL;
+  }
+
+  public String getMaskTypeSphereLabel() {
+    return MASK_TYPE_SPHERE_LABEL;
+  }
+
+  public String getMaskTypeCylinderLabel() {
+    return MASK_TYPE_CYLINDER_LABEL;
+  }
+
   private void gotoSetupTab() {
     tabPane.setSelectedIndex(0);
     changeTab();
@@ -1604,10 +1608,8 @@ public final class PeetDialog implements ContextMenu, AbstractParallelDialog,
         missingWedgeCompensationPanel.isTiltRangeSelected());
     //mask
     ftfMaskTypeVolume.setEnabled(rbMaskTypeVolume.isSelected());
-    boolean sphere = rbMaskTypeSphere.isSelected();
     boolean cylinder = rbMaskTypeCylinder.isSelected();
-    ltfInsideMaskRadius.setEnabled(sphere || cylinder);
-    ltfOutsideMaskRadius.setEnabled(sphere || cylinder);
+    radiiOfSphereOrCylinderPanel.updateDisplay();
     sMaskModelPtsModelNumber.setEnabled(cylinder
         && referencePanel.isReferenceFileSelected());
     sMaskModelPtsModelNumber.setMax(size);
