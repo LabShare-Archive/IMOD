@@ -43,6 +43,7 @@ c	  logfile=' | cat  > '//logfile(1:lenlog)
       write(6,101)
      &    '    setenv LD_LIBRARY_PATH "${IMOD_QTLIBDIR}:$LD_LIBRARY_PATH"'
       write(6,101)'endif'
+      write(6,101)'setenv PIP_PRINT_ENTRIES 1'
       write(6,101)'echo2 Shell PID: $$'
 
       iffirst=-1
@@ -125,11 +126,16 @@ c
           endif
         endif
       enddo
+      write(6,101)'echo SUCCESSFULLY COMPLETED'//logfile(1:lenlog)
       call exit(0)
       end
 
 c       
 c       $Log$
+c       Revision 3.10  2008/05/08 02:49:54  mast
+c       Increased line length to 10240, nested if statement to avoid invalid
+c       index to character variable
+c
 c       Revision 3.9  2007/12/10 15:57:02  mast
 c       Had to add braces around IMOD_QTLIBDIR
 c
