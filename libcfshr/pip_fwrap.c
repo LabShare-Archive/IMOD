@@ -33,6 +33,7 @@
 #define pipgetintegerarray PIPGETINTEGERARRAY
 #define pipgetfloatarray PIPGETFLOATARRAY
 #define pipprinthelp PIPPRINTHELP
+#define pipprintentries PIPPRINTENTRIES
 #define pipgeterror PIPGETERROR
 #define pipseterror PIPSETERROR
 #define pipnumberofentries PIPNUMBEROFENTRIES
@@ -41,6 +42,7 @@
 #define pipallowcommadefaults PIPALLOWCOMMADEFAULTS
 #define pipreadoptionfile PIPREADOPTIONFILE
 #define pipsetmanpageoutput PIPSETMANPAGEOUTPUT
+#define pipenableentryoutput PIPENABLEENTRYOUTPUT 
 #define pipsetspecialflags PIPSETSPECIALFLAGS
 #define	pipreadstdinifset PIPREADSTDINIFSET
 #else
@@ -61,6 +63,7 @@
 #define pipgetintegerarray pipgetintegerarray_
 #define pipgetfloatarray pipgetfloatarray_
 #define pipprinthelp pipprinthelp_
+#define pipprinthelp pipprintentries_
 #define pipgeterror pipgeterror_
 #define pipseterror pipseterror_
 #define pipnumberofentries pipnumberofentries_
@@ -69,6 +72,7 @@
 #define pipallowcommadefaults pipallowcommadefaults_
 #define pipreadoptionfile pipreadoptionfile_
 #define pipsetmanpageoutput pipsetmanpageoutput_
+#define pipenableentryoutput pipenableentryoutput_
 #define pipsetspecialflags pipsetspecialflags_
 #define	pipreadstdinifset pipreadstdinifset_
 #endif
@@ -100,6 +104,11 @@ void pipallowcommadefaults(int *val)
 void pipsetmanpageoutput(int *val)
 {
   PipSetManpageOutput(*val);
+}
+
+void pipenableentryoutput(int *val)
+{
+  PipEnableEntryOutput(*val);
 }
 
 void pipsetspecialflags(int *inCase, int *inDone, int *inStd, int *inLines,
@@ -306,6 +315,11 @@ int pipprinthelp(char *string, int *useStdErr, int *inputFiles,
   return err;
 }
 
+void pipprintentries()
+{
+  PipPrintEntries();
+}
+
 int pipgeterror(char *errString, int stringSize)
 {
   char *strPtr = NULL;
@@ -365,6 +379,9 @@ static char *pipf2cstr(char *str, int strSize)
 
 /*
 $Log$
+Revision 1.1  2007/09/20 02:43:08  mast
+Moved to new library
+
 Revision 3.7  2007/06/22 05:01:38  mast
 Chnages for special flags
 
