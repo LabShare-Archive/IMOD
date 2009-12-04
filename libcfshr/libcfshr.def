@@ -149,6 +149,8 @@ EXPORTS
 	AdocSetFloat
 	sliceTaperInPad
 	PipPrintHelp
+	PipPrintEntries
+	PipEnableEntryOutput
 	rsMADN
 	AMAT_TO_ROTMAGSTR
 	ADOCSETINTEGER
@@ -253,6 +255,8 @@ EXPORTS
 	sliceFree
 	lsFit
 	PIPPRINTHELP
+	PIPPRINTENTRIES
+	PIPENABLEENTRYOUTPUT
 	TAPERINPAD
 	rsSortFloats
 	scaledSobel
