@@ -12,44 +12,9 @@ c       The routine returns numOptArg, the number of option arguments
 c       on the command line; and numNonOptArg, the number of non-option
 c       arguments.
 c       
-c       $Author$
+c       $Id$
+c       Log at end
 c       
-c       $Date$
-c       
-c       $Revision$
-c       
-c       $Log$
-c       Revision 3.10  2006/05/05 14:33:38  mast
-c       Removed bad initialization of exit prefix
-c
-c       Revision 3.9  2006/05/04 21:11:28  mast
-c       Added exiterror and subroutine to set error, prefix, called from
-c       read_or_parse_options
-c
-c       Revision 3.8  2003/10/11 04:22:36  mast
-c       Fix declaration of options as array in PipReadOrParse
-c	
-c       Revision 3.7  2003/10/11 00:04:56  mast
-c       Fixed bug in getting filename interactively
-c	
-c       Revision 3.6  2003/10/10 20:43:41  mast
-c       Added subroutine for getting input/output files
-c	
-c       Revision 3.5  2003/10/08 17:20:16  mast
-c       Changes to work with autodoc files
-c	
-c       Revision 3.4  2003/08/09 17:03:28  mast
-c       Fix bug (add declarations) in new getlogical function
-c	
-c       Revision 3.3  2003/08/08 16:23:18  mast
-c       Added function to get a boolean into a logical variable directly
-c	
-c       Revision 3.2  2003/06/20 23:11:39  mast
-c       Added capability to process options all in one string
-c	
-c       Revision 3.1  2003/06/05 00:14:22  mast
-c       Addition to package
-c	
 
       integer*4 function PipParseInput(options, numOptions, separator,
      &    numOptArg, numNonOptArg)
@@ -141,6 +106,7 @@ c
 c       get numbers to return
 c       
       call PipNumberOfArgs(numOptArg, numNonOptArg)
+      call PipPrintEntries()
       PipParseEntries = 0
       return
       end
@@ -277,3 +243,39 @@ c       prefix set by calling setExitPrefix
       end
 
       
+c       
+c       $Log$
+c       Revision 3.11  2007/06/22 05:02:53  mast
+c       Enabled read from stdin if no args
+c
+c       Revision 3.10  2006/05/05 14:33:38  mast
+c       Removed bad initialization of exit prefix
+c
+c       Revision 3.9  2006/05/04 21:11:28  mast
+c       Added exiterror and subroutine to set error, prefix, called from
+c       read_or_parse_options
+c
+c       Revision 3.8  2003/10/11 04:22:36  mast
+c       Fix declaration of options as array in PipReadOrParse
+c	
+c       Revision 3.7  2003/10/11 00:04:56  mast
+c       Fixed bug in getting filename interactively
+c	
+c       Revision 3.6  2003/10/10 20:43:41  mast
+c       Added subroutine for getting input/output files
+c	
+c       Revision 3.5  2003/10/08 17:20:16  mast
+c       Changes to work with autodoc files
+c	
+c       Revision 3.4  2003/08/09 17:03:28  mast
+c       Fix bug (add declarations) in new getlogical function
+c	
+c       Revision 3.3  2003/08/08 16:23:18  mast
+c       Added function to get a boolean into a logical variable directly
+c	
+c       Revision 3.2  2003/06/20 23:11:39  mast
+c       Added capability to process options all in one string
+c	
+c       Revision 3.1  2003/06/05 00:14:22  mast
+c       Addition to package
+c	
