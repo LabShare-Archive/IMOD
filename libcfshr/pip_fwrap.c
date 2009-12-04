@@ -63,7 +63,7 @@
 #define pipgetintegerarray pipgetintegerarray_
 #define pipgetfloatarray pipgetfloatarray_
 #define pipprinthelp pipprinthelp_
-#define pipprinthelp pipprintentries_
+#define pipprintentries pipprintentries_
 #define pipgeterror pipgeterror_
 #define pipseterror pipseterror_
 #define pipnumberofentries pipnumberofentries_
@@ -379,6 +379,9 @@ static char *pipf2cstr(char *str, int strSize)
 
 /*
 $Log$
+Revision 1.2  2009/12/04 20:27:42  mast
+Added new functions for printing entries
+
 Revision 1.1  2007/09/20 02:43:08  mast
 Moved to new library
 
