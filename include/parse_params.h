@@ -48,6 +48,8 @@ int PipReadOptionFile(char *progName, int helpLevel, int localDir);
 int PipMemoryError(void *ptr, char *routine);
 void PipAllowCommaDefaults(int val);
 void PipSetManpageOutput(int val);
+void PipEnableEntryOutput(int val);
+void PipPrintEntries();
 void PipSetSpecialFlags(int inCase, int inDone, int inStd, int inLines, 
                         int inAbbrevs);
 int PipReadStdinIfSet(void);
@@ -68,6 +70,9 @@ int PipGetLineOfValues(char *option, char *strPtr, void *array, int valType,
 
 /*
 $Log$
+Revision 3.9  2007/08/03 16:40:04  mast
+Fixes for clean compile
+
 Revision 3.8  2007/06/22 04:58:42  mast
 Added special flag function
 
