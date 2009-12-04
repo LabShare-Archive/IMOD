@@ -11,6 +11,7 @@ $set combinefft_reduce = 0
 $set combinefft_lowboth = 0
 #
 $setenv IMOD_BRIEF_HEADER 1
+$setenv PIP_PRINT_ENTRIES 0
 #
 # TO RESTART AT A PARTICULAR PIECE, CHANGE 0 IN THE FOLLOWING "goto dopiece0"
 # TO THE DESIRED PIECE NUMBER
