@@ -11,10 +11,10 @@
 import os, sys, os.path, re
 
 if os.getenv('IMOD_DIR') != None:
-    sys.path.append(os.path.join(os.environ['IMOD_DIR'], 'pylib'))
+   sys.path.append(os.path.join(os.environ['IMOD_DIR'], 'pylib'))
 else:
-    print prefix + " IMOD_DIR is not defined!"
-    sys.exit(1)
+   print prefix + " IMOD_DIR is not defined!"
+   sys.exit(1)
 
 from imodpy import *
 
@@ -22,15 +22,15 @@ anyset = 0
 
 # Function to enclose a line in quotes and change variables
 def quoteSubstitute(lin):
-    if anyset:
-        lin = lin.replace('$', '%')
-    lin = "'" + lin + "'"
-    indv = lin.find('%')
-    while indv >= 0:
-        lin = re.sub('%(\w+)', r"' + str(\1) + '", lin)
-        indv = lin.find('%')
-    return lin        
-    
+   if anyset:
+      lin = lin.replace('$', '%')
+   lin = "'" + lin + "'"
+   indv = lin.find('%')
+   while indv >= 0:
+      lin = re.sub('%(\w+)', r"' + str(\1) + '", lin)
+      indv = lin.find('%')
+   return lin        
+   
 # Process arguments
 lenarg = len(sys.argv)
 argind = 1
@@ -38,56 +38,56 @@ execute = 0
 usetemp = 0
 quiet = 0
 if lenarg < 2:
-    print "Usage: vmstopy [-x|-q] comfile logfile [pyscript]"
-    print "  Converts an IMOD command file to a python script"
-    print '  Outputs script on standard out if "pyscript" is not given'
-    print '  Option -x will execute the script; -q will suppress messages'
-    sys.exit(0)
+   print "Usage: vmstopy [-x|-q] comfile logfile [pyscript]"
+   print "  Converts an IMOD command file to a python script"
+   print '  Outputs script on standard out if "pyscript" is not given'
+   print '  Option -x will execute the script; -q will suppress messages'
+   sys.exit(0)
 
 while lenarg - argind > 2:
-    oarg = sys.argv[argind]
-    if oarg.startswith('-'):
-        if oarg == '-x':
-            execute = 1
-        elif oarg == '-q':
-            quiet = 1
-        else:
-            print "ERROR: vmstopy - Unrecognized argument " + oarg
-            sys.exit(1)
-        argind += 1
-    else:
-        break
+   oarg = sys.argv[argind]
+   if oarg.startswith('-'):
+      if oarg == '-x':
+         execute = 1
+      elif oarg == '-q':
+         quiet = 1
+      else:
+         print "ERROR: vmstopy - Unrecognized argument " + oarg
+         sys.exit(1)
+      argind += 1
+   else:
+      break
 
 if lenarg - argind < 2:
-    print "ERROR: vmstopy - command file and log file name are required"
-    sys.exit(1)
+   print "ERROR: vmstopy - command file and log file name are required"
+   sys.exit(1)
 
 # Open the com file and possibly output file
 outfile = None
 logname = sys.argv[argind + 1]
 try:
-    com = open(sys.argv[argind])
+   com = open(sys.argv[argind])
 except:
-    print "ERROR: vmstopy - Opening command file" + sys.argv[argind]
-    sys.exit(1)
+   print "ERROR: vmstopy - Opening command file" + sys.argv[argind]
+   sys.exit(1)
 try:
-    if execute or lenarg - argind > 2:
-        if lenarg - argind > 2:
-            outfile = sys.argv[argind + 2]
-            import stat
-        else:
-            import time
-            usetemp = 1
-            (ye, mo, md, hr, min, sec, wday, yday, isdst) = time.gmtime()
-            outfile = sys.argv[argind] + str(min * 60 + sec)
-        out = open(outfile, 'w')
-    else:
-        out = sys.stdout
+   if execute or lenarg - argind > 2:
+      if lenarg - argind > 2:
+         outfile = sys.argv[argind + 2]
+         import stat
+      else:
+         import time
+         usetemp = 1
+         (ye, mo, md, hr, min, sec, wday, yday, isdst) = time.gmtime()
+         outfile = sys.argv[argind] + str(min * 60 + sec)
+      out = open(outfile, 'w')
+   else:
+      out = sys.stdout
 
 except:
-    print "ERROR: vmstopy - Opening file for Python script"
-    com.close();
-    sys.exit(1)
+   print "ERROR: vmstopy - Opening file for Python script"
+   com.close();
+   sys.exit(1)
 
 # Output the boilerplate.  Log must be opened binary to keep cygwin from
 # double-converting \r\n to \r\r\n
@@ -108,6 +108,7 @@ print >> out, "  print >> log, 'ERROR: IMOD_DIR is not defined'"
 print >> out, "  sys.exit(1)"
 print >> out, "if os.getenv('IMOD_QTLIBDIR') != None and os.getenv['LD_LIBRARY_PATH'] != None:"
 print >> out, "  os.environ['LD_LIBRARY_PATH'] = os.environ['IMOD_QTLIBDIR'] + os.pathsep + os.environ['LD_LIBRARY_PATH']"
+print >> out, "os.environ['PIP_PRINT_ENTRIES'] = '1'"
 print >> out, "from imodpy import *"
 print >> out, "# Back up and open log file"
 print >> out, "makeBackupFile('" + logname + "')"
@@ -120,41 +121,41 @@ print >> out, "  sys.exit(1)"
 # Read the file, throwing away comments, labels, or all lines while seeking a
 # label.  Keep blank lines, they could be input lines
 try:
-    labelMatch = re.compile('^\$ *(\w+): *$')
-    exitMatch = re.compile('^\$ *exit *$')
-    gotoMatch = re.compile('^\$ *goto +(\w+) *$')
-    endMatch = re.compile('[\r\n]')
-    commentMatch = re.compile('^ *#')
-    seekLabel = None
-    lines = []
-    line = com.readline()
-    while line:
-        keep = 1
-        if seekLabel:
-            keep = 0
-            if re.sub(labelMatch, r'\1', line) == seekLabel:
-                seekLabel = None
-        elif re.search(labelMatch, line):
-            keep = 0
-        elif re.search(gotoMatch, line):
-            seekLabel = re.sub(gotoMatch, r'\1', line)
-            keep = 0
-        elif re.search(exitMatch, line):
-            break;
-        elif re.search(commentMatch, line):
-            keep = 0
+   labelMatch = re.compile('^\$ *(\w+): *$')
+   exitMatch = re.compile('^\$ *exit *$')
+   gotoMatch = re.compile('^\$ *goto +(\w+) *$')
+   endMatch = re.compile('[\r\n]')
+   commentMatch = re.compile('^ *#')
+   seekLabel = None
+   lines = []
+   line = com.readline()
+   while line:
+      keep = 1
+      if seekLabel:
+         keep = 0
+         if re.sub(labelMatch, r'\1', line) == seekLabel:
+            seekLabel = None
+      elif re.search(labelMatch, line):
+         keep = 0
+      elif re.search(gotoMatch, line):
+         seekLabel = re.sub(gotoMatch, r'\1', line)
+         keep = 0
+      elif re.search(exitMatch, line):
+         break;
+      elif re.search(commentMatch, line):
+         keep = 0
 
-        if keep:
-            line = re.sub(endMatch, '', line)
-            lines.append(line)
-        line = com.readline()
+      if keep:
+         line = re.sub(endMatch, '', line)
+         lines.append(line)
+      line = com.readline()
 except:
-    print "ERROR: vmstopy - Reading from command file"
-    out.close()
-    com.close()
-    if usetemp:
-        os.remove(outfile)
-    sys.exit(1)
+   print "ERROR: vmstopy - Reading from command file"
+   out.close()
+   com.close()
+   if usetemp:
+      os.remove(outfile)
+   sys.exit(1)
 
 com.close()
 print >> out, "try:"
@@ -165,132 +166,136 @@ setMatch = re.compile('^\$( *)set +')
 continueMatch = re.compile(r'\\ *$')
 existMatch = re.compile('^\$( *)if *\( *-e +([^) ]+)\) *(.*)')
 while ind < len(lines):
-    line = lines[ind]
-    ind += 1
+   line = lines[ind]
+   ind += 1
 
-    # Replace $echo with >print 
-    if re.search('^\$ *echo', line):
-        if re.search(echoMatch, line):
-            line = re.sub(echoMatch, r'>\1print ', line)
-            if line.find('"') < 0:
-                line = re.sub('print (.*)$', r'print "\1"', line)
-        elif re.search('^\$ *echo$', line):
-            line = re.sub('\$( *)echo', r'>\1print " "', line)
+   # Replace $echo with >print 
+   if re.search('^\$ *echo', line):
+      if re.search(echoMatch, line):
+         line = re.sub(echoMatch, r'>\1print ', line)
+         if line.find('"') < 0:
+            line = re.sub('print (.*)$', r'print "\1"', line)
+      elif re.search('^\$ *echo$', line):
+         line = re.sub('\$( *)echo', r'>\1print " "', line)
 
-    # Replace $set with >
-    if re.search(setMatch, line):
-        line = re.sub(setMatch, r'>\1', line)
-        anyset = 1
+   # Replace $set with >
+   if re.search(setMatch, line):
+      line = re.sub(setMatch, r'>\1', line)
+      anyset = 1
 
-    # Look for 'if (-e file)' construct and replace with added line
-    if re.search(existMatch, line):
-        addline = re.sub(existMatch,  r'$\1  \3', line)
-        lines.insert(ind, addline)
-        line = re.sub(existMatch,  r'>\1if os.path.exists("\2"):', line)
+   # Look for 'if (-e file)' construct and replace with added line
+   if re.search(existMatch, line):
+      addline = re.sub(existMatch,  r'$\1  \3', line)
+      lines.insert(ind, addline)
+      line = re.sub(existMatch,  r'>\1if os.path.exists("\2"):', line)
 
-    # Python line: just replace print with print >> log,
-    if line.startswith('>'):
-        if re.search(r'\bprint +[^>]', line):
-            line = re.sub(r'\bprint ', 'print >> log, ', line)
-        print >> out, "  " + re.sub('^>', '', line)
+   # Python line: just replace print with print >> log,
+   if line.startswith('>'):
+      if re.search(r'\bprint +[^>]', line):
+         line = re.sub(r'\bprint ', 'print >> log, ', line)
+      print >> out, "  " + re.sub('^>', '', line)
 
-    elif line.startswith('$'):
+   elif line.startswith('$'):
 
-        # First gather continuation lines
-        while re.search(continueMatch, line):
-            if ind >= len(lines):
-                print "ERROR: vmstopy - continued line at end of command file"
-                out.close()
-                if usetemp:
-                    os.remove(outfile)
-                sys.exit(1)
-            line = re.sub(continueMatch, ' ', line) + lines[ind]
-            ind += 1
+      # First gather continuation lines
+      while re.search(continueMatch, line):
+         if ind >= len(lines):
+            print "ERROR: vmstopy - continued line at end of command file"
+            out.close()
+            if usetemp:
+               os.remove(outfile)
+            sys.exit(1)
+         line = re.sub(continueMatch, ' ', line) + lines[ind]
+         ind += 1
 
-        # Now strip $ and indented spaces, quote and substitute
-        indent = re.sub('^\$( *).*', r'\1', line)
-        line = re.sub('^\$ *', '', line)
-        if line.find('\\') >= 0:
-            line = line.replace('\\rm ', 'rm -f ')
-            line = line.replace('\\mv ', 'mv -f ')
-        line = quoteSubstitute(line)
-        print >> out, "  " + indent + "command = " + line
+      # Now strip $ and indented spaces, quote and substitute
+      indent = re.sub('^\$( *).*', r'\1', line)
+      line = re.sub('^\$ *', '', line)
+      if line.find('\\') >= 0:
+         line = line.replace('\\rm ', 'rm -f ')
+         line = line.replace('\\mv ', 'mv -f ')
+      line = quoteSubstitute(line)
+      print >> out, "  " + indent + "command = " + line
 
-        # gather input if any
-        print >> out, "  " + indent + 'input = [',
-        inputout = 0
-        while ind < len(lines) and not \
-            (lines[ind].startswith('$') or lines[ind].startswith('>')):
-            line = quoteSubstitute(lines[ind])
-            ind += 1
-            if inputout:
-                print >> out, ',\n' + indent + ' '*11,
-            print >> out, line,
-            inputout = 1
+      # gather input if any
+      print >> out, "  " + indent + 'input = [',
+      inputout = 0
+      while ind < len(lines) and not \
+         (lines[ind].startswith('$') or lines[ind].startswith('>')):
+         line = quoteSubstitute(lines[ind])
+         ind += 1
+         if inputout:
+            print >> out, ',\n' + indent + ' '*11,
+         print >> out, line,
+         inputout = 1
 
-        print >> out, ']'
-        print >> out, "  " + indent + 'runcmd(command, input, log)'
-        
+      print >> out, ']'
+      print >> out, "  " + indent + 'runcmd(command, input, log)'
+      
 
-    # skip blank lines, object to anything else
-    elif line:
-        print "ERROR: vmstopy - Expected command or Python line: " + line
-        out.close()
-        if usetemp:
-            os.remove(outfile)
-        sys.exit(1)
+   # skip blank lines, object to anything else
+   elif line:
+      print "ERROR: vmstopy - Expected command or Python line: " + line
+      out.close()
+      if usetemp:
+         os.remove(outfile)
+      sys.exit(1)
 
 print >> out, "except ImodpyError, errout:"
 print >> out, "  for l in errout:"
-print >> out, "    print 'ERROR: ' + l,"
+print >> out, "    print >> log, 'ERROR: ' + l,"
 print >> out, "  log.close()"
 print >> out, "  sys.exit(1)"
 print >> out, "except:"
-print >> out, "  print 'ERROR: Unknown error running commands: ' +  str(sys.exc_info()[0])"
+print >> out, "  print >> log, 'ERROR: Unknown error running commands: ' +  str(sys.exc_info()[0])"
 print >> out, "  log.close()"
 print >> out, "  sys.exit(1)"
+print >> out, "print >> log, 'SUCCESSFULLY COMPLETED'"
 print >> out, "log.close()"
 print >> out, "sys.exit(0)"
 out.close()
 
 retval = 0
 try:
-    if outfile and not usetemp:
-        mode = stat.S_IMODE(os.stat(outfile)[stat.ST_MODE]) | stat.S_IXUSR
-        if mode & stat.S_IRGRP:
-            mode |= stat.S_IXGRP
-        if mode & stat.S_IROTH:
-            mode |= stat.S_IXOTH
-        os.chmod(outfile, mode)
+   if outfile and not usetemp:
+      mode = stat.S_IMODE(os.stat(outfile)[stat.ST_MODE]) | stat.S_IXUSR
+      if mode & stat.S_IRGRP:
+         mode |= stat.S_IXGRP
+      if mode & stat.S_IROTH:
+         mode |= stat.S_IXOTH
+      os.chmod(outfile, mode)
 except:
-    print "ERROR: vmstopy - Making script file executable"
-    retval = 1
+   print "ERROR: vmstopy - Making script file executable"
+   retval = 1
 
 try:
-    if execute:
-        if not quiet:
-            print "Executing Python script...  "
-        runcmd("python -u " + outfile)
-        if not quiet:
-            print "DONE!",
+   if execute:
+      if not quiet:
+         print "Executing Python script...  "
+      runcmd("python -u " + outfile)
+      if not quiet:
+         print "DONE!",
 except ImodpyError, errout:
-    for l in errout:
-        if l.find(outfile) < 0:
-            print l,
-    retval = 1
+   for l in errout:
+      if l.find(outfile) < 0:
+         print l,
+   retval = 1
 
 try:
-    if usetemp:
-        os.remove(outfile)
+   if usetemp:
+      os.remove(outfile)
 except:
-    print "ERROR: vmstopy - Removing temporary file " + outfile
-    retval = 1    
+   print "ERROR: vmstopy - Removing temporary file " + outfile
+   retval = 1   
 
 sys.exit(retval)
 
 
 #
 #  $Log$
+#  Revision 1.5  2008/02/28 00:27:34  mast
+#  Oops, to use imodpy, have to put the pylib on the path
+#
 #  Revision 1.4  2008/01/05 17:20:41  mast
 #  Execute script with runcmd(python -u ...) to avoid error on good exit
 #
