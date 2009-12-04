@@ -33,6 +33,7 @@
 #define OPTFILE_DIR "autodoc"
 #define OPTFILE_EXT "adoc"
 #define OPTDIR_VARIABLE "AUTODOC_DIR"
+#define PRINTENTRY_VARIABLE  "PIP_PRINT_ENTRIES"
 #define OPEN_DELIM "["
 #define CLOSE_DELIM "]"
 #define VALUE_DELIM "="
@@ -123,8 +124,10 @@ static char *tempStr = NULL;
 static char *lineStr = NULL;
 static int allowDefaults = 0;
 static int outputManpage = 0;
+static int printEntries = -1;
 static char defaultDelim[] = VALUE_DELIM;
 static char *valueDelim = defaultDelim;
+static char *programName = &nullChar;
 static int noCase = 0;
 static int doneEnds = 0;
 static int takeStdIn = 0;
@@ -221,6 +224,9 @@ void PipDone(void)
   if (lineStr)
     free(lineStr);
   lineStr = NULL;
+  if (programName != nullString)
+    free(programName);
+  programName = nullString;
 }
 
 /*
@@ -258,6 +264,11 @@ void PipAllowCommaDefaults(int val)
 void PipSetManpageOutput(int val)
 {
   outputManpage = val;
+}
+
+void PipEnableEntryOutput(int val)
+{
+  printEntries = val;
 }
 
 /*
@@ -795,6 +806,46 @@ int PipPrintHelp(char *progName, int useStdErr, int inputFiles,
 }
 
 /*
+ * Print all the option entries if enabled by program call and/or environment
+ * variable
+ */
+void PipPrintEntries()
+{
+  char *name, *sname, *lname;
+  int i, j;
+  if (printEntries < 0) {
+    printEntries = 0;
+    name = getenv(PRINTENTRY_VARIABLE);
+    if (name)
+      printEntries = atoi(name);
+  }
+  if (!printEntries)
+    return;
+  printf("\n*** Entries to program %s ***\n", programName);
+  for (i = 0; i < numOptions; i++) {
+    sname = optTable[i].shortName;
+    lname = optTable[i].longName;
+    if ((lname && *lname) || (sname && *sname)) {
+      name = (lname && *lname) ? lname : sname;
+      for (j = 0; j < optTable[i].count; j++)
+        printf("  %s = %s\n", name, optTable[i].valuePtr[j]);
+    }
+  }
+  if (optTable[nonOptInd].count) {
+    printf("  Non-option arguments:");
+    for (j = 0; j < optTable[nonOptInd].count; j++)
+      printf("   %s", optTable[nonOptInd].valuePtr[j]);
+    printf("\n");
+  }
+  printf("*** End of entries ***\n\n");
+
+  /* Windows needed two flushes here */
+  fflush(stdout);
+  fflush(stdout);
+}
+
+
+/*
  * Return the error string, or an empty string and an error if there is none
  */
 int PipGetError(char **errString)
@@ -907,6 +958,11 @@ int PipReadOptionFile(char *progName, int helpLevel, int localDir)
     PipMemoryError(NULL, "PipReadOptionFile");
     return -1;
   }
+
+  /* Save the program name for entry output */
+  programName = strdup(progName);
+  if (!programName)
+    programName = nullString;
 
   /* If local directory not set, look for environment variable pointing
      directly to where the file should be */
@@ -1195,6 +1251,7 @@ int PipParseEntries(int argc, char *argv[], int *numOptArgs,
     }
   }
   PipNumberOfArgs(numOptArgs, numNonOptArgs);
+  PipPrintEntries();
   return 0;
 }
 
@@ -1825,6 +1882,9 @@ static int CheckKeyword(char *line, char *keyword, char **copyto, int *gotit,
 
 /*
 $Log$
+Revision 1.4  2009/02/17 02:54:20  mast
+Keep error reports on one line
+
 Revision 1.3  2008/12/04 05:49:18  mast
 Put a .SS in front of section headers for manpage output
 
