@@ -308,7 +308,9 @@ take the list of all available options specified in
 command line arguments and other input with \fBPipNextArg\fR, and return the 
 number of option
 arguments in \fInumOptArg\fR and the number of
-non-option arguments in \fInumNonOptArg\fR.  The C version receives the command
+non-option arguments in \fInumNonOptArg\fR.  At the end, it calls
+\fBPipPrintEntries\fR, which will print program entries if enabled (see below).
+The C version receives the command
 line arguments directly while the Fortran version fetches them with 
 \fBgetarg\fR.
 
@@ -694,7 +696,7 @@ To prevent the function from looking for a non-option argument, call it
 with \fInonOptArgNo\fR bigger than the value of \fInumNonOptArg\fR. 
 
 
-.SS Functions for Help, Cleanup, and Errors
+.SS Functions for Help, Entry Printing, Cleanup, and Errors
 
 .nh
 .ft B
@@ -737,6 +739,32 @@ summary includes \fIinput_file\fR or \fIinput_files...\fR if
 \fIinputFiles\fR is 1 or 2, respectively; and \fIoutput_file\fR or
 \fIoutput_files...\fR if \fIoutputFiles\fR is 1 or 2 respectively.
 
+.nh
+.ft B
+.xf
+void PipEnableEntryOutput(int \fIenable\fB);
+
+subroutine PipEnableEntryOutput(\fIenable\fB)
+integer*4 \fIenable\fB
+.ft R
+.fi
+
+This call controls whether \fBPipPrintEntries\fR will print the entries to
+the program.  If \fIenable\fB is 1, printing is enabled; if it is 0 printing is
+disabled, and if it is -1 then printing is controlled by the value of the
+environment variable PIP_PRINT_ENTRIES.
+
+.ft B
+.nf
+void PipPrintEntries(void);
+subroutine PipPrintEntries()
+.ft R
+.fi
+
+This call causes the module to print a summary of all options entered to 
+the program, if enabled either by a call to \fBPipEnableEntryOutput\fR or by
+the environment variable PIP_PRINT_ENTRIES.  The header line will include the
+program name if \fBPipReadOptionFile\fR was used for startup.  
 
 .ft B
 .nf

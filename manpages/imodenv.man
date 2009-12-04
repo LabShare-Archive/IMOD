@@ -118,6 +118,25 @@ location of the uitest script
 When running eTomo tests, the location of the uitest.adoc and all
 autodocs it refers to.
 .TP
+.B PIP_PRINT_ENTRIES
+Set this variable to 1 to enable printing of all options entered into a program
+using PIP input or 0 to disable it.  The variable is automatically
+set to 1 when running programs through command files (i.e., vmstocsh and
+vmstopy both add lines to their output to set the variable to 1).
+Thus, if you leave the variable unset in your environment, entries will be
+printed in programs run through "subm" but not when programs are run at the
+command line.  If you want the output when running at the command line, set
+the variable to 1 in your environment.  To avoid this output when running 
+a command file, add a line
+.br
+    $setenv PIP_PRINT_ENTRIES 0
+.br
+at the beginning of the file.
+.TP
+.B RAPTOR_BIN
+Directory where RAPTOR executables are located, if they are not in 
+/usr/local/RAPTOR/bin.
+.TP
 .B TILT_MEMORY_LIMIT
 Set this to an integer number of megabytes to get Tilt to allocate more
 memory than the default, which is 800 megabytes.
