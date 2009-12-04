@@ -79,6 +79,9 @@ fi
 #  Make sure awk produces . not , for decimal in floating point output
 export LC_NUMERIC=C
 
+# Make sure all PIP programs print entries
+export PIP_PRINT_ENTRIES=1
+
 # Test for existance of IMOD_DIR
 if [ -z "$IMOD_DIR" ]; then
   echo "The IMOD_DIR environment variable has not been set"
@@ -184,6 +187,9 @@ else
 fi
 
 # $Log$
+# Revision 1.31  2009/03/09 17:31:33  sueh
+# bug# 1172 Added --fg.
+#
 # Revision 1.30  2009/02/21 00:10:28  mast
 # Added test for java 1.4
 #
