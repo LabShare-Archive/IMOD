@@ -39,8 +39,7 @@ temporary files will be placed in the current directory.
 short = size
 long = OutputSizeXYZ
 type = IT
-usage = X, Y, Z dimensions of the output file (Default is Z, Y, X size of
-input file)
+usage = X, Y, Z dimensions of the output file (Default is size of input file)
 tooltip = 
 manpage = 
 
