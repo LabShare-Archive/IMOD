@@ -51,7 +51,7 @@ c
       integer*4 iunit,longint,l,izp,izpp1,izpm1,nLinesOut,interpOrder, nExtra
       integer*4 newExtra,lForErr, newlocx, newlocy, newlocz
       integer*4 nxloAdd, nyloAdd,nzloAdd,nxhiAdd, nyhiAdd,nzhiAdd
-      real*4 baseInt,outerCen
+      real*4 baseInt,outerCen, xfscale
       integer*4 indInner, indOuter, iyxf
       real*8 cputime, walltime, cpuStart, wallStart, wallCum, threadWall
       integer*4 innerStart, innerEnd, iouterStart, iouterEnd,innerAxis
@@ -61,7 +61,7 @@ c
       logical pipinput
       integer*4 numOptArg, numNonOptArg
       integer*4 PipGetInteger, PipGetFloatArray, PipNumberOfEntries
-      integer*4 PipGetString,PipGetThreeIntegers,PipGetThreeFloats
+      integer*4 PipGetString,PipGetThreeIntegers,PipGetThreeFloats, PipGetFloat
       integer*4 PipGetNonOptionArg, PipGetInOutFile, PipGetBoolean
 c       
 c       fallbacks from ../../manpages/autodoc2man -2 2  warpvol
@@ -79,6 +79,7 @@ c
 c       set defaults here
 c       
       interpOrder = 2
+      xfscale = 1.
       baseInt = 0.5
       tempdir = ' '
       tempext='wrp      1'
@@ -118,6 +119,7 @@ c
         ierr = PipGetInteger('InterpolationOrder', interpOrder)
         ierr = PipGetInteger('MemoryLimit', memoryLim)
         ierr = PipGetInteger('VerboseOutput', iVerbose)
+        ierr = PipGetFloat('ScaleTransforms', xfScale)
         iz = 0
         ierr = PipGetBoolean('SameSizeAsInput', iz)
         if (iz .ne. 0) then
@@ -155,12 +157,12 @@ c
         nlocy=nint(freinp(2))
         nlocz=nint(freinp(3))
         if (ninp .eq. 9) then
-          xlocst = freinp(4)
-          ylocst = freinp(5)
-          zlocst = freinp(6)
-          dxloc = freinp(7)
-          dyloc = freinp(8)
-          dzloc = freinp(9)
+          xlocst = freinp(4) * xfScale
+          ylocst = freinp(5) * xfScale
+          zlocst = freinp(6) * xfScale
+          dxloc = freinp(7) * xfScale
+          dyloc = freinp(8) * xfScale
+          dzloc = freinp(9) * xfScale
         endif
       endif
       nloctot=nlocx*nlocz*nlocy
@@ -185,6 +187,10 @@ c
           lForErr = l
           read(1,*,err=98,end=98)cenlocx,cenlocy,cenlocz
           read(1,*,err=98,end=98)((aloctmp(i,j,l),j=1,3),dloctmp(i,l),i=1,3)
+          cenlocx = cenlocx * xfScale
+          cenlocy = cenlocy * xfScale
+          cenlocz = cenlocz * xfScale
+          dloctmp(1:3,l) = dloctmp(1:3,l) * xfScale
           solvtmp(l) = .true.
           xlocst=min(cenlocx,xlocst)
           ylocst=min(cenlocy,ylocst)
@@ -211,11 +217,15 @@ c         array and put it there
         enddo
         lForErr = 1
 10      read(1,*,err=98,end=12)cenlocx,cenlocy,cenlocz
+        cenlocx = cenlocx * xfScale
+        cenlocy = cenlocy * xfScale
+        cenlocz = cenlocz * xfScale
         ix = min(nlocx, max(1, nint((cenlocx - xlocst) / dxloc + 1.)))
         iy = min(nlocy, max(1, nint((cenlocy - ylocst) / dyloc + 1.)))
         iz = min(nlocz, max(1, nint((cenlocz - zlocst) / dzloc + 1.)))
         l = ix + (iy - 1) * nlocx + (iz - 1) * nlocx * nlocy
         read(1,*,err=98,end=98)((aloctmp(i,j,l),j=1,3),dloctmp(i,l),i=1,3)
+        dloctmp(1:3,l) = dloctmp(1:3,l) * xfScale
         solvtmp(l) = .true.
         lForErr = lForErr + 1
         go to 10
@@ -471,7 +481,7 @@ c             is invariant in Z
      &                dyloc, zlocst,dzloc, nlocx, nlocy, nlocz,
      &                xcen,ycen, zcen, amx(1,1,ix,iy),ofsin(1,ix,iy))
                   do i=1,3
-                    ofsin(i,ix,iy)=ofsin(i,ix,iy)+1+nxyzin(i)/2-inmin(i)
+                    ofsin(i,ix,iy)=ofsin(i,ix,iy)+1+nxyzin(i)/2.-inmin(i)
                   enddo
                 enddo
               enddo
@@ -521,7 +531,7 @@ c                   position in Y or for every one
      &                      zlocst,dzloc, nlocx, nlocy, nlocz, xyzcen(1),
      &                      xyzcen(2),xyzcen(3), amx(1,1,ix,iy),ofsin(1,ix,iy))
                         do i=1,3
-                          ofsin(i,ix,iy)=ofsin(i,ix,iy)+1+nxyzin(i)/2-inmin(i)
+                          ofsin(i,ix,iy)=ofsin(i,ix,iy)+1+nxyzin(i)/2.-inmin(i)
                         enddo
                       enddo
                     enddo
@@ -722,7 +732,7 @@ c
      &            zcen,ainv,dxyz) 
               do i=1,3
                 jval=nint(ainv(i,1)*xcen+ainv(i,2)*ycen+
-     &              ainv(i,3)*zcen+dxyz(i)+nxyzin(i)/2)
+     &              ainv(i,3)*zcen+dxyz(i)+nxyzin(i)/2.)
                 inmin(i)=max(0,min(inmin(i),jval-2))
                 inmax(i)=min(nxyzin(i)-1,max(inmax(i),jval+2))
 c                 
@@ -1028,6 +1038,12 @@ c
 
 c       
 c       $Log$
+c       Revision 3.18  2009/06/14 22:52:15  mast
+c       Changes for Fortran 95 and memory allocation and for smarter allocation
+c       of non-cubical dimensions; precomputing of transforms with one layer in
+c       Z; computation of multiple slices so that input data can stride in X
+c       instead of Z; parallelization of transformation only
+c
 c       Revision 3.17  2009/06/05 19:38:18  mast
 c       Oops take out debug output
 c
