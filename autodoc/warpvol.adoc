@@ -22,6 +22,16 @@ usage = File with inverse transforms used for warping
 tooltip = 
 manpage = File with matrix of inverse transforms produced by Findwarp
 
+[Field = ScaleTransforms]
+short = scale
+type = F
+usage = Factor by which to scale transforms
+tooltip = 
+manpage = Factor by which to scale transforms, to account for the input image
+file having a different binning or scaling than the file on which transforms
+were derived.  For example, if transforms were found on files binned by 2,
+enter 2 to apply the transforms to an unbinned file.
+
 [Field = TemporaryDirectory]
 short = tempdir
 type = CH

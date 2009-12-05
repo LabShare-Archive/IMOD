@@ -1,5 +1,12 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+12/5/09: Added option to Warpvol to scale transforms to apply to a volume at a
+different binning; fixed half-pixel shift in Warpvol and Matchvol when image
+size is odd.
+
+12/4/09: Programs using PIP input now print a listing of input entries when
+run from command files.
+
 12/1/09: In Etomo - PEET added move up and move down buttons.
 
 12/1/09: In Etomo - PEET removed the "Set cylinder orientation from reference
