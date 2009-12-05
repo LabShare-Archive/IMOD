@@ -25,9 +25,6 @@ c
 c	DNM 3/8/01: initialize the time in case time(tim) doesn't work
 c       
       character dat*9,tim*8/'00:00:00'/
-c       
-c       7/7/00 CER: remove the encode's; titlech is the temp space
-c       
       character*80 titlech
       integer*4 i, ix, iy, kti, interpOrder, ierr, numToGet, numXFiles
       integer*4 numXLines, j, ntrans, itrans
@@ -74,7 +71,7 @@ c
       call irdhdr(5,nxyzin,mxyzin,mode,dminin,dmaxin,dmeanin)
 c       
       do i=1,3
-        cenind(i)=nxyzin(i)/2
+        cenind(i)=nxyzin(i)/2.
         nxyzout(i) = nxyzin(i)
       enddo
 c       
@@ -229,6 +226,9 @@ c       Do the work and exit
 
 c       
 c       $Log$
+c       Revision 3.12  2009/06/14 22:29:40  mast
+c       Changes for Fortran 95/memory allocation etc
+c
 c       Revision 3.11  2007/11/18 04:53:46  mast
 c       Increased filename limits to 320
 c
