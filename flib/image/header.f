@@ -54,7 +54,8 @@ c
       ifBrief = 0
 c       
 c       Pip startup: set error, parse options, check help, set flag if used
-c       
+c       But turn off the entry printing first!
+      call PipEnableEntryOutput(0)
       call PipReadOrParseOptions(options, numOptions, 'header',
      &    'ERROR: HEADER - ', .true., 1, 2, 0, numOptArg,
      &    numNonOptArg)
@@ -164,6 +165,9 @@ c
 
 c       
 c       $Log$
+c       Revision 3.8  2009/03/27 16:25:29  mast
+c       Invert the sign of rotation angle for FEI header
+c
 c       Revision 3.7  2009/02/16 06:27:28  mast
 c       Added detail on extra header and directives for extracting
 c
