@@ -1255,6 +1255,7 @@ c
                         jedge=iedgelower(ipc,iyx)
                         if(jedge.gt.0)then
                           if(.not.edgedone(jedge,iyx))then
+c                            print *,'Doing edge ', iyx, jedge
                             docross=ifsloppy.ne.0.and.(shifteach.or.(
      &                          anyneg.and.neglist(ipiecelower(jedge,iyx))
      &                          .ne.neglist(ipieceupper(jedge,iyx))))
@@ -1587,7 +1588,7 @@ c
                   if (delIndent(ixy) .gt. 0. .and. ifillTreatment .eq. 1)
      &                indentXC = int(delIndent(ixy)) + 1
                   call xcorredge(array(indlo),array(indup),
-     &                nxyzin, noverlap,ixy,xdisp,ydisp,xclegacy,indentXC)
+     &                ixy,xdisp,ydisp,xclegacy,indentXC)
                   edgedispx(iedge,ixy)=xdisp
                   edgedispy(iedge,ixy)=ydisp
                 endif
@@ -2785,6 +2786,9 @@ c
 
 c       
 c       $Log$
+c       Revision 3.38  2008/12/23 00:08:12  mast
+c       Switch from taper fraction to number of xcorr peaks
+c
 c       Revision 3.37  2008/06/24 04:40:31  mast
 c       Added option for treatment of fill areas from distortion corrections
 c
