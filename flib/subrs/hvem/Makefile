@@ -1,8 +1,5 @@
 include ../../configure
-#
-# 7/18/00 CER move strupcase to imsubs2
-#    (strupcase.o was in the OBJS list below)
-#
+
 FFLAGS = $(LIBFFLAGS)
 
 O        = $(OBJEXT)
@@ -12,7 +9,7 @@ OBJS = concat.$(O) dopen.$(O) getinout.$(O) mypause.$(O) \
  xfcopy3d.$(O) xfinv3d.$(O) indmap.$(O) ialsiz_sam_cel.$(O) get_nxyz.$(O) \
  get_extra_header_pieces.$(O) get_extra_header_tilts.$(O) temp_filename.$(O) \
  taperinvol.$(O) setctf.$(O) parse_input_params.$(O) parallel_write.$(O) \
- getbinnedsize.$(O) set_projection_rays.$(O) objtocont.$(O)
+ getbinnedsize.$(O) set_projection_rays.$(O) objtocont.$(O) find_surfaces.$(O)
 
 
 all: $(OBJS)
