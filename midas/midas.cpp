@@ -293,10 +293,6 @@ int main (int argc, char **argv)
                   (char *)(vw->rotMode ? "-a or -t option." : 
                            (vw->refname ? "-r option." : "-c option.")), 1);
 
-    if (vw->didsave != -1)
-      midas_error("The last entry on the line must be the name of"
-	      " an existing edge\n correlation displacement file.", "", 1);
-
     if (vw->xtype == XTYPE_XG)
       dia_puts("The -g option has no effect when fixing montage overlaps.");
     vw->xtype = XTYPE_MONT;
@@ -897,6 +893,9 @@ void midas_error(const char *tmsg, const char *bmsg, int retval)
 /*
 
 $Log$
+Revision 3.25  2009/03/06 05:39:39  mast
+Fixed loading of global rotation box
+
 Revision 3.24  2009/01/16 21:48:29  mast
 Fixed assignment to Y radio button
 
