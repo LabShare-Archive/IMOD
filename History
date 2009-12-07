@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+12/7/09: Made Processchunks responsible for echoing CHUNK DONE at the end of 
+every command file; stopped it from overwriting a sync log with CHUNK DONE.
+
 12/7/09: Allowed Midas to open a montage file without an existing edge 
 displacement file.
 

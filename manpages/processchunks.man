@@ -18,12 +18,8 @@ files should be in the format runnable with Vmstocsh(1) (e.g., using subm)
 and be named like files produced by Chunksetup(1).  Specifically, the files
 for processing individual components should be named
 rootname-001.com, rootname-002.com, etc., where "rootname" is the root name
-of the command files, entered as the last command line argument.  Each
-numbered file must end with the line
-.br
-$echo CHUNK DONE
-.br
-so that Processchunks can monitor for successful completion.  If the command
+of the command files, entered as the last command line argument.
+If the command
 files create temporary files, they must be named uniquely, such as by ending
 their names in .$$ and placing them in /usr/tmp.  (See Chunksetup(1) for an
 alternative using hostnames).  The temporary files should be removed by the
@@ -37,8 +33,7 @@ tasks, and rootname-finish.com, for final assembly and cleanup.
 If the start file exists, Processchunks will run this on the first
 machine before starting to distribute the chunks; and if the finish file
 exists, it will also be run on the first machine when all chunks are
-finished.  It will add the "$echo CHUNK DONE" to the end of these files so
-that it can detect successful completion.
+finished.
 
 It is also possible to execute groups of command files in parallel, then run
 one command file when all of these are done, then go on to another group of
@@ -89,7 +84,9 @@ with a large list of machines, examine this output,
 then exit and restart after eliminating machines with too much load.
 
 After the confirmation, Processchunks starts jobs on all of the machines and
-watches for completion.  Jobs are started with "nice".  When the job on a
+watches for completion.  It detects successful completion by adding a command
+to the end of each file to write "CHUNK DONE" into the log.  Jobs are started
+with "nice".  When the job on a
 machine finishes, that machine is given another job and the program reports
 the total number of chunks done so far.  When a job appears to have failed,
 the job is started again.  Initially the job may tend to be restarted on the
@@ -205,8 +202,8 @@ files.
 .TP
 .B -s
 Run a single command file on a remote machine (i.e., the first machine in
-machine list).  The command file is not required to be numbered or to
-end in "$echo CHUNK DONE".  The rootname given on the command line can be
+machine list).  The command file is not required to be numbered.
+The rootname given on the command line can be
 either the full name or the name excluding ".com".
 .TP
 .B -g
