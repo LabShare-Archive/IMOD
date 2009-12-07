@@ -1,31 +1,38 @@
-c       FIND_SURFACES will analyze a set of NREALPT points, with coordinates
-c       in XYZ, correlate the Z with the X and Y coordinates of those
-c       points, and determine the angles that the points would have to be
-c       tilted first around the X axis then around the Y axis in order for
-c       them to lie parallel to the X-Y plane.  From these tilts, it will
-c       estimate the true tilt angle of the section, TILTNEW, from the tilt
-c       angle used in deriving the point coordinates, TILTMAX.  If NSURFACE
-c       is 1, it will simply fit a plane to all of the points and base its
-c       estimates on that fit.  If NSURFACE is 2, it will attempt to divide
+c!
+c       Find_surfaces will analyze a set of [nrealpt] points, with coordinates
+c       in [xyz] (dimensioned to (3,*)), correlate the Z with the X and Y
+c       coordinates of those points, and determine the angles that the points
+c       would have to be tilted first around the X axis then around the Y axis
+c       in order for them to lie parallel to the X-Y plane.   If [nsurface] is
+c       1, it will simply fit a plane to all of the points and base its
+c       estimates on that fit.  If [nsurface] is 2, it will attempt to divide
 c       the points into two groups occupying two surfaces, then provide
 c       separate estimates of the new tilt angle based on the slope of the
-c       plane through either set of points, or on the average slope.
-c       IGROUP is an array returned with a value for each point of 1 if
-c       on lower surface, 2 if on upper, but only if 2-surface analysis is
-c       done
-c       
+c       plane through either set of points, or on the average slope.  The
+c       array [igroup] is returned with a value for each point of 1 if on lower
+c       surface, 2 if on upper, but only if 2-surface analysis is done.  All
+c       outputs are printed for units 6 through [iunit], so set [iunit] to 6
+c       for output to standard out only, to 7 for output to a file on unit 7,
+c       or < 6 for no output.  If [ifcomp] is non-zero, it assumes data were
+c       obtained at a single tilt angle [tiltmax] and at zero tilt and will
+c       estimate the true tilt angle of the section, returned in [tiltnew].
+c       [tiltadd] should be set to an existing change in tilt angles so that
+c       the total tilt angle change can be output.  The values in [znew], the
+c       amount to shift the tilt axis in Z, and in [imagebinned] allow it to
+c       report on the unbinned thickness between fiducials and shift needed to
+c       center them.
+c!       
 c       $Id$
 c       Log at end of file
 c       
       subroutine find_surfaces(xyz,nrealpt,nsurface,tiltmax,
      &    iunit2,tiltnew,igroup,ifcomp,tiltadd, znew, imageBinned)
       implicit none
-      integer maxreal
       real*4 xyz(3,*), tiltmax, tiltnew, tiltadd, bintmi, bint, znew
-      integer*4 nrealpt, nsurface, iunit2, ifcomp,imageBinned
-      parameter (maxreal=2000)
-      real*4 xx(maxreal),yy(maxreal),zz(maxreal),zrot(maxreal)
-      integer*4 igroup(*),icheck(maxreal/2)
+      integer*4 nrealpt, nsurface, iunit2, ifcomp,imageBinned, maxreal
+      real*4, allocatable :: xx(:),yy(:),zz(:),zrot(:)
+      integer*4, allocatable :: icheck(:)
+      integer*4 igroup(*)
       integer*4 i, iun, niter, iter,ipt, npntmi,npntpl,iterlim,limcheck,ncheck
       real*4 aslop,bslop,alpha,slop,resid,truepl,slopav,alphaav,theta,costh
       real*4 sinth,cosal,sinal,zmin,zmax,zp,zmiddle,aslopmi,bslopmi, alphami
@@ -38,6 +45,14 @@ c
 c       
 c       first fit a line to all of the points to get starting angle
 c       
+      maxreal = nrealpt + 10
+      allocate( xx(maxreal),yy(maxreal),zz(maxreal),zrot(maxreal), 
+     &    icheck(maxreal/2), stat = iter)
+      if (iter .ne. 0) then
+        write(*,'(/,a)')
+     &      'ERROR: find_surfaces - failure to allocate memory for arrays'
+        call exit(1)
+      endif
       do i=1,nrealpt
         xx(i)=xyz(1,i)
         yy(i)=xyz(2,i)
@@ -243,6 +258,7 @@ c         come out on the bottom of the tomogram, presumably due to rotation
      &        's in Z =',f14.1)
         enddo
       endif
+      deallocate( xx,yy,zz,zrot, icheck, stat = iter)
       return
       end
 
@@ -379,6 +395,9 @@ c
       end
 c       
 c       $Log$
+c       Revision 3.5  2008/12/12 01:22:29  mast
+c       Really wanted to full range of gold, not the planes
+c
 c       Revision 3.4  2008/12/12 00:47:21  mast
 c       Add output of unbinned thickness and shift needed to center planes
 c
