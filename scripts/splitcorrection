@@ -144,9 +144,6 @@ TotalViews $views[1] $views[2]\
 BoundaryInfoFile $boundfile\
 " \
   $comname >! $thiscom
-    cat <<EOF >> $thiscom
-\$echo CHUNK DONE
-EOF
 
    @ boundstart = $origOffset - $firstview
    @ boundend = $origEnd - $firstview
@@ -166,6 +163,9 @@ set finish = $rootname-finish.com
 EOF
 
 #  $Log$
+#  Revision 3.4  2009/02/16 06:21:21  mast
+#  Modified to use new parallel write stuff
+#
 #  Revision 3.3  2007/11/06 23:31:45  xiongq
 #  add log funtion and use DefocusFile option
 #

@@ -314,7 +314,6 @@ else
     if ($boundlines > $thickness - 1) @ boundlines = $thickness - 1
 endif
 
-set donetext = '$echo CHUNK DONE'
 set recroot = $recfile:r
 set templist = ()
 set recsed = $recfile
@@ -347,7 +346,6 @@ TOTALSLICES $mintotslice $maxtotslice\
     cat <<EOF >> $thiscom
 \$sync
 EOF
-    if ($startnum > 1) echo "$donetext" >> $thiscom
     echo "1 $reproj $widthnum $boundlines $numslabs" >! $boundfile
 endif
 
@@ -393,7 +391,6 @@ BoundaryInfoFile $boundfile\
         -e "/THICKNESS/a\\
 $nofbp\
 " $comname >> $thiscom
-    echo "$donetext" >> $thiscom
 
     if ($direct) then
         echo "$recroot-$numtext.$boundext" >> $boundfile
@@ -457,12 +454,14 @@ else
 $cleanup $recroot-[0-9]*.$boundext $boundfile
 EOF
 endif
-if ($leaveopen) echo "$donetext" >> $finish
 
 echo "Command files for $numslabs chunks created and ready to run with:"
 echo "  processchunks machine_list $rootname"
 
 #  $Log$
+#  Revision 3.16  2009/09/10 22:41:31  mast
+#  Fix getting aligned and output stack names from lines with options
+#
 #  Revision 3.15  2009/08/04 22:43:06  mast
 #  Use different boundary info file name for reprojection so sirt works
 #

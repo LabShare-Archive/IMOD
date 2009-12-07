@@ -700,16 +700,15 @@ EOF
                     else
                         \echo "nice +$nice" >! $cshname
                     endif
-                    vmstocsh $logname < $comname >> $cshname
 
-                    # If running a sync, set the syncing flag to 2 and add
-                    # a CHUNK DONE to -start or -finish files
+                    # convert and add CHUNK DONE to all files
                     #
-                    if ($syncing) then
-                        set syncing = 2
-                        if ($singleFile || $comname !~ *sync.com) \
-                            echo "echo CHUNK DONE > $logname" >> $cshname
-                    endif
+                    vmstocsh $logname < $comname >> $cshname
+                    echo "echo CHUNK DONE >> $logname" >> $cshname
+
+                    # If running a sync, set the syncing flag to 2
+                    #
+                    if ($syncing) set syncing = 2
                     if ($queue) then
                         $queuecom -w "$curdir" -a R $comname:r
                     else if ("$machname" == $hostroot || "$machname" == localhost) then
@@ -909,6 +908,9 @@ exit 2
 
 #
 #  $Log$
+#  Revision 3.49  2009/11/11 20:45:08  mast
+#  Added ability to run a single command file
+#
 #  Revision 3.48  2009/11/11 05:56:04  mast
 #  Made start, sync, and finish all run asynchronously on first machine;
 #  they are now killable, and resume will treat start and finish properly.

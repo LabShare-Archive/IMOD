@@ -185,7 +185,6 @@ EOF
             if ($neednl) echo "" >> $comfile
             cat <<EOF >> $comfile
 \$if (-e $imagein) \\rm -f $imagein
-\$echo CHUNK DONE
 EOF
 
             shift ranlist
@@ -265,6 +264,9 @@ EOF
 
 #
 #  $Log$
+#  Revision 3.12  2008/02/22 04:59:00  mast
+#  Made it convert backslashes in filename inputs
+#
 #  Revision 3.11  2008/01/04 07:03:38  mast
 #  Fixed for space in IMOD_DIR, possibly for space in tmpdir
 #

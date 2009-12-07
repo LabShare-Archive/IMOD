@@ -133,9 +133,6 @@ EOF
         -e "/[ 	][^ 	]*mat\./s// $tmpmat/g" \
         < $tmpname >> $thiscom
     \rm -r $tmpname
-    cat <<EOF >> $thiscom
-\$echo CHUNK DONE
-EOF
 end
 
 awk '/REASSEMBLING PIECES/, /if \(-e/' $comname >! $rootname-finish.com
@@ -148,6 +145,9 @@ echo "  processchunks machine_list $rootname"
 
 #
 #  $Log$
+#  Revision 3.13  2008/05/08 00:08:26  mast
+#  Do not escape quotes in a cat!
+#
 #  Revision 3.12  2008/01/07 22:44:13  mast
 #  Do not escape quotes in a cat, only dollars
 #
