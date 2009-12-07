@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+12/7/09: Allowed Midas to open a montage file without an existing edge 
+displacement file.
+
 12/5/09: Added option to Warpvol to scale transforms to apply to a volume at a
 different binning; fixed half-pixel shift in Warpvol and Matchvol when image
 size is odd.
