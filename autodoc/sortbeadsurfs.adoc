@@ -1,0 +1,92 @@
+Version = 1.0
+Pip = 1
+
+[Field = InputFile]
+short = input
+type = FN
+usage = Input model file with scattered points for 3D gold bead positions
+tooltip = 
+manpage = 
+
+[Field = OutputFile]
+short = output
+type = FN
+usage = Output file for processed model
+tooltip = 
+manpage = 
+
+[Field = FlipYandZ]
+short = flipyz
+type = I
+usage = 1 to flip Y and Z coordinates, 0 not to, or -1 to flip if nz > ny
+tooltip = 
+manpage = This option allows control over whether the Y and Z coordinates of
+the model are flipped.  By default, flipping will be done if the Z dimension
+(nz) of the modeled volume is greater than the Y dimension (ny).  Enter 1
+to force flipping even if this is not the case, or 0 to prevent it if this is
+the case.
+
+[Field = SubareaSize]
+short = subarea
+type = I
+usage = Size of subareas over which to analyze for two surfaces
+tooltip = 
+manpage = Size of subareas over which to analyze for two surfaces.  This is
+option is needed only if area coated with beads is large enough and warped
+enough that the analysis fails to separate the two surfaces.  The area
+occupied by beads will
+be divided into non-overlapping subregions of approximately the given size in
+each dimension.  Each will be analyzed separately to sort all of the beads
+between the two surfaces.  Make this value as large as possible, since the
+analysis can easily fail if there are only ~10 beads in any of the subareas.
+
+[Field = XAxisTilt]
+short = xtilt
+type = F
+usage = X axis tilt used to generate the tomogram (for Tiltalign output only)
+tooltip = 
+manpage = The value of X axis tilt used when the tomogram was generated.  This
+value is needed for a 3D fiducial model output by Tiltalign(1) (and only for
+such a model), 
+
+[Field = AlreadySorted]
+short = already
+type = B
+usage = Points are already sorted into two surfaces or are on only one surface
+tooltip = 
+manpage = Use this option to skip the analysis that sorts beads between two
+surfaces.  You would use this for a 3D fiducial model from Tiltalign(1) if the
+beads are already correctly sorted into two surfaces, or if they are only on
+one surface.
+
+[Field = MajorityObjectOnly]
+short = majority
+type = B
+usage = Retain only the points on the surface with more beads
+tooltip = 
+manpage = Output a model with only one object containing
+the points on the surface that has the most beads.  Use this option if 
+there are too few fiducials on one surface to fit a smooth surface to in
+Flattenwarp(1).
+
+
+[Field = ChangeSizeInXandY]
+short = change
+type = IP
+usage = X and Y size of reconstruction, adjusted for difference in binning
+tooltip = 
+manpage = Use this option if the reconstruction is based on a final aligned
+stack whose unbinned size is smaller or larger than that of the raw stack, and
+if you are processing a 3D fiducial model from Tiltalign(1).  The dimensions
+must be adjusted if necessary to match the binning of the prealigned stack on
+which that model was based.  Specifically, take the unbinned size of the full
+aligned stack divided by the binning of prealigned stack.
+
+
+[Field = usage]
+short = help
+long = usage
+type = B
+usage = Print help output
+tooltip = 
+manpage = Print help output. 

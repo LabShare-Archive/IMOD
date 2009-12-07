@@ -1,0 +1,83 @@
+     BBoouullddeerr LLaabboorraattoorryy ffoorr 33--DDiimmeennssiioonnaall EElleeccttrroonn MMiiccrroossccooppyy ooff CCeellllss
+
+SUBIMAGE(1)							 SUBIMAGE(1)
+
+NNAAMMEE
+	subimage - subtracts one image from another
+
+SSYYNNOOPPSSIISS
+	subimage [options] input_file_A input_file_B output_file
+
+DDEESSCCRRIIPPTTIIOONN
+
+  Subimage will subtract one image from another, or a series of images from one
+  file from a series in another file.  It will report the minimum, maximum,
+  mean, and standard deviation of each difference image.
+
+  Subimage uses the PIP package for input (see the manual page for pip(1))
+  and can still take sequential input interactively.  The following options
+  can be specified either as command line arguments (with the -) or one per
+  line in a command file or parameter file (without the -):
+
+INSERT OPTION TEXT HERE
+
+  -StandardInput
+     Read parameter entries from standard input.
+
+     BBoouullddeerr LLaabboorraattoorryy ffoorr 33--DDiimmeennssiioonnaall EElleeccttrroonn MMiiccrroossccooppyy ooff CCeellllss
+
+SORTBEADSURFS(1)				               SORTBEADSURFS(1)
+
+NNAAMMEE
+  sortbeadsurfs - preprocess 3D model of gold bead positions for flattenwarp
+
+SSYYNNOOPPSSIISS
+  sortbeadsurfs [options] input_model output_model
+
+DDEESSCCRRIIPPTTIIOONN
+
+  Sortbeadsurfs can be used to process two different kinds of models of the 3D
+  positions of gold beads to make them suitable to use in Flattenwarp(1) for
+  describing a surface to be flattened.  One kind of model would be of gold
+  positions measured directly in the tomogram, such as by Findbeads3d(1).
+  Here it is essential that if the beads are on two surfaces, each surface be
+  represented by a separate object.  Sortbeadsurfs uses the same routine that
+  Tiltalign(1) does to sort the beads into two objects.  The second kind of
+  model is the one produced by Tiltalign(1) of the fiducial positions in 3D.
+  Here it is essential that the model be tilted around the X axis by the X
+  axis tilt used to generate the tomogram, that its coordinates be shifted if
+  the aligned stack was made larger or smaller than the original stack, and
+  that the points are in only one object for each surface.
+
+  If you have a model from Findbead3d(1), you should first edit it to remove
+  points that are obviously not on the surfaces.  Then run this program on the
+  model.  Examine the output model to make sure points have been sorted
+  correctly between the two surfaces.  If not, and if the failure is because
+  the surface is too warped to analyze all at once, then try the -subarea
+  option to analyze the beads in subareas.  If subareas are not suitable, you
+  may have to edit the model to fix errors.  Each point in the output model is
+  a separate contour, so it is possible to click on points with the third
+  mouse button in the model view window to select them, and use the
+  Edit_contour-Move dialog to move the points to the right object.
+
+  If you have a model from Tiltalign(1), you should run this program on it to
+  apply the X axis tilt that was used when generating the tomogram.  The
+  program will attempt to sort the points into two surfaces, but if this
+  creates a problem, use the -already option to skip the sorting.  If
+  fiducials were tracked with multiple objects, the program automatically
+  reduces them to one or two objects as appropriate.  If you changed the size
+  of the aligned stack, use the -change option to adjust for this change.
+
+  Sortbeadsurfs uses the PIP package for input exclusively (see the manual
+  page for pip(1)).  The following options can be specified either as command
+  line arguments (with the -) or one per line in a command file or parameter
+  file (without the -):
+
+INSERT OPTION TEXT HERE
+
+  -StandardInput
+     Read parameter entries from standard input.
+
+
+HHIISSTTOORRYY
+  Added to IMOD, 12/6/09
