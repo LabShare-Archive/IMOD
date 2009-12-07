@@ -354,12 +354,20 @@ int load_view(MidasView *vw, char *fname)
     vw->midasSlots->manage_xory(vw);
     vw->curedge = nearest_edge(vw, vw->montcz, vw->xory, 1, 0, 
                                &vw->edgeind);
+
+    // Initialize the edge dxy to zero then load them if there is a file
+    for (k = 0; k < 2 * maxedges; k++)
+      vw->edgedx[k] = vw->edgedy[k] = 0.;
+
     set_mont_pieces(vw);
     vw->incindex[2]--;
     vw->increment[2] = vw->midasSlots->getIncrement(vw->incindex[2], 2);
-    if (load_transforms(vw, vw->xname))
-      exit(3);
-    vw->didsave = 0;
+
+    if (vw->didsave == -1) {
+      if (load_transforms(vw, vw->xname))
+        exit(3);
+      vw->didsave = 0;
+    }
   }
 
   // Load tilt angles
@@ -1710,6 +1718,9 @@ static void solve_for_shifts(MidasView *vw, float *a, float *b,
 
 /*
 $Log$
+Revision 3.20  2009/01/15 16:30:19  mast
+Qt 4 port
+
 Revision 3.19  2008/11/07 05:32:16  mast
 Fixed auto contrast of reference slice in reference mode
 
