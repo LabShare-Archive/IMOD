@@ -13,7 +13,10 @@ package etomo.ui;
  * 
  * @version $Revision$
  * 
- * <p> $Log$ </p>
+ * <p> $Log$
+ * <p> Revision 1.1  2009/12/02 04:42:23  sueh
+ * <p> Factored RadiiOfSphereOrCylinder panel out of PeetDialog.
+ * <p> </p>
  */
 interface RadiiOfSphereOrCylinderParent {
   public static final String rcsid = "$Id$";
@@ -21,10 +24,4 @@ interface RadiiOfSphereOrCylinderParent {
   boolean isMaskTypeSphereSelected();
 
   boolean isMaskTypeCylinderSelected();
-
-  String getMaskTypeLabel();
-
-  String getMaskTypeSphereLabel();
-
-  String getMaskTypeCylinderLabel();
 }
