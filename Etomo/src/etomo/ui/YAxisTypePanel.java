@@ -16,6 +16,7 @@ import etomo.storage.MatlabParam;
 import etomo.storage.autodoc.AutodocFactory;
 import etomo.storage.autodoc.ReadOnlyAutodoc;
 import etomo.storage.autodoc.ReadOnlySection;
+import etomo.type.EnumeratedType;
 import etomo.type.EtomoAutodoc;
 import etomo.type.Run3dmodMenuOptions;
 
@@ -32,7 +33,10 @@ import etomo.type.Run3dmodMenuOptions;
  * 
  * @version $Revision$
  * 
- * <p> $Log$ </p>
+ * <p> $Log$
+ * <p> Revision 1.1  2009/12/08 02:50:59  sueh
+ * <p> bug# 1286 Factored out of PeetDialog.
+ * <p> </p>
  */
 
 final class YAxisTypePanel {
@@ -108,7 +112,7 @@ final class YAxisTypePanel {
   /**
    * Called from parent.updateDisplay(). Enabled/disables fields.
    */
-  public void updateDisplay() {
+  void updateDisplay() {
     boolean volumeRows = !parent.isVolumeTableEmpty();
     rbYAxisTypeContour.setEnabled(volumeRows);
     ltfYaxisObjectNum.setEnabled(volumeRows && rbYAxisTypeContour.isSelected());
@@ -127,8 +131,7 @@ final class YAxisTypePanel {
    * @param matlabParamFile
    * @param paramatersOnly 
    */
-  public void setParameters(final MatlabParam matlabParam,
-      boolean parametersOnly) {
+  void setParameters(final MatlabParam matlabParam, boolean parametersOnly) {
     MatlabParam.YAxisType yaxisType = matlabParam.getYAxisType();
     if (yaxisType == MatlabParam.YAxisType.Y_AXIS) {
       rbYAxisTypeYAxis.setSelected(true);
@@ -145,11 +148,16 @@ final class YAxisTypePanel {
     }
   }
 
-  public void getParameters(final MatlabParam matlabParam) {
+  void getParameters(final MatlabParam matlabParam) {
     matlabParam.setYaxisType(((RadioButton.RadioButtonModel) bgYAxisType
         .getSelection()).getEnumeratedType());
     matlabParam.setYaxisObjectNum(ltfYaxisObjectNum.getText());
     matlabParam.setYaxisContourNum(ltfYaxisContourNum.getText());
+  }
+
+  EnumeratedType getYAxisType() {
+    return ((RadioButton.RadioButtonModel) bgYAxisType.getSelection())
+        .getEnumeratedType();
   }
 
   void reset() {
@@ -210,7 +218,7 @@ final class YAxisTypePanel {
       e.printStackTrace();
     }
   }
-  
+
   private static final class YAxisTypeActionListener implements ActionListener {
     private final YAxisTypePanel yAxisTypePanel;
 
