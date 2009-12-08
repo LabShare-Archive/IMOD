@@ -51,6 +51,9 @@ import etomo.type.Run3dmodMenuOptions;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.45  2009/12/01 00:28:24  sueh
+ * <p> bug# 1285 Added isEmpty.
+ * <p>
  * <p> Revision 1.44  2009/11/20 23:07:37  sueh
  * <p> bug# 1280 Changed btnAddWithCopy to btnCopyRow.  Removed boolean
  * <p> from addVolumeRow.  Removed copyData.  Added copyRow.  Added
@@ -344,8 +347,10 @@ final class VolumeTable implements Expandable, Highlightable,
     rowList.getParameters(metaData);
   }
 
-  void setParameters(final ConstPeetMetaData metaData) {
-    rowList.setParameters(metaData);
+  void setParameters(final ConstPeetMetaData metaData, boolean parametersOnly) {
+    if (!parametersOnly) {
+      rowList.setParameters(metaData);
+    }
   }
 
   boolean isIncorrectPaths() {
@@ -372,33 +377,35 @@ final class VolumeTable implements Expandable, Highlightable,
     return parent.getCorrectPath();
   }
 
-  void setParameters(final MatlabParam matlabParamFile,
+  void setParameters(final MatlabParam matlabParamFile, boolean parametersOnly,
       boolean useInitMotlFile, boolean useTiltRange, File importDir) {
-    boolean initMotlFileIsExpanded = btnExpandInitMotlFile.isExpanded();
-    String userDir = null;
-    if (importDir != null) {
-      userDir = System.setProperty("user.dir", importDir.getAbsolutePath());
-    }
-    for (int i = 0; i < matlabParamFile.getVolumeListSize(); i++) {
-      File fnModParticleFile = null;
-      String fnModParticle = matlabParamFile.getFnModParticle(i);
-      if (!fnModParticle.matches("\\s*")) {
-        fnModParticleFile = new File(fnModParticle);
+    if (!parametersOnly) {
+      boolean initMotlFileIsExpanded = btnExpandInitMotlFile.isExpanded();
+      String userDir = null;
+      if (importDir != null) {
+        userDir = System.setProperty("user.dir", importDir.getAbsolutePath());
       }
-      VolumeRow row = addRow(new File(matlabParamFile.getFnVolume(i)),
-          fnModParticleFile);
-      row.setParameters(matlabParamFile, useInitMotlFile, useTiltRange);
-      row.expandInitMotlFile(initMotlFileIsExpanded);
+      for (int i = 0; i < matlabParamFile.getVolumeListSize(); i++) {
+        File fnModParticleFile = null;
+        String fnModParticle = matlabParamFile.getFnModParticle(i);
+        if (!fnModParticle.matches("\\s*")) {
+          fnModParticleFile = new File(fnModParticle);
+        }
+        VolumeRow row = addRow(new File(matlabParamFile.getFnVolume(i)),
+            fnModParticleFile);
+        row.setParameters(matlabParamFile, useInitMotlFile, useTiltRange);
+        row.expandInitMotlFile(initMotlFileIsExpanded);
+      }
+      if (importDir != null) {
+        System.setProperty("user.dir", userDir);
+      }
+      rowList.doneSettingParameters();
+      viewport.adjustViewport(0);
+      rowList.remove();
+      rowList.display(viewport);
+      updateDisplay();
+      UIHarness.INSTANCE.pack(manager);
     }
-    if (importDir != null) {
-      System.setProperty("user.dir", userDir);
-    }
-    rowList.doneSettingParameters();
-    viewport.adjustViewport(0);
-    rowList.remove();
-    rowList.display(viewport);
-    updateDisplay();
-    UIHarness.INSTANCE.pack(manager);
   }
 
   void getParameters(final MatlabParam matlabParamFile) {
@@ -408,7 +415,7 @@ final class VolumeTable implements Expandable, Highlightable,
   public int size() {
     return rowList.size();
   }
-  
+
   boolean isEmpty() {
     return rowList.isEmpty();
   }
@@ -901,7 +908,7 @@ final class VolumeTable implements Expandable, Highlightable,
     private int size() {
       return list.size();
     }
-    
+
     private boolean isEmpty() {
       return list.isEmpty();
     }
