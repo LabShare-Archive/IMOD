@@ -20,6 +20,9 @@
  * 
  * <p>
  * $Log$
+ * Revision 3.140  2009/10/30 20:53:07  sueh
+ * Removed unnecessary prints.
+ *
  * Revision 3.139  2009/10/23 22:24:06  sueh
  * bug# 1275 Made touch() a static function in BaseProcessManager.
  *
@@ -2264,7 +2267,7 @@ public class ProcessManager extends BaseProcessManager {
         ProcessDetails processDetails = process.getProcessDetails();
         Command command = process.getCommand();
         TomogramState state = appManager.getState();
-        if (commandName.equals(TrimvolParam.getName())) {
+        if (commandName.equals(TrimvolParam.commandName)) {
           AxisID axisID = process.getAxisID();
           state.setTrimvolFlipped(processDetails
               .getBooleanValue(TrimvolParam.Fields.SWAP_YZ)
@@ -2287,7 +2290,7 @@ public class ProcessManager extends BaseProcessManager {
             e.printStackTrace();
           }
         }
-        else if (commandName.equals(SqueezevolParam.getName())) {
+        else if (commandName.equals(SqueezevolParam.COMMAND_NAME)) {
           appManager.getState().setSqueezevolFlipped(
               processDetails.getBooleanValue(SqueezevolParam.Fields.FLIPPED));
         }

@@ -41,6 +41,11 @@ import etomo.util.DatasetFiles;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 1.29  2009/04/01 20:07:15  sueh
+ * <p> bug# 1208 Changed flipyz to rotx.  Substituting ClipParam for FlipyzParam in post
+ * <p> processing, except when deleting a file resulting from an error; in that case adding
+ * <p> coverage for ClipParam.
+ * <p>
  * <p> Revision 1.28  2009/02/04 23:25:27  sueh
  * <p> bug# 1158 Changed id and exceptions classes in LogFile.
  * <p>
@@ -337,7 +342,7 @@ public final class JoinProcessManager extends BaseProcessManager {
     }
     ProcessDetails processDetails = process.getProcessDetails();
     Command command = process.getCommand();
-    if (commandName.equals(ClipParam.getName())) {
+    if (commandName.equals(ClipParam.PROCESS_NAME)) {
       if (command == null) {
         return;
       }
@@ -350,7 +355,7 @@ public final class JoinProcessManager extends BaseProcessManager {
       manager.copyXfFile(command.getCommandOutputFile());
       manager.enableMidas();
     }
-    else if (commandName.equals(FinishjoinParam.getName())) {
+    else if (commandName.equals(FinishjoinParam.COMMAND_NAME)) {
       if (command == null) {
         return;
       }
@@ -421,7 +426,7 @@ public final class JoinProcessManager extends BaseProcessManager {
             .getEtomoNumber(FinishjoinParam.Fields.USE_EVERY_N_SLICES));
       }
     }
-    else if (commandName.equals(MakejoincomParam.getName())) {
+    else if (commandName.equals(MakejoincomParam.commandName)) {
       manager.postProcess(commandName, processDetails);
     }
     else if (commandName.equals(ProcessName.XFJOINTOMO.toString())) {
@@ -462,11 +467,11 @@ public final class JoinProcessManager extends BaseProcessManager {
     if (commandName.equals(XfalignParam.getName())) {
       manager.enableMidas();
     }
-    else if (commandName.equals(MakejoincomParam.getName())) {
+    else if (commandName.equals(MakejoincomParam.commandName)) {
       state.setSampleProduced(false);
       manager.setMode();
     }
-    else if (commandName.equals(FlipyzParam.getName())) {
+    else if (commandName.equals(FlipyzParam.COMMAND)) {
       Command command = process.getCommand();
       if (command == null) {
         return;
@@ -477,7 +482,7 @@ public final class JoinProcessManager extends BaseProcessManager {
         outputFile.delete();
       }
     }
-    else if (commandName.equals(ClipParam.getName())) {
+    else if (commandName.equals(ClipParam.PROCESS_NAME)) {
       Command command = process.getCommand();
       if (command == null) {
         return;
