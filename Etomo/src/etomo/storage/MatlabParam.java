@@ -44,6 +44,9 @@ import etomo.util.DatasetFiles;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.37  2009/12/08 02:43:47  sueh
+ * <p> bug# 1286 Added getLstFlagAllTom and getSzVol.
+ * <p>
  * <p> Revision 1.36  2009/11/24 00:09:58  sueh
  * <p> bug# 1292 Put YAXIS_CONTOUR_KEY back so it can be used to remove
  * <p> yaxisContour entries.
@@ -312,7 +315,7 @@ public final class MatlabParam {
   /**
    * @deprecated replaced by yaxisObject and yaxisContour.
    */
-    public static final String YAXIS_CONTOUR_KEY = "yaxisContour";
+  public static final String YAXIS_CONTOUR_KEY = "yaxisContour";
   public static final String YAXIS_OBJECT_NUM_KEY = "yaxisObjectNum";
   public static final String YAXIS_CONTOUR_NUM_KEY = "yaxisContourNum";
   public static final boolean REFERENCE_FILE_DEFAULT = false;
@@ -330,6 +333,7 @@ public final class MatlabParam {
   public static final String FLG_REMOVE_DUPLICATES_KEY = "flgRemoveDuplicates";
   public static final String DUPLICATE_SHIFT_TOLERANCE_KEY = "duplicateShiftTolerance";
   public static final String DUPLICATE_ANGULAR_TOLERANCE_KEY = "duplicateAngularTolerance";
+  public static final String FLG_ALIGN_AVERAGES_KEY = "flgAlignAverages";
 
   private static final int VOLUME_INDEX = 0;
   private static final int PARTICLE_INDEX = 1;
@@ -371,6 +375,8 @@ public final class MatlabParam {
       .getMatlabInstance();
   private final ParsedNumber nWeightGroup = ParsedNumber.getMatlabInstance();
   private final ParsedNumber flgRemoveDuplicates = ParsedNumber
+      .getMatlabInstance();
+  private final ParsedNumber flgAlignAverages = ParsedNumber
       .getMatlabInstance();
 
   private final ManagerKey managerKey;
@@ -658,7 +664,15 @@ public final class MatlabParam {
   public boolean isRefFlagAllTom() {
     return refFlagAllTom.getRawBoolean();
   }
+
+  public boolean isFlgAlignAverages() {
+    return flgAlignAverages.getRawBoolean();
+  }
   
+  public void setFlgAlignAverages(final boolean input) {
+    flgAlignAverages.setRawString(input);
+  }
+
   public String getLstFlagAllTom() {
     return lstFlagAllTom.getRawString();
   }
@@ -766,6 +780,7 @@ public final class MatlabParam {
     useNWeightGroup = false;
     tiltRangeEmpty = false;
     flgRemoveDuplicates.clear();
+    flgAlignAverages.clear();
   }
 
   public void clearEdgeShift() {
@@ -864,7 +879,7 @@ public final class MatlabParam {
   public ConstEtomoNumber getParticlePerCPU() {
     return particlePerCpu.getEtomoNumber();
   }
-  
+
   public String getSzVol() {
     return szVol.getRawString();
   }
@@ -1054,6 +1069,8 @@ public final class MatlabParam {
     nWeightGroup.parse(autodoc.getAttribute(N_WEIGHT_GROUP_KEY));
     //flgRemoveDuplicates
     flgRemoveDuplicates.parse(autodoc.getAttribute(FLG_REMOVE_DUPLICATES_KEY));
+    //flgAlignAverages
+    flgAlignAverages.parse(autodoc.getAttribute(FLG_ALIGN_AVERAGES_KEY));
   }
 
   /**
@@ -1225,6 +1242,7 @@ public final class MatlabParam {
     }
     valueMap.put(FLG_REMOVE_DUPLICATES_KEY, flgRemoveDuplicates
         .getParsableString());
+    valueMap.put(FLG_ALIGN_AVERAGES_KEY, flgAlignAverages.getParsableString());
   }
 
   /**
@@ -1404,6 +1422,8 @@ public final class MatlabParam {
     }
     setNameValuePairValue(autodoc, FLG_REMOVE_DUPLICATES_KEY, (String) valueMap
         .get(FLG_REMOVE_DUPLICATES_KEY), commentMap);
+    setNameValuePairValue(autodoc, FLG_ALIGN_AVERAGES_KEY, (String) valueMap
+        .get(FLG_ALIGN_AVERAGES_KEY), commentMap);
   }
 
   /**
