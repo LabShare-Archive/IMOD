@@ -6,6 +6,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
+import etomo.comscript.AverageAllParam;
 import etomo.comscript.PeetParserParam;
 import etomo.comscript.ProcesschunksParam;
 import etomo.process.BaseProcessManager;
@@ -62,6 +63,9 @@ import etomo.util.EnvironmentVariable;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.60  2009/12/01 00:20:34  sueh
+ * <p> bug# 1285 In imodAvgVol if lstThresholds is empty use parserLstThresholds.
+ * <p>
  * <p> Revision 1.59  2009/11/24 00:42:59  sueh
  * <p> bug# 1289 Added isInterfaceAvailable to check for PARTICLE_DIR and pop
  * <p> up message if it is not available.
@@ -647,9 +651,6 @@ public final class PeetManager extends BaseManager {
   public void imodAvgVol(Run3dmodMenuOptions menuOptions) {
     //build the list of files - they should be in order
     IntKeyList.Walker lstThresholds = state.getLstThresholds();
-    if (lstThresholds.isEmpty()) {
-      lstThresholds=state.getParserLstThresholds();
-    }
     final StringBuffer name = new StringBuffer(metaData.getName());
     name.append("_AvgVol_").append(state.getIterationListSize()).append('P');
     StringBuffer fileName;
@@ -732,7 +733,7 @@ public final class PeetManager extends BaseManager {
       return;
     }
     PeetParserParam param = new PeetParserParam(this, matlabParam.getFile());
-    param.getParameters(matlabParam);
+    param.setParameters(matlabParam);
     try {
       try {
         LogFile log = LogFile.getInstance(param.getLogFile(), getManagerKey());
@@ -752,6 +753,42 @@ public final class PeetManager extends BaseManager {
     catch (SystemProcessException e) {
       e.printStackTrace();
       uiHarness.openMessageDialog("Unable to run " + ProcessName.PEET_PARSER
+          + ", SystemProcessException.\n" + e.getMessage(), "Process Error",
+          getManagerKey());
+    }
+  }
+
+  public void averageAll(ProcessSeries processSeries, DialogType dialogType) {
+    if (processSeries == null) {
+      processSeries = new ProcessSeries(this, dialogType);
+    }
+    savePeetDialog();
+    if (matlabParam == null) {
+      uiHarness.openMessageDialog("Must set " + PeetDialog.DIRECTORY_LABEL
+          + " and " + PeetDialog.FN_OUTPUT_LABEL, "Entry Error",
+          getManagerKey());
+      return;
+    }
+    AverageAllParam param = new AverageAllParam(this, matlabParam.getFile());
+    peetDialog.getParameters(param);
+    param.setParameters(matlabParam);
+    try {
+      try {
+        LogFile log = LogFile.getInstance(AverageAllParam.getLogFile(),
+            getManagerKey());
+        log.backup();
+      }
+      catch (LogFile.LockException e) {
+        e.printStackTrace();
+      }
+      String threadName = processMgr.averageAll(param, processSeries);
+      setThreadName(threadName, AxisID.ONLY);
+      mainPanel.startProgressBar("Running " + ProcessName.AVERAGE_ALL,
+          AxisID.ONLY, ProcessName.AVERAGE_ALL);
+    }
+    catch (SystemProcessException e) {
+      e.printStackTrace();
+      uiHarness.openMessageDialog("Unable to run " + ProcessName.AVERAGE_ALL
           + ", SystemProcessException.\n" + e.getMessage(), "Process Error",
           getManagerKey());
     }
