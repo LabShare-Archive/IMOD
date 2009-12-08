@@ -352,6 +352,11 @@ tf.end=9
 
 [function = check-prm]
 KeyValueDelimiter = ==
+run.function.setup-check-prm==
+run.function.runtab-check-prm==
+
+
+[function == setup-check-prm]
 tb.setup==
 run.function.volume-table-check-prm==
 run.function.reference-check-prm==
@@ -360,6 +365,9 @@ run.function.masking-check-prm==
 run.function.cylinder-orientation-check-prm==
 run.function.initial-motive-list-check-prm==
 run.function.y-axis-type-check-prm==
+
+
+[function == runtab-check-prm]
 tb.setup.1==
 run.function.spherical-sampling-for-theta-and-psi-check-prm==
 #check remove duplicates
@@ -374,6 +382,8 @@ assert.contains.file==pi.prm|"flgRemoveDuplicates = 1"
 assert.contains.file==pi.prm|"duplicateShiftTolerance = [1, 0]"
 assert.contains.file==pi.prm|"duplicateAngularTolerance = [2, 0]"
 cb.remove-duplicates==off
+#flgAlignAverages is always saved
+assert.contains.file==pi.prm|"flgAlignAverages = 0"
 #aligned base name
 mb.run.1==A
 tf.aligned-base-name==bob
