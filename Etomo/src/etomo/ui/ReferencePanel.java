@@ -4,6 +4,8 @@ import java.awt.Component;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.IOException;
 
 import javax.swing.Box;
 import javax.swing.BoxLayout;
@@ -12,8 +14,12 @@ import javax.swing.JFileChooser;
 import javax.swing.JPanel;
 
 import etomo.BaseManager;
+import etomo.storage.LogFile;
 import etomo.storage.MatlabParam;
+import etomo.storage.autodoc.AutodocFactory;
+import etomo.storage.autodoc.ReadOnlyAutodoc;
 import etomo.type.ConstPeetMetaData;
+import etomo.type.EtomoAutodoc;
 import etomo.type.PeetMetaData;
 
 /**
@@ -30,6 +36,9 @@ import etomo.type.PeetMetaData;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.3  2009/12/02 00:08:18  sueh
+ * <p> bug# 1290 Made the label of the reference file package private.
+ * <p>
  * <p> Revision 1.2  2009/12/01 00:26:20  sueh
  * <p> bug# 1285 Gave panel is own action listener.
  * <p>
@@ -71,6 +80,7 @@ final class ReferencePanel {
       final BaseManager manager) {
     ReferencePanel instance = new ReferencePanel(parent, manager);
     instance.createPanel();
+    instance.setTooltips();
     instance.addListeners();
     return instance;
   }
@@ -109,7 +119,7 @@ final class ReferencePanel {
     return pnlRoot;
   }
 
-  boolean isReferenceFileIncorrectPath() {
+  boolean isIncorrectPaths() {
     return !ftfReferenceFile.isEmpty() && !ftfReferenceFile.exists();
   }
 
@@ -121,7 +131,7 @@ final class ReferencePanel {
    * @return
    */
   boolean fixIncorrectPaths(final boolean choosePathEveryRow) {
-    if (isReferenceFileIncorrectPath()) {
+    if (isIncorrectPaths()) {
       return parent.fixIncorrectPath(ftfReferenceFile, choosePathEveryRow);
     }
     return true;
@@ -141,25 +151,29 @@ final class ReferencePanel {
    * Load data from ConstPeetMetaData.
    * @param metaData
    */
-  void setParameters(final ConstPeetMetaData metaData) {
-    ftfReferenceFile.setText(metaData.getReferenceFile());
-    sReferenceVolume.setValue(metaData.getReferenceVolume());
-    ltfReferenceParticle.setText(metaData.getReferenceParticle());
+  void setParameters(final ConstPeetMetaData metaData, boolean parametersOnly) {
+    if (!parametersOnly) {
+      ftfReferenceFile.setText(metaData.getReferenceFile());
+      sReferenceVolume.setValue(metaData.getReferenceVolume());
+      ltfReferenceParticle.setText(metaData.getReferenceParticle());
+    }
   }
 
   /**
    * Load active data from MatlabParam.
    * @param matlabParam
    */
-  void setParameters(final MatlabParam matlabParam) {
-    if (matlabParam.useReferenceFile()) {
-      rbReferenceFile.setSelected(true);
-      ftfReferenceFile.setText(matlabParam.getReferenceFile());
-    }
-    else {
-      rbReferenceParticle.setSelected(true);
-      sReferenceVolume.setValue(matlabParam.getReferenceVolume());
-      ltfReferenceParticle.setText(matlabParam.getReferenceParticle());
+  void setParameters(final MatlabParam matlabParam,boolean parametersOnly) {
+    if (!parametersOnly) {
+      if (matlabParam.useReferenceFile()) {
+        rbReferenceFile.setSelected(true);
+        ftfReferenceFile.setText(matlabParam.getReferenceFile());
+      }
+      else {
+        rbReferenceParticle.setSelected(true);
+        sReferenceVolume.setValue(matlabParam.getReferenceVolume());
+        ltfReferenceParticle.setText(matlabParam.getReferenceParticle());
+      }
     }
   }
 
@@ -271,12 +285,27 @@ final class ReferencePanel {
    * Set the tooltip in all fields.
    * @param tooltip
    */
-  void setTooltip(final String tooltip) {
-    rbReferenceParticle.setToolTipText(tooltip);
-    rbReferenceFile.setToolTipText(tooltip);
-    sReferenceVolume.setToolTipText(tooltip);
-    ltfReferenceParticle.setToolTipText(tooltip);
-    ftfReferenceFile.setToolTipText(tooltip);
+  private void setTooltips() {
+    try {
+      ReadOnlyAutodoc autodoc = AutodocFactory.getInstance(
+          AutodocFactory.PEET_PRM, manager.getManagerKey());
+      String tooltip = EtomoAutodoc.getTooltip(autodoc,
+          MatlabParam.REFERENCE_KEY);
+      rbReferenceParticle.setToolTipText(tooltip);
+      rbReferenceFile.setToolTipText(tooltip);
+      sReferenceVolume.setToolTipText(tooltip);
+      ltfReferenceParticle.setToolTipText(tooltip);
+      ftfReferenceFile.setToolTipText(tooltip);
+    }
+    catch (FileNotFoundException e) {
+      e.printStackTrace();
+    }
+    catch (IOException e) {
+      e.printStackTrace();
+    }
+    catch (LogFile.LockException e) {
+      e.printStackTrace();
+    }
   }
 
   private static final class ReferenceActionListener implements ActionListener {
