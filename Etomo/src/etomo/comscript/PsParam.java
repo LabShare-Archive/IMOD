@@ -313,7 +313,7 @@ public final class PsParam {
 
     /**
      * Find the process which matches the pid.
-     * @param command
+     * @param COMMAND
      * @param pid
      * @return
      */
@@ -336,6 +336,10 @@ public final class PsParam {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.7  2009/05/07 00:21:05  sueh
+ * <p> bug# 1207 Set the start time header and command based on the passed
+ * <p> in OS, not the current OS.
+ * <p>
  * <p> Revision 1.6  2009/05/05 00:14:07  sueh
  * <p> bug# 1207 In findRow adding prints to get more information on Mac.
  * <p>
