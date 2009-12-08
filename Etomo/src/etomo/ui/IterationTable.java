@@ -37,6 +37,9 @@ import etomo.type.EtomoAutodoc;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.25  2009/12/02 04:40:41  sueh
+ * <p> bug# 1226 Added move up and move down functionality.
+ * <p>
  * <p> Revision 1.24  2009/12/01 23:42:20  sueh
  * <p> bug# 1290 In addRow calling PeetDialog.updateDisplay.
  * <p>
@@ -271,6 +274,10 @@ final class IterationTable implements Highlightable {
     row.display();
     parent.updateDisplay();
     return row;
+  }
+  
+  int size() {
+    return rowList.size();
   }
 
   private void setToolTipText() {
