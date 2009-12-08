@@ -44,6 +44,10 @@ import etomo.util.DatasetFiles;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.36  2009/11/24 00:09:58  sueh
+ * <p> bug# 1292 Put YAXIS_CONTOUR_KEY back so it can be used to remove
+ * <p> yaxisContour entries.
+ * <p>
  * <p> Revision 1.35  2009/11/23 23:25:39  sueh
  * <p> bug# 1292 Removing yaxisContour.  Added yaxisObjectNum and
  * <p> yaxisContourNum.
@@ -654,6 +658,10 @@ public final class MatlabParam {
   public boolean isRefFlagAllTom() {
     return refFlagAllTom.getRawBoolean();
   }
+  
+  public String getLstFlagAllTom() {
+    return lstFlagAllTom.getRawString();
+  }
 
   public boolean isLstFlagAllTom() {
     return lstFlagAllTom.getRawBoolean();
@@ -855,6 +863,10 @@ public final class MatlabParam {
 
   public ConstEtomoNumber getParticlePerCPU() {
     return particlePerCpu.getEtomoNumber();
+  }
+  
+  public String getSzVol() {
+    return szVol.getRawString();
   }
 
   public String getSzVolX() {
