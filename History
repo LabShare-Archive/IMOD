@@ -1,5 +1,7 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+12/7/09: It Etomo - PEET added a button for remaking averages.
+
 12/7/09: Made Processchunks responsible for echoing CHUNK DONE at the end of 
 every command file; stopped it from overwriting a sync log with CHUNK DONE.
 
