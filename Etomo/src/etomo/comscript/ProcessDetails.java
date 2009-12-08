@@ -2,6 +2,7 @@ package etomo.comscript;
 
 import java.util.Hashtable;
 
+import etomo.storage.Loggable;
 import etomo.type.ConstEtomoNumber;
 import etomo.type.ConstIntKeyList;
 import etomo.type.IteratorElementList;
@@ -19,7 +20,7 @@ import etomo.type.IteratorElementList;
  * 
  * @version $Revision$
  */
-public interface ProcessDetails {
+public interface ProcessDetails extends Loggable{
   public static final String rcsid = "$Id$";
 
   public int getIntValue(FieldInterface field);
@@ -44,6 +45,9 @@ public interface ProcessDetails {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.10  2009/09/05 00:35:39  sueh
+ * <p> bug# 1256 Added blank getIteratorElementList.
+ * <p>
  * <p> Revision 1.9  2009/09/01 03:17:46  sueh
  * <p> bug# 1222
  * <p>
