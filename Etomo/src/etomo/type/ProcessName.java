@@ -17,6 +17,10 @@ import etomo.util.DatasetFiles;
  * @version $$Revision$$
  *
  * <p> $$Log$
+ * <p> $Revision 1.23  2009/09/01 03:12:17  sueh
+ * <p> $bug# 1222 Added BLEND_3D_FIND, FIND_BEADS_3D, MIDAS,
+ * <p> $NEWST_3D_FIND, TILT_3D_FIND_REPROJECT, and TILT_3D_FIND.
+ * <p> $
  * <p> $Revision 1.22  2009/05/22 21:26:21  sueh
  * <p> $bug# 1216 Added runraptor to getInstance.
  * <p> $
@@ -147,7 +151,7 @@ public class ProcessName {
   private static final String splitCorrection = "splitcorrection";
   private static final String ccderaser = "ccderaser";
   private static final String clip = "clip";
-  private static final String runraptor ="runraptor";
+  private static final String runraptor = "runraptor";
   private static final String flattenwarp = "flattenwarp";
   private static final String flatten = "flatten";
   private static final String newst_3dfind = "newst_3dfind";
@@ -206,12 +210,15 @@ public class ProcessName {
   public static final ProcessName XFMODEL = new ProcessName(xfmodel);
   public static final ProcessName REMAPMODEL = new ProcessName(remapmodel);
   public static final ProcessName PEET_PARSER = new ProcessName(peetParser);
+  public static final ProcessName AVERAGE_ALL = new ProcessName("averageAll");
   public static final ProcessName ANISOTROPIC_DIFFUSION = new ProcessName(
       anisotropicDiffusion);
   public static final ProcessName CHUNKSETUP = new ProcessName(chunksetup);
   public static final ProcessName CTF_PLOTTER = new ProcessName(ctfPlotter);
-  public static final ProcessName CTF_CORRECTION = new ProcessName(ctfCorrection);
-  public static final ProcessName SPLIT_CORRECTION = new ProcessName(splitCorrection);
+  public static final ProcessName CTF_CORRECTION = new ProcessName(
+      ctfCorrection);
+  public static final ProcessName SPLIT_CORRECTION = new ProcessName(
+      splitCorrection);
   public static final ProcessName CCD_ERASER = new ProcessName(ccderaser);
   public static final ProcessName CLIP = new ProcessName(clip);
   public static final ProcessName RUNRAPTOR = new ProcessName(runraptor);
@@ -221,7 +228,8 @@ public class ProcessName {
   public static final ProcessName BLEND_3D_FIND = new ProcessName(blend_3dfind);
   public static final ProcessName TILT_3D_FIND = new ProcessName(tilt_3dfind);
   public static final ProcessName FIND_BEADS_3D = new ProcessName(findbeads3d);
-  public static final ProcessName TILT_3D_FIND_REPROJECT = new ProcessName(tilt_3dfind_reproject);
+  public static final ProcessName TILT_3D_FIND_REPROJECT = new ProcessName(
+      tilt_3dfind_reproject);
   public static final ProcessName MIDAS = new ProcessName(midas);
 
   /**
@@ -272,7 +280,7 @@ public class ProcessName {
     }
     name = name.substring(0, extIndex);
     //check if file name equals process name plus file extension
-     processName = getInstance(name);
+    processName = getInstance(name);
     if (processName != null) {
       return processName;
     }
@@ -287,7 +295,7 @@ public class ProcessName {
     }
     return null;
   }
-  
+
   /**
    * If extension matches the end of name, strip off extension at the end of
    * name before returning a call to getInstance(name, axisID).
@@ -298,14 +306,14 @@ public class ProcessName {
    */
   public static ProcessName getInstance(String name, AxisID axisID,
       String extension) {
-    if (extension==null||extension.equals("")) {
-      return getInstance(name,axisID);
+    if (extension == null || extension.equals("")) {
+      return getInstance(name, axisID);
     }
     int extIndex = name.lastIndexOf(extension);
-    if (extIndex==-1) {
-      return getInstance(name,axisID);
+    if (extIndex == -1) {
+      return getInstance(name, axisID);
     }
-    return getInstance(name.substring(0,extIndex),axisID);
+    return getInstance(name.substring(0, extIndex), axisID);
   }
 
   /**
@@ -447,6 +455,9 @@ public class ProcessName {
     }
     if (name.compareToIgnoreCase(peetParser) == 0) {
       return PEET_PARSER;
+    }
+    if (name.compareToIgnoreCase(AVERAGE_ALL.name) == 0) {
+      return AVERAGE_ALL;
     }
     if (name.compareToIgnoreCase(anisotropicDiffusion) == 0) {
       return ANISOTROPIC_DIFFUSION;
