@@ -1,6 +1,7 @@
 package etomo.process;
 
 import etomo.PeetManager;
+import etomo.comscript.AverageAllParam;
 import etomo.comscript.PeetParserParam;
 import etomo.comscript.ProcessDetails;
 import etomo.type.AxisID;
@@ -22,6 +23,11 @@ import etomo.type.ProcessName;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.9  2009/12/01 00:23:06  sueh
+ * <p> bug# 1285 In postProcess(BackgroundProcess).  Reset lstThresholds when
+ * <p> running the parser.  This prevents out of date lstThreshold data if the
+ * <p> process completes when Etomo is not running.
+ * <p>
  * <p> Revision 1.8  2009/10/30 20:52:44  sueh
  * <p> bug# 1285 Put a comment in postProcess(DetachedProcess).
  * <p>
@@ -68,6 +74,13 @@ public final class PeetProcessManager extends BaseProcessManager {
     return backgroundProcess.getName();
   }
 
+  public String averageAll(AverageAllParam param,
+      ConstProcessSeries processSeries) throws SystemProcessException {
+    BackgroundProcess backgroundProcess = startBackgroundProcess(param,
+        AxisID.ONLY, ProcessName.AVERAGE_ALL, processSeries);
+    return backgroundProcess.getName();
+  }
+
   void errorProcess(BackgroundProcess process) {
   }
 
@@ -98,23 +111,22 @@ public final class PeetProcessManager extends BaseProcessManager {
       if (processDetails == null) {
         return;
       }
-      state.setParserIterationListSize(processDetails
+      state.setIterationListSize(processDetails
           .getIntValue(PeetParserParam.Fields.ITERATION_LIST_SIZE));
-      //Using ParserLstThresholds as a backup for LstThresholds when
-      //processchunks completes when Etomo is not running.  Reset LstThresholds
-      //here so it will use ParserLstThresholds in preference to an out of date
-      //LstThresholds.
-      state.resetLstThresholdsArray();
-      state.setParserLstThresholdsArray(processDetails
+      state.setLstThresholdsArray(processDetails
           .getStringArray(PeetParserParam.Fields.LST_THRESHOLDS_ARRAY));
+      manager.logMessage(processDetails, AxisID.ONLY, manager.getManagerKey());
+    }
+    else if (processName == ProcessName.AVERAGE_ALL) {
+      state.setIterationListSize(processDetails
+          .getIntValue(AverageAllParam.Fields.ITERATION_LIST_SIZE));
+      state.setLstThresholdsArray(processDetails
+          .getStringArray(AverageAllParam.Fields.LST_THRESHOLDS_ARRAY));
+      manager.logMessage(processDetails, AxisID.ONLY, manager.getManagerKey());
     }
   }
 
   void postProcess(DetachedProcess process) {
     super.postProcess(process);
-    PeetState state = manager.getState();
-    //For processchunks, save the values saved when prmparser finished.
-    state.setIterationListSize(state.getParserIterationListSize());
-    state.setLstThresholdsArray(state.getParserLstThresholdsArray());
   }
 }
