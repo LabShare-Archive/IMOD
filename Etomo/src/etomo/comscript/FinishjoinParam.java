@@ -1,11 +1,16 @@
 package etomo.comscript;
 
 import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Hashtable;
+import java.util.List;
 
 import etomo.BaseManager;
 import etomo.JoinManager;
+import etomo.ManagerKey;
+import etomo.storage.LogFile;
 import etomo.type.AxisID;
 import etomo.type.ConstEtomoNumber;
 import etomo.type.ConstIntKeyList;
@@ -36,6 +41,9 @@ import etomo.util.DatasetFiles;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.37  2009/09/05 00:35:39  sueh
+ * <p> bug# 1256 Added blank getIteratorElementList.
+ * <p>
  * <p> Revision 1.36  2009/09/01 03:17:46  sueh
  * <p> bug# 1222
  * <p>
@@ -211,7 +219,7 @@ public final class FinishjoinParam implements CommandDetails {
   public static final int OFFSET_IN_Y_INDEX = 5;
 
   private static final ProcessName PROCESS_NAME = ProcessName.FINISHJOIN;
-  private static final String COMMAND_NAME = "finishjoin";
+  public static final String COMMAND_NAME = "finishjoin";
   private final int debug;
   private String[] commandArray;
   private String rootName;
@@ -284,7 +292,8 @@ public final class FinishjoinParam implements CommandDetails {
     return AxisID.ONLY;
   }
 
-  public ConstEtomoNumber getEtomoNumber(etomo.comscript.FieldInterface fieldInterface) {
+  public ConstEtomoNumber getEtomoNumber(
+      etomo.comscript.FieldInterface fieldInterface) {
     if (fieldInterface == Fields.ALIGNMENT_REF_SECTION) {
       return alignmentRefSection;
     }
@@ -312,7 +321,8 @@ public final class FinishjoinParam implements CommandDetails {
     throw new IllegalArgumentException("field=" + fieldInterface);
   }
 
-  public ConstIntKeyList getIntKeyList(etomo.comscript.FieldInterface fieldInterface) {
+  public ConstIntKeyList getIntKeyList(
+      etomo.comscript.FieldInterface fieldInterface) {
     if (fieldInterface == Fields.JOIN_START_LIST) {
       return joinStartList;
     }
@@ -335,9 +345,8 @@ public final class FinishjoinParam implements CommandDetails {
   public int getIntValue(etomo.comscript.FieldInterface fieldInterface) {
     throw new IllegalArgumentException("field=" + fieldInterface);
   }
-  
-  public IteratorElementList getIteratorElementList(
-      final FieldInterface field) {
+
+  public IteratorElementList getIteratorElementList(final FieldInterface field) {
     throw new IllegalArgumentException("field=" + field);
   }
 
@@ -376,7 +385,12 @@ public final class FinishjoinParam implements CommandDetails {
   public String getCommandName() {
     return COMMAND_NAME;
   }
-  
+
+  public List getLogMessage(ManagerKey managerKey)
+      throws LogFile.LockException, FileNotFoundException, IOException {
+    return null;
+  }
+
   public ProcessName getProcessName() {
     return PROCESS_NAME;
   }
@@ -385,7 +399,7 @@ public final class FinishjoinParam implements CommandDetails {
     return COMMAND_NAME;
   }
 
-  public static String getName() {
+  public String getName() {
     return COMMAND_NAME;
   }
 
@@ -409,7 +423,7 @@ public final class FinishjoinParam implements CommandDetails {
   public CommandDetails getSubcommandDetails() {
     return null;
   }
-  
+
   public ProcessName getSubcommandProcessName() {
     return null;
   }

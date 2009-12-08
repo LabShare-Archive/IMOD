@@ -1,10 +1,15 @@
 package etomo.comscript;
 
 import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Hashtable;
+import java.util.List;
 
 import etomo.BaseManager;
+import etomo.ManagerKey;
+import etomo.storage.LogFile;
 import etomo.type.AxisID;
 import etomo.type.ConstEtomoNumber;
 import etomo.type.ConstIntKeyList;
@@ -25,6 +30,9 @@ import etomo.type.ProcessName;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.17  2009/09/05 00:35:39  sueh
+ * <p> bug# 1256 Added blank getIteratorElementList.
+ * <p>
  * <p> Revision 1.16  2009/09/01 03:17:46  sueh
  * <p> bug# 1222
  * <p>
@@ -104,7 +112,7 @@ public class FlipyzParam implements CommandDetails {
   public static final String rcsid = "$Id$";
 
   private static final ProcessName PROCESS_NAME = ProcessName.CLIPFLIPYZ;
-  public static final String command = "clipflipyz";
+  public static final String COMMAND = "clipflipyz";
   private static final int commandSize = 3;
   private File flipFile;
   private String[] commandArray;
@@ -115,7 +123,7 @@ public class FlipyzParam implements CommandDetails {
     commandArray = new String[options.size() + commandSize];
     commandArray[0] = "tcsh";
     commandArray[1] = "-f";
-    commandArray[2] = BaseManager.getIMODBinPath() + command;
+    commandArray[2] = BaseManager.getIMODBinPath() + COMMAND;
     for (int i = 0; i < options.size(); i++) {
       commandArray[i + commandSize] = (String) options.get(i);
     }
@@ -154,19 +162,24 @@ public class FlipyzParam implements CommandDetails {
   }
 
   public String getCommandName() {
-    return command;
+    return COMMAND;
   }
-  
+
+  public List getLogMessage(ManagerKey managerKey)
+      throws LogFile.LockException, FileNotFoundException, IOException {
+    return null;
+  }
+
   public ProcessName getProcessName() {
     return PROCESS_NAME;
   }
 
   public String getCommand() {
-    return command;
+    return COMMAND;
   }
 
-  public static String getName() {
-    return command;
+  public  String getName() {
+    return COMMAND;
   }
 
   public String[] getCommandArray() {
@@ -180,7 +193,7 @@ public class FlipyzParam implements CommandDetails {
   public CommandDetails getSubcommandDetails() {
     return null;
   }
-  
+
   public ProcessName getSubcommandProcessName() {
     return null;
   }
@@ -188,9 +201,8 @@ public class FlipyzParam implements CommandDetails {
   public int getIntValue(etomo.comscript.FieldInterface fieldInterface) {
     throw new IllegalArgumentException("field=" + fieldInterface);
   }
-  
-  public IteratorElementList getIteratorElementList(
-      final FieldInterface field) {
+
+  public IteratorElementList getIteratorElementList(final FieldInterface field) {
     throw new IllegalArgumentException("field=" + field);
   }
 
@@ -218,11 +230,13 @@ public class FlipyzParam implements CommandDetails {
     throw new IllegalArgumentException("field=" + fieldInterface);
   }
 
-  public ConstEtomoNumber getEtomoNumber(etomo.comscript.FieldInterface fieldInterface) {
+  public ConstEtomoNumber getEtomoNumber(
+      etomo.comscript.FieldInterface fieldInterface) {
     throw new IllegalArgumentException("field=" + fieldInterface);
   }
 
-  public ConstIntKeyList getIntKeyList(etomo.comscript.FieldInterface fieldInterface) {
+  public ConstIntKeyList getIntKeyList(
+      etomo.comscript.FieldInterface fieldInterface) {
     throw new IllegalArgumentException("field=" + fieldInterface);
   }
 

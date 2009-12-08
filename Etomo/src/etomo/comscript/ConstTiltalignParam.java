@@ -1,9 +1,14 @@
 package etomo.comscript;
 
 import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.util.Hashtable;
+import java.util.List;
 
 import etomo.BaseManager;
+import etomo.ManagerKey;
+import etomo.storage.LogFile;
 import etomo.type.AxisID;
 import etomo.type.ConstEtomoNumber;
 import etomo.type.ConstIntKeyList;
@@ -469,6 +474,15 @@ public class ConstTiltalignParam implements CommandDetails {
     return PROCESS_NAME.toString();
   }
 
+  public List getLogMessage(ManagerKey managerKey)
+      throws LogFile.LockException, FileNotFoundException, IOException {
+    return null;
+  }
+
+  public String getName() {
+    return PROCESS_NAME.toString();
+  }
+
   public ProcessName getProcessName() {
     return PROCESS_NAME;
   }
@@ -485,7 +499,7 @@ public class ConstTiltalignParam implements CommandDetails {
   public CommandDetails getSubcommandDetails() {
     return null;
   }
-  
+
   public ProcessName getSubcommandProcessName() {
     return null;
   }
@@ -497,9 +511,8 @@ public class ConstTiltalignParam implements CommandDetails {
   public int getIntValue(etomo.comscript.FieldInterface fieldInterface) {
     throw new IllegalArgumentException("field=" + fieldInterface);
   }
-  
-  public IteratorElementList getIteratorElementList(
-      final FieldInterface field) {
+
+  public IteratorElementList getIteratorElementList(final FieldInterface field) {
     throw new IllegalArgumentException("field=" + field);
   }
 
@@ -1024,6 +1037,9 @@ public class ConstTiltalignParam implements CommandDetails {
 
 /**
  * <p> $Log$
+ * <p> Revision 3.36  2009/09/05 00:35:39  sueh
+ * <p> bug# 1256 Added blank getIteratorElementList.
+ * <p>
  * <p> Revision 3.35  2009/09/01 03:17:46  sueh
  * <p> bug# 1222
  * <p>

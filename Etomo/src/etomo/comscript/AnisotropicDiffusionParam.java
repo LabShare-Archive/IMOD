@@ -1,6 +1,7 @@
 package etomo.comscript;
 
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Hashtable;
@@ -8,6 +9,7 @@ import java.util.Iterator;
 import java.util.List;
 
 import etomo.BaseManager;
+import etomo.ManagerKey;
 import etomo.storage.LogFile;
 import etomo.storage.TestNADFileFilter;
 import etomo.type.AxisID;
@@ -35,6 +37,10 @@ import etomo.util.DatasetFiles;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.13  2009/09/05 00:34:48  sueh
+ * <p> bug# 1256 Removed ParsedIteratorDescriptor.  Using the IteratorParser
+ * <p> and the IteratorElementList instead.
+ * <p>
  * <p> Revision 1.12  2009/09/01 03:17:46  sueh
  * <p> bug# 1222
  * <p>
@@ -192,7 +198,8 @@ public final class AnisotropicDiffusionParam implements CommandDetails {
       index.set(i + 1);
       k.set(kValueList.getRawString(i));
       LogFile testFile = LogFile.getInstance(new File(subdir,
-          TestNADFileFilter.FILE_NAME_BODY + addLeadingZeros(index.toString(),3)
+          TestNADFileFilter.FILE_NAME_BODY
+              + addLeadingZeros(index.toString(), 3)
               + TestNADFileFilter.FILE_NAME_EXT), manager.getManagerKey());
       testFile.create();
       LogFile.WriterId writerId = testFile.openWriter();
@@ -314,6 +321,15 @@ public final class AnisotropicDiffusionParam implements CommandDetails {
 
   public ProcessName getProcessName() {
     return PROCESS_NAME;
+  }
+
+  public String getName() {
+    return PROCESS_NAME.toString();
+  }
+
+  public List getLogMessage(ManagerKey managerKey)
+      throws LogFile.LockException, FileNotFoundException, IOException {
+    return null;
   }
 
   public String getCommandLine() {

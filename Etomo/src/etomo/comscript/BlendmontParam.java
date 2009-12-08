@@ -1,10 +1,14 @@
 package etomo.comscript;
 
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.Hashtable;
+import java.util.List;
 
 import etomo.ApplicationManager;
+import etomo.ManagerKey;
+import etomo.storage.LogFile;
 import etomo.type.AxisID;
 import etomo.type.ConstEtomoNumber;
 import etomo.type.ConstIntKeyList;
@@ -433,6 +437,15 @@ public final class BlendmontParam implements CommandParam, CommandDetails {
     throw new IllegalArgumentException("mode=" + mode);
   }
 
+  public List getLogMessage(ManagerKey managerKey)
+      throws LogFile.LockException, FileNotFoundException, IOException {
+    return null;
+  }
+
+  public String getName() {
+    return processName.toString();
+  }
+
   public ProcessName getProcessName() {
     return processName;
   }
@@ -505,6 +518,9 @@ public final class BlendmontParam implements CommandParam, CommandDetails {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.33  2009/09/21 17:43:23  sueh
+ * <p> bug# 1267 Added Mod.BEND_3DFIND.
+ * <p>
  * <p> Revision 1.32  2009/09/05 00:35:39  sueh
  * <p> bug# 1256 Added blank getIteratorElementList.
  * <p>

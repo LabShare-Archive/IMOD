@@ -1,9 +1,15 @@
 package etomo.comscript;
 
 import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Hashtable;
+import java.util.List;
 
 import etomo.BaseManager;
+import etomo.ManagerKey;
+import etomo.storage.LogFile;
 import etomo.storage.MatlabParam;
 import etomo.type.AxisID;
 import etomo.type.ConstEtomoNumber;
@@ -28,6 +34,9 @@ import etomo.util.EnvironmentVariable;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.10  2009/09/05 00:35:39  sueh
+ * <p> bug# 1256 Added blank getIteratorElementList.
+ * <p>
  * <p> Revision 1.9  2009/09/01 03:17:46  sueh
  * <p> bug# 1222
  * <p>
@@ -71,6 +80,8 @@ public final class PeetParserParam implements CommandDetails {
   private boolean debug = true;
   private int iterationListSize;
   private String[] lstThresholdsArray;
+  private String szVol = null;
+  private String lstFlagAllTom = null;
 
   public PeetParserParam(BaseManager manager, File prmFile) {
     this.prmFile = prmFile;
@@ -118,9 +129,30 @@ public final class PeetParserParam implements CommandDetails {
     return new File(prmFile.getAbsolutePath() + ".log");
   }
 
-  public void getParameters(MatlabParam matlabParam) {
+  public List getLogMessage(ManagerKey managerKey)
+      throws LogFile.LockException, FileNotFoundException, IOException {
+    List message = new ArrayList();
+    message.add(MatlabParam.SZ_VOL_KEY + " = " + szVol);
+    message.add(MatlabParam.LST_FLAG_ALL_TOM_KEY + " = " + lstFlagAllTom);
+    StringBuffer buffer = new StringBuffer();
+    buffer.append(MatlabParam.LST_THRESHOLDS_KEY + " = ");
+    if (lstThresholdsArray != null) {
+      for (int i = 0; i < lstThresholdsArray.length; i++) {
+        buffer.append(lstThresholdsArray[i]);
+        if (i < lstThresholdsArray.length - 1) {
+          buffer.append(", ");
+        }
+      }
+    }
+    message.add(buffer.toString());
+    return message;
+  }
+  
+  public void setParameters(MatlabParam matlabParam) {
     iterationListSize = matlabParam.getIterationListSize();
     lstThresholdsArray = matlabParam.getLstThresholdsExpandedArray();
+    szVol = matlabParam.getSzVol();
+    lstFlagAllTom = matlabParam.getLstFlagAllTom();
   }
 
   public CommandMode getCommandMode() {
@@ -134,7 +166,11 @@ public final class PeetParserParam implements CommandDetails {
   public String getCommandName() {
     return null;
   }
-  
+
+  public String getName() {
+    return PROCESS_NAME.toString();
+  }
+
   public ProcessName getProcessName() {
     return PROCESS_NAME;
   }
@@ -146,7 +182,7 @@ public final class PeetParserParam implements CommandDetails {
   public CommandDetails getSubcommandDetails() {
     return null;
   }
-  
+
   public ProcessName getSubcommandProcessName() {
     return null;
   }
@@ -156,7 +192,7 @@ public final class PeetParserParam implements CommandDetails {
   }
 
   public String getCommand() {
-    String command = PROCESS_NAME.getComscript(AxisID.ONLY);
+    String command = PROCESS_NAME.toString();
     if (debug) {
       System.err.println(command);
     }
@@ -169,9 +205,8 @@ public final class PeetParserParam implements CommandDetails {
     }
     throw new IllegalArgumentException("field=" + fieldInterface);
   }
-  
-  public IteratorElementList getIteratorElementList(
-      final FieldInterface field) {
+
+  public IteratorElementList getIteratorElementList(final FieldInterface field) {
     throw new IllegalArgumentException("field=" + field);
   }
 
@@ -198,11 +233,13 @@ public final class PeetParserParam implements CommandDetails {
     throw new IllegalArgumentException("field=" + fieldInterface);
   }
 
-  public ConstEtomoNumber getEtomoNumber(etomo.comscript.FieldInterface fieldInterface) {
+  public ConstEtomoNumber getEtomoNumber(
+      etomo.comscript.FieldInterface fieldInterface) {
     throw new IllegalArgumentException("field=" + fieldInterface);
   }
 
-  public ConstIntKeyList getIntKeyList(etomo.comscript.FieldInterface fieldInterface) {
+  public ConstIntKeyList getIntKeyList(
+      etomo.comscript.FieldInterface fieldInterface) {
     throw new IllegalArgumentException("field=" + fieldInterface);
   }
 

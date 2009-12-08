@@ -11,6 +11,11 @@
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.36  2009/10/23 21:23:57  sueh
+ * <p> bug# 1281 In setDefaultRange, always setting min and max values when
+ * <p> the dialog has never been created.  Also setting any min or max value that
+ * <p> is null.
+ * <p>
  * <p> Revision 3.35  2009/10/05 23:21:53  sueh
  * <p> bug# 1239 In setDefaultRange always set min and max when the file
  * <p> doesn't exist yet.
@@ -188,13 +193,16 @@
 package etomo.comscript;
 
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Hashtable;
+import java.util.List;
 import java.util.Properties;
 
 import etomo.BaseManager;
 import etomo.ManagerKey;
+import etomo.storage.LogFile;
 import etomo.type.AxisID;
 import etomo.type.AxisType;
 import etomo.type.BaseMetaData;
@@ -223,7 +231,7 @@ public class TrimvolParam implements CommandDetails {
   public static final String OUTPUT_FILE = "OutputFile";
 
   private static final int commandSize = 3;
-  private static final String commandName = "trimvol";
+  public static final String commandName = "trimvol";
 
   private EtomoNumber xMin = new EtomoNumber("XMin");
   private EtomoNumber xMax = new EtomoNumber("XMax");
@@ -951,6 +959,11 @@ public class TrimvolParam implements CommandDetails {
     return commandName;
   }
 
+  public List getLogMessage(ManagerKey managerKey)
+      throws LogFile.LockException, FileNotFoundException, IOException {
+    return null;
+  }
+
   public ProcessName getProcessName() {
     return ProcessName.TRIMVOL;
   }
@@ -975,7 +988,7 @@ public class TrimvolParam implements CommandDetails {
     return new File(outputFile);
   }
 
-  public static String getName() {
+  public  String getName() {
     return commandName;
   }
 

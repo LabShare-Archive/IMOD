@@ -11,6 +11,9 @@
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.37  2009/09/22 20:59:55  sueh
+ * <p> bug# 1259 Converted to keyword value pairs.
+ * <p>
  * <p> Revision 3.36  2009/09/21 17:46:53  sueh
  * <p> bug# 1267 Getting stack binning based on the file instead of assuming its
  * <p> the .ali file.
@@ -201,10 +204,14 @@
 package etomo.comscript;
 
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.Hashtable;
+import java.util.List;
 
 import etomo.ApplicationManager;
+import etomo.ManagerKey;
+import etomo.storage.LogFile;
 import etomo.type.AxisID;
 import etomo.type.ConstEtomoNumber;
 import etomo.type.ConstIntKeyList;
@@ -322,6 +329,15 @@ public final class TiltParam implements ConstTiltParam, CommandParam {
   }
 
   public String getCommandName() {
+    return processName.toString();
+  }
+
+  public List getLogMessage(ManagerKey managerKey)
+      throws LogFile.LockException, FileNotFoundException, IOException {
+    return null;
+  }
+
+  public String getName() {
     return processName.toString();
   }
 

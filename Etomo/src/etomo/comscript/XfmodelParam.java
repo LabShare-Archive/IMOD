@@ -1,11 +1,16 @@
 package etomo.comscript;
 
 import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Hashtable;
+import java.util.List;
 
 import etomo.BaseManager;
 import etomo.JoinManager;
+import etomo.ManagerKey;
+import etomo.storage.LogFile;
 import etomo.type.AxisID;
 import etomo.type.ConstEtomoNumber;
 import etomo.type.ConstIntKeyList;
@@ -32,6 +37,9 @@ import etomo.util.DatasetFiles;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.11  2009/09/05 00:35:39  sueh
+ * <p> bug# 1256 Added blank getIteratorElementList.
+ * <p>
  * <p> Revision 1.10  2009/09/01 03:17:46  sueh
  * <p> bug# 1222
  * <p>
@@ -170,7 +178,7 @@ public final class XfmodelParam implements CommandDetails {
   public CommandDetails getSubcommandDetails() {
     return null;
   }
-  
+
   public ProcessName getSubcommandProcessName() {
     return null;
   }
@@ -277,7 +285,16 @@ public final class XfmodelParam implements CommandDetails {
   public String getCommandName() {
     return COMMAND_NAME;
   }
-  
+
+  public List getLogMessage(ManagerKey managerKey)
+      throws LogFile.LockException, FileNotFoundException, IOException {
+    return null;
+  }
+
+  public String getName() {
+    return PROCESS_NAME.toString();
+  }
+
   public ProcessName getProcessName() {
     return PROCESS_NAME;
   }
@@ -300,9 +317,8 @@ public final class XfmodelParam implements CommandDetails {
   public int getIntValue(etomo.comscript.FieldInterface fieldInterface) {
     throw new IllegalArgumentException("field=" + fieldInterface);
   }
-  
-  public IteratorElementList getIteratorElementList(
-      final FieldInterface field) {
+
+  public IteratorElementList getIteratorElementList(final FieldInterface field) {
     throw new IllegalArgumentException("field=" + field);
   }
 

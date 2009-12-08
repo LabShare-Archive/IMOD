@@ -5,8 +5,10 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Hashtable;
+import java.util.List;
 
 import etomo.BaseManager;
+import etomo.ManagerKey;
 import etomo.storage.LogFile;
 import etomo.storage.autodoc.AutodocFactory;
 import etomo.storage.autodoc.ReadOnlyAutodoc;
@@ -34,6 +36,9 @@ import etomo.type.ScriptParameter;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.24  2009/09/05 00:35:29  sueh
+ * <p> bug# 1256 Added blank getIteratorElementList.
+ * <p>
  * <p> Revision 3.23  2009/09/01 03:17:46  sueh
  * <p> bug# 1222
  * <p>
@@ -163,8 +168,8 @@ import etomo.type.ScriptParameter;
 public class BeadtrackParam extends OldBeadtrackParam implements CommandParam,
     CommandDetails {
   public static final String rcsid = "$Id$";
-  
-  public static final ProcessName PROCESS_NAME =  ProcessName.TRACK;
+
+  public static final ProcessName PROCESS_NAME = ProcessName.TRACK;
 
   public static final String INPUT_FILE_KEY = "ImageFile";
   private static final String PIECE_LIST_FILE_KEY = "PieceListFile";
@@ -825,7 +830,16 @@ public class BeadtrackParam extends OldBeadtrackParam implements CommandParam,
   public String getCommandName() {
     return PROCESS_NAME.toString();
   }
-  
+
+  public List getLogMessage(ManagerKey managerKey)
+      throws LogFile.LockException, FileNotFoundException, IOException {
+    return null;
+  }
+
+  public String getName() {
+    return PROCESS_NAME.toString();
+  }
+
   public ProcessName getProcessName() {
     return PROCESS_NAME;
   }
@@ -837,7 +851,7 @@ public class BeadtrackParam extends OldBeadtrackParam implements CommandParam,
   public CommandDetails getSubcommandDetails() {
     return null;
   }
-  
+
   public ProcessName getSubcommandProcessName() {
     return null;
   }
@@ -853,36 +867,35 @@ public class BeadtrackParam extends OldBeadtrackParam implements CommandParam,
   public double getDoubleValue(final FieldInterface field) {
     throw new IllegalArgumentException("field=" + field);
   }
-  
+
   public ConstEtomoNumber getEtomoNumber(final FieldInterface field) {
     throw new IllegalArgumentException("field=" + field);
   }
-  
+
   public float getFloatValue(final FieldInterface field) {
     throw new IllegalArgumentException("field=" + field);
   }
-  
+
   public Hashtable getHashtable(final FieldInterface field) {
     throw new IllegalArgumentException("field=" + field);
   }
-  
+
   public ConstIntKeyList getIntKeyList(final FieldInterface field) {
     throw new IllegalArgumentException("field=" + field);
   }
-  
+
   public int getIntValue(final FieldInterface field) {
     throw new IllegalArgumentException("field=" + field);
   }
-  
-  public IteratorElementList getIteratorElementList(
-      final FieldInterface field) {
+
+  public IteratorElementList getIteratorElementList(final FieldInterface field) {
     throw new IllegalArgumentException("field=" + field);
   }
-  
+
   public String getString(final FieldInterface field) {
     throw new IllegalArgumentException("field=" + field);
   }
-  
+
   public String[] getStringArray(final FieldInterface field) {
     throw new IllegalArgumentException("field=" + field);
   }

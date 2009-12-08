@@ -1,9 +1,14 @@
 package etomo.comscript;
 
 import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.util.Hashtable;
+import java.util.List;
 
 import etomo.BaseManager;
+import etomo.ManagerKey;
+import etomo.storage.LogFile;
 import etomo.type.AxisID;
 import etomo.type.ConstEtomoNumber;
 import etomo.type.ConstIntKeyList;
@@ -29,6 +34,9 @@ import etomo.type.StringParameter;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.2  2009/09/05 00:35:39  sueh
+ * <p> bug# 1256 Added blank getIteratorElementList.
+ * <p>
  * <p> Revision 3.1  2009/09/01 03:17:46  sueh
  * <p> bug# 1222
  * <p> </p>
@@ -63,13 +71,13 @@ public final class FindBeads3dParam implements ConstFindBeads3dParam,
       GUESS_NUM_BEADS_TAG);
   private final ScriptParameter maxNumBeads = new ScriptParameter(
       MAX_NUM_BEADS_TAG);
-  
+
   private final AxisID axisID;
   private final BaseManager manager;
 
-  public FindBeads3dParam(final  BaseManager manager,final AxisID axisID) {
-    this.axisID=axisID;
-    this.manager=manager;
+  public FindBeads3dParam(final BaseManager manager, final AxisID axisID) {
+    this.axisID = axisID;
+    this.manager = manager;
     reset();
   }
 
@@ -116,11 +124,11 @@ public final class FindBeads3dParam implements ConstFindBeads3dParam,
 
   public void initializeDefaults() {
   }
-  
+
   public void setInputFile(String input) {
     inputFile.set(input);
   }
-  
+
   public void setOutputFile(String input) {
     outputFile.set(input);
   }
@@ -128,7 +136,7 @@ public final class FindBeads3dParam implements ConstFindBeads3dParam,
   public void setBeadSize(String input) {
     beadSize.set(input);
   }
-  
+
   public String getBeadSize() {
     return beadSize.toString();
   }
@@ -140,7 +148,7 @@ public final class FindBeads3dParam implements ConstFindBeads3dParam,
   public void setMinRelativeStrength(String input) {
     minRelativeStrength.set(input);
   }
-  
+
   public String getMinRelativeStrength() {
     return minRelativeStrength.toString();
   }
@@ -148,7 +156,7 @@ public final class FindBeads3dParam implements ConstFindBeads3dParam,
   public void setThresholdForAveraging(String input) {
     thresholdForAveraging.set(input);
   }
-  
+
   public String getThresholdForAveraging() {
     return thresholdForAveraging.toString();
   }
@@ -160,7 +168,7 @@ public final class FindBeads3dParam implements ConstFindBeads3dParam,
   public void setStorageThreshold(String input) {
     storageThreshold.set(input);
   }
-  
+
   public ConstEtomoNumber getStorageThreshold() {
     return storageThreshold;
   }
@@ -168,11 +176,20 @@ public final class FindBeads3dParam implements ConstFindBeads3dParam,
   public void setMinSpacing(String input) {
     minSpacing.set(input);
   }
-  
+
   public String getMinSpacing() {
     return minSpacing.toString();
   }
-  
+
+  public List getLogMessage(ManagerKey managerKey)
+      throws LogFile.LockException, FileNotFoundException, IOException {
+    return null;
+  }
+
+  public String getName() {
+    return ProcessName.FIND_BEADS_3D.toString();
+  }
+
   public ProcessName getProcessName() {
     return ProcessName.FIND_BEADS_3D;
   }
@@ -180,7 +197,7 @@ public final class FindBeads3dParam implements ConstFindBeads3dParam,
   public void setGuessNumBeads(String input) {
     guessNumBeads.set(input);
   }
-  
+
   public String getGuessNumBeads() {
     return guessNumBeads.toString();
   }
@@ -188,11 +205,11 @@ public final class FindBeads3dParam implements ConstFindBeads3dParam,
   public void setMaxNumBeads(String input) {
     maxNumBeads.set(input);
   }
-  
+
   public String getMaxNumBeads() {
     return maxNumBeads.toString();
   }
-  
+
   public AxisID getAxisID() {
     return axisID;
   }
@@ -221,11 +238,11 @@ public final class FindBeads3dParam implements ConstFindBeads3dParam,
   public CommandDetails getSubcommandDetails() {
     return null;
   }
-  
+
   public ProcessName getSubcommandProcessName() {
     return null;
   }
-  
+
   public String getCommand() {
     return FileType.FIND_BEADS_3D_COMSCRIPT.getFileName(manager, axisID);
   }
@@ -238,36 +255,35 @@ public final class FindBeads3dParam implements ConstFindBeads3dParam,
   public double getDoubleValue(final FieldInterface field) {
     throw new IllegalArgumentException("field=" + field);
   }
-  
+
   public ConstEtomoNumber getEtomoNumber(final FieldInterface field) {
     throw new IllegalArgumentException("field=" + field);
   }
-  
+
   public float getFloatValue(final FieldInterface field) {
     throw new IllegalArgumentException("field=" + field);
   }
-  
+
   public Hashtable getHashtable(final FieldInterface field) {
     throw new IllegalArgumentException("field=" + field);
   }
-  
+
   public ConstIntKeyList getIntKeyList(final FieldInterface field) {
     throw new IllegalArgumentException("field=" + field);
   }
-  
+
   public int getIntValue(final FieldInterface field) {
     throw new IllegalArgumentException("field=" + field);
   }
-  
-  public IteratorElementList getIteratorElementList(
-      final FieldInterface field) {
+
+  public IteratorElementList getIteratorElementList(final FieldInterface field) {
     throw new IllegalArgumentException("field=" + field);
   }
-  
+
   public String getString(final FieldInterface field) {
     throw new IllegalArgumentException("field=" + field);
   }
-  
+
   public String[] getStringArray(final FieldInterface field) {
     throw new IllegalArgumentException("field=" + field);
   }

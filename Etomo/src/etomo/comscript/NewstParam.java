@@ -1,13 +1,17 @@
 package etomo.comscript;
 
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Hashtable;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Vector;
 
 import etomo.BaseManager;
+import etomo.ManagerKey;
+import etomo.storage.LogFile;
 import etomo.type.AxisID;
 import etomo.type.ConstEtomoNumber;
 import etomo.type.ConstIntKeyList;
@@ -30,6 +34,9 @@ import etomo.util.MRCHeader;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.23  2009/09/21 17:45:56  sueh
+ * <p> bug# 1267 Reformatted.
+ * <p>
  * <p> Revision 3.22  2009/09/17 19:10:43  sueh
  * <p> bug# 1257 In setSizeToOutputInXandY forgot to read the header.  Adding
  * <p> read call and throwing InvalidParameterException and IOException.
@@ -978,6 +985,15 @@ public final class NewstParam implements ConstNewstParam, CommandParam {
   }
 
   public String getCommandName() {
+    return processName.toString();
+  }
+
+  public List getLogMessage(ManagerKey managerKey)
+      throws LogFile.LockException, FileNotFoundException, IOException {
+    return null;
+  }
+
+  public String getName() {
     return processName.toString();
   }
 

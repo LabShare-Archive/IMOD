@@ -1,10 +1,15 @@
 package etomo.comscript;
 
 import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Hashtable;
+import java.util.List;
 
 import etomo.BaseManager;
+import etomo.ManagerKey;
+import etomo.storage.LogFile;
 import etomo.type.AxisID;
 import etomo.type.ConstEtomoNumber;
 import etomo.type.ConstIntKeyList;
@@ -25,6 +30,9 @@ import etomo.type.ProcessName;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.3  2009/09/05 00:35:39  sueh
+ * <p> bug# 1256 Added blank getIteratorElementList.
+ * <p>
  * <p> Revision 1.2  2009/09/01 03:17:47  sueh
  * <p> bug# 1222
  * <p>
@@ -32,15 +40,15 @@ import etomo.type.ProcessName;
  * <p> bug# 1208 Param class for running clip.
  * <p> </p>
  */
-public final class ClipParam implements CommandDetails{
+public final class ClipParam implements CommandDetails {
   public static final String rcsid = "$Id$";
-  
-  public static final ProcessName PROCESS_NAME  = ProcessName.CLIP;
+
+  public static final ProcessName PROCESS_NAME = ProcessName.CLIP;
   private static final int commandSize = 1;
   private File clipFile;
   private String[] commandArray;
   private boolean debug = true;
-  
+
   public ClipParam(File tomogram, File workingDir) {
     //TODO use array for command string
     ArrayList options = genOptions(tomogram, workingDir);
@@ -51,16 +59,16 @@ public final class ClipParam implements CommandDetails{
     }
     if (debug) {
       for (int i = 0; i < commandArray.length; i++) {
-        System.err.print(commandArray[i]+" ");
+        System.err.print(commandArray[i] + " ");
       }
       System.err.println();
     }
   }
-  
+
   public AxisID getAxisID() {
     return AxisID.ONLY;
   }
-  
+
   private ArrayList genOptions(File tomogram, File workingDir) {
     ArrayList options = new ArrayList(3);
     options.add("rotx");
@@ -83,7 +91,7 @@ public final class ClipParam implements CommandDetails{
   public File getClipFile() {
     return clipFile;
   }
-  
+
   public String getCommandLine() {
     StringBuffer buffer = new StringBuffer();
     for (int i = 0; i < commandArray.length; i++) {
@@ -100,10 +108,15 @@ public final class ClipParam implements CommandDetails{
     return PROCESS_NAME.toString();
   }
 
-  public static String getName() {
+  public List getLogMessage(ManagerKey managerKey)
+      throws LogFile.LockException, FileNotFoundException, IOException {
+    return null;
+  }
+
+  public String getName() {
     return PROCESS_NAME.toString();
   }
-  
+
   public ProcessName getProcessName() {
     return PROCESS_NAME;
   }
@@ -119,49 +132,48 @@ public final class ClipParam implements CommandDetails{
   public CommandDetails getSubcommandDetails() {
     return null;
   }
-  
+
   public ProcessName getSubcommandProcessName() {
     return null;
   }
 
-  public int getIntValue( final FieldInterface field) {
-    throw new IllegalArgumentException("field=" + field);
-  }
-  
-  public IteratorElementList getIteratorElementList(
-      final FieldInterface field) {
+  public int getIntValue(final FieldInterface field) {
     throw new IllegalArgumentException("field=" + field);
   }
 
-  public boolean getBooleanValue( final FieldInterface field) {
+  public IteratorElementList getIteratorElementList(final FieldInterface field) {
     throw new IllegalArgumentException("field=" + field);
   }
 
-  public float getFloatValue( final FieldInterface field) {
+  public boolean getBooleanValue(final FieldInterface field) {
     throw new IllegalArgumentException("field=" + field);
   }
 
-  public String[] getStringArray( final FieldInterface field) {
+  public float getFloatValue(final FieldInterface field) {
     throw new IllegalArgumentException("field=" + field);
   }
 
-  public String getString( final FieldInterface field) {
+  public String[] getStringArray(final FieldInterface field) {
     throw new IllegalArgumentException("field=" + field);
   }
 
-  public Hashtable getHashtable( final FieldInterface field) {
+  public String getString(final FieldInterface field) {
     throw new IllegalArgumentException("field=" + field);
   }
 
-  public double getDoubleValue( final FieldInterface field) {
+  public Hashtable getHashtable(final FieldInterface field) {
     throw new IllegalArgumentException("field=" + field);
   }
 
-  public ConstEtomoNumber getEtomoNumber( final FieldInterface field) {
+  public double getDoubleValue(final FieldInterface field) {
     throw new IllegalArgumentException("field=" + field);
   }
 
-  public ConstIntKeyList getIntKeyList( final FieldInterface field) {
+  public ConstEtomoNumber getEtomoNumber(final FieldInterface field) {
+    throw new IllegalArgumentException("field=" + field);
+  }
+
+  public ConstIntKeyList getIntKeyList(final FieldInterface field) {
     throw new IllegalArgumentException("field=" + field);
   }
 

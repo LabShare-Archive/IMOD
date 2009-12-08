@@ -1,6 +1,8 @@
 package etomo.comscript;
 
 import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Hashtable;
@@ -8,7 +10,9 @@ import java.util.List;
 import java.util.Map;
 
 import etomo.BaseManager;
+import etomo.ManagerKey;
 import etomo.storage.CpuAdoc;
+import etomo.storage.LogFile;
 import etomo.type.AxisID;
 import etomo.type.ConstEtomoNumber;
 import etomo.type.ConstIntKeyList;
@@ -35,7 +39,8 @@ import etomo.util.RemotePath.InvalidMountRuleException;
  * 
  * @version $Revision$
  */
-public final class ProcesschunksParam implements DetachedCommandDetails, ParallelParam {
+public final class ProcesschunksParam implements DetachedCommandDetails,
+    ParallelParam {
   public static final String rcsid = "$Id$";
 
   private static final ProcessName PROCESS_NAME = ProcessName.PROCESSCHUNKS;
@@ -63,7 +68,7 @@ public final class ProcesschunksParam implements DetachedCommandDetails, Paralle
   private String subdirName = "";
   private boolean test = false;
   private CommandMode subcommandMode = null;
-  private ProcessName subcommandProcessName=null;
+  private ProcessName subcommandProcessName = null;
 
   public ProcesschunksParam(final BaseManager manager, final AxisID axisID,
       final String rootName) {
@@ -84,7 +89,7 @@ public final class ProcesschunksParam implements DetachedCommandDetails, Paralle
     this.manager = manager;
     this.axisID = axisID;
     this.rootName = processName.toString() + axisID.getExtension();
-    subcommandProcessName=processName;
+    subcommandProcessName = processName;
     init();
   }
 
@@ -160,7 +165,7 @@ public final class ProcesschunksParam implements DetachedCommandDetails, Paralle
   public CommandDetails getSubcommandDetails() {
     return subcommandDetails;
   }
-  
+
   public ProcessName getSubcommandProcessName() {
     return subcommandProcessName;
   }
@@ -246,7 +251,16 @@ public final class ProcesschunksParam implements DetachedCommandDetails, Paralle
   public String getCommandName() {
     return PROCESS_NAME.toString();
   }
-  
+
+  public List getLogMessage(ManagerKey managerKey)
+      throws LogFile.LockException, FileNotFoundException, IOException {
+    return null;
+  }
+
+  public String getName() {
+    return PROCESS_NAME.toString();
+  }
+
   public ProcessName getProcessName() {
     return PROCESS_NAME;
   }
@@ -345,8 +359,8 @@ public final class ProcesschunksParam implements DetachedCommandDetails, Paralle
     ArrayList command = new ArrayList();
     command.add("tcsh");
     command.add("-f");
-    command.add("'" + BaseManager.getIMODBinPath()
-        + PROCESS_NAME.toString() + "'");
+    command.add("'" + BaseManager.getIMODBinPath() + PROCESS_NAME.toString()
+        + "'");
     if (resume.is()) {
       command.add("-r");
     }
@@ -362,9 +376,8 @@ public final class ProcesschunksParam implements DetachedCommandDetails, Paralle
     }
     catch (InvalidMountRuleException e) {
       UIHarness.INSTANCE.openMessageDialog("ERROR:  Remote path error.  "
-          + "Unabled to run " + PROCESS_NAME + ".\n\n"
-          + e.getMessage(), "Processchunks Error", axisID, manager
-          .getManagerKey());
+          + "Unabled to run " + PROCESS_NAME + ".\n\n" + e.getMessage(),
+          "Processchunks Error", axisID, manager.getManagerKey());
       valid = false;
     }
     if (remoteUserDir != null) {
@@ -458,9 +471,8 @@ public final class ProcesschunksParam implements DetachedCommandDetails, Paralle
   public int getIntValue(etomo.comscript.FieldInterface fieldInterface) {
     throw new IllegalArgumentException("field=" + fieldInterface);
   }
-  
-  public IteratorElementList getIteratorElementList(
-      final FieldInterface field) {
+
+  public IteratorElementList getIteratorElementList(final FieldInterface field) {
     throw new IllegalArgumentException("field=" + field);
   }
 
@@ -488,16 +500,21 @@ public final class ProcesschunksParam implements DetachedCommandDetails, Paralle
     throw new IllegalArgumentException("field=" + fieldInterface);
   }
 
-  public ConstEtomoNumber getEtomoNumber(etomo.comscript.FieldInterface fieldInterface) {
+  public ConstEtomoNumber getEtomoNumber(
+      etomo.comscript.FieldInterface fieldInterface) {
     throw new IllegalArgumentException("field=" + fieldInterface);
   }
 
-  public ConstIntKeyList getIntKeyList(etomo.comscript.FieldInterface fieldInterface) {
+  public ConstIntKeyList getIntKeyList(
+      etomo.comscript.FieldInterface fieldInterface) {
     throw new IllegalArgumentException("field=" + fieldInterface);
   }
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.39  2009/09/05 00:35:39  sueh
+ * <p> bug# 1256 Added blank getIteratorElementList.
+ * <p>
  * <p> Revision 1.38  2009/09/01 03:17:46  sueh
  * <p> bug# 1222
  * <p>

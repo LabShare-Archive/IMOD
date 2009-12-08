@@ -1,12 +1,17 @@
 package etomo.comscript;
 
 import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Hashtable;
+import java.util.List;
 import java.util.Properties;
 
 import etomo.ApplicationManager;
 import etomo.BaseManager;
+import etomo.ManagerKey;
+import etomo.storage.LogFile;
 import etomo.type.AxisID;
 import etomo.type.ConstEtomoNumber;
 import etomo.type.ConstIntKeyList;
@@ -29,6 +34,9 @@ import etomo.type.ProcessName;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.10  2009/09/05 00:35:39  sueh
+ * <p> bug# 1256 Added blank getIteratorElementList.
+ * <p>
  * <p> Revision 1.9  2009/09/01 03:17:46  sueh
  * <p> bug# 1222
  * <p>
@@ -62,15 +70,14 @@ import etomo.type.ProcessName;
  * <p> bug# 557 Parameter for squeezevol.
  * <p> </p>
  */
-public final class SqueezevolParam implements ConstSqueezevolParam
-    {
+public final class SqueezevolParam implements ConstSqueezevolParam {
   public static final String rcsid = "$Id$";
 
   private static final String GROUP_STRING = "Squeezevol";
   private static final String LINEAR_INTERPOLATION_STRING = "LinearInterpolation";
   private static final boolean DEFAULT_LINEAR_INTERPOLATION = false;
   private static final int COMMAND_SIZE = 3;
-  private static final String COMMAND_NAME = "squeezevol";
+  public static final String COMMAND_NAME = "squeezevol";
 
   private final EtomoNumber reductionFactorX = new EtomoNumber(
       EtomoNumber.Type.DOUBLE, "ReductionFactorX");
@@ -122,7 +129,7 @@ public final class SqueezevolParam implements ConstSqueezevolParam
   public CommandDetails getSubcommandDetails() {
     return null;
   }
-  
+
   public ProcessName getSubcommandProcessName() {
     return null;
   }
@@ -264,9 +271,8 @@ public final class SqueezevolParam implements ConstSqueezevolParam
   public int getIntValue(etomo.comscript.FieldInterface fieldInterface) {
     throw new IllegalArgumentException("field=" + fieldInterface);
   }
-  
-  public IteratorElementList getIteratorElementList(
-      final FieldInterface field) {
+
+  public IteratorElementList getIteratorElementList(final FieldInterface field) {
     throw new IllegalArgumentException("field=" + field);
   }
 
@@ -274,18 +280,25 @@ public final class SqueezevolParam implements ConstSqueezevolParam
     throw new IllegalArgumentException("field=" + fieldInterface);
   }
 
-  public ConstEtomoNumber getEtomoNumber(etomo.comscript.FieldInterface fieldInterface) {
+  public ConstEtomoNumber getEtomoNumber(
+      etomo.comscript.FieldInterface fieldInterface) {
     throw new IllegalArgumentException("field=" + fieldInterface);
   }
 
-  public ConstIntKeyList getIntKeyList(etomo.comscript.FieldInterface fieldInterface) {
+  public ConstIntKeyList getIntKeyList(
+      etomo.comscript.FieldInterface fieldInterface) {
     throw new IllegalArgumentException("field=" + fieldInterface);
   }
 
   public String getCommandName() {
     return COMMAND_NAME;
   }
-  
+
+  public List getLogMessage(ManagerKey managerKey)
+      throws LogFile.LockException, FileNotFoundException, IOException {
+    return null;
+  }
+
   public ProcessName getProcessName() {
     return ProcessName.SQUEEZEVOL;
   }
@@ -294,7 +307,7 @@ public final class SqueezevolParam implements ConstSqueezevolParam
     return COMMAND_NAME;
   }
 
-  public static String getName() {
+  public String getName() {
     return COMMAND_NAME;
   }
 
