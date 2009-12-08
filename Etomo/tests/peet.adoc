@@ -223,6 +223,16 @@ cb.use-equal-numbers-of-particles-from-all-tomograms-for-averages=on
 sp.particles-per-cpu=1
 bn.run=
 wait.process.processchunks-%{dataset}=done
+[[if = test-gui]]
+	#test remake averages
+	tf.start=2
+	tf.incr=2
+	bn.remake-averaged-volumes=
+	wait.process.running-averageall=done
+	bn.open-averaged-volumes-in-3dmod=
+	tf.start=3
+	tf.incr=3
+[[]]
 
 
 [function = iteration-table]
