@@ -55,6 +55,9 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.89  2009/12/08 02:47:32  sueh
+ * <p> bug# 1286 Factored out panels.
+ * <p>
  * <p> Revision 1.88  2009/12/02 04:41:49  sueh
  * <p> Factored out RadiiOfSphereOrCylinder panel.
  * <p>
@@ -446,6 +449,9 @@ public final class PeetDialog implements ContextMenu, AbstractParallelDialog,
       "Remove duplicates");
   private final MultiLineButton btnAverageAll = new MultiLineButton(
       "Remake Averaged Volumes");
+  private final CheckBox cbflgAlignAverages = new CheckBox(
+      "Align averages to have their Y axis vertical");
+
   private final SphericalSamplingForThetaAndPsiPanel sphericalSamplingForThetaAndPsiPanel;
   private final YAxisTypePanel yAxisTypePanel;
   private final MaskingPanel maskingPanel;
@@ -742,6 +748,7 @@ public final class PeetDialog implements ContextMenu, AbstractParallelDialog,
     sphericalSamplingForThetaAndPsiPanel.setParameters(matlabParam);
     maskingPanel.setParameters(matlabParam, parametersOnly);
     cbFlgRemoveDuplicates.setSelected(matlabParam.isFlgRemoveDuplicates());
+    cbflgAlignAverages.setSelected(matlabParam.isFlgAlignAverages());
     updateDisplay();
   }
 
@@ -775,6 +782,7 @@ public final class PeetDialog implements ContextMenu, AbstractParallelDialog,
     sphericalSamplingForThetaAndPsiPanel.getParameters(matlabParam);
     maskingPanel.getParameters(matlabParam);
     matlabParam.setFlgRemoveDuplicates(cbFlgRemoveDuplicates.isSelected());
+    matlabParam.setFlgAlignAverages(cbflgAlignAverages.isSelected());
   }
 
   public boolean isReferenceFileSelected() {
@@ -861,6 +869,7 @@ public final class PeetDialog implements ContextMenu, AbstractParallelDialog,
     iterationTable.reset();
     sphericalSamplingForThetaAndPsiPanel.reset();
     cbFlgRemoveDuplicates.setSelected(false);
+    cbflgAlignAverages.setSelected(false);
     setDefaults();
     updateDisplay();
   }
@@ -939,6 +948,8 @@ public final class PeetDialog implements ContextMenu, AbstractParallelDialog,
       ltfFnOutput.setToolTipText(tooltip);
       cbFlgRemoveDuplicates.setToolTipText(EtomoAutodoc.getTooltip(autodoc,
           MatlabParam.FLG_REMOVE_DUPLICATES_KEY));
+      cbflgAlignAverages.setToolTipText(EtomoAutodoc.getTooltip(autodoc,
+          MatlabParam.FLG_ALIGN_AVERAGES_KEY));
     }
     catch (FileNotFoundException e) {
       e.printStackTrace();
@@ -1075,6 +1086,7 @@ public final class PeetDialog implements ContextMenu, AbstractParallelDialog,
     pnlRunBody.add(cbRefFlagAllTom);
     pnlRunBody.add(pnlLstThresholds);
     pnlRunBody.add(cbLstFlagAllTom);
+    pnlRunBody.add(cbflgAlignAverages);
     pnlRunBody.add(pnlParticlePerCPU);
     pnlRunBody.add(pnlAdvanced);
     pnlRunBody.add(pnlButton);
@@ -1324,6 +1336,8 @@ public final class PeetDialog implements ContextMenu, AbstractParallelDialog,
     volumeTable.updateDisplay(rbInitMotlFiles.isSelected(),
         missingWedgeCompensationPanel.isTiltRangeSelected());
     maskingPanel.updateDisplay();
+    cbflgAlignAverages
+        .setEnabled(yAxisTypePanel.getYAxisType() != MatlabParam.YAxisType.Y_AXIS);
   }
 
   private void chooseDirectory() {
