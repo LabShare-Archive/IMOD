@@ -26,7 +26,10 @@ import etomo.type.EtomoAutodoc;
  * 
  * @version $Revision$
  * 
- * <p> $Log$ </p>
+ * <p> $Log$
+ * <p> Revision 1.1  2009/12/02 04:42:12  sueh
+ * <p> Factored RadiiOfSphereOrCylinder panel out of PeetDialog.
+ * <p> </p>
  */
 final class RadiiOfSphereOrCylinderPanel {
   public static final String rcsid = "$Id$";
@@ -35,7 +38,7 @@ final class RadiiOfSphereOrCylinderPanel {
   private static final String INSIDE_MASK_RADIUS_LABEL = "Inner";
   private static final String OUTSIDE_MASK_RADIUS_LABEL = "Outer";
 
-  private final EtomoPanel pnlRoot = new EtomoPanel();
+  private final SpacedPanel pnlRoot = SpacedPanel.getInstance();
   private final LabeledTextField ltfInsideMaskRadius = new LabeledTextField(
       INSIDE_MASK_RADIUS_LABEL + ": ");
   private final LabeledTextField ltfOutsideMaskRadius = new LabeledTextField(
@@ -56,35 +59,31 @@ final class RadiiOfSphereOrCylinderPanel {
         manager, parent);
     instance.createPanel();
     instance.setTooltips();
-    instance.addListeners();
     return instance;
-  }
-
-  private void addListeners() {
   }
 
   private void createPanel() {
     //root panel
-    pnlRoot.setLayout(new BoxLayout(pnlRoot, BoxLayout.X_AXIS));
+    pnlRoot.setBoxLayout(BoxLayout.X_AXIS);
     pnlRoot.setBorder(new EtchedBorder(MASK_RADII_LABEL).getBorder());
     pnlRoot.add(ltfInsideMaskRadius.getContainer());
     pnlRoot.add(ltfOutsideMaskRadius.getContainer());
   }
 
   Component getComponent() {
-    return pnlRoot;
+    return pnlRoot.getContainer();
   }
 
   /**
    * Load data from MatlabParamFile.
    * @param matlabParamFile
    */
-  public void setParameters(final MatlabParam matlabParam) {
+  void setParameters(final MatlabParam matlabParam) {
     ltfInsideMaskRadius.setText(matlabParam.getInsideMaskRadius());
     ltfOutsideMaskRadius.setText(matlabParam.getOutsideMaskRadius());
   }
 
-  public void getParameters(final MatlabParam matlabParam) {
+  void getParameters(final MatlabParam matlabParam) {
     matlabParam.setInsideMaskRadius(ltfInsideMaskRadius.getText());
     matlabParam.setOutsideMaskRadius(ltfOutsideMaskRadius.getText());
   }
@@ -96,19 +95,19 @@ final class RadiiOfSphereOrCylinderPanel {
         && ltfInsideMaskRadius.isEnabled()
         && ltfInsideMaskRadius.isEmpty()
         && ltfOutsideMaskRadius.isEnabled() && ltfOutsideMaskRadius.isEmpty()) {
-      return "In " + parent.getMaskTypeLabel() + ", "
+      return "In " + MaskingPanel.MASK_TYPE_LABEL + ", "
           + INSIDE_MASK_RADIUS_LABEL + " and/or " + OUTSIDE_MASK_RADIUS_LABEL
           + " " + MASK_RADII_LABEL + " are required when either "
-          + parent.getMaskTypeSphereLabel() + " or "
-          + parent.getMaskTypeCylinderLabel() + " is selected.";
+          + MaskingPanel.MASK_TYPE_SPHERE_LABEL + " or "
+          + MaskingPanel.MASK_TYPE_CYLINDER_LABEL + " is selected.";
     }
     return null;
   }
-  
+
   /**
    * Enabled/disables fields.
    */
-  public void updateDisplay() {
+  void updateDisplay() {
     boolean sphere = parent.isMaskTypeSphereSelected();
     boolean cylinder = parent.isMaskTypeCylinderSelected();
     ltfInsideMaskRadius.setEnabled(sphere || cylinder);
