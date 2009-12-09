@@ -160,8 +160,7 @@ tomoblobs$(E): tomoblobs.$(O)
 	$(FC) -o tomoblobs tomoblobs.$(O) $(LDFLG) $(IMLIBS) $(FORTCLIBS)
 
 sortbeadsurfs$(E): sortbeadsurfs.$(O)
-	$(FC) -o sortbeadsurfs sortbeadsurfs.$(O) find_surfaces.$(O) \
-	$(LDFLG) $(SMALLLIBS)
+	$(FC) -o sortbeadsurfs sortbeadsurfs.$(O) $(LDFLG) $(SMALLLIBS)
 
 install: $(PROGS)
 	$(STRIP) $(PROGS)
@@ -171,6 +170,9 @@ clean:
 	-\rm -f *.o* *~ *.exe $(PROGS)
 
 #  $Log$
+#  Revision 3.19  2009/12/09 01:33:43  mast
+#  sortbeadsurfs
+#
 #  Revision 3.18  2009/10/02 20:28:09  mast
 #  Added tiltxcorr; mtteach but still commented out
 #
