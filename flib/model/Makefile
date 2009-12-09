@@ -18,7 +18,8 @@ PROGS = convertmod$(E) model2point$(E) imavgstat$(E) solvematch$(E) \
  refinematch$(E) findwarp$(E) sumdensity$(E) mtrotlong$(E) howflared$(E) \
  tomopitch$(E) fiberpitch$(E) corrsearch3d$(E) repackseed$(E) resamplemod$(E) \
  findhotpixels$(E) xfjointomo$(E) boxavg$(E) tiltxcorr$(E) findbeads3d$(E) \
-# mtteach$(E)
+ sortbeadsurfs$(E)
+# mtteach$(E)  tomoblobs$(E)
 
 WLIBS = $(LWMOD) $(LIMOD) $(IMLIBS) $(FORTCLIBS)
 SMALLLIBS = $(LSMLMOD) $(LIMOD) $(IMLIBS) $(FORTCLIBS)
@@ -155,6 +156,13 @@ tiltxcorr$(E): tiltxcorr.$(O)
 tiltxcorr.$(O): tiltxcorr.f
 	$(FC) $(FFLAGS) $(OPENMP) -c tiltxcorr.f
 
+tomoblobs$(E): tomoblobs.$(O)
+	$(FC) -o tomoblobs tomoblobs.$(O) $(LDFLG) $(IMLIBS) $(FORTCLIBS)
+
+sortbeadsurfs$(E): sortbeadsurfs.$(O)
+	$(FC) -o sortbeadsurfs sortbeadsurfs.$(O) find_surfaces.$(O) \
+	$(LDFLG) $(SMALLLIBS)
+
 install: $(PROGS)
 	$(STRIP) $(PROGS)
 	$(CP) $(PROGS) $(INSTBINDIR)
@@ -163,6 +171,9 @@ clean:
 	-\rm -f *.o* *~ *.exe $(PROGS)
 
 #  $Log$
+#  Revision 3.18  2009/10/02 20:28:09  mast
+#  Added tiltxcorr; mtteach but still commented out
+#
 #  Revision 3.17  2008/12/11 06:08:09  mast
 #  Added findbeads3d
 #
