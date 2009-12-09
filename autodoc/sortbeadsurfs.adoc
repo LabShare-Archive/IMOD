@@ -40,14 +40,33 @@ each dimension.  Each will be analyzed separately to sort all of the beads
 between the two surfaces.  Make this value as large as possible, since the
 analysis can easily fail if there are only ~10 beads in any of the subareas.
 
+[Field = MajorityObjectOnly]
+short = majority
+type = B
+usage = Retain only the points on the surface with more beads
+tooltip = 
+manpage = Output a model with only one object containing
+the points on the surface that has the most beads.  Use this option if 
+there are too few fiducials on one surface to fit a smooth surface to in
+Flattenwarp(1).
+
 [Field = XAxisTilt]
-short = xtilt
+short = xaxis
 type = F
 usage = X axis tilt used to generate the tomogram (for Tiltalign output only)
 tooltip = 
 manpage = The value of X axis tilt used when the tomogram was generated.  This
 value is needed for a 3D fiducial model output by Tiltalign(1) (and only for
-such a model), 
+such a model).
+
+[Field = InvertZAxis]
+short = invert
+type = B
+usage = Invert the Z coordinates of points to match a flipped reconstruction
+tooltip = 
+manpage = Invert the Z coordinates of the points so that they will match a
+reconstruction that was Y-Z flipped rather than rotated around the X axis.
+This option is needed only for a 3D fiducial model output by Tiltalign(1).
 
 [Field = AlreadySorted]
 short = already
@@ -59,29 +78,71 @@ surfaces.  You would use this for a 3D fiducial model from Tiltalign(1) if the
 beads are already correctly sorted into two surfaces, or if they are only on
 one surface.
 
-[Field = MajorityObjectOnly]
-short = majority
-type = B
-usage = Retain only the points on the surface with more beads
-tooltip = 
-manpage = Output a model with only one object containing
-the points on the surface that has the most beads.  Use this option if 
-there are too few fiducials on one surface to fit a smooth surface to in
-Flattenwarp(1).
-
-
-[Field = ChangeSizeInXandY]
-short = change
+[Field = AlignedSizeXandY]
+short = aligned
 type = IP
-usage = X and Y size of reconstruction, adjusted for difference in binning
+usage = Unbinned X and Y size of aligned stack used to make reconstruction
 tooltip = 
-manpage = Use this option if the reconstruction is based on a final aligned
+manpage = Unbinned X and Y size of the aligned stack used to make the
+reconstruction. 
+Use this option if the reconstruction is based on a final aligned
 stack whose unbinned size is smaller or larger than that of the raw stack, and
-if you are processing a 3D fiducial model from Tiltalign(1).  The dimensions
-must be adjusted if necessary to match the binning of the prealigned stack on
-which that model was based.  Specifically, take the unbinned size of the full
-aligned stack divided by the binning of prealigned stack.
+if you are processing a 3D fiducial model from Tiltalign(1).  If the
+prealigned stack was binned, you must also enter the -prebin option.
 
+[Field = XTrimStartAndEnd]
+short = xtrim
+type = IP
+usage = Starting and ending X coordinates of aligned stack in final volume
+tooltip = 
+manpage = Starting and ending X coordinates of the aligned stack that appear
+in the final trimmed reconstruction, numbered from 1.  See next option.
+
+[Field = YTrimStartAndEnd]
+short = ytrim
+type = IP
+usage = Starting and ending Y coordinates of aligned stack in final volume
+tooltip = 
+manpage = Starting and ending Y coordinates of the aligned stack that appear
+in the final trimmed reconstruction, numbered from 1.  These two options are
+needed only for a 3D fiducial model from Tiltalign(1).  If you built the full
+reconstruction (no SLICE or WIDTH and OFFSET entries to Tilt(1)), then the
+coordinates for these two options are just the ones used to trim the volume
+with Trimvol(1).  If you built a subset of the reconstruction, the WIDTH and
+OFFSET entries can be used to derive the X coordinates, and the SLICE entries
+provide the Y coordinates.  If you then trimmed the volume, you need to
+combine the trimming coordinates with the one used to build the
+reconstruction.  If you enter these coordinates, you must enter the
+prealigned and the aligned stack binning if either is different from one.
+
+[Field = PrealignedBinning]
+short = prebin
+type = I
+usage = Binning of prealigned stack used to build 3D fiducial model
+tooltip = 
+manpage = Binning of prealigned stack used to build a 3D fiducial model.  This
+option is needed for a binning other than 1 if you enter the aligned stack
+size or trimming coordinates, or if you want to rescale to the coordinates of
+the reconstruction.
+
+[Field = ReconstructionBinning]
+short = recbin
+type = I
+usage = Binning of aligned stack used to build reconstruction
+tooltip = 
+manpage = Binning of aligned stack used to build the reconstruction.  This 
+option is needed for a 3D fiducial model if you are entering trimming
+coordinates or if you want to rescale coordinates to match the reconstruction.
+
+[Field = RescaleByBinnings]
+short = rescale
+type = B
+usage = Rescale the model coordinates to account for binning
+tooltip =
+manpage = Rescale the model coordinates to account for binning of the
+prealigned or final aligned stack.  By default output coordinates will still
+have the scaling of the prealigned stack; use this option to rescale them so
+that they match the scaling of the reconstruction.
 
 [Field = usage]
 short = help
