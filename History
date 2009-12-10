@@ -1,5 +1,16 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+12/10/09: Tomostitch has new options to allow stitching to be done with
+binned volumes then repeated with unbinned volumes; it adjusts parameters as
+appropriate.  It also automatically updates a warping patch file from a model
+that has been edited.
+
+12/10/09: Flattenwarp can smooth surfaces by fitting thin plate splines, can
+output a model for visualizing the surfaces and picking the right smoothing,
+and can accept models of gold beads based on either Tiltalign or Findbeads3d
+output.  A new program, Sortbeadsurfs, is provided to process such models
+before running into Flattenwarp.
+
 12/8/09: In Etomo - PEET added flgAlignAverages.
 
 12/7/09: In Etomo - PEET added a button for remaking averages.
