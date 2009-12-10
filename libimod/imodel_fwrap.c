@@ -66,6 +66,7 @@
 #define putscatsize  PUTSCATSIZE
 #define putsymsize   PUTSYMSIZE
 #define putsymtype   PUTSYMTYPE
+#define getobjcolor GETOBJCOLOR
 #define putobjcolor PUTOBJCOLOR
 #define getpointvalue GETPOINTVALUE
 #define getcontvalue GETCONTVALUE
@@ -113,6 +114,7 @@
 #define putscatsize  putscatsize_
 #define putsymsize   putsymsize_
 #define putsymtype   putsymtype_
+#define getobjcolor getobjcolor_
 #define putobjcolor putobjcolor_
 #define getpointvalue getpointvalue_
 #define getcontvalue getcontvalue_
@@ -1773,6 +1775,23 @@ void putsymtype(int *objnum, int *type)
 }
 
 /*!
+ * Returns the color for object [objnum] into [red], [green], [blue], where 
+ * values range from 0 to 255.
+ */
+int getobjcolor(int *objnum, int *red, int *green, int *blue)
+{
+  int ob = *objnum -1;
+  if (!Fimod)
+    return FWRAP_ERROR_NO_MODEL;
+  if (ob < 0 || ob >= Fimod->objsize)
+    return FWRAP_ERROR_BAD_OBJNUM;
+  *red = B3DNINT(255. * Fimod->obj[ob].red);
+  *green = B3DNINT(255. * Fimod->obj[ob].green);
+  *blue = B3DNINT(255. * Fimod->obj[ob].blue);
+  return FWRAP_NOERROR;
+}
+
+/*!
  * Sets the color for object [objnum] to [red], [green], [blue], where values
  * range from 0 to 255.
  */
@@ -1932,6 +1951,9 @@ int getimodnesting(int *ob, int *inOnly, int *level, int *inIndex,
 
 /*
 $Log$
+Revision 3.37  2008/12/14 00:20:46  mast
+Fixed inconsistency in getting mincolor when there are empty objects
+
 Revision 3.36  2008/12/10 16:21:08  mast
 Add defines for getimodheado -it's useful if all you need is pixel size
 
