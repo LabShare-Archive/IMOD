@@ -7,9 +7,12 @@ flattenwarp -\ compute warping transformations for flattening a volume
 flattenwarp [options] <model_file> <warping_output_file>
 .SH DESCRIPTION
 Flattenwarp produces transformations for flattening the material of interest
-in a volume, such as the sectioned material in a tomogram.  It works from an 
-IMOD model with contours drawn in X/Z planes along the surfaces or through the
-middle of the sectioned material.  It uses the positions of these contours to
+in a volume, such as the sectioned material in a tomogram.  It works from two
+different kinds of IMOD models.  One kind would have contours drawn in X/Z
+planes along the surfaces or through the middle of the sectioned material.
+The other kind would contained scattered points at the positions of gold beads
+on the surface of the section.  The program uses the positions in these
+models to
 determine how to shift each part of the volume in Z to a common plane.  In
 addition, it finds the rotations needed to make the tangents to the surface be
 flat, so as to avoid a shearing distortion of the volume.  Finally, it solves
@@ -19,7 +22,50 @@ transformations should simply unbend the sheet.  If the section is
 dome-shaped, then flattening will inevitably distort it, and the solution here
 will expand the material radially by as much as it contracts tangentially.
 .P
-To prepare the model, open the volume in 3dmod(1) and use Edit-Image-Flip
+The program can perform two kinds of smoothing of the modeled positions.  The
+first is performed automatically with contours when the spacing between points
+is small.  The contours are resampled in X at regular intervals of about 2/3
+of the spacing between contours in Y.  If there are enough nearby points to a
+point being sampled, the
+program fits a parabola to their Z values and measures the Z value from that;
+otherwise, it simply interpolates linearly between the two surrounding points.
+This smoothing allows you to draw closely spaced points without having local
+jitters in position cause artifacts in the warping.
+.P
+The second kind of smoothing involves fitting a two-dimensional spline
+function called a thin plate spline (TPS) to all of the points.  This
+smoothing is optional but recommended for contour models and mandatory for
+scattered point models.  The TPS fitting minimizes a combination of the total
+energy needed to bend a stiff sheet into the final surface, and the sum of the
+deviations of points from the surface.  A parameter called lambda controls the
+smoothing by specifying the weight given to the bending energy.  In the
+implementation here, the mean
+deviation of the points from the surface increases roughly linearly with the
+logarithm of lambda.  Thus, the values entered with the -lambda option are
+the logarithm of the actual lambda parameters, small numbers typically in the
+range of 0-4.
+.P
+It is recommended that you try the TPS smoothing with a range of lambda
+values and look at the resulting surfaces to pick the right lambda value.
+Simply run the program with a list of values for the -lambda option
+and use the -middle option to output a model with the smoothed surfaces.
+Values at intervals of 0.5 will produce useful increments in smoothing.
+Values of around 2 to 4 are needed for smoothing surfaces from contour models,
+whereas values around 0 to 2 are effective for smoothing scattered point
+models.
+The model is ready to examine in 3dmodv(1) and has a Z-scale set to 10 so that
+it is easier to assess the features in Z.  There are two useful ways to look
+at the model: by examining the original contours or scattered points along
+with one or two surfaces at a time; or by examining the original and smoothed
+contours all at once.  The former seems to be more useful and is the default
+for the initial display; the model can be output in the latter form with the
+-contour options.  Objects are named by their log lambda values; open the
+Edit-Object List dialog to turn objects on and off conveniently.  The right
+amount of smoothing is one that eliminates small-scale bumps in the surface
+without causing consistent deviations of the surface from the contours or
+points.
+.P
+To prepare a contour model, open the volume in 3dmod(1) and use Edit-Image-Flip
 to view the X/Z planes in the Zap window.  Use Edit-Object-Type to change the
 object to open contours, and select the option to start a new contour
 automatically at each new Z plane.  Start drawing contours to describe the 
@@ -38,29 +84,49 @@ which is the default and will display contours from the nearest sections with
 contours.  Use the "g" hot key, or use Edit-Contour-Type to open the
 Surf/Cont/Point dialog and select other options under "Section ghost".
 .P
-The program currently does not smooth the surface that it is flattening.  This
-means that if the points describing the surface are closely spaced, random
-variability in their Z heights could lead to substantial local distortions.
-To reduce this possibility, keep the model points and contours well-spaced
-apart.  The spacing between contours in Y should not be much smaller than is
+If you do not apply the TPS smoothing, random variability in the Z heights of
+successive contours could lead to substantial local distortions.
+To reduce this possibility, keep the contours well-spaced
+apart in Y.  The spacing between contours should not be much smaller than is
 needed to describe the changes in the surface.  The program will interpolate
 linearly in Y between the contours that you draw, so if the Z height is
 changing linearly through a set of slices, you do not need to draw contours
 within that set of slices.  You can vary the spacing, making it smaller where
-needed.  The contours themselves should be drawn by clicking individual
-points, rather than with continous drawing.  Do not follow every apparent bump
-in the surface of the section.
+needed.  Although the initial contour smoothing means you can use continuous
+drawing, do not follow every apparent bump in the surface of the section.
 .P
 You do not need to draw all the contours to the same extent in X, nor do you
 need to draw them over the full range of positions in Y.  The program will 
 output warping transformations over the range of positions where the contours
-were drawn, and Warpvol(1) will apply the nearest transformation at a position
+were drawn, and Warpvol(1) will extrapolate the transforms
 outside that range.
+.P
+A scattered point model can be based on either the 3D fiducial model that is
+output from Tiltalign(1), or a model of bead positions from Findbeads3d(1).  
+Flattening with such models can save the time involved in modeling contours,
+but many gold bead models will not be suitable.
+Models with too few points, or points not widely enough distributed, are
+unlikely to give good results.  Models will generally need to be processed
+with Sortbeadsurfs(1) before being input to Flattenwarp.  That program can
+sort the beads from Findbeads3d(1) into two objects, one for each surface.  It
+can also apply many changes that might be needed to make a 3D fiducial model
+correspond to the final tomogram that you are trying to flatten.  If you have a
+model from Findbeads3d(1), be sure to delete all the points that are not gold
+particles (points below a threshold peak strength), and also select and delete
+points that obviously not on one surface or the other.  
+.P
+For either kind of bead model, eliminating outlying points is also recommended
+for preventing bumps in the fitted surface.  The "-criterion" option
+lets you enter a criterion for removing points with extreme deviation from the
+TPS fit; the criterion is similar to a standard deviation-based criterion and
+numbers in the range 2.5 to 4 should be useful.  The program will report how
+many points are removed; it should be safe to remove up to ~10% of the
+points.
 .P
 The program determines the shifts in X and Y by obtaining a least-squares
 solution to a massive set of linear equations.  The number of variables being
 solved for depends on the spacing between grid points at which the warping
-transformation is computed.  If a solution seems problematic, trying
+transformation is computed.  If a solution seems problematic, try
 increasing the spacing with the 
 .B -spacing
 option described below.
@@ -84,6 +150,6 @@ Read parameter entries from standard input
 .SH AUTHOR
 David Mastronarde
 .SH SEE ALSO
-3dmod(1), warpvol(1)
+3dmod(1), warpvol(1), sortbeadsurfs(1)
 .SH BUGS
 Email bug reports to mast@colorado.edu.

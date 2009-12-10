@@ -35,6 +35,9 @@ contour(s) at that Y value.  For input consisting of scattered points, the
 scattered points object(s) will be copied to the output model.  In either
 case, the model will also contain contours based on
 whatever thin plate splines are fit to the data, one object per lambda value.
+The model has its Z-scale set to 10, which will greatly exaggerate the Z
+changes and make it easier to see the bumps in the surface that might cause
+artifacts in the flattened valume.
 
 [Field = BinningOfTomogram]
 short = binning
@@ -99,12 +102,12 @@ type = FA
 usage = Log of lambda values for thin plate smoothing of the surface
 tooltip =
 manpage = One or more values to control the amount of smoothing in the
-thin plate spline.  The values are the log of the lambda parameter.  If one
-value is entered, the program will go on to compute warping transforms.  If
-multiple values are entered in order to assess their effect, an output model
-must be specified with -middle, but no transforms will be computed and no
-output file is needed for them.  Values varying in steps of 0.5 will produce
-useful changes in smoothing.
+thin plate spline (TPS).  The values are the log of the lambda parameter.  If
+one value is entered, the program will go on to compute warping transforms.
+If multiple values are entered in order to assess their effect, an output
+model must be specified with -middle, but no transforms will be computed and
+no output file is needed for them.  Values varying in steps of 0.5 will
+produce useful changes in smoothing.
 Negative values are just as meaningful as positive ones.
 
 [Field = CriterionForOutliers]
@@ -130,7 +133,7 @@ usage = Set properties in output model to show contours instead of surfaces
 tooltip = 
 manpage = Set object properties in the output model so that contours will
 appear for all objects in 3dmodv.  By default, the properties are set so that
-all objects based on smoothing with a thin plate spline will display a meshed
+all objects based on smoothing with a TPS will display a meshed
 surface instead of a spline, but only the first such object will be turned on.
 
 [Field = RestoreOrientation]
