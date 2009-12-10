@@ -247,8 +247,9 @@ total number of sections in the image file.
 .B -p <filename>
 Load piece coordinates for a montaged image file from the given
 .I filename
-and enter montage fixing mode.  The final argument on the command line must be
-the .ecd file produced by blendmont(1).
+and enter montage fixing mode.  The final argument on the command line would
+ordinarily be the .ecd file produced by blendmont(1), but it is possible to
+open a montage without such a file.
 .TP
 .B -C <size>
 Set the cache
