@@ -11,53 +11,6 @@
 progname = 'fitpatches'
 prefix = 'ERROR: ' + progname + ' - '
 
-def updatePatchFromModel(patchname, modelname):
-   retval = 0
-   if os.path.exists(modelname):
-      tmpname = changeExtension(patchname, ".tmppatch")
-      try:
-         runcmd('imod2patch ' + modelname + ' ' + tmpname, None)
-      except ImodpyError, errout:
-         exitFromImodError(progname, errout)
-
-      try:
-         patchfile = open(patchname, 'r')
-         patchline = patchfile.readline()
-         patchfile.close()
-      except:
-         print "Opening or reading from " + patchname
-         sys.exit(1)
-
-      try:
-         tmpfile = open(tmpname, 'r')
-         tmpline = tmpfile.readline()
-         tmpfile.close()
-      except:
-         print "Opening or reading from " + tmpname
-         sys.exit(1)
-
-      # Use split without an argument to throw away separators
-      numstr = patchline.split()
-      oldnum = int(numstr[0])
-      numstr = tmpline.split()
-      newnum = int(numstr[0])
-      if (newnum < oldnum):
-         imodpy.makeBackupFile(patchname)
-         try:
-            os.rename(tmpname, patchname)
-         except:
-            print "Renaming " + tmpname + " to " + patchname
-            sys.exit(1)
-            
-         print "Replaced %s from model: the model has %d fewer vectors" %\
-               (patchname, oldnum - newnum)
-         retval = 1
-      else:
-         os.remove(tmpname)
-
-   return retval
-
-
 
 #### MAIN PROGRAM  ####
 #
@@ -271,3 +224,6 @@ if wroteFile:
 
 #
 #  $Log$
+#  Revision 1.1  2009/09/08 23:26:12  mast
+#  Added to package
+#
