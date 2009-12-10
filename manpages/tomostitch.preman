@@ -73,7 +73,7 @@ of these cases, the slices are numbered from 1 and can be read directly out of
 specifying -oldedge to avoid recomputing edge functions.
 .P
 Another kind of artifact can occur in the overlap zones when the transformed
-volumes contain significant areas filled with a uniform velue due to large
+volumes contain significant areas filled with a uniform value due to large
 shifts.  To handle this problem, an option is supplied to Blendmont(1) to
 exclude these areas from edge functions and from being used when blending
 across edges.
@@ -81,6 +81,21 @@ across edges.
 This program outputs a command file for the blending operation that could be
 used to run Blendmont(1) with different parameters not accessible through this
 interface.  The file is named blend_section_name.com.
+.P
+Tomostitch provides options so that you can work initially with binned volumes
+then apply the results to stitch unbinned volumes.  There are two different
+ways that you can use this capability.  One way is to do all the alignment
+through the Findwarp step of Tomostitch with binned volumes.  At that point
+you would substitute the unbinned volumes for the binned ones, then carry on
+in Tomostitch with warping, etc., using the "-scale" option to specify the
+change in scale.  Any size parameters (such as thickness) would then be
+given in unbinned pixels.  The other way is to complete the stitching,
+including the setting of good edge limits if desired to avoid artifacts beyond
+the bounds of the section.  Then either substitute the unbinned volumes for
+the binned ones, or copy the info file and all the ".warpxf" to a directory
+where the unbinned volumes are.  Then run Tomostitch with all the same
+parameters as before, using both "-scale" and "-apply" so that the program
+will scale all size and position related entries to fit the unbinned data.
 
 .SS Options
 Tomostitch uses the PIP package for input (see the manual page
@@ -98,8 +113,9 @@ When Findwarp(1) is run, several files are produced for each piece:
   piecename_res.patch  is a file with the patch vectors and residuals
   piecename_res.mod    is made from these patches with patch2imod -s 5
 .br
-To edit the patches, edit "piecename_res.mod" and replace the original patch
-file with
+To edit the patches, edit "piecename_res.mod".  When you run Tomostitch again,
+it will detect that it has been edited and replace the original patch
+file by running
   imod2patch  piecename_res.mod  piecename.patch
 .br
 When Warpvol(1) is run, it produces files named "piecename.warped".

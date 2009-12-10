@@ -73,6 +73,30 @@ usage =  Run Blendmont on warped and stacked pieces
 tooltip =
 manpage =
 
+[Field = SizeScalingFactor]
+short = scale
+type = F
+usage =  Scaling factor between analyzed volumes and volumes to be produced
+tooltip =
+manpage = Scaling factor between the volumes that were analyzed to determine
+alignment and analysis, and the volumes that are now being operated on.  For
+example, if you initially found warping for a set of volumes that were binned
+by two, and have now substituted unbinned volumes in order to stitch them,
+you would enter a factor of 2.
+
+[Field = ApplyScaleToEntries]
+short = apply
+type = B
+usage =  Apply scale factor to all appropriate entries of size and location
+tooltip =
+manpage = Apply the scale factor to all entries specifying a size or location
+for warping, density matching, stacking, and blending.  For example, if you
+complete the stitching of binned volumes, including adjusting the output
+thickness and setting lower and upper Z limits for edges in Blendmont, then
+you can use this option to rerun Tomostitch on the unbinned volumes with the
+same entries of all parameters.  Without this option, you would have to adjust
+any entries by the scaling factor manually.
+
 [Field = VerboseOutput]
 short = verbose
 type = I
@@ -265,3 +289,17 @@ for frame sizes up to 1024 pixels, increasing proportional to the maximum
 dimension of the frame above 1024.  The default in the long direction is 1.5
 times the size in the short direction.
 
+[Field = IndentShortAndLong]
+short = indents
+type = IP
+usage = Indentation of edge function from edge of overlap in short and long 
+directions
+tooltip = 
+manpage = Borders at the edge of the overlap zone in the short and long 
+directions which will be excluded when finding edge functions in Blendmont(1).
+If your data were taken as a supermontage aligned to specimen rather than
+camera axes, it may be helpful to set an indent in the long direction that
+will keep the program from analyzing images in regions where there is good
+data in only one of the two overlapping volumes.  The default size is 5 pixels
+in each direction for frame sizes up to 1024 pixels, increasing proportional
+to the maximum dimension of the frame above 1024.
