@@ -7,7 +7,8 @@
 #  $Id$
 #  Log at end
 
-import re, sys, imodpy
+import re, sys, os, os.path
+from imodpy import *
 
 # define key names as variables
 kPiece = 'Piece'
@@ -71,6 +72,54 @@ def checkDuplicate(dicty, key, message):
    if dicty.has_key(key):
       print "%s More than one entry for %s in %s" % (smpref, key, message)
       sys.exit(1)
+
+# Function to update a patch file from a model as long as the model has fewer
+# patches
+def updatePatchFromModel(patchname, modelname):
+   retval = 0
+   if os.path.exists(modelname):
+      tmpname = changeExtension(patchname, ".tmppatch")
+      try:
+         runcmd('imod2patch ' + modelname + ' ' + tmpname, None)
+      except ImodpyError, errout:
+         exitFromImodError(progname, errout)
+
+      try:
+         patchfile = open(patchname, 'r')
+         patchline = patchfile.readline()
+         patchfile.close()
+      except:
+         print "Opening or reading from " + patchname
+         sys.exit(1)
+
+      try:
+         tmpfile = open(tmpname, 'r')
+         tmpline = tmpfile.readline()
+         tmpfile.close()
+      except:
+         print "Opening or reading from " + tmpname
+         sys.exit(1)
+
+      # Use split without an argument to throw away separators
+      numstr = patchline.split()
+      oldnum = int(numstr[0])
+      numstr = tmpline.split()
+      newnum = int(numstr[0])
+      if (newnum < oldnum):
+         makeBackupFile(patchname)
+         try:
+            os.rename(tmpname, patchname)
+         except:
+            print "Renaming " + tmpname + " to " + patchname
+            sys.exit(1)
+            
+         print "Replaced %s from model: the model has %d fewer vectors" %\
+               (patchname, oldnum - newnum)
+         retval = 1
+      else:
+         os.remove(tmpname)
+
+   return retval
 
 
 def readMontInfo(filename, predata, slices, pieces, edges):
@@ -182,7 +231,7 @@ def readMontInfo(filename, predata, slices, pieces, edges):
 def writeMontInfo(filename, predata, slices, pieces, edges):
    global backedUp
    if not backedUp:
-      imodpy.makeBackupFile(filename)
+      makeBackupFile(filename)
       backedUp = True
    try:
       out = open(filename, 'w')
@@ -258,6 +307,9 @@ def montMinMax(pieces):
 
 #
 #  $Log$
+#  Revision 1.4  2009/09/08 23:28:29  mast
+#  Added some keys, added extension function, made it backup file only once
+#
 #  Revision 1.3  2008/12/18 06:24:00  mast
 #  Fixed problem reading Frame with only 2 numbers
 #
