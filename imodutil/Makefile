@@ -89,7 +89,8 @@ point2model$(E) : point2model.$(O)
 	$(CLIBS)
 
 flattenwarp$(E) : flattenwarp.$(O)
-	$(CC) -o flattenwarp flattenwarp.$(O) $(LDFLAGS) $(MODLIBS) $(CLIBS)
+	$(LAPACKLINK) -o flattenwarp flattenwarp.$(O) $(LDFLAGS) $(MODLIBS) \
+	$(CLIBS) $(LAPACKLIBS) $(LAPACK_FLIBS) $(LIMESH)
 
 imodwincpu.exe : imodwincpu.obj
 	$(CC) -o imodwincpu imodwincpu.obj $(LDFLAGS)
@@ -135,6 +136,9 @@ imodmkhv : imodmkhv.$(O)
 
 
 #  $Log$
+#  Revision 3.23  2009/09/22 14:29:01  mast
+#  Change libs for point2model
+#
 #  Revision 3.22  2009/01/21 04:47:46  mast
 #  Step deleting mode 755 files
 #
