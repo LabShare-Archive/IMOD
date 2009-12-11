@@ -55,11 +55,15 @@ Version = 1.2
 	run.function.manual-pixel-region-replacement=
 [[]]
 [[if = dataset]]
-# BB doesn't need pre-processing
-if.var.dataset.return=BB
-bn.create-fixed-stack=
-wait.process.ccd-eraser=done
-bn-use-fixed-stack=
+	# BB doesn't need pre-processing
+	if.var.dataset.return=BB
+	bn.run-clip-stats-on-raw-stack=
+	wait.process.clip-stats=done
+	bn.create-fixed-stack=
+	wait.process.ccd-eraser=done
+	bn.run-clip-stats-on-raw-stack=
+	wait.process.clip-stats=done
+	bn-use-fixed-stack=
 [[]]
 [[if = test-gui]]
 	# Check files after use fixed stack
@@ -67,6 +71,8 @@ bn-use-fixed-stack=
 	if.var.dataset.return=BB
 	assert.not-exists.file=%{dataset}%{axis}_fixed.st
 	assert.exists.file=%{dataset}%{axis}.st
+	assert.exists.file=clipstats_%{dataset}%{axis}.st.log
+	assert.exists.file=clipstats_%{dataset}%{axis}_fixed.st.log
 [[]]
 bn.done=
 [[if = test-gui]]
