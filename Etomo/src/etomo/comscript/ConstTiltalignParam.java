@@ -508,6 +508,10 @@ public class ConstTiltalignParam implements CommandDetails {
     return null;
   }
 
+  public File getCommandInputFile() {
+    return null;
+  }
+
   public int getIntValue(etomo.comscript.FieldInterface fieldInterface) {
     throw new IllegalArgumentException("field=" + fieldInterface);
   }
@@ -1037,6 +1041,9 @@ public class ConstTiltalignParam implements CommandDetails {
 
 /**
  * <p> $Log$
+ * <p> Revision 3.37  2009/12/08 02:34:35  sueh
+ * <p> bug# 1286 Implemented Loggable.
+ * <p>
  * <p> Revision 3.36  2009/09/05 00:35:39  sueh
  * <p> bug# 1256 Added blank getIteratorElementList.
  * <p>

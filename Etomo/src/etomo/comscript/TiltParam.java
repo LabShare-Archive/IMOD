@@ -11,6 +11,9 @@
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.38  2009/12/08 02:39:43  sueh
+ * <p> bug# 1286 Implemented Loggable.
+ * <p>
  * <p> Revision 3.37  2009/09/22 20:59:55  sueh
  * <p> bug# 1259 Converted to keyword value pairs.
  * <p>
@@ -371,6 +374,10 @@ public final class TiltParam implements ConstTiltParam, CommandParam {
 
   public File getCommandOutputFile() {
     return new File(manager.getPropertyUserDir(), outputFile.toString());
+  }
+
+  public File getCommandInputFile() {
+    return null;
   }
 
   public String getInputFile() {

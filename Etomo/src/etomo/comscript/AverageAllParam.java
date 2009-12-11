@@ -33,7 +33,10 @@ import etomo.util.EnvironmentVariable;
  * 
  * @version $Revision$
  * 
- * <p> $Log$ </p>
+ * <p> $Log$
+ * <p> Revision 1.1  2009/12/08 02:32:23  sueh
+ * <p> bug# 1286 Param for averageAll process.
+ * <p> </p>
  */
 public final class AverageAllParam implements CommandDetails {
   public static final String rcsid = "$Id$";
@@ -72,6 +75,10 @@ public final class AverageAllParam implements CommandDetails {
   }
 
   public File getCommandOutputFile() {
+    return null;
+  }
+
+  public File getCommandInputFile() {
     return null;
   }
 

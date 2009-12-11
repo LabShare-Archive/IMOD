@@ -338,6 +338,10 @@ public final class BlendmontParam implements CommandParam, CommandDetails {
     return new File(manager.getPropertyUserDir(), imageOutputFile);
   }
 
+  public File getCommandInputFile() {
+    return null;
+  }
+
   public String getImageOutputFile() {
     return imageOutputFile;
   }
@@ -518,6 +522,9 @@ public final class BlendmontParam implements CommandParam, CommandDetails {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.34  2009/12/08 02:33:17  sueh
+ * <p> bug# 1286 Implemented Loggable.
+ * <p>
  * <p> Revision 1.33  2009/09/21 17:43:23  sueh
  * <p> bug# 1267 Added Mod.BEND_3DFIND.
  * <p>

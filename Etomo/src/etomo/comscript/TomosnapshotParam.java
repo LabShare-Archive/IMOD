@@ -50,6 +50,10 @@ public final class TomosnapshotParam implements Command {
     return null;
   }
 
+  public File getCommandInputFile() {
+    return null;
+  }
+
   public AxisID getAxisID() {
     return axisID;
   }
@@ -113,6 +117,9 @@ public final class TomosnapshotParam implements Command {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.9  2009/09/01 03:17:46  sueh
+ * <p> bug# 1222
+ * <p>
  * <p> Revision 1.8  2009/04/02 19:14:51  sueh
  * <p> bug# 1206 Removed the manager member variable.  Calling tomosnapshot without
  * <p> options or parameters.

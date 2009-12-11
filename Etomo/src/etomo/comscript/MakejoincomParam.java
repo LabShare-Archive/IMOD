@@ -44,6 +44,9 @@ import etomo.util.DatasetFiles;
  * <p> </p>
  * 
  * <p> $Log$
+ * <p> Revision 1.30  2009/12/08 02:35:31  sueh
+ * <p> bug# 1286 Implemented Loggable.
+ * <p>
  * <p> Revision 1.29  2009/09/05 00:35:39  sueh
  * <p> bug# 1256 Added blank getIteratorElementList.
  * <p>
@@ -429,6 +432,10 @@ public final class MakejoincomParam implements CommandDetails {
   }
 
   public File getCommandOutputFile() {
+    return null;
+  }
+  
+  public File getCommandInputFile() {
     return null;
   }
 

@@ -34,6 +34,9 @@ import etomo.type.StringParameter;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.3  2009/12/08 02:34:50  sueh
+ * <p> bug# 1286 Implemented Loggable.
+ * <p>
  * <p> Revision 3.2  2009/09/05 00:35:39  sueh
  * <p> bug# 1256 Added blank getIteratorElementList.
  * <p>
@@ -228,10 +231,14 @@ public final class FindBeads3dParam implements ConstFindBeads3dParam,
   }
 
   public String getCommandName() {
-    return FileType.FIND_BEADS_3D_COMSCRIPT.getLeftSide();
+    return FileType.FIND_BEADS_3D_COMSCRIPT.getLeftExtension();
   }
 
   public File getCommandOutputFile() {
+    return null;
+  }
+  
+  public File getCommandInputFile() {
     return null;
   }
 

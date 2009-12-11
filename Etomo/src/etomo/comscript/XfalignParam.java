@@ -25,6 +25,9 @@ import etomo.type.Transform;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.19  2009/09/01 03:17:46  sueh
+ * <p> bug# 1222
+ * <p>
  * <p> Revision 1.18  2007/11/06 19:17:59  sueh
  * <p> bug# 1047 Added getSubcommandDetails.
  * <p>
@@ -207,6 +210,10 @@ public class XfalignParam implements Command {
 
   public File getCommandOutputFile() {
     return outputFile;
+  }
+
+  public File getCommandInputFile() {
+    return null;
   }
 
   public CommandMode getCommandMode() {

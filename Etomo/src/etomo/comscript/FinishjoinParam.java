@@ -41,6 +41,9 @@ import etomo.util.DatasetFiles;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.38  2009/12/08 02:35:04  sueh
+ * <p> bug# 1286 Implemented Loggable.
+ * <p>
  * <p> Revision 1.37  2009/09/05 00:35:39  sueh
  * <p> bug# 1256 Added blank getIteratorElementList.
  * <p>
@@ -414,6 +417,10 @@ public final class FinishjoinParam implements CommandDetails {
 
   public File getCommandOutputFile() {
     return outputFile;
+  }
+  
+  public File getCommandInputFile() {
+    return null;
   }
 
   public CommandMode getCommandMode() {

@@ -159,6 +159,10 @@ public class StartJoinParam implements CommandDetails {
     return null;
   }
 
+  public File getCommandInputFile() {
+    return null;
+  }
+
   public static final class Fields implements etomo.comscript.FieldInterface {
     private Fields() {
     }
@@ -170,6 +174,9 @@ public class StartJoinParam implements CommandDetails {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.11  2009/12/08 02:39:32  sueh
+ * <p> bug# 1286 Changed command to COMMAND.
+ * <p>
  * <p> Revision 1.10  2009/09/05 00:35:39  sueh
  * <p> bug# 1256 Added blank getIteratorElementList.
  * <p>

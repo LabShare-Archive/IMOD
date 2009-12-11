@@ -23,6 +23,9 @@ import etomo.type.TiltAngleSpec;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.21  2009/09/01 03:17:46  sueh
+ * <p> bug# 1222
+ * <p>
  * <p> Revision 3.20  2009/03/24 20:26:49  sueh
  * <p> bug# 1201 Added angleOffset.
  * <p>
@@ -333,6 +336,10 @@ public class ConstTiltxcorrParam implements ConstCommandParam, Command {
   
   public File getCommandOutputFile() {
     return new File(manager.getPropertyUserDir(), outputFile);
+  }
+  
+  public File getCommandInputFile() {
+    return null;
   }
   
   public AxisID getAxisID() {

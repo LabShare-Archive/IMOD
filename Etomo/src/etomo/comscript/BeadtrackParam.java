@@ -36,6 +36,9 @@ import etomo.type.ScriptParameter;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.25  2009/12/08 02:32:52  sueh
+ * <p> bug# 1286 Implemented Loggable.
+ * <p>
  * <p> Revision 3.24  2009/09/05 00:35:29  sueh
  * <p> bug# 1256 Added blank getIteratorElementList.
  * <p>
@@ -845,6 +848,10 @@ public class BeadtrackParam extends OldBeadtrackParam implements CommandParam,
   }
 
   public File getCommandOutputFile() {
+    return null;
+  }
+  
+  public File getCommandInputFile() {
     return null;
   }
 

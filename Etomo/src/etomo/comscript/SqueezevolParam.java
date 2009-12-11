@@ -34,6 +34,9 @@ import etomo.type.ProcessName;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.11  2009/12/08 02:39:22  sueh
+ * <p> bug# 1286 Implemented Loggable.
+ * <p>
  * <p> Revision 1.10  2009/09/05 00:35:39  sueh
  * <p> bug# 1256 Added blank getIteratorElementList.
  * <p>
@@ -317,6 +320,10 @@ public final class SqueezevolParam implements ConstSqueezevolParam {
 
   public File getCommandOutputFile() {
     return outputFile;
+  }
+
+  public File getCommandInputFile() {
+    return null;
   }
 
   public ConstEtomoNumber getReductionFactorX() {

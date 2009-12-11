@@ -87,6 +87,10 @@ public class ArchiveorigParam implements Command {
   public File getCommandOutputFile() {
     return outputFile;
   }
+  
+  public File getCommandInputFile() {
+    return null;
+  }
 
   public AxisID getAxisID() {
     return AxisID.ONLY;
@@ -110,6 +114,9 @@ public class ArchiveorigParam implements Command {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.12  2009/09/01 03:17:46  sueh
+ * <p> bug# 1222
+ * <p>
  * <p> Revision 1.11  2007/11/06 19:05:10  sueh
  * <p> bug# 1047 Added getSubcommandDetails.
  * <p>

@@ -34,6 +34,9 @@ import etomo.util.MRCHeader;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.24  2009/12/08 02:37:36  sueh
+ * <p> bug# 1286 Implemented Loggable.
+ * <p>
  * <p> Revision 3.23  2009/09/21 17:45:56  sueh
  * <p> bug# 1267 Reformatted.
  * <p>
@@ -1011,6 +1014,10 @@ public final class NewstParam implements ConstNewstParam, CommandParam {
   }
 
   public File getCommandOutputFile() {
+    return null;
+  }
+  
+  public File getCommandInputFile() {
     return null;
   }
 

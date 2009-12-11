@@ -30,6 +30,9 @@ import etomo.type.ProcessName;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.18  2009/12/08 02:35:17  sueh
+ * <p> bug# 1286 Implemented Loggable.
+ * <p>
  * <p> Revision 1.17  2009/09/05 00:35:39  sueh
  * <p> bug# 1256 Added blank getIteratorElementList.
  * <p>
@@ -188,6 +191,10 @@ public class FlipyzParam implements CommandDetails {
 
   public File getCommandOutputFile() {
     return flipFile;
+  }
+  
+  public File getCommandInputFile() {
+    return null;
   }
 
   public CommandDetails getSubcommandDetails() {

@@ -25,6 +25,9 @@ import etomo.util.DatasetFiles;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.4  2009/09/01 03:17:46  sueh
+ * <p> bug# 1222
+ * <p>
  * <p> Revision 1.3  2007/11/06 19:16:14  sueh
  * <p> bug# 1047 Added getSubcommandDetails.
  * <p>
@@ -151,4 +154,9 @@ public final class RemapmodelParam implements Command {
   public File getCommandOutputFile() {
     return DatasetFiles.getRefineAlignedModelFile(manager);
   }
+  
+  public File getCommandInputFile() {
+    return null;
+  }
+
 }

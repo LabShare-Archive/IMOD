@@ -111,6 +111,10 @@ public final class ProcesschunksParam implements DetachedCommandDetails,
   public File getCommandOutputFile() {
     return null;
   }
+  
+  public File getCommandInputFile() {
+    return null;
+  }
 
   public void setSubcommandMode(CommandMode input) {
     subcommandMode = input;
@@ -512,6 +516,9 @@ public final class ProcesschunksParam implements DetachedCommandDetails,
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.40  2009/12/08 02:37:59  sueh
+ * <p> bug# 1286 Implemented Loggable.
+ * <p>
  * <p> Revision 1.39  2009/09/05 00:35:39  sueh
  * <p> bug# 1256 Added blank getIteratorElementList.
  * <p>

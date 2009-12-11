@@ -37,6 +37,9 @@ import etomo.util.DatasetFiles;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.14  2009/12/08 02:31:14  sueh
+ * <p> bug# 1286 Implemented Loggable.
+ * <p>
  * <p> Revision 1.13  2009/09/05 00:34:48  sueh
  * <p> bug# 1256 Removed ParsedIteratorDescriptor.  Using the IteratorParser
  * <p> and the IteratorElementList instead.
@@ -312,6 +315,10 @@ public final class AnisotropicDiffusionParam implements CommandDetails {
   }
 
   public File getCommandOutputFile() {
+    return null;
+  }
+  
+  public File getCommandInputFile() {
     return null;
   }
 

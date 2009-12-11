@@ -37,6 +37,9 @@ import etomo.util.DatasetFiles;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.12  2009/12/08 02:40:03  sueh
+ * <p> bug# 1286 Implemented Loggable.
+ * <p>
  * <p> Revision 1.11  2009/09/05 00:35:39  sueh
  * <p> bug# 1256 Added blank getIteratorElementList.
  * <p>
@@ -301,6 +304,10 @@ public final class XfmodelParam implements CommandDetails {
 
   public File getCommandOutputFile() {
     return DatasetFiles.getRefineAlignedModelFile(manager);
+  }
+
+  public File getCommandInputFile() {
+    return null;
   }
 
   public ConstEtomoNumber getEtomoNumber(

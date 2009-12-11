@@ -26,6 +26,9 @@ import etomo.type.SectionTableRowData;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.15  2009/09/01 03:17:46  sueh
+ * <p> bug# 1222
+ * <p>
  * <p> Revision 1.14  2009/03/17 00:32:12  sueh
  * <p> bug# 1186 Pass managerKey to everything that pops up a dialog.
  * <p>
@@ -201,6 +204,10 @@ public class MidasParam implements Command {
 
   public File getCommandOutputFile() {
     return outputFile;
+  }
+  
+  public File getCommandInputFile() {
+    return null;
   }
 
   public CommandMode getCommandMode() {

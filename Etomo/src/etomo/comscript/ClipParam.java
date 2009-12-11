@@ -15,6 +15,8 @@ import etomo.type.ConstEtomoNumber;
 import etomo.type.ConstIntKeyList;
 import etomo.type.IteratorElementList;
 import etomo.type.ProcessName;
+import etomo.util.InvalidParameterException;
+import etomo.util.MRCHeader;
 
 /**
  * <p>Description: Runs clip command.  Currently always uses the rotx option.</p>
@@ -30,6 +32,9 @@ import etomo.type.ProcessName;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.4  2009/12/08 02:34:05  sueh
+ * <p> bug# 1286 Implemented Loggable.
+ * <p>
  * <p> Revision 1.3  2009/09/05 00:35:39  sueh
  * <p> bug# 1256 Added blank getIteratorElementList.
  * <p>
@@ -45,13 +50,23 @@ public final class ClipParam implements CommandDetails {
 
   public static final ProcessName PROCESS_NAME = ProcessName.CLIP;
   private static final int commandSize = 1;
-  private File clipFile;
+  private File outputFile;
   private String[] commandArray;
   private boolean debug = true;
 
-  public ClipParam(File tomogram, File workingDir) {
+  private final BaseManager manager;
+  private final AxisID axisID;
+  private final Mode mode;
+  private final File inputFile;
+
+  public ClipParam(BaseManager manager, AxisID axisID, File inputFile,
+      File workingDir, Mode mode) {
+    this.manager = manager;
+    this.axisID = axisID;
+    this.mode = mode;
+    this.inputFile=inputFile;
     //TODO use array for command string
-    ArrayList options = genOptions(tomogram, workingDir);
+    ArrayList options = genOptions(inputFile, workingDir);
     commandArray = new String[options.size() + commandSize];
     commandArray[0] = BaseManager.getIMODBinPath() + PROCESS_NAME.toString();
     for (int i = 0; i < options.size(); i++) {
@@ -69,27 +84,63 @@ public final class ClipParam implements CommandDetails {
     return AxisID.ONLY;
   }
 
-  private ArrayList genOptions(File tomogram, File workingDir) {
+  private ArrayList genOptions(File inputFile, File workingDir) {
     ArrayList options = new ArrayList(3);
-    options.add("rotx");
-    options.add(tomogram.getAbsolutePath());
-    int index = tomogram.getName().lastIndexOf('.');
-    StringBuffer clipFileName = new StringBuffer();
-    if (index == -1) {
-      clipFileName.append(tomogram.getName());
+    //Add process.
+    options.add(mode.toString());
+    //Add options.
+    if (mode == Mode.STATS) {
+      //Put a * on the outliers.
+      options.add("-n");
+      options.add("2.5");
+      //The length should be 1/4 of Z, but between 15 and 30.
+      options.add("-l");
+      int length;
+      int min = 15;
+      int max = 30;
+      MRCHeader header = MRCHeader.getInstanceFromFileName(manager, axisID,
+          inputFile.getName(), manager.getManagerKey());
+      try {
+        header.read();
+        length = header.getNSections();
+      }
+      catch (InvalidParameterException e) {
+        //Pick a midrange number if the header can't be read.
+        length = max * 2;
+      }
+      catch (IOException e) {
+        //Pick a midrange number if the header can't be read.
+        length = max * 2;
+      }
+      length /= 4;
+      if (length < min) {
+        length = min;
+      }
+      if (length > max) {
+        length = max;
+      }
+      options.add(String.valueOf(length));
+      //Display the views starting from 1 instead of 0.
+      options.add("-1");
     }
-    else {
-      clipFileName.append(tomogram.getName().substring(0, index));
+    //Add input files.
+    options.add(inputFile.getAbsolutePath());
+    //Add output files.
+    if (mode == Mode.ROTX) {
+      int index = inputFile.getName().lastIndexOf('.');
+      StringBuffer clipFileName = new StringBuffer();
+      if (index == -1) {
+        clipFileName.append(inputFile.getName());
+      }
+      else {
+        clipFileName.append(inputFile.getName().substring(0, index));
+      }
+      //Still using .flip for the output name for clip rotx, since we used to flip
+      //instead of rotate.
+      outputFile = new File(workingDir, clipFileName + ".flip");
+      options.add(outputFile.getAbsolutePath());
     }
-    //Still using .flip for the output name for clip rotx, since we used to flip
-    //instead of rotate.
-    clipFile = new File(workingDir, clipFileName + ".flip");
-    options.add(clipFile.getAbsolutePath());
     return options;
-  }
-
-  public File getClipFile() {
-    return clipFile;
   }
 
   public String getCommandLine() {
@@ -126,7 +177,11 @@ public final class ClipParam implements CommandDetails {
   }
 
   public File getCommandOutputFile() {
-    return clipFile;
+    return outputFile;
+  }
+  
+  public File getCommandInputFile() {
+    return inputFile;
   }
 
   public CommandDetails getSubcommandDetails() {
@@ -178,6 +233,21 @@ public final class ClipParam implements CommandDetails {
   }
 
   public CommandMode getCommandMode() {
-    return null;
+    return mode;
+  }
+
+  public static final class Mode implements CommandMode {
+    public static final Mode ROTX = new Mode("rotx");
+    public static final Mode STATS = new Mode("stats");
+
+    private final String process;
+
+    private Mode(String process) {
+      this.process = process;
+    }
+
+    public String toString() {
+      return process;
+    }
   }
 }

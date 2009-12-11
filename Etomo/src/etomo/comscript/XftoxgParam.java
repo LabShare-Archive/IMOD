@@ -24,6 +24,9 @@ import etomo.util.DatasetFiles;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.3  2009/09/01 03:17:46  sueh
+ * <p> bug# 1222
+ * <p>
  * <p> Revision 1.2  2007/11/06 19:18:38  sueh
  * <p> bug# 1047 Added getSubcommandDetails.
  * <p>
@@ -122,5 +125,9 @@ public final class XftoxgParam implements Command {
 
   public File getCommandOutputFile() {
     return DatasetFiles.getRefineXgFile(manager);
+  }
+
+  public File getCommandInputFile() {
+    return null;
   }
 }

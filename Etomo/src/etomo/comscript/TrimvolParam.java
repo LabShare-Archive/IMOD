@@ -11,6 +11,9 @@
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.37  2009/12/08 02:39:53  sueh
+ * <p> bug# 1286 Implemented Loggable.
+ * <p>
  * <p> Revision 3.36  2009/10/23 21:23:57  sueh
  * <p> bug# 1281 In setDefaultRange, always setting min and max values when
  * <p> the dialog has never been created.  Also setting any min or max value that
@@ -986,6 +989,10 @@ public class TrimvolParam implements CommandDetails {
 
   public File getCommandOutputFile() {
     return new File(outputFile);
+  }
+
+  public File getCommandInputFile() {
+    return null;
   }
 
   public  String getName() {
