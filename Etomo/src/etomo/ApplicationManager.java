@@ -15,6 +15,7 @@ import etomo.comscript.ArchiveorigParam;
 import etomo.comscript.BeadtrackParam;
 import etomo.comscript.BlendmontParam;
 import etomo.comscript.CCDEraserParam;
+import etomo.comscript.ClipParam;
 import etomo.comscript.ComScriptManager;
 import etomo.comscript.CombineComscriptState;
 import etomo.comscript.CombineParams;
@@ -1503,6 +1504,23 @@ public final class ApplicationManager extends BaseManager implements
       return;
     }
     setThreadName(threadName, axisID);
+  }
+
+  public void clipStats(AxisID axisID, FileType inputFileType,
+      ConstProcessSeries processSeries) {
+    ClipParam clipParam = new ClipParam(this, axisID, inputFileType.getFile(
+        this, axisID), new File(getPropertyUserDir()), ClipParam.Mode.STATS);
+    try {
+      threadNameA = processMgr.clipStats(clipParam, processSeries);
+    }
+    catch (SystemProcessException except) {
+      except.printStackTrace();
+      uiHarness.openMessageDialog("Can't run clip stats\n"
+          + except.getMessage(), "SystemProcessException", AxisID.ONLY,
+          getManagerKey());
+      return;
+    }
+    mainPanel.startProgressBar("clip stats ", AxisID.ONLY);
   }
 
   /**
@@ -7897,6 +7915,11 @@ public final class ApplicationManager extends BaseManager implements
 }
 /**
  * <p> $Log$
+ * <p> Revision 3.342  2009/10/27 19:55:51  sueh
+ * <p> bug# 1275 Added createLogPanel - moves the resposibility for creating the
+ * <p> log panel to the child classes.  That way the Front Page manager doesn't
+ * <p> have to have a log panel.
+ * <p>
  * <p> Revision 3.341  2009/10/23 22:12:07  sueh
  * <p> bug# 1275 Made touch() a start function in BaseProcessManager.
  * <p>
