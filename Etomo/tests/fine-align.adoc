@@ -233,6 +233,7 @@ tb.general.1=
 [[]]
 [[if = test-values]]
 	# check values
+	sleep=1
 	bn.advanced=
 	assert.cb.solve-for-single-stretch-during-projection=off
 	bn.basic=
