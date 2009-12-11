@@ -31,9 +31,13 @@ public interface Command {
   public CommandDetails getSubcommandDetails();
   public ProcessName getSubcommandProcessName();
   public ProcessName getProcessName();
+  public File getCommandInputFile();
 }
 /**
 * <p> $Log$
+* <p> Revision 1.13  2009/09/01 03:17:46  sueh
+* <p> bug# 1222
+* <p>
 * <p> Revision 1.12  2007/11/06 19:04:49  sueh
 * <p> bug# 1047 Added getSubcommandDetails to allow a Command to contain
 * <p> another command.  This is useful for processchunks.
