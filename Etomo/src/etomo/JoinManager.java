@@ -72,6 +72,11 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.82  2009/10/27 20:38:56  sueh
+ * <p> bug# 1275 Moving the resposibility for creating the log panel to the child
+ * <p> classes.  That way the Front Page manager doesn't have to have a log
+ * <p> panel.  Handling a null process manager.
+ * <p>
  * <p> Revision 1.81  2009/10/23 22:22:15  sueh
  * <p> bug# 1275 Made touch() a start function in BaseProcessManager.
  * <p>
@@ -605,7 +610,7 @@ public final class JoinManager extends BaseManager {
 
   protected void createComScriptManager() {
   }
-  
+
   public LogPanel createLogPanel() {
     return LogPanel.getInstance(getManagerKey());
   }
@@ -1421,7 +1426,8 @@ public final class JoinManager extends BaseManager {
 
   public void rotx(File tomogram, File workingDir,
       ConstProcessSeries processSeries) {
-    ClipParam clipParam = new ClipParam(tomogram, workingDir);
+    ClipParam clipParam = new ClipParam(this, AxisID.ONLY, tomogram,
+        workingDir, ClipParam.Mode.ROTX);
     try {
       threadNameA = processMgr.rotx(clipParam, processSeries);
     }
