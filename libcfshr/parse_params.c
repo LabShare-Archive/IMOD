@@ -821,6 +821,14 @@ void PipPrintEntries()
   }
   if (!printEntries)
     return;
+
+  /* Count up entries */
+  j = 0;
+  for (i = 0; i < numOptions; i++)
+    j += optTable[i].count;
+  if (!(j + optTable[nonOptInd].count))
+    return;
+
   printf("\n*** Entries to program %s ***\n", programName);
   for (i = 0; i < numOptions; i++) {
     sname = optTable[i].shortName;
@@ -1882,6 +1890,9 @@ static int CheckKeyword(char *line, char *keyword, char **copyto, int *gotit,
 
 /*
 $Log$
+Revision 1.5  2009/12/04 20:27:11  mast
+Added automatic printing of entries
+
 Revision 1.4  2009/02/17 02:54:20  mast
 Keep error reports on one line
 
