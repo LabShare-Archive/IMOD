@@ -9,7 +9,7 @@ import etomo.util.DatasetFiles;
 /**
  * <p>Description: A type of file associated with a process-level panel.</p>
  * 
- * <p>Copyright: Copyright 2008</p>
+ * <p>Copyright: Copyright 2008, 2009</p>
  *
  * <p>Organization:
  * Boulder Laboratory for 3-Dimensional Electron Microscopy of Cells (BL3DEMC),
@@ -20,6 +20,9 @@ import etomo.util.DatasetFiles;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.2  2009/09/01 02:30:35  sueh
+ * <p> bug# 1222 Added new file types.
+ * <p>
  * <p> Revision 1.1  2009/06/05 02:05:14  sueh
  * <p> bug# 1219 A class to help other classes specify files without knowing very
  * <p> much about them.
@@ -28,25 +31,32 @@ import etomo.util.DatasetFiles;
 public final class FileType {
   public static final String rcsid = "$Id$";
 
-  public static final FileType TRIM_VOL_OUTPUT = FileType.getOutputInstance(
+  //stacks
+  public static final FileType CCD_ERASER_INPUT = FileType.getStackInstance(
+      ImodManager.RAW_STACK_KEY, true);
+  public static final FileType CCD_ERASER_OUTPUT = FileType.getStackInstance(
+      ImodManager.ERASED_STACK_KEY, true);
+  public static final FileType TRIM_VOL_OUTPUT = FileType.getStackInstance(
       ImodManager.TRIMMED_VOLUME_KEY, false);
-  public static final FileType SQUEEZE_VOL_OUTPUT = FileType.getOutputInstance(
+  public static final FileType SQUEEZE_VOL_OUTPUT = FileType.getStackInstance(
       ImodManager.SQUEEZED_VOLUME_KEY, false);
-  public static final FileType FLATTEN_OUTPUT = FileType.getOutputInstance(
+  public static final FileType FLATTEN_OUTPUT = FileType.getStackInstance(
       ImodManager.FLAT_VOLUME_KEY, false);
   public static final FileType NEWST_OR_BLEND_3D_FIND_OUTPUT = FileType
-      .getOutputInstance(ImodManager.FINE_ALIGNED_3D_FIND_KEY, true);
+      .getStackInstance(ImodManager.FINE_ALIGNED_3D_FIND_KEY, true);
   public static final FileType NEWST_OR_BLEND_OUTPUT = FileType
-      .getOutputInstance(ImodManager.FINE_ALIGNED_KEY, true);
-  public static final FileType TILT_3D_FIND_OUTPUT = FileType
-      .getOutputInstance(ImodManager.FULL_VOLUME_3D_FIND_KEY, true);
+      .getStackInstance(ImodManager.FINE_ALIGNED_KEY, true);
+  public static final FileType TILT_3D_FIND_OUTPUT = FileType.getStackInstance(
+      ImodManager.FULL_VOLUME_3D_FIND_KEY, true);
 
+  //input models
   public static final FileType CCD_ERASER_BEADS_INPUT_MODEL = FileType
       .getModelInstance();
-
+  //output models
   public static final FileType FIND_BEADS_3D_OUTPUT_MODEL = FileType
       .getModelInstance();
 
+  //comscripts
   public static final FileType TRACK_COMSCRIPT = FileType
       .getComscriptInstance(ProcessName.TRACK);
   public static final FileType FIND_BEADS_3D_COMSCRIPT = FileType
@@ -65,12 +75,12 @@ public final class FileType {
     this.usesDataset = usesDataset;
   }
 
-  private static FileType getOutputInstance(String imodManagerKey) {
+  private static FileType getStackInstance(String imodManagerKey) {
     FileType instance = new FileType(imodManagerKey, null, true, true);
     return instance;
   }
 
-  private static FileType getOutputInstance(String imodManagerKey,
+  private static FileType getStackInstance(String imodManagerKey,
       boolean usesAxisID) {
     FileType instance = new FileType(imodManagerKey, null, usesAxisID, true);
     return instance;
@@ -127,13 +137,19 @@ public final class FileType {
     if (usesDataset) {
       //Example:  BBa_erase.fid
       return manager.getBaseMetaData().getName() + axisIDExtension
-          + getLeftSide() + getExtension();
+          + getLeftExtension() + getExtension();
     }
     //Example:  newsta.com
-    return getLeftSide() + axisIDExtension + getExtension();
+    return getLeftExtension() + axisIDExtension + getExtension();
   }
 
-  public String getLeftSide() {
+  public String getLeftExtension() {
+    if (this == CCD_ERASER_INPUT) {
+      return "";
+    }
+    if (this == CCD_ERASER_OUTPUT) {
+      return "_fixed";
+    }
     if (this == TRIM_VOL_OUTPUT) {
       return "";
     }
@@ -186,7 +202,13 @@ public final class FileType {
   }
 
   private String getExtension() {
-    //output
+    //stacks
+    if (this == CCD_ERASER_INPUT) {
+      return DatasetFiles.STACK_EXT;
+    }
+    if (this == CCD_ERASER_OUTPUT) {
+      return DatasetFiles.STACK_EXT;
+    }
     if (this == TRIM_VOL_OUTPUT) {
       return ".rec";
     }
@@ -222,7 +244,7 @@ public final class FileType {
 
   public String toString() {
     if (imodManagerKey == null) {
-      return getLeftSide() + getExtension();
+      return getLeftExtension() + getExtension();
     }
     return imodManagerKey;
   }
