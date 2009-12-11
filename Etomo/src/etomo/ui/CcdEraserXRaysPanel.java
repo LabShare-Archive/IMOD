@@ -93,9 +93,9 @@ final class CcdEraserXRaysPanel implements ContextMenu,
   private final Run3dmodButton btnViewErased = Run3dmodButton.get3dmodInstance(
       "View Fixed Stack", this);
   private final MultiLineButton btnClipStatsRaw = new MultiLineButton(
-      "Run Clip Stats on Raw Stack");
+      "Show Min/Max for Raw Stack");
   private final MultiLineButton btnClipStatsFixed = new MultiLineButton(
-      "Run Clip Stats on Fixed Stack");
+      "Show Min/Max for Fixed Stack");
 
   private final ApplicationManager applicationManager;
   private final AxisID axisID;
@@ -194,29 +194,27 @@ final class CcdEraserXRaysPanel implements ContextMenu,
     btnClipStatsFixed.setSize();
     JPanel pnlEraseButtons = new JPanel();
     pnlEraseButtons.setLayout(new BoxLayout(pnlEraseButtons, BoxLayout.Y_AXIS));
-    JPanel pnlEraseButtons1 = new JPanel();
-    pnlEraseButtons1
-        .setLayout(new BoxLayout(pnlEraseButtons1, BoxLayout.X_AXIS));
-    pnlEraseButtons1.add(Box.createHorizontalGlue());
-    pnlEraseButtons1.add(btnClipStatsRaw.getComponent());
-    pnlEraseButtons1.add(Box.createHorizontalGlue());
-    pnlEraseButtons1.add(btnErase.getComponent());
-    pnlEraseButtons1.add(Box.createHorizontalGlue());
-    pnlEraseButtons1.add(btnViewErased.getComponent());
-    pnlEraseButtons1.add(Box.createHorizontalGlue());
-    JPanel pnlEraseButtons2 = new JPanel();
-    pnlEraseButtons2
-        .setLayout(new BoxLayout(pnlEraseButtons2, BoxLayout.X_AXIS));
-    pnlEraseButtons2.add(Box.createHorizontalGlue());
-    pnlEraseButtons2.add(btnClipStatsFixed.getComponent());
-    pnlEraseButtons2.add(Box.createHorizontalGlue());
-    pnlEraseButtons2.add(btnReplaceRawStack.getComponent());
-    pnlEraseButtons2.add(Box.createHorizontalGlue());
-    pnlEraseButtons.add(pnlEraseButtons1);
-    pnlEraseButtons.add(pnlEraseButtons2);
-    UIUtilities.setButtonSizeAll(pnlEraseButtons1, UIParameters.INSTANCE
+    JPanel pnlErase = new JPanel();
+    pnlErase.setLayout(new BoxLayout(pnlErase, BoxLayout.X_AXIS));
+    pnlErase.add(Box.createHorizontalGlue());
+    pnlErase.add(btnErase.getComponent());
+    pnlErase.add(Box.createHorizontalGlue());
+    pnlErase.add(btnViewErased.getComponent());
+    pnlErase.add(Box.createHorizontalGlue());
+    pnlErase.add(btnReplaceRawStack.getComponent());
+    pnlErase.add(Box.createHorizontalGlue());
+    JPanel pnlClipStats = new JPanel();
+    pnlClipStats.setLayout(new BoxLayout(pnlClipStats, BoxLayout.X_AXIS));
+    pnlClipStats.add(Box.createHorizontalGlue());
+    pnlClipStats.add(btnClipStatsRaw.getComponent());
+    pnlClipStats.add(Box.createHorizontalGlue());
+    pnlClipStats.add(btnClipStatsFixed.getComponent());
+    pnlClipStats.add(Box.createHorizontalGlue());
+    pnlEraseButtons.add(pnlErase);
+    pnlEraseButtons.add(pnlClipStats);
+    UIUtilities.setButtonSizeAll(pnlErase, UIParameters.INSTANCE
         .getButtonDimension());
-    UIUtilities.setButtonSizeAll(pnlEraseButtons2, UIParameters.INSTANCE
+    UIUtilities.setButtonSizeAll(pnlClipStats, UIParameters.INSTANCE
         .getButtonDimension());
 
     UIUtilities.addWithYSpace(pnlCCDEraser, pnlEraseButtons);
@@ -586,6 +584,9 @@ final class CcdEraserXRaysPanel implements ContextMenu,
 
 /**
  * <p> $Log$
+ * <p> Revision 3.2  2009/12/11 17:28:52  sueh
+ * <p> bug# 1291 Added btnClipStatsFixed and btnClipStatsRaw.
+ * <p>
  * <p> Revision 3.1  2009/09/01 03:18:25  sueh
  * <p> bug# 1222
  * <p>
