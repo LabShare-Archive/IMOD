@@ -1,5 +1,7 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+12/11/09: In Etomo added buttons to run "clip stats" in Preprocessing.
+
 12/10/09: Tomostitch has new options to allow stitching to be done with
 binned volumes then repeated with unbinned volumes; it adjusts parameters as
 appropriate.  It also automatically updates a warping patch file from a model
