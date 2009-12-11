@@ -35,7 +35,7 @@ public final class DatasetFiles {
   public static final String ROTATED_TOMO_EXT = ".rot";
   public static final String COMSCRIPT_EXT = ".com";
   public static final String TOMO_EXT = ".rec";
-  private static final String STACK_EXT = ".st";
+  public static final String STACK_EXT = ".st";
   public static final String MODEL_EXT = ".mod";
   private static final String PATCH_VECTOR_STRING = "patch_vector";
   public static final String PATCH_VECTOR_MODEL = PATCH_VECTOR_STRING
@@ -561,6 +561,10 @@ public final class DatasetFiles {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.53  2009/09/21 18:11:13  sueh
+ * <p> bug# 1267 In getDatasetFile corrected the name of the filename
+ * <p> parameter - changed it to fileExt.
+ * <p>
  * <p> Revision 1.52  2009/09/01 02:29:45  sueh
  * <p> bug# 1222 Made ERASE_EXT and FIDUCIAL_MODEL_EXT public.  Removed
  * <p> getEraseFiducialsModelName.  This is because of the introduction of
