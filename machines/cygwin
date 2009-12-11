@@ -195,6 +195,7 @@ if ($compiler == intel) then
     set limesh = libimesh.lib
     set lifft = libifft.lib
     set ltiff = libtiff.lib
+    set lapacklibs = "liblapack.lib libblas.lib"
     set imsubsobj = '*.obj'
     set ldnmncar = "libdnmncar.lib"
     echo 'IMLIBS     =  $(LIBWMOD) libhvem.lib libmrcim.lib libifft.lib libcfshr.lib' >> $configure
