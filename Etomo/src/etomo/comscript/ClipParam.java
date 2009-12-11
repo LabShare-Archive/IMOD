@@ -32,6 +32,10 @@ import etomo.util.MRCHeader;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.5  2009/12/11 17:25:59  sueh
+ * <p> bug# 1291 Made current functionality a mode called ROTX.  Added a new
+ * <p> mode called STATS.
+ * <p>
  * <p> Revision 1.4  2009/12/08 02:34:05  sueh
  * <p> bug# 1286 Implemented Loggable.
  * <p>
