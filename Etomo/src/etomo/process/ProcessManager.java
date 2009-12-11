@@ -20,6 +20,11 @@
  * 
  * <p>
  * $Log$
+ * Revision 3.142  2009/12/11 17:27:47  sueh
+ * bug# 1291 Added clipStats.  Popping up clipStats results in post
+ * processing.  Generalized showTransferfidLogFile; changed it to
+ * showLogFile.
+ *
  * Revision 3.141  2009/12/08 02:42:03  sueh
  * bug# 1286 Implemented Loggable in parameter classes.
  *
@@ -2008,10 +2013,11 @@ public class ProcessManager extends BaseProcessManager {
    * Puts a log file into a window and displays it.
    * @param logFile
    */
-  private void showLogFile(File logFile) {
+  private void showLogFile(File logFile, boolean shortTitle) {
     //  Show a log file window to the user
     TextPageWindow logFileWindow = new TextPageWindow();
-    logFileWindow.setVisible(logFileWindow.setFile(logFile.getAbsolutePath()));
+    logFileWindow.setVisible(logFileWindow.setFile(shortTitle ? logFile
+        .getName() : logFile.getAbsolutePath()));
   }
 
   private void printPsOutput(AxisID axisID) {
@@ -2311,9 +2317,10 @@ public class ProcessManager extends BaseProcessManager {
         else if (command.getProcessName() == ProcessName.CLIP) {
           if (command.getCommandMode() == ClipParam.Mode.STATS) {
             String logFileName = command.getCommandInputFile().getName()
-                + "_clipstats.log";
+                + "_stats.log";
             writeLogFile(process, process.getAxisID(), logFileName);
-            showLogFile(new File(appManager.getPropertyUserDir(), logFileName));
+            showLogFile(new File(appManager.getPropertyUserDir(), logFileName),
+                true);
           }
         }
       }
@@ -2330,7 +2337,7 @@ public class ProcessManager extends BaseProcessManager {
         writeLogFile(process, process.getAxisID(),
             DatasetFiles.TRANSFER_FID_LOG);
         showLogFile(new File(appManager.getPropertyUserDir(),
-            DatasetFiles.TRANSFER_FID_LOG));
+            DatasetFiles.TRANSFER_FID_LOG), false);
       }
     }
     catch (Exception e) {
