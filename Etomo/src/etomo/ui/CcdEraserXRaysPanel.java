@@ -35,14 +35,17 @@ import etomo.storage.autodoc.ReadOnlyAutodoc;
 import etomo.type.AxisID;
 import etomo.type.DialogType;
 import etomo.type.EtomoAutodoc;
+import etomo.type.FileType;
 import etomo.type.ProcessResultDisplay;
 import etomo.type.ProcessResultDisplayFactory;
 import etomo.type.ReconScreenState;
 import etomo.type.Run3dmodMenuOptions;
 
 final class CcdEraserXRaysPanel implements ContextMenu,
-    Run3dmodButtonContainer, CcdEraserDisplay,Expandable {
+    Run3dmodButtonContainer, CcdEraserDisplay, Expandable {
   public static final String rcsid = "$Id$";
+
+  private static final String ERASE_LABEL = "Create Fixed Stack";
 
   private final JPanel pnlCCDEraser = new JPanel();
   private final EtomoPanel pnlManualReplacement = new EtomoPanel();
@@ -89,6 +92,10 @@ final class CcdEraserXRaysPanel implements ContextMenu,
       "Include adjacent points");
   private final Run3dmodButton btnViewErased = Run3dmodButton.get3dmodInstance(
       "View Fixed Stack", this);
+  private final MultiLineButton btnClipStatsRaw = new MultiLineButton(
+      "Run Clip Stats on Raw Stack");
+  private final MultiLineButton btnClipStatsFixed = new MultiLineButton(
+      "Run Clip Stats on Fixed Stack");
 
   private final ApplicationManager applicationManager;
   private final AxisID axisID;
@@ -98,7 +105,7 @@ final class CcdEraserXRaysPanel implements ContextMenu,
   private final CCDEraserXRaysActionListener ccdEraserActionListener;
 
   private CcdEraserXRaysPanel(final ApplicationManager appMgr, final AxisID id,
-      final DialogType dialogType,GlobalExpandButton globalAdvancedButton) {
+      final DialogType dialogType, GlobalExpandButton globalAdvancedButton) {
     applicationManager = appMgr;
     axisID = id;
     this.dialogType = dialogType;
@@ -183,16 +190,33 @@ final class CcdEraserXRaysPanel implements ContextMenu,
     UIUtilities.addWithYSpace(pnlCCDEraser, cbIncludeAdjacentPoints);
 
     pnlCCDEraser.add(Box.createRigidArea(FixedDim.x0_y5));
+    btnClipStatsRaw.setSize();
+    btnClipStatsFixed.setSize();
     JPanel pnlEraseButtons = new JPanel();
-    pnlEraseButtons.setLayout(new BoxLayout(pnlEraseButtons, BoxLayout.X_AXIS));
-    pnlEraseButtons.add(Box.createHorizontalGlue());
-    pnlEraseButtons.add(btnErase.getComponent());
-    pnlEraseButtons.add(Box.createHorizontalGlue());
-    pnlEraseButtons.add(btnViewErased.getComponent());
-    pnlEraseButtons.add(Box.createHorizontalGlue());
-    pnlEraseButtons.add(btnReplaceRawStack.getComponent());
-    pnlEraseButtons.add(Box.createHorizontalGlue());
-    UIUtilities.setButtonSizeAll(pnlEraseButtons, UIParameters.INSTANCE
+    pnlEraseButtons.setLayout(new BoxLayout(pnlEraseButtons, BoxLayout.Y_AXIS));
+    JPanel pnlEraseButtons1 = new JPanel();
+    pnlEraseButtons1
+        .setLayout(new BoxLayout(pnlEraseButtons1, BoxLayout.X_AXIS));
+    pnlEraseButtons1.add(Box.createHorizontalGlue());
+    pnlEraseButtons1.add(btnClipStatsRaw.getComponent());
+    pnlEraseButtons1.add(Box.createHorizontalGlue());
+    pnlEraseButtons1.add(btnErase.getComponent());
+    pnlEraseButtons1.add(Box.createHorizontalGlue());
+    pnlEraseButtons1.add(btnViewErased.getComponent());
+    pnlEraseButtons1.add(Box.createHorizontalGlue());
+    JPanel pnlEraseButtons2 = new JPanel();
+    pnlEraseButtons2
+        .setLayout(new BoxLayout(pnlEraseButtons2, BoxLayout.X_AXIS));
+    pnlEraseButtons2.add(Box.createHorizontalGlue());
+    pnlEraseButtons2.add(btnClipStatsFixed.getComponent());
+    pnlEraseButtons2.add(Box.createHorizontalGlue());
+    pnlEraseButtons2.add(btnReplaceRawStack.getComponent());
+    pnlEraseButtons2.add(Box.createHorizontalGlue());
+    pnlEraseButtons.add(pnlEraseButtons1);
+    pnlEraseButtons.add(pnlEraseButtons2);
+    UIUtilities.setButtonSizeAll(pnlEraseButtons1, UIParameters.INSTANCE
+        .getButtonDimension());
+    UIUtilities.setButtonSizeAll(pnlEraseButtons2, UIParameters.INSTANCE
         .getButtonDimension());
 
     UIUtilities.addWithYSpace(pnlCCDEraser, pnlEraseButtons);
@@ -212,7 +236,8 @@ final class CcdEraserXRaysPanel implements ContextMenu,
   }
 
   static CcdEraserXRaysPanel getInstance(final ApplicationManager appMgr,
-      final AxisID id, final DialogType dialogType,GlobalExpandButton globalAdvancedButton) {
+      final AxisID id, final DialogType dialogType,
+      GlobalExpandButton globalAdvancedButton) {
     CcdEraserXRaysPanel instance = new CcdEraserXRaysPanel(appMgr, id,
         dialogType, globalAdvancedButton);
     instance.addListeners();
@@ -226,7 +251,7 @@ final class CcdEraserXRaysPanel implements ContextMenu,
 
   static ProcessResultDisplay getCreateFixedStackDisplay(
       final DialogType dialogType) {
-    return Run3dmodButton.getDeferredToggle3dmodInstance("Create Fixed Stack",
+    return Run3dmodButton.getDeferredToggle3dmodInstance(ERASE_LABEL,
         dialogType);
   }
 
@@ -249,6 +274,8 @@ final class CcdEraserXRaysPanel implements ContextMenu,
     btnReplaceRawStack.addActionListener(ccdEraserActionListener);
     cbXrayReplacement.addActionListener(ccdEraserActionListener);
     cbManualReplacement.addActionListener(ccdEraserActionListener);
+    btnClipStatsRaw.addActionListener(ccdEraserActionListener);
+    btnClipStatsFixed.addActionListener(ccdEraserActionListener);
   }
 
   /**
@@ -357,7 +384,7 @@ final class CcdEraserXRaysPanel implements ContextMenu,
     ltfInputImage.setVisible(state);
     ltfOutputImage.setVisible(state);
   }
-  
+
   public void expand(GlobalExpandButton button) {
     updateAdvanced(button.isExpanded());
     UIHarness.INSTANCE.pack(axisID, applicationManager);
@@ -365,7 +392,6 @@ final class CcdEraserXRaysPanel implements ContextMenu,
 
   public void expand(ExpandButton button) {
   }
-
 
   public void action(final Run3dmodButton button,
       final Run3dmodMenuOptions run3dmodMenuOptions) {
@@ -412,6 +438,12 @@ final class CcdEraserXRaysPanel implements ContextMenu,
     }
     else if (command.equals(btnViewErased.getActionCommand())) {
       applicationManager.imodErasedStack(axisID, run3dmodMenuOptions);
+    }
+    else if (command.equals(btnClipStatsRaw.getActionCommand())) {
+      applicationManager.clipStats(axisID, FileType.CCD_ERASER_INPUT, null);
+    }
+    else if (command.equals(btnClipStatsFixed.getActionCommand())) {
+      applicationManager.clipStats(axisID, FileType.CCD_ERASER_OUTPUT, null);
     }
   }
 
@@ -529,6 +561,12 @@ final class CcdEraserXRaysPanel implements ContextMenu,
             + "raw stack filename, therefore for ccderaser to have an effect on "
             + "your data you must commit the raw stack when you are satisfied with"
             + " your ccderaser output stack.");
+    btnClipStatsRaw
+        .setToolTipText("Run clip stats on the raw stack.  Prints information "
+            + "about each section");
+    btnClipStatsFixed
+        .setToolTipText("Run clip stats on the stack created by the "
+            + ERASE_LABEL + " button.  Prints information about each section.");
   }
 
   //  Action listener
@@ -548,6 +586,9 @@ final class CcdEraserXRaysPanel implements ContextMenu,
 
 /**
  * <p> $Log$
+ * <p> Revision 3.1  2009/09/01 03:18:25  sueh
+ * <p> bug# 1222
+ * <p>
  * <p> Revision 1.1  2009/06/16 22:52:44  sueh
  * <p> bug# 1221 Panel for erasing x-rays.  Runs ccderaser in several different
  * <p> ways.
