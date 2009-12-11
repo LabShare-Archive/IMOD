@@ -20,6 +20,9 @@
  * 
  * <p>
  * $Log$
+ * Revision 3.141  2009/12/08 02:42:03  sueh
+ * bug# 1286 Implemented Loggable in parameter classes.
+ *
  * Revision 3.140  2009/10/30 20:53:07  sueh
  * Removed unnecessary prints.
  *
@@ -941,6 +944,7 @@ import etomo.comscript.ArchiveorigParam;
 import etomo.comscript.BeadtrackParam;
 import etomo.comscript.BlendmontParam;
 import etomo.comscript.CCDEraserParam;
+import etomo.comscript.ClipParam;
 import etomo.comscript.CombineComscriptState;
 import etomo.comscript.Command;
 import etomo.comscript.CommandDetails;
@@ -1091,6 +1095,16 @@ public class ProcessManager extends BaseProcessManager {
     BackgroundProcess backgroundProcess = startBackgroundProcess(param
         .getCommandArray(), axisID, processResultDisplay,
         ProcessName.CCD_ERASER, processSeries);
+    return backgroundProcess.getName();
+  }
+
+  /**
+   * Run clip stats
+   */
+  public String clipStats(ClipParam param, ConstProcessSeries processSeries)
+      throws SystemProcessException {
+    BackgroundProcess backgroundProcess = startBackgroundProcess(param,
+        AxisID.ONLY, ProcessName.CLIP, processSeries);
     return backgroundProcess.getName();
   }
 
@@ -1991,16 +2005,13 @@ public class ProcessManager extends BaseProcessManager {
   }
 
   /**
-   * Unique case to parse the output of transferfid and save it to a file
-   * 
-   * @param process
+   * Puts a log file into a window and displays it.
+   * @param logFile
    */
-  private void showTransferfidLogFile(AxisID axisID) {
+  private void showLogFile(File logFile) {
     //  Show a log file window to the user
     TextPageWindow logFileWindow = new TextPageWindow();
-    logFileWindow.setVisible(logFileWindow.setFile(appManager
-        .getPropertyUserDir()
-        + File.separator + DatasetFiles.TRANSFER_FID_LOG));
+    logFileWindow.setVisible(logFileWindow.setFile(logFile.getAbsolutePath()));
   }
 
   private void printPsOutput(AxisID axisID) {
@@ -2297,6 +2308,14 @@ public class ProcessManager extends BaseProcessManager {
         else if (commandName.equals(ArchiveorigParam.COMMAND_NAME)) {
           appManager.deleteOriginalStack(command, process.getStdOutput());
         }
+        else if (command.getProcessName() == ProcessName.CLIP) {
+          if (command.getCommandMode() == ClipParam.Mode.STATS) {
+            String logFileName = command.getCommandInputFile().getName()
+                + "_clipstats.log";
+            writeLogFile(process, process.getAxisID(), logFileName);
+            showLogFile(new File(appManager.getPropertyUserDir(), logFileName));
+          }
+        }
       }
     }
     catch (Exception e) {
@@ -2310,7 +2329,8 @@ public class ProcessManager extends BaseProcessManager {
       if (process.getCommandLine().equals(transferfidCommandLine)) {
         writeLogFile(process, process.getAxisID(),
             DatasetFiles.TRANSFER_FID_LOG);
-        showTransferfidLogFile(process.getAxisID());
+        showLogFile(new File(appManager.getPropertyUserDir(),
+            DatasetFiles.TRANSFER_FID_LOG));
       }
     }
     catch (Exception e) {
