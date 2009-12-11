@@ -34,5 +34,7 @@ peet: dummy
 	$(IMOD_UITEST_SCRIPT)/uitest peet
 peet-test-gui: dummy
 	$(IMOD_UITEST_SCRIPT)/uitest peet-test-gui
+generic: dummy
+	$(IMOD_UITEST_SCRIPT)/uitest generic
 dummy:
 	
