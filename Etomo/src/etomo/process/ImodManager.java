@@ -40,6 +40,9 @@ import etomo.util.Utilities;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.74  2009/09/01 03:17:56  sueh
+ * <p> bug# 1222
+ * <p>
  * <p> Revision 3.73  2009/06/05 01:52:24  sueh
  * <p> bug# 1219 Added FLAT_VOLUME_KEY, flatVolumeKey, newFlatVolume, and
  * <p> setStartNewContoursAtNewZ.  Added the axisID to setSwapYZ.
@@ -2039,7 +2042,8 @@ public class ImodManager {
         throw new AxisTypeException(key + " cannot be found in "
             + axisType.toString());
       }
-      if (axisID != AxisID.ONLY) {
+      //Correct axis
+      if (axisID == AxisID.FIRST) {
         axisID = AxisID.ONLY;
       }
     }
