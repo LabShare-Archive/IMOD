@@ -20,6 +20,9 @@
  * 
  * <p>
  * $Log$
+ * Revision 3.143  2009/12/11 20:51:33  sueh
+ * bug# 1291 Allow showLogFile to display just the file name as the title.
+ *
  * Revision 3.142  2009/12/11 17:27:47  sueh
  * bug# 1291 Added clipStats.  Popping up clipStats results in post
  * processing.  Generalized showTransferfidLogFile; changed it to
@@ -2314,7 +2317,8 @@ public class ProcessManager extends BaseProcessManager {
         else if (commandName.equals(ArchiveorigParam.COMMAND_NAME)) {
           appManager.deleteOriginalStack(command, process.getStdOutput());
         }
-        else if (command.getProcessName() == ProcessName.CLIP) {
+        else if (command != null
+            && command.getProcessName() == ProcessName.CLIP) {
           if (command.getCommandMode() == ClipParam.Mode.STATS) {
             String logFileName = command.getCommandInputFile().getName()
                 + "_stats.log";
