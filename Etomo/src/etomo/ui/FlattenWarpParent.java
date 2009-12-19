@@ -16,6 +16,9 @@ import etomo.type.ImageFileType;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.2  2009/09/01 03:18:25  sueh
+* <p> bug# 1222
+* <p>
 * <p> Revision 1.1  2009/06/05 02:12:40  sueh
 * <p> bug# 1219 An interface for the class that is responsible for
 * <p> FlattenWarpPanel.
@@ -24,5 +27,5 @@ import etomo.type.ImageFileType;
 interface FlattenWarpParent {
   public static  final String  rcsid =  "$Id$";
   
-  public ImageFileType getFileTypeForSurfaceModel();
+  public ImageFileType getInputFileType();
 }
