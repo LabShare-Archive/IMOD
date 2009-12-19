@@ -20,6 +20,7 @@ public interface ConstMetaData {
   public static final String rcsid = "$Id$";
 
   public ConstEtomoNumber getPostCurTab();
+
   public AxisType getAxisType();
 
   public String getDatasetName();
@@ -125,10 +126,17 @@ public interface ConstMetaData {
   public boolean isPostSqueezeVolInputTrimVol();
 
   public boolean isFiducialessAlignment(AxisID axisID);
+
+  public String getLambdaForSmoothing();
+
+  public String getLambdaForSmoothingList();
 }
 
 /**
  * <p> $Log$
+ * <p> Revision 3.54  2009/10/16 21:12:49  sueh
+ * <p> bug# 1230 Added getPostCurTab.
+ * <p>
  * <p> Revision 3.53  2009/09/01 02:38:06  sueh
  * <p> bug# 1222 Added 3d find binning.
  * <p>

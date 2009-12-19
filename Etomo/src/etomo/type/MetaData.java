@@ -28,6 +28,9 @@ import etomo.util.Utilities;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.54  2009/10/23 21:24:16  sueh
+ * <p> bug# 1281 Added postExists.
+ * <p>
  * <p> Revision 3.53  2009/10/16 21:13:07  sueh
  * <p> bug# 1230 Added postCurTab.
  * <p>
@@ -530,7 +533,12 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
   /**
    * postExists is true if the post processing dialog has opened at least once.
    */
-  private final EtomoBoolean2 postExists = new EtomoBoolean2(POST_KEY +".Exists");
+  private final EtomoBoolean2 postExists = new EtomoBoolean2(POST_KEY
+      + ".Exists");
+  private final EtomoNumber lambdaForSmoothing = new EtomoNumber(
+      EtomoNumber.Type.DOUBLE, POST_KEY + ".LambdaForSmoothing");
+  private final StringProperty lambdaForSmoothingList = new StringProperty(
+      POST_KEY + ".LambdaForSmoothingList");
 
   public MetaData(ApplicationManager manager) {
     this.manager = manager;
@@ -606,6 +614,22 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
         appendMessage("Dual axis image stack files must end in a.st and b.st.\n");
       }
     }
+  }
+
+  public void setLambdaForSmoothing(String input) {
+    lambdaForSmoothing.set(input);
+  }
+
+  public String getLambdaForSmoothing() {
+    return lambdaForSmoothing.toString();
+  }
+
+  public void setLambdaForSmoothingList(String input) {
+    lambdaForSmoothingList.set(input);
+  }
+
+  public String getLambdaForSmoothingList() {
+    return lambdaForSmoothingList.toString();
   }
 
   public void setTransferfidAFields(TransferfidParam param) {
@@ -729,8 +753,8 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
   public void setPostCurTab(int input) {
     postCurTab.set(input);
   }
-  
-  public void setPostExists (boolean input ) {
+
+  public void setPostExists(boolean input) {
     postExists.set(input);
   }
 
@@ -1002,6 +1026,8 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
     stack3dFindBinningB.reset();
     postCurTab.reset();
     postExists.reset();
+    lambdaForSmoothing.reset();
+    lambdaForSmoothingList.reset();
     //load
     prepend = createPrepend(prepend);
     String group = prepend + ".";
@@ -1172,8 +1198,10 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
     posBinningB.load(props, prepend);
     stack3dFindBinningA.load(props, prepend);
     stack3dFindBinningB.load(props, prepend);
-    postCurTab.load(props,prepend);
-    postExists.load(props,prepend);
+    postCurTab.load(props, prepend);
+    postExists.load(props, prepend);
+    lambdaForSmoothing.load(props,prepend);
+    lambdaForSmoothingList.load(props,prepend);
   }
 
   public void setNoBeamTiltSelected(AxisID axisID, boolean selected) {
@@ -1364,8 +1392,10 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
     stackBinningB.store(props, prepend);
     stack3dFindBinningA.store(props, prepend);
     stack3dFindBinningB.store(props, prepend);
-    postCurTab.store(props,prepend);
-    postExists.store(props,prepend);
+    postCurTab.store(props, prepend);
+    postExists.store(props, prepend);
+    lambdaForSmoothing.store(props,prepend);
+    lambdaForSmoothingList.store(props,prepend);
   }
 
   public boolean getTrackUseRaptor() {
@@ -1651,11 +1681,11 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
     }
     return stack3dFindBinningA.getDefaultedInt();
   }
-  
+
   public ConstEtomoNumber getPostCurTab() {
     return postCurTab;
   }
-  
+
   public boolean isPostExists() {
     return postExists.is();
   }
