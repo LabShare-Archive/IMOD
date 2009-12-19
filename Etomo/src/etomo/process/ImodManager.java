@@ -40,6 +40,9 @@ import etomo.util.Utilities;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.75  2009/12/17 16:45:14  sueh
+ * <p> bug# 1295 Fixed axis correction in getVector(String,AxisID).
+ * <p>
  * <p> Revision 3.74  2009/09/01 03:17:56  sueh
  * <p> bug# 1222
  * <p>
@@ -579,6 +582,8 @@ public class ImodManager {
       "fine aligned for findbeads3d");
   public static final String FULL_VOLUME_3D_FIND_KEY = new String(
       "full volume for findbeads3d");
+  public static final String SMOOTHING_ASSESSMENT_KEY = new String(
+      "Smoothing assessment flattenwarp output");
 
   //private keys - used with imodMap
   private static final String rawStackKey = RAW_STACK_KEY;
@@ -617,6 +622,7 @@ public class ImodManager {
   private static final String flatVolumeKey = FLAT_VOLUME_KEY;
   private static final String fineAligned3dFindKey = FINE_ALIGNED_3D_FIND_KEY;
   private static final String fullVolume3dFindKey = FULL_VOLUME_3D_FIND_KEY;
+  private static final String smoothingAssessmentKey = SMOOTHING_ASSESSMENT_KEY;
 
   private boolean useMap = true;
   private final BaseManager manager;
@@ -1604,6 +1610,9 @@ public class ImodManager {
     if (key.equals(FULL_VOLUME_3D_FIND_KEY) && axisID != null) {
       return newFullVolume3dFind(axisID);
     }
+    if (key.equals(SMOOTHING_ASSESSMENT_KEY) && axisID != null) {
+      return newSmoothingAssessment(axisID);
+    }
     throw new IllegalArgumentException(key + " cannot be created in "
         + axisType.toString() + " with axisID=" + axisID.getExtension());
   }
@@ -1932,6 +1941,13 @@ public class ImodManager {
         FileType.TILT_3D_FIND_OUTPUT.getFileName(manager, axisID));
     imodState.setAllowMenuBinningInZ(true);
     imodState.setInitialSwapYZ(true);
+    return imodState;
+  }
+
+  private ImodState newSmoothingAssessment(AxisID axisID) {
+    ImodState imodState = new ImodState(manager, ImodState.MODV, axisID);
+    imodState.setNoMenuOptions(true);
+    imodState.addWindowOpenOption(ImodProcess.WindowOpenOption.OBJECT_LIST);
     return imodState;
   }
 
