@@ -2,10 +2,8 @@ package etomo.ui;
 
 import java.awt.Component;
 import java.awt.Container;
-import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.util.Vector;
 
 import javax.swing.Box;
 import javax.swing.BoxLayout;
@@ -16,7 +14,6 @@ import javax.swing.JPanel;
 import etomo.ApplicationManager;
 import etomo.comscript.TrimvolParam;
 import etomo.process.ImodManager;
-import etomo.process.ImodProcess;
 import etomo.type.AxisID;
 import etomo.type.DialogType;
 import etomo.type.InvalidEtomoNumberException;
@@ -36,6 +33,9 @@ import etomo.type.Run3dmodMenuOptions;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.38  2009/09/17 19:12:06  sueh
+ * <p> Removed unnecessary print.
+ * <p>
  * <p> Revision 3.37  2009/09/01 03:18:25  sueh
  * <p> bug# 1222
  * <p>
@@ -233,14 +233,6 @@ public final class TrimvolPanel implements Run3dmodButtonContainer,
 
   private EtomoPanel pnlTrimvol = new EtomoPanel();
 
-  private EtomoPanel pnlRange = new EtomoPanel();
-  private LabeledTextField ltfXMin = new LabeledTextField("X min: ");
-  private LabeledTextField ltfXMax = new LabeledTextField("X max: ");
-  private LabeledTextField ltfYMin = new LabeledTextField("Y min: ");
-  private LabeledTextField ltfYMax = new LabeledTextField("Y max: ");
-  private LabeledTextField ltfZMin = new LabeledTextField("Z min: ");
-  private LabeledTextField ltfZMax = new LabeledTextField("Z max: ");
-
   private SpacedPanel pnlScale = SpacedPanel.getInstance();
   private JPanel pnlScaleFixed = new JPanel();
   private CheckBox cbConvertToBytes = new CheckBox("Convert to bytes");
@@ -280,6 +272,9 @@ public final class TrimvolPanel implements Run3dmodButtonContainer,
   private MultiLineButton btnGetCoordinates = new MultiLineButton(
       "Get XYZ Volume Range From 3dmod");
   private JPanel pnlImodFull = new JPanel();
+  private final VolumeRangePanel volumeRangePanel = VolumeRangePanel
+  .getInstance();
+  
   private final ButtonListener buttonActonListener;
   private final RubberbandPanel pnlScaleRubberband;
   private final AxisID axisID;
@@ -315,17 +310,6 @@ public final class TrimvolPanel implements Run3dmodButtonContainer,
     btnTrimvol.setSize();
     btnImodTrim.setSize();
     btnGetCoordinates.setSize();
-
-    //  Layout the range panel
-    pnlRange.setLayout(new GridLayout(3, 2, 5, 5));
-    pnlRange.setBorder(new EtchedBorder("Volume Range").getBorder());
-
-    pnlRange.add(ltfXMin.getContainer());
-    pnlRange.add(ltfXMax.getContainer());
-    pnlRange.add(ltfYMin.getContainer());
-    pnlRange.add(ltfYMax.getContainer());
-    pnlRange.add(ltfZMin.getContainer());
-    pnlRange.add(ltfZMax.getContainer());
 
     //  Layout the scale panel
     pnlScaleFixed.setLayout(new BoxLayout(pnlScaleFixed, BoxLayout.X_AXIS));
@@ -376,7 +360,7 @@ public final class TrimvolPanel implements Run3dmodButtonContainer,
     pnlImodFull.add(btnGetCoordinates.getComponent());
     pnlImodFull.add(Box.createHorizontalGlue());
     pnlTrimvol.add(pnlImodFull);
-    pnlTrimvol.add(pnlRange);
+    pnlTrimvol.add(volumeRangePanel.getComponent());
     pnlTrimvol.add(Box.createRigidArea(FixedDim.x0_y10));
     pnlTrimvol.add(pnlScale.getContainer());
     pnlTrimvol.add(Box.createRigidArea(FixedDim.x0_y10));
@@ -422,7 +406,6 @@ public final class TrimvolPanel implements Run3dmodButtonContainer,
 
     buttonActonListener = new ButtonListener(this);
     btnImodFull.addActionListener(buttonActonListener);
-    System.err.println("adding action listener to btnTrimvol");
     btnTrimvol.addActionListener(buttonActonListener);
     btnImodTrim.addActionListener(buttonActonListener);
     btnGetCoordinates.addActionListener(buttonActonListener);
@@ -441,13 +424,7 @@ public final class TrimvolPanel implements Run3dmodButtonContainer,
    * @param trimvolParam
    */
   void setParameters(TrimvolParam trimvolParam) {
-    ltfXMin.setText(trimvolParam.getXMin());
-    ltfXMax.setText(trimvolParam.getXMax());
-    //  Y and Z  are swapped to present the user with Z as the depth domain
-    ltfYMin.setText(trimvolParam.getZMin());
-    ltfYMax.setText(trimvolParam.getZMax());
-    ltfZMin.setText(trimvolParam.getYMin());
-    ltfZMax.setText(trimvolParam.getYMax());
+    volumeRangePanel.setParameters(trimvolParam);
     if (trimvolParam.isSwapYZ()) {
       rbSwapYZ.setSelected(true);
     }
@@ -500,13 +477,7 @@ public final class TrimvolPanel implements Run3dmodButtonContainer,
    * @param trimvolParam
    */
   public boolean getParameters(TrimvolParam trimvolParam) {
-    trimvolParam.setXMin(ltfXMin.getText());
-    trimvolParam.setXMax(ltfXMax.getText());
-    //  Y and Z  are swapped to present the user with Z as the depth domain
-    trimvolParam.setYMin(ltfZMin.getText());
-    trimvolParam.setYMax(ltfZMax.getText());
-    trimvolParam.setZMin(ltfYMin.getText());
-    trimvolParam.setZMax(ltfYMax.getText());
+    volumeRangePanel.getParameters(trimvolParam);
     trimvolParam.setSwapYZ(rbSwapYZ.isSelected());
     trimvolParam.setRotateX(rbRotateX.isSelected());
 
@@ -547,46 +518,6 @@ public final class TrimvolPanel implements Run3dmodButtonContainer,
   public void setParameters(ReconScreenState screenState) {
     btnTrimvol.setButtonState(screenState.getButtonState(btnTrimvol
         .getButtonStateKey()));
-  }
-
-  public void setXYMinAndMax(Vector coordinates) {
-    if (coordinates == null) {
-      return;
-    }
-    int size = coordinates.size();
-    if (size == 0) {
-      return;
-    }
-    int index = 0;
-    while (index < size) {
-      if (ImodProcess.RUBBERBAND_RESULTS_STRING.equals((String) coordinates
-          .get(index++))) {
-        ltfXMin.setText((String) coordinates.get(index++));
-        if (index >= size) {
-          return;
-        }
-        ltfYMin.setText((String) coordinates.get(index++));
-        if (index >= size) {
-          return;
-        }
-        ltfXMax.setText((String) coordinates.get(index++));
-        if (index >= size) {
-          return;
-        }
-        ltfYMax.setText((String) coordinates.get(index++));
-        if (index >= size) {
-          return;
-        }
-        ltfZMin.setText((String) coordinates.get(index++));
-        if (index >= size) {
-          return;
-        }
-        ltfZMax.setText((String) coordinates.get(index++));
-        if (index >= size) {
-          return;
-        }
-      }
-    }
   }
 
   public void setZMin(String zMin) {
@@ -641,7 +572,7 @@ public final class TrimvolPanel implements Run3dmodButtonContainer,
           run3dmodMenuOptions, dialogType);
     }
     else if (command == btnGetCoordinates.getActionCommand()) {
-      setXYMinAndMax(applicationManager.imodGetRubberbandCoordinates(
+      volumeRangePanel.setXYMinAndMax(applicationManager.imodGetRubberbandCoordinates(
           ImodManager.COMBINED_TOMOGRAM_KEY, AxisID.ONLY));
     }
     else if (command == btnImodFull.getActionCommand()) {
@@ -698,14 +629,6 @@ public final class TrimvolPanel implements Run3dmodButtonContainer,
    * Initialize the tooltip text
    */
   private void setToolTipText() {
-    ltfXMin
-        .setToolTipText("The X coordinate on the left side to retain in the volume.");
-    ltfXMax
-        .setToolTipText("The X coordinate on the right side to retain in the volume.");
-    ltfYMin.setToolTipText("The lower Y coordinate to retain in the volume.");
-    ltfYMax.setToolTipText("The upper Y coordinate to retain in the volume.");
-    ltfZMin.setToolTipText("The bottom Z slice to retain in the volume.");
-    ltfZMax.setToolTipText("The top Z slice to retain in the volume.");
     cbConvertToBytes
         .setToolTipText("Scale densities to bytes with extreme densities truncated.");
     rbScaleFixed
