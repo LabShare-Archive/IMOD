@@ -20,6 +20,9 @@ import etomo.util.DatasetFiles;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.3  2009/12/11 17:28:21  sueh
+ * <p> bug# 1291 Added CCD_ERASER_INPUT and CCD_ERASER_OUTPUT.
+ * <p>
  * <p> Revision 1.2  2009/09/01 02:30:35  sueh
  * <p> bug# 1222 Added new file types.
  * <p>
@@ -49,12 +52,14 @@ public final class FileType {
   public static final FileType TILT_3D_FIND_OUTPUT = FileType.getStackInstance(
       ImodManager.FULL_VOLUME_3D_FIND_KEY, true);
 
-  //input models
+  //models
   public static final FileType CCD_ERASER_BEADS_INPUT_MODEL = FileType
       .getModelInstance();
-  //output models
+  public static final FileType FIDUCIAL_3D_MODEL = FileType
+      .getModelInstance(ImodManager.FIDUCIAL_MODEL_KEY);
   public static final FileType FIND_BEADS_3D_OUTPUT_MODEL = FileType
       .getModelInstance();
+  public static final FileType SMOOTHING_ASSESSMENT_OUTPUT_MODEL= FileType.getModelInstance(ImodManager.SMOOTHING_ASSESSMENT_KEY);
 
   //comscripts
   public static final FileType TRACK_COMSCRIPT = FileType
@@ -88,6 +93,11 @@ public final class FileType {
 
   private static FileType getModelInstance() {
     FileType instance = new FileType(null, null, true, true);
+    return instance;
+  }
+
+  private static FileType getModelInstance(String imodManagerKey) {
+    FileType instance = new FileType(imodManagerKey, null, true, true);
     return instance;
   }
 
@@ -144,11 +154,15 @@ public final class FileType {
   }
 
   public String getLeftExtension() {
+    //stacks
     if (this == CCD_ERASER_INPUT) {
       return "";
     }
     if (this == CCD_ERASER_OUTPUT) {
       return "_fixed";
+    }
+    if (this == FIDUCIAL_3D_MODEL) {
+      return "";
     }
     if (this == TRIM_VOL_OUTPUT) {
       return "";
@@ -168,12 +182,20 @@ public final class FileType {
     if (this == TILT_3D_FIND_OUTPUT) {
       return "_3dfind";
     }
+    //models
     if (this == CCD_ERASER_BEADS_INPUT_MODEL) {
       return "_erase";
+    }
+    if (this == FIDUCIAL_3D_MODEL) {
+      return "";
     }
     if (this == FIND_BEADS_3D_OUTPUT_MODEL) {
       return "_3dfind";
     }
+    if (this==SMOOTHING_ASSESSMENT_OUTPUT_MODEL) {
+      return "_checkflat";
+    }
+    //comscripts
     if (this == TRACK_COMSCRIPT) {
       return processName.toString();
     }
@@ -227,16 +249,21 @@ public final class FileType {
     if (this == TILT_3D_FIND_OUTPUT) {
       return ".rec";
     }
-    //input models
+    //models
     if (this == CCD_ERASER_BEADS_INPUT_MODEL) {
       return DatasetFiles.FIDUCIAL_MODEL_EXT;
     }
-    //output models
+    if (this == FIDUCIAL_3D_MODEL) {
+      return ".3dmod";
+    }
     if (this == FIND_BEADS_3D_OUTPUT_MODEL) {
       return DatasetFiles.MODEL_EXT;
     }
+    if (this==SMOOTHING_ASSESSMENT_OUTPUT_MODEL) {
+      return ".mod";
+    }
+    //comscripts
     if (!this.usesDataset && processName != null) {
-      //comscripts
       return ".com";
     }
     return null;
