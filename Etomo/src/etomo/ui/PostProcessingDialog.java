@@ -42,6 +42,7 @@ public final class PostProcessingDialog extends ProcessDialog implements
   private final TrimvolPanel trimvolPanel;
 
   private final TabbedPane tabbedPane = new TabbedPane();
+
   private Tab curTab = Tab.DEFAULT;
   private final FlattenPanel flattenPanel;
   private final SqueezeVolPanel squeezeVolPanel;
@@ -113,6 +114,10 @@ public final class PostProcessingDialog extends ProcessDialog implements
   public static ProcessResultDisplay getTrimVolumeDisplay() {
     return Run3dmodButton.getDeferredToggle3dmodInstance("Trim Volume",
         DialogType.POST_PROCESSING);
+  }
+  
+  public static ProcessResultDisplay getSmoothingAssessmentButton() {
+    return SmoothingAssessmentPanel.getSmoothingAssessmentButton(DialogType.POST_PROCESSING);
   }
 
   public static ProcessResultDisplay getFlattenDisplay() {
@@ -251,6 +256,11 @@ public final class PostProcessingDialog extends ProcessDialog implements
 }
 /**
  * <p> $Log$
+ * <p> Revision 3.46  2009/10/16 21:15:16  sueh
+ * <p> bug# 1230 set/getParameters(Const/MetaData) setting and getting curTab
+ * <p> from meta data.  Added changeTab(ConstEtomoNumber) to handle
+ * <p> changing the curTab.
+ * <p>
  * <p> Revision 3.45  2009/10/01 18:51:19  sueh
  * <p> bug# 1239 Changed getFlattenWarpDisplay to getFlattenWarpButton.
  * <p>
