@@ -2809,13 +2809,12 @@ public final class ApplicationManager extends BaseManager implements
   }
 
   /**
-   * Open 3dmodv with the new fidcuial model
+   * Open 3dmodv with a model
    */
-  public void imodView3DModel(AxisID axisID) {
-    String fiducialModel = metaData.getDatasetName() + axisID.getExtension()
-        + ".3dmod";
+  public void imodViewModel(AxisID axisID, FileType modelFileType) {
     try {
-      imodManager.open(ImodManager.FIDUCIAL_MODEL_KEY, axisID, fiducialModel);
+      imodManager.open(modelFileType.getImodManagerKey(), axisID, modelFileType
+          .getFileName(this, axisID));
     }
     catch (AxisTypeException except) {
       except.printStackTrace();
@@ -2824,8 +2823,8 @@ public final class ApplicationManager extends BaseManager implements
     }
     catch (SystemProcessException except) {
       except.printStackTrace();
-      uiHarness.openMessageDialog(except.getMessage(),
-          "Can't open 3dmod on fine aligned stack", axisID, getManagerKey());
+      uiHarness.openMessageDialog(except.getMessage(), "Can't open 3dmod on "
+          + modelFileType.getFileName(this, axisID), axisID, getManagerKey());
     }
     catch (IOException e) {
       e.printStackTrace();
@@ -7915,6 +7914,9 @@ public final class ApplicationManager extends BaseManager implements
 }
 /**
  * <p> $Log$
+ * <p> Revision 3.343  2009/12/11 17:23:07  sueh
+ * <p> bug# 1291 Added clipstats.
+ * <p>
  * <p> Revision 3.342  2009/10/27 19:55:51  sueh
  * <p> bug# 1275 Added createLogPanel - moves the resposibility for creating the
  * <p> log panel to the child classes.  That way the Front Page manager doesn't
