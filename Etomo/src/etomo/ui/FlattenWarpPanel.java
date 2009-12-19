@@ -36,6 +36,9 @@ import etomo.type.Run3dmodMenuOptions;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.4  2009/10/01 18:50:59  sueh
+ * <p> bug# 1239 Changed getFlattenWarpDisplay to getFlattenWarpButton.
+ * <p>
  * <p> Revision 1.3  2009/09/01 03:18:25  sueh
  * <p> bug# 1222
  * <p>
@@ -49,11 +52,12 @@ import etomo.type.Run3dmodMenuOptions;
  * <p> </p>
  */
 final class FlattenWarpPanel implements Run3dmodButtonContainer,
-    FlattenWarpDisplay {
+    FlattenWarpDisplay, SmoothingAssessmentParent {
   public static final String rcsid = "$Id$";
 
-  private static final String WARP_SPACING_X_LABEL = "Spacing in X";
-  private static final String WARP_SPACING_Y_LABEL = "and Y";
+  static final String WARP_SPACING_X_LABEL = "Spacing in X";
+  static final String WARP_SPACING_Y_LABEL = "and Y";
+  private static final String LAMBDA_FOR_SMOOTHING_LABEL = "Smoothing factor";
 
   private final SpacedPanel pnlRoot = SpacedPanel.getInstance();
   private final BinnedXY3dmodButton btnMakeSurfaceModel = new BinnedXY3dmodButton(
@@ -64,8 +68,11 @@ final class FlattenWarpPanel implements Run3dmodButtonContainer,
       WARP_SPACING_X_LABEL + ": ");
   private final LabeledTextField ltfWarpSpacingY = new LabeledTextField(" "
       + WARP_SPACING_Y_LABEL + ": ");
-  private final MultiLineButton btnFlattenWarp; //= new MultiLineButton("Run Flattenwarp");
+  private final LabeledTextField ltfLambdaForSmoothing = new LabeledTextField(
+      LAMBDA_FOR_SMOOTHING_LABEL + ": ");
 
+  private final SmoothingAssessmentPanel smoothingAssessmentPanel;
+  private final MultiLineButton btnFlattenWarp;
   private final FlattenWarpParent parent;
   private final AxisID axisID;
   private final ApplicationManager manager;
@@ -79,6 +86,8 @@ final class FlattenWarpPanel implements Run3dmodButtonContainer,
     this.parent = parent;
     btnFlattenWarp = (MultiLineButton) manager.getProcessResultDisplayFactory(
         axisID).getFlattenWarp();
+    smoothingAssessmentPanel = SmoothingAssessmentPanel.getInstance(manager,
+        axisID, dialogType, this);
   }
 
   static FlattenWarpPanel getInstance(ApplicationManager manager,
@@ -114,6 +123,8 @@ final class FlattenWarpPanel implements Run3dmodButtonContainer,
     pnlRoot.add(btnMakeSurfaceModel.getContainer());
     pnlRoot.add(pnlOneSurface);
     pnlRoot.add(pnlWarpSpacing);
+    pnlRoot.add(smoothingAssessmentPanel.getComponent());
+    pnlRoot.add(ltfLambdaForSmoothing);
     pnlRoot.add(pnlButtons);
     //One surface panel
     pnlOneSurface.setLayout(new BoxLayout(pnlOneSurface, BoxLayout.Y_AXIS));
@@ -138,17 +149,29 @@ final class FlattenWarpPanel implements Run3dmodButtonContainer,
     cbOneSurface.setSelected(metaData.isPostFlattenWarpContoursOnOneSurface());
     ltfWarpSpacingX.setText(metaData.getPostFlattenWarpSpacingInX());
     ltfWarpSpacingY.setText(metaData.getPostFlattenWarpSpacingInY());
+    ltfLambdaForSmoothing.setText(metaData.getLambdaForSmoothing());
+    smoothingAssessmentPanel.setParameters(metaData);
   }
 
   void getParameters(MetaData metaData) {
     metaData.setPostFlattenWarpContoursOnOneSurface(cbOneSurface.isSelected());
     metaData.setPostFlattenWarpSpacingInX(ltfWarpSpacingX.getText());
     metaData.setPostFlattenWarpSpacingInY(ltfWarpSpacingY.getText());
+    metaData.setLambdaForSmoothing(ltfLambdaForSmoothing.getText());
+    smoothingAssessmentPanel.getParameters(metaData);
   }
 
   public boolean getParameters(FlattenWarpParam param) {
+    String errorMessage = param.setLambdaForSmoothing(ltfLambdaForSmoothing
+        .getText());
+    if (errorMessage != null) {
+      UIHarness.INSTANCE.openMessageDialog("Error in "
+          + LAMBDA_FOR_SMOOTHING_LABEL + ":  " + errorMessage, "Entry Error",
+          axisID, manager.getManagerKey());
+      return false;
+    }
     param.setOneSurface(cbOneSurface.isSelected());
-    String errorMessage = param.setWarpSpacingX(ltfWarpSpacingX.getText());
+    errorMessage = param.setWarpSpacingX(ltfWarpSpacingX.getText());
     if (errorMessage != null) {
       UIHarness.INSTANCE.openMessageDialog("Error in " + WARP_SPACING_X_LABEL
           + ":  " + errorMessage, "Entry Error", axisID, manager
@@ -165,6 +188,18 @@ final class FlattenWarpPanel implements Run3dmodButtonContainer,
     return true;
   }
 
+  public boolean isOneSurface() {
+    return cbOneSurface.isSelected();
+  }
+
+  public String getWarpSpacingX() {
+    return ltfWarpSpacingX.getText();
+  }
+
+  public String getWarpSpacingY() {
+    return ltfWarpSpacingY.getText();
+  }
+
   public void action(final Run3dmodButton button,
       final Run3dmodMenuOptions run3dmodMenuOptions) {
     action(button.getActionCommand(), button.getDeferred3dmodButton(),
@@ -176,8 +211,7 @@ final class FlattenWarpPanel implements Run3dmodButtonContainer,
       final Run3dmodMenuOptions run3dmodMenuOptions) {
     if (command.equals(btnMakeSurfaceModel.getActionCommand())) {
       manager.imodMakeSurfaceModel(run3dmodMenuOptions, axisID,
-          btnMakeSurfaceModel.getBinningInXandY(), parent
-              .getFileTypeForSurfaceModel());
+          btnMakeSurfaceModel.getBinningInXandY(), parent.getInputFileType());
     }
     else if (command.equals(btnFlattenWarp.getActionCommand())) {
       manager.flattenWarp(btnFlattenWarp, null, deferred3dmodButton,
@@ -204,6 +238,8 @@ final class FlattenWarpPanel implements Run3dmodButtonContainer,
       e.printStackTrace();
     }
     if (autodoc != null) {
+      ltfLambdaForSmoothing.setToolTipText(EtomoAutodoc.getTooltip(autodoc,
+          FlattenWarpParam.LAMBDA_FOR_SMOOTHING_OPTION));
       cbOneSurface.setToolTipText(EtomoAutodoc.getTooltip(autodoc,
           FlattenWarpParam.ONE_SURFACE_OPTION));
       ltfWarpSpacingX.setToolTipText(EtomoAutodoc.getTooltip(autodoc,
