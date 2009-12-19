@@ -22,7 +22,7 @@ bn.done=
 	wait.popup.etomo-question=Yes
 	wait.popup.etomo-question=Yes
 	wait.popup.etomo-question=Yes
-	if.var.single.wait.popup.etomo-question=Yes
+	#if.var.single.wait.popup.etomo-question=Yes
 [[]]
 
 
@@ -162,30 +162,30 @@ tb.trim-vol.1=
 	assert.tf.temporary-directory=
 	assert.bn.flatten=off
 [[]]
-[[if = test-gui]]
-	#check enabled/disabled
-	assert.enabled.rb.flatten-the-trimvol-output=
-	assert.enabled.rb.flatten-the-squeezevol-output=
-	assert.enabled.sp.open-binned-by=
-	assert.enabled.bn.make-surface-model=
-	assert.enabled.cb.contours-are-all-on-one-surface=
-	assert.enabled.tf.spacing-in-x=
-	assert.enabled.tf.and-y=
-	assert.enabled.bn.run-flattenwarp=
-	assert.enabled.cb.linear-interpolation=
-	assert.enabled.tf.output-thickness-in-z=
-	assert.enabled.tf.temporary-directory=
-	assert.enabled.bn.flatten=
-	assert.enabled.bn.open-flattened-tomogram=
-	#run 3dmod
-	bn.make-surface-model=
-[[]]
+#check enabled/disabled
+assert.enabled.rb.flatten-the-trimvol-output=	
+assert.enabled.rb.flatten-the-squeezevol-output=
+assert.enabled.sp.open-binned-by=
+assert.enabled.bn.make-surface-model=
+assert.enabled.cb.contours-are-all-on-one-surface=
+assert.enabled.tf.spacing-in-x=
+assert.enabled.tf.and-y=
+assert.enabled.bn.run-flattenwarp=
+assert.enabled.cb.linear-interpolation=
+assert.enabled.tf.output-thickness-in-z=
+assert.enabled.tf.temporary-directory=
+assert.enabled.bn.flatten=
+assert.enabled.bn.open-flattened-tomogram=
+#run 3dmod
+bn.make-surface-model=
 [[if = test-values]]
 	#check error - can't run flattenwarp when the model hasn't been created.
 	bn.run-flattenwarp=
 	wait.popup.flattenwarp-terminated=OK
 [[]]
 copy.file=%{dataset}_flat.mod
+run.function.smoothing-asessment=
+tf.smoothing-factor=.25
 [[if = test-values]]
 	#check error - can't run from squeezevol output when it hasn't been created.
 	rb.flatten-the-squeezevol-output=
@@ -195,31 +195,43 @@ copy.file=%{dataset}_flat.mod
 [[]]
 bn.run-flattenwarp=
 wait.process.running-flattenwarp=done
-[[if = test-gui]]
-	assert.exists.file=%{dataset}_flat.xf
-	bn.run-flattenwarp=
-	wait.process.running-flattenwarp=done
-	assert.exists.file=%{dataset}_flat.xf~
-	assert.exists.file=%{dataset}_flat.xf
-[[]]
+assert.exists.file=%{dataset}_flat.xf
+bn.run-flattenwarp=
+wait.process.running-flattenwarp=done
+assert.exists.file=%{dataset}_flat.xf~
+assert.exists.file=%{dataset}_flat.xf
 bn.flatten=
 wait.process.flatten=done
-[[if = test-gui]]
-	assert.exists.file=flatten.com
-	assert.exists.file=flatten.log
-	assert.exists.file=%{dataset}_flat.rec
-	bn.flatten=
-	wait.process.flatten=done
-	assert.exists.file=flatten.log~
-	assert.exists.file=%{dataset}_flat.rec~
-	assert.exists.file=flatten.com
-	assert.exists.file=flatten.log
-	assert.exists.file=%{dataset}_flat.rec
+assert.exists.file=flatten.com
+assert.exists.file=flatten.log
+assert.exists.file=%{dataset}_flat.rec
+bn.flatten=
+wait.process.flatten=done
+assert.exists.file=flatten.log~
+assert.exists.file=%{dataset}_flat.rec~
+assert.exists.file=flatten.com
+assert.exists.file=flatten.log
+assert.exists.file=%{dataset}_flat.rec
+#check values
+assert.bn.flatten=on
+#run 3dmod
+bn.open-flattened-tomogram=
+
+
+[function = smoothing-asessment]
+[[if = test-values]]
 	#check values
-	assert.bn.flatten=on
-	#run 3dmod
-	bn.open-flattened-tomogram=
+	assert.tf.smoothing-factors=
+	assert.bn.assess-smoothing-factors=off
 [[]]
+#check enabled/disabled
+assert.enabled.tf.smoothing-factors=
+assert.enabled.bn.assess-smoothing-factors=
+assert.enabled.bn.open-assessment-in-3dmod=
+tf.smoothing-factors=.25,1,5
+bn.assess-smoothing-factors=
+wait.process.running-flattenwarp=done
+bn.open-assessment-in-3dmod=
 
 
 [function = squeeze-volume]
