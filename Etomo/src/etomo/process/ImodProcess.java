@@ -37,6 +37,10 @@ import etomo.util.Utilities;
  * 
  * <p>
  * $Log$
+ * Revision 3.62  2009/10/06 23:11:00  sueh
+ * bug# 1251 In disconnect, disconnect in all operating system, not just
+ * windows.
+ *
  * Revision 3.61  2009/09/30 19:12:19  sueh
  * iutest on salsa:  In readResponse changed timeout to 20 because timeout equals 10 was timing
  out, even when the file opened normally.
@@ -2031,6 +2035,7 @@ public class ImodProcess {
     static final WindowOpenOption IMODV_OBJECTS = new WindowOpenOption("O",
         true);
     static final WindowOpenOption ISOSURFACE = new WindowOpenOption("U", true);
+    static final WindowOpenOption OBJECT_LIST = new WindowOpenOption("L", true);
 
     private final String windowKey;
     private final boolean imodv;
