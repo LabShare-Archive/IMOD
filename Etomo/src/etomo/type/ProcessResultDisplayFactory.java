@@ -145,6 +145,8 @@ public final class ProcessResultDisplayFactory implements
       .getFlattenWarpButton();
   private final ProcessResultDisplay squeezeVolume = PostProcessingDialog
       .getSqueezeVolumeDisplay();
+  private final ProcessResultDisplay smoothingAssessment = PostProcessingDialog
+      .getSmoothingAssessmentButton();
 
   private ProcessResultDisplayFactory(BaseScreenState screenState) {
     this.screenState = screenState;
@@ -210,6 +212,7 @@ public final class ProcessResultDisplayFactory implements
     addDependency(restartVolcombine);
     //post processing
     addDependency(trimVolume);
+    addDependency(smoothingAssessment);
     addDependency(flattenWarp);
     addDependency(flatten);
     addDependency(squeezeVolume);
@@ -265,6 +268,7 @@ public final class ProcessResultDisplayFactory implements
     restartVolcombine.setScreenState(screenState);
     //post processing
     trimVolume.setScreenState(screenState);
+    smoothingAssessment.setScreenState(screenState);
     flattenWarp.setScreenState(screenState);
     flatten.setScreenState(screenState);
     squeezeVolume.setScreenState(screenState);
@@ -555,6 +559,10 @@ public final class ProcessResultDisplayFactory implements
   public ProcessResultDisplay getFlattenWarp() {
     return flattenWarp;
   }
+  
+  public ProcessResultDisplay getSmoothingAssessment() {
+    return smoothingAssessment;
+  }
 
   public ProcessResultDisplay getSqueezeVolume() {
     return squeezeVolume;
@@ -562,6 +570,10 @@ public final class ProcessResultDisplayFactory implements
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.13  2009/10/01 18:49:00  sueh
+ * <p> bug# 1239 Changed PostProcessDialog.getFlattenWarpDisplay to
+ * <p> getFlattenWarpButton.
+ * <p>
  * <p> Revision 1.12  2009/09/01 03:14:14  sueh
  * <p> bug# 1222 Added findBeads3d, flatten, flattenWarp, reprojectModel, and
  * <p> tilt3dFind.  Clarified code the adds dependancies.
