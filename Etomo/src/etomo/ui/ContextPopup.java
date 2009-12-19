@@ -32,6 +32,9 @@ import etomo.type.AxisID;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.17  2009/11/04 20:56:07  sueh
+ * <p> bug# 1242 Added optional standard menu iterm PEET user guide.
+ * <p>
  * <p> Revision 3.16  2009/03/17 00:46:24  sueh
  * <p> bug# 1186 Pass managerKey to everything that pops up a dialog.
  * <p>
@@ -329,8 +332,16 @@ public class ContextPopup {
       throw new IllegalArgumentException(message);
     }
     if (logFileLabel.length != logFile.length) {
-      String message = "log file label and log file arrays must be the same length";
-      throw new IllegalArgumentException(message);
+      StringBuffer message = new StringBuffer();
+       message.append("log file label and log file arrays must be the same length\nlogFileLabel=\n");
+       for (int i = 0;i<logFileLabel.length;i++) {
+         message.append(logFileLabel[i]+"\n");
+       }
+       message.append("logFile=\n");
+       for (int i = 0;i<logFile.length;i++) {
+         message.append(logFile[i]+"\n");
+       }
+      throw new IllegalArgumentException(message.toString());
     }
 
     this.mouseEvent = mouseEvent;
