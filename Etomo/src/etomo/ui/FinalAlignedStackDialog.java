@@ -67,6 +67,11 @@ import etomo.util.DatasetFiles;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.22  2009/11/20 17:11:47  sueh
+ * <p> bug# 1282 Naming all the file choosers by constructing a FileChooser
+ * <p> instance instead of a JFileChooser instance.  Added isMenuSaveEnabled to
+ * <p> allow a save function to have the same limits as the save menu option.
+ * <p>
  * <p> Revision 1.21  2009/10/19 21:07:03  sueh
  * <p> bug# 1263 Calling updateParallelProcess from changeTab.  In
  * <p> usingParallelProcessing take the current tab into account.
@@ -905,6 +910,7 @@ public final class FinalAlignedStackDialog extends ProcessDialog implements
         "ctfphaseflip.html", "tilt.html", "findbeads3d.html", "ccderaser.html",
         "mtffilter.html", "3dmod.html" };
     String[] logFileLabel = { alignLogfileLabel, "Ctfplotter", "Ctfcorrection",
+        alignLogfileLabel + "_3dfind", "Tilt_3dfind", "Findbeads3d",
         "Mtffilter" };
     String[] logFile = new String[7];
     logFile[0] = alignLogfile + axisID.getExtension() + ".log";
