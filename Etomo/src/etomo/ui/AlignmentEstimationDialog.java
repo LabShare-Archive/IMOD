@@ -19,6 +19,7 @@ import etomo.process.ImodProcess;
 import etomo.type.AxisID;
 import etomo.type.ConstMetaData;
 import etomo.type.DialogType;
+import etomo.type.FileType;
 import etomo.type.MetaData;
 import etomo.type.ProcessResultDisplay;
 import etomo.type.ReconScreenState;
@@ -37,6 +38,9 @@ import etomo.type.Run3dmodMenuOptions;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.38  2009/10/19 15:24:32  sueh
+ * <p> bug# 1247 Formatted.
+ * <p>
  * <p> Revision 3.37  2009/09/01 03:18:25  sueh
  * <p> bug# 1222
  * <p>
@@ -494,7 +498,7 @@ public final class AlignmentEstimationDialog extends ProcessDialog implements
       applicationManager.fineAlignment(axisID, btnComputeAlignment, null);
     }
     else if (command.equals(btnView3DModel.getActionCommand())) {
-      applicationManager.imodView3DModel(axisID);
+      applicationManager.imodViewModel(axisID, FileType.FIDUCIAL_3D_MODEL);
     }
     else if (command.equals(btnImod.getActionCommand())) {
       applicationManager.imodFixFiducials(axisID, run3dmodMenuOptions, null,
