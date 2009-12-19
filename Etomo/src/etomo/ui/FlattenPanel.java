@@ -41,6 +41,11 @@ import etomo.type.Run3dmodMenuOptions;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.5  2009/11/20 17:12:02  sueh
+ * <p> bug# 1282 Naming all the file choosers by constructing a FileChooser
+ * <p> instance instead of a JFileChooser instance.  Added isMenuSaveEnabled to
+ * <p> allow a save function to have the same limits as the save menu option.
+ * <p>
  * <p> Revision 1.4  2009/10/01 18:50:38  sueh
  * <p> bug# 1239 Added getFlattenWarpDisplay.
  * <p>
@@ -161,7 +166,7 @@ final class FlattenPanel implements Run3dmodButtonContainer, FlattenWarpParent,
     pnlFlatten.add(btnImodFlatten.getComponent());
   }
 
-  public ImageFileType getFileTypeForSurfaceModel() {
+  public ImageFileType getInputFileType() {
     if (rbInputFileTrimVol.isSelected()) {
       return ImageFileType.TRIM_VOL_OUTPUT;
     }
@@ -237,7 +242,7 @@ final class FlattenPanel implements Run3dmodButtonContainer, FlattenWarpParent,
       return false;
     }
     //The model contains coordinates so it can match either input file.
-    param.setInputFile(getFileTypeForSurfaceModel());
+    param.setInputFile(getInputFileType());
     param.setTemporaryDirectory(ftfTemporaryDirectory.getText());
     return true;
   }
