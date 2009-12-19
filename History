@@ -1,5 +1,7 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+12/18/09: In Etomo added smoothing to Post Processing - Flatten.
+
 12/11/09: In Etomo added buttons to run "clip stats" in Preprocessing.
 
 12/10/09: Tomostitch has new options to allow stitching to be done with
