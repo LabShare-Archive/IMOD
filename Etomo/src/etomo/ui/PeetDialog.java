@@ -49,6 +49,9 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.91  2009/12/23 02:26:12  sueh
+ * <p> bug# 1296 Stop taking tooltips from peetprm.adoc.
+ * <p>
  * <p> Revision 1.90  2009/12/08 16:03:58  sueh
  * <p> bug# 1287 Added cbflgAlignAverages.
  * <p>
@@ -938,16 +941,14 @@ public final class PeetDialog implements ContextMenu, AbstractParallelDialog,
     lsDebugLevel
         .setToolTipText("Larger numbers result in more debug information in the "
             + "log files.");
+    String tooltip = "The size of the volume around each particle to excise and average.";
+    ltfSzVolX.setToolTipText(tooltip);
+    ltfSzVolY.setToolTipText(tooltip);
+    ltfSzVolZ.setToolTipText(tooltip);
 
     cbFlgRemoveDuplicates
         .setToolTipText("Remove mulitple references to the same particle after"
             + "each iteration.");
-    String tooltip = "The size of the volume around each particle to average.  "
-        + "If the reference is a filename, this parameter is ignored.  The "
-        + "reference size dictates \"szVol\".";
-    ltfSzVolX.setToolTipText(tooltip);
-    ltfSzVolY.setToolTipText(tooltip);
-    ltfSzVolZ.setToolTipText(tooltip);
     tooltip = "The list of thresholds to use for computing the final volumes.  "
         + "An average volume is generated for each value in this vector.  The "
         + "format of the average volume file name is "
