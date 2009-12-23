@@ -6,8 +6,6 @@ import java.awt.GridBagLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -29,11 +27,8 @@ import etomo.storage.TiltFileFilter;
 import etomo.storage.TiltLog;
 import etomo.storage.TiltLogFileFilter;
 import etomo.storage.TomogramFileFilter;
-import etomo.storage.autodoc.AutodocFactory;
-import etomo.storage.autodoc.ReadOnlyAutodoc;
 import etomo.type.AxisID;
 import etomo.type.ConstPeetMetaData;
-import etomo.type.EtomoAutodoc;
 import etomo.type.PeetMetaData;
 import etomo.type.Run3dmodMenuOptions;
 
@@ -51,6 +46,9 @@ import etomo.type.Run3dmodMenuOptions;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.46  2009/12/08 02:50:48  sueh
+ * <p> bug# 1286 Passing parametersOnly to setParameter functions.
+ * <p>
  * <p> Revision 1.45  2009/12/01 00:28:24  sueh
  * <p> bug# 1285 Added isEmpty.
  * <p>
@@ -608,43 +606,26 @@ final class VolumeTable implements Expandable, Highlightable,
   }
 
   private void setToolTipText() {
-    try {
-      ReadOnlyAutodoc autodoc = AutodocFactory.getInstance(
-          AutodocFactory.PEET_PRM, manager.getManagerKey());
-      String tooltip1 = EtomoAutodoc.getTooltip(autodoc,
-          MatlabParam.FN_VOLUME_KEY);
-      header1FnVolume.setToolTipText(tooltip1);
-      header2FnVolume.setToolTipText(tooltip1);
-      String tooltip = EtomoAutodoc.getTooltip(autodoc,
-          MatlabParam.FN_MOD_PARTICLE_KEY);
-      btnAddFnVolume.setToolTipText(tooltip1 + "  " + tooltip);
-      header1FnModParticle.setToolTipText(tooltip);
-      header2FnModParticle.setToolTipText(tooltip);
-      tooltip = EtomoAutodoc.getTooltip(autodoc, MatlabParam.INIT_MOTL_KEY);
-      btnSetInitMotlFile.setToolTipText(tooltip);
-      header1InitMotlFile.setToolTipText(tooltip);
-      header2InitMotlFile.setToolTipText(tooltip);
-      tooltip = EtomoAutodoc.getTooltip(autodoc, MatlabParam.TILT_RANGE_KEY);
-      btnReadTiltFile.setToolTipText(tooltip);
-      header1TiltRange.setToolTipText(tooltip);
-      header2TiltRangeStart.setToolTipText(tooltip);
-      header2TiltRangeEnd.setToolTipText(tooltip);
-      tooltip = EtomoAutodoc.getTooltip(autodoc,
-          MatlabParam.RELATIVE_ORIENT_KEY);
-      header1RelativeOrient.setToolTipText(tooltip);
-      header2RelativeOrientX.setToolTipText(tooltip);
-      header2RelativeOrientY.setToolTipText(tooltip);
-      header2RelativeOrientZ.setToolTipText(tooltip);
-    }
-    catch (FileNotFoundException e) {
-      e.printStackTrace();
-    }
-    catch (IOException e) {
-      e.printStackTrace();
-    }
-    catch (LogFile.LockException e) {
-      e.printStackTrace();
-    }
+    btnAddFnVolume
+        .setToolTipText("Add a new row to table and select volume and model "
+            + "files");
+    btnChangeFnModParticle
+        .setToolTipText("Select a new model file for the highlighted row.");
+    btnSetInitMotlFile
+        .setToolTipText("Select a .csv file with initial orientations and shifts "
+            + "for the highlighted row.");
+    btnReadTiltFile
+        .setToolTipText("Fill in the tilt range for the highlighted row by "
+            + "selecting a file with tilt angles");
+    r3bVolume
+        .setToolTipText("Open the volume and model for the highlighted row in "
+            + "3dmod.");
+    btnCopyRow
+        .setToolTipText("Create a new row that is a duplicate of the highlighted "
+            + "row.");
+    btnMoveUp.setToolTipText("Move highlighted row up in the table.");
+    btnMoveDown.setToolTipText("Move highlighted row down in the table.");
+    btnDeleteRow.setToolTipText("Remove highlighted row from table.");
   }
 
   /**

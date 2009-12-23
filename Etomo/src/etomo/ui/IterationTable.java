@@ -5,8 +5,6 @@ import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.io.FileNotFoundException;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -16,12 +14,8 @@ import javax.swing.JPanel;
 import javax.swing.border.LineBorder;
 
 import etomo.BaseManager;
-import etomo.storage.LogFile;
 import etomo.storage.MatlabParam;
-import etomo.storage.autodoc.AutodocFactory;
-import etomo.storage.autodoc.ReadOnlyAutodoc;
 import etomo.type.AxisID;
-import etomo.type.EtomoAutodoc;
 
 /**
  * <p>Description: </p>
@@ -37,6 +31,9 @@ import etomo.type.EtomoAutodoc;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.26  2009/12/08 02:46:39  sueh
+ * <p> Added size().
+ * <p>
  * <p> Revision 1.25  2009/12/02 04:40:41  sueh
  * <p> bug# 1226 Added move up and move down functionality.
  * <p>
@@ -134,7 +131,7 @@ final class IterationTable implements Highlightable {
   static final String SEARCH_RADIUS_HEADER2 = "Radius";
   static final String LABEL = "Iteration Table";
   static final String MAX_HEADER3 = "Max";
-  static final String CUTOFF_HEADER1 = "High-Freq.";
+  static final String CUTOFF_HEADER1 = "High Freq.";
   static final String CUTOFF_HEADER2 = "Filter";
   static final String HI_CUTOFF_HEADER3 = "Cutoff";
   static final String LOW_CUTOFF_HEADER3 = "Sigma";
@@ -275,75 +272,19 @@ final class IterationTable implements Highlightable {
     parent.updateDisplay();
     return row;
   }
-  
+
   int size() {
     return rowList.size();
   }
 
   private void setToolTipText() {
-    String tooltip = "Order of iteration.";
-    header1IterationNumber.setToolTipText(tooltip);
-    header2IterationNumber.setToolTipText(tooltip);
-    header3IterationNumber.setToolTipText(tooltip);
-    btnAddRow.setToolTipText("Add a new row.");
+    btnAddRow.setToolTipText("Add a new iteration row to the table.");
     btnCopyRow
-        .setToolTipText("Add a new row with values from the highlighted row.");
-    btnDeleteRow.setToolTipText("Delete the highlighted row.");
-    try {
-      ReadOnlyAutodoc autodoc = AutodocFactory.getInstance(
-          AutodocFactory.PEET_PRM, manager.getManagerKey());
-      tooltip = EtomoAutodoc.getTooltip(autodoc, MatlabParam.D_PHI_KEY);
-      String tooltip1 = EtomoAutodoc.getTooltip(autodoc,
-          MatlabParam.D_THETA_KEY);
-      if (tooltip1 == null) {
-        tooltip1 = "";
-      }
-      String tooltip2 = EtomoAutodoc.getTooltip(autodoc, MatlabParam.D_PSI_KEY);
-      if (tooltip2 == null) {
-        tooltip2 = "";
-      }
-      header1DPhiDThetaDPsi.setToolTipText(tooltip + "  " + tooltip1 + "  "
-          + tooltip2);
-      header2DPhi.setToolTipText(tooltip);
-      header2DTheta.setToolTipText(tooltip1);
-      header2DPsi.setToolTipText(tooltip2);
-      header3DPhiMax.setToolTipText(tooltip);
-      header3DPhiIncrement.setToolTipText(tooltip);
-      header3DThetaMax.setToolTipText(tooltip1);
-      header3DThetaIncrement.setToolTipText(tooltip1);
-      header3DPsiMax.setToolTipText(tooltip2);
-      header3DPsiIncrement.setToolTipText(tooltip2);
-      tooltip = EtomoAutodoc.getTooltip(autodoc, MatlabParam.SEARCH_RADIUS_KEY);
-      header1SearchRadius.setToolTipText(tooltip);
-      header2SearchRadius.setToolTipText(tooltip);
-      header3SearchRadius.setToolTipText(tooltip);
-      tooltip = EtomoAutodoc.getTooltip(autodoc, MatlabParam.HI_CUTOFF_KEY);
-      header1Cutoff.setToolTipText(tooltip);
-      header2Cutoff.setToolTipText(tooltip);
-      header3HiCutoff.setToolTipText(tooltip);
-      header3LowCutoff.setToolTipText(tooltip);
-      tooltip = EtomoAutodoc.getTooltip(autodoc, MatlabParam.REF_THRESHOLD_KEY);
-      header1RefThreshold.setToolTipText(tooltip);
-      header2RefThreshold.setToolTipText(tooltip);
-      header3RefThreshold.setToolTipText(tooltip);
-      tooltip = EtomoAutodoc.getTooltip(autodoc,
-          MatlabParam.FLG_REMOVE_DUPLICATES_KEY);
-      header1DuplicateTolerance.setToolTipText(tooltip);
-      header2DuplicateTolerance.setToolTipText(tooltip);
-      header3DuplicateShiftTolerance.setToolTipText(EtomoAutodoc.getTooltip(
-          autodoc, MatlabParam.DUPLICATE_SHIFT_TOLERANCE_KEY));
-      header3DuplicateAngularTolerance.setToolTipText(EtomoAutodoc.getTooltip(
-          autodoc, MatlabParam.DUPLICATE_ANGULAR_TOLERANCE_KEY));
-    }
-    catch (FileNotFoundException e) {
-      e.printStackTrace();
-    }
-    catch (IOException e) {
-      e.printStackTrace();
-    }
-    catch (LogFile.LockException e) {
-      e.printStackTrace();
-    }
+        .setToolTipText("Create a new row that is a duplicate of the highlighted "
+            + "row.");
+    btnMoveUp.setToolTipText("Move highlighted row up in the table.");
+    btnMoveDown.setToolTipText("Move highlighted row down in the table");
+    btnDeleteRow.setToolTipText("Remove highlighted row from table.");
   }
 
   private void addListeners() {
@@ -701,7 +642,7 @@ final class IterationTable implements Highlightable {
       }
       return -1;
     }
-    
+
     /**
      * Swap two rows.
      * @param rowIndex
@@ -723,7 +664,6 @@ final class IterationTable implements Highlightable {
       list.add(rowIndex, rowMoveUp);
       list.add(rowIndex + 1, rowMoveDown);
     }
-    
 
     /**
      * Renumber the table starting from the row in the ArrayList at startIndex.

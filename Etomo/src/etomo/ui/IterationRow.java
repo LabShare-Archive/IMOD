@@ -23,6 +23,10 @@ import etomo.type.EtomoNumber;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.21  2009/12/01 15:21:03  sueh
+ * <p> bug# 1282 In validateRun() made the EtomoNumber type match the type
+ * <p> of the number being validated.
+ * <p>
  * <p> Revision 1.20  2009/11/20 17:15:12  sueh
  * <p> bug# 1282 Added duplicateShiftTolerance and duplicateAngularTolerance.
  * <p> When updating the display, moved the responsibility for responding to
@@ -135,6 +139,7 @@ final class IterationRow implements Highlightable {
     this.table = table;
     btnHighlighter = HighlighterButton.getInstance(this, parent);
     number.setText(String.valueOf(index + 1));
+    setTooltips();
   }
 
   IterationRow(final int index, final IterationRow iterationRow,
@@ -162,6 +167,7 @@ final class IterationRow implements Highlightable {
         .getValue());
     duplicateAngularTolerance.setValue(iterationRow.duplicateAngularTolerance
         .getValue());
+    setTooltips();
   }
 
   void setNames() {
@@ -460,5 +466,63 @@ final class IterationRow implements Highlightable {
       }
     }
     return true;
+  }
+
+  private void setTooltips() {
+    number.setToolTipText("Iteration number");
+    dPhiMax
+        .setToolTipText("Maximum magnitude of rotation about the particle Y axis "
+            + "in degrees.  Search will range from -(Phi Max) to +(Phi Max) in "
+            + "steps of (Phi Incr).");
+    dPhiIncrement
+        .setToolTipText("Increment between sample points for rotation about Y in "
+            + "degrees.  Search will range from -(Phi Max) to +(Phi Max) in "
+            + "steps of (Phi Incr).");
+    dThetaMax
+        .setToolTipText("Maximum magnitude of rotation about the particle Z axis "
+            + "in degrees.  Search will range from -(Theta Max) to +(Theta Max) "
+            + "in steps of (Theta Incr).");
+    dThetaIncrement
+        .setToolTipText("Increment between sample points for rotation about Z in "
+            + "degrees.  Search will range from -(Theta Max) to +(Theta Max) in "
+            + "steps of (Theta Incr).");
+    dPsiMax
+        .setToolTipText("Maximum magnitude of rotation about the particle X axis "
+            + "in degrees.  Search will range from -(Psi Max) to +(Psi Max) in "
+            + "steps of (Psi Incr).");
+    dPsiIncrement
+        .setToolTipText("Increment between sample points for rotation about X in "
+            + "degrees.  Search will range from -(Psi Max) to +(Psi Max) in "
+            + "steps of (Psi Incr).");
+    searchRadius
+        .setToolTipText("The number of pixels to search in the X, Y, and Z "
+            + "directions.  A single, integer number of pixels can be specified, "
+            + "which will be applied to a 3 dimensions, or a vector of 3 "
+            + "integers can be specified, giving the X, Y, and Z search "
+            + "distances individually. E.g. '3' is equivalent to '3 3 3'.");
+    hiCutoff
+        .setToolTipText("The normalized spatial frequency above which high "
+            + "frequencies are attenuated.  0.5 corresponds to the Nyquist "
+            + "frequency, and values of 0.866 or larger disable low-pass "
+            + "filtering.");
+    lowCutoff
+        .setToolTipText("The width (standard deviation) in normalized frequency "
+            + "units of a Gaussian determining the rate at which attenuation "
+            + "increases above the cutoff.");
+    refThreshold
+        .setToolTipText("Determines the number of particles averaged to form the "
+            + "reference for the next alignment iteration. If less than 1, it "
+            + "represents a cross-correlation coefficient threshold, with "
+            + "particles having a larger correlation eligible for inclusion in "
+            + "the reference.  If greater than 1, it is the number of particles "
+            + "to include.");
+    duplicateShiftTolerance
+        .setToolTipText("An integer number of pixels.  Particles differing in "
+            + "each of their X, Y, and Z coordinates by less than this number of "
+            + "pixels are potential duplicates.");
+    duplicateAngularTolerance
+        .setToolTipText("An integer number of degrees.  Particles whose "
+            + "orientations differ by less than this number of degrees are "
+            + "potential duplicates.");
   }
 }

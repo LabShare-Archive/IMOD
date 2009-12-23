@@ -28,6 +28,9 @@ import etomo.type.Run3dmodMenuOptions;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.31  2009/12/01 00:27:59  sueh
+ * <p> bug# 1285 Factored MissingWedgeCompensation out of PeetDialog.
+ * <p>
  * <p> Revision 1.30  2009/11/20 23:05:24  sueh
  * <p> bug# 1280 Added getFnVolumeFile and getFnModParticleFile.  Removed
  * <p> getRelativeOrientX, Y, and Z.
@@ -163,8 +166,10 @@ final class VolumeRow implements Highlightable {
       final File fnModParticle, final int index, final VolumeTable table,
       final JPanel panel, final GridBagLayout layout,
       final GridBagConstraints constraints) {
-    return new VolumeRow(manager, fnVolume, fnModParticle, index, table, panel,
-        layout, constraints);
+    VolumeRow instance = new VolumeRow(manager, fnVolume, fnModParticle, index,
+        table, panel, layout, constraints);
+    instance.setTooltips();
+    return instance;
   }
 
   private VolumeRow(final BaseManager manager, final File fnVolumeFile,
@@ -520,5 +525,29 @@ final class VolumeRow implements Highlightable {
 
   boolean isHighlighted() {
     return btnHighlighter.isHighlighted();
+  }
+
+  private void setTooltips() {
+    fnVolume.setToolTipText("The filename of the tomogram in MRC format.");
+    fnModParticle
+        .setToolTipText("The filename of the IMOD model specifying particle "
+            + "positions in the tomogram.");
+    initMotlFile
+        .setToolTipText("The name of a .csv file containing an initial motive "
+            + "list with orientations and shifts.");
+    String tooltip = "The minimum and maximum tilt angle (in degrees) used "
+        + "during image acquisition for this tomogram.  Used only if missing "
+        + "wedge compensation is enabled.";
+    tiltRangeMin.setToolTipText(tooltip);
+    tiltRangeMax.setToolTipText(tooltip);
+    relativeOrientX
+        .setToolTipText("The Slicer X axis rotation required to rotate this "
+            + "tomogram to to a common orientation with the other tomograms.");
+    relativeOrientY
+    .setToolTipText("The Slicer Y axis rotation required to rotate this "
+        + "tomogram to to a common orientation with the other tomograms.");
+    relativeOrientZ
+    .setToolTipText("The Slicer Z axis rotation required to rotate this "
+        + "tomogram to to a common orientation with the other tomograms.");
   }
 }
