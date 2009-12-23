@@ -49,6 +49,9 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.93  2009/12/23 02:54:05  sueh
+ * <p> bug# 1296 Removing unknown tooltips.
+ * <p>
  * <p> Revision 1.92  2009/12/23 02:45:09  sueh
  * <p> bug# 1296 Corrected tooltips for szVol.
  * <p>
@@ -944,36 +947,33 @@ public final class PeetDialog implements ContextMenu, AbstractParallelDialog,
     lsDebugLevel
         .setToolTipText("Larger numbers result in more debug information in the "
             + "log files.");
-    String tooltip = "The size of the volume around each particle to excise and average.";
+    cbFlgRemoveDuplicates
+        .setToolTipText("Remove mulitple references to the same particle after"
+            + "each iteration.");
+    String tooltip = "The size of the volume around each particle to excise and "
+        + "average.";
     ltfSzVolX.setToolTipText(tooltip);
     ltfSzVolY.setToolTipText(tooltip);
     ltfSzVolZ.setToolTipText(tooltip);
-
-/*    cbFlgRemoveDuplicates
-        .setToolTipText("Remove mulitple references to the same particle after"
-            + "each iteration.");
-    tooltip = "The list of thresholds to use for computing the final volumes.  "
-        + "An average volume is generated for each value in this vector.  The "
-        + "format of the average volume file name is "
-        + "fnOutout_AvgVol_navg_thresh_iteration.mrc"
-        + "  The list can be either a list descriptor ("
-        + LST_THRESHOLD_START_TITLE
-        + ":"
-        + LST_THRESHOLD_INCREMENT_TITLE
-        + ":"
-        + LST_THRESHOLD_END_TITLE
-        + "), a simple list ("
-        + LST_THRESHOLD_ADDITIONAL_NUMBERS_TITLE
-        + "), or a combination of the two.";
-    ltfLstThresholdsStart.setToolTipText(tooltip);
-    ltfLstThresholdsIncrement.setToolTipText(tooltip);
-    ltfLstThresholdsEnd.setToolTipText(tooltip);
-    ltfLstThresholdsAdditional.setToolTipText(tooltip);
     cbLstFlagAllTom
-        .setToolTipText("When checked an equal number of particles from each "
-            + "tomogram will be used.  When unchecked, particles with the best "
-            + "correlation scores of all the particles in all the tomograms with "
-            + "be used.");*/
+        .setToolTipText("Select equal number of particles from each tomogram for "
+            + "averaging, rather than simply choosing particles based on "
+            + "correlation score with no regard for the tomogram in which they "
+            + "occur.");
+    ltfLstThresholdsStart
+        .setToolTipText("The initial (lowest) number of particles to average.  "
+            + "Averages will be created with Start, Start + Incr, ... End.");
+    ltfLstThresholdsIncrement
+        .setToolTipText("The change in number of particles between successive "
+            + "averages.  Averages will be created with Start, Start + Incr, "
+            + "...End.");
+    ltfLstThresholdsEnd
+        .setToolTipText("The final (highest) number of particles to average.  "
+            + "Averages will be created with Start, Start + Incr, ... End.");
+    ltfLstThresholdsAdditional
+        .setToolTipText("Additional numbers of particles for which averages are "
+            + "desired.  Values must be listed in increasing order and must be "
+            + "larger than End.");
   }
 
   private void updateAdvanceRunParameters(boolean advanced) {
