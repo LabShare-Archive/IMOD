@@ -49,6 +49,9 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.94  2009/12/23 03:08:27  sueh
+ * <p> bug# 1296 Added missing tooltips.
+ * <p>
  * <p> Revision 1.93  2009/12/23 02:54:05  sueh
  * <p> bug# 1296 Removing unknown tooltips.
  * <p>
@@ -960,16 +963,13 @@ public final class PeetDialog implements ContextMenu, AbstractParallelDialog,
             + "averaging, rather than simply choosing particles based on "
             + "correlation score with no regard for the tomogram in which they "
             + "occur.");
-    ltfLstThresholdsStart
-        .setToolTipText("The initial (lowest) number of particles to average.  "
-            + "Averages will be created with Start, Start + Incr, ... End.");
-    ltfLstThresholdsIncrement
-        .setToolTipText("The change in number of particles between successive "
-            + "averages.  Averages will be created with Start, Start + Incr, "
-            + "...End.");
-    ltfLstThresholdsEnd
-        .setToolTipText("The final (highest) number of particles to average.  "
-            + "Averages will be created with Start, Start + Incr, ... End.");
+    tooltip = "Start, Incr, and End determine the numbers of particles in an "
+        + "arithmetic sequence for which averages will be created.  I.e. "
+        + "averages will be created containing Start particles, Start + Incr, "
+        + "and so on up to End.";
+    ltfLstThresholdsStart.setToolTipText(tooltip);
+    ltfLstThresholdsIncrement.setToolTipText(tooltip);
+    ltfLstThresholdsEnd.setToolTipText(tooltip);
     ltfLstThresholdsAdditional
         .setToolTipText("Additional numbers of particles for which averages are "
             + "desired.  Values must be listed in increasing order and must be "
