@@ -49,6 +49,9 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.92  2009/12/23 02:45:09  sueh
+ * <p> bug# 1296 Corrected tooltips for szVol.
+ * <p>
  * <p> Revision 1.91  2009/12/23 02:26:12  sueh
  * <p> bug# 1296 Stop taking tooltips from peetprm.adoc.
  * <p>
@@ -946,7 +949,7 @@ public final class PeetDialog implements ContextMenu, AbstractParallelDialog,
     ltfSzVolY.setToolTipText(tooltip);
     ltfSzVolZ.setToolTipText(tooltip);
 
-    cbFlgRemoveDuplicates
+/*    cbFlgRemoveDuplicates
         .setToolTipText("Remove mulitple references to the same particle after"
             + "each iteration.");
     tooltip = "The list of thresholds to use for computing the final volumes.  "
@@ -970,7 +973,7 @@ public final class PeetDialog implements ContextMenu, AbstractParallelDialog,
         .setToolTipText("When checked an equal number of particles from each "
             + "tomogram will be used.  When unchecked, particles with the best "
             + "correlation scores of all the particles in all the tomograms with "
-            + "be used.");
+            + "be used.");*/
   }
 
   private void updateAdvanceRunParameters(boolean advanced) {
