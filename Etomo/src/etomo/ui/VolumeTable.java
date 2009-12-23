@@ -46,6 +46,9 @@ import etomo.type.Run3dmodMenuOptions;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.47  2009/12/23 02:28:57  sueh
+ * <p> bug# 1296 Stop taking tooltips from peetprm.adoc.  Added tooltips to the actual fields in the tables instead of the column headers.
+ * <p>
  * <p> Revision 1.46  2009/12/08 02:50:48  sueh
  * <p> bug# 1286 Passing parametersOnly to setParameter functions.
  * <p>
@@ -608,7 +611,7 @@ final class VolumeTable implements Expandable, Highlightable,
   private void setToolTipText() {
     btnAddFnVolume
         .setToolTipText("Add a new row to table and select volume and model "
-            + "files");
+            + "files.");
     btnChangeFnModParticle
         .setToolTipText("Select a new model file for the highlighted row.");
     btnSetInitMotlFile
@@ -616,7 +619,7 @@ final class VolumeTable implements Expandable, Highlightable,
             + "for the highlighted row.");
     btnReadTiltFile
         .setToolTipText("Fill in the tilt range for the highlighted row by "
-            + "selecting a file with tilt angles");
+            + "selecting a file with tilt angles.");
     r3bVolume
         .setToolTipText("Open the volume and model for the highlighted row in "
             + "3dmod.");
