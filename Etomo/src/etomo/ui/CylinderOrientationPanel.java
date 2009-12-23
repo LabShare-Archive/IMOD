@@ -1,18 +1,11 @@
 package etomo.ui;
 
 import java.awt.Component;
-import java.io.FileNotFoundException;
-import java.io.IOException;
 
 import javax.swing.BoxLayout;
 
-import etomo.BaseManager;
-import etomo.storage.LogFile;
 import etomo.storage.MatlabParam;
-import etomo.storage.autodoc.AutodocFactory;
-import etomo.storage.autodoc.ReadOnlyAutodoc;
 import etomo.type.ConstPeetMetaData;
-import etomo.type.EtomoAutodoc;
 import etomo.type.PeetMetaData;
 
 /**
@@ -28,7 +21,10 @@ import etomo.type.PeetMetaData;
  * 
  * @version $Revision$
  * 
- * <p> $Log$ </p>
+ * <p> $Log$
+ * <p> Revision 1.1  2009/12/08 02:46:12  sueh
+ * <p> Factored CylinderOrientation out of PeetDialog.
+ * <p> </p>
  */
 final class CylinderOrientationPanel {
   public static final String rcsid = "$Id$";
@@ -42,19 +38,14 @@ final class CylinderOrientationPanel {
   private final LabeledTextField ltfMaskModelPtsParticle = new LabeledTextField(
       PARTICLE_LABEL + ": ");
 
-  private final BaseManager manager;
   private final CylinderOrientationParent parent;
 
-  private CylinderOrientationPanel(BaseManager manager,
-      CylinderOrientationParent parent) {
-    this.manager = manager;
+  private CylinderOrientationPanel(CylinderOrientationParent parent) {
     this.parent = parent;
   }
 
-  static CylinderOrientationPanel getInstance(BaseManager manager,
-      CylinderOrientationParent parent) {
-    CylinderOrientationPanel instance = new CylinderOrientationPanel(manager,
-        parent);
+  static CylinderOrientationPanel getInstance(CylinderOrientationParent parent) {
+    CylinderOrientationPanel instance = new CylinderOrientationPanel(parent);
     instance.createPanel();
     instance.setTooltips();
     instance.addListeners();
@@ -139,22 +130,13 @@ final class CylinderOrientationPanel {
   }
 
   private void setTooltips() {
-    try {
-      ReadOnlyAutodoc autodoc = AutodocFactory.getInstance(
-          AutodocFactory.PEET_PRM, manager.getManagerKey());
-      String tooltip = EtomoAutodoc.getTooltip(autodoc,
-          MatlabParam.MASK_MODEL_PTS_KEY);
-      sMaskModelPtsModelNumber.setToolTipText(tooltip);
-      ltfMaskModelPtsParticle.setToolTipText(tooltip);
-    }
-    catch (FileNotFoundException e) {
-      e.printStackTrace();
-    }
-    catch (IOException e) {
-      e.printStackTrace();
-    }
-    catch (LogFile.LockException e) {
-      e.printStackTrace();
-    }
+    sMaskModelPtsModelNumber
+        .setToolTipText("The number of the model containing the particle whose "
+            + "Y axis will determine the axis of the cylindrical mask.  Used "
+            + "only when the reference is specified by filename.");
+    ltfMaskModelPtsParticle
+        .setToolTipText("The number of the particle whose Y axis will "
+            + "determine the axis of the cylindrical mask.  Used only when the "
+            + "reference is specified by filename.");
   }
 }

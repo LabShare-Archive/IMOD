@@ -4,8 +4,6 @@ import java.awt.Component;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.IOException;
 
 import javax.swing.Box;
 import javax.swing.BoxLayout;
@@ -14,12 +12,8 @@ import javax.swing.JFileChooser;
 import javax.swing.JPanel;
 
 import etomo.BaseManager;
-import etomo.storage.LogFile;
 import etomo.storage.MatlabParam;
-import etomo.storage.autodoc.AutodocFactory;
-import etomo.storage.autodoc.ReadOnlyAutodoc;
 import etomo.type.ConstPeetMetaData;
-import etomo.type.EtomoAutodoc;
 import etomo.type.PeetMetaData;
 import etomo.type.Run3dmodMenuOptions;
 
@@ -36,7 +30,10 @@ import etomo.type.Run3dmodMenuOptions;
  * 
  * @version $Revision$
  * 
- * <p> $Log$ </p>
+ * <p> $Log$
+ * <p> Revision 1.1  2009/12/08 02:47:07  sueh
+ * <p> bug# 1286 Factored MaskingPanel out of PeetDialog.
+ * <p> </p>
  */
 final class MaskingPanel implements CylinderOrientationParent,
     RadiiOfSphereOrCylinderParent {
@@ -68,10 +65,9 @@ final class MaskingPanel implements CylinderOrientationParent,
   private MaskingPanel(BaseManager manager, MaskingParent parent) {
     this.manager = manager;
     this.parent = parent;
-    cylinderOrientationPanel = CylinderOrientationPanel.getInstance(manager,
-        this);
-    radiiOfSphereOrCylinderPanel = RadiiOfSphereOrCylinderPanel.getInstance(
-        manager, this);
+    cylinderOrientationPanel = CylinderOrientationPanel.getInstance(this);
+    radiiOfSphereOrCylinderPanel = RadiiOfSphereOrCylinderPanel
+        .getInstance(this);
   }
 
   static MaskingPanel getInstance(BaseManager manager, MaskingParent parent) {
@@ -121,12 +117,12 @@ final class MaskingPanel implements CylinderOrientationParent,
   Component getComponent() {
     return pnlRoot;
   }
-  
+
   /**
    * Called by the parent updateDisplay().  Enabled/disables fields.  Calls
    * updateDisplay() in subordinate panels.
    */
-   void updateDisplay() {
+  void updateDisplay() {
     ftfMaskTypeVolume.setEnabled(rbMaskTypeVolume.isSelected());
     radiiOfSphereOrCylinderPanel.updateDisplay();
     cylinderOrientationPanel.updateDisplay();
@@ -284,32 +280,24 @@ final class MaskingPanel implements CylinderOrientationParent,
       parent.updateDisplay();
     }
   }
-  
+
   private void maskTypeVolumeAction() {
     chooseMaskTypeVolume(ftfMaskTypeVolume);
   }
 
   private void setTooltips() {
-    try {
-      ReadOnlyAutodoc autodoc = AutodocFactory.getInstance(
-          AutodocFactory.PEET_PRM, manager.getManagerKey());
-      String tooltip = EtomoAutodoc.getTooltip(autodoc,
-          MatlabParam.MASK_TYPE_KEY);
-      rbMaskTypeNone.setToolTipText(tooltip);
-      rbMaskTypeVolume.setToolTipText(tooltip);
-      rbMaskTypeSphere.setToolTipText(tooltip);
-      rbMaskTypeCylinder.setToolTipText(tooltip);
-      ftfMaskTypeVolume.setToolTipText(tooltip);
-    }
-    catch (FileNotFoundException e) {
-      e.printStackTrace();
-    }
-    catch (IOException e) {
-      e.printStackTrace();
-    }
-    catch (LogFile.LockException e) {
-      e.printStackTrace();
-    }
+    rbMaskTypeNone.setToolTipText("No reference masking");
+    rbMaskTypeVolume
+        .setToolTipText("Mask the reference using a specified file");
+    rbMaskTypeSphere
+        .setToolTipText("Mask the reference using inner and out spherical shells "
+            + "of specified radii.");
+    rbMaskTypeCylinder
+        .setToolTipText("Mask the reference using inner and out cylindrical "
+            + "shells of specified radii.");
+    ftfMaskTypeVolume
+        .setToolTipText("The name of file containing the binary mask in MRC "
+            + "format.");
   }
 
   private static final class MaskingActionListener implements ActionListener {

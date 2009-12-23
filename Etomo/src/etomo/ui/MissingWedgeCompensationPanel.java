@@ -3,18 +3,11 @@ package etomo.ui;
 import java.awt.Component;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.io.FileNotFoundException;
-import java.io.IOException;
 
 import javax.swing.BoxLayout;
 
-import etomo.BaseManager;
-import etomo.storage.LogFile;
 import etomo.storage.MatlabParam;
-import etomo.storage.autodoc.AutodocFactory;
-import etomo.storage.autodoc.ReadOnlyAutodoc;
 import etomo.type.ConstPeetMetaData;
-import etomo.type.EtomoAutodoc;
 import etomo.type.PeetMetaData;
 
 /**
@@ -30,7 +23,10 @@ import etomo.type.PeetMetaData;
  * 
  * @version $Revision$
  * 
- * <p> $Log$ </p>
+ * <p> $Log$
+ * <p> Revision 1.1  2009/12/01 00:25:00  sueh
+ * <p> bug# 1285 Factored out MissingWedgeCompensation.
+ * <p> </p>
  */
 final class MissingWedgeCompensationPanel {
   public static final String rcsid = "$Id$";
@@ -52,18 +48,15 @@ final class MissingWedgeCompensationPanel {
       MatlabParam.N_WEIGHT_GROUP_MIN, 20);
 
   private final MissingWedgeCompensationParent parent;
-  private final BaseManager manager;
 
-  private MissingWedgeCompensationPanel(MissingWedgeCompensationParent parent,
-      BaseManager manager) {
-    this.manager = manager;
+  private MissingWedgeCompensationPanel(MissingWedgeCompensationParent parent) {
     this.parent = parent;
   }
 
   static MissingWedgeCompensationPanel getInstance(
-      MissingWedgeCompensationParent parent, BaseManager manager) {
+      MissingWedgeCompensationParent parent) {
     MissingWedgeCompensationPanel instance = new MissingWedgeCompensationPanel(
-        parent, manager);
+        parent);
     instance.createPanel();
     instance.setTooltips();
     instance.addListeners();
@@ -247,29 +240,23 @@ final class MissingWedgeCompensationPanel {
   }
 
   private void setTooltips() {
-    try {
-      ReadOnlyAutodoc autodoc = AutodocFactory.getInstance(
-          AutodocFactory.PEET_PRM, manager.getManagerKey());
-      cbTiltRange.setToolTipText(EtomoAutodoc.getTooltip(autodoc,
-          MatlabParam.TILT_RANGE_KEY));
-      ltfEdgeShift.setToolTipText(EtomoAutodoc.getTooltip(autodoc,
-          MatlabParam.EDGE_SHIFT_KEY));
-      cbFlgWedgeWeight.setToolTipText(EtomoAutodoc.getTooltip(autodoc,
-          MatlabParam.FLG_WEDGE_WEIGHT_KEY));
-      String tooltip = EtomoAutodoc.getTooltip(autodoc,
-          MatlabParam.N_WEIGHT_GROUP_KEY);
-      cbNWeightGroup.setToolTipText(tooltip);
-      sNWeightGroup.setToolTipText(tooltip);
-    }
-    catch (FileNotFoundException e) {
-      e.printStackTrace();
-    }
-    catch (IOException e) {
-      e.printStackTrace();
-    }
-    catch (LogFile.LockException e) {
-      e.printStackTrace();
-    }
+    cbTiltRange
+        .setToolTipText("Use the tilt range(s) specified in the volume table for "
+            + "missing wedge compensation during averaging.");
+    cbFlgWedgeWeight
+        .setToolTipText("Use the tilt range(s) specified in the volume table for "
+            + "missing wedge compensation during alignment.");
+    cbNWeightGroup
+        .setToolTipText("Divide particles into groups by wedge weight and "
+            + "equalize median cross-correlation coefficient between groups, in "
+            + "order to reduce bias introduced by imperfect missing wedge "
+            + "compensation");
+    sNWeightGroup
+        .setToolTipText("Number of groups to use for equalizing median cross-"
+            + "correlation coefficient between groups.");
+    ltfEdgeShift
+        .setToolTipText("Number of pixels to shift the edge of the wedge mask to "
+            + "include frequency information just inside the missing wedge.");
   }
 
   private static final class MissingWedgeCompensationActionListener implements

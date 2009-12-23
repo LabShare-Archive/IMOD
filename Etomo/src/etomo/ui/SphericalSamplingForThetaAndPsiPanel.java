@@ -3,19 +3,14 @@ package etomo.ui;
 import java.awt.Component;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.io.FileNotFoundException;
-import java.io.IOException;
+
 
 import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.ButtonGroup;
 
 import etomo.BaseManager;
-import etomo.storage.LogFile;
 import etomo.storage.MatlabParam;
-import etomo.storage.autodoc.AutodocFactory;
-import etomo.storage.autodoc.ReadOnlyAutodoc;
-import etomo.type.EtomoAutodoc;
 
 /**
  * <p>Description: </p>
@@ -30,7 +25,10 @@ import etomo.type.EtomoAutodoc;
  * 
  * @version $Revision$
  * 
- * <p> $Log$ </p>
+ * <p> $Log$
+ * <p> Revision 1.1  2009/12/08 02:49:27  sueh
+ * <p> bug# 1286 Factored out of PeetDialog.
+ * <p> </p>
  */
 final class SphericalSamplingForThetaAndPsiPanel {
   public static final String rcsid = "$Id$";
@@ -174,26 +172,27 @@ final class SphericalSamplingForThetaAndPsiPanel {
   }
 
   private void setTooltips() {
-    try {
-      ReadOnlyAutodoc autodoc = AutodocFactory.getInstance(
-          AutodocFactory.PEET_PRM, manager.getManagerKey());
-      String tooltip = EtomoAutodoc.getTooltip(autodoc,
-          MatlabParam.SAMPLE_SPHERE_KEY);
-      rbSampleSphereNone.setToolTipText(tooltip);
-      rbSampleSphereFull.setToolTipText(tooltip);
-      rbSampleSphereHalf.setToolTipText(tooltip);
-      ltfSampleInterval.setToolTipText(EtomoAutodoc.getTooltip(autodoc,
-          MatlabParam.SAMPLE_INTERVAL_KEY));
-    }
-    catch (FileNotFoundException e) {
-      e.printStackTrace();
-    }
-    catch (IOException e) {
-      e.printStackTrace();
-    }
-    catch (LogFile.LockException e) {
-      e.printStackTrace();
-    }
+    rbSampleSphereNone
+        .setToolTipText("Use the angular search parameters specified in the "
+            + "Iteration Table for the first alignment search.");
+    rbSampleSphereFull
+        .setToolTipText("During the first alignment search, perform an optimized "
+            + "180 degree search in Theta and 360 degree search for Psi, "
+            + "ignoring the values specified in the Iteration Table for these "
+            + "parameters.  Optimization prevents over-sampling near the poles "
+            + "(on the X axis).  Phi Max should be set to 180 degrees for "
+            + "spherical sampling.");
+    rbSampleSphereHalf
+        .setToolTipText("During the first alignment search, perform a optimized "
+            + "search spanning 180 degrees Theta and 180 degrees in Psi, "
+            + "ignoring the values specified in the Iteration Table for these "
+            + "parameters.  Optimization prevents over-sampling near the poles "
+            + "Phi Max should be set to 180 degrees for spherical sampling.");
+    ltfSampleInterval
+        .setToolTipText("The interval, in degrees, at which theta will be "
+            + "sampled when using spherical sampling.  Psi will also be sampled "
+            + "at this interval at the equator, and with decreasing frequency "
+            + "near the poles (on the X axis).");
   }
 
   private static final class SphericalSamplingForThetaAndPsiActionListener

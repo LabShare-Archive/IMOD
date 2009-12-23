@@ -4,8 +4,6 @@ import java.awt.Component;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.IOException;
 
 import javax.swing.Box;
 import javax.swing.BoxLayout;
@@ -14,12 +12,8 @@ import javax.swing.JFileChooser;
 import javax.swing.JPanel;
 
 import etomo.BaseManager;
-import etomo.storage.LogFile;
 import etomo.storage.MatlabParam;
-import etomo.storage.autodoc.AutodocFactory;
-import etomo.storage.autodoc.ReadOnlyAutodoc;
 import etomo.type.ConstPeetMetaData;
-import etomo.type.EtomoAutodoc;
 import etomo.type.PeetMetaData;
 
 /**
@@ -36,6 +30,9 @@ import etomo.type.PeetMetaData;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.4  2009/12/08 02:49:11  sueh
+ * <p> bug# 1286 Independently setting tooltips.
+ * <p>
  * <p> Revision 1.3  2009/12/02 00:08:18  sueh
  * <p> bug# 1290 Made the label of the reference file package private.
  * <p>
@@ -163,7 +160,7 @@ final class ReferencePanel {
    * Load active data from MatlabParam.
    * @param matlabParam
    */
-  void setParameters(final MatlabParam matlabParam,boolean parametersOnly) {
+  void setParameters(final MatlabParam matlabParam, boolean parametersOnly) {
     if (!parametersOnly) {
       if (matlabParam.useReferenceFile()) {
         rbReferenceFile.setSelected(true);
@@ -286,26 +283,16 @@ final class ReferencePanel {
    * @param tooltip
    */
   private void setTooltips() {
-    try {
-      ReadOnlyAutodoc autodoc = AutodocFactory.getInstance(
-          AutodocFactory.PEET_PRM, manager.getManagerKey());
-      String tooltip = EtomoAutodoc.getTooltip(autodoc,
-          MatlabParam.REFERENCE_KEY);
-      rbReferenceParticle.setToolTipText(tooltip);
-      rbReferenceFile.setToolTipText(tooltip);
-      sReferenceVolume.setToolTipText(tooltip);
-      ltfReferenceParticle.setToolTipText(tooltip);
-      ftfReferenceFile.setToolTipText(tooltip);
-    }
-    catch (FileNotFoundException e) {
-      e.printStackTrace();
-    }
-    catch (IOException e) {
-      e.printStackTrace();
-    }
-    catch (LogFile.LockException e) {
-      e.printStackTrace();
-    }
+    sReferenceVolume
+        .setToolTipText("The number of the volume containing the reference.");
+    rbReferenceParticle
+        .setToolTipText("Specify the reference by volume and particle numbers.");
+    ltfReferenceParticle
+        .setToolTipText("The number of the particle to use as the reference.");
+    rbReferenceFile.setToolTipText("Specify the reference by filename.");
+    ftfReferenceFile
+        .setToolTipText("The name of the file containing the MRC volume to use "
+            + "as the reference.");
   }
 
   private static final class ReferenceActionListener implements ActionListener {

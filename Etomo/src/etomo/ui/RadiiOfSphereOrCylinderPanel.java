@@ -1,17 +1,10 @@
 package etomo.ui;
 
 import java.awt.Component;
-import java.io.FileNotFoundException;
-import java.io.IOException;
 
 import javax.swing.BoxLayout;
 
-import etomo.BaseManager;
-import etomo.storage.LogFile;
 import etomo.storage.MatlabParam;
-import etomo.storage.autodoc.AutodocFactory;
-import etomo.storage.autodoc.ReadOnlyAutodoc;
-import etomo.type.EtomoAutodoc;
 
 /**
  * <p>Description: </p>
@@ -27,6 +20,9 @@ import etomo.type.EtomoAutodoc;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.2  2009/12/08 02:48:05  sueh
+ * <p> bug# 1286 Made class function package private.
+ * <p>
  * <p> Revision 1.1  2009/12/02 04:42:12  sueh
  * <p> Factored RadiiOfSphereOrCylinder panel out of PeetDialog.
  * <p> </p>
@@ -44,19 +40,16 @@ final class RadiiOfSphereOrCylinderPanel {
   private final LabeledTextField ltfOutsideMaskRadius = new LabeledTextField(
       OUTSIDE_MASK_RADIUS_LABEL + ": ");
 
-  private final BaseManager manager;
   private final RadiiOfSphereOrCylinderParent parent;
 
-  private RadiiOfSphereOrCylinderPanel(BaseManager manager,
-      RadiiOfSphereOrCylinderParent parent) {
-    this.manager = manager;
+  private RadiiOfSphereOrCylinderPanel(RadiiOfSphereOrCylinderParent parent) {
     this.parent = parent;
   }
 
-  static RadiiOfSphereOrCylinderPanel getInstance(BaseManager manager,
+  static RadiiOfSphereOrCylinderPanel getInstance(
       RadiiOfSphereOrCylinderParent parent) {
     RadiiOfSphereOrCylinderPanel instance = new RadiiOfSphereOrCylinderPanel(
-        manager, parent);
+        parent);
     instance.createPanel();
     instance.setTooltips();
     return instance;
@@ -115,22 +108,9 @@ final class RadiiOfSphereOrCylinderPanel {
   }
 
   private void setTooltips() {
-    try {
-      ReadOnlyAutodoc autodoc = AutodocFactory.getInstance(
-          AutodocFactory.PEET_PRM, manager.getManagerKey());
-      ltfInsideMaskRadius.setToolTipText(EtomoAutodoc.getTooltip(autodoc,
-          MatlabParam.INSIDE_MASK_RADIUS_KEY));
-      ltfOutsideMaskRadius.setToolTipText(EtomoAutodoc.getTooltip(autodoc,
-          MatlabParam.OUTSIDE_MASK_RADIUS_KEY));
-    }
-    catch (FileNotFoundException e) {
-      e.printStackTrace();
-    }
-    catch (IOException e) {
-      e.printStackTrace();
-    }
-    catch (LogFile.LockException e) {
-      e.printStackTrace();
-    }
+    ltfInsideMaskRadius
+        .setToolTipText("Inner radius of the mask region in pixels.");
+    ltfOutsideMaskRadius
+        .setToolTipText("Inner and outer radii of the mask region in pixels.");
   }
 }

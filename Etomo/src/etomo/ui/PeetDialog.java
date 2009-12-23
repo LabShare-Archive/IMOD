@@ -6,7 +6,6 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseEvent;
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 
 import javax.swing.BorderFactory;
@@ -24,16 +23,11 @@ import etomo.PeetManager;
 import etomo.comscript.AverageAllParam;
 import etomo.comscript.ParallelParam;
 import etomo.comscript.ProcesschunksParam;
-import etomo.storage.LogFile;
 import etomo.storage.MatlabParam;
-import etomo.storage.autodoc.AutodocFactory;
-import etomo.storage.autodoc.ReadOnlyAutodoc;
-import etomo.storage.autodoc.ReadOnlySection;
 import etomo.type.AxisID;
 import etomo.type.ConstPeetMetaData;
 import etomo.type.ConstPeetScreenState;
 import etomo.type.DialogType;
-import etomo.type.EtomoAutodoc;
 import etomo.type.PeetMetaData;
 import etomo.type.PeetScreenState;
 import etomo.type.Run3dmodMenuOptions;
@@ -55,6 +49,9 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.90  2009/12/08 16:03:58  sueh
+ * <p> bug# 1287 Added cbflgAlignAverages.
+ * <p>
  * <p> Revision 1.89  2009/12/08 02:47:32  sueh
  * <p> bug# 1286 Factored out panels.
  * <p>
@@ -444,13 +441,13 @@ public final class PeetDialog implements ContextMenu, AbstractParallelDialog,
   private final EtomoPanel pnlRun = new EtomoPanel();
   private final EtomoPanel pnlCcMode = new EtomoPanel();
   private final Run3dmodButton btnRef = Run3dmodButton.get3dmodInstance(
-      "Open Reference Files in 3dmod", this);
+      "Open Reference Volumes in 3dmod", this);
   private final CheckBox cbFlgRemoveDuplicates = new CheckBox(
       "Remove duplicates");
   private final MultiLineButton btnAverageAll = new MultiLineButton(
       "Remake Averaged Volumes");
   private final CheckBox cbflgAlignAverages = new CheckBox(
-      "Align averages to have their Y axis vertical");
+      "Align averages to have their Y axes vertical");
 
   private final SphericalSamplingForThetaAndPsiPanel sphericalSamplingForThetaAndPsiPanel;
   private final YAxisTypePanel yAxisTypePanel;
@@ -476,10 +473,10 @@ public final class PeetDialog implements ContextMenu, AbstractParallelDialog,
     useExistingProjectPanel = UseExistingProjectPanel
         .getInstance(manager, this);
     referencePanel = ReferencePanel.getInstance(this, manager);
-    missingWedgeCompensationPanel = MissingWedgeCompensationPanel.getInstance(
-        this, manager);
+    missingWedgeCompensationPanel = MissingWedgeCompensationPanel
+        .getInstance(this);
     maskingPanel = MaskingPanel.getInstance(manager, this);
-    yAxisTypePanel = YAxisTypePanel.getInstance(manager, this);
+    yAxisTypePanel = YAxisTypePanel.getInstance(this);
     fixPathsPanel = FixPathsPanel.getInstance(this, manager, axisID,
         DIALOG_TYPE);
     sphericalSamplingForThetaAndPsiPanel = SphericalSamplingForThetaAndPsiPanel
@@ -884,82 +881,95 @@ public final class PeetDialog implements ContextMenu, AbstractParallelDialog,
 
   private void setTooltipText() {
     ftfDirectory
-        .setToolTipText("The directory which will contain the .prm file, .epe "
-            + "file, other data files, intermediate files, and results.  Only "
-            + "one .epe file per directory.");
-    btnRun.setToolTipText("Run prmParser with processchunks.");
-    btnAvgVol.setToolTipText("Open all of the computed averages in 3dmod.");
+        .setToolTipText("The directory which will contain the parameter and "
+            + "project files, logs, intermediate files, and results. Data files "
+            + "can also be located in this directory, but are not required to be.");
+    ltfFnOutput
+        .setToolTipText("The base name of the output files for the average "
+            + "volumes, the reference volumes, and the transformation parameters.");
+    btnRun
+        .setToolTipText("Perform the alignment search and create averaged volumes.");
+    btnAvgVol.setToolTipText("Open the computed averages in 3dmod.");
     btnRef.setToolTipText("Open the references in 3dmod.");
-    try {
-      ReadOnlyAutodoc autodoc = AutodocFactory.getInstance(
-          AutodocFactory.PEET_PRM, manager.getManagerKey());
-      pnlInitMotl.setToolTipText(TooltipFormatter.INSTANCE.format(EtomoAutodoc
-          .getTooltip(autodoc, MatlabParam.INIT_MOTL_KEY)));
-      ReadOnlySection section = autodoc.getSection(
-          EtomoAutodoc.FIELD_SECTION_NAME, MatlabParam.INIT_MOTL_KEY);
-      rbInitMotlZero.setToolTipText(section);
-      rbInitMotlXAndZAxis.setToolTipText(section);
-      rbInitMotlZAxis.setToolTipText(section);
-      rbInitMotlFiles.setToolTipText(section);
-      String tooltip = EtomoAutodoc.getTooltip(autodoc, MatlabParam.SZ_VOL_KEY);
-      ltfSzVolX.setToolTipText(tooltip);
-      ltfSzVolY.setToolTipText(tooltip);
-      ltfSzVolZ.setToolTipText(tooltip);
-      pnlCcMode.setToolTipText(TooltipFormatter.INSTANCE.format(EtomoAutodoc
-          .getTooltip(autodoc, MatlabParam.CC_MODE_KEY)));
-      section = autodoc.getSection(EtomoAutodoc.FIELD_SECTION_NAME,
-          MatlabParam.CC_MODE_KEY);
-      rbCcModeNormalized.setToolTipText(section);
-      rbCcModeLocal.setToolTipText(section);
-      tooltip = EtomoAutodoc.getTooltip(autodoc, MatlabParam.FLG_MEAN_FILL_KEY);
-      cbFlgMeanFill.setToolTipText(tooltip);
-      tooltip = EtomoAutodoc.getTooltip(autodoc, MatlabParam.DEBUG_LEVEL_KEY);
-      lsDebugLevel.setToolTipText(tooltip);
-      ltfLowCutoff.setToolTipText(EtomoAutodoc.getTooltip(autodoc,
-          MatlabParam.LOW_CUTOFF_KEY));
-      tooltip = EtomoAutodoc.getTooltip(autodoc,
-          MatlabParam.REF_FLAG_ALL_TOM_KEY);
-      cbRefFlagAllTom.setToolTipText(tooltip);
-      tooltip = EtomoAutodoc
-          .getTooltip(autodoc, MatlabParam.LST_THRESHOLDS_KEY)
-          + "  The list can be either a list descriptor ("
-          + LST_THRESHOLD_START_TITLE
-          + ":"
-          + LST_THRESHOLD_INCREMENT_TITLE
-          + ":"
-          + LST_THRESHOLD_END_TITLE
-          + "), a simple list ("
-          + LST_THRESHOLD_ADDITIONAL_NUMBERS_TITLE
-          + "), or a combination of the two.";
-      ltfLstThresholdsStart.setToolTipText(tooltip);
-      ltfLstThresholdsIncrement.setToolTipText(tooltip);
-      ltfLstThresholdsEnd.setToolTipText(tooltip);
-      ltfLstThresholdsAdditional.setToolTipText(tooltip);
-      tooltip = EtomoAutodoc.getTooltip(autodoc,
-          MatlabParam.LST_FLAG_ALL_TOM_KEY);
-      cbLstFlagAllTom.setToolTipText(tooltip);
-      tooltip = EtomoAutodoc.getTooltip(autodoc,
-          MatlabParam.PARTICLE_PER_CPU_KEY);
-      lsParticlePerCPU.setToolTipText(tooltip);
-      tooltip = EtomoAutodoc.getTooltip(autodoc,
-          MatlabParam.ALIGNED_BASE_NAME_KEY);
-      ltfAlignedBaseName.setToolTipText(tooltip);
-      tooltip = EtomoAutodoc.getTooltip(autodoc, MatlabParam.FN_OUTPUT_KEY);
-      ltfFnOutput.setToolTipText(tooltip);
-      cbFlgRemoveDuplicates.setToolTipText(EtomoAutodoc.getTooltip(autodoc,
-          MatlabParam.FLG_REMOVE_DUPLICATES_KEY));
-      cbflgAlignAverages.setToolTipText(EtomoAutodoc.getTooltip(autodoc,
-          MatlabParam.FLG_ALIGN_AVERAGES_KEY));
-    }
-    catch (FileNotFoundException e) {
-      e.printStackTrace();
-    }
-    catch (IOException e) {
-      e.printStackTrace();
-    }
-    catch (LogFile.LockException e) {
-      e.printStackTrace();
-    }
+    btnAverageAll.setToolTipText("Recompute the averaged volumes");
+    rbInitMotlZero
+        .setToolTipText("Do not reorient particles prior to the 1st alignment "
+            + "search.");
+    rbInitMotlZAxis
+        .setToolTipText("Rotate each particle about its Z axis to align its Y "
+            + "axis with that of the reference prior to the 1st alignment search.");
+    rbInitMotlXAndZAxis
+        .setToolTipText("Rotate each particle about its X and Z axes to align "
+            + "its Y axis with that of the reference prior to the 1st alignment "
+            + "search.");
+    rbInitMotlFiles
+        .setToolTipText("Use the Initial MOTL file(s) specified in the Volume "
+            + "Table.");
+    cbRefFlagAllTom
+        .setToolTipText("If checked, approximately the same number of particles "
+            + "from each tomogram will be used to form the reference for the "
+            + "next alignment iteration.  If not, the particles with the highest "
+            + "cross-correlation will be used, regardless of which tomograms "
+            + "they are drawn from.");
+    cbflgAlignAverages
+        .setToolTipText("Align averages to have their Y axes approximately "
+            + "vertical.");
+    lsParticlePerCPU
+        .setToolTipText("Specifies the maximum number of particles to distribute "
+            + "to each CPU selected in the Parallel Processing table.");
+    rbCcModeNormalized
+        .setToolTipText("An approximation to normalized cross-correlation.  In "
+            + "earlier versions, this method, while less accurate, was "
+            + "significantly faster.  This is no longer the case, and use of "
+            + "this measure is no longer recommended.");
+    rbCcModeLocal.setToolTipText("Use normalized cross-correlation (default)");
+    cbFlgMeanFill
+        .setToolTipText("If any particles are partially out of the volume, fill "
+            + "the missing values with the mean of the values which are present.");
+    ltfAlignedBaseName
+        .setToolTipText("The base from which output filenames will be "
+            + "constructed.");
+    ltfLowCutoff
+        .setToolTipText("Two numbers to control low frequency filtering: 1) The "
+            + "normalized frequency below which low frequencies will be "
+            + "attenuated.  2) The width (standard deviation) in normalized "
+            + "frequency units of the Gaussian falloff in response below the "
+            + "cutoff.  Values less <= 0 disable low frequency filtering.");
+    lsDebugLevel
+        .setToolTipText("Larger numbers result in more debug information in the "
+            + "log files.");
+
+    cbFlgRemoveDuplicates
+        .setToolTipText("Remove mulitple references to the same particle after"
+            + "each iteration.");
+    String tooltip = "The size of the volume around each particle to average.  "
+        + "If the reference is a filename, this parameter is ignored.  The "
+        + "reference size dictates \"szVol\".";
+    ltfSzVolX.setToolTipText(tooltip);
+    ltfSzVolY.setToolTipText(tooltip);
+    ltfSzVolZ.setToolTipText(tooltip);
+    tooltip = "The list of thresholds to use for computing the final volumes.  "
+        + "An average volume is generated for each value in this vector.  The "
+        + "format of the average volume file name is "
+        + "fnOutout_AvgVol_navg_thresh_iteration.mrc"
+        + "  The list can be either a list descriptor ("
+        + LST_THRESHOLD_START_TITLE
+        + ":"
+        + LST_THRESHOLD_INCREMENT_TITLE
+        + ":"
+        + LST_THRESHOLD_END_TITLE
+        + "), a simple list ("
+        + LST_THRESHOLD_ADDITIONAL_NUMBERS_TITLE
+        + "), or a combination of the two.";
+    ltfLstThresholdsStart.setToolTipText(tooltip);
+    ltfLstThresholdsIncrement.setToolTipText(tooltip);
+    ltfLstThresholdsEnd.setToolTipText(tooltip);
+    ltfLstThresholdsAdditional.setToolTipText(tooltip);
+    cbLstFlagAllTom
+        .setToolTipText("When checked an equal number of particles from each "
+            + "tomogram will be used.  When unchecked, particles with the best "
+            + "correlation scores of all the particles in all the tomograms with "
+            + "be used.");
   }
 
   private void updateAdvanceRunParameters(boolean advanced) {

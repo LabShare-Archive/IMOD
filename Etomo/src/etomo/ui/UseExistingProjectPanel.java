@@ -27,6 +27,10 @@ import etomo.type.Run3dmodMenuOptions;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.3  2009/11/20 17:40:39  sueh
+ * <p> bug# 1282 Naming all the file choosers by constructing a FileChooser
+ * <p> instance instead of a JFileChooser instance.
+ * <p>
  * <p> Revision 1.2  2009/10/29 12:14:37  sueh
  * <p> bug# 1245 Removed btnDuplicateProject.  Removed
  * <p> duplicateExistingProject.  Changed importMatlabParam to importParam.
@@ -126,8 +130,8 @@ final class UseExistingProjectPanel {
     File dir = new File(parent.getDirectory().getText());
     if (!dir.exists()) {
       UIHarness.INSTANCE.openMessageDialog("Please create "
-          + dir.getAbsolutePath() + " before importing a file.",
-          "Entry Error", manager.getManagerKey());
+          + dir.getAbsolutePath() + " before importing a file.", "Entry Error",
+          manager.getManagerKey());
       return;
     }
     File file = null;
@@ -171,7 +175,7 @@ final class UseExistingProjectPanel {
       return;
     }
     File file = chooser.getSelectedFile();
-    manager.loadParam(file,true);
+    manager.loadParam(file, true);
   }
 
   /**
@@ -194,11 +198,12 @@ final class UseExistingProjectPanel {
    */
   private void setTooltips() {
     btnImportMatlabParamFile
-        .setToolTipText("Create a new PEET project from a .prm or .epe file.");
+        .setToolTipText("Create a new PEET project from an existing parameter or "
+            + "project file, duplicating all parameters except root name and "
+            + "location.");
     btnCopyParameters
-        .setToolTipText("Create a new PEET project and copy the parameters "
-            + "(everything but the volume table) from .epe and/or .prm file(s) "
-            + "in another directory.");
+        .setToolTipText("Create a new PEET project, copying all settings except "
+            + "the Volume Table from an existing parameter or project file.");
   }
 
   /**

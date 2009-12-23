@@ -3,21 +3,13 @@ package etomo.ui;
 import java.awt.Component;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.io.FileNotFoundException;
-import java.io.IOException;
 
 import javax.swing.BoxLayout;
 import javax.swing.ButtonGroup;
 import javax.swing.JPanel;
 
-import etomo.BaseManager;
-import etomo.storage.LogFile;
 import etomo.storage.MatlabParam;
-import etomo.storage.autodoc.AutodocFactory;
-import etomo.storage.autodoc.ReadOnlyAutodoc;
-import etomo.storage.autodoc.ReadOnlySection;
 import etomo.type.EnumeratedType;
-import etomo.type.EtomoAutodoc;
 import etomo.type.Run3dmodMenuOptions;
 
 /**
@@ -34,6 +26,9 @@ import etomo.type.Run3dmodMenuOptions;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.2  2009/12/08 16:07:43  sueh
+ * <p> bug# 1287 Added getYAxisType.
+ * <p>
  * <p> Revision 1.1  2009/12/08 02:50:59  sueh
  * <p> bug# 1286 Factored out of PeetDialog.
  * <p> </p>
@@ -61,16 +56,14 @@ final class YAxisTypePanel {
   private final LabeledTextField ltfYaxisContourNum = new LabeledTextField(" "
       + YAXIS_CONTOUR_NUM_LABEL + ": ");
 
-  private final BaseManager manager;
   private final YAxisTypeParent parent;
 
-  private YAxisTypePanel(BaseManager manager, YAxisTypeParent parent) {
-    this.manager = manager;
+  private YAxisTypePanel(YAxisTypeParent parent) {
     this.parent = parent;
   }
 
-  static YAxisTypePanel getInstance(BaseManager manager, YAxisTypeParent parent) {
-    YAxisTypePanel instance = new YAxisTypePanel(manager, parent);
+  static YAxisTypePanel getInstance(YAxisTypeParent parent) {
+    YAxisTypePanel instance = new YAxisTypePanel(parent);
     instance.createPanel();
     instance.setTooltips();
     instance.addListeners();
@@ -195,28 +188,20 @@ final class YAxisTypePanel {
   }
 
   private void setTooltips() {
-    try {
-      ReadOnlyAutodoc autodoc = AutodocFactory.getInstance(
-          AutodocFactory.PEET_PRM, manager.getManagerKey());
-      ReadOnlySection section = autodoc.getSection(
-          EtomoAutodoc.FIELD_SECTION_NAME, MatlabParam.YAXIS_TYPE_KEY);
-      rbYAxisTypeYAxis.setToolTipText(section);
-      rbYAxisTypeParticleModel.setToolTipText(section);
-      rbYAxisTypeContour.setToolTipText(section);
-      ltfYaxisObjectNum.setToolTipText(EtomoAutodoc.getTooltip(autodoc,
-          MatlabParam.YAXIS_OBJECT_NUM_KEY));
-      ltfYaxisContourNum.setToolTipText(EtomoAutodoc.getTooltip(autodoc,
-          MatlabParam.YAXIS_CONTOUR_NUM_KEY));
-    }
-    catch (FileNotFoundException e) {
-      e.printStackTrace();
-    }
-    catch (IOException e) {
-      e.printStackTrace();
-    }
-    catch (LogFile.LockException e) {
-      e.printStackTrace();
-    }
+    rbYAxisTypeYAxis
+        .setToolTipText("Use volume's Y axis as particle's Y axis (the phi axis of the search).");
+    rbYAxisTypeParticleModel
+        .setToolTipText("Use the vector between neighboring model points as the "
+            + "particle's Y axis (the phi axis of the search).");
+    rbYAxisTypeContour
+        .setToolTipText("Use the end points of the specified contour in each "
+            + "volume as the particle's Y axis (the phi axis of the search).");
+    ltfYaxisObjectNum
+        .setToolTipText("The number of the object used to determine the "
+            + "particle's Y axis in each volume.");
+    ltfYaxisContourNum
+        .setToolTipText("The number of the contour used to determine the "
+            + "particle's Y axis in each volume.");
   }
 
   private static final class YAxisTypeActionListener implements ActionListener {
