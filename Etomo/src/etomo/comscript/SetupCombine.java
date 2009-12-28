@@ -18,6 +18,9 @@
  * 
  * <p>
  * $Log$
+ * Revision 3.19  2009/03/17 00:32:57  sueh
+ * bug# 1186 Pass managerKey to everything that pops up a dialog.
+ *
  * Revision 3.18  2007/12/26 22:11:58  sueh
  * bug# 1052 Moved argument handling from EtomoDirector to a separate class.
  *
@@ -232,6 +235,7 @@ public class SetupCombine {
     // com scripts which require the -e flag.  RJG: 2003-11-06 
     command.add("tcsh");
     command.add("-f");
+    command.add("-v");
     command.add(ApplicationManager.getIMODBinPath() + "setupcombine");
     //StringBuffer commandLine = new StringBuffer("tcsh -f "
     //    + ApplicationManager.getIMODBinPath() + "setupcombine");
