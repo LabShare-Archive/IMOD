@@ -33,6 +33,9 @@ export ETOMO_MEM_LIM=${ETOMO_MEM_LIM:=128m}
 # If you wish to use a different java runtime than the default uncomment the
 # following line and define the path to the desired runtime directory
 
+# Make sure all PIP programs print entries
+export PIP_PRINT_ENTRIES=1
+
 # Test for existance of IMOD_DIR
 if [ -z "$IMOD_DIR" ]; then
   echo "The IMOD_DIR environment variable has not been set"
