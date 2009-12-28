@@ -18,6 +18,9 @@
  * 
  * <p>
  * $Log$
+ * Revision 3.20  2009/12/28 20:09:16  sueh
+ * bug# 1300 Added -v option tcsh.
+ *
  * Revision 3.19  2009/03/17 00:32:57  sueh
  * bug# 1186 Pass managerKey to everything that pops up a dialog.
  *
@@ -235,7 +238,9 @@ public class SetupCombine {
     // com scripts which require the -e flag.  RJG: 2003-11-06 
     command.add("tcsh");
     command.add("-f");
-    command.add("-v");
+    if (debug) {
+      command.add("-v");
+    }
     command.add(ApplicationManager.getIMODBinPath() + "setupcombine");
     //StringBuffer commandLine = new StringBuffer("tcsh -f "
     //    + ApplicationManager.getIMODBinPath() + "setupcombine");
