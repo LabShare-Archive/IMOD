@@ -22,7 +22,8 @@ bn.done=
 	wait.popup.etomo-question=Yes
 	wait.popup.etomo-question=Yes
 	wait.popup.etomo-question=Yes
-	#if.var.single.wait.popup.etomo-question=Yes
+	#if.var.montage.return=
+	if.var.single.wait.popup.etomo-question=Yes
 [[]]
 
 
