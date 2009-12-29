@@ -10,60 +10,6 @@
 
 $Revision$
 
-$Log$
-Revision 3.13  2008/12/17 22:20:53  mast
-IMOD 3.13
-
-Revision 3.12  2008/08/21 00:08:24  mast
-*** empty log message ***
-
-Revision 3.11  2007/11/20 22:55:57  mast
-Updates for multiple processing functions
-
-Revision 3.10  2007/02/20 19:25:57  mast
-Eliminated even disguised email addresses
-
-Revision 3.9  2006/10/14 15:28:12  mast
-*** empty log message ***
-
-Revision 3.8  2006/10/09 18:03:54  mast
-*** empty log message ***
-
-Revision 3.7  2006/10/07 00:14:11  mast
-*** empty log message ***
-
-Revision 3.6  2006/06/19 18:54:01  mast
-*** empty log message ***
-
-Revision 3.5  2006/01/07 01:58:54  mast
-*** empty log message ***
-
-Revision 3.4  2005/03/08 23:54:26  mast
-Updated for IMOD 3.5
-
-Revision 3.3  2003/11/05 21:25:49  rickg
-*** empty log message ***
-
-Revision 3.2  2003/10/03 17:38:42  rickg
-Removed installation section, no longer applicable
-
-Revision 3.1  2003/09/11 15:44:51  mast
-*** empty log message ***
-
-Revision 1.5  2003/06/13 19:33:09  rickg
-Updated for Beta 2
-
-Revision 1.4  2003/04/28 17:35:48  rickg
-Typo fixes and contents
-
-Revision 1.3  2003/04/25 23:42:09  rickg
-Moved CVS info ahead HTML tag
-
-Revision 1.2  2003/04/25 22:44:18  rickg
-Added comment trailer for CVS header
-
-Revision 1.1  2003/04/25 22:11:29  rickg
-Initial revision
 -->
   <style>
 	<!--
@@ -352,7 +298,7 @@ menu item.&nbsp; Be aware that if you reopen an earlier version of the
 <a name="ParallelProcessing"></a>
 <h2 class="western">Using Parallel Processing<br>
 </h2>
-<p><span style="font-family: helvetica,arial,sans-serif;">Two steps in
+<p class="western">Two steps in
 the processing can now be split into chunks and run in parallel on
 multiple machines or processors: tomogram generation, and the final
 stage of combining volumes in a dual-axis data set.&nbsp; This
@@ -378,8 +324,8 @@ will also need to be able to log in via ssh without entering a password
 (see below) and run IMOD on all of the other computers that you want to
 use.&nbsp;
 <br>
-</span></p>
-<p><span style="font-family: helvetica,arial,sans-serif;">When parallel
+</p>
+<p class="western">When parallel
 processing is available, you will be able to select
 whether to use it with checkboxes on the Tomogram Generation and the
 Combination Final Match pages.&nbsp; With it selected, a parallel
@@ -391,46 +337,46 @@ use, then press the appropriate action button (e.g., <span
  style="font-weight: bold;">Generate Tomogram</span>).&nbsp; The table
 will show how many chunks are completed on each machine.&nbsp; The
 parallel processing area includes several controls:<br>
-</span></p>
+</p>
 <ul>
-  <li><span style="font-family: helvetica,arial,sans-serif;">The <span
+  <li><p class="western">The <span
  style="font-weight: bold;">Kill</span> button, as usual, will kill all
-running processes</span></li>
-  <li><span style="font-family: helvetica,arial,sans-serif;">The <span
+running processes</p></li>
+  <li><p class="western">The <span
  style="font-weight: bold;">Pause</span> button will stop the
 processing more gracefully by allowing all currently running chunks to
-finish.</span></li>
-  <li><span style="font-family: helvetica,arial,sans-serif;">The <span
+finish.</p></li>
+  <li><p class="western">The <span
  style="font-weight: bold;">Resume</span> button can be used after
 either a Kill or a Pause to resume processing without having to redo
 any
-chunks that were already completed.</span></li>
-  <li><span style="font-family: helvetica,arial,sans-serif;">The <span
+chunks that were already completed.</p></li>
+  <li><p class="western">The <span
  style="font-weight: bold;">Save as Defaults</span> button will save
-your current selection of computers as the default for future sessions.</span></li>
-  <li><span style="font-family: helvetica,arial,sans-serif;">The <span
+your current selection of computers as the default for future sessions.</p></li>
+  <li><p class="western">The <span
  style="font-weight: bold;">Nice</span> control lets you select the
 "niceness" of your jobs; the higher the value, the lower the
 priority.&nbsp; The highest value is 19, which will compete with screen
 savers, while a value of 0 will compete equally with normal interactive
-usage of the machine.</span></li>
-  <li><span style="font-family: helvetica,arial,sans-serif;">The <span
+usage of the machine.</p></li>
+  <li><p class="western">The <span
  style="font-weight: bold;">+/-</span> button in the upper left can be
-used to minimize the table.</span></li>
-  <li><span style="font-family: helvetica,arial,sans-serif;">The <span
+used to minimize the table.</p></li>
+  <li><p class="western">The <span
  style="font-weight: bold;">&lt;/&gt;</span> button in the upper right
 can be used to make the table smaller, so that it shows only the
 selected computers and information needed while running.<br>
-    </span></li>
+    </p></li>
 </ul>
-<p class="western"> </p>
-<span style="font-family: helvetica,arial,sans-serif;">To&nbsp; be able
+<p class="western">
+To be able
 to log in via ssh without a password, you need to generate ssh keys
 that are present on each machine.&nbsp; First run <br>
 &nbsp;&nbsp; </span><span
- style="font-family: helvetica,arial,sans-serif; font-style: italic;">ssh-keygen
+ style="font-style: italic;">ssh-keygen
 -t dsa</span><br>
-<span style="font-family: helvetica,arial,sans-serif;">and type Enter
+and type Enter
 for all of the queries.&nbsp; Then do<br>
 &nbsp;&nbsp;&nbsp; <span style="font-style: italic;">cp
 $HOME/.ssh/id_dsa.pub $HOME/.ssh/authorized_keys2</span><br>
@@ -445,10 +391,9 @@ ssh-keygen once on each type of machine then combine the
 Distribute this combined authorized_keys2 file to the .ssh directories.<br>
 &nbsp;
 <br>
-</span>
 <h1 class="western"><a name="Other_Interfaces"></a>Other Interfaces in
 Etomo</h1>
-<p><span style="font-family: helvetica,arial,sans-serif;">eTomo
+<p class="western">eTomo
 provides a good framework for developing new interfaces for managing
 parameter files and running processes, so we continue to add interfaces
 for operations other than generating a tomogram.&nbsp; All of these
@@ -456,23 +401,23 @@ interfaces are available through the <span style="font-weight: bold;">File</span
 menu via the various selections starting with <span
  style="font-weight: bold;">New</span>.&nbsp; They include interfaces
 for:<br>
-</span></p>
+</p>
 <ul>
-  <li><span style="font-family: helvetica,arial,sans-serif;">Joining
+  <li><p class="western">Joining
 together tomograms from serial sections, opened by selecting <span
  style="font-weight: bold;">File/New Join</span>.&nbsp; See&nbsp;
 the&nbsp;&nbsp;<a href="tomojoin.html">Guide to Joining Tomograms</a>
 for instructions.&nbsp; The processing state is saved to a file with
 extension <span style="font-style: italic;">.ejf</span>, which you can
-reopen to resume your work.<span style="text-decoration: underline;"></span></span><br>
-  </li>
-  <li><span style="font-family: helvetica,arial,sans-serif;">Running
+reopen to resume your work.<span style="text-decoration: underline;"></span><br>
+  </p></li>
+  <li><p class="western">Running
 the PEET volume alignment and averaging software, opened by selecting <span
  style="font-weight: bold;">File/New PEET</span>.&nbsp; The processing
 state is saved to a file with extension <span
  style="font-style: italic;">.epe</span>, which you can reopen to
-resume working on a data set.</span></li>
-  <li><span style="font-family: helvetica,arial,sans-serif;">Running
+resume working on a data set.</p></li>
+  <li><p class="western">Running
 parallel processing on an appropriate set of command files, such as the
 ones created by the programs <a href="man/chunksetup.html">chunksetup</a>,
     <a href="man/sirtsetup.html">sirtsetup</a>, and <a
@@ -483,23 +428,21 @@ Parallel Process</span> then pressing the <span
 button.&nbsp; The program state is saved in a file with extension<span
  style="font-style: italic;"> .epp</span>, which you can reopen to
 process files with the same name as previously. <br>
-    </span></li>
-  <li><span style="font-family: helvetica,arial,sans-serif;">Filtering
+    </p></li>
+  <li><p class="western">Filtering
 by nonlinear anisotropic diffusion.&nbsp; This procedure often requires
 finding the right parameter settings with a small test volume before
 running on the full volume, so the interface provides tools for doing
 this conveniently.&nbsp; All of the temporary and working files are
 kept in a subdirectory that you can remove at the end.&nbsp; The
-interface is opened by </span><span
- style="font-family: helvetica,arial,sans-serif;">selecting <span
+interface is opened by selecting <span
  style="font-weight: bold;">File/New Parallel Process</span> then
 pressing the <span style="font-weight: bold;">Nonlinear Anisotropic
-Diffusion</span> button. </span><span
- style="font-family: helvetica,arial,sans-serif;">The program state is
+Diffusion</span> button. </span>The program state is
 saved in a file with extension <span style="font-style: italic;">.epp</span>.&nbsp;
 See the&nbsp;<a href="man/nad_eed_3d.html">nad_eed_3d man page</a> for
 more details.<br>
-    </span></li>
+    </p></li>
 </ul>
 <span style="font-weight: bold;"></span>
 <h1 class="western"><a name="ReportingBugs"></a>Reporting
