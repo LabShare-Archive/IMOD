@@ -31,6 +31,7 @@ set scalelist = ""
 set newmode = 0
 
 setenv LC_NUMERIC C
+setenv PIP_PRINT_ENTRIES 0
 
 if ($?IMOD_DIR) then
     setenv PATH "$IMOD_DIR/bin:$PATH"
@@ -796,6 +797,9 @@ EOF
 
 #
 #  $Log$
+#  Revision 3.19  2009/02/17 05:44:04  mast
+#  Changing directory or copied file modes for Vista
+#
 #  Revision 3.18  2008/05/20 21:13:14  mast
 #  Put out stacking of sample averages in multiple lines to avoid long line
 #
