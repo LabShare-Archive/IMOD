@@ -239,7 +239,7 @@ set.interface.peet=
 
 [interface = Recon]
 goto.frame.pnl.main-frame =
-open.interface.bn.tomographic-reconstruction=
+open.interface.bn.new-tomogram=
 goto.frame.a.pnl.main-frame =
 open.frame.b.bn.both =
 goto.frame.b.pnl.sub-frame =
@@ -256,7 +256,7 @@ open.dialog.CleanUp.bn.clean =
 
 [interface = Join]
 goto.frame.pnl.main-frame =
-open.interface.bn.join-tomograms=
+open.interface.bn.new-join=
 open.dialog.setup.tb.setup =
 open.dialog.align.tb.setup.1 =
 open.dialog.join.tb.setup.2 =
@@ -265,13 +265,13 @@ open.dialog.rejoin.tb.setup.4 =
 
 [interface = PEET]
 goto.frame.pnl.main-frame =
-open.interface.bn.peet=
+open.interface.bn.new-peet=
 
 [Interface = Nad]
 goto.frame.pnl.main-frame =
-open.interface.bn.nonlinear-anisotropic-diffusion=
+open.interface.bn.new-nonlinear-anisotropic-diffusion=
 
 [Interface = Generic]
 goto.frame.pnl.main-frame =
-open.interface.bn.generic-parallel-process=
+open.interface.bn.new-generic-parallel-process=
 
