@@ -24,6 +24,10 @@ import etomo.type.AxisID;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.5  2009/11/24 00:44:33  sueh
+ * <p> bug# 1289 On PEET button being pressed, calling
+ * <p> PeetManager.isInterfaceAvaiable before opening PEET interface.
+ * <p>
  * <p> Revision 1.4  2009/11/23 17:52:21  sueh
  * <p> bug# 1289 Popping up a message instead of opening the PEET interface if
  * <p> PARTICLE_DIR doesn't exist.
@@ -45,14 +49,16 @@ public final class FrontPageDialog {
   public static final String rcsid = "$Id$";
 
   private final SpacedPanel pnlRoot = SpacedPanel.getInstance(true);
-  private final MultiLineButton btnRecon = new MultiLineButton(
-      "Tomographic Reconstruction");
-  private final MultiLineButton btnJoin = new MultiLineButton("Join Tomograms");
-  private final MultiLineButton btnNad = new MultiLineButton(
-      "Nonlinear Anisotropic Diffusion");
-  private final MultiLineButton btnGeneric = new MultiLineButton(
-      "Generic Parallel Process");
-  private final MultiLineButton btnPeet = new MultiLineButton("PEET");
+  private final MultiLineButton btnRecon = new MultiLineButton("New "
+      + EtomoMenu.RECON_LABEL);
+  private final MultiLineButton btnJoin = new MultiLineButton("New "
+      + EtomoMenu.JOIN_LABEL);
+  private final MultiLineButton btnNad = new MultiLineButton("New "
+      + EtomoMenu.NAD_LABEL);
+  private final MultiLineButton btnGeneric = new MultiLineButton("New "
+      + EtomoMenu.GENERIC_LABEL);
+  private final MultiLineButton btnPeet = new MultiLineButton("New "
+      + EtomoMenu.PEET_LABEL);
 
   private FrontPageDialog() {
   }
