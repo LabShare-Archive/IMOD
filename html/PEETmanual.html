@@ -24,19 +24,23 @@
 <br /><a HREF="#Volume Table">2.5. Volume Table</a>
 <br /><a HREF="#Using Relative Orientations">2.6. Using Relative Orientations</a>
 <br /><a HREF="#Action Buttons">2.7. Action Buttons</a>
-<br /><a HREF="#Reference Group">2.8. Reference Group</a>
-<br /><a HREF="#Missing Wedge Compensation Group">2.9. Missing Wedge Compensation Group</a>
-<br /><a HREF="#Masking Group">2.10. Masking Group</a>
-<br /><a HREF="#Initial Motive List Group">2.11. Initial Motive List Group</a>
-<br /><a HREF="#Y Axis Type Group">2.12. Y Axis Type Group</a>
+<br /><a HREF="#Reference Section">2.8. Reference Section</a>
+<br /><a HREF="#Missing Wedge Compensation Section">2.9. Missing Wedge Compensation Section</a>
+<br /><a HREF="#Masking Section">2.10. Masking Section</a>
+<br /><a HREF="#Initial Motive List Section">2.11. Initial Motive List Section</a>
+<br /><a HREF="#Y Axis Type Section">2.12. Y Axis Type Section</a>
 <br /><a HREF="#The Run Tab">3. The Run Tab</a>
-<br /><a HREF="#Iteration Table">3.1. Iteration Table</a>
-<br /><a HREF="#Spherical Sampling for Theta and Psi Group">3.2. Spherical Sampling for Theta and Psi Group</a>
-<br /><a HREF="#Particle Volume Fields">3.3. Particle Volume Fields</a> 
-<br /><a HREF="#Use Equal Numbers of Particles Checkboxes">3.4. Use Equal Numbers of Particles Checkboxes</a>
-<br /><a HREF="#Number of Particles in Averages Group">3.5. Number of Particles in Averages Group</a>
-<br /><a HREF="#Particles per CPU">3.6. Particles per CPU</a>
-<br /><a HREF="#3.7. Action Buttons">3.7. Action Buttons</SPAN></a>
+<br /><a HREF="#Parallel Processing">3.1. Parallel Processing</a>
+<br /><a HREF="#Iteration Table">3.2. Iteration Table</a>
+<br /><a HREF="#Spherical Sampling for Theta and Psi Section">3.3. Spherical Sampling for Theta and Psi Section</a>
+<br /><a HREF="#Remove duplicates">3.4. Remove duplicates</a> 
+<br /><a HREF="#Particle Volume Fields">3.5. Particle Volume Fields</a> 
+<br /><a HREF="#Use Equal Numbers of Particles Checkboxes">3.6. Use Equal Numbers of Particles Checkboxes</a>
+<br /><a HREF="#Number of Particles in Averages Section">3.7. Number of Particles in Averages Section</a>
+<br /><a HREF="#Align averages to have their Y axes vertical">3.8. Align averages to have their Y axes vertical</a>
+<br /><a HREF="#Particles per CPU">3.9. Particles per CPU</a>
+<br /><a HREF="#3.10. Action Buttons">3.10. Action Buttons</a>
+<br /><a HREF="#Advanced Options">3.11. Advanced Options</a>
 <br /><br />
 
 <hr />
@@ -50,13 +54,13 @@ Subsequent iterations refine the optimal alignment found in the
 previous iteration by aligning to a new reference generated from some
 of the particles aligned on the previous iteration.&nbsp;  It has a
 graphical user interface that helps users to set up options (working
-directory, tomogram file name, searching parameters, etc.) and to
+directory, tomogram file name, searching parameters, etc.), and to
 control the execution of the process.&nbsp;  This manual will explain
 each option in the interface.</p>
 
 <p>The interface can be accessed by starting eTomo and pressing the
 <b>PEET</b> button, or by selecting <b>New PEET</b> in the <b>File</b>
-menu.&nbsp;  Its PEET panel has 2 tabs, the <b>Setup</b> tab and the <b>Run</b>
+menu.&nbsp;  The PEET panel has 2 tabs, the <b>Setup</b> tab and the <b>Run</b>
 tab.&nbsp;  The <b>Setup</b> tab has options for defining the data to
 be worked on and setting up initial conditions and other features of
 the search.&nbsp;  The <b>Run</b> tab has a table for entering
@@ -68,8 +72,8 @@ the final averaging operation.</p>
 <H4><A NAME="Root Name for Output Field"></A>2.1. Root Name for Output Field </H4>
 
 <p>Specify the base name that PEET will use to name the files it
-creates.&nbsp;  To make this manual concrete, we assume the user
-inputs "myRun" for the field. 
+creates.&nbsp;  To make this manual concrete, we will assume 
+a base name of "myRun". 
 </p>
 
 <H4><A NAME="Directory Field"></A>2.2. Directory Field </H4>
@@ -77,11 +81,14 @@ inputs "myRun" for the field.
 <p>Push the open file icon to pick or create a working directory.&nbsp;
 PEET will store temporary files and final average volumes in this
 directory.&nbsp;  A new directory is required for each separate PEET
-run because a large number of files can be created.&nbsp;  Note that
-tomograms and models do not need to be copied to the data directory.</p>
+run, because a large number of files can be created.&nbsp;  
+It is not necessary to copy or move tomograms and models into
+the data directory.</p>
 
-<p>Assuming the root name is "myRun", the important text files in
-this directory are (#k and #m stand for integer numbers):</p>
+<p>Assuming a base name of "myRun", some of the important text files in
+this directory are listed in the table below,&nbsp; 
+(Here, #k and #m stand for integers, and "*" 
+is a wildcard which can match any series of characters.)</p>
 
 <TABLE WIDTH=639 BORDER=1 BORDERCOLOR="#000000" CELLPADDING=7 CELLSPACING=0>
 <COL WIDTH=252>
@@ -93,8 +100,8 @@ this directory are (#k and #m stand for integer numbers):</p>
 </TD>
 
 <TD WIDTH=357>
-<p>Stores etomo status and options appearing on the screen but not
-stored in the PEET parameter file</p>
+<p>The project file, containing eTomo status and other options 
+appearing on the screen but not stored in the PEET parameter file</p>
 </TD>
 
 </TR>
@@ -105,8 +112,9 @@ stored in the PEET parameter file</p>
 </TD>
 
 <TD WIDTH=357>
-<p>Stores PEET options.&nbsp;  It has Matlab syntax and is documented in the
-PEET man page.</p>
+<p>The parameter file, containing PEET parameter assignments 
+in Matlab syntax.&nbsp;  See the
+PEET man page for additional details.</p>
 </TD>
 
 </TR>
@@ -117,8 +125,8 @@ PEET man page.</p>
 </TD>
 
 <TD WIDTH=357>
-<p>Stores shell commands that will be run on computers selected
-by the user.</p>
+<p>Command scripts that will distributed to user-selected computers
+for execution.</p>
 </TD>
 
 </TR>
@@ -129,12 +137,14 @@ by the user.</p>
 </TD>
 
 <TD WIDTH=357>
-<p>Optimal alignments found for particles in tomogram #k on
-iteration #m - 1.&nbsp;  PEET will use them during iteration #m to
-refine the alignments.&nbsp;  Fields are separated by commas.&nbsp;
-Users can load these files in a spreadsheet program like Excel or
-OpenOffice Calc and edit their fields.&nbsp;  MOTL stands for
-motive list, a set of rotations, translations, and some other
+<p>Optimal alignments found for tomogram #k particles during
+alignment iteration #m - 1.&nbsp;  PEET uses the contents as 
+inputs subject to further refinement in iteration #m.&nbsp;  
+These files are in "comma separated value" (.csv) format, so they
+can be examined or modified in text editors or in spreadsheet 
+programs like Excel or
+OpenOffice Calc.&nbsp; "MOTL" stands for
+motive list, a set of rotations, translations, and other
 information about each particle, including the correlation
 coefficient from the alignment with the reference.</p>
 </TD>
@@ -148,49 +158,56 @@ coefficient from the alignment with the reference.</p>
 
 <TD WIDTH=357>
 <p>Logs created by the shell commands.&nbsp;  Each .com file
-creates one log file.</p>
+creates a corresponding log file.</p>
 </TD>
 
 </TR>
 </TABLE>
 <br>
 
-<p>Files with .mrc extension in this folder are reference volumes and
-final average volumes created by PEET.&nbsp;  For example,
-myRun_Ref#m.mrc is the reference volume created for alignment during
-iteration #m.myRun_AvgVol_#mP#n.mrc is the average volume after #m
-iterations and is the result of averaging #n particles.</p>
+<p>Files with .mrc extension in this folder are volumes stored
+in MRC format.&nbsp References and final averages are examples
+of important volumes created by PEET and stored in this format.&nbsp;  
+For example, myRun_Ref#m.mrc is the reference volume created for 
+alignment during iteration #m.&nbsp; Similarly, the average volume 
+resulting from combining #n particles at iteration #m is stored in 
+myRun_AvgVol_#mP#n.mrc.</p>
 
 <p>Once you have defined the root name and the working directory, you
 can begin to enter data into the volume table.&nbsp;  In addition,
 before you have any data, you have a chance to bring parameter
-entries into this new project in three different ways, described
+entries into this new project in two different ways, described
 next.</p>
 
 <H4><A NAME="Import an Existing Project Button"></A>2.3. Import an Existing Project Button</H4>
 
-<p>Use contents of a .prm file or an .epe file to fill in the
-interface, including the volume table.&nbsp;  The main uses for
+<p>Use contents of an existing .prm or.epe file to fill in parameters,
+including the volume table.&nbsp;  The main uses for
 importing a .prm file are 1) if you have processed data with PEET
-outside of eTomo and want to make it a project in eTomo; or 2) if you
-have a master parameter file that you want to copy settings from.&nbsp;
-Importing an .epe file also imports its corresponding .prm file and
-creates an exact copy of the imported dataset.&nbsp;  The main use for
-importing an .epe is to try a different set of parameters or an
-additional iteration on an existing data set.</p>
+outside of the eTomo graphical interface, and want to create an 
+eTomo project; 2) if you
+have a master parameter file that you want to copy settings from; or 3) if you
+want to make a duplicate of an existing project and run it again with
+different parameters.&nbsp;
+Importing an .epe file also imports its corresponding .prm file.</p>
 
 <H4><A NAME="Copy Parameters Button"></A>2.4. Copy Parameters Button</H4>
 
-<p>Use contents of a .prm or a .epe file to fill in a subset of the
-fields in the interface, including the searching parameters but not
-the volume table. 
+<p>Copy the Iteration Table and other parameters not relating to
+specific volumes from an existing project or parameter
+file.&nbsp; The Volume table and references to specific
+model, object, contour, or particle numbers will not be copied.&nbsp;
+This control is useful, for example, if you would like to transfer 
+search parameters used previously to a new project using different volumes.
 </p>
 
 <H4><A NAME="Volume Table"></A>2.5. Volume Table</H4>
 
-<p>The Volume Table can have multiple rows, each with 5 entries.&nbsp;
-Each row can be selected by clicking <b>=&gt;</b> at the beginning.&nbsp;
-The entries are explained in the following table.</p>
+<p>The Volume Table can have multiple rows, each referring to a volume
+and corresponding model to be included in the alignment.&nbsp;
+A row can be selected by clicking <b>=&gt;</b> near the left end of the
+row.&nbsp;
+Each row can contain 8 entries, described in the following table.&nbsp;</p>
 
 <TABLE WIDTH=639 BORDER=1 BORDERCOLOR="#000000" CELLPADDING=7 CELLSPACING=0>
 <COL WIDTH=148>
@@ -202,9 +219,11 @@ The entries are explained in the following table.</p>
 </TD>
 
 <TD WIDTH=461 VALIGN=TOP>
-<p>File name of a tomogram.&nbsp;  The file should be in MRC format
-and should be oriented so that X/Y planes are in the plane of the
-specimen.&nbsp;  The same volume can be entered more than once.</p>
+<p>The name of a file containing a tomogram in MRC format
+and oriented so that X / Y planes correspond to the plane of the
+specimen.&nbsp;  (Note that post-processing will typically be
+necessary after reconstruction to meet this requirement.)&nbsp;
+The same volume can be entered on more than one row.</p>
 </TD>
 
 </TR>
@@ -215,13 +234,16 @@ specimen.&nbsp;  The same volume can be entered more than once.</p>
 </TD>
 
 <TD WIDTH=461 VALIGN=TOP>
-<p>File name of an IMOD model.&nbsp;  All points in the first
-object of the model will be used.&nbsp;  They specify the center
-position of particles that will be averaged.&nbsp;  Points in other
-objects of the model will be ignored.&nbsp;  Typically you would
-make the object type be scattered points, unless your particles
-are along filaments, where an open contour object would be more
-useful.</p>
+<p>The name of a file containing an IMOD model for the
+current volume..&nbsp;  All points in the first
+object of the model, and only those points, will be used, with  
+each point specifying the center
+of a particle to be aligned and averaged.&nbsp;  
+(Points in objects other than the first can be useful for specifying
+orientation in some cases.&nbsp; See Y Axis Type below.)&nbsp;
+Typically, the object will contain either scattered points for 
+isolated particles, or open contours if the particles lie 
+along filaments, and will be assigned the corresponding type.</p>
 </TD>
 
 </TR>
@@ -232,13 +254,15 @@ useful.</p>
 </TD>
 
 <TD WIDTH=461 VALIGN=TOP>
-<p>File name of an initial motive list file, which specifies how
-to approximately align each particle with the reference so that
-PEET only needs to search over small angular ranges to find the
-optimal alignment.&nbsp;  This file is used only if the <b>Use
-files</b> option is selected in the "Initial Motive List"
-group box (see below); the entry is disabled unless this option is
-selected</p>
+<p>The name of a file containing an initial motive list, specifying
+rotations and / or translations required to approximately align each 
+particle with the reference.&nbsp This can permit use of a more restricted
+search for the optimal alignment.&nbsp;  The file format is identical to
+that of the .csv MOTL files used by PEET to transfer alignment 
+information between
+iterations.&nbsp This parameter is active only if the  
+<b>Use files</b> option is selected in the 
+"Initial Motive List" section, described below.</p>
 </TD>
 
 </TR>
@@ -250,13 +274,15 @@ selected</p>
 
 <TD WIDTH=461 VALIGN=TOP>
 <p>The tilt range used to collect the tomogram, which is needed to
-compensate correlation coefficients for the effects of the missing
-wedge.&nbsp;  This entry is disabled by default.&nbsp;  To enable
-it, check <b>Use tilt range in averaging</b> in the "Missing
-Wedge Compensation" checkbox group.&nbsp;  You can find out the
-range used by pressing the <b>Read Tilt File</b> button if you
-have .tlt file.&nbsp;  If you want to use missing wedge
-compensation, the range has to be specified.</p>
+compensate averages and correlation coefficients for the effects of 
+the tomographic "missing wedge".&nbsp;  This option is disabled by 
+default.&nbsp; 
+To enable it, check <b>Use tilt range in averaging</b> in the "Missing
+Wedge Compensation" checkbox group.&nbsp; If you have a corresponding
+Tilt File (.tlt), you can transfer the appropriate values from the
+file to the table by pressing the <b>Read Tilt File</b> button beneath
+the table.&nbsp;  Tilt range must be specified in order to use missing 
+wedge compensation.</p>
 </TD>
 
 </TR>
@@ -267,14 +293,14 @@ compensation, the range has to be specified.</p>
 </TD>
 
 <TD WIDTH=461 VALIGN=TOP>
-<p>Abbreviation for relative orientation.&nbsp;  These angles
-represent a rotation that will be applied to all particles from a
-tomogram to bring them to approximately the same orientation as
-the reference.&nbsp;  This rotation is combined with the angles for
-each particle in the initial MOTL file, if any.&nbsp;  The angles
-are 3dmod slicer X, Y, and Z angles in degrees, which are applied
-in the order Z, Y, X.&nbsp;  The use of this feature is described
-below.</p>
+<p>Relative orientation consists of 3 angles representing a rotation 
+that will be applied to each particle
+in the tomogram to bring it to a standard, starting orientation, ideally
+that of the reference.&nbsp;  This rotation is followed by
+any rotations specified for individual particles in the initial motive
+list.&nbsp; Relative orientation angles are 3dmod slicer X, Y, and Z 
+angles in degrees, and are applied in the order Z, Y, X.&nbsp; 
+The use of this feature is described below in more detail.</p>
 </TD>
 
 </TR>
@@ -284,116 +310,142 @@ below.</p>
 <H4><A NAME="Using Relative Orientations"></A>2.6. Using Relative Orientations</H4>
 
 <p>The most common use of relative orientations is when combining
-data from multiple tomograms for which you have already run PEET
-separately.&nbsp;  Here, you might pick the average from one of the
-tomograms as the reference for further alignment.&nbsp;  Use the final
-MOTL files from the previous runs and the initial MOTL files for each
-volume.&nbsp;  Open the average from each of the other tomograms in
+data from multiple averages with different orientations from prior
+PEET runs on separate volumes.&nbsp;  In this situation, you might 
+pick the final reference from one of the tomograms as the reference for 
+further alignment.&nbsp; Use the final
+MOTL files from the previous runs as the initial MOTL files for each
+volume.&nbsp;  Open the final reference from each of the other tomograms in
 3dmod and rotate it in Slicer until it approximately matches the
-orientation of the reference average.&nbsp;  One way to do this is to
-open all of the averages together in 3dmod and use Edit-Angles to
+orientation of the chosen reference.&nbsp;  One way to do this is to
+open all of the final references together in 3dmod and use Edit-Angles to
 open the Slicer Angles dialog.&nbsp;  After you turn on "Auto" in
 the toolbar that appears in the Slicer, angles are continuously saved
 in the Angles table as you change them in the Slicer, and when you
 switch between different volumes (times) the saved angles will be
 restored for the volume that you switch to.&nbsp;  In this way, you
 can adjust angles and toggle between volumes to assess the alignment.</p>
-
-<p>Another possible use of this feature would be to indicate relative
+<p>
+When aligning the volumes from the different tomograms in this way, you may
+want to rotate the chosen reference as well as all the others 
+into a more convenient orientation.&nbsp; If you do this, the alignment search
+with all of the tomograms will work correctly if you specify a
+particle from one tomogram as the reference.&nbsp;
+However, if you specify a file as the reference, the search will not work
+unless you also rotate the the chosen reference into the new
+orientation.&nbsp; You can do this with the IMOD
+program <a href="man/rotatevol.html">rotatevol</a>, e.g, 
+with "rotatevol -ang Z,Y,X input_file output_file",
+where X, Y, and Z are the slicer angles entered as the relative orientation
+for the tomogram from which the reference was taken.</p>
+<p>
+Another possible use of this feature would be to indicate relative
 orientations between the structures in multiple tomograms where no
 initial averaging has been done.&nbsp;  In this case, the reference
 could be a particle from one of the tomograms or a file with a
-reference volume.&nbsp;  The slicer angles should be found that bring
+reference volume.&nbsp;  Slicer angles should be found that bring
 the structures in a given tomogram into approximately the same
-orientation as this reference.&nbsp;  As indicated in the table above,
+orientation as this reference.&nbsp; Relative orientation may also 
+optionally be specified for the volume containing the reference.&nbsp;
+In this case, the reference volume relative orientation can
+be thought of as reorienting the reference to a preferred orientation,
+while the relative orientations for other volumes are those required
+to match the reoriented reference.&nbsp;
+As indicated in the table above,
 any rotations in an initial MOTL file will be applied after the
-rotation from the relative orientation.&nbsp;  Also, if you have
-structures along fibers in multiple tomograms, you can use the
-options described below to initialize the Z axis or the X and Z axis
-in the motive list, and then these relative orientations are both
-unneeded and counterproductive.</p>
+rotation from the relative orientation.&nbsp;  Note, however, that
+if you have structures along fibers in multiple tomograms, it is
+preferable to use the Initial Motive List options described below to 
+initialize the Z axis or the X and Z axes in the motive list; in 
+these cases relative orientations are both unneeded
+but counterproductive.</p>
 
 <H4><A NAME="Action Buttons"></A>2.7. Action Buttons</H4>
 
 <p>Press <b>Add Volume and Model</b> to add a row to the table.&nbsp;
-File choosers will open to allow you to pick the reconstruction file
-and model file.&nbsp;  To add a volume and model which requires the
-same settings as a volume and model in another row, highlight the
-other row with <b>=&gt;</b> and press <b>Add with Copied Data</b>.</p>
+File choosers will open to allow you to pick the volume
+and model files.&nbsp;  To add a row with the same volume, model, and other
+settings as in an existing row, highlight the
+existing row with <b>=&gt;</b> and press <b>Copy Row</b>.</p>
 <p>After you highlight an existing row in the table with <b>=&gt;</b>,
 other buttons become available.&nbsp;  You can use <b>Change Model</b>
 to change just the model file on that row.&nbsp;  Press <b>Set Initial
 Motive List File</b> to open a file chooser and pick an initial MOTL
-file.&nbsp;  After turning on missing wedge compensation, you can
-press <b>Read Tilt File</b> to read the minimum and maximum tilt
+file.&nbsp;  After enabling  missing wedge compensation, 
+pressing <b>Read Tilt File</b> will read the minimum and maximum tilt
 angles from a .tlt file.&nbsp;  Press <b>Move Up</b> or <b>Move Down</b>
 to change the location of the highlighted row in the table.&nbsp;
 Press <b>Delete Row</b> to delete the current row from the table.&nbsp;
 Press <b>Open in 3dmod</b> to open the volume and model files in
-3dmod.&nbsp;  You can right click this button to open the volume
-binned by 2 or to open 3dmod with the startup window in order to pick
+3dmod.&nbsp;  You can also right-click this button to open the volume
+binned by 2 or to open 3dmod with the startup window shown in order to pick
 other options.</p>
 
-<H4><A NAME="Reference Group"></A>2.8. Reference Group</H4>
+<H4><A NAME="Reference Section"></A>2.8. Reference Section</H4>
 
-<p>Check the <b>Volume</b> radio button to use a particle of a
-tomogram as the reference; input the tomogram number in the spin box
+<p>Check the <b>Volume</b> radio button to use a particle from
+one of the tomograms in the Volume Table as the reference.&nbsp;
+Input the tomogram number in the spin box
 and the particle number in the field with the heading <b>Particle
-#:</b>.&nbsp;  Particles are numbered sequentially as if all the
+#</b>.&nbsp;  Particles are numbered sequentially from 1 as if all the
 contours were combined into one; e.g., if the first contour has 100
 particles, then the 20th particle of the second contour is
 number 120.</p>
 
 <p>Check the <b>Reference file</b> radio button to use a separate
-volume as the reference and input the file name of the stack in the
-field or use the file chooser to find it.</p>
+volume, specified by file name,  as the reference and input the file 
+name of the stack in the appropriate field or use the file 
+chooser to select it.</p>
 
-<H4><A NAME="Missing Wedge Compensation Group"></A>2.9. Missing Wedge Compensation Group</H4>
+<H4><A NAME="Missing Wedge Compensation Section"></A>2.9. Missing Wedge Compensation Section</H4>
 
 <p>Check <b>Use tilt range in averaging</b> to use PEET's missing
-wedge compensation for averaging.&nbsp;  Instead of forming a sum in
-real space of all of the aligned particles, it forms a sum of their
-Fourier transforms and divides each voxel component of the FFT by the
-number of particles contributing data outside the missing wedge to
-that voxel.</p>
+wedge compensation for averaging.&nbsp; When selected, object
+space averaging of the aligned particles will be replaced by a 
+weighted averaging in Fourier space, with each particle 
+contributing only to regions in which its projections are informative,
+i.e. those lying outside its tomographic missing wedge.</p>
 
 <p>If the first option is selected, you can also check <b>Use tilt
 range in alignment</b> to use PEET's missing wedge compensation of
 correlation coefficients during alignment.&nbsp;  This compensation
-involves boosting up the correlation coefficients when there is less
-overlap between non-missing wedge regions of the particle and the
+involves boosting the correlation coefficients when there is less
+overlap between informative regions of the particle and the
 reference.&nbsp;  Specifically, the correlation coefficient is
-multiplied by the ratio between the maximum fraction of Fourier space
-volume that has data from non-missing wedge regions and the actual
-fraction of overlapping volume with data for the particular particle
-and set of rotation angles.&nbsp;  This kind of compensation is
-relevant only when the reference is a particle with a missing wedge,
+multiplied by the ratio between the maximum, over all particles, of
+the fraction of Fourier space
+having data from informative regions of both the particle and
+the reference and the 
+fraction for the current particle at a specific orientation.&nbsp;  
+This kind of compensation is
+relevant only when the reference is a particle with a missing wedge
 rather than an average.</p>
 
-<p>If <b>Use tilt range in alignment</b> is checked, another option
-is available for performing a second kind of compensation for the
-missing wedge when selecting particles to be averaged on the first
-round.&nbsp;  After optimal alignment is computed for each particle,
-the particles can be divided into groups based on how much a
-particle's non-missing area overlaps with that of the reference in
-Fourier space.&nbsp;  After grouping, particles' correlation scores
-are scaled so that each group has about the same median score.&nbsp;
+<p>If <b>Use tilt range in alignment</b> is checked, a additional
+type of missing wedge compensation is available during averaging
+at the end of the first iteration.&nbsp;  
+After computing optimal alignments,
+particles are divided into groups based on the extent of overlap
+between each particle's informative area and that of the reference in
+Fourier space.&nbsp;  Correlation scores
+are then scaled so that each group has approximately the same 
+median score.&nbsp;
 The adjusted scores are then used to select particles to form the
-reference for the second iteration, and the averages if the user
-chooses to output them for the second iteration.&nbsp;  The result is
+reference for the second iteration, as well as averages if the user
+chooses to create them at the end of the first iteration.&nbsp;  The result is
 that nearly equal numbers of particles from each of the orientation
 groups are included in the reference, thus minimizing a missing wedge
 bias in that reference that would be reinforced on the second
-iteration.&nbsp;  To use this option, turn on <b># of weight groups
-for equalizing CCCs</b> and select the desired number.&nbsp;  The
-number of groups to pick depends on the number of particles.&nbsp;  It
+iteration.&nbsp;  To enable this option, select <b># of weight groups
+for equalizing CCCs</b> and choose the desired number of groups.&nbsp;  The
+number of groups to use depends on the number of particles.&nbsp;  It
 is probably best to have at least 20 particles per group, but there
 is little to be gained from having more than 10 groups even if there
 are many particles.&nbsp;  This option is most effective if particles
 assume a variety of original orientations.&nbsp;  If particles all
-have about the same orientation, for example, particles from a
-non-twisting microtubule sitting in the X-Y plane, you may not want
-to use the option.</p>
+have about the same orientation, (e.g. particles from a
+non-twisting microtubule sitting in the X-Y plane), this type of
+compensation may not be necessary or helpful.</p>
 
 <p>The <b>Edge shift</b> entry specifies the number of pixels in from
 the edge of the missing wedge to include when averaging with missing
@@ -401,104 +453,128 @@ wedge compensation.&nbsp;  Some useful information seems to spread
 into the missing wedge during backprojection.&nbsp;  A value of 1-2
 pixels is appropriate.</p>
 
-<H4><A NAME="Masking Group"></A>2.10. Masking Group </H4>
+<H4><A NAME="Masking Section"></A>2.10. Masking Section </H4>
 
 <p>Users can mask out an area of the reference that they want to
 exclude from being used for cross-correlation.&nbsp;  The default is
 no masking.&nbsp;  However, the user can choose a volume, a sphere, or
 a cylinder as the mask by checking the corresponding radio button.&nbsp;
-For example, when averaging a virus, you might use a spherical mask
+For example, when averaging an icosahedral virus, you might use a spherical mask
 to align only on the capsid and mask out the interior of the virus,
 or vice versa.&nbsp;  A cylindrical mask could be used when aligning
 subunits of a microtubule to exclude variable material outside the
 microtubule, such as a neighboring microtubule.</p>
 
-<p>If the mask is a volume, the user has to input the file name of
-that volume.&nbsp;  A voxel of the reference volume is masked out if
+<p>To use a volume containing an arbitrary mask select
+the <b>Volume</b> option, and input the name of the file containing
+the mask volume.&nbsp;  A voxel of the reference volume will be masked out if
 the value of its corresponding voxel in the mask volume is zero.&nbsp;
-The dimensions of the mask volume can be smaller than the dimensions
-of the reference volume.&nbsp;  In this case, the mask volume is
-centered inside the reference, and masking values outside the
-mask volume are determined by the mask value of the majority of the 8 corner
-voxels of the mask volume (i.e., if 5 or more corners are zero, the mask will
-be zero outside the volume).&nbsp;  A convenient way to generate a mask
-volume is to use the IMOD program imodmop, which can be used to
+The dimensions of the mask volume need not match those of the reference
+volume.&nbsp;  
+In this case, the mask volume is centered on the reference, and mask
+values outside the reference volume are ignored.&nbsp;   Mask values outside the
+mask volume, but within the reference, are determined by the value
+of the majority of the 8 corner voxels of the mask volume.&nbsp  
+(I.e., if 5 or more corners are zero, the mask will
+be zero outside the volume;&nbsp; conversely, if 4 or fewer corners are
+zero, the mask will be one outside the mask volume.)&nbsp;  
+A convenient way to generate a mask
+volume is to use the IMOD program <a href="man/imodmop.html">imodmop</a>,
+which can be used to
 retain pixels inside of spheres and cylinders as well as inside of
 closed contours.&nbsp;  For this purpose, it does not matter that this
 program leaves original density values rather than 1's in the
 region that is retained.</p>
 
-<p>If the mask is a sphere or a cylinder, the user has to specify the
-inner radius and the outer radius.&nbsp;  The center of the sphere is
-the center of the reference volume.&nbsp;  The reference voxels inside
-the inner radius and outside the outer radius will be masked out.</p>
-<p>The orientation of a cylinder is determined by a line passing
-through one specified particle and the next particle in sequence.&nbsp;
-In the most general case, you can specify the particle by setting the
-model number and particle number in the "Cylinder Orientation"
-box.&nbsp;  When the reference is a particle, already specified by
-such a pair of integers, the <b>Set cylinder orientation from
-reference particle</b> check box is enabled.&nbsp;  If the box is
-checked, the orientation of the cylinder is along the line passing
-through the reference particle and the next particle.</p>
+<p>If the <b>Sphere</b> or <b>Cylinder</b> mask options are chosen,
+the user can specify both inner and outer radii.&nbsp; 
+Reference voxels inside the inner radius or outside the outer radius 
+will be masked out.
 
-<H4><A NAME="Initial Motive List Group"></A>2.11. Initial Motive List Group</H4>
+<p>A spherical mask will be centered on
+the center of the reference volume.</p> 
+
+<p>A cylindrical mask will be oriented with its long axis passing
+through the vector from the specified particle to the neighboring 
+particle along the contour.&nbsp;
+Alternatively, you can specify that orientation of a cylindrical mask
+by setting the model number and particle number in the 
+<b>Cylinder Orientation</b> box.&nbsp; 
+
+<H4><A NAME="Initial Motive List Section"></A>2.11. Initial Motive List Section</H4>
 
 <P>These controls
-provide three different options for setting up an initial motive list
+provide several options for setting up an initial motive list
 with starting orientations for all particles.&nbsp;  Such initial
 orientations can allow the angular search to be done over a limited
 range, even when the particles have significantly different
-orientations.&nbsp;  The first two options involve deriving an
-orientation from the line between one particle and the next in the
-IMOD model.&nbsp;  In these cases, the reference has to be specified
-by a particle number, not a separate file, so that the orientation at
-a given particle can be compared with the orientation of the
-reference.&nbsp;  If you are modeling particles along more than one
-filament, you should start a new contour for each filament so that
-PEET will not base any orientations on the lines from the end of one
-filament to the start of the next.</p>
+orientations.&nbsp; The first, default option leaves all rotation angles
+zero, providing no orientation information, and, potentially, requiring
+a broad search.
+The next two options involve deriving an initial
+orientation from the line between one particle and its neighbor in the
+IMOD model.&nbsp;  When using either of these options, the reference 
+should also be be specified by a volume and particle numbers
+(rather than file name), so that the orientation of the reference
+can be estimated in the same manner.&nbsp;  If you are modeling particles 
+along more than one filament, each filament should be modeled in its
+own contour, so that PEET will not base any orientations on the 
+difference in positions between the end of one filament and 
+the start of the next. Finally, you can also choose to read initial
+motive list(s) from specified .csv files. In this case, translational
+shifts as well as orientation can be specified.</p>
 
-<H5>2.11.1. Initialize Z Axis</H5>
+<H5>2.11.1. Set all rotational values to zero</H5>
+
+<P>All particles will have their initial orientation left unaltered.
+This is appropriate if the particles are scattered, independent 
+particles, no prior alignment information is available, and the
+orientations are either not readily apparent from the images or
+you choose not to bother extracting this information, preferring
+instead to use a more extensive alignment search. </p>
+
+<H5>2.11.2. Initialize Z Axis</H5>
 
 <P>Use this option if
 each particle can be aligned approximately with the reference by
 rotating it only around the Z axis.&nbsp;  PEET will compute the
 rotations needed based on trajectories between successive points in
 the IMOD model.&nbsp;  We find the option is most useful when all
-particles have about the same Z coordinate, for example, when
-particles are from a bending, non-twisting microtubule sitting in the
-X-Y plane.</p>
+particles have roughly the same Z coordinate (e.g. when
+particles are from a bending, non-twisting microtubule lying in the
+X-Y plane).</p>
 
-<H5>2.11.2. Initialize X and Z Axis</H5>
+<H5>2.11.3. Initialize X and Z Axis</H5>
 
 <P>If the trajectory
 between particles does not lie in the X-Y plane, then this option can
 be used instead to compute a more general rotation that aligns the
-trajectory at a particle with the trajectory at the reference.</p>
+trajectory at a particle with that at the reference.</p>
 
-<H5>2.11.3. Use files</H5>
+<H5>2.11.4. Use files</H5>
 
 <p>Use this option if you have a text file in .csv format specifying
-the approximate rotation for each particle.&nbsp;  Such a file can be
+the approximate rotation (and, optionally, translation) required to
+orient each particle.&nbsp;  Such motive list (MOTL)  files can be
 obtained from a previous run of PEET or from an auxiliary program
 that computes initial orientations from a model for a particular
-situation.&nbsp;  There are several such programs in PEET; for
-example, there is one to generate such a file if particles are from a
+situation.&nbsp; The PEET program modTwist2EM is an example of
+such a program which generates motive lists for particles from a
 bending, twisting microtubule assuming a general 3D orientation.</p>
 
-<H4><A NAME="Y Axis Type Group"></A>2.12. Y Axis Type Group</H4>
+<H4><A NAME="Y Axis Type Section"></A>2.12. Y Axis Type Section</H4>
 
 <p>These options define the first rotation axis that PEET uses for
 angular search, the one referred to as Phi in the iteration table.&nbsp;
 The default is the original Y axis of the tomogram.&nbsp;  In this
-case, Phi corresponds to the Y axis, Theta to the Z axis, and Psi to
-the X axis.&nbsp;  However, the user can define their own first
-rotation axis and PEET will deduce the second and third rotation axis
+case, Phi corresponds to the tomogram Y axis, Theta to the tomogram Z axis, 
+and Psi to the tomogram X axis.&nbsp;  
+However, the user can define their own first
+rotation axis, and PEET will deduce the second and third rotation axis
 assuming a right-handed Cartesian coordinate system.&nbsp;  This
 option is useful when running searches with restricted ranges if you
-want to provide a different range or increment for the different
-axes.&nbsp;  It can be used when the reference is a file as well as
+want to specify a different range or increment for the different
+axes.&nbsp;  It can be used both when the reference is a file as well as
 when it is a particle.</p>
 
 <p>If <b>Particle model points</b> is selected, the first rotation
@@ -519,104 +595,168 @@ models.&nbsp;  The contour is specified by three integers: the model
 
 <H3><A NAME="The Run Tab"></A>3. The Run Tab</H3>
 
-<H4><A NAME="Iteration Table"></A>3.1. Iteration Table</H4>
+<H4><A NAME="Parallel Processing"></A>3.1. Parallel Processing</H4>
+
+<p>PEET can distribute the computational load of aligning and averaging
+particles over multiple processors on one or more systems, as specified
+by the user.&nbsp; This section allows you to select which systems and
+how many processors on each system are to be used.&nbsp; See the 
+<a href="UsingEtomo.html#ParallelProcessing">eTomo User's Guide</a> for
+details on the controls in this section and on how to configure parallel
+processing on your system(s).  For information on how to use a cluster queue,
+see the man pages for <a href="man/processchunks.html">processchunks</a> and
+the <a href="man/cpuadoc.html">cpu.adoc</a> file.
+</p>
+
+<H4><A NAME="Iteration Table"></A>3.2. Iteration Table</H4>
 
 <p>Each row of this table specifies options for a single iteration
-and has four types of entries entries.</p>
+and has five types of entries.</p>
 
 <p>The <b>Angular Search Range</b> entries set search ranges and
-increments (step size) in degrees for the 3 rotations (Phi, Theta,
+increments (step sizes) in degrees for the 3 rotations (Phi, Theta,
 and Psi, referring to rotations around Y, Z, and X axes).&nbsp;  For
-example, if <b>Max</b> and <b>Incr</b> fields of Phi are set to 4 and
-2 respectively, Phi will have a range of -4 to +4 and will assume 5
-values (-4, -2, 0, 2, 4).&nbsp;  The general rule is that earlier
-iterations should have a bigger range and increments.&nbsp;  After a
-coarse alignment has been found, subsequent iterations can have a
-smaller range and increments.&nbsp;  If you want to avoid searching
-around an axis, set the <b>Max</b> to 0 and either leave <b>Incr</b>
-blank or set it to 1.</p>
+example, if <b>Max</b> and <b>Incr</b> fields of Phi are set to 6 and
+2 respectively, Phi will have a range of -6 to +6 and will assume 7
+values (-6, -4, -2, 0, 2, 4, and 6).&nbsp; A general rule is that earlier
+iterations should have larger ranges and step sizes.&nbsp;  
+Additionally, multiple iterations with larger step sizes are typically faster
+than a single search with a large range but small size.&nbsp;
+A reasonable compromise is to use a <b>Max</b> of 3 times <b>Incr</b>,
+as in the example above.&nbsp; Both <b>Max</b>
+and <b>Incr</b> can then be reduced by a factor of 2 at each subsequent
+iteration, until the desired precision is achieved.&nbsp; Searches with even
+fewer steps can be done by using a <b>Max</b> of twice the increment, provided
+that <b>Max</b> and <b>Incr</b> are reduced by a factor of only 1.5-1.6
+between iterations.&nbsp;
+In many cases, it may be necessary to use more evaluations during the 
+first iteration to obtain a reasonable initial alignment.&nbsp; 
+To skip searching around a particular axis entirely, set the 
+<b>Max</b> to 0 and <b>Incr</b> to 1.</p>
 
-<p>The <b>Search Radius</b> entry can be either a single number or
-three numbers, and it sets the amount of translation allowed in the
-X, Y, and Z directions.&nbsp;  For example, setting it to 2 will limit
+<p><b>Search Radius</b> can be either a single number or
+three numbers, and specifies the amount of translation in pixels allowed in the
+X, Y, and Z directions during alignment searches.&nbsp;  
+For example, setting it to 2 will limit
 the translation to between -2 and +2 in each of the 3 directions.&nbsp;
 These directions are in the coordinate system of the tomogram, i.e.,
 of the unrotated particle, so using three different limits would be
 useful only if particles all had similar orientations with respect to
 at least one axis.&nbsp;  This entry does not affect execution time,
 but small values can make the alignment more reliable by preventing
-spurious correlation peaks at higher translations from being picked.&nbsp;
+spurious correlation peaks at higher translations from being chosen.&nbsp;
 Also, before correlation, regions as wide as the search radius at
-each edge of the particle volume are set to zero to keep the
-correlation from being affected by data that wraps around in the
-FFT's.&nbsp;  Thus, the larger the search radius, the fewer voxels
-are actually included in the correlation and the lower the
-signal-to-noise ratio of the correlation.</p>
+each edge of the particle volume are set to zero to avoid
+wraps around effects.&nbsp;  Thus, the larger the search radius, 
+the fewer voxels are actually included in the correlation and the lower the
+signal-to-noise ratio of the correlation.&nbsp; A search radius of 0 can be
+specified to disable searching, allowing the quality of the initial
+alignment to be determined.</p>
 
-<p>The <b>High-Freq. Filter</b> entry sets the parameters for
+<p><b>High-Freq. Filter</b> specifies parameters for
 filtering out high frequencies.&nbsp;  As in IMOD, frequencies are in
-reciprocal pixels, 0.5 is the Nyquist frequency, and 0.86 corresponds
-to the highest frequency in the corners of 3D FFTs.&nbsp;  The <b>Cutoff</b>
-field sets the cutoff frequency, where Gaussian Frequencies higher
-than the cutoff will be filtered out by a Gaussian that starts at 1
-at the cutoff and falls of with the value in the <b>Sigma</b> field.&nbsp;
+reciprocal pixels, with 0.5 being the Nyquist frequency, and 0.86 
+corresponding to the highest frequency in the corners of 3D FFTs.&nbsp;  
+The <b>Cutoff</b> field sets the cutoff frequency, below which there is
+no attenuation, and above which there is progressively more attenuation.
+Above the cutoff, the response falls like the right half of a Gaussian 
+with standard deviation given by the <b>Sigma</b> field.&nbsp;
 Both the reference and the particle are filtered separately, so the
 correlation is essentially filtered twice.&nbsp;  One way to see what
 a reference or particle looks like with a particular filter is apply
-the same filter to a file with the IMOD program mtffilter, e.g., with
+the same filter to a file with the IMOD program <a href="man/mtffilter.html">
+mtffilter</a>, e.g., with
 the command "mtffilter -3d -low cutoff,sigma input_file output_file".&nbsp;
 You can do this with the reference particle
 extracted by PEET, or you can extract a particle from the tomogram in
 3dmod using the rubber band in the Zap window and the Extract entry
 in the File menu.</p>
 
-<p>The <b>Reference Threshold</b> field controls how many particles
-are used to form the reference for the next iteration.&nbsp;  If it is
-a number bigger than one, it specifies the number of particles with
-the highest correlation coefficients.&nbsp;  A rule of thumb is to use
-two thirds of the total number of particles; however, in some cases
+<p><b>Reference Threshold</b> controls how many particles
+are used to form the reference for the next iteration.&nbsp;  If a
+value larger than one is specified, it represents the number of particles to
+use, with higher correlation coefficients chosen preferentially.&nbsp;  
+A rule of thumb is to use
+two thirds of the total number of particles.&nbsp; In some cases, however,
 you might want to include all particles on a first round to minimize
-any missing wedge bias in the new reference.&nbsp;  If this entry is a
-number smaller than one, it specifies a correlation coefficient to
-use as an absolute threshold.&nbsp;  We have not found this way of
-specifying the threshold very useful.</p>
+any missing wedge bias in the new reference.&nbsp;  If a value less than one
+is specified, it represents a correlation coefficient threshold, above which
+particles will be included in computation of the new reference.&nbsp;  
+We have not found specifying the threshold in this manner
+particularly useful.</p>
 
-<H4><A NAME="Spherical Sampling for Theta and Psi Group"></A>3.2.Spherical Sampling for Theta and Psi Group</H4>
+<p><b>Duplicate Tolerance</b> provides control over PEET's 
+duplicate rejection logic.&nbsp; When the search range is comparable to
+the spacing between particles, and 
+especially when particles lie along filaments, 
+an alignment search can sometimes result in mulitple particles pointing
+to essentially the same position and orientation.&nbsp; 
+If not corrected, these errors can bias subsequent 
+references and averages, and can lead to overestimation of 
+resolution using Fourier Shell Correlation.&nbsp; If <b>Remove Duplicates</b>
+is checked (below the <b>Spherical Sampling</b> section), PEET will
+attempt to identify cases of duplication, and will remove 
+offending particles from further averaging or consideration during
+the current iteration.&nbsp; The <b>Shift</b> and <b>Angular</b> 
+tolerances specify
+the maximum separation in integer pixels and degrees, respectively, at 
+at which particles can be considered 
+duplicates.&nbsp; The shift tolerance is applied separately to
+each of the tomogram X, Y, and Z coordinates. Duplication is determined
+independently near the end of each iteration, so a particle ingored as
+a duplicate in one iteration is not necessarily 
+excluded from later iterations.&nbsp;
+A value of 0 for either or both of the angular and shift tolerances 
+can be used to disable duplicate removal for the associated iteration. 
+</p>
+
+<H4><A NAME="Spherical Sampling for Theta and Psi Section"></A>3.3.Spherical Sampling for Theta and Psi Section</H4>
 
 <p>This option is designed to make full angular searching on the
 first iteration more efficient by sampling orientation space at
 relatively uniform intervals.&nbsp;  It is referred to as spherical
 sampling because the second and third search angles (Theta and Psi)
-correspond to a point on a sphere (Phi corresponds to rotation around
-the axis from the center of the sphere to that point).&nbsp;  Simply
-varying both angles at regular increments results in oversampling
-near the north and south poles.&nbsp;  With spherical sampling, PEET
-will avoid this oversampling.&nbsp;  If <b>Full sphere</b> is checked,
+are chosen to given approximately uniform spacing when represented on
+the surface of a sphere.&nbsp;  (Phi corresponds to rotation around
+the particle's twist or Y axis).&nbsp;  Simply
+varying both Theta and Psi with regular increments results in oversampling
+near the poles on the X axis.&nbsp;  With spherical sampling enabled, PEET 
+avoids this oversampling.&nbsp;  If <b>Full sphere</b> is checked,
 PEET will sample the whole sphere.&nbsp;  If <b>Half sphere</b> is
-checked, PEET will only sample one half of the sphere.&nbsp;  The
-<b>Sample interval</b> field specifies the interval in degrees.&nbsp;
-Typically, you would enter a "max" of 180 for For a unit sample
-sphere, sample points are placed on latitude lines separated by the
-sample interval, and the points along each latitude line are
-separated by 2*Pi*sampleInterval/360 along.&nbsp;  This means there
-are the most sample points on the equator; the higher the latitude
-is, the fewer sample points there will be.&nbsp;  At the poles, there
-will be only one sample point.&nbsp;  For a full angular search, enter
-a <b>Max</b> of 180 and an appropriate increment for <b>Phi</b>, and
-enter the same increment as the sample interval.</p>
+checked, PEET will only sample one hemisphere.&nbsp;  The
+<b>Sample interval</b> field specifies the Theta search interval in
+degrees, as well as the Psi search interval at the equator.&nbsp;
+For a unit sample sphere, sample points are placed on latitude lines 
+separated by the sample interval, with approximately 360 / Sample interval 
+points along along each latitude line at the equator, decreasing with
+latitude to no more than a single point at each pole.&nbsp; For either
+a full or half sphere angular search, enter a <b>Max</b> of 180, with
+an appropriate <b>Incr</b> for Phi in the Iteration Table, as well as the
+<b>Sample interval</b> for spherical samping.&nbsp; When in doubt,
+it is typically reasonable to set <b>Sample interval</b> to the
+same value as the Phi search increment.</p>
 
-<H4><A NAME="Particle Volume Fields"></A>3.3. Particle Volume Fields</H4>
+<H4><A NAME="Remove duplicates"></A>3.4. Remove duplicates</H4>
+
+<p> As described above, selecting this option enables PEET's
+duplicate removal logic with further control provided by the 
+<b>Duplicate Tolerance</b>s in the Iteration Table.</p>
+
+<H4><A NAME="Particle Volume Fields"></A>3.5. Particle Volume Fields</H4>
 
 <p>These fields set the X, Y, and Z dimensions of the particles.&nbsp;
 For example, if X, Y, and Z are all set to 64, particle volumes will
 have dimensions of 64x64x64.&nbsp;  The center of a particle volume is
-the X, Y, and Z position of the particle in an IMOD model.</p>
+the X, Y, and Z position of the particle in an IMOD model.&nbsp;
 
-<p>Due to a restriction of IMOD FFT routines, the biggest prime
-factor in any dimension cannot be greater than 19; eTomo will check
-the values that you enter to make sure they meet this restriction.</p>
+<p>Because the FFT routines from IMOD are being used, each dimension must be
+even and have prime factors no
+greater than 19; eTomo will check
+the values that you enter to make sure they meet this restriction.
+Specifically, of the even numbers up to 100, the sizes 46, 58, 62, 74, 82, 86,
+92, and 94 are not allowed.</p>
 
-<H4><A NAME="Use Equal Numbers of Particles Checkboxes">3.4. Use Equal Numbers of Particles Checkboxes</H4>
+<H4><A NAME="Use Equal Numbers of Particles Checkboxes">3.6. Use Equal Numbers of Particles Checkboxes</H4>
 
 <p>The checkboxes <b>Use equal numbers of particles from all tomograms
 for new reference</b> and <b>Use equal numbers of particles from
@@ -625,10 +765,10 @@ reducing bias when combining data
 from multiple tomograms and using a particle or average from one as a
 reference.&nbsp;  If checked, PEET will use equal numbers of particles
 from each tomogram to form the references or averages.&nbsp;
-Otherwise it will use the particles with the best correlation scores
-among all particles of all tomograms.</p>
+Otherwise, it will choose particles with the highest correlation scores
+regardless of which tomogram(s) they are in.</p>
 
-<H4><A NAME="Number of Particles in Averages Group"></A>3.5. Number of Particles in Averages Group</H4>
+<H4><A NAME="Number of Particles in Averages Section"></A>3.7. Number of Particles in Averages Section</H4>
 
 <p>Specify how many particles to use to form averages.&nbsp;  For
 example, if <b>Start</b> is set to 50, <b>Incr</b> is set to 50, <b>End</b>
@@ -638,40 +778,110 @@ If <b>End</b> is not bigger than <b>Start</b> by a multiple of the
 increment (e.g., 160), the last number in the sequence will be the
 one smaller than <b>End</b> (e.g., 150).</p>
 
-<p>The biggest number entered in these fields cannot be bigger than
-the total number of particles in all tomograms.&nbsp;  The <b>Additional
-numbers</b> should be in order and all larger than <b>End</b>.</p>
+<p>The biggest number entered in these fields should be less than
+the total number of particles in all tomograms.&nbsp; If used,  <b>Additional
+numbers</b> should be in increasing order and all larger than <b>End</b>.</p>
 
-<H4><A NAME="Particles per CPU"></A>3.6. Particles per CPU</H4>
+<H4><A NAME="Align averages to have their Y axes vertical"></A>3.9. Align averages to have their Y axes vertical</H4>
 
-<p>Specify how many particles each CPU should process in one chunk.&nbsp;
-The fewer the particles, the more command and log files will be
-created.&nbsp;  Having more particles per chunk can make the parallel
-processing less flexible in case you need to kill or pause and resume
-the processing.&nbsp;  The default of 5 is good for most purposes.</p>
+<p>If selected, average volumes will be reoriented to have their
+Y axis approximately vertical.&nbsp; This is particularly useful for
+particles along a straight or slightly curved filament.&nbsp; Note that the
+reorientation is applied only to the particles as they are averaged and is not
+incorporated into the motive list, so you cannot use such an average as a
+reference for another iteration of alignment starting with the 
+motive list from the last iteration.&nbsp; However, the reference volume
+produced on the last iteration is in the original orientation and can validly
+be used as a reference.</p>
 
-<H4><A NAME="3.7. Action Buttons"></A>3.7. Action Buttons</H4>
+<H4><A NAME="Particles per CPU"></A>3.9. Particles per CPU</H4>
 
-<p>After you select computers and/or processors in the parallel
-processing table, press <b>Run</b> to start the processing.&nbsp;
-eTomo writes the .prm file and runs the PEET program prmParser to
-produce a series of numbered command files to be run by
-processchunks.&nbsp;  The first command file initializes the motive
-lists and prepares the reference particle.&nbsp;  This can take some
-time, because the program needs to figure out how big to make the
-reference.&nbsp;  Command files for aligning the particles are run
-next, with a "-sync.com" file run at the end of each iteration to
+<p>Specify how many particles each CPU should process in one "chunk".&nbsp;
+The fewer particles per chunk, the more command and log files will be
+created.&nbsp;  However, having more particles per chunk can make the parallel
+processing less flexible should you need to kill or pause and resume
+the processing.&nbsp;  The default of 5 is a good choice for most purposes.</p>
+
+<H4><A NAME="3.10. Action Buttons"></A>3.10. Action Buttons</H4>
+
+<p>After reviewing and selecting Systems and / or processors in the
+Processing Table, press <b>Run</b> to start the processing.&nbsp;
+At this point, eTomo will write the parameter file and run the PEET 
+program prmParser, producing a series of command (.com) files which
+will be executed by processchunks to carry out the computations
+requested.&nbsp;  The first "-start.com" command file initializes the motive
+lists and prepares the initial reference.&nbsp;  This can take some
+time when the reference is a particle, as the program determines how 
+big to make the reference.&nbsp;  Numbered command files for aligning 
+are run next, with a "-sync.com" file run at the end of each iteration to
 combine the results from the different chunks and compute a reference
-for the next iteration.</p>
+for the next iteration. After the final iteration, a "-finish.com"
+command file creates the resulting average volumes.</p>
 
-<p>When the processing is done, press <b>Open Averaged Volumes in
-3dmod</b> to see all of the computed averages together in one 3dmod.&nbsp;
+<p>When the processing is completed, press <b>Open Averaged Volumes in
+3dmod</b> to see all of the computed averages together in 3dmod.&nbsp;
 The Isosurface window will be opened automatically.&nbsp;  Note that
-the isosurface threshold can be adjusted independently for each time
+the isosurface threshold can be adjusted independently for each "time"
 (average).&nbsp;  You can also press <b>Open Reference Files in 3dmod</b>
-to see the references generated on each round.&nbsp;  The reference
-will be larger than the averages.</p>
+to see the references generated on each round.&nbsp; The reference
+will be larger than the averages.&nbsp; You can also select
+<b>Remake Averaged Volumes</b> to recompute averages using the existing
+alignment, e.g. after changing the number of particles to average or
+other settings.</p> 
 
+<H4><A NAME="Advanced Options"></A>3.11. Advanced Options</H4>
+
+<p> A few additional PEET options are available only in "advanced" 
+mode.&nbsp To see if you are in advanced mode, look at the upper right
+of the Run tab.&nbsp If the small, rectangular button at this position
+is labeled "A", you are in basic mode, and pressing this button will
+switch to advanced mode, making the additional options visible. If the
+button is labeled "B", you are currently in advanced mode, and pressing
+the button will switch back to basic mode.</p>
+
+
+<H5></A>3.11.1 Cross correlation measure</H5>
+
+<p>PEET can compute cross-correlation in either of two ways.&nbsp; 
+Normalized cross-correlation is recommended, and can be chosen by 
+selecting the radio button labeled <b>True local 
+correlation coefficient</b>.&nbsp; <b>Local energy normalized correlation</b>
+is a less accurate approximation which may be adequate in some cases.
+In early PEET releases, computation of the local approximation was
+considerably faster than normalized cross correlation. This is no longer the
+case, so we recommend always selecting <b>True local correlation</b>.&nbsp;
+
+<H5></A>3.11.2 Mean fill</H5>
+
+<p>In some cases, particles of interest may lie partially outside
+their parent volume.&nbsp; If <b>Mean fill</b> is checked, voxels in
+the missing region will be replaced with the mean of the data which are
+present.&nbsp; We cannot think of any reason to uncheck this box.</p>
+
+<H5></A>3.11.3 Aligned base name</H5>
+
+<p>If a string is entered in the <b>Aligned base name</b> field,
+PEET will save volumes containing the individual aligned particles
+used to create averages.&nbsp; For example, if <b>Aligned base name</b>
+is set to "aligned", a file aligned_tom1_P0002.mrc will 
+contain the the second aligned particle from the 
+first tomogram.</p>
+
+<H5></A>3.11.4 Low frequency filter</H5>
+
+<p>Just as PEET can be told to filter out high frequencies from both
+the reference and particles being aligned, it can also be told to filter
+out low frequencies.&nbsp; To do so, enter a pair of numbers both greater than
+zero.&nbsp; The first represents the frequency in inverse pixels, below 
+which the signal will be attenuated.&nbsp; The second represents the standard
+deviation of the Gaussian whose left half defines the shape of the
+resulting high-pass filter.&nbsp; We have not found low frequency filtering to
+be useful, and do not recommend its use.</p>
 </body>
+
+<H5></A>3.11.5 Debug level</H5>
+<p>Select a number between 0 and 3 to control the contents of the 
+log files.&nbsp; 
+Higher numbers store progressively more information to the logs.</p>
 
 </html>
