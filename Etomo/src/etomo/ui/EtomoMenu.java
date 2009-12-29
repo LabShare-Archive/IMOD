@@ -29,19 +29,17 @@ import etomo.type.AxisType;
 public final class EtomoMenu {
   public static final String rcsid = "$Id$";
 
+  static final String RECON_LABEL = "Tomogram";
+  static final String JOIN_LABEL = "Join";
+  static final String GENERIC_LABEL = "Generic Parallel Process";
+  static final String NAD_LABEL = "Nonlinear Anisotropic Diffusion";
+  static final String PEET_LABEL = "PEET";
+
   private static final int nMRUFileMax = 10;
 
   private final JMenuBar menuBar = new JMenuBar();
 
   private final JMenu menuFile = new Menu("File");
-  private final JMenuItem menuNewTomogram = new MenuItem("New Tomogram",
-      KeyEvent.VK_N);
-  private final JMenuItem menuNewJoin = new MenuItem("New Join", KeyEvent.VK_J);
-  private final JMenuItem menuNewGenericParallel = new MenuItem(
-      "New Generic Parallel Process", KeyEvent.VK_P);
-  private final JMenuItem menuNewAnisotropicDiffusion = new MenuItem(
-      "New Nonlinear Anisotropic Diffusion Process", KeyEvent.VK_D);
-  private final JMenuItem menuNewPeet = new MenuItem("New PEET", KeyEvent.VK_E);
   private final JMenuItem menuOpen = new MenuItem("Open...", KeyEvent.VK_O);
   private final JMenuItem menuSave = new MenuItem("Save", KeyEvent.VK_S);
   private final JMenuItem menuSaveAs = new MenuItem("Save As", KeyEvent.VK_A);
@@ -50,6 +48,16 @@ public final class EtomoMenu {
   private final JMenuItem menuTomosnapshot = new MenuItem("Run Tomosnapshot",
       KeyEvent.VK_R);
   private final JMenuItem[] menuMRUList = new MenuItem[nMRUFileMax];
+
+  private final JMenu menuNew = new Menu("New");
+  private final JMenuItem menuNewTomogram = new MenuItem(RECON_LABEL,
+      KeyEvent.VK_N);
+  private final JMenuItem menuNewJoin = new MenuItem(JOIN_LABEL, KeyEvent.VK_J);
+  private final JMenuItem menuNewAnisotropicDiffusion = new MenuItem(NAD_LABEL,
+      KeyEvent.VK_D);
+  private final JMenuItem menuNewGenericParallel = new MenuItem(GENERIC_LABEL,
+      KeyEvent.VK_P);
+  private final JMenuItem menuNewPeet = new MenuItem(PEET_LABEL, KeyEvent.VK_E);
 
   private final JMenu menuView = new Menu("View");
   private final JMenuItem menuLogWindow = new MenuItem("Show/Hide Log Window",
@@ -139,11 +147,7 @@ public final class EtomoMenu {
     menuHelpAbout.addActionListener(helpActionListener);
 
     //  File menu
-    menuFile.add(menuNewTomogram);
-    menuFile.add(menuNewJoin);
-    menuFile.add(menuNewGenericParallel);
-    menuFile.add(menuNewAnisotropicDiffusion);
-    menuFile.add(menuNewPeet);
+    menuFile.add(menuNew);
     menuFile.add(menuOpen);
     menuFile.add(menuSave);
     menuFile.add(menuSaveAs);
@@ -152,6 +156,13 @@ public final class EtomoMenu {
     menuFile.addSeparator();
     menuFile.add(menuTomosnapshot);
     menuFile.addSeparator();
+
+    // New menu
+    menuNew.add(menuNewTomogram);
+    menuNew.add(menuNewJoin);
+    menuNew.add(menuNewAnisotropicDiffusion);
+    menuNew.add(menuNewGenericParallel);
+    menuNew.add(menuNewPeet);
 
     //  Initialize all of the MRU file menu items
     FileMRUListActionListener fileMRUListActionListener = new FileMRUListActionListener(
@@ -294,7 +305,7 @@ public final class EtomoMenu {
   void setEnabledNewGenericParallel(final boolean enable) {
     menuNewGenericParallel.setEnabled(enable);
   }
-  
+
   void setEnabledNewAnisotropicDiffusion(final boolean enable) {
     menuNewAnisotropicDiffusion.setEnabled(enable);
   }
@@ -314,7 +325,7 @@ public final class EtomoMenu {
   boolean equalsNewGenericParallel(final ActionEvent event) {
     return equals(menuNewGenericParallel, event);
   }
-  
+
   boolean equalsNewAnisotropicDiffusion(final ActionEvent event) {
     return equals(menuNewAnisotropicDiffusion, event);
   }
@@ -326,7 +337,7 @@ public final class EtomoMenu {
   boolean equalsOpen(final ActionEvent event) {
     return equals(menuOpen, event);
   }
-  
+
   boolean isMenuSaveEnabled() {
     return menuSave.isEnabled();
   }
@@ -479,6 +490,10 @@ public final class EtomoMenu {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.17  2009/11/20 17:04:33  sueh
+ * <p> bug# 1282 Added isMenuSaveEnabled to allow a save function to have the
+ * <p> same limits as the save menu option.
+ * <p>
  * <p> Revision 1.16  2009/10/23 19:46:02  sueh
  * <p> bug# 1275 Make separate menu items for generic parallel process and
  * <p> NAD.
