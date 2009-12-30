@@ -1,8 +1,12 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+12/29/09: IMOD_4-0-21
+12/29/09: Fixed Makejoincom to avoid problem with entry output from rotatevol.
+
 12/29/09: Standardized new dataset buttons and menu items.
 
-12/28/09: Fixed tomopieces to suppress entry output.
+12/28/09: Fixed tomopieces to suppress entry output, which crashed
+setupcombine.
 
 12/22/09: IMOD_4-0-20
 12/22/09: In Etomo - PEET corrected the tooltips.
