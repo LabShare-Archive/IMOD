@@ -52,6 +52,16 @@ reconstructions computed de novo very closely.  If the input projection file
 contains only the views being added or subtracted, then you should also use
 the MinMaxMean option to keep fill values constant.
 
+[Field = ActionIfGPUFails]
+type = IP
+usage = 0 for no action, 1 for warning, 2 for error if GPU cannot be used
+tooltip = 
+manpage = The action to take when the GPU cannot be used after being
+requested: 0 to no action, 1 to issue a warning prefixed with MESSAGE:, and 2
+to exit with an error.  Enter 2 numbers: the first for the action when the GPU
+is requested by the UseGPU option; the second for the action when the GPU is
+requested only by the environment variable IMOD_USE_GPU.
+
 [Field = AdjustOrigin]
 type = B
 usage = Adjust origin for shifts and size changes
@@ -170,16 +180,9 @@ zero-frequency component is the same as the other components in this case.
 
 [Field = FBPINTERP]
 type = I
-usage = Interpolation order for fast backprojection (default 1)
+usage = This option was discontinued in IMOD 4.0.20
 tooltip = 
-manpage = The interpolation order for the fast
-backprojection algorithm: 1 for linear interpolation (the default),
-3 for cubic spline interpolation, which will low-pass filter the
-input data more, or 0 to disable fast backprojection.  Entering a 
-value with this option will also force the program to use fast
-backprojection even if the width, thickness, and number of views
-are small enough so that fast backprojection will run slower than
-direct summation.
+manpage = 
 
 [Field = FULLIMAGE]
 type = IP
@@ -316,12 +319,9 @@ from 0 to 0.5.
 
 [Field = REPLICATE]
 type = FPM
-usage = Number of times to replicate views, and angle or replication
+usage = This option was discontinued in IMOD 4.0.21
 tooltip = 
-manpage = With this entry, the input views will be replicated the number of
-times given by the first value, with an increment given by the second value in
-degrees added to the original angles for each replication.  For example, if
-you can assume 9-fold symmetry, enter REPLICATE 8 40.
+manpage = 
 
 [Field = REPROJECT]
 type = FAM
@@ -360,7 +360,8 @@ tooltip =
 manpage = Starting and ending slice number to reconstruct, and interval
 between slices.  The numbers refer to slices in the X/Z plane and correspond
 to Y coordinates in the projection images.  Slices are numbered from 0.  
-The interval entry is optional and defaults to 1 when omitted.
+The interval entry is optional, must be positive, and defaults to 1 when 
+omitted.
 
 [Field = SUBSETSTART]
 type = IP
@@ -409,6 +410,16 @@ the output file and write its header.  On successive runs with SLICE or
 ZMinAndMax indicating a real range of slices, the program will open the
 existing file, write only those slices, and not write the header when it is
 done.
+
+[Field = UseGPU]
+type = I
+usage = Use GPU for computation; 0 for best available one or number of GPU
+tooltip = 
+manpage = Use the GPU (graphical processing unit) for computations where
+possible; enter 0 to use the best GPU on the system, or the number of a
+specific GPU (numbered from 1).  The GPU can be used for all types of
+backprojection, and for reprojections from a reconstruction that do not 
+involve local alignments.
 
 [Field = ViewsToReproject]
 type = LI
@@ -517,6 +528,11 @@ tooltip =
 manpage = Starting and ending Z index coordinates of region to reproject from
 a reconstruction file (numbered from 0).  Z is the the dimension along the
 tilt axis.  The default is the whole extent in Z.
+
+[Field = DebugOutput]
+short = debug
+type = B
+usage = Print output for debugging
 
 [Field = ParameterFile]
 short = param
