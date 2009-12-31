@@ -253,11 +253,14 @@ else
     echo 'LINUXFLIBS = $(LIBCOMPAT)' >> $configure
     echo "IMLIBS     = -lhvem -lmrcim -lifft  -lcfshr -lb3dcmpt" >> $configure
 endif
-#
-# Set the switch point include file for the FBP algorithm in Tilt
-#
-set fbpswitch       = fbpswitch-pc.inc
 
+# Adjust variables for CUDA and set to copy the library
+#
+if ($?CUDA_DIR) then
+    set nvcc_flags = "$nvcc_flags -DUNIX -Xcompiler -fno-strict-aliasing -O3 --host-compilation C"
+    echo "DLLSTOCOPY2 = libcudart" >> $configure
+    echo "DLLSOURCEDIR2 = $CUDA_DIR/lib" >> $configure
+endif
 
 # Set the string for the "ctrl" key
 #

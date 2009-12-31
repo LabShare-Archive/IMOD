@@ -68,9 +68,17 @@ if ($compiler == intel) then
     endif
     set ldfflags = "$fcmpldFlags "'$(LDFLAGS)'
     if ($openmp == true) set openmpFlags = '/Qopenmp'
+
+    # Get a Visual Studio version from link /VERSION which gives errors
+    # Make change in nodefaultlib known to work for VC 9, we don't know about 8
+    # 
+    set vcvertext = `link /VERSION | head -n 1 | sed -e '/[^0-9.]/s///g' -e '/\./s// /g'`
+    @ vcversion = $vcvertext[1]
+    set nodeflib = libc.lib
+    if ($vcversion >= 9) set nodeflib = libcmt.lib
     
 cat << EOF >> $configure
-LDFLAGS = /nologo /MD $openmpFlags -link -LIBPATH:"$cyg_lib" /NODEFAULTLIB:libc.lib
+LDFLAGS = /nologo /MD $openmpFlags -link -LIBPATH:"$cyg_lib" /NODEFAULTLIB:$nodeflib
 .SUFFIXES: .cpp .obj .f .c
 .cpp.obj:
 	\$(CXX) -c \$(CXXFLAGS) \$<
@@ -112,6 +120,7 @@ else
     echo '#define DLLEXPORT_' >> $hconfigure
     echo '#define DLL_IM_EX' >> $hconfigure
     set openmp = false
+    unsetenv CUDA_DIR
 endif
 
 # Needed under tcsh 6.12 in RH 8.0 to avoid getting two \ out
@@ -271,11 +280,6 @@ else
     \cp sysdep/win/libtiff.lib buildlib
 endif
 
-#
-# Set the switch point include file for the FBP algorithm in Tilt
-#
-set fbpswitch       = fbpswitch-pc.inc
-
 set binext = .exe
 set junit_home      = `cygpath -m /usr/local/junit`
 set jfcunit_home      = `cygpath -m /usr/local/jfcunit`
@@ -421,6 +425,7 @@ if ($compiler == intel) then
 
     # Output variables for libraries to copy to bin
     #
+    @ dllnum = 3
     if ($m64bit == true) then
         if ($distname == "") set distname = _win64
         set strip = true
@@ -462,8 +467,18 @@ if ($compiler == intel) then
                 set dllsrc3 = `cygpath $SYSTEMROOT/system32`
                 echo "DLLSOURCEDIR3 = $dllsrc3" >> $configure
                 echo 'DLLSTOCOPY3 = msvcr71 msvcp71' >> $configure
+                @ dllnum = 4
             endif
         endif
+    endif
+
+    # Adjust variables for CUDA and set to copy the library
+    #
+    if ($?CUDA_DIR) then
+        set nvcc_flags = "$nvcc_flags -O2"
+        set cudalibs = "-LIBPATH:$CUDA_DIR/lib cudart.lib cufft.lib"
+        echo "DLLSOURCEDIR$dllnum = $CUDA_DIR/bin" >> $configure
+        echo "DLLSTOCOPY$dllnum = cudart cufft" >> $configure
     endif
 
     # Build imodwincpu

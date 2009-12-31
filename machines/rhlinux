@@ -68,7 +68,6 @@ else
         # tell the C routines being called by Fortran that they need two __
         #
         echo '#define G77__HACK' >> $hconfigure
-        if ($m64bit == false) set usfftdir = $source_dir/USFFTlib/pc
         set openmp = false
     else
         #
@@ -234,11 +233,6 @@ if ($tifflibs == default) set tifflibs = true
 #
 set lapacklink = "$fcomp $lapackopt"
 
-#
-# Set the switch point include file for the FBP algorithm in Tilt
-#
-set fbpswitch       = fbpswitch-pc.inc
-
 # If Qt is not unitary, set up various variables
 #
 set midasglinc = $QTDIR/include
@@ -276,8 +270,10 @@ QMAKE_CXXFLAGS_DEBUG += -Wno-unused-parameter -Wno-sign-compare
 EOF
 
 # Set up to massage QT makefiles for intel, and take care of DLL copies
+@ dllnum = 1
 if ($compiler == intel) then
     if ($intelstat == false) then
+        @ dllnum = 3
         set ccdir = `which icc`
         set cclibdir = $ccdir:h:h/lib
         echo "DLLSOURCEDIR1 = $cclibdir" >> $configure
@@ -330,9 +326,19 @@ else if ($packg2c == true) then
         echo "DLLSOURCEDIR1 = $g2cdir" >> $configure
         echo "DLLSTOCOPY1 = $g2clib" >> $configure
         if ($compiler != "gfortran") echo "DLLSTORENAME = libg2c" >> $configure
+        @ dllnum = 2
     else
         echo "WARNING: Cannot find ${g2clib}.so in $g2cdir"
     endif
+endif
+
+# Adjust variables for CUDA and set to copy the library
+#
+if ($?CUDA_DIR) then
+    set nvcc_flags = "$nvcc_flags -DUNIX -Xcompiler -fno-strict-aliasing -O3 --host-compilation C"
+    if ($dllnum == 1) echo "DLLDESTDIR = lib" >> $configure
+    echo "DLLSTOCOPY$dllnum = libcudart libcufft" >> $configure
+    echo "DLLSOURCEDIR$dllnum = $CUDA_DIR/lib" >> $configure
 endif
 
 if ($packqt == true) then

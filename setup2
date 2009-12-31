@@ -130,6 +130,11 @@ set int32           = "int"
 set uint32          = "unsigned int"
 set float32         = "float"
 
+# Set common flags if doing CUDA
+if ($?CUDA_DIR) then
+    set nvcc_flags = "-arch sm_10 -maxrregcount 32 -I$CUDA_DIR/include -I../../include"
+    set cudalibs = "-L$CUDA_DIR/lib -lcudart -lcufft"
+endif
 
 set inargv = ($argv)
 
@@ -504,9 +509,6 @@ echo 'TILTOBJS = bpsumnox.o bpsumxtilt.o bpsumlocal.o' >> $configure
 # To indicate that librandm and libdtrigs need to be built
 echo 'LINUXFLIBS = ' >> $configure
 
-# A machine-specific directory for the USFFT libraries
-set usfftdir = $source_dir/USFFTlib/default
-
 goto standard_defines
 
 
@@ -586,22 +588,6 @@ else
     echo "TIFFLIBS = $tifflibs" >> $configure
 endif
 
-if (! -e $usfftdir/libusfft_r3.a ) then
-    echo "USFFTLIBS = " >> $configure
-    echo "FBPLIB = nolibfbp.a" >> $configure
-else
-    echo "USFFTLIBS = $usfftdir/libusfft_r3.a $usfftdir/libtest_usfft.a -lnsl" >> $configure
-    echo "FBPLIB = libfbp.a" >> $configure
-endif
-
-# Remove fbpswitch if it is different, then copy if it doesn't exist
-#
-if (-e $tilt_dir/fbpswitch.inc) then
-    set tiltdiff = `diff $tilt_dir/$fbpswitch $tilt_dir/fbpswitch.inc`
-    if ($status) \rm $tilt_dir/fbpswitch.inc
-endif
-if (! -e $tilt_dir/fbpswitch.inc) \cp $tilt_dir/$fbpswitch $tilt_dir/fbpswitch.inc
-
 if ($shared_libs == false) set inst_lib_dir = $lib_dir
 
 echo "OBJEXT =    $objext" >> $configure
@@ -626,6 +612,16 @@ echo "INSTDIR = $inst_dir"  >> $configure
 echo "INCDIR  = $inc_dir"          >> $configure
 echo "IMOD_PLUGIN_DIR = $inst_plug_dir" >> $configure
 echo "MOC = $moc"     >> $configure
+
+# Output the entries for Tilt using GPU or not
+#
+if ($?CUDA_DIR) then
+    echo "NVCC_FLAGS =  $nvcc_flags" >> $configure
+    echo "CUDALIBS =    $cudalibs" >> $configure
+    echo 'TILTGPUOBJ =  gpubp.$(OBJEXT)' >> $configure
+else
+    echo 'TILTGPUOBJ =  nogpu.$(OBJEXT)' >> $configure
+endif
 
 cat << EOF >> $hconfigure
 #define CTRL_STRING "$ctrl_string"
@@ -994,6 +990,9 @@ exit
 
 #
 #  $Log$
+#  Revision 1.54  2009/11/27 16:38:48  mast
+#  Fixed variable usage for ctfplotter qconfigure
+#
 #  Revision 1.53  2009/11/27 15:19:34  mast
 #  Fixed usage of lapacklink
 #
