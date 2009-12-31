@@ -37,9 +37,12 @@ install: $(PROG)
 	$(CP) $(PROG) $(INSTBINDIR)
 
 clean:
-	-\rm -f *.o* *.exe \#* *~ tilt
+	-\rm -f *.o* *.exe *.linkinfo \#* *~ tilt
 
 #  $Log$
+#  Revision 3.10  2009/12/31 20:37:21  mast
+#  GPU code added
+#
 #  Revision 3.9  2009/06/26 05:17:46  mast
 #  Switched to module
 #
