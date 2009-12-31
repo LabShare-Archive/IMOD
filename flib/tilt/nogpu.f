@@ -24,7 +24,7 @@ c
       return
       end
 
-      integer*4 function gpuloadproj(lines, numPlanes, lsliceStart,  loadStart)
+      integer*4 function gpuloadproj(lines, numPlanes, lsliceStart, loadStart)
       gpuloadproj = 1
       return
       end
@@ -39,7 +39,7 @@ c
       integer*4 function gpubplocal(slice, lslice, nxwarp, nywarp, ixswarp,
      &    iyswarp, idxwarp, idywarp, nxprj, xcen, xcenin, delxx, ycen, slicen,
      &    edgefill)
-     &    gpubplocal = 1
+      gpubplocal = 1
       return
       end
 
