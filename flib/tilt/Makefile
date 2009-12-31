@@ -5,9 +5,6 @@
 # hand optimized routines were prepared by compiling g77 -S -c -O1, then
 # knocking out appropriate mode change code
 #
-# configure supplies FBPLIB and USFFTLIBS, which specify libfbp.a and the
-# USFFT libraries needed, or nolibfbp.a and nothing if USFFT not available
-#
 #  $Id$
 #
 #  Log at end
@@ -20,33 +17,32 @@ PROG = tilt$(BINEXT)
 
 all: $(PROG)
 
-$(PROG): tilt.$(O) licenseusfft.$(O) tiltvars.$(O) $(TILTOBJS) $(FBPLIB) 
-	$(FC) $(FFLAGS) -o tilt tilt.$(O) licenseusfft.$(O)  tiltvars.$(O) \
-	$(TILTOBJS) $(FBPLIB) $(LDFFLAGS) $(LWMOD) $(LIMOD) $(IMLIBS) \
-	 $(USFFTLIBS) $(FORTCLIBS)
+$(PROG): tilt.$(O) tiltvars.$(O) $(TILTOBJS) $(TILTGPUOBJ) 
+	$(FC) $(FFLAGS) -o tilt tilt.$(O) tiltvars.$(O) \
+	$(TILTOBJS) $(TILTGPUOBJ) $(LDFFLAGS) $(LWMOD) $(LIMOD) \
+	$(IMLIBS) $(FORTCLIBS) $(CUDALIBS)
 
-libfbp.a: fbplib/*.f
-	(cd fbplib ; $(MAKE) )
 
-nolibfbp.a: nolibfbp.$(O)
-	$(MAKESTATICLIB)nolibfbp.a nolibfbp.$(O)
-	$(STATICRANLIB) nolibfbp.a
+gpubp.$(O): gpubp.cu
+	nvcc -c $(NVCC_FLAGS)  gpubp.cu
 
 handnox.$(O): handnox.s
 handxtilt.$(O): handxtilt.s
 handlocal.$(O): handlocal.s
 
-tilt.$(O): tiltvars.$(O) fbpswitch.inc
+tilt.$(O): tiltvars.$(O) 
 
 install: $(PROG)
 	$(STRIP) $(PROG)
 	$(CP) $(PROG) $(INSTBINDIR)
 
 clean:
-	(cd fbplib ; $(MAKE) clean)
-	-\rm -f *.o* *.exe *.a *~ tilt
+	-\rm -f *.o* *.exe \#* *~ tilt
 
 #  $Log$
+#  Revision 3.9  2009/06/26 05:17:46  mast
+#  Switched to module
+#
 #  Revision 3.8  2009/05/22 22:55:16  mast
 #  Switch to large model
 #
