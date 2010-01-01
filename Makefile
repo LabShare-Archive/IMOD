@@ -428,7 +428,7 @@ fsrc :
 	cp -r flib/man $(ARCDIR)_src/flib/
 	(cd flib; tar cBf - \
 	*/Makefile */*/Makefile \
-	*/*.[chfs] */*/*.[chfs] */*/*.cpp */*.inc */*/*.inc */*/README)\
+	*/*.[chfs] */*.cu */*/*.[chfs] */*/*.cpp */*.inc */*/*.inc */*/README)\
 	| (cd $(ARCDIR)_src/flib; tar xBf -)
 
 #
@@ -457,6 +457,9 @@ ALWAYS:
 
 ############################################################################
 #  $Log$
+#  Revision 3.77  2009/03/06 17:25:09  mast
+#  Add LGPL.txt to dist
+#
 #  Revision 3.76  2009/01/17 17:03:27  mast
 #  updates to make src
 #
