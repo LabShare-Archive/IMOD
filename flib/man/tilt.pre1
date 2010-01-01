@@ -16,43 +16,35 @@ DDEESSCCRRIIPPTTIIOONN
   scheme.
 
   The program uses a number of different numerical strategies depending on
-  whether the reconstructed volume is rotated around the X axis and depending
-  on the amount of memory available.  If there is no X-axis tilt being
-  imposed, then each output plane is derived from one line of the input data.
-  The program tries first to use the fast backprojection algorithm developed
-  by Sandberg and Beylkin, if there is a license.  If there is insufficient
-  memory for this, or if other preconditions are not satisfied, it then tries
-  to use preliminary stretching of each input line by the cosine of the tilt
-  angle, which speeds up the direct backprojection.  If there is not enough
-  memory for this method either, the program falls back to direct
-  backprojection from the unstretched input lines. 
+  the complexity of the alignments needed to reconstruct the volume and on
+  whether the computation is being done by the central processing unit (CPU)
+  or the graphical processing unit (GPU).  If there are no local alignments
+  being applied, then for processing on the CPU, the program will do a
+  preliminary stretching of each input line by the cosine of the tilt
+  angle.  This stretching speeds up the direct backprojection because each
+  stretched input line is in register with the lines of the output planes.
+  The stretching will not be used if the maximum tilt angle is over 80
+  degrees, if the option "COSINTERP 0" is entered, or in the unlikely event
+  that there is insufficient memory for the stretched data.  When computing on
+  the GPU, the program does not use cosine stretching, thus avoiding the
+  consequences of interpolating the data twice.
 
-  When a tilt around the X axis is specified, then each output slice derives
-  from several lines of input data.  The program tries to do this first by
-  computing untilted slices, one per input line, and interpolating an output
-  slice from the relevant untilted slices.  It uses fast backprojection if
-  possible; if not, it tries to use cosine stretching if possible, or falls
-  back to direct computation.  If there is insufficient memory for this
-  approach, the program reverts to "old-style" X-axis tilting, in which the
-  output slice is computed directly from the various input slices.  In this
-  case,it also tries to use cosine stretching if memory is available.
+  If there is no X-axis tilt being imposed, then each output plane is derived
+  from one line of the input data; i.e., data all at one Y value in the input
+  images.  With a fixed tilt around the X axis, each output slice derives from
+  several lines of input data.  However, as long as there are no "Z-factors",
+  it is still possible to compute a slice prior to the tilting from a single
+  line of input.  Thus, the program will compute such untilted slices, one per
+  input line, and interpolate an output slice from the relevant untilted
+  slices.  If the option "XTILTINTERP 0" is entered, or in the unlikely event
+  that there is insufficient memory for this approach, the program reverts to
+  "old-style" X-axis tilting, in which the output slice is computed directly
+  from the various input slices.
 
-  The user can disable various strategies by specifying an interpolation order
-  of 0: cosine stretching by entering "COSINTERP 0", fast backprojection by
-  entering "FBPINTERP 0", or the new style of X-axis tilting by entering
-  "XTILTINTERP 0".  There are some cases where the fast backprojection is
-  slower than the conventional approach (e.g., few input views).  The program
-  attempts to detect these cases and use conventional summation instead.  If
-  you use "FBPINTERP 1", you can bypass this checking and force the program to
-  use fast backprojection as long as other conditions are met.
-
-  With perpendicular slices, the header of the output file will set up a
-  coordinate system congruent with that of the original views.  If slices are
-  output in order of increasing slice number, this represents a 90 degree
-  rotation about X, so the slices are inverted about their new Z axis (by
-  using the negative of the tilt angles).  If slices are output in inverted
-  order (IDELSLICE < 0), this represents a -90 degree rotation about X; slices
-  are not inverted in this case. 
+  With output of perpendicular slices, the header of the output file will set
+  up a coordinate system congruent with that of the original views. This
+  represents a 90 degree rotation about X but no change in handedness.  With
+  parallel slice output, the handedness is inverted.
 
   The program can do two different kinds of reprojections.  First, it can
   compute each tomogram slice as usual then, instead of writing the slice to
@@ -87,6 +79,17 @@ DDEESSCCRRIIPPTTIIOONN
   are then divided by the weighting factors entered with WeightFile, if any,
   and output.  If the log was taken, the sums are adjusted by adding an amount
   that should give a constant mean level, then the exponential is taken.
+
+  The program can use the GPU of an NVIDIA graphics card for all kinds of
+  reconstructions, and for reprojections from an existing reconstruction file
+  that do not involve local alignments.  The card must be capable of
+  supporting computations with CUDA, and you must have a version of NVIDIA
+  graphics drivers installed that supports the particular version of CUDA
+  against which your version of Tilt was compiled.  Typically this will be
+  CUDA 2.1, supported by drivers 180.22 and higher in Linux, or 181.20 and
+  higher in Windows.  Not all IMOD packages can be used with a GPU; ones that
+  do will have cudart and cufft libraries in either IMOD/bin, IMOD/lib or
+  IMOD/qtlib.
 
   Tilt uses the PIP package for input (see the manual page for pip(1)) but
   it has several special features to maintain compatibility with the old
