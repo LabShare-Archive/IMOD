@@ -20,6 +20,7 @@ endif
 set fcompFlags = ""
 set fcmpldFlags = ""
 set openmpFlags = ""
+set ccompFlags = ""
 
 if ($compiler == intel) then
     set c_includes =  
@@ -35,7 +36,8 @@ if ($compiler == intel) then
     set rgbprogs = 
     set fcmpldFlags = "/C90 /4Yportlib"
     set fcomp = ifl
-    set fcompFlags = "/4L132"
+    set fcompFlags = "/4L132 /Qvec-report:0"
+    set ccompFlags = "/Qvec-report:0"
     
     # Get the version from icl, assuming we have matched c++/fortran compilers
     #
@@ -63,7 +65,7 @@ if ($compiler == intel) then
             if ($build >= 20060816) set fcmpldFlags = "/4Yportlib"
         endif
         echo "      parameter (nbytes_recl_item=4)" >! $endian_dir/recl_bytes.inc
-        set fcompFlags = "/assume:bscc /4L132"
+        set fcompFlags = "/assume:bscc /4L132 /Qvec-report:0"
         
     endif
     set ldfflags = "$fcmpldFlags "'$(LDFLAGS)'
@@ -253,7 +255,7 @@ endif
 #
 
 set flags = "$flags /MD"
-set cflags = "$flags $optimization $defines $include_flags $c_includes"
+set cflags = "$flags $ccompFlags $optimization $defines $include_flags $c_includes"
 set fflags = "$flags $fcompFlags $fcmpldFlags $optimization $include_flags"
 
 cat << EOF >> $configure
@@ -475,9 +477,15 @@ if ($compiler == intel) then
     # Adjust variables for CUDA and set to copy the library
     #
     if ($?CUDA_DIR) then
+        set cudabin = $CUDA_DIR/bin
+        set cudalib = $CUDA_DIR/lib
+        if ($?CUDA_BIN_PATH && $?CUDA_LIB_PATH) then
+            set cudabin = `cygpath -m $CUDA_BIN_PATH`
+            set cudalib = `cygpath -m $CUDA_LIB_PATH`
+        endif
         set nvcc_flags = "$nvcc_flags -O2"
-        set cudalibs = "-LIBPATH:$CUDA_DIR/lib cudart.lib cufft.lib"
-        echo "DLLSOURCEDIR$dllnum = $CUDA_DIR/bin" >> $configure
+        set cudalibs = "-LIBPATH:$cudalib cudart.lib cufft.lib"
+        echo "DLLSOURCEDIR$dllnum = $cudabin" >> $configure
         echo "DLLSTOCOPY$dllnum = cudart cufft" >> $configure
     endif
 
