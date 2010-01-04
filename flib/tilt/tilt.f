@@ -283,7 +283,7 @@ c               full load
               if (.not. shiftedGpuLoad) call shiftGpuSetupCopy()
               if (.not. shiftedGpuLoad) call shiftGpuSetupCopy()
               ibase = nbase + (needGpuStart + keepOnGpu - inloadstr) * iplane
-              if (debug) write(*,'(a,i4i,a,i4,a,i4,i10)')'Loading GPU, #',
+              if (debug) write(*,'(a,i4,a,i4,a,i4,i10)')'Loading GPU, #',
      &            numLoadGpu, '  lstart',needGpuStart+keepOnGpu,
      &            ' start pos base', keepOnGpu + 1,ibase-nbase
               tstart = walltime()
@@ -449,7 +449,7 @@ c       data if any is to be retained
       keepOnGpu = 0
       if (loadGpuStart .gt. 0) keepOnGpu = loadGpuEnd + 1 -needGpuStart
       numLoadGpu = needGpuEnd + 1 - needGpuStart - keepOnGpu
-      if (debug) write(*,'(a,i4i,a,i4,a,i4)')'Shifting GPU, #',numLoadGpu,
+      if (debug) write(*,'(a,i4,a,i4,a,i4)')'Shifting GPU, #',numLoadGpu,
      &    '  lstart',needGpuStart+keepOnGpu,' start pos', keepOnGpu + 1
       tstart = walltime()
       if (gpuShiftProj(numLoadGpu, needGpuStart+keepOnGpu, keepOnGpu + 1)
@@ -4191,6 +4191,12 @@ c       Set to open contour, show values etc., and show sphere on section only
 
 c       
 c       $Log$
+c       Revision 3.50  2009/12/31 20:40:34  mast
+c       Implemented all backprojection and reprojection without local alignments
+c       on GPU.  Switched to smart allocation of stack array to get an amount
+c       similar to what was used before.  Eliminated fast backprojection,
+c       replication, and negative increments.
+c
 c       Revision 3.49  2009/11/06 05:51:49  mast
 c       Change format string from (i) to * for gfortran 4.4
 c
