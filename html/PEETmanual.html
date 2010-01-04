@@ -368,12 +368,18 @@ and model files.&nbsp;  To add a row with the same volume, model, and other
 settings as in an existing row, highlight the
 existing row with <b>=&gt;</b> and press <b>Copy Row</b>.</p>
 <p>After you highlight an existing row in the table with <b>=&gt;</b>,
-other buttons become available.&nbsp;  You can use <b>Change Model</b>
-to change just the model file on that row.&nbsp;  Press <b>Set Initial
-Motive List File</b> to open a file chooser and pick an initial MOTL
+other buttons become available.&nbsp;  
+Press <b>Copy Row</b> to duplicate an existing row, omitting relative
+orientations.&nbsp
+Press <b>Change Model</b>
+to change just the model file on the selected row.&nbsp;  Press <b>Set Initial
+Motive List File</b> to open a file chooser and select an initial MOTL
 file.&nbsp;  After enabling  missing wedge compensation, 
 pressing <b>Read Tilt File</b> will read the minimum and maximum tilt
-angles from a .tlt file.&nbsp;  Press <b>Move Up</b> or <b>Move Down</b>
+angles from a .tlt file.&nbsp; 
+(This option is available only if <b>Initial Motive List</b>
+has been set to <b>Use files</b>... see below).&nbsp;
+Press <b>Move Up</b> or <b>Move Down</b>
 to change the location of the highlighted row in the table.&nbsp;
 Press <b>Delete Row</b> to delete the current row from the table.&nbsp;
 Press <b>Open in 3dmod</b> to open the volume and model files in
@@ -495,7 +501,7 @@ will be masked out.
 the center of the reference volume.</p> 
 
 <p>A cylindrical mask will be oriented with its long axis passing
-through the vector from the specified particle to the neighboring 
+through the vector from the reference particle to the neighboring 
 particle along the contour.&nbsp;
 Alternatively, you can specify the orientation of a cylindrical mask
 by setting the model number and particle number in the 
@@ -588,10 +594,11 @@ microtubule.&nbsp;  When using this option, be sure to model separate
 filaments in separate contours.</p>
 
 <p>If <b>End points of contour</b> is selected, an arbitrary vector
-can be used as the first rotation axis by taking the vector
-connecting the two end points of a contour in one of the particle
-models.&nbsp;  The contour is specified by three integers: the model
-(tomogram) number, the IMOD object number, and the contour number.</p>
+in each volume can be used as the first rotation axis by taking the vector
+connecting the two end points of a contour in the model for that
+volume.&nbsp;
+The contour is specified by two integers: the IMOD object number and the 
+contour number.</p>
 
 <H3><A NAME="The Run Tab"></A>3. The Run Tab</H3>
 
