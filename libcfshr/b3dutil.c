@@ -22,6 +22,8 @@
 
 #ifndef _WIN32
 #include <sys/time.h>
+#else
+#include <Windows.h>
 #endif
 
 #ifdef WIN32_BIGFILE
@@ -521,12 +523,18 @@ double cputime(void)
 }
 
 /*!
- * Returns elapsed real time with microsecond precision on Linux and Mac.
+ * Returns a measure of time with microsecond precision on Linux and Mac
+ * and the precision of the high performance counter on Windows.
  */
 double wallTime(void)
 {
 #ifdef _WIN32
-  return 0.;
+  LARGE_INTEGER freq, counts;
+  QueryPerformanceFrequency(&freq);
+  if (!freq.QuadPart)
+    return 0.;
+  QueryPerformanceCounter(&counts);
+  return (((double)counts.QuadPart) / freq.QuadPart);
 #else
   struct timeval tv;
   gettimeofday(&tv, NULL);
@@ -577,6 +585,9 @@ int numompthreads(int optimalThreads)
 
 /*
 $Log$
+Revision 1.11  2009/09/18 15:02:40  mast
+Changed fgetline to return 0 for empty string and negative for error/eof
+
 Revision 1.10  2009/06/22 22:46:22  mast
 Add function to compute thread number
 
