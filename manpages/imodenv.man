@@ -118,6 +118,13 @@ location of the uitest script
 When running eTomo tests, the location of the uitest.adoc and all
 autodocs it refers to.
 .TP
+.B IMOD_USE_GPU
+This variable will tell the Tilt program (and eventually perhaps other
+programs) to use the GPU on a CUDA-capable NVIDIA graphics card.  Set the
+variable to 0 to use the best available GPU, or to a positive number to
+specify the GPU to use.  If there is only one GPU, 0 and 1 have the same
+effect.  This setting is overridden by the UseGPU entry to Tilt, if any.
+.TP
 .B PIP_PRINT_ENTRIES
 Set this variable to 1 to enable printing of all options entered into a program
 using PIP input or 0 to disable it.  The variable is automatically
@@ -136,10 +143,3 @@ at the beginning of the file.
 .B RAPTOR_BIN
 Directory where RAPTOR executables are located, if they are not in 
 /usr/local/RAPTOR/bin.
-.TP
-.B TILT_MEMORY_LIMIT
-Set this to an integer number of megabytes to get Tilt to allocate more
-memory than the default, which is 800 megabytes.
-.TP
-.B USFFT2_LICENSE_FILE
-Location of license file for USFFT.  Set by IMOD startup scripts.
