@@ -1,5 +1,13 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+1/5/09: Fixed problem with Matchvol not making input array large enough
+
+1/1/09: Tilt can now use use the GPU in a CUDA-capable NVIDIA card for all
+forms of backprojection and for reprojection from a reconstruction file not
+involving local alignments.  It also allocates memory as needed for the
+particular reconstruction.  To simplify the code, options for fast
+backprojection, replications, and negative slice increments were eliminated.
+
 12/29/09: IMOD_4-0-21
 12/29/09: Fixed Makejoincom to avoid problem with entry output from rotatevol.
 
