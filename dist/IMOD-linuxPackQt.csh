@@ -1,4 +1,4 @@
-# IMOD 4.0.16
+# IMOD 4.0.22
 #
 # Startup file for tcsh users of IMOD under Linux - place it in /etc/profile.d
 #
@@ -59,15 +59,6 @@ if (-r $IMOD_CALIB_DIR/IMOD.csh) source $IMOD_CALIB_DIR/IMOD.csh
 # A subm alias to run command files in the background with submfg
 #
 alias subm 'submfg \!* &'
-
-# This command allows fast backprojection if the USFFT license file exists
-# in either /usr/local/USFFT by hostname, or in IMOD_DIR
-#
-if (-d /usr/local/USFFT) then
-    setenv USFFT2_LICENSE_FILE /usr/local/USFFT/license.clo.$HOST
-else
-    setenv USFFT2_LICENSE_FILE "$IMOD_DIR/license.clo"
-endif
 
 # Set a variable to indicate where our copy of Qt library is
 #

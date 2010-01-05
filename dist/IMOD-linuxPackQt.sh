@@ -1,4 +1,4 @@
-# IMOD 4.0.16
+# IMOD 4.0.22
 #
 # Startup file for bash users of IMOD under Linux - place it in /etc/profile.d
 #
@@ -48,15 +48,6 @@ export IMOD_CALIB_DIR=${IMOD_CALIB_DIR:=/usr/local/ImodCalib}
 #
 if [ -r $IMOD_CALIB_DIR/IMOD.sh ] ; then
     . $IMOD_CALIB_DIR/IMOD.sh
-fi
-
-# This command allows fast backprojection if the USFFT license file exists
-# in either /usr/local/USFFT by hostname, or in IMOD_DIR
-#
-if [ -d /usr/local/USFFT ] ; then
-    export USFFT2_LICENSE_FILE=/usr/local/USFFT/license.clo.$HOST
-else
-    export USFFT2_LICENSE_FILE=$IMOD_DIR/license.clo
 fi
 
 # Set a variable to indicate where our copy of Qt library is
