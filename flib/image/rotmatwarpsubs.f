@@ -116,7 +116,7 @@ c         Or, loop on next value of aspect ratio
       enddo
 c       
 c       Compute true needed input dimensions now that cube sizes are known
-c       and use it to REDUCE the current sizes
+c       REPLACE inpDim rather than adjusting it downward, it can be too small
       inmin=1000000
       inmax=-1000000
       do j = 1, nloctot
@@ -136,9 +136,7 @@ c                 Adding 2 instead of 1 may be overkill but gives extra safety
           enddo
         enddo
       enddo
-      do i = 1, 3
-        inpDim(i) = min(inpDim(i), nExtra + inmax(i) + 1 - inmin(i))
-      enddo
+      inpDim = nExtra + inmax + 1 - inmin
       if (iVerbose .gt. 0)
      &    write(*,'(a,3i6)')'Input size adjusted for actual cubes:', inpDim
       arraySize8 = inpDim(1)
@@ -870,6 +868,11 @@ c
 
 c       
 c       $Log$
+c       Revision 3.9  2009/06/14 22:29:02  mast
+c       Changes for Fortran 95, module, allocating memory, determining optimal
+c       arrangement of input and output sizes, recomposing more efficiently,
+c       and openmp parallelization of the main loops
+c
 c       Revision 3.8  2007/11/18 04:53:46  mast
 c       Increased filename limits to 320
 c
