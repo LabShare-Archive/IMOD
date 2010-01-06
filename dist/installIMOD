@@ -343,6 +343,42 @@ if ($ubuntu) then
     endif
 endif
 
+# Move Windows .dlls up for pre-XP versions
+#
+if ($os == windows) then
+    set msdir = `\find ./bin -name 'Microsoft*' -type d -print | sed '/[[:cntrl:]]/s///g'`
+    if ("$msdir" != "") then
+        set msvers = `uname -s | sed -e '/\./s// /g' -e '/[^0-9 ]/s///g'`
+        if ($#msvers > 0) then
+            set nonomatch
+            @ major = $msvers[1]
+            @ minor = 0
+            if ($#msvers > 1) then
+                @ minor = $msvers[2]
+            endif
+            if ($major < 5 || ($major == 5 && $minor < 1)) \mv $msdir/*.dll bin
+        endif
+    endif
+endif
+    
+# Test for 64 versus 32-bit
+#
+if ($os == linux) then
+    set bit3264 = `file lib/libimod.so | sed '/.*[0-9]\([0-9]\)-bit.*/s//\1/'`
+    set arch3264 = `uname -m`
+    if ("$bit3264" == "2" && "$arch3264" == "x86_64" && $ubuntu) echo \
+        "\nWARNING: THIS IS A 32-bit PACKAGE ON 64-BIT UBUNTU AND WILL NOT RUN\n"
+    if ("$bit3264" == "4" && "$arch3264" != "x86_64") echo \
+        "\nWARNING: THIS IS A 64-bit PACKAGE ON A 32-BIT SYSTEM AND WILL NOT RUN\n"
+endif
+
+if ($os == osx) then
+    set bit3264 = `file lib/libimod.dylib | sed '/.*[0-9]\([0-9]\)-bit.*/s//\1/'`
+    set arch64 = `sysctl hw.optional.x86_64 | sed '/.*:/s///'`
+    if ("$bit3264" == "4" && "$arch64" != 1) echo \
+        "\nWARNING: THIS IS A 64-bit PACKAGE ON A 32-BIT SYSTEM AND WILL NOT RUN\n"
+endif
+
 # Edit scripts in place before copying
 #
 if ($custom == 1 || $custname) then
@@ -558,6 +594,9 @@ exit 0
 
 #
 #  $Log$
+#  Revision 3.25  2009/05/29 03:06:10  mast
+#  Handle libg2c possibilities when gfortran or intel package
+#
 #  Revision 3.24  2008/09/26 21:05:29  mast
 #  Added option to name directory, eliminated \n
 #
