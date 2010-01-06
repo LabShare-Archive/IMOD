@@ -66,12 +66,12 @@ void b3dResizeViewportXY(int winx, int winy)
 {
   // Need to shift the viewport a little bit because the drawing calls use
   // integers which map to the left edge of a pixel and can fall to lower one
-  double eps = 0.05;
+  GLdouble eps = 0.05;
   glViewport((GLint)0, (GLint)0, (GLsizei)winx, (GLsizei)winy);
   glMatrixMode(GL_PROJECTION);
   glLoadIdentity();
 
-  glOrtho(-eps , (GLdouble)winx-eps, -eps, (GLdouble)winy-eps, 0.5, -0.5);
+  glOrtho(-eps, (GLdouble)winx-eps, -eps, (GLdouble)winy-eps, 0.5, -0.5);
   glMatrixMode(GL_MODELVIEW);
   glLoadIdentity();
 }
@@ -83,11 +83,12 @@ void b3dResizeViewportXY(int winx, int winy)
  */
 void b3dSubareaViewport(int xstart, int ystart, int xsize, int ysize)
 {
+  GLdouble eps = 0.05;
   glViewport((GLint)xstart, (GLint)ystart, (GLsizei)xsize, (GLsizei)ysize);
   glMatrixMode(GL_PROJECTION);
   glLoadIdentity();
-  glOrtho((GLdouble)xstart, (GLdouble)(xstart + xsize), (GLdouble)ystart,
-          (GLdouble)(ystart + ysize), 0.5, -0.5);
+  glOrtho((GLdouble)xstart - eps, (GLdouble)(xstart + xsize - eps), 
+          (GLdouble)ystart - eps, (GLdouble)(ystart + ysize - eps), 0.5, -0.5);
 }
 
 void b3dColorIndex(int pix)
@@ -2060,6 +2061,9 @@ int b3dSnapshot(QString fname)
 
 /*
 $Log$
+Revision 4.43  2010/01/06 01:19:00  mast
+Shift viewport a bit to avoid lines being drawn in wrong place
+
 Revision 4.42  2009/01/15 16:33:17  mast
 Qt 4 port
 
