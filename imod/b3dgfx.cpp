@@ -64,11 +64,14 @@ float b3dGetCurXZoom() { return CurXZoom;}
  */
 void b3dResizeViewportXY(int winx, int winy)
 {
+  // Need to shift the viewport a little bit because the drawing calls use
+  // integers which map to the left edge of a pixel and can fall to lower one
+  double eps = 0.05;
   glViewport((GLint)0, (GLint)0, (GLsizei)winx, (GLsizei)winy);
   glMatrixMode(GL_PROJECTION);
   glLoadIdentity();
 
-  glOrtho(0.0 , (GLdouble)winx, 0.0, (GLdouble)winy, 0.5, -0.5);
+  glOrtho(-eps , (GLdouble)winx-eps, -eps, (GLdouble)winy-eps, 0.5, -0.5);
   glMatrixMode(GL_MODELVIEW);
   glLoadIdentity();
 }
@@ -1842,7 +1845,7 @@ int b3dSnapshot_TIF(QString fname, int rgbmode, int *limits,
     }
   }
   glPixelZoom(1.0,1.0);
-    
+
   if (!data && rgbmode) {
     glReadPixels(rpx, rpy, rpWidth, rpHeight,
                  GL_RGBA, GL_UNSIGNED_BYTE, pixels);
@@ -2057,6 +2060,9 @@ int b3dSnapshot(QString fname)
 
 /*
 $Log$
+Revision 4.42  2009/01/15 16:33:17  mast
+Qt 4 port
+
 Revision 4.41  2008/12/07 05:22:14  mast
 Made images be drawn in window when they fit exactly in window
 
