@@ -363,20 +363,21 @@ endif
     
 # Test for 64 versus 32-bit
 #
+set mismatch = ""
 if ($os == linux) then
     set bit3264 = `file lib/libimod.so | sed '/.*[0-9]\([0-9]\)-bit.*/s//\1/'`
     set arch3264 = `uname -m`
-    if ("$bit3264" == "2" && "$arch3264" == "x86_64" && $ubuntu) echo \
-        "\nWARNING: THIS IS A 32-bit PACKAGE ON 64-BIT UBUNTU AND WILL NOT RUN\n"
-    if ("$bit3264" == "4" && "$arch3264" != "x86_64") echo \
-        "\nWARNING: THIS IS A 64-bit PACKAGE ON A 32-BIT SYSTEM AND WILL NOT RUN\n"
+    if ("$bit3264" == "2" && "$arch3264" == "x86_64" && $ubuntu) set mismatch = \
+        "WARNING: THIS IS A 32-bit PACKAGE ON 64-BIT UBUNTU AND WILL NOT RUN"
+    if ("$bit3264" == "4" && "$arch3264" != "x86_64") set mismatch = \
+        "WARNING: THIS IS A 64-bit PACKAGE ON A 32-BIT SYSTEM AND WILL NOT RUN"
 endif
 
 if ($os == osx) then
     set bit3264 = `file lib/libimod.dylib | sed '/.*[0-9]\([0-9]\)-bit.*/s//\1/'`
     set arch64 = `sysctl hw.optional.x86_64 | sed '/.*:/s///'`
-    if ("$bit3264" == "4" && "$arch64" != 1) echo \
-        "\nWARNING: THIS IS A 64-bit PACKAGE ON A 32-BIT SYSTEM AND WILL NOT RUN\n"
+    if ("$bit3264" == "4" && "$arch64" != 1) set mismatch = \
+        "WARNING: THIS IS A 64-bit PACKAGE ON A 32-BIT SYSTEM AND WILL NOT RUN"
 endif
 
 # Edit scripts in place before copying
@@ -567,10 +568,17 @@ if (! $custname) then
     endif
     echo ""    
 endif
+
 echo "If there are version-specific IMOD startup commands in individual user"
 echo " startup files (.cshrc, .bashrc, .bash_profile) they should be changed"
 echo " or removed."
+if ("$mismatch" != "") then
+    # EMBEDDED \n DOES NOT WORK ON MAC!
+    echo " "
+    echo $mismatch
+endif   
 exit 0
+
 
 usage:
 cat <<EOF
@@ -594,6 +602,9 @@ exit 0
 
 #
 #  $Log$
+#  Revision 3.26  2010/01/06 07:00:02  mast
+#  Moved MS dlls up for Win2K and tested 32 vs 64 bit in Mac/Linux
+#
 #  Revision 3.25  2009/05/29 03:06:10  mast
 #  Handle libg2c possibilities when gfortran or intel package
 #
