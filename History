@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+1/6/09: Made install script copy DLL's out of Microsoft folder into bin for
+Win2K, added warnings for 64/32-bit mismatch on Linux and Mac.
+
 1/5/09: Fixed pixel offset in drawn lines on some systems.
 
 1/5/09: Fixed problem with Matchvol not making input array large enough
