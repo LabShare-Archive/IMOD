@@ -1253,6 +1253,7 @@ int main (int argc, char **argv)
         fp_outfile = NULL;
       }
     }
+    fflush(stdout);
   } /* for */
   
   t = time(NULL);
@@ -1268,6 +1269,9 @@ int main (int argc, char **argv)
 /*  
     
 $Log$
+Revision 3.12  2009/04/09 02:44:13  mast
+Fixed some longs to ints, complaints by intel compiler
+
 Revision 3.11  2009/01/03 03:29:57  mast
 Fixed a pointer type
 
