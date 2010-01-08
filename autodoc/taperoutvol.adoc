@@ -1,0 +1,74 @@
+Version = 1.0
+Pip = 1
+
+[Field = InputFile]
+short = input
+type = FN
+usage = Input image file
+tooltip = 
+manpage = 
+
+[Field = OutputFile]
+short = output
+type = FN
+usage = Output image file
+tooltip = 
+manpage = 
+
+[Field = XMinAndMax]
+short = xminmax
+type = IP
+usage = Starting and ending X index coordinates to extract, numbered from 0
+tooltip = 
+manpage = Starting and ending X index coordinates to extract, numbered from
+0.  The default is the whole width in X.
+
+[Field = YMinAndMax]
+short = yminmax
+type = IP
+usage = Starting and ending Y index coordinates to extract, numbered from 0
+tooltip = 
+manpage = Starting and ending Y index coordinates to extract, numbered from
+0.  The default is the whole height in Y.
+
+[Field = ZMinAndMax]
+short = zminmax
+type = IP
+usage = Starting and ending Z index coordinates to extract, numbered from 0
+tooltip = 
+manpage = Starting and ending Z index coordinates to extract, numbered from
+0.  The default is the whole depth in Z.
+
+[Field = TaperPadsInXYZ]
+short = taper
+type = IT
+usage = Number of pixels over which to taper the patches in X, Y and Z
+tooltip = 
+manpage = Number of pixels over which to taper and pad the patches in X, Y and
+Z.  The default is 0.  Unless the -nofft option is entered, the amount of
+tapering in any dimension may be increased to make that dimension suitable for
+taking an FFT.
+
+[Field = NoFFTSizes]
+short = nofft
+type = B
+usage = Do not adjust the padding to give sizes suitable for an FFT
+tooltip = 
+manpage = Do not adjust the padding to give sizes suitable for an FFT.  This
+option is particularly important if you want no tapering and padding.
+
+[Field = ParameterFile]
+short = param
+long = ParameterFile
+type = PF
+usage = Read parameter entries from file
+tooltip = 
+manpage = Read parameter entries as keyword-value pairs from a parameter file.
+
+[Field = usage]
+short = help
+long = usage
+type = B
+usage = Print help output
+tooltip = 
+manpage = 

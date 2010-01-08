@@ -1,0 +1,56 @@
+     BBoouullddeerr LLaabboorraattoorryy ffoorr 33--DDiimmeennssiioonnaall EElleeccttrroonn MMiiccrroossccooppyy ooff CCeellllss
+
+TAPEROUTVOL(1)							 TAPEROUTVOL(1)
+
+NNAAMMEE
+  taperoutvol - to excise a subset of a volume, taper and pad outside
+
+SSYYNNOOPPSSIISS
+  taperoutvol
+
+DDEESSCCRRIIPPTTIIOONN
+  Taperoutvol will cut a subset out of an image volume, pad it into a larger
+  volume, and taper the intensity down to the mean value of the volume over
+  the extent of the padding region, i.e., from the edge of the actual excised
+  pixels to the edge of the new volume.  None of the original excised pixels
+  are attenuated by this method.  The resulting volume will have dimensions
+  suitable for taking the FFT unless the -nofft option is entered.
+
+  Taperoutvol uses the PIP package for input (see the manual page for pip(1))
+  and can still take sequential input interactively, to maintain compatibility
+  with old command files.  The following options can be specified either as
+  command line arguments (with the -) or one per line in a command file or
+  parameter file (without the -):
+
+INSERT OPTION TEXT HERE
+
+  -StandardInput
+     Read parameter entries from standard input.
+
+
+  If there are no command-line arguments, Taperoutvol takes sequential input
+  the old way, with the following entries:
+  
+  Inputs to the program:
+  
+  Name of input file
+  
+  Name of output file
+  
+  The starting and ending X index coordinates (number from 0), the
+  starting and ending Y index coordinates, and the starting and ending
+  Z index coordinates to extract.  The default is the whole volume.
+  
+  The width of the borders, in X, Y, and Z, with which to pad the
+  image block.  Borders will be made larger as necessary to make the
+  output image size suitable for taking a 3D FFT, with the exception
+  that if a single Z slice is requested with no padding, only a single
+  slice is produced without padding.
+  
+  The program will stop with an error message if memory cannot be allocated
+  for the output image, or if the subset is not entirely within the input 
+  volume.
+  
+HHIISSTTOORRYY
+  Written by David Mastronarde  3/1/01
+  Converted to PIP, 1/8/10
