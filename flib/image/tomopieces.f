@@ -21,17 +21,17 @@ c
      &    iyoutnd(limpart)
       integer*4 ixbackst(limpart),ixbacknd(limpart),ixoutst(limpart),
      &    ixoutnd(limpart)
-      logical toobig
+      logical*4 toobig, noFFT
       integer*4 minOverlap, nPadX, nPadY, nPadZ, maxPieceX, maxPieceY
       integer*4 maxPieceZ, maxLayerPieces, ierr, nx, ny, nz, nxp, nyp, nzp
       integer*4 nxextr, nyextr, nzextr, nxout, nyout, nzout, ix, iy, iz, i
       real*4 perim, perimin, piecePerim, piecePerimin
       integer*4 nxpmin, nypmin, nzpmin, nout, limY
-      integer*4 niceframe
+      integer*4 padNiceIfFFT
 
       logical pipinput
       integer*4 numOptArg, numNonOptArg
-      integer*4 PipGetFloat,PipGetInteger
+      integer*4 PipGetFloat,PipGetInteger,PipGetLogical
       integer*4 PipGetInOutFile
 c       
 c       fallbacks from ../../manpages/autodoc2man -2 2  tomopieces
@@ -73,6 +73,7 @@ c       But turn off the entry printing first!
       ierr = PipGetInteger('XMaximumPieces', maxPieceX)
       ierr = PipGetInteger('YMaximumPieces', maxPieceY)
       ierr = PipGetInteger('ZMaximumPieces', maxPieceZ)
+      ierr = PipGetLogical('NoFFTSizes', noFFT)
       call PipDone()
 c       
       nx=nxyz(1)
@@ -100,7 +101,7 @@ c
       nxpmin = 0
       do nxp=1,maxpiecex
         nxextr=(nx+(nxp-1)*minoverlap + nxp-1)/nxp
-        nxout=niceframe(2*((nxextr+1)/2+npadx),2,19)
+        nxout = padNiceIfFFT(nxextr, npadx, noFFT)
 c         
 c         loop on the possible pieces in Y
 c         
@@ -109,7 +110,7 @@ c
 
         do nyp = 1, limY
           nyextr=(ny+(nyp-1)*minoverlap + nyp-1)/nyp
-          nyout=niceframe(2*((nyextr+1)/2+npady),2,19)
+          nyout = padNiceIfFFT(nyextr, npady, noFFT)
           nzp=1
           toobig=.true.
 c           
@@ -118,7 +119,7 @@ c           volume size - until it is no longer too big for maxmem
 c           
           do while(nzp.le. maxPieceZ .and.toobig)
             nzextr=(nz+(nzp-1)*minoverlap + nzp-1)/nzp
-            nzout=niceframe(2*((nzextr+1)/2+npadz),2,19)
+            nzout = padNiceIfFFT(nzextr, npadz, noFFT)
             if(float(nxout*nyout)*nzout.gt.megaVox * 1.e6)then
               nzp=nzp+1
             else
@@ -158,11 +159,11 @@ c
 c       get the starting and ending limits to extract and coordinates
 c       for getting back from the padded volume
       call getRanges(nx, nxp, minoverlap, npadx, ixoutst, ixoutnd,
-     &    ixbackst, ixbacknd)
+     &    ixbackst, ixbacknd, noFFT)
       call getRanges(ny, nyp, minoverlap, npady, iyoutst, iyoutnd,
-     &    iybackst, iybacknd)
+     &    iybackst, iybacknd, noFFT)
       call getRanges(nz, nzp, minoverlap, npadz, izoutst, izoutnd,
-     &    izbackst, izbacknd)
+     &    izbackst, izbacknd, noFFT)
 c       
       write(*,101)nxp,nyp,nzp
 101   format(3i4)
@@ -199,15 +200,16 @@ c       get size to extract, and size of padded output, and offset for
 c       getting back from the padded volume
 c       
       subroutine getRanges(nx, nxp, minoverlap, npadx, ixoutst, ixoutnd,
-     &    ixbackst, ixbacknd)
+     &    ixbackst, ixbacknd, noFFT)
       implicit none
       integer*4 nx, nxp, minoverlap, npadx
       integer*4 ixoutst(*), ixoutnd(*), ixbackst(*), ixbacknd(*)
       integer*4 nxextr, nxout, nxbackofs, laptot, lapbase, lapextra, ip, lap
-      integer*4 lapbot, laptop, niceframe 
+      integer*4 lapbot, laptop, padNiceIfFFT
+      logical*4 noFFT
 c       
       nxextr=(nx+(nxp-1)*minoverlap + nxp-1)/nxp
-      nxout=niceframe(2*((nxextr+1)/2+npadx),2,19)
+      nxout=padNiceIfFFT(nxextr, npadx, noFFT)
       nxbackofs=(nxout-nxextr)/2
 c       
 c       divide the total overlap into nearly equal parts
@@ -237,6 +239,19 @@ c
       return
       end
 
+      integer*4 function padNiceIfFFT(nxextr, npadx, noFFT)
+      implicit none
+      integer*4 nxextr, npadx
+      logical*4 noFFT
+      integer*4 niceframe
+      if (noFFT) then
+        padNiceIfFFT = nxextr + 2 * npadx
+      else
+        padNiceIfFFT=niceframe(2*((nxextr+1)/2+npadx),2,19)
+      endif
+      return
+      end
+ 
       subroutine rangeout(izst,iznd,link,buf,nout)
       character*(*) buf
       character*1 link
@@ -256,6 +271,9 @@ c
       end
 c
 c       $Log$
+c       Revision 3.2  2009/12/28 20:39:08  mast
+c       Suppress entry output
+c
 c       Revision 3.1  2004/06/14 19:20:16  mast
 c       Converted to PIP input, made it able to divide in Y dimension also,
 c       and added options for controlling the maximum number of pieces
