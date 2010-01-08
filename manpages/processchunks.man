@@ -56,7 +56,10 @@ names or IP addresses, separated by commas and with no embedded spaces.
 Machines with multiple processors should be entered as many times as the
 number of processors that you want to use.  The local machine on which you are
 running Processchunks can be identified by its hostname or as "localhost"; in
-either case the command will be run directly on the machine.  For all other
+either case the command will be run directly on the machine.  If this is the
+only machine, then it can be identified by a single number specifying the
+number of processors to use.  For example, you can enter "4" instead of
+"localhost,localhost,localhost,localhost".  For all other
 machines, the command will be run with ssh.  You must be set up to log into
 each of the machines with ssh without having to enter a password (see below).
 Each machine must have access to the current directory.  If the directory path
