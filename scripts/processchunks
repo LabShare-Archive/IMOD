@@ -12,6 +12,7 @@ nohup
 #
 @ sleepsec = 2
 @ numPerExtraSec = 100
+@ maxLocalByNum = 32
 
 set pn = processchunks
 set nice = 18
@@ -168,6 +169,26 @@ endif
 if ($#machines < 1) then
     echo "ERROR: $pn - No machines specified"
     exit 1
+endif
+
+# Translate a single number into a list of localhost entries
+#
+if ($#machines == 1 && ! $queue) then
+    set numonly = `echo $machines | sed '/[^0-9]/s///g'`
+    if ("$machines" == "$numonly") then
+        @ numlocal = $machines
+        if ($numlocal > $maxLocalByNum) then
+            echo "ERROR: $pn - You cannot run more than $maxLocalByNum chunks on localhost by entering a number"
+            exit 1
+        endif
+        if (! $numlocal) @ numlocal = 1
+        set machines = ()
+        @ i = 0
+        while ($i < $numlocal)
+            @ i++
+            set machines = (localhost $machines)
+        end
+    endif
 endif
 
 set rootname = $argv[2]
@@ -908,6 +929,9 @@ exit 2
 
 #
 #  $Log$
+#  Revision 3.50  2009/12/07 20:54:09  mast
+#  Make processchunks responsible for CHUNK DONE
+#
 #  Revision 3.49  2009/11/11 20:45:08  mast
 #  Added ability to run a single command file
 #
