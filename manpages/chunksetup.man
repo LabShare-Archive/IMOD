@@ -48,7 +48,7 @@ will be placed in the directory where it is located.  In this case, however,
 you must enter the path to the input and output files relative to the command
 file's directory, not relative to the current directory.
 
-When chunksetup is run, it first calls Tomopieces, which analyzes the
+When Chunksetup is run, it first calls Tomopieces(1), which analyzes the
 dimensions of the input file to determine how to chop it up optimally.
 It then produces command files for extracting each chunk with Taperoutvol
 and processing them,
@@ -67,19 +67,19 @@ command file at the end.
 You have the option of running the top-level command file using "subm", or
 running the individual command files and running the finishing command file
 at the end.  If you have multiple processors available with access to the
-current directory, you can use
-the Processchunks script to run the jobs in parallel on the various processors
-or machines, such as with:
+current directory, you can use the Processchunks(1) script to run the jobs in
+parallel on the various processors or machines, such as with:
 .br
 processchunks machine_list comfile
 .br
-where machine_list is a list of the machines to use.
+where machine_list is a list of the machines to use, or just the number of
+processor to use on the local machine.
 
 .SS Options
 .TP
 .B -p <value>
 Set the number of pixels of padding on each edge to the given value.  The
-default is whatever the default is for Tomopieces (8 pixels).
+default is 8 pixels.
 .TP
 .B -o <value>
 Set the number of pixels of overlap between the subvolumes to the given value.
@@ -97,6 +97,13 @@ Tomopieces for more details on the choices for maximum number of pieces.
 .B -ym <value>
 Set the maximum number of chunks in the Y direction to the given value.
 The default is -1, which is effectively no limit.
+.TP
+.B -no
+No FFTs will be done on the volumes, so do not increase padding to suitable
+for an FFT.  This option causes the "-nofft" option to be sent to
+Tomopieces(1) and to be added to the input to Taperoutvol(1) that is placed in
+the command files.
+to 
 .SH AUTHOR
 David Mastronarde  <mast@colorado.edu>
 .SH SEE ALSO
