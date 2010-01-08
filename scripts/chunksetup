@@ -26,6 +26,7 @@ Usage: $pn [options] master_com_file input_image_file output_image_file
      -m #    Maximum # of megavoxels in each subvolume
      -xm #   Maximum # of pieces in X direction
      -ym #   Maximum # of pieces in Y direction
+     -no     No FFTs will be taken; do not adjust padding to allow FFTs
 EOF
     exit 0
 endif
@@ -40,6 +41,7 @@ set padstring =
 set overlap =
 set mega =
 set neednl = 0
+set nofft =
 
 while ($#argv > 3)
   switch ($argv[1])
@@ -66,6 +68,11 @@ while ($#argv > 3)
     case -ym*:
       set maxyp = $argv[2]
       shift; shift
+      breaksw
+
+    case -no:
+      set nofft = "-nofft"
+      shift
       breaksw
 
     default:
@@ -121,7 +128,7 @@ if ($ind > 0) then
     if ($ending != 12 && $ending != 15) set neednl = 1
 endif
 
-set ranlist = `tomopieces -tomo $infromhere $mega -xp $pad -yp $pad -zp $pad $overlap -xmax $maxxp -ymax $maxyp | sed '/[[:cntrl:]]/s///g'`
+set ranlist = `tomopieces -tomo $infromhere $mega $nofft -xp $pad -yp $pad -zp $pad $overlap -xmax $maxxp -ymax $maxyp | sed '/[[:cntrl:]]/s///g'`
 
 if ($status) then
     echo $ranlist
@@ -165,16 +172,24 @@ while ($znum < $npiecez)
                 set numtext = 0"$numtext"
             endif
             
+            set minmaxes = `echo $ranlist[1] | sed '/,/s// /g'`
             set comfile = $fullroot-$numtext.com
             set imagein = $rootname-$numtext.in
             set imageout = $rootname-$numtext.out
             cat <<EOCAT >! $comfile
-\$taperoutvol
-$infile
-$imagein
-$ranlist[1]
-$pad,$pad,$pad
+\$taperoutvol -StandardInput
+InputFile $infile
+OutputFile $imagein
+XMinAndMax $minmaxes[1],$minmaxes[2]
+YMinAndMax $minmaxes[3],$minmaxes[4]
+ZMinAndMax $minmaxes[5],$minmaxes[6]
+TaperPadsInXYZ $pad,$pad,$pad
 EOCAT
+            if ("$nofft" != "") then
+                cat <<EOF >> $comfile
+NoFFTSizes
+EOF
+            endif
             cat <<EOF >> $allname
 \$echo Working on piece  $sumnum  of $npiecetot
 \$vmstocsh $rootname-$numtext.log < $comfile | csh -ef
@@ -264,6 +279,9 @@ EOF
 
 #
 #  $Log$
+#  Revision 3.13  2009/12/07 20:54:09  mast
+#  Make processchunks responsible for CHUNK DONE
+#
 #  Revision 3.12  2008/02/22 04:59:00  mast
 #  Made it convert backslashes in filename inputs
 #
