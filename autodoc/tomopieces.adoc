@@ -83,6 +83,14 @@ usage = Minimum number of pixels to overlap between pieces (default 4)
 tooltip = 
 manpage = 
 
+[Field = NoFFTSizes]
+short = nofft
+type = B
+usage = Do not adjust the padding to give sizes suitable for an FFT
+tooltip = 
+manpage = Do not adjust the padding to give sizes suitable for an FFT.  If
+this option is entered, be sure that it is also sent to Taperoutvol(1).
+
 [Field = ParameterFile]
 short = param
 long = ParameterFile
