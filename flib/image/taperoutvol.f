@@ -4,8 +4,7 @@ c       TAPEROUTVOL will cut a subset out of an image volume, pad it into a
 c       larger volume, and taper the intensity down to the mean value of the
 c       volume over the extent of the padding region, i.e., from the edge of
 c       the actual excised pixels to the edge of the new volume.  None of
-c       the original excised pixels are attenuated by this method.  The
-c       resulting volume will have dimensions suitable for taking the FFT.
+c       the original excised pixels are attenuated by this method.
 c       
 c       See man page for details.
 c       
@@ -16,13 +15,13 @@ c       Log at end
 c       
       implicit none
       integer idim,NX,NY,NZ
-      parameter (idim=8200)
       COMMON //NX,NY,NZ
 C       
       integer*4 NXYZ(3),MXYZ(3),NXYZST(3),NXYZ2(3),MXYZ2(3)
-      real*4 ARRAY(idim*idim),TITLE(20), CELL2(6),delta(3)
+      real*4 TITLE(20), CELL2(6),delta(3)
+      real*4, allocatable :: ARRAY(:)
 C       
-      CHARACTER*160 FILIN,FILOUT,filpoint,plfile
+      CHARACTER*160 FILIN,FILOUT
       character*9 dat
       character*8 tim
       character*80 titlech
@@ -31,22 +30,44 @@ C
 C       
       integer*4 ixlo,iylo,izlo,ixhi,izhi,iyhi,nxbox,nybox,nzbox
       integer*4 nx3,ny3,nz3,npadx,npady,npadz,izst,iznd,mode,kti
-      integer*4 iz,izread,i
+      integer*4 iz,izread,i,ierr
       real*4 dmin2,dmax2,dmean2,dmin,dmax,dmean,tmin,tmax,tmean
       real*4 atten,base,tmpmn,origx,origy,origz
+      logical*4 pipinput, noFFT
       integer*4 niceframe
-      common /bigarr/array
       DATA NXYZST/0,0,0/
 c       
-      call setExitPrefix('ERROR: TAPEROUTVOL - ')
-      write(*,'(1x,a,$)')'Image input file: '
-      READ(5,101)FILIN
-101   format(a)
+c       fallbacks from ../../manpages/autodoc2man -2 2  taperoutvol
+c       
+      integer*4 numOptArg, numNonOptArg
+      integer*4 PipGetTwoIntegers,PipGetThreeIntegers
+      integer*4 PipGetInOutFile, PipGetLogical
+      integer numOptions
+      parameter (numOptions = 9)
+      character*(40 * numOptions) options(1)
+      options(1) =
+     &    'input:InputFile:FN:@output:OutputFile:FN:@xminmax:XMinAndMax:IP:@'//
+     &    'yminmax:YMinAndMax:IP:@zminmax:ZMinAndMax:IP:@'//
+     &    'taper:TaperPadsInXYZ:IT:@nofft:NoFFTSizes:B:@'//
+     &    'param:ParameterFile:PF:@help:usage:B:'
+c       
+      noFFT = .false.
+c       
+c       Pip startup: set error, parse options, check help, set flag if used
+c       
+      call PipReadOrParseOptions(options, numOptions, 'taperoutvol',
+     &    'ERROR: TAPEROUTVOL - ', .true., 2, 1, 1, numOptArg,
+     &    numNonOptArg)
+      pipinput = numOptArg + numNonOptArg .gt. 0
+
+      if (PipGetInOutFile('InputFile', 1, 'Name of image input file', filin)
+     &    .ne. 0) call exiterror('NO INPUT FILE SPECIFIED')
+c       
       CALL IMOPEN(1,FILIN,'RO')
       CALL IRDHDR(1,NXYZ,MXYZ,MODE,DMIN2,DMAX2,DMEAN2)
 C       
-      write(*,'(1x,a,$)')'Output file: '
-      READ(5,101)FILOUT
+      if (PipGetInOutFile('OutputFile', 2, 'Name of output file', filout)
+     &    .ne. 0) call exiterror('NO OUTPUT FILE SPECIFIED')
 c       
       ixlo=0
       iylo=0
@@ -54,9 +75,22 @@ c
       ixhi=nx-1
       iyhi=ny-1
       izhi=nz-1
-      write(*,'(1x,a,/,a,$)')'Starting and ending X, then Y, then '//
-     &    'Z index coordinates to extract',' (/ for whole volume): '
-      read(5,*)ixlo,ixhi,iylo,iyhi,izlo,izhi
+      npadx = 0
+      npady = 0
+      npadz = 0
+      if (pipinput) then
+        ierr = PipGetTwoIntegers('XMinAndMax', ixlo, ixhi)
+        ierr = PipGetTwoIntegers('YMinAndMax', iylo, iyhi)
+        ierr = PipGetTwoIntegers('ZMinAndMax', izlo, izhi)
+        ierr = PipGetThreeIntegers('TaperPadsInXYZ', npadx,npady,npadz)
+        ierr = PipGetLogical('NoFFTSizes', noFFT)
+      else
+        write(*,'(1x,a,/,a,$)')'Starting and ending X, then Y, then '//
+     &      'Z index coordinates to extract',' (/ for whole volume): '
+        read(5,*)ixlo,ixhi,iylo,iyhi,izlo,izhi
+        write(*,'(1x,a,$)')'Width of pad/taper borders in X, Y, and Z: '
+        read(5,*)npadx,npady,npadz
+      endif
 c       
       if(ixlo.lt.0.or.ixhi.ge.nx.or.iylo.lt.0.or.iyhi.ge.ny
      &    .or.izlo.lt.0.or.izhi.ge.nz)call exitError(
@@ -64,18 +98,21 @@ c
       nxbox=ixhi+1-ixlo
       nybox=iyhi+1-iylo
       nzbox=izhi+1-izlo
-
-      if(nxbox*nybox.gt.idim**2) call exitError('BLOCK TOO LARGE')
 c       
-      write(*,'(1x,a,$)')'Width of pad/taper borders in X, Y, and Z: '
-      read(5,*)npadx,npady,npadz
-      nx3=niceframe(2*((nxbox+1)/2+npadx),2,19)
-      ny3=niceframe(2*((nybox+1)/2+npady),2,19)
-      nz3 = nzbox
-      if (nz3 .gt. 1 .or. npadz .gt. 0)
-     &    nz3=niceframe(2*((nzbox+1)/2+npadz),2,19)
-c       
-      if(nx3*ny3.gt.idim**2) call exitError('PADDED BLOCK TOO LARGE')
+      if (noFFT) then
+        nx3 = nxbox + 2 * npadx
+        ny3 = nybox + 2 * npady
+        nz3 = nzbox + 2 * npadz
+      else
+        nx3=niceframe(2*((nxbox+1)/2+npadx),2,19)
+        ny3=niceframe(2*((nybox+1)/2+npady),2,19)
+        nz3 = nzbox
+        if (nz3 .gt. 1 .or. npadz .gt. 0)
+     &      nz3=niceframe(2*((nzbox+1)/2+npadz),2,19)
+      endif
+c
+      allocate(array(nx3*ny3), stat = ierr)
+      if (ierr .ne. 0) call exitError('ALLOCATING ARRAY FOR IMAGE PLANE')
 c       
       CALL IMOPEN(2,FILOUT,'NEW')
       call irtdel(1,delta)
@@ -141,6 +178,9 @@ c
       end
 c
 c       $Log$
+c       Revision 3.4  2008/12/19 15:02:21  mast
+c       Oops need to pad single slice if padding requested
+c
 c       Revision 3.3  2008/12/19 15:00:00  mast
 c       If one slice requested without padding, do not pad in Z
 c
