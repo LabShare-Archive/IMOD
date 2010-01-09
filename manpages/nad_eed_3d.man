@@ -136,9 +136,8 @@ number of iterations is needed to eliminate these effects.
 
 The Chunksetup command with option "-m 10" will produce command files in which
 each run of the program will require less than 360 MB of memory (use a
-different amount to allow for more memory).  On a single
-processor machine, run these 
-with:
+different amount to allow for more memory).  On a single processor machine,
+run these with:
    subm nad-all
 
 If multiple machines or processors are available, run in parallel with:
