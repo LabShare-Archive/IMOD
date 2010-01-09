@@ -128,14 +128,26 @@ really should say INPUTFILE and OUTPUTFILE.)
 Then enter:
    chunksetup -m 10 nad.com tomo.rec tomo.nad
 
-This will produce command files in which each run of the program will
-require less than 360 MB of memory.  On a single processor machine, run these 
+If you are doing more than 8 iterations, you should increase the padding
+between chunks by adding the option
+"-p #" where "#" is the number of iterations; this will reduce the effects
+of cutting the volume into chunks to a minor level.  Padding of 4 times the 
+number of iterations is needed to eliminate these effects.
+
+The Chunksetup command with option "-m 10" will produce command files in which
+each run of the program will require less than 360 MB of memory (use a
+different amount to allow for more memory).  On a single
+processor machine, run these 
 with:
    subm nad-all
 
 If multiple machines or processors are available, run in parallel with:
    processchunks list_of_machines nad
-
+.br
+or just
+   processchunks # nad
+.br
+to run with # processors on the local machine.
 .SH FILES
 If an output file already exists, it will be made a backup file by adding ~
 to its name.
