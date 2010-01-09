@@ -128,11 +128,12 @@ really should say INPUTFILE and OUTPUTFILE.)
 Then enter:
    chunksetup -m 10 nad.com tomo.rec tomo.nad
 
-If you are doing more than 8 iterations, you should increase the padding
+If you are doing more than 8 iterations, you should increase the overlap
 between chunks by adding the option
 "-p #" where "#" is the number of iterations; this will reduce the effects
-of cutting the volume into chunks to a minor level.  Padding of 4 times the 
-number of iterations is needed to eliminate these effects.
+of cutting the volume into chunks to a minor level.  Overlap of 4 times the 
+number of iterations is needed to eliminate these effects but this could
+increase chunk sizes substantially.
 
 The Chunksetup command with option "-m 10" will produce command files in which
 each run of the program will require less than 360 MB of memory (use a
