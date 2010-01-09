@@ -1,5 +1,12 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+1/8/09: If the machine list to processchunks is a single number, it is
+interpreted as the number of processors to use on the local host.
+
+1/8/09: Converted Taperoutvol to PIP input and added an option that sizes 
+should not be increased to be suitable for FFTs; added same option to
+Tomopieces and Chunksetup so NAD chunks can be run with no padding at all.
+
 1/6/09: Made install script copy DLL's out of Microsoft folder into bin for
 Win2K, added warnings for 64/32-bit mismatch on Linux and Mac.
 
