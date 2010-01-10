@@ -53,7 +53,7 @@
 extern "C" {
   int gpuavailable(int *nGPU, int *memory);
   int gpuallocarrays(int *width, int *thick, int *nxprj2, int *nviews, 
-                     int *nslice, int *nxwarp);
+                     int *nslice, int *nxwarp, int *firstNpl, int *lastNpl);
   int gpubpnox(float *slice, float *lines, float *sbeta, float *cbeta,
                int *nxprj,
                float *xcenin, float *xcen, float *ycen, float *edgefill);
@@ -88,6 +88,8 @@ static int loadBetaInvertCos(float *cbeta, float *sbeta, float *costmp);
 static int synchronizeCopySlice(float *slice, int numLines);
 static void pflush(const char *format, ...);
 static void pflerr(const char *format, ...);
+static void allocerr(char *mess, int *nplanes, int *firstNpl,
+                     int *lastNpl, int ifcuda);
 
 
 
@@ -137,6 +139,7 @@ static float *devFFT = NULL;
 // Other static variables
 static cufftHandle forwardPlan = 0, inversePlan = 0;
 static int max_gflops_device = -1;
+static int deviceSelected = 0;
 static size_t slicePitch;
 static int sliceThick, sliceWidth, numViews, numProjPlanes;
 static int lsliceFirst, numLoadedPlanes, nxPlane;
@@ -197,22 +200,24 @@ int gpuavailable(int *nGPU, int *memory)
  * numWarps > 0.  If numWarp >= 0, also allocate arrays for line filtering.
  */
 int gpuallocarrays(int *width, int *thick, int *nxprj2, int *nviews, 
-                   int *nplanes, int *numWarps)
+                   int *nplanes, int *numWarps, int *firstNpl, int *lastNpl)
 {
   size_t pitch1, pitch2, pitch3, pitch4, memTot;
 
   if (max_gflops_device < 0)
     return 1;
-  if (cudaSetDevice(max_gflops_device) != cudaSuccess) {
-    pflerr("Error selecting GPU device");
+  if (!deviceSelected && cudaSetDevice(max_gflops_device) != cudaSuccess) {
+    allocerr("Error selecting GPU device", nplanes, firstNpl, lastNpl, 1);
     return 1;
   }
+  deviceSelected = 1;
 
   // Allocate memory for slice on device
   size_t sizetmp = *width * sizeof(float);
   if (cudaMallocPitch((void **)&devSlice, &slicePitch, sizetmp, *thick) != 
       cudaSuccess) {
-    pflerr("Failed to allocate slice array on GPU device");
+    allocerr("Failed to allocate slice array on GPU device", nplanes, 
+             firstNpl, lastNpl, 1);
     return 1;
   }
 
@@ -221,7 +226,10 @@ int gpuallocarrays(int *width, int *thick, int *nxprj2, int *nviews,
     (32, 0, 0, 0, cudaChannelFormatKindFloat);
   if (cudaMallocArray(&devProj, &projDesc, *nxprj2, *nviews * *nplanes)
       != cudaSuccess) {
-    pflerr("Failed to allocate projection array on GPU device");
+    //pflush("malloc %d %d %d %d\n", *nxprj2, *nviews, *nplanes,
+    // *nviews * *nplanes);
+    allocerr("Failed to allocate projection array on GPU device", nplanes, 
+             firstNpl, lastNpl, 1);
     cudaFree(devSlice);
     return 1;
   }
@@ -235,7 +243,8 @@ int gpuallocarrays(int *width, int *thick, int *nxprj2, int *nviews,
   
   // Bind the array to the texture
   if (cudaBindTextureToArray(projtex, devProj, projDesc) != cudaSuccess) {
-    pflerr("Failed to bind projection array to texture");
+    allocerr("Failed to bind projection array to texture", nplanes, firstNpl,
+             lastNpl, 1);
     cudaFree(devSlice);
     cudaFreeArray(devProj);
     return 1;
@@ -244,7 +253,8 @@ int gpuallocarrays(int *width, int *thick, int *nxprj2, int *nviews,
   if (*nplanes > 1) {
     planeLoaded = (int *)malloc(*nplanes * sizeof(int));
     if (!planeLoaded) {
-      pflush("Failed to malloc little array planeLoaded\n");
+      allocerr("Failed to malloc little array planeLoaded\n", nplanes,
+               firstNpl, lastNpl, 0);
       gpudone();
       return 1;
     }
@@ -262,13 +272,15 @@ int gpuallocarrays(int *width, int *thick, int *nxprj2, int *nviews,
         cudaSuccess  ||
         cudaMallocArray(&localData, &projDesc, *numWarps * *nviews, 12) 
         != cudaSuccess) {
-      pflerr("Failed to allocate local factor arrays on GPU device");
+      allocerr("Failed to allocate local factor arrays on GPU device", nplanes,
+               firstNpl, lastNpl, 1);
       gpudone();
       return 1;
     }
     if (pitch2 != pitch1 || pitch3 != pitch1 || pitch4 != pitch1 || 
         pitch1 != slicePitch) {
-      pflush("Array pitches for GPU arrays do NOT match\n");
+      allocerr("Array pitches for GPU arrays do NOT match\n", nplanes,
+               firstNpl, lastNpl, 0);
       gpudone();
       return 1;
     }
@@ -276,7 +288,8 @@ int gpuallocarrays(int *width, int *thick, int *nxprj2, int *nviews,
     localtex.filterMode = cudaFilterModePoint;
     localtex.normalized = false;
     if (cudaBindTextureToArray(localtex, localData, projDesc) != cudaSuccess) {
-      pflerr("Failed to bind local factor arrays to texture");
+      allocerr("Failed to bind local factor arrays to texture", nplanes, 
+               firstNpl, lastNpl, 1);
       gpudone();
       return 1;
     }
@@ -288,15 +301,16 @@ int gpuallocarrays(int *width, int *thick, int *nxprj2, int *nviews,
     sizetmp = *nxprj2 * *nviews * sizeof(float);
     if (cudaMalloc((void **)&devFFT, sizetmp)  != cudaSuccess ||
         cudaMalloc((void **)&radialFilt, sizetmp)  != cudaSuccess) {
-      pflerr("Failed to  allocate GPU arrays for radial filtering");
+      allocerr("Failed to allocate GPU arrays for radial filtering", nplanes,
+               firstNpl, lastNpl, 1);
       gpudone();
       return 1;
     }
     memTot += 2 * sizetmp;
   }
 
-  pflush("Allocated %4d MB for arrays on the GPU\n", 
-         (memTot + 512*1024)/(1024*1024));
+  pflush("Allocated %4d MB for arrays (including %d input planes) on the GPU\n"
+         , (memTot + 512*1024)/(1024*1024), *nplanes);
   sliceWidth = *width;
   sliceThick = *thick;
   numViews = *nviews;
@@ -1316,8 +1330,32 @@ static void pflerr(const char *format, ...)
   va_end(args);
 }
 
+// Print appropriate error from allocation
+static void allocerr(char *mess, int *nplanes, int *firstNpl,
+                     int *lastNpl, int ifcuda)
+{
+  char *whichText[3] = {"first", "last", "only"};
+  int which = 2;
+  if (*firstNpl != *lastNpl) {
+    if (*nplanes == *firstNpl)
+      which = 0;
+    else if (*nplanes == *lastNpl)
+      which = 1;
+    else
+      return;
+  }
+  if (ifcuda)
+    pflerr("On %s try (for %d planes), %s", whichText[which], *nplanes, mess);
+  else
+    pflush("On %s try (for %d planes), %s", whichText[which], *nplanes, mess);
+}
+
+
 /*
 
 $Log$
+Revision 3.1  2009/12/31 20:36:59  mast
+Initial implementation
+
 
 */
