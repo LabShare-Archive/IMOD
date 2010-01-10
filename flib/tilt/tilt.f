@@ -1473,25 +1473,26 @@ c
 c       fallbacks from ../../manpages/autodoc2man -2 2  tilt
 c       
       integer numOptions
-      parameter (numOptions = 54)
+      parameter (numOptions = 57)
       character*(40 * numOptions) options(1)
       options(1) =
      &    'input:InputProjections:FN:@output:OutputFile:FN:@'//
      &    'recfile:RecFileToReproject:FN:@:ProjectModel:FN:@'//
-     &    ':BaseRecFile:FN:@:AdjustOrigin:B:@:ANGLES:FAM:@:BaseNumViews:I:@'//
+     &    ':BaseRecFile:FN:@:ActionIfGPUFails:IP:@:AdjustOrigin:B:@'//
+     &    ':ANGLES:FAM:@:BaseNumViews:I:@:BoundaryInfoFile:FN:@'//
      &    ':COMPFRACTION:F:@:COMPRESS:FAM:@:COSINTERP:IA:@:DENSWEIGHT:FA:@'//
      &    ':DONE:B:@:EXCLUDELIST2:LIM:@:FlatFilterFraction:F:@:FBPINTERP:I:@'//
-     &    ':FULLIMAGE:IP:@:BoundaryInfoFile:FN:@:IMAGEBINNED:I:@'//
-     &    ':INCLUDE:LIM:@:SubtractFromBase:LI:@:LOCALFILE:FN:@'//
-     &    ':LOCALSCALE:F:@:LOG:F:@:MASK:F:@:MinMaxMean:IT:@:MODE:I:@'//
-     &    ':OFFSET:FA:@:PARALLEL:B:@:PERPENDICULAR:B:@:RADIAL:FP:@'//
-     &    ':REPLICATE:FPM:@:REPROJECT:FAM:@:SCALE:FP:@:SHIFT:FA:@:SLICE:FA:@'//
-     &    ':SUBSETSTART:IP:@:THICKNESS:I:@:TILTFILE:FN:@:TITLE:CH:@'//
-     &    ':TOTALSLICES:IP:@:ViewsToReproject:LI:@:WeightAngleFile:FN:@'//
-     &    ':WeightFile:FN:@:WIDTH:I:@:XAXISTILT:F:@'//
-     &    'xminmax:XMinAndMaxReproj:IP:@:XTILTFILE:FN:@:XTILTINTERP:I:@'//
-     &    'yminmax:YMinAndMaxReproj:IP:@:ZFACTORFILE:FN:@'//
-     &    'zminmax:ZMinAndMaxReproj:IP:@param:ParameterFile:PF:@help:usage:B:'
+     &    ':FULLIMAGE:IP:@:IMAGEBINNED:I:@:INCLUDE:LIM:@'//
+     &    ':SubtractFromBase:LI:@:LOCALFILE:FN:@:LOCALSCALE:F:@:LOG:F:@'//
+     &    ':MASK:F:@:MinMaxMean:IT:@:MODE:I:@:OFFSET:FA:@:PARALLEL:B:@'//
+     &    ':PERPENDICULAR:B:@:RADIAL:FP:@:REPLICATE:FPM:@:REPROJECT:FAM:@'//
+     &    ':SCALE:FP:@:SHIFT:FA:@:SLICE:FA:@:SUBSETSTART:IP:@:THICKNESS:I:@'//
+     &    ':TILTFILE:FN:@:TITLE:CH:@:TOTALSLICES:IP:@:UseGPU:I:@'//
+     &    ':ViewsToReproject:LI:@:WeightAngleFile:FN:@:WeightFile:FN:@'//
+     &    ':WIDTH:I:@:XAXISTILT:F:@xminmax:XMinAndMaxReproj:IP:@'//
+     &    ':XTILTFILE:FN:@:XTILTINTERP:I:@yminmax:YMinAndMaxReproj:IP:@'//
+     &    ':ZFACTORFILE:FN:@zminmax:ZMinAndMaxReproj:IP:@'//
+     &    'debug:DebugOutput:B:@param:ParameterFile:PF:@help:usage:B:'
 c       
       recReproj = .false.
       nViewsReproj = 0
@@ -2801,7 +2802,7 @@ c           Pack data into one array
       endif
       if (useGPU) then
         if (ifalpha .le. 0 .and. nxwarp .eq. 0) then
-          useGPU = gpuAllocArrays(iwide, ithick, nxprj2, nviews, 1, 0) .eq. 0
+          useGPU = gpuAllocArrays(iwide, ithick, nxprj2, nviews,1,0,1,1) .eq. 0
         else
           call allocateGpuPlanes(ind, nxwarp*nywarp, ithick, nxprj2, nviews)
         endif
@@ -2907,15 +2908,16 @@ c       filter arrays needed
       integer*4 nonPlane, numWarps, maxGpuPlane, nygout, nxgplane,nygplane
 c       
 c       Start with as many planes as possible but no more than in array
+c       and no more that 32767 lines for array on GPU
       maxGpuPlane = (gpuMemoryFrac * memoryGPU / 4. - nonPlane) / iplane
 c           FOR TESTING MEMORY SHIFTING ETC
-      maxGpuPlane = min(maxGpuPlane, nPlanes)
+      maxGpuPlane = min(maxGpuPlane, nPlanes, 32760 / nygplane)
 c       ind = max(maxNeeds(1), min(ind, nPlanes / 3))
       numGpuPlanes = 0
 c          print *, ind, nplanes, maxNeeds(1)
       do i = maxGpuPlane, maxNeeds(1),-1
-        if (gpuAllocArrays(iwide, nygout, nxgplane, nygplane, i, numWarps)
-     &      .eq. 0) then
+        if (gpuAllocArrays(iwide, nygout, nxgplane, nygplane, i, numWarps,
+     &      maxGpuPlane, maxNeeds(1)) .eq. 0) then
           numGpuPlanes = i
           loadGPUstart = 0
           loadGPUend = 0
@@ -4191,6 +4193,9 @@ c       Set to open contour, show values etc., and show sphere on section only
 
 c       
 c       $Log$
+c       Revision 3.51  2010/01/04 15:50:44  mast
+c       Fix format
+c
 c       Revision 3.50  2009/12/31 20:40:34  mast
 c       Implemented all backprojection and reprojection without local alignments
 c       on GPU.  Switched to smart allocation of stack array to get an amount
