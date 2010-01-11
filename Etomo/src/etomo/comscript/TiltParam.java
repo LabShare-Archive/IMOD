@@ -11,6 +11,9 @@
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.39  2009/12/11 17:26:22  sueh
+ * <p> bug# 1291 Added getCommandInputFile to implement Command.
+ * <p>
  * <p> Revision 3.38  2009/12/08 02:39:43  sueh
  * <p> bug# 1286 Implemented Loggable.
  * <p>
@@ -301,6 +304,7 @@ public final class TiltParam implements ConstTiltParam, CommandParam {
   private final EtomoBoolean2 adjustOrigin = new EtomoBoolean2("AdjustOrigin");
   private final StringParameter projectModel = new StringParameter(
       "ProjectModel");
+  private final ScriptParameter useGpu = new ScriptParameter("UseGPU");
 
   private final String datasetName;
   private final ApplicationManager manager;
@@ -362,6 +366,10 @@ public final class TiltParam implements ConstTiltParam, CommandParam {
 
   public CommandMode getCommandMode() {
     return commandMode;
+  }
+
+  public boolean isMessageReporter() {
+    return isUseGpu();
   }
 
   public CommandDetails getSubcommandDetails() {
@@ -428,6 +436,19 @@ public final class TiltParam implements ConstTiltParam, CommandParam {
 
   public boolean isParallel() {
     return parallel.is();
+  }
+
+  public boolean isUseGpu() {
+    return !useGpu.isNull();
+  }
+
+  public void setUseGpu(boolean input) {
+    if (input) {
+      useGpu.set(0);
+    }
+    else {
+      useGpu.reset();
+    }
   }
 
   public boolean isFiducialess() {
@@ -766,6 +787,7 @@ public final class TiltParam implements ConstTiltParam, CommandParam {
       xTiltFile.parse(scriptCommand);
       adjustOrigin.parse(scriptCommand);
       projectModel.parse(scriptCommand);
+      useGpu.parse(scriptCommand);
       loadedFromFile = true;
     }
   }
@@ -1029,6 +1051,7 @@ public final class TiltParam implements ConstTiltParam, CommandParam {
     xTiltFile.updateComScript(scriptCommand);
     adjustOrigin.updateComScript(scriptCommand);
     projectModel.updateComScript(scriptCommand);
+    useGpu.updateComScript(scriptCommand);
   }
 
   public void initializeDefaults() {
