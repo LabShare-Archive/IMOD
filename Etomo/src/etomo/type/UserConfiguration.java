@@ -19,6 +19,9 @@ import java.util.*;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.10  2009/03/05 23:25:40  sueh
+ * <p> bug 1194 Added logProperties.
+ * <p>
  * <p> Revision 3.9  2008/12/01 22:23:14  sueh
  * <p> bug# 1131 Added montage.
  * <p>
@@ -104,6 +107,7 @@ public final class UserConfiguration implements Storable {
       + ".SwapYAndZ");
   private final EtomoBoolean2 parallelProcessing = new EtomoBoolean2(
       "ParallelProcessing");
+  private final EtomoBoolean2 gpuProcessing = new EtomoBoolean2("GpuProcessing");
   private final EtomoNumber cpus = new EtomoNumber("Cpus");
   private final EtomoNumber parallelTableSize = new EtomoNumber(
       "ParallelTableSize");
@@ -171,6 +175,7 @@ public final class UserConfiguration implements Storable {
     tiltAnglesRawtltFile.store(props, prepend);
     swapYAndZ.store(props, prepend);
     parallelProcessing.store(props, prepend);
+    gpuProcessing.store(props,prepend);
     cpus.store(props, prepend);
     parallelTableSize.store(props, prepend);
     joinTableSize.store(props, prepend);
@@ -248,6 +253,7 @@ public final class UserConfiguration implements Storable {
     tiltAnglesRawtltFile.load(props, prepend);
     swapYAndZ.load(props, prepend);
     parallelProcessing.load(props, prepend);
+    gpuProcessing.load(props,prepend);
     cpus.load(props, prepend);
     parallelTableSize.load(props, prepend);
     joinTableSize.load(props, prepend);
@@ -464,8 +470,12 @@ public final class UserConfiguration implements Storable {
     return logProperties;
   }
 
-  public boolean getParallelProcessing() {
+  public boolean isParallelProcessing() {
     return parallelProcessing.is();
+  }
+  
+  public boolean isGpuProcessing() {
+    return gpuProcessing.is();
   }
 
   public boolean getNoParallelProcessing() {
@@ -490,6 +500,10 @@ public final class UserConfiguration implements Storable {
 
   public void setParallelProcessing(boolean input) {
     parallelProcessing.set(input);
+  }
+  
+  public void setGpuProcessing(boolean input) {
+    gpuProcessing.set(input);
   }
 
   public void setCpus(String input) {
