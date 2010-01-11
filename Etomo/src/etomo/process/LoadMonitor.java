@@ -24,6 +24,9 @@ import etomo.util.HashedArray;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.4  2009/04/13 22:32:48  sueh
+ * <p> bug# 1207 Using FailureReason instead of FailureReasonInterface.
+ * <p>
  * <p> Revision 1.3  2009/03/17 00:41:48  sueh
  * <p> bug# 1186 Pass managerKey to everything that pops up a dialog.
  * <p>
@@ -51,8 +54,8 @@ public abstract class LoadMonitor implements IntermittentProcessMonitor,
 
   public LoadMonitor(LoadDisplay display, AxisID axisID, BaseManager manager) {
     this.display = display;
-    usersColumn = CpuAdoc.getInstance(axisID, manager.getPropertyUserDir(),
-        manager.getManagerKey()).isUsersColumn();
+    usersColumn = CpuAdoc.INSTANCE.isUsersColumn(axisID, manager
+        .getPropertyUserDir(), manager.getManagerKey());
   }
 
   public void run() {
