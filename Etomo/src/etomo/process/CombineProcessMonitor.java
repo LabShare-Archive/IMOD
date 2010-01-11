@@ -33,6 +33,9 @@ import etomo.util.Utilities;
  * @version $$Revision$$
  * 
  * <p> $$Log$
+ * <p> $Revision 1.29  2009/03/17 00:34:48  sueh
+ * <p> $bug# 1186 Pass managerKey to everything that pops up a dialog.
+ * <p> $
  * <p> $Revision 1.28  2009/02/04 23:24:07  sueh
  * <p> $bug# 1158 Changed id and exceptions classes in LogFile.
  * <p> $
@@ -601,6 +604,9 @@ public class CombineProcessMonitor implements DetachedProcessMonitor {
 
   public ProcessMessages getProcessMessages() {
     return null;
+  }
+  
+  public void useMessageReporter() {
   }
 
   public final String getProcessOutputFileName() throws LogFile.LockException {

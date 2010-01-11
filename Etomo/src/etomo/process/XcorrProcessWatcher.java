@@ -46,6 +46,8 @@ public class XcorrProcessWatcher implements ProcessMonitor {
   public boolean isRunning() {
     return running;
   }
+  public void useMessageReporter() {
+  }
 
   public void run() {
     running = true;
@@ -124,6 +126,10 @@ public class XcorrProcessWatcher implements ProcessMonitor {
 }
 /**
  * <p> $Log$
+ * <p> Revision 3.18  2008/01/14 22:00:12  sueh
+ * <p> bug# 1050 Added stop() and isRunning() to allow ProcessMonitor classes to work
+ * <p> with ReconnectProcess.
+ * <p>
  * <p> Revision 3.17  2007/02/05 23:02:59  sueh
  * <p> bug# 962 Move comscript mode info to inner class.
  * <p>
