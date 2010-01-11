@@ -282,11 +282,12 @@ public final class IntermittentBackgroundProcess implements Runnable {
   public void run() {
     failureReason = null;
     //use a local SystemProgram because stops and starts may overlap
-    IntermittentSystemProgram localProgram;
+    IntermittentSystemProgram localProgram = null;
     String[] localStartCommand = command.getLocalStartCommand();
     String[] remoteStartCommand = command.getRemoteStartCommand();
     boolean localSection = RemotePath.INSTANCE.isLocalSection(command
         .getComputer(), manager, AxisID.ONLY);
+    String intermittentCommand = command.getIntermittentCommand();
     if (localSection && localStartCommand != null) {
       localProgram = IntermittentSystemProgram.getStartInstance(manager
           .getPropertyUserDir(), localStartCommand, AxisID.ONLY,
@@ -297,25 +298,24 @@ public final class IntermittentBackgroundProcess implements Runnable {
           .getPropertyUserDir(), command.getRemoteStartCommand(), AxisID.ONLY,
           outputKeyPhrase, manager.getManagerKey());
     }
-    else {
+    else if (intermittentCommand != null) {
       localProgram = IntermittentSystemProgram.getIntermittentInstance(manager
-          .getPropertyUserDir(), command.getIntermittentCommand(), AxisID.ONLY,
+          .getPropertyUserDir(), intermittentCommand, AxisID.ONLY,
           outputKeyPhrase, manager.getManagerKey());
     }
     //place the most recent local SystemProgram in the member SystemProgram
     //non-local request (getting and setting standard input and output) will go
     //to the most recent local SystemProgram.
     program = localProgram;
-    if (localProgram.useStartCommand()) {
+    if (localProgram != null || localProgram.useStartCommand()) {
       localProgram.setAcceptInputWhileRunning(true);
       localProgram.start();
     }
     int interval = command.getInterval();
-    String intermittentCommand = command.getIntermittentCommand();
     try {
       //see load average requests while the program is not stopped and this
       //program is the same as the most recent program run
-      while (!stopped && localProgram == program) {
+      while (localProgram != null && !stopped && localProgram == program) {
         if (localProgram.useStartCommand()) {
           localProgram.setCurrentStdInput(intermittentCommand);
         }
@@ -351,17 +351,21 @@ public final class IntermittentBackgroundProcess implements Runnable {
         //LoadAverageMonitor.ProgramState.getFailureReason()), then destroy the
         //process.  Processes with identified problems should fail naturally
         //because we are setting the PreferredAuthentications option in ssh.
-        localProgram.destroy();
+        if (localProgram != null) {
+          localProgram.destroy();
+        }
       }
       else {
         String endCommand = command.getEndCommand();
-        if (endCommand != null) {
+        if (endCommand != null && localProgram != null) {
           localProgram.setCurrentStdInput(command.getEndCommand());
         }
       }
     }
     catch (IOException e) {
-      localProgram.destroy();
+      if (localProgram != null) {
+        localProgram.destroy();
+      }
     }
   }
 
@@ -416,6 +420,9 @@ public final class IntermittentBackgroundProcess implements Runnable {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.16  2009/04/13 22:30:26  sueh
+ * <p> bug# 1207 Using FailureReason instead of FailureReasonInterface.
+ * <p>
  * <p> Revision 1.15  2009/03/17 00:36:30  sueh
  * <p> bug# 1186 Pass managerKey to everything that pops up a dialog.
  * <p>
