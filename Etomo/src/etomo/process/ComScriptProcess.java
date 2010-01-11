@@ -18,6 +18,10 @@
  * 
  * <p>
  * $Log$
+ * Revision 3.55  2009/04/20 19:54:07  sueh
+ * bug# 1192 Added setComputerMap to set the computerMap in
+ * processData.  Processdata.reset now resets all the data so don't use it in run().  It is also not necessary because the functionality that sets the pid resets the thread information.
+ *
  * Revision 3.54  2009/03/17 00:35:01  sueh
  * bug# 1186 Pass managerKey to everything that pops up a dialog.
  *
@@ -620,7 +624,7 @@ public class ComScriptProcess extends Thread implements SystemProcessInterface {
     this.processSeries = processSeries;
     initialize();
   }
-  
+
   /**
    * Gets a computerMap and immediately sends it to processData.
    */
@@ -640,6 +644,10 @@ public class ComScriptProcess extends Thread implements SystemProcessInterface {
       UIHarness.INSTANCE.openMessageDialog("Unable to create log file.\n"
           + e.getMessage(), "Com Script Log Failure", manager.getManagerKey());
       logFile = null;
+    }
+    if (command != null && processMonitor != null
+        && command.isMessageReporter()) {
+        processMonitor.useMessageReporter();
     }
   }
 
