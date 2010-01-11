@@ -18,6 +18,7 @@ import etomo.comscript.SplittiltParam;
 import etomo.comscript.TiltParam;
 import etomo.storage.CpuAdoc;
 import etomo.storage.LogFile;
+import etomo.storage.Network;
 import etomo.storage.autodoc.AutodocFactory;
 import etomo.storage.autodoc.ReadOnlyAutodoc;
 import etomo.type.AxisID;
@@ -47,6 +48,9 @@ import etomo.util.InvalidParameterException;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.2  2009/09/22 23:43:07  sueh
+ * <p> bug# 1269 Moved setEnabledTiltParameters to abstract tilt panel so it can be use by tilt 3dfind.
+ * <p>
  * <p> Revision 3.1  2009/09/01 03:18:25  sueh
  * <p> bug# 1222
  * <p> </p>
@@ -95,6 +99,7 @@ abstract class AbstractTiltPanel implements Expandable, TrialTiltParent,
   private final CheckBox cbUseLocalAlignment = new CheckBox(
       "Use local alignments");
   private final CheckBox cbUseZFactors = new CheckBox("Use Z factors");
+  private final CheckBox cbUseGpu = new CheckBox("Use the GPU");
 
   private final PanelHeader header;
   final ApplicationManager manager;
@@ -105,6 +110,8 @@ abstract class AbstractTiltPanel implements Expandable, TrialTiltParent,
   private final Run3dmodButton btnTilt;
   private final MultiLineButton btnDeleteStack;
   private final TiltParent parent;
+
+  private String actionIfGPUFails = null;
 
   abstract Run3dmodButton getTiltButton(ApplicationManager manager,
       AxisID axisID);
@@ -141,8 +148,8 @@ abstract class AbstractTiltPanel implements Expandable, TrialTiltParent,
     btnTilt.setDeferred3dmodButton(btn3dmodTomogram);
     btn3dmodTomogram.setSize();
     btnDeleteStack.setSize();
-    ConstEtomoNumber maxCPUs = CpuAdoc.getInstance(axisID,
-        manager.getPropertyUserDir(), manager.getManagerKey()).getMaxTilt();
+    ConstEtomoNumber maxCPUs = CpuAdoc.INSTANCE.getMaxTilt(axisID, manager
+        .getPropertyUserDir(), manager.getManagerKey());
     if (maxCPUs != null && !maxCPUs.isNull()) {
       cbParallelProcess.setText(ParallelPanel.FIELD_LABEL
           + ParallelPanel.MAX_CPUS_STRING + maxCPUs.toString());
@@ -171,6 +178,7 @@ abstract class AbstractTiltPanel implements Expandable, TrialTiltParent,
     pnlBody.setLayout(new BoxLayout(pnlBody, BoxLayout.Y_AXIS));
     pnlBody.add(Box.createRigidArea(FixedDim.x0_y5));
     pnlBody.add(cbParallelProcess);
+    pnlBody.add(cbUseGpu);
     pnlBody.add(ltfLogOffset.getContainer());
     pnlBody.add(pnlDensity);
     pnlBody.add(ltfTomoWidth.getContainer());
@@ -253,6 +261,7 @@ abstract class AbstractTiltPanel implements Expandable, TrialTiltParent,
     btn3dmodTomogram.addActionListener(actionListener);
     btnDeleteStack.addActionListener(actionListener);
     cbParallelProcess.addActionListener(actionListener);
+    cbUseGpu.addActionListener(actionListener);
   }
 
   final Component getComponent() {
@@ -307,8 +316,27 @@ abstract class AbstractTiltPanel implements Expandable, TrialTiltParent,
     trialTiltPanel.done();
   }
 
+  /**
+   * Show or hide the parallel processing panel.  If Parallel Processing has
+   * been checked and Use GPU is checked, uncheck Use GPU.
+   */
   public final void updateParallelProcess() {
     parent.updateParallelProcess();
+    if (cbParallelProcess.isSelected() && cbUseGpu.isSelected()) {
+      cbUseGpu.setSelected(false);
+    }
+  }
+
+  /**
+   * If Use GPU has been checked and Parallel Processing is checked, uncheck
+   * Parallel Processing and call updateParallelProcessing to update the
+   * parallel processing panel.
+   */
+  public final void updateUseGpu() {
+    if (cbUseGpu.isSelected() && cbParallelProcess.isSelected()) {
+      cbParallelProcess.setSelected(false);
+      updateParallelProcess();
+    }
   }
 
   public final boolean isParallelProcess() {
@@ -380,11 +408,10 @@ abstract class AbstractTiltPanel implements Expandable, TrialTiltParent,
   }
 
   final void setParameters(final ConstMetaData metaData) {
-    CpuAdoc cpuAdoc = CpuAdoc.getInstance(AxisID.ONLY, manager
-        .getPropertyUserDir(), manager.getManagerKey());
     //Parallel processing is optional in tomogram reconstruction, so only use it
     //if the user set it up.
-    boolean validAutodoc = cpuAdoc.isAvailable();
+    boolean validAutodoc = Network.isParallelProcessingEnabled(axisID, manager
+        .getPropertyUserDir(), manager.getManagerKey());
     cbParallelProcess.setEnabled(validAutodoc);
     ConstEtomoNumber tomoGenTiltParallel = metaData
         .getTomoGenTiltParallel(axisID);
@@ -394,8 +421,11 @@ abstract class AbstractTiltPanel implements Expandable, TrialTiltParent,
     else {
       setParallelProcess(validAutodoc && tomoGenTiltParallel.is());
     }
+    cbUseGpu.setEnabled(Network.isLocalHostGpuProcessingEnabled(axisID, manager
+        .getPropertyUserDir(), manager.getManagerKey()));
     trialTiltPanel.setParameters(metaData);
     updateParallelProcess();
+    updateUseGpu();
   }
 
   /**
@@ -444,6 +474,7 @@ abstract class AbstractTiltPanel implements Expandable, TrialTiltParent,
     if (tiltParam.hasLogOffset()) {
       ltfLogOffset.setText(tiltParam.getLogShift());
     }
+    cbUseGpu.setSelected(tiltParam.isUseGpu());
     MetaData metaData = manager.getMetaData();
     cbUseLocalAlignment.setSelected(metaData.getUseLocalAlignments(axisID));
     cbUseZFactors.setSelected(metaData.getUseZFactors(axisID).is());
@@ -644,6 +675,7 @@ abstract class AbstractTiltPanel implements Expandable, TrialTiltParent,
       e.printStackTrace();
       throw new IOException(badParameter + ":  " + e.getMessage());
     }
+    tiltParam.setUseGpu(cbUseGpu.isEnabled() && cbUseGpu.isSelected());
     return true;
   }
 
@@ -677,6 +709,9 @@ abstract class AbstractTiltPanel implements Expandable, TrialTiltParent,
     else if (command.equals(btn3dmodTomogram.getActionCommand())) {
       imodTomogramAction(deferred3dmodButton, run3dmodMenuOptions);
     }
+    else if (command.equals(cbUseGpu.getActionCommand())) {
+      updateUseGpu();
+    }
   }
 
   /**
@@ -700,6 +735,8 @@ abstract class AbstractTiltPanel implements Expandable, TrialTiltParent,
     }
     cbParallelProcess
         .setToolTipText("Check to distribute the tilt process across multiple computers.");
+    cbUseGpu
+        .setToolTipText("Check to run the tilt process on the graphics card.");
     ltfTomoThickness
         .setToolTipText("Thickness, in pixels, along the z-axis of the reconstructed volume.");
     ltfSliceStart
