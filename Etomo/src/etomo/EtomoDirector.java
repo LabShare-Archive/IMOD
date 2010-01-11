@@ -14,7 +14,6 @@ import javax.swing.plaf.FontUIResource;
 
 import etomo.process.IntermittentBackgroundProcess;
 import etomo.process.ProcessRestarter;
-import etomo.storage.CpuAdoc;
 import etomo.storage.EtomoFileFilter;
 import etomo.storage.JoinFileFilter;
 import etomo.storage.LogFile;
@@ -813,10 +812,8 @@ public class EtomoDirector {
     setLookAndFeel(userConfig.getNativeLookAndFeel());
     isAdvanced = userConfig.getAdvancedDialogs();
     UIParameters.INSTANCE.setFontSize(userConfig.getFontSize());
-    CpuAdoc cpuAdoc = CpuAdoc.getInstance(AxisID.FIRST, getPropertyUserDir(),
-        currentManagerKey);
-    cpuAdoc.setUserConfig(userConfig.getParallelProcessing(), userConfig
-        .getCpus());
+    //CpuAdoc.INSTANCE.setUserConfig(userConfig.getParallelProcessing(), userConfig
+   //     .getCpus());
   }
 
   /**
@@ -1134,6 +1131,10 @@ public class EtomoDirector {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.89  2009/10/28 17:46:42  sueh
+ * <p> bug# 1275 Changed closeDefaultWindow so that it closes
+ * <p> FrontPageManager.
+ * <p>
  * <p> Revision 1.88  2009/10/27 20:38:19  sueh
  * <p> bug# 1275 Making FrontPageManager the default manager.  Added
  * <p> openFrontPage.
