@@ -96,7 +96,7 @@ final class Autodoc extends WriteOnlyStatementList implements WritableAutodoc {
    * The autodoc file name, excluding the extension.
    */
   private final String autodocName;
-  
+
   private final boolean allowAltComment;
 
   private LogFile autodocFile = null;
@@ -110,13 +110,14 @@ final class Autodoc extends WriteOnlyStatementList implements WritableAutodoc {
   private String currentDelimiter = AutodocTokenizer.DEFAULT_DELIMITER;
   private boolean debug = false;
   private boolean writable = false;
+  private boolean exists = true;
 
-  Autodoc( String autodocName) {
-    this(false,autodocName);
+  Autodoc(String autodocName) {
+    this(false, autodocName);
   }
 
   Autodoc(boolean allowAltComment, String autodocName) {
-    this.autodocName=autodocName;
+    this.autodocName = autodocName;
     this.allowAltComment = allowAltComment;
     attributeList = new AttributeList(this);
   }
@@ -132,7 +133,7 @@ final class Autodoc extends WriteOnlyStatementList implements WritableAutodoc {
   public void setDebug() {
     debug = true;
   }
-  
+
   public String getAutodocName() {
     return autodocName;
   }
@@ -468,10 +469,15 @@ final class Autodoc extends WriteOnlyStatementList implements WritableAutodoc {
     return null;
   }
 
+  public boolean exists() {
+    return exists;
+  }
+
   private LogFile getAutodocFile(File autodocDir, String autodocName,
       ManagerKey managerKey) {
     File file = DatasetFiles.getAutodoc(autodocDir, autodocName);
     if (!file.exists()) {
+      exists = false;
       System.err.println("Warning:  the autodoc file," + file.getAbsolutePath()
           + ", does not exist.");
       return null;
@@ -672,6 +678,9 @@ final class Autodoc extends WriteOnlyStatementList implements WritableAutodoc {
 }
 /**
  *<p> $$Log$
+ *<p> $Revision 1.31  2009/06/05 02:00:28  sueh
+ *<p> $bug# 1219 Added autodocName.
+ *<p> $
  *<p> $Revision 1.30  2009/03/17 00:45:43  sueh
  *<p> $bug# 1186 Pass managerKey to everything that pops up a dialog.
  *<p> $
