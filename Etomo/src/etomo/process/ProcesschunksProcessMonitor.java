@@ -486,6 +486,9 @@ class ProcesschunksProcessMonitor implements OutfileProcessMonitor,
     }
   }
 
+  public void useMessageReporter() {
+  }
+
   private final void setProgressBarTitle() {
     StringBuffer title = new StringBuffer(TITLE);
     if (rootName != null) {
@@ -591,6 +594,12 @@ class ProcesschunksProcessMonitor implements OutfileProcessMonitor,
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.48  2009/04/20 20:01:13  sueh
+ * <p> bug# 1192  Constructing with Map computerMap instead of String
+ * <p> computerList.  When doing a reconnect, send the computerMap to the
+ * <p> parallelProcessDisplay (computer table) when run() is run.  When not doing
+ * <p> a reconnect, send the computerMap to the process.
+ * <p>
  * <p> Revision 1.47  2009/04/15 19:58:30  sueh
  * <p> bug# 1205 Calling setProgressBarTitle from endMonitor.
  * <p>

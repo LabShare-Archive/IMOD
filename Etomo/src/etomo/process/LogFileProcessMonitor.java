@@ -26,6 +26,10 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.33  2009/06/10 17:24:55  sueh
+ * <p> bug# 1202 Parse the mrc header based on
+ * <p> EtomoDirector.ImodBriefHeader.
+ * <p>
  * <p> Revision 3.32  2009/06/05 01:57:32  sueh
  * <p> bug# 1219 Reduced visibility of functions.
  * <p>
@@ -256,6 +260,9 @@ public abstract class LogFileProcessMonitor implements ProcessMonitor {
 
   public final void stop() {
     stop = true;
+  }
+  
+  public void useMessageReporter() {
   }
 
   public final boolean isRunning() {

@@ -30,6 +30,8 @@ import etomo.util.HashedArray;
 final class OutputBufferManager implements Runnable {
   public static final String rcsid = "$Id$";
 
+  private static final String MESSAGE_TOKEN = "MESSAGE:";
+
   private final List outputList = new Vector();
 
   private final BufferedReader outputReader;
@@ -39,14 +41,21 @@ final class OutputBufferManager implements Runnable {
   private String keyPhrase = null;
   private HashedArray listenerList = null;
   private boolean debug = false;
+  private boolean printMessages = false;
 
-  OutputBufferManager(BufferedReader reader) {
+  OutputBufferManager(
+      BufferedReader reader) {
     outputReader = reader;
   }
 
-  OutputBufferManager(BufferedReader reader, String keyPhrase) {
+  OutputBufferManager(
+      BufferedReader reader, String keyPhrase) {
     outputReader = reader;
     this.keyPhrase = keyPhrase;
+  }
+
+  void setPrintMessages(boolean input) {
+    printMessages = input;
   }
 
   public void run() {
@@ -214,6 +223,9 @@ final class OutputBufferManager implements Runnable {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.5  2009/09/02 22:42:22  sueh
+ * <p> bug# 1254 Getting rid of duplicate debug prints.
+ * <p>
  * <p> Revision 1.4  2008/02/16 01:52:16  sueh
  * <p> bug# 1080 Rewrote functionality to handle multiple listeners.  The first
  * <p> listener listens to outputList.  New output list are added for the other
