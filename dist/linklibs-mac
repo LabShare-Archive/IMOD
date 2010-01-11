@@ -62,7 +62,7 @@ set exist = 0
 set imodlibs = (libdiaqt.dylib libimod.dylib libiimod.dylib libdtrigs.dylib \
 libtrack.dylib libifft.dylib libb3dcmpt.dylib libimesh.dylib libcfshr.dylib)
 set intellibs = (libsvml.dylib libifport.dylib libifcore.dylib libimf.dylib \
-libirc.dylib)
+libirc.dylib libifcoremt.dylib libifportmt.dylib libintlc.dylib libguide.dylib)
 if (-e $IMOD_DIR/lib/$intellibs[1]) set imodlibs = ($imodlibs $intellibs)
 
 # Look for imod libs in /usr/lib
@@ -137,21 +137,27 @@ if (! $numimod) then
     echo "Something is wrong: no IMOD libraries were found"
     exit 1
 endif
-@ numqt = 0
-foreach i (*.dylib)
-    ln -s $IMOD_DIR/qtlib/$i /usr/lib/$i
-    @ numqt++
-end
-if (! $numqt) then
+
+set qtdylibs = `\find . -name '*.dylib' -print`
+set qtframes = `\find . -name '*.framework' -print`
+if ("$qtdylibs" == "" && "$qtframes" == "") then
     echo "Something is wrong: no Qt libraries were found"
     exit 1
 endif
+set allqt = ($qtdylibs $qtframes)
+
+foreach i ($allqt)
+    ln -s $IMOD_DIR/qtlib/$i:t /usr/lib/$i:t
+end
 
 echo "The appropriate links have been made in /usr/lib"
 exit 0
 
 #
 #  $Log$
+#  Revision 1.7  2008/03/03 17:48:27  mast
+#  Include intel libraries for intel version
+#
 #  Revision 1.5  2007/11/13 23:57:46  mast
 #  Fied to add libcfshr, work on OS X 10.5, and do more error checks
 #
