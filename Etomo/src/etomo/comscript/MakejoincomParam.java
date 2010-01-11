@@ -44,6 +44,9 @@ import etomo.util.DatasetFiles;
  * <p> </p>
  * 
  * <p> $Log$
+ * <p> Revision 1.31  2009/12/11 17:26:22  sueh
+ * <p> bug# 1291 Added getCommandInputFile to implement Command.
+ * <p>
  * <p> Revision 1.30  2009/12/08 02:35:31  sueh
  * <p> bug# 1286 Implemented Loggable.
  * <p>
@@ -429,6 +432,9 @@ public final class MakejoincomParam implements CommandDetails {
 
   public CommandMode getCommandMode() {
     return null;
+  }
+  public boolean isMessageReporter() {
+    return false;
   }
 
   public File getCommandOutputFile() {

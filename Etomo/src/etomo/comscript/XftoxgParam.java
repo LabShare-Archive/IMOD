@@ -24,6 +24,9 @@ import etomo.util.DatasetFiles;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.4  2009/12/11 17:26:22  sueh
+ * <p> bug# 1291 Added getCommandInputFile to implement Command.
+ * <p>
  * <p> Revision 1.3  2009/09/01 03:17:46  sueh
  * <p> bug# 1222
  * <p>
@@ -113,6 +116,9 @@ public final class XftoxgParam implements Command {
 
   public CommandMode getCommandMode() {
     return null;
+  }
+  public boolean isMessageReporter() {
+    return false;
   }
 
   public String getCommandName() {

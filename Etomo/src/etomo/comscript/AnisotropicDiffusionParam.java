@@ -37,6 +37,9 @@ import etomo.util.DatasetFiles;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.15  2009/12/11 17:24:39  sueh
+ * <p> bug# 1291 Added getCommandInputFile to implement Command.
+ * <p>
  * <p> Revision 1.14  2009/12/08 02:31:14  sueh
  * <p> bug# 1286 Implemented Loggable.
  * <p>
@@ -136,6 +139,10 @@ public final class AnisotropicDiffusionParam implements CommandDetails {
 
   public void setIteration(final Number input) {
     iteration.set(input);
+  }
+
+  public boolean isMessageReporter() {
+    return false;
   }
 
   public boolean setIterationList(final String input) {
@@ -317,7 +324,7 @@ public final class AnisotropicDiffusionParam implements CommandDetails {
   public File getCommandOutputFile() {
     return null;
   }
-  
+
   public File getCommandInputFile() {
     return null;
   }

@@ -495,6 +495,9 @@ public class ConstTiltalignParam implements CommandDetails {
   public CommandMode getCommandMode() {
     return null;
   }
+  public boolean isMessageReporter() {
+    return false;
+  }
 
   public CommandDetails getSubcommandDetails() {
     return null;
@@ -1041,6 +1044,9 @@ public class ConstTiltalignParam implements CommandDetails {
 
 /**
  * <p> $Log$
+ * <p> Revision 3.38  2009/12/11 17:26:22  sueh
+ * <p> bug# 1291 Added getCommandInputFile to implement Command.
+ * <p>
  * <p> Revision 3.37  2009/12/08 02:34:35  sueh
  * <p> bug# 1286 Implemented Loggable.
  * <p>

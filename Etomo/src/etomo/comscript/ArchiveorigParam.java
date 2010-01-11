@@ -83,6 +83,10 @@ public class ArchiveorigParam implements Command {
   public ProcessName getSubcommandProcessName() {
     return null;
   }
+  
+  public boolean isMessageReporter() {
+    return false;
+  }
 
   public File getCommandOutputFile() {
     return outputFile;
@@ -114,6 +118,9 @@ public class ArchiveorigParam implements Command {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.13  2009/12/11 17:25:18  sueh
+ * <p> bug# 1291 Added getCommandInputFile to implement Command.
+ * <p>
  * <p> Revision 1.12  2009/09/01 03:17:46  sueh
  * <p> bug# 1222
  * <p>

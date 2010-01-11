@@ -34,6 +34,9 @@ import etomo.util.MRCHeader;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.25  2009/12/11 17:26:22  sueh
+ * <p> bug# 1291 Added getCommandInputFile to implement Command.
+ * <p>
  * <p> Revision 3.24  2009/12/08 02:37:36  sueh
  * <p> bug# 1286 Implemented Loggable.
  * <p>
@@ -1011,6 +1014,9 @@ public final class NewstParam implements ConstNewstParam, CommandParam {
 
   public CommandMode getCommandMode() {
     return commandMode;
+  }
+  public boolean isMessageReporter() {
+    return false;
   }
 
   public File getCommandOutputFile() {

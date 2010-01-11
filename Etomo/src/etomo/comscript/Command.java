@@ -32,9 +32,13 @@ public interface Command {
   public ProcessName getSubcommandProcessName();
   public ProcessName getProcessName();
   public File getCommandInputFile();
+  public boolean isMessageReporter();
 }
 /**
 * <p> $Log$
+* <p> Revision 1.14  2009/12/11 17:26:12  sueh
+* <p> bug# 1291 Added getCommandInputFile.
+* <p>
 * <p> Revision 1.13  2009/09/01 03:17:46  sueh
 * <p> bug# 1222
 * <p>

@@ -32,6 +32,9 @@ import etomo.util.MRCHeader;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.6  2009/12/11 17:31:25  sueh
+ * <p> bug# 1291 Corrected last checkin comment.
+ * <p>
  * <p> Revision 1.5  2009/12/11 17:25:59  sueh
  * <p> bug# 1291 Made current functionality a mode called ROTX.  Added a new
  * <p> mode called STATS.
@@ -238,6 +241,9 @@ public final class ClipParam implements CommandDetails {
 
   public CommandMode getCommandMode() {
     return mode;
+  }
+  public boolean isMessageReporter() {
+    return false;
   }
 
   public static final class Mode implements CommandMode {

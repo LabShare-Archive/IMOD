@@ -11,6 +11,9 @@
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.16  2009/09/21 17:44:42  sueh
+ * <p> bug# 1267 Using this class in the tilt monitors.
+ * <p>
  * <p> Revision 3.15  2007/12/13 01:04:29  sueh
  * <p> bug# 1056 Added adjustOrigin.  Merged ConstTiltParam with TiltParam and made
  * <p> ConstTiltParam an interface.
@@ -171,4 +174,6 @@ public interface ConstTiltParam extends CommandDetails {
   public boolean hasXShift();
 
   public boolean hasZShift();
+
+  public boolean isUseGpu();
 }

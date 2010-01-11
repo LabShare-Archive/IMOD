@@ -26,6 +26,9 @@ import etomo.type.SectionTableRowData;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.16  2009/12/11 17:26:22  sueh
+ * <p> bug# 1291 Added getCommandInputFile to implement Command.
+ * <p>
  * <p> Revision 1.15  2009/09/01 03:17:46  sueh
  * <p> bug# 1222
  * <p>
@@ -212,6 +215,9 @@ public class MidasParam implements Command {
 
   public CommandMode getCommandMode() {
     return null;
+  }
+  public boolean isMessageReporter() {
+    return false;
   }
 
   public static String getName() {

@@ -23,6 +23,9 @@ import etomo.type.TiltAngleSpec;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.22  2009/12/11 17:26:22  sueh
+ * <p> bug# 1291 Added getCommandInputFile to implement Command.
+ * <p>
  * <p> Revision 3.21  2009/09/01 03:17:46  sueh
  * <p> bug# 1222
  * <p>
@@ -324,6 +327,9 @@ public class ConstTiltxcorrParam implements ConstCommandParam, Command {
   
   public CommandMode getCommandMode() {
     return null;
+  }
+  public boolean isMessageReporter() {
+    return false;
   }
   
   public CommandDetails getSubcommandDetails() {

@@ -5,10 +5,10 @@ import java.util.Iterator;
 import java.util.List;
 
 import etomo.BaseManager;
+import etomo.storage.Network;
 import etomo.type.AxisID;
 import etomo.type.OSType;
 import etomo.type.Time;
-import etomo.util.RemotePath;
 
 /**
  * <p>Description:
@@ -76,8 +76,10 @@ public final class PsParam {
       String hostName, boolean willRunOnWorkerThread) {
     startTimeHeader = osType == OSType.WINDOWS ? "STIME" : "STARTED";
     startTimeCommand = osType == OSType.MAC ? "start" : "lstart";
-    if (hostName != null && !hostName.matches("\\*")
-        && !hostName.equals(RemotePath.getHostName(manager, axisID))) {
+    if (hostName != null
+        && !hostName.matches("\\*")
+        && !hostName.equals(Network.getLocalHostName(axisID, manager
+            .getPropertyUserDir(), manager.getManagerKey()))) {
       //If the timeout option cannot be added to ssh then only ssh if the caller
       //of this constructor promises to run the command in a worker thread.  An
       //ssh on the main thread can lock up the user interface.
@@ -336,6 +338,9 @@ public final class PsParam {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.8  2009/12/08 02:39:12  sueh
+ * <p> bug# 1286 Changed command to COMMAND.
+ * <p>
  * <p> Revision 1.7  2009/05/07 00:21:05  sueh
  * <p> bug# 1207 Set the start time header and command based on the passed
  * <p> in OS, not the current OS.

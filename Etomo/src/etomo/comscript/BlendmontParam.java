@@ -333,6 +333,9 @@ public final class BlendmontParam implements CommandParam, CommandDetails {
   public CommandMode getCommandMode() {
     return mode;
   }
+  public boolean isMessageReporter() {
+    return false;
+  }
 
   public File getCommandOutputFile() {
     return new File(manager.getPropertyUserDir(), imageOutputFile);
@@ -522,6 +525,9 @@ public final class BlendmontParam implements CommandParam, CommandDetails {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.35  2009/12/11 17:25:49  sueh
+ * <p> bug# 1291 Added getCommandInputFile to implement Command.
+ * <p>
  * <p> Revision 1.34  2009/12/08 02:33:17  sueh
  * <p> bug# 1286 Implemented Loggable.
  * <p>

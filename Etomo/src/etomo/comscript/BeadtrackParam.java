@@ -36,6 +36,9 @@ import etomo.type.ScriptParameter;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.26  2009/12/11 17:25:40  sueh
+ * <p> bug# 1291 Added getCommandInputFile to implement Command.
+ * <p>
  * <p> Revision 3.25  2009/12/08 02:32:52  sueh
  * <p> bug# 1286 Implemented Loggable.
  * <p>
@@ -396,6 +399,9 @@ public class BeadtrackParam extends OldBeadtrackParam implements CommandParam,
     return rotationAngle;
   }
 
+  public boolean isMessageReporter() {
+    return false;
+  }
   /**
    * @return
    */

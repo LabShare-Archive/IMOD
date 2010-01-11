@@ -154,6 +154,9 @@ public class StartJoinParam implements CommandDetails {
   public CommandMode getCommandMode() {
     return null;
   }
+  public boolean isMessageReporter() {
+    return false;
+  }
 
   public File getCommandOutputFile() {
     return null;
@@ -174,6 +177,9 @@ public class StartJoinParam implements CommandDetails {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.12  2009/12/11 17:26:22  sueh
+ * <p> bug# 1291 Added getCommandInputFile to implement Command.
+ * <p>
  * <p> Revision 1.11  2009/12/08 02:39:32  sueh
  * <p> bug# 1286 Changed command to COMMAND.
  * <p>

@@ -28,6 +28,9 @@ public class SplittiltParam {
   private String[] commandArray = null;
   private EtomoNumber numMachines;
   private AxisID axisID;
+  /**
+   * Prevents direct parallel writing.
+   */
   private boolean separateChunks = false;
   private String name = "tilt";
   
@@ -77,6 +80,9 @@ public class SplittiltParam {
 }
 /**
 * <p> $Log$
+* <p> Revision 1.3  2009/09/01 03:17:46  sueh
+* <p> bug# 1222
+* <p>
 * <p> Revision 1.2  2006/06/08 19:04:12  sueh
 * <p> bug# 867 Added separate chunks
 * <p>

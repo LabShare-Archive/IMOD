@@ -41,6 +41,9 @@ import etomo.util.DatasetFiles;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.39  2009/12/11 17:26:22  sueh
+ * <p> bug# 1291 Added getCommandInputFile to implement Command.
+ * <p>
  * <p> Revision 1.38  2009/12/08 02:35:04  sueh
  * <p> bug# 1286 Implemented Loggable.
  * <p>
@@ -425,6 +428,9 @@ public final class FinishjoinParam implements CommandDetails {
 
   public CommandMode getCommandMode() {
     return mode;
+  }
+  public boolean isMessageReporter() {
+    return false;
   }
 
   public CommandDetails getSubcommandDetails() {

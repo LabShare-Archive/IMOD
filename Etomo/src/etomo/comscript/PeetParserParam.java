@@ -34,6 +34,9 @@ import etomo.util.EnvironmentVariable;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.12  2009/12/11 17:26:22  sueh
+ * <p> bug# 1291 Added getCommandInputFile to implement Command.
+ * <p>
  * <p> Revision 1.11  2009/12/08 02:37:49  sueh
  * <p> bug# 1286 Implemented Loggable.
  * <p>
@@ -160,6 +163,9 @@ public final class PeetParserParam implements CommandDetails {
 
   public CommandMode getCommandMode() {
     return null;
+  }
+  public boolean isMessageReporter() {
+    return false;
   }
 
   public File getCommandOutputFile() {

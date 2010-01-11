@@ -11,6 +11,9 @@
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.38  2009/12/11 17:26:22  sueh
+ * <p> bug# 1291 Added getCommandInputFile to implement Command.
+ * <p>
  * <p> Revision 3.37  2009/12/08 02:39:53  sueh
  * <p> bug# 1286 Implemented Loggable.
  * <p>
@@ -985,6 +988,9 @@ public class TrimvolParam implements CommandDetails {
 
   public CommandMode getCommandMode() {
     return null;
+  }
+  public boolean isMessageReporter() {
+    return false;
   }
 
   public File getCommandOutputFile() {

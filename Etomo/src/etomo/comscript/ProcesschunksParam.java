@@ -95,8 +95,8 @@ public final class ProcesschunksParam implements DetachedCommandDetails,
 
   private void init() {
     nice.set(manager.getParallelProcessingDefaultNice());
-    nice.setFloor(CpuAdoc.getInstance(axisID, manager.getPropertyUserDir(),
-        manager.getManagerKey()).getMinNice());
+    nice.setFloor(CpuAdoc.INSTANCE.getMinNice(axisID, manager
+        .getPropertyUserDir(), manager.getManagerKey()));
     nice.setCeiling(NICE_CEILING);
   }
 
@@ -107,11 +107,14 @@ public final class ProcesschunksParam implements DetachedCommandDetails,
   public CommandMode getCommandMode() {
     return null;
   }
+  public boolean isMessageReporter() {
+    return false;
+  }
 
   public File getCommandOutputFile() {
     return null;
   }
-  
+
   public File getCommandInputFile() {
     return null;
   }
@@ -516,6 +519,9 @@ public final class ProcesschunksParam implements DetachedCommandDetails,
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.41  2009/12/11 17:26:22  sueh
+ * <p> bug# 1291 Added getCommandInputFile to implement Command.
+ * <p>
  * <p> Revision 1.40  2009/12/08 02:37:59  sueh
  * <p> bug# 1286 Implemented Loggable.
  * <p>

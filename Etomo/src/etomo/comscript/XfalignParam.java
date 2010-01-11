@@ -25,6 +25,9 @@ import etomo.type.Transform;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.20  2009/12/11 17:26:22  sueh
+ * <p> bug# 1291 Added getCommandInputFile to implement Command.
+ * <p>
  * <p> Revision 1.19  2009/09/01 03:17:46  sueh
  * <p> bug# 1222
  * <p>
@@ -218,6 +221,9 @@ public class XfalignParam implements Command {
 
   public CommandMode getCommandMode() {
     return mode;
+  }
+  public boolean isMessageReporter() {
+    return false;
   }
 
   private ArrayList genOptions() {

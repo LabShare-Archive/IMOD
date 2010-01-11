@@ -45,6 +45,9 @@ public final class TomosnapshotParam implements Command {
   public CommandMode getCommandMode() {
     return null;
   }
+  public boolean isMessageReporter() {
+    return false;
+  }
 
   public File getCommandOutputFile() {
     return null;
@@ -117,6 +120,9 @@ public final class TomosnapshotParam implements Command {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.10  2009/12/11 17:26:22  sueh
+ * <p> bug# 1291 Added getCommandInputFile to implement Command.
+ * <p>
  * <p> Revision 1.9  2009/09/01 03:17:46  sueh
  * <p> bug# 1222
  * <p>

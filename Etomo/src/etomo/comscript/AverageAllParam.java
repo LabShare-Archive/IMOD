@@ -34,6 +34,9 @@ import etomo.util.EnvironmentVariable;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.2  2009/12/11 17:25:27  sueh
+ * <p> bug# 1291 Added getCommandInputFile to implement Command.
+ * <p>
  * <p> Revision 1.1  2009/12/08 02:32:23  sueh
  * <p> bug# 1286 Param for averageAll process.
  * <p> </p>
@@ -80,6 +83,10 @@ public final class AverageAllParam implements CommandDetails {
 
   public File getCommandInputFile() {
     return null;
+  }
+
+  public boolean isMessageReporter() {
+    return false;
   }
 
   public String[] getCommandArray() {

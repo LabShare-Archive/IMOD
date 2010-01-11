@@ -1,7 +1,8 @@
 package etomo.comscript;
 
 import etomo.BaseManager;
-import etomo.storage.CpuAdoc;
+import etomo.storage.Network;
+import etomo.storage.Node;
 import etomo.type.AxisID;
 
 /**
@@ -18,6 +19,9 @@ import etomo.type.AxisID;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.3  2009/03/17 00:32:48  sueh
+ * <p> bug# 1186 Pass managerKey to everything that pops up a dialog.
+ * <p>
  * <p> Revision 1.2  2008/07/19 00:24:43  sueh
  * <p> bug# 1125 Making it easier to access CpuAdoc by not passing the
  * <p> manager to it; all it needs is the current directory.
@@ -35,19 +39,27 @@ public final class QueuechunkParam implements IntermittentCommand {
   public static final String rcsid = "$Id$";
 
   private final String queue;
-  private final String intermittentCommand;
+
+  private String intermittentCommand = null;
 
   private QueuechunkParam(String queue, AxisID axisID, BaseManager manager) {
     this.queue = queue;
-    intermittentCommand = "bash "
-        + CpuAdoc.getInstance(axisID, manager.getPropertyUserDir(),
-            manager.getManagerKey()).getQueue(queue).getCommand() + " -a L";
   }
 
   public static QueuechunkParam getLoadInstance(String queue, AxisID axisID,
       BaseManager manager) {
     QueuechunkParam instance = new QueuechunkParam(queue, axisID, manager);
+    instance.setIntermittentCommand(queue, axisID, manager);
     return instance;
+  }
+
+  private void setIntermittentCommand(String queue, AxisID axisID,
+      BaseManager manager) {
+    Node cluster = Network.getQueue(queue, axisID,
+        manager.getPropertyUserDir(), manager.getManagerKey());
+    if (cluster != null) {
+      intermittentCommand = "bash " + cluster.getCommand() + " -a L";
+    }
   }
 
   public int getInterval() {
@@ -62,6 +74,10 @@ public final class QueuechunkParam implements IntermittentCommand {
     return null;
   }
 
+  /**
+   * Returns intermittent command string or null if the queue name was not found
+   * by Network.
+   */
   public String getIntermittentCommand() {
     return intermittentCommand;
   }
