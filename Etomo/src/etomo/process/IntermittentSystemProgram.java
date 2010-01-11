@@ -26,15 +26,20 @@ public class IntermittentSystemProgram {
   private final String outputKeyPhrase;
   private final SystemProgram program;
   private final boolean useStartCommand;
+  private final ManagerKey managerKey;
+  private final AxisID axisID;
 
   private boolean debug = false;
 
   private IntermittentSystemProgram(String propertyUserDir, String[] cmdArray,
-      AxisID axisID, String outputKeyPhrase, boolean useStartCommand, ManagerKey managerKey) {
+      AxisID axisID, String outputKeyPhrase, boolean useStartCommand,
+      ManagerKey managerKey) {
     program = new SystemProgram(propertyUserDir, cmdArray, axisID, managerKey);
     program.setCollectOutput(false);
     this.outputKeyPhrase = outputKeyPhrase;
     this.useStartCommand = useStartCommand;
+    this.managerKey = managerKey;
+    this.axisID = axisID;
   }
 
   public static IntermittentSystemProgram getStartInstance(
@@ -152,6 +157,9 @@ public class IntermittentSystemProgram {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.20  2009/04/13 22:30:53  sueh
+ * <p> bug# 1207 Added documentation.
+ * <p>
  * <p> Revision 1.19  2009/03/17 00:41:41  sueh
  * <p> bug# 1186 Pass managerKey to everything that pops up a dialog.
  * <p>
