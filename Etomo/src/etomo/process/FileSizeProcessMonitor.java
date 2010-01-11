@@ -28,6 +28,11 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.35  2009/09/17 19:15:00  sueh
+ * <p> bug# 1257 Added getModeBytes to handle getting the right number of
+ * <p> bytes based on the mode in a single location.  Also added mode 6 and
+ * <p> removed modes not supported by IMOD.
+ * <p>
  * <p> Revision 3.34  2009/03/17 00:35:55  sueh
  * <p> bug# 1186 Pass managerKey to everything that pops up a dialog.
  * <p>
@@ -207,6 +212,7 @@ abstract class FileSizeProcessMonitor implements ProcessMonitor {
   private LogFile logFile;
   private LogFile.ReaderId logReaderId = null;
   private boolean findWatchedFileName = true;
+  private MessageReporter messageReporter = null;
 
   public FileSizeProcessMonitor(ApplicationManager appMgr, AxisID id,
       ProcessName processName) {
@@ -298,6 +304,10 @@ abstract class FileSizeProcessMonitor implements ProcessMonitor {
     }
     logFileRenamed = false;
     running = false;
+  }
+
+  public void useMessageReporter() {
+    messageReporter = new MessageReporter(applicationManager, axisID, logFile);
   }
 
   public void stop() {
@@ -432,6 +442,12 @@ abstract class FileSizeProcessMonitor implements ProcessMonitor {
       catch (InterruptedException exception) {
         fileWriting = false;
       }
+      if (messageReporter != null) {
+        messageReporter.checkForMessages();
+      }
+    }
+    if (messageReporter != null) {
+      messageReporter.close();
     }
     closeOpenFiles();
   }
@@ -446,6 +462,9 @@ abstract class FileSizeProcessMonitor implements ProcessMonitor {
   void closeOpenFiles() {
     closeChannel();
     closeLogFileReader();
+    if (messageReporter != null) {
+      messageReporter.close();
+    }
   }
 
   void setFindWatchedFileName(boolean input) {
