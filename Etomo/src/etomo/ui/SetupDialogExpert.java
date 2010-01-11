@@ -7,9 +7,9 @@ import java.io.IOException;
 import etomo.ApplicationManager;
 import etomo.Arguments;
 import etomo.EtomoDirector;
-import etomo.storage.CpuAdoc;
 import etomo.storage.EtomoFileFilter;
 import etomo.storage.LogFile;
+import etomo.storage.Network;
 import etomo.storage.ParameterStore;
 import etomo.type.AxisID;
 import etomo.type.AxisType;
@@ -41,6 +41,10 @@ import etomo.util.Montagesize;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.12  2009/10/13 17:45:07  sueh
+ * <p> bug# 1278 Changed MetaData.setExcludeProjectionsA and B to
+ * <p> setExcludeProjections.
+ * <p>
  * <p> Revision 1.11  2009/09/01 03:18:25  sueh
  * <p> bug# 1222
  * <p>
@@ -496,11 +500,10 @@ public final class SetupDialogExpert {
           + metaData.getDatasetName();
       dialog.setDataset(canonicalPath);
     }
-    CpuAdoc cpuAdoc = CpuAdoc.getInstance(AxisID.ONLY, manager
-        .getPropertyUserDir(), manager.getManagerKey());
     //Parallel processing is optional in tomogram reconstruction, so only use it
     //if the user set it up.
-    boolean validAutodoc = cpuAdoc.isAvailable();
+    boolean validAutodoc = Network.isParallelProcessingEnabled(AxisID.ONLY,
+        manager.getPropertyUserDir(), manager.getManagerKey());
     if (validAutodoc && !userConfig.getNoParallelProcessing()) {
       dialog.setParallelProcess(true);
     }

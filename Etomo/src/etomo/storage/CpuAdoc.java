@@ -7,7 +7,6 @@ import java.util.Hashtable;
 import java.util.List;
 import java.util.Map;
 
-import etomo.EtomoDirector;
 import etomo.ManagerKey;
 import etomo.storage.autodoc.AutodocFactory;
 import etomo.storage.autodoc.ReadOnlyAttribute;
@@ -17,8 +16,6 @@ import etomo.storage.autodoc.SectionLocation;
 import etomo.type.AxisID;
 import etomo.type.ConstEtomoNumber;
 import etomo.type.EtomoNumber;
-import etomo.type.InterfaceType;
-import etomo.type.UserConfiguration;
 import etomo.util.EnvironmentVariable;
 
 /**
@@ -46,16 +43,13 @@ import etomo.util.EnvironmentVariable;
 public class CpuAdoc {
   public static final String rcsid = "$Id$";
 
-  public static final String LOCAL_HOST = "localhost";
   public static final String COMPUTER_SECTION_TYPE = "Computer";
   public static final String QUEUE_SECTION_TYPE = "Queue";
   public static final String UNITS_KEY = "units";
 
   private static final int MIN_NICE_DEFAULT = 4;
 
-  private static CpuAdoc INSTANCE = null;
-
-  private final ManagerKey managerKey;
+  public static final CpuAdoc INSTANCE = new CpuAdoc();
 
   private final List computerList = new ArrayList();
   private final Map computerMap = new Hashtable();
@@ -70,128 +64,176 @@ public class CpuAdoc {
   private String speedUnits = "";
   private String memoryUnits = "";
   private String[] loadUnits = new String[0];
-  private boolean file = false;
   private boolean envVar = false;
   private boolean userConfig = false;
+  private boolean loaded = false;
+  private boolean exists = false;
 
-  private CpuAdoc(ManagerKey managerKey) {
-    this.managerKey = managerKey;
+  private CpuAdoc() {
     minNice.setDisplayValue(MIN_NICE_DEFAULT);
     minNice.setDefault(MIN_NICE_DEFAULT);
   }
 
-  public static synchronized CpuAdoc getInstance(AxisID axisID,
-      String propertyUserDir, ManagerKey managerKey) {
-    if (INSTANCE != null) {
-      return INSTANCE;
-    }
-    return createInstance(axisID, propertyUserDir, managerKey);
-  }
-
-  private static synchronized CpuAdoc createInstance(AxisID axisID,
-      String propertyUserDir, ManagerKey managerKey) {
-    if (INSTANCE != null) {
-      return INSTANCE;
-    }
-    INSTANCE = new CpuAdoc(managerKey);
-    INSTANCE.load(axisID, propertyUserDir);
-    return INSTANCE;
-  }
-
-  public boolean isSeparateChunks() {
+  public boolean isSeparateChunks(AxisID axisID, String propertyUserDir,
+      ManagerKey managerKey) {
+    load(axisID, propertyUserDir, managerKey);
     return separateChunks;
   }
 
-  public boolean isUsersColumn() {
+  public boolean isUsersColumn(AxisID axisID, String propertyUserDir,
+      ManagerKey managerKey) {
+    load(axisID, propertyUserDir, managerKey);
     return usersColumn;
   }
 
-  public int getMinNice() {
+  public int getMinNice(AxisID axisID, String propertyUserDir,
+      ManagerKey managerKey) {
+    load(axisID, propertyUserDir, managerKey);
     return minNice.getInt();
   }
 
-  public String getSpeedUnits() {
+  public String getSpeedUnits(AxisID axisID, String propertyUserDir,
+      ManagerKey managerKey) {
+    load(axisID, propertyUserDir, managerKey);
     return speedUnits;
   }
 
-  public String getMemoryUnits() {
+  public String getMemoryUnits(AxisID axisID, String propertyUserDir,
+      ManagerKey managerKey) {
+    load(axisID, propertyUserDir, managerKey);
     return memoryUnits;
   }
 
-  public String[] getLoadUnits() {
+  public String[] getLoadUnits(AxisID axisID, String propertyUserDir,
+      ManagerKey managerKey) {
+    load(axisID, propertyUserDir, managerKey);
     return loadUnits;
   }
 
-  public ConstEtomoNumber getMaxTilt() {
+  public ConstEtomoNumber getMaxTilt(AxisID axisID, String propertyUserDir,
+      ManagerKey managerKey) {
+    load(axisID, propertyUserDir, managerKey);
     return maxTilt;
   }
 
-  public ConstEtomoNumber getMaxVolcombine() {
+  public ConstEtomoNumber getMaxVolcombine(AxisID axisID,
+      String propertyUserDir, ManagerKey managerKey) {
+    load(axisID, propertyUserDir, managerKey);
     return maxVolcombine;
   }
 
-  public String getComputerName(int index) {
-    String name = (String) computerList.get(index);
-    if (name == null) {
-      return "";
+  boolean isComputerListEmpty(AxisID axisID, String propertyUserDir,
+      ManagerKey managerKey) {
+    load(axisID, propertyUserDir, managerKey);
+    return computerList.isEmpty();
+  }
+
+  boolean isQueueListEmpty(AxisID axisID, String propertyUserDir,
+      ManagerKey managerKey) {
+    load(axisID, propertyUserDir, managerKey);
+    return queueList.isEmpty();
+  }
+
+  /**
+   * Return computerMap.get(computerList[index]) or null.
+   * @param index
+   * @param axisID
+   * @param propertyUserDir
+   * @param managerKey
+   * @return
+   */
+  Node getComputer(int index, AxisID axisID, String propertyUserDir,
+      ManagerKey managerKey) {
+    load(axisID, propertyUserDir, managerKey);
+    return (Node) computerMap.get(computerList.get(index));
+  }
+
+  /**
+   * Get the Computer section for the current computer.
+   * @param axisID
+   * @param propertyUserDir
+   * @param managerKey
+   * @return
+   */
+  Node getLocalHostComputer(AxisID axisID, String propertyUserDir,
+      ManagerKey managerKey) {
+    String localHostName = Network.getLocalHostName(axisID, propertyUserDir,
+        managerKey);
+    Node localHost = getComputer(localHostName, axisID, propertyUserDir,
+        managerKey);
+    //Local host not found.  Try removing everything from the local host name
+    //starting with the first ".".
+    if (localHost == null) {
+      int index = localHostName.indexOf('.');
+      if (index != -1) {
+        localHostName = localHostName.substring(0, index);
+        localHost = getComputer(localHostName, axisID, propertyUserDir,
+            managerKey);
+      }
     }
-    return name;
+    return localHost;
   }
 
-  public String getQueueName(int index) {
-    String name = (String) queueList.get(index);
-    if (name == null) {
-      return "";
-    }
-    return name;
+  Node getQueue(int index, AxisID axisID, String propertyUserDir,
+      ManagerKey managerKey) {
+    load(axisID, propertyUserDir, managerKey);
+    return (Node) queueMap.get(queueList.get(index));
   }
 
-  public Section getComputer(int index) {
-    Section computer = (Section) computerMap.get(getComputerName(index));
-    if (computer == null) {
-      return Section.getComputerInstance();
-    }
-    return computer;
+  /**
+   * Get queue from queueMap by name.  Return null if not found.
+   * @param name
+   * @param axisID
+   * @param propertyUserDir
+   * @param managerKey
+   * @return
+   */
+  Node getQueue(String name, AxisID axisID, String propertyUserDir,
+      ManagerKey managerKey) {
+    load(axisID, propertyUserDir, managerKey);
+    return (Node) queueMap.get(name);
   }
 
-  public boolean hasQueues() {
-    return file && queueMap.size() >= 1;
+  /**
+   * Get computer from computerMap by name.  Return null if not found.
+   * @param name
+   * @param axisID
+   * @param propertyUserDir
+   * @param managerKey
+   * @return
+   */
+  Node getComputer(String name, AxisID axisID, String propertyUserDir,
+      ManagerKey managerKey) {
+    load(axisID, propertyUserDir, managerKey);
+    return (Node) computerMap.get(name);
   }
 
-  public boolean hasComputers() {
-    return (file && computerMap.size() >= 1) || envVar || userConfig;
-  }
-
-  public Section getQueue(int index) {
-    Section queue = (Section) queueMap.get(getQueueName(index));
-    if (queue == null) {
-      return Section.getQueueInstance();
-    }
-    return queue;
-  }
-
-  public Section getQueue(String name) {
-    Section queue = (Section) queueMap.get(name);
-    if (queue == null) {
-      return Section.getQueueInstance();
-    }
-    return queue;
-  }
-
-  public int getNumComputers() {
+  int getComputerListSize(AxisID axisID, String propertyUserDir,
+      ManagerKey managerKey) {
+    load(axisID, propertyUserDir, managerKey);
     return computerList.size();
   }
 
-  public int getNumQueues() {
+  int getQueueListSize(AxisID axisID, String propertyUserDir,
+      ManagerKey managerKey) {
+    load(axisID, propertyUserDir, managerKey);
     return queueList.size();
   }
 
-  private void load(AxisID axisID, String propertyUserDir) {
-    ReadOnlyAutodoc autodoc = getAutodoc(axisID);
-    if (autodoc == null) {
-      setImodProcessors(axisID, propertyUserDir);
+  boolean exists(AxisID axisID, String propertyUserDir, ManagerKey managerKey) {
+    load(axisID, propertyUserDir, managerKey);
+    return exists;
+  }
+
+  private synchronized void load(AxisID axisID, String propertyUserDir,
+      ManagerKey managerKey) {
+    if (loaded) {
+      return;
     }
-    else {
+    loaded = true;
+    ReadOnlyAutodoc autodoc = getAutodoc(axisID, managerKey);
+    if (autodoc != null && autodoc.exists()) {
+      exists = true;
       separateChunks = loadBooleanAttribute(autodoc, "separate-chunks");
       loadAttribute(minNice, autodoc, "min", "nice");
       usersColumn = loadBooleanAttribute(autodoc, "users-column");
@@ -202,98 +244,10 @@ public class CpuAdoc {
       loadUnits = loadStringListAttribute(autodoc, UNITS_KEY, "load");
       loadComputers(autodoc);
       loadQueues(autodoc);
-      if (computerList.size() > 0 || queueList.size() > 0) {
-        file = true;
-      }
-      else {
-        setImodProcessors(axisID, propertyUserDir);
-      }
     }
   }
 
-  private void setImodProcessors(AxisID axisID, String propertyUserDir) {
-    EtomoNumber imodProcessors = new EtomoNumber();
-    imodProcessors.set(EnvironmentVariable.INSTANCE.getValue(propertyUserDir,
-        "IMOD_PROCESSORS", axisID, managerKey));
-    if (!imodProcessors.isNull() && imodProcessors.isValid()) {
-      envVar = true;
-      createComputerInstance(imodProcessors.getInt());
-    }
-    else {
-      UserConfiguration userConfiguration = EtomoDirector.INSTANCE
-          .getUserConfiguration();
-      if (!setUserConfig(userConfiguration.getParallelProcessing(),
-          userConfiguration.getCpus())) {
-        //File, envVar, and userConfig are all false but we still need to create
-        //a parallel processing configuration to be used by processes which
-        //require parallel processing.
-        createComputerInstance(1);
-      }
-    }
-  }
-
-  private void createComputerInstance(int cpus) {
-    Section computer = Section.getComputerInstance(cpus);
-    if (computer != null) {
-      computerList.add(LOCAL_HOST);
-      computerMap.put(LOCAL_HOST, computer);
-    }
-  }
-
-  /**
-   * cpu.adoc and IMOD_PROCESSORS take precedence over userConfig, so do nothing
-   * if they are set.  File and envVar are never reset while Etomo is running.
-   * Set the first computer on the list to cpus if userConfig is true, set it to
-   * 1 if userConfig is false (if it exists).  Set this.userConfig to
-   * userConfig.  Create a computer if the list is empty and userConfig is true.
-   * @param input
-   * @param cpus
-   */
-  public boolean setUserConfig(boolean userConfig, ConstEtomoNumber cpus) {
-    if (file || envVar) {
-      return false;
-    }
-    if (!userConfig) {
-      this.userConfig = false;
-      if (getNumComputers() > 0) {
-        getComputer(0).setNumber(1);
-      }
-      return false;
-    }
-    else {
-      this.userConfig = true;
-      int number = 1;
-      if (!cpus.isNull() && cpus.isValid()) {
-        number = cpus.getInt();
-      }
-      if (getNumComputers() > 0) {
-        getComputer(0).setNumber(number);
-      }
-      else {
-        createComputerInstance(number);
-      }
-      return true;
-    }
-  }
-
-  /**
-   * True if the computer information has been specified with either cpu.adoc,
-   * IMOD_PROCESSORS, or .etomo.
-   * @return
-   */
-  public boolean isAvailable() {
-    return file || envVar || userConfig;
-  }
-
-  public boolean isFile() {
-    return file;
-  }
-
-  public boolean isEnvVar() {
-    return envVar;
-  }
-
-  private ReadOnlyAutodoc getAutodoc(AxisID axisID) {
+  private ReadOnlyAutodoc getAutodoc(AxisID axisID, ManagerKey managerKey) {
     ReadOnlyAutodoc autodoc = null;
     try {
       autodoc = AutodocFactory.getInstance(AutodocFactory.CPU, axisID,
@@ -324,7 +278,8 @@ public class CpuAdoc {
     }
     ReadOnlySection section = null;
     while ((section = autodoc.nextSection(location)) != null) {
-      Section computer = Section.getComputerInstance(section);
+      Node computer = Node.getComputerInstance();
+      computer.load(section);
       String name = section.getName();
       if (computer != null) {
         computerList.add(name);
@@ -340,7 +295,8 @@ public class CpuAdoc {
     }
     ReadOnlySection section = null;
     while ((section = autodoc.nextSection(location)) != null) {
-      Section queue = Section.getQueueInstance(section);
+      Node queue = Node.getQueueInstance();
+      queue.load(section);
       String name = section.getName();
       if (queue != null) {
         queueList.add(name);
@@ -401,175 +357,12 @@ public class CpuAdoc {
     }
     return list.split("\\s*,\\s*");
   }
-
-  /**
-   * @threadsafe
-   */
-  public static final class Section {
-    private final static int NUMBER_DEFAULT = 1;
-    private final EtomoNumber cpuNumber = new EtomoNumber();
-
-    private InterfaceType excludeInterface = null;
-    private String[] users = null;
-    private EtomoNumber number = new EtomoNumber();
-    private String type = "";
-    private String memory = "";
-    private String os = "";
-    private String speed = "";
-    private String command = "";
-    private boolean queue = false;
-
-    /**
-     * Do not call directly.
-     */
-    private Section() {
-    }
-
-    private static Section getComputerInstance() {
-      Section instance = new Section();
-      instance.init();
-      return instance;
-    }
-
-    private static Section getComputerInstance(ReadOnlySection section) {
-      Section instance = new Section();
-      instance.init();
-      instance.load(section);
-      return instance;
-    }
-
-    private static Section getComputerInstance(int imodProcessor) {
-      Section instance = new Section();
-      instance.init();
-      instance.load(imodProcessor);
-      return instance;
-    }
-
-    private static Section getQueueInstance() {
-      Section instance = new Section();
-      instance.queue = true;
-      instance.init();
-      return instance;
-    }
-
-    private static Section getQueueInstance(ReadOnlySection section) {
-      Section instance = new Section();
-      instance.queue = true;
-      instance.init();
-      instance.load(section);
-      return instance;
-    }
-
-    private void init() {
-      number.setDisplayValue(NUMBER_DEFAULT);
-      number.setDefault(NUMBER_DEFAULT);
-    }
-
-    private void load(int imodProcessor) {
-      number.set(imodProcessor);
-    }
-
-    private void load(ReadOnlySection section) {
-      ReadOnlyAttribute attribute = section.getAttribute("exclude-interface");
-      if (attribute != null) {
-        excludeInterface = InterfaceType.getInstance(attribute.getValue());
-      }
-      attribute = section.getAttribute("users");
-      if (attribute != null) {
-        String list = attribute.getValue();
-        if (list != null) {
-          users = list.split("\\s*,\\s*");
-        }
-      }
-      attribute = section.getAttribute("number");
-      if (attribute != null) {
-        number.set(attribute.getValue());
-      }
-      attribute = section.getAttribute("memory");
-      if (attribute != null) {
-        memory = attribute.getValue();
-      }
-      attribute = section.getAttribute("os");
-      if (attribute != null) {
-        os = attribute.getValue();
-      }
-      attribute = section.getAttribute("speed");
-      if (attribute != null) {
-        speed = attribute.getValue();
-      }
-      attribute = section.getAttribute("type");
-      if (attribute != null) {
-        type = attribute.getValue();
-      }
-      if (queue) {
-        attribute = section.getAttribute("command");
-        if (attribute != null) {
-          command = attribute.getValue();
-        }
-      }
-    }
-
-    public String getMemory() {
-      return memory;
-    }
-
-    private void setNumber(int input) {
-      number.set(input);
-    }
-
-    public int getNumber() {
-      return number.getInt();
-    }
-
-    public String getOs() {
-      return os;
-    }
-
-    public String getSpeed() {
-      return speed;
-    }
-
-    public String getType() {
-      return type;
-    }
-
-    public String getCommand() {
-      return command;
-    }
-
-    /**
-     * Use the users array to decide whether a user should be excluded.
-     * @param user
-     * @return
-     */
-    public boolean isExcludedUser(String user) {
-      if (users == null || users.length == 0) {
-        return false;
-      }
-      for (int i = 0; i < users.length; i++) {
-        if (users[i].equals(user)) {
-          return false;
-        }
-      }
-      return true;
-    }
-
-    /**
-     * Use the excludeInterface member variable to decide whether an interface 
-     * should be excluded.
-     * @param user
-     * @return
-     */
-    public boolean isExcludedInterface(InterfaceType input) {
-      if (excludeInterface == null || excludeInterface != input) {
-        return false;
-      }
-      return true;
-    }
-  }
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.16  2009/03/17 00:44:22  sueh
+ * <p> bug# 1186 Pass managerKey to everything that pops up a dialog.
+ * <p>
  * <p> Revision 1.15  2009/02/04 23:29:40  sueh
  * <p> bug# 1158 Changed id and exceptions classes in LogFile.
  * <p>

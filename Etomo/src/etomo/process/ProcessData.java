@@ -10,6 +10,7 @@ import java.util.Map.Entry;
 
 import etomo.BaseManager;
 import etomo.comscript.PsParam;
+import etomo.storage.Network;
 import etomo.storage.Storable;
 import etomo.type.AxisID;
 import etomo.type.ConstEtomoNumber;
@@ -20,7 +21,6 @@ import etomo.type.ProcessName;
 import etomo.type.ProcessResultDisplay;
 import etomo.type.StringProperty;
 import etomo.type.Time;
-import etomo.util.RemotePath;
 
 /**
  * <p>Description:
@@ -89,7 +89,8 @@ public final class ProcessData implements Storable {
       ProcessName processName) {
     ProcessData processData = new ProcessData(axisID, manager);
     processData.processName = processName;
-    processData.hostName.set(RemotePath.getHostName(manager, axisID));
+    processData.hostName.set(Network.getLocalHostName(axisID, manager
+        .getPropertyUserDir(), manager.getManagerKey()));
     processData.osType = OSType.getInstance();
     processData.doNotLoad = true;
     return processData;
@@ -159,7 +160,8 @@ public final class ProcessData implements Storable {
 
   public boolean isOnDifferentHost() {
     if (!hostName.isEmpty()) {
-      return !hostName.equals(RemotePath.getHostName(manager, axisID));
+      return !hostName.equals(Network.getLocalHostName(axisID, manager
+          .getPropertyUserDir(), manager.getManagerKey()));
     }
     return false;
   }
@@ -389,6 +391,11 @@ public final class ProcessData implements Storable {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.11  2009/04/20 20:04:14  sueh
+ * <p> bug# 1192 Added computerMap, which contains the computers and CPUs
+ * <p> selected when the process was run.  Reset now resets all the data.  SetPid
+ * <p> resets only the thread information.
+ * <p>
  * <p> Revision 1.10  2009/04/14 23:03:17  sueh
  * <p> bug# 1190 Changed toString.  bug# 1207 Made isRunning run ps every time.
  * <p>

@@ -31,9 +31,9 @@ import etomo.comscript.CtfPhaseFlipParam;
 import etomo.comscript.CtfPlotterParam;
 import etomo.comscript.FortranInputSyntaxException;
 import etomo.comscript.NewstParam;
-import etomo.storage.CpuAdoc;
 import etomo.storage.LogFile;
 import etomo.storage.MtfFileFilter;
+import etomo.storage.Network;
 import etomo.storage.autodoc.AutodocFactory;
 import etomo.storage.autodoc.ReadOnlyAutodoc;
 import etomo.type.AxisID;
@@ -67,6 +67,9 @@ import etomo.util.DatasetFiles;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.23  2009/12/19 01:14:34  sueh
+ * <p> bug# 1294 Fixed broken right click popup menu.
+ * <p>
  * <p> Revision 1.22  2009/11/20 17:11:47  sueh
  * <p> bug# 1282 Naming all the file choosers by constructing a FileChooser
  * <p> instance instead of a JFileChooser instance.  Added isMenuSaveEnabled to
@@ -645,11 +648,11 @@ public final class FinalAlignedStackDialog extends ProcessDialog implements
   }
 
   void setParameters(ConstMetaData metaData) {
-    CpuAdoc cpuAdoc = CpuAdoc.getInstance(AxisID.ONLY, applicationManager
-        .getPropertyUserDir(), applicationManager.getManagerKey());
     //Parallel processing is optional in tomogram reconstruction, so only use it
     //if the user set it up.
-    boolean validAutodoc = cpuAdoc.isAvailable();
+    boolean validAutodoc = Network.isParallelProcessingEnabled(axisID,
+        applicationManager.getPropertyUserDir(), applicationManager
+            .getManagerKey());
     cbParallelProcess.setEnabled(validAutodoc);
     ConstEtomoNumber parallel = metaData
         .getFinalStackCtfCorrectionParallel(axisID);

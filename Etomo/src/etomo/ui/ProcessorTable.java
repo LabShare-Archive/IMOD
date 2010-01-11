@@ -24,6 +24,8 @@ import etomo.process.LoadMonitor;
 import etomo.process.QueuechunkLoadMonitor;
 import etomo.storage.CpuAdoc;
 import etomo.storage.LogFile;
+import etomo.storage.Network;
+import etomo.storage.Node;
 import etomo.storage.ParameterStore;
 import etomo.storage.Storable;
 import etomo.type.AxisID;
@@ -148,14 +150,17 @@ final class ProcessorTable implements Storable, ParallelProgressDisplay,
   }
 
   private void initTable() {
-    CpuAdoc cpuAdoc = CpuAdoc.getInstance(axisID, manager.getPropertyUserDir(),
-        manager.getManagerKey());
-    usersColumn = cpuAdoc.isUsersColumn() && !displayQueues;
-    speedUnits = cpuAdoc.getSpeedUnits();
-    memoryUnits = cpuAdoc.getMemoryUnits();
+    usersColumn = CpuAdoc.INSTANCE.isUsersColumn(axisID, manager
+        .getPropertyUserDir(), manager.getManagerKey())
+        && !displayQueues;
+    speedUnits = CpuAdoc.INSTANCE.getSpeedUnits(axisID, manager
+        .getPropertyUserDir(), manager.getManagerKey());
+    memoryUnits = CpuAdoc.INSTANCE.getMemoryUnits(axisID, manager
+        .getPropertyUserDir(), manager.getManagerKey());
     String[] loadUnitsArray = null;
     if (displayQueues) {
-      loadUnitsArray = cpuAdoc.getLoadUnits();
+      loadUnitsArray = CpuAdoc.INSTANCE.getLoadUnits(axisID, manager
+          .getPropertyUserDir(), manager.getManagerKey());
       if (loadUnitsArray.length == 0) {
         header1LoadArray = new HeaderCell[1];
         header1LoadArray[0] = new HeaderCell("Load");
@@ -171,63 +176,65 @@ final class ProcessorTable implements Storable, ParallelProgressDisplay,
         header2LoadArray[i] = new HeaderCell();
       }
     }
-    //loop through the sections
+    //loop through the nodes
     EtomoNumber number = new EtomoNumber();
-    //loop on sections
+    //loop on nodes
     int size;
     if (displayQueues) {
-      size = cpuAdoc.getNumQueues();
+      size = Network.getNumQueues(axisID, manager.getPropertyUserDir(), manager
+          .getManagerKey());
     }
     else {
-      size = cpuAdoc.getNumComputers();
+      size = Network.getNumComputers(axisID, manager.getPropertyUserDir(),
+          manager.getManagerKey());
     }
     ButtonGroup buttonGroup = null;
     if (displayQueues) {
       buttonGroup = new ButtonGroup();
     }
     for (int i = 0; i < size; i++) {
-      //get name of the section
-      String name;
-      CpuAdoc.Section section;
+      //get the node
+      Node node;
       if (displayQueues) {
-        name = cpuAdoc.getQueueName(i);
-        section = cpuAdoc.getQueue(i);
+        node = Network.getQueue(i, axisID, manager.getPropertyUserDir(),
+            manager.getManagerKey());
       }
       else {
-        name = cpuAdoc.getComputerName(i);
-        section = cpuAdoc.getComputer(i);
+        node = Network.getComputer(i, axisID, manager.getPropertyUserDir(),
+            manager.getManagerKey());
       }
-      //exclude any section with the "exclude-interface" attribute set to the
+      //exclude any node with the "exclude-interface" attribute set to the
       //current interface
-      if (!section.isExcludedInterface(manager.getInterfaceType())
-          && (!section.isExcludedUser(System.getProperty("user.name")))) {
+      if (node != null && !node.isExcludedInterface(manager.getInterfaceType())
+          && (!node.isExcludedUser(System.getProperty("user.name")))) {
+        String name = node.getName();
         //get the number attribute
         //set numberColumn to true if an number attribute is returned
-        number.set(section.getNumber());
+        number.set(node.getNumber());
         if (!number.isDefault()) {
           numberColumn = true;
         }
         //get the type attribute
         //set typeColumn to true if an type attribute is returned
-        String type = section.getType();
+        String type = node.getType();
         if (!type.matches("\\s*")) {
           typeColumn = true;
         }
         //get the speed attribute
         //set speedColumn to true if an speed attribute is returned
-        String speed = section.getSpeed();
+        String speed = node.getSpeed();
         if (!speed.matches("\\s*")) {
           speedColumn = true;
         }
         //get the memory attribute
         //set memoryColumn to true if an memory attribute is returned
-        String memory = section.getMemory();
+        String memory = node.getMemory();
         if (!memory.matches("\\s*")) {
           memoryColumn = true;
         }
         //get the os attribute
         //set osColumn to true if an os attribute is returned
-        String os = section.getOs();
+        String os = node.getOs();
         if (!os.matches("\\s*")) {
           osColumn = true;
         }
@@ -473,9 +480,11 @@ final class ProcessorTable implements Storable, ParallelProgressDisplay,
   void getParameters(final ProcesschunksParam param) {
     if (displayQueues) {
       String queue = rowList.getComputer(rowList.getFirstSelectedIndex());
-      param.setQueueCommand(CpuAdoc.getInstance(axisID,
-          manager.getPropertyUserDir(), manager.getManagerKey())
-          .getQueue(queue).getCommand());
+      Node node = Network.getQueue(queue, axisID, manager.getPropertyUserDir(),
+          manager.getManagerKey());
+      if (node != null) {
+        param.setQueueCommand(node.getCommand());
+      }
       param.setQueue(queue);
     }
     rowList.getParameters(param);
@@ -859,6 +868,10 @@ final class ProcessorTable implements Storable, ParallelProgressDisplay,
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.55  2009/04/20 20:07:51  sueh
+ * <p> bug# 1192 Added setComputerMap and RowList.setComputerMap, which
+ * <p> changes the row to match computerMap.
+ * <p>
  * <p> Revision 1.54  2009/03/17 00:46:24  sueh
  * <p> bug# 1186 Pass managerKey to everything that pops up a dialog.
  * <p>

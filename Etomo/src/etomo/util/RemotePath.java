@@ -6,9 +6,10 @@ import java.util.Vector;
 
 import etomo.BaseManager;
 import etomo.EtomoDirector;
-import etomo.process.SystemProgram;
 import etomo.storage.CpuAdoc;
 import etomo.storage.LogFile;
+import etomo.storage.Network;
+import etomo.storage.Node;
 import etomo.storage.autodoc.AutodocFactory;
 import etomo.storage.autodoc.AutodocTokenizer;
 import etomo.storage.autodoc.ReadOnlyAttribute;
@@ -286,7 +287,7 @@ public final class RemotePath {
     if (sectionName == null) {
       return false;
     }
-    if (sectionName.equals(CpuAdoc.LOCAL_HOST)) {
+    if (sectionName.equals(Node.LOCAL_HOST_NAME)) {
       return true;
     }
     loadMountRules(manager, axisID);
@@ -378,7 +379,8 @@ public final class RemotePath {
     }
     //first load section-level mount rules
     //look for a section name that is the same as the output of hostname
-    hostName = getHostName(manager, axisID);
+    hostName = Network.getLocalHostName(axisID, manager.getPropertyUserDir(),
+        manager.getManagerKey());
     if ((localSection = loadMountRules(autodoc, CpuAdoc.COMPUTER_SECTION_TYPE,
         hostName, true)) == null) {
       //try looking for a section name that is the same as the stripped version
@@ -391,7 +393,7 @@ public final class RemotePath {
                     .substring(0, stripIndex), true)) == null) {
           //look for a section name called "localhost"
           localSection = loadMountRules(autodoc, CpuAdoc.COMPUTER_SECTION_TYPE,
-              CpuAdoc.LOCAL_HOST, false);
+              Node.LOCAL_HOST_NAME, false);
         }
       }
     }
@@ -517,7 +519,7 @@ public final class RemotePath {
               + ".  Cannot use "
               + MOUNT_NAME_TAG
               + " because there is no mountname.\nEither there is no mountname entry under the "
-              + sectionHeader + CpuAdoc.LOCAL_HOST
+              + sectionHeader + Node.LOCAL_HOST_NAME
               + AutodocTokenizer.CLOSE_CHAR
               + " section or there is no section for this computer.\n");
       //pass this problem so that it can be shown to the user
@@ -574,23 +576,6 @@ public final class RemotePath {
   }
 
   /**
-   * Gets the host name from the current host computer.
-   * @param manager
-   * @param axisID
-   * @return
-   */
-  public static final String getHostName(BaseManager manager, AxisID axisID) {
-    SystemProgram hostname = new SystemProgram(manager.getPropertyUserDir(),
-        new String[] { "hostname" }, axisID, manager.getManagerKey());
-    hostname.run();
-    String[] stdout = hostname.getStdOutput();
-    if (stdout == null || stdout.length < 1) {
-      return null;
-    }
-    return stdout[0];
-  }
-
-  /**
    * Resets the instances so that mount rules can be reloaded.
    */
   final void reset() {
@@ -605,7 +590,7 @@ public final class RemotePath {
   }
 
   /**
-   * For testing.  Calls the private getHostName() function.
+   * For testing.  Calls the static getHostName() function.
    * @param manager
    * @param axisID
    * @return
@@ -614,7 +599,8 @@ public final class RemotePath {
     if (!EtomoDirector.INSTANCE.getArguments().isTest()) {
       throw new IllegalStateException();
     }
-    return getHostName(manager, axisID);
+    return Network.getLocalHostName(axisID, manager.getPropertyUserDir(),
+        manager.getManagerKey());
   }
 
   /**
@@ -680,6 +666,10 @@ public final class RemotePath {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.23  2009/10/01 18:52:55  sueh
+ * <p> bug# 1233 In loadMountRules checking for null to make sure that etomo
+ * <p> can't get stuck when leaving a dialog.
+ * <p>
  * <p> Revision 1.22  2009/04/13 22:58:35  sueh
  * <p> bug# 1207 Made getHostName available to other classes.
  * <p>

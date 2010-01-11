@@ -13,6 +13,7 @@ import javax.swing.JPanel;
 import etomo.BaseManager;
 import etomo.comscript.ProcesschunksParam;
 import etomo.storage.CpuAdoc;
+import etomo.storage.Network;
 import etomo.type.AxisID;
 import etomo.type.EtomoBoolean2;
 import etomo.type.PanelHeaderState;
@@ -58,7 +59,7 @@ public final class ParallelPanel implements Expandable {
   private final EtomoPanel rootPanel = new EtomoPanel();
   private final MultiLineButton btnRestartLoad = new MultiLineButton(
       "Restart Load");
-  private final CheckBox cbCluster = new CheckBox("Use a cluster");
+  private final CheckBox cbQueues = new CheckBox("Use a cluster");
 
   private final BaseManager manager;
   private final AxisID axisID;
@@ -103,8 +104,8 @@ public final class ParallelPanel implements Expandable {
     southPanel.add(ltfCPUsSelected);
     southPanel.add(btnRestartLoad);
     //sNice
-    niceFloor = CpuAdoc.getInstance(axisID, manager.getPropertyUserDir(),
-        manager.getManagerKey()).getMinNice();
+    niceFloor = CpuAdoc.INSTANCE.getMinNice(axisID, manager
+        .getPropertyUserDir(), manager.getManagerKey());
     sNice = Spinner.getLabeledInstance("Nice: ", manager
         .getParallelProcessingDefaultNice(), niceFloor,
         ProcesschunksParam.NICE_CEILING);
@@ -118,19 +119,20 @@ public final class ParallelPanel implements Expandable {
     bodyPanel.addRigidArea();
     bodyPanel.add(tablePanel);
     bodyPanel.add(southPanel);
-    if (CpuAdoc.getInstance(axisID, manager.getPropertyUserDir(),
-        manager.getManagerKey()).hasComputers()
-        && CpuAdoc.getInstance(axisID, manager.getPropertyUserDir(),
-            manager.getManagerKey()).hasQueues()) {
-      JPanel clusterPanel = new JPanel();
-      clusterPanel.setLayout(new BoxLayout(clusterPanel, BoxLayout.LINE_AXIS));
-      clusterPanel.setAlignmentX(Component.RIGHT_ALIGNMENT);
-      clusterPanel.add(cbCluster);
-      bodyPanel.add(clusterPanel);
-    }
-    else if (CpuAdoc.getInstance(axisID, manager.getPropertyUserDir(),
-        manager.getManagerKey()).hasQueues()) {
-      cbCluster.setSelected(true);
+    if (Network.hasQueues(axisID, manager.getPropertyUserDir(), manager
+        .getManagerKey())) {
+      if (Network.hasComputers(axisID, manager.getPropertyUserDir(), manager
+          .getManagerKey())) {
+        JPanel clusterPanel = new JPanel();
+        clusterPanel
+            .setLayout(new BoxLayout(clusterPanel, BoxLayout.LINE_AXIS));
+        clusterPanel.setAlignmentX(Component.RIGHT_ALIGNMENT);
+        clusterPanel.add(cbQueues);
+        bodyPanel.add(clusterPanel);
+      }
+      else {
+        cbQueues.setSelected(true);
+      }
     }
     //header
     header = PanelHeader.getMoreLessInstance(TITLE, this, null);
@@ -156,7 +158,7 @@ public final class ParallelPanel implements Expandable {
     btnPause.addActionListener(actionListener);
     btnSaveDefaults.addActionListener(actionListener);
     btnRestartLoad.addActionListener(actionListener);
-    cbCluster.addActionListener(actionListener);
+    cbQueues.addActionListener(actionListener);
   }
 
   private void buildTablePanel() {
@@ -168,14 +170,14 @@ public final class ParallelPanel implements Expandable {
   }
 
   public ParallelProgressDisplay getParallelProgressDisplay() {
-    if (cbCluster.isSelected()) {
+    if (cbQueues.isSelected()) {
       return queueTable;
     }
     return computerTable;
   }
 
   public LoadDisplay getLoadDisplay() {
-    if (cbCluster.isSelected()) {
+    if (cbQueues.isSelected()) {
       return queueTable;
     }
     return computerTable;
@@ -225,7 +227,7 @@ public final class ParallelPanel implements Expandable {
       manager.pause(axisID);
     }
     else if (command == btnSaveDefaults.getActionCommand()) {
-      if (cbCluster.isSelected()) {
+      if (cbQueues.isSelected()) {
         manager.savePreferences(axisID, queueTable);
       }
       else {
@@ -233,20 +235,20 @@ public final class ParallelPanel implements Expandable {
       }
     }
     else if (command == btnRestartLoad.getActionCommand()) {
-      if (cbCluster.isSelected()) {
+      if (cbQueues.isSelected()) {
         queueTable.restartLoadMonitor();
       }
       else {
         computerTable.restartLoadMonitor();
       }
     }
-    else if (command == cbCluster.getActionCommand()) {
+    else if (command == cbQueues.getActionCommand()) {
       selectTable();
     }
   }
 
   private void selectTable() {
-    if (cbCluster.isSelected()) {
+    if (cbQueues.isSelected()) {
       computerTable.stopLoad();
       queueTable.startLoad();
       computerTable.setVisible(false);
@@ -266,7 +268,7 @@ public final class ParallelPanel implements Expandable {
   }
 
   void msgEndingProcess() {
-    cbCluster.setEnabled(true);
+    cbQueues.setEnabled(true);
   }
 
   void msgKillingProcess() {
@@ -284,12 +286,12 @@ public final class ParallelPanel implements Expandable {
    * @param param
    */
   public void getResumeParameters(final ProcesschunksParam param) {
-    cbCluster.setEnabled(false);
+    cbQueues.setEnabled(false);
     param.setResume(true);
     param.setNice(sNice.getValue());
     param.setCPUNumber(ltfCPUsSelected.getText());
     param.resetMachineName();
-    if (cbCluster.isSelected()) {
+    if (cbQueues.isSelected()) {
       queueTable.getParameters(param);
     }
     else {
@@ -303,10 +305,10 @@ public final class ParallelPanel implements Expandable {
    * @param param
    */
   public boolean getParameters(final ProcesschunksParam param) {
-    cbCluster.setEnabled(false);
+    cbQueues.setEnabled(false);
     param.setNice(sNice.getValue());
     param.setCPUNumber(ltfCPUsSelected.getText());
-    if (cbCluster.isSelected()) {
+    if (cbQueues.isSelected()) {
       queueTable.getParameters(param);
     }
     else {
@@ -318,12 +320,12 @@ public final class ParallelPanel implements Expandable {
     }
     UIHarness.INSTANCE.openMessageDialog(error
         + "  "
-        + (cbCluster.isSelected() ? queueTable : computerTable)
+        + (cbQueues.isSelected() ? queueTable : computerTable)
             .getHelpMessage(), TITLE + " Table Error", axisID, manager
         .getManagerKey());
     return false;
   }
-  
+
   public void expand(final GlobalExpandButton button) {
   }
 
@@ -385,6 +387,9 @@ public final class ParallelPanel implements Expandable {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.68  2009/09/01 03:18:25  sueh
+ * <p> bug# 1222
+ * <p>
  * <p> Revision 1.67  2009/04/14 20:43:26  sueh
  * <p> bug# 1212 In getResumeParameters set cpuNumber.
  * <p>

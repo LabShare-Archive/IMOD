@@ -6,7 +6,7 @@ import javax.swing.*;
 
 import etomo.EtomoDirector;
 import etomo.ManagerKey;
-import etomo.storage.CpuAdoc;
+import etomo.storage.Network;
 import etomo.type.AxisID;
 import etomo.type.UserConfiguration;
 
@@ -40,6 +40,7 @@ public final class SettingsDialog extends JDialog {
   private final JButton buttonDone = new JButton("Done");
   private final CheckBox cbParallelProcessing = new CheckBox("Enable "
       + ParallelPanel.FIELD_LABEL);
+  private final CheckBox cbGpuProcessing = new CheckBox("Enable GPU processing");
   private final LabeledTextField ltfCpus = new LabeledTextField(
       ProcessorTable.NUMBER_CPUS_HEADER + ": ");
   private final CheckBox cbSingleAxis = new CheckBox(
@@ -60,11 +61,17 @@ public final class SettingsDialog extends JDialog {
   private final LabeledTextField ltfPeetTableSize = new LabeledTextField(
       "PEET table size: ");
 
-  private SettingsDialog() {
+  private final String propertyUserDir;
+  private final ManagerKey managerKey;
+
+  private SettingsDialog(String propertyUserDir, ManagerKey managerKey) {
+    this.propertyUserDir = propertyUserDir;
+    this.managerKey = managerKey;
   }
 
-  public static SettingsDialog getInstance(String propertyUserDir, ManagerKey managerKey) {
-    SettingsDialog instance = new SettingsDialog();
+  public static SettingsDialog getInstance(String propertyUserDir,
+      ManagerKey managerKey) {
+    SettingsDialog instance = new SettingsDialog(propertyUserDir, managerKey);
     instance.buildDialog();
     instance.loadData(propertyUserDir, managerKey);
     instance.addListeners();
@@ -106,20 +113,26 @@ public final class SettingsDialog extends JDialog {
     pnlGeneralSettings.add(cbNativeLAF);
     pnlGeneralSettings.add(cbAdvancedDialogs);
     pnlGeneralSettings.add(cbCompactDisplay);
-    //parallel processing settings
-    EtomoPanel pnlParallelProcessing = new EtomoPanel();
-    pnlParallelProcessing.setLayout(new BoxLayout(pnlParallelProcessing,
+    //enhanced processing settings
+    EtomoPanel pnlEnhancedProcessing = new EtomoPanel();
+    pnlEnhancedProcessing.setLayout(new BoxLayout(pnlEnhancedProcessing,
         BoxLayout.Y_AXIS));
-    pnlParallelProcessing.setBorder(new EtchedBorder(
-        "User Level Parallel Processing").getBorder());
-    pnlSettings.add(pnlParallelProcessing);
+    pnlEnhancedProcessing.setBorder(new EtchedBorder(
+        "User Level Enhanced Processing").getBorder());
+    pnlSettings.add(pnlEnhancedProcessing);
     JPanel pnlCheckBoxParallelProcessing = new JPanel();
     pnlCheckBoxParallelProcessing.setLayout(new BoxLayout(
         pnlCheckBoxParallelProcessing, BoxLayout.X_AXIS));
     pnlCheckBoxParallelProcessing.add(Box.createHorizontalGlue());
     pnlCheckBoxParallelProcessing.add(cbParallelProcessing);
-    pnlParallelProcessing.add(pnlCheckBoxParallelProcessing);
-    pnlParallelProcessing.add(ltfCpus.getContainer());
+    pnlEnhancedProcessing.add(pnlCheckBoxParallelProcessing);
+    pnlEnhancedProcessing.add(ltfCpus.getContainer());
+    JPanel pnlGpuProcessing = new JPanel();
+    pnlGpuProcessing
+        .setLayout(new BoxLayout(pnlGpuProcessing, BoxLayout.X_AXIS));
+    pnlGpuProcessing.add(cbGpuProcessing);
+    pnlGpuProcessing.add(Box.createHorizontalGlue());
+    pnlEnhancedProcessing.add(pnlGpuProcessing);
     //default settings
     SpacedPanel panelDefaults = SpacedPanel.getInstance();
     panelDefaults.setBoxLayout(BoxLayout.Y_AXIS);
@@ -155,10 +168,14 @@ public final class SettingsDialog extends JDialog {
    * @param propertyUserDir
    */
   private void loadData(String propertyUserDir, ManagerKey managerKey) {
-    CpuAdoc cpuAdoc = CpuAdoc.getInstance(AxisID.FIRST, propertyUserDir, managerKey);
-    //Disable parallel processing if it was enabled by a way that takes
-    //precidence over this one (cpu.adoc or IMOD_PROCESSORS).
-    cbParallelProcessing.setEnabled(!cpuAdoc.isFile() && !cpuAdoc.isEnvVar());
+    //Disable parallel processing checkbox if it was enabled by a method that
+    //takes precidence over this one (cpu.adoc or IMOD_PROCESSORS).
+    cbParallelProcessing.setEnabled(!Network.isParallelProcessingSetExternally(
+        AxisID.ONLY, propertyUserDir, managerKey));
+    //Disable GPU processing checkbox if it was enabled by a method that takes
+    //precidence over this one (cpu.adoc).
+    cbGpuProcessing.setEnabled(!Network.isGpuProcessingSetExternally(
+        AxisID.ONLY, propertyUserDir, managerKey));
   }
 
   private void updateDisplay() {
@@ -189,7 +206,8 @@ public final class SettingsDialog extends JDialog {
     cbNoParallelProcessing.setSelected(userConfig.getNoParallelProcessing());
     cbTiltAnglesRawtltFile.setSelected(userConfig.getTiltAnglesRawtltFile());
     cbSwapYAndZ.setSelected(userConfig.getSwapYAndZ());
-    cbParallelProcessing.setSelected(userConfig.getParallelProcessing());
+    cbParallelProcessing.setSelected(userConfig.isParallelProcessing());
+    cbGpuProcessing.setSelected(userConfig.isGpuProcessing());
     ltfCpus.setText(userConfig.getCpus());
     ltfParallelTableSize.setText(userConfig.getParallelTableSize());
     ltfJoinTableSize.setText(userConfig.getJoinTableSize());
@@ -240,6 +258,7 @@ public final class SettingsDialog extends JDialog {
     userConfig.setTiltAnglesRawtltFile(cbTiltAnglesRawtltFile.isSelected());
     userConfig.setSwapYAndZ(cbSwapYAndZ.isSelected());
     userConfig.setParallelProcessing(cbParallelProcessing.isSelected());
+    userConfig.setGpuProcessing(cbGpuProcessing.isSelected());
     userConfig.setCpus(ltfCpus.getText());
     userConfig.setParallelTableSize(ltfParallelTableSize.getText());
     userConfig.setJoinTableSize(ltfJoinTableSize.getText());
@@ -259,8 +278,9 @@ public final class SettingsDialog extends JDialog {
         || userConfig.getFontSize() != Integer.parseInt(ltfFontSize.getText())
         || !userConfig.getFontFamily().equals(
             fontFamilies[listFontFamily.getSelectedIndex()])
-        || userConfig.getParallelProcessing() != cbParallelProcessing
+        || userConfig.isParallelProcessing() != cbParallelProcessing
             .isSelected()
+        || userConfig.isGpuProcessing() != cbGpuProcessing.isSelected()
         || !userConfig.getCpus().toString().equals(ltfCpus.getText())
         || !userConfig.getParallelTableSize().toString().equals(
             ltfParallelTableSize.getText())

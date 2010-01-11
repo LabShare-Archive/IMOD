@@ -47,6 +47,10 @@ import etomo.type.TomogramState;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.64  2009/10/19 21:08:40  sueh
+ * <p> bug# 1263 Calling updateParallelProcess from tabStateChange.  In
+ * <p> usingParallelProcessing take the current tab into account.
+ * <p>
  * <p> Revision 3.63  2009/09/01 03:18:25  sueh
  * <p> bug# 1222
  * <p>
@@ -417,8 +421,9 @@ public final class TomogramCombinationDialog extends ProcessDialog implements
 
   public TomogramCombinationDialog(ApplicationManager appMgr) {
     super(appMgr, AxisID.FIRST, DialogType.TOMOGRAM_COMBINATION);
-    ConstEtomoNumber maxCPUs = CpuAdoc.getInstance(AxisID.ONLY,
-        appMgr.getPropertyUserDir(), appMgr.getManagerKey()).getMaxVolcombine();
+    ConstEtomoNumber maxCPUs = CpuAdoc.INSTANCE.getMaxVolcombine(axisID,
+        applicationManager.getPropertyUserDir(), applicationManager
+            .getManagerKey());
     if (maxCPUs != null && !maxCPUs.isNull()) {
       parallelProcessCheckBoxText = ParallelPanel.FIELD_LABEL
           + ParallelPanel.MAX_CPUS_STRING + maxCPUs.toString();

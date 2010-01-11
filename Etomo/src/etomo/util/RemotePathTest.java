@@ -10,6 +10,7 @@ import etomo.EtomoDirector;
 import etomo.process.SystemProcessException;
 import etomo.storage.CpuAdoc;
 import etomo.storage.LogFile;
+import etomo.storage.Node;
 import etomo.storage.autodoc.AutodocFactory;
 import etomo.storage.autodoc.AutodocTokenizer;
 import etomo.type.AxisID;
@@ -364,7 +365,7 @@ public final class RemotePathTest extends TestCase {
       }
     }
     else {
-      sectionName = CpuAdoc.LOCAL_HOST;
+      sectionName = Node.LOCAL_HOST_NAME;
     }
     //write the section
     addSection(bufferedWriter, sectionName);
@@ -900,9 +901,9 @@ public final class RemotePathTest extends TestCase {
     if (Utilities.isWindowsOS()) {
       return;
     }
-    assertTrue(RemotePath.INSTANCE.isLocalSection(CpuAdoc.LOCAL_HOST, MANAGER,
-        AxisID.ONLY));
-    assertFalse(RemotePath.INSTANCE.isLocalSection(CpuAdoc.LOCAL_HOST
+    assertTrue(RemotePath.INSTANCE.isLocalSection(Node.LOCAL_HOST_NAME,
+        MANAGER, AxisID.ONLY));
+    assertFalse(RemotePath.INSTANCE.isLocalSection(Node.LOCAL_HOST_NAME
         .toUpperCase(), MANAGER, AxisID.ONLY));
   }
 
@@ -969,6 +970,9 @@ public final class RemotePathTest extends TestCase {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.42  2009/02/04 23:38:24  sueh
+ * <p> bug# 1158 Changed id and exception classes in LogFile.
+ * <p>
  * <p> Revision 1.41  2008/12/15 23:06:52  sueh
  * <p> bug# 1161 Made EtomoDirector.getCurrentManager private.  Added a
  * <p> public test version for public access.

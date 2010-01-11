@@ -18,7 +18,7 @@ import javax.swing.JPanel;
 import etomo.ApplicationManager;
 import etomo.comscript.CombineParams;
 import etomo.comscript.ConstCombineParams;
-import etomo.storage.CpuAdoc;
+import etomo.storage.Network;
 import etomo.type.AxisID;
 import etomo.type.CombinePatchSize;
 import etomo.type.ConstEtomoNumber;
@@ -55,6 +55,9 @@ import etomo.util.MRCHeader;
  * 
  * <p>
  * $Log$
+ * Revision 3.61  2009/09/01 03:18:24  sueh
+ * bug# 1222
+ *
  * Revision 3.60  2009/03/17 00:46:24  sueh
  * bug# 1186 Pass managerKey to everything that pops up a dialog.
  *
@@ -715,11 +718,13 @@ public final class SetupCombinePanel implements ContextMenu,
       AxisID toAxisID = matchBtoA ? AxisID.FIRST : AxisID.SECOND;
       MRCHeader toMrcHeader = MRCHeader.getInstance(applicationManager
           .getPropertyUserDir(), DatasetFiles.getTomogramName(
-          applicationManager, toAxisID), AxisID.ONLY, applicationManager.getManagerKey());
+          applicationManager, toAxisID), AxisID.ONLY, applicationManager
+          .getManagerKey());
       AxisID fromAxisID = matchBtoA ? AxisID.SECOND : AxisID.FIRST;
       MRCHeader fromMrcHeader = MRCHeader.getInstance(applicationManager
           .getPropertyUserDir(), DatasetFiles.getTomogramName(
-          applicationManager, fromAxisID), AxisID.ONLY, applicationManager.getManagerKey());
+          applicationManager, fromAxisID), AxisID.ONLY, applicationManager
+          .getManagerKey());
       try {
         if (toMrcHeader.read()) {
           fromMrcHeader.read();
@@ -769,11 +774,11 @@ public final class SetupCombinePanel implements ContextMenu,
   }
 
   void setParameters(ConstMetaData metaData) {
-    CpuAdoc cpuAdoc = CpuAdoc.getInstance(AxisID.ONLY, applicationManager
-        .getPropertyUserDir(), applicationManager.getManagerKey());
     //Parallel processing is optional in tomogram reconstruction, so only use it
     //if the user set it up.
-    boolean validAutodoc = cpuAdoc.isAvailable();
+    boolean validAutodoc = Network.isParallelProcessingEnabled(AxisID.FIRST,
+        applicationManager.getPropertyUserDir(), applicationManager
+            .getManagerKey());
     ConstEtomoNumber combineVolcombineParallel = metaData
         .getCombineVolcombineParallel();
     cbParallelProcess.setEnabled(validAutodoc);
@@ -879,7 +884,7 @@ public final class SetupCombinePanel implements ContextMenu,
     pnlVolcombineControls.setVisible(visible);
     pnlTempDirectory.setVisible(visible);
   }
-  
+
   public void expand(final GlobalExpandButton button) {
   }
 
