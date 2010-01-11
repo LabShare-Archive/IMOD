@@ -28,6 +28,9 @@ import etomo.util.Utilities;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.55  2009/12/19 01:10:53  sueh
+ * <p> bug# 1294 Added lambdaForSmoothing and lambdaForSmoothingList.
+ * <p>
  * <p> Revision 3.54  2009/10/23 21:24:16  sueh
  * <p> bug# 1281 Added postExists.
  * <p>
@@ -1200,8 +1203,8 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
     stack3dFindBinningB.load(props, prepend);
     postCurTab.load(props, prepend);
     postExists.load(props, prepend);
-    lambdaForSmoothing.load(props,prepend);
-    lambdaForSmoothingList.load(props,prepend);
+    lambdaForSmoothing.load(props, prepend);
+    lambdaForSmoothingList.load(props, prepend);
   }
 
   public void setNoBeamTiltSelected(AxisID axisID, boolean selected) {
@@ -1394,8 +1397,8 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
     stack3dFindBinningB.store(props, prepend);
     postCurTab.store(props, prepend);
     postExists.store(props, prepend);
-    lambdaForSmoothing.store(props,prepend);
-    lambdaForSmoothingList.store(props,prepend);
+    lambdaForSmoothing.store(props, prepend);
+    lambdaForSmoothingList.store(props, prepend);
   }
 
   public boolean getTrackUseRaptor() {
