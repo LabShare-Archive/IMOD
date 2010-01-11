@@ -4972,8 +4972,8 @@ public final class ApplicationManager extends BaseManager implements
     if (!tiltDisplay.getParameters(param)) {
       return null;
     }
-    param.setSeparateChunks(CpuAdoc.getInstance(axisID, getPropertyUserDir(),
-        getManagerKey()).isSeparateChunks());
+    param.setSeparateChunks(CpuAdoc.INSTANCE.isSeparateChunks(axisID,
+        propertyUserDir, getManagerKey()));
     return param;
   }
 
@@ -7914,6 +7914,9 @@ public final class ApplicationManager extends BaseManager implements
 }
 /**
  * <p> $Log$
+ * <p> Revision 3.344  2009/12/19 01:07:23  sueh
+ * <p> bug# 1294 Generalized imodView3DModel so it can open the smoothing assessment model.  Renamed it imodViewModel.
+ * <p>
  * <p> Revision 3.343  2009/12/11 17:23:07  sueh
  * <p> bug# 1291 Added clipstats.
  * <p>
