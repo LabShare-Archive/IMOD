@@ -1,5 +1,9 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+1/11/10: Added a way to set up GPU processing using the cpu.adoc or the Settings
+dialog.  Added a checkbox for running tilt with the GPU to the Tomogram
+Generation dialog.
+
 1/8/09: If the machine list to processchunks is a single number, it is
 interpreted as the number of processors to use on the local host.
 
