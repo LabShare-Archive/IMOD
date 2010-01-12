@@ -37,7 +37,11 @@ import etomo.type.Run3dmodMenuOptions;
  * 
  * @version $Revision$
  * 
- * <p> $Log$ </p>
+ * <p> $Log$
+ * <p> Revision 1.1  2009/12/19 01:19:33  sueh
+ * <p> bug# 1294 Panel for running flattenwarp with multiple
+ * <p> lambdaForSmoothing values.
+ * <p> </p>
  */
 final class SmoothingAssessmentPanel implements FlattenWarpDisplay,
     Run3dmodButtonContainer {
@@ -50,6 +54,8 @@ final class SmoothingAssessmentPanel implements FlattenWarpDisplay,
       LAMBDA_FOR_SMOOTHING_LABEL + ": ");
   private final Run3dmodButton btn3dmod = Run3dmodButton.get3dmodInstance(
       "Open Assessment in 3dmod", this);
+  private final ActionListener actionListener = new SmoothingAssessmentActionListener(
+      this);
 
   private final Run3dmodButton btnFlattenWarp;
   private final ApplicationManager manager;
@@ -85,9 +91,12 @@ final class SmoothingAssessmentPanel implements FlattenWarpDisplay,
   }
 
   private void addListeners() {
-    ActionListener actionListener = new SmoothingAssessmentActionListener(this);
     btnFlattenWarp.addActionListener(actionListener);
     btn3dmod.addActionListener(actionListener);
+  }
+
+  void done() {
+    btnFlattenWarp.removeActionListener(actionListener);
   }
 
   private void createPanel() {
@@ -114,7 +123,7 @@ final class SmoothingAssessmentPanel implements FlattenWarpDisplay,
   Component getComponent() {
     return pnlRoot;
   }
-  
+
   void setParameters(ConstMetaData metaData) {
     ltfLambdaForSmoothing.setText(metaData.getLambdaForSmoothingList());
   }

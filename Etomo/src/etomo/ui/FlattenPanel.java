@@ -41,6 +41,9 @@ import etomo.type.Run3dmodMenuOptions;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.6  2009/12/19 01:15:15  sueh
+ * <p> bug# 1294 Change getFileTypeForSurfaceModel to getInputFileType.
+ * <p>
  * <p> Revision 1.5  2009/11/20 17:12:02  sueh
  * <p> bug# 1282 Naming all the file choosers by constructing a FileChooser
  * <p> instance instead of a JFileChooser instance.  Added isMenuSaveEnabled to
@@ -122,6 +125,7 @@ final class FlattenPanel implements Run3dmodButtonContainer, FlattenWarpParent,
 
   void done() {
     btnFlatten.removeActionListener(actionListener);
+    flattenWarpPanel.done();
   }
 
   Component getComponent() {

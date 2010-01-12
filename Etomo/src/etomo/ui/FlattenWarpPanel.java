@@ -36,6 +36,9 @@ import etomo.type.Run3dmodMenuOptions;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.5  2009/12/19 01:18:11  sueh
+ * <p> bug# 1294 Added smoothingAssessmentPanel and ltfLambdaForSmoothing.
+ * <p>
  * <p> Revision 1.4  2009/10/01 18:50:59  sueh
  * <p> bug# 1239 Changed getFlattenWarpDisplay to getFlattenWarpButton.
  * <p>
@@ -109,6 +112,10 @@ final class FlattenWarpPanel implements Run3dmodButtonContainer,
         this);
     btnMakeSurfaceModel.addActionListener(actionListener);
     btnFlattenWarp.addActionListener(actionListener);
+  }
+  
+  void done() {
+    smoothingAssessmentPanel.done();
   }
 
   private void createPanel() {
