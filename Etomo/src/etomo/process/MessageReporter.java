@@ -24,7 +24,11 @@ import etomo.ui.UIHarness;
  * 
  * @version $Revision$
  * 
- * <p> $Log$ </p>
+ * <p> $Log$
+ * <p> Revision 1.1  2010/01/11 23:50:10  sueh
+ * <p> bug# 1299 Class that tells the main thread to pop up messages starting
+ * <p> with "MESSAGE:".
+ * <p> </p>
  */
 final class MessageReporter {
   public static final String rcsid = "$Id$";
@@ -59,7 +63,6 @@ final class MessageReporter {
       String line = null;
       try {
         while ((line = file.readLine(id)) != null) {
-          System.out.println(line);
           if (line.trim().startsWith(TOKEN)) {
             SwingUtilities.invokeLater(new PopupLater(manager, axisID, line
                 .substring(line.indexOf(TOKEN) + TOKEN.length())));
