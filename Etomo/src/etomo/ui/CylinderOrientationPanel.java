@@ -22,6 +22,9 @@ import etomo.type.PeetMetaData;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.2  2009/12/23 02:21:41  sueh
+ * <p> bug# 1296 Stop taking tooltips from peetprm.adoc.
+ * <p>
  * <p> Revision 1.1  2009/12/08 02:46:12  sueh
  * <p> Factored CylinderOrientation out of PeetDialog.
  * <p> </p>
@@ -77,17 +80,20 @@ final class CylinderOrientationPanel {
    * Set parameters from metaData.
    * @param metaData
    */
-  void setParameters(final ConstPeetMetaData metaData) {
-    sMaskModelPtsModelNumber.setValue(metaData.getMaskModelPtsModelNumber());
-    ltfMaskModelPtsParticle.setText(metaData.getMaskModelPtsParticle());
+  void setParameters(final ConstPeetMetaData metaData,
+      final boolean parametersOnly) {
+    if (!parametersOnly) {
+      sMaskModelPtsModelNumber.setValue(metaData.getMaskModelPtsModelNumber());
+      ltfMaskModelPtsParticle.setText(metaData.getMaskModelPtsParticle());
+    }
   }
 
   /**
    * Load data from MatlabParamFile.
    * @param matlabParamFile
    */
-  void setParameters(final MatlabParam matlabParam) {
-    if (!matlabParam.isMaskModelPtsEmpty()) {
+  void setParameters(final MatlabParam matlabParam, final boolean parametersOnly) {
+    if (!parametersOnly && !matlabParam.isMaskModelPtsEmpty()) {
       sMaskModelPtsModelNumber.setValue(matlabParam.getMaskModelPtsVolume());
       ltfMaskModelPtsParticle.setText(matlabParam.getMaskModelPtsParticle());
     }
