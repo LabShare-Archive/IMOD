@@ -655,14 +655,9 @@ public class EtomoDirector {
     if (peetFileFilter.accept(dataFile)) {
       return openPeet(dataFile, makeCurrent, axisID);
     }
-    String[] message = { "Unknown file type " + dataFile.getName() + ".",
-        "Open this file as an " + etomoFileFilter.getDescription() + "?" };
-    if (UIHarness.INSTANCE.openYesNoDialog(message, axisID, currentManagerKey)) {
-      return openTomogram(dataFile, makeCurrent, axisID);
-    }
-    else {
-      return openJoin(dataFile, makeCurrent, axisID);
-    }
+    UIHarness.INSTANCE.openMessageDialog("Unknown file type " + dataFile.getName() + ".", "Unknown File Type", axisID,
+        currentManagerKey);
+    throw new IllegalStateException("unknown dataFile");
   }
 
   public ManagerKey openTomogram(File etomoDataFile, boolean makeCurrent,
@@ -813,7 +808,7 @@ public class EtomoDirector {
     isAdvanced = userConfig.getAdvancedDialogs();
     UIParameters.INSTANCE.setFontSize(userConfig.getFontSize());
     //CpuAdoc.INSTANCE.setUserConfig(userConfig.getParallelProcessing(), userConfig
-   //     .getCpus());
+    //     .getCpus());
   }
 
   /**
@@ -1131,6 +1126,10 @@ public class EtomoDirector {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.90  2010/01/11 23:47:40  sueh
+ * <p> bug# 1299 Removed responsibility anything other then cpu.adoc from
+ * <p> CpuAdoc.
+ * <p>
  * <p> Revision 1.89  2009/10/28 17:46:42  sueh
  * <p> bug# 1275 Changed closeDefaultWindow so that it closes
  * <p> FrontPageManager.
