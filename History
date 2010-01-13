@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+1/13/10: Fixed bug in Etomo where it was loading a non-dataset file.  Made some
+minor changes to the PEET interface.
+
 1/12/10: Fixed bug in Post Processing dialog where the button responded multiple
 times to being pressed.
 
