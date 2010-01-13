@@ -15,6 +15,7 @@ import etomo.process.PeetProcessManager;
 import etomo.process.ProcessResultDisplayFactoryBlank;
 import etomo.process.ProcessResultDisplayFactoryInterface;
 import etomo.process.SystemProcessException;
+import etomo.storage.AveragedFileNames;
 import etomo.storage.ComFileFilter;
 import etomo.storage.LogFile;
 import etomo.storage.MatlabParam;
@@ -30,7 +31,6 @@ import etomo.type.BaseScreenState;
 import etomo.type.BaseState;
 import etomo.type.ConstProcessSeries;
 import etomo.type.DialogType;
-import etomo.type.IntKeyList;
 import etomo.type.InterfaceType;
 import etomo.type.PeetMetaData;
 import etomo.type.PeetScreenState;
@@ -63,6 +63,9 @@ import etomo.util.EnvironmentVariable;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.61  2009/12/08 02:30:06  sueh
+ * <p> bug# 1286 Added averageAll.  Removed parserLstThresholds from PeetState; saving lstThresholds after prmParser is run.
+ * <p>
  * <p> Revision 1.60  2009/12/01 00:20:34  sueh
  * <p> bug# 1285 In imodAvgVol if lstThresholds is empty use parserLstThresholds.
  * <p>
@@ -649,20 +652,13 @@ public final class PeetManager extends BaseManager {
    * Open the *AvgVol*.mrc files in 3dmod
    */
   public void imodAvgVol(Run3dmodMenuOptions menuOptions) {
-    //build the list of files - they should be in order
-    IntKeyList.Walker lstThresholds = state.getLstThresholds();
-    final StringBuffer name = new StringBuffer(metaData.getName());
-    name.append("_AvgVol_").append(state.getIterationListSize()).append('P');
-    StringBuffer fileName;
-    List fileNameList = new ArrayList();
-    while (lstThresholds.hasNext()) {
-      fileName = new StringBuffer();
-      fileName.append(name).append(lstThresholds.nextString()).append(".mrc");
-      fileNameList.add(fileName.toString());
-    }
+    AveragedFileNames averagedFileNames = new AveragedFileNames();
+    List avgVolList = new AveragedFileNames().getList(this, AxisID.ONLY,
+        "Must press either " + PeetDialog.RUN_LABEL + " or "
+            + PeetDialog.AVERAGE_ALL_LABEL + ".", "Process Not Run");
     try {
-      imodManager.open(ImodManager.AVG_VOL_KEY,
-          buildFileNameArray(fileNameList), menuOptions);
+      imodManager.open(ImodManager.AVG_VOL_KEY, buildFileNameArray(avgVolList),
+          menuOptions);
     }
     catch (IOException e) {
       e.printStackTrace();
