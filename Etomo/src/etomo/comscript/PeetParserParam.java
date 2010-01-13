@@ -34,6 +34,9 @@ import etomo.util.EnvironmentVariable;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.13  2010/01/11 23:49:01  sueh
+ * <p> bug# 1299 Added isMessageReporter.
+ * <p>
  * <p> Revision 1.12  2009/12/11 17:26:22  sueh
  * <p> bug# 1291 Added getCommandInputFile to implement Command.
  * <p>
@@ -224,9 +227,6 @@ public final class PeetParserParam implements CommandDetails {
   }
 
   public String[] getStringArray(etomo.comscript.FieldInterface fieldInterface) {
-    if (fieldInterface == Fields.LST_THRESHOLDS_ARRAY) {
-      return lstThresholdsArray;
-    }
     throw new IllegalArgumentException("field=" + fieldInterface);
   }
 
@@ -265,6 +265,5 @@ public final class PeetParserParam implements CommandDetails {
     }
 
     public static final Fields ITERATION_LIST_SIZE = new Fields();
-    public static final Fields LST_THRESHOLDS_ARRAY = new Fields();
   }
 }
