@@ -49,6 +49,9 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.96  2010/01/13 21:56:31  sueh
+ * <p> bug# 1298 Made run button labels public.
+ * <p>
  * <p> Revision 1.95  2009/12/23 03:20:37  sueh
  * <p> bug# 1296 Improved lstThreshold tooltips.
  * <p>
@@ -442,7 +445,7 @@ public final class PeetDialog implements ContextMenu, AbstractParallelDialog,
       bgInitMotl);
   private final ButtonGroup bgCcMode = new ButtonGroup();
   private final RadioButton rbCcModeNormalized = new RadioButton(
-      "Local energy normalized cross correlation",
+      "Local energy normalized cross-correlation",
       MatlabParam.CCMode.NORMALIZED, bgCcMode);
   private final RadioButton rbCcModeLocal = new RadioButton(
       "Normalized cross-correlation", MatlabParam.CCMode.LOCAL, bgCcMode);
