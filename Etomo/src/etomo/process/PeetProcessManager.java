@@ -23,6 +23,9 @@ import etomo.type.ProcessName;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.10  2009/12/08 02:41:47  sueh
+ * <p> bug# 1286 Added averageAll.  Removed parserLstThresholds from PeetState; saving lstThresholds after prmParser is run.
+ * <p>
  * <p> Revision 1.9  2009/12/01 00:23:06  sueh
  * <p> bug# 1285 In postProcess(BackgroundProcess).  Reset lstThresholds when
  * <p> running the parser.  This prevents out of date lstThreshold data if the
@@ -113,15 +116,11 @@ public final class PeetProcessManager extends BaseProcessManager {
       }
       state.setIterationListSize(processDetails
           .getIntValue(PeetParserParam.Fields.ITERATION_LIST_SIZE));
-      state.setLstThresholdsArray(processDetails
-          .getStringArray(PeetParserParam.Fields.LST_THRESHOLDS_ARRAY));
       manager.logMessage(processDetails, AxisID.ONLY, manager.getManagerKey());
     }
     else if (processName == ProcessName.AVERAGE_ALL) {
       state.setIterationListSize(processDetails
           .getIntValue(AverageAllParam.Fields.ITERATION_LIST_SIZE));
-      state.setLstThresholdsArray(processDetails
-          .getStringArray(AverageAllParam.Fields.LST_THRESHOLDS_ARRAY));
       manager.logMessage(processDetails, AxisID.ONLY, manager.getManagerKey());
     }
   }
