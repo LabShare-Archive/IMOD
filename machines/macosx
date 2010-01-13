@@ -26,6 +26,7 @@ if ($compiler == gnu) set compiler = gfortran
 # If using intel fortran compiler, check for C compiler too
 #
 set openmpFlags = ""
+set ccompFlags = ""
 set ccomp = "gcc"
 set cxx = "g++"
 set libmt = ""
@@ -36,6 +37,7 @@ if ($compiler == ifort) then
         set ccomp = "icc"
         set cxx = "icpc"
         setenv QMAKESPEC macx-icc
+        set ccompFlags = '-vec-report0'
         if ($openmp == true) then
             set openmpFlags = "-openmp"
             set libmt = "mt"
@@ -81,7 +83,7 @@ if ($compiler == ifort) then
     @ ifortversion = 9
     if ("$ifortnum" != "") @ ifortversion = $ifortnum[1]
     
-    set fcompFlags = "-132 -assume bscc"
+    set fcompFlags = "-132 -assume bscc -vec-report0"
 
     echo "      parameter (nbytes_recl_item=4)" >! $endian_dir/recl_bytes.inc
     set fortvers = 3
@@ -229,7 +231,7 @@ set optimization = "-O3 -w"
 if ($compiler == ifort) set optimization = "-O2"
 if ($debug == true) set optimization = "-g -O0"
 
-set cflags = "$flags $m64flags $optimization $defines $include_flags $c_includes"
+set cflags = "$flags $m64flags $ccompFlags $optimization $defines $include_flags $c_includes"
 set fflags = "$flags $m64flags $fcompFlags $fcmpldFlags $optimization $include_flags"
 
 echo "CFLAGS  = $cflags" >> $configure
@@ -258,7 +260,7 @@ endif
 #
 if ($?CUDA_DIR) then
     set nvcc_flags = "$nvcc_flags -DUNIX -Xcompiler -fno-strict-aliasing -O3 --host-compilation C"
-    echo "DLLSTOCOPY2 = libcudart" >> $configure
+    echo "DLLSTOCOPY2 = libcudart libcufft" >> $configure
     echo "DLLSOURCEDIR2 = $CUDA_DIR/lib" >> $configure
 endif
 
