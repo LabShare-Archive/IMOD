@@ -93,8 +93,8 @@ int main(int argc, char *argv[])
          invertAngles);
   printf("volt=%d Kv, interpolationWidth=%d pixels, defocusTol=%d nm \n", 
       volt, iWidth, defocusTol);
-  printf("tiltAxisAngle=%f, pixelSize=%f nm, cs=%f mm, ampContrast=%f, \
-   \n", tiltAxisAngle, pixelSize, cs, ampContrast);
+  printf("pixelSize=%f nm, cs=%f mm, ampContrast=%f \n", 
+         pixelSize, cs, ampContrast);
 
   FILE *fpStack, *fpDef, *fpAngle=NULL;
   if( (fpStack=fopen(stackFn, "rb"))==0 )
@@ -454,6 +454,9 @@ int main(int argc, char *argv[])
 /*
 
 $Log$
+Revision 3.14  2009/08/10 23:03:39  mast
+Added tilt angle inversion option
+
 Revision 3.13  2009/03/24 00:37:00  mast
 Fixed initialization of max at 0
 
