@@ -122,6 +122,7 @@ set qt4libstocopy   = 'QtOpenGL QtNetwork QtCore QtGui QtXml'
 set qt3supportcopy = ""
 set assistantcopy  = 'QtAssistantClient'
 set midasGL         =  "-lQtOpenGL"
+set nogpu           = false
 set b3dbyte         = "char"
 set ubyte           = "unsigned char"
 set int16           = "short int"
@@ -129,12 +130,6 @@ set uint16          = "unsigned short int"
 set int32           = "int"
 set uint32          = "unsigned int"
 set float32         = "float"
-
-# Set common flags if doing CUDA
-if ($?CUDA_DIR) then
-    set nvcc_flags = "-arch sm_10 -maxrregcount 32 -I$CUDA_DIR/include -I../../include"
-    set cudalibs = "-L$CUDA_DIR/lib -lcudart -lcufft"
-endif
 
 set inargv = ($argv)
 
@@ -230,6 +225,11 @@ while($#argv > 0)
                 set wrapintel = false
                 breaksw
 
+        case -no_gpu:
+                set nogpu = true
+                if ($?CUDA_DIR) unsetenv CUDA_DIR
+                breaksw
+
     	case -h:
     	case -help:
     		goto usage
@@ -241,6 +241,12 @@ while($#argv > 0)
     endsw
     shift
 end
+
+# Set common flags if doing CUDA
+if ($?CUDA_DIR) then
+    set nvcc_flags = "-arch sm_10 -maxrregcount 32 -I$CUDA_DIR/include -I../../include"
+    set cudalibs = "-L$CUDA_DIR/lib -lcudart -lcufft"
+endif
 
 #
 # get more machine specifics - USYSTEM was done in setup
@@ -888,6 +894,9 @@ end
 
 # Take care of .distname file
 #
+if ($distname != "" && $nogpu == true) then
+    set distname = ${distname}_nogpu
+endif
 echo $distname >! .distname
 
 # Take care of .options file - stripping out install entry
@@ -981,6 +990,8 @@ echo "             -static      Link to static Intel libraries"
 echo "             -no_openmp   Do not use OpenMP where available"
 echo "             -no_wrap     Do not put executables in bin/realbin and make"
 echo "                             script wrappers for Intel on Linux"
+echo "             -no_gpu      Build without CUDA even if CUDA_DIR set and"
+echo "                             add _nogpu to package name"
 echo "             -packg2c     Pack libg2c into distribution (Linux only)"
 echo "             -qt3         Include Qt3 support in makefiles"
 echo "             -flags       Set flags for compilation"
@@ -990,6 +1001,9 @@ exit
 
 #
 #  $Log$
+#  Revision 1.55  2009/12/31 20:57:17  mast
+#  Added GPU/CUDA stuff
+#
 #  Revision 1.54  2009/11/27 16:38:48  mast
 #  Fixed variable usage for ctfplotter qconfigure
 #
