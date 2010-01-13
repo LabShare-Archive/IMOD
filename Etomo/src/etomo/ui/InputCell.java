@@ -117,7 +117,7 @@ abstract class InputCell implements Cell {
         setBackground(Colors.HIGHLIGHT_BACKGROUND);
       }
       else {
-        setBackground(Colors.getCellNotEditableHighlightBackground());
+        setBackground(Colors.HIGHLIGHT_BACKGROUND_NOT_EDITABLE);
       }
     }
     else if (warning) {
@@ -125,7 +125,7 @@ abstract class InputCell implements Cell {
         setBackground(Colors.WARNING_BACKGROUND);
       }
       else {
-        setBackground(Colors.getCellNotEditableWarningBackground());
+        setBackground(Colors.WARNING_BACKGROUND_NOT_EDITABLE);
       }
     }
     else if (error) {
@@ -133,7 +133,7 @@ abstract class InputCell implements Cell {
         setBackground(Colors.CELL_ERROR_BACKGROUND);
       }
       else {
-        setBackground(Colors.getCellNotEditableErrorBackground());
+        setBackground(Colors.CELL_ERROR_BACKGROUND_NOT_EDITABLE);
       }
     }
     else if (editable) {
@@ -188,6 +188,11 @@ abstract class InputCell implements Cell {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.14  2009/11/20 17:12:57  sueh
+ * <p> bug# 1282 Added prefixes to all of the field names, so that the fields that
+ * <p> are actually abstract buttons (radio buttons, etc) won't be activated by a
+ * <p> "bn." field command.
+ * <p>
  * <p> Revision 1.13  2009/10/15 23:32:56  sueh
  * <p> bug# 1274 Made msgLabelChanged public so it can be added to Cell.
  * <p>

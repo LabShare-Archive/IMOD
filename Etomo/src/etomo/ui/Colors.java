@@ -18,6 +18,10 @@ import javax.swing.plaf.ColorUIResource;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.9  2009/02/27 03:52:44  sueh
+ * <p> bug# 1172 Added experimental automation recording background and
+ * <p> border colors.  Bug# 1188 No longer checking version when setting the background colors because Java 1.4 is no longer supported.
+ * <p>
  * <p> Revision 1.8  2007/04/02 21:47:43  sueh
  * <p> bug# 964 Added CELL_DISABLED_FOREGROUND.
  * <p>
@@ -52,11 +56,17 @@ public final class Colors {
       102, 102, 102);
   static final ColorUIResource CELL_ERROR_BACKGROUND = new ColorUIResource(255,
       204, 204);
+  static final ColorUIResource CELL_ERROR_BACKGROUND_NOT_EDITABLE = new ColorUIResource(
+      230, 184, 184);//223,179,179?
   static final ColorUIResource BACKGROUND = new ColorUIResource(255, 255, 255);
   static final ColorUIResource WARNING_BACKGROUND = new ColorUIResource(255,
       255, 204);
+  static final ColorUIResource WARNING_BACKGROUND_NOT_EDITABLE = new ColorUIResource(
+      230, 230, 184);
   static final ColorUIResource HIGHLIGHT_BACKGROUND = new ColorUIResource(204,
       255, 255);
+  static final ColorUIResource HIGHLIGHT_BACKGROUND_NOT_EDITABLE = new ColorUIResource(184,
+      230, 230);
   static final ColorUIResource FOREGROUND = new ColorUIResource(0, 0, 0);
 
   private static final ColorUIResource BACKGROUND_GREYOUT = new ColorUIResource(
@@ -73,41 +83,43 @@ public final class Colors {
   private static Color backgroundParallel = null;
   private static Color backgroundPeet = null;
   private static ColorUIResource cellNotEditableBackground = null;
-  private static ColorUIResource cellNotEditableHighlightBackground = null;
-  private static ColorUIResource cellNotEditableWarningBackground = null;
-  private static ColorUIResource cellNotEditableErrorBackground = null;
 
   static Color getBackgroundA() {
     if (backgroundA == null) {
-      backgroundA = new Color(153+BACKGROUND_ADJUSTMENT, 179+BACKGROUND_ADJUSTMENT,204+BACKGROUND_ADJUSTMENT);//saphire
+      backgroundA = new Color(153 + BACKGROUND_ADJUSTMENT,
+          179 + BACKGROUND_ADJUSTMENT, 204 + BACKGROUND_ADJUSTMENT);//saphire
     }
     return backgroundA;
   }
 
   static Color getBackgroundB() {
     if (backgroundB == null) {
-      backgroundB = new Color(153+BACKGROUND_ADJUSTMENT, 204+BACKGROUND_ADJUSTMENT, 179+BACKGROUND_ADJUSTMENT);//jade
+      backgroundB = new Color(153 + BACKGROUND_ADJUSTMENT,
+          204 + BACKGROUND_ADJUSTMENT, 179 + BACKGROUND_ADJUSTMENT);//jade
     }
     return backgroundB;
   }
 
   static Color getBackgroundJoin() {
     if (backgroundJoin == null) {
-      backgroundJoin = new Color(179+BACKGROUND_ADJUSTMENT, 153+BACKGROUND_ADJUSTMENT, 204+BACKGROUND_ADJUSTMENT);//violet
+      backgroundJoin = new Color(179 + BACKGROUND_ADJUSTMENT,
+          153 + BACKGROUND_ADJUSTMENT, 204 + BACKGROUND_ADJUSTMENT);//violet
     }
     return backgroundJoin;
   }
 
   static Color getBackgroundParallel() {
     if (backgroundParallel == null) {
-      backgroundParallel = new Color(166+BACKGROUND_ADJUSTMENT, 204+BACKGROUND_ADJUSTMENT, 153+BACKGROUND_ADJUSTMENT);//lime
+      backgroundParallel = new Color(166 + BACKGROUND_ADJUSTMENT,
+          204 + BACKGROUND_ADJUSTMENT, 153 + BACKGROUND_ADJUSTMENT);//lime
     }
     return backgroundParallel;
   }
 
   static Color getBackgroundPeet() {
     if (backgroundPeet == null) {
-      backgroundPeet = new Color(166+BACKGROUND_ADJUSTMENT, 153+BACKGROUND_ADJUSTMENT, 204+BACKGROUND_ADJUSTMENT);//purple
+      backgroundPeet = new Color(166 + BACKGROUND_ADJUSTMENT,
+          153 + BACKGROUND_ADJUSTMENT, 204 + BACKGROUND_ADJUSTMENT);//purple
     }
     return backgroundPeet;
   }
@@ -117,30 +129,6 @@ public final class Colors {
       cellNotEditableBackground = subtractColor(BACKGROUND, BACKGROUND_GREYOUT);
     }
     return cellNotEditableBackground;
-  }
-
-  static ColorUIResource getCellNotEditableHighlightBackground() {
-    if (cellNotEditableHighlightBackground == null) {
-      cellNotEditableHighlightBackground = subtractColor(HIGHLIGHT_BACKGROUND,
-          BACKGROUND_GREYOUT);
-    }
-    return cellNotEditableHighlightBackground;
-  }
-
-  static ColorUIResource getCellNotEditableWarningBackground() {
-    if (cellNotEditableWarningBackground == null) {
-      cellNotEditableWarningBackground = subtractColor(WARNING_BACKGROUND,
-          BACKGROUND_GREYOUT);
-    }
-    return cellNotEditableWarningBackground;
-  }
-
-  static ColorUIResource getCellNotEditableErrorBackground() {
-    if (cellNotEditableErrorBackground == null) {
-      cellNotEditableErrorBackground = subtractColor(CELL_ERROR_BACKGROUND,
-          BACKGROUND_GREYOUT);
-    }
-    return cellNotEditableErrorBackground;
   }
 
   static ColorUIResource subtractColor(Color color, Color subtractColor) {
@@ -157,6 +145,10 @@ public final class Colors {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.9  2009/02/27 03:52:44  sueh
+ * <p> bug# 1172 Added experimental automation recording background and
+ * <p> border colors.  Bug# 1188 No longer checking version when setting the background colors because Java 1.4 is no longer supported.
+ * <p>
  * <p> Revision 1.8  2007/04/02 21:47:43  sueh
  * <p> bug# 964 Added CELL_DISABLED_FOREGROUND.
  * <p>
