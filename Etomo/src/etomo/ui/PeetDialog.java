@@ -49,6 +49,9 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.95  2009/12/23 03:20:37  sueh
+ * <p> bug# 1296 Improved lstThreshold tooltips.
+ * <p>
  * <p> Revision 1.94  2009/12/23 03:08:27  sueh
  * <p> bug# 1296 Added missing tooltips.
  * <p>
@@ -374,6 +377,8 @@ public final class PeetDialog implements ContextMenu, AbstractParallelDialog,
 
   public static final String FN_OUTPUT_LABEL = "Root name for output";
   public static final String DIRECTORY_LABEL = "Directory";
+  public static final String RUN_LABEL = "Run";
+  public static final String AVERAGE_ALL_LABEL = "Remake Averaged Volumes";
 
   private static final DialogType DIALOG_TYPE = DialogType.PEET;
   private static final String LST_THRESHOLD_START_TITLE = "Start";
@@ -416,7 +421,7 @@ public final class PeetDialog implements ContextMenu, AbstractParallelDialog,
   private final CheckBox cbLstFlagAllTom = new CheckBox(
       "Use equal numbers of particles from all tomograms for averages");
   private final SpacedPanel pnlRunBody = SpacedPanel.getInstance(true);
-  private final MultiLineButton btnRun = new MultiLineButton("Run");
+  private final MultiLineButton btnRun = new MultiLineButton(RUN_LABEL);
   private final JPanel pnlAdvanced = new JPanel();
   private final LabeledSpinner lsParticlePerCPU = new LabeledSpinner(
       "Particles per CPU: ",
@@ -440,7 +445,7 @@ public final class PeetDialog implements ContextMenu, AbstractParallelDialog,
       "Local energy normalized cross correlation",
       MatlabParam.CCMode.NORMALIZED, bgCcMode);
   private final RadioButton rbCcModeLocal = new RadioButton(
-      "True local correlation coefficent", MatlabParam.CCMode.LOCAL, bgCcMode);
+      "Normalized cross-correlation", MatlabParam.CCMode.LOCAL, bgCcMode);
   private final LabeledSpinner lsDebugLevel = new LabeledSpinner(
       "Debug level: ", new SpinnerNumberModel(MatlabParam.DEBUG_LEVEL_DEFAULT,
           MatlabParam.DEBUG_LEVEL_MIN, MatlabParam.DEBUG_LEVEL_MAX, 1),
@@ -457,7 +462,7 @@ public final class PeetDialog implements ContextMenu, AbstractParallelDialog,
   private final CheckBox cbFlgRemoveDuplicates = new CheckBox(
       "Remove duplicates");
   private final MultiLineButton btnAverageAll = new MultiLineButton(
-      "Remake Averaged Volumes");
+      AVERAGE_ALL_LABEL);
   private final CheckBox cbflgAlignAverages = new CheckBox(
       "Align averages to have their Y axes vertical");
 
@@ -494,7 +499,7 @@ public final class PeetDialog implements ContextMenu, AbstractParallelDialog,
     sphericalSamplingForThetaAndPsiPanel = SphericalSamplingForThetaAndPsiPanel
         .getInstance(manager, this);
     phSetup = PanelHeader.getInstance("Setup", this, DIALOG_TYPE);
-    phRun = PanelHeader.getAdvancedBasicInstance("Run", this, DIALOG_TYPE);
+    phRun = PanelHeader.getAdvancedBasicInstance(RUN_LABEL, this, DIALOG_TYPE);
     volumeTable = VolumeTable.getInstance(manager, this);
     iterationTable = IterationTable.getInstance(manager, this);
     //panels
@@ -504,7 +509,7 @@ public final class PeetDialog implements ContextMenu, AbstractParallelDialog,
     createSetupPanel();
     createRunPanel();
     tabPane.add("Setup", pnlSetup.getContainer());
-    tabPane.add("Run", pnlRun);
+    tabPane.add(RUN_LABEL, pnlRun);
     tabPane.addMouseListener(new GenericMouseAdapter(this));
     changeTab();
     setDefaults();
@@ -918,9 +923,9 @@ public final class PeetDialog implements ContextMenu, AbstractParallelDialog,
         .setToolTipText("Use the Initial MOTL file(s) specified in the Volume "
             + "Table.");
     cbRefFlagAllTom
-        .setToolTipText("If checked, approximately the same number of particles "
-            + "from each tomogram will be used to form the reference for the "
-            + "next alignment iteration.  If not, the particles with the highest "
+        .setToolTipText("If checked, attempt to use the same number of particles "
+            + "from each tomogram when forming the reference for the next "
+            + "alignment iteration.  If not, the particles with the highest "
             + "cross-correlation will be used, regardless of which tomograms "
             + "they are drawn from.");
     cbflgAlignAverages
@@ -959,10 +964,10 @@ public final class PeetDialog implements ContextMenu, AbstractParallelDialog,
     ltfSzVolY.setToolTipText(tooltip);
     ltfSzVolZ.setToolTipText(tooltip);
     cbLstFlagAllTom
-        .setToolTipText("Select equal number of particles from each tomogram for "
-            + "averaging, rather than simply choosing particles based on "
-            + "correlation score with no regard for the tomogram in which they "
-            + "occur.");
+        .setToolTipText("If checked, prefer equal number of particles from each "
+            + "tomogram for averaging, rather than simply choosing particles "
+            + "based on correlation score with no regard for the tomogram in "
+            + "which they occur.");
     tooltip = "Start, Incr, and End determine the numbers of particles in an "
         + "arithmetic sequence for which averages will be created.  I.e. "
         + "averages will be created containing Start particles, Start + Incr, "
@@ -1058,8 +1063,8 @@ public final class PeetDialog implements ContextMenu, AbstractParallelDialog,
     pnlCcMode.setLayout(new BoxLayout(pnlCcMode, BoxLayout.Y_AXIS));
     pnlCcMode.setBorder(new EtchedBorder("Cross correlation measure")
         .getBorder());
-    pnlCcMode.add(rbCcModeNormalized.getComponent());
     pnlCcMode.add(rbCcModeLocal.getComponent());
+    pnlCcMode.add(rbCcModeNormalized.getComponent());
     //ParticlePerCPU
     JPanel pnlParticlePerCPU = new JPanel();
     pnlParticlePerCPU.setLayout(new BoxLayout(pnlParticlePerCPU,
