@@ -122,7 +122,7 @@ set qt4libstocopy   = 'QtOpenGL QtNetwork QtCore QtGui QtXml'
 set qt3supportcopy = ""
 set assistantcopy  = 'QtAssistantClient'
 set midasGL         =  "-lQtOpenGL"
-set nogpu           = false
+set nogpu           = ""
 set b3dbyte         = "char"
 set ubyte           = "unsigned char"
 set int16           = "short int"
@@ -226,7 +226,8 @@ while($#argv > 0)
                 breaksw
 
         case -no_gpu:
-                set nogpu = true
+                shift
+                set nogpu = $argv[1]
                 if ($?CUDA_DIR) unsetenv CUDA_DIR
                 breaksw
 
@@ -894,8 +895,8 @@ end
 
 # Take care of .distname file
 #
-if ($distname != "" && $nogpu == true) then
-    set distname = ${distname}_nogpu
+if ($distname != "" && $nogpu != "") then
+    set distname = ${distname}_${nogpu}
 endif
 echo $distname >! .distname
 
@@ -990,8 +991,8 @@ echo "             -static      Link to static Intel libraries"
 echo "             -no_openmp   Do not use OpenMP where available"
 echo "             -no_wrap     Do not put executables in bin/realbin and make"
 echo "                             script wrappers for Intel on Linux"
-echo "             -no_gpu      Build without CUDA even if CUDA_DIR set and"
-echo "                             add _nogpu to package name"
+echo "             -no_gpu name Build without CUDA even if CUDA_DIR set and"
+echo "                             add _name to package name"
 echo "             -packg2c     Pack libg2c into distribution (Linux only)"
 echo "             -qt3         Include Qt3 support in makefiles"
 echo "             -flags       Set flags for compilation"
@@ -1001,6 +1002,9 @@ exit
 
 #
 #  $Log$
+#  Revision 1.56  2010/01/13 20:37:09  mast
+#  Added arg to build without CUDA
+#
 #  Revision 1.55  2009/12/31 20:57:17  mast
 #  Added GPU/CUDA stuff
 #
