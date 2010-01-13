@@ -31,6 +31,9 @@ import etomo.type.Run3dmodMenuOptions;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.2  2009/12/23 02:25:32  sueh
+ * <p> bug# 1296 Stop taking tooltips from peetprm.adoc.
+ * <p>
  * <p> Revision 1.1  2009/12/08 02:47:07  sueh
  * <p> bug# 1286 Factored MaskingPanel out of PeetDialog.
  * <p> </p>
@@ -164,7 +167,7 @@ final class MaskingPanel implements CylinderOrientationParent,
     if (!parametersOnly) {
       ftfMaskTypeVolume.setText(metaData.getMaskTypeVolume());
     }
-    cylinderOrientationPanel.setParameters(metaData);
+    cylinderOrientationPanel.setParameters(metaData, parametersOnly);
   }
 
   /**
@@ -198,7 +201,7 @@ final class MaskingPanel implements CylinderOrientationParent,
     else if (maskType == MatlabParam.MaskType.CYLINDER) {
       rbMaskTypeCylinder.setSelected(true);
     }
-    cylinderOrientationPanel.setParameters(matlabParam);
+    cylinderOrientationPanel.setParameters(matlabParam, parametersOnly);
     radiiOfSphereOrCylinderPanel.setParameters(matlabParam);
   }
 
