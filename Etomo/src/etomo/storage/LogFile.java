@@ -250,8 +250,7 @@ public final class LogFile {
       }
       System.err.println("Unable to rename log file to: "
           + backupFile.getAbsolutePath());
-      System.err.println("lock.isThrowException()="
-          + lock.isThrowException());
+      System.err.println("lock.isThrowException()=" + lock.isThrowException());
       StringBuffer message = new StringBuffer("Unable to rename "
           + file.getAbsolutePath() + " to " + backupFile.getAbsolutePath());
       if (lock.isThrowException()) {
@@ -1369,6 +1368,9 @@ public final class LogFile {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.27  2009/09/01 03:18:06  sueh
+ * <p> bug# 1222
+ * <p>
  * <p> Revision 1.26  2009/03/25 15:32:06  sueh
  * <p> In backup() printing the Lock.throwException state when there is a problem.
  * <p>
