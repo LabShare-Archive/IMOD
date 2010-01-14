@@ -40,7 +40,7 @@ public final class SettingsDialog extends JDialog {
   private final JButton buttonDone = new JButton("Done");
   private final CheckBox cbParallelProcessing = new CheckBox("Enable "
       + ParallelPanel.FIELD_LABEL);
-  private final CheckBox cbGpuProcessing = new CheckBox("Enable GPU processing");
+  private final CheckBox cbGpuProcessing = new CheckBox("Enable graphics processing");
   private final LabeledTextField ltfCpus = new LabeledTextField(
       ProcessorTable.NUMBER_CPUS_HEADER + ": ");
   private final CheckBox cbSingleAxis = new CheckBox(
