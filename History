@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+1/14/09: Fixed a bug in Etomo which happened when the ImodCalib directory did
+exist.
+
 1/14/09: Fixed problem created 1/5/09 with matchvol/warpvol/rotatevol.
 
 1/13/10: Fixed bug in Etomo where it was loading a non-dataset file.  Made some
