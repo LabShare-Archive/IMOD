@@ -470,7 +470,7 @@ final class Autodoc extends WriteOnlyStatementList implements WritableAutodoc {
   }
 
   public boolean exists() {
-    return exists;
+    return exists && autodocFile != null;
   }
 
   private LogFile getAutodocFile(File autodocDir, String autodocName,
@@ -678,6 +678,9 @@ final class Autodoc extends WriteOnlyStatementList implements WritableAutodoc {
 }
 /**
  *<p> $$Log$
+ *<p> $Revision 1.32  2010/01/11 23:57:36  sueh
+ *<p> $bug# 1299 Added exists.
+ *<p> $
  *<p> $Revision 1.31  2009/06/05 02:00:28  sueh
  *<p> $bug# 1219 Added autodocName.
  *<p> $
