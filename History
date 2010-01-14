@@ -1,13 +1,13 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+1/14/09: Fixed problem created 1/5/09 with matchvol/warpvol/rotatevol.
+
 1/13/10: Fixed bug in Etomo where it was loading a non-dataset file.  Made some
 minor changes to the PEET interface.
 
-1/12/10: Fixed bug in Post Processing dialog where the button responded multiple
-times to being pressed.
+1/12/10: Fixed bug in Post Processing dialog where the button responded multiple times to being pressed.
 
-1/11/10: Added a way to set up GPU processing using the cpu.adoc or the Settings
-dialog.  Added a checkbox for running tilt with the GPU to the Tomogram
+1/11/10: Added a way to set up GPU processing using the cpu.adoc or the Settings dialog.  Added a checkbox for running tilt with the GPU to the Tomogram
 Generation dialog.
 
 1/8/09: If the machine list to processchunks is a single number, it is
