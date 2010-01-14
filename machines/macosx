@@ -260,7 +260,8 @@ endif
 #
 if ($?CUDA_DIR) then
     set nvcc_flags = "$nvcc_flags -DUNIX -Xcompiler -fno-strict-aliasing -O3 --host-compilation C"
-    echo "DLLSTOCOPY2 = libcudart libcufft" >> $configure
+    set cudalibs = "-L$CUDA_DIR/lib -lcudart -lcufft -ltlshook"
+    echo "DLLSTOCOPY2 = libcudart libcufft libtlshook" >> $configure
     echo "DLLSOURCEDIR2 = $CUDA_DIR/lib" >> $configure
 endif
 
