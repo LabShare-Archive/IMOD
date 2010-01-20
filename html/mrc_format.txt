@@ -114,7 +114,7 @@ NEW-STYLE MRC image2000 HEADER - IMOD 2.6.20 and above:
 
 4    char    cmap;      Contains "MAP "
 4    char    stamp;     First byte has 17 for big- or 68 for little-endian
-4    float   rms;
+4    float   rms;       RMS deviation of densities from mean density
 
 ALL HEADERS:
 4    int     nlabl;  	Number of labels with useful data.
