@@ -1,6 +1,6 @@
-IMOD Version 3.12.0                     Copyright Notice and Credits
+IMOD Version 4.0.22                     Copyright Notice and Credits
 --------------------------------------------------------------------------
-Except as noted, ALL SOFTWARE LISTED IS Copyright (C) 1994-2007 by
+Except as noted, ALL SOFTWARE LISTED IS Copyright (C) 1994-2010 by
 Boulder Laboratory for 3-Dimensional Electron Microscopy of Cells
 ("BL3DEMC") and the Regents of the University of Colorado.
 
@@ -44,16 +44,20 @@ licenses can be found at  http://bio3d.colorado.edu/imod/openSource
 
 IMOD uses a subset of the LAPACK routines developed at Univ. of
 Tennessee, Univ. of California Berkeley, NAG Ltd., Courant Institute,
-Argonne National Lab, and Rice University.  It also uses a subset of
-the BLAS routines, developed by: Jack Dongarra, Argonne National Lab;
-Jeremy Du Croz, NAG Ltd.; Iain Duff, AERE Harwell; Richard Hanson,
-Sandia National Labs; and Sven Hammarling, NAG Ltd.
+Argonne National Lab, and Rice University.  They is copyrighted by the
+University of Tennessee and covered by a BSD-style license that can be
+found at http://bio3d.colorado.edu/imod/openSource.  IMOD also uses a subset
+of the BLAS routines, developed by: Jack Dongarra, Argonne National Lab;
+Jeremy Du Croz, NAG Ltd.; Iain Duff, AERE Harwell; Richard Hanson, Sandia
+National Labs; and Sven Hammarling, NAG Ltd. 
 
 The program imodwincpu was adapted from code obtained from
-www.codeproject.com and written by Dudi Abramov.
+www.codeproject.com and written by Dudi Abramov.  It is covered by the
+Code Project Open License (CPOL) which can be found at 
+http://bio3d.colorado.edu/imod/openSource
 
 Andrew Noske at the University of Queensland, Australia contributed the
-beadhelper and drawingtools plugins.
+beadhelper, drawingtools, and interpolator plugins.
 
 The isosurface display in 3dmod uses contouring and surface smoothing
 modules from Chimera, developed at the Resource for Biocomputing,
