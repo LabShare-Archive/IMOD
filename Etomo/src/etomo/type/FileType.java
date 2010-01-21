@@ -7,7 +7,7 @@ import etomo.process.ImodManager;
 import etomo.util.DatasetFiles;
 
 /**
- * <p>Description: A type of file associated with a process-level panel.</p>
+ * <p>Description: Types of files used in Etomo.</p>
  * 
  * <p>Copyright: Copyright 2008, 2009</p>
  *
@@ -20,6 +20,10 @@ import etomo.util.DatasetFiles;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.4  2009/12/19 01:10:40  sueh
+ * <p> bug# 1294 Added FIDUCIAL_3D_MODEL and
+ * <p> SMOOTHING_ASSESSMENT_OUTPUT_MODEL.
+ * <p>
  * <p> Revision 1.3  2009/12/11 17:28:21  sueh
  * <p> bug# 1291 Added CCD_ERASER_INPUT and CCD_ERASER_OUTPUT.
  * <p>
@@ -51,6 +55,8 @@ public final class FileType {
       .getStackInstance(ImodManager.FINE_ALIGNED_KEY, true);
   public static final FileType TILT_3D_FIND_OUTPUT = FileType.getStackInstance(
       ImodManager.FULL_VOLUME_3D_FIND_KEY, true);
+  public static final FileType ANISOTROPIC_DIFFUSION_OUTPUT = FileType
+      .getStackInstance(ImodManager.ANISOTROPIC_DIFFUSION_VOLUME_KEY, false);
 
   //models
   public static final FileType CCD_ERASER_BEADS_INPUT_MODEL = FileType
@@ -59,7 +65,8 @@ public final class FileType {
       .getModelInstance(ImodManager.FIDUCIAL_MODEL_KEY);
   public static final FileType FIND_BEADS_3D_OUTPUT_MODEL = FileType
       .getModelInstance();
-  public static final FileType SMOOTHING_ASSESSMENT_OUTPUT_MODEL= FileType.getModelInstance(ImodManager.SMOOTHING_ASSESSMENT_KEY);
+  public static final FileType SMOOTHING_ASSESSMENT_OUTPUT_MODEL = FileType
+      .getModelInstance(ImodManager.SMOOTHING_ASSESSMENT_KEY);
 
   //comscripts
   public static final FileType TRACK_COMSCRIPT = FileType
@@ -182,6 +189,9 @@ public final class FileType {
     if (this == TILT_3D_FIND_OUTPUT) {
       return "_3dfind";
     }
+    if (this==ANISOTROPIC_DIFFUSION_OUTPUT) {
+      return "";
+    }
     //models
     if (this == CCD_ERASER_BEADS_INPUT_MODEL) {
       return "_erase";
@@ -192,7 +202,7 @@ public final class FileType {
     if (this == FIND_BEADS_3D_OUTPUT_MODEL) {
       return "_3dfind";
     }
-    if (this==SMOOTHING_ASSESSMENT_OUTPUT_MODEL) {
+    if (this == SMOOTHING_ASSESSMENT_OUTPUT_MODEL) {
       return "_checkflat";
     }
     //comscripts
@@ -249,6 +259,9 @@ public final class FileType {
     if (this == TILT_3D_FIND_OUTPUT) {
       return ".rec";
     }
+    if (this==ANISOTROPIC_DIFFUSION_OUTPUT) {
+      return ".nad";
+    }
     //models
     if (this == CCD_ERASER_BEADS_INPUT_MODEL) {
       return DatasetFiles.FIDUCIAL_MODEL_EXT;
@@ -259,7 +272,7 @@ public final class FileType {
     if (this == FIND_BEADS_3D_OUTPUT_MODEL) {
       return DatasetFiles.MODEL_EXT;
     }
-    if (this==SMOOTHING_ASSESSMENT_OUTPUT_MODEL) {
+    if (this == SMOOTHING_ASSESSMENT_OUTPUT_MODEL) {
       return ".mod";
     }
     //comscripts
