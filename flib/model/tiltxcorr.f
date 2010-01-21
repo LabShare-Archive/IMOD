@@ -77,7 +77,8 @@ c
       integer*4 ipnt, ipt, numInside, iobjSeed, imodObj, imodCont, ix, iy
       integer*4 limitShiftX, limitShiftY
       real*4 critInside, cosRatio, peakVal, peakLast, xpeakLast, yPeakLast
-      real*4 boundXmin, boundXmax, boundYmin, boundYmax
+      real*4 boundXmin, boundXmax, boundYmin, boundYmax, fracXover, fracYover
+      real*4 fracOverMax
       real*8 wallmask, walltime, wallstart, wallinterp, wallfft
 
       logical*4 tracking
@@ -88,13 +89,13 @@ c
       logical pipinput
       integer*4 numOptArg, numNonOptArg
       integer*4 PipGetInteger,PipGetBoolean
-      integer*4 PipGetString,PipGetFloat, PipGetTwoIntegers
+      integer*4 PipGetString,PipGetFloat, PipGetTwoIntegers, PipGetTwoFloats
       integer*4 PipGetInOutFile, ifpip
 c       
 c       fallbacks from ../../manpages/autodoc2man -2 2  tiltxcorr
 c       
       integer numOptions
-      parameter (numOptions = 28)
+      parameter (numOptions = 38)
       character*(40 * numOptions) options(1)
       options(1) =
      &    'input:InputFile:FN:@piece:PieceListFile:FN:@'//
@@ -104,12 +105,18 @@ c
      &    'offset:AngleOffset:F:@radius1:FilterRadius1:F:@'//
      &    'radius2:FilterRadius2:F:@sigma1:FilterSigma1:F:@'//
      &    'sigma2:FilterSigma2:F:@exclude:ExcludeCentralPeak:B:@'//
-     &    'border:BordersInXandY:IP:@xminmax:XMinAndMax:IP:@'//
-     &    'yminmax:YMinAndMax:IP:@binning:BinningToApply:I:@'//
-     &    'leaveaxis:LeaveTiltAxisShifted:B:@pad:PadsInXandY:IP:@'//
-     &    'taper:TapersInXandY:IP:@views:StartingEndingViews:IP:@'//
+     &    'shift:ShiftLimitsXandY:IP:@border:BordersInXandY:IP:@'//
+     &    'xminmax:XMinAndMax:IP:@yminmax:YMinAndMax:IP:@'//
+     &    'boundary:BoundaryModel:FN:@objbound:BoundaryObject:I:@'//
+     &    'binning:BinningToApply:I:@leaveaxis:LeaveTiltAxisShifted:B:@'//
+     &    'pad:PadsInXandY:IP:@taper:TapersInXandY:IP:@'//
+     &    'views:StartingEndingViews:IP:@'//
      &    'cumulative:CumulativeCorrelation:B:@'//
      &    'absstretch:AbsoluteCosineStretch:B:@nostretch:NoCosineStretch:B:@'//
+     &    'iterate:IterateCorrelations:I:@size:SizeOfPatchesXandY:IP:@'//
+     &    'number:NumberOfPatchesXandY:IP:@'//
+     &    'overlap:OverlapOfPatchesXandY:IP:@seed:SeedModel:FN:@'//
+     &    'objseed:SeedObject:I:@length:LengthAndOverlap:IP:@'//
      &    'test:TestOutput:FN:@param:ParameterFile:PF:@help:usage:B:'
 c       
 c       set defaults here where not dependent on image size
@@ -144,6 +151,9 @@ c
       critInside = 0.75
       limitShiftX = 1000000
       limitShiftY = 1000000
+      fracXover = 0.33
+      fracYover = 0.33
+      fracOverMax = 0.8
       wallmask = 0.
       wallinterp = 0.
       wallfft = 0.
@@ -369,19 +379,32 @@ c         Now check if doing patches and set up regular grid of them
           if (nxPatch .gt. nxuse .or. nyPatch .gt. nyuse)
      &        call exitError('PATCHES DO NOT FIT WITHIN TRIMMED AREA OF IMAGE')
           ierr =PipGetTwoIntegers('NumberOfPatchesXandY', numXpatch, numYpatch)
+          ix = PipGetTwoFloats('OverlapOfPatchesXandY', fracXover, fracYover)
           iobjSeed = PipGetString('SeedModel', filin)
-          if (ierr + iobjSeed .ne. 1) call exitError('YOU MUST ENTER THE '//
-     &        'NUMBER OF PATCHES OR A SEED MODEL, BUT NOT BOTH')
-          if (ierr .eq. 0) then
+          if (ierr + iobjSeed + ix .lt. 2) call exitError('YOU MUST ENTER'//
+     &        ' ONLY ONE OF THE -number, -overlap, OR -seed OPTIONS')
+          if (iobjSeed .ne. 0) then
 c             
-c             Specify regular array of patches
-            if (numXpatch .lt. 1 .or. numYpatch .lt. 1) call exitError(
-     &          'NUMBER OF PATCHES MUST BE POSITIVE')
+c               Specify regular array of patches, either by number
+            if (ierr .eq. 0) then
+              if (numXpatch .lt. 1 .or. numYpatch .lt. 1) call exitError(
+     &            'NUMBER OF PATCHES MUST BE POSITIVE')
+            else
+c               
+c               Or by overlap factors
+              if (fracXover .gt. fracOverMax .or.fracYover .gt. fracOverMax)
+     &            call exitError(
+     &            'FRACTIONAL OVERLAP BETWEEN PATCHES IS TOO HIGH')
+              xOverlap = fracXover * nxPatch
+              yOverlap = fracYover * nyPatch
+              numXpatch=max(1, nint((nxuse - xOverlap) / (nxPatch - xOverlap)))
+              numYpatch=max(1, nint((nyuse - yOverlap) / (nyPatch - yOverlap)))
+            endif
             numPatches = numXpatch * numYpatch
             if (numPatches .gt. limpatch) call exitError(
      &          'TOO MANY PATCHES FOR ARRAYS')
-            xOverlap = (numXpatch * nxPatch - nxuse) / max(1., numXpatch - 1.)
-            yOverlap = (numYpatch * nyPatch - nyuse) / max(1., numYpatch - 1.)
+            xOverlap = (numXpatch * nxPatch - nxuse) / max(1., numXpatch -1.)
+            yOverlap = (numYpatch * nyPatch - nyuse) / max(1., numYpatch -1.)
             do j = 1, numYpatch
               yval = iyst + (j - 1) * (nyPatch - yOverlap) + 0.5 * nyPatch
               if (numYpatch .eq. 1) yval = (iynd + 1 + iyst) / 2.
@@ -468,7 +491,6 @@ c               If enough points are inside, keep the patch
             if (ind .eq. 0) call exitError(
      &          'NO PATCHES ARE SUFFICIENTLY INSIDE THE BOUNDARY CONTOUR(S)')
           endif
-          print *,numPatches,' patches will be tracked'
           nxuse = nxPatch
           nyuse = nyPatch
         elseif (numBound .gt. 0) then
@@ -490,7 +512,9 @@ c           For ordinary correlation with boundary model, adjust ixst etc
       endif
 c       
 c       Set up one patch if no tracking
-      if (.not.tracking) then
+      if (tracking) then
+        print *,numPatches,' patches will be tracked'
+      else
         numPatches = 1
         patchCenX(1) = (ixnd + 1 + ixst) / 2.
         patchCenY(1) = (iynd + 1 + iyst) / 2.
@@ -757,7 +781,7 @@ c             or the box offset on reference view
             call adjustCoord(basetilt, tilt(ivCur), cenx, ceny, x0, y0)
             ixBoxCur = max(-ixstCen, min(nx - 1 - ixndCen, nint(x0)))
             iyBoxCur = max(-iystCen, min(ny - 1 - iyndCen, nint(y0)))
-c            print *,'Box offsets',ixboxref,iyboxref,ixboxcur,iyboxcur
+c            print *,'Box offsets',ipatch,ixboxref,iyboxref,ixboxcur,iyboxcur
 c
             xpeakFrac = 0.
             ypeakFrac = 0.
@@ -1128,7 +1152,7 @@ c         Write Model of tracked points
 c         
 c         Go through patches and put points in model structure
         do ipatch = 1, numPatches
-          ivbase = 0
+          ivbase = izst - 1
           do i = 1, numCont
             max_mod_obj = max_mod_obj + 1
             obj_color(1, max_mod_obj) = 1
@@ -1162,8 +1186,8 @@ c         Set model properties
       endif
       call imclose(1)
 C       
-c      write(*,'(3(a,f9.3))')'interpolation',wallinterp,'  fft',wallfft,
-c     &    '  masking', wallmask
+      write(*,'(3(a,f9.3))')'interpolation',wallinterp,'  fft',wallfft,
+     &    '  masking', wallmask
       WRITE(6,500)
 500   FORMAT(' PROGRAM EXECUTED TO END.')
       call exit(0)
@@ -1189,12 +1213,14 @@ c
       else
         cosFrom = cosd(tiltFrom)
         cosFromLast = cosFrom
+        tiltFromLast = tiltfrom
       endif
       if (tiltto .eq. tiltToLast) then
         cosTo = cosToLast
       else
         cosTo = cosd(tiltTo)
         cosToLast = cosTo
+        tiltToLast = tiltTo
       endif
       tmpRatio = abs(cosTo) / max(abs(cosFrom), 1.e-6)
 c        
@@ -1384,6 +1410,9 @@ c	print *,xpeak,ypeak
 
 c       
 c       $Log$
+c       Revision 3.3  2009/11/13 04:03:51  mast
+c       Moved temp array to common because of stack overflow in Windows
+c
 c       Revision 3.2  2009/10/07 16:28:13  mast
 c       Fixed mean value for masking, added peak value output
 c
