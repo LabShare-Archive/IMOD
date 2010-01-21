@@ -158,6 +158,15 @@ extern "C" {
   int parWrtFindRegion(int secNum, int lineNum, int nlWrite, char **filename, 
                        int *sections, int *startLines);
 
+  /* statfuncs.f */
+  double tValue(double signif, int ndf);
+  double fValue(double signif, int ndf1, int ndf2);
+  double errFunc(double x);
+  double incompBeta(double a, double b, double x);
+  double betaFunc(double p, double q);
+  double gammaFunc(double x);
+  double lnGamma(double x);
+
 #ifdef __cplusplus
 }
 #endif
@@ -168,6 +177,9 @@ extern "C" {
 /*
 
 $Log$
+Revision 3.16  2009/11/28 20:10:20  mast
+Added convexbound and indexed sort
+
 Revision 3.15  2009/11/21 21:16:24  mast
 Added robuststat
 

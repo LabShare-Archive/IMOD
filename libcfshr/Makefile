@@ -16,7 +16,7 @@ UTILOBJS = b3dutil.$(O) ilist.$(O) parselist.$(O) amoeba.$(O) \
 	insidecontour.$(O) islice.$(O) taperatfill.$(O) histogram.$(O) \
 	simplestat.$(O) amat_to_rotmagstr.$(O) percentile.$(O) beadutil.$(O) \
 	lsqr.$(O) lsqrblas.$(O) sparselsqr.$(O) parallelwrite.$(O) \
-	robuststat.$(O) convexbound.$(O)
+	robuststat.$(O) convexbound.$(O) statfuncs.$(O)
 
 PIPOBJS = parse_params.$(O) pip_fwrap.$(O) autodoc.$(O) adoc_fwrap.$(O)
 
@@ -56,6 +56,9 @@ adoc_fwrap.$(O) : $(INCDIR)/autodoc.h
 lsqr.$(O) : $(INCDIR)/lsqr.h cblas.h stdbool.h
 
 #  $Log$
+#  Revision 1.15  2009/11/28 20:09:57  mast
+#  Added convexbound
+#
 #  Revision 1.14  2009/11/21 21:15:25  mast
 #  Added robuststat
 #
