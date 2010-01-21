@@ -56,6 +56,10 @@ www.codeproject.com and written by Dudi Abramov.  It is covered by the
 Code Project Open License (CPOL) which can be found at 
 http://bio3d.colorado.edu/imod/openSource
 
+Routines for computing some statistical functions were adapted from
+S. J. Zhang and J. M. Jin, Computation of Special Functions. New York: John
+Wiley & Sons, 1996 and are copyrighted by the authors and publisher.
+
 Andrew Noske at the University of Queensland, Australia contributed the
 beadhelper, drawingtools, and interpolator plugins.
 
