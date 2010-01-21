@@ -51,6 +51,7 @@ public final class ParallelMetaData extends BaseMetaData {
       "KValue");
   private final EtomoNumber iteration = new EtomoNumber("Iteration");
   private final EtomoNumber memoryPerChunk = new EtomoNumber("MemoryPerChunk");
+  private final EtomoBoolean2 overlapTimesFour=new EtomoBoolean2("OverlapTimesFour");
 
   private DialogType dialogType = DialogType.getDefault(DataFileType.PARALLEL);
   private String revision = null;
@@ -218,6 +219,14 @@ public final class ParallelMetaData extends BaseMetaData {
   public ConstEtomoNumber getMemoryPerChunk() {
     return memoryPerChunk;
   }
+  
+  public void setOverlapTimesFour(boolean input) {
+    overlapTimesFour.set(input);
+  }
+  
+  public boolean isOverlapTimesFour() {
+    return overlapTimesFour.is();
+  }
 
   public void setTestKValue(String input) {
     testKValue.set(input);
@@ -268,6 +277,7 @@ public final class ParallelMetaData extends BaseMetaData {
     kValue.reset();
     iteration.reset();
     memoryPerChunk.reset();
+    overlapTimesFour.reset();
     //load
     dialogType = DialogType.load(DataFileType.PARALLEL, props,
         DialogType.PROPERTIES_KEY);
@@ -291,6 +301,7 @@ public final class ParallelMetaData extends BaseMetaData {
     iteration.load(props, prepend);
     memoryPerChunk.load(props, prepend,
         AnisotropicDiffusionDialog.MEMORY_PER_CHUNK_DEFAULT);
+    overlapTimesFour.load(props,prepend);
   }
 
   public void store(Properties props, String prepend) {
@@ -315,6 +326,7 @@ public final class ParallelMetaData extends BaseMetaData {
     kValue.store(props, prepend);
     iteration.store(props, prepend);
     memoryPerChunk.store(props, prepend);
+    overlapTimesFour.store(props,prepend);
   }
 
   String createPrepend(String prepend) {
@@ -333,6 +345,10 @@ public final class ParallelMetaData extends BaseMetaData {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.8  2009/10/23 19:44:45  sueh
+ * <p> bug# 1275 Separate generic parallel process and NAD but continue to use
+ * <p> the same file type for both.
+ * <p>
  * <p> Revision 1.7  2008/12/10 18:34:05  sueh
  * <p> bug# 1162 Added a manager stamp to setRootName.
  * <p>
