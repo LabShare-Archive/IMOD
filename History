@@ -1,10 +1,13 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+1/21/09: Fixed two bugs in Tiltxcorr patch correlations and allowed the patch
+number to be set by a fractional overlap.
+
 1/21/10: In Etomo added overlap while running nonlinear anisotropic diffusion.
 
 1/19/10: IMOD_4-0-22
 1/14/10: Fixed a bug in Etomo which happened when the ImodCalib directory did
-exist.
+not exist.
 
 1/14/10: Fixed problem created 1/5/10 with matchvol/warpvol/rotatevol.
 

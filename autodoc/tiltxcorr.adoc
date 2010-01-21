@@ -289,10 +289,12 @@ tooltip =
 manpage = Size in X and Y of patches to track by correlation.  This option
 will cause the program to track a set of patches of the given size from the
 starting view to the high tilt view in each direction, and to output the
-positions of the patch centers in an IMOD model.  You must also enter either
-the -number option for a regular array of patches, or the -seed option for
-patches at modeled locations.  This option cannot be used with cumulative
-correlation.
+positions of the patch centers in an IMOD model.  By default, patches will
+overlap in each direction by the default value for the -overlap option (see
+below).  You can change the overlap with the -overlap option, specify the
+number of patches directly with the -number option, or enter a model of
+points to track with the -seed option, but you can enter only one of these
+options.  Patch tracking cannot be used with cumulative correlation.
 
 [Field = NumberOfPatchesXandY]
 short = number
@@ -302,6 +304,17 @@ tooltip =
 manpage = Number of patches in X and Y to track by correlation.  The given
 number of patches will be regularly spaced apart and fill the X and Y ranges
 of the trimmed image area.
+
+[Field = OverlapOfPatchesXandY]
+short = overlap
+type = IP
+usage = Fractional overlap in X and Y between patches (default 0.33, 0.33)
+tooltip =
+manpage = Fractional overlap in X and Y between patches that are tracked by
+correlation.  These overlaps are used to determine the number of patches when
+-number is not entered.  The default, 0.33, 0.33, which will make patches that
+overlap by one-third in each direction.  A value of 0 will result in no
+overlap, and values less than 0 will result in space between the patches.
 
 [Field = SeedModel]
 short = seed
