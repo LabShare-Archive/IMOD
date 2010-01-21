@@ -94,7 +94,11 @@ assert.exists.file=%{subdir}/test.K10.0-128
 assert.exists.file=%{subdir}/test.K10.0-127
 assert.exists.file=%{subdir}/test.K10.0-126
 bn.view-different-iteration-test-results=
-#Filter full volume
+run.function.filter-full-volume=
+
+[function = filter-full-volume]
+assert.cb.overlap-chunks-by-4-times-#-of-iterations=off
+assert.enabled.cb.overlap-chunks-by-4-times-#-of-iterations=
 tf.k-value.1=10
 sp.iterations.1=down
 sp.iterations.1=down
