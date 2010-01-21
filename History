@@ -1,10 +1,12 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-1/19/09: IMOD_4-0-22
-1/14/09: Fixed a bug in Etomo which happened when the ImodCalib directory did
+1/21/10: In Etomo added overlap while running nonlinear anisotropic diffusion.
+
+1/19/10: IMOD_4-0-22
+1/14/10: Fixed a bug in Etomo which happened when the ImodCalib directory did
 exist.
 
-1/14/09: Fixed problem created 1/5/09 with matchvol/warpvol/rotatevol.
+1/14/10: Fixed problem created 1/5/10 with matchvol/warpvol/rotatevol.
 
 1/13/10: Fixed bug in Etomo where it was loading a non-dataset file.  Made some
 minor changes to the PEET interface.
@@ -14,21 +16,21 @@ minor changes to the PEET interface.
 1/11/10: Added a way to set up GPU processing using the cpu.adoc or the Settings dialog.  Added a checkbox for running tilt with the GPU to the Tomogram
 Generation dialog.
 
-1/8/09: If the machine list to processchunks is a single number, it is
+1/8/10: If the machine list to processchunks is a single number, it is
 interpreted as the number of processors to use on the local host.
 
-1/8/09: Converted Taperoutvol to PIP input and added an option that sizes 
+1/8/10: Converted Taperoutvol to PIP input and added an option that sizes 
 should not be increased to be suitable for FFTs; added same option to
 Tomopieces and Chunksetup so NAD chunks can be run with no padding at all.
 
-1/6/09: Made install script copy DLL's out of Microsoft folder into bin for
+1/6/10: Made install script copy DLL's out of Microsoft folder into bin for
 Win2K, added warnings for 64/32-bit mismatch on Linux and Mac.
 
-1/5/09: Fixed pixel offset in drawn lines on some systems.
+1/5/10: Fixed pixel offset in drawn lines on some systems.
 
-1/5/09: Fixed problem with Matchvol not making input array large enough
+1/5/10: Fixed problem with Matchvol not making input array large enough
 
-1/1/09: Tilt can now use use the GPU in a CUDA-capable NVIDIA card for all
+1/1/10: Tilt can now use use the GPU in a CUDA-capable NVIDIA card for all
 forms of backprojection and for reprojection from a reconstruction file not
 involving local alignments.  It also allocates memory as needed for the
 particular reconstruction.  To simplify the code, options for fast
