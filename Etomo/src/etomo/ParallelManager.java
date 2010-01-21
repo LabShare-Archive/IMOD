@@ -25,6 +25,7 @@ import etomo.type.BaseScreenState;
 import etomo.type.BaseState;
 import etomo.type.ConstProcessSeries;
 import etomo.type.DialogType;
+import etomo.type.FileType;
 import etomo.type.InterfaceType;
 import etomo.type.ParallelMetaData;
 import etomo.type.ParallelState;
@@ -147,7 +148,7 @@ public final class ParallelManager extends BaseManager {
 
   protected void createComScriptManager() {
   }
-  
+
   public LogPanel createLogPanel() {
     return LogPanel.getInstance(getManagerKey());
   }
@@ -387,6 +388,28 @@ public final class ParallelManager extends BaseManager {
     }
     subdir.delete();
     return true;
+  }
+
+  public void imod(FileType fileType, final Run3dmodMenuOptions menuOptions,
+      final boolean flip) {
+    File file = fileType.getFile(this, AxisID.ONLY);
+    if (!file.exists()) {
+      uiHarness.openMessageDialog("No file to open", "Entry Error",
+          getManagerKey());
+      return;
+    }
+    try {
+      imodManager.open(fileType.getImodManagerKey(), file, menuOptions, flip);
+    }
+    catch (IOException e) {
+      e.printStackTrace();
+    }
+    catch (SystemProcessException e) {
+      e.printStackTrace();
+    }
+    catch (AxisTypeException e) {
+      e.printStackTrace();
+    }
   }
 
   public void imod(final String key, final File file,
@@ -775,6 +798,11 @@ public final class ParallelManager extends BaseManager {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.41  2009/10/27 20:39:05  sueh
+ * <p> bug# 1275 Moving the resposibility for creating the log panel to the child
+ * <p> classes.  That way the Front Page manager doesn't have to have a log
+ * <p> panel.  Handling a null process manager.
+ * <p>
  * <p> Revision 1.40  2009/10/23 22:22:24  sueh
  * <p> bug# 1275 Made touch() a start function in BaseProcessManager.
  * <p>
