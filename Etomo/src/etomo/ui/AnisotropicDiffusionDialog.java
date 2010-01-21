@@ -41,6 +41,10 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.19  2009/11/20 17:00:30  sueh
+ * <p> bug# 1282 Naming all the file choosers by constructing a FileChooser
+ * <p> instance instead of a JFileChooser instance.
+ * <p>
  * <p> Revision 1.18  2009/09/20 21:31:56  sueh
  * <p> bug# 1268 Added timestamp and dialog identification to log.
  * <p>
@@ -107,19 +111,19 @@ import etomo.util.Utilities;
  * <p> </p>
  */
 public final class AnisotropicDiffusionDialog implements ContextMenu,
-    AbstractParallelDialog, Run3dmodButtonContainer {
+    AbstractParallelDialog, Run3dmodButtonContainer, FilterFullVolumeParent {
   public static final String rcsid = "$Id$";
 
-  public static final int MEMORY_PER_CHUNK_DEFAULT = 14 * ChunksetupParam.MEMORY_TO_VOXEL;
-  public static final String CLEANUP_LABEL = "Clean Up Subdirectory";
+  public static final String CLEANUP_LABEL = FilterFullVolumePanel.CLEANUP_LABEL;
+  public static final String FILTER_FULL_VOLUME_LABEL = FilterFullVolumePanel.FILTER_FULL_VOLUME_LABEL;
+  public static final int MEMORY_PER_CHUNK_DEFAULT = FilterFullVolumePanel.MEMORY_PER_CHUNK_DEFAULT;
+  public static final String MEMORY_PER_CHUNK_LABEL = FilterFullVolumePanel.MEMORY_PER_CHUNK_LABEL;
 
   private static final String K_VALUE_LIST_LABEL = "List of K values: ";
   public static final String ITERATION_LIST_LABEL = "List of iterations: ";
   private static final String K_VALUE_LABEL = "K value: ";
   private static final String ITERATION_LABEL = "Iterations: ";
   private static final DialogType DIALOG_TYPE = DialogType.ANISOTROPIC_DIFFUSION;
-  public static final String MEMORY_PER_CHUNK_LABEL = "Memory per chunk";
-  public static final String FILTER_FULL_VOLUME_LABEL = "Filter Full Volume";
 
   public static final String TEST_VOLUME_NAME = "test.input";
 
@@ -148,18 +152,7 @@ public final class AnisotropicDiffusionDialog implements ContextMenu,
       .getDeferred3dmodInstance("Run with Different Iterations", this);
   private final Run3dmodButton btnViewVaryingIteration = Run3dmodButton
       .get3dmodInstance("View Different Iteration Test Results", this);
-  private final LabeledTextField ltfKValue = new LabeledTextField(K_VALUE_LABEL);
-  private final Spinner spIteration = Spinner.getLabeledInstance(
-      ITERATION_LABEL, 10, 1, 200);
-  private Run3dmodButton btnRunFilterFullVolume = Run3dmodButton
-      .getDeferred3dmodInstance(FILTER_FULL_VOLUME_LABEL, this);
-  private Run3dmodButton btnViewFilteredVolume = Run3dmodButton
-      .get3dmodInstance("View Filtered Volume", this);
-  private final Spinner spMemoryPerChunk = Spinner.getLabeledInstance(
-      MEMORY_PER_CHUNK_LABEL + " (MB): ", MEMORY_PER_CHUNK_DEFAULT,
-      ChunksetupParam.MEMORY_TO_VOXEL, 30 * ChunksetupParam.MEMORY_TO_VOXEL,
-      ChunksetupParam.MEMORY_TO_VOXEL);
-  private final MultiLineButton btnCleanup = new MultiLineButton(CLEANUP_LABEL);
+  private final FilterFullVolumePanel filterFullVolumePanel;
 
   private final RubberbandPanel pnlTestVolumeRubberband;
   private final ParallelManager manager;
@@ -200,22 +193,6 @@ public final class AnisotropicDiffusionDialog implements ContextMenu,
     btnViewVaryingIteration
         .setToolTipText("View the volumes computed with different iteration "
             + "numbers in 3dmod");
-    ltfKValue.setToolTipText("K threshold value for running on full volume");
-    spIteration.setToolTipText("Number of iterations to run on full volume");
-    spMemoryPerChunk
-        .setToolTipText("Maximum memory in megabytes to use while running "
-            + "diffusion on one chunk. Reduce if there is less memory per "
-            + "processor or if you want to break the job into more chunks.  The"
-            + " number of voxels in each chunk will be 1/36 of this memory "
-            + "limit or less.");
-    btnRunFilterFullVolume
-        .setToolTipText("Run diffusion on the full volume in chunks, creates "
-            + "filename.nad");
-    btnViewFilteredVolume
-        .setToolTipText("View filtered volume (filename.nad) in 3dmod");
-    btnCleanup
-        .setToolTipText("Remove subdirectory with all temporary and test files "
-            + "(naddir.filename).");
   }
 
   /**
@@ -240,8 +217,11 @@ public final class AnisotropicDiffusionDialog implements ContextMenu,
   }
 
   private AnisotropicDiffusionDialog(final ParallelManager manager) {
-    System.err.println(Utilities.getDateTimeStamp()+"\nDialog: "+DialogType.ANISOTROPIC_DIFFUSION);
+    System.err.println(Utilities.getDateTimeStamp() + "\nDialog: "
+        + DialogType.ANISOTROPIC_DIFFUSION);
     this.manager = manager;
+    filterFullVolumePanel = FilterFullVolumePanel.getInstance(manager,
+        DIALOG_TYPE, this);
     //root
     rootPanel.setBoxLayout(BoxLayout.X_AXIS);
     if (Utilities.isAprilFools()) {
@@ -344,28 +324,7 @@ public final class AnisotropicDiffusionDialog implements ContextMenu,
     pnlVaryingIterationButtons.addHorizontalGlue();
     pnlVaryingIteration.add(pnlVaryingIterationButtons);
     pnlSecond.add(pnlVaryingIteration);
-    //filter
-    SpacedPanel pnlFilter = SpacedPanel.getInstance();
-    pnlFilter.setBoxLayout(BoxLayout.Y_AXIS);
-    pnlFilter.setBorder(new EtchedBorder(FILTER_FULL_VOLUME_LABEL).getBorder());
-    SpacedPanel pnlFilterFields = SpacedPanel.getInstance();
-    pnlFilterFields.setBoxLayout(BoxLayout.X_AXIS);
-    ltfKValue.setTextPreferredWidth(UIParameters.INSTANCE.getFourDigitWidth());
-    pnlFilterFields.add(ltfKValue);
-    pnlFilterFields.add(spIteration);
-    pnlFilterFields.add(spMemoryPerChunk);
-    pnlFilter.add(pnlFilterFields);
-    SpacedPanel pnlFilterButtons = SpacedPanel.getInstance();
-    pnlFilterButtons.setBoxLayout(BoxLayout.X_AXIS);
-    btnRunFilterFullVolume.setDeferred3dmodButton(btnViewFilteredVolume);
-    btnRunFilterFullVolume.setSize();
-    pnlFilterButtons.add(btnRunFilterFullVolume);
-    btnViewFilteredVolume.setSize();
-    pnlFilterButtons.add(btnViewFilteredVolume);
-    btnCleanup.setSize();
-    pnlFilterButtons.add(btnCleanup);
-    pnlFilter.add(pnlFilterButtons);
-    pnlSecond.add(pnlFilter);
+    pnlSecond.add(filterFullVolumePanel.getComponent());
     rootPanel.add(pnlSecond);
     setToolTipText();
   }
@@ -388,9 +347,6 @@ public final class AnisotropicDiffusionDialog implements ContextMenu,
     btnViewVaryingK.addActionListener(listener);
     btnRunVaryingIteration.addActionListener(listener);
     btnViewVaryingIteration.addActionListener(listener);
-    btnRunFilterFullVolume.addActionListener(listener);
-    btnViewFilteredVolume.addActionListener(listener);
-    btnCleanup.addActionListener(listener);
     rootPanel.addMouseListener(new GenericMouseAdapter(this));
   }
 
@@ -429,13 +385,11 @@ public final class AnisotropicDiffusionDialog implements ContextMenu,
     metaData.setTestIteration(spTestIteration.getValue());
     metaData.setTestKValue(ltfTestKValue.getText());
     metaData.setTestIterationList(ltfTestIterationList.getText());
-    metaData.setKValue(ltfKValue.getText());
-    metaData.setIteration(spIteration.getValue());
-    metaData.setMemoryPerChunk(spMemoryPerChunk.getValue());
+    filterFullVolumePanel.getParameters(metaData);
   }
 
   public Number getMemoryPerChunk() {
-    return spMemoryPerChunk.getValue();
+    return filterFullVolumePanel.getMemoryPerChunk();
   }
 
   public void setParameters(final ParallelMetaData metaData) {
@@ -447,9 +401,7 @@ public final class AnisotropicDiffusionDialog implements ContextMenu,
     spTestIteration.setValue(metaData.getTestIteration());
     ltfTestKValue.setText(metaData.getTestKValue());
     ltfTestIterationList.setText(metaData.getTestIterationList());
-    ltfKValue.setText(metaData.getKValue());
-    spIteration.setValue(metaData.getIteration());
-    spMemoryPerChunk.setValue(metaData.getMemoryPerChunk());
+    filterFullVolumePanel.setParameters(metaData);
     initSubdir();
   }
 
@@ -500,12 +452,11 @@ public final class AnisotropicDiffusionDialog implements ContextMenu,
 
   public void getParameters(AnisotropicDiffusionParam param) {
     param.setSubdirName(subdirName);
-    param.setKValue(ltfKValue.getText());
-    param.setIteration(spIteration.getValue());
+    filterFullVolumePanel.getParameters(param);
   }
 
   public void getParameters(ChunksetupParam param) {
-    param.setMemoryPerChunk(spMemoryPerChunk.getValue());
+    filterFullVolumePanel.getParameters(param);
     param.setCommandFile(AnisotropicDiffusionParam.getFilterFullFileName());
     param.setSubdirName(subdirName);
     param.setInputFile(ftfVolume.getFileName());
@@ -528,7 +479,7 @@ public final class AnisotropicDiffusionDialog implements ContextMenu,
    * Initialized subdirName if is not already initialized
    * @return false if ftfVolume is empty (subdirName is dependent on ftfVolume)
    */
-  private boolean initSubdir() {
+  public boolean initSubdir() {
     if (ftfVolume.isEmpty()) {
       UIHarness.INSTANCE.openMessageDialog(
           "Please choose a volume before running this function.",
@@ -540,6 +491,20 @@ public final class AnisotropicDiffusionDialog implements ContextMenu,
       manager.makeSubdir(subdirName);
     }
     return true;
+  }
+
+  public void cleanUp() {
+    if (subdirName != null && manager.deleteSubdir(subdirName)) {
+      subdirName = null;
+    }
+  }
+
+  public String getVolume() {
+    return ftfVolume.getFileAbsolutePath();
+  }
+
+  public boolean isLoadWithFlipping() {
+    return cbLoadWithFlipping.isSelected();
   }
 
   private void action(final String command,
@@ -565,21 +530,6 @@ public final class AnisotropicDiffusionDialog implements ContextMenu,
       manager.anisotropicDiffusionVaryingIteration(subdirName, null,
           deferred3dmodButton, run3dmodMenuOptions, DIALOG_TYPE);
     }
-    else if (command.equals(btnRunFilterFullVolume.getActionCommand())) {
-      if (!initSubdir()) {
-        return;
-      }
-      if (!manager.setupAnisotropicDiffusion()) {
-        return;
-      }
-      manager.chunksetup(null, deferred3dmodButton, run3dmodMenuOptions,
-          DIALOG_TYPE);
-    }
-    else if (command.equals(btnCleanup.getActionCommand())) {
-      if (subdirName != null && manager.deleteSubdir(subdirName)) {
-        subdirName = null;
-      }
-    }
     else if (command.equals(btnViewFullVolume.getActionCommand())) {
       manager.imod(ImodManager.VOLUME_KEY, ftfVolume.getFile(),
           run3dmodMenuOptions, cbLoadWithFlipping.isSelected());
@@ -597,11 +547,6 @@ public final class AnisotropicDiffusionDialog implements ContextMenu,
       manager.imodVaryingIteration(ImodManager.VARYING_ITERATION_TEST_KEY,
           run3dmodMenuOptions, subdirName, TEST_VOLUME_NAME, cbLoadWithFlipping
               .isSelected());
-    }
-    else if (command.equals(btnViewFilteredVolume.getActionCommand())) {
-      manager.imod(ImodManager.ANISOTROPIC_DIFFUSION_VOLUME_KEY, new File(
-          getOutputFileName(ftfVolume.getFileAbsolutePath())),
-          run3dmodMenuOptions, cbLoadWithFlipping.isSelected());
     }
   }
 
