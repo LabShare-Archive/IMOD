@@ -9,7 +9,7 @@
 #
 # Global setup
 #
-set imod_copyright    = '1994-2009'
+set imod_copyright    = '1994-2010'
 set lab_name1     = 'Boulder Laboratory for 3-Dimensional'
 set lab_name2     = 'Electron Microscopy of Cells'
 set source_dir    = `pwd`
@@ -1002,6 +1002,9 @@ exit
 
 #
 #  $Log$
+#  Revision 1.57  2010/01/13 21:31:51  mast
+#  Make -no_gpu specify the name to provide
+#
 #  Revision 1.56  2010/01/13 20:37:09  mast
 #  Added arg to build without CUDA
 #
