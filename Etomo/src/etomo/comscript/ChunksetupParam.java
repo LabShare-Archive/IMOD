@@ -9,7 +9,7 @@ import etomo.type.EtomoNumber;
 import etomo.type.ProcessName;
 
 /**
- * <p>Description: </p>
+ * <p>Description: Chunksetup for NAD.</p>
  * 
  * <p>Copyright: Copyright 2006</p>
  *
@@ -21,12 +21,16 @@ import etomo.type.ProcessName;
  * 
  * @version $Revision$
  * 
- * <p> $Log$ </p>
+ * <p> $Log$
+ * <p> Revision 1.1  2007/11/06 19:05:45  sueh
+ * <p> bug# 1047 Represents the parameters of chunksetup.
+ * <p> </p>
  */
 public final class ChunksetupParam {
   public static final String rcsid = "$Id$";
 
   public static final int MEMORY_TO_VOXEL = 36;
+  private static final int OVERLAP_MIN = 8;
 
   private final List command = new ArrayList();
   private final EtomoNumber megavoxelsPerChunk = new EtomoNumber();
@@ -36,6 +40,11 @@ public final class ChunksetupParam {
   private String inputFile = "";
   private String outputFile = "";
   private boolean debug = true;
+  private int overlap = OVERLAP_MIN;
+  private boolean overlapTimesFour = false;
+
+  public ChunksetupParam() {
+  }
 
   public void setMemoryPerChunk(Number memory) {
     megavoxelsPerChunk.set(memory.intValue() / MEMORY_TO_VOXEL);
@@ -57,21 +66,47 @@ public final class ChunksetupParam {
     outputFile = input;
   }
 
+  /**
+   * @param input should be an Integer
+   */
+  public void setOverlap(Number input) {
+    overlap = input.intValue();
+  }
+
+  public void setOverlapTimesFour(boolean input) {
+    overlapTimesFour = input;
+  }
+
   private void buildCommand() {
     command.clear();
     command.add("tcsh");
     command.add("-f");
     command.add(BaseManager.getIMODBinPath()
         + ProcessName.CHUNKSETUP.toString());
+    command.add("-p");
+    command.add("0");
+    command.add("-o");
+    //Set -o to overlap or 4 times overlap.  Minimum is OVERLAP_MIN.
+    int calcOverlap = overlap;
+    if (overlapTimesFour) {
+      calcOverlap *= 4;
+    }
+    if (calcOverlap < OVERLAP_MIN) {
+      command.add(String.valueOf(OVERLAP_MIN));
+    }
+    else {
+      command.add(String.valueOf(calcOverlap));
+    }
     command.add("-m");
     command.add(megavoxelsPerChunk.toString());
+    command.add("-no");
     File subdir = new File(subdirName);
     command.add(new File(subdir, commandFile).getPath());
     command.add(".." + File.separator + inputFile);
     command.add(".." + File.separator + outputFile);
     if (debug) {
-      for (int i = 0;i<command.size();i++) {
-        System.err.print(command.get(i)+" ");
+      for (int i = 0; i < command.size(); i++) {
+        System.err.print(command.get(i) + " ");
       }
       System.err.println();
     }
