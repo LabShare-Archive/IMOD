@@ -3,6 +3,9 @@
  *  $Id$
  *
  *  $Log$
+ *  Revision 1.4  2008/05/27 01:51:40  mast
+ *  Added color ramp options
+ *
  *  Revision 1.3  2008/03/06 00:11:55  mast
  *  Added option to make scale bars vertical
  *
@@ -34,6 +37,9 @@ typedef struct scale_bar {
 } ScaleBar;
 
 float scaleBarDraw(int winx, int winy, float zoom, int background);
+float scaleBarAssess(int winx, int winy, float zoom, int &pixlen, int &xst,
+                     int &yst, int &xsize, int &ysize);
+void scaleBarTestAdjust(int winx, int winy, float zoom);
 void scaleBarUpdate();
 void scaleBarOpen();
 ScaleBar *scaleBarGetParams();
