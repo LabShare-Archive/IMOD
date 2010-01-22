@@ -66,15 +66,15 @@ void scaleBarClosing()
 }
 
 /*
- * Draw a scale bar for a window, called from inside its paint routine
+ * Assess the scale bar length and start and size for pixel drawing 
  */
-float scaleBarDraw(int winx, int winy, float zoom, int background)
+float scaleBarAssess(int winx, int winy, float zoom, int &pixlen, int &xst,
+                     int &yst, int &xsize, int &ysize)
 {
   Imod *imod;
   double expon, minlen, loglen, normlen, custlen;
   float truelen, pixsize;
-  int xst, yst, color, pixlen, xsize, ysize, i, j, red, green, blue, index;
-  GLboolean depthEnabled;
+  int i, j;
   if (!params.draw || !sbDia)
     return -1.;
 
@@ -117,6 +117,69 @@ float scaleBarDraw(int winx, int winy, float zoom, int background)
   yst = params.indentY;
   if (params.position == 2 || params.position == 3)
     yst = winy - params.indentY - ysize;
+  //imodPrintStderr("SBA: minLength  %d  indentX  %d  normlen %f truelen %f zoom %f\n", params.minLength,
+  //              params.indentX, normlen, truelen, zoom);
+  return truelen;
+}
+
+/*
+ * Test size of scale bar for a montage snapshot and adjust to fit in one
+ * panel
+ */
+void scaleBarTestAdjust(int winx, int winy, float zoom)
+{
+  int pixlen,barXst,barYst, barXsize, barYsize, minIndent, lengthLim;
+  float truelen;
+  truelen = scaleBarAssess(winx, winy, zoom, pixlen,
+                           barXst, barYst, barXsize, barYsize);
+  if (truelen > 0 && (barXst < 0 || barYst < 0 || barXst + barXsize >= 
+                      winx || barYst + barYsize >= winy)) {
+          
+    // Need to get the bar all in one panel: first adjust the indent
+    minIndent = B3DMIN(params.indentX, params.indentY);
+    while ((barXst < 0 || barYst < 0 || barXst + barXsize >= winx ||
+            barYst + barYsize >= winy) && 
+           (params.indentX >minIndent || params.indentY > minIndent)) {
+      if (params.indentX > minIndent)
+        params.indentX--;
+      if (params.indentY > minIndent)
+        params.indentY--;
+      scaleBarAssess(winx, winy, zoom, pixlen, barXst,
+                     barYst, barXsize, barYsize);
+    }
+    lengthLim = params.minLength / 2;
+    while ((barXst < 0 || barYst < 0 || barXst + barXsize >= winx ||
+            barYst + barYsize >= winy) && params.minLength > lengthLim) {
+      params.minLength--;
+      scaleBarAssess(winx, winy, zoom, pixlen, barXst,
+                     barYst, barXsize, barYsize);
+    }
+    if (barXst < 0 || barYst < 0 || barXst + barXsize >= winx ||
+        barYst + barYsize >= winy) {
+      imodPrintStderr("Scale bar cannot be adjusted to fit in one "
+                      "panel\n");
+      params.draw = false;
+    } else
+      imodPrintStderr("Scale bar position or size was adjusted to fit "
+                      "in one panel\n");
+  }
+}
+
+/*
+ * Draw a scale bar for a window, called from inside its paint routine
+ */
+float scaleBarDraw(int winx, int winy, float zoom, int background)
+{
+  Imod *imod;
+  float truelen;
+  int xst, yst, color, pixlen, xsize, ysize, i, j, red, green, blue, index;
+  GLboolean depthEnabled;
+
+  truelen = scaleBarAssess(winx, winy, zoom, pixlen, xst, yst, xsize, ysize);
+  if (truelen < 0)
+    return truelen;
+  /*imodPrintStderr("Actual zoom in draw call %f   truelen  %f\n", zoom, truelen);
+    imodPrintStderr("SBD: %d %d %d %d %d %d %d\n", winx, winy, pixlen, xst, yst, xsize, ysize);*/
 
   // Disable depth test and enable at end
   depthEnabled = glIsEnabled(GL_DEPTH_TEST);
@@ -202,6 +265,9 @@ void scaleBarRedraw()
 /*
 
 $Log$
+Revision 1.8  2009/05/08 02:18:21  mast
+Fixed for binned data
+
 Revision 1.7  2009/01/15 16:33:18  mast
 Qt 4 port
 
