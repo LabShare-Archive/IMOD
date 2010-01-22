@@ -59,13 +59,28 @@ whatever windows are open.  Values are shown for the most recently active
 (top) Zap, Slicer, and Multi-Z windows, as well as for the XYZ and Model View
 windows if they are open.
 <P>
-<B>Montage snapshots:</B> You should not need to adjust the scale bar
+<B>Montage snapshots:</B> You may need to adjust the scale bar
 properties if you want to take a high-resolution montage snapshot of the Zap
 or Model
-View windows.  Scale bar size and indentation are automatically scaled up by
+View windows.  
+Scale bar size and indentation are automatically scaled up by
 the montaging factor so that the bar will appear proportionally the same in the
-snapshot as in the original window.  In each case, the actual length of the
+snapshot as in the original window.  
+However, this scaled up bar must be located entirely in one of the montage
+panels (e.g., in the bottom right quarter of the window if montaging by 4).
+If the bar does not fit in a panel with the properties that you have set,
+the program will first try to shift the bar toward the corner of the image
+by reducing the indentation in the direction of the bar length
+(X for a horizontal bar).  If that change is not sufficient, it then tries to
+shorten the bar by reducing
+the minimum length of the bar in pixels to as little as half of the original
+setting.  A message is printed indicating either that such changes were made,
+or that the bar cannot be drawn with the current settings.  In the latter
+case, or if you do not like the changes that were made, you can adjust the
+settings yourself to position the bar completely within one panel.
+<P>
+In any case, the actual length of the
 scale bar for the montage is printed on the terminal, since it is possible
-that the length would be different from that in the original window.
+for the length to be different from that in the original window.
 <P>
 <A HREF=index.html>Help Index<A>
