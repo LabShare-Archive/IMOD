@@ -38,6 +38,7 @@ EXPORTS
 	numOMPthreads
 	ADOCGETINTEGERARRAY
 	PipGetNonOptionArg
+	PIPENABLEENTRYOUTPUT
 	ilistPop
 	AdocGetTwoFloats
 	b3dFwrite
@@ -69,7 +70,9 @@ EXPORTS
 	PipGetString
 	IMODBACKUPFILE
 	PipNumberOfArgs
+	fValue
 	ilistTruncate
+	incompBeta
 	b3dFread
 	ADOCGETFLOATARRAY
 	sumsToAvgSD
@@ -141,6 +144,8 @@ EXPORTS
 	sliceSplitFill
 	PipReadOrParseOptions
 	lsFitPred
+	DFVALUE
+	PIPPRINTENTRIES
 	TAPEROUTPAD
 	PIPGETTHREEINTEGERS
 	ADOCGETINTEGER
@@ -149,8 +154,6 @@ EXPORTS
 	AdocSetFloat
 	sliceTaperInPad
 	PipPrintHelp
-	PipPrintEntries
-	PipEnableEntryOutput
 	rsMADN
 	AMAT_TO_ROTMAGSTR
 	ADOCSETINTEGER
@@ -178,6 +181,7 @@ EXPORTS
 	RSSORTFLOATS
 	AdocSetTwoIntegers
 	cblas_dcopy
+	errFunc
 	PIPREADSTDINIFSET
 	PARWRTPROPERTIES
 	imodProgName
@@ -201,6 +205,7 @@ EXPORTS
 	XCORRPEAKFIND
 	rsMedian
 	XCorrCCCoefficient
+	tValue
 	PIPGETINTEGERARRAY
 	XCorrSetCTF
 	PipParseInput
@@ -211,10 +216,12 @@ EXPORTS
 	PIPADDOPTION
 	ADOCSETCURRENT
 	PipMemoryError
+	lnGamma
 	RSMEDIAN
 	ADOCGETTHREEINTEGERS
 	PIPGETNONOPTIONARG
 	CONVEXBOUND
+	ERRFUNC
 	ADOCDELETEKEYVALUE
 	LSFITPRED
 	ADDROWTOMATRIX
@@ -232,8 +239,10 @@ EXPORTS
 	AdocSetCurrent
 	PIPNEXTARG
 	ADOCADDSECTION
+	DTVALUE
 	fgetline
 	exitError
+	betaFunc
 	imodCopyright
 	ilistPush
 	cblas_dnrm2
@@ -255,8 +264,6 @@ EXPORTS
 	sliceFree
 	lsFit
 	PIPPRINTHELP
-	PIPPRINTENTRIES
-	PIPENABLEENTRYOUTPUT
 	TAPERINPAD
 	rsSortFloats
 	scaledSobel
@@ -265,6 +272,7 @@ EXPORTS
 	AdocGetFloatArray
 	makeModelBead
 	cblas_dscal
+	PipEnableEntryOutput
 	WALLTIME
 	PIPINITIALIZE
 	B3DHEADERITEMBYTES
@@ -277,6 +285,7 @@ EXPORTS
 	AdocDone
 	imodVersion
 	SMOOTHOUTPAD
+	INCOMPBETA
 	SCALEDSOBEL
 	AdocAddSection
 	cblas_daxpy
@@ -290,3 +299,4 @@ EXPORTS
 	PIPEXITONERROR
 	PipGetThreeIntegers
 	XCorrFilterPart
+	PipPrintEntries
