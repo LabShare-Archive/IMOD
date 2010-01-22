@@ -542,8 +542,10 @@ static void imodvMakeMontage(int frames, int overlap)
       if ((((barpos == 0 || barpos == 3) && ix == frames - 1) ||
            ((barpos == 1 || barpos == 2) && !ix)) &&
           (((barpos == 2 || barpos == 3) && iy == frames - 1) ||
-           ((barpos == 0 || barpos == 1) && !iy))) 
+           ((barpos == 0 || barpos == 1) && !iy))) {
         barReal->draw = barSaved.draw;
+        scaleBarTestAdjust(a->winx, a->winy, scrnscale);
+      }
       imodvDraw(a);
 
       // Print scale bar length if it was drawn
@@ -622,6 +624,9 @@ static void imodvMakeMontage(int frames, int overlap)
 
 /*
     $Log$
+    Revision 4.21  2009/03/22 19:54:25  mast
+    Show with new geometry adjust routine for Mac OS X 10.5/cocoa
+
     Revision 4.20  2009/01/15 16:33:18  mast
     Qt 4 port
 

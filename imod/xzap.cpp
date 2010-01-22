@@ -3768,8 +3768,10 @@ static void montageSnapshot(ZapStruct *zap, int snaptype)
       if ((((barpos == 0 || barpos == 3) && ix == factor - 1) ||
            ((barpos == 1 || barpos == 2) && !ix)) &&
           (((barpos == 2 || barpos == 3) && iy == factor - 1) ||
-           ((barpos == 0 || barpos == 1) && !iy))) 
+           ((barpos == 0 || barpos == 1) && !iy))) {
         barReal->draw = barSaved.draw;
+        scaleBarTestAdjust(zap->winx, zap->winy, zap->zoom);
+      }
       
       zap->xtrans = -(xTransStart + ix * xTransDelta);
       zap->ytrans = -(yTransStart + iy * yTransDelta);
@@ -4719,6 +4721,9 @@ static void setDrawCurrentOnly(ZapStruct *zap, int value)
 /*
 
 $Log$
+Revision 4.149  2009/11/11 19:28:46  mast
+Changes for hot key to break contour
+
 Revision 4.148  2009/09/02 18:41:02  mast
 Fixed crash when adding with limited points per contour and empty contours
 
