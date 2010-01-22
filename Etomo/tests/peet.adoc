@@ -200,7 +200,7 @@ mb.parallel-processing=-
 [[if = test-values]]
 	#ccmode should have changed when flgwedgeweight was checked
 	mb.run.1=A
-	assert.rb.true-local-correlation-coefficent=on
+	assert.rb.normalized-cross-correlation=on
 	rb.local-energy-normalized-cross-correlation=
 	mb.run.1=B
 [[]]
@@ -225,13 +225,9 @@ bn.run=
 wait.process.processchunks-%{dataset}=done
 [[if = test-gui]]
 	#test remake averages
-	tf.start=2
-	tf.incr=2
 	bn.remake-averaged-volumes=
 	wait.process.running-averageall=done
 	bn.open-averaged-volumes-in-3dmod=
-	tf.start=3
-	tf.incr=3
 [[]]
 
 
@@ -273,8 +269,9 @@ tf.iteration-table-1-angular-search-range.4=%{angular-search-range-max}
 #check psi incr empty error
 run.function.test-run-error=
 tf.iteration-table-1-angular-search-range.5=%{angular-search-range-incr}
-#check search radius empty error
+#check search radius error checking
 run.function.test-run-error=
+tf.iteration-table-1-search=5,5
 tf.iteration-table-1-search=5
 #check cutoff empty error
 run.function.test-run-error=
@@ -320,6 +317,8 @@ tf.iteration-table-1-reference=4
 	bn.move-down=
 	assert.tf.iteration-table-2-angular-search-range=99
 	bn.delete-row=
+	#make sure search radius works with an array
+	tf.iteration-table-1-search=5,5,5
 [[]]
 
 
@@ -538,5 +537,5 @@ assert.contains.file==pi.prm|"lstThresholds = [3:3:9, 4]"
 rb.local-energy-normalized-cross-correlation==
 save==
 assert.contains.file==pi.prm|"CCMode = 0"
-rb.true-local-correlation-coefficent==
+rb.normalized-cross-correlation==
 KeyValueDelimiter == =
