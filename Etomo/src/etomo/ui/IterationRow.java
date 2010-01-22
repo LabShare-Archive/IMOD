@@ -23,6 +23,9 @@ import etomo.type.EtomoNumber;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.22  2009/12/23 02:24:15  sueh
+ * <p> bug# 1296 Stop taking tooltips from peetprm.adoc.  Added tooltips to the actual fields in the tables instead of the column headers.
+ * <p>
  * <p> Revision 1.21  2009/12/01 15:21:03  sueh
  * <p> bug# 1282 In validateRun() made the EtomoNumber type match the type
  * <p> of the number being validated.
@@ -369,25 +372,25 @@ final class IterationRow implements Highlightable {
 
   boolean validateRun() {
     //Phi
-    EtomoNumber d = new EtomoNumber(EtomoNumber.Type.DOUBLE);
-    EtomoNumber i = new EtomoNumber();
-    d.set(dPhiMax.getValue());
-    if (!validateRun(dPhiMax.isEmpty(), d, new String[] {
+    EtomoNumber nDouble = new EtomoNumber(EtomoNumber.Type.DOUBLE);
+    EtomoNumber nInteger = new EtomoNumber();
+    nDouble.set(dPhiMax.getValue());
+    if (!validateRun(dPhiMax.isEmpty(), nDouble, new String[] {
         IterationTable.D_PHI_D_THETA_D_PSI_HEADER1,
         IterationTable.D_PHI_HEADER2, IterationTable.MAX_HEADER3 },
         "Use 0 to not search on the angle.")) {
       return false;
     }
-    d.set(dPhiIncrement.getValue());
-    if (!validateRun(dPhiIncrement.isEmpty(), d, new String[] {
+    nDouble.set(dPhiIncrement.getValue());
+    if (!validateRun(dPhiIncrement.isEmpty(), nDouble, new String[] {
         IterationTable.D_PHI_D_THETA_D_PSI_HEADER1,
         IterationTable.D_PHI_HEADER2, IterationTable.INCR_HEADER3 }, null)) {
       return false;
     }
     //Theta
     if (dThetaMax.isEnabled()) {
-      d.set(dThetaMax.getValue());
-      if (!validateRun(dThetaMax.isEmpty(), d, new String[] {
+      nDouble.set(dThetaMax.getValue());
+      if (!validateRun(dThetaMax.isEmpty(), nDouble, new String[] {
           IterationTable.D_PHI_D_THETA_D_PSI_HEADER1,
           IterationTable.D_THETA_HEADER2, IterationTable.MAX_HEADER3 },
           "Use 0 to not search on the angle.")) {
@@ -395,8 +398,8 @@ final class IterationRow implements Highlightable {
       }
     }
     if (dThetaIncrement.isEnabled()) {
-      d.set(dThetaIncrement.getValue());
-      if (!validateRun(dThetaIncrement.isEmpty(), d, new String[] {
+      nDouble.set(dThetaIncrement.getValue());
+      if (!validateRun(dThetaIncrement.isEmpty(), nDouble, new String[] {
           IterationTable.D_PHI_D_THETA_D_PSI_HEADER1,
           IterationTable.D_THETA_HEADER2, IterationTable.INCR_HEADER3 }, null)) {
         return false;
@@ -404,8 +407,8 @@ final class IterationRow implements Highlightable {
     }
     //Psi
     if (dPsiMax.isEnabled()) {
-      d.set(dPsiMax.getValue());
-      if (!validateRun(dPsiMax.isEmpty(), d, new String[] {
+      nDouble.set(dPsiMax.getValue());
+      if (!validateRun(dPsiMax.isEmpty(), nDouble, new String[] {
           IterationTable.D_PHI_D_THETA_D_PSI_HEADER1,
           IterationTable.D_PSI_HEADER2, IterationTable.MAX_HEADER3 },
           "Use 0 to not search on the angle.")) {
@@ -413,19 +416,45 @@ final class IterationRow implements Highlightable {
       }
     }
     if (dPsiIncrement.isEnabled()) {
-      d.set(dPsiIncrement.getValue());
-      if (!validateRun(dPsiIncrement.isEmpty(), d, new String[] {
+      nDouble.set(dPsiIncrement.getValue());
+      if (!validateRun(dPsiIncrement.isEmpty(), nDouble, new String[] {
           IterationTable.D_PHI_D_THETA_D_PSI_HEADER1,
           IterationTable.D_PSI_HEADER2, IterationTable.INCR_HEADER3 }, null)) {
         return false;
       }
     }
     //search radius
-    i.set(searchRadius.getValue());
-    if (!validateRun(searchRadius.isEmpty(), i, new String[] {
-        IterationTable.SEARCH_RADIUS_HEADER1,
-        IterationTable.SEARCH_RADIUS_HEADER2 }, null)) {
-      return false;
+    String searchRadiusString = searchRadius.getValue().trim();
+    String[] headerArray = new String[] { IterationTable.SEARCH_RADIUS_HEADER1,
+        IterationTable.SEARCH_RADIUS_HEADER2 };
+    nInteger.set(searchRadiusString);
+    if (searchRadius.isEmpty() || nInteger.isValid()) {
+      if (!validateRun(searchRadius.isEmpty(), nInteger, headerArray, null)) {
+        return false;
+      }
+    }
+    else {
+      //If its not a single number then it must be a list of three numbers
+      //divided by "," or " ".
+      String[] searchRadiusArray = searchRadiusString.split("\\s*,\\s*");
+      if (searchRadiusArray.length != 3) {
+        searchRadiusArray = searchRadiusString.split("\\s+");
+        if (searchRadiusArray.length != 3) {
+          UIHarness.INSTANCE.openMessageDialog(IterationTable.LABEL
+              + ":  In row " + number.toString()
+              + buildHeaderDescription(headerArray)
+              + " must have either 1 or 3 elements.", "Entry Error", manager
+              .getManagerKey());
+          return false;
+        }
+      }
+      //Validate each number in the array.
+      for (int i = 0; i < searchRadiusArray.length; i++) {
+        nInteger.set(searchRadiusArray[i]);
+        if (!validateRun(false, nInteger, headerArray, null)) {
+          return false;
+        }
+      }
     }
     //hiCutoff
     if (!validateRun(hiCutoff.isEmpty(), null, new String[] {
@@ -447,21 +476,21 @@ final class IterationRow implements Highlightable {
     }
     //duplicateShiftTolerance
     if (duplicateShiftTolerance.isEnabled()) {
-      i.set(duplicateShiftTolerance.getValue());
-      if (!validateRun(duplicateShiftTolerance.isEmpty(), i, new String[] {
-          IterationTable.DUPLICATE_TOLERANCE_HEADER1,
-          IterationTable.DUPLICATE_TOLERANCE_HEADER2,
-          IterationTable.DUPLICATE_SHIFT_TOLERANCE_HEADER3 }, null)) {
+      nInteger.set(duplicateShiftTolerance.getValue());
+      if (!validateRun(duplicateShiftTolerance.isEmpty(), nInteger,
+          new String[] { IterationTable.DUPLICATE_TOLERANCE_HEADER1,
+              IterationTable.DUPLICATE_TOLERANCE_HEADER2,
+              IterationTable.DUPLICATE_SHIFT_TOLERANCE_HEADER3 }, null)) {
         return false;
       }
     }
     //duplicateAngularTolerance
     if (duplicateAngularTolerance.isEnabled()) {
-      i.set(duplicateAngularTolerance.getValue());
-      if (!validateRun(duplicateAngularTolerance.isEmpty(), i, new String[] {
-          IterationTable.DUPLICATE_TOLERANCE_HEADER1,
-          IterationTable.DUPLICATE_TOLERANCE_HEADER2,
-          IterationTable.DUPLICATE_ANGULAR_TOLERANCE_HEADER3 }, null)) {
+      nInteger.set(duplicateAngularTolerance.getValue());
+      if (!validateRun(duplicateAngularTolerance.isEmpty(), nInteger,
+          new String[] { IterationTable.DUPLICATE_TOLERANCE_HEADER1,
+              IterationTable.DUPLICATE_TOLERANCE_HEADER2,
+              IterationTable.DUPLICATE_ANGULAR_TOLERANCE_HEADER3 }, null)) {
         return false;
       }
     }
