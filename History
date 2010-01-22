@@ -1,5 +1,7 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+1/21/10: In Etomo - PEET fixed problem with the validation of searchRadius.
+
 1/21/10: Made zap and model view montage snapshots with scale bar try to
 adjust position and size to keep bar within one panel of the montage.
 
