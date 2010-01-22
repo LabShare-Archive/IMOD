@@ -1,6 +1,9 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-1/21/09: Fixed two bugs in Tiltxcorr patch correlations and allowed the patch
+1/21/10: Made zap and model view montage snapshots with scale bar try to
+adjust position and size to keep bar within one panel of the montage.
+
+1/21/10: Fixed two bugs in Tiltxcorr patch correlations and allowed the patch
 number to be set by a fractional overlap.
 
 1/21/10: In Etomo added overlap while running nonlinear anisotropic diffusion.
