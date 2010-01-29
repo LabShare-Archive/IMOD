@@ -45,11 +45,11 @@
 
 <hr />
 
-<h3><a NAME="Introduction to PEET"></a>1. Introdution to PEET</h3>
+<h3><a NAME="Introduction to PEET"></a>1. Introcdution to PEET</h3>
 
-<p>PEET is a set of programs to align and average particles extracted
-from 3D volumes.&nbsp;  It finds the optimal alignment of each
-particle with a reference volume through several iterations.&nbsp;
+<p>PEET is a set of programs, separate from IMOD, to align and average
+particles extracted from 3D volumes.&nbsp;  It finds the optimal alignment of
+each particle with a reference volume through several iterations.&nbsp;
 Subsequent iterations refine the optimal alignment found in the
 previous iteration by aligning to a new reference generated from some
 of the particles aligned on the previous iteration.&nbsp;  It has a
@@ -278,10 +278,16 @@ compensate averages and correlation coefficients for the effects of
 the tomographic "missing wedge".&nbsp;  This option is disabled by 
 default.&nbsp; 
 To enable it, check <b>Use tilt range in averaging</b> in the "Missing
-Wedge Compensation" checkbox group.&nbsp; If you have a corresponding
-Tilt File (.tlt), you can transfer the appropriate values from the
+Wedge Compensation" checkbox group.&nbsp; If you have a file with tilt
+angles for this tomogram,
+you can transfer the appropriate values from the
 file to the table by pressing the <b>Read Tilt File</b> button beneath
-the table.&nbsp;  Tilt range must be specified in order to use missing 
+the table.&nbsp; The default type of file is a "tilt.log", whose angles will
+always be correct.
+You can also change the filter in the file chooser to select a ".tlt" file,
+whose angles will be correct as long as the no additional angle offset was
+entered when running the Tilt program.&nbsp;
+Tilt range must be specified in order to use missing 
 wedge compensation.</p>
 </TD>
 
