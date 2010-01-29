@@ -96,6 +96,10 @@ void cubinterp(float *array, float *bray, int nxa, int nya, int nxb, int nyb,
     xst = 1;
     xnd = nxb;
     linefb = 0;
+
+    /* Solve for limits in X of region that comes from safe range in X,
+       or set up the line not to be done or to be done as fallback if the
+       source in X is determined by xbase */
     if (fabs((double)a11) > 1.e-10) {
       xlft = (2.01 - xbase) / a11;
       xrt = (nxa - 1.01 - xbase) / a11;
@@ -107,6 +111,9 @@ void cubinterp(float *array, float *bray, int nxa, int nya, int nxb, int nyb,
       if (xbase >= 0.5 || xbase <= nxa+0.5)
         linefb = 1;
     }
+
+    /* Solve for limits in X of region from safe range in Y and combine these
+       with the previous limits, or use the value of ybase */
     if (fabs((double)a21) > 1.e-10) {
       xlft = (2.01 - ybase) / a21;
       xrt = (nya - 1.01 - ybase) / a21;
@@ -119,20 +126,20 @@ void cubinterp(float *array, float *bray, int nxa, int nya, int nxb, int nyb,
         linefb = 1;
     }
      
-    /* truncate the ending value down and the starting value up but do not
+    /* Truncate the ending value down and the starting value up but do not
        pay any attention to xst bigger than nxb + 1 */
     ixnd = xnd;
     ixst = nxb + 1 - (int)(nxb + 1 - B3DMIN(xst, nxb + 1.));
      
-    /* if they're crossed, set them up so fill will do whole line */
+    /* If they're crossed, set them up so fill will do whole line.
+       Otherwise, set up fallback region limits depending on whether doing 
+       2 pixels or whole line */
     if (ixst > ixnd) {
       ixst = nxb / 2;
       ixnd = ixst - 1;
-    }
-     
-    /* set up fallback region limits depending on whether doing 2 pixels
-       or whole line */
-    if (linefb == 0) {
+      ixfbst = ixst;
+      ixfbnd = ixnd;
+    } else if (linefb == 0) {
       ixfbst = B3DMAX(1, ixst - 2);
       ixfbnd = B3DMIN(nxb, ixnd + 2);
     } else {
@@ -140,13 +147,13 @@ void cubinterp(float *array, float *bray, int nxa, int nya, int nxb, int nyb,
       ixfbnd = nxb;
     }
      
-    /* do fill outside of fallback */
+    /* Do fill outside of fallback */
     for (ix = 1; ix <= ixfbst - 1 ; ix++)
       bray[ix + ixbase] = dmean;
     for (ix = ixfbnd + 1; ix <= nxb; ix++)
       bray[ix + ixbase] = dmean;
      
-    /* do fallback to quadratic with tests */
+    /* Do fallback to quadratic with tests */
     iqst = ixfbst;
     iqnd = ixst - 1;
     for (ifall = 1; ifall <= 2; ifall++) {
@@ -175,7 +182,7 @@ void cubinterp(float *array, float *bray, int nxa, int nya, int nxb, int nyb,
             if (iypp1 > nya)
               iypp1 = nya;
 
-      /* set up terms for quadratic interpolation */
+            /* set up terms for quadratic interpolation */
             v2 = array[ixp + (iypm1 - 1) * llnxa - 1];
             v4 = array[ixpm1 + (iyp - 1) * llnxa - 1];
             v5 = array[ixp + (iyp - 1) * llnxa - 1];
@@ -297,6 +304,9 @@ void cubinterpfwrap(float *array, float *bray, int *nxa, int *nya, int *nxb,
 /*
 
 $Log$
+Revision 1.6  2009/06/22 22:47:40  mast
+Call new function to get thread number as controlled by OMP_NUM_THREADS
+
 Revision 1.5  2009/06/16 04:23:52  mast
 Parallelized with OpenMP
 
