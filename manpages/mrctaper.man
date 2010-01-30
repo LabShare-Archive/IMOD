@@ -35,7 +35,7 @@ Operate only on sections from
 .B min
 to
 .B max.
-If a new output file is being
+Sections are numbered from 0.  If a new output file is being
 created, it will contain only the sections from min to max in the input file.
 .SH FILES
 If no output file name is given, the data are written back into the input file.
