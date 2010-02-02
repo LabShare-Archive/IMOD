@@ -50,8 +50,8 @@ DDEESSCCRRIIPPTTIIOONN
   RunSeparately 0).  The mag gradient file must also be specified with
   GradientFile.
 
-  At the end of the serach for each section or group of sections, the program
-  prints a summary of the number of iterations in the serach, the final error,
+  At the end of the search for each section or group of sections, the program
+  prints a summary of the number of iterations in the search, the final error,
   and the gradient values.  The latter values are in addition to any initial
   gradient specified by a gradient file, so they would be entered into
   Blendmont(1) with the AddToGradient option.
