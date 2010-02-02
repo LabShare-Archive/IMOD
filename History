@@ -1,5 +1,10 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+2/1/10: IMOD_4-0-23
+2/1/10: Fixed allocation of local alignment arrays in Tilt when reprojecting.
+Made it print angles on setup run for parallel processing.  Set link parameters
+to get GPU working on Mac.
+
 1/21/10: In Etomo - PEET fixed problem with the validation of searchRadius.
 
 1/21/10: Made zap and model view montage snapshots with scale bar try to
