@@ -1459,7 +1459,7 @@ c
       real*4 gpuMemoryFrac
       integer*4 nViewsReproj, iwideReproj, k, ind1, ind2, ifExpWeight
       integer*4 memoryGPU, minMemory, nGPU,iactGpuFailOption,iactGpuFailEnviron
-      integer*4 ifGpuByEnviron, memNeed
+      integer*4 ifGpuByEnviron, memNeed, indDelta
       logical*4 adjustOrigin, projModel, readw_or_imod
       integer*4 niceframe, parWrtInitialize, gpuAvailable, imodGetEnv
       integer*4 gpuAllocArrays, allocateArray, gpuLoadLocals, gpuLoadFilter
@@ -1858,7 +1858,28 @@ c
         write(6,2301)globalpha
         if(abs(globalpha).gt.1.e-5.and.ifalpha.eq.0)ifalpha=1
       endif
-c       
+c
+C       REPROJECT entry must be read in before local alignments
+c       violates original unless a blank entry is allowed
+      ierr = PipNumberOfEntries('REPROJECT', nument)
+      do j = 1, nument
+        nfields = 0
+        ierr = PipGetFloatArray('REPROJECT',  xnum, nfields, limnum)
+        if (nfields.eq.0) then
+          nfields = 1
+          xnum(1) = 0.
+        endif
+        if (nfields + nreproj .gt. limreproj) call exitError(
+     &      'TOO MANY REPROJECTION ANGLES FOR ARRAYS')
+        do i = 1, nfields
+          nreproj = nreproj + 1
+          angReproj(nreproj) = xnum(i)
+          cosReproj(nreproj) = cos(dtor * xnum(i))
+          sinReproj(nreproj) = sin(dtor * xnum(i))
+        enddo      
+        if (j. eq. 1)WRITE(6,3101)
+        reproj=.not.recReproj
+      enddo
 c       
       if (PipGetString('LOCALFILE', card) .eq. 0) then
         call dopen(3,card,'ro','f')
@@ -1879,11 +1900,22 @@ c         read(3,*)nxwarp,nywarp,ixswarp,iyswarp,idxwarp,idywarp
         idywarp=nint(xnum(6))
         limwpos = nxwarp*nywarp
         limwarp = nxwarp*nywarp*nviews
+        ipos = limwarp
+        indDelta = nviews
+c         
+c         If reprojecting rec, make sure arrays are big enough for all the 
+c         reprojections and  allocate extra space at top of some arrays for
+c         temporary use
+        if (recReproj) then
+          indDelta = max(nviews, nreproj)
+          limwarp = nxwarp * nywarp * indDelta
+          ipos = limwarp + indDelta
+        endif
         if (nxwarp .lt. 2 .or. nywarp .lt. 2) call exitError(
      &      'THERE MUST BE AT LEAST TWO LOCAL ALIGNMENT AREAS IN X AND IN Y')
-        allocate(indwarp(limwpos), delalpha(limwarp),cwarpb(limwarp),
-     &      swarpb(limwarp), cwarpa(limwarp),swarpa(limwarp),fw(2,3,limwarp),
-     &      delbeta(limwarp),warpXZfac(limwarp),warpYZfac(limwarp), stat=ierr)
+        allocate(indwarp(limwpos), delalpha(ipos),cwarpb(limwarp),
+     &      swarpb(limwarp), cwarpa(limwarp),swarpa(limwarp),fw(2,3,ipos),
+     &      delbeta(ipos),warpXZfac(ipos),warpYZfac(ipos), stat=ierr)
         if (ierr .ne. 0) call exitError(
      &      'ALLOCATING ARRAYS FOR LOCAL ALIGNMENT DATA')
         indbase=0
@@ -1913,7 +1945,7 @@ c
           do i=1,nviews
             call xfread(3,fw(1,1,i+indbase),2410,2410)
           enddo
-          indbase=indbase+nviews
+          indbase=indbase+indDelta
         enddo
         close(3)
         write(6,2401)
@@ -1954,27 +1986,6 @@ c       Read environment variable first, then override by entry
       useGPU = nGPU .ge. 0
       ierr = PipGetTwoIntegers('ActionIfGPUFails', iactGpuFailOption, 
      &    iactGpuFailEnviron)
-C       
-c       violates original unless a blank entry is allowed
-      ierr = PipNumberOfEntries('REPROJECT', nument)
-      do j = 1, nument
-        nfields = 0
-        ierr = PipGetFloatArray('REPROJECT',  xnum, nfields, limnum)
-        if (nfields.eq.0) then
-          nfields = 1
-          xnum(1) = 0.
-        endif
-        if (nfields + nreproj .gt. limreproj) call exitError(
-     &      'TOO MANY REPROJECTION ANGLES FOR ARRAYS')
-        do i = 1, nfields
-          nreproj = nreproj + 1
-          angReproj(nreproj) = xnum(i)
-          cosReproj(nreproj) = cos(dtor * xnum(i))
-          sinReproj(nreproj) = sin(dtor * xnum(i))
-        enddo      
-        if (j. eq. 1)WRITE(6,3101)
-        reproj=.not.recReproj
-      enddo
 c       
       if (PipGetString('ZFACTORFILE', card) .eq. 0) then
         call dopen(3,card,'ro','f')
@@ -3892,7 +3903,7 @@ c                       Loop on points from last one to final one
                         ix = xx
                         fx = xx - ix
                         omfx = 1. - fx
-                        iy = yy
+                        iy = min(int(yy), inloadend - 1)
                         fy = yy - iy
                         omfy = 1. - fy
                         iz = zz + ycen
@@ -4028,7 +4039,7 @@ c       constant mean levels.  Descale non-log data by exposure weights
       numVals = iwide * (lineEnd + 1 - lineStart) 
       if (iflog .ne. 0) then
         val = alog10(projMean + baselog) - ithickReproj * pmean / cbet(iv)
-        if (debug) print *,iv,line,val
+        if (debug) print *,iv,lineStart, lineEnd,val
         do i = 1, numVals
           reprojLines(i) = 10**(reprojLines(i) + val) - baselog
         enddo
@@ -4039,8 +4050,8 @@ c       constant mean levels.  Descale non-log data by exposure weights
       endif
       do i = 1, numVals
         val = reprojLines(i)
-        if (debug .and. val .lt. dmin) print *,'min:',i,val
-        if (debug .and. val .gt. dmax) print *,'max:',i,val
+c        if (debug .and. val .lt. dmin) print *,'min:',i,val
+c        if (debug .and. val .gt. dmax) print *,'max:',i,val
         dmin = min(dmin, val)
         dmax = max(dmax, val)
         dtot8 = dtot8 + val
@@ -4193,6 +4204,10 @@ c       Set to open contour, show values etc., and show sphere on section only
 
 c       
 c       $Log$
+c       Revision 3.52  2010/01/10 17:19:24  mast
+c       Pass args to limit GPU allocation error messages, limit request for
+c       projection array to 32760 lines
+c
 c       Revision 3.51  2010/01/04 15:50:44  mast
 c       Fix format
 c
