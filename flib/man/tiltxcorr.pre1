@@ -132,7 +132,7 @@ DDEESSCCRRIIPPTTIIOONN
   contour, the image intensity inside the unmasked region is tapered down to
   the mean at the edge over the course of 16 pixels, equivalent to running
   Mrctaper(1) on the image.  This tapering may help prevent artifacts due to
-  sharp edges, but it is not done if there is more than one image.  If
+  sharp edges, but it is not done if there is more than one contour.  If
   tapering and the inclusion of separated areas are both important, use a
   single contour with a narrow connector between them, but take care that the
   contour does not cross itself.
