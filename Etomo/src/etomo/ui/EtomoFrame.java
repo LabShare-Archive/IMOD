@@ -924,7 +924,7 @@ abstract class EtomoFrame extends JFrame {
     if (axisID != AxisID.SECOND) {
       return mainFrame;
     }
-    if (mainPanel.isShowingBothAxis() && subFrame != null) {
+    if (mainPanel != null && mainPanel.isShowingBothAxis() && subFrame != null) {
       return subFrame;
     }
     return mainFrame;
@@ -933,6 +933,10 @@ abstract class EtomoFrame extends JFrame {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.46  2009/11/24 00:44:00  sueh
+ * <p> bug# 1289 On New PEET, calling PeetManager.isInterfaceAvaiable before
+ * <p> opening PEET interface.
+ * <p>
  * <p> Revision 1.45  2009/11/20 17:04:12  sueh
  * <p> bug# 1282 Naming all the file choosers by constructing a FileChooser
  * <p> instance instead of a JFileChooser instance.  Added isMenuSaveEnabled to
