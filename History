@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+2/4/10: Allowed Etomo to reconnect to process where the computer system time had
+changed by up to one minute.
+
 2/1/10: IMOD_4-0-23
 2/1/10: Fixed allocation of local alignment arrays in Tilt when reprojecting.
 Made it print angles on setup run for parallel processing.  Set link parameters
