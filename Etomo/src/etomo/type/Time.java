@@ -113,17 +113,16 @@ public final class Time{
   }
 
   /**
-   * True if anotherTime equals the instance or equals the instance except for
-   * an off-by-one error in seconds.
+   * True if anotherTime equals the instance give or take one minute.
    * @param anotherTime
    * @return
    */
   public boolean almostEquals(Time anotherTime) {
-    return Math.abs(getTime() - anotherTime.getTime()) <= 60;
+    return Math.abs(getTime() - anotherTime.getTime()) <= 3600;
   }
   
   /**
-   * Gets total time in seconds
+   * Gets total time in milliseconds
    * @return
    */
   private long getTime() {
@@ -132,6 +131,9 @@ public final class Time{
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.4  2006/08/01 20:06:32  sueh
+ * <p> Fixed almostEquals - difference should be compared with 60
+ * <p>
  * <p> Revision 1.3  2006/06/07 21:05:26  sueh
  * <p> bug# 766 Fixed parseHoursMinutesAMPM
  * <p>
