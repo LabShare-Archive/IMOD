@@ -876,7 +876,6 @@ c
           ixStart = 1 + nEdgePixels + (nxuse - nxScan) * (iScanX - 1) /
      &        max(1, numScanX - 1)
           ixEnd = ixStart + nxScan - 1
-c           print *,'scanning',ixStart, ixEnd,iyStart,iyEnd
           if (iScanX .eq. numScanX) ixEnd = nx - nEdgePixels
 c           
 c           get statistics and scan for points outside the reduced criterion
@@ -885,7 +884,6 @@ c
           call iclavgsd(array, nx, ny, ixStart, ixEnd, iyStart, iyEnd,
      &        dmin, dmax, sum8, sumsq8, scanAvg, scanSd)
           scanCrit = critScan * scanSd
-
           do iy = iyStart, iyEnd
             do ix = ixStart, ixEnd
               if (abs(array(ix,iy) - scanAvg) .gt. scanCrit) then
@@ -924,19 +922,19 @@ c
                 jys = max(1, iyPeak - iouter)
                 jyn = min(ny, iyPeak + iouter)
                 nsum = 0
-                sum = 0.
-                sumsq = 0.
+                sum8 = 0.
+                sumsq8 = 0.
                 do jy = jys,jyn
                   do jx = jxs, jxn
                     radSq = (jx - ixPeak)**2 + (jy - iyPeak)**2
                     if (radSq .gt. radMaxSq .and. radSq .le. outerSq) then
                       nsum = nsum +1
-                      sum = sum + array(jx,jy)
-                      sumsq = sumsq + array(jx,jy)**2
+                      sum8 = sum8 + array(jx,jy)
+                      sumsq8 = sumsq8 + array(jx,jy)**2
                     endif
                   enddo
                 enddo
-                call sums_to_avgsd(sum, sumsq, nsum, ringAvg, ringSd)
+                call sums_to_avgsd8(sum8, sumsq8, nsum, 1, ringAvg, ringSd)
 c                 
 c                 Make sure the peak passes the main criterion
 c                 
@@ -1475,12 +1473,15 @@ c       Look at all pixels in range, add to object at new base
       
 c       
 c       $Log$
+c       Revision 3.26  2008/12/09 16:04:36  mast
+c       Added an imposn before reading data to get this off bug list
+c
 c       Revision 3.25  2008/07/15 17:29:15  mast
 c       Allowed order 0 to take mean of border points instead of fitting
 c
 c       Revision 3.24  2008/03/04 21:27:34  mast
-c       Fixed dimension for fitting array to match max # of patches, fixed merging
-c       of circles, increased maximum linear extent of patch
+c       Fixed dimension for fitting array to match max # of patches, fixed 
+c       merging of circles, increased maximum linear extent of patch
 c
 c       Revision 3.23  2008/01/10 15:32:47  mast
 c       Scale incoming model to current image file, not file it was built on
