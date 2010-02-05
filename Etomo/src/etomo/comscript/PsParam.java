@@ -213,11 +213,16 @@ public final class PsParam {
    * @param startTime
    */
   public boolean findRow(String pid, String groupPid, Time startTime) {
+    System.err.println("Looking for a ps row with pid=" + pid + ",groupPid="
+        + groupPid + ",startTime=" + startTime);
     for (int i = 0; i < valuesArray.size(); i++) {
       Values values = (Values) valuesArray.get(i);
-      if (values.getPid().equals(pid) && values.getGroupPid().equals(groupPid)
-          && values.getStartTime().almostEquals(startTime)) {
-        return true;
+      if (values.getPid().equals(pid) && values.getGroupPid().equals(groupPid)) {
+        System.err.println("Checking the startTime of a ps row with pid=" + pid
+            + ",groupPid=" + groupPid + ",startTime=" + startTime);
+        if (values.getStartTime().almostEquals(startTime)) {
+          return true;
+        }
       }
     }
     return false;
@@ -338,6 +343,9 @@ public final class PsParam {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.9  2010/01/11 23:49:01  sueh
+ * <p> bug# 1299 Added isMessageReporter.
+ * <p>
  * <p> Revision 1.8  2009/12/08 02:39:12  sueh
  * <p> bug# 1286 Changed command to COMMAND.
  * <p>
