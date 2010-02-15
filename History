@@ -1,5 +1,7 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+2/14/10: Fixed turning off off spherical points in model view base on value.
+
 2/5/10: Fixed problem with Ccderaser removing way too many points in data with 
 low counts starting at -32768 (i.e., from FEI software).
 
