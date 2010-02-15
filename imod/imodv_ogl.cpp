@@ -995,10 +995,13 @@ static void imodvPick_Contours(Iobj *obj, double zscale, int drawTrans)
     glLoadName(co);
     glPushName(NO_NAME);
     for (pt = 0; pt < cont->psize; pt++) {
+      ptProps.gap = 0;
       if (nextChange == pt)
         nextChange = ifgHandleNextChange(obj, cont->store, &contProps, 
                                          &ptProps, &stateFlags, 
                                          &changeFlags, handleFlags, 0);
+      if (ptProps.gap && ptProps.valskip)
+        continue;
       glLoadName(pt);
       glBegin(GL_POINTS);
       glVertex3fv((GLfloat *)&(cont->pts[pt]));
@@ -1044,7 +1047,8 @@ static void imodvPick_Contours(Iobj *obj, double zscale, int drawTrans)
             break;
           npt = 0;
         }
-      }
+      } else if (ptProps.gap && ptProps.valskip)
+        continue;
       glLoadName(pt);
       glBegin(pmode);
       glVertex3fv((GLfloat *)&(cont->pts[pt]));
@@ -1182,6 +1186,7 @@ static void imodvDraw_contours(Iobj *obj, int mode, int drawTrans)
       glPointSize(ptProps.linewidth + thickAdd);
       glBegin(GL_POINTS);
       for (; pt < cont->psize; pt++) {
+        ptProps.gap = 0;
 
         // For points, implement change before point is drawn
         if (nextChange == pt) {
@@ -1213,7 +1218,8 @@ static void imodvDraw_contours(Iobj *obj, int mode, int drawTrans)
             glBegin(GL_POINTS);
           }
         }
-        glVertex3fv((GLfloat *)&(cont->pts[pt]));
+        if (!ptProps.gap || !ptProps.valskip)
+          glVertex3fv((GLfloat *)&(cont->pts[pt]));
       }
       glEnd();
 
@@ -1673,7 +1679,9 @@ static void imodvDraw_spheres(Iobj *obj, double zscale, int style,
       drawsize = imodPointGetSize(obj, cont, pt) / xybin;
 
       // Only draw zero-size points with scattered point objects
-      if (!iobjScat(obj->flags) && !drawsize) 
+      // Skip points only if values are outside range, not if a line gap
+      if ((!iobjScat(obj->flags) && !drawsize) || 
+          (ptProps.gap && ptProps.valskip)) 
         continue;
 
       glLoadName(pt);
@@ -2546,6 +2554,9 @@ static void drawCurrentClipPlane(ImodvApp *a)
 /*
 
 $Log$
+Revision 4.46  2009/03/10 04:39:33  mast
+Fix handling of current point display to stay on model point in model mode
+
 Revision 4.45  2008/12/01 15:42:01  mast
 Changes for undo/redo and selection in 3dmodv standalone
 
