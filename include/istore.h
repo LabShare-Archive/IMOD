@@ -101,6 +101,7 @@ typedef struct draw_properties
   int symflags;
   int symsize;
   float value1;
+  int valskip;    /* Flag that gap is set because of skipping lo/hi values */
 } DrawProps;
 /* END_CODE */
 
@@ -173,6 +174,9 @@ extern "C" {
 
 /*    
 $Log$
+Revision 3.13  2009/09/03 04:34:33  mast
+Added definition of general value2
+
 Revision 3.12  2008/11/12 03:43:24  mast
 Added function for find/set min/min
 
