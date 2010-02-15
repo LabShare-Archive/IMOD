@@ -731,6 +731,7 @@ static void handleContChange(Iobj *obj, int co, int surf, DrawProps *contProps,
 
   *ptProps = *contProps;
   ptProps->gap = 0;
+  ptProps->valskip = 0;
 
   if (handleFlags & HANDLE_LINE_COLOR) {
     if (App->rgba)
@@ -1217,13 +1218,16 @@ static void ifgHandleValue1(DrawProps *defProps, DrawProps *contProps,
                             int *stateFlags, int *changeFlags)
 {
   int index;
+  contProps->valskip = 0;
   if (valConstant) {
 
     // For constant color drawing, just set gaps
     if (*stateFlags & CHANGED_VALUE1) {
       index = valSlope * (contProps->value1 - valMin);
-      if (index < skipLow || index > skipHigh)
+      if (index < skipLow || index > skipHigh) {
         contProps->gap = 1;
+        contProps->valskip = 1;
+      }
     }
     return;
   } else if (*stateFlags & CHANGED_VALUE1) {
@@ -1235,9 +1239,11 @@ static void ifgHandleValue1(DrawProps *defProps, DrawProps *contProps,
     if (index > 255)
       index = 255;
     
-    if (index < skipLow || index > skipHigh)
+    if (index < skipLow || index > skipHigh) {
       contProps->gap = 1;
-
+      contProps->valskip = 1;
+    }
+                
     contProps->red = valueCmap[0][index] / 255.;
     contProps->green = valueCmap[1][index] / 255.;
     contProps->blue = valueCmap[2][index] / 255.;
@@ -1252,6 +1258,9 @@ static void ifgHandleValue1(DrawProps *defProps, DrawProps *contProps,
 /*
 
 $Log$
+Revision 1.17  2009/03/22 19:54:24  mast
+Show with new geometry adjust routine for Mac OS X 10.5/cocoa
+
 Revision 1.16  2009/03/10 04:38:44  mast
 Added ability change multiple contours, option for drawing connections,
 and value output
