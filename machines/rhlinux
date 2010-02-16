@@ -182,7 +182,10 @@ if ($compiler == intel) then
     endif
 else
     set optimization = "-O3 -w"
-    if ($debug == true) set optimization = "-ggdb -O0 -Wno-unused-parameter -Wimplicit -Wreturn-type"
+    if ($debug == true) then
+        set optimization = "-ggdb -O0 -Wno-unused-parameter"
+        set ccompFlags = ($ccompFlags -Wimplicit -Wreturn-type)
+    endif
 endif
 
 # 4/8/04: Use intermediate variables to simplify all the defines that are needed
