@@ -1,7 +1,14 @@
-all: single dual single-test-gui dual-test-gui single-fidless single-simple-align generic single-montage dual-montage single-montage-test-gui dual-montage-test-gui join join-test-processes nad peet peet-test-gui
-recon: single dual single-test-gui dual-test-gui single-fidless single-simple-align single-montage dual-montage single-montage-test-gui dual-montage-test-gui
-build: single dual single-fidless single-simple-align generic single-montage dual-montage join nad peet
-bc: single-test-gui dual-test-gui dual-montage-test-gui
+all: single dual single-test-gui dual-test-gui single-fidless single-simple-align single-montage dual-montage single-montage-test-gui dual-montage-test-gui join join-test-gui generic nad peet peet-test-gui flatten-volume flatten-volume-test-gui
+build: single dual single-fidless single-simple-align single-montage dual-montage join generic nad peet
+test-gui: single-test-gui dual-test-gui single-montage-test-gui dual-montage-test-gui join-test-gui peet-test-gui
+edf: single dual single-test-gui dual-test-gui single-fidless single-simple-align single-montage dual-montage single-montage-test-gui dual-montage-test-gui
+ejf: join join-test-gui
+epp: generic nad
+epe: peet peet-test-gui
+bb: single dual single-test-gui dual-test-gui single-fidless single-simple-align single-montage dual-montage single-montage-test-gui dual-montage-test-gui generic
+midzone2: single-montage dual-montage single-montage-test-gui dual-montage-test-gui
+unicross: join join-test-gui nad
+pi: peet peet-test-gui
 temp: 
 
 single: dummy
@@ -26,8 +33,8 @@ dual-montage-test-gui: dummy
 	$(IMOD_UITEST_SCRIPT)/uitest dual-montage-test-gui
 join: dummy
 	$(IMOD_UITEST_SCRIPT)/uitest join
-join-test-processes: dummy
-	$(IMOD_UITEST_SCRIPT)/uitest join-test-processes
+join-test-gui: dummy
+	$(IMOD_UITEST_SCRIPT)/uitest join-test-gui
 nad: dummy
 	$(IMOD_UITEST_SCRIPT)/uitest nad
 peet: dummy
@@ -36,5 +43,9 @@ peet-test-gui: dummy
 	$(IMOD_UITEST_SCRIPT)/uitest peet-test-gui
 generic: dummy
 	$(IMOD_UITEST_SCRIPT)/uitest generic
+flatten-volume: dummy
+	$(IMOD_UITEST_SCRIPT)/uitest flatten-volume
+flatten-volume-test-gui: dummy
+	$(IMOD_UITEST_SCRIPT)/uitest flatten-volume-test-gui
 dummy:
 	
