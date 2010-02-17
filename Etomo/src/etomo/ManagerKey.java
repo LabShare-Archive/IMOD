@@ -15,9 +15,12 @@ import etomo.util.UniqueKey;
  * 
  * @version $Revision$
  * 
- * <p> $Log$ </p>
+ * <p> $Log$
+ * <p> Revision 1.1  2009/03/17 00:24:08  sueh
+ * <p> bug# 1186 Mutable class that holds a UniqueKey.
+ * <p> </p>
  */
-public final class ManagerKey {
+final class ManagerKey {
   public static final String rcsid = "$Id$";
 
   private UniqueKey uniqueKey = null;
@@ -53,7 +56,7 @@ public final class ManagerKey {
   public UniqueKey getKey() {
     return uniqueKey;
   }
-  
+
   public String toString() {
     return "[" + uniqueKey + "]";
   }
