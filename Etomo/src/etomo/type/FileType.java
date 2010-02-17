@@ -4,12 +4,11 @@ import java.io.File;
 
 import etomo.BaseManager;
 import etomo.process.ImodManager;
-import etomo.util.DatasetFiles;
 
 /**
  * <p>Description: Types of files used in Etomo.</p>
  * 
- * <p>Copyright: Copyright 2008, 2009</p>
+ * <p>Copyright: Copyright 2008 - 2010</p>
  *
  * <p>Organization:
  * Boulder Laboratory for 3-Dimensional Electron Microscopy of Cells (BL3DEMC),
@@ -20,6 +19,9 @@ import etomo.util.DatasetFiles;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.5  2010/01/21 21:29:58  sueh
+ * <p> bug# 1305 Added ANISOTROPIC_DIFFUSION_OUTPUT.
+ * <p>
  * <p> Revision 1.4  2009/12/19 01:10:40  sueh
  * <p> bug# 1294 Added FIDUCIAL_3D_MODEL and
  * <p> SMOOTHING_ASSESSMENT_OUTPUT_MODEL.
@@ -38,89 +40,87 @@ import etomo.util.DatasetFiles;
 public final class FileType {
   public static final String rcsid = "$Id$";
 
-  //stacks
-  public static final FileType CCD_ERASER_INPUT = FileType.getStackInstance(
-      ImodManager.RAW_STACK_KEY, true);
-  public static final FileType CCD_ERASER_OUTPUT = FileType.getStackInstance(
-      ImodManager.ERASED_STACK_KEY, true);
-  public static final FileType TRIM_VOL_OUTPUT = FileType.getStackInstance(
-      ImodManager.TRIMMED_VOLUME_KEY, false);
-  public static final FileType SQUEEZE_VOL_OUTPUT = FileType.getStackInstance(
-      ImodManager.SQUEEZED_VOLUME_KEY, false);
-  public static final FileType FLATTEN_OUTPUT = FileType.getStackInstance(
-      ImodManager.FLAT_VOLUME_KEY, false);
-  public static final FileType NEWST_OR_BLEND_3D_FIND_OUTPUT = FileType
-      .getStackInstance(ImodManager.FINE_ALIGNED_3D_FIND_KEY, true);
-  public static final FileType NEWST_OR_BLEND_OUTPUT = FileType
-      .getStackInstance(ImodManager.FINE_ALIGNED_KEY, true);
-  public static final FileType TILT_3D_FIND_OUTPUT = FileType.getStackInstance(
-      ImodManager.FULL_VOLUME_3D_FIND_KEY, true);
-  public static final FileType ANISOTROPIC_DIFFUSION_OUTPUT = FileType
-      .getStackInstance(ImodManager.ANISOTROPIC_DIFFUSION_VOLUME_KEY, false);
+  //FileType instances should be placed in alphabetical order, sorted first by
+  //leftExtension and then by extension.  That should make it be easier to tell
+  //if we have a file name collision.  FileType instances may be used by
+  //multiple types of dataset managers.
+  //
+  //Dataset coexistence:
+  //
+  //.edf can coexist with:
+  //any .epp
+  //any ToolsManager unless it has a different dataset name
+  //
+  //.ejf can coexist with:
+  //Other .ejfs
+  //any .epp
+  //any ToolsManager unless it has a different dataset name
+  //
+  //.epe can coexist with:
+  //any .epp
+  //any ToolsManager unless it has a different dataset name
+  //
+  //.epp can coexist with:
+  //anything
+  //
+  //ToolsManager can coexist with
+  //any .epp
+  //any .edf, .ejf, or .epe as long as it has a different dataset name
 
-  //models
-  public static final FileType CCD_ERASER_BEADS_INPUT_MODEL = FileType
-      .getModelInstance();
-  public static final FileType FIDUCIAL_3D_MODEL = FileType
-      .getModelInstance(ImodManager.FIDUCIAL_MODEL_KEY);
-  public static final FileType FIND_BEADS_3D_OUTPUT_MODEL = FileType
-      .getModelInstance();
-  public static final FileType SMOOTHING_ASSESSMENT_OUTPUT_MODEL = FileType
-      .getModelInstance(ImodManager.SMOOTHING_ASSESSMENT_KEY);
-
-  //comscripts
-  public static final FileType TRACK_COMSCRIPT = FileType
-      .getComscriptInstance(ProcessName.TRACK);
-  public static final FileType FIND_BEADS_3D_COMSCRIPT = FileType
-      .getComscriptInstance(ProcessName.FIND_BEADS_3D);
+  public static final FileType FIDUCIAL_3D_MODEL = new FileType(true, true, "",
+      ".3dmod", ImodManager.FIDUCIAL_MODEL_KEY);
+  public static final FileType NEWST_OR_BLEND_OUTPUT = new FileType(true, true,
+      "", ".ali", ImodManager.FINE_ALIGNED_KEY);
+  public static final FileType FLATTEN_TOOL_OUTPUT = new FileType(true, false,
+      "", ".flat", ImodManager.FLATTEN_TOOL_OUTPUT_KEY);
+  public static final FileType ANISOTROPIC_DIFFUSION_OUTPUT = new FileType(
+      true, false, "", ".nad", ImodManager.ANISOTROPIC_DIFFUSION_VOLUME_KEY);
+  public static final FileType TRIM_VOL_OUTPUT = new FileType(true, false, "",
+      ".rec", ImodManager.TRIMMED_VOLUME_KEY);
+  public static final FileType SQUEEZE_VOL_OUTPUT = new FileType(true, false,
+      "", ".sqz", ImodManager.SQUEEZED_VOLUME_KEY);
+  public static final FileType CCD_ERASER_INPUT = new FileType(true, true, "",
+      ".st", ImodManager.RAW_STACK_KEY);
+  public static final FileType NEWST_OR_BLEND_3D_FIND_OUTPUT = new FileType(
+      true, true, "_3dfind", ".ali", ImodManager.FINE_ALIGNED_3D_FIND_KEY);
+  public static final FileType FIND_BEADS_3D_OUTPUT_MODEL = new FileType(true,
+      true, "_3dfind", ".mod", null);
+  public static final FileType TILT_3D_FIND_OUTPUT = new FileType(true, true,
+      "_3dfind", ".rec", ImodManager.FULL_VOLUME_3D_FIND_KEY);
+  public static final FileType SMOOTHING_ASSESSMENT_OUTPUT_MODEL = new FileType(
+      true, true, "_checkflat", ".mod", ImodManager.SMOOTHING_ASSESSMENT_KEY);
+  public static final FileType CCD_ERASER_BEADS_INPUT_MODEL = new FileType(
+      true, true, "_erase", ".fid", null);
+  public static final FileType FIND_BEADS_3D_COMSCRIPT = new FileType(false,
+      true, ProcessName.FIND_BEADS_3D.toString(), ".com", null);
+  public static final FileType CCD_ERASER_OUTPUT = new FileType(true, true,
+      "_fixed", ".st", ImodManager.ERASED_STACK_KEY);
+  public static final FileType FLATTEN_WARP_INPUT_MODEL = new FileType(true,
+      false, "_flat", ".mod", null);
+  public static final FileType FLATTEN_OUTPUT = new FileType(true, false,
+      "_flat", ".rec", ImodManager.FLAT_VOLUME_KEY);
+  public static final FileType FLATTEN_TOOL_COMSCRIPT = new FileType(true,
+      false, "_flatten", ".com", null);
+  public static final FileType TRACK_COMSCRIPT = new FileType(false, true,
+      ProcessName.TRACK.toString(), ".com", null);
 
   private final String imodManagerKey;
-  private final ProcessName processName;
   private final boolean usesAxisID;
   private final boolean usesDataset;
+  private final String typeString;
+  private final String extension;
 
-  private FileType(String imodManagerKey, ProcessName processName,
-      boolean usesAxisID, boolean usesDataset) {
+  private FileType(boolean usesDataset, boolean usesAxisID, String typeString,
+      String extension, String imodManagerKey) {
     this.imodManagerKey = imodManagerKey;
-    this.processName = processName;
     this.usesAxisID = usesAxisID;
     this.usesDataset = usesDataset;
+    this.typeString = typeString;
+    this.extension = extension;
   }
-
-  private static FileType getStackInstance(String imodManagerKey) {
-    FileType instance = new FileType(imodManagerKey, null, true, true);
-    return instance;
-  }
-
-  private static FileType getStackInstance(String imodManagerKey,
-      boolean usesAxisID) {
-    FileType instance = new FileType(imodManagerKey, null, usesAxisID, true);
-    return instance;
-  }
-
-  private static FileType getModelInstance() {
-    FileType instance = new FileType(null, null, true, true);
-    return instance;
-  }
-
-  private static FileType getModelInstance(String imodManagerKey) {
-    FileType instance = new FileType(imodManagerKey, null, true, true);
-    return instance;
-  }
-
-  private static FileType getComscriptInstance(ProcessName processName) {
-    FileType instance = new FileType(null, processName, true, false);
-    return instance;
-  }
-
-  public static FileType getInstance(ProcessName processName) {
-    if (TRACK_COMSCRIPT.processName == processName) {
-      return TRACK_COMSCRIPT;
-    }
-    if (FIND_BEADS_3D_COMSCRIPT.processName == processName) {
-      return FIND_BEADS_3D_COMSCRIPT;
-    }
-    return null;
+  
+  public String getExtension() {
+    return extension;
   }
 
   public String getImodManagerKey() {
@@ -138,92 +138,49 @@ public final class FileType {
     return new File(manager.getPropertyUserDir(), fileName);
   }
 
+  public String getFileName(BaseManager manager) {
+    return getFileName(manager, AxisID.ONLY);
+  }
+
   public String getFileName(BaseManager manager, AxisID axisID) {
+    return getRoot(manager, axisID) + extension;
+  }
+
+  public String getRoot(BaseManager manager, AxisID axisID) {
+    if (!usesDataset && !usesAxisID) {
+      //Example:  flatten.com
+      return typeString;
+    }
     if (manager == null) {
       return null;
     }
+    BaseMetaData metaData = manager.getBaseMetaData();
     String axisIDExtension = "";
     if (usesAxisID) {
-      axisIDExtension = correctAxisID(manager.getBaseMetaData().getAxisType(),
-          axisID).getExtension();
-    }
-    String extension = getExtension();
-    if (extension == null) {
-      return null;
+      axisIDExtension = correctAxisID(metaData.getAxisType(), axisID)
+          .getExtension();
     }
     if (usesDataset) {
+      //With the dataset the axis follows the dataset
       //Example:  BBa_erase.fid
-      return manager.getBaseMetaData().getName() + axisIDExtension
-          + getLeftExtension() + getExtension();
+      return metaData.getName() + axisIDExtension + typeString;
     }
-    //Example:  newsta.com
-    return getLeftExtension() + axisIDExtension + getExtension();
+    //Without the dataset the axis follows the left extension
+    //Example:  tilta.com
+    return typeString + axisIDExtension;
   }
 
-  public String getLeftExtension() {
-    //stacks
-    if (this == CCD_ERASER_INPUT) {
-      return "";
-    }
-    if (this == CCD_ERASER_OUTPUT) {
-      return "_fixed";
-    }
-    if (this == FIDUCIAL_3D_MODEL) {
-      return "";
-    }
-    if (this == TRIM_VOL_OUTPUT) {
-      return "";
-    }
-    if (this == SQUEEZE_VOL_OUTPUT) {
-      return "";
-    }
-    if (this == FLATTEN_OUTPUT) {
-      return "_flat";
-    }
-    if (this == NEWST_OR_BLEND_3D_FIND_OUTPUT) {
-      return "_3dfind";
-    }
-    if (this == NEWST_OR_BLEND_OUTPUT) {
-      return "";
-    }
-    if (this == TILT_3D_FIND_OUTPUT) {
-      return "_3dfind";
-    }
-    if (this==ANISOTROPIC_DIFFUSION_OUTPUT) {
-      return "";
-    }
-    //models
-    if (this == CCD_ERASER_BEADS_INPUT_MODEL) {
-      return "_erase";
-    }
-    if (this == FIDUCIAL_3D_MODEL) {
-      return "";
-    }
-    if (this == FIND_BEADS_3D_OUTPUT_MODEL) {
-      return "_3dfind";
-    }
-    if (this == SMOOTHING_ASSESSMENT_OUTPUT_MODEL) {
-      return "_checkflat";
-    }
-    //comscripts
-    if (this == TRACK_COMSCRIPT) {
-      return processName.toString();
-    }
-    if (this == FIND_BEADS_3D_COMSCRIPT) {
-      return processName.toString();
-    }
-    return null;
-  }
-
-  public ProcessName getProcessName() {
-    return processName;
+  public String getTypeString() {
+    return typeString;
   }
 
   private static AxisID correctAxisID(AxisType axisType, AxisID axisID) {
-    if (axisType == AxisType.DUAL_AXIS && axisID == AxisID.ONLY) {
+    if (axisType == AxisType.DUAL_AXIS
+        && (axisID == null || axisID == AxisID.ONLY)) {
       return AxisID.FIRST;
     }
-    if (axisType == AxisType.SINGLE_AXIS && axisID == AxisID.FIRST) {
+    if (axisType == AxisType.SINGLE_AXIS
+        && (axisID == null || axisID == AxisID.FIRST)) {
       return AxisID.ONLY;
     }
     if (axisType == null || axisType == AxisType.NOT_SET) {
@@ -233,58 +190,9 @@ public final class FileType {
     return axisID;
   }
 
-  private String getExtension() {
-    //stacks
-    if (this == CCD_ERASER_INPUT) {
-      return DatasetFiles.STACK_EXT;
-    }
-    if (this == CCD_ERASER_OUTPUT) {
-      return DatasetFiles.STACK_EXT;
-    }
-    if (this == TRIM_VOL_OUTPUT) {
-      return ".rec";
-    }
-    if (this == SQUEEZE_VOL_OUTPUT) {
-      return ".sqz";
-    }
-    if (this == FLATTEN_OUTPUT) {
-      return ".rec";
-    }
-    if (this == NEWST_OR_BLEND_3D_FIND_OUTPUT) {
-      return ".ali";
-    }
-    if (this == NEWST_OR_BLEND_OUTPUT) {
-      return ".ali";
-    }
-    if (this == TILT_3D_FIND_OUTPUT) {
-      return ".rec";
-    }
-    if (this==ANISOTROPIC_DIFFUSION_OUTPUT) {
-      return ".nad";
-    }
-    //models
-    if (this == CCD_ERASER_BEADS_INPUT_MODEL) {
-      return DatasetFiles.FIDUCIAL_MODEL_EXT;
-    }
-    if (this == FIDUCIAL_3D_MODEL) {
-      return ".3dmod";
-    }
-    if (this == FIND_BEADS_3D_OUTPUT_MODEL) {
-      return DatasetFiles.MODEL_EXT;
-    }
-    if (this == SMOOTHING_ASSESSMENT_OUTPUT_MODEL) {
-      return ".mod";
-    }
-    //comscripts
-    if (!this.usesDataset && processName != null) {
-      return ".com";
-    }
-    return null;
-  }
-
   public String toString() {
     if (imodManagerKey == null) {
-      return getLeftExtension() + getExtension();
+      return typeString + extension;
     }
     return imodManagerKey;
   }
