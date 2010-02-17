@@ -382,7 +382,7 @@ A global variable created when the set.testdir command executed in a Test sectio
 
 .TP 4
 .B dataset
-A global variable created when the set.dataset command is executed in a Test section.
+A global variable created when the set.var.dataset command is executed in a Test section.
 
 .TP 4
 .B keep-dataset-dir
@@ -466,6 +466,16 @@ Autodocs per test suite (see below).  Order counts in this section.  For best
 results order the commands as they are ordered in this man page.
 
 .TP 4
+.B set.var.\fIvariable_name\fB = \fR[\fIvalue\fR]
+Causes a variable called \fIvariable_name\fR to be set to \fIvalue\fR.
+Variables can be set anywhere in the this section and will be available for use
+immediately.  Variables set in the Test Section are in force for the
+entire test.  See Variables and Scope above.  It is usually important to create
+a global variable called \fBdataset\fR.  Set this variable before setting the
+dataset because it is usually used in the Dataset section.
+.RE
+
+.TP 4
 .B set\fR[\fB.keep\fR]\fB.testdir\fB = \fItest_directory
 Required.  Only one is allowed.  Give the location where the test suites will be
 run.  \fITest_Directory\fR will be created under \fB./UITests\fR.  If the
@@ -489,8 +499,7 @@ placed in the directory pointed to by the environment variable
 .TP 4
 .B set.dataset = \fIdataset_dir
 Required.  Only one allowed.  Causes the Dataset Section for this test
-suite to be read and executed.  Creates a global variable called \fBdataset\fR,
-which is set to \fIdataset_dir\fR.  See the Dataset Section below.
+suite to be read and executed.  See the Dataset Section below.
 
 .TP 4
 .B copy.file\fR[\fB.\fR(\fBa\fR|\fBb\fR)]\fB = \fIfile_name
@@ -528,13 +537,6 @@ set.param = --names
 set.param = BB.edf
 .RE
 
-.TP 4
-.B set.var.\fIvariable_name\fB = \fR[\fIvalue\fR]
-Causes a variable called \fIvariable_name\fR to be set to \fIvalue\fR.
-Variables can be set anywhere in the this section and will be available for use
-immediately.  Variables set in the Test Section are in force for the
-entire test.  See Variables and Scope above.
-.RE
 
 .TP 4
 .B Dataset Section
@@ -557,13 +559,6 @@ that can be copied to the \fItest_directory\fR (see \fBset.testdir\fR under Test
 Section).  The \fIdataset_dir\fR should be placed in the directory pointed to by
 the environment variable \fBIMOD_UITEST_DATA\fR.  Order counts in this section.
 For best results order the commands as they are ordered in this man page.
-
-.TP 4
-.B set.single.dataset = \fIdataset_name
-If this is a single axis dataset and the dataset is different from the
-\fIdataset_dir\fR in the section header, use this command to set it.  This
-command makes it possible to copy single axis and dual axis test files from the
-same \fIdataset_dir\fR.
 
 .TP 4
 .B copy.file\fR[\fB.\fR(\fBa\fR|\fBb\fR)]\fB = \fIfile_name
@@ -614,7 +609,8 @@ used as the key (and must be unique in its section) is enclosed in "<>" below.
 <\fBgoto.frame\fR[\fB.\fR(\fBa\fR|\fBb\fR)]>\fB.\fIfield =
 Required.  Contains the \fIfield\fR command to grab the \fBmain-frame\fR or the
 \fBsub-frame\fR.  This command is run every time control is passed to an Autodoc
-Tester.  Only the command which matches the Autodoc Tester's axis will be run.
+Tester once the \fBopen = interface\fR subsection has been run once.  Only the command
+which matches the Autodoc Tester's axis will be run.
 See Grammer above.
 .RS 4
 
@@ -635,23 +631,6 @@ that must be executed to open the dialog.
 .br
 Example:  open.dialog.PreProc.bn.pre = 
 
-.TP 4
-<\fBopen.frame\fR[\fR.\fR(\fBa\fR|\fBb\fR)]>.field_command =
-Optional.  Contains the field command to open the \fBmain-frame\fR or the
-\fBsub-frame\fR.  This command is run the first time control is passed to an
-Autodoc Tester.  If the command fails, a wait state is generated rather then a
-failure.  The tester will continue to run this command each time it stops
-waiting until the command succeeds.  See Waiting.  Only the command which
-matches a test's axis will be run.
-.br
-Example:  open.frame.b.bn.both =
-
-.TP 4
-<\fBopen.interface\fR>.field_command =
-Optional.  Provides a way to open an interface.  May be used instead of the
-Open Interface Subsection below when one field command is all that is needed to
-open the interface.
-
 .P
 <\fB[[open = interface]]\fR>
 .br
@@ -666,16 +645,20 @@ open the interface.
 .B [[]]
 .RS 4
 .P
-An Open Interface Subsection.  Optional.  Provides a way to open an interface.  This
-is used with interfaces like join which don't open automatically.  The
-indentation is for readability and is not required.
+The Open Interface Subsection.  Optional.  Provides a way to open
+interfaces which don't open automatically.  The subsection is
+automatically run one time when A axis or single axis test loop starts.  It
+does not use \fBgoto.frame\fR command to grab the panel, so a \fBpnl\fR
+field command should be the first command in the subsection.
 .TP 4
 Example
 [[open = interface]]
 .br
-	mn.file =
+	pnl.main-frame =
 .br
-	mn.new-join =
+	mn.tools =
+.br
+	mn.flatten-volume =
 .br
 [[]]
 .RE
@@ -769,7 +752,7 @@ Tests whether a file exists or does not exist.  \fIFile_name\fR or
 \fBset.testdir\fR in UITest Autodoc.
 
 .TP 4
-.B assert.same.file = \fR(\fIfile_name\fR|\fIrelative_path\fR)[\fB,\fIcompare_to_file_name\fR]
+.B assert.same.file = \fR(\fIfile_name\fR|\fIrelative_path\fR)[\fB|\fIcompare_to_file_name\fR]
 Compare a file to another file.  If \fIcompare_to_file_name\fR is not used,
 the file is compared to another file of the same name stored in
 $IMOD_UITEST_DATA.  If \fIcompare_to_file_name\fR is used, the file is compared
@@ -811,7 +794,7 @@ cb.parallel-processing = on
 .RE
 
 .TP 4
-.B copy\fR[\fB.always\fR]\fB.file = \fIfile_name
+.B copy\fR[\fB.always\fR]\fB.file = \fIfile_name\fR[\fB|\fIto_file_name\fR]
 Causes a file called \fIfile_name\fR to be copied from \fIdataset_dir\fR (see
 UITest Autodoc - Dataset Section) to \fItest_directory\fR (see
 \fBset.testdir\fR).  If the \fBset.testdir\fR command in the Test Section
@@ -858,6 +841,10 @@ either \fBequals\fR or \fBnot-equals\fR.  If the result is true, execute the
 \fIsubcommand\fR.  If the result is false, continue without executing the
 \fIsubcommand\fR.  Only subcommands without values can be used in this
 statement.
+
+.TP 4
+.B if.exists.\fIfield\fB.\fIsubcommand = \fR[\fIsubcommand_value\fR]
+Execute a \fIsubcommand\fR if a field exists.
 
 .TP 4
 .B if\fR[\fB.not\fR]\fB.var.\fIvariable_name\fB.\fIfield\fB = \fR[\fIfield_value\fR]
