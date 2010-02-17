@@ -1,0 +1,83 @@
+Version = 2.1
+
+[flatten-volume = run]
+copy.file=BBa_flat.mod|%{dataset}_flat.mod
+bn.input-file=
+wait.file-chooser.open= %{dataset}
+set.adoc.function = tools.adoc
+run.function.flatten-volume=
+
+[function = flatten-volume]
+[[if = test-gui]]
+	#check values
+	assert.sp.open-binned-by=1
+	assert.cb.contours-are-all-on-one-surface=off
+	assert.tf.spacing-in-x=
+	assert.tf.and-y=
+	assert.cb.linear-interpolation=off
+	assert.tf.output-thickness-in-z=
+	assert.tf.temporary-directory=
+	#check enabled/disabled
+	assert.enabled.sp.open-binned-by=
+	assert.enabled.bn.make-surface-model=
+	assert.enabled.cb.contours-are-all-on-one-surface=
+	assert.enabled.tf.spacing-in-x=
+	assert.enabled.tf.and-y=
+	assert.enabled.bn.run-flattenwarp=
+	assert.enabled.cb.linear-interpolation=
+	assert.enabled.tf.output-thickness-in-z=
+	assert.enabled.tf.temporary-directory=
+	assert.enabled.bn.flatten=
+	assert.enabled.bn.open-flattened-tomogram=
+[[]]
+#run 3dmod
+bn.make-surface-model=
+[[if = test-gui]]
+	#check error - can't run flattenwarp when the model hasn't been created.
+	bn.run-flattenwarp=
+	wait.popup.flattenwarp-terminated=OK
+[[]]
+run.function.smoothing-asessment=
+tf.smoothing-factor=.25
+[[if = test-gui]]
+	#check error - can't run from squeezevol output when it hasn't been created.
+	bn.flatten=
+	wait.popup.flattencom-terminated=OK
+[[]]
+bn.run-flattenwarp=
+wait.process.running-flattenwarp=done
+assert.exists.file= %{dataset}_flat.xf
+bn.run-flattenwarp=
+wait.process.running-flattenwarp=done
+assert.exists.file= %{dataset}_flat.xf~
+assert.exists.file= %{dataset}_flat.xf
+bn.flatten=
+wait.process.flatten=done
+assert.exists.file= %{dataset}_flatten.com
+assert.exists.file= %{dataset}_flatten.log
+assert.exists.file= %{dataset}.flat
+bn.flatten=
+wait.process.flatten=done
+assert.exists.file= %{dataset}_flatten.log~
+assert.exists.file= %{dataset}.flat~
+assert.exists.file= %{dataset}_flatten.com
+assert.exists.file= %{dataset}_flatten.log
+assert.exists.file= %{dataset}.flat
+#check values
+#run 3dmod
+bn.open-flattened-tomogram=
+
+
+[function = smoothing-asessment]
+[[if = test-gui]]
+	#check values
+	assert.tf.smoothing-factors=
+	#check enabled/disabled
+	assert.enabled.tf.smoothing-factors=
+	assert.enabled.bn.run-flattenwarp-to-assess-smoothing=
+	assert.enabled.bn.open-assessment-in-3dmod=
+[[]]
+tf.smoothing-factors=.25,1,5
+bn.run-flattenwarp-to-assess-smoothing=
+wait.process.running-flattenwarp=done
+bn.open-assessment-in-3dmod=
