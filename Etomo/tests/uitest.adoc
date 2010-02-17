@@ -4,7 +4,11 @@ Version = 1.2
 set.testdir=single
 #set.keep.testdir=single
 set.adoc.dialog = recon.adoc
-set.dataset=BB
+set.var.dataset = BBa
+set.dataset = BB
+copy.file = %{dataset}.st
+copy.file.a = %{dataset}a.st
+copy.file.b = %{dataset}b.st
 #set.param = %{dataset}.edf
 set.var.single=
 set.interface.Recon=
@@ -14,7 +18,10 @@ set.testdir = dual
 #set.keep.testdir = dual
 set.adoc.dialog.a=recon.adoc
 set.adoc.bdialog.b=recon.adoc
+set.var.dataset = BB
 set.dataset = BB
+copy.file.a = %{dataset}a.st
+copy.file.b = %{dataset}b.st
 #set.param = %{dataset}.edf
 set.var.dual=
 set.interface.Recon=
@@ -23,7 +30,9 @@ set.interface.Recon=
 set.testdir = single-test-gui
 #set.keep.testdir = single-test-gui
 set.adoc.dialog = recon.adoc
+set.var.dataset = BBa
 set.dataset = BB
+copy.file = %{dataset}.st
 #set.param = %{dataset}.edf
 set.var.single=
 set.var.test-gui=
@@ -34,7 +43,10 @@ set.testdir = dual-test-gui
 #set.keep.testdir = dual-test-gui
 set.adoc.dialog.a=recon.adoc
 set.adoc.bdialog.b=recon.adoc
+set.var.dataset = BB
 set.dataset = BB
+copy.file.a = %{dataset}a.st
+copy.file.b = %{dataset}b.st
 #set.param = %{dataset}.edf
 set.var.dual=
 set.var.test-gui=
@@ -43,7 +55,9 @@ set.interface.Recon=
 [Test = single-fidless]
 set.testdir=single-fidless
 set.adoc.dialog = recon.adoc
-set.dataset=BB
+set.var.dataset = BBa
+set.dataset = BB
+copy.file = %{dataset}.st
 #set.param = %{dataset}.edf
 set.var.single=
 set.var.fidless=
@@ -53,23 +67,19 @@ set.interface.Recon=
 set.testdir=single-simple-align
 #set.keep.testdir=single
 set.adoc.dialog = recon.adoc
-set.dataset=BB
+set.var.dataset = BBa
+set.dataset = BB
+copy.file = %{dataset}.st
 #set.param = %{dataset}.edf
 set.var.single=
 set.var.simple-align=
 set.interface.Recon=
 
-[Test = generic]
-set.testdir = generic
-set.adoc.dialog = generic.adoc
-set.dataset = BB
-set.interface.Generic=
-
-
 [Test = single-montage]
 set.testdir = single-montage
 #set.keep.testdir = single-montage
 set.adoc.dialog = recon.adoc
+set.var.dataset = midzone2a
 set.dataset = midzone2
 #set.param = %{dataset}.edf
 set.var.single=
@@ -80,6 +90,7 @@ set.testdir = dual-montage
 #set.keep.testdir = dual-montage
 set.adoc.dialog.a=recon.adoc
 set.adoc.bdialog.b=recon.adoc
+set.var.dataset = midzone2
 set.dataset = midzone2
 #set.param = %{dataset}.edf
 set.var.dual=
@@ -88,6 +99,7 @@ set.var.montage=
 [Test = single-montage-test-gui]
 set.testdir = single-montage-test-gui
 set.adoc.dialog = recon.adoc
+set.var.dataset = midzone2a
 set.dataset = midzone2
 set.var.single=
 set.var.montage=
@@ -98,6 +110,7 @@ set.testdir = dual-montage-test-gui
 #set.keep.testdir = dual-montage-test-gui
 set.adoc.dialog.a=recon.adoc
 set.adoc.bdialog.b=recon.adoc
+set.var.dataset = midzone2
 set.dataset = midzone2
 #set.param = %{dataset}.edf
 #set.param= --names
@@ -105,49 +118,72 @@ set.var.dual=
 set.var.montage=
 set.var.test-gui=
 
-
 [Test = join]
 set.testdir = join
 set.adoc.tab = join.adoc
+set.var.dataset = unicross
 set.dataset = unicross
 copy.file = %{dataset}2.rec
 copy.file = %{dataset}3.rec
 set.interface.Join=
 
-[Test = join-test-processes]
-set.testdir = join-test-processes
+[Test = join-test-gui]
+set.testdir = join-test-gui
 set.adoc.tab = join.adoc
+set.var.dataset = unicross
 set.dataset = unicross
-set.var.test-processes=
+set.var.test-gui=
 copy.file = %{dataset}2.rec
 copy.file = %{dataset}3.rec
 set.interface.Join=
+
+[Test = generic]
+set.testdir = generic
+set.adoc.dialog = generic.adoc
+set.dataset = BB
+set.interface.Generic=
 
 [Test = nad]
 set.testdir = nad
 set.adoc.dialog = nad.adoc
+set.var.dataset = unicross
 set.dataset = unicross
 set.var.volume=unicross1.rec
 set.interface.Nad=
 
-
 [Test = peet]
 set.testdir = peet
 set.adoc.dialog = peet.adoc
+set.var.dataset = pi
 set.dataset = pi
 
 [Test = peet-test-gui]
 set.testdir = peet-test-gui
 set.adoc.dialog = peet.adoc
+set.var.dataset = pi
 set.dataset = pi
 set.var.test-gui=
 
+[Test = flatten-volume]
+set.testdir = flatten-volume
+set.adoc.flatten-volume = tools.adoc
+set.var.dataset = BBa.rec
+set.dataset = BB
+copy.file = %{dataset}
+#set.param = --names
+set.interface.tools=
+
+[Test = flatten-volume-test-gui]
+set.testdir = flatten-volume-test-gui
+set.adoc.flatten-volume = tools.adoc
+set.var.dataset = BBa.rec
+set.dataset = BB
+copy.file = %{dataset}
+set.var.test-gui=
+set.interface.tools=
+
 
 [dataset = BB]
-set.single.dataset = BBa
-copy.file = %{dataset}.st
-copy.file.a = %{dataset}a.st
-copy.file.b = %{dataset}b.st
 set.var.pixel-size = 2.02
 set.var.fiducial-diameter = 10
 set.var.image-rotation = -12.5
@@ -181,7 +217,6 @@ set.var.scaling-z-min=25
 set.var.scaling-z-max=50
 
 [dataset = midzone2]
-set.single.dataset = midzone2a
 copy.file = %{dataset}.st
 copy.file.a = %{dataset}a.st
 copy.file.b = %{dataset}b.st
@@ -238,10 +273,12 @@ set.interface.peet=
 
 
 [interface = Recon]
+[[open = interface]]
+	pnl.main-frame=
+	bn.new-tomogram=
+[[]]
 goto.frame.pnl.main-frame =
-open.interface.bn.new-tomogram=
 goto.frame.a.pnl.main-frame =
-open.frame.b.bn.both =
 goto.frame.b.pnl.sub-frame =
 open.dialog.PreProc.bn.pre = 
 open.dialog.CoarseAlign.bn.coarse =
@@ -255,8 +292,11 @@ open.dialog.PostProc.bn.post =
 open.dialog.CleanUp.bn.clean =
 
 [interface = Join]
+[[open = interface]]
+	pnl.main-frame=
+	bn.new-join=
+[[]]
 goto.frame.pnl.main-frame =
-open.interface.bn.new-join=
 open.dialog.setup.tb.setup =
 open.dialog.align.tb.setup.1 =
 open.dialog.join.tb.setup.2 =
@@ -264,14 +304,30 @@ open.dialog.model.tb.setup.3 =
 open.dialog.rejoin.tb.setup.4 =
 
 [interface = PEET]
+[[open = interface]]
+	pnl.main-frame=
+	bn.new-peet=
+[[]]
 goto.frame.pnl.main-frame =
-open.interface.bn.new-peet=
 
 [Interface = Nad]
+[[open = interface]]
+	pnl.main-frame=
+	bn.new-nonlinear-anisotropic-diffusion=
+[[]]
 goto.frame.pnl.main-frame =
-open.interface.bn.new-nonlinear-anisotropic-diffusion=
 
 [Interface = Generic]
+[[open = interface]]
+	pnl.main-frame=
+	bn.new-generic-parallel-process=
+[[]]
 goto.frame.pnl.main-frame =
-open.interface.bn.new-generic-parallel-process=
 
+[Interface = Tools]
+[[open = interface]]
+	pnl.main-frame=
+	mn.tools=
+	mn.flatten-volume=
+[[]]
+goto.frame.pnl.manager-frame =
