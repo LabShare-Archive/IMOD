@@ -1,39 +1,21 @@
 package etomo.ui;
 
-import java.awt.Component;
-import java.awt.Dimension;
-import java.awt.HeadlessException;
-import java.awt.Point;
-import java.awt.Rectangle;
 import java.awt.event.ActionEvent;
 import java.io.File;
 import java.io.IOException;
-import java.net.MalformedURLException;
-import java.util.ArrayList;
 
-import javax.swing.Icon;
 import javax.swing.ImageIcon;
-import javax.swing.JDialog;
 import javax.swing.JFileChooser;
-import javax.swing.JFrame;
 import javax.swing.JMenuBar;
-import javax.swing.JOptionPane;
 
 import etomo.BaseManager;
 import etomo.EtomoDirector;
-import etomo.ManagerKey;
 import etomo.PeetManager;
-import etomo.process.ImodqtassistProcess;
 import etomo.process.ProcessMessages;
 import etomo.storage.DataFileFilter;
 import etomo.storage.LogFile;
-import etomo.storage.autodoc.AutodocTokenizer;
 import etomo.type.AxisID;
 import etomo.type.AxisType;
-import etomo.type.BaseMetaData;
-import etomo.type.UITestActionType;
-import etomo.type.UITestSubjectType;
-import etomo.util.Utilities;
 
 /**
  * <p>Description: </p>
@@ -48,33 +30,32 @@ import etomo.util.Utilities;
  * 
  * @version $Revision$
  */
-abstract class EtomoFrame extends JFrame {
+abstract class EtomoFrame extends AbstractFrame {
   public static final String rcsid = "$Id$";
 
-  private static final int messageWidth = 60;
-  private static final int maxMessageLines = 20;
-  private static final boolean printNames = EtomoDirector.INSTANCE
-      .getArguments().isPrintNames();
-  private static final String ETOMO_QUESTION = "Etomo question";
-  private static final String YES = "Yes";
-  private static final String NO = "No";
-  private static final String CANCEL = "Cancel";
-  private static final String OK = "OK";
-
-  private boolean verbose = false;
   boolean main;
   EtomoMenu menu;
   JMenuBar menuBar;
   MainPanel mainPanel;
   BaseManager currentManager;
 
+  private final boolean singleFrame;
+
   static EtomoFrame mainFrame = null;
   static EtomoFrame subFrame = null;
+
+  EtomoFrame() {
+    singleFrame = false;
+  }
+
+  EtomoFrame(boolean singleFrame) {
+    this.singleFrame = singleFrame;
+  }
 
   abstract void register();
 
   void initialize() {
-    menu = new EtomoMenu();
+    menu = new EtomoMenu(singleFrame);
     ImageIcon iconEtomo = new ImageIcon(ClassLoader
         .getSystemResource("images/etomo.png"));
     setIconImage(iconEtomo.getImage());
@@ -82,6 +63,9 @@ abstract class EtomoFrame extends JFrame {
   }
 
   void moveSubFrame() {
+    if (singleFrame) {
+      return;
+    }
     if (subFrame != null) {
       subFrame.moveSubFrame();
     }
@@ -103,10 +87,6 @@ abstract class EtomoFrame extends JFrame {
     return menu.isMenu3dmodBinBy2();
   }
 
-  final void setVerbose(boolean verbose) {
-    this.verbose = verbose;
-  }
-
   final void setMenu3dmodStartupWindow(boolean menu3dmodStartupWindow) {
     menu.setMenu3dmodStartupWindow(menu3dmodStartupWindow);
   }
@@ -115,11 +95,15 @@ abstract class EtomoFrame extends JFrame {
     menu.setMenu3dmodBinBy2(menu3dmodBinBy2);
   }
 
+  public void menuToolsAction(ActionEvent event) {
+    menu.menuToolsAction(getAxisID(), event);
+  }
+
   /**
    * Handle File menu actions
    * @param event
    */
-  void menuFileAction(ActionEvent event) {
+  public void menuFileAction(ActionEvent event) {
     AxisID axisID = getAxisID();
     if (menu.equalsNewTomogram(event)) {
       EtomoDirector.INSTANCE.openTomogram(true, axisID);
@@ -162,16 +146,15 @@ abstract class EtomoFrame extends JFrame {
   }
 
   void save(AxisID axisID) {
-    ManagerKey managerKey = currentManager.getManagerKey();
     try {
       if (currentManager.saveParamFile()) {
         return;
       }
       //Don't allow the user to do the equivalent of a Save As if Save As isn't available.
       if (!currentManager.canChangeParamFileName()) {
-        UIHarness.INSTANCE.openMessageDialog(
+        UIHarness.INSTANCE.openMessageDialog(currentManager,
             "Please set the name of dataset or the join before saving",
-            "Cannot Save", managerKey);
+            "Cannot Save");
         return;
       }
       //Do a Save As
@@ -180,29 +163,32 @@ abstract class EtomoFrame extends JFrame {
       }
     }
     catch (LogFile.LockException e) {
-      UIHarness.INSTANCE.openMessageDialog("Unable to write parameters.\n"
-          + e.getMessage(), "Etomo Error", axisID, managerKey);
+      UIHarness.INSTANCE.openMessageDialog(currentManager,
+          "Unable to write parameters.\n" + e.getMessage(), "Etomo Error",
+          axisID);
     }
     catch (IOException e) {
-      UIHarness.INSTANCE.openMessageDialog("Unable to write parameters.\n"
-          + e.getMessage(), "Etomo Error", axisID, managerKey);
+      UIHarness.INSTANCE.openMessageDialog(currentManager,
+          "Unable to write parameters.\n" + e.getMessage(), "Etomo Error",
+          axisID);
     }
   }
 
   private void saveAs(AxisID axisID) {
-    ManagerKey managerKey = currentManager.getManagerKey();
     try {
       if (getParamFilename()) {
         currentManager.saveParamFile();
       }
     }
     catch (LogFile.LockException e) {
-      UIHarness.INSTANCE.openMessageDialog("Unable to save parameters.\n"
-          + e.getMessage(), "Etomo Error", axisID, managerKey);
+      UIHarness.INSTANCE.openMessageDialog(currentManager,
+          "Unable to save parameters.\n" + e.getMessage(), "Etomo Error",
+          axisID);
     }
     catch (IOException e) {
-      UIHarness.INSTANCE.openMessageDialog("Unable to save parameters.\n"
-          + e.getMessage(), "Etomo Error", axisID, managerKey);
+      UIHarness.INSTANCE.openMessageDialog(currentManager,
+          "Unable to save parameters.\n" + e.getMessage(), "Etomo Error",
+          axisID);
     }
   }
 
@@ -219,61 +205,8 @@ abstract class EtomoFrame extends JFrame {
    * Handle help menu actions
    * @param event
    */
-  void menuHelpAction(ActionEvent event) {
-    AxisID axisID = getAxisID();
-    // Get the URL to the IMOD html directory
-    String imodURL = "";
-    try {
-      imodURL = EtomoDirector.INSTANCE.getIMODDirectory().toURL().toString()
-          + "/html/";
-    }
-    catch (MalformedURLException except) {
-      except.printStackTrace();
-      System.err.println("Malformed URL:");
-      System.err.println(EtomoDirector.INSTANCE.getIMODDirectory().toString());
-      return;
-    }
-
-    if (menu.equalsTomoGuide(event)) {
-      //TODO
-      /*HTMLPageWindow manpage = new HTMLPageWindow();
-       manpage.openURL(imodURL + "tomoguide.html");
-       manpage.setVisible(true);*/
-      ImodqtassistProcess.INSTANCE.open(currentManager, "tomoguide.html",
-          getAxisID());
-    }
-
-    if (menu.equalsImodGuide(event)) {
-      ImodqtassistProcess.INSTANCE.open(currentManager, "guide.html",
-          getAxisID());
-    }
-
-    if (menu.equals3dmodGuide(event)) {
-      ImodqtassistProcess.INSTANCE.open(currentManager, "3dmodguide.html",
-          getAxisID());
-    }
-
-    if (menu.equalsEtomoGuide(event)) {
-      ImodqtassistProcess.INSTANCE.open(currentManager, "UsingEtomo.html",
-          getAxisID());
-    }
-
-    if (menu.equalsJoinGuide(event)) {
-      ImodqtassistProcess.INSTANCE.open(currentManager, "tomojoin.html",
-          getAxisID());
-    }
-
-    if (menu.equalsHelpAbout(event)) {
-      MainFrame_AboutBox dlg = new MainFrame_AboutBox(currentManager, this,
-          axisID);
-      Dimension dlgSize = dlg.getPreferredSize();
-      Dimension frmSize = getSize();
-      Point loc = getLocation();
-      dlg.setLocation((frmSize.width - dlgSize.width) / 2 + loc.x,
-          (frmSize.height - dlgSize.height) / 2 + loc.y);
-      dlg.setModal(true);
-      dlg.setVisible(true);
-    }
+  public void menuHelpAction(ActionEvent event) {
+    menu.menuHelpAction(currentManager, getAxisID(), this, event);
   }
 
   /**
@@ -281,7 +214,7 @@ abstract class EtomoFrame extends JFrame {
    * handled in the child classes.
    * @param event
    */
-  void menuViewAction(ActionEvent event) {
+  public void menuViewAction(ActionEvent event) {
     //Run fitWindow on both frames.
     if (menu.equalsFitWindow(event)) {
       UIHarness.INSTANCE.pack(true, currentManager);
@@ -301,7 +234,7 @@ abstract class EtomoFrame extends JFrame {
    * handled in the child classes.
    * @param event
    */
-  void menuOptionsAction(ActionEvent event) {
+  public void menuOptionsAction(ActionEvent event) {
     if (menu.equalsSettings(event)) {
       EtomoDirector.INSTANCE.openSettingsDialog();
     }
@@ -408,23 +341,14 @@ abstract class EtomoFrame extends JFrame {
    * @param message
    * @param title
    */
-  void displayMessage(String message, String title, AxisID axisID,
-      ManagerKey managerKey) {
-    getFrame(axisID).openMessageDialog(message, title, managerKey);
+  void displayMessage(BaseManager manager, String message, String title,
+      AxisID axisID) {
+    getFrame(axisID).openMessageDialog(manager, axisID, message, title);
   }
 
-  void displayInfoMessage(String message, String title, AxisID axisID,
-      ManagerKey managerKey) {
-    getFrame(axisID).openInfoMessageDialog(message, title, managerKey);
-  }
-
-  /**
-   * Open a message dialog
-   * @param message
-   * @param title
-   */
-  void displayMessage(String message, String title, ManagerKey managerKey) {
-    getFrame(AxisID.ONLY).openMessageDialog(message, title, managerKey);
+  void displayInfoMessage(BaseManager manager, String message, String title,
+      AxisID axisID) {
+    getFrame(axisID).openInfoMessageDialog(manager, axisID, message, title);
   }
 
   /**
@@ -432,61 +356,9 @@ abstract class EtomoFrame extends JFrame {
    * @param message
    * @param title
    */
-  void displayMessage(String[] message, String title, AxisID axisID,
-      ManagerKey managerKey) {
-    getFrame(axisID).openMessageDialog(message, title, managerKey);
-  }
-
-  void displayErrorMessage(ProcessMessages processMessages, String title,
-      AxisID axisID, ManagerKey managerKey) {
-    getFrame(axisID).openErrorMessageDialog(processMessages, title, managerKey);
-  }
-
-  void displayWarningMessage(ProcessMessages processMessages, String title,
-      AxisID axisID, ManagerKey managerKey) {
-    getFrame(axisID).openWarningMessageDialog(processMessages, title,
-        managerKey);
-  }
-
-  int displayYesNoCancelMessage(String[] message, AxisID axisID,
-      ManagerKey managerKey) {
-    return getFrame(axisID).openYesNoCancelDialog(message, managerKey);
-  }
-
-  boolean displayYesNoMessage(String message, AxisID axisID,
-      ManagerKey managerKey) {
-    return getFrame(axisID).openYesNoDialog(message, managerKey);
-  }
-
-  boolean displayDeleteMessage(String message[], AxisID axisID,
-      ManagerKey managerKey) {
-    return getFrame(axisID).openDeleteDialog(message, managerKey);
-  }
-
-  boolean displayYesNoWarningDialog(String message, AxisID axisID,
-      ManagerKey managerKey) {
-    return getFrame(axisID).openYesNoWarningDialog(message, managerKey);
-  }
-
-  boolean displayYesNoMessage(String[] message, AxisID axisID,
-      ManagerKey managerKey) {
-    return getFrame(axisID).openYesNoDialog(message, managerKey);
-  }
-
-  /**
-   * Open a message dialog with a wrapped message with the dataset appended.
-   * @param message
-   * @param title
-   */
-  private void openMessageDialog(String message, String title,
-      ManagerKey managerKey) {
-    showOptionPane(wrap(message), title, JOptionPane.ERROR_MESSAGE, managerKey);
-  }
-
-  private void openInfoMessageDialog(String message, String title,
-      ManagerKey managerKey) {
-    showOptionPane(wrap(message), title, JOptionPane.INFORMATION_MESSAGE,
-        managerKey);
+  void displayMessage(BaseManager manager, String message, String title) {
+    getFrame(AxisID.ONLY).openMessageDialog(manager, AxisID.ONLY, message,
+        title);
   }
 
   /**
@@ -494,292 +366,45 @@ abstract class EtomoFrame extends JFrame {
    * @param message
    * @param title
    */
-  private void openMessageDialog(String[] message, String title,
-      ManagerKey managerKey) {
-    showOptionPane(wrap(message), title, JOptionPane.ERROR_MESSAGE, managerKey);
+  void displayMessage(BaseManager manager, String[] message, String title,
+      AxisID axisID) {
+    getFrame(axisID).openMessageDialog(manager, axisID, message, title);
   }
 
-  private void openErrorMessageDialog(ProcessMessages processMessages,
-      String title, ManagerKey managerKey) {
-    showOptionPane(wrapError(processMessages), title,
-        JOptionPane.ERROR_MESSAGE, managerKey);
+  void displayErrorMessage(BaseManager manager,
+      ProcessMessages processMessages, String title, AxisID axisID) {
+    getFrame(axisID).openErrorMessageDialog(manager, axisID, processMessages,
+        title);
   }
 
-  private void openWarningMessageDialog(ProcessMessages processMessages,
-      String title, ManagerKey managerKey) {
-    showOptionPane(wrapWarning(processMessages), title,
-        JOptionPane.ERROR_MESSAGE, managerKey);
+  void displayWarningMessage(BaseManager manager,
+      ProcessMessages processMessages, String title, AxisID axisID) {
+    getFrame(axisID).openWarningMessageDialog(manager, axisID, processMessages,
+        title);
   }
 
-  /**
-   * Open a Yes, No or Cancel question dialog
-   * @param message
-   * @return int state of the users select
-   */
-  private int openYesNoCancelDialog(String[] message, ManagerKey managerKey) {
-    return showOptionConfirmPane(wrap(message), ETOMO_QUESTION,
-        JOptionPane.YES_NO_CANCEL_OPTION, new String[] { YES, NO, CANCEL },
-        managerKey);
+  int displayYesNoCancelMessage(BaseManager manager, String[] message,
+      AxisID axisID) {
+    return getFrame(axisID).openYesNoCancelDialog(manager, axisID, message);
   }
 
-  /**
-   * Open a Yes or No question dialog
-   * @param message
-   * @return
-   */
-  private boolean openYesNoDialog(String message, ManagerKey managerKey) {
-    int result = showOptionConfirmPane(wrap(message), ETOMO_QUESTION,
-        JOptionPane.YES_NO_OPTION, new String[] { YES, NO }, managerKey);
-    return result == JOptionPane.YES_OPTION;
+  boolean displayYesNoMessage(BaseManager manager, String message, AxisID axisID) {
+    return getFrame(axisID).openYesNoDialog(manager, axisID, message);
   }
 
-  /**
-   * Open a Yes or No question dialog
-   * @param message
-   * @return
-   */
-  private boolean openDeleteDialog(String[] message, ManagerKey managerKey) {
-    String[] results = new String[] { "Delete", "No" };
-    int result = showOptionPane(wrap(message), "Delete File?",
-        JOptionPane.DEFAULT_OPTION, JOptionPane.QUESTION_MESSAGE, results,
-        null, results, managerKey);
-    return result == 0;
+  boolean displayDeleteMessage(BaseManager manager, String message[],
+      AxisID axisID) {
+    return getFrame(axisID).openDeleteDialog(manager, axisID, message);
   }
 
-  private boolean openYesNoWarningDialog(String message, ManagerKey managerKey) {
-    String[] results = new String[] { "Yes", "No" };
-    int result = showOptionPane(wrap(message), "Etomo Warning",
-        JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE, results,
-        results[1], results, managerKey);
-    return result == 0;
+  boolean displayYesNoWarningDialog(BaseManager manager, String message,
+      AxisID axisID) {
+    return getFrame(axisID).openYesNoWarningDialog(manager, axisID, message);
   }
 
-  /**
-   * Open a Yes or No question dialog
-   * @param message
-   * @return
-   */
-  private boolean openYesNoDialog(String[] message, ManagerKey managerKey) {
-    int result = showOptionConfirmPane(wrap(message), ETOMO_QUESTION,
-        JOptionPane.YES_NO_OPTION, new String[] { YES, NO }, managerKey);
-    return result == JOptionPane.YES_OPTION;
-  }
-
-  private int showOptionConfirmPane(String[] message, String title,
-      int optionType, String[] optionStrings, ManagerKey managerKey) {
-    return showOptionPane(message, title, optionType,
-        JOptionPane.QUESTION_MESSAGE, null, null, optionStrings, managerKey);
-  }
-
-  private void showOptionPane(String[] message, String title, int messageType,
-      ManagerKey managerKey) {
-    showOptionPane(message, title, JOptionPane.DEFAULT_OPTION, messageType,
-        null, null, new String[] { OK }, managerKey);
-  }
-
-  private int showOptionPane(String[] message, String title, int optionType,
-      int messageType, Object[] options, Object initialValue,
-      String[] optionStrings, ManagerKey managerKey) {
-    int result = showOptionDialog(this, message, title, optionType,
-        messageType, null, options, initialValue, optionStrings, managerKey);
-    return result;
-  }
-
-  /**
-   * Shows all pop up message dialogs.  Pass in in BaseManager so that the
-   * @param parentComponent
-   * @param message
-   * @param title
-   * @param optionType
-   * @param messageType
-   * @param icon
-   * @param options
-   * @param initialValue
-   * @param optionStrings
-   * @param manager
-   * @return
-   * @throws HeadlessException
-   */
-  private int showOptionDialog(Component parentComponent, String[] message,
-      String title, int optionType, int messageType, Icon icon,
-      Object[] options, Object initialValue, String[] optionStrings,
-      ManagerKey managerKey) throws HeadlessException {
-    if (currentManager != null) {
-      currentManager.logMessage(message, title, getAxisID(), managerKey);
-    }
-    JOptionPane pane = new JOptionPane(message, messageType, optionType, icon,
-        options, initialValue);
-
-    pane.setInitialValue(initialValue);
-    pane.setComponentOrientation(((parentComponent == null) ? JOptionPane
-        .getRootFrame() : parentComponent).getComponentOrientation());
-
-    JDialog dialog = pane.createDialog(parentComponent, title);
-
-    pane.selectInitialValue();
-    String name = Utilities.convertLabelToName(title);
-    pane.setName(name);
-    printName(name, optionStrings, title, message);
-    dialog.setVisible(true);
-    dialog.dispose();
-
-    Object selectedValue = pane.getValue();
-
-    if (selectedValue == null)
-      return JOptionPane.CLOSED_OPTION;
-    if (options == null) {
-      if (selectedValue instanceof Integer)
-        return ((Integer) selectedValue).intValue();
-      return JOptionPane.CLOSED_OPTION;
-    }
-    for (int counter = 0, maxCounter = options.length; counter < maxCounter; counter++) {
-      if (options[counter].equals(selectedValue))
-        return counter;
-    }
-    return JOptionPane.CLOSED_OPTION;
-  }
-
-  private synchronized final void printName(String name,
-      String[] optionStrings, String title, String[] message) {
-    if (printNames) {
-      //print waitfor popup name/value pair
-      StringBuffer buffer = new StringBuffer(UITestActionType.WAIT.toString()
-          + AutodocTokenizer.SEPARATOR_CHAR
-          + UITestSubjectType.POPUP.toString()
-          + AutodocTokenizer.SEPARATOR_CHAR + name + ' '
-          + AutodocTokenizer.DEFAULT_DELIMITER + ' ');
-      //if there are options, then print a popup name/value pair
-      if (optionStrings != null && optionStrings.length > 0) {
-        buffer.append(optionStrings[0]);
-        for (int i = 1; i < optionStrings.length; i++) {
-          buffer.append(',' + optionStrings[i]);
-        }
-        System.out.println(buffer);
-      }
-    }
-    if (verbose) {
-      //if verbose then print the popup title and message
-      System.err.println("Popup:");
-      System.err.println(title);
-      if (message != null) {
-        for (int i = 0; i < message.length; i++) {
-          System.err.println(message[i]);
-        }
-      }
-    }
-  }
-
-  /**
-   * Add the current dataset name to the message and wrap
-   * @param message
-   * @return
-   */
-  private String[] wrap(String message) {
-    ArrayList messageArray = setupMessageArray();
-    messageArray = wrap(message, messageArray);
-    return toStringArray(messageArray);
-  }
-
-  /**
-   * Add the current dataset name to the message and wrap
-   * @param message
-   * @return
-   */
-  private String[] wrap(String[] message) {
-    ArrayList messageArray = setupMessageArray();
-    for (int i = 0; i < message.length; i++) {
-      messageArray = wrap(message[i], messageArray);
-    }
-    return toStringArray(messageArray);
-  }
-
-  /**
-   * Add the current dataset name to the message and wrap
-   * @param message
-   * @return
-   */
-  private final String[] wrapError(ProcessMessages processMessages) {
-    ArrayList messageArray = setupMessageArray();
-    for (int i = 0; i < processMessages.errorListSize(); i++) {
-      messageArray = wrap(processMessages.getError(i), messageArray);
-    }
-    return toStringArray(messageArray);
-  }
-
-  private final String[] wrapWarning(ProcessMessages processMessages) {
-    ArrayList messageArray = setupMessageArray();
-    for (int i = 0; i < processMessages.warningListSize(); i++) {
-      messageArray = wrap(processMessages.getWarning(i), messageArray);
-    }
-    return toStringArray(messageArray);
-  }
-
-  private final ArrayList setupMessageArray() {
-    ArrayList messageArray = new ArrayList();
-    if (currentManager != null) {
-      BaseMetaData metaData = currentManager.getBaseMetaData();
-      if (metaData != null) {
-        messageArray.add(currentManager.getName() + ":");
-      }
-    }
-    return messageArray;
-  }
-
-  private final String[] toStringArray(ArrayList arrayList) {
-    if (arrayList.size() == 1) {
-      String[] returnArray = { (String) arrayList.get(0) };
-      return returnArray;
-    }
-    return (String[]) arrayList.toArray(new String[arrayList.size()]);
-  }
-
-  /**
-   * wrap the message and place it in messageArray
-   * @param messagePiece
-   * @param messageArray
-   * @return messageArray
-   */
-  private ArrayList wrap(String messagePiece, ArrayList messageArray) {
-    if (messagePiece == null) {
-      if (messageArray.size() == 0) {
-        messageArray.add(" ");
-      }
-      return messageArray;
-    }
-    if (messagePiece.equals("\n")) {
-      messageArray.add(" ");
-      return messageArray;
-    }
-    //first - break up the message piece by line
-    String[] messagePieceArray = messagePiece.split("\n");
-    //second - break up each line by maximum length
-    for (int i = 0; i < messagePieceArray.length; i++) {
-      //handle empty lines
-      if (messagePieceArray[i] == null || messagePieceArray[i].length() == 0) {
-        messageArray.add(" ");
-      }
-      else {
-        int messageLength = messagePieceArray[i].length();
-        int messageIndex = 0;
-        while (messageIndex < messageLength
-            && messageArray.size() < maxMessageLines) {
-          int endIndex = Math.min(messageLength, messageIndex + messageWidth);
-          StringBuffer newLine = new StringBuffer(messagePieceArray[i]
-              .substring(messageIndex, endIndex));
-          //overflowing line - look for whitespace or a comma
-          messageIndex = endIndex;
-          char lastChar = ' ';
-          while (messageIndex < messageLength
-              && messagePieceArray[i].substring(messageIndex, messageIndex + 1)
-                  .matches("\\S+") && lastChar != ',') {
-            lastChar = messagePieceArray[i].charAt(messageIndex++);
-            newLine.append(lastChar);
-          }
-          messageArray.add(newLine.toString());
-        }
-      }
-    }
-    return messageArray;
+  boolean displayYesNoMessage(BaseManager manager, String[] message,
+      AxisID axisID) {
+    return getFrame(axisID).openYesNoDialog(manager, axisID, message);
   }
 
   /**
@@ -838,24 +463,6 @@ abstract class EtomoFrame extends JFrame {
     pack(false);
   }
 
-  void pack(boolean force) {
-    if (!force && !EtomoDirector.INSTANCE.getUserConfiguration().isAutoFit()) {
-      setVisible(true);
-    }
-    else {
-      Rectangle bounds = getBounds();
-      bounds.height++;
-      bounds.width++;
-      setBounds(bounds);
-      try {
-        super.pack();
-      }
-      catch (NullPointerException e) {
-        e.printStackTrace();
-      }
-    }
-  }
-
   /**
    * Create the Etomo menus
    */
@@ -906,6 +513,9 @@ abstract class EtomoFrame extends JFrame {
   }
 
   EtomoFrame getOtherFrame() {
+    if (singleFrame) {
+      return this;
+    }
     if (main) {
       return subFrame;
     }
@@ -918,6 +528,9 @@ abstract class EtomoFrame extends JFrame {
    * @return
    */
   private EtomoFrame getFrame(AxisID axisID) {
+    if (singleFrame) {
+      return this;
+    }
     if (mainFrame == null) {
       throw new NullPointerException("MainFrame instance was not registered.");
     }
@@ -933,6 +546,9 @@ abstract class EtomoFrame extends JFrame {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.47  2010/02/05 00:47:31  sueh
+ * <p> bug# 1309 Fixed an occasional null pointer exception in getFrame.
+ * <p>
  * <p> Revision 1.46  2009/11/24 00:44:00  sueh
  * <p> bug# 1289 On New PEET, calling PeetManager.isInterfaceAvaiable before
  * <p> opening PEET interface.

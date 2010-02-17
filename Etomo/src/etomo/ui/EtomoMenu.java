@@ -1,17 +1,25 @@
 package etomo.ui;
 
+import java.awt.Dimension;
+import java.awt.Point;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
+import java.net.MalformedURLException;
 
 import javax.swing.JCheckBoxMenuItem;
+import javax.swing.JFrame;
 import javax.swing.JMenu;
 import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
 import javax.swing.KeyStroke;
 
 import etomo.BaseManager;
+import etomo.EtomoDirector;
+import etomo.process.ImodqtassistProcess;
+import etomo.type.AxisID;
 import etomo.type.AxisType;
+import etomo.type.ToolType;
 
 /**
  * <p>Description: </p>
@@ -26,7 +34,7 @@ import etomo.type.AxisType;
  * 
  * @version $Revision$
  */
-public final class EtomoMenu {
+final class EtomoMenu {
   public static final String rcsid = "$Id$";
 
   static final String RECON_LABEL = "Tomogram";
@@ -46,18 +54,22 @@ public final class EtomoMenu {
   private final JMenuItem menuClose = new MenuItem("Close", KeyEvent.VK_C);
   private final JMenuItem menuExit = new MenuItem("Exit", KeyEvent.VK_X);
   private final JMenuItem menuTomosnapshot = new MenuItem("Run Tomosnapshot",
-      KeyEvent.VK_R);
+      KeyEvent.VK_T);
   private final JMenuItem[] menuMRUList = new MenuItem[nMRUFileMax];
 
   private final JMenu menuNew = new Menu("New");
   private final JMenuItem menuNewTomogram = new MenuItem(RECON_LABEL,
-      KeyEvent.VK_N);
+      KeyEvent.VK_T);
   private final JMenuItem menuNewJoin = new MenuItem(JOIN_LABEL, KeyEvent.VK_J);
   private final JMenuItem menuNewAnisotropicDiffusion = new MenuItem(NAD_LABEL,
       KeyEvent.VK_D);
   private final JMenuItem menuNewGenericParallel = new MenuItem(GENERIC_LABEL,
-      KeyEvent.VK_P);
-  private final JMenuItem menuNewPeet = new MenuItem(PEET_LABEL, KeyEvent.VK_E);
+      KeyEvent.VK_G);
+  private final JMenuItem menuNewPeet = new MenuItem(PEET_LABEL, KeyEvent.VK_P);
+
+  private final JMenu menuTools = new Menu("Tools");
+  private final JMenuItem menuFlattenVolume = new MenuItem("Flatten Volume",
+      KeyEvent.VK_F);
 
   private final JMenu menuView = new Menu("View");
   private final JMenuItem menuLogWindow = new MenuItem("Show/Hide Log Window",
@@ -90,61 +102,89 @@ public final class EtomoMenu {
       KeyEvent.VK_J);
   private final JMenuItem menuHelpAbout = new MenuItem("About", KeyEvent.VK_A);
 
-  void createMenus(final EtomoFrame frame) {
+  private final boolean singleFrame;
+
+  EtomoMenu(boolean singleFrame) {
+    this.singleFrame = singleFrame;
+  }
+
+  private void initMenus(AbstractFrame abstractFrame, boolean forManagerFrame) {
     //  Mnemonics for the main menu bar
-    menuFile.setMnemonic(KeyEvent.VK_F);
+    menuTools.setMnemonic(KeyEvent.VK_T);
     menuView.setMnemonic(KeyEvent.VK_V);
     menuOptions.setMnemonic(KeyEvent.VK_O);
     menuHelp.setMnemonic(KeyEvent.VK_H);
+    //Mnomonics for the file menu
+    menuNew.setMnemonic(KeyEvent.VK_N);
 
     //  Accelerators
     menuSettings.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_S,
         ActionEvent.CTRL_MASK));
-    menuAxisA.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_A,
-        ActionEvent.CTRL_MASK));
-    menuAxisB.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_B,
-        ActionEvent.CTRL_MASK));
-    menuAxisBoth.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_2,
-        ActionEvent.CTRL_MASK));
     menuFitWindow.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_F,
-        ActionEvent.CTRL_MASK));
-    menuLogWindow.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_L,
         ActionEvent.CTRL_MASK));
 
     //  Bind the menu items to their listeners
-    FileActionListener fileActionListener = new FileActionListener(frame);
-    menuNewTomogram.addActionListener(fileActionListener);
-    menuNewJoin.addActionListener(fileActionListener);
-    menuNewGenericParallel.addActionListener(fileActionListener);
-    menuNewAnisotropicDiffusion.addActionListener(fileActionListener);
-    menuNewPeet.addActionListener(fileActionListener);
-    menuOpen.addActionListener(fileActionListener);
-    menuSave.addActionListener(fileActionListener);
-    menuSaveAs.addActionListener(fileActionListener);
-    menuClose.addActionListener(fileActionListener);
-    menuExit.addActionListener(fileActionListener);
-    menuTomosnapshot.addActionListener(fileActionListener);
+    ToolsActionListener toolsActionListener = new ToolsActionListener(
+        abstractFrame);
+    menuFlattenVolume.addActionListener(toolsActionListener);
 
-    ViewActionListener viewActionListener = new ViewActionListener(frame);
-    menuLogWindow.addActionListener(viewActionListener);
+    ViewActionListener viewActionListener = new ViewActionListener(
+        abstractFrame);
     menuFitWindow.addActionListener(viewActionListener);
-    menuAxisA.addActionListener(viewActionListener);
-    menuAxisB.addActionListener(viewActionListener);
-    menuAxisBoth.addActionListener(viewActionListener);
 
     OptionsActionListener optionsActionListener = new OptionsActionListener(
-        frame);
+        abstractFrame);
     menuSettings.addActionListener(optionsActionListener);
-    menu3dmodStartupWindow.addActionListener(optionsActionListener);
-    menu3dmodBinBy2.addActionListener(optionsActionListener);
 
-    HelpActionListener helpActionListener = new HelpActionListener(frame);
+    HelpActionListener helpActionListener = new HelpActionListener(
+        abstractFrame);
     menuTomoGuide.addActionListener(helpActionListener);
     menuImodGuide.addActionListener(helpActionListener);
     menu3dmodGuide.addActionListener(helpActionListener);
     menuEtomoGuide.addActionListener(helpActionListener);
     menuJoinGuide.addActionListener(helpActionListener);
     menuHelpAbout.addActionListener(helpActionListener);
+
+    if (!forManagerFrame) {
+      //  Mnemonics for the main menu bar
+      menuFile.setMnemonic(KeyEvent.VK_F);
+      //  Accelerators
+      menuAxisA.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_A,
+          ActionEvent.CTRL_MASK));
+      menuAxisB.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_B,
+          ActionEvent.CTRL_MASK));
+      menuAxisBoth.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_2,
+          ActionEvent.CTRL_MASK));
+      menuLogWindow.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_L,
+          ActionEvent.CTRL_MASK));
+
+      //  Bind the menu items to their listeners
+      FileActionListener fileActionListener = new FileActionListener(
+          abstractFrame);
+      menuNewTomogram.addActionListener(fileActionListener);
+      menuNewJoin.addActionListener(fileActionListener);
+      menuNewGenericParallel.addActionListener(fileActionListener);
+      menuNewAnisotropicDiffusion.addActionListener(fileActionListener);
+      menuNewPeet.addActionListener(fileActionListener);
+      menuOpen.addActionListener(fileActionListener);
+      menuSave.addActionListener(fileActionListener);
+      menuSaveAs.addActionListener(fileActionListener);
+      menuClose.addActionListener(fileActionListener);
+      menuExit.addActionListener(fileActionListener);
+      menuTomosnapshot.addActionListener(fileActionListener);
+
+      menuLogWindow.addActionListener(viewActionListener);
+      menuAxisA.addActionListener(viewActionListener);
+      menuAxisB.addActionListener(viewActionListener);
+      menuAxisBoth.addActionListener(viewActionListener);
+
+      menu3dmodStartupWindow.addActionListener(optionsActionListener);
+      menu3dmodBinBy2.addActionListener(optionsActionListener);
+    }
+  }
+
+  void createMenus(final EtomoFrame frame) {
+    initMenus(frame, false);
 
     //  File menu
     menuFile.add(menuNew);
@@ -174,6 +214,9 @@ public final class EtomoMenu {
       menuFile.add(menuMRUList[i]);
     }
 
+    //Tool menu
+    menuTools.add(menuFlattenVolume);
+
     // View menu
     menuView.add(menuLogWindow);
     menuView.add(menuAxisA);
@@ -196,6 +239,34 @@ public final class EtomoMenu {
 
     //  Construct menu bar
     menuBar.add(menuFile);
+    menuBar.add(menuTools);
+    menuBar.add(menuView);
+    menuBar.add(menuOptions);
+    menuBar.add(menuHelp);
+  }
+
+  void createMenus(final ManagerFrame frame) {
+    initMenus(frame, true);
+
+    //Tool menu
+    menuTools.add(menuFlattenVolume);
+
+    // View menu
+    menuView.add(menuFitWindow);
+
+    // Options menu
+    menuOptions.add(menuSettings);
+
+    // Help menu
+    menuHelp.add(menuTomoGuide);
+    menuHelp.add(menuImodGuide);
+    menuHelp.add(menu3dmodGuide);
+    menuHelp.add(menuEtomoGuide);
+    menuHelp.add(menuJoinGuide);
+    menuHelp.add(menuHelpAbout);
+
+    //  Construct menu bar
+    menuBar.add(menuTools);
     menuBar.add(menuView);
     menuBar.add(menuOptions);
     menuBar.add(menuHelp);
@@ -267,6 +338,67 @@ public final class EtomoMenu {
     }
     for (int i = mRUList.length; i < nMRUFileMax; i++) {
       menuMRUList[i].setVisible(false);
+    }
+  }
+
+  public void menuToolsAction(AxisID axisID, ActionEvent event) {
+    if (equalsFlattenVolume(event)) {
+      EtomoDirector.INSTANCE.openTools(axisID, ToolType.FLATTEN_VOLUME);
+    }
+  }
+
+  /**
+   * Handle help menu actions
+   * @param event
+   */
+  public void menuHelpAction(BaseManager manager, AxisID axisID, JFrame frame,
+      ActionEvent event) {
+    // Get the URL to the IMOD html directory
+    String imodURL = "";
+    try {
+      imodURL = EtomoDirector.INSTANCE.getIMODDirectory().toURL().toString()
+          + "/html/";
+    }
+    catch (MalformedURLException except) {
+      except.printStackTrace();
+      System.err.println("Malformed URL:");
+      System.err.println(EtomoDirector.INSTANCE.getIMODDirectory().toString());
+      return;
+    }
+
+    if (equalsTomoGuide(event)) {
+      //TODO
+      /*HTMLPageWindow manpage = new HTMLPageWindow();
+       manpage.openURL(imodURL + "tomoguide.html");
+       manpage.setVisible(true);*/
+      ImodqtassistProcess.INSTANCE.open(manager, "tomoguide.html", axisID);
+    }
+
+    if (equalsImodGuide(event)) {
+      ImodqtassistProcess.INSTANCE.open(manager, "guide.html", axisID);
+    }
+
+    if (equals3dmodGuide(event)) {
+      ImodqtassistProcess.INSTANCE.open(manager, "3dmodguide.html", axisID);
+    }
+
+    if (equalsEtomoGuide(event)) {
+      ImodqtassistProcess.INSTANCE.open(manager, "UsingEtomo.html", axisID);
+    }
+
+    if (equalsJoinGuide(event)) {
+      ImodqtassistProcess.INSTANCE.open(manager, "tomojoin.html", axisID);
+    }
+
+    if (equalsHelpAbout(event)) {
+      MainFrame_AboutBox dlg = new MainFrame_AboutBox(manager, frame, axisID);
+      Dimension dlgSize = dlg.getPreferredSize();
+      Dimension frmSize = frame.getSize();
+      Point loc = frame.getLocation();
+      dlg.setLocation((frmSize.width - dlgSize.width) / 2 + loc.x,
+          (frmSize.height - dlgSize.height) / 2 + loc.y);
+      dlg.setModal(true);
+      dlg.setVisible(true);
     }
   }
 
@@ -362,6 +494,10 @@ public final class EtomoMenu {
     return equals(menuTomosnapshot, event);
   }
 
+  boolean equalsFlattenVolume(final ActionEvent event) {
+    return equals(menuFlattenVolume, event);
+  }
+
   boolean equalsSettings(final ActionEvent event) {
     return equals(menuSettings, event);
   }
@@ -424,14 +560,27 @@ public final class EtomoMenu {
 
   //  File menu action listener
   private static final class FileActionListener implements ActionListener {
-    private EtomoFrame adaptee;
+    private AbstractFrame adaptee;
 
-    private FileActionListener(final EtomoFrame adaptee) {
+    private FileActionListener(final AbstractFrame adaptee) {
       this.adaptee = adaptee;
     }
 
     public void actionPerformed(final ActionEvent event) {
       adaptee.menuFileAction(event);
+    }
+  }
+
+  //  Tools menu action listener
+  private static final class ToolsActionListener implements ActionListener {
+    private AbstractFrame adaptee;
+
+    private ToolsActionListener(final AbstractFrame adaptee) {
+      this.adaptee = adaptee;
+    }
+
+    public void actionPerformed(final ActionEvent event) {
+      adaptee.menuToolsAction(event);
     }
   }
 
@@ -451,9 +600,9 @@ public final class EtomoMenu {
 
   // View action listener
   private static final class ViewActionListener implements ActionListener {
-    private EtomoFrame adaptee;
+    private AbstractFrame adaptee;
 
-    private ViewActionListener(final EtomoFrame adaptee) {
+    private ViewActionListener(final AbstractFrame adaptee) {
       this.adaptee = adaptee;
     }
 
@@ -464,9 +613,9 @@ public final class EtomoMenu {
 
   // Options action listener
   private static final class OptionsActionListener implements ActionListener {
-    private EtomoFrame adaptee;
+    private AbstractFrame adaptee;
 
-    private OptionsActionListener(final EtomoFrame adaptee) {
+    private OptionsActionListener(final AbstractFrame adaptee) {
       this.adaptee = adaptee;
     }
 
@@ -477,9 +626,9 @@ public final class EtomoMenu {
 
   // Help file action listener
   private static final class HelpActionListener implements ActionListener {
-    private EtomoFrame adaptee;
+    private AbstractFrame adaptee;
 
-    private HelpActionListener(final EtomoFrame adaptee) {
+    private HelpActionListener(final AbstractFrame adaptee) {
       this.adaptee = adaptee;
     }
 
@@ -490,6 +639,10 @@ public final class EtomoMenu {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.18  2009/12/29 18:50:03  sueh
+ * <p> bug# 1297 Put the "New..." menu items under "New >".  Published "New..."
+ * <p> menu item labels.
+ * <p>
  * <p> Revision 1.17  2009/11/20 17:04:33  sueh
  * <p> bug# 1282 Added isMenuSaveEnabled to allow a save function to have the
  * <p> same limits as the save menu option.

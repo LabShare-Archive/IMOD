@@ -49,6 +49,9 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.97  2010/01/13 22:04:16  sueh
+ * <p> bug# 1298 Corrected hyphenation for rbCcModeNormalized.
+ * <p>
  * <p> Revision 1.96  2010/01/13 21:56:31  sueh
  * <p> bug# 1298 Made run button labels public.
  * <p>
@@ -1156,17 +1159,15 @@ public final class PeetDialog implements ContextMenu, AbstractParallelDialog,
     //Must have a directory
     if (ftfDirectory.isEmpty()) {
       gotoSetupTab();
-      UIHarness.INSTANCE.openMessageDialog("Please set the "
-          + PeetDialog.DIRECTORY_LABEL + " field.", "Entry Error", manager
-          .getManagerKey());
+      UIHarness.INSTANCE.openMessageDialog(manager, "Please set the "
+          + PeetDialog.DIRECTORY_LABEL + " field.", "Entry Error");
       return false;
     }
     //Must have an output name
     if (ltfFnOutput.isEmpty()) {
       gotoSetupTab();
-      UIHarness.INSTANCE.openMessageDialog("Please set the "
-          + PeetDialog.FN_OUTPUT_LABEL + " field.", "Entry Error", manager
-          .getManagerKey());
+      UIHarness.INSTANCE.openMessageDialog(manager, "Please set the "
+          + PeetDialog.FN_OUTPUT_LABEL + " field.", "Entry Error");
       return false;
     }
     //Validate volume table
@@ -1175,40 +1176,40 @@ public final class PeetDialog implements ContextMenu, AbstractParallelDialog,
         || missingWedgeCompensationPanel.isFlgWedgeWeightSelected());
     if (errorMessage != null) {
       gotoSetupTab();
-      UIHarness.INSTANCE.openMessageDialog(errorMessage, "Entry Error", manager
-          .getManagerKey());
+      UIHarness.INSTANCE
+          .openMessageDialog(manager, errorMessage, "Entry Error");
       return false;
     }
     //Must either have a volume and particle or a reference file.
     errorMessage = referencePanel.validateRun();
     if (errorMessage != null) {
       gotoSetupTab();
-      UIHarness.INSTANCE.openMessageDialog(errorMessage, "Entry Error", manager
-          .getManagerKey());
+      UIHarness.INSTANCE
+          .openMessageDialog(manager, errorMessage, "Entry Error");
       return false;
     }
     //Validate missing wedge compensation panel
     errorMessage = missingWedgeCompensationPanel.validateRun();
     if (errorMessage != null) {
       gotoSetupTab();
-      UIHarness.INSTANCE.openMessageDialog(errorMessage, "Entry Error", manager
-          .getManagerKey());
+      UIHarness.INSTANCE
+          .openMessageDialog(manager, errorMessage, "Entry Error");
       return false;
     }
     //Validate masking
     errorMessage = maskingPanel.validateRun();
     if (errorMessage != null) {
       gotoSetupTab();
-      UIHarness.INSTANCE.openMessageDialog(errorMessage, "Entry Error", manager
-          .getManagerKey());
+      UIHarness.INSTANCE
+          .openMessageDialog(manager, errorMessage, "Entry Error");
       return false;
     }
     //validate Y axis type
     errorMessage = yAxisTypePanel.validateRun();
     if (errorMessage != null) {
       gotoSetupTab();
-      UIHarness.INSTANCE.openMessageDialog(errorMessage, "Entry Error", manager
-          .getManagerKey());
+      UIHarness.INSTANCE
+          .openMessageDialog(manager, errorMessage, "Entry Error");
       return false;
     }
     //Run tab
@@ -1221,62 +1222,65 @@ public final class PeetDialog implements ContextMenu, AbstractParallelDialog,
     }
     //particle volume
     if (ltfSzVolX.isEmpty()) {
-      UIHarness.INSTANCE.openMessageDialog("In " + PARTICLE_VOLUME_LABEL + ", "
-          + X_LABEL + " is required.", "Entry Error", manager.getManagerKey());
+      UIHarness.INSTANCE.openMessageDialog(manager, "In "
+          + PARTICLE_VOLUME_LABEL + ", " + X_LABEL + " is required.",
+          "Entry Error");
       return false;
     }
     if (ltfSzVolY.isEmpty()) {
-      UIHarness.INSTANCE.openMessageDialog("In " + PARTICLE_VOLUME_LABEL + ", "
-          + Y_LABEL + " is required.", "Entry Error", manager.getManagerKey());
+      UIHarness.INSTANCE.openMessageDialog(manager, "In "
+          + PARTICLE_VOLUME_LABEL + ", " + Y_LABEL + " is required.",
+          "Entry Error");
       return false;
     }
     if (ltfSzVolZ.isEmpty()) {
-      UIHarness.INSTANCE.openMessageDialog("In " + PARTICLE_VOLUME_LABEL + ", "
-          + Z_LABEL + " is required.", "Entry Error", manager.getManagerKey());
+      UIHarness.INSTANCE.openMessageDialog(manager, "In "
+          + PARTICLE_VOLUME_LABEL + ", " + Z_LABEL + " is required.",
+          "Entry Error");
       return false;
     }
     Goodframe goodframe = new Goodframe(manager.getPropertyUserDir(),
-        AxisID.FIRST, manager.getManagerKey());
+        AxisID.FIRST);
     try {
-      goodframe.run(new String[] { ltfSzVolX.getText(), ltfSzVolY.getText(),
-          ltfSzVolZ.getText() });
+      goodframe.run(manager, new String[] { ltfSzVolX.getText(),
+          ltfSzVolY.getText(), ltfSzVolZ.getText() });
       if (!goodframe.getOutput(0).equals(ltfSzVolX.getText())) {
-        UIHarness.INSTANCE.openMessageDialog("In " + PARTICLE_VOLUME_LABEL
-            + ", " + X_LABEL + " is invalid.  Try " + goodframe.getOutput(0)
-            + ".", "Entry Error", manager.getManagerKey());
+        UIHarness.INSTANCE.openMessageDialog(manager, "In "
+            + PARTICLE_VOLUME_LABEL + ", " + X_LABEL + " is invalid.  Try "
+            + goodframe.getOutput(0) + ".", "Entry Error");
         return false;
       }
       if (!goodframe.getOutput(1).equals(ltfSzVolY.getText())) {
-        UIHarness.INSTANCE.openMessageDialog("In " + PARTICLE_VOLUME_LABEL
-            + ", " + Y_LABEL + " is invalid.  Try " + goodframe.getOutput(1)
-            + ".", "Entry Error", manager.getManagerKey());
+        UIHarness.INSTANCE.openMessageDialog(manager, "In "
+            + PARTICLE_VOLUME_LABEL + ", " + Y_LABEL + " is invalid.  Try "
+            + goodframe.getOutput(1) + ".", "Entry Error");
         return false;
       }
       if (!goodframe.getOutput(2).equals(ltfSzVolZ.getText())) {
-        UIHarness.INSTANCE.openMessageDialog("In " + PARTICLE_VOLUME_LABEL
-            + ", " + Z_LABEL + " is invalid.  Try " + goodframe.getOutput(2)
-            + ".", "Entry Error", manager.getManagerKey());
+        UIHarness.INSTANCE.openMessageDialog(manager, "In "
+            + PARTICLE_VOLUME_LABEL + ", " + Z_LABEL + " is invalid.  Try "
+            + goodframe.getOutput(2) + ".", "Entry Error");
         return false;
       }
     }
     catch (IOException e) {
-      if (!UIHarness.INSTANCE.openYesNoDialog("Unable to validate "
+      if (!UIHarness.INSTANCE.openYesNoDialog(manager, "Unable to validate "
           + PARTICLE_VOLUME_LABEL + ".  Continue?\n\n" + e.getMessage(),
-          AxisID.ONLY, manager.getManagerKey())) {
+          AxisID.ONLY)) {
         return false;
       }
     }
     catch (InvalidParameterException e) {
-      if (!UIHarness.INSTANCE.openYesNoDialog("Unable to validate "
+      if (!UIHarness.INSTANCE.openYesNoDialog(manager, "Unable to validate "
           + PARTICLE_VOLUME_LABEL + ".  Continue?\n\n" + e.getMessage(),
-          AxisID.ONLY, manager.getManagerKey())) {
+          AxisID.ONLY)) {
         return false;
       }
     }
     catch (NumberFormatException e) {
-      if (!UIHarness.INSTANCE.openYesNoDialog("Unable to validate "
+      if (!UIHarness.INSTANCE.openYesNoDialog(manager, "Unable to validate "
           + PARTICLE_VOLUME_LABEL + ".  Continue?\n\n" + e.getMessage(),
-          AxisID.ONLY, manager.getManagerKey())) {
+          AxisID.ONLY)) {
         return false;
       }
     }
@@ -1288,23 +1292,23 @@ public final class PeetDialog implements ContextMenu, AbstractParallelDialog,
     if (startIsEmpty && incrementIsEmpty) {
       //lst thesholds is required
       if (additionalIsEmpty) {
-        UIHarness.INSTANCE.openMessageDialog(LST_THRESHOLDS_LABEL
-            + " is required.", "Entry Error", manager.getManagerKey());
+        UIHarness.INSTANCE.openMessageDialog(manager, LST_THRESHOLDS_LABEL
+            + " is required.", "Entry Error");
         return false;
       }
       //check empty list descriptor
       if (!endIsEmpty) {
-        UIHarness.INSTANCE.openMessageDialog("In " + LST_THRESHOLDS_LABEL
-            + ", invalid list description.", "Entry Error", manager
-            .getManagerKey());
+        UIHarness.INSTANCE.openMessageDialog(manager, "In "
+            + LST_THRESHOLDS_LABEL + ", invalid list description.",
+            "Entry Error");
         return false;
       }
     }
     //check list descriptor
     else if (startIsEmpty || endIsEmpty) {
-      UIHarness.INSTANCE.openMessageDialog("In " + LST_THRESHOLDS_LABEL
-          + ", invalid list description.", "Entry Error", manager
-          .getManagerKey());
+      UIHarness.INSTANCE
+          .openMessageDialog(manager, "In " + LST_THRESHOLDS_LABEL
+              + ", invalid list description.", "Entry Error");
       return false;
     }
     return true;

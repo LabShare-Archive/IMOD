@@ -42,7 +42,10 @@ import etomo.type.Run3dmodMenuOptions;
  * 
  * @version $Revision$
  * 
- * <p> $Log$ </p>
+ * <p> $Log$
+ * <p> Revision 3.1  2009/09/01 03:18:25  sueh
+ * <p> bug# 1222
+ * <p> </p>
  */
 final class FindBeads3dPanel implements FindBeads3dDisplay, Expandable,
     Run3dmodButtonContainer {
@@ -283,8 +286,8 @@ final class FindBeads3dPanel implements FindBeads3dDisplay, Expandable,
   private void setToolTipText() {
     ReadOnlyAutodoc autodoc = null;
     try {
-      autodoc = AutodocFactory.getInstance(AutodocFactory.FIND_BEADS_3D,
-          axisID, manager.getManagerKey());
+      autodoc = AutodocFactory.getInstance(manager,
+          AutodocFactory.FIND_BEADS_3D, axisID);
     }
     catch (FileNotFoundException except) {
       except.printStackTrace();

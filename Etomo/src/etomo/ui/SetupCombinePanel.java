@@ -55,6 +55,11 @@ import etomo.util.MRCHeader;
  * 
  * <p>
  * $Log$
+ * Revision 3.62  2010/01/11 23:59:00  sueh
+ * bug# 1299 Removed responsibility anything other then cpu.adoc from
+ * CpuAdoc.  Placed responsibility for information about the network in the
+ * Network class.
+ *
  * Revision 3.61  2009/09/01 03:18:24  sueh
  * bug# 1222
  *
@@ -718,16 +723,14 @@ public final class SetupCombinePanel implements ContextMenu,
       AxisID toAxisID = matchBtoA ? AxisID.FIRST : AxisID.SECOND;
       MRCHeader toMrcHeader = MRCHeader.getInstance(applicationManager
           .getPropertyUserDir(), DatasetFiles.getTomogramName(
-          applicationManager, toAxisID), AxisID.ONLY, applicationManager
-          .getManagerKey());
+          applicationManager, toAxisID), AxisID.ONLY);
       AxisID fromAxisID = matchBtoA ? AxisID.SECOND : AxisID.FIRST;
       MRCHeader fromMrcHeader = MRCHeader.getInstance(applicationManager
           .getPropertyUserDir(), DatasetFiles.getTomogramName(
-          applicationManager, fromAxisID), AxisID.ONLY, applicationManager
-          .getManagerKey());
+          applicationManager, fromAxisID), AxisID.ONLY);
       try {
-        if (toMrcHeader.read()) {
-          fromMrcHeader.read();
+        if (toMrcHeader.read(applicationManager)) {
+          fromMrcHeader.read(applicationManager);
           if (toMrcHeader.getNColumns() != fromMrcHeader.getNSections()
               || toMrcHeader.getNSections() != fromMrcHeader.getNColumns()) {
             different = true;
@@ -776,9 +779,9 @@ public final class SetupCombinePanel implements ContextMenu,
   void setParameters(ConstMetaData metaData) {
     //Parallel processing is optional in tomogram reconstruction, so only use it
     //if the user set it up.
-    boolean validAutodoc = Network.isParallelProcessingEnabled(AxisID.FIRST,
-        applicationManager.getPropertyUserDir(), applicationManager
-            .getManagerKey());
+    boolean validAutodoc = Network.isParallelProcessingEnabled(
+        applicationManager, AxisID.FIRST, applicationManager
+            .getPropertyUserDir());
     ConstEtomoNumber combineVolcombineParallel = metaData
         .getCombineVolcombineParallel();
     cbParallelProcess.setEnabled(validAutodoc);
@@ -1168,9 +1171,9 @@ public final class SetupCombinePanel implements ContextMenu,
     AxisID toAxisID = matchBtoA ? AxisID.FIRST : AxisID.SECOND;
     MRCHeader mrcHeader = MRCHeader.getInstance(applicationManager
         .getPropertyUserDir(), DatasetFiles.getTomogramName(applicationManager,
-        toAxisID), AxisID.ONLY, applicationManager.getManagerKey());
+        toAxisID), AxisID.ONLY);
     try {
-      if (!mrcHeader.read()) {
+      if (!mrcHeader.read(applicationManager)) {
         return;
       }
       int xyborder = CombineParams.getXYBorder(mrcHeader);

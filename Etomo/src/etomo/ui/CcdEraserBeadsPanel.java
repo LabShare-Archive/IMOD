@@ -38,6 +38,9 @@ import etomo.util.DatasetFiles;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.1  2009/09/01 03:18:25  sueh
+ * <p> bug# 1222
+ * <p>
  * <p> Revision 1.1  2009/06/16 22:46:46  sueh
  * <p> bug# 1221 Factored out of final aligned stack dialog.
  * <p> </p>
@@ -195,7 +198,7 @@ final class CcdEraserBeadsPanel implements Run3dmodButtonContainer,
     fiducialDiameter.set(ltfFiducialDiameter.getText());
     param.setBetterRadius(fiducialDiameter.getDouble() / 2.0);
     param.setPolynomialOrder(getPolynomialOrder());
-    return param.validate(manager.getManagerKey());
+    return param.validate();
   }
 
   public void action(final Run3dmodButton button,

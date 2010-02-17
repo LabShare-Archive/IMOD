@@ -33,6 +33,9 @@ import etomo.type.Run3dmodMenuOptions;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.39  2009/12/19 01:20:30  sueh
+ * <p> bug# 1294 Factored out the VolumeRangePanel.
+ * <p>
  * <p> Revision 3.38  2009/09/17 19:12:06  sueh
  * <p> Removed unnecessary print.
  * <p>
@@ -273,8 +276,8 @@ public final class TrimvolPanel implements Run3dmodButtonContainer,
       "Get XYZ Volume Range From 3dmod");
   private JPanel pnlImodFull = new JPanel();
   private final VolumeRangePanel volumeRangePanel = VolumeRangePanel
-  .getInstance();
-  
+      .getInstance();
+
   private final ButtonListener buttonActonListener;
   private final RubberbandPanel pnlScaleRubberband;
   private final AxisID axisID;
@@ -482,15 +485,27 @@ public final class TrimvolPanel implements Run3dmodButtonContainer,
     trimvolParam.setRotateX(rbRotateX.isSelected());
 
     trimvolParam.setConvertToBytes(cbConvertToBytes.isSelected());
+    String errorMessage;
     if (rbScaleFixed.isSelected()) {
       trimvolParam.setFixedScaling(true);
+
       try {
-        trimvolParam.setFixedScaleMin(ltfFixedScaleMin.getText()).validate(
-            SCALING_ERROR_TITLE, FIXED_SCALE_MIN_LABEL, axisID,
-            applicationManager.getManagerKey());
-        trimvolParam.setFixedScaleMax(ltfFixedScaleMax.getText()).validate(
-            SCALING_ERROR_TITLE, FIXED_SCALE_MAX_LABEL, axisID,
-            applicationManager.getManagerKey());
+        errorMessage = trimvolParam
+            .setFixedScaleMin(ltfFixedScaleMin.getText()).validate(
+                FIXED_SCALE_MIN_LABEL);
+        if (errorMessage != null) {
+          UIHarness.INSTANCE.openMessageDialog(applicationManager,
+              errorMessage, SCALING_ERROR_TITLE, axisID);
+          throw new InvalidEtomoNumberException(errorMessage);
+        }
+        errorMessage = trimvolParam
+            .setFixedScaleMax(ltfFixedScaleMax.getText()).validate(
+                FIXED_SCALE_MAX_LABEL);
+        if (errorMessage != null) {
+          UIHarness.INSTANCE.openMessageDialog(applicationManager,
+              errorMessage, SCALING_ERROR_TITLE, axisID);
+          throw new InvalidEtomoNumberException(errorMessage);
+        }
       }
       catch (InvalidEtomoNumberException e) {
         return false;
@@ -499,12 +514,20 @@ public final class TrimvolPanel implements Run3dmodButtonContainer,
     else {
       trimvolParam.setFixedScaling(false);
       try {
-        trimvolParam.setSectionScaleMin(ltfSectionScaleMin.getText()).validate(
-            SCALING_ERROR_TITLE, SECTION_SCALE_MIN_LABEL, axisID,
-            applicationManager.getManagerKey());
-        trimvolParam.setSectionScaleMax(ltfSectionScaleMax.getText()).validate(
-            SCALING_ERROR_TITLE, SECTION_SCALE_MAX_LABEL, axisID,
-            applicationManager.getManagerKey());
+        errorMessage = trimvolParam.setSectionScaleMin(
+            ltfSectionScaleMin.getText()).validate(SECTION_SCALE_MIN_LABEL);
+        if (errorMessage != null) {
+          UIHarness.INSTANCE.openMessageDialog(applicationManager,
+              errorMessage, SCALING_ERROR_TITLE, axisID);
+          throw new InvalidEtomoNumberException(errorMessage);
+        }
+        errorMessage = trimvolParam.setSectionScaleMax(
+            ltfSectionScaleMax.getText()).validate(SECTION_SCALE_MAX_LABEL);
+        if (errorMessage != null) {
+          UIHarness.INSTANCE.openMessageDialog(applicationManager,
+              errorMessage, SCALING_ERROR_TITLE, axisID);
+          throw new InvalidEtomoNumberException(errorMessage);
+        }
       }
       catch (InvalidEtomoNumberException e) {
         return false;
@@ -572,8 +595,9 @@ public final class TrimvolPanel implements Run3dmodButtonContainer,
           run3dmodMenuOptions, dialogType);
     }
     else if (command == btnGetCoordinates.getActionCommand()) {
-      volumeRangePanel.setXYMinAndMax(applicationManager.imodGetRubberbandCoordinates(
-          ImodManager.COMBINED_TOMOGRAM_KEY, AxisID.ONLY));
+      volumeRangePanel.setXYMinAndMax(applicationManager
+          .imodGetRubberbandCoordinates(ImodManager.COMBINED_TOMOGRAM_KEY,
+              AxisID.ONLY));
     }
     else if (command == btnImodFull.getActionCommand()) {
       applicationManager.imodCombinedTomogram(run3dmodMenuOptions);

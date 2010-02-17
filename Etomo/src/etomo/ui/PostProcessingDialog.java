@@ -44,12 +44,12 @@ public final class PostProcessingDialog extends ProcessDialog implements
   private final TabbedPane tabbedPane = new TabbedPane();
 
   private Tab curTab = Tab.DEFAULT;
-  private final FlattenPanel flattenPanel;
+  private final FlattenVolumePanel flattenVolumePanel;
   private final SqueezeVolPanel squeezeVolPanel;
 
   private PostProcessingDialog(ApplicationManager appMgr) {
     super(appMgr, AxisID.ONLY, DialogType.POST_PROCESSING);
-    flattenPanel = FlattenPanel.getInstance(appMgr, axisID, dialogType);
+    flattenVolumePanel = FlattenVolumePanel.getPostInstance(appMgr, axisID, dialogType);
     squeezeVolPanel = SqueezeVolPanel.getInstance(appMgr, axisID, dialogType);
     rootPanel.setLayout(new BoxLayout(rootPanel, BoxLayout.Y_AXIS));
     rootPanel.setBorder(new BeveledBorder("Post Processing").getBorder());
@@ -98,7 +98,7 @@ public final class PostProcessingDialog extends ProcessDialog implements
       panel.add(trimvolPanel.getContainer());
     }
     else if (curTab == Tab.FLATTEN) {
-      panel.add(flattenPanel.getComponent());
+      panel.add(flattenVolumePanel.getComponent());
     }
     else if (curTab == Tab.SQUEEZE_VOL) {
       panel.add(squeezeVolPanel.getComponent());
@@ -121,11 +121,11 @@ public final class PostProcessingDialog extends ProcessDialog implements
   }
 
   public static ProcessResultDisplay getFlattenDisplay() {
-    return FlattenPanel.getFlattenDisplay(DialogType.POST_PROCESSING);
+    return FlattenVolumePanel.getFlattenDisplay(DialogType.POST_PROCESSING);
   }
 
   public static ProcessResultDisplay getFlattenWarpButton() {
-    return FlattenWarpPanel.getFlattenWarpButton();
+    return FlattenVolumePanel.getFlattenWarpButton();
   }
 
   /**
@@ -142,27 +142,27 @@ public final class PostProcessingDialog extends ProcessDialog implements
   }
 
   public void setParameters(ConstMetaData metaData) {
-    flattenPanel.setParameters(metaData);
+    flattenVolumePanel.setParameters(metaData);
     squeezeVolPanel.setParameters(metaData);
     changeTab(metaData.getPostCurTab());
   }
 
   public FlattenWarpDisplay getFlattenWarpDisplay() {
-    return flattenPanel.getFlattenWarpDisplay();
+    return flattenVolumePanel.getFlattenWarpDisplay();
   }
 
   public void getParameters(MetaData metaData) {
-    flattenPanel.getParameters(metaData);
+    flattenVolumePanel.getParameters(metaData);
     squeezeVolPanel.getParameters(metaData);
     metaData.setPostCurTab(curTab.index);
   }
 
   public boolean getParameters(WarpVolParam param) {
-    return flattenPanel.getParameters(param);
+    return flattenVolumePanel.getParameters(param);
   }
 
   public void setParameters(ConstWarpVolParam param) {
-    flattenPanel.setParameters(param);
+    flattenVolumePanel.setParameters(param);
   }
 
   /**
@@ -207,7 +207,7 @@ public final class PostProcessingDialog extends ProcessDialog implements
     applicationManager.donePostProcessing();
     squeezeVolPanel.done();
     trimvolPanel.done();
-    flattenPanel.done();
+    flattenVolumePanel.done();
     setDisplayed(false);
   }
 
@@ -256,6 +256,9 @@ public final class PostProcessingDialog extends ProcessDialog implements
 }
 /**
  * <p> $Log$
+ * <p> Revision 3.47  2009/12/19 01:18:56  sueh
+ * <p> bug# 1294 Added smoothingAssessmentPanel to FlattenWarpPanel.
+ * <p>
  * <p> Revision 3.46  2009/10/16 21:15:16  sueh
  * <p> bug# 1230 set/getParameters(Const/MetaData) setting and getting curTab
  * <p> from meta data.  Added changeTab(ConstEtomoNumber) to handle

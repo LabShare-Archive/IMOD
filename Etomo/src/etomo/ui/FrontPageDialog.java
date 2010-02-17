@@ -24,6 +24,9 @@ import etomo.type.AxisID;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.6  2009/12/29 18:50:31  sueh
+ * <p> bug# 1297 Matched button labels to "New >" menu item labels.
+ * <p>
  * <p> Revision 1.5  2009/11/24 00:44:33  sueh
  * <p> bug# 1289 On PEET button being pressed, calling
  * <p> PeetManager.isInterfaceAvaiable before opening PEET interface.
@@ -59,6 +62,7 @@ public final class FrontPageDialog {
       + EtomoMenu.GENERIC_LABEL);
   private final MultiLineButton btnPeet = new MultiLineButton("New "
       + EtomoMenu.PEET_LABEL);
+  private final MultiLineButton btnFlattenVolume = new MultiLineButton("Flatten Volume");
 
   private FrontPageDialog() {
   }
@@ -82,6 +86,7 @@ public final class FrontPageDialog {
     btnNad.setSize();
     btnGeneric.setSize();
     btnPeet.setSize();
+    btnFlattenVolume.setSize();
     //root panel
     pnlRoot.setBoxLayout(BoxLayout.Y_AXIS);
     pnlRoot.add(pnlReconstruction);

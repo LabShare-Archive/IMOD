@@ -11,6 +11,9 @@
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.8  2009/03/17 00:46:24  sueh
+ * <p> bug# 1186 Pass managerKey to everything that pops up a dialog.
+ * <p>
  * <p> Revision 3.7  2006/05/22 22:52:10  sueh
  * <p> bug# 577 Placed commands in a String[] rather then a String.
  * <p>
@@ -176,8 +179,8 @@ public class MainFrame_AboutBox extends JDialog {
   private void getImodVersion(AxisID axisID) {
     String[] command = new String[] { ApplicationManager.getIMODBinPath()
         + "imodinfo" };
-    SystemProgram threeDmod_h = new SystemProgram(manager.getPropertyUserDir(),
-        command, axisID, manager.getManagerKey());
+    SystemProgram threeDmod_h = new SystemProgram(manager, manager
+        .getPropertyUserDir(), command, axisID);
 
     threeDmod_h.run();
 

@@ -3,8 +3,6 @@ package etomo.ui;
 import java.awt.AWTEvent;
 import java.awt.BorderLayout;
 
-import java.awt.Component;
-import java.awt.Container;
 import java.awt.Dimension;
 import java.awt.event.ActionEvent;
 import java.awt.event.MouseEvent;
@@ -14,7 +12,6 @@ import javax.swing.JPanel;
 
 import etomo.BaseManager;
 import etomo.EtomoDirector;
-import etomo.ManagerKey;
 import etomo.storage.autodoc.AutodocTokenizer;
 import etomo.type.AxisID;
 import etomo.type.AxisType;
@@ -35,6 +32,11 @@ import etomo.util.Utilities;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.59  2009/11/20 17:27:52  sueh
+ * <p> bug# 1282 Added prefixes to all of the field names, so that the fields that
+ * <p> are actually abstract buttons (radio buttons, etc) won't be activated by a
+ * <p> "bn." field command.
+ * <p>
  * <p> Revision 3.58  2009/10/27 20:42:53  sueh
  * <p> bug# 1275 Moved FrontPageDialog to FrontPageManager.
  * <p>
@@ -466,13 +468,13 @@ import etomo.util.Utilities;
 public final class MainFrame extends EtomoFrame implements ContextMenu {
   public static final String rcsid = "$Id$";
 
+  static final int EXTRA_SCREEN_WIDTH_MULTIPLIER = 2;
+  static final Dimension FRAME_BORDER = new Dimension(10, 48);
+  public static final String ETOMO_TITLE = "Etomo";
   public static final String NAME = "main-frame";
 
-  private static final int extraScreenWidthMultiplier = 2;
-  private static final Dimension frameBorder = new Dimension(10, 48);
   private static final String aAxisTitle = "A Axis - ";
   private static final String bAxisTitle = "B Axis - ";
-  public static final String etomoTitle = "Etomo";
 
   //private JPanel contentPane;
   private final JPanel rootPanel;
@@ -482,7 +484,7 @@ public final class MainFrame extends EtomoFrame implements ContextMenu {
   private String title;
   private String[] mRUList;
   private boolean registered = false;
-  private LogFrame logFrame = LogFrame.getInstance();
+  private final LogFrame logFrame = LogFrame.getInstance();
 
   /**
    * Main window constructor.  This sets up the menus and status line.
@@ -491,10 +493,10 @@ public final class MainFrame extends EtomoFrame implements ContextMenu {
     register();
     enableEvents(AWTEvent.WINDOW_EVENT_MASK);
     Dimension screenSize = UIUtilities.getScreenSize();
-    screenSize.width *= extraScreenWidthMultiplier;
+    screenSize.width *= EXTRA_SCREEN_WIDTH_MULTIPLIER;
     Dimension rootPanelSize = new Dimension(screenSize);
-    rootPanelSize.height -= frameBorder.height;
-    rootPanelSize.width -= frameBorder.width;
+    rootPanelSize.height -= FRAME_BORDER.height;
+    rootPanelSize.width -= FRAME_BORDER.width;
 
     rootPanel = (JPanel) getContentPane();
     rootPanel.setLayout(new BorderLayout());
@@ -526,7 +528,7 @@ public final class MainFrame extends EtomoFrame implements ContextMenu {
     main = true;
   }
 
-  void setCurrentManager(BaseManager currentManager, ManagerKey managerKey,
+  void setCurrentManager(BaseManager currentManager, UniqueKey managerKey,
       boolean newWindow) {
     setEnabled(currentManager);
     if (EtomoDirector.INSTANCE.getArguments().isTest() && logFrame.isVisible()) {
@@ -547,13 +549,13 @@ public final class MainFrame extends EtomoFrame implements ContextMenu {
       rootPanel.removeAll();
     }
     if (currentManager == null) {
-      title = etomoTitle;
+      title = ETOMO_TITLE;
       hideAxisB();
       logFrame.setPanel(null);
     }
     else {
       mainPanel = currentManager.getMainPanel();
-      title = currentManager.getName() + " - " + etomoTitle;
+      title = currentManager.getName() + " - " + ETOMO_TITLE;
       rootPanel.add(windowSwitch.getPanel(managerKey));
       logFrame.setPanel(currentManager.getLogPanel());
       toFront();
@@ -580,10 +582,9 @@ public final class MainFrame extends EtomoFrame implements ContextMenu {
       }
     }
   }
-
-  void msgLogChanged(LogPanel logPanel) {
-    logFrame.msgChanged(logPanel);
-    toFront();
+  
+  public LogFrame getLogFrame() {
+    return logFrame;
   }
 
   void msgUpdateLogProperties(LogPanel logPanel) {
@@ -598,7 +599,7 @@ public final class MainFrame extends EtomoFrame implements ContextMenu {
     return mainPanel;
   }
 
-  void setCurrentManager(BaseManager currentManager, ManagerKey managerKey) {
+  void setCurrentManager(BaseManager currentManager, UniqueKey managerKey) {
     setCurrentManager(currentManager, managerKey, false);
   }
 
@@ -613,39 +614,31 @@ public final class MainFrame extends EtomoFrame implements ContextMenu {
         currentManager, getAxisID());
   }
 
-  void addWindow(BaseManager manager, ManagerKey managerKey) {
+  void addWindow(BaseManager manager, UniqueKey managerKey) {
     windowSwitch.add(manager, managerKey);
   }
 
-  void removeWindow(ManagerKey managerKey) {
+  void removeWindow(UniqueKey managerKey) {
     windowSwitch.remove(managerKey);
   }
 
-  void renameWindow(UniqueKey oldKey, ManagerKey newManagerKey) {
+  void renameWindow(UniqueKey oldKey, UniqueKey newManagerKey) {
     windowSwitch.rename(oldKey, newManagerKey);
   }
 
-  void selectWindowMenuItem(ManagerKey currentManagerKey) {
+  void selectWindowMenuItem(UniqueKey currentManagerKey) {
     selectWindowMenuItem(currentManagerKey, false);
   }
 
-  void selectWindowMenuItem(UniqueKey currentKey) {
-    selectWindowMenuItem(currentKey, false);
-  }
-
-  void selectWindowMenuItem(ManagerKey currentManagerKey, boolean newWindow) {
+  void selectWindowMenuItem(UniqueKey currentManagerKey, boolean newWindow) {
     windowSwitch.selectWindow(currentManagerKey, newWindow);
-  }
-
-  void selectWindowMenuItem(UniqueKey currentKey, boolean newWindow) {
-    windowSwitch.selectWindow(currentKey, newWindow);
   }
 
   /**
    * Handle the view menu events
    * @param event
    */
-  void menuViewAction(ActionEvent event) {
+  public void menuViewAction(ActionEvent event) {
     if (menu.equalsAxisA(event)) {
       showAxisA();
     }
@@ -727,27 +720,6 @@ public final class MainFrame extends EtomoFrame implements ContextMenu {
     if (event.getID() == WindowEvent.WINDOW_CLOSING
         && !EtomoDirector.INSTANCE.getArguments().isTest()) {
       menu.doClickFileExit();
-    }
-  }
-
-  void pack(boolean force) {
-    super.pack(force);
-  }
-
-  //  TODO Need a way to repaint the existing font
-  void repaintWindow() {
-    repaintContainer(this);
-    this.repaint();
-  }
-
-  private void repaintContainer(Container container) {
-    Component[] comps = container.getComponents();
-    for (int i = 0; i < comps.length; i++) {
-      if (comps[i] instanceof Container) {
-        Container cont = (Container) comps[i];
-        repaintContainer(cont);
-      }
-      comps[i].repaint();
     }
   }
 }

@@ -490,8 +490,8 @@ final class CcdEraserXRaysPanel implements ContextMenu,
     String text;
     ReadOnlyAutodoc autodoc = null;
     try {
-      autodoc = AutodocFactory.getInstance(AutodocFactory.CCDERASER, axisID,
-          applicationManager.getManagerKey());
+      autodoc = AutodocFactory.getInstance(applicationManager,
+          AutodocFactory.CCDERASER, axisID);
     }
     catch (FileNotFoundException except) {
       except.printStackTrace();
@@ -584,6 +584,9 @@ final class CcdEraserXRaysPanel implements ContextMenu,
 
 /**
  * <p> $Log$
+ * <p> Revision 3.3  2009/12/11 20:52:33  sueh
+ * <p> bug# 1291 Rename and rearrange clip stats buttons.
+ * <p>
  * <p> Revision 3.2  2009/12/11 17:28:52  sueh
  * <p> bug# 1291 Added btnClipStatsFixed and btnClipStatsRaw.
  * <p>

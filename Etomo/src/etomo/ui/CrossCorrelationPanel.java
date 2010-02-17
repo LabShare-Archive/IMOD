@@ -11,6 +11,9 @@
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.34  2009/09/01 03:18:25  sueh
+ * <p> bug# 1222
+ * <p>
  * <p> Revision 3.33  2009/06/12 19:48:34  sueh
  * <p> bug# 1221 Factored running correlation, making it independent of the
  * <p> coarse align dialog.
@@ -247,12 +250,12 @@ final class CrossCorrelationPanel implements ContextMenu, Expandable,
   private final PanelHeader header;
 
   public CrossCorrelationPanel(ApplicationManager applicationManager,
-      AxisID id, DialogType dialogType,GlobalExpandButton globalAdvancedButton) {
+      AxisID id, DialogType dialogType, GlobalExpandButton globalAdvancedButton) {
     this.dialogType = dialogType;
     axisID = id;
     this.applicationManager = applicationManager;
-    header = PanelHeader
-        .getAdvancedBasicInstance("Tiltxcorr", this, dialogType,globalAdvancedButton);
+    header = PanelHeader.getAdvancedBasicInstance("Tiltxcorr", this,
+        dialogType, globalAdvancedButton);
     btnCrossCorrelate = (MultiLineButton) applicationManager
         .getProcessResultDisplayFactory(axisID).getCrossCorrelate();
 
@@ -316,7 +319,7 @@ final class CrossCorrelationPanel implements ContextMenu, Expandable,
   void updateAdvanced(boolean state) {
     pnlAdvanced.setVisible(state);
   }
-  
+
   /**
    * All expansion is done through the header.
    */
@@ -491,8 +494,8 @@ final class CrossCorrelationPanel implements ContextMenu, Expandable,
     ReadOnlyAutodoc autodoc = null;
 
     try {
-      autodoc = AutodocFactory.getInstance(AutodocFactory.TILTXCORR, axisID,
-          applicationManager.getManagerKey());
+      autodoc = AutodocFactory.getInstance(applicationManager,
+          AutodocFactory.TILTXCORR, axisID);
       //autodoc.print();
     }
     catch (FileNotFoundException except) {

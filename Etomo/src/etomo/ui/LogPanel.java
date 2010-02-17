@@ -12,22 +12,22 @@ import javax.swing.BoxLayout;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
-import javax.swing.SwingUtilities;
 import javax.swing.text.BadLocationException;
 
-import etomo.ManagerKey;
+import etomo.BaseManager;
 import etomo.storage.LogFile;
 import etomo.storage.Loggable;
 import etomo.storage.Storable;
 import etomo.type.AxisID;
 import etomo.type.BaseMetaData;
 import etomo.type.ConstLogProperties;
-import etomo.util.Utilities;
 
 /**
- * <p>Description: </p>
+ * <p>Description: Text of a project log.  Associated with one manager.  Do not
+ * pass the manager when popping up messages.  This could lead to an infinite
+ * loop because every message with a manager gets logged.</p>
  * 
- * <p>Copyright: Copyright 2008</p>
+ * <p>Copyright: Copyright 2008 - 2010</p>
  *
  * <p>Organization:
  * Boulder Laboratory for 3-Dimensional Electron Microscopy of Cells (BL3DEMC),
@@ -38,6 +38,10 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.6  2009/04/02 19:18:10  sueh
+ * <p> bug# 1206 Handle a null managerKey parameter.  Log if the managerKey parameter is
+ * <p> null.
+ * <p>
  * <p> Revision 1.5  2009/03/16 23:24:30  sueh
  * <p> bug# 1186 In logMessage only log if the parameter managerKey equals the member
  * <p> variable managerKey.
@@ -56,7 +60,7 @@ import etomo.util.Utilities;
  * <p> bug# 1158 The log window panel.  One instance per manager is created.
  * <p> </p>
  */
-public final class LogPanel implements Storable {
+public final class LogPanel implements Storable, LogInterface {
   public static final String rcsid = "$Id$";
 
   static final String TITLE = "Project Log";
@@ -67,7 +71,7 @@ public final class LogPanel implements Storable {
   private final EtchedBorder border = new EtchedBorder(TITLE);
   private final JTextArea textArea = new JTextArea(10, 60);
   private final JScrollPane scrollPane = new JScrollPane(textArea);
-  private final ManagerKey managerKey;
+  private final EtomoLogger logger = new EtomoLogger(this);
 
   private LogFile file = null;
   private String userDir = null;
@@ -78,15 +82,17 @@ public final class LogPanel implements Storable {
   private ConstLogProperties frameProperties = null;
   private boolean frameVisible = true;
 
-  private LogPanel(ManagerKey managerKey) {
-    this.managerKey = managerKey;
+  private final BaseManager manager;
+
+  private LogPanel(BaseManager manager) {
+    this.manager = manager;
     rootPanel.setLayout(new BoxLayout(rootPanel, BoxLayout.Y_AXIS));
     rootPanel.setBorder(border.getBorder());
     rootPanel.add(scrollPane);
   }
 
-  public static LogPanel getInstance(ManagerKey managerKey) {
-    LogPanel instance = new LogPanel(managerKey);
+  public static LogPanel getInstance(BaseManager manager) {
+    LogPanel instance = new LogPanel(manager);
     instance.addListeners();
     return instance;
   }
@@ -122,24 +128,23 @@ public final class LogPanel implements Storable {
                 lineList.add(line);
                 line = file.readLine(readerId);
               }
-              SwingUtilities.invokeLater(new AppendLater(true, lineList));
+              logger.loadMessages(lineList);
               file.closeReader(readerId);
             }
             catch (LogFile.LockException e) {
               e.printStackTrace();
-              UIHarness.INSTANCE.openMessageDialog("Unabled to load "
-                  + file.getAbsolutePath(), "System Error", managerKey);
+              UIHarness.INSTANCE.openMessageDialog(null, "Unabled to load "
+                  + file.getAbsolutePath(), "System Error");
             }
             catch (IOException e) {
               e.printStackTrace();
-              UIHarness.INSTANCE.openMessageDialog("Unabled to load "
-                  + file.getAbsolutePath(), "System Error", managerKey);
+              UIHarness.INSTANCE.openMessageDialog(null, "Unabled to load "
+                  + file.getAbsolutePath(), "System Error");
             }
           }
         }
         else {
-          SwingUtilities.invokeLater(new AppendLater(Utilities
-              .getDateTimeStamp(), datasetName, userDir));
+          logger.logMessage(datasetName, userDir);
         }
       }
     }
@@ -148,7 +153,7 @@ public final class LogPanel implements Storable {
       border.setTitle(TITLE);
       file = null;
     }
-    UIHarness.INSTANCE.msgLogChanged(this);
+    UIHarness.INSTANCE.msgLogChanged(manager, this);
   }
 
   /**
@@ -222,8 +227,8 @@ public final class LogPanel implements Storable {
       e.printStackTrace();
       if (!writeFailed) {
         writeFailed = true;
-        UIHarness.INSTANCE.openMessageDialog("Unabled to write to file "
-            + file.getAbsolutePath(), "System Error", managerKey);
+        UIHarness.INSTANCE.openMessageDialog(null, "Unabled to write to file "
+            + file.getAbsolutePath(), "System Error");
         if (writerId != null && !writerId.isEmpty()) {
           file.closeWriter(writerId);
         }
@@ -233,8 +238,8 @@ public final class LogPanel implements Storable {
       e.printStackTrace();
       if (!writeFailed) {
         writeFailed = true;
-        UIHarness.INSTANCE.openMessageDialog("Unabled to write to file "
-            + file.getAbsolutePath(), "System Error", managerKey);
+        UIHarness.INSTANCE.openMessageDialog(null, "Unabled to write to file "
+            + file.getAbsolutePath(), "System Error");
         if (writerId != null && !writerId.isEmpty()) {
           file.closeWriter(writerId);
         }
@@ -254,15 +259,14 @@ public final class LogPanel implements Storable {
     if (file == null) {
       String fileName = datasetName + "_project.log";
       try {
-        file = LogFile.getInstance(userDir, datasetName + "_project.log",
-            managerKey);
+        file = LogFile.getInstance(userDir, datasetName + "_project.log");
       }
       catch (LogFile.LockException e) {
         e.printStackTrace();
         if (!fileFailed) {
           fileFailed = true;
-          UIHarness.INSTANCE.openMessageDialog("Unabled to access file "
-              + fileName + " in " + userDir, "System Error", managerKey);
+          UIHarness.INSTANCE.openMessageDialog(null, "Unabled to access file "
+              + fileName + " in " + userDir, "System Error");
         }
         return false;
       }
@@ -270,40 +274,15 @@ public final class LogPanel implements Storable {
     return true;
   }
 
-  public void logMessage(Loggable loggable, AxisID axisID, ManagerKey managerKey) {
-    //If managerKey parameter is null, always log.
-    if (loggable == null
-        || (managerKey != null && !managerKey.equals(this.managerKey))) {
-      return;
-    }
-    try {
-      SwingUtilities.invokeLater(new AppendLater(Utilities.getDateTimeStamp(),
-          loggable.getName() + " - " + axisID + " axis:", loggable
-              .getLogMessage(managerKey)));
-    }
-    catch (LogFile.LockException e) {
-      e.printStackTrace();
-      SwingUtilities.invokeLater(new AppendLater("Unable to log message:", e
-          .getMessage()));
-    }
-    catch (IOException e) {
-      e.printStackTrace();
-      SwingUtilities.invokeLater(new AppendLater("Unable to log message:", e
-          .getMessage()));
-    }
+  public void logMessage(Loggable loggable, AxisID axisID) {
+    logger.logMessage(loggable, axisID);
   }
 
-  public void logMessage(String title, AxisID axisID, String[] message,
-      ManagerKey managerKey) {
-    //If managerKey parameter is null, always log.
-    if ((managerKey != null && !managerKey.equals(this.managerKey))) {
-      return;
-    }
-    SwingUtilities.invokeLater(new AppendLater(Utilities.getDateTimeStamp(),
-        title + " - " + axisID + " axis:", message));
+  public void logMessage(String title, AxisID axisID, String[] message) {
+    logger.logMessage(title, axisID, message);
   }
 
-  private void msgChanged() {
+  public void msgChanged() {
     changed = true;
   }
 
@@ -368,93 +347,12 @@ public final class LogPanel implements Storable {
     frameVisible = visible;
   }
 
-  private final class AppendLater implements Runnable {
-    boolean loadingFromFile = false;
-    private String line1 = null;
-    private String line2 = null;
-    private String line3 = null;
-    private String[] stringArray = null;
-    private List lineList = null;
+  public void append(String line) {
+    textArea.append(line);
+  }
 
-    private AppendLater(String line1, String line2) {
-      this.line1 = line1;
-      this.line2 = line2;
-    }
-
-    private AppendLater(String line1, String line2, String line3) {
-      this.line1 = line1;
-      this.line2 = line2;
-      this.line3 = line3;
-    }
-
-    private AppendLater(String line1, String line2, String[] stringArray) {
-      this.line1 = line1;
-      this.line2 = line2;
-      this.stringArray = stringArray;
-    }
-
-    private AppendLater(String line1, String line2, List lineList) {
-      this.line1 = line1;
-      this.line2 = line2;
-      this.lineList = lineList;
-    }
-
-    private AppendLater(boolean loadingFromFile, List lineList) {
-      this.loadingFromFile = loadingFromFile;
-      this.lineList = lineList;
-    }
-
-    /**
-     * Append lines and lineList to textArea.
-     */
-    public void run() {
-      newLine();
-      if (line1 != null) {
-        newLine();
-        textArea.append(line1);
-      }
-      if (line2 != null) {
-        newLine();
-        textArea.append(line2);
-      }
-      if (line3 != null) {
-        newLine();
-        textArea.append(line3);
-      }
-      if (stringArray != null) {
-        for (int i = 0; i < stringArray.length; i++) {
-          newLine();
-          textArea.append((String) stringArray[i]);
-        }
-      }
-      if (lineList != null) {
-        for (int i = 0; i < lineList.size(); i++) {
-          newLine();
-          textArea.append((String) lineList.get(i));
-        }
-      }
-      if (!loadingFromFile) {
-        msgChanged();
-      }
-    }
-
-    /**
-     * Appends a newline character if the last line in the text area is not empty
-     *
-     */
-    private void newLine() {
-      try {
-        //messages should be alone on a line
-        int lastLineEndOffset = textArea.getLineEndOffset(textArea
-            .getLineCount() - 1);
-        if (lastLineEndOffset != 0) {
-          textArea.append("\n");
-        }
-      }
-      catch (BadLocationException e) {
-        e.printStackTrace();
-      }
-    }
+  public int getLineEndOffset() throws BadLocationException {
+    return textArea.getLineEndOffset(textArea.getLineCount() - 1);
   }
 
   private static final class LogPanelKeyListener implements KeyListener {

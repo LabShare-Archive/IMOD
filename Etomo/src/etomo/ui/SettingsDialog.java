@@ -4,8 +4,8 @@ import java.awt.GraphicsEnvironment;
 import java.awt.event.*;
 import javax.swing.*;
 
+import etomo.BaseManager;
 import etomo.EtomoDirector;
-import etomo.ManagerKey;
 import etomo.storage.Network;
 import etomo.type.AxisID;
 import etomo.type.UserConfiguration;
@@ -40,7 +40,8 @@ public final class SettingsDialog extends JDialog {
   private final JButton buttonDone = new JButton("Done");
   private final CheckBox cbParallelProcessing = new CheckBox("Enable "
       + ParallelPanel.FIELD_LABEL);
-  private final CheckBox cbGpuProcessing = new CheckBox("Enable graphics processing");
+  private final CheckBox cbGpuProcessing = new CheckBox(
+      "Enable graphics processing");
   private final LabeledTextField ltfCpus = new LabeledTextField(
       ProcessorTable.NUMBER_CPUS_HEADER + ": ");
   private final CheckBox cbSingleAxis = new CheckBox(
@@ -62,18 +63,16 @@ public final class SettingsDialog extends JDialog {
       "PEET table size: ");
 
   private final String propertyUserDir;
-  private final ManagerKey managerKey;
 
-  private SettingsDialog(String propertyUserDir, ManagerKey managerKey) {
+  private SettingsDialog(String propertyUserDir) {
     this.propertyUserDir = propertyUserDir;
-    this.managerKey = managerKey;
   }
 
-  public static SettingsDialog getInstance(String propertyUserDir,
-      ManagerKey managerKey) {
-    SettingsDialog instance = new SettingsDialog(propertyUserDir, managerKey);
+  public static SettingsDialog getInstance(BaseManager manager,
+      String propertyUserDir) {
+    SettingsDialog instance = new SettingsDialog(propertyUserDir);
     instance.buildDialog();
-    instance.loadData(propertyUserDir, managerKey);
+    instance.loadData(manager, propertyUserDir);
     instance.addListeners();
     return instance;
   }
@@ -167,15 +166,15 @@ public final class SettingsDialog extends JDialog {
    * Get data from CpuAdoc.
    * @param propertyUserDir
    */
-  private void loadData(String propertyUserDir, ManagerKey managerKey) {
+  private void loadData(BaseManager manager, String propertyUserDir) {
     //Disable parallel processing checkbox if it was enabled by a method that
     //takes precidence over this one (cpu.adoc or IMOD_PROCESSORS).
     cbParallelProcessing.setEnabled(!Network.isParallelProcessingSetExternally(
-        AxisID.ONLY, propertyUserDir, managerKey));
+        manager, AxisID.ONLY, propertyUserDir));
     //Disable GPU processing checkbox if it was enabled by a method that takes
     //precidence over this one (cpu.adoc).
     cbGpuProcessing.setEnabled(!Network.isGpuProcessingSetExternally(
-        AxisID.ONLY, propertyUserDir, managerKey));
+        manager,AxisID.ONLY, propertyUserDir));
   }
 
   private void updateDisplay() {

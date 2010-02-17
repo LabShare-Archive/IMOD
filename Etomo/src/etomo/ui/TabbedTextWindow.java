@@ -14,8 +14,8 @@ import javax.swing.JScrollPane;
 import javax.swing.JTabbedPane;
 import javax.swing.WindowConstants;
 
+import etomo.BaseManager;
 import etomo.EtomoDirector;
-import etomo.ManagerKey;
 import etomo.type.AxisID;
 
 /**
@@ -31,6 +31,9 @@ import etomo.type.AxisID;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.8  2009/03/17 00:46:24  sueh
+ * <p> bug# 1186 Pass managerKey to everything that pops up a dialog.
+ * <p>
  * <p> Revision 3.7  2008/03/22 00:17:32  sueh
  * <p> bug# 1099 In openFiles not using StyledEditorKit because it takes up a lot
  * <p> of memory and mostly runs from the event loop, meaning the resulting
@@ -98,8 +101,8 @@ final class TabbedTextWindow extends JFrame {
    * @throws IOException
    * @throws FileNotFoundException
    */
-  boolean openFiles(String[] files, String[] labels, AxisID axisID,
-      ManagerKey managerKey) throws IOException, FileNotFoundException {
+  boolean openFiles(BaseManager manager, String[] files, String[] labels,
+      AxisID axisID) throws IOException, FileNotFoundException {
     checkSize(files);
     StringBuffer error = null;
     JTabbedPane tabPane = null;
@@ -144,10 +147,10 @@ final class TabbedTextWindow extends JFrame {
           if (tabPane != null) {
             tabPane.removeAll();
           }
-          UIHarness.INSTANCE.openMessageDialog(
+          UIHarness.INSTANCE.openMessageDialog(manager,
               "WARNING:  Ran out of memory.  Will not display log file."
                   + "\nPlease close open log file windows or exit Etomo.",
-              "Out of Memory", managerKey);
+              "Out of Memory");
           throw e;
         }
       }
@@ -161,8 +164,8 @@ final class TabbedTextWindow extends JFrame {
     if (!displayEverythingElse) {
       error
           .append(".  Not enough available memory.  Close unnecessary windows.");
-      UIHarness.INSTANCE.openMessageDialog(error.toString(),
-          "Memory Limitation", axisID, managerKey);
+      UIHarness.INSTANCE.openMessageDialog(manager, error.toString(),
+          "Memory Limitation", axisID);
     }
     return displayEverythingElse;
   }

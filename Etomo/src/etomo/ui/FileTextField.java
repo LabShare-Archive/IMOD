@@ -1,11 +1,14 @@
 package etomo.ui;
 
+import java.awt.Component;
 import java.awt.Container;
+import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
 
 import javax.swing.BoxLayout;
 import javax.swing.ImageIcon;
+import javax.swing.JFileChooser;
 import javax.swing.JLabel;
 
 import etomo.type.ConstStringParameter;
@@ -24,6 +27,10 @@ import etomo.type.ConstStringParameter;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.15  2009/10/15 23:28:36  sueh
+ * <p> bug# 1274 In isEmpty testing getText() result.  File is not up to date if the
+ * <p> the text is typed in manually.
+ * <p>
  * <p> Revision 1.14  2009/04/27 18:00:07  sueh
  * <p> bug# 1211 Added exists, which calls File.exists.
  * <p>
@@ -87,12 +94,17 @@ final class FileTextField {
   //Must have file because the field may display a shortened name.  Keep file
   //up to date.
   private File file = null;
+  private String propertyUserDir = null;
+  private Component parent = null;
+  private int fileSelectionMode = -1;
 
   FileTextField(final String label) {
-    this(label, true);
+    this(label, true, null);
   }
 
-  private FileTextField(final String label, final boolean labeled) {
+  private FileTextField(final String label, final boolean labeled,
+      String propertyUserDir) {
+    this.propertyUserDir = propertyUserDir;
     panel.setBoxLayout(BoxLayout.X_AXIS);
     if (labeled) {
       this.label = new JLabel(label);
@@ -108,7 +120,7 @@ final class FileTextField {
   }
 
   static FileTextField getUnlabeledInstance(final String actionCommand) {
-    return new FileTextField(actionCommand, false);
+    return new FileTextField(actionCommand, false, null);
   }
 
   void setFieldWidth(final double width) {
@@ -136,6 +148,33 @@ final class FileTextField {
 
   void addActionListener(final ActionListener actionListener) {
     button.addActionListener(actionListener);
+  }
+
+  void addAction(String propertyUserDir, Component parent,
+      int fileSelectionMode) {
+    this.propertyUserDir = propertyUserDir;
+    this.parent = parent;
+    this.fileSelectionMode = fileSelectionMode;
+    button.addActionListener(new FileTextFieldActionListener(this));
+  }
+
+  private void action() {
+    //  Open up the file chooser in the current working directory
+    JFileChooser chooser = new FileChooser(new File(propertyUserDir));
+    chooser.setPreferredSize(UIParameters.INSTANCE.getFileChooserDimension());
+    if (fileSelectionMode != -1) {
+      chooser.setFileSelectionMode(fileSelectionMode);
+    }
+    int returnVal = chooser.showOpenDialog(parent);
+    if (returnVal == JFileChooser.APPROVE_OPTION) {
+      File file = chooser.getSelectedFile();
+      try {
+        setText(file.getAbsolutePath());
+      }
+      catch (Exception excep) {
+        excep.printStackTrace();
+      }
+    }
   }
 
   void clear() {
@@ -251,6 +290,18 @@ final class FileTextField {
     button.setToolTipText(text);
     if (label != null) {
       label.setToolTipText(text);
+    }
+  }
+
+  private final class FileTextFieldActionListener implements ActionListener {
+    private final FileTextField adaptee;
+
+    private FileTextFieldActionListener(final FileTextField adaptee) {
+      this.adaptee = adaptee;
+    }
+
+    public void actionPerformed(final ActionEvent event) {
+      adaptee.action();
     }
   }
 }

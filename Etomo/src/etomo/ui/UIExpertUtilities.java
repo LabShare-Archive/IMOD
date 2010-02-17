@@ -7,7 +7,6 @@ import java.io.IOException;
 
 import etomo.ApplicationManager;
 import etomo.BaseManager;
-import etomo.ManagerKey;
 import etomo.comscript.ConstTiltParam;
 import etomo.comscript.TiltParam;
 import etomo.comscript.TiltalignParam;
@@ -67,7 +66,7 @@ public final class UIExpertUtilities {
   public long getStackBinning(BaseManager manager, AxisID axisID,
       String stackExtension, boolean nullIfFailed) {
     return getStackBinning(manager, axisID, MRCHeader.getInstance(manager,
-        axisID, stackExtension, manager.getManagerKey()), false);
+        axisID, stackExtension), false);
   }
 
   /**
@@ -83,7 +82,7 @@ public final class UIExpertUtilities {
       FileType stackFileType) {
     return getStackBinning(manager, axisID, MRCHeader.getInstance(manager
         .getPropertyUserDir(), stackFileType.getFileName(manager, axisID),
-        axisID, manager.getManagerKey()), false);
+        axisID), false);
   }
 
   /**
@@ -98,11 +97,11 @@ public final class UIExpertUtilities {
    */
   public long getStackBinningFromFileName(BaseManager manager, AxisID axisID,
       String fileName, boolean nullIfFailed) {
-    if (fileName==null||fileName.matches("\\s*")) {
+    if (fileName == null || fileName.matches("\\s*")) {
       return 1;
     }
     return getStackBinning(manager, axisID, MRCHeader.getInstance(manager
-        .getPropertyUserDir(), fileName, axisID, manager.getManagerKey()), false);
+        .getPropertyUserDir(), fileName, axisID), false);
   }
 
   /**
@@ -117,11 +116,10 @@ public final class UIExpertUtilities {
    */
   public long getStackBinning(BaseManager manager, AxisID axisID,
       MRCHeader stackHeader, boolean nullIfFailed) {
-    MRCHeader rawstackHeader = MRCHeader.getInstance(manager, axisID, ".st",
-        manager.getManagerKey());
+    MRCHeader rawstackHeader = MRCHeader.getInstance(manager, axisID, ".st");
     long defaultValue = nullIfFailed ? EtomoNumber.LONG_NULL_VALUE : 1;
     try {
-      if (!rawstackHeader.read() || !stackHeader.read()) {
+      if (!rawstackHeader.read(manager) || !stackHeader.read(manager)) {
         return defaultValue;
       }
     }
@@ -164,8 +162,8 @@ public final class UIExpertUtilities {
       String[] errorMessage = new String[2];
       errorMessage[0] = "Tilt axis rotation format error";
       errorMessage[1] = except.getMessage();
-      UIHarness.INSTANCE.openMessageDialog(errorMessage,
-          "Tilt axis rotation syntax error", axisID, manager.getManagerKey());
+      UIHarness.INSTANCE.openMessageDialog(manager, errorMessage,
+          "Tilt axis rotation syntax error", axisID);
       return false;
     }
   }
@@ -187,14 +185,14 @@ public final class UIExpertUtilities {
       String[] errorMessage = new String[2];
       errorMessage[0] = "Tilt axis rotation format error";
       errorMessage[1] = except.getMessage();
-      UIHarness.INSTANCE.openMessageDialog(errorMessage,
-          "Tilt axis rotation syntax error", axisID, manager.getManagerKey());
+      UIHarness.INSTANCE.openMessageDialog(manager, errorMessage,
+          "Tilt axis rotation syntax error", axisID);
       return false;
     }
     manager.getMetaData().setFiducialessAlignment(axisID, fiducialess);
     manager.getMetaData().setImageRotation(tiltAxisAngle, axisID);
-    updateRotationXF(manager.getPropertyUserDir(), tiltAxisAngle, axisID,
-        manager.getManagerKey());
+    updateRotationXF(manager, manager.getPropertyUserDir(), tiltAxisAngle,
+        axisID);
     return true;
   }
 
@@ -203,8 +201,8 @@ public final class UIExpertUtilities {
    * 
    * @param axisID
    */
-  private void updateRotationXF(String propertyUserDir, float angle,
-      AxisID axisID, ManagerKey managerKey) {
+  private void updateRotationXF(BaseManager manager, String propertyUserDir,
+      float angle, AxisID axisID) {
     //  Open the appropriate rotation file
     String fnRotationXF = propertyUserDir + File.separator + "rotation"
         + axisID.getExtension() + ".xf";
@@ -226,24 +224,24 @@ public final class UIExpertUtilities {
       errorMessage[0] = "Rotation Transform IO Exception";
       errorMessage[1] = except.getMessage();
       errorMessage[2] = fnRotationXF;
-      UIHarness.INSTANCE.openMessageDialog(errorMessage,
-          "Rotation Transform IO Exception", axisID, managerKey);
+      UIHarness.INSTANCE.openMessageDialog(manager, errorMessage,
+          "Rotation Transform IO Exception", axisID);
     }
   }
 
   /**
    *  
    */
-  public boolean areScriptsCreated(ConstMetaData metaData, AxisID axisID,
-      ManagerKey managerKey) {
+  public boolean areScriptsCreated(BaseManager manager, ConstMetaData metaData,
+      AxisID axisID) {
     if (metaData.getComScriptCreated()) {
       return true;
     }
     String[] message = new String[2];
     message[0] = "The setup process has not been completed";
     message[1] = "Complete the Setup process before opening other process dialogs";
-    UIHarness.INSTANCE.openMessageDialog(message, "Program Operation Error",
-        axisID, managerKey);
+    UIHarness.INSTANCE.openMessageDialog(manager, message,
+        "Program Operation Error", axisID);
     return false;
   }
 
@@ -302,10 +300,9 @@ public final class UIExpertUtilities {
    */
   private long getBackwardCompatibleAlignBinning(ApplicationManager manager,
       AxisID axisID) {
-    MRCHeader rawstackHeader = MRCHeader.getInstance(manager, axisID, ".st",
-        manager.getManagerKey());
+    MRCHeader rawstackHeader = MRCHeader.getInstance(manager, axisID, ".st");
     try {
-      if (!rawstackHeader.read()) {
+      if (!rawstackHeader.read(manager)) {
         return 1;
       }
     }
@@ -361,10 +358,9 @@ public final class UIExpertUtilities {
       return binning;
     }
     //fallback to .preali
-    MRCHeader stackHeader = MRCHeader.getInstance(manager, axisID, ".preali",
-        manager.getManagerKey());
+    MRCHeader stackHeader = MRCHeader.getInstance(manager, axisID, ".preali");
     try {
-      if (!stackHeader.read()) {
+      if (!stackHeader.read(manager)) {
         return 1;
       }
     }
@@ -396,10 +392,9 @@ public final class UIExpertUtilities {
    */
   private int getBackwardCompatibleTiltBinning(ApplicationManager manager,
       AxisID axisID, ConstTiltParam tiltParam) {
-    MRCHeader rawstackHeader = MRCHeader.getInstance(manager, axisID, ".st",
-        manager.getManagerKey());
+    MRCHeader rawstackHeader = MRCHeader.getInstance(manager, axisID, ".st");
     try {
-      if (!rawstackHeader.read()) {
+      if (!rawstackHeader.read(manager)) {
         return 1;
       }
     }
@@ -446,6 +441,11 @@ public final class UIExpertUtilities {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.9  2009/10/01 18:52:18  sueh
+ * <p> bug# 1233 In getStackBinningFromFileName returning a default instead of
+ * <p> throwing IllegalStateException to make sure that etomo can't get stuck
+ * <p> when leaving a dialog.
+ * <p>
  * <p> Revision 1.8  2009/09/21 18:10:07  sueh
  * <p> bug# 1267 Added getStackBinningFromFileName to get binning using a full
  * <p> file name instead of an extension.

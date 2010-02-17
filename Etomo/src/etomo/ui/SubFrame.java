@@ -90,6 +90,10 @@ public final class SubFrame extends EtomoFrame {
     }
   }
 
+  public LogFrame getLogFrame() {
+    return mainFrame.getLogFrame();
+  }
+
   /**
    * Set the main panel when switching managers.
    *
@@ -105,7 +109,7 @@ public final class SubFrame extends EtomoFrame {
    * Override superclass to call mainFrame for command which require switching
    * axis or handling the log window.
    */
-  void menuViewAction(ActionEvent event) {
+  public void menuViewAction(ActionEvent event) {
     if (menu.equalsAxisA(event) || menu.equalsAxisB(event)
         || menu.equalsAxisBoth(event) || menu.equalsLogWindow(event)) {
       mainFrame.menuViewAction(event);
@@ -170,6 +174,11 @@ public final class SubFrame extends EtomoFrame {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.12  2009/11/20 17:36:54  sueh
+ * <p> bug# 1282 Added prefixes to all of the field names, so that the fields that
+ * <p> are actually abstract buttons (radio buttons, etc) won't be activated by a
+ * <p> "bn." field command.
+ * <p>
  * <p> Revision 1.11  2009/02/04 23:36:26  sueh
  * <p> bug# 1158 Add a View pull down menu and menu options for the log
  * <p> frame.

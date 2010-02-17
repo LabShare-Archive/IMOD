@@ -32,6 +32,11 @@ import etomo.type.AxisID;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.18  2009/12/19 01:14:01  sueh
+ * <p> bug# 1294 In contextPopup(Component,MouseEvent,String,String,
+ * <p> String[],String[],String[],String[],BaseManager,AxisID) added more
+ * <p> information to an error message.
+ * <p>
  * <p> Revision 3.17  2009/11/04 20:56:07  sueh
  * <p> bug# 1242 Added optional standard menu iterm PEET user guide.
  * <p>
@@ -333,14 +338,15 @@ public class ContextPopup {
     }
     if (logFileLabel.length != logFile.length) {
       StringBuffer message = new StringBuffer();
-       message.append("log file label and log file arrays must be the same length\nlogFileLabel=\n");
-       for (int i = 0;i<logFileLabel.length;i++) {
-         message.append(logFileLabel[i]+"\n");
-       }
-       message.append("logFile=\n");
-       for (int i = 0;i<logFile.length;i++) {
-         message.append(logFile[i]+"\n");
-       }
+      message
+          .append("log file label and log file arrays must be the same length\nlogFileLabel=\n");
+      for (int i = 0; i < logFileLabel.length; i++) {
+        message.append(logFileLabel[i] + "\n");
+      }
+      message.append("logFile=\n");
+      for (int i = 0; i < logFile.length; i++) {
+        message.append(logFile[i] + "\n");
+      }
       throw new IllegalArgumentException(message.toString());
     }
 
@@ -623,9 +629,8 @@ public class ContextPopup {
             TabbedTextWindow logFileWindow = new TabbedTextWindow(
                 logWindowLabel[i], axisID);
             try {
-              if (logFileWindow.openFiles(logFileFullPath,
-                  (String[]) logFileLabel.get(i), axisID, applicationManager
-                      .getManagerKey())) {
+              if (logFileWindow.openFiles(applicationManager, logFileFullPath,
+                  (String[]) logFileLabel.get(i), axisID)) {
                 logFileWindow.setVisible(true);
               }
               else {
@@ -645,10 +650,10 @@ public class ContextPopup {
               if (logFileWindow != null) {
                 logFileWindow.dispose();
               }
-              UIHarness.INSTANCE.openMessageDialog(
+              UIHarness.INSTANCE.openMessageDialog(applicationManager,
                   "WARNING:  Ran out of memory.  Will not display log file."
                       + "\nPlease close open windows or exit Etomo.",
-                  "Out of Memory", applicationManager.getManagerKey());
+                  "Out of Memory");
               throw e;
             }
           }

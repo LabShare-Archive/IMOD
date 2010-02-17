@@ -964,9 +964,8 @@ final class TiltalignPanel implements Expandable {
 
   boolean isValid() {
     if (rtfFixedBeamTilt.isSelected() && rtfFixedBeamTilt.getText().equals("")) {
-      UIHarness.INSTANCE.openMessageDialog(rtfFixedBeamTilt.getLabel()
-          + " can not be empty when it is selected.", "Entry Error", appMgr
-          .getManagerKey());
+      UIHarness.INSTANCE.openMessageDialog(appMgr, rtfFixedBeamTilt.getLabel()
+          + " can not be empty when it is selected.", "Entry Error");
       return false;
     }
     return true;
@@ -1640,8 +1639,8 @@ final class TiltalignPanel implements Expandable {
     ReadOnlySection section;
     ReadOnlyAutodoc autodoc = null;
     try {
-      autodoc = AutodocFactory.getInstance(AutodocFactory.TILTALIGN, axisID,
-          appMgr.getManagerKey());
+      autodoc = AutodocFactory.getInstance(appMgr, AutodocFactory.TILTALIGN,
+          axisID);
     }
     catch (FileNotFoundException except) {
       except.printStackTrace();
@@ -1869,6 +1868,9 @@ final class TiltalignPanel implements Expandable {
 
 /**
  * <p> $Log$
+ * <p> Revision 3.53  2009/09/01 03:18:25  sueh
+ * <p> bug# 1222
+ * <p>
  * <p> Revision 3.52  2009/03/17 00:46:24  sueh
  * <p> bug# 1186 Pass managerKey to everything that pops up a dialog.
  * <p>

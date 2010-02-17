@@ -11,6 +11,8 @@ import javax.swing.BoxLayout;
 import javax.swing.JPanel;
 
 import etomo.ApplicationManager;
+import etomo.BaseManager;
+import etomo.ToolsManager;
 import etomo.comscript.FlattenWarpParam;
 import etomo.storage.LogFile;
 import etomo.storage.autodoc.AutodocFactory;
@@ -21,6 +23,7 @@ import etomo.type.DialogType;
 import etomo.type.EtomoAutodoc;
 import etomo.type.FileType;
 import etomo.type.MetaData;
+import etomo.type.PanelId;
 import etomo.type.ProcessResultDisplay;
 import etomo.type.Run3dmodMenuOptions;
 
@@ -38,6 +41,9 @@ import etomo.type.Run3dmodMenuOptions;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.2  2010/01/12 22:09:01  sueh
+ * <p> bug# 1206 Added SmoothingAssessmentPanel.done.
+ * <p>
  * <p> Revision 1.1  2009/12/19 01:19:33  sueh
  * <p> bug# 1294 Panel for running flattenwarp with multiple
  * <p> lambdaForSmoothing values.
@@ -48,8 +54,9 @@ final class SmoothingAssessmentPanel implements FlattenWarpDisplay,
   public static final String rcsid = "$Id$";
 
   private static final String LAMBDA_FOR_SMOOTHING_LABEL = "Smoothing factors";
+  private static final String FLATTEN_WARP_LABEL = "Run Flattenwarp to Assess Smoothing";
 
-  private final JPanel pnlRoot = new JPanel();
+  private final SpacedPanel pnlRoot = SpacedPanel.getInstance();
   private final LabeledTextField ltfLambdaForSmoothing = new LabeledTextField(
       LAMBDA_FOR_SMOOTHING_LABEL + ": ");
   private final Run3dmodButton btn3dmod = Run3dmodButton.get3dmodInstance(
@@ -58,26 +65,61 @@ final class SmoothingAssessmentPanel implements FlattenWarpDisplay,
       this);
 
   private final Run3dmodButton btnFlattenWarp;
-  private final ApplicationManager manager;
+  private final BaseManager manager;
+  private final ApplicationManager applicationManager;
+  private final ToolsManager toolsManager;
   private final AxisID axisID;
   private final SmoothingAssessmentParent parent;
   private final DialogType dialogType;
+  private final PanelId panelId;
 
-  private SmoothingAssessmentPanel(ApplicationManager manager, AxisID axisID,
-      DialogType dialogType, SmoothingAssessmentParent parent) {
+  private SmoothingAssessmentPanel(final ApplicationManager manager,
+      final AxisID axisID, final DialogType dialogType, final PanelId panelId,
+      final SmoothingAssessmentParent parent) {
     this.manager = manager;
+    applicationManager = manager;
+    toolsManager = null;
     this.axisID = axisID;
     this.parent = parent;
     this.dialogType = dialogType;
+    this.panelId = panelId;
     btnFlattenWarp = (Run3dmodButton) manager.getProcessResultDisplayFactory(
         axisID).getSmoothingAssessment();
     btnFlattenWarp.setContainer(this);
   }
 
-  static SmoothingAssessmentPanel getInstance(ApplicationManager manager,
-      AxisID axisID, DialogType dialogType, SmoothingAssessmentParent parent) {
+  private SmoothingAssessmentPanel(final ToolsManager manager,
+      final AxisID axisID, final DialogType dialogType, final PanelId panelId,
+      final SmoothingAssessmentParent parent) {
+    this.manager = manager;
+    applicationManager = null;
+    toolsManager = manager;
+    this.axisID = axisID;
+    this.parent = parent;
+    this.dialogType = dialogType;
+    this.panelId = panelId;
+    btnFlattenWarp = Run3dmodButton.getDeferred3dmodInstance(
+        FLATTEN_WARP_LABEL, this);
+    btnFlattenWarp.setContainer(this);
+  }
+
+  static SmoothingAssessmentPanel getPostInstance(
+      final ApplicationManager manager, final AxisID axisID,
+      final DialogType dialogType, final PanelId panelId,
+      final SmoothingAssessmentParent parent) {
     SmoothingAssessmentPanel instance = new SmoothingAssessmentPanel(manager,
-        axisID, dialogType, parent);
+        axisID, dialogType, panelId, parent);
+    instance.createPanel();
+    instance.setTooltips();
+    instance.addListeners();
+    return instance;
+  }
+
+  static SmoothingAssessmentPanel getToolsInstance(final ToolsManager manager,
+      final AxisID axisID, final DialogType dialogType, final PanelId panelId,
+      final SmoothingAssessmentParent parent) {
+    SmoothingAssessmentPanel instance = new SmoothingAssessmentPanel(manager,
+        axisID, dialogType, panelId, parent);
     instance.createPanel();
     instance.setTooltips();
     instance.addListeners();
@@ -85,9 +127,9 @@ final class SmoothingAssessmentPanel implements FlattenWarpDisplay,
   }
 
   public static ProcessResultDisplay getSmoothingAssessmentButton(
-      DialogType dialogType) {
-    return Run3dmodButton.getDeferredToggle3dmodInstance(
-        "Assess Smoothing Factors", dialogType);
+      final DialogType dialogType) {
+    return Run3dmodButton.getDeferredToggle3dmodInstance(FLATTEN_WARP_LABEL,
+        dialogType);
   }
 
   private void addListeners() {
@@ -108,7 +150,7 @@ final class SmoothingAssessmentPanel implements FlattenWarpDisplay,
     //Local panels
     JPanel pnlButtons = new JPanel();
     //root panel
-    pnlRoot.setLayout(new BoxLayout(pnlRoot, BoxLayout.Y_AXIS));
+    pnlRoot.setBoxLayout(BoxLayout.Y_AXIS);
     pnlRoot.setBorder(new EtchedBorder("Smoothing Assessment").getBorder());
     pnlRoot.add(ltfLambdaForSmoothing.getContainer());
     pnlRoot.add(Box.createRigidArea(FixedDim.x0_y5));
@@ -121,24 +163,24 @@ final class SmoothingAssessmentPanel implements FlattenWarpDisplay,
   }
 
   Component getComponent() {
-    return pnlRoot;
+    return pnlRoot.getContainer();
   }
 
-  void setParameters(ConstMetaData metaData) {
+  void setParameters(final ConstMetaData metaData) {
     ltfLambdaForSmoothing.setText(metaData.getLambdaForSmoothingList());
   }
 
-  void getParameters(MetaData metaData) {
+  void getParameters(final MetaData metaData) {
     metaData.setLambdaForSmoothingList(ltfLambdaForSmoothing.getText());
   }
 
-  public boolean getParameters(FlattenWarpParam param) {
+  public boolean getParameters(final FlattenWarpParam param) {
     String errorMessage = param.setLambdaForSmoothing(ltfLambdaForSmoothing
         .getText());
     if (errorMessage != null) {
-      UIHarness.INSTANCE.openMessageDialog("Error in "
+      UIHarness.INSTANCE.openMessageDialog(manager, "Error in "
           + LAMBDA_FOR_SMOOTHING_LABEL + ":  " + errorMessage, "Entry Error",
-          axisID, manager.getManagerKey());
+          axisID);
       return false;
     }
     param.setMiddleContourFile(FileType.SMOOTHING_ASSESSMENT_OUTPUT_MODEL
@@ -146,38 +188,54 @@ final class SmoothingAssessmentPanel implements FlattenWarpDisplay,
     param.setOneSurface(parent.isOneSurface());
     errorMessage = param.setWarpSpacingX(parent.getWarpSpacingX());
     if (errorMessage != null) {
-      UIHarness.INSTANCE.openMessageDialog("Error in "
-          + FlattenWarpPanel.WARP_SPACING_X_LABEL + ":  " + errorMessage,
-          "Entry Error", axisID, manager.getManagerKey());
+      UIHarness.INSTANCE.openMessageDialog(manager, "Error in "
+          + FlattenVolumePanel.WARP_SPACING_X_LABEL + ":  " + errorMessage,
+          "Entry Error", axisID);
       return false;
     }
     errorMessage = param.setWarpSpacingY(parent.getWarpSpacingY());
     if (errorMessage != null) {
-      UIHarness.INSTANCE.openMessageDialog("Error in "
-          + FlattenWarpPanel.WARP_SPACING_Y_LABEL + ":  " + errorMessage,
-          "Entry Error", axisID, manager.getManagerKey());
+      UIHarness.INSTANCE.openMessageDialog(manager, "Error in "
+          + FlattenVolumePanel.WARP_SPACING_Y_LABEL + ":  " + errorMessage,
+          "Entry Error", axisID);
       return false;
     }
     return true;
   }
 
   private void action(final String command,
-      Deferred3dmodButton deferred3dmodButton,
+      final Deferred3dmodButton deferred3dmodButton,
       final Run3dmodMenuOptions run3dmodMenuOptions) {
-    if (command.equals(btnFlattenWarp.getActionCommand())) {
-      manager.flattenWarp(btnFlattenWarp, null, deferred3dmodButton,
-          run3dmodMenuOptions, dialogType, axisID, this);
+    if (panelId == PanelId.POST_FLATTEN_VOLUME) {
+      if (command.equals(btnFlattenWarp.getActionCommand())) {
+        applicationManager.flattenWarp(btnFlattenWarp, null,
+            deferred3dmodButton, run3dmodMenuOptions, dialogType, axisID, this);
+      }
+      else if (command.equals(btn3dmod.getActionCommand())) {
+        applicationManager.imodViewModel(axisID,
+            FileType.SMOOTHING_ASSESSMENT_OUTPUT_MODEL);
+      }
+      else {
+        throw new IllegalStateException("Unknown command " + command);
+      }
     }
-    else if (command.equals(btn3dmod.getActionCommand())) {
-      manager.imodViewModel(axisID, FileType.SMOOTHING_ASSESSMENT_OUTPUT_MODEL);
-    }
-    else {
-      throw new IllegalStateException("Unknown command " + command);
+    else if (panelId == PanelId.TOOLS_FLATTEN_VOLUME) {
+      if (command.equals(btnFlattenWarp.getActionCommand())) {
+        toolsManager.flattenWarp(btnFlattenWarp, null, deferred3dmodButton,
+            run3dmodMenuOptions, dialogType, axisID, this);
+      }
+      else if (command.equals(btn3dmod.getActionCommand())) {
+        toolsManager.imodViewModel(axisID,
+            FileType.SMOOTHING_ASSESSMENT_OUTPUT_MODEL);
+      }
+      else {
+        throw new IllegalStateException("Unknown command " + command);
+      }
     }
   }
 
-  public void action(Run3dmodButton button,
-      Run3dmodMenuOptions run3dmodMenuOptions) {
+  public void action(final Run3dmodButton button,
+      final Run3dmodMenuOptions run3dmodMenuOptions) {
     action(button.getActionCommand(), button.getDeferred3dmodButton(),
         run3dmodMenuOptions);
   }
@@ -188,8 +246,8 @@ final class SmoothingAssessmentPanel implements FlattenWarpDisplay,
     btn3dmod.setToolTipText("Open model created by flattenwarp.");
     ReadOnlyAutodoc autodoc = null;
     try {
-      autodoc = AutodocFactory.getInstance(AutodocFactory.FLATTEN_WARP, axisID,
-          manager.getManagerKey());
+      autodoc = AutodocFactory.getInstance(manager,
+          AutodocFactory.FLATTEN_WARP, axisID);
     }
     catch (FileNotFoundException except) {
       except.printStackTrace();

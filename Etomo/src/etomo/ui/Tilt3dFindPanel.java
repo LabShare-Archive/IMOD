@@ -34,6 +34,11 @@ import etomo.util.InvalidParameterException;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.2  2009/09/21 18:09:23  sueh
+ * <p> bug# 1267 TiltParam must know what the input file is to be correct, so set
+ * <p> the input file in getParameters(TiltParam) before calling
+ * <p> super.getParameters.
+ * <p>
  * <p> Revision 3.1  2009/09/01 03:18:24  sueh
  * <p> bug# 1222
  * <p> </p>
@@ -157,8 +162,7 @@ final class Tilt3dFindPanel extends AbstractTiltPanel {
         .getPropertyUserDir(), axisID);
     ConstEtomoNumber centerToCenterThickness = null;
     try {
-      centerToCenterThickness = taAnglesLog.getCenterToCenterThickness(manager
-          .getManagerKey());
+      centerToCenterThickness = taAnglesLog.getCenterToCenterThickness();
     }
     catch (Exception e) {
       e.printStackTrace();
@@ -177,8 +181,7 @@ final class Tilt3dFindPanel extends AbstractTiltPanel {
             + manager.calcUnbinnedBeadDiameterPixels() * additionalDiameters));
       }
       try {
-        ltfZShift.setText(taAnglesLog.getIncrementalShiftToCenter(manager
-            .getManagerKey()));
+        ltfZShift.setText(taAnglesLog.getIncrementalShiftToCenter());
       }
       catch (Exception e) {
         e.printStackTrace();

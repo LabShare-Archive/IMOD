@@ -38,6 +38,10 @@ import etomo.util.Utilities;
  * 
  * <p>
  * $Log$
+ * Revision 3.18  2009/10/01 18:49:58  sueh
+ * bug# 1233 In setDirSize checking for null to make sure that etomo can't
+ * get stuck when leaving a dialog.
+ *
  * Revision 3.17  2009/03/17 00:46:24  sueh
  * bug# 1186 Pass managerKey to everything that pops up a dialog.
  *
@@ -272,9 +276,8 @@ final class CleanupPanel {
       if (Utilities.isWindowsOS()) {
         message.append("\nIf the files are open in 3dmod, close 3dmod.");
       }
-      UIHarness.INSTANCE.openMessageDialog(message.toString(),
-          "Unable to delete intermediate file", AxisID.ONLY, applicationManager
-              .getManagerKey());
+      UIHarness.INSTANCE.openMessageDialog(applicationManager, message
+          .toString(), "Unable to delete intermediate file", AxisID.ONLY);
     }
     setDirSize();
   }

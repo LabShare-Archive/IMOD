@@ -35,6 +35,9 @@ import etomo.type.ProcessName;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 1.42  2009/09/25 16:06:42  sueh
+ * <p> bug# 1250 Setting scroll bar increments to make scrolling work properly.
+ * <p>
  * <p> Revision 1.41  2009/02/04 23:36:48  sueh
  * <p> bug# 1158 Changed id and exception classes in LogFile.
  * <p>
@@ -361,7 +364,9 @@ public abstract class MainPanel extends EtomoPanel {
   void setStatusBarText(File paramFile, BaseMetaData metaData, LogPanel logPanel) {
     //Set the title of log panel.  SetStatusBarText is used by all of the
     //interfaces so this is good place to do it.
-    logPanel.setTitle(paramFile, metaData, manager.getPropertyUserDir());
+    if (logPanel != null) {
+      logPanel.setTitle(paramFile, metaData, manager.getPropertyUserDir());
+    }
     //Set the status bar
     int maxTitleLength = 79;
     if (metaData == null) {

@@ -29,6 +29,10 @@ import etomo.type.ConstLogProperties;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.3  2009/09/29 00:05:51  sueh
+ * <p> bug# 1228 Put all calls to repaint and pack in one function, so all the
+ * <p> originations of these calls can be traced.
+ * <p>
  * <p> Revision 1.2  2009/03/05 23:28:43  sueh
  * <p> bug# 1194 Get the LogProperties from either the LogPanel or user config.
  * <p>
@@ -109,6 +113,9 @@ final class LogFrame extends JFrame {
    * @param logPanel
    */
   void setPanel(LogPanel logPanel) {
+    if (logPanel==null) {
+      return;
+    }
     Container contentPane = getContentPane();
     contentPane.removeAll();
     //the old log panel needs to remember its size and location

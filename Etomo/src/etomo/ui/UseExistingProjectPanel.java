@@ -27,6 +27,9 @@ import etomo.type.Run3dmodMenuOptions;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.4  2009/12/23 02:27:48  sueh
+ * <p> bug# 1296 Stop taking tooltips from peetprm.adoc.
+ * <p>
  * <p> Revision 1.3  2009/11/20 17:40:39  sueh
  * <p> bug# 1282 Naming all the file choosers by constructing a FileChooser
  * <p> instance instead of a JFileChooser instance.
@@ -121,17 +124,15 @@ final class UseExistingProjectPanel {
   private void importParam() {
     String path = parent.getDirectory().getText();
     if (path == null || path.matches("\\s*")) {
-      UIHarness.INSTANCE.openMessageDialog(
+      UIHarness.INSTANCE.openMessageDialog(manager,
           "Please set the " + PeetDialog.DIRECTORY_LABEL
-              + " field before importing a .prm file.", "Entry Error", manager
-              .getManagerKey());
+              + " field before importing a .prm file.", "Entry Error");
       return;
     }
     File dir = new File(parent.getDirectory().getText());
     if (!dir.exists()) {
-      UIHarness.INSTANCE.openMessageDialog("Please create "
-          + dir.getAbsolutePath() + " before importing a file.", "Entry Error",
-          manager.getManagerKey());
+      UIHarness.INSTANCE.openMessageDialog(manager, "Please create "
+          + dir.getAbsolutePath() + " before importing a file.", "Entry Error");
       return;
     }
     File file = null;
@@ -154,16 +155,15 @@ final class UseExistingProjectPanel {
   private void copyParameters() {
     String path = parent.getDirectory().getText();
     if (path == null || path.matches("\\s*")) {
-      UIHarness.INSTANCE.openMessageDialog("Please set the "
+      UIHarness.INSTANCE.openMessageDialog(manager, "Please set the "
           + PeetDialog.DIRECTORY_LABEL + " field before copying parameters.",
-          "Entry Error", manager.getManagerKey());
+          "Entry Error");
       return;
     }
     File dir = new File(parent.getDirectory().getText());
     if (!dir.exists()) {
-      UIHarness.INSTANCE.openMessageDialog("Please create "
-          + dir.getAbsolutePath() + " before copy parameters.", "Entry Error",
-          manager.getManagerKey());
+      UIHarness.INSTANCE.openMessageDialog(manager, "Please create "
+          + dir.getAbsolutePath() + " before copy parameters.", "Entry Error");
       return;
     }
     JFileChooser chooser = new FileChooser(dir);

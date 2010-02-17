@@ -3,12 +3,11 @@ package etomo.ui;
 import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.Point;
-
+import java.util.Hashtable;
 import javax.swing.JOptionPane;
 
 import etomo.BaseManager;
 import etomo.EtomoDirector;
-import etomo.ManagerKey;
 import etomo.process.ProcessMessages;
 import etomo.type.AxisID;
 import etomo.util.UniqueKey;
@@ -36,6 +35,8 @@ public final class UIHarness {
 
   public static final UIHarness INSTANCE = new UIHarness();
 
+  private final Hashtable managerFrameTable = new Hashtable();
+
   private boolean initialized = false;
   private boolean headless = false;
   private MainFrame mainFrame = null;
@@ -44,16 +45,9 @@ public final class UIHarness {
   private UIHarness() {
   }
 
-  public void setVerbose(boolean verbose) {
-    this.verbose = verbose;
+  public void setTitle(BaseManager manager, String title) {
     if (isHead()) {
-      mainFrame.setVerbose(verbose);
-    }
-  }
-  
-  public void setTitle(String title) {
-    if (isHead()) {
-      mainFrame.setTitle(title);
+      getFrame(manager).setTitle(title);
     }
   }
 
@@ -63,31 +57,25 @@ public final class UIHarness {
     }
   }
 
-  public void toFront(AxisID axisID) {
-    if (isHead()) {
-      mainFrame.toFront(axisID);
-    }
-  }
-
   /**
    * Open a message dialog
    * @param message
    * @param title
    */
-  public synchronized void openMessageDialog(String message, String title,
-      AxisID axisID, ManagerKey managerKey) {
+  public synchronized void openMessageDialog(BaseManager manager,
+      String message, String title, AxisID axisID) {
     if (isHead() && !EtomoDirector.INSTANCE.isTestDone()) {
-      mainFrame.displayMessage(message, title, axisID, managerKey);
+      getFrame(manager).displayMessage(manager, message, title, axisID);
     }
     else {
       log("openMessageDialog", message, title, axisID);
     }
   }
 
-  public synchronized void openInfoMessageDialog(String message, String title,
-      AxisID axisID, ManagerKey managerKey) {
+  public synchronized void openInfoMessageDialog(BaseManager manager,
+      String message, String title, AxisID axisID) {
     if (isHead() && !EtomoDirector.INSTANCE.isTestDone()) {
-      mainFrame.displayInfoMessage(message, title, axisID, managerKey);
+      getFrame(manager).displayInfoMessage(manager, message, title, axisID);
     }
     else {
       log("openMessageDialog", message, title, axisID);
@@ -99,10 +87,10 @@ public final class UIHarness {
    * @param messages
    * @param title
    */
-  public synchronized void openErrorMessageDialog(ProcessMessages message,
-      String title, AxisID axisID, ManagerKey managerKey) {
+  public synchronized void openErrorMessageDialog(BaseManager manager,
+      ProcessMessages message, String title, AxisID axisID) {
     if (isHead() && !EtomoDirector.INSTANCE.isTestDone()) {
-      mainFrame.displayErrorMessage(message, title, axisID, managerKey);
+      getFrame(manager).displayErrorMessage(manager, message, title, axisID);
     }
     else {
       logError("openMessageDialog", message, title, axisID);
@@ -114,10 +102,10 @@ public final class UIHarness {
    * @param messages
    * @param title
    */
-  public synchronized void openWarningMessageDialog(ProcessMessages messages,
-      String title, AxisID axisID, ManagerKey managerKey) {
+  public synchronized void openWarningMessageDialog(BaseManager manager,
+      ProcessMessages messages, String title, AxisID axisID) {
     if (isHead() && !EtomoDirector.INSTANCE.isTestDone()) {
-      mainFrame.displayWarningMessage(messages, title, axisID, managerKey);
+      getFrame(manager).displayWarningMessage(manager, messages, title, axisID);
     }
     else {
       logWarning("openMessageDialog", messages, title, axisID);
@@ -129,10 +117,10 @@ public final class UIHarness {
    * @param message
    * @param title
    */
-  public synchronized void openMessageDialog(String message, String title,
-      ManagerKey managerKey) {
+  public synchronized void openMessageDialog(BaseManager manager,
+      String message, String title) {
     if (isHead() && !EtomoDirector.INSTANCE.isTestDone()) {
-      mainFrame.displayMessage(message, title, managerKey);
+      getFrame(manager).displayMessage(manager, message, title);
     }
     else {
       log("openMessageDialog", message, title);
@@ -144,56 +132,58 @@ public final class UIHarness {
    * @param message
    * @param title
    */
-  public synchronized void openMessageDialog(String[] message, String title,
-      AxisID axisID, ManagerKey managerKey) {
+  public synchronized void openMessageDialog(BaseManager manager,
+      String[] message, String title, AxisID axisID) {
     if (isHead() && !EtomoDirector.INSTANCE.isTestDone()) {
-      mainFrame.displayMessage(message, title, axisID, managerKey);
+      getFrame(manager).displayMessage(manager, message, title, axisID);
     }
     else {
       log("openMessageDialog", message, title, axisID);
     }
   }
 
-  public synchronized int openYesNoCancelDialog(String[] message,
-      AxisID axisID, ManagerKey managerKey) {
+  public synchronized int openYesNoCancelDialog(BaseManager manager,
+      String[] message, AxisID axisID) {
     if (isHead() && !EtomoDirector.INSTANCE.isTestDone()) {
-      return mainFrame.displayYesNoCancelMessage(message, axisID, managerKey);
+      return getFrame(manager).displayYesNoCancelMessage(manager, message,
+          axisID);
     }
     log("openYesNoCancelDialog", message, axisID);
     return JOptionPane.YES_OPTION;
   }
 
-  public synchronized boolean openYesNoDialog(String message, AxisID axisID,
-      ManagerKey managerKey) {
+  public synchronized boolean openYesNoDialog(BaseManager manager,
+      String message, AxisID axisID) {
     if (isHead() && !EtomoDirector.INSTANCE.isTestDone()) {
-      return mainFrame.displayYesNoMessage(message, axisID, managerKey);
+      return getFrame(manager).displayYesNoMessage(manager, message, axisID);
     }
     log("openYesNoDialog", message, axisID);
     return true;
   }
 
-  public synchronized boolean openDeleteDialog(String[] message, AxisID axisID,
-      ManagerKey managerKey) {
+  public synchronized boolean openDeleteDialog(BaseManager manager,
+      String[] message, AxisID axisID) {
     if (isHead() && !EtomoDirector.INSTANCE.isTestDone()) {
-      return mainFrame.displayDeleteMessage(message, axisID, managerKey);
+      return getFrame(manager).displayDeleteMessage(manager, message, axisID);
     }
     log("openDeleteDialog", message, axisID);
     return true;
   }
 
-  public synchronized boolean openYesNoWarningDialog(String message,
-      AxisID axisID, ManagerKey managerKey) {
+  public synchronized boolean openYesNoWarningDialog(BaseManager manager,
+      String message, AxisID axisID) {
     if (isHead() && !EtomoDirector.INSTANCE.isTestDone()) {
-      return mainFrame.displayYesNoWarningDialog(message, axisID, managerKey);
+      return getFrame(manager).displayYesNoWarningDialog(manager, message,
+          axisID);
     }
     log("openYesNoWarningDialog", message, axisID);
     return true;
   }
 
-  public synchronized boolean openYesNoDialog(String[] message, AxisID axisID,
-      ManagerKey managerKey) {
+  public synchronized boolean openYesNoDialog(BaseManager manager,
+      String[] message, AxisID axisID) {
     if (isHead() && !EtomoDirector.INSTANCE.isTestDone()) {
-      return mainFrame.displayYesNoMessage(message, axisID, managerKey);
+      return getFrame(manager).displayYesNoMessage(manager, message, axisID);
     }
     log("openYesNoDialog", message, axisID);
     return true;
@@ -217,10 +207,17 @@ public final class UIHarness {
     }
   }
 
+  public void toFront(BaseManager manager) {
+    if (isHead()) {
+      getFrame(manager).toFront();
+    }
+  }
+
   public void pack(BaseManager manager) {
     if (isHead()) {
-      mainFrame.repaint();
-      mainFrame.pack();
+      AbstractFrame abstractFrame = getFrame(manager);
+      abstractFrame.repaint();
+      abstractFrame.pack();
       if (manager != null) {
         Component focusComponent = manager.getFocusComponent();
         if (focusComponent != null) {
@@ -230,10 +227,18 @@ public final class UIHarness {
     }
   }
 
+  private AbstractFrame getFrame(BaseManager manager) {
+    if (manager == null || !manager.isInManagerFrame()) {
+      return mainFrame;
+    }
+    return (ManagerFrame) managerFrameTable.get(manager);
+  }
+
   public void pack(boolean force, BaseManager manager) {
     if (isHead()) {
-      mainFrame.repaint();
-      mainFrame.pack(force);
+      AbstractFrame abstractFrame = getFrame(manager);
+      abstractFrame.repaint();
+      abstractFrame.pack(force);
       if (manager != null) {
         Component focusComponent = manager.getFocusComponent();
         if (focusComponent != null) {
@@ -245,8 +250,9 @@ public final class UIHarness {
 
   public void pack(AxisID axisID, BaseManager manager) {
     if (isHead()) {
-      mainFrame.repaint(axisID);
-      mainFrame.pack(axisID);
+      AbstractFrame abstractFrame = getFrame(manager);
+      abstractFrame.repaint(axisID);
+      abstractFrame.pack(axisID);
       Component focusComponent = manager.getFocusComponent();
       //System.out.println("focusComponent=" + focusComponent);
       if (focusComponent != null) {
@@ -260,8 +266,9 @@ public final class UIHarness {
 
   public void pack(AxisID axisID, boolean force, BaseManager manager) {
     if (isHead()) {
-      mainFrame.repaint(axisID);
-      mainFrame.pack(axisID, force);
+      AbstractFrame abstractFrame = getFrame(manager);
+      abstractFrame.repaint(axisID);
+      abstractFrame.pack(axisID, force);
       Component focusComponent = manager.getFocusComponent();
       //System.out.println("focusComponent=" + focusComponent);
       if (focusComponent != null) {
@@ -299,63 +306,56 @@ public final class UIHarness {
     return mainFrame.isMenu3dmodBinBy2();
   }
 
-  public void doLayout() {
+  public void doLayout(BaseManager manager) {
     if (isHead()) {
-      mainFrame.doLayout();
+      getFrame(manager).doLayout();
     }
   }
 
-  public void validate() {
+  public void validate(BaseManager manager) {
     if (isHead()) {
-      mainFrame.validate();
+      getFrame(manager).validate();
     }
   }
 
-  public void setVisible(boolean b) {
+  public void setVisible(BaseManager manager, boolean b) {
     if (isHead()) {
-      mainFrame.setVisible(b);
+      getFrame(manager).setVisible(b);
     }
   }
 
-  public Dimension getSize() {
+  public Dimension getSize(BaseManager manager) {
     if (isHead()) {
-      return mainFrame.getSize();
+      return getFrame(manager).getSize();
     }
     return new Dimension(0, 0);
   }
 
-  public Point getLocation() {
+  public Point getLocation(BaseManager manager) {
     if (isHead()) {
-      return mainFrame.getLocation();
+      return getFrame(manager).getLocation();
     }
     return new Point(0, 0);
   }
 
   public void setCurrentManager(BaseManager currentManager,
-      ManagerKey managerKey, boolean newWindow) {
+      UniqueKey managerKey, boolean newWindow) {
     if (isHead()) {
       mainFrame.setCurrentManager(currentManager, managerKey, newWindow);
     }
   }
 
-  public void setCurrentManager(BaseManager currentManager,
-      ManagerKey managerKey) {
+  public void setCurrentManager(BaseManager currentManager, UniqueKey managerKey) {
     if (isHead()) {
       mainFrame.setCurrentManager(currentManager, managerKey);
     }
   }
-  
+
   public void save(AxisID axisID) {
     if (isHead()) {
       if (mainFrame.isMenuSaveEnabled()) {
         mainFrame.save(axisID);
       }
-    }
-  }
-
-  public void selectWindowMenuItem(ManagerKey currentManagerKey) {
-    if (isHead()) {
-      mainFrame.selectWindowMenuItem(currentManagerKey);
     }
   }
 
@@ -371,7 +371,7 @@ public final class UIHarness {
    * @param currentManagerKey
    * @param newWindow
    */
-  public void selectWindowMenuItem(ManagerKey currentManagerKey,
+  public void selectWindowMenuItem(UniqueKey currentManagerKey,
       boolean newWindow) {
     if (isHead()) {
       mainFrame.selectWindowMenuItem(currentManagerKey, newWindow);
@@ -395,7 +395,7 @@ public final class UIHarness {
       mainFrame.setEnabledNewGenericParallelMenuItem(enable);
     }
   }
-  
+
   public void setEnabledNewAnisotropicDiffusionMenuItem(boolean enable) {
     if (isHead()) {
       mainFrame.setEnabledNewAnisotropicDiffusionMenuItem(enable);
@@ -408,27 +408,34 @@ public final class UIHarness {
     }
   }
 
-  public void addWindow(BaseManager manager, ManagerKey managerKey) {
+  public void addFrame(BaseManager manager) {
+    if (isHead()) {
+      ManagerFrame managerFrame = ManagerFrame.getInstance(manager);
+      managerFrameTable.put(manager, managerFrame);
+    }
+  }
+
+  public void addWindow(BaseManager manager, UniqueKey managerKey) {
     if (isHead()) {
       mainFrame.addWindow(manager, managerKey);
     }
   }
 
-  public void removeWindow(ManagerKey managerKey) {
+  public void removeWindow(UniqueKey managerKey) {
     if (isHead()) {
       mainFrame.removeWindow(managerKey);
     }
   }
 
-  public void renameWindow(UniqueKey oldKey, ManagerKey newManagerKey) {
+  public void renameWindow(UniqueKey oldKey, UniqueKey newManagerKey) {
     if (isHead()) {
       mainFrame.renameWindow(oldKey, newManagerKey);
     }
   }
 
-  public void repaintWindow() {
+  public void repaintWindow(BaseManager manager) {
     if (isHead()) {
-      mainFrame.repaintWindow();
+      getFrame(manager).repaintWindow();
     }
   }
 
@@ -446,9 +453,9 @@ public final class UIHarness {
     }
   }
 
-  public void msgLogChanged(LogPanel logPanel) {
+  public void msgLogChanged(BaseManager manager, LogPanel logPanel) {
     if (isHead()) {
-      mainFrame.msgLogChanged(logPanel);
+      getFrame(manager).msgLogChanged(logPanel);
     }
   }
 
@@ -574,6 +581,9 @@ public final class UIHarness {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.38  2009/11/20 17:38:54  sueh
+ * <p> bug# 1282 Added save.  Has the same function as the Save menu option.
+ * <p>
  * <p> Revision 1.37  2009/10/27 20:43:15  sueh
  * <p> bug# 1275 Moved FrontPageDialog to FrontPageManager.
  * <p>

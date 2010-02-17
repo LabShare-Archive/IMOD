@@ -144,8 +144,8 @@ public final class TomogramGenerationExpert extends ReconUIExpert {
       getParameters(metaData);
     }
     catch (FortranInputSyntaxException e) {
-      UIHarness.INSTANCE.openMessageDialog(e.getMessage(), "Data File Error",
-          manager.getManagerKey());
+      UIHarness.INSTANCE.openMessageDialog(manager, e.getMessage(),
+          "Data File Error");
     }
     getParameters(screenState);
     manager.updateTiltCom(dialog.getTiltDisplay(), axisID);
@@ -213,6 +213,9 @@ public final class TomogramGenerationExpert extends ReconUIExpert {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.32  2009/09/22 23:56:16  sueh
+ * <p> bug# 1269 Moved setEnabledTiltParameters to abstract tilt panel so it can be use by tilt 3dfind.
+ * <p>
  * <p> Revision 1.31  2009/09/01 03:18:25  sueh
  * <p> bug# 1222
  * <p>

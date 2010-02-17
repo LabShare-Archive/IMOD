@@ -239,10 +239,10 @@ public final class TomogramPositioningExpert extends ReconUIExpert {
       if ((sampleFiducialess == null || !sampleFiducialess.is())
           && dialog.isTomopitchButton() && dialog.isAlignButtonEnabled()
           && !dialog.isAlignButton()) {
-        UIHarness.INSTANCE.openMessageDialog(
+        UIHarness.INSTANCE.openMessageDialog(manager,
             "ERROR:  Final alignment is not done or is out of date.  Run "
                 + "final aligment in positioning before continuing.",
-            "User Error", axisID, manager.getManagerKey());
+            "User Error", axisID);
       }
       manager
           .closeImod(ImodManager.SAMPLE_KEY, axisID, "sample reconstruction");
@@ -302,9 +302,9 @@ public final class TomogramPositioningExpert extends ReconUIExpert {
     sendMsgProcessStarting(processResultDisplay);
     // Make sure that we have an active positioning dialog
     if (dialog == null) {
-      UIHarness.INSTANCE.openMessageDialog(
+      UIHarness.INSTANCE.openMessageDialog(manager,
           "Can not update sample.com without an active positioning dialog",
-          "Program logic error", axisID, manager.getManagerKey());
+          "Program logic error", axisID);
       sendMsg(ProcessResult.FAILED_TO_START, processResultDisplay);
       return;
     }
@@ -338,9 +338,9 @@ public final class TomogramPositioningExpert extends ReconUIExpert {
     sendMsgProcessStarting(processResultDisplay);
     // Make sure that we have an active positioning dialog
     if (dialog == null) {
-      UIHarness.INSTANCE.openMessageDialog(
+      UIHarness.INSTANCE.openMessageDialog(manager,
           "Can not save comscripts without an active positioning dialog",
-          "Program logic error", axisID, manager.getManagerKey());
+          "Program logic error", axisID);
       sendMsg(ProcessResult.FAILED_TO_START, processResultDisplay);
       return;
     }
@@ -364,16 +364,16 @@ public final class TomogramPositioningExpert extends ReconUIExpert {
         blendmontParam = updateBlendCom();
       }
       catch (FortranInputSyntaxException e) {
-        UIHarness.INSTANCE.openMessageDialog(e.getMessage(),
-            "Update Com Error", manager.getManagerKey());
+        UIHarness.INSTANCE.openMessageDialog(manager, e.getMessage(),
+            "Update Com Error");
       }
       catch (InvalidParameterException e) {
-        UIHarness.INSTANCE.openMessageDialog(e.getMessage(),
-            "Update Com Error", manager.getManagerKey());
+        UIHarness.INSTANCE.openMessageDialog(manager, e.getMessage(),
+            "Update Com Error");
       }
       catch (IOException e) {
-        UIHarness.INSTANCE.openMessageDialog(e.getMessage(),
-            "Update Com Error", manager.getManagerKey());
+        UIHarness.INSTANCE.openMessageDialog(manager, e.getMessage(),
+            "Update Com Error");
       }
       if (blendmontParam == null) {
         sendMsg(ProcessResult.FAILED_TO_START, processResultDisplay);
@@ -405,9 +405,9 @@ public final class TomogramPositioningExpert extends ReconUIExpert {
       ConstProcessSeries processSeries) {
     sendMsgProcessStarting(processResultDisplay);
     if (dialog == null) {
-      UIHarness.INSTANCE.openMessageDialog(
+      UIHarness.INSTANCE.openMessageDialog(manager,
           "Can not save comscript without an active positioning dialog",
-          "Program logic error", axisID, manager.getManagerKey());
+          "Program logic error", axisID);
       sendMsg(ProcessResult.FAILED_TO_START, processResultDisplay);
       return;
     }
@@ -452,9 +452,9 @@ public final class TomogramPositioningExpert extends ReconUIExpert {
       ConstProcessSeries processSeries) {
     sendMsgProcessStarting(processResultDisplay);
     if (dialog == null) {
-      UIHarness.INSTANCE.openMessageDialog(
+      UIHarness.INSTANCE.openMessageDialog(manager,
           "Can not save comscript without an active positioning dialog",
-          "Program logic error", axisID, manager.getManagerKey());
+          "Program logic error", axisID);
       sendMsg(ProcessResult.FAILED_TO_START, processResultDisplay);
       return;
     }
@@ -500,8 +500,8 @@ public final class TomogramPositioningExpert extends ReconUIExpert {
       errorMessage[0] = "Tiltalign Parameter Syntax Error";
       errorMessage[1] = "Axis: " + axisID.getExtension();
       errorMessage[2] = except.getMessage();
-      UIHarness.INSTANCE.openMessageDialog(errorMessage,
-          "Tiltalign Parameter Syntax Error", axisID, manager.getManagerKey());
+      UIHarness.INSTANCE.openMessageDialog(manager, errorMessage,
+          "Tiltalign Parameter Syntax Error", axisID);
       return null;
     }
     catch (FortranInputSyntaxException except) {
@@ -510,8 +510,8 @@ public final class TomogramPositioningExpert extends ReconUIExpert {
       errorMessage[0] = "Xfproduct Parameter Syntax Error";
       errorMessage[1] = "Axis: " + axisID.getExtension();
       errorMessage[2] = except.getMessage();
-      UIHarness.INSTANCE.openMessageDialog(errorMessage,
-          "Xfproduct Parameter Syntax Error", axisID, manager.getManagerKey());
+      UIHarness.INSTANCE.openMessageDialog(manager, errorMessage,
+          "Xfproduct Parameter Syntax Error", axisID);
       return null;
     }
     return tiltalignParam;
@@ -524,9 +524,9 @@ public final class TomogramPositioningExpert extends ReconUIExpert {
   private ConstTiltParam updateTomoPosTiltCom(boolean positioning) {
     // Make sure that we have an active positioning dialog
     if (dialog == null) {
-      UIHarness.INSTANCE.openMessageDialog(
+      UIHarness.INSTANCE.openMessageDialog(manager,
           "Can not update sample.com without an active positioning dialog",
-          "Program logic error", axisID, manager.getManagerKey());
+          "Program logic error", axisID);
       return null;
     }
     // Get the current tilt parameters, make any user changes and save the
@@ -572,8 +572,8 @@ public final class TomogramPositioningExpert extends ReconUIExpert {
       errorMessage[0] = "Tilt Parameter Syntax Error";
       errorMessage[1] = "Axis: " + axisID.getExtension();
       errorMessage[2] = except.getMessage();
-      UIHarness.INSTANCE.openMessageDialog(errorMessage,
-          "Tilt Parameter Syntax Error", axisID, manager.getManagerKey());
+      UIHarness.INSTANCE.openMessageDialog(manager, errorMessage,
+          "Tilt Parameter Syntax Error", axisID);
       return null;
     }
     return tiltParam;
@@ -586,9 +586,9 @@ public final class TomogramPositioningExpert extends ReconUIExpert {
   private boolean updateTomopitchCom() {
     // Make sure that we have an active positioning dialog
     if (dialog == null) {
-      UIHarness.INSTANCE.openMessageDialog(
+      UIHarness.INSTANCE.openMessageDialog(manager,
           "Can not update tomopitch.com without an active positioning dialog",
-          "Program logic error", axisID, manager.getManagerKey());
+          "Program logic error", axisID);
       return false;
     }
     // Get the current tilt parameters, make any user changes and save the
@@ -603,8 +603,8 @@ public final class TomogramPositioningExpert extends ReconUIExpert {
       errorMessage[0] = "Tomopitch Parameter Syntax Error";
       errorMessage[1] = "Axis: " + axisID.getExtension();
       errorMessage[2] = except.getMessage();
-      UIHarness.INSTANCE.openMessageDialog(errorMessage,
-          "Tomopitch Parameter Syntax Error", axisID, manager.getManagerKey());
+      UIHarness.INSTANCE.openMessageDialog(manager, errorMessage,
+          "Tomopitch Parameter Syntax Error", axisID);
       return false;
     }
     return true;
@@ -637,13 +637,15 @@ public final class TomogramPositioningExpert extends ReconUIExpert {
       }
       catch (InvalidParameterException e) {
         e.printStackTrace();
-        UIHarness.INSTANCE.openMessageDialog("Unable to update newst com: "
-            + e.getMessage(), "Etomo Error", axisID, manager.getManagerKey());
+        UIHarness.INSTANCE.openMessageDialog(manager,
+            "Unable to update newst com: " + e.getMessage(), "Etomo Error",
+            axisID);
       }
       catch (IOException e) {
         e.printStackTrace();
-        UIHarness.INSTANCE.openMessageDialog("Unable to update newst com: "
-            + e.getMessage(), "Etomo Error", axisID, manager.getManagerKey());
+        UIHarness.INSTANCE.openMessageDialog(manager,
+            "Unable to update newst com: " + e.getMessage(), "Etomo Error",
+            axisID);
       }
     }
     catch (FortranInputSyntaxException e) {
@@ -945,6 +947,11 @@ public final class TomogramPositioningExpert extends ReconUIExpert {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.34  2009/09/17 19:12:58  sueh
+ * <p> bug# 1257 In NewstParam.setSizeToOutputInXandY forgot to read the
+ * <p> header.  Adding read call and throwing InvalidParameterException and
+ * <p> IOException.
+ * <p>
  * <p> Revision 1.33  2009/09/01 03:18:24  sueh
  * <p> bug# 1222
  * <p>

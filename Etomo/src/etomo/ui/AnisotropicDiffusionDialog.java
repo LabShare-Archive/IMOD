@@ -41,6 +41,9 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.20  2010/01/21 21:31:14  sueh
+ * <p> bug# 1305 Factored filter full volume panel out of AnisotropicDiffusionDialog.
+ * <p>
  * <p> Revision 1.19  2009/11/20 17:00:30  sueh
  * <p> bug# 1282 Naming all the file choosers by constructing a FileChooser
  * <p> instance instead of a JFileChooser instance.
@@ -428,8 +431,8 @@ public final class AnisotropicDiffusionDialog implements ContextMenu,
     }
     errorMessage = param.setKValueList(ltfTestKValueList.getText());
     if (errorMessage != null) {
-      UIHarness.INSTANCE.openMessageDialog(K_VALUE_LIST_LABEL + errorMessage,
-          "Entry Error", manager.getManagerKey());
+      UIHarness.INSTANCE.openMessageDialog(manager,K_VALUE_LIST_LABEL + errorMessage,
+          "Entry Error");
       return false;
     }
     param.setIteration(spTestIteration.getValue());
@@ -439,9 +442,9 @@ public final class AnisotropicDiffusionDialog implements ContextMenu,
     //incorrect result.
     if (!(new File(new File(manager.getPropertyUserDir(), subdirName),
         TEST_VOLUME_NAME).exists())) {
-      UIHarness.INSTANCE.openMessageDialog(
+      UIHarness.INSTANCE.openMessageDialog(manager,
           "Test volume has not been created.  Please extract test volume.",
-          "Entry Error", manager.getManagerKey());
+          "Entry Error");
       return false;
     }
     param.setSubdirName(subdirName);
@@ -481,9 +484,9 @@ public final class AnisotropicDiffusionDialog implements ContextMenu,
    */
   public boolean initSubdir() {
     if (ftfVolume.isEmpty()) {
-      UIHarness.INSTANCE.openMessageDialog(
+      UIHarness.INSTANCE.openMessageDialog(manager,
           "Please choose a volume before running this function.",
-          "Entry Error", manager.getManagerKey());
+          "Entry Error");
       return false;
     }
     if (subdirName == null) {
@@ -563,8 +566,8 @@ public final class AnisotropicDiffusionDialog implements ContextMenu,
     }
     volume = chooser.getSelectedFile();
     if (volume == null || volume.isDirectory() || !volume.exists()) {
-      UIHarness.INSTANCE.openMessageDialog("Please choose a volume",
-          "Entry Error", manager.getManagerKey());
+      UIHarness.INSTANCE.openMessageDialog(manager,"Please choose a volume",
+          "Entry Error");
       return;
     }
     ftfVolume.setButtonEnabled(false);

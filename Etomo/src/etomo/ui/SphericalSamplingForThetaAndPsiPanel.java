@@ -4,7 +4,6 @@ import java.awt.Component;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
-
 import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.ButtonGroup;
@@ -26,6 +25,9 @@ import etomo.storage.MatlabParam;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.2  2009/12/23 02:27:28  sueh
+ * <p> bug# 1296 Stop taking tooltips from peetprm.adoc.
+ * <p>
  * <p> Revision 1.1  2009/12/08 02:49:27  sueh
  * <p> bug# 1286 Factored out of PeetDialog.
  * <p> </p>
@@ -154,10 +156,10 @@ final class SphericalSamplingForThetaAndPsiPanel {
     //If full sphere or half sphere is selected, sample interval is required.
     if ((rbSampleSphereFull.isSelected() || rbSampleSphereHalf.isSelected())
         && ltfSampleInterval.isEnabled() && ltfSampleInterval.isEmpty()) {
-      UIHarness.INSTANCE.openMessageDialog("In " + SPHERICAL_SAMPLING_LABEL
-          + ", " + SAMPLE_INTERVAL_LABEL + " is required when either "
-          + SAMPLE_SPHERE_FULL_LABEL + " or " + SAMPLE_SPHERE_HALF_LABEL
-          + " is selected.", "Entry Error", manager.getManagerKey());
+      UIHarness.INSTANCE.openMessageDialog(manager, "In "
+          + SPHERICAL_SAMPLING_LABEL + ", " + SAMPLE_INTERVAL_LABEL
+          + " is required when either " + SAMPLE_SPHERE_FULL_LABEL + " or "
+          + SAMPLE_SPHERE_HALF_LABEL + " is selected.", "Entry Error");
       return false;
     }
     return true;

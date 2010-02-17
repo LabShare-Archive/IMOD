@@ -35,6 +35,9 @@ import etomo.type.ViewType;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 1.1  2009/06/10 22:17:31  sueh
+ * <p> bug# 1221 Factoring RAPTOR into RaptorPanel.
+ * <p>
  */
 final class RaptorPanel implements Run3dmodButtonContainer {
   public static final String rcsid = "$Id$";
@@ -141,15 +144,15 @@ final class RaptorPanel implements Run3dmodButtonContainer {
     param.setUseRawStack(rbInputRaw.isSelected());
     String errorMessage = param.setMark(ltfMark.getText());
     if (errorMessage != null) {
-      UIHarness.INSTANCE.openMessageDialog("Error in " + MARK_LABEL + ": "
-          + errorMessage, "Entry Error", axisID, manager.getManagerKey());
+      UIHarness.INSTANCE.openMessageDialog(manager,"Error in " + MARK_LABEL + ": "
+          + errorMessage, "Entry Error", axisID);
       return false;
     }
     errorMessage = param.setDiam(ltfDiam.getText(), rbInputPreali
         .isSelected());
     if (errorMessage != null) {
-      UIHarness.INSTANCE.openMessageDialog("Error in " + DIAM_LABEL + ": "
-          + errorMessage, "Entry Error", axisID, manager.getManagerKey());
+      UIHarness.INSTANCE.openMessageDialog(manager,"Error in " + DIAM_LABEL + ": "
+          + errorMessage, "Entry Error", axisID);
       return false;
     }
     return true;

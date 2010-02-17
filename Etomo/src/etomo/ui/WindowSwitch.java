@@ -12,7 +12,6 @@ import javax.swing.event.ChangeListener;
 
 import etomo.BaseManager;
 import etomo.EtomoDirector;
-import etomo.ManagerKey;
 import etomo.util.UniqueHashedArray;
 import etomo.util.UniqueKey;
 
@@ -77,8 +76,8 @@ public class WindowSwitch {
    * @param controller
    * @param key
    */
-  void add(BaseManager manager, ManagerKey managerKey) {
-    if (manager == null || managerKey == null) {
+  void add(BaseManager manager, UniqueKey key) {
+    if (key == null) {
       return;
     }
     if (menuList == null) {
@@ -89,7 +88,6 @@ public class WindowSwitch {
     JCheckBoxMenuItem menuItem = new CheckBoxMenuItem();
     menuItem.addActionListener(menuActionListener);
     int index = menuList.size();
-    UniqueKey key = managerKey.getKey();
     menuItem.setText(Integer.toString(index + 1) + menuItemDivider
         + key.getName());
     menuItem.setVisible(true);
@@ -104,8 +102,7 @@ public class WindowSwitch {
    * @param oldKey
    * @param newKey
    */
-  void rename(UniqueKey oldKey, ManagerKey newManagerKey) {
-    UniqueKey newKey = newManagerKey.getKey();
+  void rename(UniqueKey oldKey, UniqueKey newKey) {
     if (oldKey == null || newKey == null || menuList == null) {
       return;
     }
@@ -119,7 +116,7 @@ public class WindowSwitch {
         && tabbedPane.getTabCount() > index) {
       tabbedPane.setTitleAt(index, newKey.getName());
     }
-    EtomoDirector.INSTANCE.setCurrentManager(newManagerKey);
+    EtomoDirector.INSTANCE.setCurrentManager(newKey);
   }
 
   /**
@@ -127,11 +124,7 @@ public class WindowSwitch {
    * menuList.  Removes the associated mainPanel from mainPanelList.
    * @param key
    */
-  void remove(ManagerKey managerKey) {
-    if (managerKey == null || managerKey == null) {
-      return;
-    }
-    UniqueKey key = managerKey.getKey();
+  void remove(UniqueKey key) {
     if (key == null || menuList == null) {
       return;
     }
@@ -174,28 +167,16 @@ public class WindowSwitch {
    * @param key
    * @return
    */
-  JComponent getPanel(ManagerKey managerKey) {
+  JComponent getPanel(UniqueKey key) {
     if (mainPanelList == null || mainPanelList.size() == 0
-        || managerKey == null) {
+        || key == null) {
       return null;
     }
-    UniqueKey key = managerKey.getKey();
     if (mainPanelList.size() == 1) {
       return (MainPanel) mainPanelList.get(key);
     }
     setTabs(menuList.getIndex(key));
     return tabbedPane;
-  }
-
-  /**
-   * Allows the program to select a window.
-   * @param managerKey
-   */
-  void selectWindow(ManagerKey managerKey, boolean newWindow) {
-    if (managerKey == null || managerKey == null) {
-      return;
-    }
-    selectWindow(managerKey.getKey(), newWindow);
   }
 
   /**
@@ -330,6 +311,9 @@ public class WindowSwitch {
 
 /**
  * <p>$Log$
+ * <p>Revision 1.14  2009/04/02 19:19:29  sueh
+ * <p>bug# 1206 Handle a null managerKey parameter.
+ * <p>
  * <p>Revision 1.13  2009/03/17 00:46:24  sueh
  * <p>bug# 1186 Pass managerKey to everything that pops up a dialog.
  * <p>

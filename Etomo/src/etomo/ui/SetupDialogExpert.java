@@ -41,6 +41,11 @@ import etomo.util.Montagesize;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.13  2010/01/11 23:59:01  sueh
+ * <p> bug# 1299 Removed responsibility anything other then cpu.adoc from
+ * <p> CpuAdoc.  Placed responsibility for information about the network in the
+ * <p> Network class.
+ * <p>
  * <p> Revision 1.12  2009/10/13 17:45:07  sueh
  * <p> bug# 1278 Changed MetaData.setExcludeProjectionsA and B to
  * <p> setExcludeProjections.
@@ -226,16 +231,15 @@ public final class SetupDialogExpert {
     for (int i = 0; i < edfFiles.length; i++) {
       MetaData savedMetaData = new MetaData(manager);
       try {
-        ParameterStore paramStore = ParameterStore.getInstance(edfFiles[i],
-            manager.getManagerKey());
+        ParameterStore paramStore = ParameterStore.getInstance(edfFiles[i]);
         if (paramStore != null) {
           paramStore.load(savedMetaData);
         }
       }
       catch (LogFile.LockException e) {
         e.printStackTrace();
-        UIHarness.INSTANCE.openMessageDialog("Unable to read .edf files in "
-            + propertyUserDir, "Etomo Error", manager.getManagerKey());
+        UIHarness.INSTANCE.openMessageDialog(manager,
+            "Unable to read .edf files in " + propertyUserDir, "Etomo Error");
         continue;
       }
       // Create File instances based on the stacks specified in the edf file
@@ -307,18 +311,17 @@ public final class SetupDialogExpert {
     String panelErrorMessage;
 
     if (datasetText.equals("")) {
-      UIHarness.INSTANCE.openMessageDialog(
-          "Dataset name has not been entered.", errorMessageTitle, AxisID.ONLY,
-          manager.getManagerKey());
+      UIHarness.INSTANCE.openMessageDialog(manager,
+          "Dataset name has not been entered.", errorMessageTitle, AxisID.ONLY);
       return false;
     }
     File dataset = new File(datasetText);
     String datasetFileName = dataset.getName();
     if (datasetFileName.equals("a.st") || datasetFileName.equals("b.st")
         || datasetFileName.equals(".")) {
-      UIHarness.INSTANCE.openMessageDialog("The name " + datasetFileName
-          + " cannot be used as a dataset name.", errorMessageTitle,
-          AxisID.ONLY, manager.getManagerKey());
+      UIHarness.INSTANCE.openMessageDialog(manager, "The name "
+          + datasetFileName + " cannot be used as a dataset name.",
+          errorMessageTitle, AxisID.ONLY);
       return false;
     }
     //validate image distortion field file name
@@ -329,9 +332,9 @@ public final class SetupDialogExpert {
       File distortionFile = new File(distortionFileText);
       if (!distortionFile.exists()) {
         String distortionFileName = distortionFile.getName();
-        UIHarness.INSTANCE.openMessageDialog("The image distortion field file "
-            + distortionFileName + " does not exist.", errorMessageTitle,
-            AxisID.ONLY, manager.getManagerKey());
+        UIHarness.INSTANCE.openMessageDialog(manager,
+            "The image distortion field file " + distortionFileName
+                + " does not exist.", errorMessageTitle, AxisID.ONLY);
         return false;
       }
     }
@@ -343,31 +346,29 @@ public final class SetupDialogExpert {
       File magGradientFile = new File(magGradientFileText);
       if (!magGradientFile.exists()) {
         String magGradientFileName = magGradientFile.getName();
-        UIHarness.INSTANCE.openMessageDialog(
+        UIHarness.INSTANCE.openMessageDialog(manager,
             "The mag gradients correction file " + magGradientFileName
-                + " does not exist.", errorMessageTitle, AxisID.ONLY, manager
-                .getManagerKey());
+                + " does not exist.", errorMessageTitle, AxisID.ONLY);
         return false;
       }
     }
     panelErrorMessage = tiltAnglePanelExpertA.getErrorMessage();
     if (panelErrorMessage != null) {
-      UIHarness.INSTANCE.openMessageDialog(panelErrorMessage + " in Axis A.",
-          errorMessageTitle, AxisID.ONLY, manager.getManagerKey());
+      UIHarness.INSTANCE.openMessageDialog(manager, panelErrorMessage
+          + " in Axis A.", errorMessageTitle, AxisID.ONLY);
       return false;
     }
     panelErrorMessage = tiltAnglePanelExpertB.getErrorMessage();
     if (panelErrorMessage != null) {
-      UIHarness.INSTANCE.openMessageDialog(panelErrorMessage + " in Axis B.",
-          errorMessageTitle, AxisID.ONLY, manager.getManagerKey());
+      UIHarness.INSTANCE.openMessageDialog(manager, panelErrorMessage
+          + " in Axis B.", errorMessageTitle, AxisID.ONLY);
       return false;
     }
     Montagesize montagesize = Montagesize.getInstance(manager
-        .getPropertyUserDir(), getStackFileName(), AxisID.ONLY, manager
-        .getManagerKey());
+        .getPropertyUserDir(), getStackFileName(), AxisID.ONLY);
     if (dialog.isSingleViewSelected()) {
       try {
-        montagesize.read();
+        montagesize.read(manager);
         //not supposed to be a montage
         //OK if its a 1x1 montage
         MRCHeader header = readMRCHeader();
@@ -377,11 +378,11 @@ public final class SetupDialogExpert {
         }
         if (montagesize.getX().getInt() > header.getNColumns()
             || montagesize.getY().getInt() > header.getNRows()) {
-          UIHarness.INSTANCE.openMessageDialog(
+          UIHarness.INSTANCE.openMessageDialog(manager,
               "The dataset is a montage.  Please change "
                   + SetupDialog.FRAME_TYPE_LABEL + " to "
                   + SetupDialog.MONTAGE_LABEL + ".", errorMessageTitle,
-              AxisID.ONLY, manager.getManagerKey());
+              AxisID.ONLY);
           return false;
         }
       }
@@ -392,22 +393,22 @@ public final class SetupDialogExpert {
     }
     else {
       try {
-        montagesize.read();
+        montagesize.read(manager);
       }
       catch (InvalidParameterException e) {
-        UIHarness.INSTANCE.openMessageDialog(
+        UIHarness.INSTANCE.openMessageDialog(manager,
             "The dataset is not a montage.  Please change "
                 + SetupDialog.FRAME_TYPE_LABEL + " to "
                 + SetupDialog.SINGLE_FRAME_LABEL + ".", errorMessageTitle,
-            AxisID.ONLY, manager.getManagerKey());
+            AxisID.ONLY);
         return false;
       }
       catch (IOException e) {
-        UIHarness.INSTANCE.openMessageDialog(
+        UIHarness.INSTANCE.openMessageDialog(manager,
             "The dataset is not a montage.  Please change "
                 + SetupDialog.FRAME_TYPE_LABEL + " to "
                 + SetupDialog.SINGLE_FRAME_LABEL + ".", errorMessageTitle,
-            AxisID.ONLY, manager.getManagerKey());
+            AxisID.ONLY);
         return false;
       }
     }
@@ -457,8 +458,8 @@ public final class SetupDialogExpert {
       tiltAnglePanelExpertB.getFields(metaData.getTiltAngleSpecB());
     }
     catch (NumberFormatException e) {
-      UIHarness.INSTANCE.openMessageDialog(currentField + " must be numeric.",
-          "Setup Dialog Error", AxisID.ONLY, manager.getManagerKey());
+      UIHarness.INSTANCE.openMessageDialog(manager, currentField
+          + " must be numeric.", "Setup Dialog Error", AxisID.ONLY);
       return null;
     }
     metaData.setBinning(dialog.getBinning());
@@ -502,8 +503,8 @@ public final class SetupDialogExpert {
     }
     //Parallel processing is optional in tomogram reconstruction, so only use it
     //if the user set it up.
-    boolean validAutodoc = Network.isParallelProcessingEnabled(AxisID.ONLY,
-        manager.getPropertyUserDir(), manager.getManagerKey());
+    boolean validAutodoc = Network.isParallelProcessingEnabled(manager,
+        AxisID.ONLY, manager.getPropertyUserDir());
     if (validAutodoc && !userConfig.getNoParallelProcessing()) {
       dialog.setParallelProcess(true);
     }
@@ -735,8 +736,9 @@ public final class SetupDialogExpert {
     // Get the dataset name from the UI object
     String datasetName = dialog.getDataset();
     if (datasetName == null || datasetName.equals("")) {
-      UIHarness.INSTANCE.openMessageDialog("Dataset name has not been entered",
-          "Missing dataset name", AxisID.ONLY, manager.getManagerKey());
+      UIHarness.INSTANCE.openMessageDialog(manager,
+          "Dataset name has not been entered", "Missing dataset name",
+          AxisID.ONLY);
       return null;
     }
     //  Add the appropriate extension onto the filename if necessary 
@@ -760,21 +762,21 @@ public final class SetupDialogExpert {
     // Run header on the dataset to the extract whatever information is
     // available
     MRCHeader header = MRCHeader.getInstance(manager.getPropertyUserDir(),
-        getStackFileName(), AxisID.ONLY, manager.getManagerKey());
+        getStackFileName(), AxisID.ONLY);
     try {
-      if (!header.read()) {
-        UIHarness.INSTANCE.openMessageDialog("File does not exist.",
-            "Entry Error", AxisID.ONLY, manager.getManagerKey());
+      if (!header.read(manager)) {
+        UIHarness.INSTANCE.openMessageDialog(manager, "File does not exist.",
+            "Entry Error", AxisID.ONLY);
         return null;
       }
     }
     catch (InvalidParameterException except) {
-      UIHarness.INSTANCE.openMessageDialog(except.getMessage(),
-          "Invalid Parameter Exception", AxisID.ONLY, manager.getManagerKey());
+      UIHarness.INSTANCE.openMessageDialog(manager, except.getMessage(),
+          "Invalid Parameter Exception", AxisID.ONLY);
     }
     catch (IOException except) {
-      UIHarness.INSTANCE.openMessageDialog(except.getMessage(), "IO Exception",
-          AxisID.ONLY, manager.getManagerKey());
+      UIHarness.INSTANCE.openMessageDialog(manager, except.getMessage(),
+          "IO Exception", AxisID.ONLY);
     }
     return header;
   }
@@ -795,23 +797,23 @@ public final class SetupDialogExpert {
     double xPixelSize = header.getXPixelSize().getDouble();
     double yPixelSize = header.getYPixelSize().getDouble();
     if (Double.isNaN(xPixelSize) || Double.isNaN(yPixelSize)) {
-      UIHarness.INSTANCE.openMessageDialog(
+      UIHarness.INSTANCE.openMessageDialog(manager,
           "Pixel size is not defined in the image file header",
-          "Pixel size is missing", AxisID.ONLY, manager.getManagerKey());
+          "Pixel size is missing", AxisID.ONLY);
 
       return;
     }
 
     if (xPixelSize != yPixelSize) {
-      UIHarness.INSTANCE.openMessageDialog(
+      UIHarness.INSTANCE.openMessageDialog(manager,
           "X & Y pixels sizes are different, don't know what to do",
-          "Pixel sizes are different", AxisID.ONLY, manager.getManagerKey());
+          "Pixel sizes are different", AxisID.ONLY);
       return;
     }
     if (xPixelSize == 1.0) {
-      UIHarness.INSTANCE.openMessageDialog(
+      UIHarness.INSTANCE.openMessageDialog(manager,
           "Pixel size is not defined in the image file header",
-          "Pixel size is missing", AxisID.ONLY, manager.getManagerKey());
+          "Pixel size is missing", AxisID.ONLY);
       return;
     }
     xPixelSize = xPixelSize / 10.0;

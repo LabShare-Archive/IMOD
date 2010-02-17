@@ -48,6 +48,9 @@ import etomo.util.InvalidParameterException;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.3  2010/01/11 23:58:46  sueh
+ * <p> bug# 1299 Added GPU checkbox.
+ * <p>
  * <p> Revision 3.2  2009/09/22 23:43:07  sueh
  * <p> bug# 1269 Moved setEnabledTiltParameters to abstract tilt panel so it can be use by tilt 3dfind.
  * <p>
@@ -148,8 +151,8 @@ abstract class AbstractTiltPanel implements Expandable, TrialTiltParent,
     btnTilt.setDeferred3dmodButton(btn3dmodTomogram);
     btn3dmodTomogram.setSize();
     btnDeleteStack.setSize();
-    ConstEtomoNumber maxCPUs = CpuAdoc.INSTANCE.getMaxTilt(axisID, manager
-        .getPropertyUserDir(), manager.getManagerKey());
+    ConstEtomoNumber maxCPUs = CpuAdoc.INSTANCE.getMaxTilt(manager, axisID,
+        manager.getPropertyUserDir());
     if (maxCPUs != null && !maxCPUs.isNull()) {
       cbParallelProcess.setText(ParallelPanel.FIELD_LABEL
           + ParallelPanel.MAX_CPUS_STRING + maxCPUs.toString());
@@ -410,8 +413,8 @@ abstract class AbstractTiltPanel implements Expandable, TrialTiltParent,
   final void setParameters(final ConstMetaData metaData) {
     //Parallel processing is optional in tomogram reconstruction, so only use it
     //if the user set it up.
-    boolean validAutodoc = Network.isParallelProcessingEnabled(axisID, manager
-        .getPropertyUserDir(), manager.getManagerKey());
+    boolean validAutodoc = Network.isParallelProcessingEnabled(manager, axisID,
+        manager.getPropertyUserDir());
     cbParallelProcess.setEnabled(validAutodoc);
     ConstEtomoNumber tomoGenTiltParallel = metaData
         .getTomoGenTiltParallel(axisID);
@@ -421,8 +424,8 @@ abstract class AbstractTiltPanel implements Expandable, TrialTiltParent,
     else {
       setParallelProcess(validAutodoc && tomoGenTiltParallel.is());
     }
-    cbUseGpu.setEnabled(Network.isLocalHostGpuProcessingEnabled(axisID, manager
-        .getPropertyUserDir(), manager.getManagerKey()));
+    cbUseGpu.setEnabled(Network.isLocalHostGpuProcessingEnabled(manager,
+        axisID, manager.getPropertyUserDir()));
     trialTiltPanel.setParameters(metaData);
     updateParallelProcess();
     updateUseGpu();
@@ -498,9 +501,10 @@ abstract class AbstractTiltPanel implements Expandable, TrialTiltParent,
     ConstEtomoNumber numMachines = param.setNumMachines(parallelPanel
         .getCPUsSelected());
     if (!numMachines.isValid()) {
-      UIHarness.INSTANCE.openMessageDialog(parallelPanel.getCPUsSelectedLabel()
+      UIHarness.INSTANCE.openMessageDialog(manager, parallelPanel
+          .getCPUsSelectedLabel()
           + " " + numMachines.getInvalidReason(), "Unable to run splittilt",
-          axisID, manager.getManagerKey());
+          axisID);
       return false;
     }
     return true;
@@ -721,8 +725,8 @@ abstract class AbstractTiltPanel implements Expandable, TrialTiltParent,
     ReadOnlyAutodoc autodoc = null;
 
     try {
-      autodoc = AutodocFactory.getInstance(AutodocFactory.MTF_FILTER, axisID,
-          manager.getManagerKey());
+      autodoc = AutodocFactory.getInstance(manager, AutodocFactory.MTF_FILTER,
+          axisID);
     }
     catch (FileNotFoundException except) {
       except.printStackTrace();

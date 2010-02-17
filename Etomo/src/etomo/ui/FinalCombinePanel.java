@@ -59,6 +59,9 @@ import etomo.util.DatasetFiles;
  * 
  * <p>
  * $Log$
+ * Revision 3.73  2009/09/01 03:18:25  sueh
+ * bug# 1222
+ *
  * Revision 3.72  2009/03/17 00:46:24  sueh
  * bug# 1186 Pass managerKey to everything that pops up a dialog.
  *
@@ -934,9 +937,9 @@ public class FinalCombinePanel implements ContextMenu, FinalCombineFields,
     pnlVolcombine.setVisible(visible);
     updatePatchVectorModelDisplay();
   }
-  
+
   public void expand(GlobalExpandButton button) {
-    
+
   }
 
   public void expand(ExpandButton button) {
@@ -1351,11 +1354,10 @@ public class FinalCombinePanel implements ContextMenu, FinalCombineFields,
     ReadOnlyAutodoc adocCorrsearch3d = null;
 
     try {
-      adocCombineFft = AutodocFactory.getInstance(AutodocFactory.COMBINE_FFT,
-          AxisID.ONLY, applicationManager.getManagerKey());
-      adocCorrsearch3d = AutodocFactory.getInstance(
-          AutodocFactory.CORR_SEARCH_3D, AxisID.ONLY, applicationManager
-              .getManagerKey());
+      adocCombineFft = AutodocFactory.getInstance(applicationManager,
+          AutodocFactory.COMBINE_FFT, AxisID.ONLY);
+      adocCorrsearch3d = AutodocFactory.getInstance(applicationManager,
+          AutodocFactory.CORR_SEARCH_3D, AxisID.ONLY);
     }
     catch (FileNotFoundException except) {
       except.printStackTrace();

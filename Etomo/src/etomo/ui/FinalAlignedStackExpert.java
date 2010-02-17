@@ -50,6 +50,9 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.21  2009/10/19 16:29:04  sueh
+ * <p> bug# 1253 Added invertTiltAngles.
+ * <p>
  * <p> Revision 1.20  2009/10/13 17:40:25  sueh
  * <p> bug# 1273 Formatted.
  * <p>
@@ -183,10 +186,9 @@ public final class FinalAlignedStackExpert extends ReconUIExpert {
             .getBlendParamFromBlend3dFind(axisID));
       }
       catch (IOException e) {
-        UIHarness.INSTANCE.openMessageDialog(
+        UIHarness.INSTANCE.openMessageDialog(manager,
             "Unable to copy to blend.com to blend_3d_find.com.  Will not be "
-                + "able to use findbeads3d when erasing gold.", "Etomo Error",
-            manager.getManagerKey());
+                + "able to use findbeads3d when erasing gold.", "Etomo Error");
       }
     }
     else {
@@ -205,10 +207,9 @@ public final class FinalAlignedStackExpert extends ReconUIExpert {
             .getNewstParamFromNewst3dFind(axisID));
       }
       catch (IOException e) {
-        UIHarness.INSTANCE.openMessageDialog(
+        UIHarness.INSTANCE.openMessageDialog(manager,
             "Unable to copy to newst.com to newst_3d_find.com.  Will not be "
-                + "able to use findbeads3d when erasing gold.", "Etomo Error",
-            manager.getManagerKey());
+                + "able to use findbeads3d when erasing gold.", "Etomo Error");
       }
     }
     //if tilt_3dfind.com doesn't exist copy tilt.com to tilt_3dfind.com.
@@ -226,16 +227,14 @@ public final class FinalAlignedStackExpert extends ReconUIExpert {
           newTilt3dFindCom);
     }
     catch (IOException e) {
-      UIHarness.INSTANCE.openMessageDialog(
+      UIHarness.INSTANCE.openMessageDialog(manager,
           "Unable to copy to blend.com to blend_3d_find.com.  Will not be "
-              + "able to use findbeads3d when erasing gold.", "Etomo Error",
-          manager.getManagerKey());
+              + "able to use findbeads3d when erasing gold.", "Etomo Error");
     }
     catch (LogFile.LockException e) {
-      UIHarness.INSTANCE.openMessageDialog(
+      UIHarness.INSTANCE.openMessageDialog(manager,
           "Unable to copy to blend.com to blend_3d_find.com.  Will not be "
-              + "able to use findbeads3d when erasing gold.", "Etomo Error",
-          manager.getManagerKey());
+              + "able to use findbeads3d when erasing gold.", "Etomo Error");
     }
     //Backwards compatibility
     //If track light beads isn't be saved to state, get light beads from
@@ -337,8 +336,8 @@ public final class FinalAlignedStackExpert extends ReconUIExpert {
       dialog.getParameters(metaData);
     }
     catch (FortranInputSyntaxException e) {
-      UIHarness.INSTANCE.openMessageDialog(e.getMessage(), "Data File Error",
-          manager.getManagerKey());
+      UIHarness.INSTANCE.openMessageDialog(manager, e.getMessage(),
+          "Data File Error");
     }
     dialog.getParameters(screenState);
     UIExpertUtilities.INSTANCE.updateFiducialessParams(manager, dialog
@@ -350,16 +349,16 @@ public final class FinalAlignedStackExpert extends ReconUIExpert {
             .updateBlend3dFindCom(dialog.getBlendmont3dFindDisplay(), axisID);
       }
       catch (FortranInputSyntaxException e) {
-        UIHarness.INSTANCE.openMessageDialog(e.getMessage(),
-            "Update Com Error", manager.getManagerKey());
+        UIHarness.INSTANCE.openMessageDialog(manager, e.getMessage(),
+            "Update Com Error");
       }
       catch (InvalidParameterException e) {
-        UIHarness.INSTANCE.openMessageDialog(e.getMessage(),
-            "Update Com Error", manager.getManagerKey());
+        UIHarness.INSTANCE.openMessageDialog(manager, e.getMessage(),
+            "Update Com Error");
       }
       catch (IOException e) {
-        UIHarness.INSTANCE.openMessageDialog(e.getMessage(),
-            "Update Com Error", manager.getManagerKey());
+        UIHarness.INSTANCE.openMessageDialog(manager, e.getMessage(),
+            "Update Com Error");
       }
     }
     else {
@@ -400,8 +399,9 @@ public final class FinalAlignedStackExpert extends ReconUIExpert {
     if (dialog == null) {
       UIHarness.INSTANCE
           .openMessageDialog(
+              manager,
               "Can not update mtffilter?.com without an active final aligned stack dialog",
-              "Program logic error", axisID, manager.getManagerKey());
+              "Program logic error", axisID);
       return false;
     }
     try {
@@ -430,8 +430,8 @@ public final class FinalAlignedStackExpert extends ReconUIExpert {
       errorMessage[0] = "MTF Filter Parameter Syntax Error";
       errorMessage[1] = "Axis: " + axisID.getExtension();
       errorMessage[2] = except.getMessage();
-      UIHarness.INSTANCE.openMessageDialog(errorMessage,
-          "MTF Filter Parameter Syntax Error", axisID, manager.getManagerKey());
+      UIHarness.INSTANCE.openMessageDialog(manager, errorMessage,
+          "MTF Filter Parameter Syntax Error", axisID);
       return false;
     }
     catch (FortranInputSyntaxException except) {
@@ -439,8 +439,8 @@ public final class FinalAlignedStackExpert extends ReconUIExpert {
       errorMessage[0] = "MTF Filter Parameter Syntax Error";
       errorMessage[1] = "Axis: " + axisID.getExtension();
       errorMessage[2] = except.getMessage();
-      UIHarness.INSTANCE.openMessageDialog(errorMessage,
-          "MTF Filter Parameter Syntax Error", axisID, manager.getManagerKey());
+      UIHarness.INSTANCE.openMessageDialog(manager, errorMessage,
+          "MTF Filter Parameter Syntax Error", axisID);
       return false;
     }
     return true;
@@ -500,7 +500,7 @@ public final class FinalAlignedStackExpert extends ReconUIExpert {
     LogFile.WriterId writerId = null;
     try {
       file = LogFile.getInstance(DatasetFiles.getSimpleDefocusFile(manager,
-          axisID), manager.getManagerKey());
+          axisID));
       if (file.exists()) {
         readerId = file.openReader();
         String line = file.readLine(readerId);
@@ -538,10 +538,9 @@ public final class FinalAlignedStackExpert extends ReconUIExpert {
       file.closeWriter(writerId);
     }
     if (!updateToDate) {
-      if (!UIHarness.INSTANCE.openYesNoDialog(DatasetFiles
+      if (!UIHarness.INSTANCE.openYesNoDialog(manager, DatasetFiles
           .getSimpleDefocusFileName(manager, axisID)
-          + " may not be up to date.  Continue?", axisID, manager
-          .getManagerKey())) {
+          + " may not be up to date.  Continue?", axisID)) {
         return false;
       }
     }
@@ -597,10 +596,9 @@ public final class FinalAlignedStackExpert extends ReconUIExpert {
   void getParameters(final SplitCorrectionParam param) {
     param.setCpus(getParallelPanel().getCPUsSelected());
     MRCHeader header = MRCHeader.getInstance(manager.getPropertyUserDir(),
-        DatasetFiles.getFullAlignedStackFileName(manager, axisID), axisID,
-        manager.getManagerKey());
+        DatasetFiles.getFullAlignedStackFileName(manager, axisID), axisID);
     try {
-      if (header.read()) {
+      if (header.read(manager)) {
         param.setMaxZ(header.getNSections());
       }
     }
@@ -672,18 +670,18 @@ public final class FinalAlignedStackExpert extends ReconUIExpert {
     if (!filteredFullAlignedStack.exists()) {
       UIHarness.INSTANCE
           .openMessageDialog(
+              manager,
               "The filtered full aligned stack doesn't exist.  Create the filtered full aligned stack first",
-              "Filtered full aligned stack missing", axisID, manager
-                  .getManagerKey());
+              "Filtered full aligned stack missing", axisID);
       sendMsg(ProcessResult.FAILED_TO_START, processResultDisplay);
       return;
     }
     setDialogState(ProcessState.INPROGRESS);
     if (fullAlignedStack.exists() && filteredFullAlignedStack.exists()) {
       if (!Utilities.isValidStack(filteredFullAlignedStack, manager, axisID)) {
-        UIHarness.INSTANCE.openMessageDialog(filteredFullAlignedStack.getName()
-            + " is not a valid MRC file.", "Entry Error", axisID, manager
-            .getManagerKey());
+        UIHarness.INSTANCE.openMessageDialog(manager, filteredFullAlignedStack
+            .getName()
+            + " is not a valid MRC file.", "Entry Error", axisID);
         sendMsg(ProcessResult.FAILED_TO_START, processResultDisplay);
         return;
       }
@@ -693,9 +691,9 @@ public final class FinalAlignedStackExpert extends ReconUIExpert {
             + "~"));
       }
       catch (IOException except) {
-        UIHarness.INSTANCE.openMessageDialog("Unable to backup "
+        UIHarness.INSTANCE.openMessageDialog(manager, "Unable to backup "
             + fullAlignedStack.getAbsolutePath() + "\n" + except.getMessage(),
-            "File Rename Error", axisID, manager.getManagerKey());
+            "File Rename Error", axisID);
         sendMsg(ProcessResult.FAILED, processResultDisplay);
         return;
       }
@@ -706,8 +704,8 @@ public final class FinalAlignedStackExpert extends ReconUIExpert {
       Utilities.renameFile(filteredFullAlignedStack, fullAlignedStack);
     }
     catch (IOException except) {
-      UIHarness.INSTANCE.openMessageDialog(except.getMessage(),
-          "File Rename Error", axisID, manager.getManagerKey());
+      UIHarness.INSTANCE.openMessageDialog(manager, except.getMessage(),
+          "File Rename Error", axisID);
       sendMsg(ProcessResult.FAILED, processResultDisplay);
       return;
     }

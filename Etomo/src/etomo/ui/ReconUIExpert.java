@@ -63,8 +63,8 @@ public abstract class ReconUIExpert implements UIExpert {
   final boolean canShowDialog() {
     //  Check to see if the com files are present otherwise pop up a dialog
     //  box informing the user to run the setup process
-    if (!UIExpertUtilities.INSTANCE.areScriptsCreated(metaData, axisID, manager
-        .getManagerKey())) {
+    if (!UIExpertUtilities.INSTANCE
+        .areScriptsCreated(manager, metaData, axisID)) {
       mainPanel.showBlankProcess(axisID);
       return false;
     }
@@ -209,6 +209,9 @@ public abstract class ReconUIExpert implements UIExpert {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.11  2009/09/01 03:18:25  sueh
+ * <p> bug# 1222
+ * <p>
  * <p> Revision 1.10  2009/03/17 00:46:24  sueh
  * <p> bug# 1186 Pass managerKey to everything that pops up a dialog.
  * <p>

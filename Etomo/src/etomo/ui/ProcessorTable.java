@@ -146,21 +146,21 @@ final class ProcessorTable implements Storable, ParallelProgressDisplay,
     rootPanel.add(tablePanel);
     rootPanel.add(viewport.getPagingPanel());
     //configure
-    UIHarness.INSTANCE.repaintWindow();
+    UIHarness.INSTANCE.repaintWindow(manager);
   }
 
   private void initTable() {
-    usersColumn = CpuAdoc.INSTANCE.isUsersColumn(axisID, manager
-        .getPropertyUserDir(), manager.getManagerKey())
+    usersColumn = CpuAdoc.INSTANCE.isUsersColumn(manager, axisID, manager
+        .getPropertyUserDir())
         && !displayQueues;
-    speedUnits = CpuAdoc.INSTANCE.getSpeedUnits(axisID, manager
-        .getPropertyUserDir(), manager.getManagerKey());
-    memoryUnits = CpuAdoc.INSTANCE.getMemoryUnits(axisID, manager
-        .getPropertyUserDir(), manager.getManagerKey());
+    speedUnits = CpuAdoc.INSTANCE.getSpeedUnits(manager, axisID, manager
+        .getPropertyUserDir());
+    memoryUnits = CpuAdoc.INSTANCE.getMemoryUnits(manager, axisID, manager
+        .getPropertyUserDir());
     String[] loadUnitsArray = null;
     if (displayQueues) {
-      loadUnitsArray = CpuAdoc.INSTANCE.getLoadUnits(axisID, manager
-          .getPropertyUserDir(), manager.getManagerKey());
+      loadUnitsArray = CpuAdoc.INSTANCE.getLoadUnits(manager, axisID, manager
+          .getPropertyUserDir());
       if (loadUnitsArray.length == 0) {
         header1LoadArray = new HeaderCell[1];
         header1LoadArray[0] = new HeaderCell("Load");
@@ -181,12 +181,12 @@ final class ProcessorTable implements Storable, ParallelProgressDisplay,
     //loop on nodes
     int size;
     if (displayQueues) {
-      size = Network.getNumQueues(axisID, manager.getPropertyUserDir(), manager
-          .getManagerKey());
+      size = Network
+          .getNumQueues(manager, axisID, manager.getPropertyUserDir());
     }
     else {
-      size = Network.getNumComputers(axisID, manager.getPropertyUserDir(),
-          manager.getManagerKey());
+      size = Network.getNumComputers(manager, axisID, manager
+          .getPropertyUserDir());
     }
     ButtonGroup buttonGroup = null;
     if (displayQueues) {
@@ -196,12 +196,12 @@ final class ProcessorTable implements Storable, ParallelProgressDisplay,
       //get the node
       Node node;
       if (displayQueues) {
-        node = Network.getQueue(i, axisID, manager.getPropertyUserDir(),
-            manager.getManagerKey());
+        node = Network.getQueue(manager, i, axisID, manager
+            .getPropertyUserDir());
       }
       else {
-        node = Network.getComputer(i, axisID, manager.getPropertyUserDir(),
-            manager.getManagerKey());
+        node = Network.getComputer(manager, i, axisID, manager
+            .getPropertyUserDir());
       }
       //exclude any node with the "exclude-interface" attribute set to the
       //current interface
@@ -276,8 +276,9 @@ final class ProcessorTable implements Storable, ParallelProgressDisplay,
       parameterStore.load(this);
     }
     catch (LogFile.LockException e) {
-      UIHarness.INSTANCE.openMessageDialog("Unable to load parameters.\n"
-          + e.getMessage(), "Etomo Error", axisID, manager.getManagerKey());
+      UIHarness.INSTANCE.openMessageDialog(manager,
+          "Unable to load parameters.\n" + e.getMessage(), "Etomo Error",
+          axisID);
     }
     setToolTipText();
     if (displayQueues && rowList.size() == 1) {
@@ -480,8 +481,8 @@ final class ProcessorTable implements Storable, ParallelProgressDisplay,
   void getParameters(final ProcesschunksParam param) {
     if (displayQueues) {
       String queue = rowList.getComputer(rowList.getFirstSelectedIndex());
-      Node node = Network.getQueue(queue, axisID, manager.getPropertyUserDir(),
-          manager.getManagerKey());
+      Node node = Network.getQueue(manager, queue, axisID, manager
+          .getPropertyUserDir());
       if (node != null) {
         param.setQueueCommand(node.getCommand());
       }
@@ -868,6 +869,11 @@ final class ProcessorTable implements Storable, ParallelProgressDisplay,
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.56  2010/01/11 23:59:01  sueh
+ * <p> bug# 1299 Removed responsibility anything other then cpu.adoc from
+ * <p> CpuAdoc.  Placed responsibility for information about the network in the
+ * <p> Network class.
+ * <p>
  * <p> Revision 1.55  2009/04/20 20:07:51  sueh
  * <p> bug# 1192 Added setComputerMap and RowList.setComputerMap, which
  * <p> changes the row to match computerMap.

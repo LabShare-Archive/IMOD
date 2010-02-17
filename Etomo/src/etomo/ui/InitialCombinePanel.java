@@ -40,6 +40,9 @@ import etomo.util.MRCHeader;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.42  2009/09/01 03:18:25  sueh
+ * <p> bug# 1222
+ * <p>
  * <p> Revision 3.41  2009/03/17 00:46:24  sueh
  * <p> bug# 1186 Pass managerKey to everything that pops up a dialog.
  * <p>
@@ -271,7 +274,8 @@ public class InitialCombinePanel implements ContextMenu, InitialCombineFields,
    * @param appMgr
    */
   public InitialCombinePanel(TomogramCombinationDialog parent,
-      ApplicationManager appMgr, DialogType dialogType,GlobalExpandButton globalAdvancedButton) {
+      ApplicationManager appMgr, DialogType dialogType,
+      GlobalExpandButton globalAdvancedButton) {
     this.dialogType = dialogType;
     tomogramCombinationDialog = parent;
     applicationManager = appMgr;
@@ -335,12 +339,12 @@ public class InitialCombinePanel implements ContextMenu, InitialCombineFields,
       fromAxisID = AxisID.FIRST;
     }
     MRCHeader toHeader = MRCHeader.getInstance(applicationManager, toAxisID,
-        DatasetFiles.TOMO_EXT, applicationManager.getManagerKey());
+        DatasetFiles.TOMO_EXT);
     MRCHeader fromHeader = MRCHeader.getInstance(applicationManager,
-        fromAxisID, DatasetFiles.TOMO_EXT, applicationManager.getManagerKey());
+        fromAxisID, DatasetFiles.TOMO_EXT);
     int toY = -1;
     try {
-      if (!toHeader.read()) {
+      if (!toHeader.read(applicationManager)) {
         return;
       }
     }
@@ -353,7 +357,7 @@ public class InitialCombinePanel implements ContextMenu, InitialCombineFields,
     toY = toHeader.getNRows();
     int fromY = -1;
     try {
-      if (!fromHeader.read()) {
+      if (!fromHeader.read(applicationManager)) {
         return;
       }
     }
@@ -425,9 +429,9 @@ public class InitialCombinePanel implements ContextMenu, InitialCombineFields,
   public void setParameters(MatchvolParam param) {
     ltfOutputSizeY.setText(param.getOutputSizeY());
   }
-  
+
   public void expand(GlobalExpandButton button) {
-    
+
   }
 
   public void expand(ExpandButton button) {

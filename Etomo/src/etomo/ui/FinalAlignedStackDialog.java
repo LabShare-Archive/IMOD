@@ -67,6 +67,11 @@ import etomo.util.DatasetFiles;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.24  2010/01/11 23:59:00  sueh
+ * <p> bug# 1299 Removed responsibility anything other then cpu.adoc from
+ * <p> CpuAdoc.  Placed responsibility for information about the network in the
+ * <p> Network class.
+ * <p>
  * <p> Revision 1.23  2009/12/19 01:14:34  sueh
  * <p> bug# 1294 Fixed broken right click popup menu.
  * <p>
@@ -650,9 +655,8 @@ public final class FinalAlignedStackDialog extends ProcessDialog implements
   void setParameters(ConstMetaData metaData) {
     //Parallel processing is optional in tomogram reconstruction, so only use it
     //if the user set it up.
-    boolean validAutodoc = Network.isParallelProcessingEnabled(axisID,
-        applicationManager.getPropertyUserDir(), applicationManager
-            .getManagerKey());
+    boolean validAutodoc = Network.isParallelProcessingEnabled(
+        applicationManager, axisID, applicationManager.getPropertyUserDir());
     cbParallelProcess.setEnabled(validAutodoc);
     ConstEtomoNumber parallel = metaData
         .getFinalStackCtfCorrectionParallel(axisID);
@@ -1037,8 +1041,8 @@ public final class FinalAlignedStackDialog extends ProcessDialog implements
   private void setToolTipText() {
     ReadOnlyAutodoc autodoc = null;
     try {
-      autodoc = AutodocFactory.getInstance(AutodocFactory.MTF_FILTER, axisID,
-          applicationManager.getManagerKey());
+      autodoc = AutodocFactory.getInstance(applicationManager,
+          AutodocFactory.MTF_FILTER, axisID);
     }
     catch (FileNotFoundException except) {
       except.printStackTrace();
@@ -1072,8 +1076,8 @@ public final class FinalAlignedStackDialog extends ProcessDialog implements
         .setToolTipText("Use the results of running mtffilter as the new full "
             + "aligned stack.");
     try {
-      autodoc = AutodocFactory.getInstance(AutodocFactory.CTF_PLOTTER, axisID,
-          applicationManager.getManagerKey());
+      autodoc = AutodocFactory.getInstance(applicationManager,
+          AutodocFactory.CTF_PLOTTER, axisID);
     }
     catch (FileNotFoundException except) {
       except.printStackTrace();
@@ -1104,8 +1108,8 @@ public final class FinalAlignedStackDialog extends ProcessDialog implements
     }
     btnCtfPlotter.setToolTipText("Run ctfplotter");
     try {
-      autodoc = AutodocFactory.getInstance(AutodocFactory.CTF_PHASE_FLIP,
-          axisID, applicationManager.getManagerKey());
+      autodoc = AutodocFactory.getInstance(applicationManager,
+          AutodocFactory.CTF_PHASE_FLIP, axisID);
     }
     catch (FileNotFoundException except) {
       except.printStackTrace();

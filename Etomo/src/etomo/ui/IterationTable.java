@@ -31,6 +31,9 @@ import etomo.type.AxisID;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.27  2009/12/23 02:24:33  sueh
+ * <p> bug# 1296 Stop taking tooltips from peetprm.adoc.  Added tooltips to the actual fields in the tables instead of the column headers.
+ * <p>
  * <p> Revision 1.26  2009/12/08 02:46:39  sueh
  * <p> Added size().
  * <p>
@@ -349,9 +352,8 @@ final class IterationTable implements Highlightable {
       return;
     }
     if (index == 0) {
-      UIHarness.INSTANCE.openMessageDialog(
-          "Can't move the row up.  Its at the top.", "Wrong Row", AxisID.ONLY,
-          manager.getManagerKey());
+      UIHarness.INSTANCE.openMessageDialog(manager,
+          "Can't move the row up.  Its at the top.", "Wrong Row", AxisID.ONLY);
       return;
     }
     rowList.moveRowUp(index);
@@ -373,9 +375,9 @@ final class IterationTable implements Highlightable {
       return;
     }
     if (index == rowList.size() - 1) {
-      UIHarness.INSTANCE.openMessageDialog(
+      UIHarness.INSTANCE.openMessageDialog(manager,
           "Can't move the row down.  Its at the bottom.", "Wrong Row",
-          AxisID.ONLY, manager.getManagerKey());
+          AxisID.ONLY);
       return;
     }
     rowList.moveRowDown(index);
@@ -563,8 +565,8 @@ final class IterationTable implements Highlightable {
 
     private boolean validateRun() {
       if (list.size() < 1) {
-        UIHarness.INSTANCE.openMessageDialog("Must enter at least one row in "
-            + LABEL, "Entry Error", manager.getManagerKey());
+        UIHarness.INSTANCE.openMessageDialog(manager,
+            "Must enter at least one row in " + LABEL, "Entry Error");
         return false;
       }
       for (int i = 0; i < list.size(); i++) {
@@ -629,8 +631,8 @@ final class IterationTable implements Highlightable {
           return row;
         }
       }
-      UIHarness.INSTANCE.openMessageDialog("Please highlight a row.",
-          "Entry Error", manager.getManagerKey());
+      UIHarness.INSTANCE.openMessageDialog(manager, "Please highlight a row.",
+          "Entry Error");
       return null;
     }
 

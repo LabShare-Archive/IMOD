@@ -31,6 +31,10 @@ import etomo.type.Run3dmodMenuOptions;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.3  2009/09/21 17:56:30  sueh
+ * <p> bug# 1267 Had been saving the 3dfindbinning to the wrong place in
+ * <p> getParameters(MetaData) - corrected the problem.
+ * <p>
  * <p> Revision 3.2  2009/09/20 21:33:02  sueh
  * <p> bug# 1268 Added a default value to LabeledSpinner.
  * <p>
@@ -117,9 +121,9 @@ abstract class NewstackOrBlendmont3dFindPanel implements
       beadSize.set(parent.getBeadSize());
       if (!beadSize.isNull() && beadSize.isValid()
           && beadSize.getFloat() / binning < 4) {
-        if (!UIHarness.INSTANCE.openYesNoWarningDialog(
+        if (!UIHarness.INSTANCE.openYesNoWarningDialog(manager,
             "The binned fiducial diameter will be less then 4 pixels.  Do you "
-                + "want to continue?", axisID, manager.getManagerKey())) {
+                + "want to continue?", axisID)) {
           return false;
         }
       }

@@ -104,8 +104,8 @@ public final class ParallelPanel implements Expandable {
     southPanel.add(ltfCPUsSelected);
     southPanel.add(btnRestartLoad);
     //sNice
-    niceFloor = CpuAdoc.INSTANCE.getMinNice(axisID, manager
-        .getPropertyUserDir(), manager.getManagerKey());
+    niceFloor = CpuAdoc.INSTANCE.getMinNice(manager, axisID, manager
+        .getPropertyUserDir());
     sNice = Spinner.getLabeledInstance("Nice: ", manager
         .getParallelProcessingDefaultNice(), niceFloor,
         ProcesschunksParam.NICE_CEILING);
@@ -119,10 +119,8 @@ public final class ParallelPanel implements Expandable {
     bodyPanel.addRigidArea();
     bodyPanel.add(tablePanel);
     bodyPanel.add(southPanel);
-    if (Network.hasQueues(axisID, manager.getPropertyUserDir(), manager
-        .getManagerKey())) {
-      if (Network.hasComputers(axisID, manager.getPropertyUserDir(), manager
-          .getManagerKey())) {
+    if (Network.hasQueues(manager, axisID, manager.getPropertyUserDir())) {
+      if (Network.hasComputers(manager, axisID, manager.getPropertyUserDir())) {
         JPanel clusterPanel = new JPanel();
         clusterPanel
             .setLayout(new BoxLayout(clusterPanel, BoxLayout.LINE_AXIS));
@@ -318,11 +316,11 @@ public final class ParallelPanel implements Expandable {
     if (error == null) {
       return true;
     }
-    UIHarness.INSTANCE.openMessageDialog(error
-        + "  "
-        + (cbQueues.isSelected() ? queueTable : computerTable)
-            .getHelpMessage(), TITLE + " Table Error", axisID, manager
-        .getManagerKey());
+    UIHarness.INSTANCE.openMessageDialog(manager,
+        error
+            + "  "
+            + (cbQueues.isSelected() ? queueTable : computerTable)
+                .getHelpMessage(), TITLE + " Table Error", axisID);
     return false;
   }
 
@@ -387,6 +385,11 @@ public final class ParallelPanel implements Expandable {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.69  2010/01/11 23:59:00  sueh
+ * <p> bug# 1299 Removed responsibility anything other then cpu.adoc from
+ * <p> CpuAdoc.  Placed responsibility for information about the network in the
+ * <p> Network class.
+ * <p>
  * <p> Revision 1.68  2009/09/01 03:18:25  sueh
  * <p> bug# 1222
  * <p>

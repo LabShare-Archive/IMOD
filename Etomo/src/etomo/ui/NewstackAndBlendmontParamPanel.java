@@ -41,6 +41,9 @@ import etomo.util.InvalidParameterException;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.3  2009/09/20 21:32:51  sueh
+ * <p> bug# 1268 Added a default value to LabeledSpinner.
+ * <p>
  * <p> Revision 3.2  2009/09/17 19:12:58  sueh
  * <p> bug# 1257 In NewstParam.setSizeToOutputInXandY forgot to read the
  * <p> header.  Adding read call and throwing InvalidParameterException and
@@ -246,8 +249,8 @@ final class NewstackAndBlendmontParamPanel implements FiducialessParams {
   private void setToolTipText() {
     ReadOnlyAutodoc autodoc = null;
     try {
-      autodoc = AutodocFactory.getInstance(AutodocFactory.NEWSTACK, axisID,
-          manager.getManagerKey());
+      autodoc = AutodocFactory.getInstance(manager, AutodocFactory.NEWSTACK,
+          axisID);
     }
     catch (FileNotFoundException except) {
       except.printStackTrace();

@@ -46,6 +46,9 @@ import etomo.type.Run3dmodMenuOptions;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.48  2009/12/23 03:08:43  sueh
+ * <p> bug# 1296 Fixed tooltips.
+ * <p>
  * <p> Revision 1.47  2009/12/23 02:28:57  sueh
  * <p> bug# 1296 Stop taking tooltips from peetprm.adoc.  Added tooltips to the actual fields in the tables instead of the column headers.
  * <p>
@@ -650,10 +653,9 @@ final class VolumeTable implements Expandable, Highlightable,
    */
   private void addVolumeRow() {
     if (!manager.setParamFile()) {
-      UIHarness.INSTANCE.openMessageDialog("Please set the "
+      UIHarness.INSTANCE.openMessageDialog(manager, "Please set the "
           + PeetDialog.DIRECTORY_LABEL + " and " + PeetDialog.FN_OUTPUT_LABEL
-          + " fields before adding tomograms.", "Entry Error", manager
-          .getManagerKey());
+          + " fields before adding tomograms.", "Entry Error");
       return;
     }
     File fnVolume = null;
@@ -679,8 +681,8 @@ final class VolumeTable implements Expandable, Highlightable,
       parent.setLastLocation(fnModParticle.getParentFile());
     }
     if (fnVolume == null) {
-      UIHarness.INSTANCE.openMessageDialog("Please choose a tomogram",
-          "Entry Error", manager.getManagerKey());
+      UIHarness.INSTANCE.openMessageDialog(manager, "Please choose a tomogram",
+          "Entry Error");
     }
     else {
       //Add any unusual file extensions to the file filter so that the files are
@@ -699,8 +701,8 @@ final class VolumeTable implements Expandable, Highlightable,
   private void setInitMotlFile() {
     VolumeRow row = rowList.getHighlightedRow();
     if (row == null) {
-      UIHarness.INSTANCE.openMessageDialog("Please highlight a row.",
-          "Entry Error", manager.getManagerKey());
+      UIHarness.INSTANCE.openMessageDialog(manager, "Please highlight a row.",
+          "Entry Error");
       return;
     }
     JFileChooser chooser = parent.getFileChooserInstance();
@@ -720,8 +722,8 @@ final class VolumeTable implements Expandable, Highlightable,
   private void setFnModParticle() {
     VolumeRow row = rowList.getHighlightedRow();
     if (row == null) {
-      UIHarness.INSTANCE.openMessageDialog("Please highlight a row.",
-          "Entry Error", manager.getManagerKey());
+      UIHarness.INSTANCE.openMessageDialog(manager, "Please highlight a row.",
+          "Entry Error");
       return;
     }
     JFileChooser chooser = parent.getFileChooserInstance();
@@ -741,8 +743,8 @@ final class VolumeTable implements Expandable, Highlightable,
   private void openTiltFile() {
     VolumeRow row = rowList.getHighlightedRow();
     if (row == null) {
-      UIHarness.INSTANCE.openMessageDialog("Please highlight a row.",
-          "Entry Error", manager.getManagerKey());
+      UIHarness.INSTANCE.openMessageDialog(manager, "Please highlight a row.",
+          "Entry Error");
       return;
     }
     JFileChooser chooser = parent.getFileChooserInstance();
@@ -758,20 +760,20 @@ final class VolumeTable implements Expandable, Highlightable,
       parent.setLastLocation(file.getParentFile());
       if (tiltLogFileFilter.accept(file)) {
         try {
-          TiltLog tiltLog = TiltLog.getInstance(file, manager.getManagerKey());
+          TiltLog tiltLog = TiltLog.getInstance(file);
           tiltLog.read();
           row.setTiltRangeMin(tiltLog.getMinAngle());
           row.setTiltRangeMax(tiltLog.getMaxAngle());
         }
         catch (LogFile.LockException e) {
           e.printStackTrace();
-          UIHarness.INSTANCE.openMessageDialog("Unable to open tilt log "
-              + file.getAbsolutePath() + "\n" + e.getMessage(),
-              "File Open Failure", manager.getManagerKey());
+          UIHarness.INSTANCE.openMessageDialog(manager,
+              "Unable to open tilt log " + file.getAbsolutePath() + "\n"
+                  + e.getMessage(), "File Open Failure");
         }
       }
       else {
-        TiltFile tiltFile = new TiltFile(file, manager.getManagerKey());
+        TiltFile tiltFile = TiltFile.getInstance(manager, file);
         row.setTiltRangeMin(tiltFile.getMinAngle().toString());
         row.setTiltRangeMax(tiltFile.getMaxAngle().toString());
       }
@@ -814,9 +816,8 @@ final class VolumeTable implements Expandable, Highlightable,
       return;
     }
     if (index == 0) {
-      UIHarness.INSTANCE.openMessageDialog(
-          "Can't move the row up.  Its at the top.", "Wrong Row", AxisID.ONLY,
-          manager.getManagerKey());
+      UIHarness.INSTANCE.openMessageDialog(manager,
+          "Can't move the row up.  Its at the top.", "Wrong Row", AxisID.ONLY);
       return;
     }
     // rowList.removeRows(index - 1);
@@ -840,9 +841,9 @@ final class VolumeTable implements Expandable, Highlightable,
       return;
     }
     if (index == rowList.size() - 1) {
-      UIHarness.INSTANCE.openMessageDialog(
+      UIHarness.INSTANCE.openMessageDialog(manager,
           "Can't move the row down.  Its at the bottom.", "Wrong Row",
-          AxisID.ONLY, manager.getManagerKey());
+          AxisID.ONLY);
       return;
     }
     rowList.moveRowDown(index);

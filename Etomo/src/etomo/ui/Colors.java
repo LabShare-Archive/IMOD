@@ -18,6 +18,9 @@ import javax.swing.plaf.ColorUIResource;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.10  2010/01/13 21:54:50  sueh
+ * <p> bug# 1298 Fixed highlight colors.
+ * <p>
  * <p> Revision 1.9  2009/02/27 03:52:44  sueh
  * <p> bug# 1172 Added experimental automation recording background and
  * <p> border colors.  Bug# 1188 No longer checking version when setting the background colors because Java 1.4 is no longer supported.
@@ -65,8 +68,8 @@ public final class Colors {
       230, 230, 184);
   static final ColorUIResource HIGHLIGHT_BACKGROUND = new ColorUIResource(204,
       255, 255);
-  static final ColorUIResource HIGHLIGHT_BACKGROUND_NOT_EDITABLE = new ColorUIResource(184,
-      230, 230);
+  static final ColorUIResource HIGHLIGHT_BACKGROUND_NOT_EDITABLE = new ColorUIResource(
+      184, 230, 230);
   static final ColorUIResource FOREGROUND = new ColorUIResource(0, 0, 0);
 
   private static final ColorUIResource BACKGROUND_GREYOUT = new ColorUIResource(
@@ -81,39 +84,43 @@ public final class Colors {
   private static Color backgroundB = null;
   private static Color backgroundJoin = null;
   private static Color backgroundParallel = null;
+  private static Color backgroundTools = null;
   private static Color backgroundPeet = null;
   private static ColorUIResource cellNotEditableBackground = null;
 
   static Color getBackgroundA() {
     if (backgroundA == null) {
-      backgroundA = new Color(153 + BACKGROUND_ADJUSTMENT,
-          179 + BACKGROUND_ADJUSTMENT, 204 + BACKGROUND_ADJUSTMENT);//saphire
+      backgroundA = new Color(173, 199, 224);//saphire
     }
     return backgroundA;
   }
 
   static Color getBackgroundB() {
     if (backgroundB == null) {
-      backgroundB = new Color(153 + BACKGROUND_ADJUSTMENT,
-          204 + BACKGROUND_ADJUSTMENT, 179 + BACKGROUND_ADJUSTMENT);//jade
+      backgroundB = new Color(173, 224, 199);//jade
     }
     return backgroundB;
   }
 
   static Color getBackgroundJoin() {
     if (backgroundJoin == null) {
-      backgroundJoin = new Color(179 + BACKGROUND_ADJUSTMENT,
-          153 + BACKGROUND_ADJUSTMENT, 204 + BACKGROUND_ADJUSTMENT);//violet
+      backgroundJoin = new Color(199, 173, 224);//violet
     }
     return backgroundJoin;
   }
 
   static Color getBackgroundParallel() {
     if (backgroundParallel == null) {
-      backgroundParallel = new Color(166 + BACKGROUND_ADJUSTMENT,
-          204 + BACKGROUND_ADJUSTMENT, 153 + BACKGROUND_ADJUSTMENT);//lime
+      backgroundParallel = new Color(186, 224, 173);//lime
     }
     return backgroundParallel;
+  }
+
+  static Color getBackgroundTools() {
+    if (backgroundTools == null) {
+      backgroundTools = new Color(173, 212, 224);//azure
+    }
+    return backgroundTools;
   }
 
   static Color getBackgroundPeet() {
@@ -145,6 +152,9 @@ public final class Colors {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.10  2010/01/13 21:54:50  sueh
+ * <p> bug# 1298 Fixed highlight colors.
+ * <p>
  * <p> Revision 1.9  2009/02/27 03:52:44  sueh
  * <p> bug# 1172 Added experimental automation recording background and
  * <p> border colors.  Bug# 1188 No longer checking version when setting the background colors because Java 1.4 is no longer supported.

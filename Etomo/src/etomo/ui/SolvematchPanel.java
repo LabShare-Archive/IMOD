@@ -44,6 +44,9 @@ import etomo.type.Run3dmodMenuOptions;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.39  2009/09/01 03:18:25  sueh
+ * <p> bug# 1222
+ * <p>
  * <p> Revision 3.38  2009/03/17 00:46:24  sueh
  * <p> bug# 1186 Pass managerKey to everything that pops up a dialog.
  * <p>
@@ -411,7 +414,7 @@ final class SolvematchPanel implements Run3dmodButtonContainer, Expandable {
           .getButtonStateKey()));
     }
   }
-  
+
   public void expand(final GlobalExpandButton button) {
   }
 
@@ -705,8 +708,8 @@ final class SolvematchPanel implements Run3dmodButtonContainer, Expandable {
     ReadOnlySection section;
     ReadOnlyAutodoc autodoc = null;
     try {
-      autodoc = AutodocFactory.getInstance(AutodocFactory.SOLVEMATCH,
-          AxisID.ONLY, applicationManager.getManagerKey());
+      autodoc = AutodocFactory.getInstance(applicationManager,
+          AutodocFactory.SOLVEMATCH, AxisID.ONLY);
     }
     catch (FileNotFoundException except) {
       except.printStackTrace();

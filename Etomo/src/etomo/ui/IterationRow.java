@@ -23,6 +23,9 @@ import etomo.type.EtomoNumber;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.23  2010/01/22 03:43:11  sueh
+ * <p> bug# 1307 Allow searchRadius to be either one number or an array of 3.  Check each number to make sure its not negative.
+ * <p>
  * <p> Revision 1.22  2009/12/23 02:24:15  sueh
  * <p> bug# 1296 Stop taking tooltips from peetprm.adoc.  Added tooltips to the actual fields in the tables instead of the column headers.
  * <p>
@@ -341,29 +344,28 @@ final class IterationRow implements Highlightable {
   private boolean validateRun(boolean empty, EtomoNumber n,
       String[] headerArray, String additionalEmptyErrorMessage) {
     if (empty) {
-      UIHarness.INSTANCE.openMessageDialog(IterationTable.LABEL
+      UIHarness.INSTANCE.openMessageDialog(manager, IterationTable.LABEL
           + ":  In row "
           + number.toString()
           + buildHeaderDescription(headerArray)
           + " must not be empty."
           + (additionalEmptyErrorMessage == null ? ""
-              : additionalEmptyErrorMessage), "Entry Error", manager
-          .getManagerKey());
+              : additionalEmptyErrorMessage), "Entry Error");
       return false;
     }
     if (n != null) {
       if (!n.isValid()) {
-        UIHarness.INSTANCE.openMessageDialog(IterationTable.LABEL
+        UIHarness.INSTANCE.openMessageDialog(manager, IterationTable.LABEL
             + ":  In row " + number.toString()
             + buildHeaderDescription(headerArray) + ":   "
-            + n.getInvalidReason(), "Entry Error", manager.getManagerKey());
+            + n.getInvalidReason(), "Entry Error");
         return false;
       }
       if (n.isNegative()) {
-        UIHarness.INSTANCE.openMessageDialog(IterationTable.LABEL
+        UIHarness.INSTANCE.openMessageDialog(manager, IterationTable.LABEL
             + ":  In row " + number.getText()
             + buildHeaderDescription(headerArray) + " must not be negative.",
-            "Entry Error", manager.getManagerKey());
+            "Entry Error");
         return false;
       }
     }
@@ -440,11 +442,10 @@ final class IterationRow implements Highlightable {
       if (searchRadiusArray.length != 3) {
         searchRadiusArray = searchRadiusString.split("\\s+");
         if (searchRadiusArray.length != 3) {
-          UIHarness.INSTANCE.openMessageDialog(IterationTable.LABEL
+          UIHarness.INSTANCE.openMessageDialog(manager, IterationTable.LABEL
               + ":  In row " + number.toString()
               + buildHeaderDescription(headerArray)
-              + " must have either 1 or 3 elements.", "Entry Error", manager
-              .getManagerKey());
+              + " must have either 1 or 3 elements.", "Entry Error");
           return false;
         }
       }

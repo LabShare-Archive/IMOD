@@ -37,6 +37,9 @@ import etomo.comscript.TransferfidParam;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.53  2009/09/01 03:18:24  sueh
+ * <p> bug# 1222
+ * <p>
  * <p> Revision 3.52  2009/06/15 20:21:10  sueh
  * <p> bug# 1221 Added getBeadTrackDisplay.
  * <p>
@@ -352,7 +355,8 @@ public final class FiducialModelDialog extends ProcessDialog implements
         .getProcessResultDisplayFactory(axisID);
     btnSeed = (Run3dmodButton) displayFactory.getSeedFiducialModel();
     raptorPanel = RaptorPanel.getInstance(appMgr, axisID, dialogType, this);
-    pnlBeadtrack = BeadtrackPanel.getInstance(appMgr, axisID, dialogType,btnAdvanced);
+    pnlBeadtrack = BeadtrackPanel.getInstance(appMgr, axisID, dialogType,
+        btnAdvanced);
     //root panel
     rootPanel.setLayout(new BoxLayout(rootPanel, BoxLayout.Y_AXIS));
     rootPanel.add(pnlFiducialModel.getContainer());
@@ -362,7 +366,7 @@ public final class FiducialModelDialog extends ProcessDialog implements
         .getBorder());
     if (applicationManager.isDualAxis()) {
       pnlTransferfid = TransferfidPanel.getInstance(applicationManager, axisID,
-          dialogType, this,btnAdvanced);
+          dialogType, this, btnAdvanced);
       pnlFiducialModel.add(pnlTransferfid.getContainer());
       pnlFiducialModel.add(Box.createRigidArea(FixedDim.x0_y5));
     }
@@ -407,8 +411,8 @@ public final class FiducialModelDialog extends ProcessDialog implements
       File raptorBin = new File("/usr/local/RAPTOR/bin");
       //RAPTOR_BIN environment variable overrides the default location of RAPTOR.
       String envVar = "RAPTOR_BIN";
-      String raptorBinEnvVar = EnvironmentVariable.INSTANCE.getValue(appMgr
-          .getPropertyUserDir(), envVar, axisID, appMgr.getManagerKey());
+      String raptorBinEnvVar = EnvironmentVariable.INSTANCE.getValue(appMgr,
+          appMgr.getPropertyUserDir(), envVar, axisID);
       if (raptorBinEnvVar != null && !raptorBinEnvVar.matches("\\s*")) {
         raptorBin = new File(raptorBinEnvVar);
       }
