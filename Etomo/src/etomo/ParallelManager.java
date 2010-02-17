@@ -36,6 +36,7 @@ import etomo.type.Run3dmodMenuOptions;
 import etomo.ui.AnisotropicDiffusionDialog;
 import etomo.ui.Deferred3dmodButton;
 import etomo.ui.LogPanel;
+import etomo.ui.LogInterface;
 import etomo.ui.MainPanel;
 import etomo.ui.MainParallelPanel;
 import etomo.ui.ParallelChooser;
@@ -64,6 +65,8 @@ public final class ParallelManager extends BaseManager {
   public static final String rcsid = "$Id$";
 
   private static final AxisID AXIS_ID = AxisID.ONLY;
+  private final LogPanel logPanel = LogPanel.getInstance(this);
+
 
   private final BaseScreenState screenState = new BaseScreenState(AXIS_ID,
       AxisType.SINGLE_AXIS);
@@ -137,6 +140,14 @@ public final class ParallelManager extends BaseManager {
   public InterfaceType getInterfaceType() {
     return InterfaceType.PP;
   }
+  
+  public LogInterface getLogInterface() {
+    return logPanel;
+  }
+  
+  public LogPanel getLogPanel() {
+    return logPanel;
+  }
 
   public boolean canChangeParamFileName() {
     return false;
@@ -147,10 +158,6 @@ public final class ParallelManager extends BaseManager {
   }
 
   protected void createComScriptManager() {
-  }
-
-  public LogPanel createLogPanel() {
-    return LogPanel.getInstance(getManagerKey());
   }
 
   protected void processSucceeded(final AxisID axisID,
@@ -354,8 +361,8 @@ public final class ParallelManager extends BaseManager {
     anisotropicDiffusionDialog.getInitialParameters(metaData);
     String errorMessage = metaData.validate();
     if (errorMessage != null) {
-      UIHarness.INSTANCE.openMessageDialog(errorMessage,
-          "Anisotropic Diffusion Dialog error", AXIS_ID, getManagerKey());
+      UIHarness.INSTANCE.openMessageDialog(this, errorMessage,
+          "Anisotropic Diffusion Dialog error", AXIS_ID);
       return false;
     }
     imodManager.setMetaData(metaData);
@@ -370,11 +377,11 @@ public final class ParallelManager extends BaseManager {
       if (imodManager.isOpen(ImodManager.TEST_VOLUME_KEY)
           || imodManager.isOpen(ImodManager.VARYING_K_TEST_KEY)
           || imodManager.isOpen(ImodManager.VARYING_ITERATION_TEST_KEY)) {
-        uiHarness.openMessageDialog(
+        uiHarness.openMessageDialog(this,
             "Clean up failed.  Please close the test volume and/or test "
                 + "result(s) before pressing "
                 + AnisotropicDiffusionDialog.CLEANUP_LABEL + ".",
-            "Clean Up Failed", getManagerKey());
+            "Clean Up Failed");
         return false;
       }
     }
@@ -394,8 +401,7 @@ public final class ParallelManager extends BaseManager {
       final boolean flip) {
     File file = fileType.getFile(this, AxisID.ONLY);
     if (!file.exists()) {
-      uiHarness.openMessageDialog("No file to open", "Entry Error",
-          getManagerKey());
+      uiHarness.openMessageDialog(this, "No file to open", "Entry Error");
       return;
     }
     try {
@@ -415,8 +421,7 @@ public final class ParallelManager extends BaseManager {
   public void imod(final String key, final File file,
       final Run3dmodMenuOptions menuOptions, final boolean flip) {
     if (file == null) {
-      uiHarness.openMessageDialog("No file to open", "Entry Error",
-          getManagerKey());
+      uiHarness.openMessageDialog(this, "No file to open", "Entry Error");
       return;
     }
     try {
@@ -439,6 +444,10 @@ public final class ParallelManager extends BaseManager {
     List fileNameList = AnisotropicDiffusionParam.getTestFileNameList(this,
         state.getTestKValueList(), state.getTestIteration(), testVolumeName);
     imod(key, menuOptions, subdirName, fileNameList, flip);
+  }
+
+  public boolean isInManagerFrame() {
+    return false;
   }
 
   public void imodVaryingIteration(final String key,
@@ -479,8 +488,7 @@ public final class ParallelManager extends BaseManager {
 
   public void makeSubdir(final String subdirName) {
     if (paramFile == null) {
-      uiHarness.openMessageDialog("Must pick a volume.", "Entry Error",
-          getManagerKey());
+      uiHarness.openMessageDialog(this, "Must pick a volume.", "Entry Error");
       return;
     }
     File subdir = new File(propertyUserDir, subdirName);
@@ -526,16 +534,16 @@ public final class ParallelManager extends BaseManager {
     }
     catch (LogFile.LockException e) {
       e.printStackTrace();
-      uiHarness.openMessageDialog(
+      uiHarness.openMessageDialog(this,
           "Anisotropic diffusion comscripts could not be created",
-          "Write Comscript Error", AxisID.ONLY, getManagerKey());
+          "Write Comscript Error", AxisID.ONLY);
       return false;
     }
     catch (IOException e) {
       e.printStackTrace();
-      uiHarness.openMessageDialog(
+      uiHarness.openMessageDialog(this,
           "Anisotropic diffusion comscripts could not be created",
-          "Write Comscript Error", AxisID.ONLY, getManagerKey());
+          "Write Comscript Error", AxisID.ONLY);
       return false;
     }
     return true;
@@ -557,8 +565,9 @@ public final class ParallelManager extends BaseManager {
       processSeries = new ProcessSeries(this, dialogType);
     }
     if (anisotropicDiffusionDialog == null) {
-      uiHarness.openMessageDialog("Anisotropic diffusion dialog not open",
-          "Program logic error", AxisID.ONLY, getManagerKey());
+      uiHarness.openMessageDialog(this,
+          "Anisotropic diffusion dialog not open", "Program logic error",
+          AxisID.ONLY);
       return;
     }
     ChunksetupParam param = updateChunksetupParam();
@@ -575,8 +584,8 @@ public final class ParallelManager extends BaseManager {
       String[] message = new String[2];
       message[0] = "Can not execute" + ProcessName.CHUNKSETUP + "command";
       message[1] = e.getMessage();
-      uiHarness.openMessageDialog(message, "Unable to execute command",
-          AxisID.ONLY, getManagerKey());
+      uiHarness.openMessageDialog(this, message, "Unable to execute command",
+          AxisID.ONLY);
       return;
     }
     setThreadName(threadName, AxisID.ONLY);
@@ -591,8 +600,9 @@ public final class ParallelManager extends BaseManager {
       processSeries = new ProcessSeries(this, dialogType);
     }
     if (anisotropicDiffusionDialog == null) {
-      uiHarness.openMessageDialog("Anisotropic diffusion dialog not open",
-          "Program logic error", AxisID.ONLY, getManagerKey());
+      uiHarness.openMessageDialog(this,
+          "Anisotropic diffusion dialog not open", "Program logic error",
+          AxisID.ONLY);
       return;
     }
     AnisotropicDiffusionParam param = updateAnisotropicDiffusionParamForVaryingIteration(subdirName);
@@ -614,8 +624,8 @@ public final class ParallelManager extends BaseManager {
       message[0] = "Can not execute" + ProcessName.ANISOTROPIC_DIFFUSION
           + "command";
       message[1] = e.getMessage();
-      uiHarness.openMessageDialog(message, "Unable to execute command",
-          AxisID.ONLY, getManagerKey());
+      uiHarness.openMessageDialog(this, message, "Unable to execute command",
+          AxisID.ONLY);
       return;
     }
     setThreadName(threadName, AxisID.ONLY);
@@ -625,8 +635,9 @@ public final class ParallelManager extends BaseManager {
 
   public void anisotropicDiffusion(ConstProcessSeries processSeries) {
     if (anisotropicDiffusionDialog == null) {
-      uiHarness.openMessageDialog("Anisotropic diffusion dialog not open",
-          "Program logic error", AxisID.ONLY, getManagerKey());
+      uiHarness.openMessageDialog(this,
+          "Anisotropic diffusion dialog not open", "Program logic error",
+          AxisID.ONLY);
       return;
     }
     ProcesschunksParam param = new ProcesschunksParam(this, AxisID.ONLY,
@@ -654,9 +665,9 @@ public final class ParallelManager extends BaseManager {
   private boolean validateTestVolume(AnisotropicDiffusionParam param) {
     MRCHeader testVolumeHeader = MRCHeader.getInstance(new File(
         propertyUserDir, param.getSubdirName()).getAbsolutePath(), param
-        .getInputFileName(), AxisID.ONLY, getManagerKey());
+        .getInputFileName(), AxisID.ONLY);
     try {
-      testVolumeHeader.read();
+      testVolumeHeader.read(this);
       long size = Math.round(testVolumeHeader.getNColumns() / 1024.0
           * testVolumeHeader.getNRows() * testVolumeHeader.getNSections()
           * ChunksetupParam.MEMORY_TO_VOXEL / 1024.0);
@@ -664,6 +675,7 @@ public final class ParallelManager extends BaseManager {
           && size > anisotropicDiffusionDialog.getMemoryPerChunk().intValue()) {
         UIHarness.INSTANCE
             .openMessageDialog(
+                this,
                 "Processing this test volume would require "
                     + size
                     + " MB of memory, more than the limit of "
@@ -674,7 +686,7 @@ public final class ParallelManager extends BaseManager {
                     + AnisotropicDiffusionDialog.MEMORY_PER_CHUNK_LABEL
                     + "\" spinner in the "
                     + AnisotropicDiffusionDialog.FILTER_FULL_VOLUME_LABEL
-                    + " box.", "Entry Error", AxisID.ONLY, getManagerKey());
+                    + " box.", "Entry Error", AxisID.ONLY);
         return false;
       }
     }
@@ -696,8 +708,9 @@ public final class ParallelManager extends BaseManager {
       processSeries = new ProcessSeries(this, dialogType);
     }
     if (anisotropicDiffusionDialog == null) {
-      uiHarness.openMessageDialog("Anisotropic diffusion dialog not open",
-          "Program logic error", AxisID.ONLY, getManagerKey());
+      uiHarness.openMessageDialog(this,
+          "Anisotropic diffusion dialog not open", "Program logic error",
+          AxisID.ONLY);
       return;
     }
     AnisotropicDiffusionParam anisotropicDiffusionParam;
@@ -709,16 +722,16 @@ public final class ParallelManager extends BaseManager {
     }
     catch (LogFile.LockException e) {
       e.printStackTrace();
-      uiHarness.openMessageDialog(
+      uiHarness.openMessageDialog(this,
           "Anisotropic diffusion comscripts could not be created",
-          "Write Comscript Error", AxisID.ONLY, getManagerKey());
+          "Write Comscript Error", AxisID.ONLY);
       return;
     }
     catch (IOException e) {
       e.printStackTrace();
-      uiHarness.openMessageDialog(
+      uiHarness.openMessageDialog(this,
           "Anisotropic diffusion comscripts could not be created",
-          "Write Comscript Error", AxisID.ONLY, getManagerKey());
+          "Write Comscript Error", AxisID.ONLY);
       return;
     }
     if (!validateTestVolume(anisotropicDiffusionParam)) {
@@ -743,8 +756,9 @@ public final class ParallelManager extends BaseManager {
    */
   public void trimVolume(ConstProcessSeries processSeries) {
     if (anisotropicDiffusionDialog == null) {
-      uiHarness.openMessageDialog("Anisotropic diffusion dialog not open",
-          "Program logic error", AxisID.ONLY, getManagerKey());
+      uiHarness.openMessageDialog(this,
+          "Anisotropic diffusion dialog not open", "Program logic error",
+          AxisID.ONLY);
       return;
     }
     TrimvolParam param = updateTrimvolParam();
@@ -761,8 +775,8 @@ public final class ParallelManager extends BaseManager {
       String[] message = new String[2];
       message[0] = "Can not execute trimvol command";
       message[1] = e.getMessage();
-      uiHarness.openMessageDialog(message, "Unable to execute command",
-          AxisID.ONLY, getManagerKey());
+      uiHarness.openMessageDialog(this, message, "Unable to execute command",
+          AxisID.ONLY);
       return;
     }
     setThreadName(threadName, AxisID.ONLY);
@@ -780,8 +794,8 @@ public final class ParallelManager extends BaseManager {
     parallelDialog.getParameters(metaData);
     String errorMessage = metaData.validate();
     if (errorMessage != null) {
-      UIHarness.INSTANCE.openMessageDialog(errorMessage,
-          "Anisotropic Diffusion Error", AXIS_ID, getManagerKey());
+      UIHarness.INSTANCE.openMessageDialog(this, errorMessage,
+          "Anisotropic Diffusion Error", AXIS_ID);
       return false;
     }
     setParamFile(new File(propertyUserDir, metaData.getMetaDataFileName()));
@@ -798,6 +812,9 @@ public final class ParallelManager extends BaseManager {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.42  2010/01/21 21:26:26  sueh
+ * <p> bug# 1305 Passing FileType to imod instead of key and file.
+ * <p>
  * <p> Revision 1.41  2009/10/27 20:39:05  sueh
  * <p> bug# 1275 Moving the resposibility for creating the log panel to the child
  * <p> classes.  That way the Front Page manager doesn't have to have a log

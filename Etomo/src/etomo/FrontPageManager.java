@@ -20,6 +20,7 @@ import etomo.type.ProcessName;
 import etomo.type.ProcessResultDisplay;
 import etomo.ui.FrontPageDialog;
 import etomo.ui.LogPanel;
+import etomo.ui.LogInterface;
 import etomo.ui.MainFrontPagePanel;
 import etomo.ui.MainPanel;
 import etomo.ui.ProcessDisplay;
@@ -37,7 +38,10 @@ import etomo.ui.ProcessDisplay;
  * 
  * @version $Revision$
  * 
- * <p> $Log$ </p>
+ * <p> $Log$
+ * <p> Revision 1.1  2009/10/27 20:38:42  sueh
+ * <p> bug# 1275 A manager for the default dialog.
+ * <p> </p>
  */
 public final class FrontPageManager extends BaseManager {
   public static final String rcsid = "$Id$";
@@ -54,8 +58,9 @@ public final class FrontPageManager extends BaseManager {
     initializeUIParameters("", AXIS_ID);
     if (!EtomoDirector.INSTANCE.getArguments().isHeadless()) {
       openProcessingPanel();
-      mainPanel.setStatusBarText(paramFile, metaData, logPanel);
+      mainPanel.setStatusBarText(paramFile, metaData, null);
       openFrontPageDialog();
+      uiHarness.toFront(this);
     }
   }
 
@@ -71,13 +76,17 @@ public final class FrontPageManager extends BaseManager {
   public InterfaceType getInterfaceType() {
     return InterfaceType.PP;
   }
+  
+  public LogInterface getLogInterface() {
+    return null;
+  }
+  
+  public LogPanel getLogPanel() {
+    return null;
+  }
 
   public boolean canChangeParamFileName() {
     return false;
-  }
-  
-  LogPanel createLogPanel() {
-    return null;
   }
 
   public boolean canSnapshot() {
@@ -122,6 +131,10 @@ public final class FrontPageManager extends BaseManager {
     int index = offset;
     storables[index++] = metaData;
     return storables;
+  }
+  
+  public boolean isInManagerFrame() {
+    return false;
   }
 
   public BaseProcessManager getProcessManager() {

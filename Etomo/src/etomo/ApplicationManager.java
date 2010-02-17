@@ -124,6 +124,7 @@ import etomo.ui.FinalAlignedStackExpert;
 import etomo.ui.FindBeads3dDisplay;
 import etomo.ui.FlattenWarpDisplay;
 import etomo.ui.LogPanel;
+import etomo.ui.LogInterface;
 import etomo.ui.MainPanel;
 import etomo.ui.MainTomogramPanel;
 import etomo.ui.NewstackDisplay;
@@ -173,6 +174,8 @@ public final class ApplicationManager extends BaseManager implements
     ContinuousListenerTarget {
   public static final String rcsid = "$Id$";
 
+  private final LogPanel logPanel = LogPanel.getInstance(this);
+
   // Process dialog references
   private SetupDialogExpert setupDialogExpert = null;
   private PreProcessingDialog preProcDialogA = null;
@@ -206,6 +209,7 @@ public final class ApplicationManager extends BaseManager implements
   //True if reconnect() has been run for the specified axis.
   private boolean reconnectRunA = false;
   private boolean reconnectRunB = false;
+  ComScriptManager comScriptMgr = new ComScriptManager(this);
 
   /**
    * Does initialization and loads the .edf file. Opens the setup dialog if
@@ -247,10 +251,6 @@ public final class ApplicationManager extends BaseManager implements
 
   public boolean setParamFile() {
     return loadedParamFile;
-  }
-
-  public LogPanel createLogPanel() {
-    return LogPanel.getInstance(getManagerKey());
   }
 
   /**
@@ -357,8 +357,8 @@ public final class ApplicationManager extends BaseManager implements
     if (setupDialogExpert == null) {
       Utilities.timestamp("new", "SetupDialog", Utilities.STARTED_STATUS);
       //check for distortion directory
-      File distortionDir = DatasetFiles.getDistortionDir(propertyUserDir,
-          AxisID.ONLY, getManagerKey());
+      File distortionDir = DatasetFiles.getDistortionDir(this, propertyUserDir,
+          AxisID.ONLY);
       setupDialogExpert = SetupDialogExpert.getInstance(this,
           distortionDir != null && distortionDir.exists());
       Utilities.timestamp("new", "SetupDialog", Utilities.FINISHED_STATUS);
@@ -394,11 +394,11 @@ public final class ApplicationManager extends BaseManager implements
       }
       if (metaData.isValid()) {
         if (setupDialogExpert.checkForSharedDirectory()) {
-          uiHarness.openMessageDialog("This directory (" + propertyUserDir
+          uiHarness.openMessageDialog(this, "This directory ("
+              + propertyUserDir
               + ") is already being used by an .edf file.  Either open the "
               + "existing .edf file or create a new directory for the new "
-              + "reconstruction.", "WARNING:  CANNOT PROCEED", AxisID.ONLY,
-              getManagerKey());
+              + "reconstruction.", "WARNING:  CANNOT PROCEED", AxisID.ONLY);
           return false;
         }
         processTrack.setSetupState(ProcessState.INPROGRESS);
@@ -419,8 +419,8 @@ public final class ApplicationManager extends BaseManager implements
         String[] errorMessage = new String[2];
         errorMessage[0] = "Setup Parameter Error";
         errorMessage[1] = metaData.getInvalidReason();
-        uiHarness.openMessageDialog(errorMessage, "Setup Parameter Error",
-            AxisID.ONLY, getManagerKey());
+        uiHarness.openMessageDialog(this, errorMessage,
+            "Setup Parameter Error", AxisID.ONLY);
         propertyUserDir = oldUserDir;
         return false;
       }
@@ -474,6 +474,14 @@ public final class ApplicationManager extends BaseManager implements
   public InterfaceType getInterfaceType() {
     return InterfaceType.RECON;
   }
+  
+  public LogInterface getLogInterface() {
+    return logPanel;
+  }
+  
+  public LogPanel getLogPanel() {
+    return logPanel;
+  }
 
   /**
    * Open the main window in processing mode
@@ -497,6 +505,10 @@ public final class ApplicationManager extends BaseManager implements
       return reconnectRunB;
     }
     return reconnectRunA;
+  }
+
+  public boolean isInManagerFrame() {
+    return false;
   }
 
   private void setReconnectRun(AxisID axisID) {
@@ -559,8 +571,7 @@ public final class ApplicationManager extends BaseManager implements
   public void openPreProcDialog(AxisID axisID) {
     // Check to see if the com files are present otherwise pop up a dialog
     // box informing the user to run the setup process
-    if (!UIExpertUtilities.INSTANCE.areScriptsCreated(metaData, axisID,
-        getManagerKey())) {
+    if (!UIExpertUtilities.INSTANCE.areScriptsCreated(this, metaData, axisID)) {
       mainPanel.showBlankProcess(axisID);
       return;
     }
@@ -669,18 +680,17 @@ public final class ApplicationManager extends BaseManager implements
     }
     catch (SystemProcessException except) {
       except.printStackTrace();
-      uiHarness.openMessageDialog(except.getMessage(),
-          "Can't open 3dmod on raw stack", axisID, getManagerKey());
+      uiHarness.openMessageDialog(this, except.getMessage(),
+          "Can't open 3dmod on raw stack", axisID);
     }
     catch (AxisTypeException except) {
       except.printStackTrace();
-      uiHarness.openMessageDialog(except.getMessage(),
-          "Axis type problem in 3dmod erase", axisID, getManagerKey());
+      uiHarness.openMessageDialog(this, except.getMessage(),
+          "Axis type problem in 3dmod erase", axisID);
     }
     catch (IOException e) {
       e.printStackTrace();
-      uiHarness.openMessageDialog(e.getMessage(), "IO Exception", axisID,
-          getManagerKey());
+      uiHarness.openMessageDialog(this, e.getMessage(), "IO Exception", axisID);
     }
   }
 
@@ -722,8 +732,8 @@ public final class ApplicationManager extends BaseManager implements
       String[] message = new String[2];
       message[0] = "Can not execute eraser" + axisID.getExtension() + ".com";
       message[1] = e.getMessage();
-      uiHarness.openMessageDialog(message, "Unable to execute com script",
-          axisID, getManagerKey());
+      uiHarness.openMessageDialog(this, message,
+          "Unable to execute com script", axisID);
       return;
     }
     setThreadName(threadName, axisID);
@@ -757,8 +767,8 @@ public final class ApplicationManager extends BaseManager implements
       String[] message = new String[2];
       message[0] = "Can not execute eraser" + axisID.getExtension() + ".com";
       message[1] = e.getMessage();
-      uiHarness.openMessageDialog(message, "Unable to execute com script",
-          axisID, getManagerKey());
+      uiHarness.openMessageDialog(this, message,
+          "Unable to execute com script", axisID);
       return;
     }
     setThreadName(threadName, axisID);
@@ -780,18 +790,17 @@ public final class ApplicationManager extends BaseManager implements
     }
     catch (AxisTypeException except) {
       except.printStackTrace();
-      uiHarness.openMessageDialog(except.getMessage(), "AxisType problem",
-          axisID, getManagerKey());
+      uiHarness.openMessageDialog(this, except.getMessage(),
+          "AxisType problem", axisID);
     }
     catch (SystemProcessException except) {
       except.printStackTrace();
-      uiHarness.openMessageDialog(except.getMessage(),
-          "Problem opening coarse stack", axisID, getManagerKey());
+      uiHarness.openMessageDialog(this, except.getMessage(),
+          "Problem opening coarse stack", axisID);
     }
     catch (IOException e) {
       e.printStackTrace();
-      uiHarness.openMessageDialog(e.getMessage(), "IO Exception", axisID,
-          getManagerKey());
+      uiHarness.openMessageDialog(this, e.getMessage(), "IO Exception", axisID);
     }
   }
 
@@ -821,18 +830,17 @@ public final class ApplicationManager extends BaseManager implements
     }
     catch (AxisTypeException except) {
       except.printStackTrace();
-      uiHarness.openMessageDialog(except.getMessage(), "AxisType problem",
-          axisID, getManagerKey());
+      uiHarness.openMessageDialog(this, except.getMessage(),
+          "AxisType problem", axisID);
     }
     catch (SystemProcessException except) {
       except.printStackTrace();
-      uiHarness.openMessageDialog(except.getMessage(),
-          "Problem opening erased stack", axisID, getManagerKey());
+      uiHarness.openMessageDialog(this, except.getMessage(),
+          "Problem opening erased stack", axisID);
     }
     catch (IOException e) {
       e.printStackTrace();
-      uiHarness.openMessageDialog(e.getMessage(), "IO Exception", axisID,
-          getManagerKey());
+      uiHarness.openMessageDialog(this, e.getMessage(), "IO Exception", axisID);
     }
   }
 
@@ -901,8 +909,8 @@ public final class ApplicationManager extends BaseManager implements
       message[0] = "Can not execute " + ArchiveorigParam.COMMAND_NAME
           + " command";
       message[1] = e.getMessage();
-      uiHarness.openMessageDialog(message, "Unable to execute command",
-          AxisID.ONLY, getManagerKey());
+      uiHarness.openMessageDialog(this, message, "Unable to execute command",
+          AxisID.ONLY);
     }
   }
 
@@ -941,7 +949,7 @@ public final class ApplicationManager extends BaseManager implements
     }
     message[messageIndex++] = "\n";
     message[messageIndex] = "Delete " + originalStack.getAbsolutePath() + "?";
-    if (uiHarness.openDeleteDialog(message, AxisID.ONLY, getManagerKey())) {
+    if (uiHarness.openDeleteDialog(this, message, AxisID.ONLY)) {
       System.err.println("Deleting " + originalStack.getAbsolutePath());
       originalStack.delete();
       if (cleanUpDialog != null) {
@@ -1001,10 +1009,8 @@ public final class ApplicationManager extends BaseManager implements
       return;
     }
     if (!Utilities.isValidStack(fixedStack, this, axisID)) {
-      uiHarness
-          .openMessageDialog(
-              fixedStack.getName() + " is not a valid MRC file.",
-              "Entry Error", axisID, getManagerKey());
+      uiHarness.openMessageDialog(this, fixedStack.getName()
+          + " is not a valid MRC file.", "Entry Error", axisID);
       sendMsgProcessFailedToStart(processResultDisplay);
       return;
     }
@@ -1023,8 +1029,8 @@ public final class ApplicationManager extends BaseManager implements
       sendMsgProcessSucceeded(processResultDisplay);
     }
     catch (IOException except) {
-      uiHarness.openMessageDialog(except.getMessage(), "File Rename Error",
-          axisID, getManagerKey());
+      uiHarness.openMessageDialog(this, except.getMessage(),
+          "File Rename Error", axisID);
       sendMsgProcessFailed(processResultDisplay);
     }
     closeImod(ImodManager.RAW_STACK_KEY, axisID, "raw stack");
@@ -1074,11 +1080,10 @@ public final class ApplicationManager extends BaseManager implements
     }
     catch (IOException e) {
       e.printStackTrace();
-      uiHarness.openMessageDialog(e.getMessage(), "Unable to move "
+      uiHarness.openMessageDialog(this, e.getMessage(), "Unable to move "
           + xrayStack.getName() + " to " + xrayStackArchive.getName()
           + ".\nCannot continue.\nFirst run \"mv " + xrayStack.getName() + " "
-          + xrayStackArchive.getName() + "\" from the command line.", axisID,
-          getManagerKey());
+          + xrayStackArchive.getName() + "\" from the command line.", axisID);
       return false;
     }
     return true;
@@ -1099,8 +1104,8 @@ public final class ApplicationManager extends BaseManager implements
         .getValidDatasetDirectory(setupDialogExpert.getWorkingDirectory()
             .getAbsolutePath());
     if (previewWorkingDir == null) {
-      uiHarness.openMessageDialog(previewMetaData.getInvalidReason(),
-          "Raw Image Stack", axisID, getManagerKey());
+      uiHarness.openMessageDialog(this, previewMetaData.getInvalidReason(),
+          "Raw Image Stack", axisID);
       return;
     }
     try {
@@ -1111,18 +1116,17 @@ public final class ApplicationManager extends BaseManager implements
     }
     catch (AxisTypeException except) {
       except.printStackTrace();
-      uiHarness.openMessageDialog(except.getMessage(), "AxisType problem",
-          axisID, getManagerKey());
+      uiHarness.openMessageDialog(this, except.getMessage(),
+          "AxisType problem", axisID);
     }
     catch (SystemProcessException except) {
       except.printStackTrace();
-      uiHarness.openMessageDialog(except.getMessage(),
-          "Problem opening raw stack", axisID, getManagerKey());
+      uiHarness.openMessageDialog(this, except.getMessage(),
+          "Problem opening raw stack", axisID);
     }
     catch (IOException e) {
       e.printStackTrace();
-      uiHarness.openMessageDialog(e.getMessage(), "IO Exception", axisID,
-          getManagerKey());
+      uiHarness.openMessageDialog(this, e.getMessage(), "IO Exception", axisID);
     }
   }
 
@@ -1132,8 +1136,7 @@ public final class ApplicationManager extends BaseManager implements
   public void openCoarseAlignDialog(AxisID axisID) {
     // Check to see if the com files are present otherwise pop up a dialog
     // box informing the user to run the setup process
-    if (!UIExpertUtilities.INSTANCE.areScriptsCreated(metaData, axisID,
-        getManagerKey())) {
+    if (!UIExpertUtilities.INSTANCE.areScriptsCreated(this, metaData, axisID)) {
       mainPanel.showBlankProcess(axisID);
       return;
     }
@@ -1221,13 +1224,13 @@ public final class ApplicationManager extends BaseManager implements
       }
       catch (InvalidParameterException e) {
         e.printStackTrace();
-        uiHarness.openMessageDialog("Unable to update prenewst com:  "
-            + e.getMessage(), "Etomo Error", axisID, getManagerKey());
+        uiHarness.openMessageDialog(this, "Unable to update prenewst com:  "
+            + e.getMessage(), "Etomo Error", axisID);
       }
       catch (IOException e) {
         e.printStackTrace();
-        uiHarness.openMessageDialog("Unable to update prenewst com:  "
-            + e.getMessage(), "Etomo Error", axisID, getManagerKey());
+        uiHarness.openMessageDialog(this, "Unable to update prenewst com:  "
+            + e.getMessage(), "Etomo Error", axisID);
       }
       UIExpertUtilities.INSTANCE.updateFiducialessParams(this,
           coarseAlignDialog, axisID);
@@ -1287,8 +1290,8 @@ public final class ApplicationManager extends BaseManager implements
       String[] message = new String[2];
       message[0] = "Can not execute xcorr" + axisID.getExtension() + ".com";
       message[1] = e.getMessage();
-      uiHarness.openMessageDialog(message, "Unable to execute com script",
-          axisID, getManagerKey());
+      uiHarness.openMessageDialog(this, message,
+          "Unable to execute com script", axisID);
       return;
     }
     setThreadName(threadName, axisID);
@@ -1390,8 +1393,8 @@ public final class ApplicationManager extends BaseManager implements
       String[] message = new String[2];
       message[0] = "Can not execute " + ExtracttiltsParam.COMMAND_NAME;
       message[1] = e.getMessage();
-      uiHarness.openMessageDialog(message, "Unable to execute command", axisID,
-          getManagerKey());
+      uiHarness.openMessageDialog(this, message, "Unable to execute command",
+          axisID);
       if (processSeries != null) {
         processSeries.startNextProcess(axisID, processResultDisplay);
       }
@@ -1428,8 +1431,8 @@ public final class ApplicationManager extends BaseManager implements
       String[] message = new String[2];
       message[0] = "Can not execute " + ExtractpiecesParam.COMMAND_NAME;
       message[1] = e.getMessage();
-      uiHarness.openMessageDialog(message, "Unable to execute command", axisID,
-          getManagerKey());
+      uiHarness.openMessageDialog(this, message, "Unable to execute command",
+          axisID);
       if (processSeries != null) {
         processSeries.startNextProcess(axisID, processResultDisplay);
       }
@@ -1467,8 +1470,8 @@ public final class ApplicationManager extends BaseManager implements
       String[] message = new String[2];
       message[0] = "Can not execute " + ExtractmagradParam.COMMAND_NAME;
       message[1] = e.getMessage();
-      uiHarness.openMessageDialog(message, "Unable to execute command", axisID,
-          getManagerKey());
+      uiHarness.openMessageDialog(this, message, "Unable to execute command",
+          axisID);
       if (processSeries != null) {
         processSeries.startNextProcess(axisID, processResultDisplay);
       }
@@ -1499,8 +1502,8 @@ public final class ApplicationManager extends BaseManager implements
       String[] message = new String[2];
       message[0] = "Can not execute undistort" + axisID.getExtension() + ".com";
       message[1] = e.getMessage();
-      uiHarness.openMessageDialog(message, "Unable to execute com script",
-          axisID, getManagerKey());
+      uiHarness.openMessageDialog(this, message,
+          "Unable to execute com script", axisID);
       return;
     }
     setThreadName(threadName, axisID);
@@ -1515,9 +1518,8 @@ public final class ApplicationManager extends BaseManager implements
     }
     catch (SystemProcessException except) {
       except.printStackTrace();
-      uiHarness.openMessageDialog("Can't run clip stats\n"
-          + except.getMessage(), "SystemProcessException", AxisID.ONLY,
-          getManagerKey());
+      uiHarness.openMessageDialog(this, "Can't run clip stats\n"
+          + except.getMessage(), "SystemProcessException", AxisID.ONLY);
       return;
     }
     mainPanel.startProgressBar("clip stats ", AxisID.ONLY);
@@ -1543,16 +1545,16 @@ public final class ApplicationManager extends BaseManager implements
         blendmontParam = updatePreblendCom(blendmontDisplay, axisID);
       }
       catch (FortranInputSyntaxException e) {
-        UIHarness.INSTANCE.openMessageDialog(e.getMessage(),
-            "Update Com Error", getManagerKey());
+        UIHarness.INSTANCE.openMessageDialog(this, e.getMessage(),
+            "Update Com Error");
       }
       catch (InvalidParameterException e) {
-        UIHarness.INSTANCE.openMessageDialog(e.getMessage(),
-            "Update Com Error", getManagerKey());
+        UIHarness.INSTANCE.openMessageDialog(this, e.getMessage(),
+            "Update Com Error");
       }
       catch (IOException e) {
-        UIHarness.INSTANCE.openMessageDialog(e.getMessage(),
-            "Update Com Error", getManagerKey());
+        UIHarness.INSTANCE.openMessageDialog(this, e.getMessage(),
+            "Update Com Error");
       }
       processName = BlendmontParam.getProcessName(BlendmontParam.Mode.PREBLEND);
     }
@@ -1566,14 +1568,14 @@ public final class ApplicationManager extends BaseManager implements
       }
       catch (InvalidParameterException e) {
         e.printStackTrace();
-        uiHarness.openMessageDialog("Unable to update prenewst com:  "
-            + e.getMessage(), "Etomo Error", axisID, getManagerKey());
+        uiHarness.openMessageDialog(this, "Unable to update prenewst com:  "
+            + e.getMessage(), "Etomo Error", axisID);
         return;
       }
       catch (IOException e) {
         e.printStackTrace();
-        uiHarness.openMessageDialog("Unable to update prenewst com:  "
-            + e.getMessage(), "Etomo Error", axisID, getManagerKey());
+        uiHarness.openMessageDialog(this, "Unable to update prenewst com:  "
+            + e.getMessage(), "Etomo Error", axisID);
         return;
       }
     }
@@ -1596,8 +1598,8 @@ public final class ApplicationManager extends BaseManager implements
       message[0] = "Can not execute " + processName + axisID.getExtension()
           + ".com";
       message[1] = e.getMessage();
-      uiHarness.openMessageDialog(message, "Unable to execute com script",
-          axisID, getManagerKey());
+      uiHarness.openMessageDialog(this, message,
+          "Unable to execute com script", axisID);
       return;
     }
     processSeries.setNextProcess("checkUpdateFiducialModel");
@@ -1623,18 +1625,17 @@ public final class ApplicationManager extends BaseManager implements
     }
     catch (AxisTypeException except) {
       except.printStackTrace();
-      uiHarness.openMessageDialog(except.getMessage(), "AxisType problem",
-          axisID, getManagerKey());
+      uiHarness.openMessageDialog(this, except.getMessage(),
+          "AxisType problem", axisID);
     }
     catch (SystemProcessException except) {
       except.printStackTrace();
-      uiHarness.openMessageDialog(except.getMessage(),
-          "Problem opening raw stack", axisID, getManagerKey());
+      uiHarness.openMessageDialog(this, except.getMessage(),
+          "Problem opening raw stack", axisID);
     }
     catch (IOException e) {
       e.printStackTrace();
-      uiHarness.openMessageDialog(e.getMessage(), "IO Exception", axisID,
-          getManagerKey());
+      uiHarness.openMessageDialog(this, e.getMessage(), "IO Exception", axisID);
     }
   }
 
@@ -1656,18 +1657,17 @@ public final class ApplicationManager extends BaseManager implements
     }
     catch (AxisTypeException except) {
       except.printStackTrace();
-      uiHarness.openMessageDialog(except.getMessage(), "AxisType problem",
-          axisID, getManagerKey());
+      uiHarness.openMessageDialog(this, except.getMessage(),
+          "AxisType problem", axisID);
     }
     catch (SystemProcessException except) {
       except.printStackTrace();
-      uiHarness.openMessageDialog(except.getMessage(),
-          "Problem opening coarse stack", axisID, getManagerKey());
+      uiHarness.openMessageDialog(this, except.getMessage(),
+          "Problem opening coarse stack", axisID);
     }
     catch (IOException e) {
       e.printStackTrace();
-      uiHarness.openMessageDialog(e.getMessage(), "IO Exception", axisID,
-          getManagerKey());
+      uiHarness.openMessageDialog(this, e.getMessage(), "IO Exception", axisID);
     }
   }
 
@@ -1724,8 +1724,8 @@ public final class ApplicationManager extends BaseManager implements
       errorMessage[0] = "Xcorr Parameter Syntax Error";
       errorMessage[1] = except.getMessage();
       errorMessage[2] = "New value: " + except.getNewString();
-      uiHarness.openMessageDialog(errorMessage, "Xcorr Parameter Syntax Error",
-          axisID, getManagerKey());
+      uiHarness.openMessageDialog(this, errorMessage,
+          "Xcorr Parameter Syntax Error", axisID);
       return null;
     }
     catch (NumberFormatException except) {
@@ -1734,8 +1734,8 @@ public final class ApplicationManager extends BaseManager implements
       errorMessage[0] = "Xcorr Align Parameter Syntax Error";
       errorMessage[1] = axisID.getExtension();
       errorMessage[2] = except.getMessage();
-      uiHarness.openMessageDialog(errorMessage, "Xcorr Parameter Syntax Error",
-          axisID, getManagerKey());
+      uiHarness.openMessageDialog(this, errorMessage,
+          "Xcorr Parameter Syntax Error", axisID);
       return null;
     }
     return tiltXcorrParam;
@@ -1801,8 +1801,8 @@ public final class ApplicationManager extends BaseManager implements
       errorMessage[0] = "prenewst Parameter Syntax Error";
       errorMessage[1] = "Axis: " + axisID.getExtension();
       errorMessage[2] = except.getMessage();
-      UIHarness.INSTANCE.openMessageDialog(errorMessage,
-          "Prenewst Parameter Syntax Error", axisID, getManagerKey());
+      UIHarness.INSTANCE.openMessageDialog(this, errorMessage,
+          "Prenewst Parameter Syntax Error", axisID);
       return false;
     }
     comScriptMgr.savePrenewst(prenewstParam, axisID);
@@ -1843,8 +1843,7 @@ public final class ApplicationManager extends BaseManager implements
   public void openFiducialModelDialog(AxisID axisID) {
     // Check to see if the com files are present otherwise pop up a dialog
     // box informing the user to run the setup process
-    if (!UIExpertUtilities.INSTANCE.areScriptsCreated(metaData, axisID,
-        getManagerKey())) {
+    if (!UIExpertUtilities.INSTANCE.areScriptsCreated(this, metaData, axisID)) {
       mainPanel.showBlankProcess(axisID);
       return;
     }
@@ -1960,20 +1959,19 @@ public final class ApplicationManager extends BaseManager implements
     }
     catch (AxisTypeException except) {
       except.printStackTrace();
-      uiHarness.openMessageDialog(except.getMessage(), "AxisType problem",
-          axisID, getManagerKey());
+      uiHarness.openMessageDialog(this, except.getMessage(),
+          "AxisType problem", axisID);
       sendMsgProcessFailedToStart(processResultDisplay);
     }
     catch (SystemProcessException except) {
       except.printStackTrace();
-      uiHarness.openMessageDialog(except.getMessage(), "Can't open 3dmod on "
-          + key + " with model: " + model, axisID, getManagerKey());
+      uiHarness.openMessageDialog(this, except.getMessage(),
+          "Can't open 3dmod on " + key + " with model: " + model, axisID);
       sendMsgProcessFailedToStart(processResultDisplay);
     }
     catch (IOException e) {
       e.printStackTrace();
-      uiHarness.openMessageDialog(e.getMessage(), "IO Exception", axisID,
-          getManagerKey());
+      uiHarness.openMessageDialog(this, e.getMessage(), "IO Exception", axisID);
       sendMsgProcessFailedToStart(processResultDisplay);
     }
   }
@@ -2004,20 +2002,19 @@ public final class ApplicationManager extends BaseManager implements
     }
     catch (AxisTypeException except) {
       except.printStackTrace();
-      uiHarness.openMessageDialog(except.getMessage(), "AxisType problem",
-          axisID, getManagerKey());
+      uiHarness.openMessageDialog(this, except.getMessage(),
+          "AxisType problem", axisID);
       sendMsgProcessFailedToStart(processResultDisplay);
     }
     catch (SystemProcessException except) {
       except.printStackTrace();
-      uiHarness.openMessageDialog(except.getMessage(), "Can't open 3dmod on "
-          + key + " with model: " + model, axisID, getManagerKey());
+      uiHarness.openMessageDialog(this, except.getMessage(),
+          "Can't open 3dmod on " + key + " with model: " + model, axisID);
       sendMsgProcessFailedToStart(processResultDisplay);
     }
     catch (IOException e) {
       e.printStackTrace();
-      uiHarness.openMessageDialog(e.getMessage(), "IO Exception", axisID,
-          getManagerKey());
+      uiHarness.openMessageDialog(this, e.getMessage(), "IO Exception", axisID);
       sendMsgProcessFailedToStart(processResultDisplay);
     }
   }
@@ -2041,10 +2038,11 @@ public final class ApplicationManager extends BaseManager implements
         && fiducialLastModified != fiducialLastTracked.getLong()) {
       return uiHarness
           .openYesNoWarningDialog(
+              this,
               "If you track fiducials now, you will overwrite the fiducial file you just modified.\nFirst press the "
                   + BeadtrackPanel.USE_MODEL_LABEL
                   + " button.\n\nWARNING:  If you press Yes, you will overwrite your fiducial file.",
-              axisID, getManagerKey());
+              axisID);
     }
     return true;
   }
@@ -2068,10 +2066,11 @@ public final class ApplicationManager extends BaseManager implements
         && seedLastModified != seedLastCopied.getLong()) {
       return uiHarness
           .openYesNoWarningDialog(
+              this,
               "If you copy the fiducial file to the seed file now, you will overwrite the seed file you just modified.\nFirst press the "
                   + BeadtrackPanel.TRACK_LABEL
                   + " button.\n\nWARNING:  If you press Yes, you will overwrite your seed file.",
-              axisID, getManagerKey());
+              axisID);
     }
     return true;
   }
@@ -2105,8 +2104,8 @@ public final class ApplicationManager extends BaseManager implements
       String[] message = new String[2];
       message[0] = "Can not execute track" + axisID.getExtension() + ".com";
       message[1] = e.getMessage();
-      uiHarness.openMessageDialog(message, "Unable to execute com script",
-          axisID, getManagerKey());
+      uiHarness.openMessageDialog(this, message,
+          "Unable to execute com script", axisID);
       return;
     }
     setThreadName(threadName, axisID);
@@ -2126,8 +2125,8 @@ public final class ApplicationManager extends BaseManager implements
         + metaData.getDatasetName() + axisID.getExtension() + ".fid";
     File fiducialModel = new File(fiducialModelFilename);
     if (!fiducialModel.exists()) {
-      uiHarness.openMessageDialog("Fiducial model does not exist.",
-          BeadtrackPanel.USE_MODEL_LABEL + " failed.", axisID, getManagerKey());
+      uiHarness.openMessageDialog(this, "Fiducial model does not exist.",
+          BeadtrackPanel.USE_MODEL_LABEL + " failed.", axisID);
       return false;
     }
     if (!okToMakeFiducialModelSeedModel(axisID)) {
@@ -2159,8 +2158,8 @@ public final class ApplicationManager extends BaseManager implements
       Utilities.renameFile(fiducialModel, seedModel);
     }
     catch (IOException except) {
-      uiHarness.openMessageDialog(except.getMessage(), "File Rename Error",
-          axisID, getManagerKey());
+      uiHarness.openMessageDialog(this, except.getMessage(),
+          "File Rename Error", axisID);
       retval = false;
     }
     try {
@@ -2170,7 +2169,7 @@ public final class ApplicationManager extends BaseManager implements
           String[] message = new String[2];
           message[0] = "The old seed model file is open in 3dmod";
           message[1] = "Should it be closed?";
-          if (uiHarness.openYesNoDialog(message, axisID, getManagerKey())) {
+          if (uiHarness.openYesNoDialog(this, message, axisID)) {
             imodManager.quit(ImodManager.COARSE_ALIGNED_KEY, axisID);
           }
         }
@@ -2183,14 +2182,13 @@ public final class ApplicationManager extends BaseManager implements
     }
     catch (IOException e) {
       e.printStackTrace();
-      uiHarness.openMessageDialog(e.getMessage(), "IO Exception", axisID,
-          getManagerKey());
+      uiHarness.openMessageDialog(this, e.getMessage(), "IO Exception", axisID);
       retval = false;
     }
     catch (SystemProcessException e) {
       e.printStackTrace();
-      uiHarness.openMessageDialog(e.getMessage(), "System Process Exception",
-          axisID, getManagerKey());
+      uiHarness.openMessageDialog(this, e.getMessage(),
+          "System Process Exception", axisID);
       retval = false;
     }
     File seedFile = DatasetFiles.getSeedFile(this, axisID);
@@ -2223,8 +2221,7 @@ public final class ApplicationManager extends BaseManager implements
   }
 
   public void logTaErrorLogMessage(AxisID axisID) {
-    logMessage(TaErrorLog.getInstance(getPropertyUserDir(), axisID), axisID,
-        getManagerKey());
+    logMessage(TaErrorLog.getInstance(getPropertyUserDir(), axisID), axisID);
   }
 
   public void getContinuousMessage(String message, AxisID axisID) {
@@ -2277,23 +2274,22 @@ public final class ApplicationManager extends BaseManager implements
     }
     catch (AxisTypeException except) {
       except.printStackTrace();
-      uiHarness.openMessageDialog(except.getMessage(), "AxisType problem",
-          axisID, getManagerKey());
+      uiHarness.openMessageDialog(this, except.getMessage(),
+          "AxisType problem", axisID);
       sendMsgProcessFailedToStart(processResultDisplay);
       return;
     }
     catch (SystemProcessException except) {
       except.printStackTrace();
-      uiHarness.openMessageDialog(except.getMessage(),
+      uiHarness.openMessageDialog(this, except.getMessage(),
           "Can't open 3dmod on coarse aligned stack with model: "
-              + fiducialModel, axisID, getManagerKey());
+              + fiducialModel, axisID);
       sendMsgProcessFailedToStart(processResultDisplay);
       return;
     }
     catch (IOException e) {
       e.printStackTrace();
-      uiHarness.openMessageDialog(e.getMessage(), "IO Exception", axisID,
-          getManagerKey());
+      uiHarness.openMessageDialog(this, e.getMessage(), "IO Exception", axisID);
     }
     state.setFixedFiducials(axisID, true);
   }
@@ -2326,9 +2322,9 @@ public final class ApplicationManager extends BaseManager implements
    */
   private BeadtrackParam updateTrackCom(BeadTrackDisplay display, AxisID axisID) {
     if (display == null) {
-      uiHarness.openMessageDialog(
+      uiHarness.openMessageDialog(this,
           "Can not update track?.com without an active display",
-          "Program logic error", axisID, getManagerKey());
+          "Program logic error", axisID);
       return null;
     }
     BeadtrackParam beadtrackParam;
@@ -2343,8 +2339,8 @@ public final class ApplicationManager extends BaseManager implements
       errorMessage[0] = "Beadtrack Parameter Syntax Error";
       errorMessage[1] = except.getMessage();
       errorMessage[2] = "New value: " + except.getNewString();
-      uiHarness.openMessageDialog(errorMessage,
-          "Beadtrack Parameter Syntax Error", axisID, getManagerKey());
+      uiHarness.openMessageDialog(this, errorMessage,
+          "Beadtrack Parameter Syntax Error", axisID);
       return null;
     }
     catch (NumberFormatException except) {
@@ -2353,8 +2349,8 @@ public final class ApplicationManager extends BaseManager implements
       errorMessage[0] = "Beadtrack Parameter Syntax Error";
       errorMessage[1] = axisID.getExtension();
       errorMessage[2] = except.getMessage();
-      uiHarness.openMessageDialog(errorMessage,
-          "Beadtrack Parameter Syntax Error", axisID, getManagerKey());
+      uiHarness.openMessageDialog(this, errorMessage,
+          "Beadtrack Parameter Syntax Error", axisID);
       return null;
     }
     catch (InvalidEtomoNumberException e) {
@@ -2369,8 +2365,7 @@ public final class ApplicationManager extends BaseManager implements
   public void openFineAlignmentDialog(AxisID axisID) {
     // Check to see if the com files are present otherwise pop up a dialog
     // box informing the user to run the setup process
-    if (!UIExpertUtilities.INSTANCE.areScriptsCreated(metaData, axisID,
-        getManagerKey())) {
+    if (!UIExpertUtilities.INSTANCE.areScriptsCreated(this, metaData, axisID)) {
       mainPanel.showBlankProcess(axisID);
       return;
     }
@@ -2642,25 +2637,24 @@ public final class ApplicationManager extends BaseManager implements
         String[] message = new String[2];
         message[0] = description + "(s) are open in 3dmod";
         message[1] = "Should they be closed?";
-        if (uiHarness.openYesNoDialog(message, axisID, getManagerKey())) {
+        if (uiHarness.openYesNoDialog(this, message, axisID)) {
           imodManager.quitAll(key, axisID);
         }
       }
     }
     catch (AxisTypeException except) {
       except.printStackTrace();
-      uiHarness.openMessageDialog(except.getMessage(), "AxisType problem",
-          axisID, getManagerKey());
+      uiHarness.openMessageDialog(this, except.getMessage(),
+          "AxisType problem", axisID);
     }
     catch (IOException e) {
       e.printStackTrace();
-      uiHarness.openMessageDialog(e.getMessage(), "IO Exception", axisID,
-          getManagerKey());
+      uiHarness.openMessageDialog(this, e.getMessage(), "IO Exception", axisID);
     }
     catch (SystemProcessException e) {
       e.printStackTrace();
-      uiHarness.openMessageDialog(e.getMessage(), "System Process Exception",
-          axisID, getManagerKey());
+      uiHarness.openMessageDialog(this, e.getMessage(),
+          "System Process Exception", axisID);
     }
   }
 
@@ -2671,25 +2665,25 @@ public final class ApplicationManager extends BaseManager implements
         String[] message = new String[2];
         message[0] = "The " + description + " is open in 3dmod";
         message[1] = "Should it be closed?";
-        if (uiHarness.openYesNoDialog(message, AxisID.ONLY, getManagerKey())) {
+        if (uiHarness.openYesNoDialog(this, message, AxisID.ONLY)) {
           imodManager.quit(key);
         }
       }
     }
     catch (AxisTypeException except) {
       except.printStackTrace();
-      uiHarness.openMessageDialog(except.getMessage(), "AxisType problem",
-          AxisID.ONLY, getManagerKey());
+      uiHarness.openMessageDialog(this, except.getMessage(),
+          "AxisType problem", AxisID.ONLY);
     }
     catch (IOException e) {
       e.printStackTrace();
-      uiHarness.openMessageDialog(e.getMessage(), "IO Exception", AxisID.ONLY,
-          getManagerKey());
+      uiHarness.openMessageDialog(this, e.getMessage(), "IO Exception",
+          AxisID.ONLY);
     }
     catch (SystemProcessException e) {
       e.printStackTrace();
-      uiHarness.openMessageDialog(e.getMessage(), "System Process Exception",
-          AxisID.ONLY, getManagerKey());
+      uiHarness.openMessageDialog(this, e.getMessage(),
+          "System Process Exception", AxisID.ONLY);
     }
   }
 
@@ -2700,25 +2694,24 @@ public final class ApplicationManager extends BaseManager implements
         String[] message = new String[2];
         message[0] = "The " + description + " is open in 3dmod";
         message[1] = "Should it be closed?";
-        if (uiHarness.openYesNoDialog(message, axisID, getManagerKey())) {
+        if (uiHarness.openYesNoDialog(this, message, axisID)) {
           imodManager.quit(key, axisID);
         }
       }
     }
     catch (AxisTypeException except) {
       except.printStackTrace();
-      uiHarness.openMessageDialog(except.getMessage(), "AxisType problem",
-          axisID, getManagerKey());
+      uiHarness.openMessageDialog(this, except.getMessage(),
+          "AxisType problem", axisID);
     }
     catch (IOException e) {
       e.printStackTrace();
-      uiHarness.openMessageDialog(e.getMessage(), "IO Exception", axisID,
-          getManagerKey());
+      uiHarness.openMessageDialog(this, e.getMessage(), "IO Exception", axisID);
     }
     catch (SystemProcessException e) {
       e.printStackTrace();
-      uiHarness.openMessageDialog(e.getMessage(), "System Process Exception",
-          axisID, getManagerKey());
+      uiHarness.openMessageDialog(this, e.getMessage(),
+          "System Process Exception", axisID);
     }
   }
 
@@ -2757,8 +2750,8 @@ public final class ApplicationManager extends BaseManager implements
       String[] message = new String[2];
       message[0] = "Can not execute align" + axisID.getExtension() + ".com";
       message[1] = e.getMessage();
-      uiHarness.openMessageDialog(message, "Unable to execute com script",
-          axisID, getManagerKey());
+      uiHarness.openMessageDialog(this, message,
+          "Unable to execute com script", axisID);
       sendMsgProcessFailedToStart(processResultDisplay);
       return;
     }
@@ -2792,19 +2785,18 @@ public final class ApplicationManager extends BaseManager implements
     }
     catch (AxisTypeException except) {
       except.printStackTrace();
-      uiHarness.openMessageDialog(except.getMessage(), "AxisType problem",
-          axisID, getManagerKey());
+      uiHarness.openMessageDialog(this, except.getMessage(),
+          "AxisType problem", axisID);
     }
     catch (SystemProcessException except) {
       except.printStackTrace();
-      uiHarness.openMessageDialog(except.getMessage(),
+      uiHarness.openMessageDialog(this, except.getMessage(),
           "Can't open 3dmod on coarse aligned stack with model: "
-              + fiducialModel, axisID, getManagerKey());
+              + fiducialModel, axisID);
     }
     catch (IOException e) {
       e.printStackTrace();
-      uiHarness.openMessageDialog(e.getMessage(), "IO Exception", axisID,
-          getManagerKey());
+      uiHarness.openMessageDialog(this, e.getMessage(), "IO Exception", axisID);
     }
   }
 
@@ -2818,18 +2810,18 @@ public final class ApplicationManager extends BaseManager implements
     }
     catch (AxisTypeException except) {
       except.printStackTrace();
-      uiHarness.openMessageDialog(except.getMessage(), "AxisType problem",
-          axisID, getManagerKey());
+      uiHarness.openMessageDialog(this, except.getMessage(),
+          "AxisType problem", axisID);
     }
     catch (SystemProcessException except) {
       except.printStackTrace();
-      uiHarness.openMessageDialog(except.getMessage(), "Can't open 3dmod on "
-          + modelFileType.getFileName(this, axisID), axisID, getManagerKey());
+      uiHarness.openMessageDialog(this, except.getMessage(),
+          "Can't open 3dmod on " + modelFileType.getFileName(this, axisID),
+          axisID);
     }
     catch (IOException e) {
       e.printStackTrace();
-      uiHarness.openMessageDialog(e.getMessage(), "IO Exception", axisID,
-          getManagerKey());
+      uiHarness.openMessageDialog(this, e.getMessage(), "IO Exception", axisID);
     }
   }
 
@@ -2855,18 +2847,17 @@ public final class ApplicationManager extends BaseManager implements
     }
     catch (AxisTypeException except) {
       except.printStackTrace();
-      uiHarness.openMessageDialog(except.getMessage(), "AxisType problem",
-          axisID, getManagerKey());
+      uiHarness.openMessageDialog(this, except.getMessage(),
+          "AxisType problem", axisID);
     }
     catch (SystemProcessException except) {
       except.printStackTrace();
-      uiHarness.openMessageDialog(except.getMessage(), "Can't open 3dmod on "
-          + key, axisID, getManagerKey());
+      uiHarness.openMessageDialog(this, except.getMessage(),
+          "Can't open 3dmod on " + key, axisID);
     }
     catch (IOException e) {
       e.printStackTrace();
-      uiHarness.openMessageDialog(e.getMessage(), "IO Exception", axisID,
-          getManagerKey());
+      uiHarness.openMessageDialog(this, e.getMessage(), "IO Exception", axisID);
     }
   }
 
@@ -2890,18 +2881,17 @@ public final class ApplicationManager extends BaseManager implements
     }
     catch (AxisTypeException except) {
       except.printStackTrace();
-      uiHarness.openMessageDialog(except.getMessage(), "AxisType problem",
-          axisID, getManagerKey());
+      uiHarness.openMessageDialog(this, except.getMessage(),
+          "AxisType problem", axisID);
     }
     catch (SystemProcessException except) {
       except.printStackTrace();
-      uiHarness.openMessageDialog(except.getMessage(), "Can't open 3dmod on "
-          + ImodManager.FINE_ALIGNED_KEY, axisID, getManagerKey());
+      uiHarness.openMessageDialog(this, except.getMessage(),
+          "Can't open 3dmod on " + ImodManager.FINE_ALIGNED_KEY, axisID);
     }
     catch (IOException e) {
       e.printStackTrace();
-      uiHarness.openMessageDialog(e.getMessage(), "IO Exception", axisID,
-          getManagerKey());
+      uiHarness.openMessageDialog(this, e.getMessage(), "IO Exception", axisID);
     }
   }
 
@@ -2924,18 +2914,17 @@ public final class ApplicationManager extends BaseManager implements
     }
     catch (AxisTypeException except) {
       except.printStackTrace();
-      uiHarness.openMessageDialog(except.getMessage(), "AxisType problem",
-          axisID, getManagerKey());
+      uiHarness.openMessageDialog(this, except.getMessage(),
+          "AxisType problem", axisID);
     }
     catch (SystemProcessException except) {
       except.printStackTrace();
-      uiHarness.openMessageDialog(except.getMessage(),
-          "Can't open 3dmod on MTF filter results", axisID, getManagerKey());
+      uiHarness.openMessageDialog(this, except.getMessage(),
+          "Can't open 3dmod on MTF filter results", axisID);
     }
     catch (IOException e) {
       e.printStackTrace();
-      uiHarness.openMessageDialog(e.getMessage(), "IO Exception", axisID,
-          getManagerKey());
+      uiHarness.openMessageDialog(this, e.getMessage(), "IO Exception", axisID);
     }
   }
 
@@ -2953,19 +2942,18 @@ public final class ApplicationManager extends BaseManager implements
     }
     catch (AxisTypeException except) {
       except.printStackTrace();
-      uiHarness.openMessageDialog(except.getMessage(), "AxisType problem",
-          axisID, getManagerKey());
+      uiHarness.openMessageDialog(this, except.getMessage(),
+          "AxisType problem", axisID);
     }
     catch (SystemProcessException except) {
       except.printStackTrace();
-      uiHarness.openMessageDialog(except.getMessage(), "Can't open 3dmod on "
-          + ProcessName.CTF_CORRECTION.toString() + " results", axisID,
-          getManagerKey());
+      uiHarness.openMessageDialog(this, except.getMessage(),
+          "Can't open 3dmod on " + ProcessName.CTF_CORRECTION.toString()
+              + " results", axisID);
     }
     catch (IOException e) {
       e.printStackTrace();
-      uiHarness.openMessageDialog(e.getMessage(), "IO Exception", axisID,
-          getManagerKey());
+      uiHarness.openMessageDialog(this, e.getMessage(), "IO Exception", axisID);
     }
   }
 
@@ -3014,10 +3002,10 @@ public final class ApplicationManager extends BaseManager implements
     if (destAxisID != AxisID.ONLY
         && !Utilities.fileExists(this, "fid.xyz",
             (destAxisID == AxisID.FIRST ? AxisID.SECOND : AxisID.FIRST))) {
-      uiHarness.openMessageDialog(
+      uiHarness.openMessageDialog(this,
           "It is recommended that you run Fine Alignment on axis "
               + (destAxisID == AxisID.FIRST ? "B" : "A") + " at least once",
-          "Warning", destAxisID, getManagerKey());
+          "Warning", destAxisID);
     }
     if (fiducialModelDialog == null) {
       sendMsgProcessFailedToStart(processResultDisplay);
@@ -3047,8 +3035,8 @@ public final class ApplicationManager extends BaseManager implements
       String[] message = new String[2];
       message[0] = "Can not execute transferfid command";
       message[1] = e.getMessage();
-      uiHarness.openMessageDialog(message, "Unable to execute command",
-          destAxisID, getManagerKey());
+      uiHarness.openMessageDialog(this, message, "Unable to execute command",
+          destAxisID);
       sendMsgProcessFailedToStart(processResultDisplay);
       return;
     }
@@ -3067,9 +3055,9 @@ public final class ApplicationManager extends BaseManager implements
     AlignmentEstimationDialog fineAlignmentDialog = (AlignmentEstimationDialog) getDialog(
         DialogType.FINE_ALIGNMENT, axisID);
     if (fineAlignmentDialog == null) {
-      uiHarness.openMessageDialog(
+      uiHarness.openMessageDialog(this,
           "Can not update align?.com without an active alignment dialog",
-          "Program logic error", axisID, getManagerKey());
+          "Program logic error", axisID);
       return null;
     }
     TiltalignParam tiltalignParam;
@@ -3095,16 +3083,16 @@ public final class ApplicationManager extends BaseManager implements
       errorMessage[0] = "Tiltalign Parameter Syntax Error";
       errorMessage[1] = except.getNewString();
       errorMessage[2] = except.getMessage();
-      uiHarness.openMessageDialog(errorMessage,
-          "Tiltalign Parameter Syntax Error", axisID, getManagerKey());
+      uiHarness.openMessageDialog(this, errorMessage,
+          "Tiltalign Parameter Syntax Error", axisID);
       return null;
     }
     catch (NumberFormatException except) {
       String[] errorMessage = new String[2];
       errorMessage[0] = "Tiltalign Parameter Syntax Error";
       errorMessage[1] = except.getMessage();
-      uiHarness.openMessageDialog(errorMessage,
-          "Tiltalign Parameter Syntax Error", axisID, getManagerKey());
+      uiHarness.openMessageDialog(this, errorMessage,
+          "Tiltalign Parameter Syntax Error", axisID);
       return null;
     }
     return tiltalignParam;
@@ -3183,8 +3171,8 @@ public final class ApplicationManager extends BaseManager implements
         String[] message = new String[2];
         message[0] = "Problem copying fiducial alignment files";
         message[1] = except.getMessage();
-        uiHarness.openMessageDialog(message,
-            "Unable to copy fiducial alignment files", axisID, getManagerKey());
+        uiHarness.openMessageDialog(this, message,
+            "Unable to copy fiducial alignment files", axisID);
       }
     }
 
@@ -3198,8 +3186,8 @@ public final class ApplicationManager extends BaseManager implements
       String[] message = new String[2];
       message[0] = "Can not execute sample" + axisID.getExtension() + ".com";
       message[1] = e.getMessage();
-      uiHarness.openMessageDialog(message, "Unable to execute com script",
-          axisID, getManagerKey());
+      uiHarness.openMessageDialog(this, message,
+          "Unable to execute com script", axisID);
       return ProcessResult.FAILED_TO_START;
     }
     mainPanel.startProgressBar("Creating sample tomogram", axisID,
@@ -3230,8 +3218,8 @@ public final class ApplicationManager extends BaseManager implements
         String[] message = new String[2];
         message[0] = "Problem copying fiducial alignment files";
         message[1] = except.getMessage();
-        uiHarness.openMessageDialog(message,
-            "Unable to copy fiducial alignment files", axisID, getManagerKey());
+        uiHarness.openMessageDialog(this, message,
+            "Unable to copy fiducial alignment files", axisID);
       }
     }
     String threadName;
@@ -3244,8 +3232,8 @@ public final class ApplicationManager extends BaseManager implements
       String[] message = new String[2];
       message[0] = "Can not execute newst" + axisID.getExtension() + ".com";
       message[1] = e.getMessage();
-      uiHarness.openMessageDialog(message, "Unable to execute com script",
-          axisID, getManagerKey());
+      uiHarness.openMessageDialog(this, message,
+          "Unable to execute com script", axisID);
       return ProcessResult.FAILED_TO_START;
     }
     setThreadName(threadName, axisID);
@@ -3274,8 +3262,8 @@ public final class ApplicationManager extends BaseManager implements
         String[] message = new String[2];
         message[0] = "Problem copying fiducial alignment files";
         message[1] = except.getMessage();
-        uiHarness.openMessageDialog(message,
-            "Unable to copy fiducial alignment files", axisID, getManagerKey());
+        uiHarness.openMessageDialog(this, message,
+            "Unable to copy fiducial alignment files", axisID);
       }
     }
     String threadName;
@@ -3288,8 +3276,8 @@ public final class ApplicationManager extends BaseManager implements
       String[] message = new String[2];
       message[0] = "Can not execute newst" + axisID.getExtension() + ".com";
       message[1] = e.getMessage();
-      uiHarness.openMessageDialog(message, "Unable to execute com script",
-          axisID, getManagerKey());
+      uiHarness.openMessageDialog(this, message,
+          "Unable to execute com script", axisID);
       return ProcessResult.FAILED_TO_START;
     }
     setThreadName(threadName, axisID);
@@ -3313,18 +3301,17 @@ public final class ApplicationManager extends BaseManager implements
     }
     catch (AxisTypeException except) {
       except.printStackTrace();
-      uiHarness.openMessageDialog(except.getMessage(), "AxisType problem",
-          axisID, getManagerKey());
+      uiHarness.openMessageDialog(this, except.getMessage(),
+          "AxisType problem", axisID);
     }
     catch (SystemProcessException except) {
       except.printStackTrace();
-      uiHarness.openMessageDialog(except.getMessage(),
-          "Problem opening sample reconstruction", axisID, getManagerKey());
+      uiHarness.openMessageDialog(this, except.getMessage(),
+          "Problem opening sample reconstruction", axisID);
     }
     catch (IOException e) {
       e.printStackTrace();
-      uiHarness.openMessageDialog(e.getMessage(), "IO Exception", axisID,
-          getManagerKey());
+      uiHarness.openMessageDialog(this, e.getMessage(), "IO Exception", axisID);
     }
   }
 
@@ -3345,18 +3332,17 @@ public final class ApplicationManager extends BaseManager implements
     }
     catch (AxisTypeException except) {
       except.printStackTrace();
-      uiHarness.openMessageDialog(except.getMessage(), "AxisType problem",
-          axisID, getManagerKey());
+      uiHarness.openMessageDialog(this, except.getMessage(),
+          "AxisType problem", axisID);
     }
     catch (SystemProcessException except) {
       except.printStackTrace();
-      uiHarness.openMessageDialog(except.getMessage(),
-          "Problem opening sample reconstruction", axisID, getManagerKey());
+      uiHarness.openMessageDialog(this, except.getMessage(),
+          "Problem opening sample reconstruction", axisID);
     }
     catch (IOException e) {
       e.printStackTrace();
-      uiHarness.openMessageDialog(e.getMessage(), "IO Exception", axisID,
-          getManagerKey());
+      uiHarness.openMessageDialog(this, e.getMessage(), "IO Exception", axisID);
     }
   }
 
@@ -3377,8 +3363,8 @@ public final class ApplicationManager extends BaseManager implements
       String[] message = new String[2];
       message[0] = "Can not execute tomopitch" + axisID.getExtension() + ".com";
       message[1] = e.getMessage();
-      uiHarness.openMessageDialog(message, "Unable to execute com script",
-          axisID, getManagerKey());
+      uiHarness.openMessageDialog(this, message,
+          "Unable to execute com script", axisID);
       return ProcessResult.FAILED_TO_START;
     }
     mainPanel.startProgressBar("Finding sample position", axisID,
@@ -3402,16 +3388,16 @@ public final class ApplicationManager extends BaseManager implements
         imodManager.reopenLog(ImodManager.COARSE_ALIGNED_KEY, axisID);
       }
       catch (AxisTypeException e) {
-        uiHarness.openMessageDialog("Unable to reopen log file.\n"
-            + e.getMessage(), "3dmod Error", getManagerKey());
+        uiHarness.openMessageDialog(this, "Unable to reopen log file.\n"
+            + e.getMessage(), "3dmod Error");
       }
       catch (IOException e) {
-        uiHarness.openMessageDialog("Unable to reopen log file.\n"
-            + e.getMessage(), "3dmod Error", getManagerKey());
+        uiHarness.openMessageDialog(this, "Unable to reopen log file.\n"
+            + e.getMessage(), "3dmod Error");
       }
       catch (SystemProcessException e) {
-        uiHarness.openMessageDialog("Unable to reopen log file.\n"
-            + e.getMessage(), "3dmod Error", getManagerKey());
+        uiHarness.openMessageDialog(this, "Unable to reopen log file.\n"
+            + e.getMessage(), "3dmod Error");
       }
     }
     else if (processName == ProcessName.PATCHCORR) {
@@ -3481,8 +3467,8 @@ public final class ApplicationManager extends BaseManager implements
       String[] message = new String[2];
       message[0] = "Can not execute align" + axisID.getExtension() + ".com";
       message[1] = e.getMessage();
-      uiHarness.openMessageDialog(message, "Unable to execute com script",
-          axisID, getManagerKey());
+      uiHarness.openMessageDialog(this, message,
+          "Unable to execute com script", axisID);
       return ProcessResult.FAILED_TO_START;
     }
     mainPanel.startProgressBar("Calculating final alignment", axisID,
@@ -3505,16 +3491,16 @@ public final class ApplicationManager extends BaseManager implements
       String[] message = new String[2];
       message[0] = "Unable to generate prexg";
       message[1] = except.getMessage();
-      uiHarness.openMessageDialog(message, "Unable to generate prexg", axisID,
-          getManagerKey());
+      uiHarness.openMessageDialog(this, message, "Unable to generate prexg",
+          axisID);
     }
     catch (LogFile.LockException except) {
       except.printStackTrace();
       String[] message = new String[2];
       message[0] = "Unable to generate prexg";
       message[1] = except.getMessage();
-      uiHarness.openMessageDialog(message, "Unable to generate prexg", axisID,
-          getManagerKey());
+      uiHarness.openMessageDialog(this, message, "Unable to generate prexg",
+          axisID);
     }
     try {
       processMgr.generateNonFidXF(axisID);
@@ -3524,16 +3510,16 @@ public final class ApplicationManager extends BaseManager implements
       String[] message = new String[2];
       message[0] = "Unable to generate _nonfid.xf";
       message[1] = except.getMessage();
-      uiHarness.openMessageDialog(message, "Unable to generate _nonfid.xf",
-          axisID, getManagerKey());
+      uiHarness.openMessageDialog(this, message,
+          "Unable to generate _nonfid.xf", axisID);
     }
     catch (LogFile.LockException except) {
       except.printStackTrace();
       String[] message = new String[2];
       message[0] = "Unable to generate _nonfid.xf";
       message[1] = except.getMessage();
-      uiHarness.openMessageDialog(message, "Unable to generate _nonfid.xf",
-          axisID, getManagerKey());
+      uiHarness.openMessageDialog(this, message,
+          "Unable to generate _nonfid.xf", axisID);
     }
     try {
       processMgr.setupNonFiducialAlign(axisID);
@@ -3543,15 +3529,15 @@ public final class ApplicationManager extends BaseManager implements
       String[] message = new String[2];
       message[0] = "Unable to setup fiducialless align files";
       message[1] = except.getMessage();
-      uiHarness.openMessageDialog(message,
-          "Unable to setup fiducialless align files", axisID, getManagerKey());
+      uiHarness.openMessageDialog(this, message,
+          "Unable to setup fiducialless align files", axisID);
     }
     catch (InvalidParameterException except) {
       String[] message = new String[2];
       message[0] = "Unable to setup fiducialless align files";
       message[1] = except.getMessage();
-      uiHarness.openMessageDialog(message,
-          "Unable to setup fiducialless align files", axisID, getManagerKey());
+      uiHarness.openMessageDialog(this, message,
+          "Unable to setup fiducialless align files", axisID);
     }
   }
 
@@ -3577,12 +3563,11 @@ public final class ApplicationManager extends BaseManager implements
       }
       double startingAngle = tiltAngleSpec.getRangeMin();
       double step = tiltAngleSpec.getRangeStep();
-      MRCHeader rawStackHeader = MRCHeader.getInstance(this, axisID, ".st",
-          getManagerKey());
-      if (!rawStackHeader.read()) {
+      MRCHeader rawStackHeader = MRCHeader.getInstance(this, axisID, ".st");
+      if (!rawStackHeader.read(this)) {
         String message = "Unable to create " + rawtlt.getAbsolutePath();
-        uiHarness.openMessageDialog(message, "Unable to create raw tilt file",
-            axisID, getManagerKey());
+        uiHarness.openMessageDialog(this, message,
+            "Unable to create raw tilt file", axisID);
         throw new IOException(message);
       }
       int sections = rawStackHeader.getNSections();
@@ -3596,8 +3581,8 @@ public final class ApplicationManager extends BaseManager implements
       String[] message = new String[2];
       message[0] = "Unable to create " + rawtlt.getAbsolutePath();
       message[1] = except.getMessage();
-      uiHarness.openMessageDialog(message, "Unable to create raw tilt file",
-          axisID, getManagerKey());
+      uiHarness.openMessageDialog(this, message,
+          "Unable to create raw tilt file", axisID);
       throw except;
     }
     catch (InvalidParameterException except) {
@@ -3605,8 +3590,8 @@ public final class ApplicationManager extends BaseManager implements
       String[] message = new String[2];
       message[0] = "Unable to create " + rawtlt.getAbsolutePath();
       message[1] = except.getMessage();
-      uiHarness.openMessageDialog(message, "Unable to create raw tilt file",
-          axisID, getManagerKey());
+      uiHarness.openMessageDialog(this, message,
+          "Unable to create raw tilt file", axisID);
       throw except;
     }
 
@@ -3632,9 +3617,9 @@ public final class ApplicationManager extends BaseManager implements
   public ConstNewstParam updateNewstCom(NewstackDisplay display, AxisID axisID) {
     // Set a reference to the correct object
     if (display == null) {
-      UIHarness.INSTANCE.openMessageDialog(
+      UIHarness.INSTANCE.openMessageDialog(this,
           "Can not update newst?.com without an active display",
-          "Program logic error", axisID, getManagerKey());
+          "Program logic error", axisID);
       return null;
     }
     NewstParam newstParam = null;
@@ -3653,8 +3638,8 @@ public final class ApplicationManager extends BaseManager implements
       errorMessage[0] = "newst Parameter Syntax Error";
       errorMessage[1] = "Axis: " + axisID.getExtension();
       errorMessage[2] = except.getMessage();
-      UIHarness.INSTANCE.openMessageDialog(errorMessage,
-          "Newst Parameter Syntax Error", axisID, getManagerKey());
+      UIHarness.INSTANCE.openMessageDialog(this, errorMessage,
+          "Newst Parameter Syntax Error", axisID);
       return null;
     }
     catch (FortranInputSyntaxException except) {
@@ -3662,20 +3647,20 @@ public final class ApplicationManager extends BaseManager implements
       errorMessage[0] = "newst Parameter Syntax Error";
       errorMessage[1] = "Axis: " + axisID.getExtension();
       errorMessage[2] = except.getMessage();
-      UIHarness.INSTANCE.openMessageDialog(errorMessage,
-          "Newst Parameter Syntax Error", axisID, getManagerKey());
+      UIHarness.INSTANCE.openMessageDialog(this, errorMessage,
+          "Newst Parameter Syntax Error", axisID);
       return null;
     }
     catch (InvalidParameterException e) {
       e.printStackTrace();
-      uiHarness.openMessageDialog("Unable to update newst com:  "
-          + e.getMessage(), "Etomo Error", axisID, getManagerKey());
+      uiHarness.openMessageDialog(this, "Unable to update newst com:  "
+          + e.getMessage(), "Etomo Error", axisID);
       return null;
     }
     catch (IOException e) {
       e.printStackTrace();
-      uiHarness.openMessageDialog("Unable to update newst com:  "
-          + e.getMessage(), "Etomo Error", axisID, getManagerKey());
+      uiHarness.openMessageDialog(this, "Unable to update newst com:  "
+          + e.getMessage(), "Etomo Error", axisID);
       return null;
     }
     return newstParam;
@@ -3691,9 +3676,9 @@ public final class ApplicationManager extends BaseManager implements
       AxisID axisID) {
     // Set a reference to the correct object
     if (display == null) {
-      UIHarness.INSTANCE.openMessageDialog(
+      UIHarness.INSTANCE.openMessageDialog(this,
           "Can not update newst3dfind?.com without an active display",
-          "Program logic error", axisID, getManagerKey());
+          "Program logic error", axisID);
       return null;
     }
     NewstParam newstParam = null;
@@ -3707,8 +3692,8 @@ public final class ApplicationManager extends BaseManager implements
       errorMessage[0] = "newst Parameter Syntax Error";
       errorMessage[1] = "Axis: " + axisID.getExtension();
       errorMessage[2] = except.getMessage();
-      UIHarness.INSTANCE.openMessageDialog(errorMessage,
-          "Newst Parameter Syntax Error", axisID, getManagerKey());
+      UIHarness.INSTANCE.openMessageDialog(this, errorMessage,
+          "Newst Parameter Syntax Error", axisID);
       return null;
     }
     catch (FortranInputSyntaxException except) {
@@ -3716,20 +3701,20 @@ public final class ApplicationManager extends BaseManager implements
       errorMessage[0] = "newst Parameter Syntax Error";
       errorMessage[1] = "Axis: " + axisID.getExtension();
       errorMessage[2] = except.getMessage();
-      UIHarness.INSTANCE.openMessageDialog(errorMessage,
-          "Newst Parameter Syntax Error", axisID, getManagerKey());
+      UIHarness.INSTANCE.openMessageDialog(this, errorMessage,
+          "Newst Parameter Syntax Error", axisID);
       return null;
     }
     catch (InvalidParameterException e) {
       e.printStackTrace();
-      uiHarness.openMessageDialog("Unable to update newst 3dfind com:  "
-          + e.getMessage(), "Etomo Error", axisID, getManagerKey());
+      uiHarness.openMessageDialog(this, "Unable to update newst 3dfind com:  "
+          + e.getMessage(), "Etomo Error", axisID);
       return null;
     }
     catch (IOException e) {
       e.printStackTrace();
-      uiHarness.openMessageDialog("Unable to update newst 3dfind com:  "
-          + e.getMessage(), "Etomo Error", axisID, getManagerKey());
+      uiHarness.openMessageDialog(this, "Unable to update newst 3dfind com:  "
+          + e.getMessage(), "Etomo Error", axisID);
       return null;
     }
     //Update mrctaper
@@ -3815,16 +3800,16 @@ public final class ApplicationManager extends BaseManager implements
       param = updateBlend3dFindCom(blendmontDisplay, axisID);
     }
     catch (FortranInputSyntaxException e) {
-      UIHarness.INSTANCE.openMessageDialog(e.getMessage(), "Update Com Error",
-          getManagerKey());
+      UIHarness.INSTANCE.openMessageDialog(this, e.getMessage(),
+          "Update Com Error");
     }
     catch (InvalidParameterException e) {
-      UIHarness.INSTANCE.openMessageDialog(e.getMessage(), "Update Com Error",
-          getManagerKey());
+      UIHarness.INSTANCE.openMessageDialog(this, e.getMessage(),
+          "Update Com Error");
     }
     catch (IOException e) {
-      UIHarness.INSTANCE.openMessageDialog(e.getMessage(), "Update Com Error",
-          getManagerKey());
+      UIHarness.INSTANCE.openMessageDialog(this, e.getMessage(),
+          "Update Com Error");
     }
     processSeries.setRun3dmodDeferred(deferred3dmodButton, run3dmodMenuOptions);
     processTrack.setState(ProcessState.INPROGRESS, axisID, dialogType);
@@ -3843,8 +3828,8 @@ public final class ApplicationManager extends BaseManager implements
         String[] message = new String[2];
         message[0] = "Problem copying fiducial alignment files";
         message[1] = except.getMessage();
-        uiHarness.openMessageDialog(message,
-            "Unable to copy fiducial alignment files", axisID, getManagerKey());
+        uiHarness.openMessageDialog(this, message,
+            "Unable to copy fiducial alignment files", axisID);
       }
     }
     String threadName = null;
@@ -3857,8 +3842,8 @@ public final class ApplicationManager extends BaseManager implements
       String[] message = new String[2];
       message[0] = "Can not execute blend_3dfind";
       message[1] = e.getMessage();
-      uiHarness.openMessageDialog(message, "Unable to execute com script",
-          axisID, getManagerKey());
+      uiHarness.openMessageDialog(this, message,
+          "Unable to execute com script", axisID);
       sendMsg(ProcessResult.FAILED_TO_START, processResultDisplay);
     }
     setThreadName(threadName, axisID);
@@ -3895,16 +3880,16 @@ public final class ApplicationManager extends BaseManager implements
       param = updateBlendCom(blendmontDisplay, axisID);
     }
     catch (FortranInputSyntaxException e) {
-      UIHarness.INSTANCE.openMessageDialog(e.getMessage(), "Update Com Error",
-          getManagerKey());
+      UIHarness.INSTANCE.openMessageDialog(this, e.getMessage(),
+          "Update Com Error");
     }
     catch (InvalidParameterException e) {
-      UIHarness.INSTANCE.openMessageDialog(e.getMessage(), "Update Com Error",
-          getManagerKey());
+      UIHarness.INSTANCE.openMessageDialog(this, e.getMessage(),
+          "Update Com Error");
     }
     catch (IOException e) {
-      UIHarness.INSTANCE.openMessageDialog(e.getMessage(), "Update Com Error",
-          getManagerKey());
+      UIHarness.INSTANCE.openMessageDialog(this, e.getMessage(),
+          "Update Com Error");
     }
     processSeries.setRun3dmodDeferred(deferred3dmodButton, run3dmodMenuOptions);
     processTrack.setState(ProcessState.INPROGRESS, axisID, dialogType);
@@ -3923,8 +3908,8 @@ public final class ApplicationManager extends BaseManager implements
         String[] message = new String[2];
         message[0] = "Problem copying fiducial alignment files";
         message[1] = except.getMessage();
-        uiHarness.openMessageDialog(message,
-            "Unable to copy fiducial alignment files", axisID, getManagerKey());
+        uiHarness.openMessageDialog(this, message,
+            "Unable to copy fiducial alignment files", axisID);
       }
     }
     String threadName = null;
@@ -3937,8 +3922,8 @@ public final class ApplicationManager extends BaseManager implements
       String[] message = new String[2];
       message[0] = "Can not execute blend";
       message[1] = e.getMessage();
-      uiHarness.openMessageDialog(message, "Unable to execute com script",
-          axisID, getManagerKey());
+      uiHarness.openMessageDialog(this, message,
+          "Unable to execute com script", axisID);
       sendMsg(ProcessResult.FAILED_TO_START, processResultDisplay);
     }
     setThreadName(threadName, axisID);
@@ -4004,8 +3989,8 @@ public final class ApplicationManager extends BaseManager implements
         String[] message = new String[2];
         message[0] = "Problem copying fiducial alignment files";
         message[1] = except.getMessage();
-        uiHarness.openMessageDialog(message,
-            "Unable to copy fiducial alignment files", axisID, getManagerKey());
+        uiHarness.openMessageDialog(this, message,
+            "Unable to copy fiducial alignment files", axisID);
       }
     }
     String threadName = null;
@@ -4018,8 +4003,8 @@ public final class ApplicationManager extends BaseManager implements
       String[] message = new String[2];
       message[0] = "Can not execute newst" + axisID.getExtension() + ".com";
       message[1] = e.getMessage();
-      uiHarness.openMessageDialog(message, "Unable to execute com script",
-          axisID, getManagerKey());
+      uiHarness.openMessageDialog(this, message,
+          "Unable to execute com script", axisID);
       sendMsg(ProcessResult.FAILED_TO_START, processResultDisplay);
     }
     setThreadName(threadName, axisID);
@@ -4074,8 +4059,8 @@ public final class ApplicationManager extends BaseManager implements
         String[] message = new String[2];
         message[0] = "Problem copying fiducial alignment files";
         message[1] = except.getMessage();
-        uiHarness.openMessageDialog(message,
-            "Unable to copy fiducial alignment files", axisID, getManagerKey());
+        uiHarness.openMessageDialog(this, message,
+            "Unable to copy fiducial alignment files", axisID);
       }
     }
     String threadName = null;
@@ -4088,8 +4073,8 @@ public final class ApplicationManager extends BaseManager implements
       String[] message = new String[2];
       message[0] = "Can not execute newst" + axisID.getExtension() + ".com";
       message[1] = e.getMessage();
-      uiHarness.openMessageDialog(message, "Unable to execute com script",
-          axisID, getManagerKey());
+      uiHarness.openMessageDialog(this, message,
+          "Unable to execute com script", axisID);
       sendMsg(ProcessResult.FAILED_TO_START, processResultDisplay);
     }
     setThreadName(threadName, axisID);
@@ -4140,8 +4125,8 @@ public final class ApplicationManager extends BaseManager implements
       String[] message = new String[2];
       message[0] = "Can not execute newst" + axisID.getExtension() + ".com";
       message[1] = e.getMessage();
-      uiHarness.openMessageDialog(message, "Unable to execute com script",
-          axisID, getManagerKey());
+      uiHarness.openMessageDialog(this, message,
+          "Unable to execute com script", axisID);
       sendMsg(ProcessResult.FAILED_TO_START, processResultDisplay);
     }
     setThreadName(threadName, axisID);
@@ -4193,8 +4178,8 @@ public final class ApplicationManager extends BaseManager implements
       String[] message = new String[2];
       message[0] = "Can not execute mtffilter" + axisID.getExtension() + ".com";
       message[1] = e.getMessage();
-      uiHarness.openMessageDialog(message, "Unable to execute com script",
-          axisID, getManagerKey());
+      uiHarness.openMessageDialog(this, message,
+          "Unable to execute com script", axisID);
       return ProcessResult.FAILED_TO_START;
     }
     setThreadName(threadName, axisID);
@@ -4212,8 +4197,8 @@ public final class ApplicationManager extends BaseManager implements
       message[0] = "Can not execute "
           + ProcessName.CTF_PLOTTER.getComscript(axisID);
       message[1] = e.getMessage();
-      uiHarness.openMessageDialog(message, "Unable to execute com script",
-          axisID, getManagerKey());
+      uiHarness.openMessageDialog(this, message,
+          "Unable to execute com script", axisID);
       return ProcessResult.FAILED_TO_START;
     }
     processTrack.setFinalAlignedStackState(ProcessState.INPROGRESS, axisID);
@@ -4236,8 +4221,8 @@ public final class ApplicationManager extends BaseManager implements
       message[0] = "Can not execute "
           + ProcessName.CTF_CORRECTION.getComscript(axisID);
       message[1] = e.getMessage();
-      uiHarness.openMessageDialog(message, "Unable to execute com script",
-          axisID, getManagerKey());
+      uiHarness.openMessageDialog(this, message,
+          "Unable to execute com script", axisID);
       return ProcessResult.FAILED_TO_START;
     }
     setThreadName(threadName, axisID);
@@ -4259,8 +4244,8 @@ public final class ApplicationManager extends BaseManager implements
       String[] message = new String[2];
       message[0] = "Can not execute tilt" + axisID.getExtension() + ".com";
       message[1] = e.getMessage();
-      uiHarness.openMessageDialog(message, "Unable to execute com script",
-          axisID, getManagerKey());
+      uiHarness.openMessageDialog(this, message,
+          "Unable to execute com script", axisID);
       return ProcessResult.FAILED_TO_START;
     }
     setThreadName(threadName, axisID);
@@ -4358,8 +4343,8 @@ public final class ApplicationManager extends BaseManager implements
       errorMessage[0] = "Missing trial tomogram filename:";
       errorMessage[1] = "A filename for the trial tomogram must be entered in the Trial"
           + " tomogram filename edit box.";
-      UIHarness.INSTANCE.openMessageDialog(errorMessage,
-          "Tilt Parameter Syntax Error", axisID, getManagerKey());
+      UIHarness.INSTANCE.openMessageDialog(this, errorMessage,
+          "Tilt Parameter Syntax Error", axisID);
       return;
     }
     if (!display.containsTrialTomogramName(trialTomogramName)) {
@@ -4476,12 +4461,13 @@ public final class ApplicationManager extends BaseManager implements
     File tilt3dFindReprojectCom = new File(getPropertyUserDir(),
         ProcessName.TILT_3D_FIND_REPROJECT.getComscript(axisID));
     if (!tilt3dFindReprojectCom.exists()) {
-      UIHarness.INSTANCE.openMessageDialog(tilt3dFindReprojectCom.getName()
+      UIHarness.INSTANCE.openMessageDialog(this, tilt3dFindReprojectCom
+          .getName()
           + " does not exist.  Run "
           + FinalAlignedStackDialog.getTilt3dFindButtonLabel()
           + " before running "
           + FinalAlignedStackDialog.getReprojectModelButtonLabel(),
-          "Entry Error", axisID, getManagerKey());
+          "Entry Error", axisID);
       sendMsg(ProcessResult.FAILED_TO_START, processResultDisplay);
       return;
     }
@@ -4592,8 +4578,8 @@ public final class ApplicationManager extends BaseManager implements
       message[0] = "Can not execute tilt_3dfind" + axisID.getExtension()
           + ".com";
       message[1] = e.getMessage();
-      uiHarness.openMessageDialog(message, "Unable to execute com script",
-          axisID, getManagerKey());
+      uiHarness.openMessageDialog(this, message,
+          "Unable to execute com script", axisID);
       return ProcessResult.FAILED_TO_START;
     }
     setThreadName(threadName, axisID);
@@ -4624,8 +4610,8 @@ public final class ApplicationManager extends BaseManager implements
       message[0] = "Can not execute tilt_3dfind" + axisID.getExtension()
           + ".com";
       message[1] = e.getMessage();
-      uiHarness.openMessageDialog(message, "Unable to execute com script",
-          axisID, getManagerKey());
+      uiHarness.openMessageDialog(this, message,
+          "Unable to execute com script", axisID);
       return ProcessResult.FAILED_TO_START;
     }
     setThreadName(threadName, axisID);
@@ -4653,8 +4639,8 @@ public final class ApplicationManager extends BaseManager implements
       String[] message = new String[2];
       message[0] = "Can not execute tilt" + axisID.getExtension() + ".com";
       message[1] = e.getMessage();
-      uiHarness.openMessageDialog(message, "Unable to execute com script",
-          axisID, getManagerKey());
+      uiHarness.openMessageDialog(this, message,
+          "Unable to execute com script", axisID);
       return ProcessResult.FAILED_TO_START;
     }
     setThreadName(threadName, axisID);
@@ -4695,8 +4681,7 @@ public final class ApplicationManager extends BaseManager implements
     if (tilt3dFindReprojectCom.exists()) {
       //Backup tilt_3dfind_reproject.com
       try {
-        LogFile logFile = LogFile.getInstance(tilt3dFindReprojectCom,
-            getManagerKey());
+        LogFile logFile = LogFile.getInstance(tilt3dFindReprojectCom);
         logFile.backup();
       }
       catch (LogFile.LockException e) {
@@ -4749,8 +4734,8 @@ public final class ApplicationManager extends BaseManager implements
       errorMessage[0] = "Tilt Parameter Syntax Error";
       errorMessage[1] = "Axis: " + axisID.getExtension();
       errorMessage[2] = except.getMessage();
-      UIHarness.INSTANCE.openMessageDialog(errorMessage,
-          "Tilt Parameter Syntax Error", axisID, getManagerKey());
+      UIHarness.INSTANCE.openMessageDialog(this, errorMessage,
+          "Tilt Parameter Syntax Error", axisID);
       return null;
     }
     catch (InvalidParameterException except) {
@@ -4758,8 +4743,8 @@ public final class ApplicationManager extends BaseManager implements
       errorMessage[0] = "Tilt Parameter Syntax Error";
       errorMessage[1] = "Axis: " + axisID.getExtension();
       errorMessage[2] = except.getMessage();
-      UIHarness.INSTANCE.openMessageDialog(errorMessage,
-          "Tilt Parameter Syntax Error", axisID, getManagerKey());
+      UIHarness.INSTANCE.openMessageDialog(this, errorMessage,
+          "Tilt Parameter Syntax Error", axisID);
       return null;
     }
     catch (IOException e) {
@@ -4767,8 +4752,8 @@ public final class ApplicationManager extends BaseManager implements
       errorMessage[0] = "Tilt Parameter";
       errorMessage[1] = "Axis: " + axisID.getExtension();
       errorMessage[2] = e.getMessage();
-      UIHarness.INSTANCE.openMessageDialog(errorMessage, "Tilt Parameter",
-          axisID, getManagerKey());
+      UIHarness.INSTANCE.openMessageDialog(this, errorMessage,
+          "Tilt Parameter", axisID);
       return null;
     }
     return tiltParam;
@@ -4783,9 +4768,9 @@ public final class ApplicationManager extends BaseManager implements
   public ConstTiltParam updateTilt3dFindCom(TiltDisplay display, AxisID axisID) {
     // Set a reference to the correct object
     if (display == null) {
-      UIHarness.INSTANCE.openMessageDialog(
+      UIHarness.INSTANCE.openMessageDialog(this,
           "Can not update tilt_3dfind?.com without an active display",
-          "Program logic error", axisID, getManagerKey());
+          "Program logic error", axisID);
       return null;
     }
     TiltParam tiltParam = null;
@@ -4802,8 +4787,8 @@ public final class ApplicationManager extends BaseManager implements
       errorMessage[0] = "Tilt Parameter Syntax Error";
       errorMessage[1] = "Axis: " + axisID.getExtension();
       errorMessage[2] = except.getMessage();
-      UIHarness.INSTANCE.openMessageDialog(errorMessage,
-          "Tilt Parameter Syntax Error", axisID, getManagerKey());
+      UIHarness.INSTANCE.openMessageDialog(this, errorMessage,
+          "Tilt Parameter Syntax Error", axisID);
       return null;
     }
     catch (InvalidParameterException except) {
@@ -4811,8 +4796,8 @@ public final class ApplicationManager extends BaseManager implements
       errorMessage[0] = "Tilt Parameter Syntax Error";
       errorMessage[1] = "Axis: " + axisID.getExtension();
       errorMessage[2] = except.getMessage();
-      UIHarness.INSTANCE.openMessageDialog(errorMessage,
-          "Tilt Parameter Syntax Error", axisID, getManagerKey());
+      UIHarness.INSTANCE.openMessageDialog(this, errorMessage,
+          "Tilt Parameter Syntax Error", axisID);
       return null;
     }
     catch (IOException e) {
@@ -4820,8 +4805,8 @@ public final class ApplicationManager extends BaseManager implements
       errorMessage[0] = "Tilt Parameter";
       errorMessage[1] = "Axis: " + axisID.getExtension();
       errorMessage[2] = e.getMessage();
-      UIHarness.INSTANCE.openMessageDialog(errorMessage, "Tilt Parameter",
-          axisID, getManagerKey());
+      UIHarness.INSTANCE.openMessageDialog(this, errorMessage,
+          "Tilt Parameter", axisID);
       return null;
     }
     return tiltParam;
@@ -4838,8 +4823,9 @@ public final class ApplicationManager extends BaseManager implements
     if (display == null) {
       UIHarness.INSTANCE
           .openMessageDialog(
+              this,
               "Can not update tilt?.com without an active tomogram generation dialog",
-              "Program logic error", axisID, getManagerKey());
+              "Program logic error", axisID);
       return null;
     }
     TiltParam tiltParam = null;
@@ -4873,8 +4859,8 @@ public final class ApplicationManager extends BaseManager implements
       errorMessage[0] = "Tilt Parameter Syntax Error";
       errorMessage[1] = "Axis: " + axisID.getExtension();
       errorMessage[2] = except.getMessage();
-      UIHarness.INSTANCE.openMessageDialog(errorMessage,
-          "Tilt Parameter Syntax Error", axisID, getManagerKey());
+      UIHarness.INSTANCE.openMessageDialog(this, errorMessage,
+          "Tilt Parameter Syntax Error", axisID);
       return null;
     }
     catch (InvalidParameterException except) {
@@ -4882,8 +4868,8 @@ public final class ApplicationManager extends BaseManager implements
       errorMessage[0] = "Tilt Parameter Syntax Error";
       errorMessage[1] = "Axis: " + axisID.getExtension();
       errorMessage[2] = except.getMessage();
-      UIHarness.INSTANCE.openMessageDialog(errorMessage,
-          "Tilt Parameter Syntax Error", axisID, getManagerKey());
+      UIHarness.INSTANCE.openMessageDialog(this, errorMessage,
+          "Tilt Parameter Syntax Error", axisID);
       return null;
     }
     catch (IOException e) {
@@ -4891,8 +4877,8 @@ public final class ApplicationManager extends BaseManager implements
       errorMessage[0] = "Tilt Parameter";
       errorMessage[1] = "Axis: " + axisID.getExtension();
       errorMessage[2] = e.getMessage();
-      UIHarness.INSTANCE.openMessageDialog(errorMessage, "Tilt Parameter",
-          axisID, getManagerKey());
+      UIHarness.INSTANCE.openMessageDialog(this, errorMessage,
+          "Tilt Parameter", axisID);
       return null;
     }
     return tiltParam;
@@ -4909,8 +4895,9 @@ public final class ApplicationManager extends BaseManager implements
     if (display == null) {
       UIHarness.INSTANCE
           .openMessageDialog(
+              this,
               "Can not update tilt?.com without an active tomogram generation dialog",
-              "Program logic error", axisID, getManagerKey());
+              "Program logic error", axisID);
       return null;
     }
     TiltParam tiltParam = null;
@@ -4938,8 +4925,8 @@ public final class ApplicationManager extends BaseManager implements
       errorMessage[0] = "Tilt Parameter Syntax Error";
       errorMessage[1] = "Axis: " + axisID.getExtension();
       errorMessage[2] = except.getMessage();
-      UIHarness.INSTANCE.openMessageDialog(errorMessage,
-          "Tilt Parameter Syntax Error", axisID, getManagerKey());
+      UIHarness.INSTANCE.openMessageDialog(this, errorMessage,
+          "Tilt Parameter Syntax Error", axisID);
       return null;
     }
     catch (InvalidParameterException except) {
@@ -4947,8 +4934,8 @@ public final class ApplicationManager extends BaseManager implements
       errorMessage[0] = "Tilt Parameter Syntax Error";
       errorMessage[1] = "Axis: " + axisID.getExtension();
       errorMessage[2] = except.getMessage();
-      UIHarness.INSTANCE.openMessageDialog(errorMessage,
-          "Tilt Parameter Syntax Error", axisID, getManagerKey());
+      UIHarness.INSTANCE.openMessageDialog(this, errorMessage,
+          "Tilt Parameter Syntax Error", axisID);
       return null;
     }
     catch (IOException e) {
@@ -4956,8 +4943,8 @@ public final class ApplicationManager extends BaseManager implements
       errorMessage[0] = "Tilt Parameter";
       errorMessage[1] = "Axis: " + axisID.getExtension();
       errorMessage[2] = e.getMessage();
-      UIHarness.INSTANCE.openMessageDialog(errorMessage, "Tilt Parameter",
-          axisID, getManagerKey());
+      UIHarness.INSTANCE.openMessageDialog(this, errorMessage,
+          "Tilt Parameter", axisID);
       return null;
     }
     return tiltParam;
@@ -4972,8 +4959,8 @@ public final class ApplicationManager extends BaseManager implements
     if (!tiltDisplay.getParameters(param)) {
       return null;
     }
-    param.setSeparateChunks(CpuAdoc.INSTANCE.isSeparateChunks(axisID,
-        propertyUserDir, getManagerKey()));
+    param.setSeparateChunks(CpuAdoc.INSTANCE.isSeparateChunks(this, axisID,
+        propertyUserDir));
     return param;
   }
 
@@ -4988,18 +4975,17 @@ public final class ApplicationManager extends BaseManager implements
     }
     catch (AxisTypeException except) {
       except.printStackTrace();
-      uiHarness.openMessageDialog(except.getMessage(), "AxisType problem",
-          axisID, getManagerKey());
+      uiHarness.openMessageDialog(this, except.getMessage(),
+          "AxisType problem", axisID);
     }
     catch (SystemProcessException except) {
       except.printStackTrace();
-      uiHarness.openMessageDialog(except.getMessage(),
-          "Can't open 3dmod with the tomogram", axisID, getManagerKey());
+      uiHarness.openMessageDialog(this, except.getMessage(),
+          "Can't open 3dmod with the tomogram", axisID);
     }
     catch (IOException e) {
       e.printStackTrace();
-      uiHarness.openMessageDialog(e.getMessage(), "IO Exception", axisID,
-          getManagerKey());
+      uiHarness.openMessageDialog(this, e.getMessage(), "IO Exception", axisID);
     }
   }
 
@@ -5015,18 +5001,17 @@ public final class ApplicationManager extends BaseManager implements
     }
     catch (AxisTypeException except) {
       except.printStackTrace();
-      uiHarness.openMessageDialog(except.getMessage(), "AxisType problem",
-          axisID, getManagerKey());
+      uiHarness.openMessageDialog(this, except.getMessage(),
+          "AxisType problem", axisID);
     }
     catch (SystemProcessException except) {
       except.printStackTrace();
-      uiHarness.openMessageDialog(except.getMessage(), "Can't open 3dmod",
-          axisID, getManagerKey());
+      uiHarness.openMessageDialog(this, except.getMessage(),
+          "Can't open 3dmod", axisID);
     }
     catch (IOException e) {
       e.printStackTrace();
-      uiHarness.openMessageDialog(e.getMessage(), "IO Exception", axisID,
-          getManagerKey());
+      uiHarness.openMessageDialog(this, e.getMessage(), "IO Exception", axisID);
     }
   }
 
@@ -5043,18 +5028,17 @@ public final class ApplicationManager extends BaseManager implements
     }
     catch (AxisTypeException except) {
       except.printStackTrace();
-      uiHarness.openMessageDialog(except.getMessage(), "AxisType problem",
-          axisID, getManagerKey());
+      uiHarness.openMessageDialog(this, except.getMessage(),
+          "AxisType problem", axisID);
     }
     catch (SystemProcessException except) {
       except.printStackTrace();
-      uiHarness.openMessageDialog(except.getMessage(), "Can't open 3dmod",
-          axisID, getManagerKey());
+      uiHarness.openMessageDialog(this, except.getMessage(),
+          "Can't open 3dmod", axisID);
     }
     catch (IOException e) {
       e.printStackTrace();
-      uiHarness.openMessageDialog(e.getMessage(), "IO Exception", axisID,
-          getManagerKey());
+      uiHarness.openMessageDialog(this, e.getMessage(), "IO Exception", axisID);
     }
   }
 
@@ -5078,18 +5062,17 @@ public final class ApplicationManager extends BaseManager implements
     }
     catch (AxisTypeException except) {
       except.printStackTrace();
-      uiHarness.openMessageDialog(except.getMessage(), "AxisType problem",
-          axisID, getManagerKey());
+      uiHarness.openMessageDialog(this, except.getMessage(),
+          "AxisType problem", axisID);
     }
     catch (SystemProcessException except) {
       except.printStackTrace();
-      uiHarness.openMessageDialog(except.getMessage(), "Can't open 3dmod",
-          axisID, getManagerKey());
+      uiHarness.openMessageDialog(this, except.getMessage(),
+          "Can't open 3dmod", axisID);
     }
     catch (IOException e) {
       e.printStackTrace();
-      uiHarness.openMessageDialog(e.getMessage(), "IO Exception", axisID,
-          getManagerKey());
+      uiHarness.openMessageDialog(this, e.getMessage(), "IO Exception", axisID);
     }
   }
 
@@ -5110,18 +5093,17 @@ public final class ApplicationManager extends BaseManager implements
       String message[] = new String[2];
       message[0] = "Unable to open specified tomogram:" + trialTomogramName;
       message[1] = "Does it exist in the working directory?";
-      uiHarness.openMessageDialog(except.getMessage(),
-          "Can't open 3dmod with the tomogram", axisID, getManagerKey());
+      uiHarness.openMessageDialog(this, except.getMessage(),
+          "Can't open 3dmod with the tomogram", axisID);
     }
     catch (AxisTypeException except) {
       except.printStackTrace();
-      uiHarness.openMessageDialog(except.getMessage(), "AxisType problem",
-          axisID, getManagerKey());
+      uiHarness.openMessageDialog(this, except.getMessage(),
+          "AxisType problem", axisID);
     }
     catch (IOException e) {
       e.printStackTrace();
-      uiHarness.openMessageDialog(e.getMessage(), "IO Exception", axisID,
-          getManagerKey());
+      uiHarness.openMessageDialog(this, e.getMessage(), "IO Exception", axisID);
     }
   }
 
@@ -5133,8 +5115,8 @@ public final class ApplicationManager extends BaseManager implements
       String message[] = new String[2];
       message[0] = "The specified tomogram does not exist:" + trialTomogramName;
       message[1] = "It must be calculated before commiting";
-      uiHarness.openMessageDialog(message, "Can't rename tomogram", axisID,
-          getManagerKey());
+      uiHarness.openMessageDialog(this, message, "Can't rename tomogram",
+          axisID);
       return ProcessResult.FAILED_TO_START;
     }
     // rename the trial tomogram to the output filename of appropriate
@@ -5156,9 +5138,9 @@ public final class ApplicationManager extends BaseManager implements
             + "~"));
       }
       catch (IOException except) {
-        uiHarness.openMessageDialog("Unable to backup "
+        uiHarness.openMessageDialog(this, "Unable to backup "
             + outputFile.getAbsolutePath() + "\n" + except.getMessage(),
-            "File Rename Error", axisID, getManagerKey());
+            "File Rename Error", axisID);
         mainPanel.stopProgressBar(axisID);
         return ProcessResult.FAILED;
       }
@@ -5167,8 +5149,8 @@ public final class ApplicationManager extends BaseManager implements
       Utilities.renameFile(trialTomogramFile, outputFile);
     }
     catch (IOException except) {
-      uiHarness.openMessageDialog(except.getMessage(), "File Rename Error",
-          axisID, getManagerKey());
+      uiHarness.openMessageDialog(this, except.getMessage(),
+          "File Rename Error", axisID);
       mainPanel.stopProgressBar(axisID);
       return ProcessResult.FAILED;
     }
@@ -5213,8 +5195,8 @@ public final class ApplicationManager extends BaseManager implements
         if (Utilities.isWindowsOS()) {
           message.append("\nIf this file is open in 3dmod, close 3dmod.");
         }
-        uiHarness.openMessageDialog(message.toString(), "Can not delete file",
-            axisID, getManagerKey());
+        uiHarness.openMessageDialog(this, message.toString(),
+            "Can not delete file", axisID);
       }
     }
     mainPanel.stopProgressBar(axisID);
@@ -5242,17 +5224,16 @@ public final class ApplicationManager extends BaseManager implements
   public void openTomogramCombinationDialog() {
     // Check to see if the com files are present otherwise pop up a dialog
     // box informing the user to run the setup process
-    if (!UIExpertUtilities.INSTANCE.areScriptsCreated(metaData, AxisID.ONLY,
-        getManagerKey())) {
+    if (!UIExpertUtilities.INSTANCE.areScriptsCreated(this, metaData,
+        AxisID.ONLY)) {
       mainPanel.showBlankProcess(AxisID.ONLY);
       return;
     }
     // Verify that this process is applicable
     if (metaData.getAxisType() == AxisType.SINGLE_AXIS) {
-      uiHarness.openMessageDialog(
+      uiHarness.openMessageDialog(this,
           "This step is valid only for a dual axis tomogram",
-          "Invalid tomogram combination selection", AxisID.ONLY,
-          getManagerKey());
+          "Invalid tomogram combination selection", AxisID.ONLY);
       mainPanel.showBlankProcess(AxisID.ONLY);
       return;
     }
@@ -5290,16 +5271,16 @@ public final class ApplicationManager extends BaseManager implements
           detailedMessage[1] = "Are both tomograms computed and available?";
           detailedMessage[2] = "";
           detailedMessage[3] = except.getMessage();
-          uiHarness.openMessageDialog(detailedMessage, "Invalid parameter: "
-              + recFileName, AxisID.ONLY, getManagerKey());
+          uiHarness.openMessageDialog(this, detailedMessage,
+              "Invalid parameter: " + recFileName, AxisID.ONLY);
           // Delete the dialog
           tomogramCombinationDialog = null;
           mainPanel.showBlankProcess(AxisID.ONLY);
           return;
         }
         catch (IOException except) {
-          uiHarness.openMessageDialog(except.getMessage(), "IO Error: "
-              + recFileName, AxisID.ONLY, getManagerKey());
+          uiHarness.openMessageDialog(this, except.getMessage(), "IO Error: "
+              + recFileName, AxisID.ONLY);
           // Delete the dialog
           tomogramCombinationDialog = null;
           mainPanel.showBlankProcess(AxisID.ONLY);
@@ -5394,19 +5375,18 @@ public final class ApplicationManager extends BaseManager implements
     }
     catch (SystemProcessException except) {
       except.printStackTrace();
-      uiHarness.openMessageDialog(except.getMessage(),
-          "Can't open 3dmod on tomograms for matching models", AxisID.ONLY,
-          getManagerKey());
+      uiHarness.openMessageDialog(this, except.getMessage(),
+          "Can't open 3dmod on tomograms for matching models", AxisID.ONLY);
     }
     catch (AxisTypeException except) {
       except.printStackTrace();
-      uiHarness.openMessageDialog(except.getMessage(), "AxisType problem",
-          AxisID.ONLY, getManagerKey());
+      uiHarness.openMessageDialog(this, except.getMessage(),
+          "AxisType problem", AxisID.ONLY);
     }
     catch (IOException e) {
       e.printStackTrace();
-      uiHarness.openMessageDialog(e.getMessage(), "IO Exception", AxisID.ONLY,
-          getManagerKey());
+      uiHarness.openMessageDialog(this, e.getMessage(), "IO Exception",
+          AxisID.ONLY);
     }
   }
 
@@ -5419,19 +5399,18 @@ public final class ApplicationManager extends BaseManager implements
     }
     catch (SystemProcessException except) {
       except.printStackTrace();
-      uiHarness.openMessageDialog(except.getMessage(),
-          "Can't open 3dmod on matchcheck.mat or matchcheck.rec", AxisID.ONLY,
-          getManagerKey());
+      uiHarness.openMessageDialog(this, except.getMessage(),
+          "Can't open 3dmod on matchcheck.mat or matchcheck.rec", AxisID.ONLY);
     }
     catch (AxisTypeException except) {
       except.printStackTrace();
-      uiHarness.openMessageDialog(except.getMessage(), "AxisType problem",
-          AxisID.ONLY, getManagerKey());
+      uiHarness.openMessageDialog(this, except.getMessage(),
+          "AxisType problem", AxisID.ONLY);
     }
     catch (IOException e) {
       e.printStackTrace();
-      uiHarness.openMessageDialog(e.getMessage(), "IO Exception", AxisID.ONLY,
-          getManagerKey());
+      uiHarness.openMessageDialog(this, e.getMessage(), "IO Exception",
+          AxisID.ONLY);
     }
   }
 
@@ -5459,19 +5438,17 @@ public final class ApplicationManager extends BaseManager implements
     }
     catch (SystemProcessException except) {
       except.printStackTrace();
-      uiHarness.openMessageDialog(except.getMessage(),
-          "Can't open 3dmod on tomogram for patch region models", AxisID.ONLY,
-          getManagerKey());
+      uiHarness.openMessageDialog(this, except.getMessage(),
+          "Can't open 3dmod on tomogram for patch region models", AxisID.ONLY);
     }
     catch (AxisTypeException except) {
       except.printStackTrace();
-      uiHarness.openMessageDialog(except.getMessage(), "AxisType problem",
-          AxisID.ONLY, getManagerKey());
+      uiHarness.openMessageDialog(this, except.getMessage(),
+          "AxisType problem", AxisID.ONLY);
     }
     catch (IOException e) {
       e.printStackTrace();
-      uiHarness.openMessageDialog(e.getMessage(), "IO Exception", axisID,
-          getManagerKey());
+      uiHarness.openMessageDialog(this, e.getMessage(), "IO Exception", axisID);
     }
   }
 
@@ -5484,19 +5461,18 @@ public final class ApplicationManager extends BaseManager implements
     }
     catch (SystemProcessException except) {
       except.printStackTrace();
-      uiHarness.openMessageDialog(except.getMessage(),
-          "Can't open 3dmod on tomogram for patch vector model", AxisID.ONLY,
-          getManagerKey());
+      uiHarness.openMessageDialog(this, except.getMessage(),
+          "Can't open 3dmod on tomogram for patch vector model", AxisID.ONLY);
     }
     catch (AxisTypeException except) {
       except.printStackTrace();
-      uiHarness.openMessageDialog(except.getMessage(), "AxisType problem",
-          AxisID.ONLY, getManagerKey());
+      uiHarness.openMessageDialog(this, except.getMessage(),
+          "AxisType problem", AxisID.ONLY);
     }
     catch (IOException e) {
       e.printStackTrace();
-      uiHarness.openMessageDialog(e.getMessage(), "IO Exception", AxisID.ONLY,
-          getManagerKey());
+      uiHarness.openMessageDialog(this, e.getMessage(), "IO Exception",
+          AxisID.ONLY);
     }
   }
 
@@ -5517,19 +5493,17 @@ public final class ApplicationManager extends BaseManager implements
     }
     catch (SystemProcessException except) {
       except.printStackTrace();
-      uiHarness.openMessageDialog(except.getMessage(),
-          "Can't open 3dmod on tomogram being matched to", AxisID.ONLY,
-          getManagerKey());
+      uiHarness.openMessageDialog(this, except.getMessage(),
+          "Can't open 3dmod on tomogram being matched to", AxisID.ONLY);
     }
     catch (AxisTypeException except) {
       except.printStackTrace();
-      uiHarness.openMessageDialog(except.getMessage(), "AxisType problem",
-          AxisID.ONLY, getManagerKey());
+      uiHarness.openMessageDialog(this, except.getMessage(),
+          "AxisType problem", AxisID.ONLY);
     }
     catch (IOException e) {
       e.printStackTrace();
-      uiHarness.openMessageDialog(e.getMessage(), "IO Exception", axisID,
-          getManagerKey());
+      uiHarness.openMessageDialog(this, e.getMessage(), "IO Exception", axisID);
     }
   }
 
@@ -5649,9 +5623,8 @@ public final class ApplicationManager extends BaseManager implements
     catch (IOException except) {
       mainPanel.stopProgressBar(AxisID.ONLY, ProcessEndState.FAILED);
       except.printStackTrace();
-      uiHarness.openMessageDialog("Can't run setupcombine\n"
-          + except.getMessage(), "Setupcombine IOException", AxisID.ONLY,
-          getManagerKey());
+      uiHarness.openMessageDialog(this, "Can't run setupcombine\n"
+          + except.getMessage(), "Setupcombine IOException", AxisID.ONLY);
       return false;
     }
     // Reload the initial and final match paramaters from the newly created
@@ -5680,8 +5653,9 @@ public final class ApplicationManager extends BaseManager implements
     if (tomogramCombinationDialog == null) {
       uiHarness
           .openMessageDialog(
+              this,
               "Can not update combine.com without an active tomogram combination dialog",
-              "Program logic error", AxisID.ONLY, getManagerKey());
+              "Program logic error", AxisID.ONLY);
       return;
     }
     // start with existing combine params and update it from the screen
@@ -5705,28 +5679,28 @@ public final class ApplicationManager extends BaseManager implements
         detailedMessage[1] = "Are both tomograms computed and available?";
         detailedMessage[2] = "";
         detailedMessage[3] = except.getMessage();
-        uiHarness.openMessageDialog(detailedMessage, "Invalid parameter: "
-            + recFileName, AxisID.ONLY, getManagerKey());
+        uiHarness.openMessageDialog(this, detailedMessage,
+            "Invalid parameter: " + recFileName, AxisID.ONLY);
         // Delete the dialog
         tomogramCombinationDialog = null;
         return;
       }
       catch (IOException except) {
-        uiHarness.openMessageDialog(except.getMessage(), "IO Error: "
-            + recFileName, AxisID.ONLY, getManagerKey());
+        uiHarness.openMessageDialog(this, except.getMessage(), "IO Error: "
+            + recFileName, AxisID.ONLY);
         // Delete the dialog
         tomogramCombinationDialog = null;
         return;
       }
       if (state.isCombineScriptsCreated() && !combineParams.isValid(true)) {
-        uiHarness.openMessageDialog(combineParams.getInvalidReasons(),
-            "Invalid combine parameters", AxisID.ONLY, getManagerKey());
+        uiHarness.openMessageDialog(this, combineParams.getInvalidReasons(),
+            "Invalid combine parameters", AxisID.ONLY);
         return;
       }
     }
     catch (NumberFormatException except) {
-      uiHarness.openMessageDialog(except.getMessage(), "Number format error",
-          AxisID.ONLY, getManagerKey());
+      uiHarness.openMessageDialog(this, except.getMessage(),
+          "Number format error", AxisID.ONLY);
       return;
     }
     CombineParams originalCombineParams = metaData.getCombineParams();
@@ -5780,8 +5754,9 @@ public final class ApplicationManager extends BaseManager implements
     if (tomogramCombinationDialog == null) {
       uiHarness
           .openMessageDialog(
+              this,
               "Can not update solvematch.com without an active tomogram generation dialog",
-              "Program logic error", AxisID.ONLY, getManagerKey());
+              "Program logic error", AxisID.ONLY);
       return false;
     }
     try {
@@ -5794,8 +5769,8 @@ public final class ApplicationManager extends BaseManager implements
       String[] errorMessage = new String[2];
       errorMessage[0] = "Solvematch Parameter Syntax Error";
       errorMessage[1] = except.getMessage();
-      uiHarness.openMessageDialog(errorMessage,
-          "Solvematch Parameter Syntax Error", AxisID.ONLY, getManagerKey());
+      uiHarness.openMessageDialog(this, errorMessage,
+          "Solvematch Parameter Syntax Error", AxisID.ONLY);
       return false;
     }
     return true;
@@ -5809,8 +5784,9 @@ public final class ApplicationManager extends BaseManager implements
     if (tomogramCombinationDialog == null) {
       uiHarness
           .openMessageDialog(
+              this,
               "Can not update matchvol1.com without an active tomogram generation dialog",
-              "Program logic error", AxisID.ONLY, getManagerKey());
+              "Program logic error", AxisID.ONLY);
       return false;
     }
     try {
@@ -5823,8 +5799,8 @@ public final class ApplicationManager extends BaseManager implements
       String[] errorMessage = new String[2];
       errorMessage[0] = "Matchvol1 Parameter Syntax Error";
       errorMessage[1] = except.getMessage();
-      uiHarness.openMessageDialog(errorMessage,
-          "Matchvol1 Parameter Syntax Error", AxisID.ONLY, getManagerKey());
+      uiHarness.openMessageDialog(this, errorMessage,
+          "Matchvol1 Parameter Syntax Error", AxisID.ONLY);
       return false;
     }
     return true;
@@ -5840,8 +5816,8 @@ public final class ApplicationManager extends BaseManager implements
       String[] message = new String[2];
       message[0] = "Unable to create solvematch com script";
       message[1] = "Check file and directory permissions";
-      uiHarness.openMessageDialog(message, "Can't create solvematch.com",
-          AxisID.ONLY, getManagerKey());
+      uiHarness.openMessageDialog(this, message, "Can't create solvematch.com",
+          AxisID.ONLY);
       return;
     }
     // Write it out the converted object disk
@@ -5896,8 +5872,9 @@ public final class ApplicationManager extends BaseManager implements
     if (tomogramCombinationDialog == null) {
       uiHarness
           .openMessageDialog(
+              this,
               "Can not update patchcorr.com without an active tomogram generation dialog",
-              "Program logic error", AxisID.ONLY, getManagerKey());
+              "Program logic error", AxisID.ONLY);
       return false;
     }
     try {
@@ -5909,8 +5886,8 @@ public final class ApplicationManager extends BaseManager implements
       String[] errorMessage = new String[2];
       errorMessage[0] = "Patchcorr Parameter Syntax Error";
       errorMessage[1] = except.getMessage();
-      uiHarness.openMessageDialog(errorMessage,
-          "Patchcorr Parameter Syntax Error", AxisID.ONLY, getManagerKey());
+      uiHarness.openMessageDialog(this, errorMessage,
+          "Patchcorr Parameter Syntax Error", AxisID.ONLY);
       return false;
     }
     return true;
@@ -5927,8 +5904,9 @@ public final class ApplicationManager extends BaseManager implements
     if (tomogramCombinationDialog == null) {
       uiHarness
           .openMessageDialog(
+              this,
               "Can not update volcombine.com without an active tomogram generation dialog",
-              "Program logic error", AxisID.ONLY, getManagerKey());
+              "Program logic error", AxisID.ONLY);
       return false;
     }
     try {
@@ -5956,8 +5934,8 @@ public final class ApplicationManager extends BaseManager implements
       String[] errorMessage = new String[2];
       errorMessage[0] = "Volcombine Parameter Syntax Error";
       errorMessage[1] = except.getMessage();
-      uiHarness.openMessageDialog(errorMessage,
-          "Volcombine Parameter Syntax Error", AxisID.ONLY, getManagerKey());
+      uiHarness.openMessageDialog(this, errorMessage,
+          "Volcombine Parameter Syntax Error", AxisID.ONLY);
       return false;
     }
     return true;
@@ -5985,14 +5963,22 @@ public final class ApplicationManager extends BaseManager implements
         String[] message = new String[2];
         message[0] = "Unable to copy combine com script";
         message[1] = "Check file and directory permissions";
-        uiHarness.openMessageDialog(message, "Can't create a new combine.com",
-            AxisID.ONLY, getManagerKey());
+        uiHarness.openMessageDialog(this, message,
+            "Can't create a new combine.com", AxisID.ONLY);
         return null;
       }
       comScriptMgr.loadCombine();
       combineComscriptState = comScriptMgr.getCombineComscript();
     }
     return combineComscriptState;
+  }
+
+  /**
+   * Return a reference to THE com script manager
+   * @return
+   */
+  public ComScriptManager getComScriptManager() {
+    return comScriptMgr;
   }
 
   /**
@@ -6018,8 +6004,9 @@ public final class ApplicationManager extends BaseManager implements
     if (tomogramCombinationDialog == null) {
       uiHarness
           .openMessageDialog(
+              this,
               "Can not update combine.com without an active tomogram generation dialog",
-              "Program logic error", AxisID.ONLY, getManagerKey());
+              "Program logic error", AxisID.ONLY);
       return null;
     }
     // set goto a the start of combine
@@ -6059,8 +6046,9 @@ public final class ApplicationManager extends BaseManager implements
     if (tomogramCombinationDialog == null) {
       uiHarness
           .openMessageDialog(
+              this,
               "Can not update matchorwarp.com without an active tomogram generation dialog",
-              "Program logic error", AxisID.ONLY, getManagerKey());
+              "Program logic error", AxisID.ONLY);
       return false;
     }
     try {
@@ -6073,8 +6061,8 @@ public final class ApplicationManager extends BaseManager implements
       String[] errorMessage = new String[2];
       errorMessage[0] = "Matchorwarp Parameter Syntax Error";
       errorMessage[1] = except.getMessage();
-      uiHarness.openMessageDialog(errorMessage,
-          "Matchorwarp Parameter Syntax Error", AxisID.ONLY, getManagerKey());
+      uiHarness.openMessageDialog(this, errorMessage,
+          "Matchorwarp Parameter Syntax Error", AxisID.ONLY);
       return false;
     }
     return true;
@@ -6133,8 +6121,8 @@ public final class ApplicationManager extends BaseManager implements
       String[] message = new String[2];
       message[0] = "Can not execute combine.com";
       message[1] = e.getMessage();
-      uiHarness.openMessageDialog(message, "Unable to execute com script",
-          AxisID.ONLY, getManagerKey());
+      uiHarness.openMessageDialog(this, message,
+          "Unable to execute com script", AxisID.ONLY);
       return;
     }
     // Set the next process to execute when this is finished
@@ -6197,8 +6185,8 @@ public final class ApplicationManager extends BaseManager implements
       String[] message = new String[2];
       message[0] = "Can not execute combine.com";
       message[1] = "solve.xf must exist in the working";
-      uiHarness.openMessageDialog(message, "Unable to execute com script",
-          AxisID.ONLY, getManagerKey());
+      uiHarness.openMessageDialog(this, message,
+          "Unable to execute com script", AxisID.ONLY);
       sendMsgProcessFailedToStart(processResultDisplay);
       return;
     }
@@ -6213,8 +6201,8 @@ public final class ApplicationManager extends BaseManager implements
       String[] message = new String[2];
       message[0] = "Can not execute combine.com";
       message[1] = e.getMessage();
-      uiHarness.openMessageDialog(message, "Unable to execute com script",
-          AxisID.ONLY, getManagerKey());
+      uiHarness.openMessageDialog(this, message,
+          "Unable to execute com script", AxisID.ONLY);
       return;
     }
     // Set the next process to execute when this is finished
@@ -6270,8 +6258,8 @@ public final class ApplicationManager extends BaseManager implements
       String[] message = new String[2];
       message[0] = "Can not execute patchcorr.com";
       message[1] = e.getMessage();
-      uiHarness.openMessageDialog(message, "Unable to execute com script",
-          AxisID.ONLY, getManagerKey());
+      uiHarness.openMessageDialog(this, message,
+          "Unable to execute com script", AxisID.ONLY);
       return;
     }
     // Set the next process to execute when this is finished
@@ -6306,7 +6294,7 @@ public final class ApplicationManager extends BaseManager implements
         message[2] = "You will not be able to see the new version of " + key
             + " until you close this 3dmod.";
         message[3] = "Do you wish to quit this 3dmod now?";
-        if (uiHarness.openYesNoDialog(message, axisID, getManagerKey())) {
+        if (uiHarness.openYesNoDialog(this, message, axisID)) {
           imodManager.quit(key, axisID);
         }
       }
@@ -6316,13 +6304,12 @@ public final class ApplicationManager extends BaseManager implements
     }
     catch (IOException e) {
       e.printStackTrace();
-      uiHarness.openMessageDialog(e.getMessage(), "IO Exception", axisID,
-          getManagerKey());
+      uiHarness.openMessageDialog(this, e.getMessage(), "IO Exception", axisID);
     }
     catch (SystemProcessException e) {
       e.printStackTrace();
-      uiHarness.openMessageDialog(e.getMessage(), "System Process Exception",
-          axisID, getManagerKey());
+      uiHarness.openMessageDialog(this, e.getMessage(),
+          "System Process Exception", axisID);
     }
   }
 
@@ -6362,8 +6349,8 @@ public final class ApplicationManager extends BaseManager implements
       String[] message = new String[2];
       message[0] = "Can not execute combine.com";
       message[1] = e.getMessage();
-      uiHarness.openMessageDialog(message, "Unable to execute com script",
-          AxisID.ONLY, getManagerKey());
+      uiHarness.openMessageDialog(this, message,
+          "Unable to execute com script", AxisID.ONLY);
       return;
     }
     // Set the next process to execute when this is finished
@@ -6393,8 +6380,8 @@ public final class ApplicationManager extends BaseManager implements
         String[] message = new String[2];
         message[0] = "Can not execute matchorwarp.com";
         message[1] = e.getMessage();
-        uiHarness.openMessageDialog(message, "Unable to execute com script",
-            AxisID.ONLY, getManagerKey());
+        uiHarness.openMessageDialog(this, message,
+            "Unable to execute com script", AxisID.ONLY);
         return;
       }
       setThreadName(threadName, AxisID.FIRST);
@@ -6435,8 +6422,8 @@ public final class ApplicationManager extends BaseManager implements
       String[] message = new String[2];
       message[0] = "Can not execute combine.com";
       message[1] = e.getMessage();
-      uiHarness.openMessageDialog(message, "Unable to execute com script",
-          AxisID.ONLY, getManagerKey());
+      uiHarness.openMessageDialog(this, message,
+          "Unable to execute com script", AxisID.ONLY);
       return;
     }
     setBackgroundThreadName(threadName, AxisID.FIRST,
@@ -6455,16 +6442,16 @@ public final class ApplicationManager extends BaseManager implements
       String[] errorMessage = new String[2];
       errorMessage[0] = "Unable to convert patch_vector.mod to patch.out";
       errorMessage[1] = except.getMessage();
-      uiHarness.openMessageDialog(errorMessage, "Patch vector model error",
-          AxisID.ONLY, getManagerKey());
+      uiHarness.openMessageDialog(this, errorMessage,
+          "Patch vector model error", AxisID.ONLY);
       return;
     }
     catch (LogFile.LockException except) {
       String[] errorMessage = new String[2];
       errorMessage[0] = "Unable to convert patch_vector.mod to patch.out";
       errorMessage[1] = except.getMessage();
-      uiHarness.openMessageDialog(errorMessage, "Patch vector model error",
-          AxisID.ONLY, getManagerKey());
+      uiHarness.openMessageDialog(this, errorMessage,
+          "Patch vector model error", AxisID.ONLY);
       return;
     }
   }
@@ -6475,8 +6462,8 @@ public final class ApplicationManager extends BaseManager implements
   public void openPostProcessingDialog() {
     // Check to see if the com files are present otherwise pop up a dialog
     // box informing the user to run the setup process
-    if (!UIExpertUtilities.INSTANCE.areScriptsCreated(metaData, AxisID.ONLY,
-        getManagerKey())) {
+    if (!UIExpertUtilities.INSTANCE.areScriptsCreated(this, metaData,
+        AxisID.ONLY)) {
       mainPanel.showBlankProcess(AxisID.ONLY);
       return;
     }
@@ -6493,8 +6480,7 @@ public final class ApplicationManager extends BaseManager implements
       // Set the appropriate input and output files
       TrimvolParam trimvolParam = metaData.getTrimvolParam();
       try {
-        trimvolParam.setDefaultRange(state, getManagerKey(), metaData
-            .isPostExists());
+        trimvolParam.setDefaultRange(state, metaData.isPostExists());
       }
       catch (InvalidParameterException except) {
         String[] detailedMessage = new String[4];
@@ -6502,16 +6488,17 @@ public final class ApplicationManager extends BaseManager implements
         detailedMessage[1] = "Does the reconstruction file exist yet?";
         detailedMessage[2] = "";
         detailedMessage[3] = except.getMessage();
-        uiHarness.openMessageDialog(detailedMessage, "Invalid parameter: "
-            + trimvolParam.getInputFileName(), AxisID.ONLY, getManagerKey());
+        uiHarness.openMessageDialog(this, detailedMessage,
+            "Invalid parameter: " + trimvolParam.getInputFileName(),
+            AxisID.ONLY);
         // Delete the dialog
         postProcessingDialog = null;
         mainPanel.showBlankProcess(AxisID.ONLY);
         return;
       }
       catch (IOException except) {
-        uiHarness.openMessageDialog(except.getMessage(), "IO Error: "
-            + trimvolParam.getInputFileName(), AxisID.ONLY, getManagerKey());
+        uiHarness.openMessageDialog(this, except.getMessage(), "IO Error: "
+            + trimvolParam.getInputFileName(), AxisID.ONLY);
         // Delete the dialog
         postProcessingDialog = null;
         mainPanel.showBlankProcess(AxisID.ONLY);
@@ -6542,8 +6529,8 @@ public final class ApplicationManager extends BaseManager implements
   public void openCleanUpDialog() {
     // Check to see if the com files are present otherwise pop up a dialog
     // box informing the user to run the setup process
-    if (!UIExpertUtilities.INSTANCE.areScriptsCreated(metaData, AxisID.ONLY,
-        getManagerKey())) {
+    if (!UIExpertUtilities.INSTANCE.areScriptsCreated(this, metaData,
+        AxisID.ONLY)) {
       mainPanel.showBlankProcess(AxisID.ONLY);
       return;
     }
@@ -6640,19 +6627,18 @@ public final class ApplicationManager extends BaseManager implements
     }
     catch (SystemProcessException except) {
       except.printStackTrace();
-      uiHarness.openMessageDialog(except.getMessage(),
-          "Can't open 3dmod on the trimmed tomogram", AxisID.ONLY,
-          getManagerKey());
+      uiHarness.openMessageDialog(this, except.getMessage(),
+          "Can't open 3dmod on the trimmed tomogram", AxisID.ONLY);
     }
     catch (AxisTypeException except) {
       except.printStackTrace();
-      uiHarness.openMessageDialog(except.getMessage(), "AxisType problem",
-          AxisID.ONLY, getManagerKey());
+      uiHarness.openMessageDialog(this, except.getMessage(),
+          "AxisType problem", AxisID.ONLY);
     }
     catch (IOException e) {
       e.printStackTrace();
-      uiHarness.openMessageDialog(e.getMessage(), "IO Exception", AxisID.ONLY,
-          getManagerKey());
+      uiHarness.openMessageDialog(this, e.getMessage(), "IO Exception",
+          AxisID.ONLY);
     }
   }
 
@@ -6666,7 +6652,7 @@ public final class ApplicationManager extends BaseManager implements
     LogFile alignLogFile;
     try {
       alignLogFile = LogFile.getInstance(propertyUserDir, axisID,
-          ProcessName.ALIGN, getManagerKey());
+          ProcessName.ALIGN);
     }
     catch (LogFile.LockException e) {
       e.printStackTrace();
@@ -6703,18 +6689,17 @@ public final class ApplicationManager extends BaseManager implements
     }
     catch (SystemProcessException except) {
       except.printStackTrace();
-      uiHarness.openMessageDialog(except.getMessage(),
-          "Can't open 3dmod on the trimmed tomogram", axisID, getManagerKey());
+      uiHarness.openMessageDialog(this, except.getMessage(),
+          "Can't open 3dmod on the trimmed tomogram", axisID);
     }
     catch (AxisTypeException except) {
       except.printStackTrace();
-      uiHarness.openMessageDialog(except.getMessage(), "AxisType problem",
-          axisID, getManagerKey());
+      uiHarness.openMessageDialog(this, except.getMessage(),
+          "AxisType problem", axisID);
     }
     catch (IOException e) {
       e.printStackTrace();
-      uiHarness.openMessageDialog(e.getMessage(), "IO Exception", axisID,
-          getManagerKey());
+      uiHarness.openMessageDialog(this, e.getMessage(), "IO Exception", axisID);
     }
   }
 
@@ -6730,18 +6715,17 @@ public final class ApplicationManager extends BaseManager implements
     }
     catch (SystemProcessException except) {
       except.printStackTrace();
-      uiHarness.openMessageDialog(except.getMessage(),
-          "Can't open 3dmod on the " + key, axisID, getManagerKey());
+      uiHarness.openMessageDialog(this, except.getMessage(),
+          "Can't open 3dmod on the " + key, axisID);
     }
     catch (AxisTypeException except) {
       except.printStackTrace();
-      uiHarness.openMessageDialog(except.getMessage(), "AxisType problem",
-          axisID, getManagerKey());
+      uiHarness.openMessageDialog(this, except.getMessage(),
+          "AxisType problem", axisID);
     }
     catch (IOException e) {
       e.printStackTrace();
-      uiHarness.openMessageDialog(e.getMessage(), "IO Exception", axisID,
-          getManagerKey());
+      uiHarness.openMessageDialog(this, e.getMessage(), "IO Exception", axisID);
     }
   }
 
@@ -6796,23 +6780,22 @@ public final class ApplicationManager extends BaseManager implements
       imodManager.setOpenContours(key, axisID, true);
       imodManager.setStartNewContoursAtNewZ(key, axisID, true);
       imodManager.setBinningXY(key, binning);
-      imodManager.open(key, axisID, DatasetFiles.getFlattenWarpInputName(this),
-          true, menuOptions);
+      imodManager.open(key, axisID, FileType.FLATTEN_WARP_INPUT_MODEL
+          .getFileName(this, axisID), true, menuOptions);
     }
     catch (SystemProcessException except) {
       except.printStackTrace();
-      uiHarness.openMessageDialog(except.getMessage(),
-          "Can't open 3dmod on the " + key, axisID, getManagerKey());
+      uiHarness.openMessageDialog(this, except.getMessage(),
+          "Can't open 3dmod on the " + key, axisID);
     }
     catch (AxisTypeException except) {
       except.printStackTrace();
-      uiHarness.openMessageDialog(except.getMessage(), "AxisType problem",
-          axisID, getManagerKey());
+      uiHarness.openMessageDialog(this, except.getMessage(),
+          "AxisType problem", axisID);
     }
     catch (IOException e) {
       e.printStackTrace();
-      uiHarness.openMessageDialog(e.getMessage(), "IO Exception", axisID,
-          getManagerKey());
+      uiHarness.openMessageDialog(this, e.getMessage(), "IO Exception", axisID);
     }
   }
 
@@ -6822,8 +6805,8 @@ public final class ApplicationManager extends BaseManager implements
   public void imodSqueezedVolume(Run3dmodMenuOptions menuOptions, AxisID axisID) {
     // Make sure that the post processing panel is open
     if (postProcessingDialog == null) {
-      uiHarness.openMessageDialog("Post processing dialog not open",
-          "Program logic error", axisID, getManagerKey());
+      uiHarness.openMessageDialog(this, "Post processing dialog not open",
+          "Program logic error", axisID);
       return;
     }
     try {
@@ -6835,18 +6818,17 @@ public final class ApplicationManager extends BaseManager implements
     }
     catch (SystemProcessException except) {
       except.printStackTrace();
-      uiHarness.openMessageDialog(except.getMessage(),
-          "Can't open 3dmod on the squeezed tomogram", axisID, getManagerKey());
+      uiHarness.openMessageDialog(this, except.getMessage(),
+          "Can't open 3dmod on the squeezed tomogram", axisID);
     }
     catch (AxisTypeException except) {
       except.printStackTrace();
-      uiHarness.openMessageDialog(except.getMessage(), "AxisType problem",
-          axisID, getManagerKey());
+      uiHarness.openMessageDialog(this, except.getMessage(),
+          "AxisType problem", axisID);
     }
     catch (IOException e) {
       e.printStackTrace();
-      uiHarness.openMessageDialog(e.getMessage(), "IO Exception", axisID,
-          getManagerKey());
+      uiHarness.openMessageDialog(this, e.getMessage(), "IO Exception", axisID);
     }
   }
 
@@ -6862,8 +6844,8 @@ public final class ApplicationManager extends BaseManager implements
     sendMsgProcessStarting(processResultDisplay);
     // Make sure that the post processing panel is open
     if (postProcessingDialog == null) {
-      uiHarness.openMessageDialog("Post processing dialog not open",
-          "Program logic error", AxisID.ONLY, getManagerKey());
+      uiHarness.openMessageDialog(this, "Post processing dialog not open",
+          "Program logic error", AxisID.ONLY);
       sendMsgProcessFailedToStart(processResultDisplay);
       return;
     }
@@ -6885,8 +6867,8 @@ public final class ApplicationManager extends BaseManager implements
       String[] message = new String[2];
       message[0] = "Can not execute trimvol command";
       message[1] = e.getMessage();
-      uiHarness.openMessageDialog(message, "Unable to execute command",
-          AxisID.ONLY, getManagerKey());
+      uiHarness.openMessageDialog(this, message, "Unable to execute command",
+          AxisID.ONLY);
       return;
     }
     setThreadName(threadName, AxisID.ONLY);
@@ -6898,9 +6880,8 @@ public final class ApplicationManager extends BaseManager implements
       final AxisID axisID) {
     WarpVolParam param = comScriptMgr.getWarpVolParamFromFlatten(axisID);
     if (display == null) {
-      uiHarness.openMessageDialog(
-          "Unable to get information from the display.", "Etomo Error", axisID,
-          getManagerKey());
+      uiHarness.openMessageDialog(this,
+          "Unable to get information from the display.", "Etomo Error", axisID);
       return null;
     }
     if (!display.getParameters(param)) {
@@ -6914,9 +6895,8 @@ public final class ApplicationManager extends BaseManager implements
       final AxisID axisID) {
     FlattenWarpParam param = new FlattenWarpParam(this);
     if (display == null) {
-      uiHarness.openMessageDialog(
-          "Unable to get information from the display.", "Etomo Error", axisID,
-          getManagerKey());
+      uiHarness.openMessageDialog(this,
+          "Unable to get information from the display.", "Etomo Error", axisID);
       return null;
     }
     if (!display.getParameters(param)) {
@@ -6957,8 +6937,8 @@ public final class ApplicationManager extends BaseManager implements
       String[] message = new String[2];
       message[0] = "Can not execute " + ProcessName.FLATTEN;
       message[1] = e.getMessage();
-      uiHarness.openMessageDialog(message, "Unable to execute command", axisID,
-          getManagerKey());
+      uiHarness.openMessageDialog(this, message, "Unable to execute command",
+          axisID);
       return;
     }
     setThreadName(threadName, axisID);
@@ -6997,8 +6977,8 @@ public final class ApplicationManager extends BaseManager implements
       String[] message = new String[2];
       message[0] = "Can not execute " + param.getProcessName();
       message[1] = e.getMessage();
-      uiHarness.openMessageDialog(message, "Unable to execute command", axisID,
-          getManagerKey());
+      uiHarness.openMessageDialog(this, message, "Unable to execute command",
+          axisID);
       return;
     }
     setThreadName(threadName, axisID);
@@ -7011,9 +6991,9 @@ public final class ApplicationManager extends BaseManager implements
     FiducialModelDialog dialog = (FiducialModelDialog) getDialog(
         DialogType.FIDUCIAL_MODEL, axisID);
     if (dialog == null) {
-      uiHarness.openMessageDialog(
+      uiHarness.openMessageDialog(this,
           "Unable to get information from the fiducial model dialog.",
-          "Etomo Error", axisID, getManagerKey());
+          "Etomo Error", axisID);
       return null;
     }
     if (!dialog.getParameters(param)) {
@@ -7041,7 +7021,7 @@ public final class ApplicationManager extends BaseManager implements
     //Attempt to backup the output file
     try {
       LogFile outputFile = LogFile.getInstance(DatasetFiles
-          .getRaptorFiducialModel(this, axisID), getManagerKey());
+          .getRaptorFiducialModel(this, axisID));
       outputFile.backup();
     }
     catch (LogFile.LockException e) {
@@ -7063,8 +7043,8 @@ public final class ApplicationManager extends BaseManager implements
       String[] message = new String[2];
       message[0] = "Can not execute runraptor";
       message[1] = e.getMessage();
-      uiHarness.openMessageDialog(message, "Unable to execute command", axisID,
-          getManagerKey());
+      uiHarness.openMessageDialog(this, message, "Unable to execute command",
+          axisID);
       return;
     }
     setThreadName(threadName, axisID);
@@ -7091,20 +7071,20 @@ public final class ApplicationManager extends BaseManager implements
     }
     catch (AxisTypeException except) {
       except.printStackTrace();
-      uiHarness.openMessageDialog(except.getMessage(), "AxisType problem",
-          axisID, getManagerKey());
+      uiHarness.openMessageDialog(this, except.getMessage(),
+          "AxisType problem", axisID);
       return;
     }
     catch (SystemProcessException except) {
       except.printStackTrace();
-      uiHarness.openMessageDialog(except.getMessage(), "Can't open 3dmod on "
-          + imodManagerKey + " with model: " + model, axisID, getManagerKey());
+      uiHarness.openMessageDialog(this, except.getMessage(),
+          "Can't open 3dmod on " + imodManagerKey + " with model: " + model,
+          axisID);
       return;
     }
     catch (IOException e) {
       e.printStackTrace();
-      uiHarness.openMessageDialog(e.getMessage(), "IO Exception", axisID,
-          getManagerKey());
+      uiHarness.openMessageDialog(this, e.getMessage(), "IO Exception", axisID);
     }
     state.setFixedFiducials(axisID, true);
   }
@@ -7127,14 +7107,13 @@ public final class ApplicationManager extends BaseManager implements
     LogFile fidFile = null;
     try {
       fidFile = LogFile.getInstance(DatasetFiles.getFiducialModelFile(this,
-          axisID), getManagerKey());
+          axisID));
       fidFile.backup();
     }
     catch (LogFile.LockException e) {
       e.printStackTrace();
-      uiHarness.openMessageDialog("Unable to backup "
-          + DatasetFiles.getFiducialModelName(this, axisID), "File Error",
-          getManagerKey());
+      uiHarness.openMessageDialog(this, "Unable to backup "
+          + DatasetFiles.getFiducialModelName(this, axisID), "File Error");
       sendMsgProcessFailedToStart(processResultDisplay);
       return;
     }
@@ -7142,14 +7121,15 @@ public final class ApplicationManager extends BaseManager implements
     LogFile raptorFile = null;
     try {
       raptorFile = LogFile.getInstance(DatasetFiles.getRaptorFiducialModel(
-          this, axisID), getManagerKey());
+          this, axisID));
       raptorFile.move(fidFile);
     }
     catch (LogFile.LockException e) {
       e.printStackTrace();
-      uiHarness.openMessageDialog("Unable to rename "
-          + DatasetFiles.getRaptorFiducialModelName(this, axisID),
-          "File Error", getManagerKey());
+      uiHarness
+          .openMessageDialog(this, "Unable to rename "
+              + DatasetFiles.getRaptorFiducialModelName(this, axisID),
+              "File Error");
       sendMsgProcessFailedToStart(processResultDisplay);
       return;
     }
@@ -7169,8 +7149,8 @@ public final class ApplicationManager extends BaseManager implements
     sendMsgProcessStarting(processResultDisplay);
     // Make sure that the post processing panel is open
     if (postProcessingDialog == null) {
-      uiHarness.openMessageDialog("Post processing dialog not open",
-          "Program logic error", AxisID.ONLY, getManagerKey());
+      uiHarness.openMessageDialog(this, "Post processing dialog not open",
+          "Program logic error", AxisID.ONLY);
       sendMsgProcessFailedToStart(processResultDisplay);
       return;
     }
@@ -7189,8 +7169,8 @@ public final class ApplicationManager extends BaseManager implements
       String[] message = new String[2];
       message[0] = "Can not execute squeezevol command";
       message[1] = e.getMessage();
-      uiHarness.openMessageDialog(message, "Unable to execute command",
-          AxisID.ONLY, getManagerKey());
+      uiHarness.openMessageDialog(this, message, "Unable to execute command",
+          AxisID.ONLY);
       return;
     }
     setThreadName(threadName, AxisID.ONLY);
@@ -7280,13 +7260,6 @@ public final class ApplicationManager extends BaseManager implements
    */
   public void setProgressBarValue(int value, AxisID axisID) {
     mainPanel.setProgressBarValue(value, axisID);
-  }
-
-  /**
-   * @param axisID
-   */
-  public void progressBarDone(AxisID axisID, ProcessEndState processEndState) {
-    mainPanel.stopProgressBar(axisID, processEndState);
   }
 
   /**
@@ -7387,13 +7360,11 @@ public final class ApplicationManager extends BaseManager implements
       ProcessResultDisplay processResultDisplay,
       ConstProcessSeries processSeries) {
     FidXyz fidXyz = UIExpertUtilities.INSTANCE.getFidXyz(this, axisID);
-    MRCHeader prealiHeader = MRCHeader.getInstance(this, axisID, ".preali",
-        getManagerKey());
-    MRCHeader rawstackHeader = MRCHeader.getInstance(this, axisID, ".st",
-        getManagerKey());
+    MRCHeader prealiHeader = MRCHeader.getInstance(this, axisID, ".preali");
+    MRCHeader rawstackHeader = MRCHeader.getInstance(this, axisID, ".st");
     try {
       fidXyz.read();
-      if (!prealiHeader.read() || !rawstackHeader.read()) {
+      if (!prealiHeader.read(this) || !rawstackHeader.read(this)) {
         processDone(axisID, processResultDisplay, processSeries);
         return;
       }
@@ -7435,7 +7406,7 @@ public final class ApplicationManager extends BaseManager implements
           "    2. Save the fiducial model " + "by pressing \"s\".",
           "    3. Go to Fine Alignment and press Compute "
               + "Alignment to rerun align" + axisID.getExtension() + ".com." };
-      uiHarness.openMessageDialog(message, title, axisID, getManagerKey());
+      uiHarness.openMessageDialog(this, message, title, axisID);
     }
     processDone(axisID, processResultDisplay, processSeries);
   }
@@ -7525,8 +7496,8 @@ public final class ApplicationManager extends BaseManager implements
       String[] message = new String[2];
       message[0] = "Can not execute " + ProcessName.XFMODEL;
       message[1] = e.getMessage();
-      uiHarness.openMessageDialog(message, "Unable to execute command", axisID,
-          getManagerKey());
+      uiHarness.openMessageDialog(this, message, "Unable to execute command",
+          axisID);
       return ProcessResult.FAILED_TO_START;
     }
     setThreadName(threadName, axisID);
@@ -7552,9 +7523,9 @@ public final class ApplicationManager extends BaseManager implements
     // stack
     File fullAlignedStack = DatasetFiles.getFullAlignedStackFile(this, axisID);
     if (!output.exists()) {
-      UIHarness.INSTANCE.openMessageDialog(output.getAbsolutePath()
+      UIHarness.INSTANCE.openMessageDialog(this, output.getAbsolutePath()
           + " doesn't exist.  Press " + buttonLabel + " to create this file.",
-          buttonLabel + " Output Missing", axisID, getManagerKey());
+          buttonLabel + " Output Missing", axisID);
       sendMsg(ProcessResult.FAILED_TO_START, processResultDisplay);
       return;
     }
@@ -7564,9 +7535,8 @@ public final class ApplicationManager extends BaseManager implements
     mainPanel.setState(ProcessState.INPROGRESS, axisID, dialogType);
     if (fullAlignedStack.exists() && output.exists()) {
       if (!Utilities.isValidStack(output, this, axisID)) {
-        uiHarness.openMessageDialog(output.getName()
-            + " is not a valid MRC file.", "Entry Error", axisID,
-            getManagerKey());
+        uiHarness.openMessageDialog(this, output.getName()
+            + " is not a valid MRC file.", "Entry Error", axisID);
         sendMsgProcessFailedToStart(processResultDisplay);
         return;
       }
@@ -7576,9 +7546,9 @@ public final class ApplicationManager extends BaseManager implements
             + "~"));
       }
       catch (IOException except) {
-        UIHarness.INSTANCE.openMessageDialog("Unable to backup "
+        UIHarness.INSTANCE.openMessageDialog(this, "Unable to backup "
             + fullAlignedStack.getAbsolutePath() + "\n" + except.getMessage(),
-            "File Rename Error", axisID, getManagerKey());
+            "File Rename Error", axisID);
         sendMsg(ProcessResult.FAILED, processResultDisplay);
         return;
       }
@@ -7589,8 +7559,8 @@ public final class ApplicationManager extends BaseManager implements
       Utilities.renameFile(output, fullAlignedStack);
     }
     catch (IOException except) {
-      UIHarness.INSTANCE.openMessageDialog(except.getMessage(),
-          "File Rename Error", axisID, getManagerKey());
+      UIHarness.INSTANCE.openMessageDialog(this, except.getMessage(),
+          "File Rename Error", axisID);
       sendMsg(ProcessResult.FAILED, processResultDisplay);
       return;
     }
@@ -7615,7 +7585,7 @@ public final class ApplicationManager extends BaseManager implements
   }
 
   public CCDEraserParam updateCcdEraserParam(CcdEraserDisplay display) {
-    CCDEraserParam param = new CCDEraserParam();
+    CCDEraserParam param = new CCDEraserParam(this);
     if (display.getParameters(param)) {
       return param;
     }
@@ -7660,8 +7630,8 @@ public final class ApplicationManager extends BaseManager implements
       String[] message = new String[2];
       message[0] = "Can not execute " + ProcessName.CCD_ERASER;
       message[1] = e.getMessage();
-      uiHarness.openMessageDialog(message, "Unable to execute command", axisID,
-          getManagerKey());
+      uiHarness.openMessageDialog(this, message, "Unable to execute command",
+          axisID);
       return ProcessResult.FAILED_TO_START;
     }
     setThreadName(threadName, axisID);
@@ -7740,8 +7710,8 @@ public final class ApplicationManager extends BaseManager implements
       String[] message = new String[2];
       message[0] = "Can not execute " + SplittiltParam.COMMAND_NAME;
       message[1] = e.getMessage();
-      uiHarness.openMessageDialog(message, "Unable to execute command", axisID,
-          getManagerKey());
+      uiHarness.openMessageDialog(this, message, "Unable to execute command",
+          axisID);
       return ProcessResult.FAILED_TO_START;
     }
     processSeries.setNextProcess(ProcessName.PROCESSCHUNKS.toString(),
@@ -7768,8 +7738,8 @@ public final class ApplicationManager extends BaseManager implements
       String[] message = new String[2];
       message[0] = "Can not execute " + ProcessName.SPLIT_CORRECTION;
       message[1] = e.getMessage();
-      uiHarness.openMessageDialog(message, "Unable to execute command", axisID,
-          getManagerKey());
+      uiHarness.openMessageDialog(this, message, "Unable to execute command",
+          axisID);
       return ProcessResult.FAILED_TO_START;
     }
     processSeries.setNextProcess(ProcessName.PROCESSCHUNKS.toString(),
@@ -7805,8 +7775,8 @@ public final class ApplicationManager extends BaseManager implements
       String[] message = new String[2];
       message[0] = "Can not execute " + SplitcombineParam.COMMAND_NAME;
       message[1] = e.getMessage();
-      uiHarness.openMessageDialog(message, "Unable to execute command",
-          AxisID.ONLY, getManagerKey());
+      uiHarness.openMessageDialog(this, message, "Unable to execute command",
+          AxisID.ONLY);
       return;
     }
     processSeries.setNextProcess(ProcessName.PROCESSCHUNKS.toString(),
@@ -7914,6 +7884,11 @@ public final class ApplicationManager extends BaseManager implements
 }
 /**
  * <p> $Log$
+ * <p> Revision 3.345  2010/01/11 23:46:55  sueh
+ * <p> bug# 1299 Made CpuAdoc a true singleton by removing information about
+ * <p> the manager and axis.  This information has to be passed by classes that
+ * <p> are associated with the manager and axis.
+ * <p>
  * <p> Revision 3.344  2009/12/19 01:07:23  sueh
  * <p> bug# 1294 Generalized imodView3DModel so it can open the smoothing assessment model.  Renamed it imodViewModel.
  * <p>
