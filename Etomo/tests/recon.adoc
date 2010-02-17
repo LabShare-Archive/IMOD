@@ -4,7 +4,6 @@ Version = 1.2
 #======
 
 [dialog = SetupRecon]
-open.interface=
 #partial test
 #open.dialog.FinalStack =
 #skipto.dialog.FinalStack =
@@ -12,6 +11,7 @@ open.interface=
 
 set.adoc.function = setup-recon.adoc
 run.function.main =
+if.var.dual.bn.both=
 
 [dialog = PreProc]
 open.dialog.PreProc=

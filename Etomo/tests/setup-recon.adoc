@@ -9,11 +9,7 @@ Version = 1.2
 	assert.tf.fiducial-diameter=
 	assert.tf.image-rotation=
 	assert.cb.parallel-processing=on
-	bn.advanced=
-	assert.tf.image-distortion-field-file=
-	assert.sp.binning=1
-	assert.tf.mag-gradients-correction=
-	bn.basic=
+	if.exists.bn.advanced.run.function.test-advanced=
 	#check enabled/disabled
 	assert.enabled.tf.dataset-name=
 	assert.enabled.tf.backup-directory=
@@ -22,11 +18,6 @@ Version = 1.2
 	assert.enabled.tf.fiducial-diameter=
 	assert.enabled.tf.image-rotation=
 	assert.enabled.cb.parallel-processing=
-	bn.advanced=
-	assert.enabled.tf.image-distortion-field-file=
-	assert.enabled.sp.binning=
-	assert.enabled.tf.mag-gradients-correction=
-	bn.basic=
 	assert.enabled.bn.cancel=
 	assert.enabled.bn.use-existing-coms=
 	assert.enabled.bn.create-com-scripts=
@@ -156,3 +147,15 @@ rb.single-frame=
 #check error
 bn.view-raw-image-stack.1=
 wait.popup.raw-image-stack=OK
+
+
+[function = test-advanced]
+bn.advanced=
+assert.tf.image-distortion-field-file=
+assert.sp.binning=1
+assert.tf.mag-gradients-correction=
+#test enabled/disabled
+assert.enabled.tf.image-distortion-field-file=
+assert.enabled.sp.binning=
+assert.enabled.tf.mag-gradients-correction=
+bn.basic=

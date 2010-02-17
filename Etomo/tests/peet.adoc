@@ -1,7 +1,6 @@
 Version = 1.2
 
 [dialog = peet]
-open.interface=
 set.adoc.function=peet.adoc
 run.function.main =
 

@@ -223,14 +223,14 @@ bn.open-flattened-tomogram=
 [[if = test-values]]
 	#check values
 	assert.tf.smoothing-factors=
-	assert.bn.assess-smoothing-factors=off
+	assert.bn.run-flattenwarp-to-assess-smoothing=off
 [[]]
 #check enabled/disabled
 assert.enabled.tf.smoothing-factors=
-assert.enabled.bn.assess-smoothing-factors=
+assert.enabled.bn.run-flattenwarp-to-assess-smoothing=
 assert.enabled.bn.open-assessment-in-3dmod=
 tf.smoothing-factors=.25,1,5
-bn.assess-smoothing-factors=
+bn.run-flattenwarp-to-assess-smoothing=
 wait.process.running-flattenwarp=done
 bn.open-assessment-in-3dmod=
 

@@ -2,7 +2,7 @@ Version = 1.2
 
 [function = main]
 open.dialog.align=
-[[if = test-processes]]
+[[if = test-gui]]
 	bn.initial-auto-alignment=
 	wait.process.initial-xfalign=done
 	bn.refine-auto-alignment=

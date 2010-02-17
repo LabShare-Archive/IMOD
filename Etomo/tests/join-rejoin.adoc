@@ -2,13 +2,13 @@ Version = 1.2
 
 [function = main]
 sp.boundary-table-2-&-3-adjusted=up
-[[if = test-processes]]
+[[if = test-gui]]
 	bn.trial-rejoin=
 	wait.process.finishjoin=done
 [[]]
 bn.rejoin=
 wait.process.remapmodel=done
-[[if = test-processes]]
+[[if = test-gui]]
 	copy.file=unicross_join.mod
 	tf.model-file=unicross_join.mod
 	tf.output-file=unicross_join-transformed.mod
