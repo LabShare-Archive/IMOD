@@ -2,10 +2,11 @@ package etomo.process;
 
 import java.io.IOException;
 
-import etomo.ApplicationManager;
+import etomo.BaseManager;
 import etomo.util.InvalidParameterException;
 import etomo.storage.LogFile;
 import etomo.type.AxisID;
+import etomo.type.FileType;
 import etomo.type.ProcessName;
 
 /**
@@ -22,6 +23,9 @@ import etomo.type.ProcessName;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.6  2009/06/05 01:58:56  sueh
+ * <p> bug# 1219 Added getFlattenInstance.
+ * <p>
  * <p> Revision 1.5  2009/02/04 23:26:24  sueh
  * <p> bug# 1158 Changed id and exceptions classes in LogFile.
  * <p>
@@ -51,25 +55,30 @@ final class Matchvol1ProcessMonitor extends LogFileProcessMonitor {
    * @param appMgr
    * @param id
    */
-  private Matchvol1ProcessMonitor(final ApplicationManager appMgr,
-      final AxisID id, final boolean calledFromFlatten) {
-    super(appMgr, id, ProcessName.MATCHVOL1);
+  private Matchvol1ProcessMonitor(final BaseManager manager, final AxisID id,
+      final boolean calledFromFlatten, final FileType fileType) {
+    super(manager, id, ProcessName.MATCHVOL1);
     this.calledFromFlatten = calledFromFlatten;
     if (calledFromFlatten) {
-      logFileBasename = ProcessName.FLATTEN.toString();
+      if (fileType == null) {
+        logFileBasename = ProcessName.FLATTEN.toString();
+      }
+      else {
+        logFileBasename = fileType.getRoot(manager, id);
+      }
     }
     else {
       logFileBasename = "matchvol1";
     }
   }
 
-  Matchvol1ProcessMonitor(final ApplicationManager appMgr, final AxisID id) {
-    this(appMgr, id, false);
+  Matchvol1ProcessMonitor(final BaseManager manager, final AxisID id) {
+    this(manager, id, false, null);
   }
 
-  static Matchvol1ProcessMonitor getFlattenInstance(
-      final ApplicationManager appMgr, final AxisID id) {
-    return new Matchvol1ProcessMonitor(appMgr, id, true);
+  static Matchvol1ProcessMonitor getFlattenInstance(final BaseManager manager,
+      final AxisID id, final FileType fileType) {
+    return new Matchvol1ProcessMonitor(manager, id, true, fileType);
   }
 
   /**
@@ -84,14 +93,12 @@ final class Matchvol1ProcessMonitor extends LogFileProcessMonitor {
       title = "Combine: matchvol1";
     }
     if (nSections == Integer.MIN_VALUE) {
-      applicationManager.getMainPanel().setProgressBar(title, 1, axisID,
-          processName);
-      applicationManager.getMainPanel().setProgressBarValue(0, "Starting...",
-          axisID);
+      manager.getMainPanel().setProgressBar(title, 1, axisID, processName);
+      manager.getMainPanel().setProgressBarValue(0, "Starting...", axisID);
       return;
     }
-    applicationManager.getMainPanel().setProgressBar(title, nSections, axisID,
-        processName);
+    manager.getMainPanel()
+        .setProgressBar(title, nSections, axisID, processName);
   }
 
   /* (non-Javadoc)
