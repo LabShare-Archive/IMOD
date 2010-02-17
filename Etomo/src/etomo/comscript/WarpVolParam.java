@@ -1,5 +1,6 @@
 package etomo.comscript;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -26,25 +27,32 @@ import etomo.util.DatasetFiles;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.2  2009/09/01 03:17:46  sueh
+ * <p> bug# 1222
+ * <p>
  * <p> Revision 1.1  2009/06/05 01:51:06  sueh
  * <p> bug# 1219 Represents any .com file which runs warpvol.
  * <p> </p>
  */
 public final class WarpVolParam implements ConstWarpVolParam, CommandParam {
   public static final String rcsid = "$Id$";
-  
+
   public static final String INPUT_FILE_OPTION = "InputFile";
-  public static final String TEMPORARY_DIRECTORY_OPTION="TemporaryDirectory";
-  public static final String OUTPUT_SIZE_X_Y_Z_OPTION ="OutputSizeXYZ";
-  public static final String INTERPOLATION_ORDER_OPTION="InterpolationOrder";
+  public static final String TEMPORARY_DIRECTORY_OPTION = "TemporaryDirectory";
+  public static final String OUTPUT_SIZE_X_Y_Z_OPTION = "OutputSizeXYZ";
+  public static final String INTERPOLATION_ORDER_OPTION = "InterpolationOrder";
 
   static final String COMMAND = "warpvol";
 
   private final List command = new ArrayList();
   StringParameter inputFile = new StringParameter(INPUT_FILE_OPTION);
-  StringParameter temporaryDirectory = new StringParameter(TEMPORARY_DIRECTORY_OPTION);//optional
-  FortranInputString outputSizeXYZ = new FortranInputString(OUTPUT_SIZE_X_Y_Z_OPTION, 3);//optional
-  ScriptParameter interpolationOrder = new ScriptParameter(INTERPOLATION_ORDER_OPTION);//optional
+  StringParameter outputFile = new StringParameter("OutputFile");
+  StringParameter temporaryDirectory = new StringParameter(
+      TEMPORARY_DIRECTORY_OPTION);//optional
+  FortranInputString outputSizeXYZ = new FortranInputString(
+      OUTPUT_SIZE_X_Y_Z_OPTION, 3);//optional
+  ScriptParameter interpolationOrder = new ScriptParameter(
+      INTERPOLATION_ORDER_OPTION);//optional
   private final BaseManager manager;
   private final AxisID axisID;
 
@@ -75,15 +83,13 @@ public final class WarpVolParam implements ConstWarpVolParam, CommandParam {
     scriptCommand.useKeywordValue();
     inputFile.updateComScript(scriptCommand);
     temporaryDirectory.updateComScript(scriptCommand);
-    ParamUtilities.updateScriptParameter(scriptCommand, "OutputFile",
-        ImageFileType.FLATTEN_OUTPUT.getFileName(manager), true);
+    outputFile.updateComScript(scriptCommand);
     ParamUtilities.updateScriptParameter(scriptCommand, "TransformFile",
         DatasetFiles.getFlattenWarpOutputName(manager), true);
     outputSizeXYZ.updateScriptParameter(scriptCommand);
     ParamUtilities
         .updateScriptParameter(scriptCommand, "SameSizeAsInput", true);
   }
-  
 
   private void reset() {
     outputSizeXYZ.setDefault();
@@ -93,19 +99,27 @@ public final class WarpVolParam implements ConstWarpVolParam, CommandParam {
   public void initializeDefaults() {
     reset();
   }
-  
+
   public void setTemporaryDirectory(String input) {
     temporaryDirectory.set(input);
   }
-  
+
   public void setInputFile(ImageFileType imageFileType) {
     inputFile.set(imageFileType.getFileName(manager));
   }
-  
+
+  public void setOutputFile(String input) {
+    outputFile.set(input);
+  }
+
+  public void setInputFile(File file) {
+    inputFile.set(file.getAbsolutePath());
+  }
+
   public String getTemporaryDirectory() {
     return temporaryDirectory.toString();
   }
-  
+
   public String getOutputSizeZ() {
     if (outputSizeXYZ.isNull(2)) {
       return "";

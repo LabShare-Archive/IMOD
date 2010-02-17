@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import etomo.BaseManager;
+import etomo.type.FileType;
 import etomo.type.ProcessName;
 import etomo.util.DatasetFiles;
 
@@ -21,6 +22,9 @@ import etomo.util.DatasetFiles;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.2  2009/12/19 01:07:54  sueh
+ * <p> bug# 1294 Added lambdaForSmoothing and middleContourFile.
+ * <p>
  * <p> Revision 1.1  2009/06/05 01:46:57  sueh
  * <p> bug# 1219 Represents the flattenwarp process interface.
  * <p> </p>
@@ -50,7 +54,7 @@ public final class FlattenWarpParam {
         + ProcessName.FLATTEN_WARP.toString());
     command.add("-PID");
     command.add("-InputFile");
-    command.add(DatasetFiles.getFlattenWarpInputName(manager));
+    command.add(FileType.FLATTEN_WARP_INPUT_MODEL.getFileName(manager));
     command.add("-OutputFile");
     command.add(DatasetFiles.getFlattenWarpOutputName(manager));
     if (oneSurface) {
