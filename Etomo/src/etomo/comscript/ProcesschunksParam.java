@@ -10,7 +10,6 @@ import java.util.List;
 import java.util.Map;
 
 import etomo.BaseManager;
-import etomo.ManagerKey;
 import etomo.storage.CpuAdoc;
 import etomo.storage.LogFile;
 import etomo.type.AxisID;
@@ -95,8 +94,8 @@ public final class ProcesschunksParam implements DetachedCommandDetails,
 
   private void init() {
     nice.set(manager.getParallelProcessingDefaultNice());
-    nice.setFloor(CpuAdoc.INSTANCE.getMinNice(axisID, manager
-        .getPropertyUserDir(), manager.getManagerKey()));
+    nice.setFloor(CpuAdoc.INSTANCE.getMinNice(manager, axisID, manager
+        .getPropertyUserDir()));
     nice.setCeiling(NICE_CEILING);
   }
 
@@ -107,6 +106,7 @@ public final class ProcesschunksParam implements DetachedCommandDetails,
   public CommandMode getCommandMode() {
     return null;
   }
+
   public boolean isMessageReporter() {
     return false;
   }
@@ -259,8 +259,8 @@ public final class ProcesschunksParam implements DetachedCommandDetails,
     return PROCESS_NAME.toString();
   }
 
-  public List getLogMessage(ManagerKey managerKey)
-      throws LogFile.LockException, FileNotFoundException, IOException {
+  public List getLogMessage() throws LogFile.LockException,
+      FileNotFoundException, IOException {
     return null;
   }
 
@@ -382,9 +382,9 @@ public final class ProcesschunksParam implements DetachedCommandDetails,
           .getPropertyUserDir(), axisID);
     }
     catch (InvalidMountRuleException e) {
-      UIHarness.INSTANCE.openMessageDialog("ERROR:  Remote path error.  "
-          + "Unabled to run " + PROCESS_NAME + ".\n\n" + e.getMessage(),
-          "Processchunks Error", axisID, manager.getManagerKey());
+      UIHarness.INSTANCE.openMessageDialog(manager,
+          "ERROR:  Remote path error.  " + "Unabled to run " + PROCESS_NAME
+              + ".\n\n" + e.getMessage(), "Processchunks Error", axisID);
       valid = false;
     }
     if (remoteUserDir != null) {
@@ -519,6 +519,9 @@ public final class ProcesschunksParam implements DetachedCommandDetails,
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.42  2010/01/11 23:49:01  sueh
+ * <p> bug# 1299 Added isMessageReporter.
+ * <p>
  * <p> Revision 1.41  2009/12/11 17:26:22  sueh
  * <p> bug# 1291 Added getCommandInputFile to implement Command.
  * <p>

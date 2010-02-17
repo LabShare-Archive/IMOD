@@ -5,7 +5,6 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-import etomo.ManagerKey;
 import etomo.type.AxisID;
 import etomo.type.ProcessName;
 
@@ -23,6 +22,9 @@ import etomo.type.ProcessName;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.2  2009/03/17 00:45:24  sueh
+ * <p> bug# 1186 Pass managerKey to everything that pops up a dialog.
+ * <p>
  * <p> Revision 1.1  2009/02/04 23:29:21  sueh
  * <p> bug# 1158 Class representing the track.log file.  Used to send entries to
  * <p> LogPanel.
@@ -72,12 +74,11 @@ public final class TrackLog implements Loggable {
   /**
    * Get a message to be logged in the LogPanel.
    */
-  public List getLogMessage(ManagerKey managerKey) throws LogFile.LockException,
+  public List getLogMessage() throws LogFile.LockException,
       FileNotFoundException, IOException {
     lineList.clear();
     //refresh the log file
-    LogFile trackLog = LogFile.getInstance(userDir, axisID, ProcessName.TRACK,
-        managerKey);
+    LogFile trackLog = LogFile.getInstance(userDir, axisID, ProcessName.TRACK);
     if (trackLog.exists()) {
       LogFile.ReaderId readerId = trackLog.openReader();
       if (readerId != null && !readerId.isEmpty()) {

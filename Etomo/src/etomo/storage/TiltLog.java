@@ -4,7 +4,6 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 
-import etomo.ManagerKey;
 import etomo.type.EtomoNumber;
 
 /**
@@ -32,10 +31,10 @@ public final class TiltLog {
   private TiltLog() {
   }
 
-  public static TiltLog getInstance(final File file, ManagerKey managerKey)
+  public static TiltLog getInstance(final File file)
       throws LogFile.LockException {
     TiltLog instance = new TiltLog();
-    instance.file = LogFile.getInstance(file, managerKey);
+    instance.file = LogFile.getInstance(file);
     return instance;
   }
 
@@ -121,6 +120,9 @@ public final class TiltLog {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.4  2009/03/17 00:45:24  sueh
+ * <p> bug# 1186 Pass managerKey to everything that pops up a dialog.
+ * <p>
  * <p> Revision 1.3  2009/02/04 23:29:40  sueh
  * <p> bug# 1158 Changed id and exceptions classes in LogFile.
  * <p>

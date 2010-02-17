@@ -18,6 +18,9 @@ import etomo.ui.UIHarness;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.2  2009/04/10 22:47:46  sueh
+ * <p> bug# 1206 Put the right symbol on the success popup.
+ * <p>
  * <p> Revision 1.1  2009/04/06 22:39:49  sueh
  * <p> bug# 1206 Class to run run tomosnapshot on a separate thread without a manager or
  * <p> EtomoDirector.
@@ -34,9 +37,9 @@ final class TomosnapshotProcess implements Runnable {
 
   public void run() {
     //Run tomosnapshot.
-    SystemProgram sysProgram = new SystemProgram(
-        System.getProperty("user.dir"), new TomosnapshotParam(axisID)
-            .getCommandArray(), axisID, null);
+    SystemProgram sysProgram = new SystemProgram(null, System
+        .getProperty("user.dir"), new TomosnapshotParam(axisID)
+        .getCommandArray(), axisID);
     Thread thread = new Thread(sysProgram);
     thread.start();
     //Wait until tomosnapshot is done.
@@ -51,12 +54,12 @@ final class TomosnapshotProcess implements Runnable {
     String[] stdout = sysProgram.getStdOutput();
     if (sysProgram.isDone() && sysProgram.getExitValue() == 0) {
       if (stdout == null || stdout.length == 0) {
-        UIHarness.INSTANCE.openMessageDialog("Snapshot file created in "
-            + System.getProperty("user.dir"), "Snapshot Created", axisID, null);
+        UIHarness.INSTANCE.openMessageDialog(null, "Snapshot file created in "
+            + System.getProperty("user.dir"), "Snapshot Created", axisID);
       }
       else {
-        UIHarness.INSTANCE.openInfoMessageDialog(stdout[stdout.length - 1],
-            "Snapshot Created", axisID, null);
+        UIHarness.INSTANCE.openInfoMessageDialog(null,
+            stdout[stdout.length - 1], "Snapshot Created", axisID);
       }
       return;
     }
@@ -90,7 +93,7 @@ final class TomosnapshotProcess implements Runnable {
         errorMessage.append(stderr[i] + "  ");
       }
     }
-    UIHarness.INSTANCE.openMessageDialog(errorMessage.toString(),
-        title, axisID, null);
+    UIHarness.INSTANCE.openMessageDialog(null, errorMessage.toString(), title,
+        axisID);
   }
 }

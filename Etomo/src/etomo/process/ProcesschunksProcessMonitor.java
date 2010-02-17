@@ -118,8 +118,8 @@ class ProcesschunksProcessMonitor implements OutfileProcessMonitor,
       deleteCommandsPipe(true);
     }
     catch (LogFile.LockException e) {
-      UIHarness.INSTANCE.openMessageDialog(e.getMessage(),
-          "Processchunks Error", axisID, manager.getManagerKey());
+      UIHarness.INSTANCE.openMessageDialog(manager, e.getMessage(),
+          "Processchunks Error", axisID);
     }
     if (reconnect && parallelProgressDisplay != null) {
       parallelProgressDisplay.setComputerMap(computerMap);
@@ -342,7 +342,7 @@ class ProcesschunksProcessMonitor implements OutfileProcessMonitor,
       if (debug) {
         System.err.println(line);
       }
-      messages.addProcessOutput(line);
+      messages.addProcessOutput(manager, line);
       if (messages.isError()) {
         //Set failure boolean but continue to add all the output lines to
         //messages.
@@ -395,7 +395,7 @@ class ProcesschunksProcessMonitor implements OutfileProcessMonitor,
           && (process == null || process.getProcessData() == null || !process
               .getProcessData().isRunning())) {
         System.err.println("ERROR: Tcsh error in processchunks log");
-        UIHarness.INSTANCE.openMessageDialog(
+        UIHarness.INSTANCE.openMessageDialog(manager,
             "Unrecoverable error in processchunks.  Please contact the "
                 + "programmer.  The chunk processes are still running, but "
                 + "they won't show up in the progress bar or appear in the "
@@ -405,8 +405,7 @@ class ProcesschunksProcessMonitor implements OutfileProcessMonitor,
                 + "can ssh to each computer and run top.  After the chunk "
                 + "processes are complete, exit Etomo to clear the parallel "
                 + "processing panel.  To attempt to continue the parallel "
-                + "process, rerun Etomo, and press Resume.", "Fatal Error",
-            manager.getManagerKey());
+                + "process, rerun Etomo, and press Resume.", "Fatal Error");
       }
       else {
         String[] strings = line.split("\\s+");
@@ -530,8 +529,7 @@ class ProcesschunksProcessMonitor implements OutfileProcessMonitor,
     //delete the commands pipe even if it was never created (just to be sure)
     if (commandsPipe == null) {
       commandsPipe = LogFile.getInstance(manager.getPropertyUserDir(),
-          DatasetFiles.getCommandsFileName(subdirName, rootName), manager
-              .getManagerKey());
+          DatasetFiles.getCommandsFileName(subdirName, rootName));
     }
     if (commandsPipeWriterId != null && !commandsPipeWriterId.isEmpty()) {
       commandsPipe.closeWriter(commandsPipeWriterId);
@@ -559,8 +557,7 @@ class ProcesschunksProcessMonitor implements OutfileProcessMonitor,
     }
     if (commandsPipe == null) {
       commandsPipe = LogFile.getInstance(manager.getPropertyUserDir(),
-          DatasetFiles.getCommandsFileName(subdirName, rootName), manager
-              .getManagerKey());
+          DatasetFiles.getCommandsFileName(subdirName, rootName));
     }
     if (commandsPipeWriterId == null || commandsPipeWriterId.isEmpty()) {
       commandsPipeWriterId = commandsPipe.openWriter();
@@ -582,8 +579,7 @@ class ProcesschunksProcessMonitor implements OutfileProcessMonitor,
     if (processOutput == null) {
       processOutput = LogFile.getInstance(manager.getPropertyUserDir(),
           DatasetFiles.getOutFileName(manager, subdirName,
-              ProcessName.PROCESSCHUNKS.toString(), axisID), manager
-              .getManagerKey());
+              ProcessName.PROCESSCHUNKS.toString(), axisID));
       //Don't remove the file if this is a reconnect.
       if (!reconnect) {
         //Avoid looking at a file from a previous run.
@@ -594,6 +590,9 @@ class ProcesschunksProcessMonitor implements OutfileProcessMonitor,
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.49  2010/01/11 23:56:32  sueh
+ * <p> bug# 1299 Added useMessageReporter.
+ * <p>
  * <p> Revision 1.48  2009/04/20 20:01:13  sueh
  * <p> bug# 1192  Constructing with Map computerMap instead of String
  * <p> computerList.  When doing a reconnect, send the computerMap to the

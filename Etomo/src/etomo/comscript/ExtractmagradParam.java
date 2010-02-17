@@ -75,8 +75,7 @@ public class ExtractmagradParam {
 
   public final void setPixelSize(double pixelSize) {
     MRCHeader header = MRCHeader.getInstance(manager.getPropertyUserDir(),
-        DatasetFiles.getStackName(manager, axisID), axisID, manager
-            .getManagerKey());
+        DatasetFiles.getStackName(manager, axisID), axisID);
     if (header.getXPixelSpacing() == 1) {
       if (this.pixelSize == null) {
         this.pixelSize = new EtomoNumber(EtomoNumber.Type.DOUBLE);
@@ -87,6 +86,9 @@ public class ExtractmagradParam {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.5  2009/03/17 00:31:44  sueh
+ * <p> bug# 1186 Pass managerKey to everything that pops up a dialog.
+ * <p>
  * <p> Revision 1.4  2007/02/05 21:52:03  sueh
  * <p> bug# 962  Put EtomoNumber type info into an inner class.
  * <p>

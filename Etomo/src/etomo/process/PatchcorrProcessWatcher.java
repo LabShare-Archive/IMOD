@@ -14,6 +14,9 @@ package etomo.process;
  * @version $$Revision$$
  * 
  * <p> $$Log$
+ * <p> $Revision 1.9  2009/06/05 01:59:21  sueh
+ * <p> $bug# 1219 Kept up with changes in parent class.
+ * <p> $
  * <p> $Revision 1.8  2009/02/04 23:26:43  sueh
  * <p> $bug# 1158 Changed id and exceptions classes in LogFile.
  * <p> $
@@ -55,15 +58,19 @@ import etomo.util.DatasetFiles;
 
 public class PatchcorrProcessWatcher extends LogFileProcessMonitor {
   public static final String rcsid = "$$Id$$";
-  String lastLineRead = null;
+  
+ private String lastLineRead = null;
+  
+  private final ApplicationManager applicationManager;
 
   /**
    * Construct a xcorr process watcher
    * @param appMgr
    * @param id
    */
-  public PatchcorrProcessWatcher(ApplicationManager appMgr, AxisID id) {
-    super(appMgr, id, ProcessName.PATCHCORR);
+  public PatchcorrProcessWatcher(ApplicationManager manager, AxisID id) {
+    super(manager, id, ProcessName.PATCHCORR);
+    applicationManager=manager;
     standardLogFileName = false;
     logFileBasename = DatasetFiles.PATCH_OUT;
   }
@@ -73,13 +80,13 @@ public class PatchcorrProcessWatcher extends LogFileProcessMonitor {
    */
   protected void initializeProgressBar() {
     if (nSections == Integer.MIN_VALUE) {
-      applicationManager.getMainPanel().setProgressBar("Combine: patchcorr", 1,
+      manager.getMainPanel().setProgressBar("Combine: patchcorr", 1,
           axisID, processName);
-      applicationManager.getMainPanel().setProgressBarValue(0, "Starting...",
+      manager.getMainPanel().setProgressBarValue(0, "Starting...",
           axisID);
       return;
     }
-    applicationManager.getMainPanel().setProgressBar("Combine: patchcorr",
+    manager.getMainPanel().setProgressBar("Combine: patchcorr",
         nSections, axisID, processName);
   }
 
@@ -122,6 +129,6 @@ public class PatchcorrProcessWatcher extends LogFileProcessMonitor {
   }
 
    void postProcess() {
-    applicationManager.postProcess(axisID, ProcessName.PATCHCORR, null, null);
+     applicationManager.postProcess(axisID, ProcessName.PATCHCORR, null, null);
   }
 }

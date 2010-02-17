@@ -24,6 +24,10 @@ import etomo.util.HashedArray;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.5  2010/01/11 23:55:49  sueh
+ * <p> bug# 1299 Made CpuAdoc a singleton without knowledge of manager or
+ * <p> axis.
+ * <p>
  * <p> Revision 1.4  2009/04/13 22:32:48  sueh
  * <p> bug# 1207 Using FailureReason instead of FailureReasonInterface.
  * <p>
@@ -54,8 +58,8 @@ public abstract class LoadMonitor implements IntermittentProcessMonitor,
 
   public LoadMonitor(LoadDisplay display, AxisID axisID, BaseManager manager) {
     this.display = display;
-    usersColumn = CpuAdoc.INSTANCE.isUsersColumn(axisID, manager
-        .getPropertyUserDir(), manager.getManagerKey());
+    usersColumn = CpuAdoc.INSTANCE.isUsersColumn(manager, axisID, manager
+        .getPropertyUserDir());
   }
 
   public void run() {

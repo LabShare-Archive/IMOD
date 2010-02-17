@@ -25,6 +25,9 @@ import etomo.ui.UIHarness;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.2  2010/01/12 04:58:20  sueh
+ * <p> bug# 1299 Removed print statement
+ * <p>
  * <p> Revision 1.1  2010/01/11 23:50:10  sueh
  * <p> bug# 1299 Class that tells the main thread to pop up messages starting
  * <p> with "MESSAGE:".
@@ -36,18 +39,16 @@ final class MessageReporter {
   private static final String TOKEN = "MESSAGE:";//"Error returned";
 
   private final LogFile file;
-  private final BaseManager manager;
   private final AxisID axisID;
 
   private LogFile.ReaderId id = null;
 
-  MessageReporter(BaseManager manager, AxisID axisID, LogFile file) {
-    this.manager = manager;
+  MessageReporter(AxisID axisID, LogFile file) {
     this.axisID = axisID;
     this.file = file;
   }
 
-  void checkForMessages() {
+  void checkForMessages(BaseManager manager) {
     if (id == null) {
       try {
         id = file.openReader();
@@ -98,8 +99,7 @@ final class MessageReporter {
     }
 
     public void run() {
-      UIHarness.INSTANCE.openMessageDialog(message, "Process Message", manager
-          .getManagerKey());
+      UIHarness.INSTANCE.openMessageDialog(manager, message, "Process Message");
     }
   }
 }

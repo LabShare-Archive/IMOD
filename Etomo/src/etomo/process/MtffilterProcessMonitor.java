@@ -28,6 +28,9 @@ import etomo.util.MRCHeader;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.15  2009/09/17 19:15:42  sueh
+ * <p> bug# 1257 Added FileSizeProcessMonitor.getModeBytes to handle getting the right number of bytes based on the mode in a single location.
+ * <p>
  * <p> Revision 1.14  2009/03/17 00:42:04  sueh
  * <p> bug# 1186 Pass managerKey to everything that pops up a dialog.
  * <p>
@@ -119,15 +122,14 @@ final class MtffilterProcessMonitor extends FileSizeProcessMonitor {
           + newstParam.getOutputFile();
     }
     MRCHeader outputHeader = MRCHeader.getInstance(applicationManager
-        .getPropertyUserDir(), outputFilename, axisID, applicationManager
-        .getManagerKey());
-    if (!outputHeader.read()) {
+        .getPropertyUserDir(), outputFilename, axisID);
+    if (!outputHeader.read(applicationManager)) {
       return false;
     }
     nX = (double) outputHeader.getNRows();
     nY = (double) outputHeader.getNColumns();
     nZ = (double) outputHeader.getNSections();
-    modeBytes = (double)getModeBytes(outputHeader.getMode());
+    modeBytes = (double) getModeBytes(outputHeader.getMode());
 
     loadMtfFilterParam();
     //take starting and ending Z into account

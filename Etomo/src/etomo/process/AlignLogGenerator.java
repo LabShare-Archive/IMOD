@@ -11,6 +11,9 @@
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.10  2009/09/01 03:17:56  sueh
+ * <p> bug# 1222
+ * <p>
  * <p> Revision 3.9  2009/03/17 00:33:49  sueh
  * <p> bug# 1186 Pass managerKey to everything that pops up a dialog.
  * <p>
@@ -87,8 +90,8 @@ public class AlignLogGenerator {
 
   private void runArgument(String argument, String logFile) throws IOException {
     alignLogCommand[3] = argument;
-    SystemProgram alignlog = new SystemProgram(manager.getPropertyUserDir(),
-        alignLogCommand, axisID, manager.getManagerKey());
+    SystemProgram alignlog = new SystemProgram(manager, manager
+        .getPropertyUserDir(), alignLogCommand, axisID);
 
     alignlog.run();
 

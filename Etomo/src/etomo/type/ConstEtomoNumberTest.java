@@ -7,8 +7,6 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.util.Properties;
 
-import etomo.EtomoDirector;
-import etomo.ManagerKey;
 import etomo.storage.LogFile;
 import etomo.storage.ParameterStore;
 import junit.framework.TestCase;
@@ -306,18 +304,23 @@ public final class ConstEtomoNumberTest extends TestCase {
     assertTrue(test.isValid());
   }
 
-  public final void testValidate_String_String_AxisID(ManagerKey managerKey)
+  public final void testValidate_String_String_AxisID()
       throws InvalidEtomoNumberException {
     String errorTitle = "testValidate_String_String_AxisID";
     EtomoNumber test = new EtomoNumber();
     //test valid
-    test.validate(errorTitle, "test valid failed", AxisID.FIRST, managerKey);
+    String errorMessage = test.validate("test valid failed");
+    if (errorMessage != null) {
+      throw new InvalidEtomoNumberException(errorMessage);
+    }
     //test invalid
     test.setNullIsValid(false);
     test.setInvalidReason();
     try {
-      test.validate(errorTitle, "test invalid succeeded", AxisID.FIRST,
-          managerKey);
+      errorMessage = test.validate("test invalid succeeded");
+      if (errorMessage != null) {
+        throw new InvalidEtomoNumberException("test invalid succeeded");
+      }
       fail("invalid ConstEomoNumber failed to cause exception to be thrown");
     }
     catch (InvalidEtomoNumberException e) {
@@ -325,25 +328,20 @@ public final class ConstEtomoNumberTest extends TestCase {
     test.internalTest();
   }
 
-  public final void testIsValid_boolean_String_String_AxisID(
-      ManagerKey managerKey) {
+  public final void testIsValid_boolean_String_String_AxisID() {
     String errorTitle = "testIsValid_boolean_String_String_AxisID";
     EtomoNumber test = new EtomoNumber();
     //test valid with print
-    assertTrue(test.isValid(true, errorTitle, "test valid failed",
-        AxisID.FIRST, managerKey));
+    assertNull(test.validate("test valid failed"));
     //test valid without print
-    assertTrue(test.isValid(false, errorTitle, "test valid failed",
-        AxisID.FIRST, managerKey));
+    assertNull(test.validate("test valid failed"));
     //test invalid
     test.setNullIsValid(false);
     test.setInvalidReason();
     ///with print
-    assertFalse(test.isValid(true, errorTitle, "test valid succeeded",
-        AxisID.FIRST, managerKey));
+    assertNotNull(test.validate("test valid succeeded"));
     //without print
-    assertFalse(test.isValid(false, errorTitle, "test valid succeeded",
-        AxisID.FIRST, managerKey));
+    assertNotNull(test.validate("test valid succeeded"));
     test.internalTest();
   }
 
@@ -583,8 +581,7 @@ public final class ConstEtomoNumberTest extends TestCase {
     String name = "TestStore_PropertiesName";
     EtomoNumber test = new EtomoNumber(name);
     test.set(smallInteger);
-    ParameterStore properties = ParameterStore.getInstance(propertiesFile,
-        EtomoDirector.INSTANCE.getCurrentManagerForTest().getManagerKey());
+    ParameterStore properties = ParameterStore.getInstance(propertiesFile);
     //test: no IOException thrown on save
     properties.save(test);
     //test: write parameter to file
@@ -1344,6 +1341,9 @@ public final class ConstEtomoNumberTest extends TestCase {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.49  2009/09/01 02:33:37  sueh
+ * <p> bug# 1222 Fixed comparisons between different types.
+ * <p>
  * <p> Revision 1.48  2009/03/17 00:46:15  sueh
  * <p> bug# 1186 Pass managerKey to everything that pops up a dialog.
  * <p>

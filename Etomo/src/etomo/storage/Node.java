@@ -1,7 +1,7 @@
 package etomo.storage;
 
+import etomo.BaseManager;
 import etomo.EtomoDirector;
-import etomo.ManagerKey;
 import etomo.storage.autodoc.ReadOnlyAttribute;
 import etomo.storage.autodoc.ReadOnlySection;
 import etomo.type.AxisID;
@@ -23,7 +23,12 @@ import etomo.util.EnvironmentVariable;
  * 
  * @version $Revision$
  * 
- * <p> $Log$ </p>
+ * <p> $Log$
+ * <p> Revision 1.1  2010/01/11 23:57:17  sueh
+ * <p> bug# 1299 Removed responsibility anything other then cpu.adoc from
+ * <p> CpuAdoc.  Placed responsibility for information about the network in the
+ * <p> Network class.  Node was CpuAdoc.Section.
+ * <p> </p>
  */
 public final class Node {
   public static final String rcsid = "$Id$";
@@ -72,8 +77,8 @@ public final class Node {
    * @param propertyUserDir
    * @param managerKey
    */
-  static synchronized void createLocalInstance(AxisID axisID,
-      String propertyUserDir, ManagerKey managerKey) {
+  static synchronized void createLocalInstance(BaseManager manager,
+      AxisID axisID, String propertyUserDir) {
     if (LOCAL_HOST_INSTANCE != null) {
       return;
     }
@@ -81,8 +86,8 @@ public final class Node {
     LOCAL_HOST_INSTANCE.name = LOCAL_HOST_NAME;
     //See if LOCAL_INSTANCE.number should be greater then 1 and set it if necessary.
     EtomoNumber imodProcessors = new EtomoNumber();
-    imodProcessors.set(EnvironmentVariable.INSTANCE.getValue(propertyUserDir,
-        "IMOD_PROCESSORS", axisID, managerKey));
+    imodProcessors.set(EnvironmentVariable.INSTANCE.getValue(manager,
+        propertyUserDir, "IMOD_PROCESSORS", axisID));
     UserConfiguration userConfiguration = EtomoDirector.INSTANCE
         .getUserConfiguration();
     if (!imodProcessors.isNull() && imodProcessors.isValid()) {

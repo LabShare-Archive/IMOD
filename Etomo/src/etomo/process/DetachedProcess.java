@@ -51,7 +51,8 @@ final class DetachedProcess extends BackgroundProcess {
       BaseProcessManager processManager, AxisID axisID,
       OutfileProcessMonitor monitor, ProcessResultDisplay processResultDisplay,
       ProcessName processName, ConstProcessSeries processSeries) {
-    super(manager, commandDetails, processManager, axisID, processName, processSeries);
+    super(manager, commandDetails, processManager, axisID, processName,
+        processSeries);
     this.axisID = axisID;
     this.manager = manager;
     this.monitor = monitor;
@@ -77,14 +78,14 @@ final class DetachedProcess extends BackgroundProcess {
       runCommand = makeRunFile();
     }
     catch (IOException e) {
-      UIHarness.INSTANCE.openMessageDialog(e.getMessage(), "Can't Run "
-          + getCommandName(), manager.getManagerKey());
+      UIHarness.INSTANCE.openMessageDialog(manager, e.getMessage(),
+          "Can't Run " + getCommandName());
       return false;
     }
     catch (LogFile.LockException e) {
       e.printStackTrace();
-      UIHarness.INSTANCE.openMessageDialog(e.getMessage(), "Can't Run "
-          + getCommandName(), manager.getManagerKey());
+      UIHarness.INSTANCE.openMessageDialog(manager, e.getMessage(),
+          "Can't Run " + getCommandName());
       return false;
     }
     if (!getDetachedCommand().isValid()) {
@@ -253,6 +254,9 @@ final class DetachedProcess extends BackgroundProcess {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.20  2009/09/01 03:17:56  sueh
+ * <p> bug# 1222
+ * <p>
  * <p> Revision 1.19  2009/03/17 00:35:46  sueh
  * <p> bug# 1186 Pass managerKey to everything that pops up a dialog.
  * <p>

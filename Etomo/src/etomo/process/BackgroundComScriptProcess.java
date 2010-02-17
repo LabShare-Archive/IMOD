@@ -33,6 +33,9 @@ import etomo.util.Utilities;
  * @version $$Revision$$
  * 
  * <p> $Log$
+ * <p> Revision 1.32  2009/03/17 00:33:58  sueh
+ * <p> bug# 1186 Pass managerKey to everything that pops up a dialog.
+ * <p>
  * <p> Revision 1.31  2009/02/04 23:23:06  sueh
  * <p> bug# 1158 Changed id and exceptions classes in LogFile.
  * <p>
@@ -252,14 +255,14 @@ public class BackgroundComScriptProcess extends ComScriptProcess {
     if (groupPid == null) {
       String[] command = new String[] { "/usr/sbin/lsof", "-w", "-S", "-l",
           "-M", "-L" };
-      lsof = new SystemProgram(manager.getPropertyUserDir(), command, axisID,
-          manager.getManagerKey());
+      lsof = new SystemProgram(manager, manager.getPropertyUserDir(), command,
+          axisID);
     }
     else {
       String[] command = new String[] { "/usr/sbin/lsof", "-w", "-S", "-l",
           "-M", "-L", "-g", groupPid };
-      lsof = new SystemProgram(manager.getPropertyUserDir(), command, axisID,
-          manager.getManagerKey());
+      lsof = new SystemProgram(manager, manager.getPropertyUserDir(), command,
+          axisID);
     }
     lsof.run();
     String[] stdout = lsof.getStdOutput();
@@ -276,8 +279,7 @@ public class BackgroundComScriptProcess extends ComScriptProcess {
     LogFile comscriptLog;
     try {
       comscriptLog = LogFile.getInstance(getWorkingDirectory()
-          .getAbsolutePath(), axisID, comscriptState.getComscriptName(),
-          manager.getManagerKey());
+          .getAbsolutePath(), axisID, comscriptState.getComscriptName());
     }
     catch (LogFile.LockException e) {
       e.printStackTrace();
@@ -298,8 +300,7 @@ public class BackgroundComScriptProcess extends ComScriptProcess {
 
   protected boolean renameFiles() {
     try {
-      renameFiles(getWatchedFileName(), getWorkingDirectory(), getLogFile(),
-          manager.getManagerKey());
+      renameFiles(getWatchedFileName(), getWorkingDirectory(), getLogFile());
     }
     catch (LogFile.LockException e) {
       getProcessMessages().addError(e.getMessage());
@@ -316,8 +317,7 @@ public class BackgroundComScriptProcess extends ComScriptProcess {
         renameFiles(comscriptState.getWatchedFile(index),
             getWorkingDirectory(), LogFile.getInstance(manager
                 .getPropertyUserDir(), getAxisID(), comscriptState
-                .getCommand(index), manager.getManagerKey()), manager
-                .getManagerKey());
+                .getCommand(index)));
       }
       catch (LogFile.LockException e) {
         getProcessMessages().addError(e.getMessage());

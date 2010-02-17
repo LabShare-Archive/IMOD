@@ -6,7 +6,6 @@ import java.util.Hashtable;
 import java.util.Vector;
 
 import etomo.BaseManager;
-import etomo.ManagerKey;
 import etomo.type.EtomoNumber;
 import etomo.util.DatasetFiles;
 
@@ -26,6 +25,9 @@ import etomo.util.DatasetFiles;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.4  2009/03/17 00:45:24  sueh
+ * <p> bug# 1186 Pass managerKey to everything that pops up a dialog.
+ * <p>
  * <p> Revision 1.3  2009/02/04 23:29:40  sueh
  * <p> bug# 1158 Changed id and exceptions classes in LogFile.
  * <p>
@@ -44,10 +46,9 @@ public final class XfjointomoLog {
 
   private final Hashtable rowList = new Hashtable();
   private final Vector rowArray = new Vector();
-  
+
   private final String dir;
-  private final ManagerKey managerKey;
-  
+
   private LogFile logFile = null;
 
   public static XfjointomoLog getInstance(BaseManager manager) {
@@ -97,8 +98,8 @@ public final class XfjointomoLog {
     return row.getMaxError();
   }
 
-  public synchronized boolean gapsExist() throws LogFile.LockException,
-      IOException, FileNotFoundException {
+  public synchronized boolean gapsExist()
+      throws LogFile.LockException, IOException, FileNotFoundException {
     load();
     boolean gapsExist = false;
     for (int i = 0; i < rowArray.size(); i++) {
@@ -109,7 +110,6 @@ public final class XfjointomoLog {
 
   private XfjointomoLog(BaseManager manager) {
     dir = manager.getPropertyUserDir();
-    managerKey = manager.getManagerKey();
   }
 
   private synchronized static XfjointomoLog createInstance(BaseManager manager) {
@@ -144,7 +144,7 @@ public final class XfjointomoLog {
       return;
     }
     rowList.clear();
-    logFile = LogFile.getInstance(dir, DatasetFiles.XFJOINTOMO_LOG, managerKey);
+    logFile = LogFile.getInstance(dir, DatasetFiles.XFJOINTOMO_LOG);
     LogFile.ReaderId readerId = logFile.openReader();
     String boundary = null;
     String line = null;

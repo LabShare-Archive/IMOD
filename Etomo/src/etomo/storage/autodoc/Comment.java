@@ -6,9 +6,9 @@ import etomo.storage.LogFile;
 import etomo.ui.Token;
 
 /**
- * <p>Description: </p>
+ * <p>Description: Represents a comment in an autodoc.</p>
  * 
- * <p>Copyright: Copyright 2006</p>
+ * <p>Copyright: Copyright 2006 - 2010</p>
  *
  * <p>Organization:
  * Boulder Laboratory for 3-Dimensional Electron Microscopy of Cells (BL3DEMC),
@@ -19,6 +19,9 @@ import etomo.ui.Token;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.4  2009/02/04 23:30:00  sueh
+ * <p> bug# 1158 Changed id and exceptions classes in LogFile.
+ * <p>
  * <p> Revision 1.3  2009/01/20 19:34:46  sueh
  * <p> bug# 1102 Added getSubsection.
  * <p>

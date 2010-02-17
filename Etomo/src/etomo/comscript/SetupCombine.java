@@ -18,6 +18,9 @@
  * 
  * <p>
  * $Log$
+ * Revision 3.21  2009/12/28 20:37:40  sueh
+ * bug# 1300 Added -v option to tcsh when debug is on.
+ *
  * Revision 3.20  2009/12/28 20:09:16  sueh
  * bug# 1300 Added -v option tcsh.
  *
@@ -249,8 +252,8 @@ public class SetupCombine {
     for (int i = 0; i < commandArray.length; i++) {
       commandArray[i] = (String) command.get(i);
     }
-    setupcombine = new SystemProgram(manager.getPropertyUserDir(),
-        commandArray, AxisID.ONLY, manager.getManagerKey());
+    setupcombine = new SystemProgram(manager, manager.getPropertyUserDir(),
+        commandArray, AxisID.ONLY);
     //genStdInputSequence();
   }
 

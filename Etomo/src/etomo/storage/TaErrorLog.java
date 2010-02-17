@@ -5,7 +5,6 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-import etomo.ManagerKey;
 import etomo.process.AlignLogGenerator;
 import etomo.type.AxisID;
 import etomo.type.ProcessName;
@@ -24,6 +23,9 @@ import etomo.type.ProcessName;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.4  2009/10/19 15:24:05  sueh
+ * <p> bug# 1247 In getLogMessage added the global ratio.
+ * <p>
  * <p> Revision 1.3  2009/03/17 00:45:24  sueh
  * <p> bug# 1186 Pass managerKey to everything that pops up a dialog.
  * <p>
@@ -78,12 +80,12 @@ public final class TaErrorLog implements Loggable {
   /**
    * Get a message to be logged in the LogPanel.
    */
-  public List getLogMessage(ManagerKey managerKey)
-      throws LogFile.LockException, FileNotFoundException, IOException {
+  public List getLogMessage() throws LogFile.LockException,
+      FileNotFoundException, IOException {
     lineList.clear();
     //refresh the log file
     LogFile taErrorLog = LogFile.getInstance(userDir, axisID,
-        AlignLogGenerator.ERROR_LOG_NAME, managerKey);
+        AlignLogGenerator.ERROR_LOG_NAME);
     if (taErrorLog.exists()) {
       LogFile.ReaderId readerId = taErrorLog.openReader();
       if (readerId != null && !readerId.isEmpty()) {

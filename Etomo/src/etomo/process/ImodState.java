@@ -176,6 +176,9 @@ import etomo.type.Run3dmodMenuOptions;
  * @version $$Revision$$
  * 
  * <p> $$Log$
+ * <p> $Revision 1.54  2009/09/01 03:17:56  sueh
+ * <p> $bug# 1222
+ * <p> $
  * <p> $Revision 1.53  2009/06/05 01:55:27  sueh
  * <p> $bug# 1219 Added startNewContoursAtNewZ and
  * <p> $setStartNewContoursAtNewZ.
@@ -458,6 +461,7 @@ public final class ImodState {
   //should not be on for most situations.  This way I don't have to keep track
   //of when it is on.
   private EtomoBoolean2 deleteAllSections = null;
+  private String fileName=null;
 
   //constructors
   //they can set final state variables

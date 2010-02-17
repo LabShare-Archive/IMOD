@@ -5,7 +5,7 @@ import java.util.Properties;
 /**
  * <p>Description: </p>
  * 
- * <p>Copyright: Copyright (c) 2002, 2003, 2004</p>
+ * <p>Copyright: Copyright (c) 2002 - 2010</p>
  *
  *<p>Organization:
  * Boulder Laboratory for 3-Dimensional Electron Microscopy of Cells (BL3DEM),
@@ -16,6 +16,10 @@ import java.util.Properties;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.15  2009/10/23 19:44:00  sueh
+ * <p> bug# 1275 Changed the name of TabType to DataFileType to clarify what it
+ * <p> corresponds to.
+ * <p>
  * <p> Revision 1.14  2009/02/05 23:44:13  sueh
  * <p> bug# 1148 Documenting storable names.
  * <p>
@@ -78,7 +82,7 @@ public final class DialogType {
   private static final int fiducialModelIndex = 3;
   private static final int fineAlignmentIndex = 4;
   private static final int tomogramPositioningIndex = 5;
-  private static final int finalAlignedStackIndex =6;
+  private static final int finalAlignedStackIndex = 6;
   private static final int tomogramGenerationIndex = 7;
   private static final int tomogramCombinationIndex = 8;
   private static final int postProcessingIndex = 9;
@@ -116,6 +120,7 @@ public final class DialogType {
   private static final String PARALLEL_NAME = "Parallel";
   private static final String ANISOTROPIC_DIFFUSION_NAME = "AnisotropicDiffusion";
   private static final String PEET_NAME = "Peet";
+  private static final String TOOLS_NAME = "Tools";
 
   private final String name;
   private final int index;
@@ -151,16 +156,16 @@ public final class DialogType {
     return index;
   }
 
-  public static final DialogType SETUP_RECON = new DialogType(DataFileType.RECON,
-      setupIndex);
-  public static final DialogType PRE_PROCESSING = new DialogType(DataFileType.RECON,
-      preProcessingIndex);
+  public static final DialogType SETUP_RECON = new DialogType(
+      DataFileType.RECON, setupIndex);
+  public static final DialogType PRE_PROCESSING = new DialogType(
+      DataFileType.RECON, preProcessingIndex);
   public static final DialogType COARSE_ALIGNMENT = new DialogType(
       DataFileType.RECON, coarseAlignmentIndex);
-  public static final DialogType FIDUCIAL_MODEL = new DialogType(DataFileType.RECON,
-      fiducialModelIndex);
-  public static final DialogType FINE_ALIGNMENT = new DialogType(DataFileType.RECON,
-      fineAlignmentIndex);
+  public static final DialogType FIDUCIAL_MODEL = new DialogType(
+      DataFileType.RECON, fiducialModelIndex);
+  public static final DialogType FINE_ALIGNMENT = new DialogType(
+      DataFileType.RECON, fineAlignmentIndex);
 
   public static final DialogType TOMOGRAM_POSITIONING = new DialogType(
       DataFileType.RECON, tomogramPositioningIndex);
@@ -175,14 +180,18 @@ public final class DialogType {
   public static final DialogType CLEAN_UP = new DialogType(DataFileType.RECON,
       cleanUpIndex);
 
-  public static final DialogType JOIN = new DialogType(DataFileType.JOIN, joinIndex);
+  public static final DialogType JOIN = new DialogType(DataFileType.JOIN,
+      joinIndex);
 
-  public static final DialogType PARALLEL = new DialogType(DataFileType.PARALLEL,
-      parallelIndex);
+  public static final DialogType PARALLEL = new DialogType(
+      DataFileType.PARALLEL, parallelIndex);
   public static final DialogType ANISOTROPIC_DIFFUSION = new DialogType(
       DataFileType.PARALLEL, anisotropicDiffusionIndex);
 
-  public static final DialogType PEET = new DialogType(DataFileType.PEET, peetIndex);
+  public static final DialogType PEET = new DialogType(DataFileType.PEET,
+      peetIndex);
+
+  public static final DialogType TOOLS = new DialogType(DataFileType.TOOLS, 0);
 
   private String toString(DataFileType dataFileType, int index) {
     if (dataFileType == DataFileType.RECON) {
@@ -223,6 +232,12 @@ public final class DialogType {
       switch (index) {
       case peetIndex:
         return "PEET";
+      }
+    }
+    else if (dataFileType == DataFileType.TOOLS) {
+      switch (index) {
+      case 0:
+        return "Tools";
       }
     }
     return "";
@@ -276,6 +291,12 @@ public final class DialogType {
         return "PEET";
       }
     }
+    else if (dataFileType == DataFileType.TOOLS) {
+      switch (index) {
+      case 0:
+        return "Tools";
+      }
+    }
     return "";
   }
 
@@ -327,6 +348,12 @@ public final class DialogType {
       switch (index) {
       case peetIndex:
         return PEET_NAME;
+      }
+    }
+    else if (dataFileType == DataFileType.TOOLS) {
+      switch (index) {
+      case 0:
+        return TOOLS_NAME;
       }
     }
     return "";
@@ -394,10 +421,14 @@ public final class DialogType {
     if (storableName.equals(PEET_NAME)) {
       return PEET;
     }
+    if (storableName.equals(TOOLS_NAME)) {
+      return TOOLS;
+    }
     return null;
   }
 
-  public static DialogType load(DataFileType dataFileType, Properties props, String key) {
+  public static DialogType load(DataFileType dataFileType, Properties props,
+      String key) {
     DialogType defaultType = getDefault(dataFileType);
     if (defaultType != null) {
       return getInstance(props.getProperty(key, defaultType.toString()));

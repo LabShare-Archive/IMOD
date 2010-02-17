@@ -20,6 +20,10 @@
  * 
  * <p>
  * $Log$
+ * Revision 3.144  2009/12/18 17:33:38  sueh
+ * bug# 1291 In postProcess(BackgroundProcess) fixing a null pointer
+ * exception.
+ *
  * Revision 3.143  2009/12/11 20:51:33  sueh
  * bug# 1291 Allow showLogFile to display just the file name as the title.
  *
@@ -1047,16 +1051,16 @@ public class ProcessManager extends BaseProcessManager {
       for (int i = 0; i < messages.errorListSize(); i++) {
         errorMessage.append("\n" + messages.getError(i));
       }
-      UIHarness.INSTANCE.openMessageDialog(errorMessage.toString(),
-          "Copytomocoms Error", axisID, appManager.getManagerKey());
+      UIHarness.INSTANCE.openMessageDialog(appManager, errorMessage.toString(),
+          "Copytomocoms Error", axisID);
     }
     for (int i = 0; i < messages.warningListSize(); i++) {
-      UIHarness.INSTANCE.openMessageDialog(messages.getWarning(i),
-          "Copytomocoms Warning", axisID, appManager.getManagerKey());
+      UIHarness.INSTANCE.openMessageDialog(appManager, messages.getWarning(i),
+          "Copytomocoms Warning", axisID);
     }
     if (exitValue != 0) {
-      UIHarness.INSTANCE.openMessageDialog(copyTomoComs.getStdErrorString(),
-          "Copytomocoms Error", axisID, appManager.getManagerKey());
+      UIHarness.INSTANCE.openMessageDialog(appManager, copyTomoComs
+          .getStdErrorString(), "Copytomocoms Error", axisID);
       return false;
     }
     return true;
@@ -1445,8 +1449,8 @@ public class ProcessManager extends BaseProcessManager {
       alignLogGenerator.run();
     }
     catch (IOException except) {
-      uiHarness.openMessageDialog("Unable to create alignlog files",
-          "Alignlog Error", axisID, appManager.getManagerKey());
+      uiHarness.openMessageDialog(appManager,
+          "Unable to create alignlog files", "Alignlog Error", axisID);
     }
   }
 
@@ -1474,8 +1478,8 @@ public class ProcessManager extends BaseProcessManager {
     }
     catch (IOException e) {
       e.printStackTrace();
-      uiHarness.openMessageDialog("Unable to copy protected align files:",
-          "Align Error", axisID, appManager.getManagerKey());
+      uiHarness.openMessageDialog(appManager,
+          "Unable to copy protected align files:", "Align Error", axisID);
     }
 
   }
@@ -1618,9 +1622,9 @@ public class ProcessManager extends BaseProcessManager {
     }
     catch (LogFile.LockException e) {
       e.printStackTrace();
-      UIHarness.INSTANCE.openMessageDialog(
+      UIHarness.INSTANCE.openMessageDialog(appManager,
           "Unable to reconnect to processchunks.\n" + e.getMessage(),
-          "Reconnect Failure", axisID, appManager.getManagerKey());
+          "Reconnect Failure", axisID);
       return false;
     }
     return true;
@@ -1766,26 +1770,26 @@ public class ProcessManager extends BaseProcessManager {
       setupCombine = new SetupCombine(appManager);
     }
     catch (SystemProcessException e) {
-      uiHarness.openMessageDialog(e.getMessage(), "Setup Combine Error",
-          AxisID.ONLY, appManager.getManagerKey());
+      uiHarness.openMessageDialog(appManager, e.getMessage(),
+          "Setup Combine Error", AxisID.ONLY);
       return false;
     }
     appManager.saveStorables(AxisID.ONLY);
     int exitValue = setupCombine.run();
     ProcessMessages messages = setupCombine.getProcessMessages();
     for (int i = 0; i < messages.errorListSize(); i++) {
-      UIHarness.INSTANCE.openMessageDialog(messages.getError(i),
-          "Setup Combine Error", AxisID.ONLY, appManager.getManagerKey());
+      UIHarness.INSTANCE.openMessageDialog(appManager, messages.getError(i),
+          "Setup Combine Error", AxisID.ONLY);
     }
     for (int i = 0; i < messages.warningListSize(); i++) {
-      UIHarness.INSTANCE.openMessageDialog(messages.getWarning(i),
-          "Setup Combine Warning", AxisID.ONLY, appManager.getManagerKey());
+      UIHarness.INSTANCE.openMessageDialog(appManager, messages.getWarning(i),
+          "Setup Combine Warning", AxisID.ONLY);
     }
     TomogramState state = appManager.getState();
     if (exitValue != 0) {
-      UIHarness.INSTANCE.openMessageDialog(
+      UIHarness.INSTANCE.openMessageDialog(appManager,
           "Setup combine failed.  Exit value = " + exitValue,
-          "Setup Combine Failed", AxisID.ONLY, appManager.getManagerKey());
+          "Setup Combine Failed", AxisID.ONLY);
       if (processResultDisplay != null) {
         processResultDisplay.msgProcessFailed();
       }
@@ -1808,7 +1812,7 @@ public class ProcessManager extends BaseProcessManager {
   public void modelToPatch(AxisID axisID) throws SystemProcessException,
       LogFile.LockException {
     LogFile patchOut = LogFile.getInstance(appManager.getPropertyUserDir(),
-        DatasetFiles.PATCH_OUT, appManager.getManagerKey());
+        DatasetFiles.PATCH_OUT);
     patchOut.backup();
     /*File patchOut = new File(appManager.getPropertyUserDir(), "patch.out");
      if (patchOut.exists()) {
@@ -1973,7 +1977,7 @@ public class ProcessManager extends BaseProcessManager {
         + ".com";
     //  Instantiate the process monitor
     Matchvol1ProcessMonitor monitor = Matchvol1ProcessMonitor
-        .getFlattenInstance(appManager, axisID);
+        .getFlattenInstance(appManager, axisID,null);
     //  Start the com script in the background
     ComScriptProcess comScriptProcess = startComScript(command, monitor,
         axisID, processResultDisplay, processSeries);
@@ -2024,8 +2028,8 @@ public class ProcessManager extends BaseProcessManager {
   }
 
   private void printPsOutput(AxisID axisID) {
-    SystemProgram ps = new SystemProgram(appManager.getPropertyUserDir(),
-        new String[] { "ps", "axl" }, axisID, appManager.getManagerKey());
+    SystemProgram ps = new SystemProgram(appManager, appManager
+        .getPropertyUserDir(), new String[] { "ps", "axl" }, axisID);
     ps.run();
     System.out.println("ps axl date=" + ps.getRunTimestamp());
     //  Find the index of the Parent ID and ProcessID
@@ -2046,8 +2050,8 @@ public class ProcessManager extends BaseProcessManager {
    */
   private void runCommand(String[] commandArray, AxisID axisID, LogFile logFile)
       throws SystemProcessException, LogFile.LockException {
-    SystemProgram systemProgram = new SystemProgram(appManager
-        .getPropertyUserDir(), commandArray, axisID, appManager.getManagerKey());
+    SystemProgram systemProgram = new SystemProgram(appManager, appManager
+        .getPropertyUserDir(), commandArray, axisID);
     systemProgram
         .setWorkingDirectory(new File(appManager.getPropertyUserDir()));
     systemProgram.setDebug(EtomoDirector.INSTANCE.getArguments().isDebug());
@@ -2207,8 +2211,7 @@ public class ProcessManager extends BaseProcessManager {
         if (fiducialFile.exists()) {
           state.setFidFileLastModified(axisID, fiducialFile.lastModified());
           appManager.logMessage(TrackLog.getInstance(appManager
-              .getPropertyUserDir(), axisID), axisID, appManager
-              .getManagerKey());
+              .getPropertyUserDir(), axisID), axisID);
         }
         else {
           state.resetFidFileLastModified(axisID);
@@ -2271,13 +2274,11 @@ public class ProcessManager extends BaseProcessManager {
         //showTransferfidLogFile(process.getAxisID());
         appManager.getState().setSeedingDone(process.getAxisID(), true);
         appManager.logMessage(TransferFidLog.getInstance(appManager
-            .getPropertyUserDir(), process.getAxisID()), process.getAxisID(),
-            appManager.getManagerKey());
+            .getPropertyUserDir(), process.getAxisID()), process.getAxisID());
       }
       else if (process.getProcessName() == ProcessName.FLATTEN_WARP) {
         FlattenWarpLog.INSTANCE.setLog(process.getStdOutput());
-        appManager.logMessage(FlattenWarpLog.INSTANCE, process.getAxisID(),
-            appManager.getManagerKey());
+        appManager.logMessage(FlattenWarpLog.INSTANCE, process.getAxisID());
       }
       else {
         String commandName = process.getCommandName();
@@ -2295,9 +2296,9 @@ public class ProcessManager extends BaseProcessManager {
           MRCHeader mrcHeader = MRCHeader.getInstance(appManager
               .getPropertyUserDir(), TrimvolParam.getInputFileName(appManager
               .getBaseMetaData().getAxisType(), appManager.getBaseMetaData()
-              .getName()), AxisID.ONLY, appManager.getManagerKey());
+              .getName()), AxisID.ONLY);
           try {
-            if (mrcHeader.read()) {
+            if (mrcHeader.read(appManager)) {
               state.setPostProcTrimVolInputNColumns(mrcHeader.getNColumns());
               state.setPostProcTrimVolInputNRows(mrcHeader.getNRows());
               state.setPostProcTrimVolInputNSections(mrcHeader.getNSections());

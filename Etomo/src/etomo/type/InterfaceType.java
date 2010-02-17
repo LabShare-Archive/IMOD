@@ -17,6 +17,9 @@ package etomo.type;
 * @n'ton
 * 
 * <p> $Log$
+* <p> Revision 1.2  2007/05/22 21:14:32  sueh
+* <p> bug# 999 Added a comment.
+* <p>
 * <p> Revision 1.1  2007/05/21 22:29:55  sueh
 * <p> bug# 1000 Class that enumerates the four different interfaces.
 * <p> </p>
@@ -28,6 +31,7 @@ public final class InterfaceType {
   public static final InterfaceType JOIN = new InterfaceType("join");
   public static final InterfaceType PP = new InterfaceType("pp");
   public static final InterfaceType PEET = new InterfaceType("peet");
+  public static final InterfaceType TOOLS = new InterfaceType("tools");
   
   private final String name;
   

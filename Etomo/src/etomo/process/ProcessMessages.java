@@ -9,6 +9,7 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.Vector;
 
+import etomo.BaseManager;
 import etomo.storage.LogFile;
 
 /**
@@ -88,11 +89,12 @@ public final class ProcessMessages {
    * parse processOutput.
    * @param processOutput: OutputBufferManager
    */
-  synchronized final void addProcessOutput(OutputBufferManager processOutput) {
+  synchronized final void addProcessOutput(BaseManager manager,
+      OutputBufferManager processOutput) {
     outputBufferManager = processOutput;
-    nextLine();
+    nextLine(manager);
     while (outputBufferManager != null) {
-      parse();
+      parse(manager);
     }
   }
 
@@ -102,11 +104,12 @@ public final class ProcessMessages {
    * parse processOutput.
    * @param processOutput: String[]
    */
-  synchronized final void addProcessOutput(String[] processOutput) {
+  synchronized final void addProcessOutput(BaseManager manager,
+      String[] processOutput) {
     processOutputStringArray = processOutput;
-    nextLine();
+    nextLine(manager);
     while (processOutputStringArray != null) {
-      parse();
+      parse(manager);
     }
   }
 
@@ -117,25 +120,26 @@ public final class ProcessMessages {
    * @param processOutput: File
    * @throws FileNotFoundException
    */
-  synchronized final void addProcessOutput(File processOutput)
-      throws FileNotFoundException {
+  synchronized final void addProcessOutput(BaseManager manager,
+      File processOutput) throws FileNotFoundException {
     //  Open the file as a stream
     InputStream fileStream = new FileInputStream(processOutput);
     bufferedReader = new BufferedReader(new InputStreamReader(fileStream));
-    nextLine();
+    nextLine(manager);
     while (bufferedReader != null) {
-      parse();
+      parse(manager);
     }
   }
 
-  synchronized final void addProcessOutput(LogFile processOutput)
-      throws LogFile.LockException, FileNotFoundException {
+  synchronized final void addProcessOutput(BaseManager manager,
+      LogFile processOutput) throws LogFile.LockException,
+      FileNotFoundException {
     //Open the log file
     logFile = processOutput;
     logFileReaderId = logFile.openReader();
-    nextLine();
+    nextLine(manager);
     while (logFile != null) {
-      parse();
+      parse(manager);
     }
   }
 
@@ -145,16 +149,17 @@ public final class ProcessMessages {
    * parse processOutput.  Does not work with multi line messages.
    * @param processOutput: String
    */
-  synchronized final void addProcessOutput(String processOutput) {
+  synchronized final void addProcessOutput(BaseManager manager,
+      String processOutput) {
     if (multiLineMessages) {
       throw new IllegalStateException(
           "multiLineMessages is true but function can only parse one line at a time");
     }
     //  Open the file as a stream
     processOutputString = processOutput;
-    nextLine();
+    nextLine(manager);
     if (line != null) {
-      parse();
+      parse(manager);
     }
   }
 
@@ -296,39 +301,39 @@ public final class ProcessMessages {
    * Look for a message or a success tag.  Return when something is found or
    * when there is nothing left to look for.
    */
-  private void parse() {
-    if (parsePipWarning()) {
+  private void parse(BaseManager manager) {
+    if (parsePipWarning(manager)) {
       return;
     }
     if (chunks) {
       if (multiLineMessages) {
-        if (parseMultiLineChunkError()) {
+        if (parseMultiLineChunkError(manager)) {
           return;
         }
       }
       else {
-        if (parseSingleLineChunkError()) {
+        if (parseSingleLineChunkError(manager)) {
           return;
         }
       }
     }
     if (multiLineMessages) {
-      if (parseMultiLineMessage()) {
+      if (parseMultiLineMessage(manager)) {
         return;
       }
     }
     else {
-      if (parseSingleLineMessage()) {
+      if (parseSingleLineMessage(manager)) {
         return;
       }
     }
     //No message has been found on this line, so check it for success tags
-    if (parseSuccessLine()) {
+    if (parseSuccessLine(manager)) {
       return;
     }
     //parse functions go to the next line only when they find something
     //if all parse functions failed, call nextLine()
-    nextLine();
+    nextLine(manager);
   }
 
   /**
@@ -339,7 +344,7 @@ public final class ProcessMessages {
    * must not overlap.
    * @return true if success found
    */
-  private boolean parseSuccessLine() {
+  private boolean parseSuccessLine(BaseManager manager) {
     if (line == null || (successTag1 == null && successTag2 == null)) {
       return false;
     }
@@ -361,7 +366,7 @@ public final class ProcessMessages {
       //tag 2 wasn't set
       if (tag1) {
         //tag 1 was found - success
-        nextLine();
+        nextLine(manager);
         success = true;
         return true;
       }
@@ -372,7 +377,7 @@ public final class ProcessMessages {
     if (tag2Index == -1) {
       return false;
     }
-    nextLine();
+    nextLine(manager);
     success = true;
     return true;
   }
@@ -385,7 +390,7 @@ public final class ProcessMessages {
    * If a pip warning is found, line will be set to a new line.
    * @return true if pip warning is found
    */
-  private boolean parsePipWarning() {
+  private boolean parsePipWarning(BaseManager manager) {
     if (line == null) {
       return false;
     }
@@ -414,12 +419,12 @@ public final class ProcessMessages {
       }
       return true;
     }
-    boolean moreLines = nextLine();
+    boolean moreLines = nextLine(manager);
     while (moreLines) {
       //end tag not found - add line to the pip warning message
       if ((pipWarningEndTagIndex = line.indexOf(PIP_WARNING_END_TAG)) == -1) {
         pipWarning.append(" " + line);
-        moreLines = nextLine();
+        moreLines = nextLine(manager);
       }
       else {
         //found the end tag - save the pip warning to infoList
@@ -434,7 +439,7 @@ public final class ProcessMessages {
         else {
           //pip warning takes up the whole line
           pipWarning.append(" " + line);
-          nextLine();
+          nextLine(manager);
         }
         getInfoList().add(pipWarning.toString());
         return true;
@@ -451,7 +456,7 @@ public final class ProcessMessages {
    * If a message is found, line will be set to a new line.
    * @return true if a message is found
    */
-  private boolean parseSingleLineMessage() {
+  private boolean parseSingleLineMessage(BaseManager manager) {
     if (line == null) {
       return false;
     }
@@ -477,7 +482,7 @@ public final class ProcessMessages {
     else if (info) {
       addElement(getInfoList(), line, infoIndex, INFO_TAG.length());
     }
-    nextLine();
+    nextLine(manager);
     return true;
   }
 
@@ -487,7 +492,7 @@ public final class ProcessMessages {
    * If a chunk error is found, line will be set to a new line.
    * @return true if a chunk error is found
    */
-  private boolean parseSingleLineChunkError() {
+  private boolean parseSingleLineChunkError(BaseManager manager) {
     if (line == null) {
       return false;
     }
@@ -502,7 +507,7 @@ public final class ProcessMessages {
       addElement(getChunkErrorList(), line, chunkErrorIndex, CHUNK_ERROR_TAG
           .length());
     }
-    nextLine();
+    nextLine(manager);
     return true;
   }
 
@@ -513,7 +518,7 @@ public final class ProcessMessages {
    * If a message is found, line will be set to a new line.
    * @return true if a message is found
    */
-  private boolean parseMultiLineMessage() {
+  private boolean parseMultiLineMessage(BaseManager manager) {
     if (line == null) {
       return false;
     }
@@ -548,7 +553,7 @@ public final class ProcessMessages {
     else {
       messageBuffer = new StringBuffer(line);
     }
-    boolean moreLines = nextLine();
+    boolean moreLines = nextLine(manager);
     while (moreLines) {
       if (line.length() == 0) {
         //end of message - add message in a list
@@ -562,12 +567,12 @@ public final class ProcessMessages {
         else if (info) {
           getInfoList().add(message);
         }
-        nextLine();
+        nextLine(manager);
         return true;
       }
       else {//add current line to the message
         messageBuffer.append(" " + line);
-        moreLines = nextLine();
+        moreLines = nextLine(manager);
       }
     }
     //no more lines - add message to list
@@ -591,7 +596,7 @@ public final class ProcessMessages {
    * If a chunk error is found, line will be set to a new line.
    * @return true if a chunk error is found
    */
-  private boolean parseMultiLineChunkError() {
+  private boolean parseMultiLineChunkError(BaseManager manager) {
     if (line == null) {
       return false;
     }
@@ -614,7 +619,7 @@ public final class ProcessMessages {
     else {
       messageBuffer = new StringBuffer(line);
     }
-    boolean moreLines = nextLine();
+    boolean moreLines = nextLine(manager);
     while (moreLines) {
       if (line.length() == 0) {
         //end of message - add message in a list
@@ -622,12 +627,12 @@ public final class ProcessMessages {
         if (chunkError) {
           getChunkErrorList().add(message);
         }
-        nextLine();
+        nextLine(manager);
         return true;
       }
       else {//add current line to the message
         messageBuffer.append(" " + line);
-        moreLines = nextLine();
+        moreLines = nextLine(manager);
       }
     }
     //no more lines - add message to list
@@ -643,7 +648,7 @@ public final class ProcessMessages {
    * corresponding nextLine function.
    * @return
    */
-  private final boolean nextLine() {
+  private final boolean nextLine(BaseManager manager) {
     if (outputBufferManager != null) {
       return nextOutputBufferManagerLine();
     }
@@ -651,7 +656,7 @@ public final class ProcessMessages {
       return nextBufferedReaderLine();
     }
     if (logFile != null) {
-      return nextLogFileLine();
+      return nextLogFileLine(manager);
     }
     if (processOutputString != null) {
       line = processOutputString;
@@ -726,7 +731,7 @@ public final class ProcessMessages {
     return true;
   }
 
-  private final boolean nextLogFileLine() {
+  private final boolean nextLogFileLine(BaseManager manager) {
     try {
       if ((line = logFile.readLine(logFileReaderId)) == null) {
         logFile.closeReader(logFileReaderId);
@@ -843,6 +848,10 @@ public final class ProcessMessages {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.11  2009/05/02 01:08:46  sueh
+ * <p> bug# 1216 In addElement fixed a problem where empty messages where
+ * <p> saved.
+ * <p>
  * <p> Revision 1.10  2009/02/04 23:26:53  sueh
  * <p> bug# 1158 Changed id and exceptions classes in LogFile.
  * <p>

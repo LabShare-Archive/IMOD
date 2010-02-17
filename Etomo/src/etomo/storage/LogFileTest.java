@@ -7,7 +7,6 @@ import java.util.Properties;
 
 import etomo.BaseManager;
 import etomo.EtomoDirector;
-import etomo.ManagerKey;
 import etomo.process.BaseProcessManager;
 import etomo.type.AxisID;
 import etomo.type.ProcessName;
@@ -29,6 +28,9 @@ import junit.framework.TestCase;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.12  2009/10/23 22:24:41  sueh
+ * <p> bug# 1275 No default manager.
+ * <p>
  * <p> Revision 1.11  2009/03/17 00:45:12  sueh
  * <p> bug# 1186 Pass managerKey to everything that pops up a dialog.
  * <p>
@@ -454,8 +456,7 @@ public class LogFileTest extends TestCase {
     LogFile test = getInstance();
     test.delete();
     assertTrue(test.noLocks());
-    LogFile target = LogFile.getInstance(testDir.getAbsolutePath(), "target",
-        getManagerKey());
+    LogFile target = LogFile.getInstance(testDir.getAbsolutePath(), "target");
     target.delete();
     LogFile.WriterId writerId = test.openWriter();
     try {
@@ -618,7 +619,7 @@ public class LogFileTest extends TestCase {
       IOException {
     LogFile testa = getInstance();
     LogFile testb = LogFile.getInstance(log.getParent(), AxisID.ONLY,
-        ProcessName.ALIGN, getManagerKey());
+        ProcessName.ALIGN);
     LogFile.InputStreamId id0a = testa.openInputStream();
     LogFile.WritingId id0b = testb.openForWriting();
     assertEquals("Ids in different instances do not affect each other", id0a
@@ -717,15 +718,8 @@ public class LogFileTest extends TestCase {
 
   private LogFile getInstance() throws LogFile.LockException {
     LogFile logFile = LogFile.getInstance(testDir.getAbsolutePath(),
-        AxisID.ONLY, ProcessName.BLEND, getManagerKey());
+        AxisID.ONLY, ProcessName.BLEND);
     return logFile;
-  }
-
-  private ManagerKey getManagerKey() {
-    if (manager == null) {
-      return null;
-    }
-    return manager.getManagerKey();
   }
 
   private void createLog() {

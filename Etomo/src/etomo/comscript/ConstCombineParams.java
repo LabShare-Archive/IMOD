@@ -27,6 +27,9 @@ import etomo.util.MRCHeader;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.9  2009/03/17 00:31:26  sueh
+ * <p> bug# 1186 Pass managerKey to everything that pops up a dialog.
+ * <p>
  * <p> Revision 3.8  2009/02/13 02:12:24  sueh
  * <p> bug# 1176 Checking return value of MRCHeader.read.
  * <p>
@@ -282,10 +285,9 @@ public class ConstCombineParams {
       axisID = AxisID.SECOND;
     }
     MRCHeader header = MRCHeader.getInstance(manager.getPropertyUserDir(),
-        DatasetFiles.getTomogram(manager, axisID).getAbsolutePath(), axisID,
-        manager.getManagerKey());
+        DatasetFiles.getTomogram(manager, axisID).getAbsolutePath(), axisID);
     try {
-      if (!header.read()) {
+      if (!header.read(manager)) {
         return true;
       }
     }

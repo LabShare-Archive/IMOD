@@ -28,6 +28,9 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.36  2010/01/11 23:50:41  sueh
+ * <p> bug# 1299 Monitoring the log file with MessageReporter.
+ * <p>
  * <p> Revision 3.35  2009/09/17 19:15:00  sueh
  * <p> bug# 1257 Added getModeBytes to handle getting the right number of
  * <p> bytes based on the mode in a single location.  Also added mode 6 and
@@ -190,8 +193,8 @@ import etomo.util.Utilities;
 
 abstract class FileSizeProcessMonitor implements ProcessMonitor {
   public static final String rcsid = "$Id$";
-  protected final ApplicationManager applicationManager;
-  protected final AxisID axisID;
+  final ApplicationManager applicationManager;
+  final AxisID axisID;
   long processStartTime;
   long scriptStartTime;
   File watchedFile;
@@ -204,7 +207,7 @@ abstract class FileSizeProcessMonitor implements ProcessMonitor {
   int nKBytes;
   int updatePeriod = 250;
   long lastSize = 0;
-  protected final ProcessName processName;
+  final ProcessName processName;
   private FileInputStream stream = null;
   //private BufferedReader logFileReader = null;
   //private FileReader fileReader = null;
@@ -222,13 +225,13 @@ abstract class FileSizeProcessMonitor implements ProcessMonitor {
     this.processName = processName;
     try {
       logFile = LogFile.getInstance(appMgr.getPropertyUserDir(), axisID,
-          processName, applicationManager.getManagerKey());
+          processName);
     }
     catch (LogFile.LockException e) {
       e.printStackTrace();
-      UIHarness.INSTANCE.openMessageDialog("Unable to create log file.\n"
-          + e.getMessage(), "File Size Monitor Log File Failure",
-          applicationManager.getManagerKey());
+      UIHarness.INSTANCE.openMessageDialog(appMgr,
+          "Unable to create log file.\n" + e.getMessage(),
+          "File Size Monitor Log File Failure");
       logFile = null;
     }
   }
@@ -307,7 +310,7 @@ abstract class FileSizeProcessMonitor implements ProcessMonitor {
   }
 
   public void useMessageReporter() {
-    messageReporter = new MessageReporter(applicationManager, axisID, logFile);
+    messageReporter = new MessageReporter(axisID, logFile);
   }
 
   public void stop() {
@@ -322,7 +325,7 @@ abstract class FileSizeProcessMonitor implements ProcessMonitor {
     return logFile;
   }
 
-  protected void setReconnect(boolean reconnect) {
+  void setReconnect(boolean reconnect) {
     this.reconnect = reconnect;
   }
 
@@ -443,7 +446,7 @@ abstract class FileSizeProcessMonitor implements ProcessMonitor {
         fileWriting = false;
       }
       if (messageReporter != null) {
-        messageReporter.checkForMessages();
+        messageReporter.checkForMessages(applicationManager);
       }
     }
     if (messageReporter != null) {

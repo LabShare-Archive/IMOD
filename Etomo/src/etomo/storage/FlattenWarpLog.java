@@ -5,7 +5,6 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-import etomo.ManagerKey;
 import etomo.type.ProcessName;
 
 /**
@@ -21,7 +20,10 @@ import etomo.type.ProcessName;
  * 
  * @version $Revision$
  * 
- * <p> $Log$ </p>
+ * <p> $Log$
+ * <p> Revision 1.1  2009/10/06 01:25:18  sueh
+ * <p> bug# 1246 Parses the flattenwarp log.
+ * <p> </p>
  */
 public final class FlattenWarpLog implements Loggable {
   public static final String rcsid = "$Id$";
@@ -51,8 +53,8 @@ public final class FlattenWarpLog implements Loggable {
    * without setLog being called (because it is a pointer), it would not
    * necessarily be correct anymore.
    */
-  public List getLogMessage(ManagerKey managerKey)
-      throws LogFile.LockException, FileNotFoundException, IOException {
+  public List getLogMessage() throws LogFile.LockException,
+      FileNotFoundException, IOException {
     if (log == null || !lineList.isEmpty()) {
       return lineList;
     }

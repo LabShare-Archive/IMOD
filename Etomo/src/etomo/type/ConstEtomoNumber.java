@@ -3,9 +3,7 @@ package etomo.type;
 import java.util.Properties;
 import java.util.Vector;
 
-import etomo.ManagerKey;
 import etomo.storage.Storable;
-import etomo.ui.UIHarness;
 import etomo.util.Utilities;
 
 /**
@@ -37,6 +35,10 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.66  2009/12/01 15:19:30  sueh
+ * <p> bug# 1282 In newNumber(String, StringBuffer) mentioned the type in the
+ * <p> error message.
+ * <p>
  * <p> Revision 1.65  2009/09/05 00:09:10  sueh
  * <p> bug# 1256 Moved toStringWithLeadingZeros to the nad param because it
  * <p> is only being used there.
@@ -537,81 +539,25 @@ public abstract class ConstEtomoNumber implements Storable {
   }
 
   /**
-   * If invalidReason is set, display an error message and throw an exception
-   * @param errorTitle
-   * @param axisID
-   * @throws InvalidEtomoNumberException
-   */
-  public void validate(String errorTitle, String description, AxisID axisID,
-      ManagerKey managerKey) throws InvalidEtomoNumberException {
-    if (!isValid(true, errorTitle, description, axisID, managerKey)) {
-      throw new InvalidEtomoNumberException(invalidReason.toString());
-    }
-  }
-
-  /**
-   * If invalidReason is set, display an error message and return true
-   * @param displayErrorMessage
-   * @param errorTitle
-   * @param axisID
-   * @return
-   */
-  public boolean isValid(boolean displayErrorMessage, String errorTitle,
-      AxisID axisID, ManagerKey managerKey) {
-    return isValid(displayErrorMessage, errorTitle, null, axisID, managerKey);
-  }
-
-  /**
-   * If invalidReason is set, display an error message and return true
-   * @param errorTitle
-   * @param description
-   * @param axisID
-   * @return
-   */
-  public boolean isValid(String errorTitle, String description, AxisID axisID,
-      ManagerKey managerKey) {
-    return isValid(true, errorTitle, description, axisID, managerKey);
-  }
-
-  public boolean isValid(String errorTitle, String description,
-      ManagerKey managerKey) {
-    return isValid(true, errorTitle, description, AxisID.ONLY, managerKey);
-  }
-
-  public boolean isValid(boolean displayErrorMessage, String errorTitle,
-      String description, ManagerKey managerKey) {
-    return isValid(displayErrorMessage, errorTitle, description, AxisID.ONLY,
-        managerKey);
-  }
-
-  /**
    * If invalidReason is set, display an error message and return true
    * @param displayErrorMessage
    * @param errorTitle
    * @param description
-   * @param axisID
-   * @return
+   * @return error message if invalidReason is set, null if valid
    */
-  public boolean isValid(boolean displayErrorMessage, String errorTitle,
-      String description, AxisID axisID, ManagerKey managerKey) {
-    if (invalidReason != null && displayErrorMessage) {
+  public String validate(String description) {
+    if (invalidReason != null) {
       if (description == null) {
-        UIHarness.INSTANCE.openMessageDialog(this.description + ": "
-            + invalidReason, errorTitle, axisID, managerKey);
+        return this.description + ": " + invalidReason;
       }
-      else {
-        description = description.trim();
-        if (description.endsWith(":")) {
-          UIHarness.INSTANCE.openMessageDialog(description + "  "
-              + invalidReason, errorTitle, axisID, managerKey);
-        }
-        else {
-          UIHarness.INSTANCE.openMessageDialog(description + ":  "
-              + invalidReason, errorTitle, axisID, managerKey);
-        }
+      description = description.trim();
+      if (description.endsWith(":")) {
+        return description + "  " + invalidReason;
+
       }
+      return description + ":  " + invalidReason;
     }
-    return invalidReason == null;
+    return null;
   }
 
   public void setDebug(boolean debug) {

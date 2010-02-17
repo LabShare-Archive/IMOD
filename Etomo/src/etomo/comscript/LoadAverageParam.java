@@ -95,8 +95,8 @@ public class LoadAverageParam implements IntermittentCommand {
     //fail without causing any other symptoms.  So its safer to use the bash
     //shell for a bash user.
     String bashShell = "bash";
-    String shell = EnvironmentVariable.INSTANCE.getValue(manager
-        .getPropertyUserDir(), "SHELL", AxisID.ONLY, manager.getManagerKey());
+    String shell = EnvironmentVariable.INSTANCE.getValue(manager, manager
+        .getPropertyUserDir(), "SHELL", AxisID.ONLY);
     if (shell != null && shell.equals(bashShell)) {
       command.add(bashShell);
     }
@@ -111,7 +111,7 @@ public class LoadAverageParam implements IntermittentCommand {
   }
 
   private final void buildRemoteStartCommand() {
-    List command = SshParam.INSTANCE.getCommand(false,computer);
+    List command = SshParam.INSTANCE.getCommand(manager, false, computer);
     int commandSize = command.size();
     remoteStartCommandArray = new String[commandSize];
     for (int i = 0; i < commandSize; i++) {
@@ -142,6 +142,9 @@ public class LoadAverageParam implements IntermittentCommand {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.14  2009/04/13 22:23:13  sueh
+ * <p> bug# 1207 Moved the building of the ssh command to SshParam.
+ * <p>
  * <p> Revision 1.13  2009/03/17 00:32:02  sueh
  * <p> bug# 1186 Pass managerKey to everything that pops up a dialog.
  * <p>

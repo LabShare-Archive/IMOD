@@ -8,7 +8,6 @@ import java.util.Hashtable;
 import java.util.List;
 
 import etomo.BaseManager;
-import etomo.ManagerKey;
 import etomo.storage.LogFile;
 import etomo.storage.autodoc.AutodocFactory;
 import etomo.storage.autodoc.ReadOnlyAutodoc;
@@ -36,6 +35,9 @@ import etomo.type.ScriptParameter;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.27  2010/01/11 23:49:01  sueh
+ * <p> bug# 1299 Added isMessageReporter.
+ * <p>
  * <p> Revision 3.26  2009/12/11 17:25:40  sueh
  * <p> bug# 1291 Added getCommandInputFile to implement Command.
  * <p>
@@ -368,8 +370,8 @@ public class BeadtrackParam extends OldBeadtrackParam implements CommandParam,
   private HashMap getRequiredMap() {
     ReadOnlyAutodoc autodoc = null;
     try {
-      autodoc = AutodocFactory.getInstance(AutodocFactory.BEADTRACK, axisID,
-          manager.getManagerKey());
+      autodoc = AutodocFactory.getInstance(manager, AutodocFactory.BEADTRACK,
+          axisID);
     }
     catch (FileNotFoundException except) {
       except.printStackTrace();
@@ -402,6 +404,7 @@ public class BeadtrackParam extends OldBeadtrackParam implements CommandParam,
   public boolean isMessageReporter() {
     return false;
   }
+
   /**
    * @return
    */
@@ -829,7 +832,7 @@ public class BeadtrackParam extends OldBeadtrackParam implements CommandParam,
   }
 
   public String getCommandLine() {
-    return FileType.getInstance(PROCESS_NAME).getFileName(manager, axisID);
+    return FileType.TRACK_COMSCRIPT.getFileName(manager, axisID);
   }
 
   public CommandMode getCommandMode() {
@@ -840,8 +843,8 @@ public class BeadtrackParam extends OldBeadtrackParam implements CommandParam,
     return PROCESS_NAME.toString();
   }
 
-  public List getLogMessage(ManagerKey managerKey)
-      throws LogFile.LockException, FileNotFoundException, IOException {
+  public List getLogMessage() throws LogFile.LockException,
+      FileNotFoundException, IOException {
     return null;
   }
 
@@ -856,7 +859,7 @@ public class BeadtrackParam extends OldBeadtrackParam implements CommandParam,
   public File getCommandOutputFile() {
     return null;
   }
-  
+
   public File getCommandInputFile() {
     return null;
   }

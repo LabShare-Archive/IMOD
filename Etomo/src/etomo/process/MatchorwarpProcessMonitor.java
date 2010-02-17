@@ -21,6 +21,9 @@ import etomo.type.ProcessName;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.7  2009/06/05 01:58:11  sueh
+ * <p> bug# 1219 Kept up with changes in parent class.
+ * <p>
  * <p> Revision 1.6  2009/02/04 23:26:15  sueh
  * <p> bug# 1158 Changed id and exceptions classes in LogFile.
  * <p>
@@ -41,40 +44,43 @@ import etomo.type.ProcessName;
  * <p> bug# 83 Matchorwarp process monitor.
  * <p> </p>
  */
-public class MatchorwarpProcessMonitor extends LogFileProcessMonitor {
+public final class MatchorwarpProcessMonitor extends LogFileProcessMonitor {
   public static final String rcsid = "$Id$";
 
-  String lastLineRead = null;
+  private String lastLineRead = null;
+
+  private final ApplicationManager applicationManager;
 
   /**
    * Construct a matchvol1 process watcher
    * @param appMgr
    * @param id
    */
-  public MatchorwarpProcessMonitor(ApplicationManager appMgr, AxisID id) {
-    super(appMgr, id,ProcessName.MATCHORWARP);
+  public MatchorwarpProcessMonitor(final ApplicationManager manager, final AxisID id) {
+    super(manager, id, ProcessName.MATCHORWARP);
+    applicationManager = manager;
     logFileBasename = "matchorwarp";
   }
 
   /* (non-Javadoc)
    * @see etomo.process.LogFileProcessMonitor#intializeProgressBar()
    */
-  protected void initializeProgressBar() {
+  void initializeProgressBar() {
     if (nSections == Integer.MIN_VALUE) {
-      applicationManager.getMainPanel().setProgressBar("Combine: matchorwarp",
-          1, axisID,processName);
-      applicationManager.getMainPanel().setProgressBarValue(0, "Starting...",
-          axisID);
+      manager.getMainPanel().setProgressBar("Combine: matchorwarp", 1, axisID,
+          processName);
+      manager.getMainPanel().setProgressBarValue(0, "Starting...", axisID);
       return;
     }
-    applicationManager.getMainPanel().setProgressBar("Combine: matchorwarp",
-        nSections, axisID,processName);
+    manager.getMainPanel().setProgressBar("Combine: matchorwarp", nSections,
+        axisID, processName);
   }
 
   /* (non-Javadoc)
    * @see etomo.process.LogFileProcessMonitor#getCurrentSection()
    */
-  protected void getCurrentSection() throws NumberFormatException, LogFile.LockException,IOException {
+  void getCurrentSection() throws NumberFormatException, LogFile.LockException,
+      IOException {
     String line;
     while ((line = readLogFileLine()) != null) {
       line = line.trim();
@@ -92,8 +98,8 @@ public class MatchorwarpProcessMonitor extends LogFileProcessMonitor {
   /**
    * Search matchvol1.log.out file for the number of positions
    */
-  protected void findNSections() throws InterruptedException,
-      NumberFormatException, LogFile.LockException,IOException {
+  void findNSections() throws InterruptedException, NumberFormatException,
+      LogFile.LockException, IOException {
     //  Search for the number of sections, we should see a header ouput first
     boolean foundNSections = false;
     nSections = -1;
@@ -110,7 +116,8 @@ public class MatchorwarpProcessMonitor extends LogFileProcessMonitor {
           nSections = Integer.parseInt(strings[3]);
           foundNSections = true;
         }
-        else if (line.trim().startsWith("MATCHORWARP: CREATED patch_vector.mod")) {
+        else if (line.trim()
+            .startsWith("MATCHORWARP: CREATED patch_vector.mod")) {
           applicationManager.msgPatchVectorCreated();
         }
       }

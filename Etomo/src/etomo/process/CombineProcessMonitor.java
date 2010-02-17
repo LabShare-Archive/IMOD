@@ -33,6 +33,9 @@ import etomo.util.Utilities;
  * @version $$Revision$$
  * 
  * <p> $$Log$
+ * <p> $Revision 1.30  2010/01/11 23:51:04  sueh
+ * <p> $bug# 1299 Added useMessageReporter.
+ * <p> $
  * <p> $Revision 1.29  2009/03/17 00:34:48  sueh
  * <p> $bug# 1186 Pass managerKey to everything that pops up a dialog.
  * <p> $
@@ -329,7 +332,7 @@ public class CombineProcessMonitor implements DetachedProcessMonitor {
     currentCommand = ProcessName.getInstance(childCommandName, axisID);
     if (currentCommand != null) {
       childLog = LogFile.getInstance(manager.getPropertyUserDir(), axisID,
-          currentCommand, manager.getManagerKey());
+          currentCommand);
       childLogWritingId = childLog.openForWriting();
     }
     if (currentCommand == ProcessName.MATCHVOL1) {
@@ -462,7 +465,7 @@ public class CombineProcessMonitor implements DetachedProcessMonitor {
     //  Instantiate the logFile object
     try {
       logFile = LogFile.getInstance(manager.getPropertyUserDir(), axisID,
-          CombineComscriptState.COMSCRIPT_NAME, manager.getManagerKey());
+          CombineComscriptState.COMSCRIPT_NAME);
 
       //  Wait for the log file to exist
       waitForLogFile();
@@ -476,8 +479,8 @@ public class CombineProcessMonitor implements DetachedProcessMonitor {
     catch (LogFile.LockException e) {
       endMonitor(ProcessEndState.FAILED);
       e.printStackTrace();
-      UIHarness.INSTANCE.openMessageDialog(e.getMessage(), "Etomo Error",
-          axisID, manager.getManagerKey());
+      UIHarness.INSTANCE.openMessageDialog(manager, e.getMessage(),
+          "Etomo Error", axisID);
     }
     catch (InterruptedException e) {
       endMonitor(ProcessEndState.DONE);
@@ -605,7 +608,7 @@ public class CombineProcessMonitor implements DetachedProcessMonitor {
   public ProcessMessages getProcessMessages() {
     return null;
   }
-  
+
   public void useMessageReporter() {
   }
 

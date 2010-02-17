@@ -32,6 +32,9 @@ import etomo.util.MRCHeader;
  * </p>
  * 
  * <p> $Log$
+ * <p> Revision 1.18  2009/03/17 00:46:15  sueh
+ * <p> bug# 1186 Pass managerKey to everything that pops up a dialog.
+ * <p>
  * <p> Revision 1.17  2009/02/13 02:32:28  sueh
  * <p> bug# 1176 Checking return value of MRCHeader.read.
  * <p>
@@ -438,25 +441,26 @@ public class SectionTableRowData extends ConstSectionTableRowData {
    */
   private final MRCHeader readHeader(String path) {
     MRCHeader header = MRCHeader.getInstance(manager.getPropertyUserDir(),
-        path, AxisID.ONLY, manager.getManagerKey());
+        path, AxisID.ONLY);
     try {
-      if (!header.read()) {
-        UIHarness.INSTANCE.openMessageDialog("Unable to read the header in"
-            + path, "Setting Max Values Failed", manager.getManagerKey());
+      if (!header.read(manager)) {
+        UIHarness.INSTANCE.openMessageDialog(manager,
+            "Unable to read the header in" + path, "Setting Max Values Failed");
         return null;
       }
     }
     catch (InvalidParameterException e) {
       e.printStackTrace();
-      UIHarness.INSTANCE.openMessageDialog("Unable to read the header in"
-          + path + ".\nInvalidParameterException:  " + e.getMessage(),
-          "Setting Max Values Failed", manager.getManagerKey());
+      UIHarness.INSTANCE.openMessageDialog(manager,
+          "Unable to read the header in" + path
+              + ".\nInvalidParameterException:  " + e.getMessage(),
+          "Setting Max Values Failed");
       return null;
     }
     catch (IOException e) {
-      UIHarness.INSTANCE.openMessageDialog("Unable to read the header in"
-          + path + ".\nIOException:  " + e.getMessage(),
-          "Setting Max Values Failed", manager.getManagerKey());
+      UIHarness.INSTANCE.openMessageDialog(manager,
+          "Unable to read the header in" + path + ".\nIOException:  "
+              + e.getMessage(), "Setting Max Values Failed");
       return null;
     }
     return header;

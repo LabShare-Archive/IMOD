@@ -22,6 +22,9 @@ import etomo.util.Montagesize;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.2  2009/03/17 00:33:25  sueh
+ * <p> bug# 1186 Pass managerKey to everything that pops up a dialog.
+ * <p>
  * <p> Revision 1.1  2008/12/15 23:01:50  sueh
  * <p> bug# 1161 Added Utilities functions is90DegreeImageRotation and
  * <p> getGoodframeFromMontageSize.
@@ -37,14 +40,14 @@ final class Utilities {
 
   static Goodframe getGoodframeFromMontageSize(AxisID axisID,
       BaseManager manager) {
-    Montagesize montagesize = Montagesize.getInstance(manager, axisID, manager
-        .getManagerKey());
+    Montagesize montagesize = Montagesize.getInstance(manager, axisID);
     try {
-      montagesize.read();
+      montagesize.read(manager);
       if (montagesize.isFileExists()) {
         Goodframe goodframe = new Goodframe(manager.getPropertyUserDir(),
-            axisID, manager.getManagerKey());
-        goodframe.run(montagesize.getX().getInt(), montagesize.getY().getInt());
+            axisID);
+        goodframe.run(manager, montagesize.getX().getInt(), montagesize.getY()
+            .getInt());
         return goodframe;
       }
     }

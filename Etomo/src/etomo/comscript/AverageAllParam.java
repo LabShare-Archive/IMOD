@@ -8,7 +8,6 @@ import java.util.Hashtable;
 import java.util.List;
 
 import etomo.BaseManager;
-import etomo.ManagerKey;
 import etomo.storage.LogFile;
 import etomo.storage.MatlabParam;
 import etomo.type.AxisID;
@@ -34,6 +33,9 @@ import etomo.util.EnvironmentVariable;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.3  2010/01/11 23:49:01  sueh
+ * <p> bug# 1299 Added isMessageReporter.
+ * <p>
  * <p> Revision 1.2  2009/12/11 17:25:27  sueh
  * <p> bug# 1291 Added getCommandInputFile to implement Command.
  * <p>
@@ -92,23 +94,21 @@ public final class AverageAllParam implements CommandDetails {
   public String[] getCommandArray() {
     List commandArray = new ArrayList();
     commandArray.add("sh");
-    String particleDir = EnvironmentVariable.INSTANCE.getValue(manager
-        .getPropertyUserDir(), "PARTICLE_DIR", AxisID.ONLY, manager
-        .getManagerKey());
+    String particleDir = EnvironmentVariable.INSTANCE.getValue(manager, manager
+        .getPropertyUserDir(), "PARTICLE_DIR", AxisID.ONLY);
     if (particleDir == null || particleDir.matches("\\s*")) {
-      UIHarness.INSTANCE.openMessageDialog(
+      UIHarness.INSTANCE.openMessageDialog(manager,
           "The environment variables PARTICLE_DIR has not been set.  Set it "
               + "to the location of the directory containing the PEET "
               + "software.  Make sure the PEET package is installed "
               + "(typically installed in /usr/local/Particle).  To download "
               + "PEET, go to ftp://bio3d.colorado.edu/PEET.",
-          "Environment Error", manager.getManagerKey());
+          "Environment Error");
       return null;
     }
     commandArray.add(new File(new File(EnvironmentVariable.INSTANCE.getValue(
-        manager.getPropertyUserDir(), "PARTICLE_DIR", AxisID.ONLY, manager
-            .getManagerKey()), "bin"), PROCESS_NAME.toString())
-        .getAbsolutePath());
+        manager, manager.getPropertyUserDir(), "PARTICLE_DIR", AxisID.ONLY),
+        "bin"), PROCESS_NAME.toString()).getAbsolutePath());
     commandArray.add(prmFile.getName());
     if (!iterationNumber.isNull()) {
       commandArray.add(iterationNumber.toString());
@@ -117,8 +117,8 @@ public final class AverageAllParam implements CommandDetails {
     return (String[]) commandArray.toArray(new String[commandArray.size()]);
   }
 
-  public List getLogMessage(ManagerKey managerKey)
-      throws LogFile.LockException, FileNotFoundException, IOException {
+  public List getLogMessage() throws LogFile.LockException,
+      FileNotFoundException, IOException {
     List message = new ArrayList();
     message.add(MatlabParam.SZ_VOL_KEY + " = " + szVol);
     message.add(MatlabParam.LST_FLAG_ALL_TOM_KEY + " = " + lstFlagAllTom);

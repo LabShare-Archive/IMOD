@@ -22,6 +22,9 @@ import junit.framework.TestCase;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.28  2009/10/26 15:03:00  sueh
+ * <p> bug# 1275 Fixed test bug caused by the removal of the default manager.
+ * <p>
  * <p> Revision 3.27  2009/10/23 23:50:17  sueh
  * <p> bug# 1275 No default manager.
  * <p>
@@ -229,9 +232,9 @@ public class MetaDataTest extends TestCase {
     file.createNewFile();
     assertTrue(file.isFile());
     if (file.canRead()) {
-      SystemProgram program = new SystemProgram(manager.getPropertyUserDir(),
-          new String[] { "chmod", "244", name }, AxisID.ONLY, manager
-              .getManagerKey());
+      SystemProgram program = new SystemProgram(manager, manager
+          .getPropertyUserDir(), new String[] { "chmod", "244", name },
+          AxisID.ONLY);
       program.setWorkingDirectory(dir);
       program.run();
     }

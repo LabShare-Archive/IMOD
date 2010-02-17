@@ -9,7 +9,6 @@ import java.util.List;
 
 import etomo.BaseManager;
 import etomo.JoinManager;
-import etomo.ManagerKey;
 import etomo.storage.LogFile;
 import etomo.type.AxisID;
 import etomo.type.ConstEtomoNumber;
@@ -41,6 +40,9 @@ import etomo.util.DatasetFiles;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.40  2010/01/11 23:49:01  sueh
+ * <p> bug# 1299 Added isMessageReporter.
+ * <p>
  * <p> Revision 1.39  2009/12/11 17:26:22  sueh
  * <p> bug# 1291 Added getCommandInputFile to implement Command.
  * <p>
@@ -392,8 +394,8 @@ public final class FinishjoinParam implements CommandDetails {
     return COMMAND_NAME;
   }
 
-  public List getLogMessage(ManagerKey managerKey)
-      throws LogFile.LockException, FileNotFoundException, IOException {
+  public List getLogMessage() throws LogFile.LockException,
+      FileNotFoundException, IOException {
     return null;
   }
 
@@ -421,7 +423,7 @@ public final class FinishjoinParam implements CommandDetails {
   public File getCommandOutputFile() {
     return outputFile;
   }
-  
+
   public File getCommandInputFile() {
     return null;
   }
@@ -429,6 +431,7 @@ public final class FinishjoinParam implements CommandDetails {
   public CommandMode getCommandMode() {
     return mode;
   }
+
   public boolean isMessageReporter() {
     return false;
   }
@@ -606,11 +609,10 @@ public final class FinishjoinParam implements CommandDetails {
     else if (numRows >= 2 && numRows == endListWalker.size()
         && numRows > gapStartListWalker.size() + 1
         && numRows > gapEndListWalker.size() + 1) {
-      UIHarness.INSTANCE.openMessageDialog(
+      UIHarness.INSTANCE.openMessageDialog(manager,
           "The dataset file may be corrupted.  If this process fails, exit "
               + "and rerun Etomo, then go to the Join tab and run Finish "
-              + "Join to fix the problem.", "Etomo Warning", manager
-              .getManagerKey());
+              + "Join to fix the problem.", "Etomo Warning");
     }
     return options;
   }

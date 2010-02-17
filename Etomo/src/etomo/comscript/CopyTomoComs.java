@@ -18,6 +18,9 @@
  * 
  * <p>
  * $Log$
+ * Revision 3.26  2009/08/20 23:36:54  sueh
+ * bug# 1255 Ported from 3.13.
+ *
  * Revision 3.22.2.1  2009/08/20 22:43:35  sueh
  * bug# 1255 Added -CT option.  Preventing running without the -CT option
  * except during setup.  Prevent deletion of .rawtlt except during setup.
@@ -266,8 +269,8 @@ public final class CopyTomoComs {
     if (!genOptions()) {
       return false;
     }
-    copytomocoms = new SystemProgram(manager.getPropertyUserDir(), command,
-        AxisID.ONLY, manager.getManagerKey());
+    copytomocoms = new SystemProgram(manager, manager.getPropertyUserDir(),
+        command, AxisID.ONLY);
     //genStdInputSequence();
     return true;
   }
@@ -302,8 +305,9 @@ public final class CopyTomoComs {
     if (!manager.isNewManager() && ctfFiles.isNull()) {
       UIHarness.INSTANCE
           .openMessageDialog(
+              manager,
               "ERROR:  Attempting to rebuild .com files when setup is already completed.",
-              "Etomo Error",manager.getManagerKey());
+              "Etomo Error");
       return false;
     }
     boolean montage = false;

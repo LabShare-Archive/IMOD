@@ -289,19 +289,19 @@ public final class IntermittentBackgroundProcess implements Runnable {
         .getComputer(), manager, AxisID.ONLY);
     String intermittentCommand = command.getIntermittentCommand();
     if (localSection && localStartCommand != null) {
-      localProgram = IntermittentSystemProgram.getStartInstance(manager
-          .getPropertyUserDir(), localStartCommand, AxisID.ONLY,
-          outputKeyPhrase, manager.getManagerKey());
+      localProgram = IntermittentSystemProgram.getStartInstance(manager,
+          manager.getPropertyUserDir(), localStartCommand, AxisID.ONLY,
+          outputKeyPhrase);
     }
     else if (!localSection && remoteStartCommand != null) {
-      localProgram = IntermittentSystemProgram.getStartInstance(manager
-          .getPropertyUserDir(), command.getRemoteStartCommand(), AxisID.ONLY,
-          outputKeyPhrase, manager.getManagerKey());
+      localProgram = IntermittentSystemProgram.getStartInstance(manager,
+          manager.getPropertyUserDir(), command.getRemoteStartCommand(),
+          AxisID.ONLY, outputKeyPhrase);
     }
     else if (intermittentCommand != null) {
-      localProgram = IntermittentSystemProgram.getIntermittentInstance(manager
-          .getPropertyUserDir(), intermittentCommand, AxisID.ONLY,
-          outputKeyPhrase, manager.getManagerKey());
+      localProgram = IntermittentSystemProgram.getIntermittentInstance(manager,
+          manager.getPropertyUserDir(), intermittentCommand, AxisID.ONLY,
+          outputKeyPhrase);
     }
     //place the most recent local SystemProgram in the member SystemProgram
     //non-local request (getting and setting standard input and output) will go
@@ -420,6 +420,9 @@ public final class IntermittentBackgroundProcess implements Runnable {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.17  2010/01/11 23:54:23  sueh
+ * <p> bug# 1299 In run:  intermittentCommand can now be null - handling this.
+ * <p>
  * <p> Revision 1.16  2009/04/13 22:30:26  sueh
  * <p> bug# 1207 Using FailureReason instead of FailureReasonInterface.
  * <p>

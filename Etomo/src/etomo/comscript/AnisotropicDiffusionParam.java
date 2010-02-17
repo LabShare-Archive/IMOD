@@ -9,7 +9,6 @@ import java.util.Iterator;
 import java.util.List;
 
 import etomo.BaseManager;
-import etomo.ManagerKey;
 import etomo.storage.LogFile;
 import etomo.storage.TestNADFileFilter;
 import etomo.type.AxisID;
@@ -37,6 +36,9 @@ import etomo.util.DatasetFiles;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.16  2010/01/11 23:48:24  sueh
+ * <p> bug# 1299 Added isMessageReporter.
+ * <p>
  * <p> Revision 1.15  2009/12/11 17:24:39  sueh
  * <p> bug# 1291 Added getCommandInputFile to implement Command.
  * <p>
@@ -186,7 +188,7 @@ public final class AnisotropicDiffusionParam implements CommandDetails {
   public void createFilterFullFile() throws LogFile.LockException, IOException {
     File subdir = new File(manager.getPropertyUserDir(), subdirName);
     LogFile filterFullFile = LogFile.getInstance(new File(subdir,
-        getFilterFullFileName()), manager.getManagerKey());
+        getFilterFullFileName()));
     filterFullFile.create();
     LogFile.WriterId writerId = filterFullFile.openWriter();
     filterFullFile.write(COMMAND_CHAR + PROCESS_NAME + " " + K_VALUE_TAG + " "
@@ -210,7 +212,7 @@ public final class AnisotropicDiffusionParam implements CommandDetails {
       LogFile testFile = LogFile.getInstance(new File(subdir,
           TestNADFileFilter.FILE_NAME_BODY
               + addLeadingZeros(index.toString(), 3)
-              + TestNADFileFilter.FILE_NAME_EXT), manager.getManagerKey());
+              + TestNADFileFilter.FILE_NAME_EXT));
       testFile.create();
       LogFile.WriterId writerId = testFile.openWriter();
       testFile.write(COMMAND_CHAR + PROCESS_NAME + " " + K_VALUE_TAG + " "
@@ -341,8 +343,8 @@ public final class AnisotropicDiffusionParam implements CommandDetails {
     return PROCESS_NAME.toString();
   }
 
-  public List getLogMessage(ManagerKey managerKey)
-      throws LogFile.LockException, FileNotFoundException, IOException {
+  public List getLogMessage() throws LogFile.LockException,
+      FileNotFoundException, IOException {
     return null;
   }
 

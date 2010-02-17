@@ -3,7 +3,6 @@ package etomo.storage;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 
-import etomo.ManagerKey;
 import etomo.process.AlignLogGenerator;
 import etomo.type.AxisID;
 import etomo.type.ConstEtomoNumber;
@@ -23,6 +22,9 @@ import etomo.type.EtomoNumber;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.2  2009/09/25 22:22:47  sueh
+ * <p> bug# 1272 In get... handle line == null.
+ * <p>
  * <p> Revision 1.1  2009/09/01 03:18:06  sueh
  * <p> bug# 1222
  * <p>
@@ -66,13 +68,13 @@ public final class TaAnglesLog {
   /**
    * Get center to center thickness from the log.
    */
-  public ConstEtomoNumber getCenterToCenterThickness(ManagerKey managerKey)
+  public ConstEtomoNumber getCenterToCenterThickness()
       throws LogFile.LockException, FileNotFoundException, IOException {
     EtomoNumber centerToCenterThickness = new EtomoNumber(
         EtomoNumber.Type.FLOAT);
     //refresh the log file
     LogFile taAnglesLog = LogFile.getInstance(userDir, axisID,
-        AlignLogGenerator.ANGLES_LOG_NAME, managerKey);
+        AlignLogGenerator.ANGLES_LOG_NAME);
     if (taAnglesLog.exists()) {
       LogFile.ReaderId readerId = taAnglesLog.openReader();
       if (readerId != null && !readerId.isEmpty()) {
@@ -97,13 +99,13 @@ public final class TaAnglesLog {
   /**
    * Get incremental shift to center from the log.
    */
-  public ConstEtomoNumber getIncrementalShiftToCenter(ManagerKey managerKey)
+  public ConstEtomoNumber getIncrementalShiftToCenter()
       throws LogFile.LockException, FileNotFoundException, IOException {
     EtomoNumber incrementalShiftToCenter = new EtomoNumber(
         EtomoNumber.Type.FLOAT);
     //refresh the log file
     LogFile taAnglesLog = LogFile.getInstance(userDir, axisID,
-        AlignLogGenerator.ANGLES_LOG_NAME, managerKey);
+        AlignLogGenerator.ANGLES_LOG_NAME);
     if (taAnglesLog.exists()) {
       LogFile.ReaderId readerId = taAnglesLog.openReader();
       if (readerId != null && !readerId.isEmpty()) {

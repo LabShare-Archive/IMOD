@@ -11,6 +11,9 @@
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.13  2009/03/17 00:42:55  sueh
+ * <p> bug# 1186 Pass managerKey to everything that pops up a dialog.
+ * <p>
  * <p> Revision 3.12  2009/02/13 02:31:37  sueh
  * <p> bug# 1176 Checking return value of MRCHeader.read.  Gave calcFileSize
  * <p> a return value.
@@ -112,9 +115,8 @@ public class PrenewstProcessMonitor extends FileSizeProcessMonitor {
     // Get the header from the raw stack to calculate the aligned stack size
     loadDataSetPath();
     MRCHeader rawStack = MRCHeader.getInstance(applicationManager
-        .getPropertyUserDir(), dataSetPath + ".st", axisID, applicationManager
-        .getManagerKey());
-    if (!rawStack.read()) {
+        .getPropertyUserDir(), dataSetPath + ".st", axisID);
+    if (!rawStack.read(applicationManager)) {
       return false;
     }
 

@@ -5,7 +5,7 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.HashMap;
 
-import etomo.ManagerKey;
+import etomo.BaseManager;
 import etomo.storage.AutodocFilter;
 import etomo.storage.LogFile;
 import etomo.type.AxisID;
@@ -24,6 +24,9 @@ import etomo.type.AxisID;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.16  2009/09/01 03:18:16  sueh
+ * <p> bug# 1222
+ * <p>
  * <p> Revision 1.15  2009/06/05 02:01:14  sueh
  * <p> bug# 1219 Added FLATTEN_WARP, FLATTEN_WARP_INSTANCE,
  * <p> WARP_VOL, and WARP_VOL_INSTANCE.
@@ -129,13 +132,13 @@ public final class AutodocFactory {
   private AutodocFactory() {
   }
 
-  public static ReadOnlyAutodoc getInstance(String name, ManagerKey managerKey)
+  public static ReadOnlyAutodoc getInstance(BaseManager manager, String name)
       throws FileNotFoundException, IOException, LogFile.LockException {
-    return getInstance(name, AxisID.ONLY, managerKey);
+    return getInstance(manager, name, AxisID.ONLY);
   }
 
-  public static ReadOnlyAutodoc getInstance(String name, AxisID axisID,
-      ManagerKey managerKey) throws FileNotFoundException, IOException,
+  public static ReadOnlyAutodoc getInstance(BaseManager manager, String name,
+      AxisID axisID) throws FileNotFoundException, IOException,
       LogFile.LockException {
     if (name == null) {
       throw new IllegalStateException("name is null");
@@ -146,19 +149,19 @@ public final class AutodocFactory {
     }
     autodoc = new Autodoc(name);
     if (name.equals(UITEST)) {
-      autodoc.initializeUITest(name, axisID, managerKey);
+      autodoc.initializeUITest(manager, name, axisID);
     }
     else if (name.equals(CPU)) {
-      autodoc.initializeCpu(name, axisID, managerKey);
+      autodoc.initializeCpu(manager, name, axisID);
     }
     else {
-      autodoc.initialize(name, axisID, managerKey);
+      autodoc.initialize(manager, name, axisID);
     }
     return autodoc;
   }
 
-  public static ReadOnlyAutodoc getDebugInstance(String name, AxisID axisID,
-      ManagerKey managerKey) throws FileNotFoundException, IOException,
+  public static ReadOnlyAutodoc getDebugInstance(BaseManager manager,
+      String name, AxisID axisID) throws FileNotFoundException, IOException,
       LogFile.LockException {
     if (name == null) {
       throw new IllegalStateException("name is null");
@@ -170,26 +173,26 @@ public final class AutodocFactory {
     autodoc = new Autodoc(name);
     autodoc.setDebug(true);
     if (name.equals(UITEST)) {
-      autodoc.initializeUITest(name, axisID, managerKey);
+      autodoc.initializeUITest(manager, name, axisID);
     }
     if (name.equals(CPU)) {
-      autodoc.initializeCpu(name, axisID, managerKey);
+      autodoc.initializeCpu(manager, name, axisID);
     }
     else {
-      autodoc.initialize(name, axisID, managerKey);
+      autodoc.initialize(manager, name, axisID);
     }
     return autodoc;
   }
 
-  public static WritableAutodoc getMatlabDebugInstance(File file,
-      ManagerKey managerKey) throws IOException, LogFile.LockException {
+  public static WritableAutodoc getMatlabDebugInstance(BaseManager manager,
+      File file) throws IOException, LogFile.LockException {
     if (file == null) {
       throw new IllegalStateException("file is null");
     }
     Autodoc autodoc = new Autodoc(true, stripFileExtension(file));
     autodoc.setDebug(true);
     try {
-      autodoc.initialize(file, true, false, true, managerKey);
+      autodoc.initialize(manager, file, true, false, true);
       return autodoc;
     }
     catch (FileNotFoundException e) {
@@ -197,14 +200,14 @@ public final class AutodocFactory {
     }
   }
 
-  public static WritableAutodoc getMatlabInstance(File file,
-      ManagerKey managerKey) throws IOException, LogFile.LockException {
+  public static WritableAutodoc getMatlabInstance(BaseManager manager, File file)
+      throws IOException, LogFile.LockException {
     if (file == null) {
       throw new IllegalStateException("file is null");
     }
     Autodoc autodoc = new Autodoc(true, stripFileExtension(file));
     try {
-      autodoc.initialize(file, true, false, true, managerKey);
+      autodoc.initialize(manager, file, true, false, true);
       return autodoc;
     }
     catch (FileNotFoundException e) {
@@ -213,9 +216,9 @@ public final class AutodocFactory {
   }
 
   private static String stripFileExtension(File file) {
-    return stripFileExtension( file.getName());
+    return stripFileExtension(file.getName());
   }
-  
+
   private static String stripFileExtension(String fileName) {
     int extensionIndex = fileName.lastIndexOf('.');
     if (extensionIndex == -1) {
@@ -224,14 +227,14 @@ public final class AutodocFactory {
     return fileName.substring(0, extensionIndex);
   }
 
-  public static WritableAutodoc getEmptyMatlabInstance(File file,
-      ManagerKey managerKey) throws IOException, LogFile.LockException {
+  public static WritableAutodoc getEmptyMatlabInstance(BaseManager manager,
+      File file) throws IOException, LogFile.LockException {
     if (file == null) {
       throw new IllegalStateException("file is null");
     }
     Autodoc autodoc = new Autodoc(true, stripFileExtension(file));
     try {
-      autodoc.initialize(file, false, false, true, managerKey);
+      autodoc.initialize(manager, file, false, false, true);
       return autodoc;
     }
     catch (FileNotFoundException e) {
@@ -239,19 +242,19 @@ public final class AutodocFactory {
     }
   }
 
-  public static ReadOnlyAutodoc getInstance(File file, ManagerKey managerKey)
+  public static ReadOnlyAutodoc getInstance(BaseManager manager, File file)
       throws IOException, LogFile.LockException {
-    return getInstance(file, true, managerKey);
+    return getInstance(manager, file, true);
   }
 
-  public static ReadOnlyAutodoc getInstance(File file, boolean versionRequired,
-      ManagerKey managerKey) throws IOException, LogFile.LockException {
+  public static ReadOnlyAutodoc getInstance(BaseManager manager, File file,
+      boolean versionRequired) throws IOException, LogFile.LockException {
     if (file == null) {
       throw new IllegalStateException("file is null");
     }
     Autodoc autodoc = new Autodoc(stripFileExtension(file));
     try {
-      autodoc.initialize(file, true, versionRequired, false, managerKey);
+      autodoc.initialize(manager, file, true, versionRequired, false);
       return autodoc;
     }
     catch (FileNotFoundException e) {
@@ -268,14 +271,14 @@ public final class AutodocFactory {
    * @throws IOException
    * @throws LogFile.ReadException
    */
-  public static ReadOnlyAutodoc getTestInstance(File file, ManagerKey managerKey)
+  public static ReadOnlyAutodoc getTestInstance(BaseManager manager, File file)
       throws IOException, LogFile.LockException {
     if (file == null) {
       throw new IllegalStateException("file is null");
     }
     Autodoc autodoc = new Autodoc(stripFileExtension(file));
     try {
-      autodoc.initialize(file, false, true, false, managerKey);
+      autodoc.initialize(manager, file, false, true, false);
       return autodoc;
     }
     catch (FileNotFoundException e) {
@@ -291,8 +294,8 @@ public final class AutodocFactory {
    * @throws FileNotFoundException
    * @throws IOException
    */
-  public static Autodoc getInstance(File directory, String autodocFileName,
-      AxisID axisID, ManagerKey managerKey) throws FileNotFoundException,
+  public static Autodoc getInstance(BaseManager manager, File directory,
+      String autodocFileName, AxisID axisID) throws FileNotFoundException,
       IOException, LogFile.LockException {
     if (autodocFileName == null) {
       return null;
@@ -308,8 +311,8 @@ public final class AutodocFactory {
     }
     autodoc = new Autodoc(stripFileExtension(autodocFileName));
     UITEST_AXIS_MAP.put(autodocFile, autodoc);
-    autodoc.initializeUITestAxis(LogFile.getInstance(autodocFile, managerKey),
-        axisID, managerKey);
+    autodoc.initializeUITestAxis(manager, LogFile.getInstance(autodocFile),
+        axisID);
     return autodoc;
   }
 

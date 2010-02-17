@@ -26,6 +26,9 @@ import etomo.type.SectionTableRowData;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.17  2010/01/11 23:49:01  sueh
+ * <p> bug# 1299 Added isMessageReporter.
+ * <p>
  * <p> Revision 1.16  2009/12/11 17:26:22  sueh
  * <p> bug# 1291 Added getCommandInputFile to implement Command.
  * <p>
@@ -140,8 +143,8 @@ public class MidasParam implements Command {
     for (int i = 0; i < options.size(); i++) {
       commandArray[i + commandSize] = (String) options.get(i);
     }
-    program = new SystemProgram(manager.getPropertyUserDir(), commandArray,
-        axisID, manager.getManagerKey());
+    program = new SystemProgram(manager, manager.getPropertyUserDir(),
+        commandArray, axisID);
     program.setWorkingDirectory(new File(workingDir));
   }
 
@@ -156,7 +159,7 @@ public class MidasParam implements Command {
   public CommandDetails getSubcommandDetails() {
     return null;
   }
-  
+
   public ProcessName getSubcommandProcessName() {
     return null;
   }
@@ -172,7 +175,7 @@ public class MidasParam implements Command {
   public String getCommandName() {
     return commandName;
   }
-  
+
   public ProcessName getProcessName() {
     return PROCESS_NAME;
   }
@@ -208,7 +211,7 @@ public class MidasParam implements Command {
   public File getCommandOutputFile() {
     return outputFile;
   }
-  
+
   public File getCommandInputFile() {
     return null;
   }
@@ -216,6 +219,7 @@ public class MidasParam implements Command {
   public CommandMode getCommandMode() {
     return null;
   }
+
   public boolean isMessageReporter() {
     return false;
   }

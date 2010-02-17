@@ -28,6 +28,10 @@ import etomo.ui.UIHarness;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.43  2009/10/01 18:48:10  sueh
+ * <p> bug# 1239 In processDone put only the process name in the terminated
+ * <p> message so that it is easier to test with uitest.
+ * <p>
  * <p> Revision 3.42  2009/09/01 03:17:56  sueh
  * <p> bug# 1222
  * <p>
@@ -605,16 +609,16 @@ class BackgroundProcess extends Thread implements SystemProcessInterface {
 
   boolean newProgram() {
     if (commandArray != null) {
-      program = new SystemProgram(manager.getPropertyUserDir(), commandArray,
-          axisID, manager.getManagerKey());
+      program = new SystemProgram(manager, manager.getPropertyUserDir(),
+          commandArray, axisID);
     }
     else if (command != null) {
-      program = new SystemProgram(manager.getPropertyUserDir(), command
-          .getCommandArray(), axisID, manager.getManagerKey());
+      program = new SystemProgram(manager, manager.getPropertyUserDir(),
+          command.getCommandArray(), axisID);
     }
     else if (commandArrayList != null) {
-      program = new SystemProgram(manager.getPropertyUserDir(),
-          commandArrayList, axisID, manager.getManagerKey());
+      program = new SystemProgram(manager, manager.getPropertyUserDir(),
+          commandArrayList, axisID);
     }
     else {
       processDone(1);
@@ -679,14 +683,14 @@ class BackgroundProcess extends Thread implements SystemProcessInterface {
       //popup error messages from the process
       if (processMessages.isError()) {
         errorFound = true;
-        UIHarness.INSTANCE.openErrorMessageDialog(processMessages,
-            "Process Error", axisID, manager.getManagerKey());
+        UIHarness.INSTANCE.openErrorMessageDialog(manager, processMessages,
+            "Process Error", axisID);
       }
       //popup error messages from the monitor
       if (monitorMessages != null && monitorMessages.isError()) {
         errorFound = true;
-        UIHarness.INSTANCE.openErrorMessageDialog(monitorMessages,
-            "Process Monitor Error", axisID, manager.getManagerKey());
+        UIHarness.INSTANCE.openErrorMessageDialog(manager, monitorMessages,
+            "Process Monitor Error", axisID);
         if (endState == ProcessEndState.FAILED) {
           errorFound = true;
         }
@@ -718,12 +722,12 @@ class BackgroundProcess extends Thread implements SystemProcessInterface {
           errorMessage.addError(monitorMessages);
         }
       }
-      errorMessage.addProcessOutput(stdOutput);
+      errorMessage.addProcessOutput(manager, stdOutput);
       //make sure script knows about failure
       setProcessEndState(ProcessEndState.FAILED);
       //popup error messages
-      UIHarness.INSTANCE.openErrorMessageDialog(errorMessage, getProcessName()
-          + " terminated", axisID, manager.getManagerKey());
+      UIHarness.INSTANCE.openErrorMessageDialog(manager, errorMessage,
+          getProcessName() + " terminated", axisID);
     }
     processDone(exitValue, errorFound);
   }

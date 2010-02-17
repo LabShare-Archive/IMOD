@@ -40,6 +40,9 @@ import etomo.util.Utilities;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.76  2009/12/19 01:08:52  sueh
+ * <p> bug# 1294 Added SMOOTHING_ASSESSMENT_KEY.
+ * <p>
  * <p> Revision 3.75  2009/12/17 16:45:14  sueh
  * <p> bug# 1295 Fixed axis correction in getVector(String,AxisID).
  * <p>
@@ -584,6 +587,10 @@ public class ImodManager {
       "full volume for findbeads3d");
   public static final String SMOOTHING_ASSESSMENT_KEY = new String(
       "Smoothing assessment flattenwarp output");
+  public static final String FLATTEN_INPUT_KEY = new String(
+      "Flatten input file");
+  public static final String FLATTEN_TOOL_OUTPUT_KEY = new String(
+      "Flatten tool output file");
 
   //private keys - used with imodMap
   private static final String rawStackKey = RAW_STACK_KEY;
@@ -623,6 +630,8 @@ public class ImodManager {
   private static final String fineAligned3dFindKey = FINE_ALIGNED_3D_FIND_KEY;
   private static final String fullVolume3dFindKey = FULL_VOLUME_3D_FIND_KEY;
   private static final String smoothingAssessmentKey = SMOOTHING_ASSESSMENT_KEY;
+  private static final String flattenInputKey = FLATTEN_INPUT_KEY;
+  private static final String flattenToolOutputKey = FLATTEN_TOOL_OUTPUT_KEY;
 
   private boolean useMap = true;
   private final BaseManager manager;
@@ -929,6 +938,31 @@ public class ImodManager {
    * 
    * @param key
    * @param axisID
+   * @param model
+   * @param modelMode
+   * @throws AxisTypeException
+   * @throws SystemProcessException
+   */
+  public void open(String key, File file, String model, boolean modelMode,
+      Run3dmodMenuOptions menuOptions) throws AxisTypeException,
+      SystemProcessException, IOException {
+    key = getPrivateKey(key);
+    ImodState imodState = get(key);
+    if (imodState == null) {
+      newImod(key, file);
+      imodState = get(key);
+    }
+    //TEMP
+    System.err.println("key=" + key + ",axis=" + imodState.getAxisID());
+    if (imodState != null) {
+      imodState.open(model, modelMode, menuOptions);
+    }
+  }
+
+  /**
+   * 
+   * @param key
+   * @param axisID
    * @param vectorIndex
    * @throws AxisTypeException
    * @throws SystemProcessException
@@ -1028,8 +1062,8 @@ public class ImodManager {
     key = getPrivateKey(key);
     ImodState imodState = get(key);
     if (imodState == null) {
-      UIHarness.INSTANCE.openMessageDialog("3dmod is not running.",
-          "3dmod Warning", AxisID.ONLY, manager.getManagerKey());
+      UIHarness.INSTANCE.openMessageDialog(manager, "3dmod is not running.",
+          "3dmod Warning", AxisID.ONLY);
       return null;
     }
     return imodState.getRubberbandCoordinates();
@@ -1040,8 +1074,8 @@ public class ImodManager {
     key = getPrivateKey(key);
     ImodState imodState = get(key, vectorIndex);
     if (imodState == null || !imodState.isOpen()) {
-      UIHarness.INSTANCE.openMessageDialog("3dmod is not running.",
-          "3dmod Warning", AxisID.ONLY, manager.getManagerKey());
+      UIHarness.INSTANCE.openMessageDialog(manager, "3dmod is not running.",
+          "3dmod Warning", AxisID.ONLY);
       return null;
     }
     return imodState.getSlicerAngles();
@@ -1152,6 +1186,17 @@ public class ImodManager {
     if (imodState == null) {
       newImod(key, axisID);
       imodState = get(key, axisID);
+    }
+    imodState.setSwapYZ(swapYZ);
+  }
+
+  public void setSwapYZ(String key, File file, boolean swapYZ)
+      throws AxisTypeException {
+    key = getPrivateKey(key);
+    ImodState imodState = get(key);
+    if (imodState == null) {
+      newImod(key, file);
+      imodState = get(key);
     }
     imodState.setSwapYZ(swapYZ);
   }
@@ -1613,6 +1658,13 @@ public class ImodManager {
     if (key.equals(SMOOTHING_ASSESSMENT_KEY) && axisID != null) {
       return newSmoothingAssessment(axisID);
     }
+    if (key.equals(FLATTEN_INPUT_KEY)) {
+      return newFlattenInput(file);
+    }
+    if (key.equals(FLATTEN_TOOL_OUTPUT_KEY) && axisID != null) {
+      return newFlattenToolOutput(axisID);
+    }
+    System.out.println("key=" + key);
     throw new IllegalArgumentException(key + " cannot be created in "
         + axisType.toString() + " with axisID=" + axisID.getExtension());
   }
@@ -1826,6 +1878,12 @@ public class ImodManager {
     return imodState;
   }
 
+  private ImodState newFlattenToolOutput(AxisID axisID) {
+    ImodState imodState = new ImodState(manager, axisID,
+        FileType.FLATTEN_TOOL_OUTPUT.getFileName(manager, axisID));
+    return imodState;
+  }
+
   private ImodState newPreview(AxisID axisID) {
     ImodState imodState = new ImodState(manager, axisID, datasetName, ".st");
     return imodState;
@@ -1949,6 +2007,10 @@ public class ImodManager {
     imodState.setNoMenuOptions(true);
     imodState.addWindowOpenOption(ImodProcess.WindowOpenOption.OBJECT_LIST);
     return imodState;
+  }
+
+  private ImodState newFlattenInput(File file) {
+    return new ImodState(manager, file, AxisID.ONLY);
   }
 
   private boolean isPerAxis(String key) {

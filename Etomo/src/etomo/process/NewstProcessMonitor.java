@@ -11,6 +11,10 @@
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.23  2009/09/21 17:48:16  sueh
+ * <p> bug# 1267 Passing in NewstParam so that the output file with be correct
+ * <p> for 3dfind.
+ * <p>
  * <p> Revision 3.22  2009/09/17 19:16:52  sueh
  * <p> bug# 1257 Added FileSizeProcessMonitor.getModeBytes to handle getting the right number of bytes based on the mode in a single location.  Also
  * <p> fixing a problem where binning was applied twice when
@@ -125,18 +129,19 @@ final class NewstProcessMonitor extends FileSizeProcessMonitor {
 
   //private BufferedReader logReader = null;
   private boolean gotStatusFromLog = false;
-//NewstParam must be passed in because it can be loaded from more then one com file.
-  private final ConstNewstParam newstParam ;
+  //NewstParam must be passed in because it can be loaded from more then one com file.
+  private final ConstNewstParam newstParam;
 
-  public NewstProcessMonitor(ApplicationManager appMgr, AxisID id,ProcessName processName,ConstNewstParam newstParam) {
+  public NewstProcessMonitor(ApplicationManager appMgr, AxisID id,
+      ProcessName processName, ConstNewstParam newstParam) {
     super(appMgr, id, processName);
-    this.newstParam=newstParam;
+    this.newstParam = newstParam;
   }
 
   /**
    * Set gettingStatusFromLog to true and return true if mrctaper is being run
    */
-  protected boolean gotStatusFromLog() {
+  boolean gotStatusFromLog() {
     //log already in use, return true
     if (gotStatusFromLog) {
       return true;
@@ -197,9 +202,8 @@ final class NewstProcessMonitor extends FileSizeProcessMonitor {
     String rawStackFilename = applicationManager.getPropertyUserDir() + "/"
         + newstParam.getInputFile();
     MRCHeader rawStack = MRCHeader.getInstance(applicationManager
-        .getPropertyUserDir(), rawStackFilename, axisID, applicationManager
-        .getManagerKey());
-    if (!rawStack.read()) {
+        .getPropertyUserDir(), rawStackFilename, axisID);
+    if (!rawStack.read(applicationManager)) {
       return false;
     }
     boolean binningAlreadyApplied = false;
@@ -232,7 +236,7 @@ final class NewstProcessMonitor extends FileSizeProcessMonitor {
     return true;
   }
 
-  protected void reloadWatchedFile() {
+  void reloadWatchedFile() {
     // Create a file object describing the file to be monitored
     watchedFile = new File(applicationManager.getPropertyUserDir(), newstParam
         .getOutputFile());

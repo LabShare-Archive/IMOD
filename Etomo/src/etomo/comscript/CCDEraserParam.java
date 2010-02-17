@@ -3,7 +3,6 @@ package etomo.comscript;
 import java.util.ArrayList;
 
 import etomo.BaseManager;
-import etomo.ManagerKey;
 import etomo.type.EtomoNumber;
 import etomo.type.ProcessName;
 import etomo.type.ScriptParameter;
@@ -22,6 +21,9 @@ import etomo.ui.UIHarness;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.8  2009/03/17 00:30:54  sueh
+ * <p> bug# 1186 Pass managerKey to everything that pops up a dialog.
+ * <p>
  * <p> Revision 3.7  2008/12/02 21:15:31  sueh
  * <p> bug# 1157 Changed betterRadius to a ScriptParameter of type double.
  * <p>
@@ -92,6 +94,12 @@ public class CCDEraserParam extends ConstCCDEraserParam implements CommandParam 
   private String[] commandArray = null;
   private boolean debug = true;
 
+  private final BaseManager manager;
+
+  public CCDEraserParam(BaseManager manager) {
+    this.manager = manager;
+  }
+
   /**
    * creates the command, if it doesn't exist, and returns command array
    */
@@ -137,11 +145,10 @@ public class CCDEraserParam extends ConstCCDEraserParam implements CommandParam 
     return options;
   }
 
-  public boolean validate(ManagerKey managerKey) {
+  public boolean validate() {
     if (betterRadius.isNull()) {
-      UIHarness.INSTANCE.openMessageDialog(
-          "Empty Better Radius value.  Please enter a value.", "Entry Error",
-          managerKey);
+      UIHarness.INSTANCE.openMessageDialog(manager,
+          "Empty Better Radius value.  Please enter a value.", "Entry Error");
       return false;
     }
     return true;

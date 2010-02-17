@@ -19,6 +19,9 @@ import etomo.type.AxisID;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.4  2010/01/11 23:49:01  sueh
+ * <p> bug# 1299 Added isMessageReporter.
+ * <p>
  * <p> Revision 1.3  2009/03/17 00:32:48  sueh
  * <p> bug# 1186 Pass managerKey to everything that pops up a dialog.
  * <p>
@@ -55,8 +58,8 @@ public final class QueuechunkParam implements IntermittentCommand {
 
   private void setIntermittentCommand(String queue, AxisID axisID,
       BaseManager manager) {
-    Node cluster = Network.getQueue(queue, axisID,
-        manager.getPropertyUserDir(), manager.getManagerKey());
+    Node cluster = Network.getQueue(manager, queue, axisID, manager
+        .getPropertyUserDir());
     if (cluster != null) {
       intermittentCommand = "bash " + cluster.getCommand() + " -a L";
     }

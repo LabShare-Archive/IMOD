@@ -17,6 +17,9 @@
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.39  2009/03/31 22:33:31  sueh
+ * <p> bug# 1204 Porting from 3-13.
+ * <p>
  * <p> Revision 3.38  2009/03/23 17:09:52  sueh
  * <p> bug# 1204 Handling a null commandArray.
  * <p>
@@ -274,7 +277,7 @@ import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Date;
 
-import etomo.ManagerKey;
+import etomo.BaseManager;
 import etomo.type.AxisID;
 import etomo.ui.UIHarness;
 import etomo.util.Utilities;
@@ -282,8 +285,9 @@ import etomo.util.Utilities;
 public class SystemProgram implements Runnable {
   public static final String rcsid = "$Id$";
 
-  private final ManagerKey managerKey;
   private final String propertyUserDir;
+
+  private final BaseManager manager;
 
   private boolean debug = false;
   private int exitValue = Integer.MIN_VALUE;
@@ -314,9 +318,9 @@ public class SystemProgram implements Runnable {
    * that SystemProgram(String[] arg) for be used so that spaces are not
    * accidentally lost in path or arguments. 
    */
-  public SystemProgram(String propertyUserDir, ArrayList command,
-      AxisID axisID, ManagerKey managerKey) {
-    this.managerKey = managerKey;
+  public SystemProgram(BaseManager manager, String propertyUserDir,
+      ArrayList command, AxisID axisID) {
+    this.manager = manager;
     this.propertyUserDir = propertyUserDir;
     this.axisID = axisID;
     processMessages = ProcessMessages.getMultiLineInstance();
@@ -335,9 +339,9 @@ public class SystemProgram implements Runnable {
    *  run.
    * 	
    */
-  public SystemProgram(String propertyUserDir, String[] cmdArray,
-      AxisID axisID, ManagerKey managerKey) {
-    this.managerKey = managerKey;
+  public SystemProgram(BaseManager manager, String propertyUserDir,
+      String[] cmdArray, AxisID axisID) {
+    this.manager = manager;
     this.propertyUserDir = propertyUserDir;
     this.axisID = axisID;
     processMessages = ProcessMessages.getInstance();
@@ -547,12 +551,12 @@ public class SystemProgram implements Runnable {
       except.printStackTrace();
       exceptionMessage = except.getMessage();
       if (exceptionMessage.indexOf("Cannot run program \"tcsh\"") != -1) {
-        UIHarness.INSTANCE.openMessageDialog(exceptionMessage, "System Error",
-            managerKey);
+        UIHarness.INSTANCE.openMessageDialog(manager, exceptionMessage,
+            "System Error");
       }
     }
-    processMessages.addProcessOutput(stdout);
-    processMessages.addProcessOutput(stderr);
+    processMessages.addProcessOutput(manager, stdout);
+    processMessages.addProcessOutput(manager, stderr);
 
     if (debug) {
       if (stdout != null && stdout.size() > 0) {

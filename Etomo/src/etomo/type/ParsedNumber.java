@@ -2,9 +2,10 @@ package etomo.type;
 
 import java.io.IOException;
 
-import etomo.ManagerKey;
+import etomo.BaseManager;
 import etomo.storage.autodoc.ReadOnlyAttribute;
 import etomo.ui.Token;
+import etomo.ui.UIHarness;
 import etomo.util.PrimativeTokenizer;
 
 /**
@@ -30,6 +31,9 @@ import etomo.util.PrimativeTokenizer;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.22  2009/09/20 21:31:09  sueh
+ * <p> bug# 1268 Added getEtomoNumber.
+ * <p>
  * <p> Revision 1.21  2009/03/17 00:46:15  sueh
  * <p> bug# 1186 Pass managerKey to everything that pops up a dialog.
  * <p>
@@ -293,11 +297,14 @@ public final class ParsedNumber extends ParsedElement {
     setFailed(!rawNumber.isValid(), rawNumber.getInvalidReason());
   }
 
-  void setRawString(String number, String fieldDescription,
-      ManagerKey managerKey) {
+  void setRawString(BaseManager manager, String number, String fieldDescription) {
     rawNumber.set(number);
     if (fieldDescription != null) {
-      rawNumber.isValid("Entry Error", fieldDescription, managerKey);
+      String errorMessage = rawNumber.validate(fieldDescription);
+      if (errorMessage != null) {
+        UIHarness.INSTANCE.openMessageDialog(manager, errorMessage,
+            "Entry Error");
+      }
     }
   }
 

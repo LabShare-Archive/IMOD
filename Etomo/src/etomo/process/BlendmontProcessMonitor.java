@@ -2,7 +2,7 @@ package etomo.process;
 
 import java.io.IOException;
 
-import etomo.ApplicationManager;
+import etomo.BaseManager;
 import etomo.comscript.BlendmontParam;
 import etomo.comscript.BlendmontParam.Mode;
 import etomo.storage.LogFile;
@@ -32,8 +32,8 @@ public class BlendmontProcessMonitor extends LogFileProcessMonitor {
   private boolean doingMrctaper = false;
   private Mode mode;
 
-  public BlendmontProcessMonitor(ApplicationManager appMgr, AxisID id, Mode mode) {
-    super(appMgr, id, ProcessName.BLEND);
+  public BlendmontProcessMonitor(BaseManager manager, AxisID id, Mode mode) {
+    super(manager, id, ProcessName.BLEND);
     this.mode = mode;
     logFileBasename = BlendmontParam.getProcessName(mode).toString();
     if (mode == BlendmontParam.Mode.XCORR) {
@@ -56,14 +56,13 @@ public class BlendmontProcessMonitor extends LogFileProcessMonitor {
 
   protected void initializeProgressBar() {
     if (nSections == Integer.MIN_VALUE) {
-      applicationManager.getMainPanel().setProgressBar(title + ": blendmont",
-          1, axisID, processName);
-      applicationManager.getMainPanel().setProgressBarValue(0, "Starting...",
-          axisID);
+      manager.getMainPanel().setProgressBar(title + ": blendmont", 1, axisID,
+          processName);
+      manager.getMainPanel().setProgressBarValue(0, "Starting...", axisID);
       return;
     }
-    applicationManager.getMainPanel().setProgressBar(title + ": blendmont",
-        nSections, axisID, processName);
+    manager.getMainPanel().setProgressBar(title + ": blendmont", nSections,
+        axisID, processName);
   }
 
   protected void getCurrentSection() throws NumberFormatException,
@@ -81,8 +80,8 @@ public class BlendmontProcessMonitor extends LogFileProcessMonitor {
           || mode == BlendmontParam.Mode.WHOLE_TOMOGRAM_SAMPLE) {
         if (line.startsWith("Doing section #") && !doingMrctaper) {
           doingMrctaper = true;
-          applicationManager.getMainPanel().setProgressBar(
-              title + ": mrctaper", 1, axisID, processName);
+          manager.getMainPanel().setProgressBar(title + ": mrctaper", 1,
+              axisID, processName);
         }
         else if (currentSection >= nSections && line.startsWith("Done!")) {
           lastLineFound = true;
@@ -101,14 +100,16 @@ public class BlendmontProcessMonitor extends LogFileProcessMonitor {
       NumberFormatException, LogFile.LockException, InvalidParameterException,
       IOException {
     Montagesize montagesize = null;
-    montagesize = Montagesize.getInstance(applicationManager, axisID,
-        applicationManager.getManagerKey());
-    montagesize.read();
+    montagesize = Montagesize.getInstance(manager, axisID);
+    montagesize.read(manager);
     nSections = montagesize.getZ().getInt();
   }
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.18  2009/09/21 17:47:23  sueh
+ * <p> bug# 1267 Handling the BLEND_3DFIND mode.
+ * <p>
  * <p> Revision 1.17  2009/03/17 00:34:39  sueh
  * <p> bug# 1186 Pass managerKey to everything that pops up a dialog.
  * <p>

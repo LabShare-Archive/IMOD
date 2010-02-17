@@ -11,6 +11,9 @@
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.40  2010/01/11 23:48:52  sueh
+ * <p> bug# 1299 Added isMessageReporter.  Added useGpu.
+ * <p>
  * <p> Revision 3.39  2009/12/11 17:26:22  sueh
  * <p> bug# 1291 Added getCommandInputFile to implement Command.
  * <p>
@@ -216,7 +219,6 @@ import java.util.Hashtable;
 import java.util.List;
 
 import etomo.ApplicationManager;
-import etomo.ManagerKey;
 import etomo.storage.LogFile;
 import etomo.type.AxisID;
 import etomo.type.ConstEtomoNumber;
@@ -339,7 +341,7 @@ public final class TiltParam implements ConstTiltParam, CommandParam {
     return processName.toString();
   }
 
-  public List getLogMessage(ManagerKey managerKey)
+  public List getLogMessage()
       throws LogFile.LockException, FileNotFoundException, IOException {
     return null;
   }
@@ -1121,9 +1123,9 @@ public final class TiltParam implements ConstTiltParam, CommandParam {
         .getGoodframeFromMontageSize(axisID, manager);
     if (goodframe != null) {
       MRCHeader header = MRCHeader.getInstanceFromFileName(manager, axisID,
-          inputFile.toString(), manager.getManagerKey());
+          inputFile.toString());
       try {
-        if (!header.read()) {
+        if (!header.read(manager)) {
           //ok if tilt is being updated before .ali exists
           return;
         }
@@ -1163,15 +1165,14 @@ public final class TiltParam implements ConstTiltParam, CommandParam {
    */
   public boolean setSubsetStart() {
     resetSubsetStart();
-    MRCHeader stackHeader = MRCHeader.getInstance(manager, axisID, ".st",
-        manager.getManagerKey());
+    MRCHeader stackHeader = MRCHeader.getInstance(manager, axisID, ".st");
     try {
-      if (!stackHeader.read()) {
+      if (!stackHeader.read(manager)) {
         return true;
       }
       MRCHeader aliHeader = MRCHeader.getInstanceFromFileName(manager, axisID,
-          inputFile.toString(), manager.getManagerKey());
-      if (!aliHeader.read()) {
+          inputFile.toString());
+      if (!aliHeader.read(manager)) {
         return true;
       }
       int stackX;
@@ -1198,17 +1199,17 @@ public final class TiltParam implements ConstTiltParam, CommandParam {
       e.printStackTrace();
       if (Utilities.isAprilFools()) {
         UIHarness.INSTANCE
-            .openMessageDialog(
+            .openMessageDialog(manager,
                 "A horrible horrible thing happened while I was setting the subset "
                     + "start in tilt.com.  Your tomogram would have been a disaster.  "
                     + "But I caught the problem before it ruined your life.\n"
                     + "Don't bother to thank me.\n" + e.getMessage(),
-                "Just Awful", axisID, manager.getManagerKey());
+                "Just Awful", axisID);
       }
       else {
-        UIHarness.INSTANCE.openMessageDialog(
+        UIHarness.INSTANCE.openMessageDialog(manager,
             "Unable to set subset start in tilt.com.\n" + e.getMessage(),
-            "Setting Tilt.com Failed", axisID, manager.getManagerKey());
+            "Setting Tilt.com Failed", axisID);
       }
       return false;
     }
@@ -1240,8 +1241,8 @@ public final class TiltParam implements ConstTiltParam, CommandParam {
   public void setFullImage(final File stack) {
     try {
       MRCHeader header = MRCHeader.getInstance(manager.getPropertyUserDir(),
-          stack.getName(), axisID, manager.getManagerKey());
-      if (!header.read()) {
+          stack.getName(), axisID);
+      if (!header.read(manager)) {
         return;
       }
       if (etomo.comscript.Utilities.is90DegreeImageRotation(manager

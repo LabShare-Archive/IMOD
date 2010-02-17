@@ -3,7 +3,7 @@ package etomo.process;
 import java.io.BufferedReader;
 import java.io.IOException;
 
-import etomo.ManagerKey;
+import etomo.BaseManager;
 import etomo.type.AxisID;
 
 /**
@@ -26,27 +26,25 @@ public class IntermittentSystemProgram {
   private final String outputKeyPhrase;
   private final SystemProgram program;
   private final boolean useStartCommand;
-  private final ManagerKey managerKey;
   private final AxisID axisID;
 
   private boolean debug = false;
 
-  private IntermittentSystemProgram(String propertyUserDir, String[] cmdArray,
-      AxisID axisID, String outputKeyPhrase, boolean useStartCommand,
-      ManagerKey managerKey) {
-    program = new SystemProgram(propertyUserDir, cmdArray, axisID, managerKey);
+  private IntermittentSystemProgram(BaseManager manager,
+      String propertyUserDir, String[] cmdArray, AxisID axisID,
+      String outputKeyPhrase, boolean useStartCommand) {
+    program = new SystemProgram(manager, propertyUserDir, cmdArray, axisID);
     program.setCollectOutput(false);
     this.outputKeyPhrase = outputKeyPhrase;
     this.useStartCommand = useStartCommand;
-    this.managerKey = managerKey;
     this.axisID = axisID;
   }
 
-  public static IntermittentSystemProgram getStartInstance(
+  public static IntermittentSystemProgram getStartInstance(BaseManager manager,
       String propertyUserDir, String[] startCmdArray, AxisID axisID,
-      String outputKeyPhrase, ManagerKey managerKey) {
-    return new IntermittentSystemProgram(propertyUserDir, startCmdArray,
-        axisID, outputKeyPhrase, true, managerKey);
+      String outputKeyPhrase) {
+    return new IntermittentSystemProgram(manager, propertyUserDir,
+        startCmdArray, axisID, outputKeyPhrase, true);
   }
 
   /**
@@ -59,11 +57,11 @@ public class IntermittentSystemProgram {
    * @return
    */
   public static IntermittentSystemProgram getIntermittentInstance(
-      String propertyUserDir, String intermittentCommand, AxisID axisID,
-      String outputKeyPhrase, ManagerKey managerKey) {
+      BaseManager manager, String propertyUserDir, String intermittentCommand,
+      AxisID axisID, String outputKeyPhrase) {
 
-    return new IntermittentSystemProgram(propertyUserDir, intermittentCommand
-        .split("\\s+"), axisID, outputKeyPhrase, false, managerKey);
+    return new IntermittentSystemProgram(manager, propertyUserDir,
+        intermittentCommand.split("\\s+"), axisID, outputKeyPhrase, false);
   }
 
   boolean useStartCommand() {
@@ -157,6 +155,9 @@ public class IntermittentSystemProgram {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.21  2010/01/11 23:54:58  sueh
+ * <p> bug# 1299 Passing in axisID and managerKey.
+ * <p>
  * <p> Revision 1.20  2009/04/13 22:30:53  sueh
  * <p> bug# 1207 Added documentation.
  * <p>

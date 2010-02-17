@@ -3,8 +3,6 @@ package etomo.storage;
 import java.io.*;
 import java.util.*;
 
-import etomo.ManagerKey;
-
 /**
  * <p>Description: Keeps a Properties instance that mirrors a properties file.
  * Loads the properties file once.  Updates the properties instance and saves as
@@ -26,6 +24,9 @@ import etomo.ManagerKey;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.11  2009/03/17 00:45:24  sueh
+ * <p> bug# 1186 Pass managerKey to everything that pops up a dialog.
+ * <p>
  * <p> Revision 3.10  2009/02/04 23:29:40  sueh
  * <p> bug# 1158 Changed id and exceptions classes in LogFile.
  * <p>
@@ -95,16 +96,18 @@ public final class ParameterStore {
   /**
    * If paramFile is null, returns null.
    */
-  public static ParameterStore getInstance(File paramFile, ManagerKey managerKey)
+  public static ParameterStore getInstance(File paramFile)
       throws LogFile.LockException {
+    if (paramFile == null) {
+      return null;
+    }
     ParameterStore instance = new ParameterStore(paramFile);
-    instance.initialize(paramFile, managerKey);
+    instance.initialize(paramFile);
     return instance;
   }
 
-  private void initialize(File paramFile, ManagerKey managerKey)
-      throws LogFile.LockException {
-    dataFile = LogFile.getInstance(paramFile, managerKey);
+  private void initialize(File paramFile) throws LogFile.LockException {
+    dataFile = LogFile.getInstance(paramFile);
     if (dataFile.exists()) {
       LogFile.InputStreamId inputStreamId = null;
       try {
@@ -131,7 +134,9 @@ public final class ParameterStore {
    */
   public void storeProperties() throws LogFile.LockException, IOException {
     synchronized (dataFile) {
-      dataFile.backupOnce();
+      if (!dataFile.isDirectory()) {
+        dataFile.backupOnce();
+      }
       if (!dataFile.exists()) {
         dataFile.create();
       }

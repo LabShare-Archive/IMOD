@@ -78,13 +78,14 @@ public final class PsParam {
     startTimeCommand = osType == OSType.MAC ? "start" : "lstart";
     if (hostName != null
         && !hostName.matches("\\*")
-        && !hostName.equals(Network.getLocalHostName(axisID, manager
-            .getPropertyUserDir(), manager.getManagerKey()))) {
+        && !hostName.equals(Network.getLocalHostName(manager, axisID, manager
+            .getPropertyUserDir()))) {
       //If the timeout option cannot be added to ssh then only ssh if the caller
       //of this constructor promises to run the command in a worker thread.  An
       //ssh on the main thread can lock up the user interface.
-      if (willRunOnWorkerThread || SshParam.INSTANCE.isTimeoutAvailable()) {
-        List sshCommand = SshParam.INSTANCE.getCommand(true, hostName);
+      if (willRunOnWorkerThread
+          || SshParam.INSTANCE.isTimeoutAvailable(manager)) {
+        List sshCommand = SshParam.INSTANCE.getCommand(manager, true, hostName);
         if (sshCommand != null) {
           Iterator iterator = sshCommand.iterator();
           while (iterator.hasNext()) {
@@ -343,6 +344,9 @@ public final class PsParam {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.10  2010/02/05 00:46:19  sueh
+ * <p> bug# 1309 In findRow adding info to the error log.
+ * <p>
  * <p> Revision 1.9  2010/01/11 23:49:01  sueh
  * <p> bug# 1299 Added isMessageReporter.
  * <p>

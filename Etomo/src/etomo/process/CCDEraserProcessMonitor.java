@@ -2,7 +2,7 @@ package etomo.process;
 
 import java.io.IOException;
 
-import etomo.ApplicationManager;
+import etomo.BaseManager;
 import etomo.storage.LogFile;
 import etomo.type.AxisID;
 import etomo.type.ProcessName;
@@ -20,6 +20,9 @@ import etomo.type.ProcessName;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.6  2009/02/04 23:23:54  sueh
+ * <p> bug# 1158 Changed id and exceptions classes in LogFile.
+ * <p>
  * <p> Revision 3.5  2006/10/24 21:18:01  sueh
  * <p> bug# 947 Passing the ProcessName to AxisProcessPanel.
  * <p>
@@ -53,14 +56,12 @@ public class CCDEraserProcessMonitor extends LogFileProcessMonitor {
 
   /**
    * Default constructor
-  * @param appMgr
+   * @param appMgr
    * @param id
    */
-  public CCDEraserProcessMonitor(
-    ApplicationManager appMgr,
-    AxisID id) {
+  public CCDEraserProcessMonitor(BaseManager manager, AxisID id) {
 
-    super(appMgr, id,ProcessName.ERASER);
+    super(manager, id, ProcessName.ERASER);
     logFileBasename = "eraser";
   }
 
@@ -69,26 +70,27 @@ public class CCDEraserProcessMonitor extends LogFileProcessMonitor {
    */
   protected void initializeProgressBar() {
     if (nSections == Integer.MIN_VALUE) {
-      applicationManager.getMainPanel().setProgressBar("CCD Eraser", 1, axisID,processName);
-      applicationManager.getMainPanel().setProgressBarValue(0, "Starting...", axisID);
+      manager.getMainPanel().setProgressBar("CCD Eraser", 1, axisID,
+          processName);
+      manager.getMainPanel().setProgressBarValue(0, "Starting...", axisID);
       return;
     }
-    applicationManager.getMainPanel().setProgressBar("CCD Eraser", nSections, axisID,processName);
+    manager.getMainPanel().setProgressBar("CCD Eraser", nSections, axisID,
+        processName);
   }
 
   /* (non-Javadoc)
    * @see etomo.process.LogFileProcessMonitor#getCurrentSection()
    */
-  protected void getCurrentSection()
-    throws NumberFormatException, LogFile.LockException ,IOException{
+  protected void getCurrentSection() throws NumberFormatException,
+      LogFile.LockException, IOException {
     String line;
     while ((line = readLogFileLine()) != null) {
       if (line.startsWith("Section")) {
         String[] fields = line.split("\\s+");
         if (fields.length > 1) {
           String number = fields[1];
-          currentSection =
-            Integer.parseInt(number);
+          currentSection = Integer.parseInt(number);
         }
       }
     }

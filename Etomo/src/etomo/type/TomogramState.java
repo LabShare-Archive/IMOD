@@ -25,6 +25,9 @@ import etomo.util.MRCHeader;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.37  2009/09/01 03:16:20  sueh
+ * <p> bug# 1222 Added state settings for erase gold find 3d.
+ * <p>
  * <p> Revision 1.36  2009/03/17 00:46:15  sueh
  * <p> bug# 1186 Pass managerKey to everything that pops up a dialog.
  * <p>
@@ -1024,9 +1027,9 @@ public class TomogramState extends BaseState {
       return false;
     }
     MRCHeader header = MRCHeader.getInstance(manager.getPropertyUserDir(),
-        trimvolFile.getAbsolutePath(), AxisID.ONLY, manager.getManagerKey());
+        trimvolFile.getAbsolutePath(), AxisID.ONLY);
     try {
-      if (!header.read()) {
+      if (!header.read(manager)) {
         return false;
       }
     }

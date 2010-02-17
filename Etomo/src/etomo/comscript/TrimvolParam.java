@@ -11,6 +11,9 @@
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.39  2010/01/11 23:49:01  sueh
+ * <p> bug# 1299 Added isMessageReporter.
+ * <p>
  * <p> Revision 3.38  2009/12/11 17:26:22  sueh
  * <p> bug# 1291 Added getCommandInputFile to implement Command.
  * <p>
@@ -207,7 +210,6 @@ import java.util.List;
 import java.util.Properties;
 
 import etomo.BaseManager;
-import etomo.ManagerKey;
 import etomo.storage.LogFile;
 import etomo.type.AxisID;
 import etomo.type.AxisType;
@@ -772,14 +774,14 @@ public class TrimvolParam implements CommandDetails {
    * @throws InvalidParameterException
    * @throws IOException
    */
-  public void setDefaultRange(TomogramState state, ManagerKey managerKey,
-      boolean dialogExists) throws InvalidParameterException, IOException {
+  public void setDefaultRange(TomogramState state, boolean dialogExists)
+      throws InvalidParameterException, IOException {
     // Get the data size limits from the image stack
     BaseMetaData metaData = manager.getBaseMetaData();
     MRCHeader mrcHeader = MRCHeader.getInstance(manager.getPropertyUserDir(),
         TrimvolParam.getInputFileName(metaData.getAxisType(), metaData
-            .getName()), AxisID.ONLY, managerKey);
-    if (!mrcHeader.read()) {
+            .getName()), AxisID.ONLY);
+    if (!mrcHeader.read(manager)) {
       throw new IOException("file does not exist");
     }
     //Don't override existing values unless the size of the trimvol input file
@@ -965,8 +967,8 @@ public class TrimvolParam implements CommandDetails {
     return commandName;
   }
 
-  public List getLogMessage(ManagerKey managerKey)
-      throws LogFile.LockException, FileNotFoundException, IOException {
+  public List getLogMessage() throws LogFile.LockException,
+      FileNotFoundException, IOException {
     return null;
   }
 
@@ -989,6 +991,7 @@ public class TrimvolParam implements CommandDetails {
   public CommandMode getCommandMode() {
     return null;
   }
+
   public boolean isMessageReporter() {
     return false;
   }
@@ -1001,7 +1004,7 @@ public class TrimvolParam implements CommandDetails {
     return null;
   }
 
-  public  String getName() {
+  public String getName() {
     return commandName;
   }
 

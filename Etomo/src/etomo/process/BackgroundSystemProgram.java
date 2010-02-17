@@ -21,6 +21,9 @@ import etomo.type.ProcessEndState;
  * @version $$Revision$$
  * 
  * <p> $$Log$
+ * <p> $Revision 1.9  2009/03/17 00:34:23  sueh
+ * <p> $bug# 1186 Pass managerKey to everything that pops up a dialog.
+ * <p> $
  * <p> $Revision 1.8  2005/11/19 02:14:52  sueh
  * <p> $bug# 744 BackgroundSystemProgram is used by
  * <p> $DetachedProcessMonitor as well as BackgroundComScriptProcess.  It is
@@ -69,7 +72,7 @@ public class BackgroundSystemProgram extends SystemProgram {
 
   public BackgroundSystemProgram(BaseManager manager, String[] command,
       DetachedProcessMonitor monitor, AxisID axisID) {
-    super(manager.getPropertyUserDir(), command, axisID, manager.getManagerKey());
+    super(manager, manager.getPropertyUserDir(), command, axisID);
     this.monitor = monitor;
   }
 

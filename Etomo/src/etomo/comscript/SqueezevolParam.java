@@ -10,7 +10,6 @@ import java.util.Properties;
 
 import etomo.ApplicationManager;
 import etomo.BaseManager;
-import etomo.ManagerKey;
 import etomo.storage.LogFile;
 import etomo.type.AxisID;
 import etomo.type.ConstEtomoNumber;
@@ -34,6 +33,9 @@ import etomo.type.ProcessName;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.13  2010/01/11 23:49:01  sueh
+ * <p> bug# 1299 Added isMessageReporter.
+ * <p>
  * <p> Revision 1.12  2009/12/11 17:26:22  sueh
  * <p> bug# 1291 Added getCommandInputFile to implement Command.
  * <p>
@@ -300,7 +302,7 @@ public final class SqueezevolParam implements ConstSqueezevolParam {
     return COMMAND_NAME;
   }
 
-  public List getLogMessage(ManagerKey managerKey)
+  public List getLogMessage()
       throws LogFile.LockException, FileNotFoundException, IOException {
     return null;
   }

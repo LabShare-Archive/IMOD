@@ -7,7 +7,6 @@ import java.util.Hashtable;
 import java.util.List;
 
 import etomo.ApplicationManager;
-import etomo.ManagerKey;
 import etomo.storage.LogFile;
 import etomo.type.AxisID;
 import etomo.type.ConstEtomoNumber;
@@ -198,9 +197,8 @@ public final class BlendmontParam implements CommandParam, CommandDetails {
     if (fisSizeToOutputInXandY.isDefault() || fisSizeToOutputInXandY.isEmpty()) {
       return;
     }
-    Montagesize montagesize = Montagesize.getInstance(manager, axisID, manager
-        .getManagerKey());
-    montagesize.read();
+    Montagesize montagesize = Montagesize.getInstance(manager, axisID);
+    montagesize.read(manager);
     convertToStartingAndEnding(startingAndEndingX, montagesize.getX().getInt(),
         fisSizeToOutputInXandY.getInt(0));
     convertToStartingAndEnding(startingAndEndingY, montagesize.getY().getInt(),
@@ -333,6 +331,7 @@ public final class BlendmontParam implements CommandParam, CommandDetails {
   public CommandMode getCommandMode() {
     return mode;
   }
+
   public boolean isMessageReporter() {
     return false;
   }
@@ -444,8 +443,8 @@ public final class BlendmontParam implements CommandParam, CommandDetails {
     throw new IllegalArgumentException("mode=" + mode);
   }
 
-  public List getLogMessage(ManagerKey managerKey)
-      throws LogFile.LockException, FileNotFoundException, IOException {
+  public List getLogMessage() throws LogFile.LockException,
+      FileNotFoundException, IOException {
     return null;
   }
 
@@ -525,6 +524,9 @@ public final class BlendmontParam implements CommandParam, CommandDetails {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.36  2010/01/11 23:49:01  sueh
+ * <p> bug# 1299 Added isMessageReporter.
+ * <p>
  * <p> Revision 1.35  2009/12/11 17:25:49  sueh
  * <p> bug# 1291 Added getCommandInputFile to implement Command.
  * <p>

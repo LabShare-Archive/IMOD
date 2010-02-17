@@ -3,7 +3,7 @@ package etomo.storage;
 import java.io.File;
 import java.io.IOException;
 
-import etomo.ManagerKey;
+import etomo.BaseManager;
 import etomo.type.ConstEtomoNumber;
 import etomo.type.EtomoNumber;
 
@@ -21,6 +21,9 @@ import etomo.type.EtomoNumber;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.5  2009/03/17 00:45:24  sueh
+ * <p> bug# 1186 Pass managerKey to everything that pops up a dialog.
+ * <p>
  * <p> Revision 1.4  2009/02/04 23:29:40  sueh
  * <p> bug# 1158 Changed id and exceptions classes in LogFile.
  * <p>
@@ -40,12 +43,22 @@ public final class TiltFile {
 
   private final EtomoNumber minAngle = new EtomoNumber(EtomoNumber.Type.FLOAT);
   private final EtomoNumber maxAngle = new EtomoNumber(EtomoNumber.Type.FLOAT);
+
   private final File file;
 
-  public TiltFile(File file, ManagerKey managerKey) {
+  private TiltFile(File file) {
     this.file = file;
+  }
+
+  public static TiltFile getInstance(BaseManager manager, File file) {
+    TiltFile instance = new TiltFile(file);
+    instance.initialize(manager);
+    return instance;
+  }
+
+  private void initialize(BaseManager manager) {
     try {
-      LogFile fileReader = LogFile.getInstance(file, managerKey);
+      LogFile fileReader = LogFile.getInstance(file);
       LogFile.ReaderId readerId = fileReader.openReader();
       minAngle.set(fileReader.readLine(readerId));
       //read until end of file, preserving last line read

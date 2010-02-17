@@ -9,7 +9,6 @@ import java.util.List;
 
 import etomo.BaseManager;
 import etomo.JoinManager;
-import etomo.ManagerKey;
 import etomo.storage.LogFile;
 import etomo.type.AxisID;
 import etomo.type.ConstEtomoNumber;
@@ -37,6 +36,9 @@ import etomo.util.DatasetFiles;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.14  2010/01/11 23:49:01  sueh
+ * <p> bug# 1299 Added isMessageReporter.
+ * <p>
  * <p> Revision 1.13  2009/12/11 17:26:22  sueh
  * <p> bug# 1291 Added getCommandInputFile to implement Command.
  * <p>
@@ -212,10 +214,9 @@ public final class XfmodelParam implements CommandDetails {
         }
       }
       if (inFile.equals(outFile)) {
-        UIHarness.INSTANCE.openMessageDialog(
+        UIHarness.INSTANCE.openMessageDialog(manager,
             "Cannot overwrite xfmodel input file, " + inFile
-                + " with output file, " + outFile + ".", "XfmodelParam Error",
-            manager.getManagerKey());
+                + " with output file, " + outFile + ".", "XfmodelParam Error");
         return false;
       }
     }
@@ -287,6 +288,7 @@ public final class XfmodelParam implements CommandDetails {
   public CommandMode getCommandMode() {
     return null;
   }
+
   public boolean isMessageReporter() {
     return false;
   }
@@ -295,8 +297,8 @@ public final class XfmodelParam implements CommandDetails {
     return COMMAND_NAME;
   }
 
-  public List getLogMessage(ManagerKey managerKey)
-      throws LogFile.LockException, FileNotFoundException, IOException {
+  public List getLogMessage() throws LogFile.LockException,
+      FileNotFoundException, IOException {
     return null;
   }
 

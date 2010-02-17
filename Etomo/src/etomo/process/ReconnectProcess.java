@@ -62,7 +62,7 @@ final class ReconnectProcess implements SystemProcessInterface, Runnable {
     ReconnectProcess instance = new ReconnectProcess(manager, processManager,
         monitor, processData, axisID);
     instance.logFile = LogFile.getInstance(manager.getPropertyUserDir(),
-        axisID, processData.getProcessName(), manager.getManagerKey());
+        axisID, processData.getProcessName());
     return instance;
   }
 
@@ -75,18 +75,17 @@ final class ReconnectProcess implements SystemProcessInterface, Runnable {
         monitor, processData, axisID);
     if (subDirName.isEmpty()) {
       instance.logFile = LogFile.getInstance(manager.getPropertyUserDir(),
-          logFileName, manager.getManagerKey());
+          logFileName);
     }
     else {
       instance.logFile = LogFile.getInstance(new File(manager
-          .getPropertyUserDir(), subDirName.toString()), logFileName, manager
-          .getManagerKey());
+          .getPropertyUserDir(), subDirName.toString()), logFileName);
     }
     instance.logSuccessTag = logSuccessTag;
     instance.monitorControl = true;
     return instance;
   }
-  
+
   /**
    * In a reconnect the computerMap is loaded from the data file.  Setting it
    * here would override it.  Should never happen because the process monitor
@@ -122,7 +121,7 @@ final class ReconnectProcess implements SystemProcessInterface, Runnable {
           Thread.sleep(500);
         }
         catch (InterruptedException e) {
-      }
+        }
       }
     }
     catch (LogFile.LockException e) {
@@ -137,8 +136,8 @@ final class ReconnectProcess implements SystemProcessInterface, Runnable {
           Thread.sleep(500);
         }
         catch (InterruptedException e) {
+        }
       }
-    }
     }
     if (logSuccessTag == null) {
       messages = ProcessMessages.getInstance("Reconstruction of",
@@ -149,7 +148,7 @@ final class ReconnectProcess implements SystemProcessInterface, Runnable {
     }
     ProcessName processName = processData.getProcessName();
     try {
-      messages.addProcessOutput(logFile);
+      messages.addProcessOutput(manager, logFile);
     }
     catch (LogFile.LockException e) {
       e.printStackTrace();
@@ -257,8 +256,8 @@ final class ReconnectProcess implements SystemProcessInterface, Runnable {
 
   public final void pause(AxisID axisID) {
     if (monitor == null) {
-      UIHarness.INSTANCE.openMessageDialog("Unable to pause.",
-          "Function Not Available", manager.getManagerKey());
+      UIHarness.INSTANCE.openMessageDialog(manager, "Unable to pause.",
+          "Function Not Available");
     }
     else {
       monitor.pause(this, axisID);
@@ -296,6 +295,11 @@ final class ReconnectProcess implements SystemProcessInterface, Runnable {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.11  2009/04/20 20:05:46  sueh
+ * <p> bug# 1192 Added a empty setComputerMap function.  The process is not
+ * <p> the source of process information so setComputerMap shouldn't do
+ * <p> anything.
+ * <p>
  * <p> Revision 1.10  2009/04/13 22:52:17  sueh
  * <p> bug# 1207
  * <p>

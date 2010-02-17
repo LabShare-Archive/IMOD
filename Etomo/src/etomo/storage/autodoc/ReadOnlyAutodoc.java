@@ -20,6 +20,9 @@ import etomo.storage.autodoc.Autodoc.InternalTestType;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.10  2010/01/11 23:57:43  sueh
+ * <p> bug# 1299 Added exists.
+ * <p>
  * <p> Revision 1.9  2009/06/05 02:02:12  sueh
  * <p> bug# 1219 Added getAutodocName.
  * <p>
@@ -85,6 +88,6 @@ public interface ReadOnlyAutodoc extends ReadOnlyStatementList,
   public void setDebug(boolean input);
 
   public String getAutodocName();
-  
+
   public boolean exists();
 }

@@ -10,7 +10,6 @@ import java.util.List;
 import java.util.Vector;
 
 import etomo.BaseManager;
-import etomo.ManagerKey;
 import etomo.storage.LogFile;
 import etomo.type.AxisID;
 import etomo.type.ConstEtomoNumber;
@@ -34,6 +33,9 @@ import etomo.util.MRCHeader;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.26  2010/01/11 23:49:01  sueh
+ * <p> bug# 1299 Added isMessageReporter.
+ * <p>
  * <p> Revision 3.25  2009/12/11 17:26:22  sueh
  * <p> bug# 1291 Added getCommandInputFile to implement Command.
  * <p>
@@ -709,9 +711,8 @@ public final class NewstParam implements ConstNewstParam, CommandParam {
     //UserSize is empty, check for an angle close to 90 degrees.
     if ((sizeToOutputInXandY.isDefault() || sizeToOutputInXandY.isEmpty())
         && Utilities.is90DegreeImageRotation(imageRotation)) {
-      MRCHeader header = MRCHeader.getInstance(manager, axisID, ".st", manager
-          .getManagerKey());
-      header.read();
+      MRCHeader header = MRCHeader.getInstance(manager, axisID, ".st");
+      header.read(manager);
       //Set y from columns (x)
       sizeToOutputInXandY.set(1, header.getNColumns());
       //Set x from rows (y)
@@ -994,8 +995,8 @@ public final class NewstParam implements ConstNewstParam, CommandParam {
     return processName.toString();
   }
 
-  public List getLogMessage(ManagerKey managerKey)
-      throws LogFile.LockException, FileNotFoundException, IOException {
+  public List getLogMessage() throws LogFile.LockException,
+      FileNotFoundException, IOException {
     return null;
   }
 
@@ -1015,6 +1016,7 @@ public final class NewstParam implements ConstNewstParam, CommandParam {
   public CommandMode getCommandMode() {
     return commandMode;
   }
+
   public boolean isMessageReporter() {
     return false;
   }
@@ -1022,7 +1024,7 @@ public final class NewstParam implements ConstNewstParam, CommandParam {
   public File getCommandOutputFile() {
     return null;
   }
-  
+
   public File getCommandInputFile() {
     return null;
   }

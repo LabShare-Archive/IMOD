@@ -25,6 +25,9 @@ import junit.framework.TestCase;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.8  2009/10/23 22:24:33  sueh
+ * <p> bug# 1275 No default manager.
+ * <p>
  * <p> Revision 1.7  2009/03/17 00:44:42  sueh
  * <p> bug# 1186 Pass managerKey to everything that pops up a dialog.
  * <p>
@@ -64,26 +67,32 @@ public class JoinInfoFileTest extends TestCase {
     EtomoDirector.INSTANCE.openJoin(true, AxisID.ONLY);
     BaseManager manager = EtomoDirector.INSTANCE.getCurrentManagerForTest();
     LogFile infoFile = LogFile.getInstance(testDir.getAbsolutePath(),
-        DatasetFiles.getJoinInfoName(manager), manager.getManagerKey());
+        DatasetFiles.getJoinInfoName(manager));
     infoFile.delete();
-    JoinInfoFile test = JoinInfoFile.getTestInstance(manager, infoFile);
-    assertNull("Should return null when there is no file", test.getInverted(0));
+    JoinInfoFile test = JoinInfoFile.getTestInstance(infoFile);
+    assertNull("Should return null when there is no file", test.getInverted(
+        manager, 0));
     BaseProcessManager.touch(infoFile.getAbsolutePath(), manager);
     try {
       Thread.sleep(500);
     }
     catch (InterruptedException e) {
     }
-    assertNull("Should return null when the file is empty", test.getInverted(0));
+    assertNull("Should return null when the file is empty", test.getInverted(
+        manager, 0));
     LogFile.WriterId writerId = infoFile.openWriter();
     infoFile.newLine(writerId);
     assertNull("Should return null when the second line doesn't exist", test
-        .getInverted(0));
+        .getInverted(manager, 0));
     infoFile.write("0 1 0", writerId);
     infoFile.closeWriter(writerId);
-    assertEquals("First number should be 0", test.getInverted(0).getInt(), 0);
-    assertEquals("Second number should be 1", test.getInverted(1).getInt(), 1);
-    assertEquals("Third number should be 0", test.getInverted(2).getInt(), 0);
-    assertNull("Should return null for an index error", test.getInverted(4));
+    assertEquals("First number should be 0", test.getInverted(manager, 0)
+        .getInt(), 0);
+    assertEquals("Second number should be 1", test.getInverted(manager, 1)
+        .getInt(), 1);
+    assertEquals("Third number should be 0", test.getInverted(manager, 2)
+        .getInt(), 0);
+    assertNull("Should return null for an index error", test.getInverted(
+        manager, 4));
   }
 }

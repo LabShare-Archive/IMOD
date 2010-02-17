@@ -6,7 +6,6 @@ import java.io.IOException;
 import java.util.Hashtable;
 import java.util.List;
 
-import etomo.ManagerKey;
 import etomo.storage.LogFile;
 import etomo.type.AxisID;
 import etomo.type.ConstEtomoNumber;
@@ -138,7 +137,7 @@ public class StartJoinParam implements CommandDetails {
     return null;
   }
 
-  public List getLogMessage(ManagerKey managerKey)
+  public List getLogMessage()
       throws LogFile.LockException, FileNotFoundException, IOException {
     return null;
   }
@@ -177,6 +176,9 @@ public class StartJoinParam implements CommandDetails {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.13  2010/01/11 23:49:01  sueh
+ * <p> bug# 1299 Added isMessageReporter.
+ * <p>
  * <p> Revision 1.12  2009/12/11 17:26:22  sueh
  * <p> bug# 1291 Added getCommandInputFile to implement Command.
  * <p>

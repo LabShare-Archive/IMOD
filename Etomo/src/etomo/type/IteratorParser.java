@@ -51,7 +51,10 @@ import etomo.util.PrimativeTokenizer;
  * 
  * @version $Revision$
  * 
- * <p> $Log$</p>
+ * <p> $Log$
+ * <p> Revision 1.1  2009/09/05 00:10:52  sueh
+ * <p> bug# 1256 Simple parser that parses iterator lists.
+ * <p></p>
  */
 public final class IteratorParser {
   public static final String rcsid = "$Id$";
@@ -99,21 +102,21 @@ public final class IteratorParser {
     }
     catch (FileNotFoundException e) {
       e.printStackTrace();
-      UIHarness.INSTANCE.openMessageDialog("Unable to parse " + description
-          + ".  FileNotFoundException: " + e.getMessage(), "Etomo Error",
-          axisID, manager.getManagerKey());
+      UIHarness.INSTANCE.openMessageDialog(manager, "Unable to parse "
+          + description + ".  FileNotFoundException: " + e.getMessage(),
+          "Etomo Error", axisID);
     }
     catch (LogFile.LockException e) {
       e.printStackTrace();
-      UIHarness.INSTANCE.openMessageDialog("Unable to parse " + description
-          + ".  LogFile.LockException: " + e.getMessage(), "Etomo Error",
-          axisID, manager.getManagerKey());
+      UIHarness.INSTANCE.openMessageDialog(manager, "Unable to parse "
+          + description + ".  LogFile.LockException: " + e.getMessage(),
+          "Etomo Error", axisID);
     }
     catch (IOException e) {
       e.printStackTrace();
-      UIHarness.INSTANCE.openMessageDialog("Unable to parse " + description
-          + ".  IOException: " + e.getMessage(), "Etomo Error", axisID, manager
-          .getManagerKey());
+      UIHarness.INSTANCE.openMessageDialog(manager, "Unable to parse "
+          + description + ".  IOException: " + e.getMessage(), "Etomo Error",
+          axisID);
     }
     iterator();
   }
@@ -218,10 +221,10 @@ public final class IteratorParser {
       caret = String.format("%1$" + String.valueOf(index) + "s",
           new Object[] { "^" });
     }
-    UIHarness.INSTANCE.openMessageDialog("In " + description
+    UIHarness.INSTANCE.openMessageDialog(manager, "In " + description
         + ", iterator syntax error.\n" + buffer.toString() + "\n" + caret
         + "\nExpected \"" + expected + "\".  Syntax example:  2,4-9,10",
-        "Entry Error", axisID, manager.getManagerKey());
+        "Entry Error", axisID);
   }
 
   /**

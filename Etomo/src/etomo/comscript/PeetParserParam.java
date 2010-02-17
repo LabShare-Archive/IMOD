@@ -8,7 +8,6 @@ import java.util.Hashtable;
 import java.util.List;
 
 import etomo.BaseManager;
-import etomo.ManagerKey;
 import etomo.storage.LogFile;
 import etomo.storage.MatlabParam;
 import etomo.type.AxisID;
@@ -34,6 +33,9 @@ import etomo.util.EnvironmentVariable;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.14  2010/01/13 21:52:33  sueh
+ * <p> bug# 1298 Removed LST_THRESHOLD_ARRAY.
+ * <p>
  * <p> Revision 1.13  2010/01/11 23:49:01  sueh
  * <p> bug# 1299 Added isMessageReporter.
  * <p>
@@ -104,22 +106,21 @@ public final class PeetParserParam implements CommandDetails {
     }
     command = new String[3];
     command[0] = "sh";
-    String particleDir = EnvironmentVariable.INSTANCE.getValue(manager
-        .getPropertyUserDir(), "PARTICLE_DIR", AxisID.ONLY, manager
-        .getManagerKey());
+    String particleDir = EnvironmentVariable.INSTANCE.getValue(manager, manager
+        .getPropertyUserDir(), "PARTICLE_DIR", AxisID.ONLY);
     if (particleDir == null || particleDir.matches("\\s*")) {
-      UIHarness.INSTANCE.openMessageDialog(
+      UIHarness.INSTANCE.openMessageDialog(manager,
           "The environment variables PARTICLE_DIR has not been set.  Set it "
               + "to the location of the directory containing the PEET "
               + "software.  Make sure the PEET package is installed "
               + "(typically installed in /usr/local/Particle).  To download "
               + "PEET, go to ftp://bio3d.colorado.edu/PEET.",
-          "Environment Error", manager.getManagerKey());
+          "Environment Error");
       return null;
     }
     File commandFile = new File(new File(EnvironmentVariable.INSTANCE.getValue(
-        manager.getPropertyUserDir(), "PARTICLE_DIR", AxisID.ONLY, manager
-            .getManagerKey()), "bin"), PROCESS_NAME.toString());
+        manager, manager.getPropertyUserDir(), "PARTICLE_DIR", AxisID.ONLY),
+        "bin"), PROCESS_NAME.toString());
     command[1] = commandFile.getAbsolutePath();
     command[2] = prmFile.getName();
     if (debug) {
@@ -138,8 +139,8 @@ public final class PeetParserParam implements CommandDetails {
     return new File(prmFile.getAbsolutePath() + ".log");
   }
 
-  public List getLogMessage(ManagerKey managerKey)
-      throws LogFile.LockException, FileNotFoundException, IOException {
+  public List getLogMessage() throws LogFile.LockException,
+      FileNotFoundException, IOException {
     List message = new ArrayList();
     message.add(MatlabParam.SZ_VOL_KEY + " = " + szVol);
     message.add(MatlabParam.LST_FLAG_ALL_TOM_KEY + " = " + lstFlagAllTom);
@@ -156,7 +157,7 @@ public final class PeetParserParam implements CommandDetails {
     message.add(buffer.toString());
     return message;
   }
-  
+
   public void setParameters(MatlabParam matlabParam) {
     iterationListSize = matlabParam.getIterationListSize();
     lstThresholdsArray = matlabParam.getLstThresholdsExpandedArray();
@@ -167,6 +168,7 @@ public final class PeetParserParam implements CommandDetails {
   public CommandMode getCommandMode() {
     return null;
   }
+
   public boolean isMessageReporter() {
     return false;
   }
@@ -174,7 +176,7 @@ public final class PeetParserParam implements CommandDetails {
   public File getCommandOutputFile() {
     return null;
   }
-  
+
   public File getCommandInputFile() {
     return null;
   }

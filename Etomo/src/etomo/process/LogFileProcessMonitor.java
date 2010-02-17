@@ -3,7 +3,7 @@ package etomo.process;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 
-import etomo.ApplicationManager;
+import etomo.BaseManager;
 import etomo.EtomoDirector;
 import etomo.util.InvalidParameterException;
 import etomo.util.MRCHeader;
@@ -26,6 +26,9 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.34  2010/01/11 23:56:32  sueh
+ * <p> bug# 1299 Added useMessageReporter.
+ * <p>
  * <p> Revision 3.33  2009/06/10 17:24:55  sueh
  * <p> bug# 1202 Parse the mrc header based on
  * <p> EtomoDirector.ImodBriefHeader.
@@ -226,12 +229,12 @@ public abstract class LogFileProcessMonitor implements ProcessMonitor {
   private LogFile logFile;
   private LogFile.ReaderId logFileReaderId = null;
 
-  final ApplicationManager applicationManager;
+  final BaseManager manager;
   final AxisID axisID;
   final ProcessName processName;
 
-   final String nSectionsHeader;
-   final int nSectionsIndex;
+  final String nSectionsHeader;
+  final int nSectionsIndex;
 
   abstract void initializeProgressBar();
 
@@ -243,9 +246,9 @@ public abstract class LogFileProcessMonitor implements ProcessMonitor {
    * @param appMgr  The application manager object
    * @param id  The axis ID to be monitored
    */
-  LogFileProcessMonitor(final ApplicationManager appMgr, final AxisID id,
+  LogFileProcessMonitor(final BaseManager manager, final AxisID id,
       final ProcessName processName) {
-    applicationManager = appMgr;
+    this.manager = manager;
     axisID = id;
     this.processName = processName;
     if (!EtomoDirector.INSTANCE.isImodBriefHeader()) {
@@ -261,7 +264,7 @@ public abstract class LogFileProcessMonitor implements ProcessMonitor {
   public final void stop() {
     stop = true;
   }
-  
+
   public void useMessageReporter() {
   }
 
@@ -276,13 +279,13 @@ public abstract class LogFileProcessMonitor implements ProcessMonitor {
     try {
       if (standardLogFileName) {
         //logFileName = logFileBasename + axisID.getExtension() + ".log";
-        logFile = LogFile.getInstance(applicationManager.getPropertyUserDir(),
-            axisID, logFileBasename, applicationManager.getManagerKey());
+        logFile = LogFile.getInstance(manager.getPropertyUserDir(), axisID,
+            logFileBasename);
       }
       else {
         //logFileName = logFileBasename;
-        logFile = LogFile.getInstance(applicationManager.getPropertyUserDir(),
-            logFileBasename, applicationManager.getManagerKey());
+        logFile = LogFile.getInstance(manager.getPropertyUserDir(),
+            logFileBasename);
 
       }
       //  Wait for the log file to exist
@@ -326,7 +329,7 @@ public abstract class LogFileProcessMonitor implements ProcessMonitor {
       logFileReaderId = null;
     }
     if (lastProcess) {
-      applicationManager.progressBarDone(axisID, endState);
+      manager.progressBarDone(axisID, endState);
     }
     done = true;
     if (!lastProcess) {
@@ -434,8 +437,7 @@ public abstract class LogFileProcessMonitor implements ProcessMonitor {
    */
   void updateProgressBar() {
     if (waitingForExit > 0) {
-      applicationManager.getMainPanel().setProgressBarValue(0, "Ending...",
-          axisID);
+      manager.getMainPanel().setProgressBarValue(0, "Ending...", axisID);
       return;
     }
     //  Calculate the percetage done
@@ -457,8 +459,8 @@ public abstract class LogFileProcessMonitor implements ProcessMonitor {
         + Utilities.millisToMinAndSecs(remainingTime);
 
     if (processRunning) {
-      applicationManager.getMainPanel().setProgressBarValue(currentSection,
-          message, axisID);
+      manager.getMainPanel().setProgressBarValue(currentSection, message,
+          axisID);
     }
   }
 

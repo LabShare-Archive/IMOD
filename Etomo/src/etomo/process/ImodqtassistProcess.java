@@ -59,8 +59,8 @@ public class ImodqtassistProcess {
     String line = null;
     while ((line = program.readStderr()) != null) {
       if (line.startsWith("ERROR:") || line.startsWith("WARNING:")) {
-        UIHarness.INSTANCE.openMessageDialog(line,
-            "Problem Displaying Help Topic", axisID, manager.getManagerKey());
+        UIHarness.INSTANCE.openMessageDialog(manager, line,
+            "Problem Displaying Help Topic", axisID);
       }
     }
   }
@@ -101,6 +101,9 @@ public class ImodqtassistProcess {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.2  2009/03/17 00:36:21  sueh
+ * <p> bug# 1186 Pass managerKey to everything that pops up a dialog.
+ * <p>
  * <p> Revision 1.1  2006/06/21 15:47:32  sueh
  * <p> bug# 581 Runs imodqtassist and sends commands to in via its stdin.  Quits
  * <p> imodqtassist when etomo exits.

@@ -3,6 +3,7 @@ package etomo.process;
 import java.io.IOException;
 
 import etomo.ApplicationManager;
+import etomo.BaseManager;
 import etomo.storage.LogFile;
 import etomo.type.AxisID;
 import etomo.type.ProcessName;
@@ -31,9 +32,9 @@ public final class TiltxcorrProcessWatcher extends LogFileProcessMonitor {
    * @param appMgr
    * @param id
    */
-  public TiltxcorrProcessWatcher(final ApplicationManager appMgr,
+  public TiltxcorrProcessWatcher(final BaseManager manager,
       final AxisID id) {
-    super(appMgr, id, ProcessName.XCORR);
+    super(manager, id, ProcessName.XCORR);
     logFileBasename = "xcorr";
   }
 
@@ -56,14 +57,13 @@ public final class TiltxcorrProcessWatcher extends LogFileProcessMonitor {
    */
   void initializeProgressBar() {
     if (nSections == Integer.MIN_VALUE) {
-      applicationManager.getMainPanel().setProgressBar(
-          "Cross-correlating stack", 1, axisID, processName);
-      applicationManager.getMainPanel().setProgressBarValue(0, "Starting...",
-          axisID);
+      manager.getMainPanel().setProgressBar("Cross-correlating stack", 1,
+          axisID, processName);
+      manager.getMainPanel().setProgressBarValue(0, "Starting...", axisID);
       return;
     }
-    applicationManager.getMainPanel().setProgressBar("Cross-correlating stack",
-        nSections, axisID, processName);
+    manager.getMainPanel().setProgressBar("Cross-correlating stack", nSections,
+        axisID, processName);
   }
 
   /* (non-Javadoc)
@@ -124,6 +124,9 @@ public final class TiltxcorrProcessWatcher extends LogFileProcessMonitor {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.8  2009/09/25 22:22:27  sueh
+ * <p> bug# 1272 In findNSections handle line == null.
+ * <p>
  * <p> Revision 1.7  2009/09/24 19:07:28  sueh
  * <p> bug# 1258 In findNSections trimmed line before splitting it.
  * <p>

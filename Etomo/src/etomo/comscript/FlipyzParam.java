@@ -8,7 +8,6 @@ import java.util.Hashtable;
 import java.util.List;
 
 import etomo.BaseManager;
-import etomo.ManagerKey;
 import etomo.storage.LogFile;
 import etomo.type.AxisID;
 import etomo.type.ConstEtomoNumber;
@@ -30,6 +29,9 @@ import etomo.type.ProcessName;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.20  2010/01/11 23:49:01  sueh
+ * <p> bug# 1299 Added isMessageReporter.
+ * <p>
  * <p> Revision 1.19  2009/12/11 17:26:22  sueh
  * <p> bug# 1291 Added getCommandInputFile to implement Command.
  * <p>
@@ -171,8 +173,8 @@ public class FlipyzParam implements CommandDetails {
     return COMMAND;
   }
 
-  public List getLogMessage(ManagerKey managerKey)
-      throws LogFile.LockException, FileNotFoundException, IOException {
+  public List getLogMessage() throws LogFile.LockException,
+      FileNotFoundException, IOException {
     return null;
   }
 
@@ -184,7 +186,7 @@ public class FlipyzParam implements CommandDetails {
     return COMMAND;
   }
 
-  public  String getName() {
+  public String getName() {
     return COMMAND;
   }
 
@@ -195,7 +197,7 @@ public class FlipyzParam implements CommandDetails {
   public File getCommandOutputFile() {
     return flipFile;
   }
-  
+
   public File getCommandInputFile() {
     return null;
   }
@@ -253,6 +255,7 @@ public class FlipyzParam implements CommandDetails {
   public CommandMode getCommandMode() {
     return null;
   }
+
   public boolean isMessageReporter() {
     return false;
   }

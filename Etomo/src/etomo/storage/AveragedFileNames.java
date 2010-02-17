@@ -24,7 +24,10 @@ import etomo.ui.UIHarness;
  * 
  * @version $Revision$
  * 
- * <p> $Log$ </p>
+ * <p> $Log$
+ * <p> Revision 1.1  2010/01/13 21:53:36  sueh
+ * <p> bug# 1298 Reads averagedFilenames.txt.
+ * <p> </p>
  */
 public final class AveragedFileNames {
   public static final String rcsid = "$Id$";
@@ -45,7 +48,7 @@ public final class AveragedFileNames {
     LogFile.ReaderId id = null;
     try {
       file = LogFile.getInstance(new File(manager.getPropertyUserDir(),
-          "averagedFilenames.txt"), manager.getManagerKey());
+          "averagedFilenames.txt"));
       id = file.openReader();
     }
     catch (LogFile.LockException e) {
@@ -54,8 +57,8 @@ public final class AveragedFileNames {
     }
     catch (FileNotFoundException e) {
       e.printStackTrace();
-      UIHarness.INSTANCE.openMessageDialog("File not found. " + errorMessage,
-          errorTitle, manager.getManagerKey());
+      UIHarness.INSTANCE.openMessageDialog(manager, "File not found. "
+          + errorMessage, errorTitle);
     }
     List list = new ArrayList();
     String line;

@@ -3,6 +3,7 @@ package etomo.comscript;
 import java.util.ArrayList;
 import java.util.List;
 
+import etomo.BaseManager;
 import etomo.process.SystemProgram;
 import etomo.type.AxisID;
 import etomo.type.EtomoBoolean2;
@@ -21,7 +22,11 @@ import etomo.type.EtomoVersion;
  * 
  * @version $Revision$
  * 
- * <p> $Log$ </p>
+ * <p> $Log$
+ * <p> Revision 1.1  2009/04/13 22:27:50  sueh
+ * <p> bug# 1207 Class to represent the ssh command.  Builds ssh command with
+ * <p> ConnectTimeout option when possible.
+ * <p> </p>
  */
 final class SshParam {
   public static final String rcsid = "$Id$";
@@ -30,7 +35,8 @@ final class SshParam {
 
   private EtomoBoolean2 timeoutAvailable = null;
 
-  final List getCommand(boolean useTimeoutIfPossible, String computer) {
+  final List getCommand(BaseManager manager, boolean useTimeoutIfPossible,
+      String computer) {
     List command = new ArrayList();
     command.add("ssh");
     //prevents ssh from waiting for an answer when connecting to a computer for
@@ -39,7 +45,7 @@ final class SshParam {
     command.add("-x");
     command.add("-o");
     command.add("StrictHostKeyChecking=no");
-    if (useTimeoutIfPossible && isTimeoutAvailable()) {
+    if (useTimeoutIfPossible && isTimeoutAvailable(manager)) {
       //Timeout doesn't work with older versions of Redhat (see bug# 1043).
       //maximum connection timeout for a down computer
       command.add("-o");
@@ -59,7 +65,7 @@ final class SshParam {
    * false.
    * @return timeoutAvailable
    */
-  synchronized boolean isTimeoutAvailable() {
+  synchronized boolean isTimeoutAvailable(BaseManager manager) {
     if (timeoutAvailable != null) {
       return timeoutAvailable.is();
     }
@@ -67,9 +73,8 @@ final class SshParam {
     //greater will understand the ConnectTimeout option.
     timeoutAvailable = new EtomoBoolean2();
     //Run ssh -v.
-    SystemProgram systemProgram = new SystemProgram(System
-        .getProperty("user.dir"), new String[] { "ssh", "-v" }, AxisID.ONLY,
-        null);
+    SystemProgram systemProgram = new SystemProgram(manager, System
+        .getProperty("user.dir"), new String[] { "ssh", "-v" }, AxisID.ONLY);
     systemProgram.run();
     //Find and parse the OpenSSH version.
     String[] stderr = systemProgram.getStdError();

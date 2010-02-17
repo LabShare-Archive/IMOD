@@ -5,7 +5,6 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-import etomo.ManagerKey;
 import etomo.type.AxisID;
 import etomo.type.ProcessName;
 import etomo.util.DatasetFiles;
@@ -23,7 +22,10 @@ import etomo.util.DatasetFiles;
  * 
  * @version $Revision$
  * 
- * <p> $Log$ </p>
+ * <p> $Log$
+ * <p> Revision 3.1  2009/03/17 00:45:24  sueh
+ * <p> bug# 1186 Pass managerKey to everything that pops up a dialog.
+ * <p> </p>
  */
 public final class TransferFidLog implements Loggable {
   public static final String rcsid = "$Id$";
@@ -68,12 +70,12 @@ public final class TransferFidLog implements Loggable {
   /**
    * Get a message to be logged in the LogPanel.
    */
-  public List getLogMessage(ManagerKey managerKey) throws LogFile.LockException,
+  public List getLogMessage() throws LogFile.LockException,
       FileNotFoundException, IOException {
     lineList.clear();
     //refresh the log file
-    LogFile logFile = LogFile.getInstance(userDir, 
-        DatasetFiles.TRANSFER_FID_LOG, managerKey);
+    LogFile logFile = LogFile.getInstance(userDir,
+        DatasetFiles.TRANSFER_FID_LOG);
     if (logFile.exists()) {
       LogFile.ReaderId readerId = logFile.openReader();
       if (readerId != null && !readerId.isEmpty()) {

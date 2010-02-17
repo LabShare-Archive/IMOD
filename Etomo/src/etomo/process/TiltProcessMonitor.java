@@ -26,6 +26,10 @@ import etomo.util.MRCHeader;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.25  2009/09/21 17:53:22  sueh
+ * <p> bug# 1267 Made class non-final.  Added getTiltParam so that the source of
+ * <p> TiltParam could be overridden.
+ * <p>
  * <p> Revision 3.24  2009/09/17 19:15:51  sueh
  * <p> bug# 1257 Added FileSizeProcessMonitor.getModeBytes to handle getting the right number of bytes based on the mode in a single location.
  * <p>
@@ -175,9 +179,8 @@ class TiltProcessMonitor extends FileSizeProcessMonitor {
         + tiltParam.getInputFile();
 
     MRCHeader alignedStack = MRCHeader.getInstance(applicationManager
-        .getPropertyUserDir(), alignedFilename, axisID, applicationManager
-        .getManagerKey());
-    if (!alignedStack.read()) {
+        .getPropertyUserDir(), alignedFilename, axisID);
+    if (!alignedStack.read(applicationManager)) {
       return false;
     }
 

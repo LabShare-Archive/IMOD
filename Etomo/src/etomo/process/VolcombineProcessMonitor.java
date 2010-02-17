@@ -2,7 +2,7 @@ package etomo.process;
 
 import java.io.IOException;
 
-import etomo.ApplicationManager;
+import etomo.BaseManager;
 import etomo.storage.LogFile;
 import etomo.type.AxisID;
 import etomo.type.ProcessName;
@@ -20,6 +20,9 @@ import etomo.type.ProcessName;
  * @version $$Revision$$
  * 
  * <p> $$Log$
+ * <p> $Revision 1.10  2009/06/05 02:00:04  sueh
+ * <p> $bug# 1219 Kept up with changes in parent class.
+ * <p> $
  * <p> $Revision 1.9  2009/02/04 23:26:53  sueh
  * <p> $bug# 1158 Changed id and exceptions classes in LogFile.
  * <p> $
@@ -68,9 +71,9 @@ public class VolcombineProcessMonitor extends LogFileProcessMonitor {
    * @param appMgr
    * @param id
    */
-  public VolcombineProcessMonitor(ApplicationManager appMgr, AxisID id) {
+  public VolcombineProcessMonitor(BaseManager manager, AxisID id) {
 
-    super(appMgr, id, ProcessName.VOLCOMBINE);
+    super(manager, id, ProcessName.VOLCOMBINE);
     logFileBasename = "volcombine";
   }
 
@@ -79,21 +82,20 @@ public class VolcombineProcessMonitor extends LogFileProcessMonitor {
    */
   protected void initializeProgressBar() {
     if (nSections == Integer.MIN_VALUE) {
-      applicationManager.getMainPanel().setProgressBar("Combine: volcombine",
-          1, axisID, processName);
-      applicationManager.getMainPanel().setProgressBarValue(0, "Starting...",
-          axisID);
+      manager.getMainPanel().setProgressBar("Combine: volcombine", 1, axisID,
+          processName);
+      manager.getMainPanel().setProgressBarValue(0, "Starting...", axisID);
       return;
     }
-    applicationManager.getMainPanel().setProgressBar("Combine: volcombine",
-        nSections, axisID, processName);
+    manager.getMainPanel().setProgressBar("Combine: volcombine", nSections,
+        axisID, processName);
   }
 
   /* (non-Javadoc)
    * @see etomo.process.LogFileProcessMonitor#getCurrentSection()
    */
   protected void getCurrentSection() throws NumberFormatException,
-      LogFile.LockException,IOException {
+      LogFile.LockException, IOException {
     String line;
     while ((line = readLogFileLine()) != null) {
       if (line.startsWith("STATUS:")) {
@@ -134,7 +136,7 @@ public class VolcombineProcessMonitor extends LogFileProcessMonitor {
    * sections
    */
   protected void findNSections() throws InterruptedException,
-      LogFile.LockException,IOException {
+      LogFile.LockException, IOException {
     //  Search for the number of sections, we should see a header ouput first
     boolean foundNSections = false;
 
@@ -174,16 +176,13 @@ public class VolcombineProcessMonitor extends LogFileProcessMonitor {
   protected void updateProgressBar() {
     if (waitingForExit <= 0) {
       if (subprocess.isFilltomo()) {
-        applicationManager.getMainPanel().setProgressBarValue(0, "Filltomo",
-            axisID);
+        manager.getMainPanel().setProgressBarValue(0, "Filltomo", axisID);
       }
       else if (subprocess.isReassembling()) {
-        applicationManager.getMainPanel().setProgressBarValue(0,
-            "Reassembling", axisID);
+        manager.getMainPanel().setProgressBarValue(0, "Reassembling", axisID);
       }
       else if (subprocess.isDensmatch()) {
-        applicationManager.getMainPanel().setProgressBarValue(0, "Densmatch",
-            axisID);
+        manager.getMainPanel().setProgressBarValue(0, "Densmatch", axisID);
       }
       else {
         super.updateProgressBar();

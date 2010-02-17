@@ -19,12 +19,17 @@ public final class DataFileType {
   public static final DataFileType JOIN = new DataFileType();
   public static final DataFileType PARALLEL = new DataFileType();
   public static final DataFileType PEET = new DataFileType();
+  public static final DataFileType TOOLS = new DataFileType();
   
   private DataFileType() {
   }
 }
 /**
 * <p> $Log$
+* <p> Revision 1.1  2009/10/23 19:43:41  sueh
+* <p> bug# 1275 Changed the name of TabType to DataFileType to clarify what it
+* <p> corresponds to.
+* <p>
 * <p> Revision 1.2  2007/02/19 22:00:03  sueh
 * <p> bug# 964 Added PEET tab type.
 * <p>

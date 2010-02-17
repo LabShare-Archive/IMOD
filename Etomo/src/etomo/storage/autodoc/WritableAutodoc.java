@@ -19,6 +19,9 @@ import etomo.ui.Token;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.4  2009/02/04 23:30:00  sueh
+ * <p> bug# 1158 Changed id and exceptions classes in LogFile.
+ * <p>
  * <p> Revision 1.3  2007/04/11 22:10:08  sueh
  * <p> bug# 964 ADded removeNameValuePair, removeStatement, setDebug, and
  * <p> printStatementList.
@@ -39,15 +42,19 @@ public interface WritableAutodoc extends ReadOnlyAutodoc {
 
   public WritableAttribute getWritableAttribute(String name);
 
-  public void write() throws LogFile.LockException,IOException;
+  public void write() throws LogFile.LockException, IOException;
 
   public void addComment(Token comment);
 
   public void addEmptyLine();
 
   public void addComment(String comment);
+
   public WritableStatement removeNameValuePair(String name);
+
   public WritableStatement removeStatement(WritableStatement statement);
+
   public void setDebug(boolean debug);
+
   public void printStatementList();
 }

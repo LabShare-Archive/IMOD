@@ -28,6 +28,9 @@ import etomo.util.Utilities;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.56  2010/01/11 23:58:08  sueh
+ * <p> bug# 1299 Formatted.
+ * <p>
  * <p> Revision 3.55  2009/12/19 01:10:53  sueh
  * <p> bug# 1294 Added lambdaForSmoothing and lambdaForSmoothingList.
  * <p>
@@ -619,20 +622,20 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
     }
   }
 
-  public void setLambdaForSmoothing(String input) {
-    lambdaForSmoothing.set(input);
+  public void setLambdaForSmoothing( String input) {
+      lambdaForSmoothing.set(input);
   }
 
   public String getLambdaForSmoothing() {
-    return lambdaForSmoothing.toString();
+      return lambdaForSmoothing.toString();
   }
 
   public void setLambdaForSmoothingList(String input) {
-    lambdaForSmoothingList.set(input);
+      lambdaForSmoothingList.set(input);
   }
 
   public String getLambdaForSmoothingList() {
-    return lambdaForSmoothingList.toString();
+      return lambdaForSmoothingList.toString();
   }
 
   public void setTransferfidAFields(TransferfidParam param) {

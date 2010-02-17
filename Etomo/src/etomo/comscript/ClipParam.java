@@ -8,7 +8,6 @@ import java.util.Hashtable;
 import java.util.List;
 
 import etomo.BaseManager;
-import etomo.ManagerKey;
 import etomo.storage.LogFile;
 import etomo.type.AxisID;
 import etomo.type.ConstEtomoNumber;
@@ -32,6 +31,9 @@ import etomo.util.MRCHeader;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.7  2010/01/11 23:49:01  sueh
+ * <p> bug# 1299 Added isMessageReporter.
+ * <p>
  * <p> Revision 1.6  2009/12/11 17:31:25  sueh
  * <p> bug# 1291 Corrected last checkin comment.
  * <p>
@@ -71,7 +73,7 @@ public final class ClipParam implements CommandDetails {
     this.manager = manager;
     this.axisID = axisID;
     this.mode = mode;
-    this.inputFile=inputFile;
+    this.inputFile = inputFile;
     //TODO use array for command string
     ArrayList options = genOptions(inputFile, workingDir);
     commandArray = new String[options.size() + commandSize];
@@ -106,9 +108,9 @@ public final class ClipParam implements CommandDetails {
       int min = 15;
       int max = 30;
       MRCHeader header = MRCHeader.getInstanceFromFileName(manager, axisID,
-          inputFile.getName(), manager.getManagerKey());
+          inputFile.getName());
       try {
-        header.read();
+        header.read(manager);
         length = header.getNSections();
       }
       catch (InvalidParameterException e) {
@@ -166,8 +168,8 @@ public final class ClipParam implements CommandDetails {
     return PROCESS_NAME.toString();
   }
 
-  public List getLogMessage(ManagerKey managerKey)
-      throws LogFile.LockException, FileNotFoundException, IOException {
+  public List getLogMessage() throws LogFile.LockException,
+      FileNotFoundException, IOException {
     return null;
   }
 
@@ -186,7 +188,7 @@ public final class ClipParam implements CommandDetails {
   public File getCommandOutputFile() {
     return outputFile;
   }
-  
+
   public File getCommandInputFile() {
     return inputFile;
   }
@@ -242,6 +244,7 @@ public final class ClipParam implements CommandDetails {
   public CommandMode getCommandMode() {
     return mode;
   }
+
   public boolean isMessageReporter() {
     return false;
   }

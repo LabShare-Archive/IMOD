@@ -25,6 +25,9 @@ import etomo.util.MRCHeader;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.15  2009/03/17 00:31:05  sueh
+ * <p> bug# 1186 Pass managerKey to everything that pops up a dialog.
+ * <p>
  * <p> Revision 3.14  2009/02/13 02:11:59  sueh
  * <p> bug# 1176 Checking return value of MRCHeader.read.
  * <p>
@@ -292,8 +295,8 @@ public class CombineParams extends ConstCombineParams implements Storable {
 
     // Get the data size limits from the image stack
     MRCHeader mrcHeader = MRCHeader.getInstance(manager.getPropertyUserDir(),
-        fileName, AxisID.ONLY, manager.getManagerKey());
-    if (!mrcHeader.read()) {
+        fileName, AxisID.ONLY);
+    if (!mrcHeader.read(manager)) {
       throw new IOException("file does not exist");
     }
     maxPatchZMax = mrcHeader.getNRows();
@@ -523,8 +526,8 @@ public class CombineParams extends ConstCombineParams implements Storable {
 
     // Get the data size limits from the image stack
     MRCHeader mrcHeader = MRCHeader.getInstance(manager.getPropertyUserDir(),
-        fileName, AxisID.ONLY, manager.getManagerKey());
-    if (!mrcHeader.read()) {
+        fileName, AxisID.ONLY);
+    if (!mrcHeader.read(manager)) {
       return;
     }
     int xyborder = getXYBorder(mrcHeader);

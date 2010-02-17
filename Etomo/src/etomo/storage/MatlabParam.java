@@ -7,7 +7,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import etomo.ManagerKey;
+import etomo.BaseManager;
 import etomo.storage.autodoc.AutodocFactory;
 import etomo.storage.autodoc.ReadOnlyAttribute;
 import etomo.storage.autodoc.ReadOnlyAutodoc;
@@ -44,6 +44,9 @@ import etomo.util.DatasetFiles;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.38  2009/12/08 16:01:53  sueh
+ * <p> bug# 1287 Added flgAlignAverages.
+ * <p>
  * <p> Revision 1.37  2009/12/08 02:43:47  sueh
  * <p> bug# 1286 Added getLstFlagAllTom and getSzVol.
  * <p>
@@ -379,8 +382,6 @@ public final class MatlabParam {
   private final ParsedNumber flgAlignAverages = ParsedNumber
       .getMatlabInstance();
 
-  private final ManagerKey managerKey;
-
   private String lowCutoff = LOW_CUTOFF_DEFAULT;
   private InitMotlCode initMotlCode = InitMotlCode.DEFAULT;
   private CCMode ccMode = CCMode.DEFAULT;
@@ -392,8 +393,7 @@ public final class MatlabParam {
   private boolean newFile;
   private File file;
 
-  public MatlabParam(File file, boolean newFile, ManagerKey managerKey) {
-    this.managerKey = managerKey;
+  public MatlabParam(File file, boolean newFile) {
     this.file = file;
     this.newFile = newFile;
     nWeightGroup.setDefault(N_WEIGHT_GROUP_DEFAULT);
@@ -414,7 +414,7 @@ public final class MatlabParam {
   /**
    * Reads data from the .prm autodoc.
    */
-  public synchronized boolean read() {
+  public synchronized boolean read(BaseManager manager) {
     clear();
     //if newFile is on, either there is no file, or the user doesn't want to read it
     if (newFile) {
@@ -422,24 +422,24 @@ public final class MatlabParam {
     }
     try {
       ReadOnlyAutodoc autodoc = null;
-      autodoc = (AutodocFactory.getMatlabInstance(file, managerKey));
+      autodoc = (AutodocFactory.getMatlabInstance(manager, file));
       if (autodoc == null) {
-        UIHarness.INSTANCE.openMessageDialog("Unable to read "
-            + file.getAbsolutePath() + ".", "File Error", managerKey);
+        UIHarness.INSTANCE.openMessageDialog(manager, "Unable to read "
+            + file.getAbsolutePath() + ".", "File Error");
         return false;
       }
       parseData(autodoc);
     }
     catch (IOException e) {
-      UIHarness.INSTANCE.openMessageDialog("Unable to load "
+      UIHarness.INSTANCE.openMessageDialog(manager, "Unable to load "
           + file.getAbsolutePath() + ".  IOException:  " + e.getMessage(),
-          "File Error", managerKey);
+          "File Error");
       return false;
     }
     catch (LogFile.LockException e) {
-      UIHarness.INSTANCE.openMessageDialog("Unable to read "
+      UIHarness.INSTANCE.openMessageDialog(manager, "Unable to read "
           + file.getAbsolutePath() + ".  LogFile.ReadException:  "
-          + e.getMessage(), "File Error", managerKey);
+          + e.getMessage(), "File Error");
       return false;
     }
     return true;
@@ -448,7 +448,7 @@ public final class MatlabParam {
   /**
    * Write stored data to the .prm autodoc.
    */
-  public synchronized void write() {
+  public synchronized void write(BaseManager manager) {
     //Place the string representation of each value in a map.
     //This allows the values to be passed to updateOrBuildAutodoc().
     //When building a new .prm autodoc, this also allows the values to be
@@ -459,8 +459,8 @@ public final class MatlabParam {
     //in its FieldInterface sections.
     ReadOnlyAutodoc commentAutodoc = null;
     try {
-      commentAutodoc = AutodocFactory.getInstance(AutodocFactory.PEET_PRM,
-          AxisID.ONLY, managerKey);
+      commentAutodoc = AutodocFactory.getInstance(manager,
+          AutodocFactory.PEET_PRM, AxisID.ONLY);
     }
     catch (IOException e) {
       System.err.println("Problem with " + AutodocFactory.PEET_PRM
@@ -471,20 +471,19 @@ public final class MatlabParam {
           + ".adoc.\nLogFile.ReadException:  " + e.getMessage());
     }
     try {
-      WritableAutodoc autodoc = AutodocFactory.getMatlabInstance(file,
-          managerKey);
+      WritableAutodoc autodoc = AutodocFactory.getMatlabInstance(manager, file);
       if (autodoc == null) {
         //get an empty .prm autodoc if the file doesn't exist
-        autodoc = AutodocFactory.getEmptyMatlabInstance(file, managerKey);
+        autodoc = AutodocFactory.getEmptyMatlabInstance(manager, file);
       }
       else {
-        LogFile logFile = LogFile.getInstance(file, managerKey);
+        LogFile logFile = LogFile.getInstance(file);
         logFile.backup();
       }
       if (commentAutodoc == null) {
         //The peetprm.adoc is not available.
         //Build a new .prm autodoc with no comments
-        updateOrBuildAutodoc(valueMap, autodoc, null);
+        updateOrBuildAutodoc(manager, valueMap, autodoc, null);
       }
       else {
         //Get the FieldInterface sections from the peetprm.adoc
@@ -493,7 +492,7 @@ public final class MatlabParam {
         if (secLoc == null) {
           //There are no FieldInterface sections in the peetprm.adoc.
           //Build a new .prm autodoc with no comments
-          updateOrBuildAutodoc(valueMap, autodoc, null);
+          updateOrBuildAutodoc(manager, valueMap, autodoc, null);
         }
         else {
           //Build a new .prm autodoc.  Use the FieldInterface sections from the
@@ -501,7 +500,7 @@ public final class MatlabParam {
           //Also use the comments from the peetprm.adoc FieldInterface sections.
           //This makes MatlabParam dependent on peetprm.adoc so peetprm.adoc
           //must be the responsibility of the Etomo developer.
-          updateOrBuildAutodoc(valueMap, autodoc, commentAutodoc);
+          updateOrBuildAutodoc(manager, valueMap, autodoc, commentAutodoc);
           /*ReadOnlySection section = null;
            System.out.println("setNameValuePair");
            while ((section = commentAutodoc.nextSection(secLoc)) != null) {
@@ -517,13 +516,14 @@ public final class MatlabParam {
       newFile = false;
     }
     catch (IOException e) {
-      UIHarness.INSTANCE.openMessageDialog("Unable to load " + file.getName()
-          + ".  IOException:  " + e.getMessage(), "File Error", managerKey);
+      UIHarness.INSTANCE
+          .openMessageDialog(manager, "Unable to load " + file.getName()
+              + ".  IOException:  " + e.getMessage(), "File Error");
     }
     catch (LogFile.LockException e) {
-      UIHarness.INSTANCE.openMessageDialog("Unable to read " + file.getName()
-          + ".  LogFile.ReadException:  " + e.getMessage(), "File Error",
-          managerKey);
+      UIHarness.INSTANCE.openMessageDialog(manager, "Unable to read "
+          + file.getName() + ".  LogFile.ReadException:  " + e.getMessage(),
+          "File Error");
     }
   }
 
@@ -668,7 +668,7 @@ public final class MatlabParam {
   public boolean isFlgAlignAverages() {
     return flgAlignAverages.getRawBoolean();
   }
-  
+
   public void setFlgAlignAverages(final boolean input) {
     flgAlignAverages.setRawString(input);
   }
@@ -1337,7 +1337,7 @@ public final class MatlabParam {
    * @param autodoc
    * @param commentAutodoc
    */
-  private void updateOrBuildAutodoc(final Map valueMap,
+  private void updateOrBuildAutodoc(BaseManager manager, final Map valueMap,
       final WritableAutodoc autodoc, final ReadOnlyAutodoc commentAutodoc) {
     Map commentMap = null;
     if (commentAutodoc != null) {
@@ -1348,7 +1348,7 @@ public final class MatlabParam {
     //the order doesn't matter, because this is either an existing autodoc 
     //(so new entries will end up at the bottom), or the comment autodoc (which
     //provides the order) is not usable.
-    setNameValuePairValues(valueMap, autodoc, commentMap);
+    setNameValuePairValues(manager, valueMap, autodoc, commentMap);
   }
 
   /**
@@ -1357,73 +1357,73 @@ public final class MatlabParam {
    * @param autodoc
    * @param commentMap
    */
-  private void setNameValuePairValues(final Map valueMap,
+  private void setNameValuePairValues(BaseManager manager, final Map valueMap,
       final WritableAutodoc autodoc, final Map commentMap) {
-    setVolumeNameValuePairValues(valueMap, autodoc, commentMap);
-    setIterationNameValuePairValues(valueMap, autodoc, commentMap);
-    setNameValuePairValue(autodoc, REFERENCE_KEY, (String) valueMap
+    setVolumeNameValuePairValues(manager, valueMap, autodoc, commentMap);
+    setIterationNameValuePairValues(manager, valueMap, autodoc, commentMap);
+    setNameValuePairValue(manager, autodoc, REFERENCE_KEY, (String) valueMap
         .get(REFERENCE_KEY), commentMap);
-    setNameValuePairValue(autodoc, FN_OUTPUT_KEY, (String) valueMap
+    setNameValuePairValue(manager, autodoc, FN_OUTPUT_KEY, (String) valueMap
         .get(FN_OUTPUT_KEY), commentMap);
-    setNameValuePairValue(autodoc, SZ_VOL_KEY, (String) valueMap
+    setNameValuePairValue(manager, autodoc, SZ_VOL_KEY, (String) valueMap
         .get(SZ_VOL_KEY), commentMap);
     if (isTiltRangeEmpty()) {
       removeNameValuePair(autodoc, EDGE_SHIFT_KEY);
     }
     else {
-      setNameValuePairValue(autodoc, EDGE_SHIFT_KEY, (String) valueMap
+      setNameValuePairValue(manager, autodoc, EDGE_SHIFT_KEY, (String) valueMap
           .get(EDGE_SHIFT_KEY), commentMap);
     }
-    setNameValuePairValue(autodoc, CC_MODE_KEY, (String) valueMap
+    setNameValuePairValue(manager, autodoc, CC_MODE_KEY, (String) valueMap
         .get(CC_MODE_KEY), commentMap);
-    setNameValuePairValue(autodoc, MEAN_FILL_KEY, (String) valueMap
+    setNameValuePairValue(manager, autodoc, MEAN_FILL_KEY, (String) valueMap
         .get(MEAN_FILL_KEY), commentMap);
-    setNameValuePairValue(autodoc, FLG_MEAN_FILL_KEY, (String) valueMap
-        .get(FLG_MEAN_FILL_KEY), commentMap);
-    setNameValuePairValue(autodoc, ALIGNED_BASE_NAME_KEY, (String) valueMap
-        .get(ALIGNED_BASE_NAME_KEY), commentMap);
-    setNameValuePairValue(autodoc, DEBUG_LEVEL_KEY, (String) valueMap
+    setNameValuePairValue(manager, autodoc, FLG_MEAN_FILL_KEY,
+        (String) valueMap.get(FLG_MEAN_FILL_KEY), commentMap);
+    setNameValuePairValue(manager, autodoc, ALIGNED_BASE_NAME_KEY,
+        (String) valueMap.get(ALIGNED_BASE_NAME_KEY), commentMap);
+    setNameValuePairValue(manager, autodoc, DEBUG_LEVEL_KEY, (String) valueMap
         .get(DEBUG_LEVEL_KEY), commentMap);
-    setNameValuePairValue(autodoc, LST_THRESHOLDS_KEY, (String) valueMap
-        .get(LST_THRESHOLDS_KEY), commentMap);
-    setNameValuePairValue(autodoc, REF_FLAG_ALL_TOM_KEY, (String) valueMap
-        .get(REF_FLAG_ALL_TOM_KEY), commentMap);
-    setNameValuePairValue(autodoc, LST_FLAG_ALL_TOM_KEY, (String) valueMap
-        .get(LST_FLAG_ALL_TOM_KEY), commentMap);
-    setNameValuePairValue(autodoc, PARTICLE_PER_CPU_KEY, (String) valueMap
-        .get(PARTICLE_PER_CPU_KEY), commentMap);
-    setNameValuePairValue(autodoc, YAXIS_TYPE_KEY, (String) valueMap
+    setNameValuePairValue(manager, autodoc, LST_THRESHOLDS_KEY,
+        (String) valueMap.get(LST_THRESHOLDS_KEY), commentMap);
+    setNameValuePairValue(manager, autodoc, REF_FLAG_ALL_TOM_KEY,
+        (String) valueMap.get(REF_FLAG_ALL_TOM_KEY), commentMap);
+    setNameValuePairValue(manager, autodoc, LST_FLAG_ALL_TOM_KEY,
+        (String) valueMap.get(LST_FLAG_ALL_TOM_KEY), commentMap);
+    setNameValuePairValue(manager, autodoc, PARTICLE_PER_CPU_KEY,
+        (String) valueMap.get(PARTICLE_PER_CPU_KEY), commentMap);
+    setNameValuePairValue(manager, autodoc, YAXIS_TYPE_KEY, (String) valueMap
         .get(YAXIS_TYPE_KEY), commentMap);
     removeNameValuePair(autodoc, YAXIS_CONTOUR_KEY);
-    setNameValuePairValue(autodoc, YAXIS_OBJECT_NUM_KEY, (String) valueMap
-        .get(YAXIS_OBJECT_NUM_KEY), commentMap);
-    setNameValuePairValue(autodoc, YAXIS_CONTOUR_NUM_KEY, (String) valueMap
-        .get(YAXIS_CONTOUR_NUM_KEY), commentMap);
-    setNameValuePairValue(autodoc, FLG_WEDGE_WEIGHT_KEY, (String) valueMap
-        .get(FLG_WEDGE_WEIGHT_KEY), commentMap);
-    setNameValuePairValue(autodoc, SAMPLE_SPHERE_KEY, (String) valueMap
-        .get(SAMPLE_SPHERE_KEY), commentMap);
-    setNameValuePairValue(autodoc, SAMPLE_INTERVAL_KEY, (String) valueMap
-        .get(SAMPLE_INTERVAL_KEY), commentMap);
-    setNameValuePairValue(autodoc, MASK_TYPE_KEY, (String) valueMap
+    setNameValuePairValue(manager, autodoc, YAXIS_OBJECT_NUM_KEY,
+        (String) valueMap.get(YAXIS_OBJECT_NUM_KEY), commentMap);
+    setNameValuePairValue(manager, autodoc, YAXIS_CONTOUR_NUM_KEY,
+        (String) valueMap.get(YAXIS_CONTOUR_NUM_KEY), commentMap);
+    setNameValuePairValue(manager, autodoc, FLG_WEDGE_WEIGHT_KEY,
+        (String) valueMap.get(FLG_WEDGE_WEIGHT_KEY), commentMap);
+    setNameValuePairValue(manager, autodoc, SAMPLE_SPHERE_KEY,
+        (String) valueMap.get(SAMPLE_SPHERE_KEY), commentMap);
+    setNameValuePairValue(manager, autodoc, SAMPLE_INTERVAL_KEY,
+        (String) valueMap.get(SAMPLE_INTERVAL_KEY), commentMap);
+    setNameValuePairValue(manager, autodoc, MASK_TYPE_KEY, (String) valueMap
         .get(MASK_TYPE_KEY), commentMap);
-    setNameValuePairValue(autodoc, MASK_MODEL_PTS_KEY, (String) valueMap
-        .get(MASK_MODEL_PTS_KEY), commentMap);
-    setNameValuePairValue(autodoc, INSIDE_MASK_RADIUS_KEY, (String) valueMap
-        .get(INSIDE_MASK_RADIUS_KEY), commentMap);
-    setNameValuePairValue(autodoc, OUTSIDE_MASK_RADIUS_KEY, (String) valueMap
-        .get(OUTSIDE_MASK_RADIUS_KEY), commentMap);
+    setNameValuePairValue(manager, autodoc, MASK_MODEL_PTS_KEY,
+        (String) valueMap.get(MASK_MODEL_PTS_KEY), commentMap);
+    setNameValuePairValue(manager, autodoc, INSIDE_MASK_RADIUS_KEY,
+        (String) valueMap.get(INSIDE_MASK_RADIUS_KEY), commentMap);
+    setNameValuePairValue(manager, autodoc, OUTSIDE_MASK_RADIUS_KEY,
+        (String) valueMap.get(OUTSIDE_MASK_RADIUS_KEY), commentMap);
     if (useNWeightGroup) {
-      setNameValuePairValue(autodoc, N_WEIGHT_GROUP_KEY, (String) valueMap
-          .get(N_WEIGHT_GROUP_KEY), commentMap);
+      setNameValuePairValue(manager, autodoc, N_WEIGHT_GROUP_KEY,
+          (String) valueMap.get(N_WEIGHT_GROUP_KEY), commentMap);
     }
     else {
       removeNameValuePair(autodoc, N_WEIGHT_GROUP_KEY);
     }
-    setNameValuePairValue(autodoc, FLG_REMOVE_DUPLICATES_KEY, (String) valueMap
-        .get(FLG_REMOVE_DUPLICATES_KEY), commentMap);
-    setNameValuePairValue(autodoc, FLG_ALIGN_AVERAGES_KEY, (String) valueMap
-        .get(FLG_ALIGN_AVERAGES_KEY), commentMap);
+    setNameValuePairValue(manager, autodoc, FLG_REMOVE_DUPLICATES_KEY,
+        (String) valueMap.get(FLG_REMOVE_DUPLICATES_KEY), commentMap);
+    setNameValuePairValue(manager, autodoc, FLG_ALIGN_AVERAGES_KEY,
+        (String) valueMap.get(FLG_ALIGN_AVERAGES_KEY), commentMap);
   }
 
   /**
@@ -1432,18 +1432,18 @@ public final class MatlabParam {
    * @param autodoc
    * @param commentMap
    */
-  private void setVolumeNameValuePairValues(final Map valueMap,
-      final WritableAutodoc autodoc, final Map commentMap) {
-    setNameValuePairValue(autodoc, FN_VOLUME_KEY, (String) valueMap
+  private void setVolumeNameValuePairValues(BaseManager manager,
+      final Map valueMap, final WritableAutodoc autodoc, final Map commentMap) {
+    setNameValuePairValue(manager, autodoc, FN_VOLUME_KEY, (String) valueMap
         .get(FN_VOLUME_KEY), commentMap);
-    setNameValuePairValue(autodoc, FN_MOD_PARTICLE_KEY, (String) valueMap
-        .get(FN_MOD_PARTICLE_KEY), commentMap);
-    setNameValuePairValue(autodoc, INIT_MOTL_KEY, (String) valueMap
+    setNameValuePairValue(manager, autodoc, FN_MOD_PARTICLE_KEY,
+        (String) valueMap.get(FN_MOD_PARTICLE_KEY), commentMap);
+    setNameValuePairValue(manager, autodoc, INIT_MOTL_KEY, (String) valueMap
         .get(INIT_MOTL_KEY), commentMap);
-    setNameValuePairValue(autodoc, TILT_RANGE_KEY, (String) valueMap
+    setNameValuePairValue(manager, autodoc, TILT_RANGE_KEY, (String) valueMap
         .get(TILT_RANGE_KEY), commentMap);
-    setNameValuePairValue(autodoc, RELATIVE_ORIENT_KEY, (String) valueMap
-        .get(RELATIVE_ORIENT_KEY), commentMap);
+    setNameValuePairValue(manager, autodoc, RELATIVE_ORIENT_KEY,
+        (String) valueMap.get(RELATIVE_ORIENT_KEY), commentMap);
   }
 
   /**
@@ -1452,25 +1452,25 @@ public final class MatlabParam {
    * @param autodoc
    * @param commentMap
    */
-  private void setIterationNameValuePairValues(final Map valueMap,
-      final WritableAutodoc autodoc, final Map commentMap) {
-    setNameValuePairValue(autodoc, D_PHI_KEY, (String) valueMap.get(D_PHI_KEY),
-        commentMap);
-    setNameValuePairValue(autodoc, D_THETA_KEY, (String) valueMap
+  private void setIterationNameValuePairValues(BaseManager manager,
+      final Map valueMap, final WritableAutodoc autodoc, final Map commentMap) {
+    setNameValuePairValue(manager, autodoc, D_PHI_KEY, (String) valueMap
+        .get(D_PHI_KEY), commentMap);
+    setNameValuePairValue(manager, autodoc, D_THETA_KEY, (String) valueMap
         .get(D_THETA_KEY), commentMap);
-    setNameValuePairValue(autodoc, D_PSI_KEY, (String) valueMap.get(D_PSI_KEY),
-        commentMap);
-    setNameValuePairValue(autodoc, SEARCH_RADIUS_KEY, (String) valueMap
-        .get(SEARCH_RADIUS_KEY), commentMap);
-    setNameValuePairValue(autodoc, LOW_CUTOFF_KEY, (String) valueMap
+    setNameValuePairValue(manager, autodoc, D_PSI_KEY, (String) valueMap
+        .get(D_PSI_KEY), commentMap);
+    setNameValuePairValue(manager, autodoc, SEARCH_RADIUS_KEY,
+        (String) valueMap.get(SEARCH_RADIUS_KEY), commentMap);
+    setNameValuePairValue(manager, autodoc, LOW_CUTOFF_KEY, (String) valueMap
         .get(LOW_CUTOFF_KEY), commentMap);
-    setNameValuePairValue(autodoc, HI_CUTOFF_KEY, (String) valueMap
+    setNameValuePairValue(manager, autodoc, HI_CUTOFF_KEY, (String) valueMap
         .get(HI_CUTOFF_KEY), commentMap);
-    setNameValuePairValue(autodoc, REF_THRESHOLD_KEY, (String) valueMap
-        .get(REF_THRESHOLD_KEY), commentMap);
-    setNameValuePairValue(autodoc, DUPLICATE_SHIFT_TOLERANCE_KEY,
+    setNameValuePairValue(manager, autodoc, REF_THRESHOLD_KEY,
+        (String) valueMap.get(REF_THRESHOLD_KEY), commentMap);
+    setNameValuePairValue(manager, autodoc, DUPLICATE_SHIFT_TOLERANCE_KEY,
         (String) valueMap.get(DUPLICATE_SHIFT_TOLERANCE_KEY), commentMap);
-    setNameValuePairValue(autodoc, DUPLICATE_ANGULAR_TOLERANCE_KEY,
+    setNameValuePairValue(manager, autodoc, DUPLICATE_ANGULAR_TOLERANCE_KEY,
         (String) valueMap.get(DUPLICATE_ANGULAR_TOLERANCE_KEY), commentMap);
   }
 
@@ -1481,8 +1481,9 @@ public final class MatlabParam {
    * @param attributeName
    * @param attributeValue
    */
-  private void setNameValuePairValue(final WritableAutodoc autodoc,
-      final String name, final String value, final Map commentMap) {
+  private void setNameValuePairValue(BaseManager manager,
+      final WritableAutodoc autodoc, final String name, final String value,
+      final Map commentMap) {
     if (value == null) {
       return;
     }
@@ -1490,11 +1491,12 @@ public final class MatlabParam {
     if (attribute == null) {
       if (commentMap == null) {
         //new attribute, so add attribute and name/value pair
-        setNameValuePair(autodoc, name, value, (String) null);
+        setNameValuePair(manager, autodoc, name, value, (String) null);
       }
       else {
         //new attribute, so add comment, attribute, and name/value pair
-        setNameValuePair(autodoc, name, value, (String) commentMap.get(name));
+        setNameValuePair(manager, autodoc, name, value, (String) commentMap
+            .get(name));
       }
     }
     else {
@@ -1510,17 +1512,17 @@ public final class MatlabParam {
    * @param attributeValue
    * @param commentAttribute
    */
-  private void setNameValuePair(final WritableAutodoc autodoc,
-      final String name, final String value,
+  private void setNameValuePair(BaseManager manager,
+      final WritableAutodoc autodoc, final String name, final String value,
       final ReadOnlyAttribute commentAttribute) {
     if (value == null) {
       return;
     }
     if (commentAttribute == null) {
-      setNameValuePair(autodoc, name, value, (String) null);
+      setNameValuePair(manager, autodoc, name, value, (String) null);
     }
     else {
-      setNameValuePair(autodoc, name, value, commentAttribute
+      setNameValuePair(manager, autodoc, name, value, commentAttribute
           .getMultiLineValue());
     }
   }
@@ -1548,8 +1550,9 @@ public final class MatlabParam {
    * @param attributeValue
    * @param comment
    */
-  private void setNameValuePair(final WritableAutodoc autodoc,
-      final String attributeName, String attributeValue, String comment) {
+  private void setNameValuePair(BaseManager manager,
+      final WritableAutodoc autodoc, final String attributeName,
+      String attributeValue, String comment) {
     WritableAttribute attribute = autodoc.getWritableAttribute(attributeName);
     if (attribute == null) {
       //If the attribute doesn't exist try to add a comment and add the attribute

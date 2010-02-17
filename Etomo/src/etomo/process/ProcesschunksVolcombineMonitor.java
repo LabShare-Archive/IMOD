@@ -24,6 +24,10 @@ import etomo.util.DatasetFiles;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.7  2009/04/20 20:01:34  sueh
+ * <p> bug# 1192  Constructing with Map computerMap instead of String
+ * <p> computerList.
+ * <p>
  * <p> Revision 1.6  2009/03/17 00:43:11  sueh
  * <p> bug# 1186 Pass managerKey to everything that pops up a dialog.
  * <p>
@@ -69,7 +73,7 @@ final class ProcesschunksVolcombineMonitor extends ProcesschunksProcessMonitor {
     if (isStarting()) {
       if (startLog == null) {
         startLog = LogFile.getInstance(manager.getPropertyUserDir(),
-            DatasetFiles.VOLCOMBINE_START_LOG, manager.getManagerKey());
+            DatasetFiles.VOLCOMBINE_START_LOG);
       }
       if (readerIdStart == null || readerIdStart.isEmpty()) {
         try {
@@ -90,7 +94,7 @@ final class ProcesschunksVolcombineMonitor extends ProcesschunksProcessMonitor {
     else if (isFinishing()) {
       if (finishLog == null) {
         finishLog = LogFile.getInstance(manager.getPropertyUserDir(),
-            DatasetFiles.VOLCOMBINE_FINISH_LOG, manager.getManagerKey());
+            DatasetFiles.VOLCOMBINE_FINISH_LOG);
       }
       if (readerIdFinish == null || readerIdFinish.isEmpty()) {
         try {

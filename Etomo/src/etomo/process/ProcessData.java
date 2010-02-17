@@ -89,8 +89,8 @@ public final class ProcessData implements Storable {
       ProcessName processName) {
     ProcessData processData = new ProcessData(axisID, manager);
     processData.processName = processName;
-    processData.hostName.set(Network.getLocalHostName(axisID, manager
-        .getPropertyUserDir(), manager.getManagerKey()));
+    processData.hostName.set(Network.getLocalHostName(manager, axisID, manager
+        .getPropertyUserDir()));
     processData.osType = OSType.getInstance();
     processData.doNotLoad = true;
     return processData;
@@ -160,8 +160,8 @@ public final class ProcessData implements Storable {
 
   public boolean isOnDifferentHost() {
     if (!hostName.isEmpty()) {
-      return !hostName.equals(Network.getLocalHostName(axisID, manager
-          .getPropertyUserDir(), manager.getManagerKey()));
+      return !hostName.equals(Network.getLocalHostName(manager, axisID, manager
+          .getPropertyUserDir()));
     }
     return false;
   }
@@ -202,8 +202,8 @@ public final class ProcessData implements Storable {
   private PsParam runPs(String pid) {
     PsParam param = new PsParam(manager, axisID, pid, osType, hostName
         .toString(), false);
-    SystemProgram ps = new SystemProgram(manager.getPropertyUserDir(), param
-        .getCommandArray(), axisID, manager.getManagerKey());
+    SystemProgram ps = new SystemProgram(manager, manager.getPropertyUserDir(),
+        param.getCommandArray(), axisID);
     ps.run();
     String[] stdout = ps.getStdOutput();
     //Ps should always return something - usually as header, but on Mac it will
@@ -391,6 +391,11 @@ public final class ProcessData implements Storable {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.12  2010/01/11 23:52:07  sueh
+ * <p> bug# 1299 Removed responsibility anything other then cpu.adoc from
+ * <p> CpuAdoc.  Placed responsibility for information about the network in the
+ * <p> Network class.
+ * <p>
  * <p> Revision 1.11  2009/04/20 20:04:14  sueh
  * <p> bug# 1192 Added computerMap, which contains the computers and CPUs
  * <p> selected when the process was run.  Reset now resets all the data.  SetPid
