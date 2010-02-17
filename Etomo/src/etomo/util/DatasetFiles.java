@@ -4,7 +4,6 @@ import java.io.File;
 
 import etomo.BaseManager;
 import etomo.JoinManager;
-import etomo.ManagerKey;
 import etomo.type.AxisID;
 import etomo.type.AxisType;
 import etomo.type.BaseMetaData;
@@ -200,11 +199,6 @@ public final class DatasetFiles {
   public static File getRawTiltFile(BaseManager manager, AxisID axisID) {
     return new File(manager.getPropertyUserDir(), getRawTiltName(manager,
         axisID));
-  }
-
-  public static String getFlattenWarpInputName(BaseManager manager) {
-    BaseMetaData metaData = manager.getBaseMetaData();
-    return metaData.getName() + FLATTEN_WARP_EXT + MODEL_EXT;
   }
 
   public static String getFlattenWarpOutputName(BaseManager manager) {
@@ -488,11 +482,11 @@ public final class DatasetFiles {
 
   //directories
 
-  public static File getCalibrationDir(String propertyUserDir, AxisID axisID,
-      ManagerKey managerKey) {
+  public static File getCalibrationDir(BaseManager manager,
+      String propertyUserDir, AxisID axisID) {
     if (calibrationDir == null) {
-      String calibDirVar = EnvironmentVariable.INSTANCE.getValue(
-          propertyUserDir, EnvironmentVariable.CALIB_DIR, axisID, managerKey);
+      String calibDirVar = EnvironmentVariable.INSTANCE.getValue(manager,
+          propertyUserDir, EnvironmentVariable.CALIB_DIR, axisID);
       if (!calibDirVar.equals("")) {
         calibrationDir = new File(calibDirVar);
       }
@@ -500,10 +494,10 @@ public final class DatasetFiles {
     return calibrationDir;
   }
 
-  public static File getDistortionDir(String propertyUserDir, AxisID axisID,
-      ManagerKey managerKey) {
+  public static File getDistortionDir(BaseManager manager,
+      String propertyUserDir, AxisID axisID) {
     if (calibrationDir == null) {
-      getCalibrationDir(propertyUserDir, axisID, managerKey);
+      getCalibrationDir(manager, propertyUserDir, axisID);
     }
     if (calibrationDir == null) {
       return null;
@@ -561,6 +555,9 @@ public final class DatasetFiles {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.54  2009/12/11 17:29:16  sueh
+ * <p> bug# 1291 Made STACK_EXT public.
+ * <p>
  * <p> Revision 1.53  2009/09/21 18:11:13  sueh
  * <p> bug# 1267 In getDatasetFile corrected the name of the filename
  * <p> parameter - changed it to fileExt.

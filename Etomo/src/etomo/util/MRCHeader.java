@@ -6,7 +6,6 @@ import java.util.Hashtable;
 
 import etomo.ApplicationManager;
 import etomo.BaseManager;
-import etomo.ManagerKey;
 import etomo.process.ProcessMessages;
 import etomo.process.SystemProgram;
 import etomo.type.AxisID;
@@ -28,6 +27,10 @@ import etomo.ui.UIHarness;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.30  2009/09/21 18:11:46  sueh
+ * <p> bug# 1267 Added getInstanceFromFileName to run header using a full
+ * <p> file name instead of an extension.
+ * <p>
  * <p> Revision 3.29  2009/09/17 19:13:26  sueh
  * <p> bug# 1257 Adding debug functionality.
  * <p>
@@ -194,8 +197,6 @@ public class MRCHeader {
   //
   private FileModifiedFlag modifiedFlag;
 
-  private final ManagerKey managerKey;
-
   public static final String SIZE_HEADER = "Number of columns, rows, sections";
   public static int N_SECTIONS_INDEX = 8;
   private static int N_ROWS_INDEX = N_SECTIONS_INDEX - 1;
@@ -230,27 +231,24 @@ public class MRCHeader {
 
   private boolean debug = false;
 
-  private MRCHeader(String fileLocation, File file, AxisID axisID,
-      ManagerKey managerKey) {
+  private MRCHeader(String fileLocation, File file, AxisID axisID) {
     this.fileLocation = fileLocation;
     filename = file.getAbsolutePath();
     this.axisID = axisID;
-    this.managerKey = managerKey;
     modifiedFlag = new FileModifiedFlag(file);
   }
 
   public static MRCHeader getInstance(BaseManager manager, AxisID axisID,
-      String fileExt, ManagerKey managerKey) {
+      String fileExt) {
     return MRCHeader.getInstance(manager.getPropertyUserDir(), DatasetFiles
-        .getDatasetFile(manager, axisID, fileExt).getAbsolutePath(), axisID,
-        managerKey);
+        .getDatasetFile(manager, axisID, fileExt).getAbsolutePath(), axisID);
   }
-  
-  public static MRCHeader getInstanceFromFileName(BaseManager manager, AxisID axisID,
-      String fileName, ManagerKey managerKey) {
+
+  public static MRCHeader getInstanceFromFileName(BaseManager manager,
+      AxisID axisID, String fileName) {
     return MRCHeader.getInstance(manager.getPropertyUserDir(), DatasetFiles
-        .getDatasetFileFromFileName(manager, axisID, fileName).getAbsolutePath(), axisID,
-        managerKey);
+        .getDatasetFileFromFileName(manager, axisID, fileName)
+        .getAbsolutePath(), axisID);
   }
 
   /**
@@ -261,12 +259,12 @@ public class MRCHeader {
    * @return
    */
   public static MRCHeader getInstance(String fileLocation, String filename,
-      AxisID axisID, ManagerKey managerKey) {
+      AxisID axisID) {
     File keyFile = Utilities.getFile(fileLocation, filename);
     String key = makeKey(keyFile);
     MRCHeader mrcHeader = (MRCHeader) instances.get(key);
     if (mrcHeader == null) {
-      return createInstance(fileLocation, key, keyFile, axisID, managerKey);
+      return createInstance(fileLocation, key, keyFile, axisID);
     }
     return mrcHeader;
   }
@@ -280,12 +278,12 @@ public class MRCHeader {
    * @return
    */
   private static synchronized MRCHeader createInstance(String fileLocation,
-      String key, File file, AxisID axisID, ManagerKey managerKey) {
+      String key, File file, AxisID axisID) {
     MRCHeader mrcHeader = (MRCHeader) instances.get(key);
     if (mrcHeader != null) {
       return mrcHeader;
     }
-    mrcHeader = new MRCHeader(fileLocation, file, axisID, managerKey);
+    mrcHeader = new MRCHeader(fileLocation, file, axisID);
     instances.put(key, mrcHeader);
     return mrcHeader;
   }
@@ -305,7 +303,7 @@ public class MRCHeader {
   /**
    * @returns true if file exists
    */
-  public synchronized boolean read() throws IOException,
+  public synchronized boolean read(BaseManager manager) throws IOException,
       InvalidParameterException {
     File file = Utilities.getFile(fileLocation, filename);
     if (filename == null || filename.matches("\\s*") || file.isDirectory()) {
@@ -327,8 +325,8 @@ public class MRCHeader {
     String[] commandArray = new String[2];
     commandArray[0] = ApplicationManager.getIMODBinPath() + "header";
     commandArray[1] = filename;
-    SystemProgram header = new SystemProgram(fileLocation, commandArray,
-        axisID, managerKey);
+    SystemProgram header = new SystemProgram(manager, fileLocation,
+        commandArray, axisID);
     header.setDebug(Utilities.isDebug());
     modifiedFlag.setReadingNow();
     header.run();
@@ -432,11 +430,11 @@ public class MRCHeader {
           throw new IOException(
               "Header returned less than three parameters for pixel size");
         }
-        pixelsParsed = parsePixelSpacing(xPixelSize, tokens[4], true);
+        pixelsParsed = parsePixelSpacing(manager, xPixelSize, tokens[4], true);
         pixelsParsed = pixelsParsed
-            && parsePixelSpacing(yPixelSize, tokens[5], !pixelsParsed);
+            && parsePixelSpacing(manager, yPixelSize, tokens[5], !pixelsParsed);
         pixelsParsed = pixelsParsed
-            && parsePixelSpacing(zPixelSize, tokens[6], !pixelsParsed);
+            && parsePixelSpacing(manager, zPixelSize, tokens[6], !pixelsParsed);
 
         xPixelSpacing = xPixelSize.getDouble();
         yPixelSpacing = yPixelSize.getDouble();
@@ -447,7 +445,7 @@ public class MRCHeader {
       // comment section
       if (xPixelSize.equals(1.0) && yPixelSize.equals(1.0)
           && yPixelSize.equals(1.0)) {
-        parseFEIPixelSize(stdOutput[i], !pixelsParsed);
+        parseFEIPixelSize(manager,stdOutput[i], !pixelsParsed);
       }
 
       // Parse the rotation angle and/or binning from the comment section
@@ -466,16 +464,17 @@ public class MRCHeader {
    * @param popupErrorMessage - pop up an error message is there is an error
    * @return success boolean
    */
-  private boolean parsePixelSpacing(EtomoNumber pixelSpacing,
-      String sPixelSpacing, boolean popupErrorMessage) {
+  private boolean parsePixelSpacing(BaseManager manager,
+      EtomoNumber pixelSpacing, String sPixelSpacing, boolean popupErrorMessage) {
     pixelSpacing.set(sPixelSpacing);
     double dPixelSpacing = pixelSpacing.getDouble();
     String errorMessage = null;
     if (!pixelSpacing.isValid() || dPixelSpacing == -1 || dPixelSpacing == 0) {
       if (popupErrorMessage) {
-        UIHarness.INSTANCE.openMessageDialog("Invalid pixel spacing:  "
-            + sPixelSpacing + ".  Fix the mrc header in " + filename
-            + " with alterheader.", "Header Error", axisID, managerKey);
+        UIHarness.INSTANCE
+            .openMessageDialog(manager, "Invalid pixel spacing:  "
+                + sPixelSpacing + ".  Fix the mrc header in " + filename
+                + " with alterheader.", "Header Error", axisID);
       }
       return false;
     }
@@ -601,11 +600,12 @@ public class MRCHeader {
    * Pixel spacing should remain set to 1
    * @param line
    */
-  private void parseFEIPixelSize(String line, boolean userMessage) {
+  private void parseFEIPixelSize(BaseManager manager, String line,
+      boolean userMessage) {
     if (line.matches(".*Pixel size in nanometers.*")) {
       String[] tokens = line.split("\\s+");
       if (tokens.length > 6) {
-        if (parsePixelSpacing(xPixelSize, tokens[6], userMessage)) {
+        if (parsePixelSpacing(manager, xPixelSize, tokens[6], userMessage)) {
           xPixelSize.set(xPixelSize.getDouble() * 10.0);
         }
         yPixelSize.set(xPixelSize);

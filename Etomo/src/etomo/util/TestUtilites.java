@@ -13,6 +13,9 @@
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.23  2009/10/23 23:52:07  sueh
+ * <p> bug# 1275 No default manager.
+ * <p>
  * <p> Revision 1.22  2009/03/17 00:46:43  sueh
  * <p> bug# 1186 Pass managerKey to everything that pops up a dialog.
  * <p>
@@ -177,12 +180,11 @@ public class TestUtilites {
     File testDir = new File(testRootDir, testDirName);
     File target = new File(testDir, vectorName);
     //save time by looking for already checked out files in workspace directory
-    String homeDirName = EnvironmentVariable.INSTANCE.getValue(null, "HOME",
-        AxisID.ONLY, manager == null ? null : manager.getManagerKey());
+    String homeDirName = EnvironmentVariable.INSTANCE.getValue(manager, null,
+        "HOME", AxisID.ONLY);
     if (homeDirName != null && !homeDirName.matches("\\s*+")) {
-      File homeDir = new File(EnvironmentVariable.INSTANCE
-          .getValue(null, "HOME", AxisID.ONLY, manager == null ? null : manager
-              .getManagerKey()));
+      File homeDir = new File(EnvironmentVariable.INSTANCE.getValue(manager,
+          null, "HOME", AxisID.ONLY));
       if (homeDir.exists() && homeDir.canRead()) {
         File vector = new File(new File(homeDir, "workspace/"
             + workspaceLocation), vectorName);
@@ -197,9 +199,9 @@ public class TestUtilites {
           copyCommand[0] = "cp";
           copyCommand[1] = vector.getAbsolutePath();
           copyCommand[2] = testDir.getAbsolutePath();
-          SystemProgram copy = new SystemProgram(manager == null ? null
-              : manager.getPropertyUserDir(), copyCommand, AxisID.ONLY,
-              manager == null ? null : manager.getManagerKey());
+          SystemProgram copy = new SystemProgram(manager,
+              manager == null ? null : manager.getPropertyUserDir(),
+              copyCommand, AxisID.ONLY);
           copy.setDebug(true);
           copy.run();
           if (target.exists()) {
@@ -248,16 +250,16 @@ public class TestUtilites {
     cvsCommand[4] = "-d";
     cvsCommand[5] = testDir.getName();
     cvsCommand[6] = checkoutLocation + target.getName();
-    SystemProgram cvs = new SystemProgram(manager.getPropertyUserDir(),
-        cvsCommand, AxisID.ONLY, manager.getManagerKey());
+    SystemProgram cvs = new SystemProgram(manager,
+        manager.getPropertyUserDir(), cvsCommand, AxisID.ONLY);
     cvs.setDebug(true);
     cvs.run();
     //make sure that the file system is up to date
     String[] command = new String[2];
     command[0] = "ls";
     command[1] = checkoutLocation;
-    SystemProgram systemProgram = new SystemProgram(manager
-        .getPropertyUserDir(), command, AxisID.ONLY, manager.getManagerKey());
+    SystemProgram systemProgram = new SystemProgram(manager, manager
+        .getPropertyUserDir(), command, AxisID.ONLY);
     systemProgram.run();
     if ((cvs.getExitValue() > 0 && cvs.getStdErrorString().indexOf(
         "no such tag") != -1)
@@ -276,8 +278,8 @@ public class TestUtilites {
         rmCommand[0] = "rm";
         rmCommand[1] = "-rf";
         rmCommand[2] = badDirectory.getAbsolutePath();
-        SystemProgram rm = new SystemProgram(manager.getPropertyUserDir(),
-            rmCommand, AxisID.ONLY, manager.getManagerKey());
+        SystemProgram rm = new SystemProgram(manager, manager
+            .getPropertyUserDir(), rmCommand, AxisID.ONLY);
         rm.run();
       }
 
@@ -291,8 +293,8 @@ public class TestUtilites {
       cvsCommand[4] = "-d";
       cvsCommand[5] = testDir.getName();
       cvsCommand[6] = checkoutLocation + target.getName();
-      cvs = new SystemProgram(manager.getPropertyUserDir(), cvsCommand,
-          AxisID.ONLY, manager.getManagerKey());
+      cvs = new SystemProgram(manager, manager.getPropertyUserDir(),
+          cvsCommand, AxisID.ONLY);
       cvs.setDebug(true);
       cvs.run();
     }
@@ -304,8 +306,8 @@ public class TestUtilites {
       //report error
       String message = cvs.getStdErrorString()
           + "\nCVSROOT="
-          + EnvironmentVariable.INSTANCE.getValue(manager.getPropertyUserDir(),
-              "CVSROOT", AxisID.ONLY, manager.getManagerKey())
+          + EnvironmentVariable.INSTANCE.getValue(manager, manager
+              .getPropertyUserDir(), "CVSROOT", AxisID.ONLY)
           + ",manager.getPropertyUserDir()=" + manager.getPropertyUserDir()
           + ",testRootDir=" + testRootDir.getAbsolutePath() + "\ntestDir="
           + testDir.getAbsolutePath() + ",target=" + target.getAbsolutePath()
@@ -322,8 +324,8 @@ public class TestUtilites {
       rmCommand[0] = "rm";
       rmCommand[1] = "-rf";
       rmCommand[2] = badDirectory.getAbsolutePath();
-      SystemProgram rm = new SystemProgram(manager.getPropertyUserDir(),
-          rmCommand, AxisID.ONLY, manager.getManagerKey());
+      SystemProgram rm = new SystemProgram(manager, manager
+          .getPropertyUserDir(), rmCommand, AxisID.ONLY);
       rm.run();
     }
     //reset working directory

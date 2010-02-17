@@ -2,7 +2,7 @@ package etomo.util;
 
 import java.util.HashMap;
 
-import etomo.ManagerKey;
+import etomo.BaseManager;
 import etomo.process.SystemProgram;
 import etomo.type.AxisID;
 
@@ -36,8 +36,8 @@ public final class EnvironmentVariable {
    * @param varName
    * @return String
    */
-  public String getValue(String propertyUserDir, String varName, AxisID axisID,
-      ManagerKey managerKey) {
+  public String getValue(BaseManager manager, String propertyUserDir,
+      String varName, AxisID axisID) {
     String value = "";
     //prevent multiple reads and writes at the same time
     synchronized (variableList) {
@@ -54,8 +54,8 @@ public final class EnvironmentVariable {
     SystemProgram readEnvVar;
     if (Utilities.isWindowsOS()) {
       String var = "%" + varName + "%";
-      readEnvVar = new SystemProgram(propertyUserDir, new String[] { "cmd.exe",
-          "/C", "echo", var }, axisID, managerKey);
+      readEnvVar = new SystemProgram(manager, propertyUserDir, new String[] {
+          "cmd.exe", "/C", "echo", var }, axisID);
       try {
         readEnvVar.run();
       }
@@ -85,8 +85,8 @@ public final class EnvironmentVariable {
     }
     // Non windows environment
     else {
-      readEnvVar = new SystemProgram(propertyUserDir, new String[] { "env" },
-          axisID, managerKey);
+      readEnvVar = new SystemProgram(manager, propertyUserDir,
+          new String[] { "env" }, axisID);
       try {
         readEnvVar.run();
       }
@@ -124,8 +124,7 @@ public final class EnvironmentVariable {
     }
     return value;
   }
-  
-  
+
   /**
    * Return true if an environment variable value exists.  Doesn't use
    * variableList because getValue doesn't distinguish between an empty env var
@@ -134,15 +133,15 @@ public final class EnvironmentVariable {
    * @param varName
    * @return boolean
    */
-  public boolean exists(String propertyUserDir, String varName, AxisID axisID,
-      ManagerKey managerKey) {
+  public boolean exists(BaseManager manager, String propertyUserDir,
+      String varName, AxisID axisID) {
     //  There is not a real good way to access the system environment variables
     //  since the primary method was deprecated
     SystemProgram readEnvVar;
     if (Utilities.isWindowsOS()) {
       String var = "%" + varName + "%";
-      readEnvVar = new SystemProgram(propertyUserDir, new String[] { "cmd.exe",
-          "/C", "echo", var }, axisID, managerKey);
+      readEnvVar = new SystemProgram(manager, propertyUserDir, new String[] {
+          "cmd.exe", "/C", "echo", var }, axisID);
       try {
         readEnvVar.run();
       }
@@ -172,8 +171,8 @@ public final class EnvironmentVariable {
     }
     // Non windows environment
     else {
-      readEnvVar = new SystemProgram(propertyUserDir, new String[] { "env" },
-          axisID, managerKey);
+      readEnvVar = new SystemProgram(manager, propertyUserDir,
+          new String[] { "env" }, axisID);
       try {
         readEnvVar.run();
       }
@@ -210,6 +209,9 @@ public final class EnvironmentVariable {
 /**
  * <p>
  * $Log$
+ * Revision 1.5  2009/06/10 17:27:05  sueh
+ * bug# 1202 Added exists.
+ *
  * Revision 1.4  2009/03/17 00:46:43  sueh
  * bug# 1186 Pass managerKey to everything that pops up a dialog.
  *

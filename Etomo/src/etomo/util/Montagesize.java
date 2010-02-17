@@ -7,7 +7,6 @@ import java.util.Hashtable;
 import etomo.ApplicationManager;
 import etomo.BaseManager;
 import etomo.EtomoDirector;
-import etomo.ManagerKey;
 import etomo.process.ProcessMessages;
 import etomo.process.SystemProgram;
 import etomo.type.AxisID;
@@ -49,7 +48,6 @@ public class Montagesize {
   private final File file;
   private final String propertyUserDir;
   private final AxisID axisID;
-  private final ManagerKey managerKey;
 
   private boolean fileExists = false;
   String[] commandArray = null;
@@ -60,12 +58,11 @@ public class Montagesize {
   /**
    * private constructor
    */
-  private Montagesize(String propertyUserDir, File file, AxisID axisID,
-      ManagerKey managerKey) {
+  private Montagesize(String propertyUserDir, File file, AxisID axisID
+     ) {
     this.propertyUserDir = propertyUserDir;
     this.file = file;
     this.axisID = axisID;
-    this.managerKey = managerKey;
     modifiedFlag = new FileModifiedFlag(file);
   }
 
@@ -76,14 +73,14 @@ public class Montagesize {
    * @param axisID
    * @return
    */
-  public static Montagesize getInstance(BaseManager manager, AxisID axisID,
-      ManagerKey managerKey) {
+  public static Montagesize getInstance(BaseManager manager, AxisID axisID
+   ) {
     File keyFile = Utilities.getFile(manager, axisID, fileExtension);
     String key = makeKey(keyFile);
     Montagesize montagesize = (Montagesize) instances.get(key);
     if (montagesize == null) {
-      return createInstance(manager.getPropertyUserDir(), key, keyFile, axisID,
-          managerKey);
+      return createInstance(manager.getPropertyUserDir(), key, keyFile, axisID
+          );
     }
     return montagesize;
   }
@@ -96,12 +93,12 @@ public class Montagesize {
    * @return
    */
   public static Montagesize getInstance(String fileLocation, String filename,
-      AxisID axisID, ManagerKey managerKey) {
+      AxisID axisID) {
     File keyFile = Utilities.getFile(fileLocation, filename);
     String key = makeKey(keyFile);
     Montagesize montagesize = (Montagesize) instances.get(key);
     if (montagesize == null) {
-      return createInstance(fileLocation, key, keyFile, axisID, managerKey);
+      return createInstance(fileLocation, key, keyFile, axisID);
     }
     return montagesize;
   }
@@ -115,13 +112,13 @@ public class Montagesize {
    * @return
    */
   private static synchronized Montagesize createInstance(
-      String propertyUserDir, String key, File file, AxisID axisID,
-      ManagerKey managerKey) {
+      String propertyUserDir, String key, File file, AxisID axisID
+ ) {
     Montagesize montagesize = (Montagesize) instances.get(key);
     if (montagesize != null) {
       return montagesize;
     }
-    montagesize = new Montagesize(propertyUserDir, file, axisID, managerKey);
+    montagesize = new Montagesize(propertyUserDir, file, axisID);
     instances.put(key, montagesize);
     montagesize.selfTestInvariants();
     return montagesize;
@@ -196,7 +193,7 @@ public class Montagesize {
    * @throws InvalidParameterException
    * @returns true if attempted to read
    */
-  public synchronized boolean read() throws IOException,
+  public synchronized boolean read(BaseManager manager) throws IOException,
       InvalidParameterException {
     if (file.isDirectory()) {
       throw new IOException(file + "is not a file.");
@@ -214,8 +211,8 @@ public class Montagesize {
     Utilities.timestamp("read", "montagesize", file, Utilities.STARTED_STATUS);
     //Run the montagesize command on the file.
     buildCommand();
-    SystemProgram montagesize = new SystemProgram(propertyUserDir,
-        commandArray, axisID, managerKey);
+    SystemProgram montagesize = new SystemProgram(manager,propertyUserDir,
+        commandArray, axisID);
     montagesize.setDebug(EtomoDirector.INSTANCE.getArguments().isDebug());
     modifiedFlag.setReadingNow();
     montagesize.run();
@@ -364,6 +361,9 @@ public class Montagesize {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.19  2009/03/17 00:46:43  sueh
+ * <p> bug# 1186 Pass managerKey to everything that pops up a dialog.
+ * <p>
  * <p> Revision 1.18  2009/02/13 02:39:32  sueh
  * <p> bug# 1152 Added a getInstance function which can construct a file from
  * <p> the file location and the file name.

@@ -12,6 +12,9 @@
  * @version $$Revision$
  *
  * <p> $$Log$
+ * <p> $Revision 3.67  2009/09/02 22:47:07  sueh
+ * <p> $bug# 1254 Added isValidStack.
+ * <p> $
  * <p> $Revision 3.66  2009/06/10 17:28:44  sueh
  * <p> $bug# 1202 Corrected comment.
  * <p> $
@@ -294,7 +297,6 @@ import java.util.Date;
 
 import etomo.BaseManager;
 import etomo.EtomoDirector;
-import etomo.ManagerKey;
 import etomo.storage.LogFile;
 import etomo.type.AxisID;
 import etomo.type.ProcessName;
@@ -372,9 +374,9 @@ public class Utilities {
     File file = new File(manager.getPropertyUserDir(), manager.getName()
         + axisID.getExtension() + extension);
     if (!file.exists() && mustExist) {
-      UIHarness.INSTANCE.openMessageDialog("The " + fileDescription + " file: "
-          + file.getAbsolutePath() + " doesn't exist.", "Missing "
-          + fileDescription, axisID, manager.getManagerKey());
+      UIHarness.INSTANCE.openMessageDialog(manager, "The " + fileDescription
+          + " file: " + file.getAbsolutePath() + " doesn't exist.", "Missing "
+          + fileDescription, axisID);
       return null;
     }
     return file;
@@ -419,10 +421,10 @@ public class Utilities {
   public static boolean isValidStack(File file, BaseManager manager,
       AxisID axisID) {
     MRCHeader header = MRCHeader.getInstance(manager.getPropertyUserDir(), file
-        .getName(), axisID, manager.getManagerKey());
+        .getName(), axisID);
     boolean validMrcFile = false;
     try {
-      header.read();
+      header.read(manager);
       validMrcFile = true;
     }
     catch (InvalidParameterException e) {
@@ -463,6 +465,7 @@ public class Utilities {
 
     // Rename the existing log file
     if (source.exists()) {
+      new Exception().printStackTrace();
       Utilities.debugPrint(source.getAbsolutePath() + " exists");
 
       if (!source.renameTo(destination)) {
@@ -860,27 +863,26 @@ public class Utilities {
     return macOS;
   }
 
-  public static final void findMessageAndOpenDialog(AxisID axisID,
-      String[] searchLines, String startsWith, String title,
-      ManagerKey managerKey) {
+  public static final void findMessageAndOpenDialog(BaseManager manager,
+      AxisID axisID, String[] searchLines, String startsWith, String title) {
     if (searchLines == null) {
       return;
     }
     for (int i = 0; i < searchLines.length; i++) {
       if (searchLines[i].startsWith(startsWith)) {
-        UIHarness.INSTANCE.openInfoMessageDialog(searchLines[i], title, axisID,
-            managerKey);
+        UIHarness.INSTANCE.openInfoMessageDialog(manager, searchLines[i],
+            title, axisID);
       }
     }
   }
 
-  public static final File getExistingDir(String envVariable, AxisID axisID,
-      ManagerKey managerKey) {
+  public static final File getExistingDir(BaseManager manager,
+      String envVariable, AxisID axisID) {
     if (envVariable == null || envVariable.matches("\\s*")) {
       return null;
     }
-    String dirName = EnvironmentVariable.INSTANCE.getValue(null, envVariable,
-        axisID, managerKey);
+    String dirName = EnvironmentVariable.INSTANCE.getValue(manager, null,
+        envVariable, axisID);
     if (dirName == null || dirName.matches("\\s*")) {
       return null;
     }

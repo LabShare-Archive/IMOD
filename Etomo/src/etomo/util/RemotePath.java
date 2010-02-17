@@ -363,8 +363,7 @@ public final class RemotePath {
 
     ReadOnlyAutodoc autodoc;
     try {
-      autodoc = AutodocFactory.getInstance(AUTODOC, axisID, manager
-          .getManagerKey());
+      autodoc = AutodocFactory.getInstance(manager, AUTODOC, axisID);
     }
     catch (IOException e) {
       e.printStackTrace();
@@ -379,8 +378,8 @@ public final class RemotePath {
     }
     //first load section-level mount rules
     //look for a section name that is the same as the output of hostname
-    hostName = Network.getLocalHostName(axisID, manager.getPropertyUserDir(),
-        manager.getManagerKey());
+    hostName = Network.getLocalHostName(manager, axisID, manager
+        .getPropertyUserDir());
     if ((localSection = loadMountRules(autodoc, CpuAdoc.COMPUTER_SECTION_TYPE,
         hostName, true)) == null) {
       //try looking for a section name that is the same as the stripped version
@@ -599,8 +598,8 @@ public final class RemotePath {
     if (!EtomoDirector.INSTANCE.getArguments().isTest()) {
       throw new IllegalStateException();
     }
-    return Network.getLocalHostName(axisID, manager.getPropertyUserDir(),
-        manager.getManagerKey());
+    return Network.getLocalHostName(manager, axisID, manager
+        .getPropertyUserDir());
   }
 
   /**
@@ -666,6 +665,11 @@ public final class RemotePath {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.24  2010/01/11 23:59:15  sueh
+ * <p> bug# 1299 Removed responsibility anything other then cpu.adoc from
+ * <p> CpuAdoc.  Placed responsibility for information about the network in the
+ * <p> Network class.
+ * <p>
  * <p> Revision 1.23  2009/10/01 18:52:55  sueh
  * <p> bug# 1233 In loadMountRules checking for null to make sure that etomo
  * <p> can't get stuck when leaving a dialog.

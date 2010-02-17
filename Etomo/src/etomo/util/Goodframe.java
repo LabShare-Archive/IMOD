@@ -3,8 +3,8 @@ package etomo.util;
 import java.io.IOException;
 
 import etomo.ApplicationManager;
+import etomo.BaseManager;
 import etomo.EtomoDirector;
-import etomo.ManagerKey;
 import etomo.process.ProcessMessages;
 import etomo.process.SystemProgram;
 import etomo.type.AxisID;
@@ -29,19 +29,17 @@ public class Goodframe {
 
   private final AxisID axisID;
   private final String propertyUserDir;
-  private final ManagerKey managerKey;
 
   private EtomoNumber[] output;
 
-  public Goodframe(String propertyUserDir, AxisID axisID, ManagerKey managerKey) {
+  public Goodframe(String propertyUserDir, AxisID axisID) {
     this.propertyUserDir = propertyUserDir;
     this.axisID = axisID;
-    this.managerKey = managerKey;
   }
 
-  public void run(int firstInput, int secondInput) throws IOException,
-      InvalidParameterException {
-    run(new String[] { Integer.toString(firstInput),
+  public void run(BaseManager manager, int firstInput, int secondInput)
+      throws IOException, InvalidParameterException {
+    run(manager, new String[] { Integer.toString(firstInput),
         Integer.toString(secondInput) });
   }
 
@@ -50,7 +48,7 @@ public class Goodframe {
    * @throws IOException
    * @throws InvalidParameterException
    */
-  public void run(String[] input) throws IOException,
+  public void run(BaseManager manager, String[] input) throws IOException,
       InvalidParameterException, NumberFormatException {
     Utilities.timestamp("run", "goodframe", Utilities.STARTED_STATUS);
     //Run the goodframe command.
@@ -59,8 +57,8 @@ public class Goodframe {
     for (int i = 0; i < input.length; i++) {
       commandArray[i + 1] = input[i];
     }
-    SystemProgram groupframe = new SystemProgram(propertyUserDir, commandArray,
-        axisID, managerKey);
+    SystemProgram groupframe = new SystemProgram(manager, propertyUserDir,
+        commandArray, axisID);
     groupframe.setDebug(EtomoDirector.INSTANCE.getArguments().isDebug());
     groupframe.run();
 
@@ -127,6 +125,9 @@ public class Goodframe {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.13  2009/03/17 00:46:43  sueh
+ * <p> bug# 1186 Pass managerKey to everything that pops up a dialog.
+ * <p>
  * <p> Revision 1.12  2009/02/26 17:24:59  sueh
  * <p> bug# 1184 Changed Goodframe so that it can handle any number of
  * <p> inputs and outputs.

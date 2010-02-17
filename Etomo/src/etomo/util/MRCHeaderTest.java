@@ -5,7 +5,6 @@ import java.io.IOException;
 
 import etomo.BaseManager;
 import etomo.EtomoDirector;
-import etomo.ManagerKey;
 import etomo.process.SystemProcessException;
 import etomo.type.AxisID;
 
@@ -24,6 +23,9 @@ import junit.framework.TestCase;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.29  2009/10/27 15:33:17  sueh
+ * <p> bug# 1275
+ * <p>
  * <p> Revision 3.28  2009/03/17 22:15:21  sueh
  * <p> testReadBadFilename():  Corrected failure message.
  * <p>
@@ -153,6 +155,8 @@ public class MRCHeaderTest extends TestCase {
   private final MRCHeader mrcWithSpaces;
   private final File testDir = new File(UtilTests.TEST_ROOT_DIR, "MRCHeader");
   private final String testDirPath = testDir.getAbsolutePath();
+  private final BaseManager manager = EtomoDirector.INSTANCE
+      .getCurrentManagerForTest();
 
   /**
    * Constructor for MRCHeaderTest.
@@ -166,24 +170,19 @@ public class MRCHeaderTest extends TestCase {
     if (!testDir.exists()) {
       testDir.mkdirs();
     }
-    ManagerKey managerKey = null;
-    BaseManager manager = EtomoDirector.INSTANCE.getCurrentManagerForTest();
-    if (manager != null) {
-      managerKey = manager.getManagerKey();
-    }
-    emptyFilename = MRCHeader.getInstance(testDirPath, "", AxisID.ONLY,
-        managerKey);
+    emptyFilename = MRCHeader.getInstance(testDirPath, "", AxisID.ONLY);
     badFilename = MRCHeader.getInstance(testDirPath, testDirectory1
-        + "/non_existant_image_file", AxisID.ONLY, managerKey);
+        + "/non_existant_image_file", AxisID.ONLY);
     mrcHeader = MRCHeader.getInstance(testDirPath, testDirectory1
-        + "/headerTest.st", AxisID.ONLY, managerKey);
+        + "/headerTest.st", AxisID.ONLY);
     mrcWithSpaces = MRCHeader.getInstance(testDirPath, testDirectory2
-        + "/headerTest.st", AxisID.ONLY, managerKey);
+        + "/headerTest.st", AxisID.ONLY);
   }
 
   public void testEmptyFilename() throws InvalidParameterException {
     try {
-      assertFalse("Should rise IOException exception", emptyFilename.read());
+      assertFalse("Should rise IOException exception", emptyFilename
+          .read(manager));
     }
     catch (IOException success) {
     }
@@ -194,7 +193,7 @@ public class MRCHeaderTest extends TestCase {
     // present
     boolean exceptionThrown = false;
     try {
-      assertFalse("Did not return false", badFilename.read());
+      assertFalse("Did not return false", badFilename.read(manager));
     }
     catch (IOException except) {
     }
@@ -219,7 +218,7 @@ public class MRCHeaderTest extends TestCase {
     TestUtilites.getVector(EtomoDirector.INSTANCE.getCurrentManagerForTest(),
         testDirPath, testDirectory1, headerTestStack);
 
-    assertTrue(mrcHeader.read());
+    assertTrue(mrcHeader.read(manager));
     assertEquals("Incorrect column count", 512, mrcHeader.getNColumns());
     assertEquals("Incorrect row count", 512, mrcHeader.getNRows());
     assertEquals("Incorrect section count", 1, mrcHeader.getNSections());
@@ -261,7 +260,7 @@ public class MRCHeaderTest extends TestCase {
     TestUtilites.getVector(EtomoDirector.INSTANCE.getCurrentManagerForTest(),
         testDirPath, testDirectory2, "headerTest.st");
 
-    assertTrue("the file should exist", mrcWithSpaces.read());
+    assertTrue("the file should exist", mrcWithSpaces.read(manager));
     assertEquals("Incorrect column count", 512, mrcWithSpaces.getNColumns());
     assertEquals("Incorrect row count", 512, mrcWithSpaces.getNRows());
     assertEquals("Incorrect section count", 1, mrcWithSpaces.getNSections());
