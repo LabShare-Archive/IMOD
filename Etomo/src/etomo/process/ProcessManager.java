@@ -20,6 +20,10 @@
  * 
  * <p>
  * $Log$
+ * Revision 3.145  2010/02/17 04:49:20  sueh
+ * bug# 1301 Using the manager instead of the manager key do pop up
+ * messages.
+ *
  * Revision 3.144  2009/12/18 17:33:38  sueh
  * bug# 1291 In postProcess(BackgroundProcess) fixing a null pointer
  * exception.
@@ -2020,11 +2024,10 @@ public class ProcessManager extends BaseProcessManager {
    * Puts a log file into a window and displays it.
    * @param logFile
    */
-  private void showLogFile(File logFile, boolean shortTitle) {
+  private void showLogFile(File logFile) {
     //  Show a log file window to the user
     TextPageWindow logFileWindow = new TextPageWindow();
-    logFileWindow.setVisible(logFileWindow.setFile(shortTitle ? logFile
-        .getName() : logFile.getAbsolutePath()));
+    logFileWindow.setVisible(logFileWindow.setFile(logFile));
   }
 
   private void printPsOutput(AxisID axisID) {
@@ -2324,8 +2327,8 @@ public class ProcessManager extends BaseProcessManager {
             String logFileName = command.getCommandInputFile().getName()
                 + "_stats.log";
             writeLogFile(process, process.getAxisID(), logFileName);
-            showLogFile(new File(appManager.getPropertyUserDir(), logFileName),
-                true);
+            showLogFile(new File(appManager.getPropertyUserDir(), logFileName)
+                );
           }
         }
       }
@@ -2342,7 +2345,7 @@ public class ProcessManager extends BaseProcessManager {
         writeLogFile(process, process.getAxisID(),
             DatasetFiles.TRANSFER_FID_LOG);
         showLogFile(new File(appManager.getPropertyUserDir(),
-            DatasetFiles.TRANSFER_FID_LOG), false);
+            DatasetFiles.TRANSFER_FID_LOG));
       }
     }
     catch (Exception e) {
