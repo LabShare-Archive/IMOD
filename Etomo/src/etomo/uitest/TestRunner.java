@@ -38,6 +38,9 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.9  2010/02/17 05:05:31  sueh
+ * <p> bug# 1301 Stop automatically setting the dataset variable.
+ * <p>
  * <p> Revision 1.8  2009/10/20 16:25:24  sueh
  * <p> bug# 1276 Printing value of uitestDataDir.
  * <p>
@@ -402,8 +405,6 @@ public final class TestRunner extends JFCTestCase implements VariableList {
    * @param sourceDir
    */
   void copyFile(String fileName, String toFileName, boolean always) {
-    System.out.println("fileName="+fileName);
-    System.out.println("toFileName="+toFileName);
     assertNotNull(variableMap.get(UITestSubjectType.DATASET.toString()));
     File file = new File(uitestDataDir, fileName);
     if (!file.exists() || file.isDirectory()) {
