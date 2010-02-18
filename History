@@ -1,5 +1,7 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+2/18/10: In Etomo - Preprocessing, fixed the min/max buttons.
+
 2/18/10: In Etomo - Tomogram Positioning, stop saving to align.com when
 positioning was done with Fiducialess checked.
 
