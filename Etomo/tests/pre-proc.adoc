@@ -54,17 +54,13 @@ Version = 1.2
 	run.function.automatic-x-ray-replacement=
 	run.function.manual-pixel-region-replacement=
 [[]]
-[[if = dataset]]
-	# BB doesn't need pre-processing
-	if.var.dataset.return=BB
-	bn.run-clip-stats-on-raw-stack=
-	wait.process.clip-stats=done
-	bn.create-fixed-stack=
-	wait.process.ccd-eraser=done
-	bn.run-clip-stats-on-raw-stack=
-	wait.process.clip-stats=done
-	bn-use-fixed-stack=
-[[]]
+bn.show-min/max-for-raw-stack=
+wait.process.clip-stats=done
+bn.create-fixed-stack=
+wait.process.ccd-eraser=done
+bn.show-min/max-for-fixed-stack=
+wait.process.clip-stats=done
+run.function.use-fixed-stack=
 [[if = test-gui]]
 	# Check files after use fixed stack
 	# BB doesn't need pre-processing
@@ -78,6 +74,13 @@ bn.done=
 [[if = test-gui]]
 wait.popup.etomo-question=Yes
 [[]]
+
+
+[function = use-fixed-stack]
+# BB doesn't need pre-processing
+if.equals.var.dataset.return=BB
+if.equals.var.dataset.return=BBa
+bn.use-fixed-stack=
 
 
 [function = automatic-x-ray-replacement]
