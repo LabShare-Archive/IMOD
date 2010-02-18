@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+2/17/10: In Etomo, when running processchunks, attempting to avoid popping up
+the processchunk crash warning on a tcsh error which did not cause a crash.
+
 2/16/10: Added a separate frame for flattening volumes.
 
 2/14/10: Fixed turning off off spherical points in model view base on value.
