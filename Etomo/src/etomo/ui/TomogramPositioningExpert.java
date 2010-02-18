@@ -284,7 +284,9 @@ public final class TomogramPositioningExpert extends ReconUIExpert {
     }
     advanced = dialog.isAdvanced();
     //  Get all of the parameters from the panel
-    updateAlignCom();
+    if (!metaData.isFiducialess(axisID)) {
+      updateAlignCom();
+    }
     updateTomoPosTiltCom(false);
     updateTomopitchCom();
     UIExpertUtilities.INSTANCE.updateFiducialessParams(manager, dialog, axisID);
@@ -947,6 +949,9 @@ public final class TomogramPositioningExpert extends ReconUIExpert {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.35  2010/02/17 05:03:12  sueh
+ * <p> bug# 1301 Using manager instead of manager key for popping up messages.
+ * <p>
  * <p> Revision 1.34  2009/09/17 19:12:58  sueh
  * <p> bug# 1257 In NewstParam.setSizeToOutputInXandY forgot to read the
  * <p> header.  Adding read call and throwing InvalidParameterException and
