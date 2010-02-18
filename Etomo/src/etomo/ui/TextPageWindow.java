@@ -3,6 +3,7 @@ package etomo.ui;
 import java.awt.BorderLayout;
 import java.awt.Container;
 import java.awt.Font;
+import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
@@ -26,6 +27,12 @@ import javax.swing.WindowConstants;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.4  2008/03/22 00:19:00  sueh
+ * <p> bug# 1099 Not using StyledEditorKit anymore because it takes up a lot
+ * <p> of memory and mostly runs from the event loop, meaning the resulting
+ * <p> memory errors cannot be caught and cause Etomo to lock up.  Setting the
+ * <p> font in editorPane instead.
+ * <p>
  * <p> Revision 3.3  2004/04/08 19:07:53  rickg
  * <p> Bug #422 added setDefaultCloseOperation call to constructor
  * <p>
@@ -55,8 +62,7 @@ import javax.swing.WindowConstants;
  * <p> </p>
  */
 public class TextPageWindow extends JFrame {
-  public static final String rcsid =
-    "$Id$";
+  public static final String rcsid = "$Id$";
 
   Container mainPanel;
   String filename;
@@ -73,34 +79,37 @@ public class TextPageWindow extends JFrame {
     setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
   }
 
-  public boolean setFile(String filename) {
-    this.filename = filename;
-    setTitle(filename);
+  public boolean setFile(File file) {
+    this.filename = file.getAbsolutePath();
+    setTitle(file.getName());
+    return setFile();
+  }
 
+  public boolean setFile(String fileName) {
+    this.filename = fileName;
+    setTitle(fileName);
+    return setFile();
+  }
+
+  public boolean setFile() {
     try {
       reader = new FileReader(filename);
       editorPane.read(reader, filename);
       editorPane.setEditable(false);
-			reader.close();
+      reader.close();
     }
     catch (FileNotFoundException except) {
       String[] messages = new String[2];
       messages[0] = except.getMessage();
       messages[1] = "Make sure that " + filename + " is available";
 
-      JOptionPane.showMessageDialog(
-        null,
-        messages,
-        filename + " not found",
-        JOptionPane.ERROR_MESSAGE);
+      JOptionPane.showMessageDialog(null, messages, filename + " not found",
+          JOptionPane.ERROR_MESSAGE);
       return false;
     }
     catch (IOException except) {
-      JOptionPane.showMessageDialog(
-        null,
-        except.getMessage(),
-        filename + " IO Exception",
-        JOptionPane.ERROR_MESSAGE);
+      JOptionPane.showMessageDialog(null, except.getMessage(), filename
+          + " IO Exception", JOptionPane.ERROR_MESSAGE);
       return false;
     }
     return true;
