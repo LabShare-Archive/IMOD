@@ -35,6 +35,8 @@ class ProcesschunksProcessMonitor implements OutfileProcessMonitor,
     ParallelProcessMonitor {
   public static final String rcsid = "$Id$";
 
+  private static final int NO_TCSH_ERROR = 5;
+
   private static final String TITLE = "Processchunks";
   static final String SUCCESS_TAG = "Finished reassembling";
   private static boolean debug = false;
@@ -69,6 +71,7 @@ class ProcesschunksProcessMonitor implements OutfileProcessMonitor,
   final BaseManager manager;
   final AxisID axisID;
   final Map computerMap;
+  private int tcshErrorCountDown = NO_TCSH_ERROR;
 
   ProcesschunksProcessMonitor(BaseManager manager, AxisID axisID,
       ParallelProgressDisplay parallelProgressDisplay, String rootName,
@@ -379,9 +382,9 @@ class ProcesschunksProcessMonitor implements OutfileProcessMonitor,
           .equals("All previously running chunks are done - exiting as requested")) {
         endMonitor(ProcessEndState.PAUSED);
       }
-      //A tcsh error causes processchunks to exit immediately.  Currently not
-      //ending the monitor because we don't want the user to rerun processchunks
-      //before all the chunk processes end.
+      //A tcsh error can cause processchunks to exit immediately without killing
+      //chunks.
+      //"No match" has been removed.  I may not be producing fatal errors.
       else if ((line.indexOf("Syntax Error") != -1
           || line.indexOf("Subscript error") != -1
           || line.indexOf("Undefined variable") != -1
@@ -389,23 +392,16 @@ class ProcesschunksProcessMonitor implements OutfileProcessMonitor,
           || line.indexOf("Subscript out of range") != -1
           || line.indexOf("Illegal variable name") != -1
           || line.indexOf("Variable syntax") != -1
-          || line.indexOf("Badly placed (") != -1
-          || line.indexOf("Badly formed number") != -1 || line
-          .indexOf("No match") != -1)
+          || line.indexOf("Badly placed (") != -1 || line
+          .indexOf("Badly formed number") != -1)
           && (process == null || process.getProcessData() == null || !process
               .getProcessData().isRunning())) {
-        System.err.println("ERROR: Tcsh error in processchunks log");
-        UIHarness.INSTANCE.openMessageDialog(manager,
-            "Unrecoverable error in processchunks.  Please contact the "
-                + "programmer.  The chunk processes are still running, but "
-                + "they won't show up in the progress bar or appear in the "
-                + "Finished Chunks column.  IMPORTANT:  Let the chunk "
-                + "processes complete before rerunning the parallel process.  "
-                + "The load may decline when your chunks are done.  Also you "
-                + "can ssh to each computer and run top.  After the chunk "
-                + "processes are complete, exit Etomo to clear the parallel "
-                + "processing panel.  To attempt to continue the parallel "
-                + "process, rerun Etomo, and press Resume.", "Fatal Error");
+        //If a tcsh error is found, start a countdown that progresses each time
+        //updateState is run.  Sometimes a tcsh error will result in an error
+        //being generated and processchunks terminating normally, so give this
+        //time to happen rather then popping up the scary error message as soon
+        //as the tcsh error is found.
+        tcshErrorCountDown--;
       }
       else {
         String[] strings = line.split("\\s+");
@@ -460,6 +456,29 @@ class ProcesschunksProcessMonitor implements OutfileProcessMonitor,
     if (failed) {
       endMonitor(ProcessEndState.FAILED);
       returnValue = false;
+    }
+    else if (tcshErrorCountDown < 0) {
+      //The tcsh error did not cause processchunks to terminate normally
+      //before the countdown ended, so assume that it died without killing
+      //chunks.  Currently not ending the monitor because we don't want the
+      //user to rerun processchunks before all the chunk processes end.
+      System.err.println("ERROR: Tcsh error in processchunks log");
+      UIHarness.INSTANCE.openMessageDialog(manager,
+          "Unrecoverable error in processchunks.  Please contact the "
+              + "programmer.  The chunk processes are still running, but "
+              + "they won't show up in the progress bar or appear in the "
+              + "Finished Chunks column.  IMPORTANT:  Let the chunk "
+              + "processes complete before rerunning the parallel process.  "
+              + "The load may decline when your chunks are done.  Also you "
+              + "can ssh to each computer and run top.  After the chunk "
+              + "processes are complete, exit Etomo to clear the parallel "
+              + "processing panel.  To attempt to continue the parallel "
+              + "process, rerun Etomo, and press Resume.", "Fatal Error");
+      tcshErrorCountDown = NO_TCSH_ERROR;
+    }
+    else if (tcshErrorCountDown < NO_TCSH_ERROR) {
+      //Continue the countdown.
+      tcshErrorCountDown--;
     }
     return returnValue;
   }
@@ -590,6 +609,10 @@ class ProcesschunksProcessMonitor implements OutfileProcessMonitor,
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.50  2010/02/17 04:49:20  sueh
+ * <p> bug# 1301 Using the manager instead of the manager key do pop up
+ * <p> messages.
+ * <p>
  * <p> Revision 1.49  2010/01/11 23:56:32  sueh
  * <p> bug# 1299 Added useMessageReporter.
  * <p>
