@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+2/18/10: In Etomo - Tomogram Positioning, stop saving to align.com when
+positioning was done with Fiducialess checked.
+
 2/17/10: In Etomo, when running processchunks, attempting to avoid popping up
 the processchunk crash warning on a tcsh error which did not cause a crash.
 
