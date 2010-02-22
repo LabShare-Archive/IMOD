@@ -7,8 +7,8 @@ c
       return
       end
 
-      integer*4 function gpuallocarrays(iwidth, ithick, nxprj2, nviews, nslice,
-     &    numWarps)
+      integer*4 function gpuallocarrays(iwidth, nyout, nxprj2, nyprj, nplanes,
+     &    nviews, numWarps, numDelz, nfilt, nreproj, npl1, npl2)
       gpuallocarrays =1
       return
       end
@@ -53,7 +53,7 @@ c
       return
       end
 
-      integer*4 function gpufilterlines(flines, lslice)
+      integer*4 function gpufilterlines(flines, lslice, iset)
       gpufilterlines = 1
       return
       end
@@ -65,7 +65,22 @@ c
       gpureproject = 1
       return
       end
-      
+
+      integer*4 function gpureprojoneslice(slice, flines, sbeta, cbeta,
+     &    ycen, numproj, pmean)
+      gpureprojoneslice =1 
+      return
+      end
+
+      integer*4 function gpureprojlocal(flines, sbeta, cbeta, salpha, calpha,
+     &    xzfac, yzfac, nxwarp, nywarp, ixswarp,  iyswarp, idxwarp, idywarp,
+     &    warpDelz, nWarpDelz,  dxWarpDelz,xprojMin,xprojMax, lsStart, lsEnd,
+     &    ithick, iview, xcen, xcenin, delxx,  minXload, xprjOffset, ycenAdj,
+     &    yprjOffset, slicen, pmean);
+      gpureprojlocal = 1
+      return
+      end
+
       subroutine gpuDone()
       return
       end
