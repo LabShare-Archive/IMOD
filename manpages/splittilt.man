@@ -119,6 +119,11 @@ instead of -start.com.
 Leave the command file set open by naming the command file for reassembly 
 -nnn-sync.com instead of -finish.com, and by not cleaning up command and log
 files in the reassembly file.
+.TP
+.B -d <nx,ny>
+Use the given values as the dimensions of the aligned stack if it does not
+exist yet.  This option is needed when calling from Sirtsetup(1) if the log
+of the stack is being used.
 .SH FILES
 The finishing command file deletes all the
 command and log files for the chunks after collecting minimun, maximum, and
