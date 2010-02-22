@@ -529,7 +529,7 @@ echo "QTPLUGS_TOCOPY1 = qjpeg4.dll qico4.dll" >> $configure
 # Make sure critical scripts are in unix mode
 # ALL BASH/SH SCRIPTS MUST BE INCLUDED
 #
-(cd scripts ; dos2unix copytomocoms setupcombine makejoincom transferfid xfalign matchorwarp newst dm2mrc matchrotpairs chunksetup finishjoin tomosnapshot processchunks splitcombine splittilt splitcorrection sirtsetup trimvol queuechunk alignlog submfg runpyscript 3dmodbg 3dmodv patch2imod imod2patch imodhelp >& /dev/null)
+(cd scripts ; dos2unix copytomocoms setupcombine makejoincom transferfid xfalign matchorwarp newst dm2mrc matchrotpairs chunksetup finishjoin tomosnapshot processchunks splitcombine splittilt splitcorrection trimvol queuechunk alignlog submfg runpyscript 3dmodbg 3dmodv patch2imod imod2patch imodhelp >& /dev/null)
 (cd dist ; dos2unix installIMOD installStub IMOD-cygwin.sh >& /dev/null)
 (cd Etomo/scripts ; dos2unix etomo >& /dev/null)
 dos2unix installqtlib >& /dev/null
