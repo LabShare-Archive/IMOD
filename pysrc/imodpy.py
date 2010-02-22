@@ -25,7 +25,8 @@ This module provides the following functions:
 """
 
 # other modules needed by imodpy
-import sys, os, exceptions
+import sys, os, exceptions, re
+from pip import exitError
 
 
 # Use the subprocess module if available except on cygwin where broken
@@ -286,13 +287,13 @@ def readTextFile(filename, descrip = None):
 
    Reads in the text file in <filename>, strips the line endings and blanks
    from the end of each line, and returns a list of strings.  Exits on an
-   error opening or reading the file, and add the optional dsecription in
+   error opening or reading the file, and adds the optional description in
    <descrip> to the error message
    """
    if not descrip:
       descrip = " "
    try:
-      errstring = "Opening"
+      errString = "Opening"
       textfile = open(filename, 'r')
       errString = "Reading"
       lines = textfile.readlines()
@@ -306,9 +307,67 @@ def readTextFile(filename, descrip = None):
       lines[i] = lines[i].rstrip(' \t\r\n')
    return lines
 
+# Function to find an option value from a list of strings
+def optionValue(linelist, option, type, ignorecase = False):
+   """optionValue(linelist, option, type[, nocase] - find option value in strings
+
+   Given a list of strings in <linelist>, searches for one(s) that contain the
+   text in <option> and that are not commented out.  The search is
+   case-insensitive if optional argument <nocase> is supplied and is not False
+   or None.  The return value depends on the value of <type>:
+   0 : a string with white space stripped and a comment removed from the end
+   1 : an array of integers
+   2 : an array of floats
+   3 : a boolean value, True or false
+   It returns None if the option is not found or if its value is empty or
+   contains inappropriate characters; in the latter case it issues a WARNING:.
+   If the option occurs more than once, the latest value applies.
+   """
+   flags = 0
+   if ignorecase:
+      flags = re.IGNORECASE
+   optre = re.compile(option, flags)
+   subre = re.compile('.*' + option + r'[^\s]*([^#]*).*', flags)
+   comre = re.compile(r'\s*#\s*' + option, flags)
+   retval = None
+   for line in linelist:
+      if optre.search(line) and not comre.search(line):
+         valstr = subre.sub(r'\1', line).strip()
+         if type > 2:
+            bval = valstr.lower()
+            if bval == '0' or bval == 'f' or bval == 'off' or bval == 'false':
+               retval = False
+            elif bval == '1' or bval == 't' or bval == 'on' or bval == 'true' \
+                   or bval == "":
+               retval = True
+            else:
+               print "WARNING: optionValue - Boolean entry found with " + \
+                     "improper value in: " + line
+               
+         elif valstr == "":
+            print "WARNING: optionValue - No value for option in: " + line
+         elif type <= 0:
+            retval = valstr
+         else:
+            retval = []
+            splits = valstr.split()
+            try:
+               for val in splits:
+                  if type == 1:
+                     retval.append(int(val))
+                  else:
+                     retval.append(float(val))
+            except:
+               print "WARNING: optionValue - Bad character in numeric " + \
+                     + "entry in: " + line
+               
+   return retval
 
 
 #  $Log$
+#  Revision 1.5  2009/10/22 05:46:30  mast
+#  Add readTextFile
+#
 #  Revision 1.4  2008/01/05 17:21:17  mast
 #  Added parselist since pip allows lists to be read
 #
