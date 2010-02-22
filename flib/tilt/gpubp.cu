@@ -33,6 +33,8 @@
 #define gpuloadfilter GPULOADFILTER
 #define gpufilterlines GPUFILTERLINES
 #define gpureproject GPUREPROJECT
+#define gpureprojlocal GPUREPROJLOCAL
+#define gpureprojoneslice GPUREPROJONESLICE
 #define gpudone GPUDONE
 #else
 #define gpuavailable gpuavailable_
@@ -46,14 +48,17 @@
 #define gpuloadfilter gpuloadfilter_
 #define gpufilterlines gpufilterlines_
 #define gpureproject gpureproject_
+#define gpureprojlocal gpureprojlocal_
+#define gpureprojoneslice gpureprojoneslice_
 #define gpudone gpudone_
 #endif
 
 #ifdef __cplusplus
 extern "C" {
   int gpuavailable(int *nGPU, int *memory);
-  int gpuallocarrays(int *width, int *thick, int *nxprj2, int *nviews, 
-                     int *nslice, int *nxwarp, int *firstNpl, int *lastNpl);
+  int gpuallocarrays(int *width, int *nyout, int *nxprj2, int *nyprj,
+                     int *nplanes, int *nviews, int *numWarps, int *numDelz,
+                     int *nfilt, int *nreproj, int *firstNpl, int *lastNpl);
   int gpubpnox(float *slice, float *lines, float *sbeta, float *cbeta,
                int *nxprj,
                float *xcenin, float *xcen, float *ycen, float *edgefill);
@@ -70,7 +75,7 @@ extern "C" {
                  float *ycen, float *slicen, float *edgefill);
   int gpuloadfilter(float *lines);
   int gpuloadlocals(float *packed, int *numWarps);
-  int gpufilterlines(float *lines, int *lslice);
+  int gpufilterlines(float *lines, int *lslice, int *filterSet);
   int gpureproject(float *lines, float *sbeta, float *cbeta, float *salpha, 
                    float *calpha, float *xzfac, float *yzfac, float *delz,
                    int *lsStart, int *lsEnd, int *ithick,
@@ -78,14 +83,26 @@ extern "C" {
                    float *xprjOffset, float *ycen, int *minYreproj,
                    float *yprjOffset, float *slicen, int *ifalpha, 
                    float *pmean);
+  int gpureprojoneslice(float *slice, float *lines, float *sbeta, float *cbeta,
+                        float *ycen, int *numproj, float *pmean);
+  int gpureprojlocal
+  (float *lines, float *sbeta, float *cbeta, float *salpha, float *calpha,
+   float *xzfac, float *yzfac, int *nxwarp, int *nywarp, int *ixswarp, 
+   int *iyswarp, int *idxwarp, int *idywarp, float *warpDelz, int *nWarpDelz, 
+   float *dxWarpDelz,float *xprojMin,float *xprojMax, int *lsStart, int *lsEnd,
+   int *ithick, int *iview, float *xcen, float *xcenin, float *delxx, 
+   int *minXload, float *xprjOffset, float *ycenAdj, float *yprjOffset,
+   float *slicen, float *pmean);
   void gpudone();
 }
 #endif
 
 static int checkProjLoad(int *numPlanes, int *lsliceStart, int startm1);
 static int testReportErr(char *mess);
-static int loadBetaInvertCos(float *cbeta, float *sbeta, float *costmp);
-static int synchronizeCopySlice(float *slice, int numLines);
+static int loadBetaInvertCos(float *cbeta, float *sbeta, float *costmp,
+                             int num);
+static int synchronizeCopySlice(float *devslc, int pitch, float *slice,
+                                int width, int numLines);
 static void pflush(const char *format, ...);
 static void pflerr(const char *format, ...);
 static void allocerr(char *mess, int *nplanes, int *firstNpl,
@@ -98,6 +115,7 @@ static void allocerr(char *mess, int *nplanes, int *firstNpl,
 #define DELTA_OFS  720
 #define MAX_TABLE (6 * DELTA_OFS)
 __constant__ float tables[MAX_TABLE];
+__constant__ int rpNumz[DELTA_OFS];
 
 #define COSOFS 0
 #define SINOFS (1 * DELTA_OFS)
@@ -105,6 +123,7 @@ __constant__ float tables[MAX_TABLE];
 #define SALOFS (3 * DELTA_OFS)
 #define XZFOFS (4 * DELTA_OFS)
 #define YZFOFS (5 * DELTA_OFS)
+#define INVOFS (2 * DELTA_OFS)
 
 // Definitions for accessing the local alignments arrays with texture calls
 #define F11IND 0.f
@@ -124,25 +143,34 @@ __constant__ float tables[MAX_TABLE];
 // declare texture reference for 2D float textures
 texture<float, 2, cudaReadModeElementType> projtex;
 texture<float, 2, cudaReadModeElementType> localtex;
+texture<float, 2, cudaReadModeElementType> rpSlicetex;
+texture<float, 2, cudaReadModeElementType> pfactex;
+texture<float, 2, cudaReadModeElementType> delztex;
 
 // Static variables for device arrays
-static float* devSlice;
-static cudaArray* devProj;
+static float *devSlice = NULL;
+static cudaArray* devProj = NULL;
 static float *xprojf = NULL;
 static float *xprojz = NULL;
 static float *yprojf = NULL;
 static float *yprojz = NULL;
 static cudaArray *localData = NULL;
+static cudaArray *localPfac = NULL;
+static cudaArray *devDelz = NULL;
 static float *radialFilt = NULL;
 static float *devFFT = NULL;
+static cudaArray *devRpSlice = NULL;
+static float *devReproj = NULL;
 
 // Other static variables
 static cufftHandle forwardPlan = 0, inversePlan = 0;
 static int max_gflops_device = -1;
 static int deviceSelected = 0;
 static size_t slicePitch;
+static size_t reprojPitch;
+static size_t localPitch;
 static int sliceThick, sliceWidth, numViews, numProjPlanes;
-static int lsliceFirst, numLoadedPlanes, nxPlane;
+static int lsliceFirst, numLoadedPlanes, nxPlane, nyPlane, numFilts;
 static int copyFilteredOK = 0;
 static int *planeLoaded;
 
@@ -179,7 +207,9 @@ int gpuavailable(int *nGPU, int *memory)
     }
     gflops = device_properties.multiProcessorCount * 
       device_properties.clockRate;
-    if( gflops > max_gflops ) {
+
+    // Exclude emulation mode (?) which shows up on the Mac
+    if( gflops > max_gflops && device_properties.major != 9999) {
       max_gflops = gflops;
       max_gflops_device = current_device;
       best_properties = device_properties;
@@ -195,14 +225,22 @@ int gpuavailable(int *nGPU, int *memory)
 
 /*
  * Allocate all needed arrays on the GPU.  Allocate a reconstructed slice or
- * reprojected line array of width x thick, an array for nplanes of input data 
- * each with nviews lines of length nxprj2, and local alignment arrays if
- * numWarps > 0.  If numWarp >= 0, also allocate arrays for line filtering.
+ * reprojected line array of width x nyout, an array for nplanes of input data 
+ * each with nyprj lines of length nxprj2, and local alignment arrays if
+ * numWarps > 0.  If numDelz > 0, this indicates reprojection of with local
+ * alignments and causes local projection factor arrays to be allocated for
+ * nplanes lines, allocation of a CUDA array for those factors too, and 
+ * allocation of an array of numDelz x nplanes for warpDelz values.  If 
+ * nfilt > 0, also allocate arrays for line filtering with nfilt sets of
+ * filters.  If nreproj > 0, allocate separate arrays for reprojecting one
+ * slice while still doing regular backprojection arrays.
  */
-int gpuallocarrays(int *width, int *thick, int *nxprj2, int *nviews, 
-                   int *nplanes, int *numWarps, int *firstNpl, int *lastNpl)
+int gpuallocarrays(int *width, int *nyout, int *nxprj2, int *nyprj,
+                   int *nplanes, int *nviews, int *numWarps, int *numDelz,
+                   int *nfilt, int *nreproj, int *firstNpl, int *lastNpl)
 {
-  size_t pitch1, pitch2, pitch3, pitch4, memTot;
+  size_t pitch1, pitch2, pitch3, memTot;
+  int nlines;
 
   if (max_gflops_device < 0)
     return 1;
@@ -212,28 +250,29 @@ int gpuallocarrays(int *width, int *thick, int *nxprj2, int *nviews,
   }
   deviceSelected = 1;
 
-  // Allocate memory for slice on device
+  // Allocate memory for slice or reprojected lines on device
   size_t sizetmp = *width * sizeof(float);
-  if (cudaMallocPitch((void **)&devSlice, &slicePitch, sizetmp, *thick) != 
+  if (cudaMallocPitch((void **)&devSlice, &slicePitch, sizetmp, *nyout) != 
       cudaSuccess) {
     allocerr("Failed to allocate slice array on GPU device", nplanes, 
              firstNpl, lastNpl, 1);
     return 1;
   }
+  //pflush("reproj array size %d %d\n", *width, *nyout);
 
-  // Allocate memory for projection lines
+  // Allocate memory for projection lines or slices to reproject
   cudaChannelFormatDesc projDesc = cudaCreateChannelDesc
     (32, 0, 0, 0, cudaChannelFormatKindFloat);
-  if (cudaMallocArray(&devProj, &projDesc, *nxprj2, *nviews * *nplanes)
+  if (cudaMallocArray(&devProj, &projDesc, *nxprj2, *nyprj * *nplanes)
       != cudaSuccess) {
-    //pflush("malloc %d %d %d %d\n", *nxprj2, *nviews, *nplanes,
-    // *nviews * *nplanes);
+    pflush("malloc %d %d %d %d\n", *nxprj2, *nyprj, *nplanes,
+           *nyprj * *nplanes);
     allocerr("Failed to allocate projection array on GPU device", nplanes, 
              firstNpl, lastNpl, 1);
-    cudaFree(devSlice);
     return 1;
   }
-  memTot = sizetmp * *thick + 4 * *nxprj2 * *nviews * *nplanes;
+  memTot = sizetmp * *nyout + 4 * *nxprj2 * *nyprj * *nplanes;
+  //pflush("input slice array size %d %d %d\n", *nxprj2, *nyprj, *nplanes);
 
   // set texture parameters
   projtex.addressMode[0] = cudaAddressModeClamp;
@@ -245,8 +284,6 @@ int gpuallocarrays(int *width, int *thick, int *nxprj2, int *nviews,
   if (cudaBindTextureToArray(projtex, devProj, projDesc) != cudaSuccess) {
     allocerr("Failed to bind projection array to texture", nplanes, firstNpl,
              lastNpl, 1);
-    cudaFree(devSlice);
-    cudaFreeArray(devProj);
     return 1;
   }
 
@@ -255,33 +292,99 @@ int gpuallocarrays(int *width, int *thick, int *nxprj2, int *nviews,
     if (!planeLoaded) {
       allocerr("Failed to malloc little array planeLoaded\n", nplanes,
                firstNpl, lastNpl, 0);
-      gpudone();
       return 1;
     }
   }
 
+  // Get arrays for reprojection of one slice
+  if (*nreproj) {
+    if (cudaMallocArray(&devRpSlice, &projDesc, *width, *nyout) !=
+        cudaSuccess) {
+      allocerr("Failed to allocate slice array for reprojection on GPU device",
+               nplanes, firstNpl, lastNpl, 1);
+      return 1;
+    }
+    if (cudaBindTextureToArray(rpSlicetex,devRpSlice,projDesc) != cudaSuccess){
+      allocerr("Failed to bind reprojection slice array to texture", nplanes, 
+               firstNpl, lastNpl, 1);
+      return 1;
+    }
+    rpSlicetex.addressMode[0] = cudaAddressModeClamp;
+    rpSlicetex.addressMode[1] = cudaAddressModeClamp;
+    rpSlicetex.filterMode = cudaFilterModeLinear;
+    rpSlicetex.normalized = false;
+  
+    if (cudaMallocPitch((void **)&devReproj, &reprojPitch, 
+                        (size_t)(*nxprj2 * sizeof(float)), *nreproj)
+        != cudaSuccess) {
+      allocerr("Failed to allocate reprojected line array on GPU device", 
+               nplanes, firstNpl, lastNpl, 1);
+      return 1;
+    }
+    memTot += 4 * *width * *nyout + *nxprj2 * *nreproj;
+  }
+
   // Get arrays for local proj factors
   if (*numWarps > 0) {
-    if (cudaMallocPitch((void **)&xprojf, &pitch1, sizetmp, *nviews) != 
+    nlines = *nyprj;
+
+    // Adjust and allocate for reprojection
+    if (*numDelz) {
+      nlines = *nplanes;
+      sizetmp = *nxprj2 * sizeof(float);
+
+      if (cudaMallocArray(&localPfac, &projDesc, *nxprj2, 4 * nlines) !=
+          cudaSuccess) {
+        allocerr("Failed to allocate local factor texture array on GPU device"
+                 , nplanes, firstNpl, lastNpl, 1);
+        return 1;
+      }
+      //pflush("local factor texture  %d %d\n", *nxprj2, 4 * nlines);
+      
+      pfactex.filterMode = cudaFilterModePoint;
+      pfactex.normalized = false;
+      if (cudaBindTextureToArray(pfactex, localPfac, projDesc) != cudaSuccess){
+        allocerr("Failed to bind local factor arrays to texture", nplanes, 
+                 firstNpl, lastNpl, 1);
+        return 1;
+      }
+      if (cudaMallocArray(&devDelz, &projDesc, *numDelz, nlines) != 
+          cudaSuccess) {
+        allocerr("Failed to allocate warpDelz texture array on GPU device",
+                 nplanes, firstNpl, lastNpl, 1);
+        return 1;
+      }
+      //pflush("warpdelz texture  %d %d\n", *numDelz, nlines);
+      delztex.filterMode = cudaFilterModePoint;
+      delztex.normalized = false;
+      if (cudaBindTextureToArray(delztex, devDelz, projDesc) != cudaSuccess) {
+        allocerr("Failed to bind warpDelz array to texture", nplanes, 
+                 firstNpl, lastNpl, 1);
+        return 1;
+      }
+      memTot += 4 * nlines * (4 * *nxprj2 + *numDelz);
+    }
+
+    // Allocate the arrays always used for local data
+    if (cudaMallocPitch((void **)&xprojf, &pitch1, sizetmp, nlines) != 
         cudaSuccess ||
-        cudaMallocPitch((void **)&xprojz, &pitch2, sizetmp, *nviews) != 
+        cudaMallocPitch((void **)&xprojz, &pitch2, sizetmp, nlines) != 
         cudaSuccess ||
-        cudaMallocPitch((void **)&yprojf, &pitch3, sizetmp, *nviews) != 
+        cudaMallocPitch((void **)&yprojf, &pitch3, sizetmp, nlines) != 
         cudaSuccess ||
-        cudaMallocPitch((void **)&yprojz, &pitch4, sizetmp, *nviews) != 
+        cudaMallocPitch((void **)&yprojz, &localPitch, sizetmp, nlines) != 
         cudaSuccess  ||
         cudaMallocArray(&localData, &projDesc, *numWarps * *nviews, 12) 
         != cudaSuccess) {
       allocerr("Failed to allocate local factor arrays on GPU device", nplanes,
                firstNpl, lastNpl, 1);
-      gpudone();
       return 1;
     }
-    if (pitch2 != pitch1 || pitch3 != pitch1 || pitch4 != pitch1 || 
-        pitch1 != slicePitch) {
-      allocerr("Array pitches for GPU arrays do NOT match\n", nplanes,
+    /* pflush("xyprojf pitches  %d %d    localdata %d\n", *nxprj2, nlines,
+     *numWarps * *nviews); */
+    if (pitch2 != pitch1 || pitch3 != pitch1 || localPitch != pitch1) {
+      allocerr("Array pitches for local GPU arrays do NOT match\n", nplanes,
                firstNpl, lastNpl, 0);
-      gpudone();
       return 1;
     }
 
@@ -290,32 +393,32 @@ int gpuallocarrays(int *width, int *thick, int *nxprj2, int *nviews,
     if (cudaBindTextureToArray(localtex, localData, projDesc) != cudaSuccess) {
       allocerr("Failed to bind local factor arrays to texture", nplanes, 
                firstNpl, lastNpl, 1);
-      gpudone();
       return 1;
     }
-    memTot += 4 * sizetmp * *nviews + 48 * *numWarps * *nviews;
+    memTot += 4 * sizetmp * nlines + 48 * *numWarps * *nviews;
   }
 
   // Get arrays for radial filtering
-  if (*numWarps >= 0) {
-    sizetmp = *nxprj2 * *nviews * sizeof(float);
+  if (*nfilt > 0) {
+    sizetmp = *nxprj2 * *nyprj * sizeof(float);
     if (cudaMalloc((void **)&devFFT, sizetmp)  != cudaSuccess ||
-        cudaMalloc((void **)&radialFilt, sizetmp)  != cudaSuccess) {
+        cudaMalloc((void **)&radialFilt, sizetmp * *nfilt)  != cudaSuccess) {
       allocerr("Failed to allocate GPU arrays for radial filtering", nplanes,
                firstNpl, lastNpl, 1);
-      gpudone();
       return 1;
     }
-    memTot += 2 * sizetmp;
+    memTot += (1 + *nfilt) * sizetmp;
+    numFilts = *nfilt;
   }
 
   pflush("Allocated %4d MB for arrays (including %d input planes) on the GPU\n"
          , (memTot + 512*1024)/(1024*1024), *nplanes);
   sliceWidth = *width;
-  sliceThick = *thick;
+  sliceThick = *nyout;    // Only good for backprojection!
   numViews = *nviews;
   numProjPlanes = *nplanes;
   nxPlane = *nxprj2;
+  nyPlane = *nyprj;
   return 0;
 }
 
@@ -329,12 +432,31 @@ void gpudone()
   cudaFree(yprojf);
   cudaFree(yprojz);
   cudaFreeArray(localData);
+  cudaFreeArray(localPfac);
+  cudaFreeArray(devDelz);
   cudaFree(devFFT);
   cudaFree(radialFilt);
+  cudaFree(devReproj);
+  cudaFreeArray(devRpSlice);
   if (forwardPlan)
     cufftDestroy(forwardPlan);
   if (inversePlan)
     cufftDestroy(inversePlan);
+  devSlice = NULL;
+  devProj = NULL;
+  xprojf = NULL;
+  xprojz = NULL;
+  yprojf = NULL;
+  yprojz = NULL;
+  localData = NULL;
+  localPfac = NULL;
+  devDelz = NULL;
+  devFFT = NULL;
+  radialFilt = NULL;
+  devReproj = NULL;
+  devRpSlice = NULL;
+  forwardPlan = 0;
+  inversePlan = 0;
 }
 
 /*
@@ -362,11 +484,11 @@ int gpushiftproj(int *numPlanes, int *lsliceStart, int *loadStart)
         todo = shift;
         if (todo > numToShift)
           todo = numToShift;
-        dstY = shiftStart * numViews;
-        srcY = dstY + shift * numViews;
+        dstY = shiftStart * nyPlane;
+        srcY = dstY + shift * nyPlane;
         //pflush("Copying down %d\n", todo);
         if (cudaMemcpy2DArrayToArray(devProj, 0, dstY, devProj, 0, srcY,
-                                     sizetmp, todo * numViews,
+                                     sizetmp, todo * nyPlane,
                                      cudaMemcpyDeviceToDevice) != cudaSuccess){
           pflerr("Error copying segment of projection array down");
           numLoadedPlanes = 0;
@@ -418,8 +540,8 @@ int gpuloadproj(float *lines, int *numPlanes, int *lsliceStart, int *loadStart)
   copyFilteredOK = 0;
 
   // Finally do the load
-  dstY = startm1 * numViews;
-  todo = numCopy * numViews * nxPlane * 4;
+  dstY = startm1 * nyPlane;
+  todo = numCopy * nyPlane * nxPlane * 4;
   //if (numCopy) pflush("Loading %d planes\n", numCopy);
   if (numCopy && cudaMemcpyToArray(devProj, 0, dstY, lines, todo,
                                    cudaMemcpyHostToDevice) != cudaSuccess) {
@@ -471,7 +593,7 @@ __global__ void filterFFT(float *FFT, float *filter, int nxprj2, int nviews,
 // Function to load the filter lines into the array and generate plans
 int gpuloadfilter(float *lines)
 {
-  size_t sizetmp = nxPlane * numViews * sizeof(float);
+  size_t sizetmp = nxPlane * numViews * numFilts * sizeof(float);
   if (cudaMemcpy(radialFilt, lines, sizetmp, cudaMemcpyHostToDevice) !=
       cudaSuccess) {
     pflerr("Failed to copy radial filters to GPU array");
@@ -489,7 +611,7 @@ int gpuloadfilter(float *lines)
 }
 
 // Function to filter the set of input lines
-int gpufilterlines(float *lines, int *lslice)
+int gpufilterlines(float *lines, int *lslice, int *filterSet)
 {
   int ind, blockX = 16;
   size_t sizetmp = nxPlane * numViews * sizeof(float);
@@ -512,7 +634,8 @@ int gpufilterlines(float *lines, int *lslice)
                 (numViews + blockSize.y - 1) / blockSize.y, 1);
 
   filterFFT<<<gridSize, blockSize>>>
-    (devFFT, radialFilt, nxPlane, numViews, scale);
+    (devFFT, radialFilt + (*filterSet - 1) * nxPlane * numViews, nxPlane, 
+     numViews, scale);
   err = cudaGetLastError();
   if (err != cudaSuccess) {
     pflerr("Error executing threads for filtering"); 
@@ -614,7 +737,7 @@ int gpubpnox(float *slice, float *lines, float *sbeta, float *cbeta,
   float zpart, xlft, xrt, xlfttmp, xrttmp;
   int i, blockX = 16;
 
-  if (loadBetaInvertCos(cbeta, sbeta, cosinv))
+  if (loadBetaInvertCos(cbeta, sbeta, cosinv, numViews))
     return 1;
 
   // Copy projections
@@ -683,7 +806,8 @@ int gpubpnox(float *slice, float *lines, float *sbeta, float *cbeta,
       return 1;
   }
 
-  return (synchronizeCopySlice(slice, sliceThick));
+  return (synchronizeCopySlice(devSlice, slicePitch, slice, sliceWidth, 
+                               sliceThick));
     
 }
 
@@ -771,7 +895,7 @@ int gpubpxtilt(float *slice, float *sbeta, float *cbeta,
   int i, ytest, blockX = 16;
   float cosinv[DELTA_OFS];
 
-  if (loadBetaInvertCos(cbeta, sbeta, cosinv))
+  if (loadBetaInvertCos(cbeta, sbeta, cosinv, numViews))
     return 1;
 
   // Copy alphas and z factors
@@ -853,7 +977,8 @@ int gpubpxtilt(float *slice, float *sbeta, float *cbeta,
       return 1;
   }
 
-  return (synchronizeCopySlice(slice, sliceThick));
+  return (synchronizeCopySlice(devSlice, slicePitch, slice, sliceWidth,
+                               sliceThick));
 }
 
 /*
@@ -861,8 +986,9 @@ int gpubpxtilt(float *slice, float *sbeta, float *cbeta,
  */
 
 // Kernel for back-projection using local projection factors, testing as needed
-__global__ void bpLocalTest(float *slice, float *xprojf, float *xprojz, 
-                            float *yprojf, float *yprojz, int pitch, int iwide,
+__global__ void bpLocalTest(float *slice, int slPitch, float *xprojf, 
+                            float *xprojz, float *yprojf, float *yprojz, 
+                            int localPitch, int iwide,
                             int nxprj, int lsliceLast, int ithick, int nviews,
                             float ycen, int lsliceBase, float edgeFill)
 {
@@ -874,7 +1000,7 @@ __global__ void bpLocalTest(float *slice, float *xprojf, float *xprojz,
   if (i < ithick && j < iwide) {
     zz = (i + 1 - ycen);
     for (iv = 0; iv < nviews; iv++) {
-      ind = iv * pitch + j;
+      ind = iv * localPitch + j;
       xp = xprojf[ind] + zz * xprojz[ind] - 0.5f;
       yproj = yprojf[ind] + zz * yprojz[ind];
       if (yproj >= lsliceBase && yproj <= lsliceLast && xp >= 0.5 && 
@@ -888,21 +1014,21 @@ __global__ void bpLocalTest(float *slice, float *xprojf, float *xprojz,
         sum += edgeFill;
       }
     }
-    slice[i * pitch + j] = sum;
+    slice[i * slPitch + j] = sum;
   }
 }
 
 // Kernel for computing the local projection factors from warping data
 __global__ void localProjFactors
-(float *xprjf, float *xprjz, float *yprjf, float *yprjz, int pitch, int nviews,
- int iwide, int lslice, int nxwarp, int nywarp, int ixswarp, int iyswarp,
- int idxwarp, int idywarp, float xcen, float xcenin, float xcenPdelxx,
- float slicen)
+(float *xprjf, float *xprjz, float *yprjf, float *yprjz, int pitch, int iv, 
+ int nviews, int iwide, int minX, int lslice, int nlines, int nxwarp, 
+ int nywarp, int ixswarp, int iyswarp, int idxwarp, int idywarp, float xcen,
+ float xcenin, float xcenPdelxx, float slicen)
 {
   int j = blockIdx.x * blockDim.x + threadIdx.x;
-  int iv = blockIdx.y * blockDim.y + threadIdx.y;
+  int line = blockIdx.y * blockDim.y + threadIdx.y;
   int ind1,ind2,ind3,ind4,ixc,ixt,ixpos,iyt,iypos;
-  float fnd1,fnd2,fnd3,fnd4,yzf1,yzf2,yzf3,yzf4;
+  float fnd1,fnd2,fnd3,fnd4,yzf1,yzf2,yzf3,yzf4,jpos;
   float f1,f2,f3,f4,xx,yy,fx,fy;
   float calf,salf,a11,a12,a21,a22,xadd,yadd,xalladd,yalladd;
   float calf2,salf2,a112,a122,a212,a222,xadd2,yadd2;
@@ -913,11 +1039,16 @@ __global__ void localProjFactors
   float xp1f,xp1z,yp1f,xp2f,xp2z,yp2f,xp3f,xp3z,yp3f,xp4f,xp4z,yp4f;
   float cbeta,sbeta,cbeta2,sbeta2,cbeta3,sbeta3,cbeta4,sbeta4;
 
-  if (j >= iwide || iv >= nviews)
+  if (j >= iwide || line >= nlines)
     return;
+  if (iv < 0)
+    iv = line;
+  else
+    lslice += line;
 
   // Need to add 1 to j when it is used as a position
-  ixc=(int)floor(j-xcen+xcenPdelxx+1.5f);
+  jpos = j + minX + 1;
+  ixc=(int)floor(jpos-xcen+xcenPdelxx+0.5f);
   ixt=min(max(ixc-ixswarp,0),(nxwarp-1)*idxwarp);
   ixpos=min(ixt/idxwarp+1,nxwarp-1);
   fx=((float)(ixt-(ixpos-1)*idxwarp))/idxwarp;
@@ -1006,7 +1137,7 @@ __global__ void localProjFactors
   // Each projection position is a sum of a fixed factor ("..f")
   // and a factor that multiplies z ("..z")
    
-  xx=j+1.-xcen;
+  xx=jpos-xcen;
   yy=lslice-slicen;
   xp1f=xx*cbeta + yy*salf*sbeta + xcenPdelxx;
   xp1z=calf*sbeta + tex2D(localtex,fnd1,XZFIND);
@@ -1028,7 +1159,7 @@ __global__ void localProjFactors
   yzf2 = tex2D(localtex,fnd2,YZFIND);
   yzf3 = tex2D(localtex,fnd3,YZFIND);
   yzf4 = tex2D(localtex,fnd4,YZFIND);
-  ind1 = pitch * iv + j;
+  ind1 = pitch * line + j;
   xprjf[ind1] =f1x*xp1f+f2x*xp2f+f3x*xp3f+f4x*xp4f+
     f1xy*yp1f+f2xy*yp2f+f3xy*yp3f+f4xy*yp4f+xalladd;
   xprjz[ind1] =f1x*xp1z+f2x*xp2z+f3x*xp3z+f4x*xp4z-
@@ -1067,9 +1198,9 @@ int gpubplocal(float *slice, int *lslice, int *nxwarp, int *nywarp,
   dim3 gridFac((sliceWidth + blockFac.x - 1) / blockFac.x, 
                 (numViews + blockFac.y - 1) / blockFac.y, 1);
   localProjFactors<<<gridFac, blockFac>>>
-    (xprojf, xprojz, yprojf, yprojz, slicePitch / 4, numViews, sliceWidth, 
-     *lslice, *nxwarp, *nywarp, *ixswarp, *iyswarp, *idxwarp, *idywarp, *xcen,
-     *xcenin, *xcenin+*delxx, *slicen);
+    (xprojf, xprojz, yprojf, yprojz, localPitch / 4, -1, numViews, sliceWidth, 
+     0, *lslice, numViews, *nxwarp, *nywarp, *ixswarp, *iyswarp, *idxwarp, 
+     *idywarp, *xcen, *xcenin, *xcenin+*delxx, *slicen);
   if (testReportErr("computing localProjFactors"))
       return 1;
 
@@ -1078,20 +1209,20 @@ int gpubplocal(float *slice, int *lslice, int *nxwarp, int *nywarp,
     return 1;
   }
 
-
   // Do the backprojection
   dim3 blockSize(blockX, 16, 1);
   dim3 gridSize((sliceWidth + blockSize.x - 1) / blockSize.x, 
                 (sliceThick + blockSize.y - 1) / blockSize.y, 1);
 
   bpLocalTest<<<gridSize, blockSize>>>
-    (devSlice, xprojf, xprojz, yprojf, yprojz, slicePitch / 4, sliceWidth,
-     *nxprj, lsliceFirst + numLoadedPlanes - 1, 
+    (devSlice, slicePitch / 4, xprojf, xprojz, yprojf, yprojz, localPitch / 4,
+     sliceWidth, *nxprj, lsliceFirst + numLoadedPlanes - 1, 
      sliceThick, numViews, *ycen, lsliceFirst, *edgefill);
   if (testReportErr("for local backprojection"))
       return 1;
 
-  return (synchronizeCopySlice(slice, sliceThick));
+  return (synchronizeCopySlice(devSlice, slicePitch, slice, sliceWidth, 
+                               sliceThick));
 }
 
 /*
@@ -1236,22 +1367,352 @@ int gpureproject(float *lines, float *sbeta, float *cbeta, float *salpha,
   }
   if (testReportErr("for reprojection"))
     return 1;
-  return (synchronizeCopySlice(lines, numLines));
+  return (synchronizeCopySlice(devSlice, slicePitch, lines, sliceWidth,
+                               numLines));
 }
 
+/*
+ * ROUTINES TO REPROJECT A SINGLE SLICE
+ */
+
+__global__ void reprojOneSlice(float *lines, int pitch, int iwide, int ithick, 
+                               float ycen, int numproj, float pmean)
+{
+  int j = blockIdx.x * blockDim.x + threadIdx.x;
+  int i = blockIdx.y * blockDim.y + threadIdx.y;
+  int kz;
+  float zz, sum, frac, xcenAdj, xx;
+  sum = 0.;
+  if (j >= iwide || i >= numproj )
+    return;
+  for (kz = 0; kz < rpNumz[i]; kz++) {
+    zz = 1 + kz * tables[COSOFS + i];
+    frac = 1.;
+    if (zz > ithick) {
+      frac = 1. - (zz - (int)zz);
+      zz = ithick;
+    }
+    xcenAdj = iwide / 2;
+
+    // Invert what is multipled by sine because these sines were never inverted
+    // inside tilt.f, unlike the signs for regular reproj
+    // The usual 0.5 is incorporated into xcenAdj
+    xx = (j + 1 - ((ycen - zz)  * tables[SINOFS+i] + xcenAdj + 0.5f)) * 
+      tables[INVOFS+i] + xcenAdj;
+    if (xx < 0.5f || xx > iwide - 0.5) {
+      sum += frac * pmean;
+    } else {
+      sum += frac * tex2D(rpSlicetex, xx, zz - 0.5f);
+    }
+  }
+  lines[pitch * i + j] = sum;
+}
+
+int gpureprojoneslice(float *slice, float *lines, float *sbeta, float *cbeta,
+                      float *ycen, int *numproj, float *pmean)
+{
+  float znum, cosinv[DELTA_OFS];
+  int numz[DELTA_OFS];
+  int blockX = 16;
+  int iv;
+
+  // Get limited inverse cosines and number of points to do in Z
+  loadBetaInvertCos(cbeta, sbeta, cosinv, *numproj);
+
+  for (iv = 0; iv < *numproj; iv++) {
+    znum = 1. + (sliceThick - 1) * cosinv[iv];
+    numz[iv] = znum;
+    if (znum - numz[iv] > 0.1)
+      numz[iv]++;
+  }
+
+  // Load constant data
+  iv = *numproj * sizeof(float);
+  if (cudaMemcpyToSymbol(tables, cosinv, iv, INVOFS*4, cudaMemcpyHostToDevice)
+      || cudaMemcpyToSymbol(rpNumz, numz, iv, 0, cudaMemcpyHostToDevice)) {
+    pflerr("Failed to copy constant data to GPU");
+    return 1;
+  }
+
+  // Copy slice
+  iv = sizeof(float) * sliceWidth * sliceThick;
+  if (cudaMemcpyToArray(devRpSlice, 0, 0, slice, iv, cudaMemcpyHostToDevice)
+      != cudaSuccess) {
+    pflerr("Failed to copy slice array to device");
+    return 1;
+  }
+  dim3 blockSize(blockX, 16, 1);
+  dim3 gridSize((sliceWidth + blockSize.x - 1) / blockSize.x, 
+                (*numproj + blockSize.y - 1) / blockSize.y, 1);
+  reprojOneSlice<<<gridSize, blockSize>>>
+    (devReproj, reprojPitch / 4, sliceWidth, sliceThick, *ycen, *numproj,
+     *pmean);
+  if (testReportErr("for reprojection"))
+    return 1;
+
+  return (synchronizeCopySlice(devReproj, reprojPitch, lines, nxPlane, 
+                               *numproj));
+}
+
+/*
+ * ROUTINES FOR REPROJECTION WITH LOCAL ALIGNMENTS
+ */
+
+/*
+  Finds loaded point that projects to xproj, yproj at centered Z value
+  zz, using stored values for [xy]zfac[fv].  Takes starting value in xx,yy
+  and returns found value.
+  Xproj, yproj are coordinates in original aligned stack.
+  XX coordinate is in terms of the loaded data in X
+  YY coordinate is in yterms of slices of reconstruction
+*/
+__device__ void loadedProjectingPoint
+(float xproj, float yproj, float zz, float ofsxpz, float ofsypf, float ofsypz, 
+ int nxload, int lsliceBase, int lsliceLast, float *xx, float *yy)
+{
+  int iter, ix, iy, ifout;
+  float xp11, yp11, xp12, yp12, xp21, yp21, xerr, yerr, dypx, dxpy,dxpx;
+  float dypy, den, fx, fy, findx1, findx2, findy1, findy2;
+
+  for (iter = 0; iter < 5; iter++) {
+    ix = (int)floor(*xx);
+    iy = (int)floor(*yy);
+    ifout = 0;
+    if (ix < 1 || ix >= nxload || iy < lsliceBase || iy >= lsliceLast) {
+      ifout = 1;
+      ix = min(nxload - 1, max(1, ix));
+      iy = min(lsliceLast - 1, max(lsliceBase, iy));
+    }
+
+    findx1 = ix - 1;
+    findx2 = findx1 + 1.;
+    findy1 = iy - lsliceBase;
+    findy2 = findy1 + 1;
+    //*yy = tex2D(pfactex, findx1, findy1 + ofsypf); return;
+    xp11 = tex2D(pfactex, findx1, findy1) + 
+      tex2D(pfactex, findx1, findy1 + ofsxpz) * zz;
+    yp11 = tex2D(pfactex, findx1, findy1 + ofsypf) + 
+      tex2D(pfactex, findx1, findy1 + ofsypz) * zz;
+    xp21 = tex2D(pfactex, findx2, findy1) + 
+      tex2D(pfactex, findx2, findy1 + ofsxpz) * zz;
+    yp21 = tex2D(pfactex, findx2, findy1 + ofsypf) + 
+      tex2D(pfactex, findx2, findy1 + ofsypz) * zz;
+    xp12 = tex2D(pfactex, findx1, findy2) + 
+      tex2D(pfactex, findx1, findy2 + ofsxpz) * zz;
+    yp12 = tex2D(pfactex, findx1, findy2 + ofsypf) + 
+      tex2D(pfactex, findx1, findy2 + ofsypz) * zz;
+ 
+    xerr = xproj - xp11;
+    yerr = yproj - yp11;
+    dxpx = xp21 - xp11;
+    dxpy = xp12 - xp11;
+    dypx = yp21 - yp11;
+    dypy = yp12 - yp11;
+    den = dxpx * dypy - dxpy * dypx;
+    fx = (xerr * dypy - yerr * dxpy) / den;
+    fy = (dxpx * yerr - dypx * xerr) / den;
+    *xx = ix + fx;
+    *yy = iy + fy;
+    if (fx > -0.1 & fx < 1.1 && fy > -0.1 && fy < 1.1) 
+      return;
+    if (ifout && (iter > 0 ||  *xx < 0. || *xx > nxload + 1 || 
+                  *yy < lsliceBase - 1. || *yy > lsliceLast + 1.))
+      return;
+  }
+}
+
+__global__ void reprojLocal
+(float *lines, int pitch, int nWarpDelz, float dxWarpDelz, int nxload,
+ int iwide, int ithick, int lsStart, int lsEnd, int lsliceBase, int lsliceLast,
+ float xprojMin, float xprojMax, float xcenAdj, float xcenPdelxx,
+ float xprjOffset, float slicen, float yprjOffset, float ycenAdj, float cbeta,
+ float sbeta, float cbetinv, float calfinv, float salfmyz, float salfsbet,
+ float calsbetpxz, float pmean)
+{
+  int j = blockIdx.x * blockDim.x + threadIdx.x;
+  int i = blockIdx.y * blockDim.y + threadIdx.y;
+  int line, lastZdone, iy;
+  float zz, sum, frac, zslice, yproj, yy, xproj, xx, fy, zind, fline, ofsypz;
+  float xxtex, ofsxpz, ofsypf;
+  float ytol = 0.05f;
+  float zzlim, lbaseMtol, llastPtol, dxWarpInv;
+  //  int skip =390;
+
+  line = i + lsStart;
+  sum = 0.;
+  if (j >= iwide || line > lsEnd)
+    return;
+
+  ofsxpz = lsliceLast + 1 - lsliceBase;
+  ofsypf = ofsxpz + ofsxpz;
+  ofsypz = ofsypf + ofsxpz;
+  fline = i;
+  yproj = line + yprjOffset;
+
+  /* Get x projection coord, starting centered Z coordinate, and
+     approximate x and y coordinates 
+     X coordinate needs to be a loaded X index
+     Y coordinate is in slices of reconstruction */
+
+  // ycenAdj needs to be ycen - (minYreproj - 1)
+  // xcenAdj = xcen - (minXload - 1)
+  xproj = j + 1 + xprjOffset;
+  zz = 1. - ycenAdj;
+  yy = (yproj + zz * salfmyz - slicen) * calfinv + slicen;
+  xx = (xproj - (yy*salfsbet + zz * calsbetpxz + xcenPdelxx)) * cbetinv +
+    xcenAdj;
+  yy -= yprjOffset;
+  //lines[pitch * i + j] = yy; return;
+
+  // Precalculate some items, doesn't help
+  zzlim = ithick + 1 - ycenAdj;
+  lbaseMtol = lsliceBase - ytol;
+  llastPtol = lsliceLast + ytol;
+  dxWarpInv = 1. / dxWarpDelz;
+
+  // Move on ray up in Z
+  lastZdone = 0;
+              
+  while (zz < zzlim && !lastZdone) {
+
+    // xprojMin/Max already adjusted by 5
+    if (xproj < xprojMin || xproj > xprojMax) {
+      sum = sum + pmean;
+      //if (zz + ycenAdj > ithick - skip) {lines[pitch * i + j] = 0; return;}
+    } else {
+      loadedProjectingPoint(xproj, yproj, zz, ofsxpz, ofsypf, ofsypz,
+                            nxload, lsliceBase, lsliceLast, &xx, &yy);
+      //if (zz + ycenAdj > ithick - skip) {lines[pitch * i + j] = yy; return;}
+
+      // If X or Y is out of bounds, fill with mean
+      if (yy < lbaseMtol || yy > llastPtol || xx < 1. || xx >= nxload) {
+        sum = sum + pmean;
+      } else {
+
+        // otherwise, get x, y, z indexes, clamp y to limits, allow
+        // a fractional Z pixel at top of volume
+        xxtex = xx - 0.5f;
+        yy = max((float)lsliceBase, min(lsliceLast - 0.01, yy));
+        iy = yy;
+        fy = yy - iy;
+        zslice = zz + ycenAdj;
+        frac = 1.;
+        if (zslice > ithick) {
+          frac = 1. - (zslice - (int)zslice);
+          zslice = ithick - 0.5f;
+          lastZdone = 1;
+        } else
+          zslice -= 0.5f;
+                     
+        // Do the interpolation
+        zslice += (iy - lsliceBase) * ithick;
+
+        sum += frac * ((1. - fy) * tex2D(projtex, xxtex, zslice) +
+                       fy * tex2D(projtex, xxtex, zslice + ithick));
+
+        // ELIMINATED JUMPING, IT TAKES 50% LONGER
+      }
+    }
+                 
+    // Adjust Z by local factor, move X approximately for next pixel
+    zind = max(0., min(nWarpDelz - 1., xx * dxWarpInv));
+    zz = zz + tex2D(delztex, zind, fline);
+    xx = xx + sbeta;
+  }
+  lines[pitch * i + j] = sum;
+}
+
+int gpureprojlocal
+(float *lines, float *sbeta, float *cbeta, float *salpha, float *calpha,
+ float *xzfac, float *yzfac, int *nxwarp, int *nywarp, int *ixswarp, 
+ int *iyswarp, int *idxwarp, int *idywarp, float *warpDelz, int *nWarpDelz, 
+ float *dxWarpDelz, float *xprojMin, float *xprojMax, int *lsStart, int *lsEnd,
+ int *ithick, int *iview, float *xcen, float *xcenin, float *delxx, 
+ int *minXload, float *xprjOffset, float *ycenAdj, float *yprjOffset,
+ float *slicen, float *pmean)
+{
+  int blockX = 16;
+  int numLines = *lsEnd + 1 - *lsStart;
+  int lastSlice = lsliceFirst + numLoadedPlanes - 1;
+  int nbd, nbp;
+  float xcenAdj, salfsbet, calsbetpxz, salfmyz, cbetinv,calfinv;
+
+  xcenAdj = *xcen - (*minXload-1);
+  salfsbet = *salpha * *sbeta;
+  calsbetpxz = *calpha * *sbeta + *xzfac;
+  salfmyz = *salpha - *yzfac;
+  cbetinv = 1. / *cbeta;
+  calfinv = 1. / *calpha;
+  nbd = (int)floor(*yprjOffset + 0.5);
+
+  // Compute the local projection factors
+  dim3 blockFac(blockX, 16, 1);
+  dim3 gridFac((nxPlane + blockFac.x - 1) / blockFac.x, 
+                (numLoadedPlanes + blockFac.y - 1) / blockFac.y, 1);
+  localProjFactors<<<gridFac, blockFac>>>
+    (xprojf, xprojz, yprojf, yprojz, localPitch / 4, *iview - 1, numViews, 
+     nxPlane, *minXload - 1, lsliceFirst + nbd, numLoadedPlanes, *nxwarp,
+     *nywarp, *ixswarp,
+     *iyswarp, *idxwarp, *idywarp, *xcen, *xcenin, *xcenin+*delxx, *slicen);
+  if (testReportErr("computing localProjFactors"))
+      return 1;
+  /* return (synchronizeCopySlice(yprojf, localPitch, lines, sliceWidth,
+     numLines)); */
+
+  if (cudaThreadSynchronize() != cudaSuccess) {
+    pflerr("Error return from synchronizing after computing local factors");
+    return 1;
+  }
+
+  // Load the texture arrays
+  nbd = sizeof(float) * *nWarpDelz * numLines;
+  nbp = sizeof(float) * nxPlane;
+  if (cudaMemcpyToArray(devDelz, 0, 0, warpDelz, nbd, cudaMemcpyHostToDevice)
+      != cudaSuccess ||
+      cudaMemcpy2DToArray(localPfac, 0, 0, xprojf, localPitch, nbp, 
+                          numLoadedPlanes, cudaMemcpyDeviceToDevice) 
+      != cudaSuccess ||
+      cudaMemcpy2DToArray(localPfac, 0, numLoadedPlanes, xprojz, localPitch,
+                          nbp, numLoadedPlanes, cudaMemcpyDeviceToDevice) 
+      != cudaSuccess ||
+      cudaMemcpy2DToArray(localPfac, 0, 2*numLoadedPlanes, yprojf, localPitch,
+                          nbp, numLoadedPlanes, cudaMemcpyDeviceToDevice) 
+      != cudaSuccess ||
+      cudaMemcpy2DToArray(localPfac, 0, 3*numLoadedPlanes, yprojz, localPitch,
+                          nbp, numLoadedPlanes, cudaMemcpyDeviceToDevice) 
+      != cudaSuccess) {
+    pflerr("Failed to copy local proj factors to texture array");
+    return 1;
+  }
+
+  // Do the reprojection
+  dim3 blockSize(blockX, 16, 1);
+  dim3 gridSize((sliceWidth + blockSize.x - 1) / blockSize.x, 
+                (numLines + blockSize.y - 1) / blockSize.y, 1);
+  reprojLocal<<<gridSize, blockSize>>>
+    (devSlice, slicePitch / 4, *nWarpDelz, *dxWarpDelz, nxPlane, sliceWidth,
+     *ithick, *lsStart, *lsEnd, lsliceFirst, lastSlice, *xprojMin, *xprojMax,
+     xcenAdj, *xcenin + *delxx, *xprjOffset, *slicen, *yprjOffset, *ycenAdj,
+     *cbeta, *sbeta, cbetinv, calfinv, salfmyz, salfsbet, calsbetpxz, *pmean);
+  if (testReportErr("for local reprojection"))
+      return 1;
+  return (synchronizeCopySlice(devSlice, slicePitch, lines, sliceWidth,
+                               numLines));
+}
 
 /*
  * UTILITY ROUTINES
  */
    
 // Load cosine and sine beta into constant array and compute inverse cosine
-static int loadBetaInvertCos(float *cbeta, float *sbeta, float *cosinv)
+static int loadBetaInvertCos(float *cbeta, float *sbeta, float *cosinv, 
+                             int num)
 {
   int i, iv;
   float yy;
 
   // Invert cosines with limit
-  for (i = 0; i < numViews; i++) {
+  for (i = 0; i < num; i++) {
     yy = cbeta[i];
     if (fabs(yy) < 0.001f)
       yy = yy >= 0 ? 0.001f : -0.001f;
@@ -1259,7 +1720,7 @@ static int loadBetaInvertCos(float *cbeta, float *sbeta, float *cosinv)
   }
 
   // Copy sines/cosines
-  iv = numViews * sizeof(float);
+  iv = num * sizeof(float);
   if (cudaMemcpyToSymbol(tables, cbeta, iv, 0, cudaMemcpyHostToDevice) ||
       cudaMemcpyToSymbol(tables, sbeta, iv, SINOFS*4,
                             cudaMemcpyHostToDevice)) {
@@ -1270,7 +1731,8 @@ static int loadBetaInvertCos(float *cbeta, float *sbeta, float *cosinv)
 }
 
 // Synchronize the threads and copy computed data back to caller's array
-static int synchronizeCopySlice(float *slice, int numLines)
+static int synchronizeCopySlice(float *devslc, int pitch, float *slice,
+                                int width, int numLines)
 {
   int sizetmp;
   if (cudaThreadSynchronize() != cudaSuccess) {
@@ -1279,8 +1741,8 @@ static int synchronizeCopySlice(float *slice, int numLines)
   }
 
   // Get slice back
-  sizetmp = sizeof(float) * sliceWidth;
-  if (cudaMemcpy2D(slice, sizetmp, devSlice, slicePitch, sizetmp, numLines, 
+  sizetmp = sizeof(float) * width;
+  if (cudaMemcpy2D(slice, sizetmp, devslc, pitch, sizetmp, numLines, 
                    cudaMemcpyDeviceToHost) != cudaSuccess) {
     pflerr("Error copying slice back to host");
     return 1;
@@ -1330,12 +1792,13 @@ static void pflerr(const char *format, ...)
   va_end(args);
 }
 
-// Print appropriate error from allocation
+// Print appropriate error from allocation and free all arrays
 static void allocerr(char *mess, int *nplanes, int *firstNpl,
                      int *lastNpl, int ifcuda)
 {
   char *whichText[3] = {"first", "last", "only"};
   int which = 2;
+  gpudone();
   if (*firstNpl != *lastNpl) {
     if (*nplanes == *firstNpl)
       which = 0;
@@ -1354,6 +1817,10 @@ static void allocerr(char *mess, int *nplanes, int *firstNpl,
 /*
 
 $Log$
+Revision 3.2  2010/01/10 17:20:05  mast
+Stopped selecting device more than once, setup structure to limit error
+messages on repeated allocation attempts
+
 Revision 3.1  2009/12/31 20:36:59  mast
 Initial implementation
 
