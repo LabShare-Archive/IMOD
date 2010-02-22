@@ -32,6 +32,7 @@ Usage: $pn [options] command_file
       -b #   Number of boundary pixels for direct writing (default $boundpixels)
       -i #   Set initial command file number to #
       -o     Leave command set open, finish with -sync instead of -finish
+      -d #,# Dimensions of aligned stack in case it does not exist
 EOF
 exit 0
 endif
@@ -51,6 +52,7 @@ set ifstartnum = 0
 set leaveopen = 0
 @ startnum = 1
 set boundext = rbound
+set dimens = ""
 
 while ($#argv > 1)
   switch ($argv[1])
@@ -110,6 +112,15 @@ while ($#argv > 1)
       shift
       breaksw
 
+    case -d:
+      set dimens = `echo $argv[2] | sed -e '/,/s// /g' -e '/[^0-9 ]/s///g'`
+      if ($#dimens < 2) then
+        echo "ERROR: $pn - must enter two numbers for dimensions"
+        exit 1
+      endif
+      shift; shift
+      breaksw
+
     default:
       echo "ERROR: $pn - unrecognized option $argv[1]"
       exit 1
@@ -127,6 +138,7 @@ endif
 #
 if ($minslabs == 0) @ minslabs = $minratio * $numproc
 if ($targetslabs == 0) @ targetslabs = $targetratio * $numproc
+if ($targetslabs < $minslabs) @ targetslabs = $minslabs
 
 # Collect info from command file
 #
@@ -161,12 +173,12 @@ if ("$recfile" == "" || "$alifile" == "") then
         `vmstocsh < $comname | awk '{if (NR==LINE) print}' LINE=$nextline | sed '/[[:cntrl:]]/s///g'`
 endif
 
-if (! -e $alifile && $#fullimage == 0 && "$slices" == "") then
+if (! -e $alifile && "$dimens" == "" && $#fullimage == 0 && "$slices" == "") then
     echo "ERROR: $pn - Command file has neither a SLICE nor a FULLIMAGE entry and image file does not exist yet"
     exit 1
 endif
 
-if ($direct && (! -e $alifile) && $#fullimage == 0 && "$width" == "") then
+if ($direct && (! -e $alifile) && "$dimens" == "" && $#fullimage == 0 && "$width" == "") then
     echo "ERROR: $pn - Command file has neither a WIDTH nor a FULLIMAGE entry and image file does not exist yet"
     exit 1
 endif
@@ -199,11 +211,15 @@ endif
 # Get the size from the aligned stack instead of relying on FULLIMAGE if
 # possible, and scale them up by binning
 #
-if (-e $alifile) then
-    set fullimage = `header -s $alifile | sed '/[[:cntrl:]]/s///g'`
-    if ($#fullimage < 3) then
-        echo "ERROR: $pn - Reading header of $alifile"
-        exit 1
+if (-e $alifile || "$dimens" != "" ) then
+    if (-e $alifile) then
+        set fullimage = `header -s $alifile | sed '/[[:cntrl:]]/s///g'`
+        if ($#fullimage < 3) then
+            echo "ERROR: $pn - Reading header of $alifile"
+            exit 1
+        endif
+    else
+        set fullimage = ($dimens)
     endif
     @ num = $fullimage[1]
     @ num *= $binval
@@ -415,7 +431,6 @@ if ($leaveopen) then
     set numtext = `echo $numrec | awk '{printf "%03d\n", $1}'`
     set finish = $rootname-$numtext-sync.com
     set cleanup = '$'"\rm -f "
-    if ($direct) set cleanup = ""
 endif
 if (! $direct && ! $reproj) then
     cat <<EOF >! $finish
@@ -459,6 +474,9 @@ echo "Command files for $numslabs chunks created and ready to run with:"
 echo "  processchunks machine_list $rootname"
 
 #  $Log$
+#  Revision 3.17  2009/12/07 20:54:09  mast
+#  Make processchunks responsible for CHUNK DONE
+#
 #  Revision 3.16  2009/09/10 22:41:31  mast
 #  Fix getting aligned and output stack names from lines with options
 #
