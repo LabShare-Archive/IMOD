@@ -4236,13 +4236,14 @@ static void zapDrawContour(ZapStruct *zap, int co, int ob)
   if ((iobjScat(obj->flags) || checkSymbol) && 
       (contProps.symtype != IOBJ_SYM_NONE || nextChange >= 0)) {
     for (pt = 0; pt < cont->psize; pt++) {
+      ptProps.gap = 0;
       if (pt == nextChange)
         nextChange = ifgHandleNextChange(obj, cont->store, &contProps, 
                                          &ptProps, &stateFlags, &changeFlags, 
                                          handleFlags, selected, scaleSizes);
 
-      if (ptProps.symtype != IOBJ_SYM_NONE && 
-          zapPointVisable(zap, &(cont->pts[pt]))){
+      if (ptProps.symtype != IOBJ_SYM_NONE && !(ptProps.gap && ptProps.valskip)
+          && zapPointVisable(zap, &(cont->pts[pt]))){
         utilDrawSymbol(zapXpos(zap, cont->pts[pt].x),
                        zapYpos(zap, cont->pts[pt].y),
                        ptProps.symtype,
@@ -4259,13 +4260,14 @@ static void zapDrawContour(ZapStruct *zap, int co, int ob)
                                        &stateFlags, handleFlags, selected, 
                                        scaleSizes);
     for (pt = 0; pt < cont->psize; pt++){
+      ptProps.gap = 0;
       if (pt == nextChange)
         nextChange = ifgHandleNextChange(obj, cont->store, &contProps, 
                                          &ptProps, &stateFlags, &changeFlags, 
                                          handleFlags, selected, scaleSizes);
 
       drawsize = imodPointGetSize(obj, cont, pt) / vi->xybin;
-      if (drawsize > 0)
+      if (drawsize > 0 && !(ptProps.gap && ptProps.valskip))
         if (zapPointVisable(zap, &(cont->pts[pt]))){
           /* DNM: make the product cast to int, not drawsize */
           b3dDrawCircle(zapXpos(zap, cont->pts[pt].x),
@@ -4721,6 +4723,9 @@ static void setDrawCurrentOnly(ZapStruct *zap, int value)
 /*
 
 $Log$
+Revision 4.150  2010/01/22 03:05:51  mast
+Call new function to make scale bar work when doing montage snapshot
+
 Revision 4.149  2009/11/11 19:28:46  mast
 Changes for hot key to break contour
 

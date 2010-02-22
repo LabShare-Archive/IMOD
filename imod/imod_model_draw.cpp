@@ -186,11 +186,13 @@ static void imodDrawObjectSymbols(ImodView *vi, Iobj *obj)
     lpt = cont->psize;
     point = cont->pts;
     for (pt = 0; pt < lpt; pt++, point++){
+      ptProps.gap = 0;
       if (nextChange == pt)
         nextChange = ifgHandleNextChange(obj, cont->store, &contProps, 
                                          &ptProps, &stateFlags, 
                                          &changeFlags, handleFlags, 0);
-      if (ptProps.symtype != IOBJ_SYM_NONE)
+      if (ptProps.symtype != IOBJ_SYM_NONE && 
+          !(ptProps.gap && ptProps.valskip))
         imodDrawSymbol(point, ptProps.symtype, ptProps.symsize, 
                        ptProps.symflags, ptProps.linewidth2);
     }
@@ -283,12 +285,13 @@ static void imodDrawSpheres(ImodView *vi, Iobj *obj, float zscale)
     if (contProps.gap)
       continue;
     for (pt = 0, point = cont->pts; pt < cont->psize; pt++, point++) {
+      ptProps.gap = 0;
       if (nextChange == pt)
         nextChange = ifgHandleNextChange(obj, cont->store, &contProps, 
                                          &ptProps, &stateFlags, 
                                          &changeFlags, handleFlags, 0);
       drawsize = imodPointGetSize(obj, cont, pt)  / vi->xybin;
-      if (!drawsize)
+      if (!drawsize || (ptProps.gap && ptProps.valskip))
 	continue;
       glPushMatrix();
       glTranslatef(point->x, point->y, point->z);
@@ -398,6 +401,9 @@ void imodDrawSymbol(Ipoint *point, int sym, int size, int flags, int linewidth)
 
 /*
 $Log$
+Revision 4.17  2008/05/28 15:00:33  mast
+Counteract z scaling when drawing spheres so they come out round
+
 Revision 4.16  2007/12/04 18:43:24  mast
 Changes for stippling and using new util functions
 

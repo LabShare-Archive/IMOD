@@ -1524,7 +1524,8 @@ void XyzWindow::DrawContour(Iobj *obj, int ob, int co)
           nextChange = ifgHandleNextChange(obj, cont->store, &contProps, 
                                            &ptProps, &stateFlags, 
                                            &changeFlags, handleFlags, 0);
-        if (thisVis && ptProps.symtype != IOBJ_SYM_NONE)
+        if (thisVis && ptProps.symtype != IOBJ_SYM_NONE &&
+            !(ptProps.gap && ptProps.valskip))
           utilDrawSymbol((int)(z * thisPt->x + bx), 
                          (int)(z * thisPt->y + by),
                          ptProps.symtype, ptProps.symsize, 
@@ -1617,6 +1618,7 @@ void XyzWindow::DrawSymProj(Iobj *obj, Icont *cont, int co,
     nextChange = ifgHandleContChange(obj, co, contProps, ptProps, 
                                        stateFlags, handleFlags, 0);
   for (pt = 0; pt < cont->psize; pt++) {
+    ptProps->gap = 0;
     point = (float *)(&cont->pts[pt]);
     if (pt == nextChange)
       nextChange = ifgHandleNextChange(obj, cont->store, contProps, 
@@ -1626,7 +1628,8 @@ void XyzWindow::DrawSymProj(Iobj *obj, Icont *cont, int co,
     thisVis = (int)point[indz] == currentZ;
         
     /* Symbol if in plane */
-    if (thisVis && ptProps->symtype != IOBJ_SYM_NONE)
+    if (thisVis && ptProps->symtype != IOBJ_SYM_NONE && 
+        !(ptProps->gap && ptProps->valskip))
       utilDrawSymbol((int)(z * point[indx] + bx), 
                      (int)(z * point[indy] + by),
                      ptProps->symtype, ptProps->symsize, 
@@ -1673,12 +1676,14 @@ void XyzWindow::DrawScatSymAllSpheres(Iobj *obj, int ob,  Icont *cont, int co,
   if (iobjScat(obj->flags) && 
       (contProps->symtype != IOBJ_SYM_NONE || nextChange >= 0)) {
     for (pt = 0; pt < cont->psize; pt++) {
+      ptProps->gap = 0;
       point = (float *)(&cont->pts[pt]);
       if (pt == nextChange)
         nextChange = ifgHandleNextChange(obj, cont->store, contProps, 
                                          ptProps, stateFlags,
                                          &changeFlags, handleFlags, 0);
-      if (ptProps->symtype != IOBJ_SYM_NONE) {
+      if (ptProps->symtype != IOBJ_SYM_NONE && 
+          !(ptProps->gap && ptProps->valskip)) {
         testz = indz == 2 ? B3DNINT(point[indz]) : (int)point[indz];
         if (testz == currentZ)
           utilDrawSymbol((int)(z * point[indx] + bx), 
@@ -1696,12 +1701,13 @@ void XyzWindow::DrawScatSymAllSpheres(Iobj *obj, int ob,  Icont *cont, int co,
       nextChange = ifgHandleContChange(obj, co, contProps, ptProps, 
                                        stateFlags, handleFlags, 0);
     for (pt = 0; pt < cont->psize; pt++) {
+      ptProps->gap = 0;
       if (pt == nextChange)
         nextChange = ifgHandleNextChange(obj, cont->store, contProps, 
                                          ptProps, stateFlags,
                                          &changeFlags, handleFlags, 0);
       drawsize = imodPointGetSize(obj, cont, pt) / mXyz->vi->xybin;
-      if (drawsize > 0) {
+      if (drawsize > 0 && !(ptProps->gap && ptProps->valskip)) {
         point = (float *)(&cont->pts[pt]);
         testz = indz == 2 ? B3DNINT(point[indz]) : (int)point[indz];
         if (testz == currentZ) {
@@ -2354,6 +2360,9 @@ void XyzGL::mouseMoveEvent( QMouseEvent * event )
 
 /*
 $Log$
+Revision 4.57  2009/04/06 19:37:31  mast
+Changes to preserve model cursor in Mac Qt 4.5 when raising window
+
 Revision 4.56  2009/03/30 18:26:20  mast
 Call function to raise on mouse press if needed
 
