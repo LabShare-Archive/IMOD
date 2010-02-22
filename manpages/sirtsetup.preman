@@ -136,9 +136,8 @@ Generate a reconstruction by standard back-projection if desired.  If not, be
 sure to press Postpone or Done in the Tomogram Generation panel to ensure that
 tilt.com is saved.
 
-Run sirtsetup with the needed number of iterations, and retaining only the
-last, e.g.:
-   sirtsetup -it 17 -le 1 tilt.com
+Run sirtsetup with the needed number of iterations, e.g.,
+   sirtsetup -it 17 tilt.com
 
 If you still want to leave more than one iteration, then disk space becomes a
 serious issue.  For a single axis data set, the best approach would be to run
@@ -148,7 +147,7 @@ from etomo_err.log, e.g.:
 .br
 Cut and paste the options (excluding "trimvol" and the file names) and enter
 them within quotes, e.g.:
-    sirtsetup -tr "-rx -f -z 30,160 -sz 50,99" -it 19 -le 5 tilt.com
+    sirtsetup -tr "-rx -f -z 30,160 -sz 50,99" -it 19 -le 15-19 tilt.com
 
 Otherwise, especially for a dual-axis data set where it is not convenient to
 run Trimvol in eTomo, use "-sc -20000,20000" instead of the "-tr" option.
@@ -181,8 +180,7 @@ With several cryoEM data sets that included an X-axis
 tilt, bad striping artifacts developed and increased through the iterations.
 Setting the X-axis tilt to 0 eliminated this problem.
 
-There is not yet a way to tell when to stop iterating.  Densities get
-progressively farther off at the edges of the reconstruction.  There are low
+There is not yet a way to tell when to stop iterating.  There are low
 frequency artifacts, particularly near edges.
 
 Email bug reports to mast@colorado.edu.
