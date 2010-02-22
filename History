@@ -1,5 +1,13 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+2/21/10: Rewrote Sirtsetup in Python to use internal SIRT in Tilt where
+possible, to leave and convert reconstructions at specified iteration numbers,
+and to not split the command file up when going to only one processor.
+
+2/21/10: Tilt modified to do multiple iterations of SIRT internally when
+possible (fixed X-axis tilt, no Z-factors or local alignments), using GPU if
+possible, and to do reprojections with local alignments on the GPU.
+
 2/18/10: In Etomo - Preprocessing, fixed the min/max buttons.
 
 2/18/10: In Etomo - Tomogram Positioning, stop saving to align.com when
@@ -10,7 +18,8 @@ the processchunk crash warning on a tcsh error which did not cause a crash.
 
 2/16/10: Added a separate frame for flattening volumes.
 
-2/14/10: Fixed turning off off spherical points in model view base on value.
+2/14/10: Fixed turning off of spherical points in model view based on value,
+and of symbols and points in image display windows.
 
 2/5/10: Fixed problem with Ccderaser removing way too many points in data with 
 low counts starting at -32768 (i.e., from FEI software).
