@@ -1,0 +1,171 @@
+Version = 1.0
+Pip = 1
+
+[Field = CommandFile]
+short = co
+type = FN
+usage = Command file for reconstruction (with or without extension)
+tooltip =
+manpage = Command file for reconstruction, which can be entered with or
+without its extension of ".com".  If this option is not entered, a non-option
+argument is used for the command file.
+
+[Field = NumberOfProcessors]
+short = nu
+type = I
+usage = Target or expected number of machines (default 8, or 1 if GPU is used)
+tooltip =
+manpage = Use this option to specify the number of machines that you expect to
+run the command files on.  It is passed directly to Splittilt(1) unless it is
+1, in which case the processing is not divided into chunks.  The default is
+8 unless the command file contains the option to use the GPU, in which case it
+is 1.
+
+[Field = StartFromZero]
+short = st
+type = B
+usage = Start from initial reconstruction even if iterations have been done
+tooltip =
+manpage = Do an initial reconstruction, numbered 00, even if it or later 
+reconstructions already exist.  The default is to iterate from the last
+existing reconstruction.
+
+[Field = IterationsToRun]
+short = it
+type = I
+usage = Number of iterations to run (default 10)
+tooltip =
+manpage = Set the number of iterations to run.  If this option is not entered,
+the number that will be run depends on whether the LeaveIterations option is
+used.  If it is not, 10 iterations will be done.  If it is, iterations will be
+done up to the last interation number in the list being left.
+
+[Field = LeaveIterations]
+short = le
+type = LI
+usage = Leave reconstructions at the listed iterations
+tooltip =
+manpage = Leave reconstructions at the listed iterations, which are numbered
+by absolute iteration number.  For example, if 10 iterations have already been
+done and you are doing another 10, entering 14,17-19 will retain the
+reconstructions named setname.srec14, setname.srec17, etc, produced at the
+4th, 7th, 8th and 9th new iteration.  In addition, the reconstruction from the
+final iteration is always retained.
+
+[Field = ScaleToInteger]
+short = sc
+type = FP
+usage = Convert retained reconstructions to integers with given min/max
+tooltip =
+manpage = Scale each retained reconstruction to integers, with the minimum and
+maximum in the reconstruction scaled to the given min and max values.  
+Values of -20000,20000 are recommended.  This scaling
+will reduce the space needed for retained reconstructions twofold, since by
+default each reconstruction is generated as floating point.  This scaling is
+done on each file just after it is produced, so at the end of the processing
+the last reconstruction will be in both floating point and scaled integer
+form.  The file setname.srec01 is scaled to setname.sint01, etc.
+
+[Field = TrimvolOptions]
+short = tr
+type = CH
+usage = Run trimvol with given options on retained reconstructions
+tooltip =
+manpage = Run Trimvol(1) on each retained reconstruction with the given
+options.  The options must be enclosed in single or double quotes.  If the
+options specify
+a scaling to bytes, this will reduce the space needed for retained
+reconstructions by at least fourfold.  Each reconstruction to be retained is
+trimmed as soon as it is made, so at the end of the processing the last
+reconstruction exists in both floating point and trimmed form.  The file
+setname.srec01 is trimmed to setname.strm01, etc.  The trimvol options can
+be extracted from etomo_err.log after running the Trimvol step in eTomo.
+
+[Field = FlatFilterFraction]
+short = fl
+type = F
+usage = Flat filter fraction for starting reconstruction (default 1.)
+tooltip =
+manpage = Set the fraction of a flat filter function to apply in the initial
+reconstruction.  A flat function will be mixed with the standard radial filter
+if the fraction is less than 1; this may given quicker convergence. 
+The default is 1.0 for no mixing.
+
+[Field = RadiusAndSigma]
+short = rd
+type = FP
+usage = Radius and sigma for radial filter in all backprojections
+tooltip =
+manpage = Set the radius and sigma for the high-frequency cutoff of the radial
+filter in the backprojections.  The default is 0.4,0.05 for a mild filtering.
+
+[Field = PositiveConstraint]
+short = zp
+type = B
+usage = Constrain reconstruction to positive values
+tooltip =
+manpage = Constrain the reconstruction to positive values when subtracting the
+difference reconstruction.  This option, or NegativeConstraint, are
+appropriate only if the projection data are normalized to be linearly
+proportional to projected mass density and have positive or negative values,
+respectively.  Invoking either of these options will prevent SIRT from being
+done internally in Tilt(1).
+
+[Field = NegativeConstraint]
+short = zn
+type = B
+usage = Constrain reconstruction to negative values
+tooltip =
+manpage = Constrain the reconstruction to negative values when subtracting the
+difference reconstruction.  See the PositiveConstraint option.
+
+[Field = SeparateRecChunks]
+short = ch
+type = B
+usage = Write reconstructions to separate chunks, not directly to file
+tooltip =
+manpage = Write reconstructions in chunks to separate files and assemble these
+into a single tomogram.  The default is to write directly to the output file.
+Neither this option nor the SeparateProjChunks option should not be needed
+with the protections provided by saving pixels at chunk boundaries into
+separate files; if artifacts do occur, try using the BoundaryPixels option to
+increase the number of pixels saved.
+
+[Field = SeparateProjChunks]
+short = pc
+type = B
+usage = Write projections to separate chunks, not directly to file
+tooltip =
+manpage = Write reprojections in chunks to separate files instead of directly
+to a single output file.  The separate files are assembled with
+Assemblevol(1).  See the SeparateRecChunks option.
+
+[Field = BoundaryPixels]
+short = bo
+type = I
+usage = Number of boundary pixels when writing directly (default 2048)
+tooltip =
+manpage = Set the number of boundary pixels saved in separate files to the
+given value when writing reconstructions or projections directly to a single
+output file.  The boundary pixels are rewritten to the output file after all
+chunks are done.
+
+[Field = OutputMode]
+short = mo
+type = I
+usage = Output file mode (default 2 for floating point numbers)
+tooltip =
+manpage = Set the mode of the output files.  The default is 2 because scaling
+is somewhat unpredictable, and values generally become much larger than in
+standard R-weighted back-projection with Tilt(1).
+
+[Field = TestMode]
+short = te
+type = I
+usage = Test mode, 1: retain proj, drec; 2: leave command and log files
+tooltip =
+manpage = Run in a test mode.  A value of 1 will leave the reprojection,
+projection difference, and difference reconstruction at the end of every
+iteration except when running SIRT internally in Tilt(1).  A value of 2 will
+also leave command and log files at the end of the processing.
+
