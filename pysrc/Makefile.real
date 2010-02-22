@@ -6,7 +6,8 @@ include ../configure
 # Log at end
 #
 
-SCRIPTS = vmstopy tomostitch edgepatches fitpatches
+# IS THIS Makefile.real?  IF NOT, DON't MODIFY IT!
+SCRIPTS = vmstopy tomostitch edgepatches fitpatches sirtsetup
 MODULES = imodpy.py pysed.py supermont.py pip.py
 
 all:
@@ -24,6 +25,9 @@ clean:
 
 #
 #  $Log$
+#  Revision 1.5  2009/09/08 23:29:27  mast
+#  Added fitpatches
+#
 #  Revision 1.4  2008/01/05 17:28:36  mast
 #  Removed extension module, added python module for pip
 #
