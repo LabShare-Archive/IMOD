@@ -81,112 +81,14 @@ and the standard deviation of the difference reconstruction.  The fall in the
 latter value provides some indication of the progress of the iterations.
 
 .SS Options
+Sirtsetup uses the PIP package for input (see the manual page
+for pip(1)).  Options can be specified either as command line
+arguments (with the -) or one per line in a command file
+(without the -):
+INSERT OPTION TEXT HERE
 .TP
-.B -nu <value>
-Use this option to specify the number of machines that you expect to run
-the command files on.  It is passed directly to Splittilt(1).  The default is
-8.
-.TP
-.B -st
-Do an initial reconstruction, numbered 00, even if it or later reconstructions
-already exist.  The default is to iterate from the last existing
-reconstruction.
-.TP
-.B -it <value>
-Set the number of iterations to run; the default is 10.
-.TP
-.B -le <value>
-Set the number of reconstructions to leave for examination; the default is 5.
-.TP
-.B -al
-Always retain that number of reconstructions during the iterations, deleting 
-older ones as new ones are made after the number is reached.  The default is
-to retain only the reconstructions at the end of the set of iterations.
-For example, if 15 iteration are being done and 5 are being retained, by
-default only the reconstructions for iterations 11 through 15 would be saved.
-With this option, there would be 5 retained reconstructions throughout the
-processing.
-.TP
-.B -sc <min,max>
-Scale each retained reconstruction to integers, with the minimum and maximum
-in the reconstruction scaled to the given min and max values.  This will reduce
-the space needed for retained reconstructions twofold, since by default each
-reconstruction is generated as floating point.  This scaling is done on 
-each file after it is superceded by a new iteration, so at the end of the 
-processing the last reconstruction will still be floating point while the 
-previous retained one will be scaled to integers.  The file setname.srec01 is
-scaled to setname.sint01, etc.  To scale the final
-reconstruction to integers in the same way, just run 
-   newstack -sc min,max
-.br
-Values of -20000,20000 are recommended.
-.TP
-.B -tr <options>
-Run Trimvol(1) on each retained reconstruction with the given options.  The
-options must be enclosed in single or double quotes.  If the options specify
-a scaling to bytes, this will reduce the space needed for retained
-reconstructions by at least fourfold.  Each reconstruction to be retained is
-trimmed as soon as it is made, so at the end of the processing the last
-reconstruction exists in both floating point and trimmed form.  The file
-setname.srec01 is trimmed to setname.strm01, etc.  The trimvol options can
-be extracted from etomo_err.log after running the Trimvol step in eTomo.
-.TP
-.B -fl <value>
-Set the fraction of a flat filter function to apply in the initial
-reconstruction.  A flat function will be mixed with the standard radial filter
-if the fraction is less than 1; this may given quicker convergence. 
-The default is 1.0 for no mixing.
-.TP
-.B -ri <#,#>
-Set the radius and sigma for the high-frequency cutoff of the radial filter in
-the initial reconstruction.  The default is 0.5,0.05 for no filtering.
-.TP
-.B -rd <#,#>
-Set the radius and sigma for the high-frequency cutoff of the radial filter in
-the difference reconstructions.  The default is 0.5,0.05 for no filtering.
-.TP
-.B -zp
-Constrain the reconstruction to positive values when subtracting the
-difference reconstruction.  This option is appropriate only if the projection
-data are normalized to be linearly proportional to projected mass density
-and have positive values.
-.TP
-.B -zn
-Constrain the reconstruction to negative values when subtracting the
-difference reconstruction.  This option is appropriate only if the projection
-data are normalized to be linearly proportional to projected mass density
-and have negative values, as usually produced by Densnorm(1).
-.TP
-.B -ch
-Write reconstructions in chunks to separate files and assemble these into a
-single tomogram.
-The default is to write directly to the output file.  This option should not be
-needed with the protections provided by saving pixels at chunk boundaries into
-separate files.
-.TP
-.B -pc
-Write reprojections in chunks to separate files instead of directly to a single
-output file.  The separate files are
-assembled with Assemblevol(1).  This option should not be
-needed with the protections provided by saving pixels at chunk boundaries into
-separate files.
-.TP
-.B -bo <value>
-Set the number of boundary pixels saved in separate files to the given value
-when writing reconstructions or projections directly to a single output file.
-The boundary pixels are rewritten to the output file after all chunks are
-done.
-.TP
-.B -mo <value> 
-Set the mode of the output files.  The default is 2 because scaling is
-somewhat unpredictable, and values generally become much larger than in
-standard R-weighted back-projection with Tilt(1).
-.TP
-.B -te <value>
-Run in a test mode.  A value of 1 will leave the reprojection, projection
-difference, and difference reconstruction at the end of every iteration.
-A value of 2 will also leaves command and log files at the end of the 
-processing.
+.B -StandardInput
+Read parameter entries from standard input
 
 .SH EXAMPLE
 It is important that the reconstruction include all significant
@@ -202,16 +104,16 @@ Set the Size to output in Advanced mode in the Newstack/Blendmont section of
 the Tomogram Generation panel in eTomo.  Generate the aligned stack.  Apply
 2D filter if desired.
 
-Turn off local alignments if they are on, to speed up this test.
+If you are using local alignments and do not have a GPU, you can turn off the
+local alignments to speed up this test.
 Generate a reconstruction by standard back-projection.
 
 Run sirtsetup with the needed number of iterations, and retaining as many
 reconstructions as might be needed.  For example, if you are confident that at
-least 15 iterations are needed and want to run 25, then use
-   sirtsetup -it 25 -le 11 tilt.com
+least 15 iterations are needed and want to run 25, you might use
+   sirtsetup -it 25 -le 15,17,19,21,23 tilt.com
 
-If storage space is an issue, also use "-sc -20000,20000".  However, loading
-the retained reconstructions is simpler if you do not.
+If storage space is an issue, also use "-sc -20000,20000".
 
 Run processchunks on "tilt_sirt".
 
