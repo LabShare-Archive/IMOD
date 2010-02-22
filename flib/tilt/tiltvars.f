@@ -8,9 +8,9 @@ c       iwide      width of output slice
 c       ithick     thickness of output slice made by PROJECT
 c       ithwid     size = thickness x width of output slice (space allowed)
 c       ithickout  thickness of final tilted output slice
-c       imap       address of start of output slice
-c       nbase      address of start of loaded input data
-c       nstack     address of end of loaded input data
+c       imap       index of start of output slice
+c       nbase      index of start of loaded input data
+c       nstack     index of end of loaded input data
 c       maxstack   full size of data array
 c       iplane     size needed for input plane, possibly stretched
 c       ipextra    size of extra buffer for loading for cosine stretching
@@ -33,16 +33,22 @@ c       interpord  interpolation order for cosine stretching
 c       nvertneed  # of vertical slices needed to make tilted output slice
 c       intordxtilt  order for interpolating X-tilted slice
 c       reproj     Flag to reproject at zero tilt
+c       nreadNeed    # of tilted slices to read into ring
+c       numSIRTiter  # of SIRT iterations
+c       sirtFromZero Do zero iteration of SIRT too
+c       ireadBase    Index of start of ring of tilted slices
+c       iworkPlane   Index of plane of reprojected lines
+c       nWarpDelz    Number of positions in warpDelz array when reproj local
+c       dxWarpDelz   Interval in X between positions
 c       
       module tiltvars
-      integer limmask, limview, limwidth
-      integer limrays, limreproj
-      parameter (limmask=20000)
-      parameter (limview=720,limwidth=20000)
-      parameter (limrays = 2 * limwidth, limreproj = limview)
+      integer limview, limwidth
+      integer limreproj
+      parameter (limview=720)
+      parameter (limreproj = limview)
 c       
       integer*4 NSTACK,maxstack, needBase, numNeedSE
-      real*4, allocatable :: ARRAY(:), reprojLines(:)
+      real*4, allocatable :: ARRAY(:), reprojLines(:), projline(:)
       integer*4, allocatable :: needStarts(:), needEnds(:)
 c       
       integer*4 npxyz(3),IWIDE,ITHICK,ISLICE,JSLICE,npad,ithickout
@@ -50,7 +56,7 @@ c
       real*4 ANGLES(limview),TITLE(20),pmin,pmax,pmean
       equivalence (nxprj,npxyz(1)),(nyprj,npxyz(2)),(nviews,npxyz(3))
 c       
-      LOGICAL MASK,PERP,reproj,recReproj,debug,readBase,useGPU
+      LOGICAL MASK,PERP,reproj,recReproj,debug,readBase,useGPU, sirtFromZero
 c       
       real*4 DELXX,xcenin,slicen,XCEN,YCEN,baselog,compress(limview),yoffset
       real*4 xzfac(limview), yzfac(limview), edgeFill, zeroWeight, flatFrac
@@ -58,7 +64,7 @@ c
       integer*4 IMAP,nbase,ITHWID ,idelslice,newmode,mapuse(limview),
      &    iflog,iplane,ipextra,nplanes,interpfac,interpord, nvertneed,
      &    intordxtilt, minTotSlice, maxTotSlice, numViewBase, nViewSubtract,
-     &    ivSubtract(limview)
+     &    ivSubtract(limview),nMaskExtra
 c       
       integer*4 nstretch(limview),indstretch(limview)
       real*4 ofstretch(limview)
@@ -66,8 +72,7 @@ c
       integer*4 nweight, numWgtAngles
       real*4 wincr(20), wgtAngles(limview)
 c       
-      integer*4 masklft(limmask),maskrt(limmask)
-      real*4 RMASK,TMASK
+      integer*4, allocatable :: maskedge(:,:)
 c       
       real*4 FLEVL,SCALE,baseFlevl, baseScale
 c       
@@ -78,16 +83,18 @@ c
 c       
       integer*4 limwpos, limwarp
       integer*4 nxwarp,nywarp,ixswarp,iyswarp,idxwarp,idywarp,ifdelalpha
-      integer*4, allocatable :: indwarp(:)
+      integer*4, allocatable :: indwarp(:), nrayinc(:)
       real*4, allocatable :: delalpha(:),cwarpb(:),swarpb(:), cwarpa(:),
-     &    swarpa(:),fw(:,:,:),delbeta(:),warpXZfac(:),warpYZfac(:),warpDelz(:)
+     &    swarpa(:),fw(:,:,:),delbeta(:),warpXZfac(:),warpYZfac(:),warpDelz(:),
+     &    xraystr(:), yraystr(:), xprojfs(:), xprojzs(:), yprojfs(:),yprojzs(:)
 c       
-      integer*4 nreproj, nraymax(limreproj), nrayinc(limrays), maxZreproj
+      integer*4 nreproj, nraymax(limreproj), maxZreproj
       integer*4 minXreproj, maxXreproj, minYreproj, maxYreproj, minZreproj
-      integer*4 ithickReproj, minXload, maxXload
-      real*4 xprjOffset, yprjOffset, projMean, filterScale
-      real*4 xraystr(limrays), yraystr(limrays), cosReproj(limreproj)
-      real*4 sinReproj(limreproj)
+      integer*4 ithickReproj, minXload, maxXload,nWarpDelz
+      integer*4 numSIRTiter, nreadNeed, ireadBase, iworkPlane
+      integer*4 ifoutSirtProj, ifoutSirtRec
+      real*4 xprjOffset, yprjOffset, projMean, filterScale, dxWarpDelz
+      real*4 cosReproj(limreproj), sinReproj(limreproj)
 c       
       integer*4 numGpuPlanes, loadGpuStart, loadGpuEnd
 c
