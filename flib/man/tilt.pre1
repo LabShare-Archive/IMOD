@@ -81,15 +81,33 @@ DDEESSCCRRIIPPTTIIOONN
   that should give a constant mean level, then the exponential is taken.
 
   The program can use the GPU of an NVIDIA graphics card for all kinds of
-  reconstructions, and for reprojections from an existing reconstruction file
-  that do not involve local alignments.  The card must be capable of
-  supporting computations with CUDA, and you must have a version of NVIDIA
-  graphics drivers installed that supports the particular version of CUDA
-  against which your version of Tilt was compiled.  Typically this will be
-  CUDA 2.1, supported by drivers 180.22 and higher in Linux, or 181.20 and
-  higher in Windows.  Not all IMOD packages can be used with a GPU; ones that
-  do will have cudart and cufft libraries in either IMOD/bin, IMOD/lib or
-  IMOD/qtlib.
+  reconstructions and reprojections from an existing reconstruction file.  The
+  card must be capable of supporting computations with CUDA, and you must have
+  a version of NVIDIA graphics drivers installed that supports the particular
+  version of CUDA against which your version of Tilt was compiled.  Typically
+  this will be CUDA 2.1, supported by drivers 180.22 and higher in Linux, or
+  181.20 and higher in Windows.  Not all IMOD packages can be used with a GPU;
+  ones that do will have cudart and cufft libraries in either IMOD/bin,
+  IMOD/lib or IMOD/qtlib.
+
+  The program can compute multiple iterations of the Simultaneous Iterative
+  Reconstruction Technique (SIRT) internally for the situation where a
+  reconstruction slice backprojects from, and reprojects to, a single set of
+  lines in the projection images.  This option is thus not available when the
+  reconstruction involves the Z factors produced when solving for linear
+  stretch in Tiltalign(1), a variable X-axis tilt produced when correcting for
+  beam tilt, or local alignments.  It also requires that the reconstruction be
+  the same size as the aligned stack in X and Y (i.e., no SLICE or WIDTH
+  entries) and that the tilt axis be in the center of the aligned images.  The
+  procedure starts with a slice computed with no or reduced R-weighting, or
+  read in from prevous iterations.  The slice is reprojected, the difference
+  is formed between the reprojections and the original projections, and this
+  difference is backprojected with a weighting that distributes the error in
+  difference among the pixels along a projection ray.  The backprojected
+  difference is then subtracted from the starting slice, and the procedure is
+  ready to be iterated.  The program carries each slice carried through the
+  full set of iterations before writing it out and going on to the next slice.
+  Further details are given under the SIRTIterations options.
 
   Tilt uses the PIP package for input (see the manual page for pip(1)) but
   it has several special features to maintain compatibility with the old
@@ -113,23 +131,5 @@ INSERT OPTION TEXT HERE
 
 HHIISSTTOORRYY
 
-  Originally written by Mike Lawrence.  Storage of tilt angle data 
-  altered by Guy Vigers; angles can be stored in image stack header by
-  the program ALTERHEADER.
-  David Mastronarde added ability to output slices at selected
-  intervals and in inverse direction, and setting of header
-  information so that coordinates correspond between output file and
-  tilt data set.  Also added ability to specify a subset of views to
-  use or exclude, control of output mode, abilities to take log,
-  replicate views, enter specific tilt angles or read in angles from a
-  file, adjust for compression, set width of output, and shift the
-  output.  Implemented weighting by local tilt increment and padding
-  before filtering.  Added ability to adjust for tilt around the X axis
-  and to use local alignments.  Implemented subroutine calls for the
-  inner loops so that assembly code could be adjusted to minimize very
-  slow steps on the PC.  Implemented cosine stretching of the input
-  data as an alternative solution to this problem that is faster on
-  all machines.  Incorporated the fast backprojection code developed by
-  Kristian Sandberg and Gregory Beylkin.  Implemented X-axis tilting
-  by interpolation from untilted slices, so that the fast
-  backprojection could be used with X-axis tilting.
+  The program was originally written by Mike Lawrence and has been modified
+  vastly and repeatedly by David Mastronarde.

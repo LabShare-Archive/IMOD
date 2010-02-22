@@ -20,11 +20,11 @@ not entered, the second non-option argument is taken as the output name.
 [Field = RecFileToReproject]
 short = recfile
 type = FN
-usage = Reconstruction file to reproject
+usage = Reconstruction file to reproject or run SIRT with
 tooltip = 
-manpage = Reconstruction file to reproject.  When using this option, all of the
-entries to the program used when building this reconstruction should be
-included as well.
+manpage = Reconstruction file to reproject or run SIRT with.  When using this
+option, all of the entries to the program used when building this
+reconstruction should be included as well.
 
 [Field = ProjectModel]
 type = FN
@@ -148,8 +148,7 @@ usage = Terminate input to program
 tooltip = 
 manpage = The entry is equivalent to EndInput, and lines of input following
 it will be ignored.  This option is provided for compatibility with old
-command files.
-
+command files, but eTomo does not handle it properly, so it should not be used.
 
 [Field = EXCLUDELIST2]
 type = LIM
@@ -247,16 +246,18 @@ logarithm of the densities in the input file, with the value BASE
 added before taking the logarithm.
 
 [Field = MASK]
-type = F
-usage = Value for masking regions with incomplete data
+type = I
+usage = Mask regions with incomplete data; value is extra pixels to mask
 tooltip = 
 manpage = This entry allows a mask to be applied so as to exclude from the
 reconstructed volume those parts which lie outside the volume for
 which the projection data are complete.  This volume is a cylinder whose axis
-lies along the tilt axis.  Grid points outside this volume will be set to the
-given value.  For thick sections, this
-option saves a little execution time but produces sharp edges in the
-reconstruction. 
+lies along the tilt axis.  The entered value specifies the number of extra
+pixels to mask out in this way; a negative value can be used to set the mask
+farther out.  Inside the masked area, densities are smoothly tapered from the
+value of a pixel at the edge of the area down to the mean value at the edge.
+This masking is needed to prevent artifacts from building up at the edges of
+the slice during iterations with SIRT.
 
 [Field = MinMaxMean]
 type = IT
@@ -280,14 +281,16 @@ that data will be scaled to the proper range.
 type = FA
 usage = Offsets for tilt angles and tilt axis
 tooltip = 
-manpage = This entry allows an offset of DELANG degrees to be applied to all
-tilt angles and indicates that the tilt axis is offset in the
-projection images, cutting the X-axis at  NX/2. + DELXX instead of
-NX/2.  DELANG positive rotates reconstructed sections anticlockwise.
-The DELXX entry is optional and defaults to 0 when omitted.  If the
-tilt axis is offset from the center because the projection images are a
-non-centered subset of the full images, use the SUBSETSTART entry
-instead.
+manpage = This entry can contain two numbers, DELANG and DELXX.  An offset of
+DELANG degrees will be applied to all tilt angles.  DELANG positive rotates
+reconstructed sections anticlockwise.  A DELXX entry indicates that the tilt
+axis would be offset in a stack of full-sized projection images, cutting the
+X-axis at  NX/2. + DELXX instead of NX/2.  The DELXX entry is optional and
+defaults to 0 when omitted.  If the tilt axis is offset from the center
+because the projection images are a non-centered subset of the full images,
+use the SUBSETSTART entry instead.  If the projection images are a
+non-centered subset with the tilt axis centered in them, then using this entry
+together with SUBSETSTART and FULLIMAGE should produce a correct result.
 
 [Field = PARALLEL]
 type = B
@@ -353,6 +356,22 @@ the whole potentially reconstructable area.  If the Z shift is positive,
 the slice is shifted upward.  The Z entry is optional and
 defaults to 0 when omitted.
 
+[Field = SIRTIterations]
+type = I
+usage = Number of iterations to run SIRT procedure
+tooltip = 
+manpage = This entry directs the program to compute a SIRT reconstruction
+internally for the given number of iterations, as described above.  If the
+RecFileToReproject option is given, then the program will read in slices from
+the existing reconstruction, interpolating between them to make vertical
+slices if there is a fixed X-axis tilt.  Each read-in slice or vertical slice
+is then used for reprojection and modified by a backprojection of the
+difference between the reprojection and the original projection image.  In
+this case, the FlatFilterFraction option is not needed, as the appropriate
+filter is used automatically.  If no existing reconstruction is given, then
+the program generates an initial reconstruction with a flat filter fraction of
+1.0 unless a value is supplied with the FlatFilterFraction option.
+
 [Field = SLICE]
 type = FA
 usage = Starting and ending slice number, and interval between slices
@@ -415,11 +434,10 @@ done.
 type = I
 usage = Use GPU for computation; 0 for best available one or number of GPU
 tooltip = 
-manpage = Use the GPU (graphical processing unit) for computations where
+manpage = Use the GPU (graphical processing unit) for computations if
 possible; enter 0 to use the best GPU on the system, or the number of a
 specific GPU (numbered from 1).  The GPU can be used for all types of
-backprojection, and for reprojections from a reconstruction that do not 
-involve local alignments.
+operations as long as there is sufficient memory.
 
 [Field = ViewsToReproject]
 type = LI
@@ -533,6 +551,19 @@ tilt axis.  The default is the whole extent in Z.
 short = debug
 type = B
 usage = Print output for debugging
+
+[Field = InternalSIRTSlices]
+short = internal
+type = IP
+usage = Output reprojections (1-2) and/or internal reconstructions (1-4)
+tooltip = 
+manpage = Output reprojections or reconstruction slices held internally on the
+last iteration of SIRT.  The first value is the type of reprojection: 0 for
+none, 1 for actual reprojection, or 2 for difference between reprojection and
+input data.  The second value is for type of slice: 0 for none, 1 for
+backprojection of difference lines, 2 for final vertical slice, 3 for slice
+produced on iteration 0, and 4 for vertical slice decomposed from input.
+Output files are sirttst.prj and sirttst.drec, respectively.
 
 [Field = ParameterFile]
 short = param
