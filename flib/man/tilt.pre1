@@ -105,9 +105,9 @@ DDEESSCCRRIIPPTTIIOONN
   difference is backprojected with a weighting that distributes the error in
   difference among the pixels along a projection ray.  The backprojected
   difference is then subtracted from the starting slice, and the procedure is
-  ready to be iterated.  The program carries each slice carried through the
-  full set of iterations before writing it out and going on to the next slice.
-  Further details are given under the SIRTIterations options.
+  ready to be iterated.  The program carries each slice through the full set
+  of iterations before writing it out and going on to the next slice.  Further
+  details are given under the SIRTIterations options.
 
   Tilt uses the PIP package for input (see the manual page for pip(1)) but
   it has several special features to maintain compatibility with the old
