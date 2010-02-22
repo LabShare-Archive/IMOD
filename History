@@ -332,7 +332,7 @@ outliers or had high residuals in fits in Findwarp.
 9/7/09: Switched centering of transform in Xfsimplex to conform to centering
 in interpolation routine.
 
-9/4/09: In Nonanisotrophic Diffusion correcting the handling of spaces in the
+9/4/09: In Anisotropic Diffusion correcting the handling of spaces in the
 iteration list.
 
 9/2/09: In eTomo preventing "Use..." buttons from causing invalid stacks to be
