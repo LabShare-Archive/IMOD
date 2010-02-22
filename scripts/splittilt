@@ -426,11 +426,13 @@ end
 
 set finish = $rootname-finish.com
 set cleanup = '$'"\rm -f $rootname-[0-9]*.*"
+set cleanbound = $boundfile
 if ($leaveopen) then
     @ numrec = $num + $startnum
     set numtext = `echo $numrec | awk '{printf "%03d\n", $1}'`
     set finish = $rootname-$numtext-sync.com
     set cleanup = '$'"\rm -f "
+    set cleanbound = ""
 endif
 if (! $direct && ! $reproj) then
     cat <<EOF >! $finish
@@ -466,7 +468,7 @@ else
     cat <<EOF >! $finish
 \$fixboundaries $recfile $boundfile
 \$collectmmm pixels= $rootname $numslabs $recfile $startnum
-$cleanup $recroot-[0-9]*.$boundext $boundfile
+$cleanup $recroot-[0-9]*.$boundext $cleanbound
 EOF
 endif
 
@@ -474,6 +476,11 @@ echo "Command files for $numslabs chunks created and ready to run with:"
 echo "  processchunks machine_list $rootname"
 
 #  $Log$
+#  Revision 3.18  2010/02/22 02:44:32  mast
+#  Added option to set dimensions of aligned stack, needed from sirtsetup
+#  Fixed cleanup of boundary files, prevent # olf slabs being less that the
+#  minimum
+#
 #  Revision 3.17  2009/12/07 20:54:09  mast
 #  Make processchunks responsible for CHUNK DONE
 #
