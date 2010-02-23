@@ -67,6 +67,9 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.19  2010/02/17 05:04:02  sueh
+ * <p> bug# 1301 Pulled enableField and ifField out of executeField.
+ * <p>
  * <p> Revision 1.18  2009/11/20 17:43:01  sueh
  * <p> bug# 1282 Changed areFilesSame to assertSameFile and added the ability to compare files with different names.  Added assertFileContains.
  * <p>
@@ -1374,7 +1377,7 @@ final class AutodocTester extends Assert implements VariableList {
     assertFalse("Target string is empty.  (" + command + ")\n",
         targetString == null || targetString.matches("\\s*"));
     //Compare lines.
-    LogFile logFile = LogFile.getInstance(file, null);
+    LogFile logFile = LogFile.getInstance(file);
     LogFile.ReaderId readerId = logFile.openReader();
     assertFalse("Unable to read " + fileName + "(" + command + ")\n", readerId
         .isEmpty());
