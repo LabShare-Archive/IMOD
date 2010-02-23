@@ -154,6 +154,7 @@ set recfile = `grep -i outputfile $comname | grep -v '^#' | awk '{print $2}' | s
 set rectoproj = `grep -i recfiletoreproj $comname | grep -v '^#' | awk '{print $2}' | sed '/[[:cntrl:]]/s///g'`
 set sliceproj = `grep -i "^ *reproject" $comname`
 set width = `grep -i width $comname | grep -v '^#' | sed '/[^ 0-9\.]/s///g'`
+set intsirt = `grep -i "sirtiterations" $comname | grep -v '^#' |sed '/[^ 0-9\.]/s///g'`
 
 # Get the input image file name from the command file if necessary
 #
@@ -246,9 +247,9 @@ endif
 
 # If reprojecting from tomo, need to get real number of slices and starting one
 #
-if ("$rectoproj" != "" || "$sliceproj" != "") set reproj = 1
+if ("$intsirt" == "" && ("$rectoproj" != "" || "$sliceproj" != "")) set reproj = 1
 set slicedel = 'SLICE'
-if ("$rectoproj" != "") then
+if ($reproj && "$rectoproj" != "") then
     set slicedel = 'ZMinAndMax'
     set slices = `grep -i ZMinAndMax $comname | grep -v '^#' | sed '/[^ 0-9\.]/s///g'`
     @ firstslice = 0
@@ -476,6 +477,9 @@ echo "Command files for $numslabs chunks created and ready to run with:"
 echo "  processchunks machine_list $rootname"
 
 #  $Log$
+#  Revision 3.19  2010/02/22 03:11:46  mast
+#  Leave boundary info file when leaving set open
+#
 #  Revision 3.18  2010/02/22 02:44:32  mast
 #  Added option to set dimensions of aligned stack, needed from sirtsetup
 #  Fixed cleanup of boundary files, prevent # olf slabs being less that the
