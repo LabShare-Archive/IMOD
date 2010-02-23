@@ -7,8 +7,6 @@ set.adoc.dialog = recon.adoc
 set.var.dataset = BBa
 set.dataset = BB
 copy.file = %{dataset}.st
-copy.file.a = %{dataset}a.st
-copy.file.b = %{dataset}b.st
 #set.param = %{dataset}.edf
 set.var.single=
 set.interface.Recon=
@@ -141,6 +139,7 @@ set.interface.Join=
 set.testdir = generic
 set.adoc.dialog = generic.adoc
 set.dataset = BB
+set.var.dataset = tilt
 set.interface.Generic=
 
 [Test = nad]
