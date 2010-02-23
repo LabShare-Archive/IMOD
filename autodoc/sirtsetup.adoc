@@ -50,7 +50,9 @@ by absolute iteration number.  For example, if 10 iterations have already been
 done and you are doing another 10, entering 14,17-19 will retain the
 reconstructions named setname.srec14, setname.srec17, etc, produced at the
 4th, 7th, 8th and 9th new iteration.  In addition, the reconstruction from the
-final iteration is always retained.
+final iteration is always retained.  If you have cryoEM data with an X-axis
+tilt, oscillations could build up if you leave too many reconstructions, so
+leave only what you need (see above).
 
 [Field = ScaleToInteger]
 short = sc

@@ -22,10 +22,32 @@ ray.
   5) The error reconstruction is subtracted from the initial reconstruction.
 
 To iterate, steps 2 through 5 are repeated with the original reconstruction
-replaced by the corrected reconstruction created in step 5.  The
-reconstructions are named setname.srec00, setname.srec01, etc.  Once some of
-these reconstructions exist, it is easy to
+replaced by the corrected reconstruction created in step 5.  These steps can
+all be done within Tilt(1) provided that a single reconstructed slice
+backprojects from, and reprojects to, a set of lines at one Y value in the
+input projection images.  When this is the case, all of the selected
+iterations are done internally as much as possible, and the results are
+written to files only at the iterations that you specify.  This one-to-one
+relationship does not exist when there are
+Z-factors (produced by the stretching solution in Tiltalign(1) unless you
+choose not to use them), variable X-axis tilt (needed when correcting for beam
+tilt), or local alignments.  In any of those cases, the entire reprojection
+must be written to file for step 2, and so must the error reconstruction in
+step 4, so on each iteration a file is produced by step 5, named
+setname.srec00, setname.srec01, etc.  
+
+After running some iterations or SIRT, it is easy to
 do additional iterations simply by running this script again.
+
+Before SIRT could be done internally, cryoEM data sets with X-axis tilt tended
+to develop waves that increased through the iterations.  This effect arose
+because untilted slices were computed in Tilt(1) and interpolated to produce
+the tilted output, and this interpolation put energy into the missing wedge
+that spread uncontrollably.  It appears that the problem builds up in the
+early iterations.  To avoid this problem if you have a cryoEM data set with
+X-axis tilt, do not leave more reconstructions than you need to during an
+initial test, particularly in the first 5 iterations, and leave only a few
+iterations for the full reconstruction.
 
 Sirtsetup is meant to be used with a command file for running Tilt(1) that has
 all of the entries produced when running through eTomo.  There is one main
@@ -43,10 +65,20 @@ SUBSETSTART entry must be in unbinned pixels, if binning was used.  The
 FULLIMAGESIZE entry would stay the same.  These changes are all handled when
 making a subset aligned stack in eTomo.
 
-If the tilt command file takes the log of the projection data, then the
+It would also be straightforward to create a subset displaced vertically along
+the tilt axis of the aligned, by adding the -offset option to the
+Newstack(1) command for making the aligned stack and adjusting SUBSETSTART in
+the Tilt(1) command file.  Displacing a subset laterally is more complicated
+and requires: 1) running Tiltalign(1) with the AxisXShift option specifying the
+offset; 2) using the same X offset in the -offset option to Newstack(1); 3)
+adding the same offset as a second number in the OFFSET entry to Tilt(1), as
+well as adjusting the X component of SUBSETSTART.
+
+If the tilt command file takes the log of the projection data and the
+iterations are not being done internally in Tilt(1), then the
 starting command file will use Densnorm(1) to create a new stack with the
 logarithm of the projections.  This log stack will be used in all of the
-operations listed above.
+operations listed above.  Such a stack is not needed for internal operations.
 
 If you are not taking the log, you may still want to scale the projection data
 to provide a mass normalization.  You can do this with Densnorm(1).  If you
@@ -70,7 +102,7 @@ If the name of the command file is tiltroot.com, this script produces files
 named tiltroot_sirt-*.com.  These files can be run from the command line with
    processchunks machine_list tiltroot_sirt
 .br
-or from the parallel processing interface in eTomo.
+or from the generic parallel processing interface in eTomo.
 
 Each of the log files from performing operation 5 above uses "clip stat" to
 get statistics from
@@ -78,7 +110,8 @@ a central area of 10 slices from the difference reconstruction.  The summary
 values from these statistics are gathered at the end of the
 tiltroot_sirt-finish.log file.  The last two numbers on each line are the mean
 and the standard deviation of the difference reconstruction.  The fall in the
-latter value provides some indication of the progress of the iterations.
+latter value provides some indication of the progress of the iterations.  This
+output is not available when SIRT is done internally in Tilt(1).
 
 .SS Options
 Sirtsetup uses the PIP package for input (see the manual page
@@ -128,7 +161,7 @@ Once you have decided on the right number of iterations, you should remove or
 rename all of the .srec and/or .sint files:
    rm -f setname*.srec* setname*.sint*
 
-Remove the Size to output entry in eTomo and regenerate the aligned stack.
+Remove the "Size to output" entry in eTomo and regenerate the aligned stack.
 Apply 2D filter if desired.
 
 Turn local alignments back on if they were turned off.
@@ -167,7 +200,9 @@ setname.drec        Correction reconstruction from projection difference
 setname.sintnn      Iterative reconstruction scaled to integers
 setname.strmnn      Iterative reconstruction run through Trimvol(1)
 .fi
-
+.br
+When SIRT is done internally, only setname.srecnn, setname.sintnn, and
+setname.strmnn are produced.
 .SH AUTHOR
 David Mastronarde  
 
@@ -176,10 +211,6 @@ tilt(1), densnorm(1), newstack(1), subimage(1), processchunks(1),
 splittilt(1), trimvol(1)
 
 .SH BUGS
-With several cryoEM data sets that included an X-axis
-tilt, bad striping artifacts developed and increased through the iterations.
-Setting the X-axis tilt to 0 eliminated this problem.
-
 There is not yet a way to tell when to stop iterating.  There are low
 frequency artifacts, particularly near edges.
 
