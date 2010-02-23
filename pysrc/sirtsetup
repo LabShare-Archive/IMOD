@@ -188,7 +188,8 @@ if simpleBP and xtiltFile:
 # Get the input image file name from the command file if necessary
 if alifile == None:
    for ind in range(len(comlines)):
-      if re.search(r'^\s*\$\s*tilt\s', comlines[ind]):
+      if re.search(r'^\s*\$\s*tilt\s', comlines[ind]) or \
+             re.search(r'^\s*\$\s*tilt$', comlines[ind]):
          break
    else:
       exitError("tilt command not found in com file " + comfile)
@@ -575,3 +576,7 @@ sys.exit(0)
 
 #
 # $Log$
+# Revision 1.1  2010/02/22 06:18:22  mast
+# Converted to python and added use of internal SIRT and better handling
+# if only one processor
+#
