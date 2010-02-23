@@ -1513,8 +1513,9 @@ public final class ApplicationManager extends BaseManager implements
       ConstProcessSeries processSeries) {
     ClipParam clipParam = new ClipParam(this, axisID, inputFileType.getFile(
         this, axisID), new File(getPropertyUserDir()), ClipParam.Mode.STATS);
+    String threadName;
     try {
-      threadNameA = processMgr.clipStats(clipParam, processSeries);
+      threadName = processMgr.clipStats(clipParam, processSeries);
     }
     catch (SystemProcessException except) {
       except.printStackTrace();
@@ -1522,6 +1523,7 @@ public final class ApplicationManager extends BaseManager implements
           + except.getMessage(), "SystemProcessException", AxisID.ONLY);
       return;
     }
+    setThreadName(threadName, axisID);
     mainPanel.startProgressBar("clip stats ", AxisID.ONLY);
   }
 
@@ -7884,6 +7886,10 @@ public final class ApplicationManager extends BaseManager implements
 }
 /**
  * <p> $Log$
+ * <p> Revision 3.346  2010/02/17 04:38:37  sueh
+ * <p> bug# 1301 Moved comScriptMgr and logPanel from BaseManager to child
+ * <p> class.
+ * <p>
  * <p> Revision 3.345  2010/01/11 23:46:55  sueh
  * <p> bug# 1299 Made CpuAdoc a true singleton by removing information about
  * <p> the manager and axis.  This information has to be passed by classes that
