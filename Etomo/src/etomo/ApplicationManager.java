@@ -1520,11 +1520,11 @@ public final class ApplicationManager extends BaseManager implements
     catch (SystemProcessException except) {
       except.printStackTrace();
       uiHarness.openMessageDialog(this, "Can't run clip stats\n"
-          + except.getMessage(), "SystemProcessException", AxisID.ONLY);
+          + except.getMessage(), "SystemProcessException", axisID);
       return;
     }
     setThreadName(threadName, axisID);
-    mainPanel.startProgressBar("clip stats ", AxisID.ONLY);
+    mainPanel.startProgressBar("clip stats ", axisID);
   }
 
   /**
@@ -7886,6 +7886,9 @@ public final class ApplicationManager extends BaseManager implements
 }
 /**
  * <p> $Log$
+ * <p> Revision 3.347  2010/02/23 20:32:11  sueh
+ * <p> bug# 1291 Fixed clipStats.  Was running it on the wrong axis.
+ * <p>
  * <p> Revision 3.346  2010/02/17 04:38:37  sueh
  * <p> bug# 1301 Moved comScriptMgr and logPanel from BaseManager to child
  * <p> class.
