@@ -12,6 +12,10 @@
  * @version $$Revision$
  *
  * <p> $$Log$
+ * <p> $Revision 3.68  2010/02/17 05:05:58  sueh
+ * <p> $bug# 1301 Using manager instead of manager key for popping up
+ * <p> $messages.
+ * <p> $
  * <p> $Revision 3.67  2009/09/02 22:47:07  sueh
  * <p> $bug# 1254 Added isValidStack.
  * <p> $
@@ -465,7 +469,6 @@ public class Utilities {
 
     // Rename the existing log file
     if (source.exists()) {
-      new Exception().printStackTrace();
       Utilities.debugPrint(source.getAbsolutePath() + " exists");
 
       if (!source.renameTo(destination)) {
