@@ -72,6 +72,8 @@ run.function.use-fixed-stack=
 [[]]
 bn.done=
 [[if = test-gui]]
+if.equals.var.dataset.return=midzone2
+if.equals.var.dataset.return=midzone2a
 wait.popup.etomo-question=Yes
 [[]]
 
@@ -81,6 +83,10 @@ wait.popup.etomo-question=Yes
 if.equals.var.dataset.return=BB
 if.equals.var.dataset.return=BBa
 bn.use-fixed-stack=
+[[if = test-gui]]
+wait.popup.etomo-question=Yes
+[[]]
+
 
 
 [function = automatic-x-ray-replacement]
