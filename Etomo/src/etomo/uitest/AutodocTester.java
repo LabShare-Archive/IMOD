@@ -67,6 +67,9 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.20  2010/02/23 00:23:52  sueh
+ * <p> bug# 1301 Fixed bug in assertFileContainsString.
+ * <p>
  * <p> Revision 1.19  2010/02/17 05:04:02  sueh
  * <p> bug# 1301 Pulled enableField and ifField out of executeField.
  * <p>
@@ -1150,6 +1153,7 @@ final class AutodocTester extends Assert implements VariableList {
     }
     //if.enabled.field.subcommand
     //if.disabled.field.subcommand
+    assertNotNull("cannot find component (" + command + ")", component);
     if (actionType == UITestActionType.IF) {
       if (component.isEnabled() == enabled) {
         executeCommand(command.getSubcommand());
