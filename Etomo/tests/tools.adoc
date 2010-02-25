@@ -1,7 +1,6 @@
 Version = 2.1
 
 [flatten-volume = run]
-copy.file=BBa_flat.mod|%{dataset}_flat.mod
 bn.input-file=
 wait.file-chooser.open= %{dataset}
 set.adoc.function = tools.adoc
@@ -37,6 +36,7 @@ bn.make-surface-model=
 	bn.run-flattenwarp=
 	wait.popup.flattenwarp-terminated=OK
 [[]]
+copy.file=BBa_flat.mod|%{dataset}_flat.mod
 run.function.smoothing-asessment=
 tf.smoothing-factor=.25
 [[if = test-gui]]
