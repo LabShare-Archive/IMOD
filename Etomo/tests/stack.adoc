@@ -19,6 +19,7 @@ if.var.montage.wait.process.full-alignment = done
 bn.done =
 wait.popup.etomo-question=Yes
 wait.popup.etomo-question=Yes
+if.var.fidless.return=
 wait.popup.etomo-question=Yes
 wait.popup.etomo-question=Yes
 
@@ -204,8 +205,8 @@ assert.bn.use-ctf-correction=on
 
 
 [function = erase-gold]
+if.var.fidless.return=
 [[ifnot = simple-align]]
-	if.var.fidless.return=
 	assert.exists.file=%{dataset}%{axis}local.xf
 [[]]
 tb.create.2=
