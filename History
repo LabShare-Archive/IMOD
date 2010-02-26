@@ -1,5 +1,10 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+2/26/10: IMOD_4-0-24
+2/26/10: Made Tilt do subtractions for both reconstruction and reprojection in
+SIRT that cannot be done internally, and to put out statistics that are
+gathered in the finish log of a SIRT run.
+
 2/21/10: Rewrote Sirtsetup in Python to use internal SIRT in Tilt where
 possible, to leave and convert reconstructions at specified iteration numbers,
 and to not split the command file up when going to only one processor.
