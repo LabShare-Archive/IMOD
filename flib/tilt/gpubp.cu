@@ -55,7 +55,7 @@
 
 #ifdef __cplusplus
 extern "C" {
-  int gpuavailable(int *nGPU, int *memory);
+  int gpuavailable(int *nGPU, float *memory, int *debug);
   int gpuallocarrays(int *width, int *nyout, int *nxprj2, int *nyprj,
                      int *nplanes, int *nviews, int *numWarps, int *numDelz,
                      int *nfilt, int *nreproj, int *firstNpl, int *lastNpl);
@@ -183,7 +183,7 @@ static int *planeLoaded;
  * > 0, or the one with the best processing rate if nGPU is 0, and return the
  * memory in bytes.  Return value is 1 for success, 0 for failure.
  */
-int gpuavailable(int *nGPU, int *memory)
+int gpuavailable(int *nGPU, float *memory, int *debug)
 {
   int current_device = 0;
   int device_count = 0;
@@ -192,6 +192,8 @@ int gpuavailable(int *nGPU, int *memory)
   float max_gflops = 0;
   *memory = 0;
   cudaGetDeviceCount( &device_count );
+  if (*debug)
+    pflush("Device count = %d\n", device_count);
   if (*nGPU != 0) {
     if (*nGPU < 0 || *nGPU > device_count)
       return 0;
@@ -205,6 +207,11 @@ int gpuavailable(int *nGPU, int *memory)
                current_device);
       return 0;
     }
+    if (*debug)
+      pflush("Device %d: mpc %d  cr %d  major %d minor %d  mem %.0f\n",
+             current_device, device_properties.multiProcessorCount,
+             device_properties.clockRate, device_properties.major,
+             device_properties.minor, (float)device_properties.totalGlobalMem);
     gflops = device_properties.multiProcessorCount * 
       device_properties.clockRate;
 
@@ -824,6 +831,7 @@ __global__ void bpXtiltTest(float *slice, int pitch, int jbase, int iwide,
   float cbeta, sbeta, zpart, kproj, xp, zz, calpha, salpha, fj, yproj, xx;
   float sum = 0.;
   int iv, jproj;
+  float ytol = 3.05f;
   int j = blockIdx.x * blockDim.x + threadIdx.x + jbase;
   int i = blockIdx.y * blockDim.y + threadIdx.y;
   if (j < iwide && i < ithick) {
@@ -838,7 +846,9 @@ __global__ void bpXtiltTest(float *slice, int pitch, int jbase, int iwide,
         zz * (calpha * sbeta + tables[iv+XZFOFS]) + xcenin;
       yproj = yy * calpha - zz * (salpha - tables[iv+YZFOFS]) + slicen;
       xp =  zpart + xx * cbeta - 0.5f;
-      if (yproj >= 1. && yproj <= nyprj && xp >= 0.5 && xp < nxprj - 0.5) {
+      if (yproj >= 1. - ytol && yproj <= nyprj + ytol && xp >= 0.5 && 
+          xp < nxprj - 0.5) {
+        yproj = fmax(1., fmin((float)nyprj, yproj));
         jproj = min((int)yproj, nyprj - 1);
         fj = yproj - jproj;
         kproj = (jproj - lsliceBase) * nviews + iv + 0.5f;
@@ -994,6 +1004,7 @@ __global__ void bpLocalTest(float *slice, int slPitch, float *xprojf,
 {
   float kproj, xp, zz, fj, yproj;
   float sum = 0.;
+  float ytol = 3.05f;
   int iv, jproj, ind;
   int j = blockIdx.x * blockDim.x + threadIdx.x;
   int i = blockIdx.y * blockDim.y + threadIdx.y;
@@ -1003,8 +1014,9 @@ __global__ void bpLocalTest(float *slice, int slPitch, float *xprojf,
       ind = iv * localPitch + j;
       xp = xprojf[ind] + zz * xprojz[ind] - 0.5f;
       yproj = yprojf[ind] + zz * yprojz[ind];
-      if (yproj >= lsliceBase && yproj <= lsliceLast && xp >= 0.5 && 
-          xp < nxprj - 0.5) {
+      if (yproj >= lsliceBase - ytol && yproj <= lsliceLast + ytol && 
+          xp >= 0.5f && xp < nxprj - 0.5f) {
+        yproj = fmax((float)lsliceBase, fmin((float)lsliceLast, yproj));
         jproj = min((int)yproj, lsliceLast - 1);
         fj = yproj - jproj;
         kproj = (jproj - lsliceBase) * nviews + iv + 0.5f;
@@ -1281,7 +1293,7 @@ __global__ void reprojXtilt(float *lines, int pitch, int iwide, int ithick,
   int i = blockIdx.y * blockDim.y + threadIdx.y;
   int line, kz,iys;
   float zz, sum, frac, zslice, yproj, yy, yslice, xproj, xx, fy;
-  float ytol = 0.05f;
+  float ytol = 3.05f;
   line = i + lsStart;
   sum = 0.;
   if (j >= iwide || line > lsEnd)
@@ -1534,7 +1546,7 @@ __global__ void reprojLocal
   int line, lastZdone, iy;
   float zz, sum, frac, zslice, yproj, yy, xproj, xx, fy, zind, fline, ofsypz;
   float xxtex, ofsxpz, ofsypf;
-  float ytol = 0.05f;
+  float ytol = 3.05f;
   float zzlim, lbaseMtol, llastPtol, dxWarpInv;
   //  int skip =390;
 
@@ -1817,6 +1829,9 @@ static void allocerr(char *mess, int *nplanes, int *firstNpl,
 /*
 
 $Log$
+Revision 3.3  2010/02/22 06:04:49  mast
+Added reprojection with local alignments and one-slice reprojection
+
 Revision 3.2  2010/01/10 17:20:05  mast
 Stopped selecting device more than once, setup structure to limit error
 messages on repeated allocation attempts
