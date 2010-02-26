@@ -1,8 +1,7 @@
 c       NOGPU.F
 c       Has stubs to allow compilation when no CUDA  is available
 c
-      integer*4 function gpuAvailable(nGPU, memory)
-      integer*4 memory
+      integer*4 function gpuAvailable(nGPU, fmemory, ifdebug)
       gpuAvailable = 0
       return
       end

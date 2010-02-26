@@ -46,7 +46,8 @@ manpage = Previous reconstruction file to add views to or subtract views from.
 One use for this option is to compute a series reconstructions quickly with
 different views left out.  The BaseNumViews option must also be entered in
 order for the right scaling to be set up when reading in the existing
-reconstruction and writing out the new one.  If the WeightAngleFile option is
+reconstruction and writing out the new one (unless -1 is entered for
+SubtractFromBase).  If the WeightAngleFile option is
 also used, then incremental reconstructions computed in this way should match
 reconstructions computed de novo very closely.  If the input projection file
 contains only the views being added or subtracted, then you should also use
@@ -92,7 +93,11 @@ contain tilt information.
 type = I
 usage = Number of views in previous reconstruction
 tooltip = 
-manpage = 
+manpage = When adding or subtracting views from a base reconstruction, this
+option must be entered with the number of views in the previous
+reconstruction.  However, if the SubtractFromBase option is entered with a -1
+to indicate that a reconstruction is to be subtracted from a base file for
+SIRT, this option should not be entered.
 
 [Field = BoundaryInfoFile]
 type = FN
@@ -118,6 +123,14 @@ compressed in Z by the amount given by the amount given for each
 view.  The compressions would be taken directly from the  output of
 TILTALIGN for incremental compression.  A value must be entered for
 each view.
+
+[Field = ConstrainSign]
+type = I
+usage = Constrain sign of net output for SIRT to positive (1) or negative (-1)
+tooltip = 
+manpage = Enter -1 or 1 to constrain the result to negative or positive when
+subtracting a reconstruction from a base reconstruction, or when subtracting
+an error reconstruction from the current slice with SIRT internally.
 
 [Field = COSINTERP]
 type = IA
@@ -210,14 +223,6 @@ manpage = A subset of views to be used for the
 reconstruction, numbered from 1.  The values can be individual view numbers or
 ranges, separated by spaces or commas.  Use more than one INCLUDE entry if the
 numbers do not all fit on one line.
-
-[Field = SubtractFromBase]
-type = LI
-usage = Views to subtract from previous reconstruction (0 for all)
-tooltip = 
-manpage = Views to subtract from the previous reconstruction specified by
-BaseRecFile.  Without this entry, all views are added.  Enter 0 to have all
-included views subtracted, or the list of specific views to subtract.
 
 [Field = LOCALFILE]
 type = FN
@@ -372,6 +377,14 @@ filter is used automatically.  If no existing reconstruction is given, then
 the program generates an initial reconstruction with a flat filter fraction of
 1.0 unless a value is supplied with the FlatFilterFraction option.
 
+[Field = SIRTSubtraction]
+type = B
+usage = Subtract reprojections from original projections before writing
+tooltip =
+manpage = Subtract reprojections from original projections to produce a
+reprojection difference for SIRT.  The width of the reprojection must match
+the width of the input data. 
+
 [Field = SLICE]
 type = FA
 usage = Starting and ending slice number, and interval between slices
@@ -381,6 +394,19 @@ between slices.  The numbers refer to slices in the X/Z plane and correspond
 to Y coordinates in the projection images.  Slices are numbered from 0.  
 The interval entry is optional, must be positive, and defaults to 1 when 
 omitted.
+
+[Field = StartingIteration]
+type = I
+usage = Starting SIRT iteration number for reports of difference mean and SD
+tooltip =
+manpage = Starting SIRT iteration number, in order to obtain reports of the
+mean and standard deviation of a difference reconstruction in a SIRT
+procedure.  These values are computed for slices in the middle 80% of the
+slice range, in the middle 80% of the width in X, and in the middle half of
+the height in Y.  When running SIRT internally, the statistics are computed as
+each difference slice is computed.  Otherwise, they are computed just before
+subtracting the difference reconstruction from read-in slices.  A summary is
+printed when the program finishes.
 
 [Field = SUBSETSTART]
 type = IP
@@ -392,6 +418,16 @@ local alignments are being used, use this entry to enter the X and Y index
 coordinates (numbered from 0) of the lower left corner of the subset within the
 original images.  A FULLIMAGE entry must also be included.  If the aligned
 stack is larger than the original images, use negative values. 
+
+[Field = SubtractFromBase]
+type = LI
+usage = Views to subtract from previous reconstruction (0 for all, -1 for SIRT)
+tooltip = 
+manpage = Views to subtract from the previous reconstruction specified by
+BaseRecFile.  Without this entry, all views are added.  Enter the list of
+specific views to subtract, 0 to have all
+included views subtracted, or -1 to have all views subtracted for a SIRT
+reconstruction.
 
 [Field = THICKNESS]
 type = I

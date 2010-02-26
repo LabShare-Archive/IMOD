@@ -98,28 +98,20 @@ short = rd
 type = FP
 usage = Radius and sigma for radial filter in all backprojections
 tooltip =
-manpage = Set the radius and sigma for the high-frequency cutoff of the radial
-filter in the backprojections.  The default is 0.4,0.05 for a mild filtering.
+manpage = Set the radius and sigma for the high-frequency cutoff of the filter
+used in the backprojections.  The default is 0.4,0.05 for a mild filtering.
 
-[Field = PositiveConstraint]
-short = zp
+[Field = ConstrainSign]
+short = cs
 type = B
-usage = Constrain reconstruction to positive values
+usage = 1 or -1 to constrain reconstruction to positive or negative values
 tooltip =
-manpage = Constrain the reconstruction to positive values when subtracting the
-difference reconstruction.  This option, or NegativeConstraint, are
+manpage = Enter 1 or -1 to constrain the reconstruction to positive or
+negative values when subtracting the
+difference reconstruction.  This option is
 appropriate only if the projection data are normalized to be linearly
 proportional to projected mass density and have positive or negative values,
-respectively.  Invoking either of these options will prevent SIRT from being
-done internally in Tilt(1).
-
-[Field = NegativeConstraint]
-short = zn
-type = B
-usage = Constrain reconstruction to negative values
-tooltip =
-manpage = Constrain the reconstruction to negative values when subtracting the
-difference reconstruction.  See the PositiveConstraint option.
+respectively.
 
 [Field = SeparateRecChunks]
 short = ch
@@ -164,10 +156,10 @@ standard R-weighted back-projection with Tilt(1).
 [Field = TestMode]
 short = te
 type = I
-usage = Test mode, 1: retain proj, drec; 2: leave command and log files
+usage = Test mode, 1: retain diff; 2: leave command and log files
 tooltip =
-manpage = Run in a test mode.  A value of 1 will leave the reprojection,
-projection difference, and difference reconstruction at the end of every
-iteration except when running SIRT internally in Tilt(1).  A value of 2 will
+manpage = Run in a test mode.  A value of 1 will leave the 
+reprojection difference between iterations and at the end,
+except when running SIRT internally in Tilt(1).  A value of 2 will
 also leave command and log files at the end of the processing.
 

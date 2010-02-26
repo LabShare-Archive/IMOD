@@ -31,9 +31,11 @@ written to files only at the iterations that you specify.  This one-to-one
 relationship does not exist when there are
 Z-factors (produced by the stretching solution in Tiltalign(1) unless you
 choose not to use them), variable X-axis tilt (needed when correcting for beam
-tilt), or local alignments.  In any of those cases, the entire reprojection
-must be written to file for step 2, and so must the error reconstruction in
-step 4, so on each iteration a file is produced by step 5, named
+tilt), or local alignments.  In any of those cases, steps 2 and 3 are done
+in Tilt(1) and the entire reprojection difference
+must be written to file, then steps 4 and 5 are done in another run of Tilt(1)
+and the new reconstruction must be written to file again.
+Thus, on each iteration a file is produced by step 5, named
 setname.srec00, setname.srec01, etc.  
 
 After running some iterations or SIRT, it is easy to
@@ -104,14 +106,14 @@ named tiltroot_sirt-*.com.  These files can be run from the command line with
 .br
 or from the generic parallel processing interface in eTomo.
 
-Each of the log files from performing operation 5 above uses "clip stat" to
-get statistics from
-a central area of 10 slices from the difference reconstruction.  The summary
-values from these statistics are gathered at the end of the
-tiltroot_sirt-finish.log file.  The last two numbers on each line are the mean
-and the standard deviation of the difference reconstruction.  The fall in the
-latter value provides some indication of the progress of the iterations.  This
-output is not available when SIRT is done internally in Tilt(1).
+Whenever a difference reconstruction is computed, its mean and standard
+deviation of the central portion are determined and output to the log file for
+the individual Tilt(1) run.  The summary values from these statistics are
+gathered in the tiltroot_sirt-finish.log file.  If the reconstruction was done
+in chunks, there will be multiple lines for each iteration.  The last two
+numbers on each line are the mean and the standard deviation of the difference
+reconstruction.  The fall in the latter value provides some indication of the
+progress of the iterations.
 
 .SS Options
 Sirtsetup uses the PIP package for input (see the manual page
@@ -194,9 +196,7 @@ setname.alilog10    Log of projections if the tilt command file contains
                          a LOG entry
 setname.srec00      Initial reconstruction
 setname.srecnn      Numbered iterative reconstructions
-setname.proj        Reprojection of current reconstruction
 setname.diff        Difference of reprojection and original projections
-setname.drec        Correction reconstruction from projection difference
 setname.sintnn      Iterative reconstruction scaled to integers
 setname.strmnn      Iterative reconstruction run through Trimvol(1)
 .fi
@@ -207,8 +207,7 @@ setname.strmnn are produced.
 David Mastronarde  
 
 .SH SEE ALSO
-tilt(1), densnorm(1), newstack(1), subimage(1), processchunks(1),
-splittilt(1), trimvol(1)
+tilt(1), densnorm(1), newstack(1), processchunks(1), splittilt(1), trimvol(1)
 
 .SH BUGS
 There is not yet a way to tell when to stop iterating.  There are low

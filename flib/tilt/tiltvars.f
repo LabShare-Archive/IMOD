@@ -40,6 +40,11 @@ c       ireadBase    Index of start of ring of tilted slices
 c       iworkPlane   Index of plane of reprojected lines
 c       nWarpDelz    Number of positions in warpDelz array when reproj local
 c       dxWarpDelz   Interval in X between positions
+c       signConstraint  Positive or negative sign constraint in SIRT
+c       recSubtraction  Flag for doing subtraction of read-in slices for SIRT
+c       projSubtraction Flag for doing subtraction of original projections
+c       iterForReport  Starting iteration number for mean/sd reports
+c       reportVals    Array for mean, sd, and # of slices for each iteration
 c       
       module tiltvars
       integer limview, limwidth
@@ -48,7 +53,7 @@ c
       parameter (limreproj = limview)
 c       
       integer*4 NSTACK,maxstack, needBase, numNeedSE
-      real*4, allocatable :: ARRAY(:), reprojLines(:), projline(:)
+      real*4, allocatable :: ARRAY(:), reprojLines(:), projline(:),origLines(:)
       integer*4, allocatable :: needStarts(:), needEnds(:)
 c       
       integer*4 npxyz(3),IWIDE,ITHICK,ISLICE,JSLICE,npad,ithickout
@@ -56,7 +61,8 @@ c
       real*4 ANGLES(limview),TITLE(20),pmin,pmax,pmean
       equivalence (nxprj,npxyz(1)),(nyprj,npxyz(2)),(nviews,npxyz(3))
 c       
-      LOGICAL MASK,PERP,reproj,recReproj,debug,readBase,useGPU, sirtFromZero
+      LOGICAL*4 MASK,PERP,reproj,recReproj,debug,readBase,useGPU, sirtFromZero
+      logical*4 recSubtraction, projSubtraction
 c       
       real*4 DELXX,xcenin,slicen,XCEN,YCEN,baselog,compress(limview),yoffset
       real*4 xzfac(limview), yzfac(limview), edgeFill, zeroWeight, flatFrac
@@ -92,9 +98,10 @@ c
       integer*4 minXreproj, maxXreproj, minYreproj, maxYreproj, minZreproj
       integer*4 ithickReproj, minXload, maxXload,nWarpDelz
       integer*4 numSIRTiter, nreadNeed, ireadBase, iworkPlane
-      integer*4 ifoutSirtProj, ifoutSirtRec
+      integer*4 ifoutSirtProj, ifoutSirtRec, isignConstraint, iterForReport
       real*4 xprjOffset, yprjOffset, projMean, filterScale, dxWarpDelz
       real*4 cosReproj(limreproj), sinReproj(limreproj)
+      real*4, allocatable :: reportVals(:,:)
 c       
       integer*4 numGpuPlanes, loadGpuStart, loadGpuEnd
 c
