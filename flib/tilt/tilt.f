@@ -30,7 +30,7 @@ c
       integer*4 iringstart,mode,needGpuStart,needGpuEnd,keepOnGpu,numLoadGpu
       real*4 endmean,f,unscmin,unscmax,recscale,recflevl,DMEAN,pixelTot
       real*4 rpfill, curmean, firstmean, vertSum, numVertSum, edgeFillOrig
-      integer*4 jsirt,iset,ixSum
+      integer*4 jsirt,iset,ixSum,mapEnd
       real*8 dtot8
       logical*4 shiftedGpuLoad, composedOne
       integer*4 gpuLoadProj,gpuShiftProj, gpuReprojOneSlice
@@ -55,6 +55,7 @@ C       Open files and read control data
       if (iflog .ne. 0) edgeFill = alog10(max(valmin, pmean + baselog))
       edgeFill = edgeFill * zeroWeight
       edgeFillOrig = edgeFill
+      mapEnd = imap + ithwid - 1
       
       if (debug)  print *,'iflog=',iflog,' scale=',scale,'  edgefill=',edgefill
 c       
@@ -248,8 +249,6 @@ c
             else
 c               
 c               Load reconstruction for projections
-              dsum = 0.
-              dpix = 0.
               DO NL=lstart,needend,idelslice
                 call imposn(3, nl - 1, 0)
                 call irdpas(3, array(ibase), maxXload + 1 - minXload,
@@ -258,15 +257,10 @@ c               Load reconstruction for projections
 c                 
 c                 Undo the scaling that was used to write, and apply a
 c                 scaling that will make the data close for projecting
-                do i = 0, ithwid - 1
-                  array(i + ibase) = (array(i + ibase) / scale - flevl) /
-     &                filterScale
-                  dsum = dsum + array(i + ibase)
-                  dpix = dpix + 1
-                enddo
+                array(ibase:ibase+ithwid-1) = (array(ibase:ibase+ithwid-1) /
+     &              scale - flevl) / filterScale
                 ibase = ibase + iplane
               enddo
-              if (debug) print *,'Loaded mean = ',dsum/dpix,'   pmean = ',pmean
             endif
             if(.not.recReproj .and. numSIRTiter .le. 0)then
               IBASE=NBASE+nalready*iplane
@@ -368,9 +362,8 @@ c
 c                 Backproject and mask/taper edges
                 call project(iworkPlane, lslice)
                 if (mask) call maskSlice(imap, ithick)
-                do i = 0, ithwid - 1
-                  array(ibaseSIRT+i) = array(imap+i) / recscale
-                enddo
+                array(ibaseSIRT:ibaseSIRT+ithwid-1) = array(imap:mapEnd) /
+     &              recscale
                 iset = 2
                 if (ifoutSirtRec .eq. 3) then
                   print *,'writing zero iteration slice',lslice
@@ -495,26 +488,33 @@ c
 c                 Backproject the difference
                 call project(iworkPlane, lslice)
                 if (isirt .eq. numSIRTiter .and. ifoutSirtRec .eq. 1) then
-                  do i = 0, ithwid - 1
-                    array(imap+i) = (array(imap+i) + flevl * recscale) *
-     &                  (scale / recscale)
-                  enddo
+                  array(imap:mapEnd) = (array(imap:mapEnd)  + flevl *
+     &                recscale) * (scale / recscale)
                   print *,'writing bp difference',lslice
                   call writeInternalSlice(5, imap)
-                  do i = 0, ithwid - 1
-                    array(imap+i) = array(imap+i) / (scale / recscale) -
-     &                  flevl * recscale
-                  enddo
+                  array(imap:mapEnd) = array(imap:mapEnd) / (scale / recscale)
+     &                - flevl * recscale
                 endif
+c                 
+c                 Accumulate report values
+                if (iterForReport .gt. 0) call sampleForReport(array(imap),
+     &              lslice, ithick, isirt, scale / recscale, flevl * recscale)
 c                 
 c                 Subtract from input slice
 c                 Scale to account for difference between ordinary scaling
 c                 for output by 1 / nviews and the fact that input slice was
 c                 descaled by 1/filterScale
-                do i = 0, ithwid - 1
-                  array(ibaseSIRT+i) = array(ibaseSIRT+i) - array(imap+i) /
-     &                recscale
-                enddo
+                i = ibaseSIRT + ithwid - 1
+                if (isignConstraint .eq. 0) then
+                  array(ibaseSIRT:i) = array(ibaseSIRT:i) - array(imap:mapEnd)
+     &                / recscale
+                else if (isignConstraint .lt. 0) then
+                  array(ibaseSIRT:i) = min(0., array(ibaseSIRT:i) - 
+     &                array(imap:mapEnd) / recscale)
+                else
+                  array(ibaseSIRT:i) = max(0., array(ibaseSIRT:i) - 
+     &                array(imap:mapEnd) / recscale)
+                endif
                 if (mask) call maskSlice(ibaseSIRT, ithick)
                 if (isirt .eq. numSIRTiter .and. ifoutSirtRec .eq. 2) then
                   print *,'writing internal slice',lslice
@@ -623,6 +623,13 @@ C       Close files
         WRITE(6,910)NSLICE
       endif
       if (useGPU) call gpuDone()
+      if (iterForReport .gt. 0) then
+        do i = 1, max(1, numSIRTiter)
+          if (reportVals(3, i) .gt. 0) write(6, 908) i + iterForReport - 1,
+     &        islice, jslice, reportVals(1, i) / reportVals(3, i),
+     &        reportVals(2, i) / reportVals(3, i)
+        enddo
+      endif
       if (ifoutSirtProj .gt. 0) then
         call iwrhdr(4, title, 1, dmin4, dmax4, (dmin4 + dmax4) / 2.)
         call imclose(4)
@@ -648,6 +655,7 @@ C
 907   format(' Reprojection lines for SIRT  ',i9,/)
 905   format(//' To scale output to bytes (10-245), use SCALE',f12.3, f12.5)
 906   format(//' To scale output to -15000 to 15000, use SCALE',f12.3, f12.5)
+908   format(/,'Iter ', i4.3, ', slices', 2i6, ', diff rec mean&sd:', 2f15.3)
 910   FORMAT(//' Reconstruction of',I5,' slices complete.',
      &    //,1X,78('-'))
 920   FORMAT(//' ERROR: TILT -  reading in view',I3,' for slice'
@@ -1067,10 +1075,17 @@ C
       real*4 CBETA,SBETA,zz,zpart,yy,yproj,YFRAC,omyfrac
       integer*4 jPROJ,jlft,jrt,iproj,ip1,ip2,ind,ipbase,ifytest
       integer*4 jtstlft,jtstrt,ISTART,lslice,jregion
-      real*4 xlft,xrt,x,xfrac,omxfrac,zbot,ztop,xproj
+      real*4 xlft,xrt,x,xfrac,omxfrac,zbot,ztop,xproj,ytol
       integer*4 gpubpnox, gpubpxtilt, gpubplocal
       real*8 walltime
-
+c       
+c       A note on the ubiquitous ytol: It is needed to keep artifacts from
+c       building up at ends of data set through SIRT, from reprojection of the
+c       line between real data and fill, or backprojection of an edge in the
+c       projection difference.  2.05 was sufficient for X-axis tilt cases but
+c       3.05 was needed for local alignments, thus it is set to 3.05 everywhere
+c       (Here, reprojection routines, and in GPU routines)
+      ytol = 3.05
 c       
 c       Determine mask extent if it is variable
       if (ifalpha .ne. 0 .and. mask) call maskprep(lslice)
@@ -1131,6 +1146,10 @@ c
               zpart= yy*sal(iv)*sbeta + zz*(cal(iv)*sbeta +xzfac(iv)) +
      &            xcenin+delxx
               yproj=yy*cal(iv) - zz*(sal(iv)-yzfac(iv)) + slicen
+c               
+c               if inside the tolerance, clamp it to the endpoints
+              if (yproj .ge. 1. - ytol .and. yproj .le. nyprj + ytol)
+     &            yproj = max(1., min(float(nyprj), yproj))
               jPROJ=YPROJ
               jproj=min(nyprj-1,jproj)
               YFRAC=YPROJ-JPROJ
@@ -1342,6 +1361,8 @@ c
                 do j=jstrt(jregion),jend(jregion)
                   xproj=xprojfs(j)+zz*xprojzs(j)
                   yproj=yprojfs(j)+zz*yprojzs(j)
+                  if (yproj .ge. 1. - ytol .and. yproj .le. nyprj + ytol)
+     &                yproj = max(1., min(float(nyprj), yproj))
                   if(xproj.ge.1.and.xproj.le.nxprj.and.
      &                yproj.ge.1..and.yproj.le.nyprj)then
 c                     
@@ -1685,12 +1706,31 @@ c       If adding to a base rec, read in each line and add scaled values
       if (numSIRTiter .gt. 0 .and. ifalpha .ge. 0) imapOut = ireadBase
       if (readBase) then
         index = imapOut
+        call imposn(3, lslice - 1, 0)
+        if (iterForReport .gt. 0) call sampleForReport(array(imapOut),
+     &      lslice, ithickOut, 1, scale, flevl)
         do j = 1, ithickOut
           call irdlin(3, projline)
-          do i = 1, iwide
-            array(index) = array(index) + projline(i) / baseScale - baseFlevl
-            index = index + 1
-          enddo
+          if (recSubtraction) then
+c             
+c             SIRT subtraction from base with possible sign constraints
+            if (isignConstraint .eq. 0) then
+              array(index:index+iwide-1) = projline(1:iwide) / scale - flevl -
+     &            array(index:index+iwide-1)
+            else if (isignConstraint .lt. 0) then
+              array(index:index+iwide-1) = min(0., projline(1:iwide) / scale -
+     &            flevl - array(index:index+iwide-1))
+            else
+              array(index:index+iwide-1) = max(0., projline(1:iwide) / scale -
+     &            flevl - array(index:index+iwide-1))
+            endif
+          else
+c             
+c             Generic addition of the scaled base data
+            array(index:index+iwide-1) = array(index:index+iwide-1) +
+     &          projline(1:iwide) / baseScale - baseFlevl
+          endif         
+          index = index + iwide
         enddo
       endif
 c
@@ -1873,9 +1913,9 @@ c
       integer*4 npadtmp,nprpad,ithicknew,nocosPlanes,ifZfac,localZfacs
       integer*4 ifThickIn,ifSliceIn,ifWidthIn,imageBinned,ifSubsetIn,ierr
       real*4 pixelLocal, dmint,dmaxt,dmeant, frac, origx, origy, origz
-      real*4 gpuMemoryFrac
+      real*4 gpuMemoryFrac, gpuMemory
       integer*4 nViewsReproj, iwideReproj, k, ind1, ind2, ifExpWeight
-      integer*4 memoryGPU, minMemory, nGPU,iactGpuFailOption,iactGpuFailEnviron
+      integer*4 minMemory, nGPU,iactGpuFailOption,iactGpuFailEnviron
       integer*4 ifGpuByEnviron, memNeed, indDelta, ifexit
       logical*4 adjustOrigin, projModel, readw_or_imod
       integer*4 niceframe, parWrtInitialize, gpuAvailable, imodGetEnv
@@ -1890,28 +1930,29 @@ c
 c       fallbacks from ../../manpages/autodoc2man -2 2  tilt
 c       
       integer numOptions
-      parameter (numOptions = 59)
+      parameter (numOptions = 62)
       character*(40 * numOptions) options(1)
       options(1) =
      &    'input:InputProjections:FN:@output:OutputFile:FN:@'//
      &    'recfile:RecFileToReproject:FN:@:ProjectModel:FN:@'//
      &    ':BaseRecFile:FN:@:ActionIfGPUFails:IP:@:AdjustOrigin:B:@'//
      &    ':ANGLES:FAM:@:BaseNumViews:I:@:BoundaryInfoFile:FN:@'//
-     &    ':COMPFRACTION:F:@:COMPRESS:FAM:@:COSINTERP:IA:@:DENSWEIGHT:FA:@'//
-     &    ':DONE:B:@:EXCLUDELIST2:LIM:@:FlatFilterFraction:F:@:FBPINTERP:I:@'//
-     &    ':FULLIMAGE:IP:@:IMAGEBINNED:I:@:INCLUDE:LIM:@'//
-     &    ':SubtractFromBase:LI:@:LOCALFILE:FN:@:LOCALSCALE:F:@:LOG:F:@'//
-     &    ':MASK:I:@:MinMaxMean:IT:@:MODE:I:@:OFFSET:FA:@:PARALLEL:B:@'//
-     &    ':PERPENDICULAR:B:@:RADIAL:FP:@:REPLICATE:FPM:@:REPROJECT:FAM:@'//
-     &    ':SCALE:FP:@:SHIFT:FA:@:SIRTIterations:I:@:SLICE:FA:@'//
-     &    ':SUBSETSTART:IP:@:THICKNESS:I:@:TILTFILE:FN:@:TITLE:CH:@'//
-     &    ':TOTALSLICES:IP:@:UseGPU:I:@:ViewsToReproject:LI:@'//
-     &    ':WeightAngleFile:FN:@:WeightFile:FN:@:WIDTH:I:@:XAXISTILT:F:@'//
-     &    'xminmax:XMinAndMaxReproj:IP:@:XTILTFILE:FN:@:XTILTINTERP:I:@'//
-     &    'yminmax:YMinAndMaxReproj:IP:@:ZFACTORFILE:FN:@'//
-     &    'zminmax:ZMinAndMaxReproj:IP:@debug:DebugOutput:B:@'//
-     &    'internal:InternalSIRTSlices:IP:@param:ParameterFile:PF:@'//
-     &    'help:usage:B:'
+     &    ':COMPFRACTION:F:@:COMPRESS:FAM:@:ConstrainSign:I:@:COSINTERP:IA:@'//
+     &    ':DENSWEIGHT:FA:@:DONE:B:@:EXCLUDELIST2:LIM:@'//
+     &    ':FlatFilterFraction:F:@:FBPINTERP:I:@:FULLIMAGE:IP:@'//
+     &    ':IMAGEBINNED:I:@:INCLUDE:LIM:@:LOCALFILE:FN:@:LOCALSCALE:F:@'//
+     &    ':LOG:F:@:MASK:I:@:MinMaxMean:IT:@:MODE:I:@:OFFSET:FA:@'//
+     &    ':PARALLEL:B:@:PERPENDICULAR:B:@:RADIAL:FP:@:REPLICATE:FPM:@'//
+     &    ':REPROJECT:FAM:@:SCALE:FP:@:SHIFT:FA:@:SIRTIterations:I:@'//
+     &    ':SIRTSubtraction:B:@:SLICE:FA:@:StartingIteration:I:@'//
+     &    ':SUBSETSTART:IP:@:SubtractFromBase:LI:@:THICKNESS:I:@'//
+     &    ':TILTFILE:FN:@:TITLE:CH:@:TOTALSLICES:IP:@:UseGPU:I:@'//
+     &    ':ViewsToReproject:LI:@:WeightAngleFile:FN:@:WeightFile:FN:@'//
+     &    ':WIDTH:I:@:XAXISTILT:F:@xminmax:XMinAndMaxReproj:IP:@'//
+     &    ':XTILTFILE:FN:@:XTILTINTERP:I:@yminmax:YMinAndMaxReproj:IP:@'//
+     &    ':ZFACTORFILE:FN:@zminmax:ZMinAndMaxReproj:IP:@'//
+     &    'debug:DebugOutput:B:@internal:InternalSIRTSlices:IP:@'//
+     &    'param:ParameterFile:PF:@help:usage:B:'
 c       
       recReproj = .false.
       nViewsReproj = 0
@@ -1920,7 +1961,10 @@ c
       numGpuPlanes = 0
       numSIRTiter = 0
       sirtFromZero = .false.
+      recSubtraction = .false.
+      projSubtraction = .false.
       flatFrac = 0.
+      iterForReport = 0
 c       
 c       Minimum array size to allocate, desired number of slices to allocate
 c       for if it exceeds that minimum size
@@ -1989,6 +2033,7 @@ c       Get entries for reprojection from rec file
             if (nViewsReproj .gt. limview) call exitError(
      &          'TOO MANY VIEWS IN LIST TO REPROJECT FOR ARRAYS')
           endif
+          ierr = PipGetLogical('SIRTSubtraction', projSubtraction)
         endif
         minXreproj = minXreproj + 1
         maxXreproj = maxXreproj + 1
@@ -2006,7 +2051,17 @@ c         If not reading from a rec and doing sirt, then must be doing from 0
       if (.not. recReproj .and. .not.projModel .and. numSIRTiter .le. 0 .and.
      &    PipGetString('BaseRecFile', basefile) .eq. 0) then
         readBase = .true.
-        if (PipGetInteger('BaseNumViews', numViewBase) .ne. 0) call exitError(
+        if (PipGetString('SubtractFromBase', card) .eq. 0) then
+          call parselist(card, ivSubtract, nViewSubtract)
+          if (nViewSubtract .gt. limview) call exitError(
+     &        'TOO MANY VIEWS IN LIST TO SUBTRACT FOR ARRAYS')
+          if (nViewSubtract .eq. 1 .and. ivSubtract(1) .lt. 0) then
+            recSubtraction = .true.
+            nViewSubtract = 0
+          endif
+        endif
+        if (.not. recSubtraction .and.
+     &      PipGetInteger('BaseNumViews', numViewBase) .ne. 0) call exitError(
      &      'YOU MUST ENTER -BaseNumViews with -BaseRecFile')
         call imopen(3, basefile, 'RO')
         call irdhdr(3,NRXYZ,MPXYZ,MODE,dmint,dmaxt,dmeant)
@@ -2093,6 +2148,7 @@ c...... Default double-width linear interpolation in cosine stretching
       iactGpuFailEnviron = 0
       ifoutSirtProj = 0
       ifoutSirtRec = 0
+      isignConstraint = 0
 c       
 c...... Default title
       CALL DATE(DAT)
@@ -2436,12 +2492,6 @@ c
       flatFrac = max(0.,  flatFrac)
 c       
       ierr = PipGetLogical('AdjustOrigin', adjustOrigin)
-c       
-      if (readBase .and. PipGetString('SubtractFromBase', card) .eq. 0) then
-        call parselist(card, ivSubtract, nViewSubtract)
-        if (nViewSubtract .gt. limview) call exitError(
-     &      'TOO MANY VIEWS IN LIST TO SUBTRACT FOR ARRAYS')
-      endif
 c
       if (.not. recReproj) 
      &    ierr = PipGetThreeFloats('MinMaxMean', pmin, pmax, pmean)
@@ -2464,8 +2514,12 @@ c         Sort the angles
         enddo
       endif
 c       
+      ierr = PipGetInteger('ConstrainSign', isignConstraint)
+c       
       ierr = PipGetTwoIntegers('InternalSIRTSlices', ifoutSirtProj,
      &    ifoutSirtRec)
+      if (numSIRTiter .gt. 0 .or. recSubtraction)
+     &    ierr = PipGetInteger('StartingIteration', iterForReport)
 c
       call PipDone()
 c       
@@ -2761,23 +2815,28 @@ c
           enddo
         endif
       else
+c         
+c         RecReproj stuff
         noxyz(1) = maxXreproj + 1 - minXreproj
         noxyz(2) = maxZreproj + 1 - minZreproj
         ithickReproj = maxYreproj + 1 - minYreproj
+        noxyz(3) = nreproj
         if (minTotSlice.gt.0 .and. minZreproj .lt. 1)
      &      noxyz(2) = maxTotSlice + 1 - minTotSlice
         if (noxyz(1) .lt. 1 .or. noxyz(2) .lt. 1 .or. ithickReproj .lt. 1)
      &      call exitError('Min and max limits for output are reversed for '//
      &      'X, Y, or Z')
-        noxyz(3) = nreproj
         cell(1) = noxyz(1)*delta(1)
         cell(2) = noxyz(2)*delta(1)
         cell(3) = delta(1)*nreproj
+        if (projSubtraction .and. (noxyz(1) .ne. nxprj .or. maxZreproj .gt.
+     &      nyprj .or. noxyz(3) .ne. npxyz(3))) call exitError('OUTPUT SIZE'//
+     &      ' MUST MATCH ORIGINAL PROJECTION FILE SIZE FOR SIRT SUBTRACTION')
       endif
 c       
 c       Check compatibility of base rec file
       if ((readBase .and. .not. recReproj) .and. (nrxyz(1) .ne. iwide .or.
-     &    nrxyz(2) .ne. ithick .or. nrxyz(3) .ne. nslice)) call exitError(
+     &    nrxyz(2) .ne. ithick .or. nrxyz(3) .lt. jslice)) call exitError(
      &    'BASE REC FILE IS NOT THE SAME SIZE AS OUTPUT FILE')
 c       
 c       open old file if in chunk mode and there is real starting slice
@@ -3121,8 +3180,15 @@ c         line.  Also replace the slice limits.
         if (ierr .ne. 0)
      &      call exitError('FAILED TO ALLOCATE ARRAY FOR REPROJECTED LINES')
 c         
+        if (projSubtraction) then
+          allocate(origLines(iwide * nplanes), stat = ierr)
+        if (ierr .ne. 0)
+     &      call exitError('FAILED TO ALLOCATE ARRAY FOR ORIGINAL LINES')
+        endif
         if (useGPU) then
-          if (useGPU) useGPU = gpuAvailable(nGPU, memoryGPU) .ne. 0
+          ind = 0
+          if (debug) ind = 1
+          if (useGPU) useGPU = gpuAvailable(nGPU, gpuMemory, ind) .ne. 0
           ind = maxNeeds(1) * iplane + iwide * nplanes
           iex = iwide * nplanes
           kti = 0
@@ -3134,7 +3200,7 @@ c
             call packLocalData()
           endif
           if (useGPU) then
-            useGPU = 4 * ind .le. gpuMemoryFrac * memoryGPU
+            useGPU = 4 * ind .le. gpuMemoryFrac * gpuMemory
             if (.not. useGPU) print *,
      &          'GPU is available but it has insufficient memory'
           endif
@@ -3172,7 +3238,7 @@ c       BACKPROJECTION ONLY.  First allocate the projection factor array
       endif
 c       
 c       If reading base, figure out total views being added and adjust scales
-      if (readBase) then
+      if (readBase .and. .not. recSubtraction) then
         iv = nviews
         do j = 1, nviews
           k = 0
@@ -3193,6 +3259,11 @@ c       If reading base, figure out total views being added and adjust scales
       if (debug) print *,'scale: ', scale,flevl
       call setNeededSlices(maxNeeds, numNeedEval)
       if (debug) print *,(maxNeeds(i), i = 1, numNeedEval)
+      if (iterForReport .gt. 0) then
+        allocate(reportVals(3, max(1, numSIRTiter)), stat = ierr)
+        if (ierr .ne. 0) call exitError('ALLOCATING REPORT VALUE ARRAY')
+        reportVals(1:3, 1:max(1, numSIRTiter)) = 0.
+      endif
 c       
 c       12/13/09: removed fast backprojection code
 c         
@@ -3235,7 +3306,9 @@ c       Set up defaults for plane size and start of planes of input data
 c       
 c       Determine if GPU can be used, but don't try to allocate yet
       if (useGPU) then
-        useGPU = gpuAvailable(nGPU, memoryGPU) .ne. 0
+        ind = 0
+        if (debug) ind = 1
+        useGPU = gpuAvailable(nGPU, gpuMemory, ind) .ne. 0
         if (useGPU) then
 c           
 c           Basic need is input planes for reconstructing one slice plus 2
@@ -3246,7 +3319,7 @@ c           slice. Local alignment adds 4 arrays for local proj factors
      &        iv = iv + 4 * (iwide * nviews + 12 * limwpos * nviews)
           if (numSIRTiter .gt. 0) iv = iv + ithwid + iplane
           if (sirtFromZero) iv = iv + iplane
-          useGPU = 4 * iv .le. gpuMemoryFrac * memoryGPU
+          useGPU = 4 * iv .le. gpuMemoryFrac * gpuMemory
           if (useGPU) then
             interpfac = 0
           else
@@ -3461,7 +3534,7 @@ c       Start with as many planes as possible but no more than in array
 c       and no more that 32767 lines for array on GPU
       iperPlane = iplane
       if (numDelz .gt. 0) iperPlane = iplane + 8 * iwide + nWarpDelz
-      maxGpuPlane = (gpuMemoryFrac * memoryGPU / 4. - nonPlane) / iperPlane
+      maxGpuPlane = (gpuMemoryFrac * gpuMemory / 4. - nonPlane) / iperPlane
       maxGpuPlane = min(maxGpuPlane, nPlanes, 32760 / nygplane)
 c           FOR TESTING MEMORY SHIFTING ETC
 c       ind = max(maxNeeds(1), min(ind, nPlanes / 3))
@@ -3565,6 +3638,32 @@ c
       endif
       return
       end
+
+
+c       Compute mean and SD of interior of a slice for SIRT report
+c       
+      subroutine sampleForReport(slice, lslice, kthick, iteration, sscale,
+     &    sflevl)
+      use tiltvars
+      implicit none
+      real*4 slice(*), sscale, sflevl, avg, sd
+      integer*4 lslice, kthick, iteration, iskip, ixlo, iylo, ierr
+      integer*4 sampleMeanSD
+c       
+      iskip = (jslice - islice) / 10
+      if (lslice .lt. islice + iskip .or. lslice .gt. jslice - iskip) return
+      ixlo = iwide / 10
+      iylo = kthick / 4
+      ierr = sampleMeanSD(slice, iwide, kthick, 0.02, ixlo, iylo, iwide - 2 *
+     &    ixlo, kthick - 2 * iylo, avg, sd)
+      if (ierr .ne. 0) return
+      reportVals(1, iteration) = reportVals(1, iteration) +
+     &    (avg + sflevl) * sscale
+      reportVals(2, iteration) = reportVals(2, iteration) + sd * sscale
+      reportVals(3, iteration) = reportVals(3, iteration) + 1
+      return
+      end
+
       
 c       return indices to four local areas, and fractions to apply for each
 c       at location ix, iy in view iv, where ix and iy are indexes in
@@ -4139,7 +4238,7 @@ c
       real*4 reprojDelz
       integer*4 gpuReproject, gpuReprojLocal
 
-      ytol = 0.05
+      ytol = 3.05
       xjump = 5.0
       nxload = maxXload + 1 - minXload
       tstart = walltime()
@@ -4555,7 +4654,7 @@ c
       real*4 omfx, yy, fy, omfy, xproj, yproj, yslice, d11, d12, d21, d22
       real*8 xx8
 
-      ytol = 0.05
+      ytol = 3.05
       delx = 1. / cbeta
       do i = 1, iwide
         reprojLines(i) = 0.
@@ -4729,6 +4828,11 @@ c       constant mean levels.  Descale non-log data by exposure weights
           reprojLines(i) = reprojLines(i) / expWeight(iv)
         enddo
       endif
+      if (projSubtraction) then
+        call imposn(1, iv - 1, lineStart - 1)
+        call irdsecl(1, origLines, lineEnd + 1 - lineStart, *99)
+        reprojLines(1:numVals) = reprojLines(1:numVals) - origLines(1:numVals)
+      endif
       do i = 1, numVals
         val = reprojLines(i)
 c        if (debug .and. val .lt. dmin) print *,'min:',i,val
@@ -4744,6 +4848,7 @@ c        if (debug .and. val .gt. dmax) print *,'max:',i,val
         call parWrtLin(2, reprojLines(1 + (line-lineStart) * iwide))
       enddo
       return
+99     call exitError('READING FROM ORIGINAL PROJECTION FILE')
       end
 
 
@@ -4885,6 +4990,11 @@ c       Set to open contour, show values etc., and show sphere on section only
 
 c       
 c       $Log$
+c       Revision 3.54  2010/02/22 06:04:19  mast
+c       Implemented internal SIRT iterations, reprojection on GPU with local
+c       alignments, fixed bugs in local alignment CPU reprojection, changed 
+c       masking to do a tapering with specified number of extra pixels
+c
 c       Revision 3.53  2010/02/02 02:19:26  mast
 c       Fixed allocataion of warping data for reprojecting rec
 c
