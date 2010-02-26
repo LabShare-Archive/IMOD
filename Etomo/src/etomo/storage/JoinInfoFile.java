@@ -65,8 +65,8 @@ public class JoinInfoFile {
     }
     catch (IndexOutOfBoundsException e) {
       e.printStackTrace();
-      UIHarness.INSTANCE.openMessageDialog(manager, ERROR_TITLE, ERROR_MESSAGE
-          + "\n" + e.toString());
+      UIHarness.INSTANCE.openMessageDialog(manager,  ERROR_MESSAGE
+          + "\n" + e.toString(),ERROR_TITLE);
       return null;
     }
   }
@@ -78,8 +78,8 @@ public class JoinInfoFile {
       joinInfo.readLine(readerId);
       String line = joinInfo.readLine(readerId);
       if (line == null) {
-        UIHarness.INSTANCE.openMessageDialog(manager, ERROR_TITLE,
-            ERROR_MESSAGE);
+        UIHarness.INSTANCE.openMessageDialog(manager, 
+            ERROR_MESSAGE,ERROR_TITLE);
         return false;
       }
       else {
@@ -127,6 +127,10 @@ public class JoinInfoFile {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.7  2010/02/17 04:49:31  sueh
+ * <p> bug# 1301 Using the manager instead of the manager key do pop up
+ * <p> messages.
+ * <p>
  * <p> Revision 1.6  2009/03/17 00:44:33  sueh
  * <p> bug# 1186 Pass managerKey to everything that pops up a dialog.
  * <p>

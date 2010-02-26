@@ -25,6 +25,10 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.16  2010/02/17 04:52:36  sueh
+ * <p> bug# 1301 Using the manager instead of the manager key do pop up
+ * <p> messages.
+ * <p>
  * <p> Revision 1.15  2009/09/20 21:29:46  sueh
  * <p> bug# 1268 Reformatted.
  * <p>
@@ -313,8 +317,8 @@ public final class JoinMetaData extends BaseMetaData implements
       int rowIndex = row.getRowIndex();
       if (rowIndex < 0) {
         UIHarness.INSTANCE.openMessageDialog(manager, "Invalid row index: "
-            + rowIndex, "Corrupted " + DatasetFiles.JOIN_DATA_FILE_EXT
-            + " file", AxisID.ONLY);
+            + rowIndex+ ".  Corrupted: " + DatasetFiles.JOIN_DATA_FILE_EXT
+            + " file.","Corrupted File", AxisID.ONLY);
       }
       sectionTableData.add(row.getRowIndex(), row);
     }

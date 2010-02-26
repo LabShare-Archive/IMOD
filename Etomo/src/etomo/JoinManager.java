@@ -73,6 +73,9 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.84  2010/02/17 04:41:12  sueh
+ * <p> bug# 1301 Moved comScriptMgr and logPanel to child class.
+ * <p>
  * <p> Revision 1.83  2009/12/11 17:24:10  sueh
  * <p> bug# 1291 Added the manager, the axis, and the mode to the ClipParam
  * <p> constructor.
@@ -1086,8 +1089,8 @@ public final class JoinManager extends BaseManager {
                 + xfFileName + ".",
             "Copy " + newXfFile.getName() + " to " + xfFileName,
             " and then rerun " + commandDescription + "." };
-        uiHarness.openMessageDialog(this, message, "Cannot run "
-            + commandDescription, AxisID.ONLY);
+        uiHarness.openMessageDialog(this, message, "Cannot Run Command"
+            , AxisID.ONLY);
         return false;
       }
     }

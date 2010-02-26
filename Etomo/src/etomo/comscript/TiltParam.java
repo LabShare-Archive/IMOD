@@ -11,6 +11,10 @@
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.41  2010/02/17 04:47:54  sueh
+ * <p> bug# 1301 Using the manager instead of the manager key do pop up
+ * <p> messages.
+ * <p>
  * <p> Revision 3.40  2010/01/11 23:48:52  sueh
  * <p> bug# 1299 Added isMessageReporter.  Added useGpu.
  * <p>
@@ -1209,7 +1213,7 @@ public final class TiltParam implements ConstTiltParam, CommandParam {
       else {
         UIHarness.INSTANCE.openMessageDialog(manager,
             "Unable to set subset start in tilt.com.\n" + e.getMessage(),
-            "Setting Tilt.com Failed", axisID);
+            "Setting Comscript Failed", axisID);
       }
       return false;
     }

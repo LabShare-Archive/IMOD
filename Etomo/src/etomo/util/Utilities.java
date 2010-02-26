@@ -12,6 +12,9 @@
  * @version $$Revision$
  *
  * <p> $$Log$
+ * <p> $Revision 3.69  2010/02/23 20:32:47  sueh
+ * <p> $Removed unnecessary stack trace print in rename.
+ * <p> $
  * <p> $Revision 3.68  2010/02/17 05:05:58  sueh
  * <p> $bug# 1301 Using manager instead of manager key for popping up
  * <p> $messages.
@@ -379,8 +382,8 @@ public class Utilities {
         + axisID.getExtension() + extension);
     if (!file.exists() && mustExist) {
       UIHarness.INSTANCE.openMessageDialog(manager, "The " + fileDescription
-          + " file: " + file.getAbsolutePath() + " doesn't exist.", "Missing "
-          + fileDescription, axisID);
+          + " file: " + file.getAbsolutePath() + " doesn't exist.", "Missing File"
+          , axisID);
       return null;
     }
     return file;

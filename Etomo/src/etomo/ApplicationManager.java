@@ -474,11 +474,11 @@ public final class ApplicationManager extends BaseManager implements
   public InterfaceType getInterfaceType() {
     return InterfaceType.RECON;
   }
-  
+
   public LogInterface getLogInterface() {
     return logPanel;
   }
-  
+
   public LogPanel getLogPanel() {
     return logPanel;
   }
@@ -681,7 +681,7 @@ public final class ApplicationManager extends BaseManager implements
     catch (SystemProcessException except) {
       except.printStackTrace();
       uiHarness.openMessageDialog(this, except.getMessage(),
-          "Can't open 3dmod on raw stack", axisID);
+          "Cannot open 3dmod on raw stack", axisID);
     }
     catch (AxisTypeException except) {
       except.printStackTrace();
@@ -1080,10 +1080,10 @@ public final class ApplicationManager extends BaseManager implements
     }
     catch (IOException e) {
       e.printStackTrace();
-      uiHarness.openMessageDialog(this, e.getMessage(), "Unable to move "
+      uiHarness.openMessageDialog(this, e.getMessage()+ "\nUnable to move "
           + xrayStack.getName() + " to " + xrayStackArchive.getName()
           + ".\nCannot continue.\nFirst run \"mv " + xrayStack.getName() + " "
-          + xrayStackArchive.getName() + "\" from the command line.", axisID);
+          + xrayStackArchive.getName() + "\" from the command line.","Rename Failed", axisID);
       return false;
     }
     return true;
@@ -2127,8 +2127,8 @@ public final class ApplicationManager extends BaseManager implements
         + metaData.getDatasetName() + axisID.getExtension() + ".fid";
     File fiducialModel = new File(fiducialModelFilename);
     if (!fiducialModel.exists()) {
-      uiHarness.openMessageDialog(this, "Fiducial model does not exist.",
-          BeadtrackPanel.USE_MODEL_LABEL + " failed.", axisID);
+      uiHarness.openMessageDialog(this, "Fiducial model does not exist.  "+
+          BeadtrackPanel.USE_MODEL_LABEL + " failed.","Process Failed", axisID);
       return false;
     }
     if (!okToMakeFiducialModelSeedModel(axisID)) {
@@ -5095,8 +5095,8 @@ public final class ApplicationManager extends BaseManager implements
       String message[] = new String[2];
       message[0] = "Unable to open specified tomogram:" + trialTomogramName;
       message[1] = "Does it exist in the working directory?";
-      uiHarness.openMessageDialog(this, except.getMessage(),
-          "Can't open 3dmod with the tomogram", axisID);
+      uiHarness.openMessageDialog(this, except.getMessage()+
+          "\nCan't open 3dmod with the tomogram","Cannot Open 3dmod", axisID);
     }
     catch (AxisTypeException except) {
       except.printStackTrace();
@@ -5273,8 +5273,8 @@ public final class ApplicationManager extends BaseManager implements
           detailedMessage[1] = "Are both tomograms computed and available?";
           detailedMessage[2] = "";
           detailedMessage[3] = except.getMessage();
-          uiHarness.openMessageDialog(this, detailedMessage,
-              "Invalid parameter: " + recFileName, AxisID.ONLY);
+          uiHarness.openMessageDialog(this, detailedMessage+"\n"+
+              "Invalid parameter: " + recFileName,"Invalid Parameter", AxisID.ONLY);
           // Delete the dialog
           tomogramCombinationDialog = null;
           mainPanel.showBlankProcess(AxisID.ONLY);
@@ -5377,8 +5377,8 @@ public final class ApplicationManager extends BaseManager implements
     }
     catch (SystemProcessException except) {
       except.printStackTrace();
-      uiHarness.openMessageDialog(this, except.getMessage(),
-          "Can't open 3dmod on tomograms for matching models", AxisID.ONLY);
+      uiHarness.openMessageDialog(this, except.getMessage()+
+          "\nCan't open 3dmod on tomograms for matching models","Cannot Open 3dmod", AxisID.ONLY);
     }
     catch (AxisTypeException except) {
       except.printStackTrace();
@@ -5401,8 +5401,8 @@ public final class ApplicationManager extends BaseManager implements
     }
     catch (SystemProcessException except) {
       except.printStackTrace();
-      uiHarness.openMessageDialog(this, except.getMessage(),
-          "Can't open 3dmod on matchcheck.mat or matchcheck.rec", AxisID.ONLY);
+      uiHarness.openMessageDialog(this, except.getMessage()+
+          "\nCan't open 3dmod on matchcheck.mat or matchcheck.rec","Cannot Open 3dmod", AxisID.ONLY);
     }
     catch (AxisTypeException except) {
       except.printStackTrace();
@@ -5440,8 +5440,8 @@ public final class ApplicationManager extends BaseManager implements
     }
     catch (SystemProcessException except) {
       except.printStackTrace();
-      uiHarness.openMessageDialog(this, except.getMessage(),
-          "Can't open 3dmod on tomogram for patch region models", AxisID.ONLY);
+      uiHarness.openMessageDialog(this, except.getMessage()+
+          "\nCan't open 3dmod on tomogram for patch region models","Cannot Open 3dmod", AxisID.ONLY);
     }
     catch (AxisTypeException except) {
       except.printStackTrace();
@@ -5463,8 +5463,8 @@ public final class ApplicationManager extends BaseManager implements
     }
     catch (SystemProcessException except) {
       except.printStackTrace();
-      uiHarness.openMessageDialog(this, except.getMessage(),
-          "Can't open 3dmod on tomogram for patch vector model", AxisID.ONLY);
+      uiHarness.openMessageDialog(this, except.getMessage()+
+          "\nCan't open 3dmod on tomogram for patch vector model","Cannot Open 3dmod", AxisID.ONLY);
     }
     catch (AxisTypeException except) {
       except.printStackTrace();
@@ -5495,8 +5495,8 @@ public final class ApplicationManager extends BaseManager implements
     }
     catch (SystemProcessException except) {
       except.printStackTrace();
-      uiHarness.openMessageDialog(this, except.getMessage(),
-          "Can't open 3dmod on tomogram being matched to", AxisID.ONLY);
+      uiHarness.openMessageDialog(this, except.getMessage()+
+          "\nCan't open 3dmod on tomogram being matched to","Cannot Open 3dmod", AxisID.ONLY);
     }
     catch (AxisTypeException except) {
       except.printStackTrace();
@@ -5681,8 +5681,8 @@ public final class ApplicationManager extends BaseManager implements
         detailedMessage[1] = "Are both tomograms computed and available?";
         detailedMessage[2] = "";
         detailedMessage[3] = except.getMessage();
-        uiHarness.openMessageDialog(this, detailedMessage,
-            "Invalid parameter: " + recFileName, AxisID.ONLY);
+        uiHarness.openMessageDialog(this, detailedMessage+"\n"+
+            "Invalid parameter: " + recFileName,"Invalid Parameter", AxisID.ONLY);
         // Delete the dialog
         tomogramCombinationDialog = null;
         return;
@@ -5818,7 +5818,7 @@ public final class ApplicationManager extends BaseManager implements
       String[] message = new String[2];
       message[0] = "Unable to create solvematch com script";
       message[1] = "Check file and directory permissions";
-      uiHarness.openMessageDialog(this, message, "Can't create solvematch.com",
+      uiHarness.openMessageDialog(this, message, "Cannot Create Comscript",
           AxisID.ONLY);
       return;
     }
@@ -5966,7 +5966,7 @@ public final class ApplicationManager extends BaseManager implements
         message[0] = "Unable to copy combine com script";
         message[1] = "Check file and directory permissions";
         uiHarness.openMessageDialog(this, message,
-            "Can't create a new combine.com", AxisID.ONLY);
+            "Can't create a new comscript", AxisID.ONLY);
         return null;
       }
       comScriptMgr.loadCombine();
@@ -6490,8 +6490,8 @@ public final class ApplicationManager extends BaseManager implements
         detailedMessage[1] = "Does the reconstruction file exist yet?";
         detailedMessage[2] = "";
         detailedMessage[3] = except.getMessage();
-        uiHarness.openMessageDialog(this, detailedMessage,
-            "Invalid parameter: " + trimvolParam.getInputFileName(),
+        uiHarness.openMessageDialog(this, detailedMessage+"\n"+
+            "Invalid parameter: " + trimvolParam.getInputFileName(),"Invalid Parameter",
             AxisID.ONLY);
         // Delete the dialog
         postProcessingDialog = null;
@@ -6630,7 +6630,7 @@ public final class ApplicationManager extends BaseManager implements
     catch (SystemProcessException except) {
       except.printStackTrace();
       uiHarness.openMessageDialog(this, except.getMessage(),
-          "Can't open 3dmod on the trimmed tomogram", AxisID.ONLY);
+          "Cannot open 3dmod on the trimmed tomogram", AxisID.ONLY);
     }
     catch (AxisTypeException except) {
       except.printStackTrace();
@@ -6691,8 +6691,8 @@ public final class ApplicationManager extends BaseManager implements
     }
     catch (SystemProcessException except) {
       except.printStackTrace();
-      uiHarness.openMessageDialog(this, except.getMessage(),
-          "Can't open 3dmod on the trimmed tomogram", axisID);
+      uiHarness.openMessageDialog(this, except.getMessage()+
+          "\nCan't open 3dmod on the trimmed tomogram","Cannot Open 3dmod", axisID);
     }
     catch (AxisTypeException except) {
       except.printStackTrace();
@@ -6717,8 +6717,8 @@ public final class ApplicationManager extends BaseManager implements
     }
     catch (SystemProcessException except) {
       except.printStackTrace();
-      uiHarness.openMessageDialog(this, except.getMessage(),
-          "Can't open 3dmod on the " + key, axisID);
+      uiHarness.openMessageDialog(this, except.getMessage()+"\n"+
+          "Cannot open 3dmod on the " + key,"Cannot Open 3dmod", axisID);
     }
     catch (AxisTypeException except) {
       except.printStackTrace();
@@ -6787,8 +6787,8 @@ public final class ApplicationManager extends BaseManager implements
     }
     catch (SystemProcessException except) {
       except.printStackTrace();
-      uiHarness.openMessageDialog(this, except.getMessage(),
-          "Can't open 3dmod on the " + key, axisID);
+      uiHarness.openMessageDialog(this, except.getMessage()+
+          "\nCan't open 3dmod on the " + key,"Cannot Open 3dmod", axisID);
     }
     catch (AxisTypeException except) {
       except.printStackTrace();
@@ -7079,9 +7079,9 @@ public final class ApplicationManager extends BaseManager implements
     }
     catch (SystemProcessException except) {
       except.printStackTrace();
-      uiHarness.openMessageDialog(this, except.getMessage(),
-          "Can't open 3dmod on " + imodManagerKey + " with model: " + model,
-          axisID);
+      uiHarness.openMessageDialog(this, "Can't open 3dmod on " + imodManagerKey
+          + " with model: " + model + "\n" + except.getMessage(),
+          "Can't Open 3dmod", axisID);
       return;
     }
     catch (IOException e) {
@@ -7886,6 +7886,9 @@ public final class ApplicationManager extends BaseManager implements
 }
 /**
  * <p> $Log$
+ * <p> Revision 3.348  2010/02/23 20:36:55  sueh
+ * <p> bug# 1291 Fixed clipStats.  Was running it on the wrong axis.
+ * <p>
  * <p> Revision 3.347  2010/02/23 20:32:11  sueh
  * <p> bug# 1291 Fixed clipStats.  Was running it on the wrong axis.
  * <p>

@@ -31,6 +31,9 @@ import etomo.util.DatasetFiles;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.34  2010/02/17 05:03:12  sueh
+ * <p> bug# 1301 Using manager instead of manager key for popping up messages.
+ * <p>
  * <p> Revision 1.33  2009/03/17 00:46:24  sueh
  * <p> bug# 1186 Pass managerKey to everything that pops up a dialog.
  * <p>
@@ -648,80 +651,81 @@ public final class SectionTableRow implements Highlightable {
   private boolean retrieveData(boolean displayErrorMessage) {
     data.setInverted(inverted);
     valid = true;
-    String errorTitle = "Invalid number in section " + rowNumber.getText();
+    String errorInfo = "\nInvalid number in section " + rowNumber.getText();
+    String errorTitle = "Invalid Number";
     String errorMessage = data.setSampleBottomStart(
         sampleBottomStart.getValue()).validate(null);
     if (errorMessage != null && valid) {
-      UIHarness.INSTANCE.openMessageDialog(manager, errorMessage, errorTitle,
-          AxisID.ONLY);
+      UIHarness.INSTANCE.openMessageDialog(manager, errorMessage + errorInfo,
+          errorTitle, AxisID.ONLY);
       valid = false;
     }
     errorMessage = data.setSampleBottomEnd(sampleBottomEnd.getValue())
         .validate(null);
     if (errorMessage != null && valid) {
-      UIHarness.INSTANCE.openMessageDialog(manager, errorMessage, errorTitle,
-          AxisID.ONLY);
+      UIHarness.INSTANCE.openMessageDialog(manager, errorMessage + errorInfo,
+          errorTitle, AxisID.ONLY);
       valid = false;
     }
     errorMessage = data.setSampleTopStart(sampleTopStart.getValue()).validate(
         null);
     if (errorMessage != null && valid) {
-      UIHarness.INSTANCE.openMessageDialog(manager, errorMessage, errorTitle,
-          AxisID.ONLY);
+      UIHarness.INSTANCE.openMessageDialog(manager, errorMessage + errorInfo,
+          errorTitle, AxisID.ONLY);
       valid = false;
     }
     errorMessage = data.setSampleTopEnd(sampleTopEnd.getValue()).validate(null);
     if (errorMessage != null && valid) {
-      UIHarness.INSTANCE.openMessageDialog(manager, errorMessage, errorTitle,
-          AxisID.ONLY);
+      UIHarness.INSTANCE.openMessageDialog(manager, errorMessage + errorInfo,
+          errorTitle, AxisID.ONLY);
       valid = false;
     }
     errorMessage = data.setSetupFinalStart(setupFinalStart.getValue())
         .validate(null);
     if (errorMessage != null && valid) {
-      UIHarness.INSTANCE.openMessageDialog(manager, errorMessage, errorTitle,
-          AxisID.ONLY);
+      UIHarness.INSTANCE.openMessageDialog(manager, errorMessage + errorInfo,
+          errorTitle, AxisID.ONLY);
       valid = false;
     }
     errorMessage = data.setSetupFinalEnd(setupFinalEnd.getValue()).validate(
         null);
     if (errorMessage != null && valid) {
-      UIHarness.INSTANCE.openMessageDialog(manager, errorMessage, errorTitle,
-          AxisID.ONLY);
+      UIHarness.INSTANCE.openMessageDialog(manager, errorMessage + errorInfo,
+          errorTitle, AxisID.ONLY);
       valid = false;
     }
     errorMessage = data.setJoinFinalStart(joinFinalStart.getValue()).validate(
         null);
     if (errorMessage != null && valid) {
-      UIHarness.INSTANCE.openMessageDialog(manager, errorMessage, errorTitle,
-          AxisID.ONLY);
+      UIHarness.INSTANCE.openMessageDialog(manager, errorMessage + errorInfo,
+          errorTitle, AxisID.ONLY);
       valid = false;
     }
     errorMessage = data.setJoinFinalEnd(joinFinalEnd.getValue()).validate(null);
     if (errorMessage != null && valid) {
-      UIHarness.INSTANCE.openMessageDialog(manager, errorMessage, errorTitle,
-          AxisID.ONLY);
+      UIHarness.INSTANCE.openMessageDialog(manager, errorMessage + errorInfo,
+          errorTitle, AxisID.ONLY);
       valid = false;
     }
     errorMessage = data.setRotationAngleX(rotationAngleX.getValue()).validate(
         null);
     if (errorMessage != null && valid) {
-      UIHarness.INSTANCE.openMessageDialog(manager, errorMessage, errorTitle,
-          AxisID.ONLY);
+      UIHarness.INSTANCE.openMessageDialog(manager, errorMessage + errorInfo,
+          errorTitle, AxisID.ONLY);
       valid = false;
     }
     errorMessage = data.setRotationAngleY(rotationAngleY.getValue()).validate(
         null);
     if (errorMessage != null && valid) {
-      UIHarness.INSTANCE.openMessageDialog(manager, errorMessage, errorTitle,
-          AxisID.ONLY);
+      UIHarness.INSTANCE.openMessageDialog(manager, errorMessage + errorInfo,
+          errorTitle, AxisID.ONLY);
       valid = false;
     }
     errorMessage = data.setRotationAngleZ(rotationAngleZ.getValue()).validate(
         null);
     if (errorMessage != null && valid) {
-      UIHarness.INSTANCE.openMessageDialog(manager, errorMessage, errorTitle,
-          AxisID.ONLY);
+      UIHarness.INSTANCE.openMessageDialog(manager, errorMessage + errorInfo,
+          errorTitle, AxisID.ONLY);
       valid = false;
     }
     return valid;
@@ -729,33 +733,31 @@ public final class SectionTableRow implements Highlightable {
 
   boolean validateMakejoincom() {
     retrieveData(false);
-    String errorTitle = "Invalid numbers in section " + rowNumber.getText();
-    validate(data.getSampleBottomStart(), data.getSampleBottomEnd(),
-        errorTitle, true);
-    validate(data.getSampleTopStart(), data.getSampleTopEnd(), errorTitle, true);
+    validate(data.getSampleBottomStart(), data.getSampleBottomEnd(), true);
+    validate(data.getSampleTopStart(), data.getSampleTopEnd(), true);
     return valid;
   }
 
   boolean validateFinishjoin() {
     retrieveData(false);
-    String errorTitle = "Invalid numbers in section " + rowNumber.getText();
-    validate(data.getJoinFinalStart(), data.getJoinFinalEnd(), errorTitle,
-        false);
+    validate(data.getJoinFinalStart(), data.getJoinFinalEnd(), false);
     return valid;
   }
 
   private boolean validate(ConstEtomoNumber start, ConstEtomoNumber end,
-      String errorTitle, boolean validateValues) {
+      boolean validateValues) {
     if (start.isNull() && !end.isNull()) {
       UIHarness.INSTANCE.openMessageDialog(manager, start.getDescription()
           + " cannot be empty when " + end.getDescription()
-          + " has been entered.", errorTitle, AxisID.ONLY);
+          + " has been entered.  Invalid numbers in section "
+          + rowNumber.getText(), "Entry Error", AxisID.ONLY);
       valid = false;
     }
     else if (!start.isNull() && end.isNull()) {
       UIHarness.INSTANCE.openMessageDialog(manager, end.getDescription()
           + " cannot be empty when " + start.getDescription()
-          + " has been entered.", errorTitle, AxisID.ONLY);
+          + " has been entered.  Invalid numbers in section "
+          + rowNumber.getText(), "Entry Error", AxisID.ONLY);
       valid = false;
     }
     else if (validateValues) {
@@ -763,14 +765,15 @@ public final class SectionTableRow implements Highlightable {
         if (start.getInt() > end.getInt()) {
           UIHarness.INSTANCE.openMessageDialog(manager, start.getDescription()
               + " must be less then or equal to " + start.getDescription()
-              + ".", errorTitle, AxisID.ONLY);
+              + ".", "Entry Error", AxisID.ONLY);
           valid = false;
         }
       }
       else if (start.getLong() > end.getLong()) {
         UIHarness.INSTANCE.openMessageDialog(manager, start.getDescription()
-            + " must be less then or equal to " + start.getDescription() + ".",
-            errorTitle, AxisID.ONLY);
+            + " must be less then or equal to " + start.getDescription()
+            + ".  Invalid numbers in section " + rowNumber.getText(),
+            "Entry Error", AxisID.ONLY);
         valid = false;
       }
     }

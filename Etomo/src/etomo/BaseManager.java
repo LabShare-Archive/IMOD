@@ -915,8 +915,8 @@ public abstract class BaseManager {
       // axisID = AxisID.SECOND;
     }
     else if (!nonBlocking) {
-      uiHarness.openMessageDialog(this, "Unknown thread finished!!!",
-          "Thread name: " + threadName, axisID);
+      uiHarness.openMessageDialog(this, "Unknown thread finished!!!"+
+          "\nThread name: " + threadName,"Unknown Thread", axisID);
     }
     if (processName != null) {
       updateDialog(processName, axisID);
@@ -1303,7 +1303,7 @@ public abstract class BaseManager {
       }
       else {
         uiHarness.openMessageDialog(this, "No command to resume",
-            ParallelPanel.RESUME_LABEL);
+            "Resume Failed");
         sendMsgProcessFailedToStart(processResultDisplay);
         return;
       }
@@ -1342,6 +1342,9 @@ public abstract class BaseManager {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.124  2010/02/17 04:38:12  sueh
+ * <p> bug# 1301 Moved comScriptMgr and logPanel to child class.
+ * <p>
  * <p> Revision 1.123  2009/11/20 16:49:49  sueh
  * <p> bug# 1282 Naming all the file chooser by constructing a FileChooser
  * <p> instance instead of a JFileChooser instance.

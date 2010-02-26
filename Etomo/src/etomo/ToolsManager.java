@@ -53,7 +53,10 @@ import etomo.util.MRCHeader;
  * 
  * @version $Revision$
  * 
- * <p> $Log$ </p>
+ * <p> $Log$
+ * <p> Revision 1.1  2010/02/17 04:44:11  sueh
+ * <p> bug# 1301 Manager for all tools menu choices.
+ * <p> </p>
  */
 public final class ToolsManager extends BaseManager {
   public static final String rcsid = "$Id$";
@@ -184,8 +187,8 @@ public final class ToolsManager extends BaseManager {
     }
     catch (SystemProcessException except) {
       except.printStackTrace();
-      uiHarness.openMessageDialog(this, except.getMessage(),
-          "Can't open 3dmod on the " + key, axisID);
+      uiHarness.openMessageDialog(this, except.getMessage()+ "\nCan't open 3dmod on the " + key,
+          "Cannot Open 3dmod", axisID);
     }
     catch (AxisTypeException except) {
       except.printStackTrace();
@@ -215,8 +218,8 @@ public final class ToolsManager extends BaseManager {
     }
     catch (SystemProcessException except) {
       except.printStackTrace();
-      uiHarness.openMessageDialog(this, except.getMessage(),
-          "Can't open 3dmod on the " + key, axisID);
+      uiHarness.openMessageDialog(this, except.getMessage()+
+          "\nCan't open 3dmod on the " + key,"Cannot Open 3dmod", axisID);
     }
     catch (AxisTypeException except) {
       except.printStackTrace();

@@ -320,7 +320,7 @@ public final class ParallelPanel implements Expandable {
         error
             + "  "
             + (cbQueues.isSelected() ? queueTable : computerTable)
-                .getHelpMessage(), TITLE + " Table Error", axisID);
+                .getHelpMessage(), "Table Error", axisID);
     return false;
   }
 
@@ -385,6 +385,9 @@ public final class ParallelPanel implements Expandable {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.70  2010/02/17 05:03:12  sueh
+ * <p> bug# 1301 Using manager instead of manager key for popping up messages.
+ * <p>
  * <p> Revision 1.69  2010/01/11 23:59:00  sueh
  * <p> bug# 1299 Removed responsibility anything other then cpu.adoc from
  * <p> CpuAdoc.  Placed responsibility for information about the network in the

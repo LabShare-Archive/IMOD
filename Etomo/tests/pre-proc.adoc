@@ -18,7 +18,7 @@ Version = 1.2
 	assert.enabled.bn.use-fixed-stack=
 	# Check missing use file
 	bn.use-fixed-stack =
-	wait.popup.missing-erased-stack = OK
+	wait.popup.missing-file = OK
 	# Run
 	bn.create-fixed-stack=
 	wait.process.ccd-eraser=done
@@ -31,7 +31,7 @@ Version = 1.2
 	bn.advanced=
 	cb.manual-replacement=on
 	bn.create-fixed-stack=
-	wait.popup.eraser%{axis}com-terminated=OK
+	wait.popup.comscript-terminated=OK
 	# bug# 1254
 	bn.use-fixed-stack=
 	wait.popup.entry-error=OK
@@ -139,7 +139,7 @@ cb.manual-replacement=on
 # todo remove .erase
 bn.find-x-rays=
 # Manual model file hasn't been created.
-wait.popup.eraser%{axis}com-terminated=OK
+wait.popup.comscript-terminated=OK
 # Run with manual model
 copy.file=%{dataset}%{axis}.erase
 bn.find-x-rays=

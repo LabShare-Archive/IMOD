@@ -45,6 +45,10 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.88  2010/02/17 04:49:20  sueh
+ * <p> bug# 1301 Using the manager instead of the manager key do pop up
+ * <p> messages.
+ * <p>
  * <p> Revision 1.87  2009/10/29 19:47:21  sueh
  * <p> bug# 1280 Added mkdir.
  * <p>
@@ -1402,9 +1406,8 @@ public abstract class BaseProcessManager {
       }
       if (script.getProcessEndState() != ProcessEndState.KILLED
           && script.getProcessEndState() != ProcessEndState.PAUSED) {
-        uiHarness.openErrorMessageDialog(manager, combinedMessages, script
-            .getComScriptName()
-            + " terminated", script.getAxisID());
+        uiHarness.openErrorMessageDialog(manager, combinedMessages,
+            "Comscript Terminated", script.getAxisID());
         // make sure script knows about failure
         script.setProcessEndState(ProcessEndState.FAILED);
       }
@@ -1415,9 +1418,8 @@ public abstract class BaseProcessManager {
       ProcessMessages messages = script.getProcessMessages();/* Warning */
       if (messages.warningListSize() > 0) {
         messages.addWarning("Com script: " + script.getComScriptName());
-        uiHarness.openWarningMessageDialog(manager, messages, script
-            .getComScriptName()
-            + " warnings", script.getAxisID());
+        uiHarness.openWarningMessageDialog(manager, messages,
+            "Comscript Warnings", script.getAxisID());
       }
     }
     manager.saveStorables(script.getAxisID());
@@ -1467,8 +1469,8 @@ public abstract class BaseProcessManager {
       }
       if (script.getProcessEndState() != ProcessEndState.KILLED
           && script.getProcessEndState() != ProcessEndState.PAUSED) {
-        uiHarness.openErrorMessageDialog(manager, combinedMessages, name
-            + " terminated", script.getAxisID());
+        uiHarness.openErrorMessageDialog(manager, combinedMessages,
+            "Reconnect Terminated", script.getAxisID());
         // make sure script knows about failure
         script.setProcessEndState(ProcessEndState.FAILED);
       }
@@ -1479,8 +1481,8 @@ public abstract class BaseProcessManager {
       ProcessMessages messages = script.getProcessMessages();/* Warning */
       if (messages.warningListSize() > 0) {
         messages.addWarning("Com script: " + name);
-        uiHarness.openWarningMessageDialog(manager, messages, name
-            + " warnings", script.getAxisID());
+        uiHarness.openWarningMessageDialog(manager, messages,
+            "Reconnect Warnings", script.getAxisID());
       }
     }
     manager.saveStorables(script.getAxisID());
@@ -1785,8 +1787,8 @@ public abstract class BaseProcessManager {
       postProcess(process);
       ProcessMessages messages = process.getProcessMessages();
       if (messages != null && messages.warningListSize() > 0) {
-        uiHarness.openWarningMessageDialog(manager, messages, process.getName()
-            + " warnings", process.getAxisID());
+        uiHarness.openWarningMessageDialog(manager, messages,
+            "Process Warnings", process.getAxisID());
       }
     }
     manager.saveStorables(process.getAxisID());

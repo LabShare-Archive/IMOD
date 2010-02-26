@@ -79,7 +79,7 @@ final class DetachedProcess extends BackgroundProcess {
     }
     catch (IOException e) {
       UIHarness.INSTANCE.openMessageDialog(manager, e.getMessage(),
-          "Can't Run " + getCommandName());
+          "Can't Run Process" );
       return false;
     }
     catch (LogFile.LockException e) {
@@ -254,6 +254,10 @@ final class DetachedProcess extends BackgroundProcess {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.21  2010/02/17 04:49:20  sueh
+ * <p> bug# 1301 Using the manager instead of the manager key do pop up
+ * <p> messages.
+ * <p>
  * <p> Revision 1.20  2009/09/01 03:17:56  sueh
  * <p> bug# 1222
  * <p>
