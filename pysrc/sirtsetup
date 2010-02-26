@@ -51,7 +51,14 @@ def outputScalingLines(comf, recnum):
       print >> comf, '$if (-e ' + convname + ') \\rm -f ' + convname
       print >> comf, '$trimvol %s %s %s' % (trimarg, srecname, convname)
 
-                       
+# Function to output final commands
+def commandsForFinish(comf, sirtname, testmode):
+   print >> comf, "$grep -h 'iff rec mean' " + sirtname + \
+         "-[0-9]*.log | sort"
+   if testmode < 2:
+      print >> comf, "$\\rm -f " + sirtname + "-[0-9]*.*"
+   comf.close()
+   
 
 #### MAIN PROGRAM  ####
 #
@@ -82,8 +89,6 @@ from pysed import *
 
 
 # Initializations (defaults are in Pip calls)
-projsubzero = "-zero"
-recsubthresh = ""
 recchunk = ""
 projchunk = ""
 
@@ -92,10 +97,9 @@ options = ["co:CommandFile:FN:", "nu:NumberOfProcessors:I:",
            "st:StartFromZero:B:", "it:IterationsToRun:I:",
            "le:LeaveIterations:LI:", "sc:ScaleToInteger:FP:",
            "tr:TrimvolOptions:CH:", "fl:FlatFilterFraction:F:",
-           "rd:RadiusAndSigma:FP:", "zp:PositiveConstraint:B:",
-           "zn:NegativeConstraint:B:", "ch:SeparateRecChunks:B:",
-           "pc:SeparateProjChunks:B:", "bo:BoundaryPixels:I:",
-           "mo:OutputMode:I:", "te:TestMode:I:"]
+           "rd:RadiusAndSigma:FP:", "cs:ConstrainSign:B:",
+           "ch:SeparateRecChunks:B:", "pc:SeparateProjChunks:B:",
+           "bo:BoundaryPixels:I:", "mo:OutputMode:I:", "te:TestMode:I:"]
 
 (numOpts, numNonOpts) = PipReadOrParseOptions(sys.argv, options, progname, 1, \
                                               1, 0)
@@ -128,12 +132,7 @@ flatfrac = PipGetFloat('FlatFilterFraction', 1.0)
 (radius, sigma) = PipGetTwoFloats('RadiusAndSigma', 0.4, 0.05)
 iterations = PipGetInteger('IterationsToRun', 10)
 iterEntered = 1 - PipGetErrNo()
-if PipGetBoolean('PositiveConstraint', 0):
-   projsubzero = ""
-   recsubthresh = "-lower 0."
-if PipGetBoolean('NegativeConstraint', 0):
-   projsubzero = ""
-   recsubthresh = "-upper 0."
+signConstraint = PipGetInteger('ConstrainSign', 0)
 leaveStr = PipGetString('LeaveIterations', "")
 mode = PipGetInteger('OutputMode', 2)
 (scaleMin, scaleMax) = PipGetTwoFloats("ScaleToInteger", 0., 0.)
@@ -175,7 +174,7 @@ if useGPU and not procEntered:
    numproc = 1
 
 # Figure out if it can be done with internal SIRT
-simpleBP = localali == None and zfactors == None and recsubthresh == ""
+simpleBP = localali == None and zfactors == None
 if simpleBP and xtiltFile:
    xtlines = readTextFile(xtiltFile, 'X-tilt file')
    firstxt = float(xtlines[0])
@@ -347,13 +346,16 @@ if startfirst:
               r'/^\s*SLICE/d',
               r'/^\s*MASK/d',
               r'/^\s*MODE.*/s//MODE   %d/' % (mode),
-              r'/^\s*RADIAL.*/s//RADIAL   %f %f/' % (radius, sigma),
+              r'/^\s*RADIAL.*/s//RADIAL   %.3f %.3f/' % (radius, sigma),
               '/THICKNESS/a/SLICE  0 %d/' % (lastslice),
               '/THICKNESS/a/MASK  %d/' % (maskSize),
               '/THICKNESS/a/FlatFilterFraction  %f/' % (flatfrac)]
 
    if simpleBP:
       sedlist.append('/THICKNESS/a/SIRTIterations   %d/' % (internalIter))
+      sedlist.append('/THICKNESS/a/StartingIteration  1/')
+      if signConstraint:
+         sedlist.append('/THICKNESS/a/ConstrainSign  %d/' % (signConstraint))
    else:
       sedlist.append(r'/^\s*LOG/d')
    pysed(sedlist, comlines, sirtcom, True)
@@ -384,23 +386,17 @@ if startfirst:
 
    # Have to write a finish file now for simple case done in one shot
    if loopIter == iterations:
-      if scMinMax or trimarg or testmode < 2:
-         comname = sirtname + '-finish.com'
-         try:
-            action = 'Opening'
-            comf = open(comname, 'w')
-            action = 'Writing to'
-            if scMinMax or trimarg:
-               outputScalingLines(comf, lastnum)
-            if testmode < 2:
-               print >> comf, "$\\rm -f " + sirtname + "-[0-9]*.*"
-            comf.close()
+      comname = sirtname + '-finish.com'
+      try:
+         action = 'Opening'
+         comf = open(comname, 'w')
+         action = 'Writing to'
+         if scMinMax or trimarg:
+            outputScalingLines(comf, lastnum)
+         commandsForFinish(comf, sirtname, testmode)
 
-         except:
-            exitError(action + " file: " + comname)
-
-      else:
-         comnum -= 1
+      except:
+         exitError(action + " file: " + comname)
 
 projname = setname + '.proj'
 diffname = setname + '.diff'
@@ -427,13 +423,17 @@ while loopIter < iterations:
 
    if simpleBP:
       sedlist.append('/%s/s//%s/' % (recfile, srecname))
-      sedlist.append(r'/^\s*RADIAL.*/s//RADIAL   %f %f/' % (radius, sigma))
+      sedlist.append(r'/^\s*RADIAL.*/s//RADIAL   %.3f %.3f/' % (radius, sigma))
       sedlist.append('/THICKNESS/a/MASK  %d/' % (maskSize))
       sedlist.append('/THICKNESS/a/SIRTIterations  %d/' % (recnum - lastnum))
+      sedlist.append('/THICKNESS/a/StartingIteration  %d/' % (lastnum))
+      if signConstraint:
+         sedlist.append('/THICKNESS/a/ConstrainSign  %d/' % (signConstraint))
       thisChunk = recchunk
    else:
-      sedlist.append('/%s/s//%s/' % (recfile, projname))
+      sedlist.append('/%s/s//%s/' % (recfile, diffname))
       sedlist.append('/THICKNESS/a/ViewsToReproj  0/')
+      sedlist.append('/THICKNESS/a/SIRTSubtraction/')
       sedlist.append(r'/^\s*LOG/d')
       thisChunk = projchunk
 
@@ -463,34 +463,23 @@ while loopIter < iterations:
 
    if not simpleBP:
 
-      # Put out a sync file that subtracts aligned stack from projection
-      comname = '%s-%03d-sync.com' % (sirtname, comnum)
-      try:
-         action = 'Opening'
-         comf = open(comname, 'w')
-         action = 'Writing to'
-         print >> comf, '$\\rm -f %s.diff %s~ %s~ %s' % (setname, projname,
-                                                         drecname, drecname)
-         print >> comf, '$subimage %s %s %s %s.diff' % (projsubzero, projname,
-                                                        aliuse, setname)
-         if not testmode:
-            print >> comf, '$\\rm -f ' + projname
-            comf.close()
-      except:
-         exitError(action + " file: " + comname)
-
-      # Make the error reconstruction file
-      comnum += 1
-      sedlist = ['/%s/s//%s/' % (recfile, drecname),
+      # Make the error reconstruction and subtract from rec
+      sedlist = ['/%s/s//%s/' % (recfile, srecname),
                  '/%s/s//%s/' % (alifile, diffname),
                  r'/^\s*SLICE/d',
                  r'/^\s*MASK/d',
                  r'/^\s*LOG/d',
                  r'/^\s*MODE.*/s//MODE   %d/' % (mode),
-                 r'/^\s*RADIAL.*/s//RADIAL   %f %f/' % (radius, sigma),
+                 r'/^\s*RADIAL.*/s//RADIAL   %.3f %.3f/' % (radius, sigma),
                  '/THICKNESS/a/SLICE  0 %d/' % (lastslice),
                  '/THICKNESS/a/MASK  %d/' % (maskSize),
-                 '/THICKNESS/a/FlatFilterFraction  2/',]
+                 '/THICKNESS/a/FlatFilterFraction  2/',
+                 '/THICKNESS/a/BaseRecFile  %s/' % (lastname),
+                 '/THICKNESS/a/StartingIteration  %d/' % (recnum),
+                 '/THICKNESS/a/SubtractFromBase   -1/']
+
+      if signConstraint:
+         sedlist.append('/THICKNESS/a/ConstrainSign  %d/' % (signConstraint))
       
       pysed(sedlist, comlines, sirtcom, True)
       if numproc > 1:
@@ -529,14 +518,7 @@ while loopIter < iterations:
          deldiff = diffname
          if testmode:
             deldiff = ""
-         print >> comf, '$\\rm -f %s %s~ %s %s~ %s~' % \
-               (srecname, projname, deldiff, drecname, lastname)
-         print >> comf, '$clip stat %s %s -iz 10 %s' % (ixtext, iytext,
-                                                        drecname)
-         print >> comf, '$subimage %s %s %s %s' % (recsubthresh, lastname,
-                                                   drecname, srecname)
-         if not testmode:
-            print >> comf, '$\\rm -f ' + drecname
+         print >> comf, '$\\rm -f %s %s~' %  (deldiff, lastname)
 
       # Delete something not on the leave list unconditionally, or delete
       # something on the list if it got converted
@@ -552,12 +534,9 @@ while loopIter < iterations:
       if scMinMax or trimarg:
          outputScalingLines(comf, recnum)
 
-      if loopIter == iterations and not simpleBP:
-         print >> comf, "$sed -n '/@ z/p' " + sirtname + "-[0-9]*sync.log"
-      
-      if loopIter == iterations and testmode < 2:
-         print >> comf, "$\\rm -f " + sirtname + "-[0-9]*.*"
-      if loopIter < iterations:
+      if loopIter == iterations:
+         commandsForFinish(comf, sirtname, testmode)
+      else:
          comnum += 1
          
       comf.close()
@@ -576,6 +555,9 @@ sys.exit(0)
 
 #
 # $Log$
+# Revision 1.2  2010/02/23 20:25:55  mast
+# Fixed for older command files with no -StandardInput
+#
 # Revision 1.1  2010/02/22 06:18:22  mast
 # Converted to python and added use of internal SIRT and better handling
 # if only one processor
