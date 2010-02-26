@@ -7,11 +7,20 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <math.h>
+#include "imodconfig.h"
+#include "cfsemshare.h"
+
 #define BYTE 0
 #define SIGNED_BYTE 1
 #define UNSIGNED_SHORT 2
 #define SIGNED_SHORT 3
 #define FLOAT 6
+
+#ifdef F77FUNCAP
+#define samplemeansd SAMPLEMEANSD
+#else
+#define samplemeansd samplemeansd_
+#endif
 
 /*!
  * Estimates mean and SD of a sample of an image.  Returns nonzero for errors.
@@ -205,9 +214,31 @@ int sampleMeanSD(unsigned char **image, int type, int nx, int ny,
   return(0);
 }
 
+/*!
+ * Fortran wrapper for @sampleMeanSD with a floating point array in [image]
+ */
+int samplemeansd(float *image, int *nx, int *ny, float *sample, int *nxMatt,
+                 int *nyMatt, int *nxUse, int *nyUse, float *mean, float *sd)
+{
+  int i;
+  unsigned char **lines = (unsigned char **)malloc
+    (*ny * sizeof(unsigned char *));
+  if (!lines)
+    return -1;
+  for (i = 0; i < *ny; i++)
+    lines[i] = (unsigned char *)&(image[i * *nx]);
+  i = sampleMeanSD(lines, FLOAT, *nx, *ny, *sample, *nxMatt, *nyMatt, *nxUse,
+                   *nyUse, mean, sd);
+  free(lines);
+  return i;
+}
+
 /*
 
 $Log$
+Revision 1.2  2008/10/02 02:05:12  mast
+Clean up warning for SerialEM
+
 Revision 1.1  2007/09/20 02:43:08  mast
 Moved to new library
 
