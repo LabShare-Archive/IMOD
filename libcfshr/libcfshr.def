@@ -123,6 +123,7 @@ EXPORTS
 	PipGetBoolean
 	InsideContour
 	f2cString
+	SAMPLEMEANSD
 	amatToRotmagstr
 	lsqr
 	AdocGetFloat
