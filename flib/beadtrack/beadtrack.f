@@ -74,6 +74,8 @@ c
       character*1024 listString
       character*60 addfmt,delfmt1,delfmt2
       character*14 objfmt
+      character*20 objnames(5)/'Model projection', 'Fitted point',
+     &    'Correlation peak' , 'Centroid', 'Saved point'/
 C       
       real*4 xf(2,3)
 c       
@@ -935,6 +937,7 @@ c
         enddo
       enddo
 c       
+      nzout=0
       if(filout.ne.' ')then
         CALL IMOPEN(2,concat(filout,'.box'),'NEW')
         CALL IMOPEN(3,concat(filout,'.ref'),'NEW')
@@ -951,7 +954,6 @@ C
         write(titlech,301) dat,tim
 301     FORMAT('Boxes',32x,a9,2x,a8)
         read(titlech,'(20a4)')(title(kti),kti=1,20)
-        nzout=0
         boxsum=0.
         boxmin = 1.e20
         boxmax = -1.e20
@@ -1009,17 +1011,9 @@ c
           enddo
 c           
 c           Initialize arrays for boxes and residuals
-          do i=1,nobjdo
-            do j=1,maxsum
-              incore(j,i)=-1
-            enddo
-          enddo
-          do i=1,nvuall*nobjdo
-            wsave(j)=-1.
-          enddo
-          do i=1,maxObjOrig*numViewDo
-            resmean(i)=-1.
-          enddo
+          incore(1:maxsum, 1:nobjdo) = -1
+          wsave(1:nvuall*nobjdo) = -1.
+          resmean(1:maxObjOrig*numViewDo)=-1.
           write(*,123)areaObjStr,listseq(iseq),iseqPass,nobjdo
 123       format('Starting ',a,i4,', round',i3,',',i4,' contours')
           if (nobjlists .gt. 1) write(*,objfmt) (iobjseq(i),i=1,nobjdo)
@@ -1030,6 +1024,7 @@ c           Initialize arrays for boxes and residuals
             call putimodflag(iobj, 1)
             call putsymtype(iobj, 0)
             call putsymsize(iobj, 5)
+            call putimodobjname(iobj, objnames(mod(j-1, 5) + 1))
             do i=1,nobjdo
               iobj = iobjseq(i) + j * maxObjOrig
               ibase_obj(iobj) = ibase_free
@@ -1431,12 +1426,14 @@ c
                     if(ipass.eq.1)then
                       if(dist.gt.distcrit)then
                         relax=relaxdis
-c                         write(*,102)'distance',iznext,dist,wsum,wavg,wsd
-c                         102                     format(' Rescue-',a,', sec',i4,', dist=',f5.1,
-c                         &                           ', dens=',f9.0,', mean,sd=',f9.0,f7.0)
+                        if(iftrace.ne.0)
+     &                      write(*,102)'distance',iznext,dist,wsum,wavg,wsd
+102                     format(' Rescue-',a,', sec',i4,', dist=',f5.1,
+     &                      ', dens=',f9.0,', mean,sd=',f9.0,f7.0)
                       else
                         relax=relaxint
-c                         write(*,102)'density ',iznext,dist,wsum,wavg,wsd
+                        if(iftrace.ne.0)
+     &                      write(*,102)'density ',iznext,dist,wsum,wavg,wsd
                       endif
                       radmax=max(nxbox,nybox)
                     else
@@ -1653,8 +1650,8 @@ c                   next round
 c                   
                   if ((ipass .eq. 1 .and. errmax.gt.fitdistcrit)
      &                .or.ifmeanbad.eq.1)then
-c                     write(*,'(i3,f7.2,4f10.5)')iobj,errmax,
-c                     &                   resmean(iobj+ibaseRes), curdif,resavg,ressd
+c                    write(*,'(i3,f7.2,4f10.5)')iobj,errmax,
+c     &                  resmean(iobj+ibaseRes), curdif,resavg,ressd
                     wsave(iview+(iobjdo-1)*nvuall)=-1.
                     resmean(iobj+ibaseRes) = -1.
                     ibase=ibase_obj(iobj)
@@ -1805,6 +1802,10 @@ c
 c       
 c       
 c       $Log$
+c       Revision 3.31  2008/12/14 18:59:29  mast
+c       Don't cosine-adjust displacement in transferring from one view to next
+c       when max tilt angle is > 80; initialize dxy for next view
+c
 c       Revision 3.30  2008/12/03 03:31:48  mast
 c       Take in true diameter, and a binning value
 c
