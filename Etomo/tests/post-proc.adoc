@@ -191,7 +191,7 @@ tf.smoothing-factor=.25
 	#check error - can't run from squeezevol output when it hasn't been created.
 	rb.flatten-the-squeezevol-output=
 	bn.flatten=
-	wait.popup.flattencom-terminated=OK
+	wait.popup.comscript-terminated=OK
 	rb.flatten-the-trimvol-output=
 [[]]
 bn.run-flattenwarp=
