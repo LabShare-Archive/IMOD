@@ -80,6 +80,7 @@
 #define putcontpointsizes  PUTCONTPOINTSIZES
 #define getimodsurfaces  GETIMODSURFACES
 #define getimodobjname  GETIMODOBJNAME
+#define putimodobjname  PUTIMODOBJNAME
 #define getimodobjsize  GETIMODOBJSIZE
 #define getimodnesting  GETIMODNESTING
 #define imodpartialmode IMODPARTIALMODE
@@ -128,6 +129,7 @@
 #define putcontpointsizes  putcontpointsizes_
 #define getimodsurfaces  getimodsurfaces_
 #define getimodobjname  getimodobjname_
+#define putimodobjname  putimodobjname_
 #define getimodobjsize  getimodobjsize_
 #define getimodnesting  getimodnesting_
 #define imodpartialmode imodpartialmode_
@@ -164,6 +166,11 @@ typedef struct {
   float value;
 } ValueStruct;
 
+typedef struct {
+  int ob;
+  char *name;
+} NameStruct;
+
 static Imod *Fimod = NULL;
 
 static int partialMode = 0;
@@ -180,6 +187,8 @@ static SizeStruct *sizes_put = NULL;
 static int nvalues_put = 0;
 static int max_values = 0;
 static ValueStruct *values_put = NULL;
+static NameStruct *names_put = NULL;
+static int numNames_put = 0;
 
 /* These are not bit flags so they can range up to 255 */
 #define SCAT_SIZE_FLAG 3
@@ -218,6 +227,12 @@ static void deleteFimod()
   values_put = NULL;
   nvalues_put = 0;
   max_values = 0;
+  for (i = 0; i < numNames_put; i++)
+    free(names_put[i].name);
+  if (names_put)
+    free(names_put);
+  numNames_put = 0;
+  names_put = NULL;
 }
 
 static int getMeshTrans(Ipoint *trans)
@@ -1044,7 +1059,18 @@ int putimod(int ibase[], int npt[], float coord[][3], int cindex[],
         Fimod->obj[nobj].blue  = wimpno / 255.0f;
         } */
     Fimod->obj[nobj].flags |= IMOD_OBJFLAG_OPEN;
-    sprintf(Fimod->obj[nobj].name, "Wimp no. %d", wimpno);
+
+    /* Find object name in list if any */
+    ci = 0;
+    for (pt = 0; pt < numNames_put; pt++) {
+      if (names_put[pt].ob == 255 - (ob + mincolor)) {
+        strncpy(Fimod->obj[nobj].name, names_put[pt].name, IOBJ_STRSIZE - 1);
+        Fimod->obj[nobj].name[IOBJ_STRSIZE - 1] = 0x00;
+        ci = 1;
+      }
+    }
+    if (!ci)
+      sprintf(Fimod->obj[nobj].name, "Wimp no. %d", wimpno);
     nobj++;
   }
 
@@ -1828,6 +1854,24 @@ void putvalblackwhite(int *objnum, int *black, int *white)
 }
 
 /*!
+ * Sets the name for object [objnum] to the string in [fname]
+ */
+void putimodobjname(int *objnum, char *fname, int fsize)
+{
+  if (!numNames_put) 
+    names_put = (NameStruct *)malloc(sizeof(NameStruct));
+  else
+    names_put = (NameStruct *)realloc(names_put,
+                                      (numNames_put + 1) * sizeof(NameStruct));
+  if (!names_put) {
+    numNames_put = 0;
+    return;
+  }
+  names_put[numNames_put].ob = *objnum - 1;
+  names_put[numNames_put++].name = f2cString(fname, fsize);
+}
+
+/*!
  * Returns information about nested contours for object [ob].
  * Only inside information is returned if [inOnly] is nonzero. ^
  * [level] is filled with nesting level or 0 if no inside/outside contours ^
@@ -1951,6 +1995,9 @@ int getimodnesting(int *ob, int *inOnly, int *level, int *inIndex,
 
 /*
 $Log$
+Revision 3.38  2009/12/10 15:12:55  mast
+Added object color call
+
 Revision 3.37  2008/12/14 00:20:46  mast
 Fixed inconsistency in getting mincolor when there are empty objects
 
