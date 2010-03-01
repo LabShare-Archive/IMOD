@@ -81,7 +81,7 @@ if (! -e $instdir/$assistdir) mkdir -p $instdir/$assistdir
 #
 set assistname = `\find $QTDIR/bin -maxdepth 1 -name '*ssistant_ad*[^g]' -print`
 if ("$assistname" != "") then
-    \cp -rL $assistname $instdir/$assistdir
+    \cp -RL $assistname $instdir/$assistdir
 else
     echo "Qt Assistant not found in $QTDIR/bin"
     exit 1
@@ -219,7 +219,7 @@ if ($qtlibdir == "bin") then
     if ($?MSVCREDIST) then
         set manifest = `sed -n '/MANIFEST/s/^.*= *//p' configure`
         set redist = "$MSVCREDIST:t"
-        \cp -r "$MSVCREDIST" $instdir/bin
+        \cp -R "$MSVCREDIST" $instdir/bin
         chmod -R 755 $instdir/bin/$redist
         foreach i ($instdir/bin/*.exe)
             if ("$i:t" != $assistname) then
@@ -261,6 +261,9 @@ exit 0
 
 #
 #  $Log$
+#  Revision 3.47  2009/11/06 19:36:55  mast
+#  Chnage to use only to install qt plugins
+#
 #  Revision 3.46  2009/11/06 18:55:11  mast
 #  Use variable for where to get Qt libs from, dereference assistant link
 #
