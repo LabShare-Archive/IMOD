@@ -329,6 +329,7 @@ EXPORTS
 	imodObjectCleanSurf
 	imodNewObject
 	GETOBJCOLOR
+	PUTIMODOBJNAME
 	substr
 	imodInsertPoint
 	imodPlaneSetFromClips
