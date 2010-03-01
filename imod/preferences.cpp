@@ -587,6 +587,9 @@ QSettings *ImodPreferences::getSettingsObject()
 // Open the dialog to set preferences
 void ImodPreferences::editPrefs()
 {
+  // Return if already open: Mac 3dmod menu allows double opening
+  if (mTabDlg)
+    return;
   mDialogPrefs = mCurrentPrefs;
   mTabDlg = new PrefsDialog(NULL);
   mTabDlg->mTabWidget->setCurrentIndex(mCurrentTab);
@@ -1203,6 +1206,9 @@ void PrefsDialog::closeEvent ( QCloseEvent * e )
 
 /*
 $Log$
+Revision 1.43  2009/11/21 23:06:43  mast
+Setting to control slicer new surfaces
+
 Revision 1.42  2009/03/22 19:45:57  mast
 Switched to taking all styles that exist and picking better default style
 than Windows for Mac.
