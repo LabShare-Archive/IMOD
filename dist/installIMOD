@@ -320,7 +320,23 @@ endif
 #
 if ($os == windows || $os == osx || $custname) then
     echo "Renaming $version to $namedir"
-    mv $version $namedir
+
+    # Try multiple times due to problems in Win 7
+    #
+    @ try = 0
+    while ($try < 5)
+        mv $version $namedir
+        if (! $status) break
+        echo "Retrying after a few seconds..."
+        sleep 3
+        @ try++
+    end
+    if ($try == 5) then
+        echo "Failed to rename $version to $namedir"
+        if ($os == windows) echo "You should try again but may have to do installation steps manually."
+        echo ""
+        exit 1
+    endif
 else
     echo "Linking $version to IMOD"
     ln -s $version IMOD
@@ -602,6 +618,9 @@ exit 0
 
 #
 #  $Log$
+#  Revision 3.27  2010/01/06 16:14:41  mast
+#  Moved mismatch warning to end, eliminated \n from it
+#
 #  Revision 3.26  2010/01/06 07:00:02  mast
 #  Moved MS dlls up for Win2K and tested 32 vs 64 bit in Mac/Linux
 #
