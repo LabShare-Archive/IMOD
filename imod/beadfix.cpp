@@ -403,8 +403,12 @@ void BeadFixer::openFile()
 {
   QString qname;
   char *filter[] = {"Align log files (align*.log)", "Log files (*.log)"};
-
-  qname  = diaOpenFileName(this, "Select Tiltalign log file", 2, filter);
+  int firstFilt = 0;
+#if defined(Q_OS_MACX) && QT_VERSION >= 0x040500
+  firstFilt = 1;
+#endif
+  qname  = diaOpenFileName(this, "Select Tiltalign log file", 2 - firstFilt,
+                           &filter[firstFilt]);
   
   if (qname.isEmpty())
     return;
@@ -2607,6 +2611,10 @@ void BeadFixer::keyReleaseEvent ( QKeyEvent * e )
 /*
 
 $Log$
+Revision 1.61  2009/11/17 05:28:12  mast
+Added button to move in all local areas, and ability to move all global
+residuals, and a progress line.
+
 Revision 1.60  2009/08/13 02:16:40  mast
 Add check on threshold slider before setting del on all sec
 
