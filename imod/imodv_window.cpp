@@ -48,6 +48,9 @@ ImodvWindow::ImodvWindow(ImodvApp *a,
   : QMainWindow(parent, f)
 {
   int numWidg = 0;
+  char *helpStr = "&Help";
+  char *altHelp = ".&Help.";
+  char *useHelp = helpStr;
   mDBw = mSBw = mDBstw = mSBstw = NULL;
   mMinimized = false;
   setAttribute(Qt::WA_DeleteOnClose);
@@ -136,13 +139,22 @@ ImodvWindow::ImodvWindow(ImodvApp *a,
   connect(viewMapper, SIGNAL(mapped(int)), this, SLOT(viewMenuSlot(int)));
 
   // Help menu
-  menuBar()->addSeparator();
-  QMenu *helpMenu = menuBar()->addMenu("&Help");
+  // To stabilize the 3dmod menu with model view open, it had to have a 
+  // modified menu name PLUS omit the code for the about entry - making it
+  // conditional on standalone did not work!  Qt 4.5+ Cocoa Mac. 3/1/10
+  // Even this is not perfect, if there is a 3dmodv already up.
+#if defined(Q_OS_MACX) && QT_VERSION >= 0x040500
+  if (!a->standalone)
+    useHelp = altHelp;
+#endif
+  QMenu *helpMenu = menuBar()->addMenu(useHelp);
   ADD_ACTION(help, "&Menus", VHELP_MENU_MENUS);
   ADD_ACTION(help, "&Keyboard", VHELP_MENU_KEYBOARD);
   ADD_ACTION(help, "M&ouse", VHELP_MENU_MOUSE);
+#if !(defined(Q_OS_MACX) && QT_VERSION >= 0x040500)
   helpMenu->addSeparator();
   ADD_ACTION(help, "&About", VHELP_MENU_ABOUT);
+#endif
   connect(helpMapper, SIGNAL(mapped(int)), this, SLOT(helpMenuSlot(int)));
   
   // Get the widget stack and the GL widgets
@@ -395,6 +407,9 @@ void ImodvGL::wheelEvent ( QWheelEvent * e)
 /*
 
 $Log$
+Revision 4.24  2009/03/10 23:27:52  mast
+Prevent two close events from being processed
+
 Revision 4.23  2009/01/15 16:33:18  mast
 Qt 4 port
 
