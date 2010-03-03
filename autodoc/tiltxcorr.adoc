@@ -69,7 +69,9 @@ in degrees.
 short = offset
 type = F
 usage = Amount to add to all entered tilt angles
-tooltip =
+tooltip = Amount to add to all entered tilt angles.  If the angle offset
+needed to make the specimen level in the reconstruction is more than a few
+degrees, applying this offset here will sharpen the correlations.
 manpage = Amount to add to all entered tilt angles.  If the specimen is 
 significantly tilted at zero tilt, then the amount of cosine stretching become
 inaccurate at high tilt.  Sharper correlations can be obtained by adding this
@@ -128,7 +130,9 @@ images.  This option will misalign images that are already nearly aligned.
 short = shift
 type = IP
 usage = Limit on distance in X and Y to search for correlation peak
-tooltip = 
+tooltip = Limit on distance in X and Y to search for correlation peak, in
+pixels.  Images or patch centers will not shift by more than this amount
+between views.
 manpage = Limit on distance in X and Y to search for correlation peak, in
 pixels.  This option can be used to prevent a spurious correlation peak outside
 these limits from giving a bad alignment.  If the program does not find an
@@ -139,7 +143,8 @@ then it will give a zero shift.
 short = border
 type = IP
 usage = Number of pixels to trim off each edge in X and in Y
-tooltip = Pixels to trim off each side in X, and in Y; the default is 0.
+tooltip = Pixels to trim off each side in X, and in Y; the default is 0.  Some
+trimming should be used with patch tracking.
 manpage = Number of pixels to trim off each edge in X and in Y (the default is
 to use the whole image).
 
@@ -166,7 +171,8 @@ entry will override a Y border value entered with BordersInXandY.
 short = boundary
 type = FN
 usage = Model file with boundary contours around areas to correlate
-tooltip =
+tooltip = Model file with boundary contours around areas to correlate or areas
+to track patches within.
 manpage = Model file with boundary contours around areas to correlate.  When
 correlating whole images to obtain transforms, the area outside the contours
 is masked out; when tracking patches, only patches inside the contours will be
@@ -339,7 +345,9 @@ object will be used.
 short = length
 type = IP
 usage = Contour length and minimum overlap for breaking contour into pieces
-tooltip = 
+tooltip = Contour length and minimum overlap for breaking contour into
+pieces, which will reduce residuals in Tiltalign if patch positions are not
+consistent through the whole tilt series.
 manpage = When tracking patches by correlation, the default is to produce one
 contour per patch passing through the whole set of views.  With this option,
 the contour will be broken into pieces of the given length, and overlapping
