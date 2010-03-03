@@ -67,6 +67,9 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.21  2010/02/24 02:57:43  sueh
+ * <p> bug# 1301 Fixed null pointer exception in ifEnabled.
+ * <p>
  * <p> Revision 1.20  2010/02/23 00:23:52  sueh
  * <p> bug# 1301 Fixed bug in assertFileContainsString.
  * <p>
@@ -448,9 +451,9 @@ final class AutodocTester extends Assert implements VariableList {
       LogFile.LockException {
     boolean isAutodocTester = sectionType != null && sectionName == null;
     if (debug) {
-      System.out.println("sectionType=" + sectionType + ",sectionName="
+      System.err.println("sectionType=" + sectionType + ",sectionName="
           + sectionName);
-      System.out.println("nextSection:functionAutodoc="
+      System.err.println("nextSection:functionAutodoc="
           + functionAutodoc.getName() + ",functionSectionType="
           + functionSectionType);
     }
@@ -635,7 +638,8 @@ final class AutodocTester extends Assert implements VariableList {
           || modifierType == UITestModifierType.ALWAYS);
       //copy.file = file_name
       assertEquals("can only copy a file", UITestSubjectType.FILE, subjectType);
-      testRunner.copyFile(command.getValue(0), command.getValue(1), modifierType == UITestModifierType.ALWAYS);
+      testRunner.copyFile(command.getValue(0), command.getValue(1),
+          modifierType == UITestModifierType.ALWAYS);
     }
     //END
     else if (actionType == UITestActionType.END) {
@@ -782,7 +786,7 @@ final class AutodocTester extends Assert implements VariableList {
       //run.function.section_name
       if (subjectType == UITestSubjectType.FUNCTION) {
         if (debug) {
-          System.out.println("run function " + command
+          System.err.println("run function " + command
               + ",functionSectionType=" + functionSectionType);
         }
         assertNull("modifier not used with this actionType (" + command + ")",
@@ -832,6 +836,11 @@ final class AutodocTester extends Assert implements VariableList {
           functionAutodoc = AutodocFactory.getInstance(manager, sourceDir,
               value, AxisID.ONLY);
         }
+      }
+      //set.debug
+      else if (subjectType == UITestSubjectType.DEBUG) {
+        debug = convertToBoolean(value);
+        testRunner.setDebug(debug);
       }
       //set.var.variable_name
       else if (subjectType == UITestSubjectType.VAR) {
@@ -914,13 +923,6 @@ final class AutodocTester extends Assert implements VariableList {
           }
           catch (InterruptedException e) {
           }
-          /*String buttonName = "Open";
-           setupAbstractButtonFinder(buttonName);
-           AbstractButton button = (AbstractButton) buttonFinder.find(fileChooser, 0);
-           assertNotNull("unable to find button to accept file or directory - " + buttonName + " ("
-           + command + ")", button);
-           System.out.println("button="+button);
-           helper.enterClickAndLeave(new MouseEventData(testRunner, button));*/
           fileChooser.approveSelection();
         }
       }
@@ -1318,12 +1320,20 @@ final class AutodocTester extends Assert implements VariableList {
     assertTrue(storedFile.getAbsolutePath() + " is not a file.  (" + command
         + ")\n", storedFile.isFile());
     //Sort files because order of parameters can vary inside a command.
+    if (debug) {
+      System.err.println("assertSameFile:file.getAbsolutePath()="
+          + file.getAbsolutePath());
+    }
     SystemProgram sortFile = new SystemProgram(manager, System
         .getProperty("user.dir"),
         new String[] { "sort", file.getAbsolutePath() }, AxisID.ONLY);
     sortFile.run();
     String[] stdOut = sortFile.getStdOutput();
     stdOut = stripCommentsAndBlankLines(stdOut);
+    if (debug) {
+      System.err.println("assertSameFile:storedFile.getAbsolutePath()="
+          + storedFile.getAbsolutePath());
+    }
     SystemProgram sortStoredFile = new SystemProgram(manager, System
         .getProperty("user.dir"), new String[] { "sort",
         storedFile.getAbsolutePath() }, AxisID.ONLY);
@@ -1461,6 +1471,9 @@ final class AutodocTester extends Assert implements VariableList {
     }
     setupNamedComponentFinder(AbstractButton.class, fieldType.toString()
         + AutodocTokenizer.SEPARATOR_CHAR + name);
+    if (debug) {
+      finder.setDebug(true);
+    }
     return (AbstractButton) finder.find(currentPanel, index);
   }
 
@@ -1534,14 +1547,23 @@ final class AutodocTester extends Assert implements VariableList {
     assertNotNull("missing field (" + command + ")", field);
     //BUTTON
     if (fieldType == UITestFieldType.BUTTON) {
+      if (debug) {
+        System.err.println("executeField:button:name=" + name);
+      }
       AbstractButton button = findButton(UITestFieldType.BUTTON, name, index);
+      if (debug) {
+        System.err.println("button=" + button);
+      }
       if (button == null) {
         fail("can't find field - " + command.getField().getName() + " ("
             + command + ")");
       }
       //bn.button_name =
       assertNull("value not valid in a button command (" + command + ")", value);
-      helper.enterClickAndLeave(new MouseEventData(testRunner, button, 1));
+      MouseEventData mouseEventData = new MouseEventData(testRunner, button, 1);
+      assertTrue("prepareComponent failed (" + command + ")", mouseEventData
+          .prepareComponent());
+      helper.enterClickAndLeave(mouseEventData);
       try {
         Thread.sleep(1);
       }
