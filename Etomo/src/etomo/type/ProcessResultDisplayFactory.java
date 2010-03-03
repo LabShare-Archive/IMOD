@@ -70,6 +70,8 @@ public final class ProcessResultDisplayFactory implements
       .getTrackFiducialsDisplay();
   private final ProcessResultDisplay fixFiducialModel = FiducialModelDialog
       .getFixFiducialModelDisplay();
+  private final ProcessResultDisplay patchTracking = FiducialModelDialog
+      .getPatchTrackingButton();
 
   //fine alignment
 
@@ -176,6 +178,7 @@ public final class ProcessResultDisplayFactory implements
     //fiducial model
     addDependency(transferFiducials);
     addDependency(seedFiducialModel);
+    addDependency(patchTracking);
     addDependency(raptor);
     addDependency(useRaptor);
     addDependency(trackFiducials);
@@ -231,6 +234,7 @@ public final class ProcessResultDisplayFactory implements
     midas.setScreenState(screenState);
     //fiducial model
     transferFiducials.setScreenState(screenState);
+    patchTracking.setScreenState(screenState);
     raptor.setScreenState(screenState);
     useRaptor.setScreenState(screenState);
     seedFiducialModel.setScreenState(screenState);
@@ -273,7 +277,7 @@ public final class ProcessResultDisplayFactory implements
     flatten.setScreenState(screenState);
     squeezeVolume.setScreenState(screenState);
 
-    //turn off everything after display
+    //turn off everything after button
 
     //preprocessing
     addDependents(findXRays);
@@ -285,6 +289,7 @@ public final class ProcessResultDisplayFactory implements
     addDependents(fixEdgesMidas);
     addDependents(coarseAlign);
     //fiducial model
+    addDependents(patchTracking);
     addDependents(transferFiducials);
     addDependents(seedFiducialModel);
     addDependents(useRaptor);
@@ -314,7 +319,7 @@ public final class ProcessResultDisplayFactory implements
     //post processing
     addDependents(trimVolume);
 
-    //turn off selected displays
+    //turn off selected buttons
 
     //fiducial model
     raptor.addDependentDisplay(useRaptor);
@@ -434,6 +439,10 @@ public final class ProcessResultDisplayFactory implements
 
   public ProcessResultDisplay getFixFiducialModel() {
     return fixFiducialModel;
+  }
+  
+  public ProcessResultDisplay getPatchTracking() {
+    return patchTracking;
   }
 
   //fine alignment
@@ -559,7 +568,7 @@ public final class ProcessResultDisplayFactory implements
   public ProcessResultDisplay getFlattenWarp() {
     return flattenWarp;
   }
-  
+
   public ProcessResultDisplay getSmoothingAssessment() {
     return smoothingAssessment;
   }
@@ -570,6 +579,9 @@ public final class ProcessResultDisplayFactory implements
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.14  2009/12/19 01:11:16  sueh
+ * <p> bug# 1294 Added smoothingAssessment.
+ * <p>
  * <p> Revision 1.13  2009/10/01 18:49:00  sueh
  * <p> bug# 1239 Changed PostProcessDialog.getFlattenWarpDisplay to
  * <p> getFlattenWarpButton.
