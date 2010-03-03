@@ -33,6 +33,7 @@
 #define FWRAP_ERROR_BAD_OBJNUM    -6
 #define FWRAP_ERROR_MEMORY        -7
 #define FWRAP_ERROR_NO_VALUE      -8
+#define FWRAP_ERROR_STRING_LEN    -9
 
 #define NO_VALUE_PUT           -9999.
 
@@ -81,6 +82,8 @@
 #define getimodsurfaces  GETIMODSURFACES
 #define getimodobjname  GETIMODOBJNAME
 #define putimodobjname  PUTIMODOBJNAME
+#define getmodelname  GETMODELNAME
+#define putmodelname  PUTMODELNAME
 #define getimodobjsize  GETIMODOBJSIZE
 #define getimodnesting  GETIMODNESTING
 #define imodpartialmode IMODPARTIALMODE
@@ -130,6 +133,8 @@
 #define getimodsurfaces  getimodsurfaces_
 #define getimodobjname  getimodobjname_
 #define putimodobjname  putimodobjname_
+#define getmodelname  getmodelname_
+#define putmodelname  putmodelname_
 #define getimodobjsize  getimodobjsize_
 #define getimodnesting  getimodnesting_
 #define imodpartialmode imodpartialmode_
@@ -1647,6 +1652,20 @@ int getimodflags(int *flags, int *limflags)
 }
 
 /*!
+ * Returns model name in [fname]; [fsize] is omitted in the call from fortran.
+ */
+int getmodelname(char *fname, int fsize)
+{
+  int i = 0;
+
+  if (!Fimod)
+    return(FWRAP_ERROR_NO_MODEL);
+  if (c2fString(Fimod->name, fname, fsize))
+    return FWRAP_ERROR_STRING_LEN;
+  return FWRAP_NOERROR;
+}
+
+/*!
  * Returns name of object [ob] in [fname]; [fsize] is omitted in the call from
  * fortran.
  */
@@ -1854,6 +1873,23 @@ void putvalblackwhite(int *objnum, int *black, int *white)
 }
 
 /*!
+ * Sets the model name to the string in [fname]
+ */
+int putmodelname(char *fname, int fsize)
+{
+  char *tmpstr;
+  if (!Fimod)
+    return FWRAP_ERROR_NO_MODEL;
+  tmpstr = f2cString(fname, fsize);
+  if (!tmpstr)
+    return FWRAP_ERROR_MEMORY;
+  strncpy(Fimod->name, tmpstr, IMOD_STRSIZE - 1);
+  Fimod->name[IMOD_STRSIZE - 1] = 0x00;
+  free(tmpstr);
+  return FWRAP_NOERROR;
+}
+
+/*!
  * Sets the name for object [objnum] to the string in [fname]
  */
 void putimodobjname(int *objnum, char *fname, int fsize)
@@ -1995,6 +2031,9 @@ int getimodnesting(int *ob, int *inOnly, int *level, int *inIndex,
 
 /*
 $Log$
+Revision 3.39  2010/03/01 15:02:27  mast
+Added function to set object name
+
 Revision 3.38  2009/12/10 15:12:55  mast
 Added object color call
 
