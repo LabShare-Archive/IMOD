@@ -26,6 +26,9 @@ import etomo.type.EnumeratedType;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.9  2009/11/20 17:31:49  sueh
+ * <p> bug# 1282 Changed validate to handle the name prefixes.
+ * <p>
  * <p> Revision 1.8  2009/09/01 03:18:25  sueh
  * <p> bug# 1222
  * <p>
@@ -81,13 +84,13 @@ final class RadioTextField implements RadioButtonInterface {
    * @return
    */
   /*static RadioTextField getInstance(final String label,
-      final ButtonGroup group, EnumeratedType enumeratedType) {
-    RadioTextField radioTextField = new RadioTextField(label, group,
-        enumeratedType);
-    radioTextField.addListeners();
-    return radioTextField;
-  }*/
-  
+   final ButtonGroup group, EnumeratedType enumeratedType) {
+   RadioTextField radioTextField = new RadioTextField(label, group,
+   enumeratedType);
+   radioTextField.addListeners();
+   return radioTextField;
+   }*/
+
   private RadioTextField(final String label, final ButtonGroup group) {
     radioButton = new RadioButton(label);
     textField = new TextField(label);
@@ -99,12 +102,12 @@ final class RadioTextField implements RadioButtonInterface {
    * @param label
    * @param group
    */
- /* private RadioTextField(final String label, final ButtonGroup group,
-      EnumeratedType enumeratedType) {
-    radioButton = new RadioButton(label, enumeratedType);
-    textField = new TextField(label);
-    init(group);
-  }*/
+  /* private RadioTextField(final String label, final ButtonGroup group,
+   EnumeratedType enumeratedType) {
+   radioButton = new RadioButton(label, enumeratedType);
+   textField = new TextField(label);
+   init(group);
+   }*/
 
   private void init(final ButtonGroup group) {
     radioButton.setModel(new RadioButton.RadioButtonModel(this));
@@ -118,13 +121,13 @@ final class RadioTextField implements RadioButtonInterface {
   void setTextPreferredWidth(final double minWidth) {
     Dimension prefSize = textField.getPreferredSize();
     prefSize.setSize(minWidth, prefSize.getHeight());
-    textField.setSize(prefSize);
+    textField.setTextPreferredSize(prefSize);
   }
 
   Container getContainer() {
     return rootPanel;
   }
-  
+
   void setText(final float value) {
     textField.setText(String.valueOf(value));
   }
