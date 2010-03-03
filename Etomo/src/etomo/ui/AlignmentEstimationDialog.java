@@ -38,6 +38,9 @@ import etomo.type.Run3dmodMenuOptions;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.39  2009/12/19 01:12:34  sueh
+ * <p> bug# 1294 Generalized ApplicationManager.imodView3DModel so it can open the smoothing assessment model.  Renamed it imodViewModel.
+ * <p>
  * <p> Revision 3.38  2009/10/19 15:24:32  sueh
  * <p> bug# 1247 Formatted.
  * <p>
@@ -389,8 +392,16 @@ public final class AlignmentEstimationDialog extends ProcessDialog implements
         DialogType.FINE_ALIGNMENT);
   }
 
-  public final void setParameters(ReconScreenState screenState) {
+  public void setParameters(ReconScreenState screenState) {
     pnlTiltalign.setParameters(screenState);
+  }
+  
+  public void setPatchTracking(boolean patchTracking) {
+    pnlTiltalign.setPatchTracking(patchTracking);
+  }
+
+  public void setSurfacesToAnalyze(int surfacesToAnalyze) {
+    pnlTiltalign.setSurfacesToAnalyze(surfacesToAnalyze);
   }
 
   public void getParameters(ReconScreenState screenState) {
