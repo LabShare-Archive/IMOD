@@ -165,7 +165,7 @@ button (\fBbn\fR) is to push it.
 .TP 4
 .I action
 .B assert\fR, \fBcopy\fR, \fBend\fR, \fBif\fR, \fBgoto\fR, \fBopen\fR,
-\fBreturn\fR, \fBrun\fR, \fBset\fR, \fBskipto\fR, \fBstart\fR, \fBwait
+\fBreturn\fR, \fBrun\fR, \fBset\fR, \fBskipto\fR, \fBsleep\fR, \fBstart\fR, \fBwait
 
 .TP 4
 .I subcommand_action
@@ -184,7 +184,7 @@ button (\fBbn\fR) is to push it.
 
 .TP 4
 .I subject_type
-.B adoc\fR, \fBdataset\fR, \fBdialog\fR, \fBfile\fR, \fBfile-chooser\fR,
+.B adoc\fR, \fBdataset\fR, \fBdebug\fR, \fBdialog\fR, \fBfile\fR, \fBfile-chooser\fR,
 \fBframe\fR, \fBfunction\fR, \fBinterface\fR, \fBparam\fR, \fBpopup\fR,
 \fBprocess\fR, \fBsection\fR, \fBtest\fR, \fBtestdir\fR, \fBvar
 
@@ -464,6 +464,7 @@ environment variable \fBIMOD_TEST_SECTION\fR to run the test suite.  There is
 one test directory and one dataset per test.  There can be multiple Test
 Autodocs per test suite (see below).  Order counts in this section.  For best
 results order the commands as they are ordered in this man page.
+.RE
 
 .TP 4
 .B set.var.\fIvariable_name\fB = \fR[\fIvalue\fR]
@@ -978,6 +979,15 @@ set.adoc.function = setup-recon.adoc
 .br
 run.function.main =
 .RE
+
+.TP 4
+.B set.debug = \fIboolean
+Turns debug on and off.  Debug causes any debug statements available in the the
+test software and in Etomo to print.  Turning debug off may not completely stop
+debug prints because class instances may have been created with debug while it
+was on.  Debug in Etomo can also be turned on by using the \fBset.param\fR
+command in the Test Section.  Turning debug off with the \fBset.debug\fR command
+will always turn off debug in Etomo.
 
 .TP 4
 .B set.var.\fIvariable_name\fB = \fR[\fIvariable_value\fR]
