@@ -40,6 +40,9 @@ import etomo.type.Run3dmodMenuOptions;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.32  2010/02/17 05:03:12  sueh
+ * <p> bug# 1301 Using manager instead of manager key for popping up messages.
+ * <p>
  * <p> Revision 3.31  2009/09/01 03:18:25  sueh
  * <p> bug# 1222
  * <p>
@@ -392,6 +395,10 @@ public final class BeadtrackPanel implements Expandable,
     btnTrack.addActionListener(actionListener);
     btnUseModel.addActionListener(actionListener);
     btnFixModel.addActionListener(actionListener);
+  }
+
+  void setVisible(final boolean visible) {
+    panelBeadtrack.setVisible(visible);
   }
 
   public static ProcessResultDisplay getTrackFiducialsDisplay(
