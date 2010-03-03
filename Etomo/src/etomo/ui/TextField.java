@@ -2,6 +2,7 @@ package etomo.ui;
 
 import java.awt.Component;
 import java.awt.Dimension;
+import java.awt.Font;
 
 import javax.swing.JLabel;
 import javax.swing.JTextField;
@@ -71,26 +72,46 @@ final class TextField {
   String getText() {
     return textField.getText();
   }
-  
+
+  Font getFont() {
+    return textField.getFont();
+  }
+
+  Dimension getMaximumSize() {
+    return textField.getMaximumSize();
+  }
+
+  void setMaximumSize(Dimension size) {
+    textField.setMaximumSize(size);
+  }
+
   void setTextPreferredWidth(final double minWidth) {
     Dimension prefSize = textField.getPreferredSize();
     prefSize.setSize(minWidth, prefSize.getHeight());
     textField.setPreferredSize(prefSize);
   }
 
-  void setSize(Dimension size) {
+  void setTextPreferredSize(Dimension size) {
     textField.setPreferredSize(size);
     textField.setMaximumSize(size);
   }
-  
-  Dimension getPreferredSize(){
+
+  void setSize(Dimension size) {
+    textField.setSize(size);
+  }
+
+  Dimension getSize() {
+    return textField.getSize();
+  }
+
+  Dimension getPreferredSize() {
     return textField.getPreferredSize();
   }
-  
+
   String getName() {
     return textField.getName();
   }
-  
+
   boolean isEnabled() {
     return textField.isEnabled();
   }
@@ -107,6 +128,11 @@ final class TextField {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.10  2009/11/20 17:37:52  sueh
+ * <p> bug# 1282 Added prefixes to all of the field names, so that the fields that
+ * <p> are actually abstract buttons (radio buttons, etc) won't be activated by a
+ * <p> "bn." field command.
+ * <p>
  * <p> Revision 1.9  2009/01/20 20:31:23  sueh
  * <p> bug# 1102 Changed UITestField to UITestFieldType.
  * <p>
