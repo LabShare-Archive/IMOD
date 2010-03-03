@@ -34,6 +34,9 @@ import etomo.util.InvalidParameterException;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.3  2010/02/17 05:03:12  sueh
+ * <p> bug# 1301 Using manager instead of manager key for popping up messages.
+ * <p>
  * <p> Revision 3.2  2009/09/21 18:09:23  sueh
  * <p> bug# 1267 TiltParam must know what the input file is to be correct, so set
  * <p> the input file in getParameters(TiltParam) before calling
@@ -145,7 +148,7 @@ final class Tilt3dFindPanel extends AbstractTiltPanel {
           manager, axisID));
     }
     else {
-      param.setInputFile(FileType.NEWST_OR_BLEND_OUTPUT.getFileName(manager,
+      param.setInputFile(FileType.ALIGNED_STACK.getFileName(manager,
           axisID));
     }
     param.setOutputFile(FileType.TILT_3D_FIND_OUTPUT.getFileName(manager,
