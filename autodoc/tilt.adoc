@@ -247,7 +247,7 @@ type = F
 usage = Take the logarithm after adding the given base value
 tooltip = 
 manpage = This entry allows one to generate a reconstruction using the
-logarithm of the densities in the input file, with the value BASE 
+logarithm of the densities in the input file, with the entered value 
 added before taking the logarithm.
 
 [Field = MASK]
