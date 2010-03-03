@@ -11,6 +11,9 @@
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.53  2009/09/01 03:18:25  sueh
+ * <p> bug# 1222
+ * <p>
  * <p> Revision 3.52  2009/06/12 19:48:13  sueh
  * <p> bug# 1221 Factored running correlation, making it independent of the
  * <p> coarse align dialog.
@@ -284,7 +287,7 @@ public final class CoarseAlignDialog extends ProcessDialog implements
 
   private final EtomoPanel pnlCoarseAlign = new EtomoPanel();
 
-  private final CrossCorrelationPanel pnlCrossCorrelation;
+  private final TiltxcorrPanel tiltxcorrPanel;
 
   private final PrenewstPanel pnlPrenewst;
 
@@ -313,8 +316,8 @@ public final class CoarseAlignDialog extends ProcessDialog implements
     btnFixEdgesMidas = (MultiLineButton) displayFactory.getFixEdgesMidas();
     btnMidas = (MultiLineButton) displayFactory.getMidas();
     setToolTipText();
-    pnlCrossCorrelation = new CrossCorrelationPanel(applicationManager, axisID,
-        dialogType, btnAdvanced);
+    tiltxcorrPanel = TiltxcorrPanel.getCrossCorrelationInstance(
+        applicationManager, axisID, dialogType, btnAdvanced);
     pnlPrenewst = new PrenewstPanel(applicationManager, axisID, dialogType,
         this, btnAdvanced);
     btnExecute.setText("Done");
@@ -326,7 +329,7 @@ public final class CoarseAlignDialog extends ProcessDialog implements
 
     pnlCoarseAlign.setLayout(new BoxLayout(pnlCoarseAlign, BoxLayout.Y_AXIS));
     pnlCoarseAlign.setBorder(new BeveledBorder("Coarse Alignment").getBorder());
-    UIUtilities.addWithSpace(pnlCoarseAlign, pnlCrossCorrelation.getPanel(),
+    UIUtilities.addWithSpace(pnlCoarseAlign, tiltxcorrPanel.getPanel(),
         FixedDim.x0_y10);
     if (metaData.getViewType() == ViewType.MONTAGE) {
       SpacedPanel pnlFixEdges = SpacedPanel.getInstance();
@@ -389,8 +392,7 @@ public final class CoarseAlignDialog extends ProcessDialog implements
   }
 
   public static ProcessResultDisplay getCrossCorrelateDisplay() {
-    return CrossCorrelationPanel
-        .getCrossCorrelateDisplay(DialogType.COARSE_ALIGNMENT);
+    return TiltxcorrPanel.getCrossCorrelateDisplay(DialogType.COARSE_ALIGNMENT);
   }
 
   public static ProcessResultDisplay getDistortionCorrectedStackDisplay() {
@@ -429,11 +431,11 @@ public final class CoarseAlignDialog extends ProcessDialog implements
    * Set the parameters for the cross correlation panel
    */
   public void setCrossCorrelationParams(ConstTiltxcorrParam tiltXcorrParams) {
-    pnlCrossCorrelation.setParameters(tiltXcorrParams);
+    tiltxcorrPanel.setParameters(tiltXcorrParams);
   }
 
   public TiltXcorrDisplay getTiltXcorrDisplay() {
-    return pnlCrossCorrelation;
+    return tiltxcorrPanel;
   }
 
   public NewstackDisplay getNewstackDisplay() {
@@ -457,7 +459,7 @@ public final class CoarseAlignDialog extends ProcessDialog implements
   }
 
   public void setParameters(ReconScreenState screenState) {
-    pnlCrossCorrelation.setParameters(screenState);
+    tiltxcorrPanel.setParameters(screenState);
     pnlPrenewst.setParameters(screenState);
     //btnMidas.setButtonState(screenState.getButtonState(btnMidas
     //    .getButtonStateKey()));
@@ -468,7 +470,7 @@ public final class CoarseAlignDialog extends ProcessDialog implements
   }
 
   public void getParameters(BaseScreenState screenState) {
-    pnlCrossCorrelation.getParameters(screenState);
+    tiltxcorrPanel.getParameters(screenState);
     pnlPrenewst.getParameters(screenState);
   }
 
@@ -489,7 +491,7 @@ public final class CoarseAlignDialog extends ProcessDialog implements
   }
 
   void updateAdvanced() {
-    pnlCrossCorrelation.updateAdvanced(isAdvanced());
+    tiltxcorrPanel.updateAdvanced(isAdvanced());
     pnlPrenewst.updateAdvanced(isAdvanced());
     UIHarness.INSTANCE.pack(axisID, applicationManager);
   }
@@ -571,7 +573,7 @@ public final class CoarseAlignDialog extends ProcessDialog implements
 
   void done() {
     applicationManager.doneCoarseAlignDialog(axisID);
-    pnlCrossCorrelation.done();
+    tiltxcorrPanel.done();
     pnlPrenewst.done();
     btnDistortionCorrectedStack.removeActionListener(actionListener);
     btnFixEdgesMidas.removeActionListener(actionListener);
