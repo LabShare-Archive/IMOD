@@ -1,14 +1,5 @@
 package etomo.comscript;
 
-import java.io.File;
-
-import etomo.BaseManager;
-import etomo.type.AxisID;
-import etomo.type.EtomoNumber;
-import etomo.type.ProcessName;
-import etomo.type.ScriptParameter;
-import etomo.type.TiltAngleSpec;
-
 /**
  * <p>Description: A read only model of the parameter interface for the
  *  tiltxcorr program</p>
@@ -23,6 +14,9 @@ import etomo.type.TiltAngleSpec;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.23  2010/01/11 23:49:01  sueh
+ * <p> bug# 1299 Added isMessageReporter.
+ * <p>
  * <p> Revision 3.22  2009/12/11 17:26:22  sueh
  * <p> bug# 1291 Added getCommandInputFile to implement Command.
  * <p>
@@ -117,238 +111,68 @@ import etomo.type.TiltAngleSpec;
  * <p> </p>
  */
 
-public class ConstTiltxcorrParam implements ConstCommandParam, Command {
-  public static final String rcsid =
-    "$Id$";
+public interface ConstTiltxcorrParam extends Command {
+  public static final String rcsid = "$Id$";
 
-  public static final String GOTO_LABEL = "doxcorr";
-  
-  //PIP and sequential input
-  protected String inputFile;
-  protected String pieceListFile;
-  protected String outputFile;
-  protected boolean excludeCentralPeak;
-  protected double rotationAngle; //was imageRotation
-  protected FortranInputString bordersInXandY; //was trim
-  protected FortranInputString xMinAndMax;
-  protected FortranInputString yMinAndMax;
-  protected FortranInputString padsInXandY; // was padPercent;
-  protected FortranInputString tapersInXandY; //was taperPercent
-  protected boolean cumulativeCorrelation;
-  protected boolean absoluteCosineStretch;
-  protected boolean noCosineStretch;
-  protected String testOutput;
-  protected FortranInputString startingEndingViews; //was viewRange
-  private ProcessName processName = ProcessName.XCORR;
-  private String command = "tiltxcorr";
-  private final AxisID axisID;
-  private final BaseManager manager;
+  public String getAngleOffset();
 
-  //PIP only
-  //was tiltAngleSpec
-  protected double firstTiltAngle;
-  protected double tiltIncrement;
-  protected String tiltFile;
-  protected double[] tiltAngles;
+  public String getBordersInXandY();
 
-  //was filterParams
-  protected double filterRadius1;
-  protected double filterRadius2;
-  protected double filterSigma1;
-  protected double filterSigma2;
-  ScriptParameter angleOffset = new ScriptParameter(EtomoNumber.Type.DOUBLE, "AngleOffset");
+  public boolean getExcludeCentralPeak();
 
-  //sequential input only
-  protected TiltAngleSpec tiltAngleSpec;
-  protected FortranInputString filterParams;
-  
-  public ConstTiltxcorrParam(BaseManager manager, AxisID axisID) {
-    this.manager = manager;
-    this.axisID = axisID;
-    tiltAngleSpec = new TiltAngleSpec();
-    filterParams = new FortranInputString(4);
-    bordersInXandY = new FortranInputString(2);
-    bordersInXandY.setIntegerType(0, true);
-    bordersInXandY.setIntegerType(1, true);
-    xMinAndMax = new FortranInputString(2);
-    xMinAndMax.setIntegerType(0, true);
-    xMinAndMax.setIntegerType(1, true);
-    yMinAndMax = new FortranInputString(2);
-    yMinAndMax.setIntegerType(0, true);
-    yMinAndMax.setIntegerType(1, true);
-    padsInXandY = new FortranInputString(2);
-    padsInXandY.setIntegerType(0, true);
-    padsInXandY.setIntegerType(1, true);
-    tapersInXandY = new FortranInputString(2);
-    tapersInXandY.setIntegerType(0, true);
-    tapersInXandY.setIntegerType(1, true);
-    startingEndingViews = new FortranInputString(2);
-    startingEndingViews.setIntegerType(0, true);
-    startingEndingViews.setIntegerType(1, true);
-    reset();
-  }
-  
-  protected void reset() {
-    inputFile = new String();
-    pieceListFile = new String();
-    outputFile = new String();
-    excludeCentralPeak = false;
-    rotationAngle = Double.NaN;
-    bordersInXandY.setDefault();
-    xMinAndMax.setDefault();
-    yMinAndMax.setDefault();
-    padsInXandY.setDefault();
-    tapersInXandY.setDefault();
-    cumulativeCorrelation = false;
-    absoluteCosineStretch = false;
-    noCosineStretch = false;
-    testOutput = new String();
-    startingEndingViews.setDefault();
-    firstTiltAngle = Double.NaN;
-    tiltIncrement = Double.NaN;
-    tiltFile = new String();
-    tiltAngles = null;
-    filterRadius1 = Double.NaN;
-    filterRadius2 = Double.NaN;
-    filterSigma1 = Double.NaN;
-    filterSigma2 = Double.NaN;
-    TiltAngleSpec tiltAngleSpec = new TiltAngleSpec();
-    filterParams.setDefault();
-    angleOffset.reset();
-  }
-  
-  public boolean isParseComments() {
-    return true;
-  }
-  
-  public String getProcessNameString() {
-    return processName.toString();
-  }
-  
-  public ProcessName getProcessName() {
-    return processName;
-  }
+  public String getFilterRadius2String();
 
-  public String getInputFile() {
-    return inputFile;
-  }
-  public String getPieceListFile() {
-    return pieceListFile;
-  }
-  public String getOutputFile() {
-    return outputFile;
-  }
-  public String getFirstTiltAngleString() {
-    return ParamUtilities.valueOf(firstTiltAngle);
-  }
+  public String getFilterSigma1String();
 
-  public String getTiltIncrementString() {
-    return ParamUtilities.valueOf(tiltIncrement);
-  }
-  public String getTiltFile() {
-    return tiltFile;
-  }
-  public String[] getTiltAnglesString() {
-    return ParamUtilities.valueOf(tiltAngles);
-  }
-  public String getRotationAngleString() {
-    return ParamUtilities.valueOf(rotationAngle);
-  }
-  public String getFilterRadius1String() {
-    return ParamUtilities.valueOf(filterRadius1);
-  }
-  public String getFilterRadius2String() {
-    return ParamUtilities.valueOf(filterRadius2);
-  }
-  public String getFilterSigma1String() {
-    return ParamUtilities.valueOf(filterSigma1);
-  }
-  public String getFilterSigma2String() {
-    return ParamUtilities.valueOf(filterSigma2);
-  }
-  public String getBordersInXandY() {
-    return bordersInXandY.toString(true);
-  }
-  public String getXMinString() {
-    return xMinAndMax.toString(0);
-  }
-  public String getXMaxString() {
-    return xMinAndMax.toString(1);
-  }
-  public String getYMinString() {
-    return yMinAndMax.toString(0);
-  }
-  public String getYMaxString() {
-    return yMinAndMax.toString(1);
-  }
-  public String getPadsInXandYString() {
-    return padsInXandY.toString(true);
-  }
-  public String getTaperPercentString() {
-    return tapersInXandY.toString(true);
-  }
-  public boolean isCumulativeCorrelation() {
-    return cumulativeCorrelation;
-  }
-  public boolean isAbsoluteCosineStretch() {
-    return absoluteCosineStretch;
-  }
-  public boolean isNoCosineStretch() {
-    return noCosineStretch;
-  }
-  public String getStartingEndingViews() {
-    return startingEndingViews.toString(true);
-  }
-  public boolean getExcludeCentralPeak() {
-    return excludeCentralPeak;
-  }
-  public String getTestOutput() {
-    return testOutput;
-  }
-  
-  public String getAngleOffset() {
-    return angleOffset.toString();
-  }
-  
-  public String getCommandName() {
-    return command;
-  }
-  
-  public String getCommand() {
-    return processName.getComscript(axisID);
-  }
-  
-  public String getCommandLine() {
-    return getCommand();
-  }
-  public String[] getCommandArray() {
-    return processName.getComscriptArray(axisID);
-  }
-  
-  public CommandMode getCommandMode() {
-    return null;
-  }
-  public boolean isMessageReporter() {
-    return false;
-  }
-  
-  public CommandDetails getSubcommandDetails() {
-    return null;
-  }
-  
-  public ProcessName getSubcommandProcessName() {
-    return null;
-  }
-  
-  public File getCommandOutputFile() {
-    return new File(manager.getPropertyUserDir(), outputFile);
-  }
-  
-  public File getCommandInputFile() {
-    return null;
-  }
-  
-  public AxisID getAxisID() {
-    return axisID;
-  }
+  public String getFilterSigma2String();
+
+  public String getPadsInXandYString();
+
+  public String getStartingEndingViews();
+
+  public String getTaperPercentString();
+
+  public String getTestOutput();
+
+  public String getXMaxString();
+
+  public String getXMinString();
+
+  public String getYMaxString();
+
+  public String getYMinString();
+
+  public boolean isAbsoluteCosineStretch();
+
+  public boolean isCumulativeCorrelation();
+
+  public boolean isNoCosineStretch();
+
+  public String getSizeOfPatchesXandY();
+
+  public String getOverlapOfPatchesXandY();
+
+  public boolean isOverlapOfPatchesXandYSet();
+
+  public boolean isNumberOfPatchesXandYSet();
+
+  public String getNumberOfPatchesXandY();
+
+  public int getIterateCorrelations();
+
+  public String getShiftLimitsXandY();
+
+  public boolean isLengthAndOverlapSet();
+
+  public String getLengthAndOverlap();
+
+  public boolean isBoundaryModelSet();
+
+  public boolean isBordersInXandYSet();
+
+  public boolean isFilterRadius2Set();
+
+  public boolean isFilterSigma1Set();
+
+  public boolean isFilterSigma2Set();
 }
