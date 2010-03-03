@@ -24,6 +24,10 @@ import etomo.storage.Storable;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.8  2007/12/26 22:19:42  sueh
+ * <p> bug# 1052 Added functions with string parameters to set range functions to
+ * <p> avoid doing conversions in calling objects.
+ * <p>
  * <p> Revision 3.7  2007/02/05 23:31:33  sueh
  * <p> bug# 962 Moved EtomoNumber type info to inner class.
  * <p>
@@ -87,7 +91,7 @@ public class TiltAngleSpec implements Storable {
   public static final String TYPE_STORE_KEY = "Type";
   public static final String RANGE_MIN_STORE_KEY = "RangeMin";
   public static final String TILT_ANGLES_STORE_KEY = "TiltAngles";
-  
+
   TiltAngleType type;
   double rangeMin;
   double rangeStep;
@@ -102,6 +106,12 @@ public class TiltAngleSpec implements Storable {
   private String tiltAngleFilenameShortKey = null;
   private String tiltAnglesShortKey = null;
 
+  public String toString() {
+    return "[type=" + type + ",rangeMin=" + rangeMin + ",rangeStep="
+        + rangeStep + ",tiltAngles=" + tiltAngles + ",tiltAngleFilename="
+        + tiltAngleFilename + "]";
+  }
+
   public TiltAngleSpec() {
     reset();
   }
@@ -113,27 +123,28 @@ public class TiltAngleSpec implements Storable {
     tiltAngleFilenameKey = src.tiltAngleFilenameKey;
     tiltAnglesKey = src.tiltAnglesKey;
   }
-  
+
   public void setRangeMinKey(String rangeMinKey, String rangeMinShortKey) {
     this.rangeMinKey = rangeMinKey;
     this.rangeMinShortKey = rangeMinShortKey;
   }
-  
+
   public void setRangeStepKey(String rangeStepKey, String rangeStepShortKey) {
     this.rangeStepKey = rangeStepKey;
     this.rangeStepShortKey = rangeStepShortKey;
   }
-  
-  public void setTiltAngleFilenameKey(String tiltAngleFilenameKey, String tiltAngleFilenameShortKey) {
+
+  public void setTiltAngleFilenameKey(String tiltAngleFilenameKey,
+      String tiltAngleFilenameShortKey) {
     this.tiltAngleFilenameKey = tiltAngleFilenameKey;
     this.tiltAngleFilenameShortKey = tiltAngleFilenameShortKey;
   }
-  
+
   public void setTiltAnglesKey(String tiltAnglesKey, String tiltAnglesShortKey) {
     this.tiltAnglesKey = tiltAnglesKey;
     this.tiltAnglesShortKey = tiltAnglesShortKey;
   }
-  
+
   public void reset() {
     type = TiltAngleType.EXTRACT;
     rangeMin = -60;
@@ -141,7 +152,7 @@ public class TiltAngleSpec implements Storable {
     tiltAngles = null;
     tiltAngleFilename = "";
   }
-  
+
   public void set(TiltAngleSpec src) {
     reset();
     if (src != null) {
@@ -175,7 +186,7 @@ public class TiltAngleSpec implements Storable {
   public void setRangeMin(double rangeMin) {
     this.rangeMin = rangeMin;
   }
-  
+
   public void setRangeMin(String rangeMin) {
     this.rangeMin = Double.parseDouble(rangeMin);
   }
@@ -187,7 +198,7 @@ public class TiltAngleSpec implements Storable {
   public void setRangeStep(double rangeStep) {
     this.rangeStep = rangeStep;
   }
-  
+
   public void setRangeStep(String rangeStep) {
     this.rangeStep = Double.parseDouble(rangeStep);
   }
@@ -252,7 +263,8 @@ public class TiltAngleSpec implements Storable {
       group = prepend + "." + STORE_KEY;
     }
     props.setProperty(group + "." + TYPE_STORE_KEY, type.toString());
-    props.setProperty(group + "." + RANGE_MIN_STORE_KEY, String.valueOf(rangeMin));
+    props.setProperty(group + "." + RANGE_MIN_STORE_KEY, String
+        .valueOf(rangeMin));
     props.setProperty(group + ".RangeStep", String.valueOf(rangeStep));
     props.setProperty(group + ".TiltAngleFilename", tiltAngleFilename);
     if (tiltAngles != null && tiltAngles.length > 0) {
@@ -287,7 +299,8 @@ public class TiltAngleSpec implements Storable {
         .parseDouble(props.getProperty(group + ".RangeStep", "1"));
     tiltAngleFilename = props.getProperty(group + ".TiltAngleFilename", "");
     try {
-      FortranInputString list = FortranInputString.getInstance(props, group + "." + TILT_ANGLES_STORE_KEY);
+      FortranInputString list = FortranInputString.getInstance(props, group
+          + "." + TILT_ANGLES_STORE_KEY);
       if (list != null && list.size() > 0) {
         tiltAngles = list.getDouble();
       }
@@ -296,7 +309,7 @@ public class TiltAngleSpec implements Storable {
       e.printStackTrace();
     }
   }
-  
+
   public void parse(ComScriptCommand scriptCommand)
       throws InvalidParameterException, FortranInputSyntaxException {
     //Get rangeMin
@@ -346,24 +359,25 @@ public class TiltAngleSpec implements Storable {
   public void updateComScript(ComScriptCommand scriptCommand)
       throws BadComScriptException {
     if (type == TiltAngleType.RANGE) {
-      ParamUtilities.updateScriptParameter(scriptCommand, rangeMinKey,
-          rangeMin);
+      ParamUtilities
+          .updateScriptParameter(scriptCommand, rangeMinKey, rangeMin);
       ParamUtilities.updateScriptParameter(scriptCommand, rangeStepKey,
           rangeStep);
     }
     else if (type == TiltAngleType.FILE) {
-      ParamUtilities.updateScriptParameter(scriptCommand,
-          tiltAngleFilenameKey, tiltAngleFilename);
+      ParamUtilities.updateScriptParameter(scriptCommand, tiltAngleFilenameKey,
+          tiltAngleFilename);
     }
     else if (type == TiltAngleType.LIST) {
       if (tiltAngles != null && tiltAngles.length > 0) {
         FortranInputString list = FortranInputString.getInstance(tiltAngles);
-        ParamUtilities.updateScriptParameter(scriptCommand, tiltAnglesKey,
-            list);
+        ParamUtilities
+            .updateScriptParameter(scriptCommand, tiltAnglesKey, list);
       }
     }
     else {
-      throw new BadComScriptException("Type " + type + ", cannot be updated in ComScriptCommand");
+      throw new BadComScriptException("Type " + type
+          + ", cannot be updated in ComScriptCommand");
     }
   }
 }
