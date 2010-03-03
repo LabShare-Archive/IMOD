@@ -35,6 +35,9 @@ import etomo.type.ProcessName;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 1.43  2010/02/17 05:03:12  sueh
+ * <p> bug# 1301 Using manager instead of manager key for popping up messages.
+ * <p>
  * <p> Revision 1.42  2009/09/25 16:06:42  sueh
  * <p> bug# 1250 Setting scroll bar increments to make scrolling work properly.
  * <p>
@@ -425,12 +428,7 @@ public abstract class MainPanel extends EtomoPanel {
   }
 
   public void setProgressBar(String label, int nSteps, AxisID axisID) {
-    setProgressBar(label, nSteps, axisID, false, null);
-  }
-
-  public void setProgressBar(String label, int nSteps, AxisID axisID,
-      ProcessName processName) {
-    setProgressBar(label, nSteps, axisID, false, processName);
+    setProgressBar(label, nSteps, axisID, false);
   }
 
   /**
@@ -439,12 +437,12 @@ public abstract class MainPanel extends EtomoPanel {
    * @param nSteps
    */
   public void setProgressBar(String label, int nSteps, AxisID axisID,
-      boolean pauseEnabled, ProcessName processName) {
+      boolean pauseEnabled) {
     AxisProcessPanel axisPanel = mapBaseAxis(axisID);
     if (axisPanel == null) {
       return;
     }
-    axisPanel.setProgressBar(label, nSteps, pauseEnabled, processName);
+    axisPanel.setProgressBar(label, nSteps, pauseEnabled);
     axisPanel.setProgressBarValue(0);
   }
 

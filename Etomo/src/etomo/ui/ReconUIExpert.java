@@ -200,7 +200,7 @@ public abstract class ReconUIExpert implements UIExpert {
 
   final public void setProgressBar(String label, int nSteps, AxisID axisID,
       ProcessName processName) {
-    mainPanel.setProgressBar(label, nSteps, axisID, processName);
+    mainPanel.setProgressBar(label, nSteps, axisID);
   }
 
   final public void stopProgressBar(AxisID axisID) {
@@ -209,6 +209,9 @@ public abstract class ReconUIExpert implements UIExpert {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.12  2010/02/17 05:03:12  sueh
+ * <p> bug# 1301 Using manager instead of manager key for popping up messages.
+ * <p>
  * <p> Revision 1.11  2009/09/01 03:18:25  sueh
  * <p> bug# 1222
  * <p>

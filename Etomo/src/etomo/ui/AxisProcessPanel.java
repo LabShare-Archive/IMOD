@@ -29,6 +29,11 @@ import etomo.type.ProcessName;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.40  2009/10/27 20:41:01  sueh
+ * <p> bug# 1275 In initializePanels only add the outerStatusPanel if the manager
+ * <p> contains a process manager.  The outerStatusPanel contains the progress
+ * <p> panel.
+ * <p>
  * <p> Revision 3.39  2009/01/20 19:44:29  sueh
  * <p> bug# 1102 Changed button to type SimpleButton so that they can name themselves.
  * <p>
@@ -485,8 +490,7 @@ public abstract class AxisProcessPanel implements ContextMenu {
    * @param label
    * @param nSteps
    */
-  final void setProgressBar(String label, int nSteps, boolean enablePause,
-      ProcessName processName) {
+  final void setProgressBar(String label, int nSteps, boolean enablePause) {
     progressPanel.setLabel(label);
     progressPanel.setMinimum(0);
     progressPanel.setMaximum(nSteps);
