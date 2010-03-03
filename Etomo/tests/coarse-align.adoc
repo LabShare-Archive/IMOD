@@ -32,6 +32,7 @@ if.var.fidless.cb.fiducialless-alignment =
 [[if = test-gui]]
 bn.view-aligned-stack-in-3dmod = 
 run.function.test2=
+assert.same.file=xcorr%{axis}.com
 [[]]
 bn.done =
 
