@@ -6,7 +6,7 @@ import etomo.ApplicationManager;
 import etomo.BaseManager;
 import etomo.storage.LogFile;
 import etomo.type.AxisID;
-import etomo.type.ProcessName;
+import etomo.type.FileType;
 
 /**
  * <p>Description: </p>
@@ -33,9 +33,9 @@ public final class TiltxcorrProcessWatcher extends LogFileProcessMonitor {
    * @param id
    */
   public TiltxcorrProcessWatcher(final BaseManager manager,
-      final AxisID id) {
-    super(manager, id, ProcessName.XCORR);
-    logFileBasename = "xcorr";
+      final AxisID id,FileType comscriptFileType) {
+    super(manager, id);
+    logFileBasename = comscriptFileType.getTypeString();
   }
 
   /**
@@ -47,7 +47,7 @@ public final class TiltxcorrProcessWatcher extends LogFileProcessMonitor {
    */
   public TiltxcorrProcessWatcher(final ApplicationManager appMgr,
       final AxisID id, boolean blendmontRan) {
-    super(appMgr, id, ProcessName.XCORR);
+    super(appMgr, id);
     logFileBasename = "xcorr";
     this.blendmontRan = blendmontRan;
   }
@@ -58,12 +58,12 @@ public final class TiltxcorrProcessWatcher extends LogFileProcessMonitor {
   void initializeProgressBar() {
     if (nSections == Integer.MIN_VALUE) {
       manager.getMainPanel().setProgressBar("Cross-correlating stack", 1,
-          axisID, processName);
+          axisID);
       manager.getMainPanel().setProgressBarValue(0, "Starting...", axisID);
       return;
     }
     manager.getMainPanel().setProgressBar("Cross-correlating stack", nSections,
-        axisID, processName);
+        axisID);
   }
 
   /* (non-Javadoc)
@@ -124,6 +124,10 @@ public final class TiltxcorrProcessWatcher extends LogFileProcessMonitor {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.9  2010/02/17 04:49:20  sueh
+ * <p> bug# 1301 Using the manager instead of the manager key do pop up
+ * <p> messages.
+ * <p>
  * <p> Revision 1.8  2009/09/25 22:22:27  sueh
  * <p> bug# 1272 In findNSections handle line == null.
  * <p>
