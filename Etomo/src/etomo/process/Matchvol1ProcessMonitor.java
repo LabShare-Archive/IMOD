@@ -23,6 +23,10 @@ import etomo.type.ProcessName;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.7  2010/02/17 04:48:40  sueh
+ * <p> bug# 1301 Added the option to pass in fileType when creating the
+ * <p> flattening instance.
+ * <p>
  * <p> Revision 1.6  2009/06/05 01:58:56  sueh
  * <p> bug# 1219 Added getFlattenInstance.
  * <p>
@@ -57,7 +61,7 @@ final class Matchvol1ProcessMonitor extends LogFileProcessMonitor {
    */
   private Matchvol1ProcessMonitor(final BaseManager manager, final AxisID id,
       final boolean calledFromFlatten, final FileType fileType) {
-    super(manager, id, ProcessName.MATCHVOL1);
+    super(manager, id);
     this.calledFromFlatten = calledFromFlatten;
     if (calledFromFlatten) {
       if (fileType == null) {
@@ -93,12 +97,12 @@ final class Matchvol1ProcessMonitor extends LogFileProcessMonitor {
       title = "Combine: matchvol1";
     }
     if (nSections == Integer.MIN_VALUE) {
-      manager.getMainPanel().setProgressBar(title, 1, axisID, processName);
+      manager.getMainPanel().setProgressBar(title, 1, axisID);
       manager.getMainPanel().setProgressBarValue(0, "Starting...", axisID);
       return;
     }
     manager.getMainPanel()
-        .setProgressBar(title, nSections, axisID, processName);
+        .setProgressBar(title, nSections, axisID);
   }
 
   /* (non-Javadoc)

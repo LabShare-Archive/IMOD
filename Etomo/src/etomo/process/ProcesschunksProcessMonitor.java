@@ -530,7 +530,7 @@ class ProcesschunksProcessMonitor implements OutfileProcessMonitor,
       title.append(" - paused");
     }
     manager.getMainPanel().setProgressBar(title.toString(), nChunks.getInt(),
-        axisID, !reassembling && !killing, ProcessName.PROCESSCHUNKS);
+        axisID, !reassembling && !killing);
   }
 
   /**
@@ -609,6 +609,11 @@ class ProcesschunksProcessMonitor implements OutfileProcessMonitor,
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.51  2010/02/18 01:15:08  sueh
+ * <p> bub# 1283 Removed "no match" from tcsh error string list.  Performing a
+ * <p> countdown to allow processchunks to fail normally before popping up the
+ * <p> crash message.
+ * <p>
  * <p> Revision 1.50  2010/02/17 04:49:20  sueh
  * <p> bug# 1301 Using the manager instead of the manager key do pop up
  * <p> messages.

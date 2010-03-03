@@ -14,6 +14,10 @@ package etomo.process;
  * @version $$Revision$$
  * 
  * <p> $$Log$
+ * <p> $Revision 1.10  2010/02/17 04:49:20  sueh
+ * <p> $bug# 1301 Using the manager instead of the manager key do pop up
+ * <p> $messages.
+ * <p> $
  * <p> $Revision 1.9  2009/06/05 01:59:21  sueh
  * <p> $bug# 1219 Kept up with changes in parent class.
  * <p> $
@@ -69,7 +73,7 @@ public class PatchcorrProcessWatcher extends LogFileProcessMonitor {
    * @param id
    */
   public PatchcorrProcessWatcher(ApplicationManager manager, AxisID id) {
-    super(manager, id, ProcessName.PATCHCORR);
+    super(manager, id);
     applicationManager=manager;
     standardLogFileName = false;
     logFileBasename = DatasetFiles.PATCH_OUT;
@@ -81,13 +85,13 @@ public class PatchcorrProcessWatcher extends LogFileProcessMonitor {
   protected void initializeProgressBar() {
     if (nSections == Integer.MIN_VALUE) {
       manager.getMainPanel().setProgressBar("Combine: patchcorr", 1,
-          axisID, processName);
+          axisID);
       manager.getMainPanel().setProgressBarValue(0, "Starting...",
           axisID);
       return;
     }
     manager.getMainPanel().setProgressBar("Combine: patchcorr",
-        nSections, axisID, processName);
+        nSections, axisID);
   }
 
   /* (non-Javadoc)

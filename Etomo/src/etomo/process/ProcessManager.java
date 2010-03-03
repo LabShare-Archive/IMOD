@@ -20,6 +20,9 @@
  * 
  * <p>
  * $Log$
+ * Revision 3.146  2010/02/18 22:35:32  sueh
+ * bug# 1315 When showing the log file, passing the File.
+ *
  * Revision 3.145  2010/02/17 04:49:20  sueh
  * bug# 1301 Using the manager instead of the manager key do pop up
  * messages.
@@ -942,6 +945,7 @@ import etomo.storage.TrackLog;
 import etomo.storage.TransferFidLog;
 import etomo.type.AxisID;
 import etomo.type.ConstProcessSeries;
+import etomo.type.FileType;
 import etomo.type.ProcessName;
 import etomo.type.ProcessResultDisplay;
 import etomo.type.TomogramState;
@@ -1146,13 +1150,14 @@ public class ProcessManager extends BaseProcessManager {
     return comScriptProcess.getName();
   }
 
-  public String crossCorrelate(ConstTiltxcorrParam param, AxisID axisID,
+  public String tiltxcorr(ConstTiltxcorrParam param,
+      FileType comscriptfileType, AxisID axisID,
       ProcessResultDisplay processResultDisplay,
       ConstProcessSeries processSeries) throws SystemProcessException {
     //  Create the required command string
     //  Create the process monitor
     TiltxcorrProcessWatcher tiltxcorrProcessWatcher = new TiltxcorrProcessWatcher(
-        appManager, axisID);
+        appManager, axisID, comscriptfileType);
     //  Start the com script in the background
     ComScriptProcess comScriptProcess = startComScript(param,
         tiltxcorrProcessWatcher, axisID, processResultDisplay, processSeries);
@@ -1981,7 +1986,7 @@ public class ProcessManager extends BaseProcessManager {
         + ".com";
     //  Instantiate the process monitor
     Matchvol1ProcessMonitor monitor = Matchvol1ProcessMonitor
-        .getFlattenInstance(appManager, axisID,null);
+        .getFlattenInstance(appManager, axisID, null);
     //  Start the com script in the background
     ComScriptProcess comScriptProcess = startComScript(command, monitor,
         axisID, processResultDisplay, processSeries);
@@ -2327,8 +2332,7 @@ public class ProcessManager extends BaseProcessManager {
             String logFileName = command.getCommandInputFile().getName()
                 + "_stats.log";
             writeLogFile(process, process.getAxisID(), logFileName);
-            showLogFile(new File(appManager.getPropertyUserDir(), logFileName)
-                );
+            showLogFile(new File(appManager.getPropertyUserDir(), logFileName));
           }
         }
       }

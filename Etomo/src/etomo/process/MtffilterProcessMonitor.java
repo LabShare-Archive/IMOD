@@ -28,6 +28,10 @@ import etomo.util.MRCHeader;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.16  2010/02/17 04:49:20  sueh
+ * <p> bug# 1301 Using the manager instead of the manager key do pop up
+ * <p> messages.
+ * <p>
  * <p> Revision 1.15  2009/09/17 19:15:42  sueh
  * <p> bug# 1257 Added FileSizeProcessMonitor.getModeBytes to handle getting the right number of bytes based on the mode in a single location.
  * <p>
@@ -151,7 +155,7 @@ final class MtffilterProcessMonitor extends FileSizeProcessMonitor {
     double fileSize = 1024.0d + nX * nY * nZ * modeBytes;
     nKBytes = (int) (fileSize / 1024);
     applicationManager.getMainPanel().setProgressBar("Running MTF filter",
-        nKBytes, axisID, ProcessName.MTFFILTER);
+        nKBytes, axisID);
     return true;
   }
 

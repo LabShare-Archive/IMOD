@@ -10,7 +10,6 @@ import etomo.util.MRCHeader;
 import etomo.storage.LogFile;
 import etomo.type.AxisID;
 import etomo.type.ProcessEndState;
-import etomo.type.ProcessName;
 import etomo.util.Utilities;
 
 /**
@@ -26,6 +25,10 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.35  2010/02/17 04:49:20  sueh
+ * <p> bug# 1301 Using the manager instead of the manager key do pop up
+ * <p> messages.
+ * <p>
  * <p> Revision 3.34  2010/01/11 23:56:32  sueh
  * <p> bug# 1299 Added useMessageReporter.
  * <p>
@@ -231,7 +234,6 @@ public abstract class LogFileProcessMonitor implements ProcessMonitor {
 
   final BaseManager manager;
   final AxisID axisID;
-  final ProcessName processName;
 
   final String nSectionsHeader;
   final int nSectionsIndex;
@@ -246,11 +248,9 @@ public abstract class LogFileProcessMonitor implements ProcessMonitor {
    * @param appMgr  The application manager object
    * @param id  The axis ID to be monitored
    */
-  LogFileProcessMonitor(final BaseManager manager, final AxisID id,
-      final ProcessName processName) {
+  LogFileProcessMonitor(final BaseManager manager, final AxisID id) {
     this.manager = manager;
     axisID = id;
-    this.processName = processName;
     if (!EtomoDirector.INSTANCE.isImodBriefHeader()) {
       nSectionsHeader = MRCHeader.SIZE_HEADER;
       nSectionsIndex = MRCHeader.N_SECTIONS_INDEX;

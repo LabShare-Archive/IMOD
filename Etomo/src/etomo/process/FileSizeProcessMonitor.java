@@ -28,6 +28,10 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.37  2010/02/17 04:49:20  sueh
+ * <p> bug# 1301 Using the manager instead of the manager key do pop up
+ * <p> messages.
+ * <p>
  * <p> Revision 3.36  2010/01/11 23:50:41  sueh
  * <p> bug# 1299 Monitoring the log file with MessageReporter.
  * <p>
@@ -264,8 +268,8 @@ abstract class FileSizeProcessMonitor implements ProcessMonitor {
     running = true;
     try {
       // Reset the progressBar 
-      applicationManager.getMainPanel().setProgressBar(" ", 1, axisID,
-          processName);
+      applicationManager.getMainPanel().setProgressBar(" ", 1, axisID
+          );
       applicationManager.getMainPanel().setProgressBarValue(0,
           reconnect ? "Reconnecting..." : "Starting...", axisID);
 

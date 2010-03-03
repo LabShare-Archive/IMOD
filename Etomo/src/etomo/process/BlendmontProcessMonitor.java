@@ -7,7 +7,6 @@ import etomo.comscript.BlendmontParam;
 import etomo.comscript.BlendmontParam.Mode;
 import etomo.storage.LogFile;
 import etomo.type.AxisID;
-import etomo.type.ProcessName;
 import etomo.util.InvalidParameterException;
 import etomo.util.Montagesize;
 
@@ -33,7 +32,7 @@ public class BlendmontProcessMonitor extends LogFileProcessMonitor {
   private Mode mode;
 
   public BlendmontProcessMonitor(BaseManager manager, AxisID id, Mode mode) {
-    super(manager, id, ProcessName.BLEND);
+    super(manager, id);
     this.mode = mode;
     logFileBasename = BlendmontParam.getProcessName(mode).toString();
     if (mode == BlendmontParam.Mode.XCORR) {
@@ -56,13 +55,13 @@ public class BlendmontProcessMonitor extends LogFileProcessMonitor {
 
   protected void initializeProgressBar() {
     if (nSections == Integer.MIN_VALUE) {
-      manager.getMainPanel().setProgressBar(title + ": blendmont", 1, axisID,
-          processName);
+      manager.getMainPanel().setProgressBar(title + ": blendmont", 1, axisID
+          );
       manager.getMainPanel().setProgressBarValue(0, "Starting...", axisID);
       return;
     }
     manager.getMainPanel().setProgressBar(title + ": blendmont", nSections,
-        axisID, processName);
+        axisID);
   }
 
   protected void getCurrentSection() throws NumberFormatException,
@@ -81,7 +80,7 @@ public class BlendmontProcessMonitor extends LogFileProcessMonitor {
         if (line.startsWith("Doing section #") && !doingMrctaper) {
           doingMrctaper = true;
           manager.getMainPanel().setProgressBar(title + ": mrctaper", 1,
-              axisID, processName);
+              axisID);
         }
         else if (currentSection >= nSections && line.startsWith("Done!")) {
           lastLineFound = true;
@@ -107,6 +106,10 @@ public class BlendmontProcessMonitor extends LogFileProcessMonitor {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.19  2010/02/17 04:49:20  sueh
+ * <p> bug# 1301 Using the manager instead of the manager key do pop up
+ * <p> messages.
+ * <p>
  * <p> Revision 1.18  2009/09/21 17:47:23  sueh
  * <p> bug# 1267 Handling the BLEND_3DFIND mode.
  * <p>

@@ -26,6 +26,10 @@ import etomo.util.MRCHeader;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.26  2010/02/17 04:49:20  sueh
+ * <p> bug# 1301 Using the manager instead of the manager key do pop up
+ * <p> messages.
+ * <p>
  * <p> Revision 3.25  2009/09/21 17:53:22  sueh
  * <p> bug# 1267 Made class non-final.  Added getTiltParam so that the source of
  * <p> TiltParam could be overridden.
@@ -221,7 +225,7 @@ class TiltProcessMonitor extends FileSizeProcessMonitor {
           + imageBinned);
     }
     applicationManager.getMainPanel().setProgressBar(processTitle, nKBytes,
-        axisID, ProcessName.TILT);
+        axisID);
     return true;
   }
 

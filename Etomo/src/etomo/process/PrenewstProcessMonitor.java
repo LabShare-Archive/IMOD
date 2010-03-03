@@ -11,6 +11,10 @@
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.14  2010/02/17 04:49:20  sueh
+ * <p> bug# 1301 Using the manager instead of the manager key do pop up
+ * <p> messages.
+ * <p>
  * <p> Revision 3.13  2009/03/17 00:42:55  sueh
  * <p> bug# 1186 Pass managerKey to everything that pops up a dialog.
  * <p>
@@ -138,7 +142,7 @@ public class PrenewstProcessMonitor extends FileSizeProcessMonitor {
     long fileSize = 1024 + ((long) nX * nY) * nZ * modeBytes;
     nKBytes = (int) (fileSize / 1024);
     applicationManager.getMainPanel().setProgressBar("Creating coarse stack",
-        nKBytes, axisID, ProcessName.PRENEWST);
+        nKBytes, axisID);
     return true;
   }
 

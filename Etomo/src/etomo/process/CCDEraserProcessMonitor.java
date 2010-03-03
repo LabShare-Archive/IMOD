@@ -5,7 +5,6 @@ import java.io.IOException;
 import etomo.BaseManager;
 import etomo.storage.LogFile;
 import etomo.type.AxisID;
-import etomo.type.ProcessName;
 
 /**
  * <p>Description: </p>
@@ -20,6 +19,10 @@ import etomo.type.ProcessName;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.7  2010/02/17 04:49:20  sueh
+ * <p> bug# 1301 Using the manager instead of the manager key do pop up
+ * <p> messages.
+ * <p>
  * <p> Revision 3.6  2009/02/04 23:23:54  sueh
  * <p> bug# 1158 Changed id and exceptions classes in LogFile.
  * <p>
@@ -61,7 +64,7 @@ public class CCDEraserProcessMonitor extends LogFileProcessMonitor {
    */
   public CCDEraserProcessMonitor(BaseManager manager, AxisID id) {
 
-    super(manager, id, ProcessName.ERASER);
+    super(manager, id);
     logFileBasename = "eraser";
   }
 
@@ -70,13 +73,13 @@ public class CCDEraserProcessMonitor extends LogFileProcessMonitor {
    */
   protected void initializeProgressBar() {
     if (nSections == Integer.MIN_VALUE) {
-      manager.getMainPanel().setProgressBar("CCD Eraser", 1, axisID,
-          processName);
+      manager.getMainPanel().setProgressBar("CCD Eraser", 1, axisID
+          );
       manager.getMainPanel().setProgressBarValue(0, "Starting...", axisID);
       return;
     }
-    manager.getMainPanel().setProgressBar("CCD Eraser", nSections, axisID,
-        processName);
+    manager.getMainPanel().setProgressBar("CCD Eraser", nSections, axisID
+        );
   }
 
   /* (non-Javadoc)

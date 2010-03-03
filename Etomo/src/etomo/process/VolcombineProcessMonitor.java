@@ -5,7 +5,6 @@ import java.io.IOException;
 import etomo.BaseManager;
 import etomo.storage.LogFile;
 import etomo.type.AxisID;
-import etomo.type.ProcessName;
 
 /**
  * <p>Description: </p>
@@ -20,6 +19,10 @@ import etomo.type.ProcessName;
  * @version $$Revision$$
  * 
  * <p> $$Log$
+ * <p> $Revision 1.11  2010/02/17 04:49:20  sueh
+ * <p> $bug# 1301 Using the manager instead of the manager key do pop up
+ * <p> $messages.
+ * <p> $
  * <p> $Revision 1.10  2009/06/05 02:00:04  sueh
  * <p> $bug# 1219 Kept up with changes in parent class.
  * <p> $
@@ -72,8 +75,7 @@ public class VolcombineProcessMonitor extends LogFileProcessMonitor {
    * @param id
    */
   public VolcombineProcessMonitor(BaseManager manager, AxisID id) {
-
-    super(manager, id, ProcessName.VOLCOMBINE);
+    super(manager, id);
     logFileBasename = "volcombine";
   }
 
@@ -82,13 +84,13 @@ public class VolcombineProcessMonitor extends LogFileProcessMonitor {
    */
   protected void initializeProgressBar() {
     if (nSections == Integer.MIN_VALUE) {
-      manager.getMainPanel().setProgressBar("Combine: volcombine", 1, axisID,
-          processName);
+      manager.getMainPanel().setProgressBar("Combine: volcombine", 1, axisID
+          );
       manager.getMainPanel().setProgressBarValue(0, "Starting...", axisID);
       return;
     }
     manager.getMainPanel().setProgressBar("Combine: volcombine", nSections,
-        axisID, processName);
+        axisID);
   }
 
   /* (non-Javadoc)

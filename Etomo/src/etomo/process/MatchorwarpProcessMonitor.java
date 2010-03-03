@@ -5,7 +5,6 @@ import java.io.IOException;
 import etomo.ApplicationManager;
 import etomo.storage.LogFile;
 import etomo.type.AxisID;
-import etomo.type.ProcessName;
 
 /**
  * <p>Description: </p>
@@ -21,6 +20,10 @@ import etomo.type.ProcessName;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.8  2010/02/17 04:49:20  sueh
+ * <p> bug# 1301 Using the manager instead of the manager key do pop up
+ * <p> messages.
+ * <p>
  * <p> Revision 1.7  2009/06/05 01:58:11  sueh
  * <p> bug# 1219 Kept up with changes in parent class.
  * <p>
@@ -57,7 +60,7 @@ public final class MatchorwarpProcessMonitor extends LogFileProcessMonitor {
    * @param id
    */
   public MatchorwarpProcessMonitor(final ApplicationManager manager, final AxisID id) {
-    super(manager, id, ProcessName.MATCHORWARP);
+    super(manager, id);
     applicationManager = manager;
     logFileBasename = "matchorwarp";
   }
@@ -67,13 +70,13 @@ public final class MatchorwarpProcessMonitor extends LogFileProcessMonitor {
    */
   void initializeProgressBar() {
     if (nSections == Integer.MIN_VALUE) {
-      manager.getMainPanel().setProgressBar("Combine: matchorwarp", 1, axisID,
-          processName);
+      manager.getMainPanel().setProgressBar("Combine: matchorwarp", 1, axisID
+          );
       manager.getMainPanel().setProgressBarValue(0, "Starting...", axisID);
       return;
     }
     manager.getMainPanel().setProgressBar("Combine: matchorwarp", nSections,
-        axisID, processName);
+        axisID);
   }
 
   /* (non-Javadoc)

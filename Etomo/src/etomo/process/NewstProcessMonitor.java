@@ -11,6 +11,10 @@
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.24  2010/02/17 04:49:20  sueh
+ * <p> bug# 1301 Using the manager instead of the manager key do pop up
+ * <p> messages.
+ * <p>
  * <p> Revision 3.23  2009/09/21 17:48:16  sueh
  * <p> bug# 1267 Passing in NewstParam so that the output file with be correct
  * <p> for 3dfind.
@@ -232,7 +236,7 @@ final class NewstProcessMonitor extends FileSizeProcessMonitor {
     long fileSize = 1024 + ((long) nX * nY) * nZ * modeBytes;
     nKBytes = (int) (fileSize / 1024);
     applicationManager.getMainPanel().setProgressBar("Creating aligned stack",
-        nKBytes, axisID, processName);
+        nKBytes, axisID);
     return true;
   }
 
