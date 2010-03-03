@@ -14,6 +14,7 @@ import etomo.EtomoDirector;
 import etomo.type.AxisID;
 import etomo.type.AxisType;
 import etomo.type.EtomoNumber;
+import etomo.type.FileType;
 import etomo.type.ProcessName;
 import etomo.ui.UIHarness;
 import etomo.util.Utilities;
@@ -33,6 +34,10 @@ import etomo.util.Utilities;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.60  2010/02/17 04:47:53  sueh
+ * <p> bug# 1301 Using the manager instead of the manager key do pop up
+ * <p> messages.
+ * <p>
  * <p> Revision 3.59  2009/10/13 17:38:21  sueh
  * <p> bug# 1273 In loadCtfPlotter and loadCtfCorrection, required was passed
  * <p> as the wrong parameter to loadComScript.
@@ -407,6 +412,8 @@ public final class ComScriptManager extends BaseComScriptManager {
   private ComScript scriptFindBeads3dB;
   private ComScript scriptTilt3dFindReprojectA;
   private ComScript scriptTilt3dFindReprojectB;
+  private ComScript scriptXcorrPtA;
+  private ComScript scriptXcorrPtB;
 
   public ComScriptManager(ApplicationManager appManager) {
     super(appManager);
@@ -505,6 +512,29 @@ public final class ComScriptManager extends BaseComScriptManager {
   }
 
   /**
+   * Get the tiltxcorr parameters from the specified xcorr_pt script object
+   * @param axisID the AxisID to read.
+   * @return a TiltxcorrParam object that will be created and initialized
+   * with the input arguments from xcorr in the com script.
+   */
+  public TiltxcorrParam getTiltxcorrParamFromXcorrPt(AxisID axisID) {
+    //  Get a reference to the appropriate script object
+    ComScript xcorrPt;
+    if (axisID == AxisID.SECOND) {
+      xcorrPt = scriptXcorrPtB;
+    }
+    else {
+      xcorrPt = scriptXcorrPtA;
+    }
+
+    // Initialize a TiltxcorrParam object from the com script command object
+    TiltxcorrParam tiltXcorrParam = new TiltxcorrParam(appManager, axisID,
+        ProcessName.XCORR_PT);
+    initialize(tiltXcorrParam, xcorrPt, "tiltxcorr", axisID, false, false);
+    return tiltXcorrParam;
+  }
+
+  /**
    * Get the tiltxcorr parameters from the specified xcorr script object
    * @param axisID the AxisID to read.
    * @return a TiltxcorrParam object that will be created and initialized
@@ -521,9 +551,30 @@ public final class ComScriptManager extends BaseComScriptManager {
     }
 
     // Initialize a TiltxcorrParam object from the com script command object
-    TiltxcorrParam tiltXcorrParam = new TiltxcorrParam(appManager, axisID);
+    TiltxcorrParam tiltXcorrParam = new TiltxcorrParam(appManager, axisID,
+        ProcessName.XCORR);
     initialize(tiltXcorrParam, xcorr, "tiltxcorr", axisID, false, false);
     return tiltXcorrParam;
+  }
+
+  /**
+   * Save the specified xcorr_pt com script updating the tiltxcorr parameters
+   * @param axisID the AxisID to load.
+   * @param tiltXcorrParam a TiltxcorrParam object that will be used to update
+   * the xcorr com script
+   */
+  public void saveXcorrPt(TiltxcorrParam tiltXcorrParam, AxisID axisID) {
+
+    //  Get a reference to the appropriate script object
+    ComScript scriptXcorrPt;
+    if (axisID == AxisID.SECOND) {
+      scriptXcorrPt = scriptXcorrPtB;
+    }
+    else {
+      scriptXcorrPt = scriptXcorrPtA;
+    }
+    modifyCommand(scriptXcorrPt, tiltXcorrParam, "tiltxcorr", axisID, false,
+        false);
   }
 
   /**
@@ -653,6 +704,24 @@ public final class ComScriptManager extends BaseComScriptManager {
       scriptBlend3dFindA = loadComScript(ProcessName.BLEND_3D_FIND, axisID,
           true, false, false);
     }
+  }
+
+  /**
+   * @param axisID
+   * @param required
+   * @return true if script has loaded
+   */
+  public boolean loadXcorrPt(AxisID axisID, boolean required) {
+    //  Assign the new ComScriptObject object to the appropriate reference
+    if (axisID == AxisID.SECOND) {
+      scriptXcorrPtB = loadComScript(FileType.PATCH_TRACKING_COMSCRIPT
+          .getFileName(appManager, axisID), axisID, true, required, false,
+          false);
+      return scriptXcorrPtB != null;
+    }
+    scriptXcorrPtA = loadComScript(FileType.PATCH_TRACKING_COMSCRIPT
+        .getFileName(appManager, axisID), axisID, true, required, false, false);
+    return scriptXcorrPtA != null;
   }
 
   /**
