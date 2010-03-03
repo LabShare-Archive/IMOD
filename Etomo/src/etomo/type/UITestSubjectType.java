@@ -14,6 +14,9 @@ package etomo.type;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.3  2009/09/22 21:03:47  sueh
+ * <p> bug# 1259 Removed COM.
+ * <p>
  * <p> Revision 1.2  2009/09/11 22:41:44  sueh
  * <p> bug# 1259 comparing com files by sorting them first.
  * <p>
@@ -27,9 +30,11 @@ public final class UITestSubjectType {
   public static final UITestSubjectType ADOC = new UITestSubjectType("adoc");
   public static final UITestSubjectType DATASET = new UITestSubjectType(
       "dataset");
+  public static final UITestSubjectType DEBUG = new UITestSubjectType("debug");
   public static final UITestSubjectType DIALOG = new UITestSubjectType("dialog");
   public static final UITestSubjectType FILE = new UITestSubjectType("file");
-  public static final UITestSubjectType FILE_CHOOSER = new UITestSubjectType("file-chooser");
+  public static final UITestSubjectType FILE_CHOOSER = new UITestSubjectType(
+      "file-chooser");
   public static final UITestSubjectType FRAME = new UITestSubjectType("frame");
   public static final UITestSubjectType FUNCTION = new UITestSubjectType(
       "function");
@@ -41,8 +46,7 @@ public final class UITestSubjectType {
       "process");
   public static final UITestSubjectType SECTION = new UITestSubjectType(
       "section");
-  public static final UITestSubjectType TEST = new UITestSubjectType(
-  "test");
+  public static final UITestSubjectType TEST = new UITestSubjectType("test");
   public static final UITestSubjectType TESTDIR = new UITestSubjectType(
       "testdir");
   public static final UITestSubjectType VAR = new UITestSubjectType("var");
@@ -62,6 +66,9 @@ public final class UITestSubjectType {
     }
     if (string.equals(DATASET.toString())) {
       return DATASET;
+    }
+    if (string.equals(DEBUG.toString())) {
+      return DEBUG;
     }
     if (string.equals(DIALOG.toString())) {
       return DIALOG;
