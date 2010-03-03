@@ -105,8 +105,6 @@ public interface ConstMetaData {
 
   public IntKeyList getTomoGenTrialTomogramNameList(AxisID axisID);
 
-  public boolean getTrackUseRaptor();
-
   public boolean getTrackRaptorUseRawStack();
 
   public String getTrackRaptorMark();
@@ -130,10 +128,25 @@ public interface ConstMetaData {
   public String getLambdaForSmoothing();
 
   public String getLambdaForSmoothingList();
+
+  public String getTrackOverlapOfPatchesXandY(AxisID axisID);
+
+  public String getTrackNumberOfPatchesXandY(AxisID axisID);
+
+  public String getTrackLengthAndOverlap(AxisID axisID);
+
+  public boolean isTrackOverlapOfPatchesXandYSet(AxisID axisID);
+
+  public boolean isTrackLengthAndOverlapSet(AxisID axisID);
+
+  public String getTrackMethod(AxisID axisID);
 }
 
-/**
+/**public String getTrackMethod(AxisID axisID) 
  * <p> $Log$
+ * <p> Revision 3.55  2009/12/19 01:09:54  sueh
+ * <p> bug# 1294 Added lambdaForSmoothing and lambdaForSmoothingList.
+ * <p>
  * <p> Revision 3.54  2009/10/16 21:12:49  sueh
  * <p> bug# 1230 Added getPostCurTab.
  * <p>
