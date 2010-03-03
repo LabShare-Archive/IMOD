@@ -12,6 +12,7 @@ import etomo.comscript.SqueezevolParam;
 import etomo.comscript.TiltalignParam;
 import etomo.comscript.TransferfidParam;
 import etomo.comscript.TrimvolParam;
+import etomo.ui.FiducialModelDialog;
 import etomo.util.DatasetFiles;
 import etomo.util.Utilities;
 
@@ -28,6 +29,10 @@ import etomo.util.Utilities;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.57  2010/02/17 04:52:36  sueh
+ * <p> bug# 1301 Using the manager instead of the manager key do pop up
+ * <p> messages.
+ * <p>
  * <p> Revision 3.56  2010/01/11 23:58:08  sueh
  * <p> bug# 1299 Formatted.
  * <p>
@@ -299,7 +304,7 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
   //Strings and keys must not change without provisions for backwards
   //capatibility.
 
-  private static final String latestRevisionNumber = "1.10";
+  private static final String latestRevisionNumber = "1.11";
   private static final String newTomogramTitle = "Setup Tomogram";
 
   private static final String TOMO_GEN_A_TILT_PARALLEL_GROUP = DialogType.TOMOGRAM_GENERATION
@@ -330,6 +335,7 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
 
   //Dialog keys
   private static final String TRACK_KEY = "Track";
+  private static final String FINE_KEY = "Fine";
   private static final String STACK_KEY = "Stack";
   private static final String POST_KEY = "Post";
 
@@ -492,6 +498,9 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
       .getStringInstance(DialogType.TOMOGRAM_GENERATION.getStorableName() + "."
           + AxisID.SECOND.getExtension() + "." + "TrialTomogramName");
 
+  /**
+   * @deprecated substituted trackMethod
+   */
   private final EtomoBoolean2 trackUseRaptorA = new EtomoBoolean2(TRACK_KEY
       + "." + FIRST_AXIS_KEY + "." + USE_KEY + RAPTOR_KEY);
   private final EtomoBoolean2 trackRaptorUseRawStackA = new EtomoBoolean2(
@@ -545,6 +554,30 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
       EtomoNumber.Type.DOUBLE, POST_KEY + ".LambdaForSmoothing");
   private final StringProperty lambdaForSmoothingList = new StringProperty(
       POST_KEY + ".LambdaForSmoothingList");
+
+  private final StringProperty trackOverlapOfPatchesXandYA = new StringProperty(
+      TRACK_KEY + "." + FIRST_AXIS_KEY + ".OverlapOfPatchesXandY");
+  private final StringProperty trackOverlapOfPatchesXandYB = new StringProperty(
+      TRACK_KEY + "." + SECOND_AXIS_KEY + ".OverlapOfPatchesXandY");
+  private final StringProperty trackNumberOfPatchesXandYA = new StringProperty(
+      TRACK_KEY + "." + FIRST_AXIS_KEY + ".NumberOfPatchesXandY");
+  private final StringProperty trackNumberOfPatchesXandYB = new StringProperty(
+      TRACK_KEY + "." + SECOND_AXIS_KEY + ".NumberOfPatchesXandY");
+  private final StringProperty trackLengthAndOverlapA = new StringProperty(
+      TRACK_KEY + "." + FIRST_AXIS_KEY + ".LengthAndOverlap");
+  private final StringProperty trackLengthAndOverlapB = new StringProperty(
+      TRACK_KEY + "." + SECOND_AXIS_KEY + ".LengthAndOverlap");
+  private final StringProperty trackMethodA = new StringProperty(TRACK_KEY
+      + "." + FIRST_AXIS_KEY + ".TrackMethod");
+  private final StringProperty trackMethodB = new StringProperty(TRACK_KEY
+      + "." + SECOND_AXIS_KEY + ".TrackMethod");
+  /**
+   * fineExists is true if the fine alignment dialog has opened at least once.
+   */
+  private final EtomoBoolean2 fineExistsA = new EtomoBoolean2(FINE_KEY + "."
+      + FIRST_AXIS_KEY + ".Exists");
+  private final EtomoBoolean2 fineExistsB = new EtomoBoolean2(FINE_KEY + "."
+      + SECOND_AXIS_KEY + ".Exists");
 
   public MetaData(ApplicationManager manager) {
     this.manager = manager;
@@ -622,20 +655,20 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
     }
   }
 
-  public void setLambdaForSmoothing( String input) {
-      lambdaForSmoothing.set(input);
+  public void setLambdaForSmoothing(String input) {
+    lambdaForSmoothing.set(input);
   }
 
   public String getLambdaForSmoothing() {
-      return lambdaForSmoothing.toString();
+    return lambdaForSmoothing.toString();
   }
 
   public void setLambdaForSmoothingList(String input) {
-      lambdaForSmoothingList.set(input);
+    lambdaForSmoothingList.set(input);
   }
 
   public String getLambdaForSmoothingList() {
-      return lambdaForSmoothingList.toString();
+    return lambdaForSmoothingList.toString();
   }
 
   public void setTransferfidAFields(TransferfidParam param) {
@@ -937,6 +970,15 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
     }
   }
 
+  public void setFineExists(AxisID axisID, boolean input) {
+    if (axisID == AxisID.SECOND) {
+      fineExistsB.set(input);
+    }
+    else {
+      fineExistsA.set(input);
+    }
+  }
+
   public void setWholeTomogramSample(AxisID axisID, boolean state) {
     if (axisID == AxisID.SECOND) {
       wholeTomogramSampleB = state;
@@ -1034,6 +1076,16 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
     postExists.reset();
     lambdaForSmoothing.reset();
     lambdaForSmoothingList.reset();
+    trackOverlapOfPatchesXandYA.reset();
+    trackOverlapOfPatchesXandYB.reset();
+    trackNumberOfPatchesXandYA.reset();
+    trackNumberOfPatchesXandYB.reset();
+    trackLengthAndOverlapA.reset();
+    trackLengthAndOverlapB.reset();
+    trackMethodA.reset();
+    trackMethodB.reset();
+    fineExistsA.reset();
+    fineExistsB.reset();
     //load
     prepend = createPrepend(prepend);
     String group = prepend + ".";
@@ -1066,6 +1118,16 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
       //better radius needs to be converted to final stack fiducial diameter.
       finalStackBetterRadiusA.load(props, prepend);
       finalStackBetterRadiusB.load(props, prepend);
+    }
+    if (revisionNumber.le(EtomoVersion.getDefaultInstance("1.10"))) {
+      trackUseRaptorA.load(props, prepend);
+      if (trackUseRaptorA.is()) {
+        trackMethodA.set(FiducialModelDialog.MethodEnumeratedType.RAPTOR
+            .toString());
+      }
+    }
+    else {
+      trackMethodA.load(props, prepend);
     }
     finalStackFiducialDiameterA.load(props, prepend);
     finalStackFiducialDiameterB.load(props, prepend);
@@ -1189,7 +1251,6 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
     finalStackPolynomialOrderB.load(props, prepend);
     tomoGenTrialTomogramNameListA.load(props, prepend);
     tomoGenTrialTomogramNameListB.load(props, prepend);
-    trackUseRaptorA.load(props, prepend);
     trackRaptorUseRawStackA.load(props, prepend);
     trackRaptorMarkA.load(props, prepend);
     trackRaptorDiamA.load(props, prepend);
@@ -1208,6 +1269,16 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
     postExists.load(props, prepend);
     lambdaForSmoothing.load(props, prepend);
     lambdaForSmoothingList.load(props, prepend);
+    trackOverlapOfPatchesXandYA.load(props, prepend);
+    trackOverlapOfPatchesXandYB.load(props, prepend);
+    trackNumberOfPatchesXandYA.load(props, prepend);
+    trackNumberOfPatchesXandYB.load(props, prepend);
+    trackLengthAndOverlapA.load(props, prepend);
+    trackLengthAndOverlapB.load(props, prepend);
+    //trackMethodA is loaded in backwards compatibility section
+    trackMethodB.load(props, prepend);
+    fineExistsA.load(props, prepend);
+    fineExistsB.load(props, prepend);
   }
 
   public void setNoBeamTiltSelected(AxisID axisID, boolean selected) {
@@ -1381,7 +1452,6 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
     finalStackFiducialDiameterB.store(props, prepend);
     tomoGenTrialTomogramNameListA.store(props, prepend);
     tomoGenTrialTomogramNameListB.store(props, prepend);
-    trackUseRaptorA.store(props, prepend);
     trackRaptorUseRawStackA.store(props, prepend);
     trackRaptorMarkA.store(props, prepend);
     trackRaptorDiamA.store(props, prepend);
@@ -1402,14 +1472,16 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
     postExists.store(props, prepend);
     lambdaForSmoothing.store(props, prepend);
     lambdaForSmoothingList.store(props, prepend);
-  }
-
-  public boolean getTrackUseRaptor() {
-    return trackUseRaptorA.is();
-  }
-
-  public void setTrackUseRaptor(boolean input) {
-    trackUseRaptorA.set(input);
+    trackOverlapOfPatchesXandYA.store(props, prepend);
+    trackOverlapOfPatchesXandYB.store(props, prepend);
+    trackNumberOfPatchesXandYA.store(props, prepend);
+    trackNumberOfPatchesXandYB.store(props, prepend);
+    trackLengthAndOverlapA.store(props, prepend);
+    trackLengthAndOverlapB.store(props, prepend);
+    trackMethodA.store(props, prepend);
+    trackMethodB.store(props, prepend);
+    fineExistsA.store(props, prepend);
+    fineExistsB.store(props, prepend);
   }
 
   public boolean getTrackRaptorUseRawStack() {
@@ -1488,6 +1560,20 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
     return postSqueezeVolInputTrimVol.is();
   }
 
+  public boolean isTrackLengthAndOverlapSet(AxisID axisID) {
+    if (axisID == AxisID.SECOND) {
+      return !trackLengthAndOverlapB.isEmpty();
+    }
+    return !trackLengthAndOverlapA.isEmpty();
+  }
+
+  public boolean isTrackOverlapOfPatchesXandYSet(AxisID axisID) {
+    if (axisID == AxisID.SECOND) {
+      return !trackOverlapOfPatchesXandYB.isEmpty();
+    }
+    return !trackOverlapOfPatchesXandYA.isEmpty();
+  }
+
   public void setPostSqueezeVolInputTrimVol(boolean input) {
     postSqueezeVolInputTrimVol.set(input);
   }
@@ -1544,6 +1630,27 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
     return tomoGenTrialTomogramNameListA;
   }
 
+  public String getTrackLengthAndOverlap(final AxisID axisID) {
+    if (axisID == AxisID.SECOND) {
+      return trackLengthAndOverlapB.toString();
+    }
+    return trackLengthAndOverlapA.toString();
+  }
+
+  public String getTrackNumberOfPatchesXandY(final AxisID axisID) {
+    if (axisID == AxisID.SECOND) {
+      return trackNumberOfPatchesXandYB.toString();
+    }
+    return trackNumberOfPatchesXandYA.toString();
+  }
+
+  public String getTrackOverlapOfPatchesXandY(final AxisID axisID) {
+    if (axisID == AxisID.SECOND) {
+      return trackOverlapOfPatchesXandYB.toString();
+    }
+    return trackOverlapOfPatchesXandYA.toString();
+  }
+
   public void setTomoGenTrialTomogramNameList(AxisID axisID, IntKeyList input) {
     if (axisID == AxisID.SECOND) {
       tomoGenTrialTomogramNameListB = input;
@@ -1551,11 +1658,54 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
     tomoGenTrialTomogramNameListA = input;
   }
 
+  public void setTrackLengthAndOverlap(AxisID axisID, String input) {
+    if (axisID == AxisID.SECOND) {
+      trackLengthAndOverlapB.set(input);
+    }
+    else {
+      trackLengthAndOverlapA.set(input);
+    }
+  }
+
+  public void setTrackMethod(AxisID axisID, String input) {
+    if (axisID == AxisID.SECOND) {
+      trackMethodB.set(input);
+    }
+    else {
+      trackMethodA.set(input);
+    }
+  }
+
+  public void setTrackNumberOfPatchesXandY(AxisID axisID, String input) {
+    if (axisID == AxisID.SECOND) {
+      trackNumberOfPatchesXandYB.set(input);
+    }
+    else {
+      trackNumberOfPatchesXandYA.set(input);
+    }
+  }
+
+  public void setTrackOverlapOfPatchesXandY(AxisID axisID, String input) {
+    if (axisID == AxisID.SECOND) {
+      trackOverlapOfPatchesXandYB.set(input);
+    }
+    else {
+      trackOverlapOfPatchesXandYA.set(input);
+    }
+  }
+
   public boolean isFinalStackFiducialDiameterNull(AxisID axisID) {
     if (axisID == AxisID.SECOND) {
       return finalStackFiducialDiameterB.isNull();
     }
     return finalStackFiducialDiameterA.isNull();
+  }
+
+  public boolean isFineExists(AxisID axisID) {
+    if (axisID == AxisID.SECOND) {
+      return fineExistsB.is();
+    }
+    return fineExistsA.is();
   }
 
   /**
@@ -1608,6 +1758,14 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
       return "";
     }
     return datasetName + fileExtension;
+  }
+
+  public String getTrackMethod(AxisID axisID) {
+    if (axisID == AxisID.SECOND) {
+      return trackMethodB.toString();
+    }
+    return trackMethodA.toString();
+
   }
 
   public String getName() {
@@ -1752,6 +1910,13 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
   }
 
   public TiltAngleSpec getTiltAngleSpecA() {
+    return tiltAngleSpecA;
+  }
+
+  public TiltAngleSpec getTiltAngleSpec(AxisID axisID) {
+    if (axisID == AxisID.SECOND) {
+      return tiltAngleSpecB;
+    }
     return tiltAngleSpecA;
   }
 
