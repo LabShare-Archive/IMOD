@@ -19,7 +19,10 @@ import etomo.type.FileType;
  * 
  * @version $Revision$
  * 
- * <p> $Log$ </p>
+ * <p> $Log$
+ * <p> Revision 3.1  2009/09/01 03:17:46  sueh
+ * <p> bug# 1222
+ * <p> </p>
  */
 public final class MrcTaperParam implements CommandParam {
   public static final String rcsid = "$Id$";
@@ -79,7 +82,7 @@ public final class MrcTaperParam implements CommandParam {
   }
 
   public void initializeDefaults() {
-    inputFile = FileType.NEWST_OR_BLEND_OUTPUT.getFileName(manager, axisID);
+    inputFile = FileType.ALIGNED_STACK.getFileName(manager, axisID);
   }
 
   private void reset() {
