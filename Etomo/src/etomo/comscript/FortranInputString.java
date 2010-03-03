@@ -23,6 +23,11 @@ import etomo.type.ConstEtomoNumber;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.17  2009/06/05 01:48:23  sueh
+ * <p> bug# 1219 Added isNull functions to deal with the two ways this class is
+ * <p> empty.  In set(int,String) changing the value to default when the input is
+ * <p> empty.
+ * <p>
  * <p> Revision 3.16  2007/08/16 16:28:46  sueh
  * <p> bug# 1035 Added propertiesKey for saving to a Properties object.  Added
  * <p> functions load(Properties, String) and makePrepend.
@@ -561,17 +566,17 @@ public class FortranInputString {
     }
     return value[index].isInfinite();
   }
-  
+
   /**
    * Checks for both NaN and infinity.
    * @return true if the element is null or contains infinity or NaN
    */
   public boolean isNull(int index) {
-   if( value[index] == null) {
-     return true;
-   }
-   Double v = value[index];
-   return v.isInfinite() || v.isNaN();
+    if (value[index] == null) {
+      return true;
+    }
+    Double v = value[index];
+    return v.isInfinite() || v.isNaN();
   }
 
   /**
