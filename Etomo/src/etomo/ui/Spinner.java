@@ -32,6 +32,11 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.16  2009/11/20 17:36:44  sueh
+ * <p> bug# 1282 Added prefixes to all of the field names, so that the fields that
+ * <p> are actually abstract buttons (radio buttons, etc) won't be activated by a
+ * <p> "bn." field command.
+ * <p>
  * <p> Revision 1.15  2009/01/20 20:29:33  sueh
  * <p> bug# 1102 Changed UITestField to UITestFieldType.
  * <p>
@@ -166,6 +171,10 @@ final class Spinner {
       return spinner;
     }
     return panel;
+  }
+  
+  String getLabel() {
+    return label.getText();
   }
 
   boolean isEnabled() {
