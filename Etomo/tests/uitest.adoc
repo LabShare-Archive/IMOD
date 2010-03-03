@@ -116,6 +116,18 @@ set.var.dual=
 set.var.montage=
 set.var.test-gui=
 
+[Test = dual-montage-patch-tracking]
+set.testdir = dual-montage
+#set.keep.testdir = dual-montage
+set.adoc.dialog.a=recon.adoc
+set.adoc.bdialog.b=recon.adoc
+set.var.dataset = midzone2
+set.dataset = midzone2
+#set.param = %{dataset}.edf
+set.var.dual=
+set.var.montage=
+set.var.patch-tracking=
+
 [Test = join]
 set.testdir = join
 set.adoc.tab = join.adoc
@@ -193,6 +205,8 @@ set.var.unbinned-bead-diameter = 4.95
 set.var.int-unbinned-bead-diameter = 5
 #PreProc
 set.var.maximum-radius=2.1
+#FidModel
+set.var.pixels-to-trim=26,26
 #FinalStack
 set.var.size-to-output-x=550
 set.var.size-to-output-y=550
@@ -230,6 +244,9 @@ set.var.unbinned-bead-diameter = 10.56
 set.var.int-unbinned-bead-diameter = 11
 #PreProc
 set.var.maximum-radius=2.6
+#FidModel
+set.var.pixels-to-trim.a=98,51
+set.var.pixels-to-trim.b=51,98
 #FinalStack
 set.var.size-to-output-x.a=2000
 set.var.size-to-output-y.a=1050
