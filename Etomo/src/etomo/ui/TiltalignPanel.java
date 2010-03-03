@@ -265,6 +265,7 @@ final class TiltalignPanel implements Expandable {
   private final PanelHeader phBeamTilt;
 
   private Tab currentTab = Tab.GENERAL;
+  private boolean patchTracking = false;
 
   private TiltalignPanel(final AxisID axis, final ApplicationManager appMgr,
       GlobalExpandButton globalAdvancedButton) {
@@ -703,8 +704,26 @@ final class TiltalignPanel implements Expandable {
     updateDisplay();
   }
 
-  public final void setParameters(ReconScreenState screenState) {
+  public void setParameters(ReconScreenState screenState) {
     phBeamTilt.setState(screenState.getFineAlignBeamTiltHeaderState());
+  }
+
+  public void setPatchTracking(boolean input) {
+    patchTracking = input;
+  }
+
+  /**
+   * Selects a fiducial surface radio button depending on surfacesToAnalyze.
+   * Only the surfacesToAnalyze values 1 and 2 have an effect.
+   * @param surfacesToAnalyze
+   */
+  void setSurfacesToAnalyze(int surfacesToAnalyze) {
+    if (surfacesToAnalyze == 1) {
+      rbSingleFiducialSurface.setSelected(true);
+    }
+    else if (surfacesToAnalyze == 2) {
+      rbDualFiducialSurfaces.setSelected(true);
+    }
   }
 
   public void getParameters(ReconScreenState screenState) {
@@ -967,6 +986,13 @@ final class TiltalignPanel implements Expandable {
       UIHarness.INSTANCE.openMessageDialog(appMgr, rtfFixedBeamTilt.getLabel()
           + " can not be empty when it is selected.", "Entry Error");
       return false;
+    }
+    if (patchTracking && rbDualFiducialSurfaces.isSelected()) {
+      UIHarness.INSTANCE.openMessageDialog(appMgr,
+          "Patch tracking puts fiducials only on one side.  Select \""
+              + rbSingleFiducialSurface.getText() + "\" for better results.",
+          "Entry Warning", axisID);
+      //This is just a warning so don't return false.
     }
     return true;
   }
@@ -1868,6 +1894,9 @@ final class TiltalignPanel implements Expandable {
 
 /**
  * <p> $Log$
+ * <p> Revision 3.54  2010/02/17 05:03:12  sueh
+ * <p> bug# 1301 Using manager instead of manager key for popping up messages.
+ * <p>
  * <p> Revision 3.53  2009/09/01 03:18:25  sueh
  * <p> bug# 1222
  * <p>
