@@ -82,7 +82,7 @@ c
       real*8 wallmask, walltime, wallstart, wallinterp, wallfft
 
       logical*4 tracking
-      integer*4 niceframe, newimod,putImodMaxes
+      integer*4 niceframe, newimod,putImodMaxes,putModelName
       logical inside
       real*4 cosd, sind
 
@@ -1174,6 +1174,7 @@ c         Go through patches and put points in model structure
         enddo
 c         
 c         Set model properties
+        ierr = putModelName('Patch Tracking Model')
         call putImodFlag(1, 1)
         call putSymType(1, 0)
         call putSymSize(1, 7)
@@ -1186,8 +1187,8 @@ c         Set model properties
       endif
       call imclose(1)
 C       
-      write(*,'(3(a,f9.3))')'interpolation',wallinterp,'  fft',wallfft,
-     &    '  masking', wallmask
+c      write(*,'(3(a,f9.3))')'interpolation',wallinterp,'  fft',wallfft,
+c     &    '  masking', wallmask
       WRITE(6,500)
 500   FORMAT(' PROGRAM EXECUTED TO END.')
       call exit(0)
@@ -1410,6 +1411,10 @@ c	print *,xpeak,ypeak
 
 c       
 c       $Log$
+c       Revision 3.4  2010/01/21 23:14:32  mast
+c       Fixed patch model output when tracking a subset of views, fixed adjustment
+c       of positions, added option for specifying overlap and a default overlap
+c
 c       Revision 3.3  2009/11/13 04:03:51  mast
 c       Moved temp array to common because of stack overflow in Windows
 c
