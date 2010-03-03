@@ -3,6 +3,7 @@ package etomo.ui;
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Dimension;
+import java.awt.Font;
 import java.awt.event.ActionListener;
 
 import javax.swing.AbstractButton;
@@ -88,6 +89,10 @@ final class RadioButton implements RadioButtonInterface {
     radioButton.setBorder(border);
   }
 
+  Font getFont() {
+    return radioButton.getFont();
+  }
+
   public void setForeground(Color fg) {
     radioButton.setForeground(fg);
   }
@@ -136,6 +141,10 @@ final class RadioButton implements RadioButtonInterface {
 
   void setToolTipText(final String text) {
     radioButton.setToolTipText(TooltipFormatter.INSTANCE.format(text));
+  }
+
+  void setVisible(final boolean visible) {
+    radioButton.setVisible(visible);
   }
 
   void addActionListener(final ActionListener actionListener) {
@@ -225,6 +234,11 @@ final class RadioButton implements RadioButtonInterface {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.24  2009/11/20 17:30:51  sueh
+ * <p> bug# 1282 Added prefixes to all of the field names, so that the fields that
+ * <p> are actually abstract buttons (radio buttons, etc) won't be activated by a
+ * <p> "bn." field command.
+ * <p>
  * <p> Revision 1.23  2009/04/13 22:58:01  sueh
  * <p> Removed newstuff.
  * <p>
