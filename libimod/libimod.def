@@ -76,6 +76,7 @@ EXPORTS
 	GETIMODOBJNAME
 	istoreEndChange
 	PUTIMODFLAG
+	GETMODELNAME
 	imodLabelItemMove
 	imodContourMakeDirection
 	imodContourMakeZTables
@@ -333,6 +334,7 @@ EXPORTS
 	substr
 	imodInsertPoint
 	imodPlaneSetFromClips
+	PUTMODELNAME
 	imodCloseFile
 	imodObjectDup
 	imodPrevPoint
