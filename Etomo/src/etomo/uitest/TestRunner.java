@@ -38,6 +38,9 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.11  2010/02/23 00:25:09  sueh
+ * <p> bug# 1301 No longer require var.dataset to be set when copying a file.
+ * <p>
  * <p> Revision 1.10  2010/02/18 01:15:30  sueh
  * <p> bug# 1301 Removing print statements.
  * <p>
@@ -87,6 +90,7 @@ public final class TestRunner extends JFCTestCase implements VariableList {
   private File testDir = null;
   private boolean keepDatasetDir = false;
   private InterfaceSection interfaceSection = null;
+  private boolean debug = true;
 
   public TestRunner() {
   }
@@ -360,6 +364,15 @@ public final class TestRunner extends JFCTestCase implements VariableList {
       }
     }
     return variableMap.containsKey(variableName);
+  }
+
+  /**
+   * Sets debug in
+   * @param input
+   */
+  void setDebug(final boolean input) {
+    debug = input;
+    etomo.getArguments().setDebug(input);
   }
 
   /**
