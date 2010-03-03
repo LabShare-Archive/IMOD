@@ -23,6 +23,9 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.7  2009/09/22 20:42:28  sueh
+ * <p> bug# 1259 Made debug tab public.
+ * <p>
  * <p> Revision 1.6  2009/05/06 20:45:02  sueh
  * <p> bug# 1207 Found a simpler way of exiting etomo.  Removed setExit.
  * <p>
@@ -234,6 +237,10 @@ public final class Arguments {
 
   public boolean isTest() {
     return test;
+  }
+
+  public void setDebug(final boolean input) {
+    debug = input;
   }
 
   public boolean isScan() {
