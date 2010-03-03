@@ -174,6 +174,10 @@ final class TransferfidPanel implements Expandable, Run3dmodButtonContainer {
   private void setup() {
   }
 
+  void setVisible(final boolean visible) {
+    panelTransferfid.setVisible(visible);
+  }
+
   /**
    * Set the values of the panel using a TransferfidParam parameter
    * object
@@ -309,6 +313,9 @@ final class TransferfidPanel implements Expandable, Run3dmodButtonContainer {
 
 /**
  * <p> $Log$
+ * <p> Revision 3.20  2009/09/01 03:18:25  sueh
+ * <p> bug# 1222
+ * <p>
  * <p> Revision 3.19  2009/01/20 20:32:54  sueh
  * <p> bug# 1102 Changed labeled panels to type EtomoPanel so that they can name themselves.
  * <p>
