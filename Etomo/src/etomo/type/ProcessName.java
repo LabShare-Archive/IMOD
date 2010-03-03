@@ -17,6 +17,9 @@ import etomo.util.DatasetFiles;
  * @version $$Revision$$
  *
  * <p> $$Log$
+ * <p> $Revision 1.24  2009/12/08 02:45:42  sueh
+ * <p> $bug# 1286 Added AVERAGE_ALL.
+ * <p> $
  * <p> $Revision 1.23  2009/09/01 03:12:17  sueh
  * <p> $bug# 1222 Added BLEND_3D_FIND, FIND_BEADS_3D, MIDAS,
  * <p> $NEWST_3D_FIND, TILT_3D_FIND_REPROJECT, and TILT_3D_FIND.
@@ -160,6 +163,7 @@ public class ProcessName {
   private static final String findbeads3d = "findbeads3d";
   private static final String tilt_3dfind_reproject = "tilt_3dfind_reproject";
   private static final String midas = "midas";
+  private static final String xcorr_pt = "xcorr_pt";
 
   private final String name;
 
@@ -231,6 +235,7 @@ public class ProcessName {
   public static final ProcessName TILT_3D_FIND_REPROJECT = new ProcessName(
       tilt_3dfind_reproject);
   public static final ProcessName MIDAS = new ProcessName(midas);
+  public static final ProcessName XCORR_PT = new ProcessName(xcorr_pt);
 
   /**
    * Returns a string representation of the object.
@@ -506,6 +511,9 @@ public class ProcessName {
     }
     if (name.compareToIgnoreCase(midas) == 0) {
       return MIDAS;
+    }
+    if (name.compareToIgnoreCase(xcorr_pt) == 0) {
+      return XCORR_PT;
     }
     return null;
   }
