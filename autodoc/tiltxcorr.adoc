@@ -271,7 +271,8 @@ into the reference (this option overrides AbsoluteCosineStretch).
 short = iterate
 type = I
 usage = Number of iterations to reduce interpolation of peak position
-tooltip =
+tooltip = Number of iterations of each correlation to reduce interpolation of
+peak position.
 manpage = Number of iterations of the correlation.  After finding the
 pixel with the peak correlation, the program achieves subpixel accuracy by
 fitting a parabola to the correlation values in X or Y and interpolating from
