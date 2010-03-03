@@ -2,6 +2,7 @@ package etomo.ui;
 
 import etomo.comscript.FortranInputSyntaxException;
 import etomo.comscript.TiltxcorrParam;
+import etomo.type.PanelId;
 
 /**
  * <p>Description: </p>
@@ -16,11 +17,16 @@ import etomo.comscript.TiltxcorrParam;
  * 
  * @version $Revision$
  * 
- * <p> $Log$ </p>
+ * <p> $Log$
+ * <p> Revision 1.1  2009/06/12 19:51:02  sueh
+ * <p> bug# 1221 Interface for a display containing the tiltxcorr parameters.
+ * <p> </p>
  */
 public interface TiltXcorrDisplay extends ProcessDisplay {
   public static final String rcsid = "$Id$";
 
-  public void getParameters(TiltxcorrParam tiltXcorrParams)
+  public boolean getParameters(TiltxcorrParam tiltXcorrParams)
       throws FortranInputSyntaxException;
+
+  public PanelId getPanelId();
 }
