@@ -41,6 +41,9 @@ import etomo.type.ViewType;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.2  2009/09/22 23:54:16  sueh
+ * <p> bug# 1269 Added setEnabledTiltParameters.
+ * <p>
  * <p> Revision 3.1  2009/09/01 03:18:25  sueh
  * <p> bug# 1222
  * <p> </p>
@@ -252,7 +255,7 @@ final class Beads3dFindPanel implements NewstackOrBlendmont3dFindParent,
     //the binning requested here, run newst/blend_3dfind.com and then run
     //tilt_3dfind.
     if (!manager.equalsBinning(axisID, newstackOrBlendmont3dFindPanel
-        .getBinning(), FileType.NEWST_OR_BLEND_OUTPUT)) {
+        .getBinning(), FileType.ALIGNED_STACK)) {
       ProcessSeries processSeries = new ProcessSeries(manager, dialogType,
           tilt3dFindPanel);
       processSeries.setNextProcess(ProcessName.TILT_3D_FIND.toString());

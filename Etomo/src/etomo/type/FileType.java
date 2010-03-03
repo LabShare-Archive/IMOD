@@ -19,6 +19,10 @@ import etomo.process.ImodManager;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.6  2010/02/17 04:52:18  sueh
+ * <p> bug# 1301 Sorted file types to make is easier to detect duplicates.  Added
+ * <p> flattening tool file types.
+ * <p>
  * <p> Revision 1.5  2010/01/21 21:29:58  sueh
  * <p> bug# 1305 Added ANISOTROPIC_DIFFUSION_OUTPUT.
  * <p>
@@ -69,12 +73,18 @@ public final class FileType {
 
   public static final FileType FIDUCIAL_3D_MODEL = new FileType(true, true, "",
       ".3dmod", ImodManager.FIDUCIAL_MODEL_KEY);
-  public static final FileType NEWST_OR_BLEND_OUTPUT = new FileType(true, true,
-      "", ".ali", ImodManager.FINE_ALIGNED_KEY);
+  public static final FileType ALIGNED_STACK = new FileType(true, true, "",
+      ".ali", ImodManager.FINE_ALIGNED_KEY);
+  public static final FileType FIDUCIAL_MODEL = new FileType(
+      true, true, "", ".fid", null);
   public static final FileType FLATTEN_TOOL_OUTPUT = new FileType(true, false,
       "", ".flat", ImodManager.FLATTEN_TOOL_OUTPUT_KEY);
   public static final FileType ANISOTROPIC_DIFFUSION_OUTPUT = new FileType(
       true, false, "", ".nad", ImodManager.ANISOTROPIC_DIFFUSION_VOLUME_KEY);
+  public static final FileType PREALIGNED_STACK = new FileType(true, true, "",
+      ".preali", ImodManager.COARSE_ALIGNED_KEY);
+  public static final FileType RAW_TILT_ANGLES = new FileType(true, true, "",
+      ".rawtlt", null);
   public static final FileType TRIM_VOL_OUTPUT = new FileType(true, false, "",
       ".rec", ImodManager.TRIMMED_VOLUME_KEY);
   public static final FileType SQUEEZE_VOL_OUTPUT = new FileType(true, false,
@@ -101,8 +111,14 @@ public final class FileType {
       "_flat", ".rec", ImodManager.FLAT_VOLUME_KEY);
   public static final FileType FLATTEN_TOOL_COMSCRIPT = new FileType(true,
       false, "_flatten", ".com", null);
+  public static final FileType PATCH_TRACKING_BOUNDARY_MODEL = new FileType(
+      true, true, "_ptbound", ".mod", null);
   public static final FileType TRACK_COMSCRIPT = new FileType(false, true,
       ProcessName.TRACK.toString(), ".com", null);
+  public static final FileType CROSS_CORRELATION_COMSCRIPT = new FileType(false,
+      true, ProcessName.XCORR.toString(), ".com", null);
+  public static final FileType PATCH_TRACKING_COMSCRIPT = new FileType(false,
+      true, ProcessName.XCORR_PT.toString(), ".com", null);
 
   private final String imodManagerKey;
   private final boolean usesAxisID;
@@ -118,7 +134,7 @@ public final class FileType {
     this.typeString = typeString;
     this.extension = extension;
   }
-  
+
   public String getExtension() {
     return extension;
   }
