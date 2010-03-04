@@ -45,6 +45,10 @@ import etomo.type.TiltAngleSpec;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 1.1  2010/03/03 05:09:57  sueh
+ * <p> bug# 1311 Changed CrossCorrelationPanel to TiltxcorrPanel.  Aded Patch
+ * <p> Tracking functionality.
+ * <p>
  * <p> Revision 3.35  2010/02/17 05:03:12  sueh
  * <p> bug# 1301 Using manager instead of manager key for popping up messages.
  * <p>
@@ -262,11 +266,11 @@ final class TiltxcorrPanel implements Expandable, TiltXcorrDisplay,
   private final RadioTextField rtfNumberOfPatchesXandY = RadioTextField
       .getInstance("Number of patches (X,Y): ", bgPatchLayout);
   private final Spinner spIterateCorrelations = Spinner.getLabeledInstance(
-      "Iterations: ", TiltxcorrParam.ITERATE_CORRELATIONS_DEFAULT,
+      "Iterations to increase subpixel accuracy: ", TiltxcorrParam.ITERATE_CORRELATIONS_DEFAULT,
       TiltxcorrParam.ITERATE_CORRELATIONS_MIN,
       TiltxcorrParam.ITERATE_CORRELATIONS_MAX);
   private final LabeledTextField ltfShiftLimitsXandY = new LabeledTextField(
-      "Limits to correlation peak search (X,Y): ");
+      "Limits on shifts from correlation (X,Y): ");
   private final CheckTextField ctfLengthAndOverlap = CheckTextField
       .getInstance("Break contour into pieces (length, overlap): ");
   private final CheckBox cbBoundaryModel = new CheckBox("Use boundary model");
@@ -473,6 +477,8 @@ final class TiltxcorrPanel implements Expandable, TiltXcorrDisplay,
     pnlAdvanced.setVisible(state);
     if (panelId == PanelId.PATCH_TRACKING) {
       pnlAdvanced2.setVisible(state);
+      ltfAngleOffset.setVisible(state);
+      ltfShiftLimitsXandY.setVisible(state);
     }
   }
 
