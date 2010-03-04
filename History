@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+3/3/10: In Etomo added an interface for creating fiducials using tiltxcorr to
+track patches.
+
 2/28/10: Fixed an initialization problem on beadtrack (present since 3.12.5)
 that throws off tracking in some cases.
 
