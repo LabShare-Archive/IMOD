@@ -23,6 +23,11 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.18  2009/11/20 17:02:08  sueh
+ * <p> bug# 1282 Added prefixes to all of the field names, so that the fields that
+ * <p> are actually abstract buttons (radio buttons, etc) won't be activated by a
+ * <p> "bn." field command.
+ * <p>
  * <p> Revision 1.17  2009/04/13 22:55:46  sueh
  * <p> Removed newstuff.
  * <p>
@@ -86,6 +91,10 @@ import etomo.util.Utilities;
 final class CheckBox extends JCheckBox {
   public static final String rcsid = "$Id$";
 
+  public CheckBox() {
+    super();
+  }
+
   public CheckBox(String text) {
     super(text);
     setName(text);
@@ -130,6 +139,11 @@ final class CheckBox extends JCheckBox {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.18  2009/11/20 17:02:08  sueh
+ * <p> bug# 1282 Added prefixes to all of the field names, so that the fields that
+ * <p> are actually abstract buttons (radio buttons, etc) won't be activated by a
+ * <p> "bn." field command.
+ * <p>
  * <p> Revision 1.17  2009/04/13 22:55:46  sueh
  * <p> Removed newstuff.
  * <p>
