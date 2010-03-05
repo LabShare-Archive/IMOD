@@ -10,6 +10,7 @@ copy.file = %{dataset}.st
 #set.param = %{dataset}.edf
 set.var.single=
 set.interface.Recon=
+#set.var.build=
 
 [Test = dual]
 set.testdir = dual

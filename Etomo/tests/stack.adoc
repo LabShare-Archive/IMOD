@@ -7,6 +7,8 @@ if.var.simple-align.set.var.test-gui=
 assert.exists.file=ctfplotter%{axis}.com
 assert.exists.file=ctfcorrection%{axis}.com
 run.function.create=
+if.var.build.bn.done=
+if.var.build.return=
 run.function.correct-ctf=
 run.function.erase-gold=
 run.function.2d-filter=
@@ -61,20 +63,23 @@ run.function.final-align-command=
 	assert.enabled.tf.tilt-axis-rotation=
 	cb.fiducialless-alignment=off
 [[]]
-# run binned
-sp.aligned-image-stack-binning=2
-bn.create-full-aligned-stack=
-if.not.var.montage.wait.process.creating-aligned-stack = done
-if.var.montage.wait.process.full-alignment = done
-# check files
-assert.exists.file=%{final-align-comscript}%{axis}.com
-assert.exists.file=%{final-align-comscript}%{axis}.log
-assert.exists.file=%{dataset}%{axis}.ali
+[[ifnot = build]]
+	# run binned
+	sp.aligned-image-stack-binning=2
+	bn.create-full-aligned-stack=
+	if.not.var.montage.wait.process.creating-aligned-stack = done
+	if.var.montage.wait.process.full-alignment = done
+	# check files
+	assert.exists.file=%{final-align-comscript}%{axis}.com
+	assert.exists.file=%{final-align-comscript}%{axis}.log
+	assert.exists.file=%{dataset}%{axis}.ali
+[[]]
 # run unbinned
 sp.aligned-image-stack-binning=1
 bn.create-full-aligned-stack=
 if.not.var.montage.wait.process.creating-aligned-stack = done
 if.var.montage.wait.process.full-alignment = done
+if.var.build.return=
 # check files
 assert.exists.file=%{final-align-comscript}%{axis}.com
 assert.exists.file=%{final-align-comscript}%{axis}.log
