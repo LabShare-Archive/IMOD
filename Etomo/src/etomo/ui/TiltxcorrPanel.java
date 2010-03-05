@@ -45,6 +45,9 @@ import etomo.type.TiltAngleSpec;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 1.2  2010/03/04 02:52:29  sueh
+ * <p> bug# 1311 Improved some labels.  Put some fields into advanced.
+ * <p>
  * <p> Revision 1.1  2010/03/03 05:09:57  sueh
  * <p> bug# 1311 Changed CrossCorrelationPanel to TiltxcorrPanel.  Aded Patch
  * <p> Tracking functionality.
@@ -272,7 +275,7 @@ final class TiltxcorrPanel implements Expandable, TiltXcorrDisplay,
   private final LabeledTextField ltfShiftLimitsXandY = new LabeledTextField(
       "Limits on shifts from correlation (X,Y): ");
   private final CheckTextField ctfLengthAndOverlap = CheckTextField
-      .getInstance("Break contour into pieces (length, overlap): ");
+      .getInstance("Break contours into pieces (length, overlap): ");
   private final CheckBox cbBoundaryModel = new CheckBox("Use boundary model");
   private final Run3dmodButton btn3dmodBoundaryModel = Run3dmodButton
       .get3dmodInstance("Create Boundary Model", this);
