@@ -24,6 +24,10 @@ import etomo.type.AxisID;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.17  2010/02/17 04:49:43  sueh
+ * <p> bug# 1301 Using the manager instead of the manager key do pop up
+ * <p> messages.
+ * <p>
  * <p> Revision 1.16  2009/09/01 03:18:16  sueh
  * <p> bug# 1222
  * <p>
@@ -102,6 +106,7 @@ public final class AutodocFactory {
   public static final String FLATTEN_WARP = "flattenwarp";
   public static final String WARP_VOL = "warpvol";
   public static final String FIND_BEADS_3D = "findbeads3d";
+  public static final String TILT = "tilt";
 
   private static final String TEST = "test";
   private static final String UITEST_AXIS = "uitest_axis";
@@ -126,6 +131,7 @@ public final class AutodocFactory {
   private static Autodoc FLATTEN_WARP_INSTANCE = null;
   private static Autodoc WARP_VOL_INSTANCE = null;
   private static Autodoc FIND_BEADS_3D_INSTANCE = null;
+  private static Autodoc TILT_INSTANCE = null;
 
   private static final HashMap UITEST_AXIS_MAP = new HashMap();
 
@@ -399,6 +405,9 @@ public final class AutodocFactory {
     if (name.equals(PEET_PRM)) {
       return PEET_PRM_INSTANCE;
     }
+    if (name.equals(TILT)) {
+      return TILT_INSTANCE;
+    }
     throw new IllegalArgumentException("Illegal autodoc name: " + name + ".");
   }
 
@@ -466,6 +475,9 @@ public final class AutodocFactory {
     }
     else if (name.equals(PEET_PRM)) {
       PEET_PRM_INSTANCE = null;
+    }
+    else if (name.equals(TILT)) {
+      TILT_INSTANCE = null;
     }
     else {
       throw new IllegalArgumentException("Illegal autodoc name: " + name + ".");
