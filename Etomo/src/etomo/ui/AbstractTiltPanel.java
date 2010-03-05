@@ -48,6 +48,10 @@ import etomo.util.InvalidParameterException;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.5  2010/03/05 04:01:37  sueh
+ * <p> bug# 1319 Convert ltfLogOffset to ctfLog.  Added linear scale for when
+ * <p> the log is turned off.
+ * <p>
  * <p> Revision 3.4  2010/02/17 05:03:12  sueh
  * <p> bug# 1301 Using manager instead of manager key for popping up messages.
  * <p>
@@ -78,17 +82,17 @@ abstract class AbstractTiltPanel implements Expandable, TrialTiltParent,
       .getInstance(BASIC_LOG_LABEL);
   private final CheckBox cbParallelProcess = new CheckBox(
       ParallelPanel.FIELD_LABEL);
-  private final SpacedTextField ltfTomoWidth = new SpacedTextField(
+  private final LabeledTextField ltfTomoWidth = new LabeledTextField(
       "Tomogram width in X: ");
   final LabeledTextField ltfTomoThickness = new LabeledTextField(
       "Tomogram thickness in Z: ");
-  private final SpacedTextField ltfSliceIncr = new SpacedTextField(
+  private final LabeledTextField ltfSliceIncr = new LabeledTextField(
       "Slice step in Y: ");
-  private final SpacedTextField ltfXAxisTilt = new SpacedTextField(
+  private final LabeledTextField ltfXAxisTilt = new LabeledTextField(
       "X axis tilt: ");
-  private final SpacedTextField ltfTiltAngleOffset = new SpacedTextField(
+  private final LabeledTextField ltfTiltAngleOffset = new LabeledTextField(
       "Tilt angle offset: ");
-  private final SpacedTextField ltfExtraExcludeList = new SpacedTextField(
+  private final LabeledTextField ltfExtraExcludeList = new LabeledTextField(
       "Extra views to exclude: ");
   private final LabeledTextField ltfLogDensityScaleFactor = new LabeledTextField(
       "Log density scaling factor: ");
@@ -98,16 +102,16 @@ abstract class AbstractTiltPanel implements Expandable, TrialTiltParent,
       "Linear density scaling factor: ");
   private final LabeledTextField ltfLinearDensityScaleOffset = new LabeledTextField(
       "Offset: ");
-  private final SpacedTextField ltfSliceStart = new SpacedTextField(
+  private final LabeledTextField ltfSliceStart = new LabeledTextField(
       "First slice: ");
-  private final SpacedTextField ltfSliceStop = new SpacedTextField(
+  private final LabeledTextField ltfSliceStop = new LabeledTextField(
       "Last slice: ");
   private final SpacedLabel lblInY = new SpacedLabel(" in Y");
   final LabeledTextField ltfZShift = new LabeledTextField("Z shift: ");
-  private final SpacedTextField ltfXShift = new SpacedTextField("X shift:");
-  private final SpacedTextField ltfRadialMax = new SpacedTextField(
+  private final LabeledTextField ltfXShift = new LabeledTextField("X shift:");
+  private final LabeledTextField ltfRadialMax = new LabeledTextField(
       "Radial filter cutoff: ");
-  private final SpacedTextField ltfRadialFallOff = new SpacedTextField(
+  private final LabeledTextField ltfRadialFallOff = new LabeledTextField(
       "Falloff: ");
   private final CheckBox cbUseLocalAlignment = new CheckBox(
       "Use local alignments");
