@@ -11,6 +11,10 @@
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.42  2010/02/26 20:37:50  sueh
+ * <p> Changing the complex popup titles are making it hard to complete the
+ * <p> uitests.
+ * <p>
  * <p> Revision 3.41  2010/02/17 04:47:54  sueh
  * <p> bug# 1301 Using the manager instead of the manager key do pop up
  * <p> messages.
@@ -243,9 +247,13 @@ import etomo.util.Utilities;
 
 public final class TiltParam implements ConstTiltParam, CommandParam {
   public static final String rcsid = "$Id$";
+  
+  public static final String LOG_KEY = "LOG";
 
   public static final String SUBSETSTART_KEY = "SUBSETSTART";
   public static final String COMMAND_NAME = "tilt";
+  public static final String LINEAR_SCALE_FACTOR_DEFAULT ="1.0";
+  public static final String LINEAR_SCALE_OFFSET_DEFAULT ="0.0";
 
   private final StringParameter inputFile = new StringParameter(
       "InputProjections");
@@ -259,7 +267,7 @@ public final class TiltParam implements ConstTiltParam, CommandParam {
   //TODO localScale not used and doesn't go into the .com file - what is it for?
   private float localScale = Float.NaN;
   private final ScriptParameter logOffset = new ScriptParameter(
-      EtomoNumber.Type.FLOAT, "LOG");
+      EtomoNumber.Type.FLOAT, LOG_KEY);
   private final ScriptParameter mode = new ScriptParameter("MODE");
   //tempOffset is not kept up to date
   private final StringParameter tempOffset = new StringParameter("OFFSET");
@@ -398,8 +406,8 @@ public final class TiltParam implements ConstTiltParam, CommandParam {
     return inputFile.toString();
   }
 
-  public float getLogShift() {
-    return logOffset.getFloat();
+  public String getLogShift() {
+    return logOffset.toString();
   }
 
   public void setAdjustOrigin(boolean input) {
@@ -843,7 +851,7 @@ public final class TiltParam implements ConstTiltParam, CommandParam {
       if (tokens[0].equalsIgnoreCase("LOCALFILE")) {
         localAlignFile.set(tokens[1]);
       }
-      if (tokens[0].equalsIgnoreCase("LOG")) {
+      if (tokens[0].equalsIgnoreCase(LOG_KEY)) {
         logOffset.set(tokens[1]);
       }
       if (tokens[0].equalsIgnoreCase("MODE")) {
