@@ -38,6 +38,9 @@ import etomo.util.InvalidParameterException;
  * 
  * <p>
  * $Log$
+ * Revision 3.124  2009/09/22 23:55:55  sueh
+ * bug# 1269 Added setEnabledTiltParameters.  Got rid of unused functions.
+ *
  * Revision 3.123  2009/09/01 03:18:25  sueh
  * bug# 1222
  *
@@ -720,8 +723,8 @@ public class TomogramGenerationDialog extends ProcessDialog implements
    * dimensions.
    * @param tiltParam
    */
-  void setParameters(ConstTiltParam tiltParam) {
-    tiltPanel.setParameters(tiltParam, false);
+  void setParameters(ConstTiltParam tiltParam, boolean initialize) {
+    tiltPanel.setParameters(tiltParam, initialize);
   }
 
   final void setParameters(ReconScreenState screenState) {
@@ -770,7 +773,7 @@ public class TomogramGenerationDialog extends ProcessDialog implements
         "TOMOGRAM GENERATION", ContextPopup.TOMO_GUIDE, manPagelabel, manPage,
         logFileLabel, logFile, applicationManager, axisID);
   }
-  
+
   public void setEnabledTiltParameters(TomogramState state,
       ConstMetaData metaData) {
     tiltPanel.setEnabledTiltParameters(state, metaData);

@@ -84,9 +84,11 @@ public final class TomogramGenerationExpert extends ReconUIExpert {
       // upgrade and save param to comscript
       UIExpertUtilities.INSTANCE.upgradeOldTiltCom(manager, axisID, tiltParam);
     }
-    setParameters(tiltParam);
+    boolean genExists = metaData.isGenExists(axisID);
+    setParameters(tiltParam, !genExists);
     // Set the fidcialess state and tilt axis angle
     setEnabledTiltParameters();
+    metaData.setGenExists(axisID, true);
     openDialog(dialog);
   }
 
@@ -193,11 +195,11 @@ public final class TomogramGenerationExpert extends ReconUIExpert {
    * dimensions.
    * @param tiltParam
    */
-  private void setParameters(ConstTiltParam tiltParam) {
+  private void setParameters(ConstTiltParam tiltParam, boolean initialize) {
     if (dialog == null) {
       return;
     }
-    dialog.setParameters(tiltParam);
+    dialog.setParameters(tiltParam, initialize);
   }
 
   /**
@@ -213,6 +215,9 @@ public final class TomogramGenerationExpert extends ReconUIExpert {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.33  2010/02/17 05:03:12  sueh
+ * <p> bug# 1301 Using manager instead of manager key for popping up messages.
+ * <p>
  * <p> Revision 1.32  2009/09/22 23:56:16  sueh
  * <p> bug# 1269 Moved setEnabledTiltParameters to abstract tilt panel so it can be use by tilt 3dfind.
  * <p>
