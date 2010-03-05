@@ -9,6 +9,7 @@ import javax.swing.JPanel;
 
 import etomo.ApplicationManager;
 import etomo.comscript.ConstTiltParam;
+import etomo.comscript.FortranInputSyntaxException;
 import etomo.comscript.SplittiltParam;
 import etomo.comscript.TiltParam;
 import etomo.storage.TaAnglesLog;
@@ -16,6 +17,7 @@ import etomo.type.AxisID;
 import etomo.type.ConstEtomoNumber;
 import etomo.type.DialogType;
 import etomo.type.FileType;
+import etomo.type.MetaData;
 import etomo.type.ProcessName;
 import etomo.type.Run3dmodMenuOptions;
 import etomo.util.InvalidParameterException;
@@ -34,6 +36,10 @@ import etomo.util.InvalidParameterException;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.4  2010/03/03 05:08:16  sueh
+ * <p> bug# 1311 Changed FileType.NEWST_OR_BLEND_OUTPUT to
+ * <p> ALIGNED_STACK.  Added file types for patch tracking.
+ * <p>
  * <p> Revision 3.3  2010/02/17 05:03:12  sueh
  * <p> bug# 1301 Using manager instead of manager key for popping up messages.
  * <p>
@@ -148,8 +154,7 @@ final class Tilt3dFindPanel extends AbstractTiltPanel {
           manager, axisID));
     }
     else {
-      param.setInputFile(FileType.ALIGNED_STACK.getFileName(manager,
-          axisID));
+      param.setInputFile(FileType.ALIGNED_STACK.getFileName(manager, axisID));
     }
     param.setOutputFile(FileType.TILT_3D_FIND_OUTPUT.getFileName(manager,
         axisID));
@@ -190,6 +195,14 @@ final class Tilt3dFindPanel extends AbstractTiltPanel {
         e.printStackTrace();
       }
     }
+  }
+
+  /**
+   * This function in AbstractTiltPanel is oriented towards the TomoGen dialog.
+   * Don't call it from the Stack dialog.
+   */
+  void getParameters(final MetaData metaData)
+      throws FortranInputSyntaxException {
   }
 
   public boolean getParameters(final SplittiltParam param) {
