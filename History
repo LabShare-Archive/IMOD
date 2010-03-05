@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+3/4/10: In Etomo - Generation Tomogram added the ability to remove the LOG
+parameter in tilt.com.  Added separate fields for a linear SCALE parameter.
+
 3/3/10: In Etomo added an interface for creating fiducials using tiltxcorr to
 track patches.
 
