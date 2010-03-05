@@ -28,7 +28,10 @@ import etomo.util.Utilities;
  * 
  * @version $Revision$
  * 
- * <p> $Log$ </p>
+ * <p> $Log$
+ * <p> Revision 1.1  2010/03/03 05:02:42  sueh
+ * <p> bug# 1311 A checkbox which enables/disables a text field.
+ * <p> </p>
  */
 final class CheckTextField {
   public static final String rcsid = "$Id$";
@@ -40,7 +43,20 @@ final class CheckTextField {
 
   private CheckTextField(final String label) {
     this.label = label;
-    checkBox = new CheckBox(label);
+    checkBox = new CheckBox();
+    setLabel(label);
+  }
+
+  static CheckTextField getInstance(final String label) {
+    CheckTextField instance = new CheckTextField(label);
+    instance.createPanel();
+    instance.updateDisplay();
+    instance.addListeners();
+    return instance;
+  }
+  
+  void setLabel(final String label) {
+    checkBox.setText(label);
     String name = Utilities.convertLabelToName(label);
     textField.setName(UITestFieldType.TEXT_FIELD.toString()
         + AutodocTokenizer.SEPARATOR_CHAR + name);
@@ -48,14 +64,6 @@ final class CheckTextField {
       System.out.println(textField.getName() + ' '
           + AutodocTokenizer.DEFAULT_DELIMITER + ' ');
     }
-  }
-
-  static CheckTextField getInstance(final String label) {
-    CheckTextField instance = new CheckTextField(label);
-    instance.createPanel();
-    instance.update();
-    instance.addListeners();
-    return instance;
   }
 
   private void createPanel() {
@@ -80,6 +88,10 @@ final class CheckTextField {
     checkBox.addActionListener(new CheckTextFieldActionListener(this));
   }
 
+  public void addActionListener(ActionListener actionListener) {
+    checkBox.addActionListener(actionListener);
+  }
+
   void setText(final String input) {
     textField.setText(input);
   }
@@ -90,7 +102,7 @@ final class CheckTextField {
 
   void setSelected(final boolean selected) {
     checkBox.setSelected(selected);
-    update();
+    updateDisplay();
   }
 
   boolean isSelected() {
@@ -107,12 +119,16 @@ final class CheckTextField {
     textField.setPreferredSize(size);
   }
 
-  private void update() {
+  void setTextFieldVisible(boolean visible) {
+    textField.setVisible(visible);
+  }
+
+  private void updateDisplay() {
     textField.setEnabled(checkBox.isSelected());
   }
 
   private void action() {
-    update();
+    updateDisplay();
   }
 
   private static final class CheckTextFieldActionListener implements
