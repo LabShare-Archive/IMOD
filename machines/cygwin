@@ -507,6 +507,14 @@ endif
 
 echo VCEXEDIR = $vcexedir >> $configure
 
+# Workaround for vista security silliness when not doing manifests
+#
+if ($?MSVCREDIST) then
+    echo "GENERATED_SCRIPTS = 3dmodbg 3dmodv" >> $configure
+else
+    echo "GENERATED_SCRIPTS = 3dmodbg 3dmodv patch2imod imod2patch" >> $configure
+    echo "UAC_WRAPPERS = patch2imod vatch2imod imod2patch imod2vatch" >> $configure
+endif
 
 # Set up to copy qt lib to bin dir for a distribution
 #
@@ -518,9 +526,7 @@ echo 'INSTALL_FILES = IMOD-cygwin.csh IMOD-cygwin.sh' >> $configure
 # Add scripts for running from command line to the install.  They are no
 # longer generated because of permission problems and to handle spaces in args
 #
-echo "GENERATED_SCRIPTS = 3dmodbg 3dmodv patch2imod imod2patch" >> $configure
 echo "CMDWRAPPERS = cmdwrappers" >> $configure
-echo "UAC_WRAPPERS = patch2imod vatch2imod imod2patch imod2vatch" >> $configure
 
 # Set up for Qt image plugin copy
 #
