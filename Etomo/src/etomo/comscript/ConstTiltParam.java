@@ -11,6 +11,9 @@
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.17  2010/01/11 23:49:01  sueh
+ * <p> bug# 1299 Added isMessageReporter.
+ * <p>
  * <p> Revision 3.16  2009/09/21 17:44:42  sueh
  * <p> bug# 1267 Using this class in the tilt monitors.
  * <p>
@@ -131,7 +134,7 @@ public interface ConstTiltParam extends CommandDetails {
 
   public int getIncrSlice();
 
-  public float getLogShift();
+  public String getLogShift();
 
   public float getRadialBandwidth();
 
