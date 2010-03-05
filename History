@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+3/5/10: In Etomo - Tomogram Positioning fix continuing a problem with align.com
+being updated when a sample tomogram is created with Fiducialess turned on.
+
 3/4/10: In Etomo - Generation Tomogram added the ability to remove the LOG
 parameter in tilt.com.  Added separate fields for a linear SCALE parameter.
 
