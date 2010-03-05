@@ -48,6 +48,9 @@ import etomo.util.InvalidParameterException;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.4  2010/02/17 05:03:12  sueh
+ * <p> bug# 1301 Using manager instead of manager key for popping up messages.
+ * <p>
  * <p> Revision 3.3  2010/01/11 23:58:46  sueh
  * <p> bug# 1299 Added GPU checkbox.
  * <p>
@@ -62,14 +65,17 @@ abstract class AbstractTiltPanel implements Expandable, TrialTiltParent,
     Run3dmodButtonContainer, TiltDisplay {
   public static final String rcsid = "$Id$";
 
+  private static final String ADVANCED_LOG_LABEL = "Take the log with offset: ";
+  private static final String BASIC_LOG_LABEL = "Take the log";
+
   private final SpacedPanel pnlRoot = SpacedPanel.getInstance();
   //Keep components with listeners private.
   private final Run3dmodButton btn3dmodTomogram = Run3dmodButton
       .get3dmodInstance("View Tomogram In 3dmod", this);
   private final ActionListener actionListener = new TiltActionListener(this);
   private final JPanel pnlBody = new JPanel();
-  private final SpacedTextField ltfLogOffset = new SpacedTextField(
-      "Log offset: ");
+  private final CheckTextField ctfLog = CheckTextField
+      .getInstance(BASIC_LOG_LABEL);
   private final CheckBox cbParallelProcess = new CheckBox(
       ParallelPanel.FIELD_LABEL);
   private final SpacedTextField ltfTomoWidth = new SpacedTextField(
@@ -84,9 +90,13 @@ abstract class AbstractTiltPanel implements Expandable, TrialTiltParent,
       "Tilt angle offset: ");
   private final SpacedTextField ltfExtraExcludeList = new SpacedTextField(
       "Extra views to exclude: ");
-  private final SpacedTextField ltfDensityScale = new SpacedTextField(
-      "Output density scaling factor: ");
-  private final SpacedTextField ltfDensityOffset = new SpacedTextField(
+  private final LabeledTextField ltfLogDensityScaleFactor = new LabeledTextField(
+      "Log density scaling factor: ");
+  private final LabeledTextField ltfLogDensityScaleOffset = new LabeledTextField(
+      "Offset: ");
+  private final LabeledTextField ltfLinearDensityScaleFactor = new LabeledTextField(
+      "Linear density scaling factor: ");
+  private final LabeledTextField ltfLinearDensityScaleOffset = new LabeledTextField(
       "Offset: ");
   private final SpacedTextField ltfSliceStart = new SpacedTextField(
       "First slice: ");
@@ -162,8 +172,11 @@ abstract class AbstractTiltPanel implements Expandable, TrialTiltParent,
   void createPanel() {
     //Initialize
     initializePanel();
+    ltfLinearDensityScaleFactor.setText(TiltParam.LINEAR_SCALE_FACTOR_DEFAULT);
+    ltfLinearDensityScaleOffset.setText(TiltParam.LINEAR_SCALE_OFFSET_DEFAULT);
     //local panels
-    JPanel pnlDensity = new JPanel();
+    JPanel pnlLogDensity = new JPanel();
+    JPanel pnlLinearDensity = new JPanel();
     JPanel pnlSlicesInY = new JPanel();
     JPanel pnlOffset = new JPanel();
     JPanel pnlRadial = new JPanel();
@@ -182,8 +195,9 @@ abstract class AbstractTiltPanel implements Expandable, TrialTiltParent,
     pnlBody.add(Box.createRigidArea(FixedDim.x0_y5));
     pnlBody.add(cbParallelProcess);
     pnlBody.add(cbUseGpu);
-    pnlBody.add(ltfLogOffset.getContainer());
-    pnlBody.add(pnlDensity);
+    pnlBody.add(ctfLog.getRootComponent());
+    pnlBody.add(pnlLogDensity);
+    pnlBody.add(pnlLinearDensity);
     pnlBody.add(ltfTomoWidth.getContainer());
     pnlBody.add(ltfTomoThickness.getContainer());
     pnlBody.add(pnlSlicesInY);
@@ -197,11 +211,17 @@ abstract class AbstractTiltPanel implements Expandable, TrialTiltParent,
     pnlBody.add(trialPanel.getContainer());
     pnlBody.add(pnlButton.getContainer());
     UIUtilities.alignComponentsX(pnlBody, Component.LEFT_ALIGNMENT);
-    //Density panel
-    pnlDensity.setLayout(new BoxLayout(pnlDensity, BoxLayout.X_AXIS));
-    pnlDensity.add(ltfDensityScale.getContainer());
-    pnlDensity.add(ltfDensityOffset.getContainer());
-    UIUtilities.alignComponentsX(pnlDensity, Component.LEFT_ALIGNMENT);
+    //Log density panel
+    pnlLogDensity.setLayout(new BoxLayout(pnlLogDensity, BoxLayout.X_AXIS));
+    pnlLogDensity.add(ltfLogDensityScaleFactor.getContainer());
+    pnlLogDensity.add(ltfLogDensityScaleOffset.getContainer());
+    UIUtilities.alignComponentsX(pnlLogDensity, Component.LEFT_ALIGNMENT);
+    //Linear density panel
+    pnlLinearDensity
+        .setLayout(new BoxLayout(pnlLinearDensity, BoxLayout.X_AXIS));
+    pnlLinearDensity.add(ltfLinearDensityScaleFactor.getContainer());
+    pnlLinearDensity.add(ltfLinearDensityScaleOffset.getContainer());
+    UIUtilities.alignComponentsX(pnlLinearDensity, Component.LEFT_ALIGNMENT);
     //Slices in Y panel
     pnlSlicesInY.setLayout(new BoxLayout(pnlSlicesInY, BoxLayout.X_AXIS));
     pnlSlicesInY.add(ltfSliceStart.getContainer());
@@ -265,6 +285,7 @@ abstract class AbstractTiltPanel implements Expandable, TrialTiltParent,
     btnDeleteStack.addActionListener(actionListener);
     cbParallelProcess.addActionListener(actionListener);
     cbUseGpu.addActionListener(actionListener);
+    ctfLog.addActionListener(actionListener);
   }
 
   final Component getComponent() {
@@ -287,9 +308,17 @@ abstract class AbstractTiltPanel implements Expandable, TrialTiltParent,
   }
 
   void updateAdvanced(final boolean advanced) {
-    ltfLogOffset.setVisible(advanced);
-    ltfDensityOffset.setVisible(advanced);
-    ltfDensityScale.setVisible(advanced);
+    ctfLog.setTextFieldVisible(advanced);
+    if (advanced) {
+      ctfLog.setLabel(ADVANCED_LOG_LABEL);
+    }
+    else {
+      ctfLog.setLabel(BASIC_LOG_LABEL);
+    }
+    ltfLogDensityScaleOffset.setVisible(advanced);
+    ltfLogDensityScaleFactor.setVisible(advanced);
+    ltfLinearDensityScaleOffset.setVisible(advanced);
+    ltfLinearDensityScaleFactor.setVisible(advanced);
     ltfTomoWidth.setVisible(advanced);
     //ltfTomoThickness
     ltfSliceStart.setVisible(advanced);
@@ -340,6 +369,14 @@ abstract class AbstractTiltPanel implements Expandable, TrialTiltParent,
       cbParallelProcess.setSelected(false);
       updateParallelProcess();
     }
+  }
+
+  public final void updateDisplay() {
+    boolean logIsSelected = ctfLog.isSelected();
+    ltfLogDensityScaleFactor.setEnabled(logIsSelected);
+    ltfLogDensityScaleOffset.setEnabled(logIsSelected);
+    ltfLinearDensityScaleFactor.setEnabled(!logIsSelected);
+    ltfLinearDensityScaleOffset.setEnabled(!logIsSelected);
   }
 
   public final boolean isParallelProcess() {
@@ -399,10 +436,17 @@ abstract class AbstractTiltPanel implements Expandable, TrialTiltParent,
     return cbUseZFactors.isSelected();
   }
 
-  final void getParameters(final MetaData metaData)
+  void getParameters(final MetaData metaData)
       throws FortranInputSyntaxException {
     metaData.setTomoGenTiltParallel(axisID, isParallelProcess());
     trialTiltPanel.getParameters(metaData);
+    metaData.setGenLog(axisID, ctfLog.getText());
+    metaData.setGenScaleFactorLog(axisID, ltfLogDensityScaleFactor.getText());
+    metaData.setGenScaleOffsetLog(axisID, ltfLogDensityScaleOffset.getText());
+    metaData.setGenScaleFactorLinear(axisID, ltfLinearDensityScaleFactor
+        .getText());
+    metaData.setGenScaleOffsetLinear(axisID, ltfLinearDensityScaleOffset
+        .getText());
   }
 
   final void getParameters(final ReconScreenState screenState) {
@@ -427,6 +471,17 @@ abstract class AbstractTiltPanel implements Expandable, TrialTiltParent,
     cbUseGpu.setEnabled(Network.isLocalHostGpuProcessingEnabled(manager,
         axisID, manager.getPropertyUserDir()));
     trialTiltPanel.setParameters(metaData);
+    ctfLog.setText(metaData.getGenLog(axisID));
+    ltfLogDensityScaleFactor.setText(metaData.getGenScaleFactorLog(axisID));
+    ltfLogDensityScaleOffset.setText(metaData.getGenScaleOffsetLog(axisID));
+    if (metaData.isGenScaleFactorLinearSet(axisID)) {
+      ltfLinearDensityScaleFactor.setText(metaData
+          .getGenScaleFactorLinear(axisID));
+    }
+    if (metaData.isGenScaleOffsetLinearSet(axisID)) {
+      ltfLinearDensityScaleOffset.setText(metaData
+          .getGenScaleOffsetLinear(axisID));
+    }
     updateParallelProcess();
     updateUseGpu();
   }
@@ -438,7 +493,7 @@ abstract class AbstractTiltPanel implements Expandable, TrialTiltParent,
    * offsets are scaled so that they are represented to the user in unbinned
    * dimensions.
    * @param tiltParam
-   * @param initialize - used by child classes - has no effect in this class
+   * @param initialize - true when the dialog is first created for the dataset
    */
   void setParameters(final ConstTiltParam tiltParam, boolean initialize) {
     if (tiltParam.hasWidth()) {
@@ -470,18 +525,26 @@ abstract class AbstractTiltPanel implements Expandable, TrialTiltParent,
       ltfRadialMax.setText(tiltParam.getRadialBandwidth());
       ltfRadialFallOff.setText(tiltParam.getRadialFalloff());
     }
-    if (tiltParam.hasScale()) {
-      ltfDensityOffset.setText(tiltParam.getScaleFLevel());
-      ltfDensityScale.setText(tiltParam.getScaleCoeff());
+    ctfLog.setSelected(tiltParam.hasLogOffset());
+    boolean log = tiltParam.hasLogOffset();
+    //If initialize is true, get defaults from tilt.com
+    if (log || initialize) {
+      ctfLog.setText(tiltParam.getLogShift());
     }
-    if (tiltParam.hasLogOffset()) {
-      ltfLogOffset.setText(tiltParam.getLogShift());
+    if ((log || initialize) && tiltParam.hasScale()) {
+      ltfLogDensityScaleOffset.setText(tiltParam.getScaleFLevel());
+      ltfLogDensityScaleFactor.setText(tiltParam.getScaleCoeff());
+    }
+    if (!log && tiltParam.hasScale()) {
+      ltfLinearDensityScaleOffset.setText(tiltParam.getScaleFLevel());
+      ltfLinearDensityScaleFactor.setText(tiltParam.getScaleCoeff());
     }
     cbUseGpu.setSelected(tiltParam.isUseGpu());
     MetaData metaData = manager.getMetaData();
     cbUseLocalAlignment.setSelected(metaData.getUseLocalAlignments(axisID));
     cbUseZFactors.setSelected(metaData.getUseZFactors(axisID).is());
     ltfExtraExcludeList.setText(tiltParam.getExcludeList2());
+    updateDisplay();
   }
 
   final void setParameters(final ReconScreenState screenState) {
@@ -618,20 +681,32 @@ abstract class AbstractTiltPanel implements Expandable, TrialTiltParent,
         tiltParam.resetRadialFilter();
       }
 
-      if (ltfDensityOffset.getText().matches("\\S+")
-          || ltfDensityScale.getText().matches("\\S+")) {
-        badParameter = ltfDensityScale.getLabel();
-        tiltParam.setScaleCoeff(Float.parseFloat(ltfDensityScale.getText()));
-        badParameter = ltfDensityOffset.getLabel();
-        tiltParam.setScaleFLevel(Float.parseFloat(ltfDensityOffset.getText()));
+      if (ltfLogDensityScaleOffset.isEnabled()
+          && (ltfLogDensityScaleOffset.getText().matches("\\S+") || ltfLogDensityScaleFactor
+              .getText().matches("\\S+"))) {
+        badParameter = ltfLogDensityScaleFactor.getLabel();
+        tiltParam.setScaleCoeff(Float.parseFloat(ltfLogDensityScaleFactor
+            .getText()));
+        badParameter = ltfLogDensityScaleOffset.getLabel();
+        tiltParam.setScaleFLevel(Float.parseFloat(ltfLogDensityScaleOffset
+            .getText()));
+      }
+      else if (ltfLinearDensityScaleOffset.isEnabled()
+          && (ltfLinearDensityScaleOffset.getText().matches("\\S+") || ltfLinearDensityScaleFactor
+              .getText().matches("\\S+"))) {
+        badParameter = ltfLinearDensityScaleFactor.getLabel();
+        tiltParam.setScaleCoeff(Float.parseFloat(ltfLinearDensityScaleFactor
+            .getText()));
+        badParameter = ltfLinearDensityScaleOffset.getLabel();
+        tiltParam.setScaleFLevel(Float.parseFloat(ltfLinearDensityScaleOffset
+            .getText()));
       }
       else {
         tiltParam.resetScale();
       }
-
-      if (ltfLogOffset.getText().matches("\\S+")) {
-        badParameter = ltfLogOffset.getLabel();
-        tiltParam.setLogShift(Float.parseFloat(ltfLogOffset.getText()));
+      if (ctfLog.isSelected() && ctfLog.getText().matches("\\S+")) {
+        badParameter = ctfLog.getLabel();
+        tiltParam.setLogShift(Float.parseFloat(ctfLog.getText()));
       }
       else {
         tiltParam.setLogShift(Float.NaN);
@@ -716,6 +791,9 @@ abstract class AbstractTiltPanel implements Expandable, TrialTiltParent,
     else if (command.equals(cbUseGpu.getActionCommand())) {
       updateUseGpu();
     }
+    else {
+      updateDisplay();
+    }
   }
 
   /**
@@ -725,8 +803,8 @@ abstract class AbstractTiltPanel implements Expandable, TrialTiltParent,
     ReadOnlyAutodoc autodoc = null;
 
     try {
-      autodoc = AutodocFactory.getInstance(manager, AutodocFactory.MTF_FILTER,
-          axisID);
+      autodoc = AutodocFactory
+          .getInstance(manager, AutodocFactory.TILT, axisID);
     }
     catch (FileNotFoundException except) {
       except.printStackTrace();
@@ -778,13 +856,19 @@ abstract class AbstractTiltPanel implements Expandable, TrialTiltParent,
             + "filter falls off at spatial frequencies above the cutoff frequency."
             + "  Frequency is in cycles/pixel and ranges from 0-0.5.  Both a "
             + "cutoff and a falloff must be entered ");
-    ltfDensityOffset
+    ltfLogDensityScaleOffset
         .setToolTipText("Amount to add to reconstructed density values before multiplying by"
             + " the scale factor and outputting the values.");
-    ltfDensityScale
+    ltfLogDensityScaleFactor
         .setToolTipText("Amount to multiply reconstructed density values by, after adding the "
             + "offset value.");
-    ltfLogOffset
+    ltfLinearDensityScaleOffset
+        .setToolTipText("Amount to add to reconstructed density values before multiplying by"
+            + " the scale factor and outputting the values.");
+    ltfLinearDensityScaleFactor
+        .setToolTipText("Amount to multiply reconstructed density values by, after adding the "
+            + "offset value.");
+    ctfLog
         .setToolTipText("This parameter allows one to generate a reconstruction using the "
             + "logarithm of the densities in the input file, with the value "
             + "specified added before taking the logarithm.  If no parameter is "
@@ -808,8 +892,8 @@ abstract class AbstractTiltPanel implements Expandable, TrialTiltParent,
             + "If this box is not checked, "
             + "Z factors in a local alignment file will not be applied.");
     ltfExtraExcludeList
-        .setToolTipText("List of views to exclude from the reconstruction, in addition to the ones"
-            + "excluded from fine alignment.");
+        .setToolTipText("List of views to exclude from the reconstruction, in "
+            + "addition to the ones excluded from fine alignment.");
   }
 
   private static final class TiltActionListener implements ActionListener {
