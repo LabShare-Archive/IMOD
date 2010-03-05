@@ -140,10 +140,26 @@ public interface ConstMetaData {
   public boolean isTrackLengthAndOverlapSet(AxisID axisID);
 
   public String getTrackMethod(AxisID axisID);
+
+  public String getGenLog(AxisID axisID);
+
+  public String getGenScaleFactorLog(AxisID axisID);
+
+  public String getGenScaleOffsetLog(AxisID axisID);
+
+  public String getGenScaleFactorLinear(AxisID axisID);
+
+  public String getGenScaleOffsetLinear(AxisID axisID);
+  public boolean isGenScaleFactorLinearSet(AxisID axisID);
+
+  public boolean isGenScaleOffsetLinearSet(AxisID axisID);
 }
 
 /**public String getTrackMethod(AxisID axisID) 
  * <p> $Log$
+ * <p> Revision 3.56  2010/03/03 04:56:49  sueh
+ * <p> bug# 1311 Added functions for patch tracking.
+ * <p>
  * <p> Revision 3.55  2009/12/19 01:09:54  sueh
  * <p> bug# 1294 Added lambdaForSmoothing and lambdaForSmoothingList.
  * <p>

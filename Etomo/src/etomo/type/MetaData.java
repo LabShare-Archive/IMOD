@@ -29,6 +29,9 @@ import etomo.util.Utilities;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.58  2010/03/03 04:57:56  sueh
+ * <p> bug# 1311 Added parameters for patch tracking.
+ * <p>
  * <p> Revision 3.57  2010/02/17 04:52:36  sueh
  * <p> bug# 1301 Using the manager instead of the manager key do pop up
  * <p> messages.
@@ -337,6 +340,7 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
   private static final String TRACK_KEY = "Track";
   private static final String FINE_KEY = "Fine";
   private static final String STACK_KEY = "Stack";
+  private static final String GEN_KEY = "Gen";
   private static final String POST_KEY = "Post";
 
   //Panel keys
@@ -577,6 +581,43 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
   private final EtomoBoolean2 fineExistsA = new EtomoBoolean2(FINE_KEY + "."
       + FIRST_AXIS_KEY + ".Exists");
   private final EtomoBoolean2 fineExistsB = new EtomoBoolean2(FINE_KEY + "."
+      + SECOND_AXIS_KEY + ".Exists");
+
+  private final EtomoNumber genLogA = new EtomoNumber(EtomoNumber.Type.DOUBLE,
+      GEN_KEY + "." + FIRST_AXIS_KEY + ".Log");
+  private final EtomoNumber genLogB = new EtomoNumber(EtomoNumber.Type.DOUBLE,
+      GEN_KEY + "." + SECOND_AXIS_KEY + ".Log");
+  private final EtomoNumber genScaleFactorLogA = new EtomoNumber(
+      EtomoNumber.Type.DOUBLE, GEN_KEY + "." + FIRST_AXIS_KEY
+          + ".Scale.Factor.Log");
+  private final EtomoNumber genScaleFactorLogB = new EtomoNumber(
+      EtomoNumber.Type.DOUBLE, GEN_KEY + "." + SECOND_AXIS_KEY
+          + ".Scale.Factor.Log");
+  private final EtomoNumber genScaleOffsetLogA = new EtomoNumber(
+      EtomoNumber.Type.DOUBLE, GEN_KEY + "." + FIRST_AXIS_KEY
+          + ".Scale.Offset.Log");
+  private final EtomoNumber genScaleOffsetLogB = new EtomoNumber(
+      EtomoNumber.Type.DOUBLE, GEN_KEY + "." + SECOND_AXIS_KEY
+          + ".Scale.Offset.Log");
+  private final EtomoNumber genScaleFactorLinearA = new EtomoNumber(
+      EtomoNumber.Type.DOUBLE, GEN_KEY + "." + FIRST_AXIS_KEY
+          + ".Scale.Factor.Linear");
+  private final EtomoNumber genScaleFactorLinearB = new EtomoNumber(
+      EtomoNumber.Type.DOUBLE, GEN_KEY + "." + SECOND_AXIS_KEY
+          + ".Scale.Factor.Linear");
+  private final EtomoNumber genScaleOffsetLinearA = new EtomoNumber(
+      EtomoNumber.Type.DOUBLE, GEN_KEY + "." + FIRST_AXIS_KEY
+          + ".Scale.Offset.Linear");
+  private final EtomoNumber genScaleOffsetLinearB = new EtomoNumber(
+      EtomoNumber.Type.DOUBLE, GEN_KEY + "." + SECOND_AXIS_KEY
+          + ".Scale.Offset.Linear");
+  /**
+   * getExists is true if the tomogram generation dialog has opened at least
+   * once.
+   */
+  private final EtomoBoolean2 genExistsA = new EtomoBoolean2(GEN_KEY + "."
+      + FIRST_AXIS_KEY + ".Exists");
+  private final EtomoBoolean2 genExistsB = new EtomoBoolean2(GEN_KEY + "."
       + SECOND_AXIS_KEY + ".Exists");
 
   public MetaData(ApplicationManager manager) {
@@ -949,6 +990,15 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
     }
   }
 
+  public void setGenExists(AxisID axisID, boolean input) {
+    if (axisID == AxisID.SECOND) {
+      genExistsB.set(input);
+    }
+    else {
+      genExistsA.set(input);
+    }
+  }
+
   public void setTiltAngleSpecB(TiltAngleSpec tiltAngleSpec) {
     tiltAngleSpecB = tiltAngleSpec;
   }
@@ -1086,6 +1136,18 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
     trackMethodB.reset();
     fineExistsA.reset();
     fineExistsB.reset();
+    genLogA.reset();
+    genLogB.reset();
+    genScaleFactorLogA.reset();
+    genScaleFactorLogB.reset();
+    genScaleOffsetLogA.reset();
+    genScaleOffsetLogB.reset();
+    genScaleFactorLinearA.reset();
+    genScaleFactorLinearB.reset();
+    genScaleOffsetLinearA.reset();
+    genScaleOffsetLinearB.reset();
+    genExistsA.reset();
+    genExistsB.reset();
     //load
     prepend = createPrepend(prepend);
     String group = prepend + ".";
@@ -1279,6 +1341,18 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
     trackMethodB.load(props, prepend);
     fineExistsA.load(props, prepend);
     fineExistsB.load(props, prepend);
+    genLogA.load(props, prepend);
+    genLogB.load(props, prepend);
+    genScaleFactorLogA.load(props, prepend);
+    genScaleFactorLogB.load(props, prepend);
+    genScaleOffsetLogA.load(props, prepend);
+    genScaleOffsetLogB.load(props, prepend);
+    genScaleFactorLinearA.load(props, prepend);
+    genScaleFactorLinearB.load(props, prepend);
+    genScaleOffsetLinearA.load(props, prepend);
+    genScaleOffsetLinearB.load(props, prepend);
+    genExistsA.load(props, prepend);
+    genExistsB.load(props, prepend);
   }
 
   public void setNoBeamTiltSelected(AxisID axisID, boolean selected) {
@@ -1296,6 +1370,51 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
     }
     else {
       fixedBeamTiltSelectedA.set(selected);
+    }
+  }
+
+  public void setGenLog(AxisID axisID, String input) {
+    if (axisID == AxisID.SECOND) {
+      genLogB.set(input);
+    }
+    else {
+      genLogA.set(input);
+    }
+  }
+
+  public void setGenScaleFactorLog(AxisID axisID, String input) {
+    if (axisID == AxisID.SECOND) {
+      genScaleFactorLogB.set(input);
+    }
+    else {
+      genScaleFactorLogA.set(input);
+    }
+  }
+
+  public void setGenScaleOffsetLog(AxisID axisID, String input) {
+    if (axisID == AxisID.SECOND) {
+      genScaleOffsetLogB.set(input);
+    }
+    else {
+      genScaleOffsetLogA.set(input);
+    }
+  }
+
+  public void setGenScaleFactorLinear(AxisID axisID, String input) {
+    if (axisID == AxisID.SECOND) {
+      genScaleFactorLinearB.set(input);
+    }
+    else {
+      genScaleFactorLinearA.set(input);
+    }
+  }
+
+  public void setGenScaleOffsetLinear(AxisID axisID, String input) {
+    if (axisID == AxisID.SECOND) {
+      genScaleOffsetLinearB.set(input);
+    }
+    else {
+      genScaleOffsetLinearA.set(input);
     }
   }
 
@@ -1482,6 +1601,18 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
     trackMethodB.store(props, prepend);
     fineExistsA.store(props, prepend);
     fineExistsB.store(props, prepend);
+    genLogA.store(props, prepend);
+    genLogB.store(props, prepend);
+    genScaleFactorLogA.store(props, prepend);
+    genScaleFactorLogB.store(props, prepend);
+    genScaleOffsetLogA.store(props, prepend);
+    genScaleOffsetLogB.store(props, prepend);
+    genScaleFactorLinearA.store(props, prepend);
+    genScaleFactorLinearB.store(props, prepend);
+    genScaleOffsetLinearA.store(props, prepend);
+    genScaleOffsetLinearB.store(props, prepend);
+    genExistsA.store(props, prepend);
+    genExistsB.store(props, prepend);
   }
 
   public boolean getTrackRaptorUseRawStack() {
@@ -1708,6 +1839,41 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
     return fineExistsA.is();
   }
 
+  public String getGenLog(AxisID axisID) {
+    if (axisID == AxisID.SECOND) {
+      return genLogB.toString();
+    }
+    return genLogA.toString();
+  }
+
+  public String getGenScaleFactorLog(AxisID axisID) {
+    if (axisID == AxisID.SECOND) {
+      return genScaleFactorLogB.toString();
+    }
+    return genScaleFactorLogA.toString();
+  }
+
+  public String getGenScaleOffsetLog(AxisID axisID) {
+    if (axisID == AxisID.SECOND) {
+      return genScaleOffsetLogB.toString();
+    }
+    return genScaleOffsetLogA.toString();
+  }
+
+  public String getGenScaleFactorLinear(AxisID axisID) {
+    if (axisID == AxisID.SECOND) {
+      return genScaleFactorLinearB.toString();
+    }
+    return genScaleFactorLinearA.toString();
+  }
+
+  public String getGenScaleOffsetLinear(AxisID axisID) {
+    if (axisID == AxisID.SECOND) {
+      return genScaleOffsetLinearB.toString();
+    }
+    return genScaleOffsetLinearA.toString();
+  }
+
   /**
    * @deprecated in 1.10
    */
@@ -1930,6 +2096,27 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
 
   public String getExcludeProjectionsB() {
     return excludeProjectionsB;
+  }
+
+  public boolean isGenExists(AxisID axisID) {
+    if (axisID == AxisID.SECOND) {
+      return genExistsB.is();
+    }
+    return genExistsA.is();
+  }
+
+  public boolean isGenScaleFactorLinearSet(AxisID axisID) {
+    if (axisID == AxisID.SECOND) {
+      return !genScaleFactorLinearB.isNull();
+    }
+    return !genScaleFactorLinearA.isNull();
+  }
+
+  public boolean isGenScaleOffsetLinearSet(AxisID axisID) {
+    if (axisID == AxisID.SECOND) {
+      return !genScaleOffsetLinearB.isNull();
+    }
+    return !genScaleOffsetLinearA.isNull();
   }
 
   public boolean getComScriptCreated() {
