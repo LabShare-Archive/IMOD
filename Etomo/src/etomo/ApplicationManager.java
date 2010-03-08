@@ -1266,8 +1266,13 @@ public final class ApplicationManager extends BaseManager implements
    */
   public void tiltxcorr(AxisID axisID,
       ProcessResultDisplay processResultDisplay,
-      ConstProcessSeries processSeries, DialogType dialogType,
+      final Deferred3dmodButton deferred3dmodButton,
+      final Run3dmodMenuOptions run3dmodMenuOptions,
+      ProcessSeries processSeries, DialogType dialogType,
       TiltXcorrDisplay display, boolean useBlendmont, FileType comscriptFileType) {
+    if (processSeries == null) {
+      processSeries = new ProcessSeries(this, dialogType);
+    }
     // Get the parameters from the dialog box
     ConstTiltxcorrParam tiltxcorrParam = updateXcorrCom(display, axisID);
     if (tiltxcorrParam == null) {
@@ -1300,6 +1305,10 @@ public final class ApplicationManager extends BaseManager implements
           "Unable to execute com script", axisID);
       return;
     }
+    if (deferred3dmodButton != null) {
+      processSeries.setRun3dmodDeferred(deferred3dmodButton,
+          run3dmodMenuOptions);
+    }
     setThreadName(threadName, axisID);
   }
 
@@ -1321,8 +1330,8 @@ public final class ApplicationManager extends BaseManager implements
       extracttilts(axisID, processResultDisplay, processSeries);
       return;
     }
-    tiltxcorr(axisID, processResultDisplay, processSeries, dialogType, display,
-        true, FileType.CROSS_CORRELATION_COMSCRIPT);
+    tiltxcorr(axisID, processResultDisplay, null, null, processSeries,
+        dialogType, display, true, FileType.CROSS_CORRELATION_COMSCRIPT);
   }
 
   /**
@@ -1713,30 +1722,58 @@ public final class ApplicationManager extends BaseManager implements
   }
 
   /**
+   * Keep xcorr.com and xcorr_pt.com up todate with each other by making sure
+   * that they have the same angleOffset.
+   * @param fromParam
+   * @param toParam
+   */
+  private void syncTiltxcorrParam(TiltxcorrParam fromParam,
+      TiltxcorrParam toParam) {
+    toParam.setAngleOffset(fromParam.getAngleOffset());
+  }
+
+  /**
    * Get the required parameters from the dialog box and update the xcorr.com
-   * script
+   * script.  Handles xcorr.com and xcorr_pt.com.  Use syncTiltxcorrParam to
+   * keep the inactive .com file update to date.
    * @return true if successful in getting the parameters and saving the com
    *         script
    */
   private ConstTiltxcorrParam updateXcorrCom(TiltXcorrDisplay display,
       AxisID axisID) {
     TiltxcorrParam tiltXcorrParam = null;
+    TiltxcorrParam toParam = null;
     PanelId panelId = display.getPanelId();
     try {
       if (panelId == PanelId.CROSS_CORRELATION) {
         tiltXcorrParam = comScriptMgr.getTiltxcorrParam(axisID);
+        if (comScriptMgr.loadXcorrPt(axisID, false)) {
+          //xcorr_pt.com exists
+          toParam = comScriptMgr.getTiltxcorrParamFromXcorrPt(axisID);
+        }
       }
       else if (panelId == PanelId.PATCH_TRACKING) {
         tiltXcorrParam = comScriptMgr.getTiltxcorrParamFromXcorrPt(axisID);
+        comScriptMgr.loadXcorr(axisID);
+        toParam = comScriptMgr.getTiltxcorrParam(axisID);
       }
       if (!display.getParameters(tiltXcorrParam)) {
         return null;
       }
+      if (toParam != null) {
+        syncTiltxcorrParam(tiltXcorrParam, toParam);
+      }
       if (panelId == PanelId.CROSS_CORRELATION) {
         comScriptMgr.saveXcorr(tiltXcorrParam, axisID);
+        if (toParam != null) {
+          comScriptMgr.saveXcorrPt(toParam, axisID);
+        }
       }
       else if (panelId == PanelId.PATCH_TRACKING) {
         comScriptMgr.saveXcorrPt(tiltXcorrParam, axisID);
+        if (toParam != null) {
+          comScriptMgr.saveXcorr(toParam, axisID);
+        }
       }
     }
     catch (FortranInputSyntaxException except) {
@@ -1896,14 +1933,24 @@ public final class ApplicationManager extends BaseManager implements
         .getBeadtrackParam(axisID));
     //Try to load xcorr_pt comscript.  If it isn't there, set it up and then
     //load. it.
+    TiltxcorrParam tiltXcorrPtParam = null;
     if (!comScriptMgr.loadXcorrPt(axisID, false)) {
       BaseProcessManager.touch(new File(propertyUserDir,
           FileType.PATCH_TRACKING_COMSCRIPT.getFileName(this, axisID))
           .getAbsolutePath(), this);
       comScriptMgr.loadXcorrPt(axisID, true);
+      //Sync from xcorr.com to xcorr_pt.com
+      comScriptMgr.loadXcorr(axisID);
+      tiltXcorrPtParam = comScriptMgr.getTiltxcorrParamFromXcorrPt(axisID);
+      TiltxcorrParam tiltXcorrParam = comScriptMgr.getTiltxcorrParam(axisID);
+      syncTiltxcorrParam(tiltXcorrParam, tiltXcorrPtParam);
+      tiltXcorrPtParam.setPartialSave(true);
+      comScriptMgr.saveXcorrPt(tiltXcorrPtParam, axisID);
     }
-    fiducialModelDialog.setParameters(comScriptMgr
-        .getTiltxcorrParamFromXcorrPt(axisID));
+    if (tiltXcorrPtParam == null) {
+      tiltXcorrPtParam = comScriptMgr.getTiltxcorrParamFromXcorrPt(axisID);
+    }
+    fiducialModelDialog.setParameters(tiltXcorrPtParam);
     fiducialModelDialog.setParameters(getScreenState(axisID));
     fiducialModelDialog.setParameters(metaData);
     mainPanel.showProcess(fiducialModelDialog.getContainer(), axisID);
@@ -2446,7 +2493,7 @@ public final class ApplicationManager extends BaseManager implements
       fineAlignmentDialog.setPatchTracking(true);
     }
     fineAlignmentDialog.setParameters(getScreenState(axisID));
-    metaData.setFineExists(axisID,true);
+    metaData.setFineExists(axisID, true);
     // Create a default transferfid object to populate the alignment dialog
     mainPanel.showProcess(fineAlignmentDialog.getContainer(), axisID);
     setParallelDialog(axisID, fineAlignmentDialog.usingParallelProcessing());
@@ -7375,8 +7422,8 @@ public final class ApplicationManager extends BaseManager implements
       extractmagrad(axisID, processResultDisplay, processSeries);
     }
     else if (nextProcess.equals(ProcessName.XCORR.toString())) {
-      tiltxcorr(axisID, processResultDisplay, processSeries, dialogType,
-          (TiltXcorrDisplay) display, true,
+      tiltxcorr(axisID, processResultDisplay, null, null, processSeries,
+          dialogType, (TiltXcorrDisplay) display, true,
           FileType.CROSS_CORRELATION_COMSCRIPT);
     }
     else if (nextProcess.equals(ProcessName.ERASER.toString())) {
@@ -7967,6 +8014,9 @@ public final class ApplicationManager extends BaseManager implements
 }
 /**
  * <p> $Log$
+ * <p> Revision 3.350  2010/03/03 04:49:48  sueh
+ * <p> bug# 1311 Added imodModel and changed crossCorrelation to tiltxcorr.
+ * <p>
  * <p> Revision 3.349  2010/02/26 20:37:22  sueh
  * <p> Changing the complex popup titles are making it hard to complete the
  * <p> uitests.
