@@ -28,6 +28,9 @@ import etomo.util.MRCHeader;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.14  2010/03/03 04:53:45  sueh
+ * <p> bug# 1311 Turned ConstTiltxcorrParam into an interface.
+ * <p>
  * <p> Revision 3.13  2009/03/24 20:27:01  sueh
  * <p> bug# 1201 Added angleOffset.
  * <p>
@@ -188,6 +191,8 @@ public final class TiltxcorrParam implements ConstTiltxcorrParam, CommandParam,
       BOUNDARY_MODEL_KEY);
   private final ProcessName processName;
 
+  private boolean partialSave = false;
+
   public TiltxcorrParam(final BaseManager manager, final AxisID axisID,
       ProcessName processName) {
     this.manager = manager;
@@ -220,6 +225,8 @@ public final class TiltxcorrParam implements ConstTiltxcorrParam, CommandParam,
         OVERLAP_OF_PATCHES_X_AND_Y_KEY, 2);
     numberOfPatchesXandY = new FortranInputString(
         NUMBER_OF_PATCHES_X_AND_Y_KEY, 2);
+    numberOfPatchesXandY.setIntegerType(0, true);
+    numberOfPatchesXandY.setIntegerType(1, true);
     iterateCorrelations.setDisplayValue(ITERATE_CORRELATIONS_DEFAULT);
     iterateCorrelations.setFloor(ITERATE_CORRELATIONS_MIN);
     iterateCorrelations.setCeiling(ITERATE_CORRELATIONS_MAX);
@@ -242,7 +249,7 @@ public final class TiltxcorrParam implements ConstTiltxcorrParam, CommandParam,
   public static String getLengthAndOverlapDefault(BaseManager manager,
       AxisID axisID, FileType fileType) {
     EtomoNumber lengthAndOverlap = new EtomoNumber();
-    int lengthAndOverlapFloor = 20;
+    int lengthAndOverlapFloor = 16;
     lengthAndOverlap.setFloor(lengthAndOverlapFloor);
     lengthAndOverlap.setDisplayValue(lengthAndOverlapFloor);
     MRCHeader header = MRCHeader.getInstance(manager.getPropertyUserDir(),
@@ -507,6 +514,10 @@ public final class TiltxcorrParam implements ConstTiltxcorrParam, CommandParam,
     sequentialInputToPip();
   }
 
+  public void setPartialSave(boolean input) {
+    partialSave = input;
+  }
+
   /**
    * Update the script command with the current valus of this TiltxcorrParam
    * object
@@ -523,10 +534,13 @@ public final class TiltxcorrParam implements ConstTiltxcorrParam, CommandParam,
       throw (except);
     }
 
+    //When partialSave is on, don't require any fields.
+    boolean required = true && !partialSave;
+
     //  Switch to keyword/value pairs
     scriptCommand.useKeywordValue();
     ParamUtilities.updateScriptParameter(scriptCommand, "InputFile", inputFile,
-        true);
+        required);
     ParamUtilities.updateScriptParameter(scriptCommand, "PieceListFile",
         pieceListFile);
     ParamUtilities.updateScriptParameter(scriptCommand, "OutputFile",
