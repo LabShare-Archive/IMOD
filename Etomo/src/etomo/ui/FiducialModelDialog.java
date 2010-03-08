@@ -41,6 +41,9 @@ import etomo.comscript.TransferfidParam;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.55  2010/03/03 05:04:20  sueh
+ * <p> bug# 1311 Added TiltxcorrPanel and radio button for it.
+ * <p>
  * <p> Revision 3.54  2010/02/17 05:03:12  sueh
  * <p> bug# 1301 Using manager instead of manager key for popping up messages.
  * <p>
@@ -348,7 +351,7 @@ public final class FiducialModelDialog extends ProcessDialog implements
   private final RadioButton rbMethodSeed = new RadioButton(
       "Make seed and track", MethodEnumeratedType.SEED, bgMethod);
   private final RadioButton rbMethodPatchTracking = new RadioButton(
-      "Use patching tracking to make fiducial model",
+      "Use patch tracking to make fiducial model",
       MethodEnumeratedType.PATCH_TRACKING, bgMethod);
   private final RadioButton rbMethodRaptor = new RadioButton(
       "Run RAPTOR and fix", MethodEnumeratedType.RAPTOR, bgMethod);
