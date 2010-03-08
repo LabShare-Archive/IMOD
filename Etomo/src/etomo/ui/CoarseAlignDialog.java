@@ -11,6 +11,9 @@
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.54  2010/03/03 05:03:22  sueh
+ * <p> bug# 1311 Added TiltxcorrPanel and radio button for it.
+ * <p>
  * <p> Revision 3.53  2009/09/01 03:18:25  sueh
  * <p> bug# 1222
  * <p>
@@ -291,9 +294,6 @@ public final class CoarseAlignDialog extends ProcessDialog implements
 
   private final PrenewstPanel pnlPrenewst;
 
-  final Run3dmodButton btnImod = Run3dmodButton.get3dmodInstance(
-      "View Aligned Stack In 3dmod", this);
-
   private final JPanel pnlFiducialess = new JPanel();
   private final CheckBox cbFiducialess = new CheckBox("Fiducialless alignment");
   private final LabeledTextField ltfRotation = new LabeledTextField(
@@ -347,8 +347,6 @@ public final class CoarseAlignDialog extends ProcessDialog implements
     }
     UIUtilities.addWithSpace(pnlCoarseAlign, pnlPrenewst.getPanel(),
         FixedDim.x0_y10);
-    UIUtilities.addWithSpace(pnlCoarseAlign, btnImod.getComponent(),
-        FixedDim.x0_y10);
     UIUtilities.addWithSpace(pnlCoarseAlign, pnlFiducialess, FixedDim.x0_y10);
     UIUtilities.addWithSpace(pnlCoarseAlign, btnMidas.getComponent(),
         FixedDim.x0_y10);
@@ -364,7 +362,6 @@ public final class CoarseAlignDialog extends ProcessDialog implements
     actionListener = new CoarseAlignActionListener(this);
 
     // Set the default advanced state for the window
-    pnlPrenewst.setDeferred3dmodButtons();
     updateAdvanced();
   }
 
@@ -377,7 +374,6 @@ public final class CoarseAlignDialog extends ProcessDialog implements
 
   private void addListeners() {
     //  Action listener assignment for the buttons
-    btnImod.addActionListener(actionListener);
     btnMidas.addActionListener(actionListener);
     btnFixEdgesMidas.addActionListener(actionListener);
     btnDistortionCorrectedStack.addActionListener(actionListener);
@@ -534,7 +530,6 @@ public final class CoarseAlignDialog extends ProcessDialog implements
    */
   private void setToolTipText() {
     String text;
-    btnImod.setToolTipText("Use 3dmod to view the coarsely aligned images.");
     cbFiducialess
         .setToolTipText("Enable or disable the processing flow using cross-correlation alignment only.");
     btnMidas.setToolTipText("Use Midas to adjust bad alignments.");
@@ -565,9 +560,6 @@ public final class CoarseAlignDialog extends ProcessDialog implements
     else if (command.equals(btnDistortionCorrectedStack.getActionCommand())) {
       applicationManager.makeDistortionCorrectedStack(axisID,
           btnDistortionCorrectedStack, null);
-    }
-    else if (command.equals(btnImod.getActionCommand())) {
-      applicationManager.imodCoarseAlign(axisID, menuOptions);
     }
   }
 
