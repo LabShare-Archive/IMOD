@@ -45,6 +45,9 @@ import etomo.type.TiltAngleSpec;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 1.3  2010/03/05 04:04:56  sueh
+ * <p> bug# 1311 Fixed typo.
+ * <p>
  * <p> Revision 1.2  2010/03/04 02:52:29  sueh
  * <p> bug# 1311 Improved some labels.  Put some fields into advanced.
  * <p>
@@ -269,7 +272,8 @@ final class TiltxcorrPanel implements Expandable, TiltXcorrDisplay,
   private final RadioTextField rtfNumberOfPatchesXandY = RadioTextField
       .getInstance("Number of patches (X,Y): ", bgPatchLayout);
   private final Spinner spIterateCorrelations = Spinner.getLabeledInstance(
-      "Iterations to increase subpixel accuracy: ", TiltxcorrParam.ITERATE_CORRELATIONS_DEFAULT,
+      "Iterations to increase subpixel accuracy: ",
+      TiltxcorrParam.ITERATE_CORRELATIONS_DEFAULT,
       TiltxcorrParam.ITERATE_CORRELATIONS_MIN,
       TiltxcorrParam.ITERATE_CORRELATIONS_MAX);
   private final LabeledTextField ltfShiftLimitsXandY = new LabeledTextField(
@@ -308,6 +312,7 @@ final class TiltxcorrPanel implements Expandable, TiltXcorrDisplay,
           .getProcessResultDisplayFactory(axisID).getPatchTracking();
       ((Run3dmodButton) btnTiltxcorr)
           .setDeferred3dmodButton(btn3dmodPatchTracking);
+      ((Run3dmodButton) btnTiltxcorr).setContainer(this);
     }
     else {
       btnTiltxcorr = null;
@@ -742,14 +747,16 @@ final class TiltxcorrPanel implements Expandable, TiltXcorrDisplay,
     return true;
   }
 
-  public void action(Run3dmodButton button,
-      Run3dmodMenuOptions run3dmodMenuOptions) {
-    buttonAction(button.getActionCommand(), run3dmodMenuOptions);
+  public void action(final Run3dmodButton button,
+      final Run3dmodMenuOptions menuOptions) {
+    buttonAction(button.getActionCommand(), button.getDeferred3dmodButton(),
+        menuOptions);
   }
 
   //  Action functions for setup panel buttons
   void buttonAction(final String actionCommand,
-      Run3dmodMenuOptions run3dmodMenuOptions) {
+      final Deferred3dmodButton deferred3dmodButton,
+      final Run3dmodMenuOptions run3dmodMenuOptions) {
     if (actionCommand.equals(btnTiltxcorr.getActionCommand())) {
       if (panelId == PanelId.CROSS_CORRELATION) {
         applicationManager.preCrossCorrelate(axisID, btnTiltxcorr, null,
@@ -759,8 +766,9 @@ final class TiltxcorrPanel implements Expandable, TiltXcorrDisplay,
         if (!validate()) {
           return;
         }
-        applicationManager.tiltxcorr(axisID, btnTiltxcorr, null, dialogType,
-            this, false, FileType.PATCH_TRACKING_COMSCRIPT);
+        applicationManager.tiltxcorr(axisID, btnTiltxcorr, deferred3dmodButton,
+            run3dmodMenuOptions, null, dialogType, this, false,
+            FileType.PATCH_TRACKING_COMSCRIPT);
       }
     }
     else if (actionCommand.equals(btn3dmodPatchTracking.getActionCommand())) {
@@ -785,7 +793,7 @@ final class TiltxcorrPanel implements Expandable, TiltXcorrDisplay,
     }
 
     public void actionPerformed(final ActionEvent event) {
-      adaptee.buttonAction(event.getActionCommand(), null);
+      adaptee.buttonAction(event.getActionCommand(), null, null);
     }
   }
 

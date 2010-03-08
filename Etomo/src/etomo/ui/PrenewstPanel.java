@@ -12,6 +12,9 @@
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.32  2009/09/20 21:33:38  sueh
+ * <p> bug# 1268 Added a default value to LabeledSpinner.
+ * <p>
  * <p> Revision 1.31  2009/09/01 03:18:25  sueh
  * <p> bug# 1222
  * <p>
@@ -135,6 +138,7 @@ import java.awt.event.ActionListener;
 import java.awt.event.MouseEvent;
 
 import javax.swing.BorderFactory;
+import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.JPanel;
 import javax.swing.SpinnerNumberModel;
@@ -165,6 +169,8 @@ final class PrenewstPanel implements ContextMenu, Expandable,
   private final CheckBox cbByteModeToOutput = new CheckBox("Convert to bytes");
   private final CheckBox cbMeanFloatDensities = new CheckBox(
       "Float intensities to mean");
+  private final Run3dmodButton btnImod = Run3dmodButton.get3dmodInstance(
+      "View Aligned Stack In 3dmod", this);
 
   private final AxisID axisID;
   private final Run3dmodButton btnCoarseAlign;
@@ -210,7 +216,16 @@ final class PrenewstPanel implements ContextMenu, Expandable,
     }
     pnlBody.add(pnlCheckBoxes);
     btnCoarseAlign.setSize();
-    UIUtilities.addWithYSpace(pnlBody, btnCoarseAlign.getComponent());
+    btnCoarseAlign.setDeferred3dmodButton(btnImod);
+    btnImod.setSize();
+    JPanel pnlButtons = new JPanel();
+    pnlButtons.setLayout(new BoxLayout(pnlButtons, BoxLayout.X_AXIS));
+    pnlButtons.add(Box.createHorizontalGlue());
+    pnlButtons.add(btnCoarseAlign.getComponent());
+    pnlButtons.add(Box.createHorizontalGlue());
+    pnlButtons.add(btnImod.getComponent());
+    pnlButtons.add(Box.createHorizontalGlue());
+    UIUtilities.addWithYSpace(pnlBody, pnlButtons);
 
     //  Align the UI objects along their left sides
     UIUtilities.alignComponentsX(pnlBody, Component.CENTER_ALIGNMENT);
@@ -222,17 +237,10 @@ final class PrenewstPanel implements ContextMenu, Expandable,
     //  Mouse adapter for context menu
     actionListener = new PrenewstPanelActionListener(this);
     btnCoarseAlign.addActionListener(actionListener);
+    btnImod.addActionListener(actionListener);
     GenericMouseAdapter mouseAdapter = new GenericMouseAdapter(this);
     pnlPrenewst.addMouseListener(mouseAdapter);
     setToolTipText();
-  }
-
-  /**
-   * Set deferred 3dmod buttons that are members of another class.  Caller must
-   * make sure that buttons exist.
-   */
-  void setDeferred3dmodButtons() {
-    btnCoarseAlign.setDeferred3dmodButton(parent.btnImod);
   }
 
   public void expand(GlobalExpandButton button) {
@@ -366,6 +374,7 @@ final class PrenewstPanel implements ContextMenu, Expandable,
             + NewstParam.FLOAT_DENSITIES_MEAN);
     btnCoarseAlign
         .setToolTipText("Use transformations to produce stack of aligned images.");
+    btnImod.setToolTipText("Use 3dmod to view the coarsely aligned images.");
   }
 
   public void action(Run3dmodButton button, Run3dmodMenuOptions menuOptions) {
@@ -391,6 +400,9 @@ final class PrenewstPanel implements ContextMenu, Expandable,
     if (command.equals(btnCoarseAlign.getActionCommand())) {
       applicationManager.coarseAlign(axisID, btnCoarseAlign, null,
           deferred3dmodButton, menuOptions, dialogType, this, this);
+    }
+    else if (command.equals(btnImod.getActionCommand())) {
+      applicationManager.imodCoarseAlign(axisID, menuOptions);
     }
   }
 
