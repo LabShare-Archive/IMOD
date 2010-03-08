@@ -1,13 +1,13 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+3/8/10: In Etomo added an interface for creating fiducials using tiltxcorr to
+track patches.
+
 3/5/10: In Etomo - Tomogram Positioning fix continuing a problem with align.com
 being updated when a sample tomogram is created with Fiducialess turned on.
 
 3/4/10: In Etomo - Generation Tomogram added the ability to remove the LOG
 parameter in tilt.com.  Added separate fields for a linear SCALE parameter.
-
-3/3/10: In Etomo added an interface for creating fiducials using tiltxcorr to
-track patches.
 
 2/28/10: Fixed an initialization problem on beadtrack (present since 3.12.5)
 that throws off tracking in some cases.
