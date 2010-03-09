@@ -544,9 +544,9 @@ int imodFindQGLFormat(ImodApp *ap, char **argv)
   }
   if (!visual) {
     imodError(NULL, "%s: couldn't get appropriate GL format for Qt windows.\n"
-              "Make sure your display format is set for at least 15 bits "
-              "of color\nAt least 24 bits of color is recommended for proper "
-              "model viewing", argv[0]);
+              "Check whether your OpenGL drivers are properly installed and "
+              "see if\n any other OpenGL-based programs run (on Linux, try "
+              "glxgears and glxinfo)", argv[0]);
     exit(3);
   }
   return visual->colorBits;
@@ -555,6 +555,9 @@ int imodFindQGLFormat(ImodApp *ap, char **argv)
 /*
 
 $Log$
+Revision 4.28  2009/01/15 16:33:17  mast
+Qt 4 port
+
 Revision 4.27  2008/12/11 20:20:08  mast
 Only skip the bwfloat if no image windows exists, not the rest of the draw
 
