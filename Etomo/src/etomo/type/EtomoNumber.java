@@ -18,6 +18,9 @@ import etomo.comscript.FortranInputString;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.23  2009/09/22 21:01:36  sueh
+ * <p> bug# 1259 Commented multiply.
+ * <p>
  * <p> Revision 1.22  2009/09/01 02:48:05  sueh
  * <p> bug# 1222 In load functions improved checking for an empty prepend.
  * <p>
@@ -187,6 +190,9 @@ public class EtomoNumber extends ConstEtomoNumber {
     if (prepend == null || prepend.matches("\\s*")) {
       load(props);
     }
+    else if (prepend.endsWith(".")) {
+      set(props.getProperty(prepend + name));
+    }
     else {
       set(props.getProperty(prepend + "." + name));
     }
@@ -198,7 +204,7 @@ public class EtomoNumber extends ConstEtomoNumber {
     }
     set(defaultValue);
   }
-  
+
   public boolean isKeyPresent(Properties props, String prepend) {
     if (props.getProperty(prepend == null || prepend.matches("\\s*") ? name
         : prepend + "." + name) == null) {
