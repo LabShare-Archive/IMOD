@@ -26,7 +26,7 @@ c
       real*4 dmin,dmax,dmean,polarity, peakCorr, sum, fracAvg
       integer*4 ix, iy, iz, ixPiece, iyPiece, izPiece, minInside, maxXsize
       integer*4 ixpeak, iypeak, izpeak, numSave, ix0,ix1,iy0,iy1,iz0,iz1
-      integer*4 numPass, minGuess, iVerbose
+      integer*4 numPass, minGuess, iVerbose, ibinning
       real*4 sumXoffset, sumYoffset, sumZoffset, storeThresh,beadSize,dtor
       real*4 histDip, peakBelow, peakAbove, dxadj, dyadj, dzadj,avgThresh
       real*4 peakRelMin, sepMin, blackThresh, findCorr, aboveAvg, aboveSD
@@ -46,13 +46,14 @@ c
 c       fallbacks from ../../manpages/autodoc2man -2 2  findbeads3d
 c       
       integer numOptions
-      parameter (numOptions = 18)
+      parameter (numOptions = 19)
       character*(40 * numOptions) options(1)
       options(1) =
      &    'input:InputFile:FN:@output:OutputFile:FN:@'//
      &    'candidate:CandidateModel:FN:@size:BeadSize:F:@'//
-     &    'light:LightBeads:B:@angle:AngleRange:FP:@tilt:TiltFile:FN:@'//
-     &    'ylong:YAxisElongated:B:@peakmin:MinRelativeStrength:F:@'//
+     &    'binning:BinningOfVolume:I:@light:LightBeads:B:@'//
+     &    'angle:AngleRange:FP:@tilt:TiltFile:FN:@ylong:YAxisElongated:B:@'//
+     &    'peakmin:MinRelativeStrength:F:@'//
      &    'threshold:ThresholdForAveraging:F:@store:StorageThreshold:F:@'//
      &    'spacing:MinSpacing:F:@both:EliminateBoth:B:@'//
      &    'guess:GuessNumBeads:I:@max:MaxNumBeads:I:@'//
@@ -76,6 +77,7 @@ c
       storeThresh = 0.
       iVerbose = 0
       minGuess = 0
+      ibinning = 1
 c       
 c       Pip startup: set error, parse options, do help output
 c       
@@ -96,6 +98,9 @@ C
 
       if (PipGetFloat('BeadSize', beadSize) .ne. 0) call exitError(
      &    'BEAD DIAMETER MUST BE ENTERED')
+      ierr = PipGetInteger('BinningOfVolume', ibinning)
+      if (ibinning .lt. 1) call exitError('BINNING MUST BE POSITIVE')
+      beadSize = beadSize / ibinning
       radius = beadSize / 2.
 
       ierr = PipGetLogical('YAxisElongated', yElongated)
@@ -1324,6 +1329,9 @@ c
 
 c       
 c       $Log$
+c       Revision 3.3  2009/08/12 23:37:38  mast
+c       Increase radius by one to help small beads
+c
 c       Revision 3.2  2009/01/22 05:55:27  mast
 c       Set mean of average to zero for correlations
 c
