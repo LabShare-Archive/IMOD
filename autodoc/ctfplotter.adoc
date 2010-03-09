@@ -34,8 +34,9 @@ type = FN
 usage = File with a list of noise files used to estimate the noise
 tooltip = 
 manpage = The configure file specifies the noise files used to estimate the
-noise floor, one file per line.  The files should be specified with absolute
-paths; the program will not work off of the path of the configure file itself.
+noise floor, one file per line.  The files can be specified with either
+absolute paths or with paths relative to the location of the configure file
+itself.
 
 [Field = DefocusFile]
 short = defFn
