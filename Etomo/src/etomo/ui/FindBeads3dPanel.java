@@ -43,6 +43,9 @@ import etomo.type.Run3dmodMenuOptions;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.2  2010/02/17 05:03:12  sueh
+ * <p> bug# 1301 Using manager instead of manager key for popping up messages.
+ * <p>
  * <p> Revision 3.1  2009/09/01 03:18:25  sueh
  * <p> bug# 1222
  * <p> </p>
@@ -238,8 +241,7 @@ final class FindBeads3dPanel implements FindBeads3dDisplay, Expandable,
   }
 
   public void getParameters(FindBeads3dParam param) {
-    param.setInputFile(FileType.TILT_3D_FIND_OUTPUT
-        .getFileName(manager, axisID));
+    param.setInputFile(FileType.TILT_3D_FIND_OUTPUT);
     param.setOutputFile(FileType.FIND_BEADS_3D_OUTPUT_MODEL.getFileName(
         manager, axisID));
     param.setBeadSize(ltfBeadSize.getText());
