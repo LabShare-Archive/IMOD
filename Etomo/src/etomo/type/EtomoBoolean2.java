@@ -20,6 +20,9 @@ import etomo.comscript.InvalidParameterException;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.20  2009/09/22 21:00:58  sueh
+ * <p> bug# 1259 No longer unnecessarily returning this from updateComScript.
+ * <p>
  * <p> Revision 1.19  2007/12/13 01:12:17  sueh
  * <p> bug# 1056 Reformatted.
  * <p>
@@ -173,7 +176,16 @@ public class EtomoBoolean2 extends ScriptParameter {
    */
   public static EtomoBoolean2 load(EtomoBoolean2 instance, String name,
       Properties props, String prepend) {
-    String value = props.getProperty(prepend + '.' + name);
+    String key = null;
+    if (prepend == null || prepend.matches("\\s*")) {
+      key = name;
+    }
+    if (prepend.endsWith(".")) {
+      key = prepend + name;
+    }
+    else
+      key = prepend + '.' + name;
+    String value = props.getProperty(key);
     if (value == null) {
       return null;
     }
@@ -331,7 +343,7 @@ public class EtomoBoolean2 extends ScriptParameter {
    */
   public void updateComScript(ComScriptCommand scriptCommand) {
     if (!isUseInScript()) {
-      return ;
+      return;
     }
     if (!displayAsInteger && !is()) {
       scriptCommand.deleteKey(name);
