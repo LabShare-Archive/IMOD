@@ -33,6 +33,10 @@ import etomo.type.StringParameter;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.6  2010/02/17 04:47:53  sueh
+ * <p> bug# 1301 Using the manager instead of the manager key do pop up
+ * <p> messages.
+ * <p>
  * <p> Revision 3.5  2010/01/11 23:49:01  sueh
  * <p> bug# 1299 Added isMessageReporter.
  * <p>
@@ -79,6 +83,8 @@ public final class FindBeads3dParam implements ConstFindBeads3dParam,
       GUESS_NUM_BEADS_TAG);
   private final ScriptParameter maxNumBeads = new ScriptParameter(
       MAX_NUM_BEADS_TAG);
+  private final ScriptParameter binningOfVolume = new ScriptParameter(
+      EtomoNumber.Type.LONG, "BinningOfVolume");
 
   private final AxisID axisID;
   private final BaseManager manager;
@@ -100,6 +106,7 @@ public final class FindBeads3dParam implements ConstFindBeads3dParam,
     minSpacing.reset();
     guessNumBeads.reset();
     maxNumBeads.reset();
+    binningOfVolume.reset();
   }
 
   public void parseComScriptCommand(final ComScriptCommand scriptCommand)
@@ -113,6 +120,8 @@ public final class FindBeads3dParam implements ConstFindBeads3dParam,
     minSpacing.parse(scriptCommand);
     guessNumBeads.parse(scriptCommand);
     maxNumBeads.parse(scriptCommand);
+    //binningOfVolume is not displayed and it is always derived from the
+    //inputFile.
   }
 
   public void updateComScriptCommand(final ComScriptCommand scriptCommand)
@@ -128,13 +137,16 @@ public final class FindBeads3dParam implements ConstFindBeads3dParam,
     minSpacing.updateComScript(scriptCommand);
     guessNumBeads.updateComScript(scriptCommand);
     maxNumBeads.updateComScript(scriptCommand);
+    binningOfVolume.updateComScript(scriptCommand);
   }
 
   public void initializeDefaults() {
   }
 
-  public void setInputFile(String input) {
-    inputFile.set(input);
+  public void setInputFile(FileType input) {
+    inputFile.set(input.getFileName(manager, axisID));
+    binningOfVolume.set(etomo.util.Utilities.getStackBinning(manager, axisID,
+        input));
   }
 
   public void setOutputFile(String input) {
