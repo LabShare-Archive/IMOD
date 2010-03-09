@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+3/8/10: In Etomo fixed a backward compatibility problem with saving to/loading
+from the .etomo file.
+
 3/8/10: In Etomo added an interface for creating fiducials using tiltxcorr to
 track patches.
 
