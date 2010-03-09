@@ -438,7 +438,7 @@ final class CcdEraserXRaysPanel implements ContextMenu,
       applicationManager.imodErasedStack(axisID, run3dmodMenuOptions);
     }
     else if (command.equals(btnClipStatsRaw.getActionCommand())) {
-      applicationManager.clipStats(axisID, FileType.CCD_ERASER_INPUT, null);
+      applicationManager.clipStats(axisID, FileType.RAW_STACK, null);
     }
     else if (command.equals(btnClipStatsFixed.getActionCommand())) {
       applicationManager.clipStats(axisID, FileType.CCD_ERASER_OUTPUT, null);
@@ -584,6 +584,9 @@ final class CcdEraserXRaysPanel implements ContextMenu,
 
 /**
  * <p> $Log$
+ * <p> Revision 3.4  2010/02/17 05:03:12  sueh
+ * <p> bug# 1301 Using manager instead of manager key for popping up messages.
+ * <p>
  * <p> Revision 3.3  2009/12/11 20:52:33  sueh
  * <p> bug# 1291 Rename and rearrange clip stats buttons.
  * <p>
