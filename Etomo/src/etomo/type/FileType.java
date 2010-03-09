@@ -19,6 +19,10 @@ import etomo.process.ImodManager;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.7  2010/03/03 04:57:27  sueh
+ * <p> bug# 1311 Changed FileType.NEWST_OR_BLEND_OUTPUT to
+ * <p> ALIGNED_STACK.  Added file types for patch tracking.
+ * <p>
  * <p> Revision 1.6  2010/02/17 04:52:18  sueh
  * <p> bug# 1301 Sorted file types to make is easier to detect duplicates.  Added
  * <p> flattening tool file types.
@@ -89,7 +93,7 @@ public final class FileType {
       ".rec", ImodManager.TRIMMED_VOLUME_KEY);
   public static final FileType SQUEEZE_VOL_OUTPUT = new FileType(true, false,
       "", ".sqz", ImodManager.SQUEEZED_VOLUME_KEY);
-  public static final FileType CCD_ERASER_INPUT = new FileType(true, true, "",
+  public static final FileType RAW_STACK = new FileType(true, true, "",
       ".st", ImodManager.RAW_STACK_KEY);
   public static final FileType NEWST_OR_BLEND_3D_FIND_OUTPUT = new FileType(
       true, true, "_3dfind", ".ali", ImodManager.FINE_ALIGNED_3D_FIND_KEY);
