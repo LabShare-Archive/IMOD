@@ -11,6 +11,7 @@ import etomo.process.SystemProgram;
 import etomo.type.AxisID;
 import etomo.type.ConstEtomoNumber;
 import etomo.type.EtomoNumber;
+import etomo.type.FileType;
 import etomo.ui.UIHarness;
 
 /**
@@ -27,6 +28,10 @@ import etomo.ui.UIHarness;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.31  2010/02/17 05:05:58  sueh
+ * <p> bug# 1301 Using manager instead of manager key for popping up
+ * <p> messages.
+ * <p>
  * <p> Revision 3.30  2009/09/21 18:11:46  sueh
  * <p> bug# 1267 Added getInstanceFromFileName to run header using a full
  * <p> file name instead of an extension.
@@ -258,6 +263,25 @@ public class MRCHeader {
    * @param axisID
    * @return
    */
+  public static MRCHeader getInstance(BaseManager manager, AxisID axisID,
+      FileType fileType) {
+    File keyFile = Utilities.getFile(manager.getPropertyUserDir(), fileType
+        .getFileName(manager, axisID));
+    String key = makeKey(keyFile);
+    MRCHeader mrcHeader = (MRCHeader) instances.get(key);
+    if (mrcHeader == null) {
+      return createInstance(manager.getPropertyUserDir(), key, keyFile, axisID);
+    }
+    return mrcHeader;
+  }
+
+  /**
+   * Function to get an instance of the class
+   * @param directory
+   * @param datasetName
+   * @param axisID
+   * @return
+   */
   public static MRCHeader getInstance(String fileLocation, String filename,
       AxisID axisID) {
     File keyFile = Utilities.getFile(fileLocation, filename);
@@ -445,7 +469,7 @@ public class MRCHeader {
       // comment section
       if (xPixelSize.equals(1.0) && yPixelSize.equals(1.0)
           && yPixelSize.equals(1.0)) {
-        parseFEIPixelSize(manager,stdOutput[i], !pixelsParsed);
+        parseFEIPixelSize(manager, stdOutput[i], !pixelsParsed);
       }
 
       // Parse the rotation angle and/or binning from the comment section
