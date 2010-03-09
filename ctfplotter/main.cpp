@@ -56,6 +56,7 @@ int main(int argc, char *argv[])
   float expectedDef, leftDefTol, rightDefTol;
   float ampContrast, cs;
   int invertAngles = 0;
+  QString noiseCfgDir, noiseFile;
 
   // This amount of hyperresolution in the stored PS gave < 0.1% difference
   // in the final PS from ones computed directly from summed FFTs for 
@@ -178,12 +179,23 @@ int main(int argc, char *argv[])
 
   fflush(stdout);
   
+  noiseCfgDir = QDir::fromNativeSeparators(QString(cfgFn));
+  printf("noiseCfgDir read in: %s\n", (const char *)noiseCfgDir.toLatin1());
+  i = noiseCfgDir.lastIndexOf('/');
+  if (i >= 0)
+    noiseCfgDir = noiseCfgDir.left(i + 1);
+  else
+    noiseCfgDir = "./";
+  printf("i  %d noiseCfgDir used: %s\n", i, (const char *)noiseCfgDir.toLatin1());
   noiseFileCounter=0;
   while ((read=fgetline(fpCfg, p, 1024)) >= 0) {
     if (!read)
       continue;
     //if(p[read-1]=='\n') p[read-1]='\0';  //remove '\n' at the end;
-    app.setSlice(p, NULL);
+    noiseFile = QString(p);
+    if (QDir::isRelativePath(noiseFile))
+      noiseFile = noiseCfgDir + noiseFile;
+    app.setSlice((const char *)noiseFile.toLatin1(), NULL);
     app.computeInitPS();
     currPS=app.getPS();
     //for(i=0;i<nDim;i++) noisePs[noiseFileCounter][i]=*(currPS+i);
@@ -270,6 +282,9 @@ int ctfShowHelpPage(const char *page)
 /*
 
 $Log$
+Revision 1.15  2009/09/18 14:56:13  mast
+Changed to skip blank lines in noise file
+
 Revision 1.14  2009/08/10 22:14:59  mast
 Adjust to changes in other modules, add inversion option
 
