@@ -4,6 +4,9 @@
  *  $Id$
  *
  *  $Log$
+ *  Revision 1.2  2009/08/10 22:34:39  mast
+ *  General reworking of program
+ *
  *
  */
 #ifndef SLICECACHE_H
@@ -17,8 +20,8 @@ class SliceCache
 
   public:
    SliceCache(int cacheSize, int invertAngles);
-   void initCache(char *fnStack, char *fnAngle, int dim, int hyper, int tSize,
-                  int& nx, int &ny, int &nz);
+   void initCache(const char *fnStack, char *fnAngle, int dim, int hyper,
+                  int tSize, int& nx, int &ny, int &nz);
    float readAngle(int whichSlice);
    void whatIsNeeded(float lowLimit, float highLimit, int &startSliceNum, int&
        endSliceNum); 

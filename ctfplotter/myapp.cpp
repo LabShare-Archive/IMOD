@@ -254,7 +254,7 @@ void MyApp::fitPsFindZero()
 }
 
 
-void MyApp::setSlice(char *stackFile, char *angleFile)
+void MyApp::setSlice(const char *stackFile, char *angleFile)
 {
   //init and clear old contents;
   mCache.initCache(stackFile, angleFile, mDim, mHyperRes, mTileSize, mNxx, mNyy,
@@ -808,6 +808,12 @@ void MyApp::setNoiseForMean(double mean)
 /*
 
 $Log$
+Revision 1.13  2009/08/10 22:19:48  mast
+Implemented storing of power spectra with hyperresolution and more exact
+shifting of off-center tile spectra, used exact zero-defocus relations,
+added fitting to polynomial and CTF-like curve, switched to storing
+divided PS, added second zero clickability
+
 Revision 1.12  2009/01/15 16:31:36  mast
 Qt 4 port
 

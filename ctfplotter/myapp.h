@@ -4,6 +4,9 @@
  *  $Id$
  *
  *  $Log$
+ *  Revision 1.6  2009/08/10 22:34:39  mast
+ *  General reworking of program
+ *
  *
  */
 #ifndef MYAPP_H
@@ -30,7 +33,7 @@ class MyApp : public QApplication
     void plotFitPS(bool flagSetInitSetting );
     void fitPsFindZero();
     void setPlotter( Plotter *p){ mPlotter=p;}
-    void setSlice(char *stackFile, char *angleFile);
+    void setSlice(const char *stackFile, char *angleFile);
     double getLowAngle() {return mLowAngle;}
     char *getStackName() {return mFnStack;}
     void setStackMean(double mean){ mStackMean=mean;}

@@ -48,8 +48,8 @@ SliceCache::SliceCache(int cacheSize, int invertAngles)
 
 //init SliceCache and clear its old contents
 //It needs to be called whenever the tomogram it manages changes.
-void SliceCache::initCache(char *fnStack, char *fnAngle, int dim, int hyper, 
-                           int tSize, int &nx, int &ny, int &nz)
+void SliceCache::initCache(const char *fnStack, char *fnAngle, int dim,
+                           int hyper, int tSize, int &nx, int &ny, int &nz)
 {
   int dsize, csize;
   if(mFpStack)
@@ -356,6 +356,9 @@ float SliceCache::getAngle(int whichSlice)
 /*
 
 $Log$
+Revision 1.6  2009/08/10 22:24:20  mast
+Turned it into a cache of power spectra at hyperresolution
+
 Revision 1.5  2009/01/15 16:31:36  mast
 Qt 4 port
 
