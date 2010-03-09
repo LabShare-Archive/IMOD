@@ -12,6 +12,10 @@
  * @version $$Revision$
  *
  * <p> $$Log$
+ * <p> $Revision 3.70  2010/02/26 20:38:42  sueh
+ * <p> $Changing the complex popup titles are making it hard to complete the
+ * <p> $uitests.
+ * <p> $
  * <p> $Revision 3.69  2010/02/23 20:32:47  sueh
  * <p> $Removed unnecessary stack trace print in rename.
  * <p> $
@@ -306,6 +310,7 @@ import etomo.BaseManager;
 import etomo.EtomoDirector;
 import etomo.storage.LogFile;
 import etomo.type.AxisID;
+import etomo.type.FileType;
 import etomo.type.ProcessName;
 import etomo.ui.Token;
 import etomo.ui.UIHarness;
@@ -382,8 +387,8 @@ public class Utilities {
         + axisID.getExtension() + extension);
     if (!file.exists() && mustExist) {
       UIHarness.INSTANCE.openMessageDialog(manager, "The " + fileDescription
-          + " file: " + file.getAbsolutePath() + " doesn't exist.", "Missing File"
-          , axisID);
+          + " file: " + file.getAbsolutePath() + " doesn't exist.",
+          "Missing File", axisID);
       return null;
     }
     return file;
@@ -1052,5 +1057,41 @@ public class Utilities {
       }
     }
     return buffer.toString();
+  }
+
+  /**
+   * Function calculates the binning from the stack's pixel spacing and
+   * the raw stack's pixel spacing.
+   * @return binning (default 1)
+   */
+  public static long getStackBinning(BaseManager manager, AxisID axisID,
+      FileType stackFileType) {
+    MRCHeader stackHeader = MRCHeader.getInstance(manager, axisID,
+        stackFileType);
+    MRCHeader rawstackHeader = MRCHeader.getInstance(manager, axisID,
+        FileType.RAW_STACK);
+    try {
+      if (!rawstackHeader.read(manager) || !stackHeader.read(manager)) {
+        return 1;
+      }
+    }
+    catch (InvalidParameterException e) {
+      //missing file
+      e.printStackTrace();
+      return 1;
+    }
+    catch (IOException e) {
+      return 1;
+    }
+    long binning = 1;
+    double rawstackXPixelSpacing = rawstackHeader.getXPixelSpacing();
+    if (rawstackXPixelSpacing > 0) {
+      binning = Math.round(stackHeader.getXPixelSpacing()
+          / rawstackXPixelSpacing);
+    }
+    if (binning != 1 && binning < 1) {
+      return 1;
+    }
+    return binning;
   }
 }
