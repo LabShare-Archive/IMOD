@@ -27,7 +27,17 @@ short = size
 type = F
 usage = Size of beads in pixels
 tooltip = 
-manpage = Diameter of beads in pixels, a required entry.
+manpage = Diameter of beads in pixels, a required entry.  If the volume is
+binned, this size can be entered in unbinned pixels and the -binning entry
+used to specify the binning.
+
+[Field = BinningOfVolume]
+short = binning
+type = I
+usage = The current binning of the image volume, used to scale bead size
+tooltip = 
+manpage = The current binning of the image volume.  The entered bead size is
+divided by this binning to obtain the actual size of the beads in the volume.
 
 [Field = LightBeads]
 short = light
