@@ -71,6 +71,7 @@ void imodContourDefault(Icont *cont)
   cont->label  = NULL;
   cont->sizes  = NULL;
   cont->store  = NULL;
+  cont->tempVal = 0.;
 }
 
 /*!
@@ -3477,6 +3478,9 @@ char *imodContourGetName(Icont *inContour)
 /* END_SECTION */
 /*
   $Log$
+  Revision 3.31  2009/02/24 18:02:37  mast
+  Made contour centroid routine work for open object contours with flag
+
   Revision 3.30  2008/05/27 05:30:57  mast
   Made contour from points routine do interpolation
 
