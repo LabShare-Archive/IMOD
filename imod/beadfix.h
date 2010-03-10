@@ -97,6 +97,9 @@ class BeadFixer : public DialogFrame
   void nextRes();
   void nextLocal();
   void backUp();
+  void nextCont();
+  void backUpCont();
+  void delCont();
   void movePoint();
   void moveAllSlot();
   void moveAllAll();
@@ -141,6 +144,8 @@ class BeadFixer : public DialogFrame
   bool inSkipList(int zval);
   void moveAll(bool globalOK, bool skipDisplay);
   void manageDoneLabel();
+  void reportContRes();
+  int moveToCont(int idir);
 
   int    mIfdidgap;
   int    mLastco, mLastpt, mLastbefore;
@@ -166,6 +171,13 @@ class BeadFixer : public DialogFrame
   int    mBell;                         /* 1 to ring bell, -1 to suppress */ 
   bool   mMovingAll;                  /* Flag for moving all points in local */
   int    mNumAllMoved;                  /* Number moved in local area */
+  double mLastContRes;                  /* Last contour residual shown */
+  bool   mContResReported;              /* Flag that cont res stats reported */
+  double mMaxContRes;
+  double mContResSum, mContResSumsq;
+  int    mNumContRes;
+  int    mContForContRes;
+  int    mObjForContRes;
   QButtonGroup *modeGroup;
   QPushButton *nextGapBut;
   QPushButton *prevGapBut;
@@ -173,6 +185,9 @@ class BeadFixer : public DialogFrame
   QPushButton *nextLocalBut;
   QPushButton *nextResBut;
   QPushButton *backUpBut;
+  QPushButton *nextContBut;
+  QPushButton *delContBut;
+  QPushButton *backContBut;
   QPushButton *movePointBut;
   QPushButton *moveAllBut;
   QPushButton *moveAllAllBut;
@@ -215,6 +230,9 @@ class BeadFixer : public DialogFrame
 /*
 
 $Log$
+Revision 1.27  2009/11/17 05:28:46  mast
+New items for progress line and button to move in all areas
+
 Revision 1.26  2009/01/16 06:06:59  mast
 FUnction to fix the size in Qt 4
 

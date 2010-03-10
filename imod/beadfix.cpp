@@ -77,7 +77,7 @@ static  int imodPlugExecuteMessage(ImodView *vw, QStringList *strings,
 static int imodPlugMouse(ImodView *vw, QMouseEvent *event, float imx,
                          float imy, int but1, int but2, int but3);
 
-enum {SEED_MODE = 0, GAP_MODE, RES_MODE};
+enum {SEED_MODE = 0, GAP_MODE, RES_MODE, CONT_MODE};
 
 BeadFixerModule::BeadFixerModule()
 {
@@ -171,16 +171,22 @@ int imodPlugKeys(ImodView *vw, QKeyEvent *event)
     
   switch(keysym){
   case Qt::Key_Apostrophe: 
-    if (plug->showMode != RES_MODE)
+    if (plug->showMode != RES_MODE && plug->showMode != CONT_MODE)
       break;
     keyhandled = 1;
-    plug->window->nextRes();
+    if (plug->showMode == RES_MODE)
+      plug->window->nextRes();
+    else
+      plug->window->nextCont();
     break;
   case Qt::Key_QuoteDbl: 
-    if (plug->showMode != RES_MODE)
+    if (plug->showMode != RES_MODE && plug->showMode != CONT_MODE)
       break;
     keyhandled = 1;
-    plug->window->backUp();
+    if (plug->showMode == RES_MODE)
+      plug->window->backUp();
+    else
+      plug->window->backUpCont();
     break;
   case Qt::Key_Space:
     if (plug->showMode != GAP_MODE)
@@ -380,7 +386,7 @@ int BeadFixer::executeMessage(QStringList *strings, int *arg)
     return 0;
   case MESSAGE_BEADFIX_OPERATION:
     mode = (*strings)[++(*arg)].toInt();
-    mode = B3DMIN(2, B3DMAX(0, mode));
+    mode = B3DMIN(3, B3DMAX(0, mode));
     diaSetGroup(modeGroup, mode);
     modeSelected(mode);
     return 0;
@@ -442,9 +448,12 @@ int BeadFixer::reread()
   int newstyle, oldstyle = 0;
   int found = 0;
   int gotHeader = 0;
-  int inpt, i;
+  int inpt, i, ob, co, ob2, co2;
+  double baseval;
   int numToSee = 0;
   int binning = plug->view->xybin;
+  float tmp1, tmp2, tmp3, resid;
+  Imod *imod = ivwGetModel(plug->view);
   FILE   *fp;
   ResidPt *rpt;
   QString globalResLine, localResLine;
@@ -469,12 +478,21 @@ int BeadFixer::reread()
     return -1;
   }
 
+  // Zero out the temporary value entries in all contours
+  for (ob = 0; ob < imod->objsize; ob++)
+    for (co = 0; co < imod->obj[ob].contsize; co++)
+      imod->obj[ob].cont[co].tempVal = 0.;
+
   wprint("Reading log file...");
          
   mNumAreas = 0;
   mNumResid = 0;
   mCurrentRes = -1;
   mIndlook = -1;
+  mLastContRes = -1.;
+  mContResSum = mContResSumsq = 0.;
+  mNumContRes = 0;
+  mContResReported = false;
 
   // Outer loop searching for lines at top of residuals
   while (fgets(line, MAXLINE, fp) != NULL) {
@@ -487,7 +505,42 @@ int BeadFixer::reread()
           globalResLine = "Global mean residual: " + strList[5];
       }
     }
-        
+
+    // Look for 3D coordinates with contour mean residuals
+    if (strstr(line, " Z ") != NULL && strstr(line, " obj ") != NULL && 
+        strstr(line, "mean resid") != NULL) {
+      while (fgets(line, MAXLINE, fp) != NULL) {
+        if (strlen(line) < 3)
+          break;
+        sscanf(line, "%d %f %f %f %d %d %f", &i, &tmp1, &tmp2, &tmp3, &ob, &co,
+               &resid);
+        if (ob > 0 && ob <= imod->objsize && co > 0 && 
+            co <= imod->obj[ob-1].contsize)
+          imod->obj[ob-1].cont[co-1].tempVal = resid;
+      }
+
+      // Break ties so that contours have unique values, get statistics
+      for (ob = 0; ob < imod->objsize; ob++) {
+        for (co = 0; co < imod->obj[ob].contsize; co++) {
+          baseval = imod->obj[ob].cont[co].tempVal;
+          if (baseval > 0.) {
+            mMaxContRes = B3DMAX(mMaxContRes, baseval);
+            mLastContRes = mMaxContRes + 1.;
+            mContResSum += baseval;
+            mContResSumsq += baseval * baseval;
+            mNumContRes++;
+            i = 1;
+            for (ob2 = 0; ob2 < imod->objsize; ob2++)
+              for (co2 = 0; co2 < imod->obj[ob2].contsize; co2++)
+                if (imod->obj[ob2].cont[co2].tempVal == baseval)
+                  imod->obj[ob2].cont[co2].tempVal += (i++) * 0.00001;
+          }
+        }
+      }
+
+    }
+
+    // Look for lines at start of residuals
     newstyle = strstr(line,"   #     #     #      X         Y        X")
       != NULL;
     if (!newstyle)
@@ -619,6 +672,9 @@ int BeadFixer::reread()
                       "Move All by Residual");
   nextResBut->setEnabled(mNumResid);
   backUpBut->setEnabled(false);    
+  nextContBut->setEnabled(mNumContRes);
+  backContBut->setEnabled(false);    
+  delContBut->setEnabled(false);    
   if (!globalResLine.isEmpty())
     wprint("\n%s\n", LATIN1(globalResLine));
   if (!localResLine.isEmpty())
@@ -629,9 +685,26 @@ int BeadFixer::reread()
     wprint(" %d total residuals.\n", mNumResid);
   else
     wprint(" %d total residuals, %d to examine.\n", mNumResid, numToSee);
+  reportContRes();
   manageDoneLabel();
   return 0;
 }
+
+void BeadFixer::reportContRes()
+{
+  float avg, sd;
+  if (plug->filename == NULL || plug->showMode != CONT_MODE || 
+      mContResReported)
+    return;
+  if (mNumContRes) {
+    sumsToAvgSDdbl(mContResSum, mContResSumsq, mNumContRes, 1, &avg, &sd);
+    wprint("%d contour mean residuals:\n Average %.2f  SD %.2f  Max %.2f\n",
+           mNumContRes, avg, sd, mMaxContRes);
+  } else
+    wprint("\aNo contour mean residual data found.\n");
+  mContResReported = true;
+}
+
 
 // Set current area, manage next local set button enabling and text
 void BeadFixer::setCurArea(int area)
@@ -947,6 +1020,71 @@ void BeadFixer::backUp()
   nextResBut->setEnabled(true);
   nextRes();
   mLookonce = i;
+}
+
+void BeadFixer::nextCont()
+{
+  backContBut->setEnabled(true);
+  if (moveToCont(1) > 0)
+    return;
+  wprint("\aNo more contours with lower mean residuals\n");
+  nextContBut->setEnabled(false);
+}
+
+void BeadFixer::backUpCont()
+{
+  nextContBut->setEnabled(true);
+  if (moveToCont(-1) > 0)
+    return;
+  wprint("\aNo more contours with higher mean residuals\n");
+  backContBut->setEnabled(false);
+}
+
+// Move to next contour in either direction, set index and draw
+int BeadFixer::moveToCont(int idir)
+{
+  int ob, co, midpoint;
+  double nearval, val;
+  Imod *imod = plug->view->imod;
+  mObjForContRes = -1;
+  for (ob = 0; ob < imod->objsize; ob++) {
+    for (co = 0; co < imod->obj[ob].contsize; co++) {
+      val = imod->obj[ob].cont[co].tempVal;
+      if (val > 0 && idir * (val - mLastContRes) < 0 && 
+          (mObjForContRes < 0 || idir * (val - nearval) > 0)) {
+        mObjForContRes = ob;
+        mContForContRes = co;
+        nearval = val;
+        midpoint = imod->obj[ob].cont[co].psize / 2 - 1;
+      }
+    }
+  }
+  if (mObjForContRes >= 0) {
+    wprint("Contour mean residual %.2f\n", nearval);
+    imodSetIndex(imod, mObjForContRes, mContForContRes, midpoint);
+    imod->obj[mObjForContRes].flags |= IMOD_OBJFLAG_THICK_CONT;
+    ivwRedraw(plug->view);
+    mLastContRes = nearval;
+  }
+  delContBut->setEnabled(mObjForContRes >= 0);
+  return mObjForContRes + 1;
+}
+
+// Delete current contour
+void BeadFixer::delCont()
+{
+  int ob, co, pt;
+  if (mObjForContRes < 0)
+    return;
+  imodGetIndex(plug->view->imod, &ob, &co, &pt);
+  if (ob != mObjForContRes || co != mContForContRes) {
+    wprint("\aCurrent contour is no longer the one selected based on "
+           "residual\n");
+    return;
+  }
+  inputDeleteContour(plug->view);
+  mObjForContRes = -1;
+  delContBut->setEnabled(false);
 }
 
 void BeadFixer::onceToggled(bool state)
@@ -1951,6 +2089,7 @@ void BeadFixer::turnOffToggled(bool state)
 
 void BeadFixer::modeSelected(int value)
 {
+  bool resOrCont = (value == RES_MODE || value == CONT_MODE);
   for (int on = 0; on < 2; on++) {
 
     // Manage seed mode items
@@ -1967,7 +2106,6 @@ void BeadFixer::modeSelected(int value)
       }
     }
 
-
     // Manage gap filling items
     if (!on && value != GAP_MODE || on && value == GAP_MODE) {
       showWidget(ignoreSkipBut, value == GAP_MODE);
@@ -1980,30 +2118,41 @@ void BeadFixer::modeSelected(int value)
     }
 
     // Manage autocenter items
-    if (!on && value == RES_MODE || on && value != RES_MODE) {
-      showWidget(cenLightHbox, value != RES_MODE);
-      showWidget(diameterHbox, value != RES_MODE);
+    if (!on && resOrCont || on && !resOrCont) {
+      showWidget(cenLightHbox, !resOrCont);
+      showWidget(diameterHbox, !resOrCont);
     }
     
+    // Manage residual and contour mode shared items
+    if (!on && !resOrCont || on && resOrCont) {
+      showWidget(openFileBut, resOrCont);
+      showWidget(runAlignBut, resOrCont);
+      showWidget(rereadBut, resOrCont);
+    }
+
     // Manage residual mode items
     if (!on && value != RES_MODE || on && value == RES_MODE) {
-      showWidget(openFileBut, value == RES_MODE);
-      showWidget(runAlignBut, value == RES_MODE);
-      showWidget(rereadBut, value == RES_MODE);
-      showWidget(nextLocalBut, value == RES_MODE);
       showWidget(nextResBut, value == RES_MODE);
+      showWidget(backUpBut, value == RES_MODE);
+      showWidget(nextLocalBut, value == RES_MODE);
       showWidget(movePointBut, value == RES_MODE);
       showWidget(undoMoveBut, value == RES_MODE);
       showWidget(moveAllBut, value == RES_MODE);
       showWidget(moveAllAllBut, value == RES_MODE);
-      showWidget(backUpBut, value == RES_MODE);
       showWidget(clearListBut, value == RES_MODE);
       showWidget(examineBox, value == RES_MODE);
       showWidget(doneLabel, value == RES_MODE);
     }
-  }
 
+    // Manage contour mode items
+    if (!on && value != CONT_MODE || on && value == CONT_MODE) {
+      showWidget(nextContBut, value == CONT_MODE);
+      showWidget(backContBut, value == CONT_MODE);
+      showWidget(delContBut, value == CONT_MODE);
+    }
+  }
   fixSize();
+  reportContRes();
 
   // Turn overlay mode on or off if needed
   if ((value == SEED_MODE || plug->showMode == SEED_MODE) && plug->overlayOn)
@@ -2133,6 +2282,8 @@ BeadFixer::BeadFixer(QWidget *parent, const char *name)
                          "Show tools for finding and filling gaps");
   radio = diaRadioButton("Fix big residuals", gbox, modeGroup, gbLayout, 2,
                          "Show tools for fixing big residuals");
+  radio = diaRadioButton("Look at contours", gbox, modeGroup, gbLayout, 3,
+                         "Show tools for moving to contours by mean residual");
   diaSetGroup(modeGroup, plug->showMode);
 
   cenLightHbox = new QWidget(this);
@@ -2351,13 +2502,31 @@ BeadFixer::BeadFixer(QWidget *parent, const char *name)
 
   doneLabel = diaLabel("Progress:  --%", this, mLayout);
 
+  nextContBut = diaPushButton("Go to Next Contour", this, mLayout);
+  connect(nextContBut, SIGNAL(clicked()), this, SLOT(nextCont()));
+  nextContBut->setEnabled(false);
+  nextContBut->setToolTip("Move to contour with next lower mean residual - "
+                          "Hot key: apostrophe");
+
+  backContBut = diaPushButton("Back Up Contour", this, mLayout);
+  connect(backContBut, SIGNAL(clicked()), this, SLOT(backUpCont()));
+  backContBut->setEnabled(false);
+  backContBut->setToolTip("Back up to contour with higher mean residual -"
+                          " Hot key: double quote");
+
+  delContBut = diaPushButton("Delete Contour", this, mLayout);
+  connect(delContBut, SIGNAL(clicked()), this, SLOT(delCont()));
+  delContBut->setEnabled(false);
+  delContBut->setToolTip("Delete current contour - Hot key: D");
+
   connect(this, SIGNAL(actionClicked(int)), this, SLOT(buttonPressed(int)));
   modeSelected(plug->showMode);
   setFontDependentWidths();
   fixSize();
 }
 
-// In Qt 4 it just wouldn't go down to its minimum size: so force it down to the hint
+// In Qt 4 it just wouldn't go down to its minimum size: so force it down 
+// to the hint
 void BeadFixer::fixSize()
 {
   imod_info_input();
@@ -2579,6 +2748,9 @@ void BeadFixer::setFontDependentWidths()
   movePointBut->setFixedWidth(width);
   undoMoveBut->setFixedWidth(width);
   backUpBut->setFixedWidth(width);
+  nextContBut->setFixedWidth(width);
+  backContBut->setFixedWidth(width);
+  delContBut->setFixedWidth(width);
   moveAllBut->setFixedWidth(width);
   clearListBut->setFixedWidth(width);
   reattachBut->setFixedWidth(width);
@@ -2611,6 +2783,9 @@ void BeadFixer::keyReleaseEvent ( QKeyEvent * e )
 /*
 
 $Log$
+Revision 1.62  2010/03/02 19:09:06  mast
+Take align*.log out of filter list for Mac Qt 10.5 since it doesn't work
+
 Revision 1.61  2009/11/17 05:28:12  mast
 Added button to move in all local areas, and ability to move all global
 residuals, and a progress line.
