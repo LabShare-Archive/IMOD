@@ -11,15 +11,16 @@ will automatically start a new contour for each point when appropriate.
 It has a function for finding the next 
 gap or untracked place in the model and making that be the 
 current point.  It also will read the log file from running 
-Tiltalign and move to points with high residuals.  In addition, this module
+Tiltalign and move to points with high residuals, or to contours with high
+mean residuals.  In addition, this module
 can be used to examine contours with values, adjust a threshold, and delete
 contours below the threshold.
 <P>
 <H3>Hot Key Summary</H3>
 <UL>
 <LI> <B>spacebar</B> &nbsp;goes to next gap.
-<LI> <B>' (apostrophe)</B> &nbsp;goes to next big residual.
-<LI> <B>&quot; (double quote)</B> &nbsp;Backs up to last point.
+<LI> <B>' (apostrophe)</B> &nbsp;goes to next big residual (point or contour).
+<LI> <B>&quot; (double quote)</B> &nbsp;Backs up to last point or contour.
 <LI> <B>; (semicolon)</B> &nbsp;Moves point by residual.
 <LI> <B>U</B> &nbsp;Undoes move of current point.
 <LI> <B>: (colon)</B> &nbsp;Moves all points in current local area by residual.
@@ -197,6 +198,27 @@ you will come back to it when you go forward again.
 <LI> The <B>Progress</B> lines shows a percentage that is based on the
 number of the current residual point divided by the total number of residuals
 read in.
+</UL>
+<P>
+<H4>Contour Mode</H4>
+This mode lets you move to contours with the highest mean residuals.  With a
+fiducial model, you can step through all the points in such contours and
+adjust ones as needed, or choose to delete the whole contour.  With a model
+based on local patch tracking by 
+<A HREF = "../man/tiltxcorr.html">Tiltxcorr</A>, you can delete the contours
+where the tracked positions are least consistent with the overall fit.  In
+addition to the buttons to read a log file and run Tiltalign, this mode has
+the following controls:
+<UL>
+<LI> Press the <B>Go to Next Contour</B> button to move initially to the
+contour with the highest mean residual, and thereafter to the contour with the
+next lower mean residual.  If the Model View window is open, the selected
+contour will appear thicker there.
+<LI>Press the <B>Back Up Contour</B> button to go back to the contour with the
+next higher mean residual.
+<LI>Press the <B>Delete Contour</B> button to delete the current contour,
+provided it is still the one selected by either of the two buttons above.  Use
+Ctrl-Z to undo a deletion made with this button.
 </UL>
 <P>
 <A NAME = "MovingResid"><H4>Moving All Points by Residual</H4></A>
