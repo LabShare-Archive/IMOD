@@ -344,16 +344,17 @@ typedef struct Meshing_Param
 typedef struct Mod_Contour
 {
   /* Run time data */
+  double     tempVal;  /* Value for temporary data */
+
+  /* data below is written to file one way or another */
   Ipoint       *pts;    /* Points data.                      */
   b3dFloat     *sizes;  /* sizes for scattered points        */
 
-  /* data below is written to file */
   b3dInt32     psize;  /* Number of points.                 */
   b3dUInt32    flags;  /* Default 0 means use object flags. */
   b3dInt32     time;   /* Time index.                       */
   b3dInt32     surf;   /* Surface number.                   */
   Ilabel      *label;
-
   Ilist       *store;
 }Icont;
 
@@ -700,6 +701,9 @@ extern "C" {
 
 /*    
     $Log$
+    Revision 3.45  2009/01/14 20:03:19  mast
+    Adding a const
+
     Revision 3.44  2009/01/02 05:19:19  mast
     const char * for Qt 4 port
 
