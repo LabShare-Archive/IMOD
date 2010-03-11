@@ -167,7 +167,7 @@ void rsMadMedianOutliers(float *x, int n, float kcrit, float *out)
   rsMedian(x, n, out, &median);
   rsMADN(x, n, median, out, &madn);
   for (i = 0; i < n; i++) {
-    if (out[i] / madn > kcrit)
+    if (fabs((double)(x[i] - median)) / madn > kcrit)
       out[i] = x[i] > median ? 1. : -1.;
     else
       out[i] = 0.;
@@ -185,6 +185,9 @@ void rsmadmedianoutliers(float *x, int *n, float *kcrit, float *out)
 /*
 
 $Log$
+Revision 1.2  2009/11/28 20:09:46  mast
+Added indexed sort
+
 Revision 1.1  2009/11/21 21:15:10  mast
 Added to package
 
