@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+3/11/10: Made imodtrans able to use the -i option when a model file has no
+image reference information.
+
 3/10/10: In Etomo - Fine Alignment opening the 3dmod Bead Fixer in "Look at
 contours" mode when Patch Tracking was used.
 
