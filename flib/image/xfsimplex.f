@@ -1008,6 +1008,9 @@ c
       do i=1,ivend
         a(i)=x(i)
       enddo
+      do i = ivend + 1, 6
+        a(i) = acall(i)
+      enddo
 c       
       if(ifdist.eq.0)then
         CALL DIFF(DELTA,ARRAY,BRRAY,A,NX,NY)
@@ -1090,6 +1093,9 @@ c       SCALING = 1 BUT THIS SHOULD BE DOCUMENTED
       end
 c       
 c       $Log$
+c       Revision 3.15  2009/10/14 17:48:48  mast
+c       Allocated big array in module to avoid compile error in gfortran/Mac
+c
 c       Revision 3.14  2009/10/13 13:44:05  mast
 c       bad if test
 c
