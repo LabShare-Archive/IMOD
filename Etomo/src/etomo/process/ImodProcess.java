@@ -37,6 +37,10 @@ import etomo.util.Utilities;
  * 
  * <p>
  * $Log$
+ * Revision 3.64  2010/02/17 04:49:20  sueh
+ * bug# 1301 Using the manager instead of the manager key do pop up
+ * messages.
+ *
  * Revision 3.63  2009/12/19 01:09:19  sueh
  * bug# 1294 Added WindowOpenOption.OBJECT_LIST.
  *
@@ -578,6 +582,7 @@ public class ImodProcess {
 
   public static final String MESSAGE_RAISE = "5";
 
+  public static final String MESSAGE_OPEN_MODEL_VIEW = "3";
   public static final String MESSAGE_MODEL_MODE = "6";
   public static final String MESSAGE_OPEN_KEEP_BW = "7";
   public static final String MESSAGE_OPEN_BEADFIXER = "8";
@@ -609,9 +614,6 @@ public class ImodProcess {
   public static final String REQUEST_TAG = "REQUEST";
   public static final String STOP_LISTENING_REQUEST = "STOP LISTENING";
   private static final int defaultBinning = 1;
-  public static final String SEED_MODE = "0";
-  public static final String GAP_MODE = "1";
-  public static final String RESIDUAL_MODE = "2";
   public static final String IMOD_SEND_EVENT_STRING = "imodsendevent returned:";
   //static final String CONTINUOUS_TAG = "ETOMO INFO:";
   static final String CONTINUOUS_TAG = "ETOMO INFO:";
@@ -1197,6 +1199,10 @@ public class ImodProcess {
   public void setOpenBeadFixerMessage() {
     sendArguments.add(MESSAGE_OPEN_BEADFIXER);
   }
+  
+  public void setOpenModelView() {
+    sendArguments.add(MESSAGE_OPEN_MODEL_VIEW);
+  }
 
   public void setSkipList(String skipList) {
     addPluginMessage(BEAD_FIXER_PLUGIN, BF_MESSAGE_SKIP_LIST, skipList);
@@ -1231,8 +1237,9 @@ public class ImodProcess {
         newContours ? MESSAGE_ON : MESSAGE_OFF);
   }
 
-  public void setBeadfixerMode(String beadfixerMode) {
-    addPluginMessage(BEAD_FIXER_PLUGIN, BF_MESSAGE_MODE, beadfixerMode);
+  public void setBeadfixerMode(BeadFixerMode beadfixerMode) {
+    addPluginMessage(BEAD_FIXER_PLUGIN, BF_MESSAGE_MODE, beadfixerMode
+        .getValue());
   }
 
   public void reopenLog() throws IOException, SystemProcessException {
@@ -2054,6 +2061,25 @@ public class ImodProcess {
 
     boolean isImodv() {
       return imodv;
+    }
+  }
+
+  public static final class BeadFixerMode {
+
+    public static final BeadFixerMode SEED_MODE = new BeadFixerMode("0");
+    public static final BeadFixerMode GAP_MODE = new BeadFixerMode("1");
+    public static final BeadFixerMode RESIDUAL_MODE = new BeadFixerMode("2");
+    public static final BeadFixerMode PATCH_TRACKING_RESIDUAL_MODE = new BeadFixerMode(
+        "3");
+
+    private final String value;
+
+    private BeadFixerMode(String value) {
+      this.value = value;
+    }
+
+    private String getValue() {
+      return value;
     }
   }
 }
