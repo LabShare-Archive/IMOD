@@ -1,24 +1,11 @@
-/* ameoba.c: simplex algorithm for minimization of arbitrary function
-   from Press et al, Numerical Recipes, P.292-293, then translated from
-   amoeba.f 
-   In fortran P is dimensioned (MP,NP).  To allow cross-calling, define
-   p in C as p[np][mp], convert P(I,J) to p[j][i] and address here as
-   p[i + j * mp]
-   
-   Tested this against fortran version with xfalign -red 0 -bi on uni3a.preali
-   max difference in transforms:
-   0.0003    0.0003    0.0003    0.0002    0.0300    0.0270
-   difference in normalized difference measures is typically < 1.5e-6, up to 
-   3e-4 on 4 of 76.
-   Tested on uni3b.preali, max transform difference:
-   0.0002    0.0005    0.0013    0.0004    0.0080    0.0450
-   difference in measure typically < 1.5-e6, up to 4e-4 for 6 of 76.
-   
-   Also tested on 3 sets with solvematch and single layer of patches
-   Coefficients differed by 0.000027 at most.
+/* amoeba.c: simplex algorithm for minimization of arbitrary function
+   Although the approach and method of application are based on
+   Press et al, Numerical Recipes in Fortran, this routine was rewritten from 
+   scratch following the description of the Nelder-Mead algorithm in 
+   Lagarius et al., SIAM J. Optim. Vol. 9, No. 1, pp. 112-147.
 
-   Removed print statement on reaching "maximum iterations"; nothing is or was
-   being done about limiting the iterations.
+   See earlier versions for summary of validation of earlier translation from
+   fortran to C.
 
  * $Id$
  * Log at end of file
@@ -37,9 +24,57 @@
 
 #define NMAX  20
 
+/* Reorder the data or a subset of it */
+static void simpleSort(float *y, int *index, int npts) 
+{
+  int ipt, jpt, itmp;
+  for (ipt = 0; ipt < npts - 1; ipt++) {
+    for (jpt = ipt + 1; jpt < npts; jpt++) {
+      if (y[index[ipt]] > y[index[jpt]]) {
+        itmp = index[ipt];
+        index[ipt] = index[jpt];
+        index[jpt] = itmp;
+      }
+    }
+  }
+}
+
+/* Insert a new point in the simplex following the ordering rule of Lagarias 
+   This business of sorting and maintaining order is silly for a few numbers 
+   and the primary motivation was to produce something different from Press's
+   code for finding the lowest, highest, and second highest at each step. */
+static void acceptPoint(float *p, int mp, int ndim, int *index, float *y,
+                        float *pnew, float ynew)
+{
+  int ipt, jpt, ind, idim;
+
+  /* Find first point that is greater than the new one and insert at that 
+     position.  Here is the deal: Lagarius's ordering rule says to insert at
+     the position of the LAST point that is greater than the new one but this 
+     is just plain wrong.  The minimal change from their formula is to use the
+     in instead of the max index value, which means insert at position of the 
+     FIRST point that is greater than the new one, at the end of any tied 
+     ones. */
+  for (ipt = 0; ipt < ndim; ipt++)
+    if (ynew < y[index[ipt]])
+      break;
+
+  /* Insert the data at the position of former worst point, being discarded */
+  ind = index[ndim];
+  for (idim = 0; idim < ndim; idim++)
+    p[ind + idim * mp] = pnew[idim];
+  y[ind] = ynew;
+
+  /* Roll the index values up then insert the new index value*/
+  for (jpt = ndim; jpt > ipt; jpt--)
+    index[jpt] = index[jpt - 1];
+  index[ipt] = ind;
+}
+
 /*!
  * Performs a multidimensional search to minimize a function of [ndim] 
- * variables.  The function value is computed by * [funk],
+ * variables using the Nelder-Mead algorithm as elaborated by Lagarius et al.
+ * The function value is computed by [funk],
  * a void function of two variables: a float array containing the values of
  * the [ndim] variables, and a pointer to a float for the function value.
  * [p] is a 2-dimensional array dimensioned to at least one more than the 
@@ -47,9 +82,11 @@
  * dimension (second in C, first in fortran).  [y] is a one-dimensional array 
  * also dimensioned to at least one more than the number of variables.
  * Both of these should be preloaded by calling amoebaInit.  
- * Termination is controlled by [ftol], which is an 
- * limit for the fractional change in function value, and the array [ptol],
- * which has limits for the change of each variable.  [iterP] is returned with 
+ * Termination is controlled by [ftol], which is a limit for the fractional 
+ * difference in function value between the lowest and highest point in the 
+ * simplex, and the array [ptol], which has limits for the difference of each 
+ * variable; each component of each point must be within the respective limit 
+ * of the value for the lowest point.  [iterP] is returned with 
  * the number of iterations; [iloP] is returned with the index of the minimum
  * vector in [p] (p\[i\]\[iloP\] in C, p(iloP, i) in fortran).
  * ^ From fortran the subroutine is called as:
@@ -60,120 +97,119 @@
 void amoeba(float *p, float *y, int mp, int ndim, float ftol, 
             void (*funk)(float *, float *), int *iterP, float *ptol, int *iloP)
 {
-  float alpha = 1.0,beta = 0.5,gamma = 2.0;
-  float pr[NMAX], prr[NMAX], pbar[NMAX];
-  int iter, ilo, mpts, ihi, inhi, i, ifnear, j;
-  float ypr, yprr, rtol;
+  /* Reflection, contraction, expansion, and shrinkage coefficients */
+  float rho = 1.0, gamma = 0.5, chi = 2.0, sigma = 0.5;
+  int index[NMAX];
+  float pcen[NMAX], pref[NMAX], pexp[NMAX], yexp, yref;
   int iterMax = 1000;
+  int ipt, idim, near, shrink, ind, ilow, ihigh, isecond, iter, indsort;
+  int npts = ndim + 1;
+
+  /* Make an index to sorted data */
+  for (ipt = 0; ipt < npts; ipt++)
+    index[ipt] = ipt;
+  simpleSort(y, index, npts);
   
-  mpts = ndim + 1;
-  iter = 0;
-  for (;;) {
-   	ilo = 0;
-	if (y[0] > y[1]) {
-	  ihi = 0;
-	  inhi = 1;
-    } else {
-	  ihi = 1;
-	  inhi = 0;
-    }
-	for (i = 0; i < mpts; i++) {
-	  if (y[i] < y[ilo])
-        ilo = i;
-      if (y[i] > y[ihi]) {
-        inhi = ihi;
-        ihi = i;
-	  } else if (y[i] > y[inhi]) {
-	    if (i != ihi) 
-          inhi = i;
-	  }
-    }
-	  
+  for (iter = 0; iter < iterMax; iter++) {
+
+    /* Assign indices of lowest, highest, second highest */
+    ilow = index[0];
+    ihigh = index[npts-1];
+    isecond = index[npts-2];
+
     /* check if each point is within certain distance of lowest */
-	ifnear = 1;
-    for (i = 0; i < mpts; i++) {
-      for (j = 0; j < ndim; j++) {
-	    if (fabs((double)(p[i + j * mp] - p[ilo + j * mp])) >= ptol[j]) {
-          ifnear = 0;
-          break;
-        }
+    near = 1;
+    for (ipt = 1; ipt < npts && near; ipt++) {
+      for (idim = 0; idim < ndim; idim++) {
+        ind = index[ipt];
+        if (fabs((double)(p[ipt + idim*mp] - p[ilow + idim*mp])) >= ptol[idim])
+          {
+            near = 0;
+            break;
+          }
       }
     }
-    if (ifnear)
+    if (near)
       break;
-
-    /* DNM 6/17/06: protect against hard zeros by testing for equality first */
-    if (y[ihi] == y[ilo])
+            
+    /* Check if overall range of values is small relative to value */
+    if (y[ihigh] - y[ilow] <= 0.5 * (fabs((double)y[ihigh]) + 
+                                     fabs((double)y[ilow])) * ftol)
       break;
-	rtol = (float)(2.*fabs((double)(y[ihi] - y[ilo]))/
-      (fabs((double)y[ihi])+ fabs((double)y[ilo])));
-	if (rtol < ftol)
-      break;
-
-	iter++;
-    if (iter > iterMax)
-      break;
-
-    for (j = 0; j < ndim; j++)
-	  pbar[j] = 0.;
-    for (i = 0; i < mpts; i++) {
-	  if (i != ihi) {
-	    for (j = 0; j < ndim; j++)
-	      pbar[j] = pbar[j]+p[i + j * mp];
-	  }
+                                         
+    /* Get centroid of all but highest point and compute reflection */
+    for (idim = 0; idim < ndim; idim++) {
+      pcen[idim] = 0.;
+      for (ipt = 0; ipt < npts - 1; ipt++)
+        pcen[idim] += p[index[ipt] + idim*mp];
+      pcen[idim] /= ndim;
+      pref[idim] = (1. + rho) * pcen[idim] - rho * p[ihigh + idim*mp];
     }
-    for (j = 0; j < ndim; j++) {
-	  pbar[j] = pbar[j]/ndim;
-	  pr[j] = (1.f+alpha)*pbar[j] - alpha*p[ihi + j * mp];
-    }
-	funk(pr, &ypr);
-    if (ypr <= y[ilo]) {
-	  for (j = 0; j < ndim; j++)
-	    prr[j] = gamma*pr[j]+(1.f - gamma)*pbar[j];
-	  funk(prr, &yprr);
-	  if (yprr < y[ilo]) {
-	    for (j = 0; j < ndim; j++)
-	      p[ihi + j * mp] = prr[j];
-	    y[ihi] = yprr;
-	  } else {
-	    for (j = 0; j < ndim; j++)
-	      p[ihi + j * mp] = pr[j];
-	    y[ihi] = ypr;
-	  }
-    } else if (ypr >= y[inhi]) {
-      if (ypr < y[ihi]) {
-	    for (j = 0; j < ndim; j++)
-	      p[ihi + j * mp] = pr[j];
-	    y[ihi] = ypr;
-	  }
-      for (j = 0; j < ndim; j++)
-	    prr[j] = beta*p[ihi + j * mp]+(1.f - beta)*pbar[j];
-	  funk(prr, &yprr);
-      if (yprr < y[ihi]) {
-	    for (j = 0; j < ndim; j++)
-	      p[ihi + j * mp] = prr[j];
-	    y[ihi] = yprr;
+    funk(pref, &yref);
+    
+    /* If reflected point is better than second highest but not best, accept */
+    if (yref >= y[ilow] && yref < y[isecond]) {
+      acceptPoint(p, mp, ndim, index, y, pref, yref);
+
+      /* Or, if reflected point is very best, do an expansion */
+    } else if (yref < y[ilow]) {
+      for (idim = 0; idim < ndim; idim++)
+        pexp[idim] = (1. - chi) * pcen[idim] + chi * pref[idim];
+      funk(pexp, &yexp);
+      
+      /* Take the better of the two points (greedy minimization) */
+      if (yexp < yref)
+        acceptPoint(p, mp, ndim, index, y, pexp, yexp);
+      else
+        acceptPoint(p, mp, ndim, index, y, pref, yref);
+
+      /* Or, if reflection is no better than second highest, contract */
+    } else {
+      shrink = 0;
+
+      /* Outside contraction */
+      if (yref <= y[ihigh]) {
+        for (idim = 0; idim < ndim; idim++)
+          pexp[idim] = (1. + rho * gamma) * pcen[idim] - 
+            rho * gamma * p[ihigh + idim*mp];
+        funk(pexp, &yexp);
+        if (yexp <= yref)
+          acceptPoint(p, mp, ndim, index, y, pexp, yexp);
+        else
+          shrink = 1;
+
+        /* Inside contraction */
       } else {
-        for (i = 0; i < mpts; i++) {
-	      if (i != ilo) {
-            for (j = 0; j < ndim; j++) {
-              pr[j] = 0.5f*(p[i + j * mp]+p[ilo + j * mp]);
-              p[i + j * mp] = pr[j];
-            }
-            funk(pr, &y[i]);
-	      }
+        for (idim = 0; idim < ndim; idim++)
+          pexp[idim] = (1. - gamma) * pcen[idim] + gamma * p[ihigh + idim*mp];
+        funk(pexp, &yexp);
+        if (yexp < y[ihigh])
+          acceptPoint(p, mp, ndim, index, y, pexp, yexp);
+        else
+          shrink = 1;
+      }
+
+      /* Shrink and evaluate, then reorder all the new points*/
+      if (shrink) {
+        indsort = 1;
+        for (ipt = 1; ipt < npts; ipt++) {
+          ind = index[ipt];
+          for (idim = 0; idim < ndim; idim++) {
+            pexp[idim] = (1. - sigma) * p[ilow + idim*mp] +
+              sigma * p[ind + idim*mp];
+            p[ind + idim*mp] = pexp[idim];
+          }
+          funk(pexp, &y[ind]);
+          if (y[ind] < y[ilow])
+            indsort = 0;
         }
-	  }
-	} else {
-	  for (j = 0; j < ndim; j++)
-	    p[ihi + j * mp] = pr[j];
-	  y[ihi] = ypr;
-	}
+        simpleSort(y, &index[indsort], npts - indsort);
+      }
+    }
   }
 
-  *iloP = ilo;
+  *iloP = ilow;
   *iterP = iter;
-  return;
 }
 
 /*!
@@ -224,6 +260,9 @@ void amoebainitfwrap(float *p, float *y, int *mp, int *ndim, float *delfac,
 /*
 
 $Log$
+Revision 1.3  2007/10/01 15:26:09  mast
+*** empty log message ***
+
 Revision 1.2  2007/09/20 15:42:32  mast
 Documentation fixes
 
