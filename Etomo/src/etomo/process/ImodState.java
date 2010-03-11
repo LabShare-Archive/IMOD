@@ -176,6 +176,10 @@ import etomo.type.Run3dmodMenuOptions;
  * @version $$Revision$$
  * 
  * <p> $$Log$
+ * <p> $Revision 1.55  2010/02/17 04:49:20  sueh
+ * <p> $bug# 1301 Using the manager instead of the manager key do pop up
+ * <p> $messages.
+ * <p> $
  * <p> $Revision 1.54  2009/09/01 03:17:56  sueh
  * <p> $bug# 1222
  * <p> $
@@ -422,7 +426,7 @@ public final class ImodState {
   private boolean autoCenter = false;
   private boolean newContours = false;
   private boolean manageNewContours = false;
-  private String beadfixerMode = null;
+  private ImodProcess.BeadFixerMode beadfixerMode = null;
   private String skipList = null;
 
   //signals that a state variable has been changed at least once, so the
@@ -1080,7 +1084,7 @@ public final class ImodState {
     deleteAllSections.set(on);
   }
 
-  void setBeadfixerMode(String mode) {
+  void setBeadfixerMode(ImodProcess.BeadFixerMode mode) {
     beadfixerMode = mode;
   }
 
@@ -1196,6 +1200,10 @@ public final class ImodState {
    */
   public void setWorkingDirectory(File workingDirectory) {
     process.setWorkingDirectory(workingDirectory);
+  }
+  
+  public void setOpenModelView() throws IOException, SystemProcessException{
+    process.setOpenModelView();
   }
 
   void setContinuousListenerTarget(

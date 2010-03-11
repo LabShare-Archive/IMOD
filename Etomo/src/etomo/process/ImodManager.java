@@ -40,6 +40,10 @@ import etomo.util.Utilities;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.77  2010/02/17 04:49:20  sueh
+ * <p> bug# 1301 Using the manager instead of the manager key do pop up
+ * <p> messages.
+ * <p>
  * <p> Revision 3.76  2009/12/19 01:08:52  sueh
  * <p> bug# 1294 Added SMOOTHING_ASSESSMENT_KEY.
  * <p>
@@ -878,6 +882,19 @@ public class ImodManager {
     }
   }
 
+  public void setOpenModelView(String key, AxisID axisID) throws AxisTypeException,
+      IOException, SystemProcessException {
+    key = getPrivateKey(key);
+    ImodState imodState = get(key, axisID);
+    if (imodState == null) {
+      newImod(key, axisID);
+      imodState = get(key, axisID);
+    }
+    if (imodState != null) {
+      imodState.setOpenModelView();
+    }
+  }
+
   public void open(String key, String[] fileNameArray,
       Run3dmodMenuOptions menuOptions) throws AxisTypeException,
       SystemProcessException, IOException {
@@ -1242,8 +1259,8 @@ public class ImodManager {
     imodState.setDeleteAllSections(on);
   }
 
-  public void setBeadfixerMode(String key, AxisID axisID, String mode)
-      throws AxisTypeException {
+  public void setBeadfixerMode(String key, AxisID axisID,
+      ImodProcess.BeadFixerMode mode) throws AxisTypeException {
     ImodState imodState = get(key, axisID);
     if (imodState == null) {
       return;
