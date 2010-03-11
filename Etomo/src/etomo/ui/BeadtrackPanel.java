@@ -40,6 +40,9 @@ import etomo.type.Run3dmodMenuOptions;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.33  2010/03/03 05:01:49  sueh
+ * <p> bug# 1311 added setVisible.
+ * <p>
  * <p> Revision 3.32  2010/02/17 05:03:12  sueh
  * <p> bug# 1301 Using manager instead of manager key for popping up messages.
  * <p>
@@ -751,7 +754,7 @@ public final class BeadtrackPanel implements Expandable,
         skipList = null;
       }
       manager.imodFixFiducials(axisID, run3dmodMenuOptions, btnFixModel,
-          ImodProcess.GAP_MODE, skipList);
+          ImodProcess.BeadFixerMode.GAP_MODE, skipList);
     }
   }
 
