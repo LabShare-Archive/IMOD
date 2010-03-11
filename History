@@ -1,5 +1,11 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+3/10/10: Fixed Xfsimplex when run with fewer than 6 variables, broken 10/12/09.
+
+3/10/10: Replaced amoeba routine of Press et al. to satisfy requirements for
+being open source.  Some searches such as in Xfalign, or Solvematch/Findwarp
+with one layer of patches, will give slightly different results.
+
 3/8/10: Changed Ctfplotter so that noise config file can have relative paths.
 
 3/8/10: Added option to inform Findbead3d of binning.
