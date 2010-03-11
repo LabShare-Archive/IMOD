@@ -318,13 +318,8 @@ int main(int argc, char *argv[])
   /* Do scaling to image reference next */
   if (toImage) {
 
-    if (!model.refImage) {
-      fprintf(stderr, "ERROR: %s - Model has no image scaling information; "
-              "-i option invalid\n", progname);
-      exit(3);
-    }
-
-    if (!(model.flags & IMODF_OTRANS_ORIGIN)) {
+    modRefp = model.refImage;
+    if (modRefp && !(model.flags & IMODF_OTRANS_ORIGIN)) {
       fprintf(stderr, "ERROR: %s - Model has no image origin information; "
               "-i option invalid\n", progname);
       exit(3);
@@ -345,11 +340,25 @@ int main(int argc, char *argv[])
     if (hdata.zlen && hdata.mz)
       useRef.cscale.z = hdata.zlen/(float)hdata.mz;
     
-    modRefp = model.refImage;
-    useRef.otrans = modRefp->ctrans;
-    useRef.orot = modRefp->crot;
-    useRef.oscale = modRefp->cscale;
-    imodTransFromRefImage(&model, &useRef, unitPt);
+    if (modRefp) {
+
+      /* If there is a refImage, scale the data as when reading into 3dmod */
+      useRef.otrans = modRefp->ctrans;
+      useRef.orot = modRefp->crot;
+      useRef.oscale = modRefp->cscale;
+      imodTransFromRefImage(&model, &useRef, unitPt);
+    } else {
+
+      /* If there is no refImage, do not scale data but assign all the information
+         just as if reading into 3dmod */
+      model.refImage = (IrefImage *)malloc (sizeof(IrefImage));
+      modRefp = model.refImage;
+      if (!modRefp) {
+        fprintf(stderr, "ERROR: %s - Allocating a IrefImage structure\n", progname);
+        exit(3);
+      }
+      model.flags |= IMODF_OTRANS_ORIGIN;
+    }
     *modRefp = useRef;
     modRefp->otrans = useRef.ctrans;
   }
@@ -601,6 +610,9 @@ static int trans_model_3d(Imod *model, Imat *mat, Imat *normMat, Ipoint newCen,
 
 /*
     $Log$
+    Revision 3.9  2009/09/18 14:58:36  mast
+    Changed to skip blank lines in transform file
+
     Revision 3.8  2006/10/05 19:44:47  mast
     Set the model maxes if the -n optionis used
 
