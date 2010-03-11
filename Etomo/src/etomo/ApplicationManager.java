@@ -2022,7 +2022,8 @@ public final class ApplicationManager extends BaseManager implements
     try {
       imodManager.setPreserveContrast(key, axisID, true);
       imodManager.setOpenBeadFixer(key, axisID, true);
-      imodManager.setBeadfixerMode(key, axisID, ImodProcess.SEED_MODE);
+      imodManager.setBeadfixerMode(key, axisID,
+          ImodProcess.BeadFixerMode.SEED_MODE);
       imodManager.setOpenLogOff(key, axisID);
       imodManager.setDeleteAllSections(key, axisID, true);
       if (tiltFile != null && tiltFile.exists()) {
@@ -2066,7 +2067,8 @@ public final class ApplicationManager extends BaseManager implements
       imodManager.setPreserveContrast(key, axisID, true);
       imodManager.setOpenBeadFixer(key, axisID, true);
       imodManager.setAutoCenter(key, axisID, true);
-      imodManager.setBeadfixerMode(key, axisID, ImodProcess.SEED_MODE);
+      imodManager.setBeadfixerMode(key, axisID,
+          ImodProcess.BeadFixerMode.SEED_MODE);
       imodManager.setOpenLogOff(key, axisID);
       if (tiltFile != null && tiltFile.exists()) {
         imodManager.setTiltFile(key, axisID, tiltFile.getName());
@@ -2316,8 +2318,8 @@ public final class ApplicationManager extends BaseManager implements
    * Open 3dmod with the new fidcuial model
    */
   public void imodFixFiducials(AxisID axisID, Run3dmodMenuOptions menuOptions,
-      ProcessResultDisplay processResultDisplay, String beadfixerMode,
-      String skipList) {
+      ProcessResultDisplay processResultDisplay,
+      ImodProcess.BeadFixerMode beadfixerMode, String skipList) {
     sendMsgProcessStarting(processResultDisplay);
     // if fix fiducials has already run, don't change auto center
     boolean setAutoCenter = !state.isFixedFiducials(axisID);
@@ -2333,9 +2335,11 @@ public final class ApplicationManager extends BaseManager implements
       imodManager.setSkipList(ImodManager.COARSE_ALIGNED_KEY, axisID, skipList);
       imodManager.setBeadfixerMode(ImodManager.COARSE_ALIGNED_KEY, axisID,
           beadfixerMode);
+      boolean residualMode = beadfixerMode == ImodProcess.BeadFixerMode.RESIDUAL_MODE
+          || beadfixerMode == ImodProcess.BeadFixerMode.PATCH_TRACKING_RESIDUAL_MODE;
       imodManager.setOpenLog(ImodManager.COARSE_ALIGNED_KEY, axisID,
-          beadfixerMode == ImodProcess.RESIDUAL_MODE, DatasetFiles.getLogName(
-              this, axisID, ProcessName.ALIGN));
+          residualMode, DatasetFiles
+              .getLogName(this, axisID, ProcessName.ALIGN));
       File tiltFile = DatasetFiles.getRawTiltFile(this, axisID);
       if (tiltFile.exists()) {
         imodManager.setTiltFile(ImodManager.COARSE_ALIGNED_KEY, axisID,
@@ -2344,9 +2348,13 @@ public final class ApplicationManager extends BaseManager implements
       else {
         imodManager.resetTiltFile(ImodManager.COARSE_ALIGNED_KEY, axisID);
       }
-      if (beadfixerMode.equals(ImodProcess.RESIDUAL_MODE)) {
+      if (residualMode) {
+        //Listen for message from 3dmod that the align logs have to be redone.
         imodManager.setContinuousListenerTarget(ImodManager.COARSE_ALIGNED_KEY,
             axisID, this);
+      }
+      if (beadfixerMode == ImodProcess.BeadFixerMode.PATCH_TRACKING_RESIDUAL_MODE) {
+        imodManager.setOpenModelView(ImodManager.COARSE_ALIGNED_KEY, axisID);
       }
       imodManager.open(ImodManager.COARSE_ALIGNED_KEY, axisID, fiducialModel,
           true, menuOptions);
@@ -2863,7 +2871,7 @@ public final class ApplicationManager extends BaseManager implements
       imodManager.setPreserveContrast(ImodManager.COARSE_ALIGNED_KEY, axisID,
           true);
       imodManager.setBeadfixerMode(ImodManager.COARSE_ALIGNED_KEY, axisID,
-          ImodProcess.RESIDUAL_MODE);
+          ImodProcess.BeadFixerMode.RESIDUAL_MODE);
       imodManager.setOpenLogOff(ImodManager.COARSE_ALIGNED_KEY, axisID);
       File tiltFile = DatasetFiles.getRawTiltFile(this, axisID);
       if (tiltFile.exists()) {
@@ -8014,6 +8022,9 @@ public final class ApplicationManager extends BaseManager implements
 }
 /**
  * <p> $Log$
+ * <p> Revision 3.351  2010/03/08 20:59:56  sueh
+ * <p> bug# 1311 Syncing xcorr.com and xcorr_pt.com
+ * <p>
  * <p> Revision 3.350  2010/03/03 04:49:48  sueh
  * <p> bug# 1311 Added imodModel and changed crossCorrelation to tiltxcorr.
  * <p>
