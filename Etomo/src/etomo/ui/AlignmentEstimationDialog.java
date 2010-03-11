@@ -38,6 +38,9 @@ import etomo.type.Run3dmodMenuOptions;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.40  2010/03/03 05:00:33  sueh
+ * <p> bug# 1311 Added setPatchTracking and setSurfacesToAnalyze.
+ * <p>
  * <p> Revision 3.39  2009/12/19 01:12:34  sueh
  * <p> bug# 1294 Generalized ApplicationManager.imodView3DModel so it can open the smoothing assessment model.  Renamed it imodViewModel.
  * <p>
@@ -322,6 +325,8 @@ public final class AlignmentEstimationDialog extends ProcessDialog implements
   private Run3dmodButton btnViewResiduals = Run3dmodButton.get3dmodInstance(
       "View Residual Vectors", this);
   private final AlignmentEstimationActionListner actionListener;
+  
+  private boolean patchTracking=false;
 
   public AlignmentEstimationDialog(ApplicationManager appMgr, AxisID axisID) {
     super(appMgr, axisID, DialogType.FINE_ALIGNMENT);
@@ -395,9 +400,10 @@ public final class AlignmentEstimationDialog extends ProcessDialog implements
   public void setParameters(ReconScreenState screenState) {
     pnlTiltalign.setParameters(screenState);
   }
-  
-  public void setPatchTracking(boolean patchTracking) {
-    pnlTiltalign.setPatchTracking(patchTracking);
+
+  public void setPatchTracking(boolean input) {
+    patchTracking=input;
+    pnlTiltalign.setPatchTracking(input);
   }
 
   public void setSurfacesToAnalyze(int surfacesToAnalyze) {
@@ -513,7 +519,8 @@ public final class AlignmentEstimationDialog extends ProcessDialog implements
     }
     else if (command.equals(btnImod.getActionCommand())) {
       applicationManager.imodFixFiducials(axisID, run3dmodMenuOptions, null,
-          ImodProcess.RESIDUAL_MODE, null);
+          patchTracking ? ImodProcess.BeadFixerMode.PATCH_TRACKING_RESIDUAL_MODE
+              : ImodProcess.BeadFixerMode.RESIDUAL_MODE, null);
     }
     else if (command.equals(btnViewResiduals.getActionCommand())) {
       applicationManager.imodViewResiduals(axisID, run3dmodMenuOptions);
