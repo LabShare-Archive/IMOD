@@ -48,6 +48,10 @@ import etomo.util.InvalidParameterException;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.6  2010/03/05 04:11:07  sueh
+ * <p> bug# 1319 Changed all SpacedTextField variables to LabeledTextField to
+ * <p> line up the fields better.
+ * <p>
  * <p> Revision 3.5  2010/03/05 04:01:37  sueh
  * <p> bug# 1319 Convert ltfLogOffset to ctfLog.  Added linear scale for when
  * <p> the log is turned off.
@@ -69,9 +73,6 @@ abstract class AbstractTiltPanel implements Expandable, TrialTiltParent,
     Run3dmodButtonContainer, TiltDisplay {
   public static final String rcsid = "$Id$";
 
-  private static final String ADVANCED_LOG_LABEL = "Take the log with offset: ";
-  private static final String BASIC_LOG_LABEL = "Take the log";
-
   private final SpacedPanel pnlRoot = SpacedPanel.getInstance();
   //Keep components with listeners private.
   private final Run3dmodButton btn3dmodTomogram = Run3dmodButton
@@ -79,7 +80,7 @@ abstract class AbstractTiltPanel implements Expandable, TrialTiltParent,
   private final ActionListener actionListener = new TiltActionListener(this);
   private final JPanel pnlBody = new JPanel();
   private final CheckTextField ctfLog = CheckTextField
-      .getInstance(BASIC_LOG_LABEL);
+      .getInstance("Take logarithm of densities with offset: ");
   private final CheckBox cbParallelProcess = new CheckBox(
       ParallelPanel.FIELD_LABEL);
   private final LabeledTextField ltfTomoWidth = new LabeledTextField(
@@ -95,7 +96,7 @@ abstract class AbstractTiltPanel implements Expandable, TrialTiltParent,
   private final LabeledTextField ltfExtraExcludeList = new LabeledTextField(
       "Extra views to exclude: ");
   private final LabeledTextField ltfLogDensityScaleFactor = new LabeledTextField(
-      "Log density scaling factor: ");
+      "Logarithm density scaling factor: ");
   private final LabeledTextField ltfLogDensityScaleOffset = new LabeledTextField(
       "Offset: ");
   private final LabeledTextField ltfLinearDensityScaleFactor = new LabeledTextField(
@@ -275,6 +276,10 @@ abstract class AbstractTiltPanel implements Expandable, TrialTiltParent,
     return cbParallelProcess;
   }
 
+  final Component getUseGpuCheckBox() {
+    return cbUseGpu;
+  }
+
   final ProcessResultDisplay getTiltProcessResultDisplay() {
     return btnTilt;
   }
@@ -312,13 +317,6 @@ abstract class AbstractTiltPanel implements Expandable, TrialTiltParent,
   }
 
   void updateAdvanced(final boolean advanced) {
-    ctfLog.setTextFieldVisible(advanced);
-    if (advanced) {
-      ctfLog.setLabel(ADVANCED_LOG_LABEL);
-    }
-    else {
-      ctfLog.setLabel(BASIC_LOG_LABEL);
-    }
     ltfLogDensityScaleOffset.setVisible(advanced);
     ltfLogDensityScaleFactor.setVisible(advanced);
     ltfLinearDensityScaleOffset.setVisible(advanced);
@@ -666,8 +664,7 @@ abstract class AbstractTiltPanel implements Expandable, TrialTiltParent,
 
       if (ltfTiltAngleOffset.getText().matches("\\S+")) {
         badParameter = ltfTiltAngleOffset.getLabel();
-        tiltParam.setTiltAngleOffset(Float.parseFloat(ltfTiltAngleOffset
-            .getText()));
+        tiltParam.setTiltAngleOffset(ltfTiltAngleOffset.getText());
       }
       else {
         tiltParam.resetTiltAngleOffset();
@@ -784,7 +781,7 @@ abstract class AbstractTiltPanel implements Expandable, TrialTiltParent,
       tiltAction(deferred3dmodButton, run3dmodMenuOptions);
     }
     else if (command.equals(btnDeleteStack.getActionCommand())) {
-      manager.deleteAlignedStacks(axisID, btnDeleteStack);
+      manager.deleteIntermediateImageStacks(axisID, btnDeleteStack);
     }
     else if (command.equals(cbParallelProcess.getActionCommand())) {
       updateParallelProcess();
