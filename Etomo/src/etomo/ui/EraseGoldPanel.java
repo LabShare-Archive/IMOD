@@ -40,12 +40,17 @@ import etomo.type.TomogramState;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.3  2009/09/22 23:54:41  sueh
+ * <p> bug# 1269 Added setEnabledTiltParameters.
+ * <p>
  * <p> Revision 1.2  2009/09/01 03:18:25  sueh
  * <p> bug# 1222
  * <p> </p>
  */
 final class EraseGoldPanel implements Beads3dFindParent {
   public static final String rcsid = "$Id$";
+  
+  static final String ERASE_GOLD_TAB_LABEL="Erase Gold";
 
   private final JPanel pnlRoot = new JPanel();
   private final EraseGoldPanelActionListener actionListener = new EraseGoldPanelActionListener(
