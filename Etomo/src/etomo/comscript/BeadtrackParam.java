@@ -35,6 +35,10 @@ import etomo.type.ScriptParameter;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.28  2010/02/17 04:47:54  sueh
+ * <p> bug# 1301 Using the manager instead of the manager key do pop up
+ * <p> messages.
+ * <p>
  * <p> Revision 3.27  2010/01/11 23:49:01  sueh
  * <p> bug# 1299 Added isMessageReporter.
  * <p>
@@ -446,6 +450,10 @@ public class BeadtrackParam extends OldBeadtrackParam implements CommandParam,
 
   public ConstEtomoNumber getPostFitRescueResidual() {
     return postFitRescueResidual;
+  }
+  
+  public boolean isBeadDiameterSet() {
+    return !beadDiameter.isNull();
   }
 
   public ConstEtomoNumber getBeadDiameter() {
