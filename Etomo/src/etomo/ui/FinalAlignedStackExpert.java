@@ -50,6 +50,9 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.22  2010/02/17 05:03:12  sueh
+ * <p> bug# 1301 Using manager instead of manager key for popping up messages.
+ * <p>
  * <p> Revision 1.21  2009/10/19 16:29:04  sueh
  * <p> bug# 1253 Added invertTiltAngles.
  * <p>
@@ -305,6 +308,46 @@ public final class FinalAlignedStackExpert extends ReconUIExpert {
     }
     curTab = dialog.getCurTab();
     DialogExitState exitState = dialog.getExitState();
+    if (exitState != DialogExitState.CANCEL && !manager.isExiting()
+        && exitState != DialogExitState.POSTPONE) {
+      if (state.isUseCtfCorrectionWarning(axisID)) {
+        //The use button wasn't pressed and the user is moving on to the next
+        //dialog.
+        UIHarness.INSTANCE.openMessageDialog(manager,
+            "To use the CTF correction go back to Final Aligned Stack and press "
+                + "the \"" + FinalAlignedStackDialog.USE_CTF_CORRECTION_LABEL
+                + "\" button in the " + FinalAlignedStackDialog.CTF_TAB_LABEL
+                + " tab.", "Entry Warning", axisID);
+        //Only warn once.
+        state.setUseCtfCorrectionWarning(axisID, false);
+      }
+      if (state.isUseErasedStackWarning(axisID)) {
+        //The use button wasn't pressed and the user is moving on to the next
+        //dialog.
+        UIHarness.INSTANCE.openMessageDialog(manager,
+            "To use the stack with the erased beads go back to Final Aligned "
+                + "Stack and press the \""
+                + FinalAlignedStackDialog.getUseErasedStackLabel()
+                + "\" button in the "
+                + FinalAlignedStackDialog.getErasedStackTabLabel() + " tab.",
+            "Entry Warning", axisID);
+        //Only warn once.
+        state.setUseErasedStackWarning(axisID, false);
+      }
+      if (state.isUseFilteredStackWarning(axisID)) {
+        //The use button wasn't pressed and the user is moving on to the next
+        //dialog.
+        UIHarness.INSTANCE.openMessageDialog(manager,
+            "To use the MTF filtered stack go back to Final Aligned "
+                + "Stack and press the \""
+                + FinalAlignedStackDialog.USE_FILTERED_STACK_LABEL
+                + "\" button in the "
+                + FinalAlignedStackDialog.MTF_FILTER_TAB_LABEL + " tab.",
+            "Entry Warning", axisID);
+        //Only warn once.
+        state.setUseFilteredStackWarning(axisID, false);
+      }
+    }
     if (exitState == DialogExitState.EXECUTE) {
       manager.closeImod(ImodManager.MTF_FILTER_KEY, axisID,
           "MTF filtered stack");
@@ -370,7 +413,7 @@ public final class FinalAlignedStackExpert extends ReconUIExpert {
     updateCtfCorrectionCom();
     manager.updateTilt3dFindCom(dialog.getTilt3dFindDisplay(), axisID);
     manager.updateFindBeads3dCom(dialog.getFindBeads3dDisplay(), axisID);
-    manager.updateCcdEraserParam(dialog.getCcdEraserBeadsDisplay());
+    manager.updateCcdEraserParam(dialog.getCcdEraserBeadsDisplay(), axisID);
     manager.saveStorables(axisID);
   }
 
@@ -637,9 +680,11 @@ public final class FinalAlignedStackExpert extends ReconUIExpert {
    * created by ctfcorrection.com
    */
   void useCtfCorrection(ProcessResultDisplay processResultDisplay) {
-    manager.useFileAsFullAlignedStack(processResultDisplay, DatasetFiles
+    if (manager.useFileAsFullAlignedStack(processResultDisplay, DatasetFiles
         .getCtfCorrectionFile(manager, axisID),
-        FinalAlignedStackDialog.CTF_CORRECTION_LABEL, axisID, dialogType);
+        FinalAlignedStackDialog.CTF_CORRECTION_LABEL, axisID, dialogType)) {
+      state.setUseCtfCorrectionWarning(axisID, false);
+    }
   }
 
   /**
@@ -713,6 +758,7 @@ public final class FinalAlignedStackExpert extends ReconUIExpert {
         "original full aligned stack");
     stopProgressBar(axisID);
     sendMsg(ProcessResult.SUCCEEDED, processResultDisplay);
+    state.setUseFilteredStackWarning(axisID, false);
   }
 
   private void updateFilter(boolean enable) {
