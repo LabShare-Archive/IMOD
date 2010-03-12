@@ -1,8 +1,10 @@
 package etomo.comscript;
 
+import java.io.File;
 import java.util.ArrayList;
 
 import etomo.BaseManager;
+import etomo.type.AxisID;
 import etomo.type.EtomoNumber;
 import etomo.type.ProcessName;
 import etomo.type.ScriptParameter;
@@ -21,6 +23,10 @@ import etomo.ui.UIHarness;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.9  2010/02/17 04:47:54  sueh
+ * <p> bug# 1301 Using the manager instead of the manager key do pop up
+ * <p> messages.
+ * <p>
  * <p> Revision 3.8  2009/03/17 00:30:54  sueh
  * <p> bug# 1186 Pass managerKey to everything that pops up a dialog.
  * <p>
@@ -83,7 +89,8 @@ import etomo.ui.UIHarness;
  * <p> </p>
  */
 
-public class CCDEraserParam extends ConstCCDEraserParam implements CommandParam {
+public class CCDEraserParam extends ConstCCDEraserParam implements Command,
+    CommandParam {
   public static final String rcsid = "$Id$";
 
   private static final int COMMAND_SIZE = 1;
@@ -95,9 +102,14 @@ public class CCDEraserParam extends ConstCCDEraserParam implements CommandParam 
   private boolean debug = true;
 
   private final BaseManager manager;
+  private final AxisID axisID;
+  private final CommandMode mode;
 
-  public CCDEraserParam(BaseManager manager) {
+  public CCDEraserParam(final BaseManager manager, final AxisID axisID,
+      final CommandMode mode) {
     this.manager = manager;
+    this.axisID = axisID;
+    this.mode = mode;
   }
 
   /**
@@ -105,22 +117,27 @@ public class CCDEraserParam extends ConstCCDEraserParam implements CommandParam 
    */
   public String[] getCommandArray() {
     if (commandArray == null) {
-      ArrayList options = genOptions();
-      commandArray = new String[options.size() + COMMAND_SIZE];
-      commandArray[0] = BaseManager.getIMODBinPath()
-          + ProcessName.CCD_ERASER.toString();
-      for (int i = 0; i < options.size(); i++) {
-        commandArray[i + COMMAND_SIZE] = (String) options.get(i);
-      }
-      if (debug) {
-        StringBuffer buffer = new StringBuffer();
-        for (int i = 0; i < commandArray.length; i++) {
-          buffer.append(commandArray[i]);
-          if (i < commandArray.length - 1) {
-            buffer.append(' ');
-          }
+      if (mode == Mode.BEADS) {
+        ArrayList options = genOptions();
+        commandArray = new String[options.size() + COMMAND_SIZE];
+        commandArray[0] = BaseManager.getIMODBinPath()
+            + ProcessName.CCD_ERASER.toString();
+        for (int i = 0; i < options.size(); i++) {
+          commandArray[i + COMMAND_SIZE] = (String) options.get(i);
         }
-        System.err.println(buffer.toString());
+        if (debug) {
+          StringBuffer buffer = new StringBuffer();
+          for (int i = 0; i < commandArray.length; i++) {
+            buffer.append(commandArray[i]);
+            if (i < commandArray.length - 1) {
+              buffer.append(' ');
+            }
+          }
+          System.err.println(buffer.toString());
+        }
+      }
+      else {
+        return new String[] { ProcessName.ERASER.getComscript(axisID) };
       }
     }
     return commandArray;
@@ -514,5 +531,71 @@ public class CCDEraserParam extends ConstCCDEraserParam implements CommandParam 
 
   public void setBetterRadius(double input) {
     betterRadius.set(input);
+  }
+
+  public AxisID getAxisID() {
+    return axisID;
+  }
+
+  public String getCommand() {
+    if (mode == Mode.BEADS) {
+      return ProcessName.CCD_ERASER.toString();
+    }
+    return ProcessName.ERASER.getComscript(axisID);
+  }
+
+  public File getCommandInputFile() {
+    return new File(manager.getPropertyUserDir(), inputFile);
+  }
+
+  public String getCommandLine() {
+    if (mode == Mode.BEADS) {
+      if (commandArray == null) {
+        return "";
+      }
+      StringBuffer buffer = new StringBuffer();
+      for (int i = 0; i < commandArray.length; i++) {
+        buffer.append(commandArray[i] + " ");
+      }
+      return buffer.toString();
+    }
+    return getCommand();
+  }
+
+  public CommandMode getCommandMode() {
+    return mode;
+  }
+
+  public String getCommandName() {
+    return ProcessName.CCD_ERASER.toString();
+  }
+
+  public File getCommandOutputFile() {
+    return new File(manager.getPropertyUserDir(), outputFile);
+  }
+
+  public ProcessName getProcessName() {
+    if (mode == Mode.BEADS) {
+      return ProcessName.CCD_ERASER;
+    }
+    return ProcessName.ERASER;
+  }
+
+  public CommandDetails getSubcommandDetails() {
+    return null;
+  }
+
+  public ProcessName getSubcommandProcessName() {
+    return null;
+  }
+
+  public boolean isMessageReporter() {
+    return false;
+  }
+
+  public static final class Mode implements CommandMode {
+    public static final Mode X_RAYS = new Mode();
+    public static final Mode X_RAYS_TRIAL = new Mode();
+    public static final Mode BEADS = new Mode();
   }
 }
