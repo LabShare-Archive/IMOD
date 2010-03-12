@@ -61,6 +61,7 @@ copy.file = %{dataset}.st
 set.var.single=
 set.var.fidless=
 set.interface.Recon=
+#set.var.build=
 
 [Test = single-simple-align]
 set.testdir=single-simple-align
@@ -245,6 +246,7 @@ set.var.unbinned-bead-diameter = 10.56
 set.var.int-unbinned-bead-diameter = 11
 #PreProc
 set.var.maximum-radius=2.6
+set.var.needs-pre-proc=
 #FidModel
 set.var.pixels-to-trim.a=98,51
 set.var.pixels-to-trim.b=51,98
