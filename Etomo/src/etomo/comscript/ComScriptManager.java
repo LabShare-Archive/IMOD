@@ -34,6 +34,10 @@ import etomo.util.Utilities;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.61  2010/03/03 04:51:10  sueh
+ * <p> bug# 1311 Added scriptXcorrPtA and B.  Added
+ * <p> getTiltxcorrParamFromXcorrPt, loadXCorrPt, and saveXcorrPt.
+ * <p>
  * <p> Revision 3.60  2010/02/17 04:47:53  sueh
  * <p> bug# 1301 Using the manager instead of the manager key do pop up
  * <p> messages.
@@ -440,7 +444,7 @@ public final class ComScriptManager extends BaseComScriptManager {
    * @return a CCDEraserParam object that will be created and initialized
    * with the input arguments from eraser in the com script.
    */
-  public CCDEraserParam getCCDEraserParam(AxisID axisID) {
+  public CCDEraserParam getCCDEraserParam(AxisID axisID,CommandMode mode) {
 
     //  Get a reference to the appropriate script object
     ComScript eraser;
@@ -452,7 +456,7 @@ public final class ComScriptManager extends BaseComScriptManager {
     }
 
     // Initialize a CCDEraserParam object from the com script command object
-    CCDEraserParam ccdEraserParam = new CCDEraserParam(appManager);
+    CCDEraserParam ccdEraserParam = new CCDEraserParam(appManager,axisID,mode);
     initialize(ccdEraserParam, eraser, "ccderaser", axisID, false, false);
     return ccdEraserParam;
   }
