@@ -35,6 +35,9 @@ import etomo.type.ViewType;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 1.2  2010/02/17 05:03:12  sueh
+ * <p> bug# 1301 Using manager instead of manager key for popping up messages.
+ * <p>
  * <p> Revision 1.1  2009/06/10 22:17:31  sueh
  * <p> bug# 1221 Factoring RAPTOR into RaptorPanel.
  * <p>
@@ -44,6 +47,8 @@ final class RaptorPanel implements Run3dmodButtonContainer {
 
   private static final String MARK_LABEL = "# of beads to choose";
   private static final String DIAM_LABEL = "Unbinned Bead diameter";
+  static final String RUN_RAPTOR_LABEL = "Run RAPTOR";
+  static final String USE_RAPTOR_RESULT_LABEL = "Use RAPTOR Result as Fiducial Model";
 
   private final SpacedPanel pnlRoot = SpacedPanel.getInstance();
   private final JPanel pnlInput = new JPanel();
@@ -100,7 +105,7 @@ final class RaptorPanel implements Run3dmodButtonContainer {
 
   private void createPanel() {
     pnlRoot.setBoxLayout(BoxLayout.Y_AXIS);
-    pnlRoot.setBorder(new EtchedBorder("Run RAPTOR").getBorder());
+    pnlRoot.setBorder(new EtchedBorder(RUN_RAPTOR_LABEL).getBorder());
     pnlRoot.setAlignmentX(Box.CENTER_ALIGNMENT);
     pnlRoot.add(pnlInput);
     pnlRoot.add(btnOpenStack.getComponent());
@@ -130,29 +135,31 @@ final class RaptorPanel implements Run3dmodButtonContainer {
     btnRaptor.setContainer(this);
     btnRaptor.setDeferred3dmodButton(btnOpenRaptorResult);
   }
-  
+
   void done() {
     btnRaptor.removeActionListener(actionListener);
     btnOpenRaptorResult.removeActionListener(actionListener);
   }
 
   public void setBeadtrackParams(final BeadtrackParam beadtrackParams) {
-    ltfDiam.setText(Math.round(beadtrackParams.getBeadDiameter().getDouble()));
+    if (beadtrackParams.isBeadDiameterSet()) {
+      ltfDiam
+          .setText(Math.round(beadtrackParams.getBeadDiameter().getDouble()));
+    }
   }
 
   public boolean getParameters(final RunraptorParam param) {
     param.setUseRawStack(rbInputRaw.isSelected());
     String errorMessage = param.setMark(ltfMark.getText());
     if (errorMessage != null) {
-      UIHarness.INSTANCE.openMessageDialog(manager,"Error in " + MARK_LABEL + ": "
-          + errorMessage, "Entry Error", axisID);
+      UIHarness.INSTANCE.openMessageDialog(manager, "Error in " + MARK_LABEL
+          + ": " + errorMessage, "Entry Error", axisID);
       return false;
     }
-    errorMessage = param.setDiam(ltfDiam.getText(), rbInputPreali
-        .isSelected());
+    errorMessage = param.setDiam(ltfDiam.getText(), rbInputPreali.isSelected());
     if (errorMessage != null) {
-      UIHarness.INSTANCE.openMessageDialog(manager,"Error in " + DIAM_LABEL + ": "
-          + errorMessage, "Entry Error", axisID);
+      UIHarness.INSTANCE.openMessageDialog(manager, "Error in " + DIAM_LABEL
+          + ": " + errorMessage, "Entry Error", axisID);
       return false;
     }
     return true;
@@ -198,7 +205,7 @@ final class RaptorPanel implements Run3dmodButtonContainer {
   private void action(final String command,
       Deferred3dmodButton deferred3dmodButton,
       final Run3dmodMenuOptions run3dmodMenuOptions) {
-     if (command.equals(btnOpenStack.getActionCommand())) {
+    if (command.equals(btnOpenStack.getActionCommand())) {
       if (rbInputRaw.isSelected()) {
         manager.imodRawStack(axisID, run3dmodMenuOptions);
       }
@@ -222,7 +229,7 @@ final class RaptorPanel implements Run3dmodButtonContainer {
   Component getComponent() {
     return pnlRoot.getContainer();
   }
-  
+
   void setVisible(boolean visible) {
     pnlRoot.setVisible(visible);
   }
