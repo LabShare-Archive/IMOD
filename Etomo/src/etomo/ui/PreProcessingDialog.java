@@ -27,6 +27,9 @@ import etomo.type.ReconScreenState;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.19  2009/09/01 03:18:25  sueh
+ * <p> bug# 1222
+ * <p>
  * <p> Revision 3.18  2009/06/16 22:55:11  sueh
  * <p> bug# 1221 Factored out the erase x-rays panel.
  * <p>
@@ -199,6 +202,10 @@ public final class PreProcessingDialog extends ProcessDialog {
   public static ProcessResultDisplay getUseFixedStackDisplay() {
     return CcdEraserXRaysPanel
         .getUseFixedStackDisplay(DialogType.PRE_PROCESSING);
+  }
+  
+  public static String getUseFixedStackLabel() {
+    return CcdEraserXRaysPanel.USE_FIXED_STACK_LABEL;
   }
 
   /**
