@@ -11,6 +11,9 @@
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.43  2010/03/05 03:58:37  sueh
+ * <p> bug# 1319 Added default for SCALE when LOG isn't set.
+ * <p>
  * <p> Revision 3.42  2010/02/26 20:37:50  sueh
  * <p> Changing the complex popup titles are making it hard to complete the
  * <p> uitests.
@@ -1456,19 +1459,8 @@ public final class TiltParam implements ConstTiltParam, CommandParam {
     thickness.reset();
   }
 
-  public void setTiltAngleOffset(final double input) {
-    tiltAngleOffset.set(input);
-  }
-
-  /**
-   * @param d
-   */
-  public void setTiltAngleOffset(final float d) {
-    tiltAngleOffset.set(d);
-  }
-
-  public void setTiltAngleOffset(final String tiltAngleOffset) {
-    this.tiltAngleOffset.set(tiltAngleOffset);
+  public void setTiltAngleOffset(final String input) {
+    this.tiltAngleOffset.set(input);
   }
 
   public void resetTiltAngleOffset() {
