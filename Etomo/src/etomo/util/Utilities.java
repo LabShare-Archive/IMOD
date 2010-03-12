@@ -12,6 +12,9 @@
  * @version $$Revision$
  *
  * <p> $$Log$
+ * <p> $Revision 3.71  2010/03/09 22:09:12  sueh
+ * <p> $bug# 1325 Added getStackBinning.
+ * <p> $
  * <p> $Revision 3.70  2010/02/26 20:38:42  sueh
  * <p> $Changing the complex popup titles are making it hard to complete the
  * <p> $uitests.
@@ -613,6 +616,21 @@ public class Utilities {
       }
       else {
         System.err.println(string);
+      }
+    }
+  }
+
+  public static void deleteFileType(BaseManager manager,AxisID axisID,FileType fileType) {
+    File file = new File(manager.getPropertyUserDir(),fileType.getFileName(manager,axisID));
+    if (file.exists()) {
+      if (!file.delete()) {
+        StringBuffer message = new StringBuffer(
+            "Unable to delete file: " + file.getAbsolutePath());
+        if (Utilities.isWindowsOS()) {
+          message.append("\nIf this file is open in 3dmod, close 3dmod.");
+        }
+        UIHarness.INSTANCE.openMessageDialog(manager, message.toString(),
+            "Can not delete file", axisID);
       }
     }
   }
