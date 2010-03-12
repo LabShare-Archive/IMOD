@@ -241,7 +241,7 @@ public final class TomogramPositioningExpert extends ReconUIExpert {
           && !dialog.isAlignButton()) {
         UIHarness.INSTANCE.openMessageDialog(manager,
             "ERROR:  Final alignment is not done or is out of date.  Run "
-                + "final aligment in positioning before continuing.",
+                + "final alignment in positioning before continuing.",
             "User Error", axisID);
       }
       manager
@@ -950,6 +950,10 @@ public final class TomogramPositioningExpert extends ReconUIExpert {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.37  2010/03/05 22:33:50  sueh
+ * <p> bug# 1313 In saveDialog looking at TomogramState.sampleFiducialess to
+ * <p> prevent align.com from being updated.
+ * <p>
  * <p> Revision 1.36  2010/02/18 17:14:57  sueh
  * <p> bug# 1313 In saveDialog only call updateAlignCom when
  * <p> metaData.isFiducialess is false.
