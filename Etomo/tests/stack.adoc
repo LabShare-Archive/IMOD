@@ -196,6 +196,13 @@ assert.exists.file = %{dataset}%{axis}_ctfcorr.ali
 assert.exists.file = %{dataset}%{axis}_ctfcorr.ali~
 # run 3dmod
 bn.view-ctf-correction=
+#check use warning
+tb.create.2=
+wait.popup.user-warning=OK
+tb.create.1=
+#check use warning has shutoff after it popped up
+tb.create.2=
+tb.create.1=
 # use file
 bn.use-ctf-correction=
 wait.popup.etomo-question=Yes
@@ -478,6 +485,13 @@ assert.exists.file=%{dataset}%{axis}_erase.ali
 assert.exists.file=%{dataset}%{axis}_erase.ali~
 # run 3dmod
 bn.view-erased-stack=
+#check use warning
+tb.create.2=
+wait.popup.user-warning=OK
+tb.create.1=
+#check use warning has shutoff after it popped up
+tb.create.2=
+tb.create.1=
 # use file
 bn.use-erased-stack=
 wait.popup.etomo-question=Yes
@@ -535,6 +549,13 @@ assert.exists.file = mtffilter%{axis}.log~
 assert.exists.file = %{dataset}%{axis}_filt.ali~
 # run 3dmod
 bn.view-filtered-stack=
+#check use warning
+tb.create.2=
+wait.popup.user-warning=OK
+tb.create.1=
+#check use warning has shutoff after it popped up
+tb.create.2=
+tb.create.1=
 # use file
 bn.use-filtered-stack=
 # check files
