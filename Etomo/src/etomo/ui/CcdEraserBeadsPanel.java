@@ -38,6 +38,9 @@ import etomo.util.DatasetFiles;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.2  2010/02/17 05:03:12  sueh
+ * <p> bug# 1301 Using manager instead of manager key for popping up messages.
+ * <p>
  * <p> Revision 3.1  2009/09/01 03:18:25  sueh
  * <p> bug# 1222
  * <p>
@@ -50,12 +53,13 @@ final class CcdEraserBeadsPanel implements Run3dmodButtonContainer,
   public static final String rcsid = "$Id$";
 
   static final String CCD_ERASER_LABEL = "Erase Beads";
+  static final String USE_ERASED_STACK_LABEL = "Use Erased Stack";
 
   private final CcdEraserPanelActionListener actionListener = new CcdEraserPanelActionListener(
       this);
   private final SpacedPanel pnlRoot = SpacedPanel.getInstance();
   private final LabeledTextField ltfFiducialDiameter = new LabeledTextField(
-      "Fiducial diameter (pixels): ");
+      "Diameter to erase (pixels): ");
   private final ButtonGroup bgPolynomialOrder = new ButtonGroup();
   private final RadioButton rbPolynomialOrderUseMean = new RadioButton(
       "Use mean of surrounding points", PolynomialOrder.USE_MEAN,
@@ -237,7 +241,8 @@ final class CcdEraserBeadsPanel implements Run3dmodButtonContainer,
 
   private void setToolTipText() {
     ltfFiducialDiameter
-        .setToolTipText("The diameter that will be erased around each point.");
+        .setToolTipText("The diameter, in unbinned pixels, that will be erased "
+            + "around each point.");
     rbPolynomialOrderUseMean
         .setToolTipText("Fill the erased pixel with the mean of surrounding "
             + "points.");
