@@ -18,6 +18,10 @@
  * 
  * <p>
  * $Log$
+ * Revision 3.57  2010/02/17 04:49:20  sueh
+ * bug# 1301 Using the manager instead of the manager key do pop up
+ * messages.
+ *
  * Revision 3.56  2010/01/11 23:53:14  sueh
  * bug# 1299 Checks command.isMessageReporter() and calls
  * process.useMessageReporter if necessary.
@@ -491,7 +495,7 @@ public class ComScriptProcess extends Thread implements SystemProcessInterface {
     this.processSeries = processSeries;
     initialize(null);
   }
-  
+
   public ComScriptProcess(BaseManager manager, String comScript,
       BaseProcessManager processManager, AxisID axisID, String watchedFileName,
       ProcessMonitor processMonitor, ProcessResultDisplay processResultDisplay,
@@ -542,6 +546,26 @@ public class ComScriptProcess extends Thread implements SystemProcessInterface {
     this.processMonitor = processMonitor;
     this.processResultDisplay = processResultDisplay;
     this.processDetails = processDetails;
+    processData = ProcessData.getManagedInstance(axisID, manager,
+        getProcessName());
+    processData.setDisplayKey(processResultDisplay);
+    this.processSeries = processSeries;
+    initialize(null);
+  }
+
+  public ComScriptProcess(BaseManager manager, String comScript,
+      BaseProcessManager processManager, AxisID axisID, String watchedFileName,
+      ProcessMonitor processMonitor, ProcessResultDisplay processResultDisplay,
+      Command command, ConstProcessSeries processSeries) {
+    this.manager = manager;
+    this.comScriptName = comScript;
+    this.processManager = processManager;
+    cshProcessID = new StringBuffer("");
+    this.axisID = axisID;
+    this.watchedFileName = watchedFileName;
+    this.processMonitor = processMonitor;
+    this.processResultDisplay = processResultDisplay;
+    this.command = command;
     processData = ProcessData.getManagedInstance(axisID, manager,
         getProcessName());
     processData.setDisplayKey(processResultDisplay);
