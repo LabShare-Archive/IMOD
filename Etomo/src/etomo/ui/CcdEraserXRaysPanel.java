@@ -46,6 +46,7 @@ final class CcdEraserXRaysPanel implements ContextMenu,
   public static final String rcsid = "$Id$";
 
   private static final String ERASE_LABEL = "Create Fixed Stack";
+  static final String USE_FIXED_STACK_LABEL = "Use Fixed Stack";
 
   private final JPanel pnlCCDEraser = new JPanel();
   private final EtomoPanel pnlManualReplacement = new EtomoPanel();
@@ -255,7 +256,7 @@ final class CcdEraserXRaysPanel implements ContextMenu,
 
   static ProcessResultDisplay getUseFixedStackDisplay(
       final DialogType dialogType) {
-    return MultiLineButton.getToggleButtonInstance("Use Fixed Stack",
+    return MultiLineButton.getToggleButtonInstance(USE_FIXED_STACK_LABEL,
         dialogType);
   }
 
@@ -584,6 +585,10 @@ final class CcdEraserXRaysPanel implements ContextMenu,
 
 /**
  * <p> $Log$
+ * <p> Revision 3.5  2010/03/09 22:06:57  sueh
+ * <p> bug# 1325 Changed FileType.CCD_ERASER_INPUT to
+ * <p> FileType.RAW_STACK.
+ * <p>
  * <p> Revision 3.4  2010/02/17 05:03:12  sueh
  * <p> bug# 1301 Using manager instead of manager key for popping up messages.
  * <p>
