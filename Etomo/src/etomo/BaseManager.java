@@ -627,6 +627,10 @@ public abstract class BaseManager {
       return true;
     }
   }
+  
+ public boolean isExiting() {
+    return exiting;
+  }
 
   public Vector imodGetRubberbandCoordinates(String imodKey, AxisID axisID) {
     Vector results = null;
@@ -1342,6 +1346,10 @@ public abstract class BaseManager {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.125  2010/02/26 20:37:31  sueh
+ * <p> Changing the complex popup titles are making it hard to complete the
+ * <p> uitests.
+ * <p>
  * <p> Revision 1.124  2010/02/17 04:38:12  sueh
  * <p> bug# 1301 Moved comScriptMgr and logPanel to child class.
  * <p>
