@@ -41,6 +41,9 @@ import etomo.comscript.TransferfidParam;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.56  2010/03/08 21:03:11  sueh
+ * <p> bug# 1311 Fixed typo.
+ * <p>
  * <p> Revision 3.55  2010/03/03 05:04:20  sueh
  * <p> bug# 1311 Added TiltxcorrPanel and radio button for it.
  * <p>
@@ -469,8 +472,8 @@ public final class FiducialModelDialog extends ProcessDialog implements
   }
 
   public static ProcessResultDisplay getRaptorDisplay() {
-    return Run3dmodButton.getDeferredToggle3dmodInstance("Run RAPTOR",
-        DialogType.FIDUCIAL_MODEL);
+    return Run3dmodButton.getDeferredToggle3dmodInstance(
+        RaptorPanel.RUN_RAPTOR_LABEL, DialogType.FIDUCIAL_MODEL);
   }
 
   public static ProcessResultDisplay getPatchTrackingButton() {
@@ -479,7 +482,11 @@ public final class FiducialModelDialog extends ProcessDialog implements
 
   public static ProcessResultDisplay getUseRaptorDisplay() {
     return MultiLineButton.getToggleButtonInstance(
-        "Use RAPTOR Result as Fiducial Model", DialogType.FIDUCIAL_MODEL);
+        RaptorPanel.USE_RAPTOR_RESULT_LABEL, DialogType.FIDUCIAL_MODEL);
+  }
+
+  public static String getUseRaptorResultLabel() {
+    return RaptorPanel.USE_RAPTOR_RESULT_LABEL;
   }
 
   public void updateDisplay() {
