@@ -600,7 +600,8 @@ public final class ApplicationManager extends BaseManager implements
     // Load the required ccderaser{|a|b}.com files
     // Fill in the parameters and set it to the appropriate state
     comScriptMgr.loadEraser(axisID);
-    preProcDialog.setCCDEraserParams(comScriptMgr.getCCDEraserParam(axisID));
+    preProcDialog.setCCDEraserParams(comScriptMgr.getCCDEraserParam(axisID,
+        CCDEraserParam.Mode.X_RAYS));
     preProcDialog.setParameters(getScreenState(axisID));
     mainPanel.showProcess(preProcDialog.getContainer(), axisID);
     setParallelDialog(axisID, preProcDialog.usingParallelProcessing());
@@ -643,6 +644,17 @@ public final class ApplicationManager extends BaseManager implements
       mainPanel.showBlankProcess(axisID);
     }
     else {
+      if (!isExiting() && exitState != DialogExitState.POSTPONE
+          && state.isUseFixedStackWarning(axisID)) {
+        //The use button wasn't pressed and the user is moving on to the next
+        //dialog.
+        uiHarness.openMessageDialog(this,
+            "To use the fixed stack go back to Pre-processing and press the \""
+                + PreProcessingDialog.getUseFixedStackLabel() + "\" button.",
+            "Entry Warning", axisID);
+        //Only warn once.
+        state.setUseFixedStackWarning(axisID, false);
+      }
       updateEraserCom(preProcDialog.getCCDEraserDisplay(), axisID, false);
       if (exitState == DialogExitState.EXECUTE) {
         processTrack.setPreProcessingState(ProcessState.COMPLETE, axisID);
@@ -702,16 +714,19 @@ public final class ApplicationManager extends BaseManager implements
    * @param axisID The axisID to process
    * @param trialMode Set to trial mode if true
    */
-  private void updateEraserCom(CcdEraserDisplay display, AxisID axisID,
+  private Command updateEraserCom(CcdEraserDisplay display, AxisID axisID,
       boolean trialMode) {
     // Get the user input data from the dialog box. The CCDEraserParam
     // is first initialized from the currently loaded com script to
     // provide deafault values for those not handled by the dialog box
     // get function needs some error checking
-    CCDEraserParam ccdEraserParam = comScriptMgr.getCCDEraserParam(axisID);
+    CCDEraserParam ccdEraserParam = comScriptMgr.getCCDEraserParam(axisID,
+        trialMode ? CCDEraserParam.Mode.X_RAYS_TRIAL
+            : CCDEraserParam.Mode.X_RAYS);
     display.getParameters(ccdEraserParam);
     ccdEraserParam.setTrialMode(trialMode);
     comScriptMgr.saveEraser(ccdEraserParam, axisID);
+    return ccdEraserParam;
   }
 
   /**
@@ -721,13 +736,13 @@ public final class ApplicationManager extends BaseManager implements
   private void eraser(AxisID axisID, ProcessResultDisplay processResultDisplay,
       ConstProcessSeries processSeries, DialogType dialogType,
       CcdEraserDisplay display) {
-    updateEraserCom(display, axisID, false);
+    Command param = updateEraserCom(display, axisID, false);
     processTrack.setState(ProcessState.INPROGRESS, axisID, dialogType);
     mainPanel.setState(ProcessState.INPROGRESS, axisID, dialogType);
     String threadName;
     try {
       threadName = processMgr.eraser(axisID, processResultDisplay,
-          processSeries);
+          processSeries, param);
     }
     catch (SystemProcessException e) {
       e.printStackTrace();
@@ -762,7 +777,7 @@ public final class ApplicationManager extends BaseManager implements
     String threadName;
     try {
       threadName = processMgr.eraser(axisID, processResultDisplay,
-          processSeries);
+          processSeries, null);
     }
     catch (SystemProcessException e) {
       e.printStackTrace();
@@ -1043,6 +1058,7 @@ public final class ApplicationManager extends BaseManager implements
     }
     updateArchiveDisplay();
     mainPanel.stopProgressBar(axisID);
+    state.setUseFixedStackWarning(axisID, false);
   }
 
   /**
@@ -1931,6 +1947,7 @@ public final class ApplicationManager extends BaseManager implements
     fiducialModelDialog.setTransferFidParams();
     fiducialModelDialog.setBeadtrackParams(comScriptMgr
         .getBeadtrackParam(axisID));
+    fiducialModelDialog.setParameters(metaData);
     //Try to load xcorr_pt comscript.  If it isn't there, set it up and then
     //load. it.
     TiltxcorrParam tiltXcorrPtParam = null;
@@ -1952,7 +1969,6 @@ public final class ApplicationManager extends BaseManager implements
     }
     fiducialModelDialog.setParameters(tiltXcorrPtParam);
     fiducialModelDialog.setParameters(getScreenState(axisID));
-    fiducialModelDialog.setParameters(metaData);
     mainPanel.showProcess(fiducialModelDialog.getContainer(), axisID);
     setParallelDialog(axisID, fiducialModelDialog.usingParallelProcessing());
   }
@@ -1992,6 +2008,17 @@ public final class ApplicationManager extends BaseManager implements
       mainPanel.showBlankProcess(axisID);
     }
     else {
+      if (!isExiting() && exitState != DialogExitState.POSTPONE
+          && state.isUseRaptorResultWarning()) {
+        //The use button wasn't pressed and the user is moving on to the next
+        //dialog.
+        uiHarness.openMessageDialog(this,
+            "To use the RAPTOR result go back to Fiducial Model and press the \""
+                + FiducialModelDialog.getUseRaptorResultLabel() + "\" button.",
+            "Entry Warning", axisID);
+        //Only warn once.
+        state.setUseRaptorResultWarning(false);
+      }
       fiducialModelDialog.getParameters(getScreenState(axisID));
       fiducialModelDialog.getTransferFidParams();
       fiducialModelDialog.getParameters(metaData);
@@ -5266,42 +5293,17 @@ public final class ApplicationManager extends BaseManager implements
    * 
    * @param axisID
    */
-  public void deleteAlignedStacks(AxisID axisID,
+  public void deleteIntermediateImageStacks(AxisID axisID,
       ProcessResultDisplay processResultDisplay) {
     sendMsgProcessStarting(processResultDisplay);
     if (isAxisBusy(axisID, processResultDisplay)) {
       return;
     }
     mainPanel.setProgressBar("Deleting aligned image stack", 1, axisID);
-    //
-    // Don't do preali now because users may do upto generation before
-    // transfering
-    // the fiducials
-    //
-    // File preali =
-    // new File(
-    // System.getProperty("user.dir"),
-    // metaData.getDatasetName() + axisID.getExtension() + ".preali");
-    // if (preali.exists()) {
-    // if (!preali.delete()) {
-    // mainFrame.openMessageDialog(
-    // "Unable to delete pre-aligned stack: " + preali.getAbsolutePath(),
-    // "Can not delete file");
-    // }
-    // }
-    File aligned = new File(propertyUserDir, metaData.getDatasetName()
-        + axisID.getExtension() + ".ali");
-    if (aligned.exists()) {
-      if (!aligned.delete()) {
-        StringBuffer message = new StringBuffer(
-            "Unable to delete aligned stack: " + aligned.getAbsolutePath());
-        if (Utilities.isWindowsOS()) {
-          message.append("\nIf this file is open in 3dmod, close 3dmod.");
-        }
-        uiHarness.openMessageDialog(this, message.toString(),
-            "Can not delete file", axisID);
-      }
-    }
+    Utilities.deleteFileType(this, axisID, FileType.ALIGNED_STACK);
+    Utilities.deleteFileType(this, axisID, FileType.TILT_3D_FIND_OUTPUT);
+    Utilities.deleteFileType(this, axisID,
+        FileType.NEWST_OR_BLEND_3D_FIND_OUTPUT);
     mainPanel.stopProgressBar(axisID);
     sendMsgProcessSucceeded(processResultDisplay);
   }
@@ -7272,6 +7274,7 @@ public final class ApplicationManager extends BaseManager implements
     }
     mainPanel.stopProgressBar(axisID);
     sendMsgProcessSucceeded(processResultDisplay);
+    state.setUseRaptorResultWarning(false);
   }
 
   /**
@@ -7647,13 +7650,14 @@ public final class ApplicationManager extends BaseManager implements
   /**
    * Replace the full aligned stack with the ctf corrected full aligned stack
    * created by ctfcorrection.com
+   * @return true if succeeded
    */
-  public void useFileAsFullAlignedStack(
+  public boolean useFileAsFullAlignedStack(
       ProcessResultDisplay processResultDisplay, File output,
       String buttonLabel, AxisID axisID, DialogType dialogType) {
     sendMsgProcessStarting(processResultDisplay);
     if (isAxisBusy(axisID, processResultDisplay)) {
-      return;
+      return false;
     }
     mainPanel.setProgressBar("Using " + output.getName()
         + " as full aligned stack", 1, axisID);
@@ -7665,7 +7669,7 @@ public final class ApplicationManager extends BaseManager implements
           + " doesn't exist.  Press " + buttonLabel + " to create this file.",
           buttonLabel + " Output Missing", axisID);
       sendMsg(ProcessResult.FAILED_TO_START, processResultDisplay);
-      return;
+      return false;
     }
     if (processTrack != null) {
       processTrack.setState(ProcessState.INPROGRESS, axisID, dialogType);
@@ -7676,7 +7680,7 @@ public final class ApplicationManager extends BaseManager implements
         uiHarness.openMessageDialog(this, output.getName()
             + " is not a valid MRC file.", "Entry Error", axisID);
         sendMsgProcessFailedToStart(processResultDisplay);
-        return;
+        return false;
       }
       try {
         Utilities.renameFile(fullAlignedStack, new File(fullAlignedStack
@@ -7688,7 +7692,7 @@ public final class ApplicationManager extends BaseManager implements
             + fullAlignedStack.getAbsolutePath() + "\n" + except.getMessage(),
             "File Rename Error", axisID);
         sendMsg(ProcessResult.FAILED, processResultDisplay);
-        return;
+        return false;
       }
     }
     // don't have to rename full aligned stack because it is a generated
@@ -7700,12 +7704,13 @@ public final class ApplicationManager extends BaseManager implements
       UIHarness.INSTANCE.openMessageDialog(this, except.getMessage(),
           "File Rename Error", axisID);
       sendMsg(ProcessResult.FAILED, processResultDisplay);
-      return;
+      return false;
     }
     closeImod(ImodManager.FINE_ALIGNED_KEY, axisID,
         "original full aligned stack");
     mainPanel.stopProgressBar(axisID);
     sendMsg(ProcessResult.SUCCEEDED, processResultDisplay);
+    return true;
   }
 
   public void useCcdEraser(ProcessResultDisplay processResultDisplay,
@@ -7713,6 +7718,7 @@ public final class ApplicationManager extends BaseManager implements
     useFileAsFullAlignedStack(processResultDisplay, DatasetFiles
         .getErasedFiducialsFile(this, axisID), ccdEraserLabel, axisID,
         dialogType);
+    state.setUseErasedStackWarning(axisID, false);
   }
 
   public void imodErasedFiducials(Run3dmodMenuOptions run3dmodMenuOptions,
@@ -7722,8 +7728,10 @@ public final class ApplicationManager extends BaseManager implements
         run3dmodMenuOptions, false);
   }
 
-  public CCDEraserParam updateCcdEraserParam(CcdEraserDisplay display) {
-    CCDEraserParam param = new CCDEraserParam(this);
+  public CCDEraserParam updateCcdEraserParam(final CcdEraserDisplay display,
+      final AxisID axisID) {
+    CCDEraserParam param = new CCDEraserParam(this, axisID,
+        CCDEraserParam.Mode.BEADS);
     if (display.getParameters(param)) {
       return param;
     }
@@ -7739,7 +7747,7 @@ public final class ApplicationManager extends BaseManager implements
     }
     processSeries.setRun3dmodDeferred(deferred3dmodButton, run3dmodMenuOptions);
     sendMsgProcessStarting(processResultDisplay);
-    CCDEraserParam param = updateCcdEraserParam(display);
+    CCDEraserParam param = updateCcdEraserParam(display, axisID);
     if (param == null) {
       return;
     }
@@ -8022,6 +8030,10 @@ public final class ApplicationManager extends BaseManager implements
 }
 /**
  * <p> $Log$
+ * <p> Revision 3.352  2010/03/11 06:00:19  sueh
+ * <p> bug# 1311 In imodFixFiducials added a second residual mode for patch
+ * <p> tracking.   Opening model view for this mode.
+ * <p>
  * <p> Revision 3.351  2010/03/08 20:59:56  sueh
  * <p> bug# 1311 Syncing xcorr.com and xcorr_pt.com
  * <p>
