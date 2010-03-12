@@ -53,7 +53,7 @@ mb.tilt=+
 	assert.enabled.cb.use-z-factors=
 	assert.enabled.bn.generate-tomogram=
 	assert.enabled.bn.view-tomogram-in-3dmod=
-	assert.enabled.bn.delete-aligned-image-stack=
+	assert.enabled.bn.delete-intermediate-image-stacks=
 	mb.tilt.1=A
 	assert.enabled.tf.take-the-log-with-offset=
 	assert.enabled.tf.log-density-scaling-factor=
@@ -145,7 +145,7 @@ bn.view-tomogram-in-3dmod=
 # check values
 assert.bn.generate-tomogram=on
 # clean up
-bn.delete-aligned-image-stack=
+bn.delete-intermediate-image-stacks=
 
 
 [function = trial-tilt]

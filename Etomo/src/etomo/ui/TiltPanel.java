@@ -19,7 +19,10 @@ import etomo.type.Run3dmodMenuOptions;
  * 
  * @version $Revision$
  * 
- * <p> $Log$ </p>
+ * <p> $Log$
+ * <p> Revision 3.1  2009/09/01 03:18:25  sueh
+ * <p> bug# 1222
+ * <p> </p>
  */
 final class TiltPanel extends AbstractTiltPanel {
   public static final String rcsid = "$Id$";
@@ -57,7 +60,7 @@ final class TiltPanel extends AbstractTiltPanel {
   public static ProcessResultDisplay getDeleteAlignedStackResultDisplay(
       DialogType dialogType) {
     return MultiLineButton.getToggleButtonInstance(
-        "Delete Aligned Image Stack", dialogType);
+        "Delete Intermediate Image Stacks", dialogType);
   }
 
   /**
