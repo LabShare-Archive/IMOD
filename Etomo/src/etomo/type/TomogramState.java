@@ -25,6 +25,10 @@ import etomo.util.MRCHeader;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.38  2010/02/17 04:52:36  sueh
+ * <p> bug# 1301 Using the manager instead of the manager key do pop up
+ * <p> messages.
+ * <p>
  * <p> Revision 1.37  2009/09/01 03:16:20  sueh
  * <p> bug# 1222 Added state settings for erase gold find 3d.
  * <p>
@@ -183,6 +187,8 @@ public class TomogramState extends BaseState {
   private static final String TOMOGRAM_SIZE_KEY = "tomogramSize";
 
   //Dialog keys
+  private static final String PRE_KEY = "Pre";
+  private static final String TRACK_KEY = "Track";
   private static final String STACK_KEY = "Stack";
 
   EtomoState trimvolFlipped = new EtomoState("TrimvolFlipped");
@@ -301,6 +307,25 @@ public class TomogramState extends BaseState {
   private final EtomoBoolean2 stackUsingNewstOrBlend3dFindOutputB = new EtomoBoolean2(
       "Track.B.UsingNewstOrBlend3dFindOutput");
 
+  private final EtomoBoolean2 useFixedStackWarningA = new EtomoBoolean2(PRE_KEY
+      + ".A.UseFixedStack.Warning");
+  private final EtomoBoolean2 useFixedStackWarningB = new EtomoBoolean2(PRE_KEY
+      + ".B.UseFixedStack.Warning");
+  private final EtomoBoolean2 useRaptorResultWarningA = new EtomoBoolean2(
+      TRACK_KEY + ".A.UseRaptorResult.Warning");
+  private final EtomoBoolean2 useCtfCorrectionWarningA = new EtomoBoolean2(
+      STACK_KEY + ".A.UseCtfCorrection.Warning");
+  private final EtomoBoolean2 useCtfCorrectionWarningB = new EtomoBoolean2(
+      STACK_KEY + ".B.UseCtfCorrection.Warning");
+  private final EtomoBoolean2 useErasedStackWarningA = new EtomoBoolean2(
+      STACK_KEY + ".A.UseErasedStack.Warning");
+  private final EtomoBoolean2 useErasedStackWarningB = new EtomoBoolean2(
+      STACK_KEY + ".B.UseErasedStack.Warning");
+  private final EtomoBoolean2 useFilteredStackWarningA = new EtomoBoolean2(
+      STACK_KEY + ".A.UseFilteredStack.Warning");
+  private final EtomoBoolean2 useFilteredStackWarningB = new EtomoBoolean2(
+      STACK_KEY + ".B.UseFilteredStack.Warning");
+
   public TomogramState(ApplicationManager manager) {
     this.manager = manager;
   }
@@ -387,7 +412,16 @@ public class TomogramState extends BaseState {
     trackLightBeadsB.store(props, prepend);
     stackUsingNewstOrBlend3dFindOutputA.store(props, prepend);
     stackUsingNewstOrBlend3dFindOutputB.store(props, prepend);
-
+    useFixedStackWarningA.store(props, prepend);
+    useFixedStackWarningB.store(props, prepend);
+    useRaptorResultWarningA.store(props, prepend);
+    useCtfCorrectionWarningA.store(props, prepend);
+    useCtfCorrectionWarningB.store(props, prepend);
+    useErasedStackWarningA.store(props, prepend);
+    useErasedStackWarningB.store(props, prepend);
+    useFilteredStackWarningA.store(props, prepend);
+    useFilteredStackWarningB.store(props, prepend);
+    
     //backwards compatibility
     props.remove(COMBINE_MATCH_MODE_BACK_KEY);
     if (combineMatchMode == null) {
@@ -471,7 +505,15 @@ public class TomogramState extends BaseState {
     trackLightBeadsB.reset();
     stackUsingNewstOrBlend3dFindOutputA.reset();
     stackUsingNewstOrBlend3dFindOutputB.reset();
-
+    useFixedStackWarningA.reset();
+    useFixedStackWarningB.reset();
+    useRaptorResultWarningA.reset();
+    useCtfCorrectionWarningA.reset();
+    useCtfCorrectionWarningB.reset();
+    useErasedStackWarningA.reset();
+    useErasedStackWarningB.reset();
+    useFilteredStackWarningA.reset();
+    useFilteredStackWarningB.reset();
     //load
     prepend = createPrepend(prepend);
     String group = prepend + ".";
@@ -521,6 +563,15 @@ public class TomogramState extends BaseState {
     trackLightBeadsB.load(props, prepend);
     stackUsingNewstOrBlend3dFindOutputA.load(props, prepend);
     stackUsingNewstOrBlend3dFindOutputB.load(props, prepend);
+    useFixedStackWarningA.load(props, prepend);
+    useFixedStackWarningB.load(props, prepend);
+    useRaptorResultWarningA.load(props, prepend);
+    useCtfCorrectionWarningA.load(props, prepend);
+    useCtfCorrectionWarningB.load(props, prepend);
+    useErasedStackWarningA.load(props, prepend);
+    useErasedStackWarningB.load(props, prepend);
+    useFilteredStackWarningA.load(props, prepend);
+    useFilteredStackWarningB.load(props, prepend);
     combineMatchMode = MatchMode.getInstance(props.getProperty(prepend + "."
         + COMBINE_MATCH_MODE_KEY));
     //backwards compatibility
@@ -666,6 +717,44 @@ public class TomogramState extends BaseState {
     }
   }
 
+  public void setUseFixedStackWarning(AxisID axisID, boolean input) {
+    if (axisID == AxisID.SECOND) {
+      useFixedStackWarningB.set(input);
+    }
+    else {
+      useFixedStackWarningA.set(input);
+    }
+  }
+
+  public void setUseCtfCorrectionWarning(AxisID axisID, boolean input) {
+    if (axisID == AxisID.SECOND) {
+      useCtfCorrectionWarningB.set(input);
+    }
+    else {
+      useCtfCorrectionWarningA.set(input);
+    }
+  }
+
+  public void setUseErasedStackWarning(AxisID axisID, boolean input) {
+    if (axisID == AxisID.SECOND) {
+      useErasedStackWarningB.set(input);
+    }
+    else {
+      useErasedStackWarningA.set(input);
+    }
+  }
+  public void setUseFilteredStackWarning(AxisID axisID, boolean input) {
+    if (axisID == AxisID.SECOND) {
+      useFilteredStackWarningB.set(input);
+    }
+    else {
+      useFilteredStackWarningA.set(input);
+    }
+  }
+  public void setUseRaptorResultWarning(boolean input) {
+    useRaptorResultWarningA.set(input);
+  }
+
   public boolean isPostProcTrimVolInputNColumnsNull() {
     return postProcTrimVolInputNColumns.isNull();
   }
@@ -711,6 +800,36 @@ public class TomogramState extends BaseState {
       return stackUsingNewstOrBlend3dFindOutputB.is();
     }
     return stackUsingNewstOrBlend3dFindOutputA.is();
+  }
+
+  public boolean isUseFixedStackWarning(AxisID axisID) {
+    if (axisID == AxisID.SECOND) {
+      return useFixedStackWarningB.is();
+    }
+    return useFixedStackWarningA.is();
+  }
+
+  public boolean isUseCtfCorrectionWarning(AxisID axisID) {
+    if (axisID == AxisID.SECOND) {
+      return useCtfCorrectionWarningB.is();
+    }
+    return useCtfCorrectionWarningA.is();
+  }
+
+  public boolean isUseErasedStackWarning(AxisID axisID) {
+    if (axisID == AxisID.SECOND) {
+      return useErasedStackWarningB.is();
+    }
+    return useErasedStackWarningA.is();
+  }
+  public boolean isUseFilteredStackWarning(AxisID axisID) {
+    if (axisID == AxisID.SECOND) {
+      return useFilteredStackWarningB.is();
+    }
+    return useFilteredStackWarningA.is();
+  }
+  public boolean isUseRaptorResultWarning() {
+    return useRaptorResultWarningA.is();
   }
 
   public boolean isTrackLightBeadsNull(AxisID axisID) {
