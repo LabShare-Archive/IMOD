@@ -92,7 +92,7 @@ final class TiltalignPanel implements Expandable {
   private final EtomoPanel pnlResidualThreshold = new EtomoPanel();
 
   private final RadioButton rbSingleFiducialSurface = new RadioButton(
-      "Assume fiducials on 1 surface for analysis");
+      "Do not sort fiducials into 2 surfaces for analysis");
   private final RadioButton rbDualFiducialSurfaces = new RadioButton(
       "Assume fiducials on 2 surfaces for analysis");
   private final ButtonGroup bgFiducialSurfaces = new ButtonGroup();
@@ -1224,7 +1224,7 @@ final class TiltalignPanel implements Expandable {
     items = new RadioButton[2];
     items[0] = rbSingleFiducialSurface;
     items[1] = rbDualFiducialSurfaces;
-    createRadioBox(pnlRBFiducual, bgFiducialSurfaces, items, 305);
+    createRadioBox(pnlRBFiducual, bgFiducialSurfaces, items, 355);
 
     pnlFiducialSurfaces.add(pnlRBFiducual);
     pnlFiducialSurfaces.add(Box.createHorizontalGlue());
@@ -1694,7 +1694,8 @@ final class TiltalignPanel implements Expandable {
         TiltalignParam.SURFACES_TO_ANALYZE_KEY);
     if (section != null) {
       rbSingleFiducialSurface.setToolTipText(EtomoAutodoc.getTooltip(section,
-          "1"));
+          "1")
+          + "  Use if fiducials are on one surface or distributed in Z.");
       rbDualFiducialSurfaces.setToolTipText(EtomoAutodoc.getTooltip(section,
           "2"));
     }
@@ -1894,6 +1895,10 @@ final class TiltalignPanel implements Expandable {
 
 /**
  * <p> $Log$
+ * <p> Revision 3.55  2010/03/03 05:09:10  sueh
+ * <p> bug# 1311 Added patchTracking, setSurfacesToAnalyze.  Added a check
+ * <p> to isValid.
+ * <p>
  * <p> Revision 3.54  2010/02/17 05:03:12  sueh
  * <p> bug# 1301 Using manager instead of manager key for popping up messages.
  * <p>
