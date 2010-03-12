@@ -67,6 +67,9 @@ import etomo.util.DatasetFiles;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.25  2010/02/17 05:03:12  sueh
+ * <p> bug# 1301 Using manager instead of manager key for popping up messages.
+ * <p>
  * <p> Revision 1.24  2010/01/11 23:59:00  sueh
  * <p> bug# 1299 Removed responsibility anything other then cpu.adoc from
  * <p> CpuAdoc.  Placed responsibility for information about the network in the
@@ -160,6 +163,10 @@ public final class FinalAlignedStackDialog extends ProcessDialog implements
   public static final String rcsid = "$Id$";
 
   private static final String MTF_FILE_LABEL = "MTF file: ";
+  public static final String USE_CTF_CORRECTION_LABEL = "Use CTF Correction";
+  public static final String CTF_TAB_LABEL = "Correct CTF";
+  public static final String USE_FILTERED_STACK_LABEL="Use Filtered Stack";
+  public static final String MTF_FILTER_TAB_LABEL = "2D Filter";
 
   private static final DialogType DIALOG_TYPE = DialogType.FINAL_ALIGNED_STACK;
   public static final String CTF_CORRECTION_LABEL = "Correct CTF";
@@ -209,21 +216,22 @@ public final class FinalAlignedStackDialog extends ProcessDialog implements
   private final SpacedPanel ctfCorrectionBodyPanel = SpacedPanel
       .getInstance(true);
   private final FileTextField ftfConfigFile = new FileTextField("Config file: ");
-  private final LabeledTextField ltfVoltage = new LabeledTextField("Voltage: ");
+  private final LabeledTextField ltfVoltage = new LabeledTextField(
+      "Voltage (KV): ");
   private final LabeledTextField ltfSphericalAberration = new LabeledTextField(
-      "Spherical Aberration: ");
+      "Spherical Aberration (mm): ");
   private final CheckBox cbInvertTiltAngles = new CheckBox(
       "Invert sign of tilt angles");
   private final LabeledTextField ltfAmplitudeContrast = new LabeledTextField(
       "Amplitude contrast: ");
   private final LabeledTextField ltfExpectedDefocus = new LabeledTextField(
-      "Expected defocus: ");
+      "Expected defocus (nm): ");
   private final LabeledTextField ltfInterpolationWidth = new LabeledTextField(
-      "Interpolation width: ");
+      "Interpolation width (pixels): ");
   private final CheckBox cbParallelProcess = new CheckBox(
       ParallelPanel.FIELD_LABEL);
   private final LabeledTextField ltfDefocusTol = new LabeledTextField(
-      "Defocus tolerance: ");
+      "Defocus tolerance (nm): ");
   private final MultiLineButton btnCtfPlotter = new MultiLineButton(
       "Run Ctf Plotter");
   private final Run3dmodButton btnCtfCorrection;
@@ -358,8 +366,16 @@ public final class FinalAlignedStackDialog extends ProcessDialog implements
   }
 
   public static ProcessResultDisplay getUseCcdEraserDisplay() {
-    return Run3dmodButton.getDeferredToggle3dmodInstance("Use Erased Stack",
-        DIALOG_TYPE);
+    return Run3dmodButton.getDeferredToggle3dmodInstance(
+        CcdEraserBeadsPanel.USE_ERASED_STACK_LABEL, DIALOG_TYPE);
+  }
+  
+  public static String getUseErasedStackLabel() {
+    return CcdEraserBeadsPanel.USE_ERASED_STACK_LABEL;
+  }
+  
+  public static String getErasedStackTabLabel() {
+    return EraseGoldPanel.ERASE_GOLD_TAB_LABEL;
   }
 
   public static ProcessResultDisplay getFilterDisplay() {
@@ -367,7 +383,7 @@ public final class FinalAlignedStackDialog extends ProcessDialog implements
   }
 
   public static ProcessResultDisplay getUseFilteredStackDisplay() {
-    return MultiLineButton.getToggleButtonInstance("Use Filtered Stack",
+    return MultiLineButton.getToggleButtonInstance(USE_FILTERED_STACK_LABEL,
         DIALOG_TYPE);
   }
 
@@ -377,7 +393,7 @@ public final class FinalAlignedStackDialog extends ProcessDialog implements
   }
 
   public static ProcessResultDisplay getUseCtfCorrectionDisplay() {
-    return MultiLineButton.getToggleButtonInstance("Use CTF Correction",
+    return MultiLineButton.getToggleButtonInstance(USE_CTF_CORRECTION_LABEL,
         DIALOG_TYPE);
   }
 
@@ -650,6 +666,7 @@ public final class FinalAlignedStackDialog extends ProcessDialog implements
   private void updateAdvancedCtfCorrection(boolean advanced) {
     ltfAmplitudeContrast.setVisible(advanced);
     ltfDefocusTol.setVisible(advanced);
+    cbInvertTiltAngles.setVisible(advanced);
   }
 
   void setParameters(ConstMetaData metaData) {
@@ -738,13 +755,13 @@ public final class FinalAlignedStackDialog extends ProcessDialog implements
   private void layoutCcdEraser() {
     //panel
     JPanel ccdEraserRoot = new JPanel();
-    tabbedPane.addTab("Erase Gold", ccdEraserRoot);
+    tabbedPane.addTab(EraseGoldPanel.ERASE_GOLD_TAB_LABEL, ccdEraserRoot);
   }
 
   private void layoutCtfCorrectionPanel() {
     //panel
     JPanel ctfCorrectionRoot = new JPanel();
-    tabbedPane.addTab("Correct CTF", ctfCorrectionRoot);
+    tabbedPane.addTab(CTF_TAB_LABEL, ctfCorrectionRoot);
     ctfCorrectionMainPanel.setLayout(new BoxLayout(ctfCorrectionMainPanel,
         BoxLayout.Y_AXIS));
     ctfCorrectionMainPanel.setBorder(BorderFactory.createEtchedBorder());
@@ -817,7 +834,7 @@ public final class FinalAlignedStackDialog extends ProcessDialog implements
   private void layoutFilterPanel() {
     //panels
     JPanel filterRoot = new JPanel();
-    tabbedPane.addTab("2D Filter", filterRoot);
+    tabbedPane.addTab(MTF_FILTER_TAB_LABEL, filterRoot);
     filterPanel.setLayout(new BoxLayout(filterPanel, BoxLayout.Y_AXIS));
     filterPanel.setBorder(BorderFactory.createEtchedBorder());
     filterPanel.add(filterHeader.getContainer());
@@ -1016,6 +1033,7 @@ public final class FinalAlignedStackDialog extends ProcessDialog implements
   }
 
   private void changeTab() {
+    Tab prevTab = curTab;
     ((Container) tabbedPane.getComponentAt(curTab.toInt())).removeAll();
     curTab = Tab.getInstance(tabbedPane.getSelectedIndex());
     Container panel = (Container) tabbedPane.getSelectedComponent();
@@ -1033,6 +1051,45 @@ public final class FinalAlignedStackDialog extends ProcessDialog implements
     }
     updateParallelProcess();
     UIHarness.INSTANCE.pack(axisID, applicationManager);
+    //Warning caused by leaving the previous tab
+    if (curTab != prevTab) {
+      TomogramState state = applicationManager.getState();
+      if (prevTab == Tab.CTF_CORRECTION
+          && state.isUseCtfCorrectionWarning(axisID)) {
+        //The use button wasn't pressed and the user is moving on to the next
+        //dialog.
+        UIHarness.INSTANCE.openMessageDialog(applicationManager,
+            "To use the CTF correction go back to the " + CTF_TAB_LABEL
+                + " tab and press the \"" + USE_CTF_CORRECTION_LABEL
+                + "\" button.", "Entry Warning", axisID);
+        //Only warn once.
+        state.setUseCtfCorrectionWarning(axisID, false);
+      }
+      else if (prevTab == Tab.CCD_ERASER
+          && state.isUseErasedStackWarning(axisID)) {
+        //The use button wasn't pressed and the user is moving on to the next
+        //dialog.
+        UIHarness.INSTANCE.openMessageDialog(applicationManager,
+            "To use the stack with the erased beads go back to the "
+                + EraseGoldPanel.ERASE_GOLD_TAB_LABEL + " tab and press the \""
+                + CcdEraserBeadsPanel.USE_ERASED_STACK_LABEL + "\" button.",
+            "Entry Warning", axisID);
+        //Only warn once.
+        state.setUseErasedStackWarning(axisID, false);
+      }
+      else if (prevTab == Tab.MTF_FILTER
+          && state.isUseFilteredStackWarning(axisID)) {
+        //The use button wasn't pressed and the user is moving on to the next
+        //dialog.
+        UIHarness.INSTANCE.openMessageDialog(applicationManager,
+            "To use the MTF filtered stack go back to the "
+                + MTF_FILTER_TAB_LABEL + " tab and press the \""
+                + USE_FILTERED_STACK_LABEL + "\" button.",
+            "Entry Warning", axisID);
+        //Only warn once.
+        state.setUseFilteredStackWarning(axisID, false);
+      }
+    }
   }
 
   /**
@@ -1202,17 +1259,19 @@ public final class FinalAlignedStackDialog extends ProcessDialog implements
   }
 
   static final class Tab {
-    private static final Tab NEWST = new Tab(0);
-    private static final Tab CTF_CORRECTION = new Tab(1);
-    private static final Tab CCD_ERASER = new Tab(2);
-    private static final Tab MTF_FILTER = new Tab(3);
+    private static final Tab NEWST = new Tab(0, "NEWST");
+    private static final Tab CTF_CORRECTION = new Tab(1, "CTF_CORRECTION");
+    private static final Tab CCD_ERASER = new Tab(2, "CCD_ERASER");
+    private static final Tab MTF_FILTER = new Tab(3, "MTF_FILTER");
 
     static final Tab DEFAULT = NEWST;
 
     private final int index;
+    private final String string;
 
-    private Tab(int index) {
+    private Tab(int index, String string) {
       this.index = index;
+      this.string = string;
     }
 
     private static Tab getInstance(int index) {
@@ -1233,6 +1292,10 @@ public final class FinalAlignedStackDialog extends ProcessDialog implements
 
     private int toInt() {
       return index;
+    }
+
+    public String toString() {
+      return string;
     }
   }
 }
