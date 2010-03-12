@@ -36,6 +36,10 @@ import etomo.util.InvalidParameterException;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.5  2010/03/05 04:04:37  sueh
+ * <p> bug# 1319 Added getParamters(MetaData) to make sure that the parent
+ * <p> version of this function cannot be called.
+ * <p>
  * <p> Revision 3.4  2010/03/03 05:08:16  sueh
  * <p> bug# 1311 Changed FileType.NEWST_OR_BLEND_OUTPUT to
  * <p> ALIGNED_STACK.  Added file types for patch tracking.
@@ -116,10 +120,12 @@ final class Tilt3dFindPanel extends AbstractTiltPanel {
     JPanel pnlParallelProcess = new JPanel();
     SpacedPanel pnlA = SpacedPanel.getInstance();
     JPanel pnlButtons = new JPanel();
+    JPanel pnlUseGpu = new JPanel();
     //Root panel
     SpacedPanel pnlRoot = getRootPanel();
     pnlRoot.setBoxLayout(BoxLayout.Y_AXIS);
     pnlRoot.add(pnlParallelProcess);
+    pnlRoot.add(pnlUseGpu);
     pnlRoot.add(ltfCenterToCenterThickness);
     pnlRoot.add(ltfAdditionalDiameters);
     pnlRoot.add(pnlA);
@@ -129,6 +135,10 @@ final class Tilt3dFindPanel extends AbstractTiltPanel {
         BoxLayout.X_AXIS));
     pnlParallelProcess.add(getParallelProcessCheckBox());
     pnlParallelProcess.add(Box.createHorizontalGlue());
+    //use GPU panel
+    pnlUseGpu.setLayout(new BoxLayout(pnlUseGpu, BoxLayout.X_AXIS));
+    pnlUseGpu.add(getUseGpuCheckBox());
+    pnlUseGpu.add(Box.createHorizontalGlue());
     //Panel A
     pnlA.setBoxLayout(BoxLayout.X_AXIS);
     pnlA.add(ltfTomoThickness);
@@ -236,10 +246,13 @@ final class Tilt3dFindPanel extends AbstractTiltPanel {
             + "input tomogram.  From the taAngles log.");
     ltfAdditionalDiameters
         .setToolTipText("Used to calculate the thickness of the findbeads3d.");
-    ltfTomoThickness.setToolTipText("Default is calculated from \""
-        + CENTER_TO_CENTER_THICKNESS_LABEL + "\" plus \""
-        + FindBeads3dPanel.BEAD_SIZE_LABEL + "\" multipled by \""
-        + ADDITION_UNBINNED_DIAMETERS_TO_ADD + "\".");
+    ltfTomoThickness
+        .setToolTipText("Thickness of tomogram in unbinned pixels.  The default "
+            + "is calculated from \""
+            + CENTER_TO_CENTER_THICKNESS_LABEL
+            + "\" plus \""
+            + FindBeads3dPanel.BEAD_SIZE_LABEL
+            + "\" multipled by \"" + ADDITION_UNBINNED_DIAMETERS_TO_ADD + "\".");
     ltfZShift
         .setToolTipText("Incremental unbinned shift needed to center range of "
             + "fiducials in Z.  From the taAngles log.");
