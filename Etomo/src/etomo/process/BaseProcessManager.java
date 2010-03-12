@@ -45,6 +45,10 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.89  2010/02/26 20:37:59  sueh
+ * <p> Changing the complex popup titles are making it hard to complete the
+ * <p> uitests.
+ * <p>
  * <p> Revision 1.88  2010/02/17 04:49:20  sueh
  * <p> bug# 1301 Using the manager instead of the manager key do pop up
  * <p> messages.
@@ -720,6 +724,23 @@ public abstract class BaseProcessManager {
     return startComScript(new ComScriptProcess(manager, command, this, axisID,
         null, processMonitor, processResultDisplay, commandDetails,
         processSeries), command, processMonitor, axisID);
+  }
+  
+  /**
+   * Start a managed command script for the specified axis
+   * @param command
+   * @param processMonitor
+   * @param axisID
+   * @return
+   * @throws SystemProcessException
+   */
+  final ComScriptProcess startComScript(final String commandString,
+      final ProcessMonitor processMonitor, final AxisID axisID,
+      final ProcessResultDisplay processResultDisplay,final Command command,
+      final ConstProcessSeries processSeries) throws SystemProcessException {
+    return startComScript(new ComScriptProcess(manager, commandString, this, axisID,
+        null, processMonitor, processResultDisplay, command,processSeries), commandString,
+        processMonitor, axisID);
   }
 
   /**
