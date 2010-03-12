@@ -20,6 +20,9 @@
  * 
  * <p>
  * $Log$
+ * Revision 3.147  2010/03/03 04:55:35  sueh
+ * bug# 1311 Removed unnecessary ProcessName references.
+ *
  * Revision 3.146  2010/02/18 22:35:32  sueh
  * bug# 1315 When showing the log file, passing the File.
  *
@@ -1082,7 +1085,8 @@ public class ProcessManager extends BaseProcessManager {
    */
   public String eraser(AxisID axisID,
       ProcessResultDisplay processResultDisplay,
-      ConstProcessSeries processSeries) throws SystemProcessException {
+      ConstProcessSeries processSeries, Command ccdEraserParam)
+      throws SystemProcessException {
     // Create the process monitor
     CCDEraserProcessMonitor ccdEraserProcessMonitor = new CCDEraserProcessMonitor(
         appManager, axisID);
@@ -1092,7 +1096,8 @@ public class ProcessManager extends BaseProcessManager {
 
     //  Start the com script in the background
     ComScriptProcess comScriptProcess = startComScript(command,
-        ccdEraserProcessMonitor, axisID, processResultDisplay, processSeries);
+        ccdEraserProcessMonitor, axisID, processResultDisplay, ccdEraserParam,
+        processSeries);
 
     return comScriptProcess.getName();
   }
@@ -2102,7 +2107,7 @@ public class ProcessManager extends BaseProcessManager {
     }
   }
 
-  protected void postProcess(ReconnectProcess script) {
+  void postProcess(ReconnectProcess script) {
   }
 
   void postProcess(final DetachedProcess process) {
@@ -2130,14 +2135,18 @@ public class ProcessManager extends BaseProcessManager {
     if (processName == ProcessName.TILT_3D_FIND) {
       appManager.copyTilt3dFindReprojectCom(axisID);
     }
+    else if (processName == ProcessName.CTF_CORRECTION) {
+      appManager.getState().setUseCtfCorrectionWarning(axisID, true);
+    }
   }
 
-  protected void postProcess(ComScriptProcess script) {
+  void postProcess(ComScriptProcess script) {
     try {
       // Script specific post processing
       ProcessName processName = script.getProcessName();
       ProcessDetails processDetails = script.getProcessDetails();
       CommandDetails commandDetails = script.getCommandDetails();
+      Command command = script.getCommand();
       TomogramState state = appManager.getState();
       AxisID axisID = script.getAxisID();
       if (processName == ProcessName.ALIGN) {
@@ -2155,6 +2164,18 @@ public class ProcessManager extends BaseProcessManager {
         appManager.postProcess(axisID, processName, processDetails, script
             .getProcessResultDisplay());
         appManager.logTaErrorLogMessage(axisID);
+      }
+      else if (processName == ProcessName.ERASER) {
+        if (command != null
+            && command.getCommandMode() == CCDEraserParam.Mode.X_RAYS) {
+          state.setUseFixedStackWarning(axisID, true);
+        }
+      }
+      else if (processName == ProcessName.MTFFILTER) {
+          state.setUseFilteredStackWarning(axisID, true);
+      }
+      else if (processName == ProcessName.CTF_CORRECTION) {
+        state.setUseCtfCorrectionWarning(axisID, true);
       }
       else if (processName == ProcessName.TOMOPITCH) {
         appManager.setTomopitchOutput(axisID);
@@ -2240,10 +2261,10 @@ public class ProcessManager extends BaseProcessManager {
     }
   }
 
-  protected void errorProcess(ReconnectProcess script) {
+  void errorProcess(ReconnectProcess script) {
   }
 
-  protected void errorProcess(ComScriptProcess script) {
+  void errorProcess(ComScriptProcess script) {
     try {
       ProcessName processName = script.getProcessName();
       if (processName == ProcessName.XCORR) {
@@ -2287,6 +2308,12 @@ public class ProcessManager extends BaseProcessManager {
       else if (process.getProcessName() == ProcessName.FLATTEN_WARP) {
         FlattenWarpLog.INSTANCE.setLog(process.getStdOutput());
         appManager.logMessage(FlattenWarpLog.INSTANCE, process.getAxisID());
+      }
+      else if (process.getProcessName() == ProcessName.RUNRAPTOR) {
+        appManager.getState().setUseRaptorResultWarning(true);
+      }
+      else if (process.getProcessName() == ProcessName.CCD_ERASER) {
+        appManager.getState().setUseErasedStackWarning(process.getAxisID(), true);
       }
       else {
         String commandName = process.getCommandName();
@@ -2343,7 +2370,7 @@ public class ProcessManager extends BaseProcessManager {
     }
   }
 
-  protected void errorProcess(BackgroundProcess process) {
+  void errorProcess(BackgroundProcess process) {
     try {
       if (process.getCommandLine().equals(transferfidCommandLine)) {
         writeLogFile(process, process.getAxisID(),
@@ -2358,10 +2385,10 @@ public class ProcessManager extends BaseProcessManager {
     }
   }
 
-  protected void postProcess(InteractiveSystemProgram program) {
+  void postProcess(InteractiveSystemProgram program) {
   }
 
-  protected BaseManager getManager() {
+  BaseManager getManager() {
     return appManager;
   }
 }
