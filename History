@@ -1,5 +1,7 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+3/11/10: In Etomo made a variety of improvements.
+
 3/11/10: Made imodtrans able to use the -i option when a model file has no
 image reference information.
 
