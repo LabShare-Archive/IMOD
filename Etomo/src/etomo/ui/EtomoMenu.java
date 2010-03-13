@@ -20,6 +20,7 @@ import etomo.process.ImodqtassistProcess;
 import etomo.type.AxisID;
 import etomo.type.AxisType;
 import etomo.type.ToolType;
+import etomo.util.EnvironmentVariable;
 
 /**
  * <p>Description: </p>
@@ -100,7 +101,13 @@ final class EtomoMenu {
       KeyEvent.VK_E);
   private final JMenuItem menuJoinGuide = new MenuItem("Join Users Guide",
       KeyEvent.VK_J);
+  private final JMenuItem menuPeetGuide = new MenuItem("Peet Users Guide",
+      KeyEvent.VK_P);
   private final JMenuItem menuHelpAbout = new MenuItem("About", KeyEvent.VK_A);
+
+  private final boolean peetAvailable = EnvironmentVariable.INSTANCE.exists(
+      null, EtomoDirector.INSTANCE.getOriginalUserDir(), "PARTICLE_DIR",
+      AxisID.ONLY);
 
   private final boolean singleFrame;
 
@@ -143,6 +150,9 @@ final class EtomoMenu {
     menu3dmodGuide.addActionListener(helpActionListener);
     menuEtomoGuide.addActionListener(helpActionListener);
     menuJoinGuide.addActionListener(helpActionListener);
+    if (peetAvailable) {
+      menuPeetGuide.addActionListener(helpActionListener);
+    }
     menuHelpAbout.addActionListener(helpActionListener);
 
     if (!forManagerFrame) {
@@ -235,6 +245,9 @@ final class EtomoMenu {
     menuHelp.add(menu3dmodGuide);
     menuHelp.add(menuEtomoGuide);
     menuHelp.add(menuJoinGuide);
+    if (peetAvailable) {
+      menuHelp.add(menuPeetGuide);
+    }
     menuHelp.add(menuHelpAbout);
 
     //  Construct menu bar
@@ -263,6 +276,9 @@ final class EtomoMenu {
     menuHelp.add(menu3dmodGuide);
     menuHelp.add(menuEtomoGuide);
     menuHelp.add(menuJoinGuide);
+    if (peetAvailable) {
+      menuHelp.add(menuPeetGuide);
+    }
     menuHelp.add(menuHelpAbout);
 
     //  Construct menu bar
@@ -389,7 +405,11 @@ final class EtomoMenu {
     if (equalsJoinGuide(event)) {
       ImodqtassistProcess.INSTANCE.open(manager, "tomojoin.html", axisID);
     }
-
+    
+    if (equalsPeetGuide(event)) {
+      ImodqtassistProcess.INSTANCE.open(manager, "PEETmanual.html", axisID);
+    }
+    
     if (equalsHelpAbout(event)) {
       MainFrame_AboutBox dlg = new MainFrame_AboutBox(manager, frame, axisID);
       Dimension dlgSize = dlg.getPreferredSize();
@@ -550,6 +570,10 @@ final class EtomoMenu {
     return equals(menuJoinGuide, event);
   }
 
+  boolean equalsPeetGuide(final ActionEvent event) {
+    return equals(menuPeetGuide, event);
+  }
+
   boolean equalsHelpAbout(final ActionEvent event) {
     return equals(menuHelpAbout, event);
   }
@@ -639,6 +663,9 @@ final class EtomoMenu {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.19  2010/02/17 05:03:12  sueh
+ * <p> bug# 1301 Using manager instead of manager key for popping up messages.
+ * <p>
  * <p> Revision 1.18  2009/12/29 18:50:03  sueh
  * <p> bug# 1297 Put the "New..." menu items under "New >".  Published "New..."
  * <p> menu item labels.
