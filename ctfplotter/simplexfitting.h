@@ -4,6 +4,9 @@
  *  $Id$
  *
  *  $Log$
+ *  Revision 1.2  2009/08/10 22:34:39  mast
+ *  General reworking of program
+ *
  *
  */
 #ifndef CURVEFITTING_H
@@ -31,6 +34,7 @@ class SimplexFitting
   static int mIndex1;
   static int mIndex2;
   static int mNumVar;
+  static double mExpZero;
   static float mA[5];
   static double *mRaw;
   static DefocusFinder *mFinder;

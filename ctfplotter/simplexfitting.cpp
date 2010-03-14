@@ -29,6 +29,7 @@ double* SimplexFitting::mRaw=NULL;
 DefocusFinder *SimplexFitting::mFinder = NULL;
 int SimplexFitting::mNumVar = 0;
 float SimplexFitting::mA[5] = {0., 0., 0., 0., 0.};
+double SimplexFitting::mExpZero = 0.;
 
 //SimplexFitting::SimplexFitting(double *rawData, int nRaw, int i_1, int i_2)
 SimplexFitting::SimplexFitting(int nRaw)
@@ -194,9 +195,17 @@ int SimplexFitting::fitCTF(double* fitting, int nvar, double &err,
   float ptol2=5.0e-4;
   float ftol1=1.0e-5;
   float ptol1=1.0e-5;
-  double x, x0, ctfval;
+  double x, x0, ctfval, startDef;
   double rawMin = 1.e30;
   double rawMax = -1.e30;
+
+  // Get starting defocus depending on current option setting, and get 
+  // the zero at that defocus
+  if (((MyApp *)qApp)->getDefocusOption())
+    startDef = mFinder->getDefocus();
+  else
+    startDef = mFinder->getExpDefocus();
+  mFinder->getTwoZeros(startDef, mExpZero, x0);
 
   // Initialize values, or leave previous values for some kinds of 
   // restricted fits
@@ -205,12 +214,12 @@ int SimplexFitting::fitCTF(double* fitting, int nvar, double &err,
     rawMin = B3DMIN(rawMin, mRaw[i]);
     rawMax = B3DMAX(rawMax, mRaw[i]);
   }
-  mA[0] = mFinder->getExpDefocus();
+  mA[0] = startDef;
   if (nvar > 1)
     mA[1] = rawMin - 0.1 * (rawMax - rawMin);
   if (nvar > 2)
     mA[2] = (mRaw[mIndex1] - rawMin) / 
-      mFinder->CTFvalue(mIndex1/(mDim-1.), mFinder->getExpDefocus());
+      mFinder->CTFvalue(mIndex1/(mDim-1.), startDef);
   if (nvar > 3) {
     mA[3] = 10.;
     mA[4] = 1.;
@@ -254,7 +263,7 @@ int SimplexFitting::fitCTF(double* fitting, int nvar, double &err,
  */
 void SimplexFitting::funkCTF(float* param, float* fValue)
 {
-  double x, x0, y, err, zero1, zero2, expZero;
+  double x, x0, y, err, zero1, zero2;
   int i;
   double parUse[5];
   for (i = 0; i < mNumVar; i++)
@@ -281,9 +290,8 @@ void SimplexFitting::funkCTF(float* param, float* fValue)
   // If the defocus places the second zero closer to the expected defocus than
   // the first zero, make error bigger
   mFinder->getTwoZeros(parUse[0], zero1, zero2);
-  expZero = mFinder->getExpZero();
-  if (fabs(expZero - zero2) < 0.33 * fabs(expZero - zero1))
-    err *= 5. * (3. - fabs(expZero - zero2) / expZero);
+  if (fabs(mExpZero - zero2) < 0.33 * fabs(mExpZero - zero1))
+    err *= 5. * (3. - fabs(mExpZero - zero2) / mExpZero);
   if (zero1 > 0.9)
     err *= 5. * (1. + 5. * (zero1 - 0.9));
 
@@ -297,6 +305,9 @@ void SimplexFitting::funkCTF(float* param, float* fValue)
 /*
 
 $Log$
+Revision 1.5  2009/08/11 15:02:33  mast
+Cast float to double in pow to avoid harassment on Windows
+
 Revision 1.4  2009/08/10 22:23:22  mast
 Added the CTF-like fitting method
 
