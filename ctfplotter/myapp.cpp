@@ -11,6 +11,7 @@
 *  Log at end of file
 */
 
+#include <QtGui>
 #include <qlabel.h>
 #include <qfile.h>
 #include <qtoolbutton.h>
@@ -27,6 +28,7 @@
 #include "linearfitting.h"
 
 #include "b3dutil.h"
+#include "ilist.h"
 #include "mrcfiles.h"
 #include "mrcslice.h"
 #include "sliceproc.h"
@@ -47,8 +49,17 @@ MyApp::MyApp(int &argc, char *argv[], int volt, double pSize,
              double rightTol, int maxCacheSize, int invertAngles)
   :QApplication(argc, argv), 
    defocusFinder(volt, pSize, ampRatio, cs, dim, expDefocus), 
-   mCache(maxCacheSize, invertAngles)
+   mCache(maxCacheSize)
 {
+  FILE *fp;
+  SavedDefocus saved;
+  char line[100];
+  int nchar;
+  float langtmp, hangtmp, defoctmp;
+  mSaved = ilistNew(sizeof(SavedDefocus), 10);
+  if (!mSaved)
+    exitError("Allocating list for saving defocus");
+  mSaveModified = false;
   mDim=dim;
   mHyperRes = hyper;
   mDefocusTol=focusTol;
@@ -67,13 +78,38 @@ MyApp::MyApp(int &argc, char *argv[], int volt, double pSize,
   mInitialTileOption=0; //only use central tiles initially;
   mLeftDefTol=leftTol;
   mRightDefTol=rightTol;
-  mSaveFp=NULL;
+  mBackedUp = false;
   mFnDefocus=defFn;
   mTileIncluded=NULL;
   mStackMean=-1000.0;
   mFreqTileCounter = (int *)malloc(mDim * sizeof(int));
   mNumNoiseFiles = 0;
   mNoisePS = (double *)malloc(mDim * sizeof(double));
+  mTiltAngles = NULL;
+  mAngleSign = invertAngles ? -1. : 1.;
+
+  // read in existing defocus data 
+  fp = fopen(mFnDefocus, "r");
+  if (fp) {
+    while(1) {
+      nchar = fgetline(fp, line, 100);
+      if (nchar == -2)
+        break;
+      if (nchar == -1)
+        exitError("Error reading existing defocus file %s", mFnDefocus);
+      if (nchar) {
+        sscanf(line, "%d %d %f %f %f", &saved.startingSlice, &saved.endingSlice
+               , &langtmp, &hangtmp, &defoctmp);
+        saved.lAngle = langtmp;
+        saved.hAngle = hangtmp;
+        saved.defocus = defoctmp / 1000.;
+        addItemToSaveList(saved);
+      }
+      if (nchar < 0)
+        break;
+    }
+    fclose(fp);
+  }
 }
 
 //save all PS in text file for plotting in Matlab
@@ -256,9 +292,36 @@ void MyApp::fitPsFindZero()
 
 void MyApp::setSlice(const char *stackFile, char *angleFile)
 {
+  FILE *fpAngle;
+  char angleStr[30];
+  float currAngle;
+  int k;
+
   //init and clear old contents;
-  mCache.initCache(stackFile, angleFile, mDim, mHyperRes, mTileSize, mNxx, mNyy,
-                  mNzz);
+  mCache.initCache(stackFile, mDim, mHyperRes, mTileSize, mNxx, mNyy, mNzz);
+
+  // Read in array of tilt angles once from file
+  if (mTiltAngles)
+    free(mTiltAngles);
+  mTiltAngles = NULL;
+  mMinAngle = 10000.;
+  mMaxAngle = -10000.;
+  if (angleFile) {
+    mTiltAngles = (float *)malloc(mNzz * sizeof(float));
+    if (!mTiltAngles)
+      exitError("Allocating array for tilt angles");
+    if( (fpAngle=fopen(angleFile, "r"))==0 )
+      exitError("could not open angle file %s",angleFile);
+    for (k = 0; k < mNzz; k++) {
+      fgets(angleStr, 30, fpAngle);
+      sscanf(angleStr, "%f", &currAngle);
+      currAngle *= mAngleSign;
+      mMinAngle = B3DMIN(mMinAngle, currAngle);
+      mMaxAngle = B3DMAX(mMaxAngle, currAngle);
+      mTiltAngles[k] = currAngle;
+    }
+  }
+
   mCache.whatIsNeeded(mLowAngle, mHighAngle, mStartingSlice, mEndingSlice); 
 
   if(mTileIncluded)
@@ -805,9 +868,79 @@ void MyApp::setNoiseForMean(double mean)
               (highMean - lowMean);
 }
 
+void MyApp::saveCurrentDefocus()
+{
+  SavedDefocus toSave;
+   
+  toSave.startingSlice=getStartingSliceNum();
+  toSave.endingSlice=getEndingSliceNum();
+  toSave.lAngle=getLowAngle();
+  toSave.hAngle=getHighAngle();
+  toSave.defocus=defocusFinder.getDefocus();
+  addItemToSaveList(toSave);
+  mSaveModified = true;
+  if (mPlotter->aDialog)
+    mPlotter->aDialog->updateTable();
+}
+
+void MyApp::addItemToSaveList(SavedDefocus toSave)
+{
+  SavedDefocus *item;
+  int i, matchInd = -1, insertInd = 0;
+
+  // Look for match or place to insert
+  for (i = 0; i < ilistSize(mSaved); i++) {
+    item = (SavedDefocus *)ilistItem(mSaved, i);
+    if (item->startingSlice == toSave.startingSlice && 
+        item->endingSlice == toSave.endingSlice) {
+      matchInd = i;
+      *item = toSave;
+      break;
+    }
+    if (item->lAngle + item->hAngle <= toSave.lAngle + toSave.hAngle)
+      insertInd = i + 1;
+  }
+  
+  // If no match, now insert
+  if (matchInd < 0 && ilistInsert(mSaved, &toSave, insertInd))
+    exitError("Failed to add item to list of saved defocuses");
+}
+
+void MyApp::writeDefocusFile()
+{
+  SavedDefocus *item;
+  FILE *fp;
+  int i;
+  if (!ilistSize(mSaved))
+    return;
+  if (!mBackedUp)
+    imodBackupFile(mFnDefocus);
+  mBackedUp = true;
+  fp=fopen(mFnDefocus,"w");
+  if(!fp){
+    QErrorMessage* errorMessage = new QErrorMessage();
+    errorMessage->showMessage( "Can not open output file" );
+    return;
+  }
+  
+  for (i = 0; i < ilistSize(mSaved); i++) {
+    item = (SavedDefocus *)ilistItem(mSaved, i);
+    fprintf(fp, "%d\t%d\t%5.2f\t%5.2f\t%6.0f\n", item->startingSlice, 
+            item->endingSlice, item->lAngle, item->hAngle,
+            item->defocus*1000);
+  }
+  fclose(fp);
+  mSaveModified = false;
+}
+
+
+
 /*
 
 $Log$
+Revision 1.14  2010/03/09 06:24:52  mast
+Change arguments to const char* to take latin1 from QString
+
 Revision 1.13  2009/08/10 22:19:48  mast
 Implemented storing of power spectra with hyperresolution and more exact
 shifting of off-center tile spectra, used exact zero-defocus relations,
