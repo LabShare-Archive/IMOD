@@ -4,6 +4,9 @@
  *  $Id$
  *
  *  $Log$
+ *  Revision 1.4  2009/08/10 22:34:39  mast
+ *  General reworking of program
+ *
  *
  */
 #ifndef RANGEDIALOG_H
@@ -58,7 +61,6 @@ private slots:
     QCheckBox *mPowerCheckBox;
     QLabel *mOrderLabel;
     QSpinBox *mOrderSpinBox;
-    
     QPushButton *mApplyButton;
     QPushButton *mCloseButton;
 };

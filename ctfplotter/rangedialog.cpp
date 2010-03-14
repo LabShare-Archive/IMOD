@@ -28,7 +28,7 @@
   char tmpStr[20];
   int which = ((MyApp *)qApp)->getZeroFitMethod();
 
-  setWindowTitle(tr("Set Fitting Range & Method"));
+  setWindowTitle(tr("Fitting Range & Method"));
 
   // Set up the zero-fitting method radio group
   QGroupBox *zeroGrpBox = new QGroupBox(tr("Zero-finding method"), this);
@@ -257,16 +257,17 @@ void RangeDialog::RangeDialog::zeroMethodClicked(int which)
   ((MyApp *)qApp)->setZeroFitMethod(which);
 }
 
+// Refit automatically for simple changes like exponent and power
 void RangeDialog::fitPowerClicked(bool state)
 {
-  mApplyButton->setEnabled(true);
   ((MyApp *)qApp)->setVaryCtfPowerInFit(state);
+  rangeSetted();
 }
 
 void RangeDialog::orderChanged(int value)
 {
-  mApplyButton->setEnabled(true);
   ((MyApp *)qApp)->setPolynomialOrder(value);
+  rangeSetted();
 }
 
 void RangeDialog::showHideWidget(QWidget *widget, bool state)
@@ -299,6 +300,9 @@ void RangeDialog::manageWidgets(int which)
 /*
 
    $Log$
+   Revision 1.5  2009/08/10 22:10:42  mast
+   Modified for three methods of fitting
+
    Revision 1.4  2009/01/15 16:31:36  mast
    Qt 4 port
 
