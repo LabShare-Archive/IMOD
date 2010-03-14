@@ -6,10 +6,12 @@ ctfplotter \- estimate defocus values of a tilt series
 .SH SYNOPSIS
 ctfplotter  options
 .SH DESCRIPTION
-This GUI program will plot the logarithm of the CTF curve of an input tilt 
+This GUI program will plot the logarithm of a rotationally averaged power
+spectrum of an input tilt 
 series after subtracting the noise floor.  The method is based on periodogram 
-averaging.  The user can interactively choose which projection views are
-included in the averaging.
+averaging; namely, averaging of spectra from small, overlapping areas of
+the images, referred to as tiles.  The user can interactively choose which
+projection views are included in the averaging.
 
 The noise floor is based on actual measurements of noise in an image taken
 with no specimen in the beam.  Thus, in order to use this program, you need to

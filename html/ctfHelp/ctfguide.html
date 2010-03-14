@@ -6,29 +6,39 @@
   <title>ctfguide.html</title>
 </head>
 <body>
+<h2 align="center">Guide to Ctfplotter<br>
+</h2>
+<h3 align="center">Boulder Laboratory for 3-D Electron Microscopy of
+Cells</h3>
+<p>
+Ctfplotter plots noise-subtracted, rotationally averaged power spectra from
+tilt series data and allows one to determine the position of the first zero of
+the microscope CTF.  The power spectra are obtained by extracting small
+squares of image (referred to as tiles) that overlap by 50%, taking their
+2D Fourier transforms, rotationally averaging the transforms to obtain
+one-dimensional curves, dividing by the corresponding curves obtained from
+images consisting only of noise, and summing these 1D curves.
+Once defocus is determined from such power spectra, the phase
+inversions of the CTF can be corrected with the program 
+<a href="../man/ctfphaseflip.html">Ctfphaseflip</a>.  Defocus
+can be found in angular subranges of the tilt series.  The defocus values are
+stored in a table so that they can be visualized, deleted, or recomputed if
+necessary. All of the values in the table are saved to the defocus file, which
+is provided as input to Ctfphaseflip.
 <h2>The CTF Graph</h2>
 <OL>
-<LI> The X coordinate is normalized frequency.
-1.0 equals the Nyquist frequency determined by the pixel size.<br>
-In our case, the pixel size is in nanometers, and the Nyquist frequency in
-1/nm would be 0.5/pixel_size.</li>
-<li> The text field marked
-with "Z" on the top line reports the found normalized frequency of the
-first zero.  The absolute frequency of the first
-zero in 1/nm is (normalized frequency)*(Nyquist frequency).<br>
-The text field marked with "D" on the top line
-reports the found defocus in microns.<br>
-If you double-click on the position of the
-second zero with the middle or right mouse button, the text field marked "D2"
-shows the defocus implied by that second zero position, and the text field
-marked "D-avg" shows the average of the defocus from the first and second
-zeros.</li>
-<li> The red curve is the logarithm of the CTF
-curve of the selected views after subtracting the noise floor. <br>
+<LI> The plotter shows graphs of image power as a function of spatial
+frequency.  The X coordinate is normalized frequency.
+1.0 equals the Nyquist frequency determined by the pixel size. <br>
+If the pixel size is in nanometers, and the Nyquist frequency in
+1/nm would be 0.5/pixel_size. <br> The Y coordinate is the logarithm of image
+power.</li>
+<li> The red curve is the logarithm of the power spectrum
+of the selected views after subtracting the noise floor. <br>
 If you use a fitting method that fits just one curve, the green curve fits the 
 red curve from "X1_starts" to "X2_ends", which can be set in the fitting range
 dialog.<br>
-If you use a method that fits two curves, the green curve will is fit to the
+If you use a method that fits two curves, the green curve is fit to the
 red curve from "X1_starts" to "X1_ends" and the blue curve
 fits the red curve from "X2_starts" to" X2_ends", all of which can be set in
 the fitting range dialog.<br>
@@ -42,6 +52,18 @@ hot keys for zooming in 3dmod, "-" or "+/=". </li>
 <li>
 Use arrow keys to scroll vertically and horizontally.  You can also use the
 mouse scroll wheel to scroll vertically.</li>
+<li> The text field marked
+with "Z" on the top line reports the normalized frequency of the
+first zero, either found by fitting to the power spectra, or set by
+double-clicking with the left mouse button.  The absolute frequency of the
+first zero in 1/nm is (normalized frequency)*(Nyquist frequency).<br>
+The text field marked with "D" on the top line
+reports the found defocus in microns.<br>
+If you double-click on the position of the
+second zero with the middle or right mouse button, the text field marked "D2"
+shows the defocus implied by that second zero position, and the text field
+marked "D-avg" shows the average of the defocus from the first and second
+zeros.</li>
 <li> Double clicking at a point in the plot with the left mouse button will set
 the found frequency of the first zero to the frequency at point.<br>
 The found defocus field will
@@ -57,34 +79,24 @@ set back to "NA" whenever a new first zero is set.</li>
 <TABLE BORDER COLS=2>
 <COLGROUP SPAN=1 WIDTH="*0">
 <TBODY>
+<TR><TD>Angles
+<TD> Open the tilt angle
+range and tile selection dialog.
+<TR><TD>Fitting
+<TD> Open the Fitting Ranges and
+ Methods dialog.
 <TR><TD><img alt="zoominButton" src="zoomin.png"
  style="width: 22px; height: 22px;">
 <TD>Zoom in again after zooming back out.
 <TR><TD><img alt="zoomoutButton" src="zoomout.png"
  style="width: 22px; height: 22px;">
 <TD>Zoom out after zooming in.
-<TR><TD><img alt="rangButton" src="range.png"
- style="width: 48px; height: 48px;">
-<TD> Open the fitting range and
- method dialog.
-<TR><TD><img alt="angleButton" src="angle.png"
- style="width: 48px; height: 48px;">
-<TD> Open the tilt angle
-range dialog.
 <TR><TD><img alt="moretileButton"
  src="moreTile.png" style="width: 32px; height: 32px;">
 <TD>Adding Non-center Tiles button. If
 this button is enabled, the current estimation is based only on center
 tiles; 
 push this button to add non-center tiles to the current estimation.
-<TR><TD><img alt="saveButton" src="save.png"
- style="width: 32px; height: 32px;">
-<TD>Save
-the defocus found for
-the selected views in the output file.&nbsp; The defocus indicated by "D" is
-saved unless a second zero has been clicked, in which case the average defocus
-indicated by "D-avg" is saved.  A line is added to the
-output file each time this button is pressed.
 <TR><TD><img alt="printerButton" src="printer.png"
  style="width: 48px; height: 48px;">
 <TD>Print the plotted curves.
@@ -95,7 +107,7 @@ output file each time this button is pressed.
 </TABLE>
 <br>
 <br>
-<h2>Fitting Range & Method Dialog
+<h2>Fitting Ranges & Methods Dialog
 </h2>
 This dialog allows three different kinds of fitting, which can be selected by 
 the radio buttons at the top.  After changing parameters, either press
@@ -120,6 +132,16 @@ the starting value so that it is to the right of where the fitted curve
 strongly deviates from the actual.  If the red curve become noisy and falls
 off before a second zero, you should also reduce the ending point of the fit
 to exclude that region.  See the example below.
+</P>
+<P>
+The fit does rely on an initial approximate value for the defocus and may
+fail if the actual defocus is far from that value.  It takes
+this value either from the expected defocus or from the current defocus
+estimate, depending on whether the option is selected to use the current
+defocus estimate in the Tilt Angle Range Dialog.  If the defocus revealed by
+the power spectrum is far from the expected defocus, you should either change
+the value of the expected defocus, or select the option to use the current
+defocus estimate and make sure that estimate is approximately correct.
 </P>
 <p>
 <img src="rangePolynomial.png">
@@ -158,33 +180,38 @@ radio button to
 fit to a straight line or to a Gaussian.
 </P>
 
-<h2>Tilt Angle Range Dialog<br>
+<h2>Angle Range and Tilt Selection Dialog<br>
 </h2>
-This dialog presents the various parameters that control how the CTF curve is
-computed.  After changing parameters, either press
+This dialog presents the various parameters that control how the power
+spectrum is computed.  After changing parameters, either press
 <B>Apply</B> or type the "Enter" key in one of the text boxes to have the curve
-recomputed with the current parameters.
+recomputed with the current parameters.  The dialog also shows the table of
+defocus values and allows it to be manipulated.  Because of the importance of
+this dialog, it is opened automatically when the program starts.
 <P>
 <img alt="angleDialog" src="angleDialog.png"><br>
 <B>Expected defocus</B>: <br>
-The first time this dialog is brought up, the expected defocus value
-specified in the parameter file is shown.  Initially, this value is used to
-compute the expected frequency of the first zero of the CTF curve and to set
+This field starts out with the expected defocus value
+specified in the parameter file, but you can change it.  Initially, this value
+is used to compute the expected frequency of the first zero of the power
+spectrum and to set
 the initial values of the X1 and X2 ranges which determine what segments of
-the CTF curve are fitted.
-When non-center tiles are being included, ctfplotter uses a defocus to
-compute shifts needed to align the CTF curves of non-center
+the power spectrum are fitted.
+When non-center tiles are being included, Ctfplotter uses a defocus to
+compute shifts needed to align the power spectra of non-center
 tiles with the CTF curve of center tiles. With the radio button group
-<B>Which defocus to use</B>, the user can specify 
+<B>Which defocus to use</B>, you can specify 
 whether to use the expected defocus shown in the <B>Expected defocus
 (um)</B> Edit field or the defocus previously found by the
 program as the defocus for computing the shifts.
 </P><P>
-<B>Tilt angle starts</B><br>
-<B>Tilt angle ends</B>: <br>
+<B>Starting tilt angle</B><br>
+<B>Ending tilt angle</B>: <br>
 The views with tilt angle
 greater than or equal to the starting angle but less than or equal to the
-ending angle will be included in the estimation.
+ending angle will be included in the estimation.  If you enter a value beyond
+the end of the range of angles in the tilt series, it will be adjusted to the
+starting or ending angle of the series.
 </P><P>
 <B>Center defocus tol</B>: <br>
 The image region with defocus difference less than this tolerance is
@@ -214,21 +241,51 @@ The amount in degrees that the tilt axis deviates from being vertical
 <B>Initial tiles to include</B> radio
 button group:<br>
 Choose whether or not to include the noncenter tiles in the estimation
-when computing the CTF curve.<br>
+when computing the power spectrum.<br>
 If <B>Only central tiles</B> is checked, only the center region defined by
 <B>Center defocus tol</B> will be
 included in the next computation, and the "Adding Non-center Tiles" button
-will be enabled. The user needs to push that button to add the left region
+will be enabled.  You need to push that button to add the left region
 defined by <B>Left defocus tol</B> and the right region
 defined by <B>Right defocus tol</B>
 to the estimation.<br>
 If <B>All tiles</B>&nbsp; is checked,
-all regions (center, left, right) will be included whenthe curve is
+all regions (center, left, right) will be included when the curve is
 recomputed,
 and the "Adding Non-center Tiles" button will be disabled.<br>
 </P><P>
-Push the <B>Store current defocus</B> button to write the defocus found to the
-output file, just as when pressing the Save tool button.
+<B>Store Defocus in Table:</B>
+<br>
+Push this button to store
+the defocus found for
+the selected views in the angles and defocus table.&nbsp; The defocus
+indicated by "D" is stored unless a second zero has been clicked, in which
+case the average defocus indicated by "D-avg" is stored.
+</P><P>
+<B>Angles and Defocus Table:</B>
+<br>
+This table shows the starting and ending tilt angle,
+the middle of the angular range, and the defocus value for each range where
+you have stored results.  The lines are in order by the middle of the angular
+range.  When you store a value for an angular range matching that of an
+existing line in the table, the existing defocus value is replaced with the
+new one.  When the program starts, this table is loaded with values from an
+existing version of the output file.  Below the table are three buttons that
+operate on the table:
+</P><P>
+Push the <B>Delete Row</B> button to delete the entry for the currently
+selected row of the table. If you store
+results for an angular range and then want to replace them with results from a
+wider or narrower range, you would need to delete the row with the initial
+results.
+</P><P>
+Push the <B>Set Tilt Angles</B> button to reset the starting and ending tilt
+angles to the values on the currently selected row of the table and recompute
+the power spectrum.
+</P><P>
+Push the <B>Save to File</B> button to write the contents of the angles and
+defocus table to the output file.
+
 </P>
 <h2>Example</h2>
 This example shows the appearance of the plotting window with a tilt series
@@ -246,21 +303,21 @@ band.  Then the window looks like this:
 </P><P>
 <img src="plotCenterZoom.png"><br>
 Now we can see more clearly that the background subtraction is giving a
-reasonable CTF curve that is close to flat at high frequencies.
+reasonable power spectrum that is close to flat at high frequencies.
 The next step is to add in all of tiles, either by pushing the "Adding
 Non-center Tiles" button or by opening the Angle range dialog and switching to
 the <B>All tiles</B> option.  These two methods will give slightly different
 results, and the latter is actually preferable.
 </P><P>
 <img src="plotAllTiles.png"><br>
-The CTF curve is much smoother and it is now easier to see that it has a
+The power spectrum is much smoother and it is now easier to see that it has a
 discernable dip, but that the green
 curve does not fit very well. If we open the Fitting Range & Method dialog, we
 see that it is fitting from 0.43 to 0.78, a range that was determined from the
 nominal defocus but is not quite appropriate for the actual defocus.  The
 range was changed to what was shown above in the dialog: the left side was
-moved to 0.38 to include more of the falling phase of the CTF curve, and the
-right side was reduced to 0.58 because the CTF curve drops off after that
+moved to 0.38 to include more of the falling phase of the power spectrum, and the
+right side was reduced to 0.58 because the power spectrum drops off after that
 point, well before its second zero.  At this point it is also clear that the
 actual defocus is different from 3 microns, so we select the <B>Current
 defocus estimate</B> radio button in the Angle Range dialog so that the
@@ -283,18 +340,19 @@ results can be stored from each range.  Although there is no need to try the
 different fitting methods with this data set, they are illustrated next.
 </P><P>
 <img src="plotPolynomial.png"><br>
-This panel shows the CTF curve for a different angular range with a
+This panel shows the power spectrum for a different angular range (-50 to -10
+degrees) with a
 fourth-order polynomial fit to the frequency range shown in the dialog above.
 As is typical of polynomials, the green curves goes off wildly outside the
 fitting range.
 </P><P>
 <img src="plotIntersect.png"><br>
-This panel shows the CTF curve for the original angular range with
+This panel shows the power spectrum for the original angular range with
 determination of the zero from the intersection of two curves, with the
 frequency range as shown in the dialog above.
 </P>
 <br>
-<a href="../man/ctfplotter.html">Refer to ctfplotter man page</a><br>
+<a href="../man/ctfplotter.html">Refer to Ctfplotter man page</a><br>
 <br>
 
 </body>
