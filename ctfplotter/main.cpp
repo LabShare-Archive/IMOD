@@ -264,7 +264,16 @@ int main(int argc, char *argv[])
   mainWin.statusBar()->showMessage(QObject::tr("Ready"), 2000);
 
   mainWin.show();
+  plotter.angleDiag();
   app.exec();
+  if (app.getSaveModified()) {
+    int retval =   QMessageBox::information
+      (0, "Save File?", "There are unsaved changes to the defocus table - "
+       "save before exiting?", QMessageBox::Yes, QMessageBox::No,
+       QMessageBox::NoButton);
+    if (retval == QMessageBox::Yes)
+      app.writeDefocusFile();
+  }
   free(rAvg);
   free(noisePs);
   free(noiseMean);
@@ -282,6 +291,9 @@ int ctfShowHelpPage(const char *page)
 /*
 
 $Log$
+Revision 1.16  2010/03/09 06:24:22  mast
+Allow use of relative paths in config file
+
 Revision 1.15  2009/09/18 14:56:13  mast
 Changed to skip blank lines in noise file
 
