@@ -4,6 +4,9 @@
  *  $Id$
  *
  *  $Log$
+ *  Revision 1.7  2009/08/10 22:34:39  mast
+ *  General reworking of program
+ *
  *
  */
 #ifndef PLOTTER_H
@@ -21,6 +24,7 @@ class PlotSettings;
 class RangeDialog;
 class AngleDialog;
 class MyApp;
+class QPushButton;
 
 class Plotter : public QWidget
 {
@@ -47,7 +51,6 @@ public slots:
     void printIt();
     void rangeDiag();
     void angleDiag();
-    void saveIt();
     void ctfHelp();
 
 protected:
@@ -76,8 +79,8 @@ private:
     QToolButton *zoomInButton;
     QToolButton *zoomOutButton;
     QToolButton *printButton;
-    QToolButton *rangeButton;
-    QToolButton *angleButton;
+    QPushButton *rangeButton;
+    QPushButton *angleButton;
     QToolButton *saveButton;
     QToolButton *helpButton;
     QMap<int, QVector<QPointF> > curveMap;

@@ -27,14 +27,15 @@ using namespace std;
 
 Plotter::Plotter(QWidget *parent) : QWidget(parent)
 {
+  int added = 0, width;
   mApp = (MyApp *)qApp;
   setBackgroundRole(QPalette::Dark);
   setAutoFillBackground(true);
   setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
   setFocusPolicy(Qt::StrongFocus);
   rubberBandIsShown = false;
-  rDialog=0;
-  aDialog=0;
+  rDialog=NULL;
+  aDialog=NULL;
 
   zoomInButton = new QToolButton(this);
   zoomInButton->setIcon(QIcon(":/images/zoomin.png"));
@@ -57,32 +58,28 @@ Plotter::Plotter(QWidget *parent) : QWidget(parent)
   helpButton= new QToolButton(this);
   helpButton->setIcon( QIcon(":/images/ctfhelp.png") );
   helpButton->adjustSize();
-  helpButton->setToolTip("Help");
+  helpButton->setToolTip("Open Ctfplotter help");
   connect(helpButton, SIGNAL(clicked()), this, SLOT(ctfHelp()) );
 
-  saveButton=new  QToolButton(this);
-  saveButton->setIcon( QIcon(":/images/save.png") );
-  saveButton->adjustSize();
-  saveButton->setToolTip( "Save");
-  connect(saveButton, SIGNAL(clicked()), this, SLOT(saveIt()) );
-    
-  rangeButton=new QToolButton(this);
-  rangeButton->setIcon( QIcon(":/images/range.png") );
-  rangeButton->adjustSize();
-  rangeButton->setToolTip( "Set fitting ranges and methods");
+  rangeButton = new QPushButton("Fitting", this);
+  rangeButton->setToolTip( "Open Fitting Ranges and Methods dialog");
   connect(rangeButton, SIGNAL(clicked()), this, SLOT(rangeDiag()) );
 
-  angleButton=new QToolButton(this);
-  angleButton->setIcon( QIcon(":/images/angle.png") );
-  angleButton->adjustSize();
-  angleButton->setToolTip("Set the angle range and expected defocus" );
+  angleButton = new QPushButton("Angles", this);
+  angleButton->setToolTip("Open Angle Range and Tile Selection dialog");
   connect(angleButton, SIGNAL(clicked()), this, SLOT(angleDiag()) );
+#ifdef Q_OSMACX  
+  added = (int)(1.5 * rangeButton->fontMetrics().height());
+#endif
+  width = (int)(1.2 * angleButton->fontMetrics().width("Angles") +0.5)+added;
+  angleButton->setFixedWidth(width);
+  rangeButton->setFixedWidth(width);
 
   tileButton=new QToolButton(this);
   tileButton->setIcon(QIcon(":/images/moreTile.png") );
   tileButton->adjustSize();
   tileButton->setToolTip("Include all of the rest of the tiles");
-  connect(tileButton, SIGNAL(clicked()), qApp, SLOT(moreTileCenterIncluded()) );
+  connect(tileButton, SIGNAL(clicked()), mApp, SLOT(moreTileCenterIncluded()));
 
   zeroLabel=new QLabel( tr("Z: NA       "), this);
   zeroLabel->adjustSize();
@@ -156,12 +153,13 @@ void Plotter::rangeDiag()
  */
 void Plotter::angleDiag()
 {
+  QSize hint;
   if(!aDialog){
     aDialog=new AngleDialog(this);
-    connect(aDialog, 
-            SIGNAL(angle(double,double,double,double,int,double,double,double) ), 
-            qApp, 
-            SLOT(angleChanged(double,double,double,double,int,double,double,double)));
+    connect(aDialog, SIGNAL(angle(double,double,double,double,int,double,
+                                  double,double) ), 
+            qApp, SLOT(angleChanged(double,double,double,double,int,double,
+                                    double,double)));
     connect(aDialog, SIGNAL( defocusMethod(int)), qApp, 
             SLOT( setDefOption(int)) );
     connect(aDialog, SIGNAL( initialTileChoice(int)), qApp,
@@ -191,6 +189,7 @@ void Plotter::angleDiag()
     aDialog->leftTolEdit->setText(tmpStr);
     sprintf(tmpStr, "%6d", B3DNINT(rightTol)); 
     aDialog->rightTolEdit->setText(tmpStr);
+    aDialog->updateTable();
   }
   aDialog->show();
   aDialog->raise();
@@ -214,40 +213,6 @@ void Plotter::printIt()
 void Plotter::ctfHelp()
 {
   ctfShowHelpPage("ctfHelp/ctfguide.html");
-}
-
-void Plotter::saveIt()
-{
-    
-  char *defFn=mApp->getDefFn();
-  FILE *fp, *saveFp;
-
-  saveFp=mApp->getSaveFp();
-  if(!saveFp){
-    imodBackupFile(defFn);
-    fp=fopen(defFn,"w");
-    mApp->setSaveFp(fp);
-  }else fp=fopen(defFn, "a");
-
-  if(!fp) {
-    QErrorMessage* errorMessage = new QErrorMessage( this );
-    errorMessage->showMessage( "Can not open output file" );
-    return;
-  }
-  int startingSlice=mApp->getStartingSliceNum();
-  int endingSlice=mApp->getEndingSliceNum();
-  double lAngle=mApp->getLowAngle();
-  double hAngle=mApp->getHighAngle();
-  double defocus=mApp->defocusFinder.getAvgDefocus();
-  if (defocus <= 0.)
-    defocus=mApp->defocusFinder.getDefocus();
-  fprintf(fp, "%d\t%d\t%5.2f\t%5.2f\t%6.0f\n", startingSlice, endingSlice,
-          lAngle, hAngle, defocus*1000);
-
-  //mApp->saveAllPs();
-
-  fclose(fp);
-    
 }
 
 void Plotter::setCurveData(int id, const QVector<QPointF> &data)
@@ -332,10 +297,15 @@ void Plotter::resizeEvent(QResizeEvent *)
 {
   int x = width() - (zoomInButton->width()
                      + zoomOutButton->width() +printButton->width() +
-                     rangeButton->width()+zeroLabel->width()+
+                     +zeroLabel->width()+
                      defocusLabel->width() + tileButton->width()+
-                     angleButton->width()+ saveButton->width()+
-                     defoc2Label->width() + defocAvgLabel->width() + 85);
+                     defoc2Label->width() + defocAvgLabel->width() + 75);
+
+  // Put text buttons on left
+  angleButton->move(10, 5);
+  rangeButton->move(15 + angleButton->width(), 5);
+
+  // Then lay out the labels and tool buttons at fixed distance from right edge
   zeroLabel->move(x, 5);
   x += zeroLabel->width()+5;
   defocusLabel->move(x, 5);
@@ -349,14 +319,8 @@ void Plotter::resizeEvent(QResizeEvent *)
   x += zoomInButton->width() + 5;
   zoomOutButton->move(x, 5);
   x += zoomOutButton->width() + 5;
-  rangeButton->move(x, 5);
-  x += rangeButton->width() + 5;
-  angleButton->move(x, 5);
-  x += angleButton->width() + 5;
   tileButton->move(x, 5);
   x += tileButton->width() + 5;
-  saveButton->move(x, 5);
-  x += saveButton->width() + 5;
   printButton->move(x, 5);
   x += printButton->width() + 5;
   helpButton->move(x, 5);
@@ -680,6 +644,10 @@ void PlotSettings::adjustAxis(double &min, double &max,
 /*
 
    $Log$
+   Revision 1.12  2009/08/10 22:21:35  mast
+   Added click for second zero, eliminated bias in treatment of locations
+   versus power spectrum bins.
+
    Revision 1.11  2009/02/24 23:24:50  xiongq
    fix printing color
 
