@@ -26,6 +26,7 @@
 #include "mrcslice.h"
 #include "parse_params.h"
 #include "slicecache.h"
+#include "myapp.h"
 #include "b3dutil.h"
 #include "cfft.h"
 
@@ -33,22 +34,20 @@ extern int debugLevel;
 
 #define MY_PI 3.1415926
 
-SliceCache::SliceCache(int cacheSize, int invertAngles)
+SliceCache::SliceCache(int cacheSize)
 { 
   mFpStack=NULL;
-  mFpAngle=NULL;
   mMaxCacheSize=cacheSize;
   mSliceData = NULL;
   mTile = NULL;
   mPsTmp = NULL;
   mFreqCount = NULL;
   mTileToPsInd = NULL;
-  mAngleSign = invertAngles ? -1. : 1.;
 } 
 
 //init SliceCache and clear its old contents
 //It needs to be called whenever the tomogram it manages changes.
-void SliceCache::initCache(const char *fnStack, char *fnAngle, int dim,
+void SliceCache::initCache(const char *fnStack, int dim,
                            int hyper, int tSize, int &nx, int &ny, int &nz)
 {
   int dsize, csize;
@@ -57,18 +56,9 @@ void SliceCache::initCache(const char *fnStack, char *fnAngle, int dim,
   if( (mFpStack=fopen(fnStack, "rb"))==0 )
     exitError("could not open input file %s", fnStack);
 
-  if(mFpAngle)
-    fclose(mFpAngle);
-  if(fnAngle){
-    if( (mFpAngle=fopen(fnAngle, "r"))==0 ){
-      exitError("could not open angle file %s",fnAngle);
-    }
-  }else
-    mFpAngle=NULL;
-
   /* read mHeader */	
   if (mrc_head_read(mFpStack, &mHeader)) 
-    exitError("could not read mHeader of input file %s",  fnStack);
+    exitError("could not read header of input file %s",  fnStack);
   mSliceMode = sliceModeIfReal(mHeader.mode);
   if (mSliceMode < 0) 
    exitError("File mode is %d; only byte, short, integer allowed\n",
@@ -149,23 +139,19 @@ void SliceCache::clearAndSetSize(int dim, int hyper, int tSize)
    printf("cacheSize is set to %d \n", mMaxSliceNum);
 }
 
-//read in the angle for a slice from file 
+// Used to read in angle from file, now get from array
 float  SliceCache::readAngle(int whichSlice)
 {
- if( whichSlice < 0 || whichSlice >= mHeader.nx )
+ if( whichSlice < 0 || whichSlice >= mHeader.nz )
    exitError("Slice index is out of range");
  
- int k;
  float currAngle;
- if(mFpAngle){
-   rewind(mFpAngle);
-   char angleStr[30];
-   for(k=0;k<=whichSlice;k++) 
-     fgets(angleStr, 30, mFpAngle);
-   sscanf(angleStr, "%f", &currAngle);
-   currAngle *= mAngleSign;
+ float *angles = ((MyApp *)qApp)->getTiltAngles();
+ if(angles){
+   currAngle = angles[whichSlice];
    if( debugLevel>=1)
-    printf("Slice %d is included, tilt angle is %f degrees. \n", k-1, currAngle);
+    printf("Slice %d is included, tilt angle is %f degrees. \n", whichSlice, 
+           currAngle);
    return currAngle*MY_PI/180.0;
  }else{
    if( debugLevel>=1)
@@ -182,14 +168,11 @@ void SliceCache::whatIsNeeded(float lowLimit, float highLimit, int &start, int
   mNeededSlices.clear();
 
   int k;
-  char angleStr[30];
   float currAngle;
-  if(mFpAngle) 
-    rewind(mFpAngle);
+  float *angles = ((MyApp *)qApp)->getTiltAngles();
   for (k = 0; k < mHeader.nz; k++) {
-    if (mFpAngle && fgets(angleStr, 30, mFpAngle)) {
-      sscanf(angleStr, "%f", &currAngle);
-      currAngle *= mAngleSign;
+    if (angles) {
+      currAngle = angles[k];
     } else {
       currAngle = 0.0;
     }
@@ -268,11 +251,17 @@ float *SliceCache::getHyperPS(int tileX, int tileY, int whichSlice,
     for (ii = 0; ii < numXtiles * mNumYtiles; ii++)
       newDone[ii] = 0;
 
+    printf("0\n");
     mCachedPS.push_back(newPS);
+    printf("1\n");
     mCachedMeans.push_back(newMeans);
+    printf("2\n");
     mCachedTileDone.push_back(newDone);
+    printf("3\n");
     mCachedSliceMap.push_back(whichSlice);
+    printf("4\n");
     mSliceAngles.push_back(readAngle(whichSlice));
+    printf("5\n");
 
     if(mOldestIdx==-1)
       mOldestIdx=currCacheSize;
@@ -299,6 +288,7 @@ float *SliceCache::getHyperPS(int tileX, int tileY, int whichSlice,
   // Have to compute the PS
   // Read in slice if needed
   if (mCurSlice != whichSlice) {
+    printf("reading slice\n");
     if (mrc_read_slice(mSliceData, mFpStack, &mHeader, whichSlice, 'Z'))
       exitError("Reading slice %d", whichSlice);
     mCurSlice = whichSlice;
@@ -356,6 +346,9 @@ float SliceCache::getAngle(int whichSlice)
 /*
 
 $Log$
+Revision 1.7  2010/03/09 06:24:52  mast
+Change arguments to const char* to take latin1 from QString
+
 Revision 1.6  2009/08/10 22:24:20  mast
 Turned it into a cache of power spectra at hyperresolution
 

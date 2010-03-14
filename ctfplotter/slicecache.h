@@ -4,6 +4,9 @@
  *  $Id$
  *
  *  $Log$
+ *  Revision 1.3  2010/03/09 06:24:52  mast
+ *  Change arguments to const char* to take latin1 from QString
+ *
  *  Revision 1.2  2009/08/10 22:34:39  mast
  *  General reworking of program
  *
@@ -19,8 +22,8 @@ class SliceCache
 {
 
   public:
-   SliceCache(int cacheSize, int invertAngles);
-   void initCache(const char *fnStack, char *fnAngle, int dim, int hyper,
+   SliceCache(int cacheSize);
+   void initCache(const char *fnStack, int dim, int hyper,
                   int tSize, int& nx, int &ny, int &nz);
    float readAngle(int whichSlice);
    void whatIsNeeded(float lowLimit, float highLimit, int &startSliceNum, int&
@@ -35,7 +38,6 @@ class SliceCache
    int mMaxCacheSize; // in megs;
    int mMaxSliceNum;
    FILE *mFpStack;
-   FILE *mFpAngle;
    MrcHeader mHeader;
    int mSliceMode;
    float *mSliceData;
@@ -50,7 +52,6 @@ class SliceCache
    int *mTileToPsInd;
    int *mFreqCount;
    double *mPsTmp;
-   double mAngleSign;
 
    std::vector<float *> mCachedPS; 
    std::vector<float *> mCachedMeans; 
