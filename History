@@ -1,5 +1,10 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+3/14/10: Changes to Ctfplotter: it now shows a table of results that will be 
+saved to file and that can be read in from a previous session.  Tool buttons
+were rearranged to make them easier to understand, tooltips added to dialogs,
+angular range limited to actual range of tilt series.
+
 3/12/10: Added the PEET manual to the help menu.
 
 3/11/10: IMOD_4-0-25
@@ -19,7 +24,7 @@ with one layer of patches, will give slightly different results.
 
 3/8/10: Changed Ctfplotter so that noise config file can have relative paths.
 
-3/8/10: Added option to inform Findbead3d of binning.
+3/8/10: Added option to inform Findbeads3d of binning.
 
 3/8/10: Fixed Ctfphaseflip to accept any size of input in Y.
 
