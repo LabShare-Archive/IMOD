@@ -4,6 +4,9 @@
  *  $Id$
  *
  *  $Log$
+ *  Revision 1.7  2010/03/09 06:24:52  mast
+ *  Change arguments to const char* to take latin1 from QString
+ *
  *  Revision 1.6  2009/08/10 22:34:39  mast
  *  General reworking of program
  *
@@ -20,6 +23,15 @@
 class SimplexFitting;
 class LinearFitting;
 class Plotter;
+typedef struct ilist_struct Ilist;
+
+typedef struct {
+  int startingSlice;
+  int endingSlice;
+  double lAngle;
+  double hAngle;
+  double defocus;
+} SavedDefocus;
 
 class MyApp : public QApplication
 {
@@ -28,6 +40,7 @@ class MyApp : public QApplication
     SimplexFitting* simplexEngine;
     LinearFitting*  linearEngine;
     DefocusFinder   defocusFinder;
+    Plotter *mPlotter;
     int getEndingSliceNum() { return mEndingSlice;}
     int getStartingSliceNum() {return mStartingSlice;}
     void plotFitPS(bool flagSetInitSetting );
@@ -63,14 +76,20 @@ class MyApp : public QApplication
     int getX2RangeHigh(){return mX2Idx2;}
     int getDim(){return mDim;}
     char *getDefFn(){return mFnDefocus;}
-    void setSaveFp(FILE *fp){mSaveFp=fp;}
     void saveAllPs();
-    FILE *getSaveFp(){return mSaveFp;}
     int getX1Method(){return mX1MethodIndex;}
     int getX2Method(){return mX2MethodIndex;}
     int getZeroFitMethod(){return mZeroFitMethod;}
     int getPolynomialOrder(){return mPolynomialOrder;}
+    int getDefocusOption(){return mDefocusOption;};
     bool getVaryCtfPowerInFit(){return mVaryCtfPowerInFit;}
+    float *getTiltAngles() {return &mTiltAngles[0];};
+    float getMinAngle() {return mMinAngle;};
+    float getMaxAngle() {return mMaxAngle;};
+    Ilist *getSavedList() {return mSaved;};
+    void setSaveModified() {mSaveModified = true;};
+    bool getSaveModified() {return mSaveModified;};
+    void addItemToSaveList(SavedDefocus toSave);
     MyApp(int &argc, char *argv[], int volt, double pSize, 
           double ampRatio, float cs, char *defFn, int dim, int hyper, 
           double focusTol, int tSize, double tAxisAngle, double lAngle,
@@ -94,13 +113,18 @@ class MyApp : public QApplication
       (double *psSum, double *stripAvg, int *stripCounter,
        int counter, double mean, double xScale, 
        double xAdd, float freqInc, double delFmin, double delFmax);
+    void saveCurrentDefocus();
+    void writeDefocusFile();
+
  private:
     //declare as static so member functions can use resizable
     // arrays of size 'mDim';
     static int mDim;  
     static int mTileSize;
     int mHyperRes;
-    Plotter *mPlotter;
+    Ilist *mSaved;
+    bool mSaveModified;
+    bool mBackedUp;
     char *mFnStack;
     char *mFnAngle;
     char *mFnDefocus;
@@ -108,6 +132,9 @@ class MyApp : public QApplication
     double mHighAngle;  // in degrees;
     double mLeftDefTol; // in nm;
     double mRightDefTol; //in nm;
+    float *mTiltAngles;  // Array of tilt angles
+    float mAngleSign;     // -1 to invert angles, 1 not to
+    float mMinAngle, mMaxAngle;   // Min and max tilt angles
     int mNxx;  //x dimension;
     int mNyy; //y dimension;
     int mNzz;
@@ -134,7 +161,6 @@ class MyApp : public QApplication
     int mX1Idx2;
     int mX2Idx1;
     int mX2Idx2;
-    FILE *mSaveFp;
     int mEndingSlice;
     int mStartingSlice;
     int mNumSlicesDone;
