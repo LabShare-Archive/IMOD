@@ -1,29 +1,17 @@
-IMOD Version 4.0.22                     Copyright Notice and Credits
+IMOD Version 4.0.26                     Copyright Notice and Credits
 --------------------------------------------------------------------------
 Except as noted, ALL SOFTWARE LISTED IS Copyright (C) 1994-2010 by
 Boulder Laboratory for 3-Dimensional Electron Microscopy of Cells
 ("BL3DEMC") and the Regents of the University of Colorado.
 
-BL3DEMC reserves the exclusive rights of preparing derivative works,
-distributing copies for sale, lease or lending and displaying this
-software and documentation.
-Users may reproduce the software and documentation as long as the
-copyright notice and other notices are preserved.
-Neither the software nor the documentation may be distributed for
-profit, either in original form or in derivative works.
+All portions of IMOD are open source under the General Public License
+(GPL).  A copy of this license is in the file GPL.txt.  Software may be
+modified and redistributed under the terms of this license.  The source
+code can be found at  http://bio3d.colorado.edu/imod/openSource
 
 THIS SOFTWARE AND/OR DOCUMENTATION IS PROVIDED WITH NO WARRANTY,
 EXPRESS OR IMPLIED, INCLUDING, WITHOUT LIMITATION, WARRANTY OF
 MERCHANTABILITY AND WARRANTY OF FITNESS FOR A PARTICULAR PURPOSE.
-
-Portions of IMOD using Qt, associated libraries, and some other
-components are open source under the General Public License (GPL).  A
-copy of this license is in the file GPL.txt.  This portion of the source
-code is available at http://bio3d.colorado.edu/imod/openSource
-This source package and the complete source package both include a file
-dist/GPLfileList with a complete list of the source files covered by the
-GPL.  Other source code files (ones not listed in this file) may not be
-redistributed without permission.
 
 Programs were written by David Mastronarde, James Kremer, Rick
 Gaudette, Sue Held, and Quanren Xiong from the BL3DEMC, some based on
@@ -33,8 +21,7 @@ MRC file routines used in the FORTRAN parts, and Chuck Robertson for
 much work on the port to Linux.
 
 The program nad_eed_3d by Achilleas Frangakis and Reiner Hegerl is
-excluded from this notice; it is copyright Max-Planck-Institut for
-Biochemistry, Martinsried, Germany.
+copyright Max-Planck-Institut for Biochemistry, Martinsried, Germany.
 
 The LSQR routine by Michael Saunders is used in some programs.  It is
 covered by the Common Public License.  IMOD now uses a C version of LSQR

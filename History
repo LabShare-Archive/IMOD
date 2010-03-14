@@ -22,6 +22,9 @@ contours" mode when Patch Tracking was used.
 being open source.  Some searches such as in Xfalign, or Solvematch/Findwarp
 with one layer of patches, will give slightly different results.
 
+3/10/10: Added a "Look at contours" mode to Bead Fixer so that one can step
+to contours with the highest mean residuals and examine them or delete them.
+
 3/8/10: Changed Ctfplotter so that noise config file can have relative paths.
 
 3/8/10: Added option to inform Findbeads3d of binning.
