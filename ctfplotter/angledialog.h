@@ -7,12 +7,15 @@ class QLineEdit;
 class QPushButton;
 class QGroupBox;
 class QRadioButton;
+class QTableWidget;
+class MyApp;
 
 class AngleDialog :public QDialog
 {
   Q_OBJECT
   public:
     AngleDialog(QWidget *parent=0);
+    void updateTable();
     QLineEdit *defocusEdit;
     QLineEdit *lowAngleEdit;
     QLineEdit *highAngleEdit;
@@ -27,14 +30,20 @@ signals:
     void defocusMethod(int );
     void initialTileChoice(int );
 private slots:
-    void angleSetted();
-    void saveCurrentDefocus();
+    void anglesSet();
     void enableApplyButton(const QString &text);
     void allAtOnceChecked();
     void onlyCenterChecked();
     void currDefocusChecked();
     void expDefocusChecked();
+    void deleteClicked();
+    void setAnglesClicked();
+
+protected:
+    void closeEvent( QCloseEvent * e );
+
   private:
+    MyApp *mApp;
     QLabel *defocusLabel;
     QLabel *lowAngleLabel;
     QLabel *highAngleLabel;
@@ -49,6 +58,10 @@ private slots:
     QGroupBox *defocusGroup;
     QRadioButton *currDefocusRadio;
     QRadioButton *expDefocusRadio;
+    QTableWidget *mTable;
+    QPushButton *mDeleteButton;
+    QPushButton *mReturnButton;
+    QPushButton *mToFileButton;
    
     QPushButton *saveButton; 
     QPushButton *applyButton;
