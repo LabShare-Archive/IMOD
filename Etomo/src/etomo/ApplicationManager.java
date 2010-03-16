@@ -2843,6 +2843,36 @@ public final class ApplicationManager extends BaseManager implements
     }
   }
 
+  public void closeImod(String key, AxisID frameAxisID, AxisID imodAxisID,
+      String description) {
+    // Check to see if the user wants to keep any imods open
+    try {
+      if (imodManager.isOpen(key, imodAxisID)) {
+        String[] message = new String[2];
+        message[0] = "The " + description + " is open in 3dmod";
+        message[1] = "Should it be closed?";
+        if (uiHarness.openYesNoDialog(this, message, frameAxisID)) {
+          imodManager.quit(key, imodAxisID);
+        }
+      }
+    }
+    catch (AxisTypeException except) {
+      except.printStackTrace();
+      uiHarness.openMessageDialog(this, except.getMessage(),
+          "AxisType problem", frameAxisID);
+    }
+    catch (IOException e) {
+      e.printStackTrace();
+      uiHarness.openMessageDialog(this, e.getMessage(), "IO Exception",
+          frameAxisID);
+    }
+    catch (SystemProcessException e) {
+      e.printStackTrace();
+      uiHarness.openMessageDialog(this, e.getMessage(),
+          "System Process Exception", frameAxisID);
+    }
+  }
+
   /**
    * Execute the fine alignment script (align.com) for the appropriate axis This
    * will also reset the fiducialess alignment flag, setFiducialAlign does not
@@ -5693,9 +5723,9 @@ public final class ApplicationManager extends BaseManager implements
         mainPanel.setTomogramCombinationState(ProcessState.COMPLETE);
         closeImod(ImodManager.FULL_VOLUME_KEY, AxisID.FIRST,
             "axis A full volume");
-        closeImod(ImodManager.FULL_VOLUME_KEY, AxisID.SECOND,
+        closeImod(ImodManager.FULL_VOLUME_KEY, AxisID.FIRST, AxisID.SECOND,
             "axis B full volume");
-        closeImod(ImodManager.MATCH_CHECK_KEY, AxisID.SECOND,
+        closeImod(ImodManager.MATCH_CHECK_KEY, AxisID.FIRST, AxisID.SECOND,
             "match check volume");
         closeImod(ImodManager.PATCH_VECTOR_MODEL_KEY, "patch vector model");
         openPostProcessingDialog();
@@ -8030,6 +8060,9 @@ public final class ApplicationManager extends BaseManager implements
 }
 /**
  * <p> $Log$
+ * <p> Revision 3.353  2010/03/12 03:56:34  sueh
+ * <p> bug# 1325 Changed deleteAlignedStacks to deleteIntermediateImageStacks.
+ * <p>
  * <p> Revision 3.352  2010/03/11 06:00:19  sueh
  * <p> bug# 1311 In imodFixFiducials added a second residual mode for patch
  * <p> tracking.   Opening model view for this mode.
