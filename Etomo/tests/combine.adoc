@@ -50,3 +50,6 @@ bn.done =
 	wait.popup.etomo-question=Yes
   wait.popup.etomo-question=Yes
 [[]]
+#dual
+wait.popup.etomo-question=Yes
+wait.popup.etomo-question=Yes
