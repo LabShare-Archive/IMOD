@@ -25,6 +25,9 @@ bn.done=
 	#if.var.montage.return=
 	if.var.single.wait.popup.etomo-question=Yes
 [[]]
+[[if = single]]
+  wait.popup.etomo-question=Yes
+[[]]
 
 
 [function = volume-trimming]
