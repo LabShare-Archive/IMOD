@@ -1,5 +1,7 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+3/17/10: Fixed slicer crash with -180 Z rotation and offset image.
+
 3/14/10: IMOD_4-0-26
 3/14/10: Changes to Ctfplotter: it now shows a table of results that will be 
 saved to file and that can be read in from a previous session.  Tool buttons
