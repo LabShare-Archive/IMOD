@@ -1188,9 +1188,9 @@ static void findIndexLimits(int isize, int xsize, float xo, float xsx,
   /*if (imodDebug('s')) 
     imodPrintStderr("xo = %f, xsx = %f, start = %f, end = %f\n", xo,xsx,startCoord, endCoord); */
   /* If start and end is all to one side of data, set limits to middle to skip
-     the line */
-  if ((startCoord < 0 && endCoord < 0) || 
-      (startCoord >= xsize && endCoord >= xsize)) {
+     the line.  3/17/10: it needs an epsilon because of errors at Z -180 deg */
+  if ((startCoord < 0.1 && endCoord < 0.1) || 
+      (startCoord >= xsize - 0.1 && endCoord >= xsize - 0.1)) {
     *fstart = isize / 2.;
     *fend = *fstart;
  
@@ -1450,7 +1450,7 @@ static void fillArraySegment(int jstart, int jlimit)
               fend = isize;
               findIndexLimits(isize, xsize, xo, xsx, 0., &fstart, &fend);
               imodPrintStderr("X %f %f\n", fstart, fend); 
-              findIndexLimits(isize, ysize, yo, ysx, 0., &fstart, &fend,1);
+              findIndexLimits(isize, ysize, yo, ysx, 0., &fstart, &fend);
               imodPrintStderr("Y %f %f\n", fstart, fend); 
               findIndexLimits(isize, zsize, zo, zsx, 0.5, &fstart, &fend);
               imodPrintStderr("Z %f %f\n", fstart, fend); 
@@ -1502,6 +1502,9 @@ static void fillArraySegment(int jstart, int jlimit)
 /*
 
 $Log$
+Revision 4.33  2009/11/21 23:03:42  mast
+Chnaged it to use ideal thread count
+
 Revision 4.32  2009/02/26 22:39:35  mast
 Fix keyboard tracking of image thickness
 
