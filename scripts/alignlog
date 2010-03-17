@@ -54,6 +54,8 @@ grep "Ratio .*formerly" $file > /dev/null
 set oneratio = $status
 grep "olved beam tilt" $file > /dev/null
 set nobeamtilt = $status
+grep "ntries to program" $file > /dev/null
+set noprogentry = $status
 
 while ($#argv > $numarg)
     switch ($argv[1])
@@ -145,8 +147,10 @@ while ($#argv > $numarg)
 		awk '/^ Fit to all/, /^ 1 to do/' $file | sed '/1 to do/d'
 	    else if ($pipinput == 0) then
 		awk '/^ SURFACE ANALYSIS/, /^ 1 to do/' $file | sed '/1 to do/d'
-            else
+            else if ($noprogentry == 1) then
 		awk '/^ SURFACE ANALYSIS/, /file opened/' $file | sed '/file opened/d'
+            else
+		awk '/^ SURFACE ANALYSIS/, /ntries to program/' $file | sed '/ntries to program/d'
 	    endif
 	    set output = 1
 	    shift
@@ -172,6 +176,9 @@ end
 
 #
 #  $Log$
+#  Revision 3.8  2008/07/07 04:14:57  mast
+#  Fixed for new log with one ratio
+#
 #  Revision 3.7  2007/03/08 23:49:55  mast
 #  Changes for beam tilt solutions
 #
