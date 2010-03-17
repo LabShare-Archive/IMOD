@@ -31,7 +31,7 @@ noise images and then bin them with Newstack(1).
 
 If there are significant numbers of X-rays in the noise images, you should
 clean them with Ccderaser(1), such as with:
-   ccderaser -find -peak 8 -diff 8  input_fle output_file
+   ccderaser -find -peak 8 -diff 6  input_file output_file
 
 When you start the program, it will first load and analyze all of the noise
 files.  Then it will read in the images within the specified initial angular
