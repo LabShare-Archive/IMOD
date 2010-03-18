@@ -119,9 +119,9 @@ run.function.ctf-correction=
 	mb.ctf-correction=B
 	assert.tf.voltage=200
 	assert.tf.spherical-aberration=2.0
-	assert.cb.invert-sign-of-tilt-angles=off
 	mb.ctf-correction=A
 	assert.tf.amplitude-contrast=0.07
+	assert.cb.invert-sign-of-tilt-angles=off
 	mb.ctf-correction=B
 [[]]
 run.function.ctf-plotter=
@@ -459,13 +459,13 @@ mb.find-beads-3d=-
 	bn.use-erased-stack=
 	wait.popup.erase-beads-output-missing=OK
 	# check values
-	assert.tf.fiducial-diameter=%{rounded-unbinned-bead-diameter}
+	assert.tf.diameter-to-erase=%{rounded-unbinned-bead-diameter}
 	assert.rb.use-mean-of-surrounding-points=on
 	assert.rb.fit-a-plane-to-surrounding-points=off
 	assert.bn.erase-beads=off
 	assert.bn.use-erased-stack=off
 	# check enabled/disabled
-	assert.enabled.tf.fiducial-diameter=
+	assert.enabled.tf.diameter-to-erase=
 	assert.enabled.rb.use-mean-of-surrounding-points=
 	assert.enabled.rb.fit-a-plane-to-surrounding-points=
 	assert.enabled.bn.erase-beads=
