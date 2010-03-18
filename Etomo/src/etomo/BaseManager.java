@@ -1090,7 +1090,7 @@ public abstract class BaseManager {
     metaData.setCurrentProcesschunksRootName(axisID, param.getRootName()
         .toString());
     metaData.setCurrentProcesschunksSubdirName(axisID, param.getSubdirName());
-    savePreferences(axisID, metaData);
+    saveStorable(axisID, metaData);
     String threadName;
     try {
       threadName = getProcessManager().processchunks(axisID, param,
@@ -1316,7 +1316,7 @@ public abstract class BaseManager {
     parallelPanel.getResumeParameters(param);
     metaData.setCurrentProcesschunksRootName(axisID, param.getRootName());
     metaData.setCurrentProcesschunksSubdirName(axisID, param.getSubdirName());
-    savePreferences(axisID, metaData);
+    saveStorable(axisID, metaData);
     String threadName;
     try {
       threadName = getProcessManager().processchunks(axisID, param,
@@ -1346,6 +1346,9 @@ public abstract class BaseManager {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.126  2010/03/12 03:56:52  sueh
+ * <p> bug# 1325 Added isExiting.
+ * <p>
  * <p> Revision 1.125  2010/02/26 20:37:31  sueh
  * <p> Changing the complex popup titles are making it hard to complete the
  * <p> uitests.
