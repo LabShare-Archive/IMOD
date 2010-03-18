@@ -20,6 +20,10 @@ import etomo.comscript.InvalidParameterException;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.21  2010/03/09 01:40:29  sueh
+ * <p> bug# 1323 In load(EtomoBoolean2,String,Properties,String) handling a
+ * <p> prepend which ends with ".".
+ * <p>
  * <p> Revision 1.20  2009/09/22 21:00:58  sueh
  * <p> bug# 1259 No longer unnecessarily returning this from updateComScript.
  * <p>
@@ -180,11 +184,12 @@ public class EtomoBoolean2 extends ScriptParameter {
     if (prepend == null || prepend.matches("\\s*")) {
       key = name;
     }
-    if (prepend.endsWith(".")) {
+    else if (prepend.endsWith(".")) {
       key = prepend + name;
     }
-    else
+    else {
       key = prepend + '.' + name;
+    }
     String value = props.getProperty(key);
     if (value == null) {
       return null;
