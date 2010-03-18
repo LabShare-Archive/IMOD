@@ -21,6 +21,9 @@ import etomo.storage.Storable;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.9  2009/09/01 02:59:42  sueh
+ * <p> bug# 1222 Corrected version comparison.
+ * <p>
  * <p> Revision 1.8  2009/02/19 21:37:59  sueh
  * <p> bug# 1180
  * <p>
@@ -252,6 +255,16 @@ public final class EtomoVersion implements Storable {
   }
 
   public void store(final Properties props, final String prepend) {
+    String propsKey;
+    if (prepend == null || prepend.matches("\\s*")) {
+      propsKey = key;
+    }
+    else if (prepend.endsWith(".")) {
+      propsKey = prepend + key;
+    }
+    else {
+      propsKey = prepend + "." + key;
+    }
     if (debug) {
       System.err.println("store:prepend=" + prepend + ",key=" + key
           + ",toString()=" + toString());
@@ -260,13 +273,13 @@ public final class EtomoVersion implements Storable {
       if (debug) {
         System.err.println("isNull");
       }
-      props.remove(prepend + '.' + key);
+      props.remove(propsKey);
     }
     else {
-      props.setProperty(prepend + "." + key, toString());
+      props.setProperty(propsKey, toString());
     }
     if (debug) {
-      System.err.println("props:" + props.getProperty(prepend + "." + key));
+      System.err.println("props:" + props.getProperty(propsKey));
     }
   }
 
@@ -318,7 +331,17 @@ public final class EtomoVersion implements Storable {
   }
 
   public void load(final Properties props, final String prepend) {
-    set(props.getProperty(prepend + "." + key));
+    String propsKey;
+    if (prepend == null || prepend.matches("\\s*")) {
+      propsKey = key;
+    }
+    else if (prepend.endsWith(".")) {
+      propsKey = prepend + key;
+    }
+    else {
+      propsKey = prepend + "." + key;
+    }
+    set(props.getProperty(propsKey));
   }
 
   public void reset() {
