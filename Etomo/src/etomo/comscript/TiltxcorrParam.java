@@ -28,6 +28,10 @@ import etomo.util.MRCHeader;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.15  2010/03/08 21:01:34  sueh
+ * <p> bug# 1311 Added partialSave to turn off field requirements so the sync
+ * <p> between xcorr.com and xcorr_pt.com can be done.
+ * <p>
  * <p> Revision 3.14  2010/03/03 04:53:45  sueh
  * <p> bug# 1311 Turned ConstTiltxcorrParam into an interface.
  * <p>
@@ -227,7 +231,6 @@ public final class TiltxcorrParam implements ConstTiltxcorrParam, CommandParam,
         NUMBER_OF_PATCHES_X_AND_Y_KEY, 2);
     numberOfPatchesXandY.setIntegerType(0, true);
     numberOfPatchesXandY.setIntegerType(1, true);
-    iterateCorrelations.setDisplayValue(ITERATE_CORRELATIONS_DEFAULT);
     iterateCorrelations.setFloor(ITERATE_CORRELATIONS_MIN);
     iterateCorrelations.setCeiling(ITERATE_CORRELATIONS_MAX);
     shiftLimitsXandY = new FortranInputString(SHIFT_LIMITS_X_AND_Y_KEY, 2);
