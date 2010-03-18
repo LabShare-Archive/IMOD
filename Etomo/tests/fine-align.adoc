@@ -43,7 +43,7 @@ tb.general=
 	# check values
 	assert.tf.list-of-views-to-exclude=
 	assert.tf.separate-view-groups=
-	assert.rb.assume-fiducials-on-1-surface-for-analysis=off
+	assert.rb.do-not-sort-fiducials-into-2-surfaces-for-analysis=off
 	assert.rb.assume-fiducials-on-2-surfaces-for-analysis=on
 	assert.bn.compute-alignment=off
 [[]]
@@ -51,7 +51,7 @@ tb.general=
 	# check enabled/disabled
 	assert.enabled.tf.list-of-views-to-exclude=
 	assert.enabled.tf.separate-view-groups=
-	assert.enabled.rb.assume-fiducials-on-1-surface-for-analysis=
+	assert.enabled.rb.do-not-sort-fiducials-into-2-surfaces-for-analysis=
 	assert.enabled.rb.assume-fiducials-on-2-surfaces-for-analysis=
 	assert.enabled.bn.compute-alignment=
 	assert.enabled.bn.view/edit-fiducial-model=
