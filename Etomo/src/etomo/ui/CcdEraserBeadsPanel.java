@@ -38,6 +38,9 @@ import etomo.util.DatasetFiles;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.3  2010/03/12 04:09:51  sueh
+ * <p> bug# 1325 Changed the erase diameter field title.
+ * <p>
  * <p> Revision 3.2  2010/02/17 05:03:12  sueh
  * <p> bug# 1301 Using manager instead of manager key for popping up messages.
  * <p>
@@ -241,8 +244,8 @@ final class CcdEraserBeadsPanel implements Run3dmodButtonContainer,
 
   private void setToolTipText() {
     ltfFiducialDiameter
-        .setToolTipText("The diameter, in unbinned pixels, that will be erased "
-            + "around each point.");
+        .setToolTipText("The diameter, in pixels of the aligned stack, that will "
+            + "be erased around each point.");
     rbPolynomialOrderUseMean
         .setToolTipText("Fill the erased pixel with the mean of surrounding "
             + "points.");
