@@ -2152,12 +2152,12 @@ void BeadFixer::modeSelected(int value)
     }
   }
   fixSize();
-  reportContRes();
 
   // Turn overlay mode on or off if needed
   if ((value == SEED_MODE || plug->showMode == SEED_MODE) && plug->overlayOn)
     setOverlay(1, value == SEED_MODE ? 1 : 0);
   plug->showMode = value;
+  reportContRes();
 }
 
 void BeadFixer::showWidget(QWidget *widget, bool state)
@@ -2783,6 +2783,9 @@ void BeadFixer::keyReleaseEvent ( QKeyEvent * e )
 /*
 
 $Log$
+Revision 1.63  2010/03/10 05:30:10  mast
+Added contour mode
+
 Revision 1.62  2010/03/02 19:09:06  mast
 Take align*.log out of filter list for Mac Qt 10.5 since it doesn't work
 
