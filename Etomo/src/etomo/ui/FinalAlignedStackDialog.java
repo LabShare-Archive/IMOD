@@ -27,6 +27,7 @@ import etomo.comscript.BlendmontParam;
 import etomo.comscript.ConstFindBeads3dParam;
 import etomo.comscript.ConstNewstParam;
 import etomo.comscript.ConstTiltParam;
+import etomo.comscript.ConstTiltalignParam;
 import etomo.comscript.CtfPhaseFlipParam;
 import etomo.comscript.CtfPlotterParam;
 import etomo.comscript.FortranInputSyntaxException;
@@ -67,6 +68,9 @@ import etomo.util.DatasetFiles;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.26  2010/03/12 04:14:29  sueh
+ * <p> bug# 1325 Made CTF and 2D filtering labels public.
+ * <p>
  * <p> Revision 1.25  2010/02/17 05:03:12  sueh
  * <p> bug# 1301 Using manager instead of manager key for popping up messages.
  * <p>
@@ -712,6 +716,10 @@ public final class FinalAlignedStackDialog extends ProcessDialog implements
   }
 
   void setParameters(ConstFindBeads3dParam param, boolean initialize) {
+    eraseGoldPanel.setParameters(param, initialize);
+  }
+  
+  void setParameters(ConstTiltalignParam param, boolean initialize) {
     eraseGoldPanel.setParameters(param, initialize);
   }
 

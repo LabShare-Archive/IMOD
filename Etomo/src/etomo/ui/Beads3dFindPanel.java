@@ -13,6 +13,7 @@ import etomo.ProcessSeries;
 import etomo.comscript.BlendmontParam;
 import etomo.comscript.ConstFindBeads3dParam;
 import etomo.comscript.ConstTiltParam;
+import etomo.comscript.ConstTiltalignParam;
 import etomo.comscript.NewstParam;
 import etomo.storage.LogFile;
 import etomo.type.AxisID;
@@ -41,6 +42,10 @@ import etomo.type.ViewType;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.3  2010/03/03 05:01:27  sueh
+ * <p> bug# 1311 Changed FileType.NEWST_OR_BLEND_OUTPUT to
+ * <p> ALIGNED_STACK.  Added file types for patch tracking.
+ * <p>
  * <p> Revision 3.2  2009/09/22 23:54:16  sueh
  * <p> bug# 1269 Added setEnabledTiltParameters.
  * <p>
@@ -190,7 +195,9 @@ final class Beads3dFindPanel implements NewstackOrBlendmont3dFindParent,
   void setParameters(ConstFindBeads3dParam param, boolean initialize) {
     findBeads3dPanel.setParameters(param, initialize);
   }
-
+  void setParameters(ConstTiltalignParam param, boolean initialize) {
+    tilt3dFindPanel.setParameters(param, initialize);
+  }
   void setParameters(ReconScreenState screenState) {
     header.setState(screenState.getStackAlignAndTiltHeaderState());
     findBeads3dPanel.setParameters(screenState);
