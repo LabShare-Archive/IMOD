@@ -385,15 +385,20 @@ if startfirst:
       comnum += 1
 
    # Have to write a finish file now for simple case done in one shot
-   if loopIter == iterations:
+   # or a scaling file for simple BP
+   if loopIter == iterations or (simpleBP and (scMinMax or trimarg)):
       comname = sirtname + '-finish.com'
+      if loopIter < iterations:
+         comname = sirtname + '-%03d-sync.com' % (comnum)
+         comnum += 1
       try:
          action = 'Opening'
          comf = open(comname, 'w')
          action = 'Writing to'
          if scMinMax or trimarg:
             outputScalingLines(comf, lastnum)
-         commandsForFinish(comf, sirtname, testmode)
+         if loopIter == iterations:
+            commandsForFinish(comf, sirtname, testmode)
 
       except:
          exitError(action + " file: " + comname)
@@ -551,10 +556,18 @@ if madeStart:
    comnum += 1
 print "%d command files created and ready to run with:" % (comnum)
 print "  processchunks machine_list " + sirtname
+if numproc == 1:
+   print "Or with:"
+   print "  subm " + sirtname + "*.com"
+   
 sys.exit(0)
 
 #
 # $Log$
+# Revision 1.3  2010/02/26 16:54:44  mast
+# Changes for doing all subtractions inside Tilt and for getting the
+# statistics for each iteration
+#
 # Revision 1.2  2010/02/23 20:25:55  mast
 # Fixed for older command files with no -StandardInput
 #
