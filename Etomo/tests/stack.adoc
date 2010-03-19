@@ -257,7 +257,7 @@ run.function.find-beads-3d=
 	assert.bn.reproject-model=off
 	# check enabled/disabled
 	assert.enabled.bn.reproject-model=
-	assert.enabled.bn.view-model=
+	assert.enabled.bn.view-2d-model-on-aligned-stack=
 [[]]
 # run
 bn.reproject-model=
@@ -277,7 +277,7 @@ assert.exists.file=%{dataset}%{axis}_erase.fid
 assert.exists.file=tilt_3dfind_reproject%{axis}.log~
 assert.exists.file=%{dataset}%{axis}_erase.fid~
 # run 3dmod
-bn.view-model=
+bn.view-2d-model-on-aligned-stack=
 # check values
 assert.bn.reproject-model=on
 # Erase Beads
@@ -396,7 +396,7 @@ wait.popup.etomo-warning=Yes
 mb.find-beads-3d=+
 [[if = test-gui]]
 	# check values
-	assert.tf.bead-size=%{unbinned-bead-diameter}
+	assert.tf.bead-diameter=%{unbinned-bead-diameter}
 	assert.rb.store-some-points-below-threshold=on
 	assert.rb.store-only-points-above-threshold=off
 	assert.rb.set-threshold-for-storing=off
@@ -412,13 +412,13 @@ mb.find-beads-3d=+
 	# check enabled/disabled
 	mb.find-beads-3d.1=B
 	rb.store-some-points-below-threshold=
-	assert.enabled.tf.bead-size=
+	assert.enabled.tf.bead-diameter=
 	assert.enabled.rb.store-some-points-below-threshold=
 	assert.enabled.rb.store-only-points-above-threshold=
 	assert.enabled.rb.set-threshold-for-storing=
 	assert.disabled.tf.set-threshold-for-storing=
 	assert.enabled.bn.run-findbeads3d=
-	assert.enabled.bn.view-model=
+	assert.enabled.bn.view-3d-model-on-tomogram=
 	mb.find-beads-3d.1=A
 	assert.enabled.tf.minimum-spacing=
 	assert.enabled.tf.estimated-number-of-beads=
@@ -447,7 +447,7 @@ assert.exists.file=%{dataset}%{axis}_3dfind.mod
 assert.exists.file=findbeads3d%{axis}.log~
 assert.exists.file=%{dataset}%{axis}_3dfind.mod~
 # run 3dmod
-bn.view-model=
+bn.view-3d-model-on-tomogram=
 # check values
 assert.bn.run-findbeads3d=on
 mb.find-beads-3d=-
