@@ -43,6 +43,10 @@ import etomo.type.Run3dmodMenuOptions;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.3  2010/03/09 22:07:54  sueh
+ * <p> bug# 1325 Passing FileType instead of String to
+ * <p> CCDEraserParam.setInputFile.
+ * <p>
  * <p> Revision 3.2  2010/02/17 05:03:12  sueh
  * <p> bug# 1301 Using manager instead of manager key for popping up messages.
  * <p>
@@ -54,14 +58,14 @@ final class FindBeads3dPanel implements FindBeads3dDisplay, Expandable,
     Run3dmodButtonContainer {
   public static final String rcsid = "$Id$";
 
-  static final String BEAD_SIZE_LABEL = "Bead size";
+  static final String BEAD_SIZE_LABEL = "Bead diameter";
 
   private final JPanel pnlRoot = new JPanel();
   private final ActionListener actionListener = new FindBeads3dPanelActionListener(
       this);
   private final SpacedPanel pnlBody = SpacedPanel.getInstance(true);
   private final LabeledTextField ltfBeadSize = new LabeledTextField(
-      BEAD_SIZE_LABEL + ": ");
+      BEAD_SIZE_LABEL + " (pixels): ");
   private final LabeledTextField ltfMinSpacing = new LabeledTextField(
       "Minimum spacing: ");
   private final LabeledTextField ltfGuessNumBeads = new LabeledTextField(
@@ -82,7 +86,7 @@ final class FindBeads3dPanel implements FindBeads3dDisplay, Expandable,
   private final LabeledTextField ltfMaxNumBeads = new LabeledTextField(
       "Max points to analyze: ");
   private final Run3dmodButton btn3dmodFindBeads3d = Run3dmodButton
-      .get3dmodInstance("View Model", this);
+      .get3dmodInstance("View 3D Model on Tomogram", this);
 
   private final Run3dmodButton btnFindBeads3d;
   private final PanelHeader header;
@@ -300,8 +304,7 @@ final class FindBeads3dPanel implements FindBeads3dDisplay, Expandable,
     catch (LogFile.LockException except) {
       except.printStackTrace();
     }
-    ltfBeadSize.setToolTipText(EtomoAutodoc.getTooltip(autodoc,
-        FindBeads3dParam.BEAD_SIZE_TAG));
+    ltfBeadSize.setToolTipText("Size of beads in unbinned pixels.");
     ltfMinSpacing.setToolTipText(EtomoAutodoc.getTooltip(autodoc,
         FindBeads3dParam.MIN_SPACING_TAG));
     ltfGuessNumBeads.setToolTipText(EtomoAutodoc.getTooltip(autodoc,
@@ -310,12 +313,16 @@ final class FindBeads3dPanel implements FindBeads3dDisplay, Expandable,
         FindBeads3dParam.MIN_RELATIVE_STRENGTH_TAG));
     ltfThresholdForAveraging.setToolTipText(EtomoAutodoc.getTooltip(autodoc,
         FindBeads3dParam.THRESHOLD_FOR_AVERAGING_TAG));
-    rbStorageThresholdSomeBelow.setToolTipText(EtomoAutodoc.getTooltip(autodoc,
-        FindBeads3dParam.STORAGE_THRESHOLD_TAG));
-    rbStorageThresholdOnlyAbove.setToolTipText(EtomoAutodoc.getTooltip(autodoc,
-        FindBeads3dParam.STORAGE_THRESHOLD_TAG));
-    rtfStorageThreshold.setToolTipText(EtomoAutodoc.getTooltip(autodoc,
-        FindBeads3dParam.STORAGE_THRESHOLD_TAG));
+    rbStorageThresholdSomeBelow
+        .setToolTipText("Model will include some points that are probably not "
+            + "beads, because their relative peak strengths are below the "
+            + "threshold between beads and non-beads");
+    rbStorageThresholdOnlyAbove
+        .setToolTipText("Model will include only the points with relative peak "
+            + "strengths above the threshold between beads and non-beads");
+    rtfStorageThreshold
+        .setToolTipText("Threshold relative peak strength (between 0 and 1) for "
+            + "storing peaks in model");
     ltfMaxNumBeads.setToolTipText(EtomoAutodoc.getTooltip(autodoc,
         FindBeads3dParam.MAX_NUM_BEADS_TAG));
     btnFindBeads3d
