@@ -1,5 +1,7 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+3/18/10: Fixed Sirtsetup conversion of first srec file being left.
+
 3/18/10: In Etomo - bead erasing, added a Z shift for when fiducials where not
 sorted into two surfaces in fine alignment.
 
