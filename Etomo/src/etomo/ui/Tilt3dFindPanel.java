@@ -9,6 +9,7 @@ import javax.swing.JPanel;
 
 import etomo.ApplicationManager;
 import etomo.comscript.ConstTiltParam;
+import etomo.comscript.ConstTiltalignParam;
 import etomo.comscript.FortranInputSyntaxException;
 import etomo.comscript.SplittiltParam;
 import etomo.comscript.TiltParam;
@@ -36,6 +37,9 @@ import etomo.util.InvalidParameterException;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.6  2010/03/12 04:25:53  sueh
+ * <p> bug# 1325 Exposed the use GPU checkbox.
+ * <p>
  * <p> Revision 3.5  2010/03/05 04:04:37  sueh
  * <p> bug# 1319 Added getParamters(MetaData) to make sure that the parent
  * <p> version of this function cannot be called.
@@ -175,6 +179,14 @@ final class Tilt3dFindPanel extends AbstractTiltPanel {
 
   void setParameters(ConstTiltParam param, boolean initialize) {
     super.setParameters(param, initialize);
+  }
+
+  /**
+   * This mainly pulls data from the align log.
+   * @param param
+   * @param initialize
+   */
+  void setParameters(ConstTiltalignParam param, boolean initialize) {
     //set center to center thickness and additional diameters
     TaAnglesLog taAnglesLog = TaAnglesLog.getInstance(manager
         .getPropertyUserDir(), axisID);
@@ -199,7 +211,12 @@ final class Tilt3dFindPanel extends AbstractTiltPanel {
             + manager.calcUnbinnedBeadDiameterPixels() * additionalDiameters));
       }
       try {
-        ltfZShift.setText(taAnglesLog.getIncrementalShiftToCenter());
+        if (param.getSurfacesToAnalyze().getInt() == 2) {
+          ltfZShift.setText(taAnglesLog.getIncrementalShiftToCenter());
+        }
+        else {
+          ltfZShift.setText(param.getAxisZShift().getDouble() * -1);
+        }
       }
       catch (Exception e) {
         e.printStackTrace();
