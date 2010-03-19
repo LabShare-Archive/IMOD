@@ -361,7 +361,7 @@ int BeadFixer::executeMessage(QStringList *strings, int *arg)
     // without reopening inappropriately
     if (plug->filename) {
       ++(*arg);
-      return 0;
+      return plug->window->reread();
     }
     return plug->window->openFileByName(LATIN1((*strings)[++(*arg)]));
   case MESSAGE_BEADFIX_REREAD:
@@ -672,6 +672,7 @@ int BeadFixer::reread()
   moveAllBut->setText(mNumAreas > 1 ? "Move All in Local Area" :
                       "Move All by Residual");
   nextResBut->setEnabled(mNumResid);
+  movePointBut->setEnabled(false);    
   backUpBut->setEnabled(false);    
   nextContBut->setEnabled(mNumContRes);
   backContBut->setEnabled(false);    
@@ -2634,6 +2635,13 @@ void BeadFixer::runAlign()
   runAlignBut->setEnabled(false);
   nextResBut->setEnabled(false);
   nextLocalBut->setEnabled(false);
+  nextContBut->setEnabled(false);
+  backContBut->setEnabled(false);
+  delContBut->setEnabled(false);
+  undoMoveBut->setEnabled(false);
+  movePointBut->setEnabled(false);
+  moveAllBut->setEnabled(false);
+  moveAllAllBut->setEnabled(false);
 }
 
 // When align exits, check the status and reenable buttons
@@ -2784,6 +2792,9 @@ void BeadFixer::keyReleaseEvent ( QKeyEvent * e )
 /*
 
 $Log$
+Revision 1.65  2010/03/19 16:36:29  mast
+Forgot to initialize max contour residual
+
 Revision 1.64  2010/03/19 01:35:21  mast
 Fixed reporting of mean contour residuals when switch to countour mode
 
