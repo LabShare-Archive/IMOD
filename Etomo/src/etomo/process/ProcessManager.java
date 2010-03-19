@@ -20,6 +20,9 @@
  * 
  * <p>
  * $Log$
+ * Revision 3.148  2010/03/12 04:07:54  sueh
+ * bug# 1325 Turned on use button warnings in TomogramState.
+ *
  * Revision 3.147  2010/03/03 04:55:35  sueh
  * bug# 1311 Removed unnecessary ProcessName references.
  *
@@ -2172,7 +2175,7 @@ public class ProcessManager extends BaseProcessManager {
         }
       }
       else if (processName == ProcessName.MTFFILTER) {
-          state.setUseFilteredStackWarning(axisID, true);
+        state.setUseFilteredStackWarning(axisID, true);
       }
       else if (processName == ProcessName.CTF_CORRECTION) {
         state.setUseCtfCorrectionWarning(axisID, true);
@@ -2306,14 +2309,16 @@ public class ProcessManager extends BaseProcessManager {
             .getPropertyUserDir(), process.getAxisID()), process.getAxisID());
       }
       else if (process.getProcessName() == ProcessName.FLATTEN_WARP) {
-        FlattenWarpLog.INSTANCE.setLog(process.getStdOutput());
-        appManager.logMessage(FlattenWarpLog.INSTANCE, process.getAxisID());
+        FlattenWarpLog flattenWarpLog = new FlattenWarpLog();
+        flattenWarpLog.setLog(process.getStdOutput());
+        appManager.logMessage(flattenWarpLog, process.getAxisID());
       }
       else if (process.getProcessName() == ProcessName.RUNRAPTOR) {
         appManager.getState().setUseRaptorResultWarning(true);
       }
       else if (process.getProcessName() == ProcessName.CCD_ERASER) {
-        appManager.getState().setUseErasedStackWarning(process.getAxisID(), true);
+        appManager.getState().setUseErasedStackWarning(process.getAxisID(),
+            true);
       }
       else {
         String commandName = process.getCommandName();
