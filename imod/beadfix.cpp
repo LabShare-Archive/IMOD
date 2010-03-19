@@ -492,6 +492,7 @@ int BeadFixer::reread()
   mLastContRes = -1.;
   mContResSum = mContResSumsq = 0.;
   mNumContRes = 0;
+  mMaxContRes = -1.;
   mContResReported = false;
 
   // Outer loop searching for lines at top of residuals
@@ -2783,6 +2784,9 @@ void BeadFixer::keyReleaseEvent ( QKeyEvent * e )
 /*
 
 $Log$
+Revision 1.64  2010/03/19 01:35:21  mast
+Fixed reporting of mean contour residuals when switch to countour mode
+
 Revision 1.63  2010/03/10 05:30:10  mast
 Added contour mode
 
