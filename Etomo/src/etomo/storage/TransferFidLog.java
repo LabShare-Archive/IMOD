@@ -23,15 +23,16 @@ import etomo.util.DatasetFiles;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.2  2010/02/17 04:49:31  sueh
+ * <p> bug# 1301 Using the manager instead of the manager key do pop up
+ * <p> messages.
+ * <p>
  * <p> Revision 3.1  2009/03/17 00:45:24  sueh
  * <p> bug# 1186 Pass managerKey to everything that pops up a dialog.
  * <p> </p>
  */
 public final class TransferFidLog implements Loggable {
   public static final String rcsid = "$Id$";
-
-  private static TransferFidLog INSTANCE_A = null;
-  private static TransferFidLog INSTANCE_B = null;
 
   private final List lineList = new ArrayList();
 
@@ -44,23 +45,13 @@ public final class TransferFidLog implements Loggable {
   }
 
   /**
-   * Gets either INSTANCE_A or INSTANCE_B depending on the axisID.
    * @param userDir
    * @param axisID
    * @param processName
    * @return
    */
   public static TransferFidLog getInstance(String userDir, AxisID axisID) {
-    if (axisID == AxisID.SECOND) {
-      if (INSTANCE_B == null) {
-        INSTANCE_B = new TransferFidLog(userDir, axisID);
-      }
-      return INSTANCE_B;
-    }
-    if (INSTANCE_A == null) {
-      INSTANCE_A = new TransferFidLog(userDir, axisID);
-    }
-    return INSTANCE_A;
+       return new TransferFidLog(userDir, axisID);
   }
 
   public String getName() {
