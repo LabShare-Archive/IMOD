@@ -75,8 +75,8 @@ Currently, 3dmod will accept the following commands:
         Number of sections to display ghosts for, or 0 for near mode
 
 Bead Fixer accepts the following commands:
-   1  Open a Tiltalign log file if one is not open yet.  Follow with
-        log file name.
+   1  Open a Tiltalign log file if one is not open yet, or reread 
+        current log if one is open.  Follow with log file name.
    2  Reread the current log file if one has been opened.
    3  Set mode for automatic new contour when seeding.  Follow with 1
         to turn on, 0 to turn off
@@ -86,7 +86,8 @@ Bead Fixer accepts the following commands:
         binning.
    6  Set operation mode.  Follow with 0 for seed, 1 for gap, 2 for 
         residuals, or 3 for contours.
-   7  Set skip list.  Follow with the skip list with no embedded spaces.
+   7  Set skip list.  Follow with the skip list with no embedded
+        spaces.
    8  Set Delete on All Sections.  Follow with 1 to turn on, 0 to turn 
         off.
 .P
