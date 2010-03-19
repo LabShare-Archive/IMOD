@@ -15,6 +15,7 @@ import etomo.ApplicationManager;
 import etomo.comscript.BlendmontParam;
 import etomo.comscript.ConstFindBeads3dParam;
 import etomo.comscript.ConstTiltParam;
+import etomo.comscript.ConstTiltalignParam;
 import etomo.comscript.FortranInputSyntaxException;
 import etomo.comscript.NewstParam;
 import etomo.storage.LogFile;
@@ -40,6 +41,9 @@ import etomo.type.TomogramState;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.4  2010/03/12 04:11:06  sueh
+ * <p> bug# 1325 Made the erase gold tab label available to the package.
+ * <p>
  * <p> Revision 1.3  2009/09/22 23:54:41  sueh
  * <p> bug# 1269 Added setEnabledTiltParameters.
  * <p>
@@ -214,7 +218,11 @@ final class EraseGoldPanel implements Beads3dFindParent {
   void setParameters(ConstFindBeads3dParam param, boolean initialize) {
     beads3dFindPanel.setParameters(param, initialize);
   }
-
+  
+  void setParameters(ConstTiltalignParam param, boolean initialize) {
+    beads3dFindPanel.setParameters(param, initialize);
+  }
+  
   private void action(final String command,
       Deferred3dmodButton deferred3dmodButton,
       final Run3dmodMenuOptions run3dmodMenuOptions) {
@@ -229,7 +237,7 @@ final class EraseGoldPanel implements Beads3dFindParent {
     rbModelUseFid
         .setToolTipText("Erase the fiducials selected in the fiducial model.");
     rbModelUseFindBeads3d
-        .setToolTipText("Use findbeads3d to find fiducial for erasure.");
+        .setToolTipText("Find beads in tomogram and project positions.");
   }
 
   private final class EraseGoldPanelActionListener implements ActionListener {
