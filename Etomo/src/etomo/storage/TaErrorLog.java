@@ -23,6 +23,10 @@ import etomo.type.ProcessName;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.5  2010/02/17 04:49:31  sueh
+ * <p> bug# 1301 Using the manager instead of the manager key do pop up
+ * <p> messages.
+ * <p>
  * <p> Revision 1.4  2009/10/19 15:24:05  sueh
  * <p> bug# 1247 In getLogMessage added the global ratio.
  * <p>
@@ -40,9 +44,6 @@ import etomo.type.ProcessName;
 public final class TaErrorLog implements Loggable {
   public static final String rcsid = "$Id$";
 
-  private static TaErrorLog INSTANCE_A = null;
-  private static TaErrorLog INSTANCE_B = null;
-
   private final List lineList = new ArrayList();
 
   private final String userDir;
@@ -54,23 +55,13 @@ public final class TaErrorLog implements Loggable {
   }
 
   /**
-   * Gets either INSTANCE_A or INSTANCE_B depending on the axisID.
    * @param userDir
    * @param axisID
    * @param processName
    * @return
    */
   public static TaErrorLog getInstance(String userDir, AxisID axisID) {
-    if (axisID == AxisID.SECOND) {
-      if (INSTANCE_B == null) {
-        INSTANCE_B = new TaErrorLog(userDir, axisID);
-      }
-      return INSTANCE_B;
-    }
-    if (INSTANCE_A == null) {
-      INSTANCE_A = new TaErrorLog(userDir, axisID);
-    }
-    return INSTANCE_A;
+    return new TaErrorLog(userDir, axisID);
   }
 
   public String getName() {

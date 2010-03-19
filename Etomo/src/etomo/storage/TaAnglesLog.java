@@ -22,6 +22,10 @@ import etomo.type.EtomoNumber;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.3  2010/02/17 04:49:31  sueh
+ * <p> bug# 1301 Using the manager instead of the manager key do pop up
+ * <p> messages.
+ * <p>
  * <p> Revision 1.2  2009/09/25 22:22:47  sueh
  * <p> bug# 1272 In get... handle line == null.
  * <p>
@@ -31,9 +35,6 @@ import etomo.type.EtomoNumber;
  */
 public final class TaAnglesLog {
   public static final String rcsid = "$Id$";
-
-  private static TaAnglesLog INSTANCE_A = null;
-  private static TaAnglesLog INSTANCE_B = null;
 
   private static final String CENTER_TO_CENTER_THICKNESS_TAG = "Unbinned thickness needed to contain centers of all fiducials";
 
@@ -46,23 +47,13 @@ public final class TaAnglesLog {
   }
 
   /**
-   * Gets either INSTANCE_A or INSTANCE_B depending on the axisID.
    * @param userDir
    * @param axisID
    * @param processName
    * @return
    */
   public static TaAnglesLog getInstance(String userDir, AxisID axisID) {
-    if (axisID == AxisID.SECOND) {
-      if (INSTANCE_B == null) {
-        INSTANCE_B = new TaAnglesLog(userDir, axisID);
-      }
-      return INSTANCE_B;
-    }
-    if (INSTANCE_A == null) {
-      INSTANCE_A = new TaAnglesLog(userDir, axisID);
-    }
-    return INSTANCE_A;
+    return new TaAnglesLog(userDir, axisID);
   }
 
   /**
