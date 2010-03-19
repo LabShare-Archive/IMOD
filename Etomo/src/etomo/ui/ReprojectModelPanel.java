@@ -28,7 +28,10 @@ import etomo.type.Run3dmodMenuOptions;
  * 
  * @version $Revision$
  * 
- * <p> $Log$ </p>
+ * <p> $Log$
+ * <p> Revision 3.1  2009/09/01 03:18:25  sueh
+ * <p> bug# 1222
+ * <p> </p>
  */
 final class ReprojectModelPanel implements TiltDisplay, Run3dmodButtonContainer {
   public static final String rcsid = "$Id$";
@@ -38,7 +41,7 @@ final class ReprojectModelPanel implements TiltDisplay, Run3dmodButtonContainer 
   private final ActionListener actionListener = new ReprojectModelPanelActionListener(
       this);
   private final Run3dmodButton btn3dmodReprojectModel = Run3dmodButton
-      .get3dmodInstance("View Model", this);
+      .get3dmodInstance("View 2D Model on Aligned Stack", this);
 
   private final Run3dmodButton btnReprojectModel;
   private final ApplicationManager manager;
