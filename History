@@ -1,5 +1,9 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+3/19/10: Made Bead Fixer reread log when etomo sends message from View/Edit
+button, initialized max contour residual properly, updated disabling of
+action buttons when tiltalign is run.
+
 3/18/10: Fixed Sirtsetup conversion of first srec file being left.
 
 3/18/10: In Etomo - bead erasing, added a Z shift for when fiducials where not
