@@ -50,6 +50,9 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.23  2010/03/12 04:15:25  sueh
+ * <p> bug# 1325 In doneDialog warning the user when a use button wasn't pressed.
+ * <p>
  * <p> Revision 1.22  2010/02/17 05:03:12  sueh
  * <p> bug# 1301 Using manager instead of manager key for popping up messages.
  * <p>
@@ -247,6 +250,11 @@ public final class FinalAlignedStackExpert extends ReconUIExpert {
     dialog.setParameters(comScriptMgr.getFindBeads3dParam(axisID),
         newTilt3dFindCom);
     comScriptMgr.loadTilt3dFindReproject(axisID);
+
+    // Get the align{|a|b}.com parameters 
+    comScriptMgr.loadAlign(axisID);
+    dialog.setParameters(comScriptMgr.getTiltalignParam(axisID),
+        newTilt3dFindCom);
 
     //backward compatibility
     //Try loading ctfcorrection.com first.  If it isn't there, copy it with
