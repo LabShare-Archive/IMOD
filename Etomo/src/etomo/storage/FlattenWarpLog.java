@@ -21,14 +21,16 @@ import etomo.type.ProcessName;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.2  2010/02/17 04:49:31  sueh
+ * <p> bug# 1301 Using the manager instead of the manager key do pop up
+ * <p> messages.
+ * <p>
  * <p> Revision 1.1  2009/10/06 01:25:18  sueh
  * <p> bug# 1246 Parses the flattenwarp log.
  * <p> </p>
  */
 public final class FlattenWarpLog implements Loggable {
   public static final String rcsid = "$Id$";
-
-  public static final FlattenWarpLog INSTANCE = new FlattenWarpLog();
 
   private final List lineList = new ArrayList();
 
