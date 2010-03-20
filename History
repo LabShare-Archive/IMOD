@@ -1,5 +1,6 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+3/19/10: IMOD_4-0-27
 3/19/10: Made Bead Fixer reread log when etomo sends message from View/Edit
 button, initialized max contour residual properly, updated disabling of
 action buttons when tiltalign is run.
