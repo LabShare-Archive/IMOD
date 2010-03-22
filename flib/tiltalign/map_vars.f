@@ -276,7 +276,7 @@ c
         if (PipGetInteger(defaultOption, nmapdef) .gt. 0) then
           if (ifRequired .eq. 0) return
           print *
-          print *,'ERROR: AUTOMAP - OPTION ',defaultOption,
+          print *,'ERROR: AUTOMAP - OPTION ',trim(defaultOption),
      &        ' MUST BE ENTERED'
           call exit(1)
         endif
@@ -688,6 +688,9 @@ c
       end
 c
 c       $Log$
+c       Revision 3.5  2008/12/14 19:03:41  mast
+c       Fixed limit on angle used to get group size, set limit to 80
+c
 c       Revision 3.4  2007/02/19 21:11:01  mast
 c       Changes to make group size depend on # of points in views
 c
