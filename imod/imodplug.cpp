@@ -18,6 +18,7 @@
 #include <QMouseEvent>
 #include <QKeyEvent>
 #include <QEvent>
+#include "b3dutil.h"
 #include "imod.h"
 #include "imodplug.h"
 #include "special_module.h"
@@ -54,8 +55,7 @@ int imodPlugInit(void)
   char *defdir2 = "/usr/local/IMOD/plugins";
   char *envdir2 = getenv("IMOD_CALIB_DIR");
   char *envdir = getenv("IMOD_PLUGIN_DIR");
-  QString str = QString(envdir2) + QString("/plugins");
-
+  QString str;
   int maxPlug = 0;
 
   plugList = ilistNew(sizeof(PlugData), 8);
@@ -64,9 +64,22 @@ int imodPlugInit(void)
   ipAddInternalModules();
   numInternal = ilistSize(plugList);
 
-  /* load plugs in environment varialble. */
-  imodPlugLoadDir(envdir);
-  imodPlugLoadDir(LATIN1(str));
+  /* load plugs in environment variables: IMOD_PLUGIN_DIR if it exists,
+    otherwise IMOD_DIR/lib/imodplug using a default IMOD_DIR if necessary;
+    then IMOD_CALIB_DIR/plugins. */
+  if (envdir)
+    imodPlugLoadDir(envdir);
+  else {
+    
+    str = QString(IMOD_DIR_or_default(NULL));
+    str += QString("/lib/imodplug");
+    imodPlugLoadDir(LATIN1(str));
+  }
+
+  if (envdir2) {
+    str = QString(envdir2) + QString("/plugins");
+    imodPlugLoadDir(LATIN1(str));
+  }
 
   /* load system plugins. */
   imodPlugLoadDir(defdir2);
@@ -506,6 +519,9 @@ static void *ipGetFunction(PlugData *pd, int which)
 /*
 
 $Log$
+Revision 4.17  2009/01/15 16:33:17  mast
+Qt 4 port
+
 Revision 4.16  2008/01/21 05:55:19  mast
 Added function to open all plugins
 
