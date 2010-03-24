@@ -291,7 +291,6 @@ set class_sep       = ';'
 # Start Qt include files
 #
 echo CONFIG += CONSOLE >! $sendevent_qconf
-echo -n >! $qtassist_qconf
 echo CONFIG += CONSOLE >! $sourcedoc_qconf
 
 #  /LARGEADDRESSAWARE flag allows up to 3GB memory on a 32-bit system if it
@@ -317,6 +316,12 @@ cat <<EOF >! $ctfplot_qconf
 LIBS += liblapack.lib libblas.lib libiimod.lib libcfshr.lib libtiff.lib libifft.lib
 QMAKE_LFLAGS_RELEASE += /LIBPATH:"../buildlib" /NODEFAULTLIB:libc.lib /NODEFAULTLIB:libcd.lib /NODEFAULTLIB:msvcrtd.lib /LARGEADDRESSAWARE
 QMAKE_LFLAGS_DEBUG += /LIBPATH:"../buildlib" /NODEFAULTLIB:libc.lib /NODEFAULTLIB:libcd.lib /NODEFAULTLIB:msvcrt.lib /LARGEADDRESSAWARE
+EOF
+
+cat <<EOF >! $qtassist_qconf
+LIBS += libcfshr.lib
+QMAKE_LFLAGS_RELEASE += /LIBPATH:"../buildlib"
+QMAKE_LFLAGS_DEBUG += /LIBPATH:"../buildlib"
 EOF
 
 if ($no_qt3 == false) then

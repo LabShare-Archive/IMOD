@@ -667,6 +667,7 @@ if ($machine != cygwin) then
     #
     echo LIBS += -L$lib_dir -liimod -limod -lcfshr -ldiaqt $ltiff $midasGL >> $midas_qconf
     echo LIBS += -L$lib_dir -lm -llapack -lblas -liimod -lcfshr $ltiff -lifft $lapack_flibs >! $ctfplot_qconf
+    echo LIBS += -L$lib_dir -lcfshr >! $qtassist_qconf
     foreach i ($midas_qconf $ctfplot_qconf)
         echo INCLUDEPATH += $inc_dir >> $i
         echo MOC_DIR = tmp >> $i
@@ -675,7 +676,7 @@ if ($machine != cygwin) then
         if ($no_qt3 == false) echo 'QT +=  qt3support' >> $i
     end
     echo target.path = $inst_bin_dir >! $sendevent_qconf
-    echo target.path = $inst_bin_dir >! $qtassist_qconf
+    echo target.path = $inst_bin_dir >> $qtassist_qconf
     echo -n >! $sourcedoc_qconf
 
 
@@ -1002,6 +1003,9 @@ exit
 
 #
 #  $Log$
+#  Revision 1.58  2010/01/21 03:49:08  mast
+#  Update copyright
+#
 #  Revision 1.57  2010/01/13 21:31:51  mast
 #  Make -no_gpu specify the name to provide
 #
