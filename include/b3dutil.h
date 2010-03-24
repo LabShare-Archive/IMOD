@@ -30,6 +30,7 @@ extern "C" {
   int imodVersion(char *pname);
   void imodCopyright(void);
   void imodUsageHeader(char *pname);
+  char *IMOD_DIR_or_default(int *assumed);
   char *imodProgName(char *fullname);
   int imodBackupFile(char *filename);
   char *f2cString(char *str, int strSize);
@@ -64,6 +65,9 @@ extern "C" {
 
 /*
 $Log$
+Revision 1.17  2009/06/22 22:47:03  mast
+Add walltime and thread number functions
+
 Revision 1.16  2008/11/15 21:51:05  mast
 flag function
 
