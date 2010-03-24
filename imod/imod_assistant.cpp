@@ -7,15 +7,10 @@
  *  Copyright (C) 1995-2004 by Boulder Laboratory for 3-Dimensional Electron
  *  Microscopy of Cells ("BL3DEMC") and the Regents of the University of 
  *  Colorado.  See dist/COPYRIGHT for full copyright notice.
+ *
+ *  $Id$
+ *  Log at end of file
  */
-
-/*  $Author$
-
-    $Date$
-
-    $Revision$
-    Log at end of file
-*/
 
 #include <stdlib.h>
 #include <QtAssistant/QAssistantClient>
@@ -23,6 +18,7 @@
 #include <qmessagebox.h>
 #include <qstringlist.h>
 #include "imod_assistant.h"
+#include "b3dutil.h"
 
 /*!
  * Constructs the [ImodAssistant] object.  ^
@@ -43,25 +39,13 @@ ImodAssistant::ImodAssistant(const char *path, const char *adpFile,
                              bool keepSideBar)
 {
   mAssistant = NULL;
-  mAssumedIMOD = false;
+  mAssumedIMOD = 0;
   mKeepSideBar = keepSideBar;
   if (messageTitle)
     mTitle = QString(messageTitle) + " Error";
 
-  // Get IMOD_DIR; set up fallback if necessary
-  mImodDir = getenv("IMOD_DIR");
-  if (mImodDir.isEmpty()) {
-    mAssumedIMOD = true;
-#ifdef _WIN32
-    mImodDir = "C:\\cygwin\\usr\\local\\IMOD";
-#else
-#ifdef Q_OS_MACX
-    mImodDir = "/Applications/IMOD";
-#else
-    mImodDir = "/usr/local/IMOD";
-#endif
-#endif
-  }
+  // Get IMOD_DIR or fallback if necessary
+  mImodDir = IMOD_DIR_or_default(&mAssumedIMOD);
 
   // Set up path to help files; either absolute or under IMOD_DIR
   if (absolute) {
@@ -182,6 +166,9 @@ void ImodAssistant::assistantError(const QString &msg)
 /*
 
 $Log$
+Revision 1.12  2009/01/15 16:33:17  mast
+Qt 4 port
+
 Revision 1.11  2006/06/18 23:42:09  mast
 Added constructor argument and ability to keep sidebar
 
