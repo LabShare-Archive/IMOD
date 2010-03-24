@@ -37,6 +37,7 @@ EXPORTS
 	PipAddOption
 	numOMPthreads
 	ADOCGETINTEGERARRAY
+	IMOD_DIR_or_default
 	PipGetNonOptionArg
 	PIPENABLEENTRYOUTPUT
 	ilistPop
