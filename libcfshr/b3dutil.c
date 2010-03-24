@@ -88,6 +88,31 @@ void imodUsageHeader(char *pname)
   imodCopyright();
 }
 
+/*!
+ * Returns the value of IMOD_DIR if it is set, or the default install location
+ * for the particular OS.  If [assumed] is not NULL, it is returned with 1 if
+ * the string is the default install location.
+ */
+char *IMOD_DIR_or_default(int *assumed)
+{
+#ifdef _WIN32
+  static char *str = "C:\\cygwin\\usr\\local\\IMOD";
+#else
+#ifdef Q_OS_MACX
+  static char *str = "/Applications/IMOD";
+#else
+  static char *str = "/usr/local/IMOD";
+#endif
+#endif
+  static char *envdir;
+  envdir = getenv("IMOD_DIR");
+  if (assumed)
+    *assumed = envdir != NULL ? 0 : 1;
+  if (envdir)
+    return envdir;
+  return str;
+}
+
 /*! Returns a program name stripped of directories and .exe,
  * given the full name (argv\[0\]) in [fullname].
  * It returns a pointer internal to argv\[0\], unless the name ends in .exe,
@@ -585,6 +610,9 @@ int numompthreads(int optimalThreads)
 
 /*
 $Log$
+Revision 1.12  2010/01/05 18:46:51  mast
+Made wallTime work for Windows
+
 Revision 1.11  2009/09/18 15:02:40  mast
 Changed fgetline to return 0 for empty string and negative for error/eof
 
