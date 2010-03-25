@@ -2669,6 +2669,9 @@ void slicerCubePaint(SlicerStruct *ss)
   int winx, winy;
   float xo, yo, zo;
 
+  if (ss->closing)
+    return;
+
   b3dSetCurSize(ss->cube->width(), ss->cube->height());
 
   glClearColor(0, 0, 0, 0);
@@ -2795,6 +2798,9 @@ void slicerCubePaint(SlicerStruct *ss)
 
 /*
 $Log$
+Revision 4.71  2009/11/21 23:05:57  mast
+Added ability to start new contours and surfaces automatically
+
 Revision 4.70  2009/10/07 23:06:54  mast
 Made it pass on Shift PageUp and PageDown
 
