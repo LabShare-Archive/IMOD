@@ -47,6 +47,7 @@ sleep =
 bn.replace-patch-vectors =
 bn.done =
 [[if = test-gui]]
+	if.var.dual.return=
 	wait.popup.etomo-question=Yes
 [[]]
 #dual
