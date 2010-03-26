@@ -1,6 +1,7 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-2/23/10: 3dmod will load plugins from locations defined by IMOD_DIR, or default
+3/26/10: IMOD_4-0-28  UI Tests work
+3/23/10: 3dmod will load plugins from locations defined by IMOD_DIR, or default
 install locations, if IMOD_PLUGIN_DIR is not defined.
 
 3/19/10: IMOD_4-0-27
