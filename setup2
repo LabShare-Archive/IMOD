@@ -46,6 +46,7 @@ set intel           = false
 set use_etomo       =
 set packg2c         = false
 set no_qt3          = true
+set uac_wrap        = false
 
 set inst_dir        = default
 set tifflibs        = default
@@ -223,6 +224,10 @@ while($#argv > 0)
 
         case -nowrap:
                 set wrapintel = false
+                breaksw
+
+        case -uac_wrap:
+                set uac_wrap = true
                 breaksw
 
         case -no_gpu:
@@ -998,11 +1003,15 @@ echo "             -packg2c     Pack libg2c into distribution (Linux only)"
 echo "             -qt3         Include Qt3 support in makefiles"
 echo "             -flags       Set flags for compilation"
 echo "             -use_etomo   Set directory to get etomo.jar from"
+echo "             -uac_wrap    Provide UAC wrappers for patch2imod/imod2patch"
 exit
 
 
 #
 #  $Log$
+#  Revision 1.59  2010/03/24 05:59:06  mast
+#  Add libs to qtassist
+#
 #  Revision 1.58  2010/01/21 03:49:08  mast
 #  Update copyright
 #
