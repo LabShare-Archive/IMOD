@@ -62,6 +62,7 @@ public interface ConstMetaData {
   public ConstEtomoNumber getCombineVolcombineParallel();
 
   public ConstEtomoNumber getDefaultParallel();
+  public ConstEtomoNumber getDefaultGpuProcessing();
 
   public String getFirstAxisPrepend();
 
@@ -87,7 +88,7 @@ public interface ConstMetaData {
 
   public int getStack3dFindBinning(AxisID axisID);
 
-  public ConstEtomoNumber getTomoGenTiltParallel(AxisID axisID);
+  public ConstEtomoNumber getTiltParallel(AxisID axisID,PanelId panelId);
 
   public ConstEtomoNumber getFinalStackCtfCorrectionParallel(AxisID axisID);
 
@@ -157,6 +158,9 @@ public interface ConstMetaData {
 
 /**public String getTrackMethod(AxisID axisID) 
  * <p> $Log$
+ * <p> Revision 3.57  2010/03/05 04:00:24  sueh
+ * <p> bug# 1319 Added genExists, genLog, and gen scale parameters.
+ * <p>
  * <p> Revision 3.56  2010/03/03 04:56:49  sueh
  * <p> bug# 1311 Added functions for patch tracking.
  * <p>

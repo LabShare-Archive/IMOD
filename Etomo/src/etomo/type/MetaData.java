@@ -29,6 +29,9 @@ import etomo.util.Utilities;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.59  2010/03/05 04:00:15  sueh
+ * <p> bug# 1319 Added genExists, genLog, and gen scale parameters.
+ * <p>
  * <p> Revision 3.58  2010/03/03 04:57:56  sueh
  * <p> bug# 1311 Added parameters for patch tracking.
  * <p>
@@ -366,6 +369,11 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
   private static final String X_KEY = "X";
   private static final String Y_KEY = "Y";
 
+  private static final String TILT_3D_FIND_A_TILT_PARALLEL_KEY = STACK_KEY
+      + ".A.Tilt.Parallel";
+  private static final String TILT_3D_FIND_B_TILT_PARALLEL_KEY = STACK_KEY
+      + ".B.Tilt.Parallel";
+
   //Defaults
   private static final boolean ERASE_GOLD_MODEL_USE_FID_DEFAULT = true;
 
@@ -414,6 +422,8 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
       "DefaultParallel");
   private EtomoBoolean2 tomoGenTiltParallelA = null;
   private EtomoBoolean2 tomoGenTiltParallelB = null;
+  private EtomoBoolean2 tilt3dFindTiltParallelA = null;
+  private EtomoBoolean2 tilt3dFindTiltParallelB = null;
   private EtomoBoolean2 finalStackCtfCorrectionParallelA = null;
   private EtomoBoolean2 finalStackCtfCorrectionParallelB = null;
   private EtomoBoolean2 combineVolcombineParallel = null;
@@ -427,6 +437,8 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
       + '.' + ProcessName.SAMPLE + '.' + THICKNESS_KEY);
   private String firstAxisPrepend = null;
   private String secondAxisPrepend = null;
+  private final EtomoBoolean2 defaultGpuProcessing = new EtomoBoolean2(
+      "DefaultGpuProcessing");
   /**
    * @version 1.8
    */
@@ -854,18 +866,39 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
     this.combineVolcombineParallel.set(combineVolcombineParallel);
   }
 
-  public void setTomoGenTiltParallel(AxisID axisID, boolean tomoGenTiltParallel) {
-    if (axisID == AxisID.SECOND) {
-      if (tomoGenTiltParallelB == null) {
-        tomoGenTiltParallelB = new EtomoBoolean2(TOMO_GEN_B_TILT_PARALLEL_GROUP);
+  public void setTiltParallel(AxisID axisID, PanelId panelId,
+      boolean tiltParallel) {
+    if (panelId == PanelId.TILT) {
+      if (axisID == AxisID.SECOND) {
+        if (tomoGenTiltParallelB == null) {
+          tomoGenTiltParallelB = new EtomoBoolean2(
+              TOMO_GEN_B_TILT_PARALLEL_GROUP);
+        }
+        tomoGenTiltParallelB.set(tiltParallel);
       }
-      tomoGenTiltParallelB.set(tomoGenTiltParallel);
+      else {
+        if (tomoGenTiltParallelA == null) {
+          tomoGenTiltParallelA = new EtomoBoolean2(
+              TOMO_GEN_A_TILT_PARALLEL_GROUP);
+        }
+        tomoGenTiltParallelA.set(tiltParallel);
+      }
     }
-    else {
-      if (tomoGenTiltParallelA == null) {
-        tomoGenTiltParallelA = new EtomoBoolean2(TOMO_GEN_A_TILT_PARALLEL_GROUP);
+    else if (panelId == PanelId.TILT_3D_FIND) {
+      if (axisID == AxisID.SECOND) {
+        if (tilt3dFindTiltParallelB == null) {
+          tilt3dFindTiltParallelB = new EtomoBoolean2(
+              TILT_3D_FIND_B_TILT_PARALLEL_KEY);
+        }
+        tilt3dFindTiltParallelB.set(tiltParallel);
       }
-      tomoGenTiltParallelA.set(tomoGenTiltParallel);
+      else {
+        if (tilt3dFindTiltParallelA == null) {
+          tilt3dFindTiltParallelA = new EtomoBoolean2(
+              TILT_3D_FIND_A_TILT_PARALLEL_KEY);
+        }
+        tilt3dFindTiltParallelA.set(tiltParallel);
+      }
     }
   }
 
@@ -890,7 +923,11 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
     this.defaultParallel.set(defaultParallel);
   }
 
-  public void setTomoGenTiltParallel(AxisID axisID, String tomoGenTiltParallel) {
+  public void setDefaultGpuProcessing(boolean input) {
+    defaultGpuProcessing.set(input);
+  }
+
+  private void setTomoGenTiltParallel(AxisID axisID, String tomoGenTiltParallel) {
     if (axisID == AxisID.SECOND) {
       if (tomoGenTiltParallelB == null) {
         tomoGenTiltParallelB = new EtomoBoolean2(TOMO_GEN_B_TILT_PARALLEL_GROUP);
@@ -1077,6 +1114,12 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
     }
     if (tomoGenTiltParallelB != null) {
       tomoGenTiltParallelB.reset();
+    }
+    if (tilt3dFindTiltParallelA != null) {
+      tilt3dFindTiltParallelA.reset();
+    }
+    if (tilt3dFindTiltParallelB != null) {
+      tilt3dFindTiltParallelB.reset();
     }
     if (finalStackCtfCorrectionParallelA != null) {
       finalStackCtfCorrectionParallelA.reset();
@@ -1353,6 +1396,11 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
     genScaleOffsetLinearB.load(props, prepend);
     genExistsA.load(props, prepend);
     genExistsB.load(props, prepend);
+    defaultGpuProcessing.load(props, prepend);
+    tilt3dFindTiltParallelA = EtomoBoolean2.load(tilt3dFindTiltParallelA,
+        TILT_3D_FIND_A_TILT_PARALLEL_KEY, props, prepend);
+    tilt3dFindTiltParallelB = EtomoBoolean2.load(tilt3dFindTiltParallelB,
+        TILT_3D_FIND_B_TILT_PARALLEL_KEY, props, prepend);
   }
 
   public void setNoBeamTiltSelected(AxisID axisID, boolean selected) {
@@ -1535,6 +1583,10 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
     if (tomoGenTiltParallelB != null) {
       tomoGenTiltParallelB.store(props, prepend);
     }
+    EtomoBoolean2.store(tilt3dFindTiltParallelA, props, prepend,
+        TILT_3D_FIND_A_TILT_PARALLEL_KEY);
+    EtomoBoolean2.store(tilt3dFindTiltParallelB, props, prepend,
+        TILT_3D_FIND_B_TILT_PARALLEL_KEY);
     if (finalStackCtfCorrectionParallelA != null) {
       finalStackCtfCorrectionParallelA.store(props, prepend);
     }
@@ -1613,6 +1665,7 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
     genScaleOffsetLinearB.store(props, prepend);
     genExistsA.store(props, prepend);
     genExistsB.store(props, prepend);
+    defaultGpuProcessing.store(props, prepend);
   }
 
   public boolean getTrackRaptorUseRawStack() {
@@ -2024,11 +2077,20 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
     return combineVolcombineParallel;
   }
 
-  public ConstEtomoNumber getTomoGenTiltParallel(AxisID axisID) {
-    if (axisID == AxisID.SECOND) {
-      return tomoGenTiltParallelB;
+  public ConstEtomoNumber getTiltParallel(AxisID axisID, PanelId panelId) {
+    if (panelId == PanelId.TILT) {
+      if (axisID == AxisID.SECOND) {
+        return tomoGenTiltParallelB;
+      }
+      return tomoGenTiltParallelA;
     }
-    return tomoGenTiltParallelA;
+    else if (panelId == PanelId.TILT_3D_FIND) {
+      if (axisID == AxisID.SECOND) {
+        return tilt3dFindTiltParallelB;
+      }
+      return tilt3dFindTiltParallelA;
+    }
+    return null;
   }
 
   public ConstEtomoNumber getFinalStackCtfCorrectionParallel(AxisID axisID) {
@@ -2040,6 +2102,10 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
 
   public ConstEtomoNumber getDefaultParallel() {
     return defaultParallel;
+  }
+
+  public ConstEtomoNumber getDefaultGpuProcessing() {
+    return defaultGpuProcessing;
   }
 
   public ConstEtomoNumber getUseZFactors(AxisID axisID) {
