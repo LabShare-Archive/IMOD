@@ -31,6 +31,9 @@ import etomo.type.Run3dmodMenuOptions;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.4  2010/02/17 05:03:12  sueh
+ * <p> bug# 1301 Using manager instead of manager key for popping up messages.
+ * <p>
  * <p> Revision 3.3  2009/09/21 17:56:30  sueh
  * <p> bug# 1267 Had been saving the 3dfindbinning to the wrong place in
  * <p> getParameters(MetaData) - corrected the problem.
@@ -111,6 +114,17 @@ abstract class NewstackOrBlendmont3dFindPanel implements
 
   final void setParameters(final ConstMetaData metaData) {
     spinBinning.setValue(metaData.getStack3dFindBinning(axisID));
+  }
+  
+  void setParameters(boolean initialize) {
+    if (!initialize) {
+      return;
+    }
+    EtomoNumber beadSize = new EtomoNumber(EtomoNumber.Type.FLOAT);
+    beadSize.set(parent.getBeadSize());
+    if (!beadSize.isNull() && beadSize.isValid()) {
+      spinBinning.setValue(Math.max(Math.round(beadSize.getFloat() / 5f), 1));
+    }
   }
 
   public final boolean validate() {
