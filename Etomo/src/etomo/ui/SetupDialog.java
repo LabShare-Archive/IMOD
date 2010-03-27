@@ -106,6 +106,7 @@ final class SetupDialog extends ProcessDialog implements ContextMenu,
   private final LabeledTextField ltfMagGradientFile = new LabeledTextField(
       "Mag gradients correction: ");
   private final CheckBox cbParallelProcess = new CheckBox("Parallel Processing");
+  private final CheckBox cbGpuProcessing = new CheckBox("Graphics card processing");
   private final JButton btnMagGradientFile = new JButton(iconFolder);
 
   //  Tilt angle GUI objects
@@ -225,7 +226,9 @@ final class SetupDialog extends ProcessDialog implements ContextMenu,
   void setParallelProcessEnabled(final boolean input) {
     cbParallelProcess.setEnabled(input);
   }
-
+  void setGpuProcessingEnabled(final boolean input) {
+    cbGpuProcessing.setEnabled(input);
+  }
   void setBackupDirectory(final String input) {
     ltfBackupDirectory.setText(input);
   }
@@ -305,6 +308,9 @@ final class SetupDialog extends ProcessDialog implements ContextMenu,
 
   void setParallelProcessTooltip(final String tooltip) {
     cbParallelProcess.setToolTipText(tooltip);
+  }
+  void setGpuProcessingTooltip(final String tooltip) {
+    cbGpuProcessing.setToolTipText(tooltip);
   }
 
   void setMagGradientFileTooltip(final String tooltip) {
@@ -416,6 +422,10 @@ final class SetupDialog extends ProcessDialog implements ContextMenu,
 
   boolean isParallelProcessSelected() {
     return cbParallelProcess.isSelected();
+  }
+  
+  boolean isGpuProcessingSelected() {
+    return cbGpuProcessing.isSelected();
   }
 
   boolean isAdjustedFocusSelected(final AxisID axisID) {
@@ -687,10 +697,18 @@ final class SetupDialog extends ProcessDialog implements ContextMenu,
         BoxLayout.X_AXIS));
     pnlParallelProcess.add(Box.createRigidArea(FixedDim.x5_y0));
     pnlParallelProcess.add(cbParallelProcess);
+    JPanel pnlGpuProcessing = new JPanel();
+    
+    pnlGpuProcessing.setLayout(new BoxLayout(pnlGpuProcessing,
+        BoxLayout.X_AXIS));
+    pnlGpuProcessing.add(Box.createRigidArea(FixedDim.x5_y0));
+    pnlGpuProcessing.add(cbGpuProcessing);
+    
     pnlImageRows.setLayout(new BoxLayout(pnlImageRows, BoxLayout.Y_AXIS));
     pnlImageRows.add(pnlStackInfo);
     pnlImageRows.add(Box.createRigidArea(FixedDim.x0_y10));
     pnlImageRows.add(pnlParallelProcess);
+    pnlImageRows.add(pnlGpuProcessing);
     pnlImageRows.add(pnlDistortionInfo);
     pnlImageRows.add(pnlMagGradientInfo);
     UIUtilities.alignComponentsX(pnlImageRows, Component.LEFT_ALIGNMENT);
@@ -863,6 +881,10 @@ final class SetupDialog extends ProcessDialog implements ContextMenu,
 }
 /**
  * <p> $Log$
+ * <p> Revision 3.69  2009/11/20 17:35:02  sueh
+ * <p> bug# 1282 Naming all the file choosers by constructing a FileChooser
+ * <p> instance instead of a JFileChooser instance.
+ * <p>
  * <p> Revision 3.68  2009/09/23 23:25:26  sueh
  * <p> bug# 1270 Implemented expand.  Changed setAdvanced to updateAdvanced.
  * <p>

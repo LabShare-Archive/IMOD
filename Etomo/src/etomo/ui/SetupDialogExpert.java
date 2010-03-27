@@ -41,6 +41,9 @@ import etomo.util.Montagesize;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.14  2010/02/17 05:03:12  sueh
+ * <p> bug# 1301 Using manager instead of manager key for popping up messages.
+ * <p>
  * <p> Revision 1.13  2010/01/11 23:59:01  sueh
  * <p> bug# 1299 Removed responsibility anything other then cpu.adoc from
  * <p> CpuAdoc.  Placed responsibility for information about the network in the
@@ -404,6 +407,7 @@ public final class SetupDialogExpert {
         return false;
       }
       catch (IOException e) {
+        e.printStackTrace();
         UIHarness.INSTANCE.openMessageDialog(manager,
             "The dataset is not a montage.  Please change "
                 + SetupDialog.FRAME_TYPE_LABEL + " to "
@@ -438,6 +442,7 @@ public final class SetupDialogExpert {
     metaData.setDistortionFile(dialog.getDistortionFile());
     metaData.setMagGradientFile(dialog.getMagGradientFile());
     metaData.setDefaultParallel(dialog.isParallelProcessSelected());
+    metaData.setDefaultGpuProcessing(dialog.isGpuProcessingSelected());
     metaData.setAdjustedFocusA(dialog.isAdjustedFocusSelected(AxisID.FIRST));
     metaData.setAdjustedFocusB(dialog.isAdjustedFocusSelected(AxisID.SECOND));
     metaData.setViewType(getViewType());
@@ -511,6 +516,9 @@ public final class SetupDialogExpert {
     else if (!validAutodoc) {
       dialog.setParallelProcessEnabled(false);
     }
+
+    dialog.setGpuProcessingEnabled(Network.isLocalHostGpuProcessingEnabled(
+        manager, AxisID.ONLY, manager.getPropertyUserDir()));
     dialog.setBackupDirectory(metaData.getBackupDirectory());
     dialog.setDistortionFile(metaData.getDistortionFile());
     dialog.setMagGradientFile(metaData.getMagGradientFile());
@@ -718,6 +726,9 @@ public final class SetupDialogExpert {
     dialog
         .setParallelProcessTooltip("Sets the default for parallel processing "
             + "(distributing processes across multiple computers).");
+    dialog
+        .setGpuProcessingTooltip("Sets the default for GPU processing (sending "
+            + "processes to the graphics card).");
 
     dialog.setMagGradientFileTooltip("OPTIONAL:  A file with magnification "
         + "gradients to be applied for each image.");
