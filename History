@@ -1,5 +1,19 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+3/26/10: In Etomo, added a front panel button and some error checking for Volume
+Flattening.
+
+3/26/10: In Etomo, put a checkbox for the default GPU setting into Setup Tomogram.
+
+3/26/10: In Etomo - find beads 3D, made binning as large as possible without
+making the bead size too small.
+
+3/26/10: In Etomo - Setup Tomogram fixed the montagesize call to prevent an
+incorrect warning.
+
+3/26/10: In Etomo fixed the field that goes with some of the file choosers,
+which didn't work when it was updated directly.
+
 3/26/10: IMOD_4-0-28  UI Tests work
 3/23/10: 3dmod will load plugins from locations defined by IMOD_DIR, or default
 install locations, if IMOD_PLUGIN_DIR is not defined.
