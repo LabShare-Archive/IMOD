@@ -14,6 +14,7 @@ import etomo.comscript.BlendmontParam;
 import etomo.comscript.ConstFindBeads3dParam;
 import etomo.comscript.ConstTiltParam;
 import etomo.comscript.ConstTiltalignParam;
+import etomo.comscript.FortranInputSyntaxException;
 import etomo.comscript.NewstParam;
 import etomo.storage.LogFile;
 import etomo.type.AxisID;
@@ -42,6 +43,9 @@ import etomo.type.ViewType;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.4  2010/03/19 02:38:46  sueh
+ * <p> bug# 1325 Added setParameters(ConstTiltalignParam,boolean).
+ * <p>
  * <p> Revision 3.3  2010/03/03 05:01:27  sueh
  * <p> bug# 1311 Changed FileType.NEWST_OR_BLEND_OUTPUT to
  * <p> ALIGNED_STACK.  Added file types for patch tracking.
@@ -181,7 +185,7 @@ final class Beads3dFindPanel implements NewstackOrBlendmont3dFindParent,
   public boolean usingParallelProcessing() {
     return tilt3dFindPanel.usingParallelProcessing();
   }
-  
+
   public void setEnabledTiltParameters(TomogramState state,
       ConstMetaData metaData) {
     tilt3dFindPanel.setEnabledTiltParameters(state, metaData);
@@ -194,10 +198,15 @@ final class Beads3dFindPanel implements NewstackOrBlendmont3dFindParent,
 
   void setParameters(ConstFindBeads3dParam param, boolean initialize) {
     findBeads3dPanel.setParameters(param, initialize);
+    //This uses bead size in findBeads3dPanel, so is can be called after the
+    //findBeads3dPanel.setParameter call.
+    newstackOrBlendmont3dFindPanel.setParameters(initialize);
   }
+
   void setParameters(ConstTiltalignParam param, boolean initialize) {
     tilt3dFindPanel.setParameters(param, initialize);
   }
+
   void setParameters(ReconScreenState screenState) {
     header.setState(screenState.getStackAlignAndTiltHeaderState());
     findBeads3dPanel.setParameters(screenState);
@@ -236,8 +245,9 @@ final class Beads3dFindPanel implements NewstackOrBlendmont3dFindParent,
     return newstackOrBlendmont3dFindPanel.validate();
   }
 
-  void getParameters(MetaData metaData) {
+  void getParameters(MetaData metaData) throws FortranInputSyntaxException {
     newstackOrBlendmont3dFindPanel.getParameters(metaData);
+    tilt3dFindPanel.getParameters(metaData);
   }
 
   void setParameters(ConstMetaData metaData) {
