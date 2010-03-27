@@ -41,6 +41,10 @@ import etomo.type.TomogramState;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.5  2010/03/19 02:39:28  sueh
+ * <p> bug# 1325 Added setParameters(ConstTiltalignParam,boolean).  Changed
+ * <p> a tool tip.
+ * <p>
  * <p> Revision 1.4  2010/03/12 04:11:06  sueh
  * <p> bug# 1325 Made the erase gold tab label available to the package.
  * <p>
@@ -53,8 +57,8 @@ import etomo.type.TomogramState;
  */
 final class EraseGoldPanel implements Beads3dFindParent {
   public static final String rcsid = "$Id$";
-  
-  static final String ERASE_GOLD_TAB_LABEL="Erase Gold";
+
+  static final String ERASE_GOLD_TAB_LABEL = "Erase Gold";
 
   private final JPanel pnlRoot = new JPanel();
   private final EraseGoldPanelActionListener actionListener = new EraseGoldPanelActionListener(
@@ -184,7 +188,7 @@ final class EraseGoldPanel implements Beads3dFindParent {
   void getParameters(ReconScreenState screenState) {
     beads3dFindPanel.getParameters(screenState);
   }
-  
+
   public void setEnabledTiltParameters(TomogramState state,
       ConstMetaData metaData) {
     beads3dFindPanel.setEnabledTiltParameters(state, metaData);
@@ -218,11 +222,11 @@ final class EraseGoldPanel implements Beads3dFindParent {
   void setParameters(ConstFindBeads3dParam param, boolean initialize) {
     beads3dFindPanel.setParameters(param, initialize);
   }
-  
+
   void setParameters(ConstTiltalignParam param, boolean initialize) {
     beads3dFindPanel.setParameters(param, initialize);
   }
-  
+
   private void action(final String command,
       Deferred3dmodButton deferred3dmodButton,
       final Run3dmodMenuOptions run3dmodMenuOptions) {
