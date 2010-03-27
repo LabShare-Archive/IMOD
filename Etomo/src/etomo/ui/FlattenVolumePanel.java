@@ -27,11 +27,13 @@ import etomo.type.AxisID;
 import etomo.type.ConstMetaData;
 import etomo.type.DialogType;
 import etomo.type.EtomoAutodoc;
+import etomo.type.EtomoBoolean2;
 import etomo.type.FileType;
 import etomo.type.ImageFileType;
 import etomo.type.MetaData;
 import etomo.type.PanelId;
 import etomo.type.Run3dmodMenuOptions;
+import etomo.util.FrontEndLogic;
 
 /**
  * <p>Description: </p>
@@ -47,6 +49,9 @@ import etomo.type.Run3dmodMenuOptions;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.1  2010/02/17 05:01:48  sueh
+ * <p> bug# 1301 Incorporated flatten warp panel into FlattenVolumePanel.  Give this panel two panel ids so there can be two instances of it.
+ * <p>
  * <p> Revision 1.7  2010/01/12 22:09:01  sueh
  * <p> bug# 1206 Added SmoothingAssessmentPanel.done.
  * <p>
@@ -405,6 +410,7 @@ final class FlattenVolumePanel implements Run3dmodButtonContainer,
         applicationManager.imodFlatten(run3dmodMenuOptions, axisID);
       }
       else if (command.equals(btnMakeSurfaceModel.getActionCommand())) {
+        checkRotated(getInputFileType().getFile(manager));
         applicationManager.imodMakeSurfaceModel(run3dmodMenuOptions, axisID,
             btnMakeSurfaceModel.getBinningInXandY(), getInputFileType());
       }
@@ -446,7 +452,8 @@ final class FlattenVolumePanel implements Run3dmodButtonContainer,
   }
 
   /**
-   * Set the input file for the tools version.
+   * Set the input file.  In tools version this checks for conflicting dataset
+   * names.  Also pops up a warning if the file was not rotated.
    */
   private void inputFileAction() {
     //  Open up the file chooser in the current working directory
@@ -461,15 +468,36 @@ final class FlattenVolumePanel implements Run3dmodButtonContainer,
       if (file == null || file.isDirectory() || !file.exists()) {
         return;
       }
+      if (toolsManager != null
+          && toolsManager.isConflictingDatasetName(axisID, file)) {
+        return;
+      }
       try {
         ftfInputFile.setText(file.getAbsolutePath());
         ftfInputFile.setButtonEnabled(false);
         toolsManager.setName(file);
         UIHarness.INSTANCE.pack(manager);
+        checkRotated(file);
       }
       catch (Exception excep) {
         excep.printStackTrace();
       }
+    }
+  }
+
+  private void checkRotated(File file) {
+    EtomoBoolean2 rotated = FrontEndLogic.isRotated(manager, axisID, file);
+    if (rotated == null) {
+      UIHarness.INSTANCE.openMessageDialog(manager,
+          "The MRC header of this file, " + file.getAbsolutePath()
+              + ", is unreadable.", "Warning", axisID);
+    }
+    else if (!rotated.is()) {
+      UIHarness.INSTANCE.openMessageDialog(manager, "This tomogram, "
+          + file.getAbsolutePath()
+          + ", looks like the volume hasn't been reoriented.   "
+          + "Flattening won't work on a volume that hasn't been reoriented.",
+          "Warning", axisID);
     }
   }
 
