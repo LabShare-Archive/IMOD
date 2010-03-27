@@ -496,16 +496,25 @@ void mrc_swap_header(MrcHeader *hdata)
    for converting an old style header on reading in */
 void mrc_set_cmap_stamp(MrcHeader *hdata)
 {
+#ifdef B3D_LITTLE_ENDIAN
+  int littleEnd = hdata->swapped ? 0 : 1;
+#else
+  int littleEnd = hdata->swapped ? 1 : 0;
+#endif
   hdata->cmap[0] = 'M';
   hdata->cmap[1] = 'A';
   hdata->cmap[2] = 'P';
   hdata->cmap[3] = ' ';
-#ifdef B3D_LITTLE_ENDIAN
-  hdata->stamp[0] = hdata->swapped ? 17 : 68;
-#else
-  hdata->stamp[0] = hdata->swapped ? 68 : 17;
-#endif
-  hdata->stamp[1] = 0;
+  /* The CCP4-style stamp has 4 4-bit codes for double, float, int, and char 
+     formats, in order of high then low bits within each byte.  1 and 4 refer 
+     to IEEE big-endian and little-endian, respectively */
+  if (littleEnd) {
+    hdata->stamp[0] = 16 * 4 + 4;
+    hdata->stamp[1] = 16 * 4 + 1;
+  } else {
+    hdata->stamp[0] = 16 * 1 + 1;
+    hdata->stamp[1] = 16 * 1 + 1;
+  }
   hdata->stamp[2] = 0;
   hdata->stamp[3] = 0;
 }
@@ -2241,6 +2250,9 @@ void mrc_swap_floats(fb3dFloat *data, int amt)
 
 /*
 $Log$
+Revision 3.43  2009/04/01 03:52:02  mast
+Cleanup some warnings
+
 Revision 3.42  2009/02/16 06:16:58  mast
 Add parallel write routine
 
