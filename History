@@ -1,9 +1,12 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-3/26/10: In Etomo, added a front panel button and some error checking for Volume
-Flattening.
+3/27/10: Fixed machine stamps in MRC files to be follow CCP4 definition.
 
-3/26/10: In Etomo, put a checkbox for the default GPU setting into Setup Tomogram.
+3/26/10: In Etomo, added a front panel button and some error checking for
+Volume Flattening.
+
+3/26/10: In Etomo, put a checkbox for the default GPU setting into Setup
+Tomogram. 
 
 3/26/10: In Etomo - find beads 3D, made binning as large as possible without
 making the bead size too small.
