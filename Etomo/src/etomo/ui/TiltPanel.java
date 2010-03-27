@@ -3,6 +3,7 @@ package etomo.ui;
 import etomo.ApplicationManager;
 import etomo.type.AxisID;
 import etomo.type.DialogType;
+import etomo.type.PanelId;
 import etomo.type.ProcessResultDisplay;
 import etomo.type.Run3dmodMenuOptions;
 
@@ -20,6 +21,9 @@ import etomo.type.Run3dmodMenuOptions;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.2  2010/03/12 04:27:10  sueh
+ * <p> bug# 1325 Changed the label of the delete stacks button.
+ * <p>
  * <p> Revision 3.1  2009/09/01 03:18:25  sueh
  * <p> bug# 1222
  * <p> </p>
@@ -32,7 +36,8 @@ final class TiltPanel extends AbstractTiltPanel {
   private TiltPanel(ApplicationManager manager, AxisID axisID,
       DialogType dialogType, TiltParent parent,
       GlobalExpandButton globalAdvancedButton) {
-    super(manager, axisID, dialogType, parent, globalAdvancedButton);
+    super(manager, axisID, dialogType, parent, globalAdvancedButton,
+        PanelId.TILT);
   }
 
   static TiltPanel getInstance(ApplicationManager manager, AxisID axisID,

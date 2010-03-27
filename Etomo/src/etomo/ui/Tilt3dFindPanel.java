@@ -19,6 +19,7 @@ import etomo.type.ConstEtomoNumber;
 import etomo.type.DialogType;
 import etomo.type.FileType;
 import etomo.type.MetaData;
+import etomo.type.PanelId;
 import etomo.type.ProcessName;
 import etomo.type.Run3dmodMenuOptions;
 import etomo.util.InvalidParameterException;
@@ -37,6 +38,11 @@ import etomo.util.InvalidParameterException;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.7  2010/03/19 02:45:01  sueh
+ * <p> bug# 1325 Move set parameter functionality involving the align log from
+ * <p> setParameters(ConstTiltParam...) to setParameters(ConstTiltalignParam...).
+ * <p> Pulling the Z shift (negated) from align.com when 2 surfaces was not used.
+ * <p>
  * <p> Revision 3.6  2010/03/12 04:25:53  sueh
  * <p> bug# 1325 Exposed the use GPU checkbox.
  * <p>
@@ -66,6 +72,7 @@ final class Tilt3dFindPanel extends AbstractTiltPanel {
   private static final String CENTER_TO_CENTER_THICKNESS_LABEL = "Center to center thickness";
   private static final String ADDITION_UNBINNED_DIAMETERS_TO_ADD = "Additional unbinned diameters to add ";
   static final String TILT_3D_FIND_LABEL = "Align and Build Tomogram";
+  private static final PanelId PANEL_ID = PanelId.TILT_3D_FIND;
 
   private final LabeledTextField ltfCenterToCenterThickness = new LabeledTextField(
       CENTER_TO_CENTER_THICKNESS_LABEL + ": ");
@@ -78,7 +85,7 @@ final class Tilt3dFindPanel extends AbstractTiltPanel {
   private Tilt3dFindPanel(final ApplicationManager manager,
       final AxisID axisID, DialogType dialogType, Tilt3dFindParent parent,
       Component extraButton) {
-    super(manager, axisID, dialogType, parent, null);
+    super(manager, axisID, dialogType, parent, null, PANEL_ID);
     this.parent = parent;
     this.extraButton = extraButton;
     //Change some labels.
@@ -225,11 +232,12 @@ final class Tilt3dFindPanel extends AbstractTiltPanel {
   }
 
   /**
-   * This function in AbstractTiltPanel is oriented towards the TomoGen dialog.
-   * Don't call it from the Stack dialog.
+   * This function in AbstractTiltPanel is oriented towards the TomoGen dialog
+   * so override it.
    */
   void getParameters(final MetaData metaData)
       throws FortranInputSyntaxException {
+    metaData.setTiltParallel(axisID, PANEL_ID, isParallelProcess());
   }
 
   public boolean getParameters(final SplittiltParam param) {
