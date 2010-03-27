@@ -183,7 +183,8 @@ public class Montagesize {
     commandArray[0] = ApplicationManager.getIMODBinPath() + "montagesize";
     commandArray[1] = file.getAbsolutePath();
     if (pieceListFile.exists()) {
-      commandArray[2] = pieceListFile.getName();
+      //bug# 1336
+      commandArray[2] = pieceListFile.getAbsolutePath();
     }
   }
 
@@ -361,6 +362,10 @@ public class Montagesize {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.20  2010/02/17 05:05:58  sueh
+ * <p> bug# 1301 Using manager instead of manager key for popping up
+ * <p> messages.
+ * <p>
  * <p> Revision 1.19  2009/03/17 00:46:43  sueh
  * <p> bug# 1186 Pass managerKey to everything that pops up a dialog.
  * <p>
