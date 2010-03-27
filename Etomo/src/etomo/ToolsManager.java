@@ -38,6 +38,7 @@ import etomo.ui.MainToolsPanel;
 import etomo.ui.ProcessDisplay;
 import etomo.ui.ToolsDialog;
 import etomo.ui.WarpVolDisplay;
+import etomo.util.DatasetFiles;
 import etomo.util.MRCHeader;
 
 /**
@@ -54,6 +55,10 @@ import etomo.util.MRCHeader;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.2  2010/02/26 20:37:31  sueh
+ * <p> Changing the complex popup titles are making it hard to complete the
+ * <p> uitests.
+ * <p>
  * <p> Revision 1.1  2010/02/17 04:44:11  sueh
  * <p> bug# 1301 Manager for all tools menu choices.
  * <p> </p>
@@ -92,6 +97,29 @@ public final class ToolsManager extends BaseManager {
       openToolsDialog();
       uiHarness.toFront(this);
     }
+  }
+
+  /**
+   * Checks for .edf, .ejf, or .epe files with the same dataset name (left side)
+   * as file.getName().  Conflicting dataset names can cause file name
+   * collisions.
+   * @param file
+   * @return true if there was a conflict 
+   */
+  public boolean isConflictingDatasetName(AxisID axisID, File file) {
+    File dir = file.getParentFile();
+    File[] conflictFileList = dir.listFiles(new ConflictFileFilter(file
+        .getName()));
+    if (conflictFileList.length > 0) {
+      uiHarness.openMessageDialog(this, "This file, " + file.getAbsolutePath()
+          + ", cannot be opened by the Tools interface in the this "
+          + "directory because the name conflicts with the dataset file "
+          + conflictFileList[0].getName() + ".  Please copy " + file.getName()
+          + " to another directory and work on it there, or change its name.",
+          "Entry Error", axisID);
+      return true;
+    }
+    return false;
   }
 
   /**
@@ -187,8 +215,8 @@ public final class ToolsManager extends BaseManager {
     }
     catch (SystemProcessException except) {
       except.printStackTrace();
-      uiHarness.openMessageDialog(this, except.getMessage()+ "\nCan't open 3dmod on the " + key,
-          "Cannot Open 3dmod", axisID);
+      uiHarness.openMessageDialog(this, except.getMessage()
+          + "\nCan't open 3dmod on the " + key, "Cannot Open 3dmod", axisID);
     }
     catch (AxisTypeException except) {
       except.printStackTrace();
@@ -218,8 +246,8 @@ public final class ToolsManager extends BaseManager {
     }
     catch (SystemProcessException except) {
       except.printStackTrace();
-      uiHarness.openMessageDialog(this, except.getMessage()+
-          "\nCan't open 3dmod on the " + key,"Cannot Open 3dmod", axisID);
+      uiHarness.openMessageDialog(this, except.getMessage()
+          + "\nCan't open 3dmod on the " + key, "Cannot Open 3dmod", axisID);
     }
     catch (AxisTypeException except) {
       except.printStackTrace();
@@ -478,5 +506,49 @@ public final class ToolsManager extends BaseManager {
     mainPanel.showProcessingPanel(AxisType.SINGLE_AXIS);
     setPanel();
     reconnect(processMgr.getSavedProcessData(AxisID.ONLY), AxisID.ONLY);
+  }
+
+  /**
+   * Class identifies dataset files that conflict with the member variable
+   * compareFileName.  Used to avoid file name collisions between tools projects
+   * and exclusive datasets.  Ignores parallel processing datasets because these
+   * are file oriented datasets like tools projects.
+   * @author sueh
+   *
+   */
+  private static final class ConflictFileFilter extends
+      javax.swing.filechooser.FileFilter implements java.io.FileFilter {
+    private final String compareFileName;
+
+    private ConflictFileFilter(final String compareFileName) {
+      this.compareFileName = compareFileName;
+    }
+
+    /**
+     * @return true if file is in conflict with compareFileName
+     */
+    public boolean accept(final File file) {
+      //If this file has one of the three exclusive dataset extensions and the
+      //left side of the file name is equal to compareFileName, then
+      //compareFileName is in conflict with the dataset in this directory and
+      //may cause file name collisions.
+      if (file.isFile()) {
+        String fileName = file.getName();
+        if (fileName.endsWith(DatasetFiles.RECON_DATA_FILE_EXT)
+            || fileName.endsWith(DatasetFiles.JOIN_DATA_FILE_EXT)
+            || fileName.endsWith(DatasetFiles.PEET_DATA_FILE_EXT)) {
+          return fileName.substring(0, fileName.lastIndexOf('.')).equals(
+              compareFileName);
+        }
+      }
+      return false;
+    }
+
+    /**
+     * @see javax.swing.filechooser.FileFilter#getDescription()
+     */
+    public String getDescription() {
+      return "Dataset file that conflicts with " + compareFileName;
+    }
   }
 }
