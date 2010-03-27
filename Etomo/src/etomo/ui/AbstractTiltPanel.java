@@ -26,6 +26,7 @@ import etomo.type.ConstEtomoNumber;
 import etomo.type.ConstMetaData;
 import etomo.type.DialogType;
 import etomo.type.MetaData;
+import etomo.type.PanelId;
 import etomo.type.ProcessResultDisplay;
 import etomo.type.ProcessResultDisplayFactory;
 import etomo.type.ReconScreenState;
@@ -48,6 +49,9 @@ import etomo.util.InvalidParameterException;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.7  2010/03/12 04:09:06  sueh
+ * <p> bug# 1325 Changed the logarithm fields.
+ * <p>
  * <p> Revision 3.6  2010/03/05 04:11:07  sueh
  * <p> bug# 1319 Changed all SpacedTextField variables to LabeledTextField to
  * <p> line up the fields better.
@@ -128,6 +132,7 @@ abstract class AbstractTiltPanel implements Expandable, TrialTiltParent,
   private final Run3dmodButton btnTilt;
   private final MultiLineButton btnDeleteStack;
   private final TiltParent parent;
+  private final PanelId panelId;
 
   private String actionIfGPUFails = null;
 
@@ -145,11 +150,12 @@ abstract class AbstractTiltPanel implements Expandable, TrialTiltParent,
   //get binning from newst
   AbstractTiltPanel(ApplicationManager manager, AxisID axisID,
       DialogType dialogType, TiltParent parent,
-      GlobalExpandButton globalAdvancedButton) {
+      GlobalExpandButton globalAdvancedButton, PanelId panelId) {
     this.manager = manager;
     this.axisID = axisID;
     this.dialogType = dialogType;
     this.parent = parent;
+    this.panelId = panelId;
     header = PanelHeader.getAdvancedBasicInstance("Tilt", this, dialogType,
         globalAdvancedButton);
     trialTiltPanel = TrialTiltPanel.getInstance(manager, axisID, dialogType,
@@ -440,7 +446,7 @@ abstract class AbstractTiltPanel implements Expandable, TrialTiltParent,
 
   void getParameters(final MetaData metaData)
       throws FortranInputSyntaxException {
-    metaData.setTomoGenTiltParallel(axisID, isParallelProcess());
+    metaData.setTiltParallel(axisID, panelId, isParallelProcess());
     trialTiltPanel.getParameters(metaData);
     metaData.setGenLog(axisID, ctfLog.getText());
     metaData.setGenScaleFactorLog(axisID, ltfLogDensityScaleFactor.getText());
@@ -461,17 +467,22 @@ abstract class AbstractTiltPanel implements Expandable, TrialTiltParent,
     //if the user set it up.
     boolean validAutodoc = Network.isParallelProcessingEnabled(manager, axisID,
         manager.getPropertyUserDir());
-    cbParallelProcess.setEnabled(validAutodoc);
-    ConstEtomoNumber tomoGenTiltParallel = metaData
-        .getTomoGenTiltParallel(axisID);
-    if (tomoGenTiltParallel == null) {
-      setParallelProcess(validAutodoc && metaData.getDefaultParallel().is());
-    }
-    else {
-      setParallelProcess(validAutodoc && tomoGenTiltParallel.is());
-    }
+    //Use GPU
     cbUseGpu.setEnabled(Network.isLocalHostGpuProcessingEnabled(manager,
         axisID, manager.getPropertyUserDir()));
+    cbUseGpu.setSelected(metaData.getDefaultGpuProcessing().is());
+    //Parallel processing
+    cbParallelProcess.setEnabled(validAutodoc);
+    ConstEtomoNumber tiltParallel = metaData.getTiltParallel(axisID, panelId);
+    if (tiltParallel == null) {
+      //Default GPU processing takes precedence over default parallel process,
+      //at least for now.
+      setParallelProcess(validAutodoc && metaData.getDefaultParallel().is()
+          && !metaData.getDefaultGpuProcessing().is());
+    }
+    else {
+      setParallelProcess(validAutodoc && tiltParallel.is());
+    }
     trialTiltPanel.setParameters(metaData);
     ctfLog.setText(metaData.getGenLog(axisID));
     ltfLogDensityScaleFactor.setText(metaData.getGenScaleFactorLog(axisID));
@@ -541,7 +552,10 @@ abstract class AbstractTiltPanel implements Expandable, TrialTiltParent,
       ltfLinearDensityScaleOffset.setText(tiltParam.getScaleFLevel());
       ltfLinearDensityScaleFactor.setText(tiltParam.getScaleCoeff());
     }
-    cbUseGpu.setSelected(tiltParam.isUseGpu());
+    if (!initialize) {
+      //During initialization the value should coming from setup
+      cbUseGpu.setSelected(tiltParam.isUseGpu());
+    }
     MetaData metaData = manager.getMetaData();
     cbUseLocalAlignment.setSelected(metaData.getUseLocalAlignments(axisID));
     cbUseZFactors.setSelected(metaData.getUseZFactors(axisID).is());
