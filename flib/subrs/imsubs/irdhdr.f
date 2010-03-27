@@ -1231,8 +1231,8 @@ c       call convert_floats(origxy(1,j),2)
       end
 
 
-c       Set up cmap as 'MAP ' and stamp with first byte as 68 for little-
-c       endian or 17 for big-endian file
+c       Set up cmap as 'MAP ' and CCP4-style stamp with first two bytes
+c       defined properly for little-endian or big-endian IEEE formats
       subroutine set_cmap_stamp(j)
       use imsubs
       implicit none
@@ -1244,12 +1244,14 @@ c
       cmap(2,j) = ichar('A')
       cmap(3,j) = ichar('P')
       cmap(4,j) = ichar(' ')
+c
       if (b3dxor(lowbyte.eq.1, mrcflip(j))) then
-        stamp(1,j) = 68
+        stamp(1,j) = 16 * 4 + 4
+        stamp(2,j) = 16 * 4 + 1
       else
-        stamp(1,j) = 17
+        stamp(1,j) = 16 * 1 + 1
+        stamp(2,j) = 16 * 1 + 1
       endif
-      stamp(2,j) = 0
       stamp(3,j) = 0
       stamp(4,j) = 0
       return
@@ -1269,6 +1271,9 @@ c
       end
 
 c       $Log$
+c       Revision 3.19  2009/09/10 21:49:42  mast
+c       Make origin not run together
+c
 c       Revision 3.18  2009/06/22 20:19:46  mast
 c       Switch to module, add mode label output
 c
