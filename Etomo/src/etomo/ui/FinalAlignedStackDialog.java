@@ -68,6 +68,9 @@ import etomo.util.DatasetFiles;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.27  2010/03/19 02:39:45  sueh
+ * <p> bug# 1325 Added setParameters(ConstTiltalignParam,boolean).
+ * <p>
  * <p> Revision 1.26  2010/03/12 04:14:29  sueh
  * <p> bug# 1325 Made CTF and 2D filtering labels public.
  * <p>
@@ -169,7 +172,7 @@ public final class FinalAlignedStackDialog extends ProcessDialog implements
   private static final String MTF_FILE_LABEL = "MTF file: ";
   public static final String USE_CTF_CORRECTION_LABEL = "Use CTF Correction";
   public static final String CTF_TAB_LABEL = "Correct CTF";
-  public static final String USE_FILTERED_STACK_LABEL="Use Filtered Stack";
+  public static final String USE_FILTERED_STACK_LABEL = "Use Filtered Stack";
   public static final String MTF_FILTER_TAB_LABEL = "2D Filter";
 
   private static final DialogType DIALOG_TYPE = DialogType.FINAL_ALIGNED_STACK;
@@ -373,11 +376,11 @@ public final class FinalAlignedStackDialog extends ProcessDialog implements
     return Run3dmodButton.getDeferredToggle3dmodInstance(
         CcdEraserBeadsPanel.USE_ERASED_STACK_LABEL, DIALOG_TYPE);
   }
-  
+
   public static String getUseErasedStackLabel() {
     return CcdEraserBeadsPanel.USE_ERASED_STACK_LABEL;
   }
-  
+
   public static String getErasedStackTabLabel() {
     return EraseGoldPanel.ERASE_GOLD_TAB_LABEL;
   }
@@ -718,7 +721,7 @@ public final class FinalAlignedStackDialog extends ProcessDialog implements
   void setParameters(ConstFindBeads3dParam param, boolean initialize) {
     eraseGoldPanel.setParameters(param, initialize);
   }
-  
+
   void setParameters(ConstTiltalignParam param, boolean initialize) {
     eraseGoldPanel.setParameters(param, initialize);
   }
@@ -1092,8 +1095,8 @@ public final class FinalAlignedStackDialog extends ProcessDialog implements
         UIHarness.INSTANCE.openMessageDialog(applicationManager,
             "To use the MTF filtered stack go back to the "
                 + MTF_FILTER_TAB_LABEL + " tab and press the \""
-                + USE_FILTERED_STACK_LABEL + "\" button.",
-            "Entry Warning", axisID);
+                + USE_FILTERED_STACK_LABEL + "\" button.", "Entry Warning",
+            axisID);
         //Only warn once.
         state.setUseFilteredStackWarning(axisID, false);
       }
