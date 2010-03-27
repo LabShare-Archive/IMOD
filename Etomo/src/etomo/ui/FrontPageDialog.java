@@ -9,11 +9,12 @@ import javax.swing.BoxLayout;
 import etomo.EtomoDirector;
 import etomo.PeetManager;
 import etomo.type.AxisID;
+import etomo.type.ToolType;
 
 /**
  * <p>Description: </p>
  * 
- * <p>Copyright: Copyright 2008</p>
+ * <p>Copyright: Copyright 2010</p>
  *
  * <p>Organization:
  * Boulder Laboratory for 3-Dimensional Electron Microscopy of Cells (BL3DEMC),
@@ -24,6 +25,9 @@ import etomo.type.AxisID;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.7  2010/02/17 05:03:12  sueh
+ * <p> bug# 1301 Using manager instead of manager key for popping up messages.
+ * <p>
  * <p> Revision 1.6  2009/12/29 18:50:31  sueh
  * <p> bug# 1297 Matched button labels to "New >" menu item labels.
  * <p>
@@ -62,7 +66,8 @@ public final class FrontPageDialog {
       + EtomoMenu.GENERIC_LABEL);
   private final MultiLineButton btnPeet = new MultiLineButton("New "
       + EtomoMenu.PEET_LABEL);
-  private final MultiLineButton btnFlattenVolume = new MultiLineButton("Flatten Volume");
+  private final MultiLineButton btnFlattenVolume = new MultiLineButton(
+      "Flatten Volume");
 
   private FrontPageDialog() {
   }
@@ -77,9 +82,9 @@ public final class FrontPageDialog {
 
   private void createPanel() {
     //local panels
-    SpacedPanel pnlReconstruction = SpacedPanel.getInstance();
-    SpacedPanel pnlParallelProcesses = SpacedPanel.getInstance();
-    SpacedPanel pnlAveraging = SpacedPanel.getInstance();
+    SpacedPanel pnlButtonRow1 = SpacedPanel.getInstance();
+    SpacedPanel pnlButtonRow2 = SpacedPanel.getInstance();
+    SpacedPanel pnlButtonRow3 = SpacedPanel.getInstance();
     //initialize
     btnRecon.setSize();
     btnJoin.setSize();
@@ -89,20 +94,21 @@ public final class FrontPageDialog {
     btnFlattenVolume.setSize();
     //root panel
     pnlRoot.setBoxLayout(BoxLayout.Y_AXIS);
-    pnlRoot.add(pnlReconstruction);
-    pnlRoot.add(pnlParallelProcesses);
-    pnlRoot.add(pnlAveraging);
-    //reconstruction panel
-    pnlReconstruction.setBoxLayout(BoxLayout.X_AXIS);
-    pnlReconstruction.add(btnRecon.getComponent());
-    pnlReconstruction.add(btnJoin.getComponent());
-    //parallel process panel
-    pnlParallelProcesses.setBoxLayout(BoxLayout.X_AXIS);
-    pnlParallelProcesses.add(btnNad.getComponent());
-    pnlParallelProcesses.add(btnGeneric.getComponent());
-    //averaging panel
-    pnlAveraging.setBoxLayout(BoxLayout.X_AXIS);
-    pnlAveraging.add(btnPeet.getComponent());
+    pnlRoot.add(pnlButtonRow1);
+    pnlRoot.add(pnlButtonRow2);
+    pnlRoot.add(pnlButtonRow3);
+    //button row 1 panel
+    pnlButtonRow1.setBoxLayout(BoxLayout.X_AXIS);
+    pnlButtonRow1.add(btnRecon.getComponent());
+    pnlButtonRow1.add(btnJoin.getComponent());
+    //button row 2 panel
+    pnlButtonRow2.setBoxLayout(BoxLayout.X_AXIS);
+    pnlButtonRow2.add(btnNad.getComponent());
+    pnlButtonRow2.add(btnGeneric.getComponent());
+    //button row 3 panel
+    pnlButtonRow3.setBoxLayout(BoxLayout.X_AXIS);
+    pnlButtonRow3.add(btnPeet.getComponent());
+    pnlButtonRow3.add(btnFlattenVolume.getComponent());
   }
 
   private void addListeners() {
@@ -112,6 +118,7 @@ public final class FrontPageDialog {
     btnNad.addActionListener(actionListener);
     btnGeneric.addActionListener(actionListener);
     btnPeet.addActionListener(actionListener);
+    btnFlattenVolume.addActionListener(actionListener);
   }
 
   public Container getContainer() {
@@ -140,6 +147,9 @@ public final class FrontPageDialog {
       if (PeetManager.isInterfaceAvailable()) {
         EtomoDirector.INSTANCE.openPeet(true, AxisID.ONLY);
       }
+    }
+    else if (actionCommand.equals(btnFlattenVolume.getActionCommand())) {
+      EtomoDirector.INSTANCE.openTools(AxisID.ONLY, ToolType.FLATTEN_VOLUME);
     }
   }
 
