@@ -27,6 +27,9 @@ import etomo.type.ConstStringParameter;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.16  2010/02/17 05:03:12  sueh
+ * <p> bug# 1301 Using manager instead of manager key for popping up messages.
+ * <p>
  * <p> Revision 1.15  2009/10/15 23:28:36  sueh
  * <p> bug# 1274 In isEmpty testing getText() result.  File is not up to date if the
  * <p> the text is typed in manually.
@@ -89,7 +92,7 @@ final class FileTextField {
   private final TextField field;
 
   private JLabel label = null;
-  private boolean showPartialPath = false;
+
   private boolean debug = false;
   //Must have file because the field may display a shortened name.  Keep file
   //up to date.
@@ -98,13 +101,23 @@ final class FileTextField {
   private Component parent = null;
   private int fileSelectionMode = -1;
 
+  /**
+   * Causes the file and the field to be out of sync, since the field no longer
+   * displays the absolute path.  When this variable is turned on, the field
+   * must be made ineditable.  The field cannot be made editable or enabled
+   * while this variable is on.  This variable cannot be turned off.  Default:
+   * false.
+   */
+  private final boolean showPartialPath;
+
   FileTextField(final String label) {
-    this(label, true, null);
+    this(label, true, null, false);
   }
 
   private FileTextField(final String label, final boolean labeled,
-      String propertyUserDir) {
+      String propertyUserDir, boolean showPartialPath) {
     this.propertyUserDir = propertyUserDir;
+    this.showPartialPath = showPartialPath;
     panel.setBoxLayout(BoxLayout.X_AXIS);
     if (labeled) {
       this.label = new JLabel(label);
@@ -117,10 +130,19 @@ final class FileTextField {
     panel.add(button);
     button.setPreferredSize(FixedDim.folderButton);
     button.setMaximumSize(FixedDim.folderButton);
+    //showPartialPath allows the class to hide the whole absolute path of a file
+    //to save display space.  Permanantly make the field ineditable.
+    if (showPartialPath) {
+      field.setEditable(false);
+    }
   }
 
   static FileTextField getUnlabeledInstance(final String actionCommand) {
-    return new FileTextField(actionCommand, false, null);
+    return new FileTextField(actionCommand, false, null, false);
+  }
+
+  static FileTextField getPartialPathInstance(final String label) {
+    return new FileTextField(label, true, null, true);
   }
 
   void setFieldWidth(final double width) {
@@ -150,8 +172,12 @@ final class FileTextField {
     button.addActionListener(actionListener);
   }
 
-  void addAction(String propertyUserDir, Component parent,
-      int fileSelectionMode) {
+  /**
+   * @param propertyUserDir
+   * @param parent
+   * @param fileSelectionMode - JFileChooser.DIRECTORIES_ONLY, etc
+   */
+  void addAction(String propertyUserDir, Component parent, int fileSelectionMode) {
     this.propertyUserDir = propertyUserDir;
     this.parent = parent;
     this.fileSelectionMode = fileSelectionMode;
@@ -182,11 +208,11 @@ final class FileTextField {
     field.setText("");
   }
 
-  void setShowPartialPath() {
-    showPartialPath = true;
-  }
-
   void setFieldEditable(final boolean editable) {
+    if (showPartialPath) {
+      //Cannot make the field editable if showPartialPath is on.
+      return;
+    }
     field.setEditable(editable);
   }
 
@@ -195,12 +221,18 @@ final class FileTextField {
   }
 
   void setEditable(final boolean editable) {
-    field.setEditable(editable);
+    if (!showPartialPath) {
+      //Cannot make the field editable if showPartialPath is on.
+      field.setEditable(editable);
+    }
     button.setEnabled(editable);
   }
 
   void setEnabled(final boolean enabled) {
-    field.setEnabled(enabled);
+    if (!showPartialPath || !enabled) {
+      //Cannot enable the field if showPartialPath is on.
+      field.setEnabled(enabled);
+    }
     button.setEnabled(enabled);
   }
 
@@ -208,11 +240,17 @@ final class FileTextField {
     button.setEnabled(enabled);
   }
 
+  /**
+   * The field is kept up to date by setInternalValues when the file chooser
+   * button is pressed.  No need to update values when getting the field.
+   * @return
+   */
   boolean isEmpty() {
     return field.getText().matches("\\s*");
   }
 
   boolean exists() {
+    updateInternalValues();
     if (file == null) {
       return false;
     }
@@ -220,27 +258,30 @@ final class FileTextField {
   }
 
   void setFile(final File file) {
-    setFieldFromFile(file);
+    setInternalValues(file);
   }
 
   File getFile() {
+    updateInternalValues();
     return file;
   }
 
   String getFileName() {
+    updateInternalValues();
     return file.getName();
   }
 
   String getFileAbsolutePath() {
+    updateInternalValues();
     return file.getAbsolutePath();
   }
 
   void setText(final String text) {
     if (text != null && !text.matches("\\s*")) {
-      setFieldFromFile(new File(text));
+      setInternalValues(new File(text));
     }
     else {
-      setFieldFromFile(null);
+      setInternalValues(null);
     }
   }
 
@@ -249,10 +290,30 @@ final class FileTextField {
   }
 
   /**
-   * All set commands should call this function.
+   * The file can be out of date because the user can edit the field.  Update
+   * the file from the field.  If the showPartialPath is on, then the field has
+   * never been editable, so no need to update the file.  Call this function
+   * before returning any information about the file in non-private function.
+   */
+  private void updateInternalValues() {
+    if (showPartialPath) {
+      return;
+    }
+    String text = field.getText();
+    if (text == null || text.matches("\\s*")) {
+      file = null;
+    }
+    else {
+      file = new File(text);
+    }
+  }
+
+  /**
+   * Sets the field and the file variable from inputFile.  All set commands
+   * should call this function.
    * @param inputFile
    */
-  private void setFieldFromFile(File inputFile) {
+  private void setInternalValues(File inputFile) {
     file = inputFile;
     if (inputFile == null) {
       field.setText("");
@@ -262,6 +323,7 @@ final class FileTextField {
       field.setText(inputFile.getAbsolutePath());
       return;
     }
+    //Showing partial path
     String parent = inputFile.getParent();
     int separatorIndex = parent.toString().lastIndexOf(File.separatorChar);
     if (separatorIndex != -1) {
@@ -279,6 +341,11 @@ final class FileTextField {
     field.setText(text.toString());
   }
 
+  /**
+   * The field is kept up to date by setInternalValues when the file chooser
+   * button is pressed.  No need to update values when getting the field.
+   * @return
+   */
   String getText() {
     return field.getText();
   }
