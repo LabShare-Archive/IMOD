@@ -41,6 +41,9 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.21  2010/02/17 05:03:12  sueh
+ * <p> bug# 1301 Using manager instead of manager key for popping up messages.
+ * <p>
  * <p> Revision 1.20  2010/01/21 21:31:14  sueh
  * <p> bug# 1305 Factored filter full volume panel out of AnisotropicDiffusionDialog.
  * <p>
@@ -133,7 +136,7 @@ public final class AnisotropicDiffusionDialog implements ContextMenu,
   private final SpacedPanel rootPanel = SpacedPanel.getInstance();
   private final Run3dmodButton btnViewFullVolume = Run3dmodButton
       .get3dmodInstance("View Full Volume", this);
-  private final FileTextField ftfVolume = new FileTextField("Pick a volume");
+  private final FileTextField ftfVolume =  FileTextField.getPartialPathInstance("Pick a volume");
   private final MultiLineButton btnExtractTestVolume = new MultiLineButton(
       "Extract Test Volume");
   private final Run3dmodButton btnViewTestVolume = Run3dmodButton
@@ -240,8 +243,6 @@ public final class AnisotropicDiffusionDialog implements ContextMenu,
     SpacedPanel pnlFirst = SpacedPanel.getInstance();
     pnlFirst.setBoxLayout(BoxLayout.Y_AXIS);
     //volume
-    ftfVolume.setShowPartialPath();
-    ftfVolume.setFieldEditable(false);
     pnlFirst.add(ftfVolume.getContainer());
     SpacedPanel pnlLoadWithFlipping = SpacedPanel.getInstance();
     pnlLoadWithFlipping.setBoxLayout(BoxLayout.X_AXIS);
