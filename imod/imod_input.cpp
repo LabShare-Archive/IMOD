@@ -1267,20 +1267,24 @@ void inputQDefaultKeys(QKeyEvent *event, ImodView *vw)
     inputNextObject(vw);
     break;
           
+    // Brackets and braces are often not available without modifiers on
+    // European keyboards, so add more keys for these
   case Qt::Key_BraceLeft:
+  case Qt::Key_ParenLeft:
+    inputFirstPoint(vw);
+    break;
   case Qt::Key_BracketLeft:
-    if (shifted)
-      inputFirstPoint(vw);
-    else
-      inputPrevPoint(vw);
+  case Qt::Key_Less:
+    inputPrevPoint(vw);
     break;
           
   case Qt::Key_BraceRight:
+  case Qt::Key_ParenRight:
+    inputLastPoint(vw);
+    break;
   case Qt::Key_BracketRight:
-    if (shifted)
-      inputLastPoint(vw);
-    else
-      inputNextPoint(vw);
+  case Qt::Key_Greater:
+    inputNextPoint(vw);
     break;
 
   case Qt::Key_T:
@@ -1487,6 +1491,9 @@ bool inputTestMetaKey(QKeyEvent *event)
 
 /*
 $Log$
+Revision 4.53  2009/11/11 19:28:46  mast
+Changes for hot key to break contour
+
 Revision 4.52  2009/04/16 15:00:23  mast
 Do not sync image when toggling with t/T
 
