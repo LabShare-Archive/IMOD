@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+3/29/10: In Etomo, added a checkbox for running tilt on the graphics card to
+Tomogram Positioning.
+
 3/27/10: Fixed machine stamps in MRC files to be follow CCP4 definition.
 
 3/26/10: In Etomo, added a front panel button and some error checking for
