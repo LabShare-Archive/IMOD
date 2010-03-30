@@ -27,14 +27,21 @@ If you click on a position in the isosurface with the right mouse button,
 that position becomes the current point within 3dmod, thus allowing
 you to find corresponding features in the image data.
 <P>
-The computations can be done with multiple threads running in parallel.  Doing
+The computations will be done with multiple threads running in parallel if the
+system has multiple processors.  Doing
 so incurs some extra overhead and the computation time also does not reduce
 proportional to the number of processors used and may even increase with more
-than 4 threads on an 8-core system.  Thus, the multiple threads are
-used only if the environment variable IMOD_PROCESSORS is set to a number, and
-the maximum number of threads used is 4.  You can experiment with your system
+than 4 threads on an 8-core system.  Thus, the maximum number of threads used
+is 4, regardless of how many processors are available.  Up to 4, the number of
+threads is set by the apparent number of processors on the system, or by
+the value of the environment variable IMOD_PROCESSORS if it is set.
+If your machine has hyperthreading enabled, the program will probably run
+better if you avoid using hyperthreads by setting
+IMOD_PROCESSORS to the actual number of cores on the system.
+You can experiment with your system
 by setting IMOD_PROCESSORS to various values and starting 3dmod with the
--DU option.
+-DU option in order to see some time outputs.  Display a large portion of a
+volume so that processing takes hundreds of milliseconds.
 <P>
 The isosurface display is based on contouring and surface smoothing
 modules from Chimera, developed at the Resource for Biocomputing,
