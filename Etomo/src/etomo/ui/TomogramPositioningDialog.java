@@ -35,6 +35,9 @@ import etomo.type.Run3dmodMenuOptions;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.67  2009/09/20 21:34:09  sueh
+ * <p> bug# 1268 Added a default value to LabeledSpinner.
+ * <p>
  * <p> Revision 3.66  2009/09/01 03:18:25  sueh
  * <p> bug# 1222
  * <p>
@@ -377,6 +380,7 @@ final class TomogramPositioningDialog extends ProcessDialog implements
       this);
   private final CalcPanel cpTiltAngleOffset = new CalcPanel("Tilt angle offset");
   private final CalcPanel cpZShift = new CalcPanel("Z shift");
+  private final CheckBox cbUseGpu = new CheckBox("Use the GPU");
 
   private final Run3dmodButton btnSample;
   private final MultiLineButton btnTomopitch;
@@ -412,6 +416,7 @@ final class TomogramPositioningDialog extends ProcessDialog implements
 
     JPanel pnlTomoParams = new JPanel();
     pnlTomoParams.setLayout(new BoxLayout(pnlTomoParams, BoxLayout.Y_AXIS));
+    UIUtilities.addWithYSpace(pnlTomoParams, cbUseGpu);
     UIUtilities.addWithYSpace(pnlTomoParams, ltfSampleThickness.getContainer());
     UIUtilities.addWithYSpace(pnlTomoParams, cbFiducialess);
     UIUtilities.addWithYSpace(pnlTomoParams, ltfRotation.getContainer());
@@ -510,6 +515,14 @@ final class TomogramPositioningDialog extends ProcessDialog implements
 
   public boolean isFiducialess() {
     return cbFiducialess.isSelected();
+  }
+  
+  public boolean isUseGpuEnabled() {
+    return cbUseGpu.isEnabled();
+  }
+  
+  public boolean isUseGpuSelected() {
+    return cbUseGpu.isSelected();
   }
 
   public void setImageRotation(float tiltAxisAngle) {
@@ -645,6 +658,14 @@ final class TomogramPositioningDialog extends ProcessDialog implements
 
   void setTomopitchEnabled(boolean enable) {
     btnTomopitch.setEnabled(enable);
+  }
+  
+  void setUseGpuEnabled(boolean enabled) {
+    cbUseGpu.setEnabled(enabled);
+  }
+  
+  void setUseGpuSelected(boolean selected) {
+    cbUseGpu.setSelected(selected);
   }
 
   void setAlignButtonState(ReconScreenState screenState) {
@@ -862,6 +883,8 @@ final class TomogramPositioningDialog extends ProcessDialog implements
             + "positive value will shift the slice upward.  Do not use this option"
             + " if you have fiducials and the tomogram is part of a dual-axis "
             + "series.");
+    cbUseGpu
+    .setToolTipText("Check to run the tilt process on the graphics card.");
   }
 
   public static final class CalcPanel {
