@@ -1196,7 +1196,7 @@ void IProcWindow::manageListSize()
     maxwidth = B3DMAX(maxwidth, width);
   }
   mListBox->setFixedWidth(maxwidth + 12);
-  height = mListBox->fontMetrics().height() *  mListBox->count() + 8;
+  height = (mListBox->fontMetrics().height() + 1.5) *  mListBox->count();
   mListBox->setFixedHeight(height);
 }
 
@@ -1253,6 +1253,9 @@ void IProcThread::run()
 /*
 
     $Log$
+    Revision 4.27  2009/03/22 19:54:25  mast
+    Show with new geometry adjust routine for Mac OS X 10.5/cocoa
+
     Revision 4.26  2009/01/15 16:33:18  mast
     Qt 4 port
 
