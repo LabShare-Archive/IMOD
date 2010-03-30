@@ -1,4 +1,4 @@
-# IMOD 4.0.22
+# IMOD 4.0.29
 #
 # Startup file for tcsh users of IMOD under Linux - place it in /etc/profile.d
 #
@@ -56,6 +56,10 @@ if (! $?IMOD_CALIB_DIR) setenv IMOD_CALIB_DIR /usr/local/ImodCalib
 #
 if (-r $IMOD_CALIB_DIR/IMOD.csh) source $IMOD_CALIB_DIR/IMOD.csh
 
+# Disable alarming stack traces from Intel Fortran
+#
+setenv FOR_DISABLE_STACK_TRACE 1
+
 # A subm alias to run command files in the background with submfg
 #
 alias subm 'submfg \!* &'
@@ -77,6 +81,7 @@ alias imodsendevent 'runimodqtapp imodsendevent'
 alias genhstplt 'runimodqtapp genhstplt'
 alias mtpairing 'runimodqtapp mtpairing'
 alias avgstatplot 'runimodqtapp avgstatplot'
+alias filterplot 'runimodqtapp filterplot'
 alias mtoverlap 'runimodqtapp mtoverlap'
 alias nda 'runimodqtapp nda'
 alias sda 'runimodqtapp sda'

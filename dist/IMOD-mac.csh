@@ -1,4 +1,4 @@
-# IMOD 4.0.16
+# IMOD 4.0.29
 #
 # Startup file for users of IMOD on a Macintosh (if they are running tcsh)
 #
@@ -47,6 +47,10 @@ if (! $?IMOD_CALIB_DIR) setenv IMOD_CALIB_DIR /usr/local/ImodCalib
 # Source local startup file in ImodCalib if it exists
 #
 if (-r $IMOD_CALIB_DIR/IMOD.csh) source $IMOD_CALIB_DIR/IMOD.csh
+
+# Disable alarming stack traces from Intel Fortran
+#
+setenv FOR_DISABLE_STACK_TRACE 1
 
 # A subm alias to run command files in the background with submfg
 #

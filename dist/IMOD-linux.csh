@@ -54,6 +54,10 @@ if (! $?IMOD_CALIB_DIR) setenv IMOD_CALIB_DIR /usr/local/ImodCalib
 #
 if (-r $IMOD_CALIB_DIR/IMOD.csh) source $IMOD_CALIB_DIR/IMOD.csh
 
+# Disable alarming stack traces from Intel Fortran
+#
+setenv FOR_DISABLE_STACK_TRACE 1
+
 # A subm alias to run command files in the background with submfg
 #
 alias subm 'submfg \!* &'

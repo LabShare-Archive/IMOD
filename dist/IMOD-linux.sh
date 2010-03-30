@@ -1,4 +1,4 @@
-# IMOD 4.0.22
+# IMOD 4.0.29
 #
 # Startup file for bash users of IMOD under Linux - place it in /etc/profile.d
 #
@@ -47,6 +47,10 @@ export IMOD_CALIB_DIR=${IMOD_CALIB_DIR:=/usr/local/ImodCalib}
 if [ -r $IMOD_CALIB_DIR/IMOD.sh ] ; then
     . $IMOD_CALIB_DIR/IMOD.sh
 fi
+
+# Disable alarming stack traces from Intel Fortran
+#
+export FOR_DISABLE_STACK_TRACE=1
 
 # Set a variable to indicate where our copy of Qt library is
 #

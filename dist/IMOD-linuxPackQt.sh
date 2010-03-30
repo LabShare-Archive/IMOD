@@ -50,6 +50,10 @@ if [ -r $IMOD_CALIB_DIR/IMOD.sh ] ; then
     . $IMOD_CALIB_DIR/IMOD.sh
 fi
 
+# Disable alarming stack traces from Intel Fortran
+#
+export FOR_DISABLE_STACK_TRACE=1
+
 # Set a variable to indicate where our copy of Qt library is
 #
 export IMOD_QTLIBDIR="$IMOD_DIR/qtlib"
@@ -66,6 +70,7 @@ alias imodsendevent='runimodqtapp imodsendevent'
 alias genhstplt='runimodqtapp genhstplt'
 alias mtpairing='runimodqtapp mtpairing'
 alias avgstatplot='runimodqtapp avgstatplot'
+alias filterplot='runimodqtapp filterplot'
 alias mtoverlap='runimodqtapp mtoverlap'
 alias nda='runimodqtapp nda'
 alias sda='runimodqtapp sda'

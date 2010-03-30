@@ -1,4 +1,4 @@
-# IMOD 3.13.1
+# IMOD 4.0.29
 #
 # Startup file for bash users of IMOD under Cygwin
 #
@@ -40,6 +40,10 @@ if [ -r "$IMOD_CALIB_CYG/IMOD.sh" ] ; then
     . "$IMOD_CALIB_CYG/IMOD.sh"
 fi
 
+# Disable stack traces from Intel Fortran that can hang DOS windows
+#
+export FOR_DISABLE_STACK_TRACE=1
+
 # A subm function to run command files in the background with submfg
 #
 function subm () { submfg $* & }
@@ -49,6 +53,12 @@ function subm () { submfg $* & }
 alias imod=3dmodbg
 alias 3dmod=3dmodbg
 alias imodv=3dmodv
+
+# Aliases to run Python programs with the Python on the path not just Cygwin's
+# Python
+#
 alias edgepatches='runpyscript edgepatches'
 alias tomostitch='runpyscript tomostitch'
 alias vmstopy='runpyscript vmstopy'
+alias fitpatches='runpyscript fitpatches'
+alias sirtsetup='runpyscript sirtsetup'

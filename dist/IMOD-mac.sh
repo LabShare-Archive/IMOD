@@ -1,4 +1,4 @@
-# IMOD 4.0.16
+# IMOD 4.0.29
 #
 # Startup file for users of IMOD on a Macintosh, running bash
 #
@@ -40,6 +40,10 @@ export IMOD_CALIB_DIR=${IMOD_CALIB_DIR:=/usr/local/ImodCalib}
 if [ -r $IMOD_CALIB_DIR/IMOD.sh ] ; then
     . $IMOD_CALIB_DIR/IMOD.sh
 fi
+
+# Disable alarming stack traces from Intel Fortran
+#
+export FOR_DISABLE_STACK_TRACE=1
 
 # A subm function to run command files in the background with submfg
 #
