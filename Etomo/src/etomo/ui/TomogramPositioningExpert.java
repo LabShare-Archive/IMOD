@@ -20,6 +20,7 @@ import etomo.comscript.TomopitchParam;
 import etomo.comscript.XfproductParam;
 import etomo.process.ImodManager;
 import etomo.process.ProcessState;
+import etomo.storage.Network;
 import etomo.storage.TomopitchLog;
 import etomo.type.AxisID;
 import etomo.type.AxisType;
@@ -156,7 +157,7 @@ public final class TomogramPositioningExpert extends ReconUIExpert {
     comScriptMgr.loadTilt(axisID);
     TiltParam tiltParam = comScriptMgr.getTiltParam(axisID);
     tiltParam.setFiducialess(metaData.isFiducialess(axisID));
-    setTiltParam(tiltParam);
+    setTiltParam(tiltParam, !metaData.isPosExists(axisID));
     //If this is a montage, then binning can only be 1, so no need to upgrade
     if (metaData.getViewType() != ViewType.MONTAGE) {
       //upgrade and save param to comscript
@@ -176,6 +177,7 @@ public final class TomogramPositioningExpert extends ReconUIExpert {
     setButtonState(manager.getScreenState(axisID));
     fiducialessAction();
     openDialog(dialog);
+    metaData.setPosExists(axisID, true);
   }
 
   public static ProcessResultDisplay getSampleTomogramDisplay() {
@@ -775,6 +777,7 @@ public final class TomogramPositioningExpert extends ReconUIExpert {
     if (dialog == null) {
       return;
     }
+    tiltParam.setUseGpu(dialog.isUseGpuEnabled() && dialog.isUseGpuSelected());
     boolean fiducialess = dialog.isFiducialess();
     tiltParam.setFiducialess(fiducialess);
     if (fiducialess) {
@@ -836,6 +839,10 @@ public final class TomogramPositioningExpert extends ReconUIExpert {
     if (dialog == null) {
       return;
     }
+    //Use GPU
+    dialog.setUseGpuEnabled(Network.isLocalHostGpuProcessingEnabled(manager,
+        axisID, manager.getPropertyUserDir()));
+    dialog.setUseGpuSelected(metaData.getDefaultGpuProcessing().is());
     dialog.setBinning(metaData.getPosBinning(axisID));
     dialog.setSampleThickness(metaData.getSampleThickness(axisID));
   }
@@ -852,9 +859,13 @@ public final class TomogramPositioningExpert extends ReconUIExpert {
     dialog.setTiltAxisZShift(tiltalignParam.getAxisZShift());
   }
 
-  private void setTiltParam(ConstTiltParam tiltParam) {
+  private void setTiltParam(ConstTiltParam tiltParam, boolean initialize) {
     if (dialog == null) {
       return;
+    }
+    if (!initialize) {
+      //During initialization the value should coming from setup
+      dialog.setUseGpuSelected(tiltParam.isUseGpu());
     }
     dialog.setXAxisTilt(tiltParam.getXAxisTilt());
     dialog.setThickness(tiltParam.getThickness());
@@ -950,6 +961,9 @@ public final class TomogramPositioningExpert extends ReconUIExpert {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.38  2010/03/12 04:28:07  sueh
+ * <p> bug# 1325 Fixed typo in doneDialog.
+ * <p>
  * <p> Revision 1.37  2010/03/05 22:33:50  sueh
  * <p> bug# 1313 In saveDialog looking at TomogramState.sampleFiducialess to
  * <p> prevent align.com from being updated.
