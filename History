@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+3/30/10: Added hot keys < > ( ) to duplicate actions of [ ] { } since the 
+latter are often not available on European keyboards without modifiers.
+
 3/29/10: Improved merging time when running isosurface with multiple threads;
 multipled threads are now enabled by default, with the number set to the
 number of processors on system (or value of IMOD_PROCESSORS), limited to 4.

@@ -1,0 +1,99 @@
+This is a list of the hot keys used in 3dmod.  Plugins (e.g. Drawing Tools)
+may intercept some of these keys.
+
+a - Zap - advances to and fills next section when auto contouring.
+A - Autocontrast - set to target mean and SD of intensity.
+Ctrl-A - Zap - adds multiple contours on the current section to the 
+Ctrl-Shift-A - Zap - adds multiple contours on the current
+b - Zap - builds a contour when AutoContour window is open.
+B - Zap - toggles the rubber band on and off.  The rubber band can be 
+Ctrl-B - Break contour if contour break routine open
+c - Go to previous contour.
+C - Go to next contour.
+D - Delete current contour or all selected contours.
+Ctrl+D - Truncate current contour at current point.
+Ctrl+Shift+D - Delete current surface.
+e - Unselect current point.
+E - Unselect current contour.
+f - Print current pixel value in information window.
+F - Find the maximum pixel within 10 pixels and report its value.
+g - Toggle previous contour ghost draw mode.
+G - Open Graph window.
+i - Zap - toggles the modeling direction.
+I - Zap - prints information about the window and image size and 
+
+J - Join selected contours.
+k - Copy contour if contour copy dialog open
+m - Toggle model edit mode and movie mode.
+M - Move contour to selected object or surface.
+n - Create a new contour.
+N - Create a new contour with a new surface number.
+o - Go to previous object.
+O - Toggle contour open/closed
+p - Go to next object.
+P - Zap - Toggles a mode in which you can shift, rotate, stretch, or scale
+R - Zap - resizes the window.  With the rubber band off, the window 
+Ctrl+R - Raise all 3dmod windows above other windows.
+s - Save model file.
+S - Make non-TIFF snapshot of image in window (Tumbler also).
+Ctrl+S - Make TIFF snapshot of image in window (Tumbler also).
+Ctrl+Shift+S - Make snapshot with second non-TIFF format.
+t - Toggle model drawing on/off.
+T - Toggle current point/contour markers on/off.
+Ctrl+T - Toggle current object on/off.
+v - Open Model View window.
+u - Zap - smooths a filled area when auto contouring.
+U - Open Model View and Isosurface windows.
+Ctrl-Y - Redo model changes that were undone.
+z - Open Zap window.
+Z - Zap - toggles auto section advance on and off.  When this is on, 
+Ctrl-Z - Undo changes to the model.
+
+0 - Create a new object.
+1/2 - Previous/Next Time Index.
+3/4 - Start or stop a movie through time in forward/reverse direction.
+5/6 - Go to previous/next contour in same surface.
+7/8 - Go to previous/next surface.
+!/@ - Set time index to beginning/end (using Start or End for Time in Edit-Movie dialog).
+#/$ - Start or stop a movie through Z in forward/reverse direction.
+- - Decrease Zoom
+= or + - Increase Zoom (except Slicer, where only = and Keypad + zoom up)
+[ or < - Go to previous point.
+] or > - Go to next point.
+{ or ( - Go to first point in contour.
+} or ) - Go to last point in contour.
+\ - Open Slicer window.
+Delete - Delete current model point.
+, - Decrease movie speed.
+. - Increase movie speed.
+Page-Up - Increase Z
+Page-Down - Decrease Z
+Shift-Page-Up - Increase Z to next section with contour in object
+Shift-Page-Down - Decrease Z to next section with contour in object
+Up-Arrow - Increase Y
+Down-Arrow - Decrease Y
+Right-Arrow - Increase X
+Left-Arrow - Decrease X
+End - Go to Z = 1;
+Home - Go to Z = max;
+Insert - Go to middle Z of stack (use Help key next to Home on Mac)
+Shift-Home - Go to middle Z of stack (for Mac without Help nor Insert)
+Keypad-2/4/6/8 - Move current model point in model mode,
+Keypad-/  Step down by 10 in Z
+Keyapd-*  Step up by 10 in Z
+Ins - Zap - on the keypad: In model mode, this key works the same as 
+Arrows - Pan in zap window in model mode.
+F1 - Decrease Black Level
+F2 - Increase Black Level
+F3 - Decrease White Level
+F4 - Increase White Level
+F5 - Decrease Contrast.
+F6 - Increase Contrast.
+F7 - Decrease Brightness.
+F8 - Increase Brightness.
+F9 - Select Color map ramp # 1.
+F10 - Cycle through Color map ramps: 1 - 2 - 3 - 4 - 1.
+F11 - Invert Color map.
+F12 - Toggle False Color.
+
+
