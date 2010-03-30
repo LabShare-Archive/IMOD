@@ -9,6 +9,8 @@ Description of IMOD environment variables
 This page describes all of the environment variables that can be set for use
 with IMOD programs.
 
+.SS User-level variables
+
 .TP
 .B AUTODOC_DIR
 Alternative directory to search for an autodoc file when a program uses PIP
@@ -98,25 +100,10 @@ System command for switching the monitor back to normal mode.
 .TP
 .B IMOD_STEREO_TBOFFSET
 Default value of vertical offset when using top/bottom stereo display.
-.TP 
-.B IMOD_TEST_SECTION
-This is passed to the uitest script when running eTomo tests.  It is used to
-choose one of the tests in uitest.adoc.
 .TP
 .B IMOD_TMPDIR
 Path for temporary directory used by scripts.  On Windows, this should be in
 Cygwin format, not in Windows format.
-.TP
-.B IMOD_UITEST_DATA
-When running eTomo tests, the root directory for data files.
-.TP
-.B IMOD_UITEST_SCRIPT 
-This is used in uitest.make.  It should be set to the
-location of the uitest script
-.TP
-.B IMOD_UITEST_SOURCE
-When running eTomo tests, the location of the uitest.adoc and all
-autodocs it refers to.
 .TP
 .B IMOD_USE_GPU
 This variable will tell the Tilt program (and eventually perhaps other
@@ -143,3 +130,45 @@ at the beginning of the file.
 .B RAPTOR_BIN
 Directory where RAPTOR executables are located, if they are not in 
 /usr/local/RAPTOR/bin.
+
+
+.SS Build and Test Variables
+
+.TP
+.B CUDA_DIR
+Directory with CUDA toolkit, must be defined to enable building with CUDA.
+.TP
+.B CUDA_BIN_PATH
+On Windows, this must be defined as the location of CUDA binaries if they are
+not in $CUDA_DIR/bin
+.TP
+.B CUDA_LIB_PATH
+On Windows, this must be defined as the location of CUDA libraries if they are
+not in $CUDA_DIR/lib
+.TP 
+.B IMOD_TEST_SECTION
+This is passed to the uitest script when running eTomo tests.  It is used to
+choose one of the tests in uitest.adoc.
+.TP
+.B IMOD_UITEST_DATA
+When running eTomo tests, the root directory for data files.
+.TP
+.B IMOD_UITEST_SCRIPT 
+This is used in uitest.make.  It should be set to the
+location of the uitest script
+.TP
+.B IMOD_UITEST_SOURCE
+When running eTomo tests, the location of the uitest.adoc and all
+autodocs it refers to.
+.TP
+.B JAVA_DIR
+Location of Java SDK to be used by the IMOD build and test script.
+.TP
+.B MSVCREDIST
+Location of Microsoft Visual C redistributable run-time libraries that are
+to be copied when building a distribution.  When this is defined, manifests
+are also added to all executables.
+.TP
+.B QTDIR
+Location of Qt, or at least of Qt bin directory if include is elsewhere.
+
