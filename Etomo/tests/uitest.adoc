@@ -214,6 +214,7 @@ set.var.size-to-output-x=550
 set.var.size-to-output-y=550
 set.var.center-to-center-thickness = 83.0
 set.var.rounded-unbinned-bead-diameter = 5.0
+set.var.findbeads3d-binning = 1
 # center-to-center-thickness + additional-unbinned-diameters-to-add*int-unbinned-bead-diameter
 set.var.erase-gold-thickness=98
 set.var.incremental-shift-to-center.a=-12.9
@@ -258,6 +259,7 @@ set.var.size-to-output-y.b=2000
 set.var.center-to-center-thickness.a = 122.0
 set.var.center-to-center-thickness.b = 116.0
 set.var.rounded-unbinned-bead-diameter = 10.6
+set.var.findbeads3d-binning = 2
 # center-to-center-thickness + additional-unbinned-diameters-to-add*int-unbinned-bead-diameter
 set.var.erase-gold-thickness.a=154
 set.var.erase-gold-thickness.b=148

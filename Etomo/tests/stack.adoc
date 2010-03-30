@@ -288,7 +288,7 @@ run.function.erase-beads=
 mb.align-stack-and-create-tomogram=+
 [[if = test-gui]]
 	# check values
-	assert.sp.aligned-image-stack-binning=1
+	assert.sp.aligned-image-stack-binning=%{findbeads3d-binning}
 	assert.cb.parallel-processing=on
 	assert.tf.center-to-center-thickness=%{center-to-center-thickness}
 	assert.tf.additional-unbinned-diameters-to-add=3
@@ -308,10 +308,9 @@ mb.align-stack-and-create-tomogram=+
 [[]]
 # run binned with parallel processing
 cb.parallel-processing=on
-sp.aligned-image-stack-binning=2
+sp.aligned-image-stack-binning=3
 bn.align-and-build-tomogram=
-if.equals.var.dataset.run.function.ok-etomo-warning=BB
-if.equals.var.dataset.run.function.ok-etomo-warning=BBa
+wait.popup.etomo-warning=Yes
 wait.process.processchunks-tilt_3dfind%{axis} = done
 # check files
 assert.exists.file=tilt_3dfind%{axis}.com
@@ -327,8 +326,7 @@ assert.exists.file=%{dataset}%{axis}_3dfind.rec
 assert.exists.file=tilt_3dfind_reproject%{axis}.com
 # run binned again with parallel processing
 bn.align-and-build-tomogram=
-if.equals.var.dataset.run.function.ok-etomo-warning=BB
-if.equals.var.dataset.run.function.ok-etomo-warning=BBa
+wait.popup.etomo-warning=Yes
 wait.process.processchunks-tilt_3dfind%{axis} = done
 # check files
 assert.exists.file=tilt_3dfind%{axis}.com
@@ -349,8 +347,7 @@ assert.exists.file=%{dataset}%{axis}_3dfind.rec~
 # run binned without parallel processing
 cb.parallel-processing=off
 bn.align-and-build-tomogram=
-if.equals.var.dataset.run.function.ok-etomo-warning=BB
-if.equals.var.dataset.run.function.ok-etomo-warning=BBa
+wait.popup.etomo-warning=Yes
 wait.process.calculating-tomogram = done
 # check files
 assert.exists.file=tilt_3dfind%{axis}.com
@@ -365,7 +362,7 @@ assert.exists.file=%{final-align-comscript}_3dfind%{axis}.log~
 assert.exists.file=%{dataset}%{axis}_3dfind.ali~
 assert.exists.file=%{dataset}%{axis}_3dfind.rec~
 # run again unbinned without parallel processing
-sp.aligned-image-stack-binning=1
+sp.aligned-image-stack-binning=%{findbeads3d-binning}
 bn.align-and-build-tomogram=
 wait.process.calculating-tomogram = done
 # check files
@@ -386,10 +383,6 @@ bn.view-tomogram-in-3dmod=
 # check values
 assert.bn.align-and-build-tomogram=on
 mb.align-stack-and-create-tomogram=-
-
-
-[function = ok-etomo-warning]
-wait.popup.etomo-warning=Yes
 
 
 [function = find-beads-3d]
