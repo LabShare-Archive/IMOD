@@ -7,6 +7,9 @@
  *  $Id$
  *
  * $Log$
+ * Revision 4.9  2009/01/15 16:33:18  mast
+ * Qt 4 port
+ *
  * Revision 4.8  2008/11/07 23:48:53  xiongq
  * seperate threshold for each stack
  *
@@ -32,7 +35,7 @@ typedef struct __imodv_struct ImodvApp;
 #define IMODV_DELETE_PIECES (1 << 5)
 
 
-// Based on timing tests in May 2008
+// Based on timing tests in May 2008, confirmed on Nehalem March 2010
 #define MAX_THREADS 4
 
 /* Image Control functions. */
