@@ -29,6 +29,10 @@ import etomo.util.Utilities;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.60  2010/03/27 04:49:32  sueh
+ * <p> bug# 1333 Added defaultGpuProcessing.  Added a separate tiltParallel for
+ * <p> 3dfindbeads.
+ * <p>
  * <p> Revision 3.59  2010/03/05 04:00:15  sueh
  * <p> bug# 1319 Added genExists, genLog, and gen scale parameters.
  * <p>
@@ -342,6 +346,7 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
   //Dialog keys
   private static final String TRACK_KEY = "Track";
   private static final String FINE_KEY = "Fine";
+  private static final String POS_KEY = "Pos";
   private static final String STACK_KEY = "Stack";
   private static final String GEN_KEY = "Gen";
   private static final String POST_KEY = "Post";
@@ -631,6 +636,14 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
       + FIRST_AXIS_KEY + ".Exists");
   private final EtomoBoolean2 genExistsB = new EtomoBoolean2(GEN_KEY + "."
       + SECOND_AXIS_KEY + ".Exists");
+  /**
+   * postExists is true if the tomogram possitioning dialog has opened at least
+   * once.
+   */
+  private final EtomoBoolean2 posExistsA = new EtomoBoolean2(POS_KEY
+      + ".A.Exists");
+  private final EtomoBoolean2 posExistsB = new EtomoBoolean2(POS_KEY
+      + ".B.Exists");
 
   public MetaData(ApplicationManager manager) {
     this.manager = manager;
@@ -1035,6 +1048,15 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
       genExistsA.set(input);
     }
   }
+  
+  public void setPosExists(AxisID axisID, boolean input) {
+    if (axisID == AxisID.SECOND) {
+      posExistsB.set(input);
+    }
+    else {
+      posExistsA.set(input);
+    }
+  }
 
   public void setTiltAngleSpecB(TiltAngleSpec tiltAngleSpec) {
     tiltAngleSpecB = tiltAngleSpec;
@@ -1191,6 +1213,8 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
     genScaleOffsetLinearB.reset();
     genExistsA.reset();
     genExistsB.reset();
+    posExistsA.reset();
+    posExistsB.reset();
     //load
     prepend = createPrepend(prepend);
     String group = prepend + ".";
@@ -1396,6 +1420,8 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
     genScaleOffsetLinearB.load(props, prepend);
     genExistsA.load(props, prepend);
     genExistsB.load(props, prepend);
+    posExistsA.load(props, prepend);
+    posExistsB.load(props, prepend);
     defaultGpuProcessing.load(props, prepend);
     tilt3dFindTiltParallelA = EtomoBoolean2.load(tilt3dFindTiltParallelA,
         TILT_3D_FIND_A_TILT_PARALLEL_KEY, props, prepend);
@@ -1666,6 +1692,8 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
     genExistsA.store(props, prepend);
     genExistsB.store(props, prepend);
     defaultGpuProcessing.store(props, prepend);
+    posExistsA.store(props, prepend);
+    posExistsB.store(props, prepend);
   }
 
   public boolean getTrackRaptorUseRawStack() {
@@ -2169,6 +2197,13 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
       return genExistsB.is();
     }
     return genExistsA.is();
+  }
+  
+  public boolean isPosExists(AxisID axisID) {
+    if (axisID == AxisID.SECOND) {
+      return posExistsB.is();
+    }
+    return posExistsA.is();
   }
 
   public boolean isGenScaleFactorLinearSet(AxisID axisID) {
