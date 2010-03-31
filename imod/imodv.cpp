@@ -557,7 +557,7 @@ int imodv_main(int argc, char **argv)
   imodvOpenSelectedWindows(windowKeys);
 
 #ifdef Q_OS_MACX
-  inputRaiseWindows();
+  a->mainWin->raise();
 #endif
   return qApp->exec();
 }
@@ -775,6 +775,9 @@ void imodvQuit()
 
 /*
 $Log$
+Revision 4.46  2010/03/31 03:31:40  mast
+Raise window after startup on Mac
+
 Revision 4.45  2009/01/15 16:33:17  mast
 Qt 4 port
 
