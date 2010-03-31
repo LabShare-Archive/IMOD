@@ -29,6 +29,7 @@
 #include "imod.h"
 #include "imodview.h"
 #include "imod_info_cb.h"
+#include "imod_input.h"
 #include "imod_object_edit.h"
 #include "imod_display.h"
 #include "imodv_gfx.h"
@@ -555,6 +556,9 @@ int imodv_main(int argc, char **argv)
 
   imodvOpenSelectedWindows(windowKeys);
 
+#ifdef Q_OS_MACX
+  inputRaiseWindows();
+#endif
   return qApp->exec();
 }
 
@@ -771,6 +775,9 @@ void imodvQuit()
 
 /*
 $Log$
+Revision 4.45  2009/01/15 16:33:17  mast
+Qt 4 port
+
 Revision 4.44  2008/12/17 17:49:13  mast
 Make warning about no DB visual more nuanced
 
