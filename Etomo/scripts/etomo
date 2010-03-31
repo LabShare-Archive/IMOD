@@ -126,11 +126,11 @@ if [ ${help} -eq 0 ] ; then
   errlog=etomo_err.log
 
   # Put logs in hidden directory if directory is not defined
-  if [ -z ${ETOMO_LOG_DIR} ] ; then
+  if [ -z "${ETOMO_LOG_DIR}" ] ; then
       ETOMO_LOG_DIR=$HOME/.etomologs
       mkdir -p ${ETOMO_LOG_DIR}
   fi
-  if [[ -n ${ETOMO_LOG_DIR} && -w ${ETOMO_LOG_DIR} ]] ; then
+  if [[ -n "${ETOMO_LOG_DIR}" && -w "${ETOMO_LOG_DIR}" ]] ; then
 
     # purge the directory to 60 files (30 sessions) or whatever user chooses
     purgenum=31
@@ -138,13 +138,13 @@ if [ ${help} -eq 0 ] ; then
       purgenum=${ETOMO_LOGS_TO_RETAIN}
     fi
     timestamp=`date | sed 's/://g' | awk '{printf "%s-%s-%s",$2,$3,$4}'`
-    errlog=${ETOMO_LOG_DIR}/etomo_err_${timestamp}.log
-    anypurge=`cd ${ETOMO_LOG_DIR} ; find . -name 'etomo_*.log' -print`
+    errlog="${ETOMO_LOG_DIR}/etomo_err_${timestamp}.log"
+    anypurge=`cd "${ETOMO_LOG_DIR}" ; find . -name 'etomo_*.log' -print`
     if [ ! -z "${anypurge}" ] ; then
-      purgelist=`cd ${ETOMO_LOG_DIR} ; ls -t etomo_*.log | tail -n +$purgenum`
+      purgelist=`cd "${ETOMO_LOG_DIR}" ; ls -t etomo_*.log | tail -n +$purgenum`
       # echo $purgelist
       if [ ! -z "${purgelist}" ] ; then 
-        (cd ${ETOMO_LOG_DIR} ; rm -f ${purgelist})
+        (cd "${ETOMO_LOG_DIR}" ; rm -f ${purgelist})
       fi
     fi
 
@@ -175,11 +175,11 @@ if [ ${help} -eq 0 ] ; then
 	if [ ${foreground} -eq 0 ] ; then
     echo "starting eTomo with log in ${errlog}"
     java -Xmx${ETOMO_MEM_LIM} -cp "${IMOD_DIR}/bin/etomo" \
-     -jar "${IMOD_DIR}/bin/etomo.jar" "$@" 2>${errlog} >${outlog} &
+     -jar "${IMOD_DIR}/bin/etomo.jar" "$@" 2>"${errlog}" >${outlog} &
   else
     echo "starting eTomo with log in ${errlog}"
     java -Xmx${ETOMO_MEM_LIM} -cp "${IMOD_DIR}/bin/etomo" \
-     -jar "${IMOD_DIR}/bin/etomo.jar" "$@" 2>${errlog} >${outlog}
+     -jar "${IMOD_DIR}/bin/etomo.jar" "$@" 2>$"{errlog}" >${outlog}
   fi
 else
   java -Xmx${ETOMO_MEM_LIM} -cp "${IMOD_DIR}/bin/etomo" \
@@ -187,6 +187,9 @@ else
 fi
 
 # $Log$
+# Revision 1.32  2009/12/04 20:26:33  mast
+# Set variable for printing entries in PIP
+#
 # Revision 1.31  2009/03/09 17:31:33  sueh
 # bug# 1172 Added --fg.
 #
