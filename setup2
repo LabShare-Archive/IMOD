@@ -671,7 +671,7 @@ if ($machine != cygwin) then
     # manage qconfigure files
     #
     echo LIBS += -L$lib_dir -liimod -limod -lcfshr -ldiaqt $ltiff $midasGL >> $midas_qconf
-    echo LIBS += -L$lib_dir -lm -llapack -lblas -liimod -lcfshr $ltiff -lifft $lapack_flibs >! $ctfplot_qconf
+    echo LIBS += -L$lib_dir -lm -llapack -lblas -liimod -lcfshr $ltiff -lifft $lapack_flibs >> $ctfplot_qconf
     echo LIBS += -L$lib_dir -lcfshr >! $qtassist_qconf
     foreach i ($midas_qconf $ctfplot_qconf)
         echo INCLUDEPATH += $inc_dir >> $i
@@ -711,6 +711,7 @@ EOF
             echo CONFIG += release warn_off >> $i
             if ($m64notIA == true) echo QMAKE_CXXFLAGS_RELEASE += -m64 >> $i
             if ($m64notIA == true) echo QMAKE_CFLAGS_RELEASE += -m64 >> $i
+            if ($compiler == intel) echo QMAKE_CXXFLAGS_RELEASE += -vec-report0 >> $i
             if ($openmp == true) then
                 echo QMAKE_CXXFLAGS_RELEASE += $openmpFlags >> $i
                 echo QMAKE_CFLAGS_RELEASE += $openmpFlags >> $i
@@ -1009,6 +1010,10 @@ exit
 
 #
 #  $Log$
+#  Revision 1.60  2010/03/26 22:54:14  mast
+#  Define uac_wrap variable so wrappers only made on request
+#  since cygwin 1.7 will not copy script to same dir as .exe
+#
 #  Revision 1.59  2010/03/24 05:59:06  mast
 #  Add libs to qtassist
 #
