@@ -173,18 +173,28 @@ echo '#define SWAP_IEEE_FLOATS' >> $hconfigure
 #
 echo '#define SENDEVENT_RETRY_HACK 0' >> $hconfigure
 
+set qmcxxFlags = ''
 if ($compiler == intel) then
     set optimization = "-O2 -w"
     if ($m64bit == true) set optimization = "-O2 -unroll -w -axWPT"
     if ($debug == true) then
-        set optimization = "-g -O0"
-        set fcompFlags = ($fcompFlags -CB)
+        set optimization = "-g -O0 -Wall"
+        set fcompFlags = ($fcompFlags -check -traceback)
+        set ccompFlags = ($ccompFlags -traceback)
+        #  remark #383: value copied to temporary, reference to temporary used
+        #  remark #424: extra ";" ignored
+        #  remark #444: destructor for base class ... is not virtual
+        #  remark #810: conversion from ... to ... may lose precision
+        #  remark #869: parameter ... was never referenced
+        #  remark #981: operands are evaluated in unspecified order
+        set qmcxxFlags = "-Wall -wd383,424,444,810,869,981"
     endif
 else
     set optimization = "-O3 -w"
     if ($debug == true) then
-        set optimization = "-ggdb -O0 -Wno-unused-parameter"
-        set ccompFlags = ($ccompFlags -Wimplicit -Wreturn-type)
+        set optimization = "-ggdb -O0 -Wall"
+        set ccompFlags = ($ccompFlags -Wno-unused-parameter)
+        set qmcxxFlags = "-Wno-unused-parameter -Wno-sign-compare"
     endif
 endif
 
@@ -269,8 +279,14 @@ LIBS += -lm
 DEFINES	+= _FILE_OFFSET_BITS=64
 QMAKE_LFLAGS_DEBUG += -Wl,-E
 QMAKE_LFLAGS_RELEASE += -Wl,-E
-QMAKE_CXXFLAGS_DEBUG += -Wno-unused-parameter -Wno-sign-compare
 EOF
+
+echo " " >! $ctfplot_qconf
+if ("$qmcxxFlags" != "") then
+    foreach i ($midas_qconf $imod_qconf $ctfplot_qconf)
+        echo "QMAKE_CXXFLAGS_DEBUG += $qmcxxFlags" >> $i
+    end
+endif
 
 # Set up to massage QT makefiles for intel, and take care of DLL copies
 @ dllnum = 1
