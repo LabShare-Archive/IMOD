@@ -178,16 +178,20 @@ if ($compiler == intel) then
     set optimization = "-O2 -w"
     if ($m64bit == true) set optimization = "-O2 -unroll -w -axWPT"
     if ($debug == true) then
-        set optimization = "-g -O0 -Wall"
         set fcompFlags = ($fcompFlags -check -traceback)
         set ccompFlags = ($ccompFlags -traceback)
+        #  remark #310: old-style parameter list (anachronism) [need (void)]
         #  remark #383: value copied to temporary, reference to temporary used
         #  remark #424: extra ";" ignored
         #  remark #444: destructor for base class ... is not virtual
+        #  remark #593: variable "..." was set but never used
         #  remark #810: conversion from ... to ... may lose precision
         #  remark #869: parameter ... was never referenced
         #  remark #981: operands are evaluated in unspecified order
-        set qmcxxFlags = "-Wall -wd383,424,444,810,869,981"
+        #  remark #1572: floating-point equality and inequality comparisons 
+        #     are unreliable [but usually quite appropriate!]
+        set qmcxxFlags = "-Wall -wd310,383,424,444,593,810,869,981,1572"
+        set optimization = "-g -O0 $qmcxxFlags"
     endif
 else
     set optimization = "-O3 -w"
