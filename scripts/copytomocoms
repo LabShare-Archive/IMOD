@@ -123,7 +123,7 @@ if ($#argv > 0) then
           shift
           breaksw
         case -bac*:
-          set backupdir = $argv[2]
+          set backupdir = "$argv[2]"
           set backup = 1
           shift; shift
           breaksw
@@ -1508,6 +1508,9 @@ exit 0
 
 #
 #  $Log$
+#  Revision 3.69  2009/02/17 05:44:04  mast
+#  Changing directory or copied file modes for Vista
+#
 #  Revision 3.68  2009/01/25 16:40:16  mast
 #  Needed to initialize the userawtlt variable for interactive case
 #
