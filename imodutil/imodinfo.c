@@ -58,8 +58,9 @@ static void imodinfo_print_model(Imod *model, int verbose, int scaninside,
                                  int useclip);
 static void imodinfo_objndist(struct Mod_Model *imod, int bins);
 static void imodinfo_length(Imod *imod);
-float imeshSurfaceSubarea(Imesh *mesh, Ipoint *scale, Ipoint min, Ipoint max,
-                          int doclip, Iplane *plane, int nPlanes);
+static float imeshSurfaceSubarea(Imesh *mesh, Ipoint *scale, Ipoint min,
+                                 Ipoint max, int doclip, Iplane *plane,
+                                 int nPlanes);
 static double scan_contour_area(struct Mod_Contour *cont);
 static void trim_scan_contour(Icont *cont, Ipoint min, Ipoint max, int doclip,
                               Iplane *plane, int nPlanes);
@@ -85,6 +86,7 @@ static double clippedTriangleArea(Imesh *mesh, int i, float zs, Ipoint min,
                                   int nPlanes, int listInc, int vertBase);
 static void imodinfo_surface(Imod *imod, int scaninside, Ipoint min,
                              Ipoint max, int useclip);
+static int imodinfo_objdist(Imod *imod, int bins);
 
 
 static void imodinfo_usage(char *name)
@@ -116,24 +118,19 @@ static int Debug = FALSE;
 
 int main( int argc, char *argv[])
 {
-  int    i,j,c;
+  int    i;
   int    verbose = 0;
   int    scaninside = FALSE;
   int    subarea = FALSE;
   int    useclip = 0;
-  int    ob, co, pt;
+  int    ob;
   int    mode = MINFO_STANDARD;
   int    hush = FALSE;
   FILE   *fin;
   Imod   *model;
-  Iobj   *obj;
-  Icont  *cont;
   int bins = 0;
-  int sa,inlo, inhi;
   int *list;
   int nlist;
-  double dist;
-  double tsa, tvol;
   int errcode;
   Ipoint ptmin = {-1.e30, -1.e30, -1.e30};
   Ipoint ptmax = {1.e30, 1.e30, 1.e30};
@@ -394,7 +391,7 @@ static void imodinfo_print_model(Imod *model, int verbose, int scaninside,
   double dist;
   double sa, msa, inmvol;
   double mvol;
-  int ob, co, pt, i, npt, coz;
+  int ob, co, pt, npt, coz;
   Iobj  *obj;
   Icont *cont;
   Ipoint mscale, p1;
@@ -589,11 +586,11 @@ static void imodinfo_surface(Imod *imod, int scaninside, Ipoint min,
   Icont *scan;
   Ipoint pmin, pmax;
   int ob, co, pt, i, coz, skipz;
-  float tvol, tsa, volFac;
+  float tvol, volFac;
   double *sa = NULL;
   double *vol = NULL;
   double *mvol = NULL;
-  unsigned int *nofc = NULL;
+  int *nofc = NULL;
   unsigned int maxsurf;
   Iplane plane[2 * IMOD_CLIPSIZE];
   int nPlanes = 0;
@@ -628,8 +625,7 @@ static void imodinfo_surface(Imod *imod, int scaninside, Ipoint min,
       free(vol);
       return;
     }
-    nofc = (unsigned int *)malloc((obj->surfsize + 1) 
-                                   * sizeof(unsigned int));
+    nofc = (int *)malloc((obj->surfsize + 1) * sizeof(int));
     if (!nofc){
       free(vol);
       free(mvol);
@@ -684,7 +680,6 @@ static void imodinfo_surface(Imod *imod, int scaninside, Ipoint min,
       double psa;
       Imesh *mesh;
       Ipoint *p1, *p2, *p3;
-      Ipoint n, n1, n2;
       float xx, yy, zz;
       float zs = imod->zscale;
 
@@ -1015,7 +1010,6 @@ static void imodinfo_object(Imod *imod, int scaninside,
   Iobj *obj;
   Ipoint  cent;
   double surf, vol, msurf, mvol, inmvol;
-  int i;
 
 
   fprintf(fout, "#Obj     Cyl. Vol      Cont Vol   Vol Inside Mesh   Mesh Surf"
@@ -1188,7 +1182,6 @@ static void imodinfo_objndist(Imod *imod, int bins)
   double dist, mindist, min, max, binsize, binval, binmin, binmax;
   double pixsize, zscale;
   double *dista;
-  int   comps = 0;
 
   if (!bins)
     bins = 20;
@@ -1270,7 +1263,7 @@ static void imodinfo_objndist(Imod *imod, int bins)
 }
 
 
-int imodinfo_objdist(Imod *imod, int bins)
+static int imodinfo_objdist(Imod *imod, int bins)
 {
 
   int ob, co, pt, tpt, i;
@@ -1358,15 +1351,22 @@ static int contour_stats(Icont *cont, int flags, double pixsize,
 {
   float area, cdist, odist;
   float length, width, aspect;
-  Ipoint cmass, ll, ur;
-  float moment;
+  Ipoint cmass = {0., 0., 0.};
   double orientation;
-  if (!cont) return -1;
+  int pt, num;
+  if (!cont)
+    return -1;
 
-  if (iobjScat(flags)){
-    imodContourCenterOfMass(cont, &cmass);
+  if (iobjScat(flags) || cont->psize < 3){
+
+    for (pt = 0; pt < cont->psize; pt++) {
+      cmass.x += cont->pts[pt].x;
+      cmass.y += cont->pts[pt].y;
+      cmass.z += cont->pts[pt].z;
+    }
+    num = B3DMAX(1, cont->psize);
     fprintf(fout, "\t\tCenter of Mass     = (%g, %g, %g) in pixel coords.\n",
-            cmass.x, cmass.y, cmass.z);
+            cmass.x / num, cmass.y / num, cmass.z / num);
     return 0;
   }
 
@@ -1530,7 +1530,6 @@ static double info_contour_surface_area(Icont *cont, int objflags,
 static double info_contour_area(Icont *cont, int objflags,
                                 double pixsize, double zscale)
 {
-  int pt;
   double area;
 
   if (!cont)
@@ -1697,7 +1696,7 @@ static Iobj *imodinfo_ObjectClip(Iobj *obj, Iplane *plane, int planes)
 {
   Iobj *robj = imodObjectNew();
   Icont *cc, *cont;
-  Ipoint ipnt, cpnt;
+  Ipoint cpnt;
   int pt, lpt, ppt, tpt;
   int co;
   int laststate;
@@ -1787,8 +1786,9 @@ static Iobj *imodinfo_ObjectClip(Iobj *obj, Iplane *plane, int planes)
  *          plane     - pointer to array of Iplanes
  *          nPlanes   - number of clipping planes
  */
-float imeshSurfaceSubarea(Imesh *mesh, Ipoint *scale, Ipoint min, Ipoint max,
-                          int doclip, Iplane *plane, int nPlanes)
+static float imeshSurfaceSubarea(Imesh *mesh, Ipoint *scale, Ipoint min,
+                                 Ipoint max, int doclip, Iplane *plane,
+                                 int nPlanes)
 {
   int i;
   int listInc, vertBase, normAdd;
@@ -1831,7 +1831,7 @@ static double clippedTriangleArea(Imesh *mesh, int i, float zs, Ipoint min,
 {
   int inside1, inside2, inside3;
      
-  Ipoint *p1, *p2, *p3, *p;
+  Ipoint *p1, *p2, *p3;
   Ipoint n, n1, n2;
   float clipfrac;
 
@@ -2023,7 +2023,7 @@ static int contourSubareaByScan(Icont *cont, Ipoint ptmin, Ipoint ptmax,
 {
   Ipoint tmpmax, tmpmin, corner;
   int clipsum;
-  float frac1, frac2, cz;
+  float frac1, frac2;
   *scancont = NULL;
   *area = 0.;
   
@@ -2236,6 +2236,9 @@ static void trim_scan_contour(Icont *cont, Ipoint min, Ipoint max, int doclip,
 /*
 
 $Log$
+Revision 3.21  2009/02/24 18:03:00  mast
+Made object centroid be done differently for open object
+
 Revision 3.20  2008/11/14 06:11:09  mast
 Added volume in mesh report, renamed mesh volume to contour volume, made
 it drop the cylinder reports if the mesh exists.
