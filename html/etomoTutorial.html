@@ -183,7 +183,7 @@ the sample data set from our web site.&nbsp; Unpack the data by typing:</p>
 This will create a directory, <code>tutorialData</code>, containing
 the two raw stacks needed to start the tutorial, named BBa.st and
 BBb.st, respectively.&nbsp; There is also a
-subdirectory, <code>finalFiles</code>, containing all of the small working
+subdirectory, <b>finalFiles</b>, containing all of the small working
 files left after completing the data set, as well a copy of the final
 reconstruction.<br><br>
 The file names reflect a convention that you will have to follow with
@@ -191,27 +191,6 @@ your own data sets:&nbsp; the raw stacks have the extension .st and dual axis
 stacks have a common name then end in a.st and b.st.<br>
 </p>
 <br>
-<p class="MsoNormal">It is useful to look at the raw tilt series files
-in order to make decisions about preprocessing steps or to see if there
-are any particular views <span style="color: black;">that have poor
-image quality, and that you want to exclude from </span>the<span
- style="color: black;"> alignment and reconstruction.</span>&nbsp;</p>
-<p class="MsoNormal"><br>
-</p>
-<p class="MsoNormal">To determine if you have views that have poor
-image quality (poor focus, etc.), read in the raw stack(s) by typing:</p>
-<p class="MsoNormal"></p>
-<h1><br>
-</h1>
-<h1 style="font-weight: normal;"><code>&nbsp; &nbsp;3dmod BBa.st</code></h1>
-<h2><span style="font-size: 12pt; font-weight: normal;">&nbsp;<o:p></o:p></span></h2>
-<p class="MsoNormal">Movie through the raw tilt series images by
-clicking the middle mouse button.&nbsp; Notice how the images jump around
-slightly.&nbsp; Make note of any particular views that you want to exclude
-from the alignment and reconstruction.&nbsp; In this sample data set, there
-are no images that need to be excluded. <br>
-<br>
-</p>
 <p class="MsoNormal">If images were collected on the microscope using a
 CCD camera, random x-rays hitting the CCD camera during collection of
 dark reference or individual images can cause extreme high or low pixel
@@ -242,11 +221,11 @@ X-Rays</a> section of the Tomography Guide. </p>
 <p class="MsoNormal" style="font-weight: bold;"><font size="+1">II.<span
  style="">&nbsp; eTomo Setup</span></font></p>
 <br>
-To start eTomo, type:<br>
-<b><br>
-&nbsp;&nbsp;&nbsp; &nbsp;&nbsp; &nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp;
-&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; &nbsp; </b><code>etomo</code><br>
-<br>
+To start eTomo, type:
+<p class="MsoNormal"><br>
+&nbsp; &nbsp; &nbsp; &nbsp; 
+<code>etomo<br></code>
+</p><br>
 <p class="MsoNormal"><span style="color: black;"></span><o:p></o:p></p>
 <p class="MsoNormal"></p>
 <div style="text-align: center;"><img src="etomoImages/setupwindow1.png"
@@ -313,6 +292,22 @@ list
 is a comma separated list of ranges (i.e. 1,4-5,60-70).&nbsp; Notice
 that there is a also a button in this section to open the raw data file
 for viewing in 3dmod.<br>
+</p><br>
+<p class="MsoNormal">It is useful to look at the raw tilt series files
+in order to make decisions about preprocessing steps or to see if there
+are any particular views <span style="color: black;">that have poor
+image quality, and that you want to exclude from </span>the<span
+ style="color: black;"> alignment and reconstruction.</span>&nbsp;</p>
+<p class="MsoNormal"><br>
+</p>
+<p class="MsoNormal">To determine if you have views that have poor
+image quality (poor focus, etc.), open the raw stack(s) by pressing the <b>View
+Raw Image Stack</b> button(s).  &nbsp;Movie through the raw tilt series images by
+clicking the middle mouse button.&nbsp; Notice how the images jump around
+slightly.&nbsp; Make note of any particular views that you want to exclude
+from the alignment and reconstruction.&nbsp; In this sample data set, there
+are no images that need to be excluded. <br>
+<br>
 </p>
 <p class="MsoNormal"><br>
 </p>
@@ -333,6 +328,15 @@ Press the <span style="font-weight: bold;">Create Com Scripts</span>
 button to move on to generating the tomograms. <br>
 <span style="font-size: 14pt;"><b><br>
 III. eTomo Main Window</b></span></p>
+<p class="MsoNormal">
+If you need to exit eTomo before finishing this tutorial, you can continue where
+you left off by going to the <b>tutorialData</b> directory, which now contains your
+dataset, and typing:
+</p>
+<p class="MsoNormal"><br>
+&nbsp; &nbsp; &nbsp; &nbsp; 
+<code>etomo BB.edf<br></code>
+</p><br>
 <p class="MsoNormal">The Main Window consists of several areas: on the
 left is a column of buttons (Process Control Buttons) that allow you to
 select a particular stage of tomogram computation to work on. On the
@@ -371,8 +375,19 @@ or even in the initial dark reference can cause extreme high or low
 pixel values in your data file. As a result, these extreme values ruin
 the contrast and can cause artifacts in the reconstruction. <o:p></o:p>
 &nbsp;The data set in this tutorial does not require a pre-processing
-step.&nbsp; Refer to the <a href="tomoguide.html">Tomography Guide</a>
-for details on this step.<br>
+step but a quick outline of how to use it is included below:</p><br>
+<div style="text-align: center;"><img src="etomoImages/preprocessing.png"
+ title="" alt=""><br>
+</div>
+<H4>Simple instructions for Pre-processing (do not use for tutorial):</H4>
+<UL><LI><p class="MsoNormal">Press the <b>Show Min/Max for Raw Stack</b> button to run <b>clip stats</b>, a program which displays the minimum and maximum densities for each section, against the raw stack.</p>
+<LI><p class="MsoNormal">Press the <b>Create Fixed Stack</b> button to create a second stack with X-rays removed.</p>
+<LI><p class="MsoNormal">Press the <b>Show Min/Max for Fixed Stack</b> button to run <b>clips stats</b> against the fixed stack.</p>
+<LI><p class="MsoNormal">If the outliers from the raw stack <b>clip stats</b> output are gone from the fixed stack output, then press the <b>Use Fixed Stack</b> button.</p>
+</UL>
+<p class="MsoNormal">
+Refer to the <a href="tomoguide.html">Tomography Guide</a>
+for more details on this step.</p><br>
 <span style="font-size: 14pt;"><b><br>
 V. Coarse alignment.<o:p></o:p></b></span></p>
 <p class="MsoNormal"> Press the <span style="font-weight: bold;">Coarse
@@ -486,7 +501,7 @@ model
 as a seed from which a complete fiducial model is built. </p>
 <p class="MsoNormal" align="center">&nbsp;<br>
 </p>
-<p class="MsoNormal"><b>Press the 'Track Fiducial Seed Model' process
+<p class="MsoNormal"><b>Press the 'Track Seed Model' process
 button.</b><br>
 <br>
 <b></b></p>
@@ -526,7 +541,8 @@ model.</p>
 Hit<b> &#8216;Go to Next Gap&#8217;</b> by clicking on the button using the left
 mouse button, or by using the spacebar as a hot key.&nbsp; This will
 attach to a point (highlighted with a yellow circle) that has a missing
-model point on an adjacent section. Use the Page Up or Page Down key to
+model point on an adjacent section. Use the Page Up key (when an up arrow
+appears above the point) or the Page Down key (when a down arrow appears above the point) to
 find the section with the missing point and use the middle mouse button
 to add the point in the center of the gold particle. It is useful to
 increase the magnification of the image with the &#8216;+&#8217; key and adjust the
@@ -694,7 +710,7 @@ Access the aligna.log file and go to the Surface Angles tab.<br>
 </p>
 <p class="MsoNormal">Note the Total tilt angle change near the bottom (in
 my example,
-this value was -0.04). Put this value in the <span
+this value was -0.05). Put this value in the <span
  style="font-weight: bold;">Fine Alignment Volume Position Parameters</span>
 box under <span style="font-weight: bold;">Total tilt angle offset</span>.
 Press the&nbsp; Compute Alignment button again, then select &#8216;Reread log
@@ -833,8 +849,8 @@ below: <br>
 </h1>
 <p class="MsoNormal">The bottom of the log file contains information
 calculated from all three positions. These offsets are automatically added to the existing <b>Angle offset</b>, <b>Z shift</b> and <b>X axis tilt</b> values.  The <b>Added</b> values correspond to the values mentioned in the fifth paragraph in the tomopitch log ("Pitch betwen samples can be corrected...") and must be added to the existing values and entered by the user if eTomo doesn't enter them (Look for the "added X-axis tilt", "total angle offset", and "added Z shift").  The <b>Final tomogram thickness</b> is also entered by eTomo from the tomopitch log.</p>
-
-<p>Press the <span
+<br>
+<p class="MsoNormal">Press the <span
  style="font-weight: bold;">Create Final Alignment</span> button.
 &nbsp;
 After the final alignment transforms are created, press the <span
@@ -884,17 +900,12 @@ step.<br>
 </h1>
 <h1><font size="+1"></font></h1>
 <h1></h1>
-<p class="MsoNormal"> <o:p></o:p></p>
-<h1><span style="font-weight: normal;"><o:p></o:p></span></h1>
-<p class="MsoNormal"><o:p></o:p></p>
-<h1><br>
-</h1>
- The default filtering parameters in the <span
+<p class="MsoNormal">The default filtering parameters in the <span
  style="font-weight: bold;">Tilt Parameters</span> section are
 appropriate for many cases, but can be changed, or the aligned stack
 can be filtered, to reduce noise in the reconstruction (see the <a
  href="tomoguide.html/#TOMOGRAM GENERATION">TOMOGRAM GENERATION</a>
-section of the Tomography Guide for details).&nbsp; <br>
+section of the Tomography Guide for details).&nbsp;</p><br>
 </span></h1>
 <h1><br>
 </h1>
@@ -905,7 +916,7 @@ section of the Tomography Guide for details).&nbsp; <br>
 <h1>Press 'Generate Tomogram'</h1>
 <p class="MsoNormal">When the tomogram is computed,&nbsp; examine it by
 pressing <span style="font-weight: bold;">View Tomogram in 3dmod</span>.
-You may also choose to <span style="font-weight: bold;">Delete Aligned
+You may also choose to <span style="font-weight: bold;">Delete Intermediate
 Image Stacks</span> at this point to save space. <br>
 Movie through the reconstruction by hitting the middle mouse button to
 step through serial, tomographic slices from the top surface of the
@@ -1083,13 +1094,14 @@ of the panel. &nbsp; This will open BBa.rec in 3dmod. Step through the
 images and decide what range of the X axis, Y axis and Z axis contains
 useful information for matching up the volumes. In this example,
 defaults were kept for the X and Y axis.</p>
-<p class="MsoNormal"><o:p></o:p></p>
-<p>In this example <b>Z axis min</b> and <b>Z axis max</b> where set to the first and last slices where about half the material in the slice is not blurry (23 and 76).</p>
+<p class="MsoNormal"><o:p></o:p></p><br>
+<p class="MsoNormal">In this example <b>Z axis min</b> and <b>Z axis max</b>
+where set to the first and last slices where about half the material in the slice
+is not blurry (15 and 66).</p><br>
 <p class="MsoNormal" align="center">&nbsp;<img
  src="etomoImages/volA1.png" title="" alt=""><img
  src="etomoImages/volA2.png" title="" alt="">&nbsp;<span style=""> </span><o:p></o:p></p>
 <p class="MsoNormal">
-<p class="MsoNormal"><o:p></o:p></p><br>
 Sometimes, this will not eliminate &#8220;extraneous&#8221;
 material to allow the two axes to combine. In that case, you have to
 make a patch region model. To make a patch region model, check the
@@ -1106,7 +1118,8 @@ data set does not need a patch region model.&nbsp;</p>
 When the parameters for the <span style="font-weight: bold;">Setup
 panel</span> have been entered, press <span style="font-weight: bold;">Create
 Combine Scripts</span> to create a series of command files that
-will run various programs in the combine procedure.&nbsp; Press <span
+will run various programs in the combine procedure.&nbsp; Ignore the warning message
+that pops up.&nbsp; Press <span
  style="font-weight: bold;">Start Combine</span> to begin the process
 of dual-axis tomogram combination.&nbsp; eTomo will automatically
 advance &nbsp;to the <span style="font-weight: bold;">Initial Match </span>and
@@ -1124,17 +1137,18 @@ advance to the final steps.<br>
 <h1><font size="+1">XII. &nbsp;Post-Processing and Clean-up of
 intermediate files.</font></h1>
 <br>
-Post-processing
+<p class="MsoNormal">Post-processing
 involves a volume trimming and byte scaling step, followed by deletion
 of intermediate files.&nbsp; There is also an option to create a
 squeezed
 down volume,&nbsp; which is useful when working with very large data
 sets,
-particularly when reconstructing serial sections.&nbsp;&nbsp;
+particularly when reconstructing serial sections.&nbsp;&nbsp;</p>
 <p class="MsoNormal">&nbsp;<o:p></o:p></p>
 <h1 style="text-align: center;"><img src="etomoImages/trim.png" title=""
  alt=""></h1>
 <br>
+<p class="MsoNormal">
 The final reconstruction of the two axes
 combined
 into one will always be called sum.rec. Open the sum.rec reconstruction
@@ -1150,12 +1164,12 @@ you press <span style="font-weight: bold;">Get XY Volume Range from
 3dmod,</span> eTomo will retrieve the X and Y values of the rubberband (and Z values if they are set)
 from 3dmod. In this example, the default ranges for X and Y
 are used. The Z axis (in the flipped tomogram) range has been set from
-a Z min of 22 to a Z max of 75 to exclude non-cellular material.
+a Z min of 17 to a Z max of 64 to exclude non-cellular material.
 Finally a scaling range is set to find the range of slices that exclude
 the gold beads. In this example, the scaling is section based and has a
-range between slices 32 and 64 (see below to enter these numbers using 3dmod).</p>
-
-<p>Sometimes it is not possible to find a range of slices that contain no
+range between slices 24 and 66 (see below to enter these numbers using 3dmod).</p>
+<br>
+<p class="MsoNormal">Sometimes it is not possible to find a range of slices that contain no
 gold.  For example, the sample used here contains some gold particles on the
 plastic resin outside the cell that show up in the same slices that we would
 like to
@@ -1168,12 +1182,14 @@ rubberband around an area that excludes them.&nbsp; To do this, press
 the rubberband toggle to the left of the Z slider.</p><br>
 <p class="MsoNormal" align="center">&nbsp;<img
  src="etomoImages/rubberband1.png" title="" alt="">&nbsp;<span style=""> </span><o:p></o:p></p>
-<p>Press the left mouse button over the upper left corner of
-the desired area, and drag the mouse to the lower right corner.  Then move the Z slider to lower part of the scaling range (32) and press
-<b>Lo</b>.  Move the Z slider to the upper part of the scaling range (64) and press <b>Hi</b>.</p>
+<br><p class="MsoNormal">Press the left mouse button over the upper left corner of
+the desired area, and drag the mouse to the lower right corner.  Then move the Z slider to lower part of the scaling range (24) and press
+<b>Lo</b>.  Move the Z slider to the upper part of the scaling range (66) and press <b>Hi</b>.</p><br>
 <p class="MsoNormal" align="center">&nbsp;<img
  src="etomoImages/rubberband2.png" title="" alt="">&nbsp;<span style=""> </span><o:p></o:p></p>
-<p>Go to the <b>Scaling</b> box in eTomo and press the <b>Get XY Sub-Area From 3dmod</b> button.  This will cause the eTomo to retrieve X and Y values you selected.&nbsp; Press the <b>Trim Volume</b> button
+<p class="MsoNormal">Go to the <b>Scaling</b> box in eTomo and press the
+<b>Get XY Sub-Area From 3dmod</b> button.  This will cause the eTomo to retrieve
+X and Y values you selected.&nbsp; Press the <b>Trim Volume</b> button
 to run Trimvol.&nbsp; Trimvol is a single tool for trimming a volume and
 converting it to bytes.&nbsp; Finally, view the final, trimmed volume
 (named BB.rec) by pressing <b>3dmod Trimmed Volume</b>.&nbsp; Press <span
@@ -1189,24 +1205,24 @@ converting it to bytes.&nbsp; Finally, view the final, trimmed volume
  title="" alt=""><br>
 </div>
 <br>
-Cleaning up of your files is very important! The tomogram generation
+<p class="MsoNormal">Cleaning up of your files is very important! The tomogram generation
 process creates many large, intermediate files. The <span
  style="font-weight: bold;">Intermediate file cleanup</span> box lists
 what we consider intermediate, nonessential files that can be
 deleted. Once you are satisfied that the final tomogram is truly final,
 you can select by highlighting the intermediate files and hitting the <span
- style="font-weight: bold;">Delete Selected</span> button. <br>
+ style="font-weight: bold;">Delete Selected</span> button.</p><br>
 <br>
-The final, dual-axis tomogram is named BB.rec and can be viewed outside
+<p class="MsoNormal">The final, dual-axis tomogram is named BB.rec and can be viewed outside
 of eTomo using the command, 3dmod BB.rec. Refer to the <a
- href="3dmodguide.html">Itroduction to 3dmod</a> for information about
+ href="3dmodguide.html">Introduction to 3dmod</a> for information about
 modeling the many cellular features in the tomogram.&nbsp; This was an
 easy data set and you will likely encounter more problems with your own
 data, so it is best to read through the <a href="tomoguide.html">Tomography
 Guide</a> as you start working on a real data set.&nbsp; Also, you will
 be able to use eTomo more effectively if you read&nbsp;<a
  href="UsingEtomo.html">Using eTomo</a> , which explains features such
-as accessing help and setting up parallel processing.<br>
+as accessing help and setting up parallel processing.</p><br>
 <br>
 </body>
 </html>
