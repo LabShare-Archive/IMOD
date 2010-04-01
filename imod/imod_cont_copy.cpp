@@ -12,11 +12,6 @@
  *  Log at end of file
  */
 
-/* 9/10/02: This include is not known to be unneeded on sun but is generally
-   unavailable and unneeded on SGI - so leave it just for sun */
-#ifdef __sun
-#include <libgen.h>
-#endif
 #include <math.h>
 
 #include <qspinbox.h>
@@ -227,6 +222,12 @@ void iccCopyContour(void)
     ThisDialog.dia->apply();
 }
 
+// External entry for updating
+void imodContCopyUpdate(void)
+{
+  if (ThisDialog.dia)
+    ThisDialog.dia->update();
+}
 
 /****************************************************************************/
 
@@ -584,7 +585,7 @@ void ContourCopy::closeEvent ( QCloseEvent * e )
 // Close on escape, pass on keys
 void ContourCopy::keyPressEvent ( QKeyEvent * e )
 {
-  if (e->key() == Qt::Key_Escape)
+  if (utilCloseKey(e))
     close();
   else
     ivwControlKey(0, e);
@@ -598,6 +599,9 @@ void ContourCopy::keyReleaseEvent ( QKeyEvent * e )
 /*
 
 $Log$
+Revision 4.20  2009/03/22 19:54:25  mast
+Show with new geometry adjust routine for Mac OS X 10.5/cocoa
+
 Revision 4.19  2009/02/26 20:04:04  mast
 Turn off keyboard tracking of spin boxes
 
