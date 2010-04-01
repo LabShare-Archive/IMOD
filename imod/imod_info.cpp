@@ -58,7 +58,6 @@ connect(mActions[c], SIGNAL(triggered()), a##Mapper, SLOT(map())); \
 a##Mapper->setMapping(mActions[c], c);
 
 /* some declarations */
-void wprintWidget(QTextEdit *edit);
 
 static char *truncate_name(char *name, int limit);
 
@@ -106,6 +105,7 @@ InfoWindow::InfoWindow(QWidget * parent, const char * name, Qt::WFlags f)
   ADD_ACTION(file, "&JPEG Quality...", FILE_MENU_SNAPQUALITY);
   ADD_ACTION(file, "&Memory to TIF...", FILE_MENU_TIFF);
   ADD_ACTION(file, "E&xtract File...", FILE_MENU_EXTRACT);
+  ADD_ACTION(file, "Save &Info Text...", FILE_MENU_SAVEINFO);
   ADD_ACTION(file, "&Quit", FILE_MENU_QUIT);
 
   ADD_ACTION(fWrite, "&Imod", FWRITE_MENU_IMOD);
@@ -255,7 +255,7 @@ InfoWindow::InfoWindow(QWidget * parent, const char * name, Qt::WFlags f)
   setFontDependentWidths();
 
   setFocusPolicy(Qt::StrongFocus);
-  mStatusEdit->setFocusPolicy(Qt::NoFocus);
+  mStatusEdit->setFocusPolicy(Qt::ClickFocus);
   wprintWidget(mStatusEdit);
 
   setWindowIcon(*(App->iconPixmap));
@@ -299,6 +299,12 @@ void InfoWindow::keyPressEvent ( QKeyEvent * e )
     imodInfoCtrlPress(1);
     grabKeyboard();
   }
+#ifdef Q_OS_MACX
+  if (e->key() == Qt::Key_Q && (e->modifiers() & Qt::ControlModifier)) {
+    close();
+    return;
+  }
+#endif
   if (e->key() != Qt::Key_Escape)
     ivwControlKey(0, e);
 }
@@ -410,8 +416,14 @@ void InfoWindow::extract()
     cshell = "tcsh";
   ZapStruct *zap = getTopZapWindow(true);
   if (!zap) {
-    wprint("\aThere is no zap window with a rubberband.\n");
-    return;
+    zap = getTopZapWindow(false);
+    if (zap)
+      wprint("\aExtracting region of single section visible in zap window"
+             ".\n");
+    else {
+      wprint("\aThere is no zap window with or without a rubberband.\n");
+      return;
+    }
   }
   mTrimvolOutput = QFileDialog::getSaveFileName
     (this, "MRC File to extract to:");
@@ -620,7 +632,7 @@ int imod_info_open()
 
   // Initialize the model line (could we use MaintainModelName?)
   filename = imodwGivenName(" ", Imod_filename);
-  filename = truncate_name(filename, 23);
+  //filename = truncate_name(filename, 23);
   if (filename) {
     ImodInfoWidget->setModelName(filename);
     free(filename);
@@ -646,7 +658,7 @@ void MaintainModelName(Imod *mod)
   int namelen;
      
   filestr = imodwGivenName(" ", Imod_filename);
-  filestr = truncate_name(filestr, 23);
+  //filestr = truncate_name(filestr, 23);
   if(!filestr) {
     filestr = (char *) malloc(1);
     if (filestr)
@@ -694,6 +706,9 @@ static char *truncate_name(char *name, int limit)
 /*
 
 $Log$
+Revision 4.55  2009/02/27 19:17:16  mast
+Fixed output of trimvol command to info window
+
 Revision 4.54  2009/01/16 20:23:44  mast
 Comment out debug output
 
