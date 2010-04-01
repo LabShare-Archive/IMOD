@@ -770,7 +770,7 @@ IProcWindow::IProcWindow(QWidget *parent, const char *name)
   : DialogFrame(parent, 7, 1, buttonLabels, buttonTips, false, 
                 ImodPrefs->getRoundedStyle(), " ", "", name)
 {
-  int i, maxwidth = 0, width;
+  int i;
   QString str;
   QVBoxLayout *vLayout;
   QWidget *control;
@@ -1231,7 +1231,7 @@ void IProcWindow::keyPressEvent ( QKeyEvent * e )
   } else if (e->key() == Qt::Key_B && !modkey) {
     if (!iprocBusy() && !proc.vi->loadingImage)
       buttonClicked(1);
-  } else if (e->key() == Qt::Key_Escape)
+  } else if (utilCloseKey(e))
     close();
   else
     ivwControlKey(0, e);
@@ -1253,6 +1253,9 @@ void IProcThread::run()
 /*
 
     $Log$
+    Revision 4.28  2010/03/30 05:28:23  mast
+    Stopped scroll bars from appearing on list box in Windows
+
     Revision 4.27  2009/03/22 19:54:25  mast
     Show with new geometry adjust routine for Mac OS X 10.5/cocoa
 

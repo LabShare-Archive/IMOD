@@ -308,7 +308,7 @@ void imodvMovieForm::closeEvent( QCloseEvent * e )
 // Send key press and release on to imodv_input, quit on escape
 void imodvMovieForm::keyPressEvent( QKeyEvent * e )
 {
-  if (e->key() == Qt::Key_Escape)
+  if (utilCloseKey(e))
     imodvMovieQuit();
   else
     imodvKeyPress(e);
@@ -322,5 +322,8 @@ void imodvMovieForm::keyReleaseEvent( QKeyEvent * e )
 /*
 
 $Log$
+Revision 4.1  2009/01/15 16:33:17  mast
+Qt 4 port
+
 
 */

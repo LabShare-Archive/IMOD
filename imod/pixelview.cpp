@@ -480,7 +480,7 @@ void PixelView::closeEvent ( QCloseEvent * e )
 void PixelView::keyPressEvent ( QKeyEvent * e )
 {
   int key = e->key();
-  if (key == Qt::Key_Escape)
+  if (utilCloseKey(e))
     close();
 
   else if (!(e->modifiers() & Qt::KeypadModifier) && 
@@ -501,6 +501,10 @@ void PixelView::keyReleaseEvent ( QKeyEvent * e )
 /*
 
 $Log$
+Revision 4.17  2009/03/22 19:50:28  mast
+Changed buttons to a "conventional" style on Mac to avoid color problem
+with rounded buttons
+
 Revision 4.16  2009/01/15 16:33:18  mast
 Qt 4 port
 

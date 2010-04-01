@@ -246,11 +246,11 @@ void imodvViewsForm::keyPressEvent( QKeyEvent * e )
   int height =  viewListBox->fontMetrics().height();
   int jump = viewListBox->height() / height - 1;
   bool handled = !(e->modifiers() & Qt::KeypadModifier);
-  switch (e->key()) {
-  case Qt::Key_Escape:
+  if (utilCloseKey(e)) {
     imodvViewsDone();
-    handled = true;
-    break;
+    return;
+  }
+  switch (e->key()) {
   case Qt::Key_Up:
     if (handled)
       selectItem(item - 1, false);
@@ -289,5 +289,8 @@ void imodvViewsForm::fontChange( const QFont & oldFont )
 /*
 
 $Log$
+Revision 4.1  2009/01/15 16:33:17  mast
+Qt 4 port
+
 
 */

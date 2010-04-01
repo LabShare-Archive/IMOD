@@ -21,6 +21,7 @@ class QBoxLayout;
 class QIcon;
 class QSignalMapper;
 class QMouseEvent;
+class QKeyEvent;
 
 typedef struct ViewInfo ImodView;
 void utilDrawSymbol(int mx, int my, int sym, int size, int flags);
@@ -52,6 +53,7 @@ QAction *utilSetupToggleButton(QWidget *parent, QToolBar *toolBar,
                                QToolButton *buts[], int states[], int ind);
 void utilRaiseIfNeeded(QWidget *window, QMouseEvent *event);
 bool utilNeedToSetCursor();
+bool utilCloseKey(QKeyEvent *e);
 char *imodwfname(const char *intro);
 char *imodwEithername(const char *intro, const char *filein, int modelFirst);
 char *imodwGivenName(const char *intro, const char *filein);
@@ -61,6 +63,9 @@ QString imodCaption(const char *intro);
 /*
  *
  *  $Log$
+ *  Revision 1.9  2009/04/06 19:36:52  mast
+ *  Added function to give flag for needing  to fix cursor
+ *
  *  Revision 1.8  2009/03/30 18:25:44  mast
  *  Added function to handle raising on mouse event, workaround Mac Qt 4.5.0
  *

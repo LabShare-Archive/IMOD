@@ -68,7 +68,7 @@ typedef unsigned int Index;
 extern void smooth_vertex_positions(float *varray, Index nv,
     const Index *tarray, Index nt,
     float smoothing_factor, int smoothing_iterations);
-struct{
+struct imodvIsosurfaceDataStruct {
   ImodvIsosurface *dia;
   ImodvApp  *a;
   int itNum;
@@ -134,10 +134,6 @@ bool imodvIsosurfaceUpdate(void)
     }    
     return false;
 
-    if(imodDebug('U') ){
-      imodPrintStderr("In imodvIsosurfaceUpdate: rendering time=%d \n", isoTime.elapsed());
-      isoTime.start();
-    }
   } else
     return false;
 }
@@ -575,7 +571,7 @@ void ImodvIsosurface::setIsoObj()
   float newThreshold;
   int binNum=mBinningBox->text().toInt();
   cOrigZ[0]=mSubZEnds[0];
-  for(int i=1;i<mNThreads;i++)
+  for (i=1; i<mNThreads; i++)
     cOrigZ[i]=mSubZEnds[0]+binNum*(mSubZEnds[i]-mSubZEnds[0])-binNum;
 
 
@@ -589,10 +585,10 @@ void ImodvIsosurface::setIsoObj()
     imodPrintStderr("Using %d threads\n", mNThreads);
     isoTime.start();
   }
-  for(i=0;i<mNThreads;i++){
+  for(i=0; i<mNThreads; i++){
     threads[i]->start();
   }
-  for(i=0;i<mNThreads;i++){
+  for(i=0; i<mNThreads; i++){
     threads[i]->wait();
   }
 
@@ -600,7 +596,7 @@ void ImodvIsosurface::setIsoObj()
     imodPrintStderr("mcube time=%d \n", isoTime.elapsed() );
     isoTime.start();
   } 
-  for(i=0;i<mNThreads;i++){
+  for(i=0; i<mNThreads; i++){
 
     nVertex[i]=threads[i]->getNVertex();
     nTriangle[i]=threads[i]->getNTriangle();
@@ -1388,7 +1384,7 @@ void ImodvIsosurface::closeEvent ( QCloseEvent * e )
 // Close on escape; watch for the hot slider key; pass on keypress
 void ImodvIsosurface::keyPressEvent ( QKeyEvent * e )
 {
-  if (e->key() == Qt::Key_Escape)
+  if (utilCloseKey(e))
     close();
   else {
     if (hotSliderFlag() != NO_HOT_SLIDER && e->key() == hotSliderKey()) {
@@ -1412,6 +1408,11 @@ void ImodvIsosurface::keyReleaseEvent ( QKeyEvent * e )
 /*
 
    $Log$
+   Revision 4.18  2010/03/30 02:21:29  mast
+   Made the merging of results from multiple threads run faster and used
+   OpenMP for big array copies - turned on multithreading with ideal thread
+   count limited to 4
+
    Revision 4.17  2009/03/22 19:54:25  mast
    Show with new geometry adjust routine for Mac OS X 10.5/cocoa
 

@@ -283,9 +283,9 @@ static int fill_cache(ImodView *vi, int cz, int ovbefore, int ovafter)
         /* DNM 4/18/03: process events so that text will show up and so that 
            the program can be killed */
         if (vi->nt)
-          message.sprintf("Reading image file # %3.3d, Z = %d", time, z + 1);
+          message.sprintf("Reading image file # %3.3d, Z = %d\r", time, z + 1);
         else
-          message.sprintf("Reading image file, Z = %d", z + 1);
+          message.sprintf("Reading image file, Z = %d\r", z + 1);
         imod_imgcnt(LATIN1(message));
 
 	/* Find oldest slice in cache */
@@ -377,7 +377,7 @@ static int fill_cache(ImodView *vi, int cz, int ovbefore, int ovafter)
     if (vi->nt)
       iiClose(vi->image);
   }
-  imod_imgcnt("");
+  imod_imgcnt("\n");
 
   /* Restore current image to be open */
   if (vi->nt) {
@@ -666,7 +666,7 @@ void ImodCacheFill::closeEvent ( QCloseEvent * e )
 // CLose on Escape.  Pass keys on.
 void ImodCacheFill::keyPressEvent ( QKeyEvent * e )
 {
-  if (e->key() == Qt::Key_Escape)
+  if (utilCloseKey(e))
     close();
   else
     ivwControlKey(0, e);
@@ -680,6 +680,9 @@ void ImodCacheFill::keyReleaseEvent ( QKeyEvent * e )
 /*
 
 $Log$
+Revision 4.13  2009/03/22 19:54:25  mast
+Show with new geometry adjust routine for Mac OS X 10.5/cocoa
+
 Revision 4.12  2009/01/15 16:33:17  mast
 Qt 4 port
 

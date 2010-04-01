@@ -227,7 +227,7 @@ void objectEditForm::closeEvent( QCloseEvent *e )
 
 void objectEditForm::keyPressEvent( QKeyEvent * e )
 {
-  if (e->key() == Qt::Key_Escape)
+  if (utilCloseKey(e))
     ioew_quit();
   else
     ivwControlKey(0, e);
@@ -242,5 +242,8 @@ void objectEditForm::keyReleaseEvent( QKeyEvent * e )
 /*
 
 $Log$
+Revision 4.1  2009/01/15 16:33:17  mast
+Qt 4 port
+
 
 */

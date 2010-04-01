@@ -237,9 +237,13 @@ void imodvObjedForm::setCurrentFrame( int frame, int editData )
   oneAllComboBox->setCurrentIndex(editData);
 }	
 
-// Pass on close events and key events
+// Pass on close events (unless meshing) and key events
 void imodvObjedForm::closeEvent( QCloseEvent * e )
 {
+  if (meshingBusy()) {
+    e->ignore();
+    return;
+  }
   imodvObjedClosing();
   e->accept();
 }
@@ -250,7 +254,7 @@ void imodvObjedForm::keyPressEvent( QKeyEvent * e )
     imodvObjedCtrlKey(true);
     grabKeyboard();
   }
-  if (e->key() == Qt::Key_Escape)
+  if (utilCloseKey(e))
     imodvObjedDone();
   else
     imodvKeyPress(e);
@@ -268,6 +272,9 @@ void imodvObjedForm::keyReleaseEvent( QKeyEvent * e )
 /*
 
 $Log$
+Revision 4.2  2009/02/16 06:47:35  mast
+Fixed some geometry problems
+
 Revision 4.1  2009/01/15 16:33:17  mast
 Qt 4 port
 

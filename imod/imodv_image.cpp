@@ -67,7 +67,7 @@ static int lastZsize = -1;
 
 #define MAX_SLICES 256
 
-struct{
+struct imodvImageDataStruct {
   ImodvImage *dia;
   ImodvApp  *a;
 
@@ -320,7 +320,7 @@ void imodvDrawImage(ImodvApp *a, int drawTrans)
   int i, mi, j, mj;
   int u, v;
   int ix, iy, iz, idir;
-  int imdataxsize, cacheSum, curtime;
+  int cacheSum, curtime;
   unsigned char **imdata;
   bool flipped, invertX, invertY, invertZ;
   Imat *mat;
@@ -820,7 +820,7 @@ void ImodvImage::closeEvent ( QCloseEvent * e )
 // Close on escape; watch for the hot slider key; pass on keypress
 void ImodvImage::keyPressEvent ( QKeyEvent * e )
 {
-  if (e->key() == Qt::Key_Escape)
+  if (utilCloseKey(e))
     close();
   else {
     if (hotSliderFlag() != NO_HOT_SLIDER && e->key() == hotSliderKey()) {
@@ -843,6 +843,9 @@ void ImodvImage::keyReleaseEvent ( QKeyEvent * e )
 
 /*
 $Log$
+Revision 4.20  2009/03/22 19:54:25  mast
+Show with new geometry adjust routine for Mac OS X 10.5/cocoa
+
 Revision 4.19  2009/01/15 16:33:17  mast
 Qt 4 port
 

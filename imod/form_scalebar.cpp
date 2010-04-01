@@ -217,7 +217,7 @@ void ScaleBarForm::timerEvent( QTimerEvent *e )
 
 void ScaleBarForm::keyPressEvent( QKeyEvent * e )
 {
-  if (e->key() == Qt::Key_Escape)
+  if (utilCloseKey(e))
     close();
   else if (imodvStandalone())
     imodvKeyPress(e);
@@ -247,5 +247,8 @@ void ScaleBarForm::closeEvent( QCloseEvent * e )
 /*
 
 $Log$
+Revision 4.1  2009/01/15 16:33:17  mast
+Qt 4 port
+
 
 */

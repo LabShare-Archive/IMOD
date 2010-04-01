@@ -435,8 +435,8 @@ static int load_models(int n, char **fname, ImodvApp *a)
        6/26/03: switch to new method, just initialize views in each model */
     /* 7/17/03: trouble.  Restore default scaling of current view if exists */
     /* 10/16/05: Need to scale all views in case model saved from binned */
-    for (int i = 0; i < mod->viewsize; i++)
-      imodViewDefaultScale(mod, &mod->view[i], &imageMax, 1.);
+    for (int j = 0; j < mod->viewsize; j++)
+      imodViewDefaultScale(mod, &mod->view[j], &imageMax, 1.);
   
     imodvViewsInitialize(mod);
   }
@@ -775,6 +775,9 @@ void imodvQuit()
 
 /*
 $Log$
+Revision 4.47  2010/03/31 03:43:34  mast
+Just raise main window, general raise call crashed
+
 Revision 4.46  2010/03/31 03:31:40  mast
 Raise window after startup on Mac
 

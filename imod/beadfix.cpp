@@ -2647,8 +2647,6 @@ void BeadFixer::runAlign()
 // When align exits, check the status and reenable buttons
 void BeadFixer::alignExited(int exitCode, QProcess::ExitStatus exitStatus)
 {
-  int err;
-
   // Check if exit staus, clean up and reenable buttons
   if (exitStatus != QProcess::NormalExit)
     wprint("\aAbnormal exit trying to run tiltalign.\n");
@@ -2778,7 +2776,7 @@ void BeadFixer::fontChange( const QFont & oldFont )
 // Close on escape, pass on keys
 void BeadFixer::keyPressEvent ( QKeyEvent * e )
 {
- if (e->key() == Qt::Key_Escape)
+ if (utilCloseKey(e))
     close();
   else
     ivwControlKey(0, e);
@@ -2792,6 +2790,10 @@ void BeadFixer::keyReleaseEvent ( QKeyEvent * e )
 /*
 
 $Log$
+Revision 1.66  2010/03/19 19:27:51  mast
+Reread log file on open message if already open, disabled move by res button
+after reading log, disabled many new buttons and some old when running align
+
 Revision 1.65  2010/03/19 16:36:29  mast
 Forgot to initialize max contour residual
 

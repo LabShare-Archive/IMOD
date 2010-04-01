@@ -243,7 +243,7 @@ void SlicerAngleForm::setAngClicked()
 // Common routine to set angles
 void SlicerAngleForm::setAngles( bool draw )
 {
-  int time, index;
+  int index;
   bool continuous;
   if (getTopSlicerTime(continuous) + mTimeInc != mCurTime)
     return;
@@ -545,7 +545,7 @@ void SlicerAngleForm::loadRow( SlicerAngles *slanp, int row , bool block)
 // angles if in continuous mode and doSet is true
 void SlicerAngleForm::switchTime( int newtime, bool doSet )
 {
-  int row, time;
+  int row;
   loadTable(newtime);
   updateEnables();
   row = B3DMIN(mCurRow[mCurTime], table->rowCount() - 1);
@@ -660,7 +660,7 @@ void SlicerAngleForm::keyPressEvent( QKeyEvent *e )
        key == Qt::Key_Down || key == Qt::Key_PageUp || key == Qt::Key_PageDown
        || key == Qt::Key_Home || key == Qt::Key_End))
     return;
-  if (e->key() == Qt::Key_Escape) {
+  if (utilCloseKey(e)) {
     close();
   } else {
     ivwControlKey(0, e);

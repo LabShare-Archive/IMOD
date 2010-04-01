@@ -106,6 +106,11 @@ void imodvKeyPress(QKeyEvent *event)
   if (inputTestMetaKey(event))
     return;
 
+  if (utilCloseKey(event) || keysym == Qt::Key_Q) {
+    a->mainWin->close();
+    return;
+  }
+
   inputConvertNumLock(keysym, keypad);
 
   if (shifted)
@@ -457,13 +462,6 @@ void imodvKeyPress(QKeyEvent *event)
                
     break;
 
-  case Qt::Key_Escape:
-    a->mainWin->close();
-    break;
-  case Qt::Key_Q:
-    a->mainWin->close();
-    break;
-    
     // Grabs seem not to be needed and avoiding them saves a lot of trouble
   case Qt::Key_Control:
     ctrlDown = Qt::ControlModifier;
@@ -1307,6 +1305,9 @@ void imodvMovieTimeout()
 /*
 
 $Log$
+Revision 4.49  2009/09/08 23:52:20  mast
+Added hot key to toggle clipping plane
+
 Revision 4.48  2009/03/30 18:26:20  mast
 Call function to raise on mouse press if needed
 

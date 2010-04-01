@@ -403,6 +403,11 @@ void TumblerWindow::keyPressEvent ( QKeyEvent * event)
   if (inputTestMetaKey(event))
     return;
 
+  if (utilCloseKey(event)) {
+    close();
+    return;
+  }    
+
   inputConvertNumLock(key, keypad);
 
   if (key == hotSliderKey()) {
@@ -515,11 +520,6 @@ void TumblerWindow::keyPressEvent ( QKeyEvent * event)
       dodraw = 0;
     break;
 
-  case Qt::Key_Escape:
-    close();
-    dodraw = 0;
-    return;
-    
   default:
     handled = 0;
     break;
@@ -644,7 +644,7 @@ void TumblerWindow::fillSlice(TumblerStruct *xtum)
 {
   Islice *tsl;
   Ipoint tx,ty,tz;
-  int i, iz;
+  int i;
   unsigned char **imdata;
   int vmnullvalue;
 
@@ -1251,6 +1251,9 @@ void TumblerGL::paintGL()
 
 /*
 $Log$
+Revision 4.32  2009/03/22 19:54:25  mast
+Show with new geometry adjust routine for Mac OS X 10.5/cocoa
+
 Revision 4.31  2009/01/15 16:33:18  mast
 Qt 4 port
 

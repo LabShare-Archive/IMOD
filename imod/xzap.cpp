@@ -1087,6 +1087,13 @@ void zapKeyInput(ZapStruct *zap, QKeyEvent *event)
   if (inputTestMetaKey(event))
     return;
 
+  if (utilCloseKey(event)) {
+    // For cocoa/Qt 4.5.0, need to prevent enter/leave events
+    zap->popup = 0;
+    zap->qtWindow->close();
+    return;
+  }
+
   inputConvertNumLock(keysym, keypad);
 
   setControlAndLimits(zap);
@@ -1370,13 +1377,6 @@ void zapKeyInput(ZapStruct *zap, QKeyEvent *event)
     handled = 1;
     break;
           
-  case Qt::Key_Escape:
-    // For cocoa/Qt 4.5.0, need to prevent enter/leave events
-    zap->popup = 0;
-    zap->qtWindow->close();
-    handled = 1;
-    break;
-
   case Qt::Key_R:
     if (shifted && !zap->numXpanels) {
       zapResizeToFit(zap);
@@ -4723,6 +4723,9 @@ static void setDrawCurrentOnly(ZapStruct *zap, int value)
 /*
 
 $Log$
+Revision 4.151  2010/02/22 21:34:09  mast
+Stop drawing points below threshold
+
 Revision 4.150  2010/01/22 03:05:51  mast
 Call new function to make scale bar work when doing montage snapshot
 

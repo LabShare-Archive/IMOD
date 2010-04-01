@@ -24,6 +24,7 @@
 #include <QVBoxLayout>
 #include <qtooltip.h>
 
+#include "imod.h"
 #include "control.h"
 #include "multislider.h"
 #include "imod_moviecon.h"
@@ -276,7 +277,7 @@ void MovieController::closeEvent( QCloseEvent * e )
 
 void MovieController::keyPressEvent( QKeyEvent * e )
 {
-  if (e->key() == Qt::Key_Escape)
+  if (utilCloseKey(e))
     close();
   else
     ivwControlKey(0, e);
@@ -295,6 +296,9 @@ void MovieController::fontChange( const QFont & oldFont )
 /*
 
 $Log$
+Revision 4.2  2009/11/21 23:08:11  mast
+Fixed width setting
+
 Revision 4.1  2009/01/15 16:33:17  mast
 Qt 4 port
 

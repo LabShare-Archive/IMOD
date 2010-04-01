@@ -180,7 +180,6 @@ void inputModifyPoint(ImodView *vw)
     
     /* DNM: if z value is changing, need to set contour's wild flag */
     if (point->z != vw->zmouse) {
-      Icont *cont = imodContourGet(vw->imod);
       if (!(cont->flags & ICONT_WILD))
         vw->undo->contourPropChg();
       cont->flags |= ICONT_WILD;
@@ -1002,6 +1001,13 @@ void inputQDefaultKeys(QKeyEvent *event, ImodView *vw)
 
   if (inputTestMetaKey(event))
     return;
+#ifdef Q_OS_MACX
+  if (event->key() == Qt::Key_Q && (event->modifiers() & Qt::ControlModifier)){
+    imod_quit();
+    return;
+  }
+#endif
+
   inputConvertNumLock(keysym, keypad);
 
   // Set this to 0 when a case is NOT handling the key
@@ -1491,6 +1497,9 @@ bool inputTestMetaKey(QKeyEvent *event)
 
 /*
 $Log$
+Revision 4.54  2010/03/30 16:11:24  mast
+Added new hot keys for []{} for Europeans
+
 Revision 4.53  2009/11/11 19:28:46  mast
 Changes for hot key to break contour
 

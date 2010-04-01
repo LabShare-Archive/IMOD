@@ -397,8 +397,8 @@ void GraphWindow::widthChanged(int value)
 void GraphWindow::keyPressEvent ( QKeyEvent * e )
 {
   ivwControlPriority(mGraph->vi, mGraph->ctrl);
- int key = e->key();
-  if (key == Qt::Key_Escape)
+  int key = e->key();
+  if (utilCloseKey(e))
     close();
 
   else if (key == Qt::Key_Equal || key == Qt::Key_Plus)
@@ -1005,6 +1005,9 @@ static void makeBoundaryPoint(Ipoint pt1, Ipoint pt2, int ix1, int ix2,
 
 /*
     $Log$
+    Revision 4.17  2009/03/30 18:26:20  mast
+    Call function to raise on mouse press if needed
+
     Revision 4.16  2009/03/22 19:51:22  mast
     Added spacer between mean and help button for cocoa in Aqua style
 

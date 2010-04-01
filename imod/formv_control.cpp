@@ -428,7 +428,7 @@ void imodvControlForm::rateReleased()
 void imodvControlForm::keyPressEvent( QKeyEvent * e )
 {
   // fprintf(stderr, "keyEvent\n");
-  if (e->key() == Qt::Key_Escape) {
+  if (utilCloseKey(e)) {
     imodvControlQuit();
   } else {
     
@@ -457,6 +457,9 @@ void imodvControlForm::fontChange( const QFont & oldFont )
 /*
 
 $Log$
+Revision 4.2  2009/03/25 04:15:39  mast
+Moved focus from one angle field to next
+
 Revision 4.1  2009/01/15 16:33:17  mast
 Qt 4 port
 

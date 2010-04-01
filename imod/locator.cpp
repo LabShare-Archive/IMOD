@@ -196,12 +196,12 @@ void LocatorWindow::keyPressEvent ( QKeyEvent * event )
 {
   int handled = 1;
   int key = event->key();
-
-  switch(key){
-  case Qt::Key_Escape:
+  if (utilCloseKey(event)) {
     close();
     return;
-    
+  }
+
+  switch(key){
   case Qt::Key_Minus:
     GLw->changeSize(0.6667);
     break;
@@ -436,6 +436,9 @@ void LocatorGL::mouseMoveEvent ( QMouseEvent * e )
 
 /*
 $Log$
+Revision 1.9  2009/03/30 18:26:20  mast
+Call function to raise on mouse press if needed
+
 Revision 1.8  2009/03/22 19:54:25  mast
 Show with new geometry adjust routine for Mac OS X 10.5/cocoa
 

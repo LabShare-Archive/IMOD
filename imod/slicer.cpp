@@ -85,7 +85,7 @@ static void getWindowCoords(SlicerStruct *ss, float xcur, float ycur,
                             float zcur, int &xim, int &yim, int &zim);
 static void setViewAxisRotation(SlicerStruct *ss, float x, float y, float z);
 static void changeCenterIfLinked(SlicerStruct *ss);
-int synchronizeSlicers(SlicerStruct *ss, bool draw = false);
+static int synchronizeSlicers(SlicerStruct *ss, bool draw = false);
 
 /* DNM: maximum angles for sliders */
 static float maxAngle[3] = {90.0, 180.0, 180.0};
@@ -594,7 +594,7 @@ SlicerStruct *getTopSlicer()
 
 // Sychronize angles of linked slicers, and positions for ones not locked,
 // and draw them if the flag is set.  Return number that were linked
-int synchronizeSlicers(SlicerStruct *ss, bool draw)
+static int synchronizeSlicers(SlicerStruct *ss, bool draw)
 {
   QObjectList objList;
   SlicerStruct *sso;
@@ -855,6 +855,11 @@ void slicerKeyInput(SlicerStruct *ss, QKeyEvent *event)
 
   if (inputTestMetaKey(event))
     return;
+
+  if (utilCloseKey(event)) {
+    ss->qtWindow->close();
+    return;
+  }
 
   inputConvertNumLock(keysym, keypad);
 
@@ -1125,11 +1130,6 @@ void slicerKeyInput(SlicerStruct *ss, QKeyEvent *event)
     docheck = 1;
     break;
 
-  case Qt::Key_Escape:
-    ss->qtWindow->close();
-    dodraw = 0;
-    break;
-
   default:
     handled = 0;
     break;
@@ -1324,7 +1324,6 @@ void slicerMouseMove(SlicerStruct *ss, QMouseEvent *event)
 static void slicer_attach_point(SlicerStruct *ss, int x, int y)
 {
   Ipoint pnt, norm;
-  Ipoint *spnt;
   float delta;
   float distance;
   ImodView *vi = ss->vi;
@@ -2798,6 +2797,9 @@ void slicerCubePaint(SlicerStruct *ss)
 
 /*
 $Log$
+Revision 4.72  2010/03/25 21:24:11  mast
+Prevent cube paint if closing, stops crash on Qt 4.6/Cocoa Mac
+
 Revision 4.71  2009/11/21 23:05:57  mast
 Added ability to start new contours and surfaces automatically
 

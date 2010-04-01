@@ -732,7 +732,7 @@ void LineTrack::fontChange( const QFont & oldFont )
 // Close on escape, pass on keys
 void LineTrack::keyPressEvent ( QKeyEvent * e )
 {
-  if (e->key() == Qt::Key_Escape)
+  if (utilCloseKey(e))
     close();
   else
     ivwControlKey(0, e);
@@ -746,6 +746,9 @@ void LineTrack::keyReleaseEvent ( QKeyEvent * e )
 /*
 
 $Log$
+Revision 1.18  2009/03/22 19:54:25  mast
+Show with new geometry adjust routine for Mac OS X 10.5/cocoa
+
 Revision 1.17  2009/01/15 16:33:18  mast
 Qt 4 port
 

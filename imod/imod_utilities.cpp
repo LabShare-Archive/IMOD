@@ -381,6 +381,16 @@ bool utilNeedToSetCursor()
 #endif
 }
 
+bool utilCloseKey(QKeyEvent *e)
+{
+  if (e->key() == Qt::Key_Escape)
+    return true;
+#ifdef Q_OS_MACX
+  if (e->key() == Qt::Key_W && (e->modifiers() & Qt::ControlModifier))
+    return true;
+#endif
+  return false;
+}
 
 /* Appends either the model or file name to the window name, giving
    first priority to the model name if "modelFirst" is set */
@@ -583,6 +593,9 @@ int imodColorValue(int inColor)
 /*
 
 $Log$
+Revision 1.12  2009/04/06 19:36:52  mast
+Added function to give flag for needing  to fix cursor
+
 Revision 1.11  2009/03/30 18:25:44  mast
 Added function to handle raising on mouse event, workaround Mac Qt 4.5.0
 

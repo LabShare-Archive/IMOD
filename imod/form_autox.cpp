@@ -25,6 +25,7 @@
 #include <QCloseEvent>
 #include <qtooltip.h>
 
+#include "imod.h"
 #include "control.h"
 #include "autox.h"
 #include "preferences.h"
@@ -186,7 +187,7 @@ void AutoxWindow::closeEvent( QCloseEvent * e )
 // Close on Escape; watch for ctrl press and grab, or pass on keys
 void AutoxWindow::keyPressEvent( QKeyEvent * e )
 {
-  if (e->key() == Qt::Key_Escape) {
+  if (utilCloseKey(e)) {
     close();
   } else {
     
@@ -217,5 +218,8 @@ void AutoxWindow::fontChange( const QFont & oldFont )
 /*
 
 $Log$
+Revision 4.1  2009/01/15 16:33:17  mast
+Qt 4 port
+
 
 */

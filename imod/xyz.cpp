@@ -592,7 +592,6 @@ void XyzWindow::B1Press(int x, int y)
   float mx, my;
   int mz;
   ImodView *vi   = xx->vi;
-  Imod     *imod = vi->imod;
   Ipoint pnt;
   Iindex index;
   float distance;
@@ -2006,10 +2005,6 @@ void XyzWindow::keyRelease(QKeyEvent *event)
 // Key handler
 void XyzWindow::keyPressEvent ( QKeyEvent * event )
 {
-  if (hotSliderFlag() != NO_HOT_SLIDER && event->key() == hotSliderKey()) {
-    mCtrlPressed = true;
-    grabKeyboard();
-  }
   struct xxyzwin *xx = mXyz;
   struct ViewInfo *vi = xx->vi; 
   Imod *imod = vi->imod;
@@ -2020,6 +2015,16 @@ void XyzWindow::keyPressEvent ( QKeyEvent * event )
   
   int ix, iy, rx;
   int keypad = event->modifiers() & Qt::KeypadModifier;
+
+  if (utilCloseKey(event)) {
+    close();
+    return;
+  }
+
+  if (hotSliderFlag() != NO_HOT_SLIDER && event->key() == hotSliderKey()) {
+    mCtrlPressed = true;
+    grabKeyboard();
+  }
 
   if (inputTestMetaKey(event))
     return;
@@ -2077,10 +2082,6 @@ void XyzWindow::keyPressEvent ( QKeyEvent * event )
     Draw();
     break;
 
-  case Qt::Key_Escape:
-    close();
-    break;
-    
     /* DNM: Keypad Insert key, alternative to middle mouse button */
   case Qt::Key_Insert:
 
@@ -2360,6 +2361,9 @@ void XyzGL::mouseMoveEvent( QMouseEvent * event )
 
 /*
 $Log$
+Revision 4.58  2010/02/22 21:34:07  mast
+Stop drawing points below threshold
+
 Revision 4.57  2009/04/06 19:37:31  mast
 Changes to preserve model cursor in Mac Qt 4.5 when raising window
 

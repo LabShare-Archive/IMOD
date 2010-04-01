@@ -175,7 +175,7 @@ void imodvOlistUpdateOnOffs(ImodvApp *a)
   bool state, nameChgd = false;
   QString qstr;
   char obname[MAX_LIST_NAME];
-  int len, firstHid = -1;
+  int len;
   QColor bkgColor;
   QColor gray;
   if (!Oolist_dialog || !numOolistButtons)
@@ -621,7 +621,7 @@ void ImodvOlist::closeEvent ( QCloseEvent * e )
 
 void ImodvOlist::keyPressEvent ( QKeyEvent * e )
 {
-  if (e->key() == Qt::Key_Escape)
+  if (utilCloseKey(e))
     close();
   else
     imodvKeyPress(e);
@@ -635,6 +635,10 @@ void ImodvOlist::keyReleaseEvent ( QKeyEvent * e )
 /*
 
 $Log$
+Revision 4.8  2009/03/27 05:35:14  mast
+Fixed horrible behavior when adding/subtracting group checkboxes with
+many objects and sped up other changes a bit with hide/show
+
 Revision 4.7  2009/03/22 19:54:25  mast
 Show with new geometry adjust routine for Mac OS X 10.5/cocoa
 

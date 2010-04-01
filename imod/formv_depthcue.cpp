@@ -22,6 +22,7 @@
 #include <QCloseEvent>
 
 #include "dia_qtutils.h"
+#include "imod.h"
 #include "imodv_input.h"
 #include "imodv_depthcue.h"
 #include "preferences.h"
@@ -158,7 +159,7 @@ void imodvDepthcueForm::closeEvent( QCloseEvent * e )
 // Quit on escape, set flag and grab keyboard if ctrl, pass key on
 void imodvDepthcueForm::keyPressEvent( QKeyEvent * e )
 {
-  if (e->key() == Qt::Key_Escape) {
+  if (utilCloseKey(e)) {
     imodvDepthcueDone();
   } else {
     
@@ -183,5 +184,8 @@ void imodvDepthcueForm::keyReleaseEvent( QKeyEvent * e )
 /*
 
 $Log$
+Revision 4.1  2009/01/15 16:33:17  mast
+Qt 4 port
+
 
 */

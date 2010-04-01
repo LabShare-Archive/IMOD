@@ -21,6 +21,7 @@
 #include <QKeyEvent>
 #include <QCloseEvent>
 
+#include "imod.h"
 #include "imodv_modeled.h"
 #include "imodv_input.h"
 #include "dia_qtutils.h"
@@ -148,7 +149,7 @@ void imodvModeledForm::closeEvent( QCloseEvent * e )
 // Pass on keys
 void imodvModeledForm::keyPressEvent( QKeyEvent * e )
 {
-  if (e->key() == Qt::Key_Escape)
+  if (utilCloseKey(e))
     imodvModeledDone();
   else
     imodvKeyPress(e);
@@ -162,5 +163,8 @@ void imodvModeledForm::keyReleaseEvent( QKeyEvent * e )
 /*
 
 $Log$
+Revision 4.1  2009/01/15 16:33:17  mast
+Qt 4 port
+
 
 */

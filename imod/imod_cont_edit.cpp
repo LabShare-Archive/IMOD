@@ -45,7 +45,7 @@
 
 static void setlabel(QLabel *label, Iindex ind);
 static bool indexGood(Iindex ind);
-void joinError(Iindex *indArray, char *message);
+static void joinError(Iindex *indArray, char *message);
 
 #ifndef ICONT_ONLIST
 #define ICONT_ONLIST ICONT_CONNECT_TOP
@@ -591,7 +591,7 @@ void ContourJoin::closedTypeSelected(int which)
   cojoin.closedType = which;
 }
 
-void joinError(Iindex *indArray, char *message)
+static void joinError(Iindex *indArray, char *message)
 {
   if (indArray)
     free(indArray);
@@ -1935,7 +1935,7 @@ ContourFrame::ContourFrame(QWidget *parent, int numButtons, char *labels[],
 // Close on escape, pass on keys
 void ContourFrame::keyPressEvent ( QKeyEvent * e )
 {
-  if (e->key() == Qt::Key_Escape)
+  if (utilCloseKey(e))
     close();
   else
     ivwControlKey(0, e);
@@ -1949,6 +1949,9 @@ void ContourFrame::keyReleaseEvent ( QKeyEvent * e )
 /*
 
 $Log$
+Revision 4.38  2009/11/11 19:28:20  mast
+Added break at current point and external call for hot key
+
 Revision 4.37  2009/03/22 19:54:25  mast
 Show with new geometry adjust routine for Mac OS X 10.5/cocoa
 

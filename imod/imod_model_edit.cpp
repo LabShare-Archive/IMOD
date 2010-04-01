@@ -280,7 +280,7 @@ void ModelHeaderWindow::closeEvent ( QCloseEvent * e )
 // Exit on escape, pass on other keys
 void ModelHeaderWindow::keyPressEvent ( QKeyEvent * e )
 {
-  if (e->key() == Qt::Key_Escape)
+  if (utilCloseKey(e))
     close();
   else
     ivwControlKey(0, e);
@@ -494,7 +494,7 @@ void ModelOffsetWindow::closeEvent ( QCloseEvent * e )
 // Close on escape, pass on keys
 void ModelOffsetWindow::keyPressEvent ( QKeyEvent * e )
 {
-  if (e->key() == Qt::Key_Escape)
+  if (utilCloseKey(e))
     close();
   else
     ivwControlKey(0, e);
@@ -507,6 +507,9 @@ void ModelOffsetWindow::keyReleaseEvent ( QKeyEvent * e )
 
 /*
 $Log$
+Revision 4.14  2009/03/22 19:54:25  mast
+Show with new geometry adjust routine for Mac OS X 10.5/cocoa
+
 Revision 4.13  2009/01/15 16:33:17  mast
 Qt 4 port
 

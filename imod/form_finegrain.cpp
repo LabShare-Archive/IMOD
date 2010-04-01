@@ -166,7 +166,7 @@ void FineGrainForm::init()
 // Set up buttons etc to fixed width
 void FineGrainForm::setFontDependentWidths()
 {
-  int i, cwid, swid, lwid, ewid, dswid;
+  int i, cwid, lwid, ewid, dswid;
   bool rounded = ImodPrefs->getRoundedStyle();
   dswid = diaSetButtonWidth(setColorBut, rounded, 1.3, "Set");
   setFillColorBut->setFixedWidth(dswid);
@@ -471,7 +471,7 @@ void FineGrainForm::closeEvent( QCloseEvent *e )
 
 void FineGrainForm::keyPressEvent( QKeyEvent *e )
 {
-  if (e->key() == Qt::Key_Escape) {
+  if (utilCloseKey(e)) {
     close();
   } else if (e->key() == Qt::Key_D && 
              !(e->modifiers() & (Qt::ShiftModifier | Qt::ControlModifier))) {
@@ -503,6 +503,9 @@ void FineGrainForm::fontChange( const QFont & oldFont )
 /*
 
 $Log$
+Revision 4.3  2009/03/22 19:54:25  mast
+Show with new geometry adjust routine for Mac OS X 10.5/cocoa
+
 Revision 4.2  2009/03/10 04:37:19  mast
 Added options to change all contours, draw symbols at connections, and
 output for general values

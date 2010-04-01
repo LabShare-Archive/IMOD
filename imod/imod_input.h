@@ -56,6 +56,7 @@ void inputFirstPoint(ImodView *vw);
 void inputLastPoint(ImodView *vw);
 void inputNextTime(ImodView *vw);
 void inputPrevTime(ImodView *vw);
+void inputMovieTime(ImodView *vw, int val);
 void inputLimitingTime(ImodView *vw, int dir);
 void inputRestorePointIndex(ImodView *vw, Iindex *oldIndex = NULL);
 void inputKeepContourAtSameTime(ImodView *vw);
@@ -72,6 +73,9 @@ int mouse_in_box(int llx, int lly, int urx, int  ury, int mousex, int mousey);
 #endif /* imod_input.h */
 /*
   $Log$
+  Revision 3.15  2009/02/26 20:03:32  mast
+  Add paging by big steps
+
   Revision 3.14  2009/01/15 16:33:17  mast
   Qt 4 port
 

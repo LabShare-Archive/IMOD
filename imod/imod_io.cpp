@@ -740,11 +740,15 @@ unsigned char **imod_io_image_load(struct ViewInfo *vi)
 
   vi->loadingImage = 1;
   for (i = 0; i < vi->zsize; i++) {
-    message.sprintf("Reading Image # %3.3d", i+1); 
+
+    // Put \r at the end of this message, and send out a \n so that there is 
+    // a clean start for beep colors in wprint
+    message.sprintf("Reading Image # %3.3d\r", i+1); 
     imod_imgcnt(LATIN1(message));
     ivwReadBinnedSection(vi, (char *)idata[i], i + li->zmin);
   }
-  imod_imgcnt("");
+
+  imod_imgcnt("\n");
   vi->loadingImage = 0;
   return(idata);
 }
@@ -808,6 +812,9 @@ static int mapErrno(int errorCode)
 
 /*
 $Log$
+Revision 4.29  2009/01/15 16:33:17  mast
+Qt 4 port
+
 Revision 4.28  2008/12/04 06:50:58  mast
 Turn model on when loading
 
