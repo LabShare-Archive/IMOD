@@ -143,6 +143,7 @@ void InfoControls::init()
   undoButton->setFixedWidth(hint.width());
   redoButton->setFixedWidth(hint.width());
   setUndoRedo(false, false);
+  bigModelLabel->hide();
 }
 
 // Set a minimum width for spin boxes to keep arrows big
@@ -386,11 +387,30 @@ void InfoControls::setObjectColor( QColor foreColor, QColor backColor )
   diaSetWidgetColor(maxObjectLabel, backColor);
 }
 
-// Set the model name into the label
+// Set the model name into one or the other label and adjust widget size
 void InfoControls::setModelName( char *name )
 {
+  QSize hint = modelLabel->sizeHint();
+  int delHeight = 0;
   mStr = name;
-  modelLabel->setText(mStr);
+  if (fontMetrics().width(mStr) + 5 > modelLabel->width()) {
+    modelLabel->setText(" ");
+    bigModelLabel->setText(mStr);
+    if (!bigModelLabel->isVisible()) {
+      bigModelLabel->show();
+      delHeight = hint.height();
+    }
+  } else {
+    modelLabel->setText(mStr);
+    if (bigModelLabel->isVisible()) {
+      bigModelLabel->hide();
+      delHeight = -hint.height();
+    }
+  }
+  if (delHeight) {
+    resize(width(), height() + delHeight);
+    ImodInfoWin->setFontDependentWidths();
+  }
 }
 
 // Set the image file name into the label
@@ -410,5 +430,8 @@ void InfoControls::setShowPoint( int state )
 /*
 
 $Log$
+Revision 4.1  2009/01/15 16:33:17  mast
+Qt 4 port
+
 
 */
