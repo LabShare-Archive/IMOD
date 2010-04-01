@@ -26,6 +26,7 @@
 #include "imod_edit.h"
 #include "imod_input.h"
 #include "imod_cont_edit.h"
+#include "imod_cont_copy.h"
 #include "imod_io.h"
 #include "imodplug.h"
 #include "imod_iscale.h"
@@ -307,6 +308,7 @@ void imod_info_setocp(void)
   imod_object_edit_draw();
   imodContEditSurfShow();
   imodContEditMoveDialogUpdate();
+  imodContCopyUpdate();
   fineGrainUpdate();
   imodPlugCall(App->cvi, 0, IMOD_REASON_MODUPDATE);
 }
@@ -801,7 +803,11 @@ void imod_imgcnt(const char *string)
     timer.start();
   if (!started || timer.elapsed() > 100 || string[0] == '\n' || 
       string[0] == 0x00) {
-    wprint("%s\r", string);
+
+    // Callers in 3dmod should be putting their \r on the end, but the call
+    // from mrcfiles has it on the front, so we need to add it to end
+    // in this context
+    wprint("%s%s", string, string[0] == '\r' ? "\r" : "");
     imod_info_input();
     timer.restart();
     started = 1;
@@ -825,6 +831,9 @@ void imod_imgcnt(const char *string)
 /*
 
 $Log$
+Revision 4.36  2009/11/23 19:30:35  mast
+Fixed problems with it trying to float with no image
+
 Revision 4.35  2009/09/21 23:24:34  mast
 Made it update image reading display every 100 ms
 
