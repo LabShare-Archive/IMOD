@@ -801,7 +801,7 @@ void imod_imgcnt(const char *string)
   static QTime timer;
   if (!started)
     timer.start();
-  if (!started || timer.elapsed() > 100 || string[0] == '\n' || 
+  if (started < 3 || timer.elapsed() > 100 || string[0] == '\n' || 
       string[0] == 0x00) {
 
     // Callers in 3dmod should be putting their \r on the end, but the call
@@ -810,7 +810,7 @@ void imod_imgcnt(const char *string)
     wprint("%s%s", string, string[0] == '\r' ? "\r" : "");
     imod_info_input();
     timer.restart();
-    started = 1;
+    started++;
   }
   if (App->exiting)
     exit(0);
@@ -831,6 +831,9 @@ void imod_imgcnt(const char *string)
 /*
 
 $Log$
+Revision 4.37  2010/04/01 02:26:20  mast
+Update contour copy dialog, adjust status strings for new wprint
+
 Revision 4.36  2009/11/23 19:30:35  mast
 Fixed problems with it trying to float with no image
 
