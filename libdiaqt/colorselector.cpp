@@ -163,7 +163,12 @@ void ColorSelector::closeEvent ( QCloseEvent * e )
 // watch for ctrl key; emit the key event to pass it on
 void ColorSelector::keyPressEvent ( QKeyEvent * e )
 {
-  if (e->key() == Qt::Key_Escape) {
+  bool closing = e->key() == Qt::Key_Escape;
+#ifdef Q_OS_MACX
+  if (!closing)
+    closing = e->key() == Qt::Key_W && (e->modifiers() ==Qt::ControlModifier));
+#endif
+  if (closing) {
     emit done();
   } else {
     
@@ -212,6 +217,9 @@ void ColorSelectorGL::timerEvent(QTimerEvent *e)
 
 /*
 $Log$
+Revision 1.13  2009/03/20 00:16:23  mast
+eliminated q3frame include
+
 Revision 1.12  2009/01/15 16:30:26  mast
 Qt 4 port
 
