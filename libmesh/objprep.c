@@ -59,7 +59,7 @@ int analyzePrepSkinObj(Iobj *obj, int resol, Ipoint *scale, int (*inCB)(int))
   int co, co2, pt, i, m, surf, ninSurf, numNorm, izdiff, nbad, minbad;
   int makeTubes;
   Ipoint cen, cnorm, normsum, ceninv, sclinv, refNorm, sclSkin;
-  double beta, alpha, xrot, zrot, z1, z2;
+  double beta, alpha, zrot, z1, z2;
   double dtor = 0.017453293;
   float volsum, volavg, volmed, zofs, minofs, zfactor, dval;
   float smallVal = 1.e-4;
@@ -639,7 +639,7 @@ Iobj *imeshDupMarkedConts(Iobj *obj, unsigned int flag)
 {
   Iobj *newObj;
   Icont *cont;
-  int i, err, newInd;
+  int i, err = 0, newInd;
   int maxsurf = 0;
 
   newObj = imodObjectNew();
@@ -709,6 +709,9 @@ Iobj *imeshDupMarkedConts(Iobj *obj, unsigned int flag)
 /* 
 mkmesh.c got the big log from before the split
 $Log$
+Revision 1.8  2008/09/21 17:59:01  mast
+Rationalized value range for using sphere or symbold size for tube diameter
+
 Revision 1.7  2008/06/17 20:13:31  mast
 Set or clear new flag based on whether making tubes with point sizes
 
