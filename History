@@ -1,5 +1,28 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+3/31/10: Made text panel in Info window editable so it can be copied and
+pasted from on Windows and Mac, added File menu entry to save it to file.
+
+3/31/10: Eliminated Edit-Object-Info output with statement to use imodinfo.
+
+3/31/10: Made File->Extract extract region of single section defined by window 
+if no rubberband is on.
+
+3/31/10: Put model name on its own line in info window when it is too long.
+
+3/31/10: Allowed Apple-W to close all 3dmod windows and Apple-Q to quit on Mac.
+
+3/31/10: Stopped model view objects window from closing while meshing.
+
+3/30/10: Made 3dmodv raise window on Mac when started.
+
+3/30/10: Fixed etomo startup script for spaces in ETOMO_LOG_DIR.
+
+3/30/10: Fixed backup directory entry to Copytomocoms to preserve spaces.
+
+3/30/10: Fixed contour center of mass in Imodinfo for scattered points or
+contours with 1 or 2 points: the centroid of the points is reported.
+
 3/30/10: Added hot keys < > ( ) to duplicate actions of [ ] { } since the 
 latter are often not available on European keyboards without modifiers.
 
