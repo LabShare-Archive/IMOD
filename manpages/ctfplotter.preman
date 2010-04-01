@@ -51,7 +51,7 @@ icon to access the HTML help page.
 Found defocus values can be saved in a text file that can be used as
 input to the CTF correction program ctfphaseflip(1).
 
-A sample parameter file for running the program at the command line
+A sample command file for running the program at the command line
 can be found in the IMOD/com directory.
 
 .SS Options
@@ -72,4 +72,12 @@ David Mastronarde
 .SH SEE ALSO
 ctfphaseflip(1)
 .SH BUGS
+Prior to IMOD 4.0.29, Ctfplotter had a bug in which the view numbers written
+to the defocus file were numbered from 0, not 1.  When Ctfplotter reads in
+an existing defocus file and sees a view range starting at 0, it will warn you
+and adjust all the view numbers up by 1.  However, if your previous fits did
+not include the first view in the image stack, Ctfplotter will not be able to 
+detect this problem.  In this case you can redo all the fits, or you can
+simply edit the defocus file and add 1 to the view numbers.
+.P
 Email bug reports to mast@colorado.edu.
