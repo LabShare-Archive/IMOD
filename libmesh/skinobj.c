@@ -340,7 +340,7 @@ static int mesh_open_tube_obj(Iobj *obj, Ipoint *scale, unsigned int flags,
   Imesh *nmesh;
   Icont *cont, *nextcont, *domeCont1, *domeCont2;
   Icont *clst;
-  Ipoint nrot, capPt1, capPt2, domeRot1, domeRot2, domeCap1, domeCap2;
+  Ipoint nrot, domeRot1, domeRot2, domeCap1, domeCap2;
   DrawProps defProps, contProps, ptProps, lastProps;
   int nextChange, stateFlags, changeFlags, lastState;
   int stateTest = CHANGED_COLOR | CHANGED_FCOLOR | CHANGED_TRANS;
@@ -609,9 +609,11 @@ int imeshSkinObject(Iobj *obj, Ipoint *scale, double overlap, int cap,
     return(-1);
   if (obj->flags & IMOD_OBJFLAG_SCAT)
     return(-1);     
+  obj->mesh = NULL;
+  obj->meshsize = 0;
   if (!obj->contsize)
-    return(-1);
-
+    return 0;
+     
   if (!iobjClose(obj->flags) && (flags & IMESH_MK_TUBE) )
     return(mesh_open_tube_obj(obj, scale, flags, tubeDiameter));
 
@@ -625,9 +627,6 @@ int imeshSkinObject(Iobj *obj, Ipoint *scale, double overlap, int cap,
   if (flags & IMESH_MK_NO_WARN)
     numwarn = -1;
 
-  obj->mesh = NULL;
-  obj->meshsize = 0;
-     
   if (imodContourMakeZTables(obj, incz, CONNECT_BOTH | ICONT_CONNECT_INVERT, &contz,
                              &zlist, &numatz, &contatz, &zmin, &zmax, &zlsize, &nummax))
     return -1;
@@ -2880,6 +2879,9 @@ static int break_contour_inout(Icont *cin, int st1, int st2,  int fill,
 /* 
 mkmesh.c got the big log from before the split
 $Log$
+Revision 1.8  2008/11/15 21:55:27  mast
+Implemented dome caps, fixed bug in getting next Z
+
 Revision 1.7  2008/09/21 17:59:01  mast
 Rationalized value range for using sphere or symbold size for tube diameter
 
