@@ -41,14 +41,12 @@ Quanren Xiong
 .SH SEE ALSO
 ctfplotter(1)
 .SH BUGS
-Prior to IMOD 4.0.29, Ctfplotter(1) had a bug in which the view numbers written
-to the defocus file were numbered from 0, not 1.  When Ctfphaseflip 
-sees a view range starting at 0 in the defocus file, it will print a WARNING
-and adjust all the view numbers up by 1.  However, if your previous fits did
-not include the first view in the image stack, Ctfphaseflip will not be able 
-to detect this problem.  In this case you can redo all the fits, or you can
-simply edit the defocus file and add 1 to the view numbers.  In general, the
-difference in CTF correction from having view numbers off by 1 will be
-insignificant.
+Prior to IMOD 4.0.29, Ctfplotter had a bug in which the view numbers written
+to the defocus file were numbered from 0, not 1.  When Ctfphaseflip reads in
+the defocus file, it will do its best to detect this situation
+and adjust all the view numbers up by 1.  If it does detect an inconsistency
+between view numbers and angular ranges, it will issue a warning.
+In general, the difference in CTF correction from having view numbers off by 1
+was insignificant.
 .P
 Email bug reports to mast@colorado.edu.
