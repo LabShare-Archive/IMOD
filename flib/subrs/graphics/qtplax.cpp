@@ -167,7 +167,10 @@ void PlaxWindow::resizeEvent ( QResizeEvent * )
 void PlaxWindow::redrawSlot()
 {
   static int widthInc = 1;
+  // Printing this seems to solve problems, so let's just flush both streams
   //puts("Got signal");
+  fflush(stdout);
+  fflush(stderr);
   if (!Plax_open)
     hide();
   else if (Plax_open > 0) {
@@ -185,6 +188,7 @@ void PlaxWindow::redrawSlot()
        paintEvent(&event); */
     Plax_open = 1;
   }
+  QApplication::processEvents();
 }
 
 void PlaxWindow::lock()
@@ -830,6 +834,9 @@ static void plax_set_brush(int color, int closed)
 
 /*
 $Log$
+Revision 1.18  2009/03/20 00:15:48  mast
+Changed q3pointarray to qpolygon
+
 Revision 1.17  2009/01/15 16:32:58  mast
 Qt 4 port
 
