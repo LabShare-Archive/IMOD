@@ -24,19 +24,24 @@
 #include <qtextedit.h>
 #include <qscrollbar.h>
 #include <qapplication.h>
+#include <qfiledialog.h>
+#include <qfile.h>
+#include <qtextstream.h>
 #include "imod.h"
 #include "preferences.h"
 #ifdef _WIN32
 #define vsnprintf _vsnprintf
 #endif
 
-static QTextEdit *Wprint_text_output = NULL;
+static QTextEdit *wprintText = NULL;
 
 void wprintWidget(QTextEdit *edit)
 {
      
-  Wprint_text_output = edit;
-  edit->setReadOnly(true);
+  wprintText = edit;
+
+  // 3/31/10: Allow editing
+  //edit->setReadOnly(true);
   //edit->setTextFormat(Qt::PlainText);
 }
 
@@ -46,15 +51,17 @@ void wprint(const char *fmt, ...)
 {
   char msgbuf[MSGBUF_LEN];
   va_list args;
-  bool nopos = false;
+  bool nextBackup;
+  bool lineEnds;
   int i, len, lastnl;
   int beep = 0;
-  static QString str;
-  static bool returnPending = false;
+  static bool needInsert = false;
+  static bool needBackup = false;
   static int lastbeep = 0;
+  static int yellow = 0;
   QString msgstr;
 
-  if (!Wprint_text_output)
+  if (!wprintText)
     return;
 
   va_start (args, fmt);
@@ -77,60 +84,88 @@ void wprint(const char *fmt, ...)
   while ((i = msgstr.indexOf(0x07)) >= 0)
     msgstr = msgstr.remove(i, 1);
 
-  // Strip \r's
+  // Strip \r's after recording their purpose
+  nextBackup = msgstr.endsWith("\r");
+  if (msgstr.startsWith("\r"))
+    needBackup = true;
+
   while ((lastnl = msgstr.indexOf('\r')) >= 0) {
-    //    fprintf(stderr,"stripping ctrl-r at %d\n", lastnl);
+    //fprintf(stderr,"stripping ctrl-r at %d\n", lastnl);
     msgstr.remove(lastnl, 1);
-    nopos = true;
+  }
+  //fprintf(stderr,"needBackup %d  nextBackup %d\n", needBackup, nextBackup);
+
+  // Then remove last block of text if needed
+  if (needBackup) {
+    wprintText->moveCursor(QTextCursor::End);
+    wprintText->moveCursor(QTextCursor::StartOfBlock, QTextCursor::KeepAnchor);
+    
+    // Using a QTextCursor to removeSelectedText didn't work all the time
+    wprintText->cut();
+    needInsert = true;
   }
 
-  // Add a \n if one was pending
-  if (returnPending) {
-    str += '\n';
-  }
-
-  // If there was a \r, remove the last line from existing string
-  if (nopos && !str.isEmpty()) {
-    lastnl = str.lastIndexOf('\n');
-    //    fprintf(stderr, "backing up to %d\n", lastnl);
-    if (lastnl >= 0)
-      str.truncate(lastnl + 1);   // Truncate takes a length not an index!
-    else
-      str = "";
-    Wprint_text_output->setText(str);
-  }
-
-
-  // If string ends with \n, remove it and set it as pending
-  returnPending = msgstr.endsWith("\n");
-  if (returnPending)
+  // If string ends with \n, remove it and keep track that line ended
+  //fprintf(stderr, "- %s -", LATIN1(msgstr));
+  lineEnds = msgstr.endsWith("\n");
+  if (lineEnds)
     msgstr.remove(msgstr.length() - 1, 1);
-  
-  //  fprintf(stderr, "%s-*-%s",  LATIN1(str), LATIN1(msgstr));
-  str += msgstr;
-  //  Wprint_text_output->setText(str);
 
+  if (needInsert) {
+    wprintText->moveCursor(QTextCursor::End);
+    wprintText->insertPlainText(msgstr);
+  } else {
+
+    // Change color as needed when starting a new paragraph
 #if QT_VERSION >= 0x040400
-  if (beep) {
-    Wprint_text_output->setTextBackgroundColor
-      (lastbeep ? "yellow" : "magenta");
-    lastbeep = 1 - lastbeep;
-  } else if (lastbeep) {
-    Wprint_text_output->setTextBackgroundColor("white");
-    lastbeep = 0;
-  }
+    if (beep) {
+      wprintText->setTextBackgroundColor(yellow ? "yellow" : "magenta");
+      yellow = 1 - yellow;
+    } else if (lastbeep) {
+      wprintText->setTextBackgroundColor("white");
+    }
+    lastbeep = beep;
 #endif
-  if (returnPending)
-    Wprint_text_output->append(msgstr);
-  else
-    Wprint_text_output->setText(str);
-  QScrollBar *scroll = Wprint_text_output->verticalScrollBar();
+    wprintText->append(msgstr);
+  }
+
+  // Set needInsert for next time depending on whether this line ends
+  needInsert = !lineEnds;
+  needBackup = nextBackup;
+  QScrollBar *scroll = wprintText->verticalScrollBar();
   scroll->setValue(scroll->maximum());
+}
+
+/*
+ * Write the edit field to a file
+ */
+void wprintWriteFile(void)
+{
+  QString str;
+  QString qname = QFileDialog::getSaveFileName
+    (NULL, "File to save info text panel into:");
+  if (qname.isEmpty())
+      return;
+  imodBackupFile((char *)LATIN1(qname));
+  QFile file(qname);
+  if (!file.open(QIODevice::WriteOnly | QIODevice::Text)) {
+    wprint("\aCould not open %s", LATIN1(qname));
+    return;
+  }
+  QTextStream stream(&file);
+  str = wprintText->toPlainText();
+  stream << str;
+  if (!str.endsWith("\n"))
+    stream << "\n";
+  file.close();
 }
 
 /*
 
 $Log$
+Revision 4.10  2009/11/06 20:32:53  mast
+Disable the one incompatibiity with Qt 4.3
+
 Revision 4.9  2009/04/01 03:24:43  mast
 Switched to vsnprintf call to prevent buffer overruns
 
