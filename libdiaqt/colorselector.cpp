@@ -166,7 +166,7 @@ void ColorSelector::keyPressEvent ( QKeyEvent * e )
   bool closing = e->key() == Qt::Key_Escape;
 #ifdef Q_OS_MACX
   if (!closing)
-    closing = e->key() == Qt::Key_W && (e->modifiers() ==Qt::ControlModifier));
+    closing = e->key() == Qt::Key_W && (e->modifiers() ==Qt::ControlModifier);
 #endif
   if (closing) {
     emit done();
@@ -217,6 +217,9 @@ void ColorSelectorGL::timerEvent(QTimerEvent *e)
 
 /*
 $Log$
+Revision 1.14  2010/04/01 02:57:37  mast
+Added Apple-W for close on Mac
+
 Revision 1.13  2009/03/20 00:16:23  mast
 eliminated q3frame include
 
