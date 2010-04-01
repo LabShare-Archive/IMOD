@@ -166,13 +166,14 @@ void ImodSendEvent::timerEvent(QTimerEvent *e)
   }
   fprintf(stderr, "ERROR: imodsendevent - timeout before response received "
           "from target 3dmod\n");
-  ::exit(2);
+  QApplication::exit(2);
 }
 
 // The clipboard changed - check for window ID and OK or ERROR
-// NOTE: on Windows, needed to exit with ::exit instead of QApplication::exit,
-// otherwise it would hang for a long time or until the timeout occurred.
-// So do all exiting with ::exit()
+// NOTE: on Windows, Qt 3 needed to exit with ::exit instead of
+// QApplication::exit,  otherwise it would hang for a long time or until the 
+// timeout occurred.  It complains in Qt 4 about deleting an object during its
+// event handler, but qapp::exit seems fine now.
 void ImodSendEvent::clipboardChanged()
 {
   QClipboard *cb = QApplication::clipboard();
@@ -192,18 +193,22 @@ void ImodSendEvent::clipboardChanged()
 
   // If OK, just exit; if ERROR, give message and exit with error status
   if (text.mid(index + 1) == "OK") {
-    ::exit(0);
+    QApplication::exit(0);
     return;
   }
   if (text.mid(index + 1) != "ERROR")
     return;
   fprintf(stderr, "ERROR: imodsendevent - message received but error occurred "
           "executing it\n");
-  ::exit(3);
+  QApplication::exit(3);
 }
 
 /*
+
 $Log$
+Revision 1.10  2009/01/15 16:31:44  mast
+Qt 4 port
+
 Revision 1.9  2004/07/07 19:25:31  mast
 Changed exit(-1) to exit(3) for Cygwin
 
