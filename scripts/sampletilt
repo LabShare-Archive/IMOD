@@ -4,6 +4,9 @@
 #  $Id$
 #
 #  $Log$
+#  Revision 3.4  2007/12/11 19:54:09  mast
+#  Even the simplest change can have a stupid bug
+#
 #  Revision 3.3  2007/12/06 22:40:37  mast
 #  Knock out adjustorigin entry to be conservative
 #
@@ -21,6 +24,10 @@ if ($#argv != 6) then
     exit 1
 endif
 
+set tiltin = sampletilt.$$
+set retval = 1
+onintr clean
+
 set slstart = $argv[1]
 set slend = $argv[2]
 set ystart = $argv[3]
@@ -32,5 +39,9 @@ sed -e '/^[$#]/d' -e "/SUBSETSTART.*/s//SUBSETSTART 0 $ystart/" \
  -e "/$setname.*\.rec/s//$recname/" -e '/SLICE/d' -e '/WIDTH/d' \
  -e '/AdjustOrigin/d' -e '/[[:cntrl:]]/s///g' -e '/THICKNESS/a\\
 SLICE'" $slstart $slend"' 1\
-' $tiltname |tilt
-exit $status
+' $tiltname >! $tiltin
+tilt < $tiltin
+set retval = $status
+clean:
+\rm -f $tiltin
+exit $retval
