@@ -197,6 +197,9 @@ void InfoWindow::fileSlot(int item)
     imod_info_enable();
     break;
 
+  case FILE_MENU_SAVEINFO: /* extract */
+    wprintWriteFile();
+    break;
 
   case FILE_MENU_QUIT:
     imod_quit();
@@ -388,7 +391,6 @@ void InfoWindow::editObjectSlot(int item)
   Iobj *obj;
   Icont *cont;
   int ob,co,pt, coind, obOld, obNew, ndone, num, minOb, maxOb;
-  float vol;
   int cosave, ptsave;
   QString qstr;
   char *objtype;
@@ -541,51 +543,9 @@ void InfoWindow::editObjectSlot(int item)
     imodvObjedNewView();
     break;
 
-  case EOBJECT_MENU_INFO: /* stats */
-    {
-      float sa = 0.0f;
-      int co,pt;
-      Icont *cont;
-      Iobj *obj = imodObjectGet(imod);
-      if (!obj) break;
-
-      vol = imodObjectVolume(obj);
-      /* DNM 1/3/04: do not multiply by zbin because this is just summing 
-         over all the contours which will be more frequent if Z binning */
-      if (imod->pixsize)
-        vol *= imod->pixsize * vi->xybin * imod->pixsize * vi->xybin
-          * imod->pixsize;
-      vol *= imod->zscale;
-      wprint("Object %d: Cylinder volume = %g %s^3.\n", 
-             imod->cindex.object + 1, vol, 
-             imodUnits(imod));
-
-      if (!iobjClose(obj->flags)) break;
-
-      for(co = 0; co < (int)obj->contsize; co++){
-        cont = &obj->cont[co];
-        /* DNM 2/12/01: added test, because the for loop will
-           execute indefinitely on SGI or PC when psize is 0
-           because it is an unsigned int */
-        if (cont->psize < 2) 
-          continue;
-        for(pt = 0; pt < (int)cont->psize - 1; pt++){
-          sa += imodel_point_dist
-            (&(cont->pts[pt]), &(cont->pts[pt+1]));
-        }
-        if (!imodContourIsOpen(cont)){
-          sa += imodel_point_dist
-            (cont->pts, &(cont->pts[cont->psize-1]));
-        }
-
-      }
-      sa *= imod->pixsize * vi->xybin * imod->pixsize * imod->zscale;
-      wprint("Object %d: Cylinder surface area = %g%s^2.\n",
-             imod->cindex.object + 1,sa,
-             imodUnits(imod));
-      wprint("%s imodinfo for better measurements.\n", obj->meshsize ?
-             "Use" : "Mesh the object and use");
-    }
+  case EOBJECT_MENU_INFO: /* stats: eliminated 3/31/10 */
+    wprint("\aUse imodinfo -h or imodinfo -o %d for measurements of object "
+           "properties\n", imod->cindex.object + 1);
     break;
 
   case EOBJECT_MENU_CLEAN: /* Clean: delete empty contours */
@@ -1052,7 +1012,6 @@ void InfoWindow::editPointSlot(int item)
              
     int    pt   = imod->cindex.point;
     Ipoint *cpt, *ppt;
-    Ipoint scale;
     float dist2d, dist3d;
 
     /* DNM: psize must be at least 2, not 0 or 1 */
@@ -1332,6 +1291,9 @@ static int imodContourBreakByZ(ImodView *vi, Iobj *obj, int ob, int co)
 /*
 
 $Log$
+Revision 4.55  2009/11/11 19:28:46  mast
+Changes for hot key to break contour
+
 Revision 4.54  2009/06/24 15:29:06  mast
 Put out caveats on the object info output
 
