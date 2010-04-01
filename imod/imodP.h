@@ -27,6 +27,7 @@ class QGLColormap;
 class QCursor;
 class QPixmap;
 class UndoRedo;
+class QTextEdit;
 typedef struct ilist_struct Ilist;
 
 /* DNM 12/22/02: eliminated multiple view structures */
@@ -266,12 +267,17 @@ extern int (*ivwFastGetValue)(int x, int y, int z);
 int imodLoopStarted();
 void imod_quit(void);
 bool imodDebug(char key);
+void wprintWidget(QTextEdit *edit);
+void wprintWriteFile(void);
 
 #endif     
 
 
 /*
 $Log$
+Revision 3.47  2009/03/22 21:19:06  mast
+Add flag for app closing windows
+
 Revision 3.46  2009/02/27 23:47:05  mast
 Added listening flag
 
