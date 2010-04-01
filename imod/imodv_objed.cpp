@@ -339,10 +339,11 @@ void imodvObjedFramePicked(int item)
     objectEditFieldData[CurrentObjectField].setwidget();
 }
 
-// Done or Escape is pressed
+// Done or Escape is pressed: close unless busy meshing
 void imodvObjedDone()
 {
-  objed_dialog->close();
+  if (!meshingBusy())
+    objed_dialog->close();
 }
 
 // Signal from window that it is closing: clear pointer
@@ -2575,6 +2576,9 @@ static QVBoxLayout *outerVBoxLayout(QWidget *parent)
 /*
 
 $Log$
+Revision 4.49  2009/11/21 23:07:07  mast
+Fixed step size in flat crit box
+
 Revision 4.48  2009/09/08 23:54:41  mast
 Added function to toggle current clipping plane
 
