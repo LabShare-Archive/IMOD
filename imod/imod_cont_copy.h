@@ -26,6 +26,7 @@ class ContourCopy : public DialogFrame
   ContourCopy(QWidget *parent, const char *name = NULL);
   ~ContourCopy() {};
   void apply();
+  void update();
 
   public slots:
   void buttonPressed(int which);
@@ -40,7 +41,6 @@ class ContourCopy : public DialogFrame
   void fontChange( const QFont & oldFont );
 
  private:
-  void update();
   QComboBox *mToCombo;
   QButtonGroup *mRadioGroup;
   QSpinBox *mToSpinBox;
@@ -49,11 +49,15 @@ class ContourCopy : public DialogFrame
 
 int openContourCopyDialog(ImodView *vw);
 void iccCopyContour(void);
+void imodContCopyUpdate(void);
 
 #endif
 /*  
 
 $Log$
+Revision 4.4  2009/01/15 16:33:17  mast
+Qt 4 port
+
 Revision 4.3  2008/12/10 01:05:15  mast
 Added hot key for contour copy
 
