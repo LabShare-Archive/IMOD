@@ -13,6 +13,7 @@ c
       character*320 filin, filout
       integer*4 numInGroup(2), jred(2), jgreen(2), jblue(2)
       logical*4 exist, readSmallMod, already, majority, invertZ, rescale
+      logical*4 oneSurface
       integer*4 ifflip, local, ierr, i, j, ix, iy,indy,indz,maxx,maxy,maxz
       real*4 xmax, xmin, ymin, ymax, deltaX, deltaY, xlo, xhi, ylo, yhi
       real*4 epsX, epsY, dx, dy, cosa, sina, xtilt, scalef
@@ -57,7 +58,7 @@ c
       iyTrim1 = 0
 
       call PipReadOrParseOptions(options, numOptions, 'sortbeadsurfs',
-     &    'ERROR: SORTBEADSURFS - ', .false., 1, 1, 2, numOptArg,
+     &    'ERROR: SORTBEADSURFS - ', .false., 1, 1, 1, numOptArg,
      &    numNonOptArg)
       
       if (PipGetInOutFile('InputFile', 1, ' ', filin)
@@ -68,6 +69,7 @@ c
       ierr = PipGetInteger('SubareaSize', local)
       ierr = PipGetFloat('XAxisTilt', xtilt)
       ierr = PipGetLogical('AlreadySorted', already)
+      ierr = PipGetLogical('OneSurface', oneSurface)
       ierr = PipGetLogical('MajorityObjectOnly', majority)
       ierr = PipGetTwoIntegers('AlignedSizeXandY', newNx, newNy)
       ierr = PipGetInteger('PrealignedBinning', ibinPreali)
@@ -128,7 +130,13 @@ c       Rotate by the tilt angle not the negative of it.
       enddo
 c       
 c       If points are already sorted, look at the object colors to deduce this
-      if (already) then
+c       the sorting, unless the one surface option is given
+      if (oneSurface) then
+        do i = 1, n_point
+          igroup(i) = 1
+        enddo
+        
+      else if (already) then
         numColors = 0
         do iobj = 1, max_mod_obj
           if (npt_in_obj(iobj) .gt. 0) then
@@ -304,6 +312,9 @@ c       rebuild the model, make it one point per contour
       end
 c
 c       $Log$
+c       Revision 3.1  2009/12/09 01:33:33  mast
+c       Added to package
+c
 c       Revision 3.23  2009/12/02 05:42:47  mast
 c       *** empty log message ***
 c
