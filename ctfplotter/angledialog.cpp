@@ -357,7 +357,6 @@ void AngleDialog::deleteClicked()
 {
   int row = mTable->currentRow();
   Ilist *saved = mApp->getSavedList();
-  SavedDefocus *item;
   if (row < 0 || row >= ilistSize(saved))
     return;
   ilistRemove(saved, row);
@@ -378,6 +377,7 @@ void AngleDialog::setAnglesClicked()
   lowAngleEdit->setText(str);
   str.sprintf("%.2f",item->hAngle);
   highAngleEdit->setText(str);
+  qApp->processEvents();
   anglesSet();
 }
 
@@ -390,6 +390,9 @@ void AngleDialog::closeEvent( QCloseEvent *e )
 /*
 
    $Log$
+   Revision 1.9  2010/03/14 19:14:17  mast
+   Changes for adding table, using read-in tilt angles, etc
+
    Revision 1.8  2009/08/10 22:11:07  mast
    Reorganized to put important things at the top
 
