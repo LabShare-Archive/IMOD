@@ -236,7 +236,6 @@ int main(int argc, char *argv[])
   app.setLowAngle(lowAngle);
   app.setHighAngle(highAngle);
   app.setSlice(stackFn, angleFn);
-  double stackMean;
   app.computeInitPS();
 
   // Removed setting of stack mean and noise files from here
@@ -291,6 +290,9 @@ int ctfShowHelpPage(const char *page)
 /*
 
 $Log$
+Revision 1.17  2010/03/14 19:32:57  mast
+Ask about writing defocus file before exiting
+
 Revision 1.16  2010/03/09 06:24:22  mast
 Allow use of relative paths in config file
 

@@ -30,8 +30,6 @@
 #include "b3dutil.h"
 #include "cfft.h"
 
-extern int debugLevel;
-
 #define MY_PI 3.1415926
 
 SliceCache::SliceCache(int cacheSize)
@@ -91,7 +89,7 @@ void SliceCache::clearAndSetSize(int dim, int hyper, int tSize)
   mNumYtiles = mHeader.ny / (tSize / 2) - 1;
   mPsArraySize = numXtiles * mNumYtiles * mPsDim;
   mMaxSliceNum=mMaxCacheSize*1024*1024/(mPsArraySize * sizeof(float));
-  for (int i = 0; i < mCachedPS.size(); i++) {
+  for (i = 0; i < mCachedPS.size(); i++) {
     free(mCachedPS[i]);
     free(mCachedTileDone[i]);
     free(mCachedMeans[i]);
@@ -251,17 +249,11 @@ float *SliceCache::getHyperPS(int tileX, int tileY, int whichSlice,
     for (ii = 0; ii < numXtiles * mNumYtiles; ii++)
       newDone[ii] = 0;
 
-    printf("0\n");
     mCachedPS.push_back(newPS);
-    printf("1\n");
     mCachedMeans.push_back(newMeans);
-    printf("2\n");
     mCachedTileDone.push_back(newDone);
-    printf("3\n");
     mCachedSliceMap.push_back(whichSlice);
-    printf("4\n");
     mSliceAngles.push_back(readAngle(whichSlice));
-    printf("5\n");
 
     if(mOldestIdx==-1)
       mOldestIdx=currCacheSize;
@@ -288,7 +280,6 @@ float *SliceCache::getHyperPS(int tileX, int tileY, int whichSlice,
   // Have to compute the PS
   // Read in slice if needed
   if (mCurSlice != whichSlice) {
-    printf("reading slice\n");
     if (mrc_read_slice(mSliceData, mFpStack, &mHeader, whichSlice, 'Z'))
       exitError("Reading slice %d", whichSlice);
     mCurSlice = whichSlice;
@@ -346,6 +337,9 @@ float SliceCache::getAngle(int whichSlice)
 /*
 
 $Log$
+Revision 1.8  2010/03/14 19:11:03  mast
+Changed to use array of tilt angles already read in
+
 Revision 1.7  2010/03/09 06:24:52  mast
 Change arguments to const char* to take latin1 from QString
 

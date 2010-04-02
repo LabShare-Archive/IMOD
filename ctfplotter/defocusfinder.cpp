@@ -15,14 +15,13 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include "defocusfinder.h"
+#include "myapp.h"
 
 #define DEF_START -1.0
 #define DEF_END -20.0
 #define ZERO_START 0.2
 #define ZERO_END 0.8
 #define MY_PI 3.1415926
-
-extern int debugLevel;
 
 /*
  * Constructor: set the various constants and expected zero and defocus
@@ -208,6 +207,9 @@ double DefocusFinder::CTFvalue(double freq, double def)
 /*
 
 $Log$
+Revision 1.8  2009/08/10 22:12:47  mast
+Implemented exact equations and added function for second zero
+
 Revision 1.7  2009/01/15 16:31:36  mast
 Qt 4 port
 

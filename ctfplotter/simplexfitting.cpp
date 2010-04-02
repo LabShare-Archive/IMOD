@@ -20,8 +20,6 @@
 #define MAX_ITER 100
 #define MIN_ERROR 0.1
 
-extern int debugLevel;
-
 int SimplexFitting::mDim=0;
 int SimplexFitting::mIndex1=0;
 int SimplexFitting::mIndex2=0;
@@ -305,6 +303,9 @@ void SimplexFitting::funkCTF(float* param, float* fValue)
 /*
 
 $Log$
+Revision 1.6  2010/03/14 19:10:22  mast
+Changed to use current defocus estimate for CTF-like fitting if selected
+
 Revision 1.5  2009/08/11 15:02:33  mast
 Cast float to double in pow to avoid harassment on Windows
 
