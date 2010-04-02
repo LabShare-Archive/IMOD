@@ -4,7 +4,7 @@
 </HEAD>
 
 <BODY>
-<CENTER><H1>Program Descriptions and Man Pages for IMOD Version 3.13</H1>
+<CENTER><H1>Program Descriptions and Man Pages for IMOD Version 4.1</H1>
 </CENTER>
 <HR>
 <UL> 
@@ -330,7 +330,8 @@ above if possible.
 <P>
 <LI> Special programs used for tomography.
 These programs are of use mainly for calculating tomographic reconstructions
-from a tilt series obtained from an electron microscope.
+from a tilt series obtained from an electron microscope, or for
+post-processing of such volumes.
 <UL>
 <LI><B><A HREF="man/alignlog.html">alignlog</A></B>
 : Extract useful parts from the output of tiltalign.
@@ -353,12 +354,20 @@ from a tilt series obtained from an electron microscope.
 tomograms.
 <LI><B><A HREF="man/filltomo.html">filltomo</A></B>
 : Replace pixels in combined tomogram with values from one.
+<LI><B><A HREF="man/findbeads3d.html">findbeads3d</A></B>
+: Automatically locate spherical beads in a tomographic volume.
 <LI><B><A HREF="man/findsection.html">findsection</A></B>
 : Locate section boundaries in tomogram slices.
 <LI><b><A HREF="man/findwarp.html">findwarp</a></b>
 : Find a series of transformations to warp one volume into another.
 <LI><b><A HREF="man/finishjoin.html">finishjoin</a></b>
 : Do final steps in joining tomograms from serial sections.
+<LI><B><A HREF="man/fitpatches.html">fitpatches</A></B>
+: Manage and fit to patch vector files in stitching together adjacent 
+overlapping tomograms.
+<LI><b><A HREF="man/flattenwarp.html">flattenwarp</a></b>
+: Compute warping transformations for flattening a volume from a model of
+lines or points on surfaces.
 <LI><B>goodframe</B>
 : Only used as a call from scripts.
 <LI><B>makejoincom</B>
@@ -386,8 +395,14 @@ HREF="man/reducemont.html">reducemont</a></b> (no longer needed, use newstack
 or binvol).
 <LI><B>setupcombine</B>
 : Generate command file for combining two tomograms.
+<LI><B><A HREF="man/sirtsetup.html">sirtsetup</A></B>
+: Set up multiple command files for simultaneous iterative reconstruction
+(SIRT).
 <LI><B><A HREF="man/solvematch.html">solvematch</A></B>
 : Solve for transformation matching one tomogram to another.
+<LI><B><A HREF="man/sortbeadsurfs.html">sortbeadsurfs</A></B>
+: Sort a model of gold bead positions into two surfaces and/or modify it to
+match a particular volume.
 <LI><B><A HREF="man/squeezevol.html">squeezevol</A></B>
 : Reduce a volume in all dimensions by interpolation using <B><A HREF="man/matchvol.html">matchvol</A></B>.
 <LI><b><A HREF="man/stitchalign.html">stitchalign</a></b>
@@ -487,7 +502,7 @@ properties.
 
 </UL>
 <HR>
-<I>Last updated: December 12, 2008</I>
+<I>Last updated: April 1, 2010</I>
 [<A HREF="http://bio3d.colorado.edu/imod/index.html">IMOD Home Page</A>] 
 [<A HREF="http://bio3d.colorado.edu/index.html">BL3DEMC Home Page</A>]
 </body>

@@ -1,5 +1,9 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+4/1/10: IMOD_4-0-29 
+4/1/10: Added option to Sortbeadsurfs to handle the case of beads on one
+surface but in multiple objects.
+
 4/1/10: Fixed bug in Ctfplotter that was putting out views numbered from 0 and
 made Ctfplotter and Ctfphaseflip detect erroreous view numbers in a defocus file and adjust them up by 1.
 
@@ -30,8 +34,8 @@ if no rubberband is on.
 3/30/10: Fixed contour center of mass in Imodinfo for scattered points or
 contours with 1 or 2 points: the centroid of the points is reported.
 
-3/30/10: Added hot keys < > ( ) to duplicate actions of [ ] { } since the 
-latter are often not available on European keyboards without modifiers.
+3/30/10: Added 3dmod hot keys < > ( ) to duplicate actions of [ ] { } since
+the latter are often not available on European keyboards without modifiers. 
 
 3/29/10: Improved merging time when running isosurface with multiple threads;
 multipled threads are now enabled by default, with the number set to the
