@@ -6,14 +6,18 @@ short = input
 type = FN
 usage = Input model file with scattered points for 3D gold bead positions
 tooltip = 
-manpage = 
+manpage = Input model file with scattered points for 3D gold bead positions.
+If this option is not entered, the first non-option argument will be used
+for this file.
 
 [Field = OutputFile]
 short = output
 type = FN
 usage = Output file for processed model
 tooltip = 
-manpage = 
+manpage = Output file for processed model.
+If this option is not entered, the second non-option argument will be used
+for this file.
 
 [Field = FlipYandZ]
 short = flipyz
@@ -31,8 +35,8 @@ short = subarea
 type = I
 usage = Size of subareas over which to analyze for two surfaces
 tooltip = 
-manpage = Size of subareas over which to analyze for two surfaces.  This is
-option is needed only if area coated with beads is large enough and warped
+manpage = Size of subareas over which to analyze for two surfaces.  This
+option is needed only if the area coated with beads is large enough and warped
 enough that the analysis fails to separate the two surfaces.  The area
 occupied by beads will
 be divided into non-overlapping subregions of approximately the given size in
@@ -71,12 +75,23 @@ This option is needed only for a 3D fiducial model output by Tiltalign(1).
 [Field = AlreadySorted]
 short = already
 type = B
-usage = Points are already sorted into two surfaces or are on only one surface
+usage = Points are already sorted into two surfaces
 tooltip = 
 manpage = Use this option to skip the analysis that sorts beads between two
-surfaces.  You would use this for a 3D fiducial model from Tiltalign(1) if the
-beads are already correctly sorted into two surfaces, or if they are only on
-one surface.
+surfaces, and combine multiple objects by color if there are any.  You would
+use this for a 3D fiducial model from Tiltalign(1) if the beads are already
+correctly sorted into two surfaces, or if they are on only one surface and in
+only one object.
+
+[Field = OneSurface]
+short = one
+type = B
+usage = Points are all on one surface
+tooltip = 
+manpage = Use this option to skip the analysis that sorts beads between two
+surfaces, and to combine all points into one object.  You would use this for a
+3D fiducial model from Tiltalign(1) if the beads are all on one surface but in
+different objects.
 
 [Field = AlignedSizeXandY]
 short = aligned

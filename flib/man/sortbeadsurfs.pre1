@@ -39,14 +39,17 @@ DDEESSCCRRIIPPTTIIOONN
   If you have a model from Tiltalign(1), you should run this program on it to
   apply the X axis tilt that was used when generating the tomogram.  The
   program will attempt to sort the points into two surfaces, but if this
-  creates a problem, use the -already option to skip the sorting.  If
-  fiducials were tracked with multiple objects, the program automatically
-  reduces them to one or two objects as appropriate.  The program has a host
-  of options for adjusting for: a full aligned stack bigger or smaller than the
-  original stack; binning of the prealigned stack or of the final aligned
-  stack or tomogram; trimming of the tomogram in X or Y (or alternatively,
-  generation of a tomogram that is a subarea in X and Y); or flipping by Y and
-  Z rather than rotation around X in the trimming step.
+  creates a problem, use the -already option to skip the sorting if they are
+  already sorted into two surfaces.  If fiducials were tracked with multiple
+  objects, the program automatically combines them into two objects based on
+  the colors of the objects.  If the beads are on one surface, use the -one
+  option to skip the sorting and combine multiple objects, if any, into one
+  object.  The program has a host of options for adjusting for: a full aligned
+  stack bigger or smaller than the original stack; binning of the prealigned
+  stack or of the final aligned stack or tomogram; trimming of the tomogram in
+  X or Y (or alternatively, generation of a tomogram that is a subarea in X
+  and Y); or flipping by Y and Z rather than rotation around X in the trimming
+  step.
 
   You should be able to load the resulting model on the tomogram to verify
   that it has the right coordinates.  To do so, be sure to use the -rescale
