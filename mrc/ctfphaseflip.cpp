@@ -20,6 +20,8 @@
 #include "mrcfiles.h"
 #include "mrcslice.h"
 #include "sliceproc.h"
+#include "ilist.h"
+#include "ctfutils.h"
 #include "cfft.h"
 #include "parse_params.h"
 
@@ -48,11 +50,14 @@ int main(int argc, char *argv[])
   char *stackFn, *angleFn, *outFn, *defFn;
   char *boundFn = NULL;
   int volt, iWidth, defocusTol;
-  float tiltAxisAngle, pixelSize, cs, ampContrast, stripDefocus;
+  float pixelSize, cs, ampContrast, stripDefocus;
   int startingView, endingView, startingTotal, endingTotal;
-  bool isSingleRun=false;
+  bool isSingleRun = false;
   int invertAngles = 0;
   double angleSign;
+  float minAngle, maxAngle;
+  float *tiltAngles = NULL;
+  Ilist *defocusList;
   char *progname = imodProgName(argv[0]);
 
   PipReadOrParseOptions(argc, argv, options, numOptions, progname, 
@@ -60,14 +65,13 @@ int main(int argc, char *argv[])
 
   if (PipGetString("InputStack", &stackFn))
     exitError("No stack specified");
-  if (PipGetString("AngleFile", &angleFn))
-  {
-    angleFn=NULL;
+  if (PipGetString("AngleFile", &angleFn)) {
+    angleFn = NULL;
     printf("No angle file is specified, tilt angle is assumed to be 0.0\n");
   }
-  if( PipGetString("DefocusFile", &defFn) )
+  if (PipGetString("DefocusFile", &defFn) )
     exitError("No defocus file is specified");
-  //if( PipGetFloat("AxisAngle", &tiltAxisAngle) )
+  //if (PipGetFloat("AxisAngle", &tiltAxisAngle) )
   //  exitError("No AxisAngle specified"); 
   if (PipGetInteger("DefocusTol", &defocusTol))
     exitError("No DefousTol specified");
@@ -77,31 +81,29 @@ int main(int argc, char *argv[])
     exitError("No PixelSize specified");
   if (PipGetInteger("Voltage", &volt))
     exitError("Voltage is not specified");
-  if( PipGetFloat("SphericalAberration",&cs) )
+  if (PipGetFloat("SphericalAberration",&cs) )
     exitError("SphericalAberration is not specified");
   if (PipGetFloat("AmplitudeContrast", &ampContrast))
     exitError("No AmplitudeContrast is specified");
-  if( PipGetTwoIntegers("TotalViews", &startingTotal, &endingTotal) )
-    isSingleRun=true; // TotalViews is not specified;
-  if( PipGetString("OutputFileName", &outFn) )
+  if (PipGetTwoIntegers("TotalViews", &startingTotal, &endingTotal) )
+    isSingleRun = true; // TotalViews is not specified;
+  if (PipGetString("OutputFileName", &outFn) )
     exitError("OutputFileName is not specified");
   PipGetString("BoundaryInfoFile", &boundFn);
   PipGetBoolean("InvertTiltAngles", &invertAngles);
   angleSign = invertAngles ? -1. : 1.;
   
-  printf("stackFn=%s, angleFn=%s,  invertAngles=%d\n", stackFn, angleFn, 
+  printf("stackFn = %s, angleFn=%s,  invertAngles=%d\n", stackFn, angleFn, 
          invertAngles);
   printf("volt=%d Kv, interpolationWidth=%d pixels, defocusTol=%d nm \n", 
       volt, iWidth, defocusTol);
   printf("pixelSize=%f nm, cs=%f mm, ampContrast=%f \n", 
          pixelSize, cs, ampContrast);
 
-  FILE *fpStack, *fpDef, *fpAngle=NULL;
-  if( (fpStack=fopen(stackFn, "rb"))==0 )
+  FILE *fpStack;
+  if ((fpStack = fopen(stackFn, "rb")) == 0)
     exitError("could not open input file %s", stackFn);
-  if( (fpDef=fopen(defFn, "r"))==0 )
-    exitError("could not open defocus file %s", defFn);
-
+  defocusList = readDefocusFile(defFn);
  
   FILE *foutput;
 
@@ -115,65 +117,46 @@ int main(int argc, char *argv[])
   if (mrc_head_read(fpStack, &outHeader)) 
     exitError("reading header of input file %s",  stackFn);
 
-   if( PipGetTwoIntegers("StartingEndingViews", &startingView, &endingView) )
-   {//not specified, set to defaults
-     startingView=1;
-     endingView=header.nz;
-   }
-  /*  Check if it is the correct data type and set slice type
-  if (header.mode == MRC_MODE_BYTE)
-    sliceMode = SLICE_MODE_BYTE;
-  else if (header.mode == MRC_MODE_SHORT)
-    sliceMode = SLICE_MODE_SHORT;
-  else if (header.mode == MRC_MODE_FLOAT)
-    sliceMode = SLICE_MODE_FLOAT;
-  else if(header.mode == MRC_MODE_USHORT)
-    sliceMode = SLICE_MODE_USHORT;
-  else 
-    exitError("File mode is %d; only byte, short,integer allowed\n", 
-        header.mode);
-  */
-  sliceMode=sliceModeIfReal(header.mode);
+  startingView = 1;
+  endingView = header.nz;
+  PipGetTwoIntegers("StartingEndingViews", &startingView, &endingView);
+  sliceMode = sliceModeIfReal(header.mode);
   if (sliceMode < 0)
     exitError("File mode is %d; only byte, short integer, or real allowed",
               header.mode);
 
   //The number of slices this run deals with;
-  int currNz=endingView-startingView+1;
-  if(isSingleRun){
-    outHeader.nz=currNz;
-    outHeader.mz=currNz;
+  int currNz = endingView-startingView+1;
+  if (isSingleRun) {
+    outHeader.nz = currNz;
+    outHeader.mz = currNz;
   } else {
-    outHeader.nz=endingTotal-startingTotal+1;
-    outHeader.mz=endingTotal-startingTotal+1;
+    outHeader.nz = endingTotal-startingTotal+1;
+    outHeader.mz = endingTotal-startingTotal+1;
   }
-  outHeader.zlen=header.zlen*outHeader.nz/header.nz;
-  outHeader.next=0;
-  outHeader.headerSize=1024;
-  outHeader.swapped=0;
+  outHeader.zlen = header.zlen*outHeader.nz/header.nz;
+  outHeader.next = 0;
+  outHeader.headerSize = 1024;
+  outHeader.swapped = 0;
   mrc_head_label(&outHeader, "ctfPhaseFlip: CTF correction "
                  "with phase flipping only");
   
-  if( (startingView==-1 && endingView==-1) || isSingleRun ){
-      imodBackupFile(outFn);
-      foutput=fopen(outFn,"wb");
-  }else foutput=fopen(outFn,"r+b");
-  if(!foutput) exitError("fopen() failed to open %s", outFn);
+  if ((startingView==-1 && endingView==-1) || isSingleRun) {
+    imodBackupFile(outFn);
+    foutput = fopen(outFn,"wb");
+  } else 
+    foutput = fopen(outFn,"r+b");
+  if (!foutput)
+    exitError("fopen() failed to open %s", outFn);
 
-  if( startingView==-1 && endingView==-1 && !isSingleRun){
-      if( mrc_head_write(foutput, &outHeader) )
-          exitError("Error when write out header");
-      fclose(fpStack);
-      fclose(foutput);
-      return 0;
+  if (startingView==-1 && endingView==-1 && !isSingleRun) {
+    if (mrc_head_write(foutput, &outHeader))
+      exitError("Error when write out header");
+    fclose(fpStack);
+    fclose(foutput);
+    return 0;
   }
 
-  if(angleFn){
-    if( (fpAngle=fopen(angleFn, "r"))==0 ){
-      printf("could not open angle file %s, tiltAngle is set to 0.0\n",
-             angleFn);
-    }
-  }
 
   int err = parWrtInitialize(boundFn, header.nx, header.ny);
   if (err)
@@ -185,144 +168,152 @@ int main(int argc, char *argv[])
   int nz = header.nz;
   float currAngle;
   Islice *currSlice;
-  char angleStr[64], defStr[100];
   int stripPixelNum, interPixelNum;
-  int k, row, column;
+  int k, row, column, i;
   int stripIdx, fy, fyy,  fx, ny, yoff;
-  int dir=0;
-  int idir=1;
+  int dir = 0;
+  int idir = 1;
   float WL, C1, C2, f2, ctf, freq_scalex, freq_scaley;
-  float waveAberration, sign;
+  float waveAberration;
 
-  //Get detected defocus for each slice;
-  int beginNum, endNum;
-  float beginAngle, endAngle, rangeDefocus;
-  float *defocus=(float *)malloc(nz*sizeof(float));
+  //Get the tilt angles and detected defocus for each slice;
+  SavedDefocus *item;
+  float *defocus = (float *)malloc(nz*sizeof(float));
+  if (!defocus)
+    exitError("Allocating memory for defocus array");
+
+  if (angleFn)
+    tiltAngles = readTiltAngles(angleFn, nz, angleSign, minAngle, maxAngle);
+  if (checkAndFixDefocusList(defocusList, tiltAngles, nz))
+    printf("WARNING: ctfphaseflip - View numbers in defocus file are not all "
+           "consistent with the angular ranges\n");
   
   //sets to UNUSED_DEFOCUS since ctfplotter saves defocus with that value
   // when defocus is not computed.
-  for(k=0;k<nz;k++) defocus[k]=UNUSED_DEFOCUS;
-  while( fgets(defStr, 100, fpDef) ) {
-      sscanf(defStr, "%d%d%f%f%f", &beginNum, &endNum, &beginAngle, 
-          &endAngle, &rangeDefocus);
-      k=(beginNum+endNum)/2-1;
-      if( k<0 || k>=nz) exitError("slice numbers are out of range");
-      //convert to microns;
-      defocus[k]=rangeDefocus/1000.0;
-      //printf("beginNum=%d endNum=%d k=%d defocus=%f\n", beginNum, endNum, k,\
+  for (k = 0; k<nz; k++)
+    defocus[k] = UNUSED_DEFOCUS;
+
+  // Process the defocus values; slice numbers are now numbered from 0
+  for (i = 0; i < ilistSize(defocusList); i++) {
+    item = (SavedDefocus *)ilistItem(defocusList, i);
+    k = (item->startingSlice + item->endingSlice) / 2;
+    if (k < 0 || k >= nz) 
+      exitError("View numbers in defocus file are out of range");
+
+    // They are already in microns
+    defocus[k] = item->defocus;
+    //printf("beginNum=%d endNum=%d k=%d defocus=%f\n", beginNum, endNum, k, 
       //defocus[k]);
   }
 
   //defocus interpolation; 
-   int first=-1,second=0; 
-   for(k=0;k<nz;k++){
-     if(defocus[k]==UNUSED_DEFOCUS) continue;
-     second=k;
-     if(first==-1){
-       for(row=0;row<second;row++) defocus[row]=defocus[second];
-     }else{
-       for(row=first+1;row<second;row++)
-         defocus[row]=((row-first)*defocus[second]+(second-row)*defocus[first])
-           /(float)(second-first);
-     }
-     first=second;
-   }
+  int first = -1,second = 0; 
+  for (k = 0; k<nz; k++) {
+    if (defocus[k] == UNUSED_DEFOCUS) 
+      continue;
+    second = k;
+    if (first == -1) {
+      for(row = 0; row < second; row++)
+        defocus[row] = defocus[second];
+    } else {
+      for(row = first+1; row<second; row++)
+        defocus[row] = ((row-first)*defocus[second]+(second-row)*
+                        defocus[first]) / (float)(second-first);
+    }
+    first = second;
+  }
 
-   for(k=nz-1;k>=0;k--)
-     if(defocus[k]==UNUSED_DEFOCUS) defocus[k]=defocus[second];
-     else break;
+  for (k = nz-1; k >= 0; k--)
+    if (defocus[k]==UNUSED_DEFOCUS) 
+      defocus[k] = defocus[second];
+    else 
+      break;
+  
+  for(k = 0; k<nz; k++)
+    printf("defocus[%d] = %f microns\n",k ,defocus[k]); 
 
-   for(k=0;k<nz;k++)
-    printf("defocus[%d]=%f microns\n",k ,defocus[k]); 
-
-  WL=12.3/sqrt(volt*1000.0+volt*volt); //wavelength;
-  C1=MY_PI*WL;
-  C2=-C1*cs*1000000.0*WL*WL/2.0;
-
+  WL = 12.3/sqrt(volt*1000.0+volt*volt); //wavelength;
+  C1 = MY_PI*WL;
+  C2 = -C1*cs*1000000.0*WL*WL/2.0;
+  
 
   int stripDist[2];
   float *restoredArray;
-  double meanSum=0.0;
+  double meanSum = 0.0;
   double amin = 0.1 * numeric_limits<double>::max();
   double amax = -amin;
 
   Islice *outSlice;
 
-  //skip the tilt angles before the starting view;
-  if(fpAngle){
-    for( k=0;k<startingView-1;k++) fgets(angleStr, 30, fpAngle);
-  }
-  
   // Pad the extent in Y if necessary
   ny = niceFrame(nyfile, 2, 19);
   yoff = (ny - nyfile) / 2;
-  int currK=0;
+  int currK = 0;
   if (!isSingleRun)
-    currK=startingView-startingTotal;
+    currK = startingView-startingTotal;
   fflush(stdout);
 
-  for(k=startingView;k<=endingView;k++){
-    if( fpAngle && fgets(angleStr, 30, fpAngle) ){
-      sscanf(angleStr, "%f", &currAngle);
-      currAngle *= angleSign;
+  for (k = startingView; k <= endingView; k++) {
+    if (tiltAngles) {
+      currAngle = tiltAngles[k-1];
       printf("Slice %d, tilt angle is %f degrees. \n", k, currAngle);
-    }else{
-      currAngle=0.0;
+    } else {
+      currAngle = 0.0;
       printf("No angle is specified, set to 0.0\n");
     }
 
     if (defocus[k-1]==UNUSED_DEFOCUS)
       exitError("specified defocus is wrong for slice %d", k);
 
-    currSlice=sliceCreate(nx, nyfile, sliceMode);
-    outSlice=sliceCreate(nx, nyfile, SLICE_MODE_FLOAT);
+    currSlice = sliceCreate(nx, nyfile, sliceMode);
+    outSlice = sliceCreate(nx, nyfile, SLICE_MODE_FLOAT);
     if (!currSlice || !outSlice)
       exitError("creating outslice or currSlice");
-    restoredArray=outSlice->data.f;
+    restoredArray = outSlice->data.f;
 
     //startingView starts at 1, the API starts 0;
-    if( mrc_read_slice(currSlice->data.b, fpStack, &header, k-1, 'Z') )
+    if (mrc_read_slice(currSlice->data.b, fpStack, &header, k-1, 'Z'))
       exitError("reading slice");
     printf("Slice %d of stack %s is included\n", k, stackFn);
 
     //convert slice to floats
-    if(sliceMode !=SLICE_MODE_FLOAT)
-      if( sliceNewMode(currSlice, SLICE_MODE_FLOAT)<0 )
+    if(sliceMode != SLICE_MODE_FLOAT)
+      if (sliceNewMode(currSlice, SLICE_MODE_FLOAT)<0 )
        exitError("converting slice to float");
 
-    currAngle=currAngle*MY_PI/180.0; 
-    if( fabs(currAngle)>MIN_ANGLE ) {
-      stripPixelNum=fabs(defocusTol/tan(currAngle))/pixelSize;
-      interPixelNum=fabs(iWidth/tan(currAngle))/pixelSize;
+    currAngle = currAngle*MY_PI/180.0; 
+    if (fabs(currAngle)>MIN_ANGLE ) {
+      stripPixelNum = fabs(defocusTol/tan(currAngle))/pixelSize;
+      interPixelNum = fabs(iWidth/tan(currAngle))/pixelSize;
     } else {
-      stripPixelNum=nx;
-      interPixelNum=nx;
+      stripPixelNum = nx;
+      interPixelNum = nx;
     }
-    if( stripPixelNum>nx)
-      stripPixelNum=nx;
-    if( interPixelNum>stripPixelNum)
-      interPixelNum=stripPixelNum; 
+    if (stripPixelNum>nx)
+      stripPixelNum = nx;
+    if (interPixelNum>stripPixelNum)
+      interPixelNum = stripPixelNum; 
     
-    stripPixelNum=niceFrame(stripPixelNum, 2 , 19);
+    stripPixelNum = niceFrame(stripPixelNum, 2 , 19);
     if(stripPixelNum>256)
-      stripPixelNum=256;
+      stripPixelNum = 256;
     if(stripPixelNum<128)
-      stripPixelNum=128;
-    interPixelNum=iWidth;
+      stripPixelNum = 128;
+    interPixelNum = iWidth;
         
-    //stripPixelNum=256;
-    //interPixelNum=36; // must be less than stripPixelNum/2;
+    //stripPixelNum = 256;
+    //interPixelNum = 36; // must be less than stripPixelNum/2;
     
     //interPixelNum must be less than stripPixelNum/2;
-    if( interPixelNum>=stripPixelNum/2) 
+    if (interPixelNum >= stripPixelNum/2) 
       exitError("interPixelNum is bigger than stripPixleNum/2 ");
 
     printf("stripPixelNum=%d interPixelNum=%d \n", stripPixelNum,
         interPixelNum);
     //Allocate 2 strips, even and odd strip;
     int stripXdim = stripPixelNum+2;
-    float *strip=(float *)malloc(2*ny*stripXdim*sizeof(float));
-    bool finished=false;
+    float *strip = (float *)malloc(2*ny*stripXdim*sizeof(float));
+    bool finished = false;
     float *curStrip, *lastStrip;
     int stripBegin;
     int stripEnd;
@@ -330,27 +321,27 @@ int main(int argc, char *argv[])
     halfStrip = stripPixelNum/2;
     
     // convert pixelSize to Angston;
-    freq_scalex=1.0/(pixelSize*10.0*stripPixelNum);
-    freq_scaley=1.0/(pixelSize*10.0*ny);
-    stripIdx=0;
-    while(!finished){
+    freq_scalex = 1.0/(pixelSize*10.0*stripPixelNum);
+    freq_scaley = 1.0/(pixelSize*10.0*ny);
+    stripIdx = 0;
+    while (!finished) {
       
-      if(stripIdx*interPixelNum+stripPixelNum-1<nx){
-        stripBegin=stripIdx*interPixelNum;
-        stripEnd=stripBegin+stripPixelNum-1;
-        stripStride=interPixelNum;
-      }else{
-        stripStride=nx-(stripPixelNum+1)/2-(stripBegin+stripEnd)/2;
-        stripBegin=nx-stripPixelNum;
-        stripEnd=nx-1;
-        finished=true;
+      if (stripIdx*interPixelNum+stripPixelNum-1<nx) {
+        stripBegin = stripIdx*interPixelNum;
+        stripEnd = stripBegin+stripPixelNum-1;
+        stripStride = interPixelNum;
+      } else {
+        stripStride = nx-(stripPixelNum+1)/2-(stripBegin+stripEnd)/2;
+        stripBegin = nx-stripPixelNum;
+        stripEnd = nx-1;
+        finished = true;
       }
       stripMid = (stripBegin+stripEnd)/2;
       curStrip = strip + (stripIdx%2)*ny*stripXdim;
       //printf("stripIdx=%d stripBegin=%d stripEnd=%d \n", 
       //stripIdx, stripBegin, stripEnd); 
       
-      stripDefocus=defocus[k-1]*1000.0 - ( nx/2-stripMid )*
+      stripDefocus = defocus[k-1]*1000.0 - ( nx/2-stripMid )*
         tan(currAngle)*pixelSize; //in nm;
       //printf("defocus is %6.1f\n", stripDefocus);
 
@@ -360,16 +351,17 @@ int main(int argc, char *argv[])
       todfft(curStrip,&stripPixelNum,&ny,&dir);
       
       //fipping the phase;
-      for(fy=0;fy<ny;fy++){
-        fyy=fy;
-        if(fy>ny/2) fyy-=ny;
-        for(fx=0;fx<stripXdim/2;fx++){
-          f2=fx*fx*freq_scalex*freq_scalex + fyy*fyy*freq_scaley*freq_scaley;
+      for (fy = 0; fy<ny; fy++) {
+        fyy = fy;
+        if (fy > ny/2) 
+          fyy -= ny;
+        for (fx = 0; fx < stripXdim/2; fx++) {
+          f2 = fx*fx*freq_scalex*freq_scalex + fyy*fyy*freq_scaley*freq_scaley;
           //convert defocus to Angston;
-          waveAberration=(C1*stripDefocus*10.0+C2*f2)*f2;
-          ctf=-(sqrt(1-ampContrast*ampContrast))*sin(waveAberration)
+          waveAberration = (C1*stripDefocus*10.0+C2*f2)*f2;
+          ctf = -(sqrt(1-ampContrast*ampContrast))*sin(waveAberration)
             -ampContrast*cos(waveAberration);
-          if( ctf >= 0) {
+          if (ctf >= 0) {
             curStrip[fy*stripXdim+2*fx] *= -1.;
             curStrip[fy*stripXdim+2*fx+1] *= -1.;
           }
@@ -378,17 +370,17 @@ int main(int argc, char *argv[])
       //inverse FFT;
       todfft(curStrip,&stripPixelNum,&ny,&idir);
 
-      if(stripIdx==0){ //The starting strip needs special handling;
-        for( row=0;row<nyfile;row++)
-          for(column=0;column<halfStrip;column++)
+      if (stripIdx==0) { //The starting strip needs special handling;
+        for (row = 0; row<nyfile; row++)
+          for(column = 0; column<halfStrip; column++)
             restoredArray[row*nx+column] = 
               curStrip[(row+yoff)*stripXdim+column];
         //printf("column=1 ... %d \n", halfStrip);
-      }else{
-        for( row=0;row<nyfile;row++)
-          for(column=stripMid-stripStride+1; column<stripMid+1;column++) {
-            stripDist[0]=column-stripMid+stripStride-1;
-            stripDist[1]=stripMid+1-column;
+      } else {
+        for (row = 0; row<nyfile; row++)
+          for(column = stripMid-stripStride+1; column<stripMid+1; column++) {
+            stripDist[0] = column-stripMid+stripStride-1;
+            stripDist[1] = stripMid+1-column;
             restoredArray[row*nx+column] = 
               (stripDist[0]* curStrip[(row+yoff)*stripXdim+ 
                                       halfStrip-stripDist[1]] +
@@ -400,11 +392,11 @@ int main(int argc, char *argv[])
         // stripStride+1+1, stripMid+1 );
       }
 
-      if(finished){ //last strip
+      if (finished) { //last strip
         //printf("finished: starting column=%d \n", stripMid+1 );
 
-        for( row=0;row<nyfile;row++)
-          for(column=stripMid+1;column<nx;column++)
+        for (row = 0; row<nyfile; row++)
+          for(column = stripMid+1; column<nx; column++)
             restoredArray[row*nx+column]  = 
               curStrip[(row+yoff)*stripXdim+ halfStrip+column-stripMid-1];
         //printf("column=%d ... %d \n", stripMid+1+1, nx);
@@ -417,14 +409,16 @@ int main(int argc, char *argv[])
 
     free(strip);
     sliceMMM(outSlice);
-    if( outSlice->min < amin) amin=outSlice->min;
-    if( outSlice->max > amax) amax=outSlice->max;
-    meanSum+=outSlice->mean;
-    if(sliceMode !=SLICE_MODE_FLOAT)
-      if( sliceNewMode(outSlice, sliceMode)<0 )
+    if (outSlice->min < amin) 
+      amin = outSlice->min;
+    if (outSlice->max > amax) 
+      amax = outSlice->max;
+    meanSum += outSlice->mean;
+    if(sliceMode != SLICE_MODE_FLOAT)
+      if (sliceNewMode(outSlice, sliceMode)<0 )
         exitError("converting slice to original mode");
 
-    if( parallelWriteSlice(outSlice->data.b, foutput, &outHeader, currK) )
+    if (parallelWriteSlice(outSlice->data.b, foutput, &outHeader, currK) )
       exitError("Writing slice %d error", currK);
     currK++;
     sliceFree(currSlice);
@@ -432,25 +426,27 @@ int main(int argc, char *argv[])
     fflush(stdout);
   }//k slice
   
-  if(isSingleRun){
-    outHeader.amin=amin;
-    outHeader.amax=amax;
-    outHeader.amean=meanSum/(double)currNz;
-    if ( mrc_head_write(foutput, &outHeader) )
+  if (isSingleRun) {
+    outHeader.amin = amin;
+    outHeader.amax = amax;
+    outHeader.amean = meanSum/(double)currNz;
+    if (mrc_head_write(foutput, &outHeader) )
       exitError("Writing slice header error");
-  }else{//for collectmmm
+  } else {//for collectmmm
     printf("min, max, mean, # pixels= %f  %f  %f %d \n", 
         amin, amax, meanSum/(double)currNz, nx*ny*currNz);
   }
   fclose(foutput);
   fclose(fpStack);
   free(defocus);
-  if(fpAngle) fclose(fpAngle);
 }
 
 /*
 
 $Log$
+Revision 3.16  2010/03/09 03:25:27  mast
+Added padding in Y if necessary so any size input can be used
+
 Revision 3.15  2010/01/13 01:18:42  mast
 Stop printing unset variable
 
