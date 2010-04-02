@@ -34,6 +34,8 @@ float *readTiltAngles(const char *angleFile, int mNzz, float mAngleSign,
   int k, err;
   float currAngle;
   float *mTiltAngles = (float *)malloc(mNzz * sizeof(float));
+  mMinAngle = 10000.;
+  mMaxAngle = -10000.;
   if (!mTiltAngles)
     exitError("Allocating array for tilt angles");
   if ((fpAngle=fopen(angleFile, "r")) == 0)
@@ -141,14 +143,17 @@ int checkAndFixDefocusList(Ilist *list, float *angles, int nz)
     item = (SavedDefocus *)ilistItem(list, k);
     minStart = B3DMIN(minStart, item->startingSlice);
     maxEnd = B3DMAX(maxEnd, item->endingSlice);
+    startAmbig = 0;
+    endAmbig = 0;
     if (nz == 1 || !angles) {
       start = 0;
       end = 0;
+      /*printf("item %d  start %d end %d low %f high %f  has to start %d "
+             "end %d\n", k, item->startingSlice, item->endingSlice,
+             item->lAngle, item->hAngle, start, end); */
     } else {
       start = -1;
       end = -1;
-      startAmbig = 0;
-      endAmbig = 0;
 
       // Find first and last slice whose angle is within the range
       for (i = 0; i < nz; i++) {
@@ -167,7 +172,7 @@ int checkAndFixDefocusList(Ilist *list, float *angles, int nz)
           else
             endAmbig = 1;
           /*printf("Angle %d, %f ambiguous to low angle %f, start %d end %d\n"
-            ,i, angles[i], item->lAngle, startAmbig, endAmbig);*/
+            ,i, angles[i], item->lAngle, startAmbig, endAmbig); */
         }
         if (fabs((double)(item->hAngle - angles[i])) < tol) {
           if (angles[0] <= angles[nz-1])
@@ -178,7 +183,6 @@ int checkAndFixDefocusList(Ilist *list, float *angles, int nz)
             ,i, angles[i], item->hAngle, startAmbig, endAmbig);*/
         }
       }
-
       /*printf("item %d  start %d end %d low %f high %f  implied start %d "
              "end %d\n", k, item->startingSlice, item->endingSlice,
              item->lAngle, item->hAngle, start, end); */
@@ -221,5 +225,8 @@ int checkAndFixDefocusList(Ilist *list, float *angles, int nz)
 /*
 
 $Log$
+Revision 1.1  2010/04/02 00:18:39  mast
+Added to provide common functions for adjusting for old bug in ctfplotter
+
 
 */
