@@ -4,6 +4,9 @@
  *  $Id$
  *
  *  $Log$
+ *  Revision 1.8  2010/03/14 19:34:53  mast
+ *  Changes associated with reading in angles, keeping table of results, etc
+ *
  *  Revision 1.7  2010/03/09 06:24:52  mast
  *  Change arguments to const char* to take latin1 from QString
  *
@@ -19,19 +22,14 @@
 #include "defocusfinder.h"
 #include "mrcslice.h"
 #include "slicecache.h"
+#include "ctfutils.h"
 
 class SimplexFitting;
 class LinearFitting;
 class Plotter;
-typedef struct ilist_struct Ilist;
 
-typedef struct {
-  int startingSlice;
-  int endingSlice;
-  double lAngle;
-  double hAngle;
-  double defocus;
-} SavedDefocus;
+extern int debugLevel;
+int ctfShowHelpPage(const char *page);
 
 class MyApp : public QApplication
 {
@@ -89,7 +87,6 @@ class MyApp : public QApplication
     Ilist *getSavedList() {return mSaved;};
     void setSaveModified() {mSaveModified = true;};
     bool getSaveModified() {return mSaveModified;};
-    void addItemToSaveList(SavedDefocus toSave);
     MyApp(int &argc, char *argv[], int volt, double pSize, 
           double ampRatio, float cs, char *defFn, int dim, int hyper, 
           double focusTol, int tSize, double tAxisAngle, double lAngle,
