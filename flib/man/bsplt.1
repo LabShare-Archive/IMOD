@@ -8,22 +8,21 @@ NNAAMMEE
 
 DDEESSCCRRIIPPTTIIOONN
   Subroutine BSPLT allows one to plot one variable against another,
-  with graphical display on either a graphics device, if available, or
-  on the terminal (ANSI standard/VT100 class), and hard copy output via
-  NCAR graphics calls and obsolete X/Y plotter calls.
+  with graphical display in a graphics window or on the terminal (ANSI
+  standard/VT100 class), and output to a Postscript printing file.
   
   The first entry controls where the graph is displayed:
-     0 for plot on the graphics device (which must have been enabled by
+     0 for plot in the graphics window (which must have been enabled by
          selecting the appropriate option in the calling program)
      1 for plot on the terminal
   
   The next entry allows you to type or file the data or allows you to
-  specify some aspects of a hard-copy plot:
+  specify some aspects of a Postscript plot:
      0 for none of these options
      1 to type the data on the terminal
      -1 to store the data in the file
-     n+1 to draw n lines on hard-copy plot; e.g. 4 to draw 3 lines
-     -n-1 to connect points with lines of thickness n in the hard-copy
+     n+1 to draw n lines in Postscript plot; e.g. 4 to draw 3 lines
+     -n-1 to connect points with lines of thickness n in the Postscript
          plot; e.g. -2 to connect with lines of thickness 1.  For
          standard usage of the routine, subtract 100 to connect only
          points within the same (e.g. -102).  When the routine is
@@ -34,10 +33,9 @@ DDEESSCCRRIIPPTTIIOONN
   IF you elect to write the data to a file, next enter a file name.
      If the file already exists, the data will be appended to the file.
 
-  The next entry can select a hard-copy plot:
+  The next entry can select a Postscript plot:
      0 for no plot - return to calling program
-     1-5 for plots on obsolete X/Y plotter - ignore
-     6, 7, 8, 9 for laser printer plots in the upper left, lower left,
+     6, 7, 8, 9 for Postscript plots in the upper left, lower left,
          upper right, or lower right quadrants of a page, or 10 to
          specify the size and location of the graph on the page.  The
          range of X and Y units plotted will be the same as in the
