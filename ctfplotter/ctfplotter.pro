@@ -12,6 +12,7 @@ SOURCES       = main.cpp \
                 linearfitting.cpp \
                 defocusfinder.cpp \
                 slicecache.cpp \
+                ctfutils.cpp \
                 imod_assistant.cpp
 
 RESOURCES    =plotter.qrc
