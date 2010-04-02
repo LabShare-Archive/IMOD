@@ -16,6 +16,7 @@
 #include <qfile.h>
 #include <qtoolbutton.h>
 #include <qcursor.h>
+#include <qmessagebox.h>
 
 #include <stdio.h>
 #include <math.h>
@@ -37,7 +38,6 @@
 
 #define MY_PI 3.1415926
 #define MIN_ANGLE 1.0e-6  //tilt Angle less than this is treated as 0.0;
-extern int debugLevel;
 
 int MyApp::mDim=0;
 int MyApp::mTileSize=0;
@@ -51,14 +51,6 @@ MyApp::MyApp(int &argc, char *argv[], int volt, double pSize,
    defocusFinder(volt, pSize, ampRatio, cs, dim, expDefocus), 
    mCache(maxCacheSize)
 {
-  FILE *fp;
-  SavedDefocus saved;
-  char line[100];
-  int nchar;
-  float langtmp, hangtmp, defoctmp;
-  mSaved = ilistNew(sizeof(SavedDefocus), 10);
-  if (!mSaved)
-    exitError("Allocating list for saving defocus");
   mSaveModified = false;
   mDim=dim;
   mHyperRes = hyper;
@@ -89,31 +81,11 @@ MyApp::MyApp(int &argc, char *argv[], int volt, double pSize,
   mAngleSign = invertAngles ? -1. : 1.;
 
   // read in existing defocus data 
-  fp = fopen(mFnDefocus, "r");
-  if (fp) {
-    while(1) {
-      nchar = fgetline(fp, line, 100);
-      if (nchar == -2)
-        break;
-      if (nchar == -1)
-        exitError("Error reading existing defocus file %s", mFnDefocus);
-      if (nchar) {
-        sscanf(line, "%d %d %f %f %f", &saved.startingSlice, &saved.endingSlice
-               , &langtmp, &hangtmp, &defoctmp);
-        saved.lAngle = langtmp;
-        saved.hAngle = hangtmp;
-        saved.defocus = defoctmp / 1000.;
-        addItemToSaveList(saved);
-      }
-      if (nchar < 0)
-        break;
-    }
-    fclose(fp);
-  }
+  mSaved = readDefocusFile(mFnDefocus);
 }
 
 //save all PS in text file for plotting in Matlab
-//when being called in Plotter::saveIt(). 
+//when being called in writeDefocusFile
 //The calling of it is commented out in release version.
 void MyApp::saveAllPs()
 {
@@ -289,13 +261,12 @@ void MyApp::fitPsFindZero()
   free(resRightFit);
 }
 
-
+/*
+ * Initializes cache, opens stack, reads angle file
+ * This should only be called once with actual data stack
+ */
 void MyApp::setSlice(const char *stackFile, char *angleFile)
 {
-  FILE *fpAngle;
-  char angleStr[30];
-  float currAngle;
-  int k;
 
   //init and clear old contents;
   mCache.initCache(stackFile, mDim, mHyperRes, mTileSize, mNxx, mNyy, mNzz);
@@ -307,19 +278,20 @@ void MyApp::setSlice(const char *stackFile, char *angleFile)
   mMinAngle = 10000.;
   mMaxAngle = -10000.;
   if (angleFile) {
-    mTiltAngles = (float *)malloc(mNzz * sizeof(float));
-    if (!mTiltAngles)
-      exitError("Allocating array for tilt angles");
-    if( (fpAngle=fopen(angleFile, "r"))==0 )
-      exitError("could not open angle file %s",angleFile);
-    for (k = 0; k < mNzz; k++) {
-      fgets(angleStr, 30, fpAngle);
-      sscanf(angleStr, "%f", &currAngle);
-      currAngle *= mAngleSign;
-      mMinAngle = B3DMIN(mMinAngle, currAngle);
-      mMaxAngle = B3DMAX(mMaxAngle, currAngle);
-      mTiltAngles[k] = currAngle;
-    }
+    mTiltAngles = readTiltAngles(angleFile, mNzz, mAngleSign, mMinAngle, 
+                                 mMaxAngle);
+
+    // Now that we finally know z size, we can check the starting and ending
+    // slices and fix them if they are off by 1 or otherwise inconsistent
+    if (checkAndFixDefocusList(mSaved, mTiltAngles, mNzz)) {
+      QMessageBox::warning
+        (0, "Warning: Inconsistent view numbers", 
+         "The view numbers in the existing defocus file were not all\n"
+         "consistent with the angular ranges.  You should find the defocus\n"
+         "again in all of the ranges and save the new data.",
+         QMessageBox::Ok, QMessageBox::NoButton, QMessageBox::NoButton);
+      qApp->processEvents();
+    }                               
   }
 
   mCache.whatIsNeeded(mLowAngle, mHighAngle, mStartingSlice, mEndingSlice); 
@@ -336,13 +308,11 @@ int  MyApp::computeInitPS()
 {
   float stripPixelNum=0.0;
   int halfSize=mTileSize/2;
-  int tileXdim = mTileSize + 2;
-  int fftXdim = tileXdim / 2;
   int psSize = mDim * mHyperRes;
   double *psSum = (double*)malloc(psSize *sizeof(double));
   int counter;
   double localMean, tmpMean;
-  int i,j,k,ii,jj;
+  int i,j,k,ii;
   double diagonal=sqrt((double)(mNxx * mNxx + mNyy * mNyy) );
   double axisXAngle, centerX, centerY, r, alpha,d;
 
@@ -464,10 +434,8 @@ void MyApp::moreTile(bool hasIncludedCentralTiles)
 {
 
   int halfSize=mTileSize/2;
-  int tileXdim = mTileSize + 2;
-  int fftXdim = tileXdim / 2;
   int leftCounter, rightCounter;
-  int k, ii,jj;
+  int k, ii;
   int psSize = mDim * mHyperRes;
   double *leftPsSum = (double*)malloc(psSize *sizeof(double));
   double *rightPsSum = (double*)malloc(psSize *sizeof(double));
@@ -692,7 +660,6 @@ void MyApp::scaleAndAddStrip
      double mean, double xScale, double xAdd, float freqInc, double delFmin,
      double delFmax)
 {
-  int halfSize = mTileSize / 2;
   int ii, jj, npsIndex, stripRIndex, stripLIndex, lnum;
   double freq, delfreq, freqst, freqnd, lfrac;
   double hyperInc = freqInc / mHyperRes;
@@ -877,33 +844,10 @@ void MyApp::saveCurrentDefocus()
   toSave.lAngle=getLowAngle();
   toSave.hAngle=getHighAngle();
   toSave.defocus=defocusFinder.getDefocus();
-  addItemToSaveList(toSave);
+  addItemToDefocusList(mSaved, toSave);
   mSaveModified = true;
   if (mPlotter->aDialog)
     mPlotter->aDialog->updateTable();
-}
-
-void MyApp::addItemToSaveList(SavedDefocus toSave)
-{
-  SavedDefocus *item;
-  int i, matchInd = -1, insertInd = 0;
-
-  // Look for match or place to insert
-  for (i = 0; i < ilistSize(mSaved); i++) {
-    item = (SavedDefocus *)ilistItem(mSaved, i);
-    if (item->startingSlice == toSave.startingSlice && 
-        item->endingSlice == toSave.endingSlice) {
-      matchInd = i;
-      *item = toSave;
-      break;
-    }
-    if (item->lAngle + item->hAngle <= toSave.lAngle + toSave.hAngle)
-      insertInd = i + 1;
-  }
-  
-  // If no match, now insert
-  if (matchInd < 0 && ilistInsert(mSaved, &toSave, insertInd))
-    exitError("Failed to add item to list of saved defocuses");
 }
 
 void MyApp::writeDefocusFile()
@@ -925,8 +869,8 @@ void MyApp::writeDefocusFile()
   
   for (i = 0; i < ilistSize(mSaved); i++) {
     item = (SavedDefocus *)ilistItem(mSaved, i);
-    fprintf(fp, "%d\t%d\t%5.2f\t%5.2f\t%6.0f\n", item->startingSlice, 
-            item->endingSlice, item->lAngle, item->hAngle,
+    fprintf(fp, "%d\t%d\t%5.2f\t%5.2f\t%6.0f\n", item->startingSlice + 1, 
+            item->endingSlice + 1, item->lAngle, item->hAngle,
             item->defocus*1000);
   }
   fclose(fp);
@@ -938,6 +882,10 @@ void MyApp::writeDefocusFile()
 /*
 
 $Log$
+Revision 1.15  2010/03/14 19:34:10  mast
+Changes for reading in tilt angles into array, keeping found values in
+a table and svaing from the table
+
 Revision 1.14  2010/03/09 06:24:52  mast
 Change arguments to const char* to take latin1 from QString
 
