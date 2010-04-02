@@ -452,7 +452,9 @@ Window, or the 3dmodv window when running 3dmodv.
 .SH Information Window
 The Information Window is 3dmod's main control window and it is
 open at all times while 3dmod is running.  All other windows can
-be opened and closed without restarting 3dmod.
+be opened and closed without restarting 3dmod.  At the bottom of the window is
+a text panel with messages from the program.  It is possible to edit the text
+there, copy and paste it elsewhere, and save it to a file.
 .TP
 .I Window Control Buttons
 The toolbutton with the pushpin can be used to keep the Information Window on 
@@ -488,7 +490,7 @@ using hot keys.
 .B C/c
 \- Go to the next/previous Contour.
 .br
-.B ]/[
+.B ]/[  or  >/<
 \- Go to the next/previous Point.
 .TP
 .I The Show Checkbox
@@ -600,6 +602,7 @@ Memory to TIFF... Write the whole section of a raw color image
 Extract File...   Extract part of file selected by rubber band in
                     top slicer window, with flipping if image is
                     loaded flipped.
+Save Info Text... Write the contents of the text panel to a file.
 Quit              Quit 3dmod.
 
 .I Edit Menu
@@ -623,7 +626,8 @@ Object
                  object.
    Combine    Combine all objects in which a contour is selected
                  into one object and delete the other objects.
-   Info       Calculate volume and surface area of current object.
+   Info       Print object information: currently just says to run
+                 imodinfo(1).
    Clean      Delete empty contours in the current object.
    Break by Z Break every contour in the object at every change in
                  Z, creating as many contours as necessary so that 
@@ -726,9 +730,10 @@ as internal modules that provide special features.  The latter
 include the Bead Fixer
 to assist with correcting models of fiducial markers for aligning tilt series,
 and the Line Tracker, which performs semi-automated modeling of linear
-features such as membranes.  Two plugins written by Andrew Noske are now
+features such as membranes.  Three plugins written by Andrew Noske are now
 included in the IMOD distribution: Bead Helper to help fixing large fiducial
-models; and Drawing Tools with additional model tools.
+models; Drawing Tools with additional model tools, and Interpolator to
+generate contours automatically between ones that you draw.
 
 .I Help Menu 
 .br
@@ -809,8 +814,8 @@ keys work regardless of whether NumLock is on.
         ---------------------------------
 o  -  Go to previous object
 p  -  Go to next object
-]  -  Go to previous point
-[  -  Go to next point
+] or >  -  Go to previous point
+[ or <  -  Go to next point
 C  -  Go to next contour
 c  -  Go to previous contour
 5  -  Go to previous contour in current surface
@@ -819,8 +824,8 @@ c  -  Go to previous contour
 8  -  Go to next surface in current object
 e  -  Unselect current point
 E  -  Unselect current contour
-{  -  Go to first point in contour
-}  -  Go to last point in contour
+{ or ( -  Go to first point in contour
+} or ) -  Go to last point in contour
 n  -  Create a new contour
 N  -  Create a new contour with a new surface number
 0  -  Create a new object
@@ -1273,7 +1278,10 @@ IMGDIR path_to_image_directory
 .SH PLUGIN ENVIRONMENT
 3dmod will load special plugin libraries that are in the
 directory pointed to by the IMOD_PLUGIN_DIR environment 
-variable.  In addition, the directory defined by $IMOD_CALIB_DIR/plugins,
+variable.  If IMOD_PLUGIN_DIR is not defined, the program will search
+in IMOD_DIR/lib/imodplug if IMOD_DIR is defined, or in lib/imodplug under
+the default installation location for the operating system if IMOD_DIR is not
+defined.  In addition, the directory defined by $IMOD_CALIB_DIR/plugins,
 as well as the directories /usr/local/IMOD/plugins
 and /usr/freeware/lib/imodplugs/ are searched for plugins if they
 exist.  Plugins work in all supported operating systems.  
