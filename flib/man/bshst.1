@@ -8,7 +8,7 @@ NNAAMMEE
 
 DDEESSCCRRIIPPTTIIOONN
   Subroutine BSHST plots histograms of values belonging to one or more
-  groups, on a graphics device, on the terminal, and via NCAR graphics.
+  groups, in a graphics window, on the terminal, and to a Postscript file.
   
   Values that must be entered:
   
@@ -40,7 +40,7 @@ DDEESSCCRRIIPPTTIIOONN
   The program tells you the number of counts in the biggest bin.
 
   Next enter either:
-     To get a plot on the graphics device, enter the desired count for
+     To get a plot in the graphics window, enter the desired count for
         the full scale of the Y-axis, which should be bigger than the
         highest bin, or
      0 for a histogram on the terminal, or
@@ -53,23 +53,22 @@ DDEESSCCRRIIPPTTIIOONN
      0 for none of these options
      1 to type the value out on the terminal
      -1 to write the values into a file
-     n+1 to draw n lines on a hard-copy plot; e.g. 3 for 2 lines.
+     n+1 to draw n lines on a Postscript plot; e.g. 3 for 2 lines.
   
   IF you elect to write the data to a file, next enter a file name.
      If the file already exists, the data will be appended to the file.
 
-  At this point a histogram appears on the graphics device unless you
+  At this point a histogram appears in the graphics window unless you
      already had it on the terminal.  The program tells you the range
      of values corresponding to the X axis of the histogram.
   
   Next select one of these options:
      0 to return to calling program
      10 to loop back and and new lowest value, bin width, # of bins
-     1-3 for plots on X/Y plotter (obsolete)
-     4 or 5 for laser printer plot on upper or lower half of page
-     11-16 for laser printer plots in one of 6 positions (11-13 is
+     4 or 5 for Postscript plot on upper or lower half of page
+     11-16 for Postscript plots in one of 6 positions (11-13 is
         left column top to bottom, 14-16 is right column)
-     6 for laser printer plot with complete control of size, position,
+     6 for Postscript plot with complete control of size, position,
         and other parameters
      7 for plot with complete control of parameters, and some groups
         plotted below the X-axis
@@ -116,10 +115,10 @@ DDEESSCCRRIIPPTTIIOONN
      1 for a new page, or 0 to plot on the same page as previous graphs
   
   IF you are plotting and the values are logarithms, enter the actual
-            values (not the logarithms) at which X ticks should be drawn
+     values (not the logarithms) at which X ticks should be drawn
   
   IF you are plotting and said that you wanted to draw some lines,
-            next enter the specification for each line.  The format is:
+     next enter the specification for each line.  The format is:
         Slope (Y/X), Y-intercept, starting and ending X coordinate (all
         in your units, not inches), line thickness (small integer), and
         0,0 for a solid line or length of dash and length between
@@ -210,11 +209,11 @@ DDEESSCCRRIIPPTTIIOONN
          A line specification as described above, in the units just
              indicated
 
-  NOTE FOR SIMPLEST USE: if you just want standard graohs, enter:
+  NOTE FOR SIMPLEST USE: if you just want standard graphs, enter:
      1 for histograms
      Lowest value, bin width, # of bins
      Full scale count
      0 for no type out
-     0 return, 10 replot, or 4 or 5 or 11-16 for laser plots
+     0 return, 10 replot, or 4 or 5 or 11-16 for Postscript plots
      1 for new page as needed
 
