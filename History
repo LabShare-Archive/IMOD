@@ -1,11 +1,15 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+4/2/10: Fixed initialization problem in Ctfphaseflip's detection of bad view
+numbers.
+
 4/1/10: IMOD_4-0-29 
 4/1/10: Added option to Sortbeadsurfs to handle the case of beads on one
 surface but in multiple objects.
 
 4/1/10: Fixed bug in Ctfplotter that was putting out views numbered from 0 and
-made Ctfplotter and Ctfphaseflip detect erroreous view numbers in a defocus file and adjust them up by 1.
+made Ctfplotter and Ctfphaseflip detect erroreous view numbers in a defocus
+file and adjust them up by 1.
 
 3/31/10: Changed the way imodsendevents exits to stop Qt complaints.
 
