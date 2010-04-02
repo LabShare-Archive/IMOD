@@ -1,5 +1,12 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+4/1/10: Fixed bug in Ctfplotter that was putting out views numbered from 0 and
+made Ctfplotter and Ctfphaseflip detect erroreous view numbers in a defocus file and adjust them up by 1.
+
+3/31/10: Changed the way imodsendevents exits to stop Qt complaints.
+
+3/31/10: Eliminated error when meshing object with no points.
+
 3/31/10: Made text panel in Info window editable so it can be copied and
 pasted from on Windows and Mac, added File menu entry to save it to file.
 
