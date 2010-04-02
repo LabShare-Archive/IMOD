@@ -13,7 +13,8 @@ E = $(BINEXT)
 MRCVOBJS  = mrcv.o mrcv_movie.o mrcv_draw.o mrcv_batch.o rgbv.o colormap.o
 
 PROGS     = mrc2tif$(E) raw2mrc$(E) tif2mrc$(E) mrcbyte$(E) mrcx$(E) \
- mrctaper$(E) dm3props$(E) nad_eed_3d$(E) ctfphaseflip$(E) $(RGBPROGS)
+ mrctaper$(E) dm3props$(E) nad_eed_3d$(E) ctfphaseflip$(E) \
+ $(RGBPROGS)
 
 
 IILIBS    =  $(LIIMOD) $(LCFSHR) $(TIFFLIBS)
@@ -47,11 +48,14 @@ dm3props$(E) : dm3props.$(O)
 
 nad_eed_3d$(E) : nad_eed_3d.$(O) nrutil.$(O)
 	$(CC) -o nad_eed_3d nad_eed_3d.$(O) nrutil.$(O) $(LDFLAGS) $(IILIBS) \
-	 $(CLIBS)
+	$(CLIBS)
 
-ctfphaseflip$(E) : ctfphaseflip.$(O) 
-	$(CXX) -o ctfphaseflip ctfphaseflip.$(O) $(LDFLAGS) $(IILIBS) \
-	 $(LIFFT) $(CLIBS)
+ctfphaseflip$(E) : ctfphaseflip.$(O) ctfutils.$(O)
+	$(CXX) -o ctfphaseflip ctfphaseflip.$(O) ctfutils.$(O) $(LDFLAGS) \
+	$(IILIBS) $(LIFFT) $(CLIBS)
+
+ctfutils.$(O) : ../ctfplotter/ctfutils.cpp
+	$(CXX) -c -o ctfutils.$(O) $(CXXFLAGS) ../ctfplotter/ctfutils.cpp
 
 
 #
@@ -88,6 +92,10 @@ clean :
 # older, test, and unsupported programs to make.
 #
 
+commonline$(E) : commonline.$(O) 
+	$(CC) -o commonline commonline.$(O) $(LDFLAGS) $(IILIBS)  \
+	$(LIFFT) $(CLIBS)
+
 tifinfo$(E) : tifinfo.$(O)
 	$(CC) -o tifinfo tifinfo.$(O) $(CLIBS)
 
@@ -117,6 +125,9 @@ mrcmmm$(E) : mrcmmm.$(O)
 	$(CC) -o mrcmmm mrcmmm.$(O) -L$(LIBDIR) $(LIBS)
 
 #  $Log$
+#  Revision 3.11  2009/01/21 04:47:09  mast
+#  Stop deleting mode 755 files!
+#
 #  Revision 3.10  2007/09/19 23:49:19  mast
 #  Changes for library rearrangements
 #
