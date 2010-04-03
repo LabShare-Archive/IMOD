@@ -1,7 +1,7 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 4/2/10: Fixed initialization problem in Ctfphaseflip's detection of bad view
-numbers.
+numbers and fixed the warning when a simple one-line file is used.
 
 4/1/10: IMOD_4-0-29 
 4/1/10: Added option to Sortbeadsurfs to handle the case of beads on one
