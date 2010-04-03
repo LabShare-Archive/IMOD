@@ -184,7 +184,10 @@ int main(int argc, char *argv[])
 
   if (angleFn)
     tiltAngles = readTiltAngles(angleFn, nz, angleSign, minAngle, maxAngle);
-  if (checkAndFixDefocusList(defocusList, tiltAngles, nz))
+
+  // Check the defocus list if there is more than one value
+  if (ilistSize(defocusList) > 1 && 
+      checkAndFixDefocusList(defocusList, tiltAngles, nz))
     printf("WARNING: ctfphaseflip - View numbers in defocus file are not all "
            "consistent with the angular ranges\n");
   
@@ -444,6 +447,10 @@ int main(int argc, char *argv[])
 /*
 
 $Log$
+Revision 3.17  2010/04/02 00:22:09  mast
+Made it use utility functions for getting tilt angles and defocus and for
+adjusting old data for view numbers being off by 1
+
 Revision 3.16  2010/03/09 03:25:27  mast
 Added padding in Y if necessary so any size input can be used
 
