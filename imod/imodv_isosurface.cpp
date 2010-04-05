@@ -62,7 +62,6 @@ static QTime isoTime;
 #define MAXIMAL_ITERATION 20
 #define MAXIMAL_BINNING 4
 #define TOL 0.0001
-#define NUM_THREADS 1
 
 typedef unsigned int Index;
 extern void smooth_vertex_positions(float *varray, Index nv,
@@ -360,10 +359,9 @@ ImodvIsosurface::ImodvIsosurface(struct ViewInfo *vi, QWidget *parent, const cha
 
   mInitNThreads=QThread::idealThreadCount();
   char *procChar = getenv("IMOD_PROCESSORS");
-  if (procChar) {
+  if (procChar) 
     mInitNThreads = atoi(procChar);
-    mInitNThreads = B3DMIN(MAX_THREADS, B3DMAX(1, mInitNThreads));
-  }
+  mInitNThreads = B3DMIN(MAX_THREADS, B3DMAX(1, mInitNThreads));
 
   for (int i=0; i<mInitNThreads; i++) 
     threads[i]=new IsoThread(i, this);
@@ -1408,6 +1406,9 @@ void ImodvIsosurface::keyReleaseEvent ( QKeyEvent * e )
 /*
 
    $Log$
+   Revision 4.19  2010/04/01 02:41:48  mast
+   Called function to test for closing keys, or warning cleanup
+
    Revision 4.18  2010/03/30 02:21:29  mast
    Made the merging of results from multiple threads run faster and used
    OpenMP for big array copies - turned on multithreading with ideal thread
