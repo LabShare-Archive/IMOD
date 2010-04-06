@@ -14,10 +14,32 @@ which the section was cut) to the thickness
 of material in the reconstruction.  If a shrinkage in X/Y is known or
 can be estimated, then the Z-scale in each case would be the ratio
 just described, multiplied by the shrinkage factor (e.g., 0.9 for 10%
-shrinkage). 
+shrinkage).
+<P>
+Serial tomograms often have material missing between the ending slice of one and the
+starting slice of the next.  This fact indicates that for many tomograms, the thickness
+of the remaining material underestimates the actual thickness by the amount of
+missing material.  It is possible to compute a Z-scale that
+compensates for this as well.  Thus, the complete formula with all these
+factors is:
+<pre>
+Given:
+    S = Shrinkage factor (a number less than 1)
+    O = Original thickness in nm
+    P = Pixel size in nm
+    T = Thickness of material in pixels
+    Mn = Missing material, in nm
+    Mp = Missing material, in pixels
+Then:
+    Z-scale = S * O / (Mn + (T * P))
+Or:
+    Z-scale = S * O / ((Mp + T) * P)
+</pre>
+<P>
 The <B>Total Z-scale</B> text box allows you to enter a scaling factor for the 
 actual size of the pixels in Z (section thickness) relative to their size in 
-X and Y.
+X and Y.  This factor is equal to the Z-scale just described, provided the
+tomogram has not been squeezed.
 <P>
 The situation is more complicated when a tomogram has been squeezed
 more in Z than in X and Y.  In this case, the Z-scale needs to account
@@ -26,7 +48,8 @@ line <B>Z/X pixel size ratio</B> will show the amount of scaling
 needed because of the differential squeezing.  If you select
 <B>Set incremental Z-scale</B> then the <B>Added Z-scale</B> text box
 will be enabled instead of the <B>Total Z-scale</B> text box, and you
-can enter just the scaling needed to account for thinning.
+can enter just the scaling needed to account for thinning (the factor computed
+as described above.)
 <P>
 The <B>Draw model</B> checkbox toggles model drawing, just as the <B>t</B>
 hot key does.
