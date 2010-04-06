@@ -4,7 +4,7 @@
   <title>3dmod Introduction</title>
 </head>
 <body>
-<h2 align="center">Introduction to 3dmod, Version 3.13<br>
+<h2 align="center">Introduction to 3dmod, Version 4.1<br>
 </h2>
 <h3 align="center">Boulder Laboratory for 3-D Electron Microscopy of
 Cells</h3>
@@ -32,7 +32,9 @@ Cells</h3>
   <a href="#AdvancedTopics">Advanced Topics</a>
 </ul>
 <hr>
+<p>
   <h3><a name="ModelOrganization"></a>Model Organization</h3>
+</p><p>
 It is helpful to understand the model data structure before trying
 to create a model. A model is basically a collection of points that
 refer to or mark
@@ -49,7 +51,8 @@ name and all contours in the object share common attributes such as
 color and line thickness. This table shows how
 objects, contours, and points are organized in a hierarchy in the
 model.
-  <p></p>
+</p>
+<p>
   <center>
   <table border="2">
     <caption><b> Model Layout </b></caption> <tbody>
@@ -145,8 +148,10 @@ Point 4 </td>
     </tbody>
   </table>
   </center>
-  <p> </p>
+</p>
+  <p>
   <h3><a name="Starting3dmod"></a> Starting 3dmod</h3>
+</p>
 <p>To create a model for a MRC image file called <code>example.mrc</code>
 run the following 3dmod command.
 This command will cause a new model to be created, ready to edit.
@@ -383,7 +388,7 @@ make a separate symbol be displayed only on the central section. </li>
 <p>The type of contours in an object, and the
 symbols displayed at
 individual points, can be selected with the Object Edit dialog box.
-Here are two examples.
+Here are two examples.</p>
 <table align="center" border="0">
   <tbody>
     <tr>
@@ -397,6 +402,7 @@ Here are two examples.
     </tr>
   </tbody>
 </table>
+<p>
 On the left
 is a box for the open contour object that is used to track microtubules
 between sections. A circle is selected for the symbol display, and
@@ -408,8 +414,11 @@ vesicles;
 here no symbol is
 selected but the sphere radius for points has been set to 14.
 </p>
+<p>
 <h3><a name="ModelinginZap"></a>Modeling in the Zap Window</h3>
-<p>Model points are added or changed
+</p>
+<p>
+Model points are added or changed
 using a 3-button mouse with the
 program in Model mode.
 The table below gives an overview of the mouse controls in Movie and
@@ -818,7 +827,11 @@ thickness of
 material in the tomogram (pixels of material times pixel size in
 nanometers).&nbsp; In either case, if you have an estimate of how much
 the specimen shrank laterally due to beam exposure, you should multiply
-by the shrinkage factor (e.g., 0.9 for 10% shrinkage).<br>
+by the shrinkage factor (e.g., 0.9 for 10% shrinkage).  For tomography, the
+factor should also be adjusted for lost material if you have an estimate
+of that; see the
+<a
+ href="3dmodHelp/modelHeader.html">Model Header help page</a> for a formula.<br>
 </p>
 <p>The Pixel Size field should contain both a value for the size of the
 pixel in the digitized data, and the units for that value.
@@ -1015,16 +1028,18 @@ work better if you uncheck
 position of the volume being rendered does not change when you click in either
 place.
 </p>
+<p>
 The display properties of the isosurface can be adjusted from the Edit-Objects
 dialog just as for actual objects in the model.&nbsp; The isosurface is kept in
 something called an "extra object" and it is assigned a number higher than the
 number of actual objects.&nbsp; The isosurface will disappear when you close
 the dialog, but you can use the <span style="font-weight: bold;">Save</span>
 button to move it into a new actual object in the model.
-<p>
 </p>
 <p>
   <h3><a name="SkinningModel"></a>Putting a Skin on Model Data</h3>
+</p>
+<p>
 Skinning is the name used for calculating a three-dimensional
 surface from contour data.&nbsp; This surface, once calculated, is
 represented by
@@ -1302,7 +1317,7 @@ for the rest of the contour.&nbsp; In addition to allowing manipulation
 of color, line thickness, symbol displays, and transparency, the dialog
 allows multiple openings to be defined in contours, as shown in the
 model on the right.&nbsp; For more details see the <a
- href="3dmodHelp/finegrain.html">help page</a>.<br>
+ href="3dmodHelp/finegrain.html">help page</a>.
   </li>
   <li><b>Preferences.</b> You can set preferences that are stored
 between
@@ -1311,7 +1326,7 @@ of 3dmod, such as the assignment of
 the three mouse buttons and the type of file that will be snapshot with
 Shift-S. Use the Edit-Options menu entry to open the
 3dmod Preferences dialog box.&nbsp; (This item is under the Apple menu
-on the Mac.)<br>
+on the Mac.)
   </li>
   <li><b>Automated modeling.</b> There are two facilities for automated
 modeling.
@@ -1350,7 +1365,7 @@ Image-Locator menu entry to open a window that displays a zoomed-down
 image of the whole image area, with a red box outlining the area
 displayed in the active Zap window.&nbsp; You can even click a new
 center position, or drag the box, to pan the Zap window to the selected
-location.&nbsp; Here is the <a href="3dmodHelp/locator.html">help page</a>.<br>
+location.&nbsp; Here is the <a href="3dmodHelp/locator.html">help page</a>.
   </li>
   <li><b>Tumbler Window.</b> Use the Image-Tumbler menu entry to open a
 window
@@ -1376,7 +1391,7 @@ Slicer Windows.</span>&nbsp; It is possible to synchronize the angles
 of the Model View Window and a Slicer Window so that changing the view
 angles in one will rotate the other as well.&nbsp; Use Edit-Controls in
 the Model View menu to open the Controls dialog, and select the
-checkbox <span style="font-weight: bold;">Link to top Slicer angles</span>.<br>
+checkbox <span style="font-weight: bold;">Link to top Slicer angles</span>.
   </li>
   <li><b>Object color.</b> You can change an object's color using the
 Edit-Object-Color menu entry from the 3dmod Info Window, as well as
@@ -1392,7 +1407,7 @@ the Model View Window opens a dialog that allows you to save distinct
 views of the model, which can differ in many features such as
 orientation, the selection of objects displayed, and object properties
 such as color and lighting characteristics.&nbsp; Once you have saved
-the views you can switch between them easily.<br>
+the views you can switch between them easily.
   </li>
   <li><b>Editing contours.</b> The Edit-Contour menu has a number of
 advanced
@@ -1412,7 +1427,7 @@ on a section in the current object.</li>
 The Edit-Image-Process menu entry opens a dialog box that allows you to
 process one section of the image.&nbsp; You can take an FFT or apply a
 number of filters such as Fourier filtering, smoothing, and median
-filtering; here is the <a href="3dmodHelp/imageProc.html">help page</a>.<br>
+filtering; here is the <a href="3dmodHelp/imageProc.html">help page</a>.
   </li>
   <li><b>Tooltips.</b> If you leave the mouse over a button or other
 control

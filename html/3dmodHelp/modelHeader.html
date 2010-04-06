@@ -23,17 +23,16 @@ missing material.  It is possible to compute a Z-scale that
 compensates for this as well.  Thus, the complete formula with all these
 factors is:
 <pre>
-Given:
-    S = Shrinkage factor (a number less than 1)
+    Z-scale = S * O / (Mn + (T * P))
+Or:
+    Z-scale = S * O / ((Mp + T) * P)
+Where:
+    S = Shrinkage factor (a number less than or equal to 1)
     O = Original thickness in nm
     P = Pixel size in nm
     T = Thickness of material in pixels
     Mn = Missing material, in nm
     Mp = Missing material, in pixels
-Then:
-    Z-scale = S * O / (Mn + (T * P))
-Or:
-    Z-scale = S * O / ((Mp + T) * P)
 </pre>
 <P>
 The <B>Total Z-scale</B> text box allows you to enter a scaling factor for the 
