@@ -2,13 +2,13 @@
       integer limedge,limsect,memlim,limedgbf,ixgdim,iygdim,lmField,maxFields
       integer maxbsiz,idimc,maxPcNear, maxDistNear,maxUseEdge,limsecpc
       integer limXcorrPeaks
-      parameter (maxsiz=140*1000000)		!# of pixels
+      parameter (maxsiz=160*1000000)		!# of pixels
       parameter (limvar=8000)                  !# of variables for shift fits
 c       
 c       Needed size for idimc now determined by maximum unpadded size after
 c       binning, 1K x 1K
 c       
-      parameter (ifastsiz=32,maxlinelength=500000,maxbin=8,idimc=2048*2048)
+      parameter (ifastsiz=32,maxlinelength=1000000,maxbin=8,idimc=2048*2048)
       parameter (maxbsiz=(ifastsiz+maxbin)*maxlinelength)
       parameter (maxDistNear = 5)
       parameter (maxPcNear = (2*maxDistNear + 1) * (2*maxDistNear + 1))
