@@ -565,7 +565,7 @@ c
         minxoverlap=2
         minyoverlap=2
         newxframe=maxlinelength
-        newyframe=65535
+        newyframe=1000000
         ntrial=0
 32      minxwant=minxpiece
         minywant=minypiece
@@ -2786,6 +2786,9 @@ c
 
 c       
 c       $Log$
+c       Revision 3.39  2009/12/06 06:21:16  mast
+c       Fixed problem when shiftpieces used without ifsloppy
+c
 c       Revision 3.38  2008/12/23 00:08:12  mast
 c       Switch from taper fraction to number of xcorr peaks
 c
