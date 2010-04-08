@@ -133,7 +133,7 @@ enum sortcriteria   { SORT_SURFACENUM,
                       SORT_PTX, SORT_PTY, SORT_PTZ,
                       SORT_PTSIZE, SORT_PTGREY, SORT_NUMOPTIONS };
 
-const int NUM_SAVED_VALS = 29;
+const int NUM_SAVED_VALS = 30;
 
 //-------------------------------
 //## DRAWINGTOOLS DATA STRUCTURE:
@@ -177,6 +177,8 @@ struct DrawingToolsData   // contains all local plugin data
                                 //   (see: warpbehavior) 
   bool   scupltBut3Warp;        // if true: in sculpt mode the the third mouse button
                                 //   applies warp
+  bool   transformBut3Unif;     // if true: in transform mode the the third mouse button
+                                //   applies scale uniformly in X and Y
   
   int    lineDisplayWidth;      // the thickness of the line used to show contours
   

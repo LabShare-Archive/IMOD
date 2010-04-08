@@ -15,6 +15,9 @@
     $Revision$
 
     $Log$
+    Revision 1.43  2009/10/23 01:43:29  tempuser
+    setZChange - wild problem
+
     Revision 1.42  2009/10/22 05:41:51  mast
     Clear contour WILD flag after adding a point with Z marked as shifted
 
@@ -241,8 +244,8 @@ int imodPlugKeys(ImodView *vw, QKeyEvent *event)
       edit_goToContNextBiggestFindVal(shift,false,true); 
           // next biggest/smallest value
       break;
-    case Qt::Key_B:
-      edit_goToContNextBiggestFindVal(shift,true,false,(shift)?FLOAT_MAX:FLOAT_MIN );
+    case Qt::Key_L:
+        edit_goToContNextBiggestFindVal(shift,true,false,(shift)?FLOAT_MAX:FLOAT_MIN );
           // recalculates
       break;
       
@@ -703,11 +706,13 @@ int imodPlugMouse(ImodView *vw, QMouseEvent *event, float imx, float imy,
               cont_translate( cont, plug.changeX, plug.changeY );
             }
           }
-          else if ( plug.but3Down )        // rotate currently selected contour
+          else if ( plug.but3Down )       // scale currently selected contour
           {
             undoContourDataChgCC( plug.view );
             float scaleX = 1.0f + (plug.changeX / 100.0f);
             float scaleY = 1.0f + (plug.changeY / 100.0f);
+            if( plug.transformBut3Unif )
+              scaleX = scaleY;
             cont_scaleAboutPtXY( cont, &plug.centerPt, scaleX, scaleY );
           }
           else if (plug.but2Released || plug.but3Released )
@@ -717,7 +722,7 @@ int imodPlugMouse(ImodView *vw, QMouseEvent *event, float imx, float imy,
         }
         else
         {
-          if ( plug.but2Down )            // scale currently selected contour
+          if ( plug.but2Down )            // rotate currently selected contour
           {
             undoContourDataChgCC( plug.view );
             cont_rotateAroundPoint2D( cont, &plug.centerPt, plug.changeY );
@@ -756,7 +761,7 @@ int imodPlugMouse(ImodView *vw, QMouseEvent *event, float imx, float imy,
       }
       else
       {
-        if ( plug.but2Down )              // break closed contours using sculpt circle  
+        if ( plug.but2Down||plug.but3Down ) // break closed contours using sculpt circle  
         {
           edit_breakPointsInCircle(plug.mouse, plug.sculptRadius);
         }
@@ -1118,15 +1123,29 @@ bool DrawingTools::drawExtraObject( bool redraw )
         imodPointAppendXYZ( xcont, ur.x, ur.y, z );
         imodPointAppendXYZ( xcont, ll.x, ur.y, z );
         
-        if(plug.but2Down)      // draw line from point clicked to mouse:
+        if( (!plug.shiftDown && plug.but3Down) || (plug.shiftDown && plug.but2Down) )
+        {                          // draw crosshair and vertical line from clicked:
+          imodPointAppendXYZ( xcontO1, plug.centerPt.x,      plug.centerPt.y, z );
+          imodPointAppendXYZ( xcontO1, plug.centerPt.x+4*sc, plug.centerPt.y, z );
+          imodPointAppendXYZ( xcontO1, plug.centerPt.x-4*sc, plug.centerPt.y, z );
+          imodPointAppendXYZ( xcontO1, plug.centerPt.x,      plug.centerPt.y, z );
+          imodPointAppendXYZ( xcontO1, plug.centerPt.x, plug.centerPt.y+4*sc, z );
+          imodPointAppendXYZ( xcontO1, plug.centerPt.x, plug.centerPt.y-4*sc, z );
+          
+          imodPointAppendXYZ( xcontO2, plug.mouseDownPt.x, plug.mouseDownPt.y, z );
+          imodPointAppendXYZ( xcontO2, plug.mouseDownPt.x, y, z );
+          if(!plug.transformBut3Unif && plug.but3Down)
+            imodPointAppendXYZ( xcontO2, x, y, z );
+        }
+        else if(plug.but2Down)      // draw line from point clicked to mouse:
         {
-          imodPointAppendXYZ( xcontO1, plug.mouseDownPt.x, plug.mouseDownPt.y, z );  
-          imodPointAppendXYZ( xcontO1, x, y, z );   
+          imodPointAppendXYZ( xcontO1, plug.mouseDownPt.x, plug.mouseDownPt.y, z );
+          imodPointAppendXYZ( xcontO1, x, y, z );
         }
         else if(plug.but3Down)    // draw line from center of contour to mouse:
         {
-          imodPointAppendXYZ( xcontO1, plug.centerPt.x, plug.centerPt.y, z );  
-          imodPointAppendXYZ( xcontO1, x, y, z );          
+          imodPointAppendXYZ( xcontO1, plug.centerPt.x, plug.centerPt.y, z );
+          imodPointAppendXYZ( xcontO1, x, y, z );
         }
       }
       else
@@ -1343,6 +1362,7 @@ void DrawingTools::initValues()
   plug.sculptResizeScheme     = SR_STAGGERED;
   plug.warpBehavior           = WB_AUTO;
   plug.scupltBut3Warp         = false;
+  plug.transformBut3Unif      = true;
   plug.lineDisplayWidth       = 1;
   
   plug.wheelBehav             = WH_SCULPTCIRCLE;
@@ -1399,19 +1419,20 @@ void DrawingTools::loadSettings()
   plug.diffWarpSize               = savedValues[14];
   plug.warpBehavior               = savedValues[15];
   plug.scupltBut3Warp             = savedValues[16];
-  plug.lineDisplayWidth           = savedValues[17];
+  plug.transformBut3Unif          = savedValues[17];
+  plug.lineDisplayWidth           = savedValues[18];
   
-  plug.wheelBehav                 = savedValues[18];
-  plug.dKeyBehav                  = savedValues[19];
-  plug.pgUpDownInc                = savedValues[20];
-  plug.useNumKeys                 = savedValues[21];
-  plug.smartPtResizeMode          = savedValues[22];
-  plug.markTouchedContsAsKey      = savedValues[23];
-  plug.wheelResistance            = savedValues[24];
-  plug.selectedAction             = savedValues[25];
+  plug.wheelBehav                 = savedValues[19];
+  plug.dKeyBehav                  = savedValues[20];
+  plug.pgUpDownInc                = savedValues[21];
+  plug.useNumKeys                 = savedValues[22];
+  plug.smartPtResizeMode          = savedValues[23];
+  plug.markTouchedContsAsKey      = savedValues[24];
+  plug.wheelResistance            = savedValues[25];
   plug.selectedAction             = savedValues[26];
-  plug.testIntersetAllObjs        = savedValues[27];
-  plug.selectedAction             = savedValues[28];
+  plug.selectedAction             = savedValues[27];
+  plug.testIntersetAllObjs        = savedValues[28];
+  plug.selectedAction             = savedValues[29];
 }
 
 
@@ -1440,19 +1461,20 @@ void DrawingTools::saveSettings()
   saveValues[14]  = plug.diffWarpSize;
   saveValues[15]  = plug.warpBehavior;
   saveValues[16]  = plug.scupltBut3Warp;
-  saveValues[17]  = plug.lineDisplayWidth;
+  saveValues[17]  = plug.transformBut3Unif;
+  saveValues[18]  = plug.lineDisplayWidth;
   
-  saveValues[18]  = plug.wheelBehav;
-  saveValues[19]  = plug.dKeyBehav;
-  saveValues[20]  = plug.pgUpDownInc;
-  saveValues[21]  = plug.useNumKeys;
-  saveValues[22]  = plug.smartPtResizeMode;
-  saveValues[23]  = plug.markTouchedContsAsKey;
-  saveValues[24]  = plug.wheelResistance;
-  saveValues[25]  = plug.selectedAction;
+  saveValues[19]  = plug.wheelBehav;
+  saveValues[20]  = plug.dKeyBehav;
+  saveValues[21]  = plug.pgUpDownInc;
+  saveValues[22]  = plug.useNumKeys;
+  saveValues[23]  = plug.smartPtResizeMode;
+  saveValues[24]  = plug.markTouchedContsAsKey;
+  saveValues[25]  = plug.wheelResistance;
   saveValues[26]  = plug.selectedAction;
-  saveValues[27]  = plug.testIntersetAllObjs;
-  saveValues[28]  = plug.selectedAction;
+  saveValues[27]  = plug.selectedAction;
+  saveValues[28]  = plug.testIntersetAllObjs;
+  saveValues[29]  = plug.selectedAction;
   
   prefSaveGenericSettings("DrawingTools",NUM_SAVED_VALS,saveValues);
 }
@@ -2424,41 +2446,41 @@ void DrawingTools::moreActions()
                   &plug.selectedAction,
                   "",
                   "Contains a number of options to clean multiple \n"
-                    "objects and 'fix' contours by removing bad or \n"
-                    "points etc,"
-                  "Finds closed contours which cross theie own "
+                    "objects and 'fix' contours by removing bad; \n"
+                    "redundant or out-of-bounds points etc,"
+                  "Finds closed contours which cross their own \n"
                     "path or the path of other contours. \n"
-                    "In most situations (eg: closed membranes) "
-                    "no two lines should ever intersect, \n"
-                    "especially a line crossing itself, "
+                    "In most situations (eg: closed membranes) \n"
+                    "no two lines should ever intersect; \n"
+                    "especially a line crossing itself; \n"
                     "so it's a good idea to use this tool before \n"
                     "converting your contours into the final mesh model.,"
-                  "Physically sorts contours using the criteria you "
+                  "Physically sorts contours using the criteria you select,"
+                  "Use [y] to find the contour or point with the \n"
+                    "next biggest value based on the criteria you \n"
                     "select,"
-                  "Use [y] to find the contour or point with the "
-                    "next biggest value based on the criteria you "
-                    "select,"
-                  "Allows you to delete any contours which meet your "
-                    "specified criteria,"
-                  "Will crop and 'cut open' contours in the current object "
-                    "which go outside the tomogram boundaries or rubber band area,"
-                  "Use this to copy or move a range of contours from the "
-                    "current object to another object,"
-                  "Use this to precisely translate; scale and/or rotate "
+                  "Allows you to delete any contours which meet \n"
+                    "your specified criteria,"
+                  "Will crop and 'cut open' contours in the current \n"
+                    "object which go outside the tomogram boundaries \n"
+                    "or rubber band area,"
+                  "Use this to copy or move a range of contours from \n"
+                    "the current object to another object,"
+                  "Use this to precisely translate; scale and/or rotate \n"
                     "a range of contours in the current object,"
-                  "Allows you to modify contour properties over "
+                  "Allows you to modify contour properties over \n"
                     "a range of contours in the current object,"
-                  "Use this to move the current point or the current "
-                    "object to a precise position,"
-                  "Use this to expand a ring around a range of "
+                  "Use this to move the current point or the current \n"
+                    "contour to a precise position,"
+                  "Use this to expand a ring around a range of \n"
                     "open or closed contours within the current object,"
-                  "Prints some basic information about the current "
-                    "object including the average distance between "
-                    "points; average points contour; and number of "
+                  "Prints some basic information about the current \n"
+                    "object including the average distance between \n"
+                    "points; average points contour; and number of \n"
                     "empty contours.,"
-                  "Prints detailed information about the "
+                  "Prints detailed information about the \n"
                     "current object,"
-                  "Prints detailed information about the "
+                  "Prints detailed information about the \n"
                     "current contour; or a range of them,"
                   "Resets all setting (for this plugin) to default" );
 	GuiDialogCustomizable dlg(&ds, "Perform Action", this);
@@ -2558,6 +2580,11 @@ void DrawingTools::keyboardSettings()
   ds.addCheckBox( "use button 3 in sculpt to warp", &plug.scupltBut3Warp,
                   "When using sculpt mode, the third mouse button will warp \n"
                   "the contour instead of moving the selected point" );
+  ds.addCheckBox( "button 3 scales uniformly", 
+                  &plug.transformBut3Unif,
+                  "When using the 'Transform' drawing mode with the third \n"
+                  "mouse button, contours will scale uniformly in X and Y \n"
+                  "else they will scale seperately in X and Y." );
   ds.addCheckBox( "show mouse in model view", 
                   &plug.showMouseInModelView,
                   "Will show the mouse in any Model View "
@@ -6798,8 +6825,8 @@ bool edit_goToContNextBiggestFindVal( bool findNextSmallest, bool recalc,
   
   if( closestContIdx == -1 )
   {
-    wprint("\aNo more 'next %s' value found - press 'B' to reset.\n",
-           (findNextSmallest) ? "smallest" : "biggest" );
+    wprint("\aNo more 'next %s' value found - press '%s' to reset.\n",
+           (findNextSmallest)?"smallest":"biggest", (findNextSmallest)?"L":"l" );
     return false;
   }
   
