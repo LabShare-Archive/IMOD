@@ -130,7 +130,7 @@ C
                 else
                   write(*,101)tiltaxis
                 endif
-101             format(10x,'Tilt axis rotation angle =', f6.1, a)
+101             format(10x,'Tilt axis rotation angle = ', f7.1, a)
               endif
               pixel = array(nint + 12) * 1.e9
               call irtdel(1, delta)
@@ -165,6 +165,9 @@ c
 
 c       
 c       $Log$
+c       Revision 3.9  2009/12/06 02:15:20  mast
+c       Turn off entry output
+c
 c       Revision 3.8  2009/03/27 16:25:29  mast
 c       Invert the sign of rotation angle for FEI header
 c
