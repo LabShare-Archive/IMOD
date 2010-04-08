@@ -646,14 +646,14 @@ public final class ApplicationManager extends BaseManager implements
     else {
       if (!isExiting() && exitState != DialogExitState.POSTPONE
           && state.isUseFixedStackWarning(axisID)) {
+        //Only warn once.
+        state.setUseFixedStackWarning(axisID, false);
         //The use button wasn't pressed and the user is moving on to the next
         //dialog.
         uiHarness.openMessageDialog(this,
             "To use the fixed stack go back to Pre-processing and press the \""
                 + PreProcessingDialog.getUseFixedStackLabel() + "\" button.",
             "Entry Warning", axisID);
-        //Only warn once.
-        state.setUseFixedStackWarning(axisID, false);
       }
       updateEraserCom(preProcDialog.getCCDEraserDisplay(), axisID, false);
       if (exitState == DialogExitState.EXECUTE) {
@@ -1022,6 +1022,9 @@ public final class ApplicationManager extends BaseManager implements
     File fixedStack = Utilities.getFile(this, true, axisID, "_fixed.st",
         "erased stack");
     if (fixedStack == null) {
+      uiHarness.openMessageDialog(this,
+          "Unable to rename.  Fixed stack does not exist.", "Entry Error",
+          axisID);
       sendMsgProcessFailedToStart(processResultDisplay);
       return;
     }
@@ -1033,7 +1036,6 @@ public final class ApplicationManager extends BaseManager implements
     }
     processTrack.setState(ProcessState.INPROGRESS, axisID, dialogType);
     mainPanel.setState(ProcessState.INPROGRESS, axisID, dialogType);
-
     // Rename the fixed stack to the raw stack file name and save the orginal
     // raw stack to _orig.st if that does not already exist
     try {
@@ -1050,6 +1052,7 @@ public final class ApplicationManager extends BaseManager implements
           "File Rename Error", axisID);
       sendMsgProcessFailed(processResultDisplay);
     }
+    state.setUseFixedStackWarning(axisID, false);
     closeImod(ImodManager.RAW_STACK_KEY, axisID, "raw stack");
     // An _orig.st file may have been created, so refresh the Clean Up dialog's
     // archive fields.
@@ -1058,7 +1061,6 @@ public final class ApplicationManager extends BaseManager implements
     }
     updateArchiveDisplay();
     mainPanel.stopProgressBar(axisID);
-    state.setUseFixedStackWarning(axisID, false);
   }
 
   /**
@@ -4888,6 +4890,7 @@ public final class ApplicationManager extends BaseManager implements
       comScriptMgr.saveTilt3dFindReproject(tiltParam, axisID);
     }
     catch (NumberFormatException except) {
+      except.printStackTrace();
       String[] errorMessage = new String[3];
       errorMessage[0] = "Tilt Parameter Syntax Error";
       errorMessage[1] = "Axis: " + axisID.getExtension();
@@ -4897,6 +4900,7 @@ public final class ApplicationManager extends BaseManager implements
       return null;
     }
     catch (InvalidParameterException except) {
+      except.printStackTrace();
       String[] errorMessage = new String[3];
       errorMessage[0] = "Tilt Parameter Syntax Error";
       errorMessage[1] = "Axis: " + axisID.getExtension();
@@ -4941,6 +4945,7 @@ public final class ApplicationManager extends BaseManager implements
       comScriptMgr.saveTilt3dFind(tiltParam, axisID);
     }
     catch (NumberFormatException except) {
+      except.printStackTrace();
       String[] errorMessage = new String[3];
       errorMessage[0] = "Tilt Parameter Syntax Error";
       errorMessage[1] = "Axis: " + axisID.getExtension();
@@ -4950,6 +4955,7 @@ public final class ApplicationManager extends BaseManager implements
       return null;
     }
     catch (InvalidParameterException except) {
+      except.printStackTrace();
       String[] errorMessage = new String[3];
       errorMessage[0] = "Tilt Parameter Syntax Error";
       errorMessage[1] = "Axis: " + axisID.getExtension();
@@ -5013,6 +5019,7 @@ public final class ApplicationManager extends BaseManager implements
       metaData.setFiducialess(axisID, tiltParam.isFiducialess());
     }
     catch (NumberFormatException except) {
+      except.printStackTrace();
       String[] errorMessage = new String[3];
       errorMessage[0] = "Tilt Parameter Syntax Error";
       errorMessage[1] = "Axis: " + axisID.getExtension();
@@ -5022,6 +5029,7 @@ public final class ApplicationManager extends BaseManager implements
       return null;
     }
     catch (InvalidParameterException except) {
+      except.printStackTrace();
       String[] errorMessage = new String[3];
       errorMessage[0] = "Tilt Parameter Syntax Error";
       errorMessage[1] = "Axis: " + axisID.getExtension();
@@ -5079,6 +5087,7 @@ public final class ApplicationManager extends BaseManager implements
       metaData.setFiducialess(axisID, tiltParam.isFiducialess());
     }
     catch (NumberFormatException except) {
+      except.printStackTrace();
       String[] errorMessage = new String[3];
       errorMessage[0] = "Tilt Parameter Syntax Error";
       errorMessage[1] = "Axis: " + axisID.getExtension();
@@ -5088,6 +5097,7 @@ public final class ApplicationManager extends BaseManager implements
       return null;
     }
     catch (InvalidParameterException except) {
+      except.printStackTrace();
       String[] errorMessage = new String[3];
       errorMessage[0] = "Tilt Parameter Syntax Error";
       errorMessage[1] = "Axis: " + axisID.getExtension();
@@ -8060,6 +8070,10 @@ public final class ApplicationManager extends BaseManager implements
 }
 /**
  * <p> $Log$
+ * <p> Revision 3.354  2010/03/16 21:48:54  sueh
+ * <p> Added closeImod(String,AxisID,AxisID,String) to pop up a close message in
+ * <p> axis A about an axis B tomogram.
+ * <p>
  * <p> Revision 3.353  2010/03/12 03:56:34  sueh
  * <p> bug# 1325 Changed deleteAlignedStacks to deleteIntermediateImageStacks.
  * <p>
