@@ -28,6 +28,9 @@ import etomo.ui.UIHarness;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.34  2010/04/08 18:07:44  sueh
+ * <p> bug# 1348 In parseTiltAxis removed unnecessary trim command.
+ * <p>
  * <p> Revision 3.33  2010/04/08 18:05:48  sueh
  * <p> bug# 1348 Changed imageRotation to an EtomoNumber.  Handling an
  * <p> equals without spaces for one parsing situation involving this value.
@@ -605,6 +608,7 @@ public class MRCHeader {
         return;
       }
     }
+    line = line.trim();
     if (line.startsWith("Tilt axis rotation angle")) {
       //Handle an "=" sign without a following space.  This can happen with
       //Fortran output because it wants to put numbers in fixed-width columns.
