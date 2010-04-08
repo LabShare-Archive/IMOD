@@ -186,14 +186,15 @@ def findPatches(lower, upper, edge):
 
    # Heirarchy for Z limits is the option entry, then the entry for the lower
    # piece, then an entry for the edge
-   mins[2] = max(0, borderZ)
-   maxes[2] = lower[kSize][2] - 1 - mins[2]
+   # Mins and maxes for corrsearch3d are numbered from 1
+   mins[2] = max(1, borderZ + 1)
+   maxes[2] = lower[kSize][2] + 1 - mins[2]
    if lower.has_key(kZlimit):
-      mins[2] = max(0, lower[kZlimit][0] - 1)
-      maxes[2] = min(lower[kSize][2] - 1, lower[kZlimit][1] - 1)
+      mins[2] = max(1, lower[kZlimit][0])
+      maxes[2] = min(lower[kSize][2], lower[kZlimit][1])
    if edge.has_key(kZlimit):
-      mins[2] = max(0, edge[kZlimit][0] - 1)
-      maxes[2] = min(lower[kSize][2] - 1, edge[kZlimit][1] - 1)
+      mins[2] = max(1, edge[kZlimit][0])
+      maxes[2] = min(lower[kSize][2], edge[kZlimit][1])
    if maxes[2] - mins[2] < 0.5 * sizes[2]:
       print '%s Z limits (%d and %d) too narrow for patch Z size (%d) for' \
             ' edge %s' % (prefix, mins[2] + 1, maxes[2] + 1, sizes[2], \
@@ -205,9 +206,9 @@ def findPatches(lower, upper, edge):
 
    borderXY = max(0, borderXY)
    for i in [0, 1]:
-      mins[i] = max(borderXY, borderXY - edge[kShift][i])
-      maxes[i] = min(lower[kSize][i] - 1 - borderXY, \
-                     upper[kSize][i] - 1 - borderXY - edge[kShift][i])
+      mins[i] = max(borderXY, borderXY - edge[kShift][i]) + 1
+      maxes[i] = min(lower[kSize][i] - borderXY, \
+                     upper[kSize][i] - borderXY - edge[kShift][i])
       if maxes[i] - mins[i] <= sizes[i]:
          print '%s Border in X and Y and/or patch size in %s needs to be\n'\
                'ERROR:     reduced to fit in overlap for edge %s' % \
@@ -688,6 +689,9 @@ sys.exit(0)
 
 #
 # $Log$
+# Revision 1.12  2009/11/03 03:45:55  mast
+# Needed to copy patchsize to sizes as a list to modify it
+#
 # Revision 1.11  2009/10/22 05:46:17  mast
 # Add error message if no -zadd
 #
