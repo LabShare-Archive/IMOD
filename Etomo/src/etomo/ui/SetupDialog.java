@@ -346,7 +346,7 @@ final class SetupDialog extends ProcessDialog implements ContextMenu,
     ltfFiducialDiameter.setText(input);
   }
 
-  void setImageRotation(final float input) {
+  void setImageRotation(final String input) {
     ltfImageRotation.setText(input);
   }
 
@@ -881,6 +881,9 @@ final class SetupDialog extends ProcessDialog implements ContextMenu,
 }
 /**
  * <p> $Log$
+ * <p> Revision 3.70  2010/03/27 05:08:59  sueh
+ * <p> bug# 1333 Added GPU checkbox.
+ * <p>
  * <p> Revision 3.69  2009/11/20 17:35:02  sueh
  * <p> bug# 1282 Naming all the file choosers by constructing a FileChooser
  * <p> instance instead of a JFileChooser instance.
