@@ -28,6 +28,9 @@ import etomo.ui.UIHarness;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.32  2010/03/09 22:08:36  sueh
+ * <p> bug# 1325 Added getInstance(BaseManager,AxisID,FileType).
+ * <p>
  * <p> Revision 3.31  2010/02/17 05:05:58  sueh
  * <p> bug# 1301 Using manager instead of manager key for popping up
  * <p> messages.
@@ -229,7 +232,7 @@ public class MRCHeader {
   private double xPixelSpacing = Double.NaN;
   private double yPixelSpacing = Double.NaN;
   private double zPixelSpacing = Double.NaN;
-  private double imageRotation = Double.NaN;
+  private EtomoNumber imageRotation = new EtomoNumber(EtomoNumber.Type.DOUBLE);
   private int binning = Integer.MIN_VALUE;
   private AxisID axisID;
   private final String fileLocation;
@@ -539,11 +542,11 @@ public class MRCHeader {
 
   /**
    * Return the image rotation in degrees if present in the header.  If the
-   * header has not been read or the image rotation is not available return
-   * Double.NaN
-   * @return
+   * header has not been read or the image rotation is not available
+   * imageRotation will be null.
+   * @return ConstEtomoNumber
    */
-  public double getImageRotation() {
+  public ConstEtomoNumber getImageRotation() {
     return imageRotation;
   }
 
@@ -593,15 +596,19 @@ public class MRCHeader {
     if (line.matches(".*Tilt axis angle =.*")) {
       String[] tokens = line.split("\\s+");
       if (tokens.length > 5) {
-        imageRotation = Double.parseDouble(tokens[5].substring(0, tokens[5]
+        imageRotation.set(tokens[5].substring(0, tokens[5]
             .length() - 1));
         return;
       }
     }
-    if (line.startsWith("          Tilt axis rotation angle")) {
-      String[] tokens = line.split("\\s+");
-      if (tokens.length > 6) {
-        imageRotation = Double.parseDouble(tokens[6]);
+    line = line.trim();
+    if (line.startsWith("Tilt axis rotation angle")) {
+      //Handle an "=" sign without a following space.  This can happen with
+      //Fortran output because it wants to put numbers in fixed-width columns.
+      String[] pair = line.split("=");
+      String[] valueTokens = pair[1].trim().split("\\s+");
+      if (valueTokens.length > 0) {
+        imageRotation.set(valueTokens[0]);
       }
     }
   }
