@@ -1,11 +1,15 @@
 package etomo.ui;
 
+import java.io.IOException;
+
 import etomo.ApplicationManager;
 import etomo.ProcessSeries;
 import etomo.comscript.BlendmontParam;
+import etomo.comscript.FortranInputSyntaxException;
 import etomo.type.AxisID;
 import etomo.type.DialogType;
 import etomo.type.Run3dmodMenuOptions;
+import etomo.util.InvalidParameterException;
 
 /**
  * <p>Description: </p>
@@ -21,6 +25,10 @@ import etomo.type.Run3dmodMenuOptions;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.2  2009/09/21 17:54:13  sueh
+ * <p> bug# 1267 Using the blend_3dfind mode instead of the blend mode for
+ * <p> 3dfind.
+ * <p>
  * <p> Revision 3.1  2009/09/01 03:18:25  sueh
  * <p> bug# 1222
  * <p> </p>
@@ -48,9 +56,14 @@ final class Blendmont3dFindPanel extends NewstackOrBlendmont3dFindPanel
   public void setParameters(BlendmontParam param) {
   }
 
-  public void getParameters(BlendmontParam param) {
+  public void getParameters(BlendmontParam param)
+      throws FortranInputSyntaxException, InvalidParameterException,
+      IOException {
     param.setBinByFactor(getBinning());
     param.setMode(BlendmontParam.Mode.BLEND_3DFIND);
+    param.convertToStartingAndEndingXandY(manager.getState()
+        .getStackUserSizeToOutputInXandY(axisID), manager.getMetaData()
+        .getImageRotation(axisID));
   }
 
   void runProcess(final ProcessSeries processSeries,
