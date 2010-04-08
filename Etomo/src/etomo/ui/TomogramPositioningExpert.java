@@ -573,6 +573,7 @@ public final class TomogramPositioningExpert extends ReconUIExpert {
       metaData.setFiducialess(axisID, tiltParam.isFiducialess());
     }
     catch (NumberFormatException except) {
+      except.printStackTrace();
       String[] errorMessage = new String[3];
       errorMessage[0] = "Tilt Parameter Syntax Error";
       errorMessage[1] = "Axis: " + axisID.getExtension();
@@ -961,6 +962,10 @@ public final class TomogramPositioningExpert extends ReconUIExpert {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.39  2010/03/30 00:07:30  sueh
+ * <p> bug# 1331 Added useGpu checkbox.  Added boolean initialize parameter
+ * <p> to setTiltParam(ConstTiltParam).
+ * <p>
  * <p> Revision 1.38  2010/03/12 04:28:07  sueh
  * <p> bug# 1325 Fixed typo in doneDialog.
  * <p>
