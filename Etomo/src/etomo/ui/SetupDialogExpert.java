@@ -41,6 +41,9 @@ import etomo.util.Montagesize;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.15  2010/03/27 05:09:30  sueh
+ * <p> bug# 1333 Added GPU checkbox.
+ * <p>
  * <p> Revision 1.14  2010/02/17 05:03:12  sueh
  * <p> bug# 1301 Using manager instead of manager key for popping up messages.
  * <p>
@@ -799,9 +802,9 @@ public final class SetupDialogExpert {
     }
 
     // Set the image rotation if available
-    double imageRotation = header.getImageRotation();
-    if (!Double.isNaN(imageRotation)) {
-      dialog.setImageRotation(imageRotation);
+    ConstEtomoNumber imageRotation = header.getImageRotation();
+    if (!imageRotation.isNull()) {
+      dialog.setImageRotation(imageRotation.toString());
     }
 
     // set the pixel size if available
