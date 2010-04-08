@@ -35,7 +35,7 @@ you join or split contours using a rectangle. </li>
 stretch <i>[shift+third_button]</i> the currently selected contour.</li>
 <li><b>Eraser</b> - allows you to delete contours <i>[second_button]</i> 
 or points <i>[third_button]</i> touching the sculpt circle. 
-Holding <i>[shift+third_button]</i> lets you break apart contours.</li>
+Holding <i>[shift+second_button]</i> lets you break apart contours.</li>
 <li><b>Warp</b> - allows you to quickly correct bad regions of contour
 by warping <i>[second_button]</i> or warp-and-smoothing <i>[third_button]</i>
 the contour points closest to (if you click on a contour) or within (if you 
@@ -43,7 +43,8 @@ click near a contour) the sculpt circle.
 Holding <i>[shift+third_button]</i> lets you break apart contours.</li>
 <li><b>Curve</b> - allows you to draw a smooth contour by clicking a sequence
 of points <i>[second_button]</i> and then end the contour by pressing
-[space] or connecting the end of the contour to the beginning.</li>
+[space] or connecting the end of the contour to the beginning. To disconnect
+from the selected contour without adjustment press [n].</li>
 </ol>
 <br><br>
 <b>Hot Key Summary</b><br>
@@ -51,10 +52,10 @@ of points <i>[second_button]</i> and then end the contour by pressing
 <b>[1]-[5]</b>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
 Select corresponding draw mode (see above)<br>
 <br>
-<b>[q]</b>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-Decrease size of sculpt circle (hold shift to go faster)<br>
 <b>[w]</b>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
 Increase size of sculpt circle (hold shift to go faster)<br>
+<b>[q]</b>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+Decrease size of sculpt circle (hold shift to go faster)<br>
 <br>
 <b>[r]</b>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
 Reduce current contour<br>
@@ -75,10 +76,10 @@ Go to next largest value using find property
 (see: More Actions - find points/contours)<br>
 <b>[Y]</b>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
 Go to next smallest value using find property<br>
-<b>[b]</b>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+<b>[l]</b>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
 Recalculate values of contours/points using find property
 and select the smallest<br>
-<b>[B]</b>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+<b>[L]</b>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
 Recalculate values of contours/points using find property
 and select the largest<br>
 <br>
@@ -97,6 +98,7 @@ Copy current contour to current slice (use also [?])<br>
 Hold Shift down to alter the behavior of certain draw modes<br>
 <br>
 <br>
+<br>
 <b>Tips</b><br>
 ---------------------<br>
 <br>
@@ -108,8 +110,8 @@ closed contours and so I would not recommend using these tools
 with open or scattered contours which span multiple slices.<br>
 <br>
 If you select a contour using the "transform" tool, you can
-copy it to nearby slices by simply scrolling to a different slice
-and mouse clicking [second_button]. In this way transform can
+copy it to nearby slices by simply scrolling to a different
+slice and mouse clicking [second_button]. In this way transform can
 be useful to quickly mark-up simple shapes.
 <br>
 The join tool and, to a lesser extent, the sculpt tool can become
@@ -129,7 +131,9 @@ the model, but be very careful you don't lose information in
 the process.<br>
 <br>
 Under <b>More Actions</b> are a number of other options to sort, transform,
-move, copy, expand and modify contours.
+move, copy, expand and modify contours. These have been listed in more 
+detail below and it's recommended you read about them all - especially 
+the 'crop contours' feature.<br>
 <br>
 In 3dmod (without the drawing tool plugin) there are several 
 useful drawing tools you might not know about:
@@ -142,6 +146,91 @@ the Zap "contour transform mode" with [P] - this mode is
 similar to the "transform" drawing tool.</li>
 </ol>
 <br>
+<br>
+<b>More Actions</b><br>
+---------------------<br>
+<br>
+In addition to the options on the plugin you can see, a large number of 
+additional tools are available when you click the "More Actions" button.
+A small description of each is written below. Note that most of these tools
+allow you to specify a range of contours and/or apply the action to only
+dotted or solid contours.
+<br>
+<ul>
+<li><b>clean model and fix contours</b> - Contains a number of options to clean 
+multiple objects and 'fix' contours by removing bad, redundant or 
+out-of-bounds points and more. It's recommended you run this on all
+finished models, and also contains an option to make all contours clockwise
+or anticlockwise. </li>
+<li><b>find intersecting edges [a]</b> - Finds closed contours which cross
+their own path or the path of other contours. In most situations (eg: closed 
+membranes) no two lines should ever intersect; especially a line crossing 
+itself; so it's a good idea to use this tool before converting your contours 
+into the final mesh model. One of the options is to automatically 'delete 
+intersecting contours in current object', but I'd suggest you leave it on 
+'list all intersecting edges' then use [a] to check them all individually.</li>
+<li><b>sort contours</b> - Physically sorts contours using the criteria you
+select. Amoung the many optons you can sort a range (by default all) of 
+contours by: <i>surface number, number points, contour lengh, area, max segment 
+length, avg gray value, interpolated, random, mean value in x/y/z or min
+value x/y/z</i>!</li>
+<li><b>find contours [y]</b> - Use [y] to find the contour or point with the 
+next biggest value based on the criteria you select. Clicking this will let 
+you choose the criteria (same list as above) and value to start at... 
+from there use [y] and [Y] to iterate through contours. Using this it's
+possible, say, to find contours with 5 points (or in surface #5) without 
+needing to sort them.</li>
+<li><b>delete contours</b> - Allows you to delete any contours which meet your
+specified criteria. You can chose to run it over a range of contours in
+the current object, or ALL contours in a range of objects. The 'criteria 
+for deletion' you can chose from include 'slices / z value' and/or 
+'number of points'... but keep in mind this delete feature can be 
+used to delete a range of contours after you've sorted them using some 
+other criteria. This options was origionally created to allow easy deletion 
+of contours off every Nnd slice etc.</li>
+<li><b>crop contours</b> - Will crop and 'cut open' contours in the current
+object which go outside the tomogram boundaries or rubber band area. This 
+feature can be VERY HANDY. The edges of tomograms typically look messy after
+manual segmentation AND it's a pain to manually mark individual membranes 
+which intersect the edge as open. I suggest use Interpolator plugin and the
+sculpt tool and just allow all your contours to go outside the boundary. 
+THEN, when you're done (and maybe saved a backup!), run this tool and it
+will automatically caculate intersection points and cut open all the relevant 
+segments of contour!
+</li>
+<li><b>copy contours</b> - Use this to copy or move a range of contours from
+the current object to another object.</li>
+<li><b>transform contours</b> - Use this to precisely translate;
+scale and/or rotate a range of contours in the current object.</li>
+<li><b>modify contours</b> - Allows you to modify contour properties over
+a range of contours in the current object.</li>
+<li><b>move point</b> - Use this to move the current point or the current
+contour to a precise position. The move can be relative or absolute.
+<i>If you click 'Mouse and Keyboard' you can set the shortcut key [d]
+to bring up this dialog or several other options - by default it will all 
+point in the selected contour to the end.</i></li>
+<li><b>expand contours</b> - Use this to expand a ring around a range of 
+open or closed contours within the current object. In other words, a single 
+circular contour will become two concentric circles some thickness apart. 
+This is useful if you've drawn through center of a thick membrane and 
+then decide to model both sides. There are also options here to shrink  
+or grow the contour by some thickness (without turning each closed contour 
+into two contours).</li>
+<li><b>print basic model info</b> - Prints some basic information about the 
+current object including the average distance between points; average points 
+per contour; and number of empty contours.</li>
+<li><b>print detailed object info</b> - Prints detailed information about the 
+current object. This includes: <i>bounding coordinates, the number and fraction
+of contours which are: empty, single points, interpolated, anti-clockwise, 
+open, and also the total and average number of points, length, 
+segment length and area of all contours</i>.</li>
+<li><b>print detailed contour info</b> - Prints detailed information about the 
+current contour; or a range of them. In addition to bounding box, area and
+length, there is an option to print out all segment lengths or all point
+sizes and positions.</li>
+<li><b>reset values</b> - Resets all settings (for this Drawing Tools plugin) 
+to default.</li>
+</ul>
 <br>
 ---------------------<br>
 <br>
