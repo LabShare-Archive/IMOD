@@ -128,7 +128,7 @@ void cubinterp(float *array, float *bray, int nxa, int nya, int nxb, int nyb,
      
     /* Truncate the ending value down and the starting value up but do not
        pay any attention to xst bigger than nxb + 1 */
-    ixnd = xnd;
+    ixnd = (int)B3DMAX(-1.e5, xnd);
     ixst = nxb + 1 - (int)(nxb + 1 - B3DMIN(xst, nxb + 1.));
      
     /* If they're crossed, set them up so fill will do whole line.
@@ -304,6 +304,10 @@ void cubinterpfwrap(float *array, float *bray, int *nxa, int *nya, int *nxb,
 /*
 
 $Log$
+Revision 1.7  2010/01/29 05:42:02  mast
+Fixed problem with fallback testing being done in middle of whole lines
+being filled
+
 Revision 1.6  2009/06/22 22:47:40  mast
 Call new function to get thread number as controlled by OMP_NUM_THREADS
 
