@@ -12,6 +12,9 @@
  * @version $$Revision$
  *
  * <p> $$Log$
+ * <p> $Revision 3.72  2010/03/12 04:28:30  sueh
+ * <p> $bug# 1325 Added deleteFileType.
+ * <p> $
  * <p> $Revision 3.71  2010/03/09 22:09:12  sueh
  * <p> $bug# 1325 Added getStackBinning.
  * <p> $
@@ -409,10 +412,10 @@ public class Utilities {
   }
 
   public static File getFile(String propertyUserDir, String filename) {
-    filename = filename.trim();
     if (filename == null || filename.matches("\\s*")) {
       return new File(propertyUserDir);
     }
+    filename = filename.trim();
     if (filename.charAt(0) == File.separatorChar) {
       return new File(filename);
     }
