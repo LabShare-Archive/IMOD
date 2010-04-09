@@ -1,19 +1,18 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+4/9/10: IMOD_4-2-0 and branch to IMOD_4-1-0
 4/9/10: In Etomo - fixed a null pointer exception in Setup Reconstruction.
 
 4/8/10: In Etomo - fixed a MRC header reading problem.
 
-4/8/10: In Etomo - Final Aligned Stack fixed the Align and Build Tomogram, which
-didn't always reflect the process result.
+4/8/10: In Etomo - Final Aligned Stack fixed the Align and Build Tomogram,
+which didn't always reflect the process result.
 
-4/7/10: In Etomo fixed problem where in a montaged final aligned stack generated
+4/7/10: In Etomo fixed problem where a montaged final aligned stack generated
 for findbead3d did not take the "Size to output" field into account.
 
 4/7/10: Fixed problem with edgepatches calling corrsearch3d with mins/maxes
 numbered from 0.
-
-4/6/10: Increased maximum dimensions of blendmont output.
 
 4/5/10: Fixed isosurface crash on system with more than 4 processors.
 
