@@ -27,7 +27,6 @@ bn.done=
 [[]]
 [[if = single]]
   if.var.test-gui.return=
-  if.var.montage.return=
   wait.popup.etomo-question=Yes
 [[]]
 
