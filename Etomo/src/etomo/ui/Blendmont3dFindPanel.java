@@ -8,6 +8,7 @@ import etomo.comscript.BlendmontParam;
 import etomo.comscript.FortranInputSyntaxException;
 import etomo.type.AxisID;
 import etomo.type.DialogType;
+import etomo.type.ProcessResultDisplay;
 import etomo.type.Run3dmodMenuOptions;
 import etomo.util.InvalidParameterException;
 
@@ -25,6 +26,11 @@ import etomo.util.InvalidParameterException;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.3  2010/04/08 03:06:09  sueh
+ * <p> bug# 1347 In setParameters, calling
+ * <p> BlendmontParam.convertToStartingAndEndingXandY with
+ * <p> TomogramState.stackUserSizeToOutputInXandY.
+ * <p>
  * <p> Revision 3.2  2009/09/21 17:54:13  sueh
  * <p> bug# 1267 Using the blend_3dfind mode instead of the blend mode for
  * <p> 3dfind.
@@ -66,10 +72,11 @@ final class Blendmont3dFindPanel extends NewstackOrBlendmont3dFindPanel
         .getImageRotation(axisID));
   }
 
-  void runProcess(final ProcessSeries processSeries,
+  void runProcess(final ProcessResultDisplay processResultDisplay,
+      final ProcessSeries processSeries,
       final Run3dmodMenuOptions run3dmodMenuOptions) {
-    manager.blend3dFind(null, processSeries, null, axisID, run3dmodMenuOptions,
-        dialogType, this);
+    manager.blend3dFind(processResultDisplay, processSeries, null, axisID,
+        run3dmodMenuOptions, dialogType, this);
   }
 
   /**

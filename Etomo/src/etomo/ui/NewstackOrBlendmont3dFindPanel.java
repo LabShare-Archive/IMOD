@@ -15,6 +15,7 @@ import etomo.type.ConstMetaData;
 import etomo.type.DialogType;
 import etomo.type.EtomoNumber;
 import etomo.type.MetaData;
+import etomo.type.ProcessResultDisplay;
 import etomo.type.Run3dmodMenuOptions;
 
 /**
@@ -31,6 +32,9 @@ import etomo.type.Run3dmodMenuOptions;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.5  2010/03/27 05:07:48  sueh
+ * <p> bug# 1334 Added setParameters(boolean) to set binning.
+ * <p>
  * <p> Revision 3.4  2010/02/17 05:03:12  sueh
  * <p> bug# 1301 Using manager instead of manager key for popping up messages.
  * <p>
@@ -115,7 +119,7 @@ abstract class NewstackOrBlendmont3dFindPanel implements
   final void setParameters(final ConstMetaData metaData) {
     spinBinning.setValue(metaData.getStack3dFindBinning(axisID));
   }
-  
+
   void setParameters(boolean initialize) {
     if (!initialize) {
       return;
@@ -145,7 +149,8 @@ abstract class NewstackOrBlendmont3dFindPanel implements
     return true;
   }
 
-  abstract void runProcess(final ProcessSeries processSeries,
+  abstract void runProcess(final ProcessResultDisplay processResultDisplay,
+      final ProcessSeries processSeries,
       final Run3dmodMenuOptions run3dmodMenuOptions);
 
   public final void action(final Run3dmodButton button,

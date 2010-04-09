@@ -12,6 +12,7 @@ import etomo.type.AxisID;
 import etomo.type.DialogType;
 import etomo.type.FileType;
 import etomo.type.ProcessName;
+import etomo.type.ProcessResultDisplay;
 import etomo.type.Run3dmodMenuOptions;
 import etomo.type.TomogramState;
 import etomo.util.InvalidParameterException;
@@ -30,6 +31,9 @@ import etomo.util.InvalidParameterException;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.3  2009/09/21 17:55:47  sueh
+ * <p> bug# 1267 Reformatted.
+ * <p>
  * <p> Revision 3.2  2009/09/17 19:12:58  sueh
  * <p> bug# 1257 In NewstParam.setSizeToOutputInXandY forgot to read the
  * <p> header.  Adding read call and throwing InvalidParameterException and
@@ -93,10 +97,11 @@ final class Newstack3dFindPanel extends NewstackOrBlendmont3dFindPanel
     newstParam.setProcessName(ProcessName.NEWST_3D_FIND);
   }
 
-  void runProcess(final ProcessSeries processSeries,
+  void runProcess(final ProcessResultDisplay processResultDisplay,
+      final ProcessSeries processSeries,
       final Run3dmodMenuOptions run3dmodMenuOptions) {
-    manager.newst3dFind(null, processSeries, null, axisID, run3dmodMenuOptions,
-        dialogType, this);
+    manager.newst3dFind(processResultDisplay, processSeries, null, axisID,
+        run3dmodMenuOptions, dialogType, this);
   }
 
   /**

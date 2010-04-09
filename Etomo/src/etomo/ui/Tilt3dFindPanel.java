@@ -21,6 +21,7 @@ import etomo.type.FileType;
 import etomo.type.MetaData;
 import etomo.type.PanelId;
 import etomo.type.ProcessName;
+import etomo.type.ProcessResultDisplay;
 import etomo.type.Run3dmodMenuOptions;
 import etomo.util.InvalidParameterException;
 
@@ -38,6 +39,9 @@ import etomo.util.InvalidParameterException;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.8  2010/03/27 05:10:37  sueh
+ * <p> bug# 1333 Added panel id.
+ * <p>
  * <p> Revision 3.7  2010/03/19 02:45:01  sueh
  * <p> bug# 1325 Move set parameter functionality involving the align log from
  * <p> setParameters(ConstTiltParam...) to setParameters(ConstTiltalignParam...).
@@ -248,15 +252,17 @@ final class Tilt3dFindPanel extends AbstractTiltPanel {
     return true;
   }
 
-  void tilt3dFindAction(final Deferred3dmodButton deferred3dmodButton,
+  void tilt3dFindAction(ProcessResultDisplay processResultDisplay,final Deferred3dmodButton deferred3dmodButton,
       final Run3dmodMenuOptions run3dmodMenuOptions) {
-    manager.tilt3dFindAction(getTiltProcessResultDisplay(), null,
+    manager.tilt3dFindAction( processResultDisplay, null,
         deferred3dmodButton, run3dmodMenuOptions, this, axisID, dialogType);
   }
 
-  void tiltAction(final Deferred3dmodButton deferred3dmodButton,
+  void tiltAction(final ProcessResultDisplay processResultDisplay,
+      final Deferred3dmodButton deferred3dmodButton,
       final Run3dmodMenuOptions run3dmodMenuOptions) {
-    parent.tilt3dFindAction(deferred3dmodButton, run3dmodMenuOptions);
+    parent.tilt3dFindAction(processResultDisplay, deferred3dmodButton,
+        run3dmodMenuOptions);
   }
 
   void imodTomogramAction(final Deferred3dmodButton deferred3dmodButton,

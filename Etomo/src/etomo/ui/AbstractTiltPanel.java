@@ -49,6 +49,10 @@ import etomo.util.InvalidParameterException;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.8  2010/03/27 04:53:59  sueh
+ * <p> bug# 1333 Save parallel processing according the panel ID.  Initialize GPU
+ * <p> from default GPU.
+ * <p>
  * <p> Revision 3.7  2010/03/12 04:09:06  sueh
  * <p> bug# 1325 Changed the logarithm fields.
  * <p>
@@ -139,7 +143,8 @@ abstract class AbstractTiltPanel implements Expandable, TrialTiltParent,
   abstract Run3dmodButton getTiltButton(ApplicationManager manager,
       AxisID axisID);
 
-  abstract void tiltAction(final Deferred3dmodButton deferred3dmodButton,
+  abstract void tiltAction(ProcessResultDisplay processResultDisplay,
+      final Deferred3dmodButton deferred3dmodButton,
       final Run3dmodMenuOptions run3dmodMenuOptions);
 
   abstract void imodTomogramAction(
@@ -284,10 +289,6 @@ abstract class AbstractTiltPanel implements Expandable, TrialTiltParent,
 
   final Component getUseGpuCheckBox() {
     return cbUseGpu;
-  }
-
-  final ProcessResultDisplay getTiltProcessResultDisplay() {
-    return btnTilt;
   }
 
   final void setTiltButtonTooltip(String tooltip) {
@@ -792,7 +793,7 @@ abstract class AbstractTiltPanel implements Expandable, TrialTiltParent,
       final Deferred3dmodButton deferred3dmodButton,
       final Run3dmodMenuOptions run3dmodMenuOptions) {
     if (command.equals(btnTilt.getActionCommand())) {
-      tiltAction(deferred3dmodButton, run3dmodMenuOptions);
+      tiltAction(btnTilt, deferred3dmodButton, run3dmodMenuOptions);
     }
     else if (command.equals(btnDeleteStack.getActionCommand())) {
       manager.deleteIntermediateImageStacks(axisID, btnDeleteStack);

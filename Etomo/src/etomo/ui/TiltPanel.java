@@ -21,6 +21,9 @@ import etomo.type.Run3dmodMenuOptions;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.3  2010/03/27 05:10:49  sueh
+ * <p> bug# 1333 Added panel id.
+ * <p>
  * <p> Revision 3.2  2010/03/12 04:27:10  sueh
  * <p> bug# 1325 Changed the label of the delete stacks button.
  * <p>
@@ -76,10 +79,11 @@ final class TiltPanel extends AbstractTiltPanel {
     ltfZShift.setVisible(advanced);
   }
 
-  void tiltAction(final Deferred3dmodButton deferred3dmodButton,
+  void tiltAction(final ProcessResultDisplay processResultDisplay,
+      final Deferred3dmodButton deferred3dmodButton,
       final Run3dmodMenuOptions run3dmodMenuOptions) {
-    manager.tiltAction(getTiltProcessResultDisplay(), null,
-        deferred3dmodButton, run3dmodMenuOptions, this, axisID, dialogType);
+    manager.tiltAction(processResultDisplay, null, deferred3dmodButton,
+        run3dmodMenuOptions, this, axisID, dialogType);
   }
 
   void imodTomogramAction(final Deferred3dmodButton deferred3dmodButton,

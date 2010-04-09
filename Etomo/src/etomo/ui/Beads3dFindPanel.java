@@ -23,6 +23,7 @@ import etomo.type.DialogType;
 import etomo.type.FileType;
 import etomo.type.MetaData;
 import etomo.type.ProcessName;
+import etomo.type.ProcessResultDisplay;
 import etomo.type.ReconScreenState;
 import etomo.type.Run3dmodMenuOptions;
 import etomo.type.TomogramState;
@@ -43,6 +44,10 @@ import etomo.type.ViewType;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.5  2010/03/27 04:57:56  sueh
+ * <p> bug# 1333 Initialize GPU.  bug# 1334 Initialize the ideal binning from bead
+ * <p> size.
+ * <p>
  * <p> Revision 3.4  2010/03/19 02:38:46  sueh
  * <p> bug# 1325 Added setParameters(ConstTiltalignParam,boolean).
  * <p>
@@ -259,7 +264,8 @@ final class Beads3dFindPanel implements NewstackOrBlendmont3dFindParent,
     return findBeads3dPanel.getBeadSize();
   }
 
-  public void tilt3dFindAction(final Deferred3dmodButton deferred3dmodButton,
+  public void tilt3dFindAction(final ProcessResultDisplay processResultDisplay,
+      final Deferred3dmodButton deferred3dmodButton,
       final Run3dmodMenuOptions run3dmodMenuOptions) {
     //The parent (this class) is responsible for running tilt_3dfind because it
     //may have to run newst/blend_3dfind first.
@@ -276,14 +282,14 @@ final class Beads3dFindPanel implements NewstackOrBlendmont3dFindParent,
       ProcessSeries processSeries = new ProcessSeries(manager, dialogType,
           tilt3dFindPanel);
       processSeries.setNextProcess(ProcessName.TILT_3D_FIND.toString());
-      newstackOrBlendmont3dFindPanel.runProcess(processSeries,
-          run3dmodMenuOptions);
+      newstackOrBlendmont3dFindPanel.runProcess(processResultDisplay,
+          processSeries, run3dmodMenuOptions);
     }
     else {
       manager.getState().setStackUsingNewstOrBlend3dFindOutput(axisID, false);
       //Just run tilt_3dfind.
-      tilt3dFindPanel
-          .tilt3dFindAction(deferred3dmodButton, run3dmodMenuOptions);
+      tilt3dFindPanel.tilt3dFindAction(processResultDisplay,
+          deferred3dmodButton, run3dmodMenuOptions);
     }
   }
 }
