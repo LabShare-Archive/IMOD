@@ -306,7 +306,7 @@ mb.align-stack-and-create-tomogram=+
 	assert.enabled.bn.view-full-aligned-stack=
 	assert.enabled.bn.view-tomogram-in-3dmod=
 [[]]
-# run binned with parallel processing
+# run highly binned with parallel processing
 cb.parallel-processing=on
 sp.aligned-image-stack-binning=3
 bn.align-and-build-tomogram=
@@ -324,9 +324,9 @@ assert.exists.file=%{final-align-comscript}_3dfind%{axis}.log
 assert.exists.file=%{dataset}%{axis}_3dfind.ali
 assert.exists.file=%{dataset}%{axis}_3dfind.rec
 assert.exists.file=tilt_3dfind_reproject%{axis}.com
-# run binned again with parallel processing
+# run with unbinned with parallel processing
+sp.aligned-image-stack-binning=1
 bn.align-and-build-tomogram=
-wait.popup.etomo-warning=Yes
 wait.process.processchunks-tilt_3dfind%{axis} = done
 # check files
 assert.exists.file=tilt_3dfind%{axis}.com
@@ -335,33 +335,12 @@ assert.exists.file=tilt_3dfind%{axis}-finish.com
 assert.exists.file=tilt_3dfind%{axis}.log
 assert.exists.file=tilt_3dfind%{axis}-start.log
 assert.exists.file=tilt_3dfind%{axis}-finish.log
-assert.exists.file=%{final-align-comscript}_3dfind%{axis}.com
-assert.exists.file=%{final-align-comscript}_3dfind%{axis}.log
-assert.exists.file=%{dataset}%{axis}_3dfind.ali
 assert.exists.file=%{dataset}%{axis}_3dfind.rec
 assert.exists.file=tilt_3dfind_reproject%{axis}.com
 assert.exists.file=tilt_3dfind%{axis}.log~
-assert.exists.file=%{final-align-comscript}_3dfind%{axis}.log~
-assert.exists.file=%{dataset}%{axis}_3dfind.ali~
 assert.exists.file=%{dataset}%{axis}_3dfind.rec~
-# run binned without parallel processing
+# run with regular binning without parallel processing
 cb.parallel-processing=off
-bn.align-and-build-tomogram=
-wait.popup.etomo-warning=Yes
-wait.process.calculating-tomogram = done
-# check files
-assert.exists.file=tilt_3dfind%{axis}.com
-assert.exists.file=tilt_3dfind%{axis}.log
-assert.exists.file=%{final-align-comscript}_3dfind%{axis}.com
-assert.exists.file=%{final-align-comscript}_3dfind%{axis}.log
-assert.exists.file=%{dataset}%{axis}_3dfind.ali
-assert.exists.file=%{dataset}%{axis}_3dfind.rec
-assert.exists.file=tilt_3dfind_reproject%{axis}.com
-assert.exists.file=tilt_3dfind%{axis}.log~
-assert.exists.file=%{final-align-comscript}_3dfind%{axis}.log~
-assert.exists.file=%{dataset}%{axis}_3dfind.ali~
-assert.exists.file=%{dataset}%{axis}_3dfind.rec~
-# run again unbinned without parallel processing
 sp.aligned-image-stack-binning=%{findbeads3d-binning}
 bn.align-and-build-tomogram=
 wait.process.calculating-tomogram = done
@@ -373,6 +352,14 @@ assert.exists.file=%{dataset}%{axis}_3dfind.rec
 assert.exists.file=tilt_3dfind_reproject%{axis}.com
 assert.exists.file=tilt_3dfind%{axis}.log~
 assert.exists.file=%{dataset}%{axis}_3dfind.rec~
+[[if = findbeads3d-binning]]
+	if.var.findbeads3d-binning.return=1
+	assert.exists.file=%{dataset}%{axis}_3dfind.ali
+	assert.exists.file=%{final-align-comscript}_3dfind%{axis}.com
+	assert.exists.file=%{final-align-comscript}_3dfind%{axis}.log
+	assert.exists.file=%{final-align-comscript}_3dfind%{axis}.log~
+	assert.exists.file=%{dataset}%{axis}_3dfind.ali~
+[[]]
 # check comscript
 [[ifnot = simple-align]]
 	assert.same.file=tilt_3dfind%{axis}.com
