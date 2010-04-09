@@ -1,5 +1,7 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+4/9/10: In Etomo - Fixed a null pointer exception in Setup Reconstruction.
+
 4/8/10: In Etomo - Final Aligned Stack fixed the Align and Build Tomogram, which
 didn't always reflect the process result.
 
