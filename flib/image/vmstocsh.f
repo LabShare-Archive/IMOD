@@ -12,7 +12,7 @@ c
       logical reading
       integer*4 iffirst,lenin,lencom,indarrow
       character*10240 linein,linecom
-      character*80 logfile
+      character*320 logfile
       character*10 herestring/'HERESTRING'/
 c       
       logfile=' '
@@ -132,6 +132,9 @@ c
 
 c       
 c       $Log$
+c       Revision 3.11  2009/12/04 20:28:23  mast
+c       Set variable for printing entries, add success statement at end
+c
 c       Revision 3.10  2008/05/08 02:49:54  mast
 c       Increased line length to 10240, nested if statement to avoid invalid
 c       index to character variable
