@@ -24,10 +24,7 @@ copy.file=%{dataset}%{axis}_fid.tlt
 bn.compute-alignment=
 wait.process.aligning-stack=done
 bn.done=
-wait.popup.etomo-question=Yes
-[[if = test-gui]]
-	wait.popup.etomo-question=Yes
-[[]]
+
 
 # General tab
 

@@ -19,11 +19,7 @@ bn.create-full-aligned-stack=
 if.not.var.montage.wait.process.creating-aligned-stack = done
 if.var.montage.wait.process.full-alignment = done
 bn.done =
-wait.popup.etomo-question=Yes
-wait.popup.etomo-question=Yes
 if.var.fidless.return=
-wait.popup.etomo-question=Yes
-wait.popup.etomo-question=Yes
 
 
 ## Create tab
@@ -205,7 +201,6 @@ tb.create.2=
 tb.create.1=
 # use file
 bn.use-ctf-correction=
-wait.popup.etomo-question=Yes
 # check files
 assert.not-exists.file = %{dataset}%{axis}_ctfcorr.ali
 # check values
@@ -474,7 +469,6 @@ tb.create.3=
 tb.create.2=
 # use file
 bn.use-erased-stack=
-wait.popup.etomo-question=Yes
 assert.not-exists.file=%{dataset}%{axis}_erase.ali
 # check values
 assert.bn.erase-beads=on

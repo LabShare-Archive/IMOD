@@ -5,7 +5,6 @@ run.function.tilt=
 if.var.build.bn.done=
 if.var.build.return=
 bn.done=
-wait.popup.etomo-question=Yes
 
 
 [function = tilt]

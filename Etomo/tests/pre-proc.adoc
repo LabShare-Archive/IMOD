@@ -76,20 +76,12 @@ bn.done=
 #for datasets where the use button wasn't pressed
 wait.popup.entry-warning=OK
 [[]]
-[[if = test-gui]]
-if.var.needs-pre-proc.return=
-wait.popup.etomo-question=Yes
-[[]]
 
 
 [function = use-fixed-stack]
 # BB doesn't need pre-processing
 if.not.var.needs-pre-proc.return=
 bn.use-fixed-stack=
-[[if = test-gui]]
-wait.popup.etomo-question=Yes
-[[]]
-
 
 
 [function = automatic-x-ray-replacement]

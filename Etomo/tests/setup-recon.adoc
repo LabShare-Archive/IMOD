@@ -58,11 +58,6 @@ rb.single-frame=
 	if.not.var.single.bn.view-raw-image-stack.1=
 [[]]
 bn.create-com-scripts=
-[[if = test-gui]]
-	wait.popup.etomo-question = Yes
-	if.var.dual.wait.popup.etomo-question = Yes
-	sleep=1
-[[]]
 
 
 [function = data-type]
