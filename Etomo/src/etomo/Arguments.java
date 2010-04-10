@@ -23,6 +23,9 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.8  2010/03/03 04:50:04  sueh
+ * <p> bug# 1311 Added setDebug.
+ * <p>
  * <p> Revision 1.7  2009/09/22 20:42:28  sueh
  * <p> bug# 1259 Made debug tab public.
  * <p>
@@ -69,8 +72,52 @@ public final class Arguments {
   private static final String EXIT_TAG = "--exit";
   private static final String FG_TAG = "--fg";//foreground
   private static final String LISTEN_TAG = "--listen";
+  private static final String AUTO_CLOSE_3DMOD_TAG = "--autoclose3dmod";
 
   static final String HELP_MESSAGE = "Options:\n  "
+      + DEBUG_TAG
+      + "\tSend extra information to standard error.  The "
+      + DEBUG_TAG
+      + " option"
+      + "\n\t\tincludes the following options:  "
+      + MEMORY_TAG
+      + " and "
+      + TIMESTAMP_TAG
+      + "."
+      + "\n\n  "
+      + DEMO_TAG
+      + "\tDeprecated."
+      + "\n\n  "
+      + HELP1_TAG
+      + ", "
+      + HELP2_TAG
+      + "\tSend this message to standard out and exit."
+      + "\n\n  "
+      + LISTEN_TAG
+      + "\tForces all 3dmods to be run with the -L option.  This only has an "
+      + "\n\t\teffect on Windows computers because -L is always used on Linux"
+      + "\n\t\tand Mac."
+      + "\n\n  "
+      + MEMORY_TAG
+      + " [interval]"
+      + "\n\t\tLog memory usage statements before and after processes are run."
+      + "\n\t\tThe interval is an integer which denotes the interval in minutes"
+      + "\n\t\tat which to send additional memory usage statements."
+      + "\n\n  "
+      + SELFTEST_TAG
+      + "\tCauses Etomo to do some internal testing.  Etomo may run more slowly."
+      + "\n\n  "
+      + TIMESTAMP_TAG
+      + "\tSend timestamps to standard error before and after processes are run."
+      + "\n"
+      + "\nAutomation Options:\n  "
+      + FG_TAG
+      + "\t\tUsed with automation.  Must be the first option.  Causes Etomo to "
+      + "\n\t\tbe run in the foreground rather then in the background.  This is"
+      + "\n\t\tuseful when running Etomo with automation from a script; a"
+      + "\n\t\tscript will not wait until Etomo is done unless Etomo is running"
+      + "\n\t\tin the foreground."
+      + "\n\n  "
       + AXIS_TAG
       + " "
       + AxisType.SINGLE_AXIS.getValue()
@@ -93,19 +140,6 @@ public final class Arguments {
       + DIR_TAG
       + " option is used."
       + "\n\n  "
-      + DEBUG_TAG
-      + "\tSend extra information to standard error.  The "
-      + DEBUG_TAG
-      + " option"
-      + "\n\t\tincludes the following options:  "
-      + MEMORY_TAG
-      + " and "
-      + TIMESTAMP_TAG
-      + "."
-      + "\n\n  "
-      + DEMO_TAG
-      + "\tDeprecated."
-      + "\n\n  "
       + DIR_TAG
       + " \"directory_path\""
       + "\n\t\tFor automation.  The absolute or relative directory containing"
@@ -116,13 +150,6 @@ public final class Arguments {
       + EXIT_TAG
       + "\tFor automation.  Causes Etomo to exit after the Setup Tomogram dialog"
       + "\n\t\tis completed."
-      + "\n\n  "
-      + FG_TAG
-      + "\t\tUsed with automation.  Must be the first option.  Causes Etomo to "
-      + "\n\t\tbe run in the foreground rather then in the background.  This is"
-      + "\n\t\tuseful when running Etomo with automation from a script; a"
-      + "\n\t\tscript will not wait until Etomo is done unless Etomo is running"
-      + "\n\t\tin the foreground."
       + "\n\n  "
       + FIDUCIAL_TAG
       + " fiducial_diameter"
@@ -137,45 +164,25 @@ public final class Arguments {
       + "\n\t\tFor automation.  Sets the Frame Type in the Setup Tomogram"
       + "\n\t\tdialog."
       + "\n\n  "
+      + SCAN_TAG
+      + "\tFor automation.  Runs Scan Header in the Setup Tomogram dialog."
+      + "\n"
+      + "\nDevelopment and Testing Options:\n  "
+      + AUTO_CLOSE_3DMOD_TAG
+      + "\n\t\tFor user interface testing.  Instead of popping up a message asking"
+      + "\n\t\tto close an open 3dmod instance, Etomo automatically closes the"
+      + "\n\t\t3dmod instance."
+      + "\n\n  "
       + HEADLESS_TAG
       + "\tFor testing.  No window is created.  Used for unit testing."
       + "\n\n  "
-      + HELP1_TAG
-      + ", "
-      + HELP2_TAG
-      + "\tSend this message to standard out and exit."
-      + "\n\n  "
-      + LISTEN_TAG
-      + "\n\t\tForces all 3dmods to be run with the -L option.  This only has an "
-      + "\n\t\teffect on Windows computers because -L is always used on Linux"
-      + "\n\t\tand Mac."
-      + "\n\n  "
-      + MEMORY_TAG
-      + " [interval]"
-      + "\n\t\tLog memory usage statements before and after processes are run."
-      + "\n\t\tThe interval is an integer which denotes the interval in minutes"
-      + "\n\t\tat which to send additional memory usage statements."
-      + "\n\n  "
       + NAMES_TAG
       + "\tFor testing.  Send the names of screen elements to standard out.  For"
-      + "\n\t\twriting automated regression tests."
-      + "\n\n  "
-      + NEWSTUFF_TAG
-      + "\tMay cause Etomo to run with unreleased functionality."
-      + "\n\n  "
-      + SCAN_TAG
-      + "\tFor automation.  Runs Scan Header in the Setup Tomogram dialog."
-      + "\n\n  "
-      + SELFTEST_TAG
-      + "\tCauses Etomo to do some internal testing.  Etomo may run more slowly."
-      + "\n\n  "
+      + "\n\t\twriting automated regression tests." + "\n\n  " + NEWSTUFF_TAG
+      + "\tMay cause Etomo to run with unreleased functionality." + "\n\n  "
       + TEST_TAG
       + "\tFor testing.  Test mode used for unit testing and automated"
-      + "\n\t\tregression testing."
-      + "\n\n  "
-      + TIMESTAMP_TAG
-      + "\tSend timestamps to standard error before and after processes are run."
-      + "\n";
+      + "\n\t\tregression testing." + "\n\n  ";
 
   private final ArrayList paramFileNameList = new ArrayList();
 
@@ -209,6 +216,7 @@ public final class Arguments {
   private boolean exit = false;
   private String automationFile = null;
   private boolean listen = false;
+  private boolean autoClose3dmod = false;
 
   private final EtomoNumber fiducial = new EtomoNumber(EtomoNumber.Type.DOUBLE);
 
@@ -269,6 +277,10 @@ public final class Arguments {
 
   public boolean isListen() {
     return listen;
+  }
+  
+  public boolean isAutoClose3dmod() {
+    return autoClose3dmod;
   }
 
   public boolean isNewstuff() {
@@ -408,6 +420,9 @@ public final class Arguments {
       }
       else if (args[i].equals(LISTEN_TAG)) {
         listen = true;
+      }
+      else if (args[i].equals(AUTO_CLOSE_3DMOD_TAG)) {
+        autoClose3dmod = true;
       }
       else {
         System.err.println("WARNING:  unknown argument, " + args[i]
