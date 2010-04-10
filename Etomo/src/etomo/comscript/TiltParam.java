@@ -11,6 +11,9 @@
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.45  2010/04/08 03:01:13  sueh
+ * <p> bug# 1347 Added a comment to setMontageSubsetStart.
+ * <p>
  * <p> Revision 3.44  2010/03/12 04:00:29  sueh
  * <p> bug# 1325 Removed setTiltAngleOffset(double) and
  * <p> setTiltAngleOffset(float) because converting from float to double was
@@ -1209,15 +1212,10 @@ public final class TiltParam implements ConstTiltParam, CommandParam {
         stackX = stackHeader.getNColumns();
         stackY = stackHeader.getNRows();
       }
-      System.out.println("stackX=" + stackX + ",aliHeader.getNColumns()="
-          + aliHeader.getNColumns() + ",setImageBinned().getLong()="
-          + setImageBinned().getLong());
       idxXSubsetStart = (int) ((stackX - aliHeader.getNColumns()
           * setImageBinned().getLong()) / 2);
       idxYSubsetStart = (int) ((stackY - aliHeader.getNRows()
           * setImageBinned().getLong()) / 2);
-      System.out.println("idxXSubsetStart=" + idxXSubsetStart
-          + ",idxYSubsetStart=" + idxYSubsetStart);
     }
     catch (IOException e) {
       e.printStackTrace();
