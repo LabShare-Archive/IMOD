@@ -2277,10 +2277,15 @@ public final class ApplicationManager extends BaseManager implements
       if (imodManager.isOpen(ImodManager.COARSE_ALIGNED_KEY, axisID)) {
         if (seedModel.getName().equals(
             imodManager.getModelName(ImodManager.COARSE_ALIGNED_KEY, axisID))) {
-          String[] message = new String[2];
-          message[0] = "The old seed model file is open in 3dmod";
-          message[1] = "Should it be closed?";
-          if (uiHarness.openYesNoDialog(this, message, axisID)) {
+          if (!EtomoDirector.INSTANCE.getArguments().isAutoClose3dmod()) {
+            String[] message = new String[2];
+            message[0] = "The old seed model file is open in 3dmod";
+            message[1] = "Should it be closed?";
+            if (uiHarness.openYesNoDialog(this, message, axisID)) {
+              imodManager.quit(ImodManager.COARSE_ALIGNED_KEY, axisID);
+            }
+          }
+          else {
             imodManager.quit(ImodManager.COARSE_ALIGNED_KEY, axisID);
           }
         }
@@ -2764,10 +2769,15 @@ public final class ApplicationManager extends BaseManager implements
     // Check to see if the user wants to keep any imods open
     try {
       if (imodManager.isOpen(key, axisID)) {
-        String[] message = new String[2];
-        message[0] = description + "(s) are open in 3dmod";
-        message[1] = "Should they be closed?";
-        if (uiHarness.openYesNoDialog(this, message, axisID)) {
+        if (!EtomoDirector.INSTANCE.getArguments().isAutoClose3dmod()) {
+          String[] message = new String[2];
+          message[0] = description + "(s) are open in 3dmod";
+          message[1] = "Should they be closed?";
+          if (uiHarness.openYesNoDialog(this, message, axisID)) {
+            imodManager.quitAll(key, axisID);
+          }
+        }
+        else {
           imodManager.quitAll(key, axisID);
         }
       }
@@ -2792,10 +2802,15 @@ public final class ApplicationManager extends BaseManager implements
     // Check to see if the user wants to keep any imods open
     try {
       if (imodManager.isOpen(key)) {
-        String[] message = new String[2];
-        message[0] = "The " + description + " is open in 3dmod";
-        message[1] = "Should it be closed?";
-        if (uiHarness.openYesNoDialog(this, message, AxisID.ONLY)) {
+        if (!EtomoDirector.INSTANCE.getArguments().isAutoClose3dmod()) {
+          String[] message = new String[2];
+          message[0] = "The " + description + " is open in 3dmod";
+          message[1] = "Should it be closed?";
+          if (uiHarness.openYesNoDialog(this, message, AxisID.ONLY)) {
+            imodManager.quit(key);
+          }
+        }
+        else {
           imodManager.quit(key);
         }
       }
@@ -2821,10 +2836,15 @@ public final class ApplicationManager extends BaseManager implements
     // Check to see if the user wants to keep any imods open
     try {
       if (imodManager.isOpen(key, axisID)) {
-        String[] message = new String[2];
-        message[0] = "The " + description + " is open in 3dmod";
-        message[1] = "Should it be closed?";
-        if (uiHarness.openYesNoDialog(this, message, axisID)) {
+        if (!EtomoDirector.INSTANCE.getArguments().isAutoClose3dmod()) {
+          String[] message = new String[2];
+          message[0] = "The " + description + " is open in 3dmod";
+          message[1] = "Should it be closed?";
+          if (uiHarness.openYesNoDialog(this, message, axisID)) {
+            imodManager.quit(key, axisID);
+          }
+        }
+        else {
           imodManager.quit(key, axisID);
         }
       }
@@ -2850,10 +2870,15 @@ public final class ApplicationManager extends BaseManager implements
     // Check to see if the user wants to keep any imods open
     try {
       if (imodManager.isOpen(key, imodAxisID)) {
-        String[] message = new String[2];
-        message[0] = "The " + description + " is open in 3dmod";
-        message[1] = "Should it be closed?";
-        if (uiHarness.openYesNoDialog(this, message, frameAxisID)) {
+        if (!EtomoDirector.INSTANCE.getArguments().isAutoClose3dmod()) {
+          String[] message = new String[2];
+          message[0] = "The " + description + " is open in 3dmod";
+          message[1] = "Should it be closed?";
+          if (uiHarness.openYesNoDialog(this, message, frameAxisID)) {
+            imodManager.quit(key, imodAxisID);
+          }
+        }
+        else {
           imodManager.quit(key, imodAxisID);
         }
       }
@@ -6460,19 +6485,24 @@ public final class ApplicationManager extends BaseManager implements
   private void warnStaleFile(String key, AxisID axisID, boolean future) {
     try {
       if (imodManager.warnStaleFile(key, axisID)) {
-        String[] message = new String[4];
-        if (future) {
-          message[0] = "3dmod is open to the existing " + key + ".";
-          message[1] = "A new " + key + " will be created on disk.";
+        if (!EtomoDirector.INSTANCE.getArguments().isAutoClose3dmod()) {
+          String[] message = new String[4];
+          if (future) {
+            message[0] = "3dmod is open to the existing " + key + ".";
+            message[1] = "A new " + key + " will be created on disk.";
+          }
+          else {
+            message[0] = "3dmod is open to the old " + key + ".";
+            message[1] = "A new " + key + " has been created on disk.";
+          }
+          message[2] = "You will not be able to see the new version of " + key
+              + " until you close this 3dmod.";
+          message[3] = "Do you wish to quit this 3dmod now?";
+          if (uiHarness.openYesNoDialog(this, message, axisID)) {
+            imodManager.quit(key, axisID);
+          }
         }
         else {
-          message[0] = "3dmod is open to the old " + key + ".";
-          message[1] = "A new " + key + " has been created on disk.";
-        }
-        message[2] = "You will not be able to see the new version of " + key
-            + " until you close this 3dmod.";
-        message[3] = "Do you wish to quit this 3dmod now?";
-        if (uiHarness.openYesNoDialog(this, message, axisID)) {
           imodManager.quit(key, axisID);
         }
       }
@@ -8070,6 +8100,11 @@ public final class ApplicationManager extends BaseManager implements
 }
 /**
  * <p> $Log$
+ * <p> Revision 3.355  2010/04/08 04:36:08  sueh
+ * <p> bug# 1348 Preventing a silent failure of rename fixed stack in
+ * <p> replaceRawStack.  Resetting use fixed stack warning as early as possible.
+ * <p> Sending exception stack to log when tilt parameter error happens.
+ * <p>
  * <p> Revision 3.354  2010/03/16 21:48:54  sueh
  * <p> Added closeImod(String,AxisID,AxisID,String) to pop up a close message in
  * <p> axis A about an axis B tomogram.
