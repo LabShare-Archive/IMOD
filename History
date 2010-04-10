@@ -1,6 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-4/9/10: Added --autoclose3dmod parameter.
+4/10/10: Selecting text in text fields on focus in Etomo tables.
+
+4/9/10: Added --autoclose3dmod parameter for Etomo.
 
 4/9/10: Increased log filename length in vmstocsh to 320 (In 4.1).
 
