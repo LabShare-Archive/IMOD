@@ -1,6 +1,8 @@
 package etomo.ui;
 
 import java.awt.Component;
+import java.awt.event.FocusEvent;
+import java.awt.event.FocusListener;
 
 import javax.swing.BorderFactory;
 import javax.swing.JTextField;
@@ -25,6 +27,9 @@ import etomo.type.UITestFieldType;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.28  2009/09/01 03:18:25  sueh
+ * <p> bug# 1222
+ * <p>
  * <p> Revision 1.27  2009/01/20 20:01:53  sueh
  * <p> bug# 1102 Added getFieldType so that the ancestor class can name itself
  * <p> and print out the name.
@@ -164,22 +169,24 @@ final class FieldCell extends InputCell {
     setFont();
   }
 
-  public String toString() {
-    return textField.getText();
-  }
-
   static FieldCell getEditableInstance() {
-    return new FieldCell(true, ParsedElementType.NON_MATLAB_NUMBER);
+    FieldCell instance = new FieldCell(true,
+        ParsedElementType.NON_MATLAB_NUMBER);
+    instance.addListeners();
+    return instance;
   }
 
   static FieldCell getEditableMatlabInstance() {
-    return new FieldCell(true, ParsedElementType.MATLAB_NUMBER);
+    FieldCell instance = new FieldCell(true, ParsedElementType.MATLAB_NUMBER);
+    instance.addListeners();
+    return instance;
   }
 
   static FieldCell getIneditableInstance() {
     FieldCell instance = new FieldCell(false,
         ParsedElementType.NON_MATLAB_NUMBER);
     instance.setEditable(false);
+    instance.addListeners();
     return instance;
   }
 
@@ -188,6 +195,7 @@ final class FieldCell extends InputCell {
         ParsedElementType.NON_MATLAB_NUMBER);
     instance.setEditable(false);
     instance.setValue(value);
+    instance.addListeners();
     return instance;
   }
 
@@ -196,7 +204,16 @@ final class FieldCell extends InputCell {
         ParsedElementType.NON_MATLAB_NUMBER);
     instance.setEditable(false);
     instance.fixedValues = true;
+    instance.addListeners();
     return instance;
+  }
+
+  private void addListeners() {
+    textField.addFocusListener(new TextFieldFocusListener(textField));
+  }
+
+  public String toString() {
+    return textField.getText();
   }
 
   public void setEnabled(boolean enable) {
@@ -420,5 +437,21 @@ final class FieldCell extends InputCell {
       return "";
     }
     return expandedValue;
+  }
+
+  private static final class TextFieldFocusListener implements FocusListener {
+    private final JTextField textField;
+
+    private TextFieldFocusListener(final JTextField textField) {
+      this.textField = textField;
+    }
+
+    public void focusGained(final FocusEvent focusEvent) {
+      textField.selectAll();
+    }
+
+    public void focusLost(final FocusEvent focusEvent) {
+      textField.select(0,0);
+    }
   }
 }
