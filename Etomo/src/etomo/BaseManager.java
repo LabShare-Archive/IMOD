@@ -512,10 +512,15 @@ public abstract class BaseManager {
     // Should we close the 3dmod windows
     try {
       if (imodManager.isOpen()) {
-        String[] message = new String[3];
-        message[0] = "There are still 3dmod programs running.";
-        message[1] = "Do you wish to end these programs?";
-        if (uiHarness.openYesNoDialog(this, message, axisID)) {
+        if (!EtomoDirector.INSTANCE.getArguments().isAutoClose3dmod()) {
+          String[] message = new String[3];
+          message[0] = "There are still 3dmod programs running.";
+          message[1] = "Do you wish to end these programs?";
+          if (uiHarness.openYesNoDialog(this, message, axisID)) {
+            imodManager.quit();
+          }
+        }
+        else {
           imodManager.quit();
         }
       }
@@ -627,8 +632,8 @@ public abstract class BaseManager {
       return true;
     }
   }
-  
- public boolean isExiting() {
+
+  public boolean isExiting() {
     return exiting;
   }
 
@@ -919,8 +924,8 @@ public abstract class BaseManager {
       // axisID = AxisID.SECOND;
     }
     else if (!nonBlocking) {
-      uiHarness.openMessageDialog(this, "Unknown thread finished!!!"+
-          "\nThread name: " + threadName,"Unknown Thread", axisID);
+      uiHarness.openMessageDialog(this, "Unknown thread finished!!!"
+          + "\nThread name: " + threadName, "Unknown Thread", axisID);
     }
     if (processName != null) {
       updateDialog(processName, axisID);
@@ -1346,6 +1351,10 @@ public abstract class BaseManager {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.127  2010/03/18 22:40:45  sueh
+ * <p> bug# 1323 processchunks and resume was saving meta data to .etomo
+ * <p> instead of .edf.
+ * <p>
  * <p> Revision 1.126  2010/03/12 03:56:52  sueh
  * <p> bug# 1325 Added isExiting.
  * <p>
