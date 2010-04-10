@@ -41,6 +41,10 @@ import etomo.util.Montagesize;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.16  2010/04/08 18:04:01  sueh
+ * <p> bug# 1348 In scanHeaderAction, getting imageRotation as an
+ * <p> EtomoNumber.
+ * <p>
  * <p> Revision 1.15  2010/03/27 05:09:30  sueh
  * <p> bug# 1333 Added GPU checkbox.
  * <p>
@@ -775,8 +779,12 @@ public final class SetupDialogExpert {
   private MRCHeader readMRCHeader() {
     // Run header on the dataset to the extract whatever information is
     // available
+    String stackFileName = getStackFileName();
+    if (stackFileName == null) {
+      return null;
+    }
     MRCHeader header = MRCHeader.getInstance(manager.getPropertyUserDir(),
-        getStackFileName(), AxisID.ONLY);
+        stackFileName, AxisID.ONLY);
     try {
       if (!header.read(manager)) {
         UIHarness.INSTANCE.openMessageDialog(manager, "File does not exist.",
