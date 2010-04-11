@@ -22,6 +22,7 @@ if ($compiler == default && $intel == true) then
     endif
 endif
 if ($compiler == gnu) set compiler = gfortran
+if ($compiler == intel) set compiler = ifort
 
 # If using intel fortran compiler, check for C compiler too
 #
