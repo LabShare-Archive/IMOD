@@ -22,9 +22,9 @@ if ($compiler == default && $intel == true) then
     endif
 endif
 if ($compiler == gnu) set compiler = gfortran
-if ($compiler == intel) set compiler = ifort
 
 # If using intel fortran compiler, check for C compiler too
+# Let an intel entry force use of C++ compiler if possible
 #
 set openmpFlags = ""
 set ccompFlags = ""
@@ -32,9 +32,9 @@ set ccomp = "gcc"
 set cxx = "g++"
 set libmt = ""
 setenv QMAKESPEC macx-g++
-if ($compiler == ifort) then
+if ($compiler == ifort || $compiler == intel) then
     set iccout = `which icc`
-    if (! $status && "$iccout:h" != "/usr/bin") then
+    if (! $status && ("$iccout:h" != "/usr/bin" || $compiler == intel)) then
         set ccomp = "icc"
         set cxx = "icpc"
         setenv QMAKESPEC macx-icc
@@ -46,6 +46,7 @@ if ($compiler == ifort) then
     else
         set openmp = false
     endif
+    set compiler = ifort
 endif
 
 # DNM 1/1/9/03: remove the defines for FILE_OFFSET_BITS=64 here and in the
