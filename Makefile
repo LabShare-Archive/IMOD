@@ -10,100 +10,7 @@
 #
 #############################################################################
 # BUILD AND INSTALLATION INSTRUCTIONS:
-#
-# IMOD now requires Qt 4.4.  You will probably have to build this on any
-# architecture.
-#
-# PC UNDER LINUX:
-#
-# A development version of Qt 4.4 is required
-#
-# 1. "setup -i [install directory]" to set the install directory.
-#
-# 2. "make" to make all the programs.
-# 
-# 3. "make install"
-#
-# 4. "installqtlibs" to copy install files to install directory.  If you
-#    ran "setup" initially with the -packqt flag (which you should do If you 
-#    built against a non-default Qt library)," installqtlibs" will also copy
-#    the Qt library 
-#
-#
-# MAC OS X:
-#
-# A developer's version of Qt must be installed and on the path, QTDIR must be
-# set in the environment, and QTDIR/lib must be on DYLD_LIBRARY_PATH.
-# g77 is also required.  Build and install the tiff libraries to avoid having
-# to build with -no_tiff.
-# 
-# 1. "setup -i [install directory]" to set the install directory.
-#
-# 2. "make" to make all the programs.
-# 
-# 3. "make install"
-#
-# 4. "installqtlibs" to copy Qt library and install files to install directory
-#
-#
-# IRIX 6.5:  Almost certainly will not work
-#
-# A developer's version of Qt must be installed and on the path, QTDIR must be
-# set in the environment, and QTDIR/lib must be on LD_LIBRARYN32_PATH.
-#
-# 1. "setup -i [install directory]"
-#
-# 2. "make"  to make all new 32-bit libraries and programs
-#
-# 3. "make install"
-#
-# 4. "installqtlibs" to copy Qt library and install files to install directory
-#
-#
-# BUILDING UNDER CYGWIN/WINDOWS WITH INTEL COMPILERS
-#
-# In addition to requirements listed above, this build requires Intel Fortran
-# and C++ compilers.  Instead of Cygwin libtiff-devel, it needs Tiff Binaries
-# from GnuWin32.
-#
-# 1. "setup -i [install directory]" to set the install directory.
-#
-# 2. "make" to make everything
-#
-# 3. "make install"
-#
-# In either case, if there are other users who do not have the build tools
-# on their path, run ./installqtlib to copy the Qt, Tiff, and Intel DLLs to
-# the install bin.
-#
-#
-# BUILDING UNDER CYGWIN/WINDOWS WITH Visual C++ ONLY
-#
-# Basic Cygwin development packages, libtiff-devel and Microsoft Visual C++
-# are required for this build.  A development version of Qt must be installed.
-#
-# 0. If the source came from a unix tar, convert the project files with:
-#    find . -name '*.ds*' -exec unix2dos '{}' \;
-#
-# 1. "setup -i [install directory] -compiler gnu" to set the compiler and
-#    install directory.
-#
-# 2. "make" to make all the non-graphical programs under Cygwin
-#
-# 3. In Visual C++, open the workspace libimod/libimod.dsw and build release
-#    versions of all three libraries
-#
-# 4. Open the workspace vcimod.dsw and build 3dmod, midas, imodsendevent,
-#    imodqtassist and sourcedoc
-# 
-# 5. "make install"
-#
-#
-# The install commands will build .1 and .html versions of all man pages and
-# install them in man and html/man directories.  If the install directory is
-# omitted, then installation will be into bin, lib, man, and html
-# directories under the top-level source directory.
-#
+#    All build instructions are now in the file BUILDING
 #
 # IF THERE IS NO TIFF LIBRARY ON YOUR SYSTEM: 
 #    Add the -no_tiff flag whenever you give the setup command (not needed
@@ -119,11 +26,7 @@
 # 	To archive the source code run "make src"
 #
 #############################################################################
-#  $Author$
-#
-#  $Date$
-#
-#  $Revision$
+#  $Id$
 #  Log at end of file
 #
 #############################################################################
@@ -457,6 +360,12 @@ ALWAYS:
 
 ############################################################################
 #  $Log$
+#  Revision 3.79  2010/04/12 05:11:03  mast
+#  *** empty log message ***
+#
+#  Revision 3.78  2010/01/01 15:21:36  mast
+#  Fix src to include .cu
+#
 #  Revision 3.77  2009/03/06 17:25:09  mast
 #  Add LGPL.txt to dist
 #

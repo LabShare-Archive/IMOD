@@ -1,0 +1,266 @@
+This file has instructions for building and installing IMOD on supported
+architectures, with as much ancillary information as possible.
+
+In general, IMOD is not easy to build, and our focus is on providing binary
+packages that will run on a reasonably wide range of systems rather than on
+making IMOD easier to build.  Our intention in releasing IMOD source is to
+support programming with IMOD, not to replace the use of binary packages for
+installation of IMOD.  If you are system administrator who habitually builds
+packages, please try to use the appropriate binary packages first.  Aside from
+saving the build step, the packages are a lot easier to upgrade.
+
+GENERAL NOTES
+
+IMOD was ported to version 4 of QT with Qt 4.4.3.  One feature was
+subsequently disabled conditionally to allow it to build with Qt 4.3 (colored
+error messages in the 3dmod Info window).  Higher levels of Qt,
+up to 4.6.2, have been used for 64-bit builds under Mac OS X.  If you have Qt
+4.3 on your system already you can safely build with that.  If you need to
+build Qt, it is probably safe to use 4.6 on any architecture.
+
+Several strategies were used when building Qt.  One was to build in a local
+directory and then run "make install".  With later versions on Mac, this
+became problematic, and the strategy there has been to build in a local
+directory, with the "install directory" being a link in /usr/local/Trolltech
+to the local directory.  In these cases, "make install" was not run.  Below we
+show the commands that we have used for building Qt, but this are just
+examples and not authoritative statements.  You will probably be better off
+following Qt instructions.
+
+In all architectures, environment variable QTDIR must be defined to be the
+directory containing at least Qt/bin, and $QTDIR/bin must be on the path.
+
+The setup scripts modify some or all of the Makefiles produced by qmake.
+On Windows, this is essential to make them work with cygwin make; elsewhere it
+is needed for getting ctfplotter to link correctly and to adjust some compiler
+settings.  This means that if you change a Qt project file, you should always
+regenerate the Makefile by running setup rather than by running qmake in the
+program directory.
+
+In order to build with CUDA support, environment variable CUDA_DIR must be
+defined to point to the directory where the CUDA toolkit is installed.
+So far, CUDA 2.1, 2.2, and 2.3 have been used on various systems.  The build
+system itself need not be CUDA-capable or have drivers supporting CUDA.
+
+The setup scripts automatically configure to use OpenMP in cases where they
+think it is available.
+
+You need a Sun version of the Java Development Kit to build eTomo.  Version
+1.5 or higher is required and there should be no problems using the latest
+version.  On a 64-bit system, it does not matter if this is 32 or 64-bit.
+This will already be available on Mac; it may be available in some versions of
+Linux, otherwise you will have to install a package from Sun; and on Windows
+you will have to install a package from Sun.  You must place the bin of the
+JDK on your path.
+
+setup has a number of options that can be listed with "setup -h".  Currently
+the main body of the setup code is in setup2 because that needed to be
+converted to Unix line endings.  To do most of the system-specific work, 
+setup sources an appropriate file in the machines directory: rhlinux, macosx,
+or cygwin.
+
+The install commands will build .1 and .html versions of all man pages and
+install them in man and html/man directories.  If the install directory is
+omitted, then installation will be into bin, lib, man, and html
+directories under the top-level source directory.  This is fine for personal
+use.
+
+
+BUILDING ON LINUX
+
+To build IMOD under FC4 and RHEL5, Qt was unpacked in a local directory, and
+built using gcc/g++ with the commands:
+
+./configure -prefix /usr/local/Trolltech/Qt-4.4.3-FC4 -fast -no-exceptions \
+-no-phonon -no-phonon-backend -no-svg -no-webkit -no-rpath -nomake demos \
+-nomake examples
+make
+make install
+
+Qt 4.3 has been used on both Fedora 11 and Ubuntu 8.1.  setup will detect the
+lack of a QTDIR/include and set its Qt include variable to /usr/include (the
+location on FC11) if /usr/include/Qt exists, otherwise to /usr/include/qt4
+(location on Ubuntu).
+
+QTDIR must be defined, $QTDIR/bin must be on the path, and $QT_DIR/lib must
+be on the LD_LIBRARY_PATH.
+
+The compilers can be either gcc and gfortran, or the Intel C++ and Fortran
+compilers (only version 10 has been configured so far).  If the 
+Intel compilers are on the path, they will be used by default; this can be
+overriden with the "-c gnu" or "-c gfortran" setup option.  Either way will
+support OpenMP and CUDA for "current" compilers (e.g., gcc 4.1.2 in RHEL5).
+
+To build and install for general use:
+
+1. "./setup -i [install directory]" to set the install directory.
+
+2. "make" to make all the programs.
+
+3. "make install"
+
+4. "installqtlibs" to copy install files to install directory.  If you
+   ran "setup" initially with the -packqt flag (which you should do if you 
+   built against a Qt library not on the users' library path), "installqtlibs"
+   will also copy the Qt library.
+
+The last step can be skipped for a personal installation in the source
+directory.
+
+
+BUILDING ON MAC OS X
+
+Qt 4.4.3 for 32-bit Mac was built on a 32-bit Mac with:
+./configure -prefix /usr/local/Trolltech/Qt-4.4.3 -fast -no-exceptions \
+-no-phonon  -no-phonon-backend -no-webkit -no-rpath -no-framework -no-libtiff \
+-qt-libpng -qt-libmng -qt-libjpeg -continue
+make 
+make install
+
+Qt 4.6.2 for 64-bit Mac has been built with gcc/g++ by unpacking in a local
+directory, running:
+setenv QMAKESPEC macx-g++
+making a link /usr/local/Trolltech/Qt-4.6.2  pointing to the local directory,
+running:
+./configure -prefix /usr/local/Trolltech/Qt-4.6.0 -fast -no-exceptions \
+-no-phonon -no-phonon-backend -no-webkit -no-rpath -no-libtiff -qt-libpng \
+-qt-libmng -qt-libjpeg -continue -cocoa -arch x86_64 -release
+
+and skipping the install.
+
+To build IMOD, QTDIR must be defined, $QTDIR/bin must be on the path, and
+$QT_DIR/lib must be on the DYLD_LIBRARY_PATH.
+
+You should build and install tiff libraries from source. 
+http://www.libtiff.org/ has a link to the download site.
+We have used tiff-3.5.7 on 32-bit Mac and tiff-3.8.2 on 64-bit Mac.
+On 32-bit Mac it is simply
+./configure
+make
+sudo make install
+
+On 64-bit Mac we did:
+./configure
+
+Then we edited the Makefile to add -m64 to CFLAGS, CPPFLAGS, and CXXFLAGS
+
+make
+sudo make install
+
+You need to have a Fortran compiler.  Two options are the Intel compiler
+(version 10 recommended currently) and a version of gfortran from
+http://r.research.att.com/tools/
+There is a nasty comment in the latter site about avoiding gfortran from
+http://hpc.sourceforge.net/, which unfortunately matches our own experience.
+
+The setup scripts provide for three options for compilers on Intel Macs:
+Native gcc       gfortran       (No OpenMP support)
+Native gcc       Intel Fortran  (No OpenMP support in IMOD)
+Intel C++        Intel Fortran  (OpenMP works in IMOD)
+
+Only the first option is available on PowerPC Macs.
+
+On Intel Mac, the setup script will try to do the right thing if you have the
+true location of one or both Intel compilers on your path (i.e., the presence
+of links in /usr/bin is ignored).  Namely, if the true location of the Intel
+C++ compiler is on the path, it will assume Intel Fortran is to be used
+(option 3); if only the true location of the Intel Fortran compiler is on the
+path, it will use that and gcc (option 2); if neither is on the path it will
+use gnu compilers.  These defaults can be overriden by "-c intel", which
+forces it to try to use both Intel C++ and Fortran compilers; "-c ifort" which
+forces it to use Intel Fortran but use Intel C++ only if its true location is
+on the path; or "-c gnu" or "-c gfortran", which forces it to gnu compilers.
+
+The procedure is now:
+
+1. "./setup -i [install directory]" to set the install directory.
+
+2. "make" to make all the programs.
+
+3. "make install"
+
+4. "./installqtlibs" to copy Qt library and install files to install directory
+
+
+BUILDING UNDER CYGWIN/WINDOWS WITH INTEL COMPILERS
+
+The build under Windows requires Microsoft Visual Studio .NET.  The 2008
+version is required in 64-bit Windows; the 2003 version still works in 32-bit
+Windows except for building with CUDA support.
+
+This build also requires Intel Fortran and C++ compilers.
+ 
+The PATH, LIB, and INCLUDE environment variables must be set with the entries
+that they acquire when running the startup scripts for Microsoft Visual Studio
+(obtained by running the menu entry to get a command prompt) and the two Intel
+compilers (obtained with the two menu entries for getting the compiler
+environment).
+
+On some machines, the Intel compilers require a setting for the TMP or TEMP
+variable to a location that you can write in, such as C:\cygwin\usr\tmp
+
+Qt was built by unzipping the Qt source package in C:/Qt and renaming it to
+4.4.3.  QQMAKESPEC can be set to win32-icc in 32-bit Windows but fails in
+64-bit, so leave it unset there.  Qt was configured and built with:
+
+./configure -release -fast  -no-exceptions  -qt-zlib  -qt-gif  -qt-libpng -qt-libmng\
+-no-libtiff -qt-libjpeg  -no-phonon -no-phonon-backend -no-webkit
+nmake
+
+TIFF include files and an import library are cnotained in the IMOD package (in
+sysdep/win)  and the software will build without the TIFF library present, but
+installqtlib will not run.  It requires TIFF libraries installed from GnuWin32
+http://gnuwin32.sourceforge.net/packages/tiff.htm
+You want the ordinary version rather than the one using the Win32 API.
+For 32-bit, you can get the TIFF binaries in the "Complete packages, except
+sources".  Version 3.5.7 is the source of the import library packaged in the
+IMOD.  For 64-bit, you need to get the sources and build from there.
+Version 3.7.4 is the source of the import library in IMOD.  They were built
+in C:\Program Files (x86)\GnuWin32\src\tiff\3.7.4\tiff-3.7.4-src after edit
+nmake.opt to comment out
+CHECK_JPEG_YCBCR_SUBSAMPLING = 1
+and with:
+nmake /h Makefile.vc
+
+Current versions of Cygwin do not support the Windows-style paths that appear
+in the IMOD Makefiles (some of them because qmake puts them there; some
+because of variables like INCDIR).  Since 2006, we have been using a patched
+version that was available when 3.8.1 was released.  Miraculously, this still
+works in Cygwin 1.7.  The alternative is apparently to use a MinGW version of
+make.
+
+1. "./setup -i [install directory]" to set the install directory.
+
+2. "make" to make everything
+
+3. "make install"
+
+4. "./installqtlib" to copy the Qt, Tiff, and Intel DLLs to the install bin,
+install manifests, and copy the MSVC runtime to the install bin too.
+
+
+BUILDING UNDER CYGWIN/WINDOWS WITH CYGWIN COMPILERS AND VISUAL STUDIO
+
+Originally, IMOD was built with Cygwin compilers, except that the C libraries
+and Qt-related components were built with Visual Studio.  The ability to build
+with Cygwin compilers and to build anything besides 3dmod, midas and static C
+libraries has not been maintained.
+
+Basic Cygwin development packages, libtiff-devel and Microsoft Visual Studio
+are required for this build.  A development version of Qt must be installed.
+To build libraries, 3dmod, and midas:
+
+1. "setup -c gnu" to set the compiler.
+
+2. In Visual Studio, open the solution libimod/libimod.sln and build release
+   versions of all six libraries.
+
+3. Open the workspace imod/3dmod.dsw and confirm the conversion of 3dmod.dsp
+to the current version.  Then under 3dmod properties, in C++ preprocessor, add
+TRACK_PLUGIN to the definitions, and in Linker Input, remove
+libtrack.lib. Under Sources - linegui.cpp, select properties and exclude it
+from the build. Under Generated filed - moc_linegui.cpp, select properties and
+exclude it from the build.  3dmod should now build.
+
+4. Open the Qt-generated project file midas/midas.dsp and confirm the
+conversion.  Build midas.
