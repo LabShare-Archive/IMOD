@@ -79,7 +79,9 @@ return left.area < right.area;
 Surface_Pieces::Surface_Pieces(const Ipoint *vertex_xyz, const b3dInt32 *tarray,
     int tc, b3dInt32 *sortedTriangle)
 {
-  if( tc<=0 ) return;
+  int tCounter=0, t, nT, ci;
+  if( tc<=0 ) 
+    return;
 
   // Create map of vertices to lowest number connected vertex.
   int vc = maximum_triangle_vertex_index(tarray, tc) + 1;
@@ -101,14 +103,13 @@ Surface_Pieces::Surface_Pieces(const Ipoint *vertex_xyz, const b3dInt32 *tarray,
   // Fill triangle index piece arrays.
   int  s0 = 3;
   const int *tv = tarray;
-  for (int t = 0 ; t < tc ; ++t)
+  for (t = 0 ; t < tc ; ++t)
     pieces[vmap[tv[s0*t]]].tList->push_back(t);
 
 
   float temp;
    Ipoint v0, v1, v2;
    float a, b, c, s;
-   int tCounter=0, t, nT, ci;
    std::vector<int> currTList;
    
    for(ci=0;ci<cc;++ci){
