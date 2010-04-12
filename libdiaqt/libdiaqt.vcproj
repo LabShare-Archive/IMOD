@@ -73,7 +73,7 @@
 				AdditionalOptions="-Zm200 "
 				Optimization="1"
 				InlineFunctionExpansion="1"
-				AdditionalIncludeDirectories="..\include,$(QTDIR)\include,$(QTDIR)\mkspecs\win32-msvc"
+				AdditionalIncludeDirectories="..\include,$(QTDIR)\include,$(QTDIR)\include\Qt,$(QTDIR)\include\QtGui,$(QTDIR)\include\QtCore,$(QTDIR)\mkspecs\win32-msvc"
 				PreprocessorDefinitions="NDEBUG;WIN32;_LIB;UNICODE;QT_DLL;QT_THREAD_SUPPORT;_CRT_SECURE_NO_DEPRECATE"
 				StringPooling="TRUE"
 				RuntimeLibrary="2"
@@ -180,26 +180,6 @@
 			</File>
 			<File
 				RelativePath="dialog_frame.cpp">
-				<FileConfiguration
-					Name="Debug|Win32">
-					<Tool
-						Name="VCCLCompilerTool"
-						Optimization="0"
-						AdditionalIncludeDirectories=""
-						PreprocessorDefinitions=""
-						BasicRuntimeChecks="3"/>
-				</FileConfiguration>
-				<FileConfiguration
-					Name="Release|Win32">
-					<Tool
-						Name="VCCLCompilerTool"
-						Optimization="1"
-						AdditionalIncludeDirectories=""
-						PreprocessorDefinitions=""/>
-				</FileConfiguration>
-			</File>
-			<File
-				RelativePath="floatspinbox.cpp">
 				<FileConfiguration
 					Name="Debug|Win32">
 					<Tool
@@ -335,32 +315,6 @@
 				</FileConfiguration>
 			</File>
 			<File
-				RelativePath="..\include\floatspinbox.h">
-			</File>
-			<File
-				RelativePath="..\include\floatspinbox.h">
-				<FileConfiguration
-					Name="Debug|Win32">
-					<Tool
-						Name="VCCustomBuildTool"
-						Description="Moc&apos;ing ..\include\floatspinbox.h..."
-						CommandLine="&quot;$(QTDIR)&quot;\bin\moc ..\include\floatspinbox.h -o ..\include\moc_floatspinbox.cpp
-"
-						AdditionalDependencies="$(QTDIR)\bin\moc.exe;"
-						Outputs="..\include\moc_floatspinbox.cpp"/>
-				</FileConfiguration>
-				<FileConfiguration
-					Name="Release|Win32">
-					<Tool
-						Name="VCCustomBuildTool"
-						Description="Moc&apos;ing ..\include\floatspinbox.h..."
-						CommandLine="&quot;$(QTDIR)&quot;\bin\moc ..\include\floatspinbox.h -o ..\include\moc_floatspinbox.cpp
-"
-						AdditionalDependencies="$(QTDIR)\bin\moc.exe;"
-						Outputs="..\include\moc_floatspinbox.cpp"/>
-				</FileConfiguration>
-			</File>
-			<File
 				RelativePath="..\include\multislider.h">
 				<FileConfiguration
 					Name="Debug|Win32">
@@ -457,26 +411,6 @@
 			</File>
 			<File
 				RelativePath="..\include\moc_dialog_frame.cpp">
-				<FileConfiguration
-					Name="Debug|Win32">
-					<Tool
-						Name="VCCLCompilerTool"
-						Optimization="0"
-						AdditionalIncludeDirectories=""
-						PreprocessorDefinitions=""
-						BasicRuntimeChecks="3"/>
-				</FileConfiguration>
-				<FileConfiguration
-					Name="Release|Win32">
-					<Tool
-						Name="VCCLCompilerTool"
-						Optimization="1"
-						AdditionalIncludeDirectories=""
-						PreprocessorDefinitions=""/>
-				</FileConfiguration>
-			</File>
-			<File
-				RelativePath="..\include\moc_floatspinbox.cpp">
 				<FileConfiguration
 					Name="Debug|Win32">
 					<Tool
