@@ -1,4 +1,4 @@
-See the Makefile for building instructions.  The setup program makes 
+See the file BUILDING for building instructions.  The setup program makes 
 configuration files based on machine-specific details in the "machines" 
 directory.
 
