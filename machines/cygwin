@@ -119,7 +119,7 @@ else
     # tell the C routines being called by Fortran that they need two __
     #
     echo '#define G77__HACK' >> $hconfigure
-    echo '#define DLLEXPORT_' >> $hconfigure
+    echo '#define DLLEXPORT_H' >> $hconfigure
     echo '#define DLL_IM_EX' >> $hconfigure
     set openmp = false
     unsetenv CUDA_DIR
