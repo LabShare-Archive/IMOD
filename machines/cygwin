@@ -399,7 +399,7 @@ set newer = `\find $imod_dir -name 3dmod.dsp -newer $imod_dir/imod.pro \
  -exec echo newer \;`
 if ($newer != newer) then
     (cd $imod_dir ; qmake -t vcapp -o 3dmod.dsp imod.pro)
-   echo "MADE NEW 3dmod PROJECT FILE - RESET WARNING LEVEL TO 1 IN C++/General"
+   echo "MADE NEW 3dmod PROJECT FILE"
    echo "exclude linegui.cpp, moc_linegui.cpp, libtrack.lib, define TRACK_PLUGIN"
 endif
 
