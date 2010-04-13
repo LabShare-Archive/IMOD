@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+4/13/10: Fixed imodinfo "volume inside mesh" for central point not inside the
+mesh (In 4.1).
+
 4/13/10: Made Newstack work with nearly unlimited number of sections and files
 for most applications and added option to split input into a series of
 numbered output files, one section per file.  
