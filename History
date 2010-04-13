@@ -1,5 +1,11 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+4/13/10: Made Newstack work with nearly unlimited number of sections and files
+for most applications and added option to split input into a series of
+numbered output files, one section per file.  
+
+4/13/10: Removed limit on number of views in Tiltxcorr.
+
 4/10/10: Selecting text in text fields on focus in Etomo tables.
 
 4/9/10: Added --autoclose3dmod parameter for Etomo.
