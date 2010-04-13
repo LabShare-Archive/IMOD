@@ -14,9 +14,9 @@ c       $Id$
 c       Log at end of file
 c       
       implicit none
-      integer maxdim,maxtemp,lmfil,lmsec,maxchunks,lmGrid
+      integer maxdim,maxtemp,lmsec,maxchunks,lmGrid,lmGradSec
       integer lmFields, lmAllGrid
-      parameter (lmfil=1000,lmsec=50000,maxchunks=250)
+      parameter (lmsec=1000000,maxchunks=250,lmGradSec=10000)
       parameter (maxtemp=1000000)
       parameter (lmGrid = 200, lmFields = 1000, lmAllGrid = 1000000)
       integer*4 nx,ny,nz
@@ -26,20 +26,24 @@ C
       integer*4 NXYZ(3),MXYZ(3),NXYZST(3), NXYZ2(3),MXYZ2(3), maxextra
       real*4 CELL2(6),cell(6), TITLE(20), delt(3), xorig, yorig, zorig
 C       
-      CHARACTER*320 FILIN(lmfil),FILOUT(lmfil),xffil,filistin,filistout
+      CHARACTER*320 xffil,filistin,filistout
+      CHARACTER*320, allocatable :: FILIN(:),FILOUT(:)
       character*320 idfFile, magGradFile
+      character*320 tempname,temp_filename
       character*100000 listString
+      character*6 convfmt
+      character*10 convnum
       EQUIVALENCE (NX,NXYZ(1)), (ny,nxyz(2)), (nz,nxyz(3))
 C       
       DATA NXYZST/0,0,0/
       character*20 floatxt/' '/,xftext/' '/,trunctxt/' '/
-      real*4 f(2,3,lmsec), frot(2,3), fexp(2,3), fprod(2,3)
-      integer*4 inlist(lmsec),nlist(lmfil),listind(lmfil)
-     &    ,nsecout(lmfil),lineuse(lmsec),linetmp(lmfil)
-      real*4 xcen(lmsec),ycen(lmsec),optmax(16),secmean(lmsec)
+      real*4 frot(2,3), fexp(2,3), fprod(2,3)
+      integer*4 inlist(lmsec)
+      integer*4, allocatable :: nlist(:),listind(:),nsecout(:),linetmp(:)
+      real*4 optmax(16)
       integer*4 lineOutSt(maxchunks+1),nLinesOut(maxchunks)
-      integer*4 lineInSt(maxchunks+1),nLinesIn(maxchunks),listReplace(lmsec)
-      real*4 scaleFacs(lmfil), scaleConsts(lmfil)
+      integer*4 lineInSt(maxchunks+1),nLinesIn(maxchunks)
+      real*4, allocatable :: scaleFacs(:), scaleConsts(:)
       integer*1, allocatable :: extrain(:),extraout(:)
       data optmax/255.,32767.,255.,32767.,255.,255.,65535.,255.,255.,
      &    511.,1023.,2047.,4095.,8191., 16383.,32767./
@@ -53,16 +57,17 @@ c
       real*4 idfDx(lmGrid, lmGrid), idfDy(lmGrid, lmGrid)
       real*4 allDx(lmAllGrid), allDy(lmAllGrid)
       integer*4 ixFieldStrt(lmFields), iyFieldStrt(lmFields)
-      integer*4 nxField(lmFields), nyField(lmFields), idfUse(lmsec)
+      integer*4 nxField(lmFields), nyField(lmFields)
       real*4 xFieldIntrv(lmFields), yFieldIntrv(lmFields)
 c       
       integer*4 ifMagGrad, numMagGrad, magUse
       real*4 pixelMagGrad, axisRot
-      real*4 tiltAngles(lmsec), dmagPerUm(lmsec), rotPerUm(lmsec)
+      integer*4, allocatable :: lineuse(:),listReplace(:), idfUse(:)
+      real*4, allocatable :: xcen(:),ycen(:),secmean(:),f(:,:,:)
+      real*4 tiltAngles(lmgradsec), dmagPerUm(lmgradsec), rotPerUm(lmgradsec)
 c       
       logical rescale,blankOutput,adjustOrigin
       character dat*9,tim*8,tempext*9
-      character*320 tempname,temp_filename
       logical nbytes_and_flags
       character*80 titlech
       integer*4 inunit,nfilein,listot,noutot,nfileout,nx3,ny3
@@ -78,7 +83,7 @@ c
       integer*4 linesleft,nchunk,nextline,ichunk,ifOutChunk,iscan,iytest
       integer*4 iybase,iy1,iy2,lnu,maxin,numScaleFacs,numXfLines
       real*4 dmeansec,tmpmin,tmpmax,val,tsum2,sclfac
-      integer*4 needyst,needynd,nload,nyload,nych
+      integer*4 needyst,needynd,nload,nyload,nych,iseriesBase
       integer*4 ix1,ix2,nbcopy,nbclear,ifLinear, limEntered,insideTaper
       real*4 const,denoutmin,den, tmin2,tmax2,tmean2,avgsec
       integer*4 numInputFiles, numSecLists, numOutputFiles, numToGet
@@ -92,6 +97,7 @@ c
       real*8 rottime
       real*4 cosd, sind
       integer*4 lnblnk, taperAtFill
+      character*320 concat
 c       
       logical pipinput
       integer*4 numOptArg, numNonOptArg
@@ -102,22 +108,23 @@ c
 c       fallbacks from ../../manpages/autodoc2man -2 2  newstack
 c       
       integer numOptions
-      parameter (numOptions = 35)
+      parameter (numOptions = 37)
       character*(40 * numOptions) options(1)
       options(1) =
      &    'input:InputFile:FNM:@output:OutputFile:FNM:@'//
      &    'fileinlist:FileOfInputs:FN:@fileoutlist:FileOfOutputs:FN:@'//
-     &    'secs:SectionsToRead:LIM:@skip:SkipSectionIncrement:I:@'//
-     &    'numout:NumberToOutput:IAM:@replace:ReplaceSections:LI:@'//
-     &    'blank:BlankOutput:B:@size:SizeToOutputInXandY:IP:@'//
-     &    'mode:ModeToOutput:I:@offset:OffsetsInXandY:FAM:@'//
-     &    'applyfirst:ApplyOffsetsFirst:B:@xform:TransformFile:FN:@'//
-     &    'uselines:UseTransformLines:LIM:@onexform:OneTransformPerFile:B:@'//
-     &    'rotate:RotateByAngle:F:@expand:ExpandByFactor:F:@'//
-     &    'bin:BinByFactor:I:@origin:AdjustOrigin:B:@'//
-     &    'linear:LinearInterpolation:B:@float:FloatDensities:I:@'//
-     &    'contrast:ContrastBlackWhite:IP:@scale:ScaleMinAndMax:FP:@'//
-     &    'fill:FillValue:F:@multadd:MultiplyAndAdd:FPM:@'//
+     &    'split:SplitStartingNumber:I:@secs:SectionsToRead:LIM:@'//
+     &    'skip:SkipSectionIncrement:I:@numout:NumberToOutput:IAM:@'//
+     &    'replace:ReplaceSections:LI:@blank:BlankOutput:B:@'//
+     &    'size:SizeToOutputInXandY:IP:@mode:ModeToOutput:I:@'//
+     &    'offset:OffsetsInXandY:FAM:@applyfirst:ApplyOffsetsFirst:B:@'//
+     &    'xform:TransformFile:FN:@uselines:UseTransformLines:LIM:@'//
+     &    'onexform:OneTransformPerFile:B:@rotate:RotateByAngle:F:@'//
+     &    'expand:ExpandByFactor:F:@bin:BinByFactor:I:@'//
+     &    'origin:AdjustOrigin:B:@linear:LinearInterpolation:B:@'//
+     &    'float:FloatDensities:I:@contrast:ContrastBlackWhite:IP:@'//
+     &    'scale:ScaleMinAndMax:FP:@fill:FillValue:F:@'//
+     &    'multadd:MultiplyAndAdd:FPM:@taper:TaperAtFill:IP:@'//
      &    'distort:DistortionField:FN:@imagebinned:ImagesAreBinned:I:@'//
      &    'fields:UseFields:LIM:@gradient:GradientFile:FN:@'//
      &    'memory:MemoryLimit:IP:@test:TestLimits:IP:@'//
@@ -167,6 +174,7 @@ c
       savetime=0.
       rottime = 0.
       maxextra = 0
+      iseriesBase = -1
 c       
 c       Preliminary allocation of array
       allocate(array(limdim), stat = ierr)
@@ -209,7 +217,10 @@ c
         read(inunit,*)nfilein
       endif
       listot=0
-      if(nfilein.gt.lmfil)call exitError('TOO MANY FILES FOR ARRAYS')
+      allocate(filin(nfilein), nlist(nfilein), listind(nfilein), 
+     &    linetmp(nfilein), scaleFacs(nfilein), scaleConsts(nfilein), 
+     &    stat = ierr)
+      if(ierr.ne.0)call exitError('ALLOCATING ARRAYS FOR INPUT FILES')
 c       
       do i=1,nfilein
 c         
@@ -261,6 +272,8 @@ c
 c         
 c         check list legality
 c         
+        if (listot + nlist(i) .gt. lmsec) call exitError(
+     &      'TOO MANY SECTIONS FOR ARRAYS')
         listind(i)=listot+1
         indout = listind(i)
         do isec = listot + 1, listot + nlist(i), max(1, listIncrement)
@@ -276,10 +289,13 @@ c
         enddo
         nlist(i) = indout - listind(i)
         listot=listot+nlist(i)
-        if(listot.gt.lmsec)call exitError('TOO MANY SECTIONS FOR ARRAYS')
       enddo
       close(7)
 101   FORMAT(A)
+c
+      allocate(lineuse(listot),listReplace(listot), idfUse(listot),
+     &    xcen(listot),ycen(listot),secmean(listot),f(2,3,listot), stat=ierr)
+      if (ierr .ne. 0) call exitError('ALLOCATING ARRAYS FOR INPUT FILES')
 C       
 C       Read in list of output files
 C       
@@ -296,15 +312,20 @@ c
      &      'YOU CANNOT ENTER BOTH OUTPUT FILES AND AN OUTPUT'//
      &      ' LIST FILE')
         if (filistout .ne. ' ') nfileout = -1
+        ierr = PipGetInteger('SplitStartingNumber', iseriesBase)
+        if (iseriesBase .ge. 0 .and. nfileout .ne. 1) call exitError('THERE'//
+     &      ' MUST BE ONLY ONE OUTPUT FILE NAME FOR SERIES OF NUMBERED FILES')
+        if (iseriesBase .ge. 0) nfileout = listot
       else
         write(*,'(1x,a,$)')'# of output files (or -1 to read list'//
      &      ' of output files from file): '
         read(5,*)nfileout
       endif
       if (nfileout .eq. 0) call exitError('NO OUTPUT FILE SPECIFIED')
-      if(nfileout.gt.lmfil)call exitError(
-     &    'TOO MANY OUTPUT FILES FOR ARRAYS')
-c       
+c
+      allocate(filout(nfileout), nsecout(nfileout), stat = ierr)
+      if(ierr.ne.0)call exitError('ALLOCATING ARRAYS FOR OUTPUT FILES')
+c
 c       get list input
 c       
       if(nfileout.lt.0)then
@@ -345,7 +366,7 @@ c
             do i = 1, numOutEntries
               numToGet = 0
               ierr = PipGetIntegerArray('NumberToOutput',
-     &            nsecout(numOutValues + 1), numToGet, lmfil)
+     &            nsecout(numOutValues + 1), numToGet, nfileout - numOutValues)
               numOutValues = numOutValues + numToGet
             enddo
             if (numOutValues .ne. nfileout) call exitError(
@@ -372,6 +393,21 @@ c
           enddo
         endif
       endif
+c       
+c       If series, now take the one filename as root name and make filenames
+      if (iseriesBase .ge. 0) then
+        ierr = alog10(10. * (iseriesBase + listot - 1))
+        tempname = FILOUT(1)
+        write(convfmt, 132) ierr,ierr
+132     format('(i',i1,'.',i1,')')
+        do i = 1, listot
+          nsecout(i) = 1
+          write(convnum, convfmt) i + iseriesBase - 1
+          filout(i) = concat(concat(tempname, '.'), convnum)
+        enddo
+        noutot=listot
+      endif
+
       if(noutot.ne.listot)call exitError(
      &    'Number of input and output sections does not match')
 c       
@@ -393,7 +429,7 @@ c
           do i = 1, numOutEntries
             numToGet = 0
             ierr = PipGetFloatArray('OffsetsInXandY',
-     &          array(numOutValues + 1), numToGet, lmsec * 2)
+     &          array(numOutValues + 1), numToGet, lmsec * 2 - numOutValues)
             numOutValues = numOutValues + numToGet
           enddo
           if (numOutValues .ne. 2 .and. numOutValues .ne. 2 * listot)
@@ -470,7 +506,7 @@ c
 
         call getItemsToUse(nxforms, listot, inlist, 'UseTransformLines',
      &      listString, pipinput, 'TRANSFORM LINE', ifOnePerFile, nfilein,
-     &      lineUse, nLineUse, lmsec)
+     &      lineUse, nLineUse, listot)
 
         if (ifOnePerFile .gt. 0) then
           if (nLineUse .lt. nfilein) call exitError(
@@ -659,7 +695,7 @@ c
         if (magGradFile .ne. ' ') then
           ifMagGrad = 1
           xftext=', undistorted'
-          call readMagGradients(magGradFile, lmsec, pixelMagGrad, axisRot,
+          call readMagGradients(magGradFile, lmGradSec, pixelMagGrad, axisRot,
      &        tiltAngles, dmagPerUm, rotPerUm, numMagGrad)
           pixelMagGrad = pixelMagGrad * iBinning
         endif
@@ -2056,6 +2092,9 @@ c
 ************************************************************************
 *       
 c       $Log$
+c       Revision 3.57  2009/10/14 23:50:41  mast
+c       allocate arrays for extra header data
+c
 c       Revision 3.56  2009/10/09 21:34:27  mast
 c       Provided default tapering if number is entered as 1
 c
