@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+4/13/10: Fixed imodinfo "volume inside mesh" for central point not inside the
+mesh.
+
 4/9/10: Increased log filename length in vmstocsh to 320.
 
 4/9/10: IMOD_4-2-0 and branch to IMOD_4-1-0
