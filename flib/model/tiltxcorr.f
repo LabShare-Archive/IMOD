@@ -21,8 +21,8 @@ c       $Id$
 c       Log at end
 c       
       implicit none
-      integer idim,idim2,limview,lenTemp,limpatch,limbound
-      parameter (idim=4300,idim2=idim*idim,limview=720, lenTemp=1000000)
+      integer idim,idim2,lenTemp,limpatch,limbound
+      parameter (idim=4300,idim2=idim*idim,lenTemp=1000000)
       parameter (limpatch = 100000, limbound = 1000)
       include 'smallmodel.inc'
       integer*4 NX,NY,NZ,nxs,nys,nzs
@@ -37,22 +37,24 @@ C
       common /bigarr/ array,sumray,brray,crray,tmprray
 c       
       character*320 filin,plfile,imfilout,ptfilout,xffilout
-      real*4 f(2,3,limview),fs(2,3),fsinv(2,3),funit(2,3)
+      real*4 fs(2,3),fsinv(2,3),funit(2,3)
       character*9 dat
       character*8 tim
       character*80 titlech
       character*70 titstr
       character*7 fltrdp/' '/
 
+      real*4, allocatable :: f(:,:,:), tilt(:)
+      integer*4, allocatable :: ixpclist(:),iypclist(:),izpclist(:)
+      integer*4, allocatable :: listz(:)
       real*4 patchCenX(limpatch), patchCenY(limpatch)
       real*4, allocatable :: xmodel(:,:), ymodel(:,:), xbound(:), ybound(:)
       real*4, allocatable :: xtfsBound(:), ytfsBound(:)
       integer*4, allocatable :: iobjFlags(:)
-      integer*4 ixpclist(limview),iypclist(limview),izpclist(limview)
-      integer*4 listz(limview),iobjBound(limbound),indBound(limbound)
+      integer*4 iobjBound(limbound),indBound(limbound)
       integer*4 numInBound(limbound)
       real*4 xtfsBmin(limbound), xtfsBmax(limbound), ytfsBmin(limbound)
-      real*4 tilt(limview), ytfsBmax(limbound)
+      real*4 ytfsBmax(limbound)
       real*4 dmin2,dmax2,dmean2,dmean3,rotangle,deltap,radexcl,cosStrMaxTilt
       integer*4 i,npclist,nview,minxpiece,nxpieces,nxoverlap,minypiece
       integer*4 nypieces,nyoverlap,ifimout,nxpad,nypad,ifexclude,mode
@@ -170,7 +172,9 @@ c
       CALL IMOPEN(1,FILIN,'RO')
       CALL IRDHDR(1,NXYZ,MXYZ,MODE,DMIN2,DMAX2,DMEAN2)
 
-      if (nz.gt.limview) call exitError('TOO MANY VIEWS FOR ARRAYS')
+      allocate(f(2,3,nz), tilt(nz), ixpclist(nz),iypclist(nz),izpclist(nz),
+     &    listz(nz), stat=ierr)
+      if (ierr.ne. 0) call exitError('ALLOCATING ARRAYS FOR VIEWS')
 C       
       if (pipinput) then
         ifpip = 1
@@ -221,7 +225,7 @@ c       Get the output file
       if (PipGetInOutFile('OutputFile', 2, 'Output file for transforms',
      &    xffilout) .ne. 0) call exitError('NO OUTPUT FILE SPECIFIED')
 c       
-      call get_tilt_angles(nview,3,tilt, limview, ifpip)
+      call get_tilt_angles(nview,3,tilt, nz, ifpip)
       if(nview.ne.nz)then
         write(*,'(/,a,i5,a,i5,a)')
      &      'ERROR: TILTXCORR - There must be a tilt angle for'
@@ -252,7 +256,7 @@ c
         ierr = PipGetTwoIntegers('ShiftLimitsXandY', limitShiftX, limitShiftY)
         ierr = PipGetInteger('IterateCorrelations', niter)
         niter = max(1, min(6, niter))
-        ierr = PipGetTwoIntegers('LengthAndOverlap', lenContour, minContOverlap)
+        ierr = PipGetTwoIntegers('LengthAndOverlap', lenContour,minContOverlap)
         if (lenContour .gt. 0) lenContour = max(3, lenContour)
         minContOverlap = min(max(1, minContOverlap), lenContour - 2)
         ixst = nxtrim
@@ -1411,6 +1415,9 @@ c	print *,xpeak,ypeak
 
 c       
 c       $Log$
+c       Revision 3.5  2010/03/03 05:50:47  mast
+c       Put model name in patch model
+c
 c       Revision 3.4  2010/01/21 23:14:32  mast
 c       Fixed patch model output when tracking a subset of views, fixed adjustment
 c       of positions, added option for specifying overlap and a default overlap
