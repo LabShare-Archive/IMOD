@@ -110,11 +110,11 @@ fi
 help=0
 foreground=0
 if [ $# -gt 0 ] ; then
-    if [ $1 == '-h' ] ; then
+    if [ "$1" == '-h' ] ; then
     	help=1
-    elif [ $1 == '--help' ] ; then
+    elif [ "$1" == '--help' ] ; then
     	help=1
-    elif [ $1 == '--fg' ] ; then
+    elif [ "$1" == '--fg' ] ; then
     	foreground=1
     fi
 fi
@@ -187,6 +187,12 @@ else
 fi
 
 # $Log$
+# Revision 1.34  2010/04/13 16:04:21  mast
+# Quote the argument testing so filename can have spaces
+#
+# Revision 1.33  2010/03/31 03:55:28  mast
+# Fixed problems with spaces in ETOMO_LOG_DIR
+#
 # Revision 1.32  2009/12/04 20:26:33  mast
 # Set variable for printing entries in PIP
 #
