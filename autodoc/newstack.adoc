@@ -45,6 +45,18 @@ next line, next filename on next line, etc.  If this
 option is used, no output filenames may be specified with the -output option
 or as the last file on the command line.
 
+[Field = SplitStartingNumber]
+short = split
+type = I
+usage = Starting number for series of numbered output files, one section each
+tooltip = 
+manpage = Starting number for a series of numbered output files, where
+one section will be placed in each file.  There must beonly one output file
+name entered, and it will be taken as the root name for the output files.  A
+dot and the number will be appended to the root name for each file.  The
+number of digits used for the number will be the same for all files so that
+they will list in order.
+
 [Field = SectionsToRead]
 short = secs
 type = LIM
