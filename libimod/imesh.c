@@ -467,7 +467,8 @@ float imeshVolume(Imesh *mesh, Ipoint *scale, Ipoint *center)
     }
   }
 
-  return((float)(tvol / 6.));
+  /* The sum can be negative if the centroid is not inside - so take abs */
+  return((float)(fabs(tvol / 6.)));
 }
 
 /*! Returns the surface area of [mesh] in square pixels.  If [scale] is 
@@ -714,6 +715,9 @@ int imeshCopySkipList(int *lfrom, int nfrom, int **lto, int *nto)
 /*
 
 $Log$
+Revision 3.10  2009/03/19 05:09:58  mast
+Fixed initialization when getting mesh volume
+
 Revision 3.9  2008/11/14 06:13:36  mast
 Implemented volume in mesh function
 
