@@ -3,7 +3,7 @@
 FINDBEADS3D(1)						        FINDBEADS3D(1)
 
 NNAAMMEE
-  findbeads3d - 
+  findbeads3d - Find spherical densities in a volume
 
 SSYYNNOOPPSSIISS
   findbeads3d [options] input_image_file output_model_file
