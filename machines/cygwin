@@ -514,11 +514,11 @@ echo VCEXEDIR = $vcexedir >> $configure
 
 # Workaround for vista security silliness when not doing manifests
 #
-if ($?MSVCREDIST) then
-    echo "GENERATED_SCRIPTS = 3dmodbg 3dmodv" >> $configure
-else if ($uac_wrap == true) then
+if ($uac_wrap == true) then
     echo "GENERATED_SCRIPTS = 3dmodbg 3dmodv patch2imod imod2patch" >> $configure
     echo "UAC_WRAPPERS = patch2imod vatch2imod imod2patch imod2vatch" >> $configure
+else
+    echo "GENERATED_SCRIPTS = 3dmodbg 3dmodv" >> $configure
 endif
 
 # Set up to copy qt lib to bin dir for a distribution
