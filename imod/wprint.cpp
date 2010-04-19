@@ -100,8 +100,11 @@ void wprint(const char *fmt, ...)
     wprintText->moveCursor(QTextCursor::End);
     wprintText->moveCursor(QTextCursor::StartOfBlock, QTextCursor::KeepAnchor);
     
-    // Using a QTextCursor to removeSelectedText didn't work all the time
-    wprintText->cut();
+    /* Initial notes were that using a QTextCursor to removeSelectedText 
+       didn't work all the time. But cut() puts it on the clipboard which is 
+       fatal for messaging in Windows.  Didn't see a problem after switching
+       to this*/
+    wprintText->textCursor().removeSelectedText();
     needInsert = true;
   }
 
@@ -163,6 +166,10 @@ void wprintWriteFile(void)
 /*
 
 $Log$
+Revision 4.11  2010/04/01 02:31:30  mast
+Changed to edit the text document directly and appropriately, which was needed
+with the text edit editable, and added a call to save to file
+
 Revision 4.10  2009/11/06 20:32:53  mast
 Disable the one incompatibiity with Qt 4.3
 
