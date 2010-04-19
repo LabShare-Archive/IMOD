@@ -62,8 +62,8 @@ c       $Id$
 c       Log at end of file
 c       
 c       
+      use blendvars
       implicit none
-      include 'blend.inc'
 c       
       character*80 filnam
       integer*4 mxyzin(3),nxyzst(3)/0,0,0/
@@ -98,6 +98,12 @@ c
       integer*4 ixout,iyout,ixinpc,iyinpc,ifrevise
 c       
       call setExitPrefix('ERROR: REDUCEMONT -')
+c       
+c       Allocate arrays now
+      allocate(array(maxsiz), brray(maxbsiz),  xcray(idimc/2), xdray(idimc/2),
+     &    stat = i)
+      if (i .ne. 0) call exitError('ALLOCATING HUGE ARRAYS')
+c
       write(*,'(1x,a,$)')'Input image file: '
       read(5,'(a)')filnam
       call imopen(1,filnam,'ro')
@@ -595,9 +601,9 @@ c
 
 
       subroutine findpixel(ix,iy,inpieceno,ixinpc,iyinpc)
+      use blendvars
       implicit none
       integer*4 ix,iy,inpieceno,ixinpc,iyinpc
-      include 'blend.inc'
 C       
       integer*4 nxdel,nydel,ipcx,ipcy,idx,idy,newx,newpcx
       integer*4 newy,newpcy
@@ -717,6 +723,9 @@ c
       end
 
 c       $Log$
+c       Revision 3.9  2007/04/07 21:35:49  mast
+c       Switched to exitError
+c
 c       Revision 3.8  2005/02/28 21:10:44  mast
 c       Changed for shuffle changes
 c	

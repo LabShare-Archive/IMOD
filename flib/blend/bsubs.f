@@ -137,8 +137,8 @@ c       The interpolation order is set from the value in common.
 c       
       real*4 function oneintrp(crray,nx,ny,x,y,izpc)
 c       
+      use blendvars
       implicit none
-      include 'blend.inc'
       integer*4 nx, ny,izpc
       real*4 x,y
       real*4 crray(nx,ny)
@@ -273,8 +273,8 @@ c
       subroutine fastinterp(drray,nxd,nyd, crray,nxc,nyc,indxlo,
      &    indxhi,indylo, indyhi,newpcxll,amat,fdx, fdy,izpc)
 c       
+      use blendvars
       implicit none
-      include 'blend.inc'
       integer*4 nxd,nyd,nxc,nyc,indxlo, indxhi,indylo, indyhi
           integer*4 newpcxll,izpc
           real*4 drray(nxd,nyd)
@@ -656,8 +656,8 @@ c       edge in the buffers in INDBUF.
 c       
       subroutine edgeswap(iedge,ixy,indbuf)
 c       
+      use blendvars
       implicit none
-      include 'blend.inc'
       integer*4 iedge,ixy,indbuf
       integer*4 minused,ioldest,i
 c       
@@ -700,8 +700,8 @@ c       READEDGEFUNC actually reads in the edge function IEDGE, direction
 c       IXY, to the given buffer INDBUF, and swaps bytes as necessary
 c       
       subroutine readEdgeFunc(iedge, ixy, indbuf)
+      use blendvars
       implicit none
-      include 'blend.inc'
       integer*4 iedge,ixy,indbuf
       integer*4 ix,iy,nxgr,nygr,idum1,idum2
 c       
@@ -750,8 +750,8 @@ c
       subroutine doedge(iedge,ixy,edgedone,sdcrit,devcrit,nfit,
      &    norder,nskip,docross,xcreadin,xclegacy,edgedispx,edgedispy)
 c       
+      use blendvars
       implicit none
-      include 'blend.inc'
 c       real*4 array(*)
       integer*4 nfit(2),nskip(2)
       logical docross,xcreadin,xclegacy
@@ -1099,11 +1099,11 @@ c       the edges and pieces that the point is in, or at least near
 c       
       subroutine countedges(indx,indy,xg,yg, useEdges)
 c       
+      use blendvars
       implicit none
       integer*4 indx,indy
       real*4 xg,yg
 c       
-      include 'blend.inc'
 c       
       logical edgeonlist,needcheck(5,2),ngframe, useEdges, inLimit(2)
       real*4 xycur(2)
@@ -1372,8 +1372,8 @@ c       initNearList sets up an ordered list of dx, dy values to nearby pieces
 c       up to the maximum distance in maxDistNear
 c
       subroutine initNearList()
+      use blendvars
       implicit none
-      include 'blend.inc'
       integer*4 limx, limy, idx, idy, i, j, itmp
       real*4 temp
       
@@ -1414,8 +1414,8 @@ c       range for the montage, then checks whether this piece exists.  If not
 c       it switches to the nearest piece that does exist
 c
       subroutine findNearestPiece(ixFrame, iyFrame)
+      use blendvars
       implicit none
-      include 'blend.inc'
       integer*4 ixFrame, iyFrame, i, ixnew, iynew
       ixFrame = max(1, min(nxpieces, ixFrame))
       iyFrame = max(1, min(nypieces, iyFrame))
@@ -1441,10 +1441,10 @@ c       and the average density difference DDEN
 c       
       subroutine dxydgrinterp(x1,y1,indedg,x2,y2,dden)
 c       
+      use blendvars
       implicit none
       real*4 x1,x2,y1,y2,dden
       integer*4 indedg
-      include 'blend.inc'
 c       
       real*4 xingrid,yingrid,xgrid,ygrid,fx1,fx,c00,c10,c01,c11
       real*4 fy1,fy,dxinterp,dyinterp
@@ -1502,8 +1502,8 @@ c
 
 
       subroutine xcorredge(crray,drray,ixy,xdisp,ydisp, legacy, indentXC)
+      use blendvars
       implicit none
-      include 'blend.inc'
       real*4 crray(*),drray(*),xdisp,ydisp
       integer*4 indentXC,ixy
       logical legacy
@@ -1737,10 +1737,10 @@ c       write(*,'(2f8.2,2f8.2)')xpeak,ypeak,xdisp,ydisp
       subroutine find_best_shifts(a,maxvar,dxgridmean,dygridmean,idir,izsect,h,
      &    nsum,bavg,bmax,aavg,amax)
 
+      use blendvars
       implicit none
       integer*4 idir,izsect,nsum,maxvar
       real*4 bavg,bmax,aavg,amax
-      include 'blend.inc'
 c       
       real*4 h(2,3,*)
       real*4 dxgridmean(limedge,2),dygridmean(limedge,2)
@@ -1908,8 +1908,8 @@ c
 
       subroutine findBestGradient(dxgridmean,dygridmean,idir,izsect,
      &    gradnew,rotnew)
+      use blendvars
       implicit none
-      include 'blend.inc'
       integer*4 idir,izsect
       real*4 gradnew,rotnew
       real*4 dxgridmean(limedge,2),dygridmean(limedge,2),bavg,bmax
@@ -2037,9 +2037,9 @@ c
 
 
       subroutine gradfunc(p, funcErr)
+      use blendvars
       implicit none
       real*4 p(*), funcErr
-      include 'blend.inc'
 
       integer*4 nedg, ifTrace, nTrial,izedge
       real*4 dxedge(limedge,2),dyedge(limedge,2),errMin
@@ -2086,7 +2086,7 @@ c
         endif
       enddo
 
-      call find_best_shifts(array8, nxpieces * nypieces, dxadj, dyadj,
+      call find_best_shifts(array, nxpieces * nypieces, dxadj, dyadj,
      &    1, izedge, h, iedge, bmean, bmax, aftmean, aftmax)
 
       funcErr = aftmean
@@ -2116,9 +2116,9 @@ c       be used.  It returns 0 if a different Z level should be used but no
 c       edge exists at it.
 c
       subroutine findEdgeToUse(iedge, ixy, iuse)
+      use blendvars
       implicit none
       integer*4 iedge, iuse, ixy, izlow, izhigh, ipclo,ixfrm,iyfrm,izuse,i
-      include 'blend.inc'
       iuse = iedge
       if (numUseEdge .eq. 0 .and. izUseDefLow .lt. 0) return
 c       
@@ -2172,8 +2172,8 @@ c       them up in the limDataLo and limDataHi arrays or finding the values and
 c       storing them in those arrays when done.
 c
       subroutine getDataLimits(ipc, ixy, lohi, limitLo, limitHi)
+      use blendvars
       implicit none
-      include 'blend.inc'
       integer*4 ipc, ixy, limitLo, limitHi, ind, incPix, incLine, numPix, line
       integer*4 lineEnd,lineStart,idir,i, lineBase, lineGood, maxSame,numSame
       integer*4 limInd, lohi, iPixStr, iPixEnd
@@ -2331,8 +2331,8 @@ c       of the overlap zone.  The indents in X and Y are returned in
 c       delIndent.
 c       
       subroutine getExtraIndents(ipclow, ipcup, ixy, delIndent)
+      use blendvars
       implicit none
-      include 'blend.inc'
       integer*4 ipclow, ipcup, ixy, ind, ix, memlow, memup, iy
       real*4 delIndent(2)
 c       
@@ -2405,8 +2405,8 @@ c       image in CRRAY, NXDIM is the X array dimension and NXPAD and NYPAD
 c       are image sizes.  IXY is 1 for X or 2 for Y edge.
 c       
       subroutine dumpedge(crray,nxdim,nxpad,nypad,ixy,ifcorr)
+      use blendvars
       implicit none
-      include 'blend.inc'
       integer maxline
       parameter (maxline=4096)
       integer*4 nxdim,nxpad,nypad,ixy,ifcorr
@@ -2462,6 +2462,9 @@ c
 
 c       
 c       $Log$
+c       Revision 3.28  2008/12/23 00:08:58  mast
+c       Use smoothing and tapering outside, multiple xcorr peaks and CCC
+c
 c       Revision 3.27  2008/11/27 01:18:42  mast
 c       Modified commented out debugging output
 c

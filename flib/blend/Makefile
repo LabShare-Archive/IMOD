@@ -6,6 +6,9 @@
 #  $Revision$
 #
 #  $Log$
+#  Revision 3.7  2006/06/22 01:09:45  mast
+#  Replaced LDFLAGS with LDFFLAGS for Intel Mac
+#
 #  Revision 3.6  2005/11/23 16:50:36  mast
 #  Remove dependency on recl_bytes since it is created by setup
 #
@@ -33,9 +36,9 @@ LDFLG    = $(LDFFLAGS)
 PROGS = blendmont$(E) reducemont$(E)
 
 BLOBJS = blendmont.$(O) bsubs.$(O) edgesubs.$(O) shuffler.$(O) smoothgrid.$(O)\
- sdsearch.$(O) sdcalc.$(O) setoverlap.$(O)
+ sdsearch.$(O) sdcalc.$(O) setoverlap.$(O) blendvars.$(O)
 
-REDOBJS = reducemont.$(O) shuffler.$(O) setoverlap.$(O)
+REDOBJS = reducemont.$(O) shuffler.$(O) setoverlap.$(O) blendvars.$(O)
 
 SLOPOBJS = sloppymont.$(O) shuffler.$(O) setoverlap.$(O)
 
@@ -57,7 +60,7 @@ install: $(PROGS)
 clean:
 	-\rm -f *.o* *~ *.exe blendmont reducemont sloppymont
 
-blendmont.$(O):	blend.inc
-bsubs.$(O):	blend.inc
-shuffler.$(O):	blend.inc
-reducemont.$(O):	blend.inc
+blendmont.$(O):	blendvars.$(O)
+bsubs.$(O):	blendvars.$(O)
+shuffler.$(O):	blendvars.$(O)
+reducemont.$(O):	blendvars.$(O)

@@ -9,8 +9,8 @@ c       Log at end of file
 c       
       subroutine shuffler(izwant,index)
 c       
+      use blendvars
       implicit none
-      include 'blend.inc'
 c       
 c	real*4 array(*)
       logical alreadyin
@@ -120,8 +120,8 @@ c
 c       CLEARSHUFFLE initializes or clears the memory allocation
 c       
       subroutine clearShuffle()
+      use blendvars
       implicit none
-      include 'blend.inc'
       integer*4 i
 
       jusecount=0
@@ -137,6 +137,9 @@ c
 
 c       
 c       $Log$
+c       Revision 3.5  2007/04/07 21:35:29  mast
+c       Switched to exitError
+c
 c       Revision 3.4  2006/02/06 21:52:55  mast
 c       Chnaged to use tilt angles separate from mag gradient file
 c

@@ -27,10 +27,10 @@ c
 c       $Id$
 c       Log at end
 c       
+      use blendvars
       implicit none
       integer nbytes_recl_item,limneg
       include 'recl_bytes.inc'
-      include 'blend.inc'
       character*160 filnam,edgenam,plOutfile, outFile
       character*160 rootname
       character*320 concat
@@ -70,8 +70,7 @@ c
       real*4 edgefrac(2),title(20),distout(2),edgefrac4(3,2)
       real*4 edgefracx,edgefracy
       equivalence (edgefrac(1),edgefracx),(edgefrac(2),edgefracy)
-      integer*2 irray(limxypc,limxypc,limsect)
-      equivalence (array,irray)
+      integer*4, allocatable :: mapAllPc(:,:,:)
       logical edgedone(limedge,2),multineg(limsect),active4(3,2)
       logical anypixels,inframe,dofast,anyneg,anylinesout,xinlong,testMode
       logical shifteach,docross,fromedge,exist,xcreadin,xclegacy,outputpl
@@ -236,6 +235,11 @@ c
      &    numNonOptArg)
       pipinput = numOptArg + numNonOptArg .gt. 0
 c       
+c       Allocate arrays now
+      allocate(array(maxsiz), brray(maxbsiz),  xcray(idimc/2), xdray(idimc/2),
+     &    stat = ierr)
+      if (ierr .ne. 0) call exitError('ALLOCATING HUGE ARRAYS')
+c
       if (PipGetInOutFile('ImageInputFile', numNonOptArg + 1,
      &    'Input image file', filnam) .ne. 0) call exitError(
      &    'NO INPUT IMAGE FILE SPECIFIED')
@@ -307,10 +311,13 @@ c       Preserve legacy behavior of floating to positive range for mode 1
         dogxforms=.true.
       endif
 c	
+      print *,'here'
       call read_list(ixpclist,iypclist,izpclist,neglist,
      &    multineg,npclist,minzpc,maxzpc,anyneg,pipinput)
       nsect=maxzpc+1-minzpc
+      print *,'here'
       call fill_listz(izpclist,npclist,listz,nlistz)
+      print *,'here'
       if(dogxforms)then
         if (nlistz.gt.nglist) call exitError(
      &      'MORE SECTIONS THAN G TRANSFORMS')
@@ -335,8 +342,11 @@ c       now check lists and get basic properties of overlap etc
 c       
       call checklist(ixpclist,npclist,1,nxin,minxpiece,nxpieces,
      &    nxoverlap)
+      print *,'here OK',npclist,1,nxin,minxpiece,nxpieces,
+     &    nxoverlap,nyin
       call checklist(iypclist,npclist,1,nyin,minypiece,nypieces,
      &    nyoverlap)
+      print *,'here'
       if(nxpieces.le.0. or. nypieces.le.0)call exitError
      &    ('CHECKLIST REPORTED 0 PIECES IN ONE DIRECTION')
 c       
@@ -645,16 +655,18 @@ c
 c       get edge indexes for pieces and piece indexes for edges
 c       first build a map in the array of all pieces present
 c       
+      allocate(mapAllPc(nxpieces, nypieces, nsect), stat = ierr)
+      if (ierr .ne. 0) call exitError('ALLOCATING ARRAY TO MAP PIECES')
       do iz=1,nsect
         do iy=1,nypieces
           do ix=1,nxpieces
-            irray(ix,iy,iz)=0
+            mapAllPc(ix,iy,iz)=0
           enddo
         enddo
       enddo
 c       
       do ipc=1,npclist
-        irray(1+(ixpclist(ipc)-minxpiece)/(nxin-nxoverlap),
+        mapAllPc(1+(ixpclist(ipc)-minxpiece)/(nxin-nxoverlap),
      &      1+(iypclist(ipc)-minypiece)/(nyin-nyoverlap),
      &      izpclist(ipc)+1-minzpc)=ipc
         do i = 1, 2
@@ -674,11 +686,11 @@ c
           do iy=1,nalong
             do ix=2,ncross
               if(ixy.eq.1)then
-                ipclo=irray(ix-1,iy,iz)
-                ipchi=irray(ix,iy,iz)
+                ipclo=mapAllPc(ix-1,iy,iz)
+                ipchi=mapAllPc(ix,iy,iz)
               else
-                ipclo=irray(iy,ix-1,iz)
-                ipchi=irray(iy,ix,iz)
+                ipclo=mapAllPc(iy,ix-1,iz)
+                ipchi=mapAllPc(iy,ix,iz)
               endif
               if(ipclo.ne.0 .and. ipchi.ne.0)then 
                 ned=ned+1
@@ -695,6 +707,7 @@ c
         nalong=nxpieces
         ncross=nypieces
       enddo
+      deallocate(mapAllPc)
 c       
 c       get edge file name root, parameters if doing a new one
 c       
@@ -1608,13 +1621,13 @@ c           DNM 8/18/02: pass array to find_best_shifts, but do not pass
 c           hinv since it is in common
 c           
           if(.not.fromedge)then
-            call find_best_shifts(array8,nxpieces * nypieces, edgedispx,
+            call find_best_shifts(array,nxpieces * nypieces, edgedispx,
      &          edgedispy,-1,izsect,h, nbestedge,beforemean,beforemax,
      &          aftermean(1),aftermax(1))
             indbest=1
           endif
           if(.not.xclegacy)then
-            call find_best_shifts(array8,nxpieces * nypieces, dxgridmean,
+            call find_best_shifts(array,nxpieces * nypieces, dxgridmean,
      &          dygridmean,1,izsect,h, nbestedge,beforemean,beforemax,
      &          aftermean(2),aftermax(2))
             indbest=2
@@ -1625,7 +1638,7 @@ c           index to 1
 c           
           if(.not.(xclegacy.or.fromedge).and.(aftermean(1).lt.aftermean(2)))
      &        then
-            call find_best_shifts(array8,nxpieces * nypieces, edgedispx,
+            call find_best_shifts(array,nxpieces * nypieces, edgedispx,
      &          edgedispy,-1,izsect,h, nbestedge,beforemean,beforemax,
      &          aftermean(1),aftermax(1))
             indbest=1
@@ -2786,6 +2799,9 @@ c
 
 c       
 c       $Log$
+c       Revision 3.40  2010/04/07 04:52:18  mast
+c       Increase maximum allowed frame size
+c
 c       Revision 3.39  2009/12/06 06:21:16  mast
 c       Fixed problem when shiftpieces used without ifsloppy
 c
