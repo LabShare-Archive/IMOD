@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+4/19/10: Fixed crash when messages received by 3dmod during loading in Windows
+by keeping load status updates off of clipboard.
+
 4/13/10: Fixed imodinfo "volume inside mesh" for central point not inside the
 mesh.
 
