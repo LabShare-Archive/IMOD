@@ -807,7 +807,8 @@ void imod_imgcnt(const char *string)
     // Callers in 3dmod should be putting their \r on the end, but the call
     // from mrcfiles has it on the front, so we need to add it to end
     // in this context
-    wprint("%s%s", string, string[0] == '\r' ? "\r" : "");
+    wprint("%s%s", string, (string[0] == '\r' || string[0] == '\n') ?
+           "\r" : "");
     imod_info_input();
     timer.restart();
     started++;
@@ -831,6 +832,9 @@ void imod_imgcnt(const char *string)
 /*
 
 $Log$
+Revision 4.38  2010/04/01 03:08:30  mast
+Put out at leat 3 status strings to make sure one with \r goes out
+
 Revision 4.37  2010/04/01 02:26:20  mast
 Update contour copy dialog, adjust status strings for new wprint
 
