@@ -2737,6 +2737,9 @@ void BeadFixer::setFontDependentWidths()
                                 "Open Tiltalign Log File");
   if (width < width2)
     width = width2;
+  width2 = topBox->sizeHint().width() - 4;
+  if (width < width2)
+    width = width2;
   topBox->setFixedWidth(width);
   diameterHbox->setFixedWidth(width);
   cenLightHbox->setFixedWidth(width);
@@ -2759,6 +2762,7 @@ void BeadFixer::setFontDependentWidths()
   backContBut->setFixedWidth(width);
   delContBut->setFixedWidth(width);
   moveAllBut->setFixedWidth(width);
+  moveAllAllBut->setFixedWidth(width);
   clearListBut->setFixedWidth(width);
   reattachBut->setFixedWidth(width);
   ignoreSkipBut->setFixedWidth(width);
@@ -2790,6 +2794,9 @@ void BeadFixer::keyReleaseEvent ( QKeyEvent * e )
 /*
 
 $Log$
+Revision 1.67  2010/04/01 02:41:47  mast
+Called function to test for closing keys, or warning cleanup
+
 Revision 1.66  2010/03/19 19:27:51  mast
 Reread log file on open message if already open, disabled move by res button
 after reading log, disabled many new buttons and some old when running align
