@@ -25,7 +25,7 @@ set singleFiles = (solvezero.xf solve.xf refine.xf warp.xf inverse.xf \
 patch.out patch_vector.mod patch_vector_ccc.mod patch_region.mod lslrt.out \
 uname.out processchunks.out processchunksa.out processchunksb.out \
 processchunks.csh processchunksa.csh processchunksb.csh transferfid.coord \
-combine.out volcombine.csh)
+combine.out volcombine.csh tomopitcha.mod tomopitchb.mod tomopitch.mod)
 
 echo "$pn : enter $pn -h for usage"
 while ($#argv > 0)
@@ -254,6 +254,9 @@ Options:
 EOF
 
 #  $Log$
+#  Revision 3.24  2010/03/31 01:55:33  mast
+#  Added a few files
+#
 #  Revision 3.23  2010/02/24 23:59:40  mast
 #  quote $HOME in case it has spaces
 #
