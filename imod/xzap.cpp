@@ -3773,8 +3773,7 @@ static void montageSnapshot(ZapStruct *zap, int snaptype)
           (((barpos == 2 || barpos == 3) && iy == factor - 1) ||
            ((barpos == 0 || barpos == 1) && !iy))) {
         barReal->draw = barSaved.draw;
-        scaleBarTestAdjust((zap->winx + xCopyDelta) / 2, 
-                           (zap->winy + yCopyDelta) / 2, zap->zoom);
+        scaleBarTestAdjust(zap->winx - 4, zap->winy - 4, zap->zoom);
       }
       
       zap->xtrans = -(xTransStart + ix * xTransDelta);
@@ -3791,16 +3790,16 @@ static void montageSnapshot(ZapStruct *zap, int snaptype)
                    framePix);
       glFlush();
 
-      // set up copy parameters for full copy, and adjust to copy from middle
-      // of overlap after the first piece
+      // set up copy parameters for full copy, and adjust to skip the overlap
+      // after the first piece unless doing panel with bar
       xCopy = zap->winx;
       yCopy = zap->winy;
       toSkip = xFullSize - zap->winx;
       toXoff = ix * xCopyDelta;
       toYoff = iy * yCopyDelta;
       fromSkip = fromXoff = fromYoff = 0;
-      if (ix) {
-        overhalf = (zap->winx - xCopyDelta) / 2;
+      if (ix && !(barReal->draw && ix == factor - 1)) {
+        overhalf = zap->winx - xCopyDelta - 2;
         if (overhalf > 2 && overhalf < xCopy) {
           fromSkip = fromXoff = overhalf;
           toXoff += overhalf;
@@ -3808,8 +3807,8 @@ static void montageSnapshot(ZapStruct *zap, int snaptype)
           toSkip += overhalf;
         }
       }
-      if (iy) {
-        overhalf = (zap->winy - yCopyDelta) / 2;
+      if (iy && !(barReal->draw && iy == factor - 1)) {
+        overhalf = zap->winy - yCopyDelta - 2;
         if (overhalf > 2 && overhalf < yCopy) {
           fromYoff = overhalf;
           toYoff += overhalf;
@@ -4753,6 +4752,10 @@ static void setDrawCurrentOnly(ZapStruct *zap, int value)
 /*
 
 $Log$
+Revision 4.153  2010/04/21 05:04:18  mast
+Copy montage snapshot pieces from middle of overlap to minimize scalebar
+ truncation; improve scaling with whole 1:1 montage
+
 Revision 4.152  2010/04/01 02:41:48  mast
 Called function to test for closing keys, or warning cleanup
 
