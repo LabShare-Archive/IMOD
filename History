@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+4/21/10: Fixed scale bar truncation or loss in montage snapshots, particularly
+with 1:1 zoom whole image shots.
+
 4/19/10: Fixed crash when messages received by 3dmod during loading in Windows
 by keeping load status updates off of clipboard.
 
