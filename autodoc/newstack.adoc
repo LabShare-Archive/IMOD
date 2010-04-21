@@ -45,6 +45,18 @@ next line, next filename on next line, etc.  If this
 option is used, no output filenames may be specified with the -output option
 or as the last file on the command line.
 
+[Field = SplitStartingNumber]
+short = split
+type = I
+usage = Starting number for series of numbered output files, one section each
+tooltip = 
+manpage = Starting number for a series of numbered output files, where
+one section will be placed in each file.  There must beonly one output file
+name entered, and it will be taken as the root name for the output files.  A
+dot and the number will be appended to the root name for each file.  The
+number of digits used for the number will be the same for all files so that
+they will list in order.
+
 [Field = SectionsToRead]
 short = secs
 type = LIM
@@ -111,11 +123,11 @@ The default size is the same as that of the first input file.
 [Field = ModeToOutput]
 short = mode
 type = I
-usage = Storage mode of output file; 0 for byte, 1 for integer, 2 for real
+usage = Storage mode of output file; 0 for byte, 1 or 6 for integer, 2 for real
 tooltip = 
 manpage = The storage mode of the output file; 0 for byte, 1 for 16-bit 
-integer, or 2 for 32-bit floating point.  The default is the mode of the first
-input file.
+signed integer, 6 for 16-bit unsigned integer, or 2 for 32-bit floating point.
+The default is the mode of the first input file.
 
 [Field = OffsetsInXandY]
 short = offset
