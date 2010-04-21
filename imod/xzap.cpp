@@ -3678,11 +3678,13 @@ static void montageSnapshot(ZapStruct *zap, int snaptype)
   int ix, iy, xFullSize, yFullSize, xTransStart, yTransStart, xTransDelta;
   int yTransDelta, xCopyDelta, yCopyDelta, xTransSave, yTransSave, barpos;
   int showSlice, limits[4];
+  int fromSkip,fromXoff, fromYoff, toSkip,toXoff, toYoff, overhalf,xCopy,yCopy;
   unsigned char *framePix, *fullPix, **linePtrs;
   double zoomSave;
   QString fname, sname;
   static int fileno = 0;
   int factor = imcGetMontageFactor();
+  float scalingFactor = factor;
   ScaleBar *barReal = scaleBarGetParams();
   ScaleBar barSaved;
 
@@ -3707,6 +3709,7 @@ static void montageSnapshot(ZapStruct *zap, int snaptype)
       return;
     }
     zap->zoom = 1. / factor;
+    scalingFactor = 1. / zoomSave;
     zapDraw(zap);
   }
 
@@ -3744,17 +3747,17 @@ static void montageSnapshot(ZapStruct *zap, int snaptype)
 
   // Save and modify scale bar directives
   barSaved = *barReal;
-  barReal->minLength = B3DNINT(factor * barReal->minLength);
-  barReal->thickness = B3DNINT(factor * barReal->thickness);
-  barReal->indentX = B3DNINT(factor * barReal->indentX);
-  barReal->indentY = B3DNINT(factor * barReal->indentY);
+  barReal->minLength = B3DNINT(scalingFactor * barReal->minLength);
+  barReal->thickness = B3DNINT(scalingFactor * barReal->thickness);
+  barReal->indentX = B3DNINT(scalingFactor * barReal->indentX);
+  barReal->indentY = B3DNINT(scalingFactor * barReal->indentY);
   barpos = barReal->position;
 
   // Set up scaling
   if (imcGetScaleSizes()) {
     scaleSizes = imcGetSizeScaling();
     if (scaleSizes == 1)
-      scaleSizes = B3DNINT(factor * B3DMIN(1., zap->zoom));
+      scaleSizes = B3DNINT(scalingFactor * B3DMIN(1., zap->zoom));
   }
 
   // Loop on frames, getting pixels and copying them
@@ -3770,7 +3773,8 @@ static void montageSnapshot(ZapStruct *zap, int snaptype)
           (((barpos == 2 || barpos == 3) && iy == factor - 1) ||
            ((barpos == 0 || barpos == 1) && !iy))) {
         barReal->draw = barSaved.draw;
-        scaleBarTestAdjust(zap->winx, zap->winy, zap->zoom);
+        scaleBarTestAdjust((zap->winx + xCopyDelta) / 2, 
+                           (zap->winy + yCopyDelta) / 2, zap->zoom);
       }
       
       zap->xtrans = -(xTransStart + ix * xTransDelta);
@@ -3786,9 +3790,35 @@ static void montageSnapshot(ZapStruct *zap, int snaptype)
       glReadPixels(0, 0, zap->winx, zap->winy, GL_RGBA, GL_UNSIGNED_BYTE, 
                    framePix);
       glFlush();
-      memreccpy(fullPix, framePix, zap->winx, zap->winy, 4,
-                xFullSize - zap->winx, ix * xCopyDelta, iy * yCopyDelta,
-                0, 0, 0);
+
+      // set up copy parameters for full copy, and adjust to copy from middle
+      // of overlap after the first piece
+      xCopy = zap->winx;
+      yCopy = zap->winy;
+      toSkip = xFullSize - zap->winx;
+      toXoff = ix * xCopyDelta;
+      toYoff = iy * yCopyDelta;
+      fromSkip = fromXoff = fromYoff = 0;
+      if (ix) {
+        overhalf = (zap->winx - xCopyDelta) / 2;
+        if (overhalf > 2 && overhalf < xCopy) {
+          fromSkip = fromXoff = overhalf;
+          toXoff += overhalf;
+          xCopy -= overhalf;
+          toSkip += overhalf;
+        }
+      }
+      if (iy) {
+        overhalf = (zap->winy - yCopyDelta) / 2;
+        if (overhalf > 2 && overhalf < yCopy) {
+          fromYoff = overhalf;
+          toYoff += overhalf;
+          yCopy -= overhalf;
+        }
+      }
+
+      memreccpy(fullPix, framePix, xCopy, yCopy, 4,
+                toSkip, toXoff, toYoff, fromSkip, fromXoff, fromYoff);
       if (App->doublebuffer) 
         zap->gfx->swapBuffers();
     }
@@ -4723,6 +4753,9 @@ static void setDrawCurrentOnly(ZapStruct *zap, int value)
 /*
 
 $Log$
+Revision 4.152  2010/04/01 02:41:48  mast
+Called function to test for closing keys, or warning cleanup
+
 Revision 4.151  2010/02/22 21:34:09  mast
 Stop drawing points below threshold
 
