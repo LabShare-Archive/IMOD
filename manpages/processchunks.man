@@ -152,9 +152,13 @@ However, if you set up the IMOD environment in your own startup files instead
 of in the default way, you need to make sure that the environment is defined
 when running this bash shell.  Specifically, you need to set the IMOD_DIR
 environment variable then source $IMOD_DIR/IMOD-....sh in your ~/.bash_profile
-and not in your ~/.bashrc, since the latter is not run by the non-interactive
-shell.  Similarly, if you are running programs outside IMOD whose environment
-is set up in your own startup files, you need to do that in .bash_profile.
+and not just in your ~/.bashrc, since the latter is not run by the
+non-interactive shell.  Similarly, if you are running programs outside IMOD
+whose environment is set up in your own startup files, you need to do that in
+.bash_profile. However, we have found that in other contexts it does not work
+to set environment only in ~/.bash_profile.  Thus, the recommended approach is
+to set the environment in ~/.bashrc and source that file from
+~/.bash_profile.
 
 To diagnose problems, there are a few tests that you can run by issuing the
 same kind of command that Processchunks uses to run jobs, of the form:
