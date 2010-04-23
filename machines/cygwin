@@ -34,7 +34,7 @@ if ($compiler == intel) then
     set moc = `cygpath $QTDIR/bin/moc`
     set inc_dir = `cygpath --mixed $inc_dir`
     set rgbprogs = 
-    set fcmpldFlags = "/C90 /4Yportlib"
+    set fcmpNoportFlags = "/C90"
     set fcomp = ifl
     set fcompFlags = "/4L132 /Qvec-report:0"
     set ccompFlags = "/Qvec-report:0"
@@ -59,15 +59,16 @@ if ($compiler == intel) then
     # There was a temporary need to remove delayload for 9.0, removed 4/6/06
     if ($iclversion > 7) then
         set fcomp = ifort
-        set fcmpldFlags = "/4Yportlib /F66000000"
+        set fcmpNoportFlags = "/F66000000"
         if ("$iclbuild" != "") then
             @ build = $iclbuild
-            if ($build >= 20060816) set fcmpldFlags = "/4Yportlib"
+            if ($build >= 20060816) set fcmpNoportFlags = ""
         endif
         echo "      parameter (nbytes_recl_item=4)" >! $endian_dir/recl_bytes.inc
         set fcompFlags = "/assume:bscc /4L132 /Qvec-report:0"
         
     endif
+    set fcmpldFlags = "$fcmpNoportFlags /4Yportlib"
     set ldfflags = "$fcmpldFlags "'$(LDFLAGS)'
     if ($openmp == true) set openmpFlags = '/Qopenmp'
 
@@ -257,6 +258,7 @@ endif
 set flags = "$flags /MD"
 set cflags = "$flags $ccompFlags $optimization $defines $include_flags $c_includes"
 set fflags = "$flags $fcompFlags $fcmpldFlags $optimization $include_flags"
+if ($compiler == intel) set libtrackFlags = "$flags $fcompFlags $fcmpNoportFlags $optimization $include_flags"
 
 cat << EOF >> $configure
 CFLAGS  = $cflags
