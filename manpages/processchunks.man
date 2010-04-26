@@ -134,15 +134,15 @@ To set up ssh keys for access without passwords, simply run
    ssh-keygen -t dsa
 .br
 and type Enter for all of the queries.  Then enter:
-   cp $HOME/.ssh/id_dsa.pub $HOME/.ssh/authorized_keys2
+   cp $HOME/.ssh/id_dsa.pub $HOME/.ssh/authorized_keys
 .br
-If necessary, distribute this authorized_keys2 file to the .ssh directories
+If necessary, distribute this authorized_keys file to the .ssh directories
 on other machines that do not have the same home directory.  The three 
 different kinds of platforms (Linux/Unix, Mac OSX, Windows) may require
 separately generated keys.  If this seems to be the case, run ssh-keygen once
 on each type of machine then
-combine the .ssh/id_dsa.pub files from each into one authorized_keys2 file.
-Distribute this combined authorized_keys2 file to the .ssh directories.
+combine the .ssh/id_dsa.pub files from each into one authorized_keys file.
+Distribute this combined authorized_keys file to the .ssh directories.
 
 Processchunks runs jobs via ssh by starting a non-interactive bash login shell
 on the remote computer.  Any programs to be run must be on your path when
