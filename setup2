@@ -97,6 +97,7 @@ set lapacklibs      = '-llapack -lblas'
 set lapack_flibs    = ''
 set lapacklink     = '$(CC)'
 set ldfflags        = '$(LDFLAGS)'
+set libtrackFlags   = '$(LIBFFLAGS)'
 set dllext          = '$(LIBEXT)'
 set moc             = '$(QTDIR)/bin/moc'
 set rgbprogs        = 
@@ -855,6 +856,9 @@ endif
 echo "QTPLUG_SRCDIR1 = imageformats" >> $configure
 echo "RGBPROGS = $rgbprogs" >> $configure
 echo "LDFFLAGS = $ldfflags" >> $configure
+cat <<EOF  >> $configure
+LIBTRACKFLAGS = $libtrackFlags
+EOF
 echo "MAKESTATICLIB = $makestaticlib" >> $configure
 echo "STATICRANLIB = $staticranlib" >> $configure
 echo "STATICEXT = $staticext" >> $configure
@@ -1010,6 +1014,12 @@ exit
 
 #
 #  $Log$
+#  Revision 1.62  2010/04/23 01:34:53  mast
+#  Add separate variable for building libtrack
+#
+#  Revision 1.61  2010/03/31 03:31:22  mast
+#  Exclude vec-reports
+#
 #  Revision 1.60  2010/03/26 22:54:14  mast
 #  Define uac_wrap variable so wrappers only made on request
 #  since cygwin 1.7 will not copy script to same dir as .exe
