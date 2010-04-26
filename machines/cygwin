@@ -34,7 +34,7 @@ if ($compiler == intel) then
     set moc = `cygpath $QTDIR/bin/moc`
     set inc_dir = `cygpath --mixed $inc_dir`
     set rgbprogs = 
-    set fcmpldFlags = "/C90 /4Yportlib"
+    set fcmpNoportFlags = "/C90"
     set fcomp = ifl
     set fcompFlags = "/4L132 /Qvec-report:0"
     set ccompFlags = "/Qvec-report:0"
@@ -59,15 +59,16 @@ if ($compiler == intel) then
     # There was a temporary need to remove delayload for 9.0, removed 4/6/06
     if ($iclversion > 7) then
         set fcomp = ifort
-        set fcmpldFlags = "/4Yportlib /F66000000"
+        set fcmpNoportFlags = "/F66000000"
         if ("$iclbuild" != "") then
             @ build = $iclbuild
-            if ($build >= 20060816) set fcmpldFlags = "/4Yportlib"
+            if ($build >= 20060816) set fcmpNoportFlags = ""
         endif
         echo "      parameter (nbytes_recl_item=4)" >! $endian_dir/recl_bytes.inc
         set fcompFlags = "/assume:bscc /4L132 /Qvec-report:0"
         
     endif
+    set fcmpldFlags = "$fcmpNoportFlags /4Yportlib"
     set ldfflags = "$fcmpldFlags "'$(LDFLAGS)'
     if ($openmp == true) set openmpFlags = '/Qopenmp'
 
@@ -119,7 +120,7 @@ else
     # tell the C routines being called by Fortran that they need two __
     #
     echo '#define G77__HACK' >> $hconfigure
-    echo '#define DLLEXPORT_' >> $hconfigure
+    echo '#define DLLEXPORT_H' >> $hconfigure
     echo '#define DLL_IM_EX' >> $hconfigure
     set openmp = false
     unsetenv CUDA_DIR
@@ -257,6 +258,7 @@ endif
 set flags = "$flags /MD"
 set cflags = "$flags $ccompFlags $optimization $defines $include_flags $c_includes"
 set fflags = "$flags $fcompFlags $fcmpldFlags $optimization $include_flags"
+if ($compiler == intel) set libtrackFlags = "$flags $fcompFlags $fcmpNoportFlags $optimization $include_flags"
 
 cat << EOF >> $configure
 CFLAGS  = $cflags
@@ -399,7 +401,7 @@ set newer = `\find $imod_dir -name 3dmod.dsp -newer $imod_dir/imod.pro \
  -exec echo newer \;`
 if ($newer != newer) then
     (cd $imod_dir ; qmake -t vcapp -o 3dmod.dsp imod.pro)
-   echo "MADE NEW 3dmod PROJECT FILE - RESET WARNING LEVEL TO 1 IN C++/General"
+   echo "MADE NEW 3dmod PROJECT FILE"
    echo "exclude linegui.cpp, moc_linegui.cpp, libtrack.lib, define TRACK_PLUGIN"
 endif
 
@@ -514,11 +516,11 @@ echo VCEXEDIR = $vcexedir >> $configure
 
 # Workaround for vista security silliness when not doing manifests
 #
-if ($?MSVCREDIST) then
-    echo "GENERATED_SCRIPTS = 3dmodbg 3dmodv" >> $configure
-else if ($uac_wrap == true) then
+if ($uac_wrap == true) then
     echo "GENERATED_SCRIPTS = 3dmodbg 3dmodv patch2imod imod2patch" >> $configure
     echo "UAC_WRAPPERS = patch2imod vatch2imod imod2patch imod2vatch" >> $configure
+else
+    echo "GENERATED_SCRIPTS = 3dmodbg 3dmodv" >> $configure
 endif
 
 # Set up to copy qt lib to bin dir for a distribution
