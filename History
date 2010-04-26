@@ -1,5 +1,7 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+4/26/10: Allowed spaces in log filename in vmstocsh and removed length limit.
+
 4/21/10: Fixed scale bar truncation or loss in montage snapshots, particularly
 with 1:1 zoom whole image shots (In 4.1).
 
