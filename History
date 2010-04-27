@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+4/17/10: Stopped Ctfplotter message about inconsistencies when there is no
+existing defocus file (In 4.1).
+
 4/26/10: Allowed spaces in log filename in vmstocsh and removed length limit.
 
 4/21/10: Fixed scale bar truncation or loss in montage snapshots, particularly
