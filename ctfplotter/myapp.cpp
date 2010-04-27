@@ -283,7 +283,8 @@ void MyApp::setSlice(const char *stackFile, char *angleFile)
 
     // Now that we finally know z size, we can check the starting and ending
     // slices and fix them if they are off by 1 or otherwise inconsistent
-    if (checkAndFixDefocusList(mSaved, mTiltAngles, mNzz)) {
+    if (ilistSize(mSaved) && 
+        checkAndFixDefocusList(mSaved, mTiltAngles, mNzz)) {
       QMessageBox::warning
         (0, "Warning: Inconsistent view numbers", 
          "The view numbers in the existing defocus file were not all\n"
@@ -882,6 +883,10 @@ void MyApp::writeDefocusFile()
 /*
 
 $Log$
+Revision 1.16  2010/04/02 00:19:29  mast
+Moved some functionality into utility functions, which can adjust for
+view numbers being off by 1
+
 Revision 1.15  2010/03/14 19:34:10  mast
 Changes for reading in tilt angles into array, keeping found values in
 a table and svaing from the table
