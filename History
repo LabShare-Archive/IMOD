@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+4/17/10: Stopped Ctfplotter message about inconsistencies when there is no
+existing defocus file.
+
 4/21/10: Fixed scale bar truncation or loss in montage snapshots, particularly
 with 1:1 zoom whole image shots.
 
