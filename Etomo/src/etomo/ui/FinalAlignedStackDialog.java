@@ -68,6 +68,9 @@ import etomo.util.DatasetFiles;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.28  2010/03/27 05:02:56  sueh
+ * <p> Reformatted
+ * <p>
  * <p> Revision 1.27  2010/03/19 02:39:45  sueh
  * <p> bug# 1325 Added setParameters(ConstTiltalignParam,boolean).
  * <p>
@@ -1068,8 +1071,8 @@ public final class FinalAlignedStackDialog extends ProcessDialog implements
       if (prevTab == Tab.CTF_CORRECTION
           && state.isUseCtfCorrectionWarning(axisID)) {
         //The use button wasn't pressed and the user is moving on to the next
-        //dialog.
-        UIHarness.INSTANCE.openMessageDialog(applicationManager,
+        //dialog.  Don't put this message in the log.
+        UIHarness.INSTANCE.openMessageDialog(null,
             "To use the CTF correction go back to the " + CTF_TAB_LABEL
                 + " tab and press the \"" + USE_CTF_CORRECTION_LABEL
                 + "\" button.", "Entry Warning", axisID);
@@ -1079,8 +1082,8 @@ public final class FinalAlignedStackDialog extends ProcessDialog implements
       else if (prevTab == Tab.CCD_ERASER
           && state.isUseErasedStackWarning(axisID)) {
         //The use button wasn't pressed and the user is moving on to the next
-        //dialog.
-        UIHarness.INSTANCE.openMessageDialog(applicationManager,
+        //dialog.  Don't put this message in the log.
+        UIHarness.INSTANCE.openMessageDialog(null,
             "To use the stack with the erased beads go back to the "
                 + EraseGoldPanel.ERASE_GOLD_TAB_LABEL + " tab and press the \""
                 + CcdEraserBeadsPanel.USE_ERASED_STACK_LABEL + "\" button.",
@@ -1091,8 +1094,8 @@ public final class FinalAlignedStackDialog extends ProcessDialog implements
       else if (prevTab == Tab.MTF_FILTER
           && state.isUseFilteredStackWarning(axisID)) {
         //The use button wasn't pressed and the user is moving on to the next
-        //dialog.
-        UIHarness.INSTANCE.openMessageDialog(applicationManager,
+        //dialog.  Don't put this message in the log.
+        UIHarness.INSTANCE.openMessageDialog(null,
             "To use the MTF filtered stack go back to the "
                 + MTF_FILTER_TAB_LABEL + " tab and press the \""
                 + USE_FILTERED_STACK_LABEL + "\" button.", "Entry Warning",
