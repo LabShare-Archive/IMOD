@@ -38,6 +38,7 @@ import etomo.type.ConstJoinMetaData;
 import etomo.type.DialogType;
 import etomo.type.EtomoAutodoc;
 import etomo.type.EtomoNumber;
+import etomo.type.FileType;
 import etomo.type.JoinMetaData;
 import etomo.type.JoinScreenState;
 import etomo.type.JoinState;
@@ -59,6 +60,9 @@ import etomo.util.Utilities;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 1.72  2010/02/17 05:03:12  sueh
+ * <p> bug# 1301 Using manager instead of manager key for popping up messages.
+ * <p>
  * <p> Revision 1.71  2009/11/20 17:26:41  sueh
  * <p> bug# 1282 Naming all the file choosers by constructing a FileChooser
  * <p> instance instead of a JFileChooser instance.  Added isMenuSaveEnabled to
@@ -1922,8 +1926,15 @@ public final class JoinDialog implements ContextMenu, Run3dmodButtonContainer {
    */
   private void startRefine() {
     boolean useTrial = cbRefineWithTrial.isSelected();
-    String joinFileName = DatasetFiles.getJoinFileName(useTrial, manager);
+    FileType joinFileType;
+    if (useTrial) {
+      joinFileType = FileType.TRIAL_JOIN;
+    }
+    else {
+      joinFileType = FileType.JOIN;
+    }
     String buttonName = useTrial ? TRIAL_JOIN_TEXT : FINISH_JOIN_TEXT;
+    String joinFileName = joinFileType.getFileName(manager, axisID);
     //make sure the file to be moved exists
     if (!DatasetFiles.getJoinFile(useTrial, manager).exists()) {
       UIHarness.INSTANCE.openMessageDialog(manager, joinFileName
@@ -1972,19 +1983,26 @@ public final class JoinDialog implements ContextMenu, Run3dmodButtonContainer {
     else {
       imodKey = ImodManager.JOIN_KEY;
     }
-    if (manager.isImodOpen(imodKey)) {
-      UIHarness.INSTANCE.openMessageDialog(manager, "Please close the "
+    if (!manager.closeImod(imodKey, axisID, joinFileName + " file in 3dmod",
+        "This file will be moved to "
+            + DatasetFiles.getModeledJoinFileName(manager), false)) {
+      /*UIHarness.INSTANCE.openMessageDialog(manager, "Please close the "
           + joinFileName + " file in 3dmod.  This file will be moved to "
-          + DatasetFiles.getModeledJoinFileName(manager) + '.', "Close 3dmod");
+          + DatasetFiles.getModeledJoinFileName(manager) + '.', "Close 3dmod");*/
       return;
     }
     try {
       //move the join file (or trial join) to the _modeled.join file
-      LogFile.getInstance(manager.getPropertyUserDir(), joinFileName).move(
-          LogFile.getInstance(manager.getPropertyUserDir(), DatasetFiles
-              .getModeledJoinFileName(manager)));
+      System.out.println("backup "+FileType.MODELED_JOIN);
+      manager.backupImageFile(FileType.MODELED_JOIN, axisID);
+      System.out.println("rename "+joinFileType+","+FileType.MODELED_JOIN);
+      Utilities.renameFile(joinFileType.getFile(manager, axisID), FileType.MODELED_JOIN
+          .getFile(manager, axisID));
+      // LogFile.getInstance(manager.getPropertyUserDir(), joinFileName).move(
+      //    LogFile.getInstance(manager.getPropertyUserDir(), DatasetFiles
+      // .getModeledJoinFileName(manager)));
     }
-    catch (LogFile.LockException e) {
+    catch (IOException e) {
       e.printStackTrace();
       UIHarness.INSTANCE.openMessageDialog(manager,
           "Unable to move join file.\n" + e.getMessage(), "Failed File Move");
