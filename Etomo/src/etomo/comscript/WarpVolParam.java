@@ -6,7 +6,9 @@ import java.util.List;
 
 import etomo.BaseManager;
 import etomo.type.AxisID;
+import etomo.type.FileType;
 import etomo.type.ImageFileType;
+import etomo.type.ProcessName;
 import etomo.type.ScriptParameter;
 import etomo.type.StringParameter;
 import etomo.util.DatasetFiles;
@@ -27,6 +29,9 @@ import etomo.util.DatasetFiles;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.3  2010/02/17 04:47:14  sueh
+ * <p> bug# 1301 Added outputFile
+ * <p>
  * <p> Revision 1.2  2009/09/01 03:17:46  sueh
  * <p> bug# 1222
  * <p>
@@ -55,10 +60,12 @@ public final class WarpVolParam implements ConstWarpVolParam, CommandParam {
       INTERPOLATION_ORDER_OPTION);//optional
   private final BaseManager manager;
   private final AxisID axisID;
+  private final CommandMode mode;
 
-  public WarpVolParam(BaseManager manager, AxisID axisID) {
+  WarpVolParam(BaseManager manager, AxisID axisID, CommandMode mode) {
     this.manager = manager;
     this.axisID = axisID;
+    this.mode = mode;
     outputSizeXYZ.setIntegerType(true);
     reset();
   }
@@ -157,5 +164,87 @@ public final class WarpVolParam implements ConstWarpVolParam, CommandParam {
     else {
       interpolationOrder.reset();
     }
+  }
+
+  public FileType getOutputImageFileType() {
+    if (mode == Mode.POST_PROCESSING) {
+      return FileType.FLATTEN_OUTPUT;
+    }
+    if (mode == Mode.TOOLS) {
+      return FileType.FLATTEN_TOOL_OUTPUT;
+    }
+    return null;
+  }
+
+  public FileType getOutputImageFileType2() {
+    return null;
+  }
+
+  public AxisID getAxisID() {
+    return axisID;
+  }
+
+  private FileType getComscriptFileType() {
+    if (mode == Mode.POST_PROCESSING) {
+      return FileType.FLATTEN_COMSCRIPT;
+    }
+    if (mode == Mode.TOOLS) {
+      return FileType.FLATTEN_TOOL_COMSCRIPT;
+    }
+    return null;
+  }
+
+  public String getCommand() {
+    FileType comscriptFileType = getComscriptFileType();
+    if (comscriptFileType != null) {
+      return comscriptFileType.getFileName(manager, axisID);
+    }
+    return null;
+  }
+
+  public String[] getCommandArray() {
+    String[] array = { getCommandLine() };
+    return array;
+  }
+
+  public File getCommandInputFile() {
+    return null;
+  }
+
+  public String getCommandLine() {
+    return getCommand();
+  }
+
+  public CommandMode getCommandMode() {
+    return null;
+  }
+
+  public String getCommandName() {
+    return ProcessName.FLATTEN.toString();
+  }
+
+  public File getCommandOutputFile() {
+    return null;
+  }
+
+  public ProcessName getProcessName() {
+    return ProcessName.FLATTEN;
+  }
+
+  public CommandDetails getSubcommandDetails() {
+    return null;
+  }
+
+  public ProcessName getSubcommandProcessName() {
+    return null;
+  }
+
+  public boolean isMessageReporter() {
+    return false;
+  }
+
+  static final class Mode implements CommandMode {
+    static final Mode POST_PROCESSING = new Mode();
+    static final Mode TOOLS = new Mode();
   }
 }
