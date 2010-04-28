@@ -17,6 +17,9 @@ import etomo.type.AxisID;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.24  2009/09/01 03:17:46  sueh
+ * <p> bug# 1222
+ * <p>
  * <p> Revision 3.23  2008/12/15 22:58:47  sueh
  * <p> bug# 1161 Made axisID package private so that NewstParam could use it.
  * <p>
@@ -226,12 +229,6 @@ public  interface ConstNewstParam extends CommandDetails {
    * @return Returns the inputFile.
    */
   public String getOutputFile();
-
-  /**
-   * Create a defensive copy of the internal object inputFile
-   * @return
-   */
-  public Vector getOutputFiles();
 
   /**
    * @return Returns the parameterFile.
