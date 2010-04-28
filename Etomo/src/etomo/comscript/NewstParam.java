@@ -12,10 +12,12 @@ import java.util.Vector;
 import etomo.BaseManager;
 import etomo.storage.LogFile;
 import etomo.type.AxisID;
+import etomo.type.AxisType;
 import etomo.type.ConstEtomoNumber;
 import etomo.type.ConstIntKeyList;
 import etomo.type.EtomoBoolean2;
 import etomo.type.EtomoNumber;
+import etomo.type.FileType;
 import etomo.type.IteratorElementList;
 import etomo.type.ProcessName;
 import etomo.util.MRCHeader;
@@ -33,6 +35,10 @@ import etomo.util.MRCHeader;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.27  2010/02/17 04:47:53  sueh
+ * <p> bug# 1301 Using the manager instead of the manager key do pop up
+ * <p> messages.
+ * <p>
  * <p> Revision 3.26  2010/01/11 23:49:01  sueh
  * <p> bug# 1299 Added isMessageReporter.
  * <p>
@@ -193,7 +199,12 @@ public final class NewstParam implements ConstNewstParam, CommandParam {
   private static final String COMMAND_FILE_EXTENSION = ".com";
 
   private final Vector inputFile = new Vector();
-  private final Vector outputFile = new Vector();
+  private String outputFile = null;
+  /**
+   * Set when outputFile is set from the dialog, otherwise set to null when
+   * outputFile changed.
+   */
+  private FileType outputFileType = null;
   private final Vector sectionsToRead = new Vector();
   private final FortranInputString sizeToOutputInXandY = new FortranInputString(
       2);
@@ -231,10 +242,12 @@ public final class NewstParam implements ConstNewstParam, CommandParam {
   private String parameterFile;
   private boolean fiducialessAlignment;
   private String magGradientFile;
-  private Mode commandMode;
-  private AxisID axisID;
+  private Mode mode;
+  private final AxisID axisID;
+  private final BaseManager manager;
 
-  public NewstParam(final AxisID axisID) {
+  public NewstParam(final BaseManager manager, final AxisID axisID) {
+    this.manager = manager;
     this.axisID = axisID;
     boolean[] allIntegerType = new boolean[] { true, true };
     sizeToOutputInXandY.setIntegerType(allIntegerType);
@@ -246,7 +259,8 @@ public final class NewstParam implements ConstNewstParam, CommandParam {
 
   private void reset() {
     inputFile.clear();
-    outputFile.clear();
+    outputFile = null;
+    outputFileType = null;
     fileOfInputs = "";
     fileOfOutputs = "";
     sectionsToRead.clear();
@@ -293,7 +307,8 @@ public final class NewstParam implements ConstNewstParam, CommandParam {
         }
         else if (cmdLineArgs[i].toLowerCase().startsWith("-ou")) {
           i++;
-          outputFile.add(cmdLineArgs[i]);
+          outputFile = cmdLineArgs[i];
+          outputFileType = null;
         }
         else if (cmdLineArgs[i].startsWith("-filei")
             || cmdLineArgs[i].startsWith("-FileOfI")) {
@@ -391,7 +406,8 @@ public final class NewstParam implements ConstNewstParam, CommandParam {
       // input and output filename arguments
       else {
         if (i == (cmdLineArgs.length - 1)) {
-          outputFile.add(cmdLineArgs[i]);
+          outputFile = cmdLineArgs[i];
+          outputFileType = null;
         }
         else {
           inputFile.add(cmdLineArgs[i]);
@@ -414,10 +430,8 @@ public final class NewstParam implements ConstNewstParam, CommandParam {
       cmdLineArgs.add("-input");
       cmdLineArgs.add((String) i.next());
     }
-    for (Iterator i = outputFile.iterator(); i.hasNext();) {
-      cmdLineArgs.add("-output");
-      cmdLineArgs.add((String) i.next());
-    }
+    cmdLineArgs.add("-output");
+    cmdLineArgs.add(outputFile);
     if (!fileOfInputs.equals("")) {
       cmdLineArgs.add("-fileinlist");
       cmdLineArgs.add(fileOfInputs);
@@ -638,11 +652,9 @@ public final class NewstParam implements ConstNewstParam, CommandParam {
   /**
    * @param outputFile The outputFile to set.
    */
-  public void setOutputFile(final Vector files) {
-    // Defensively copy argument, since the objects are strings we only need
-    // copy the collection of references
-    outputFile.clear();
-    outputFile.addAll(files);
+  public void setOutputFile(final FileType fileType) {
+    outputFile = fileType.getFileName(manager, axisID);
+    outputFileType = fileType;
   }
 
   /**
@@ -698,9 +710,8 @@ public final class NewstParam implements ConstNewstParam, CommandParam {
    * dialog, can be set for newst_3dfind.com.
    */
   public void setSizeToOutputInXandY(String userSize, final int binning,
-      final float imageRotation, final BaseManager manager)
-      throws FortranInputSyntaxException, etomo.util.InvalidParameterException,
-      IOException {
+      final float imageRotation) throws FortranInputSyntaxException,
+      etomo.util.InvalidParameterException, IOException {
     //make sure an empty string really causes sizeToOutputInXandY to be empty.
     if (userSize.equals("")) {
       userSize = "/";
@@ -753,8 +764,8 @@ public final class NewstParam implements ConstNewstParam, CommandParam {
     processName = input;
   }
 
-  public void setCommandMode(final Mode commandMode) {
-    this.commandMode = commandMode;
+  public void setCommandMode(final Mode input) {
+    mode = input;
   }
 
   public AxisID getAxisID() {
@@ -888,24 +899,34 @@ public final class NewstParam implements ConstNewstParam, CommandParam {
   }
 
   /**
-   * Backward compatibility with pre PIP structure, just return the first ouput
-   * file
-   * @return Returns the inputFile.
+   * @return Returns the outputFile.
    */
   public String getOutputFile() {
-    if (outputFile.size() == 0) {
+    if (outputFile == null) {
       return "";
     }
-    return (String) outputFile.get(0);
+    return outputFile;
   }
 
-  /**
-   * Create a defensive copy of the internal object inputFile
-   * @return
-   */
-  public Vector getOutputFiles() {
-    Vector copy = new Vector(outputFile);
-    return copy;
+  public FileType getOutputImageFileType() {
+    if (outputFileType != null) {
+      return outputFileType;
+    }
+    return FileType.getInstance(manager, axisID, true, true, outputFile);
+  }
+
+  public FileType getOutputImageFileType2() {
+    if (mode == Mode.WHOLE_TOMOGRAM_SAMPLE) {
+      //Handle tiltParam here so the user doesn't have to wait.
+      AxisType axisType = manager.getBaseMetaData().getAxisType();
+      if (axisType == AxisType.DUAL_AXIS) {
+        return FileType.DUAL_AXIS_TOMOGRAM;
+      }
+      else if (axisType == AxisType.SINGLE_AXIS) {
+        return FileType.SINGLE_AXIS_TOMOGRAM;
+      }
+    }
+    return null;
   }
 
   /**
@@ -1014,7 +1035,7 @@ public final class NewstParam implements ConstNewstParam, CommandParam {
   }
 
   public CommandMode getCommandMode() {
-    return commandMode;
+    return mode;
   }
 
   public boolean isMessageReporter() {
