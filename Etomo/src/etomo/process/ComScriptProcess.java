@@ -18,6 +18,10 @@
  * 
  * <p>
  * $Log$
+ * Revision 3.58  2010/03/12 04:02:09  sueh
+ * bug# 1325 Added a ComScriptProcess constructor with a Command
+ * parameter.
+ *
  * Revision 3.57  2010/02/17 04:49:20  sueh
  * bug# 1301 Using the manager instead of the manager key do pop up
  * messages.
@@ -497,8 +501,9 @@ public class ComScriptProcess extends Thread implements SystemProcessInterface {
   }
 
   public ComScriptProcess(BaseManager manager, String comScript,
-      BaseProcessManager processManager, AxisID axisID, String watchedFileName,
-      ProcessMonitor processMonitor, ProcessResultDisplay processResultDisplay,
+      Command command, BaseProcessManager processManager, AxisID axisID,
+      String watchedFileName, ProcessMonitor processMonitor,
+      ProcessResultDisplay processResultDisplay,
       ConstProcessSeries processSeries, FileType fileType) {
     this.manager = manager;
     this.comScriptName = comScript;
@@ -512,6 +517,7 @@ public class ComScriptProcess extends Thread implements SystemProcessInterface {
         getProcessName());
     processData.setDisplayKey(processResultDisplay);
     this.processSeries = processSeries;
+    this.command = command;
     initialize(fileType);
   }
 
@@ -670,6 +676,14 @@ public class ComScriptProcess extends Thread implements SystemProcessInterface {
     processData.setDisplayKey(processResultDisplay);
     this.processSeries = processSeries;
     initialize(null);
+  }
+
+  void closeOutputImageFile() {
+    if (command == null) {
+      return;
+    }
+    manager.closeStaleFile(command.getOutputImageFileType(), axisID);
+    manager.closeStaleFile(command.getOutputImageFileType2(), axisID);
   }
 
   /**
