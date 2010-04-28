@@ -67,7 +67,6 @@ public final class ParallelManager extends BaseManager {
   private static final AxisID AXIS_ID = AxisID.ONLY;
   private final LogPanel logPanel = LogPanel.getInstance(this);
 
-
   private final BaseScreenState screenState = new BaseScreenState(AXIS_ID,
       AxisType.SINGLE_AXIS);
   private final ParallelState state = new ParallelState(this, AXIS_ID);
@@ -140,11 +139,11 @@ public final class ParallelManager extends BaseManager {
   public InterfaceType getInterfaceType() {
     return InterfaceType.PP;
   }
-  
+
   public LogInterface getLogInterface() {
     return logPanel;
   }
-  
+
   public LogPanel getLogPanel() {
     return logPanel;
   }
@@ -188,6 +187,13 @@ public final class ParallelManager extends BaseManager {
 
   public MainPanel getMainPanel() {
     return mainPanel;
+  }
+
+  public String getFileSubdirectoryName() {
+    if (anisotropicDiffusionDialog == null) {
+      return null;
+    }
+    return anisotropicDiffusionDialog.getSubdirectory();
   }
 
   Storable[] getStorables(final int offset) {
@@ -243,11 +249,11 @@ public final class ParallelManager extends BaseManager {
     this.paramFile = paramFile;
   }
 
-  void startNextProcess(final AxisID axisID, final String nextProcess,
+  void startNextProcess(final AxisID axisID,
+      final ProcessSeries.Process process,
       final ProcessResultDisplay processResultDisplay,
-      ProcessSeries processSeries, DialogType dialogType,
-      ProcessDisplay display, ProcessName subProcessName) {
-    if (nextProcess.equals(ProcessName.ANISOTROPIC_DIFFUSION.toString())) {
+      ProcessSeries processSeries, DialogType dialogType, ProcessDisplay display) {
+    if (process.equals(ProcessName.ANISOTROPIC_DIFFUSION.toString())) {
       anisotropicDiffusion(processSeries);
     }
   }
@@ -323,7 +329,8 @@ public final class ParallelManager extends BaseManager {
    */
   public final void processchunks(
       final ProcessResultDisplay processResultDisplay,
-      ConstProcessSeries processSeries, String rootName) {
+      final ConstProcessSeries processSeries, final String rootName,
+      final FileType outputImageFileType) {
     if (parallelDialog == null) {
       return;
     }
@@ -339,7 +346,7 @@ public final class ParallelManager extends BaseManager {
       return;
     }
     ProcesschunksParam param = new ProcesschunksParam(this, AxisID.ONLY,
-        rootName);
+        rootName, outputImageFileType);
     ParallelPanel parallelPanel = getMainPanel().getParallelPanel(AxisID.ONLY);
     parallelDialog.getParameters(param);
     if (!parallelPanel.getParameters(param)) {
@@ -372,29 +379,25 @@ public final class ParallelManager extends BaseManager {
     return true;
   }
 
+  /**
+   * Asks to close the files to be cleaned up, and then cleans up if the files
+   * are closed.
+   * @param subdirName
+   * @return
+   */
   public boolean deleteSubdir(String subdirName) {
-    try {
-      if (imodManager.isOpen(ImodManager.TEST_VOLUME_KEY)
-          || imodManager.isOpen(ImodManager.VARYING_K_TEST_KEY)
-          || imodManager.isOpen(ImodManager.VARYING_ITERATION_TEST_KEY)) {
-        uiHarness.openMessageDialog(this,
-            "Clean up failed.  Please close the test volume and/or test "
-                + "result(s) before pressing "
-                + AnisotropicDiffusionDialog.CLEANUP_LABEL + ".",
-            "Clean Up Failed");
-        return false;
+    if (closeImods(ImodManager.TEST_VOLUME_KEY, ImodManager.VARYING_K_TEST_KEY,
+        ImodManager.VARYING_ITERATION_TEST_KEY, AxisID.ONLY,
+        "Temporary files must be closed before cleaning up.  Should files be closed?")) {
+      File subdir = new File(getPropertyUserDir(), subdirName);
+      File[] fileList = subdir.listFiles();
+      for (int i = 0; i < fileList.length; i++) {
+        fileList[i].delete();
       }
+      subdir.delete();
+      return true;
     }
-    catch (AxisTypeException e) {
-      e.printStackTrace();
-    }
-    File subdir = new File(getPropertyUserDir(), subdirName);
-    File[] fileList = subdir.listFiles();
-    for (int i = 0; i < fileList.length; i++) {
-      fileList[i].delete();
-    }
-    subdir.delete();
-    return true;
+    return false;
   }
 
   public void imod(FileType fileType, final Run3dmodMenuOptions menuOptions,
@@ -499,14 +502,15 @@ public final class ParallelManager extends BaseManager {
 
   private TrimvolParam updateTrimvolParam() {
     // Get trimvol param data from dialog.
-    TrimvolParam param = new TrimvolParam(this);
+    TrimvolParam param = new TrimvolParam(this, TrimvolParam.Mode.NAD);
     anisotropicDiffusionDialog.getParameters(param);
     return param;
   }
 
   private AnisotropicDiffusionParam updateAnisotropicDiffusionParamForVaryingK(
       final String subdirName) throws LogFile.LockException, IOException {
-    AnisotropicDiffusionParam param = new AnisotropicDiffusionParam(this);
+    AnisotropicDiffusionParam param = new AnisotropicDiffusionParam(this,
+        AnisotropicDiffusionParam.Mode.VARYING_K);
     if (!anisotropicDiffusionDialog.getParametersForVaryingK(param)) {
       return null;
     }
@@ -515,11 +519,13 @@ public final class ParallelManager extends BaseManager {
     return param;
   }
 
-  private void updateAnisotropicDiffusionParam() throws LogFile.LockException,
-      IOException {
-    AnisotropicDiffusionParam param = new AnisotropicDiffusionParam(this);
+  private AnisotropicDiffusionParam updateAnisotropicDiffusionParam()
+      throws LogFile.LockException, IOException {
+    AnisotropicDiffusionParam param = new AnisotropicDiffusionParam(this,
+        AnisotropicDiffusionParam.Mode.FULL);
     anisotropicDiffusionDialog.getParameters(param);
     param.createFilterFullFile();
+    return param;
   }
 
   private ChunksetupParam updateChunksetupParam() {
@@ -530,7 +536,7 @@ public final class ParallelManager extends BaseManager {
 
   public boolean setupAnisotropicDiffusion() {
     try {
-      updateAnisotropicDiffusionParam();
+      AnisotropicDiffusionParam param = updateAnisotropicDiffusionParam();
     }
     catch (LogFile.LockException e) {
       e.printStackTrace();
@@ -551,7 +557,8 @@ public final class ParallelManager extends BaseManager {
 
   private AnisotropicDiffusionParam updateAnisotropicDiffusionParamForVaryingIteration(
       final String subdirName) {
-    AnisotropicDiffusionParam param = new AnisotropicDiffusionParam(this);
+    AnisotropicDiffusionParam param = new AnisotropicDiffusionParam(this,
+        AnisotropicDiffusionParam.Mode.VARYING_ITERATIONS);
     if (!anisotropicDiffusionDialog.getParametersForVaryingIteration(param)) {
       return null;
     }
@@ -568,6 +575,9 @@ public final class ParallelManager extends BaseManager {
       uiHarness.openMessageDialog(this,
           "Anisotropic diffusion dialog not open", "Program logic error",
           AxisID.ONLY);
+      return;
+    }
+    if (!setupAnisotropicDiffusion()) {
       return;
     }
     ChunksetupParam param = updateChunksetupParam();
@@ -641,7 +651,8 @@ public final class ParallelManager extends BaseManager {
       return;
     }
     ProcesschunksParam param = new ProcesschunksParam(this, AxisID.ONLY,
-        ProcessName.ANISOTROPIC_DIFFUSION);
+        ProcessName.ANISOTROPIC_DIFFUSION,
+        FileType.ANISOTROPIC_DIFFUSION_OUTPUT);
     ParallelPanel parallelPanel = getMainPanel().getParallelPanel(AxisID.ONLY);
     anisotropicDiffusionDialog.getParameters(param);
     if (!parallelPanel.getParameters(param)) {
@@ -738,7 +749,7 @@ public final class ParallelManager extends BaseManager {
       return;
     }
     ProcesschunksParam param = new ProcesschunksParam(this, AxisID.ONLY,
-        ProcessName.ANISOTROPIC_DIFFUSION);
+        ProcessName.ANISOTROPIC_DIFFUSION, null);
     param.setSubcommandDetails(anisotropicDiffusionParam);
     ParallelPanel parallelPanel = getMainPanel().getParallelPanel(AxisID.ONLY);
     anisotropicDiffusionDialog.getParameters(param);
@@ -812,6 +823,10 @@ public final class ParallelManager extends BaseManager {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.43  2010/02/17 04:42:26  sueh
+ * <p> bug# 1301 Moved comScriptMgr and logPanel from BaseManager to child
+ * <p> class.
+ * <p>
  * <p> Revision 1.42  2010/01/21 21:26:26  sueh
  * <p> bug# 1305 Passing FileType to imod instead of key and file.
  * <p>

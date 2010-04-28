@@ -31,6 +31,7 @@ import etomo.type.BaseScreenState;
 import etomo.type.BaseState;
 import etomo.type.ConstProcessSeries;
 import etomo.type.DialogType;
+import etomo.type.FileType;
 import etomo.type.InterfaceType;
 import etomo.type.PeetMetaData;
 import etomo.type.PeetScreenState;
@@ -64,6 +65,10 @@ import etomo.util.EnvironmentVariable;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.63  2010/02/17 04:42:47  sueh
+ * <p> bug# 1301 Moved comScriptMgr and logPanel from BaseManager to child
+ * <p> class.
+ * <p>
  * <p> Revision 1.62  2010/01/13 21:52:09  sueh
  * <p> bug# 1292 In imodAvgVol getting the list of files from averageFilenames.txt.
  * <p>
@@ -302,7 +307,6 @@ public final class PeetManager extends BaseManager {
   private static final AxisID AXIS_ID = AxisID.ONLY;
   private final LogPanel logPanel = LogPanel.getInstance(this);
 
-
   private final PeetScreenState screenState = new PeetScreenState(AXIS_ID,
       AxisType.SINGLE_AXIS);
   private final ProcessResultDisplayFactoryBlank processResultDisplayFactory = new ProcessResultDisplayFactoryBlank();
@@ -376,11 +380,11 @@ public final class PeetManager extends BaseManager {
   public InterfaceType getInterfaceType() {
     return InterfaceType.PEET;
   }
-  
+
   public LogInterface getLogInterface() {
     return logPanel;
   }
-  
+
   public LogPanel getLogPanel() {
     return logPanel;
   }
@@ -750,7 +754,8 @@ public final class PeetManager extends BaseManager {
       removeComFiles();
       String threadName = processMgr.peetParser(param, processSeries);
       processSeries.setNextProcess(ProcessName.PROCESSCHUNKS.toString(),
-          ProcessName.PEET_PARSER);
+          ProcessName.PEET_PARSER, FileType.AVERAGED_VOLUMES,
+          FileType.REFERENCE_VOLUMES);
       setThreadName(threadName, AxisID.ONLY);
       mainPanel.startProgressBar("Running " + ProcessName.PEET_PARSER,
           AxisID.ONLY, ProcessName.PEET_PARSER);
@@ -820,6 +825,10 @@ public final class PeetManager extends BaseManager {
   public BaseState getBaseState() {
     return state;
   }
+  
+  public String getFileSubdirectoryName() {
+    return null;
+  }
 
   void createProcessTrack() {
   }
@@ -854,12 +863,12 @@ public final class PeetManager extends BaseManager {
   /**
    * Start the next process specified by the nextProcess string
    */
-  void startNextProcess(final AxisID axisID, final String nextProcess,
+  void startNextProcess(final AxisID axisID,
+      final ProcessSeries.Process process,
       final ProcessResultDisplay processResultDisplay,
-      ProcessSeries processSeries, DialogType dialogType,
-      ProcessDisplay display, ProcessName subProcessName) {
-    if (nextProcess.equals(ProcessName.PROCESSCHUNKS.toString())) {
-      processchunks(processSeries);
+      ProcessSeries processSeries, DialogType dialogType, ProcessDisplay display) {
+    if (process.equals(ProcessName.PROCESSCHUNKS.toString())) {
+      processchunks(processSeries, process.getOutputImageFileType());
     }
   }
 
@@ -943,12 +952,13 @@ public final class PeetManager extends BaseManager {
    * Run processchunks.
    * @param axisID
    */
-  private void processchunks(ConstProcessSeries processSeries) {
+  private void processchunks(ConstProcessSeries processSeries,
+      FileType outputImageFileType) {
     if (peetDialog == null) {
       return;
     }
     ProcesschunksParam param = new ProcesschunksParam(this, AxisID.ONLY,
-        peetDialog.getFnOutput());
+        peetDialog.getFnOutput(), outputImageFileType);
     ParallelPanel parallelPanel = getMainPanel().getParallelPanel(AxisID.ONLY);
     peetDialog.getParameters(param);
     if (!parallelPanel.getParameters(param)) {

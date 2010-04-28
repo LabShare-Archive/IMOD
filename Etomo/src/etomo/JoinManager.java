@@ -73,6 +73,10 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.85  2010/02/26 20:37:31  sueh
+ * <p> Changing the complex popup titles are making it hard to complete the
+ * <p> uitests.
+ * <p>
  * <p> Revision 1.84  2010/02/17 04:41:12  sueh
  * <p> bug# 1301 Moved comScriptMgr and logPanel to child class.
  * <p>
@@ -1334,19 +1338,6 @@ public final class JoinManager extends BaseManager {
     if (processSeries == null) {
       processSeries = new ProcessSeries(this, dialogType);
     }
-    try {
-      if (mode == FinishjoinParam.Mode.SUPPRESS_EXECUTION
-          && imodManager.isOpen(ImodManager.TRANSFORMED_MODEL_KEY)) {
-        uiHarness.openMessageDialog(this, "Please close "
-            + DatasetFiles.getRefineAlignedModelFileName(this), "Close File");
-        return;
-      }
-    }
-    catch (AxisTypeException except) {
-      except.printStackTrace();
-      uiHarness.openMessageDialog(this, except.getMessage(),
-          "AxisType problem", AxisID.ONLY);
-    }
     if (!updateMetaDataFromJoinDialog(AxisID.ONLY)) {
       return;
     }
@@ -1475,6 +1466,10 @@ public final class JoinManager extends BaseManager {
   public ConstJoinMetaData getConstMetaData() {
     return (ConstJoinMetaData) metaData;
   }
+  
+  public String getFileSubdirectoryName() {
+    return null;
+  }
 
   public JoinMetaData getJoinMetaData() {
     return metaData;
@@ -1491,27 +1486,27 @@ public final class JoinManager extends BaseManager {
   /**
    * Start the next process specified by the nextProcess string
    */
-  void startNextProcess(final AxisID axisID, final String nextProcess,
+  void startNextProcess(final AxisID axisID, final ProcessSeries.Process process,
       final ProcessResultDisplay processResultDisplay,
       ProcessSeries processSeries, DialogType dialogType,
-      ProcessDisplay display, ProcessName subProcessName) {
+      ProcessDisplay display) {
     if (debug) {
       System.err.println("startNextProcess:axisID=" + axisID + ",nextProcess="
-          + nextProcess);
+          + process);
     }
-    if (nextProcess.equals("startjoin")) {
+    if (process.equals("startjoin")) {
       startjoin(processSeries);
     }
-    else if (nextProcess.equals(ProcessName.XFTOXG.toString())) {
+    else if (process.equals(ProcessName.XFTOXG.toString())) {
       xftoxg(processSeries, dialogType);
     }
-    else if (nextProcess.equals(ProcessName.XFMODEL.toString())) {
+    else if (process.equals(ProcessName.XFMODEL.toString())) {
       xfmodel(processSeries, dialogType);
     }
-    else if (nextProcess.equals(ProcessName.REMAPMODEL.toString())) {
+    else if (process.equals(ProcessName.REMAPMODEL.toString())) {
       remapmodel(processSeries);
     }
-    else if (nextProcess.equals(ImodManager.TRANSFORMED_MODEL_KEY)) {
+    else if (process.equals(ImodManager.TRANSFORMED_MODEL_KEY)) {
       imodOpen(ImodManager.TRANSFORMED_MODEL_KEY);
     }
   }

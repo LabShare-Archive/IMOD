@@ -55,6 +55,9 @@ import etomo.util.MRCHeader;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.3  2010/03/27 04:45:53  sueh
+ * <p> bug# 1316 Checking for conflicting dataset files.
+ * <p>
  * <p> Revision 1.2  2010/02/26 20:37:31  sueh
  * <p> Changing the complex popup titles are making it hard to complete the
  * <p> uitests.
@@ -173,7 +176,7 @@ public final class ToolsManager extends BaseManager {
     processSeries.setRun3dmodDeferred(deferred3dmodButton, run3dmodMenuOptions);
     String threadName;
     try {
-      threadName = processMgr.flatten(axisID, processResultDisplay,
+      threadName = processMgr.flatten(param, axisID, processResultDisplay,
           processSeries, FileType.FLATTEN_TOOL_COMSCRIPT);
     }
     catch (SystemProcessException e) {
@@ -430,6 +433,10 @@ public final class ToolsManager extends BaseManager {
   public BaseState getBaseState() {
     return null;
   }
+  
+  public String getFileSubdirectoryName() {
+    return null;
+  }
 
   public MainPanel getMainPanel() {
     return mainPanel;
@@ -486,10 +493,11 @@ public final class ToolsManager extends BaseManager {
     this.paramFile = paramFile;
   }
 
-  void startNextProcess(final AxisID axisID, final String nextProcess,
+  void startNextProcess(final AxisID axisID,
+      final ProcessSeries.Process process,
       final ProcessResultDisplay processResultDisplay,
-      ProcessSeries processSeries, DialogType dialogType,
-      ProcessDisplay display, ProcessName subProcessName) {
+      final ProcessSeries processSeries, final DialogType dialogType,
+      final ProcessDisplay display) {
   }
 
   public String getName() {
