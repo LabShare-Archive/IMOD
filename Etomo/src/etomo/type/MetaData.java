@@ -29,6 +29,9 @@ import etomo.util.Utilities;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.61  2010/03/30 00:05:24  sueh
+ * <p> bug# 1331 Added posExistsA and B.
+ * <p>
  * <p> Revision 3.60  2010/03/27 04:49:32  sueh
  * <p> bug# 1333 Added defaultGpuProcessing.  Added a separate tiltParallel for
  * <p> 3dfindbeads.
@@ -649,7 +652,7 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
     this.manager = manager;
     squeezevolParam = new SqueezevolParam(manager);
     combineParams = new CombineParams(manager);
-    trimvolParam = new TrimvolParam(manager);
+    trimvolParam = new TrimvolParam(manager, TrimvolParam.Mode.POST_PROCESSING);
     transferfidParamA = new TransferfidParam(manager, AxisID.FIRST);
     transferfidParamB = new TransferfidParam(manager, AxisID.SECOND);
     fileExtension = DatasetFiles.RECON_DATA_FILE_EXT;
@@ -1048,7 +1051,7 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
       genExistsA.set(input);
     }
   }
-  
+
   public void setPosExists(AxisID axisID, boolean input) {
     if (axisID == AxisID.SECOND) {
       posExistsB.set(input);
@@ -2198,7 +2201,7 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
     }
     return genExistsA.is();
   }
-  
+
   public boolean isPosExists(AxisID axisID) {
     if (axisID == AxisID.SECOND) {
       return posExistsB.is();
