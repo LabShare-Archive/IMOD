@@ -18,7 +18,6 @@ Version = 1.2
 	assert.enabled.bn.use-fixed-stack=
 	# Check missing use file
 	bn.use-fixed-stack =
-	wait.popup.missing-file = OK
 	wait.popup.entry-error = OK
 	# Run
 	bn.create-fixed-stack=
