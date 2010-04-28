@@ -41,6 +41,9 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.22  2010/03/27 04:55:04  sueh
+ * <p> bug# 1337 Fixed the partial path display in FileTextField.
+ * <p>
  * <p> Revision 1.21  2010/02/17 05:03:12  sueh
  * <p> bug# 1301 Using manager instead of manager key for popping up messages.
  * <p>
@@ -136,7 +139,8 @@ public final class AnisotropicDiffusionDialog implements ContextMenu,
   private final SpacedPanel rootPanel = SpacedPanel.getInstance();
   private final Run3dmodButton btnViewFullVolume = Run3dmodButton
       .get3dmodInstance("View Full Volume", this);
-  private final FileTextField ftfVolume =  FileTextField.getPartialPathInstance("Pick a volume");
+  private final FileTextField ftfVolume = FileTextField
+      .getPartialPathInstance("Pick a volume");
   private final MultiLineButton btnExtractTestVolume = new MultiLineButton(
       "Extract Test Volume");
   private final Run3dmodButton btnViewTestVolume = Run3dmodButton
@@ -432,8 +436,8 @@ public final class AnisotropicDiffusionDialog implements ContextMenu,
     }
     errorMessage = param.setKValueList(ltfTestKValueList.getText());
     if (errorMessage != null) {
-      UIHarness.INSTANCE.openMessageDialog(manager,K_VALUE_LIST_LABEL + errorMessage,
-          "Entry Error");
+      UIHarness.INSTANCE.openMessageDialog(manager, K_VALUE_LIST_LABEL
+          + errorMessage, "Entry Error");
       return false;
     }
     param.setIteration(spTestIteration.getValue());
@@ -450,7 +454,6 @@ public final class AnisotropicDiffusionDialog implements ContextMenu,
     }
     param.setSubdirName(subdirName);
     param.setInputFileName(TEST_VOLUME_NAME);
-    param.setCommandMode(AnisotropicDiffusionParam.Mode.VARYING_K);
     return true;
   }
 
@@ -485,9 +488,10 @@ public final class AnisotropicDiffusionDialog implements ContextMenu,
    */
   public boolean initSubdir() {
     if (ftfVolume.isEmpty()) {
-      UIHarness.INSTANCE.openMessageDialog(manager,
-          "Please choose a volume before running this function.",
-          "Entry Error");
+      UIHarness.INSTANCE
+          .openMessageDialog(manager,
+              "Please choose a volume before running this function.",
+              "Entry Error");
       return false;
     }
     if (subdirName == null) {
@@ -495,6 +499,13 @@ public final class AnisotropicDiffusionDialog implements ContextMenu,
       manager.makeSubdir(subdirName);
     }
     return true;
+  }
+
+  public String getSubdirectory() {
+    if (!initSubdir()) {
+      return null;
+    }
+    return subdirName;
   }
 
   public void cleanUp() {
@@ -567,7 +578,7 @@ public final class AnisotropicDiffusionDialog implements ContextMenu,
     }
     volume = chooser.getSelectedFile();
     if (volume == null || volume.isDirectory() || !volume.exists()) {
-      UIHarness.INSTANCE.openMessageDialog(manager,"Please choose a volume",
+      UIHarness.INSTANCE.openMessageDialog(manager, "Please choose a volume",
           "Entry Error");
       return;
     }
