@@ -131,12 +131,13 @@ public final class DatasetFiles {
         axisID));
   }
 
-  public static File getCombinedTomogram(BaseManager manager) {
-    if (manager.getBaseMetaData().getAxisType() != AxisType.DUAL_AXIS) {
-      return null;
-    }
-    return new File(manager.getPropertyUserDir(), "sum" + TOMO_EXT);
-  }
+  /*
+   public static File getCombinedTomogram(BaseManager manager) {
+   if (manager.getBaseMetaData().getAxisType() != AxisType.DUAL_AXIS) {
+   return null;
+   }
+   return new File(manager.getPropertyUserDir(), "sum" + TOMO_EXT);
+   }*/
 
   public static boolean isRotatedTomogram(File tomogram) {
     String tomogramName = tomogram.getName();
@@ -206,10 +207,11 @@ public final class DatasetFiles {
     return metaData.getName() + FLATTEN_WARP_EXT + XF_EXT;
   }
 
-  public static File getFlattenWarpOutputFile(BaseManager manager) {
-    return new File(manager.getPropertyUserDir(),
-        getFlattenWarpOutputName(manager));
-  }
+  /*
+   public static File getFlattenWarpOutputFile(BaseManager manager) {
+   return new File(manager.getPropertyUserDir(),
+   getFlattenWarpOutputName(manager));
+   }*/
 
   public static String getPrealignedStackName(BaseManager manager, AxisID axisID) {
     BaseMetaData metaData = manager.getBaseMetaData();
@@ -348,15 +350,16 @@ public final class DatasetFiles {
     return metaData.getName() + axisID.getExtension() + FULL_ALIGNED_EXT;
   }
 
-  public static File getFullAlignedStackFile(BaseManager manager, AxisID axisID) {
-    return new File(manager.getPropertyUserDir(), getFullAlignedStackFileName(
-        manager, axisID));
-  }
+  /*
+   public static File getFullAlignedStackFile(BaseManager manager, AxisID axisID) {
+   return new File(manager.getPropertyUserDir(), getFullAlignedStackFileName(
+   manager, axisID));
+   }
 
-  public static File getErasedFiducialsFile(BaseManager manager, AxisID axisID) {
-    return new File(manager.getPropertyUserDir(), getErasedFiducialsFileName(
-        manager, axisID));
-  }
+   public static File getErasedFiducialsFile(BaseManager manager, AxisID axisID) {
+   return new File(manager.getPropertyUserDir(), getErasedFiducialsFileName(
+   manager, axisID));
+   }*/
 
   public static String getErasedFiducialsFileName(BaseManager manager,
       AxisID axisID) {
@@ -424,12 +427,12 @@ public final class DatasetFiles {
   }
 
   //other etomo files
-
-  public static File getCommandsFile(BaseManager manager, String subdirName,
-      String rootName) {
-    return new File(manager.getPropertyUserDir(), getCommandsFileName(
-        subdirName, rootName));
-  }
+  /*
+   public static File getCommandsFile(BaseManager manager, String subdirName,
+   String rootName) {
+   return new File(manager.getPropertyUserDir(), getCommandsFileName(
+   subdirName, rootName));
+   }*/
 
   public static String getCommandsFileName(String subdirName, String rootName) {
     String commandsFileName = rootName + ".cmds";
@@ -475,13 +478,12 @@ public final class DatasetFiles {
 
   //com scripts
 
-  public static File getCombineCom(BaseManager manager) {
-    return new File(manager.getPropertyUserDir(), ProcessName.COMBINE
-        + COMSCRIPT_EXT);
-  }
+  /* public static File getCombineCom(BaseManager manager) {
+   return new File(manager.getPropertyUserDir(), ProcessName.COMBINE
+   + COMSCRIPT_EXT);
+   }*/
 
   //directories
-
   public static File getCalibrationDir(BaseManager manager,
       String propertyUserDir, AxisID axisID) {
     if (calibrationDir == null) {
@@ -555,6 +557,10 @@ public final class DatasetFiles {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.55  2010/02/17 05:05:58  sueh
+ * <p> bug# 1301 Using manager instead of manager key for popping up
+ * <p> messages.
+ * <p>
  * <p> Revision 1.54  2009/12/11 17:29:16  sueh
  * <p> bug# 1291 Made STACK_EXT public.
  * <p>
