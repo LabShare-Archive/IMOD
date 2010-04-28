@@ -10,7 +10,6 @@ import etomo.comscript.ClipParam;
 import etomo.comscript.Command;
 import etomo.comscript.ProcessDetails;
 import etomo.comscript.FinishjoinParam;
-import etomo.comscript.FlipyzParam;
 import etomo.comscript.MakejoincomParam;
 import etomo.comscript.MidasParam;
 import etomo.comscript.RemapmodelParam;
@@ -41,6 +40,9 @@ import etomo.util.DatasetFiles;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 1.30  2009/12/08 02:41:26  sueh
+ * <p> bug# 1286 Implemented Loggable in parameter classes.
+ * <p>
  * <p> Revision 1.29  2009/04/01 20:07:15  sueh
  * <p> bug# 1208 Changed flipyz to rotx.  Substituting ClipParam for FlipyzParam in post
  * <p> processing, except when deleting a file resulting from an error; in that case adding
@@ -470,17 +472,6 @@ public final class JoinProcessManager extends BaseProcessManager {
     else if (commandName.equals(MakejoincomParam.commandName)) {
       state.setSampleProduced(false);
       manager.setMode();
-    }
-    else if (commandName.equals(FlipyzParam.COMMAND)) {
-      Command command = process.getCommand();
-      if (command == null) {
-        return;
-      }
-      File outputFile = command.getCommandOutputFile();
-      //A partially created flip file can cause an error when it is opened.
-      if (outputFile != null) {
-        outputFile.delete();
-      }
     }
     else if (commandName.equals(ClipParam.PROCESS_NAME)) {
       Command command = process.getCommand();
