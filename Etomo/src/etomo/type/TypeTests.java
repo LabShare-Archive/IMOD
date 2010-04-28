@@ -21,6 +21,9 @@ import junit.framework.TestSuite;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.13  2009/09/01 03:16:46  sueh
+ * <p> bug# 1222 Added property list tests.
+ * <p>
  * <p> Revision 3.12  2007/12/14 18:51:42  sueh
  * <p> Running system program is not working on windows.
  * <p>
@@ -81,6 +84,7 @@ public class TypeTests {
     suite.addTestSuite(FortranInputStringPropertyListTest.class);
     suite.addTestSuite(EtomoNumberPropertyListTest.class);
     suite.addTestSuite(PanelHeaderStatePropertyListTest.class);
+    suite.addTestSuite(FileTypeTest.class);
     //$JUnit-END$
     return suite;
   }
