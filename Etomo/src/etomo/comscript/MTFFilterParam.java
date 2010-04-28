@@ -12,6 +12,9 @@
  * @version $$Revision$$
  * 
  * <p> $$Log$
+ * <p> $Revision 1.8  2004/06/13 17:03:23  rickg
+ * <p> $Solvematch mid change
+ * <p> $
  * <p> $Revision 1.7  2004/06/09 21:18:12  rickg
  * <p> $Changed upateParameter method to updateScriptParameter
  * <p> $
@@ -39,13 +42,50 @@
 
 package etomo.comscript;
 
-public class MTFFilterParam
-  extends ConstMTFFilterParam
-  implements CommandParam {
+import java.io.File;
+
+import etomo.BaseManager;
+import etomo.type.AxisID;
+import etomo.type.FileType;
+import etomo.type.ProcessName;
+
+public final class MTFFilterParam implements ConstMTFFilterParam, CommandParam {
   public static final String rcsid = "$$Id$$";
-  
+
+  private String inputFile;
+  private String outputFile;
+  private String mtfFile;
+  private double maximumInverse;
+  private final FortranInputString lowPassRadiusSigma;
+  private final FortranInputString inverseRolloffRadiusSigma;
+  private final FortranInputString startingAndEndingZ;
+
+  private final BaseManager manager;
+  private final AxisID axisID;
+
+  MTFFilterParam(final BaseManager manager, final AxisID axisID) {
+    this.manager = manager;
+    this.axisID = axisID;
+    lowPassRadiusSigma = new FortranInputString(2);
+    inverseRolloffRadiusSigma = new FortranInputString(2);
+    startingAndEndingZ = new FortranInputString(2);
+    startingAndEndingZ.setIntegerType(0, true);
+    startingAndEndingZ.setIntegerType(1, true);
+    reset();
+  }
+
+  private void reset() {
+    inputFile = new String();
+    outputFile = new String();
+    mtfFile = new String();
+    maximumInverse = Double.NaN;
+    lowPassRadiusSigma.setDefault();
+    inverseRolloffRadiusSigma.setDefault();
+    startingAndEndingZ.setDefault();
+  }
+
   public void parseComScriptCommand(ComScriptCommand scriptCommand)
-    throws FortranInputSyntaxException, InvalidParameterException {
+      throws FortranInputSyntaxException, InvalidParameterException {
     String[] cmdLineArgs = scriptCommand.getCommandLineArgs();
     if (scriptCommand.isKeywordValuePairs()) {
       if (scriptCommand.hasKeyword("InputFile")) {
@@ -58,47 +98,46 @@ public class MTFFilterParam
         mtfFile = scriptCommand.getValue("MtfFile");
       }
       if (scriptCommand.hasKeyword("MaximumInverse")) {
-        maximumInverse = Double.parseDouble(scriptCommand.getValue("MaximumInverse"));
+        maximumInverse = Double.parseDouble(scriptCommand
+            .getValue("MaximumInverse"));
       }
       if (scriptCommand.hasKeyword("LowPassRadiusSigma")) {
-        lowPassRadiusSigma.validateAndSet(scriptCommand.getValue("LowPassRadiusSigma"));
+        lowPassRadiusSigma.validateAndSet(scriptCommand
+            .getValue("LowPassRadiusSigma"));
       }
       if (scriptCommand.hasKeyword("InverseRolloffRadiusSigma")) {
-        inverseRolloffRadiusSigma.validateAndSet(scriptCommand.getValue("InverseRolloffRadiusSigma"));
+        inverseRolloffRadiusSigma.validateAndSet(scriptCommand
+            .getValue("InverseRolloffRadiusSigma"));
       }
       if (scriptCommand.hasKeyword("StartingAndEndingZ")) {
-        startingAndEndingZ.validateAndSet(scriptCommand.getValue("StartingAndEndingZ"));
+        startingAndEndingZ.validateAndSet(scriptCommand
+            .getValue("StartingAndEndingZ"));
       }
     }
     else {
-      throw new InvalidParameterException("MTF Filter:  Missing parameter, -StandardInput.  Use Etomo to create .com file.");
+      throw new InvalidParameterException(
+          "MTF Filter:  Missing parameter, -StandardInput.  Use Etomo to create .com file.");
     }
   }
 
   public void updateComScriptCommand(ComScriptCommand scriptCommand)
-    throws BadComScriptException {
+      throws BadComScriptException {
     scriptCommand.useKeywordValue();
-    ParamUtilities.updateScriptParameter(scriptCommand, "InputFile", inputFile, true);
-    ParamUtilities.updateScriptParameter(scriptCommand, "OutputFile", outputFile);
+    ParamUtilities.updateScriptParameter(scriptCommand, "InputFile", inputFile,
+        true);
+    ParamUtilities.updateScriptParameter(scriptCommand, "OutputFile",
+        outputFile);
     ParamUtilities.updateScriptParameter(scriptCommand, "MtfFile", mtfFile);
-    ParamUtilities.updateScriptParameter(
-      scriptCommand,
-      "MaximumInverse",
-      maximumInverse);
-    ParamUtilities.updateScriptParameter(
-      scriptCommand,
-      "LowPassRadiusSigma",
-      lowPassRadiusSigma);
-    ParamUtilities.updateScriptParameter(
-      scriptCommand,
-      "InverseRolloffRadiusSigma",
-      inverseRolloffRadiusSigma);
-    ParamUtilities.updateScriptParameter(
-      scriptCommand,
-      "StartingAndEndingZ",
-      startingAndEndingZ);
+    ParamUtilities.updateScriptParameter(scriptCommand, "MaximumInverse",
+        maximumInverse);
+    ParamUtilities.updateScriptParameter(scriptCommand, "LowPassRadiusSigma",
+        lowPassRadiusSigma);
+    ParamUtilities.updateScriptParameter(scriptCommand,
+        "InverseRolloffRadiusSigma", inverseRolloffRadiusSigma);
+    ParamUtilities.updateScriptParameter(scriptCommand, "StartingAndEndingZ",
+        startingAndEndingZ);
   }
-  
+
   public void initializeDefaults() {
     maximumInverse = 4.0;
     inverseRolloffRadiusSigma.set(0, 0.12);
@@ -107,28 +146,132 @@ public class MTFFilterParam
     lowPassRadiusSigma.set(1, 0.05);
   }
 
+  public String getMtfFile() {
+    return mtfFile;
+  }
+
+  public String getMaximumInverseString() {
+    return ParamUtilities.valueOf(maximumInverse);
+  }
+
+  public String getLowPassRadiusSigmaString() {
+    return lowPassRadiusSigma.toString(true);
+  }
+
+  public String getStartingAndEndingZString() {
+    return startingAndEndingZ.toString(true);
+  }
+
+  public boolean isStartingZSet() {
+    return !startingAndEndingZ.isDefault(0) && !startingAndEndingZ.isEmpty(0);
+  }
+
+  public boolean isEndingZSet() {
+    return !startingAndEndingZ.isDefault(1) && !startingAndEndingZ.isEmpty(1);
+  }
+
+  public int getStartingZ() {
+    return startingAndEndingZ.getInt(0);
+  }
+
+  public int getEndingZ() {
+    return startingAndEndingZ.getInt(1);
+  }
+
+  public String getInverseRolloffRadiusSigmaString() {
+    return inverseRolloffRadiusSigma.toString(true);
+  }
+
+  public String getOutputFile() {
+    return outputFile;
+  }
+
   public void setInputFile(String inputFile) {
     this.inputFile = new String(inputFile);
   }
+
   public void setOutputFile(String outputFile) {
     this.outputFile = new String(outputFile);
   }
+
   public void setMtfFile(String mtfFile) {
     this.mtfFile = new String(mtfFile);
   }
+
   public void setMaximumInverse(String maximumInverse) {
     this.maximumInverse = ParamUtilities.parseDouble(maximumInverse);
   }
+
   public void setLowPassRadiusSigma(String lowPassRadiusSigma)
-    throws FortranInputSyntaxException {
+      throws FortranInputSyntaxException {
     ParamUtilities.set(lowPassRadiusSigma, this.lowPassRadiusSigma);
   }
+
   public void setInverseRolloffRadiusSigma(String inverseRolloffRadiusSigma)
-    throws FortranInputSyntaxException {
-    ParamUtilities.set(inverseRolloffRadiusSigma, this.inverseRolloffRadiusSigma);
+      throws FortranInputSyntaxException {
+    ParamUtilities.set(inverseRolloffRadiusSigma,
+        this.inverseRolloffRadiusSigma);
   }
+
   public void setStartingAndEndingZ(String startingAndEndingZ)
-    throws FortranInputSyntaxException {
-    ParamUtilities.set(startingAndEndingZ, this.startingAndEndingZ); 
+      throws FortranInputSyntaxException {
+    ParamUtilities.set(startingAndEndingZ, this.startingAndEndingZ);
+  }
+
+  public FileType getOutputImageFileType() {
+    return FileType.MTF_FILTERED_STACK;
+  }
+
+  public FileType getOutputImageFileType2() {
+    return null;
+  }
+
+  public AxisID getAxisID() {
+    return axisID;
+  }
+
+  public String getCommand() {
+    return FileType.MTF_FILTER_COMSCRIPT.getFileName(manager, axisID);
+  }
+
+  public String[] getCommandArray() {
+    String[] array = { getCommandLine() };
+    return array;
+  }
+
+  public File getCommandInputFile() {
+    return null;
+  }
+
+  public String getCommandLine() {
+    return getCommand();
+  }
+
+  public CommandMode getCommandMode() {
+    return null;
+  }
+
+  public String getCommandName() {
+    return ProcessName.MTFFILTER.toString();
+  }
+
+  public File getCommandOutputFile() {
+    return null;
+  }
+
+  public ProcessName getProcessName() {
+    return ProcessName.MTFFILTER;
+  }
+
+  public CommandDetails getSubcommandDetails() {
+    return null;
+  }
+
+  public ProcessName getSubcommandProcessName() {
+    return null;
+  }
+
+  public boolean isMessageReporter() {
+    return false;
   }
 }
