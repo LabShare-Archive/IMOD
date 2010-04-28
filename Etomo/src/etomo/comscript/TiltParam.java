@@ -11,6 +11,9 @@
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.46  2010/04/10 00:30:17  sueh
+ * <p> bug# 1347 Removed prints.
+ * <p>
  * <p> Revision 3.45  2010/04/08 03:01:13  sueh
  * <p> bug# 1347 Added a comment to setMontageSubsetStart.
  * <p>
@@ -241,6 +244,7 @@ import java.util.List;
 import etomo.ApplicationManager;
 import etomo.storage.LogFile;
 import etomo.type.AxisID;
+import etomo.type.AxisType;
 import etomo.type.ConstEtomoNumber;
 import etomo.type.ConstIntKeyList;
 import etomo.type.EtomoBoolean2;
@@ -430,10 +434,11 @@ public final class TiltParam implements ConstTiltParam, CommandParam {
     commandMode = input;
   }
 
-  public void setCommandMode(String input) {
-    commandMode = Mode.getInstance(input);
-  }
-
+  /*
+   public void setCommandMode(String input) {
+   commandMode = Mode.getInstance(input);
+   }
+   */
   public boolean hasLogOffset() {
     return !logOffset.isNull();
   }
@@ -458,6 +463,36 @@ public final class TiltParam implements ConstTiltParam, CommandParam {
 
   public String getOutputFile() {
     return outputFile.toString();
+  }
+
+  public FileType getOutputImageFileType() {
+    AxisType axisType = manager.getBaseMetaData().getAxisType();
+    if (commandMode == Mode.SAMPLE) {
+      return FileType.POSITIONING_SAMPLE;
+    }
+    if (commandMode == Mode.TILT) {
+      if (axisType == AxisType.DUAL_AXIS) {
+        return FileType.DUAL_AXIS_TOMOGRAM;
+      }
+      else if (axisType == AxisType.SINGLE_AXIS) {
+        return FileType.SINGLE_AXIS_TOMOGRAM;
+      }
+    }
+    if (commandMode == Mode.TILT_3D_FIND) {
+      return FileType.TILT_3D_FIND_OUTPUT;
+    }
+    if (commandMode == Mode.TRIAL_TILT) {
+      return null;
+    }
+    if (commandMode == Mode.WHOLE) {
+      //Handled by NewstParam and BlendmontParam
+      return null;
+    }
+    return null;
+  }
+
+  public FileType getOutputImageFileType2() {
+    return null;
   }
 
   public boolean isParallel() {
@@ -1651,6 +1686,8 @@ public final class TiltParam implements ConstTiltParam, CommandParam {
     public static final Mode SAMPLE = new Mode("SAMPLE");
     public static final Mode WHOLE = new Mode("WHOLE");
     public static final Mode TILT = new Mode("TILT");
+    public static final Mode TILT_3D_FIND = new Mode("TILT_3D_FIND");
+    public static final Mode TRIAL_TILT = new Mode("TRIAL_TILT");
 
     private static final Mode DEFAULT = TILT;
 
@@ -1660,18 +1697,19 @@ public final class TiltParam implements ConstTiltParam, CommandParam {
       this.string = string;
     }
 
-    private static Mode getInstance(String input) {
-      if (SAMPLE.string.equals(input)) {
-        return SAMPLE;
-      }
-      if (WHOLE.string.equals(input)) {
-        return WHOLE;
-      }
-      if (TILT.string.equals(input)) {
-        return TILT;
-      }
-      return DEFAULT;
-    }
+    /*
+     private static Mode getInstance(String input) {
+     if (SAMPLE.string.equals(input)) {
+     return SAMPLE;
+     }
+     if (WHOLE.string.equals(input)) {
+     return WHOLE;
+     }
+     if (TILT.string.equals(input)) {
+     return TILT;
+     }
+     return DEFAULT;
+     }*/
 
     public String toString() {
       return string;
