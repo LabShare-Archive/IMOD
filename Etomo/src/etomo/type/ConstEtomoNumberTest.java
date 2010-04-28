@@ -51,13 +51,6 @@ public final class ConstEtomoNumberTest extends TestCase {
     super.setUp();
   }
 
-  /*
-   * @see TestCase#tearDown()
-   */
-  protected void tearDown() throws Exception {
-    super.tearDown();
-  }
-
   /**
    * Constructor for ConstEtomoNumberTest.
    * @param arg0
@@ -1341,6 +1334,10 @@ public final class ConstEtomoNumberTest extends TestCase {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.50  2010/02/17 04:52:36  sueh
+ * <p> bug# 1301 Using the manager instead of the manager key do pop up
+ * <p> messages.
+ * <p>
  * <p> Revision 1.49  2009/09/01 02:33:37  sueh
  * <p> bug# 1222 Fixed comparisons between different types.
  * <p>
