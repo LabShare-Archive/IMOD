@@ -15,12 +15,21 @@ import java.util.Properties;
  * 
  * @version $Revision$
  * 
- * <p> $Log$ </p>
+ * <p> $Log$
+ * <p> Revision 1.1  2009/10/27 20:39:47  sueh
+ * <p> bug# 1275 Meta data for FrontPageManager.  MetaData is a required class
+ * <p> for a manager.
+ * <p> </p>
  */
 public final class FrontPageMetaData extends BaseMetaData {
 
   private static final String NAME = "Front Page";
   private static final String FRONT_PAGE_GROUP_KEY = "FrontPage";
+
+  /**
+   * For testing
+   */
+  private String name = null;
 
   public FrontPageMetaData() {
     super();
@@ -35,15 +44,43 @@ public final class FrontPageMetaData extends BaseMetaData {
     return FRONT_PAGE_GROUP_KEY;
   }
 
+  /**
+   * for testing
+   * @param axisType
+   */
+  public void setAxisType(final AxisType axisType) {
+    this.axisType = axisType;
+  }
+
+  /**
+   * For testing
+   * @param name
+   */
+  public void setName(String name) {
+    this.name = name;
+  }
+
   public String getName() {
-      return NAME;
+    //for testing
+    if (name != null) {
+      return name;
+    }
+    return NAME;
   }
 
   public String getDatasetName() {
+    //for testing
+    if (name != null) {
+      return name;
+    }
     return NAME;
   }
 
   public String getMetaDataFileName() {
+    //for testing
+    if (name != null) {
+      return name;
+    }
     return NAME;
   }
 
