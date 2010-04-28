@@ -136,7 +136,7 @@ public final class ParallelDialog implements AbstractParallelDialog {
   void action(ActionEvent event) {
     String command = event.getActionCommand();
     if (command.equals(btnRunProcess.getText())) {
-      manager.processchunks(btnRunProcess, null, ltfProcessName.getText());
+      manager.processchunks(btnRunProcess, null, ltfProcessName.getText(),null);
     }
   }
 
@@ -190,6 +190,9 @@ public final class ParallelDialog implements AbstractParallelDialog {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.23  2009/09/20 21:33:14  sueh
+ * <p> bug# 1268 Added timestamp and dialog identification to log.
+ * <p>
  * <p> Revision 1.22  2009/02/26 19:56:11  sueh
  * <p> bug# 1185 Allowing a larger string of zeros in the comscript name.
  * <p>
