@@ -28,7 +28,10 @@ import etomo.type.Run3dmodMenuOptions;
  * 
  * @version $Revision$
  * 
- * <p> $Log$ </p>
+ * <p> $Log$
+ * <p> Revision 1.1  2010/01/21 21:31:25  sueh
+ * <p> bug# 1305 Factored filter full volume panel out of AnisotropicDiffusionDialog.
+ * <p> </p>
  */
 final class FilterFullVolumePanel implements Run3dmodButtonContainer {
   public static final String rcsid = "$Id$";
@@ -158,9 +161,6 @@ final class FilterFullVolumePanel implements Run3dmodButtonContainer {
       final Run3dmodMenuOptions run3dmodMenuOptions) {
     if (command.equals(btnRunFilterFullVolume.getActionCommand())) {
       if (!parent.initSubdir()) {
-        return;
-      }
-      if (!manager.setupAnisotropicDiffusion()) {
         return;
       }
       manager.chunksetup(null, deferred3dmodButton, run3dmodMenuOptions,
