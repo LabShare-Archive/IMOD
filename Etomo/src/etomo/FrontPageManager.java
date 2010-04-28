@@ -39,6 +39,10 @@ import etomo.ui.ProcessDisplay;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.2  2010/02/17 04:40:39  sueh
+ * <p> bug# 1301 Moved comScriptMgr and logPanel from BaseManager to child
+ * <p> class.
+ * <p>
  * <p> Revision 1.1  2009/10/27 20:38:42  sueh
  * <p> bug# 1275 A manager for the default dialog.
  * <p> </p>
@@ -69,6 +73,10 @@ public final class FrontPageManager extends BaseManager {
     return null;
   }
 
+  public FrontPageMetaData getMetaData() {
+    return metaData;
+  }
+
   public boolean setParamFile() {
     return loadedParamFile;
   }
@@ -76,11 +84,11 @@ public final class FrontPageManager extends BaseManager {
   public InterfaceType getInterfaceType() {
     return InterfaceType.PP;
   }
-  
+
   public LogInterface getLogInterface() {
     return null;
   }
-  
+
   public LogPanel getLogPanel() {
     return null;
   }
@@ -122,6 +130,10 @@ public final class FrontPageManager extends BaseManager {
     return null;
   }
 
+  public String getFileSubdirectoryName() {
+    return null;
+  }
+
   public MainPanel getMainPanel() {
     return mainPanel;
   }
@@ -132,7 +144,7 @@ public final class FrontPageManager extends BaseManager {
     storables[index++] = metaData;
     return storables;
   }
-  
+
   public boolean isInManagerFrame() {
     return false;
   }
@@ -178,10 +190,10 @@ public final class FrontPageManager extends BaseManager {
     this.paramFile = paramFile;
   }
 
-  void startNextProcess(final AxisID axisID, final String nextProcess,
+  void startNextProcess(final AxisID axisID,
+      final ProcessSeries.Process process,
       final ProcessResultDisplay processResultDisplay,
-      ProcessSeries processSeries, DialogType dialogType,
-      ProcessDisplay display, ProcessName subProcessName) {
+      ProcessSeries processSeries, DialogType dialogType, ProcessDisplay display) {
   }
 
   public String getName() {
