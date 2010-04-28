@@ -16,6 +16,7 @@ import etomo.type.ConstEtomoNumber;
 import etomo.type.ConstIntKeyList;
 import etomo.type.DebugLevel;
 import etomo.type.EtomoNumber;
+import etomo.type.FileType;
 import etomo.type.IteratorElementList;
 import etomo.type.ParsedArray;
 import etomo.type.ProcessName;
@@ -36,6 +37,10 @@ import etomo.util.DatasetFiles;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.17  2010/02/17 04:47:45  sueh
+ * <p> bug# 1301 Using the manager instead of the manager key do pop up
+ * <p> messages.
+ * <p>
  * <p> Revision 1.16  2010/01/11 23:48:24  sueh
  * <p> bug# 1299 Added isMessageReporter.
  * <p>
@@ -114,10 +119,11 @@ public final class AnisotropicDiffusionParam implements CommandDetails {
   private String subdirName = "";
   private String inputFileName = "";
   private DebugLevel debugLevel = DebugLevel.LOW;
-  private CommandMode commandMode = null;
+  private final CommandMode mode;
 
-  public AnisotropicDiffusionParam(final BaseManager manager) {
+  public AnisotropicDiffusionParam(final BaseManager manager, CommandMode mode) {
     this.manager = manager;
+    this.mode = mode;
     iterationList = new IteratorElementList(manager, AxisID.ONLY,
         AnisotropicDiffusionDialog.ITERATION_LIST_LABEL);
   }
@@ -315,12 +321,8 @@ public final class AnisotropicDiffusionParam implements CommandDetails {
     return AxisID.ONLY;
   }
 
-  public void setCommandMode(CommandMode input) {
-    commandMode = input;
-  }
-
   public CommandMode getCommandMode() {
-    return commandMode;
+    return mode;
   }
 
   public File getCommandOutputFile() {
@@ -341,6 +343,24 @@ public final class AnisotropicDiffusionParam implements CommandDetails {
 
   public String getName() {
     return PROCESS_NAME.toString();
+  }
+
+  public FileType getOutputImageFileType() {
+    System.out.println("getOutputImageFileType:commandMode=" + mode);
+    if (mode == Mode.VARYING_K) {
+      return FileType.NAD_TEST_VARYING_K;
+    }
+    if (mode == Mode.VARYING_ITERATIONS) {
+      return FileType.NAD_TEST_VARYING_ITERATIONS;
+    }
+    if (mode == Mode.FULL) {
+      return FileType.ANISOTROPIC_DIFFUSION_OUTPUT;
+    }
+    return null;
+  }
+
+  public FileType getOutputImageFileType2() {
+    return null;
   }
 
   public List getLogMessage() throws LogFile.LockException,
@@ -451,6 +471,8 @@ public final class AnisotropicDiffusionParam implements CommandDetails {
 
   public final static class Mode implements CommandMode {
     public static final Mode VARYING_K = new Mode("VaryingK");
+    public static final Mode VARYING_ITERATIONS = new Mode("VaryingIterations");
+    public static final Mode FULL = new Mode("Full");
 
     private final String string;
 
