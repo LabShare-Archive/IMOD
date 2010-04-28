@@ -12,6 +12,9 @@
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.2  2004/06/01 18:54:21  rickg
+ * <p> Comment fixes
+ * <p>
  * <p> Revision 1.1  2004/02/12 04:35:59  rickg
  * <p> Initial revision
  * <p> </p>
@@ -28,13 +31,6 @@ public class FortranInputStringTest extends TestCase {
    */
   protected void setUp() throws Exception {
     super.setUp();
-  }
-
-  /*
-   * @see TestCase#tearDown()
-   */
-  protected void tearDown() throws Exception {
-    super.tearDown();
   }
 
   /**
