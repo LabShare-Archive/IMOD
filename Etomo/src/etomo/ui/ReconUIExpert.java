@@ -8,6 +8,7 @@ import etomo.type.AxisID;
 import etomo.type.ConstProcessSeries;
 import etomo.type.DialogExitState;
 import etomo.type.DialogType;
+import etomo.type.FileType;
 import etomo.type.MetaData;
 import etomo.type.ProcessEndState;
 import etomo.type.ProcessResult;
@@ -167,14 +168,15 @@ public abstract class ReconUIExpert implements UIExpert {
    */
   final void processchunks(BaseManager manager, AbstractParallelDialog dialog,
       ProcessResultDisplay processResultDisplay,
-      ConstProcessSeries processSeries, ProcessName processName) {
+      ConstProcessSeries processSeries, ProcessName processName,
+      FileType outputImageFileType) {
     sendMsgProcessStarting(processResultDisplay);
     if (dialog == null) {
       sendMsg(ProcessResult.FAILED_TO_START, processResultDisplay);
       return;
     }
     ProcesschunksParam param = new ProcesschunksParam(manager, axisID,
-        processName);
+        processName, outputImageFileType);
     ParallelPanel parallelPanel = manager.getMainPanel().getParallelPanel(
         axisID);
     dialog.getParameters(param);
@@ -209,6 +211,9 @@ public abstract class ReconUIExpert implements UIExpert {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.13  2010/03/03 05:06:43  sueh
+ * <p> bug# 1311 Removed unnecessary ProcessName references.
+ * <p>
  * <p> Revision 1.12  2010/02/17 05:03:12  sueh
  * <p> bug# 1301 Using manager instead of manager key for popping up messages.
  * <p>
