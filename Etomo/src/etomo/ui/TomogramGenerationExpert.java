@@ -95,12 +95,12 @@ public final class TomogramGenerationExpert extends ReconUIExpert {
   /**
    * Start the next process specified by the nextProcess string
    */
-  public void startNextProcess(String nextProcess,
+  public void startNextProcess(ProcessSeries.Process process,
       ProcessResultDisplay processResultDisplay, ProcessSeries processSeries,
-      DialogType dialogType, ProcessDisplay display, ProcessName subProcessName) {
-    if (nextProcess.equals(ProcessName.PROCESSCHUNKS.toString())) {
+      DialogType dialogType, ProcessDisplay display) {
+    if (process.equals(ProcessName.PROCESSCHUNKS.toString())) {
       processchunks(manager, dialog, processResultDisplay, processSeries,
-          ProcessName.TILT);
+          ProcessName.TILT, process.getOutputImageFileType());
     }
   }
 
@@ -215,6 +215,9 @@ public final class TomogramGenerationExpert extends ReconUIExpert {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.34  2010/03/05 04:06:04  sueh
+ * <p> bug# 1319 Added boolean initialize to setParameters(ConstTiltParam).
+ * <p>
  * <p> Revision 1.33  2010/02/17 05:03:12  sueh
  * <p> bug# 1301 Using manager instead of manager key for popping up messages.
  * <p>
