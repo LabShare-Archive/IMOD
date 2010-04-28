@@ -17,7 +17,11 @@ import etomo.type.FileType;
  * 
  * @version $Revision$
  * 
- * <p> $Log$ </p>
+ * <p> $Log$
+ * <p> Revision 3.1  2010/02/17 04:47:54  sueh
+ * <p> bug# 1301 Using the manager instead of the manager key do pop up
+ * <p> messages.
+ * <p> </p>
  */
 
 public final class ToolsComScriptManager extends BaseComScriptManager {
@@ -45,11 +49,12 @@ public final class ToolsComScriptManager extends BaseComScriptManager {
   public WarpVolParam getWarpVolParamFromFlatten(AxisID axisID) {
     // Initialize a WarpVolParam object from the com script command
     // object
-    WarpVolParam param = new WarpVolParam(manager, axisID);
+    WarpVolParam param = new WarpVolParam(manager, axisID,
+        WarpVolParam.Mode.TOOLS);
     initialize(param, scriptFlatten, WarpVolParam.COMMAND, axisID, false, false);
     return param;
   }
-  
+
   /**
    * Save the WarpVolParam command to the flatten com script
    * @param warpVolParam
