@@ -39,6 +39,9 @@ import etomo.util.InvalidParameterException;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.9  2010/04/09 03:01:55  sueh
+ * <p> bug# 1352 Passing the ProcessResultDisplay via parameter instead of retrieving it with a function so that it always be passed.
+ * <p>
  * <p> Revision 3.8  2010/03/27 05:10:37  sueh
  * <p> bug# 1333 Added panel id.
  * <p>
@@ -183,6 +186,7 @@ final class Tilt3dFindPanel extends AbstractTiltPanel {
     }
     param.setOutputFile(FileType.TILT_3D_FIND_OUTPUT.getFileName(manager,
         axisID));
+    param.setCommandMode(TiltParam.Mode.TILT_3D_FIND);
     param.setProcessName(ProcessName.TILT_3D_FIND);
     super.getParameters(param);
     return true;

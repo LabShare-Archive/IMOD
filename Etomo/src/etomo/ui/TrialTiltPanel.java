@@ -38,7 +38,10 @@ import etomo.util.InvalidParameterException;
  * 
  * @version $Revision$
  * 
- * <p> $Log$ </p>
+ * <p> $Log$
+ * <p> Revision 3.1  2009/09/01 03:18:25  sueh
+ * <p> bug# 1222
+ * <p> </p>
  */
 final class TrialTiltPanel implements Expandable, Run3dmodButtonContainer,
     TrialTiltDisplay {
@@ -182,6 +185,7 @@ final class TrialTiltPanel implements Expandable, Run3dmodButtonContainer,
 
   public boolean getParameters(TiltParam tiltParam)
       throws NumberFormatException, InvalidParameterException, IOException {
+    tiltParam.setCommandMode(TiltParam.Mode.TRIAL_TILT);
     return parent.getParameters(tiltParam);
   }
 
