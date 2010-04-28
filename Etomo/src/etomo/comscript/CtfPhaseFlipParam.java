@@ -1,9 +1,15 @@
 package etomo.comscript;
 
+import java.io.File;
+
+import etomo.BaseManager;
+import etomo.type.AxisID;
 import etomo.type.ConstEtomoNumber;
 import etomo.type.ConstStringParameter;
 import etomo.type.EtomoBoolean2;
 import etomo.type.EtomoNumber;
+import etomo.type.FileType;
+import etomo.type.ProcessName;
 import etomo.type.ScriptParameter;
 import etomo.type.StringParameter;
 
@@ -21,6 +27,9 @@ import etomo.type.StringParameter;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.4  2009/10/19 16:28:11  sueh
+ * <p> bug# 1253 Added invertTiltAngles.
+ * <p>
  * <p> Revision 1.3  2009/02/25 00:14:20  sueh
  * <p> bug# 1182 Made sphericalAberration a double.
  * <p>
@@ -60,6 +69,14 @@ public final class CtfPhaseFlipParam implements ConstCtfPhaseFlipParam,
       DEFOCUS_TOL_OPTION);
   private final StringParameter outputFileName = new StringParameter(
       "OutputFileName");
+
+  private final BaseManager manager;
+  private final AxisID axisID;
+
+  CtfPhaseFlipParam(final BaseManager manager, final AxisID axisID) {
+    this.manager = manager;
+    this.axisID = axisID;
+  }
 
   public void parseComScriptCommand(ComScriptCommand scriptCommand)
       throws BadComScriptException, InvalidParameterException,
@@ -111,6 +128,14 @@ public final class CtfPhaseFlipParam implements ConstCtfPhaseFlipParam,
     outputFileName.set(input);
   }
 
+  public FileType getOutputImageFileType() {
+    return FileType.CTF_CORRECTED_STACK;
+  }
+
+  public FileType getOutputImageFileType2() {
+    return null;
+  }
+
   public ConstEtomoNumber getSphericalAberration() {
     return sphericalAberration;
   }
@@ -157,5 +182,50 @@ public final class CtfPhaseFlipParam implements ConstCtfPhaseFlipParam,
 
   public void setDefocusTol(String input) {
     defocusTol.set(input);
+  }
+
+  public AxisID getAxisID() {
+    return axisID;
+  }
+
+  public String getCommand() {
+    return FileType.CTF_CORRECTION_COMSCRIPT.getFileName(manager, axisID);
+  }
+
+  public String[] getCommandArray() {
+    String[] array = { getCommandLine() };
+    return array;
+  }
+
+  public File getCommandInputFile() {
+    return null;
+  }
+
+  public String getCommandLine() {
+    return getCommand();
+  }
+  
+  public CommandMode getCommandMode() {
+    return null;
+  }
+  
+  public String getCommandName() {
+    return ProcessName.CTF_CORRECTION.toString();
+  }
+  
+  public File getCommandOutputFile() {
+    return null;
+  }
+  public ProcessName getProcessName() {
+    return ProcessName.CTF_CORRECTION;
+  }
+  public CommandDetails getSubcommandDetails() {
+    return null;
+  }
+  public ProcessName getSubcommandProcessName() {
+    return null;
+  }
+  public boolean isMessageReporter() {
+    return false;
   }
 }
