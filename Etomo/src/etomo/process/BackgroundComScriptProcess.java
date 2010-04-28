@@ -33,6 +33,10 @@ import etomo.util.Utilities;
  * @version $$Revision$$
  * 
  * <p> $Log$
+ * <p> Revision 1.33  2010/02/17 04:49:20  sueh
+ * <p> bug# 1301 Using the manager instead of the manager key do pop up
+ * <p> messages.
+ * <p>
  * <p> Revision 1.32  2009/03/17 00:33:58  sueh
  * <p> bug# 1186 Pass managerKey to everything that pops up a dialog.
  * <p>
@@ -229,6 +233,15 @@ public class BackgroundComScriptProcess extends ComScriptProcess {
     this.axisID = axisID;
     this.manager = manager;
     setParseLogFile(false);
+  }
+
+  void closeOutputImageFile() {
+    if (comscriptState == null) {
+      return;
+    }
+    manager.closeStaleFile(comscriptState.getOutputImageFileType(), axisID);
+    manager.closeStaleFile(comscriptState.getOutputImageFileType2(), axisID);
+    manager.closeStaleFile(comscriptState.getOutputImageFileType3(), axisID);
   }
 
   /**
