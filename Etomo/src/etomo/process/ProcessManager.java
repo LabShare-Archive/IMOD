@@ -20,6 +20,9 @@
  * 
  * <p>
  * $Log$
+ * Revision 3.149  2010/03/19 21:58:08  sueh
+ * bug# 1335 FlattenWarpLog no longer an n'ton.
+ *
  * Revision 3.148  2010/03/12 04:07:54  sueh
  * bug# 1325 Turned on use button warnings in TomogramState.
  *
@@ -974,7 +977,9 @@ import etomo.comscript.ClipParam;
 import etomo.comscript.CombineComscriptState;
 import etomo.comscript.Command;
 import etomo.comscript.CommandDetails;
+import etomo.comscript.ConstCtfPhaseFlipParam;
 import etomo.comscript.ConstFindBeads3dParam;
+import etomo.comscript.ConstMTFFilterParam;
 import etomo.comscript.ConstSplitCorrectionParam;
 import etomo.comscript.ConstTiltParam;
 import etomo.comscript.CtfPhaseFlipParam;
@@ -998,6 +1003,7 @@ import etomo.comscript.TiltParam;
 import etomo.comscript.TiltalignParam;
 import etomo.comscript.TransferfidParam;
 import etomo.comscript.TrimvolParam;
+import etomo.comscript.WarpVolParam;
 
 import java.io.File;
 import java.io.IOException;
@@ -1120,9 +1126,8 @@ public class ProcessManager extends BaseProcessManager {
   public String ccdEraser(CCDEraserParam param, AxisID axisID,
       ProcessResultDisplay processResultDisplay,
       ConstProcessSeries processSeries) throws SystemProcessException {
-    BackgroundProcess backgroundProcess = startBackgroundProcess(param
-        .getCommandArray(), axisID, processResultDisplay,
-        ProcessName.CCD_ERASER, processSeries);
+    BackgroundProcess backgroundProcess = startBackgroundProcess(param, axisID,
+        processResultDisplay, ProcessName.CCD_ERASER, processSeries);
     return backgroundProcess.getName();
   }
 
@@ -1194,7 +1199,7 @@ public class ProcessManager extends BaseProcessManager {
    * @param axisID
    *          the identifyer of the axis to coarse align.
    */
-  public String coarseAlign(AxisID axisID,
+  public String coarseAlign(NewstParam param, AxisID axisID,
       ProcessResultDisplay processResultDisplay,
       ConstProcessSeries processSeries) throws SystemProcessException {
 
@@ -1206,7 +1211,8 @@ public class ProcessManager extends BaseProcessManager {
 
     //  Start the com script in the background
     ComScriptProcess comScriptProcess = startComScript(command,
-        prenewstProcessMonitor, axisID, processResultDisplay, processSeries);
+        prenewstProcessMonitor, axisID, processResultDisplay, param,
+        processSeries);
     return comScriptProcess.getName();
   }
 
@@ -1596,7 +1602,7 @@ public class ProcessManager extends BaseProcessManager {
    * @param axisID
    *          the AxisID to run newst on.
    */
-  public String mtffilter(AxisID axisID,
+  public String mtffilter(ConstMTFFilterParam param, AxisID axisID,
       ProcessResultDisplay processResultDisplay,
       ConstProcessSeries processSeries) throws SystemProcessException {
     String command = "mtffilter" + axisID.getExtension() + ".com";
@@ -1604,7 +1610,8 @@ public class ProcessManager extends BaseProcessManager {
         appManager, axisID);
     //  Start the com script in the background
     ComScriptProcess comScriptProcess = startComScript(command,
-        mtffilterProcessMonitor, axisID, processResultDisplay, processSeries);
+        mtffilterProcessMonitor, axisID, processResultDisplay, param,
+        processSeries);
     return comScriptProcess.getName();
   }
 
@@ -1615,14 +1622,14 @@ public class ProcessManager extends BaseProcessManager {
     startNonBlockingComScript(command, axisID, processResultDisplay);
   }
 
-  public String ctfCorrection(AxisID axisID,
+  public String ctfCorrection(ConstCtfPhaseFlipParam param, AxisID axisID,
       ProcessResultDisplay processResultDisplay,
       ConstProcessSeries processSeries) throws SystemProcessException {
     String command = ProcessName.CTF_CORRECTION.getComscript(axisID);
     CtfCorrectionMonitor monitor = new CtfCorrectionMonitor(appManager, axisID);
     //  Start the com script in the background
     ComScriptProcess comScriptProcess = startComScript(command, monitor,
-        axisID, processResultDisplay, processSeries);
+        axisID, processResultDisplay, param, processSeries);
     return comScriptProcess.getName();
   }
 
@@ -1986,7 +1993,7 @@ public class ProcessManager extends BaseProcessManager {
   /**
    * Run the appropriate flatten com file for the given axis ID
    */
-  public String flatten(AxisID axisID,
+  public String flatten(WarpVolParam param, AxisID axisID,
       ProcessResultDisplay processResultDisplay,
       ConstProcessSeries processSeries) throws SystemProcessException {
     //  Create the required tilt command
@@ -1997,7 +2004,7 @@ public class ProcessManager extends BaseProcessManager {
         .getFlattenInstance(appManager, axisID, null);
     //  Start the com script in the background
     ComScriptProcess comScriptProcess = startComScript(command, monitor,
-        axisID, processResultDisplay, processSeries);
+        axisID, processResultDisplay, param, processSeries);
     return comScriptProcess.getName();
   }
 

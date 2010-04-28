@@ -3,6 +3,7 @@ package etomo.process;
 import etomo.BaseManager;
 import etomo.ToolsManager;
 import etomo.comscript.FlattenWarpParam;
+import etomo.comscript.WarpVolParam;
 import etomo.type.AxisID;
 import etomo.type.ConstProcessSeries;
 import etomo.type.FileType;
@@ -21,7 +22,10 @@ import etomo.type.ProcessResultDisplay;
  * 
  * @version $Revision$
  * 
- * <p> $Log$ </p>
+ * <p> $Log$
+ * <p> Revision 1.1  2010/02/17 04:49:00  sueh
+ * <p> bug# 1301 Process manager for tools processes.
+ * <p> </p>
  */
 public final class ToolsProcessManager extends BaseProcessManager {
   public static final String rcsid = "$Id$";
@@ -36,7 +40,7 @@ public final class ToolsProcessManager extends BaseProcessManager {
   /**
    * Run the appropriate flatten com file for the given axis ID
    */
-  public String flatten(final AxisID axisID,
+  public String flatten(final WarpVolParam param, final AxisID axisID,
       final ProcessResultDisplay processResultDisplay,
       final ConstProcessSeries processSeries, final FileType fileType)
       throws SystemProcessException {
@@ -47,7 +51,7 @@ public final class ToolsProcessManager extends BaseProcessManager {
         .getFlattenInstance(manager, axisID, fileType);
     //  Start the com script in the background
     ComScriptProcess comScriptProcess = startComScript(command, monitor,
-        axisID, processResultDisplay, processSeries, fileType);
+        axisID, processResultDisplay, param, processSeries, fileType);
     return comScriptProcess.getName();
   }
 
