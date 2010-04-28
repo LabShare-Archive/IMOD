@@ -1,4 +1,5 @@
 package etomo.process;
+
 import java.io.*;
 
 import etomo.BaseManager;
@@ -21,6 +22,9 @@ import etomo.type.EtomoNumber;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.10  2007/02/05 22:58:38  sueh
+ * <p> bug# 962 Made EtomoNumber type info an inner class.
+ * <p>
  * <p> Revision 3.9  2006/06/21 15:48:39  sueh
  * <p> bug# 581 Added setCurrentStdInput() so that etomo can communicate with
  * <p> imodqtassist via stdin.
@@ -107,14 +111,14 @@ import etomo.type.EtomoNumber;
  * <p> </p>
  */
 public class InteractiveSystemProgram implements Runnable {
-  public static final String rcsid =
-    "$Id$";
+  public static final String rcsid = "$Id$";
 
   private BaseProcessManager processManager = null;
   private String threadName = null;
-  private EtomoNumber outputFileLastModified = new EtomoNumber(EtomoNumber.Type.LONG, "");
+  private EtomoNumber outputFileLastModified = new EtomoNumber(
+      EtomoNumber.Type.LONG, "");
   private final BaseManager manager;
-  
+
   /**
    * The exit value of the command
    */
@@ -140,31 +144,41 @@ public class InteractiveSystemProgram implements Runnable {
   private String exceptionMessage = "";
 
   private OutputStream cmdIn = null;
+
   /**
    * Creates a SystemProgram object to execute the program specified by the
    * argument <i>command</i>
    * @param command The string containng the command to run
    */
-  public InteractiveSystemProgram(BaseManager manager, String[] commandArray, AxisID axisID) {
+  public InteractiveSystemProgram(BaseManager manager, String[] commandArray,
+      AxisID axisID) {
     this.manager = manager;
     this.axisID = axisID;
     this.commandArray = commandArray;
   }
-  
+
   public InteractiveSystemProgram(BaseManager manager, Command command,
       BaseProcessManager processManager, AxisID axisID) {
     this.manager = manager;
     this.axisID = axisID;
     this.processManager = processManager;
     this.command = command;
-    
+
     if (command == null) {
       throw new IllegalArgumentException("CommandParam is null.");
     }
     commandArray = command.getCommandArray();
     commandLine = command.getCommandLine();
   }
-  
+
+  void closeOutputImageFile() {
+    if (command == null) {
+      return;
+    }
+    manager.closeStaleFile(command.getOutputImageFileType(), axisID);
+    manager.closeStaleFile(command.getOutputImageFileType2(), axisID);
+  }
+
   public void setCurrentStdInput(String input) throws IOException {
     if (inputBuffer != null) {
       inputBuffer.write(input);
@@ -175,11 +189,11 @@ public class InteractiveSystemProgram implements Runnable {
       cmdIn.flush();
     }
   }
-  
+
   public AxisID getAxisID() {
     return axisID;
   }
-  
+
   public void setName(String threadName) {
     this.threadName = threadName;
   }
@@ -192,11 +206,11 @@ public class InteractiveSystemProgram implements Runnable {
   public void setWorkingDirectory(File workingDirectory) {
     this.workingDirectory = workingDirectory;
   }
-  
+
   public String getCommandLine() {
     return commandLine;
   }
-  
+
   public String getCommandName() {
     if (command == null) {
       return null;
@@ -217,8 +231,7 @@ public class InteractiveSystemProgram implements Runnable {
     }
     try {
       if (workingDirectory == null) {
-        File currentUserDirectory = new File(manager
-            .getPropertyUserDir());
+        File currentUserDirectory = new File(manager.getPropertyUserDir());
         if (commandArray != null) {
           process = Runtime.getRuntime().exec(commandArray, null,
               currentUserDirectory);
@@ -234,7 +247,8 @@ public class InteractiveSystemProgram implements Runnable {
               workingDirectory);
         }
         else {
-          process = Runtime.getRuntime().exec(commandLine, null, workingDirectory);
+          process = Runtime.getRuntime().exec(commandLine, null,
+              workingDirectory);
         }
       }
 
@@ -310,11 +324,11 @@ public class InteractiveSystemProgram implements Runnable {
     }
     return line;
   }
-  
+
   public Command getCommand() {
     return command;
   }
-  
+
   public ConstEtomoNumber getOutputFileLastModified() {
     return outputFileLastModified;
   }
@@ -340,7 +354,7 @@ public class InteractiveSystemProgram implements Runnable {
   public int getExitValue() {
     return exitValue;
   }
-  
+
   public String getName() {
     return threadName;
   }
