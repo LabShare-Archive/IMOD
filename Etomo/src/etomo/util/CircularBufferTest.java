@@ -15,6 +15,9 @@ import junit.framework.TestCase;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.0  2003/11/07 23:19:01  rickg
+ * <p> Version 1.0.0
+ * <p>
  * <p> Revision 2.0  2003/01/24 20:30:31  rickg
  * <p> Single window merge to main branch
  * <p>
@@ -41,13 +44,6 @@ public class CircularBufferTest extends TestCase {
    */
   protected void setUp() throws Exception {
     super.setUp();
-  }
-
-  /**
-   * @see TestCase#tearDown()
-   */
-  protected void tearDown() throws Exception {
-    super.tearDown();
   }
 
   public void testCircularBuffer() {

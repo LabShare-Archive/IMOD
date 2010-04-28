@@ -31,10 +31,6 @@ public class FileModifiedFlagTest extends TestCase {
     }
     testFile = new File(testDir, "testfile");
   }
-
-  protected void tearDown() throws Exception {
-    super.tearDown();
-  }
   
   public final void testfileModifiedFlag() {
     FileModifiedFlag fileModifiedFlag = new FileModifiedFlag(testFile);
@@ -50,6 +46,9 @@ public class FileModifiedFlagTest extends TestCase {
 }
 /**
 * <p> $Log$
+* <p> Revision 1.14  2006/06/14 00:44:42  sueh
+* <p> bug# 852 Removed selfTestInvariants() because there isn't much to test.
+* <p>
 * <p> Revision 1.13  2005/11/10 18:18:13  sueh
 * <p> bug# 758 Placed the root test directory in a File object in JUnitTests.  It is
 * <p> instanciated once so there won't be a problem if the working directory is
