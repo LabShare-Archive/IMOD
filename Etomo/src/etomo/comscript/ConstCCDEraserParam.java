@@ -1,5 +1,7 @@
 package etomo.comscript;
 
+import etomo.type.FileType;
+
 /**
  * <p>Description: A read only model of the parameter interface for the
  *  ccderaser program</p>
@@ -14,6 +16,9 @@ package etomo.comscript;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.3  2007/12/13 21:54:13  sueh
+ * <p> bug# 1057 Added boundaryReplacementList.
+ * <p>
  * <p> Revision 3.2  2005/02/22 20:55:00  sueh
  * <p> bug# 600 Making parameter name constants into public static final strings.
  * <p>
@@ -42,8 +47,7 @@ package etomo.comscript;
  */
 
 public class ConstCCDEraserParam {
-  public static final String rcsid =
-    "$Id$";
+  public static final String rcsid = "$Id$";
 
   public static final String ANNULUS_WIDTH_KEY = "AnnulusWidth";
   public static final String INPUT_FILE_KEY = "InputFile";
@@ -62,9 +66,13 @@ public class ConstCCDEraserParam {
   public static final String POLYNOMIAL_ORDER_KEY = "PolynomialOrder";
   public static final String TRIAL_MODE_KEY = "TrialMode";
   public static final String BOUNDARY_OBJECTS_KEY = "BoundaryObjects";
-  
+
   protected String inputFile = "";
   protected String outputFile = "";
+  /**
+   * Set to null when outputFile assigned to an unknown file
+   */
+  FileType outputFileType = null;
 
   protected boolean findPeaks = false;
   protected String peakCriterion = "";
@@ -77,7 +85,7 @@ public class ConstCCDEraserParam {
   protected String xyScanSize = "";
   protected String pointModel = "";
   protected boolean trialMode;
-  
+
   protected String modelFile = "";
   protected String globalReplacementList = "";
   protected String localReplacementList = "";
@@ -85,10 +93,10 @@ public class ConstCCDEraserParam {
   protected String borderPixels = "";
   protected String polynomialOrder = "";
   protected boolean includeAdjacentPoints = true;
-      
+
   //out of date parameter
   String outerRadius = ""; //replaced by annulusWidth
-  
+
   public boolean isValid() {
     boolean valid = true;
 
@@ -109,27 +117,35 @@ public class ConstCCDEraserParam {
   public String getInputFile() {
     return inputFile;
   }
+
   public String getOutputFile() {
     return outputFile;
   }
+
   public String getModelFile() {
     return modelFile;
   }
+
   public String getGlobalReplacementList() {
     return globalReplacementList;
   }
+
   public String getlocalReplacementList() {
     return localReplacementList;
   }
+
   public String getBoundaryReplacementList() {
     return boundaryReplacementList;
   }
+
   public String getBorderPixels() {
     return borderPixels;
   }
+
   public String getPolynomialOrder() {
     return polynomialOrder;
   }
+
   public boolean getIncludeAdjacentPoints() {
     return includeAdjacentPoints;
   }
@@ -210,6 +226,5 @@ public class ConstCCDEraserParam {
   public String getScanCriterion() {
     return scanCriterion;
   }
-
 
 }
