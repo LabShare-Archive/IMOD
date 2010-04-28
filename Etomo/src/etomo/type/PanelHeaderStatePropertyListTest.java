@@ -17,7 +17,10 @@ import junit.framework.TestCase;
  * 
  * @version $Revision$
  * 
- * <p> $Log$ </p>
+ * <p> $Log$
+ * <p> Revision 1.1  2009/09/01 03:09:51  sueh
+ * <p> bug# 1222 Test for PanelHeaderStatePropertyList.
+ * <p> </p>
  */
 public class PanelHeaderStatePropertyListTest extends TestCase {
   public static final String rcsid = "$Id$";
@@ -37,10 +40,6 @@ public class PanelHeaderStatePropertyListTest extends TestCase {
     super.setUp();
     panelHeaderState1.setMoreLessState("more");
     panelHeaderState2.setOpenCloseState("close");
-  }
-
-  protected void tearDown() throws Exception {
-    super.tearDown();
   }
 
   public void testPanelHeaderStatePropertyList() {

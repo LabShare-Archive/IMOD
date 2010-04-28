@@ -20,7 +20,10 @@ import junit.framework.TestCase;
  * 
  * @version $Revision$
  * 
- * <p> $Log$ </p>
+ * <p> $Log$
+ * <p> Revision 1.1  2009/09/01 03:01:05  sueh
+ * <p> bug# 1222 Test for FortranInputStringPropertyList.
+ * <p> </p>
  */
 public class FortranInputStringPropertyListTest extends TestCase {
   public static final String rcsid = "$Id$";
@@ -37,10 +40,6 @@ public class FortranInputStringPropertyListTest extends TestCase {
 
   protected void setUp() throws Exception {
     super.setUp();
-  }
-
-  protected void tearDown() throws Exception {
-    super.tearDown();
   }
 
   public void testFortranInputStringPropertyList()
