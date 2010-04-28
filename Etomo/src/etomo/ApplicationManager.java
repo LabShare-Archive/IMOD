@@ -21,7 +21,9 @@ import etomo.comscript.CombineComscriptState;
 import etomo.comscript.CombineParams;
 import etomo.comscript.Command;
 import etomo.comscript.ConstCombineParams;
+import etomo.comscript.ConstCtfPhaseFlipParam;
 import etomo.comscript.ConstFindBeads3dParam;
+import etomo.comscript.ConstMTFFilterParam;
 import etomo.comscript.ConstNewstParam;
 import etomo.comscript.ConstSetParam;
 import etomo.comscript.ConstSplitCorrectionParam;
@@ -649,8 +651,8 @@ public final class ApplicationManager extends BaseManager implements
         //Only warn once.
         state.setUseFixedStackWarning(axisID, false);
         //The use button wasn't pressed and the user is moving on to the next
-        //dialog.
-        uiHarness.openMessageDialog(this,
+        //dialog.  Don't put this message in the log.
+        uiHarness.openMessageDialog(null,
             "To use the fixed stack go back to Pre-processing and press the \""
                 + PreProcessingDialog.getUseFixedStackLabel() + "\" button.",
             "Entry Warning", axisID);
@@ -663,8 +665,8 @@ public final class ApplicationManager extends BaseManager implements
         openCoarseAlignDialog(axisID);
         // If there are raw stack imod processes open ask the user if they
         // should be closed.
-        closeImod(ImodManager.RAW_STACK_KEY, axisID, "raw stack");
-        closeImod(ImodManager.ERASED_STACK_KEY, axisID, "fixed stack");
+        closeImod(ImodManager.RAW_STACK_KEY, axisID, "raw stack", false);
+        closeImod(ImodManager.ERASED_STACK_KEY, axisID, "fixed stack", false);
       }
       else if (exitState != DialogExitState.SAVE) {
         processTrack.setPreProcessingState(ProcessState.INPROGRESS, axisID);
@@ -776,6 +778,7 @@ public final class ApplicationManager extends BaseManager implements
     processSeries.setRun3dmodDeferred(deferred3dmodButton, run3dmodMenuOptions);
     String threadName;
     try {
+      //Trial find X-rays only creates a model, does not change the image file.
       threadName = processMgr.eraser(axisID, processResultDisplay,
           processSeries, null);
     }
@@ -1012,24 +1015,16 @@ public final class ApplicationManager extends BaseManager implements
       ProcessResultDisplay processResultDisplay, DialogType dialogType) {
     sendMsgProcessStarting(processResultDisplay);
     mainPanel.setProgressBar("Using fixed stack", 1, axisID);
-    // Instantiate file objects for the original raw stack and the fixed stack
-    String rawStackFilename = propertyUserDir + File.separator
-        + metaData.getDatasetName() + axisID.getExtension() + ".st";
-    File rawStack = new File(rawStackFilename);
-    String rawStackRename = propertyUserDir + File.separator
-        + metaData.getDatasetName() + axisID.getExtension() + "_orig.st";
-    File rawRename = new File(rawStackRename);
-    File fixedStack = Utilities.getFile(this, true, axisID, "_fixed.st",
-        "erased stack");
-    if (fixedStack == null) {
+    File fixedXraysFile = FileType.FIXED_XRAYS_STACK.getFile(this, axisID);
+    if (!fixedXraysFile.exists()) {
       uiHarness.openMessageDialog(this,
           "Unable to rename.  Fixed stack does not exist.", "Entry Error",
           axisID);
       sendMsgProcessFailedToStart(processResultDisplay);
       return;
     }
-    if (!Utilities.isValidStack(fixedStack, this, axisID)) {
-      uiHarness.openMessageDialog(this, fixedStack.getName()
+    if (!Utilities.isValidStack(fixedXraysFile, this, axisID)) {
+      uiHarness.openMessageDialog(this, fixedXraysFile.getName()
           + " is not a valid MRC file.", "Entry Error", axisID);
       sendMsgProcessFailedToStart(processResultDisplay);
       return;
@@ -1039,11 +1034,11 @@ public final class ApplicationManager extends BaseManager implements
     // Rename the fixed stack to the raw stack file name and save the orginal
     // raw stack to _orig.st if that does not already exist
     try {
-      if (!rawRename.exists()) {
-        Utilities.renameFile(rawStack, rawRename);
+      if (!FileType.ORIGINAL_RAW_STACK.getFile(this, axisID).exists()) {
+        renameImageFile(FileType.RAW_STACK, FileType.ORIGINAL_RAW_STACK, axisID);
       }
       if (renameXrayStack(axisID)) {
-        Utilities.renameFile(fixedStack, rawStack);
+        renameImageFile(FileType.FIXED_XRAYS_STACK, FileType.RAW_STACK, axisID);
       }
       sendMsgProcessSucceeded(processResultDisplay);
     }
@@ -1053,7 +1048,6 @@ public final class ApplicationManager extends BaseManager implements
       sendMsgProcessFailed(processResultDisplay);
     }
     state.setUseFixedStackWarning(axisID, false);
-    closeImod(ImodManager.RAW_STACK_KEY, axisID, "raw stack");
     // An _orig.st file may have been created, so refresh the Clean Up dialog's
     // archive fields.
     if (cleanUpDialog != null) {
@@ -1264,7 +1258,7 @@ public final class ApplicationManager extends BaseManager implements
           // Check to see if the user wants to keep any coarse aligned imods
           // open
           closeImod(ImodManager.COARSE_ALIGNED_KEY, axisID,
-              "coarsely aligned stack");
+              "coarsely aligned stack", false);
         }
         else {
           openFiducialModelDialog(axisID);
@@ -1575,6 +1569,7 @@ public final class ApplicationManager extends BaseManager implements
     sendMsgProcessStarting(processResultDisplay);
     ProcessName processName;
     BlendmontParam blendmontParam = null;
+    NewstParam prenewstParam = null;
     if (metaData.getViewType() == ViewType.MONTAGE) {
       try {
         blendmontParam = updatePreblendCom(blendmontDisplay, axisID);
@@ -1595,7 +1590,7 @@ public final class ApplicationManager extends BaseManager implements
     }
     else {
       try {
-        if (!updatePrenewstCom(newstackDisplay, axisID)) {
+        if ((prenewstParam = updatePrenewstCom(newstackDisplay, axisID)) == null) {
           sendMsgProcessFailedToStart(processResultDisplay);
           return;
         }
@@ -1623,8 +1618,8 @@ public final class ApplicationManager extends BaseManager implements
             processResultDisplay, processSeries);
       }
       else {
-        threadName = processMgr.coarseAlign(axisID, processResultDisplay,
-            processSeries);
+        threadName = processMgr.coarseAlign(prenewstParam, axisID,
+            processResultDisplay, processSeries);
       }
     }
     catch (SystemProcessException e) {
@@ -1866,7 +1861,7 @@ public final class ApplicationManager extends BaseManager implements
    * @param axisID
    * @return
    */
-  private boolean updatePrenewstCom(NewstackDisplay display, AxisID axisID)
+  private NewstParam updatePrenewstCom(NewstackDisplay display, AxisID axisID)
       throws InvalidParameterException, IOException {
     NewstParam prenewstParam = comScriptMgr.getPrenewstParam(axisID);
     try {
@@ -1879,10 +1874,10 @@ public final class ApplicationManager extends BaseManager implements
       errorMessage[2] = except.getMessage();
       UIHarness.INSTANCE.openMessageDialog(this, errorMessage,
           "Prenewst Parameter Syntax Error", axisID);
-      return false;
+      return null;
     }
     comScriptMgr.savePrenewst(prenewstParam, axisID);
-    return true;
+    return prenewstParam;
   }
 
   /**
@@ -2013,8 +2008,8 @@ public final class ApplicationManager extends BaseManager implements
       if (!isExiting() && exitState != DialogExitState.POSTPONE
           && state.isUseRaptorResultWarning()) {
         //The use button wasn't pressed and the user is moving on to the next
-        //dialog.
-        uiHarness.openMessageDialog(this,
+        //dialog.  Don't put this message in the log.
+        uiHarness.openMessageDialog(null,
             "To use the RAPTOR result go back to Fiducial Model and press the \""
                 + FiducialModelDialog.getUseRaptorResultLabel() + "\" button.",
             "Entry Warning", axisID);
@@ -2757,23 +2752,28 @@ public final class ApplicationManager extends BaseManager implements
         // Check to see if the user wants to keep any coarse aligned imods
         // open
         closeImod(ImodManager.COARSE_ALIGNED_KEY, axisID,
-            "coarsely aligned stack");
-        closeImod(ImodManager.FIDUCIAL_MODEL_KEY, axisID, "fiducial model");
+            "coarsely aligned stack", false);
+        closeImod(ImodManager.FIDUCIAL_MODEL_KEY, axisID, "fiducial model",
+            false);
         getUIExpert(DialogType.TOMOGRAM_POSITIONING, axisID).openDialog();
       }
       saveStorables(axisID);
     }
   }
+  
+  public String getFileSubdirectoryName() {
+    return null;
+  }
 
   public void closeImods(String key, AxisID axisID, String description) {
-    // Check to see if the user wants to keep any imods open
+    // Check to see if the user wants to keep any imods open.  Don't log message.
     try {
       if (imodManager.isOpen(key, axisID)) {
         if (!EtomoDirector.INSTANCE.getArguments().isAutoClose3dmod()) {
           String[] message = new String[2];
           message[0] = description + "(s) are open in 3dmod";
           message[1] = "Should they be closed?";
-          if (uiHarness.openYesNoDialog(this, message, axisID)) {
+          if (uiHarness.openYesNoDialog(null, message, axisID)) {
             imodManager.quitAll(key, axisID);
           }
         }
@@ -2799,6 +2799,9 @@ public final class ApplicationManager extends BaseManager implements
   }
 
   private void closeImod(String key, String description) {
+    if (key == null) {
+      return;
+    }
     // Check to see if the user wants to keep any imods open
     try {
       if (imodManager.isOpen(key)) {
@@ -2806,7 +2809,7 @@ public final class ApplicationManager extends BaseManager implements
           String[] message = new String[2];
           message[0] = "The " + description + " is open in 3dmod";
           message[1] = "Should it be closed?";
-          if (uiHarness.openYesNoDialog(this, message, AxisID.ONLY)) {
+          if (uiHarness.openYesNoDialog(null, message, AxisID.ONLY)) {
             imodManager.quit(key);
           }
         }
@@ -2832,39 +2835,14 @@ public final class ApplicationManager extends BaseManager implements
     }
   }
 
-  public void closeImod(String key, AxisID axisID, String description) {
-    // Check to see if the user wants to keep any imods open
-    try {
-      if (imodManager.isOpen(key, axisID)) {
-        if (!EtomoDirector.INSTANCE.getArguments().isAutoClose3dmod()) {
-          String[] message = new String[2];
-          message[0] = "The " + description + " is open in 3dmod";
-          message[1] = "Should it be closed?";
-          if (uiHarness.openYesNoDialog(this, message, axisID)) {
-            imodManager.quit(key, axisID);
-          }
-        }
-        else {
-          imodManager.quit(key, axisID);
-        }
-      }
-    }
-    catch (AxisTypeException except) {
-      except.printStackTrace();
-      uiHarness.openMessageDialog(this, except.getMessage(),
-          "AxisType problem", axisID);
-    }
-    catch (IOException e) {
-      e.printStackTrace();
-      uiHarness.openMessageDialog(this, e.getMessage(), "IO Exception", axisID);
-    }
-    catch (SystemProcessException e) {
-      e.printStackTrace();
-      uiHarness.openMessageDialog(this, e.getMessage(),
-          "System Process Exception", axisID);
-    }
-  }
-
+  /**
+   * Allow a 3dmod to be closed even though it has an axis different from the
+   * axis of the frame where the message should be popped up.
+   * @param key
+   * @param frameAxisID
+   * @param imodAxisID
+   * @param description
+   */
   public void closeImod(String key, AxisID frameAxisID, AxisID imodAxisID,
       String description) {
     // Check to see if the user wants to keep any imods open
@@ -2874,7 +2852,7 @@ public final class ApplicationManager extends BaseManager implements
           String[] message = new String[2];
           message[0] = "The " + description + " is open in 3dmod";
           message[1] = "Should it be closed?";
-          if (uiHarness.openYesNoDialog(this, message, frameAxisID)) {
+          if (uiHarness.openYesNoDialog(null, message, frameAxisID)) {
             imodManager.quit(key, imodAxisID);
           }
         }
@@ -3942,8 +3920,7 @@ public final class ApplicationManager extends BaseManager implements
     display.getParameters(blendParam);
     blendParam.setMode(BlendmontParam.Mode.BLEND_3DFIND);
     blendParam.setBlendmontState();
-    blendParam.setImageOutputFile(FileType.NEWST_OR_BLEND_3D_FIND_OUTPUT
-        .getFileName(this, axisID));
+    blendParam.setImageOutputFile(FileType.NEWST_OR_BLEND_3D_FIND_OUTPUT);
     comScriptMgr.saveBlend3dFind(blendParam, axisID);
     //Update mrctaper
     MrcTaperParam mrcTaperParam = comScriptMgr
@@ -4350,12 +4327,12 @@ public final class ApplicationManager extends BaseManager implements
 
   /**
    */
-  public ProcessResult mtffilter(AxisID axisID,
+  public ProcessResult mtffilter(ConstMTFFilterParam param, AxisID axisID,
       ProcessResultDisplay processResultDisplay,
       ConstProcessSeries processSeries) {
     String threadName;
     try {
-      threadName = processMgr.mtffilter(axisID, processResultDisplay,
+      threadName = processMgr.mtffilter(param, axisID, processResultDisplay,
           processSeries);
     }
     catch (SystemProcessException e) {
@@ -4392,13 +4369,13 @@ public final class ApplicationManager extends BaseManager implements
     return null;
   }
 
-  public ProcessResult ctfCorrection(AxisID axisID,
-      ProcessResultDisplay processResultDisplay,
+  public ProcessResult ctfCorrection(ConstCtfPhaseFlipParam param,
+      AxisID axisID, ProcessResultDisplay processResultDisplay,
       ConstProcessSeries processSeries) {
     String threadName;
     try {
-      threadName = processMgr.ctfCorrection(axisID, processResultDisplay,
-          processSeries);
+      threadName = processMgr.ctfCorrection(param, axisID,
+          processResultDisplay, processSeries);
     }
     catch (SystemProcessException e) {
       e.printStackTrace();
@@ -4568,7 +4545,7 @@ public final class ApplicationManager extends BaseManager implements
         processSeries, splittiltParam, dialogType);
     if (processResult == null) {
       processSeries.setNextProcess(ProcessName.PROCESSCHUNKS.toString(),
-          ProcessName.TILT_3D_FIND);
+          ProcessName.TILT_3D_FIND, FileType.TILT_3D_FIND_OUTPUT);
     }
     sendMsg(processResult, processResultDisplay);
   }
@@ -4598,7 +4575,7 @@ public final class ApplicationManager extends BaseManager implements
         processSeries, splittiltParam, dialogType);
     if (processResult == null) {
       processSeries.setNextProcess(ProcessName.PROCESSCHUNKS.toString(),
-          ProcessName.TILT);
+          ProcessName.TILT, FileType.DUAL_AXIS_TOMOGRAM);
     }
     sendMsg(processResult, processResultDisplay);
   }
@@ -4629,6 +4606,8 @@ public final class ApplicationManager extends BaseManager implements
     if (processResult == null) {
       processSeries.setNextProcess(ProcessName.PROCESSCHUNKS.toString(),
           ProcessName.TILT);
+      closeImod(FileType.TRIAL_TOMOGRAM, tiltParam.getOutputFile(), axisID,
+          true);
     }
     sendMsg(processResult, processResultDisplay);
   }
@@ -4814,6 +4793,7 @@ public final class ApplicationManager extends BaseManager implements
       ProcessResultDisplay processResultDisplay,
       ConstProcessSeries processSeries, ConstTiltParam param,
       String processTitle) {
+    closeImod(FileType.TRIAL_TOMOGRAM, param.getOutputFile(), axisID, true);
     String threadName;
     try {
       threadName = processMgr.tilt(axisID, processResultDisplay, processSeries,
@@ -5316,32 +5296,30 @@ public final class ApplicationManager extends BaseManager implements
     }
     // rename the trial tomogram to the output filename of appropriate
     // tilt.com
-    File outputFile;
+    FileType outputFile;
     if (metaData.getAxisType() == AxisType.SINGLE_AXIS) {
-      outputFile = new File(propertyUserDir, metaData.getDatasetName()
-          + "_full.rec");
+      outputFile = FileType.SINGLE_AXIS_TOMOGRAM;
     }
     else {
-      outputFile = new File(propertyUserDir, metaData.getDatasetName()
-          + axisID.getExtension() + ".rec");
+      outputFile = FileType.DUAL_AXIS_TOMOGRAM;
     }
     mainPanel.setProgressBar("Using trial tomogram: " + trialTomogramName, 1,
         axisID);
-    if (outputFile.exists() && trialTomogramFile.exists()) {
+    if (outputFile.getFile(this, axisID).exists() && trialTomogramFile.exists()) {
       try {
-        Utilities.renameFile(outputFile, new File(outputFile.getAbsolutePath()
-            + "~"));
+        backupImageFile(outputFile, axisID);
       }
       catch (IOException except) {
         uiHarness.openMessageDialog(this, "Unable to backup "
-            + outputFile.getAbsolutePath() + "\n" + except.getMessage(),
-            "File Rename Error", axisID);
+            + outputFile.getFile(this, axisID).getAbsolutePath() + "\n"
+            + except.getMessage(), "File Rename Error", axisID);
         mainPanel.stopProgressBar(axisID);
         return ProcessResult.FAILED;
       }
     }
     try {
-      Utilities.renameFile(trialTomogramFile, outputFile);
+      renameImageFile(FileType.TRIAL_TOMOGRAM, trialTomogramFile, outputFile,
+          axisID);
     }
     catch (IOException except) {
       uiHarness.openMessageDialog(this, except.getMessage(),
@@ -5757,7 +5735,7 @@ public final class ApplicationManager extends BaseManager implements
         processTrack.setTomogramCombinationState(ProcessState.COMPLETE);
         mainPanel.setTomogramCombinationState(ProcessState.COMPLETE);
         closeImod(ImodManager.FULL_VOLUME_KEY, AxisID.FIRST,
-            "axis A full volume");
+            "axis A full volume", false);
         closeImod(ImodManager.FULL_VOLUME_KEY, AxisID.FIRST, AxisID.SECOND,
             "axis B full volume");
         closeImod(ImodManager.MATCH_CHECK_KEY, AxisID.FIRST, AxisID.SECOND,
@@ -6225,13 +6203,18 @@ public final class ApplicationManager extends BaseManager implements
     // processing is not used and either the the "stop before running
     // volcombine"
     // checkbox is off or "Restart at volcombine" was pressed.
-    if (!tomogramCombinationDialog.usingParallelProcessing()
-        && (startCommand == CombineProcessType.VOLCOMBINE || tomogramCombinationDialog
-            .isRunVolcombine())) {
-      combineComscriptState.setEndCommand(CombineProcessType.VOLCOMBINE
-          .getIndex(), comScriptMgr);
+    if (startCommand == CombineProcessType.VOLCOMBINE
+        || tomogramCombinationDialog.isRunVolcombine()) {
+      //Pop up call close imod dialogs before running process since the processes
+      //before volcombine can take awhile.
+      combineComscriptState.setOutputImageFileType(FileType.COMBINED_VOLUME);
+      if (!tomogramCombinationDialog.usingParallelProcessing()) {
+        combineComscriptState.setEndCommand(CombineProcessType.VOLCOMBINE
+            .getIndex(), comScriptMgr);
+      }
     }
     else {
+      combineComscriptState.resetOutputImageFileType();
       combineComscriptState.setEndCommand(CombineProcessType.getInstance(
           CombineProcessType.VOLCOMBINE_INDEX - 1).getIndex(), comScriptMgr);
     }
@@ -6312,7 +6295,6 @@ public final class ApplicationManager extends BaseManager implements
 
     processTrack.setTomogramCombinationState(ProcessState.INPROGRESS);
     mainPanel.setTomogramCombinationState(ProcessState.INPROGRESS);
-    warnStaleFile(ImodManager.PATCH_VECTOR_MODEL_KEY, true);
     processSeries.setRun3dmodDeferred(deferred3dmodButton, run3dmodMenuOptions);
     String threadName;
     try {
@@ -6380,7 +6362,6 @@ public final class ApplicationManager extends BaseManager implements
     }
     processTrack.setTomogramCombinationState(ProcessState.INPROGRESS);
     mainPanel.setTomogramCombinationState(ProcessState.INPROGRESS);
-    warnStaleFile(ImodManager.PATCH_VECTOR_MODEL_KEY, true);
     // Check to see if solve.xf exists first
     File solveXf = new File(propertyUserDir, "solve.xf");
     if (!solveXf.exists()) {
@@ -6448,7 +6429,6 @@ public final class ApplicationManager extends BaseManager implements
 
     processTrack.setTomogramCombinationState(ProcessState.INPROGRESS);
     mainPanel.setTomogramCombinationState(ProcessState.INPROGRESS);
-    warnStaleFile(ImodManager.PATCH_VECTOR_MODEL_KEY, true);
 
     processSeries.setRun3dmodDeferred(deferred3dmodButton, run3dmodMenuOptions);
     String threadName;
@@ -6472,53 +6452,6 @@ public final class ApplicationManager extends BaseManager implements
     }
     setBackgroundThreadName(threadName, AxisID.FIRST,
         CombineComscriptState.COMSCRIPT_NAME);
-  }
-
-  private void warnStaleFile(String key, boolean future) {
-    warnStaleFile(key, null, future);
-  }
-
-  private void warnStaleFile(String key, AxisID axisID) {
-    warnStaleFile(key, axisID, false);
-  }
-
-  private void warnStaleFile(String key, AxisID axisID, boolean future) {
-    try {
-      if (imodManager.warnStaleFile(key, axisID)) {
-        if (!EtomoDirector.INSTANCE.getArguments().isAutoClose3dmod()) {
-          String[] message = new String[4];
-          if (future) {
-            message[0] = "3dmod is open to the existing " + key + ".";
-            message[1] = "A new " + key + " will be created on disk.";
-          }
-          else {
-            message[0] = "3dmod is open to the old " + key + ".";
-            message[1] = "A new " + key + " has been created on disk.";
-          }
-          message[2] = "You will not be able to see the new version of " + key
-              + " until you close this 3dmod.";
-          message[3] = "Do you wish to quit this 3dmod now?";
-          if (uiHarness.openYesNoDialog(this, message, axisID)) {
-            imodManager.quit(key, axisID);
-          }
-        }
-        else {
-          imodManager.quit(key, axisID);
-        }
-      }
-    }
-    catch (AxisTypeException e) {
-      e.printStackTrace();
-    }
-    catch (IOException e) {
-      e.printStackTrace();
-      uiHarness.openMessageDialog(this, e.getMessage(), "IO Exception", axisID);
-    }
-    catch (SystemProcessException e) {
-      e.printStackTrace();
-      uiHarness.openMessageDialog(this, e.getMessage(),
-          "System Process Exception", axisID);
-    }
   }
 
   /**
@@ -6884,7 +6817,8 @@ public final class ApplicationManager extends BaseManager implements
    * Open the trimmed volume in 3dmod
    */
   public void imodTrimmedVolume(Run3dmodMenuOptions menuOptions, AxisID axisID) {
-    TrimvolParam trimvolParam = new TrimvolParam(this);
+    TrimvolParam trimvolParam = new TrimvolParam(this,
+        TrimvolParam.Mode.POST_PROCESSING);
     if (!postProcessingDialog.getTrimvolParams(trimvolParam)) {
       return;
     }
@@ -7138,7 +7072,7 @@ public final class ApplicationManager extends BaseManager implements
     processSeries.setRun3dmodDeferred(deferred3dmodButton, run3dmodMenuOptions);
     String threadName;
     try {
-      threadName = processMgr.flatten(axisID, processResultDisplay,
+      threadName = processMgr.flatten(param, axisID, processResultDisplay,
           processSeries);
     }
     catch (SystemProcessException e) {
@@ -7396,7 +7330,8 @@ public final class ApplicationManager extends BaseManager implements
    */
   private TrimvolParam updateTrimvolParam() {
     // Get trimvol param data from dialog.
-    TrimvolParam dialogTrimvolParam = new TrimvolParam(this);
+    TrimvolParam dialogTrimvolParam = new TrimvolParam(this,
+        TrimvolParam.Mode.POST_PROCESSING);
     if (!postProcessingDialog.getTrimvolParams(dialogTrimvolParam)) {
       return null;
     }
@@ -7475,39 +7410,39 @@ public final class ApplicationManager extends BaseManager implements
   /**
    * Start the next process specified by the nextProcess string
    */
-  void startNextProcess(AxisID axisID, String nextProcess,
+  void startNextProcess(AxisID axisID, ProcessSeries.Process process,
       ProcessResultDisplay processResultDisplay, ProcessSeries processSeries,
-      DialogType dialogType, ProcessDisplay display, ProcessName subprocessName) {
+      DialogType dialogType, ProcessDisplay display) {
     UIExpert uiExpert = getUIExpert(dialogType, axisID);
     if (uiExpert != null) {
-      uiExpert.startNextProcess(nextProcess, processResultDisplay,
-          processSeries, dialogType, display, subprocessName);
+      uiExpert.startNextProcess(process, processResultDisplay, processSeries,
+          dialogType, display);
     }
-    else if (nextProcess.equals("checkUpdateFiducialModel")) {
+    else if (process.equals("checkUpdateFiducialModel")) {
       checkUpdateFiducialModel(axisID, processResultDisplay, processSeries);
     }
-    else if (nextProcess.equals(ArchiveorigParam.COMMAND_NAME)) {
+    else if (process.equals(ArchiveorigParam.COMMAND_NAME)) {
       archiveOriginalStack(AxisID.SECOND, processSeries, dialogType);
     }
-    else if (nextProcess.equals(ProcessName.PROCESSCHUNKS.toString())
-        && subprocessName == ProcessName.VOLCOMBINE) {
+    else if (process.equals(ProcessName.PROCESSCHUNKS.toString())
+        && process.getSubprocessName() == ProcessName.VOLCOMBINE) {
       processchunksVolcombine(processResultDisplay, processSeries);
     }
-    else if (nextProcess.equals(SplitcombineParam.COMMAND_NAME)) {
+    else if (process.equals(SplitcombineParam.COMMAND_NAME)) {
       splitcombine(processSeries, null, null, dialogType);
     }
-    else if (nextProcess.equals(ExtractpiecesParam.COMMAND_NAME)) {
+    else if (process.equals(ExtractpiecesParam.COMMAND_NAME)) {
       extractpieces(axisID, processResultDisplay, processSeries, dialogType);
     }
-    else if (nextProcess.equals(ExtractmagradParam.COMMAND_NAME)) {
+    else if (process.equals(ExtractmagradParam.COMMAND_NAME)) {
       extractmagrad(axisID, processResultDisplay, processSeries);
     }
-    else if (nextProcess.equals(ProcessName.XCORR.toString())) {
+    else if (process.equals(ProcessName.XCORR.toString())) {
       tiltxcorr(axisID, processResultDisplay, null, null, processSeries,
           dialogType, (TiltXcorrDisplay) display, true,
           FileType.CROSS_CORRELATION_COMSCRIPT);
     }
-    else if (nextProcess.equals(ProcessName.ERASER.toString())) {
+    else if (process.equals(ProcessName.ERASER.toString())) {
       eraser(axisID, processResultDisplay, processSeries, dialogType,
           (CcdEraserDisplay) display);
     }
@@ -7718,24 +7653,22 @@ public final class ApplicationManager extends BaseManager implements
   }
 
   /**
-   * Replace the full aligned stack with the ctf corrected full aligned stack
-   * created by ctfcorrection.com
+   * Replace the full aligned stack with the output of CTF correction or bead
+   * erase.
    * @return true if succeeded
    */
   public boolean useFileAsFullAlignedStack(
-      ProcessResultDisplay processResultDisplay, File output,
+      ProcessResultDisplay processResultDisplay, FileType outputFileType,
       String buttonLabel, AxisID axisID, DialogType dialogType) {
     sendMsgProcessStarting(processResultDisplay);
     if (isAxisBusy(axisID, processResultDisplay)) {
       return false;
     }
-    mainPanel.setProgressBar("Using " + output.getName()
+    File outputFile = outputFileType.getFile(this, axisID);
+    mainPanel.setProgressBar("Using " + outputFile.getName()
         + " as full aligned stack", 1, axisID);
-    // Instantiate file objects for the original raw stack and the fixed
-    // stack
-    File fullAlignedStack = DatasetFiles.getFullAlignedStackFile(this, axisID);
-    if (!output.exists()) {
-      UIHarness.INSTANCE.openMessageDialog(this, output.getAbsolutePath()
+    if (!outputFile.exists()) {
+      UIHarness.INSTANCE.openMessageDialog(this, outputFile.getName()
           + " doesn't exist.  Press " + buttonLabel + " to create this file.",
           buttonLabel + " Output Missing", axisID);
       sendMsg(ProcessResult.FAILED_TO_START, processResultDisplay);
@@ -7745,30 +7678,27 @@ public final class ApplicationManager extends BaseManager implements
       processTrack.setState(ProcessState.INPROGRESS, axisID, dialogType);
     }
     mainPanel.setState(ProcessState.INPROGRESS, axisID, dialogType);
-    if (fullAlignedStack.exists() && output.exists()) {
-      if (!Utilities.isValidStack(output, this, axisID)) {
-        uiHarness.openMessageDialog(this, output.getName()
+    if (FileType.ALIGNED_STACK.getFile(this, axisID).exists()
+        && outputFile.exists()) {
+      if (!Utilities.isValidStack(outputFile, this, axisID)) {
+        uiHarness.openMessageDialog(this, outputFile.getName()
             + " is not a valid MRC file.", "Entry Error", axisID);
         sendMsgProcessFailedToStart(processResultDisplay);
         return false;
       }
       try {
-        Utilities.renameFile(fullAlignedStack, new File(fullAlignedStack
-            .getAbsolutePath()
-            + "~"));
+        backupImageFile(FileType.ALIGNED_STACK, axisID);
       }
       catch (IOException except) {
         UIHarness.INSTANCE.openMessageDialog(this, "Unable to backup "
-            + fullAlignedStack.getAbsolutePath() + "\n" + except.getMessage(),
-            "File Rename Error", axisID);
+            + FileType.ALIGNED_STACK.getFileName(this, axisID) + "\n"
+            + except.getMessage(), "File Rename Error", axisID);
         sendMsg(ProcessResult.FAILED, processResultDisplay);
         return false;
       }
     }
-    // don't have to rename full aligned stack because it is a generated
-    // file
     try {
-      Utilities.renameFile(output, fullAlignedStack);
+      renameImageFile(outputFileType, FileType.ALIGNED_STACK, axisID);
     }
     catch (IOException except) {
       UIHarness.INSTANCE.openMessageDialog(this, except.getMessage(),
@@ -7776,8 +7706,6 @@ public final class ApplicationManager extends BaseManager implements
       sendMsg(ProcessResult.FAILED, processResultDisplay);
       return false;
     }
-    closeImod(ImodManager.FINE_ALIGNED_KEY, axisID,
-        "original full aligned stack");
     mainPanel.stopProgressBar(axisID);
     sendMsg(ProcessResult.SUCCEEDED, processResultDisplay);
     return true;
@@ -7785,9 +7713,8 @@ public final class ApplicationManager extends BaseManager implements
 
   public void useCcdEraser(ProcessResultDisplay processResultDisplay,
       AxisID axisID, DialogType dialogType, String ccdEraserLabel) {
-    useFileAsFullAlignedStack(processResultDisplay, DatasetFiles
-        .getErasedFiducialsFile(this, axisID), ccdEraserLabel, axisID,
-        dialogType);
+    useFileAsFullAlignedStack(processResultDisplay,
+        FileType.ERASED_BEADS_STACK, ccdEraserLabel, axisID, dialogType);
     state.setUseErasedStackWarning(axisID, false);
   }
 
@@ -8005,9 +7932,11 @@ public final class ApplicationManager extends BaseManager implements
   private void processchunksVolcombine(
       ProcessResultDisplay processResultDisplay,
       ConstProcessSeries processSeries) {
+    //CloseImod, including the one for processchunks volcombine is take care
+    //when combine.com is updated.
     processchunks(AxisID.ONLY, DialogType.TOMOGRAM_COMBINATION,
         tomogramCombinationDialog, processResultDisplay, processSeries,
-        ProcessName.VOLCOMBINE);
+        ProcessName.VOLCOMBINE, FileType.COMBINED_VOLUME);
   }
 
   /**
@@ -8016,13 +7945,15 @@ public final class ApplicationManager extends BaseManager implements
    */
   private void processchunks(AxisID axisID, DialogType dialogType,
       AbstractParallelDialog dialog, ProcessResultDisplay processResultDisplay,
-      ConstProcessSeries processSeries, ProcessName processName) {
+      ConstProcessSeries processSeries, ProcessName processName,
+      FileType outputImageFileType) {
     sendMsgProcessStarting(processResultDisplay);
     if (dialog == null) {
       sendMsgProcessFailedToStart(processResultDisplay);
       return;
     }
-    ProcesschunksParam param = new ProcesschunksParam(this, axisID, processName);
+    ProcesschunksParam param = new ProcesschunksParam(this, axisID,
+        processName, outputImageFileType);
     ParallelPanel parallelPanel = getMainPanel().getParallelPanel(axisID);
     dialog.getParameters(param);
     if (!parallelPanel.getParameters(param)) {
@@ -8100,6 +8031,10 @@ public final class ApplicationManager extends BaseManager implements
 }
 /**
  * <p> $Log$
+ * <p> Revision 3.356  2010/04/10 00:26:24  sueh
+ * <p> bug# 1349 Change closeImod, closeImods, makeFiducialModelSeedModel,
+ * <p> and warnStaleFile handle --autoclose3dmod.
+ * <p>
  * <p> Revision 3.355  2010/04/08 04:36:08  sueh
  * <p> bug# 1348 Preventing a silent failure of rename fixed stack in
  * <p> replaceRawStack.  Resetting use fixed stack warning as early as possible.
