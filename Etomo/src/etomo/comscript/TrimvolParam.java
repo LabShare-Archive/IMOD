@@ -11,6 +11,10 @@
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.40  2010/02/17 04:47:54  sueh
+ * <p> bug# 1301 Using the manager instead of the manager key do pop up
+ * <p> messages.
+ * <p>
  * <p> Revision 3.39  2010/01/11 23:49:01  sueh
  * <p> bug# 1299 Added isMessageReporter.
  * <p>
@@ -217,6 +221,7 @@ import etomo.type.BaseMetaData;
 import etomo.type.ConstEtomoNumber;
 import etomo.type.ConstIntKeyList;
 import etomo.type.EtomoNumber;
+import etomo.type.FileType;
 import etomo.type.IteratorElementList;
 import etomo.type.ProcessName;
 import etomo.type.TomogramState;
@@ -268,9 +273,11 @@ public class TrimvolParam implements CommandDetails {
   private boolean nSectionsChanged = false;
 
   private final BaseManager manager;
+  private final CommandMode mode;
 
-  public TrimvolParam(BaseManager manager) {
+  public TrimvolParam(final BaseManager manager, final CommandMode mode) {
     this.manager = manager;
+    this.mode = mode;
   }
 
   public AxisID getAxisID() {
@@ -887,6 +894,20 @@ public class TrimvolParam implements CommandDetails {
     return outputFile;
   }
 
+  public FileType getOutputImageFileType() {
+    if (mode == Mode.POST_PROCESSING) {
+      return FileType.TRIM_VOL_OUTPUT;
+    }
+    if (mode == Mode.NAD) {
+      return FileType.NAD_TEST_INPUT;
+    }
+    return null;
+  }
+
+  public FileType getOutputImageFileType2() {
+    return null;
+  }
+
   public static String getOutputFileName(String datasetName) {
     return datasetName + ".rec";
   }
@@ -1069,6 +1090,11 @@ public class TrimvolParam implements CommandDetails {
       return false;
     }
     return true;
+  }
+
+  public static final class Mode implements CommandMode {
+    public static final CommandMode POST_PROCESSING = new Mode();
+    public static final CommandMode NAD = new Mode();
   }
 
   public static final class Fields implements etomo.comscript.FieldInterface {
