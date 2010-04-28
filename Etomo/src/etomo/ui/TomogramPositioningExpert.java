@@ -29,6 +29,7 @@ import etomo.type.ConstMetaData;
 import etomo.type.ConstProcessSeries;
 import etomo.type.DialogType;
 import etomo.type.EtomoBoolean2;
+import etomo.type.FileType;
 import etomo.type.MetaData;
 import etomo.type.DialogExitState;
 import etomo.type.ProcessResult;
@@ -79,11 +80,11 @@ public final class TomogramPositioningExpert extends ReconUIExpert {
   /**
    * Start the next process specified by the nextProcess string
    */
-  public void startNextProcess(String nextProcess,
+  public void startNextProcess(ProcessSeries.Process process,
       ProcessResultDisplay processResultDisplay, ProcessSeries processSeries,
-      DialogType dialogType, ProcessDisplay display, ProcessName subProcessName) {
+      DialogType dialogType, ProcessDisplay display) {
     //whole tomogram
-    if (nextProcess.equals(ProcessName.TILT.toString())) {
+    if (process.equals(ProcessName.TILT.toString())) {
       sampleTilt(processResultDisplay, processSeries);
     }
   }
@@ -246,8 +247,8 @@ public final class TomogramPositioningExpert extends ReconUIExpert {
                 + "final alignment in positioning before continuing.",
             "User Error", axisID);
       }
-      manager
-          .closeImod(ImodManager.SAMPLE_KEY, axisID, "sample reconstruction");
+      manager.closeImod(ImodManager.SAMPLE_KEY, axisID,
+          "sample reconstruction", false);
     }
     if (exitState != DialogExitState.CANCEL) {
       saveDialog();
@@ -326,6 +327,7 @@ public final class TomogramPositioningExpert extends ReconUIExpert {
     }
     comScriptMgr.loadTilt(axisID);
     setDialogState(ProcessState.INPROGRESS);
+    manager.closeImod(FileType.ALIGNED_STACK, axisID, true);
     sendMsg(manager.createSample(axisID, processResultDisplay, processSeries,
         tiltParam), processResultDisplay);
   }
@@ -639,7 +641,7 @@ public final class TomogramPositioningExpert extends ReconUIExpert {
       newstParam.setCommandMode(NewstParam.Mode.WHOLE_TOMOGRAM_SAMPLE);
       try {
         newstParam.setSizeToOutputInXandY("", getBinning(), metaData
-            .getImageRotation(axisID), manager);
+            .getImageRotation(axisID));
       }
       catch (InvalidParameterException e) {
         e.printStackTrace();
@@ -962,6 +964,10 @@ public final class TomogramPositioningExpert extends ReconUIExpert {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.40  2010/04/08 04:36:47  sueh
+ * <p> bug# 1348 Sending exception stack to log when tilt parameter error
+ * <p> happens.
+ * <p>
  * <p> Revision 1.39  2010/03/30 00:07:30  sueh
  * <p> bug# 1331 Added useGpu checkbox.  Added boolean initialize parameter
  * <p> to setTiltParam(ConstTiltParam).
