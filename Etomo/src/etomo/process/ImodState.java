@@ -176,6 +176,9 @@ import etomo.type.Run3dmodMenuOptions;
  * @version $$Revision$$
  * 
  * <p> $$Log$
+ * <p> $Revision 1.56  2010/03/11 06:01:46  sueh
+ * <p> $bug# 1311 Added setOpenModelView.
+ * <p> $
  * <p> $Revision 1.55  2010/02/17 04:49:20  sueh
  * <p> $bug# 1301 Using the manager instead of the manager key do pop up
  * <p> $messages.
@@ -465,7 +468,7 @@ public final class ImodState {
   //should not be on for most situations.  This way I don't have to keep track
   //of when it is on.
   private EtomoBoolean2 deleteAllSections = null;
-  private String fileName=null;
+  private String fileName = null;
 
   //constructors
   //they can set final state variables
@@ -1115,6 +1118,10 @@ public final class ImodState {
     return initialModelName;
   }
 
+  public String getDatasetName() {
+    return process.getDatasetName();
+  }
+
   /**
    * @return
    */
@@ -1201,8 +1208,8 @@ public final class ImodState {
   public void setWorkingDirectory(File workingDirectory) {
     process.setWorkingDirectory(workingDirectory);
   }
-  
-  public void setOpenModelView() throws IOException, SystemProcessException{
+
+  public void setOpenModelView() throws IOException, SystemProcessException {
     process.setOpenModelView();
   }
 
