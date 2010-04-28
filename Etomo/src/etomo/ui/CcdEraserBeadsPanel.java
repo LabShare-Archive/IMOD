@@ -38,6 +38,9 @@ import etomo.util.DatasetFiles;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.4  2010/03/18 22:45:57  sueh
+ * <p> bug# 1325 Corrected the tool tip for ltfFiducialDiameter.
+ * <p>
  * <p> Revision 3.3  2010/03/12 04:09:51  sueh
  * <p> bug# 1325 Changed the erase diameter field title.
  * <p>
@@ -199,8 +202,7 @@ final class CcdEraserBeadsPanel implements Run3dmodButtonContainer,
         .getFullAlignedStackFileName(manager, axisID));
     param.setModelFile(FileType.CCD_ERASER_BEADS_INPUT_MODEL.getFileName(
         manager, axisID));
-    param.setOutputFile(DatasetFiles
-        .getErasedFiducialsFileName(manager, axisID));
+    param.setOutputFile(FileType.ERASED_BEADS_STACK);
     EtomoNumber fiducialDiameter = new EtomoNumber(EtomoNumber.Type.DOUBLE);
     fiducialDiameter.set(ltfFiducialDiameter.getText());
     param.setBetterRadius(fiducialDiameter.getDouble() / 2.0);
