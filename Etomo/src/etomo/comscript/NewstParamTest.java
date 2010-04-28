@@ -11,6 +11,10 @@
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.7  2009/09/22 20:58:42  sueh
+ * <p> bug# 1259 In order to process nonstandard tilt.com, added
+ * <p> caseInsensitive and separateWithASpace.
+ * <p>
  * <p> Revision 3.6  2005/01/08 01:41:07  sueh
  * <p> bug# 578 Added AxisID to NewstParam constructor.
  * <p>
@@ -29,7 +33,10 @@
 
 package etomo.comscript;
 
+import etomo.EtomoDirector;
+import etomo.FrontPageManager;
 import etomo.type.AxisID;
+import etomo.type.AxisType;
 import junit.framework.TestCase;
 
 public class NewstParamTest extends TestCase {
@@ -46,11 +53,20 @@ public class NewstParamTest extends TestCase {
   private String xformOption = "-xform";
   private String linearOption = "-linear";
 
+  private FrontPageManager manager;
+
   /*
    * @see TestCase#setUp()
    */
   protected void setUp() throws Exception {
+    EtomoDirector.INSTANCE.closeCurrentManager(AxisID.ONLY, true);
+    EtomoDirector.INSTANCE.openFrontPage(true, AxisID.ONLY);
+    manager = (FrontPageManager) EtomoDirector.INSTANCE
+        .getCurrentManagerForTest();
+    manager.getMetaData().setAxisType(AxisType.SINGLE_AXIS);
+    manager.getMetaData().setName("BBa");
     super.setUp();
+
   }
 
   /*
@@ -93,7 +109,7 @@ public class NewstParamTest extends TestCase {
         separateWithASpace);
     scriptCommand.setCommand("newst");
     scriptCommand.setCommandLineArgs(s);
-    NewstParam newstParam = new NewstParam(AxisID.ONLY);
+    NewstParam newstParam = new NewstParam(manager, AxisID.ONLY);
     try {
       newstParam.parseComScriptCommand(scriptCommand);
     }
@@ -127,7 +143,7 @@ public class NewstParamTest extends TestCase {
     //Case: all options
 
     ComScriptCommand csc = getAllOptionsComScriptCommand();
-    NewstParam np = new NewstParam(AxisID.ONLY);
+    NewstParam np = new NewstParam(manager, AxisID.ONLY);
     //test Parse
     testParseAllOptions(np, csc);
 
@@ -135,9 +151,9 @@ public class NewstParamTest extends TestCase {
     String[] commandLine = testUpdate(np);
 
     //test compatibility of Update and Parse
-    csc = new ComScriptCommand(false,false);
+    csc = new ComScriptCommand(false, false);
     csc.setCommandLineArgs(commandLine);
-    np = new NewstParam(AxisID.ONLY);
+    np = new NewstParam(manager, AxisID.ONLY);
     testParseAllOptions(np, csc);
   }
 
@@ -149,7 +165,7 @@ public class NewstParamTest extends TestCase {
 
     //test Parse - should reset
     ComScriptCommand csc = getNoOptionsComScriptCommand();
-    NewstParam np = new NewstParam(AxisID.ONLY);
+    NewstParam np = new NewstParam(manager, AxisID.ONLY);
     try {
       np.parseComScriptCommand(csc);
     }
@@ -186,7 +202,7 @@ public class NewstParamTest extends TestCase {
 
   private String[] testUpdate(NewstParam np) throws BadComScriptException {
     //  Create a new ComScriptCommand with a newstack command
-    ComScriptCommand csc = new ComScriptCommand(false,false);
+    ComScriptCommand csc = new ComScriptCommand(false, false);
     csc.setCommand("newstack");
 
     //  Update the command with suppplied parameters
@@ -224,7 +240,7 @@ public class NewstParamTest extends TestCase {
     s[6] = linearOption;
     s[i - 2] = inputFile;
     s[i - 1] = outputFile;
-    ComScriptCommand csc = new ComScriptCommand(false,false);
+    ComScriptCommand csc = new ComScriptCommand(false, false);
     csc.setCommandLineArgs(s);
     csc.setCommand("newstack");
     return csc;
@@ -237,7 +253,7 @@ public class NewstParamTest extends TestCase {
     s[1] = "";
     s[2] = "";
     s[3] = "";
-    ComScriptCommand csc = new ComScriptCommand(false,false);
+    ComScriptCommand csc = new ComScriptCommand(false, false);
     csc.setCommandLineArgs(s);
     csc.setCommand("newstack");
     return csc;
