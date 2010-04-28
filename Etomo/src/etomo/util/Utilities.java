@@ -12,6 +12,9 @@
  * @version $$Revision$
  *
  * <p> $$Log$
+ * <p> $Revision 3.73  2010/04/09 15:46:52  sueh
+ * <p> $bug# 1353 Removed null pointer exception problem in getFile(String,String).
+ * <p> $
  * <p> $Revision 3.72  2010/03/12 04:28:30  sueh
  * <p> $bug# 1325 Added deleteFileType.
  * <p> $
@@ -454,6 +457,13 @@ public class Utilities {
     return validMrcFile;
   }
 
+  public static void backupFile(File source) throws IOException {
+    if (source == null) {
+      return;
+    }
+    renameFile(source, new File(source.getAbsolutePath() + "~"));
+  }
+
   /**
    * Rename a file working around the Windows bug
    * This need serious work arounds because of the random failure bugs on
@@ -623,12 +633,14 @@ public class Utilities {
     }
   }
 
-  public static void deleteFileType(BaseManager manager,AxisID axisID,FileType fileType) {
-    File file = new File(manager.getPropertyUserDir(),fileType.getFileName(manager,axisID));
+  public static void deleteFileType(BaseManager manager, AxisID axisID,
+      FileType fileType) {
+    File file = new File(manager.getPropertyUserDir(), fileType.getFileName(
+        manager, axisID));
     if (file.exists()) {
       if (!file.delete()) {
-        StringBuffer message = new StringBuffer(
-            "Unable to delete file: " + file.getAbsolutePath());
+        StringBuffer message = new StringBuffer("Unable to delete file: "
+            + file.getAbsolutePath());
         if (Utilities.isWindowsOS()) {
           message.append("\nIf this file is open in 3dmod, close 3dmod.");
         }
