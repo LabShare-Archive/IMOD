@@ -3,6 +3,7 @@ package etomo;
 import etomo.type.AxisID;
 import etomo.type.ConstProcessSeries;
 import etomo.type.DialogType;
+import etomo.type.FileType;
 import etomo.type.ProcessName;
 import etomo.type.ProcessResultDisplay;
 import etomo.type.Run3dmodMenuOptions;
@@ -112,6 +113,9 @@ import etomo.ui.ProcessDisplay;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.8  2009/09/01 03:17:35  sueh
+ * <p> bug# 1222
+ * <p>
  * <p> Revision 1.7  2009/06/11 16:48:45  sueh
  * <p> bug# 1221 Added optional ProcessDisplay for running dialog independent processes.
  * <p>
@@ -156,9 +160,8 @@ public final class ProcessSeries implements ConstProcessSeries {
   private final DialogType dialogType;
   private final ProcessDisplay processDisplay;
 
-  private String nextProcess = null;
-  private ProcessName nextProcessSubprocessName=null;
-  private String lastProcess = null;
+  private Process nextProcess = null;
+  private Process lastProcess = null;
   //3dmod is opened after the last process.
   private Deferred3dmodButton run3dmodButton = null;
   private Run3dmodMenuOptions run3dmodMenuOptions = null;
@@ -189,7 +192,7 @@ public final class ProcessSeries implements ConstProcessSeries {
   public boolean startNextProcess(final AxisID axisID,
       final ProcessResultDisplay processResultDisplay) {
     //Get the next process.
-    String process = null;
+    Process process = null;
     if (nextProcess != null) {
       process = nextProcess;
       nextProcess = null;
@@ -210,7 +213,7 @@ public final class ProcessSeries implements ConstProcessSeries {
       System.out.println("ProcessSeries.startNextProcess:process=" + process);
     }
     manager.startNextProcess(axisID, process, processResultDisplay, this,
-        dialogType, processDisplay,nextProcessSubprocessName);
+        dialogType, processDisplay);
     return true;
   }
 
@@ -223,19 +226,41 @@ public final class ProcessSeries implements ConstProcessSeries {
    * @param axisID
    * @param process
    */
-  public void setNextProcess(final String process,final ProcessName subprocessName) {
-    nextProcess = process;
-    nextProcessSubprocessName = subprocessName;
+  public void setNextProcess(final String process) {
+    nextProcess = new Process(process, null, null, null);
   }
-  
+
   /**
-   * Keep final.  Adds next process
+   * Keep final.  Adds next process 
    * @param axisID
    * @param process
    */
-  public void setNextProcess(final String process) {
-    nextProcess = process;
-    nextProcessSubprocessName = null;
+  public void setNextProcess(final String process,
+      final ProcessName subprocessName) {
+    nextProcess = new Process(process, subprocessName, null, null);
+  }
+
+  /**
+   * Keep final.  Adds next process 
+   * @param axisID
+   * @param process
+   */
+  public void setNextProcess(final String process,
+      final ProcessName subprocessName, final FileType outputImageFileType) {
+    nextProcess = new Process(process, subprocessName, outputImageFileType,
+        null);
+  }
+
+  /**
+   * Keep final.  Adds next process 
+   * @param axisID
+   * @param process
+   */
+  public void setNextProcess(final String process,
+      final ProcessName subprocessName, final FileType outputImageFileType,
+      final FileType outputImageFileType2) {
+    nextProcess = new Process(process, subprocessName, outputImageFileType,
+        outputImageFileType2);
   }
 
   void clearProcesses() {
@@ -247,10 +272,10 @@ public final class ProcessSeries implements ConstProcessSeries {
 
   public String peekNextProcess() {
     if (nextProcess != null) {
-      return nextProcess;
+      return nextProcess.getProcess();
     }
     if (lastProcess != null) {
-      return lastProcess;
+      return lastProcess.getProcess();
     }
     if (run3dmodButton != null) {
       return "3dmod";
@@ -263,12 +288,8 @@ public final class ProcessSeries implements ConstProcessSeries {
    * @param axisID
    * @param process
    */
-  void setLastProcess(final String process) {
-    lastProcess = process;
-  }
-
-  void setLastProcess(final String process, ProcessDisplay display) {
-    lastProcess = process;
+  public void setLastProcess(final String process) {
+    lastProcess = new Process(process, null, null, null);
   }
 
   /**
@@ -311,5 +332,44 @@ public final class ProcessSeries implements ConstProcessSeries {
     run3dmodButton = null;
     run3dmodMenuOptions = null;
     tempRun3dmodButton.action(tempRun3dmodMenuOptions);
+  }
+
+  public static final class Process {
+    private final String process;
+    private final ProcessName subprocessName;
+    private final FileType outputImageFileType;
+    private final FileType outputImageFileType2;
+
+    private Process(final String process, final ProcessName subprocessName,
+        final FileType outputImageFileType, final FileType outputImageFileType2) {
+      this.process = process;
+      this.subprocessName = subprocessName;
+      this.outputImageFileType = outputImageFileType;
+      this.outputImageFileType2 = outputImageFileType2;
+    }
+
+    private String getProcess() {
+      return process;
+    }
+
+    public ProcessName getSubprocessName() {
+      return subprocessName;
+    }
+
+    public FileType getOutputImageFileType() {
+      return outputImageFileType;
+    }
+
+    public boolean equals(String string) {
+      return process.equals(string);
+    }
+
+    public boolean equals(ProcessName processName) {
+      return process.equals(processName.toString());
+    }
+
+    public String toString() {
+      return process;
+    }
   }
 }
