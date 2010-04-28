@@ -45,6 +45,9 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.90  2010/03/12 04:01:19  sueh
+ * <p> bug# 1325 Added startComScript with a Command parameter.
+ * <p>
  * <p> Revision 1.89  2010/02/26 20:37:59  sueh
  * <p> Changing the complex popup titles are making it hard to complete the
  * <p> uitests.
@@ -725,7 +728,7 @@ public abstract class BaseProcessManager {
         null, processMonitor, processResultDisplay, commandDetails,
         processSeries), command, processMonitor, axisID);
   }
-  
+
   /**
    * Start a managed command script for the specified axis
    * @param command
@@ -736,11 +739,11 @@ public abstract class BaseProcessManager {
    */
   final ComScriptProcess startComScript(final String commandString,
       final ProcessMonitor processMonitor, final AxisID axisID,
-      final ProcessResultDisplay processResultDisplay,final Command command,
+      final ProcessResultDisplay processResultDisplay, final Command command,
       final ConstProcessSeries processSeries) throws SystemProcessException {
-    return startComScript(new ComScriptProcess(manager, commandString, this, axisID,
-        null, processMonitor, processResultDisplay, command,processSeries), commandString,
-        processMonitor, axisID);
+    return startComScript(new ComScriptProcess(manager, commandString, this,
+        axisID, null, processMonitor, processResultDisplay, command,
+        processSeries), commandString, processMonitor, axisID);
   }
 
   /**
@@ -768,14 +771,14 @@ public abstract class BaseProcessManager {
    * @return
    * @throws SystemProcessException
    */
-  final ComScriptProcess startComScript(final String command,
+  final ComScriptProcess startComScript(final String commandString,
       final ProcessMonitor processMonitor, final AxisID axisID,
-      final ProcessResultDisplay processResultDisplay,
+      final ProcessResultDisplay processResultDisplay, final Command command,
       final ConstProcessSeries processSeries, final FileType fileType)
       throws SystemProcessException {
-    return startComScript(new ComScriptProcess(manager, command, this, axisID,
-        null, processMonitor, processResultDisplay, processSeries, fileType),
-        command, processMonitor, axisID);
+    return startComScript(new ComScriptProcess(manager, commandString, command,
+        this, axisID, null, processMonitor, processResultDisplay,
+        processSeries, fileType), commandString, processMonitor, axisID);
   }
 
   /**
@@ -902,6 +905,7 @@ public abstract class BaseProcessManager {
       throws SystemProcessException {
     // Make sure there isn't something going on in the current axis
     isAxisBusy(axisID, comScriptProcess.getProcessResultDisplay());
+    comScriptProcess.closeOutputImageFile();
 
     // Run the script as a thread in the background
     comScriptProcess
@@ -957,6 +961,7 @@ public abstract class BaseProcessManager {
   final void startNonBlockingComScript(final ComScriptProcess comScriptProcess,
       final String command, final AxisID axisID) throws SystemProcessException {
     // Run the script as a thread in the background
+    comScriptProcess.closeOutputImageFile();
     comScriptProcess
         .setWorkingDirectory(new File(manager.getPropertyUserDir()));
     comScriptProcess.setDebug(etomoDirector.getArguments().isDebug());
@@ -1558,6 +1563,16 @@ public abstract class BaseProcessManager {
         axisID, null);
   }
 
+  final BackgroundProcess startBackgroundProcess(final Command command,
+      final AxisID axisID, final ProcessResultDisplay processResultDisplay,
+      final ProcessName processName, final ConstProcessSeries processSeries)
+      throws SystemProcessException {
+    BackgroundProcess backgroundProcess = new BackgroundProcess(manager,
+        command, this, axisID, processResultDisplay, processName, processSeries);
+    return startBackgroundProcess(backgroundProcess, command.getCommandArray()
+        .toString(), axisID, null);
+  }
+
   final BackgroundProcess startBackgroundProcess(final String[] commandArray,
       final AxisID axisID, final boolean forceNextProcess,
       final ProcessResultDisplay processResultDisplay,
@@ -1665,6 +1680,7 @@ public abstract class BaseProcessManager {
     backgroundProcess.setDebug(etomoDirector.getArguments().isDebug());
     manager.saveStorables(axisID);
     isAxisBusy(axisID, backgroundProcess.getProcessResultDisplay());
+    backgroundProcess.closeOutputImageFile();
     backgroundProcess.start();
     if (etomoDirector.getArguments().isDebug()) {
       System.err.println("Started " + commandLine);
@@ -1695,6 +1711,7 @@ public abstract class BaseProcessManager {
       final Command command) throws SystemProcessException {
     InteractiveSystemProgram program = new InteractiveSystemProgram(manager,
         command, this, command.getAxisID());
+    program.closeOutputImageFile();
     program.setWorkingDirectory(new File(manager.getPropertyUserDir()));
     Thread thread = new Thread(program);
     manager.saveStorables(command.getAxisID());
