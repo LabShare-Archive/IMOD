@@ -17,11 +17,14 @@ import etomo.type.ConstStringParameter;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.2  2009/10/19 16:27:43  sueh
+ * <p> bug# 1253 Added getInvertTiltAngles.
+ * <p>
  * <p> Revision 1.1  2008/10/27 17:44:34  sueh
  * <p> bug# 1141 Constant interface to CtfPhaseFlipParam.
  * <p> </p>
  */
-public interface ConstCtfPhaseFlipParam {
+public interface ConstCtfPhaseFlipParam extends Command {
   public static final String rcsid = "$Id$";
 
   public ConstEtomoNumber getVoltage();

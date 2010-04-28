@@ -12,6 +12,10 @@
  * @version $$Revision$$
  * 
  * <p> $$Log$
+ * <p> $Revision 1.9  2005/11/03 00:49:47  sueh
+ * <p> $bug# 740 Added functions getEndingZ, getStartingZ, isEndingZSet, and
+ * <p> $isStartingZSet.
+ * <p> $
  * <p> $Revision 1.8  2005/01/26 04:26:37  sueh
  * <p> $bug# 83 Added getOutputFile().
  * <p> $
@@ -41,64 +45,26 @@
  */
 package etomo.comscript;
 
-public class ConstMTFFilterParam {
+public interface ConstMTFFilterParam extends Command {
   public static final String rcsid = "$$Id$$";
-  
-  String inputFile;
-  String outputFile;
-  String mtfFile;
-  double maximumInverse;
-  FortranInputString lowPassRadiusSigma;
-  FortranInputString inverseRolloffRadiusSigma;
-  FortranInputString startingAndEndingZ;
-  
-  public ConstMTFFilterParam() {
-    lowPassRadiusSigma = new FortranInputString(2);
-    inverseRolloffRadiusSigma = new FortranInputString(2);
-    startingAndEndingZ = new FortranInputString(2);
-    startingAndEndingZ.setIntegerType(0, true);
-    startingAndEndingZ.setIntegerType(1, true);
-    reset();
-  }
-  
-  protected void reset() {
-    inputFile = new String();
-    outputFile = new String();
-    mtfFile = new String();
-    maximumInverse = Double.NaN;
-    lowPassRadiusSigma.setDefault();
-    inverseRolloffRadiusSigma.setDefault();
-    startingAndEndingZ.setDefault();
-  }
-  
-  public String getMtfFile() {
-    return mtfFile;
-  }
-  public String getMaximumInverseString() {
-    return ParamUtilities.valueOf(maximumInverse);
-  }
-  public String getLowPassRadiusSigmaString() {
-    return lowPassRadiusSigma.toString(true);
-  }
-  public String getStartingAndEndingZString() {
-    return startingAndEndingZ.toString(true);
-  }
-  public boolean isStartingZSet() {
-    return !startingAndEndingZ.isDefault(0) && !startingAndEndingZ.isEmpty(0);
-  }
-  public boolean isEndingZSet() {
-    return !startingAndEndingZ.isDefault(1) && !startingAndEndingZ.isEmpty(1);
-  }
-  public int getStartingZ() {
-    return startingAndEndingZ.getInt(0);
-  }
-  public int getEndingZ() {
-    return startingAndEndingZ.getInt(1);
-  }
-  public String getInverseRolloffRadiusSigmaString() {
-    return inverseRolloffRadiusSigma.toString(true);
-  }
-  public String getOutputFile() {
-    return outputFile;
-  }
+
+  public String getMtfFile();
+
+  public String getMaximumInverseString();
+
+  public String getLowPassRadiusSigmaString();
+
+  public String getStartingAndEndingZString();
+
+  public boolean isStartingZSet();
+
+  public boolean isEndingZSet();
+
+  public int getStartingZ();
+
+  public int getEndingZ();
+
+  public String getInverseRolloffRadiusSigmaString();
+
+  public String getOutputFile();
 }
