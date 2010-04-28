@@ -9,11 +9,13 @@ import java.util.List;
 import etomo.ApplicationManager;
 import etomo.storage.LogFile;
 import etomo.type.AxisID;
+import etomo.type.AxisType;
 import etomo.type.ConstEtomoNumber;
 import etomo.type.ConstIntKeyList;
 import etomo.type.EtomoBoolean2;
 import etomo.type.EtomoNumber;
 import etomo.type.EtomoState;
+import etomo.type.FileType;
 import etomo.type.IteratorElementList;
 import etomo.type.ProcessName;
 import etomo.type.ScriptParameter;
@@ -52,6 +54,7 @@ public final class BlendmontParam implements CommandParam, CommandDetails {
   private ScriptParameter interpolationOrder;
   private EtomoBoolean2 justUndistort;
   private String imageOutputFile;
+  private FileType imageOutputFileType;
   private Mode mode = Mode.XCORR;
   private ScriptParameter binByFactor;
   private boolean fiducialess = false;
@@ -93,6 +96,7 @@ public final class BlendmontParam implements CommandParam, CommandDetails {
         "InterpolationOrder");
     justUndistort = new EtomoBoolean2("JustUndistort");
     imageOutputFile = null;
+    imageOutputFileType = null;
     binByFactor = new ScriptParameter(EtomoNumber.Type.INTEGER, "BinByFactor");
     // Only explcitly write out the binning if its value is something other than
     // the default of 1 to keep from cluttering up the com script
@@ -113,6 +117,7 @@ public final class BlendmontParam implements CommandParam, CommandDetails {
     interpolationOrder.parse(scriptCommand);
     justUndistort.parse(scriptCommand);
     imageOutputFile = scriptCommand.getValue(IMAGE_OUTPUT_FILE_KEY);
+    imageOutputFileType = null;
     binByFactor.parse(scriptCommand);
     startingAndEndingX.validateAndSet(scriptCommand);
     startingAndEndingY.validateAndSet(scriptCommand);
@@ -138,6 +143,7 @@ public final class BlendmontParam implements CommandParam, CommandDetails {
     interpolationOrder.reset();
     justUndistort.reset();
     imageOutputFile = null;
+    imageOutputFileType = null;
     overrideModeForImageOutputFile = false;
     binByFactor.reset();
     startingAndEndingX.reset();
@@ -241,9 +247,31 @@ public final class BlendmontParam implements CommandParam, CommandDetails {
     return mode;
   }
 
-  public void setImageOutputFile(final String input) {
+  public FileType getOutputImageFileType() {
+    if (imageOutputFileType != null) {
+      return imageOutputFileType;
+    }
+    return FileType.getInstance(manager, axisID, true, true, imageOutputFile);
+  }
+
+  public FileType getOutputImageFileType2() {
+    if (mode == Mode.WHOLE_TOMOGRAM_SAMPLE) {
+      //Handle tiltParam here so the user doesn't have to wait.
+      AxisType axisType = manager.getBaseMetaData().getAxisType();
+      if (axisType == AxisType.DUAL_AXIS) {
+        return FileType.DUAL_AXIS_TOMOGRAM;
+      }
+      else if (axisType == AxisType.SINGLE_AXIS) {
+        return FileType.SINGLE_AXIS_TOMOGRAM;
+      }
+    }
+    return null;
+  }
+
+  public void setImageOutputFile(final FileType fileType) {
     overrideModeForImageOutputFile = true;
-    imageOutputFile = input;
+    imageOutputFile = fileType.getFileName(manager, axisID);
+    imageOutputFileType = fileType;
     setProcessName();
   }
 
@@ -259,6 +287,7 @@ public final class BlendmontParam implements CommandParam, CommandDetails {
       if (!overrideModeForImageOutputFile) {
         imageOutputFile = datasetName + axisID.getExtension()
             + DISTORTION_CORRECTED_STACK_EXTENSION;
+        imageOutputFileType = FileType.DISTORTION_CORRECTED_STACK;
       }
       justUndistort.set(true);
       return true;
@@ -269,12 +298,15 @@ public final class BlendmontParam implements CommandParam, CommandDetails {
         if (mode == Mode.XCORR) {
           imageOutputFile = datasetName + axisID.getExtension()
               + BLENDMONT_STACK_EXTENSION;
+          imageOutputFileType = FileType.XCORR_BLEND_OUTPUT;
         }
         else if (mode == Mode.PREBLEND) {
           imageOutputFile = datasetName + axisID.getExtension() + ".preali";
+          imageOutputFileType = FileType.PREALIGNED_STACK;
         }
         else if (mode == Mode.BLEND || mode == Mode.WHOLE_TOMOGRAM_SAMPLE) {
           imageOutputFile = datasetName + axisID.getExtension() + ".ali";
+          imageOutputFileType = FileType.ALIGNED_STACK;
         }
       }
     }
@@ -524,6 +556,10 @@ public final class BlendmontParam implements CommandParam, CommandDetails {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.37  2010/02/17 04:47:54  sueh
+ * <p> bug# 1301 Using the manager instead of the manager key do pop up
+ * <p> messages.
+ * <p>
  * <p> Revision 1.36  2010/01/11 23:49:01  sueh
  * <p> bug# 1299 Added isMessageReporter.
  * <p>

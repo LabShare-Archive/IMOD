@@ -13,6 +13,7 @@ import etomo.storage.MatlabParam;
 import etomo.type.AxisID;
 import etomo.type.ConstEtomoNumber;
 import etomo.type.ConstIntKeyList;
+import etomo.type.FileType;
 import etomo.type.IteratorElementList;
 
 import etomo.type.ProcessName;
@@ -33,6 +34,10 @@ import etomo.util.EnvironmentVariable;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.15  2010/02/17 04:47:54  sueh
+ * <p> bug# 1301 Using the manager instead of the manager key do pop up
+ * <p> messages.
+ * <p>
  * <p> Revision 1.14  2010/01/13 21:52:33  sueh
  * <p> bug# 1298 Removed LST_THRESHOLD_ARRAY.
  * <p>
@@ -187,6 +192,14 @@ public final class PeetParserParam implements CommandDetails {
 
   public String getName() {
     return PROCESS_NAME.toString();
+  }
+
+  public FileType getOutputImageFileType() {
+    return FileType.AVERAGED_VOLUMES;
+  }
+
+  public FileType getOutputImageFileType2() {
+    return FileType.REFERENCE_VOLUMES;
   }
 
   public ProcessName getProcessName() {

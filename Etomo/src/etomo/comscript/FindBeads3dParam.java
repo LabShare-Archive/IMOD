@@ -33,6 +33,9 @@ import etomo.type.StringParameter;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.7  2010/03/09 22:05:37  sueh
+ * <p> bug# 1325 Adding binningOfVolume.
+ * <p>
  * <p> Revision 3.6  2010/02/17 04:47:53  sueh
  * <p> bug# 1301 Using the manager instead of the manager key do pop up
  * <p> messages.
@@ -209,7 +212,14 @@ public final class FindBeads3dParam implements ConstFindBeads3dParam,
   public String getName() {
     return ProcessName.FIND_BEADS_3D.toString();
   }
+  
 
+  public FileType getOutputImageFileType() {
+    return null;
+  }
+  public FileType getOutputImageFileType2() {
+    return null;
+  }
   public ProcessName getProcessName() {
     return ProcessName.FIND_BEADS_3D;
   }

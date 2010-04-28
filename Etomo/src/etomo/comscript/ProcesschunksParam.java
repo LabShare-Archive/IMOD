@@ -17,6 +17,7 @@ import etomo.type.ConstEtomoNumber;
 import etomo.type.ConstIntKeyList;
 import etomo.type.EtomoBoolean2;
 import etomo.type.EtomoNumber;
+import etomo.type.FileType;
 import etomo.type.IteratorElementList;
 import etomo.type.ProcessName;
 import etomo.ui.UIHarness;
@@ -56,6 +57,7 @@ public final class ProcesschunksParam implements DetachedCommandDetails,
   private final BaseManager manager;
   private final AxisID axisID;
   private final String rootName;
+  private final FileType outputImageFileType;
 
   private CommandDetails subcommandDetails = null;
   private String[] commandArray = null;
@@ -70,10 +72,11 @@ public final class ProcesschunksParam implements DetachedCommandDetails,
   private ProcessName subcommandProcessName = null;
 
   public ProcesschunksParam(final BaseManager manager, final AxisID axisID,
-      final String rootName) {
+      final String rootName, final FileType outputImageFileType) {
     this.manager = manager;
     this.axisID = axisID;
     this.rootName = rootName;
+    this.outputImageFileType = outputImageFileType;
     init();
   }
 
@@ -84,11 +87,12 @@ public final class ProcesschunksParam implements DetachedCommandDetails,
    * @param processName
    */
   public ProcesschunksParam(final BaseManager manager, final AxisID axisID,
-      final ProcessName processName) {
+      final ProcessName processName, final FileType outputImageFileType) {
     this.manager = manager;
     this.axisID = axisID;
     this.rootName = processName.toString() + axisID.getExtension();
     subcommandProcessName = processName;
+    this.outputImageFileType = outputImageFileType;
     init();
   }
 
@@ -266,6 +270,20 @@ public final class ProcesschunksParam implements DetachedCommandDetails,
 
   public String getName() {
     return PROCESS_NAME.toString();
+  }
+
+  public FileType getOutputImageFileType() {
+    if (outputImageFileType == null && subcommandDetails != null) {
+      return subcommandDetails.getOutputImageFileType();
+    }
+    return outputImageFileType;
+  }
+
+  public FileType getOutputImageFileType2() {
+    if (subcommandDetails != null) {
+      return subcommandDetails.getOutputImageFileType2();
+    }
+    return outputImageFileType;
   }
 
   public ProcessName getProcessName() {
@@ -519,6 +537,10 @@ public final class ProcesschunksParam implements DetachedCommandDetails,
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.43  2010/02/17 04:47:54  sueh
+ * <p> bug# 1301 Using the manager instead of the manager key do pop up
+ * <p> messages.
+ * <p>
  * <p> Revision 1.42  2010/01/11 23:49:01  sueh
  * <p> bug# 1299 Added isMessageReporter.
  * <p>

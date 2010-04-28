@@ -36,6 +36,10 @@ import etomo.util.DatasetFiles;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.15  2010/02/17 04:47:54  sueh
+ * <p> bug# 1301 Using the manager instead of the manager key do pop up
+ * <p> messages.
+ * <p>
  * <p> Revision 1.14  2010/01/11 23:49:01  sueh
  * <p> bug# 1299 Added isMessageReporter.
  * <p>
@@ -304,6 +308,14 @@ public final class XfmodelParam implements CommandDetails {
 
   public String getName() {
     return PROCESS_NAME.toString();
+  }
+
+  public FileType getOutputImageFileType() {
+    return null;
+  }
+
+  public FileType getOutputImageFileType2() {
+    return null;
   }
 
   public ProcessName getProcessName() {

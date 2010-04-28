@@ -35,6 +35,9 @@ import etomo.type.ScriptParameter;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.29  2010/03/12 03:57:16  sueh
+ * <p> bug# 1325 Added isBeadDiameterSet.
+ * <p>
  * <p> Revision 3.28  2010/02/17 04:47:54  sueh
  * <p> bug# 1301 Using the manager instead of the manager key do pop up
  * <p> messages.
@@ -451,7 +454,7 @@ public class BeadtrackParam extends OldBeadtrackParam implements CommandParam,
   public ConstEtomoNumber getPostFitRescueResidual() {
     return postFitRescueResidual;
   }
-  
+
   public boolean isBeadDiameterSet() {
     return !beadDiameter.isNull();
   }
@@ -858,6 +861,13 @@ public class BeadtrackParam extends OldBeadtrackParam implements CommandParam,
 
   public String getName() {
     return PROCESS_NAME.toString();
+  }
+
+  public FileType getOutputImageFileType() {
+    return null;
+  }
+  public FileType getOutputImageFileType2() {
+    return null;
   }
 
   public ProcessName getProcessName() {

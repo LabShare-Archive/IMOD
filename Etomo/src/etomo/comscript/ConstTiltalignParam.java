@@ -13,6 +13,7 @@ import etomo.type.ConstEtomoNumber;
 import etomo.type.ConstIntKeyList;
 import etomo.type.EtomoBoolean2;
 import etomo.type.EtomoNumber;
+import etomo.type.FileType;
 import etomo.type.IteratorElementList;
 import etomo.type.ProcessName;
 import etomo.type.ScriptParameter;
@@ -823,6 +824,14 @@ public class ConstTiltalignParam implements CommandDetails {
     return outputFidXYZFile;
   }
 
+  public FileType getOutputImageFileType() {
+    return FileType.FIDUCIAL_3D_MODEL;
+  }
+
+  public FileType getOutputImageFileType2() {
+    return null;
+  }
+
   /**
    * @return Returns the outputLocalFile.
    */
@@ -1044,6 +1053,10 @@ public class ConstTiltalignParam implements CommandDetails {
 
 /**
  * <p> $Log$
+ * <p> Revision 3.40  2010/02/17 04:47:54  sueh
+ * <p> bug# 1301 Using the manager instead of the manager key do pop up
+ * <p> messages.
+ * <p>
  * <p> Revision 3.39  2010/01/11 23:49:01  sueh
  * <p> bug# 1299 Added isMessageReporter.
  * <p>

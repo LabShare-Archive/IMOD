@@ -14,6 +14,7 @@ import etomo.type.AxisID;
 import etomo.type.ConstEtomoNumber;
 import etomo.type.ConstIntKeyList;
 import etomo.type.EtomoNumber;
+import etomo.type.FileType;
 import etomo.type.IteratorElementList;
 import etomo.type.ProcessName;
 import etomo.ui.UIHarness;
@@ -33,6 +34,10 @@ import etomo.util.EnvironmentVariable;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.4  2010/02/17 04:47:54  sueh
+ * <p> bug# 1301 Using the manager instead of the manager key do pop up
+ * <p> messages.
+ * <p>
  * <p> Revision 1.3  2010/01/11 23:49:01  sueh
  * <p> bug# 1299 Added isMessageReporter.
  * <p>
@@ -136,6 +141,12 @@ public final class AverageAllParam implements CommandDetails {
     return message;
   }
 
+  public FileType getOutputImageFileType() {
+    return FileType.AVERAGED_VOLUMES;
+  }
+  public FileType getOutputImageFileType2() {
+    return null;
+  }
   public void setParameters(MatlabParam matlabParam) {
     iterationListSize = matlabParam.getIterationListSize();
     lstThresholdsArray = matlabParam.getLstThresholdsExpandedArray();

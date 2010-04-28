@@ -6,6 +6,7 @@ import java.util.ArrayList;
 import etomo.BaseManager;
 import etomo.type.AxisID;
 import etomo.type.EtomoNumber;
+import etomo.type.FileType;
 import etomo.type.ProcessName;
 import etomo.type.ScriptParameter;
 import etomo.ui.UIHarness;
@@ -23,6 +24,9 @@ import etomo.ui.UIHarness;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.10  2010/03/12 03:57:53  sueh
+ * <p> bug# 1325 Implemented Command and added Modes.
+ * <p>
  * <p> Revision 3.9  2010/02/17 04:47:54  sueh
  * <p> bug# 1301 Using the manager instead of the manager key do pop up
  * <p> messages.
@@ -201,6 +205,7 @@ public class CCDEraserParam extends ConstCCDEraserParam implements Command,
 
       inputFile = scriptCommand.getValue(INPUT_FILE_KEY);
       outputFile = scriptCommand.getValue(OUTPUT_FILE_KEY);
+      outputFileType = null;
       modelFile = scriptCommand.getValue("ModelFile");
       globalReplacementList = scriptCommand.getValue(ALL_SECTION_OBJECTS_KEY);
       localReplacementList = scriptCommand.getValue(LINE_OBJECTS_KEY);
@@ -218,6 +223,7 @@ public class CCDEraserParam extends ConstCCDEraserParam implements Command,
     else {
       inputFile = inputArgs[0].getArgument();
       outputFile = inputArgs[1].getArgument();
+      outputFileType = null;
       modelFile = inputArgs[2].getArgument();
       globalReplacementList = inputArgs[3].getArgument();
       localReplacementList = inputArgs[4].getArgument();
@@ -230,6 +236,7 @@ public class CCDEraserParam extends ConstCCDEraserParam implements Command,
       String junk[] = inputFile.split("\\.st");
       String datasetName = junk[0];
       outputFile = datasetName + "_fixed.st";
+      outputFileType = FileType.FIXED_XRAYS_STACK;
       peakCriterion = "10.0";
       diffCriterion = "8.0";
       growCriterion = "4.0";
@@ -420,8 +427,14 @@ public class CCDEraserParam extends ConstCCDEraserParam implements Command,
     this.inputFile = inputFile;
   }
 
-  public void setOutputFile(String outputFile) {
-    this.outputFile = outputFile;
+  public void setOutputFile(final String input) {
+    outputFile = input;
+    outputFileType = null;
+  }
+
+  public void setOutputFile(final FileType fileType) {
+    outputFile = fileType.getFileName(manager, axisID);
+    outputFileType = fileType;
   }
 
   public void setModelFile(String modelFile) {
@@ -572,6 +585,17 @@ public class CCDEraserParam extends ConstCCDEraserParam implements Command,
 
   public File getCommandOutputFile() {
     return new File(manager.getPropertyUserDir(), outputFile);
+  }
+
+  public FileType getOutputImageFileType() {
+    if (outputFileType != null) {
+      return outputFileType;
+    }
+    return FileType.getInstance(manager, axisID, true, true, outputFile);
+  }
+
+  public FileType getOutputImageFileType2() {
+    return null;
   }
 
   public ProcessName getProcessName() {

@@ -7,6 +7,7 @@ import etomo.BaseManager;
 import etomo.JoinManager;
 import etomo.type.AxisID;
 import etomo.type.ConstJoinState;
+import etomo.type.FileType;
 import etomo.type.ProcessName;
 import etomo.util.DatasetFiles;
 
@@ -24,6 +25,9 @@ import etomo.util.DatasetFiles;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.5  2010/01/11 23:49:01  sueh
+ * <p> bug# 1299 Added isMessageReporter.
+ * <p>
  * <p> Revision 1.4  2009/12/11 17:26:22  sueh
  * <p> bug# 1291 Added getCommandInputFile to implement Command.
  * <p>
@@ -117,6 +121,7 @@ public final class XftoxgParam implements Command {
   public CommandMode getCommandMode() {
     return null;
   }
+
   public boolean isMessageReporter() {
     return false;
   }
@@ -131,6 +136,14 @@ public final class XftoxgParam implements Command {
 
   public File getCommandOutputFile() {
     return DatasetFiles.getRefineXgFile(manager);
+  }
+
+  public FileType getOutputImageFileType() {
+    return FileType.TRANSFORMED_REFINING_MODEL;
+  }
+
+  public FileType getOutputImageFileType2() {
+    return null;
   }
 
   public File getCommandInputFile() {

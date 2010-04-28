@@ -7,6 +7,7 @@ import etomo.BaseManager;
 import etomo.JoinManager;
 import etomo.type.AxisID;
 import etomo.type.ConstJoinMetaData;
+import etomo.type.FileType;
 import etomo.type.ProcessName;
 import etomo.type.ScriptParameter;
 import etomo.type.Transform;
@@ -25,6 +26,9 @@ import etomo.type.Transform;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.21  2010/01/11 23:49:01  sueh
+ * <p> bug# 1299 Added isMessageReporter.
+ * <p>
  * <p> Revision 1.20  2009/12/11 17:26:22  sueh
  * <p> bug# 1291 Added getCommandInputFile to implement Command.
  * <p>
@@ -213,6 +217,14 @@ public class XfalignParam implements Command {
 
   public File getCommandOutputFile() {
     return outputFile;
+  }
+  
+  public FileType getOutputImageFileType() {
+    return null;
+  }
+
+  public FileType getOutputImageFileType2() {
+    return null;
   }
 
   public File getCommandInputFile() {

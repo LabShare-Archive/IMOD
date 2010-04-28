@@ -28,6 +28,10 @@ import etomo.util.MRCHeader;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.16  2010/03/18 22:42:09  sueh
+ * <p> bug# 1311 Don't put a display value in iterateCorrelations since it is not
+ * <p> used in xcorr.com (this didn't cause any problems).
+ * <p>
  * <p> Revision 3.15  2010/03/08 21:01:34  sueh
  * <p> bug# 1311 Added partialSave to turn off field requirements so the sync
  * <p> between xcorr.com and xcorr_pt.com can be done.
@@ -829,6 +833,14 @@ public final class TiltxcorrParam implements ConstTiltxcorrParam, CommandParam,
 
   public String getOutputFile() {
     return outputFile;
+  }
+
+  public FileType getOutputImageFileType() {
+    return null;
+  }
+
+  public FileType getOutputImageFileType2() {
+    return null;
   }
 
   public String getOverlapOfPatchesXandY() {

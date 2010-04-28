@@ -10,6 +10,7 @@ import etomo.storage.LogFile;
 import etomo.type.AxisID;
 import etomo.type.ConstEtomoNumber;
 import etomo.type.ConstIntKeyList;
+import etomo.type.FileType;
 import etomo.type.IteratorElementList;
 import etomo.type.ProcessName;
 
@@ -145,6 +146,14 @@ public class StartJoinParam implements CommandDetails {
   public String getName() {
     return PROCESS_NAME.toString();
   }
+  
+  public FileType getOutputImageFileType() {
+    return FileType.JOIN_SAMPLE;
+  }
+  
+  public FileType getOutputImageFileType2() {
+    return FileType.JOIN_SAMPLE_AVERAGES;
+  }
 
   public ProcessName getProcessName() {
     return PROCESS_NAME;
@@ -176,6 +185,10 @@ public class StartJoinParam implements CommandDetails {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.14  2010/02/17 04:47:54  sueh
+ * <p> bug# 1301 Using the manager instead of the manager key do pop up
+ * <p> messages.
+ * <p>
  * <p> Revision 1.13  2010/01/11 23:49:01  sueh
  * <p> bug# 1299 Added isMessageReporter.
  * <p>

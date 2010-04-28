@@ -5,6 +5,7 @@ import java.util.ArrayList;
 
 import etomo.BaseManager;
 import etomo.type.AxisID;
+import etomo.type.FileType;
 import etomo.type.ProcessName;
 
 /**
@@ -50,6 +51,14 @@ public final class TomosnapshotParam implements Command {
   }
 
   public File getCommandOutputFile() {
+    return null;
+  }
+  
+  public FileType getOutputImageFileType() {
+    return null;
+  }
+
+  public FileType getOutputImageFileType2() {
     return null;
   }
 
@@ -120,6 +129,9 @@ public final class TomosnapshotParam implements Command {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.11  2010/01/11 23:49:01  sueh
+ * <p> bug# 1299 Added isMessageReporter.
+ * <p>
  * <p> Revision 1.10  2009/12/11 17:26:22  sueh
  * <p> bug# 1291 Added getCommandInputFile to implement Command.
  * <p>

@@ -15,6 +15,7 @@ import etomo.type.AxisID;
 import etomo.type.ConstEtomoNumber;
 import etomo.type.ConstIntKeyList;
 import etomo.type.EtomoNumber;
+import etomo.type.FileType;
 import etomo.type.ImageFileType;
 import etomo.type.IteratorElementList;
 import etomo.type.ProcessName;
@@ -33,6 +34,10 @@ import etomo.type.ProcessName;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.14  2010/02/17 04:47:54  sueh
+ * <p> bug# 1301 Using the manager instead of the manager key do pop up
+ * <p> messages.
+ * <p>
  * <p> Revision 1.13  2010/01/11 23:49:01  sueh
  * <p> bug# 1299 Added isMessageReporter.
  * <p>
@@ -190,6 +195,14 @@ public final class SqueezevolParam implements ConstSqueezevolParam {
     outputFile = ImageFileType.SQUEEZE_VOL_OUTPUT.getFile(manager);
     options.add(outputFile.getName());
     return options;
+  }
+  
+  public FileType getOutputImageFileType() {
+    return FileType.SQUEEZE_VOL_OUTPUT;
+  }
+  
+  public FileType getOutputImageFileType2() {
+    return null;
   }
 
   private String getInputFileName(final String datasetName) {

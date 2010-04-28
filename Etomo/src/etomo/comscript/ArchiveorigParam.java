@@ -4,6 +4,7 @@ import java.io.File;
 
 import etomo.BaseManager;
 import etomo.type.AxisID;
+import etomo.type.FileType;
 import etomo.type.ProcessName;
 import etomo.util.Utilities;
 
@@ -92,6 +93,13 @@ public class ArchiveorigParam implements Command {
     return outputFile;
   }
   
+  public FileType getOutputImageFileType() {
+    return null;
+  }
+  public FileType getOutputImageFileType2() {
+    return null;
+  }
+  
   public File getCommandInputFile() {
     return null;
   }
@@ -118,6 +126,9 @@ public class ArchiveorigParam implements Command {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.14  2010/01/11 23:49:01  sueh
+ * <p> bug# 1299 Added isMessageReporter.
+ * <p>
  * <p> Revision 1.13  2009/12/11 17:25:18  sueh
  * <p> bug# 1291 Added getCommandInputFile to implement Command.
  * <p>

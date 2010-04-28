@@ -15,6 +15,7 @@ import etomo.type.ConstEtomoNumber;
 import etomo.type.ConstIntKeyList;
 import etomo.type.ConstJoinMetaData;
 import etomo.type.ConstSectionTableRowData;
+import etomo.type.FileType;
 import etomo.type.IteratorElementList;
 import etomo.type.JoinState;
 import etomo.type.ProcessName;
@@ -43,6 +44,10 @@ import etomo.util.DatasetFiles;
  * <p> </p>
  * 
  * <p> $Log$
+ * <p> Revision 1.33  2010/02/17 04:47:54  sueh
+ * <p> bug# 1301 Using the manager instead of the manager key do pop up
+ * <p> messages.
+ * <p>
  * <p> Revision 1.32  2010/01/11 23:49:01  sueh
  * <p> bug# 1299 Added isMessageReporter.
  * <p>
@@ -452,6 +457,12 @@ public final class MakejoincomParam implements CommandDetails {
     return commandName;
   }
 
+  public FileType getOutputImageFileType() {
+    return null;
+  }
+  public FileType getOutputImageFileType2() {
+    return null;
+  }
   public static final class Fields implements etomo.comscript.FieldInterface {
     private Fields() {
     }

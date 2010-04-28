@@ -9,6 +9,7 @@ import etomo.process.SystemProgram;
 import etomo.type.AxisID;
 import etomo.type.ConstJoinMetaData;
 import etomo.type.ConstSectionTableRowData;
+import etomo.type.FileType;
 import etomo.type.ProcessName;
 import etomo.type.SectionTableRowData;
 
@@ -26,6 +27,10 @@ import etomo.type.SectionTableRowData;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.18  2010/02/17 04:47:54  sueh
+ * <p> bug# 1301 Using the manager instead of the manager key do pop up
+ * <p> messages.
+ * <p>
  * <p> Revision 1.17  2010/01/11 23:49:01  sueh
  * <p> bug# 1299 Added isMessageReporter.
  * <p>
@@ -211,7 +216,13 @@ public class MidasParam implements Command {
   public File getCommandOutputFile() {
     return outputFile;
   }
-
+  
+  public FileType getOutputImageFileType() {
+    return null;
+  }
+  public FileType getOutputImageFileType2() {
+    return null;
+  }
   public File getCommandInputFile() {
     return null;
   }

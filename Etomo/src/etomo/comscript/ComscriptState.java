@@ -1,5 +1,7 @@
 package etomo.comscript;
 
+import etomo.type.FileType;
+
 /**
 * <p>Description: </p>
 *
@@ -14,6 +16,10 @@ package etomo.comscript;
 * @version $$Revision$$
 *
 * <p> $$Log$
+* <p> $Revision 1.2  2004/08/23 23:30:12  sueh
+* <p> $bug# 508 added interface for retrieving comscript name and
+* <p> $watched file
+* <p> $
 * <p> $Revision 1.1  2004/08/19 01:29:34  sueh
 * <p> $Interface to CombineComscriptState used by
 * <p> $BackgroundComscriptProcess and BackgroundSystemProgram.
@@ -31,4 +37,7 @@ public interface ComscriptState {
   public String getWatchedFile(int commandIndex);
   public String getComscriptName();
   public String getComscriptWatchedFile();
+  public FileType getOutputImageFileType();
+  public FileType getOutputImageFileType2();
+  public FileType getOutputImageFileType3();
 }

@@ -7,6 +7,7 @@ import etomo.BaseManager;
 import etomo.JoinManager;
 import etomo.type.AxisID;
 import etomo.type.ConstJoinState;
+import etomo.type.FileType;
 import etomo.type.IntKeyList;
 import etomo.type.ProcessName;
 import etomo.util.DatasetFiles;
@@ -25,6 +26,9 @@ import etomo.util.DatasetFiles;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.6  2010/01/11 23:49:01  sueh
+ * <p> bug# 1299 Added isMessageReporter.
+ * <p>
  * <p> Revision 1.5  2009/12/11 17:26:22  sueh
  * <p> bug# 1291 Added getCommandInputFile to implement Command.
  * <p>
@@ -44,7 +48,7 @@ import etomo.util.DatasetFiles;
  */
 public final class RemapmodelParam implements Command {
   public static final String rcsid = "$Id$";
-  
+
   private static final ProcessName PROCESS_NAME = ProcessName.REMAPMODEL;
   public static final String COMMAND_NAME = PROCESS_NAME.toString();
 
@@ -137,14 +141,15 @@ public final class RemapmodelParam implements Command {
   public CommandMode getCommandMode() {
     return null;
   }
+
   public boolean isMessageReporter() {
     return false;
   }
-  
+
   public CommandDetails getSubcommandDetails() {
     return null;
   }
-  
+
   public ProcessName getSubcommandProcessName() {
     return null;
   }
@@ -152,7 +157,7 @@ public final class RemapmodelParam implements Command {
   public String getCommandName() {
     return COMMAND_NAME;
   }
-  
+
   public ProcessName getProcessName() {
     return PROCESS_NAME;
   }
@@ -160,9 +165,16 @@ public final class RemapmodelParam implements Command {
   public File getCommandOutputFile() {
     return DatasetFiles.getRefineAlignedModelFile(manager);
   }
-  
-  public File getCommandInputFile() {
+
+  public FileType getOutputImageFileType() {
     return null;
   }
 
+  public FileType getOutputImageFileType2() {
+    return null;
+  }
+
+  public File getCommandInputFile() {
+    return null;
+  }
 }

@@ -18,6 +18,7 @@ import etomo.type.ConstJoinState;
 import etomo.type.ConstSectionTableRowData;
 import etomo.type.EtomoBoolean2;
 import etomo.type.EtomoNumber;
+import etomo.type.FileType;
 import etomo.type.IntKeyList;
 import etomo.type.IteratorElementList;
 import etomo.type.ProcessName;
@@ -40,6 +41,10 @@ import etomo.util.DatasetFiles;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.41  2010/02/17 04:47:54  sueh
+ * <p> bug# 1301 Using the manager instead of the manager key do pop up
+ * <p> messages.
+ * <p>
  * <p> Revision 1.40  2010/01/11 23:49:01  sueh
  * <p> bug# 1299 Added isMessageReporter.
  * <p>
@@ -441,6 +446,32 @@ public final class FinishjoinParam implements CommandDetails {
   }
 
   public ProcessName getSubcommandProcessName() {
+    return null;
+  }
+
+  public FileType getOutputImageFileType() {
+    if (mode == Mode.FINISH_JOIN) {
+      return FileType.JOIN;
+    }
+    if (mode == Mode.MAX_SIZE) {
+      return null;
+    }
+    if (mode == Mode.TRIAL) {
+      return FileType.TRIAL_JOIN;
+    }
+    if (mode == Mode.REJOIN) {
+      return FileType.JOIN;
+    }
+    if (mode == Mode.TRIAL_REJOIN) {
+      return FileType.TRIAL_JOIN;
+    }
+    if (mode == Mode.SUPPRESS_EXECUTION) {
+      return null;
+    }
+    return null;
+  }
+
+  public FileType getOutputImageFileType2() {
     return null;
   }
 
