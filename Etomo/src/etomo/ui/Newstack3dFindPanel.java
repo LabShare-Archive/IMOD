@@ -31,6 +31,9 @@ import etomo.util.InvalidParameterException;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.4  2010/04/09 03:01:37  sueh
+ * <p> bug# 1352 Passing the ProcessResultDisplay via parameter instead of retrieving it with a function so that it always be passed.
+ * <p>
  * <p> Revision 3.3  2009/09/21 17:55:47  sueh
  * <p> bug# 1267 Reformatted.
  * <p>
@@ -88,12 +91,12 @@ final class Newstack3dFindPanel extends NewstackOrBlendmont3dFindPanel
         .isStackUseLinearInterpolation(axisID));
     newstParam.setSizeToOutputInXandY(state
         .getStackUserSizeToOutputInXandY(axisID), getBinning(), manager
-        .getMetaData().getImageRotation(axisID), manager);
+        .getMetaData().getImageRotation(axisID));
     //Set output file because this file was copied from newst.com
     Vector outputFile = new Vector();
     outputFile.add(FileType.NEWST_OR_BLEND_3D_FIND_OUTPUT.getFileName(manager,
         axisID));
-    newstParam.setOutputFile(outputFile);
+    newstParam.setOutputFile(FileType.NEWST_OR_BLEND_3D_FIND_OUTPUT);
     newstParam.setProcessName(ProcessName.NEWST_3D_FIND);
   }
 
