@@ -46,21 +46,26 @@ type = IP
 usage = Starting and ending X coordinates of region to analyze in reference
 tooltip = 
 manpage = Starting and ending X coordinates of region to analyze for mean and
-SD in reference volume.  X, Y, and Z coordinates are numbered from 0.
+SD in reference volume.  The default is NX/4, 3*NX/4, where NX is the size of
+the reference volume in X.  X, Y, and Z coordinates are numbered from 0.
 
 [Field = YMinAndMax]
 short = yminmax
 type = IP
 usage = Starting and ending Y coordinates of region to analyze in reference
 tooltip = 
-manpage = 
+manpage = Starting and ending Y coordinates of region to analyze in reference
+volume.  The default is NY/4, 3*NY/4, where NY is the size of
+the reference volume in Y.
 
 [Field = ZMinAndMax]
 short = zminmax
 type = IP
-usage = Starting and ending Y coordinates of region to analyze in reference
+usage = Starting and ending Z coordinates of region to analyze in reference
 tooltip = 
-manpage = 
+manpage = Starting and ending Z values of region to analyze in reference
+volume.  The default is NZ/4, 3*NZ/4, where NZ is the number of slices in
+the reference volume.
 
 [Field = OffsetRefToScaledXYZ]
 short = offset
