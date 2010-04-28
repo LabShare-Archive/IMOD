@@ -17,7 +17,10 @@ import junit.framework.TestCase;
  * 
  * @version $Revision$
  * 
- * <p> $Log$ </p>
+ * <p> $Log$
+ * <p> Revision 1.1  2009/09/01 02:51:11  sueh
+ * <p> bug# 1222 Test for EtomoNumberPropertyList.
+ * <p> </p>
  */
 public class EtomoNumberPropertyListTest extends TestCase {
   public static final String rcsid = "$Id$";
@@ -33,10 +36,6 @@ public class EtomoNumberPropertyListTest extends TestCase {
 
   protected void setUp() throws Exception {
     super.setUp();
-  }
-
-  protected void tearDown() throws Exception {
-    super.tearDown();
   }
 
   public void testEtomoNumberPropertyList() {
