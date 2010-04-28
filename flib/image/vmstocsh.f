@@ -11,29 +11,20 @@ c       Log at end
 c       
       logical reading
       integer*4 iffirst,lenin,lencom,indarrow
-      character*10240 linein,linecom
-      character*320 logfile
+      character*10240 linein,linecom,logfile
       character*10 herestring/'HERESTRING'/
 c       
       logfile=' '
       lenlog=1
-c       
-c       make indarrow 8 for piping to cat, 2 otherwise
-c       
       indarrow = 2
       write(6,101)'nohup'
       if(iargc().ne.0)then
         call getarg(1,logfile)
         lenlog=lnblnk(logfile)
-        write(6,101)'if (-e '//logfile(1:lenlog)//') \\mv -f '
-     &      //logfile(1:lenlog)//' '//logfile(1:lenlog)//'~'
-c         
-c         The alternatives for no piping to cat or piping to cat
-c         
-        logfile='  > '//logfile(1:lenlog)
-c	  logfile=' | cat  > '//logfile(1:lenlog)
-
-        lenlog=lenlog+indarrow+2
+        write(6,101)'if (-e "'//logfile(1:lenlog)//'") \\mv -f "'
+     &      //logfile(1:lenlog)//'" "'//logfile(1:lenlog)//'~"'
+        logfile='  > "'//logfile(1:lenlog)//'"'
+        lenlog=lnblnk(logfile)
       endif
 
       write(6,101)'if ($?IMOD_DIR) then'
@@ -132,6 +123,12 @@ c
 
 c       
 c       $Log$
+c       Revision 3.13  2010/04/26 22:02:06  mast
+c       Made log file length 10240 and allowed spaces in it
+c
+c       Revision 3.11.2.1  2010/04/09 22:13:25  mast
+c       Increase log file size to 320
+c
 c       Revision 3.11  2009/12/04 20:28:23  mast
 c       Set variable for printing entries, add success statement at end
 c
