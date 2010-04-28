@@ -40,6 +40,9 @@ import etomo.util.Utilities;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.78  2010/03/11 06:00:42  sueh
+ * <p> bug# 1311 Added setOpenModelView.
+ * <p>
  * <p> Revision 3.77  2010/02/17 04:49:20  sueh
  * <p> bug# 1301 Using the manager instead of the manager key do pop up
  * <p> messages.
@@ -882,8 +885,8 @@ public class ImodManager {
     }
   }
 
-  public void setOpenModelView(String key, AxisID axisID) throws AxisTypeException,
-      IOException, SystemProcessException {
+  public void setOpenModelView(String key, AxisID axisID)
+      throws AxisTypeException, IOException, SystemProcessException {
     key = getPrivateKey(key);
     ImodState imodState = get(key, axisID);
     if (imodState == null) {
@@ -1045,6 +1048,19 @@ public class ImodManager {
     return imodState.isOpen();
   }
 
+  public boolean isOpen(String key, AxisID axisID, String datasetName)
+      throws AxisTypeException {
+    if (key==null) {
+      return false;
+    }
+    key = getPrivateKey(key);
+    ImodState imodState = get(key, axisID, datasetName);
+    if (imodState == null) {
+      return false;
+    }
+    return imodState.isOpen();
+  }
+
   public boolean isOpen() throws AxisTypeException {
     if (imodMap.size() == 0) {
       return false;
@@ -1107,6 +1123,15 @@ public class ImodManager {
       IOException, SystemProcessException {
     key = getPrivateKey(key);
     ImodState imodState = get(key, axisID);
+    if (imodState != null) {
+      imodState.quit();
+    }
+  }
+
+  public void quit(String key, AxisID axisID, String datasetName)
+      throws AxisTypeException, IOException, SystemProcessException {
+    key = getPrivateKey(key);
+    ImodState imodState = get(key, axisID, datasetName);
     if (imodState != null) {
       imodState.quit();
     }
@@ -1492,6 +1517,15 @@ public class ImodManager {
     }
   }
 
+  /**
+   * Used to prevent warnings about a stale file from popping up over and over.
+   * Returns true if ImodState.isWarnedStaleFile returns false.  Also turns on
+   * ImodState.warnedStaleFile if it is off.
+   * @param key
+   * @param axisID
+   * @return
+   * @throws AxisTypeException
+   */
   public boolean warnStaleFile(String key, AxisID axisID)
       throws AxisTypeException {
     key = getPrivateKey(key);
@@ -2060,6 +2094,22 @@ public class ImodManager {
       return null;
     }
     return (ImodState) vector.lastElement();
+  }
+
+  protected ImodState get(String key, AxisID axisID, String datasetName)
+      throws AxisTypeException {
+    Vector vector = getVector(key, axisID);
+    if (vector == null) {
+      return null;
+    }
+    Iterator iterator = vector.iterator();
+    while (iterator.hasNext()) {
+      ImodState imodState = (ImodState) iterator.next();
+      if (imodState.getDatasetName().equals(datasetName)) {
+        return imodState;
+      }
+    }
+    return null;
   }
 
   protected ImodState get(String key, AxisID axisID, int vectorIndex)
