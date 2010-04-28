@@ -37,6 +37,7 @@ import etomo.type.BaseScreenState;
 import etomo.type.BaseState;
 import etomo.type.ConstProcessSeries;
 import etomo.type.DialogType;
+import etomo.type.FileType;
 import etomo.type.InterfaceType;
 import etomo.type.ProcessEndState;
 import etomo.type.ProcessName;
@@ -141,9 +142,9 @@ public abstract class BaseManager {
 
   abstract void processSucceeded(AxisID axisID, ProcessName processName);
 
-  abstract void startNextProcess(AxisID axisID, String nextProcess,
+  abstract void startNextProcess(AxisID axisID, ProcessSeries.Process process,
       ProcessResultDisplay processResultDisplay, ProcessSeries processSeries,
-      DialogType dialogType, ProcessDisplay display, ProcessName subProcessName);
+      DialogType dialogType, ProcessDisplay display);
 
   abstract Storable[] getStorables(int offset);
 
@@ -153,6 +154,14 @@ public abstract class BaseManager {
       AxisID axisID);
 
   public abstract boolean isInManagerFrame();
+
+  /**
+   * Return the subdirectory of the dataset location where some of the files are
+   * stored.  This is necessary the NAD manager.  Return null if there is no
+   * subdirectory.
+   * @return
+   */
+  public abstract String getFileSubdirectoryName();
 
   public BaseManager() {
     propertyUserDir = System.getProperty("user.dir");
@@ -508,6 +517,321 @@ public abstract class BaseManager {
     return true;
   }
 
+  /**
+   * Renames an image file.  Pops up an error message and returns if the from
+   * file doesn't exist.  If either the from file type or the to file type have
+   * imod manager key(s), calls closeImod to tell the user to close the file(s)
+   * before renaming them.
+   * @param fromFileType
+   * @param toFileType
+   * @param axisID
+   */
+  public void renameImageFile(FileType fromFileType, FileType toFileType,
+      AxisID axisID) throws IOException {
+    if (fromFileType == null || toFileType == null) {
+      return;
+    }
+    if (!fromFileType.getFile(this, axisID).exists()) {
+      uiHarness.openMessageDialog(this, "Unable to rename file.  "
+          + fromFileType.getFile(this, axisID).getName() + " doesn't exist.",
+          "Entry Error", axisID);
+      return;
+    }
+    closeImod(fromFileType, axisID, true);
+    closeImod(toFileType, axisID, true);
+    Utilities.renameFile(fromFileType.getFile(this, axisID), toFileType
+        .getFile(this, axisID));
+  }
+
+  /**
+   * Renames an image file where the from file type doesn't contain the file name.
+   * Pops up an error message and returns if the from file doesn't exist.
+   * If either the from file type or the to file type have imod manager key(s),
+   * calls closeImod to tell the user to close the file(s) before renaming them.
+   * @param fromFileType
+   * @param toFileType
+   * @param axisID
+   */
+  void renameImageFile(FileType fromFileType, File fromFile,
+      FileType toFileType, AxisID axisID) throws IOException {
+    if (fromFileType == null || toFileType == null) {
+      return;
+    }
+    if (!fromFile.exists()) {
+      uiHarness.openMessageDialog(this, "Unable to rename file.  "
+          + fromFile.getName() + " doesn't exist.", "Entry Error", axisID);
+      return;
+    }
+    closeImod(fromFileType, fromFile, axisID, true);
+    closeImod(toFileType, axisID, true);
+    Utilities.renameFile(fromFile, toFileType.getFile(this, axisID));
+  }
+
+  /**
+   * Renames an image file to image_file_name~.  Does nothing if the file
+   * doesn't exist.  If the file type has imod manager key(s), calls closeImod
+   * to tell the user to close the file before renaming it.
+   * @param fromFileType
+   * @param toFileType
+   * @param axisID
+   */
+  public void backupImageFile(FileType fileType, AxisID axisID)
+      throws IOException {
+    if (fileType == null || !fileType.getFile(this, axisID).exists()) {
+      return;
+    }
+    closeImod(fileType, axisID, true);
+    Utilities.backupFile(fileType.getFile(this, axisID));
+  }
+
+  /**
+   * Asks to close a stale file
+   * @param fileType
+   * @param axisID
+   */
+  public void closeStaleFile(FileType fileType, AxisID axisID) {
+    closeImod(fileType, axisID, true);
+  }
+
+  /**
+   * Ask to close all 3dmods associated with this file type.  A file type may
+   * have multiple 3dmod keys.
+   * @param fileType
+   * @param axisID
+   * @param warnOnce - when true, only one warning is give for the open 3dmod instance
+   */
+  public void closeImod(FileType fileType, AxisID axisID, boolean warnOnce) {
+    if (fileType == null) {
+      return;
+    }
+    closeImod(fileType.getImodManagerKey(), axisID, fileType.toString(),
+        warnOnce);
+    closeImod(fileType.getImodManagerKey2(), axisID, fileType.toString2(),
+        warnOnce);
+  }
+
+  /**
+   * Ask to close all 3dmods associated with this file type and file.  A file
+   * type may have multiple 3dmod keys.
+   * @param fileType
+   * @param axisID
+   * @param stale - when true, only one warning is give for the open 3dmod instance
+   */
+  private void closeImod(FileType fileType, File file, AxisID axisID,
+      boolean warnOnce) {
+    if (fileType == null) {
+      return;
+    }
+    closeImod(fileType.getImodManagerKey(), file.getName(), axisID, fileType
+        .toString(), warnOnce);
+    closeImod(fileType.getImodManagerKey2(), file.getName(), axisID, fileType
+        .toString2(), warnOnce);
+  }
+
+  /**
+   * Ask to close all 3dmods associated with this file type and file.  A file
+   * type may have multiple 3dmod keys.
+   * @param fileType
+   * @param axisID
+   * @param stale - when true, only one warning is give for the open 3dmod instance
+   */
+  void closeImod(FileType fileType, String fileName, AxisID axisID,
+      boolean warnOnce) {
+    if (fileType == null) {
+      return;
+    }
+    closeImod(fileType.getImodManagerKey(), fileName, axisID, fileType
+        .toString(), warnOnce);
+    closeImod(fileType.getImodManagerKey2(), fileName, axisID, fileType
+        .toString2(), warnOnce);
+  }
+
+  public boolean closeImod(String key, AxisID axisID, String description,
+      boolean warnOnce) {
+    return closeImod(key, axisID, description, null, warnOnce);
+  }
+
+  /**
+   * Returns a group of up to three files.
+   * @param key1
+   * @param key2
+   * @param key3
+   * @param axisID
+   * @param fullMessage
+   * @return true if files where closed or files did not need to be closed
+   */
+  public boolean closeImods(String key1, String key2, String key3,
+      AxisID axisID, String fullMessage) {
+    if (key1 == null && key2 == null && key3 == null) {
+      return true;
+    }
+    try {
+      if ((key1 != null && imodManager.isOpen(key1, axisID))
+          || (key2 != null && imodManager.isOpen(key2, axisID))
+          || (key3 != null && imodManager.isOpen(key3, axisID))) {
+        if (!EtomoDirector.INSTANCE.getArguments().isAutoClose3dmod()) {
+          if (uiHarness.openYesNoDialog(null, fullMessage, axisID)) {
+            if (key1 != null) {
+              imodManager.quit(key1, axisID);
+            }
+            if (key2 != null) {
+              imodManager.quit(key2, axisID);
+            }
+            if (key3 != null) {
+              imodManager.quit(key3, axisID);
+            }
+            return true;
+          }
+        }
+        else {
+          if (key1 != null) {
+            imodManager.quit(key1, axisID);
+          }
+          if (key2 != null) {
+            imodManager.quit(key2, axisID);
+          }
+          if (key3 != null) {
+            imodManager.quit(key3, axisID);
+          }
+          return true;
+        }
+      }
+      else {
+        return true;
+      }
+    }
+    catch (AxisTypeException except) {
+      except.printStackTrace();
+      uiHarness.openMessageDialog(this, except.getMessage(),
+          "AxisType problem", axisID);
+    }
+    catch (IOException e) {
+      e.printStackTrace();
+      uiHarness.openMessageDialog(this, e.getMessage(), "IO Exception", axisID);
+    }
+    catch (SystemProcessException e) {
+      e.printStackTrace();
+      uiHarness.openMessageDialog(this, e.getMessage(),
+          "System Process Exception", axisID);
+    }
+    return false;
+  }
+
+  /**
+   * Close the 3dmod instance denoted by key and axisID if either the
+   * --autoclose3dmod param was passed to etomo, or the user wants the 3dmod to
+   * be closed.
+   * 
+   * If stale is true then the popup can only be display once for this instance
+   * of 3dmod.  Also the pop message will include a warning that the file
+   * displayed in 3dmod will be out of date.  
+   * @param key
+   * @param axisID
+   * @param description
+   * @param stale
+   * @return true if file was closed or file did not need to be closed
+   */
+  public boolean closeImod(String key, AxisID axisID, String description,
+      String message, boolean warnOnce) {
+    if (key == null) {
+      return true;
+    }
+    try {
+      if (imodManager.isOpen(key, axisID)) {
+        if (!EtomoDirector.INSTANCE.getArguments().isAutoClose3dmod()) {
+          if (!warnOnce || (warnOnce && imodManager.warnStaleFile(key, axisID))) {
+            if (uiHarness.openYesNoDialog(null, description
+                + " is open in 3dmod."
+                + (warnOnce ? "  This 3dmod instance will display an out of date version of this file.  "
+                    : "") + (message == null ? "" : "  " + message + "  ")
+                + "Should file be closed?", axisID)) {
+              imodManager.quit(key, axisID);
+              return true;
+            }
+          }
+        }
+        else {
+          imodManager.quit(key, axisID);
+          return true;
+        }
+      }
+      else {
+        return true;
+      }
+    }
+    catch (AxisTypeException except) {
+      except.printStackTrace();
+      uiHarness.openMessageDialog(this, except.getMessage(),
+          "AxisType problem", axisID);
+    }
+    catch (IOException e) {
+      e.printStackTrace();
+      uiHarness.openMessageDialog(this, e.getMessage(), "IO Exception", axisID);
+    }
+    catch (SystemProcessException e) {
+      e.printStackTrace();
+      uiHarness.openMessageDialog(this, e.getMessage(),
+          "System Process Exception", axisID);
+    }
+    return false;
+  }
+
+  /**
+   * Close the 3dmod instance denoted by key and axisID if either the
+   * --autoclose3dmod param was passed to etomo, or the user wants the 3dmod to
+   * be closed.
+   * 
+   * If stale is true then the popup can only be display once for this instance
+   * of 3dmod.  Also the pop message will include a warning that the file
+   * displayed in 3dmod will be out of date.  
+   * @param key
+   * @param axisID
+   * @param description
+   * @param stale
+   */
+  private void closeImod(String key, String fileName, AxisID axisID,
+      String description, boolean stale) {
+    if (key == null) {
+      return;
+    }
+    try {
+      if (imodManager.isOpen(key, axisID, fileName)) {
+        if (!EtomoDirector.INSTANCE.getArguments().isAutoClose3dmod()) {
+          if (!stale || (stale && imodManager.warnStaleFile(key, axisID))) {
+            String[] message = new String[2];
+            message[0] = description
+                + " "
+                + fileName
+                + " is open in 3dmod."
+                + (stale ? "  This 3dmod instance will display an out of date version of this file.  "
+                    : "");
+            message[1] = "Should it be closed?";
+            if (uiHarness.openYesNoDialog(null, message, axisID)) {
+              imodManager.quit(key, axisID, fileName);
+            }
+          }
+        }
+        else {
+          imodManager.quit(key, axisID, fileName);
+        }
+      }
+    }
+    catch (AxisTypeException except) {
+      except.printStackTrace();
+      uiHarness.openMessageDialog(this, except.getMessage(),
+          "AxisType problem", axisID);
+    }
+    catch (IOException e) {
+      e.printStackTrace();
+      uiHarness.openMessageDialog(this, e.getMessage(), "IO Exception", axisID);
+    }
+    catch (SystemProcessException e) {
+      e.printStackTrace();
+      uiHarness.openMessageDialog(this, e.getMessage(),
+          "System Process Exception", axisID);
+    }
+  }
+
   private void close3dmods(AxisID axisID) {
     // Should we close the 3dmod windows
     try {
@@ -516,7 +840,7 @@ public abstract class BaseManager {
           String[] message = new String[3];
           message[0] = "There are still 3dmod programs running.";
           message[1] = "Do you wish to end these programs?";
-          if (uiHarness.openYesNoDialog(this, message, axisID)) {
+          if (uiHarness.openYesNoDialog(null, message, axisID)) {
             imodManager.quit();
           }
         }
@@ -1303,7 +1627,7 @@ public abstract class BaseManager {
     if (param == null) {
       String rootName = metaData.getCurrentProcesschunksRootName(axisID);
       if (rootName != null && !rootName.matches("\\s*")) {
-        param = new ProcesschunksParam(this, axisID, rootName);
+        param = new ProcesschunksParam(this, axisID, rootName, null);
         param.setSubcommandDetails(subcommandDetails);
         if (metaData.isCurrentProcesschunksSubdirNameSet(axisID)) {
           param.setSubdirName(metaData
@@ -1351,6 +1675,9 @@ public abstract class BaseManager {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.128  2010/04/10 00:29:38  sueh
+ * <p> bug# 1349 Changed close3dmods.
+ * <p>
  * <p> Revision 1.127  2010/03/18 22:40:45  sueh
  * <p> bug# 1323 processchunks and resume was saving meta data to .etomo
  * <p> instead of .edf.
