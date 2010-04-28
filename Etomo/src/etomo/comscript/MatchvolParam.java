@@ -17,14 +17,15 @@ public class MatchvolParam implements CommandParam {
   public static final String rcsid = "$Id$";
 
   public static final String COMMAND = "matchvol";
-  
-  private FortranInputString outputSizeXYZ = new FortranInputString("OutputSizeXYZ", 3);
+
+  private FortranInputString outputSizeXYZ = new FortranInputString(
+      "OutputSizeXYZ", 3);
 
   public MatchvolParam() {
     outputSizeXYZ.setIntegerType(true);
     reset();
   }
-  
+
   public void parseComScriptCommand(ComScriptCommand scriptCommand)
       throws BadComScriptException, FortranInputSyntaxException,
       InvalidParameterException {
@@ -32,7 +33,7 @@ public class MatchvolParam implements CommandParam {
     reset();
     try {
       try {
-      outputSizeXYZ.validateAndSet(scriptCommand);
+        outputSizeXYZ.validateAndSet(scriptCommand);
       }
       catch (NumberFormatException except) {
         outputSizeXYZ.setDivider(' ');
@@ -50,7 +51,7 @@ public class MatchvolParam implements CommandParam {
     outputSizeXYZ.reset();
     outputSizeXYZ.resetDivider();
   }
-  
+
   /**
    * Get the standand input arguments from the ComScriptCommand validating the
    * name of the command and the appropriate number of input arguments.
@@ -84,18 +85,21 @@ public class MatchvolParam implements CommandParam {
     scriptCommand.useKeywordValue();
     outputSizeXYZ.updateScriptParameter(scriptCommand);
   }
-  
+
   public void initializeDefaults() {
   }
-  
+
   public void setOutputSizeY(String outputSizeY) {
     outputSizeXYZ.set(1, outputSizeY);
   }
-  
+
   public int getOutputSizeY() {
     return outputSizeXYZ.getInt(1);
   }
 }
 /**
- * <p> $Log$ </p>
+ * <p> $Log$
+ * <p> Revision 1.1  2006/09/05 17:35:01  sueh
+ * <p> bug# 917 Param for parsing a matchvol call.
+ * <p> </p>
  */

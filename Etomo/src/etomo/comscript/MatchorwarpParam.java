@@ -15,6 +15,9 @@ import java.util.ArrayList;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.3  2006/09/19 21:59:52  sueh
+ * <p> bug# 928 Added residualFile, vectormodel, and clipsize.
+ * <p>
  * <p> Revision 3.2  2004/04/12 16:49:27  sueh
  * <p> bug# 409 changed interface class CommandParam
  * <p>
@@ -41,18 +44,14 @@ import java.util.ArrayList;
  * <p> </p>
  */
 
-public class MatchorwarpParam
-  extends ConstMatchorwarpParam
-  implements CommandParam {
-
+public class MatchorwarpParam extends ConstMatchorwarpParam implements
+    CommandParam {
   /* (non-Javadoc)
    * @see 
    * etomo.comscript.CommandParam#initialize(etomo.comscript.ComScriptCommand)
    */
   public void parseComScriptCommand(ComScriptCommand scriptCommand)
-    throws
-      BadComScriptException,
-      FortranInputSyntaxException,
+      throws BadComScriptException, FortranInputSyntaxException,
       InvalidParameterException {
     // TODO error checking - throw exceptions for bad syntax
     String[] cmdLineArgs = scriptCommand.getCommandLineArgs();
@@ -139,7 +138,7 @@ public class MatchorwarpParam
         i++;
         zUpperExclude = Integer.parseInt(cmdLineArgs[i]);
       }
-      
+
       if (cmdLineArgs[i].startsWith("-l")) {
         i++;
         useLinearInterpolation = true;
@@ -152,7 +151,7 @@ public class MatchorwarpParam
 
     inputFile = cmdLineArgs[cmdLineArgs.length - 2];
     outputFile = cmdLineArgs[cmdLineArgs.length - 1];
-    
+
     //Backwards compatibility (before 3.8.25):
     //Update so that the user can look at the .resid file.
     if (residualFile == null && vectormodel == null && clipsize.isNull()) {
@@ -167,7 +166,7 @@ public class MatchorwarpParam
    * (etomo.comscript.ComScriptCommand)
    */
   public void updateComScriptCommand(ComScriptCommand scriptCommand)
-    throws BadComScriptException {
+      throws BadComScriptException {
 
     // Create a new command line argument array
     ArrayList cmdLineArgs = new ArrayList(20);
@@ -181,17 +180,17 @@ public class MatchorwarpParam
       cmdLineArgs.add("-refinelimit");
       cmdLineArgs.add(String.valueOf(refineLimit));
     }
-    
+
     if (residualFile != null) {
       cmdLineArgs.add(RESIDUAL_FILE_KEY);
       cmdLineArgs.add(residualFile);
     }
-    
-    if (vectormodel !=null) {
+
+    if (vectormodel != null) {
       cmdLineArgs.add(VECTOR_MODEL_KEY);
       cmdLineArgs.add(vectormodel);
     }
-    
+
     if (!clipsize.isNull()) {
       cmdLineArgs.add(clipsize.getName());
       cmdLineArgs.add(clipsize.toString());
@@ -268,17 +267,17 @@ public class MatchorwarpParam
     cmdLineArgs.add(outputFile);
 
     int nArgs = cmdLineArgs.size();
-    scriptCommand.setCommandLineArgs(
-      (String[]) cmdLineArgs.toArray(new String[nArgs]));
+    scriptCommand.setCommandLineArgs((String[]) cmdLineArgs
+        .toArray(new String[nArgs]));
   }
-  
+
   public void initializeDefaults() {
   }
 
   /**
-     * Sets the inverseFile.
-     * @param inverseFile The inverseFile to set
-     */
+   * Sets the inverseFile.
+   * @param inverseFile The inverseFile to set
+   */
   public void setInverseFile(String inverseFile) {
     this.inverseFile = inverseFile;
   }
@@ -290,7 +289,7 @@ public class MatchorwarpParam
   public void setModelFile(String modelFile) {
     this.modelFile = modelFile;
   }
-  
+
   /**
    * Set the default patch region model file
    * @param patchFile
@@ -298,7 +297,7 @@ public class MatchorwarpParam
   public void setDefaultModelFile() {
     modelFile = ConstMatchorwarpParam.getDefaultPatchRegionModel();
   }
-  
+
   /**
    * Sets the patchFile.
    * @param patchFile The patchFile to set
@@ -386,6 +385,7 @@ public class MatchorwarpParam
   public void setZUpperExclude(int zUpperExclude) {
     this.zUpperExclude = zUpperExclude;
   }
+
   /**
    * Sets the inputFile.
    * @param inputFile The inputFile to set
@@ -425,7 +425,7 @@ public class MatchorwarpParam
   public void setRefineFile(String refineFile) {
     this.refineFile = refineFile;
   }
-  
+
   public void setUseLinearInterpolation(boolean useLinearInterpolation) {
     this.useLinearInterpolation = useLinearInterpolation;
   }

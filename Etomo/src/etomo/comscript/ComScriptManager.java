@@ -34,6 +34,9 @@ import etomo.util.Utilities;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.62  2010/03/12 03:58:35  sueh
+ * <p> bug# 1325 Added CommandMode to CCDEraserParam constructor.
+ * <p>
  * <p> Revision 3.61  2010/03/03 04:51:10  sueh
  * <p> bug# 1311 Added scriptXcorrPtA and B.  Added
  * <p> getTiltxcorrParamFromXcorrPt, loadXCorrPt, and saveXcorrPt.
@@ -444,7 +447,7 @@ public final class ComScriptManager extends BaseComScriptManager {
    * @return a CCDEraserParam object that will be created and initialized
    * with the input arguments from eraser in the com script.
    */
-  public CCDEraserParam getCCDEraserParam(AxisID axisID,CommandMode mode) {
+  public CCDEraserParam getCCDEraserParam(AxisID axisID, CommandMode mode) {
 
     //  Get a reference to the appropriate script object
     ComScript eraser;
@@ -456,7 +459,7 @@ public final class ComScriptManager extends BaseComScriptManager {
     }
 
     // Initialize a CCDEraserParam object from the com script command object
-    CCDEraserParam ccdEraserParam = new CCDEraserParam(appManager,axisID,mode);
+    CCDEraserParam ccdEraserParam = new CCDEraserParam(appManager, axisID, mode);
     initialize(ccdEraserParam, eraser, "ccderaser", axisID, false, false);
     return ccdEraserParam;
   }
@@ -774,7 +777,7 @@ public final class ComScriptManager extends BaseComScriptManager {
     }
 
     // Initialize a NewstParam object from the com script command object
-    NewstParam prenewstParam = new NewstParam(axisID);
+    NewstParam prenewstParam = new NewstParam(appManager, axisID);
 
     // Implementation note: since the name of the command newst was changed to
     // newstack we need to figure out which one it is before calling initialize.
@@ -1231,7 +1234,7 @@ public final class ComScriptManager extends BaseComScriptManager {
     }
 
     // Initialize a NewstParam object from the com script command object
-    NewstParam newstParam = new NewstParam(axisID);
+    NewstParam newstParam = new NewstParam(appManager, axisID);
 
     // Implementation note: since the name of the command newst was changed to
     // newstack we need to figure out which one it is before calling initialize.
@@ -1257,7 +1260,7 @@ public final class ComScriptManager extends BaseComScriptManager {
     }
 
     // Initialize a NewstParam object from the com script command object
-    NewstParam newstParam = new NewstParam(axisID);
+    NewstParam newstParam = new NewstParam(appManager, axisID);
 
     // Implementation note: since the name of the command newst was changed to
     // newstack we need to figure out which one it is before calling initialize.
@@ -1627,7 +1630,8 @@ public final class ComScriptManager extends BaseComScriptManager {
     }
 
     // Initialize from the com script command object
-    CtfPhaseFlipParam ctfPhaseFlipParam = new CtfPhaseFlipParam();
+    CtfPhaseFlipParam ctfPhaseFlipParam = new CtfPhaseFlipParam(appManager,
+        axisID);
     initialize(ctfPhaseFlipParam, ctfPhaseflip, CtfPhaseFlipParam.COMMAND,
         axisID, false, false);
     return ctfPhaseFlipParam;
@@ -1661,7 +1665,7 @@ public final class ComScriptManager extends BaseComScriptManager {
     }
 
     // Initialize a TiltParam object from the com script command object
-    MTFFilterParam mtfFilterParam = new MTFFilterParam();
+    MTFFilterParam mtfFilterParam = new MTFFilterParam(appManager, axisID);
     initialize(mtfFilterParam, mtfFilter, MTFFILTER_COMMAND, axisID, false,
         false);
     return mtfFilterParam;
@@ -2099,7 +2103,8 @@ public final class ComScriptManager extends BaseComScriptManager {
   public WarpVolParam getWarpVolParamFromFlatten(AxisID axisID) {
     // Initialize a WarpVolParam object from the com script command
     // object
-    WarpVolParam param = new WarpVolParam(appManager, axisID);
+    WarpVolParam param = new WarpVolParam(appManager, axisID,
+        WarpVolParam.Mode.POST_PROCESSING);
     initialize(param, scriptFlatten, WarpVolParam.COMMAND, axisID, false, false);
     return param;
   }

@@ -13,6 +13,10 @@ package etomo.comscript;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.1  2004/04/12 16:53:12  sueh
+ * <p> bug# 409 added intializeDefaults() so that defaults can be set by the param in
+ * <p> the ComScriptManager when the .com file is not available
+ * <p>
  * <p> Revision 3.0  2003/11/07 23:19:00  rickg
  * <p> Version 1.0.0
  * <p>
@@ -33,9 +37,7 @@ public interface CommandParam {
    * @param scriptCommand
    */
   public void parseComScriptCommand(ComScriptCommand scriptCommand)
-    throws
-      BadComScriptException,
-      FortranInputSyntaxException,
+      throws BadComScriptException, FortranInputSyntaxException,
       InvalidParameterException;
 
   /**
@@ -44,7 +46,7 @@ public interface CommandParam {
    * @param scriptCommand
    */
   public void updateComScriptCommand(ComScriptCommand scriptCommand)
-    throws BadComScriptException;
-    
+      throws BadComScriptException;
+
   public void initializeDefaults();
 }
