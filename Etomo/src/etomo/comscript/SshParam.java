@@ -23,6 +23,10 @@ import etomo.type.EtomoVersion;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.2  2010/02/17 04:47:53  sueh
+ * <p> bug# 1301 Using the manager instead of the manager key do pop up
+ * <p> messages.
+ * <p>
  * <p> Revision 1.1  2009/04/13 22:27:50  sueh
  * <p> bug# 1207 Class to represent the ssh command.  Builds ssh command with
  * <p> ConnectTimeout option when possible.
@@ -39,10 +43,10 @@ final class SshParam {
       String computer) {
     List command = new ArrayList();
     command.add("ssh");
+    command.add("-x");
     //prevents ssh from waiting for an answer when connecting to a computer for
     //the first time
     //see man ssh_config
-    command.add("-x");
     command.add("-o");
     command.add("StrictHostKeyChecking=no");
     if (useTimeoutIfPossible && isTimeoutAvailable(manager)) {
