@@ -23,6 +23,7 @@ import etomo.type.AxisID;
 import etomo.type.AxisType;
 import etomo.type.DialogExitState;
 import etomo.type.DialogType;
+import etomo.type.FileType;
 import etomo.type.ProcessName;
 import etomo.type.ProcessResult;
 import etomo.type.ProcessResultDisplay;
@@ -50,6 +51,9 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.24  2010/03/19 02:40:31  sueh
+ * <p> bug# 1325 In openDialog loading TiltalignParam and setting parameters.
+ * <p>
  * <p> Revision 1.23  2010/03/12 04:15:25  sueh
  * <p> bug# 1325 In doneDialog warning the user when a use button wasn't pressed.
  * <p>
@@ -297,14 +301,14 @@ public final class FinalAlignedStackExpert extends ReconUIExpert {
   /**
    * Start the next process specified by the nextProcess string
    */
-  public void startNextProcess(String nextProcess,
+  public void startNextProcess(ProcessSeries.Process process,
       ProcessResultDisplay processResultDisplay, ProcessSeries processSeries,
-      DialogType dialogType, ProcessDisplay display, ProcessName subprocessName) {
-    if (nextProcess.equals(ProcessName.PROCESSCHUNKS.toString())) {
+      DialogType dialogType, ProcessDisplay display) {
+    if (process.equals(ProcessName.PROCESSCHUNKS.toString())) {
       processchunks(manager, dialog, processResultDisplay, processSeries,
-          subprocessName);
+          process.getSubprocessName(), process.getOutputImageFileType());
     }
-    else if (nextProcess.equals(ProcessName.TILT_3D_FIND.toString())) {
+    else if (process.equals(ProcessName.TILT_3D_FIND.toString())) {
       manager.tilt3dFindAction(processResultDisplay, processSeries, null, null,
           (TiltDisplay) display, axisID, dialogType);
     }
@@ -320,8 +324,8 @@ public final class FinalAlignedStackExpert extends ReconUIExpert {
         && exitState != DialogExitState.POSTPONE) {
       if (state.isUseCtfCorrectionWarning(axisID)) {
         //The use button wasn't pressed and the user is moving on to the next
-        //dialog.
-        UIHarness.INSTANCE.openMessageDialog(manager,
+        //dialog.  Don't put this message in the log.
+        UIHarness.INSTANCE.openMessageDialog(null,
             "To use the CTF correction go back to Final Aligned Stack and press "
                 + "the \"" + FinalAlignedStackDialog.USE_CTF_CORRECTION_LABEL
                 + "\" button in the " + FinalAlignedStackDialog.CTF_TAB_LABEL
@@ -331,8 +335,8 @@ public final class FinalAlignedStackExpert extends ReconUIExpert {
       }
       if (state.isUseErasedStackWarning(axisID)) {
         //The use button wasn't pressed and the user is moving on to the next
-        //dialog.
-        UIHarness.INSTANCE.openMessageDialog(manager,
+        //dialog.  Don't put this message in the log.
+        UIHarness.INSTANCE.openMessageDialog(null,
             "To use the stack with the erased beads go back to Final Aligned "
                 + "Stack and press the \""
                 + FinalAlignedStackDialog.getUseErasedStackLabel()
@@ -344,8 +348,8 @@ public final class FinalAlignedStackExpert extends ReconUIExpert {
       }
       if (state.isUseFilteredStackWarning(axisID)) {
         //The use button wasn't pressed and the user is moving on to the next
-        //dialog.
-        UIHarness.INSTANCE.openMessageDialog(manager,
+        //dialog.  Don't put this message in the log.
+        UIHarness.INSTANCE.openMessageDialog(null,
             "To use the MTF filtered stack go back to Final Aligned "
                 + "Stack and press the \""
                 + FinalAlignedStackDialog.USE_FILTERED_STACK_LABEL
@@ -358,15 +362,15 @@ public final class FinalAlignedStackExpert extends ReconUIExpert {
     }
     if (exitState == DialogExitState.EXECUTE) {
       manager.closeImod(ImodManager.MTF_FILTER_KEY, axisID,
-          "MTF filtered stack");
+          "MTF filtered stack", false);
       manager.closeImod(ImodManager.CTF_CORRECTION_KEY, axisID,
-          "CTF corrected stack");
+          "CTF corrected stack", false);
       manager.closeImod(ImodManager.ERASED_FIDUCIALS_KEY, axisID,
-          "Erased beads stack");
+          "Erased beads stack", false);
       manager.closeImod(ImodManager.FINE_ALIGNED_3D_FIND_KEY, axisID,
-          "Aligned stack for 3d find");
+          "Aligned stack for 3d find", false);
       manager.closeImod(ImodManager.FULL_VOLUME_3D_FIND_KEY, axisID,
-          "tomogram 3d find");
+          "tomogram 3d find", false);
     }
     if (exitState != DialogExitState.CANCEL) {
       saveDialog();
@@ -445,7 +449,7 @@ public final class FinalAlignedStackExpert extends ReconUIExpert {
    * @param axisID
    * @return true if successful
    */
-  private boolean updateMTFFilterCom() {
+  private ConstMTFFilterParam updateMTFFilterCom() {
     // Set a reference to the correct object
     if (dialog == null) {
       UIHarness.INSTANCE
@@ -453,10 +457,11 @@ public final class FinalAlignedStackExpert extends ReconUIExpert {
               manager,
               "Can not update mtffilter?.com without an active final aligned stack dialog",
               "Program logic error", axisID);
-      return false;
+      return null;
     }
+    MTFFilterParam mtfFilterParam = null;
     try {
-      MTFFilterParam mtfFilterParam = comScriptMgr.getMTFFilterParam(axisID);
+      mtfFilterParam = comScriptMgr.getMTFFilterParam(axisID);
       getParameters(mtfFilterParam);
       String inputFileName;
       String outputFileName;
@@ -483,7 +488,7 @@ public final class FinalAlignedStackExpert extends ReconUIExpert {
       errorMessage[2] = except.getMessage();
       UIHarness.INSTANCE.openMessageDialog(manager, errorMessage,
           "MTF Filter Parameter Syntax Error", axisID);
-      return false;
+      return null;
     }
     catch (FortranInputSyntaxException except) {
       String[] errorMessage = new String[3];
@@ -492,9 +497,9 @@ public final class FinalAlignedStackExpert extends ReconUIExpert {
       errorMessage[2] = except.getMessage();
       UIHarness.INSTANCE.openMessageDialog(manager, errorMessage,
           "MTF Filter Parameter Syntax Error", axisID);
-      return false;
+      return null;
     }
-    return true;
+    return mtfFilterParam;
   }
 
   ProcessDialog getDialog() {
@@ -513,14 +518,15 @@ public final class FinalAlignedStackExpert extends ReconUIExpert {
       return;
     }
     sendMsgProcessStarting(processResultDisplay);
-    if (!updateMTFFilterCom()) {
+    ConstMTFFilterParam param;
+    if ((param = updateMTFFilterCom()) == null) {
       sendMsg(ProcessResult.FAILED_TO_START, processResultDisplay);
       return;
     }
     processSeries.setRun3dmodDeferred(deferred3dmodButton, run3dmodMenuOptions);
     setDialogState(ProcessState.INPROGRESS);
-    sendMsg(manager.mtffilter(axisID, processResultDisplay, processSeries),
-        processResultDisplay);
+    sendMsg(manager.mtffilter(param, axisID, processResultDisplay,
+        processSeries), processResultDisplay);
   }
 
   void ctfPlotter(ProcessResultDisplay processResultDisplay) {
@@ -631,8 +637,8 @@ public final class FinalAlignedStackExpert extends ReconUIExpert {
       return;
     }
     setDialogState(ProcessState.INPROGRESS);
-    sendMsg(manager.ctfCorrection(axisID, processResultDisplay, processSeries),
-        processResultDisplay);
+    sendMsg(manager.ctfCorrection(param, axisID, processResultDisplay,
+        processSeries), processResultDisplay);
   }
 
   private ConstSplitCorrectionParam updateSplitCorrectionParam() {
@@ -678,7 +684,7 @@ public final class FinalAlignedStackExpert extends ReconUIExpert {
         processResultDisplay, processSeries, param, dialogType);
     if (processResult == null) {
       processSeries.setNextProcess(ProcessName.PROCESSCHUNKS.toString(),
-          ProcessName.CTF_CORRECTION);
+          ProcessName.CTF_CORRECTION, FileType.CTF_CORRECTED_STACK);
     }
     sendMsg(processResult, processResultDisplay);
   }
@@ -688,8 +694,8 @@ public final class FinalAlignedStackExpert extends ReconUIExpert {
    * created by ctfcorrection.com
    */
   void useCtfCorrection(ProcessResultDisplay processResultDisplay) {
-    if (manager.useFileAsFullAlignedStack(processResultDisplay, DatasetFiles
-        .getCtfCorrectionFile(manager, axisID),
+    if (manager.useFileAsFullAlignedStack(processResultDisplay,
+        FileType.CTF_CORRECTED_STACK,
         FinalAlignedStackDialog.CTF_CORRECTION_LABEL, axisID, dialogType)) {
       state.setUseCtfCorrectionWarning(axisID, false);
     }
@@ -710,17 +716,9 @@ public final class FinalAlignedStackExpert extends ReconUIExpert {
       return;
     }
     setProgressBar("Using filtered full aligned stack", 1, axisID);
-    // Instantiate file objects for the original raw stack and the fixed
-    // stack
-    String fullAlignedStackFilename = manager.getPropertyUserDir()
-        + File.separator + metaData.getDatasetName() + axisID.getExtension()
-        + ".ali";
-    File fullAlignedStack = new File(fullAlignedStackFilename);
-    String filteredFullAlignedStackFilename = manager.getPropertyUserDir()
-        + File.separator + metaData.getDatasetName() + axisID.getExtension()
-        + "_filt.ali";
-    File filteredFullAlignedStack = new File(filteredFullAlignedStackFilename);
-    if (!filteredFullAlignedStack.exists()) {
+    File mtfFilteredStack = FileType.MTF_FILTERED_STACK
+        .getFile(manager, axisID);
+    if (!mtfFilteredStack.exists()) {
       UIHarness.INSTANCE
           .openMessageDialog(
               manager,
@@ -730,31 +728,29 @@ public final class FinalAlignedStackExpert extends ReconUIExpert {
       return;
     }
     setDialogState(ProcessState.INPROGRESS);
-    if (fullAlignedStack.exists() && filteredFullAlignedStack.exists()) {
-      if (!Utilities.isValidStack(filteredFullAlignedStack, manager, axisID)) {
-        UIHarness.INSTANCE.openMessageDialog(manager, filteredFullAlignedStack
+    if (FileType.ALIGNED_STACK.getFile(manager, axisID).exists()
+        && mtfFilteredStack.exists()) {
+      if (!Utilities.isValidStack(mtfFilteredStack, manager, axisID)) {
+        UIHarness.INSTANCE.openMessageDialog(manager, mtfFilteredStack
             .getName()
             + " is not a valid MRC file.", "Entry Error", axisID);
         sendMsg(ProcessResult.FAILED_TO_START, processResultDisplay);
         return;
       }
       try {
-        Utilities.renameFile(fullAlignedStack, new File(fullAlignedStack
-            .getAbsolutePath()
-            + "~"));
+        manager.backupImageFile(FileType.ALIGNED_STACK, axisID);
       }
       catch (IOException except) {
         UIHarness.INSTANCE.openMessageDialog(manager, "Unable to backup "
-            + fullAlignedStack.getAbsolutePath() + "\n" + except.getMessage(),
-            "File Rename Error", axisID);
+            + FileType.ALIGNED_STACK.getFileName(manager, axisID) + "\n"
+            + except.getMessage(), "File Rename Error", axisID);
         sendMsg(ProcessResult.FAILED, processResultDisplay);
         return;
       }
     }
-    // don't have to rename full aligned stack because it is a generated
-    // file
     try {
-      Utilities.renameFile(filteredFullAlignedStack, fullAlignedStack);
+      manager.renameImageFile(FileType.MTF_FILTERED_STACK,
+          FileType.ALIGNED_STACK, axisID);
     }
     catch (IOException except) {
       UIHarness.INSTANCE.openMessageDialog(manager, except.getMessage(),
@@ -762,8 +758,6 @@ public final class FinalAlignedStackExpert extends ReconUIExpert {
       sendMsg(ProcessResult.FAILED, processResultDisplay);
       return;
     }
-    manager.closeImod(ImodManager.FINE_ALIGNED_KEY, axisID,
-        "original full aligned stack");
     stopProgressBar(axisID);
     sendMsg(ProcessResult.SUCCEEDED, processResultDisplay);
     state.setUseFilteredStackWarning(axisID, false);
