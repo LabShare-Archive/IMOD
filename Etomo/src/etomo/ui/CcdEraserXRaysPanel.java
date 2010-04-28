@@ -442,7 +442,7 @@ final class CcdEraserXRaysPanel implements ContextMenu,
       applicationManager.clipStats(axisID, FileType.RAW_STACK, null);
     }
     else if (command.equals(btnClipStatsFixed.getActionCommand())) {
-      applicationManager.clipStats(axisID, FileType.CCD_ERASER_OUTPUT, null);
+      applicationManager.clipStats(axisID, FileType.FIXED_XRAYS_STACK, null);
     }
   }
 
@@ -585,6 +585,9 @@ final class CcdEraserXRaysPanel implements ContextMenu,
 
 /**
  * <p> $Log$
+ * <p> Revision 3.6  2010/03/12 04:10:40  sueh
+ * <p> bug# 1325 Made the use fixed stack button label available to the package.
+ * <p>
  * <p> Revision 3.5  2010/03/09 22:06:57  sueh
  * <p> bug# 1325 Changed FileType.CCD_ERASER_INPUT to
  * <p> FileType.RAW_STACK.
