@@ -28,6 +28,10 @@ import etomo.ui.UIHarness;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.44  2010/02/17 04:49:20  sueh
+ * <p> bug# 1301 Using the manager instead of the manager key do pop up
+ * <p> messages.
+ * <p>
  * <p> Revision 3.43  2009/10/01 18:48:10  sueh
  * <p> bug# 1239 In processDone put only the process name in the terminated
  * <p> message so that it is easier to test with uitest.
@@ -393,6 +397,26 @@ class BackgroundProcess extends Thread implements SystemProcessInterface {
     processDetails = null;
     commandDetails = null;
   }
+  
+  BackgroundProcess(BaseManager manager, Command command,
+      BaseProcessManager processManager, AxisID axisID,
+      ProcessResultDisplay processResultDisplay, ProcessName processName,
+      ConstProcessSeries processSeries) {
+    this.manager = manager;
+    this.axisID = axisID;
+    this.command = command;
+    this.commandArray = command.getCommandArray();
+    this.processManager = processManager;
+    this.processResultDisplay = processResultDisplay;
+    commandProcessID = new StringBuffer("");
+    processData = ProcessData.getManagedInstance(axisID, manager, processName);
+    processData.setDisplayKey(processResultDisplay);
+    this.processSeries = processSeries;
+    commandArrayList = null;
+    processDetails = null;
+    commandDetails = null;
+    forceNextProcess = false;
+  }
 
   BackgroundProcess(BaseManager manager, String[] commandArray,
       BaseProcessManager processManager, AxisID axisID,
@@ -449,6 +473,14 @@ class BackgroundProcess extends Thread implements SystemProcessInterface {
     processDetails = null;
     command = null;
     commandDetails = null;
+  }
+
+  void closeOutputImageFile() {
+    if (command == null) {
+      return;
+    }
+    manager.closeStaleFile(command.getOutputImageFileType(), axisID);
+    manager.closeStaleFile(command.getOutputImageFileType2(), axisID);
   }
 
   public final void setComputerMap(Map computerMap) {
