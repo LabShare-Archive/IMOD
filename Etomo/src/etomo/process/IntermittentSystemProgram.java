@@ -86,6 +86,9 @@ public class IntermittentSystemProgram {
    * by running stderr.get();
    */
   void clearStdError() {
+    if (program == null || program.stderr == null) {
+      return;
+    }
     program.stderr.clear();
   }
 
@@ -155,6 +158,10 @@ public class IntermittentSystemProgram {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.22  2010/02/17 04:49:20  sueh
+ * <p> bug# 1301 Using the manager instead of the manager key do pop up
+ * <p> messages.
+ * <p>
  * <p> Revision 1.21  2010/01/11 23:54:58  sueh
  * <p> bug# 1299 Passing in axisID and managerKey.
  * <p>
