@@ -190,7 +190,7 @@ button (\fBbn\fR) is to push it.
 
 .TP 4
 .I subject_name
-Name of the subject.  May contains variables.  May not be \fBa\fR, \fBb\fR, an
+Name of the subject.  May contain variables.  May not be \fBa\fR, \fBb\fR, an
 \fIsubcommand_action\fR string, or a \fIfield\fR string.
 
 .TP 4
@@ -392,6 +392,10 @@ A global variable created when the set.keep.dataset command is executed in a Tes
 .B axis
 A variable created when a Test autodoc is executed.  It is global to the Test autodoc.
 .RE
+
+.SS Wildcards
+"\fB*\fR" can be used to replace 0 or more characters in the \fIliteral_string\fR in
+\fBassert.contains.file\fR.  "\fB*\fR" cannot match the end of the line.
 
 .SS Waiting
 The \fBwait\fR command creates a wait state in a tester and causes the tester to
@@ -741,10 +745,14 @@ that has been pressed is dark), the check box is checked, or the radio button is
 selected.
 
 .TP 4
-.B assert.contains.file = \fIfile_name\fB|\fR[\fB"\fR]\fIliteral_string\fR[\fB"\fR]
+.B assert.contains.file = \fIfile_name\fB|\fIliteral_string
 Tests whether a file in the \fItest_directory\fR called \fIfile_name\fR contains
-\fIliteral_string\fR.  Quoting the string is optional and prevents variable substitute.  Note
-that the "\fB|\fR" is part of the command.  It is used for making a list of values.
+\fIliteral_string\fR.  All or part of the \fIliteral_string\fR can be quoted with
+double quotes (\fB"\fR) to prevent variable substitution.  The wildcard (\fB*\fR)
+will work in \fIliteral_string\fR.  The \fIliteral_string\fR can only contain one
+line.  \fILiteral_string\fR doesn't have to start at the beginning of the line, 
+or go on until the end of the line.
+Note that the "\fB|\fR" is part of the command.  It is used for making a list of values.
 
 .TP 4
 .B assert.\fR(\fBexists\fR|\fBnot-exists\fR)\fB.file = \fR(\fIfile_name\fR|\fIrelative_path\fR)
