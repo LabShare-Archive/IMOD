@@ -311,13 +311,10 @@ c       Preserve legacy behavior of floating to positive range for mode 1
         dogxforms=.true.
       endif
 c	
-      print *,'here'
       call read_list(ixpclist,iypclist,izpclist,neglist,
      &    multineg,npclist,minzpc,maxzpc,anyneg,pipinput)
       nsect=maxzpc+1-minzpc
-      print *,'here'
       call fill_listz(izpclist,npclist,listz,nlistz)
-      print *,'here'
       if(dogxforms)then
         if (nlistz.gt.nglist) call exitError(
      &      'MORE SECTIONS THAN G TRANSFORMS')
@@ -342,11 +339,8 @@ c       now check lists and get basic properties of overlap etc
 c       
       call checklist(ixpclist,npclist,1,nxin,minxpiece,nxpieces,
      &    nxoverlap)
-      print *,'here OK',npclist,1,nxin,minxpiece,nxpieces,
-     &    nxoverlap,nyin
       call checklist(iypclist,npclist,1,nyin,minypiece,nypieces,
      &    nyoverlap)
-      print *,'here'
       if(nxpieces.le.0. or. nypieces.le.0)call exitError
      &    ('CHECKLIST REPORTED 0 PIECES IN ONE DIRECTION')
 c       
@@ -2799,6 +2793,9 @@ c
 
 c       
 c       $Log$
+c       Revision 3.41  2010/04/19 03:13:23  mast
+c       Switch to module, fixed allocation of big arrays in common
+c
 c       Revision 3.40  2010/04/07 04:52:18  mast
 c       Increase maximum allowed frame size
 c
