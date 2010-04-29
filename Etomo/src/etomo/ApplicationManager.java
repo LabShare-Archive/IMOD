@@ -1542,7 +1542,7 @@ public final class ApplicationManager extends BaseManager implements
         this, axisID), new File(getPropertyUserDir()), ClipParam.Mode.STATS);
     String threadName;
     try {
-      threadName = processMgr.clipStats(clipParam, processSeries);
+      threadName = processMgr.clipStats(clipParam, axisID, processSeries);
     }
     catch (SystemProcessException except) {
       except.printStackTrace();
@@ -2760,7 +2760,7 @@ public final class ApplicationManager extends BaseManager implements
       saveStorables(axisID);
     }
   }
-  
+
   public String getFileSubdirectoryName() {
     return null;
   }
@@ -8031,6 +8031,13 @@ public final class ApplicationManager extends BaseManager implements
 }
 /**
  * <p> $Log$
+ * <p> Revision 3.357  2010/04/28 15:29:56  sueh
+ * <p> bug# 1344 Moved some closeImod functions to the BaseManager.
+ * <p> Passing params to process manager functions, standardizing "3dmod is
+ * <p> open" messages to always use closeImod.  Handling backing up and
+ * <p> renaming image files with closeImod.  Adding the file type to a process
+ * <p> directly when necessary.
+ * <p>
  * <p> Revision 3.356  2010/04/10 00:26:24  sueh
  * <p> bug# 1349 Change closeImod, closeImods, makeFiducialModelSeedModel,
  * <p> and warnStaleFile handle --autoclose3dmod.
