@@ -20,6 +20,10 @@
  * 
  * <p>
  * $Log$
+ * Revision 3.150  2010/04/28 16:22:39  sueh
+ * bug# 1344 Passing params whose processes output image files to the
+ * start process functions.
+ *
  * Revision 3.149  2010/03/19 21:58:08  sueh
  * bug# 1335 FlattenWarpLog no longer an n'ton.
  *
@@ -1134,10 +1138,10 @@ public class ProcessManager extends BaseProcessManager {
   /**
    * Run clip stats
    */
-  public String clipStats(ClipParam param, ConstProcessSeries processSeries)
-      throws SystemProcessException {
-    BackgroundProcess backgroundProcess = startBackgroundProcess(param,
-        AxisID.ONLY, ProcessName.CLIP, processSeries);
+  public String clipStats(ClipParam param, AxisID axisID,
+      ConstProcessSeries processSeries) throws SystemProcessException {
+    BackgroundProcess backgroundProcess = startBackgroundProcess(param, axisID,
+        ProcessName.CLIP, processSeries);
     return backgroundProcess.getName();
   }
 
