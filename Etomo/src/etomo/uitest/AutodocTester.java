@@ -67,6 +67,9 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.22  2010/03/03 05:11:20  sueh
+ * <p> bug# 1311 Implemented set.debug.
+ * <p>
  * <p> Revision 1.21  2010/02/24 02:57:43  sueh
  * <p> bug# 1301 Fixed null pointer exception in ifEnabled.
  * <p>
@@ -1396,8 +1399,37 @@ final class AutodocTester extends Assert implements VariableList {
     assertFalse("Unable to read " + fileName + "(" + command + ")\n", readerId
         .isEmpty());
     String line;
+    //Break up the target string based on the wildcard character.
+    String[] targetArray = targetString.split("\\*");
+    //See if one of the lines matches the target array.
     while ((line = logFile.readLine(readerId)) != null) {
-      if (line.indexOf(targetString) != -1) {
+      int fromIndex = 0;
+      boolean foundAMatch = false;
+      //Look for each part of the targetArray in order along a single line.  The
+      //matched areas may or may not be contiguious, since the wildcard matches
+      //0 or more characters.
+      for (int i = 0; i < targetArray.length; i++) {
+        if (fromIndex >= line.length()) {
+          //Haven't completed the match and there nothing left to match on this
+          //line.
+          break;
+        }
+        //Attempt to match with the current part of the target array.
+        int index = line.indexOf(targetArray[i], fromIndex);
+        if (index == -1) {
+          //Part of the target array didn't match.
+          break;
+        }
+        if (i == targetArray.length - 1) {
+          //The last part of the target array matched.
+          foundAMatch = true;
+        }
+        else {
+          //Move start index past the current match (* matches 0 or more)
+          fromIndex = index + targetArray[i].length();
+        }
+      }
+      if (foundAMatch) {
         logFile.closeReader(readerId);
         return;
       }
