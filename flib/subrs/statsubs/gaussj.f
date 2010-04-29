@@ -18,6 +18,9 @@ c
 c       $Revision$
 c       
 c       $Log$
+c       Revision 3.4  2006/02/26 18:28:59  mast
+c       Converted to double precision since only blendmont uses it
+c
 c       Revision 3.3  2002/08/19 04:35:54  mast
 c       Added check for zero coefficient before subtracting rows from each
 c       other
@@ -31,7 +34,7 @@ c
 c       
       subroutine gaussjd(a,n,np,b,m,nb,mp)
       implicit double precision (a-h,o-z)
-      parameter (msiz=10000)
+      parameter (msiz=20000)
       dimension a(np,np), b(nb,mp), pivot(msiz), ipivot(msiz),index(msiz,2)
       equivalence (irow,jrow), (icolum,jcolum), (amax, t, swap)
 
