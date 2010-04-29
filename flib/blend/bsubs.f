@@ -1771,8 +1771,12 @@ c
      &        iedgeupper(ipc,1).gt.0.or.
      &        iedgeupper(ipc,2).gt.0)then
             nvar=nvar+1
-            if (nvar.gt.limvar .or. nvar*maxvar.gt.maxsiz / 2)call exitError(
-     &          'TOO MANY PIECES FOR ARRAYS IN FIND_BEST_SHIFTS')
+            if (nvar.gt.limvar .or. nvar*maxvar.gt.maxsiz / 2)then
+              print *,'nvar, limvar, nvar*maxvar, maxsiz / 2',nvar, limvar, 
+     &            nvar*maxvar, maxsiz / 2
+              call exitError(
+     &            'TOO MANY PIECES FOR ARRAYS IN FIND_BEST_SHIFTS')
+            endif
             ivarpc(nvar)=ipc
             indvar(ipc)=nvar
           endif
@@ -2462,6 +2466,9 @@ c
 
 c       
 c       $Log$
+c       Revision 3.29  2010/04/19 03:13:23  mast
+c       Switch to module, fixed allocation of big arrays in common
+c
 c       Revision 3.28  2008/12/23 00:08:58  mast
 c       Use smoothing and tapering outside, multiple xcorr peaks and CCC
 c
