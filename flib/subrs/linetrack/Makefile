@@ -1,6 +1,6 @@
 include ../../configure
 
-FFLAGS = $(LIBFFLAGS)
+FFLAGS = $(LIBTRACKFLAGS)
 CFLAGS = $(LIBCFLAGS)
 
 O = $(OBJEXT)
