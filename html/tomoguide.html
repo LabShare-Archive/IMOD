@@ -1,34 +1,36 @@
 <html><head> <title>IMOD Tomography Guide</title> </head>
 <body>
-<H2 ALIGN=center>Tomography Guide for IMOD Version 3.13<BR>
+<H2 ALIGN=center>Tomography Guide for IMOD Version 4.1<BR>
 </H2>
 <H3 ALIGN=center>Boulder Laboratory for 3-D Electron Microscopy of Cells</H3>
 <HR>
 <H3>Table of Contents</H3>
 
 <UL>
-<BR><A HREF = "#WHATSNEW">0. WHAT'S NEW IN IMOD 3.13</A>
+<BR><A HREF = "#WHATSNEW">0. WHAT'S NEW IN IMOD 4.1</A>
 <BR><A HREF = "#BACKGROUND">1. BACKGROUND</A>
 <BR><A HREF = "#Program Names">1.1. Program Names</A>
 <BR><A HREF = "#Command Files">1.2. Command Files</A>
 <BR><A HREF = "#Numbering System">1.3. Numbering System</A>
 <BR><A HREF = "#Backup Files">1.4. Backup Files</A>
-<BR><A HREF = "#Using Insecure Storage">1.5. Using Temporary or Insecure Storage</A>
-<BR><A HREF = "#Intensity Problems">1.6. Problems with Intensities in 3dmod</A>
-<BR><A HREF = "#NON-BOULDER NOTES">2. NOTES FOR NON-BOULDER USERS</A>
-<BR><A HREF = "#File Naming Conventions">2.1. File Naming Conventions</A>
-<BR><A HREF = "#Film versus CCD Images">2.2. Film versus CCD Images</A>
-<BR><A HREF = "#Image Scaling">2.3. Image Scaling and Contrast Polarity</A>
-<BR><A HREF = "#Bidirectional Series">2.4. Tilt Series Taken in Two Directions from Zero Tilt</A>
+<BR><A HREF = "#File Naming Conventions">1.5. File Naming Conventions</A>
+<BR><A HREF = "#Using Insecure Storage">1.6. Using Temporary or Insecure Storage</A>
+<BR><A HREF = "#Intensity Problems">1.7. Problems with Intensities in 3dmod</A>
+<BR><A HREF = "#NON-BOULDER NOTES">2. NOTES FOR SPECIAL CASES</A>
+<BR><A HREF = "#Image Scaling">2.1. Image Scaling and Contrast Polarity</A>
+<BR><A HREF = "#Bidirectional Series">2.2. Tilt Series Taken in Two Directions from Zero Tilt</A>
 <BR><A HREF = "#INITIAL STEPS">3. SETUP</A>
 <BR><A HREF = "#Montage Coms">3.1. Command Files when Montaging</A>
 <BR><A HREF = "#PRE-PROCESSING">4. PRE-PROCESSING: REMOVING X-RAYS</A>
 <BR><A HREF = "#COARSE ALIGNMENT">5. COARSE ALIGNMENT BY CROSS-CORRELATION</A>
-<BR><A HREF = "#Fiducialless Quick">5.1 Making a Quick Tomogram with Correlation Alignment</A>
+<BR><A HREF = "#Fiducialless Quick">5.1. Making a Quick Tomogram with Correlation Alignment</A>
 <BR><A HREF = "#Fixing Montage Edges">5.2. Fixing Montage Edges</A>
 <BR><A HREF = "#GETTING FIDUCIAL">6. FIDUCIAL MODEL GENERATION</A>
-<BR><A HREF = "#Reseeding Model">6.1. Using Beadtrack to Extend a Model</A>
-<BR><A HREF = "#Transferring Fiducial">6.2. Getting Fiducials for a Second Axis</A>
+<BR><A HREF = "#TrackingSeed">6.1. Tracking Gold from a Seed Model</A>
+<BR><A HREF = "#Reseeding Model">6.2. Using Beadtrack to Extend a Model</A>
+<BR><A HREF = "#Transferring Fiducial">6.3. Getting Fiducials for a Second Axis<BR><A HREF = "#TrackingSeed">6.4. Local Patch Tracking</A>
+<BR><A HREF = "#UsingRaptor">6.5. Using RAPTOR to Make a Fiducial Model</A>
+</A>
 <BR><A HREF = "#FINAL ALIGNMENT">7. FINE ALIGNMENT</A>
 <BR><A HREF = "#Running Tiltalign">7.1. Running Tiltalign</A>
 <BR><A HREF = "#Background Grouping">7.2. Background on Grouping Variables and Solving for Distortion</A>
@@ -37,8 +39,9 @@
 <BR><A HREF = "#Projection Stretch">7.5. Solving for Projection Stretch</A>
 <BR><A HREF = "#Beam Tilt">7.6. Solving for Beam Tilt</A>
 <BR><A HREF = "#Using Local Alignments">7.7. Using Local Alignments</A>
-<BR><A HREF = "#Excluding Views">7.8. Excluding Views</A>
-<BR><A HREF = "#Residual Model Output">7.9. Residual Model Output</A>
+<BR><A HREF = "#AligningPatchModel">7.8. Aligning with a Patch Tracking Model</A>
+<BR><A HREF = "#Excluding Views">7.9. Excluding Views</A>
+<BR><A HREF = "#Residual Model Output">7.10. Residual Model Output</A>
 <BR><A HREF = "#TOMOGRAM POSITIONING">8. TOMOGRAM POSITIONING </A>
 <BR><A HREF = "#Doing Tilted Samples">8.1. Redoing Samples to Refine the Positioning</A>
 <BR><A HREF = "#Whole Tomogram Positioning">8.2. Positioning with a Whole Tomogram</A>
@@ -49,8 +52,9 @@
 <BR><A HREF = "#FinalAligned">10. MAKING AND PROCESSING THE ALIGNED STACK</A>
 <BR><A HREF = "#Making Aligned">10.1 Making the Aligned Stack</A>
 <BR><A HREF = "#CorrectingCTF">10.2 Correcting Phase Inversions from the Microscope CTF</A>
-<BR><A HREF = "#ErasingGold">10.3 Erasing Gold Particles</A>
-<BR><A HREF = "#Filtering2D">10.4 Applying 2D Filtering</A>
+<BR><A HREF = "#ErasingGold">10.3 Erasing Gold Particles Using a Fiducial Model</A>
+<BR><A HREF = "#ErasingFinding3D">10.4. Erasing Gold by Finding It in a Tomogram and Projecting It</A>
+<BR><A HREF = "#Filtering2D">10.5 Applying 2D Filtering</A>
 <BR><A HREF = "#TOMOGRAM GENERATION">11. TOMOGRAM GENERATION</A>
 <BR><A HREF = "#Building Tomogram">11.1. Building the Tomogram</A>
 <BR><A HREF = "#Making Trial Tomograms">11.2. Making Trial Tomograms</A>
@@ -71,35 +75,28 @@
 </UL>
 <HR>
 <P><H3><A NAME = "WHATSNEW"></A>
-0. WHAT'S NEW IN IMOD 3.13
+0. WHAT'S NEW IN IMOD 4.1
 </H3>
 <P>
 This section lists significant changes or additions to this guide from the
-3.11 version.
+3.13 version.
 <UL>
-<LI>A few sentences about manual replacement options with Ccderaser were added
-in <A HREF = "#PRE-PROCESSING">PRE-PROCESSING: REMOVING X-RAYS</A></LI>
-<LI> The eTomo interface for generating the aligned stack was split off
-into a new page with tabs for different operations.  Accordingly, 
-the TOMOGRAM GENERATION section here was reorganized into
-<A HREF = "#ResolutionFiltering">FILTERING AND RESOLUTION</A>,
-<A HREF = "#FinalAligned">MAKING AND PROCESSING THE ALIGNED STACK</A>.
-and <A HREF = "#TOMOGRAM GENERATION">TOMOGRAM GENERATION</A></LI>
-<LI>A new option for making aligned stacks of different sizes is described in
-<A HREF = "#Making Aligned">Making the Aligned Stack</A></LI>
-<LI>Interfaces for CTF correction and erasing gold have been added and are
-described in 
-<A HREF = "#CorrectingCTF">Correcting Phase Inversions from the
-Microscope CTF</A>  and
-<A HREF = "#ErasingGold">Erasing Gold Particles</A></LI>
-<LI>Instructions are provided for two methods of getting more complete models
-for erasing gold, in <A HREF = 
-"tomoExtra.html#ErasingGold">Erasing All Gold from a Tomogram</A></LI>
-<LI>Instructions are provided for importing tomograms built elsewhere into
-eTomo for combining, in
-<A HREF = "tomoExtra.html#ImportingDual">
-Importing Two Tomograms into Tomogram Combination</A></LI>
-
+<LI> Information on getting statistics on the raw and X-ray corrected stack,
+ in <A HREF = "#PRE-PROCESSING">PRE-PROCESSING: REMOVING X-RAYS</A>
+<LI> Instructions on using tracking of local patches of image data to generate
+  a model to use for fiducial-like alignment, in 
+<A HREF = "#TrackingSeed">Local Patch Tracking</A> and 
+<A HREF = "#AligningPatchModel">Aligning with a Patch Tracking Model</A>
+<LI> Directions on using the RAPTOR program from Stanford through eTomo, in
+<A HREF = "#UsingRaptor">Using RAPTOR to Make a Fiducial Model</A>
+<LI> Advice on moving points by residuals with Bead Fixer, in 
+<A HREF = "#Running Tiltalign">Running Tiltalign</A>
+<LI> Instructions for using the new interface in eTomo for erasing all gold
+  particles after finding them in 3D, in 
+<A HREF = "#ErasingFinding3D">Erasing Gold by Finding It in a Tomogram and
+  Projecting It</A>
+<LI> Information about scaling when not taking the logarithm, in 
+<A HREF = "#Building Tomogram">Building the Tomogram</A>
 </UL>
 
 </P>
@@ -188,8 +185,28 @@ alias for purging backup files in your .cshrc: <BR><CODE> alias purge '\rm *~'
 confirmation.
 
 </P>
+<H4><A NAME = "File Naming Conventions"></A>
+1.5. File Naming Conventions
+</H4>
+<P>
+In order for the processing sequence to work, the names of your starting files
+must follow several conventions.
+The raw image stacks must have the extension ".st"; so for a single axis
+tilt series the name should be dataSetName.st.  For a dual axis data set,
+the two files must end in "a.st" and "b.st", i.e. dataSetNamea.st and
+dataSetNameb.st.  These names are just conventions and do not correspond to a
+separate file format.
+The data set name can contain ".", "-", and "_" as
+separators but must not contain spaces or other characters that could
+confuse a Unix shell.
+<P>
+If you are supplying your own file of raw tilt angles, they must be named with
+the data set name followed by ".rawtlt" (or "a.rawtlt" and "b.rawtlt" for a
+dual axis tilt series.
+
+</P>
 <H4><A NAME = "Using Insecure Storage"></A>
-1.5. Using Temporary or Insecure Storage
+1.6. Using Temporary or Insecure Storage
 </H4>
 <P>
      It is possible to have your small working files automatically saved to
@@ -212,7 +229,7 @@ model for a while).
 
 </P>
 <H4><A NAME = "Intensity Problems"></A>
-1.6. Problems with Intensities in 3dmod
+1.7. Problems with Intensities in 3dmod
 </H4>
 <P>
 X-rays and other artifacts from the CCD camera can produce extreme intensity
@@ -249,6 +266,8 @@ individual images with
 <BR><CODE>
 clip stat -2d setname.st
 <BR></CODE>
+(This output can also be obtained by pressing the <B>Show Min/Max for Raw
+  Stack</B> button in the <B>Pre-Processing</B> panel in eTomo.)
 Look at the minimum and maximum values for the sections.  You should see that 
 some of them have extreme minima or maxima, while others have more
 reasonable values.  Use the typical or reasonable minimum and maximum values
@@ -268,45 +287,12 @@ Go to Advanced mode in the <B>Newstack</B> section of the
 
 </P>
 <H3><A NAME = "NON-BOULDER NOTES"></A>
-2. NOTES FOR NON-BOULDER USERS
+2. NOTES ON SPECIAL CASES
 </H3>
 <P>
 </P>
-<H4><A NAME = "File Naming Conventions"></A>
-2.1. File Naming Conventions
-</H4>
-<P>
-In order for the processing sequence to work, the names of your starting files
-must follow several conventions.
-The raw image stacks must have the extension ".st"; so for a single axis
-tilt series the name should be dataSetName.st.  For a dual axis data set,
-the two files must end in "a.st" and "b.st", i.e. dataSetNamea.st and
-dataSetNameb.st.  The data set name can contain ".", "-", and "_" as
-separators but must not contain spaces or other characters that could
-confuse a Unix shell.
-<P>
-If you are supplying your own file of raw tilt angles, they must be named with
-the data set name followed by ".rawtlt" (or "a.rawtlt" and "b.rawtlt" for a
-dual axis tilt series.
-
-</P>
-<H4><A NAME = "Film versus CCD Images"></A>
-2.2. Film versus CCD Images
-</H4>
-<P>
-     Some of the programs make a distinction between images from film and ones
-acquired on a CCD camera.  This is based on an obsolete method of
-digitizing from film, in which tilt images were already in good translational
-and rotational alignment after being digitized.  eTomo does not
-currently handle the command files tailored to
-data from film.  
-If your data 
-are already in very good alignment, the only disadvantage to
-processing it in eTomo is that you will have to run the prealignment
-step.  This is worth it to avoid editing and running command files by hand.
-</P>
 <H4><A NAME = "Image Scaling"></A>
-2.3. Image Scaling and Contrast Polarity
+2.1. Image Scaling and Contrast Polarity
 <P>
 </H4>
      The default parameters for reconstruction assume that the numbers in your
@@ -316,18 +302,20 @@ camera or if film is digitized in optical density units.  The logarithm of
 such values should then be proportional to projected mass density for imaging
 dominated by amplitude (aperture) contrast.  Because of this, the
 backprojection program, <A HREF = "man/tilt.html">Tilt</A>,
-has an option to take the log
-of the numbers after adding a base value (which might correspond to the
-fog level of film).  The default is to take logs with a zero base
-value.
-If your images are already mass-normalized, you should
-remove the zero entry in the <B>Log offset</B> box in the <B>Tomogram
+has an option to take the logarithm
+of the numbers after adding a base value (originally designed to specify the
+fog level of film but also useful if the data are offset from zero). 
+The default is to take logarithms with a zero base value.
+If your images are already mass-normalized, you should turn off the taking of
+logarithms in the <B>Tomogram
 Generation Panel</B>; if your images are in arbitrarily scaled
-units, you may need to remove that entry or at least adjust the offset value
-that is added so that all values will be positive before taking the log.
-If you remove the log entry, you also need to change the <B>Output density
-scaling factor</B> to 1; the default value is a large number that is needed to
-scale the logs up again after backprojection.
+units, you may need to turn off the logarithms or at least adjust the offset
+value that is added so that all values will be positive before taking the
+logarithm.  You may also want to turn off the logarithms for predominantly
+phase contrast (cryoEM) data.
+When the logarithm is turned off, a separate set of factors is used to scale
+the backprojection data for output, so you do not need to change the scaling
+yourself.
 <P>
 If your data were derived from unsigned 16-bit integers and have had 32768
 subtracted from them for storage as signed integers in the MRC file, the
@@ -340,7 +328,7 @@ Simply change the 0 to a 1 in the <B>Fiducial marker size & polarity</B>
 box in the <B>Fiducial Model Generation Panel</B>.
 </P>
 <H4><A NAME = "Bidirectional Series"></A>
-2.4. Tilt Series Taken in Two Directions from Zero Tilt
+2.2. Tilt Series Taken in Two Directions from Zero Tilt
 </H4>
 <P>
 A tilt series taken by tilting in two directions from zero tilt often shows a
@@ -417,6 +405,11 @@ resulting tomogram as well as the handedness of structures within it.
 
 <LI><B> Parallel processing:</B> This option sets the default for whether
 parallel processing is enabled when you reach a panel where it can be used.
+
+<LI><B> Graphics card processing:</B> This option sets the default for whether
+processing with the GPU is enabled when you reach a panel where it can be
+used.  See <A HREF = "UsingEtomo.html">Using Etomo</A> for instructions on
+setting up parallel processing and enabling the use of a GPU.
 
 <LI><B> Image distortion field file:</B> Use this to select a distortion field 
 file for correction of imaging distortion, if appropriate.  If the environment
@@ -600,6 +593,15 @@ radius and the criterion so that only the large X-rays are removed, and
 rerun the removal.  Press <B>Use Fixed Stack</B> again if you are satisfied
 with the result.
 <P>
+You can see the minimum and maximum values and their locations for each view
+by pressing <B>Show Min/Max for Raw Stack</B> or <B>Show Min/Max for Fixed
+Stack</B>.  You will see the statistics output from the <A HREF = "man/clip.html">clip</A>
+program.  Views with locally extreme values of the minimum or maximum will be
+marked by stars and listed at the bottom.  This marking of outliers is of
+limited value with the raw stack because all views generally have X-rays that
+increase the maximum; but with the fixed stack this listing will often reveal
+the subset of views that still have sizable uncorrected X-rays.
+<P>
 If your images have other features that do not get corrected by the
 automatic X-ray removal, you can specify the pixels to erase in a
 model file.  Press the <B>Advanced</B> button to reveal the controls
@@ -614,7 +616,7 @@ with such contours in the <B>Boundary replacement list</B> text box.
 <P>
 With a montaged data set, when you view the X-ray model, the images
 will be loaded into <A HREF = "man/3dmod.html">3dmod</A> as single
-frames instead of as a montage, so that all parts every frame can be
+frames instead of as a montage, so that all parts of every frame can be
 viewed.  However, this feature does make it difficult to page through
 the images.
 </P>
@@ -795,6 +797,20 @@ partly on the displacements that you just modified.
 6. FIDUCIAL MODEL GENERATION
 </H3>
 <P>
+There are two or three ways to get a model that can be used to align the tilt
+series.  The first is the classical method of marking gold beads on the
+zero-degree view and using <A HREF = "man/beadtrack.html">Beadtrack</A> to
+find their locations in the rest of the tilt series.  The second involves
+tracking small patches of the image through the series by cross-correlating
+each patch from one view to the next with 
+<A HREF = "man/tiltxcorr.html">Tiltxcorr</A>.  The third method involves using
+the RAPTOR program to find beads automatically; it requires the RAPTOR program
+to be available.
+</P>
+<H4><A NAME = "TrackingSeed"></A>
+6.1. Tracking Gold from a Seed Model
+</H4>
+<P>
      The first step is to set up a seed model.  Press
 <B>Seed Fiducial Model Using 3dmod</B> to open the prealigned stack and
 an empty model in <A HREF = "man/3dmod.html">3dmod</A>.
@@ -929,7 +945,7 @@ and allow Beadtrack to track those beads as far as possible.
 
 </P>
 <H4><A NAME = "Reseeding Model"></A>
-6.1. Using Beadtrack to Extend a Model
+6.2. Using Beadtrack to Extend a Model
 </H4>
 <P>
 Sometimes you will want to have <A HREF =
@@ -953,7 +969,7 @@ because of ambiguities, you should uncheck <B>Fill seed model gaps</B>.
 
 </P>
 <H4><A NAME = "Transferring Fiducial"></A>
-6.2. Getting Fiducials for a Second Axis
+6.3. Getting Fiducials for a Second Axis
 </H4>
 <P>
 If you are doing a double-tilt series, at least some (8-10) of the beads
@@ -1027,7 +1043,156 @@ After that, you can add the rest in any order.
 If
 you do this, then when you prepare to combine the two tomograms, you would
 specify that only the first 5 beads correspond.
-
+</P>
+<H4><A NAME = "TrackingSeed"></A>
+6.4. Local Patch Tracking
+</H4>
+<P>
+When there are insufficient fiducials, local patch tracking can provide a
+significantly better alignment than the basic correlation alignment.  It
+allows an alignment that includes a solution for the tilt axis angle and that
+can correct for shrinkage or magnification changes.
+Even if
+there are fiducials, the patch tracking may provide a tomogram of adequate
+quality in some cases, so it may be worth trying as a way to reduce labor.
+<P>
+One feature that requires some extended explanation is the option to breaking
+contours into overlapping pieces.  Normally the positions from tracking each
+patch are placed into a single contour, just as for real fiducials.  The mean
+residual from a fine alignment with such contours will be directly comparable
+to the mean residual from a regular fiducial alignment.  A high value
+generally indicates that some or all of the patch positions do not track a
+single 3D position in the specimen, which means the alignment is not globally
+consistent.  This happens because tracking a small patch by correlation is
+susceptible to the same kind of progressive shifts in 3D position as occur
+with an overall fiducialless alignment by correlation.  The option to break
+contours into pieces provides a way to compensate partially for this problem.
+The positions for each patch will be subdivided into a series of overlapping
+contours, where the length of each contour is as specified, and the contours
+overlap (contain identical points) over a certain number of views, 4 by
+default.  Breaking contours into pieces will have the following effects:
+<UL>
+<LI> The mean residual of alignment <I>will</I> be reduced dramatically,
+  because the tracked positions for a patch will be allowed to fit to
+  different 3D positions over different segments of the tilt series instead of
+  to one 3D position.  To the extent that there are systematic errors on the
+  patch positions, they simply will not build up as much when fitting over
+  shorter segments of data, and the mean residual will be less.  This means
+  that the residuals from such alignments are not directly comparable to those
+  from a regular alignment; e.g., a value of 0.2-0.3 can be achieved without
+  implying that there is a very good alignment.
+<LI> The actual quality of the alignment <I>may</I> or <I>may not</I> be any
+  better than that from fitting to whole contours, if you continue to fit to
+  all of the patches.  In other words, you may get a much
+  more pleasing mean residual without getting any better reconstruction.
+<LI> However, with the contours broken into pieces, it is possible to identify
+  segments that give the worst fit and eliminate them.  Eliminating
+  contours that are least consistent with a global alignment should improve
+  the quality of alignment.  The Bead Fixer has a special mode that allows you
+  to find and remove contours with the largest mean residuals in the
+  alignment.
+</UL>
+Because contours broken into pieces give a misleadingly low mean residual, it
+is recommended that you first run tracking without breaking contours into
+pieces, then assess the alignment.  If necessary, then go back and break
+contours into pieces.  Unfortunately, the only way to do this currently is to
+rerun the tracking.
+</P>
+<P>
+Patch tracking is controlled by the following settings:
+<UL>
+<LI> <B>Size of patches:</B> You should choose a size based on the amount of
+  image detail and the
+  signal-to-noise ratio of the images.  For stained plastic sections rich in
+  image detail, patches
+  can be in the range of 100-200 pixels.  For frozen-hydrated material,
+  patches will need to be much bigger, 500-1000 pixels.  Cryo-sections might
+  have enough image detail to allow patches at the lower end of this range;
+  plunge-frozen material with sparse image data might require the largest
+  patches.
+<LI> <B>Number or overlap of patches:</B> The number of patches can be
+  controlled by the amount of overlap between adjacent patches.  If you have
+  large patches where the default overlap might give fewer patches than
+  desired, you control the number of patches directly by selecting and
+  specifying the <B>Number of patches</B>.
+<LI> <B>Using a Boundary Model:</B> If portions of the image do not have
+  enough features to give good correlations, then you should exclude them by
+  drawing one or more contours around regions that are suitable for
+  correlation.  Select <B>Use Boundary Model</B>, press <B>Create Boundary
+  Model</B>, and pick a view at or near zero tilt on which to draw the
+  boundary.  Enclose one or more regions on this view.  There is no need to
+  draw contours on other views.
+<LI> <B>Iterations to increase subpixel accuracy:</B> When two images are
+  correlated, the shift between them is estimated with subpixel accuracy by
+  fitting parabolas to the correlation peak in X and Y.  If the shift is then
+  applied before repeating the correlation, the peak will become centered on a
+  pixel and the inaccuracy of interpolation is reduced or eliminated.  This
+  might lead to an improvement in the final alignment, but in our experience
+  so far the effect is slight.  If you want to use this feature, try
+  tracking with and without iterations to see how much it affects the
+  residual of the alignment.  Three iterations suffice to reduce the
+  interpolation, but calculations will take 3 times as long.
+<LI> <B>Breaking contours into pieces</B> This option is discussed above.
+  After enabling the option, you can adjust the length of pieces if desired.
+  The default length is based on the number of views in the tilt series.
+<LI> <B>Trimming area to analyze</B> The <B>Pixels to trim</B> and
+  the <B>Min</B> and <B>Max</B> entries for X and Y provide an alternative to
+  using a boundary model for restricting the area to analyze.  In addition,
+  these entries can be used to avoid correlating with portions of the
+  prealigned stack that contain no image data (are filled with gray).  It is
+  recommended that you examine the prealigned stack at low angles (up to
+  ~20 degrees) to find the places where the gray border is widest on each
+  side, and make sure that the default trimming is enough to exclude these
+  borders.  Otherwise, make an entry for both the <B>Min</B> and
+  the <B>Max</B> on the relevant axis.
+</UL>
+Press <B>Track Patches</B> to start the tracking, and when it finishes, press 
+<B>Open Tracked Patches</B> to see the patch positions on the prealigned
+stack.  If patches do not track well, there are three remedies to pursue:
+1) Use a boundary model to exclude areas not correlating well. 2)
+Increase the patch size.  3) For cryo data, decrease the filter cutoff.  This
+parameter was inherited from its value for coarse alignment and is shownin
+Advanced mode.  Try decreasing the <B>High frequency cutoff radius</B>
+and <B>High frequency rolloff sigma</B> together by as much as half (this
+corresponds to the strongest filtering tested for aligning cryosections with a
+similar but much more sophisticated approach by
+Castano-Diez et al., 2009.)
+<P>
+See <A HREF = "#AligningPatchModel">Aligning with a Patch Tracking
+Model</A> for details on what to do differently in the alignment step.
+Also note that for a dual-axis data set, you must create models of
+corresponding points for the initial alignment between the two tomograms,
+since there are no corresponding fiducials.
+</P>
+<H4><A NAME = "UsingRaptor"></A>
+6.5. Using RAPTOR to Make a Fiducial Model 
+</H4>
+<P>
+If the RAPTOR program from Stanford is installed on your system, there will be
+an option to use this program, provided either that it is installed in
+/usr/local/RAPTOR or that the environment variable RAPTOR_BIN points to the
+directory where the RAPTOR executables are located.  However, the option is
+currently available only for the first axis of a dual-axis data set. 
+See the documentation
+that came with RAPTOR for details on its operation.  To use it within IMOD,
+first decide whether to run it on the raw stack or the prealigned stack.
+The latter case allows tighter tolerances for some distance parameters and is
+usually more successful.  Decide on the number of beads to find per view and
+enter that
+in the <B>Number of beads to choose</B> text field.  The <B>Unbinned bead
+    diameter</B> field should have a correct value based on the pixel size and
+actual bead size that you entered in Setup.
+<P>
+Press <B>Run RAPTOR</B> to run the program, which will create a model file
+"setname_raptor.fid". It can take on the order of an
+hour with many beads.  When it is done, press <B>Open RAPTOR Model in
+    3dmod</B> to see the resulting model on the appropriate stack.  If the
+result is acceptable, then press <B>Use RAPTOR result as Fiducial Model</B> to 
+rename the model to the standard name for a fiducial model.  At this point,
+you can press <B>Fix Fiducial Model</B> to open the model in 3dmod with the
+Bead Fixer in gap filling mode, and you can also use <B>Track with Fiducial
+    Model as Seed</B> to track addition points in the model in the
+conventional way with <A HREF = "man/beadtrack.html">Beadtrack</A>.
 </P>
 <H3><A NAME = "FINAL ALIGNMENT"></A>
 7. FINE ALIGNMENT
@@ -1065,9 +1230,11 @@ views.  See the discussion of the corresponding entry to
 excluded, if necessary, in this text box.  Again, if you entered 
 <B>Views to exclude</B> in the eTomo Setup
 window, they will be carried over to this box.
-<LI> <B>Assume beads on 1 or 2 surfaces for surface analysis</B>.  Change this
-to 1 if the beads are not located on two distinct surfaces.  Note that
-this setting does not affect the actual alignment solution, just the
+<LI> <B>Analysis of Surface Angles</B> Change the selection from 
+<B>Assume fiducials on 2 surfaces for analysis</B> to 
+<B>Do not sort fiducials into 2 surfaces for analysis</B>
+if the beads are not located on two distinct surfaces.  Note that
+this setting does not affect the actual global alignment solution, just the
 analysis of the orientation of the section surface in space, which is done
 after the alignment solution is obtained.
 </OL>
@@ -1143,8 +1310,27 @@ alignment parameters, you must compute the alignment through the button in
 eTomo instead.  The Bead Fixer will be told to reread the log file after the
 alignment is done.
 <P>
-You could also open the <B>Fiducial Coordinates</B> page to see the 3D
-coordinates that have been solved for the fiducials, but it is easier to
+In Bead Fixer there is a button to <B>Move Point by Residual</B>.  This button
+will move a point to the position that fits the mathematical model from the
+alignment.  The image data are not consulted with regard to this movement, and
+sometimes the movement is inappropriate.  This button is there for
+convenience, but you should not use it if it moves a point away from the
+center of the gold bead.  This will often be the case if you are going to need
+local alignments.  An even more convenient and powerful button
+is <B>Move All by Residual</B>.  You should not use this until you have gone
+through enough points one by one to be confident 
+that it will not move points away from the beads.  In addition, you should
+select <B>Neighboring views</B> in the <B>Residual Reporting</B> box so that
+the criterion for whether to consider a residual large will be based on
+the residuals of other points on nearby views.  This will keep the points
+on the high tilt views from always being selected as having the highest
+residuals.  Otherwise,
+you may end up misaligning the high tilt views in the data set by using this
+button.
+<P>
+In the align log, you can also open the <B>Fiducial Coordinates</B> page to
+see the 3D coordinates that have been solved for the fiducials, as well as the
+mean residual in the fit for each fiducial.  It is easier to
 visualize these points in 3dmodv by pressing the <B>View 3D Model</B>
 button on the <B>Fine Alignment</B> panel.  If you indicated that points are
 on two surfaces, then the points will be sorted into two objects based on
@@ -1380,8 +1566,9 @@ beam tilt.  This listing will show you how much the error is reduced by adding
 the beam tilt variable.
 <P>
 There are indications that the beam tilt angle is characteristic of a
-particular microscope.  An alternate strategy, when there are very fiducials,
-is thus to insert the characteristic beam tilt angle instead of trying to
+particular microscope.  An alternate strategy, when there are very few
+fiducials, is thus to insert the characteristic beam tilt angle instead of
+trying to
 solve for it.  You would need to have obtained the beam tilt angle from
 alignment of other data sets from that microscope.
 
@@ -1434,7 +1621,7 @@ fiducials are not well enough distributed on both surfaces to provide for
 local solutions for distortions, then set the <B>minimum number of 
 fiducials</B> on each surface to 0 (the second of the two numbers in the
 text box.)  In addition, go to the <B>Local Variables</B> page and make 
-that local distortions is disabled there.
+sure that local distortions is disabled there.
 <LI> Compute the alignment and examine the log file.  Go to the end of the
 <B>Errors</B> page to see the mean residuals; the first value is the global
 mean, and the rest are means for the local areas, with a summary at the end.
@@ -1465,8 +1652,10 @@ local area to the next and bring up each point with a large residual.  With
 the <B>Examine points once</B> feature turned on, a point will be seen only
 once, even if it appears in the large residual list for several overlapping
 patches.
-<LI> In the Bead Fixer, there is a button to <B>Move All in Local Area</B>
-which will move all points in an area in the direction of their residuals.
+<LI> In the Bead Fixer, the button <B>Move All in Local Area</B> 
+will move all points in the current local area in the direction of their
+residuals, and the button <B>Move in All Local Areas</B> will do the same
+in all remaining local areas.
 A recommended practice is to go through the local areas once without using
 this feature, in order to become confident that it would be appropriate to
 move points without looking at them.  The points that should not
@@ -1475,8 +1664,44 @@ can then move all points if desired.
 </OL>
 
 </P>
+<H4><A NAME = "AligningPatchModel"></A>
+7.8. Aligning with a Patch Tracking Model
+</H4>
+<P>
+If you have a model from patch tracking, some different procedures are in
+order.  First, be sure that the model looks reasonable and does not have wild
+points before trying to run an alignment.  Second,
+there are no reliable differences in height among the 3D positions tracked in
+the model, so you should be sure to select <B>Do not sort fiducials into 2
+    surfaces for analysis</B> if eTomo has not already done so automatically.
+More important, you should not solve for distortion.  However, local
+alignments can be used successfully when there are many patches.  When there
+are few patches, the number of variables should be constrained appropriately;
+for example, by fixing the tilt angles and solving for one rotation angle
+together with a beam tilt angle.
+<P>
+When you press <B>View/Edit Fiducial Model</B> for a patch tracking model, the
+Bead Fixer will open in the <B>Look at contours</B> mode.  In this mode, it
+uses information about the mean residual for each contour.  It will print the
+mean and maximum of these mean residuals in the 3dmod information windows when
+it loads the alignment log file.  You can press <B>Go to Next Contour</B> to
+step to the contour with the highest mean residual, the next highest, etc.
+It can be helpful to delete all contours with residuals above a certain level
+(for example, 0.8-1.0 if the overall mean residual is around 0.2-0.3).
+However, before deleting a contour, look at the Zap window at low enough zoom
+so that you see whether you have already deleted most of the patches in that
+range of tilt angles.  Do not leave too few patches to allow a valid solution
+in that part of the tilt series.
+<P>
+There is no feature corresponding to a patch, so it makes no sense to
+reposition any
+of the points from patch tracking.  However, if it is obvious that the
+tracking of a patch gets off at a certain point, it would be appropriate to
+delete points from there onward instead of deleting the whole contour.
+
+</P>
 <H4><A NAME = "Excluding Views"></A>
-7.8. Excluding Views
+7.9. Excluding Views
 </H4>
 <P>
 Sometimes there are images in the original data that do not align well or
@@ -1491,7 +1716,7 @@ reconstruction.
 
 </P>
 <H4><A NAME = "Residual Model Output"></A>
-7.9. Residual Model Output
+7.10. Residual Model Output
 </H4>
 <P>
 <A HREF = "man/tiltalign.html">Tiltalign</A> produces a text file
@@ -1857,7 +2082,7 @@ After the computation is finished, press <B>Use CTF Correction</B> to replace
 the aligned stack.
 </P>
 <H4><A NAME = "ErasingGold"></A>
-10.3. Erasing Gold Particles
+10.3. Erasing Gold Particles Using a Fiducial Model
 </H4>
 <P>
 <A HREF = "man/ccderaser.html">Ccderaser</A> can erase a circular region
@@ -1865,30 +2090,129 @@ around every point in an object.  This allows the fiducial gold markers to be
 removed from images, which will reduce the artifacts cast by these markers in
 the reconstruction but might produce other artifacts.  You can use the
 fiducial model to erase the beads that were used for alignment, or a more
-complete model if you have prepared one.  See <A HREF = 
-"tomoExtra.html#ErasingGold">Erasing All Gold from a Tomogram</A> for
-instructions on two different methods of getting more complete models.
+complete model if you have prepared one.  The eTomo interface provides one
+method of generating a more complete model: finding gold beads in a tomogram
+and projecting their 3-D positions to make a model of their positions on the
+images of the aligned stack.  See <A HREF = "tomoExtra.html#ErasingTracking">
+Tracking Additional Gold for Erasing from a Tomogram</A> for
+instructions on how to get a more complete model by bead tracking.
 <P>
 If want to use the fiducial model, or another model by the same name that has
 been built on the prealigned stack, then press <B>Transform Fiducial
 Model</B>.  You can then use <B>View Transformed Model</B> to see this model
 on the aligned stack.
 <P>
-The <B>Fiducial Diameter</B> text box contains a diameter in pixels, computed
+The <B>Diameter to erase</B> text box contains a diameter in pixels, computed
 from your entries on fiducial and pixel size during Setup.  You will probably
-need to increase this number to erase gold completely.  Press <B>Erase
+need to increase this number to erase gold completely, especially for cryo
+data sets with underfocus fringes.  
+Press <B>Erase
 Beads</B> to run the erasure, then press <B>View Erased Stack</B> to see the
 resulting images together with the model.  If gold is generally not erased
-completely, increase the diameter.  If some particles are not well-erased
+completely, increase the diameter.  Unlike many other size entries that are in
+unbinned pixels, this diameter
+is in terms of the pixels of the aligned stack, so the amount to increase the
+diameter corresponds to the number of additional pixels that need erasing.
+If some particles are not well-erased
 because their model points were not centered, you can move the model points,
 save the model, and run again.  In this case, be careful not to retransform
 the fiducial model, as that will replace your edited model.
 <P>
 When the erasure appears acceptable, replace the aligned stack by pressing
 <B>Use Erased Stack</B>
+<P>
+<H4><A NAME = "ErasingFinding3D"></A>
+10.4. Erasing Gold by Finding It in a Tomogram and Projecting It
+</H4>
+<P>
+In this approach, you use <A HREF = "man/findbeads3d.html">Findbeads3d</A> to
+find the gold particles in a tomogram and <A HREF = "man/tilt.html">Tilt</A>
+to get a model of the positions of the beads on the aligned images.  You can
+and should use a binned tomogram for finding the gold, as long as the bead
+size in the binned tomogram is at least 5 pixels.  When run with default
+parameters, 
+<A HREF = "man/findbeads3d.html">Findbeads3d</A> finds beads with these steps:
+it finds peaks of local
+density in the volume and scales a measure of peak strength to go from 0 to 1;
+it analyzes a histogram of the peak strength values to find a dip between two
+peaks in the distribution and considers that dip to be
+a threshold separating gold particles from weaker densities; it
+averages a fraction of the peaks above the threshold; it cross-correlates each
+position with this average to get a correlation peak strength, which is scaled
+to range up to 1; it analyzes the distribution of these strengths to find a
+new threshold; finally, it stores points in a model for all points above
+threshold and for some of the points below threshold.
+<P>
+To use this method, do the following:
+<ol>
+<LI>Select <B>Use findbeads3d</b> 
+<LI>Note the binning, which is initialized to the largest binning that
+will result in beads of at least 4-5 pixels in diameter. The tomogram
+generation and bead finding will both run much faster with binning.
+<LI>Note the thickness and added Z shift entries, which are in unbinned
+  pixels.  If you had fiducials on two surfaces, then the output from 
+<A HREF = "man/tiltalign.html">Tiltalign</A> contains information on the distance
+between the two layers of beads and on the shift in Z needed to center the
+beads in the tomogram.  That distance is shown in the <B>Center to center
+  thickness</B> field, and 3 bead diameters are added to that to obtain the
+suggested value in the <B>Thickness</B> field.  The Z shift is shown in
+the <B>Added Z shift</B> field.  If you did not have fiducials on two
+surfaces, the <B>Thickness</B> has the thickness determined in Tomogram
+Positioning, and the  <B>Added Z shift</B> simply undoes the Z shift imposed
+during positioning in order to move the gold back to the center.
+You may have to make the thickness larger, or adjust this shift, if some of
+the gold is too close to the surface of the tomogram to be detected.
+<LI> Press <B>Align and Build Tomogram</B> to build the tomogram.  (If the
+  binning is different from that of the aligned stack you are trying to erase, 
+a binned aligned stack is built just for this purpose.)
+<LI> The basic choice before trying to find the beads is whether to store any
+  of the points below the threshold peak strength. If such points are stored,
+  they are available in the model in case some of them are real gold beads,
+  but there will generally be points that need to be deleted as well.
+<LI> Press <B>Run Findbeads3d</B>.  
+<LI> When the operation is done, press <B>View 3D Model on
+    Tomogram</B>. binning) and tomogram. The Bead Fixer will open in <B>Seed
+    Mode</B> and at the bottom you will see a set of controls for dealing with
+    contours that have values.  Use the slider to adjust the threshold to the
+    best value if necessary, and the checkbox for seeing the points below
+    threshold.  You will need to scroll through the tomogram to judge how good
+    the threshold is. Use the button to delete all of the points below your
+    chosen threshold.  If you find that the automatic threshold is always
+    adequate with your data, you can avoid this step by selecting <B>Store
+    only points below threshold</B>.  
+<LI> Fix the model as desired, deleting any inappropriate points and adding
+missing points.  Note that it is not critical that all points be correctly
+marked the way it is with 2D data, since every position that is marked in 3D 
+will be projected onto all 2D images and erasure will be complete. The best
+  way to see what needs fixing may be to go on to reproject this model, erase
+  the beads, and examine the erased stack.  If you do that, you can leave the
+  tomogram open, but be sure to close the erased stack each time.
+<LI> Press <B>Reproject model</B> and then proceed with erasing the beads and
+  inspecting the result as described above. You can also press <B>View 2D
+  Model on Aligned Stack</B> to see how well the points
+match the centers of the gold particles.  If they are somewhat off center at
+high tilt, you would need to increase the diameter to be erased.
+
+</OL>
+</P><P>
+ In Advanced mode, there are some parameters that can be adjusted to
+  improve the bead finding. The program allows beads to be spaced apart by 0.9
+  times the diameter; you can try a lower value in the <B>Minimum spacing</B>
+  field if there is trouble finding closely spaced beads. If the program has
+  trouble finding a threshold, you can indicate the approximate number of
+  beads in the <B>Estimated number of beads</B> field, or reduce the number of
+  peaks in the distribution analysis either by indicating the maximum number of
+ points to analyze in the <B>Max points to analyze</B> field, or by increasing
+ the <B>Minimum 
+  peak strength</B> to analyze.  Or, you can bypass the automatic threshold
+  finding by selecting <B>Set threshold for storing</B> and entering a
+  positive value (either a relative peak strength or a number of peaks) for
+  the threshold in the text field.  See the <A HREF =
+  "man/findbeads3d.html">man page</A> for more guidance.
+
 </P>
 <H4><A NAME = "Filtering2D"></A>
-10.4. Applying 2D Filtering
+10.5. Applying 2D Filtering
 </H4>
 <P>
 If you decide to use 2D filtering, set the cutoff
@@ -1911,8 +2235,17 @@ In the <B>Tilt Parameters</B> section, the values for
 <A HREF = "man/tomopitch.html">Tomopitch</A>; correct them if necessary.
 Adjust the radial filter parameters as appropriate.  If you did 2D filtering,
 you can set the cutoff higher (e.g., 0.45) to avoid double-filtering the 
-data.  
-Press <B>Generate Tomogram</B>.
+data.  Decide whether you want to take the logarithm of the data, which may
+not be appropriate from cryo data (see 
+<A HREF = "#Image Scaling">Image Scaling and Contrast Polarity</A>).  If you
+turn off the logarithm, a separate scaling is automatically used, set by the
+<B>Linear density scaling factor</B> field in Advanced mode.  This factor will
+be suitable for many cases, but if you have very 
+low counts in your data, the tomogram may have less than the desired amount of
+dynamic range unless you increase this factor.  If your data have very high
+counts, the tomogram may be saturated unless you increase it.
+<P>
+Press <B>Generate Tomogram</B> when ready.
 </P>
 <H4><A NAME = "Making Trial Tomograms"></A>
 11.2. Making Trial Tomograms
@@ -2057,7 +2390,8 @@ options for using models of corresponding points either alone or together with
 fiducials; for details on using these options see
 <A HREF = "tomoExtra.html#Fiducialless Combine">
 Combining Tomograms with Few or No Fiducials</A> in the Advanced Topics 
-section.
+section.  You must make such matching models if you aligned with patch
+tracking models.
 <LI> 
 If you used <A HREF = "man/transferfid.html">Transferfid</A> successfully
 to make a second seed model, then the coordinate file
@@ -2663,12 +2997,18 @@ Z-scale</B> and enter 1.6 in the <B>Added Z-scale</B> text box.
 If instead you are
 computing the Z-scale by comparing the thickness of the section in the
 squeezed volume with the original thickness at which the section was cut, then
-you need to make an entry in the <B>Total Z-scale</B> based on:
+you need to make an entry in the <B>Total Z-scale</B> with a Z-scale computed
+from the squeezed thickness.  Taking all factors into account if possible (see
+the explanation in the 3dmod
+<a href="3dmodHelp/modelHeader.html">Model Header help page</a>), the complete
+formula would be:
 <pre>
-   Z-scale = O / (S * P)
+   Z-scale = S * O / (Mn + (Ts * P))
    where  O = original section thickness, in nm
-          S = thickness of section in squeezed volume, in pixels 
+          Ts = thickness of section in squeezed volume, in pixels 
           P = pixel size in X and Y after squeezing, in nm
+          S = lateral shrinkage, a factor less than or equal to 1
+          Mn = thickness of material missing from the tomogram, in nm
 </pre>
 </P>
 <H3><A NAME = "Cleaning Up"></A>

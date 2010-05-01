@@ -14,9 +14,7 @@
 <BR><A HREF = "#Fiducialless Tomogram">5.0. Making a Tomogram with Correlation Alignment.</A>
 <BR><A HREF = "#Fiducialless Combine">6.0. Combining Tomograms with Few or No Fiducials</A>
 <BR><A HREF = "#ImportingDual">7.0. Importing Two Tomograms into Tomogram Combination</A>
-<BR><A HREF = "#ErasingGold">8.0. Erasing All Gold from a Tomogram</A>
-<BR><A HREF = "#ErasingTracking">8.1. Tracking Additional Gold</A>
-<BR><A HREF = "#ErasingFinding3D">8.2. Finding Gold in a Tomogram and Projecting It</A>
+<BR><A HREF = "#ErasingTracking"> 8.0. Tracking Additional Gold for Erasing from a Tomogram</A>
 <HR>
 
 <H4><A NAME = "Command Files"></A>
@@ -408,22 +406,17 @@ patches used for patch correlations.
 <LI> Set other parameters as usual and start the combine operation.
 </ol>
 </P>
-<H4><A NAME = "ErasingGold"></A>
-8.0. Erasing All Gold from a Tomogram
+<H4><A NAME = "ErasingTracking"></A>
+8.0. Tracking Additional Gold for Erasing from a Tomogram
 </H4>
 <P>
 If you want to erase gold that was not modeled as fiducials, then you need to
-make a more complete model than the fiducial model.
-There are two different methods that you can use to get a more complete model:
-adding seeds to the fiducial model and tracking it, or getting a model of the
-positions of the beads in a tomogram and projecting that to match the final
-aligned stack.
-</P>
-<H4><A NAME = "ErasingTracking"></A>
-8.1. Tracking Additional Gold
-</H4>
+make a more complete model than the fiducial model.  This section describes
+the steps for
+adding seeds to the fiducial model and tracking it to get a more complete
+model.
 <P>
-In this method, you make your complete model on
+You make your complete model on
 the coarse aligned stack.  It will be named "setname.fid", and you will be
 able to use
 the gold-erasing interface in eTomo to transform the model and apply it to the
@@ -480,93 +473,4 @@ a positive value (either a relative peak strength or a number of peaks) for the
 Once you are satisfied with the seed model, proceed to track and refine as
 usual.  When the model is complete, return to the <B>Final Aligned Stack</B>
 panel, transform the model, and use it to erase the gold.
-</P>
-<H4><A NAME = "ErasingFinding3D"></A>
-8.2. Finding Gold in a Tomogram and Projecting It
-</H4>
-<P>
-In this approach, you use <A HREF = "man/findbeads3d.html">Findbeads3d</A> to
-find the gold particles in a tomogram and <A HREF = "man/tilt.html">Tilt</A>
-to get a model of the positions of the beads on the aligned images.  You can
-and should use a binned tomogram for finding the gold, as long as the bead
-size in the binned tomogram is at least 5 pixels.  When run with default
-parameters, 
-<A HREF = "man/findbeads3d.html">Findbeads3d</A> finds beads with these steps:
-it finds peaks of local
-density in the volume; it analyzes the distribution of peak densities to
-find a threshold separating gold particles from weaker densities; it
-averages a fraction of the peaks above the threshold; it cross-correlates each
-position with this average to get a correlation peak strength, which is scaled
-to range up to 1; it analyzes the distribution of these strengths to find a
-new threshold; finally, it stores points in a model for all points above
-threshold and for some of the points below threshold.
-<P>
-To use this method, do the following:
-<ol>
-<LI>Compute the unbinned bead diameter in pixels by dividing the size in
-nanometers by the pixel size in nanometers.
-<LI>On the <B>Final Aligned Stack</B> panel, set the binning to the highest
-value that will give a binned diameter of at least 5 pixels.  Generate the 
-aligned stack.
-<li>Go to the <B>Fine Alignment</B> panel and open the align log and go to the
-<b>Surface Angles</B> tab.  At the bottom are values that you will use next.
-<li>Go to the <B>Tomogram Generation</B> panel.  For thickness, enter the sum
-of the "Unbinned thickness needed to contain centers of all fiducials" from
-the align log plus 3 times the unbinned bead diameter.
-<LI>Open Advanced mode and, in the <B>Z shift</B> text box, enter the value of
-"Incremental unbinned shift needed to center range of fiducials in Z" from the
-align log.
-<LI> Generate the binned tomogram.
-<LI>Run:
-<pre>    findbeads3d -size diameter -ylong -tilt setname.tlt rec_name setname.3dpkmod</pre>
-Where "diameter" is the unbinned diameter in pixels divided by the binning,
-and "rec_name" is either "setname_full.rec" for a single-axis data set, or
-"setnamea.rec" or "setnameb.rec" for a dual-axis data set.  The program
-allows beads to be spaced apart by 0.9 times the diameter; you can use the
-"-spacing" option to change this default value of 0.9.  If it has trouble
-finding a threshold, you can use "-guess" to indicate the approximate number of
-beads, or reduce the number of peaks in the distribution analysis by indicating
-the maximum number of beads with "-max" or increasing the minimum peak
-strength to analyze with "-peakmin".  Or, you can bypass the automatic
-threshold finding by entering a positive value (either a relative peak
-strength or a number of peaks) for the "-threshold" and "-store" options.  See
-the <A HREF = "man/findbeads3d.html">man page</A> for more guidance.
-<LI> Load the tomogram into 3dmod through eTomo and open
-the model.  Open the
-Bead Fixer and select <B>Seed Mode</B>.  
-You will see a set of controls for
-dealing with contours that have values.  Use the slider to 
-adjust the threshold to the best value if necessary, and the checkbox for 
-seeing
-the points below threshold.  You will need to scroll through the tomogram 
-to judge how good the threshold is.  Since the points are distributed on many
-planes, you need to turn on <B>Delete on all sections</B>.  Use the button to
-delete all of the
-points below your chosen threshold.  If you find that the automatic threshold
-is always adequate with your data, you can avoid this step by adding the 
-<A HREF = "man/findbeads3d.html">Findbeads3d</A> option "-store -1" to get
-only points above threshold stored in the model.
-<LI> Fix the model as desired, deleting any inappropriate points and adding
-missing points.  Note that it is not critical that all points be correctly
-marked the way it is with 2D data, since every position that is marked in 3D 
-will be projected onto all 2D images and erasure will be complete.
-<LI> Make a copy of the tilt.com (for a single-axis set) or tilta.com or
-tiltb.com for a dual-axis set, e.g.:
-<pre>    cp tilt.com tiltmod.com </pre>
-<LI> Edit this copy by changing the second line after "$tilt" from the name of
-the reconstruction output file to "setname_erase.fid" and adding a line right
-after that: 
-<pre>    ProjectModel setname.3dpkmod</pre>
-<LI> Run the command file with:
-<pre>    subm tiltmod</pre>
-<LI> In eTomo, on the <B>Erase Gold</B> tab, press <B>View Transformed 
-Model</B> to see the model on the aligned stack and assess how well the points
-match the centers of the gold particles.  If they are somewhat off center at
-high tilt, you would need to increase the diameter to be erased.  Proceed to
-erase gold as usual (but be sure not to press <B>Transform Fiducial Model</B>,
-since this will overwrite the projected model.)
-<LI> When you get back to the <B>Tomogram Generation</B> panel, be sure to
-restore the tomogram thickness to that determined by positioning, and to
-remove the <B>Z shift</B> value.
-</OL>
 </P>
