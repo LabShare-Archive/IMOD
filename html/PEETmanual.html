@@ -867,7 +867,15 @@ In early PEET releases, computation of the local approximation was
 considerably faster than normalized cross correlation. This is no longer the
 case, so we recommend always selecting <b>True local correlation</b>.&nbsp;
 
-<H5></A>3.11.2 Aligned base name</H5>
+<H5></A>3.11.2 Mean fill</H5>
+
+<p>In some cases, particles of interest may lie partially outside
+their parent volume.&nbsp; If <b>Mean fill</b> is checked, voxels in
+the missing region will be replaced with the mean of the data which are
+present.&nbsp; <b>Note: Mean fill</b> is now always treated as if it were
+checked.&nbsp; It will be removed at a future release.</p>
+
+<H5></A>3.11.3 Aligned base name</H5>
 
 <p>If a string is entered in the <b>Aligned base name</b> field,
 PEET will save volumes containing the individual aligned particles
@@ -876,7 +884,7 @@ is set to "aligned", a file aligned_tom1_P0002.mrc will
 contain the the second aligned particle from the 
 first tomogram.</p>
 
-<H5></A>3.11.3 Low frequency filter</H5>
+<H5></A>3.11.4 Low frequency filter</H5>
 
 <p>Just as PEET can be told to filter out high frequencies from both
 the reference and particles being aligned, it can also be told to filter
@@ -888,7 +896,7 @@ resulting high-pass filter.&nbsp; We have not found low frequency filtering to
 be useful, and do not recommend its use.</p>
 </body>
 
-<H5></A>3.11.4 Debug level</H5>
+<H5></A>3.11.5 Debug level</H5>
 <p>Select a number between 0 and 3 to control the contents of the 
 log files.&nbsp; 
 Higher numbers store progressively more information to the logs.</p>
