@@ -680,6 +680,12 @@ public abstract class BaseManager {
             if (key3 != null) {
               imodManager.quit(key3, axisID);
             }
+            //Give Windows a chance to release control of the file.
+            try {
+              Thread.sleep(10);
+            }
+            catch (InterruptedException e) {
+            }
             return true;
           }
         }
@@ -692,6 +698,12 @@ public abstract class BaseManager {
           }
           if (key3 != null) {
             imodManager.quit(key3, axisID);
+          }
+          //Give Windows a chance to release control of the file.
+          try {
+            Thread.sleep(10);
+          }
+          catch (InterruptedException e) {
           }
           return true;
         }
@@ -740,18 +752,34 @@ public abstract class BaseManager {
       if (imodManager.isOpen(key, axisID)) {
         if (!EtomoDirector.INSTANCE.getArguments().isAutoClose3dmod()) {
           if (!warnOnce || (warnOnce && imodManager.warnStaleFile(key, axisID))) {
-            if (uiHarness.openYesNoDialog(null, description
-                + " is open in 3dmod."
-                + (warnOnce ? "  This 3dmod instance will display an out of date version of this file.  "
-                    : "") + (message == null ? "" : "  " + message + "  ")
-                + "Should file be closed?", axisID)) {
+            if (uiHarness
+                .openYesNoDialog(
+                    null,
+                    description
+                        + " is open in 3dmod."
+                        + (warnOnce ? "  This 3dmod instance will display an out of date version of this file.  "
+                            : "")
+                        + (message == null ? "" : "  " + message + "  ")
+                        + "Should file be closed?", axisID)) {
               imodManager.quit(key, axisID);
+              //Give Windows a chance to release control of the file.
+              try {
+                Thread.sleep(10);
+              }
+              catch (InterruptedException e) {
+              }
               return true;
             }
           }
         }
         else {
           imodManager.quit(key, axisID);
+          //Give Windows a chance to release control of the file.
+          try {
+            Thread.sleep(10);
+          }
+          catch (InterruptedException e) {
+          }
           return true;
         }
       }
@@ -808,11 +836,23 @@ public abstract class BaseManager {
             message[1] = "Should it be closed?";
             if (uiHarness.openYesNoDialog(null, message, axisID)) {
               imodManager.quit(key, axisID, fileName);
+              //Give Windows a chance to release control of the file.
+              try {
+                Thread.sleep(10);
+              }
+              catch (InterruptedException e) {
+              }
             }
           }
         }
         else {
           imodManager.quit(key, axisID, fileName);
+          //Give Windows a chance to release control of the file.
+          try {
+            Thread.sleep(10);
+          }
+          catch (InterruptedException e) {
+          }
         }
       }
     }
@@ -842,10 +882,22 @@ public abstract class BaseManager {
           message[1] = "Do you wish to end these programs?";
           if (uiHarness.openYesNoDialog(null, message, axisID)) {
             imodManager.quit();
+            //Give Windows a chance to release control of the file.
+            try {
+              Thread.sleep(10);
+            }
+            catch (InterruptedException e) {
+            }
           }
         }
         else {
           imodManager.quit();
+          //Give Windows a chance to release control of the file.
+          try {
+            Thread.sleep(10);
+          }
+          catch (InterruptedException e) {
+          }
         }
       }
     }
@@ -1675,6 +1727,12 @@ public abstract class BaseManager {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.129  2010/04/28 15:32:11  sueh
+ * <p> bug# 1344 Added closeImod, closeImods, backImageFile,
+ * <p> renameImageFile, closeStaleFile functions.  Added abstract function
+ * <p> getFileSubdirectoryName.  Using ProcessSeries.Process to hold process
+ * <p> information.
+ * <p>
  * <p> Revision 1.128  2010/04/10 00:29:38  sueh
  * <p> bug# 1349 Changed close3dmods.
  * <p>

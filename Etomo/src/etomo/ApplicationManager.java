@@ -2775,10 +2775,22 @@ public final class ApplicationManager extends BaseManager implements
           message[1] = "Should they be closed?";
           if (uiHarness.openYesNoDialog(null, message, axisID)) {
             imodManager.quitAll(key, axisID);
+            //Give Windows a chance to release control of the file.
+            try {
+              Thread.sleep(10);
+            }
+            catch (InterruptedException e) {
+            }
           }
         }
         else {
           imodManager.quitAll(key, axisID);
+          //Give Windows a chance to release control of the file.
+          try {
+            Thread.sleep(10);
+          }
+          catch (InterruptedException e) {
+          }
         }
       }
     }
@@ -2811,10 +2823,22 @@ public final class ApplicationManager extends BaseManager implements
           message[1] = "Should it be closed?";
           if (uiHarness.openYesNoDialog(null, message, AxisID.ONLY)) {
             imodManager.quit(key);
+            //Give Windows a chance to release control of the file.
+            try {
+              Thread.sleep(10);
+            }
+            catch (InterruptedException e) {
+            }
           }
         }
         else {
           imodManager.quit(key);
+          //Give Windows a chance to release control of the file.
+          try {
+            Thread.sleep(10);
+          }
+          catch (InterruptedException e) {
+          }
         }
       }
     }
@@ -2854,10 +2878,22 @@ public final class ApplicationManager extends BaseManager implements
           message[1] = "Should it be closed?";
           if (uiHarness.openYesNoDialog(null, message, frameAxisID)) {
             imodManager.quit(key, imodAxisID);
+            //Give Windows a chance to release control of the file.
+            try {
+              Thread.sleep(10);
+            }
+            catch (InterruptedException e) {
+            }
           }
         }
         else {
           imodManager.quit(key, imodAxisID);
+          //Give Windows a chance to release control of the file.
+          try {
+            Thread.sleep(10);
+          }
+          catch (InterruptedException e) {
+          }
         }
       }
     }
@@ -8031,6 +8067,9 @@ public final class ApplicationManager extends BaseManager implements
 }
 /**
  * <p> $Log$
+ * <p> Revision 3.358  2010/04/29 02:02:42  sueh
+ * <p> bug# 1359 In clipStats passing axisID to the process manager function.
+ * <p>
  * <p> Revision 3.357  2010/04/28 15:29:56  sueh
  * <p> bug# 1344 Moved some closeImod functions to the BaseManager.
  * <p> Passing params to process manager functions, standardizing "3dmod is
