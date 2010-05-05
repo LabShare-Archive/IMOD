@@ -182,37 +182,68 @@ public final class ApplicationManager extends BaseManager implements
 
   // Process dialog references
   private SetupDialogExpert setupDialogExpert = null;
+
   private PreProcessingDialog preProcDialogA = null;
+
   private PreProcessingDialog preProcDialogB = null;
+
   private CoarseAlignDialog coarseAlignDialogA = null;
+
   private CoarseAlignDialog coarseAlignDialogB = null;
+
   private FiducialModelDialog fiducialModelDialogA = null;
+
   private FiducialModelDialog fiducialModelDialogB = null;
+
   private AlignmentEstimationDialog fineAlignmentDialogA = null;
+
   private AlignmentEstimationDialog fineAlignmentDialogB = null;
+
   private TomogramPositioningExpert tomogramPositioningExpertA = null;
+
   private TomogramPositioningExpert tomogramPositioningExpertB = null;
+
   private FinalAlignedStackExpert finalAlignedStackExpertA = null;
+
   private FinalAlignedStackExpert finalAlignedStackExpertB = null;
+
   private TomogramGenerationExpert tomogramGenerationExpertA = null;
+
   private TomogramGenerationExpert tomogramGenerationExpertB = null;
+
   protected TomogramCombinationDialog tomogramCombinationDialog = null;
+
   private PostProcessingDialog postProcessingDialog = null;
+
   private CleanUpDialog cleanUpDialog = null;
+
   private MetaData metaData = null;
+
   private MainTomogramPanel mainPanel;
+
   private ProcessTrack processTrack;
+
   private ProcessManager processMgr;
+
   private TomogramState state = null;
+
   private boolean[] advancedA = new boolean[DialogType.TOTAL_RECON];
+
   private boolean[] advancedB = new boolean[DialogType.TOTAL_RECON];
+
   private ReconScreenState screenStateA = null;
+
   private ReconScreenState screenStateB = null;
+
   private ProcessResultDisplayFactory processResultDisplayFactoryA = null;
+
   private ProcessResultDisplayFactory processResultDisplayFactoryB = null;
-  //True if reconnect() has been run for the specified axis.
+
+  // True if reconnect() has been run for the specified axis.
   private boolean reconnectRunA = false;
+
   private boolean reconnectRunB = false;
+
   ComScriptManager comScriptMgr = new ComScriptManager(this);
 
   /**
@@ -233,13 +264,11 @@ public final class ApplicationManager extends BaseManager implements
         if (loadedParamFile) {
           openProcessingPanel();
           mainPanel.setStatusBarText(paramFile, metaData, logPanel);
-        }
-        else {
+        } else {
           openSetupDialog();
           return;
         }
-      }
-      else {
+      } else {
         openSetupDialog();
         return;
       }
@@ -294,6 +323,7 @@ public final class ApplicationManager extends BaseManager implements
 
   /**
    * Checks the advanced state of a dialog.
+   * 
    * @param dialogType
    * @param axisID
    * @return
@@ -307,6 +337,7 @@ public final class ApplicationManager extends BaseManager implements
 
   /**
    * Sets the advanced state of a dialog.
+   * 
    * @param dialogType
    * @param axisID
    * @param advanced
@@ -320,6 +351,7 @@ public final class ApplicationManager extends BaseManager implements
 
   /**
    * Sets the advanced state of a dialog. Assumes the A axis (or single axis).
+   * 
    * @param dialogType
    * @param advanced
    */
@@ -338,6 +370,7 @@ public final class ApplicationManager extends BaseManager implements
   /**
    * Check if setup dialog has been modified by the user. Return true if there
    * is text in the dataset field.
+   * 
    * @return
    */
   public boolean isSetupChanged() {
@@ -360,7 +393,7 @@ public final class ApplicationManager extends BaseManager implements
     setCurrentDialogType(DialogType.SETUP_RECON, AxisID.ONLY);
     if (setupDialogExpert == null) {
       Utilities.timestamp("new", "SetupDialog", Utilities.STARTED_STATUS);
-      //check for distortion directory
+      // check for distortion directory
       File distortionDir = DatasetFiles.getDistortionDir(this, propertyUserDir,
           AxisID.ONLY);
       setupDialogExpert = SetupDialogExpert.getInstance(this,
@@ -418,8 +451,7 @@ public final class ApplicationManager extends BaseManager implements
         userConfig.putDataFile(paramFile.getAbsolutePath());
         loadedParamFile = true;
         state.initialize();
-      }
-      else {
+      } else {
         String[] errorMessage = new String[2];
         errorMessage[0] = "Setup Parameter Error";
         errorMessage[1] = metaData.getInvalidReason();
@@ -433,8 +465,8 @@ public final class ApplicationManager extends BaseManager implements
         if (!processMgr.setupComScripts(AxisID.ONLY)) {
           return false;
         }
-        //Create the .rawtlt file if the angle type is range.  This makes it
-        //easy to display titl angles in 3dmod.
+        // Create the .rawtlt file if the angle type is range. This makes it
+        // easy to display titl angles in 3dmod.
         if (metaData.getTiltAngleSpecA().getType() == TiltAngleType.RANGE) {
           try {
             AxisType axisType = metaData.getAxisType();
@@ -443,11 +475,9 @@ public final class ApplicationManager extends BaseManager implements
             if (axisType == AxisType.DUAL_AXIS) {
               makeRawtltFile(AxisID.SECOND);
             }
-          }
-          catch (IOException e) {
+          } catch (IOException e) {
             e.printStackTrace();
-          }
-          catch (InvalidParameterException e) {
+          } catch (InvalidParameterException e) {
             e.printStackTrace();
           }
         }
@@ -488,8 +518,7 @@ public final class ApplicationManager extends BaseManager implements
   }
 
   /**
-   * Open the main window in processing mode
-   * MUST run reconnect for all axis
+   * Open the main window in processing mode MUST run reconnect for all axis
    */
   private void openProcessingPanel() {
     mainPanel.showProcessingPanel(metaData.getAxisType());
@@ -498,8 +527,7 @@ public final class ApplicationManager extends BaseManager implements
     if (metaData.getAxisType() == AxisType.DUAL_AXIS) {
       reconnect(processMgr.getSavedProcessData(AxisID.FIRST), AxisID.FIRST);
       reconnect(processMgr.getSavedProcessData(AxisID.SECOND), AxisID.SECOND);
-    }
-    else {
+    } else {
       reconnect(processMgr.getSavedProcessData(AxisID.ONLY), AxisID.ONLY);
     }
   }
@@ -518,17 +546,17 @@ public final class ApplicationManager extends BaseManager implements
   private void setReconnectRun(AxisID axisID) {
     if (axisID == AxisID.SECOND) {
       reconnectRunB = true;
-    }
-    else {
+    } else {
       reconnectRunA = true;
     }
   }
 
   /**
-   * Attempts to reconnect to a currently running process.  Only run once per
-   * axis.  Only attempts one reconnect.
-   * Must run super.reconnect first
-   * @param axisID - axis of the running process.
+   * Attempts to reconnect to a currently running process. Only run once per
+   * axis. Only attempts one reconnect. Must run super.reconnect first
+   * 
+   * @param axisID -
+   *          axis of the running process.
    * @return true if a reconnect was attempted.
    */
   public boolean reconnect(ProcessData processData, AxisID axisID) {
@@ -595,8 +623,7 @@ public final class ApplicationManager extends BaseManager implements
         .timestamp("new", "PreProcessingDialog", Utilities.FINISHED_STATUS);
     if (axisID == AxisID.SECOND) {
       preProcDialogB = preProcDialog;
-    }
-    else {
+    } else {
       preProcDialogA = preProcDialog;
     }
     // Load the required ccderaser{|a|b}.com files
@@ -616,16 +643,14 @@ public final class ApplicationManager extends BaseManager implements
     PreProcessingDialog preProcDialog;
     if (axisID == AxisID.SECOND) {
       preProcDialog = preProcDialogB;
-    }
-    else {
+    } else {
       preProcDialog = preProcDialogA;
     }
     savePreProcDialog(preProcDialog, axisID);
     // Clean up the existing dialog
     if (axisID == AxisID.SECOND) {
       preProcDialogB = null;
-    }
-    else {
+    } else {
       preProcDialogA = null;
     }
     preProcDialog = null;
@@ -633,6 +658,7 @@ public final class ApplicationManager extends BaseManager implements
 
   /**
    * Updates comscripts and edf file
+   * 
    * @param preProcDialog
    * @param axisID
    */
@@ -644,14 +670,13 @@ public final class ApplicationManager extends BaseManager implements
     DialogExitState exitState = preProcDialog.getExitState();
     if (exitState == DialogExitState.CANCEL) {
       mainPanel.showBlankProcess(axisID);
-    }
-    else {
+    } else {
       if (!isExiting() && exitState != DialogExitState.POSTPONE
           && state.isUseFixedStackWarning(axisID)) {
-        //Only warn once.
+        // Only warn once.
         state.setUseFixedStackWarning(axisID, false);
-        //The use button wasn't pressed and the user is moving on to the next
-        //dialog.  Don't put this message in the log.
+        // The use button wasn't pressed and the user is moving on to the next
+        // dialog. Don't put this message in the log.
         uiHarness.openMessageDialog(null,
             "To use the fixed stack go back to Pre-processing and press the \""
                 + PreProcessingDialog.getUseFixedStackLabel() + "\" button.",
@@ -667,8 +692,7 @@ public final class ApplicationManager extends BaseManager implements
         // should be closed.
         closeImod(ImodManager.RAW_STACK_KEY, axisID, "raw stack", false);
         closeImod(ImodManager.ERASED_STACK_KEY, axisID, "fixed stack", false);
-      }
-      else if (exitState != DialogExitState.SAVE) {
+      } else if (exitState != DialogExitState.SAVE) {
         processTrack.setPreProcessingState(ProcessState.INPROGRESS, axisID);
         mainPanel.setPreProcessingState(ProcessState.INPROGRESS, axisID);
         // Go to the coarse align dialog by default
@@ -693,18 +717,15 @@ public final class ApplicationManager extends BaseManager implements
           menuOptions);
       processTrack.setState(ProcessState.INPROGRESS, axisID, dialogType);
       mainPanel.setState(ProcessState.INPROGRESS, axisID, dialogType);
-    }
-    catch (SystemProcessException except) {
+    } catch (SystemProcessException except) {
       except.printStackTrace();
       uiHarness.openMessageDialog(this, except.getMessage(),
           "Cannot open 3dmod on raw stack", axisID);
-    }
-    catch (AxisTypeException except) {
+    } catch (AxisTypeException except) {
       except.printStackTrace();
       uiHarness.openMessageDialog(this, except.getMessage(),
           "Axis type problem in 3dmod erase", axisID);
-    }
-    catch (IOException e) {
+    } catch (IOException e) {
       e.printStackTrace();
       uiHarness.openMessageDialog(this, e.getMessage(), "IO Exception", axisID);
     }
@@ -713,8 +734,11 @@ public final class ApplicationManager extends BaseManager implements
   /**
    * Get the eraser script parameters from the CCD eraser panel and write them
    * out the eraser{|a|b}.com script
-   * @param axisID The axisID to process
-   * @param trialMode Set to trial mode if true
+   * 
+   * @param axisID
+   *          The axisID to process
+   * @param trialMode
+   *          Set to trial mode if true
    */
   private Command updateEraserCom(CcdEraserDisplay display, AxisID axisID,
       boolean trialMode) {
@@ -733,6 +757,7 @@ public final class ApplicationManager extends BaseManager implements
 
   /**
    * Run the eraser script for the specified axis
+   * 
    * @param axisID
    */
   private void eraser(AxisID axisID, ProcessResultDisplay processResultDisplay,
@@ -745,8 +770,7 @@ public final class ApplicationManager extends BaseManager implements
     try {
       threadName = processMgr.eraser(axisID, processResultDisplay,
           processSeries, param);
-    }
-    catch (SystemProcessException e) {
+    } catch (SystemProcessException e) {
       e.printStackTrace();
       String[] message = new String[2];
       message[0] = "Can not execute eraser" + axisID.getExtension() + ".com";
@@ -760,6 +784,7 @@ public final class ApplicationManager extends BaseManager implements
 
   /**
    * Run CCDeraser in trial mode
+   * 
    * @param axisID
    */
   public void findXrays(AxisID axisID,
@@ -778,11 +803,10 @@ public final class ApplicationManager extends BaseManager implements
     processSeries.setRun3dmodDeferred(deferred3dmodButton, run3dmodMenuOptions);
     String threadName;
     try {
-      //Trial find X-rays only creates a model, does not change the image file.
+      // Trial find X-rays only creates a model, does not change the image file.
       threadName = processMgr.eraser(axisID, processResultDisplay,
           processSeries, null);
-    }
-    catch (SystemProcessException e) {
+    } catch (SystemProcessException e) {
       e.printStackTrace();
       String[] message = new String[2];
       message[0] = "Can not execute eraser" + axisID.getExtension() + ".com";
@@ -807,18 +831,15 @@ public final class ApplicationManager extends BaseManager implements
       }
       imodManager.open(ImodManager.RAW_STACK_KEY, axisID, xRayModel,
           menuOptions);
-    }
-    catch (AxisTypeException except) {
+    } catch (AxisTypeException except) {
       except.printStackTrace();
       uiHarness.openMessageDialog(this, except.getMessage(),
           "AxisType problem", axisID);
-    }
-    catch (SystemProcessException except) {
+    } catch (SystemProcessException except) {
       except.printStackTrace();
       uiHarness.openMessageDialog(this, except.getMessage(),
           "Problem opening coarse stack", axisID);
-    }
-    catch (IOException e) {
+    } catch (IOException e) {
       e.printStackTrace();
       uiHarness.openMessageDialog(this, e.getMessage(), "IO Exception", axisID);
     }
@@ -841,24 +862,20 @@ public final class ApplicationManager extends BaseManager implements
       if (tiltFile.exists()) {
         imodManager.setTiltFile(ImodManager.ERASED_STACK_KEY, axisID, tiltFile
             .getName());
-      }
-      else {
+      } else {
         imodManager.resetTiltFile(ImodManager.ERASED_STACK_KEY, axisID);
       }
       imodManager.open(ImodManager.ERASED_STACK_KEY, axisID,
           run3dmodMenuOptions);
-    }
-    catch (AxisTypeException except) {
+    } catch (AxisTypeException except) {
       except.printStackTrace();
       uiHarness.openMessageDialog(this, except.getMessage(),
           "AxisType problem", axisID);
-    }
-    catch (SystemProcessException except) {
+    } catch (SystemProcessException except) {
       except.printStackTrace();
       uiHarness.openMessageDialog(this, except.getMessage(),
           "Problem opening erased stack", axisID);
-    }
-    catch (IOException e) {
+    } catch (IOException e) {
       e.printStackTrace();
       uiHarness.openMessageDialog(this, e.getMessage(), "IO Exception", axisID);
     }
@@ -874,6 +891,7 @@ public final class ApplicationManager extends BaseManager implements
 
   /**
    * Archive the orginal stacks during clean up.
+   * 
    * @param axisID
    */
   private void archiveOriginalStack(AxisID currentAxisID,
@@ -886,8 +904,7 @@ public final class ApplicationManager extends BaseManager implements
     if (stackAxisID == null) {
       if (metaData.getAxisType() == AxisType.DUAL_AXIS) {
         stackAxisID = AxisID.FIRST;
-      }
-      else {
+      } else {
         stackAxisID = AxisID.ONLY;
       }
     }
@@ -906,8 +923,7 @@ public final class ApplicationManager extends BaseManager implements
         // Nothing to do on the first axis, so move on to the second axis
         processSeries.startNextProcess(AxisID.ONLY, null);
         return;
-      }
-      else {
+      } else {
         return;
       }
     }
@@ -921,8 +937,7 @@ public final class ApplicationManager extends BaseManager implements
     // run process
     try {
       setThreadName(processMgr.archiveOrig(param, processSeries), AxisID.ONLY);
-    }
-    catch (SystemProcessException e) {
+    } catch (SystemProcessException e) {
       // resetNextProcess(AxisID.ONLY);
       e.printStackTrace();
       String[] message = new String[2];
@@ -940,14 +955,11 @@ public final class ApplicationManager extends BaseManager implements
         .getCommandMode();
     if (mode == ArchiveorigParam.Mode.AXIS_A) {
       axisID = AxisID.FIRST;
-    }
-    else if (mode == ArchiveorigParam.Mode.AXIS_B) {
+    } else if (mode == ArchiveorigParam.Mode.AXIS_B) {
       axisID = AxisID.SECOND;
-    }
-    else if (mode == ArchiveorigParam.Mode.AXIS_ONLY) {
+    } else if (mode == ArchiveorigParam.Mode.AXIS_ONLY) {
       axisID = AxisID.ONLY;
-    }
-    else {
+    } else {
       return;
     }
     File originalStack = Utilities.getFile(this, false, axisID, "_orig.st", "");
@@ -999,8 +1011,7 @@ public final class ApplicationManager extends BaseManager implements
     if (metaData.getAxisType() == AxisType.SINGLE_AXIS) {
       cleanUpDialog.updateArchiveDisplay(DatasetFiles.getOriginalStack(this,
           AxisID.ONLY).exists());
-    }
-    else {
+    } else {
       cleanUpDialog.updateArchiveDisplay(DatasetFiles.getOriginalStack(this,
           AxisID.FIRST).exists()
           || DatasetFiles.getOriginalStack(this, AxisID.SECOND).exists());
@@ -1009,6 +1020,7 @@ public final class ApplicationManager extends BaseManager implements
 
   /**
    * Replace the raw stack with the fixed stack created from eraser
+   * 
    * @param axisID
    */
   public void replaceRawStack(AxisID axisID,
@@ -1041,8 +1053,7 @@ public final class ApplicationManager extends BaseManager implements
         renameImageFile(FileType.FIXED_XRAYS_STACK, FileType.RAW_STACK, axisID);
       }
       sendMsgProcessSucceeded(processResultDisplay);
-    }
-    catch (IOException except) {
+    } catch (IOException except) {
       uiHarness.openMessageDialog(this, except.getMessage(),
           "File Rename Error", axisID);
       sendMsgProcessFailed(processResultDisplay);
@@ -1060,6 +1071,7 @@ public final class ApplicationManager extends BaseManager implements
   /**
    * Renames the _xray.st.gz file to {dataset}{axisID}_xray.st.gz.{number}.
    * Numbers start at 1 and go up.
+   * 
    * @param axisID
    * @return false if rename fails
    */
@@ -1091,8 +1103,7 @@ public final class ApplicationManager extends BaseManager implements
     }
     try {
       Utilities.renameFile(xrayStack, xrayStackArchive);
-    }
-    catch (IOException e) {
+    } catch (IOException e) {
       e.printStackTrace();
       uiHarness.openMessageDialog(this, e.getMessage() + "\nUnable to move "
           + xrayStack.getName() + " to " + xrayStackArchive.getName()
@@ -1106,6 +1117,7 @@ public final class ApplicationManager extends BaseManager implements
 
   /**
    * Bring up a preview 3dmod.
+   * 
    * @param axisID
    */
   public void imodPreview(AxisID axisID, Run3dmodMenuOptions menuOptions) {
@@ -1128,18 +1140,15 @@ public final class ApplicationManager extends BaseManager implements
       imodManager.setWorkingDirectory(key, axisID, previewNumber,
           previewWorkingDir);
       imodManager.open(key, axisID, previewNumber, menuOptions);
-    }
-    catch (AxisTypeException except) {
+    } catch (AxisTypeException except) {
       except.printStackTrace();
       uiHarness.openMessageDialog(this, except.getMessage(),
           "AxisType problem", axisID);
-    }
-    catch (SystemProcessException except) {
+    } catch (SystemProcessException except) {
       except.printStackTrace();
       uiHarness.openMessageDialog(this, except.getMessage(),
           "Problem opening raw stack", axisID);
-    }
-    catch (IOException e) {
+    } catch (IOException e) {
       e.printStackTrace();
       uiHarness.openMessageDialog(this, e.getMessage(), "IO Exception", axisID);
     }
@@ -1166,8 +1175,7 @@ public final class ApplicationManager extends BaseManager implements
     Utilities.timestamp("new", "CoarseAlignDialog", Utilities.FINISHED_STATUS);
     if (axisID == AxisID.SECOND) {
       coarseAlignDialogB = coarseAlignDialog;
-    }
-    else {
+    } else {
       coarseAlignDialogA = coarseAlignDialog;
     }
     // Create the dialog box
@@ -1177,16 +1185,14 @@ public final class ApplicationManager extends BaseManager implements
         .getTiltxcorrParam(axisID));
     if (metaData.getViewType() == ViewType.MONTAGE) {
       comScriptMgr.loadPreblend(axisID);
-    }
-    else {
+    } else {
       comScriptMgr.loadPrenewst(axisID);
     }
 
     if (metaData.getViewType() == ViewType.MONTAGE) {
       BlendmontParam blendmontParam = comScriptMgr.getPreblendParam(axisID);
       coarseAlignDialog.setParams(blendmontParam);
-    }
-    else {
+    } else {
       NewstParam prenewstParam = comScriptMgr.getPrenewstParam(axisID);
       coarseAlignDialog.setPrenewstParams(prenewstParam);
     }
@@ -1209,8 +1215,7 @@ public final class ApplicationManager extends BaseManager implements
     // Clean up the existing dialog
     if (axisID == AxisID.SECOND) {
       coarseAlignDialogB = null;
-    }
-    else {
+    } else {
       coarseAlignDialogA = null;
     }
     coarseAlignDialog = null;
@@ -1226,8 +1231,7 @@ public final class ApplicationManager extends BaseManager implements
     DialogExitState exitState = coarseAlignDialog.getExitState();
     if (exitState == DialogExitState.CANCEL) {
       mainPanel.showBlankProcess(axisID);
-    }
-    else {
+    } else {
       coarseAlignDialog.getParameters(getScreenState(axisID));
       // Get the user input data from the dialog box
       updateXcorrCom(coarseAlignDialog.getTiltXcorrDisplay(), axisID);
@@ -1236,13 +1240,11 @@ public final class ApplicationManager extends BaseManager implements
         if (metaData.getViewType() != ViewType.MONTAGE) {
           updatePrenewstCom(coarseAlignDialog.getNewstackDisplay(), axisID);
         }
-      }
-      catch (InvalidParameterException e) {
+      } catch (InvalidParameterException e) {
         e.printStackTrace();
         uiHarness.openMessageDialog(this, "Unable to update prenewst com:  "
             + e.getMessage(), "Etomo Error", axisID);
-      }
-      catch (IOException e) {
+      } catch (IOException e) {
         e.printStackTrace();
         uiHarness.openMessageDialog(this, "Unable to update prenewst com:  "
             + e.getMessage(), "Etomo Error", axisID);
@@ -1259,12 +1261,10 @@ public final class ApplicationManager extends BaseManager implements
           // open
           closeImod(ImodManager.COARSE_ALIGNED_KEY, axisID,
               "coarsely aligned stack", false);
-        }
-        else {
+        } else {
           openFiducialModelDialog(axisID);
         }
-      }
-      else if (exitState != DialogExitState.SAVE) {
+      } else if (exitState != DialogExitState.SAVE) {
         processTrack.setCoarseAlignmentState(ProcessState.INPROGRESS, axisID);
         mainPanel.setCoarseAlignState(ProcessState.INPROGRESS, axisID);
         mainPanel.showBlankProcess(axisID);
@@ -1302,13 +1302,11 @@ public final class ApplicationManager extends BaseManager implements
       if (blendmontParam == null) {
         threadName = processMgr.tiltxcorr(tiltxcorrParam, comscriptFileType,
             axisID, processResultDisplay, processSeries);
-      }
-      else {
+      } else {
         threadName = processMgr.crossCorrelate(blendmontParam, axisID,
             processResultDisplay, processSeries);
       }
-    }
-    catch (SystemProcessException e) {
+    } catch (SystemProcessException e) {
       e.printStackTrace();
       String[] message = new String[2];
       message[0] = "Can not execute xcorr" + axisID.getExtension() + ".com";
@@ -1327,6 +1325,7 @@ public final class ApplicationManager extends BaseManager implements
   /**
    * if the b stack hasn't been processed, run extracttilts before running
    * crossCorrelate().
+   * 
    * @param axisID
    */
   public void preCrossCorrelate(AxisID axisID,
@@ -1349,6 +1348,7 @@ public final class ApplicationManager extends BaseManager implements
   /**
    * if the b stack hasn't been processed, run extracttilts before running
    * eraser().
+   * 
    * @param axisID
    */
   public void preEraser(final AxisID axisID,
@@ -1385,8 +1385,7 @@ public final class ApplicationManager extends BaseManager implements
     param.setFiducialess(metaData.isFiducialess(axisID));
     if (metaData.getViewType() == ViewType.MONTAGE) {
       param.setMontageFullImage();
-    }
-    else {
+    } else {
       param.setFullImage(bStack);
     }
     UIExpertUtilities.INSTANCE.rollTiltComAngles(this, axisID);
@@ -1414,8 +1413,7 @@ public final class ApplicationManager extends BaseManager implements
     try {
       threadName = processMgr.extracttilts(axisID, processResultDisplay,
           processSeries);
-    }
-    catch (SystemProcessException e) {
+    } catch (SystemProcessException e) {
       e.printStackTrace();
       String[] message = new String[2];
       message[0] = "Can not execute " + ExtracttiltsParam.COMMAND_NAME;
@@ -1452,8 +1450,7 @@ public final class ApplicationManager extends BaseManager implements
     try {
       threadName = processMgr.extractpieces(axisID, processResultDisplay,
           processSeries);
-    }
-    catch (SystemProcessException e) {
+    } catch (SystemProcessException e) {
       e.printStackTrace();
       String[] message = new String[2];
       message[0] = "Can not execute " + ExtractpiecesParam.COMMAND_NAME;
@@ -1491,8 +1488,7 @@ public final class ApplicationManager extends BaseManager implements
     try {
       threadName = processMgr.extractmagrad(param, axisID,
           processResultDisplay, processSeries);
-    }
-    catch (SystemProcessException e) {
+    } catch (SystemProcessException e) {
       e.printStackTrace();
       String[] message = new String[2];
       message[0] = "Can not execute " + ExtractmagradParam.COMMAND_NAME;
@@ -1511,6 +1507,7 @@ public final class ApplicationManager extends BaseManager implements
 
   /**
    * run undistort.com
+   * 
    * @param axisID
    */
   public void makeDistortionCorrectedStack(AxisID axisID,
@@ -1523,8 +1520,7 @@ public final class ApplicationManager extends BaseManager implements
     try {
       threadName = processMgr.makeDistortionCorrectedStack(axisID,
           processResultDisplay, processSeries);
-    }
-    catch (SystemProcessException e) {
+    } catch (SystemProcessException e) {
       e.printStackTrace();
       String[] message = new String[2];
       message[0] = "Can not execute undistort" + axisID.getExtension() + ".com";
@@ -1543,8 +1539,7 @@ public final class ApplicationManager extends BaseManager implements
     String threadName;
     try {
       threadName = processMgr.clipStats(clipParam, axisID, processSeries);
-    }
-    catch (SystemProcessException except) {
+    } catch (SystemProcessException except) {
       except.printStackTrace();
       uiHarness.openMessageDialog(this, "Can't run clip stats\n"
           + except.getMessage(), "SystemProcessException", axisID);
@@ -1573,36 +1568,30 @@ public final class ApplicationManager extends BaseManager implements
     if (metaData.getViewType() == ViewType.MONTAGE) {
       try {
         blendmontParam = updatePreblendCom(blendmontDisplay, axisID);
-      }
-      catch (FortranInputSyntaxException e) {
+      } catch (FortranInputSyntaxException e) {
         UIHarness.INSTANCE.openMessageDialog(this, e.getMessage(),
             "Update Com Error");
-      }
-      catch (InvalidParameterException e) {
+      } catch (InvalidParameterException e) {
         UIHarness.INSTANCE.openMessageDialog(this, e.getMessage(),
             "Update Com Error");
-      }
-      catch (IOException e) {
+      } catch (IOException e) {
         UIHarness.INSTANCE.openMessageDialog(this, e.getMessage(),
             "Update Com Error");
       }
       processName = BlendmontParam.getProcessName(BlendmontParam.Mode.PREBLEND);
-    }
-    else {
+    } else {
       try {
         if ((prenewstParam = updatePrenewstCom(newstackDisplay, axisID)) == null) {
           sendMsgProcessFailedToStart(processResultDisplay);
           return;
         }
         processName = ProcessName.PRENEWST;
-      }
-      catch (InvalidParameterException e) {
+      } catch (InvalidParameterException e) {
         e.printStackTrace();
         uiHarness.openMessageDialog(this, "Unable to update prenewst com:  "
             + e.getMessage(), "Etomo Error", axisID);
         return;
-      }
-      catch (IOException e) {
+      } catch (IOException e) {
         e.printStackTrace();
         uiHarness.openMessageDialog(this, "Unable to update prenewst com:  "
             + e.getMessage(), "Etomo Error", axisID);
@@ -1616,13 +1605,11 @@ public final class ApplicationManager extends BaseManager implements
       if (metaData.getViewType() == ViewType.MONTAGE) {
         threadName = processMgr.preblend(blendmontParam, axisID,
             processResultDisplay, processSeries);
-      }
-      else {
+      } else {
         threadName = processMgr.coarseAlign(prenewstParam, axisID,
             processResultDisplay, processSeries);
       }
-    }
-    catch (SystemProcessException e) {
+    } catch (SystemProcessException e) {
       e.printStackTrace();
       String[] message = new String[2];
       message[0] = "Can not execute " + processName + axisID.getExtension()
@@ -1647,23 +1634,19 @@ public final class ApplicationManager extends BaseManager implements
       if (tiltFile.exists()) {
         imodManager.setTiltFile(ImodManager.RAW_STACK_KEY, axisID, tiltFile
             .getName());
-      }
-      else {
+      } else {
         imodManager.resetTiltFile(ImodManager.RAW_STACK_KEY, axisID);
       }
       imodManager.open(ImodManager.RAW_STACK_KEY, axisID, menuOptions);
-    }
-    catch (AxisTypeException except) {
+    } catch (AxisTypeException except) {
       except.printStackTrace();
       uiHarness.openMessageDialog(this, except.getMessage(),
           "AxisType problem", axisID);
-    }
-    catch (SystemProcessException except) {
+    } catch (SystemProcessException except) {
       except.printStackTrace();
       uiHarness.openMessageDialog(this, except.getMessage(),
           "Problem opening raw stack", axisID);
-    }
-    catch (IOException e) {
+    } catch (IOException e) {
       e.printStackTrace();
       uiHarness.openMessageDialog(this, e.getMessage(), "IO Exception", axisID);
     }
@@ -1679,23 +1662,19 @@ public final class ApplicationManager extends BaseManager implements
       if (tiltFile.exists()) {
         imodManager.setTiltFile(ImodManager.COARSE_ALIGNED_KEY, axisID,
             tiltFile.getName());
-      }
-      else {
+      } else {
         imodManager.resetTiltFile(ImodManager.COARSE_ALIGNED_KEY, axisID);
       }
       imodManager.open(ImodManager.COARSE_ALIGNED_KEY, axisID, menuOptions);
-    }
-    catch (AxisTypeException except) {
+    } catch (AxisTypeException except) {
       except.printStackTrace();
       uiHarness.openMessageDialog(this, except.getMessage(),
           "AxisType problem", axisID);
-    }
-    catch (SystemProcessException except) {
+    } catch (SystemProcessException except) {
       except.printStackTrace();
       uiHarness.openMessageDialog(this, except.getMessage(),
           "Problem opening coarse stack", axisID);
-    }
-    catch (IOException e) {
+    } catch (IOException e) {
       e.printStackTrace();
       uiHarness.openMessageDialog(this, e.getMessage(), "IO Exception", axisID);
     }
@@ -1713,8 +1692,7 @@ public final class ApplicationManager extends BaseManager implements
     }
     if (metaData.getViewType() == ViewType.MONTAGE) {
       processMgr.midasBlendStack(axisID, metaData.getImageRotation(axisID));
-    }
-    else {
+    } else {
       processMgr.midasRawStack(axisID, metaData.getImageRotation(axisID));
     }
     processTrack.setCoarseAlignmentState(ProcessState.INPROGRESS, axisID);
@@ -1737,6 +1715,7 @@ public final class ApplicationManager extends BaseManager implements
   /**
    * Keep xcorr.com and xcorr_pt.com up todate with each other by making sure
    * that they have the same angleOffset.
+   * 
    * @param fromParam
    * @param toParam
    */
@@ -1747,8 +1726,9 @@ public final class ApplicationManager extends BaseManager implements
 
   /**
    * Get the required parameters from the dialog box and update the xcorr.com
-   * script.  Handles xcorr.com and xcorr_pt.com.  Use syncTiltxcorrParam to
-   * keep the inactive .com file update to date.
+   * script. Handles xcorr.com and xcorr_pt.com. Use syncTiltxcorrParam to keep
+   * the inactive .com file update to date.
+   * 
    * @return true if successful in getting the parameters and saving the com
    *         script
    */
@@ -1761,11 +1741,10 @@ public final class ApplicationManager extends BaseManager implements
       if (panelId == PanelId.CROSS_CORRELATION) {
         tiltXcorrParam = comScriptMgr.getTiltxcorrParam(axisID);
         if (comScriptMgr.loadXcorrPt(axisID, false)) {
-          //xcorr_pt.com exists
+          // xcorr_pt.com exists
           toParam = comScriptMgr.getTiltxcorrParamFromXcorrPt(axisID);
         }
-      }
-      else if (panelId == PanelId.PATCH_TRACKING) {
+      } else if (panelId == PanelId.PATCH_TRACKING) {
         tiltXcorrParam = comScriptMgr.getTiltxcorrParamFromXcorrPt(axisID);
         comScriptMgr.loadXcorr(axisID);
         toParam = comScriptMgr.getTiltxcorrParam(axisID);
@@ -1781,15 +1760,13 @@ public final class ApplicationManager extends BaseManager implements
         if (toParam != null) {
           comScriptMgr.saveXcorrPt(toParam, axisID);
         }
-      }
-      else if (panelId == PanelId.PATCH_TRACKING) {
+      } else if (panelId == PanelId.PATCH_TRACKING) {
         comScriptMgr.saveXcorrPt(tiltXcorrParam, axisID);
         if (toParam != null) {
           comScriptMgr.saveXcorr(toParam, axisID);
         }
       }
-    }
-    catch (FortranInputSyntaxException except) {
+    } catch (FortranInputSyntaxException except) {
       except.printStackTrace();
       String[] errorMessage = new String[3];
       errorMessage[0] = "Xcorr Parameter Syntax Error";
@@ -1798,8 +1775,7 @@ public final class ApplicationManager extends BaseManager implements
       uiHarness.openMessageDialog(this, errorMessage,
           "Xcorr Parameter Syntax Error", axisID);
       return null;
-    }
-    catch (NumberFormatException except) {
+    } catch (NumberFormatException except) {
       except.printStackTrace();
       String[] errorMessage = new String[3];
       errorMessage[0] = "Xcorr Align Parameter Syntax Error";
@@ -1816,6 +1792,7 @@ public final class ApplicationManager extends BaseManager implements
    * Update the blendmont command in the xcorr comscript. if blendmont does not
    * have to be run, update the goto param to skip blendmont return blendmont
    * param if blendmont has to be run.
+   * 
    * @param axisID
    * @return
    */
@@ -1829,8 +1806,7 @@ public final class ApplicationManager extends BaseManager implements
       runningBlendmont = blendmontParam.setBlendmontState();
       if (runningBlendmont) {
         gotoParam.setLabel(BlendmontParam.GOTO_LABEL);
-      }
-      else {
+      } else {
         gotoParam.setLabel(TiltxcorrParam.GOTO_LABEL);
       }
       comScriptMgr.saveXcorr(gotoParam, axisID);
@@ -1844,6 +1820,7 @@ public final class ApplicationManager extends BaseManager implements
 
   /**
    * update undistort.com from xcorr.com
+   * 
    * @param axisID
    */
   private void updateUndistortCom(AxisID axisID) {
@@ -1858,6 +1835,7 @@ public final class ApplicationManager extends BaseManager implements
    * Get the prenewst parameters from the dialog box and update the prenewst com
    * script as well as the align com script since binning of the pre-aligned
    * stack has an affect on the scaling of the fiducial model.
+   * 
    * @param axisID
    * @return
    */
@@ -1866,8 +1844,7 @@ public final class ApplicationManager extends BaseManager implements
     NewstParam prenewstParam = comScriptMgr.getPrenewstParam(axisID);
     try {
       display.getParameters(prenewstParam);
-    }
-    catch (FortranInputSyntaxException except) {
+    } catch (FortranInputSyntaxException except) {
       String[] errorMessage = new String[3];
       errorMessage[0] = "prenewst Parameter Syntax Error";
       errorMessage[1] = "Axis: " + axisID.getExtension();
@@ -1882,6 +1859,7 @@ public final class ApplicationManager extends BaseManager implements
 
   /**
    * Get the set the blendmont parameters and update the preblend com script.
+   * 
    * @param axisID
    * @return
    */
@@ -1931,8 +1909,7 @@ public final class ApplicationManager extends BaseManager implements
         .timestamp("new", "FiducialModelDialog", Utilities.FINISHED_STATUS);
     if (axisID == AxisID.SECOND) {
       fiducialModelDialogB = fiducialModelDialog;
-    }
-    else {
+    } else {
       fiducialModelDialogA = fiducialModelDialog;
     }
     updateDialog(fiducialModelDialog, axisID);
@@ -1945,15 +1922,15 @@ public final class ApplicationManager extends BaseManager implements
     fiducialModelDialog.setBeadtrackParams(comScriptMgr
         .getBeadtrackParam(axisID));
     fiducialModelDialog.setParameters(metaData);
-    //Try to load xcorr_pt comscript.  If it isn't there, set it up and then
-    //load. it.
+    // Try to load xcorr_pt comscript. If it isn't there, set it up and then
+    // load. it.
     TiltxcorrParam tiltXcorrPtParam = null;
     if (!comScriptMgr.loadXcorrPt(axisID, false)) {
       BaseProcessManager.touch(new File(propertyUserDir,
           FileType.PATCH_TRACKING_COMSCRIPT.getFileName(this, axisID))
           .getAbsolutePath(), this);
       comScriptMgr.loadXcorrPt(axisID, true);
-      //Sync from xcorr.com to xcorr_pt.com
+      // Sync from xcorr.com to xcorr_pt.com
       comScriptMgr.loadXcorr(axisID);
       tiltXcorrPtParam = comScriptMgr.getTiltxcorrParamFromXcorrPt(axisID);
       TiltxcorrParam tiltXcorrParam = comScriptMgr.getTiltxcorrParam(axisID);
@@ -1978,16 +1955,14 @@ public final class ApplicationManager extends BaseManager implements
     FiducialModelDialog fiducialModelDialog;
     if (axisID == AxisID.SECOND) {
       fiducialModelDialog = fiducialModelDialogB;
-    }
-    else {
+    } else {
       fiducialModelDialog = fiducialModelDialogA;
     }
     saveFiducialModelDialog(fiducialModelDialog, axisID);
     // Clean up the existing dialog
     if (axisID == AxisID.SECOND) {
       fiducialModelDialogB = null;
-    }
-    else {
+    } else {
       fiducialModelDialogA = null;
     }
     fiducialModelDialog = null;
@@ -2003,17 +1978,16 @@ public final class ApplicationManager extends BaseManager implements
     DialogExitState exitState = fiducialModelDialog.getExitState();
     if (exitState == DialogExitState.CANCEL) {
       mainPanel.showBlankProcess(axisID);
-    }
-    else {
+    } else {
       if (!isExiting() && exitState != DialogExitState.POSTPONE
           && state.isUseRaptorResultWarning()) {
-        //The use button wasn't pressed and the user is moving on to the next
-        //dialog.  Don't put this message in the log.
+        // The use button wasn't pressed and the user is moving on to the next
+        // dialog. Don't put this message in the log.
         uiHarness.openMessageDialog(null,
             "To use the RAPTOR result go back to Fiducial Model and press the \""
                 + FiducialModelDialog.getUseRaptorResultLabel() + "\" button.",
             "Entry Warning", axisID);
-        //Only warn once.
+        // Only warn once.
         state.setUseRaptorResultWarning(false);
       }
       fiducialModelDialog.getParameters(getScreenState(axisID));
@@ -2026,8 +2000,7 @@ public final class ApplicationManager extends BaseManager implements
         processTrack.setFiducialModelState(ProcessState.COMPLETE, axisID);
         mainPanel.setFiducialModelState(ProcessState.COMPLETE, axisID);
         openFineAlignmentDialog(axisID);
-      }
-      else if (exitState != DialogExitState.SAVE) {
+      } else if (exitState != DialogExitState.SAVE) {
         processTrack.setFiducialModelState(ProcessState.INPROGRESS, axisID);
         mainPanel.setFiducialModelState(ProcessState.INPROGRESS, axisID);
         mainPanel.showBlankProcess(axisID);
@@ -2052,28 +2025,24 @@ public final class ApplicationManager extends BaseManager implements
       imodManager.setDeleteAllSections(key, axisID, true);
       if (tiltFile != null && tiltFile.exists()) {
         imodManager.setTiltFile(key, axisID, tiltFile.getName());
-      }
-      else {
+      } else {
         imodManager.resetTiltFile(key, axisID);
       }
       imodManager.open(key, axisID, model, true, menuOptions);
       processTrack.setState(ProcessState.INPROGRESS, axisID, dialogType);
       mainPanel.setState(ProcessState.INPROGRESS, axisID, dialogType);
       sendMsgProcessSucceeded(processResultDisplay);
-    }
-    catch (AxisTypeException except) {
+    } catch (AxisTypeException except) {
       except.printStackTrace();
       uiHarness.openMessageDialog(this, except.getMessage(),
           "AxisType problem", axisID);
       sendMsgProcessFailedToStart(processResultDisplay);
-    }
-    catch (SystemProcessException except) {
+    } catch (SystemProcessException except) {
       except.printStackTrace();
       uiHarness.openMessageDialog(this, except.getMessage(),
           "Can't open 3dmod on " + key + " with model: " + model, axisID);
       sendMsgProcessFailedToStart(processResultDisplay);
-    }
-    catch (IOException e) {
+    } catch (IOException e) {
       e.printStackTrace();
       uiHarness.openMessageDialog(this, e.getMessage(), "IO Exception", axisID);
       sendMsgProcessFailedToStart(processResultDisplay);
@@ -2096,28 +2065,24 @@ public final class ApplicationManager extends BaseManager implements
       imodManager.setOpenLogOff(key, axisID);
       if (tiltFile != null && tiltFile.exists()) {
         imodManager.setTiltFile(key, axisID, tiltFile.getName());
-      }
-      else {
+      } else {
         imodManager.resetTiltFile(key, axisID);
       }
       imodManager.open(key, axisID, model, true, menuOptions);
       processTrack.setState(ProcessState.INPROGRESS, axisID, dialogType);
       mainPanel.setState(ProcessState.INPROGRESS, axisID, dialogType);
       sendMsgProcessSucceeded(processResultDisplay);
-    }
-    catch (AxisTypeException except) {
+    } catch (AxisTypeException except) {
       except.printStackTrace();
       uiHarness.openMessageDialog(this, except.getMessage(),
           "AxisType problem", axisID);
       sendMsgProcessFailedToStart(processResultDisplay);
-    }
-    catch (SystemProcessException except) {
+    } catch (SystemProcessException except) {
       except.printStackTrace();
       uiHarness.openMessageDialog(this, except.getMessage(),
           "Can't open 3dmod on " + key + " with model: " + model, axisID);
       sendMsgProcessFailedToStart(processResultDisplay);
-    }
-    catch (IOException e) {
+    } catch (IOException e) {
       e.printStackTrace();
       uiHarness.openMessageDialog(this, e.getMessage(), "IO Exception", axisID);
       sendMsgProcessFailedToStart(processResultDisplay);
@@ -2203,8 +2168,7 @@ public final class ApplicationManager extends BaseManager implements
     try {
       threadName = processMgr.fiducialModelTrack(beadtrackParam, axisID,
           processResultDisplay, processSeries);
-    }
-    catch (SystemProcessException e) {
+    } catch (SystemProcessException e) {
       e.printStackTrace();
       String[] message = new String[2];
       message[0] = "Can not execute track" + axisID.getExtension() + ".com";
@@ -2219,6 +2183,7 @@ public final class ApplicationManager extends BaseManager implements
 
   /**
    * Using Fiducial Model as Seed
+   * 
    * @param axisID
    */
   public boolean makeFiducialModelSeedModel(AxisID axisID) {
@@ -2238,14 +2203,14 @@ public final class ApplicationManager extends BaseManager implements
     if (!okToMakeFiducialModelSeedModel(axisID)) {
       return false;
     }/*
-     * if (seedModel.exists() && seedModel.lastModified() >
-     * fiducialModel.lastModified()) { String[] message = new String[3];
-     * message[0] = "WARNING: The seed model file is more recent the fiducial
-     * model file"; message[1] = "To avoid losing your changes to the seed
-     * model file,"; message[2] = "track fiducials before pressing Use
-     * Fiducial Model as Seed."; uiHarness.openMessageDialog(message, "Use
-     * Fiducial Model as Seed Failed", axisID); return; }
-     */
+       * if (seedModel.exists() && seedModel.lastModified() >
+       * fiducialModel.lastModified()) { String[] message = new String[3];
+       * message[0] = "WARNING: The seed model file is more recent the fiducial
+       * model file"; message[1] = "To avoid losing your changes to the seed
+       * model file,"; message[2] = "track fiducials before pressing Use
+       * Fiducial Model as Seed."; uiHarness.openMessageDialog(message, "Use
+       * Fiducial Model as Seed Failed", axisID); return; }
+       */
     mainPanel.setProgressBar("Using Fiducial Model as Seed", 1, axisID);
     processTrack.setFiducialModelState(ProcessState.INPROGRESS, axisID);
     mainPanel.setFiducialModelState(ProcessState.INPROGRESS, axisID);
@@ -2262,8 +2227,7 @@ public final class ApplicationManager extends BaseManager implements
       }
       // rename fiducial model file to seed model file
       Utilities.renameFile(fiducialModel, seedModel);
-    }
-    catch (IOException except) {
+    } catch (IOException except) {
       uiHarness.openMessageDialog(this, except.getMessage(),
           "File Rename Error", axisID);
       retval = false;
@@ -2279,24 +2243,20 @@ public final class ApplicationManager extends BaseManager implements
             if (uiHarness.openYesNoDialog(this, message, axisID)) {
               imodManager.quit(ImodManager.COARSE_ALIGNED_KEY, axisID);
             }
-          }
-          else {
+          } else {
             imodManager.quit(ImodManager.COARSE_ALIGNED_KEY, axisID);
           }
         }
       }
-    }
-    catch (AxisTypeException e) {
+    } catch (AxisTypeException e) {
       e.printStackTrace();
       System.err.println("Axis type exception in replaceRawStack");
       retval = false;
-    }
-    catch (IOException e) {
+    } catch (IOException e) {
       e.printStackTrace();
       uiHarness.openMessageDialog(this, e.getMessage(), "IO Exception", axisID);
       retval = false;
-    }
-    catch (SystemProcessException e) {
+    } catch (SystemProcessException e) {
       e.printStackTrace();
       uiHarness.openMessageDialog(this, e.getMessage(),
           "System Process Exception", axisID);
@@ -2305,8 +2265,7 @@ public final class ApplicationManager extends BaseManager implements
     File seedFile = DatasetFiles.getSeedFile(this, axisID);
     if (seedFile.exists()) {
       state.setSeedFileLastModified(axisID, seedFile.lastModified());
-    }
-    else {
+    } else {
       state.resetSeedFileLastModified(axisID);
     }
     mainPanel.stopProgressBar(axisID);
@@ -2316,8 +2275,7 @@ public final class ApplicationManager extends BaseManager implements
       if (fiducialModelDialogB != null) {
         fiducialModelDialogB.updateDisplay();
       }
-    }
-    else {
+    } else {
       updateDialog(fiducialModelDialogB, AxisID.SECOND);
       if (fiducialModelDialogA != null) {
         fiducialModelDialogA.updateDisplay();
@@ -2373,12 +2331,11 @@ public final class ApplicationManager extends BaseManager implements
       if (tiltFile.exists()) {
         imodManager.setTiltFile(ImodManager.COARSE_ALIGNED_KEY, axisID,
             tiltFile.getName());
-      }
-      else {
+      } else {
         imodManager.resetTiltFile(ImodManager.COARSE_ALIGNED_KEY, axisID);
       }
       if (residualMode) {
-        //Listen for message from 3dmod that the align logs have to be redone.
+        // Listen for message from 3dmod that the align logs have to be redone.
         imodManager.setContinuousListenerTarget(ImodManager.COARSE_ALIGNED_KEY,
             axisID, this);
       }
@@ -2388,23 +2345,20 @@ public final class ApplicationManager extends BaseManager implements
       imodManager.open(ImodManager.COARSE_ALIGNED_KEY, axisID, fiducialModel,
           true, menuOptions);
       sendMsgProcessSucceeded(processResultDisplay);
-    }
-    catch (AxisTypeException except) {
+    } catch (AxisTypeException except) {
       except.printStackTrace();
       uiHarness.openMessageDialog(this, except.getMessage(),
           "AxisType problem", axisID);
       sendMsgProcessFailedToStart(processResultDisplay);
       return;
-    }
-    catch (SystemProcessException except) {
+    } catch (SystemProcessException except) {
       except.printStackTrace();
       uiHarness.openMessageDialog(this, except.getMessage(),
           "Can't open 3dmod on coarse aligned stack with model: "
               + fiducialModel, axisID);
       sendMsgProcessFailedToStart(processResultDisplay);
       return;
-    }
-    catch (IOException e) {
+    } catch (IOException e) {
       e.printStackTrace();
       uiHarness.openMessageDialog(this, e.getMessage(), "IO Exception", axisID);
     }
@@ -2424,8 +2378,7 @@ public final class ApplicationManager extends BaseManager implements
     if (tiltalignParam.getLocalAlignments().is()) {
       tiltParam.setLocalAlignFile(metaData.getDatasetName()
           + alignFileExtension);
-    }
-    else {
+    } else {
       tiltParam.setLocalAlignFile("");
     }
     tiltParam.setExcludeList(tiltalignParam.getExcludeList());
@@ -2449,8 +2402,7 @@ public final class ApplicationManager extends BaseManager implements
       beadtrackParam = comScriptMgr.getBeadtrackParam(axisID);
       display.getParameters(beadtrackParam);
       comScriptMgr.saveTrack(beadtrackParam, axisID);
-    }
-    catch (FortranInputSyntaxException except) {
+    } catch (FortranInputSyntaxException except) {
       except.printStackTrace();
       String[] errorMessage = new String[3];
       errorMessage[0] = "Beadtrack Parameter Syntax Error";
@@ -2459,8 +2411,7 @@ public final class ApplicationManager extends BaseManager implements
       uiHarness.openMessageDialog(this, errorMessage,
           "Beadtrack Parameter Syntax Error", axisID);
       return null;
-    }
-    catch (NumberFormatException except) {
+    } catch (NumberFormatException except) {
       except.printStackTrace();
       String[] errorMessage = new String[3];
       errorMessage[0] = "Beadtrack Parameter Syntax Error";
@@ -2469,8 +2420,7 @@ public final class ApplicationManager extends BaseManager implements
       uiHarness.openMessageDialog(this, errorMessage,
           "Beadtrack Parameter Syntax Error", axisID);
       return null;
-    }
-    catch (InvalidEtomoNumberException e) {
+    } catch (InvalidEtomoNumberException e) {
       return null;
     }
     return beadtrackParam;
@@ -2500,8 +2450,7 @@ public final class ApplicationManager extends BaseManager implements
         Utilities.FINISHED_STATUS);
     if (axisID == AxisID.SECOND) {
       fineAlignmentDialogB = fineAlignmentDialog;
-    }
-    else {
+    } else {
       fineAlignmentDialogA = fineAlignmentDialog;
     }
 
@@ -2517,13 +2466,14 @@ public final class ApplicationManager extends BaseManager implements
     }
     fineAlignmentDialog.setParameters(metaData);
     fineAlignmentDialog.setTiltalignParams(tiltalignParam);
-    //Handle patch tracking.
+    // Handle patch tracking.
     Imodinfo imodinfo = new Imodinfo(FileType.FIDUCIAL_MODEL);
     if (imodinfo.isPatchTracking(this, axisID)) {
-      //Patch tracking creates fiducials on one side only.  If the .fid file was
-      //created by patch tracking, default to 1 surface if this is the first time
-      //opening fine alignment.  In any case tell the dialog that patch tracking
-      //was used.
+      // Patch tracking creates fiducials on one side only. If the .fid file was
+      // created by patch tracking, default to 1 surface if this is the first
+      // time
+      // opening fine alignment. In any case tell the dialog that patch tracking
+      // was used.
       if (!metaData.isFineExists(axisID)) {
         fineAlignmentDialog.setSurfacesToAnalyze(1);
       }
@@ -2539,6 +2489,7 @@ public final class ApplicationManager extends BaseManager implements
   /**
    * Calls saveAction for the dialog type. SaveAction() is a way to call the
    * dialog's done function without pressing an exit button.
+   * 
    * @param dialogType
    * @param axisID
    */
@@ -2571,8 +2522,7 @@ public final class ApplicationManager extends BaseManager implements
         return true;
       }
       return false;
-    }
-    catch (Throwable e) {
+    } catch (Throwable e) {
       e.printStackTrace();
       return true;
     }
@@ -2667,37 +2617,28 @@ public final class ApplicationManager extends BaseManager implements
     if (dialogType == DialogType.PRE_PROCESSING) {
       if (axisID == AxisID.SECOND) {
         return preProcDialogB;
-      }
-      else {
+      } else {
         return preProcDialogA;
       }
-    }
-    else if (dialogType == DialogType.COARSE_ALIGNMENT) {
+    } else if (dialogType == DialogType.COARSE_ALIGNMENT) {
       return mapCoarseAlignDialog(axisID);
-    }
-    else if (dialogType == DialogType.FIDUCIAL_MODEL) {
+    } else if (dialogType == DialogType.FIDUCIAL_MODEL) {
       if (axisID == AxisID.SECOND) {
         return fiducialModelDialogB;
-      }
-      else {
+      } else {
         return fiducialModelDialogA;
       }
-    }
-    else if (dialogType == DialogType.FINE_ALIGNMENT) {
+    } else if (dialogType == DialogType.FINE_ALIGNMENT) {
       if (axisID == AxisID.SECOND) {
         return fineAlignmentDialogB;
-      }
-      else {
+      } else {
         return fineAlignmentDialogA;
       }
-    }
-    else if (dialogType == DialogType.TOMOGRAM_COMBINATION) {
+    } else if (dialogType == DialogType.TOMOGRAM_COMBINATION) {
       return tomogramCombinationDialog;
-    }
-    else if (dialogType == DialogType.POST_PROCESSING) {
+    } else if (dialogType == DialogType.POST_PROCESSING) {
       return postProcessingDialog;
-    }
-    else if (dialogType == DialogType.CLEAN_UP) {
+    } else if (dialogType == DialogType.CLEAN_UP) {
       return cleanUpDialog;
     }
     return null;
@@ -2711,16 +2652,14 @@ public final class ApplicationManager extends BaseManager implements
     AlignmentEstimationDialog fineAlignmentDialog;
     if (axisID == AxisID.SECOND) {
       fineAlignmentDialog = fineAlignmentDialogB;
-    }
-    else {
+    } else {
       fineAlignmentDialog = fineAlignmentDialogA;
     }
     saveAlignmentEstimationDialog(fineAlignmentDialog, axisID);
     // Clean up the existing dialog
     if (axisID == AxisID.SECOND) {
       fineAlignmentDialogB = null;
-    }
-    else {
+    } else {
       fineAlignmentDialogA = null;
     }
     fineAlignmentDialog = null;
@@ -2736,8 +2675,7 @@ public final class ApplicationManager extends BaseManager implements
     DialogExitState exitState = fineAlignmentDialog.getExitState();
     if (exitState == DialogExitState.CANCEL) {
       mainPanel.showBlankProcess(axisID);
-    }
-    else {
+    } else {
       fineAlignmentDialog.getParameters(getScreenState(axisID));
       // Get the user input data from the dialog box
       updateAlignCom(axisID);
@@ -2745,8 +2683,7 @@ public final class ApplicationManager extends BaseManager implements
         processTrack.setFineAlignmentState(ProcessState.INPROGRESS, axisID);
         mainPanel.setFineAlignmentState(ProcessState.INPROGRESS, axisID);
         mainPanel.showBlankProcess(axisID);
-      }
-      else if (exitState != DialogExitState.SAVE) {
+      } else if (exitState != DialogExitState.SAVE) {
         processTrack.setFineAlignmentState(ProcessState.COMPLETE, axisID);
         mainPanel.setFineAlignmentState(ProcessState.COMPLETE, axisID);
         // Check to see if the user wants to keep any coarse aligned imods
@@ -2766,7 +2703,7 @@ public final class ApplicationManager extends BaseManager implements
   }
 
   public void closeImods(String key, AxisID axisID, String description) {
-    // Check to see if the user wants to keep any imods open.  Don't log message.
+    // Check to see if the user wants to keep any imods open. Don't log message.
     try {
       if (imodManager.isOpen(key, axisID)) {
         if (!EtomoDirector.INSTANCE.getArguments().isAutoClose3dmod()) {
@@ -2775,35 +2712,21 @@ public final class ApplicationManager extends BaseManager implements
           message[1] = "Should they be closed?";
           if (uiHarness.openYesNoDialog(null, message, axisID)) {
             imodManager.quitAll(key, axisID);
-            //Give Windows a chance to release control of the file.
-            try {
-              Thread.sleep(10);
-            }
-            catch (InterruptedException e) {
-            }
+            releaseFile();
           }
-        }
-        else {
+        } else {
           imodManager.quitAll(key, axisID);
-          //Give Windows a chance to release control of the file.
-          try {
-            Thread.sleep(10);
-          }
-          catch (InterruptedException e) {
-          }
+          releaseFile();
         }
       }
-    }
-    catch (AxisTypeException except) {
+    } catch (AxisTypeException except) {
       except.printStackTrace();
       uiHarness.openMessageDialog(this, except.getMessage(),
           "AxisType problem", axisID);
-    }
-    catch (IOException e) {
+    } catch (IOException e) {
       e.printStackTrace();
       uiHarness.openMessageDialog(this, e.getMessage(), "IO Exception", axisID);
-    }
-    catch (SystemProcessException e) {
+    } catch (SystemProcessException e) {
       e.printStackTrace();
       uiHarness.openMessageDialog(this, e.getMessage(),
           "System Process Exception", axisID);
@@ -2823,36 +2746,22 @@ public final class ApplicationManager extends BaseManager implements
           message[1] = "Should it be closed?";
           if (uiHarness.openYesNoDialog(null, message, AxisID.ONLY)) {
             imodManager.quit(key);
-            //Give Windows a chance to release control of the file.
-            try {
-              Thread.sleep(10);
-            }
-            catch (InterruptedException e) {
-            }
+            releaseFile();
           }
-        }
-        else {
+        } else {
           imodManager.quit(key);
-          //Give Windows a chance to release control of the file.
-          try {
-            Thread.sleep(10);
-          }
-          catch (InterruptedException e) {
-          }
+          releaseFile();
         }
       }
-    }
-    catch (AxisTypeException except) {
+    } catch (AxisTypeException except) {
       except.printStackTrace();
       uiHarness.openMessageDialog(this, except.getMessage(),
           "AxisType problem", AxisID.ONLY);
-    }
-    catch (IOException e) {
+    } catch (IOException e) {
       e.printStackTrace();
       uiHarness.openMessageDialog(this, e.getMessage(), "IO Exception",
           AxisID.ONLY);
-    }
-    catch (SystemProcessException e) {
+    } catch (SystemProcessException e) {
       e.printStackTrace();
       uiHarness.openMessageDialog(this, e.getMessage(),
           "System Process Exception", AxisID.ONLY);
@@ -2862,6 +2771,7 @@ public final class ApplicationManager extends BaseManager implements
   /**
    * Allow a 3dmod to be closed even though it has an axis different from the
    * axis of the frame where the message should be popped up.
+   * 
    * @param key
    * @param frameAxisID
    * @param imodAxisID
@@ -2878,36 +2788,22 @@ public final class ApplicationManager extends BaseManager implements
           message[1] = "Should it be closed?";
           if (uiHarness.openYesNoDialog(null, message, frameAxisID)) {
             imodManager.quit(key, imodAxisID);
-            //Give Windows a chance to release control of the file.
-            try {
-              Thread.sleep(10);
-            }
-            catch (InterruptedException e) {
-            }
+            releaseFile();
           }
-        }
-        else {
+        } else {
           imodManager.quit(key, imodAxisID);
-          //Give Windows a chance to release control of the file.
-          try {
-            Thread.sleep(10);
-          }
-          catch (InterruptedException e) {
-          }
+          releaseFile();
         }
       }
-    }
-    catch (AxisTypeException except) {
+    } catch (AxisTypeException except) {
       except.printStackTrace();
       uiHarness.openMessageDialog(this, except.getMessage(),
           "AxisType problem", frameAxisID);
-    }
-    catch (IOException e) {
+    } catch (IOException e) {
       e.printStackTrace();
       uiHarness.openMessageDialog(this, e.getMessage(), "IO Exception",
           frameAxisID);
-    }
-    catch (SystemProcessException e) {
+    } catch (SystemProcessException e) {
       e.printStackTrace();
       uiHarness.openMessageDialog(this, e.getMessage(),
           "System Process Exception", frameAxisID);
@@ -2920,7 +2816,8 @@ public final class ApplicationManager extends BaseManager implements
    * need to be called because the necessary copies are called at the end of the
    * align script.
    * 
-   * @param the AxisID identifying the axis to align.
+   * @param the
+   *          AxisID identifying the axis to align.
    */
   public void fineAlignment(AxisID axisID,
       ProcessResultDisplay processResultDisplay,
@@ -2943,8 +2840,7 @@ public final class ApplicationManager extends BaseManager implements
     try {
       threadName = processMgr.fineAlignment(tiltalignParam, axisID,
           processResultDisplay, processSeries);
-    }
-    catch (SystemProcessException e) {
+    } catch (SystemProcessException e) {
       e.printStackTrace();
       String[] message = new String[2];
       message[0] = "Can not execute align" + axisID.getExtension() + ".com";
@@ -2975,25 +2871,21 @@ public final class ApplicationManager extends BaseManager implements
       if (tiltFile.exists()) {
         imodManager.setTiltFile(ImodManager.COARSE_ALIGNED_KEY, axisID,
             tiltFile.getName());
-      }
-      else {
+      } else {
         imodManager.resetTiltFile(ImodManager.COARSE_ALIGNED_KEY, axisID);
       }
       imodManager.open(ImodManager.COARSE_ALIGNED_KEY, axisID, fiducialModel,
           menuOptions);
-    }
-    catch (AxisTypeException except) {
+    } catch (AxisTypeException except) {
       except.printStackTrace();
       uiHarness.openMessageDialog(this, except.getMessage(),
           "AxisType problem", axisID);
-    }
-    catch (SystemProcessException except) {
+    } catch (SystemProcessException except) {
       except.printStackTrace();
       uiHarness.openMessageDialog(this, except.getMessage(),
           "Can't open 3dmod on coarse aligned stack with model: "
               + fiducialModel, axisID);
-    }
-    catch (IOException e) {
+    } catch (IOException e) {
       e.printStackTrace();
       uiHarness.openMessageDialog(this, e.getMessage(), "IO Exception", axisID);
     }
@@ -3006,55 +2898,47 @@ public final class ApplicationManager extends BaseManager implements
     try {
       imodManager.open(modelFileType.getImodManagerKey(), axisID, modelFileType
           .getFileName(this, axisID));
-    }
-    catch (AxisTypeException except) {
+    } catch (AxisTypeException except) {
       except.printStackTrace();
       uiHarness.openMessageDialog(this, except.getMessage(),
           "AxisType problem", axisID);
-    }
-    catch (SystemProcessException except) {
+    } catch (SystemProcessException except) {
       except.printStackTrace();
       uiHarness.openMessageDialog(this, except.getMessage(),
           "Can't open 3dmod on " + modelFileType.getFileName(this, axisID),
           axisID);
-    }
-    catch (IOException e) {
+    } catch (IOException e) {
       e.printStackTrace();
       uiHarness.openMessageDialog(this, e.getMessage(), "IO Exception", axisID);
     }
   }
 
   public void imodFineAlign3dFind(AxisID axisID, Run3dmodMenuOptions menuOptions) {
-    //Get the correct ImodManager key.  The file to bring up is whatever file
-    //was last used as input for tilt_3dfind.
+    // Get the correct ImodManager key. The file to bring up is whatever file
+    // was last used as input for tilt_3dfind.
     String key;
     if (state.isStackUsingNewstOrBlend3dFindOutput(axisID)) {
       key = FileType.NEWST_OR_BLEND_3D_FIND_OUTPUT.getImodManagerKey();
-    }
-    else {
+    } else {
       key = FileType.ALIGNED_STACK.getImodManagerKey();
     }
     try {
       File tiltFile = DatasetFiles.getTiltFile(this, axisID);
       if (tiltFile.exists()) {
         imodManager.setTiltFile(key, axisID, tiltFile.getName());
-      }
-      else {
+      } else {
         imodManager.resetTiltFile(key, axisID);
       }
       imodManager.open(key, axisID, menuOptions);
-    }
-    catch (AxisTypeException except) {
+    } catch (AxisTypeException except) {
       except.printStackTrace();
       uiHarness.openMessageDialog(this, except.getMessage(),
           "AxisType problem", axisID);
-    }
-    catch (SystemProcessException except) {
+    } catch (SystemProcessException except) {
       except.printStackTrace();
       uiHarness.openMessageDialog(this, except.getMessage(),
           "Can't open 3dmod on " + key, axisID);
-    }
-    catch (IOException e) {
+    } catch (IOException e) {
       e.printStackTrace();
       uiHarness.openMessageDialog(this, e.getMessage(), "IO Exception", axisID);
     }
@@ -3064,7 +2948,8 @@ public final class ApplicationManager extends BaseManager implements
    * Open 3dmod to view the fine aligned stack or the fine aligned stack for
    * findbeads3d.
    * 
-   * @param axisID the AxisID to coarse align.
+   * @param axisID
+   *          the AxisID to coarse align.
    */
   public void imodFineAlign(AxisID axisID, Run3dmodMenuOptions menuOptions) {
     try {
@@ -3072,23 +2957,19 @@ public final class ApplicationManager extends BaseManager implements
       if (tiltFile.exists()) {
         imodManager.setTiltFile(ImodManager.FINE_ALIGNED_KEY, axisID, tiltFile
             .getName());
-      }
-      else {
+      } else {
         imodManager.resetTiltFile(ImodManager.FINE_ALIGNED_KEY, axisID);
       }
       imodManager.open(ImodManager.FINE_ALIGNED_KEY, axisID, menuOptions);
-    }
-    catch (AxisTypeException except) {
+    } catch (AxisTypeException except) {
       except.printStackTrace();
       uiHarness.openMessageDialog(this, except.getMessage(),
           "AxisType problem", axisID);
-    }
-    catch (SystemProcessException except) {
+    } catch (SystemProcessException except) {
       except.printStackTrace();
       uiHarness.openMessageDialog(this, except.getMessage(),
           "Can't open 3dmod on " + ImodManager.FINE_ALIGNED_KEY, axisID);
-    }
-    catch (IOException e) {
+    } catch (IOException e) {
       e.printStackTrace();
       uiHarness.openMessageDialog(this, e.getMessage(), "IO Exception", axisID);
     }
@@ -3097,7 +2978,8 @@ public final class ApplicationManager extends BaseManager implements
   /**
    * Open 3dmod to view the MTF filter results
    * 
-   * @param axisID the AxisID to coarse align.
+   * @param axisID
+   *          the AxisID to coarse align.
    */
   public void imodMTFFilter(AxisID axisID, Run3dmodMenuOptions menuOptions) {
     try {
@@ -3105,23 +2987,19 @@ public final class ApplicationManager extends BaseManager implements
       if (tiltFile.exists()) {
         imodManager.setTiltFile(ImodManager.MTF_FILTER_KEY, axisID, tiltFile
             .getName());
-      }
-      else {
+      } else {
         imodManager.resetTiltFile(ImodManager.MTF_FILTER_KEY, axisID);
       }
       imodManager.open(ImodManager.MTF_FILTER_KEY, axisID, menuOptions);
-    }
-    catch (AxisTypeException except) {
+    } catch (AxisTypeException except) {
       except.printStackTrace();
       uiHarness.openMessageDialog(this, except.getMessage(),
           "AxisType problem", axisID);
-    }
-    catch (SystemProcessException except) {
+    } catch (SystemProcessException except) {
       except.printStackTrace();
       uiHarness.openMessageDialog(this, except.getMessage(),
           "Can't open 3dmod on MTF filter results", axisID);
-    }
-    catch (IOException e) {
+    } catch (IOException e) {
       e.printStackTrace();
       uiHarness.openMessageDialog(this, e.getMessage(), "IO Exception", axisID);
     }
@@ -3133,24 +3011,20 @@ public final class ApplicationManager extends BaseManager implements
       if (tiltFile.exists()) {
         imodManager.setTiltFile(ImodManager.CTF_CORRECTION_KEY, axisID,
             tiltFile.getName());
-      }
-      else {
+      } else {
         imodManager.resetTiltFile(ImodManager.CTF_CORRECTION_KEY, axisID);
       }
       imodManager.open(ImodManager.CTF_CORRECTION_KEY, axisID, menuOptions);
-    }
-    catch (AxisTypeException except) {
+    } catch (AxisTypeException except) {
       except.printStackTrace();
       uiHarness.openMessageDialog(this, except.getMessage(),
           "AxisType problem", axisID);
-    }
-    catch (SystemProcessException except) {
+    } catch (SystemProcessException except) {
       except.printStackTrace();
       uiHarness.openMessageDialog(this, except.getMessage(),
           "Can't open 3dmod on " + ProcessName.CTF_CORRECTION.toString()
               + " results", axisID);
-    }
-    catch (IOException e) {
+    } catch (IOException e) {
       e.printStackTrace();
       uiHarness.openMessageDialog(this, e.getMessage(), "IO Exception", axisID);
     }
@@ -3165,8 +3039,7 @@ public final class ApplicationManager extends BaseManager implements
       FiducialModelDialog fiducialModelDialog;
       if (axisID == AxisID.SECOND) {
         fiducialModelDialog = fiducialModelDialogB;
-      }
-      else {
+      } else {
         fiducialModelDialog = fiducialModelDialogA;
       }
       if (fiducialModelDialog == null) {
@@ -3194,8 +3067,7 @@ public final class ApplicationManager extends BaseManager implements
     FiducialModelDialog fiducialModelDialog;
     if (destAxisID == AxisID.SECOND) {
       fiducialModelDialog = fiducialModelDialogB;
-    }
-    else {
+    } else {
       fiducialModelDialog = fiducialModelDialogA;
     }
     if (destAxisID != AxisID.ONLY
@@ -3217,8 +3089,7 @@ public final class ApplicationManager extends BaseManager implements
     transferfidParam.setDatasetName(datasetName);
     if (destAxisID == AxisID.FIRST) {
       transferfidParam.setBToA(true);
-    }
-    else {
+    } else {
       transferfidParam.setBToA(false);
     }
     // Get any user specified changes
@@ -3228,8 +3099,7 @@ public final class ApplicationManager extends BaseManager implements
     try {
       threadName = processMgr.transferFiducials(transferfidParam,
           processResultDisplay, processSeries);
-    }
-    catch (SystemProcessException e) {
+    } catch (SystemProcessException e) {
       e.printStackTrace();
       String[] message = new String[2];
       message[0] = "Can not execute transferfid command";
@@ -3276,8 +3146,7 @@ public final class ApplicationManager extends BaseManager implements
       if (fineAlignmentDialog.getExitState() != DialogExitState.SAVE) {
         mainPanel.setFineAlignmentState(ProcessState.INPROGRESS, axisID);
       }
-    }
-    catch (FortranInputSyntaxException except) {
+    } catch (FortranInputSyntaxException except) {
       String[] errorMessage = new String[3];
       errorMessage[0] = "Tiltalign Parameter Syntax Error";
       errorMessage[1] = except.getNewString();
@@ -3285,8 +3154,7 @@ public final class ApplicationManager extends BaseManager implements
       uiHarness.openMessageDialog(this, errorMessage,
           "Tiltalign Parameter Syntax Error", axisID);
       return null;
-    }
-    catch (NumberFormatException except) {
+    } catch (NumberFormatException except) {
       String[] errorMessage = new String[2];
       errorMessage[0] = "Tiltalign Parameter Syntax Error";
       errorMessage[1] = except.getMessage();
@@ -3311,8 +3179,7 @@ public final class ApplicationManager extends BaseManager implements
             mainPanel, processTrack, axisID);
       }
       return tomogramPositioningExpertA;
-    }
-    else if (dialogType == DialogType.FINAL_ALIGNED_STACK) {
+    } else if (dialogType == DialogType.FINAL_ALIGNED_STACK) {
       if (axisID == AxisID.SECOND) {
         if (finalAlignedStackExpertB == null) {
           finalAlignedStackExpertB = new FinalAlignedStackExpert(this,
@@ -3325,8 +3192,7 @@ public final class ApplicationManager extends BaseManager implements
             processTrack, axisID);
       }
       return finalAlignedStackExpertA;
-    }
-    else if (dialogType == DialogType.TOMOGRAM_GENERATION) {
+    } else if (dialogType == DialogType.TOMOGRAM_GENERATION) {
       if (axisID == AxisID.SECOND) {
         if (tomogramGenerationExpertB == null) {
           tomogramGenerationExpertB = new TomogramGenerationExpert(this,
@@ -3360,12 +3226,10 @@ public final class ApplicationManager extends BaseManager implements
     // selected
     if (metaData.isFiducialessAlignment(axisID)) {
       generateFiducialessTransforms(axisID);
-    }
-    else {
+    } else {
       try {
         processMgr.setupFiducialAlign(axisID);
-      }
-      catch (IOException except) {
+      } catch (IOException except) {
         except.printStackTrace();
         String[] message = new String[2];
         message[0] = "Problem copying fiducial alignment files";
@@ -3379,8 +3243,7 @@ public final class ApplicationManager extends BaseManager implements
     try {
       threadName = processMgr.createSample(axisID, processResultDisplay,
           processSeries, tiltParam);
-    }
-    catch (SystemProcessException e) {
+    } catch (SystemProcessException e) {
       e.printStackTrace();
       String[] message = new String[2];
       message[0] = "Can not execute sample" + axisID.getExtension() + ".com";
@@ -3407,12 +3270,10 @@ public final class ApplicationManager extends BaseManager implements
     // selected
     if (metaData.isFiducialessAlignment(axisID)) {
       generateFiducialessTransforms(axisID);
-    }
-    else {
+    } else {
       try {
         processMgr.setupFiducialAlign(axisID);
-      }
-      catch (IOException except) {
+      } catch (IOException except) {
         except.printStackTrace();
         String[] message = new String[2];
         message[0] = "Problem copying fiducial alignment files";
@@ -3425,8 +3286,7 @@ public final class ApplicationManager extends BaseManager implements
     try {
       threadName = processMgr.newst(param, axisID, processResultDisplay,
           processSeries, ProcessName.NEWST);
-    }
-    catch (SystemProcessException e) {
+    } catch (SystemProcessException e) {
       e.printStackTrace();
       String[] message = new String[2];
       message[0] = "Can not execute newst" + axisID.getExtension() + ".com";
@@ -3451,12 +3311,10 @@ public final class ApplicationManager extends BaseManager implements
     // selected
     if (metaData.isFiducialessAlignment(axisID)) {
       generateFiducialessTransforms(axisID);
-    }
-    else {
+    } else {
       try {
         processMgr.setupFiducialAlign(axisID);
-      }
-      catch (IOException except) {
+      } catch (IOException except) {
         except.printStackTrace();
         String[] message = new String[2];
         message[0] = "Problem copying fiducial alignment files";
@@ -3469,8 +3327,7 @@ public final class ApplicationManager extends BaseManager implements
     try {
       threadName = processMgr.blend(param, axisID, processResultDisplay,
           processSeries);
-    }
-    catch (SystemProcessException e) {
+    } catch (SystemProcessException e) {
       e.printStackTrace();
       String[] message = new String[2];
       message[0] = "Can not execute newst" + axisID.getExtension() + ".com";
@@ -3497,18 +3354,15 @@ public final class ApplicationManager extends BaseManager implements
       imodManager.open(ImodManager.SAMPLE_KEY, axisID, menuOptions);
       processTrack.setTomogramPositioningState(ProcessState.INPROGRESS, axisID);
       mainPanel.setTomogramPositioningState(ProcessState.INPROGRESS, axisID);
-    }
-    catch (AxisTypeException except) {
+    } catch (AxisTypeException except) {
       except.printStackTrace();
       uiHarness.openMessageDialog(this, except.getMessage(),
           "AxisType problem", axisID);
-    }
-    catch (SystemProcessException except) {
+    } catch (SystemProcessException except) {
       except.printStackTrace();
       uiHarness.openMessageDialog(this, except.getMessage(),
           "Problem opening sample reconstruction", axisID);
-    }
-    catch (IOException e) {
+    } catch (IOException e) {
       e.printStackTrace();
       uiHarness.openMessageDialog(this, e.getMessage(), "IO Exception", axisID);
     }
@@ -3528,18 +3382,15 @@ public final class ApplicationManager extends BaseManager implements
           true, menuOptions);
       processTrack.setTomogramPositioningState(ProcessState.INPROGRESS, axisID);
       mainPanel.setTomogramPositioningState(ProcessState.INPROGRESS, axisID);
-    }
-    catch (AxisTypeException except) {
+    } catch (AxisTypeException except) {
       except.printStackTrace();
       uiHarness.openMessageDialog(this, except.getMessage(),
           "AxisType problem", axisID);
-    }
-    catch (SystemProcessException except) {
+    } catch (SystemProcessException except) {
       except.printStackTrace();
       uiHarness.openMessageDialog(this, except.getMessage(),
           "Problem opening sample reconstruction", axisID);
-    }
-    catch (IOException e) {
+    } catch (IOException e) {
       e.printStackTrace();
       uiHarness.openMessageDialog(this, e.getMessage(), "IO Exception", axisID);
     }
@@ -3556,8 +3407,7 @@ public final class ApplicationManager extends BaseManager implements
     try {
       threadName = processMgr.tomopitch(axisID, processResultDisplay,
           processSeries);
-    }
-    catch (SystemProcessException e) {
+    } catch (SystemProcessException e) {
       e.printStackTrace();
       String[] message = new String[2];
       message[0] = "Can not execute tomopitch" + axisID.getExtension() + ".com";
@@ -3574,6 +3424,7 @@ public final class ApplicationManager extends BaseManager implements
 
   /**
    * post processing after a successful process
+   * 
    * @param axisID
    * @param processName
    * @param processDetails
@@ -3585,23 +3436,19 @@ public final class ApplicationManager extends BaseManager implements
             .getComputeAlignment()) {
       try {
         imodManager.reopenLog(ImodManager.COARSE_ALIGNED_KEY, axisID);
-      }
-      catch (AxisTypeException e) {
+      } catch (AxisTypeException e) {
+        uiHarness.openMessageDialog(this, "Unable to reopen log file.\n"
+            + e.getMessage(), "3dmod Error");
+      } catch (IOException e) {
+        uiHarness.openMessageDialog(this, "Unable to reopen log file.\n"
+            + e.getMessage(), "3dmod Error");
+      } catch (SystemProcessException e) {
         uiHarness.openMessageDialog(this, "Unable to reopen log file.\n"
             + e.getMessage(), "3dmod Error");
       }
-      catch (IOException e) {
-        uiHarness.openMessageDialog(this, "Unable to reopen log file.\n"
-            + e.getMessage(), "3dmod Error");
-      }
-      catch (SystemProcessException e) {
-        uiHarness.openMessageDialog(this, "Unable to reopen log file.\n"
-            + e.getMessage(), "3dmod Error");
-      }
-    }
-    else if (processName == ProcessName.PATCHCORR) {
+    } else if (processName == ProcessName.PATCHCORR) {
       if (tomogramCombinationDialog != null) {
-        //backwards compatibility - patchcorr used to create patch_vector.mod
+        // backwards compatibility - patchcorr used to create patch_vector.mod
         tomogramCombinationDialog.updatePatchVectorModelDisplay();
       }
     }
@@ -3615,6 +3462,7 @@ public final class ApplicationManager extends BaseManager implements
 
   /**
    * processing done after an unsuccessful process
+   * 
    * @param axisID
    * @param processName
    * @param processDetails
@@ -3660,8 +3508,7 @@ public final class ApplicationManager extends BaseManager implements
       threadName = processMgr.fineAlignment(tiltalignParam, axisID,
           processResultDisplay, processSeries);
       metaData.setFiducialessAlignment(axisID, false);
-    }
-    catch (SystemProcessException e) {
+    } catch (SystemProcessException e) {
       e.printStackTrace();
       String[] message = new String[2];
       message[0] = "Can not execute align" + axisID.getExtension() + ".com";
@@ -3679,21 +3526,20 @@ public final class ApplicationManager extends BaseManager implements
   /**
    * Generate the prexg and _nonfid.xf for the specified axis and setup the
    * transform files for fiducialless mode
+   * 
    * @param axisID
    */
   private void generateFiducialessTransforms(AxisID axisID) {
     try {
       processMgr.generatePreXG(axisID);
-    }
-    catch (SystemProcessException except) {
+    } catch (SystemProcessException except) {
       except.printStackTrace();
       String[] message = new String[2];
       message[0] = "Unable to generate prexg";
       message[1] = except.getMessage();
       uiHarness.openMessageDialog(this, message, "Unable to generate prexg",
           axisID);
-    }
-    catch (LogFile.LockException except) {
+    } catch (LogFile.LockException except) {
       except.printStackTrace();
       String[] message = new String[2];
       message[0] = "Unable to generate prexg";
@@ -3703,16 +3549,14 @@ public final class ApplicationManager extends BaseManager implements
     }
     try {
       processMgr.generateNonFidXF(axisID);
-    }
-    catch (SystemProcessException except) {
+    } catch (SystemProcessException except) {
       except.printStackTrace();
       String[] message = new String[2];
       message[0] = "Unable to generate _nonfid.xf";
       message[1] = except.getMessage();
       uiHarness.openMessageDialog(this, message,
           "Unable to generate _nonfid.xf", axisID);
-    }
-    catch (LogFile.LockException except) {
+    } catch (LogFile.LockException except) {
       except.printStackTrace();
       String[] message = new String[2];
       message[0] = "Unable to generate _nonfid.xf";
@@ -3722,16 +3566,14 @@ public final class ApplicationManager extends BaseManager implements
     }
     try {
       processMgr.setupNonFiducialAlign(axisID);
-    }
-    catch (IOException except) {
+    } catch (IOException except) {
       except.printStackTrace();
       String[] message = new String[2];
       message[0] = "Unable to setup fiducialless align files";
       message[1] = except.getMessage();
       uiHarness.openMessageDialog(this, message,
           "Unable to setup fiducialless align files", axisID);
-    }
-    catch (InvalidParameterException except) {
+    } catch (InvalidParameterException except) {
       String[] message = new String[2];
       message[0] = "Unable to setup fiducialless align files";
       message[1] = except.getMessage();
@@ -3756,8 +3598,7 @@ public final class ApplicationManager extends BaseManager implements
       TiltAngleSpec tiltAngleSpec = null;
       if (axisID == AxisID.SECOND) {
         tiltAngleSpec = metaData.getTiltAngleSpecB();
-      }
-      else {
+      } else {
         tiltAngleSpec = metaData.getTiltAngleSpecA();
       }
       double startingAngle = tiltAngleSpec.getRangeMin();
@@ -3775,16 +3616,14 @@ public final class ApplicationManager extends BaseManager implements
             + (step * curSection)));
         bufferedWriter.newLine();
       }
-    }
-    catch (IOException except) {
+    } catch (IOException except) {
       String[] message = new String[2];
       message[0] = "Unable to create " + rawtlt.getAbsolutePath();
       message[1] = except.getMessage();
       uiHarness.openMessageDialog(this, message,
           "Unable to create raw tilt file", axisID);
       throw except;
-    }
-    catch (InvalidParameterException except) {
+    } catch (InvalidParameterException except) {
       except.printStackTrace();
       String[] message = new String[2];
       message[0] = "Unable to create " + rawtlt.getAbsolutePath();
@@ -3808,7 +3647,7 @@ public final class ApplicationManager extends BaseManager implements
   }
 
   /**
-   * Update the newst.com from the display.  Reads metaData.
+   * Update the newst.com from the display. Reads metaData.
    * 
    * @param axisID
    * @return true if successful
@@ -3831,8 +3670,7 @@ public final class ApplicationManager extends BaseManager implements
           .isFiducialessAlignment(axisID));
       display.getParameters(newstParam);
       comScriptMgr.saveNewst(newstParam, axisID);
-    }
-    catch (NumberFormatException except) {
+    } catch (NumberFormatException except) {
       String[] errorMessage = new String[3];
       errorMessage[0] = "newst Parameter Syntax Error";
       errorMessage[1] = "Axis: " + axisID.getExtension();
@@ -3840,8 +3678,7 @@ public final class ApplicationManager extends BaseManager implements
       UIHarness.INSTANCE.openMessageDialog(this, errorMessage,
           "Newst Parameter Syntax Error", axisID);
       return null;
-    }
-    catch (FortranInputSyntaxException except) {
+    } catch (FortranInputSyntaxException except) {
       String[] errorMessage = new String[3];
       errorMessage[0] = "newst Parameter Syntax Error";
       errorMessage[1] = "Axis: " + axisID.getExtension();
@@ -3849,14 +3686,12 @@ public final class ApplicationManager extends BaseManager implements
       UIHarness.INSTANCE.openMessageDialog(this, errorMessage,
           "Newst Parameter Syntax Error", axisID);
       return null;
-    }
-    catch (InvalidParameterException e) {
+    } catch (InvalidParameterException e) {
       e.printStackTrace();
       uiHarness.openMessageDialog(this, "Unable to update newst com:  "
           + e.getMessage(), "Etomo Error", axisID);
       return null;
-    }
-    catch (IOException e) {
+    } catch (IOException e) {
       e.printStackTrace();
       uiHarness.openMessageDialog(this, "Unable to update newst com:  "
           + e.getMessage(), "Etomo Error", axisID);
@@ -3866,7 +3701,7 @@ public final class ApplicationManager extends BaseManager implements
   }
 
   /**
-   * Update the newst3dfind.com from the display.  Reads metaData.
+   * Update the newst3dfind.com from the display. Reads metaData.
    * 
    * @param axisID
    * @return true if successful
@@ -3885,8 +3720,7 @@ public final class ApplicationManager extends BaseManager implements
       newstParam = comScriptMgr.getNewstParamFromNewst3dFind(axisID);
       display.getParameters(newstParam);
       comScriptMgr.saveNewst3dFind(newstParam, axisID);
-    }
-    catch (NumberFormatException except) {
+    } catch (NumberFormatException except) {
       String[] errorMessage = new String[3];
       errorMessage[0] = "newst Parameter Syntax Error";
       errorMessage[1] = "Axis: " + axisID.getExtension();
@@ -3894,8 +3728,7 @@ public final class ApplicationManager extends BaseManager implements
       UIHarness.INSTANCE.openMessageDialog(this, errorMessage,
           "Newst Parameter Syntax Error", axisID);
       return null;
-    }
-    catch (FortranInputSyntaxException except) {
+    } catch (FortranInputSyntaxException except) {
       String[] errorMessage = new String[3];
       errorMessage[0] = "newst Parameter Syntax Error";
       errorMessage[1] = "Axis: " + axisID.getExtension();
@@ -3903,20 +3736,18 @@ public final class ApplicationManager extends BaseManager implements
       UIHarness.INSTANCE.openMessageDialog(this, errorMessage,
           "Newst Parameter Syntax Error", axisID);
       return null;
-    }
-    catch (InvalidParameterException e) {
+    } catch (InvalidParameterException e) {
+      e.printStackTrace();
+      uiHarness.openMessageDialog(this, "Unable to update newst 3dfind com:  "
+          + e.getMessage(), "Etomo Error", axisID);
+      return null;
+    } catch (IOException e) {
       e.printStackTrace();
       uiHarness.openMessageDialog(this, "Unable to update newst 3dfind com:  "
           + e.getMessage(), "Etomo Error", axisID);
       return null;
     }
-    catch (IOException e) {
-      e.printStackTrace();
-      uiHarness.openMessageDialog(this, "Unable to update newst 3dfind com:  "
-          + e.getMessage(), "Etomo Error", axisID);
-      return null;
-    }
-    //Update mrctaper
+    // Update mrctaper
     MrcTaperParam mrcTaperParam = comScriptMgr
         .getMrcTaperParamFromNewst3dFind(axisID);
     mrcTaperParam.setInputFile(FileType.NEWST_OR_BLEND_3D_FIND_OUTPUT
@@ -3927,6 +3758,7 @@ public final class ApplicationManager extends BaseManager implements
 
   /**
    * Get the set the blendmont parameters and update the blend.com script.
+   * 
    * @param axisID
    * @return
    */
@@ -3944,13 +3776,14 @@ public final class ApplicationManager extends BaseManager implements
 
   /**
    * Get the set the blendmont parameters and update the blend3dfin.com script.
+   * 
    * @param axisID
    * @return
    */
   public BlendmontParam updateBlend3dFindCom(BlendmontDisplay display,
       AxisID axisID) throws FortranInputSyntaxException,
       InvalidParameterException, IOException {
-    //Update blendmont
+    // Update blendmont
     BlendmontParam blendParam = comScriptMgr
         .getBlendParamFromBlend3dFind(axisID);
     display.getParameters(blendParam);
@@ -3958,7 +3791,7 @@ public final class ApplicationManager extends BaseManager implements
     blendParam.setBlendmontState();
     blendParam.setImageOutputFile(FileType.NEWST_OR_BLEND_3D_FIND_OUTPUT);
     comScriptMgr.saveBlend3dFind(blendParam, axisID);
-    //Update mrctaper
+    // Update mrctaper
     MrcTaperParam mrcTaperParam = comScriptMgr
         .getMrcTaperParamFromBlend3dFind(axisID);
     mrcTaperParam.setInputFile(FileType.NEWST_OR_BLEND_3D_FIND_OUTPUT
@@ -3969,6 +3802,7 @@ public final class ApplicationManager extends BaseManager implements
 
   /**
    * Run blend_3dfind.com
+   * 
    * @param processResultDisplay
    * @param processSeries
    * @param deferred3dmodButton
@@ -3996,16 +3830,13 @@ public final class ApplicationManager extends BaseManager implements
     BlendmontParam param = null;
     try {
       param = updateBlend3dFindCom(blendmontDisplay, axisID);
-    }
-    catch (FortranInputSyntaxException e) {
+    } catch (FortranInputSyntaxException e) {
       UIHarness.INSTANCE.openMessageDialog(this, e.getMessage(),
           "Update Com Error");
-    }
-    catch (InvalidParameterException e) {
+    } catch (InvalidParameterException e) {
       UIHarness.INSTANCE.openMessageDialog(this, e.getMessage(),
           "Update Com Error");
-    }
-    catch (IOException e) {
+    } catch (IOException e) {
       UIHarness.INSTANCE.openMessageDialog(this, e.getMessage(),
           "Update Com Error");
     }
@@ -4016,12 +3847,10 @@ public final class ApplicationManager extends BaseManager implements
     // selected
     if (metaData.isFiducialessAlignment(axisID)) {
       generateFiducialessTransforms(axisID);
-    }
-    else {
+    } else {
       try {
         processMgr.setupFiducialAlign(axisID);
-      }
-      catch (IOException except) {
+      } catch (IOException except) {
         except.printStackTrace();
         String[] message = new String[2];
         message[0] = "Problem copying fiducial alignment files";
@@ -4034,8 +3863,7 @@ public final class ApplicationManager extends BaseManager implements
     try {
       threadName = processMgr.blend(param, axisID, processResultDisplay,
           processSeries);
-    }
-    catch (SystemProcessException e) {
+    } catch (SystemProcessException e) {
       e.printStackTrace();
       String[] message = new String[2];
       message[0] = "Can not execute blend_3dfind";
@@ -4049,6 +3877,7 @@ public final class ApplicationManager extends BaseManager implements
 
   /**
    * Run blend.com
+   * 
    * @param processResultDisplay
    * @param processSeries
    * @param deferred3dmodButton
@@ -4076,16 +3905,13 @@ public final class ApplicationManager extends BaseManager implements
     BlendmontParam param = null;
     try {
       param = updateBlendCom(blendmontDisplay, axisID);
-    }
-    catch (FortranInputSyntaxException e) {
+    } catch (FortranInputSyntaxException e) {
       UIHarness.INSTANCE.openMessageDialog(this, e.getMessage(),
           "Update Com Error");
-    }
-    catch (InvalidParameterException e) {
+    } catch (InvalidParameterException e) {
       UIHarness.INSTANCE.openMessageDialog(this, e.getMessage(),
           "Update Com Error");
-    }
-    catch (IOException e) {
+    } catch (IOException e) {
       UIHarness.INSTANCE.openMessageDialog(this, e.getMessage(),
           "Update Com Error");
     }
@@ -4096,12 +3922,10 @@ public final class ApplicationManager extends BaseManager implements
     // selected
     if (metaData.isFiducialessAlignment(axisID)) {
       generateFiducialessTransforms(axisID);
-    }
-    else {
+    } else {
       try {
         processMgr.setupFiducialAlign(axisID);
-      }
-      catch (IOException except) {
+      } catch (IOException except) {
         except.printStackTrace();
         String[] message = new String[2];
         message[0] = "Problem copying fiducial alignment files";
@@ -4114,8 +3938,7 @@ public final class ApplicationManager extends BaseManager implements
     try {
       threadName = processMgr.blend(param, axisID, processResultDisplay,
           processSeries);
-    }
-    catch (SystemProcessException e) {
+    } catch (SystemProcessException e) {
       e.printStackTrace();
       String[] message = new String[2];
       message[0] = "Can not execute blend";
@@ -4140,6 +3963,7 @@ public final class ApplicationManager extends BaseManager implements
 
   /**
    * Run newst.com.
+   * 
    * @param processResultDisplay
    * @param processSeries
    * @param deferred3dmodButton
@@ -4177,12 +4001,10 @@ public final class ApplicationManager extends BaseManager implements
     // selected
     if (metaData.isFiducialessAlignment(axisID)) {
       generateFiducialessTransforms(axisID);
-    }
-    else {
+    } else {
       try {
         processMgr.setupFiducialAlign(axisID);
-      }
-      catch (IOException except) {
+      } catch (IOException except) {
         except.printStackTrace();
         String[] message = new String[2];
         message[0] = "Problem copying fiducial alignment files";
@@ -4195,8 +4017,7 @@ public final class ApplicationManager extends BaseManager implements
     try {
       threadName = processMgr.newst(param, axisID, processResultDisplay,
           processSeries, processName);
-    }
-    catch (SystemProcessException e) {
+    } catch (SystemProcessException e) {
       e.printStackTrace();
       String[] message = new String[2];
       message[0] = "Can not execute newst" + axisID.getExtension() + ".com";
@@ -4210,6 +4031,7 @@ public final class ApplicationManager extends BaseManager implements
 
   /**
    * Run newst_3dfind.com.
+   * 
    * @param processResultDisplay
    * @param processSeries
    * @param deferred3dmodButton
@@ -4247,12 +4069,10 @@ public final class ApplicationManager extends BaseManager implements
     // selected
     if (metaData.isFiducialessAlignment(axisID)) {
       generateFiducialessTransforms(axisID);
-    }
-    else {
+    } else {
       try {
         processMgr.setupFiducialAlign(axisID);
-      }
-      catch (IOException except) {
+      } catch (IOException except) {
         except.printStackTrace();
         String[] message = new String[2];
         message[0] = "Problem copying fiducial alignment files";
@@ -4265,8 +4085,7 @@ public final class ApplicationManager extends BaseManager implements
     try {
       threadName = processMgr.newst(param, axisID, processResultDisplay,
           processSeries, ProcessName.NEWST_3D_FIND);
-    }
-    catch (SystemProcessException e) {
+    } catch (SystemProcessException e) {
       e.printStackTrace();
       String[] message = new String[2];
       message[0] = "Can not execute newst" + axisID.getExtension() + ".com";
@@ -4280,6 +4099,7 @@ public final class ApplicationManager extends BaseManager implements
 
   /**
    * Run newst_3dfind.com.
+   * 
    * @param processResultDisplay
    * @param processSeries
    * @param deferred3dmodButton
@@ -4317,8 +4137,7 @@ public final class ApplicationManager extends BaseManager implements
     try {
       threadName = processMgr.findBeads3d(param, axisID, processResultDisplay,
           processSeries);
-    }
-    catch (SystemProcessException e) {
+    } catch (SystemProcessException e) {
       e.printStackTrace();
       String[] message = new String[2];
       message[0] = "Can not execute newst" + axisID.getExtension() + ".com";
@@ -4337,10 +4156,9 @@ public final class ApplicationManager extends BaseManager implements
     FindBeads3dParam param = comScriptMgr.getFindBeads3dParam(axisID);
     if (!state.isTrackLightBeadsNull(axisID)) {
       param.setLightBeads(state.isTrackLightBeads(axisID));
-    }
-    else {
-      //backwards compatibility
-      //Get light beads from track.com.
+    } else {
+      // backwards compatibility
+      // Get light beads from track.com.
       BeadtrackParam beadtrackParam = comScriptMgr.getBeadtrackParam(axisID);
     }
     display.getParameters(param);
@@ -4370,8 +4188,7 @@ public final class ApplicationManager extends BaseManager implements
     try {
       threadName = processMgr.mtffilter(param, axisID, processResultDisplay,
           processSeries);
-    }
-    catch (SystemProcessException e) {
+    } catch (SystemProcessException e) {
       e.printStackTrace();
       String[] message = new String[2];
       message[0] = "Can not execute mtffilter" + axisID.getExtension() + ".com";
@@ -4388,8 +4205,7 @@ public final class ApplicationManager extends BaseManager implements
       ProcessResultDisplay processResultDisplay) {
     try {
       processMgr.ctfPlotter(axisID, processResultDisplay);
-    }
-    catch (SystemProcessException e) {
+    } catch (SystemProcessException e) {
       e.printStackTrace();
       String[] message = new String[2];
       message[0] = "Can not execute "
@@ -4401,7 +4217,7 @@ public final class ApplicationManager extends BaseManager implements
     }
     processTrack.setFinalAlignedStackState(ProcessState.INPROGRESS, axisID);
     mainPanel.setFinalAlignedStackState(ProcessState.INPROGRESS, axisID);
-    //No way to know when this is done, so I'm assuming that it succeeded.
+    // No way to know when this is done, so I'm assuming that it succeeded.
     return null;
   }
 
@@ -4412,8 +4228,7 @@ public final class ApplicationManager extends BaseManager implements
     try {
       threadName = processMgr.ctfCorrection(param, axisID,
           processResultDisplay, processSeries);
-    }
-    catch (SystemProcessException e) {
+    } catch (SystemProcessException e) {
       e.printStackTrace();
       String[] message = new String[2];
       message[0] = "Can not execute "
@@ -4436,8 +4251,7 @@ public final class ApplicationManager extends BaseManager implements
     try {
       threadName = processMgr.tilt(axisID, processResultDisplay, processSeries,
           tiltParam, null);
-    }
-    catch (SystemProcessException e) {
+    } catch (SystemProcessException e) {
       e.printStackTrace();
       String[] message = new String[2];
       message[0] = "Can not execute tilt" + axisID.getExtension() + ".com";
@@ -4478,8 +4292,7 @@ public final class ApplicationManager extends BaseManager implements
     processSeries.setRun3dmodDeferred(deferred3dmodButton, run3dmodMenuOptions);
     if (display.isParallelProcess()) {
       splittilt3dFind(tilt, processSeries, display, axisID, dialogType);
-    }
-    else {
+    } else {
       tilt3dFind(tilt, processSeries, display, axisID, dialogType);
     }
   }
@@ -4497,8 +4310,7 @@ public final class ApplicationManager extends BaseManager implements
     processSeries.setRun3dmodDeferred(deferred3dmodButton, run3dmodMenuOptions);
     if (display.isParallelProcess()) {
       splittilt(tilt, processSeries, display, axisID, dialogType);
-    }
-    else {
+    } else {
       tilt(tilt, processSeries, display, axisID, dialogType);
     }
   }
@@ -4550,8 +4362,7 @@ public final class ApplicationManager extends BaseManager implements
     }
     if (display.isParallelProcess()) {
       splitTrialTilt(trial, processSeries, display, axisID, dialogType);
-    }
-    else {
+    } else {
       trialTilt(trial, processSeries, display, axisID, dialogType);
     }
   }
@@ -4771,8 +4582,7 @@ public final class ApplicationManager extends BaseManager implements
     try {
       threadName = processMgr.tilt3dFindReproject(axisID, processResultDisplay,
           processSeries, param, processTitle, processName);
-    }
-    catch (SystemProcessException e) {
+    } catch (SystemProcessException e) {
       e.printStackTrace();
       String[] message = new String[2];
       message[0] = "Can not execute tilt_3dfind" + axisID.getExtension()
@@ -4789,9 +4599,9 @@ public final class ApplicationManager extends BaseManager implements
   }
 
   /**
-   * Tilt_3dfind process initiator. Since tilt 3dfind can be started from multiple points in
-   * the process chain we need separate the execution from the parameter
-   * collection and state updating
+   * Tilt_3dfind process initiator. Since tilt 3dfind can be started from
+   * multiple points in the process chain we need separate the execution from
+   * the parameter collection and state updating
    * 
    * @param axisID
    */
@@ -4803,8 +4613,7 @@ public final class ApplicationManager extends BaseManager implements
     try {
       threadName = processMgr.tilt3dFind(axisID, processResultDisplay,
           processSeries, param, processTitle, processName);
-    }
-    catch (SystemProcessException e) {
+    } catch (SystemProcessException e) {
       e.printStackTrace();
       String[] message = new String[2];
       message[0] = "Can not execute tilt_3dfind" + axisID.getExtension()
@@ -4834,8 +4643,7 @@ public final class ApplicationManager extends BaseManager implements
     try {
       threadName = processMgr.tilt(axisID, processResultDisplay, processSeries,
           param, processTitle);
-    }
-    catch (SystemProcessException e) {
+    } catch (SystemProcessException e) {
       e.printStackTrace();
       String[] message = new String[2];
       message[0] = "Can not execute tilt" + axisID.getExtension() + ".com";
@@ -4851,6 +4659,7 @@ public final class ApplicationManager extends BaseManager implements
   /**
    * Update the non-dialog dependent parts of the tilt param in
    * tilt_3dfind_reproject.com.
+   * 
    * @param param
    * @param axisID
    */
@@ -4863,9 +4672,10 @@ public final class ApplicationManager extends BaseManager implements
   }
 
   /**
-   * Backup tilt_3dfind_reproject.com.
-   * Copy tilt_3dfind_reproject.com from tilt_3dfind.com.  Modify it so that it
-   * is correct for reprojecting and save it.
+   * Backup tilt_3dfind_reproject.com. Copy tilt_3dfind_reproject.com from
+   * tilt_3dfind.com. Modify it so that it is correct for reprojecting and save
+   * it.
+   * 
    * @param axisID
    */
   public void copyTilt3dFindReprojectCom(AxisID axisID) {
@@ -4880,35 +4690,32 @@ public final class ApplicationManager extends BaseManager implements
       return;
     }
     if (tilt3dFindReprojectCom.exists()) {
-      //Backup tilt_3dfind_reproject.com
+      // Backup tilt_3dfind_reproject.com
       try {
         LogFile logFile = LogFile.getInstance(tilt3dFindReprojectCom);
         logFile.backup();
-      }
-      catch (LogFile.LockException e) {
+      } catch (LogFile.LockException e) {
         e.printStackTrace();
       }
     }
-    //Copy file
+    // Copy file
     try {
       Utilities.copyFile(new File(getPropertyUserDir(),
           ProcessName.TILT_3D_FIND.getComscript(axisID)),
           tilt3dFindReprojectCom);
       comScriptMgr.loadTilt3dFindReproject(axisID);
-    }
-    catch (IOException e) {
+    } catch (IOException e) {
       e.printStackTrace();
       System.err.println("ERROR:  Unable to create "
           + tilt3dFindReprojectCom.getName());
     }
-    //Update the tilt command in the com file.
+    // Update the tilt command in the com file.
     TiltParam tiltParam = null;
     try {
       tiltParam = comScriptMgr.getTiltParamFromTilt3dFindReproject(axisID);
       getParametersForTilt3dFindReproject(tiltParam, axisID);
       comScriptMgr.saveTilt3dFindReproject(tiltParam, axisID);
-    }
-    catch (NumberFormatException except) {
+    } catch (NumberFormatException except) {
       except.printStackTrace();
     }
   }
@@ -4929,8 +4736,7 @@ public final class ApplicationManager extends BaseManager implements
         display.getParameters(tiltParam);
       }
       comScriptMgr.saveTilt3dFindReproject(tiltParam, axisID);
-    }
-    catch (NumberFormatException except) {
+    } catch (NumberFormatException except) {
       except.printStackTrace();
       String[] errorMessage = new String[3];
       errorMessage[0] = "Tilt Parameter Syntax Error";
@@ -4939,8 +4745,7 @@ public final class ApplicationManager extends BaseManager implements
       UIHarness.INSTANCE.openMessageDialog(this, errorMessage,
           "Tilt Parameter Syntax Error", axisID);
       return null;
-    }
-    catch (InvalidParameterException except) {
+    } catch (InvalidParameterException except) {
       except.printStackTrace();
       String[] errorMessage = new String[3];
       errorMessage[0] = "Tilt Parameter Syntax Error";
@@ -4949,8 +4754,7 @@ public final class ApplicationManager extends BaseManager implements
       UIHarness.INSTANCE.openMessageDialog(this, errorMessage,
           "Tilt Parameter Syntax Error", axisID);
       return null;
-    }
-    catch (IOException e) {
+    } catch (IOException e) {
       String[] errorMessage = new String[3];
       errorMessage[0] = "Tilt Parameter";
       errorMessage[1] = "Axis: " + axisID.getExtension();
@@ -4984,8 +4788,7 @@ public final class ApplicationManager extends BaseManager implements
         return null;
       }
       comScriptMgr.saveTilt3dFind(tiltParam, axisID);
-    }
-    catch (NumberFormatException except) {
+    } catch (NumberFormatException except) {
       except.printStackTrace();
       String[] errorMessage = new String[3];
       errorMessage[0] = "Tilt Parameter Syntax Error";
@@ -4994,8 +4797,7 @@ public final class ApplicationManager extends BaseManager implements
       UIHarness.INSTANCE.openMessageDialog(this, errorMessage,
           "Tilt Parameter Syntax Error", axisID);
       return null;
-    }
-    catch (InvalidParameterException except) {
+    } catch (InvalidParameterException except) {
       except.printStackTrace();
       String[] errorMessage = new String[3];
       errorMessage[0] = "Tilt Parameter Syntax Error";
@@ -5004,8 +4806,7 @@ public final class ApplicationManager extends BaseManager implements
       UIHarness.INSTANCE.openMessageDialog(this, errorMessage,
           "Tilt Parameter Syntax Error", axisID);
       return null;
-    }
-    catch (IOException e) {
+    } catch (IOException e) {
       String[] errorMessage = new String[3];
       errorMessage[0] = "Tilt Parameter";
       errorMessage[1] = "Axis: " + axisID.getExtension();
@@ -5043,8 +4844,7 @@ public final class ApplicationManager extends BaseManager implements
       String outputFileName;
       if (metaData.getAxisType() == AxisType.SINGLE_AXIS) {
         outputFileName = metaData.getDatasetName() + "_full.rec";
-      }
-      else {
+      } else {
         outputFileName = metaData.getDatasetName() + axisID.getExtension()
             + ".rec";
       }
@@ -5058,8 +4858,7 @@ public final class ApplicationManager extends BaseManager implements
       UIExpertUtilities.INSTANCE.rollTiltComAngles(this, axisID);
       comScriptMgr.saveTilt(tiltParam, axisID);
       metaData.setFiducialess(axisID, tiltParam.isFiducialess());
-    }
-    catch (NumberFormatException except) {
+    } catch (NumberFormatException except) {
       except.printStackTrace();
       String[] errorMessage = new String[3];
       errorMessage[0] = "Tilt Parameter Syntax Error";
@@ -5068,8 +4867,7 @@ public final class ApplicationManager extends BaseManager implements
       UIHarness.INSTANCE.openMessageDialog(this, errorMessage,
           "Tilt Parameter Syntax Error", axisID);
       return null;
-    }
-    catch (InvalidParameterException except) {
+    } catch (InvalidParameterException except) {
       except.printStackTrace();
       String[] errorMessage = new String[3];
       errorMessage[0] = "Tilt Parameter Syntax Error";
@@ -5078,8 +4876,7 @@ public final class ApplicationManager extends BaseManager implements
       UIHarness.INSTANCE.openMessageDialog(this, errorMessage,
           "Tilt Parameter Syntax Error", axisID);
       return null;
-    }
-    catch (IOException e) {
+    } catch (IOException e) {
       String[] errorMessage = new String[3];
       errorMessage[0] = "Tilt Parameter";
       errorMessage[1] = "Axis: " + axisID.getExtension();
@@ -5092,8 +4889,9 @@ public final class ApplicationManager extends BaseManager implements
   }
 
   /**
-   * Update the tilt.com from the TomogramGenerationDialog
-   * Use the trial tomogram filename specified in the TomogramGenerationDialog
+   * Update the tilt.com from the TomogramGenerationDialog Use the trial
+   * tomogram filename specified in the TomogramGenerationDialog
+   * 
    * @return a ConstTiltParam instance if successful
    */
   public ConstTiltParam updateTrialTiltCom(TrialTiltDisplay display,
@@ -5126,8 +4924,7 @@ public final class ApplicationManager extends BaseManager implements
       UIExpertUtilities.INSTANCE.rollTiltComAngles(this, axisID);
       comScriptMgr.saveTilt(tiltParam, axisID);
       metaData.setFiducialess(axisID, tiltParam.isFiducialess());
-    }
-    catch (NumberFormatException except) {
+    } catch (NumberFormatException except) {
       except.printStackTrace();
       String[] errorMessage = new String[3];
       errorMessage[0] = "Tilt Parameter Syntax Error";
@@ -5136,8 +4933,7 @@ public final class ApplicationManager extends BaseManager implements
       UIHarness.INSTANCE.openMessageDialog(this, errorMessage,
           "Tilt Parameter Syntax Error", axisID);
       return null;
-    }
-    catch (InvalidParameterException except) {
+    } catch (InvalidParameterException except) {
       except.printStackTrace();
       String[] errorMessage = new String[3];
       errorMessage[0] = "Tilt Parameter Syntax Error";
@@ -5146,8 +4942,7 @@ public final class ApplicationManager extends BaseManager implements
       UIHarness.INSTANCE.openMessageDialog(this, errorMessage,
           "Tilt Parameter Syntax Error", axisID);
       return null;
-    }
-    catch (IOException e) {
+    } catch (IOException e) {
       String[] errorMessage = new String[3];
       errorMessage[0] = "Tilt Parameter";
       errorMessage[1] = "Axis: " + axisID.getExtension();
@@ -5176,23 +4971,21 @@ public final class ApplicationManager extends BaseManager implements
   /**
    * Open 3dmod to view the tomogram
    * 
-   * @param axisID the AxisID of the tomogram to open.
+   * @param axisID
+   *          the AxisID of the tomogram to open.
    */
   public void imodFullVolume(AxisID axisID, Run3dmodMenuOptions menuOptions) {
     try {
       imodManager.open(ImodManager.FULL_VOLUME_KEY, axisID, menuOptions);
-    }
-    catch (AxisTypeException except) {
+    } catch (AxisTypeException except) {
       except.printStackTrace();
       uiHarness.openMessageDialog(this, except.getMessage(),
           "AxisType problem", axisID);
-    }
-    catch (SystemProcessException except) {
+    } catch (SystemProcessException except) {
       except.printStackTrace();
       uiHarness.openMessageDialog(this, except.getMessage(),
           "Can't open 3dmod with the tomogram", axisID);
-    }
-    catch (IOException e) {
+    } catch (IOException e) {
       e.printStackTrace();
       uiHarness.openMessageDialog(this, e.getMessage(), "IO Exception", axisID);
     }
@@ -5201,24 +4994,22 @@ public final class ApplicationManager extends BaseManager implements
   /**
    * Open 3dmod to view a file
    * 
-   * @param axisID the AxisID of the file to open.
+   * @param axisID
+   *          the AxisID of the file to open.
    */
   public void imod(FileType fileType, AxisID axisID,
       Run3dmodMenuOptions menuOptions) {
     try {
       imodManager.open(fileType.getImodManagerKey(), axisID, menuOptions);
-    }
-    catch (AxisTypeException except) {
+    } catch (AxisTypeException except) {
       except.printStackTrace();
       uiHarness.openMessageDialog(this, except.getMessage(),
           "AxisType problem", axisID);
-    }
-    catch (SystemProcessException except) {
+    } catch (SystemProcessException except) {
       except.printStackTrace();
       uiHarness.openMessageDialog(this, except.getMessage(),
           "Can't open 3dmod", axisID);
-    }
-    catch (IOException e) {
+    } catch (IOException e) {
       e.printStackTrace();
       uiHarness.openMessageDialog(this, e.getMessage(), "IO Exception", axisID);
     }
@@ -5227,25 +5018,23 @@ public final class ApplicationManager extends BaseManager implements
   /**
    * Open 3dmod to view a file with a model
    * 
-   * @param axisID the AxisID of the file to open.
+   * @param axisID
+   *          the AxisID of the file to open.
    */
   public void imod(FileType fileType, FileType modelFileType, AxisID axisID,
       Run3dmodMenuOptions menuOptions) {
     try {
       imodManager.open(fileType.getImodManagerKey(), axisID, modelFileType
           .getFileName(this, axisID), menuOptions);
-    }
-    catch (AxisTypeException except) {
+    } catch (AxisTypeException except) {
       except.printStackTrace();
       uiHarness.openMessageDialog(this, except.getMessage(),
           "AxisType problem", axisID);
-    }
-    catch (SystemProcessException except) {
+    } catch (SystemProcessException except) {
       except.printStackTrace();
       uiHarness.openMessageDialog(this, except.getMessage(),
           "Can't open 3dmod", axisID);
-    }
-    catch (IOException e) {
+    } catch (IOException e) {
       e.printStackTrace();
       uiHarness.openMessageDialog(this, e.getMessage(), "IO Exception", axisID);
     }
@@ -5254,32 +5043,29 @@ public final class ApplicationManager extends BaseManager implements
   /**
    * Open 3dmod to view a file with a model
    * 
-   * @param axisID the AxisID of the file to open.
+   * @param axisID
+   *          the AxisID of the file to open.
    */
   public void imodReprojectModel(AxisID axisID, Run3dmodMenuOptions menuOptions) {
     FileType fileType;
     if (state.isStackUsingNewstOrBlend3dFindOutput(axisID)) {
       fileType = FileType.NEWST_OR_BLEND_3D_FIND_OUTPUT;
-    }
-    else {
+    } else {
       fileType = FileType.ALIGNED_STACK;
     }
     try {
       imodManager.open(fileType.getImodManagerKey(), axisID,
           FileType.CCD_ERASER_BEADS_INPUT_MODEL.getFileName(this, axisID),
           menuOptions);
-    }
-    catch (AxisTypeException except) {
+    } catch (AxisTypeException except) {
       except.printStackTrace();
       uiHarness.openMessageDialog(this, except.getMessage(),
           "AxisType problem", axisID);
-    }
-    catch (SystemProcessException except) {
+    } catch (SystemProcessException except) {
       except.printStackTrace();
       uiHarness.openMessageDialog(this, except.getMessage(),
           "Can't open 3dmod", axisID);
-    }
-    catch (IOException e) {
+    } catch (IOException e) {
       e.printStackTrace();
       uiHarness.openMessageDialog(this, e.getMessage(), "IO Exception", axisID);
     }
@@ -5296,8 +5082,7 @@ public final class ApplicationManager extends BaseManager implements
       imodManager.newImod(ImodManager.TRIAL_TOMOGRAM_KEY, axisID,
           trialTomogramName);
       imodManager.open(ImodManager.TRIAL_TOMOGRAM_KEY, axisID, menuOptions);
-    }
-    catch (SystemProcessException except) {
+    } catch (SystemProcessException except) {
       except.printStackTrace();
       String message[] = new String[2];
       message[0] = "Unable to open specified tomogram:" + trialTomogramName;
@@ -5306,13 +5091,11 @@ public final class ApplicationManager extends BaseManager implements
           .openMessageDialog(this, except.getMessage()
               + "\nCan't open 3dmod with the tomogram", "Cannot Open 3dmod",
               axisID);
-    }
-    catch (AxisTypeException except) {
+    } catch (AxisTypeException except) {
       except.printStackTrace();
       uiHarness.openMessageDialog(this, except.getMessage(),
           "AxisType problem", axisID);
-    }
-    catch (IOException e) {
+    } catch (IOException e) {
       e.printStackTrace();
       uiHarness.openMessageDialog(this, e.getMessage(), "IO Exception", axisID);
     }
@@ -5335,8 +5118,7 @@ public final class ApplicationManager extends BaseManager implements
     FileType outputFile;
     if (metaData.getAxisType() == AxisType.SINGLE_AXIS) {
       outputFile = FileType.SINGLE_AXIS_TOMOGRAM;
-    }
-    else {
+    } else {
       outputFile = FileType.DUAL_AXIS_TOMOGRAM;
     }
     mainPanel.setProgressBar("Using trial tomogram: " + trialTomogramName, 1,
@@ -5344,8 +5126,7 @@ public final class ApplicationManager extends BaseManager implements
     if (outputFile.getFile(this, axisID).exists() && trialTomogramFile.exists()) {
       try {
         backupImageFile(outputFile, axisID);
-      }
-      catch (IOException except) {
+      } catch (IOException except) {
         uiHarness.openMessageDialog(this, "Unable to backup "
             + outputFile.getFile(this, axisID).getAbsolutePath() + "\n"
             + except.getMessage(), "File Rename Error", axisID);
@@ -5356,8 +5137,7 @@ public final class ApplicationManager extends BaseManager implements
     try {
       renameImageFile(FileType.TRIAL_TOMOGRAM, trialTomogramFile, outputFile,
           axisID);
-    }
-    catch (IOException except) {
+    } catch (IOException except) {
       uiHarness.openMessageDialog(this, except.getMessage(),
           "File Rename Error", axisID);
       mainPanel.stopProgressBar(axisID);
@@ -5394,10 +5174,8 @@ public final class ApplicationManager extends BaseManager implements
       stream = new FileInputStream(DatasetFiles.getTomogram(this, axisID));
       FileChannel fileChannel = stream.getChannel();
       size = fileChannel.size();
-    }
-    catch (FileNotFoundException e) {
-    }
-    catch (IOException e) {
+    } catch (FileNotFoundException e) {
+    } catch (IOException e) {
     }
     return size;
   }
@@ -5435,21 +5213,19 @@ public final class ApplicationManager extends BaseManager implements
       CombineParams combineParams = new CombineParams(metaData
           .getCombineParams());
       if (!combineParams.isPatchBoundarySet()) {
-        //The first time combine is opened for this dataset, set tomogram size
+        // The first time combine is opened for this dataset, set tomogram size
         state.setTomogramSize(AxisID.FIRST, getTomogramSize(AxisID.FIRST));
         state.setTomogramSize(AxisID.SECOND, getTomogramSize(AxisID.SECOND));
         String recFileName;
         MatchMode matchMode = combineParams.getMatchMode();
         if (matchMode == null || matchMode == MatchMode.B_TO_A) {
           recFileName = metaData.getDatasetName() + "a.rec";
-        }
-        else {
+        } else {
           recFileName = metaData.getDatasetName() + "b.rec";
         }
         try {
           combineParams.setDefaultPatchBoundaries(recFileName);
-        }
-        catch (InvalidParameterException except) {
+        } catch (InvalidParameterException except) {
           String[] detailedMessage = new String[4];
           detailedMessage[0] = "Unable to set default patch boundaries";
           detailedMessage[1] = "Are both tomograms computed and available?";
@@ -5462,8 +5238,7 @@ public final class ApplicationManager extends BaseManager implements
           tomogramCombinationDialog = null;
           mainPanel.showBlankProcess(AxisID.ONLY);
           return;
-        }
-        catch (IOException except) {
+        } catch (IOException except) {
           uiHarness.openMessageDialog(this, except.getMessage(), "IO Error: "
               + recFileName, AxisID.ONLY);
           // Delete the dialog
@@ -5485,8 +5260,7 @@ public final class ApplicationManager extends BaseManager implements
         File solvematch = new File(propertyUserDir, "solvematch.com");
         if (solvematch.exists()) {
           loadSolvematch();
-        }
-        else {
+        } else {
           // For backward compatibility using fiducialMatch instead of
           // modelBased. ModelBased was not updated when fiducialMatch was
           // changed and ficucialMatch wasn't update when modelBased was
@@ -5510,10 +5284,9 @@ public final class ApplicationManager extends BaseManager implements
         loadCombineComscript();
         tomogramCombinationDialog.synchronize(
             TomogramCombinationDialog.lblSetup, true/* false */);
-      }
-      else {
-        //force the user to set Z values on a new combine
-        //make sure not destroying user entries by checking for patchcorr.com
+      } else {
+        // force the user to set Z values on a new combine
+        // make sure not destroying user entries by checking for patchcorr.com
         if (!DatasetFiles.getAxisOnlyComFile(this, ProcessName.PATCHCORR)
             .exists()) {
           tomogramCombinationDialog.setZMin("");
@@ -5557,19 +5330,16 @@ public final class ApplicationManager extends BaseManager implements
       imodManager.open(ImodManager.FULL_VOLUME_KEY, AxisID.SECOND, metaData
           .getDatasetName()
           + AxisID.SECOND.getExtension() + ".matmod", true, menuOptions);
-    }
-    catch (SystemProcessException except) {
+    } catch (SystemProcessException except) {
       except.printStackTrace();
       uiHarness.openMessageDialog(this, except.getMessage()
           + "\nCan't open 3dmod on tomograms for matching models",
           "Cannot Open 3dmod", AxisID.ONLY);
-    }
-    catch (AxisTypeException except) {
+    } catch (AxisTypeException except) {
       except.printStackTrace();
       uiHarness.openMessageDialog(this, except.getMessage(),
           "AxisType problem", AxisID.ONLY);
-    }
-    catch (IOException e) {
+    } catch (IOException e) {
       e.printStackTrace();
       uiHarness.openMessageDialog(this, e.getMessage(), "IO Exception",
           AxisID.ONLY);
@@ -5582,19 +5352,16 @@ public final class ApplicationManager extends BaseManager implements
   public void imodMatchCheck(Run3dmodMenuOptions menuOptions) {
     try {
       imodManager.open(ImodManager.MATCH_CHECK_KEY, menuOptions);
-    }
-    catch (SystemProcessException except) {
+    } catch (SystemProcessException except) {
       except.printStackTrace();
       uiHarness.openMessageDialog(this, except.getMessage()
           + "\nCan't open 3dmod on matchcheck.mat or matchcheck.rec",
           "Cannot Open 3dmod", AxisID.ONLY);
-    }
-    catch (AxisTypeException except) {
+    } catch (AxisTypeException except) {
       except.printStackTrace();
       uiHarness.openMessageDialog(this, except.getMessage(),
           "AxisType problem", AxisID.ONLY);
-    }
-    catch (IOException e) {
+    } catch (IOException e) {
       e.printStackTrace();
       uiHarness.openMessageDialog(this, e.getMessage(), "IO Exception",
           AxisID.ONLY);
@@ -5614,27 +5381,23 @@ public final class ApplicationManager extends BaseManager implements
     System.err.println("matchMode=" + matchMode);
     if (matchMode == null || matchMode == MatchMode.B_TO_A) {
       axisID = AxisID.FIRST;
-    }
-    else {
+    } else {
       axisID = AxisID.SECOND;
     }
     System.err.println("axisID=" + axisID);
     try {
       imodManager.open(ImodManager.FULL_VOLUME_KEY, axisID, "patch_region.mod",
           true, menuOptions);
-    }
-    catch (SystemProcessException except) {
+    } catch (SystemProcessException except) {
       except.printStackTrace();
       uiHarness.openMessageDialog(this, except.getMessage()
           + "\nCan't open 3dmod on tomogram for patch region models",
           "Cannot Open 3dmod", AxisID.ONLY);
-    }
-    catch (AxisTypeException except) {
+    } catch (AxisTypeException except) {
       except.printStackTrace();
       uiHarness.openMessageDialog(this, except.getMessage(),
           "AxisType problem", AxisID.ONLY);
-    }
-    catch (IOException e) {
+    } catch (IOException e) {
       e.printStackTrace();
       uiHarness.openMessageDialog(this, e.getMessage(), "IO Exception", axisID);
     }
@@ -5648,19 +5411,16 @@ public final class ApplicationManager extends BaseManager implements
     try {
       imodManager.open(fileType.getImodManagerKey(), axisID, modelFileType
           .getFileName(this, axisID), true, menuOptions);
-    }
-    catch (SystemProcessException except) {
+    } catch (SystemProcessException except) {
       except.printStackTrace();
       uiHarness.openMessageDialog(this, except.getMessage(),
           "Can't open 3dmod on " + fileType.toString() + " for "
               + modelFileType.toString(), axisID);
-    }
-    catch (AxisTypeException except) {
+    } catch (AxisTypeException except) {
       except.printStackTrace();
       uiHarness.openMessageDialog(this, except.getMessage(),
           "AxisType problem", axisID);
-    }
-    catch (IOException e) {
+    } catch (IOException e) {
       e.printStackTrace();
       uiHarness.openMessageDialog(this, e.getMessage(), "IO Exception", axisID);
     }
@@ -5672,19 +5432,16 @@ public final class ApplicationManager extends BaseManager implements
   public void imodPatchVectorModel(String key) {
     try {
       imodManager.open(key);
-    }
-    catch (SystemProcessException except) {
+    } catch (SystemProcessException except) {
       except.printStackTrace();
       uiHarness.openMessageDialog(this, except.getMessage()
           + "\nCan't open 3dmod on tomogram for patch vector model",
           "Cannot Open 3dmod", AxisID.ONLY);
-    }
-    catch (AxisTypeException except) {
+    } catch (AxisTypeException except) {
       except.printStackTrace();
       uiHarness.openMessageDialog(this, except.getMessage(),
           "AxisType problem", AxisID.ONLY);
-    }
-    catch (IOException e) {
+    } catch (IOException e) {
       e.printStackTrace();
       uiHarness.openMessageDialog(this, e.getMessage(), "IO Exception",
           AxisID.ONLY);
@@ -5699,25 +5456,21 @@ public final class ApplicationManager extends BaseManager implements
     MatchMode matchMode = metaData.getCombineParams().getMatchMode();
     if (matchMode == null || matchMode == MatchMode.B_TO_A) {
       axisID = AxisID.FIRST;
-    }
-    else {
+    } else {
       axisID = AxisID.SECOND;
     }
     try {
       imodManager.open(ImodManager.FULL_VOLUME_KEY, axisID, menuOptions);
-    }
-    catch (SystemProcessException except) {
+    } catch (SystemProcessException except) {
       except.printStackTrace();
       uiHarness.openMessageDialog(this, except.getMessage()
           + "\nCan't open 3dmod on tomogram being matched to",
           "Cannot Open 3dmod", AxisID.ONLY);
-    }
-    catch (AxisTypeException except) {
+    } catch (AxisTypeException except) {
       except.printStackTrace();
       uiHarness.openMessageDialog(this, except.getMessage(),
           "AxisType problem", AxisID.ONLY);
-    }
-    catch (IOException e) {
+    } catch (IOException e) {
       e.printStackTrace();
       uiHarness.openMessageDialog(this, e.getMessage(), "IO Exception", axisID);
     }
@@ -5746,8 +5499,7 @@ public final class ApplicationManager extends BaseManager implements
     DialogExitState exitState = tomogramCombinationDialog.getExitState();
     if (exitState == DialogExitState.CANCEL) {
       mainPanel.showBlankProcess(AxisID.ONLY);
-    }
-    else {
+    } else {
       tomogramCombinationDialog.synchronizeFromCurrentTab();
       // Update the com script and metadata info from the tomogram
       // combination dialog box. Since there are multiple pages and scripts
@@ -5766,8 +5518,7 @@ public final class ApplicationManager extends BaseManager implements
         processTrack.setTomogramCombinationState(ProcessState.INPROGRESS);
         mainPanel.setTomogramCombinationState(ProcessState.INPROGRESS);
         mainPanel.showBlankProcess(AxisID.ONLY);
-      }
-      else if (exitState != DialogExitState.SAVE) {
+      } else if (exitState != DialogExitState.SAVE) {
         processTrack.setTomogramCombinationState(ProcessState.COMPLETE);
         mainPanel.setTomogramCombinationState(ProcessState.COMPLETE);
         closeImod(ImodManager.FULL_VOLUME_KEY, AxisID.FIRST,
@@ -5793,8 +5544,8 @@ public final class ApplicationManager extends BaseManager implements
     if (combineScriptsCreatedValue == EtomoState.FALSE_VALUE) {
       return;
     }
-    //Check if combineScriptsCreated was not set.  Also check if it is true, to
-    //make sure that it is still true.
+    // Check if combineScriptsCreated was not set. Also check if it is true, to
+    // make sure that it is still true.
     File solvematchshift = new File(propertyUserDir, "solvematchshift.com");
     File solvematchmod = new File(propertyUserDir, "solvematchmod.com");
     File solvematch = new File(propertyUserDir, "solvematch.com");
@@ -5810,8 +5561,7 @@ public final class ApplicationManager extends BaseManager implements
         && patchcorr.exists()
         && volcombine.exists() && warpvol.exists()) {
       state.setCombineScriptsCreated(true);
-    }
-    else {
+    } else {
       state.resetCombineScriptsCreated();
     }
   }
@@ -5821,7 +5571,8 @@ public final class ApplicationManager extends BaseManager implements
    * metaData object. updateCombineCom is called first to get the currect
    * parameters from the dialog.
    * 
-   * @param tomogramCombinationDialog the calling dialog.
+   * @param tomogramCombinationDialog
+   *          the calling dialog.
    */
   public boolean createCombineScripts(ProcessResultDisplay processResultDisplay) {
     sendMsgProcessStarting(processResultDisplay);
@@ -5835,8 +5586,7 @@ public final class ApplicationManager extends BaseManager implements
       }
       processTrack.setTomogramCombinationState(ProcessState.INPROGRESS);
       mainPanel.setTomogramCombinationState(ProcessState.INPROGRESS);
-    }
-    catch (IOException except) {
+    } catch (IOException except) {
       mainPanel.stopProgressBar(AxisID.ONLY, ProcessEndState.FAILED);
       except.printStackTrace();
       uiHarness.openMessageDialog(this, "Can't run setupcombine\n"
@@ -5863,7 +5613,8 @@ public final class ApplicationManager extends BaseManager implements
    * Update the combine parameters from the a specified tab of the calling
    * dialog assumes that the dialog is synchronized
    * 
-   * @param tomogramCombinationDialog the calling dialog.
+   * @param tomogramCombinationDialog
+   *          the calling dialog.
    */
   private void updateCombineParams() {
     if (tomogramCombinationDialog == null) {
@@ -5882,14 +5633,12 @@ public final class ApplicationManager extends BaseManager implements
       MatchMode matchMode = combineParams.getMatchMode();
       if (matchMode == null || matchMode == MatchMode.B_TO_A) {
         recFileName = metaData.getDatasetName() + "a.rec";
-      }
-      else {
+      } else {
         recFileName = metaData.getDatasetName() + "b.rec";
       }
       try {
         combineParams.setMaxPatchZMax(recFileName);
-      }
-      catch (InvalidParameterException except) {
+      } catch (InvalidParameterException except) {
         String[] detailedMessage = new String[4];
         detailedMessage[0] = "Unable to get max patch Z boundary";
         detailedMessage[1] = "Are both tomograms computed and available?";
@@ -5901,8 +5650,7 @@ public final class ApplicationManager extends BaseManager implements
         // Delete the dialog
         tomogramCombinationDialog = null;
         return;
-      }
-      catch (IOException except) {
+      } catch (IOException except) {
         uiHarness.openMessageDialog(this, except.getMessage(), "IO Error: "
             + recFileName, AxisID.ONLY);
         // Delete the dialog
@@ -5914,8 +5662,7 @@ public final class ApplicationManager extends BaseManager implements
             "Invalid combine parameters", AxisID.ONLY);
         return;
       }
-    }
-    catch (NumberFormatException except) {
+    } catch (NumberFormatException except) {
       uiHarness.openMessageDialog(this, except.getMessage(),
           "Number format error", AxisID.ONLY);
       return;
@@ -5965,6 +5712,7 @@ public final class ApplicationManager extends BaseManager implements
 
   /**
    * Update the solvematch com file from the tomogramCombinationDialog
+   * 
    * @return true if successful, false if not
    */
   public boolean updateSolvematchCom() {
@@ -5981,8 +5729,7 @@ public final class ApplicationManager extends BaseManager implements
       SolvematchParam solvematchParam = comScriptMgr.getSolvematch();
       tomogramCombinationDialog.getSolvematchParams(solvematchParam);
       comScriptMgr.saveSolvematch(solvematchParam);
-    }
-    catch (NumberFormatException except) {
+    } catch (NumberFormatException except) {
       String[] errorMessage = new String[2];
       errorMessage[0] = "Solvematch Parameter Syntax Error";
       errorMessage[1] = except.getMessage();
@@ -5995,6 +5742,7 @@ public final class ApplicationManager extends BaseManager implements
 
   /**
    * Update the matchvol1 com file from the tomogramCombinationDialog
+   * 
    * @return true if successful, false if not
    */
   public boolean updateMatchvol1Com() {
@@ -6011,8 +5759,7 @@ public final class ApplicationManager extends BaseManager implements
       MatchvolParam param = comScriptMgr.getMatchvolParam();
       tomogramCombinationDialog.getParameters(param);
       comScriptMgr.saveMatchvol(param);
-    }
-    catch (NumberFormatException except) {
+    } catch (NumberFormatException except) {
       String[] errorMessage = new String[2];
       errorMessage[0] = "Matchvol1 Parameter Syntax Error";
       errorMessage[1] = except.getMessage();
@@ -6027,8 +5774,7 @@ public final class ApplicationManager extends BaseManager implements
     try {
       comScriptMgr.useTemplate("solvematch", metaData.getDatasetName(),
           AxisType.DUAL_AXIS, AxisID.ONLY);
-    }
-    catch (Exception e) {
+    } catch (Exception e) {
       e.printStackTrace();
       String[] message = new String[2];
       message[0] = "Unable to create solvematch com script";
@@ -6045,7 +5791,7 @@ public final class ApplicationManager extends BaseManager implements
 
   /**
    * load the matchvol1 com script into the tomogram combination dialog
-   *
+   * 
    */
   private void loadMatchvol1() {
     comScriptMgr.loadMatchvol1();
@@ -6063,13 +5809,13 @@ public final class ApplicationManager extends BaseManager implements
 
   private void loadVolcombine() {
     comScriptMgr.loadVolcombine();
-    //try to load reduction factor
+    // try to load reduction factor
     ConstSetParam setParam = comScriptMgr.getSetParamFromVolcombine(
         SetParam.COMBINEFFT_REDUCTION_FACTOR_NAME, EtomoNumber.Type.FLOAT);
     tomogramCombinationDialog.setReductionFactorParams(setParam);
     tomogramCombinationDialog.enableReductionFactor(setParam != null
         && setParam.isValid());
-    //try to load low from both radius
+    // try to load low from both radius
     setParam = comScriptMgr.getSetParamFromVolcombine(
         SetParam.COMBINEFFT_LOW_FROM_BOTH_RADIUS_NAME,
         SetParam.COMBINEFFT_LOW_FROM_BOTH_RADIUS_TYPE, SetParam.COMMAND_NAME);
@@ -6098,8 +5844,7 @@ public final class ApplicationManager extends BaseManager implements
       Patchcrawl3DParam patchcrawl3DParam = comScriptMgr.getPatchcrawl3D();
       tomogramCombinationDialog.getPatchcrawl3DParams(patchcrawl3DParam);
       comScriptMgr.savePatchcorr(patchcrawl3DParam);
-    }
-    catch (NumberFormatException except) {
+    } catch (NumberFormatException except) {
       String[] errorMessage = new String[2];
       errorMessage[0] = "Patchcorr Parameter Syntax Error";
       errorMessage[1] = except.getMessage();
@@ -6127,7 +5872,8 @@ public final class ApplicationManager extends BaseManager implements
       return false;
     }
     try {
-      //Make sure the reduction factor set command is available in volcombine.com
+      // Make sure the reduction factor set command is available in
+      // volcombine.com
       SetParam setParam = comScriptMgr.getSetParamFromVolcombine(
           SetParam.COMBINEFFT_REDUCTION_FACTOR_NAME, EtomoNumber.Type.FLOAT);
       boolean setParamIsValid = setParam != null && setParam.isValid();
@@ -6136,7 +5882,8 @@ public final class ApplicationManager extends BaseManager implements
       if (setParamIsValid) {
         comScriptMgr.saveVolcombine(setParam);
       }
-      //Make sure the low from both radius set command is available in volcombine.com
+      // Make sure the low from both radius set command is available in
+      // volcombine.com
       setParam = comScriptMgr.getSetParamFromVolcombine(
           SetParam.COMBINEFFT_LOW_FROM_BOTH_RADIUS_NAME,
           SetParam.COMBINEFFT_LOW_FROM_BOTH_RADIUS_TYPE, SetParam.COMMAND_NAME);
@@ -6146,8 +5893,7 @@ public final class ApplicationManager extends BaseManager implements
       if (setParamIsValid) {
         comScriptMgr.saveVolcombine(setParam, SetParam.COMMAND_NAME);
       }
-    }
-    catch (NumberFormatException except) {
+    } catch (NumberFormatException except) {
       String[] errorMessage = new String[2];
       errorMessage[0] = "Volcombine Parameter Syntax Error";
       errorMessage[1] = except.getMessage();
@@ -6174,8 +5920,7 @@ public final class ApplicationManager extends BaseManager implements
       try {
         comScriptMgr.useTemplate(CombineComscriptState.COMSCRIPT_NAME,
             AxisType.DUAL_AXIS, AxisID.ONLY, true);
-      }
-      catch (Exception e) {
+      } catch (Exception e) {
         e.printStackTrace();
         String[] message = new String[2];
         message[0] = "Unable to copy combine com script";
@@ -6192,6 +5937,7 @@ public final class ApplicationManager extends BaseManager implements
 
   /**
    * Return a reference to THE com script manager
+   * 
    * @return
    */
   public ComScriptManager getComScriptManager() {
@@ -6241,15 +5987,15 @@ public final class ApplicationManager extends BaseManager implements
     // checkbox is off or "Restart at volcombine" was pressed.
     if (startCommand == CombineProcessType.VOLCOMBINE
         || tomogramCombinationDialog.isRunVolcombine()) {
-      //Pop up call close imod dialogs before running process since the processes
-      //before volcombine can take awhile.
+      // Pop up call close imod dialogs before running process since the
+      // processes
+      // before volcombine can take awhile.
       combineComscriptState.setOutputImageFileType(FileType.COMBINED_VOLUME);
       if (!tomogramCombinationDialog.usingParallelProcessing()) {
         combineComscriptState.setEndCommand(CombineProcessType.VOLCOMBINE
             .getIndex(), comScriptMgr);
       }
-    }
-    else {
+    } else {
       combineComscriptState.resetOutputImageFileType();
       combineComscriptState.setEndCommand(CombineProcessType.getInstance(
           CombineProcessType.VOLCOMBINE_INDEX - 1).getIndex(), comScriptMgr);
@@ -6278,8 +6024,7 @@ public final class ApplicationManager extends BaseManager implements
       tomogramCombinationDialog.getMatchorwarpParams(matchorwarpParam);
       matchorwarpParam.setTrial(trialMode);
       comScriptMgr.saveMatchorwarp(matchorwarpParam);
-    }
-    catch (NumberFormatException except) {
+    } catch (NumberFormatException except) {
       String[] errorMessage = new String[2];
       errorMessage[0] = "Matchorwarp Parameter Syntax Error";
       errorMessage[1] = except.getMessage();
@@ -6336,8 +6081,7 @@ public final class ApplicationManager extends BaseManager implements
     try {
       threadName = processMgr.combine(combineComscriptState,
           processResultDisplay, processSeries);
-    }
-    catch (SystemProcessException e) {
+    } catch (SystemProcessException e) {
       e.printStackTrace();
       String[] message = new String[2];
       message[0] = "Can not execute combine.com";
@@ -6415,8 +6159,7 @@ public final class ApplicationManager extends BaseManager implements
     try {
       threadName = processMgr.combine(combineComscriptState,
           processResultDisplay, processSeries);
-    }
-    catch (SystemProcessException e) {
+    } catch (SystemProcessException e) {
       e.printStackTrace();
       String[] message = new String[2];
       message[0] = "Can not execute combine.com";
@@ -6471,8 +6214,7 @@ public final class ApplicationManager extends BaseManager implements
     try {
       threadName = processMgr.combine(combineComscriptState,
           processResultDisplay, processSeries);
-    }
-    catch (SystemProcessException e) {
+    } catch (SystemProcessException e) {
       e.printStackTrace();
       String[] message = new String[2];
       message[0] = "Can not execute patchcorr.com";
@@ -6520,8 +6262,7 @@ public final class ApplicationManager extends BaseManager implements
     try {
       threadName = processMgr.combine(combineComscriptState,
           processResultDisplay, processSeries);
-    }
-    catch (SystemProcessException e) {
+    } catch (SystemProcessException e) {
       e.printStackTrace();
       String[] message = new String[2];
       message[0] = "Can not execute combine.com";
@@ -6551,8 +6292,7 @@ public final class ApplicationManager extends BaseManager implements
       String threadName = null;
       try {
         threadName = processMgr.matchorwarp(processSeries);
-      }
-      catch (SystemProcessException e) {
+      } catch (SystemProcessException e) {
         e.printStackTrace();
         String[] message = new String[2];
         message[0] = "Can not execute matchorwarp.com";
@@ -6593,8 +6333,7 @@ public final class ApplicationManager extends BaseManager implements
     try {
       threadName = processMgr.combine(combineComscriptState,
           processResultDisplay, processSeries);
-    }
-    catch (SystemProcessException e) {
+    } catch (SystemProcessException e) {
       e.printStackTrace();
       String[] message = new String[2];
       message[0] = "Can not execute combine.com";
@@ -6614,16 +6353,14 @@ public final class ApplicationManager extends BaseManager implements
   public void modelToPatch() {
     try {
       processMgr.modelToPatch(AxisID.ONLY);
-    }
-    catch (SystemProcessException except) {
+    } catch (SystemProcessException except) {
       String[] errorMessage = new String[2];
       errorMessage[0] = "Unable to convert patch_vector.mod to patch.out";
       errorMessage[1] = except.getMessage();
       uiHarness.openMessageDialog(this, errorMessage,
           "Patch vector model error", AxisID.ONLY);
       return;
-    }
-    catch (LogFile.LockException except) {
+    } catch (LogFile.LockException except) {
       String[] errorMessage = new String[2];
       errorMessage[0] = "Unable to convert patch_vector.mod to patch.out";
       errorMessage[1] = except.getMessage();
@@ -6658,8 +6395,7 @@ public final class ApplicationManager extends BaseManager implements
       TrimvolParam trimvolParam = metaData.getTrimvolParam();
       try {
         trimvolParam.setDefaultRange(state, metaData.isPostExists());
-      }
-      catch (InvalidParameterException except) {
+      } catch (InvalidParameterException except) {
         String[] detailedMessage = new String[4];
         detailedMessage[0] = "Unable to set trimvol range";
         detailedMessage[1] = "Does the reconstruction file exist yet?";
@@ -6672,8 +6408,7 @@ public final class ApplicationManager extends BaseManager implements
         postProcessingDialog = null;
         mainPanel.showBlankProcess(AxisID.ONLY);
         return;
-      }
-      catch (IOException except) {
+      } catch (IOException except) {
         uiHarness.openMessageDialog(this, except.getMessage(), "IO Error: "
             + trimvolParam.getInputFileName(), AxisID.ONLY);
         // Delete the dialog
@@ -6689,8 +6424,8 @@ public final class ApplicationManager extends BaseManager implements
     postProcessingDialog.setParameters(getScreenState(AxisID.ONLY));
     postProcessingDialog.setParameters(metaData);
     comScriptMgr.loadFlatten(AxisID.ONLY);
-    //Set from flatten.com after meta data.  Flatten.com is not created by
-    //copytomocoms and may be empty.
+    // Set from flatten.com after meta data. Flatten.com is not created by
+    // copytomocoms and may be empty.
     if (comScriptMgr.isWarpVolParamInFlatten(AxisID.ONLY)) {
       postProcessingDialog.setParameters(comScriptMgr
           .getWarpVolParamFromFlatten(AxisID.ONLY));
@@ -6742,8 +6477,7 @@ public final class ApplicationManager extends BaseManager implements
     DialogExitState exitState = postProcessingDialog.getExitState();
     if (exitState == DialogExitState.CANCEL) {
       mainPanel.showBlankProcess(AxisID.ONLY);
-    }
-    else {
+    } else {
       updateTrimvolParam();
       updateFlattenWarpParam(postProcessingDialog.getFlattenWarpDisplay(),
           AxisID.ONLY);
@@ -6753,8 +6487,7 @@ public final class ApplicationManager extends BaseManager implements
         processTrack.setPostProcessingState(ProcessState.INPROGRESS);
         mainPanel.setPostProcessingState(ProcessState.INPROGRESS);
         mainPanel.showBlankProcess(AxisID.ONLY);
-      }
-      else if (exitState != DialogExitState.SAVE) {
+      } else if (exitState != DialogExitState.SAVE) {
         processTrack.setPostProcessingState(ProcessState.COMPLETE);
         mainPanel.setPostProcessingState(ProcessState.COMPLETE);
         closeImod(ImodManager.COMBINED_TOMOGRAM_KEY, "full tomogram");
@@ -6786,8 +6519,7 @@ public final class ApplicationManager extends BaseManager implements
       if (exitState == DialogExitState.POSTPONE) {
         processTrack.setCleanUpState(ProcessState.INPROGRESS);
         mainPanel.setCleanUpState(ProcessState.INPROGRESS);
-      }
-      else if (exitState != DialogExitState.SAVE) {
+      } else if (exitState != DialogExitState.SAVE) {
         processTrack.setCleanUpState(ProcessState.COMPLETE);
         mainPanel.setCleanUpState(ProcessState.COMPLETE);
       }
@@ -6801,18 +6533,15 @@ public final class ApplicationManager extends BaseManager implements
   public void imodCombinedTomogram(Run3dmodMenuOptions menuOptions) {
     try {
       imodManager.open(ImodManager.COMBINED_TOMOGRAM_KEY, menuOptions);
-    }
-    catch (SystemProcessException except) {
+    } catch (SystemProcessException except) {
       except.printStackTrace();
       uiHarness.openMessageDialog(this, except.getMessage(),
           "Cannot open 3dmod on the trimmed tomogram", AxisID.ONLY);
-    }
-    catch (AxisTypeException except) {
+    } catch (AxisTypeException except) {
       except.printStackTrace();
       uiHarness.openMessageDialog(this, except.getMessage(),
           "AxisType problem", AxisID.ONLY);
-    }
-    catch (IOException e) {
+    } catch (IOException e) {
       e.printStackTrace();
       uiHarness.openMessageDialog(this, e.getMessage(), "IO Exception",
           AxisID.ONLY);
@@ -6821,6 +6550,7 @@ public final class ApplicationManager extends BaseManager implements
 
   /**
    * calls ProcessManager.generateAlignLogs() when the ta files are out of date
+   * 
    * @param commandName
    * @param axisID
    * @return true if any log files where changed
@@ -6830,12 +6560,11 @@ public final class ApplicationManager extends BaseManager implements
     try {
       alignLogFile = LogFile.getInstance(propertyUserDir, axisID,
           ProcessName.ALIGN);
-    }
-    catch (LogFile.LockException e) {
+    } catch (LogFile.LockException e) {
       e.printStackTrace();
       return false;
     }
-    //File alignLog = new File(propertyUserDir, alignLogName);
+    // File alignLog = new File(propertyUserDir, alignLogName);
     String taErrorLogName = "taError" + axisID.getExtension() + ".log";
     File taErrorLog = new File(propertyUserDir, taErrorLogName);
     if (!alignLogFile.exists()) {
@@ -6864,19 +6593,16 @@ public final class ApplicationManager extends BaseManager implements
       imodManager.setStartNewContoursAtNewZ(ImodManager.TRIMMED_VOLUME_KEY,
           axisID, false);
       imodManager.open(ImodManager.TRIMMED_VOLUME_KEY, axisID, menuOptions);
-    }
-    catch (SystemProcessException except) {
+    } catch (SystemProcessException except) {
       except.printStackTrace();
       uiHarness.openMessageDialog(this, except.getMessage()
           + "\nCan't open 3dmod on the trimmed tomogram", "Cannot Open 3dmod",
           axisID);
-    }
-    catch (AxisTypeException except) {
+    } catch (AxisTypeException except) {
       except.printStackTrace();
       uiHarness.openMessageDialog(this, except.getMessage(),
           "AxisType problem", axisID);
-    }
-    catch (IOException e) {
+    } catch (IOException e) {
       e.printStackTrace();
       uiHarness.openMessageDialog(this, e.getMessage(), "IO Exception", axisID);
     }
@@ -6884,6 +6610,7 @@ public final class ApplicationManager extends BaseManager implements
 
   /**
    * Open flatten.com output
+   * 
    * @param menuOptions
    * @param axisID
    */
@@ -6891,18 +6618,15 @@ public final class ApplicationManager extends BaseManager implements
     String key = ImodManager.FLAT_VOLUME_KEY;
     try {
       imodManager.open(key, axisID, menuOptions);
-    }
-    catch (SystemProcessException except) {
+    } catch (SystemProcessException except) {
       except.printStackTrace();
       uiHarness.openMessageDialog(this, except.getMessage() + "\n"
           + "Cannot open 3dmod on the " + key, "Cannot Open 3dmod", axisID);
-    }
-    catch (AxisTypeException except) {
+    } catch (AxisTypeException except) {
       except.printStackTrace();
       uiHarness.openMessageDialog(this, except.getMessage(),
           "AxisType problem", axisID);
-    }
-    catch (IOException e) {
+    } catch (IOException e) {
       e.printStackTrace();
       uiHarness.openMessageDialog(this, e.getMessage(), "IO Exception", axisID);
     }
@@ -6914,17 +6638,16 @@ public final class ApplicationManager extends BaseManager implements
     }
     if (imageFileType == ImageFileType.TRIM_VOL_OUTPUT) {
       return isTrimvolFlipped();
-    }
-    else if (imageFileType == ImageFileType.SQUEEZE_VOL_OUTPUT) {
+    } else if (imageFileType == ImageFileType.SQUEEZE_VOL_OUTPUT) {
       return isSqueezevolFlipped();
     }
     throw new IllegalStateException("Unknown file type " + imageFileType);
   }
 
   /**
-   * return true if the result of squeezevol is flipped.
-   * If squeezevol hasn't been done, return true if the result of trimvol is
-   * flipped.
+   * return true if the result of squeezevol is flipped. If squeezevol hasn't
+   * been done, return true if the result of trimvol is flipped.
+   * 
    * @return
    */
   public boolean isSqueezevolFlipped() {
@@ -6935,9 +6658,9 @@ public final class ApplicationManager extends BaseManager implements
   }
 
   /**
-   * return true if the result of squeezevol is flipped.
-   * If squeezevol hasn't been done, return true if the result of trimvol is
-   * flipped.
+   * return true if the result of squeezevol is flipped. If squeezevol hasn't
+   * been done, return true if the result of trimvol is flipped.
+   * 
    * @return
    */
   public boolean isTrimvolFlipped() {
@@ -6949,9 +6672,9 @@ public final class ApplicationManager extends BaseManager implements
 
   public void imodMakeSurfaceModel(Run3dmodMenuOptions menuOptions,
       AxisID axisID, int binning, ImageFileType imageFileType) {
-    //Pick ImodManager key
-    //Need to look at tomogram edge on.  Use -Y, unless using squeezevol and it
-    //is not flipped.
+    // Pick ImodManager key
+    // Need to look at tomogram edge on. Use -Y, unless using squeezevol and it
+    // is not flipped.
     String key = imageFileType.getImodManagerKey();
     boolean useSwapYZ = isFlipped(imageFileType);
     try {
@@ -6961,18 +6684,15 @@ public final class ApplicationManager extends BaseManager implements
       imodManager.setBinningXY(key, binning);
       imodManager.open(key, axisID, FileType.FLATTEN_WARP_INPUT_MODEL
           .getFileName(this, axisID), true, menuOptions);
-    }
-    catch (SystemProcessException except) {
+    } catch (SystemProcessException except) {
       except.printStackTrace();
       uiHarness.openMessageDialog(this, except.getMessage()
           + "\nCan't open 3dmod on the " + key, "Cannot Open 3dmod", axisID);
-    }
-    catch (AxisTypeException except) {
+    } catch (AxisTypeException except) {
       except.printStackTrace();
       uiHarness.openMessageDialog(this, except.getMessage(),
           "AxisType problem", axisID);
-    }
-    catch (IOException e) {
+    } catch (IOException e) {
       e.printStackTrace();
       uiHarness.openMessageDialog(this, e.getMessage(), "IO Exception", axisID);
     }
@@ -6994,18 +6714,15 @@ public final class ApplicationManager extends BaseManager implements
       imodManager.setStartNewContoursAtNewZ(ImodManager.SQUEEZED_VOLUME_KEY,
           axisID, false);
       imodManager.open(ImodManager.SQUEEZED_VOLUME_KEY, axisID, menuOptions);
-    }
-    catch (SystemProcessException except) {
+    } catch (SystemProcessException except) {
       except.printStackTrace();
       uiHarness.openMessageDialog(this, except.getMessage(),
           "Can't open 3dmod on the squeezed tomogram", axisID);
-    }
-    catch (AxisTypeException except) {
+    } catch (AxisTypeException except) {
       except.printStackTrace();
       uiHarness.openMessageDialog(this, except.getMessage(),
           "AxisType problem", axisID);
-    }
-    catch (IOException e) {
+    } catch (IOException e) {
       e.printStackTrace();
       uiHarness.openMessageDialog(this, e.getMessage(), "IO Exception", axisID);
     }
@@ -7040,8 +6757,7 @@ public final class ApplicationManager extends BaseManager implements
     try {
       threadName = processMgr.trimVolume(trimvolParam, processResultDisplay,
           processSeries);
-    }
-    catch (SystemProcessException e) {
+    } catch (SystemProcessException e) {
       e.printStackTrace();
       String[] message = new String[2];
       message[0] = "Can not execute trimvol command";
@@ -7100,7 +6816,7 @@ public final class ApplicationManager extends BaseManager implements
     if (param == null) {
       return;
     }
-    //Run process
+    // Run process
     if (processTrack != null) {
       processTrack.setState(ProcessState.INPROGRESS, axisID, dialogType);
     }
@@ -7110,8 +6826,7 @@ public final class ApplicationManager extends BaseManager implements
     try {
       threadName = processMgr.flatten(param, axisID, processResultDisplay,
           processSeries);
-    }
-    catch (SystemProcessException e) {
+    } catch (SystemProcessException e) {
       e.printStackTrace();
       String[] message = new String[2];
       message[0] = "Can not execute " + ProcessName.FLATTEN;
@@ -7140,7 +6855,7 @@ public final class ApplicationManager extends BaseManager implements
     if (param == null) {
       return;
     }
-    //Run process
+    // Run process
     if (processTrack != null) {
       processTrack.setState(ProcessState.INPROGRESS, axisID, dialogType);
     }
@@ -7150,8 +6865,7 @@ public final class ApplicationManager extends BaseManager implements
     try {
       threadName = processMgr.flattenWarp(param, processResultDisplay,
           processSeries, axisID);
-    }
-    catch (SystemProcessException e) {
+    } catch (SystemProcessException e) {
       e.printStackTrace();
       String[] message = new String[2];
       message[0] = "Can not execute " + param.getProcessName();
@@ -7197,16 +6911,15 @@ public final class ApplicationManager extends BaseManager implements
     if (param == null) {
       return;
     }
-    //Attempt to backup the output file
+    // Attempt to backup the output file
     try {
       LogFile outputFile = LogFile.getInstance(DatasetFiles
           .getRaptorFiducialModel(this, axisID));
       outputFile.backup();
-    }
-    catch (LogFile.LockException e) {
+    } catch (LogFile.LockException e) {
       e.printStackTrace();
     }
-    //Run process
+    // Run process
     if (processTrack != null) {
       processTrack.setState(ProcessState.INPROGRESS, axisID, dialogType);
     }
@@ -7216,8 +6929,7 @@ public final class ApplicationManager extends BaseManager implements
     try {
       threadName = processMgr.runraptor(param, processResultDisplay,
           processSeries, axisID);
-    }
-    catch (SystemProcessException e) {
+    } catch (SystemProcessException e) {
       e.printStackTrace();
       String[] message = new String[2];
       message[0] = "Can not execute runraptor";
@@ -7242,26 +6954,22 @@ public final class ApplicationManager extends BaseManager implements
       File tiltFile = DatasetFiles.getRawTiltFile(this, axisID);
       if (tiltFile.exists()) {
         imodManager.setTiltFile(imodManagerKey, axisID, tiltFile.getName());
-      }
-      else {
+      } else {
         imodManager.resetTiltFile(imodManagerKey, axisID);
       }
       imodManager.open(imodManagerKey, axisID, model, true, menuOptions);
-    }
-    catch (AxisTypeException except) {
+    } catch (AxisTypeException except) {
       except.printStackTrace();
       uiHarness.openMessageDialog(this, except.getMessage(),
           "AxisType problem", axisID);
       return;
-    }
-    catch (SystemProcessException except) {
+    } catch (SystemProcessException except) {
       except.printStackTrace();
       uiHarness.openMessageDialog(this, "Can't open 3dmod on " + imodManagerKey
           + " with model: " + model + "\n" + except.getMessage(),
           "Can't Open 3dmod", axisID);
       return;
-    }
-    catch (IOException e) {
+    } catch (IOException e) {
       e.printStackTrace();
       uiHarness.openMessageDialog(this, e.getMessage(), "IO Exception", axisID);
     }
@@ -7282,28 +6990,26 @@ public final class ApplicationManager extends BaseManager implements
     mainPanel
         .setProgressBar("Using RAPTOR result as fiducial model", 1, axisID);
     processTrack.setState(ProcessState.INPROGRESS, axisID, dialogType);
-    //Back up .fid file
+    // Back up .fid file
     LogFile fidFile = null;
     try {
       fidFile = LogFile.getInstance(DatasetFiles.getFiducialModelFile(this,
           axisID));
       fidFile.backup();
-    }
-    catch (LogFile.LockException e) {
+    } catch (LogFile.LockException e) {
       e.printStackTrace();
       uiHarness.openMessageDialog(this, "Unable to backup "
           + DatasetFiles.getFiducialModelName(this, axisID), "File Error");
       sendMsgProcessFailedToStart(processResultDisplay);
       return;
     }
-    //Rename _raptor.fid file
+    // Rename _raptor.fid file
     LogFile raptorFile = null;
     try {
       raptorFile = LogFile.getInstance(DatasetFiles.getRaptorFiducialModel(
           this, axisID));
       raptorFile.move(fidFile);
-    }
-    catch (LogFile.LockException e) {
+    } catch (LogFile.LockException e) {
       e.printStackTrace();
       uiHarness
           .openMessageDialog(this, "Unable to rename "
@@ -7343,8 +7049,7 @@ public final class ApplicationManager extends BaseManager implements
     try {
       threadName = processMgr.squeezeVolume(squeezevolParam,
           processResultDisplay, processSeries);
-    }
-    catch (SystemProcessException e) {
+    } catch (SystemProcessException e) {
       e.printStackTrace();
       String[] message = new String[2];
       message[0] = "Can not execute squeezevol command";
@@ -7361,6 +7066,7 @@ public final class ApplicationManager extends BaseManager implements
   /**
    * updates ConstMetaData.trimvolParam with data from postProcessingDialog.
    * Sets isDataParamDirty if necessary
+   * 
    * @return the updated TrimvolParam
    * 
    */
@@ -7388,6 +7094,7 @@ public final class ApplicationManager extends BaseManager implements
   /**
    * updates ConstMetaData.squeezevolParam with data from postProcessingDialog.
    * Sets isDataParamDirty if necessary
+   * 
    * @return the updated SqueezevolParam
    * 
    */
@@ -7406,17 +7113,14 @@ public final class ApplicationManager extends BaseManager implements
     if (axisID == AxisID.SECOND) {
       if (panelB == null) {
         return false;
-      }
-      else {
+      } else {
         mainPanel.showProcess(panelB.getContainer(), axisID);
         return true;
       }
-    }
-    else {
+    } else {
       if (panelA == null) {
         return false;
-      }
-      else {
+      } else {
         mainPanel.showProcess(panelA.getContainer(), axisID);
         return true;
       }
@@ -7425,6 +7129,7 @@ public final class ApplicationManager extends BaseManager implements
 
   /**
    * Start generic progress bar
+   * 
    * @param value
    * @param axisID
    */
@@ -7453,32 +7158,24 @@ public final class ApplicationManager extends BaseManager implements
     if (uiExpert != null) {
       uiExpert.startNextProcess(process, processResultDisplay, processSeries,
           dialogType, display);
-    }
-    else if (process.equals("checkUpdateFiducialModel")) {
+    } else if (process.equals("checkUpdateFiducialModel")) {
       checkUpdateFiducialModel(axisID, processResultDisplay, processSeries);
-    }
-    else if (process.equals(ArchiveorigParam.COMMAND_NAME)) {
+    } else if (process.equals(ArchiveorigParam.COMMAND_NAME)) {
       archiveOriginalStack(AxisID.SECOND, processSeries, dialogType);
-    }
-    else if (process.equals(ProcessName.PROCESSCHUNKS.toString())
+    } else if (process.equals(ProcessName.PROCESSCHUNKS.toString())
         && process.getSubprocessName() == ProcessName.VOLCOMBINE) {
       processchunksVolcombine(processResultDisplay, processSeries);
-    }
-    else if (process.equals(SplitcombineParam.COMMAND_NAME)) {
+    } else if (process.equals(SplitcombineParam.COMMAND_NAME)) {
       splitcombine(processSeries, null, null, dialogType);
-    }
-    else if (process.equals(ExtractpiecesParam.COMMAND_NAME)) {
+    } else if (process.equals(ExtractpiecesParam.COMMAND_NAME)) {
       extractpieces(axisID, processResultDisplay, processSeries, dialogType);
-    }
-    else if (process.equals(ExtractmagradParam.COMMAND_NAME)) {
+    } else if (process.equals(ExtractmagradParam.COMMAND_NAME)) {
       extractmagrad(axisID, processResultDisplay, processSeries);
-    }
-    else if (process.equals(ProcessName.XCORR.toString())) {
+    } else if (process.equals(ProcessName.XCORR.toString())) {
       tiltxcorr(axisID, processResultDisplay, null, null, processSeries,
           dialogType, (TiltXcorrDisplay) display, true,
           FileType.CROSS_CORRELATION_COMSCRIPT);
-    }
-    else if (process.equals(ProcessName.ERASER.toString())) {
+    } else if (process.equals(ProcessName.ERASER.toString())) {
       eraser(axisID, processResultDisplay, processSeries, dialogType,
           (CcdEraserDisplay) display);
     }
@@ -7505,8 +7202,7 @@ public final class ApplicationManager extends BaseManager implements
     boolean fidExists = false;
     if (axisID == AxisID.FIRST) {
       fidExists = Utilities.fileExists(this, ".fid", AxisID.SECOND);
-    }
-    else {
+    } else {
       fidExists = Utilities.fileExists(this, ".fid", AxisID.FIRST);
     }
     dialog.setTransferfidEnabled(prealisExist && fidExists);
@@ -7518,8 +7214,7 @@ public final class ApplicationManager extends BaseManager implements
     setThreadName(name, axisID);
     if (axisID == AxisID.SECOND) {
       throw new IllegalStateException("No Axis B background processes exist.");
-    }
-    else {
+    } else {
       backgroundProcessA = true;
       backgroundProcessNameA = processName;
     }
@@ -7528,6 +7223,7 @@ public final class ApplicationManager extends BaseManager implements
   // Test helper functions
   /**
    * Return the currently executing thread name for the specified axis
+   * 
    * @param axisID
    * @return
    */
@@ -7550,12 +7246,10 @@ public final class ApplicationManager extends BaseManager implements
         processDone(axisID, processResultDisplay, processSeries);
         return;
       }
-    }
-    catch (IOException except) {
+    } catch (IOException except) {
       processDone(axisID, processResultDisplay, processSeries);
       return;
-    }
-    catch (InvalidParameterException except) {
+    } catch (InvalidParameterException except) {
       except.printStackTrace();
       processDone(axisID, processResultDisplay, processSeries);
       return;
@@ -7604,7 +7298,9 @@ public final class ApplicationManager extends BaseManager implements
   /**
    * Set the data set parameter file. This also updates the mainframe data
    * parameters.
-   * @param paramFile a File object specifying the data set parameter file.
+   * 
+   * @param paramFile
+   *          a File object specifying the data set parameter file.
    */
   public void setParamFile(File paramFile) {
     this.paramFile = paramFile;
@@ -7672,8 +7368,7 @@ public final class ApplicationManager extends BaseManager implements
     try {
       threadName = processMgr.xfmodel(param, axisID, processResultDisplay,
           processSeries);
-    }
-    catch (SystemProcessException e) {
+    } catch (SystemProcessException e) {
       e.printStackTrace();
       String[] message = new String[2];
       message[0] = "Can not execute " + ProcessName.XFMODEL;
@@ -7691,6 +7386,7 @@ public final class ApplicationManager extends BaseManager implements
   /**
    * Replace the full aligned stack with the output of CTF correction or bead
    * erase.
+   * 
    * @return true if succeeded
    */
   public boolean useFileAsFullAlignedStack(
@@ -7724,8 +7420,7 @@ public final class ApplicationManager extends BaseManager implements
       }
       try {
         backupImageFile(FileType.ALIGNED_STACK, axisID);
-      }
-      catch (IOException except) {
+      } catch (IOException except) {
         UIHarness.INSTANCE.openMessageDialog(this, "Unable to backup "
             + FileType.ALIGNED_STACK.getFileName(this, axisID) + "\n"
             + except.getMessage(), "File Rename Error", axisID);
@@ -7735,8 +7430,7 @@ public final class ApplicationManager extends BaseManager implements
     }
     try {
       renameImageFile(outputFileType, FileType.ALIGNED_STACK, axisID);
-    }
-    catch (IOException except) {
+    } catch (IOException except) {
       UIHarness.INSTANCE.openMessageDialog(this, except.getMessage(),
           "File Rename Error", axisID);
       sendMsg(ProcessResult.FAILED, processResultDisplay);
@@ -7803,8 +7497,7 @@ public final class ApplicationManager extends BaseManager implements
     try {
       threadName = processMgr.ccdEraser(param, axisID, processResultDisplay,
           processSeries);
-    }
-    catch (SystemProcessException e) {
+    } catch (SystemProcessException e) {
       e.printStackTrace();
       String[] message = new String[2];
       message[0] = "Can not execute " + ProcessName.CCD_ERASER;
@@ -7830,15 +7523,12 @@ public final class ApplicationManager extends BaseManager implements
   public void openNextDialog(AxisID axisID, DialogType dialogType) {
     if (dialogType == DialogType.TOMOGRAM_POSITIONING) {
       getUIExpert(DialogType.FINAL_ALIGNED_STACK, axisID).openDialog();
-    }
-    else if (dialogType == DialogType.FINAL_ALIGNED_STACK) {
+    } else if (dialogType == DialogType.FINAL_ALIGNED_STACK) {
       getUIExpert(DialogType.TOMOGRAM_GENERATION, axisID).openDialog();
-    }
-    else if (dialogType == DialogType.TOMOGRAM_GENERATION) {
+    } else if (dialogType == DialogType.TOMOGRAM_GENERATION) {
       if (isDualAxis()) {
         mainPanel.showBlankProcess(axisID);
-      }
-      else {
+      } else {
         openPostProcessingDialog();
       }
     }
@@ -7883,8 +7573,7 @@ public final class ApplicationManager extends BaseManager implements
     try {
       threadName = processMgr.splittilt(param, axisID, processResultDisplay,
           processSeries);
-    }
-    catch (SystemProcessException e) {
+    } catch (SystemProcessException e) {
       e.printStackTrace();
       String[] message = new String[2];
       message[0] = "Can not execute " + SplittiltParam.COMMAND_NAME;
@@ -7911,8 +7600,7 @@ public final class ApplicationManager extends BaseManager implements
     try {
       threadName = processMgr.splitCorrection(param, axisID,
           processResultDisplay, processSeries);
-    }
-    catch (SystemProcessException e) {
+    } catch (SystemProcessException e) {
       e.printStackTrace();
       String[] message = new String[2];
       message[0] = "Can not execute " + ProcessName.SPLIT_CORRECTION;
@@ -7948,8 +7636,7 @@ public final class ApplicationManager extends BaseManager implements
     String threadName;
     try {
       threadName = processMgr.splitcombine(processResultDisplay, processSeries);
-    }
-    catch (SystemProcessException e) {
+    } catch (SystemProcessException e) {
       e.printStackTrace();
       String[] message = new String[2];
       message[0] = "Can not execute " + SplitcombineParam.COMMAND_NAME;
@@ -7968,8 +7655,8 @@ public final class ApplicationManager extends BaseManager implements
   private void processchunksVolcombine(
       ProcessResultDisplay processResultDisplay,
       ConstProcessSeries processSeries) {
-    //CloseImod, including the one for processchunks volcombine is take care
-    //when combine.com is updated.
+    // CloseImod, including the one for processchunks volcombine is take care
+    // when combine.com is updated.
     processchunks(AxisID.ONLY, DialogType.TOMOGRAM_COMBINATION,
         tomogramCombinationDialog, processResultDisplay, processSeries,
         ProcessName.VOLCOMBINE, FileType.COMBINED_VOLUME);
@@ -7977,6 +7664,7 @@ public final class ApplicationManager extends BaseManager implements
 
   /**
    * Run processchunks.
+   * 
    * @param axisID
    */
   private void processchunks(AxisID axisID, DialogType dialogType,
@@ -8001,7 +7689,7 @@ public final class ApplicationManager extends BaseManager implements
       processTrack.setState(ProcessState.INPROGRESS, axisID, dialogType);
     }
     mainPanel.setState(ProcessState.INPROGRESS, axisID, dialogType);
-    //param should never be set to resume
+    // param should never be set to resume
     parallelPanel.getParallelProgressDisplay().resetResults();
     processchunks(axisID, param, processResultDisplay, processSeries);
   }
@@ -8066,2000 +7754,3532 @@ public final class ApplicationManager extends BaseManager implements
   }
 }
 /**
- * <p> $Log$
- * <p> Revision 3.358  2010/04/29 02:02:42  sueh
- * <p> bug# 1359 In clipStats passing axisID to the process manager function.
  * <p>
- * <p> Revision 3.357  2010/04/28 15:29:56  sueh
- * <p> bug# 1344 Moved some closeImod functions to the BaseManager.
- * <p> Passing params to process manager functions, standardizing "3dmod is
- * <p> open" messages to always use closeImod.  Handling backing up and
- * <p> renaming image files with closeImod.  Adding the file type to a process
- * <p> directly when necessary.
+ * $Log$
  * <p>
- * <p> Revision 3.356  2010/04/10 00:26:24  sueh
- * <p> bug# 1349 Change closeImod, closeImods, makeFiducialModelSeedModel,
- * <p> and warnStaleFile handle --autoclose3dmod.
+ * Revision 3.359 2010/05/03 21:46:04 sueh
  * <p>
- * <p> Revision 3.355  2010/04/08 04:36:08  sueh
- * <p> bug# 1348 Preventing a silent failure of rename fixed stack in
- * <p> replaceRawStack.  Resetting use fixed stack warning as early as possible.
- * <p> Sending exception stack to log when tilt parameter error happens.
+ * bug# 1344 Added a sleep to closeImod functions to give Windows time to
  * <p>
- * <p> Revision 3.354  2010/03/16 21:48:54  sueh
- * <p> Added closeImod(String,AxisID,AxisID,String) to pop up a close message in
- * <p> axis A about an axis B tomogram.
+ * release control of the image files.
  * <p>
- * <p> Revision 3.353  2010/03/12 03:56:34  sueh
- * <p> bug# 1325 Changed deleteAlignedStacks to deleteIntermediateImageStacks.
  * <p>
- * <p> Revision 3.352  2010/03/11 06:00:19  sueh
- * <p> bug# 1311 In imodFixFiducials added a second residual mode for patch
- * <p> tracking.   Opening model view for this mode.
+ * Revision 3.358 2010/04/29 02:02:42 sueh
  * <p>
- * <p> Revision 3.351  2010/03/08 20:59:56  sueh
- * <p> bug# 1311 Syncing xcorr.com and xcorr_pt.com
- * <p>
- * <p> Revision 3.350  2010/03/03 04:49:48  sueh
- * <p> bug# 1311 Added imodModel and changed crossCorrelation to tiltxcorr.
+ * bug# 1359 In clipStats passing axisID to the process manager function.
  * <p>
- * <p> Revision 3.349  2010/02/26 20:37:22  sueh
- * <p> Changing the complex popup titles are making it hard to complete the
- * <p> uitests.
  * <p>
- * <p> Revision 3.348  2010/02/23 20:36:55  sueh
- * <p> bug# 1291 Fixed clipStats.  Was running it on the wrong axis.
+ * Revision 3.357 2010/04/28 15:29:56 sueh
  * <p>
- * <p> Revision 3.347  2010/02/23 20:32:11  sueh
- * <p> bug# 1291 Fixed clipStats.  Was running it on the wrong axis.
+ * bug# 1344 Moved some closeImod functions to the BaseManager.
  * <p>
- * <p> Revision 3.346  2010/02/17 04:38:37  sueh
- * <p> bug# 1301 Moved comScriptMgr and logPanel from BaseManager to child
- * <p> class.
+ * Passing params to process manager functions, standardizing "3dmod is
  * <p>
- * <p> Revision 3.345  2010/01/11 23:46:55  sueh
- * <p> bug# 1299 Made CpuAdoc a true singleton by removing information about
- * <p> the manager and axis.  This information has to be passed by classes that
- * <p> are associated with the manager and axis.
+ * open" messages to always use closeImod. Handling backing up and
  * <p>
- * <p> Revision 3.344  2009/12/19 01:07:23  sueh
- * <p> bug# 1294 Generalized imodView3DModel so it can open the smoothing assessment model.  Renamed it imodViewModel.
+ * renaming image files with closeImod. Adding the file type to a process
  * <p>
- * <p> Revision 3.343  2009/12/11 17:23:07  sueh
- * <p> bug# 1291 Added clipstats.
+ * directly when necessary.
  * <p>
- * <p> Revision 3.342  2009/10/27 19:55:51  sueh
- * <p> bug# 1275 Added createLogPanel - moves the resposibility for creating the
- * <p> log panel to the child classes.  That way the Front Page manager doesn't
- * <p> have to have a log panel.
  * <p>
- * <p> Revision 3.341  2009/10/23 22:12:07  sueh
- * <p> bug# 1275 Made touch() a start function in BaseProcessManager.
+ * Revision 3.356 2010/04/10 00:26:24 sueh
  * <p>
- * <p> Revision 3.340  2009/10/23 21:22:33  sueh
- * <p> bug# 1281 In openPostProcessingDialog, checking, setting, and saving
- * <p> metaData.postExists, which keeps track of whether the post processing
- * <p> dialog has been brought up before.
+ * bug# 1349 Change closeImod, closeImods, makeFiducialModelSeedModel,
  * <p>
- * <p> Revision 3.339  2009/10/01 18:44:34  sueh
- * <p> bug# 1233 In save... functions always try to save everything and don't
- * <p> pass back a boolean.
+ * and warnStaleFile handle --autoclose3dmod.
  * <p>
- * <p> Revision 3.338  2009/09/28 19:05:05  sueh
- * <p> bug# 1223 In imodFixFiducials removing call to turn off auto new contour.
  * <p>
- * <p> Revision 3.337  2009/09/22 23:41:46  sueh
- * <p> bug# 1269 Added a call to FinalAlignedStackExpert.setEnabledTiltParameters.
+ * Revision 3.355 2010/04/08 04:36:08 sueh
  * <p>
- * <p> Revision 3.336  2009/09/21 17:38:40  sueh
- * <p> bug# 1267 Newst process monitor now takes newst and newst_3dfind.  Tilt process monitor has a child class which handles tilt_3dfind.
+ * bug# 1348 Preventing a silent failure of rename fixed stack in
  * <p>
- * <p> Revision 3.335  2009/09/17 19:11:11  sueh
- * <p> bug# 1257 In NewstParam.setSizeToOutputInXandY forgot to read the
- * <p> header.  Adding read call and throwing InvalidParameterException and
- * <p> IOException.
+ * replaceRawStack. Resetting use fixed stack warning as early as possible.
  * <p>
- * <p> Revision 3.334  2009/09/02 22:41:45  sueh
- * <p> bug# 1254 Checking for a valid stack before using the stack.  Turning on 2d filtering for blendmont.
+ * Sending exception stack to log when tilt parameter error happens.
  * <p>
- * <p> Revision 3.333  2009/09/01 03:17:35  sueh
- * <p> bug# 1222
  * <p>
- * <p> Revision 3.332  2009/08/24 20:20:28  sueh
- * <p> bug# 1254 Don't use Toolkit unless the GraphicsEnvironment is not
- * <p> headless.
+ * Revision 3.354 2010/03/16 21:48:54 sueh
  * <p>
- * <p> Revision 3.331  2009/06/16 22:43:36  sueh
- * <p> bug# 1221 Factor out gold eraser panel.
+ * Added closeImod(String,AxisID,AxisID,String) to pop up a close message in
  * <p>
- * <p> Revision 3.330  2009/06/15 20:13:00  sueh
- * <p> bug# 1221 Made beadtrack functionality dialog independant.
+ * axis A about an axis B tomogram.
  * <p>
- * <p> Revision 3.329  2009/06/12 19:45:37  sueh
- * <p> bug# 1221 Factored out running newst, making it dependent only on
- * <p> NewstackPanel.
  * <p>
- * <p> Revision 3.328  2009/06/11 16:32:19  sueh
- * <p> bug# 1221 Sending the process panel to the process function in the
- * <p> manager wrapped in a ProcessDisplay interface.  Changing eraser,
- * <p> findxrays, flatten, flattenWarp, imodFlatten, imodMakeSurface,
- * <p> imodManualErase, isFlipped, preEraser, replaceRawStack,
- * <p> savePreProcDialog, startNextProcess, updateEraserCom,
- * <p> updateFlattenWarpParam, updateWarpVolParam.
+ * Revision 3.353 2010/03/12 03:56:34 sueh
  * <p>
- * <p> Revision 3.327  2009/06/05 01:44:04  sueh
- * <p> bug# 1219 Added flatten, flattenWarp, imodFlatten,
- * <p> imodMakeSurfaceModel, isFlipped, isSqueezed, isTrimvolFlipped,
- * <p> updateFlattenWarpParam, and updateWarpVolParam.
+ * bug# 1325 Changed deleteAlignedStacks to deleteIntermediateImageStacks.
  * <p>
- * <p> Revision 3.326  2009/05/04 16:44:38  sueh
- * <p> bug# 1216 In openFiducialModelDialog using AxisType to prevent
- * <p> displaying the RAPTOR interface unless the dataset is dual axis.
  * <p>
- * <p> Revision 3.325  2009/05/02 01:05:52  sueh
- * <p> bug# 1216 Added imodRawStack, imodRunraptorResult, runraptor,
- * <p> updateRunraptorParam, and useRunraptorResult.
+ * Revision 3.352 2010/03/11 06:00:19 sueh
  * <p>
- * <p> Revision 3.324  2009/04/15 16:51:27  sueh
- * <p> bug# 1190 Logging reconnect attempts.  Returning false and logging failure for major reconnection failures.  Preventing deleteAlignedStacks from running on a busy axis.
+ * bug# 1311 In imodFixFiducials added a second residual mode for patch
  * <p>
- * <p> Revision 3.323  2009/04/14 23:00:33  sueh
- * <p> bug# 1190 Logging reconnect.  Handling some situations where process data is not
- * <p> running in reconnect.
+ * tracking. Opening model view for this mode.
  * <p>
- * <p> Revision 3.322  2009/04/13 22:18:49  sueh
- * <p> bug# 1207 Moved the call the ProcessData.isRunning to
- * <p> processMgr.getRunningProcess so it can be called fewer times.  Implemented
- * <p> doAutomation in BaseManager.
  * <p>
- * <p> Revision 3.321  2009/03/23 16:53:54  sueh
- * <p> bug# 1187 Changed sendContinuousMessage, which is the wrong verb, to getContinuousMessage.
+ * Revision 3.351 2010/03/08 20:59:56 sueh
  * <p>
- * <p> Revision 3.320  2009/03/23 16:45:57  sueh
- * <p> bug# 1187 Moved taError.log logging to ApplicationManager.  Implement ContinuousMessageTarget:  added sendContinuousMessage which generates the ta align logs and calls logTaErrorLogMessage.
+ * bug# 1311 Syncing xcorr.com and xcorr_pt.com
  * <p>
- * <p> Revision 3.319  2009/03/17 00:23:25  sueh
- * <p> bug# 1186 Pass managerKey to everything that pops up a dialog.
  * <p>
- * <p> Revision 3.318  2009/03/05 23:22:03  sueh
- * <p> bug$ 1194 Added saveParamFile to logPanel.frameProperties to UserConfiguration.
+ * Revision 3.350 2010/03/03 04:49:48 sueh
  * <p>
- * <p> Revision 3.317  2009/03/02 18:52:42  sueh
- * <p> bug# 1193 Do all reconnects in openProcessingPanel.
+ * bug# 1311 Added imodModel and changed crossCorrelation to tiltxcorr.
  * <p>
- * <p> Revision 3.316  2009/02/13 02:11:46  sueh
- * <p> bug# 1176 Checking return value of MRCHeader.read.
  * <p>
- * <p> Revision 3.315  2009/02/10 21:36:49  sueh
- * <p> bug# 1143 Passing state to TrimvolParam.setDefaultRange.
+ * Revision 3.349 2010/02/26 20:37:22 sueh
  * <p>
- * <p> Revision 3.314  2009/02/04 22:31:15  sueh
- * <p> bug# 1158 passing logPanel to mainPanel.setStatusBarText so its title can
- * <p> be updated.
+ * Changing the complex popup titles are making it hard to complete the
  * <p>
- * <p> Revision 3.313  2008/12/09 21:25:41  sueh
- * <p> bug# 1160 Changed getFiducialDiameterPerPixel; divided the diameter by coarse aligned stack binning.
+ * uitests.
  * <p>
- * <p> Revision 3.312  2008/12/05 00:49:29  sueh
- * <p> bug# 1156 Added a skipList parameter to imodFixFiducials.
  * <p>
- * <p> Revision 3.311  2008/11/21 17:10:22  sueh
- * <p> bug# 1123 In saveAlignmentEstimationDialog calling
- * <p> FinalAlignmentDialog.getParameters(ReconScreenState).
+ * Revision 3.348 2010/02/23 20:36:55 sueh
  * <p>
- * <p> Revision 3.310  2008/11/20 01:23:55  sueh
- * <p> bug# 1147 Added ccdEraser(), xfmodel().  Changed imodSeedFiducials
- * <p> to imodSeedModel and made it more generic.
+ * bug# 1291 Fixed clipStats. Was running it on the wrong axis.
  * <p>
- * <p> Revision 3.309  2008/10/27 17:43:20  sueh
- * <p> bug# 1141 Added ctfCorrection, ctfPlotter, imodCtfCorrection,
- * <p> splitCorrection, and FinalAlignedStack dialogs.
  * <p>
- * <p> Revision 3.308  2008/10/16 20:53:50  sueh
- * <p> bug# 1141 Created FinalAlignedStack dialog to run full aligned stack and mtf filter.
+ * Revision 3.347 2010/02/23 20:32:11 sueh
  * <p>
- * <p> Revision 3.307  2008/09/30 19:45:49  sueh
- * <p> bug# 1113 Reformatting
+ * bug# 1291 Fixed clipStats. Was running it on the wrong axis.
  * <p>
- * <p> Revision 3.306  2008/07/24 18:04:17  sueh
- * <p> bug# 1128 In imodSample calling ImodManager.setPointLimit.
  * <p>
- * <p> Revision 3.305  2008/07/24 17:57:13  sueh
- * <p> bug# 1128 In imodFullSample called ImodManager.setPointLimit.
+ * Revision 3.346 2010/02/17 04:38:37 sueh
  * <p>
- * <p> Revision 3.304  2008/06/20 20:53:17  sueh
- * <p> bug# 1112 Use .tlt when opening FINE_ALIGNED and MTF_FILTER 3dmods.
+ * bug# 1301 Moved comScriptMgr and logPanel from BaseManager to child
  * <p>
- * <p> Revision 3.303  2008/06/19 23:20:01  sueh
- * <p> bug# 1112 Added tilt angle for the 3dmods that display tilt series
+ * class.
  * <p>
- * <p> Revision 3.302  2008/05/28 02:33:04  sueh
- * <p> bug# 1111 Add a dialogType parameter to the ProcessSeries
- * <p> constructor.  Pass it to manager.startNextProcess so the UIExpert can be
- * <p> retrieved.  DialogType must be passed to any function that constructs a
- * <p> ProcessSeries instance.
  * <p>
- * <p> Revision 3.301  2008/05/14 19:38:35  sueh
- * <p> bug# 1094 Fixed strings in savePostProcessing.
+ * Revision 3.345 2010/01/11 23:46:55 sueh
  * <p>
- * <p> Revision 3.300  2008/05/13 20:40:55  sueh
- * <p> bug# 847 Added Deferred3dmodButton and Run3dmodMenuOptions to
- * <p> functions where 3dmod may run after the process.
+ * bug# 1299 Made CpuAdoc a true singleton by removing information about
  * <p>
- * <p> Revision 3.299  2008/05/06 23:53:31  sueh
- * <p> bug#847 Running deferred 3dmods by using the button that usually calls
- * <p> them.  This avoids having to duplicate the calls and having a
- * <p> startNextProcess function just for 3dmods.
+ * the manager and axis. This information has to be passed by classes that
  * <p>
- * <p> Revision 3.298  2008/05/03 00:28:29  sueh
- * <p> bug# 847 Passing ProcessSeries to the process manager, startNextProcess, and to all process functions.  To avoid having to decide which processes are next processes, pass it everywhere, even to processes that don't use ProcessResultDisplay.  The UI should not create any ProcessSeries and should pass them as null (since they don't know about processes).  Before adding to a process series, create it if it doesn't exist.  Before checking a process series, make sure it exists.  Since a series is only created when it doesn't exist and is needed, I don't have to keep track of which process comes first in a series.
+ * are associated with the manager and axis.
  * <p>
- * <p> Revision 3.297  2008/01/31 20:13:29  sueh
- * <p> bug# 1055 throwing a FileException when LogFile.getInstance fails.
  * <p>
- * <p> Revision 3.296  2008/01/23 21:02:03  sueh
- * <p> bug# 1064  Added reconnectRunA and B.  Can't use the reconnectRun
- * <p> functionality in BaseManager because BaseManager.reconnect is run before
- * <p> ApplicationManager.reconnect.
+ * Revision 3.344 2009/12/19 01:07:23 sueh
  * <p>
- * <p> Revision 3.295  2008/01/14 20:12:44  sueh
- * <p> bug# 1050 In openProcessingPanel do not call reconnect for Axis B.  Processchunks reconnect must be done while Axis B is displayed.  In reconnect call super.reconnect to do the processchunks reconnect.
+ * bug# 1294 Generalized imodView3DModel so it can open the smoothing assessment
+ * model. Renamed it imodViewModel.
  * <p>
- * <p> Revision 3.294  2007/12/26 21:53:34  sueh
- * <p> bug# 1052 Created SetupDialogExpert.  Made SetupDialog package protected.
  * <p>
- * <p> Revision 3.293  2007/12/13 01:01:45  sueh
- * <p> bug# 1056 Moved post processing decision making back to ProcessManager.
+ * Revision 3.343 2009/12/11 17:23:07 sueh
  * <p>
- * <p> Revision 3.292  2007/12/10 21:46:18  sueh
- * <p> bug# 1041 Formatted
+ * bug# 1291 Added clipstats.
  * <p>
- * <p> Revision 3.291  2007/11/06 18:56:06  sueh
- * <p> bug# 1047 Generalize TrimvolParam.
  * <p>
- * <p> Revision 3.290  2007/09/27 19:18:33  sueh
- * <p> bug# 1044 Made ProcessorTable the ParallelProgress display instead of
- * <p> ParallelPanel.
+ * Revision 3.342 2009/10/27 19:55:51 sueh
  * <p>
- * <p> Revision 3.289  2007/09/07 00:14:57  sueh
- * <p> bug# 989 Using a public INSTANCE for EtomoDirector instead of getInstance
- * <p> and createInstance.
+ * bug# 1275 Added createLogPanel - moves the resposibility for creating the
  * <p>
- * <p> Revision 3.288  2007/08/29 21:20:51  sueh
- * <p> bug# 1041 Made getBaseState public.
+ * log panel to the child classes. That way the Front Page manager doesn't
  * <p>
- * <p> Revision 3.287  2007/08/22 14:58:35  sueh
- * <p> bug# 1036 Showing a blank process when opening a dialog fails.
+ * have to have a log panel.
  * <p>
- * <p> Revision 3.286  2007/08/21 21:48:35  sueh
- * <p> bug# 771 Added getTomogramSize.  Setting state.tomogramSize in
- * <p> createCombineScripts and openTomogramCombinationDialog.
  * <p>
- * <p> Revision 3.285  2007/08/08 14:44:46  sueh
- * <p> bug# 834 In doneSetupDialog, setting MetaData.TrimvolParam.swapYZ if it is set
- * <p> in userConfig.
+ * Revision 3.341 2009/10/23 22:12:07 sueh
  * <p>
- * <p> Revision 3.284  2007/07/30 18:30:56  sueh
- * <p> bug# 1002 ParameterStore.getInstance can return null - handle it.
+ * bug# 1275 Made touch() a start function in BaseProcessManager.
  * <p>
- * <p> Revision 3.283  2007/07/27 16:50:05  sueh
- * <p> bug# 979 In openFiducialModelDialog returning success/failure boolean.  Using
- * <p> getInstance to construct FiducialModelDialog because it uses action listeners,
- * <p> which shouldn't be created during construction.
  * <p>
- * <p> Revision 3.282  2007/07/24 19:24:48  sueh
- * <p> bug# 1032 Don't set meta data in imod manager unless paramFileName is set.
+ * Revision 3.340 2009/10/23 21:22:33 sueh
  * <p>
- * <p> Revision 3.281  2007/06/08 21:50:18  sueh
- * <p> bug# 1014 Removed setMetaData(ImodManager) and placing the call to ImodManager.setMetaData after the call to initializeUIParameters.
+ * bug# 1281 In openPostProcessingDialog, checking, setting, and saving
  * <p>
- * <p> Revision 3.280  2007/05/21 22:27:29  sueh
- * <p> bug# 964 Added get getInterfaceType().
+ * metaData.postExists, which keeps track of whether the post processing
  * <p>
- * <p> Revision 3.279  2007/04/09 19:10:45  sueh
- * <p> bug# 964 Added setParamFile(), which just returns loadedParamFile
+ * dialog has been brought up before.
  * <p>
- * <p> Revision 3.278  2007/03/07 20:52:03  sueh
- * <p> bug# Validate beam tilt fields in the fine alignment dialog in fineAlignment().
  * <p>
- * <p> Revision 3.277  2007/03/03 00:30:53  sueh
- * <p> bug# 973 Getting/setting metadata in Fine Align dialog.
+ * Revision 3.339 2009/10/01 18:44:34 sueh
  * <p>
- * <p> Revision 3.276  2007/02/21 22:28:42  sueh
- * <p> 964 Removing incorrect comment.
+ * bug# 1233 In save... functions always try to save everything and don't
  * <p>
- * <p> Revision 3.275  2007/02/05 21:24:23  sueh
- * <p> bug# 962 Creating process manager later.
+ * pass back a boolean.
  * <p>
- * <p> Revision 3.274  2006/11/28 22:45:23  sueh
- * <p> bug# 934 Changed BaseManager.stop() to endThreads().
  * <p>
- * <p> Revision 3.273  2006/11/15 18:14:38  sueh
- * <p> bug# 872 Changed getParamFileStorableArray to getStorables.  Letting the base
- * <p> save param file function call save().  getStorables always gets all the storables
- * <p> (including meta data) each time, to make it simpler.
+ * Revision 3.338 2009/09/28 19:05:05 sueh
  * <p>
- * <p> Revision 3.272  2006/10/24 21:13:17  sueh
- * <p> bug# 947 Passing the ProcessName to AxisProcessPanel.
+ * bug# 1223 In imodFixFiducials removing call to turn off auto new contour.
  * <p>
- * <p> Revision 3.271  2006/10/16 22:33:13  sueh
- * <p> bug# 919  Changed touch(File) to touch(String absolutePath).  bug# 933  Moved
- * <p> the code in msgAlignPostProcess to postProcess.  Only doing align post process
- * <p> (reopening log) when the Computer Alignment button was used to run Fine
- * <p> Alignment.
  * <p>
- * <p> Revision 3.270  2006/10/13 22:18:24  sueh
- * <p> bug# 927 In volcombine, managing combinefft LowFromBothRadius.
+ * Revision 3.337 2009/09/22 23:41:46 sueh
  * <p>
- * <p> Revision 3.269  2006/10/11 10:05:08  sueh
- * <p> bug# 931 Added delete functionality to LogFile - changed BackupException to
- * <p> FileException.
+ * bug# 1269 Added a call to FinalAlignedStackExpert.setEnabledTiltParameters.
  * <p>
- * <p> Revision 3.268  2006/10/10 05:00:40  sueh
- * <p> bug# 931 Managing log files with LogFile
  * <p>
- * <p> Revision 3.267  2006/09/20 20:41:25  sueh
- * <p> bug# 928 Added errorProcess().
+ * Revision 3.336 2009/09/21 17:38:40 sueh
  * <p>
- * <p> Revision 3.266  2006/09/19 21:53:35  sueh
- * <p> bug# 920 Values where not being saved correctly by TomogramState.  Add
- * <p> tilt.fiducialess to metaData.  Bug# 928 Add post processing for patchcorr.
- * <p> Change imodPatchVectorModel so that it can open either patch_vector.mod or
- * <p> patch_vector_ccc.mod.
+ * bug# 1267 Newst process monitor now takes newst and newst_3dfind. Tilt
+ * process monitor has a child class which handles tilt_3dfind.
  * <p>
- * <p> Revision 3.265  2006/09/13 23:05:52  sueh
- * <p> bug# 920 Moving some postProcessing to TomogramPositioningExpert.
  * <p>
- * <p> Revision 3.264  2006/09/05 17:33:07  sueh
- * <p> bug# 917 Added loadMatchvol1 and updateMatchvol1Com
+ * Revision 3.335 2009/09/17 19:11:11 sueh
  * <p>
- * <p> Revision 3.263  2006/08/30 16:48:52  sueh
- * <p> bug# 922 Fix null pointer error in updateDialog()
+ * bug# 1257 In NewstParam.setSizeToOutputInXandY forgot to read the
  * <p>
- * <p> Revision 3.262  2006/08/18 00:12:58  sueh
- * <p> bug# 914 open combine dialog:  make sure patchcorr.com doesn't exist before
- * <p> removing Zs
+ * header. Adding read call and throwing InvalidParameterException and
  * <p>
- * <p> Revision 3.261  2006/08/14 22:21:43  sueh
- * <p> bug# 891 backwardCompatibilityCombineScriptsExist():  double checking true
- * <p> values.
+ * IOException.
  * <p>
- * <p> Revision 3.260  2006/08/14 18:32:08  sueh
- * <p> bug# 890 Returning a success/failure boolean from getTrimvolParams.
  * <p>
- * <p> Revision 3.259  2006/08/11 23:47:08  sueh
- * <p> bug# 816 Added msgAlignPostProcess().
+ * Revision 3.334 2009/09/02 22:41:45 sueh
  * <p>
- * <p> Revision 3.258  2006/08/11 21:43:54  sueh
- * <p> bug# 816 Setting open log when opening the coarse aligned stack.
+ * bug# 1254 Checking for a valid stack before using the stack. Turning on 2d
+ * filtering for blendmont.
  * <p>
- * <p> Revision 3.257  2006/08/03 21:17:51  sueh
- * <p> bug# 769 Added reconnectTilt()
  * <p>
- * <p> Revision 3.256  2006/08/02 22:01:11  sueh
- * <p> bug# 769 Added reconnect()
+ * Revision 3.333 2009/09/01 03:17:35 sueh
  * <p>
- * <p> Revision 3.255  2006/08/01 20:05:47  sueh
- * <p> bug# 769 Making sure that the axis for a single axis dialog is ONLY.
+ * bug# 1222
  * <p>
- * <p> Revision 3.254  2006/07/28 22:22:09  sueh
- * <p> bug# 910 SaveTomogramCombinationDialog():  added call to
- * <p> TomogramCombinationDialog.synchronizeFromCurrentTab(), so that anything the
- * <p> user changes on the current tab will be remembered on exit.
  * <p>
- * <p> Revision 3.253  2006/07/28 19:43:16  sueh
- * <p> bug# 868 Changed AbstractParallelDialog.isParallel to
- * <p> usingParallelProcessing.
+ * Revision 3.332 2009/08/24 20:20:28 sueh
  * <p>
- * <p> Revision 3.252  2006/07/28 17:41:04  sueh
- * <p> bug# 909 Changed TomogramState.combineScriptsCreated to an EtomoState so
- * <p> it will show when it has not been set.
+ * bug# 1254 Don't use Toolkit unless the GraphicsEnvironment is not
  * <p>
- * <p> Revision 3.251  2006/07/26 16:28:46  sueh
- * <p> bug# 868 Moved functions associated with TomogramGenerationDialog to
- * <p> TomogramGenerationExpert.
+ * headless.
  * <p>
- * <p> Revision 3.250  2006/07/21 22:23:42  sueh
- * <p> bug# 901 Just check for the distortion directory to set calibrationAvailable.
  * <p>
- * <p> Revision 3.249  2006/07/21 22:10:57  sueh
- * <p> bug# 901 Getting the calibration directory environment variable name from
- * <p> EnvironmentVariable.
+ * Revision 3.331 2009/06/16 22:43:36 sueh
  * <p>
- * <p> Revision 3.248  2006/07/19 20:04:30  sueh
- * <p> bug# 902 MakeFiducialModelSeedModel:  Set seeding done and update the
- * <p> fiducial model display.  Added processSucceeded.
+ * bug# 1221 Factor out gold eraser panel.
  * <p>
- * <p> Revision 3.247  2006/07/19 15:11:54  sueh
- * <p> bug# 903  UpdateCombineParams:  don't validate until after the scripts are
- * <p> created so that the Z limits can be blank.
  * <p>
- * <p> Revision 3.246  2006/07/18 20:54:28  sueh
- * <p> bug# 904 OpenTomogramCombinationDialog:  clear the Z min and max values if
- * <p> the scripts have not been created.
+ * Revision 3.330 2009/06/15 20:13:00 sueh
  * <p>
- * <p> Revision 3.245  2006/07/17 21:15:29  sueh
- * <p> bug# 900 Added imodSendEvent functionality back.  Uses the
- * <p> SystemProcessException.
+ * bug# 1221 Made beadtrack functionality dialog independant.
  * <p>
- * <p> Revision 3.244  2006/07/05 23:23:14  sueh
- * <p> Added extra message for Windows when delete file fails.  Get fine alignment
- * <p> fix fiducials to set the right mode.
  * <p>
- * <p> Revision 3.243  2006/07/04 20:36:41  sueh
- * <p> bug# 898 Return false from done and save functions if their dialog continues
- * <p> to be displayed.
+ * Revision 3.329 2009/06/12 19:45:37 sueh
  * <p>
- * <p> Revision 3.242  2006/07/03 21:27:56  sueh
- * <p> bug# 895 Stop 3dmod request handler worker string on exit.
+ * bug# 1221 Factored out running newst, making it dependent only on
  * <p>
- * <p> Revision 3.241  2006/06/30 20:21:27  sueh
- * <p> bug# 884 Adding timestamps for constructing dialog objects.
+ * NewstackPanel.
  * <p>
- * <p> Revision 3.240  2006/06/30 19:58:27  sueh
- * <p> bug# 877 Calling all the done dialog functions from the dialog.done() function,
- * <p> which is called from the button action functions and saveAction() in
- * <p> ProcessDialog.
  * <p>
- * <p> Revision 3.239  2006/06/27 17:45:42  sueh
- * <p> bug# 879 imodTrimmedVolume():  set swap yz in 3dmod if both swap yz and
- * <p> rotate x are not used.
+ * Revision 3.328 2009/06/11 16:32:19 sueh
  * <p>
- * <p> Revision 3.238  2006/06/22 20:54:08  sueh
- * <p> bug# 797 Catching io exception when opening 3dmods.
+ * bug# 1221 Sending the process panel to the process function in the
  * <p>
- * <p> Revision 3.237  2006/06/19 17:05:39  sueh
- * <p> bug# 851 Added closeImod() and closeImods().  Closing 3dmods when they are
- * <p> not needed.
+ * manager wrapped in a ProcessDisplay interface. Changing eraser,
  * <p>
- * <p> Revision 3.236  2006/06/16 15:23:48  sueh
- * <p> bug# 734 Moved track and use buttons from fiducial model dialog to beadtracker
- * <p> dialog.
+ * findxrays, flatten, flattenWarp, imodFlatten, imodMakeSurface,
  * <p>
- * <p> Revision 3.235  2006/06/14 00:05:32  sueh
- * <p> bug# 852 Moved classes that know a autodoc language.
+ * imodManualErase, isFlipped, preEraser, replaceRawStack,
  * <p>
- * <p> Revision 3.234  2006/06/09 19:48:50  sueh
- * <p> bug# 870 For Tomo Pos forcing the exit state of the dialog to be SAVE when
- * <p> running doneDialog and saveDialog.  Application manager only calls these
- * <p> functions when exiting or switching dialogs without (not using the Cancel,
- * <p> Postpone, or Done buttons).
+ * savePreProcDialog, startNextProcess, updateEraserCom,
  * <p>
- * <p> Revision 3.233  2006/06/09 16:28:04  sueh
- * <p> bug# 869 openTomogramCombinationDialog():  Saving combine script creation
- * <p> states in TomogramState.  For backward compatibility using combineScriptsExist
- * <p> to check for combine scripts if the state isn * <p>
- * <p> Revision 3.232  2006/06/08 19:03:41  sueh
- * <p> bug# 867 updateSplittiltParam:  Setting separate chunks.
+ * updateFlattenWarpParam, updateWarpVolParam.
  * <p>
- * <p> Revision 3.231  2006/06/07 22:23:05  sueh
- * <p> bug# 766 imodFixFiducials():  turning off auto center when fix fiducials is first run.
  * <p>
- * <p> Revision 3.230  2006/06/05 15:59:46  sueh
- * <p> bug# 766 getParamFileStorableArray():  Add the option have elements in the storable array that aer set by the base manager.
+ * Revision 3.327 2009/06/05 01:44:04 sueh
  * <p>
- * <p> Revision 3.229  2006/05/23 21:00:13  sueh
- * <p> bug# 617 Added okToFiducialModelTrack() and
- * <p> okToMakeFiducialModelSeedModel().
+ * bug# 1219 Added flatten, flattenWarp, imodFlatten,
  * <p>
- * <p> Revision 3.228  2006/05/22 22:34:14  sueh
- * <p> bug# 577 Removed unused function backgroundProcess(String, AxisID).
+ * imodMakeSurfaceModel, isFlipped, isSqueezed, isTrimvolFlipped,
  * <p>
- * <p> Revision 3.227  2006/05/19 19:24:28  sueh
- * <p> bug# 866 Moved tomo pos functions to TomogramPositioningExpert and
- * <p> UIExpertUtilities.
+ * updateFlattenWarpParam, and updateWarpVolParam.
  * <p>
- * <p> Revision 3.225  2006/05/16 21:17:47  sueh
- * <p> bug# 856 Fixing checkin comment
  * <p>
- * <p> Revision 3.224  2006/05/16 21:16:17  sueh
- * <p> bug# 856 Fixing checkin comment
+ * Revision 3.326 2009/05/04 16:44:38 sueh
  * <p>
- * <p> Revision 3.223  2006/05/16 21:13:52  sueh
- * <p> bug# 856 Removed dialogMatchMode from CombineParam.  Letting the
- * <p> screen save the script state, since it already is.  In
- * <p> loadCombineComscript(), added a call to
- * <p> TomogramCombinationDialog.updateDisplay() so that the tabs are correct.
- * <p> Passing the BaseManager to SolvematchParam so that it can get the fiducial
- * <p> model.  Changed TomogramCombinationDialog.setScriptMatchMode() to
- * <p> setCombineState() and making it handle the use corresponding list checkbox.
- * <p> Changed TomogramCombinationDialog.isUpToDate() to isChanged().
- * <p> IsChanged() looks at match direction and the use corresponding list checkbox
- * <p> and also looks at whether the scripts exist.  Synchronizing setup to initial
- * <p> on load.  The other doesn't work for match direction anymore.
+ * bug# 1216 In openFiducialModelDialog using AxisType to prevent
  * <p>
- * <p> Revision 3.222  2006/05/12 17:12:44  sueh
- * <p> *** empty log message ***
+ * displaying the RAPTOR interface unless the dataset is dual axis.
  * <p>
- * <p> Revision 3.221  2006/05/11 19:27:06  sueh
- * <p> bug 838 Getting tomopitch results from the log file placing them in
- * <p> Tomo Pos.  Dividing results into original, added, and total so that the user
- * <p> can see what happed.  Align.com and tilt.com are saved with the total,
- * <p> so roll the original and addded numbers into total (actually just hide them).
  * <p>
- * <p> Revision 3.220  2006/04/25 18:50:39  sueh
- * <p> bug# 787 Changed DialogType.SETUP to SETUP_RECON.
+ * Revision 3.325 2009/05/02 01:05:52 sueh
  * <p>
- * <p> Revision 3.219  2006/04/11 13:36:56  sueh
- * <p> bug# 809 Manage auto center and seed mode separately from
- * <p> openBeadFixer so that seed mode doesn't always have to be managed.
+ * bug# 1216 Added imodRawStack, imodRunraptorResult, runraptor,
  * <p>
- * <p> Revision 3.218  2006/03/30 21:14:51  sueh
- * <p> bug# 809 getFiducialDiameterPerPixel:  diameter per pixel is the same for
- * <p> axis A and B.
+ * updateRunraptorParam, and useRunraptorResult.
  * <p>
- * <p> Revision 3.217  2006/03/30 21:08:33  sueh
- * <p> bug# 809 Seed fiducial model opens bead fixer and sets auto center and
- * <p> seed mode.  Fix fiducial model sets auto center.
  * <p>
- * <p> Revision 3.216  2006/03/27 19:15:09  sueh
- * <p> bug# 437 In saveCoarseAlignDialog, getting screen state parameters.
+ * Revision 3.324 2009/04/15 16:51:27 sueh
  * <p>
- * <p> Revision 3.215  2006/03/22 23:32:23  sueh
- * <p> bug# 498 In commitTestVolume(), don't backup the tomogram unless the
- * <p> trial tomogram exists.  In useMtfFilter(), don't backup the .ali file unless
- * <p> the _filt.ali file exists.
+ * bug# 1190 Logging reconnect attempts. Returning false and logging failure for
+ * major reconnection failures. Preventing deleteAlignedStacks from running on a
+ * busy axis.
  * <p>
- * <p> Revision 3.214  2006/03/22 23:20:45  sueh
- * <p> bug# 498 When generating a tomogram, back up the .ali file when using
- * <p> the mtf filter file.  Also backup the tomogram when using a trial tomogram.
  * <p>
- * <p> Revision 3.213  2006/03/22 00:33:29  sueh
- * <p> bug# 836 Preventing useMtfFilter() from running when the axis is busy
+ * Revision 3.323 2009/04/14 23:00:33 sueh
  * <p>
- * <p> Revision 3.212  2006/03/20 17:47:03  sueh
- * <p> bug# 895 Changed DialogType to work with multiple managers, not just
- * <p> ApplicationManager.
+ * bug# 1190 Logging reconnect. Handling some situations where process data is
+ * not
  * <p>
- * <p> Revision 3.211  2006/03/16 01:46:23  sueh
- * <p> bug# 727, bug# 830, bug# 813, bug# 828
+ * running in reconnect.
  * <p>
- * <p> Revision 3.210  2006/02/20 22:08:44  sueh
- * <p> bug# 828 Don't save values from Combine Setup tab to the .edf on exit
- * <p> because they might contradict values that where saved by Create Combine
- * <p> Scripts.  So Combine Setup does not hold the screen values, unlike other
- * <p> dialogs.  This is because the script values are set by Create Combine
- * <p> Scripts and not written directly from the screen.
  * <p>
- * <p> Revision 3.209  2006/02/07 00:08:28  sueh
- * <p> bug# 521 Getting the splitcombine process result display from
- * <p> ProcessResultDisplayFactory so that it is always the Restart at
- * <p> Volcombine button.
+ * Revision 3.322 2009/04/13 22:18:49 sueh
  * <p>
- * <p> Revision 3.208  2006/02/06 20:57:22  sueh
- * <p> bug# 521 Removed unnecessary getParameters(ReconScreenState)
- * <p> functions from process dialogs; toggle buttons that are managed by
- * <p> ProcessResultDisplayFactory can save their own state.
+ * bug# 1207 Moved the call the ProcessData.isRunning to
  * <p>
- * <p> Revision 3.207  2006/01/31 20:36:04  sueh
- * <p> bug# 521 Calling BaseManager.doneProcessDialogin all done functions.
+ * processMgr.getRunningProcess so it can be called fewer times. Implemented
  * <p>
- * <p> Revision 3.206  2006/01/26 21:37:48  sueh
- * <p> bug# 401 Added PRocessResultDisplay parameters to the functions called
- * <p> by toggle buttons.
+ * doAutomation in BaseManager.
  * <p>
- * <p> Revision 3.205  2006/01/20 20:42:49  sueh
- * <p> bug# 401 Added ProcessResultDisplay functionality for tilt, splittilt,
- * <p> processchunks - tilt, newst, and blend.
  * <p>
- * <p> Revision 3.204  2006/01/12 17:00:04  sueh
- * <p> bug# 800 In doneSetupDialog(), check whether metaData exists before
- * <p> using it.
+ * Revision 3.321 2009/03/23 16:53:54 sueh
  * <p>
- * <p> Revision 3.203  2005/12/23 01:55:23  sueh
- * <p> bug# 675 Split the test option functionality.  Control headlessness with
- * <p> --headless.  This allow both JUnit and JfcUnit to use the special test
- * <p> functions.
+ * bug# 1187 Changed sendContinuousMessage, which is the wrong verb, to
+ * getContinuousMessage.
  * <p>
- * <p> Revision 3.202  2005/12/12 21:48:32  sueh
- * <p> bug# 779 Made BaseManager.resetNextProcess() private.
  * <p>
- * <p> Revision for 20:20:21  sueh
- * <p> bug# 776 Added canSnapshot.
- 't found. Changed
+ * Revision 3.320 2009/03/23 16:45:57 sueh
  * <p>
- * <p> Revision 3.200  2005/11/29 22:17:29  sueh
- * <p> Deleted aligned image stack:  The process bar said "stacks", which was
- * <p> misleading.
+ * bug# 1187 Moved taError.log logging to ApplicationManager. Implement
+ * ContinuousMessageTarget: added sendContinuousMessage which generates the ta
+ * align logs and calls logTaErrorLogMessage.
  * <p>
- * <p> Revision 3.199  2005/11/21 21:50:34  sueh
- * <p> bug# 761 updateSplittiltParam() should fail if
- * <p> ParallelPanel.getParameters(SplittiltParam) fails.
  * <p>
- * <p> Revision 3.198  2005/11/19 01:40:07  sueh
- * <p> bug# 744 Moved functions only used by process manager post
- * <p> processing and error processing from Commands to ProcessDetails.
- * <p> This allows ProcesschunksParam to be passed to DetackedProcess
- * <p> without having to add unnecessary functions to it.
+ * Revision 3.319 2009/03/17 00:23:25 sueh
  * <p>
- * bug# 867 3.197  2005/11/10 17:49:52  sueh
- * <p> Constructor should not be public
+ * bug# 1186 Pass managerKey to everything that pops up a dialog.
  * <p>
- * <p> Revision 3.196  2005/11/04 00:52:14  sueh
- * <p> fixed copyright
  * <p>
- * <p> Revision 3.195  2005/11/03 21:20:38  sueh
- * <p> bug# 755 Stop opening combine when tomo gen is done.
+ * Revision 3.318 2009/03/05 23:22:03 sueh
  * <p>
- * <p> Revision 3.194  2005/11/02 21:31:18  sueh
- * <p> bug# 731 In createCombineScripts():  Setting process end state to failed
- * <p> if combine setup fails.
+ * bug$ 1194 Added saveParamFile to logPanel.frameProperties to
+ * UserConfiguration.
  * <p>
- * <p> Revision 3.193  2005/10/31 17:51:34  sueh
- * <p> bug# 730 Added saveDialog which gets the data from the dialogs and
- * <p> saves it to the .edf file.  Calling saveDialog() from exitProgram().  Split
- * <p> the done functions into done and save functions.  The save functions
- * <p> save the dialog data and the done functions call the save functions and
- * <p> then quit the dialog.  Added canChangeParamFileName() - enabling Save
- * <p> As based on whether the param file has been loaded.
  * <p>
- * <p> Revision 3.192  2005/10/29 00:01:29  sueh
- * <p> bug# 725 reseting next processing when running crossCorrelate and
- * <p> eraser to prevent an infinite loop.
+ * Revision 3.317 2009/03/02 18:52:42 sueh
  * <p>
- * <p> Revision 3.191  2005/10/28 21:46:15  sueh
- * <p> bug# 725 setComScripts() do not fail on error messages if exitValue is 0.
- * <p> This means that copytomocoms succeeded but a process it called printed
- * <p> an error message.
+ * bug# 1193 Do all reconnects in openProcessingPanel.
  * <p>
- * <p> Revision 3.190  2005/10/28 18:44:56  sueh
- * <p> bug# 746, bug# 725 deleted updateSplitcombineParam().
  * <p>
- * <p> Revision 3.189  2005/10/27 00:05:27  sueh
- * <p> bug# 725 Processing the b stack when it is added late.  Added functions:
- * <p> extractmagrad, extractpieces, extracttilts, preCrossCorrelate, preEraser,
- * <p> and processBStack.
+ * Revision 3.316 2009/02/13 02:11:46 sueh
  * <p>
- * <p> Revision 3.188  2005/10/19 00:17:43  sueh
- * <p> bug# 673 Added updateArchiveDisplay() to update the display of the
- * <p> archive button on the clean up panel.
+ * bug# 1176 Checking return value of MRCHeader.read.
  * <p>
- * <p> Revision 3.187  2005/10/18 22:09:54  sueh
- * <p> bug# 737 Setting nextProcess after running process, because the axis
- * <p> busy test is run when running process.  bug# 727 Can't reproduce this
- * <p> bug so added some prints to the error log to document it, if it appears
- * <p> again.
  * <p>
- * <p> Revision 3.186  2005/10/15 00:28:13  sueh
- * <p> bug# 532 Called BaseManager.setParallelDialog() when opening each
- * <p> dialog.
+ * Revision 3.315 2009/02/10 21:36:49 sueh
  * <p>
- * <p> Revision 3.185  2005/10/14 21:04:37  sueh
- * <p> bug# 730 Changed loadedTestParamFile to loadedParamFile.
+ * bug# 1143 Passing state to TrimvolParam.setDefaultRange.
  * <p>
- * <p> Revision 3.184  2005/10/13 22:08:48  sueh
- * <p> Bug# 532 In synchronized(), always copying all fields
  * <p>
- * <p> Revision 3.183  2005/09/29 18:38:21  sueh
- * <p> bug# 532 Preventing Etomo from saving to the .edf or .ejf file over and
- * <p> over during exit.  Added BaseManager.exiting and
- * <p> saveIntermediateParamFile(), which will not save when exiting it true.
- * <p> Setting exiting to true in BaseManager.exitProgram().  Moved call to
- * <p> saveParamFile() to the child exitProgram functions so that the param file
- * <p> is saved after all the done functions are run.
+ * Revision 3.314 2009/02/04 22:31:15 sueh
  * <p>
- * <p> Revision 3.182  2005/09/27 21:08:25  sueh
- * <p> bug# 532 Added ReconScreenState screenStateA and B to hold screen
- * <p> state information that is not saved in the comscripts and not used to run
- * <p> processes.  Calling mainPanel.done() during exit to save the state of the
- * <p> parallel processing dialog.  Added getParamFileStorableArray(), which
- * <p> creates, fills, and returns storable array for the .edf file.  Removed
- * <p> getNumStorables().
+ * bug# 1158 passing logPanel to mainPanel.setStatusBarText so its title can
  * <p>
- * <p> Revision 3.181  2005/09/22 20:40:56  sueh
- * <p> bug# 532 changed packDialogs to packPanel and move them to
- * <p> BaseManager.  The packs done in packDialog where for the processor
- * <p> table and where sent through dialogs.  The processor table is no longer
- * <p> associated with the dialogs.  So packing the processor table is done
- * <p> through the main panel.
- * <p>
- * <p> Revision 3.180  2005/09/21 16:03:47  sueh
- * <p> bug# 532 Moved processchunks() and setThreadName() to BaseManager.
- * <p>
- * <p> Revision 3.179  2005/09/19 16:33:22  sueh
- * <p> bug# 532 removed code to find an intermittent bug from
- * <p> doneTomgramGeneration() and updateTiltCom().
- * <p>
- * <p> Revision 3.178  2005/09/16 21:20:26  sueh
- * <p> bug# 532 Changed ParallelDialog.resetParallelPanel() to
- * <p> resetParallelProgressDisplay() because ParallelDialog is generic.
- * <p>
- * <p> Revision 3.177  2005/09/16 20:52:14  sueh
- * <p> bug# 532 When parallel processing checkbox is on, using nextProcess to
- * <p> run processchunks after combine finishes everything but volcombine.
- * <p>
- * <p> Revision 3.176  2005/09/16 17:14:07  sueh
- * <p> bug# 532 Added processchunksTilt() and processchunksVolcombine(), so
- * <p> startNextProcess() can distinguish between the two processchunks calls.
- * <p> Stopped passing the dialog to processchunks; getting it in
- * <p> processchunksTilt() and processchunkVolcombine().  Added functions
- * <p> updateSplitcombine and splitcombine.
- * <p>
- * <p> Revision 3.175  2005/09/02 18:51:05  sueh
- * <p> bug# 720 Pass the manager to TrimvolParam instead of propertyUserDir
- * <p> because TrimvolParam is constructed by MetaData before
- * <p> propertyUserDir is set.
- * <p>
- * <p> Revision 3.174  2005/08/25 01:43:45  sueh
- * <p> bug# 688 calling updateBlendmontInXcorr from doneCoarseAlignment to
- * <p> make sure that xcorr is properly updated
- * <p>
- * <p> Revision 3.173  2005/08/24 22:28:24  sueh
- * <p> bug# 715 Passing the param to crossCorrelate() so it can be used in
- * <p> postProcess() and errorProcess().  Use TiltxcorrParam when blendmont
- * <p> will not run.  Use BlendmontParam when blendmont will run.
- * <p>
- * <p> Revision 3.172  2005/08/22 15:51:15  sueh
- * <p> bug# 532 In doneTomgramGenartionDialog, call
- * <p> TomogramGenerationDialog.stopParallelPanel() to stop parallel panel
- * <p> from sampling the load average when the panal is not displayed.  Added
- * <p> pause().
- * <p>
- * <p> Revision 3.171  2005/08/15 17:46:40  sueh
- * <p> reformatting
- * <p>
- * <p> Revision 3.170  2005/08/11 23:20:47  sueh
- * <p> bug# 711  Change enum Run3dmodMenuOption to
- * <p> Run3dmodMenuOptions, which can turn on multiple options at once.
- * <p> This allows ImodState to combine input from the context menu and the
- * <p> pulldown menu.  Move setting about whether a type of 3dmod run can be
- * <p> binned in Z to ImodManager.
- * <p>
- * <p> Revision 3.169  2005/08/09 19:52:07  sueh
- * <p> bug# 711 Pass Run3dmodMenuOption to all imod functions, except the
- * <p> ones that use modv.
- * <p>
- * <p> Revision 3.168  2005/08/04 19:04:39  sueh
- * <p> bug# 532 added packDialogs() to request sizing functionality that is not
- * <p> performed by pack().
- * <p>
- * <p> Revision 3.167  2005/08/01 17:56:08  sueh
- * <p> bug# 532 Added processchunks().  Added processchunks to
- * <p> startNextProcess().
- * <p>
- * <p> Revision 3.166  2005/07/29 19:43:43  sueh
- * <p> bug# 692 Changed ConstEtomoNumber.getInteger() to getInt.
- * <p>
- * <p> Revision 3.165  2005/07/29 00:31:20  sueh
- * <p> bug# 709 Going to EtomoDirector to get the current manager is unreliable
- * <p> because the current manager changes when the user changes the tab.
- * <p> Passing the manager where its needed.
- * <p>
- * <p> Revision 3.164  2005/07/26 16:57:09  sueh
- * <p> bug# 701 Pass ProcessEndState to the progress bar when stopping it.
- * <p>
- * <p> Revision 3.163  2005/07/21 21:25:16  sueh
- * <p> bug# 532 added splittilt() and updateSplittiltParam().  Added
- * <p> setPauseButton to let the main panel manage the pause button the same
- * <p> way as it manages the kill button.
- * <p>
- * <p> Revision 3.162  2005/07/20 16:56:55  sueh
- * <p> bug# 705 Stop printing the stack trace for IOException bugs coming from
- * <p> MRCHeader, because its filling up the error log with exceptions that are
- * <p> related to real problems.
- * <p>
- * <p> Revision 3.161  2005/07/18 22:01:20  sueh
- * <p> bug# 532 Added parallelProcessTilt().
- * <p>
- * <p> Revision 3.160  2005/07/14 21:55:23  sueh
- * <p> bug# 626 Added montaged views to wholeTomogram().  Added
- * <p> updateBlendCom(TomogramPostioningDialog, AxisID).  Passing back
- * <p> BlendmontParam from both updateBlendCom()'s because they are being
- * <p> updated from the screen..
- * <p>
- * <p> Revision 3.159  2005/07/11 22:42:37  sueh
- * <p> bug# 619 Placed the parallel processing panel on the tomogram
- * <p> generation screen.  Aded functions:  parallelProcessTiltDemo,
- * <p> signalTiltCompleted, signalTiltError, signalTiltKilled, and
- * <p> splitParallelProcessTilt.  Removed functions:
- * <p> dummySplitParallelProcess, dummySplitParallelProcess,
- * <p> getParallelDialog, and parallelProcess.
- * <p>
- * <p> Revision 3.158  2005/07/01 21:07:01  sueh
- * <p> bug 619 Added demo functions to open a parallel processing JDialog.
- * <p>
- * <p> Revision 3.157  2005/06/22 23:34:58  sueh
- * <p> bug# 583 getStackBinning() was not returning default binning if the result
- * <p> of the binning calculation was < 1.
- * <p>
- * <p> Revision 3.156  2005/06/21 00:02:58  sueh
- * <p> bug# 522 Added pass-through function call to
- * <p> BaseProcessManager.touch() for MRCHeaderTest.
- * <p>
- * <p> Revision 3.155  2005/06/20 16:39:35  sueh
- * <p> bug# 522 Made MRCHeader an n'ton.  Getting instance instead of
- * <p> constructing in getMrcHeader().
- * <p>
- * <p> Revision 3.154  2005/06/13 23:34:47  sueh
- * <p> bug# 583 Preventing tilt.com from being overwritten with a default
- * <p> imageBinned after the .ali file is deleted.  DoneTomogramGeneration()
- * <p> needs update and save tilt.com, but the result from getStackBinning will
- * <p> be wrong if the .ali file has been deleted.  Move the responsibility for
- * <p> getting the right imageBinned to TiltParam.  Modify getStackBinning() to
- * <p> have an option to return a null value when it fails to calculate the stack
- * <p> binning.  If TiltParam.setImageBinned() gets a null value and
- * <p> imageBinned is not null, it won't override the current imageBinned value.
- * <p>
- * <p> Revision 3.153  2005/06/10 22:43:43  sueh
- * <p> bug# 583, bug# 682, bug# 584, bug# 679  Moved binning calculation to
- * <p> ApplicationManager.  Storing screen binning for Tomo Pos and Tomo
- * <p> Gen in MetaData separately (Tomo Pos default is 3).  Upgraded
- * <p> align.com and tilt.com to have all unbinned parameters and a binning
- * <p> value.  No longer managing full image size in tilt.com, except to upgrade
- * <p> the file.  Setting xfproduct scale shifts in align.com the same way binning
- * <p> is set.  Added functions:  getBackwardCompatibleAlignBinning,
- * <p> getBackwardCompatibleTiltBinning, getStackBinning,
- * <p> upgradeOldAlignCom, updateOldTiltCom.
- * <p>
- * <p> Revision 3.152  2005/06/03 19:50:32  sueh
- * <p> bug# 671 getMrcHeader(): use the full path in the stack file name.
- * <p> SaveDialog(): check axisType and pass the correct axisID.
- * <p>
- * <p> Revision 3.151  2005/06/01 21:18:41  sueh
- * <p> bug# 667 Remove the Controller classes.  Trying make meta data and
- * <p> app manager equals didn't work very well.  Meta data is created by and
- * <p> managed by app mgr.
- * <p>
- * <p> Revision 3.150  2005/05/19 20:46:10  sueh
- * <p> bug# 662 Added renameXrayStack() to rename the _xray.st.gz file to
- * <p> _xray.st.gz.#.
- * <p>
- * <p> Revision 3.149  2005/05/18 22:26:26  sueh
- * <p> bug# 662 Added functions to archive original stack:
- * <p> archiveOriginalStack, deleteOriginalStack, and getArchiveInfo.  Also
- * <p> modified replaceRawStack() to refresh the archive display in the Clean Up
- * <p> dialog.  Added an archiveorig option to startNextProcess() to get the
- * <p> second axis.
- * <p>
- * <p> Revision 3.148  2005/05/17 19:02:38  sueh
- * <p> bug# 663 Changed updateDataParameter() to setStatusBarText().
- * <p>
- * <p> Revision 3.147  2005/05/09 21:32:36  sueh
- * <p> bug# 658 In updateTrackCom() printing stack trace when there is an
- * <p> exception.
- * <p>
- * <p> Revision 3.146  2005/04/26 17:31:51  sueh
- * <p> bug# 615 Change the name of the UIHarness member variable to
- * <p> uiHarness.
- * <p>
- * <p> Revision 3.145  2005/04/25 20:28:21  sueh
- * <p> bug# 615 Passing the axis where the command originated to the message
- * <p> functions so that the message will be popped up in the correct window.
- * <p>
- * <p> Revision 3.144  2005/04/07 21:47:09  sueh
- * <p> bug# 626 Added makeDistortionCorrectionStack() to run undistort.com.
- * <p> Added setEnabledFixEdgedWithMidas() to enable the Fix Edges With Midas
- * <p> button.
- * <p>
- * <p> Revision 3.143  2005/03/29 23:48:53  sueh
- * <p> bug# 618 Fixed problem with switching dialogs.  PostProcessing and
- * <p> CleanUp where not running open and done functions when the user
- * <p> changed dialogs using the left-hand buttons.  Nulled out dialog variables.
- * <p> Also added cleanup dialog to getDialog().
- * <p>
- * <p> Revision 3.142  2005/03/29 19:47:44  sueh
- * <p> bug# 623 When montaging, setting full image size when updating tilt.com
- * <p> from the .ali file.  When the .ali file is not available set the full image size
- * <p> from running goodframe on the X and Y sizes in the .st file.
- * <p>
- * <p> Revision 3.141  2005/03/24 20:18:35  sueh
- * <p> bug# 621 Fixed bug where post processing button didn't get highlighted.
- * <p>
- * <p> Revision 3.140  2005/03/24 17:48:15  sueh
- * <p> bug# 621 Added Clean Up dialog.
- * <p>
- * <p> Revision 3.139  2005/03/19 01:09:36  sueh
- * <p> adding comments
- * <p>
- * <p> Revision 3.138  2005/03/11 01:57:22  sueh
- * <p> bug# 612 Change nextProcess to support axis A and B.
- * <p>
- * <p> Revision 3.137  2005/03/11 01:31:31  sueh
- * <p> bug# 533 Removed newst updates that where happening when Montage
- * <p> was set.  Sending TomogramGeneration.linearInterpolation to blend.com.
- * <p> Update blend.com in doneTomogramGeneration.
- * <p>
- * <p> Revision 3.136  2005/03/09 22:45:34  sueh
- * <p> bug# 533 In newst() running blend instead of newst when doing a montage.
- * <p>
- * <p> Revision 3.135  2005/03/09 17:58:16  sueh
- * <p> bug# 533 In done functions, only update newst when the view type is not
- * <p> montage.  ProcessManager.crossCorrelate needs to know whether
- * <p> blendmont will actually be run.
- * <p>
- * <p> Revision 3.134  2005/03/08 18:29:54  sueh
- * <p> bug# 533 In midasRawStack() call midasBlendStack() instead of
- * <p> midasRawStack() for montaging.
- * <p>
- * <p> Revision 3.133  2005/03/08 00:39:09  sueh
- * <p> bug# 533 CoarseAlign(): get the preblend command file name from
- * <p> BlendmontParam.
- * <p>
- * <p> Revision 3.132  2005/03/07 23:57:01  sueh
- * <p> bug# 533 Added midasEdges to call midas for fixing edge with a montage
- * <p> view.  Substituting preblend for prenewst in coarse align with a montage
- * <p> view.
- * <p>
- * <p> Revision 3.131  2005/03/04 00:06:31  sueh
- * <p> bug# 533 Changes for montaging only.  imodErasedStack(): add piece list
- * <p> file to 3dmod call.  ImodManualErase():  add frames to 3dmod call.
- * <p> UpdateXcorrCom():  Update blendmont param.  Update goto param based
- * <p> on whether blendmont needs to be called.
- * <p>
- * <p> Revision 3.130  2005/03/02 23:10:57  sueh
- * <p> bug# 533 imodXrayModel():  set frames to true if processing a montage.
- * <p>
- * <p> Revision 3.129  2005/03/01 22:07:03  sueh
- * <p> bug# 610 getDialog():  test for dialogType is null and return null.
- * <p>
- * <p> Revision 3.128  2005/03/01 20:49:42  sueh
- * <p> bug# 607 Catching Throwable in exitProgram and returning true to make
- * <p> sure that Etomo can always exit.  Bug# 610 Keeping track of current
- * <p> dialog type in ApplicationManager by setting it in each open function.
- * <p> Changing saveDialog to saveCurrentDialog and use currentDialogType to
- * <p> pick the dialog to save.
- * <p>
- * <p> Revision 3.127  2005/02/18 23:59:08  sueh
- * <p> bug# 606 Removed MetaData (Setup) zfactors, fiducialess, wholetomogram,
- * <p> and localalignments.  Add them for A and B.
- * <p>
- * <p> Revision 3.126  2005/02/17 19:25:44  sueh
- * <p> bug# 606 Pass AxisID when setting and getting makeZFactors,
- * <p> newstFiducialessAlignment, and usedLocalAlignments.
- * <p>
- * <p> Revision 3.125  2005/02/17 02:38:36  sueh
- * <p> Removing print statements.
- * <p>
- * <p> Revision 3.124  2005/02/16 22:31:23  sueh
- * <p> bug# 604 Added checkForSharedDirectory() to check if there is an .edf
- * <p> file using different stacks in the directory.
- * <p>
- * <p> Revision 3.123  2005/02/07 21:48:17  sueh
- * <p> bug# 594 Added isSetupChanged() to check if user has enter data into
- * <p> Setup dialog.
- * <p>
- * <p> Revision 3.122  2005/01/26 04:23:18  sueh
- * <p> bug# 83 mtfFilter():  Removed called to startProgressBar().
- * <p>
- * <p> Revision 3.121  2005/01/21 22:05:55  sueh
- * <p> bug# 509 bug# 591  Moved the management of MetaData to the Controller
- * <p> class.  Moved the set/get of tranferfid metadata fields to TransferfidPanel.
- * <p> get/setParameters.  Clarifying EtomoNumber: using isNull() in stead of
- * <p> isSet().
- * <p>
- * <p> Revision 3.120  2005/01/14 02:57:30  sueh
- * <p> bug# 511 Added saveDialog() and getDialog().  In done functions, added a
- * <p> check for exit state ==  save to avoid changing the process state or asking
- * <p> to close 3dmods when the user only switched dialogs.
- * <p>
- * <p> Revision 3.119  2005/01/12 00:40:32  sueh
- * <p> bug# 579 Renaming enableZFactors() to enableTiltParameters().  If
- * <p> newstFiducialessAlignment isn't set, use the checkbox value on the
- * <p> screen.
- * <p>
- * <p> Revision 3.118  2005/01/10 23:18:33  sueh
- * <p> bug# 578 Initializing TomogramState.  Changing enableZFactor() to not
- * <p> need backward compatibility information on newstFiducialessAlignment.
- * <p>
- * <p> Revision 3.117  2005/01/08 00:28:05  sueh
- * <p> bug# 578 Added enableZFactors() to enable useZFactors checkbox in
- * <p> tomogram generation.  Set commandMode in NewstParam so
- * <p> ProcessManager.postProcess() can tell whether Full Align Stack was run.
- * <p> Set fiducialessAlignment in NewstParam when Full Align Stack is run.
- * <p> Pass newstParam to ProcessManager.newst() so it can be queried in
- * <p> postProcess().
- * <p>
- * <p> Revision 3.116  2005/01/05 18:53:12  sueh
- * <p> bug# 578 Pass tiltalign to processManager.fineAlignment() by passing it
- * <p> back from updateAlignCom().
- * <p>
- * <p> Revision 3.115  2004/12/28 23:40:35  sueh
- * <p> bug# 567 In updateTiltCom(), adapt to new TiltalignParam names and types.
- * <p>
- * <p> Revision 3.114  2004/12/16 02:51:52  sueh
- * <p> bug# 559 Updating status bar with param file when ending setup dialog.
- * <p>
- * <p> Revision 3.113  2004/12/16 01:29:04  sueh
- * <p> bug# check whether squeezvol output file is flipped before displaying it in
- * <p> 3dmod.
- * <p>
- * <p> Revision 3.112  2004/12/14 21:21:26  sueh
- * <p> bug# 565: Fixed bug:  Losing process track when backing up .edf file and
- * <p> only saving metadata.  bug# 572:  Removing state object from meta data
- * <p> and managing it with a manager object.
- * <p>
- * <p> Revision 3.111  2004/12/13 19:08:19  sueh
- * <p> bug# 565 Saving process track to edf file as well as meta data in
- * <p> doneSetupDialog.
- * <p>
- * <p> Revision 3.110  2004/12/09 04:46:29  sueh
- * <p> bug# 565 Removed isParamFileDirty.  Saved meta data and process track
- * <p> in done function.
- * <p>
- * <p> Revision 3.109  2004/12/08 21:16:14  sueh
- * <p> bug# 564 Changed get and set Input and Output File functions to get and set
- * <p> Input and Output FileName to avoid confusion with new getOutputFile()
- * <p> function.
- * <p>
- * <p> Revision 3.108  2004/12/04 01:25:59  sueh
- * <p> bug# 557 Added imodSqueezedVolume().
- * <p>
- * <p> Revision 3.107  2004/12/03 20:18:50  sueh
- * <p> bug# 556 Do not load SetupParam into combine dialog or update it in
- * <p> volcombine if SetParam not valid (has the wrong set name) or is null.
- * <p> Disable ReductionFactor in combine dialog if SetParam is missing or
- * <p> invalid.
- * <p>
- * <p> Revision 3.106  2004/12/03 02:24:49  sueh
- * <p> bug# 568 Added getTomogramMetaData() to get a writeable meta data.
- * <p>
- * <p> Revision 3.105  2004/12/02 18:23:09  sueh
- * <p> bug# 557 Added squeezevol() and loaded sqeezevol parameters into
- * <p> post processing dialog.
- * <p>
- * <p> Revision 3.104  2004/11/30 00:32:45  sueh
- * <p> bug# 556 Adding functions to parse volcombine.
- * <p>
- * <p> Revision 3.103  2004/11/19 22:31:32  sueh
- * <p> bug# 520 merging Etomo_3-4-6_JOIN branch to head.
- * <p>
- * <p> Revision 3.101.2.14  2004/11/12 22:42:54  sueh
- * <p> bug# 520 Moved imodGetRubberbandCoordinates to base class.
- * <p>
- * <p> Revision 3.101.2.13  2004/10/29 01:15:02  sueh
- * <p> bug# 520 Removing unecessary functions that provided services to
- * <p> BaseManager.  BaseManager can use get... functions to get the
- * <p> mainPanel, metaData, and processTrack.
- * <p>
- * <p> Revision 3.101.2.12  2004/10/21 17:48:01  sueh
- * <p> bug# 520 Fixed status bar by called updateDataParameters when opening
- * <p> the processing panel.
- * <p>
- * <p> Revision 3.101.2.11  2004/10/11 01:55:28  sueh
- * <p> bug# 520 moved responsibility for mainPanel, metaData, processTrack,
- * <p> and progressManager to child classes.  Used abstract functions to use
- * <p> these variables in the base classes.  This is more reliable and doesn't
- * <p> require casting.
- * <p>
- * <p> Revision 3.101.2.10  2004/10/08 21:11:33  sueh
- * <p> bug# 520 Backed out conversion from properties to user.dir.
- * <p>
- * <p> Revision 3.101.2.9  2004/10/08 15:36:53  sueh
- * <p> bug# 520 Setting workingDirName instead of system property for manager
- * <p> level working directory.
- * <p>
- * <p> Revision 3.101.2.8  2004/10/01 20:56:06  sueh
- * <p> bug# 520 Moving getMetaDAta() from base class to this class.
- * <p>
- * <p> Revision 3.101.2.7  2004/09/29 17:27:48  sueh
- * <p> bug# 520 Removed MainPanel pass-through functions.  Casting mainPanel
- * <p> and other members from BaseManager to private local variables in the
- * <p> create functions.
- * <p>
- * <p> Revision 3.101.2.6  2004/09/15 22:32:14  sueh
- * <p> bug# 520 call openMessageDialog in mainPanel instead of mainFrame
- * <p>
- * <p> Revision 3.101.2.5  2004/09/13 16:24:54  sueh
- * <p> bug# 520 Added isNewManager(); true if setup dialog came up.  Telling
- * <p> EtomoDirectory the dataset name when completes successfully.
- * <p>
- * <p> Revision 3.101.2.4  2004/09/09 21:46:40  sueh
- * <p> bug# 552 loading combine.com while creating combine scripts
- * <p>
- * <p> Revision 3.101.2.3  2004/09/08 19:20:38  sueh
- * <p> bug# 520 Casting mainPanel to MainTomogramPanel where necessary.
- * <p> Calling MainFrame.show in EtomoDirector.  Moving kill() to super class.
- * <p>
- * <p> Revision 3.101.2.2  2004/09/07 17:49:36  sueh
- * <p> bug# 520 getting mainFrame and userConfig from EtomoDirector, moved
- * <p> settings dialog to BaseManager,  moved backupFiles() to BaseManager,
- * <p> moved exitProgram() and processing variables to BaseManager, split
- * <p> MainPanel off from MainFrame
- * <p>
- * <p> Revision 3.101.2.1  2004/09/03 20:32:54  sueh
- * <p> bug# 520 beginning to remove functions and variables that can go in
- * <p> BaseManager - removed functions associated with the constructor, moved
- * <p> constructor code to EtomoDirector.  Added create functions to override
- * <p> abstract create functions in BaseManager
- * <p>
- * <p> Revision 3.101  2004/09/02 19:51:18  sueh
- * <p> bug# 527 adding ImodMAnager.setOpenContour calls to
- * <p> imodMAatchingModel()
- * <p> bug# 541 remove unnecessary setBinning call in imodMatchingModel.
- * <p> Don't need to set binning to its default
- * <p>
- * <p> Revision 3.100  2004/08/31 16:52:53  sueh
- * <p> bug# 508 removing JUnit tests that require an X server
- * <p>
- * <p> Revision 3.99  2004/08/26 01:09:51  sueh
- * <p> bug# 508 handling exiting while a background process is
- * <p> running: adding setBackgroundThreadName() and variables
- * <p> backgroundProcessA and backgroundProcessNameA.  Using
- * <p> setBackgroundThreadName() in combine, matchvol1, patchcorr,
- * <p> matchorwarp, and volcombine.  Reseting background thread
- * <p> variables in processDone().  Adding more information to the
- * <p> processes running dialog in exitProgram().
- * <p>
- * <p> Revision 3.98  2004/08/20 22:57:12  sueh
- * <p> bug# 515 improving error handling for Setup dialog
- * <p> Changed:
- * <p> doneSetupDialog
- * <p>
- * <p> Revision 3.97  2004/08/20 21:49:27  sueh
- * <p> bug# 508 made some private items protected so they can by
- * <p> inherited classes.
- * <p> Added:
- * <p> getTest
- * <p> Changed:
- * <p> tomogram CombinationDialog
- * <p> updateComdeSc
- * <p>
- * <p> Revision 3.96  2004/08/19 03:09:24  sueh
- * <p> bug# 508 Added a --selftest option to tell objects to perform extra tests.
- * <p> Used "selftest" because "test" was already taken.  Created load and
- * <p> update functions for the combine comscript.  The update function uses
- * <p> CombineComscriptState to set the start and end command that
- * <p> combine.com will run. Changed the combine functions matchvol1,
- * <p> matchorwarp, etc so that they run combine.com.  Removed combine
- * <p> functions from startNextProcess().  Pulled together functions that had
- * <p> been split up so they could run from either nextProcess or restart; now
- * <p> there is no next process for combine.  Add functions to control the
- * <p> progressBar and the TomogramCombination tab panes.
- * <p> Added:
- * <p> static boolean selfTest
- * <p> getCombineComscript()
- * <p> boolean isSelfTest()
- * <p> loadCombineComscript()
- * <p> matchvol1Combine()
- * <p> showPane(String comscript, String pane)
- * <p> startProgressBar(String label, AxisID axisID)
- * <p> updateCombineComscriptState(int startCommand)
- * <p> Changed:
- * <p> combine()
- * <p> matchorwarpCombine()
- * <p> matchorwarpTrial()
- * <p> openTomogramCombinationDialog()
- * <p> parseCommandLine(String[] args)
- * <p> patchcorrCombine()
- * <p> startNextProcess(AxisID axisID)
- * <p> volcombine()
- * <p> Deleted:
- * <p> matchorwarp(String next)
- * <p> matchvol1()
- * <p> patchcorr()
- * <p> restartAtMatchvol1()
- * <p>
- * <p> Revision 3.95  2004/08/06 23:12:19  sueh
- * <p> bug# 508 added commented out processMgr.combine() call
- * <p> to combine()
- * <p>
- * <p> Revision 3.94  2004/08/03 18:53:45  sueh
- * <p> bug# 519 get the correct tiltAngleSpec for axis B
- * <p>
- * <p> Revision 3.93  2004/08/02 23:51:31  sueh
- * <p> bug# 519 improving error handling in
- * <p> makeRawtltFile()
- * <p>
- * <p> Revision 3.92  2004/08/02 23:03:54  sueh
- * <p> bug# 519 added makeRawtltFile(): create a new .rawtlt file from
- * <p> starting angle, step angle, and # sections
- * <p>
- * <p> Revision 3.91  2004/07/24 01:56:03  sueh
- * <p> bug# 513 change packMainWindow() to call
- * <p> MainFrame.fitWindow() when the Basic/Advanced
- * <p> button is pressed.  packMainWindow() is also called when
- * <p> the Setup dialog is opened.  Calling fitWindow() doesn't cause
- * <p> any proglems for Setup.
- * <p>
- * <p> Revision 3.90  2004/07/23 00:09:30  sueh
- * <p> bug# 513 add function to get UserConfiguration
- * <p>
- * <p> Revision 3.89  2004/07/21 00:22:29  sueh
- * <p> bug# 507 In startNextProcess(), checking
- * <p> tomogramCombinationDialog before running volcombine.
- * <p>
- * <p> Revision 3.88  2004/07/12 17:41:07  sueh
- * <p> bug# 492 in imodPreview: getting metadata from
- * <p> SetupDialog.getDataset().  Also changed the metadata variable
- * <p> name to previewMetaData to avoid confusing it with the
- * <p> member variable metaData
- * <p>
- * <p> Revision 3.87  2004/07/02 00:43:43  sueh
- * <p> bug# 487 adding public functions to get FidXyz and MRCHeader
- * <p>
- * <p> Revision 3.86  2004/06/30 17:27:36  rickg
- * <p> Bug #488 Rotation.xf not being updated correctly, now done anytime
- * <p> the fiducialless parameters are updated.
- * <p>
- * <p> Revision 3.85  2004/06/30 00:16:25  sueh
- * <p> bug# 487 adding checkUpdateFiducialModel(), which compares
- * <p> the current and previous binning in Coarse Align.  This function
- * <p> is run when prenewst.com finishes.
- * <p>
- * <p> Revision 3.84  2004/06/28 22:10:29  rickg
- * <p> Bug #470 Moved the fiducial mode file copying to the same sections
- * <p> where the fiducialless is handled.
- * <p>
- * <p> Revision 3.83  2004/06/28 04:36:39  rickg
- * <p> Bug #470 Added method to update prexf and _nonfid.xf
- * <p>
- * <p> Revision 3.82  2004/06/25 23:26:51  sueh
- * <p> bug# 485 In openTomogramCombinationDialog, after loading
- * <p> the comscripts, synchronize from initial and final tabs to setup
- * <p> and update combineParams
- * <p>
- * <p> Revision 3.81  2004/06/25 21:18:31  sueh
- * <p> bug# 486 corrected set state to inprogress calls.
- * <p>
- * <p> Revision 3.80  2004/06/24 21:41:39  sueh
- * <p> bug# 482 making the call to
- * <p> loadSolvematch(boolean modelBased) compatible with
- * <p> previous versions of the .edf file.
- * <p>
- * <p> Revision 3.79  2004/06/24 20:22:05  sueh
- * <p> bug# 482 removed loadSolvematchshift and mod functions
- * <p>
- * <p> Revision 3.78  2004/06/24 18:43:00  sueh
- * <p> bug# 482 add loadSolvematch(boolean modelBased) to merge
- * <p> solvematchshift and mod into solvematch and add
- * <p> matchshifts
- * <p>
- * <p> Revision 3.77  2004/06/22 23:00:12  sueh
- * <p> bug# 455 Added open contours to sample() and fullSample().
- * <p> Substituted open() calls for model() calls.  Removed extra
- * <p> model() calls.  Setting preserveContrast separately.
- * <p>
- * <p> Revision 3.76  2004/06/22 02:04:28  sueh
- * <p> bug# 441 Created updateTrimvolParam() and added it to
- * <p> trimVolume() and donePostProcessing().  Moved the logic
- * <p> used to create input and output file names to TrimvolParam.
- * <p>
- * <p> Revision 3.75  2004/06/21 17:22:37  rickg
- * <p> Bug #461 z shift is scaled by the prealigned binning
- * <p>
- * <p> Revision 3.74  2004/06/21 00:03:53  sueh
- * <p> bug# 436 adding restartAtMatchvol1(), which updates later comscripts
- * <p> and calls matchvol1().  This is necessary because
- * <p> startNextProcess() does not need to update comscripts.
- * <p>
- * <p> Revision 3.73  2004/06/18 00:52:53  sueh
- * <p> bug# 476 put the logic to check if the fixed stack exists in a
- * <p> separate function and call it in replaceRawStack() and
- * <p> imodErasedStack
- * <p>
- * <p> Revision 3.72  2004/06/17 16:23:34  sueh
- * <p> bug# 466 in imodFullSample() turning on model mode.
- * <p>
- * <p> Revision 3.71  2004/06/15 20:08:49  rickg
- * <p> Bug #383 Run solvematch instead of solvematch{shift|mod}
- * <p>
- * <p> Revision 3.70  2004/06/14 23:39:53  rickg
- * <p> Bug #383 Transitioned to using solvematch
- * <p>
- * <p> Revision 3.69  2004/06/13 17:03:23  rickg
- * <p> Solvematch mid change
- * <p>
- * <p> Revision 3.68  2004/06/10 18:27:12  sueh
- * <p> bug# 463 changing ImodManager.create() to newImod, using
- * <p> ImodManager.setOpenBeadFixer() instead of openBeadFixer
- * <p>
- * <p> Revision 3.67  2004/06/10 18:19:13  rickg
- * <p> Removed redudant dialog parameter fetching from mtffilter and
- * <p> imodPatchRegionModel
- * <p>
- * <p> Revision 3.66  2004/06/10 17:27:53  sueh
- * <p> bug# 462 remove ImodManager.reset() calls
- * <p>
- * <p> Revision 3.65  2004/06/05 00:59:36  sueh
- * <p> bug# 433 add updateLog to call ProcessManager.generateAlignLogs()
- * <p> when the ta logs are out of date
- * <p>
- * <p> Revision 3.64  2004/06/02 23:49:59  rickg
- * <p> Bug #391 only update the rotation.xf if the mode is fiducialess
- * <p>
- * <p> Revision 3.62  2004/06/01 18:53:48  rickg
- * <p> Bug #391 whole tomogram sampling state implementation
- * <p>
- * <p> Revision 3.61  2004/05/27 22:49:54  rickg
- * <p> Bug #391 offer to close preali window for fidless case
- * <p> standardized parameter gathering for tomogram positioning
- * <p> logic for calling updateFiducialAlign
- * <p>
- * <p> Revision 3.60  2004/05/26 04:57:14  rickg
- * <p> Bug #391 Fiducialess handling for the gneration dialog
- * <p>
- * <p> Revision 3.59  2004/05/26 00:00:32  sueh
- * <p> bug# 355 validate metaData when retrieve parameters from an
- * <p> .edf file
- * <p>
- * <p> Revision 3.58  2004/05/25 23:19:34  rickg
- * <p> Bug #391 Fiducialess implementation
- * <p>
- * <p> Revision 3.57  2004/05/24 20:16:45  sueh
- * <p> bug# 409 corrected .ali file names for mtffilter for single axis
- * <p>
- * <p> Revision 3.56  2004/05/21 21:55:13  sueh
- * <p> bug# 443 setting the output file name in tilta.com when
- * <p> running sample
- * <p>
- * <p> Revision 3.55  2004/05/21 02:21:38  sueh
- * <p> bug# 83 removing generic progress bar
- * <p>
- * <p> Revision 3.54  2004/05/15 01:43:55  sueh
- * <p> bug# 415 if saveTestParamIfNecessary() returns false, then the user
- * <p> pressed cancel our there was a problem saving, so don't exit.
- * <p>
- * <p> Revision 3.53  2004/05/15 00:41:00  sueh
- * <p> bug# 302 changing function name updateCombineParams()
- * <p>
- * <p> Revision 3.52  2004/05/13 20:15:10  sueh
- * <p> bug# 33  imodGetRubberbandCoordinates() checks for rubberband data
- * <p>
- * <p> Revision 3.51  2004/05/11 21:11:21  sueh
- * <p> bug# 302 Standardizing synchronization.
- * <p> Syncing with PatchRegionModel button push.
- * <p> UpdateCombineCom(), which updates metadata, is not necessary to
- * <p> run scripts so it doesn't need a success return value.
- * <p> Put syncing first in most cases.
- * <p> Follow syncing by updateCombineCom().
- * <p> In createCombineScripts() run either loadSolvematchShift() or
- * <p> loadSolvematchMod(), instead of only loadSolvematchShift.
- * <p> If MatchingModels is selected after Create scripts is done, call
- * <p> modelCombine() from combine() and visa versa.
- * <p>
- * <p> Revision 3.50  2004/05/07 19:54:45  sueh
- * <p> bug# 33 adding error processing to
- * <p> imodGetRubberbandCoordinates()
- * <p>
- * <p> Revision 3.49  2004/05/06 20:22:33  sueh
- * <p> bug# 33 added getRubberbandCoordinates()
- * <p>
- * <p> Revision 3.48  2004/05/05 21:24:53  sueh
- * <p> bug #430  If changes to .seed happened more recently then .fid, do not
- * <p> mv .fid .seed.  Otherwise backup .seed to .seed~ if not backing up
- * <p> .seed to _orig.seed.  Ok to use fid as seed when .seed does not exist.
- * <p> Orginal bug# 276.
- * <p>
- * <p> Revision 3.47  2004/05/03 22:29:21  sueh
- * <p> bug# 416 Move Bin by 2 settings between tabs in
- * <p> TomogramCombinationDialog.  Set binning in ImodManager.
- * <p>
- * <p> Revision 3.46  2004/05/03 18:04:41  sueh
- * <p> bug# 418 adding printStackTrace for more information
- * <p>
- * <p> Revision 3.45  2004/04/28 22:16:57  sueh
- * <p> bug# 320 user interaction goes in app manager
- * <p>
- * <p> Revision 3.44  2004/04/28 20:13:10  rickg
- * <p> bug #429 all file renames are now handled by the utilities static
- * <p> function to deal with the windows bug
- * <p>
- * <p> Revision 3.43  2004/04/28 00:47:52  sueh
- * <p> trying delete  full aligned stack so that rename works in Windows
- * <p>
- * <p> Revision 3.42  2004/04/28 00:40:29  sueh
- * <p> adding error message if rename filter file doesn't work
- * <p>
- * <p> Revision 3.41  2004/04/27 23:20:13  sueh
- * <p> bug# 320 warn the user about a stale patch vector model after
- * <p> any button press that will lead to creating a new patch vector
- * <p> model
- * <p>
- * <p> Revision 3.40  2004/04/27 22:02:27  sueh
- * <p> bug# 320 try to close the 3dmod with patch vector model before
- * <p> running patchcorr
- * <p>
- * <p> Revision 3.39  2004/04/27 01:01:34  sueh
- * <p> bug# 427 using tomopitch param when running tomopitch
- * <p>
- * <p> Revision 3.38  2004/04/26 21:20:32  sueh
- * <p> bug# 427 added code for tomopitch comscript (not finished)
- * <p>
- * <p> Revision 3.37  2004/04/26 18:36:52  rickg
- * <p> bug #426 Added full image code, fixed order of com script
- * <p> loading for tomogram positioning
- * <p>
- * <p> Revision 3.36  2004/04/26 17:15:54  sueh
- * <p> bug# 83 removing generic progress bar from patchcorr
- * <p>
- * <p> Revision 3.35  2004/04/26 00:24:59  rickg
- * <p> bug #426 Implemented full tomogram sampling
- * <p>
- * <p> Revision 3.34  2004/04/24 08:05:40  rickg
- * <p> bug #391 restructuring
- * <p>
- * <p> Revision 3.32  2004/04/22 23:31:33  rickg
- * <p> bug #391 Added processing for non fid aligne
- * <p> Added getIMODBinPath and getMetaData
- * <p>
- * <p> Revision 3.31  2004/04/19 19:25:04  sueh
- * <p> bug# 409 removing prints
- * <p>
- * <p> Revision 3.30  2004/04/16 02:20:39  sueh
- * <p> removing print statements
- * <p>
- * <p> Revision 3.29  2004/04/16 02:06:30  sueh
- * <p> bug# 409 No longer backing up .ali during useMtfFilter.
- * <p> Changed updateTransferfidEnabled() to updateDialog(FiducialModelDialog) - it
- * <p> does all updates on the FiducialModelDialog - and clarified the code.
- * <p> Create updateDialog(ProcessName) to call the specific updateDialog functions.
- * <p> Calling updateDialog(ProcessName in processDone()
- * <p> Added updateDialog() calls where needed.
- * <p>
- * <p> Revision 3.28  2004/04/06 19:04:06  rickg
- * <p> Print out java system info at start of session
- * <p>
- * <p> Revision 3.27  2004/04/06 17:51:03  rickg
- * <p> bug #391 basic single stage fiducialess alignment
- * <p>
- * <p> Revision 3.26  2004/03/29 21:00:48  sueh
- * <p> bug# 409 Added run mtffilter, view mtffilter result, use mtffilter
- * <p> result as the full
- * <p> aligned stack
- * <p>
- * <p> Revision 3.25  2004/03/24 03:08:17  rickg
- * <p> Bug# 395 Implemented ability to create binned tomogram
- * <p>
- * <p> Revision 3.24  2004/03/22 23:51:23  sueh
- * <p> bug# 83 starting the progress bar as soon as possible
- * <p>
- * <p> Revision 3.23  2004/03/13 00:35:05  rickg
- * <p> Bug# 390 Add prenewst and xfproduct management
- * <p>
- * <p> Revision 3.22  2004/03/11 23:58:14  rickg
- * <p> Bug #410 Newstack PIP transition
- * <p> Formatted code
- * <p>
- * <p> Revision 3.21  2004/03/10 00:44:32  sueh
- * <p> bug# 408 added getIMODCalibDirectory()
- * <p>
- * <p> Revision 3.20  2004/03/09 22:06:56  sueh
- * <p> bug# 407 adding IMOD_CALIB_DIR optional environment variable
- * <p>
- * <p> Revision 3.19  2004/03/06 00:22:39  sueh
- * <p> bug# 250 changed updateCombineCom() - remove duplicate code - call
- * <p> updateCombineCom(int) with NO_TAB
- * <p>
- * <p> Revision 3.18  2004/03/05 18:26:55  sueh
- * <p> bug# 250 changed patchcorrCombine() - updating CombineParams
- * <p> changed updateCombineCom(int) - change the parameter name because
- * <p> its only necessary when a copy to Setup is required
- * <p>
- * <p> Revision 3.17  2004/03/02 00:09:04  sueh
- * <p> bug #250 added updateCombineCom(int fromTab) - update CombineParams
- * <p> from a tab
- * <p> changed combine - default call to combine(int copyFromTab) with NO_TAB
- * <p> added combine(int copyFromTab) copies fields from copyFromTab to setup
- * <p> tab.
- * <p> modelCombine() - same as combine
- * <p> matchvol1() - same as combine
- * <p>
- * <p> Revision 3.16  2004/02/27 20:10:49  sueh
- * <p> bug# 250 changed createCombineScripts() - copied the
- * <p> Setup Use Matching Models value into the Initial tab
- * <p>
- * <p> Revision 3.15  2004/02/25 22:42:23  sueh
- * <p> bug# 403 removed unnecessary code
- * <p>
- * <p> Revision 3.14  2004/02/25 22:17:52  sueh
- * <p> bug# 403 resetState() is no longer setting imodManager to
- * <p> null
- * <p>
- * <p> Revision 3.13  2004/02/16 18:54:38  sueh
- * <p> bug# 276 Added makeFiducialModelSeedModel() to copy the
- * <p>  .seed file to the .fid file.
- * <p>
- * <p> Revision 3.12  2004/02/07 03:12:02  sueh
- * <p> bug# 169 Create ImodManager just once, set metadata
- * <p> separately, reformatted, changed imodRawStack() to
- * <p> ImodPreview()
- * <p>
- * <p> Revision 3.11  2004/02/05 18:05:32  sueh
- * <p> bug# 306 get the trimvol params from the screen and set
- * <p> swapYZ for 3dmod
- * <p>
- * <p> Revision 3.10  2004/02/05 00:19:07  sueh
- * <p> bug# 292 preserving contrast in view x-ray model, changed
- * <p> imodXrayModel()
- * <p>
- * <p> Revision 3.9  2004/02/04 18:12:46  sueh
- * <p> bug# 171 ask to automatically quit all running 3dmod
- * <p> programs.
- * <p>
- * <p> Revision 3.8  2004/01/22 21:09:39  rickg
- * <p> Get screen size in openSetupDialog instead of app init
- * <p>
- * <p> Revision 3.7  2004/01/17 00:14:17  rickg
- * <p> Added a --test argument that prevents the main window from
- * <p> opening up.
- * <p>
- * <p> Revision 3.6  2003/12/08 22:34:32  sueh
- * <p> bug# 169 adding new function imodRawStack
- * <p>
- * <p> Revision 3.5  2003/12/05 01:25:01  sueh
- * <p> bug242 moved getEnvironmentVariable() to Utilities
- * <p>
- * <p> Revision 3.4  2003/12/04 22:09:03  sueh
- * <p> bug242 Converting to new interface.
- * <p>
- * <p> Revision 3.3  2003/11/26 23:36:27  rickg
- * <p> Debug flag and getter changed to static.
- * <p>
- * <p> Revision 3.2  2003/11/11 00:24:52  sueh
- * <p> Bug349 imodFixFiducials(AxisID): call
- * <p> imodManager.openBeadFixer()
- * <p>
- * <p> Revision 3.1  2003/11/10 07:28:54  rickg
- * <p> ContextPopup initialization no longer needed
- * <p> Some more stderr printing on exceptions
- * <p>
- * <p> Revision 3.0  2003/11/07 23:19:00  rickg
- * <p> Version 1.0.0
- * <p>
- * <p> Revision 2.93  2003/11/07 19:49:38  rickg
- * <p> Don't delete preali in delete aligned stacks code.
- * <p>
- * <p> Revision 2.92  2003/11/07 00:52:56  rickg
- * <p> Added test helper methods
- * <p> Changed transferfid parameter name to indicate that it is called with
- * <p> the destination axis
- * <p>
- * <p> Revision 2.91  2003/11/06 22:45:47  sueh
- * <p> cleaning up task tags and prints
- * <p>
- * <p> Revision 2.90  2003/11/06 21:41:27  sueh
- * <p> bug348 imodFineAlign(AsixID): removed calls to
- * <p> setFineAlignmentState() for processTrack and mainFrame.
- * <p>
- * <p> Revision 2.89  2003/11/05 20:31:48  rickg
- * <p> Bug #292 Added preserve contrast seed model and residual model
- * <p> opens
- * <p>
- * <p> Revision 2.88  2003/11/05 20:04:05  rickg
- * <p> Bug# 347 Message written to process monitor area
- * <p>
- * <p> Revision 2.87  2003/11/05 19:39:17  rickg
- * <p> Bug# 295 Query the combination dialog instead of the metaData
- * <p> object as to the state of the match direction for opening the patch
- * <p> region model.
- * <p>
- * <p> Revision 2.86  2003/11/05 19:20:21  rickg
- * <p> Bug# 290 Save tomo gen data when done is pressed
- * <p>
- * <p> Revision 2.85  2003/11/05 18:05:50  sueh
- * <p> bug278 created backupFile(File) to backup the .edf file
- * <p> called backupFile(File) from saveTestParamFile()
- * <p>
- * <p> Revision 2.84  2003/11/04 20:55:42  rickg
- * <p> Bug #345 IMOD Diriectory supplied by a static function from 
- * <p> ApplicationManager
- * <p>
- * <p> Revision 2.83  2003/10/27 23:55:41  rickg
- * <p> Bug# 283 Added method to open the tomopitch log file
- * <p>
- * <p> Revision 2.82  2003/10/24 21:45:09  rickg
- * <p> Spelling fix
- * <p>
- * <p> Revision 2.81  2003/10/23 23:06:13  sueh
- * <p> bug271 called isValid() in SetupDialog
- * <p>
- * <p> Revision 2.80  2003/10/22 21:32:02  rickg
- * <p> Bug# 287 Default value handling for SLICE OFFSET and SHIFT
- * <p>
- * <p> Revision 2.79  2003/10/21 23:45:05  rickg
- * <p> Added function to delete the aligned stacks
- * <p>
- * <p> Revision 2.78  2003/10/21 02:34:20  sueh
- * <p> Bug325 Pulled out generic default UI retrieval functionality and placed
- * <p> it in ButtonHelper.
- * <p>
- * <p> Revision 2.77  2003/10/20 22:02:13  rickg
- * <p> Bug# 228 Check to see if solve.xf exists before running matchvol1
- * <p>
- * <p> Revision 2.76  2003/10/20 17:32:09  rickg
- * <p> Use existence of combine com scripts
- * <p> ConstCombineParams.scriptsCreated flag
- * <p>
- * <p> Revision 2.75  2003/10/17 02:00:07  sueh
- * <p> Bug317 added new function - to retrieve default UI resources
- * <p>
- * <p> Revision 2.73  2003/10/10 23:17:01  sueh
- * <p> bug251 removing marks
- * <p>
- * <p> Revision 2.72  2003/10/07 22:40:40  sueh
- * <p> bug251 moved transferfid from fine alignment dialog
- * <p> to fiducial model dialog
- * <p>
- * <p> Revision 2.71  2003/10/05 23:59:35  rickg
- * <p> Bug# 252
- * <p> Adde complete message to progresss region for shor processes
- * <p>
- * <p> Revision 2.70  2003/10/05 21:36:05  rickg
- * <p> Bug# 256
- * <p> Catch SystemProcessException for attempted multiple
- * <p> processes in a axis
- * <p>
- * <p> Revision 2.69  2003/10/03 22:11:15  rickg
- * <p> Bug# 255
- * <p> added returns to catch sections for doneSetupDialog
- * <p> Don't want to continue to main window if copytomocoms did not
- * <p> succeed
- * <p>
- * <p> Revision 2.68  2003/10/02 18:57:46  sueh
- * <p> bug236 added testing:
- * <p> NewstParamTest
- * <p> ComScriptTest
- * <p>
- * <p> Removed marks
- * <p>
- * <p> Revision 2.67  2003/09/30 03:18:43  rickg
- * <p> Bug# 248
- * <p> changed openTestParamFile to loadTestParamFile
- * <p> split out resetState method
- * <p> added logic to openExistingData use a File object or
- * <p> open the File Dialog and drop into the setup page if it fails.
- * <p>
- * <p> Revision 2.66  2003/09/30 02:18:57  rickg
- * <p> Bug 249
- * <p> Proper New dialog behavior when not saving the EDF
- * <p> Also moved message dialogs to the mainFrame
- * <p>
- * <p> Revision 2.65  2003/09/29 23:34:57  sueh
- * <p> bug236 Added UseLinearInterpolation to
- * <p> TomogramGenerationDialog.
- * <p>
- * <p> UseLinearInterpolation:
- * <p> check box
- * <p> Advanced
- * <p> newst -linear
- * <p>
- * <p> Files:
- * <p> ComScriptManager.java
- * <p> ConstNewstParam.java
- * <p> NewstParam.java
- * <p> TomogramGenerationDialog.java
- * <p> ApplicationManager.java
- * <p>
- * <p> Revision 2.64  2003/09/26 19:46:16  sueh
- * <p> bug223 removed task marks
- * <p>
- * <p> Revision 2.63  2003/09/26 19:43:48  sueh
- * <p> bug223 no field should be persistant.  Changed MetaData.
- * <p> Added TransferfidNumberViews.
- * <p> Changed the done fine allignment and open fine allignment functions
- * <p> to work with MetaData
- * <p>
- * <p> Revision 2.62  2003/09/09 17:20:29  rickg
- * <p> Check to see if the _orig.st stack exists, do not replace if it does.
- * <p>
- * <p> Revision 2.61  2003/09/08 22:18:50  rickg
- * <p> Catch exception thrown buy ProcessManager.startComScript
- * <p>
- * <p> Revision 2.60  2003/09/08 05:44:47  rickg
- * <p> Added trial tilt
- * <p> Output for a single axis tomogram is changed to
- * <p> dataset_full.rec
- * <p>
- * <p> Revision 2.59  2003/08/20 21:57:09  rickg
- * <p> Only close imods in specified directory
- * <p>
- * <p> Revision 2.58  2003/08/05 21:35:22  rickg
- * <p> Retry commit, eclipse broken?
- * <p>
- * <p> Revision 2.57  2003/07/28 22:53:09  rickg
- * <p> Fixed postpone logic for combine panel.  Combine scripts
- * <p> created flag is now reset only when the CombineParams are
- * <p> modified.
- * <p>
- * <p> Combine postpone will now save combine sub script parameters
- * <p>
- * <p> Revision 2.56  2003/07/25 22:51:11  rickg
- * <p> Imod model mode management changes
- * <p> Save original stack as _orig.st
- * <p>
- * <p> Revision 2.55  2003/07/22 22:16:15  rickg
- * <p> Erased stack methods and trial mode
- * <p>
- * <p> Revision 2.54  2003/07/01 19:24:30  rickg
- * <p> Fixed progress bars for prenewst, newst and tomogram generation
- * <p>
- * <p> Revision 2.53  2003/06/27 20:33:28  rickg
- * <p> Changed below method to public
- * <p>
- * <p> Revision 2.52  2003/06/27 20:23:32  rickg
- * <p> Adde getter method for the com script manager
- * <p>
- * <p> Revision 2.51  2003/06/10 05:29:30  rickg
- * <p> Data persistence behavior of the combination and post
- * <p> processing panels now match the others.
- * <p>
- * <p> Revision 2.50  2003/06/10 05:15:23  rickg
- * <p> *** empty log message ***
- * <p>
- * <p> Revision 2.49  2003/06/09 04:28:21  rickg
- * <p> Set state to in progress if any thing is exected for a given
- * <p> process panel
- * <p>
- * <p> Revision 2.48  2003/06/05 21:19:13  rickg
- * <p> Explicit transferfid B to A false setting
- * <p>
- * <p> Revision 2.47  2003/05/27 08:42:04  rickg
- * <p> Progress bar determinant delegate methods
- * <p>
- * <p> Revision 2.46  2003/05/23 22:49:41  rickg
- * <p> Spelling correction
- * <p>
- * <p> Revision 2.45  2003/05/23 14:29:11  rickg
- * <p> Progress bar determinant delegate methods
- * <p>
- * <p> Revision 2.44  2003/05/21 22:56:54  rickg
- * <p> Initial kill implementation
- * <p>
- * <p> Revision 2.43  2003/05/19 22:05:31  rickg
- * <p> Added openNewDataset method
- * <p> unset isDataParamDirty in daving method
- * <p>
- * <p> Revision 2.42  2003/05/15 22:24:24  rickg
- * <p> Reordered method sequence in opening processing panel to
- * <p> prevent slider from taking up all of the window.
- * <p>
- * <p> Revision 2.41  2003/05/15 20:13:05  rickg
- * <p> Fixed PLAF for windows
- * <p>
- * <p> Revision 2.40  2003/05/15 19:39:44  rickg
- * <p> Look and feel handling
- * <p>
- * <p> Revision 2.39  2003/05/14 23:22:51  rickg
- * <p> Exit if no IMOD_DIR is defined.  We can't run any of the non com scripts
- * <p>
- * <p> Revision 2.38  2003/05/14 21:45:27  rickg
- * <p> New trimvol constructor for windows
- * <p>
- * <p> Revision 2.37  2003/05/14 14:36:08  rickg
- * <p> Temporary change to volcombine
- * <p>
- * <p> Revision 2.36  2003/05/13 19:58:22  rickg
- * <p> TransferfidParams constructed with IMODDirectory File
- * <p>
- * <p> Revision 2.35  2003/05/10 19:12:56  rickg
- * <p> OS independent path implementation
- * <p>
- * <p> Revision 2.34  2003/05/10 18:01:56  rickg
- * <p> Fixes to get IMOD_DIR home and current working directory
- * <p> in a OS agnostic manner
- * <p>
- * <p> Revision 2.33  2003/05/09 23:25:36  rickg
- * <p> Working change to get env vars from all OSs
- * <p>
- * <p> Revision 2.32  2003/05/09 17:52:59  rickg
- * <p> include this in ImodManager constructor, needed for fiducial model calls
- * <p>
- * <p> Revision 2.31  2003/05/08 23:18:45  rickg
- * <p> Added --debug option, off by default
- * <p>
- * <p> Revision 2.30  2003/05/08 20:14:30  rickg
- * <p> Don't set main window location to (0,0) confuses SGI
- * <p>
- * <p> Revision 2.29  2003/05/08 19:58:53  rickg
- * <p> Work around for bug in File.getParent
- * <p>
- * <p> Revision 2.28  2003/05/07 23:04:29  rickg
- * <p> System property user.dir now defines the working directory
- * <p> Home is now read from the System properties
- * <p>
- * <p> Revision 2.27  2003/04/30 18:48:51  rickg
- * <p> Changed matchcheck* to a single imod instance
- * <p>
- * <p> Revision 2.26  2003/04/28 23:25:25  rickg
- * <p> Changed visible imod references to 3dmod
- * <p>
- * <p> Revision 2.25  2003/04/24 17:46:54  rickg
- * <p> Changed fileset name to dataset name
- * <p>
- * <p> Revision 2.24  2003/04/17 23:11:26  rickg
- * <p> Added cancel handling from post processing dialog
- * <p>
- * <p> Revision 2.23  2003/04/16 22:49:49  rickg
- * <p> Trimvol implmentation
- * <p>
- * <p> Revision 2.22  2003/04/16 00:13:54  rickg
- * <p> Trimvol in progress
- * <p>
- * <p> Revision 2.21  2003/04/14 23:57:18  rickg
- * <p> Trimvol management changes
- * <p>
- * <p> Revision 2.20  2003/04/10 23:40:03  rickg
- * <p> Initial exit function handling of imod and other processes
- * <p> Initial openPostProcessingDialog
- * <p>
- * <p> Revision 2.19  2003/03/26 00:52:25  rickg
- * <p> Added button to convert patch_vector.mod to patch.out
- * <p>
- * <p> Revision 2.18  2003/03/22 00:40:35  rickg
- * <p> slovematchmod label change
- * <p>
- * <p> Revision 2.17  2003/03/20 21:18:55  rickg
- * <p> Added matchshift results button/access
- * <p>
- * <p> Revision 2.16  2003/03/20 16:58:42  rickg
- * <p> Added methods: imodMatchedToTomgram, matchorwarpTrial
- * <p> Added trial mode handling to matchorwarp
- * <p>
- * <p> Revision 2.15  2003/03/19 00:23:04  rickg
- * <p> Added imod patch vector model pass through
- * <p>
- * <p> Revision 2.14  2003/03/18 23:56:54  rickg
- * <p> ComScript method name changes
- * <p> Apropriate loading of combine scripts
- * <p> Added pass through method to open matching models
- * <p> Done not longer executes combine
- * <p> Updated combine related methods to match new
- * <p> combination dialog
- * <p>
- * <p> Revision 2.13  2003/03/18 17:03:15  rickg
- * <p> Combine development in progress
- * <p>
- * <p> Revision 2.12  2003/03/18 15:01:31  rickg
- * <p> Combine development in progress
- * <p>
- * <p> Revision 2.11  2003/03/18 00:32:32  rickg
- * <p> combine development in progress
- * <p>
- * <p> Revision 2.10  2003/03/07 07:22:49  rickg
- * <p> combine layout in progress
- * <p>
- * <p> Revision 2.9  2003/03/06 05:53:28  rickg
- * <p> Combine interface in progress
- * <p>
- * <p> Revision 2.8  2003/03/06 01:19:17  rickg
- * <p> Combine changes in progress
- * <p>
- * <p> Revision 2.7  2003/03/02 23:30:41  rickg
- * <p> Combine layout in progress
- * <p>
- * <p> Revision 2.6  2003/02/24 23:27:21  rickg
- * <p> Added process interrupt method
- * <p>
- * <p> Revision 2.5  2003/01/30 00:43:32  rickg
- * <p> Blank second axis panel when done with tomogram generation
- * <p>
- * <p> Revision 2.4  2003/01/29 15:22:58  rickg
- * <p> Updated logic for combine step
- * <p>
- * <p> Revision 2.3  2003/01/28 20:42:53  rickg
- * <p> Bug fix: save current dialog state when running align.com
- * <p>
- * <p> Revision 2.2  2003/01/28 00:15:29  rickg
- * <p> Main window now remembers its size
- * <p>
- * <p> Revision 2.1  2003/01/27 18:12:41  rickg
- * <p> Fixed bug from single window transition in positioning dialog
- * <p> opening function
- * <p>
- * <p> Revision 2.0  2003/01/24 20:30:31  rickg
- * <p> Single window merge to main branch
+ * be updated.
  * <p>
- * <p> Revision 1.36.2.1  2003/01/24 18:27:46  rickg
- * <p> Single window GUI layout initial revision
  * <p>
- * <p> Revision 1.36  2003/01/10 20:46:34  rickg
- * <p> Added ability to view 3D fiducial models
+ * Revision 3.313 2008/12/09 21:25:41 sueh
  * <p>
- * <p> Revision 1.35  2003/01/10 18:39:58  rickg
- * <p> Using existing com scripts now gives the correct
- * <p> process state
- * <p>
- * <p> Revision 1.34  2003/01/10 18:33:16  rickg
- * <p> Added test parameter filename to command line args
- * <p>
- * <p> Revision 1.33  2003/01/08 21:04:38  rickg
- * <p> More descriptive error dialog when the are not
- * <p> available for combining.
+ * bug# 1160 Changed getFiducialDiameterPerPixel; divided the diameter by coarse
+ * aligned stack binning.
  * <p>
- * <p> Revision 1.32  2003/01/07 00:30:16  rickg
- * <p> Added imodViewResidual method
  * <p>
- * <p> Revision 1.31  2003/01/06 04:53:16  rickg
- * <p> Set default parameters for transferfid panel and handle
- * <p> new backwards flag for b to a
+ * Revision 3.312 2008/12/05 00:49:29 sueh
  * <p>
- * <p> Revision 1.30  2003/01/04 00:41:00  rickg
- * <p> Implemented transferfid method
+ * bug# 1156 Added a skipList parameter to imodFixFiducials.
  * <p>
- * <p> Revision 1.29  2002/12/19 00:35:20  rickg
- * <p> Implemented persitent advanced state handling
  * <p>
- * <p> Revision 1.27  2002/12/11 21:26:31  rickg
- * <p> Added font setting into user prefs setting
+ * Revision 3.311 2008/11/21 17:10:22 sueh
  * <p>
- * <p> Revision 1.26  2002/12/11 05:39:00  rickg
- * <p> Added basic font change method
+ * bug# 1123 In saveAlignmentEstimationDialog calling
  * <p>
- * <p> Revision 1.25  2002/12/11 00:39:48  rickg
- * <p> Basic handling of settings dialog
- * <p> added setUserPreferences method
+ * FinalAlignmentDialog.getParameters(ReconScreenState).
  * <p>
- * <p> Revision 1.24  2002/12/09 04:18:50  rickg
- * <p> Better handling of current working directory, user.dir and
- * <p> metaData always agree now.
  * <p>
- * <p> Revision 1.23  2002/12/05 01:21:02  rickg
- * <p> Added isAdvanced stub
+ * Revision 3.310 2008/11/20 01:23:55 sueh
  * <p>
- * <p> Revision 1.22  2002/11/21 19:24:38  rickg
- * <p> Set user.dir to current working directory
+ * bug# 1147 Added ccdEraser(), xfmodel(). Changed imodSeedFiducials
  * <p>
- * <p> Revision 1.21  2002/10/29 18:22:04  rickg
- * <p> Simplified rawstack open checking
+ * to imodSeedModel and made it more generic.
  * <p>
- * <p> Revision 1.20  2002/10/25 19:30:43  rickg
- * <p> Modifies several catches to explicilty specify exception
  * <p>
- * <p> Revision 1.19  2002/10/24 19:52:55  rickg
- * <p> Added command line --demo argument
+ * Revision 3.309 2008/10/27 17:43:20 sueh
  * <p>
- * <p> Revision 1.18  2002/10/22 21:38:24  rickg
- * <p> ApplicationManager now controls both demo and debug
- * <p> modes
+ * bug# 1141 Added ctfCorrection, ctfPlotter, imodCtfCorrection,
  * <p>
- * <p> Revision 1.17  2002/10/17 22:47:35  rickg
- * <p> process dialogs are now managed attributes
- * <p> setVisible calls changed to show
- * <p> unused variable dialogFinshed removed
+ * splitCorrection, and FinalAlignedStack dialogs.
  * <p>
- * <p> Revision 1.16  2002/10/17 16:23:04  rickg
- * <p> Added private method to update the dependent tilt parameters when the
- * <p> align.com parameters are changed
  * <p>
- * <p> Revision 1.15  2002/10/16 17:37:18  rickg
- * <p> Construct a imodManager when a new data set is opened
+ * Revision 3.308 2008/10/16 20:53:50 sueh
  * <p>
- * <p> Revision 1.14  2002/10/14 22:44:27  rickg
- * <p> Added combine to execute section of doneCombine
+ * bug# 1141 Created FinalAlignedStack dialog to run full aligned stack and mtf
+ * filter.
  * <p>
- * <p> Revision 1.13  2002/10/14 19:04:18  rickg
- * <p> openMessageDialog made public
  * <p>
- * <p> Revision 1.12  2002/10/10 23:40:33  rickg
- * <p> refactored createCombineScripts to setupCombineScripts
+ * Revision 3.307 2008/09/30 19:45:49 sueh
  * <p>
- * <p> Revision 1.11  2002/10/10 19:16:19  rickg
- * <p> Get HOME and IMOD_DIR environement variables during
- * <p> initialization instead of each time they requested.  Also
- * <p> exit if they are not available.
+ * bug# 1113 Reformatting
  * <p>
- * <p> Revision 1.10  2002/10/09 04:29:17  rickg
- * <p> Implemented calls to updateCombineCom
  * <p>
- * <p> Revision 1.9  2002/10/09 00:04:37  rickg
- * <p> Added default patch boundary logic
- * <p> still needs work on getting combine parameters at the correct times
+ * Revision 3.306 2008/07/24 18:04:17 sueh
  * <p>
- * <p> Revision 1.8  2002/10/07 22:20:21  rickg
- * <p> removed unused imports
+ * bug# 1128 In imodSample calling ImodManager.setPointLimit.
  * <p>
- * <p> Revision 1.7  2002/09/30 23:44:43  rickg
- * <p> Started implementing updateCombineCom
  * <p>
- * <p> Revision 1.6  2002/09/30 22:01:29  rickg
- * <p> Added check to verify dual axis for combination
+ * Revision 3.305 2008/07/24 17:57:13 sueh
  * <p>
- * <p> Revision 1.5  2002/09/20 18:56:09  rickg
- * <p> Added private message and yes/no dialog methods
- * <p> Check to see if the raw stack and coarsely aligned stacks should be
- * <p> closed by the user
+ * bug# 1128 In imodFullSample called ImodManager.setPointLimit.
  * <p>
- * <p> Revision 1.4  2002/09/19 22:57:56  rickg
- * <p> Imod mangement is now handled through the ImodManager
  * <p>
- * <p> Revision 1.3  2002/09/17 23:44:56  rickg
- * <p> Adding ImodManager, in progress
+ * Revision 3.304 2008/06/20 20:53:17 sueh
  * <p>
- * <p> Revision 1.2  2002/09/13 21:29:57  rickg
- * <p> Started updating for ImodManager
+ * bug# 1112 Use .tlt when opening FINE_ALIGNED and MTF_FILTER 3dmods.
  * <p>
- * <p> Revision 1.1  2002/09/09 22:57:02  rickg
- * <p> Initial CVS entry, basic functionality not including combining
- * <p> </p>
+ * <p>
+ * Revision 3.303 2008/06/19 23:20:01 sueh
+ * <p>
+ * bug# 1112 Added tilt angle for the 3dmods that display tilt series
+ * <p>
+ * <p>
+ * Revision 3.302 2008/05/28 02:33:04 sueh
+ * <p>
+ * bug# 1111 Add a dialogType parameter to the ProcessSeries
+ * <p>
+ * constructor. Pass it to manager.startNextProcess so the UIExpert can be
+ * <p>
+ * retrieved. DialogType must be passed to any function that constructs a
+ * <p>
+ * ProcessSeries instance.
+ * <p>
+ * <p>
+ * Revision 3.301 2008/05/14 19:38:35 sueh
+ * <p>
+ * bug# 1094 Fixed strings in savePostProcessing.
+ * <p>
+ * <p>
+ * Revision 3.300 2008/05/13 20:40:55 sueh
+ * <p>
+ * bug# 847 Added Deferred3dmodButton and Run3dmodMenuOptions to
+ * <p>
+ * functions where 3dmod may run after the process.
+ * <p>
+ * <p>
+ * Revision 3.299 2008/05/06 23:53:31 sueh
+ * <p>
+ * bug#847 Running deferred 3dmods by using the button that usually calls
+ * <p>
+ * them. This avoids having to duplicate the calls and having a
+ * <p>
+ * startNextProcess function just for 3dmods.
+ * <p>
+ * <p>
+ * Revision 3.298 2008/05/03 00:28:29 sueh
+ * <p>
+ * bug# 847 Passing ProcessSeries to the process manager, startNextProcess, and
+ * to all process functions. To avoid having to decide which processes are next
+ * processes, pass it everywhere, even to processes that don't use
+ * ProcessResultDisplay. The UI should not create any ProcessSeries and should
+ * pass them as null (since they don't know about processes). Before adding to a
+ * process series, create it if it doesn't exist. Before checking a process
+ * series, make sure it exists. Since a series is only created when it doesn't
+ * exist and is needed, I don't have to keep track of which process comes first
+ * in a series.
+ * <p>
+ * <p>
+ * Revision 3.297 2008/01/31 20:13:29 sueh
+ * <p>
+ * bug# 1055 throwing a FileException when LogFile.getInstance fails.
+ * <p>
+ * <p>
+ * Revision 3.296 2008/01/23 21:02:03 sueh
+ * <p>
+ * bug# 1064 Added reconnectRunA and B. Can't use the reconnectRun
+ * <p>
+ * functionality in BaseManager because BaseManager.reconnect is run before
+ * <p>
+ * ApplicationManager.reconnect.
+ * <p>
+ * <p>
+ * Revision 3.295 2008/01/14 20:12:44 sueh
+ * <p>
+ * bug# 1050 In openProcessingPanel do not call reconnect for Axis B.
+ * Processchunks reconnect must be done while Axis B is displayed. In reconnect
+ * call super.reconnect to do the processchunks reconnect.
+ * <p>
+ * <p>
+ * Revision 3.294 2007/12/26 21:53:34 sueh
+ * <p>
+ * bug# 1052 Created SetupDialogExpert. Made SetupDialog package protected.
+ * <p>
+ * <p>
+ * Revision 3.293 2007/12/13 01:01:45 sueh
+ * <p>
+ * bug# 1056 Moved post processing decision making back to ProcessManager.
+ * <p>
+ * <p>
+ * Revision 3.292 2007/12/10 21:46:18 sueh
+ * <p>
+ * bug# 1041 Formatted
+ * <p>
+ * <p>
+ * Revision 3.291 2007/11/06 18:56:06 sueh
+ * <p>
+ * bug# 1047 Generalize TrimvolParam.
+ * <p>
+ * <p>
+ * Revision 3.290 2007/09/27 19:18:33 sueh
+ * <p>
+ * bug# 1044 Made ProcessorTable the ParallelProgress display instead of
+ * <p>
+ * ParallelPanel.
+ * <p>
+ * <p>
+ * Revision 3.289 2007/09/07 00:14:57 sueh
+ * <p>
+ * bug# 989 Using a public INSTANCE for EtomoDirector instead of getInstance
+ * <p>
+ * and createInstance.
+ * <p>
+ * <p>
+ * Revision 3.288 2007/08/29 21:20:51 sueh
+ * <p>
+ * bug# 1041 Made getBaseState public.
+ * <p>
+ * <p>
+ * Revision 3.287 2007/08/22 14:58:35 sueh
+ * <p>
+ * bug# 1036 Showing a blank process when opening a dialog fails.
+ * <p>
+ * <p>
+ * Revision 3.286 2007/08/21 21:48:35 sueh
+ * <p>
+ * bug# 771 Added getTomogramSize. Setting state.tomogramSize in
+ * <p>
+ * createCombineScripts and openTomogramCombinationDialog.
+ * <p>
+ * <p>
+ * Revision 3.285 2007/08/08 14:44:46 sueh
+ * <p>
+ * bug# 834 In doneSetupDialog, setting MetaData.TrimvolParam.swapYZ if it is
+ * set
+ * <p>
+ * in userConfig.
+ * <p>
+ * <p>
+ * Revision 3.284 2007/07/30 18:30:56 sueh
+ * <p>
+ * bug# 1002 ParameterStore.getInstance can return null - handle it.
+ * <p>
+ * <p>
+ * Revision 3.283 2007/07/27 16:50:05 sueh
+ * <p>
+ * bug# 979 In openFiducialModelDialog returning success/failure boolean. Using
+ * <p>
+ * getInstance to construct FiducialModelDialog because it uses action
+ * listeners,
+ * <p>
+ * which shouldn't be created during construction.
+ * <p>
+ * <p>
+ * Revision 3.282 2007/07/24 19:24:48 sueh
+ * <p>
+ * bug# 1032 Don't set meta data in imod manager unless paramFileName is set.
+ * <p>
+ * <p>
+ * Revision 3.281 2007/06/08 21:50:18 sueh
+ * <p>
+ * bug# 1014 Removed setMetaData(ImodManager) and placing the call to
+ * ImodManager.setMetaData after the call to initializeUIParameters.
+ * <p>
+ * <p>
+ * Revision 3.280 2007/05/21 22:27:29 sueh
+ * <p>
+ * bug# 964 Added get getInterfaceType().
+ * <p>
+ * <p>
+ * Revision 3.279 2007/04/09 19:10:45 sueh
+ * <p>
+ * bug# 964 Added setParamFile(), which just returns loadedParamFile
+ * <p>
+ * <p>
+ * Revision 3.278 2007/03/07 20:52:03 sueh
+ * <p>
+ * bug# Validate beam tilt fields in the fine alignment dialog in
+ * fineAlignment().
+ * <p>
+ * <p>
+ * Revision 3.277 2007/03/03 00:30:53 sueh
+ * <p>
+ * bug# 973 Getting/setting metadata in Fine Align dialog.
+ * <p>
+ * <p>
+ * Revision 3.276 2007/02/21 22:28:42 sueh
+ * <p>
+ * 964 Removing incorrect comment.
+ * <p>
+ * <p>
+ * Revision 3.275 2007/02/05 21:24:23 sueh
+ * <p>
+ * bug# 962 Creating process manager later.
+ * <p>
+ * <p>
+ * Revision 3.274 2006/11/28 22:45:23 sueh
+ * <p>
+ * bug# 934 Changed BaseManager.stop() to endThreads().
+ * <p>
+ * <p>
+ * Revision 3.273 2006/11/15 18:14:38 sueh
+ * <p>
+ * bug# 872 Changed getParamFileStorableArray to getStorables. Letting the base
+ * <p>
+ * save param file function call save(). getStorables always gets all the
+ * storables
+ * <p>
+ * (including meta data) each time, to make it simpler.
+ * <p>
+ * <p>
+ * Revision 3.272 2006/10/24 21:13:17 sueh
+ * <p>
+ * bug# 947 Passing the ProcessName to AxisProcessPanel.
+ * <p>
+ * <p>
+ * Revision 3.271 2006/10/16 22:33:13 sueh
+ * <p>
+ * bug# 919 Changed touch(File) to touch(String absolutePath). bug# 933 Moved
+ * <p>
+ * the code in msgAlignPostProcess to postProcess. Only doing align post process
+ * <p>
+ * (reopening log) when the Computer Alignment button was used to run Fine
+ * <p>
+ * Alignment.
+ * <p>
+ * <p>
+ * Revision 3.270 2006/10/13 22:18:24 sueh
+ * <p>
+ * bug# 927 In volcombine, managing combinefft LowFromBothRadius.
+ * <p>
+ * <p>
+ * Revision 3.269 2006/10/11 10:05:08 sueh
+ * <p>
+ * bug# 931 Added delete functionality to LogFile - changed BackupException to
+ * <p>
+ * FileException.
+ * <p>
+ * <p>
+ * Revision 3.268 2006/10/10 05:00:40 sueh
+ * <p>
+ * bug# 931 Managing log files with LogFile
+ * <p>
+ * <p>
+ * Revision 3.267 2006/09/20 20:41:25 sueh
+ * <p>
+ * bug# 928 Added errorProcess().
+ * <p>
+ * <p>
+ * Revision 3.266 2006/09/19 21:53:35 sueh
+ * <p>
+ * bug# 920 Values where not being saved correctly by TomogramState. Add
+ * <p>
+ * tilt.fiducialess to metaData. Bug# 928 Add post processing for patchcorr.
+ * <p>
+ * Change imodPatchVectorModel so that it can open either patch_vector.mod or
+ * <p>
+ * patch_vector_ccc.mod.
+ * <p>
+ * <p>
+ * Revision 3.265 2006/09/13 23:05:52 sueh
+ * <p>
+ * bug# 920 Moving some postProcessing to TomogramPositioningExpert.
+ * <p>
+ * <p>
+ * Revision 3.264 2006/09/05 17:33:07 sueh
+ * <p>
+ * bug# 917 Added loadMatchvol1 and updateMatchvol1Com
+ * <p>
+ * <p>
+ * Revision 3.263 2006/08/30 16:48:52 sueh
+ * <p>
+ * bug# 922 Fix null pointer error in updateDialog()
+ * <p>
+ * <p>
+ * Revision 3.262 2006/08/18 00:12:58 sueh
+ * <p>
+ * bug# 914 open combine dialog: make sure patchcorr.com doesn't exist before
+ * <p>
+ * removing Zs
+ * <p>
+ * <p>
+ * Revision 3.261 2006/08/14 22:21:43 sueh
+ * <p>
+ * bug# 891 backwardCompatibilityCombineScriptsExist(): double checking true
+ * <p>
+ * values.
+ * <p>
+ * <p>
+ * Revision 3.260 2006/08/14 18:32:08 sueh
+ * <p>
+ * bug# 890 Returning a success/failure boolean from getTrimvolParams.
+ * <p>
+ * <p>
+ * Revision 3.259 2006/08/11 23:47:08 sueh
+ * <p>
+ * bug# 816 Added msgAlignPostProcess().
+ * <p>
+ * <p>
+ * Revision 3.258 2006/08/11 21:43:54 sueh
+ * <p>
+ * bug# 816 Setting open log when opening the coarse aligned stack.
+ * <p>
+ * <p>
+ * Revision 3.257 2006/08/03 21:17:51 sueh
+ * <p>
+ * bug# 769 Added reconnectTilt()
+ * <p>
+ * <p>
+ * Revision 3.256 2006/08/02 22:01:11 sueh
+ * <p>
+ * bug# 769 Added reconnect()
+ * <p>
+ * <p>
+ * Revision 3.255 2006/08/01 20:05:47 sueh
+ * <p>
+ * bug# 769 Making sure that the axis for a single axis dialog is ONLY.
+ * <p>
+ * <p>
+ * Revision 3.254 2006/07/28 22:22:09 sueh
+ * <p>
+ * bug# 910 SaveTomogramCombinationDialog(): added call to
+ * <p>
+ * TomogramCombinationDialog.synchronizeFromCurrentTab(), so that anything the
+ * <p>
+ * user changes on the current tab will be remembered on exit.
+ * <p>
+ * <p>
+ * Revision 3.253 2006/07/28 19:43:16 sueh
+ * <p>
+ * bug# 868 Changed AbstractParallelDialog.isParallel to
+ * <p>
+ * usingParallelProcessing.
+ * <p>
+ * <p>
+ * Revision 3.252 2006/07/28 17:41:04 sueh
+ * <p>
+ * bug# 909 Changed TomogramState.combineScriptsCreated to an EtomoState so
+ * <p>
+ * it will show when it has not been set.
+ * <p>
+ * <p>
+ * Revision 3.251 2006/07/26 16:28:46 sueh
+ * <p>
+ * bug# 868 Moved functions associated with TomogramGenerationDialog to
+ * <p>
+ * TomogramGenerationExpert.
+ * <p>
+ * <p>
+ * Revision 3.250 2006/07/21 22:23:42 sueh
+ * <p>
+ * bug# 901 Just check for the distortion directory to set calibrationAvailable.
+ * <p>
+ * <p>
+ * Revision 3.249 2006/07/21 22:10:57 sueh
+ * <p>
+ * bug# 901 Getting the calibration directory environment variable name from
+ * <p>
+ * EnvironmentVariable.
+ * <p>
+ * <p>
+ * Revision 3.248 2006/07/19 20:04:30 sueh
+ * <p>
+ * bug# 902 MakeFiducialModelSeedModel: Set seeding done and update the
+ * <p>
+ * fiducial model display. Added processSucceeded.
+ * <p>
+ * <p>
+ * Revision 3.247 2006/07/19 15:11:54 sueh
+ * <p>
+ * bug# 903 UpdateCombineParams: don't validate until after the scripts are
+ * <p>
+ * created so that the Z limits can be blank.
+ * <p>
+ * <p>
+ * Revision 3.246 2006/07/18 20:54:28 sueh
+ * <p>
+ * bug# 904 OpenTomogramCombinationDialog: clear the Z min and max values if
+ * <p>
+ * the scripts have not been created.
+ * <p>
+ * <p>
+ * Revision 3.245 2006/07/17 21:15:29 sueh
+ * <p>
+ * bug# 900 Added imodSendEvent functionality back. Uses the
+ * <p>
+ * SystemProcessException.
+ * <p>
+ * <p>
+ * Revision 3.244 2006/07/05 23:23:14 sueh
+ * <p>
+ * Added extra message for Windows when delete file fails. Get fine alignment
+ * <p>
+ * fix fiducials to set the right mode.
+ * <p>
+ * <p>
+ * Revision 3.243 2006/07/04 20:36:41 sueh
+ * <p>
+ * bug# 898 Return false from done and save functions if their dialog continues
+ * <p>
+ * to be displayed.
+ * <p>
+ * <p>
+ * Revision 3.242 2006/07/03 21:27:56 sueh
+ * <p>
+ * bug# 895 Stop 3dmod request handler worker string on exit.
+ * <p>
+ * <p>
+ * Revision 3.241 2006/06/30 20:21:27 sueh
+ * <p>
+ * bug# 884 Adding timestamps for constructing dialog objects.
+ * <p>
+ * <p>
+ * Revision 3.240 2006/06/30 19:58:27 sueh
+ * <p>
+ * bug# 877 Calling all the done dialog functions from the dialog.done()
+ * function,
+ * <p>
+ * which is called from the button action functions and saveAction() in
+ * <p>
+ * ProcessDialog.
+ * <p>
+ * <p>
+ * Revision 3.239 2006/06/27 17:45:42 sueh
+ * <p>
+ * bug# 879 imodTrimmedVolume(): set swap yz in 3dmod if both swap yz and
+ * <p>
+ * rotate x are not used.
+ * <p>
+ * <p>
+ * Revision 3.238 2006/06/22 20:54:08 sueh
+ * <p>
+ * bug# 797 Catching io exception when opening 3dmods.
+ * <p>
+ * <p>
+ * Revision 3.237 2006/06/19 17:05:39 sueh
+ * <p>
+ * bug# 851 Added closeImod() and closeImods(). Closing 3dmods when they are
+ * <p>
+ * not needed.
+ * <p>
+ * <p>
+ * Revision 3.236 2006/06/16 15:23:48 sueh
+ * <p>
+ * bug# 734 Moved track and use buttons from fiducial model dialog to
+ * beadtracker
+ * <p>
+ * dialog.
+ * <p>
+ * <p>
+ * Revision 3.235 2006/06/14 00:05:32 sueh
+ * <p>
+ * bug# 852 Moved classes that know a autodoc language.
+ * <p>
+ * <p>
+ * Revision 3.234 2006/06/09 19:48:50 sueh
+ * <p>
+ * bug# 870 For Tomo Pos forcing the exit state of the dialog to be SAVE when
+ * <p>
+ * running doneDialog and saveDialog. Application manager only calls these
+ * <p>
+ * functions when exiting or switching dialogs without (not using the Cancel,
+ * <p>
+ * Postpone, or Done buttons).
+ * <p>
+ * <p>
+ * Revision 3.233 2006/06/09 16:28:04 sueh
+ * <p>
+ * bug# 869 openTomogramCombinationDialog(): Saving combine script creation
+ * <p>
+ * states in TomogramState. For backward compatibility using combineScriptsExist
+ * <p>
+ * to check for combine scripts if the state isn *
+ * <p>
+ * <p>
+ * Revision 3.232 2006/06/08 19:03:41 sueh
+ * <p>
+ * bug# 867 updateSplittiltParam: Setting separate chunks.
+ * <p>
+ * <p>
+ * Revision 3.231 2006/06/07 22:23:05 sueh
+ * <p>
+ * bug# 766 imodFixFiducials(): turning off auto center when fix fiducials is
+ * first run.
+ * <p>
+ * <p>
+ * Revision 3.230 2006/06/05 15:59:46 sueh
+ * <p>
+ * bug# 766 getParamFileStorableArray(): Add the option have elements in the
+ * storable array that aer set by the base manager.
+ * <p>
+ * <p>
+ * Revision 3.229 2006/05/23 21:00:13 sueh
+ * <p>
+ * bug# 617 Added okToFiducialModelTrack() and
+ * <p>
+ * okToMakeFiducialModelSeedModel().
+ * <p>
+ * <p>
+ * Revision 3.228 2006/05/22 22:34:14 sueh
+ * <p>
+ * bug# 577 Removed unused function backgroundProcess(String, AxisID).
+ * <p>
+ * <p>
+ * Revision 3.227 2006/05/19 19:24:28 sueh
+ * <p>
+ * bug# 866 Moved tomo pos functions to TomogramPositioningExpert and
+ * <p>
+ * UIExpertUtilities.
+ * <p>
+ * <p>
+ * Revision 3.225 2006/05/16 21:17:47 sueh
+ * <p>
+ * bug# 856 Fixing checkin comment
+ * <p>
+ * <p>
+ * Revision 3.224 2006/05/16 21:16:17 sueh
+ * <p>
+ * bug# 856 Fixing checkin comment
+ * <p>
+ * <p>
+ * Revision 3.223 2006/05/16 21:13:52 sueh
+ * <p>
+ * bug# 856 Removed dialogMatchMode from CombineParam. Letting the
+ * <p>
+ * screen save the script state, since it already is. In
+ * <p>
+ * loadCombineComscript(), added a call to
+ * <p>
+ * TomogramCombinationDialog.updateDisplay() so that the tabs are correct.
+ * <p>
+ * Passing the BaseManager to SolvematchParam so that it can get the fiducial
+ * <p>
+ * model. Changed TomogramCombinationDialog.setScriptMatchMode() to
+ * <p>
+ * setCombineState() and making it handle the use corresponding list checkbox.
+ * <p>
+ * Changed TomogramCombinationDialog.isUpToDate() to isChanged().
+ * <p>
+ * IsChanged() looks at match direction and the use corresponding list checkbox
+ * <p>
+ * and also looks at whether the scripts exist. Synchronizing setup to initial
+ * <p>
+ * on load. The other doesn't work for match direction anymore.
+ * <p>
+ * <p>
+ * Revision 3.222 2006/05/12 17:12:44 sueh
+ * <p>
+ * *** empty log message ***
+ * <p>
+ * <p>
+ * Revision 3.221 2006/05/11 19:27:06 sueh
+ * <p>
+ * bug 838 Getting tomopitch results from the log file placing them in
+ * <p>
+ * Tomo Pos. Dividing results into original, added, and total so that the user
+ * <p>
+ * can see what happed. Align.com and tilt.com are saved with the total,
+ * <p>
+ * so roll the original and addded numbers into total (actually just hide them).
+ * <p>
+ * <p>
+ * Revision 3.220 2006/04/25 18:50:39 sueh
+ * <p>
+ * bug# 787 Changed DialogType.SETUP to SETUP_RECON.
+ * <p>
+ * <p>
+ * Revision 3.219 2006/04/11 13:36:56 sueh
+ * <p>
+ * bug# 809 Manage auto center and seed mode separately from
+ * <p>
+ * openBeadFixer so that seed mode doesn't always have to be managed.
+ * <p>
+ * <p>
+ * Revision 3.218 2006/03/30 21:14:51 sueh
+ * <p>
+ * bug# 809 getFiducialDiameterPerPixel: diameter per pixel is the same for
+ * <p>
+ * axis A and B.
+ * <p>
+ * <p>
+ * Revision 3.217 2006/03/30 21:08:33 sueh
+ * <p>
+ * bug# 809 Seed fiducial model opens bead fixer and sets auto center and
+ * <p>
+ * seed mode. Fix fiducial model sets auto center.
+ * <p>
+ * <p>
+ * Revision 3.216 2006/03/27 19:15:09 sueh
+ * <p>
+ * bug# 437 In saveCoarseAlignDialog, getting screen state parameters.
+ * <p>
+ * <p>
+ * Revision 3.215 2006/03/22 23:32:23 sueh
+ * <p>
+ * bug# 498 In commitTestVolume(), don't backup the tomogram unless the
+ * <p>
+ * trial tomogram exists. In useMtfFilter(), don't backup the .ali file unless
+ * <p>
+ * the _filt.ali file exists.
+ * <p>
+ * <p>
+ * Revision 3.214 2006/03/22 23:20:45 sueh
+ * <p>
+ * bug# 498 When generating a tomogram, back up the .ali file when using
+ * <p>
+ * the mtf filter file. Also backup the tomogram when using a trial tomogram.
+ * <p>
+ * <p>
+ * Revision 3.213 2006/03/22 00:33:29 sueh
+ * <p>
+ * bug# 836 Preventing useMtfFilter() from running when the axis is busy
+ * <p>
+ * <p>
+ * Revision 3.212 2006/03/20 17:47:03 sueh
+ * <p>
+ * bug# 895 Changed DialogType to work with multiple managers, not just
+ * <p>
+ * ApplicationManager.
+ * <p>
+ * <p>
+ * Revision 3.211 2006/03/16 01:46:23 sueh
+ * <p>
+ * bug# 727, bug# 830, bug# 813, bug# 828
+ * <p>
+ * <p>
+ * Revision 3.210 2006/02/20 22:08:44 sueh
+ * <p>
+ * bug# 828 Don't save values from Combine Setup tab to the .edf on exit
+ * <p>
+ * because they might contradict values that where saved by Create Combine
+ * <p>
+ * Scripts. So Combine Setup does not hold the screen values, unlike other
+ * <p>
+ * dialogs. This is because the script values are set by Create Combine
+ * <p>
+ * Scripts and not written directly from the screen.
+ * <p>
+ * <p>
+ * Revision 3.209 2006/02/07 00:08:28 sueh
+ * <p>
+ * bug# 521 Getting the splitcombine process result display from
+ * <p>
+ * ProcessResultDisplayFactory so that it is always the Restart at
+ * <p>
+ * Volcombine button.
+ * <p>
+ * <p>
+ * Revision 3.208 2006/02/06 20:57:22 sueh
+ * <p>
+ * bug# 521 Removed unnecessary getParameters(ReconScreenState)
+ * <p>
+ * functions from process dialogs; toggle buttons that are managed by
+ * <p>
+ * ProcessResultDisplayFactory can save their own state.
+ * <p>
+ * <p>
+ * Revision 3.207 2006/01/31 20:36:04 sueh
+ * <p>
+ * bug# 521 Calling BaseManager.doneProcessDialogin all done functions.
+ * <p>
+ * <p>
+ * Revision 3.206 2006/01/26 21:37:48 sueh
+ * <p>
+ * bug# 401 Added PRocessResultDisplay parameters to the functions called
+ * <p>
+ * by toggle buttons.
+ * <p>
+ * <p>
+ * Revision 3.205 2006/01/20 20:42:49 sueh
+ * <p>
+ * bug# 401 Added ProcessResultDisplay functionality for tilt, splittilt,
+ * <p>
+ * processchunks - tilt, newst, and blend.
+ * <p>
+ * <p>
+ * Revision 3.204 2006/01/12 17:00:04 sueh
+ * <p>
+ * bug# 800 In doneSetupDialog(), check whether metaData exists before
+ * <p>
+ * using it.
+ * <p>
+ * <p>
+ * Revision 3.203 2005/12/23 01:55:23 sueh
+ * <p>
+ * bug# 675 Split the test option functionality. Control headlessness with
+ * <p>
+ * --headless. This allow both JUnit and JfcUnit to use the special test
+ * <p>
+ * functions.
+ * <p>
+ * <p>
+ * Revision 3.202 2005/12/12 21:48:32 sueh
+ * <p>
+ * bug# 779 Made BaseManager.resetNextProcess() private.
+ * <p>
+ * <p>
+ * Revision for 20:20:21 sueh
+ * <p>
+ * bug# 776 Added canSnapshot. 't found. Changed
+ * <p>
+ * <p>
+ * Revision 3.200 2005/11/29 22:17:29 sueh
+ * <p>
+ * Deleted aligned image stack: The process bar said "stacks", which was
+ * <p>
+ * misleading.
+ * <p>
+ * <p>
+ * Revision 3.199 2005/11/21 21:50:34 sueh
+ * <p>
+ * bug# 761 updateSplittiltParam() should fail if
+ * <p>
+ * ParallelPanel.getParameters(SplittiltParam) fails.
+ * <p>
+ * <p>
+ * Revision 3.198 2005/11/19 01:40:07 sueh
+ * <p>
+ * bug# 744 Moved functions only used by process manager post
+ * <p>
+ * processing and error processing from Commands to ProcessDetails.
+ * <p>
+ * This allows ProcesschunksParam to be passed to DetackedProcess
+ * <p>
+ * without having to add unnecessary functions to it.
+ * <p>
+ * bug# 867 3.197 2005/11/10 17:49:52 sueh
+ * <p>
+ * Constructor should not be public
+ * <p>
+ * <p>
+ * Revision 3.196 2005/11/04 00:52:14 sueh
+ * <p>
+ * fixed copyright
+ * <p>
+ * <p>
+ * Revision 3.195 2005/11/03 21:20:38 sueh
+ * <p>
+ * bug# 755 Stop opening combine when tomo gen is done.
+ * <p>
+ * <p>
+ * Revision 3.194 2005/11/02 21:31:18 sueh
+ * <p>
+ * bug# 731 In createCombineScripts(): Setting process end state to failed
+ * <p>
+ * if combine setup fails.
+ * <p>
+ * <p>
+ * Revision 3.193 2005/10/31 17:51:34 sueh
+ * <p>
+ * bug# 730 Added saveDialog which gets the data from the dialogs and
+ * <p>
+ * saves it to the .edf file. Calling saveDialog() from exitProgram(). Split
+ * <p>
+ * the done functions into done and save functions. The save functions
+ * <p>
+ * save the dialog data and the done functions call the save functions and
+ * <p>
+ * then quit the dialog. Added canChangeParamFileName() - enabling Save
+ * <p>
+ * As based on whether the param file has been loaded.
+ * <p>
+ * <p>
+ * Revision 3.192 2005/10/29 00:01:29 sueh
+ * <p>
+ * bug# 725 reseting next processing when running crossCorrelate and
+ * <p>
+ * eraser to prevent an infinite loop.
+ * <p>
+ * <p>
+ * Revision 3.191 2005/10/28 21:46:15 sueh
+ * <p>
+ * bug# 725 setComScripts() do not fail on error messages if exitValue is 0.
+ * <p>
+ * This means that copytomocoms succeeded but a process it called printed
+ * <p>
+ * an error message.
+ * <p>
+ * <p>
+ * Revision 3.190 2005/10/28 18:44:56 sueh
+ * <p>
+ * bug# 746, bug# 725 deleted updateSplitcombineParam().
+ * <p>
+ * <p>
+ * Revision 3.189 2005/10/27 00:05:27 sueh
+ * <p>
+ * bug# 725 Processing the b stack when it is added late. Added functions:
+ * <p>
+ * extractmagrad, extractpieces, extracttilts, preCrossCorrelate, preEraser,
+ * <p>
+ * and processBStack.
+ * <p>
+ * <p>
+ * Revision 3.188 2005/10/19 00:17:43 sueh
+ * <p>
+ * bug# 673 Added updateArchiveDisplay() to update the display of the
+ * <p>
+ * archive button on the clean up panel.
+ * <p>
+ * <p>
+ * Revision 3.187 2005/10/18 22:09:54 sueh
+ * <p>
+ * bug# 737 Setting nextProcess after running process, because the axis
+ * <p>
+ * busy test is run when running process. bug# 727 Can't reproduce this
+ * <p>
+ * bug so added some prints to the error log to document it, if it appears
+ * <p>
+ * again.
+ * <p>
+ * <p>
+ * Revision 3.186 2005/10/15 00:28:13 sueh
+ * <p>
+ * bug# 532 Called BaseManager.setParallelDialog() when opening each
+ * <p>
+ * dialog.
+ * <p>
+ * <p>
+ * Revision 3.185 2005/10/14 21:04:37 sueh
+ * <p>
+ * bug# 730 Changed loadedTestParamFile to loadedParamFile.
+ * <p>
+ * <p>
+ * Revision 3.184 2005/10/13 22:08:48 sueh
+ * <p>
+ * Bug# 532 In synchronized(), always copying all fields
+ * <p>
+ * <p>
+ * Revision 3.183 2005/09/29 18:38:21 sueh
+ * <p>
+ * bug# 532 Preventing Etomo from saving to the .edf or .ejf file over and
+ * <p>
+ * over during exit. Added BaseManager.exiting and
+ * <p>
+ * saveIntermediateParamFile(), which will not save when exiting it true.
+ * <p>
+ * Setting exiting to true in BaseManager.exitProgram(). Moved call to
+ * <p>
+ * saveParamFile() to the child exitProgram functions so that the param file
+ * <p>
+ * is saved after all the done functions are run.
+ * <p>
+ * <p>
+ * Revision 3.182 2005/09/27 21:08:25 sueh
+ * <p>
+ * bug# 532 Added ReconScreenState screenStateA and B to hold screen
+ * <p>
+ * state information that is not saved in the comscripts and not used to run
+ * <p>
+ * processes. Calling mainPanel.done() during exit to save the state of the
+ * <p>
+ * parallel processing dialog. Added getParamFileStorableArray(), which
+ * <p>
+ * creates, fills, and returns storable array for the .edf file. Removed
+ * <p>
+ * getNumStorables().
+ * <p>
+ * <p>
+ * Revision 3.181 2005/09/22 20:40:56 sueh
+ * <p>
+ * bug# 532 changed packDialogs to packPanel and move them to
+ * <p>
+ * BaseManager. The packs done in packDialog where for the processor
+ * <p>
+ * table and where sent through dialogs. The processor table is no longer
+ * <p>
+ * associated with the dialogs. So packing the processor table is done
+ * <p>
+ * through the main panel.
+ * <p>
+ * <p>
+ * Revision 3.180 2005/09/21 16:03:47 sueh
+ * <p>
+ * bug# 532 Moved processchunks() and setThreadName() to BaseManager.
+ * <p>
+ * <p>
+ * Revision 3.179 2005/09/19 16:33:22 sueh
+ * <p>
+ * bug# 532 removed code to find an intermittent bug from
+ * <p>
+ * doneTomgramGeneration() and updateTiltCom().
+ * <p>
+ * <p>
+ * Revision 3.178 2005/09/16 21:20:26 sueh
+ * <p>
+ * bug# 532 Changed ParallelDialog.resetParallelPanel() to
+ * <p>
+ * resetParallelProgressDisplay() because ParallelDialog is generic.
+ * <p>
+ * <p>
+ * Revision 3.177 2005/09/16 20:52:14 sueh
+ * <p>
+ * bug# 532 When parallel processing checkbox is on, using nextProcess to
+ * <p>
+ * run processchunks after combine finishes everything but volcombine.
+ * <p>
+ * <p>
+ * Revision 3.176 2005/09/16 17:14:07 sueh
+ * <p>
+ * bug# 532 Added processchunksTilt() and processchunksVolcombine(), so
+ * <p>
+ * startNextProcess() can distinguish between the two processchunks calls.
+ * <p>
+ * Stopped passing the dialog to processchunks; getting it in
+ * <p>
+ * processchunksTilt() and processchunkVolcombine(). Added functions
+ * <p>
+ * updateSplitcombine and splitcombine.
+ * <p>
+ * <p>
+ * Revision 3.175 2005/09/02 18:51:05 sueh
+ * <p>
+ * bug# 720 Pass the manager to TrimvolParam instead of propertyUserDir
+ * <p>
+ * because TrimvolParam is constructed by MetaData before
+ * <p>
+ * propertyUserDir is set.
+ * <p>
+ * <p>
+ * Revision 3.174 2005/08/25 01:43:45 sueh
+ * <p>
+ * bug# 688 calling updateBlendmontInXcorr from doneCoarseAlignment to
+ * <p>
+ * make sure that xcorr is properly updated
+ * <p>
+ * <p>
+ * Revision 3.173 2005/08/24 22:28:24 sueh
+ * <p>
+ * bug# 715 Passing the param to crossCorrelate() so it can be used in
+ * <p>
+ * postProcess() and errorProcess(). Use TiltxcorrParam when blendmont
+ * <p>
+ * will not run. Use BlendmontParam when blendmont will run.
+ * <p>
+ * <p>
+ * Revision 3.172 2005/08/22 15:51:15 sueh
+ * <p>
+ * bug# 532 In doneTomgramGenartionDialog, call
+ * <p>
+ * TomogramGenerationDialog.stopParallelPanel() to stop parallel panel
+ * <p>
+ * from sampling the load average when the panal is not displayed. Added
+ * <p>
+ * pause().
+ * <p>
+ * <p>
+ * Revision 3.171 2005/08/15 17:46:40 sueh
+ * <p>
+ * reformatting
+ * <p>
+ * <p>
+ * Revision 3.170 2005/08/11 23:20:47 sueh
+ * <p>
+ * bug# 711 Change enum Run3dmodMenuOption to
+ * <p>
+ * Run3dmodMenuOptions, which can turn on multiple options at once.
+ * <p>
+ * This allows ImodState to combine input from the context menu and the
+ * <p>
+ * pulldown menu. Move setting about whether a type of 3dmod run can be
+ * <p>
+ * binned in Z to ImodManager.
+ * <p>
+ * <p>
+ * Revision 3.169 2005/08/09 19:52:07 sueh
+ * <p>
+ * bug# 711 Pass Run3dmodMenuOption to all imod functions, except the
+ * <p>
+ * ones that use modv.
+ * <p>
+ * <p>
+ * Revision 3.168 2005/08/04 19:04:39 sueh
+ * <p>
+ * bug# 532 added packDialogs() to request sizing functionality that is not
+ * <p>
+ * performed by pack().
+ * <p>
+ * <p>
+ * Revision 3.167 2005/08/01 17:56:08 sueh
+ * <p>
+ * bug# 532 Added processchunks(). Added processchunks to
+ * <p>
+ * startNextProcess().
+ * <p>
+ * <p>
+ * Revision 3.166 2005/07/29 19:43:43 sueh
+ * <p>
+ * bug# 692 Changed ConstEtomoNumber.getInteger() to getInt.
+ * <p>
+ * <p>
+ * Revision 3.165 2005/07/29 00:31:20 sueh
+ * <p>
+ * bug# 709 Going to EtomoDirector to get the current manager is unreliable
+ * <p>
+ * because the current manager changes when the user changes the tab.
+ * <p>
+ * Passing the manager where its needed.
+ * <p>
+ * <p>
+ * Revision 3.164 2005/07/26 16:57:09 sueh
+ * <p>
+ * bug# 701 Pass ProcessEndState to the progress bar when stopping it.
+ * <p>
+ * <p>
+ * Revision 3.163 2005/07/21 21:25:16 sueh
+ * <p>
+ * bug# 532 added splittilt() and updateSplittiltParam(). Added
+ * <p>
+ * setPauseButton to let the main panel manage the pause button the same
+ * <p>
+ * way as it manages the kill button.
+ * <p>
+ * <p>
+ * Revision 3.162 2005/07/20 16:56:55 sueh
+ * <p>
+ * bug# 705 Stop printing the stack trace for IOException bugs coming from
+ * <p>
+ * MRCHeader, because its filling up the error log with exceptions that are
+ * <p>
+ * related to real problems.
+ * <p>
+ * <p>
+ * Revision 3.161 2005/07/18 22:01:20 sueh
+ * <p>
+ * bug# 532 Added parallelProcessTilt().
+ * <p>
+ * <p>
+ * Revision 3.160 2005/07/14 21:55:23 sueh
+ * <p>
+ * bug# 626 Added montaged views to wholeTomogram(). Added
+ * <p>
+ * updateBlendCom(TomogramPostioningDialog, AxisID). Passing back
+ * <p>
+ * BlendmontParam from both updateBlendCom()'s because they are being
+ * <p>
+ * updated from the screen..
+ * <p>
+ * <p>
+ * Revision 3.159 2005/07/11 22:42:37 sueh
+ * <p>
+ * bug# 619 Placed the parallel processing panel on the tomogram
+ * <p>
+ * generation screen. Aded functions: parallelProcessTiltDemo,
+ * <p>
+ * signalTiltCompleted, signalTiltError, signalTiltKilled, and
+ * <p>
+ * splitParallelProcessTilt. Removed functions:
+ * <p>
+ * dummySplitParallelProcess, dummySplitParallelProcess,
+ * <p>
+ * getParallelDialog, and parallelProcess.
+ * <p>
+ * <p>
+ * Revision 3.158 2005/07/01 21:07:01 sueh
+ * <p>
+ * bug 619 Added demo functions to open a parallel processing JDialog.
+ * <p>
+ * <p>
+ * Revision 3.157 2005/06/22 23:34:58 sueh
+ * <p>
+ * bug# 583 getStackBinning() was not returning default binning if the result
+ * <p>
+ * of the binning calculation was < 1.
+ * <p>
+ * <p>
+ * Revision 3.156 2005/06/21 00:02:58 sueh
+ * <p>
+ * bug# 522 Added pass-through function call to
+ * <p>
+ * BaseProcessManager.touch() for MRCHeaderTest.
+ * <p>
+ * <p>
+ * Revision 3.155 2005/06/20 16:39:35 sueh
+ * <p>
+ * bug# 522 Made MRCHeader an n'ton. Getting instance instead of
+ * <p>
+ * constructing in getMrcHeader().
+ * <p>
+ * <p>
+ * Revision 3.154 2005/06/13 23:34:47 sueh
+ * <p>
+ * bug# 583 Preventing tilt.com from being overwritten with a default
+ * <p>
+ * imageBinned after the .ali file is deleted. DoneTomogramGeneration()
+ * <p>
+ * needs update and save tilt.com, but the result from getStackBinning will
+ * <p>
+ * be wrong if the .ali file has been deleted. Move the responsibility for
+ * <p>
+ * getting the right imageBinned to TiltParam. Modify getStackBinning() to
+ * <p>
+ * have an option to return a null value when it fails to calculate the stack
+ * <p>
+ * binning. If TiltParam.setImageBinned() gets a null value and
+ * <p>
+ * imageBinned is not null, it won't override the current imageBinned value.
+ * <p>
+ * <p>
+ * Revision 3.153 2005/06/10 22:43:43 sueh
+ * <p>
+ * bug# 583, bug# 682, bug# 584, bug# 679 Moved binning calculation to
+ * <p>
+ * ApplicationManager. Storing screen binning for Tomo Pos and Tomo
+ * <p>
+ * Gen in MetaData separately (Tomo Pos default is 3). Upgraded
+ * <p>
+ * align.com and tilt.com to have all unbinned parameters and a binning
+ * <p>
+ * value. No longer managing full image size in tilt.com, except to upgrade
+ * <p>
+ * the file. Setting xfproduct scale shifts in align.com the same way binning
+ * <p>
+ * is set. Added functions: getBackwardCompatibleAlignBinning,
+ * <p>
+ * getBackwardCompatibleTiltBinning, getStackBinning,
+ * <p>
+ * upgradeOldAlignCom, updateOldTiltCom.
+ * <p>
+ * <p>
+ * Revision 3.152 2005/06/03 19:50:32 sueh
+ * <p>
+ * bug# 671 getMrcHeader(): use the full path in the stack file name.
+ * <p>
+ * SaveDialog(): check axisType and pass the correct axisID.
+ * <p>
+ * <p>
+ * Revision 3.151 2005/06/01 21:18:41 sueh
+ * <p>
+ * bug# 667 Remove the Controller classes. Trying make meta data and
+ * <p>
+ * app manager equals didn't work very well. Meta data is created by and
+ * <p>
+ * managed by app mgr.
+ * <p>
+ * <p>
+ * Revision 3.150 2005/05/19 20:46:10 sueh
+ * <p>
+ * bug# 662 Added renameXrayStack() to rename the _xray.st.gz file to
+ * <p>
+ * _xray.st.gz.#.
+ * <p>
+ * <p>
+ * Revision 3.149 2005/05/18 22:26:26 sueh
+ * <p>
+ * bug# 662 Added functions to archive original stack:
+ * <p>
+ * archiveOriginalStack, deleteOriginalStack, and getArchiveInfo. Also
+ * <p>
+ * modified replaceRawStack() to refresh the archive display in the Clean Up
+ * <p>
+ * dialog. Added an archiveorig option to startNextProcess() to get the
+ * <p>
+ * second axis.
+ * <p>
+ * <p>
+ * Revision 3.148 2005/05/17 19:02:38 sueh
+ * <p>
+ * bug# 663 Changed updateDataParameter() to setStatusBarText().
+ * <p>
+ * <p>
+ * Revision 3.147 2005/05/09 21:32:36 sueh
+ * <p>
+ * bug# 658 In updateTrackCom() printing stack trace when there is an
+ * <p>
+ * exception.
+ * <p>
+ * <p>
+ * Revision 3.146 2005/04/26 17:31:51 sueh
+ * <p>
+ * bug# 615 Change the name of the UIHarness member variable to
+ * <p>
+ * uiHarness.
+ * <p>
+ * <p>
+ * Revision 3.145 2005/04/25 20:28:21 sueh
+ * <p>
+ * bug# 615 Passing the axis where the command originated to the message
+ * <p>
+ * functions so that the message will be popped up in the correct window.
+ * <p>
+ * <p>
+ * Revision 3.144 2005/04/07 21:47:09 sueh
+ * <p>
+ * bug# 626 Added makeDistortionCorrectionStack() to run undistort.com.
+ * <p>
+ * Added setEnabledFixEdgedWithMidas() to enable the Fix Edges With Midas
+ * <p>
+ * button.
+ * <p>
+ * <p>
+ * Revision 3.143 2005/03/29 23:48:53 sueh
+ * <p>
+ * bug# 618 Fixed problem with switching dialogs. PostProcessing and
+ * <p>
+ * CleanUp where not running open and done functions when the user
+ * <p>
+ * changed dialogs using the left-hand buttons. Nulled out dialog variables.
+ * <p>
+ * Also added cleanup dialog to getDialog().
+ * <p>
+ * <p>
+ * Revision 3.142 2005/03/29 19:47:44 sueh
+ * <p>
+ * bug# 623 When montaging, setting full image size when updating tilt.com
+ * <p>
+ * from the .ali file. When the .ali file is not available set the full image
+ * size
+ * <p>
+ * from running goodframe on the X and Y sizes in the .st file.
+ * <p>
+ * <p>
+ * Revision 3.141 2005/03/24 20:18:35 sueh
+ * <p>
+ * bug# 621 Fixed bug where post processing button didn't get highlighted.
+ * <p>
+ * <p>
+ * Revision 3.140 2005/03/24 17:48:15 sueh
+ * <p>
+ * bug# 621 Added Clean Up dialog.
+ * <p>
+ * <p>
+ * Revision 3.139 2005/03/19 01:09:36 sueh
+ * <p>
+ * adding comments
+ * <p>
+ * <p>
+ * Revision 3.138 2005/03/11 01:57:22 sueh
+ * <p>
+ * bug# 612 Change nextProcess to support axis A and B.
+ * <p>
+ * <p>
+ * Revision 3.137 2005/03/11 01:31:31 sueh
+ * <p>
+ * bug# 533 Removed newst updates that where happening when Montage
+ * <p>
+ * was set. Sending TomogramGeneration.linearInterpolation to blend.com.
+ * <p>
+ * Update blend.com in doneTomogramGeneration.
+ * <p>
+ * <p>
+ * Revision 3.136 2005/03/09 22:45:34 sueh
+ * <p>
+ * bug# 533 In newst() running blend instead of newst when doing a montage.
+ * <p>
+ * <p>
+ * Revision 3.135 2005/03/09 17:58:16 sueh
+ * <p>
+ * bug# 533 In done functions, only update newst when the view type is not
+ * <p>
+ * montage. ProcessManager.crossCorrelate needs to know whether
+ * <p>
+ * blendmont will actually be run.
+ * <p>
+ * <p>
+ * Revision 3.134 2005/03/08 18:29:54 sueh
+ * <p>
+ * bug# 533 In midasRawStack() call midasBlendStack() instead of
+ * <p>
+ * midasRawStack() for montaging.
+ * <p>
+ * <p>
+ * Revision 3.133 2005/03/08 00:39:09 sueh
+ * <p>
+ * bug# 533 CoarseAlign(): get the preblend command file name from
+ * <p>
+ * BlendmontParam.
+ * <p>
+ * <p>
+ * Revision 3.132 2005/03/07 23:57:01 sueh
+ * <p>
+ * bug# 533 Added midasEdges to call midas for fixing edge with a montage
+ * <p>
+ * view. Substituting preblend for prenewst in coarse align with a montage
+ * <p>
+ * view.
+ * <p>
+ * <p>
+ * Revision 3.131 2005/03/04 00:06:31 sueh
+ * <p>
+ * bug# 533 Changes for montaging only. imodErasedStack(): add piece list
+ * <p>
+ * file to 3dmod call. ImodManualErase(): add frames to 3dmod call.
+ * <p>
+ * UpdateXcorrCom(): Update blendmont param. Update goto param based
+ * <p>
+ * on whether blendmont needs to be called.
+ * <p>
+ * <p>
+ * Revision 3.130 2005/03/02 23:10:57 sueh
+ * <p>
+ * bug# 533 imodXrayModel(): set frames to true if processing a montage.
+ * <p>
+ * <p>
+ * Revision 3.129 2005/03/01 22:07:03 sueh
+ * <p>
+ * bug# 610 getDialog(): test for dialogType is null and return null.
+ * <p>
+ * <p>
+ * Revision 3.128 2005/03/01 20:49:42 sueh
+ * <p>
+ * bug# 607 Catching Throwable in exitProgram and returning true to make
+ * <p>
+ * sure that Etomo can always exit. Bug# 610 Keeping track of current
+ * <p>
+ * dialog type in ApplicationManager by setting it in each open function.
+ * <p>
+ * Changing saveDialog to saveCurrentDialog and use currentDialogType to
+ * <p>
+ * pick the dialog to save.
+ * <p>
+ * <p>
+ * Revision 3.127 2005/02/18 23:59:08 sueh
+ * <p>
+ * bug# 606 Removed MetaData (Setup) zfactors, fiducialess, wholetomogram,
+ * <p>
+ * and localalignments. Add them for A and B.
+ * <p>
+ * <p>
+ * Revision 3.126 2005/02/17 19:25:44 sueh
+ * <p>
+ * bug# 606 Pass AxisID when setting and getting makeZFactors,
+ * <p>
+ * newstFiducialessAlignment, and usedLocalAlignments.
+ * <p>
+ * <p>
+ * Revision 3.125 2005/02/17 02:38:36 sueh
+ * <p>
+ * Removing print statements.
+ * <p>
+ * <p>
+ * Revision 3.124 2005/02/16 22:31:23 sueh
+ * <p>
+ * bug# 604 Added checkForSharedDirectory() to check if there is an .edf
+ * <p>
+ * file using different stacks in the directory.
+ * <p>
+ * <p>
+ * Revision 3.123 2005/02/07 21:48:17 sueh
+ * <p>
+ * bug# 594 Added isSetupChanged() to check if user has enter data into
+ * <p>
+ * Setup dialog.
+ * <p>
+ * <p>
+ * Revision 3.122 2005/01/26 04:23:18 sueh
+ * <p>
+ * bug# 83 mtfFilter(): Removed called to startProgressBar().
+ * <p>
+ * <p>
+ * Revision 3.121 2005/01/21 22:05:55 sueh
+ * <p>
+ * bug# 509 bug# 591 Moved the management of MetaData to the Controller
+ * <p>
+ * class. Moved the set/get of tranferfid metadata fields to TransferfidPanel.
+ * <p>
+ * get/setParameters. Clarifying EtomoNumber: using isNull() in stead of
+ * <p>
+ * isSet().
+ * <p>
+ * <p>
+ * Revision 3.120 2005/01/14 02:57:30 sueh
+ * <p>
+ * bug# 511 Added saveDialog() and getDialog(). In done functions, added a
+ * <p>
+ * check for exit state == save to avoid changing the process state or asking
+ * <p>
+ * to close 3dmods when the user only switched dialogs.
+ * <p>
+ * <p>
+ * Revision 3.119 2005/01/12 00:40:32 sueh
+ * <p>
+ * bug# 579 Renaming enableZFactors() to enableTiltParameters(). If
+ * <p>
+ * newstFiducialessAlignment isn't set, use the checkbox value on the
+ * <p>
+ * screen.
+ * <p>
+ * <p>
+ * Revision 3.118 2005/01/10 23:18:33 sueh
+ * <p>
+ * bug# 578 Initializing TomogramState. Changing enableZFactor() to not
+ * <p>
+ * need backward compatibility information on newstFiducialessAlignment.
+ * <p>
+ * <p>
+ * Revision 3.117 2005/01/08 00:28:05 sueh
+ * <p>
+ * bug# 578 Added enableZFactors() to enable useZFactors checkbox in
+ * <p>
+ * tomogram generation. Set commandMode in NewstParam so
+ * <p>
+ * ProcessManager.postProcess() can tell whether Full Align Stack was run.
+ * <p>
+ * Set fiducialessAlignment in NewstParam when Full Align Stack is run.
+ * <p>
+ * Pass newstParam to ProcessManager.newst() so it can be queried in
+ * <p>
+ * postProcess().
+ * <p>
+ * <p>
+ * Revision 3.116 2005/01/05 18:53:12 sueh
+ * <p>
+ * bug# 578 Pass tiltalign to processManager.fineAlignment() by passing it
+ * <p>
+ * back from updateAlignCom().
+ * <p>
+ * <p>
+ * Revision 3.115 2004/12/28 23:40:35 sueh
+ * <p>
+ * bug# 567 In updateTiltCom(), adapt to new TiltalignParam names and types.
+ * <p>
+ * <p>
+ * Revision 3.114 2004/12/16 02:51:52 sueh
+ * <p>
+ * bug# 559 Updating status bar with param file when ending setup dialog.
+ * <p>
+ * <p>
+ * Revision 3.113 2004/12/16 01:29:04 sueh
+ * <p>
+ * bug# check whether squeezvol output file is flipped before displaying it in
+ * <p>
+ * 3dmod.
+ * <p>
+ * <p>
+ * Revision 3.112 2004/12/14 21:21:26 sueh
+ * <p>
+ * bug# 565: Fixed bug: Losing process track when backing up .edf file and
+ * <p>
+ * only saving metadata. bug# 572: Removing state object from meta data
+ * <p>
+ * and managing it with a manager object.
+ * <p>
+ * <p>
+ * Revision 3.111 2004/12/13 19:08:19 sueh
+ * <p>
+ * bug# 565 Saving process track to edf file as well as meta data in
+ * <p>
+ * doneSetupDialog.
+ * <p>
+ * <p>
+ * Revision 3.110 2004/12/09 04:46:29 sueh
+ * <p>
+ * bug# 565 Removed isParamFileDirty. Saved meta data and process track
+ * <p>
+ * in done function.
+ * <p>
+ * <p>
+ * Revision 3.109 2004/12/08 21:16:14 sueh
+ * <p>
+ * bug# 564 Changed get and set Input and Output File functions to get and set
+ * <p>
+ * Input and Output FileName to avoid confusion with new getOutputFile()
+ * <p>
+ * function.
+ * <p>
+ * <p>
+ * Revision 3.108 2004/12/04 01:25:59 sueh
+ * <p>
+ * bug# 557 Added imodSqueezedVolume().
+ * <p>
+ * <p>
+ * Revision 3.107 2004/12/03 20:18:50 sueh
+ * <p>
+ * bug# 556 Do not load SetupParam into combine dialog or update it in
+ * <p>
+ * volcombine if SetParam not valid (has the wrong set name) or is null.
+ * <p>
+ * Disable ReductionFactor in combine dialog if SetParam is missing or
+ * <p>
+ * invalid.
+ * <p>
+ * <p>
+ * Revision 3.106 2004/12/03 02:24:49 sueh
+ * <p>
+ * bug# 568 Added getTomogramMetaData() to get a writeable meta data.
+ * <p>
+ * <p>
+ * Revision 3.105 2004/12/02 18:23:09 sueh
+ * <p>
+ * bug# 557 Added squeezevol() and loaded sqeezevol parameters into
+ * <p>
+ * post processing dialog.
+ * <p>
+ * <p>
+ * Revision 3.104 2004/11/30 00:32:45 sueh
+ * <p>
+ * bug# 556 Adding functions to parse volcombine.
+ * <p>
+ * <p>
+ * Revision 3.103 2004/11/19 22:31:32 sueh
+ * <p>
+ * bug# 520 merging Etomo_3-4-6_JOIN branch to head.
+ * <p>
+ * <p>
+ * Revision 3.101.2.14 2004/11/12 22:42:54 sueh
+ * <p>
+ * bug# 520 Moved imodGetRubberbandCoordinates to base class.
+ * <p>
+ * <p>
+ * Revision 3.101.2.13 2004/10/29 01:15:02 sueh
+ * <p>
+ * bug# 520 Removing unecessary functions that provided services to
+ * <p>
+ * BaseManager. BaseManager can use get... functions to get the
+ * <p>
+ * mainPanel, metaData, and processTrack.
+ * <p>
+ * <p>
+ * Revision 3.101.2.12 2004/10/21 17:48:01 sueh
+ * <p>
+ * bug# 520 Fixed status bar by called updateDataParameters when opening
+ * <p>
+ * the processing panel.
+ * <p>
+ * <p>
+ * Revision 3.101.2.11 2004/10/11 01:55:28 sueh
+ * <p>
+ * bug# 520 moved responsibility for mainPanel, metaData, processTrack,
+ * <p>
+ * and progressManager to child classes. Used abstract functions to use
+ * <p>
+ * these variables in the base classes. This is more reliable and doesn't
+ * <p>
+ * require casting.
+ * <p>
+ * <p>
+ * Revision 3.101.2.10 2004/10/08 21:11:33 sueh
+ * <p>
+ * bug# 520 Backed out conversion from properties to user.dir.
+ * <p>
+ * <p>
+ * Revision 3.101.2.9 2004/10/08 15:36:53 sueh
+ * <p>
+ * bug# 520 Setting workingDirName instead of system property for manager
+ * <p>
+ * level working directory.
+ * <p>
+ * <p>
+ * Revision 3.101.2.8 2004/10/01 20:56:06 sueh
+ * <p>
+ * bug# 520 Moving getMetaDAta() from base class to this class.
+ * <p>
+ * <p>
+ * Revision 3.101.2.7 2004/09/29 17:27:48 sueh
+ * <p>
+ * bug# 520 Removed MainPanel pass-through functions. Casting mainPanel
+ * <p>
+ * and other members from BaseManager to private local variables in the
+ * <p>
+ * create functions.
+ * <p>
+ * <p>
+ * Revision 3.101.2.6 2004/09/15 22:32:14 sueh
+ * <p>
+ * bug# 520 call openMessageDialog in mainPanel instead of mainFrame
+ * <p>
+ * <p>
+ * Revision 3.101.2.5 2004/09/13 16:24:54 sueh
+ * <p>
+ * bug# 520 Added isNewManager(); true if setup dialog came up. Telling
+ * <p>
+ * EtomoDirectory the dataset name when completes successfully.
+ * <p>
+ * <p>
+ * Revision 3.101.2.4 2004/09/09 21:46:40 sueh
+ * <p>
+ * bug# 552 loading combine.com while creating combine scripts
+ * <p>
+ * <p>
+ * Revision 3.101.2.3 2004/09/08 19:20:38 sueh
+ * <p>
+ * bug# 520 Casting mainPanel to MainTomogramPanel where necessary.
+ * <p>
+ * Calling MainFrame.show in EtomoDirector. Moving kill() to super class.
+ * <p>
+ * <p>
+ * Revision 3.101.2.2 2004/09/07 17:49:36 sueh
+ * <p>
+ * bug# 520 getting mainFrame and userConfig from EtomoDirector, moved
+ * <p>
+ * settings dialog to BaseManager, moved backupFiles() to BaseManager,
+ * <p>
+ * moved exitProgram() and processing variables to BaseManager, split
+ * <p>
+ * MainPanel off from MainFrame
+ * <p>
+ * <p>
+ * Revision 3.101.2.1 2004/09/03 20:32:54 sueh
+ * <p>
+ * bug# 520 beginning to remove functions and variables that can go in
+ * <p>
+ * BaseManager - removed functions associated with the constructor, moved
+ * <p>
+ * constructor code to EtomoDirector. Added create functions to override
+ * <p>
+ * abstract create functions in BaseManager
+ * <p>
+ * <p>
+ * Revision 3.101 2004/09/02 19:51:18 sueh
+ * <p>
+ * bug# 527 adding ImodMAnager.setOpenContour calls to
+ * <p>
+ * imodMAatchingModel()
+ * <p>
+ * bug# 541 remove unnecessary setBinning call in imodMatchingModel.
+ * <p>
+ * Don't need to set binning to its default
+ * <p>
+ * <p>
+ * Revision 3.100 2004/08/31 16:52:53 sueh
+ * <p>
+ * bug# 508 removing JUnit tests that require an X server
+ * <p>
+ * <p>
+ * Revision 3.99 2004/08/26 01:09:51 sueh
+ * <p>
+ * bug# 508 handling exiting while a background process is
+ * <p>
+ * running: adding setBackgroundThreadName() and variables
+ * <p>
+ * backgroundProcessA and backgroundProcessNameA. Using
+ * <p>
+ * setBackgroundThreadName() in combine, matchvol1, patchcorr,
+ * <p>
+ * matchorwarp, and volcombine. Reseting background thread
+ * <p>
+ * variables in processDone(). Adding more information to the
+ * <p>
+ * processes running dialog in exitProgram().
+ * <p>
+ * <p>
+ * Revision 3.98 2004/08/20 22:57:12 sueh
+ * <p>
+ * bug# 515 improving error handling for Setup dialog
+ * <p>
+ * Changed:
+ * <p>
+ * doneSetupDialog
+ * <p>
+ * <p>
+ * Revision 3.97 2004/08/20 21:49:27 sueh
+ * <p>
+ * bug# 508 made some private items protected so they can by
+ * <p>
+ * inherited classes.
+ * <p>
+ * Added:
+ * <p>
+ * getTest
+ * <p>
+ * Changed:
+ * <p>
+ * tomogram CombinationDialog
+ * <p>
+ * updateComdeSc
+ * <p>
+ * <p>
+ * Revision 3.96 2004/08/19 03:09:24 sueh
+ * <p>
+ * bug# 508 Added a --selftest option to tell objects to perform extra tests.
+ * <p>
+ * Used "selftest" because "test" was already taken. Created load and
+ * <p>
+ * update functions for the combine comscript. The update function uses
+ * <p>
+ * CombineComscriptState to set the start and end command that
+ * <p>
+ * combine.com will run. Changed the combine functions matchvol1,
+ * <p>
+ * matchorwarp, etc so that they run combine.com. Removed combine
+ * <p>
+ * functions from startNextProcess(). Pulled together functions that had
+ * <p>
+ * been split up so they could run from either nextProcess or restart; now
+ * <p>
+ * there is no next process for combine. Add functions to control the
+ * <p>
+ * progressBar and the TomogramCombination tab panes.
+ * <p>
+ * Added:
+ * <p>
+ * static boolean selfTest
+ * <p>
+ * getCombineComscript()
+ * <p>
+ * boolean isSelfTest()
+ * <p>
+ * loadCombineComscript()
+ * <p>
+ * matchvol1Combine()
+ * <p>
+ * showPane(String comscript, String pane)
+ * <p>
+ * startProgressBar(String label, AxisID axisID)
+ * <p>
+ * updateCombineComscriptState(int startCommand)
+ * <p>
+ * Changed:
+ * <p>
+ * combine()
+ * <p>
+ * matchorwarpCombine()
+ * <p>
+ * matchorwarpTrial()
+ * <p>
+ * openTomogramCombinationDialog()
+ * <p>
+ * parseCommandLine(String[] args)
+ * <p>
+ * patchcorrCombine()
+ * <p>
+ * startNextProcess(AxisID axisID)
+ * <p>
+ * volcombine()
+ * <p>
+ * Deleted:
+ * <p>
+ * matchorwarp(String next)
+ * <p>
+ * matchvol1()
+ * <p>
+ * patchcorr()
+ * <p>
+ * restartAtMatchvol1()
+ * <p>
+ * <p>
+ * Revision 3.95 2004/08/06 23:12:19 sueh
+ * <p>
+ * bug# 508 added commented out processMgr.combine() call
+ * <p>
+ * to combine()
+ * <p>
+ * <p>
+ * Revision 3.94 2004/08/03 18:53:45 sueh
+ * <p>
+ * bug# 519 get the correct tiltAngleSpec for axis B
+ * <p>
+ * <p>
+ * Revision 3.93 2004/08/02 23:51:31 sueh
+ * <p>
+ * bug# 519 improving error handling in
+ * <p>
+ * makeRawtltFile()
+ * <p>
+ * <p>
+ * Revision 3.92 2004/08/02 23:03:54 sueh
+ * <p>
+ * bug# 519 added makeRawtltFile(): create a new .rawtlt file from
+ * <p>
+ * starting angle, step angle, and # sections
+ * <p>
+ * <p>
+ * Revision 3.91 2004/07/24 01:56:03 sueh
+ * <p>
+ * bug# 513 change packMainWindow() to call
+ * <p>
+ * MainFrame.fitWindow() when the Basic/Advanced
+ * <p>
+ * button is pressed. packMainWindow() is also called when
+ * <p>
+ * the Setup dialog is opened. Calling fitWindow() doesn't cause
+ * <p>
+ * any proglems for Setup.
+ * <p>
+ * <p>
+ * Revision 3.90 2004/07/23 00:09:30 sueh
+ * <p>
+ * bug# 513 add function to get UserConfiguration
+ * <p>
+ * <p>
+ * Revision 3.89 2004/07/21 00:22:29 sueh
+ * <p>
+ * bug# 507 In startNextProcess(), checking
+ * <p>
+ * tomogramCombinationDialog before running volcombine.
+ * <p>
+ * <p>
+ * Revision 3.88 2004/07/12 17:41:07 sueh
+ * <p>
+ * bug# 492 in imodPreview: getting metadata from
+ * <p>
+ * SetupDialog.getDataset(). Also changed the metadata variable
+ * <p>
+ * name to previewMetaData to avoid confusing it with the
+ * <p>
+ * member variable metaData
+ * <p>
+ * <p>
+ * Revision 3.87 2004/07/02 00:43:43 sueh
+ * <p>
+ * bug# 487 adding public functions to get FidXyz and MRCHeader
+ * <p>
+ * <p>
+ * Revision 3.86 2004/06/30 17:27:36 rickg
+ * <p>
+ * Bug #488 Rotation.xf not being updated correctly, now done anytime
+ * <p>
+ * the fiducialless parameters are updated.
+ * <p>
+ * <p>
+ * Revision 3.85 2004/06/30 00:16:25 sueh
+ * <p>
+ * bug# 487 adding checkUpdateFiducialModel(), which compares
+ * <p>
+ * the current and previous binning in Coarse Align. This function
+ * <p>
+ * is run when prenewst.com finishes.
+ * <p>
+ * <p>
+ * Revision 3.84 2004/06/28 22:10:29 rickg
+ * <p>
+ * Bug #470 Moved the fiducial mode file copying to the same sections
+ * <p>
+ * where the fiducialless is handled.
+ * <p>
+ * <p>
+ * Revision 3.83 2004/06/28 04:36:39 rickg
+ * <p>
+ * Bug #470 Added method to update prexf and _nonfid.xf
+ * <p>
+ * <p>
+ * Revision 3.82 2004/06/25 23:26:51 sueh
+ * <p>
+ * bug# 485 In openTomogramCombinationDialog, after loading
+ * <p>
+ * the comscripts, synchronize from initial and final tabs to setup
+ * <p>
+ * and update combineParams
+ * <p>
+ * <p>
+ * Revision 3.81 2004/06/25 21:18:31 sueh
+ * <p>
+ * bug# 486 corrected set state to inprogress calls.
+ * <p>
+ * <p>
+ * Revision 3.80 2004/06/24 21:41:39 sueh
+ * <p>
+ * bug# 482 making the call to
+ * <p>
+ * loadSolvematch(boolean modelBased) compatible with
+ * <p>
+ * previous versions of the .edf file.
+ * <p>
+ * <p>
+ * Revision 3.79 2004/06/24 20:22:05 sueh
+ * <p>
+ * bug# 482 removed loadSolvematchshift and mod functions
+ * <p>
+ * <p>
+ * Revision 3.78 2004/06/24 18:43:00 sueh
+ * <p>
+ * bug# 482 add loadSolvematch(boolean modelBased) to merge
+ * <p>
+ * solvematchshift and mod into solvematch and add
+ * <p>
+ * matchshifts
+ * <p>
+ * <p>
+ * Revision 3.77 2004/06/22 23:00:12 sueh
+ * <p>
+ * bug# 455 Added open contours to sample() and fullSample().
+ * <p>
+ * Substituted open() calls for model() calls. Removed extra
+ * <p>
+ * model() calls. Setting preserveContrast separately.
+ * <p>
+ * <p>
+ * Revision 3.76 2004/06/22 02:04:28 sueh
+ * <p>
+ * bug# 441 Created updateTrimvolParam() and added it to
+ * <p>
+ * trimVolume() and donePostProcessing(). Moved the logic
+ * <p>
+ * used to create input and output file names to TrimvolParam.
+ * <p>
+ * <p>
+ * Revision 3.75 2004/06/21 17:22:37 rickg
+ * <p>
+ * Bug #461 z shift is scaled by the prealigned binning
+ * <p>
+ * <p>
+ * Revision 3.74 2004/06/21 00:03:53 sueh
+ * <p>
+ * bug# 436 adding restartAtMatchvol1(), which updates later comscripts
+ * <p>
+ * and calls matchvol1(). This is necessary because
+ * <p>
+ * startNextProcess() does not need to update comscripts.
+ * <p>
+ * <p>
+ * Revision 3.73 2004/06/18 00:52:53 sueh
+ * <p>
+ * bug# 476 put the logic to check if the fixed stack exists in a
+ * <p>
+ * separate function and call it in replaceRawStack() and
+ * <p>
+ * imodErasedStack
+ * <p>
+ * <p>
+ * Revision 3.72 2004/06/17 16:23:34 sueh
+ * <p>
+ * bug# 466 in imodFullSample() turning on model mode.
+ * <p>
+ * <p>
+ * Revision 3.71 2004/06/15 20:08:49 rickg
+ * <p>
+ * Bug #383 Run solvematch instead of solvematch{shift|mod}
+ * <p>
+ * <p>
+ * Revision 3.70 2004/06/14 23:39:53 rickg
+ * <p>
+ * Bug #383 Transitioned to using solvematch
+ * <p>
+ * <p>
+ * Revision 3.69 2004/06/13 17:03:23 rickg
+ * <p>
+ * Solvematch mid change
+ * <p>
+ * <p>
+ * Revision 3.68 2004/06/10 18:27:12 sueh
+ * <p>
+ * bug# 463 changing ImodManager.create() to newImod, using
+ * <p>
+ * ImodManager.setOpenBeadFixer() instead of openBeadFixer
+ * <p>
+ * <p>
+ * Revision 3.67 2004/06/10 18:19:13 rickg
+ * <p>
+ * Removed redudant dialog parameter fetching from mtffilter and
+ * <p>
+ * imodPatchRegionModel
+ * <p>
+ * <p>
+ * Revision 3.66 2004/06/10 17:27:53 sueh
+ * <p>
+ * bug# 462 remove ImodManager.reset() calls
+ * <p>
+ * <p>
+ * Revision 3.65 2004/06/05 00:59:36 sueh
+ * <p>
+ * bug# 433 add updateLog to call ProcessManager.generateAlignLogs()
+ * <p>
+ * when the ta logs are out of date
+ * <p>
+ * <p>
+ * Revision 3.64 2004/06/02 23:49:59 rickg
+ * <p>
+ * Bug #391 only update the rotation.xf if the mode is fiducialess
+ * <p>
+ * <p>
+ * Revision 3.62 2004/06/01 18:53:48 rickg
+ * <p>
+ * Bug #391 whole tomogram sampling state implementation
+ * <p>
+ * <p>
+ * Revision 3.61 2004/05/27 22:49:54 rickg
+ * <p>
+ * Bug #391 offer to close preali window for fidless case
+ * <p>
+ * standardized parameter gathering for tomogram positioning
+ * <p>
+ * logic for calling updateFiducialAlign
+ * <p>
+ * <p>
+ * Revision 3.60 2004/05/26 04:57:14 rickg
+ * <p>
+ * Bug #391 Fiducialess handling for the gneration dialog
+ * <p>
+ * <p>
+ * Revision 3.59 2004/05/26 00:00:32 sueh
+ * <p>
+ * bug# 355 validate metaData when retrieve parameters from an
+ * <p>
+ * .edf file
+ * <p>
+ * <p>
+ * Revision 3.58 2004/05/25 23:19:34 rickg
+ * <p>
+ * Bug #391 Fiducialess implementation
+ * <p>
+ * <p>
+ * Revision 3.57 2004/05/24 20:16:45 sueh
+ * <p>
+ * bug# 409 corrected .ali file names for mtffilter for single axis
+ * <p>
+ * <p>
+ * Revision 3.56 2004/05/21 21:55:13 sueh
+ * <p>
+ * bug# 443 setting the output file name in tilta.com when
+ * <p>
+ * running sample
+ * <p>
+ * <p>
+ * Revision 3.55 2004/05/21 02:21:38 sueh
+ * <p>
+ * bug# 83 removing generic progress bar
+ * <p>
+ * <p>
+ * Revision 3.54 2004/05/15 01:43:55 sueh
+ * <p>
+ * bug# 415 if saveTestParamIfNecessary() returns false, then the user
+ * <p>
+ * pressed cancel our there was a problem saving, so don't exit.
+ * <p>
+ * <p>
+ * Revision 3.53 2004/05/15 00:41:00 sueh
+ * <p>
+ * bug# 302 changing function name updateCombineParams()
+ * <p>
+ * <p>
+ * Revision 3.52 2004/05/13 20:15:10 sueh
+ * <p>
+ * bug# 33 imodGetRubberbandCoordinates() checks for rubberband data
+ * <p>
+ * <p>
+ * Revision 3.51 2004/05/11 21:11:21 sueh
+ * <p>
+ * bug# 302 Standardizing synchronization.
+ * <p>
+ * Syncing with PatchRegionModel button push.
+ * <p>
+ * UpdateCombineCom(), which updates metadata, is not necessary to
+ * <p>
+ * run scripts so it doesn't need a success return value.
+ * <p>
+ * Put syncing first in most cases.
+ * <p>
+ * Follow syncing by updateCombineCom().
+ * <p>
+ * In createCombineScripts() run either loadSolvematchShift() or
+ * <p>
+ * loadSolvematchMod(), instead of only loadSolvematchShift.
+ * <p>
+ * If MatchingModels is selected after Create scripts is done, call
+ * <p>
+ * modelCombine() from combine() and visa versa.
+ * <p>
+ * <p>
+ * Revision 3.50 2004/05/07 19:54:45 sueh
+ * <p>
+ * bug# 33 adding error processing to
+ * <p>
+ * imodGetRubberbandCoordinates()
+ * <p>
+ * <p>
+ * Revision 3.49 2004/05/06 20:22:33 sueh
+ * <p>
+ * bug# 33 added getRubberbandCoordinates()
+ * <p>
+ * <p>
+ * Revision 3.48 2004/05/05 21:24:53 sueh
+ * <p>
+ * bug #430 If changes to .seed happened more recently then .fid, do not
+ * <p>
+ * mv .fid .seed. Otherwise backup .seed to .seed~ if not backing up
+ * <p>
+ * .seed to _orig.seed. Ok to use fid as seed when .seed does not exist.
+ * <p>
+ * Orginal bug# 276.
+ * <p>
+ * <p>
+ * Revision 3.47 2004/05/03 22:29:21 sueh
+ * <p>
+ * bug# 416 Move Bin by 2 settings between tabs in
+ * <p>
+ * TomogramCombinationDialog. Set binning in ImodManager.
+ * <p>
+ * <p>
+ * Revision 3.46 2004/05/03 18:04:41 sueh
+ * <p>
+ * bug# 418 adding printStackTrace for more information
+ * <p>
+ * <p>
+ * Revision 3.45 2004/04/28 22:16:57 sueh
+ * <p>
+ * bug# 320 user interaction goes in app manager
+ * <p>
+ * <p>
+ * Revision 3.44 2004/04/28 20:13:10 rickg
+ * <p>
+ * bug #429 all file renames are now handled by the utilities static
+ * <p>
+ * function to deal with the windows bug
+ * <p>
+ * <p>
+ * Revision 3.43 2004/04/28 00:47:52 sueh
+ * <p>
+ * trying delete full aligned stack so that rename works in Windows
+ * <p>
+ * <p>
+ * Revision 3.42 2004/04/28 00:40:29 sueh
+ * <p>
+ * adding error message if rename filter file doesn't work
+ * <p>
+ * <p>
+ * Revision 3.41 2004/04/27 23:20:13 sueh
+ * <p>
+ * bug# 320 warn the user about a stale patch vector model after
+ * <p>
+ * any button press that will lead to creating a new patch vector
+ * <p>
+ * model
+ * <p>
+ * <p>
+ * Revision 3.40 2004/04/27 22:02:27 sueh
+ * <p>
+ * bug# 320 try to close the 3dmod with patch vector model before
+ * <p>
+ * running patchcorr
+ * <p>
+ * <p>
+ * Revision 3.39 2004/04/27 01:01:34 sueh
+ * <p>
+ * bug# 427 using tomopitch param when running tomopitch
+ * <p>
+ * <p>
+ * Revision 3.38 2004/04/26 21:20:32 sueh
+ * <p>
+ * bug# 427 added code for tomopitch comscript (not finished)
+ * <p>
+ * <p>
+ * Revision 3.37 2004/04/26 18:36:52 rickg
+ * <p>
+ * bug #426 Added full image code, fixed order of com script
+ * <p>
+ * loading for tomogram positioning
+ * <p>
+ * <p>
+ * Revision 3.36 2004/04/26 17:15:54 sueh
+ * <p>
+ * bug# 83 removing generic progress bar from patchcorr
+ * <p>
+ * <p>
+ * Revision 3.35 2004/04/26 00:24:59 rickg
+ * <p>
+ * bug #426 Implemented full tomogram sampling
+ * <p>
+ * <p>
+ * Revision 3.34 2004/04/24 08:05:40 rickg
+ * <p>
+ * bug #391 restructuring
+ * <p>
+ * <p>
+ * Revision 3.32 2004/04/22 23:31:33 rickg
+ * <p>
+ * bug #391 Added processing for non fid aligne
+ * <p>
+ * Added getIMODBinPath and getMetaData
+ * <p>
+ * <p>
+ * Revision 3.31 2004/04/19 19:25:04 sueh
+ * <p>
+ * bug# 409 removing prints
+ * <p>
+ * <p>
+ * Revision 3.30 2004/04/16 02:20:39 sueh
+ * <p>
+ * removing print statements
+ * <p>
+ * <p>
+ * Revision 3.29 2004/04/16 02:06:30 sueh
+ * <p>
+ * bug# 409 No longer backing up .ali during useMtfFilter.
+ * <p>
+ * Changed updateTransferfidEnabled() to updateDialog(FiducialModelDialog) - it
+ * <p>
+ * does all updates on the FiducialModelDialog - and clarified the code.
+ * <p>
+ * Create updateDialog(ProcessName) to call the specific updateDialog functions.
+ * <p>
+ * Calling updateDialog(ProcessName in processDone()
+ * <p>
+ * Added updateDialog() calls where needed.
+ * <p>
+ * <p>
+ * Revision 3.28 2004/04/06 19:04:06 rickg
+ * <p>
+ * Print out java system info at start of session
+ * <p>
+ * <p>
+ * Revision 3.27 2004/04/06 17:51:03 rickg
+ * <p>
+ * bug #391 basic single stage fiducialess alignment
+ * <p>
+ * <p>
+ * Revision 3.26 2004/03/29 21:00:48 sueh
+ * <p>
+ * bug# 409 Added run mtffilter, view mtffilter result, use mtffilter
+ * <p>
+ * result as the full
+ * <p>
+ * aligned stack
+ * <p>
+ * <p>
+ * Revision 3.25 2004/03/24 03:08:17 rickg
+ * <p>
+ * Bug# 395 Implemented ability to create binned tomogram
+ * <p>
+ * <p>
+ * Revision 3.24 2004/03/22 23:51:23 sueh
+ * <p>
+ * bug# 83 starting the progress bar as soon as possible
+ * <p>
+ * <p>
+ * Revision 3.23 2004/03/13 00:35:05 rickg
+ * <p>
+ * Bug# 390 Add prenewst and xfproduct management
+ * <p>
+ * <p>
+ * Revision 3.22 2004/03/11 23:58:14 rickg
+ * <p>
+ * Bug #410 Newstack PIP transition
+ * <p>
+ * Formatted code
+ * <p>
+ * <p>
+ * Revision 3.21 2004/03/10 00:44:32 sueh
+ * <p>
+ * bug# 408 added getIMODCalibDirectory()
+ * <p>
+ * <p>
+ * Revision 3.20 2004/03/09 22:06:56 sueh
+ * <p>
+ * bug# 407 adding IMOD_CALIB_DIR optional environment variable
+ * <p>
+ * <p>
+ * Revision 3.19 2004/03/06 00:22:39 sueh
+ * <p>
+ * bug# 250 changed updateCombineCom() - remove duplicate code - call
+ * <p>
+ * updateCombineCom(int) with NO_TAB
+ * <p>
+ * <p>
+ * Revision 3.18 2004/03/05 18:26:55 sueh
+ * <p>
+ * bug# 250 changed patchcorrCombine() - updating CombineParams
+ * <p>
+ * changed updateCombineCom(int) - change the parameter name because
+ * <p>
+ * its only necessary when a copy to Setup is required
+ * <p>
+ * <p>
+ * Revision 3.17 2004/03/02 00:09:04 sueh
+ * <p>
+ * bug #250 added updateCombineCom(int fromTab) - update CombineParams
+ * <p>
+ * from a tab
+ * <p>
+ * changed combine - default call to combine(int copyFromTab) with NO_TAB
+ * <p>
+ * added combine(int copyFromTab) copies fields from copyFromTab to setup
+ * <p>
+ * tab.
+ * <p>
+ * modelCombine() - same as combine
+ * <p>
+ * matchvol1() - same as combine
+ * <p>
+ * <p>
+ * Revision 3.16 2004/02/27 20:10:49 sueh
+ * <p>
+ * bug# 250 changed createCombineScripts() - copied the
+ * <p>
+ * Setup Use Matching Models value into the Initial tab
+ * <p>
+ * <p>
+ * Revision 3.15 2004/02/25 22:42:23 sueh
+ * <p>
+ * bug# 403 removed unnecessary code
+ * <p>
+ * <p>
+ * Revision 3.14 2004/02/25 22:17:52 sueh
+ * <p>
+ * bug# 403 resetState() is no longer setting imodManager to
+ * <p>
+ * null
+ * <p>
+ * <p>
+ * Revision 3.13 2004/02/16 18:54:38 sueh
+ * <p>
+ * bug# 276 Added makeFiducialModelSeedModel() to copy the
+ * <p>
+ * .seed file to the .fid file.
+ * <p>
+ * <p>
+ * Revision 3.12 2004/02/07 03:12:02 sueh
+ * <p>
+ * bug# 169 Create ImodManager just once, set metadata
+ * <p>
+ * separately, reformatted, changed imodRawStack() to
+ * <p>
+ * ImodPreview()
+ * <p>
+ * <p>
+ * Revision 3.11 2004/02/05 18:05:32 sueh
+ * <p>
+ * bug# 306 get the trimvol params from the screen and set
+ * <p>
+ * swapYZ for 3dmod
+ * <p>
+ * <p>
+ * Revision 3.10 2004/02/05 00:19:07 sueh
+ * <p>
+ * bug# 292 preserving contrast in view x-ray model, changed
+ * <p>
+ * imodXrayModel()
+ * <p>
+ * <p>
+ * Revision 3.9 2004/02/04 18:12:46 sueh
+ * <p>
+ * bug# 171 ask to automatically quit all running 3dmod
+ * <p>
+ * programs.
+ * <p>
+ * <p>
+ * Revision 3.8 2004/01/22 21:09:39 rickg
+ * <p>
+ * Get screen size in openSetupDialog instead of app init
+ * <p>
+ * <p>
+ * Revision 3.7 2004/01/17 00:14:17 rickg
+ * <p>
+ * Added a --test argument that prevents the main window from
+ * <p>
+ * opening up.
+ * <p>
+ * <p>
+ * Revision 3.6 2003/12/08 22:34:32 sueh
+ * <p>
+ * bug# 169 adding new function imodRawStack
+ * <p>
+ * <p>
+ * Revision 3.5 2003/12/05 01:25:01 sueh
+ * <p>
+ * bug242 moved getEnvironmentVariable() to Utilities
+ * <p>
+ * <p>
+ * Revision 3.4 2003/12/04 22:09:03 sueh
+ * <p>
+ * bug242 Converting to new interface.
+ * <p>
+ * <p>
+ * Revision 3.3 2003/11/26 23:36:27 rickg
+ * <p>
+ * Debug flag and getter changed to static.
+ * <p>
+ * <p>
+ * Revision 3.2 2003/11/11 00:24:52 sueh
+ * <p>
+ * Bug349 imodFixFiducials(AxisID): call
+ * <p>
+ * imodManager.openBeadFixer()
+ * <p>
+ * <p>
+ * Revision 3.1 2003/11/10 07:28:54 rickg
+ * <p>
+ * ContextPopup initialization no longer needed
+ * <p>
+ * Some more stderr printing on exceptions
+ * <p>
+ * <p>
+ * Revision 3.0 2003/11/07 23:19:00 rickg
+ * <p>
+ * Version 1.0.0
+ * <p>
+ * <p>
+ * Revision 2.93 2003/11/07 19:49:38 rickg
+ * <p>
+ * Don't delete preali in delete aligned stacks code.
+ * <p>
+ * <p>
+ * Revision 2.92 2003/11/07 00:52:56 rickg
+ * <p>
+ * Added test helper methods
+ * <p>
+ * Changed transferfid parameter name to indicate that it is called with
+ * <p>
+ * the destination axis
+ * <p>
+ * <p>
+ * Revision 2.91 2003/11/06 22:45:47 sueh
+ * <p>
+ * cleaning up task tags and prints
+ * <p>
+ * <p>
+ * Revision 2.90 2003/11/06 21:41:27 sueh
+ * <p>
+ * bug348 imodFineAlign(AsixID): removed calls to
+ * <p>
+ * setFineAlignmentState() for processTrack and mainFrame.
+ * <p>
+ * <p>
+ * Revision 2.89 2003/11/05 20:31:48 rickg
+ * <p>
+ * Bug #292 Added preserve contrast seed model and residual model
+ * <p>
+ * opens
+ * <p>
+ * <p>
+ * Revision 2.88 2003/11/05 20:04:05 rickg
+ * <p>
+ * Bug# 347 Message written to process monitor area
+ * <p>
+ * <p>
+ * Revision 2.87 2003/11/05 19:39:17 rickg
+ * <p>
+ * Bug# 295 Query the combination dialog instead of the metaData
+ * <p>
+ * object as to the state of the match direction for opening the patch
+ * <p>
+ * region model.
+ * <p>
+ * <p>
+ * Revision 2.86 2003/11/05 19:20:21 rickg
+ * <p>
+ * Bug# 290 Save tomo gen data when done is pressed
+ * <p>
+ * <p>
+ * Revision 2.85 2003/11/05 18:05:50 sueh
+ * <p>
+ * bug278 created backupFile(File) to backup the .edf file
+ * <p>
+ * called backupFile(File) from saveTestParamFile()
+ * <p>
+ * <p>
+ * Revision 2.84 2003/11/04 20:55:42 rickg
+ * <p>
+ * Bug #345 IMOD Diriectory supplied by a static function from
+ * <p>
+ * ApplicationManager
+ * <p>
+ * <p>
+ * Revision 2.83 2003/10/27 23:55:41 rickg
+ * <p>
+ * Bug# 283 Added method to open the tomopitch log file
+ * <p>
+ * <p>
+ * Revision 2.82 2003/10/24 21:45:09 rickg
+ * <p>
+ * Spelling fix
+ * <p>
+ * <p>
+ * Revision 2.81 2003/10/23 23:06:13 sueh
+ * <p>
+ * bug271 called isValid() in SetupDialog
+ * <p>
+ * <p>
+ * Revision 2.80 2003/10/22 21:32:02 rickg
+ * <p>
+ * Bug# 287 Default value handling for SLICE OFFSET and SHIFT
+ * <p>
+ * <p>
+ * Revision 2.79 2003/10/21 23:45:05 rickg
+ * <p>
+ * Added function to delete the aligned stacks
+ * <p>
+ * <p>
+ * Revision 2.78 2003/10/21 02:34:20 sueh
+ * <p>
+ * Bug325 Pulled out generic default UI retrieval functionality and placed
+ * <p>
+ * it in ButtonHelper.
+ * <p>
+ * <p>
+ * Revision 2.77 2003/10/20 22:02:13 rickg
+ * <p>
+ * Bug# 228 Check to see if solve.xf exists before running matchvol1
+ * <p>
+ * <p>
+ * Revision 2.76 2003/10/20 17:32:09 rickg
+ * <p>
+ * Use existence of combine com scripts
+ * <p>
+ * ConstCombineParams.scriptsCreated flag
+ * <p>
+ * <p>
+ * Revision 2.75 2003/10/17 02:00:07 sueh
+ * <p>
+ * Bug317 added new function - to retrieve default UI resources
+ * <p>
+ * <p>
+ * Revision 2.73 2003/10/10 23:17:01 sueh
+ * <p>
+ * bug251 removing marks
+ * <p>
+ * <p>
+ * Revision 2.72 2003/10/07 22:40:40 sueh
+ * <p>
+ * bug251 moved transferfid from fine alignment dialog
+ * <p>
+ * to fiducial model dialog
+ * <p>
+ * <p>
+ * Revision 2.71 2003/10/05 23:59:35 rickg
+ * <p>
+ * Bug# 252
+ * <p>
+ * Adde complete message to progresss region for shor processes
+ * <p>
+ * <p>
+ * Revision 2.70 2003/10/05 21:36:05 rickg
+ * <p>
+ * Bug# 256
+ * <p>
+ * Catch SystemProcessException for attempted multiple
+ * <p>
+ * processes in a axis
+ * <p>
+ * <p>
+ * Revision 2.69 2003/10/03 22:11:15 rickg
+ * <p>
+ * Bug# 255
+ * <p>
+ * added returns to catch sections for doneSetupDialog
+ * <p>
+ * Don't want to continue to main window if copytomocoms did not
+ * <p>
+ * succeed
+ * <p>
+ * <p>
+ * Revision 2.68 2003/10/02 18:57:46 sueh
+ * <p>
+ * bug236 added testing:
+ * <p>
+ * NewstParamTest
+ * <p>
+ * ComScriptTest
+ * <p>
+ * <p>
+ * Removed marks
+ * <p>
+ * <p>
+ * Revision 2.67 2003/09/30 03:18:43 rickg
+ * <p>
+ * Bug# 248
+ * <p>
+ * changed openTestParamFile to loadTestParamFile
+ * <p>
+ * split out resetState method
+ * <p>
+ * added logic to openExistingData use a File object or
+ * <p>
+ * open the File Dialog and drop into the setup page if it fails.
+ * <p>
+ * <p>
+ * Revision 2.66 2003/09/30 02:18:57 rickg
+ * <p>
+ * Bug 249
+ * <p>
+ * Proper New dialog behavior when not saving the EDF
+ * <p>
+ * Also moved message dialogs to the mainFrame
+ * <p>
+ * <p>
+ * Revision 2.65 2003/09/29 23:34:57 sueh
+ * <p>
+ * bug236 Added UseLinearInterpolation to
+ * <p>
+ * TomogramGenerationDialog.
+ * <p>
+ * <p>
+ * UseLinearInterpolation:
+ * <p>
+ * check box
+ * <p>
+ * Advanced
+ * <p>
+ * newst -linear
+ * <p>
+ * <p>
+ * Files:
+ * <p>
+ * ComScriptManager.java
+ * <p>
+ * ConstNewstParam.java
+ * <p>
+ * NewstParam.java
+ * <p>
+ * TomogramGenerationDialog.java
+ * <p>
+ * ApplicationManager.java
+ * <p>
+ * <p>
+ * Revision 2.64 2003/09/26 19:46:16 sueh
+ * <p>
+ * bug223 removed task marks
+ * <p>
+ * <p>
+ * Revision 2.63 2003/09/26 19:43:48 sueh
+ * <p>
+ * bug223 no field should be persistant. Changed MetaData.
+ * <p>
+ * Added TransferfidNumberViews.
+ * <p>
+ * Changed the done fine allignment and open fine allignment functions
+ * <p>
+ * to work with MetaData
+ * <p>
+ * <p>
+ * Revision 2.62 2003/09/09 17:20:29 rickg
+ * <p>
+ * Check to see if the _orig.st stack exists, do not replace if it does.
+ * <p>
+ * <p>
+ * Revision 2.61 2003/09/08 22:18:50 rickg
+ * <p>
+ * Catch exception thrown buy ProcessManager.startComScript
+ * <p>
+ * <p>
+ * Revision 2.60 2003/09/08 05:44:47 rickg
+ * <p>
+ * Added trial tilt
+ * <p>
+ * Output for a single axis tomogram is changed to
+ * <p>
+ * dataset_full.rec
+ * <p>
+ * <p>
+ * Revision 2.59 2003/08/20 21:57:09 rickg
+ * <p>
+ * Only close imods in specified directory
+ * <p>
+ * <p>
+ * Revision 2.58 2003/08/05 21:35:22 rickg
+ * <p>
+ * Retry commit, eclipse broken?
+ * <p>
+ * <p>
+ * Revision 2.57 2003/07/28 22:53:09 rickg
+ * <p>
+ * Fixed postpone logic for combine panel. Combine scripts
+ * <p>
+ * created flag is now reset only when the CombineParams are
+ * <p>
+ * modified.
+ * <p>
+ * <p>
+ * Combine postpone will now save combine sub script parameters
+ * <p>
+ * <p>
+ * Revision 2.56 2003/07/25 22:51:11 rickg
+ * <p>
+ * Imod model mode management changes
+ * <p>
+ * Save original stack as _orig.st
+ * <p>
+ * <p>
+ * Revision 2.55 2003/07/22 22:16:15 rickg
+ * <p>
+ * Erased stack methods and trial mode
+ * <p>
+ * <p>
+ * Revision 2.54 2003/07/01 19:24:30 rickg
+ * <p>
+ * Fixed progress bars for prenewst, newst and tomogram generation
+ * <p>
+ * <p>
+ * Revision 2.53 2003/06/27 20:33:28 rickg
+ * <p>
+ * Changed below method to public
+ * <p>
+ * <p>
+ * Revision 2.52 2003/06/27 20:23:32 rickg
+ * <p>
+ * Adde getter method for the com script manager
+ * <p>
+ * <p>
+ * Revision 2.51 2003/06/10 05:29:30 rickg
+ * <p>
+ * Data persistence behavior of the combination and post
+ * <p>
+ * processing panels now match the others.
+ * <p>
+ * <p>
+ * Revision 2.50 2003/06/10 05:15:23 rickg
+ * <p>
+ * *** empty log message ***
+ * <p>
+ * <p>
+ * Revision 2.49 2003/06/09 04:28:21 rickg
+ * <p>
+ * Set state to in progress if any thing is exected for a given
+ * <p>
+ * process panel
+ * <p>
+ * <p>
+ * Revision 2.48 2003/06/05 21:19:13 rickg
+ * <p>
+ * Explicit transferfid B to A false setting
+ * <p>
+ * <p>
+ * Revision 2.47 2003/05/27 08:42:04 rickg
+ * <p>
+ * Progress bar determinant delegate methods
+ * <p>
+ * <p>
+ * Revision 2.46 2003/05/23 22:49:41 rickg
+ * <p>
+ * Spelling correction
+ * <p>
+ * <p>
+ * Revision 2.45 2003/05/23 14:29:11 rickg
+ * <p>
+ * Progress bar determinant delegate methods
+ * <p>
+ * <p>
+ * Revision 2.44 2003/05/21 22:56:54 rickg
+ * <p>
+ * Initial kill implementation
+ * <p>
+ * <p>
+ * Revision 2.43 2003/05/19 22:05:31 rickg
+ * <p>
+ * Added openNewDataset method
+ * <p>
+ * unset isDataParamDirty in daving method
+ * <p>
+ * <p>
+ * Revision 2.42 2003/05/15 22:24:24 rickg
+ * <p>
+ * Reordered method sequence in opening processing panel to
+ * <p>
+ * prevent slider from taking up all of the window.
+ * <p>
+ * <p>
+ * Revision 2.41 2003/05/15 20:13:05 rickg
+ * <p>
+ * Fixed PLAF for windows
+ * <p>
+ * <p>
+ * Revision 2.40 2003/05/15 19:39:44 rickg
+ * <p>
+ * Look and feel handling
+ * <p>
+ * <p>
+ * Revision 2.39 2003/05/14 23:22:51 rickg
+ * <p>
+ * Exit if no IMOD_DIR is defined. We can't run any of the non com scripts
+ * <p>
+ * <p>
+ * Revision 2.38 2003/05/14 21:45:27 rickg
+ * <p>
+ * New trimvol constructor for windows
+ * <p>
+ * <p>
+ * Revision 2.37 2003/05/14 14:36:08 rickg
+ * <p>
+ * Temporary change to volcombine
+ * <p>
+ * <p>
+ * Revision 2.36 2003/05/13 19:58:22 rickg
+ * <p>
+ * TransferfidParams constructed with IMODDirectory File
+ * <p>
+ * <p>
+ * Revision 2.35 2003/05/10 19:12:56 rickg
+ * <p>
+ * OS independent path implementation
+ * <p>
+ * <p>
+ * Revision 2.34 2003/05/10 18:01:56 rickg
+ * <p>
+ * Fixes to get IMOD_DIR home and current working directory
+ * <p>
+ * in a OS agnostic manner
+ * <p>
+ * <p>
+ * Revision 2.33 2003/05/09 23:25:36 rickg
+ * <p>
+ * Working change to get env vars from all OSs
+ * <p>
+ * <p>
+ * Revision 2.32 2003/05/09 17:52:59 rickg
+ * <p>
+ * include this in ImodManager constructor, needed for fiducial model calls
+ * <p>
+ * <p>
+ * Revision 2.31 2003/05/08 23:18:45 rickg
+ * <p>
+ * Added --debug option, off by default
+ * <p>
+ * <p>
+ * Revision 2.30 2003/05/08 20:14:30 rickg
+ * <p>
+ * Don't set main window location to (0,0) confuses SGI
+ * <p>
+ * <p>
+ * Revision 2.29 2003/05/08 19:58:53 rickg
+ * <p>
+ * Work around for bug in File.getParent
+ * <p>
+ * <p>
+ * Revision 2.28 2003/05/07 23:04:29 rickg
+ * <p>
+ * System property user.dir now defines the working directory
+ * <p>
+ * Home is now read from the System properties
+ * <p>
+ * <p>
+ * Revision 2.27 2003/04/30 18:48:51 rickg
+ * <p>
+ * Changed matchcheck* to a single imod instance
+ * <p>
+ * <p>
+ * Revision 2.26 2003/04/28 23:25:25 rickg
+ * <p>
+ * Changed visible imod references to 3dmod
+ * <p>
+ * <p>
+ * Revision 2.25 2003/04/24 17:46:54 rickg
+ * <p>
+ * Changed fileset name to dataset name
+ * <p>
+ * <p>
+ * Revision 2.24 2003/04/17 23:11:26 rickg
+ * <p>
+ * Added cancel handling from post processing dialog
+ * <p>
+ * <p>
+ * Revision 2.23 2003/04/16 22:49:49 rickg
+ * <p>
+ * Trimvol implmentation
+ * <p>
+ * <p>
+ * Revision 2.22 2003/04/16 00:13:54 rickg
+ * <p>
+ * Trimvol in progress
+ * <p>
+ * <p>
+ * Revision 2.21 2003/04/14 23:57:18 rickg
+ * <p>
+ * Trimvol management changes
+ * <p>
+ * <p>
+ * Revision 2.20 2003/04/10 23:40:03 rickg
+ * <p>
+ * Initial exit function handling of imod and other processes
+ * <p>
+ * Initial openPostProcessingDialog
+ * <p>
+ * <p>
+ * Revision 2.19 2003/03/26 00:52:25 rickg
+ * <p>
+ * Added button to convert patch_vector.mod to patch.out
+ * <p>
+ * <p>
+ * Revision 2.18 2003/03/22 00:40:35 rickg
+ * <p>
+ * slovematchmod label change
+ * <p>
+ * <p>
+ * Revision 2.17 2003/03/20 21:18:55 rickg
+ * <p>
+ * Added matchshift results button/access
+ * <p>
+ * <p>
+ * Revision 2.16 2003/03/20 16:58:42 rickg
+ * <p>
+ * Added methods: imodMatchedToTomgram, matchorwarpTrial
+ * <p>
+ * Added trial mode handling to matchorwarp
+ * <p>
+ * <p>
+ * Revision 2.15 2003/03/19 00:23:04 rickg
+ * <p>
+ * Added imod patch vector model pass through
+ * <p>
+ * <p>
+ * Revision 2.14 2003/03/18 23:56:54 rickg
+ * <p>
+ * ComScript method name changes
+ * <p>
+ * Apropriate loading of combine scripts
+ * <p>
+ * Added pass through method to open matching models
+ * <p>
+ * Done not longer executes combine
+ * <p>
+ * Updated combine related methods to match new
+ * <p>
+ * combination dialog
+ * <p>
+ * <p>
+ * Revision 2.13 2003/03/18 17:03:15 rickg
+ * <p>
+ * Combine development in progress
+ * <p>
+ * <p>
+ * Revision 2.12 2003/03/18 15:01:31 rickg
+ * <p>
+ * Combine development in progress
+ * <p>
+ * <p>
+ * Revision 2.11 2003/03/18 00:32:32 rickg
+ * <p>
+ * combine development in progress
+ * <p>
+ * <p>
+ * Revision 2.10 2003/03/07 07:22:49 rickg
+ * <p>
+ * combine layout in progress
+ * <p>
+ * <p>
+ * Revision 2.9 2003/03/06 05:53:28 rickg
+ * <p>
+ * Combine interface in progress
+ * <p>
+ * <p>
+ * Revision 2.8 2003/03/06 01:19:17 rickg
+ * <p>
+ * Combine changes in progress
+ * <p>
+ * <p>
+ * Revision 2.7 2003/03/02 23:30:41 rickg
+ * <p>
+ * Combine layout in progress
+ * <p>
+ * <p>
+ * Revision 2.6 2003/02/24 23:27:21 rickg
+ * <p>
+ * Added process interrupt method
+ * <p>
+ * <p>
+ * Revision 2.5 2003/01/30 00:43:32 rickg
+ * <p>
+ * Blank second axis panel when done with tomogram generation
+ * <p>
+ * <p>
+ * Revision 2.4 2003/01/29 15:22:58 rickg
+ * <p>
+ * Updated logic for combine step
+ * <p>
+ * <p>
+ * Revision 2.3 2003/01/28 20:42:53 rickg
+ * <p>
+ * Bug fix: save current dialog state when running align.com
+ * <p>
+ * <p>
+ * Revision 2.2 2003/01/28 00:15:29 rickg
+ * <p>
+ * Main window now remembers its size
+ * <p>
+ * <p>
+ * Revision 2.1 2003/01/27 18:12:41 rickg
+ * <p>
+ * Fixed bug from single window transition in positioning dialog
+ * <p>
+ * opening function
+ * <p>
+ * <p>
+ * Revision 2.0 2003/01/24 20:30:31 rickg
+ * <p>
+ * Single window merge to main branch
+ * <p>
+ * <p>
+ * Revision 1.36.2.1 2003/01/24 18:27:46 rickg
+ * <p>
+ * Single window GUI layout initial revision
+ * <p>
+ * <p>
+ * Revision 1.36 2003/01/10 20:46:34 rickg
+ * <p>
+ * Added ability to view 3D fiducial models
+ * <p>
+ * <p>
+ * Revision 1.35 2003/01/10 18:39:58 rickg
+ * <p>
+ * Using existing com scripts now gives the correct
+ * <p>
+ * process state
+ * <p>
+ * <p>
+ * Revision 1.34 2003/01/10 18:33:16 rickg
+ * <p>
+ * Added test parameter filename to command line args
+ * <p>
+ * <p>
+ * Revision 1.33 2003/01/08 21:04:38 rickg
+ * <p>
+ * More descriptive error dialog when the are not
+ * <p>
+ * available for combining.
+ * <p>
+ * <p>
+ * Revision 1.32 2003/01/07 00:30:16 rickg
+ * <p>
+ * Added imodViewResidual method
+ * <p>
+ * <p>
+ * Revision 1.31 2003/01/06 04:53:16 rickg
+ * <p>
+ * Set default parameters for transferfid panel and handle
+ * <p>
+ * new backwards flag for b to a
+ * <p>
+ * <p>
+ * Revision 1.30 2003/01/04 00:41:00 rickg
+ * <p>
+ * Implemented transferfid method
+ * <p>
+ * <p>
+ * Revision 1.29 2002/12/19 00:35:20 rickg
+ * <p>
+ * Implemented persitent advanced state handling
+ * <p>
+ * <p>
+ * Revision 1.27 2002/12/11 21:26:31 rickg
+ * <p>
+ * Added font setting into user prefs setting
+ * <p>
+ * <p>
+ * Revision 1.26 2002/12/11 05:39:00 rickg
+ * <p>
+ * Added basic font change method
+ * <p>
+ * <p>
+ * Revision 1.25 2002/12/11 00:39:48 rickg
+ * <p>
+ * Basic handling of settings dialog
+ * <p>
+ * added setUserPreferences method
+ * <p>
+ * <p>
+ * Revision 1.24 2002/12/09 04:18:50 rickg
+ * <p>
+ * Better handling of current working directory, user.dir and
+ * <p>
+ * metaData always agree now.
+ * <p>
+ * <p>
+ * Revision 1.23 2002/12/05 01:21:02 rickg
+ * <p>
+ * Added isAdvanced stub
+ * <p>
+ * <p>
+ * Revision 1.22 2002/11/21 19:24:38 rickg
+ * <p>
+ * Set user.dir to current working directory
+ * <p>
+ * <p>
+ * Revision 1.21 2002/10/29 18:22:04 rickg
+ * <p>
+ * Simplified rawstack open checking
+ * <p>
+ * <p>
+ * Revision 1.20 2002/10/25 19:30:43 rickg
+ * <p>
+ * Modifies several catches to explicilty specify exception
+ * <p>
+ * <p>
+ * Revision 1.19 2002/10/24 19:52:55 rickg
+ * <p>
+ * Added command line --demo argument
+ * <p>
+ * <p>
+ * Revision 1.18 2002/10/22 21:38:24 rickg
+ * <p>
+ * ApplicationManager now controls both demo and debug
+ * <p>
+ * modes
+ * <p>
+ * <p>
+ * Revision 1.17 2002/10/17 22:47:35 rickg
+ * <p>
+ * process dialogs are now managed attributes
+ * <p>
+ * setVisible calls changed to show
+ * <p>
+ * unused variable dialogFinshed removed
+ * <p>
+ * <p>
+ * Revision 1.16 2002/10/17 16:23:04 rickg
+ * <p>
+ * Added private method to update the dependent tilt parameters when the
+ * <p>
+ * align.com parameters are changed
+ * <p>
+ * <p>
+ * Revision 1.15 2002/10/16 17:37:18 rickg
+ * <p>
+ * Construct a imodManager when a new data set is opened
+ * <p>
+ * <p>
+ * Revision 1.14 2002/10/14 22:44:27 rickg
+ * <p>
+ * Added combine to execute section of doneCombine
+ * <p>
+ * <p>
+ * Revision 1.13 2002/10/14 19:04:18 rickg
+ * <p>
+ * openMessageDialog made public
+ * <p>
+ * <p>
+ * Revision 1.12 2002/10/10 23:40:33 rickg
+ * <p>
+ * refactored createCombineScripts to setupCombineScripts
+ * <p>
+ * <p>
+ * Revision 1.11 2002/10/10 19:16:19 rickg
+ * <p>
+ * Get HOME and IMOD_DIR environement variables during
+ * <p>
+ * initialization instead of each time they requested. Also
+ * <p>
+ * exit if they are not available.
+ * <p>
+ * <p>
+ * Revision 1.10 2002/10/09 04:29:17 rickg
+ * <p>
+ * Implemented calls to updateCombineCom
+ * <p>
+ * <p>
+ * Revision 1.9 2002/10/09 00:04:37 rickg
+ * <p>
+ * Added default patch boundary logic
+ * <p>
+ * still needs work on getting combine parameters at the correct times
+ * <p>
+ * <p>
+ * Revision 1.8 2002/10/07 22:20:21 rickg
+ * <p>
+ * removed unused imports
+ * <p>
+ * <p>
+ * Revision 1.7 2002/09/30 23:44:43 rickg
+ * <p>
+ * Started implementing updateCombineCom
+ * <p>
+ * <p>
+ * Revision 1.6 2002/09/30 22:01:29 rickg
+ * <p>
+ * Added check to verify dual axis for combination
+ * <p>
+ * <p>
+ * Revision 1.5 2002/09/20 18:56:09 rickg
+ * <p>
+ * Added private message and yes/no dialog methods
+ * <p>
+ * Check to see if the raw stack and coarsely aligned stacks should be
+ * <p>
+ * closed by the user
+ * <p>
+ * <p>
+ * Revision 1.4 2002/09/19 22:57:56 rickg
+ * <p>
+ * Imod mangement is now handled through the ImodManager
+ * <p>
+ * <p>
+ * Revision 1.3 2002/09/17 23:44:56 rickg
+ * <p>
+ * Adding ImodManager, in progress
+ * <p>
+ * <p>
+ * Revision 1.2 2002/09/13 21:29:57 rickg
+ * <p>
+ * Started updating for ImodManager
+ * <p>
+ * <p>
+ * Revision 1.1 2002/09/09 22:57:02 rickg
+ * <p>
+ * Initial CVS entry, basic functionality not including combining
+ * <p>
+ * </p>
  */
 
