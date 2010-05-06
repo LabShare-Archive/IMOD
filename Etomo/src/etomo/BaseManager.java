@@ -867,7 +867,7 @@ public abstract class BaseManager {
     }
     // Give Windows a chance to release control of the file.
     try {
-      Thread.sleep(276);
+      Thread.sleep(550);
     } catch (InterruptedException e) {
     }
   }
@@ -1696,6 +1696,9 @@ public abstract class BaseManager {
 /**
  * <p>
  * $Log$
+ * Revision 1.131  2010/05/05 20:44:08  sueh
+ * bug# 1344 Added releaseFile.
+ *
  * <p>
  * Revision 1.130 2010/05/03 21:46:13 sueh
  * <p>
