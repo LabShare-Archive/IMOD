@@ -20,6 +20,9 @@
  * 
  * <p>
  * $Log$
+ * Revision 3.149  2010/03/19 21:58:08  sueh
+ * bug# 1335 FlattenWarpLog no longer an n'ton.
+ *
  * Revision 3.148  2010/03/12 04:07:54  sueh
  * bug# 1325 Turned on use button warnings in TomogramState.
  *
@@ -1838,13 +1841,7 @@ public class ProcessManager extends BaseProcessManager {
      runCommand(mv, axisID);
      }*/
     // Convert the new patchvector.mod
-    String command;
-    if (Utilities.isWindowsOS()) {
-      command = "imod2vatch";
-    }
-    else {
-      command = "imod2patch";
-    }
+    String command = "imod2patch";
     String[] imod2patch = { command, DatasetFiles.PATCH_VECTOR_MODEL,
         DatasetFiles.PATCH_OUT };
     runCommand(imod2patch, axisID, patchOut);
