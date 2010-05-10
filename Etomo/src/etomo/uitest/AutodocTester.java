@@ -67,6 +67,9 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.23  2010/04/29 01:36:30  sueh
+ * <p> bug# 1356 In assertFileContainsString handle wildcards in the targetString.
+ * <p>
  * <p> Revision 1.22  2010/03/03 05:11:20  sueh
  * <p> bug# 1311 Implemented set.debug.
  * <p>
@@ -999,6 +1002,14 @@ final class AutodocTester extends Assert implements VariableList {
         }
         try {
           Thread.sleep(1500);
+        }
+        catch (InterruptedException e) {
+        }
+        if (killButton.isEnabled()) {
+          return true;
+        }
+        try {
+          Thread.sleep(500);
         }
         catch (InterruptedException e) {
         }
