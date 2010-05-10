@@ -22,6 +22,9 @@ import etomo.type.EtomoNumber;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.11  2010/04/28 16:20:29  sueh
+ * <p> bug# 1344 Added closeOutputImageFile.
+ * <p>
  * <p> Revision 3.10  2007/02/05 22:58:38  sueh
  * <p> bug# 962 Made EtomoNumber type info an inner class.
  * <p>
@@ -114,29 +117,37 @@ public class InteractiveSystemProgram implements Runnable {
   public static final String rcsid = "$Id$";
 
   private BaseProcessManager processManager = null;
+
   private String threadName = null;
+
   private EtomoNumber outputFileLastModified = new EtomoNumber(
       EtomoNumber.Type.LONG, "");
+
   private final BaseManager manager;
 
   /**
    * The exit value of the command
    */
   private int exitValue = Integer.MIN_VALUE;
+
   private AxisID axisID;
 
   /**
    * The command to run
    */
   private String commandLine = null;
+
   private String[] commandArray = null;
+
   private Command command = null;
 
   /**
    * The buffered IO streams connecting to the commmand.
    */
   BufferedWriter inputBuffer = null;
+
   BufferedReader outputBuffer;
+
   BufferedReader errorBuffer;
 
   private File workingDirectory = null;
@@ -235,18 +246,15 @@ public class InteractiveSystemProgram implements Runnable {
         if (commandArray != null) {
           process = Runtime.getRuntime().exec(commandArray, null,
               currentUserDirectory);
-        }
-        else {
+        } else {
           process = Runtime.getRuntime().exec(commandLine, null,
               currentUserDirectory);
         }
-      }
-      else {
+      } else {
         if (commandArray != null) {
           process = Runtime.getRuntime().exec(commandArray, null,
               workingDirectory);
-        }
-        else {
+        } else {
           process = Runtime.getRuntime().exec(commandLine, null,
               workingDirectory);
         }
@@ -282,6 +290,10 @@ public class InteractiveSystemProgram implements Runnable {
     catch (InterruptedException except) {
       except.printStackTrace();
       exceptionMessage = except.getMessage();
+    }
+    catch (NullPointerException e) {
+      e.printStackTrace();
+      exceptionMessage = e.getMessage();
     }
 
     if (processManager != null) {
