@@ -161,6 +161,7 @@ bn.advanced=
 	assert.tf.cycle-limit=1000
 [[]]
 # check enabled/disabled
+sleep=1
 assert.enabled.tf.metro-factor=
 assert.enabled.tf.cycle-limit=
 bn.basic=
