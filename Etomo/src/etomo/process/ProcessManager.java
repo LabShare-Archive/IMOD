@@ -20,6 +20,9 @@
  * 
  * <p>
  * $Log$
+ * Revision 3.151  2010/04/29 02:03:17  sueh
+ * bug# 1359 Added AxisID to clipStats.
+ *
  * Revision 3.150  2010/04/28 16:22:39  sueh
  * bug# 1344 Passing params whose processes output image files to the
  * start process functions.
@@ -1849,13 +1852,7 @@ public class ProcessManager extends BaseProcessManager {
      runCommand(mv, axisID);
      }*/
     // Convert the new patchvector.mod
-    String command;
-    if (Utilities.isWindowsOS()) {
-      command = "imod2vatch";
-    }
-    else {
-      command = "imod2patch";
-    }
+    String command = "imod2patch";
     String[] imod2patch = { command, DatasetFiles.PATCH_VECTOR_MODEL,
         DatasetFiles.PATCH_OUT };
     runCommand(imod2patch, axisID, patchOut);
