@@ -56,6 +56,10 @@ c
       ixTrim1 = 0
       iyTrim0 = 0
       iyTrim1 = 0
+      invertZ = .false.
+      already = .false.
+      majority = .false.
+      rescale = .false.
 
       call PipReadOrParseOptions(options, numOptions, 'sortbeadsurfs',
      &    'ERROR: SORTBEADSURFS - ', .false., 1, 1, 1, numOptArg,
@@ -312,6 +316,9 @@ c       rebuild the model, make it one point per contour
       end
 c
 c       $Log$
+c       Revision 3.2  2010/04/02 03:21:39  mast
+c       Added option for one surface and multiple objects
+c
 c       Revision 3.1  2009/12/09 01:33:33  mast
 c       Added to package
 c
