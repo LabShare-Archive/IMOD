@@ -119,6 +119,7 @@ wait.process.aligning-stack=done
 	bn.view-3d-model=
 	bn.view-residual-vectors=
 	bn.view/edit-fiducial-model=
+	sleep=3000
 	# test panels
 	run.function.residual-reporting=
 	run.function.volume-position-parameters=
