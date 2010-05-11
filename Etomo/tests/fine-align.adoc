@@ -248,7 +248,7 @@ tb.general.1=
 	run.function.beam-tilt=
 [[]]
 # Run with full distortion solution
-sleep=1
+sleep=2
 rb.full-solution=
 bn.compute-alignment=
 wait.process.aligning-stack=done
