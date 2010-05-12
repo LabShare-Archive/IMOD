@@ -461,6 +461,7 @@ assert.exists.file=%{dataset}%{axis}_erase.ali
 assert.exists.file=%{dataset}%{axis}_erase.ali~
 # run 3dmod
 bn.view-erased-stack=
+sleep=
 #check use warning
 tb.create.3=
 wait.popup.entry-warning=OK
