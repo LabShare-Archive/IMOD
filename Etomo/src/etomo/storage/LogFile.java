@@ -222,6 +222,7 @@ public final class LogFile {
         if (backupFile.exists()) {
           success = false;
           System.err.println(backupFile.getAbsolutePath() + " still exists!");
+          new Exception().printStackTrace();
         }
         else {
           System.err.println(backupFile.getAbsolutePath() + " does not exist!");
@@ -232,6 +233,7 @@ public final class LogFile {
     if (!file.renameTo(backupFile)) {
       if (file.exists()) {
         System.err.println(file.getAbsolutePath() + " still exists");
+        new Exception().printStackTrace();
         success = false;
       }
       else {
@@ -239,6 +241,7 @@ public final class LogFile {
       }
       if (backupFile.exists()) {
         System.err.println(backupFile.getAbsolutePath() + " still exists!");
+        new Exception().printStackTrace();
       }
       else {
         System.err.println(backupFile.getAbsolutePath() + " does not exist");
@@ -1395,6 +1398,10 @@ public final class LogFile {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.29  2010/02/17 04:49:31  sueh
+ * <p> bug# 1301 Using the manager instead of the manager key do pop up
+ * <p> messages.
+ * <p>
  * <p> Revision 1.28  2010/01/13 21:54:04  sueh
  * <p> bug# 1298 Formatted.
  * <p>
