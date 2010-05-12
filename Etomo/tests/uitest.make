@@ -1,4 +1,5 @@
-all: single dual single-test-gui dual-test-gui single-fidless single-simple-align single-montage dual-montage single-montage-test-gui dual-montage-test-gui join join-test-gui generic nad peet peet-test-gui flatten-volume flatten-volume-test-gui
+all: single dual single-test-gui dual-test-gui single-fidless single-simple-align single-montage dual-montage single-montage-test-gui dual-montage-test-gui dual-montage-patch-tracking join join-test-gui generic nad peet peet-test-gui flatten-volume flatten-volume-test-gui
+small: single dual single-montage join generic nad peet
 build: single dual single-fidless single-simple-align single-montage dual-montage join generic nad peet
 test-gui: single-test-gui dual-test-gui single-montage-test-gui dual-montage-test-gui join-test-gui peet-test-gui
 edf: single dual single-test-gui dual-test-gui single-fidless single-simple-align single-montage dual-montage single-montage-test-gui dual-montage-test-gui
