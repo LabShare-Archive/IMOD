@@ -37,6 +37,9 @@ import etomo.util.Utilities;
  * 
  * <p>
  * $Log$
+ * Revision 3.65  2010/03/11 06:01:28  sueh
+ * bug# 1311 Added setOpenModelView.  Added BeadFixerMode.
+ *
  * Revision 3.64  2010/02/17 04:49:20  sueh
  * bug# 1301 Using the manager instead of the manager key do pop up
  * messages.
@@ -573,15 +576,10 @@ public class ImodProcess {
   public static final String rcsid = "$Id$";
 
   public static final String MESSAGE_OPEN_MODEL = "1";
-
   public static final String MESSAGE_SAVE_MODEL = "2";
-
   public static final String MESSAGE_VIEW_MODEL = "3";
-
   public static final String MESSAGE_CLOSE = "4";
-
   public static final String MESSAGE_RAISE = "5";
-
   public static final String MESSAGE_OPEN_MODEL_VIEW = "3";
   public static final String MESSAGE_MODEL_MODE = "6";
   public static final String MESSAGE_OPEN_KEEP_BW = "7";
@@ -623,11 +621,8 @@ public class ImodProcess {
   private final ContinuousListener continuousListener;
 
   private String datasetName = "";
-
   private String modelName = "";
-
   private String windowID = "";
-
   private boolean swapYZ = false;
   private boolean modelView = false;
   private boolean useModv = false;
@@ -644,7 +639,9 @@ public class ImodProcess {
   private AxisID axisID;
   private boolean flip = false;
   private Thread imodThread;
+
   private final BaseManager manager;
+
   private boolean beadfixerDiameterSet = false;
   private ArrayList windowOpenOptionList = null;
   private boolean debug = false;
@@ -792,8 +789,7 @@ public class ImodProcess {
     int currentBinning;
     if (binning == defaultBinning) {
       currentBinning = 0;
-    }
-    else {
+    } else {
       currentBinning = binning;
     }
     if (menuOptions.isBinBy2()) {
@@ -896,8 +892,7 @@ public class ImodProcess {
       for (int i = 0; i < datasetNameArray.length; i++) {
         if (subdirName == null) {
           commandOptions.add(datasetNameArray[i]);
-        }
-        else {
+        } else {
           commandOptions.add(new File(subdirName, datasetNameArray[i])
               .getPath());
         }
@@ -913,15 +908,13 @@ public class ImodProcess {
       commandArray[i] = (String) commandOptions.get(i);
       if (EtomoDirector.INSTANCE.getArguments().isDebug()) {
         System.err.print(commandArray[i] + " ");
-      }
-      else if (debug) {
+      } else if (debug) {
         System.out.print(commandArray[i] + " ");
       }
     }
     if (EtomoDirector.INSTANCE.getArguments().isDebug()) {
       System.err.println();
-    }
-    else if (debug) {
+    } else if (debug) {
       System.out.println();
     }
     imod = new InteractiveSystemProgram(manager, commandArray, axisID);
@@ -1199,7 +1192,7 @@ public class ImodProcess {
   public void setOpenBeadFixerMessage() {
     sendArguments.add(MESSAGE_OPEN_BEADFIXER);
   }
-  
+
   public void setOpenModelView() {
     sendArguments.add(MESSAGE_OPEN_MODEL_VIEW);
   }
@@ -1211,8 +1204,7 @@ public class ImodProcess {
   public void setDeleteAllSections(boolean on) {
     if (on) {
       addPluginMessage(BEAD_FIXER_PLUGIN, BF_MESSAGE_DELETE_ALL_SECTIONS, TRUE);
-    }
-    else {
+    } else {
       addPluginMessage(BEAD_FIXER_PLUGIN, BF_MESSAGE_DELETE_ALL_SECTIONS, FALSE);
     }
   }
@@ -1315,8 +1307,7 @@ public class ImodProcess {
         .toArray(new String[sendArguments.size()]);
     if (!listenToStdin) {
       imodSendEvent(argArray);
-    }
-    else {
+    } else {
       sendCommands(argArray);
     }
     sendArguments.clear();
@@ -1333,8 +1324,7 @@ public class ImodProcess {
   private void send(String[] args) throws IOException, SystemProcessException {
     if (!listenToStdin) {
       imodSendEvent(args);
-    }
-    else {
+    } else {
       sendCommands(args);
     }
   }
@@ -1343,8 +1333,7 @@ public class ImodProcess {
       SystemProcessException {
     if (!listenToStdin) {
       return imodSendAndReceive(args);
-    }
-    else {
+    } else {
       if (EtomoDirector.INSTANCE.getArguments().isDebug()) {
         System.err.println("using stdin");
       }
@@ -1385,8 +1374,7 @@ public class ImodProcess {
         for (int i = 0; i < words.length; i++) {
           results.add(words[i]);
         }
-      }
-      else {
+      } else {
         foundError = true;
       }
     } while ((line = imod.readStderr()) != null);
@@ -1451,8 +1439,7 @@ public class ImodProcess {
       sendEventThread.start();
       try {
         sendEventThread.join();
-      }
-      catch (Exception except) {
+      } catch (Exception except) {
         except.printStackTrace();
       }
       if (EtomoDirector.INSTANCE.getArguments().isDebug()) {
@@ -1546,8 +1533,7 @@ public class ImodProcess {
         readResponse);
     if (imodReturnValues == null) {
       new Thread(messageSender).start();
-    }
-    else {
+    } else {
       // get return values
       messageSender.run();
     }
@@ -1557,8 +1543,7 @@ public class ImodProcess {
     if (isRequestReceived()) {
       try {
         disconnect();
-      }
-      catch (IOException e) {
+      } catch (IOException e) {
         e.printStackTrace();
       }
     }
@@ -1683,8 +1668,7 @@ public class ImodProcess {
   public void setBinning(int binning) {
     if (binning < defaultBinning) {
       this.binning = defaultBinning;
-    }
-    else {
+    } else {
       this.binning = binning;
     }
   }
@@ -1692,8 +1676,7 @@ public class ImodProcess {
   public void setBinningXY(int binningXY) {
     if (binningXY < defaultBinning) {
       this.binningXY = defaultBinning;
-    }
-    else {
+    } else {
       this.binningXY = binningXY;
     }
   }
@@ -1738,11 +1721,13 @@ public class ImodProcess {
      * messages.  Also contains miscellaneous messages that can be ignored.
      */
     private final Queue quickListenerQueue = new LinkedList();
+
     /**
      * Queue to hold information from 3dmod.  These messages are requested by
      * etomo but do not arrive instantly.
      */
     private final Queue continuousListenerQueue = new LinkedList();
+
     /**
      * Queue to hold requests from 3dmod.  3dmod chooses when to send these
      * messages.
@@ -1799,8 +1784,7 @@ public class ImodProcess {
     private synchronized void readStderr() {
       try {
         Thread.sleep(500);
-      }
-      catch (InterruptedException e) {
+      } catch (InterruptedException e) {
       }
       if (imod == null) {
         return;
@@ -1813,11 +1797,9 @@ public class ImodProcess {
         if (message.startsWith(REQUEST_TAG)
             && message.indexOf(STOP_LISTENING_REQUEST) != -1) {
           requestQueue.add(message);
-        }
-        else if (message.startsWith(CONTINUOUS_TAG)) {
+        } else if (message.startsWith(CONTINUOUS_TAG)) {
           continuousListenerQueue.add(message);
-        }
-        else {
+        } else {
           quickListenerQueue.add(message);
         }
       }
@@ -1826,10 +1808,13 @@ public class ImodProcess {
 
   private static class ContinuousListener implements Runnable {
     private final Stderr stderr;
+
     private final AxisID axisID;
 
     private Thread imodThread = null;
+
     private Thread continuousListenerThread = null;
+
     private ContinuousListenerTarget target = null;
 
     private ContinuousListener(Stderr stderr, AxisID axisID) {
@@ -1872,8 +1857,7 @@ public class ImodProcess {
             target.getContinuousMessage(message, axisID);
           }
         } while (imodThread != null && imodThread.isAlive());
-      }
-      catch (InterruptedException e) {
+      } catch (InterruptedException e) {
       }
     }
   }
@@ -1930,8 +1914,7 @@ public class ImodProcess {
             return;
           }
           imod.setCurrentStdInput(buffer.toString());
-        }
-        catch (IOException exception) {
+        } catch (IOException exception) {
           // make sure that 3dmod is running
           if (exception.getMessage().toLowerCase().indexOf("broken pipe") != -1) {
             if (imodReturnValues != null) {
@@ -1940,8 +1923,7 @@ public class ImodProcess {
                   "3dmod is not running.", "3dmod Warning", getAxisID());
             }
             return;
-          }
-          else {
+          } else {
             exception.printStackTrace();
             UIHarness.INSTANCE.openMessageDialog(manager, exception
                 .getMessage(), "3dmod Exception", getAxisID());
@@ -1963,7 +1945,7 @@ public class ImodProcess {
       String response = null;
       StringBuffer userMessage = new StringBuffer();
       // wait for the response for at most 5 seconds
-      for (int timeout = 0; timeout < 20; timeout++) {
+      for (int timeout = 0; timeout < 30; timeout++) {
         if (responseReceived) {
           break;
         }
@@ -2001,12 +1983,13 @@ public class ImodProcess {
         if (isRunning()) {
           // no response received and 3dmod is running - "throw" exception
           SystemProcessException exception = new SystemProcessException(
-              "No response received from 3dmod.");
+              "No response received from 3dmod.  datasetName=" + datasetName
+                  + ",modelName=" + modelName + ",workingDirectory="
+                  + workingDirectory + ",axisID=" + axisID);
           exception.printStackTrace();
           UIHarness.INSTANCE.openMessageDialog(manager, exception.getMessage(),
               "3dmod Exception", getAxisID());
-        }
-        else if (imodReturnValues != null) {
+        } else if (imodReturnValues != null) {
           // unable to get return values
           UIHarness.INSTANCE.openMessageDialog(manager,
               "3dmod is not running.", "3dmod Warning", getAxisID());
@@ -2042,12 +2025,16 @@ public class ImodProcess {
 
   static class WindowOpenOption {
     static final String OPTION = "-E";
+
     static final WindowOpenOption IMODV_OBJECTS = new WindowOpenOption("O",
         true);
+
     static final WindowOpenOption ISOSURFACE = new WindowOpenOption("U", true);
+
     static final WindowOpenOption OBJECT_LIST = new WindowOpenOption("L", true);
 
     private final String windowKey;
+
     private final boolean imodv;
 
     private WindowOpenOption(String windowKey, boolean imodv) {
@@ -2067,8 +2054,11 @@ public class ImodProcess {
   public static final class BeadFixerMode {
 
     public static final BeadFixerMode SEED_MODE = new BeadFixerMode("0");
+
     public static final BeadFixerMode GAP_MODE = new BeadFixerMode("1");
+
     public static final BeadFixerMode RESIDUAL_MODE = new BeadFixerMode("2");
+
     public static final BeadFixerMode PATCH_TRACKING_RESIDUAL_MODE = new BeadFixerMode(
         "3");
 
