@@ -21,6 +21,7 @@ wait.process.creating-sample-tomogram = done
 
 [function = compute-z-shift-&-pitch-angles]
 copy.file = tomopitch%{axis}.mod
+sleep=
 bn.compute-z-shift-&-pitch-angles =
 wait.process.finding-sample-position = done
 

@@ -423,6 +423,7 @@ assert.exists.file=%{dataset}%{axis}_3dfind.mod
 assert.exists.file=findbeads3d%{axis}.log~
 assert.exists.file=%{dataset}%{axis}_3dfind.mod~
 # run 3dmod
+sleep=1
 bn.view-3d-model-on-tomogram=
 # check values
 assert.bn.run-findbeads3d=on
@@ -524,6 +525,7 @@ assert.exists.file = %{dataset}%{axis}_filt.ali
 assert.exists.file = mtffilter%{axis}.log~
 assert.exists.file = %{dataset}%{axis}_filt.ali~
 # run 3dmod
+sleep=
 bn.view-filtered-stack=
 #check use warning
 tb.create.2=
