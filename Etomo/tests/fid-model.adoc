@@ -35,6 +35,7 @@ bn.track-with-fiducial-model-as-seed =
 wait.process.tracking-fiducials = done
 tf.view-skip-list = 1, 2
 bn.fix-fiducial-model=
+sleep=16000
 wait.popup.entry-error = OK
 tf.view-skip-list =
 bn.fix-fiducial-model=
