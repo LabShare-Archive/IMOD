@@ -15,6 +15,9 @@ c       supercede entries of FirstTiltAngle and TiltIncrement.
 c       !       
 c       $Id$
 c       $Log$
+c       Revision 3.4  2009/08/24 22:10:25  mast
+c       Upgrade filename length
+c
 c       Revision 3.3  2006/01/26 15:11:43  mast
 c       Added function to read from file
 c
@@ -147,8 +150,7 @@ c       !
 
       subroutine gta_errorexit(message)
       character*(*) message
-      print *
-      print *,'ERROR: GET_TILT_ANGLES - ',message
+      write(*,'(/,a,a)')'ERROR: GET_TILT_ANGLES - ',message
       call exit(1)
       end
       
