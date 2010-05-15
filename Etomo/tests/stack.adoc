@@ -272,7 +272,7 @@ assert.exists.file=%{dataset}%{axis}_erase.fid
 assert.exists.file=tilt_3dfind_reproject%{axis}.log~
 assert.exists.file=%{dataset}%{axis}_erase.fid~
 # run 3dmod
-sleep=
+sleep=2000
 bn.view-2d-model-on-aligned-stack=
 # check values
 assert.bn.reproject-model=on
