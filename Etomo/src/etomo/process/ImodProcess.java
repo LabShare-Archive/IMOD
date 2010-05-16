@@ -37,6 +37,10 @@ import etomo.util.Utilities;
  * 
  * <p>
  * $Log$
+ * Revision 3.66  2010/05/12 17:25:26  sueh
+ * bug# 1358 In Mac keep getting an exception in MessageSender.readResponse.  Added more
+ information to the exception.  Increased the timeout of readResponse.
+ *
  * Revision 3.65  2010/03/11 06:01:28  sueh
  * bug# 1311 Added setOpenModelView.  Added BeadFixerMode.
  *
@@ -789,7 +793,8 @@ public class ImodProcess {
     int currentBinning;
     if (binning == defaultBinning) {
       currentBinning = 0;
-    } else {
+    }
+    else {
       currentBinning = binning;
     }
     if (menuOptions.isBinBy2()) {
@@ -892,7 +897,8 @@ public class ImodProcess {
       for (int i = 0; i < datasetNameArray.length; i++) {
         if (subdirName == null) {
           commandOptions.add(datasetNameArray[i]);
-        } else {
+        }
+        else {
           commandOptions.add(new File(subdirName, datasetNameArray[i])
               .getPath());
         }
@@ -908,13 +914,15 @@ public class ImodProcess {
       commandArray[i] = (String) commandOptions.get(i);
       if (EtomoDirector.INSTANCE.getArguments().isDebug()) {
         System.err.print(commandArray[i] + " ");
-      } else if (debug) {
+      }
+      else if (debug) {
         System.out.print(commandArray[i] + " ");
       }
     }
     if (EtomoDirector.INSTANCE.getArguments().isDebug()) {
       System.err.println();
-    } else if (debug) {
+    }
+    else if (debug) {
       System.out.println();
     }
     imod = new InteractiveSystemProgram(manager, commandArray, axisID);
@@ -1204,7 +1212,8 @@ public class ImodProcess {
   public void setDeleteAllSections(boolean on) {
     if (on) {
       addPluginMessage(BEAD_FIXER_PLUGIN, BF_MESSAGE_DELETE_ALL_SECTIONS, TRUE);
-    } else {
+    }
+    else {
       addPluginMessage(BEAD_FIXER_PLUGIN, BF_MESSAGE_DELETE_ALL_SECTIONS, FALSE);
     }
   }
@@ -1307,7 +1316,8 @@ public class ImodProcess {
         .toArray(new String[sendArguments.size()]);
     if (!listenToStdin) {
       imodSendEvent(argArray);
-    } else {
+    }
+    else {
       sendCommands(argArray);
     }
     sendArguments.clear();
@@ -1324,7 +1334,8 @@ public class ImodProcess {
   private void send(String[] args) throws IOException, SystemProcessException {
     if (!listenToStdin) {
       imodSendEvent(args);
-    } else {
+    }
+    else {
       sendCommands(args);
     }
   }
@@ -1333,7 +1344,8 @@ public class ImodProcess {
       SystemProcessException {
     if (!listenToStdin) {
       return imodSendAndReceive(args);
-    } else {
+    }
+    else {
       if (EtomoDirector.INSTANCE.getArguments().isDebug()) {
         System.err.println("using stdin");
       }
@@ -1374,7 +1386,8 @@ public class ImodProcess {
         for (int i = 0; i < words.length; i++) {
           results.add(words[i]);
         }
-      } else {
+      }
+      else {
         foundError = true;
       }
     } while ((line = imod.readStderr()) != null);
@@ -1439,7 +1452,8 @@ public class ImodProcess {
       sendEventThread.start();
       try {
         sendEventThread.join();
-      } catch (Exception except) {
+      }
+      catch (Exception except) {
         except.printStackTrace();
       }
       if (EtomoDirector.INSTANCE.getArguments().isDebug()) {
@@ -1467,9 +1481,11 @@ public class ImodProcess {
         }
 
         if (messages == null) {
-          throw (new SystemProcessException(message));
+          System.err.println(message);
         }
-        messages.add(message);
+        else {
+          messages.add(message);
+        }
       }
     }
   }
@@ -1533,7 +1549,8 @@ public class ImodProcess {
         readResponse);
     if (imodReturnValues == null) {
       new Thread(messageSender).start();
-    } else {
+    }
+    else {
       // get return values
       messageSender.run();
     }
@@ -1543,7 +1560,8 @@ public class ImodProcess {
     if (isRequestReceived()) {
       try {
         disconnect();
-      } catch (IOException e) {
+      }
+      catch (IOException e) {
         e.printStackTrace();
       }
     }
@@ -1668,7 +1686,8 @@ public class ImodProcess {
   public void setBinning(int binning) {
     if (binning < defaultBinning) {
       this.binning = defaultBinning;
-    } else {
+    }
+    else {
       this.binning = binning;
     }
   }
@@ -1676,7 +1695,8 @@ public class ImodProcess {
   public void setBinningXY(int binningXY) {
     if (binningXY < defaultBinning) {
       this.binningXY = defaultBinning;
-    } else {
+    }
+    else {
       this.binningXY = binningXY;
     }
   }
@@ -1784,7 +1804,8 @@ public class ImodProcess {
     private synchronized void readStderr() {
       try {
         Thread.sleep(500);
-      } catch (InterruptedException e) {
+      }
+      catch (InterruptedException e) {
       }
       if (imod == null) {
         return;
@@ -1797,9 +1818,11 @@ public class ImodProcess {
         if (message.startsWith(REQUEST_TAG)
             && message.indexOf(STOP_LISTENING_REQUEST) != -1) {
           requestQueue.add(message);
-        } else if (message.startsWith(CONTINUOUS_TAG)) {
+        }
+        else if (message.startsWith(CONTINUOUS_TAG)) {
           continuousListenerQueue.add(message);
-        } else {
+        }
+        else {
           quickListenerQueue.add(message);
         }
       }
@@ -1857,7 +1880,8 @@ public class ImodProcess {
             target.getContinuousMessage(message, axisID);
           }
         } while (imodThread != null && imodThread.isAlive());
-      } catch (InterruptedException e) {
+      }
+      catch (InterruptedException e) {
       }
     }
   }
@@ -1914,7 +1938,8 @@ public class ImodProcess {
             return;
           }
           imod.setCurrentStdInput(buffer.toString());
-        } catch (IOException exception) {
+        }
+        catch (IOException exception) {
           // make sure that 3dmod is running
           if (exception.getMessage().toLowerCase().indexOf("broken pipe") != -1) {
             if (imodReturnValues != null) {
@@ -1923,7 +1948,8 @@ public class ImodProcess {
                   "3dmod is not running.", "3dmod Warning", getAxisID());
             }
             return;
-          } else {
+          }
+          else {
             exception.printStackTrace();
             UIHarness.INSTANCE.openMessageDialog(manager, exception
                 .getMessage(), "3dmod Exception", getAxisID());
@@ -1989,7 +2015,8 @@ public class ImodProcess {
           exception.printStackTrace();
           UIHarness.INSTANCE.openMessageDialog(manager, exception.getMessage(),
               "3dmod Exception", getAxisID());
-        } else if (imodReturnValues != null) {
+        }
+        else if (imodReturnValues != null) {
           // unable to get return values
           UIHarness.INSTANCE.openMessageDialog(manager,
               "3dmod is not running.", "3dmod Warning", getAxisID());
