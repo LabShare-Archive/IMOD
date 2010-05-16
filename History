@@ -1,6 +1,7 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-5/15/10: In Etomo hopefullly improved UI test in Windows by slowing them down.
+5/15/10: In Etomo UI test get rid of random field not found errors by
+reformatting on time.
 
 5/10/10: In Etomo removed call to imod2vatch (In 4.1).
 
