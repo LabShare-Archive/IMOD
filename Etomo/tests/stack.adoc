@@ -241,6 +241,7 @@ wait.process.running-xfmodel=done
 assert.exists.file=%{dataset}%{axis}_erase.fid
 assert.exists.file=%{dataset}%{axis}_erase.fid~
 # run 3dmod
+sleep=
 bn.view-transformed-model=
 # Run Findbeads3d
 rb.use-findbeads3d=
