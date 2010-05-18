@@ -67,11 +67,17 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.26  2010/05/16 00:41:50  sueh
+ * <p> bug# 1371 Reformatting one time when a field is not found.
+ * <p>
  * <p> Revision 1.24  2010/05/10 20:42:22  sueh
  * <p> bug# 1358 In executeCommand doing more sleeping for wait.process to avoid
  * <p>being fooled when kill button is disabled for a second.
  * <p>
  * $Log$
+ * Revision 1.26  2010/05/16 00:41:50  sueh
+ * bug# 1371 Reformatting one time when a field is not found.
+ *
  * Revision 1.25  2010/05/15 17:41:17  sueh
  * bug# 1358 For Windows using a 1 second wait after a button is pressed
  * instead of a 1 millisecond wait.
@@ -1033,9 +1039,13 @@ final class AutodocTester extends Assert implements VariableList {
         if (killButton.isEnabled()) {
           return true;
         }
-        //Decide if this is the right process         
-        if (!Utilities.convertLabelToName(progressBarLabel.getText()).equals(
-            subjectName)) {
+        //Decide if this is the right process
+        String progressBarName = Utilities.convertLabelToName(progressBarLabel
+            .getText());
+        if (EtomoDirector.INSTANCE.getArguments().isPrintNames()) {
+          System.err.println("progressBarName=" + progressBarName);
+        }
+        if (!progressBarName.equals(subjectName)) {
           return true;
         }
         //The right process is done
