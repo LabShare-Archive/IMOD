@@ -46,7 +46,6 @@ set intel           = false
 set use_etomo       =
 set packg2c         = false
 set no_qt3          = true
-set uac_wrap        = false
 
 set inst_dir        = default
 set tifflibs        = default
@@ -225,10 +224,6 @@ while($#argv > 0)
 
         case -nowrap:
                 set wrapintel = false
-                breaksw
-
-        case -uac_wrap:
-                set uac_wrap = true
                 breaksw
 
         case -no_gpu:
@@ -1008,12 +1003,14 @@ echo "             -packg2c     Pack libg2c into distribution (Linux only)"
 echo "             -qt3         Include Qt3 support in makefiles"
 echo "             -flags       Set flags for compilation"
 echo "             -use_etomo   Set directory to get etomo.jar from"
-echo "             -uac_wrap    Provide UAC wrappers for patch2imod/imod2patch"
 exit
 
 
 #
 #  $Log$
+#  Revision 1.63  2010/05/20 19:36:48  mast
+#  Eliminated uac_wrap option
+#
 #  Revision 1.62  2010/04/23 01:34:53  mast
 #  Add separate variable for building libtrack
 #
