@@ -110,6 +110,8 @@ directory.
 
 BUILDING ON MAC OS X
 
+You need to have the latest version of Xcode tools for your systems installed.
+
 Qt 4.4.3 for 32-bit Mac was built on a 32-bit Mac with:
 ./configure -prefix /usr/local/Trolltech/Qt-4.4.3 -fast -no-exceptions \
 -no-phonon  -no-phonon-backend -no-webkit -no-rpath -no-framework -no-libtiff \
@@ -184,9 +186,10 @@ The procedure is now:
 
 BUILDING UNDER CYGWIN/WINDOWS WITH INTEL COMPILERS
 
-The build under Windows requires Microsoft Visual Studio .NET.  The 2008
-version is required in 64-bit Windows; the 2003 version still works in 32-bit
-Windows except for building with CUDA support.
+The build under Windows requires Microsoft Visual Studio .NET, 2008 preferred.
+The 2008 version is required in 64-bit Windows; the 2003 version can be used
+to build a personal version in 32-bit Windows XP, with no CUDA support and not
+suitable for distribution to higher OS versions.
 
 This build also requires Intel Fortran and C++ compilers.
  
