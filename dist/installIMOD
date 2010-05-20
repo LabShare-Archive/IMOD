@@ -391,7 +391,7 @@ endif
 
 if ($os == osx) then
     set bit3264 = `file lib/libimod.dylib | sed '/.*[0-9]\([0-9]\)-bit.*/s//\1/'`
-    set arch64 = `sysctl hw.optional.x86_64 | sed '/.*:/s///'`
+    set arch64 = `sysctl hw | sed -n -e '/.*x86_64:/s///p' -e '/.*64bitops:/s///p'`
     if ("$bit3264" == "4" && "$arch64" != 1) set mismatch = \
         "WARNING: THIS IS A 64-bit PACKAGE ON A 32-BIT SYSTEM AND WILL NOT RUN"
 endif
@@ -618,6 +618,12 @@ exit 0
 
 #
 #  $Log$
+#  Revision 3.29  2010/05/20 22:05:45  mast
+#  Fixed detection of 64-bit on Mac for powerPC
+#
+#  Revision 3.28  2010/03/02 23:28:22  mast
+#  Try the rename multiple times for Win 7, Chuck's laptop
+#
 #  Revision 3.27  2010/01/06 16:14:41  mast
 #  Moved mismatch warning to end, eliminated \n from it
 #
