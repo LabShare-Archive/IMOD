@@ -31,6 +31,10 @@ import etomo.util.PrimativeTokenizer;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.23  2010/02/17 04:52:36  sueh
+ * <p> bug# 1301 Using the manager instead of the manager key do pop up
+ * <p> messages.
+ * <p>
  * <p> Revision 1.22  2009/09/20 21:31:09  sueh
  * <p> bug# 1268 Added getEtomoNumber.
  * <p>
@@ -380,6 +384,10 @@ public final class ParsedNumber extends ParsedElement {
   }
 
   public void setDefault(int input) {
+    rawNumber.setDefault(input);
+  }
+  
+  public void setDefault(boolean input) {
     rawNumber.setDefault(input);
   }
 
