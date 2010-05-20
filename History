@@ -1,5 +1,9 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+5/20/10: In Etomo fixed a problem where volcombine ran twice.
+
+5/20/10: In Etomo - PEET removed the checkbox for flgMeanFill.
+
 5/20/10: IMOD_4-2-1  (All UI tests run)
 5/15/10: In Etomo UI test get rid of random field not found errors by
 reformatting on time.
