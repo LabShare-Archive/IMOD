@@ -98,7 +98,7 @@ char *IMOD_DIR_or_default(int *assumed)
 #ifdef _WIN32
   static char *str = "C:\\cygwin\\usr\\local\\IMOD";
 #else
-#ifdef Q_OS_MACX
+#ifdef MAC103_BIGFILE
   static char *str = "/Applications/IMOD";
 #else
   static char *str = "/usr/local/IMOD";
@@ -610,6 +610,12 @@ int numompthreads(int optimalThreads)
 
 /*
 $Log$
+Revision 1.14  2010/05/20 23:43:44  mast
+Fixed default IMOD_DIR for Mac
+
+Revision 1.13  2010/03/24 02:20:32  mast
+Added function get IMOD_DIR or default
+
 Revision 1.12  2010/01/05 18:46:51  mast
 Made wallTime work for Windows
 
