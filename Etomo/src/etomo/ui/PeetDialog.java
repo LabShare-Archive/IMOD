@@ -49,6 +49,9 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.98  2010/02/17 05:03:12  sueh
+ * <p> bug# 1301 Using manager instead of manager key for popping up messages.
+ * <p>
  * <p> Revision 1.97  2010/01/13 22:04:16  sueh
  * <p> bug# 1298 Corrected hyphenation for rbCcModeNormalized.
  * <p>
@@ -409,7 +412,6 @@ public final class PeetDialog implements ContextMenu, AbstractParallelDialog,
       + ": ");
   private final LabeledTextField ltfSzVolZ = new LabeledTextField(Z_LABEL
       + ": ");
-  private final CheckBox cbFlgMeanFill = new CheckBox("Mean fill");
   private final LabeledTextField ltfAlignedBaseName = new LabeledTextField(
       "Aligned base name: ");
   private final LabeledTextField ltfLowCutoff = new LabeledTextField(
@@ -749,7 +751,6 @@ public final class PeetDialog implements ContextMenu, AbstractParallelDialog,
     else if (ccMode == MatlabParam.CCMode.LOCAL) {
       rbCcModeLocal.setSelected(true);
     }
-    cbFlgMeanFill.setSelected(matlabParam.isFlgMeanFill());
     ltfAlignedBaseName.setText(matlabParam.getAlignedBaseName());
     ltfLowCutoff.setText(matlabParam.getLowCutoff());
     lsDebugLevel.setValue(matlabParam.getDebugLevel());
@@ -786,7 +787,6 @@ public final class PeetDialog implements ContextMenu, AbstractParallelDialog,
     matlabParam.setSzVolZ(ltfSzVolZ.getText());
     matlabParam.setCcMode(((RadioButton.RadioButtonModel) bgCcMode
         .getSelection()).getEnumeratedType());
-    matlabParam.setFlgMeanFill(cbFlgMeanFill.isSelected());
     matlabParam.setAlignedBaseName(ltfAlignedBaseName.getText());
     matlabParam.setLowCutoff(ltfLowCutoff.getText());
     matlabParam.setDebugLevel(lsDebugLevel.getValue());
@@ -869,7 +869,6 @@ public final class PeetDialog implements ContextMenu, AbstractParallelDialog,
     ltfSzVolX.clear();
     ltfSzVolY.clear();
     ltfSzVolZ.clear();
-    cbFlgMeanFill.setSelected(false);
     ltfAlignedBaseName.clear();
     ltfLowCutoff.clear();
     cbRefFlagAllTom.setSelected(false);
@@ -946,9 +945,6 @@ public final class PeetDialog implements ContextMenu, AbstractParallelDialog,
             + "significantly faster.  This is no longer the case, and use of "
             + "this measure is no longer recommended.");
     rbCcModeLocal.setToolTipText("Use normalized cross-correlation (default)");
-    cbFlgMeanFill
-        .setToolTipText("If any particles are partially out of the volume, fill "
-            + "the missing values with the mean of the values which are present.");
     ltfAlignedBaseName
         .setToolTipText("The base from which output filenames will be "
             + "constructed.");
@@ -993,7 +989,6 @@ public final class PeetDialog implements ContextMenu, AbstractParallelDialog,
 
   private void setDefaults() {
     lsDebugLevel.setValue(MatlabParam.DEBUG_LEVEL_DEFAULT);
-    cbFlgMeanFill.setSelected(MatlabParam.FLG_MEAN_FILL_DEFAULT);
     ltfLowCutoff.setText(MatlabParam.LOW_CUTOFF_DEFAULT);
     referencePanel.setDefaults();
     missingWedgeCompensationPanel.setDefaults();
@@ -1082,7 +1077,6 @@ public final class PeetDialog implements ContextMenu, AbstractParallelDialog,
     JPanel pnlAdvancedRight = new JPanel();
     pnlAdvancedRight
         .setLayout(new BoxLayout(pnlAdvancedRight, BoxLayout.Y_AXIS));
-    pnlAdvancedRight.add(cbFlgMeanFill);
     pnlAdvancedRight.add(ltfAlignedBaseName.getContainer());
     pnlAdvancedRight.add(ltfLowCutoff.getContainer());
     pnlAdvancedRight.add(lsDebugLevel.getContainer());
