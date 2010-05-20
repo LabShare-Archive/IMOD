@@ -51,7 +51,7 @@ type = I
 usage = Starting number for series of numbered output files, one section each
 tooltip = 
 manpage = Starting number for a series of numbered output files, where
-one section will be placed in each file.  There must beonly one output file
+one section will be placed in each file.  There must be only one output file
 name entered, and it will be taken as the root name for the output files.  A
 dot and the number will be appended to the root name for each file.  The
 number of digits used for the number will be the same for all files so that
