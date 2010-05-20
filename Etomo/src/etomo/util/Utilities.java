@@ -12,6 +12,9 @@
  * @version $$Revision$
  *
  * <p> $$Log$
+ * <p> $Revision 3.74  2010/04/28 16:51:17  sueh
+ * <p> $bug# 1344 Added backFile.
+ * <p> $
  * <p> $Revision 3.73  2010/04/09 15:46:52  sueh
  * <p> $bug# 1353 Removed null pointer exception problem in getFile(String,String).
  * <p> $
@@ -921,6 +924,23 @@ public class Utilities {
   }
 
   public static final File getExistingDir(BaseManager manager,
+      String envVariable, AxisID axisID, String notFoundMessage) {
+    if (envVariable == null || envVariable.matches("\\s*")) {
+      return null;
+    }
+    String dirName = EnvironmentVariable.INSTANCE.getValue(manager, null,
+        envVariable, axisID);
+    if (dirName == null || dirName.matches("\\s*")) {
+      return null;
+    }
+    File dir = new File(dirName);
+    if (!checkExistingDir(dir, envVariable, notFoundMessage)) {
+      return null;
+    }
+    return dir;
+  }
+
+  public static final File getExistingDir(BaseManager manager,
       String envVariable, AxisID axisID) {
     if (envVariable == null || envVariable.matches("\\s*")) {
       return null;
@@ -935,6 +955,15 @@ public class Utilities {
       return null;
     }
     return dir;
+  }
+
+  public static final boolean checkExistingDir(File dir, String envVariable,
+      final String notFoundMessage) {
+    if (!dir.exists() || !dir.isDirectory() || !dir.canRead()) {
+      System.err.println(notFoundMessage);
+      return false;
+    }
+    return true;
   }
 
   public static final boolean checkExistingDir(File dir, String envVariable) {
