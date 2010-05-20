@@ -112,7 +112,7 @@ BUILDING ON MAC OS X
 
 You need to have the latest version of Xcode tools for your systems installed.
 
-Qt 4.4.3 for 32-bit Mac was built on a 32-bit Mac with:
+Qt 4.4.3 for 32-bit Mac was built in /usr/local/Trolltech on a 32-bit Mac with:
 ./configure -prefix /usr/local/Trolltech/Qt-4.4.3 -fast -no-exceptions \
 -no-phonon  -no-phonon-backend -no-webkit -no-rpath -no-framework -no-libtiff \
 -qt-libpng -qt-libmng -qt-libjpeg -continue
@@ -123,12 +123,14 @@ Qt 4.6.2 for 64-bit Mac has been built with gcc/g++ by unpacking in a local
 directory, running:
 setenv QMAKESPEC macx-g++
 making a link /usr/local/Trolltech/Qt-4.6.2  pointing to the local directory,
-running:
-./configure -prefix /usr/local/Trolltech/Qt-4.6.0 -fast -no-exceptions \
+running
+./configure -prefix /usr/local/Trolltech/Qt-4.6.2 -fast -no-exceptions \
 -no-phonon -no-phonon-backend -no-webkit -no-rpath -no-libtiff -qt-libpng \
--qt-libmng -qt-libjpeg -continue -cocoa -arch x86_64 -release
+-qt-libmng -qt-libjpeg -continue -cocoa -arch x86_64 -release -nomake examples \
+-nomake examples
 
-and skipping the install.
+and skipping the install.  It can also be built in place, and there it tells
+you not to do "make install".
 
 To build IMOD, QTDIR must be defined, $QTDIR/bin must be on the path, and
 $QT_DIR/lib must be on the DYLD_LIBRARY_PATH.
@@ -203,7 +205,7 @@ On some machines, the Intel compilers require a setting for the TMP or TEMP
 variable to a location that you can write in, such as C:\cygwin\usr\tmp
 
 Qt was built by unzipping the Qt source package in C:/Qt and renaming it to
-4.4.3.  QQMAKESPEC can be set to win32-icc in 32-bit Windows but fails in
+4.4.3.  QMAKESPEC can be set to win32-icc in 32-bit Windows but fails in
 64-bit, so leave it unset there.  Qt was configured and built with:
 
 ./configure -release -fast  -no-exceptions  -qt-zlib  -qt-gif  -qt-libpng -qt-libmng\
@@ -219,7 +221,7 @@ For 32-bit, you can get the TIFF binaries in the "Complete packages, except
 sources".  Version 3.5.7 is the source of the import library packaged in the
 IMOD.  For 64-bit, you need to get the sources and build from there.
 Version 3.7.4 is the source of the import library in IMOD.  They were built
-in C:\Program Files (x86)\GnuWin32\src\tiff\3.7.4\tiff-3.7.4-src after edit
+in C:\Program Files (x86)\GnuWin32\src\tiff\3.7.4\tiff-3.7.4-src after editing
 nmake.opt to comment out
 CHECK_JPEG_YCBCR_SUBSAMPLING = 1
 and with:
