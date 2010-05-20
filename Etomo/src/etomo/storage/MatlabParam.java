@@ -44,6 +44,10 @@ import etomo.util.DatasetFiles;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.39  2010/02/17 04:49:31  sueh
+ * <p> bug# 1301 Using the manager instead of the manager key do pop up
+ * <p> messages.
+ * <p>
  * <p> Revision 1.38  2009/12/08 16:01:53  sueh
  * <p> bug# 1287 Added flgAlignAverages.
  * <p>
@@ -300,11 +304,12 @@ public final class MatlabParam {
   public static final String LST_FLAG_ALL_TOM_KEY = "lstFlagAllTom";
   /**
    * @deprecated
-   * Replaced by FLG_MEAN_FILL_KEY
    */
-  public static final String MEAN_FILL_KEY = "meanFill";
   public static final String FLG_MEAN_FILL_KEY = "flgMeanFill";
-  public static final boolean FLG_MEAN_FILL_DEFAULT = true;
+  /**
+   * @deprecated
+   */
+  private static final boolean FLG_MEAN_FILL_DEFAULT = true;
   public static final String ALIGNED_BASE_NAME_KEY = "alignedBaseName";
   public static final String DEBUG_LEVEL_KEY = "debugLevel";
   public static final int DEBUG_LEVEL_MIN = 0;
@@ -350,11 +355,8 @@ public final class MatlabParam {
   private final ParsedArray lstThresholds = ParsedArray.getMatlabInstance();
   private final ParsedNumber lstFlagAllTom = ParsedNumber.getMatlabInstance();
   /**
-   * @deprecated
-   * Replaced by flgMeanFill.  Keep meanFill synchronized with flgMeanFill to
-   * help with the transition to flgMeanFill.
+   * @deprecated always on
    */
-  private final ParsedNumber meanFill = ParsedNumber.getMatlabInstance();
   private final ParsedNumber flgMeanFill = ParsedNumber.getMatlabInstance();
   private final ParsedQuotedString alignedBaseName = ParsedQuotedString
       .getInstance();
@@ -398,6 +400,7 @@ public final class MatlabParam {
     this.newFile = newFile;
     nWeightGroup.setDefault(N_WEIGHT_GROUP_DEFAULT);
     nWeightGroup.setFloor(N_WEIGHT_GROUP_MIN);
+    flgMeanFill.setDefault(FLG_MEAN_FILL_DEFAULT);
   }
 
   /**
@@ -604,15 +607,6 @@ public final class MatlabParam {
     return useReferenceFile;
   }
 
-  /**
-   * Sets flgMeanFill and meanFill.
-   * @param flgMeanFill
-   */
-  public void setFlgMeanFill(final boolean flgMeanFill) {
-    this.flgMeanFill.setRawString(flgMeanFill);
-    meanFill.setRawString(flgMeanFill);
-  }
-
   public void setRefFlagAllTom(final boolean input) {
     refFlagAllTom.setRawString(input);
   }
@@ -623,10 +617,6 @@ public final class MatlabParam {
 
   public void setFlgWedgeWeight(final boolean input) {
     flgWedgeWeight.setRawString(input);
-  }
-
-  public boolean isFlgMeanFill() {
-    return flgMeanFill.getRawBoolean();
   }
 
   public boolean isMaskModelPtsEmpty() {
@@ -755,7 +745,6 @@ public final class MatlabParam {
     lstThresholds.clear();
     lstFlagAllTom.clear();
     flgMeanFill.clear();
-    meanFill.clear();
     alignedBaseName.clear();
     debugLevel.clear();
     volumeList.clear();
@@ -1035,12 +1024,6 @@ public final class MatlabParam {
     lstThresholds.parse(autodoc.getAttribute(LST_THRESHOLDS_KEY));
     //lstFlagAllTom
     lstFlagAllTom.parse(autodoc.getAttribute(LST_FLAG_ALL_TOM_KEY));
-    //flgMeanFill
-    flgMeanFill.parse(autodoc.getAttribute(FLG_MEAN_FILL_KEY));
-    //backwards compatibility
-    if (flgMeanFill.isEmpty()) {
-      flgMeanFill.parse(autodoc.getAttribute(MEAN_FILL_KEY));
-    }
     //alignedBaseName
     alignedBaseName.parse(autodoc.getAttribute(ALIGNED_BASE_NAME_KEY));
     //debugLevel
@@ -1218,7 +1201,6 @@ public final class MatlabParam {
     if (initMotlCode != null) {
       valueMap.put(INIT_MOTL_KEY, initMotlCode.toString());
     }
-    valueMap.put(MEAN_FILL_KEY, meanFill.getParsableString());
     valueMap.put(FLG_MEAN_FILL_KEY, flgMeanFill.getParsableString());
     valueMap.put(ALIGNED_BASE_NAME_KEY, alignedBaseName.getParsableString());
     valueMap.put(DEBUG_LEVEL_KEY, debugLevel.getParsableString());
@@ -1376,8 +1358,6 @@ public final class MatlabParam {
     }
     setNameValuePairValue(manager, autodoc, CC_MODE_KEY, (String) valueMap
         .get(CC_MODE_KEY), commentMap);
-    setNameValuePairValue(manager, autodoc, MEAN_FILL_KEY, (String) valueMap
-        .get(MEAN_FILL_KEY), commentMap);
     setNameValuePairValue(manager, autodoc, FLG_MEAN_FILL_KEY,
         (String) valueMap.get(FLG_MEAN_FILL_KEY), commentMap);
     setNameValuePairValue(manager, autodoc, ALIGNED_BASE_NAME_KEY,
