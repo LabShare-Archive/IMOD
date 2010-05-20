@@ -38,6 +38,9 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.12  2010/03/03 05:11:38  sueh
+ * <p> bug# 1311 Added debug and setDebug.
+ * <p>
  * <p> Revision 1.11  2010/02/23 00:25:09  sueh
  * <p> bug# 1301 No longer require var.dataset to be set when copying a file.
  * <p>
@@ -240,6 +243,10 @@ public final class TestRunner extends JFCTestCase implements VariableList {
         }
       }
     }
+  }
+  
+  EtomoDirector getApplication() {
+    return etomo;
   }
 
   boolean isDone(AxisID axisID) {
