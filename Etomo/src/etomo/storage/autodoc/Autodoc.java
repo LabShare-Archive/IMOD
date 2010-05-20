@@ -436,12 +436,56 @@ final class Autodoc extends WriteOnlyStatementList implements WritableAutodoc {
    * @param name
    * @param axisID
    * @param envVariable
+   * @param notFoundMessage - Custom error message - when set the error messages are information, not warnings.
+   */
+  private LogFile setAutodocFile(BaseManager manager, String name,
+      AxisID axisID, String envVariable, final String notFoundMessage) {
+    File dir = getAbsoluteDir();
+    if (dir != null) {
+      return getAutodocFile(dir, name, notFoundMessage == null);
+    }
+    if (envVariable != null && !envVariable.matches("\\s*+")) {
+      //if envVariable is set, then it points to the only valid directory for this
+      //autodoc
+      dir = Utilities.getExistingDir(manager, envVariable, axisID,
+          notFoundMessage);
+      if (dir == null) {
+        if (notFoundMessage == null) {
+          System.err.println("Warning:  can't open the " + name
+              + " autodoc file.\nThis autodoc should be stored in $"
+              + envVariable + ".\n");
+        }
+        return null;
+      }
+      return getAutodocFile(dir, name, notFoundMessage == null);
+    }
+    dir = Utilities.getExistingDir(manager, AUTODOC_DIR, axisID,
+        notFoundMessage);
+    if (dir != null) {
+      return getAutodocFile(dir, name, notFoundMessage == null);
+    }
+    dir = getDir(manager, IMOD_DIR, DEFAULT_AUTODOC_DIR, axisID);
+    if (dir != null) {
+      return getAutodocFile(dir, name, notFoundMessage == null);
+    }
+    System.err.println(notFoundMessage == null ? "Warning" : "Info"
+        + ":  can't open the " + name
+        + " autodoc file.\nThis autodoc should be stored in either $"
+        + IMOD_DIR + "/" + DEFAULT_AUTODOC_DIR + " or $" + AUTODOC_DIR + ".\n");
+    return null;
+  }
+
+  /**
+   * sets the autodoc file
+   * @param name
+   * @param axisID
+   * @param envVariable
    */
   private LogFile setAutodocFile(BaseManager manager, String name,
       AxisID axisID, String envVariable) {
     File dir = getAbsoluteDir();
     if (dir != null) {
-      return getAutodocFile(dir, name);
+      return getAutodocFile(dir, name, true);
     }
     if (envVariable != null && !envVariable.matches("\\s*+")) {
       //if envVariable is set, then it points to the only valid directory for this
@@ -453,15 +497,15 @@ final class Autodoc extends WriteOnlyStatementList implements WritableAutodoc {
             + envVariable + ".\n");
         return null;
       }
-      return getAutodocFile(dir, name);
+      return getAutodocFile(dir, name, true);
     }
     dir = Utilities.getExistingDir(manager, AUTODOC_DIR, axisID);
     if (dir != null) {
-      return getAutodocFile(dir, name);
+      return getAutodocFile(dir, name, true);
     }
     dir = getDir(manager, IMOD_DIR, DEFAULT_AUTODOC_DIR, axisID);
     if (dir != null) {
-      return getAutodocFile(dir, name);
+      return getAutodocFile(dir, name, true);
     }
     System.err.println("Warning:  can't open the " + name
         + " autodoc file.\nThis autodoc should be stored in either $"
@@ -473,21 +517,30 @@ final class Autodoc extends WriteOnlyStatementList implements WritableAutodoc {
     return exists && autodocFile != null;
   }
 
-  private LogFile getAutodocFile(File autodocDir, String autodocName) {
+  /**
+   * Gets the autodoc file as a LogFile.
+   * @param autodocDir
+   * @param autodocName
+   * @param warnIfFail - If false error messages start with "Info".
+   * @return
+   */
+  private LogFile getAutodocFile(File autodocDir, String autodocName,
+      boolean warnIfFail) {
     File file = DatasetFiles.getAutodoc(autodocDir, autodocName);
+    String errorMessageTag = warnIfFail ? "Warning" : "Info";
     if (!file.exists()) {
       exists = false;
-      System.err.println("Warning:  the autodoc file," + file.getAbsolutePath()
-          + ", does not exist.");
+      System.err.println(errorMessageTag + ":  The autodoc file "
+          + file.getAbsolutePath() + " does not exist.");
       return null;
     }
     if (file.isDirectory()) {
-      System.err.println("Warning:  the autodoc file," + file.getAbsolutePath()
-          + ", is a directory.");
+      System.err.println(errorMessageTag + ":  The autodoc file "
+          + file.getAbsolutePath() + " is a directory.");
       return null;
     }
     if (!file.canRead()) {
-      System.err.println("Warning:  cannot read the autodoc file,"
+      System.err.println(errorMessageTag + ":  Cannot read the autodoc file "
           + file.getAbsolutePath() + ".");
       return null;
     }
@@ -495,7 +548,7 @@ final class Autodoc extends WriteOnlyStatementList implements WritableAutodoc {
       return LogFile.getInstance(file);
     }
     catch (LogFile.LockException e) {
-      System.err.println("Warning:  cannot open the autodoc file,"
+      System.err.println(errorMessageTag + ":  Cannot open the autodoc file "
           + file.getAbsolutePath() + ".");
       return null;
     }
@@ -573,7 +626,15 @@ final class Autodoc extends WriteOnlyStatementList implements WritableAutodoc {
 
   void initializeCpu(BaseManager manager, String name, AxisID axisID)
       throws FileNotFoundException, IOException, LogFile.LockException {
-    initialize(manager, name, axisID, EnvironmentVariable.CALIB_DIR, true);
+    initialize(
+        manager,
+        name,
+        axisID,
+        EnvironmentVariable.CALIB_DIR,
+        true,
+        "Info:  No local calibration information is available.  There is no "
+            + "cpu.adoc file.  Parallel processing on multiple machines will not "
+            + "be available.");
   }
 
   /**
@@ -646,6 +707,38 @@ final class Autodoc extends WriteOnlyStatementList implements WritableAutodoc {
    * Initial and parse.  Will not parse if the storeData parameter is false.
    * Set the storeData parameter to false to run an internal parsing test
    * (runInternalTest).
+   * @param name
+   * @param axisID
+   * @param envVariable
+   * @param storeData
+   * @throws FileNotFoundException
+   * @throws IOException
+   * @throws LogFile.ReadException
+   */
+  private void initialize(BaseManager manager, String name, AxisID axisID,
+      String envVariable, boolean storeData, final String notFoundMessage)
+      throws FileNotFoundException, IOException, LogFile.LockException {
+    if (autodocFile == null) {
+      autodocFile = setAutodocFile(manager, name, axisID, envVariable,
+          notFoundMessage);
+    }
+    if (autodocFile == null) {
+      return;
+    }
+    parser = new AutodocParser(this, false, true, debug);
+    if (storeData) {
+      parser.initialize();
+      parser.parse();
+    }
+    else {
+      runInternalTest(InternalTestType.STREAM_TOKENIZER, true, false);
+    }
+  }
+
+  /**
+   * Initial and parse.  Will not parse if the storeData parameter is false.
+   * Set the storeData parameter to false to run an internal parsing test
+   * (runInternalTest).
    * @param file
    * @param storeData
    * @throws FileNotFoundException
@@ -677,6 +770,10 @@ final class Autodoc extends WriteOnlyStatementList implements WritableAutodoc {
 }
 /**
  *<p> $$Log$
+ *<p> $Revision 1.34  2010/02/17 04:49:43  sueh
+ *<p> $bug# 1301 Using the manager instead of the manager key do pop up
+ *<p> $messages.
+ *<p> $
  *<p> $Revision 1.33  2010/01/14 22:06:39  sueh
  *<p> $bug# 1299 In exists() checking that the autodoc file is not null.  If it is null
  *<p> $then the directory that the file is supposed to be in wasn't found.
