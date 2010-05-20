@@ -197,11 +197,7 @@ comment = 1: use particles with best correlation scores among all particles of a
 
 [Field = flgMeanFill]
 comment = If any particles are partially out of the volume fill with the
-^mean of the existant data (default: 0).
-
-[Field = meanFill]
-comment = If any particles are partially out of the volume fill with the
-^mean of the existant data (default: 0).
+^mean of the existant data (default: 1).
 
 [Field = alignedBaseName]
 comment = The basename for the aligned particle MRC files (default: '').
