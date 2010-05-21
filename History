@@ -1,5 +1,7 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+5/20/10: In Etomo removed some null pointer exceptions.
+
 5/20/10: Fixed detection of 64-bit system in G5 installation, default install
 location when running Assistant, and linklibs-mac for location of frameworks
 on Mac (In 4.1).
