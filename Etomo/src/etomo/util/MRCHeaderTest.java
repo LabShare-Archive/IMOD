@@ -23,6 +23,10 @@ import junit.framework.TestCase;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.30  2010/02/17 05:05:58  sueh
+ * <p> bug# 1301 Using manager instead of manager key for popping up
+ * <p> messages.
+ * <p>
  * <p> Revision 3.29  2009/10/27 15:33:17  sueh
  * <p> bug# 1275
  * <p>
@@ -215,8 +219,8 @@ public class MRCHeaderTest extends TestCase {
     }
 
     // Check out the test header stack into the required directories
-    TestUtilites.getVector(EtomoDirector.INSTANCE.getCurrentManagerForTest(),
-        testDirPath, testDirectory1, headerTestStack);
+    TestUtilites.INSTANCE.copyTestFile(testDirPath, testDirectory1,
+        headerTestStack);
 
     assertTrue(mrcHeader.read(manager));
     assertEquals("Incorrect column count", 512, mrcHeader.getNColumns());
@@ -257,8 +261,8 @@ public class MRCHeaderTest extends TestCase {
       testDir2.mkdirs();
     }
     // Check out the test header stack into the required directories
-    TestUtilites.getVector(EtomoDirector.INSTANCE.getCurrentManagerForTest(),
-        testDirPath, testDirectory2, "headerTest.st");
+    TestUtilites.INSTANCE.copyTestFile(testDirPath, testDirectory2,
+        "headerTest.st");
 
     assertTrue("the file should exist", mrcWithSpaces.read(manager));
     assertEquals("Incorrect column count", 512, mrcWithSpaces.getNColumns());
