@@ -38,6 +38,7 @@ set.param = --autoclose3dmod
 #set.param = %{dataset}.edf
 set.var.single=
 set.var.test-gui=
+set.var.run-raptor=
 set.interface.Recon=
 
 [Test = dual-test-gui]
@@ -80,6 +81,21 @@ set.param = --autoclose3dmod
 set.var.single=
 set.var.simple-align=
 set.interface.Recon=
+
+[Test = single-patch-tracking-test-gui]
+set.testdir = single-patch-tracking-test-gui
+#set.keep.testdir = single-test-gui
+set.adoc.dialog = recon.adoc
+set.var.dataset = BBa
+set.dataset = BB
+copy.file = %{dataset}.st
+set.param = --autoclose3dmod
+#set.param = %{dataset}.edf
+set.var.single=
+set.var.test-gui=
+set.var.patch-tracking=
+set.interface.Recon=
+
 
 [Test = single-montage]
 set.testdir = single-montage
@@ -127,16 +143,17 @@ set.param = --autoclose3dmod
 set.var.dual=
 set.var.montage=
 set.var.test-gui=
+set.var.run-raptor=
 
 [Test = dual-montage-patch-tracking]
-set.testdir = dual-montage
-#set.keep.testdir = dual-montage
+set.testdir = dual-montage-patch-tracking
+#set.keep.testdir = dual-montage-patch-tracking
 set.adoc.dialog.a=recon.adoc
 set.adoc.bdialog.b=recon.adoc
 set.var.dataset = midzone2
 set.dataset = midzone2
 set.param = --autoclose3dmod
-#set.param = %{dataset}.edf
+#set.param = midzone2.edf
 set.var.dual=
 set.var.montage=
 set.var.patch-tracking=
@@ -228,6 +245,7 @@ set.var.int-unbinned-bead-diameter = 5
 set.var.maximum-radius=2.1
 #FidModel
 set.var.pixels-to-trim=26,26
+set.var.search-box-size=32,32
 #FinalStack
 set.var.size-to-output-x=550
 set.var.size-to-output-y=550
@@ -270,6 +288,7 @@ set.var.needs-pre-proc=
 #FidModel
 set.var.pixels-to-trim.a=98,51
 set.var.pixels-to-trim.b=51,98
+set.var.search-box-size=40,40
 #FinalStack
 set.var.size-to-output-x.a=2000
 set.var.size-to-output-y.a=1050
@@ -315,7 +334,6 @@ set.interface.peet=
 [interface = Recon]
 [[open = interface]]
 	pnl.main-frame=
-	bn.new-tomogram=
 [[]]
 goto.frame.pnl.main-frame =
 goto.frame.a.pnl.main-frame =
