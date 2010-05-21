@@ -6,9 +6,10 @@ Version = 1.2
 [dialog = SetupRecon]
 #partial test
 #open.dialog.FinalStack =
-#skipto.dialog.FinalStack =
+#skipto.dialog.Combine =
 #
 
+bn.new-tomogram=
 set.adoc.function = setup-recon.adoc
 run.function.main =
 if.var.dual.bn.both=
