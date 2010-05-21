@@ -307,7 +307,9 @@ public final class IntermittentBackgroundProcess implements Runnable {
     //non-local request (getting and setting standard input and output) will go
     //to the most recent local SystemProgram.
     program = localProgram;
-    if (localProgram != null || localProgram.useStartCommand()) {
+    //Commented out localProgram.useStartCommand because this comparison was only being
+    //executed when localProgram was null, so it was meaningless.
+    if (localProgram != null/* || localProgram.useStartCommand()*/) {
       localProgram.setAcceptInputWhileRunning(true);
       localProgram.start();
     }
@@ -420,6 +422,10 @@ public final class IntermittentBackgroundProcess implements Runnable {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.18  2010/02/17 04:49:20  sueh
+ * <p> bug# 1301 Using the manager instead of the manager key do pop up
+ * <p> messages.
+ * <p>
  * <p> Revision 1.17  2010/01/11 23:54:23  sueh
  * <p> bug# 1299 In run:  intermittentCommand can now be null - handling this.
  * <p>
