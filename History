@@ -1,5 +1,9 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+5/20/10: Fixed detection of 64-bit system in G5 installation, default install
+location when running Assistant, and linklibs-mac for location of frameworks
+on Mac (In 4.1).
+
 5/20/10: In Etomo fixed a problem where volcombine ran twice.
 
 5/20/10: In Etomo - PEET removed the checkbox for flgMeanFill.
@@ -12,7 +16,8 @@ reformatting on time.
 
 4/28/10: In Etomo fixed axis confusion in clip stats.
 
-4/28/10: Changed uitest to handle absolute file names with a wildcard character.
+4/28/10: Changed uitest to handle absolute file names with a wildcard
+character.
 
 4/28/10: In Etomo standardizing the popups about closing 3dmod.
 
