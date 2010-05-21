@@ -58,9 +58,11 @@ if (! -d $IMOD_DIR/qtlib) then
     exit 1
 endif
 
+set syslib = /System/Library/Frameworks
 set exist = 0
 set imodlibs = (libdiaqt.dylib libimod.dylib libiimod.dylib libdtrigs.dylib \
-libtrack.dylib libifft.dylib libb3dcmpt.dylib libimesh.dylib libcfshr.dylib)
+libtrack.dylib libifft.dylib libb3dcmpt.dylib libimesh.dylib libcfshr.dylib \
+libgfortran.dylib libgfortran.2.dylib libgfortran.2.0.0.dylib)
 set intellibs = (libsvml.dylib libifport.dylib libifcore.dylib libimf.dylib \
 libirc.dylib libifcoremt.dylib libifportmt.dylib libintlc.dylib libguide.dylib)
 if (-e $IMOD_DIR/lib/$intellibs[1]) set imodlibs = ($imodlibs $intellibs)
@@ -74,14 +76,16 @@ foreach i ($imodlibs)
     endif
 end
 
-# Look for Qt libs in /usr/lib
+# Look for Qt libs in /usr/lib or /System/Library/Frameworks
 #
 cd $IMOD_DIR/qtlib
-foreach i (*)
-    if (-e /usr/lib/$i) then
-        set exist = 1
-        ls -l /usr/lib/$i | awk '{print $9, $10, $11}'
-    endif
+foreach dir (/usr/lib $syslib)
+    foreach i (*)
+        if (-e $dir/$i) then
+            set exist = 1
+            ls -l $dir/$i | awk '{print $9, $10, $11}'
+        endif
+    end
 end
 
 echo " "
@@ -95,13 +99,14 @@ if ("$argv[1]" == '-u') then
         set answer = $<
         if ($answer != 'Y' && $answer != 'y') exit 0
     else
-        echo "There are no files or links to remove from /usr/lib"
+        echo "There are no files or links to remove from /usr/lib or $syslib"
         exit 0
     endif
 
 else
     if ($exist == 1) then
-        echo "The above files and/or links already exist in /usr/lib and need to be removed."
+        echo "The above files and/or links already exist in /usr/lib and/or"
+        echo "  $syslib and need to be removed."
         echo -n "Enter Y if you are sure you want to proceed: "
         set answer = $<
         if ($answer != 'Y' && $answer != 'y') exit 0
@@ -114,8 +119,10 @@ if ($exist == 1) then
     foreach i ($imodlibs)
         \rm -rf /usr/lib/$i
     end
-    foreach i (*)
-        \rm -rf /usr/lib/$i
+    foreach dir (/usr/lib $syslib)
+        foreach i (*)
+            if (-e $dir/$i) \rm -rf $dir/$i
+        end
     end
 endif
 
@@ -146,15 +153,31 @@ if ("$qtdylibs" == "" && "$qtframes" == "") then
 endif
 set allqt = ($qtdylibs $qtframes)
 
-foreach i ($allqt)
-    ln -s $IMOD_DIR/qtlib/$i:t /usr/lib/$i:t
-end
+if ("$qtdylibs" != "") then
+    foreach i ($qtdylibs)
+        ln -s $IMOD_DIR/qtlib/$i:t /usr/lib/$i:t
+    end
+endif
+if ("$qtframes" != "") then
+    foreach i ($qtframes)
+        ln -s $IMOD_DIR/qtlib/$i:t $syslib/$i:t
+    end
+endif
 
-echo "The appropriate links have been made in /usr/lib"
+echo "The appropriate links have been made in /usr/lib and/or $syslib"
 exit 0
 
 #
 #  $Log$
+#  Revision 1.10  2010/05/21 18:40:34  mast
+#  add libgfortran explicitly by each version
+#
+#  Revision 1.9  2010/05/20 23:54:10  mast
+#  Ah, but frameworks have to go in /System/Library/Frameworks
+#
+#  Revision 1.8  2010/01/11 01:20:16  mast
+#  Added new intel libraries and Qt frameworks
+#
 #  Revision 1.7  2008/03/03 17:48:27  mast
 #  Include intel libraries for intel version
 #
