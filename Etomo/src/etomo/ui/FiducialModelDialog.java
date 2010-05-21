@@ -41,6 +41,9 @@ import etomo.comscript.TransferfidParam;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.57  2010/03/12 04:13:50  sueh
+ * <p> bug# 1325 Made the use raptor result button label available to the package.
+ * <p>
  * <p> Revision 3.56  2010/03/08 21:03:11  sueh
  * <p> bug# 1311 Fixed typo.
  * <p>
@@ -702,7 +705,7 @@ public final class FiducialModelDialog extends ProcessDialog implements
       pnlBeadtrack.setVisible(true);
       pnlBeadtrack.pickRaptor();
       if (pnlTransferfid != null) {
-        pnlTransferfid.setVisible(true);
+        pnlTransferfid.setVisible(false);
       }
     }
     else {
