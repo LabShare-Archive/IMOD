@@ -1,29 +1,35 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-5/21/10: In Etomo adding UI tests for patch tracking.
+5/21/10: In eTomo adding ActionIfGPUFails to tilt.com.
 
-5/20/10: In Etomo removed some null pointer exceptions.
+5/21/10: Moved unit test data to the Etomo directory.
+
+5/21/10:In eTomo hiding Transfer Fiducials when RAPTOR is in use.
+
+5/21/10: In eTomo adding UI tests for patch tracking.
+
+5/20/10: In eTomo removed some null pointer exceptions.
 
 5/20/10: Fixed detection of 64-bit system in G5 installation, default install
 location when running Assistant, and linklibs-mac for location of frameworks
 on Mac (In 4.1).
 
-5/20/10: In Etomo fixed a problem where volcombine ran twice.
+5/20/10: In eTomo fixed a problem where volcombine ran twice.
 
-5/20/10: In Etomo - PEET removed the checkbox for flgMeanFill.
+5/20/10: In eTomo - PEET removed the checkbox for flgMeanFill.
 
 5/20/10: IMOD_4-2-1  (All UI tests run)
 5/15/10: In Etomo UI test get rid of random field not found errors by
 reformatting on time.
 
-5/10/10: In Etomo removed call to imod2vatch (In 4.1).
+5/10/10: In eTomo removed call to imod2vatch (In 4.1).
 
-4/28/10: In Etomo fixed axis confusion in clip stats.
+4/28/10: In eTomo fixed axis confusion in clip stats.
 
 4/28/10: Changed uitest to handle absolute file names with a wildcard
 character.
 
-4/28/10: In Etomo standardizing the popups about closing 3dmod.
+4/28/10: In eTomo standardizing the popups about closing 3dmod.
 
 4/27/10: Stopped Ctfplotter message about inconsistencies when there is no
 existing defocus file (In 4.1).
