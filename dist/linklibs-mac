@@ -61,7 +61,8 @@ endif
 set syslib = /System/Library/Frameworks
 set exist = 0
 set imodlibs = (libdiaqt.dylib libimod.dylib libiimod.dylib libdtrigs.dylib \
-libtrack.dylib libifft.dylib libb3dcmpt.dylib libimesh.dylib libcfshr.dylib)
+libtrack.dylib libifft.dylib libb3dcmpt.dylib libimesh.dylib libcfshr.dylib \
+libgfortran.dylib libgfortran.2.dylib libgfortran.2.0.0.dylib)
 set intellibs = (libsvml.dylib libifport.dylib libifcore.dylib libimf.dylib \
 libirc.dylib libifcoremt.dylib libifportmt.dylib libintlc.dylib libguide.dylib)
 if (-e $IMOD_DIR/lib/$intellibs[1]) set imodlibs = ($imodlibs $intellibs)
@@ -168,6 +169,9 @@ exit 0
 
 #
 #  $Log$
+#  Revision 1.9  2010/05/20 23:54:10  mast
+#  Ah, but frameworks have to go in /System/Library/Frameworks
+#
 #  Revision 1.8  2010/01/11 01:20:16  mast
 #  Added new intel libraries and Qt frameworks
 #
