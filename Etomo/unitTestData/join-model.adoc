@@ -1,0 +1,10 @@
+Version = 1.2
+
+[function = main]
+copy.file = unicross_refine.mod
+bn.find-transformations=
+wait.process.xfjointomo=done
+[[if = test-gui]]
+	bn.transform-&-view-model=
+	wait.process.remapmodel=done
+[[]]

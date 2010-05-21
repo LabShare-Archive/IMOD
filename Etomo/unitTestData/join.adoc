@@ -1,0 +1,25 @@
+Version = 1.2
+
+[tab = setup]
+set.adoc.function = join-setup.adoc
+run.function.main =
+
+[tab = align]
+open.dialog.align=
+set.adoc.function = join-align.adoc
+run.function.main =
+
+[tab = join]
+open.dialog.join=
+set.adoc.function = join-join.adoc
+run.function.main =
+
+[tab = model]
+open.dialog.model=
+set.adoc.function = join-model.adoc
+run.function.main =
+
+[tab = rejoin]
+open.dialog.rejoin=
+set.adoc.function = join-rejoin.adoc
+run.function.main =

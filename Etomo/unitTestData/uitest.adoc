@@ -1,0 +1,373 @@
+Version = 1.2
+
+[Test = single]
+set.testdir=single
+#set.keep.testdir=single
+set.adoc.dialog = recon.adoc
+set.var.dataset = BBa
+set.dataset = BB
+copy.file = %{dataset}.st
+set.param = --autoclose3dmod
+#set.param = %{dataset}.edf
+set.var.single=
+set.interface.Recon=
+#set.var.build=
+
+[Test = dual]
+set.testdir = dual
+#set.keep.testdir = dual
+set.adoc.dialog.a=recon.adoc
+set.adoc.bdialog.b=recon.adoc
+set.var.dataset = BB
+set.dataset = BB
+copy.file.a = %{dataset}a.st
+copy.file.b = %{dataset}b.st
+set.param = --autoclose3dmod
+#set.param = %{dataset}.edf
+set.var.dual=
+set.interface.Recon=
+
+[Test = single-test-gui]
+set.testdir = single-test-gui
+#set.keep.testdir = single-test-gui
+set.adoc.dialog = recon.adoc
+set.var.dataset = BBa
+set.dataset = BB
+copy.file = %{dataset}.st
+set.param = --autoclose3dmod
+#set.param = %{dataset}.edf
+set.var.single=
+set.var.test-gui=
+set.interface.Recon=
+
+[Test = dual-test-gui]
+set.testdir = dual-test-gui
+#set.keep.testdir = dual-test-gui
+set.adoc.dialog.a=recon.adoc
+set.adoc.bdialog.b=recon.adoc
+set.var.dataset = BB
+set.dataset = BB
+copy.file.a = %{dataset}a.st
+copy.file.b = %{dataset}b.st
+set.param = --autoclose3dmod
+#set.param = %{dataset}.edf
+set.var.dual=
+set.var.test-gui=
+set.interface.Recon=
+
+[Test = single-fidless]
+set.testdir=single-fidless
+set.adoc.dialog = recon.adoc
+set.var.dataset = BBa
+set.dataset = BB
+copy.file = %{dataset}.st
+set.param = --autoclose3dmod
+#set.param = %{dataset}.edf
+set.var.single=
+set.var.fidless=
+set.interface.Recon=
+#set.var.build=
+
+[Test = single-simple-align]
+set.testdir=single-simple-align
+#set.keep.testdir=single
+set.adoc.dialog = recon.adoc
+set.var.dataset = BBa
+set.dataset = BB
+copy.file = %{dataset}.st
+set.param = --autoclose3dmod
+#set.param = %{dataset}.edf
+set.var.single=
+set.var.simple-align=
+set.interface.Recon=
+
+[Test = single-montage]
+set.testdir = single-montage
+#set.keep.testdir = single-montage
+set.adoc.dialog = recon.adoc
+set.var.dataset = midzone2a
+set.dataset = midzone2
+set.param = --autoclose3dmod
+#set.param = %{dataset}.edf
+set.var.single=
+set.var.montage=
+
+[Test = dual-montage]
+set.testdir = dual-montage
+#set.keep.testdir = dual-montage
+set.adoc.dialog.a=recon.adoc
+set.adoc.bdialog.b=recon.adoc
+set.var.dataset = midzone2
+set.dataset = midzone2
+set.param = --autoclose3dmod
+#set.param = %{dataset}.edf
+set.var.dual=
+set.var.montage=
+
+[Test = single-montage-test-gui]
+set.testdir = single-montage-test-gui
+set.adoc.dialog = recon.adoc
+set.var.dataset = midzone2a
+set.dataset = midzone2
+set.param = --autoclose3dmod
+set.var.single=
+set.var.montage=
+set.var.test-gui=
+
+[Test = dual-montage-test-gui]
+set.testdir = dual-montage-test-gui
+#set.keep.testdir = dual-montage-test-gui
+set.adoc.dialog.a=recon.adoc
+set.adoc.bdialog.b=recon.adoc
+set.var.dataset = midzone2
+set.dataset = midzone2
+set.param = --autoclose3dmod
+#set.param = %{dataset}.edf
+#set.param= --names
+set.var.dual=
+set.var.montage=
+set.var.test-gui=
+
+[Test = dual-montage-patch-tracking]
+set.testdir = dual-montage
+#set.keep.testdir = dual-montage
+set.adoc.dialog.a=recon.adoc
+set.adoc.bdialog.b=recon.adoc
+set.var.dataset = midzone2
+set.dataset = midzone2
+set.param = --autoclose3dmod
+#set.param = %{dataset}.edf
+set.var.dual=
+set.var.montage=
+set.var.patch-tracking=
+
+[Test = join]
+set.testdir = join
+set.adoc.tab = join.adoc
+set.var.dataset = unicross
+set.dataset = unicross
+copy.file = %{dataset}2.rec
+copy.file = %{dataset}3.rec
+set.param = --autoclose3dmod
+set.interface.Join=
+
+[Test = join-test-gui]
+set.testdir = join-test-gui
+set.adoc.tab = join.adoc
+set.var.dataset = unicross
+set.dataset = unicross
+set.var.test-gui=
+copy.file = %{dataset}2.rec
+copy.file = %{dataset}3.rec
+set.param = --autoclose3dmod
+set.interface.Join=
+
+[Test = generic]
+set.testdir = generic
+set.adoc.dialog = generic.adoc
+set.dataset = BB
+set.var.dataset = tilt
+set.param = --autoclose3dmod
+set.interface.Generic=
+
+[Test = nad]
+set.testdir = nad
+set.adoc.dialog = nad.adoc
+set.var.dataset = unicross
+set.dataset = unicross
+set.param = --autoclose3dmod
+set.var.volume=unicross1.rec
+set.interface.Nad=
+
+[Test = peet]
+set.testdir = peet
+set.adoc.dialog = peet.adoc
+set.var.dataset = pi
+set.param = --autoclose3dmod
+set.dataset = pi
+
+[Test = peet-test-gui]
+set.testdir = peet-test-gui
+set.adoc.dialog = peet.adoc
+set.var.dataset = pi
+set.dataset = pi
+set.param = --autoclose3dmod
+set.var.test-gui=
+
+[Test = flatten-volume]
+set.testdir = flatten-volume
+set.adoc.flatten-volume = tools.adoc
+set.var.dataset = BBa.rec
+set.dataset = BB
+copy.file = %{dataset}
+set.param = --autoclose3dmod
+#set.param = --names
+set.interface.tools=
+
+[Test = flatten-volume-test-gui]
+set.testdir = flatten-volume-test-gui
+set.adoc.flatten-volume = tools.adoc
+set.var.dataset = BBa.rec
+set.dataset = BB
+copy.file = %{dataset}
+set.param = --autoclose3dmod
+set.var.test-gui=
+set.interface.tools=
+
+
+[dataset = BB]
+set.var.pixel-size = 2.02
+set.var.fiducial-diameter = 10
+set.var.image-rotation = -12.5
+set.var.sample-tomogram-thickness = 200
+set.var.z-axis-min = 5
+set.var.z-axis-max = 70
+set.var.unbinned-bead-diameter = 4.95
+set.var.int-unbinned-bead-diameter = 5
+#PreProc
+set.var.maximum-radius=2.1
+#FidModel
+set.var.pixels-to-trim=26,26
+#FinalStack
+set.var.size-to-output-x=550
+set.var.size-to-output-y=550
+set.var.center-to-center-thickness = 83.0
+set.var.rounded-unbinned-bead-diameter = 5.0
+set.var.findbeads3d-binning = 1
+# center-to-center-thickness + additional-unbinned-diameters-to-add*int-unbinned-bead-diameter
+set.var.erase-gold-thickness=98
+set.var.incremental-shift-to-center.a=-12.9
+set.var.incremental-shift-to-center.b=-13.9
+set.var.final-align-comscript=newst
+set.var.final-align-command=newstack
+#TomoGen
+set.var.output-density-scaling-factor=1000.0
+set.var.tomogram-thickness-in-z.a=76
+set.var.tomogram-thickness-in-z.b=78
+set.var.x-axis-tilt.a=1.76
+set.var.x-axis-tilt.b=0.13
+#PostProc
+set.var.volume-range-z-max=70
+set.var.scaling-z-min=25
+set.var.scaling-z-max=50
+
+[dataset = midzone2]
+copy.file = %{dataset}.st
+copy.file.a = %{dataset}a.st
+copy.file.b = %{dataset}b.st
+set.var.montage=
+set.var.pixel-size = 1.42
+set.var.fiducial-diameter = 15
+set.var.image-rotation = 0.0
+set.var.sample-tomogram-thickness = 200
+set.var.z-axis-min = 5
+set.var.z-axis-max = 70
+set.var.unbinned-bead-diameter = 10.56
+set.var.int-unbinned-bead-diameter = 11
+#PreProc
+set.var.maximum-radius=2.6
+set.var.needs-pre-proc=
+#FidModel
+set.var.pixels-to-trim.a=98,51
+set.var.pixels-to-trim.b=51,98
+#FinalStack
+set.var.size-to-output-x.a=2000
+set.var.size-to-output-y.a=1050
+set.var.size-to-output-x.b=1050
+set.var.size-to-output-y.b=2000
+set.var.center-to-center-thickness.a = 122.0
+set.var.center-to-center-thickness.b = 116.0
+set.var.rounded-unbinned-bead-diameter = 10.6
+set.var.findbeads3d-binning = 2
+# center-to-center-thickness + additional-unbinned-diameters-to-add*int-unbinned-bead-diameter
+set.var.erase-gold-thickness.a=154
+set.var.erase-gold-thickness.b=148
+set.var.incremental-shift-to-center.a=28.9
+set.var.incremental-shift-to-center.b=38.7
+set.var.final-align-comscript=blend
+set.var.final-align-command=blendmont
+#TomoGen
+set.var.output-density-scaling-factor.a=500.0
+set.var.output-density-scaling-factor.b=1000.0
+set.var.tomogram-thickness-in-z=84
+set.var.x-axis-tilt.a=1.71
+set.var.x-axis-tilt.b=0.18
+#PostProc
+set.var.volume-range-z-max=79
+set.var.scaling-z-min=28
+set.var.scaling-z-max=56
+set.interface.Recon=
+
+[dataset = unicross]
+copy.file = %{dataset}1.rec
+
+[dataset = pi]
+copy.file = %{dataset}-a.rec
+copy.file = %{dataset}-a.mod
+copy.file = %{dataset}-b.rec
+copy.file = %{dataset}-b.mod
+set.var.angular-search-range-max=20
+set.var.angular-search-range-incr=4
+set.var.particle-volume=80
+set.interface.peet=
+
+
+[interface = Recon]
+[[open = interface]]
+	pnl.main-frame=
+	bn.new-tomogram=
+[[]]
+goto.frame.pnl.main-frame =
+goto.frame.a.pnl.main-frame =
+goto.frame.b.pnl.sub-frame =
+open.dialog.PreProc.bn.pre = 
+open.dialog.CoarseAlign.bn.coarse =
+open.dialog.FidModel.bn.track =
+open.dialog.FineAlign.bn.fine =
+open.dialog.TomoPos.bn.pos =
+open.dialog.FinalStack.bn.stack =
+open.dialog.TomoGen.bn.gen =
+open.dialog.Combine.bn.comb =
+open.dialog.PostProc.bn.post =
+open.dialog.CleanUp.bn.clean =
+
+[interface = Join]
+[[open = interface]]
+	pnl.main-frame=
+	bn.new-join=
+[[]]
+goto.frame.pnl.main-frame =
+open.dialog.setup.tb.setup =
+open.dialog.align.tb.setup.1 =
+open.dialog.join.tb.setup.2 =
+open.dialog.model.tb.setup.3 =
+open.dialog.rejoin.tb.setup.4 =
+
+[interface = PEET]
+[[open = interface]]
+	pnl.main-frame=
+	bn.new-peet=
+[[]]
+goto.frame.pnl.main-frame =
+
+[Interface = Nad]
+[[open = interface]]
+	pnl.main-frame=
+	bn.new-nonlinear-anisotropic-diffusion=
+[[]]
+goto.frame.pnl.main-frame =
+
+[Interface = Generic]
+[[open = interface]]
+	pnl.main-frame=
+	bn.new-generic-parallel-process=
+[[]]
+goto.frame.pnl.main-frame =
+
+[Interface = Tools]
+[[open = interface]]
+	pnl.main-frame=
+	mn.tools=
+	mn.flatten-volume=
+[[]]
+goto.frame.pnl.manager-frame =

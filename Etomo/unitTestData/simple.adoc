@@ -1,0 +1,4 @@
+[function = assert-general-fields]
+tp.general.0 =
+assert.tf.list-of-views-to-exclude=
+assert.tf.separate-view-groups=

@@ -1,0 +1,134 @@
+Version = 1.0
+units.speed = GHz
+units.memory = GB
+max.tilt = 12
+max.volcombine = 8
+
+mountrule.1.local = /localscratch
+mountrule.1.remote = /scratch/%mountname
+
+[Computer = bigfoot]
+number = 4
+type = Xeon
+speed = 3.0
+memory = 12.0
+[[Interface = peet]]
+number = 2
+[[]]
+
+[Computer = kraken]
+number = 2
+type = Opteron
+speed = 2.8
+memory = 12.0
+
+# cyclops is in Toby's office on a 1000 mbps connection
+[Computer = cyclops]
+number = 2
+type = AMD 64
+memory = 2.0
+speed = 2.4
+
+[Computer = gorgon]
+number = 2
+type = AMD 64
+memory = 2.0
+speed = 2.4
+
+[Computer = ragtime]
+number = 2
+type = AMD 64
+memory = 2.0
+speed = 2.4
+
+[Computer = tubule]
+number = 2
+type = Opteron
+speed = 2.4
+memory = 8.0
+
+[Computer = shrek]
+number = 2
+type = Opteron
+speed = 2.0
+memory = 8.0
+
+[Computer = bear]
+type = Xeon
+speed = 3.2
+memory = 8.0
+number = 2
+
+[Computer = salsa]
+type = Mac/Intel
+speed = 1.7
+memory = 2.0
+number = 2
+
+mountrule.1.local = /private/var/automount/home
+mountrule.1.remote = /home
+
+mountrule.2.local = /private/var/automount
+mountrule.2.remote = /scratch
+
+mountrule.3.local = /Users
+mountrule.3.remote = /%mountname
+
+mountrule.4.local = /localscratch
+mountrule.4.remote = /localscratch
+
+[Computer = monalisa]
+type = Xeon
+speed = 2.8
+memory = 4.0
+number = 2
+
+[Computer = mustang]
+number = 2
+type = Xeon
+speed = 2.8
+memory = 4.0
+
+[Computer = blkbox2]
+type = P4
+speed = 3.06
+memory = 2.0
+
+[Computer = druid]
+type = P4
+memory = 2.0
+speed = 3.0
+
+[Computer = sanguine]
+type = P4
+speed = 3.0
+memory = 2.0
+
+[Computer = ashtray]
+type = G5 - OSX
+speed = 2.3
+memory = 5.0
+number = 2
+
+mountrule.1.local = /private/var/automount/home
+mountrule.1.remote = /home
+
+mountrule.2.local = /private/var/automount
+mountrule.2.remote = /scratch
+
+mountrule.3.local = /Users
+mountrule.3.remote = /%mountname
+
+mountrule.4.local = /localscratch
+mountrule.4.remote = /localscratch
+
+[Computer = bebop]
+type = P4
+speed = 2.6
+memory = 2.0
+
+[hideComputer = thot]
+type = P4
+speed = 2.4
+memory = 1.0
+

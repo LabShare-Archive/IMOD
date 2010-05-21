@@ -1,0 +1,209 @@
+Version = 1.2
+
+[function = main]
+[[if = patch-tracking]]
+run.function.main-patch-tracking=
+return=
+[[]]
+[[if = test-gui]]
+	if.equals.var.axis.run.function.test-gui-transfer-fiducials-a = a
+	run.function.test-gui-beadtracker-values =
+	run.function.test-gui-beadtracker-enabled =
+[[]]
+[[if = axis]]
+	if.not-equals.var.axis.return = b
+	mb.transfer-fiducials = +
+	bn.transfer-fiducials-from-other-axis =
+	wait.process.transferring-fiducials = done
+[[]]
+[[if = axis]]
+	if.equals.var.axis.return = b
+	run.function.axis-a =
+[[]]
+mb.beadtracker = +
+bn.track-seed-model =
+wait.process.tracking-fiducials = done
+[[if = test-gui]]
+	assert.exists.file = track%{axis}.log
+[[]]
+bn.track-with-fiducial-model-as-seed = 
+[[if = test-gui]]
+	assert.exists.file = track%{axis}.log~
+[[]]
+wait.process.tracking-fiducials = done
+bn.track-with-fiducial-model-as-seed =
+wait.process.tracking-fiducials = done
+tf.view-skip-list = 1, 2
+bn.fix-fiducial-model=
+wait.popup.entry-error = OK
+tf.view-skip-list =
+bn.fix-fiducial-model=
+tf.view-skip-list = 1,2
+bn.fix-fiducial-model=
+copy.file = %{dataset}%{axis}.fid
+bn.done =
+
+
+[function = axis-a]
+run.function.raptor=
+# Test beadtrack
+copy.always.file = %{dataset}%{axis}.seed
+
+
+[function = raptor]
+if.not-exists.rb.run-raptor-and-fix.return=
+# Test RAPTOR
+rb.run-raptor-and-fix=
+[[ifnot = montage]]
+# Run RAPTOR against coarse aligned stack
+	rb.run-against-the-coarse-aligned-stack=
+[[]]
+bn.open-stack-in-3dmod=
+# RAPTOR takes too long when the correct number of beads are used.
+tf.#-of-beads-to-choose=10
+assert.tf.unbinned-bead-diameter = %{int-unbinned-bead-diameter}
+if.var.raptor.run.function.run-raptor=
+rb.make-seed-and-track=
+
+
+[function = run-raptor]
+bn.run-raptor=
+wait.process.running-runraptor=done
+bn.open-raptor-model-in-3dmod=
+bn.use-raptor-result-as-fiducial-model=
+[[ifnot = montage]]
+	# Montage raw stack cannot be used with RAPTOR
+	# Run RAPTOR against raw stack
+	rb.run-against-the-raw-stack=
+[[]]
+bn.run-raptor=
+wait.process.running-runraptor=done
+bn.open-raptor-model-in-3dmod=
+bn.use-raptor-result-as-fiducial-model=
+
+
+[function = test-gui-beadtracker-enabled]
+mb.beadtracker = +
+mb.beadtracker.1 = A
+assert.enabled.tf.unbinned-bead-diameter = 
+mb.beadtracker.1 = B
+
+
+[function = test-gui-beadtracker-values]
+mb.beadtracker = +
+mb.beadtracker.1 = A
+assert.tf.unbinned-bead-diameter = %{unbinned-bead-diameter}
+mb.beadtracker.1 = B
+
+[function = test-gui-transfer-fiducials-a]
+mb.transfer-fiducials = +
+mb.transfer-fiducials.1 = A
+assert.disabled.cb.run-midas =
+assert.tf.center-view-a = 
+assert.disabled.tf.center-view-a =
+assert.tf.center-view-b = 
+assert.disabled.tf.center-view-b = 
+assert.tf.number-of-views-in-the-search = 5
+assert.disabled.tf.number-of-views-in-the-search =
+assert.rb.both-directions = 1
+assert.disabled.rb.both-directions =
+assert.rb.+90-only = 0
+assert.disabled.rb.+90-only =
+assert.rb.-90-only = 0
+assert.disabled.rb.-90-only = 
+assert.cb.mirror-one-image-around-the-x-axis = 0
+assert.disabled.cb.mirror-one-image-around-the-x-axis = 
+assert.bn.transfer-fiducials-from-other-axis = 0
+assert.disabled.bn.transfer-fiducials-from-other-axis = 
+mb.transfer-fiducials.1 = A
+assert.disabled.cb.run-midas = 
+assert.bn.transfer-fiducials-from-other-axis = 0
+assert.disabled.bn.transfer-fiducials-from-other-axis = 
+
+
+[function = main-patch-tracking]
+rb.use-patching-tracking-to-make-fiducial-model=
+run.function.patch-tracking=
+
+
+[function = patch-tracking]
+[[if = test-gui]]
+#Test values
+assert.tf.size-of-patches=
+assert.rb.fractional-overlap-of-patches=on
+assert.tf.fractional-overlap-of-patches=.33,.33
+assert.rb.number-of-patches=off
+assert.tf.number-of-patches=
+assert.cb.use-boundary-model=on
+assert.sp.iterations-to-increase-into-pieces=1
+assert.cb.break-contour-into-pieces=off
+assert.tf.break-contour-into-pieces=16,4
+assert.tf.pixels-to-trim=%{pixels-to-trim}
+assert.tf.x-axis-min=
+assert.tf.max=
+assert.tf.y-axis.min=
+assert.tf.max.1=
+assert.bn.track-patches=off
+bn.advanced=
+assert.tf.limits-on-shifts-from-correlation=
+assert.tf.tilt-angle-offset=
+assert.tf.low-frequency-rolloff-sigma=0.03
+assert.tf.high-frequency-cutoff-radiu=0.25
+assert.tf.sigma-frequency-rolloff-sigma=0.05
+assert.tf.pixels-to-pad=
+assert.tf.pixels-to-taper=
+assert.tf.test-output=
+assert.tf.view-range=
+bn.basic=
+#Test enabled/disabled
+assert.enabled.tf.size-of-patches=
+assert.enabled.rb.fractional-overlap-of-patches=
+assert.enabled.tf.fractional-overlap-of-patches=
+assert.disabled.rb.number-of-patches=
+assert.disabled.tf.number-of-patches=
+assert.enabled.cb.use-boundary-model=
+assert.disabled.bn.create-boundary-model=
+assert.enabled.sp.iterations-to-increase-into-pieces=
+assert.enabled.cb.break-contour-into-pieces=
+assert.disabled.tf.break-contour-into-pieces=
+assert.enabled.tf.pixels-to-trim=
+assert.enabled.tf.x-axis-min=
+assert.enabled.tf.max=
+assert.enabled.tf.y-axis.min=
+assert.enabled.tf.max.1=
+assert.enabled.bn.track-patches=
+assert.enabled.bn.open-tracked-patches=
+bn.advanced=
+assert.enabled.tf.limits-on-shifts-from-correlation=
+assert.enabled.tf.tilt-angle-offset=
+assert.enabled.tf.low-frequency-rolloff-sigma=
+assert.enabled.tf.high-frequency-cutoff-radiu=
+assert.enabled.tf.sigma-frequency-rolloff-sigma=
+assert.enabled.tf.pixels-to-pad=
+assert.enabled.tf.pixels-to-taper=
+assert.enabled.tf.test-output=
+assert.enabled.tf.view-range=
+bn.basic=
+#Test gui behavior
+#Patch layout
+rb.number-of-patches=
+assert.disabled.rb.fractional-overlap-of-patches=
+assert.disabled.tf.fractional-overlap-of-patches=
+assert.enabled.rb.number-of-patches=
+assert.enabled.tf.number-of-patches=
+rb.fractional-overlap-of-patches=
+assert.enabled.rb.fractional-overlap-of-patches=
+assert.enabled.tf.fractional-overlap-of-patches=
+assert.disabled.rb.number-of-patches=
+assert.disabled.tf.number-of-patches=
+#Boundary model
+cb.use-boundary-model=on
+assert.enabled.bn.create-boundary-model=
+cb.use-boundary-model=off
+assert.disabled.bn.create-boundary-model=
+#Break contour into pieces
+cb.break-contour-into-pieces=on
+assert.enabled.tf.break-contour-into-pieces=
+cb.break-contour-into-pieces=off
+assert.disabled.tf.break-contour-into-pieces=
+[[]]

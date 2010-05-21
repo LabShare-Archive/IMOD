@@ -1,0 +1,260 @@
+Version = 1.2
+
+[function = main]
+[[if = test-gui]]
+	# Set test-values if this is a new dataset and test-gui is on
+	if.not.var.keep-dataset-dir.set.var.test-values=
+	return.var.test-values=
+[[]]
+[[if = test-gui]]
+	#check enabled/disabled
+	assert.enabled.bn.cancel=
+	assert.enabled.bn.postpone=
+	assert.enabled.bn.done=
+[[]]
+run.function.volume-trimming=
+[[if = test-gui]]
+	run.function.flatten-volume=
+	run.function.squeeze-volume=
+[[]]
+bn.done=
+
+
+[function = volume-trimming]
+tb.trim-vol=
+[[if = test-gui]]
+	#check enabled/disabled
+	assert.enabled.bn.3dmod-full-volume=
+	assert.enabled.bn.get-xyz-volume-range-from-3dmod=
+[[]]
+run.function.volume-range=
+[[if = test-gui]]
+	run.function.scaling=
+[[]]
+[[if = test-values]]
+	#check values
+	assert.rb.none=off
+	assert.rb.swap-y-and-z-dimensions=off
+	assert.rb.rotate-around-x-axis=on
+	assert.bn.trim-volume=off
+[[]]
+[[if = test-gui]]
+	#check enabled/disabled
+	assert.enabled.rb.none=
+	assert.enabled.rb.swap-y-and-z-dimensions=
+	assert.enabled.rb.rotate-around-x-axis=
+	assert.enabled.bn.trim-volume=
+	assert.enabled.bn.3dmod-trimmed-volume=
+[[]]
+bn.trim-volume=
+wait.process.trimming-volume = done
+[[if = test-gui]]
+	#check files
+	assert.exists.file=%{dataset}.rec
+	bn.trim-volume=
+	wait.process.trimming-volume = done
+	assert.exists.file=%{dataset}.rec~
+	assert.exists.file=%{dataset}.rec
+	#run 3dmod
+	bn.3dmod-trimmed-volume=
+	assert.bn.trim-volume=on
+[[]]
+
+
+[function = volume-range]
+[[if = test-values]]
+	#check values
+	assert.tf.x-min=1
+	assert.tf.x-max=%{size-to-output-x}
+	assert.tf.y-min=1
+	assert.tf.y-max=%{size-to-output-y}
+	assert.tf.z-min=1
+	assert.tf.z-max=%{tomogram-thickness-in-z}
+[[]]
+[[if = test-gui]]
+	#check enabled/disabled
+	assert.enabled.tf.x-min=
+	assert.enabled.tf.x-max=
+	assert.enabled.tf.y-min=
+	assert.enabled.tf.y-max=
+	assert.enabled.tf.z-min=
+	assert.enabled.tf.z-max=
+[[]]
+tf.z-min = 5
+tf.z-max = %{volume-range-z-max}
+
+
+[function = scaling]
+[[if = test-values]]
+	#check values
+	assert.cb.convert-to-bytes=on
+	assert.rb.scale-to-match-contrast=off
+	assert.tf.black=
+	assert.tf.white=
+	assert.rb.find-scaling-from-sections=on
+	assert.tf.z-min.1=%{scaling-z-min}
+	assert.tf.z-max.1=%{scaling-z-max}
+[[]]
+[[if = test-gui]]
+	#check enabled/disabled
+	assert.enabled.cb.convert-to-bytes=
+	assert.enabled.rb.scale-to-match-contrast=
+	assert.disabled.tf.black=
+	assert.disabled.tf.white=
+	assert.enabled.rb.find-scaling-from-sections=
+	assert.enabled.tf.z-min.1=
+	assert.enabled.tf.z-max.1=
+	assert.enabled.bn.get-xyz-sub-area-from-3dmod=
+	#check enabled/disabled behavior
+	rb.scale-to-match-contrast=
+	assert.enabled.tf.black=
+	assert.enabled.tf.white=
+	assert.disabled.tf.z-min.1=
+	assert.disabled.tf.z-max.1=
+	assert.disabled.bn.get-xyz-sub-area-from-3dmod=
+	rb.find-scaling-from-sections=
+[[]]
+run.function.scaling-from-sub-area=
+
+
+[function = scaling-from-sub-area]
+[[if = test-values]]
+	#check values
+	assert.tf.x-min.1=
+	assert.tf.x-max.1=
+	assert.tf.y-min.1=
+	assert.tf.y-max.1=
+[[]]
+[[if = test-gui]]
+	#check enabled/disabled
+	assert.enabled.tf.x-min.1=
+	assert.enabled.tf.x-max.1=
+	assert.enabled.tf.y-min.1=
+	assert.enabled.tf.y-max.1=
+	#check enabled/disabled behavior
+	rb.scale-to-match-contrast=
+	assert.disabled.tf.x-min.1=
+	assert.disabled.tf.x-max.1=
+	assert.disabled.tf.y-min.1=
+	assert.disabled.tf.y-max.1=
+	rb.find-scaling-from-sections=
+[[]]
+
+
+[function = flatten-volume]
+tb.trim-vol.1=
+[[if = test-values]]
+	#check values
+	assert.rb.flatten-the-trimvol-output=on
+	assert.rb.flatten-the-squeezevol-output=off
+	assert.sp.open-binned-by=1
+	assert.cb.contours-are-all-on-one-surface=off
+	assert.tf.spacing-in-x=
+	assert.tf.and-y=
+	assert.cb.linear-interpolation=off
+	assert.tf.output-thickness-in-z=
+	assert.tf.temporary-directory=
+	assert.bn.flatten=off
+[[]]
+#check enabled/disabled
+assert.enabled.rb.flatten-the-trimvol-output=	
+assert.enabled.rb.flatten-the-squeezevol-output=
+assert.enabled.sp.open-binned-by=
+assert.enabled.bn.make-surface-model=
+assert.enabled.cb.contours-are-all-on-one-surface=
+assert.enabled.tf.spacing-in-x=
+assert.enabled.tf.and-y=
+assert.enabled.bn.run-flattenwarp=
+assert.enabled.cb.linear-interpolation=
+assert.enabled.tf.output-thickness-in-z=
+assert.enabled.tf.temporary-directory=
+assert.enabled.bn.flatten=
+assert.enabled.bn.open-flattened-tomogram=
+#run 3dmod
+bn.make-surface-model=
+[[if = test-values]]
+	#check error - can't run flattenwarp when the model hasn't been created.
+	bn.run-flattenwarp=
+	wait.popup.flattenwarp-terminated=OK
+[[]]
+copy.file=%{dataset}_flat.mod
+run.function.smoothing-asessment=
+tf.smoothing-factor=.25
+[[if = test-values]]
+	#check error - can't run from squeezevol output when it hasn't been created.
+	rb.flatten-the-squeezevol-output=
+	bn.flatten=
+	wait.popup.comscript-terminated=OK
+	rb.flatten-the-trimvol-output=
+[[]]
+bn.run-flattenwarp=
+wait.process.running-flattenwarp=done
+assert.exists.file=%{dataset}_flat.xf
+bn.run-flattenwarp=
+wait.process.running-flattenwarp=done
+assert.exists.file=%{dataset}_flat.xf~
+assert.exists.file=%{dataset}_flat.xf
+bn.flatten=
+wait.process.flatten=done
+assert.exists.file=flatten.com
+assert.exists.file=flatten.log
+assert.exists.file=%{dataset}_flat.rec
+bn.flatten=
+wait.process.flatten=done
+assert.exists.file=flatten.log~
+assert.exists.file=%{dataset}_flat.rec~
+assert.exists.file=flatten.com
+assert.exists.file=flatten.log
+assert.exists.file=%{dataset}_flat.rec
+#check values
+assert.bn.flatten=on
+#run 3dmod
+bn.open-flattened-tomogram=
+
+
+[function = smoothing-asessment]
+[[if = test-values]]
+	#check values
+	assert.tf.smoothing-factors=
+	assert.bn.run-flattenwarp-to-assess-smoothing=off
+[[]]
+#check enabled/disabled
+assert.enabled.tf.smoothing-factors=
+assert.enabled.bn.run-flattenwarp-to-assess-smoothing=
+assert.enabled.bn.open-assessment-in-3dmod=
+tf.smoothing-factors=.25,1,5
+bn.run-flattenwarp-to-assess-smoothing=
+wait.process.running-flattenwarp=done
+bn.open-assessment-in-3dmod=
+
+
+[function = squeeze-volume]
+tb.trim-vol.2=
+[[if = test-values]]
+	#check values
+	assert.rb.squeeze-the-trimvol-output=on
+	assert.rb.squeeze-the-flatten-output=off
+	assert.tf.reduction-factor-in-x-and-y=1.25
+	assert.tf.in-z=1.25
+	assert.cb.linear-interpolation=off
+	assert.bn.squeeze-volume=off
+[[]]
+[[if = test-gui]]
+	#check enabled/disabled
+	assert.enabled.rb.squeeze-the-trimvol-output=
+	assert.enabled.rb.squeeze-the-flatten-output=
+	assert.enabled.tf.reduction-factor-in-x-and-y=
+	assert.enabled.tf.in-z=
+	assert.enabled.cb.linear-interpolation=
+	assert.enabled.bn.squeeze-volume=
+	assert.enabled.bn.open-squeezed-volume-in-3dmod=
+[[]]
+bn.squeeze-volume=
+wait.process.squeezing-volume=done
+[[if = test-gui]]
+	assert.exists.file=%{dataset}.sqz
+	bn.squeeze-volume=
+	wait.process.squeezing-volume=done
+	assert.exists.file=%{dataset}.sqz~
+	bn.open-squeezed-volume-in-3dmod=
+[[]]

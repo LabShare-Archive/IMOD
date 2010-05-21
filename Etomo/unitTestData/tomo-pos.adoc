@@ -1,0 +1,57 @@
+Version = 1.2
+
+[function = build]
+[[if = test-gui]]
+	run.function.test-create-sample-tomograms=
+	run.function.test-compute-z-shift-&-pitch-angles=
+	if.not.var.fidless.run.function.test-create-final-alignment=
+[[]]
+[[ifnot = test-gui]]
+	run.function.create-sample-tomograms=
+	run.function.compute-z-shift-&-pitch-angles=
+	if.not.var.fidless.run.function.create-final-alignment=
+[[]]
+bn.done =
+
+[function = create-sample-tomograms]
+cb.use-whole-tomogram = off
+tf.sample-tomogram-thickness = %{sample-tomogram-thickness}
+bn.create-sample-tomograms =
+wait.process.creating-sample-tomogram = done
+
+[function = compute-z-shift-&-pitch-angles]
+copy.file = tomopitch%{axis}.mod
+bn.compute-z-shift-&-pitch-angles =
+wait.process.finding-sample-position = done
+
+[function = create-final-alignment]
+bn.create-final-alignment =
+wait.process.calculating-final-alignment = done
+
+[function = test-create-sample-tomograms]
+run.function.create-sample-tomograms=
+assert.exists.file = sample%{axis}.log
+run.function.create-sample-tomograms=
+assert.exists.file = sample%{axis}.log~
+# check whole tomogram
+cb.use-whole-tomogram = on
+bn.create-whole-tomogram =
+wait.process.calculating-tomogram = done
+if.not.var.single.assert.exists.file = %{dataset}%{axis}.rec
+if.var.single.assert.exists.file = %{dataset}_full.rec
+cb.use-whole-tomogram = off
+
+[function = test-compute-z-shift-&-pitch-angles]
+run.function.compute-z-shift-&-pitch-angles=
+assert.exists.file = tomopitch%{axis}.log
+run.function.compute-z-shift-&-pitch-angles=
+assert.exists.file = tomopitch%{axis}.log~
+
+[function = test-create-final-alignment]
+run.function.create-final-alignment=
+assert.exists.file = align%{axis}.log
+run.function.create-final-alignment=
+assert.exists.file = align%{axis}.log~
+
+
+

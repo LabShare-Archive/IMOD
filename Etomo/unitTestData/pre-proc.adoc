@@ -1,0 +1,209 @@
+Version = 1.2
+
+[function = main]
+# Only test values if keep is off.
+[[if = test-gui]]
+	if.not.var.keep-dataset-dir.set.var.test-values=
+	return.var.test-values=
+[[]]
+[[if = test-values]]
+	# check values
+	assert.bn.create-fixed-stack=off
+	assert.bn.use-fixed-stack=off
+[[]]
+[[if = test-gui]]
+	# check enabled/disabled
+	assert.enabled.bn.create-fixed-stack=
+	assert.enabled.bn.view-fixed-stack=
+	assert.enabled.bn.use-fixed-stack=
+	# Check missing use file
+	bn.use-fixed-stack =
+	wait.popup.entry-error = OK
+	# Run
+	bn.create-fixed-stack=
+	wait.process.ccd-eraser=done
+	# Check files
+	assert.exists.file=eraser%{axis}.com
+	assert.exists.file=eraser%{axis}.log
+	assert.exists.file=%{dataset}%{axis}_peak.mod
+	assert.exists.file=%{dataset}%{axis}_fixed.st
+	# Fail with manual
+	bn.advanced=
+	cb.manual-replacement=on
+	bn.create-fixed-stack=
+	wait.popup.comscript-terminated=OK
+	# bug# 1254
+	bn.use-fixed-stack=
+	wait.popup.entry-error=OK
+	#
+	cb.manual-replacement=off
+	bn.basic=
+	# Run again
+	bn.create-fixed-stack=
+	wait.process.ccd-eraser=done
+	# Check files
+	assert.exists.file=eraser%{axis}.com
+	assert.exists.file=eraser%{axis}.log
+	assert.exists.file=%{dataset}%{axis}_peak.mod
+	assert.exists.file=%{dataset}%{axis}_fixed.st
+	# backups
+	assert.exists.file=eraser%{axis}.log~
+	assert.exists.file=%{dataset}%{axis}_peak.mod~
+	assert.exists.file=%{dataset}%{axis}_fixed.st~
+	# Test subpanels
+	run.function.automatic-x-ray-replacement=
+	run.function.manual-pixel-region-replacement=
+[[]]
+bn.show-min/max-for-raw-stack=
+wait.process.clip-stats=done
+bn.create-fixed-stack=
+wait.process.ccd-eraser=done
+bn.show-min/max-for-fixed-stack=
+wait.process.clip-stats=done
+run.function.use-fixed-stack=
+[[if = test-gui]]
+	# Check files after use fixed stack
+	# BB doesn't need pre-processing
+	if.var.dataset.return=BB
+	assert.not-exists.file=%{dataset}%{axis}_fixed.st
+	assert.exists.file=%{dataset}%{axis}.st
+	assert.exists.file=clipstats_%{dataset}%{axis}.st.log
+	assert.exists.file=clipstats_%{dataset}%{axis}_fixed.st.log
+[[]]
+bn.done=
+[[ifnot = needs-pre-proc]]
+#for datasets where the use button wasn't pressed
+wait.popup.entry-warning=OK
+[[]]
+
+
+[function = use-fixed-stack]
+# BB doesn't need pre-processing
+if.not.var.needs-pre-proc.return=
+bn.use-fixed-stack=
+
+
+[function = automatic-x-ray-replacement]
+[[ifnot = keep-dataset-dir]]
+	# check values
+	assert.tf.peak-criterion=10.
+	assert.tf.difference-criterion=8.
+	assert.tf.maximum-radius=%{maximum-radius}
+	assert.bn.find-x-rays=off
+	bn.advanced=
+	assert.cb.automatic-x-ray-replacement=on
+	assert.tf.grow-criterion=4.
+	assert.tf.edge-exclusion=4
+	assert.tf.maximum-radius=%{maximum-radius}
+	assert.tf.annulus-width=2.0
+	assert.tf.xy-scan-size=100
+	assert.tf.scan-criterion=3.
+	bn.basic=
+[[]]
+# check enabled/disabled
+assert.enabled.tf.peak-criterion=
+assert.enabled.tf.difference-criterion=
+assert.enabled.tf.maximum-radius=
+assert.enabled.bn.find-x-rays=
+assert.enabled.bn.view-x-ray-model=
+bn.advanced=
+assert.enabled.cb.automatic-x-ray-replacement=
+assert.enabled.tf.grow-criterion=
+assert.enabled.tf.edge-exclusion=
+assert.enabled.tf.maximum-radius=
+assert.enabled.tf.annulus-width=
+assert.enabled.tf.xy-scan-size=
+assert.enabled.tf.scan-criterion=
+# check enabled/disabled with automatic X-rays turned off
+cb.automatic-x-ray-replacement=off
+assert.disabled.tf.peak-criterion=
+assert.disabled.tf.difference-criterion=
+assert.disabled.tf.maximum-radius=
+assert.disabled.bn.find-x-rays=
+assert.disabled.bn.view-x-ray-model=
+assert.disabled.tf.grow-criterion=
+assert.disabled.tf.edge-exclusion=
+assert.disabled.tf.maximum-radius=
+assert.disabled.tf.annulus-width=
+assert.disabled.tf.xy-scan-size=
+assert.disabled.tf.scan-criterion=
+cb.automatic-x-ray-replacement=on
+# Test with manual model
+cb.manual-replacement=on
+# todo remove .erase
+bn.find-x-rays=
+# Manual model file hasn't been created.
+wait.popup.comscript-terminated=OK
+# Run with manual model
+copy.file=%{dataset}%{axis}.erase
+bn.find-x-rays=
+wait.process.ccd-eraser=done
+# Check files
+assert.exists.file=eraser%{axis}.com
+assert.exists.file=eraser%{axis}.log
+assert.exists.file=%{dataset}%{axis}.erase
+assert.exists.file=%{dataset}%{axis}_peak.mod
+# Run again with manual model
+bn.find-x-rays=
+wait.process.ccd-eraser=done
+# Check files
+assert.exists.file=eraser%{axis}.com
+assert.exists.file=eraser%{axis}.log
+assert.exists.file=%{dataset}%{axis}.erase
+assert.exists.file=%{dataset}%{axis}_peak.mod
+# backups
+assert.exists.file=eraser%{axis}.log~
+assert.exists.file=%{dataset}%{axis}_peak.mod~
+cb.manual-replacement=off
+bn.basic=
+# Run without manual model
+bn.find-x-rays=
+wait.process.ccd-eraser=done
+# Check files
+assert.exists.file=eraser%{axis}.com
+assert.exists.file=eraser%{axis}.log
+assert.exists.file=%{dataset}%{axis}_peak.mod
+# backups
+assert.exists.file=eraser%{axis}.log~
+assert.exists.file=%{dataset}%{axis}_peak.mod~
+# Run again without manual model
+bn.find-x-rays=
+wait.process.ccd-eraser=done
+# Check files
+assert.exists.file=eraser%{axis}.com
+assert.exists.file=eraser%{axis}.log
+assert.exists.file=%{dataset}%{axis}_peak.mod
+# backups
+assert.exists.file=eraser%{axis}.log~
+assert.exists.file=%{dataset}%{axis}_peak.mod~
+# Run 3dmod
+bn.view-x-ray-model=
+# Check values
+assert.bn.find-x-rays=on
+
+
+[function = manual-pixel-region-replacement]
+bn.advanced=
+[[ifnot = keep-dataset-dir]]
+	# Check values
+	assert.cb.manual-replacement=off
+	assert.tf.all-section-replacement-list=
+	assert.tf.line-replacement-list=
+	assert.tf.boundary-replacement-list=
+[[]]
+# Check enabled/disabled
+assert.enabled.cb.manual-replacement=
+assert.disabled.tf.all-section-replacement-list=
+assert.disabled.tf.line-replacement-list=
+assert.disabled.tf.boundary-replacement-list=
+assert.disabled.bn.create-manual-replacement-model=
+# Check with manual replacement turned on
+cb.manual-replacement=on
+assert.enabled.tf.all-section-replacement-list=
+assert.enabled.tf.line-replacement-list=
+assert.enabled.tf.boundary-replacement-list=
+assert.enabled.bn.create-manual-replacement-model=
+# Run 3dmod
+bn.create-manual-replacement-model=
+cb.manual-replacement=off
+bn.basic=

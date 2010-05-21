@@ -1,0 +1,553 @@
+Version = 1.2
+
+[function = main]
+# bug# 1269
+if.var.simple-align.set.var.test-gui=
+# Created by copytomocoms when missing
+assert.exists.file=ctfplotter%{axis}.com
+assert.exists.file=ctfcorrection%{axis}.com
+run.function.create=
+if.var.build.bn.done=
+if.var.build.return=
+run.function.correct-ctf=
+run.function.erase-gold=
+run.function.2d-filter=
+#rerun stack
+tb.create=
+sp.aligned-image-stack-binning=1
+bn.create-full-aligned-stack=
+if.not.var.montage.wait.process.creating-aligned-stack = done
+if.var.montage.wait.process.full-alignment = done
+bn.done =
+if.var.fidless.return=
+
+
+## Create tab
+
+
+[function = create]
+tb.create=
+run.function.final-align-command=
+
+
+[function = final-align-command]
+# Only test values if keep is off.
+[[if = test-gui]]
+	# check values
+	mb.%{final-align-command}=B
+	assert.cb.use-linear-interpolation=off
+	assert.sp.aligned-image-stack-binning=1
+	assert.cb.fiducialless-alignment=off
+	assert.tf.tilt-axis-rotation=%{image-rotation}
+	assert.bn.create-full-aligned-stack=off
+	mb.%{final-align-command}=A
+	assert.tf.size-to-output=
+	mb.%{final-align-command}=B
+	# check enabled/disabled
+	mb.%{final-align-command}=B
+	cb.fiducialless-alignment=off
+	assert.enabled.cb.use-linear-interpolation=
+	assert.enabled.sp.aligned-image-stack-binning=
+	assert.enabled.cb.fiducialless-alignment=
+	assert.disabled.tf.tilt-axis-rotation=
+	assert.enabled.bn.create-full-aligned-stack=
+	assert.enabled.bn.view-full-aligned-stack=
+	mb.%{final-align-command}=A
+	assert.enabled.tf.size-to-output=
+	mb.%{final-align-command}=B
+	cb.fiducialless-alignment=on
+	assert.enabled.tf.tilt-axis-rotation=
+	cb.fiducialless-alignment=off
+[[]]
+[[ifnot = build]]
+	# run binned
+	sp.aligned-image-stack-binning=2
+	bn.create-full-aligned-stack=
+	if.not.var.montage.wait.process.creating-aligned-stack = done
+	if.var.montage.wait.process.full-alignment = done
+	# check files
+	assert.exists.file=%{final-align-comscript}%{axis}.com
+	assert.exists.file=%{final-align-comscript}%{axis}.log
+	assert.exists.file=%{dataset}%{axis}.ali
+[[]]
+# run unbinned
+sp.aligned-image-stack-binning=1
+bn.create-full-aligned-stack=
+if.not.var.montage.wait.process.creating-aligned-stack = done
+if.var.montage.wait.process.full-alignment = done
+if.var.build.return=
+# check files
+assert.exists.file=%{final-align-comscript}%{axis}.com
+assert.exists.file=%{final-align-comscript}%{axis}.log
+assert.exists.file=%{dataset}%{axis}.ali
+ assert.exists.file=%{final-align-comscript}%{axis}.log~
+ assert.exists.file=%{dataset}%{axis}.ali~
+# run unbinned with increased size
+sp.aligned-image-stack-binning=1
+mb.%{final-align-command}=A
+tf.size-to-output=%{size-to-output-x},%{size-to-output-y}
+bn.create-full-aligned-stack=
+if.not.var.montage.wait.process.creating-aligned-stack = done
+if.var.montage.wait.process.full-alignment = done
+# check files
+assert.exists.file=%{final-align-comscript}%{axis}.com
+assert.exists.file=%{final-align-comscript}%{axis}.log
+assert.exists.file=%{dataset}%{axis}.ali
+assert.exists.file=%{final-align-comscript}%{axis}.log~
+assert.exists.file=%{dataset}%{axis}.ali~
+# run 3dmod
+bn.view-full-aligned-stack=
+# check values
+assert.bn.create-full-aligned-stack=on
+
+
+## Correction CTF tab
+
+
+[function = correct-ctf]
+tb.create.1=
+run.function.ctf-correction=
+
+
+[function = ctf-correction]
+[[if = test-gui]]
+	# check values
+	mb.ctf-correction=B
+	assert.tf.voltage=200
+	assert.tf.spherical-aberration=2.0
+	mb.ctf-correction=A
+	assert.tf.amplitude-contrast=0.07
+	assert.cb.invert-sign-of-tilt-angles=off
+	mb.ctf-correction=B
+[[]]
+run.function.ctf-plotter=
+run.function.ctf-phase-flip=
+
+
+[function = ctf-plotter]
+[[if = test-gui]]
+	# check values
+	assert.tf.config-file=
+	assert.tf.expected-defocus=8000.0
+	# check enabled/disabled
+	cb.use-expected-defocus-instead-of-ctfplotter-output=off
+	assert.enabled.tf.config-file=
+	assert.enabled.tf.expected-defocus=
+	assert.enabled.bn.run-ctf-plotter=
+	cb.use-expected-defocus-instead-of-ctfplotter-output=on
+	assert.disabled.tf.config-file=
+	assert.disabled.bn.run-ctf-plotter=
+	cb.use-expected-defocus-instead-of-ctfplotter-output=off
+[[]]
+
+
+[function = ctf-phase-flip]
+[[if = test-gui]]
+	# check uninitialized errors
+	bn.use-ctf-correction=
+	wait.popup.correct-ctf-output-missing=OK
+	# check values
+	assert.cb.use-expected-defocus-instead-of-ctfplotter-output=off
+	assert.cb.parallel-processing=on
+	assert.tf.interpolation-width=20
+	assert.bn.correct-ctf=off
+	assert.bn.use-ctf-correction=off
+	# check enabled/disabled
+	assert.enabled.cb.use-expected-defocus-instead-of-ctfplotter-output=
+	assert.enabled.cb.parallel-processing=
+	assert.enabled.tf.interpolation-width=
+	assert.enabled.bn.correct-ctf=
+	assert.enabled.bn.view-ctf-correction=
+	assert.enabled.bn.use-ctf-correction=
+[[]]
+# run with parallel processing
+cb.parallel-processing=on
+mb.parallel-processing = -
+cb.use-expected-defocus-instead-of-ctfplotter-output=on
+bn.correct-ctf=
+wait.process.processchunks-ctfcorrection%{axis} = done
+# check files
+assert.exists.file = ctfcorrection%{axis}.log
+assert.exists.file = %{dataset}%{axis}_simple.defocus
+assert.exists.file = %{dataset}%{axis}_ctfcorr.ali
+# run again with parallel processing
+bn.correct-ctf=
+wait.process.processchunks-ctfcorrection%{axis} = done
+# check files
+assert.exists.file = ctfcorrection%{axis}.log
+assert.exists.file = %{dataset}%{axis}_simple.defocus
+assert.exists.file = %{dataset}%{axis}_ctfcorr.ali
+assert.exists.file = %{dataset}%{axis}_ctfcorr.ali~
+# run without parallel processing
+cb.parallel-processing=off
+bn.correct-ctf=
+wait.process.running-ctf-correction = done
+# run again without parallel processing
+bn.correct-ctf=
+wait.process.running-ctf-correction = done
+# check files
+assert.exists.file = ctfcorrection%{axis}.log
+assert.exists.file = %{dataset}%{axis}_simple.defocus
+assert.exists.file = %{dataset}%{axis}_ctfcorr.ali
+assert.exists.file = %{dataset}%{axis}_ctfcorr.ali~
+# run 3dmod
+bn.view-ctf-correction=
+#check use warning
+tb.create.2=
+wait.popup.entry-warning=OK
+tb.create.1=
+#check use warning has shutoff after it popped up
+tb.create.2=
+tb.create.1=
+# use file
+bn.use-ctf-correction=
+# check files
+assert.not-exists.file = %{dataset}%{axis}_ctfcorr.ali
+# check values
+assert.bn.correct-ctf=on
+assert.bn.use-ctf-correction=on
+
+
+## Erase Gold tab
+
+
+[function = erase-gold]
+if.var.fidless.return=
+[[ifnot = simple-align]]
+	assert.exists.file=%{dataset}%{axis}local.xf
+[[]]
+tb.create.2=
+rb.use-the-existing-fiducial-model=
+[[if = test-gui]]
+	# check values
+	assert.rb.use-the-existing-fiducial-model=on
+	assert.rb.use-findbeads3d=off
+	assert.bn.transform-fiducial-model=off
+	# check enabled/disabled
+	assert.enabled.rb.use-the-existing-fiducial-model=
+	assert.enabled.rb.use-findbeads3d=
+	assert.enabled.bn.transform-fiducial-model=
+	assert.enabled.bn.view-transformed-model=
+[[]]
+# run
+bn.transform-fiducial-model=
+wait.process.running-xfmodel=done
+# check files
+assert.exists.file=%{dataset}%{axis}_erase.fid
+# run again
+bn.transform-fiducial-model=
+wait.process.running-xfmodel=done
+# check files
+assert.exists.file=%{dataset}%{axis}_erase.fid
+assert.exists.file=%{dataset}%{axis}_erase.fid~
+# run 3dmod
+bn.view-transformed-model=
+# Run Findbeads3d
+rb.use-findbeads3d=
+run.function.align-stack-and-create-tomogram=
+run.function.find-beads-3d=
+# Reproject Model
+[[if = test-gui]]
+	# check values
+	assert.bn.reproject-model=off
+	# check enabled/disabled
+	assert.enabled.bn.reproject-model=
+	assert.enabled.bn.view-2d-model-on-aligned-stack=
+[[]]
+# run
+bn.reproject-model=
+assert.exists.file=%{dataset}%{axis}.xf
+wait.process.tilt_3dfind_reproject = done
+# check files
+assert.exists.file=tilt_3dfind_reproject%{axis}.com
+assert.exists.file=tilt_3dfind_reproject%{axis}.log
+assert.exists.file=%{dataset}%{axis}_erase.fid
+# run again
+bn.reproject-model=
+wait.process.tilt_3dfind_reproject = done
+# check files
+assert.exists.file=tilt_3dfind_reproject%{axis}.com
+assert.exists.file=tilt_3dfind_reproject%{axis}.log
+assert.exists.file=%{dataset}%{axis}_erase.fid
+assert.exists.file=tilt_3dfind_reproject%{axis}.log~
+assert.exists.file=%{dataset}%{axis}_erase.fid~
+# run 3dmod
+bn.view-2d-model-on-aligned-stack=
+# check values
+assert.bn.reproject-model=on
+# Erase Beads
+run.function.erase-beads=
+
+
+[function = align-stack-and-create-tomogram]
+mb.align-stack-and-create-tomogram=+
+[[if = test-gui]]
+	# check values
+	assert.sp.aligned-image-stack-binning=%{findbeads3d-binning}
+	assert.cb.parallel-processing=on
+	assert.tf.center-to-center-thickness=%{center-to-center-thickness}
+	assert.tf.additional-unbinned-diameters-to-add=3
+	assert.tf.thickness=%{erase-gold-thickness}
+	assert.tf.added-z-shift=%{incremental-shift-to-center}
+	assert.bn.align-and-build-tomogram=off
+	# check enabled/disabled
+	assert.enabled.sp.aligned-image-stack-binning=
+	assert.enabled.cb.parallel-processing=
+	assert.disabled.tf.center-to-center-thickness=
+	assert.disabled.tf.additional-unbinned-diameters-to-add=
+	assert.enabled.tf.thickness=
+	assert.enabled.tf.added-z-shift=
+	assert.enabled.bn.align-and-build-tomogram=
+	assert.enabled.bn.view-full-aligned-stack=
+	assert.enabled.bn.view-tomogram-in-3dmod=
+[[]]
+# run highly binned with parallel processing
+cb.parallel-processing=on
+sp.aligned-image-stack-binning=3
+bn.align-and-build-tomogram=
+wait.popup.etomo-warning=Yes
+wait.process.processchunks-tilt_3dfind%{axis} = done
+# check files
+assert.exists.file=tilt_3dfind%{axis}.com
+assert.exists.file=tilt_3dfind%{axis}-start.com
+assert.exists.file=tilt_3dfind%{axis}-finish.com
+assert.exists.file=tilt_3dfind%{axis}.log
+assert.exists.file=tilt_3dfind%{axis}-start.log
+assert.exists.file=tilt_3dfind%{axis}-finish.log
+assert.exists.file=%{final-align-comscript}_3dfind%{axis}.com
+assert.exists.file=%{final-align-comscript}_3dfind%{axis}.log
+assert.exists.file=%{dataset}%{axis}_3dfind.ali
+assert.exists.file=%{dataset}%{axis}_3dfind.rec
+assert.exists.file=tilt_3dfind_reproject%{axis}.com
+# run with unbinned with parallel processing
+sp.aligned-image-stack-binning=1
+bn.align-and-build-tomogram=
+wait.process.processchunks-tilt_3dfind%{axis} = done
+# check files
+assert.exists.file=tilt_3dfind%{axis}.com
+assert.exists.file=tilt_3dfind%{axis}-start.com
+assert.exists.file=tilt_3dfind%{axis}-finish.com
+assert.exists.file=tilt_3dfind%{axis}.log
+assert.exists.file=tilt_3dfind%{axis}-start.log
+assert.exists.file=tilt_3dfind%{axis}-finish.log
+assert.exists.file=%{dataset}%{axis}_3dfind.rec
+assert.exists.file=tilt_3dfind_reproject%{axis}.com
+assert.exists.file=tilt_3dfind%{axis}.log~
+assert.exists.file=%{dataset}%{axis}_3dfind.rec~
+# run with regular binning without parallel processing
+cb.parallel-processing=off
+sp.aligned-image-stack-binning=%{findbeads3d-binning}
+bn.align-and-build-tomogram=
+wait.process.calculating-tomogram = done
+# check files
+# newst or blend wasn't run because the binning is the same as the aligned stack
+assert.exists.file=tilt_3dfind%{axis}.com
+assert.exists.file=tilt_3dfind%{axis}.log
+assert.exists.file=%{dataset}%{axis}_3dfind.rec
+assert.exists.file=tilt_3dfind_reproject%{axis}.com
+assert.exists.file=tilt_3dfind%{axis}.log~
+assert.exists.file=%{dataset}%{axis}_3dfind.rec~
+[[if = findbeads3d-binning]]
+	if.var.findbeads3d-binning.return=1
+	assert.exists.file=%{dataset}%{axis}_3dfind.ali
+	assert.exists.file=%{final-align-comscript}_3dfind%{axis}.com
+	assert.exists.file=%{final-align-comscript}_3dfind%{axis}.log
+	assert.exists.file=%{final-align-comscript}_3dfind%{axis}.log~
+	assert.exists.file=%{dataset}%{axis}_3dfind.ali~
+[[]]
+# check comscript
+[[ifnot = simple-align]]
+	assert.same.file=tilt_3dfind%{axis}.com
+[[]]
+# run 3dmod
+bn.view-full-aligned-stack=
+bn.view-tomogram-in-3dmod=
+# check values
+assert.bn.align-and-build-tomogram=on
+mb.align-stack-and-create-tomogram=-
+
+
+[function = find-beads-3d]
+mb.find-beads-3d=+
+[[if = test-gui]]
+	# check values
+	assert.tf.bead-diameter=%{unbinned-bead-diameter}
+	assert.rb.store-some-points-below-threshold=on
+	assert.rb.store-only-points-above-threshold=off
+	assert.rb.set-threshold-for-storing=off
+	assert.tf.set-threshold-for-storing=
+	assert.bn.run-findbeads3d=off
+	mb.find-beads-3d.1=A
+	assert.tf.minimum-spacing=0.9
+	assert.tf.estimated-number-of-beads=
+	assert.tf.minimum-peak-strength=0.05
+	assert.tf.threshold-for-averaging=
+	assert.tf.max-points-to-analyze=
+	mb.find-beads-3d.1=B
+	# check enabled/disabled
+	mb.find-beads-3d.1=B
+	rb.store-some-points-below-threshold=
+	assert.enabled.tf.bead-diameter=
+	assert.enabled.rb.store-some-points-below-threshold=
+	assert.enabled.rb.store-only-points-above-threshold=
+	assert.enabled.rb.set-threshold-for-storing=
+	assert.disabled.tf.set-threshold-for-storing=
+	assert.enabled.bn.run-findbeads3d=
+	assert.enabled.bn.view-3d-model-on-tomogram=
+	mb.find-beads-3d.1=A
+	assert.enabled.tf.minimum-spacing=
+	assert.enabled.tf.estimated-number-of-beads=
+	assert.enabled.tf.minimum-peak-strength=
+	assert.enabled.tf.threshold-for-averaging=
+	assert.enabled.tf.max-points-to-analyze=
+	mb.find-beads-3d.1=B
+	rb.set-threshold-for-storing=
+	assert.enabled.tf.set-threshold-for-storing=
+	rb.store-some-points-below-threshold=
+[[]]
+# run
+bn.run-findbeads3d=
+wait.process.findbeads3d = done
+# check files
+assert.exists.file=findbeads3d%{axis}.com
+assert.exists.file=findbeads3d%{axis}.log
+assert.exists.file=%{dataset}%{axis}_3dfind.mod
+# run again
+bn.run-findbeads3d=
+wait.process.findbeads3d = done
+# check files
+assert.exists.file=findbeads3d%{axis}.com
+assert.exists.file=findbeads3d%{axis}.log
+assert.exists.file=%{dataset}%{axis}_3dfind.mod
+assert.exists.file=findbeads3d%{axis}.log~
+assert.exists.file=%{dataset}%{axis}_3dfind.mod~
+# run 3dmod
+bn.view-3d-model-on-tomogram=
+# check values
+assert.bn.run-findbeads3d=on
+mb.find-beads-3d=-
+
+
+[function = erase-beads]
+[[if = test-gui]]
+	# check uninitialized errors
+	bn.use-erased-stack=
+	wait.popup.erase-beads-output-missing=OK
+	# check values
+	assert.tf.diameter-to-erase=%{rounded-unbinned-bead-diameter}
+	assert.rb.use-mean-of-surrounding-points=on
+	assert.rb.fit-a-plane-to-surrounding-points=off
+	assert.bn.erase-beads=off
+	assert.bn.use-erased-stack=off
+	# check enabled/disabled
+	assert.enabled.tf.diameter-to-erase=
+	assert.enabled.rb.use-mean-of-surrounding-points=
+	assert.enabled.rb.fit-a-plane-to-surrounding-points=
+	assert.enabled.bn.erase-beads=
+	assert.enabled.bn.view-erased-stack=
+	assert.enabled.bn.use-erased-stack=
+[[]]
+# run
+bn.erase-beads=
+wait.process.running-ccderaser = done
+# check files
+assert.exists.file=%{dataset}%{axis}_erase.ali
+# run again
+bn.erase-beads=
+wait.process.running-ccderaser = done
+# check files
+assert.exists.file=%{dataset}%{axis}_erase.ali
+assert.exists.file=%{dataset}%{axis}_erase.ali~
+# run 3dmod
+bn.view-erased-stack=
+#check use warning
+tb.create.3=
+wait.popup.entry-warning=OK
+tb.create.2=
+#check use warning has shutoff after it popped up
+tb.create.3=
+tb.create.2=
+# use file
+bn.use-erased-stack=
+assert.not-exists.file=%{dataset}%{axis}_erase.ali
+# check values
+assert.bn.erase-beads=on
+assert.bn.use-erased-stack=on
+
+
+## 2D Filter tab
+
+
+[function = 2d-filter]
+tb.create.3=
+[[if = test-gui]]
+	# check uninitialized errors
+	bn.use-filtered-stack=
+	wait.popup.filtered-full-aligned-stack-missing=OK
+	# check values
+	mb.2d-filtering=B
+	assert.tf.low-pass=0.35,0.05
+	assert.bn.filter=off
+	assert.bn.use-filtered-stack=off
+	mb.2d-filtering=A
+	assert.tf.starting-and-ending-views=
+	mb.2d-filtering=B
+	# check enabled/disabled
+	assert.enabled.tf.low-pass=
+	assert.enabled.bn.filter=
+	assert.enabled.bn.view-filtered-stack=
+	assert.enabled.bn.use-filtered-stack=
+	mb.2d-filtering=A
+	assert.enabled.tf.starting-and-ending-views=
+	mb.2d-filtering=B
+[[]]
+
+# Inverse Filtering Parameters
+run.function.inverse-filtering-parameters=
+
+# run
+bn.filter =
+wait.process.running-mtf-filter = done
+# check files
+assert.exists.file = mtffilter%{axis}.com
+assert.exists.file = mtffilter%{axis}.log
+assert.exists.file = %{dataset}%{axis}_filt.ali
+# run again
+bn.filter =
+wait.process.running-mtf-filter = done
+# check files
+assert.exists.file = mtffilter%{axis}.com
+assert.exists.file = mtffilter%{axis}.log
+assert.exists.file = %{dataset}%{axis}_filt.ali
+assert.exists.file = mtffilter%{axis}.log~
+assert.exists.file = %{dataset}%{axis}_filt.ali~
+# run 3dmod
+bn.view-filtered-stack=
+#check use warning
+tb.create.2=
+wait.popup.entry-warning=OK
+tb.create.3=
+#check use warning has shutoff after it popped up
+tb.create.2=
+tb.create.3=
+# use file
+bn.use-filtered-stack=
+# check files
+assert.not-exists.file = %{dataset}%{axis}_filt.ali
+
+
+[function = inverse-filtering-parameters]
+[[if = test-gui]]
+	# check values
+	mb.2d-filtering=A
+	assert.tf.mtf-file=
+	assert.tf.maximum-inverse=4.0
+	assert.tf.rolloff=0.12,0.05
+	mb.2d-filtering=B
+	# check enabled/disabled
+	mb.2d-filtering=A
+	assert.enabled.tf.mtf-file=
+	assert.enabled.tf.maximum-inverse=
+	assert.enabled.tf.rolloff=
+	mb.2d-filtering=B
+[[]]

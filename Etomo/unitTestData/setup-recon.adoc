@@ -1,0 +1,156 @@
+Version = 1.2
+
+[function = main]
+[[if = test-gui]]
+	#check values
+	assert.tf.dataset-name=
+	assert.tf.backup-directory=
+	assert.tf.pixel-size=
+	assert.tf.fiducial-diameter=
+	assert.tf.image-rotation=
+	assert.cb.parallel-processing=on
+	if.exists.bn.advanced.run.function.test-advanced=
+	#check enabled/disabled
+	assert.enabled.tf.dataset-name=
+	assert.enabled.tf.backup-directory=
+	assert.enabled.bn.scan-header=
+	assert.enabled.tf.pixel-size=
+	assert.enabled.tf.fiducial-diameter=
+	assert.enabled.tf.image-rotation=
+	assert.enabled.cb.parallel-processing=
+	assert.enabled.bn.cancel=
+	assert.enabled.bn.use-existing-coms=
+	assert.enabled.bn.create-com-scripts=
+	#check error
+	bn.scan-header=
+	wait.popup.missing-dataset-name=OK
+	bn.view-raw-image-stack.1=
+	wait.popup.raw-image-stack=OK
+	run.function.axis-a=
+	run.function.axis-b=
+[[]]
+#fill in data
+tf.dataset-name=%{dataset}
+run.function.data-type=
+bn.scan-header=
+[[if = montage]]
+	wait.popup.pixel-size-is-missing=OK
+	tf.pixel-size = %{pixel-size}
+	tf.image-rotation = %{image-rotation}
+[[]]
+[[if = test-gui]]
+	#check values
+	assert.tf.pixel-size=%{pixel-size}
+	assert.tf.image-rotation=%{image-rotation}
+[[]]
+tf.fiducial-diameter = %{fiducial-diameter}
+#check error
+[[ifnot = montage]]
+if.not.var.test-gui.return=
+rb.montage=
+bn.create-com-scripts=
+wait.popup.setup-dialog-error=OK
+rb.single-frame=
+[[]]
+[[if = test-gui]]
+	#run 3dmod
+	bn.view-raw-image-stack=
+	if.not.var.single.bn.view-raw-image-stack.1=
+[[]]
+bn.create-com-scripts=
+
+
+[function = data-type]
+if.var.single.rb.single-axis=
+if.var.montage.rb.montage=
+
+
+# Run tests in Axis A before filling in data
+[function = axis-a]
+#check values
+assert.rb.extract-tilt-angles-from-data=on
+assert.rb.specify-the-starting-angle-and-step=off
+assert.tf.starting-angle=-60.0
+assert.tf.increment=1.0
+assert.rb.tilt-angles-in-existing-rawtlt-file=off
+assert.tf.exclude-views=
+assert.cb.focus-was-adjusted-between-montage-frames=off
+#check enabled/disabled
+assert.enabled.rb.extract-tilt-angles-from-data=
+assert.enabled.rb.specify-the-starting-angle-and-step=
+assert.disabled.tf.starting-angle=
+assert.disabled.tf.increment=
+assert.enabled.rb.tilt-angles-in-existing-rawtlt-file=
+assert.enabled.tf.exclude-views=
+assert.enabled.bn.view-raw-image-stack=
+assert.disabled.cb.focus-was-adjusted-between-montage-frames=
+#check enabled/disabled behavior
+rb.specify-the-starting-angle-and-step=
+assert.enabled.tf.starting-angle=
+assert.enabled.tf.increment=
+rb.tilt-angles-in-existing-rawtlt-file=
+assert.disabled.tf.starting-angle=
+assert.disabled.tf.increment=
+rb.extract-tilt-angles-from-data=
+#
+rb.montage=
+assert.enabled.cb.focus-was-adjusted-between-montage-frames=
+rb.single-frame=
+#check error
+bn.view-raw-image-stack=
+wait.popup.raw-image-stack=OK
+
+# run tests in Axis B before filling in data
+[function = axis-b]
+#check values
+assert.rb.extract-tilt-angles-from-data.1=on
+assert.rb.specify-the-starting-angle-and-step.1=off
+assert.tf.starting-angle.1=-60.0
+assert.tf.increment.1=1.0
+assert.rb.tilt-angles-in-existing-rawtlt-file.1=off
+assert.tf.exclude-views.1=
+assert.cb.focus-was-adjusted-between-montage-frames.1=off
+#check enabled/disabled
+assert.enabled.rb.extract-tilt-angles-from-data.1=
+assert.enabled.rb.specify-the-starting-angle-and-step.1=
+assert.disabled.tf.starting-angle.1=
+assert.disabled.tf.increment.1=
+assert.enabled.rb.tilt-angles-in-existing-rawtlt-file.1=
+assert.enabled.tf.exclude-views.1=
+assert.enabled.bn.view-raw-image-stack.1=
+assert.disabled.cb.focus-was-adjusted-between-montage-frames.1=
+#check enabled/disabled behavior
+rb.single-axis=
+assert.disabled.rb.extract-tilt-angles-from-data.1=
+assert.disabled.rb.specify-the-starting-angle-and-step.1=
+assert.disabled.rb.tilt-angles-in-existing-rawtlt-file.1=
+assert.disabled.tf.exclude-views.1=
+assert.disabled.bn.view-raw-image-stack.1=
+rb.dual-axis=
+#
+rb.specify-the-starting-angle-and-step.1=
+assert.enabled.tf.starting-angle.1=
+assert.enabled.tf.increment.1=
+rb.tilt-angles-in-existing-rawtlt-file.1=
+assert.disabled.tf.starting-angle.1=
+assert.disabled.tf.increment.1=
+rb.extract-tilt-angles-from-data.1=
+#
+rb.montage=
+assert.enabled.cb.focus-was-adjusted-between-montage-frames.1=
+rb.single-frame=
+#check error
+bn.view-raw-image-stack.1=
+wait.popup.raw-image-stack=OK
+
+
+[function = test-advanced]
+bn.advanced=
+assert.tf.image-distortion-field-file=
+assert.sp.binning=1
+assert.tf.mag-gradients-correction=
+#test enabled/disabled
+assert.enabled.tf.image-distortion-field-file=
+assert.enabled.sp.binning=
+assert.enabled.tf.mag-gradients-correction=
+bn.basic=

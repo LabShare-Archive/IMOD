@@ -1,0 +1,30 @@
+Version = 1.2
+
+[function = main]
+tf.working-directory=%{testdir}
+tf.root-name-for-output-file=%{dataset}
+bn.add-section=
+wait.file-chooser.choose-a-section=%{dataset}1.rec
+tf.section-table-1-sample-slices.2=46
+tf.section-table-1-sample-slices.3=49
+bn.add-section=
+wait.file-chooser.choose-a-section=%{dataset}2.rec
+tf.section-table-2-sample-slices.0=4
+tf.section-table-2-sample-slices.1=7
+tf.section-table-2-sample-slices.2=60
+tf.section-table-2-sample-slices.3=62
+bn.add-section=
+wait.file-chooser.choose-a-section=%{dataset}3.rec
+tf.section-table-3-sample-slices.0=50
+tf.section-table-3-sample-slices.1=53
+[[if = test-gui]]
+	bn.make-samples=
+	wait.process.startjoin=done
+	bn.change-setup=
+[[]]
+tf.section-table-3-rotation-angles.0=0
+tf.section-table-3-rotation-angles.1=180
+tf.section-table-3-rotation-angles.2=0
+bn.make-samples=
+wait.process.startjoin=done
+

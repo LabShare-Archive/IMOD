@@ -1,0 +1,616 @@
+Version = 1.2
+
+[function = main]
+run.function.general=
+[[ifnot = simple-align]]
+	run.function.global-variables=
+	run.function.local-variables=
+[[]]
+copy.file=%{dataset}%{axis}.xtilt
+copy.file=%{dataset}%{axis}.xf
+copy.file=%{dataset}%{axis}.tlt
+copy.file=%{dataset}%{axis}.tltxf
+copy.file=%{dataset}%{axis}.resmod
+copy.file=%{dataset}%{axis}.resid
+copy.file=%{dataset}%{axis}fid.xyz
+copy.file=%{dataset}%{axis}.3dmod
+copy.file=%{dataset}%{axis}_fid.xf
+copy.file=%{dataset}%{axis}_fid.tlt
+[[ifnot = simple-align]]
+	copy.file=%{dataset}%{axis}.zfac
+	copy.file=%{dataset}%{axis}local.xf
+[[]]
+# run with best alignment
+bn.compute-alignment=
+wait.process.aligning-stack=done
+bn.done=
+
+
+# General tab
+
+
+[function = general]
+tb.general=
+# Only test values if keep is off.
+[[if = test-gui]]
+	if.not.var.keep-dataset-dir.set.var.test-values=
+	return.var.test-values=
+[[]]
+[[if = test-values]]
+	# check values
+	assert.tf.list-of-views-to-exclude=
+	assert.tf.separate-view-groups=
+	assert.rb.do-not-sort-fiducials-into-2-surfaces-for-analysis=off
+	assert.rb.assume-fiducials-on-2-surfaces-for-analysis=on
+	assert.bn.compute-alignment=off
+[[]]
+[[if = test-gui]]
+	# check enabled/disabled
+	assert.enabled.tf.list-of-views-to-exclude=
+	assert.enabled.tf.separate-view-groups=
+	assert.enabled.rb.do-not-sort-fiducials-into-2-surfaces-for-analysis=
+	assert.enabled.rb.assume-fiducials-on-2-surfaces-for-analysis=
+	assert.enabled.bn.compute-alignment=
+	assert.enabled.bn.view/edit-fiducial-model=
+	assert.enabled.bn.view-3d-model=
+	assert.enabled.bn.view-residual-vectors=
+[[]]
+# run
+bn.compute-alignment=
+wait.process.aligning-stack=done
+[[if = test-gui]]
+	# file check
+	assert.exists.file=tilt%{axis}.com
+	assert.exists.file=align%{axis}.com
+	assert.exists.file=align%{axis}.log
+	assert.exists.file=taAngles%{axis}.log
+	assert.exists.file=taCoordinates%{axis}.log
+	assert.exists.file=taError%{axis}.log
+	assert.exists.file=taLocals%{axis}.log
+	assert.exists.file=taMappings%{axis}.log
+	assert.exists.file=taResiduals%{axis}.log
+	assert.exists.file=taSolution%{axis}.log
+	assert.exists.file=taBeamtilt%{axis}.log
+	assert.exists.file=%{dataset}%{axis}.xtilt
+	assert.exists.file=%{dataset}%{axis}.xf
+	assert.exists.file=%{dataset}%{axis}.tltxf
+	assert.exists.file=%{dataset}%{axis}.resmod
+	assert.exists.file=%{dataset}%{axis}.resid
+	assert.exists.file=%{dataset}%{axis}fid.xyz
+	assert.exists.file=%{dataset}%{axis}.3dmod
+	assert.exists.file=%{dataset}%{axis}_fid.xf
+	assert.exists.file=%{dataset}%{axis}_fid.tlt
+	# run again
+	bn.compute-alignment=
+	wait.process.aligning-stack=done
+	# file check
+	assert.exists.file=tilt%{axis}.com
+	assert.exists.file=align%{axis}.com
+	assert.exists.file=align%{axis}.log
+	assert.exists.file=taAngles%{axis}.log
+	assert.exists.file=taCoordinates%{axis}.log
+	assert.exists.file=taError%{axis}.log
+	assert.exists.file=taLocals%{axis}.log
+	assert.exists.file=taMappings%{axis}.log
+	assert.exists.file=taResiduals%{axis}.log
+	assert.exists.file=taSolution%{axis}.log
+	assert.exists.file=taBeamtilt%{axis}.log
+	assert.exists.file=%{dataset}%{axis}.xtilt
+	assert.exists.file=%{dataset}%{axis}.xf
+	assert.exists.file=%{dataset}%{axis}.tlt
+	assert.exists.file=%{dataset}%{axis}.tltxf
+	assert.exists.file=%{dataset}%{axis}.resmod
+	assert.exists.file=%{dataset}%{axis}.resid
+	assert.exists.file=%{dataset}%{axis}fid.xyz
+	assert.exists.file=%{dataset}%{axis}.3dmod
+	assert.exists.file=%{dataset}%{axis}_fid.xf
+	assert.exists.file=%{dataset}%{axis}_fid.tlt
+	# backups
+	assert.exists.file=align%{axis}.log~
+	assert.exists.file=%{dataset}%{axis}.xtilt~
+	assert.exists.file=%{dataset}%{axis}.tlt~
+	assert.exists.file=%{dataset}%{axis}.tltxf~
+	assert.exists.file=%{dataset}%{axis}.resmod~
+	assert.exists.file=%{dataset}%{axis}.resid~
+	assert.exists.file=%{dataset}%{axis}fid.xyz~
+	assert.exists.file=%{dataset}%{axis}.3dmod~
+	assert.exists.file=%{dataset}%{axis}_fid.xf~
+	# run 3dmod
+	bn.view-3d-model=
+	bn.view-residual-vectors=
+	bn.view/edit-fiducial-model=
+	# test panels
+	run.function.residual-reporting=
+	run.function.volume-position-parameters=
+	run.function.minimization-parameters=
+	run.function.local-alignment-parameters=
+[[]]
+
+
+[function = residual-reporting]
+tb.general=
+[[ifnot = keep-dataset-dir]]
+	# check values
+	assert.tf.threshold-for-residual-report=3.0
+	assert.rb.all-views=on
+	assert.rb.neighboring-views=off
+[[]]
+# check enabled/disabled
+assert.enabled.tf.threshold-for-residual-report=
+assert.enabled.rb.all-views=
+assert.enabled.rb.neighboring-views=
+
+
+[function = volume-position-parameters]
+tb.general=
+[[ifnot = keep-dataset-dir]]
+	# check values
+	assert.tf.total-tilt-angle-offset=0.0
+	assert.tf.tilt-axis-z-shift=0.0
+[[]]
+# check enabled/disabled
+assert.enabled.tf.total-tilt-angle-offset=
+assert.enabled.tf.tilt-axis-z-shift=
+
+[function = minimization-parameters]
+tb.general=
+bn.advanced=
+[[ifnot = keep-dataset-dir]]
+	# check values
+	assert.tf.metro-factor=0.25
+	assert.tf.cycle-limit=1000
+[[]]
+# check enabled/disabled
+assert.enabled.tf.metro-factor=
+assert.enabled.tf.cycle-limit=
+bn.basic=
+
+
+[function = local-alignment-parameters]
+tb.general=
+[[ifnot = keep-dataset-dir]]
+	# check values
+	assert.cb.enable-local-alignments=0
+	assert.rb.target-patch-size=on
+	assert.tf.target-patch-size=700,700
+	assert.rb.#-of-local-patches=off
+	assert.tf.#-of-local-patches=5,5
+	assert.tf.min-#-of-fiducials=8,3
+	bn.advanced=
+	assert.tf.overlap-factor=0.5,0.5
+	cb.enable-local-alignments=on
+	rb.#-of-local-patches=
+	assert.tf.min-local-patch-size-or-overlap-factor=0.5,0.5
+	rb.target-patch-size=
+	cb.enable-local-alignments=off
+	if.var.single.assert.cb.use-global-x-y-z-coordinates=off
+	if.var.dual.assert.cb.use-global-x-y-z-coordinates=on
+	bn.basic=
+[[]]
+# check enabled/disabled
+cb.enable-local-alignments=off
+assert.enabled.cb.enable-local-alignments=
+assert.disabled.rb.target-patch-size=
+assert.disabled.tf.target-patch-size=
+assert.disabled.rb.#-of-local-patches=
+assert.disabled.tf.#-of-local-patches=
+assert.disabled.tf.min-#-of-fiducials=
+bn.advanced=
+assert.disabled.tf.overlap-factor=
+assert.disabled.cb.use-global-x-y-z-coordinates=
+bn.basic=
+cb.enable-local-alignments=on
+rb.target-patch-size=
+assert.enabled.rb.target-patch-size=
+assert.enabled.tf.target-patch-size=
+assert.enabled.rb.#-of-local-patches=
+assert.disabled.tf.#-of-local-patches=
+assert.enabled.tf.min-#-of-fiducials=
+sleep=2
+bn.advanced=
+assert.enabled.tf.overlap-factor=
+assert.enabled.cb.use-global-x-y-z-coordinates=
+bn.basic=
+rb.#-of-local-patches=
+assert.disabled.tf.target-patch-size=
+assert.enabled.tf.#-of-local-patches=
+rb.target-patch-size=
+cb.enable-local-alignments=off
+
+
+# Global Variables tab
+
+
+[function = global-variables]
+tb.general.1=
+# Only test values if keep is off.
+[[if = test-gui]]
+	if.not.var.keep-dataset-dir.set.var.test-values=
+	return.var.test-values=
+[[]]
+[[if = test-values]]
+	# check values
+	sleep=1
+	bn.advanced=
+	assert.cb.solve-for-single-stretch-during-projection=off
+	bn.basic=
+[[]]
+[[if = test-gui]]
+	# check enabled/disabled
+	bn.advanced=
+	assert.enabled.cb.solve-for-single-stretch-during-projection=
+	bn.basic=
+	run.function.rotation-solution-type=
+	run.function.magnification-solution-type=
+	run.function.tilt-angle-solution-type=
+	run.function.distortion-solution-type=
+	run.function.beam-tilt=
+[[]]
+# Run with full distortion solution
+rb.full-solution=
+bn.compute-alignment=
+wait.process.aligning-stack=done
+[[if = test-gui]]
+	# file check
+	assert.exists.file=%{dataset}%{axis}.zfac
+	# Run again with full distortion solution
+	bn.compute-alignment=
+	wait.process.aligning-stack=done
+	# file check
+	assert.exists.file=%{dataset}%{axis}.zfac
+	# backups
+	assert.exists.file=%{dataset}%{axis}.zfac~
+[[]]
+
+
+[function = rotation-solution-type]
+tb.general.1=
+[[ifnot = keep-dataset-dir]]
+	# check values
+	assert.rb.no-rotation=off
+	assert.rb.one-rotation=off
+	assert.rb.group-rotations=off
+	assert.rb.solve-for-all-rotations=on
+	assert.tf.rotation-angle=%{image-rotation}
+	assert.tf.group-size=5
+	bn.advanced=
+	assert.tf.non-default-grouping=
+	bn.basic=
+[[]]
+# check enabled/disabled
+assert.enabled.rb.no-rotation=
+assert.enabled.rb.one-rotation=
+assert.enabled.rb.group-rotations=
+assert.enabled.rb.solve-for-all-rotations=
+rb.no-rotation=
+assert.enabled.tf.rotation-angle=
+assert.disabled.tf.group-size=
+sleep=1
+bn.advanced=
+assert.disabled.tf.non-default-grouping=
+bn.basic=
+rb.one-rotation=
+assert.disabled.tf.rotation-angle=
+assert.disabled.tf.group-size=
+bn.advanced=
+assert.disabled.tf.non-default-grouping=
+bn.basic=
+rb.group-rotations=
+assert.disabled.tf.rotation-angle=
+assert.enabled.tf.group-size=
+sleep=1
+bn.advanced=
+assert.enabled.tf.non-default-grouping=
+bn.basic=
+rb.solve-for-all-rotations=
+assert.disabled.tf.rotation-angle=
+assert.disabled.tf.group-size=
+bn.advanced=
+assert.disabled.tf.non-default-grouping=
+bn.basic=
+
+
+[function = magnification-solution-type]
+tb.general.1=
+[[ifnot = keep-dataset-dir]]
+	# check values
+	assert.rb.fixed-magnification-at-10=off
+	assert.rb.group-magnifications=off
+	assert.rb.solve-for-all-magnifications=on
+	assert.tf.group-size.1=4
+	bn.advanced=
+	assert.tf.reference-view=1
+	assert.tf.non-default-grouping.1=
+	bn.basic=
+[[]]
+# check enabled/disabled
+rb.fixed-magnification-at-10=
+assert.enabled.rb.fixed-magnification-at-10=
+assert.enabled.rb.group-magnifications=
+assert.enabled.rb.solve-for-all-magnifications=
+bn.advanced=
+assert.enabled.tf.reference-view=
+bn.basic=
+rb.fixed-magnification-at-10=
+assert.disabled.tf.group-size.1=
+bn.advanced=
+assert.disabled.tf.non-default-grouping.1=
+bn.basic=
+rb.group-magnifications=
+assert.enabled.tf.group-size.1=
+bn.advanced=
+assert.enabled.tf.non-default-grouping.1=
+bn.basic=
+rb.solve-for-all-magnifications=
+assert.disabled.tf.group-size.1=
+bn.advanced=
+assert.disabled.tf.non-default-grouping.1=
+bn.basic=
+
+
+[function = tilt-angle-solution-type]
+tb.general.1=
+[[ifnot = keep-dataset-dir]]
+	# check values
+	assert.rb.fixed-tilt-angles=off
+	assert.rb.group-tilt-angles=on
+	assert.rb.solve-for-all-except-minimum-tilt=off
+	assert.tf.group-size.2=5
+	bn.advanced=
+	assert.tf.non-default-grouping.2=
+	bn.basic=
+[[]]
+# check enabled/disabled
+assert.enabled.rb.fixed-tilt-angles=
+assert.enabled.rb.group-tilt-angles=
+assert.enabled.rb.solve-for-all-except-minimum-tilt=
+rb.fixed-tilt-angles=
+assert.disabled.tf.group-size.2=
+bn.advanced=
+assert.disabled.tf.non-default-grouping.2=
+bn.basic=
+rb.group-tilt-angles=
+assert.enabled.tf.group-size.2=
+bn.advanced=
+assert.enabled.tf.non-default-grouping.2=
+bn.basic=
+rb.solve-for-all-except-minimum-tilt=
+assert.disabled.tf.group-size.2=
+bn.advanced=
+assert.disabled.tf.non-default-grouping.2=
+bn.basic=
+rb.group-tilt-angles=
+
+
+[function = distortion-solution-type]
+tb.general.1=
+bn.advanced=
+rb.no-beam-tilt=
+bn.basic=
+[[ifnot = keep-dataset-dir]]
+	# check values
+	assert.rb.disabled=on
+	assert.rb.full-solution=off
+	assert.rb.skew-only=off
+	assert.tf.x-stretch-group-size=7
+	assert.tf.skew-group-size=11
+	bn.advanced=
+	assert.tf.x-stretch-non-default-grouping=
+	assert.tf.skew-non-default-grouping=
+	bn.basic=
+[[]]
+# check enabled/disabled
+assert.enabled.rb.disabled=
+assert.enabled.rb.full-solution=
+assert.enabled.rb.skew-only=
+sleep=1
+bn.advanced=
+rb.solve-for-beam-tilt=
+bn.basic=
+assert.enabled.rb.disabled=
+assert.disabled.rb.full-solution=
+assert.disabled.rb.skew-only=
+bn.advanced=
+rb.no-beam-tilt=
+bn.basic=
+rb.disabled=
+assert.disabled.tf.x-stretch-group-size=
+assert.disabled.tf.skew-group-size=
+bn.advanced=
+assert.disabled.tf.x-stretch-non-default-grouping=
+assert.disabled.tf.skew-non-default-grouping=
+bn.basic=
+rb.full-solution=
+assert.enabled.tf.x-stretch-group-size=
+assert.enabled.tf.skew-group-size=
+bn.advanced=
+assert.enabled.tf.x-stretch-non-default-grouping=
+assert.enabled.tf.skew-non-default-grouping=
+bn.basic=
+rb.skew-only=
+assert.disabled.tf.x-stretch-group-size=
+assert.enabled.tf.skew-group-size=
+sleep=1
+bn.advanced=
+assert.disabled.tf.x-stretch-non-default-grouping=
+assert.enabled.tf.skew-non-default-grouping=
+bn.basic=
+rb.disabled=
+
+
+[function = beam-tilt]
+tb.general.1=
+mb.beam-tilt=A
+rb.disabled=
+[[ifnot = keep-dataset-dir]]
+	# check values
+	assert.rb.no-beam-tilt=on
+	assert.rb.fixed-beam-tilt=off
+	assert.tf.fixed-beam-tilt=
+	assert.rb.solve-for-beam-tilt=off
+[[]]
+# check enabled/disabled
+assert.enabled.rb.no-beam-tilt=
+assert.enabled.rb.fixed-beam-tilt=
+assert.disabled.tf.fixed-beam-tilt=
+assert.enabled.rb.solve-for-beam-tilt=
+rb.full-solution=
+assert.disabled.rb.solve-for-beam-tilt=
+rb.skew-only=
+assert.disabled.rb.solve-for-beam-tilt=
+rb.disabled=
+rb.fixed-beam-tilt=
+assert.enabled.tf.fixed-beam-tilt=
+rb.solve-for-beam-tilt=
+assert.disabled.tf.fixed-beam-tilt=
+rb.no-beam-tilt=
+mb.beam-tilt=B
+
+
+# Local Variables tab
+
+
+[function = local-variables]
+tb.general=
+cb.enable-local-alignments=
+tb.general.2=
+[[if = test-gui]]
+	# box functions
+	run.function.local-rotation-solution-type=
+	run.function.local-magnification-solution-type=
+	run.function.local-tilt-angle-solution-type=
+	run.function.local-distortion-solution-type=
+[[]]
+# Run with local full distortion solution
+rb.full-solution=
+bn.compute-alignment=
+wait.process.aligning-stack=done
+[[if = test-gui]]
+	# file check
+	assert.exists.file=%{dataset}%{axis}local.xf
+	# Run again with local full distortion solution
+	bn.compute-alignment=
+	wait.process.aligning-stack=done
+	# file check
+	assert.exists.file=%{dataset}%{axis}local.xf
+[[]]
+
+
+[function = local-rotation-solution-type]
+tb.general.2=
+[[ifnot = keep-dataset-dir]]
+	# check values
+	assert.cb.enable=on
+	assert.tf.group-size=6
+	bn.advanced=
+	assert.tf.non-default-grouping=
+	bn.basic=
+[[]]
+# check enabled/disabled
+assert.enabled.cb.enable=
+cb.enable=on
+assert.enabled.tf.group-size=
+bn.advanced=
+assert.enabled.tf.non-default-grouping=
+bn.basic=
+cb.enable=off
+assert.disabled.tf.group-size=
+bn.advanced=
+assert.disabled.tf.non-default-grouping=
+bn.basic=
+cb.enable=on
+
+
+[function = local-magnification-solution-type]
+tb.general.2=
+[[ifnot = keep-dataset-dir]]
+	# check values
+	assert.cb.enable.1=on
+	assert.tf.group-size.1=7
+	bn.advanced=
+	assert.tf.non-default-grouping.1=
+	bn.basic=
+[[]]
+# check enabled/disabled
+assert.enabled.cb.enable.1=
+cb.enable.1=on
+assert.enabled.tf.group-size.1=
+bn.advanced=
+assert.enabled.tf.non-default-grouping.1=
+bn.basic=
+cb.enable.1=off
+assert.disabled.tf.group-size.1=
+sleep=3
+bn.advanced=
+assert.disabled.tf.non-default-grouping.1=
+bn.basic=
+cb.enable.1=on
+
+
+[function = local-tilt-angle-solution-type]
+tb.general.2=
+[[ifnot = keep-dataset-dir]]
+	# check values
+	assert.cb.enable.2=on
+	assert.tf.group-size.2=6
+	bn.advanced=
+	assert.tf.non-default-grouping.2=
+	bn.basic=
+[[]]
+# check enabled/disabled
+assert.enabled.cb.enable.2=
+cb.enable.2=on
+assert.enabled.tf.group-size.2=
+sleep=1
+bn.advanced=
+assert.enabled.tf.non-default-grouping.2=
+bn.basic=
+cb.enable.2=off
+assert.disabled.tf.group-size.2=
+bn.advanced=
+assert.disabled.tf.non-default-grouping.2=
+bn.basic=
+cb.enable.2=on
+
+
+[function = local-distortion-solution-type]
+tb.general.2=
+[[ifnot = keep-dataset-dir]]
+	# check values
+	assert.rb.disabled=off
+	# Full solution should be on because it was turned on in Global Variables
+	assert.rb.full-solution=on
+	assert.rb.skew-only=off
+	assert.tf.x-stretch-group-size=7
+	assert.tf.skew-group-size=11
+	bn.advanced=
+	assert.tf.x-stretch-non-default-grouping=
+	assert.tf.skew-non-default-grouping=
+	bn.basic=
+[[]]
+# check enabled/disabled
+assert.enabled.rb.disabled=
+assert.enabled.rb.full-solution=
+assert.enabled.rb.skew-only=
+rb.disabled=
+assert.disabled.tf.x-stretch-group-size=
+assert.disabled.tf.skew-group-size=
+bn.advanced=
+assert.disabled.tf.x-stretch-non-default-grouping=
+assert.disabled.tf.skew-non-default-grouping=
+bn.basic=
+rb.full-solution=
+assert.enabled.tf.x-stretch-group-size=
+assert.enabled.tf.skew-group-size=
+bn.advanced=
+assert.enabled.tf.x-stretch-non-default-grouping=
+assert.enabled.tf.skew-non-default-grouping=
+bn.basic=
+rb.skew-only=
+assert.disabled.tf.x-stretch-group-size=
+assert.enabled.tf.skew-group-size=
+bn.advanced=
+assert.disabled.tf.x-stretch-non-default-grouping=
+assert.enabled.tf.skew-non-default-grouping=
+bn.basic=
+rb.full-solution=

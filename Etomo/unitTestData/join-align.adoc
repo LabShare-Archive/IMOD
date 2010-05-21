@@ -1,0 +1,14 @@
+Version = 1.2
+
+[function = main]
+open.dialog.align=
+[[if = test-gui]]
+	bn.initial-auto-alignment=
+	wait.process.initial-xfalign=done
+	bn.refine-auto-alignment=
+	wait.process.refine-xfalign=done
+	bn.revert-auto-alignment-to-midas=
+	bn.revert-to-no-transforms=
+[[]]
+bn.initial-auto-alignment=
+wait.process.initial-xfalign=done
