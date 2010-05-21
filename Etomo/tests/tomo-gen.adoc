@@ -102,7 +102,7 @@ assert.exists.file=processchunks%{axis}.out
 assert.exists.file=%{dataset}%{tomo-ext}%{axis}.rec
 # check comscript
 [[ifnot = fidless]]
-	if.not.var.simple-align.assert.same.file=tilt%{axis}.com
+	run.function.same-file=
 [[]]
 # run again without parallel processing
 cb.parallel-processing=off
@@ -146,6 +146,12 @@ bn.view-tomogram-in-3dmod=
 assert.bn.generate-tomogram=on
 # clean up
 bn.delete-intermediate-image-stacks=
+
+
+[function = same-file]
+[[ifnot = simple-align]]
+	if.not.var.patch-tracking.assert.same.file=tilt%{axis}.com
+[[]]
 
 
 [function = trial-tilt]

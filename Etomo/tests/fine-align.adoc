@@ -3,7 +3,10 @@ Version = 1.2
 [function = main]
 run.function.general=
 [[ifnot = simple-align]]
+	if.var.patch-tracking.return=
 	run.function.global-variables=
+[[]]
+[[ifnot = simple-align]]
 	run.function.local-variables=
 [[]]
 copy.file=%{dataset}%{axis}.xtilt
@@ -17,8 +20,9 @@ copy.file=%{dataset}%{axis}.3dmod
 copy.file=%{dataset}%{axis}_fid.xf
 copy.file=%{dataset}%{axis}_fid.tlt
 [[ifnot = simple-align]]
-	copy.file=%{dataset}%{axis}.zfac
 	copy.file=%{dataset}%{axis}local.xf
+	if.var.patch-tracking.return=
+	copy.file=%{dataset}%{axis}.zfac
 [[]]
 # run with best alignment
 bn.compute-alignment=
@@ -29,6 +33,20 @@ bn.done=
 # General tab
 
 
+[function = general-test-values]
+assert.tf.list-of-views-to-exclude=
+assert.tf.separate-view-groups=
+[[ifnot = patch-tracking]]
+	assert.rb.do-not-sort-fiducials-into-2-surfaces-for-analysis=off
+	assert.rb.assume-fiducials-on-2-surfaces-for-analysis=on
+[[]]
+[[if = patch-tracking]]
+	assert.rb.do-not-sort-fiducials-into-2-surfaces-for-analysis=on
+	assert.rb.assume-fiducials-on-2-surfaces-for-analysis=off
+[[]]
+assert.bn.compute-alignment=off
+
+
 [function = general]
 tb.general=
 # Only test values if keep is off.
@@ -36,13 +54,10 @@ tb.general=
 	if.not.var.keep-dataset-dir.set.var.test-values=
 	return.var.test-values=
 [[]]
+if.var.patch-tracking.set.var.2-surfaces=off
 [[if = test-values]]
 	# check values
-	assert.tf.list-of-views-to-exclude=
-	assert.tf.separate-view-groups=
-	assert.rb.do-not-sort-fiducials-into-2-surfaces-for-analysis=off
-	assert.rb.assume-fiducials-on-2-surfaces-for-analysis=on
-	assert.bn.compute-alignment=off
+	run.function.general-test-values=
 [[]]
 [[if = test-gui]]
 	# check enabled/disabled
@@ -483,8 +498,7 @@ tb.general.2=
 	run.function.local-tilt-angle-solution-type=
 	run.function.local-distortion-solution-type=
 [[]]
-# Run with local full distortion solution
-rb.full-solution=
+# Run with local alignments
 bn.compute-alignment=
 wait.process.aligning-stack=done
 [[if = test-gui]]
@@ -577,19 +591,23 @@ cb.enable.2=on
 
 [function = local-distortion-solution-type]
 tb.general.2=
-[[ifnot = keep-dataset-dir]]
-	# check values
-	assert.rb.disabled=off
-	# Full solution should be on because it was turned on in Global Variables
-	assert.rb.full-solution=on
-	assert.rb.skew-only=off
-	assert.tf.x-stretch-group-size=7
-	assert.tf.skew-group-size=11
-	bn.advanced=
-	assert.tf.x-stretch-non-default-grouping=
-	assert.tf.skew-non-default-grouping=
-	bn.basic=
+# check values
+[[ifnot = patch-tracking]]
+assert.rb.disabled=off
+# Full solution should be on because it was turned on in Global Variables
+assert.rb.full-solution=on
 [[]]
+[[if = patch-tracking]]
+assert.rb.disabled=on
+assert.rb.full-solution=off
+[[]]
+assert.rb.skew-only=off
+assert.tf.x-stretch-group-size=7
+assert.tf.skew-group-size=11
+bn.advanced=
+assert.tf.x-stretch-non-default-grouping=
+assert.tf.skew-non-default-grouping=
+bn.basic=
 # check enabled/disabled
 assert.enabled.rb.disabled=
 assert.enabled.rb.full-solution=
