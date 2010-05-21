@@ -13,6 +13,10 @@
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.24  2010/02/17 05:05:58  sueh
+ * <p> bug# 1301 Using manager instead of manager key for popping up
+ * <p> messages.
+ * <p>
  * <p> Revision 1.23  2009/10/23 23:52:07  sueh
  * <p> bug# 1275 No default manager.
  * <p>
@@ -109,227 +113,95 @@
 package etomo.util;
 
 import java.io.File;
-import java.io.IOException;
 
 import etomo.BaseManager;
 import etomo.EtomoDirector;
 import etomo.process.SystemProcessException;
 import etomo.process.SystemProgram;
 import etomo.type.AxisID;
-import etomo.type.EtomoVersion;
-import etomo.type.ImodVersion;
 
-public class TestUtilites {
+public final class TestUtilites {
   public static final String rcsid = "$Id$";
 
-  private static final String VECTOR_LOCATION = "ImodTests/EtomoTests/vectors/";
-  private static final String TESTS_LOCATION_WORKSPACE = "Etomo/tests/";
-  private static final String TESTS_LOCATION_CHECKOUT = "imod/"
-      + TESTS_LOCATION_WORKSPACE;
+  public static final TestUtilites INSTANCE = new TestUtilites();
 
-  /**
-   * Make all of the directories on on the specified path if necessary.  If the
-   * path begins with the systems separator then it is an absolute path, if not
-   * it is relative to the current directory specified by propertyUserDir from
-   * EtomoDirector. 
-   * @param newDirectory
-   */
-  public static void makeDirectories(String propertyUserDir, String newDirectory)
-      throws IOException {
-    //  Create the test directories
-    File directory;
-    if (newDirectory.startsWith(File.separator)) {
-      directory = new File(newDirectory);
-    }
-    else {
-      directory = new File(propertyUserDir, newDirectory);
-    }
-    if (!directory.exists()) {
-      if (!directory.mkdirs()) {
-        throw new IOException("Creating directory: "
-            + directory.getAbsolutePath());
-      }
-    }
-  }
+  private File unitTestData = null;
+  private boolean unitTestDataSet = false;
 
-  public static File getVector(BaseManager manager, String testRootDirName,
-      String testDirName, String vectorName) throws SystemProcessException,
-      InvalidParameterException {
-    return getVector(manager, testRootDirName, testDirName, vectorName, false);
-  }
-
-  public static File getVector(BaseManager manager, String testRootDirName,
-      String testDirName, String vectorName, boolean fromTestsDirectory)
-      throws SystemProcessException, InvalidParameterException {
-    String checkoutLocation;
-    String workspaceLocation;
-    if (fromTestsDirectory) {
-      checkoutLocation = TESTS_LOCATION_CHECKOUT;
-      workspaceLocation = TESTS_LOCATION_WORKSPACE;
-    }
-    else {
-      checkoutLocation = VECTOR_LOCATION;
-      workspaceLocation = VECTOR_LOCATION;
-    }
-    //check vector
-    if (vectorName.indexOf(File.separator) != -1) {
-      throw new InvalidParameterException(
-          "vector can not contain path separators");
-    }
-    File testRootDir = new File(testRootDirName);
-    File testDir = new File(testRootDir, testDirName);
-    File target = new File(testDir, vectorName);
-    //save time by looking for already checked out files in workspace directory
-    String homeDirName = EnvironmentVariable.INSTANCE.getValue(manager, null,
-        "HOME", AxisID.ONLY);
-    if (homeDirName != null && !homeDirName.matches("\\s*+")) {
-      File homeDir = new File(EnvironmentVariable.INSTANCE.getValue(manager,
-          null, "HOME", AxisID.ONLY));
-      if (homeDir.exists() && homeDir.canRead()) {
-        File vector = new File(new File(homeDir, "workspace/"
-            + workspaceLocation), vectorName);
-        //delete target
-        if (target.exists() && !target.delete()) {
-          throw new SystemProcessException("Cannot delete target: "
-              + target.getAbsolutePath());
-        }
-        if (vector.exists()) {
-          //copy vector to target
-          String[] copyCommand = new String[3];
-          copyCommand[0] = "cp";
-          copyCommand[1] = vector.getAbsolutePath();
-          copyCommand[2] = testDir.getAbsolutePath();
-          SystemProgram copy = new SystemProgram(manager,
-              manager == null ? null : manager.getPropertyUserDir(),
-              copyCommand, AxisID.ONLY);
-          copy.setDebug(true);
-          copy.run();
-          if (target.exists()) {
-            return target;
-          }
-        }
-      }
-    }
-    return checkoutVector(manager, testRootDir, testDir, target,
-        checkoutLocation);
+  private TestUtilites() {
   }
 
   /**
-   * Check out the specified test vector into the specified directory. Note the
-   * cvs export cannot handle a full path as an argument to -d.  The directory
-   * must reside in the current directory.
-   * Setting the working directory just before running cvs
-   * @param workingDirName - Name of the directory containing the dirName directory.
-   * @param dirName - Directory name with no path.
-   * @param vector - File to be added to the dirName directory.
+   * Attempts to set unitTestData, if the attempt hasn't been made before.
+   * Synchronized.
    */
-  private static File checkoutVector(BaseManager manager, File testRootDir,
-      File testDir, File target, String checkoutLocation)
-      throws SystemProcessException, InvalidParameterException {
-    System.out.println("target=" + target);
-    System.out.println("testDir=" + testDir);
-    System.out.println("checkoutLocation=" + checkoutLocation);
-    //set working directory
-    String originalDirName = EtomoDirector.INSTANCE
-        .setCurrentPropertyUserDir(testRootDir.getAbsolutePath());
-    //delete existing target
-    if (target.exists() && !target.delete()) {
-      //unable to delete - reset working directory and throw exception
-      EtomoDirector.INSTANCE.setCurrentPropertyUserDir(originalDirName);
-      throw new SystemProcessException("Cannot delete target: "
-          + target.getAbsolutePath());
+  private void initUnitTestData() {
+    if (unitTestDataSet) {
+      return;
     }
-    //Check using the version number in ImodVersion.
-    EtomoVersion version = EtomoVersion
-        .getDefaultInstance(ImodVersion.CURRENT_VERSION);
-    String[] cvsCommand = new String[7];
-    cvsCommand[0] = "cvs";
-    cvsCommand[1] = "export";
-    cvsCommand[2] = "-r";
-    cvsCommand[3] = "IMOD_" + version.get(0) + "-" + version.get(1);
-    cvsCommand[4] = "-d";
-    cvsCommand[5] = testDir.getName();
-    cvsCommand[6] = checkoutLocation + target.getName();
-    SystemProgram cvs = new SystemProgram(manager,
-        manager.getPropertyUserDir(), cvsCommand, AxisID.ONLY);
-    cvs.setDebug(true);
-    cvs.run();
-    //make sure that the file system is up to date
-    String[] command = new String[2];
-    command[0] = "ls";
-    command[1] = checkoutLocation;
-    SystemProgram systemProgram = new SystemProgram(manager, manager
-        .getPropertyUserDir(), command, AxisID.ONLY);
-    systemProgram.run();
-    if ((cvs.getExitValue() > 0 && cvs.getStdErrorString().indexOf(
-        "no such tag") != -1)
-        || (!(new File(checkoutLocation + target.getName())).exists()
-            && cvs.getStdErrorString() != null && cvs.getStdErrorString()
-            .indexOf("has disappeared") != -1)) {
-      // NOTE: some version of cvs (1.11.2) have bug that results in a checkout
-      // (CVS directory is created) instead of an export when using the -d flag
-      // This is a work around to handle that case
-      //This also seems to happen with a -r tag.
-      //The mysterious "has disappeared" warning turned up, so I need to check
-      //for it when the target was not checked out.
-      File badDirectory = new File(testDir, "CVS");
-      if (badDirectory.exists()) {
-        String[] rmCommand = new String[3];
-        rmCommand[0] = "rm";
-        rmCommand[1] = "-rf";
-        rmCommand[2] = badDirectory.getAbsolutePath();
-        SystemProgram rm = new SystemProgram(manager, manager
-            .getPropertyUserDir(), rmCommand, AxisID.ONLY);
-        rm.run();
+    synchronized (this) {
+      if (unitTestDataSet) {
+        return;
       }
+      unitTestDataSet = true;
+      BaseManager manager = EtomoDirector.INSTANCE.getCurrentManagerForTest();
+      //If units tests are being run from eclipse then IMOD_UNIT_TEST_DATA should
+      //be set to the location of unitTestData in the workspace and current
+      //project.
+      String unitTestDataPath = EnvironmentVariable.INSTANCE.getValue(manager,
+          manager == null ? null : manager.getPropertyUserDir(),
+          "IMOD_UNIT_TEST_DATA", AxisID.ONLY);
+      if (unitTestDataPath != null && !unitTestDataPath.matches("\\s*")) {
+        unitTestData = new File(unitTestDataPath);
+      }
+      else {
+        //If IMOD_UNIT_TEST_DATA is not set, assume that this is the build unit test.
+        //In that case unitTestData should be located here:
+        //$IMOD_DIR/../Etomo/unitTestData.
+        String imodDirName = EnvironmentVariable.INSTANCE.getValue(manager,
+            manager == null ? null : manager.getPropertyUserDir(), "IMOD_DIR",
+            AxisID.ONLY);
+        if (imodDirName != null && !imodDirName.matches("\\s*")) {
+          unitTestData = new File(new File(new File(imodDirName)
+              .getParentFile(), "Etomo"), "unitTestData");
+        }
+      }
+    }
+  }
 
-      //If checking out with the version number fails, then the tag was not
-      //created.  Checkout the latest stuff.
-      cvsCommand = new String[7];
-      cvsCommand[0] = "cvs";
-      cvsCommand[1] = "export";
-      cvsCommand[2] = "-D";
-      cvsCommand[3] = "today";
-      cvsCommand[4] = "-d";
-      cvsCommand[5] = testDir.getName();
-      cvsCommand[6] = checkoutLocation + target.getName();
-      cvs = new SystemProgram(manager, manager.getPropertyUserDir(),
-          cvsCommand, AxisID.ONLY);
-      cvs.setDebug(true);
-      cvs.run();
+  /**
+   * Deletes the existing file in testDir.  Copies a new one from unitTestData.
+   * Returns the copied file if it exists, otherwise returns null.
+   * @param testRootAbsolutePath
+   * @param testDirName
+   * @param testFileName
+   * @return
+   * @throws SystemProcessException
+   */
+  public File copyTestFile(String testRootAbsolutePath, String testDirName,
+      String testFileName) throws SystemProcessException {
+    initUnitTestData();
+    File unitTestDataFile = new File(unitTestData, testFileName);
+    File testDir = new File(testRootAbsolutePath, testDirName);
+    File testDirFile = new File(testDir, testFileName);
+    if (unitTestDataFile.exists()) {
+      //delete existing test dir file
+      if (testDirFile.exists() && !testDirFile.delete()) {
+        throw new SystemProcessException("Cannot delete testDirFile: "
+            + testDirFile.getAbsolutePath());
+      }
+      //copy data file from unitTestData to test directory
+      String[] copyCommand = new String[3];
+      copyCommand[0] = "cp";
+      copyCommand[1] = unitTestDataFile.getAbsolutePath();
+      copyCommand[2] = testDir.getAbsolutePath();
+      BaseManager manager = EtomoDirector.INSTANCE.getCurrentManagerForTest();
+      SystemProgram copy = new SystemProgram(manager, manager == null ? null
+          : manager.getPropertyUserDir(), copyCommand, AxisID.ONLY);
+      copy.setDebug(true);
+      copy.run();
+      return testDirFile;
     }
-    for (int i = 0; i < cvsCommand.length; i++) {
-      System.err.print(cvsCommand[i] + " ");
-    }
-    System.err.println();
-    if (cvs.getExitValue() > 0) {
-      //report error
-      String message = cvs.getStdErrorString()
-          + "\nCVSROOT="
-          + EnvironmentVariable.INSTANCE.getValue(manager, manager
-              .getPropertyUserDir(), "CVSROOT", AxisID.ONLY)
-          + ",manager.getPropertyUserDir()=" + manager.getPropertyUserDir()
-          + ",testRootDir=" + testRootDir.getAbsolutePath() + "\ntestDir="
-          + testDir.getAbsolutePath() + ",target=" + target.getAbsolutePath()
-          + ",working dir=" + System.getProperty("user.dir");
-      EtomoDirector.INSTANCE.setCurrentPropertyUserDir(originalDirName);
-      throw new SystemProcessException(message);
-    }
-    // NOTE: some version of cvs (1.11.2) have bug that results in a checkout
-    // (CVS directory is created) instead of an export when using the -d flag
-    // This is a work around to handle that case
-    File badDirectory = new File(testDir, "CVS");
-    if (badDirectory.exists()) {
-      String[] rmCommand = new String[3];
-      rmCommand[0] = "rm";
-      rmCommand[1] = "-rf";
-      rmCommand[2] = badDirectory.getAbsolutePath();
-      SystemProgram rm = new SystemProgram(manager, manager
-          .getPropertyUserDir(), rmCommand, AxisID.ONLY);
-      rm.run();
-    }
-    //reset working directory
-    EtomoDirector.INSTANCE.setCurrentPropertyUserDir(originalDirName);
-    return target;
+    return null;
   }
 }
