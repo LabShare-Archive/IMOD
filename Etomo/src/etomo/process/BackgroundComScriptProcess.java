@@ -33,6 +33,9 @@ import etomo.util.Utilities;
  * @version $$Revision$$
  * 
  * <p> $Log$
+ * <p> Revision 1.34  2010/04/28 16:14:29  sueh
+ * <p> bug# 1344 Added closeOutputImageFile.
+ * <p>
  * <p> Revision 1.33  2010/02/17 04:49:20  sueh
  * <p> bug# 1301 Using the manager instead of the manager key do pop up
  * <p> messages.
@@ -408,7 +411,7 @@ public class BackgroundComScriptProcess extends ComScriptProcess {
   private void makeRunCshFile(File runCshFile, String cshFileName,
       String outFileName) throws IOException {
     if (runCshFile == null) {
-      throw new IOException("unable to create " + runCshFile.getAbsolutePath());
+      throw new IOException("unable to create " + cshFileName);
     }
     if (runCshFile.exists()) {
       return;
