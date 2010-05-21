@@ -22,6 +22,9 @@ import etomo.util.DatasetFiles;
  * @version $$Revision$$
  *
  * <p> $Log$
+ * <p> Revision 1.12  2010/04/28 15:46:15  sueh
+ * <p> bug# 1344 Added getOutputImageFileType functions.
+ * <p>
  * <p> Revision 1.11  2008/01/25 18:24:13  sueh
  * <p> bug# 1069 In initializeComscriptMatchString made the word boundary optional to
  * <p> work with Java 1.6.
@@ -390,11 +393,6 @@ public class CombineComscriptState implements ComscriptState {
     switch (state) {
     case CONSTRUCTED_STATE:
       stateString = "After construction:  ";
-      if (NULL_INDEX >= 0 && NULL_INDEX < NUM_COMMANDS) {
-        throw new IllegalStateException(stateString
-            + "NULL_INDEX can't be a valid index number.  " + "NULL_INDEX="
-            + NULL_INDEX);
-      }
       if (startCommand != NULL_INDEX || endCommand != NULL_INDEX) {
         throw new IllegalStateException(stateString
             + "startCommand and endCommand should start as NULL_INDEX.  "
