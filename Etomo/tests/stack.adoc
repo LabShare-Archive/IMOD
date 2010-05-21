@@ -213,6 +213,7 @@ assert.bn.use-ctf-correction=on
 
 [function = erase-gold]
 if.var.fidless.return=
+if.var.patch-tracking.return=
 [[ifnot = simple-align]]
 	assert.exists.file=%{dataset}%{axis}local.xf
 [[]]
