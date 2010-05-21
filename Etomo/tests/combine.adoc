@@ -1,6 +1,14 @@
 Version = 1.2
 
 [function = main]
+[[if = patch-tracking]]
+	#use matching models for patch tracking
+	rb.use-matching-models-only=
+	cb.load-binned-by-2=
+	bn.create-matching-models-in-3dmod=
+	copy.file=%{dataset}a.matmod
+	copy.file=%{dataset}b.matmod
+[[]]
 tf.z-axis-min = %{z-axis-min}
 tf.z-axis-max = %{z-axis-max}
 cb.parallel-processing = 1
@@ -16,6 +24,34 @@ assert.exists.file = solvematch.com
 assert.exists.file = volcombine.com
 assert.exists.file = warpvol.com
 bn.start-combine =
+[[if = patch-tracking]]
+	#matchor warp failed - try a patch region model
+	wait.process.combine=failed
+	wait.popup.comscript-terminated=OK
+	tb.setup.2=
+	copy.file=patch_region.mod
+	cb.use-patch-region-model=
+	bn.create/edit-patch-region-model=
+	bn.restart-at-patchcorr=
+	wait.process.combine=failed
+	wait.popup.comscript-terminated=OK
+	#matchorwarp failed - reduce patch size
+	bn.patch-size-20%=
+	bn.restart-at-patchcorr=
+	#matchorwarp failed - edit the patch vector model
+	wait.process.combine=failed
+	wait.popup.comscript-terminated=OK
+	copy.file=patch_vector.mod
+	sleep=
+	bn.examine-patch-vector-model=
+	bn.replace-patch-vectors=
+	bn.restart-at-matchorwarp=
+	#matchorwarp failed - increase warping residual limits
+	wait.process.combine=failed
+	wait.popup.comscript-terminated=OK
+	tf.warping-residual-limits=0.2,0.27,0.47
+	bn.restart-at-matchorwarp=
+[[]]
 wait.process.processchunks-volcombine = done
 assert.exists.file = volcombine-finish.com
 assert.exists.file = volcombine-start.com
