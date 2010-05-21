@@ -1,5 +1,9 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+5/20/10: Fixed detection of 64-bit system in G5 installation, default install
+location when running Assistant, and linklibs-mac for location of frameworks
+on Mac.
+
 5/1/10: IMOD_4-1-1
 4/27/10: Stopped Ctfplotter message about inconsistencies when there is no
 existing defocus file.
