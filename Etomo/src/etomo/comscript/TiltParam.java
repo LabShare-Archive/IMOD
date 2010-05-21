@@ -11,6 +11,10 @@
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.47  2010/04/28 16:09:22  sueh
+ * <p> bug# 1344 Added getOutputImageFileType functions.  Completed the list
+ * <p> of modes.
+ * <p>
  * <p> Revision 3.46  2010/04/10 00:30:17  sueh
  * <p> bug# 1347 Removed prints.
  * <p>
@@ -270,6 +274,7 @@ public final class TiltParam implements ConstTiltParam, CommandParam {
   public static final String COMMAND_NAME = "tilt";
   public static final String LINEAR_SCALE_FACTOR_DEFAULT = "1.0";
   public static final String LINEAR_SCALE_OFFSET_DEFAULT = "0.0";
+  private static final String ACTION_IF_GPU_FAILS_DEFAULT = "1,2";
 
   private final StringParameter inputFile = new StringParameter(
       "InputProjections");
@@ -335,6 +340,8 @@ public final class TiltParam implements ConstTiltParam, CommandParam {
   private final StringParameter projectModel = new StringParameter(
       "ProjectModel");
   private final ScriptParameter useGpu = new ScriptParameter("UseGPU");
+  private final StringParameter actionIfGPUFails = new StringParameter(
+      "ActionIfGPUFails");
 
   private final String datasetName;
   private final ApplicationManager manager;
@@ -355,6 +362,7 @@ public final class TiltParam implements ConstTiltParam, CommandParam {
     tiltFile.set("");
     xTiltFile.set("");
     projectModel.set("");
+    actionIfGPUFails.set(ACTION_IF_GPU_FAILS_DEFAULT);
   }
 
   public ConstEtomoNumber getImageBinned() {
@@ -849,6 +857,10 @@ public final class TiltParam implements ConstTiltParam, CommandParam {
       adjustOrigin.parse(scriptCommand);
       projectModel.parse(scriptCommand);
       useGpu.parse(scriptCommand);
+      actionIfGPUFails.parse(scriptCommand);
+      if (actionIfGPUFails.isEmpty()) {
+        actionIfGPUFails.set(ACTION_IF_GPU_FAILS_DEFAULT);
+      }
       loadedFromFile = true;
     }
   }
@@ -1113,6 +1125,7 @@ public final class TiltParam implements ConstTiltParam, CommandParam {
     adjustOrigin.updateComScript(scriptCommand);
     projectModel.updateComScript(scriptCommand);
     useGpu.updateComScript(scriptCommand);
+    actionIfGPUFails.updateComScript(scriptCommand);
   }
 
   public void initializeDefaults() {
