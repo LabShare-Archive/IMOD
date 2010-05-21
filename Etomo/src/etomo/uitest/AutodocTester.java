@@ -67,6 +67,10 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.27  2010/05/18 13:51:51  sueh
+ * <p> bug# 1322 Printing the current progress bar label when the --names
+ * <p> parameter is used.
+ * <p>
  * <p> Revision 1.26  2010/05/16 00:41:50  sueh
  * <p> bug# 1371 Reformatting one time when a field is not found.
  * <p>
@@ -75,6 +79,10 @@ import etomo.util.Utilities;
  * <p>being fooled when kill button is disabled for a second.
  * <p>
  * $Log$
+ * Revision 1.27  2010/05/18 13:51:51  sueh
+ * bug# 1322 Printing the current progress bar label when the --names
+ * parameter is used.
+ *
  * Revision 1.26  2010/05/16 00:41:50  sueh
  * bug# 1371 Reformatting one time when a field is not found.
  *
@@ -1042,9 +1050,9 @@ final class AutodocTester extends Assert implements VariableList {
         //Decide if this is the right process
         String progressBarName = Utilities.convertLabelToName(progressBarLabel
             .getText());
-        if (EtomoDirector.INSTANCE.getArguments().isPrintNames()) {
-          System.err.println("progressBarName=" + progressBarName);
-        }
+        /*if (EtomoDirector.INSTANCE.getArguments().isPrintNames()) {
+         System.err.println("progressBarName=" + progressBarName);
+         }*/
         if (!progressBarName.equals(subjectName)) {
           return true;
         }
@@ -1890,7 +1898,7 @@ final class AutodocTester extends Assert implements VariableList {
     UIHarness.INSTANCE.pack(axisID, EtomoDirector.INSTANCE
         .getCurrentManagerForTest());
     try {
-      Thread.sleep(100);
+      Thread.sleep(150);
     }
     catch (InterruptedException e) {
     }
