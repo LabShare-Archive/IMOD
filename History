@@ -1,6 +1,9 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-5/21/10: In eTomo adding ActionIfGPUFails to tilt.com.
+5/24/10: In Tilt, fixed centering of vertical slices with large Y offset/
+X axis tilt, fixed handling of fill value for output in internal SIRT (In 4.1).
+
+5/21/10: In eTomo adding ActionIfGPUFails to tilt.com (In 4.1).
 
 5/21/10: Moved unit test data to the Etomo directory.
 
