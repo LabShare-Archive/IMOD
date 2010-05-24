@@ -30,7 +30,8 @@ c
       integer*4 iringstart,mode,needGpuStart,needGpuEnd,keepOnGpu,numLoadGpu
       real*4 endmean,f,unscmin,unscmax,recscale,recflevl,DMEAN,pixelTot
       real*4 rpfill, curmean, firstmean, vertSum, numVertSum, edgeFillOrig
-      integer*4 jsirt,iset,ixSum,mapEnd
+      real*4 composeFill
+      integer*4 jsirt,iset,ixSum,mapEnd,nz5,lfillStart,lfillEnd
       real*8 dtot8
       logical*4 shiftedGpuLoad, composedOne
       integer*4 gpuLoadProj,gpuShiftProj, gpuReprojOneSlice
@@ -45,6 +46,7 @@ c
       DMAX4=-1.E30
       DMIN5=1.E30
       DMAX5=-1.E30
+      nz5 = 0
       debug = .false.
 C       
 C       Open files and read control data
@@ -58,6 +60,7 @@ C       Open files and read control data
       mapEnd = imap + ithwid - 1
       
       if (debug)  print *,'iflog=',iflog,' scale=',scale,'  edgefill=',edgefill
+      composeFill = edgefill * nviews
 c       
 c       recompute items not in common
       NXPRJ2=NXPRJ+2+npad
@@ -75,6 +78,7 @@ c       vertical slices and ring buffer of read-in slices
       nReadInRing = 0
       lreadStart = -1
       lreadEnd = -1
+      lfillStart = -1
       nextReadFree = 1
       ycenfix=ycen
       abssal=abs(sal(1))
@@ -308,7 +312,7 @@ C             Backprojection: Process all views for current slice
 c             If new-style X tilt, set  the Y center based on the slice
 c             number, and adjust the y offset slightly
 c             
-            if(ifalpha.lt.0)ycen=ycenfix+(cal(1)-1.)*yoffset
+            if(ifalpha.lt.0)ycen=ycenfix+(1./cal(1)-1.)*yoffset
      &          -nint(tanalpha*(lslice-slicen))
             if (numSIRTiter .eq. 0) then
 c             
@@ -388,9 +392,10 @@ c                 Read in single slice
 c                 
 c                 Decompose vertical slice from read-in slices
 c                 First see if necessary slices are loaded in ring
-                vslcen = lslice - slicen - yoffset * sal(1)
-                vycenfix = nint(tanalpha * (lslice -slicen)) - (ithick/2 + 0.5)
-                riBot = slicen + vslcen * cal(1) + (1 + vycenfix)*sal(1)
+                vslcen = lslice - slicen
+                vycenfix = (ithick/2 + 0.5) - nint(tanalpha * (lslice -slicen))
+     &              + yoffset / cal(1)
+                riBot = slicen + vslcen * cal(1) + (1 - vycenfix)*sal(1)
                 riTop = riBot + (ithick - 1) * sal(1)
                 lriMin = max(1, floor(min(riBot, riTop)))
                 lriMax = min(nyprj, ceiling(max(riBot, riTop)))
@@ -483,7 +488,7 @@ c                 artifacts - the masking was needed
                   dsum = dsum + array(j + iwide + npad / 2 - 1)
                 enddo
                 edgeFill = dsum / nviews
-c                 print *,'   edgefill =',edgeFill
+c                 print *,'   (for diff bp) edgefill =',edgeFill
 c                 
 c                 Backproject the difference
                 call project(iworkPlane, lslice)
@@ -523,7 +528,7 @@ c                 descaled by 1/filterScale
 c                 
 c                 Adjust fill value by change in mean
 c                 Accumulate mean of starting vertical slices until one output
-c                 slice has been composed, and set edgeFill from mean
+c                 slice has been composed, and set composeFill from mean
                 if (isirt .lt. numSIRTiter .or. ifalpha .lt. 0) then
                   call iclden(array(ibaseSIRT), iwide, ithick, 1, iwide, 1,
      &                ithick, unscmin, unscmax, curmean)
@@ -537,7 +542,7 @@ c                 slice has been composed, and set edgeFill from mean
                     numVertSum = numVertSum + 1
                   endif
                 endif
-                if (numVertSum .gt. 0) edgeFill = vertSum / (numVertSum*nviews)
+                if (numVertSum .gt. 0) composeFill = vertSum / numVertSum
               enddo
             endif
           endif
@@ -550,35 +555,29 @@ c             interpolate output slice from vertical slices
 c             
             iringstart=1
             if(nvsinring.eq.nvertneed)iringstart=nextfreevs
-c             print *,'composing',lsliceout,' from',lvsstart,lvsend,iringstart
-            call compose(lsliceout,lvsstart,lvsend,1,iringstart)
-            composedOne = .true.
-          endif
-C           
-C           Write out current slice
-          CALL DUMP(LSLICEout,DMIN,DMAX,DTOT8)
-c           DNM 10/22/03:  Can't use flush in Windows/Intel because of sample.com
-c           call flush(6)
-c           
-c           write out header periodically, restore writing position
-c           
-          if(perp.and.interhsave.gt.0.and..not.reproj .and.
-     &        minTotSlice.le.0)then
-            nsliceout=nsliceout+1
-            nxyztmp(1)=iwide
-            nxyztmp(2)=ithickout
-            nxyztmp(3)=nsliceout
-            if(mod(nsliceout,interhsave).eq.1)then 
-              call ialsiz(2,nxyztmp,nxyzst)
-              DMEAN=DTOT8/(float(NSLICEout)*IWIDE*ITHICK)
-              CALL IWRHDR(2,TITLE,-1,DMIN,DMAX,DMEAN)
-              call parWrtPosn(2,nsliceout,0)
+            if (nvsinring .gt. 0) then
+c               
+c               If there is anything in ring to use, then we can compose an
+c               output slice, first dumping any deferred fill slices
+              call dumpFillSlices()
+c              print *,'composing',lsliceout,' from',lvsstart,lvsend,iringstart
+              call compose(lsliceout,lvsstart,lvsend,1,iringstart, composeFill)
+              composedOne = .true.
+            else
+c               
+c               But if there is nothing there, keep track of a range of slices
+c               that need to be filled - after the composeFill value is set
+              if (lfillStart .lt. 0) lfillStart = lsliceOut
+              lfillEnd = lsliceOut
             endif
           endif
+c           
+c           Dump slice unless there are fill slices being held
+          if (lfillStart .lt. 0) call dumpUpdateHeader(lsliceOut)
           lsliceOut = lsliceOut + idelslice
         else
 c           
-c           Reproject all ready slices to minimize file mangling
+c           REPROJECT all ready slices to minimize file mangling
           lsProjEnd = lastReady
           call reprojectRec(lsliceOut, lsProjEnd, inloadstr, inloadend, DMIN,
      &        DMAX,DTOT8)
@@ -589,9 +588,10 @@ C
 C       End of main loop
 C-----------------
 C       
+      call dumpFillSlices()
 C       Close files
       CALL IMCLOSE(1)
-      pixelTot = float(NSLICE)*IWIDE*ITHICK
+      pixelTot = float(NSLICE)*IWIDE*ITHICKout
       if (reproj.or.recReproj) pixelTot = float(NSLICE)*IWIDE*nreproj
       DMEAN=DTOT8/pixelTot
       if (minTotSlice.le.0) then
@@ -708,9 +708,49 @@ c
      &      istmin, istmax, istmean)
         dmin5 = min(dmin5, istmin)
         dmax5 = max(dmax5, istmax)
+        nz5 = nz5 + 1
+        call ialsiz_sam_cel(5, iwide, ithick, nz5)
       endif
       return
       end subroutine writeInternalSlice
+
+c       Dump a slice and update the header periodically if appropriate
+c
+      subroutine dumpUpdateHeader(lsliceDump)
+      integer*4 lsliceDump
+C           
+C           Write out current slice
+      CALL DUMP(LSLICEDump,DMIN,DMAX,DTOT8)
+c       DNM 10/22/03:  Can't use flush in Windows/Intel because of sample.com
+c       call flush(6)
+c       
+c       write out header periodically, restore writing position
+      if(perp.and.interhsave.gt.0.and..not.reproj .and.
+     &    minTotSlice.le.0)then
+        nsliceout=nsliceout+1
+        nxyztmp(1)=iwide
+        nxyztmp(2)=ithickout
+        nxyztmp(3)=nsliceout
+        if(mod(nsliceout,interhsave).eq.1)then 
+          call ialsiz(2,nxyztmp,nxyzst)
+          DMEAN=DTOT8/(float(NSLICEout)*IWIDE*ITHICKout)
+          CALL IWRHDR(2,TITLE,-1,DMIN,DMAX,DMEAN)
+          call parWrtPosn(2,nsliceout,0)
+        endif
+      endif
+      end subroutine dumpUpdateHeader
+
+c       If there are fill slices that haven't been output yet, dump them now
+c       and turn off signal that they exist
+      subroutine dumpFillSlices()
+      if (lfillStart .ge. 0) then
+        do i = lfillStart, lfillEnd, idelSlice
+          array(imap:imap+iwide*ithickOut-1) = composeFill
+          call dumpUpdateHeader(i)
+        enddo
+        lfillStart = -1
+      endif
+      end subroutine dumpFillSlices
 
 c       END OF MAIN PROGRAM UNIT
       END
@@ -898,7 +938,7 @@ C       Compute left and right edges of unmasked area
 c         
 c         Adjust the Y center for alpha tilt (already adjusted for ifalpha < 0)
         ycenuse = ycen
-        if(ifalpha.gt.0)ycenuse=ycen+(cal(1)-1.)*yoffset
+        if(ifalpha.gt.0)ycenuse=ycen+(1./cal(1)-1.)*yoffset
      &      -nint((lslice-slicen)*sal(1)/cal(1))
 c
 c         Get square of radius of arcs of edge of input data from input center
@@ -1420,31 +1460,35 @@ c       and ending slices in the ring buffer, IDIR is the direction of
 c       reconstruction, and IRINGSTART is the position of LVSSTART in the
 c       ring buffer.
 c       
-      subroutine compose(lsliceout,lvsstart,lvsend,idir,iringstart)
+      subroutine compose(lsliceout,lvsstart,lvsend,idir,iringstart,composeFill)
       use tiltvars
       implicit none
       integer*4 lsliceout,lvsstart,lvsend,idir,iringstart
+      real*4 composeFill
       integer*4 ind1(4),ind2(4),ind3(4),ind4(4)
       real*4 tanalpha,vertcen,cenj,cenl,vsl,vycen,fx,vy,fy,f22,f23,f32,f33
       integer*4 ivsl,ifmiss,i,lvsl,iring,ibase,ivy,indcen,jnd5,jnd2,j,k
       real*4 fx1,fx2,fx3,fx4,fy1,fy2,fy3,fy4,v1,v2,v3,v4,f5,f2,f8,f4,f6
-      integer*4 jnd8,jnd4,jnd6
+      integer*4 jnd8,jnd4,jnd6,nfill
 c       
 c       12/12/09: stopped reading base here, read on output; eliminate zeroing
 c
       tanalpha=sal(1)/cal(1)
       vertcen=ithick/2+0.5
+      fx = 0.
+      fy = 0.
+      nfill = 0
 c       
 c       loop on lines of data
 c       
       do j=1,ithickout
-        cenj=j-(ithickout/2+0.5)
-        cenl=lsliceout-slicen
+        cenj = j - (ithickout/2 + 0.5) - yoffset
+        cenl = lsliceout - slicen
 c         
 c         calculate slice number and y position in vertical slices
 c         
-        vsl=cenl*cal(1)-cenj*sal(1)+slicen+yoffset*sal(1)
-        vycen=cenl*sal(1)+cenj*cal(1)
+        vsl = cenl*cal(1) - cenj*sal(1) + slicen
+        vycen = cenl*sal(1) + cenj*cal(1)
         ivsl=vsl
         fx=vsl-ivsl
         ifmiss=0
@@ -1467,7 +1511,7 @@ c
             iring=idir*(lvsl-lvsstart)+iringstart
             if(iring.gt.nvertneed)iring=iring-nvertneed
             ibase=imap+ithwid+(iring-1)*ithick*iwide
-            vy=vycen+vertcen-nint(tanalpha*(lvsl-slicen))
+            vy=vycen + vertcen - nint(tanalpha*(lvsl-slicen)) + yoffset/cal(1)
             ivy=vy
             fy=vy-ivy
             if(ivy-1.ge.1.and.ivy-1.le.ithick)ind1(i)=ibase+iwide*(ivy-2)
@@ -1596,11 +1640,13 @@ c
           else
 c             print *,'filling',j
             do i=1,iwide
-              array(i+ibase) = edgeFill*nviews
+              array(i+ibase) = composeFill
             enddo
+            nfill = nfill + 1
           endif
         endif
       enddo
+c      if (nfill .ne. 0) print *,nfill,' lines filled, edgefill =',composeFill
       return
       end
 
@@ -1616,26 +1662,25 @@ c
       use tiltvars
       implicit none
       integer*4 lslice, lReadStart, lreadEnd, iringstart, ibaseSIRT
-      real*4 tanalpha, outcen, cenj, cenl,vslcen,vycen,outsl,outj,fx,fy
+      real*4 tanalpha, outcen, cenl,vslcen,vycen,outsl,outj,fx,fy
       real*4 f11, f12, f21, f22
       integer*4 ibasev,ibase1,ibase2,j,ioutsl,jout,i,iring
 
       tanalpha=sal(1)/cal(1)
       outcen = ithickOut / 2 + 0.5
       cenl=lslice-slicen
-      vslcen = cenl - yoffset * sal(1)
+      vslcen = cenl
 c       
 c       loop on lines of data
       do j=1,ithick
         ibasev = ibaseSIRT + (j - 1) * iwide
-        cenj=j-(ithick/2+0.5)
 c         
 c         calculate slice number and y position in input slices
 c         
-        vycen = cenj + nint(tanalpha * cenl)
+        vycen = j - (ithick/2+0.5 - nint(tanalpha * cenl) + yoffset / cal(1))
         outsl = slicen + vslcen * cal(1) + vycen * sal(1)
-        outj = outcen - vslcen * sal(1) + vycen * cal(1)
-c        print *,j,vycen,outsl,outj
+        outj = outcen + yoffset - vslcen * sal(1) + vycen * cal(1)
+        print *,j,vycen,outsl,outj
 c        if (outsl .ge. lreadStart - 0.5 .and. outsl .le. lreadEnd + 0.5
 c     &      .and. outj .ge. 0.5 .and.outj .le. ithickOut + 0.5) then
 c           
@@ -3560,13 +3605,13 @@ c       Issue desired warning or exit on error if GPU not available
         if (useGPU .or. iactGpuFailEnviron .eq. 0) return
         if (iactGpuFailEnviron .eq. 2) call exitError('The environment '//
      &      'variable IMOD_USE_GPU was set but a GPU cannot be used')
-        print *,'MESSAGE: The environment variable IMOD_USE_GPU was set '//
-     &      'but a GPU will not be used'
+        write(*,'(a)')'MESSAGE: The environment variable IMOD_USE_GPU was set '
+     &      //'but a GPU will not be used'
       else
         if (useGPU .or. iactGpuFailOption .eq. 0) return
         if (iactGpuFailOption .eq. 2) call exitError('Use of the GPU was '//
      &      'requested with the entry UseGPU but a GPU cannot be used')
-        print *,'MESSAGE: Use of the GPU was requested with the entry '//
+        write(*,'(a)')'MESSAGE: Use of the GPU was requested with the entry '//
      &      'UseGPU but a GPU will not be used'
       endif
       call flush(6)
@@ -4990,6 +5035,13 @@ c       Set to open contour, show values etc., and show sphere on section only
 
 c       
 c       $Log$
+c       Revision 3.56  2010/05/24 19:50:44  mast
+c       Fixed centering of vertical slices with a yoffset, provided separate
+c       fill value for compose and held slices to be filled until it is set
+c
+c       Revision 3.55  2010/02/26 16:55:36  mast
+c       New options for internal subtractions for SIRT, and for statistics.
+c
 c       Revision 3.54  2010/02/22 06:04:19  mast
 c       Implemented internal SIRT iterations, reprojection on GPU with local
 c       alignments, fixed bugs in local alignment CPU reprojection, changed 
