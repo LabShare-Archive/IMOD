@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+5/24/10: In Tilt, fixed centering of vertical slices with large Y offset/
+X axis tilt, fixed handling of fill value for output in internal SIRT.
+
 5/20/10: Fixed detection of 64-bit system in G5 installation, default install
 location when running Assistant, and linklibs-mac for location of frameworks
 on Mac.
