@@ -616,10 +616,10 @@ C       Close files
         unscmax=dmax/scale-flevl
         recscale=nviews*235./(unscmax-unscmin)
         recflevl=(10.*(unscmax-unscmin)/235.-unscmin)/nviews
-        write(6,905)recflevl,recscale
+        write(6,905)'bytes (10-245)',recflevl,recscale
         recscale=nviews*30000./(unscmax-unscmin)
         recflevl=(-15000.*(unscmax-unscmin)/30000.-unscmin)/nviews
-        write(6,906)recflevl,recscale
+        write(6,905)'-15000 to 15000',recflevl,recscale
         WRITE(6,910)NSLICE
       endif
       if (useGPU) call gpuDone()
@@ -653,8 +653,8 @@ C
 903   format(1X,I4,' Transposed projections  ',I9,/)
 904   format(1X,I4,' Slice(s) for SIRT       ',I9,/)
 907   format(' Reprojection lines for SIRT  ',i9,/)
-905   format(//' To scale output to bytes (10-245), use SCALE',f12.3, f12.5)
-906   format(//' To scale output to -15000 to 15000, use SCALE',f12.3, f12.5)
+905   format(/,' To scale output to ',a,', use SCALE to add',f12.3,
+     &    ' and scale by',f12.5)
 908   format(/,'Iter ', i4.3, ', slices', 2i6, ', diff rec mean&sd:', 2f15.3)
 910   FORMAT(//' Reconstruction of',I5,' slices complete.',
      &    //,1X,78('-'))
@@ -5035,6 +5035,10 @@ c       Set to open contour, show values etc., and show sphere on section only
 
 c       
 c       $Log$
+c       Revision 3.56  2010/05/24 19:50:44  mast
+c       Fixed centering of vertical slices with a yoffset, provided separate
+c       fill value for compose and held slices to be filled until it is set
+c
 c       Revision 3.55  2010/02/26 16:55:36  mast
 c       New options for internal subtractions for SIRT, and for statistics.
 c
