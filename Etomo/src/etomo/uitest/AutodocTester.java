@@ -67,6 +67,10 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.28  2010/05/21 17:24:55  sueh
+ * <p> bug# 1322 In executeCommand removed a print that repeated endlessly.
+ * <p> In formatApplication excreased the sleep.
+ * <p>
  * <p> Revision 1.27  2010/05/18 13:51:51  sueh
  * <p> bug# 1322 Printing the current progress bar label when the --names
  * <p> parameter is used.
@@ -79,6 +83,10 @@ import etomo.util.Utilities;
  * <p>being fooled when kill button is disabled for a second.
  * <p>
  * $Log$
+ * Revision 1.28  2010/05/21 17:24:55  sueh
+ * bug# 1322 In executeCommand removed a print that repeated endlessly.
+ * In formatApplication excreased the sleep.
+ *
  * Revision 1.27  2010/05/18 13:51:51  sueh
  * bug# 1322 Printing the current progress bar label when the --names
  * parameter is used.
@@ -1898,7 +1906,7 @@ final class AutodocTester extends Assert implements VariableList {
     UIHarness.INSTANCE.pack(axisID, EtomoDirector.INSTANCE
         .getCurrentManagerForTest());
     try {
-      Thread.sleep(150);
+      Thread.sleep(200);
     }
     catch (InterruptedException e) {
     }
