@@ -200,12 +200,11 @@ endif
 @ thickness /= $binval
 
 # Remove any previous files now in case the number has changed or 
-# direct/indirect mode
+# direct/indirect mode.  Processchunks takes care of other files
 #
-if ($startnum > 1) then
-    \find . -type f -name  "$rootname-[0-9]*.[^c]*[^m]" -exec rm -f "{}" \;
-else
-    \find . -type f -name  "$rootname-[0-9]*.*" -exec rm -f "{}" \;
+\find . -type f -name  "$rootname-[0-9][0-9][0-9]*.log" -exec rm -f "{}" \;
+if ($startnum <= 1) then
+    \find . -type f -name  "$rootname-[0-9][0-9][0-9]*.com" -exec rm -f "{}" \;
     \rm -f $rootname-start.com $rootname-finish.com
 endif
 
@@ -426,7 +425,7 @@ $nofbp\
 end
 
 set finish = $rootname-finish.com
-set cleanup = '$'"\rm -f $rootname-[0-9]*.*"
+set cleanup = '$'"\rm -f $rootname-[0-9][0-9][0-9]*.com $rootname-[0-9][0-9][0-9]*.log"
 set cleanbound = $boundfile
 if ($leaveopen) then
     @ numrec = $num + $startnum
@@ -445,7 +444,7 @@ EOF
         @ num++
         echo "InputFile $templist[$num]" >> $finish
     end
-    \echo "$cleanup $recroot-[0-9]*.$recext" >> $finish
+    \echo "$cleanup $recroot-[0-9][0-9][0-9]*.$recext" >> $finish
 else if (! $direct) then
     cat <<EOF >! $finish
 \$assemblevol
@@ -464,12 +463,12 @@ EOF
         @ num++
         echo "$templist[$num]" >> $finish
     end
-    \echo "$cleanup $recroot-[0-9]*.$recext" >> $finish
+    \echo "$cleanup $recroot-[0-9][0-9][0-9]*.$recext" >> $finish
 else
     cat <<EOF >! $finish
 \$fixboundaries $recfile $boundfile
 \$collectmmm pixels= $rootname $numslabs $recfile $startnum
-$cleanup $recroot-[0-9]*.$boundext $cleanbound
+$cleanup $recroot-[0-9][0-9][0-9]*.$boundext $cleanbound
 EOF
 endif
 
@@ -477,6 +476,9 @@ echo "Command files for $numslabs chunks created and ready to run with:"
 echo "  processchunks machine_list $rootname"
 
 #  $Log$
+#  Revision 3.20  2010/02/23 06:05:03  mast
+#  Make it handle internal SIRT properly, not as reprojection
+#
 #  Revision 3.19  2010/02/22 03:11:46  mast
 #  Leave boundary info file when leaving set open
 #
