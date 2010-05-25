@@ -425,7 +425,7 @@ $nofbp\
 end
 
 set finish = $rootname-finish.com
-set cleanup = '$'"\rm -f $rootname-[0-9][0-9][0-9]*.com $rootname-[0-9][0-9][0-9]*.log"
+set cleanup = '$'"\rm -f $rootname-[0-9][0-9][0-9]*.com* $rootname-[0-9][0-9][0-9]*.log*"
 set cleanbound = $boundfile
 if ($leaveopen) then
     @ numrec = $num + $startnum
@@ -476,6 +476,9 @@ echo "Command files for $numslabs chunks created and ready to run with:"
 echo "  processchunks machine_list $rootname"
 
 #  $Log$
+#  Revision 3.22  2010/05/25 03:35:53  mast
+#  Get rid of backup coms and logs too
+#
 #  Revision 3.21  2010/05/25 03:22:07  mast
 #  Made starting and ending cleanup much more specific
 #

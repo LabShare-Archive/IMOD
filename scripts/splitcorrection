@@ -159,10 +159,16 @@ set finish = $rootname-finish.com
    cat <<EOF >! $finish
 \$fixboundaries $outfile $boundfile
 \$collectmmm pixels= $rootname $num $outline[2]
-\$\\rm -f $rootname-[0-9]*.* $rootname-start*.* $rootname-finish*.* $outroot-[0-9]*.$boundext $boundfile
+\$\\rm -f $rootname-[0-9][0-9][0-9]*.com* $rootname-[0-9][0-9][0-9]*.log* $rootname-start*.* $rootname-finish*.* $outroot-[0-9][0-9][0-9]*.$boundext $boundfile
 EOF
 
 #  $Log$
+#  Revision 3.6  2010/05/25 03:36:45  mast
+#  Make cleanups more restrictive (nnn-com*, log*)
+#
+#  Revision 3.5  2009/12/07 20:54:09  mast
+#  Make processchunks responsible for CHUNK DONE
+#
 #  Revision 3.4  2009/02/16 06:21:21  mast
 #  Modified to use new parallel write stuff
 #
