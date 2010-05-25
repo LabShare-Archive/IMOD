@@ -81,12 +81,18 @@ the relative path to the .edf file on the command line, such as</p>
 <br>
 <br>
 </p>
-<h2 class="western">The Setup Panel</h2>
-<p class="western">When eTomo is first started the <b>Setup Panel</b>
-is shown; at this point you can either setup the processing for a new
-tomogram, open one that was previously being worked on, or open several
-other interfaces (see below). </p>
-<p class="western">To start working on a new dataset you need to fill
+<h2 class="western">The Front Page and the Setup Panel</h2>
+<p class="western">When eTomo is first started, it shows its <b>Front
+Page</b>, which contains a set of buttons for starting different kinds of
+interfaces (see below).  At this point you can either open a dataset that was
+previously being worked on by selecting it from the recent file list in the
+<b>File</b> menu, or you can use one of the buttons to open an interface for
+working on a new dataset.
+</p>
+<p class="western">
+Selecting <b>New Tomogram</b> will bring up the tomogram
+<b>Setup Panel</b>.&nbsp;
+To start working on a new dataset you need to fill
 out the fields in the <b>Setup Panel</b>. </p>
 <ul>
   <li>
@@ -217,7 +223,7 @@ Ctrl-B, and Ctrl-2, to display axis A, axis B, or both. <br>
 </p>
 <p class="western">Every process panel has one or more buttons for
 starting 3dmod to display an image file.&nbsp; To make it easier to
-deal with very large data sets and problems that require more control
+deal with very large datasets and problems that require more control
 over the way that 3dmod is run, there are two ways to make 3dmod load
 in images binned by 2 or to make it open with its startup window, so
 that options can be selected.&nbsp; One way is to right-click on one of
@@ -237,12 +243,12 @@ automatically.&nbsp; Right click on the button that starts the action
  style="font-weight: bold;">&nbsp; </span></span>Select the desired
 option to start the operation.<span style="font-weight: bold;"><br>
 </span></p>
-<p class="western">It is possible to load more than one data set into
+<p class="western">It is possible to load more than one dataset into
 eTomo.&nbsp; Under the <span style="font-weight: bold;">File</span>
-menu there are entries to open an existing data set, open a new Setup
+menu there are entries to open an existing dataset, open a new Setup
 window for tomogram processing, or open a new window to setup joining
-serial sections.&nbsp; If you start working on more than one data set
-by any of these routes, eTomo will place each data set in a separate
+serial sections.&nbsp; If you start working on more than one dataset
+by any of these routes, eTomo will place each dataset in a separate
 tab so that you can go between them easily.<br>
 </p>
 <p class="western">The <span style="font-weight: bold;">Options/Settings</span>
@@ -252,6 +258,17 @@ which the buttons on the left are very small.&nbsp; It may be necessary
 to close and reopen the program to see options like these take full
 effect.<br>
 </p>
+<h2 class="western"><a name="ProjectLog"></a>The Project Log</h2>
+<P class="western">
+When you start processing a tomogram, a separate window will be opened called
+a project log.&nbsp; This window will receive selected output from various
+operations, and error messages that occur.  You can also type your own notes
+into the
+window.&nbsp; There is an entry under the View menu, and a hot key Ctrl-L, for
+hiding or making it visible again.&nbsp; Even when it is hidden, output will be
+saved to it.&nbsp; The contents are automatically saved to a file named with
+the dataset name and "_project.log".
+</P>
 <h2 class="western"><a name="AccessingHelp"></a>Accessing
 Help</h2>
 <p class="western">One of the significant features of the eTomo GUI
@@ -283,7 +300,7 @@ documentation is opened in the Qt Assistant, so that you can follow
 hyperlinks and return from them, as well as have access to the full
 IMOD documentation using the sidebar on the left.<br>
 </p>
-<h2 class="western">Saving Your Work</h2>
+<h2 class="western">How Your Work Is Saved</h2>
 <p class="western">The current state of the
 processing and the value of any parameters you entered or changed (that
 are not saved in the underlying com scripts) are saved automatically to
@@ -298,17 +315,18 @@ menu item.&nbsp; Be aware that if you reopen an earlier version of the
 <a name="ParallelProcessing"></a>
 <h2 class="western">Using Parallel Processing<br>
 </h2>
-<p class="western">Two steps in
+<p class="western">Several steps in
 the processing can now be split into chunks and run in parallel on
-multiple machines or processors: tomogram generation, and the final
-stage of combining volumes in a dual-axis data set.&nbsp; This
+multiple machines or processors, including CTF correction, tomogram
+generation, and the final
+stage of combining volumes in a dual-axis dataset.&nbsp; This
 capability is enabled if the machine on which you are running eTomo has
 a configuration file called cpu.adoc located in the IMOD calibration
 directory, which is /usr/local/ImodCalib by default.&nbsp; Run "man
 cpuadoc" for a full description of how to set up such a file.&nbsp; A
 two-line file is sufficient to use a single multiprocessor
 system.&nbsp; There are two other alternatives when using a single
-system.&nbsp; First , you can open the <span style="font-weight: bold;">Options/Settings</span>
+system.&nbsp; First, you can open the <span style="font-weight: bold;">Options/Settings</span>
 dialog<span style="font-weight: bold;"></span>, turn on <span
  style="font-weight: bold;">Enable Parallel processing</span>, and then
 fill in the number of CPUs.&nbsp; Second, you can enable parallel
@@ -327,8 +345,8 @@ use.&nbsp;
 </p>
 <p class="western">When parallel
 processing is available, you will be able to select
-whether to use it with checkboxes on the Tomogram Generation and the
-Combination Final Match pages.&nbsp; With it selected, a parallel
+whether to use it with checkboxes on panels where it can be used.&nbsp; 
+With it selected, a parallel
 processing table and controls will appear in the Process Monitor area
 of the window.&nbsp; The table will show computers, their properties,
 and their current loads.&nbsp; When you are ready to run the given
@@ -391,14 +409,22 @@ ssh-keygen once on each type of machine then combine the
 Distribute this combined authorized_keys2 file to the .ssh directories.<br>
 &nbsp;
 <br>
+In addition to being done on multiple processors, tomogram generation can now
+be done on the graphics processing unit (GPU) of an NVIDIA graphics card.  See
+the 
+<a href="guide.html#UsingGPU">IMOD User's Guide</a/> for instructions on
+setting up a machine to use the GPU.
+<br>
 <h1 class="western"><a name="Other_Interfaces"></a>Other Interfaces in
 Etomo</h1>
 <p class="western">eTomo
 provides a good framework for developing new interfaces for managing
 parameter files and running processes, so we continue to add interfaces
-for operations other than generating a tomogram.&nbsp; All of these
-interfaces are available through the <span style="font-weight: bold;">File</span>
-menu via the various selections starting with <span
+for operations other than generating a tomogram.&nbsp; 
+Interfaces for different kinds of projects are available on the Front Page
+and through the <span
+style="font-weight: bold;">File</span> menu via the various selections
+starting with <span
  style="font-weight: bold;">New</span>.&nbsp; They include interfaces
 for:<br>
 </p>
@@ -416,7 +442,7 @@ the PEET volume alignment and averaging software, opened by selecting <span
  style="font-weight: bold;">File/New PEET</span>.&nbsp; The processing
 state is saved to a file with extension <span
  style="font-style: italic;">.epe</span>, which you can reopen to
-resume working on a data set.</p></li>
+resume working on a dataset.</p></li>
   <li><p class="western">Running
 parallel processing on an appropriate set of command files, such as the
 ones created by the programs <a href="man/chunksetup.html">chunksetup</a>,
@@ -440,10 +466,17 @@ interface is opened by selecting <span
 pressing the <span style="font-weight: bold;">Nonlinear Anisotropic
 Diffusion</span> button. </span>The program state is
 saved in a file with extension <span style="font-style: italic;">.epp</span>.&nbsp;
-See the&nbsp;<a href="man/nad_eed_3d.html">nad_eed_3d man page</a> for
+See the <a href="man/nad_eed_3d.html">nad_eed_3d man page</a> for
 more details.<br>
     </p></li>
 </ul>
+<p class="western">
+In addition to these kinds of projects, which have a saved state and can be
+resumed, interfaces for simpler operations can be started from the
+<B>Tools</B>
+menu as well as from the Front Page of eTomo.&nbsp; Currently there is just
+one tool, for flattening a tomogram without opening up its original dataset.
+</p>
 <span style="font-weight: bold;"></span>
 <h1 class="western"><a name="ReportingBugs"></a>Reporting
 bugs</h1>
@@ -453,7 +486,7 @@ general comments on what ideas or use models do or do not work.&nbsp;
 It is often not initially
 obvious to either you or us whether a problem is occuring because of
 bug in eTomo, a bug in the rest of IMOD, or other difficulties with a
-particular data set.&nbsp; To help diagnose problems, we have developed
+particular dataset.&nbsp; To help diagnose problems, we have developed
 a script, tomosnapshot, that will collect system information and
 package up many of the small files that reflect the state of the
 processing.&nbsp; The best way to run this is to cd to the directory
