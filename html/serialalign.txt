@@ -311,6 +311,58 @@ is
 specifies floating to mean, "sections.st" is your input stack of unaligned
 images, and "sections.ali" is your output stack of aligned images.
 
+Working with Montaged Images
+     If you have serial images each consisting of a montage of overlapping
+frames, as can be acquired with SerialEM, then you need to follow different
+procedures for getting an initial stack to align, and for getting an aligned
+stack.  The first step is to extract a text file with a list of the X, Y, and
+Z coordinates for each frame, called a piece list.  Do this with
+    extractpieces sections.st sections.pl
+
+Next, get a copy of a command file for running the program Blendmont, which
+can analyze the overlapping image area between adjacent frames and compose a
+single image for each section.  Do:
+    cp $IMOD_DIR/com/sloppyblend.com .
+
+Edit this file, replacing "g5a" with the root name of your data file
+("sections", in our example here).  If you acquired the montage with stage
+shifts instead of image shift, you should change the entry "SloppyMontage" to
+"VerySloppyMontage".  Now run the program by entering:
+    subm sloppyblend
+
+It will run in the background, and a message will be printed when it finishes.
+The output file is named sections.bl.  Open this in 3dmod and see if the
+frames appear to have fused properly.  Also, unless you have a 1xn or nx1
+montage, examine the log from Blendmont, in the file sloppyblend.log:
+    less sloppyblend.log
+
+For each section, you will see a line like
+ 8 edges, mean&max error before:  25.22  88.08, after by edges:   1.24   3.06
+
+The two numbers on the right are the ones that indicate whether the pieces
+line up well after being shifting into registration as well as possible.  If
+these numbers are large (more than a few pixels), it is likely that one or
+more of the correlations used to align adjacent pieces in that section has
+failed.  If this seems to have happened, then open the file in Midas in order
+to fix the alignment between pieces:
+    midas -b 0  -p sections.pl sections.st sections.ecd 
+
+In Midas, you can go to each troublesome section and examine each of the
+overlap zones, adjusting the ones where the pieces do not line up.  See the
+section "Fixing Montage Overlaps" in the Midas man page.  After fixing
+overlaps, save the shifts (this saves a new copy of sections.ecd).  Then edit
+sloppyblend.com and change the 0 to a 1 on the line "ReadInXcorrs".  Rerun
+the program with subm.
+
+     Once you have a blended stack, you can use the same procdures on it that 
+were described above with sections.st to align the stack.  Once you have a set
+of g transforms, edit slopyblend.com again to apply these transforms to the
+original stack in the blending operations.  To do this, 1) change the name on
+the ImageOutputFile line from ".bl" to ".ali"; 2) remove the "#" before
+"TransformFile"; 3) change "g5a.xf" on that line to the name of your g
+transform file ("sections.xg").  Then rerun sloppyblend, and you will get an
+aligned stack.
+
 Realigning Images and Models
      Sometimes one will find after modeling on a set of images that the
 alignment needs to be improved.  There are several tools that can be used to
@@ -348,6 +400,9 @@ you need to multiply the first and second set of g transforms and apply the
 product:
     xfproduct sections.xg sections.xg2 sections.prod
     newstack -xf sections.prod sections.st sections.newali
+ However, if you have a montage, instead of running Newstack, edit
+sloppyblend.com to change "sections.xg" to "sections.prod" and rerun
+Blendmont.
 
 There are several ways that you could work from an existing model to get
 a refined alignment.  One way is to take Tiff snapshots of the Zap window in
