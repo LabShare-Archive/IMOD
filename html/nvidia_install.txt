@@ -1,56 +1,37 @@
 These instructions for installing an Nvidia card to use with IMOD may
-be helpful.  They were correct as of November 2006.  The list of steps
-assume that you have already installed Linux with xorg-X11 and its associated
-drivers.
+be helpful.  They were updated in May 2010.  The list of steps assume that you
+have already installed Linux with xorg-X11 and its associated drivers.
 
-1. You need to have an appropriate source package corresponding to the kernel
-that you are running.  On Fedora systems this is a kernel-devel package or,
-if you are running a multiprocessor kernel, a kernel-smp-devel package.  You
-can install this with:
-   yum install kernel-devel     OR    yum install kernel-smp-devel
-or by installing the corresponding rpm from your distribution disk, e.g.
-   rpm -ivh kernel-devel*.rpm
+1. You need to have an appropriate source and header packages corresponding to
+the kernel that you are running.  On Fedora/RHEL systems these are
+kernel-devel and kernel-headers packages.  You can install them with:
+   yum install kernel-devel
+   yum install kernel-headers
+or by installing the corresponding rpms from your distribution disk, e.g.
+   rpm -ivh kernel-devel*.rpm kernel-headers*.rpm
 
-2. On Fedora Core 5 or 6, the installation procedure will complain, and things
-may not work, unless you install xorg-x11-server-sdk.  You can do this with
-   yum install xorg-x11-server-sdk
-or by installing the appropriate rpm from your distribution disk.
- 
-3. Go to the Nvidia web site (http://www.nvidia.com) and find the page
-offering Linux drivers (e.g. select Download Drivers - Linux, FreeBSD and
-Solaris Drivers - Linux IA32 or Linux AMD64/EM64T, Latest Version or Archive
-for older versions).  You must use version 9629 or higher for FC6.  Download
-the driver installer file, e.g.  NVIDIA-Linux-x86-1.0-8776-pkg1.run.  Notice
-links to the README file, which you may need to consult.  After you have
+2. Go to the Nvidia web site (http://www.nvidia.com) and go to the driver
+download page.  Specify your card type and OS type and use Search to find the
+latest stable release drivers.  Download the file, e.g.
+NVIDIA-Linux-x86_64-195.30-pkg2.run.  Notice links to the README file, which
+you may need to consult.  After you have
 installed the drivers, this file is in /usr/share/doc/NVIDIA_GLX-1.0.
 
-4. Switch the screen to console mode (Ctrl-Alt-F1) and log in, or ssh from
+3. Switch the screen to console mode (Ctrl-Alt-F1) and log in, or ssh from
 another machine.  Bring the machine to runlevel 3 with:
    init 3
 
-5. Go to the location where you have placed your Nvidia install file and
+4. Go to the location where you have placed your Nvidia install file and
 run it as recommended in the instructions, e.g.
- sh NVIDIA-Linux-x86-1.0-8776-pkg1.run
+ sh NVIDIA-Linux-x86_64-195.30-pkg2.run
 
-If you are on a 32-bit system under FC6 and the procedure fails, claiming
-that it cannot find the kernel source, then you probably need to install the
-i586 kernel-devel package instead of the i686 package.  To correct this,
-you will probably need to install an rpm from the distribution disk.  First
-check which kernel source is installed with:
-   ls /usr/src/kernels
-The directory name will end in either i586 or i686.  If it is the wrong one,
-find out the proper name to use for removing with:
-   rpm -q kernel-devel
-Then use:
-   rpm -e kernel-devel-...   (i.e., use the name just reported)
-   rpm -ivh kernel-devel*i586.rpm
+Allow it to modify your xorg.conf for you. If the procedure fails, you will
+need to research the problems with your version of Linux.
 
-6. Edit your /etc/X11/xorg.conf.
-Make sure the modules section loads "glx".
-Make your driver line says "Driver nvidia".
-A sample xorg.conf file is available for your reference.
+5. Check your /etc/X11/xorg.conf.  Make sure your driver line says "Driver
+nvidia".
 
-7. Type startx and see what happens. Success is indicated by a Gnome or KDE
+6. Type startx and see what happens. Success is indicated by a Gnome or KDE
 desktop.  Failure is a message saying the X server cannot come up.  A
 frequent message is a complaint about no/missing screens.  This really
 means that the nvidia driver could not start for one reason or another.
@@ -58,10 +39,10 @@ You can examine the start up process in detail by looking in the file
 /var/log/Xorg.0.log.  Make sure that the number of bits specified in
 the Display line matches up with one of the screens that is declared.
 
-8. Log out of the session started with startx.  Return to runlevel 5 with
+7. Log out of the session started with startx.  Return to runlevel 5 with
   init 5
 
-9. Log in as a normal user.  Assuming IMOD is installed normally, run 3dmodv
+8. Log in as a normal user.  Assuming IMOD is installed normally, run 3dmodv
 on the file yeastpore.mod (available in 
 http://bio3d.colorado.edu/imod/files/imod_data.tar.gz):
 
@@ -69,18 +50,13 @@ http://bio3d.colorado.edu/imod/files/imod_data.tar.gz):
 
 Start the model spinning by typing Enter and 8 on the numeric keypad.
 After 5 seconds or more, type o to get an output of frames/second.
-You should probably get at least 200 FPS (assuming you have at least a
-GeForce4 with at least a 1.7 GHz processor).  If it is a lot slower
-than this, the Nvidia drivers and GL libraries may not be installed
-correctly.  If the rate is somewhat slower (e.g. below 100), you may
-have problems with the AGP support.  Do
-   cat  /proc/driver/nvidia/agp/status
- and see if AGP is Disabled.
+You should probably get at least 200 FPS. If it is a lot slower than this, the
+Nvidia drivers and GL libraries may not be installed correctly.
 
-10. Note that you need to reinstall the Nvidia drivers whenever either the
-kernel or X is updated to a new version.  Just follow steps 4, 5 and 8.
+9. Note that you need to reinstall the Nvidia drivers whenever either the
+kernel or X is updated to a new version.  Just follow steps 3, 4, and 7.
 Or, with recent packages, after the machine is rebooted and fails to start X,
 you can enter, e.g.,
-sh NVIDIA-Linux-x86-100.14.19-pkg1.run -a -s
 init 3
+sh NVIDIA-Linux-x86_64-195.30-pkg2.run -as
 init 5
