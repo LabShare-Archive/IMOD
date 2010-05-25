@@ -15,7 +15,8 @@ DDEESSCCRRIIPPTTIIOONN
   values.  For 3-D FFT's, the origin is at (1,NY/2+1,NZ/2+1)
 
   All transforms are done using Lynn ten Eyck's subroutines. These allow
-  arbitrary-sized images having a LARGEST PRIME factor of 19.
+  arbitrary-sized images with dimensions that are even and have a 
+  LARGEST PRIME factor of 19.
 
   3-D images are treated as stacks of images that are transformed
   independently in 2-D, unless the -3dfft option is given.  Large images (up

@@ -15,11 +15,13 @@ DDEESSCCRRIIPPTTIIOONN
   also apply a low pass filter to reduce high frequency noise, as well as a
   high pass filter to eliminate low frequencies.  Any combination of these
   filters may be applied.  In fact, the program provides all of the options
-  that Enhance(1) does for specifying a general Fourier filter.  It can filter
-  either real-space images in 2D planes, real-space images in 3D or 3D Fourier
-  transforms in 3D.  The filter functions produced by these options can be
-  visualized with the program Filterplot(1); see that man page for a full
-  description of their effects.
+  that Enhance(1) does for specifying a general Fourier filter.  Because
+  images are automatically padded to dimensions suitable for taking an FFT,
+  there are no restrictions on image size, unlike with Enhance(1).  This
+  program can filter either real-space images in 2D planes, real-space images
+  in 3D or 3D Fourier transforms in 3D.  The filter functions produced by
+  these options can be visualized with the program Filterplot(1); see that man
+  page for a full description of their effects.
 
   Simply multiplying by the inverse of an MTF would amplify noise too much,
   so the inverse MTF filter is shaped by three parameters.  The first

@@ -39,7 +39,7 @@ Apply Graham filter as in 3dmod image processing.
 Print header information to stdout.
 .TP   
 .I fft
-Calculate a fft or inverse fft transform.
+Calculate a FFT or inverse FFT transform.
 .TP
 .I filter
 Calculate a bandpass filter.
@@ -311,7 +311,7 @@ Select the slices with the
 .B -iz 
 option.  Input files in this case may
 not be fourier transforms.  All other input types are automatically
-padded, fft transformed, correlated and inverse fft transformed.
+padded, FFT transformed, correlated and inverse FFT transformed.
 One or two input files can be given
 and one output file needs to be given.
 Input is automatically padded with the mean value
@@ -322,7 +322,8 @@ option is given to change the pad value. The
 option selects the type of padding: '-n 0' selects no padding; '-n 1' 
 selects padding with mean value. (default)
 Float is the only output mode supported.
-Input sizes must fit fft dimensions.
+Input sizes must have dimensions that fit the requirements for an FFT:
+a multiple of two, and no prime factors greater than 19.
 .TP
 .B diffusion
 Apply 2D anisotropic diffusion to individual slices, using the simple Perona
@@ -349,13 +350,13 @@ These computations correspond to those done in the image processing window in
 .TP
 .B fft
 Calculate a Fast Fourier Transform.
-fft does either a forward or inverse fft, depending
+fft does either a forward or inverse FFT, depending
 on the input data type.  The output for a forward 
 transformation is complex float.  The input sizes
 must be a multiple of two, and must have no prime factors
-greater than 19.  Both 2D and 3D output match the format of the fft output
+greater than 19.  Both 2D and 3D output match the format of the FFT output
 by fftrans(1), in which no data is duplicated and the center is
-shifted to x = 0, y = ny/2.  Older fft files produced by clip, in
+shifted to x = 0, y = ny/2.  Older FFT files produced by clip, in
 which the data were replicated to the left of the Y axis, will still
 be accepted as input.  Input size and centering options can be used for the
 forward transform, and output size and mode can be set for the inverse
@@ -363,14 +364,16 @@ transform.
 .TP
 .B filter
 High and/or low pass filtering in frequency space (2D only).
-Filters an fft or an image using the -l and -h options.  An
-fft and inverse fft is automatically done if needed.  The
+Filters an FFT or an image using the -l and -h options.  An
+FFT and inverse FFT is automatically done if needed.  The
 units for -l and -h are cycles/pixel so they range from 0 to 0.5.
 Everything higher
 than -l and lower then -h is filtered.  The attenuation will be 0.5 at
 the given frequency; the filter factor is the product of
 1/(1+(r/l)**3) if -l is entered and 1/(1+(h/r)**3) if -h is entered,
-where r is the radius in cycles/pixel.
+where r is the radius in cycles/pixel.  The input sizes
+must be a multiple of two, and must have no prime factors
+greater than 19.
 .TP
 .B flip
 The flip command is just the root of several types of
