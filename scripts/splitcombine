@@ -137,7 +137,7 @@ end
 
 awk '/REASSEMBLING PIECES/, /if \(-e/' $comname >! $rootname-finish.com
 cat <<EOF >> $rootname-finish.com
-\$\\rm -f $rootname-[0-9]*.*
+\$\\rm -f $rootname-[0-9][0-9][0-9]*.com* $rootname-[0-9][0-9][0-9]*.log*
 EOF
 @ nextnum++
 echo "$nextnum command files created and ready to run with:"
@@ -145,6 +145,9 @@ echo "  processchunks machine_list $rootname"
 
 #
 #  $Log$
+#  Revision 3.14  2009/12/07 20:54:09  mast
+#  Make processchunks responsible for CHUNK DONE
+#
 #  Revision 3.13  2008/05/08 00:08:26  mast
 #  Do not escape quotes in a cat!
 #
