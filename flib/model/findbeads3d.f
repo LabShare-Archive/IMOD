@@ -295,7 +295,7 @@ c         Find number to average for number between 0 and 1
         if (ierr.ne. 0) blackThresh = 0
       endif
       call writePeakModel(firstFile, indPeak, peakVal, peakPos,
-     &    numPeaks, blackThresh, delta, origin, radius)
+     &    numPeaks, blackThresh, nxyz, delta, origin, radius)
 c       
 c       Now loop through the pieces again looking for points and getting
 c       correlation positions
@@ -470,7 +470,7 @@ c
       endif
 
       call writePeakModel(modelFile, indCorr, corrVal, corrPos,
-     &    numPeaks, blackThresh, delta, origin, radius)
+     &    numPeaks, blackThresh, nxyz, delta, origin, radius)
       call exit(0)
 97    call exitError('READING TILT FILE')
       end
@@ -1241,16 +1241,17 @@ c       Write a models with the given number of peaks to the file and set the
 c       threshold if any
 c
       subroutine writePeakModel(firstFile, indPeak, peakVal, peakPos,
-     &    numPeaks, blackThresh, delta, origin, radius)
+     &    numPeaks, blackThresh, nxyz, delta, origin, radius)
       implicit none
       include 'smallmodel.inc'
       character*(*) firstFile
-      integer*4 indPeak(*), numPeaks, iobj, i, j, ierr
+      integer*4 indPeak(*), numPeaks, iobj, i, j, ierr, nxyz(3)
       real*4 peakVal(*), peakPos(3,*), delta(*), origin(*), radius, blackThresh
       real*4  peak, peakmin, peakmax
       integer*4 ind(3)/1,2,3/
       logical flipyz
       integer*4 putContValue, putImodFlag, putValBlackWhite, putImageRef
+      integer*4 putImodMaxes
 
       if (firstFile .eq. ' ') return
 
@@ -1262,7 +1263,8 @@ c
       peakmax = peakVal(indPeak(1))
       ierr = putimodflag(1, 2)
       ierr = putImodFlag(1, 7)
-      call putscatsize(1, max(1, 1 + nint(radius)))
+      call putscatsize(1, max(1, 1 + ceiling(radius)))
+      ierr = putImodMaxes(nxyz(1), nxyz(2), nxyz(3))
       do i = 1, n_point
         peak = peakVal(indPeak(i))
 c         
@@ -1329,6 +1331,9 @@ c
 
 c       
 c       $Log$
+c       Revision 3.4  2010/03/09 03:35:54  mast
+c       Allow entry of unbinned bead diameter and binning
+c
 c       Revision 3.3  2009/08/12 23:37:38  mast
 c       Increase radius by one to help small beads
 c
