@@ -1,5 +1,7 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+5/26/10: Fixed alignlog -a output to exclude local area results.
+
 5/26/10: Fixed allocation bug in Flattenwarp when processing scattered points;
 made Findbeads3d put image size in model so Sortbeadsurfs and Flattenwarp
 will do the right rotations by default.
