@@ -174,6 +174,7 @@ int main( int argc, char *argv[])
   int numYloc, numLoc, indc, ind00, ind01, ind02, ind10, ind11, ind12;
   int ind20, ind21, ind22, ndat, ix, iy, delind,ind2, indmin, ind, numTied;
   int maxRows, maxVals, numRows, numInRow, err, itnlim, itndone, istop;
+  int maxPoints;
   float dx, dy, dist, distmin, dxScale, dyScale, dxyScale, a11, a12, a21, a22;
   double zsum, axis, stretch, cosphi, sinphi, cosphisq, sinphisq, angle;
   float coef, aa, bb, cc, zmid, alpha, localYspace, resampX, windowX;
@@ -265,6 +266,7 @@ int main( int argc, char *argv[])
     
     /* Count points in each object and get bounding box for min/max */
     numPoints = 0;
+    maxPoints = 0;
     ymin = xmin = -1.e20;
     ymax = xmax = -ymin;
     for (ob = 0; ob < numObj; ob++) {
@@ -277,6 +279,7 @@ int main( int argc, char *argv[])
       for (co = 0; co < model->obj[ob].contsize; co++)
         numScat[ob] += model->obj[ob].cont[co].psize;
       numPoints += numScat[ob];
+      maxPoints = B3DMAX(maxPoints, numScat[ob]);
       if (numScat[ob] < minNumScat)
         exitError("There must be at least %d points in each scattered point "
                   "object", minNumScat);
@@ -284,11 +287,11 @@ int main( int argc, char *argv[])
 
     /* Copy points into arrays for convex bound */
     boundArea = 0.;
+    bx = (float *)malloc(maxPoints * sizeof(float));
+    by = (float *)malloc(maxPoints * sizeof(float));
     for (ob = 0; ob < numObj; ob++) {
       scx = (float *)malloc(numScat[ob] * sizeof(float));
       scy = (float *)malloc(numScat[ob] * sizeof(float));
-      bx = (float *)malloc(numScat[ob] * sizeof(float));
-      by = (float *)malloc(numScat[ob] * sizeof(float));
       if (!scx || !scy || !bx || !by)
         exitError("Allocating arrays for boundary contour analysis");
       i = 0;
