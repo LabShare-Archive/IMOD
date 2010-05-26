@@ -124,7 +124,7 @@ contours with 1 or 2 points: the centroid of the points is reported.
 the latter are often not available on European keyboards without modifiers. 
 
 3/29/10: Improved merging time when running isosurface with multiple threads;
-multipled threads are now enabled by default, with the number set to the
+multiple threads are now enabled by default, with the number set to the
 number of processors on system (or value of IMOD_PROCESSORS), limited to 4.
 
 3/29/10: In Etomo, added a checkbox for running tilt on the graphics card to
@@ -218,7 +218,7 @@ open, mostly stabilized the Help entry in 3dmod menu bar with model view open,
 and changed bead fixer's file filter when opening log file to omit the 
 align*.log filter that doesn't work.
 
-2/28/10: Fixed an initialization problem on beadtrack (present since 3.12.5)
+2/28/10: Fixed an initialization problem in beadtrack (present since 3.12.5)
 that throws off tracking in some cases.
 
 2/26/10: IMOD_4-0-24
@@ -855,7 +855,7 @@ digits.
 
 2/25/09: Turned off keyboard tracking for remaining spin boxes.
 
-2/25/09: Added keyboard / and * to page up/down in big steps, step size
+2/25/09: Added keypad / and * to page up/down in big steps, step size
 settable in Options.
 
 2/24/09: IMOD_4-0-5
@@ -915,9 +915,6 @@ man page for Alterheader.
 
 2/15/09: Fixed geometry problems in model view object edit and object list 
 windows.
-
-2/13/09: Added a separate log window for user entries and selected excerpts from
-process logs. 
 
 2/12/09: In Etomo got rid of the exception that is added to the etomo log when
 header is used to read a file that doesn't exist.
