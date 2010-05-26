@@ -70,7 +70,8 @@
 <BR><A HREF = "#POST-PROCESSING">13. POST-PROCESSING</A>
 <BR><A HREF = "#Scaling and Trimming">13.1. Scaling and Trimming a Tomogram</A>
 <BR><A HREF = "#Reorienting">13.2. Reorienting the Volume</A>
-<BR><A HREF = "#Squeezing">13.3. Squeezing a Tomogram</A>
+<BR><A HREF = "#Flattening">13.3. Flattening a Tomogram</A>
+<BR><A HREF = "#Squeezing">13.4. Squeezing a Tomogram</A>
 <BR><A HREF = "#Cleaning Up">14. CLEAN UP</A>
 </UL>
 <HR>
@@ -97,6 +98,9 @@ This section lists significant changes or additions to this guide from the
   Projecting It</A>
 <LI> Information about scaling when not taking the logarithm, in 
 <A HREF = "#Building Tomogram">Building the Tomogram</A>
+<LI> Directions for using the interface for flattening a tomogram in
+Post-processing, in 
+<A HREF = "#Flattening">Flattening a Tomogram</A>
 </UL>
 
 </P>
@@ -324,8 +328,9 @@ programs will try to detect this and set the base to 32768.
      If electron density appears as white in your images, 
 <A HREF = "man/beadtrack.html">Beadtrack</A> will
 fail to track your fiducials properly with the default settings.
-Simply change the 0 to a 1 in the <B>Fiducial marker size & polarity</B>
-box in the <B>Fiducial Model Generation Panel</B>.
+Simply check <B>Light fiducial markers</B> in Advanced mode 
+in the <B>Fiducial Model Generation Panel</B>.  Also, check <B>Light</B> in
+the Bead Fixer when making the seed model or fixing gaps.
 </P>
 <H4><A NAME = "Bidirectional Series"></A>
 2.2. Tilt Series Taken in Two Directions from Zero Tilt
@@ -2959,14 +2964,89 @@ inverted.  This kind of careful assessment needs to be done only once for a
 particular scope and acquisition software, or possibly twice if there are
 magnification ranges where the images are turned by 90 degrees.
 </P>
+<H4><A NAME = "Flattening"></A>
+13.4. Flattening a Tomogram
+</H4>
+<P>
+The <B>Flatten</B> tab of the <B>Post-processing</B> panel allows you to
+restore a warped section to flatness.  There are several reasons why you might
+want to flatten.
+If a section is no longer flat in the tomogram, it will require a thicker
+tomogram than if it were flat,
+and may be harder to examine.  Serial sections that are not flat cannot be
+stacked without leaving big gaps in some areas, and may be harder to align.
+You can flatten either the trimmed volume or the output from the tab for
+squeezing a volume; make this selection in the <B>Set Input File</B> box.
+(Note that if you want to flatten a tomogram without opening the dataset in
+eTomo, you can get the same interface by choosing <B>Flatten</B> from the
+<B>Tools</B> menu.) 
+Flattening involves four steps: drawing a model of contours along the surface
+of the section; running the program <A HREF =
+"man/flattenwarp.html">Flattenwarp</A> in a trial mode to determine how much
+smoothing to apply to the model; running the same program to determine the
+warping transformations that will make the volume flat; and then running 
+<A HREF = "man/warpvol.html">Warpvol</A> to flatten the volume.
+</P>
+<OL>
+<LI> The goal when making a model is to draw a set of contours along the top
+and bottom surface of the section, similar to
+but much more numerous than those used in tomogram positioning.  If necessary,
+they can all be on one surface instead of both; in this case you should check
+<B>Contours are all on one surface</B>.  For instructions and advice 
+on how to draw the contours, read the four paragraphs starting with 
+"To prepare a contour model" in the <A HREF =
+"man/flattenwarp.html">Flattenwarp man page</A>.  
+<LI> Smoothing the model is recommended, and is essential if you are going
+to be stitching together laterally adjacent tomograms that have been
+flattened.  Smoothing is done by fitting a surface called a thin plate
+spline (TPS), and the amount of smoothing is controlled by a parameter called
+lambda.  The default values in the 
+<B>Smoothing factors to try</B> text field of the 
+<B>Smoothing Assessment</B> box are a good range of lambda values to try for
+smoothing a contour model.
+Press <B>Run Flattenwarp to Assess Smoothing</B>, then when it is done,
+press <B>Open Assessment in 3dmod</B>.  A model will appear with the
+smoothed surfaces for one of the lambda values; this model is stretched
+10-fold in the Z direction to make it easier to see bumps.  The Object List
+dialog shows all the objects available and allows you to switch between
+different lambda values as well as see the original contours with the
+surfaces. The right amount of smoothing is one that eliminates
+small-scale bumps in the surface without causing consistent deviations
+of the surface from the contours. See the
+paragraph starting with "It is recommended that you try the TPS smoothing" in
+the <A HREF =
+"man/flattenwarp.html">Flattenwarp man page</A> for more details.
+<LI> To compute the warping transformations, press <B>Run Flattenwarp</B>
+after inserting your chosen lambda, if any, in the <B>Smoothing factor</B>
+text field just above that button.  Output from this operation will appear in
+the Project Log window.  If the program fails due to contours being too close
+together, or if it reports that it is computing warping transforms at a very
+fine spacing (e.g., 10 pixels), then you should enter larger spacing values in
+the <B>Spacing in X and Y</B> text fields.  Values of 33 and 50 are
+appropriate, or perhaps twice these values for tomograms bigger than 4K.
+<LI> If you can
+anticipate how thick the flattened volume needs to be, put this value in
+the <B>Output thickness in Z</B> field.  If access to files in
+the working directory is relatively slow, you can speed up the process by
+selecting a directory for
+temporary files where there is fast local access.  Press <B>Flatten</B> to run
+<A HREF = "man/warpvol.html">Warpvol</A>.  The output file has the extension
+.flat.
+</OL>
+<P>
+It is also possible to define the surface with a model of gold bead
+positions instead of contours along the surface, but this interface is not set
+up to handle such models.  You would need to follow the instructions in the
+<A HREF = "man/flattenwarp.html">Flattenwarp man page</A>.
+</P>
 <H4><A NAME = "Squeezing"></A>
-13.3. Squeezing a Tomogram
+13.4. Squeezing a Tomogram
 </H4>
 <P>
      If your images were acquired on a CCD camera with limited spatial
 resolution, you may be able to reduce the size of the final volume
 considerably with no perceptible loss of image detail.  
-The <B>Squeeze Volume</B> section of the <B>Post-processing</B> panel
+The <B>Squeeze Volume</B> tab of the <B>Post-processing</B> panel
 provides an easy interface for scaling a volume down by
 interpolation using 
 <A HREF = "man/matchvol.html">Matchvol</A>.  The squeezing is specified
@@ -2983,7 +3063,9 @@ reconstruction.  Squeezing by 1.25 in X and Y and 1.62 in Z will reduce
 the size of the volume by a factor of 2.5.  Squeezing isotropically by 1.2
 will reduce the volume by a factor of 1.73.
 <P>
-Press <B>Squeeze Volume</B> to perform the operation on the trimmed volume.
+To squeeze a volume, open the <B>Squeeze vol</B> tab then select whether to 
+squeeze the trimmed volume or the volume resulting from a flattening operation.
+Press <B>Squeeze Volume</B> to perform the operation on the selected volume.
 The output file has the extension .sqz.
 <P>
 If you choose anistropic squeezing, you need to
