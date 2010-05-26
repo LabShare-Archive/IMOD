@@ -1,5 +1,9 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+5/26/10: Fixed allocation bug in Flattenwarp when processing scattered points;
+made Findbeads3d put image size in model so Sortbeadsurfs and Flattenwarp
+will do the right rotations by default.
+
 5/24/10: Made cleanup before and after parallel Tilt much more restrictive to
 avoid deleting data sets named tilt-n.
 
