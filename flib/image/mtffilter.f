@@ -157,6 +157,8 @@ c
       else
         idim = nxdim * nypad + 16
       endif
+      if (idim .gt. 2147483000.) 
+     &    call exitError('PADDED VOLUME IS BIGGER THAN 2 GIGAPIXELS')
       allocate(array(idim), stat = ierr)
       if (ierr .ne. 0) call exitError(
      &    'FAILED TO ALLOCATE MEMORY FOR IMAGE DATA')
@@ -488,6 +490,9 @@ c
 
 c       
 c       $Log$
+c       Revision 1.6  2009/08/19 23:42:25  mast
+c       Switched to allocating memory as needed
+c
 c       Revision 1.5  2008/05/20 20:03:38  mast
 c       Added ability to filter a real volume in 3D
 c
