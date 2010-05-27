@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+5/27/10: In Etomo fixed a problem where the Use GPU check box and the Parallel
+Processing check box where on at the same time.
+
 5/27/10: In Etomo - Flatten Volume added default values to the smoothing factors
 field in the Smoothing Assessment panel.
 
