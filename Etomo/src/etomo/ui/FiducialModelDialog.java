@@ -41,6 +41,9 @@ import etomo.comscript.TransferfidParam;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.58  2010/05/21 21:01:16  sueh
+ * <p> bug# 1366 In updatePick making transfer fid invisible when raptor is in use.
+ * <p>
  * <p> Revision 3.57  2010/03/12 04:13:50  sueh
  * <p> bug# 1325 Made the use raptor result button label available to the package.
  * <p>
@@ -438,9 +441,12 @@ public final class FiducialModelDialog extends ProcessDialog implements
         raptorBin = new File(raptorBinEnvVar);
       }
       if (!raptorBin.exists() || !raptorBin.isDirectory()) {
-        System.err.println("WARNING:  " + raptorBin.getAbsolutePath()
-            + " cannot be found.  The environment variable " + envVar
-            + " may be incorrect.");
+        if (EnvironmentVariable.INSTANCE.exists(appMgr, appMgr
+            .getPropertyUserDir(), envVar, axisID)) {
+          System.err.println("WARNING:  " + raptorBin.getAbsolutePath()
+              + " cannot be found.  The environment variable " + envVar
+              + " may be incorrect.");
+        }
         turnOffRaptor();
       }
     }
