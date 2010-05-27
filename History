@@ -1,10 +1,10 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 5/27/10: In Etomo fixed a problem where the Use GPU check box and the Parallel
-Processing check box where on at the same time.
+Processing check box where on at the same time (In 4.1).
 
 5/27/10: In Etomo - Flatten Volume added default values to the smoothing factors
-field in the Smoothing Assessment panel.
+field in the Smoothing Assessment panel (In 4.1).
 
 5/26/10: Added check to mtffilter for padded volume > 2 gigavoxels (In 4.1).
 
