@@ -44,6 +44,10 @@ import etomo.util.DatasetFiles;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.40  2010/05/20 23:49:29  sueh
+ * <p> bug# 1368 Deprecated flgMeanFill.  Defaulted it to 1.  No longer loading it
+ * <p> from the .prm file.  Removed meanFill.
+ * <p>
  * <p> Revision 1.39  2010/02/17 04:49:31  sueh
  * <p> bug# 1301 Using the manager instead of the manager key do pop up
  * <p> messages.
