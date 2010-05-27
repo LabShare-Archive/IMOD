@@ -29,6 +29,9 @@ import etomo.util.Utilities;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.62  2010/04/28 16:31:27  sueh
+ * <p> bug# 1344 Constructing TrimvolParam with mode.
+ * <p>
  * <p> Revision 3.61  2010/03/30 00:05:24  sueh
  * <p> bug# 1331 Added posExistsA and B.
  * <p>
@@ -738,6 +741,10 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
 
   public String getLambdaForSmoothingList() {
     return lambdaForSmoothingList.toString();
+  }
+
+  public boolean isLambdaForSmoothingListEmpty() {
+    return lambdaForSmoothingList.isEmpty();
   }
 
   public void setTransferfidAFields(TransferfidParam param) {

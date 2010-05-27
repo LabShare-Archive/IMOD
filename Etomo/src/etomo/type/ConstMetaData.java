@@ -62,6 +62,7 @@ public interface ConstMetaData {
   public ConstEtomoNumber getCombineVolcombineParallel();
 
   public ConstEtomoNumber getDefaultParallel();
+
   public ConstEtomoNumber getDefaultGpuProcessing();
 
   public String getFirstAxisPrepend();
@@ -88,7 +89,7 @@ public interface ConstMetaData {
 
   public int getStack3dFindBinning(AxisID axisID);
 
-  public ConstEtomoNumber getTiltParallel(AxisID axisID,PanelId panelId);
+  public ConstEtomoNumber getTiltParallel(AxisID axisID, PanelId panelId);
 
   public ConstEtomoNumber getFinalStackCtfCorrectionParallel(AxisID axisID);
 
@@ -130,6 +131,8 @@ public interface ConstMetaData {
 
   public String getLambdaForSmoothingList();
 
+  public boolean isLambdaForSmoothingListEmpty();
+
   public String getTrackOverlapOfPatchesXandY(AxisID axisID);
 
   public String getTrackNumberOfPatchesXandY(AxisID axisID);
@@ -151,6 +154,7 @@ public interface ConstMetaData {
   public String getGenScaleFactorLinear(AxisID axisID);
 
   public String getGenScaleOffsetLinear(AxisID axisID);
+
   public boolean isGenScaleFactorLinearSet(AxisID axisID);
 
   public boolean isGenScaleOffsetLinearSet(AxisID axisID);
@@ -158,6 +162,10 @@ public interface ConstMetaData {
 
 /**public String getTrackMethod(AxisID axisID) 
  * <p> $Log$
+ * <p> Revision 3.58  2010/03/27 04:48:59  sueh
+ * <p> bug# 1333 Added defaultGpuProcessing.  Added a separate tiltParallel for
+ * <p> 3dfindbeads.
+ * <p>
  * <p> Revision 3.57  2010/03/05 04:00:24  sueh
  * <p> bug# 1319 Added genExists, genLog, and gen scale parameters.
  * <p>
