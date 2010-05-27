@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+5/27/10: In Etomo - Flatten Volume added default values to the smoothing factors
+field in the Smoothing Assessment panel.
+
 5/26/10: Added check to mtffilter for padded volume > 2 gigavoxels (In 4.1).
 
 5/26/10: Fixed alignlog -a output to exclude local area results (In 4.1).
