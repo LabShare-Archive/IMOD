@@ -2987,6 +2987,7 @@ smoothing to apply to the model; running the same program to determine the
 warping transformations that will make the volume flat; and then running 
 <A HREF = "man/warpvol.html">Warpvol</A> to flatten the volume.
 </P>
+<P>
 <OL>
 <LI> The goal when making a model is to draw a set of contours along the top
 and bottom surface of the section, similar to
@@ -3006,7 +3007,10 @@ lambda.  The default values in the
 smoothing a contour model.
 Press <B>Run Flattenwarp to Assess Smoothing</B>, then when it is done,
 press <B>Open Assessment in 3dmod</B>.  A model will appear with the
-smoothed surfaces for one of the lambda values; this model is stretched
+smoothed surfaces for one of the lambda values; generally three surfaces are
+shown, ones fit to the data along the top and bottom surfaces of the section,
+and a surface in the middle that is the average of those two.
+This model is stretched
 10-fold in the Z direction to make it easier to see bumps.  The Object List
 dialog shows all the objects available and allows you to switch between
 different lambda values as well as see the original contours with the
@@ -3033,11 +3037,40 @@ temporary files where there is fast local access.  Press <B>Flatten</B> to run
 <A HREF = "man/warpvol.html">Warpvol</A>.  The output file has the extension
 .flat.
 </OL>
+</P>
 <P>
 It is also possible to define the surface with a model of gold bead
-positions instead of contours along the surface, but this interface is not set
-up to handle such models.  You would need to follow the instructions in the
-<A HREF = "man/flattenwarp.html">Flattenwarp man page</A>.
+positions instead of contours along the surface.  Although this interface is
+not set
+up to create such models, it can be used to do flattening
+with them in the most common cases.  Read the two paragraphs starting with
+"A scattered point model can be based on either the 3D fiducial model
+that is output from <A HREF = "man/tiltalign.html">Tiltalign</A>, or a model
+of bead positions from <A HREF = "man/findbeads3d.html">Findbeads3d</A>" in the
+<A HREF = "man/flattenwarp.html">Flattenwarp man page</A>.  If you have a dual
+axis data set, you should use the model from the axis that was matched to.
+Here are sample <A HREF = "man/sortbeadsurfs.html">Sortbeadsurfs</A> commands
+if the A axis was matched to (use "setname" instead of "setnamea" for a
+single-axis set).  For a 3D fiducial model, use:
+<BR>
+<code>
+   sortbeadsurfs -xaxis xtilt -prebin bin -rescale setnamea.3dmod setname_flat.mod
+</code>
+<BR>
+where "xtilt" is the X-axis tilt used when building the tomogram and "bin" is
+the binning used during fiducial alignment.  For a model from the gold erasing 
+interface, use:
+<BR>
+<code>
+   sortbeadsurfs -prebin bin -rescale setnamea_3dfind.mod setname_flat.mod
+</code>
+<BR>
+where "bin" is the binning used to make the tomogram where beads were found.
+In both of these, "-recbin" would be added with another binning if the
+reconstruction being flattened is binned, and "-prebin bin -rescale" can be
+omitted if binning was applied nowhere.  Other options to <A HREF =
+"man/sortbeadsurfs.html">Sortbeadsurfs</A> may be needed for more complicated
+situations.
 </P>
 <H4><A NAME = "Squeezing"></A>
 13.4. Squeezing a Tomogram
