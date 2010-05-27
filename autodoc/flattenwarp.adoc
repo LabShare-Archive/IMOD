@@ -120,8 +120,7 @@ plate spline.  The fit is done first with all points, the deviation from
 the spline surface is computed for each point, and the median absolute
 value of the difference from the median deviation is determined.  This value
 is the "normalized median absolute deviation", referred to as MADN, and is
-similar to a standard deviation
-Points whose difference from the 
+similar to a standard deviation.  Points whose difference from the 
 median deviation, divided by the MADN, is greater than this criterion are
 eliminated and the spline is fit again.  Values of around 2.5-3 will eliminate
 a useful number of points.
