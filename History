@@ -1,5 +1,9 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+5/26/10: Added check to mtffilter for padded volume > 2 gigavoxels (In 4.1).
+
+5/26/10: Fixed alignlog -a output to exclude local area results (In 4.1).
+
 5/26/10: Fixed allocation bug in Flattenwarp when processing scattered points;
 made Findbeads3d put image size in model so Sortbeadsurfs and Flattenwarp
 will do the right rotations by default (In 4.1).
