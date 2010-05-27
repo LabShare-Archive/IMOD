@@ -12,6 +12,13 @@
  * @version $$Revision$
  *
  * <p> $$Log$
+ * <p> $Revision 3.75  2010/05/20 23:55:19  sueh
+ * <p> $bug# 1360 Adding new versions off checkExistingDir and getExistingDir
+ * <p> $that allow a custom failure message.
+ * <p> $
+ * <p> $Revision 3.73  2010/04/09 15:46:52  sueh
+ * <p> $bug# 1353 Removed null pointer exception problem in getFile(String,String).
+ * <p> $
  * <p> $Revision 3.72  2010/03/12 04:28:30  sueh
  * <p> $bug# 1325 Added deleteFileType.
  * <p> $
@@ -909,6 +916,23 @@ public class Utilities {
   }
 
   public static final File getExistingDir(BaseManager manager,
+      String envVariable, AxisID axisID, String notFoundMessage) {
+    if (envVariable == null || envVariable.matches("\\s*")) {
+      return null;
+    }
+    String dirName = EnvironmentVariable.INSTANCE.getValue(manager, null,
+        envVariable, axisID);
+    if (dirName == null || dirName.matches("\\s*")) {
+      return null;
+    }
+    File dir = new File(dirName);
+    if (!checkExistingDir(dir, envVariable, notFoundMessage)) {
+      return null;
+    }
+    return dir;
+  }
+
+  public static final File getExistingDir(BaseManager manager,
       String envVariable, AxisID axisID) {
     if (envVariable == null || envVariable.matches("\\s*")) {
       return null;
@@ -923,6 +947,15 @@ public class Utilities {
       return null;
     }
     return dir;
+  }
+
+  public static final boolean checkExistingDir(File dir, String envVariable,
+      final String notFoundMessage) {
+    if (!dir.exists() || !dir.isDirectory() || !dir.canRead()) {
+      System.err.println(notFoundMessage);
+      return false;
+    }
+    return true;
   }
 
   public static final boolean checkExistingDir(File dir, String envVariable) {
