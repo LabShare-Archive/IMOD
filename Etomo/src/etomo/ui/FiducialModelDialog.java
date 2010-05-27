@@ -41,6 +41,13 @@ import etomo.comscript.TransferfidParam;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.59  2010/05/27 23:15:15  sueh
+ * <p> bug# 1360 In constructor don't warn about missing RAPTOR unless RAPTOR_BIN has been
+ * <p> set.
+ * <p>
+ * <p> Revision 3.57.2.1  2010/05/04 22:41:37  sueh
+ * <p> bug# 1366 In updatePick make transferfid invisible when raptor is chosen.
+ * <p>
  * <p> Revision 3.57  2010/03/12 04:13:50  sueh
  * <p> bug# 1325 Made the use raptor result button label available to the package.
  * <p>
@@ -438,9 +445,12 @@ public final class FiducialModelDialog extends ProcessDialog implements
         raptorBin = new File(raptorBinEnvVar);
       }
       if (!raptorBin.exists() || !raptorBin.isDirectory()) {
-        System.err.println("WARNING:  " + raptorBin.getAbsolutePath()
-            + " cannot be found.  The environment variable " + envVar
-            + " may be incorrect.");
+        if (EnvironmentVariable.INSTANCE.exists(appMgr, appMgr
+            .getPropertyUserDir(), envVar, axisID)) {
+          System.err.println("WARNING:  " + raptorBin.getAbsolutePath()
+              + " cannot be found.  The environment variable " + envVar
+              + " may be incorrect.");
+        }
         turnOffRaptor();
       }
     }
