@@ -22,6 +22,9 @@ import etomo.util.DatasetFiles;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.3  2010/02/17 04:45:23  sueh
+ * <p> bug# 1301 Added outputFile
+ * <p>
  * <p> Revision 1.2  2009/12/19 01:07:54  sueh
  * <p> bug# 1294 Added lambdaForSmoothing and middleContourFile.
  * <p>
@@ -35,6 +38,7 @@ public final class FlattenWarpParam {
   public static final String ONE_SURFACE_OPTION = "OneSurface";
   public static final String WARP_SPACING_X_AND_Y_OPTION = "WarpSpacingXandY";
   public static final String LAMBDA_FOR_SMOOTHING_OPTION = "LambdaForSmoothing";
+  public static final String LAMBDA_FOR_SMOOTHING_ASSESSMENT_DEFAULT = "2,2.5,3,3.5,4";
 
   private final List command = new ArrayList();
   private final FortranInputString warpSpacingXandY = new FortranInputString(2);//optional
