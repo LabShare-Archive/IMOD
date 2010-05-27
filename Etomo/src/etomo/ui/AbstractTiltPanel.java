@@ -49,6 +49,13 @@ import etomo.util.InvalidParameterException;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.10  2010/05/27 22:09:06  sueh
+ * <p> bug# 1377 Added updateUseGPU and updateParallelProcess calls
+ * <p> everywhere these checkboxes are modified.
+ * <p>
+ * <p> Revision 3.9  2010/04/09 03:01:05  sueh
+ * <p> bug# 1352 Passing the ProcessResultDisplay via parameter instead of retrieving it with a function so that it always be passed.
+ * <p>
  * <p> Revision 3.8  2010/03/27 04:53:59  sueh
  * <p> bug# 1333 Save parallel processing according the panel ID.  Initialize GPU
  * <p> from default GPU.
@@ -398,6 +405,7 @@ abstract class AbstractTiltPanel implements Expandable, TrialTiltParent,
 
   final void setParallelProcess(final boolean select) {
     cbParallelProcess.setSelected(select);
+    updateParallelProcess();
   }
 
   final boolean isZShiftSet() {
@@ -472,6 +480,7 @@ abstract class AbstractTiltPanel implements Expandable, TrialTiltParent,
     cbUseGpu.setEnabled(Network.isLocalHostGpuProcessingEnabled(manager,
         axisID, manager.getPropertyUserDir()));
     cbUseGpu.setSelected(metaData.getDefaultGpuProcessing().is());
+    updateUseGpu();
     //Parallel processing
     cbParallelProcess.setEnabled(validAutodoc);
     ConstEtomoNumber tiltParallel = metaData.getTiltParallel(axisID, panelId);
@@ -496,8 +505,6 @@ abstract class AbstractTiltPanel implements Expandable, TrialTiltParent,
       ltfLinearDensityScaleOffset.setText(metaData
           .getGenScaleOffsetLinear(axisID));
     }
-    updateParallelProcess();
-    updateUseGpu();
   }
 
   /**
@@ -556,6 +563,7 @@ abstract class AbstractTiltPanel implements Expandable, TrialTiltParent,
     if (!initialize) {
       //During initialization the value should coming from setup
       cbUseGpu.setSelected(tiltParam.isUseGpu());
+      updateUseGpu();
     }
     MetaData metaData = manager.getMetaData();
     cbUseLocalAlignment.setSelected(metaData.getUseLocalAlignments(axisID));
