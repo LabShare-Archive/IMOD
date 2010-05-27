@@ -65,12 +65,12 @@ DDEESSCCRRIIPPTTIIOONN
   transforms in three dimensions and write out a filtered FFT.
 
   The program allocates memory dynamically, so it is capable of filtering a
-  rather large volume in 3D.  However, it will require 4 bytes of memory per
-  voxel; e.g., 4 GB for a 1 gigavoxel volume.  In addition, the time per voxel
-  increases as the log of the volume size, so it can be quicker to chop a
-  volume into pieces, filter them, and reassemble the result.  To filter a
-  large image file in 3D this way, simply make a file filterbig.com with one
-  line:
+  rather large volume in 3D, as long as the padded volume is smaller than
+  2 gigavoxels.  However, it will require 4 bytes of memory per voxel; e.g.,
+  4 GB for a 1 gigavoxel volume.  In addition, the time per voxel increases as
+  the log of the volume size, so it can be quicker to chop a volume into
+  pieces, filter them, and reassemble the result.  To filter a large image
+  file in 3D this way, simply make a file filterbig.com with one line:
      $mtffilter -3d <filtering options> INPUTFILE OUTPUTFILE
   where you insert your filtering options, but INPUTFILE and OUTPUTFILE are
   exactly as shown, and not the names of your actual input and output files.
