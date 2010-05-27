@@ -130,6 +130,8 @@ public interface ConstMetaData {
 
   public String getLambdaForSmoothingList();
 
+  public boolean isLambdaForSmoothingListEmpty();
+
   public String getTrackOverlapOfPatchesXandY(AxisID axisID);
 
   public String getTrackNumberOfPatchesXandY(AxisID axisID);
@@ -158,6 +160,13 @@ public interface ConstMetaData {
 
 /**public String getTrackMethod(AxisID axisID) 
  * <p> $Log$
+ * <p> Revision 3.59  2010/05/27 16:49:34  sueh
+ * <p> bug# 1378 Added isLambdaForSmoothingListEmpty.
+ * <p>
+ * <p> Revision 3.58  2010/03/27 04:48:59  sueh
+ * <p> bug# 1333 Added defaultGpuProcessing.  Added a separate tiltParallel for
+ * <p> 3dfindbeads.
+ * <p>
  * <p> Revision 3.57  2010/03/05 04:00:24  sueh
  * <p> bug# 1319 Added genExists, genLog, and gen scale parameters.
  * <p>

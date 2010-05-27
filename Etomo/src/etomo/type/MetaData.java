@@ -29,6 +29,12 @@ import etomo.util.Utilities;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.63  2010/05/27 16:49:48  sueh
+ * <p> bug# 1378 Added isLambdaForSmoothingListEmpty.
+ * <p>
+ * <p> Revision 3.61  2010/03/30 00:05:24  sueh
+ * <p> bug# 1331 Added posExistsA and B.
+ * <p>
  * <p> Revision 3.60  2010/03/27 04:49:32  sueh
  * <p> bug# 1333 Added defaultGpuProcessing.  Added a separate tiltParallel for
  * <p> 3dfindbeads.
@@ -735,6 +741,10 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
 
   public String getLambdaForSmoothingList() {
     return lambdaForSmoothingList.toString();
+  }
+
+  public boolean isLambdaForSmoothingListEmpty() {
+    return lambdaForSmoothingList.isEmpty();
   }
 
   public void setTransferfidAFields(TransferfidParam param) {

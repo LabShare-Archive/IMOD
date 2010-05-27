@@ -41,6 +41,12 @@ import etomo.type.Run3dmodMenuOptions;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.4  2010/05/27 16:52:07  sueh
+ * <p> bug# 1378 Changed LAMBDA_FOR_SMOOTHING_LABEL.  In createPanel set ltfLambdaForSmoothing to its default.  In setParameters checking that metaData.lambdaForSmoothing is not empty before using it.
+ * <p>
+ * <p> Revision 1.3  2010/02/17 05:03:12  sueh
+ * <p> bug# 1301 Using manager instead of manager key for popping up messages.
+ * <p>
  * <p> Revision 1.2  2010/01/12 22:09:01  sueh
  * <p> bug# 1206 Added SmoothingAssessmentPanel.done.
  * <p>
@@ -53,7 +59,7 @@ final class SmoothingAssessmentPanel implements FlattenWarpDisplay,
     Run3dmodButtonContainer {
   public static final String rcsid = "$Id$";
 
-  private static final String LAMBDA_FOR_SMOOTHING_LABEL = "Smoothing factors";
+  private static final String LAMBDA_FOR_SMOOTHING_LABEL = "Smoothing factors to try";
   private static final String FLATTEN_WARP_LABEL = "Run Flattenwarp to Assess Smoothing";
 
   private final SpacedPanel pnlRoot = SpacedPanel.getInstance();
@@ -147,6 +153,8 @@ final class SmoothingAssessmentPanel implements FlattenWarpDisplay,
     btnFlattenWarp.setContainer(this);
     btnFlattenWarp.setDeferred3dmodButton(btn3dmod);
     btn3dmod.setSize();
+    ltfLambdaForSmoothing
+        .setText(FlattenWarpParam.LAMBDA_FOR_SMOOTHING_ASSESSMENT_DEFAULT);
     //Local panels
     JPanel pnlButtons = new JPanel();
     //root panel
@@ -167,7 +175,9 @@ final class SmoothingAssessmentPanel implements FlattenWarpDisplay,
   }
 
   void setParameters(final ConstMetaData metaData) {
-    ltfLambdaForSmoothing.setText(metaData.getLambdaForSmoothingList());
+    if (!metaData.isLambdaForSmoothingListEmpty()) {
+      ltfLambdaForSmoothing.setText(metaData.getLambdaForSmoothingList());
+    }
   }
 
   void getParameters(final MetaData metaData) {
