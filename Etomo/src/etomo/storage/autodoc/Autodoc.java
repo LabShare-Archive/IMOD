@@ -634,7 +634,8 @@ final class Autodoc extends WriteOnlyStatementList implements WritableAutodoc {
         true,
         "Info:  No local calibration information is available.  There is no "
             + "cpu.adoc file.  Parallel processing on multiple machines will not "
-            + "be available.");
+            + "be available unless it has been enabled in the eTomo Settings "
+            + "dialog (under the Options menu).");
   }
 
   /**
@@ -770,6 +771,10 @@ final class Autodoc extends WriteOnlyStatementList implements WritableAutodoc {
 }
 /**
  *<p> $$Log$
+ *<p> $Revision 1.35  2010/05/20 23:50:59  sueh
+ *<p> $bug# 1360 In initializeCpu using a custom failure message.  Changing file
+ *<p> $load functions to allow the custom message.
+ *<p> $
  *<p> $Revision 1.34  2010/02/17 04:49:43  sueh
  *<p> $bug# 1301 Using the manager instead of the manager key do pop up
  *<p> $messages.
