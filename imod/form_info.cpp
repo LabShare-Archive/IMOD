@@ -393,7 +393,9 @@ void InfoControls::setModelName( char *name )
   QSize hint = modelLabel->sizeHint();
   int delHeight = 0;
   mStr = name;
-  if (fontMetrics().width(mStr) + 5 > modelLabel->width()) {
+
+  // The label width is only 1-2 pixels bigger than the string
+  if (fontMetrics().width(mStr) + 1 > modelLabel->width()) {
     modelLabel->setText(" ");
     bigModelLabel->setText(mStr);
     if (!bigModelLabel->isVisible()) {
@@ -430,6 +432,12 @@ void InfoControls::setShowPoint( int state )
 /*
 
 $Log$
+Revision 4.3  2010/05/28 17:14:00  mast
+Fixed short labels going into big label line
+
+Revision 4.2  2010/04/01 02:29:56  mast
+Put model name on a new line when it is too long
+
 Revision 4.1  2009/01/15 16:33:17  mast
 Qt 4 port
 
