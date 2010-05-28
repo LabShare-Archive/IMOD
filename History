@@ -1,5 +1,15 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+5/28/10: Stopped short labels from going on upper line in Info window.
+
+5/27/10: In Etomo added the parameter CriterionForOutliers to Flattenwarp.
+
+5/27/10: In Etomo fixed a problem where the Use GPU check box and the Parallel
+Processing check box were on at the same time.
+
+5/27/10: In Etomo - Flatten Volume added default values to the smoothing
+factors field in the Smoothing Assessment panel.
+
 5/26/10: Added check to mtffilter for padded volume > 2 gigavoxels.
 
 5/26/10: Fixed alignlog -a output to exclude local area results.
@@ -14,9 +24,15 @@ avoid deleting data sets named tilt-n.
 5/24/10: In Tilt, fixed centering of vertical slices with large Y offset/
 X axis tilt, fixed handling of fill value for output in internal SIRT.
 
+5/21/10: In eTomo adding ActionIfGPUFails to tilt.com.
+
+5/21/10:In eTomo hiding Transfer Fiducials when RAPTOR is in use.
+
 5/20/10: Fixed detection of 64-bit system in G5 installation, default install
 location when running Assistant, and linklibs-mac for location of frameworks
 on Mac.
+
+5/10/10: In eTomo removed call to imod2vatch.
 
 5/1/10: IMOD_4-1-1
 4/27/10: Stopped Ctfplotter message about inconsistencies when there is no
