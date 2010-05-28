@@ -483,8 +483,8 @@ c
       nypad=niceframe(nybox+2*npad, 2, 19)
       npixbox=nxbox*nybox
       nxpdim=nxpad+2
-      if (npixbox .gt. maxbox**2 .or. nxpad * nxpdim .gt. maxarr)
-     &    call errorexit('BOX SIZE TOO LARGE FOR ARRAYS', 0)
+      if (npixbox .gt. maxbox**2 .or. nxpad * nxpdim .gt. maxarr) call
+     &    errorexit('BOX SIZE TOO LARGE FOR ARRAYS - TRY BINNING INPUT DATA',0)
       if (sigma1 .ne. 0 .or. radius2 .ne. 0) call setctfwsr
      &    (sigma1,sigma2,radius1,radius2,ctf,nxpad,nypad,deltactf)
 c
@@ -1802,6 +1802,9 @@ c
 c       
 c       
 c       $Log$
+c       Revision 3.32  2010/02/28 22:15:38  mast
+c       Fixed problem initializing wsum values on each area
+c
 c       Revision 3.31  2008/12/14 18:59:29  mast
 c       Don't cosine-adjust displacement in transferring from one view to next
 c       when max tilt angle is > 80; initialize dxy for next view
