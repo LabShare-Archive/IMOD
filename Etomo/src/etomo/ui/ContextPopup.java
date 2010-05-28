@@ -32,6 +32,9 @@ import etomo.type.AxisID;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.19  2010/02/17 05:03:12  sueh
+ * <p> bug# 1301 Using manager instead of manager key for popping up messages.
+ * <p>
  * <p> Revision 3.18  2009/12/19 01:14:01  sueh
  * <p> bug# 1294 In contextPopup(Component,MouseEvent,String,String,
  * <p> String[],String[],String[],String[],BaseManager,AxisID) added more
@@ -828,7 +831,7 @@ public class ContextPopup {
    */
   private void calcImodURL() {
     try {
-      imodURL = EtomoDirector.INSTANCE.getIMODDirectory().toURL().toString()
+      imodURL = EtomoDirector.INSTANCE.getIMODDirectory().toURI().toURL().toString()
           + "/html/";
     }
     catch (MalformedURLException except) {
