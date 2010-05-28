@@ -150,6 +150,7 @@ Then we edited the Makefile to add -m64 to CFLAGS, CPPFLAGS, and CXXFLAGS
 
 make
 sudo make install
+Then rename /usr/local/libtiff.a to libtiff64.a 
 
 You need to have a Fortran compiler.  Two options are the Intel compiler
 (version 10 recommended currently) and a version of gfortran from
