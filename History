@@ -1,15 +1,15 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-5/27/10: In Etomo added the parameter CriterionForOutliers to Flattenwarp (In
-4.1).
+5/28/10: Stopped short labels from going on upper line in Info window (In 4.1).
 
-5/27/10: In Etomo added ActionIfGPUFails to tilt .com files (In 4.1).
+5/27/10: In Etomo added the parameter CriterionForOutliers to Flattenwarp 
+(In 4.1).
 
 5/27/10: In Etomo fixed a problem where the Use GPU check box and the Parallel
-Processing check box where on at the same time (In 4.1).
+Processing check box were on at the same time (In 4.1).
 
-5/27/10: In Etomo - Flatten Volume added default values to the smoothing factors
-field in the Smoothing Assessment panel (In 4.1).
+5/27/10: In Etomo - Flatten Volume added default values to the smoothing
+factors field in the Smoothing Assessment panel (In 4.1).
 
 5/26/10: Added check to mtffilter for padded volume > 2 gigavoxels (In 4.1).
 
