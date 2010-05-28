@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+5/28/10: In Etomo changed messages about missing cpu.adoc and RAPTOR
+functionality.
+
 5/28/10: Stopped short labels from going on upper line in Info window (In 4.1).
 
 5/27/10: In Etomo added the parameter CriterionForOutliers to Flattenwarp 
