@@ -138,7 +138,7 @@
      <item>
       <widget class="QLabel" name="modelLabel" >
        <property name="sizePolicy" >
-        <sizepolicy vsizetype="Minimum" hsizetype="Preferred" >
+        <sizepolicy vsizetype="Minimum" hsizetype="MinimumExpanding" >
          <horstretch>10</horstretch>
          <verstretch>0</verstretch>
         </sizepolicy>
