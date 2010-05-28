@@ -372,7 +372,7 @@ final class EtomoMenu {
     // Get the URL to the IMOD html directory
     String imodURL = "";
     try {
-      imodURL = EtomoDirector.INSTANCE.getIMODDirectory().toURL().toString()
+      imodURL = EtomoDirector.INSTANCE.getIMODDirectory().toURI().toURL().toString()
           + "/html/";
     }
     catch (MalformedURLException except) {
@@ -663,6 +663,9 @@ final class EtomoMenu {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.20  2010/03/13 04:01:53  sueh
+ * <p> bug# 1321 Added the PEET manual.
+ * <p>
  * <p> Revision 1.19  2010/02/17 05:03:12  sueh
  * <p> bug# 1301 Using manager instead of manager key for popping up messages.
  * <p>
