@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+5/27/10: In Etomo added the parameter CriterionForOutliers to Flattenwarp (In
+4.1).
+
 5/27/10: In Etomo added ActionIfGPUFails to tilt .com files (In 4.1).
 
 5/27/10: In Etomo fixed a problem where the Use GPU check box and the Parallel
