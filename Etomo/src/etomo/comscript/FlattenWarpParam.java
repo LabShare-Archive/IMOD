@@ -4,8 +4,10 @@ import java.util.ArrayList;
 import java.util.List;
 
 import etomo.BaseManager;
+import etomo.type.EtomoNumber;
 import etomo.type.FileType;
 import etomo.type.ProcessName;
+import etomo.type.ScriptParameter;
 import etomo.util.DatasetFiles;
 
 /**
@@ -22,6 +24,12 @@ import etomo.util.DatasetFiles;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.5  2010/05/28 04:22:04  sueh
+ * <p> bug# 1381 Added criterionForOutliers.
+ * <p>
+ * <p> Revision 1.3.2.1  2010/05/27 18:17:45  sueh
+ * <p> bug# 1378 Merged head fix into 4.1.
+ * <p>
  * <p> Revision 1.4  2010/05/27 16:49:01  sueh
  * <p> bug# 1378 Added LAMBDA_FOR_SMOOTHING_ASSESSMENT_DEFAULT
  * <p>
@@ -51,9 +59,12 @@ public final class FlattenWarpParam {
   private FortranInputString lambdaForSmoothing = null;//optional
   private boolean oneSurface = false;
   private String middleContourFile = null;
+  private ScriptParameter criterionForOutliers = new ScriptParameter(
+      EtomoNumber.Type.DOUBLE);
 
   public FlattenWarpParam(BaseManager manager) {
     this.manager = manager;
+    criterionForOutliers.setDisplayValue(3.0);
   }
 
   private void buildCommand() {
@@ -79,6 +90,8 @@ public final class FlattenWarpParam {
       command.add("-" + LAMBDA_FOR_SMOOTHING_OPTION);
       command.add(lambdaForSmoothing.toString(true));
     }
+    command.add("-CriterionForOutliers");
+    command.add(criterionForOutliers.toString());
   }
 
   public void setOneSurface(boolean input) {
