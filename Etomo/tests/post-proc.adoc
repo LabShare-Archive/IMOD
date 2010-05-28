@@ -179,7 +179,7 @@ bn.make-surface-model=
 [[]]
 copy.file=%{dataset}_flat.mod
 run.function.smoothing-asessment=
-tf.smoothing-factor=.25
+tf.smoothing-factor=2.5
 [[if = test-values]]
 	#check error - can't run from squeezevol output when it hasn't been created.
 	rb.flatten-the-squeezevol-output=
