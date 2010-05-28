@@ -67,6 +67,9 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.29  2010/05/24 17:09:50  sueh
+ * <p> In formatApplication increased sleep.
+ * <p>
  * <p> Revision 1.28  2010/05/21 17:24:55  sueh
  * <p> bug# 1322 In executeCommand removed a print that repeated endlessly.
  * <p> In formatApplication excreased the sleep.
@@ -83,6 +86,9 @@ import etomo.util.Utilities;
  * <p>being fooled when kill button is disabled for a second.
  * <p>
  * $Log$
+ * Revision 1.29  2010/05/24 17:09:50  sueh
+ * In formatApplication increased sleep.
+ *
  * Revision 1.28  2010/05/21 17:24:55  sueh
  * bug# 1322 In executeCommand removed a print that repeated endlessly.
  * In formatApplication excreased the sleep.
@@ -1903,6 +1909,7 @@ final class AutodocTester extends Assert implements VariableList {
    * Call UIHarness.pack.
    */
   private void formatApplication() {
+    System.err.println("Formatting application");
     UIHarness.INSTANCE.pack(axisID, EtomoDirector.INSTANCE
         .getCurrentManagerForTest());
     try {
