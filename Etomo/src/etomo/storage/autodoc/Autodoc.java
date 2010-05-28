@@ -634,7 +634,8 @@ final class Autodoc extends WriteOnlyStatementList implements WritableAutodoc {
         true,
         "Info:  No local calibration information is available.  There is no "
             + "cpu.adoc file.  Parallel processing on multiple machines will not "
-            + "be available.");
+            + "be available unless it has been enabled in the eTomo Settings "
+            + "dialog (under the Options menu).");
   }
 
   /**
@@ -770,6 +771,13 @@ final class Autodoc extends WriteOnlyStatementList implements WritableAutodoc {
 }
 /**
  *<p> $$Log$
+ *<p> $Revision 1.36  2010/05/28 18:48:29  sueh
+ *<p> $bug# 1360 In initializeCpu changed the error message for a missing ImodCalib directory
+ *<p> $to mention setting up parallel processing using Settings dialog.
+ *<p> $
+ *<p> $Revision 1.34.2.1  2010/05/27 05:32:58  sueh
+ *<p> $bug# 1360 Merged head fix into 4.1.
+ *<p> $
  *<p> $Revision 1.35  2010/05/20 23:50:59  sueh
  *<p> $bug# 1360 In initializeCpu using a custom failure message.  Changing file
  *<p> $load functions to allow the custom message.
