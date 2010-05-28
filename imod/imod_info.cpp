@@ -630,21 +630,21 @@ int imod_info_open()
   } else
     ImodInfoWidget->setImageName(" ");
 
-  // Initialize the model line (could we use MaintainModelName?)
-  filename = imodwGivenName(" ", Imod_filename);
-  //filename = truncate_name(filename, 23);
-  if (filename) {
-    ImodInfoWidget->setModelName(filename);
-    free(filename);
-  } else 
-    ImodInfoWidget->setModelName(" ");
-    
   // Try not having these
   /*  imod_info_forbid();
   imod_info_input();
   imod_info_enable(); */
 
   ImodInfoWin->show();
+
+  // Initialize the model line (could we use MaintainModelName?)
+  // Do this after show so the label size works for deciding on big label
+  filename = imodwGivenName(" ", Imod_filename);
+  if (filename) {
+    ImodInfoWidget->setModelName(filename);
+    free(filename);
+  } else 
+    ImodInfoWidget->setModelName(" ");
 
   return(0);
 }
@@ -706,6 +706,13 @@ static char *truncate_name(char *name, int limit)
 /*
 
 $Log$
+Revision 4.57  2010/05/28 22:14:37  mast
+Need to set model name after show for it to work
+
+Revision 4.56  2010/04/01 02:28:46  mast
+Changes for Apple-Q to quit on Mac, extracting without rubberband, and
+not truncating model name
+
 Revision 4.55  2009/02/27 19:17:16  mast
 Fixed output of trimvol command to info window
 
