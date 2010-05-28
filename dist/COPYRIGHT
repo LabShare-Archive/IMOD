@@ -4,10 +4,11 @@ Except as noted, ALL SOFTWARE LISTED IS Copyright (C) 1994-2010 by
 Boulder Laboratory for 3-Dimensional Electron Microscopy of Cells
 ("BL3DEMC") and the Regents of the University of Colorado.
 
-All portions of IMOD are open source under the General Public License (GPL)
-version 2.0.  A copy of this license is in the file GPL.txt.  Software may
-be modified and redistributed under the terms of this license.  The source
-code can be found at http://bio3d.colorado.edu/imod/openSource
+All portions of IMOD, except as noted below, are open source under the
+General Public License (GPL) version 2.0.  A copy of this license is in the
+file GPL.txt.  Software may be modified and redistributed under the terms of
+this license.  The source can be found at 
+http://bio3d.colorado.edu/imod/openSource
 
 THIS SOFTWARE AND/OR DOCUMENTATION IS PROVIDED WITH NO WARRANTY,
 EXPRESS OR IMPLIED, INCLUDING, WITHOUT LIMITATION, WARRANTY OF
@@ -23,25 +24,22 @@ much work on the port to Linux.
 The program nad_eed_3d by Achilleas Frangakis and Reiner Hegerl is
 copyright Max-Planck-Institut for Biochemistry, Martinsried, Germany.
 
-The LSQR routine by Michael Saunders is used in some programs.  It is
-covered by the Common Public License.  IMOD now uses a C version of LSQR
-and some BLAS routines from the BCLS package of Michael Friedlander,
-which are covered by the Lesser GPL.  The source code used here and the
-licenses can be found at  http://bio3d.colorado.edu/imod/openSource
+The LSQR routine by Michael Saunders is used in some programs.  IMOD uses a
+C version of LSQR and some BLAS routines from the BCLS package of Michael
+Friedlander, which are covered by the Lesser GPL (see LPGL.txt).
 
-IMOD uses a subset of the LAPACK routines developed at Univ. of
-Tennessee, Univ. of California Berkeley, NAG Ltd., Courant Institute,
-Argonne National Lab, and Rice University.  They is copyrighted by the
-University of Tennessee and covered by a BSD-style license that can be
-found at http://bio3d.colorado.edu/imod/openSource.  IMOD also uses a subset
-of the BLAS routines, developed by: Jack Dongarra, Argonne National Lab;
-Jeremy Du Croz, NAG Ltd.; Iain Duff, AERE Harwell; Richard Hanson, Sandia
-National Labs; and Sven Hammarling, NAG Ltd. 
+IMOD uses a subset of the LAPACK routines developed at Univ. of Tennessee,
+Univ. of California Berkeley, NAG Ltd., Courant Institute, Argonne National
+Lab, and Rice University.  They are copyrighted by the University of
+Tennessee and covered by a BSD-style license (see LAPACK.txt).  IMOD also
+uses a subset of the BLAS routines, developed by: Jack Dongarra, Argonne
+National Lab; Jeremy Du Croz, NAG Ltd.; Iain Duff, AERE Harwell; Richard
+Hanson, Sandia National Labs; and Sven Hammarling, NAG Ltd.
 
 The program imodwincpu was adapted from code obtained from
-www.codeproject.com and written by Dudi Abramov.  It is covered by the
-Code Project Open License (CPOL) which can be found at 
-http://bio3d.colorado.edu/imod/openSource
+www.codeproject.com and written by Dudi Abramov.  It is excluded from the
+GPL license and is covered exclusively by the Code Project Open License (see
+CPOL.html). 
 
 Routines for computing some statistical functions were adapted from
 S. J. Zhang and J. M. Jin, Computation of Special Functions. New York: John
@@ -54,6 +52,9 @@ The isosurface display in 3dmod uses contouring and surface smoothing
 modules from Chimera, developed at the Resource for Biocomputing,
 Visualization, and Informatics at the University of California, San
 Francisco, supported by NIH/NCRR grant P41-RR01081.
+
+IMOD uses TIFF libraries which are Copyright (c) 1988-1997 Sam Leffler
+and Copyright (c) 1991-1997 Silicon Graphics, Inc. (see TIFF.txt).
 
 This work is supported by NIH/NCRR grant RR00592 to Andreas Hoenger and
 NIBIB grant EB005027 to David Mastronarde for the Boulder Laboratory for
