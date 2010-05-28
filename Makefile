@@ -251,7 +251,7 @@ dist : ALWAYS
 	(cd dist ; \find . -type f -name "*~" -exec rm "{}" \;)
 	($(MAKE) install)
 	-\cp buildlib/*.so $(ARCDIR)/lib/
-	\cp dist/COPYRIGHT dist/start.html dist/installIMOD dist/*GPL.txt $(ARCDIR)/
+	\cp dist/COPYRIGHT dist/start.html dist/installIMOD dist/[A-Z]*.txt dist/CPOL.html $(ARCDIR)/
 	-\find $(ARCDIR) -depth -name CVS -exec /bin/rm -rf {} \;
 	./installqtlib
 	@echo "Compressing..."
@@ -360,6 +360,9 @@ ALWAYS:
 
 ############################################################################
 #  $Log$
+#  Revision 3.80  2010/05/28 21:17:50  mast
+#  Added all licenses to top dir of dist
+#
 #  Revision 3.79  2010/04/12 05:11:03  mast
 #  *** empty log message ***
 #
