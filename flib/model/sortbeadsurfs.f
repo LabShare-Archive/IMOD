@@ -60,6 +60,7 @@ c
       already = .false.
       majority = .false.
       rescale = .false.
+      oneSurface = .false.
 
       call PipReadOrParseOptions(options, numOptions, 'sortbeadsurfs',
      &    'ERROR: SORTBEADSURFS - ', .false., 1, 1, 1, numOptArg,
@@ -316,6 +317,9 @@ c       rebuild the model, make it one point per contour
       end
 c
 c       $Log$
+c       Revision 3.2.2.1  2010/05/10 20:19:10  mast
+c       backport
+c
 c       Revision 3.3  2010/05/10 20:18:09  mast
 c       Fixed initialization of all logicals
 c
