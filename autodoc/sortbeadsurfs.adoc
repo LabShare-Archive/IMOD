@@ -164,7 +164,11 @@ short = check
 type = B
 usage = Check that the sorting is the same as in the input model
 tooltip =
-manpage = 
+manpage = Check that the sorting is the same as in the input model, which must
+already have points divided into two groups.  All other output is suppressed,
+and if the sorting matches the program just exits with 0 status; if there is
+a mismatch it prints the number of incorrect points and exits with an error
+status.
 
 [Field = usage]
 short = help
