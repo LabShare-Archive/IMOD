@@ -426,8 +426,9 @@ c
       character*(*) modelfile
       include 'smallmodel.inc'
       real*4 xyzmax,ximscale,yimscale,zimscale
+      integer*4, allocatable :: imodObjSize(:), mapImodObj(:), numGroup1(:)
       integer getimodscales
-      integer*4 imodobj,isize,ierr
+      integer*4 imodobj,isize,ierr, newobj, maxImodObj, mapInd
 c       
       integer*4 ireal,iobject,ipt,i
 c       
@@ -442,6 +443,28 @@ c
         enddo
       enddo
       isize=max(3.,xyzmax/100.)
+c       
+c       Count the contours per object so that objects can be reused if all
+c       their points are in group 2 and get moved elsewhere
+      maxImodObj = 0
+      do iobject = 1, max_mod_obj
+        maxImodObj = max(maxImodObj, 256-obj_color(2,iobject))
+      enddo
+      allocate(imodObjSize(maxImodObj*2), mapImodObj(maxImodObj*2),
+     &    numGroup1(maxImodObj), stat=ierr)
+      if (ierr .ne. 0) call errorexit('ALLOCATING ARRAYS FOR WRITING MODEL', 0)
+      imodObjSize = 0
+      mapImodObj = 0
+      numGroup1 = 0
+      ireal = 0
+      do iobject = 1, max_mod_obj
+        if(npt_in_obj(iobject).gt.0) then
+          imodobj = 256-obj_color(2,iobject)
+          imodObjSize(imodobj) = imodObjSize(imodobj) + 1
+          ireal = ireal + 1
+          if (igroup(ireal) .eq. 1) numGroup1(imodobj) = numGroup1(imodobj) + 1
+        endif
+      enddo
 c       
 c       loop on model objects that are non-zero, stuff point coords into 
 c       first point of object (now only point), and set color by group
@@ -462,15 +485,37 @@ c
           p_coord(3,ipt)=xyz(3,ireal)*zimscale
 c           
 c           DNM 5/15/02: only change color if there is a group
-c           assignment, but then double the object numbers to keep them
-c           separate.  Also, define as scattered and put sizes out
+c           assignment, but then put it in the object this one maps to
+c           If no map yet, find first free object
+c           Also, define as scattered and put sizes out
 c           
           imodobj=256-obj_color(2,iobject)
           if(igroup(ireal).ne.0)then
-            imodobj=2*(imodobj-1)+igroup(ireal)
+            imodObjSize(imodobj) = imodObjSize(imodobj) - 1
+c
+c             Multiply by 2 to get index to mapping for group 1 or 2 in object
+c             If already mapped, fine
+c             If in group 1, map to self and set to green
+c             If in group 2, map to self if there are no group 1's in object,
+c             otherwise map to first empty object, and set to magenta
+            mapInd = 2 * (imodobj - 1) + igroup(ireal)
+            if (mapImodObj(mapInd) .ne. 0) then
+              imodobj = mapImodObj(mapInd)
+            else if (igroup(ireal) .eq. 1) then
+              mapImodObj(mapInd) = imodobj
+              call putobjcolor(imodobj, 0, 255, 0)
+            else
+              if (numGroup1(imodobj) .gt. 0) then
+                do newobj = 1, maxImodObj* 2 - 1
+                  if (imodObjSize(newobj) .eq. 0) exit
+                enddo
+                imodobj = newobj
+              endif
+              mapImodObj(mapInd) = imodobj
+              call putobjcolor(imodobj, 255, 0, 255)
+            endif
             obj_color(2,iobject)=256-imodobj
-            if (igroup(ireal).eq.1) call putobjcolor(imodobj, 0, 255, 0)
-            if (igroup(ireal).eq.2) call putobjcolor(imodobj, 255, 0, 255)
+            imodObjSize(imodobj) = imodObjSize(imodobj) + 1
           endif
           call putimodflag(imodobj,2)
           call putscatsize(imodobj,isize)
@@ -482,11 +527,15 @@ c
       n_object=ireal
       call write_wmod(modelfile)
       close(20)
+      deallocate(imodObjSize, mapImodObj, numGroup1)
       return
       end
 
 c       
 c       $Log$
+c       Revision 3.20  2009/11/21 22:18:39  mast
+c       Report two point numbers for duplicate point
+c
 c       Revision 3.19  2008/12/12 00:46:49  mast
 c       Stop inverting points for output; add error if no points or points on
 c       only one view
