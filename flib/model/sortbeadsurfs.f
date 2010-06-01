@@ -13,7 +13,7 @@ c
       character*320 filin, filout
       integer*4 numInGroup(2), jred(2), jgreen(2), jblue(2)
       logical*4 exist, readSmallMod, already, majority, invertZ, rescale
-      logical*4 oneSurface
+      logical*4 oneSurface, checkGroups
       integer*4 ifflip, local, ierr, i, j, ix, iy,indy,indz,maxx,maxy,maxz
       real*4 xmax, xmin, ymin, ymax, deltaX, deltaY, xlo, xhi, ylo, yhi
       real*4 epsX, epsY, dx, dy, cosa, sina, xtilt, scalef
@@ -28,7 +28,7 @@ c
       integer*4 PipGetInteger,PipGetFloat,PipGetTwoIntegers
       integer*4 PipGetInOutFile, PipGetLogical
       real*4 xyz(3,max_pt), xyzfit(3,max_pt), tiltdum
-      integer*4 igroup(max_pt), igrfit(max_pt)
+      integer*4 igroup(max_pt), igrfit(max_pt), imodObjOrig(max_pt)
 
 c       
 c       fallbacks from ../../manpages/autodoc2man -2 2  sortbeadsurfs
@@ -60,6 +60,8 @@ c
       already = .false.
       majority = .false.
       rescale = .false.
+      checkGroups = .false.
+      oneSurface = .false.
 
       call PipReadOrParseOptions(options, numOptions, 'sortbeadsurfs',
      &    'ERROR: SORTBEADSURFS - ', .false., 1, 1, 1, numOptArg,
@@ -80,6 +82,7 @@ c
       ierr = PipGetInteger('ReconstructionBinning', ibinRec)
       ierr = PipGetLogical('RescaleByBinnings', rescale)
       ierr = PipGetLogical('InvertZAxis', invertZ)
+      ierr = PipGetLogical('CheckExistingGroups', checkGroups)
       ierr = PipGetTwoIntegers('XTrimStartAndEnd', ixTrim0, ixTrim1)
       ierr = PipGetTwoIntegers('YTrimStartAndEnd', iyTrim0, iyTrim1)
 c       
@@ -115,32 +118,42 @@ c       Rotate by the tilt angle not the negative of it.
       ymax = xmax
       cosa=cosd(xtilt)
       sina=sind(xtilt)
-      do i = 1, n_point
-        xyz(1,i) = p_coord(1,i)
-        if (xtilt .ne. 0) then
-          dy = p_coord(indy,i) - maxy / 2.
-          xyz(2,i) = cosa * dy - sina * p_coord(indz,i) + maxy / 2.
-          xyz(3,i) = sina * dy + cosa * p_coord(indz,i)
-        else
-          xyz(2,i) = p_coord(indy,i)
-          xyz(3,i) = p_coord(indz,i)
-        endif
-        if (invertZ) xyz(3,i) = maxz - 1 - xyz(3,i)
-        xmin = min(xmin, xyz(1,i))
-        ymin = min(ymin, xyz(2,i))
-        xmax = max(xmax, xyz(1,i))
-        ymax = max(ymax, xyz(2,i))
-        igroup(i) = -1
+      i = 0
+      do iobj = 1, max_mod_obj
+        imodobj = 256 - obj_color(2, iobj)
+        do j = 1, npt_in_obj(iobj)
+          i = i + 1
+          iy = object(ibase_obj(iobj) + j)
+          xyz(1,i) = p_coord(1,iy)
+          if (xtilt .ne. 0) then
+            dy = p_coord(indy,iy) - maxy / 2.
+            xyz(2,i) = cosa * dy - sina * p_coord(indz,iy) + maxy / 2.
+            xyz(3,i) = sina * dy + cosa * p_coord(indz,iy)
+          else
+            xyz(2,i) = p_coord(indy,iy)
+            xyz(3,i) = p_coord(indz,iy)
+          endif
+          if (invertZ) xyz(3,i) = maxz - 1 - xyz(3,i)
+          xmin = min(xmin, xyz(1,i))
+          ymin = min(ymin, xyz(2,i))
+          xmax = max(xmax, xyz(1,i))
+          ymax = max(ymax, xyz(2,i))
+          igroup(i) = -1
+          imodObjOrig(i) = imodobj
+        enddo
       enddo
+      n_point = i
 c       
 c       If points are already sorted, look at the object colors to deduce this
 c       the sorting, unless the one surface option is given
       if (oneSurface) then
+        print *,'here ones'
         do i = 1, n_point
           igroup(i) = 1
         enddo
         
       else if (already) then
+        print *,'here'
         numColors = 0
         do iobj = 1, max_mod_obj
           if (npt_in_obj(iobj) .gt. 0) then
@@ -202,8 +215,8 @@ c               and mark as in the fitting group
                 igroup(i) = 0
               endif
             enddo
-            if (local .gt. 0) write(*,'(a,2i3,a,i6,a)')'Subarea',ix,iy,' has',
-     &          numPts,' points'
+            if (local .gt. 0 .and..not.checkGroups) write(*,'(a,2i3,a,i6,a)')
+     &          'Subarea',ix,iy,' has', numPts,' points'
             minNum = min(minNum, numPts)
 c             
 c             Do the fits to find surfaces
@@ -228,7 +241,8 @@ c       Count numbers in groups
         do i = 1, n_point
           if (igroup(i) .eq. iy) numInGroup(iy) = numInGroup(iy) + 1
         enddo
-        write(*,'(a,i2,a,i6,a)')'Group',iy,' has',numInGroup(iy),' points'
+        if (.not. checkGroups) write(*,'(a,i2,a,i6,a)')'Group',iy,' has',
+     &      numInGroup(iy),' points'
       enddo
 c       
 c       Set up for majority group if desired, or to avoid empty object
@@ -305,6 +319,21 @@ c       rebuild the model, make it one point per contour
       n_point = ix
       call scale_model(1)
       call write_wmod(filout)
+      if (checkGroups) then
+        ierr = n_point
+        do iy = 1, 2
+          ix = 0
+          do i = 1, n_point
+            if ((iy .eq. 1 .and. igroup(i) .ne. imodObjOrig(i)) .or.
+     &          (iy .eq. 2 .and. igroup(i) .eq. imodObjOrig(i))) ix = ix +1
+          enddo
+          ierr = min(ierr, ix)
+        enddo
+        if (ierr .gt. 0) write(*,'(/,a,a,a,i5,a,i5,a)')
+     &      'ERROR: sortbeadsurfs - ', trim(filin),' has ',ierr,' of ',
+     &      n_point ,' points in the wrong group'
+        call exit(ierr)
+      endif
       if (local .gt. 0 .and. minNum .le. 4) then
         print *,'Some areas have very few points - you should rerun this '//
      &      'with larger subareas'
@@ -312,10 +341,14 @@ c       rebuild the model, make it one point per contour
         print *, 'If points are '//
      &      'sorted incorrectly, try rerunning with larger subareas'
       endif
+c       
       call exit(0)
       end
 c
 c       $Log$
+c       Revision 3.3  2010/05/10 20:18:09  mast
+c       Fixed initialization of all logicals
+c
 c       Revision 3.2  2010/04/02 03:21:39  mast
 c       Added option for one surface and multiple objects
 c
