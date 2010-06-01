@@ -159,6 +159,13 @@ prealigned or final aligned stack.  By default output coordinates will still
 have the scaling of the prealigned stack; use this option to rescale them so
 that they match the scaling of the reconstruction.
 
+[Field = CheckExistingGroups]
+short = check
+type = B
+usage = Check that the sorting is the same as in the input model
+tooltip =
+manpage = 
+
 [Field = usage]
 short = help
 long = usage

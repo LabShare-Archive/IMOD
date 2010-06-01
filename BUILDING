@@ -150,6 +150,7 @@ Then we edited the Makefile to add -m64 to CFLAGS, CPPFLAGS, and CXXFLAGS
 
 make
 sudo make install
+Then rename /usr/local/libtiff.a to libtiff64.a 
 
 You need to have a Fortran compiler.  Two options are the Intel compiler
 (version 10 recommended currently) and a version of gfortran from
@@ -212,7 +213,7 @@ Qt was built by unzipping the Qt source package in C:/Qt and renaming it to
 -no-libtiff -qt-libjpeg  -no-phonon -no-phonon-backend -no-webkit
 nmake
 
-TIFF include files and an import library are cnotained in the IMOD package (in
+TIFF include files and an import library are contained in the IMOD package (in
 sysdep/win)  and the software will build without the TIFF library present, but
 installqtlib will not run.  It requires TIFF libraries installed from GnuWin32
 http://gnuwin32.sourceforge.net/packages/tiff.htm
