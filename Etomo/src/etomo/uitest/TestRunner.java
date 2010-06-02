@@ -38,6 +38,9 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.13  2010/05/20 23:54:07  sueh
+ * <p> Added getApplication.
+ * <p>
  * <p> Revision 1.12  2010/03/03 05:11:38  sueh
  * <p> bug# 1311 Added debug and setDebug.
  * <p>
@@ -105,7 +108,7 @@ public final class TestRunner extends JFCTestCase implements VariableList {
 
   protected void tearDown() throws Exception {
     if (etomo != null) {
-      etomo.setTestDone(true);
+      etomo.setTestFailed(true);
       etomo.exitProgram(AxisID.ONLY);
       etomo = null;
     }
