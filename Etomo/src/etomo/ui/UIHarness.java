@@ -64,7 +64,7 @@ public final class UIHarness {
    */
   public synchronized void openMessageDialog(BaseManager manager,
       String message, String title, AxisID axisID) {
-    if (isHead() && !EtomoDirector.INSTANCE.isTestDone()) {
+    if (isHead() && !EtomoDirector.INSTANCE.isTestFailed()) {
       getFrame(manager).displayMessage(manager, message, title, axisID);
     }
     else {
@@ -74,7 +74,7 @@ public final class UIHarness {
 
   public synchronized void openInfoMessageDialog(BaseManager manager,
       String message, String title, AxisID axisID) {
-    if (isHead() && !EtomoDirector.INSTANCE.isTestDone()) {
+    if (isHead() && !EtomoDirector.INSTANCE.isTestFailed()) {
       getFrame(manager).displayInfoMessage(manager, message, title, axisID);
     }
     else {
@@ -89,7 +89,7 @@ public final class UIHarness {
    */
   public synchronized void openErrorMessageDialog(BaseManager manager,
       ProcessMessages message, String title, AxisID axisID) {
-    if (isHead() && !EtomoDirector.INSTANCE.isTestDone()) {
+    if (isHead() && !EtomoDirector.INSTANCE.isTestFailed()) {
       getFrame(manager).displayErrorMessage(manager, message, title, axisID);
     }
     else {
@@ -104,7 +104,7 @@ public final class UIHarness {
    */
   public synchronized void openWarningMessageDialog(BaseManager manager,
       ProcessMessages messages, String title, AxisID axisID) {
-    if (isHead() && !EtomoDirector.INSTANCE.isTestDone()) {
+    if (isHead() && !EtomoDirector.INSTANCE.isTestFailed()) {
       getFrame(manager).displayWarningMessage(manager, messages, title, axisID);
     }
     else {
@@ -119,7 +119,7 @@ public final class UIHarness {
    */
   public synchronized void openMessageDialog(BaseManager manager,
       String message, String title) {
-    if (isHead() && !EtomoDirector.INSTANCE.isTestDone()) {
+    if (isHead() && !EtomoDirector.INSTANCE.isTestFailed()) {
       getFrame(manager).displayMessage(manager, message, title);
     }
     else {
@@ -134,7 +134,7 @@ public final class UIHarness {
    */
   public synchronized void openMessageDialog(BaseManager manager,
       String[] message, String title, AxisID axisID) {
-    if (isHead() && !EtomoDirector.INSTANCE.isTestDone()) {
+    if (isHead() && !EtomoDirector.INSTANCE.isTestFailed()) {
       getFrame(manager).displayMessage(manager, message, title, axisID);
     }
     else {
@@ -144,7 +144,7 @@ public final class UIHarness {
 
   public synchronized int openYesNoCancelDialog(BaseManager manager,
       String[] message, AxisID axisID) {
-    if (isHead() && !EtomoDirector.INSTANCE.isTestDone()) {
+    if (isHead() && !EtomoDirector.INSTANCE.isTestFailed()) {
       return getFrame(manager).displayYesNoCancelMessage(manager, message,
           axisID);
     }
@@ -154,7 +154,7 @@ public final class UIHarness {
 
   public synchronized boolean openYesNoDialog(BaseManager manager,
       String message, AxisID axisID) {
-    if (isHead() && !EtomoDirector.INSTANCE.isTestDone()) {
+    if (isHead() && !EtomoDirector.INSTANCE.isTestFailed()) {
       return getFrame(manager).displayYesNoMessage(manager, message, axisID);
     }
     log("openYesNoDialog", message, axisID);
@@ -163,7 +163,7 @@ public final class UIHarness {
 
   public synchronized boolean openDeleteDialog(BaseManager manager,
       String[] message, AxisID axisID) {
-    if (isHead() && !EtomoDirector.INSTANCE.isTestDone()) {
+    if (isHead() && !EtomoDirector.INSTANCE.isTestFailed()) {
       return getFrame(manager).displayDeleteMessage(manager, message, axisID);
     }
     log("openDeleteDialog", message, axisID);
@@ -172,7 +172,7 @@ public final class UIHarness {
 
   public synchronized boolean openYesNoWarningDialog(BaseManager manager,
       String message, AxisID axisID) {
-    if (isHead() && !EtomoDirector.INSTANCE.isTestDone()) {
+    if (isHead() && !EtomoDirector.INSTANCE.isTestFailed()) {
       return getFrame(manager).displayYesNoWarningDialog(manager, message,
           axisID);
     }
@@ -182,7 +182,7 @@ public final class UIHarness {
 
   public synchronized boolean openYesNoDialog(BaseManager manager,
       String[] message, AxisID axisID) {
-    if (isHead() && !EtomoDirector.INSTANCE.isTestDone()) {
+    if (isHead() && !EtomoDirector.INSTANCE.isTestFailed()) {
       return getFrame(manager).displayYesNoMessage(manager, message, axisID);
     }
     log("openYesNoDialog", message, axisID);
@@ -466,7 +466,11 @@ public final class UIHarness {
   }
 
   public void exit(AxisID axisID) {
-    //  Check to see if we need to save any data
+    //Store the current location of the frame in case etomo exits.
+    if (isHead()) {
+      mainFrame.saveLocation();
+    }
+    //Check to see if etomo an exit, save data, and then exit.
     if (EtomoDirector.INSTANCE.exitProgram(axisID)) {
       System.exit(0);
     }
@@ -581,6 +585,9 @@ public final class UIHarness {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.39  2010/02/17 05:03:12  sueh
+ * <p> bug# 1301 Using manager instead of manager key for popping up messages.
+ * <p>
  * <p> Revision 1.38  2009/11/20 17:38:54  sueh
  * <p> bug# 1282 Added save.  Has the same function as the Save menu option.
  * <p>
