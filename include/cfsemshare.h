@@ -123,6 +123,8 @@ extern "C" {
   void lsFit2Pred(float *x1, float *x2, float *y, int n, float *a, float *b, 
                   float *c, float x1pred, float x2pred, float *ypred,
                   float *prederr);
+  void lsFit3(float *x1, float *x2, float *x3, float *y, int n, float *a1, 
+              float *a2, float *a3, float *c);
 
   /* robuststat.c */
   void rsSortFloats(float *x, int n);
@@ -167,6 +169,12 @@ extern "C" {
   double gammaFunc(double x);
   double lnGamma(double x);
 
+  /* surfacesort.c */
+  int surfaceSort(float *xyz, int numPts, float *xrot, float *yrot,
+                  float *zrot, int *group);
+  int setSurfSortParam(int which, float value);
+
+
 #ifdef __cplusplus
 }
 #endif
@@ -177,6 +185,9 @@ extern "C" {
 /*
 
 $Log$
+Revision 3.17  2010/01/21 03:48:15  mast
+Added statfuncs
+
 Revision 3.16  2009/11/28 20:10:20  mast
 Added convexbound and indexed sort
 
