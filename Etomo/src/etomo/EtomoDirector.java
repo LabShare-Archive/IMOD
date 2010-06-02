@@ -68,7 +68,7 @@ public class EtomoDirector {
   private SettingsDialog settingsDialog = null;
   private boolean outOfMemoryMessage = false;
   private String originalUserDir = null;
-  private boolean testDone = false;
+  private boolean testFailed = false;
   private final EtomoNumber javaMemoryLimit = new EtomoNumber(
       EtomoNumber.Type.LONG);
   private boolean imodBriefHeader = false;
@@ -734,35 +734,40 @@ public class EtomoDirector {
   }
 
   /**
-   * set failure while testing to prevent popups in a non-interactive session.
+   * Set failure while doing UI testing to prevent popups as the test tries to
+   * end.
    * @param failed
    */
-  public void setTestDone(boolean testDone) {
+  public void setTestFailed(boolean input) {
     if (!arguments.isTest()) {
       throw new IllegalStateException("test=" + arguments.isTest());
     }
-    this.testDone = testDone;
-  }
-
-  public boolean isTestDone() {
-    return testDone;
+    testFailed = input;
   }
 
   /**
-   * Close all the managers.
-   * Then exit.  To guarantee that etomo can always exit, catch all unrecognized Exceptions
-   * and Errors and return true.
-   * @return
+   * @return true if this is a UI test and it has failed
+   */
+  public boolean isTestFailed() {
+    return testFailed;
+  }
+
+  /**
+   * Close all managers, unless the user prevents it.  If all managers are
+   * closed, stop threads, save data and return true.  To guarantee that etomo
+   * can exit during a failure, catch all uncaught Exceptions and Errors and
+   * return true.
+   * @return true if etomo can exit, false if the user prevented exit
    */
   public boolean exitProgram(AxisID axisID) {
-    if (utilityThread != null) {
-      utilityThread.stop();
-    }
     try {
       while (managerList.size() != 0) {
         if (!closeCurrentManager(axisID, true)) {
           return false;
         }
+      }
+      if (utilityThread != null) {
+        utilityThread.stop();
       }
       ProcessRestarter.stop();
       IntermittentBackgroundProcess.stop();
@@ -774,7 +779,6 @@ public class EtomoDirector {
         userConfig.setMainWindowHeight(size.height);
         //  Write out the user configuration data
         parameterStore.save(userConfig);
-        //  utilityThread.waitUntilFinished();
         return true;
       }
     }
@@ -782,7 +786,6 @@ public class EtomoDirector {
       e.printStackTrace();
       return true;
     }
-    // utilityThread.waitUntilFinished();
     return true;
   }
 
@@ -1143,6 +1146,11 @@ public class EtomoDirector {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.92  2010/02/17 04:40:16  sueh
+ * <p> bug# 1301 Getting rid of managerkey and using manager to pop up
+ * <p> messages.  Need to know what kind of manager we have to pick the right
+ * <p> frame.
+ * <p>
  * <p> Revision 1.91  2010/01/13 21:47:06  sueh
  * <p> bug# 1298 Do not open any file that doesn't have a dataset extension.
  * <p>
