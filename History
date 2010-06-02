@@ -1,5 +1,9 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+6/2/10: Made new routine for sorting points on two surfaces for use by
+Tiltalign, beadtrack, and Sortbeadsurfs; added option to Sortbeadsurfs for 
+testing the routine.
+
 6/1/10: Fixed coloring of Tiltalign output model when one contour per object.
 
 5/28/10: In Etomo changed messages about missing cpu.adoc and RAPTOR
