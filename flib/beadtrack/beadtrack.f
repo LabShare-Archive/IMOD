@@ -1704,7 +1704,7 @@ c
 c         
 c         Do surface fitting on every round if tiltalign run
         if (surfaceFile .ne. ' ' .and. ifAlignDone .ne. 0) then
-          call find_surfaces(xyz,nrealpt,2, 30.,1,xpos,igrpBotTop,0,ypos)
+          call find_surfaces(xyz,nrealpt,2, 30.,1,xpos,igrpBotTop,0,ypos,0.,1)
 c           
 c           Find each object in the real object list and move group number
 c           into list
@@ -1802,6 +1802,9 @@ c
 c       
 c       
 c       $Log$
+c       Revision 3.32.2.1  2010/05/28 19:33:15  mast
+c       Enhance error message when box too large
+c
 c       Revision 3.32  2010/02/28 22:15:38  mast
 c       Fixed problem initializing wsum values on each area
 c
