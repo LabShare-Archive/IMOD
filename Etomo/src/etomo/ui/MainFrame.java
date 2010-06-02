@@ -32,6 +32,9 @@ import etomo.util.Utilities;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.60  2010/02/17 05:03:12  sueh
+ * <p> bug# 1301 Using manager instead of manager key for popping up messages.
+ * <p>
  * <p> Revision 3.59  2009/11/20 17:27:52  sueh
  * <p> bug# 1282 Added prefixes to all of the field names, so that the fields that
  * <p> are actually abstract buttons (radio buttons, etc) won't be activated by a
@@ -582,7 +585,15 @@ public final class MainFrame extends EtomoFrame implements ContextMenu {
       }
     }
   }
-  
+
+  /**
+   * Saves the current location of the frame to UserConfiguration.
+   */
+  void saveLocation() {
+    EtomoDirector.INSTANCE.getUserConfiguration()
+        .setLastLocation(getLocation());
+  }
+
   public LogFrame getLogFrame() {
     return logFrame;
   }
