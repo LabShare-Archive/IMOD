@@ -20,6 +20,7 @@ import etomo.type.AxisID;
 import etomo.type.BaseMetaData;
 import etomo.type.UITestActionType;
 import etomo.type.UITestSubjectType;
+import etomo.type.UserConfiguration;
 import etomo.util.Utilities;
 
 /**
@@ -62,6 +63,16 @@ abstract class AbstractFrame extends JFrame {
   abstract void menuHelpAction(ActionEvent actionEvent);
 
   abstract LogFrame getLogFrame();
+
+  public void setVisible(boolean visible) {
+    UserConfiguration userConfiguration = EtomoDirector.INSTANCE
+        .getUserConfiguration();
+    if (userConfiguration.isLastLocationSet()) {
+      setLocation(userConfiguration.getLastLocationX(), userConfiguration
+          .getLastLocationY());
+    }
+    super.setVisible(visible);
+  }
 
   final void setVerbose(boolean verbose) {
     this.verbose = verbose;
