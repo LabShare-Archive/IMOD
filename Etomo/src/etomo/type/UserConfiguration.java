@@ -4,6 +4,7 @@ import etomo.storage.Storable;
 import etomo.ui.LogProperties;
 import etomo.util.CircularBuffer;
 
+import java.awt.Point;
 import java.util.*;
 
 /**
@@ -19,6 +20,9 @@ import java.util.*;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.12  2010/03/09 01:41:54  sueh
+ * <p> bug# 1323 Doing backwards compatibility for parameters which had been saved with a key that started with a ".".
+ * <p>
  * <p> Revision 3.11  2010/01/11 23:58:30  sueh
  * <p> bug# 1299 Added gpuProcessing.
  * <p>
@@ -115,6 +119,8 @@ public final class UserConfiguration implements Storable {
   private final EtomoNumber joinTableSize = new EtomoNumber("JoinTableSize");
   private final EtomoNumber peetTableSize = new EtomoNumber("PeetTableSize");
   private ConstLogProperties logProperties = new LogProperties();
+  private final EtomoNumber lastLocationX = new EtomoNumber("LastLocationX");
+  private final EtomoNumber lastLocationY = new EtomoNumber("LastLocationY");
 
   private EtomoBoolean2 montage = null;
   private EtomoBoolean2 parallelProcessing = null;
@@ -192,6 +198,8 @@ public final class UserConfiguration implements Storable {
     if (logProperties != null) {
       logProperties.store(props, prepend);
     }
+    lastLocationX.store(props, prepend);
+    lastLocationY.store(props, prepend);
 
     props.setProperty(group + "MainWindowWidth", String
         .valueOf(mainWindowWidth));
@@ -330,6 +338,8 @@ public final class UserConfiguration implements Storable {
     if (logProperties != null) {
       logProperties.load(props, prepend);
     }
+    lastLocationX.load(props, prepend);
+    lastLocationY.load(props, prepend);
   }
 
   /**
@@ -533,6 +543,29 @@ public final class UserConfiguration implements Storable {
 
   public ConstEtomoNumber getPeetTableSize() {
     return peetTableSize;
+  }
+
+  public boolean isLastLocationSet() {
+    return !lastLocationX.isNull() && !lastLocationY.isNull();
+  }
+
+  public int getLastLocationX() {
+    return lastLocationX.getInt();
+  }
+
+  public int getLastLocationY() {
+    return lastLocationY.getInt();
+  }
+
+  public void setLastLocation(Point point) {
+    if (point == null) {
+      lastLocationX.reset();
+      lastLocationY.reset();
+    }
+    else {
+      lastLocationX.set(point.x);
+      lastLocationY.set(point.y);
+    }
   }
 
   public ConstLogProperties getLogProperties() {
