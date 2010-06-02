@@ -170,6 +170,16 @@ and if the sorting matches the program just exits with 0 status; if there is
 a mismatch it prints the number of incorrect points and exits with an error
 status.
 
+[Field = SetSurfaceSortParam]
+short = set
+type = FPM
+usage = Set given parameter (0-13) to given value in surfaceSort routine
+tooltip =
+manpage = Set one parameter specified by the first number to the value
+specified by the second number in the surfaceSort routine.  See the library
+documentation of surfaceSort (or the code) for a list of the parameters.
+To set the verbose level, use "-set 13,1" or "-set 13,2".
+
 [Field = usage]
 short = help
 long = usage
