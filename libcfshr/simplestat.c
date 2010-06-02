@@ -12,7 +12,7 @@
 
 #include <math.h>
 #include "imodconfig.h"
-#include "cfsemshare.h"
+#include "b3dutil.h"
 
 #ifdef F77FUNCAP
 #define avgsd AVGSD
@@ -24,6 +24,7 @@
 #define lsfit2 LSFIT2
 #define lsfit2noc LSFIT2NOC
 #define lsfit2pred LSFIT2PRED
+#define lsfit3 LSFIT3
 #else
 #define avgsd avgsd_
 #define lsfit lsfit_
@@ -32,6 +33,7 @@
 #define lsfit2 lsfit2_
 #define lsfit2noc lsfit2noc_
 #define lsfit2pred lsfit2pred_
+#define lsfit3 lsfit3_
 #ifdef G77__HACK
 #define sums_to_avgsd sums_to_avgsd__
 #define sums_to_avgsd8 sums_to_avgsd8__
@@ -275,7 +277,7 @@ void lsfit2noc(float *x1, float *x2, float *y, int *n, float *a, float *b)
  * Does a linear regression fit of the [n] values in the array [y] to
  * the values in the arrays [x1] and [x2], namely to the equation
  * ^   y = a * x1 + b * x2 + c   ^
- * It returns the coefficients [a] and [c], and the intercept [c], but
+ * It returns the coefficients [a] and [b], and the intercept [c], but
  * if [c] is NULL it fits instead to 
  * ^   y = a * x1 + b * x2   ^
  * For one value of x1 and x2 given by [x1pred] and [x2pred], it returns the
@@ -339,7 +341,7 @@ void lsFit2Pred(float *x1, float *x2, float *y, int n, float *a, float *b,
   absdenom = denom > 0. ? denom : -denom;
   if (absanum < absbnum)
     absanum = absbnum;
-  if (absdenom < 1.e-20 * absanum)
+  if (absdenom < 1.e-30 * absanum)
     return;
   *a=anum/denom;
   *b=bnum/denom;
@@ -369,9 +371,82 @@ void lsfit2pred(float *x1, float *x2, float *y, int *n, float *a, float *b,
   lsFit2Pred(x1, x2, y, *n, a, b, c, *x1pred, *x2pred, ypred, prederr);
 }
 
+/* Determinant of 3x3 matrix */
+#define determ3(a1,a2,a3,b1,b2,b3,c1,c2,c3) ((a1)*(b2)*(c3) - (a1)*(b3)*(c2) +\
+  (a2)*(b3)*(c1) - (a2)*(b1)*(c3) + (a3)*(b1)*(c2) - (a3)*(b2)*(c1))
+
+/*!
+ * Does a linear regression fit of the [n] values in the array [y] to
+ * the values in the arrays [x1], [x2], and [x3], namely, to the equation
+ * ^   y = a1 * x1 + a2 * x2 + a3 * x3 + c   ^
+ * It returns the coefficients [a1], [a2], [a3] and the intercept [c].
+ */
+void lsFit3(float *x1, float *x2, float *x3, float *y, int n, float *a1, 
+            float *a2, float *a3, float *c)
+{
+  float x1s, x2s, x3s, ys, x1m, x2m, x3m, ym, x1sqs, x2sqs, x3sqs, x1x2s;
+  float x1x3s, x2x3s, x1ys, x2ys, x3ys, x1p, x2p, x3p, yp;
+  int i;
+  double den, num1, num2, num3, maxnum;
+  x1s = x2s = x3s = ys = 0.;
+  for (i = 0; i < n; i++) {
+    x1s = x1s + x1[i];
+    x2s = x2s + x2[i];
+    x3s = x3s + x3[i];
+    ys = ys + y[i];
+  }
+  
+  x1m = x1s / n;
+  x2m = x2s / n;
+  x3m = x3s / n;
+  ym = ys / n;
+  x1sqs = x2sqs = x3sqs = x1x2s = x1x3s = x2x3s = x1ys = x2ys = x3ys = 0.;
+  for (i = 0; i < n; i++) {
+    x1p = x1[i] - x1m;
+    x2p = x2[i] - x2m;
+    x3p = x3[i] - x3m;
+    yp = y[i] - ym;
+    x1sqs = x1sqs + x1p * x1p;
+    x2sqs = x2sqs + x2p * x2p;
+    x3sqs = x3sqs + x3p * x3p;
+    x1ys = x1ys + x1p * yp;
+    x2ys = x2ys + x2p * yp;
+    x3ys = x3ys + x3p * yp;
+    x1x2s = x1x2s + x1p * x2p;
+    x1x3s = x1x3s + x1p * x3p;
+    x2x3s = x2x3s + x2p * x3p;
+  }
+  *a1 = *a2 = *a3 = *c = 0.;
+  den = determ3(x1sqs, x1x2s, x1x3s, x1x2s, x2sqs, x2x3s, x1x3s, x2x3s, x3sqs);
+  num1 = determ3(x1ys, x1x2s, x1x3s, x2ys, x2sqs, x2x3s, x3ys, x2x3s, x3sqs);
+  num2 = determ3(x1sqs, x1ys, x1x3s, x1x2s, x2ys, x2x3s, x1x3s, x3ys, x3sqs);
+  num3 = determ3(x1sqs, x1x2s, x1ys, x1x2s, x2sqs, x2ys, x1x3s, x2x3s, x3ys);
+  maxnum = B3DMAX(fabs(num1), fabs(num2));
+  maxnum = B3DMAX(maxnum, fabs(num3));
+  if (fabs(den) < 1.e-30 * maxnum)
+    return;
+  *a1 = (float)(num1 / den);
+  *a2 = (float)(num2 / den);
+  *a3 = (float)(num3 / den);
+  *c = ym - *a1 * x1m - *a2 * x2m - *a3 * x3m;
+}
+
+/*!
+ * Fortran wrapper for @lsFit3
+ */
+void lsfit3(float *x1, float *x2, float *x3, float *y, int *n, float *a1, 
+            float *a2, float *a3, float *c)
+{
+  lsFit3(x1, x2, x3, y, *n, a1, a2, a3, c);
+}
+
+
 /*
 
 $Log$
+Revision 1.6  2008/11/15 00:44:59  mast
+Fix defines for Windows wrappers
+
 Revision 1.5  2008/11/14 20:44:53  mast
 Fix another call in wrapper, eliminate warnings
 
