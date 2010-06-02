@@ -20,9 +20,11 @@ c
       integer*4 numAreaX, numAreaY, numPts, isize, minNUm, ired, igreen, iblue
       integer*4 imodobj, newNx, newNy,icolobj,icol, numColors, iobj,iystr,iyend
       integer*4 nxub, nyub, ixtrim0, ixTrim1, iyTrim0, iyTrim1, ibinRec
-      integer*4 ibinPreali
+      integer*4 ibinPreali, numParams
       integer*4 getimodmaxes, getscatsize, deleteiobj, putImodMaxes,getObjColor
       real*4 sind, cosd
+      integer*4 PipNumberOfEntries, PipGetTwoFloats, setSurfSortParam
+      integer*4 surfaceSort
 
       integer*4 numOptArg, numNonOptArg
       integer*4 PipGetInteger,PipGetFloat,PipGetTwoIntegers
@@ -85,6 +87,12 @@ c
       ierr = PipGetLogical('CheckExistingGroups', checkGroups)
       ierr = PipGetTwoIntegers('XTrimStartAndEnd', ixTrim0, ixTrim1)
       ierr = PipGetTwoIntegers('YTrimStartAndEnd', iyTrim0, iyTrim1)
+      ierr = PipNumberOfEntries('SetSurfaceSortParam', numParams)
+      do i = 1, numParams
+        ierr = PipGetTwoFloats('SetSurfaceSortParam', epsX, epsY)
+        if (setSurfSortParam(nint(epsX), epsY) .ne. 0) call exitError(
+     &      'IMPROPER PARAMETER SETTING FOR SURFACE SORT ROUTINE')
+      enddo
 c       
 c       Get the model and its size
       exist=readSmallMod(filin)
@@ -220,8 +228,11 @@ c               and mark as in the fitting group
             minNum = min(minNum, numPts)
 c             
 c             Do the fits to find surfaces
-            if (numPts .gt. 1) call find_surfaces(xyzfit, numPts, 2, 60., 5 ,
-     &          tiltdum, igrfit, 0, 0., 0., 1)
+            if (numPts .gt. 1) then
+              ierr =  surfaceSort(xyzfit, numPts, igrfit)
+              if (ierr .ne. 0) call exitError(
+     &            'ALLOCATING MEMORY IN surfaceSort')
+            endif
 c             
 c             Copy the group numbers back
             j = 0
@@ -346,6 +357,9 @@ c
       end
 c
 c       $Log$
+c       Revision 3.4  2010/06/01 19:57:09  mast
+c       Fixed another initialization, added option to check input model
+c
 c       Revision 3.3  2010/05/10 20:18:09  mast
 c       Fixed initialization of all logicals
 c
