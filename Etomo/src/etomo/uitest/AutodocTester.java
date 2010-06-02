@@ -67,6 +67,9 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.30  2010/05/28 19:10:02  sueh
+ * <p> In formatApplication added a System.err.print so that I can see if it is helping.
+ * <p>
  * <p> Revision 1.29  2010/05/24 17:09:50  sueh
  * <p> In formatApplication increased sleep.
  * <p>
@@ -86,6 +89,9 @@ import etomo.util.Utilities;
  * <p>being fooled when kill button is disabled for a second.
  * <p>
  * $Log$
+ * Revision 1.30  2010/05/28 19:10:02  sueh
+ * In formatApplication added a System.err.print so that I can see if it is helping.
+ *
  * Revision 1.29  2010/05/24 17:09:50  sueh
  * In formatApplication increased sleep.
  *
@@ -1913,7 +1919,7 @@ final class AutodocTester extends Assert implements VariableList {
     UIHarness.INSTANCE.pack(axisID, EtomoDirector.INSTANCE
         .getCurrentManagerForTest());
     try {
-      Thread.sleep(200);
+      Thread.sleep(250);
     }
     catch (InterruptedException e) {
     }
