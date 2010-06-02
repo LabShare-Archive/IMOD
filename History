@@ -1,5 +1,7 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+6/2/10: In Etomo remembering the last location of the window.
+
 6/2/10: Made new routine for sorting points on two surfaces for use by
 Tiltalign, beadtrack, and Sortbeadsurfs; added option to Sortbeadsurfs for 
 testing the routine.
