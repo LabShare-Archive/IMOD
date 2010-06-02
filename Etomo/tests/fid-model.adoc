@@ -53,7 +53,7 @@ mb.transfer-fiducials=+
 	assert.rb.both-directions=on
 	assert.rb.+90-only=off
 	assert.rb.-90-only=off
-	assert.cb.mirror-one-image-around-the-x-axis=
+	assert.cb.mirror-one-image-around-the-x-axis=off
 	#basic
 	mb.transfer-fiducials.1=B
 	#Test enabled/disabled
