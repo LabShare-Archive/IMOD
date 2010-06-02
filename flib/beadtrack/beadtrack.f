@@ -114,7 +114,7 @@ c
       integer*4 ibaseOnAlign, ifAlignDone, imageBinned
       real*4 cosd,sind
       character*320 concat
-      integer*4 getImodObjsize, niceframe
+      integer*4 getImodObjsize, niceframe, surfaceSort
       logical itemOnList
       real*4 ran
 c       
@@ -1704,7 +1704,8 @@ c
 c         
 c         Do surface fitting on every round if tiltalign run
         if (surfaceFile .ne. ' ' .and. ifAlignDone .ne. 0) then
-          call find_surfaces(xyz,nrealpt,2, 30.,1,xpos,igrpBotTop,0,ypos)
+          if (surfaceSort(xyz,nrealpt,igrpBotTop) .ne. 0) call errorExit(
+     &        'ALLOCATING MEMORY in surfaceSort', 0)
 c           
 c           Find each object in the real object list and move group number
 c           into list
@@ -1802,6 +1803,9 @@ c
 c       
 c       
 c       $Log$
+c       Revision 3.33  2010/05/28 19:32:55  mast
+c       Enhance error message when box size too large
+c
 c       Revision 3.32  2010/02/28 22:15:38  mast
 c       Fixed problem initializing wsum values on each area
 c
