@@ -260,9 +260,11 @@ set cflags = "$flags $ccompFlags $optimization $defines $include_flags $c_includ
 set fflags = "$flags $fcompFlags $fcmpldFlags $optimization $include_flags"
 if ($compiler == intel) set libtrackFlags = "$flags $fcompFlags $fcmpNoportFlags $optimization $include_flags"
 
+# Add -DWIN32 for opencv and lasik in RAPTOR
+#
 cat << EOF >> $configure
 CFLAGS  = $cflags
-CXXFLAGS = $cflags
+CXXFLAGS = $cflags -DWIN32
 FFLAGS  = $fflags
 NOOPFFLAGS = $fflags $noop
 LIBCFLAGS = $cflags
@@ -272,6 +274,12 @@ EOF
 
 # Use fortran code for tilt program, make extra fortran libs
 echo 'TILTOBJS = bpsumnox.$(O) bpsumxtilt.$(O) bpsumlocal.$(O)' >> $configure
+
+# Variables for building RAPTOR
+#
+echo 'LASIKOBJS = dirent.obj' >> $configure
+echo 'RAPTORLIBS = user32.lib' >> $configure
+echo 'MARCORLIBS = user32.lib Advapi32.lib' >> $configure 
 
 #
 #   default is to assume tifflib exists
