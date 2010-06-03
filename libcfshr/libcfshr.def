@@ -16,6 +16,7 @@ EXPORTS
 	AdocGetTwoIntegers
 	sliceTaperAtFill
 	ilistFirst
+	setSurfSortParam
 	sliceGetVal
 	AdocGetSectionName
 	sliceGetValMagnitude
@@ -121,6 +122,7 @@ EXPORTS
 	findHistogramDip
 	fitSphere
 	c2fString
+	LSFIT3
 	PipGetBoolean
 	InsideContour
 	f2cString
@@ -136,6 +138,7 @@ EXPORTS
 	AdocGetThreeIntegers
 	conjugateProduct
 	XCorrSetCTFnoScl
+	surfaceSort
 	ADOCSETTHREEINTEGERS
 	PipGetTwoFloats
 	AdocSetThreeFloats
@@ -247,11 +250,13 @@ EXPORTS
 	betaFunc
 	imodCopyright
 	ilistPush
+	lsFit3
 	cblas_dnrm2
 	ADOCGETTWOINTEGERS
 	sliceGetYSize
 	ilistFloat
 	XCorrPeakFind
+	SETSURFSORTPARAM
 	PipSetError
 	cmapStandardRamp
 	SETCTFNOSCL
@@ -281,6 +286,7 @@ EXPORTS
 	PipGetLineOfValues
 	SPLITFILL
 	PIPALLOWCOMMADEFAULTS
+	SURFACESORT
 	AdocRead
 	PipReadStdinIfSet
 	kernelHistogram
