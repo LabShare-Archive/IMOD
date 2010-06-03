@@ -170,8 +170,7 @@ extern "C" {
   double lnGamma(double x);
 
   /* surfacesort.c */
-  int surfaceSort(float *xyz, int numPts, float *xrot, float *yrot,
-                  float *zrot, int *group);
+  int surfaceSort(float *xyz, int numPts, int *group);
   int setSurfSortParam(int which, float value);
 
 
@@ -185,6 +184,9 @@ extern "C" {
 /*
 
 $Log$
+Revision 3.18  2010/06/02 21:19:52  mast
+Added surfacesort
+
 Revision 3.17  2010/01/21 03:48:15  mast
 Added statfuncs
 
