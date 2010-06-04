@@ -67,7 +67,8 @@ abstract class AbstractFrame extends JFrame {
   public void setVisible(boolean visible) {
     UserConfiguration userConfiguration = EtomoDirector.INSTANCE
         .getUserConfiguration();
-    if (userConfiguration.isLastLocationSet()) {
+    if (!EtomoDirector.INSTANCE.getArguments().isIgnoreLoc()
+        && userConfiguration.isLastLocationSet()) {
       setLocation(userConfiguration.getLastLocationX(), userConfiguration
           .getLastLocationY());
     }
