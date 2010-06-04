@@ -55,15 +55,15 @@ if ($compiler == intel) then
     # version 8 and above: remove /C90, set record length to 4 bytes
     # also need to specify that \ is an escape character
     # Also stack size needs to be set high for a few programs (findwarp and ?)
-    # but this Intel bug was fixed in ifort 9.1.29
+    # This Intel bug was fixed in ifort 9.1.29 but is back in 10.1
     # There was a temporary need to remove delayload for 9.0, removed 4/6/06
     if ($iclversion > 7) then
         set fcomp = ifort
         set fcmpNoportFlags = "/F66000000"
-        if ("$iclbuild" != "") then
-            @ build = $iclbuild
-            if ($build >= 20060816) set fcmpNoportFlags = ""
-        endif
+#        if ("$iclbuild" != "") then
+#            @ build = $iclbuild
+#            if ($build >= 20060816) set fcmpNoportFlags = ""
+#        endif
         echo "      parameter (nbytes_recl_item=4)" >! $endian_dir/recl_bytes.inc
         set fcompFlags = "/assume:bscc /4L132 /Qvec-report:0"
         
