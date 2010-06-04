@@ -23,6 +23,9 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.9  2010/04/10 00:28:41  sueh
+ * <p> bug# 1349 Added --autoclose3dmod and reorganized help string.
+ * <p>
  * <p> Revision 1.8  2010/03/03 04:50:04  sueh
  * <p> bug# 1311 Added setDebug.
  * <p>
@@ -73,6 +76,7 @@ public final class Arguments {
   private static final String FG_TAG = "--fg";//foreground
   private static final String LISTEN_TAG = "--listen";
   private static final String AUTO_CLOSE_3DMOD_TAG = "--autoclose3dmod";
+  private static final String IGNORE_LOC_TAG = "--ignoreloc";
 
   static final String HELP_MESSAGE = "Options:\n  "
       + DEBUG_TAG
@@ -176,9 +180,14 @@ public final class Arguments {
       + HEADLESS_TAG
       + "\tFor testing.  No window is created.  Used for unit testing."
       + "\n\n  "
+      + IGNORE_LOC_TAG
+      + "\tFor user interface testing.  Keeps eTomo from using the last location"
+      + "\n\t\tinformation that is saved in .etomo."
+      + "\n\n  "
       + NAMES_TAG
       + "\tFor testing.  Send the names of screen elements to standard out.  For"
-      + "\n\t\twriting automated regression tests." + "\n\n  " + NEWSTUFF_TAG
+      + "\n\t\twriting automated regression tests." + "\n\n  "
+      + NEWSTUFF_TAG
       + "\tMay cause Etomo to run with unreleased functionality." + "\n\n  "
       + TEST_TAG
       + "\tFor testing.  Test mode used for unit testing and automated"
@@ -217,6 +226,7 @@ public final class Arguments {
   private String automationFile = null;
   private boolean listen = false;
   private boolean autoClose3dmod = false;
+  private boolean ignoreLoc = false;
 
   private final EtomoNumber fiducial = new EtomoNumber(EtomoNumber.Type.DOUBLE);
 
@@ -278,7 +288,7 @@ public final class Arguments {
   public boolean isListen() {
     return listen;
   }
-  
+
   public boolean isAutoClose3dmod() {
     return autoClose3dmod;
   }
@@ -301,6 +311,10 @@ public final class Arguments {
 
   public ConstEtomoNumber getFiducial() {
     return fiducial;
+  }
+  
+  public boolean isIgnoreLoc() {
+    return ignoreLoc;
   }
 
   /**
@@ -423,6 +437,9 @@ public final class Arguments {
       }
       else if (args[i].equals(AUTO_CLOSE_3DMOD_TAG)) {
         autoClose3dmod = true;
+      }
+      else if (args[i].equals(IGNORE_LOC_TAG)) {
+        ignoreLoc=true;
       }
       else {
         System.err.println("WARNING:  unknown argument, " + args[i]
