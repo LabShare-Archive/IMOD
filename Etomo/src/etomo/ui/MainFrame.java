@@ -32,6 +32,9 @@ import etomo.util.Utilities;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.61  2010/06/02 21:46:24  sueh
+ * <p> bug# 1380 Added saveLocation.
+ * <p>
  * <p> Revision 3.60  2010/02/17 05:03:12  sueh
  * <p> bug# 1301 Using manager instead of manager key for popping up messages.
  * <p>
@@ -590,8 +593,10 @@ public final class MainFrame extends EtomoFrame implements ContextMenu {
    * Saves the current location of the frame to UserConfiguration.
    */
   void saveLocation() {
-    EtomoDirector.INSTANCE.getUserConfiguration()
-        .setLastLocation(getLocation());
+    if (!EtomoDirector.INSTANCE.getArguments().isIgnoreLoc()) {
+      EtomoDirector.INSTANCE.getUserConfiguration().setLastLocation(
+          getLocation());
+    }
   }
 
   public LogFrame getLogFrame() {
