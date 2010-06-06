@@ -378,15 +378,15 @@ void find_best_shifts(MidasView *vw, int leaveout, int ntoperr,
 void find_local_errors(MidasView *vw, int leaveout, int ntoperr,
 		       float *meanerr, float *amax, int *indmax,
 		       float *curerrx, float *curerry, int localonly);
-void amat_to_rotmagstr(float *amat, float *theta, float *smag, float *str,
-		       float *phi);
 
-int gaussj(float *a, int n, int np, float *b, int m, int mp);
 #endif  // MIDAS_H
 
 /*
 
 $Log$
+Revision 3.16  2009/01/15 16:30:19  mast
+Qt 4 port
+
 Revision 3.15  2008/10/13 04:36:23  mast
 Added cosine stretching
 
