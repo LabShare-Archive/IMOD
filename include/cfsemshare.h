@@ -173,6 +173,8 @@ extern "C" {
   int surfaceSort(float *xyz, int numPts, int *group);
   int setSurfSortParam(int which, float value);
 
+  /* gaussj.c */
+  int gaussj(float *a, int n, int np, float *b, int m, int mp);
 
 #ifdef __cplusplus
 }
@@ -184,6 +186,9 @@ extern "C" {
 /*
 
 $Log$
+Revision 3.19  2010/06/03 14:44:09  mast
+Fixed arguments
+
 Revision 3.18  2010/06/02 21:19:52  mast
 Added surfacesort
 

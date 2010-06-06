@@ -16,7 +16,8 @@ UTILOBJS = b3dutil.$(O) ilist.$(O) parselist.$(O) amoeba.$(O) \
 	insidecontour.$(O) islice.$(O) taperatfill.$(O) histogram.$(O) \
 	simplestat.$(O) amat_to_rotmagstr.$(O) percentile.$(O) beadutil.$(O) \
 	lsqr.$(O) lsqrblas.$(O) sparselsqr.$(O) parallelwrite.$(O) \
-	robuststat.$(O) convexbound.$(O) statfuncs.$(O) surfacesort.$(O)
+	robuststat.$(O) convexbound.$(O) statfuncs.$(O) surfacesort.$(O) \
+	gaussj.$(O)
 
 PIPOBJS = parse_params.$(O) pip_fwrap.$(O) autodoc.$(O) adoc_fwrap.$(O)
 
@@ -56,6 +57,9 @@ adoc_fwrap.$(O) : $(INCDIR)/autodoc.h
 lsqr.$(O) : $(INCDIR)/lsqr.h cblas.h stdbool.h
 
 #  $Log$
+#  Revision 1.17  2010/06/02 21:07:08  mast
+#  Added surfacesort
+#
 #  Revision 1.16  2010/01/21 03:48:00  mast
 #  Added statfuncs
 #
