@@ -19,6 +19,7 @@
 #include <qfile.h>
 #include <QTextStream>
 #include "dia_qtutils.h"
+#include "b3dutil.h"
 
 static void checklist(int *xpclist, int npclist, int nxframe, int *minxpiece,
                       int *nxpieces, int *nxoverlap);
@@ -1349,8 +1350,10 @@ void find_best_shifts(MidasView *vw, int leaveout, int ntoperr,
     return;
 
   if (nvar > MAX_GAUSSJ_VARS * MAX_GAUSSJ_VARS) {
+    double wallstart = wallTime();
     find_local_errors(vw, leaveout, ntoperr, meanerr, amax, indmax,
                       curerrx, curerry, localonly);
+    //printf("local time %.3f\n", wallTime() - wallstart);
     return;
   }
 
@@ -1718,6 +1721,9 @@ static void solve_for_shifts(MidasView *vw, float *a, float *b,
 
 /*
 $Log$
+Revision 3.21  2009/12/07 17:09:22  mast
+Initialize edge displacements to zero so input file need not exist
+
 Revision 3.20  2009/01/15 16:30:19  mast
 Qt 4 port
 
