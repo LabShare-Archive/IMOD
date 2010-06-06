@@ -19,6 +19,7 @@ EXPORTS
 	setSurfSortParam
 	sliceGetVal
 	AdocGetSectionName
+	GAUSSJ
 	sliceGetValMagnitude
 	PARWRTGETREGION
 	convexBound
@@ -193,6 +194,7 @@ EXPORTS
 	b3dSetStoreError
 	parselist
 	PARWRTINITIALIZEFW
+	gaussj
 	INSIDECONTOUR
 	PipGetThreeFloats
 	PIPGETTHREEFLOATS
