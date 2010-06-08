@@ -67,6 +67,9 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.34  2010/06/08 16:36:55  sueh
+ * <p> In formatApplication increased sleep.
+ * <p>
  * <p> Revision 1.33  2010/06/07 14:54:24  sueh
  * <p> In formatApplication increased sleep.
  * <p>
@@ -98,6 +101,9 @@ import etomo.util.Utilities;
  * <p>being fooled when kill button is disabled for a second.
  * <p>
  * $Log$
+ * Revision 1.34  2010/06/08 16:36:55  sueh
+ * In formatApplication increased sleep.
+ *
  * Revision 1.33  2010/06/07 14:54:24  sueh
  * In formatApplication increased sleep.
  *
@@ -719,6 +725,11 @@ final class AutodocTester extends Assert implements VariableList {
     //END
     else if (actionType == UITestActionType.END) {
       setEnd();
+    }
+    //FORMAT
+    else if (actionType == UITestActionType.FORMAT) {
+      formatApplication();
+      executeField(command);
     }
     //IF
     else if (actionType == UITestActionType.IF) {
@@ -1682,8 +1693,9 @@ final class AutodocTester extends Assert implements VariableList {
       //bn.button_name =
       assertNull("value not valid in a button command (" + command + ")", value);
       MouseEventData mouseEventData = new MouseEventData(testRunner, button, 1);
-      assertTrue("prepareComponent failed (" + command + ")", mouseEventData
-          .prepareComponent());
+      if (!mouseEventData.prepareComponent()) {
+        formatApplication();
+      }
       helper.enterClickAndLeave(mouseEventData);
       try {
         if (Utilities.isWindowsOS()) {
@@ -1718,7 +1730,7 @@ final class AutodocTester extends Assert implements VariableList {
       if (value == null || checkBox.isSelected() != convertToBoolean(value)) {
         helper.enterClickAndLeave(new MouseEventData(testRunner, checkBox, 1));
         try {
-          Thread.sleep(2);
+          Thread.sleep(3);
         }
         catch (InterruptedException e) {
         }
@@ -1839,7 +1851,7 @@ final class AutodocTester extends Assert implements VariableList {
       assertNull("value not valid in a radio command (" + command + ")", value);
       helper.enterClickAndLeave(new MouseEventData(testRunner, radioButton));
       try {
-        Thread.sleep(1);
+        Thread.sleep(3);
       }
       catch (InterruptedException e) {
       }
@@ -1937,7 +1949,7 @@ final class AutodocTester extends Assert implements VariableList {
     UIHarness.INSTANCE.pack(axisID, EtomoDirector.INSTANCE
         .getCurrentManagerForTest());
     try {
-      Thread.sleep(10000);
+      Thread.sleep(250);
     }
     catch (InterruptedException e) {
     }
