@@ -14,6 +14,11 @@ package etomo.type;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.3  2009/11/20 17:00:03  sueh
+ * <p> bug# 1282 Added DELIMETER_CHANGER and isNoOp() to show that this
+ * <p> instance is not a command.  Added SAVE.  Added isSubcommandAction(),
+ * <p> which limits the actions which can be used in subcommands.
+ * <p>
  * <p> Revision 1.2  2009/01/28 00:51:53  sueh
  * <p> bug# 1102 Added subsection type ifnot.
  * <p>
@@ -28,6 +33,7 @@ public final class UITestActionType {
   //Cannot use the same strings as etomo.type.UITestFieldType.
   public static final UITestActionType ASSERT = new UITestActionType("assert");
   public static final UITestActionType END = new UITestActionType("end");
+  public static final UITestActionType FORMAT = new UITestActionType("format");
   public static final UITestActionType COPY = new UITestActionType("copy");
   public static final UITestActionType GOTO = new UITestActionType("goto");
   public static final UITestActionType IF = new UITestActionType("if");
@@ -59,6 +65,9 @@ public final class UITestActionType {
     }
     if (END.equals(string)) {
       return END;
+    }
+    if (FORMAT.equals(string)) {
+      return FORMAT;
     }
     if (COPY.equals(string)) {
       return COPY;

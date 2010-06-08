@@ -164,7 +164,7 @@ button (\fBbn\fR) is to push it.
 
 .TP 4
 .I action
-.B assert\fR, \fBcopy\fR, \fBend\fR, \fBif\fR, \fBgoto\fR, \fBopen\fR,
+.B assert\fR, \fBcopy\fR, \fBend\fR, \fBformat\fR, \fBif\fR, \fBgoto\fR, \fBopen\fR,
 \fBreturn\fR, \fBrun\fR, \fBset\fR, \fBskipto\fR, \fBsleep\fR, \fBstart\fR, \fBwait
 
 .TP 4
@@ -816,6 +816,10 @@ The function of \fBend\fR depends on where it is placed.  In a top level
 function for axis A the single axis, it ends the test immediately.  In a top
 level function ends the B axis test.  In a lower level function it stops the
 test for the axis.  This last option lets both axes get to the same place.
+
+.TP 4
+.B format.\fIfield =
+Has eTomo format itself, and then executes the field command as usual.
 
 .P
 .B [[if\fR[\fBnot\fR]\fB = \fIvariable_name\fB]]
