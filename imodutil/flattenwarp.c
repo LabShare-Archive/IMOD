@@ -1062,7 +1062,7 @@ int main( int argc, char *argv[])
   normalizeColumns(rwrk, ia, ja, numLoc, numRows, sumEntries);
   itnlim = numLoc;
   atol = 0.;
-  btol = 0.01;
+  btol = 0.;
   conlim = 1.e7;
   lsqr(numRows, numLoc, sparseProd, 0., iwrk, uu1, vv, ww, xx, NULL, atol,
        btol, conlim, itnlim, NULL, &istop, &itndone, &anorm, 
