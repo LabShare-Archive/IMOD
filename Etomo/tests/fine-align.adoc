@@ -27,7 +27,7 @@ copy.file=%{dataset}%{axis}_fid.tlt
 # run with best alignment
 bn.compute-alignment=
 wait.process.aligning-stack=done
-bn.done=
+format.bn.done=
 
 
 # General tab
@@ -176,7 +176,6 @@ bn.advanced=
 	assert.tf.cycle-limit=1000
 [[]]
 # check enabled/disabled
-sleep=1
 assert.enabled.tf.metro-factor=
 assert.enabled.tf.cycle-limit=
 bn.basic=
@@ -222,7 +221,6 @@ assert.enabled.tf.target-patch-size=
 assert.enabled.rb.#-of-local-patches=
 assert.disabled.tf.#-of-local-patches=
 assert.enabled.tf.min-#-of-fiducials=
-sleep=2
 bn.advanced=
 assert.enabled.tf.overlap-factor=
 assert.enabled.cb.use-global-x-y-z-coordinates=
@@ -246,7 +244,6 @@ tb.general.1=
 [[]]
 [[if = test-values]]
 	# check values
-	sleep=1
 	bn.advanced=
 	assert.cb.solve-for-single-stretch-during-projection=off
 	bn.basic=
@@ -263,7 +260,6 @@ tb.general.1=
 	run.function.beam-tilt=
 [[]]
 # Run with full distortion solution
-sleep=2
 rb.full-solution=
 bn.compute-alignment=
 wait.process.aligning-stack=done
@@ -292,7 +288,7 @@ tb.general.1=
 	assert.tf.group-size=5
 	bn.advanced=
 	assert.tf.non-default-grouping=
-	bn.basic=
+	format.bn.basic=
 [[]]
 # check enabled/disabled
 assert.enabled.rb.no-rotation=
@@ -302,7 +298,6 @@ assert.enabled.rb.solve-for-all-rotations=
 rb.no-rotation=
 assert.enabled.tf.rotation-angle=
 assert.disabled.tf.group-size=
-sleep=1
 bn.advanced=
 assert.disabled.tf.non-default-grouping=
 bn.basic=
@@ -315,7 +310,6 @@ bn.basic=
 rb.group-rotations=
 assert.disabled.tf.rotation-angle=
 assert.enabled.tf.group-size=
-sleep=1
 bn.advanced=
 assert.enabled.tf.non-default-grouping=
 bn.basic=
@@ -347,7 +341,7 @@ assert.enabled.rb.group-magnifications=
 assert.enabled.rb.solve-for-all-magnifications=
 bn.advanced=
 assert.enabled.tf.reference-view=
-bn.basic=
+format.bn.basic=
 rb.fixed-magnification-at-10=
 assert.disabled.tf.group-size.1=
 bn.advanced=
@@ -395,7 +389,7 @@ rb.solve-for-all-except-minimum-tilt=
 assert.disabled.tf.group-size.2=
 bn.advanced=
 assert.disabled.tf.non-default-grouping.2=
-bn.basic=
+format.bn.basic=
 rb.group-tilt-angles=
 
 
@@ -414,13 +408,12 @@ bn.basic=
 	bn.advanced=
 	assert.tf.x-stretch-non-default-grouping=
 	assert.tf.skew-non-default-grouping=
-	bn.basic=
+	format.bn.basic=
 [[]]
 # check enabled/disabled
 assert.enabled.rb.disabled=
 assert.enabled.rb.full-solution=
 assert.enabled.rb.skew-only=
-sleep=1
 bn.advanced=
 rb.solve-for-beam-tilt=
 bn.basic=
@@ -447,7 +440,6 @@ bn.basic=
 rb.skew-only=
 assert.disabled.tf.x-stretch-group-size=
 assert.enabled.tf.skew-group-size=
-sleep=1
 bn.advanced=
 assert.disabled.tf.x-stretch-non-default-grouping=
 assert.enabled.tf.skew-non-default-grouping=
@@ -556,7 +548,6 @@ assert.enabled.tf.non-default-grouping.1=
 bn.basic=
 cb.enable.1=off
 assert.disabled.tf.group-size.1=
-sleep=3
 bn.advanced=
 assert.disabled.tf.non-default-grouping.1=
 bn.basic=
@@ -577,7 +568,6 @@ tb.general.2=
 assert.enabled.cb.enable.2=
 cb.enable.2=on
 assert.enabled.tf.group-size.2=
-sleep=1
 bn.advanced=
 assert.enabled.tf.non-default-grouping.2=
 bn.basic=
