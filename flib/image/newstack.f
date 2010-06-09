@@ -127,7 +127,7 @@ c
      &    'multadd:MultiplyAndAdd:FPM:@taper:TaperAtFill:IP:@'//
      &    'distort:DistortionField:FN:@imagebinned:ImagesAreBinned:I:@'//
      &    'fields:UseFields:LIM:@gradient:GradientFile:FN:@'//
-     &    'memory:MemoryLimit:IP:@test:TestLimits:IP:@'//
+     &    'memory:MemoryLimit:I:@test:TestLimits:IP:@'//
      &    'verbose:VerboseOutput:I:@param:ParameterFile:PF:@help:usage:B:'
 c       
 c       Pip startup: set error, parse options, check help, set flag if used
@@ -2092,6 +2092,10 @@ c
 ************************************************************************
 *       
 c       $Log$
+c       Revision 3.58  2010/04/13 15:42:16  mast
+c       Increased number of allowed sections, used allocation for all other common
+c       section and file related arrays, added split option
+c
 c       Revision 3.57  2009/10/14 23:50:41  mast
 c       allocate arrays for extra header data
 c
