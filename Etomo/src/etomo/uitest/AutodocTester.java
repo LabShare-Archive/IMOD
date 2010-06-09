@@ -67,6 +67,10 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.35  2010/06/08 19:04:33  sueh
+ * <p> bug# 1383 Adding format action.  Changed formatApplication sleep to a quarter of a second.  Increased the checkbox and radio button sleeps to
+ * <p> 3 milliseconds.
+ * <p>
  * <p> Revision 1.34  2010/06/08 16:36:55  sueh
  * <p> In formatApplication increased sleep.
  * <p>
@@ -101,6 +105,10 @@ import etomo.util.Utilities;
  * <p>being fooled when kill button is disabled for a second.
  * <p>
  * $Log$
+ * Revision 1.35  2010/06/08 19:04:33  sueh
+ * bug# 1383 Adding format action.  Changed formatApplication sleep to a quarter of a second.  Increased the checkbox and radio button sleeps to
+ * 3 milliseconds.
+ *
  * Revision 1.34  2010/06/08 16:36:55  sueh
  * In formatApplication increased sleep.
  *
@@ -1702,7 +1710,7 @@ final class AutodocTester extends Assert implements VariableList {
           Thread.sleep(1000);
         }
         else {
-          Thread.sleep(1);
+          Thread.sleep(3);
         }
       }
       catch (InterruptedException e) {
