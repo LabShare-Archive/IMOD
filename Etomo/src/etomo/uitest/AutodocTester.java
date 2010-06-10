@@ -67,6 +67,9 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.36  2010/06/09 21:27:48  sueh
+ * <p> bug# 1383 In executeField increased the button sleep to 3 milliseconds.
+ * <p>
  * <p> Revision 1.35  2010/06/08 19:04:33  sueh
  * <p> bug# 1383 Adding format action.  Changed formatApplication sleep to a quarter of a second.  Increased the checkbox and radio button sleeps to
  * <p> 3 milliseconds.
@@ -105,6 +108,9 @@ import etomo.util.Utilities;
  * <p>being fooled when kill button is disabled for a second.
  * <p>
  * $Log$
+ * Revision 1.36  2010/06/09 21:27:48  sueh
+ * bug# 1383 In executeField increased the button sleep to 3 milliseconds.
+ *
  * Revision 1.35  2010/06/08 19:04:33  sueh
  * bug# 1383 Adding format action.  Changed formatApplication sleep to a quarter of a second.  Increased the checkbox and radio button sleeps to
  * 3 milliseconds.
@@ -228,6 +234,8 @@ import etomo.util.Utilities;
  */
 final class AutodocTester extends Assert implements VariableList {
   public static final String rcsid = "$Id$";
+  
+  private static final int REDRAW_WAIT = 4;
 
   private final ReadOnlyAutodoc autodoc;
   private final JFCTestHelper helper;
@@ -1710,7 +1718,7 @@ final class AutodocTester extends Assert implements VariableList {
           Thread.sleep(1000);
         }
         else {
-          Thread.sleep(3);
+          Thread.sleep(REDRAW_WAIT);
         }
       }
       catch (InterruptedException e) {
@@ -1738,7 +1746,7 @@ final class AutodocTester extends Assert implements VariableList {
       if (value == null || checkBox.isSelected() != convertToBoolean(value)) {
         helper.enterClickAndLeave(new MouseEventData(testRunner, checkBox, 1));
         try {
-          Thread.sleep(3);
+          Thread.sleep(REDRAW_WAIT);
         }
         catch (InterruptedException e) {
         }
@@ -1817,7 +1825,7 @@ final class AutodocTester extends Assert implements VariableList {
           || miniButton.getText().equals("<html><b>" + value + "</b>")) {
         helper.enterClickAndLeave(new MouseEventData(testRunner, miniButton));
         try {
-          Thread.sleep(1);
+          Thread.sleep(REDRAW_WAIT);
         }
         catch (InterruptedException e) {
         }
@@ -1859,7 +1867,7 @@ final class AutodocTester extends Assert implements VariableList {
       assertNull("value not valid in a radio command (" + command + ")", value);
       helper.enterClickAndLeave(new MouseEventData(testRunner, radioButton));
       try {
-        Thread.sleep(3);
+        Thread.sleep(REDRAW_WAIT);
       }
       catch (InterruptedException e) {
       }
@@ -1918,7 +1926,7 @@ final class AutodocTester extends Assert implements VariableList {
       helper.enterClickAndLeave(new JTabbedPaneMouseEventData(testRunner,
           tabbedPane, index, 1));
       try {
-        Thread.sleep(1);
+        Thread.sleep(REDRAW_WAIT);
       }
       catch (InterruptedException e) {
       }
