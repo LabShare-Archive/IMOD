@@ -67,6 +67,10 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.37  2010/06/10 21:58:45  sueh
+ * <p> bug# 1383 Added REDRAW_WAIT.  Using it with fields that may require a
+ * <p> panel to be redrawn.
+ * <p>
  * <p> Revision 1.36  2010/06/09 21:27:48  sueh
  * <p> bug# 1383 In executeField increased the button sleep to 3 milliseconds.
  * <p>
@@ -108,6 +112,10 @@ import etomo.util.Utilities;
  * <p>being fooled when kill button is disabled for a second.
  * <p>
  * $Log$
+ * Revision 1.37  2010/06/10 21:58:45  sueh
+ * bug# 1383 Added REDRAW_WAIT.  Using it with fields that may require a
+ * panel to be redrawn.
+ *
  * Revision 1.36  2010/06/09 21:27:48  sueh
  * bug# 1383 In executeField increased the button sleep to 3 milliseconds.
  *
@@ -235,7 +243,7 @@ import etomo.util.Utilities;
 final class AutodocTester extends Assert implements VariableList {
   public static final String rcsid = "$Id$";
   
-  private static final int REDRAW_WAIT = 4;
+  private static final int REDRAW_WAIT = 3;
 
   private final ReadOnlyAutodoc autodoc;
   private final JFCTestHelper helper;
