@@ -33,7 +33,7 @@ c
       real*4 composeFill
       integer*4 jsirt,iset,ixSum,mapEnd,nz5,lfillStart,lfillEnd
       real*8 dtot8
-      logical*4 shiftedGpuLoad, composedOne
+      logical*4 shiftedGpuLoad, composedOne, truncations, extremes
       integer*4 gpuLoadProj,gpuShiftProj, gpuReprojOneSlice
       real*8 walltime, tstart, dsum, dpix
 c
@@ -594,6 +594,23 @@ C       Close files
       pixelTot = float(NSLICE)*IWIDE*ITHICKout
       if (reproj.or.recReproj) pixelTot = float(NSLICE)*IWIDE*nreproj
       DMEAN=DTOT8/pixelTot
+c       
+c       get numbers used to compute scaling report, and then fix min/max if
+c       necessary
+      unscmin=dmin/scale-flevl
+      unscmax=dmax/scale-flevl
+      truncations = .false.
+      extremes = .false.
+      if (newmode .eq. 0) then
+        truncations = dmin .lt. 0. .or. dmax .gt. 256.
+        dmin = max(0., dmin)
+        dmax = min(255., dmax)
+      else if (newmode .eq. 1) then
+        extremes = useGPU .and. max(abs(dmin), abs(dmax)) .gt. 3e5
+        truncations = dmin .lt. -32768. .or. dmax .gt. 32768.
+        dmin = max(-32768., dmin)
+        dmax = min(32767., dmax)
+      endif
       if (minTotSlice.le.0) then
         if(perp.and.interhsave.gt.0.and..not.(reproj.or.recReproj))then
           nxyztmp(3)=nslice
@@ -612,8 +629,6 @@ C       Close files
       endif
       CALL IMCLOSE(2)
       if (.not.(reproj.or.recReproj .or. numSIRTiter .gt. 0)) then
-        unscmin=dmin/scale-flevl
-        unscmax=dmax/scale-flevl
         recscale=nviews*235./(unscmax-unscmin)
         recflevl=(10.*(unscmax-unscmin)/235.-unscmin)/nviews
         write(6,905)'bytes (10-245)',recflevl,recscale
@@ -622,6 +637,8 @@ C       Close files
         write(6,905)'-15000 to 15000',recflevl,recscale
         WRITE(6,910)NSLICE
       endif
+      if (extremes) write(6,911)
+      if (truncations .and. .not. extremes) write(6,912)
       if (useGPU) call gpuDone()
       if (iterForReport .gt. 0) then
         do i = 1, max(1, numSIRTiter)
@@ -658,6 +675,11 @@ C
 908   format(/,'Iter ', i4.3, ', slices', 2i6, ', diff rec mean&sd:', 2f15.3)
 910   FORMAT(//' Reconstruction of',I5,' slices complete.',
      &    //,1X,78('-'))
+911   format(/,'WARNING: TILT - EXTREMELY LARGE VALUES OCCURRED AND VALUES ',
+     &    'WERE TRUNCATED WHEN OUTPUT TO FILE; THERE COULD BE ERRORS IN GPU ',
+     &    'COMPUTATION',/)
+912   format(/,'WARNING: TILT - SOME VALUES WERE TRUNCATED WHEN OUTPUT TO THE',
+     &    ' FILE; CHECK THE OUTPUT SCALING',/)
 920   FORMAT(//' ERROR: TILT -  reading in view',I3,' for slice'
      &    ,I5,/)
 930   FORMAT(//' Header on ',a,' file'/
@@ -5035,6 +5057,9 @@ c       Set to open contour, show values etc., and show sphere on section only
 
 c       
 c       $Log$
+c       Revision 3.57  2010/05/24 21:33:15  mast
+c       Changed scaling messages
+c
 c       Revision 3.56  2010/05/24 19:50:44  mast
 c       Fixed centering of vertical slices with a yoffset, provided separate
 c       fill value for compose and held slices to be filled until it is set
