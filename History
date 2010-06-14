@@ -1,5 +1,9 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+6/14/10: Added warnings from Tilt if output is truncated and if there are
+extreme values from GPU; made Processchunks pass on warnings and copy first 
+nonsync log file instead of startup log file (In 4.1).
+
 6/8/10: In eTomo fixed the UI test so that it can get through fine alignment.
 
 6/4/10: In eTomo remembering the last location of the window.
