@@ -710,7 +710,8 @@ int imodObjectSetName(Iobj *obj, char *inName)
  * {IobjMaxContour}, {IobjLineWidth}, {IobjLineWidth2}, {IobjPointSize},
  * {IobjMaxMesh}, {IobjMaxSurface}, {IobjFlagClosed}, {IobjFlagConnected}, 
  * {IobjFlagFilled}, {IobjFlagDraw}, {IobjFlagMesh}, {IobjFlagLine},
- * {IobjFlagTime}, and {IobjFlagExtraInModv}.
+ * {IobjFlagTime}, and {IobjFlagExtraInModv}.  {IobjFlagConnected} is 0 for 
+ * scattered point objects.
  */
 int   imodObjectGetValue(Iobj *inObject, int inValueType)
 {
@@ -824,6 +825,9 @@ void  imodObjectSetValue(Iobj *inObject, int inValueType, int inValue)
 /*
 
 $Log$
+Revision 3.22  2009/02/24 18:01:50  mast
+Brought object centroid routine up to snuff and workable for open obj
+
 Revision 3.21  2008/12/09 23:26:48  mast
 Changed flag from line to noline
 
