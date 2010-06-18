@@ -28,6 +28,14 @@ import etomo.ui.UIHarness;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.46  2010/06/18 16:22:01  sueh
+ * <p> bug# 1385 In processDone(int) collecting the last warning from
+ * <p> monitorMessages (only interested in detached processes) to pop up.
+ * <p>
+ * <p> Revision 3.44  2010/02/17 04:49:20  sueh
+ * <p> bug# 1301 Using the manager instead of the manager key do pop up
+ * <p> messages.
+ * <p>
  * <p> Revision 3.43  2009/10/01 18:48:10  sueh
  * <p> bug# 1239 In processDone put only the process name in the terminated
  * <p> message so that it is easier to test with uitest.
@@ -693,6 +701,22 @@ class BackgroundProcess extends Thread implements SystemProcessInterface {
             "Process Monitor Error", axisID);
         if (endState == ProcessEndState.FAILED) {
           errorFound = true;
+        }
+      }
+      if (!errorFound) {
+        if (monitorMessages != null) {
+          //TODO start using CHUNK WARNING: tag after processchunks starts
+          //putting one out.
+          String lastWarningMessage = monitorMessages.getLastWarning();
+          if (lastWarningMessage != null) {
+            ProcessMessages warningMessage = ProcessMessages.getInstance();
+            warningMessage.addWarning();
+            warningMessage.addWarning("<html><U>Warnings Occurred</U>");
+            warningMessage.addWarning("<html><U>Last warning:</U>");
+            warningMessage.addWarning(lastWarningMessage);
+            UIHarness.INSTANCE.openWarningMessageDialog(manager, warningMessage,
+                getProcessName() + " Warning", axisID);
+          }
         }
       }
     }
