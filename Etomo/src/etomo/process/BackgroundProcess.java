@@ -28,6 +28,10 @@ import etomo.ui.UIHarness;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.45  2010/04/28 16:15:13  sueh
+ * <p> bug# 1344 Added closeOutputImageFile.  Added another constructor that
+ * <p> takes a Command parameter.
+ * <p>
  * <p> Revision 3.44  2010/02/17 04:49:20  sueh
  * <p> bug# 1301 Using the manager instead of the manager key do pop up
  * <p> messages.
@@ -397,7 +401,7 @@ class BackgroundProcess extends Thread implements SystemProcessInterface {
     processDetails = null;
     commandDetails = null;
   }
-  
+
   BackgroundProcess(BaseManager manager, Command command,
       BaseProcessManager processManager, AxisID axisID,
       ProcessResultDisplay processResultDisplay, ProcessName processName,
@@ -725,6 +729,22 @@ class BackgroundProcess extends Thread implements SystemProcessInterface {
             "Process Monitor Error", axisID);
         if (endState == ProcessEndState.FAILED) {
           errorFound = true;
+        }
+      }
+      if (!errorFound) {
+        if (monitorMessages != null) {
+          //TODO start using CHUNK WARNING: tag after processchunks starts
+          //putting one out.
+          String lastWarningMessage = monitorMessages.getLastWarning();
+          if (lastWarningMessage != null) {
+            ProcessMessages warningMessage = ProcessMessages.getInstance();
+            warningMessage.addWarning();
+            warningMessage.addWarning("<html><U>Warnings Occurred</U>");
+            warningMessage.addWarning("<html><U>Last warning:</U>");
+            warningMessage.addWarning(lastWarningMessage);
+            UIHarness.INSTANCE.openWarningMessageDialog(manager, warningMessage,
+                getProcessName() + " Warning", axisID);
+          }
         }
       }
     }
