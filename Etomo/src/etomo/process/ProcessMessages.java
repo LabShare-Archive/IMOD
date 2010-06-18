@@ -185,6 +185,10 @@ public final class ProcessMessages {
   synchronized final void addError() {
     getErrorList().add("");
   }
+  
+  synchronized final void addWarning() {
+    getWarningList().add("");
+  }
 
   synchronized void addError(String[] errors) {
     if (errors == null || errors.length == 0) {
@@ -254,6 +258,13 @@ public final class ProcessMessages {
       return null;
     }
     return (String) chunkErrorList.get(chunkErrorList.size() - 1);
+  }
+  
+  public String getLastWarning() {
+    if (warningList == null || warningList.size() == 0) {
+      return null;
+    }
+    return (String) warningList.get(warningList.size() - 1);
   }
 
   final void print() {
@@ -848,6 +859,10 @@ public final class ProcessMessages {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.12  2010/02/17 04:49:20  sueh
+ * <p> bug# 1301 Using the manager instead of the manager key do pop up
+ * <p> messages.
+ * <p>
  * <p> Revision 1.11  2009/05/02 01:08:46  sueh
  * <p> bug# 1216 In addElement fixed a problem where empty messages where
  * <p> saved.
