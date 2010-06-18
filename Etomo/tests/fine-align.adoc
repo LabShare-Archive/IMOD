@@ -200,7 +200,7 @@ tb.general=
 	cb.enable-local-alignments=off
 	if.var.single.assert.cb.use-global-x-y-z-coordinates=off
 	if.var.dual.assert.cb.use-global-x-y-z-coordinates=on
-	bn.basic=
+	format.bn.basic=
 [[]]
 # check enabled/disabled
 cb.enable-local-alignments=off
@@ -246,13 +246,13 @@ tb.general.1=
 	# check values
 	bn.advanced=
 	assert.cb.solve-for-single-stretch-during-projection=off
-	bn.basic=
+	format.bn.basic=
 [[]]
 [[if = test-gui]]
 	# check enabled/disabled
 	bn.advanced=
 	assert.enabled.cb.solve-for-single-stretch-during-projection=
-	bn.basic=
+	format.bn.basic=
 	run.function.rotation-solution-type=
 	run.function.magnification-solution-type=
 	run.function.tilt-angle-solution-type=
@@ -288,7 +288,7 @@ tb.general.1=
 	assert.tf.group-size=5
 	bn.advanced=
 	assert.tf.non-default-grouping=
-	bn.basic=
+	format.bn.basic=
 [[]]
 # check enabled/disabled
 assert.enabled.rb.no-rotation=
@@ -300,7 +300,7 @@ assert.enabled.tf.rotation-angle=
 assert.disabled.tf.group-size=
 bn.advanced=
 assert.disabled.tf.non-default-grouping=
-bn.basic=
+format.bn.basic=
 rb.one-rotation=
 assert.disabled.tf.rotation-angle=
 assert.disabled.tf.group-size=
@@ -332,7 +332,7 @@ tb.general.1=
 	bn.advanced=
 	assert.tf.reference-view=1
 	assert.tf.non-default-grouping.1=
-	bn.basic=
+	format.bn.basic=
 [[]]
 # check enabled/disabled
 rb.fixed-magnification-at-10=
@@ -341,22 +341,22 @@ assert.enabled.rb.group-magnifications=
 assert.enabled.rb.solve-for-all-magnifications=
 bn.advanced=
 assert.enabled.tf.reference-view=
-bn.basic=
+format.bn.basic=
 rb.fixed-magnification-at-10=
 assert.disabled.tf.group-size.1=
 bn.advanced=
 assert.disabled.tf.non-default-grouping.1=
-bn.basic=
+format.bn.basic=
 rb.group-magnifications=
 assert.enabled.tf.group-size.1=
 bn.advanced=
 assert.enabled.tf.non-default-grouping.1=
-bn.basic=
+format.bn.basic=
 rb.solve-for-all-magnifications=
 assert.disabled.tf.group-size.1=
 bn.advanced=
 assert.disabled.tf.non-default-grouping.1=
-bn.basic=
+format.bn.basic=
 
 
 [function = tilt-angle-solution-type]
@@ -369,7 +369,7 @@ tb.general.1=
 	assert.tf.group-size.2=5
 	bn.advanced=
 	assert.tf.non-default-grouping.2=
-	bn.basic=
+	format.bn.basic=
 [[]]
 # check enabled/disabled
 assert.enabled.rb.fixed-tilt-angles=
@@ -379,7 +379,7 @@ rb.fixed-tilt-angles=
 assert.disabled.tf.group-size.2=
 bn.advanced=
 assert.disabled.tf.non-default-grouping.2=
-bn.basic=
+format.bn.basic=
 rb.group-tilt-angles=
 assert.enabled.tf.group-size.2=
 bn.advanced=
@@ -389,7 +389,7 @@ rb.solve-for-all-except-minimum-tilt=
 assert.disabled.tf.group-size.2=
 bn.advanced=
 assert.disabled.tf.non-default-grouping.2=
-bn.basic=
+format.bn.basic=
 rb.group-tilt-angles=
 
 
@@ -397,7 +397,7 @@ rb.group-tilt-angles=
 tb.general.1=
 bn.advanced=
 rb.no-beam-tilt=
-bn.basic=
+format.bn.basic=
 [[ifnot = keep-dataset-dir]]
 	# check values
 	assert.rb.disabled=on
@@ -408,7 +408,7 @@ bn.basic=
 	bn.advanced=
 	assert.tf.x-stretch-non-default-grouping=
 	assert.tf.skew-non-default-grouping=
-	bn.basic=
+	format.bn.basic=
 [[]]
 # check enabled/disabled
 assert.enabled.rb.disabled=
@@ -416,7 +416,7 @@ assert.enabled.rb.full-solution=
 assert.enabled.rb.skew-only=
 bn.advanced=
 rb.solve-for-beam-tilt=
-bn.basic=
+format.bn.basic=
 assert.enabled.rb.disabled=
 assert.disabled.rb.full-solution=
 assert.disabled.rb.skew-only=
@@ -429,21 +429,21 @@ assert.disabled.tf.skew-group-size=
 bn.advanced=
 assert.disabled.tf.x-stretch-non-default-grouping=
 assert.disabled.tf.skew-non-default-grouping=
-bn.basic=
+format.bn.basic=
 rb.full-solution=
 assert.enabled.tf.x-stretch-group-size=
 assert.enabled.tf.skew-group-size=
 bn.advanced=
 assert.enabled.tf.x-stretch-non-default-grouping=
 assert.enabled.tf.skew-non-default-grouping=
-bn.basic=
+format.bn.basic=
 rb.skew-only=
 assert.disabled.tf.x-stretch-group-size=
 assert.enabled.tf.skew-group-size=
 bn.advanced=
 assert.disabled.tf.x-stretch-non-default-grouping=
 assert.enabled.tf.skew-non-default-grouping=
-bn.basic=
+format.bn.basic=
 rb.disabled=
 
 
@@ -512,7 +512,7 @@ tb.general.2=
 	assert.tf.group-size=6
 	bn.advanced=
 	assert.tf.non-default-grouping=
-	bn.basic=
+	format.bn.basic=
 [[]]
 # check enabled/disabled
 assert.enabled.cb.enable=
@@ -520,7 +520,7 @@ cb.enable=on
 assert.enabled.tf.group-size=
 bn.advanced=
 assert.enabled.tf.non-default-grouping=
-bn.basic=
+format.bn.basic=
 cb.enable=off
 assert.disabled.tf.group-size=
 bn.advanced=
@@ -537,7 +537,7 @@ tb.general.2=
 	assert.tf.group-size.1=7
 	bn.advanced=
 	assert.tf.non-default-grouping.1=
-	bn.basic=
+	format.bn.basic=
 [[]]
 # check enabled/disabled
 assert.enabled.cb.enable.1=
@@ -545,12 +545,12 @@ cb.enable.1=on
 assert.enabled.tf.group-size.1=
 bn.advanced=
 assert.enabled.tf.non-default-grouping.1=
-bn.basic=
+format.bn.basic=
 cb.enable.1=off
 assert.disabled.tf.group-size.1=
 bn.advanced=
 assert.disabled.tf.non-default-grouping.1=
-bn.basic=
+format.bn.basic=
 cb.enable.1=on
 
 
@@ -562,7 +562,7 @@ tb.general.2=
 	assert.tf.group-size.2=6
 	bn.advanced=
 	assert.tf.non-default-grouping.2=
-	bn.basic=
+	format.bn.basic=
 [[]]
 # check enabled/disabled
 assert.enabled.cb.enable.2=
@@ -570,12 +570,12 @@ cb.enable.2=on
 assert.enabled.tf.group-size.2=
 bn.advanced=
 assert.enabled.tf.non-default-grouping.2=
-bn.basic=
+format.bn.basic=
 cb.enable.2=off
 assert.disabled.tf.group-size.2=
 bn.advanced=
 assert.disabled.tf.non-default-grouping.2=
-bn.basic=
+format.bn.basic=
 cb.enable.2=on
 
 
@@ -597,7 +597,7 @@ assert.tf.skew-group-size=11
 bn.advanced=
 assert.tf.x-stretch-non-default-grouping=
 assert.tf.skew-non-default-grouping=
-bn.basic=
+format.bn.basic=
 # check enabled/disabled
 assert.enabled.rb.disabled=
 assert.enabled.rb.full-solution=
@@ -608,7 +608,7 @@ assert.disabled.tf.skew-group-size=
 bn.advanced=
 assert.disabled.tf.x-stretch-non-default-grouping=
 assert.disabled.tf.skew-non-default-grouping=
-bn.basic=
+format.bn.basic=
 rb.full-solution=
 assert.enabled.tf.x-stretch-group-size=
 assert.enabled.tf.skew-group-size=
