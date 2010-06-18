@@ -324,18 +324,27 @@ wait.process.cross-correlating-stack=done
 [[]]
 
 
+[function = test-raptor-input]
+if.var.montage.return=
+[[if = test-gui]]
+  #test values
+  assert.rb.run-against-the-coarse-aligned-stack=off
+  assert.rb.run-against-the-raw-stack=on
+  #test enabled/disabled
+  assert.enabled.rb.run-against-the-coarse-aligned-stack=
+  assert.enabled.rb.run-against-the-raw-stack=
+[[]]
+
+
 [function = run-raptor]
+run.function.test-raptor-input=
 [[if = test-gui]]
 	#test values
-	assert.rb.run-against-the-coarse-aligned-stack=off
-	assert.rb.run-against-the-raw-stack=on
 	assert.tf.#-of-beads-to-choose=
 	assert.tf.unbinned-bead-diameter=%{int-unbinned-bead-diameter}
 	assert.bn.run-raptor=off
 	assert.bn.use-raptor-result-as-fiducial-model=off
 	#test enabled/disabled
-	assert.enabled.rb.run-against-the-coarse-aligned-stack=
-	assert.enabled.rb.run-against-the-raw-stack=
 	assert.enabled.bn.open-stack-in-3dmod=
 	assert.enabled.tf.#-of-beads-to-choose=
 	assert.enabled.tf.unbinned-bead-diameter=
@@ -346,7 +355,9 @@ wait.process.cross-correlating-stack=done
 if.not.var.run-raptor.return=
 #run raptor against the coarse aligned stack
 tf.#-of-beads-to-choose=10
-rb.run-against-the-coarse-aligned-stack=
+[[ifnot = montage]]
+  rb.run-against-the-coarse-aligned-stack=
+[[]]
 bn.run-raptor=
 wait.process.running-runraptor=done
 assert.exists.file=%{dataset}%{axis}_raptor.fid
