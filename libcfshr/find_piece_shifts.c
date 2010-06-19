@@ -92,7 +92,7 @@ int findPieceShifts
   int *neighList = neighInd + nvar + 1;
   float *dxyEdge = (float *)(neighList + 4 * nvar);
   unsigned char *placed = (unsigned char *)(dxyEdge + 8 * nvar);
-  printf("idir = %d   dxedge[0] = %f\n", idir, dxedge[0]);
+
   /* Set the xy stride parameter */
   if (edgeStep == 1 && pcStep == 1 && varStep == 1)
     xyStep = 2;
@@ -345,5 +345,8 @@ int findpieceshifts
 /*
 
 $Log$
+Revision 1.1  2010/06/19 23:24:09  mast
+Added to library
+
 
 */
