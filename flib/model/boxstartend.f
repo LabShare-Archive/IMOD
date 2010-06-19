@@ -258,7 +258,7 @@ c
       nptop = npixby - npbot - 1
       offset(1) = -0.5 * (1 + npright - npleft)
       offset(2) = -0.5 * (1 + nptop - npbot)
-      ibbase = idim - npixsq
+      ibbase = idim - npixsq - 1
       iabase = ibbase - npixsq
       if (iabase .lt. 0) call exitError('BOX SIZE TOO LARGE FOR ARRAYS')
 c       
@@ -271,7 +271,7 @@ c
      &      ' after endpoint to clip out: '
         read(*,*)nzbefore,nzafter
       endif
-      print *,nzbefore, nzafter
+c      print *,nzbefore, nzafter
       nzclip=nzbefore+nzafter+1
       if (nzclip .lt. 1 .or. npixbox .lt. 1 .or. npixby .lt. 1)
      &    call exitError('BOX SIZE AND NUMBER OF SLICES MUST BE POSITIVE')
@@ -296,7 +296,6 @@ c
 
       if(ifseries.ne.0)then
         ifaverage = 0
-        numfile=0
         filpcl=' '
         filpcl2=' '
 c         
@@ -361,9 +360,10 @@ c       set up for loop on model objects
 c       
       nzout=0
       nclip=0
+      numfile = 0
       dsum=0.
-      tmin=1.e10
-      tmax=-1.e10
+      dmin2=1.e30
+      dmax2=-1.e30
       do iobj=1,max_mod_obj
         if (npt_in_obj(iobj).gt.0)then
           loopst = 1
@@ -389,7 +389,7 @@ c
             indtop=ind(2)+nptop
             indzlo=ind(3)-nzbefore
             indzhi=ind(3)+nzafter
-            print *,ind(3),indzlo, indzhi
+c            print *,ind(3),indzlo, indzhi
             if(ind(1).ge.indxmin .and. ind(1).le.indxmax .and.
      &          ind(2).ge.indymin .and. ind(2).le.indymax .and.
      &          indzlo.ge.indzmin .and. indzhi.le.indzmax)then
@@ -415,8 +415,8 @@ c
                 call itrhdr(2,1)
                 call ialsiz(2,nxyz2,nxyzst)
                 dsum=0.
-                tmin=1.e10
-                tmax=-1.e10
+                dmin2=1.e30
+                dmax2=-1.e30
               endif
 c               
 c               loop on sections
@@ -442,7 +442,7 @@ c
 c                 
 c                 zero out the box
 c                 
-                do iy=1,npixbox*npixbox
+                do iy=1,npixsq
                   brray(iy + ibbase)=dmean
                 enddo
 c                 
@@ -591,6 +591,10 @@ c
 
 c       
 c       $Log$
+c       Revision 3.9  2008/05/30 15:44:29  mast
+c       Added option for different X and Y sizes, fixed Z offset so it actually
+c       pays attention to the before/after values
+c
 c       Revision 3.8  2008/03/06 23:56:23  mast
 c       Switched to scale to current volume
 c
