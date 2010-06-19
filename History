@@ -1,5 +1,7 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+6/18/10: Fixed some bugs that crashed Boxstarted (In 4.1).
+
 6/18/10: Popping up the last warning found during a processchunks run (In 4.1).
 
 6/14/10: Added warnings from Tilt if output is truncated and if there are
