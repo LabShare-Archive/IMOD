@@ -1,6 +1,7 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-6/18/10: Fixed some bugs that crashed Boxstarted (In 4.1).
+6/18/10: IMOD_4-2-2
+6/18/10: Fixed some bugs that crashed Boxstartend (In 4.1).
 
 6/18/10: Popping up the last warning found during a processchunks run (In 4.1).
 
