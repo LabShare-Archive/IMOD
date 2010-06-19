@@ -40,6 +40,7 @@ EXPORTS
 	numOMPthreads
 	ADOCGETINTEGERARRAY
 	IMOD_DIR_or_default
+	findPieceShifts
 	PipGetNonOptionArg
 	PIPENABLEENTRYOUTPUT
 	ilistPop
@@ -177,6 +178,7 @@ EXPORTS
 	PipGetInteger
 	PIPGETTWOFLOATS
 	b3dIMax
+	FINDPIECESHIFTS
 	b3dIMin
 	CCCOEFFICIENT
 	ilistDelete
