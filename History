@@ -1,5 +1,7 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+6/18/10: Fixed some bugs that crashed Boxstartend.
+
 6/14/10: IMOD_4-1-3
 6/14/10: Added warnings from Tilt if output is truncated and if there are
 extreme values from GPU; made Processchunks pass on warnings and copy first 
