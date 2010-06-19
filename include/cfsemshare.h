@@ -176,6 +176,15 @@ extern "C" {
   /* gaussj.c */
   int gaussj(float *a, int n, int np, float *b, int m, int mp);
 
+  /* find_piece_shifts.c */
+  int findPieceShifts
+  (int *ivarpc, int nvar, int *indvar, int *ixpclist, int *iypclist, 
+   float *dxedge, float *dyedge, int idir, int *pieceLower, int *pieceUpper, 
+   int *ifskipEdge, int edgeStep, float *dxyvar, int varStep, int *edgelower,
+   int *edgeupper, int pcStep, int *work, int fort, int leaveInd, int skipCrit,
+   float critMaxMove, float critMoveDiff, int maxIter, int numAvgForTest,
+   int intervalForTest, int *numIter);
+
 #ifdef __cplusplus
 }
 #endif
@@ -186,6 +195,9 @@ extern "C" {
 /*
 
 $Log$
+Revision 3.20  2010/06/06 21:14:34  mast
+Added gaussj
+
 Revision 3.19  2010/06/03 14:44:09  mast
 Fixed arguments
 
