@@ -12,6 +12,17 @@
  * $Id$
  * Log at end
  */
+
+#include "imodconfig.h"
+#include "b3dutil.h"
+
+#ifdef F77FUNCAP
+#define gaussjfw GAUSSJ
+#else
+#define gaussjfw gaussj_
+#endif
+
+#define MSIZ 2000
 /*!
  * Solves the linear matrix equation A X = B by Gauss-Jordan elimination.  
  * A is a square matrix of size [n] by [n] in array [a], dimensioned to [np] 
@@ -25,17 +36,6 @@
  * used long before reaching that point.  The routine returns -1 if [n] exceeds
  * this value and 1 if the A matrix is singular.
  */
-
-#include "imodconfig.h"
-#include "b3dutil.h"
-
-#ifdef F77FUNCAP
-#define gaussjfw GAUSSJ
-#else
-#define gaussjfw gaussj_
-#endif
-
-#define MSIZ 2000
 int gaussj(float *a, int n, int np, float *b, int m, int mp)
 {
   short int index[MSIZ][2];
@@ -129,6 +129,9 @@ int gaussjfw(float *a, int *n, int *np, float *b, int *m, int *mp)
 /*
   
 $Log$
+Revision 1.1  2010/06/06 21:16:43  mast
+Moved to library at last
+
 Revision 3.1  2003/02/10 20:49:57  mast
 Merge Qt source
 
