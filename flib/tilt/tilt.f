@@ -2955,7 +2955,7 @@ c           Legacy origin.  All kinds of wrong.
       endif
 c       
 c       Initialize parallel writing routines if bound file entered
-      ierr = parWrtInitialize(boundFile, 5, noxyz(1), noxyz(2), noxyz(3))
+      ierr = parWrtInitialize(boundFile, 6, noxyz(1), noxyz(2), noxyz(3))
       if (ierr. ne. 0) then
         write(*,'(a,i3)')'ERROR: TILT - INITIALIZING PARALLEL WRITE '//
      &      'BOUNDARY FILE, ERROR',ierr
@@ -5057,6 +5057,9 @@ c       Set to open contour, show values etc., and show sphere on section only
 
 c       
 c       $Log$
+c       Revision 3.58  2010/06/14 18:53:19  mast
+c       Added warnings about truncated output and about extreme values from GPU
+c
 c       Revision 3.57  2010/05/24 21:33:15  mast
 c       Changed scaling messages
 c
