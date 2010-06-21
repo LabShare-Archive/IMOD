@@ -441,16 +441,21 @@ Ilabel *imodLabelRead(FILE *fin, int *err)
   return(lab);
 }
 
-/* $Log$
-/* Revision 3.8  2008/08/18 20:17:06  mast
-/* Fixed replacement of label with blank (zero-length) label
 /*
-/* Revision 3.7  2008/08/18 19:39:33  mast
-/* Fixed computation of chunk size written to file
-/*
-/* Revision 3.6  2007/08/26 06:56:15  mast
-/* Documentation changes
-/*
+
+$Log$
+Revision 3.9  2009/01/14 20:04:15  mast
+adding some consts
+
+Revision 3.8  2008/08/18 20:17:06  mast
+Fixed replacement of label with blank (zero-length) label
+
+Revision 3.7  2008/08/18 19:39:33  mast
+Fixed computation of chunk size written to file
+
+Revision 3.6  2007/08/26 06:56:15  mast
+Documentation changes
+
 Revision 3.5  2004/11/20 04:16:32  mast
 Added duplicate function
 

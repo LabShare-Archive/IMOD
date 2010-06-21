@@ -573,10 +573,14 @@ int imodPointInsideCont(Icont *cont, Ipoint *pt)
   return((nrcross % 2) > 0);
 }
 
-/*  $Log$
-/*  Revision 3.10  2007/10/09 16:45:22  mast
-/*  Added test for point inside contour
 /*
+
+$Log$
+Revision 3.11  2008/01/14 19:44:39  mast
+Added append XYZ function
+
+Revision 3.10  2007/10/09 16:45:22  mast
+Added test for point inside contour
 
 Revision 3.9  2007/04/26 19:09:46  mast
 Fixed segment distance function

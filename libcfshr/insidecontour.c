@@ -105,10 +105,13 @@ int insidecontour(float *ptX, float *ptY, int *np, float *x, float *y)
   return (InsideContour(ptX, ptY, *np, *x, *y));
 }
 
-/*  $Log$
-/*  Revision 1.1  2007/10/01 15:26:09  mast
-/*  *** empty log message ***
 /*
 
+$Log$
+Revision 1.2  2007/10/12 04:14:51  mast
+Documentation fix
+
+Revision 1.1  2007/10/01 15:26:09  mast
+*** empty log message ***
 
 */
