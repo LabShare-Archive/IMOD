@@ -519,28 +519,31 @@ return XCorrCCCoefficient(array, brray, *nxdim, *nx, *ny, *xpeak, *ypeak,
                           *nxpad, *nypad, nsum);
 }
 
-/*  $Log$
-/*  Revision 1.7  2008/12/22 23:02:17  mast
-/*  Added return of nsum to ccc function
-/*
-/*  Revision 1.6  2008/12/21 18:28:27  mast
-/*  Add routine to get CCC
-/*
-/*  Revision 1.5  2008/06/21 05:15:07  mast
-/*  Scaled del squared G filter to max of 1
-/*
-/*  Revision 1.4  2007/11/02 00:10:04  mast
-/*  Set filter to zero below 1.e-6 to avoid numberical problems and delays
-/*
-/*  Revision 1.3  2007/10/10 18:55:05  mast
-/*  Functions callable by fortran must return double not float!
-/*
-/*  Revision 1.2  2007/10/04 16:24:57  mast
-/*  Added parabolic fit function to do it right everywhere
-/*
-/*  Revision 1.1  2007/10/01 15:26:09  mast
-/*  *** empty log message ***
 /*
 
+$Log$
+Revision 1.8  2008/12/22 23:06:01  mast
+Needed anoth *nsum
+
+Revision 1.7  2008/12/22 23:02:17  mast
+Added return of nsum to ccc function
+
+Revision 1.6  2008/12/21 18:28:27  mast
+Add routine to get CCC
+
+Revision 1.5  2008/06/21 05:15:07  mast
+Scaled del squared G filter to max of 1
+
+Revision 1.4  2007/11/02 00:10:04  mast
+Set filter to zero below 1.e-6 to avoid numberical problems and delays
+
+Revision 1.3  2007/10/10 18:55:05  mast
+Functions callable by fortran must return double not float!
+
+Revision 1.2  2007/10/04 16:24:57  mast
+Added parabolic fit function to do it right everywhere
+
+Revision 1.1  2007/10/01 15:26:09  mast
+*** empty log message ***
 
 */
