@@ -157,13 +157,16 @@ int scaledfwrap(float *inImage, int *nxin, int *nyin, float *scaleFac,
                       *center, outImage, nxout, nyout, xOffset, yOffset));
 }
 
-/*  $Log$
-/*  Revision 1.2  2007/10/14 18:03:09  mast
-/*  Got it working
-/*
-/*  Revision 1.1  2007/10/01 15:26:05  mast
-/*  Preliminary checkin - untested
 /*
 
+$Log$
+Revision 1.3  2007/11/22 20:55:31  mast
+Center = 0 for no filtering
+
+Revision 1.2  2007/10/14 18:03:09  mast
+Got it working
+
+Revision 1.1  2007/10/01 15:26:05  mast
+Preliminary checkin - untested
 
 */
