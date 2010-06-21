@@ -186,9 +186,10 @@ if ($compiler == intel) then
         #  remark #810: conversion from ... to ... may lose precision
         #  remark #869: parameter ... was never referenced
         #  remark #981: operands are evaluated in unspecified order
+        #  remark #1418: external function with no prior declaration (f-wraps!)
         #  remark #1572: floating-point equality and inequality comparisons 
         #     are unreliable [but usually quite appropriate!]
-        set qmcxxFlags = "-Wall -wd310,383,424,444,593,810,869,981,1572"
+        set qmcxxFlags = "-Wall -wd310,383,424,444,593,810,869,981,1418,1572"
         set optimization = "-g -O0"
         set fcompFlags = ($fcompFlags -check -traceback -W1)
         set ccompFlags = ($ccompFlags -traceback $qmcxxFlags)
