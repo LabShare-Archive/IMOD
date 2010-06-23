@@ -302,7 +302,6 @@ set class_sep       = ';'
 #
 echo CONFIG += CONSOLE >! $sendevent_qconf
 echo CONFIG += CONSOLE >! $sourcedoc_qconf
-echo CONFIG += CONSOLE >! $prochunk_qconf
 
 #  /LARGEADDRESSAWARE flag allows up to 3GB memory on a 32-bit system if it
 # has the /3GB boot flag; isn't needed for 64-bit link since it is the default
@@ -330,6 +329,13 @@ QMAKE_LFLAGS_DEBUG += /LIBPATH:"../buildlib" /NODEFAULTLIB:libc.lib /NODEFAULTLI
 EOF
 
 cat <<EOF >! $qtassist_qconf
+LIBS += libcfshr.lib
+QMAKE_LFLAGS_RELEASE += /LIBPATH:"../buildlib"
+QMAKE_LFLAGS_DEBUG += /LIBPATH:"../buildlib"
+EOF
+
+cat <<EOF >! $prochunk_qconf
+CONFIG += CONSOLE
 LIBS += libcfshr.lib
 QMAKE_LFLAGS_RELEASE += /LIBPATH:"../buildlib"
 QMAKE_LFLAGS_DEBUG += /LIBPATH:"../buildlib"
