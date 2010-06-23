@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+6/23/10: Prevented writing large last boundary file when doing Y chunks
+(In 4.1).
+
 6/18/10: IMOD_4-2-2
 6/18/10: Fixed some bugs that crashed Boxstartend (In 4.1).
 
