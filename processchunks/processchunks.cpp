@@ -48,27 +48,21 @@ static char
         ":P:B:Output process ID", ":v:B:Print extra information",
         ":help:B:Print usage message" };
 static char *queueNameDefault = "queue";
-QTprocesschunks *pcPointer;
+Processchunks *pcPointer;
 
 int main(int argc, char **argv) {
   //Run processes
-  QTprocesschunks pc(argc, argv);
+  Processchunks pc(argc, argv);
   pcPointer = &pc;
   pc.loadParams(argc, argv);
-  pc.upgradeSshOptions();
-  pc.setupMachineArray();
-  pc.setupComFileArray();
-  pc.setupHostRoot();
-  pc.setupRemoteDir();
-  pc.probeMachines();
+  pc.setup();
   if (!pc.askGo()) {
     return 0;
   }
-  pc.listenForSigInt();
   pc.runProcesses();
 }
 
-QTprocesschunks::QTprocesschunks(int &argc, char **argv) :
+Processchunks::Processchunks(int &argc, char **argv) :
   QApplication(argc, argv) {
   //initialize member variables
   mOut = new QTextStream(stdout);
@@ -104,7 +98,7 @@ QTprocesschunks::QTprocesschunks(int &argc, char **argv) :
    mHandlers[i].init(this, imodDir, mOut, i);*/
 }
 
-QTprocesschunks::~QTprocesschunks() {
+Processchunks::~Processchunks() {
 }
 
 //Print usage statement
@@ -121,7 +115,7 @@ void processchunksUsageHeader(char *pname) {
 //Loads parameters, does error checking, returns zero if parameters are correct.
 //Prints an error message to stdout and returns non-zero if the parameters are
 //incorrect.
-void QTprocesschunks::loadParams(int &argc, char **argv) {
+void Processchunks::loadParams(int &argc, char **argv) {
   int numOptArgs, numNonOptArgs;
   PipReadOrParseOptions(argc, argv, options, numOptions, commandName, 2, 2, 0,
       &numOptArgs, &numNonOptArgs, processchunksUsageHeader);
@@ -147,7 +141,7 @@ void QTprocesschunks::loadParams(int &argc, char **argv) {
   PipGetBoolean("P", &mReturnPid);
   if (mReturnPid) {
     mSkipProbe = 1;
-    fprintf(stderr, "Shell PID: %d\n", getpid());
+    fprintf(stderr, "Shell PID: %d\n", imodGetpid());
     fflush(stderr);
   }
   PipGetNonOptionArg(0, &mMachineList);
@@ -162,9 +156,21 @@ void QTprocesschunks::loadParams(int &argc, char **argv) {
   }
 }
 
-//Changes mSshOpts if version is recent enough
-void QTprocesschunks::upgradeSshOptions() {
+//Handle ctrl-C
+void handleSigInt(int signal) {
+  if (signal != SIGINT) {
+    return;
+  }
+  QTextStream out(stdout);
+  out << "SIGINT detected" << endl;
+  QApplication::quit();
+}
+
+//Setup mSshOpts, mMachineArray, mComFileArray, mHostRoot, mRemoteDir.  Probe
+//machines.  Listen for ctrl-C.
+void Processchunks::setup() {
   int i;
+  //Change mSshOpts if version is recent enough
   QProcess ssh(this);
   QString command("ssh");
   QStringList params("-V");
@@ -186,47 +192,9 @@ void QTprocesschunks::upgradeSshOptions() {
       *mOut << mSshOpts->at(i) << endl;
     }
   }
-}
 
-//Extracts the first two numbers of a numeric version.  Multiples the first
-//number by 100 and adds it to the second number.  Places the result in
-//mVersion.
-void QTprocesschunks::extractVersion(QString versionString) {
-  if (mVerbose) {
-    *mOut << "ssh sshOutput:" << versionString << endl;
-  }
-  QRegExp regExp("[0-9]+\\.[0-9]+");
-  int i = regExp.indexIn(versionString, 0);
-  int len = regExp.matchedLength();
-  if (i != -1 && len != -1) {
-    QString version = versionString.mid(i, len);
-    if (version != NULL) {
-      QStringList array = version.split(".", QString::SkipEmptyParts);
-      if (!array.isEmpty()) {
-        bool ok;
-        mVersion = array.at(0).toLong(&ok) * 100;
-        if (!ok) {
-          mVersion = -1;
-          return;
-        }
-        if (array.size() > 1) {
-          mVersion += array.at(1).toLong(&ok);
-          if (!ok) {
-            mVersion = -1;
-          }
-        }
-      }
-    }
-  }
-  if (mVerbose) {
-    *mOut << "ssh version:" << mVersion << endl;
-  }
-}
-
-//Setup mMachineArray with the queue name or the values in mMachineList.
-//Not implementing $IMOD_ALL_MACHINES since no one seems to have used it.
-void QTprocesschunks::setupMachineArray() {
-  int i;
+  //Setup mMachineArray with the queue name or the values in mMachineList.
+  //Not implementing $IMOD_ALL_MACHINES since no one seems to have used it.
   if (mQueue) {
     //For a queue, make a machine list that is all the same name
     mQueueCom = mMachineList;
@@ -266,11 +234,8 @@ void QTprocesschunks::setupMachineArray() {
     }
     *mOut << endl;
   }
-}
 
-//Sets up mComFileArray for single file or multi-file processing
-void QTprocesschunks::setupComFileArray() {
-  int i;
+  //Sets up mComFileArray for single file or multi-file processing
   mComFileArray = new QStringList();
   if (mVerbose) {
     *mOut << "current path:" << QDir::currentPath() << endl;
@@ -341,38 +306,11 @@ void QTprocesschunks::setupComFileArray() {
   if (mComFileArray->isEmpty()) {
     exitError("There are no command files matching %s-nnn.com", mRootName);
   }
-}
 
-void QTprocesschunks::buildFilters(char *reg, char *sync, QStringList &filters) {
-  int i;
-  QString filter1(mRootName);
-  filter1.append(reg);
-  filters.append(filter1);
-  QString filter2(mRootName);
-  filter2.append(sync);
-  filters.append(filter2);
-  if (mVerbose) {
-    *mOut << "filters:" << endl;
-    for (i = 0; i < filters.size(); i++) {
-      *mOut << i << ":" << filters.at(i) << endl;
-    }
-    *mOut << endl;
-  }
-}
-
-void QTprocesschunks::cleanupList(char *remove, QStringList &list) {
-  int i;
-  //Remove files that don't have digits after rootname-
-  QString regExp(mRootName);
-  regExp.append(remove);
-  while ((i = list.indexOf(QRegExp(regExp))) != -1) {
-    list.removeAt(i);
-  }
-}
-
-void QTprocesschunks::setupHostRoot() {
+  //Setup mHostRoot
   QProcess hostname(this);
-  QString command("hostname");
+  command.clear();
+  command.append("hostname");
   hostname.start(command);
   if (hostname.waitForFinished()) {
     QString temp(hostname.readAllStandardOutput());
@@ -390,15 +328,14 @@ void QTprocesschunks::setupHostRoot() {
   else {
     exitError("Unable to run the hostname command");
   }
-}
 
-//Get current directory if the -w option was not used
-void QTprocesschunks::setupRemoteDir() {
+  //Get current directory if the -w option was not used
   if (mRemoteDir != NULL) {
     return;
   }
   QProcess pwd(this);
-  QString command("pwd");
+  command.clear();
+  command.append("pwd");
   pwd.start(command);
   if (pwd.waitForFinished()) {
     QString temp(pwd.readAllStandardOutput());
@@ -409,11 +346,8 @@ void QTprocesschunks::setupRemoteDir() {
   else {
     exitError("Unable to run the pwd command");
   }
-}
 
-//Probe machines by running the "w" command.  Drop machines that don't respond.
-void QTprocesschunks::probeMachines() {
-  int i;
+  //Probe machines by running the "w" command.  Drop machines that don't respond.
   //probe machines and get all the verifications unless etomo is running it
   if (mSkipProbe && mJustGo) {
     return;
@@ -473,11 +407,123 @@ void QTprocesschunks::probeMachines() {
   if (mVerbose) {
     *mOut << "end probe machines" << endl;
   }
+
+  //allow users to send commands to process by type ctrl-C
+  signal(SIGINT, handleSigInt);
+}
+
+//Setup mFlags.  Run event loop.
+void Processchunks::runProcesses() {/*
+ QStringList params[2];
+ //Start process 0
+ int index = 0;
+ params[index] << "-x" << "bear" << "bash" << "--login" << "-c"
+ << "\"cd 'current data/UITests/dual-montage' && pwd && submfg tilta.com\"";
+ mHandlers[index].setParams(params[index]);
+ mHandlers[index].runProcess();
+ //Start process 1
+ index++;
+ params[index] << "-x" << "bear" << "bash" << "--login" << "-c"
+ << "\"cd 'current data/UITests/dual-montage' && pwd && submfg tiltb.com\"";
+ mHandlers[index].setParams(params[index]);
+ mHandlers[index].runProcess();
+ //Error messages from inside the event loop must using QApplication functionality
+ PipDone();
+ //Start loop and timer
+ startTimer(100);
+ */
+
+  int i;
+
+  //set up flag list and list of assignments and set up which chunk to copy the
+  //log from, the first non-sync if any, otherwise just the first one
+  for (i = 0; i < mComFileArray->size(); i++) {
+    int sync = 0;
+  }
+
+  exec();
+}
+
+bool Processchunks::askGo() {
+  if (mJustGo) {
+    return true;
+  }
+  *mOut << "Enter Y to proceed with the current set of machines: ";
+  mOut->flush();
+  char answer;
+  QTextStream in(stdin);
+  in >> answer;
+  if (answer == 'Y' || answer == 'y') {
+    return true;
+  }
+  return false;
+}
+
+//Extracts the first two numbers of a numeric version.  Multiples the first
+//number by 100 and adds it to the second number.  Places the result in
+//mVersion.
+void Processchunks::extractVersion(QString versionString) {
+  if (mVerbose) {
+    *mOut << "ssh sshOutput:" << versionString << endl;
+  }
+  QRegExp regExp("[0-9]+\\.[0-9]+");
+  int i = regExp.indexIn(versionString, 0);
+  int len = regExp.matchedLength();
+  if (i != -1 && len != -1) {
+    QString version = versionString.mid(i, len);
+    if (version != NULL) {
+      QStringList array = version.split(".", QString::SkipEmptyParts);
+      if (!array.isEmpty()) {
+        bool ok;
+        mVersion = array.at(0).toLong(&ok) * 100;
+        if (!ok) {
+          mVersion = -1;
+          return;
+        }
+        if (array.size() > 1) {
+          mVersion += array.at(1).toLong(&ok);
+          if (!ok) {
+            mVersion = -1;
+          }
+        }
+      }
+    }
+  }
+  if (mVerbose) {
+    *mOut << "ssh version:" << mVersion << endl;
+  }
+}
+
+void Processchunks::buildFilters(char *reg, char *sync, QStringList &filters) {
+  int i;
+  QString filter1(mRootName);
+  filter1.append(reg);
+  filters.append(filter1);
+  QString filter2(mRootName);
+  filter2.append(sync);
+  filters.append(filter2);
+  if (mVerbose) {
+    *mOut << "filters:" << endl;
+    for (i = 0; i < filters.size(); i++) {
+      *mOut << i << ":" << filters.at(i) << endl;
+    }
+    *mOut << endl;
+  }
+}
+
+void Processchunks::cleanupList(char *remove, QStringList &list) {
+  int i;
+  //Remove files that don't have digits after rootname-
+  QString regExp(mRootName);
+  regExp.append(remove);
+  while ((i = list.indexOf(QRegExp(regExp))) != -1) {
+    list.removeAt(i);
+  }
 }
 
 //Runs process, outputs first line, and returns the exit code
 //lineNum - line number (from 1)
-int QTprocesschunks::runProcessAndOutputLines(QProcess &process,
+int Processchunks::runProcessAndOutputLines(QProcess &process,
     QString &command, QStringList &params, int numLines) {
   int i;
   if (mVerbose) {
@@ -518,59 +564,10 @@ int QTprocesschunks::runProcessAndOutputLines(QProcess &process,
   return 1;
 }
 
-bool QTprocesschunks::askGo() {
-  if (mJustGo) {
-    return true;
-  }
-  *mOut << "Enter Y to proceed with the current set of machines: ";
-  mOut->flush();
-  char answer;
-  QTextStream in(stdin);
-  in >> answer;
-  if (answer == 'Y' || answer == 'y') {
-    return true;
-  }
-  return false;
+void Processchunks::timerEvent(QTimerEvent *e) {
 }
 
-void handleSigInt(int signal) {
-  if (signal != SIGINT) {
-    return;
-  }
-  QTextStream out(stdout);
-  out << "SIGINT detected" << endl;
-  QApplication::quit();
-}
-void QTprocesschunks::listenForSigInt() {
-  signal(SIGINT, handleSigInt);
-}
-
-void QTprocesschunks::runProcesses() {/*
- QStringList params[2];
- //Start process 0
- int index = 0;
- params[index] << "-x" << "bear" << "bash" << "--login" << "-c"
- << "\"cd 'current data/UITests/dual-montage' && pwd && submfg tilta.com\"";
- mHandlers[index].setParams(params[index]);
- mHandlers[index].runProcess();
- //Start process 1
- index++;
- params[index] << "-x" << "bear" << "bash" << "--login" << "-c"
- << "\"cd 'current data/UITests/dual-montage' && pwd && submfg tiltb.com\"";
- mHandlers[index].setParams(params[index]);
- mHandlers[index].runProcess();
- //Error messages from inside the event loop must using QApplication functionality
- PipDone();
- //Start loop and timer
- startTimer(100);
- */
-  exec();
-}
-
-void QTprocesschunks::timerEvent(QTimerEvent *e) {
-}
-
-void QTprocesschunks::msgProcessFinished() {
+void Processchunks::msgProcessFinished() {
   mProcessFinishedCount++;
   if (mProcessFinishedCount >= arraySize) {
     quit();
@@ -578,4 +575,7 @@ void QTprocesschunks::msgProcessFinished() {
 }
 /*
  $Log$
+ Revision 1.1  2010/06/23 16:22:33  sueh
+ bug# 1364 First checkin for QT version of processchunks.
+
  */

@@ -1,5 +1,5 @@
-#ifndef QTPROCESSCHUNKS_H
-#define QTPROCESSCHUNKS_H
+#ifndef PROCESSCHUNKS_H
+#define PROCESSCHUNKS_H
 
 #include <QApplication>
 
@@ -7,24 +7,18 @@ class ProcessHandler;
 class QTextStream;
 class QProcess;
 
-class QTprocesschunks: public QApplication {
+class Processchunks: public QApplication {
 Q_OBJECT
 
 public:
-  QTprocesschunks(int &argc, char **argv);
-  ~QTprocesschunks();
+  Processchunks(int &argc, char **argv);
+  ~Processchunks();
 
-  void msgProcessFinished();
   void loadParams(int &argc, char **argv);
-  void upgradeSshOptions();
-  void setupMachineArray();
-  void setupComFileArray();
-  void setupHostRoot();
-  void setupRemoteDir();
-  void probeMachines();
+  void setup();
   bool askGo();
-  void listenForSigInt();
   void runProcesses();
+  void msgProcessFinished();
 
 protected:
   void timerEvent(QTimerEvent *e);
@@ -39,7 +33,8 @@ private:
   ProcessHandler *mHandlers;
   QTextStream *mOut;
   int mProcessFinishedCount, mRetain, mSingleFile, mJustGo, mSkipProbe,
-      mReturnPid, mNice, mDropCrit, mMaxChunkErr, mQueue, mVersion, mVerbose;
+      mReturnPid, mNice, mDropCrit, mMaxChunkErr, mQueue, mVersion, mVerbose,
+      mFlags[],mNumChunkErr[];
   char *mRemoteDir;//was curdir
   char *mCheckFile, *mQueueName, *mMachineList, *mRootName, *mQueueCom,
       *mSshExt, *mPidExt;
