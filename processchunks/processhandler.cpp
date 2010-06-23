@@ -30,7 +30,7 @@ ProcessHandler::~ProcessHandler() {
   delete mPid;
 }
 
-void ProcessHandler::init(QTprocesschunks *parent, char *imodDir,
+void ProcessHandler::init(Processchunks *parent, char *imodDir,
     QTextStream *out, int index) {
   mParent = parent;
   mImodDir = imodDir;

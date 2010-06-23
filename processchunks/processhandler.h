@@ -20,7 +20,7 @@ public:
   ~ProcessHandler();
 
   void
-      init(QTprocesschunks *parent, char *imodDir, QTextStream *out, int index);
+      init(Processchunks *parent, char *imodDir, QTextStream *out, int index);
   void setVerbose(int verbose);
   void setParams(QStringList params);
   void runProcess();
@@ -33,7 +33,7 @@ public slots:
   void handleFinished(int exitCode, QProcess::ExitStatus exitStatus);
 
 private:
-  QTprocesschunks *mParent;
+  Processchunks *mParent;
   QTextStream *mOut;
   QProcess *mProc;
   int mIndex;
