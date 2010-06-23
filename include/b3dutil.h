@@ -33,6 +33,7 @@ extern "C" {
   char *IMOD_DIR_or_default(int *assumed);
   char *imodProgName(char *fullname);
   int imodBackupFile(char *filename);
+  int imodGetpid();
   char *f2cString(char *str, int strSize);
   int c2fString(char *cStr, char *fStr, int fSize);
   void b3dSetStoreError(int ival);
@@ -65,6 +66,9 @@ extern "C" {
 
 /*
 $Log$
+Revision 1.18  2010/03/24 02:20:17  mast
+IMOD_DIR function
+
 Revision 1.17  2009/06/22 22:47:03  mast
 Add walltime and thread number functions
 
