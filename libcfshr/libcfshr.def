@@ -166,6 +166,7 @@ EXPORTS
 	ADOCSETINTEGER
 	ilistNew
 	b3dHeaderItemBytes
+	IMODGETPID
 	AdocClear
 	PipNextArg
 	ilistDup
@@ -256,6 +257,7 @@ EXPORTS
 	ilistPush
 	lsFit3
 	cblas_dnrm2
+	imodGetpid
 	ADOCGETTWOINTEGERS
 	sliceGetYSize
 	ilistFloat
