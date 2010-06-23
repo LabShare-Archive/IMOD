@@ -2,6 +2,9 @@ c       stitchvars.f: module file for stitchalign
 c       
 c       $Id$
 c       $Log$
+c       Revision 3.2  2009/09/10 03:24:26  mast
+c       Added variables for extended edge limits
+c
 c       Revision 3.1  2009/09/07 17:21:34  mast
 c       Convert to module
 c
@@ -67,8 +70,8 @@ c       scale factor and scaling intervals, residuals from the fit
       real*4 aa(3,3,maxvols)
       equivalence (aa, fitMat)
 c       
-c       matrices used to call gaussj
-      real*8 daa(maxvols,maxvols), dbb(maxvols,7)
+c       matrices used to call gaussj (used to be doubles)
+      real*4 daa(maxvols,maxvols), dbb(7,maxvols)
 c       
 c       Inverse of final full matrices
       real*4 dtor, finvMat(3,3,maxvols), finvDxyz(3,maxvols)

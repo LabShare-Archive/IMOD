@@ -1031,10 +1031,10 @@ c
 c       Solve for dxyz
       do ivar = 1, numSolve - 1
         do j = 1, numSolve - 1
-          daa(ivar,j) = 0.
+          daa(j,ivar) = 0.
         enddo
         do j = 1, 3
-          dbb(ivar,j) = 0
+          dbb(j,ivar) = 0
         enddo
         
         do ivs = 1, numSolve
@@ -1052,21 +1052,21 @@ c               it is N, subtract from upper variable if it this is lower, or
 c               add to upper var if it is upper
               if (jvs .eq. numSolve) then
                 do j = 1, numSolve - 1
-                  daa(ivar,j) = daa(ivar,j) + numVec
+                  daa(j,ivar) = daa(j,ivar) + numVec
                 enddo
                 fac = 1.
               else if (ivs .eq. ivar) then
-                daa(ivar,jvs) = daa(ivar,jvs) - numVec
+                daa(jvs,ivar) = daa(jvs,ivar) - numVec
                 fac = 1.
               else if (jvs .eq. ivar) then
-                daa(ivar,jvs) = daa(ivar,jvs) + numVec
+                daa(jvs,ivar) = daa(jvs,ivar) + numVec
                 fac = -1.
               endif
               if (fac .ne. 0.) then
 c                 
 c                 In any case, add to this variable depending on fac, and 
 c                 add up the resid components for the constant terms
-                daa(ivar,ivs) = daa(ivar,ivs) + fac * numVec
+                daa(ivs,ivar) = daa(ivs,ivar) + fac * numVec
                 kstr = istrVector(indVector(iexy,ivf))
                 kend = kstr + numVec - 1
                 do j = 1, 3
@@ -1074,7 +1074,7 @@ c                 add up the resid components for the constant terms
                   do k = kstr, kend
                     dsum = dsum + resid(j,k)
                   enddo
-                  dbb(ivar,j) = dbb(ivar,j) + dsum * fac
+                  dbb(j,ivar) = dbb(j,ivar) + dsum * fac
                 enddo
               endif
             endif
@@ -1083,17 +1083,17 @@ c                 add up the resid components for the constant terms
       enddo
 c       
 c       Get solution and copy the dxyz out, compose the N one
-c        write(*,'(8f6.0,3f10.2)')((daa(ivar,i),i=1,numSolve-1),(dbb(ivar,i),i=1,3)
+c        write(*,'(8f6.0,3f10.2)')((daa(i,ivar),i=1,numSolve-1),(dbb(i,ivar),i=1,3)
 c     &      ,ivar=1,numSolve-1)
-      call gaussjd(daa, numSolve - 1, maxvols, dbb, 3, maxvols, 7)
+      call gaussj(daa, numSolve - 1, maxvols, dbb, 3, 7)
 c        print *,'Solution:'
-c        write(*,'(8f6.3,3f10.2)')((daa(ivar,i),i=1,numSolve-1),(dbb(ivar,i),i=1,3)
+c        write(*,'(8f6.3,3f10.2)')((daa(i,ivar),i=1,numSolve-1),(dbb(i,ivar),i=1,3)
 c     &      ,ivar=1,numSolve-1)
       do j = 1, 3
         dxyz(numSolve,j) = 0
         do i = 1, numSolve - 1
-          dxyz(i,j) = dbb(i,j)
-          dxyz(numSolve,j) = dxyz(numSolve,j) - dbb(i,j)
+          dxyz(i,j) = dbb(j,i)
+          dxyz(numSolve,j) = dxyz(numSolve,j) - dbb(j,i)
         enddo
       enddo
 c      write(*,'(9f8.1)')((dxyz(i,j)/scalexyz,i=1,3),j = 1, numSolve)
@@ -1436,10 +1436,10 @@ c       from alignment, as opposed to amount it needs to be shifted to be in
 c       alignment
       do ivar = 1, numVols - 1
         do m = 1, numVols - 1
-          daa(ivar,m) = 0.
+          daa(m,ivar) = 0.
         enddo
         do j = 1, numCols
-          dbb(ivar,j) = 0
+          dbb(j,ivar) = 0
         enddo
 
         do iexy = 1, 2
@@ -1451,15 +1451,15 @@ c           displacements from the constant term
           if (iv .gt. 0) then
             daa(ivar,ivar) = daa(ivar,ivar) + 1
             if (iv .ne. numVols) then
-              daa(ivar,iv) = daa(ivar,iv) - 1
+              daa(iv,ivar) = daa(iv,ivar) - 1
             else
               do m = 1, numVols - 1
-                daa(ivar,m) = daa(ivar,m) + 1
+                daa(m,ivar) = daa(m,ivar) + 1
               enddo
             endif
             j = indVector(iexy,iv)
             do m = 1, numCols
-              dbb(ivar,m) = dbb(ivar,m) - edgeArray(m,j)
+              dbb(m,ivar) = dbb(m,ivar) - edgeArray(m,j)
             enddo
           endif
 c           
@@ -1469,31 +1469,31 @@ c           displacement.
           if (jv .gt. 0) then
             daa(ivar,ivar) = daa(ivar,ivar) + 1
             if (jv .ne. numVols) then
-              daa(ivar,jv) = daa(ivar,jv) - 1
+              daa(jv,ivar) = daa(jv,ivar) - 1
             else
               do m = 1, numVols - 1
-                daa(ivar,m) = daa(ivar,m) + 1
+                daa(m,ivar) = daa(m,ivar) + 1
               enddo
             endif
             j = indVector(iexy,ivar)
             do m = 1, numCols
-              dbb(ivar,m) = dbb(ivar,m) + edgeArray(m,j)
+              dbb(m,ivar) = dbb(m,ivar) + edgeArray(m,j)
             enddo
           endif
         enddo
-c         write(*,'(8f6.0,3f10.2)')(daa(ivar,j),j=1,numVols-1),(dbb(ivar,j),j=1,3)
+c         write(*,'(8f6.0,3f10.2)')(daa(j,ivar),j=1,numVols-1),(dbb(j,ivar),j=1,3)
       enddo
 c       
 c       Get the solution and store the shifts
-      call gaussjd(daa, numVols - 1, maxvols, dbb, numCols, maxvols, 7)
+      call gaussj(daa, numVols - 1, maxvols, dbb, numCols, 7)
 c       print *,'Solution:'
-c       write(*,'(8f6.3,3f10.2)')((daa(ivar,j),j=1,numVols-1),(dbb(ivar,j),j=1,3)
+c       write(*,'(8f6.3,3f10.2)')((daa(j,ivar),j=1,numVols-1),(dbb(j,ivar),j=1,3)
 c     &     ,ivar=1,numVols-1)
       do j = 1, numCols
         sum = 0
         do iv = 1, numVols - 1
-          volArray(1 + (j - 1) * icolStride + (iv-1) * ivolStride) = dbb(iv,j)
-          sum = sum - dbb(iv,j)
+          volArray(1 + (j - 1) * icolStride + (iv-1) * ivolStride) = dbb(j,iv)
+          sum = sum - dbb(j,iv)
         enddo
         volArray(1 + (j - 1) * icolStride + (numVols - 1) * ivolStride) = sum
       enddo
@@ -2982,6 +2982,9 @@ c
 
 
 c       $Log$
+c       Revision 3.9  2009/09/15 05:15:15  mast
+c       Made it vary metro factor when search fails
+c
 c       Revision 3.8  2009/09/10 03:23:59  mast
 c       Made it drop output vectors when a needed edge does not provide a
 c       vector and added protection against zero vectors past the end of an
