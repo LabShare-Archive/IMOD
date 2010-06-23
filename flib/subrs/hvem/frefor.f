@@ -7,6 +7,9 @@ c
 c	  $Revision$
 c
 c	  $Log$
+c	  Revision 3.1  2006/02/02 18:48:47  mast
+c	  Added frefor2, a better version that can skip non-numeric fields
+c	
 
 C       !
 C       Reads numeric values from a character string in [card], returns the
@@ -27,13 +30,16 @@ c
 C       Search for starting point
       DO WHILE (CARD(ISTART:ISTART).EQ.BLANK)
         ISTART=ISTART+1
+        if (istart .gt. len(card)) return
       END DO
 C       Decode fields - use lnblnk instead of len as limit
       DO WHILE (ISTART.LE.lnblnk(card))
         NFIELDS=NFIELDS+1
         NPOINT1=INDEX(CARD(ISTART:),BLANK)-1
         NPOINT2=INDEX(CARD(ISTART:),',')-1
-        if(npoint1.le.0)then
+        if(npoint1.le.0 .and. npoint2.le.0) then
+          npoint = 1
+        elseif(npoint1.le.0)then
           npoint=npoint2
         elseif(npoint2.le.0)then
           npoint=npoint1
@@ -50,9 +56,9 @@ c         DECODE(NPOINT,30,CARD(ISTART:IEND),err=99)XNUM(NFIELDS)
 c         30      FORMAT(F75.0)
         ISTART=IEND+2
 C         Skip over recurring blanks
-        DO WHILE (CARD(ISTART:ISTART).EQ.BLANK.or.
-     &      CARD(ISTART:ISTART).EQ.',')
+        DO WHILE (CARD(ISTART:ISTART).EQ.BLANK .or. CARD(ISTART:ISTART).EQ.',')
           ISTART=ISTART+1
+          if (istart .gt. len(card)) return
         END DO
       END DO
       return
@@ -82,6 +88,7 @@ C       Search for starting point
 c
       DO WHILE (CARD(ISTART:ISTART).EQ.BLANK)
         ISTART=ISTART+1
+        if (istart .gt. len(card)) return
       END DO
 c
 C       Decode fields - use lnblnk instead of len as limit
@@ -90,7 +97,9 @@ c
         NFIELDS=NFIELDS+1
         NPOINT1=INDEX(CARD(ISTART:),BLANK)-1
         NPOINT2=INDEX(CARD(ISTART:),',')-1
-        if(npoint1.le.0)then
+        if(npoint1.le.0 .and. npoint2.le.0) then
+          npoint = 1
+        elseif(npoint1.le.0)then
           npoint=npoint2
         elseif(npoint2.le.0)then
           npoint=npoint1
@@ -107,9 +116,9 @@ c
 c
 C         Skip over recurring blanks
 c
-        DO WHILE (CARD(ISTART:ISTART).EQ.BLANK.or.
-     &      CARD(ISTART:ISTART).EQ.',')
+        DO WHILE (CARD(ISTART:ISTART).EQ.BLANK .or. CARD(ISTART:ISTART).EQ.',')
           ISTART=ISTART+1
+          if (istart .gt. len(card)) return
         END DO
       END DO
       return
