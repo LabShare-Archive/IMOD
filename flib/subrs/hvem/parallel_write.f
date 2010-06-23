@@ -3,12 +3,20 @@ c       in parallel to a file.
 c       
 c       $Id$
 c       $Log$
+c       Revision 1.3  2009/08/04 22:41:55  mast
+c       Fixed another problem with uninitialized ierr for line writing
+c
 c       Revision 1.2  2009/02/25 00:25:03  mast
 c       Fixed initialization of ierr and title
 c
 c       Revision 1.1  2009/02/16 06:23:33  mast
 c       Added to package
-c
+c       
+c       Module for common variables
+      module parWrtVars
+      integer*4 izcur, iycur, nxpw, nypw, nzpw, linesBound, iunBound
+      integer*4 izBound(2), iyBound(2), ifopen, ifAllSec
+      end module parWrtVars
 c       
 c
 c       !
@@ -20,10 +28,10 @@ c       [nzin]. Returns the return value from the initialization routine
 c       parWrtInitialize
 c
       integer*4 function parWrtInitialize(filename, iunit, nxin, nyin, nzin)
+      use parWrtVars
       implicit none
       character*(*) filename
       integer*4 iunit, nxin, nyin, nzin, ierr, nfiles
-      include 'parallel_write.inc'
       integer*4 parWrtInitializeFW, parWrtProperties
 
       iunBound = iunit
@@ -47,9 +55,9 @@ c       Positions unit [iunit] for writing at section [iz], line[iy], numbered
 c       from 0.
 c
       subroutine parWrtPosn(iunit, iz, iy)
+      use parWrtVars
       implicit none
       integer*4 iunit, iz, iy
-      include 'parallel_write.inc'
 c
       call imposn(iunit, iz, iy)
       izcur = iz
@@ -62,10 +70,10 @@ c       Writes an entire section from [array] into unit [iunit] at the current
 c       position and writes boundary lines if appropriate
 c
       subroutine parWrtSec(iunit, array)
+      use parWrtVars
       implicit none
       integer*4 iunit, ierr
       real*4 array(*)
-      include 'parallel_write.inc'
 c
       call iwrsec(iunit, array)
       if (linesBound .eq. 0) return
@@ -93,10 +101,10 @@ c       Writes one line from [array] into unit [iunit] at the current location
 c       and writes it to a boundary file if appropriate
 c
       subroutine parWrtLin(iunit, array)
+      use parWrtVars
       implicit none
       integer*4 iunit, ierr;
       real*4 array(*)
-      include 'parallel_write.inc'
 c
       call iwrlin(iunit, array)
       if (linesBound .eq. 0) return
@@ -109,7 +117,8 @@ c
         endif
       endif
 c     
-c      
+c       The find region return modified non-boundary numbers for Y chunks
+c       so that these simple tests work with them too.
       if (ifAllSec .ne. 0) then
         if (iycur .lt. iyBound(1) + linesBound) then
           call imposn(iunBound, 2 * izcur, iycur - iyBound(1))
@@ -143,10 +152,10 @@ c       Internal routine to determine region and open file if needed, when
 c       writing at section izsec, nlwrite lines starting at iyline
 c
       subroutine pwOpenIfNeeded(izsec, iyline, nlwrite, ierr)
+      use parWrtVars
       implicit none
       integer*4 izsec, iyline, nlwrite, ierr, kti, nxyz(3)
       character*320 filename
-      include 'parallel_write.inc'
       real*4 title(20)
       character*80 titlech /'parallel_write: boundary lines'/
       integer*4 parWrtFindRegion

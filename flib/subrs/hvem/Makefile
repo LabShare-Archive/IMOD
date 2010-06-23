@@ -18,5 +18,3 @@ clean:
 	$(FIND) . -type f -name "*.o*" -exec rm "{}" \;
 	$(FIND) . -type f -name "*~" -exec rm "{}" \;
 	$(FIND) . -type f -name "#*#" -exec rm "{}" \;
-
-parallel_write.$(O): parallel_write.inc
