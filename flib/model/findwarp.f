@@ -31,7 +31,7 @@ c
       integer*4 indvert(idim),nvert(idim)
       integer*4 nfxauto(limpatch),nfyauto(limpatch),nfzauto(limpatch)
       integer*4 inrowx(limaxis),inrowy(limaxis),inrowz(limaxis)
-      integer*4 inDiag1(limdiag), inDiag2(limdiag)
+      integer*4 inDiag1(0:limdiag), inDiag2(0:limdiag)
       character*320 filename, resfile
       real*4 cxyzin(3),dxyzin(3),targetres(limtarg),devavAuto(limpatch)
       integer*4 npatxyz(3),listpos(limaxis,3),indxyz(3)
@@ -671,7 +671,10 @@ c
             enddo
             nyDiag = nfity
             if (ifflip .eq. 1) nyDiag = nfitz
-            do i = 1, nfitx + nyDiag - 3
+c             
+c             Zero the parts of the arrays corresponding to corners, which
+c             won't be tested
+            do i = 0, nfitx + nyDiag - 2
               inDiag1(i) = 0
               inDiag2(i) = 0
             enddo
@@ -1017,6 +1020,9 @@ c
 
 c       
 c       $Log$
+c       Revision 3.20  2009/09/02 18:46:52  mast
+c       Fixed residual output; it was using cross-index in wrong direction
+c
 c       Revision 3.19  2009/06/05 18:24:07  mast
 c       Eliminate inferior filling in method and put out file with missing
 c       transforms
