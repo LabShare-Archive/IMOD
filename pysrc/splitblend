@@ -1,0 +1,295 @@
+#!/usr/bin/python -u
+# splitblend - program to set up command files for parallel blendmont
+#
+# Author: David Mastronarde
+#
+# $Id$
+# Log at end
+#
+
+progname = 'splitblend'
+prefix = 'ERROR: ' + progname + ' - '
+
+def writeTextFile(comname, strings):
+   try:
+      action = 'Opening'
+      comf = open(comname, 'w')
+      action = 'Writing to'
+      for line in strings:
+         print >> comf, line
+      comf.close()
+   except:
+      exitError(action + " file: " + comname)
+
+
+#### MAIN PROGRAM  ####
+#
+# load System Libraries
+import os, sys, os.path, signal, copy, glob
+
+#
+# Setup runtime environment
+if sys.platform.find("win32") < 0:
+   try:
+      signal.signal(signal.SIGHUP, signal.SIG_IGN)
+   except:
+      pass
+if os.getenv('IMOD_DIR') != None:
+   os.environ['PATH'] = os.path.join(os.environ['IMOD_DIR'], 'bin') + \
+                        os.pathsep + os.environ['PATH']
+   sys.path.append(os.path.join(os.environ['IMOD_DIR'], 'pylib'))
+   os.environ['PIP_PRINT_ENTRIES'] = '0'
+else:
+   print prefix + " IMOD_DIR is not defined!"
+   sys.exit(1)
+
+#
+# load IMOD Libraries
+from imodpy import *
+from pip import *
+from pysed import *
+
+options = [":n:I:Expected number of machines or processors (default 4)",
+           ":t:I:Target number of chunks",
+           ":y:B:Do chunks in Y instead of in Z",
+           ":e:B:Do edge functions only, do not blend images",
+           ":u:B:Use old edge functions and displacements; just blend images",
+           ":r:B:Recompute edge functions but use existing displacements",
+           ":b:I:Number of boundary pixels between chunks (default 2048)"]
+
+status = PipExitOnError(0, "ERROR: splitblend - ")
+(numOptArgs, numNonOptArgs) = PipParseInput(sys.argv, options)
+if not numNonOptArgs:
+   status = PipPrintHelp("splitblend", 0, 1, 0)
+   sys.exit(1)
+
+# Get the com file name, derive a root name and new com file name, check exists
+comfile = PipGetNonOptionArg(0)
+
+if comfile.endswith('.com'):
+   rootname = comfile[0 : len(comfile) - 4]
+elif comfile.endswith('.'):
+   rootname = comfile.rstrip('.')
+else:
+   rootname = comfile
+
+comfile = rootname + '.com'
+if not os.path.exists(comfile):
+   exitError("Command file " + comfile + " does not exist")
+
+# Get options
+boundPixels = 2048
+targetRatio = 4
+numproc = PipGetInteger('n', 4)
+targetChunks = PipGetInteger('t', numproc * targetRatio)
+boundPixels = PipGetInteger('b', boundPixels)
+yChunks = PipGetBoolean('y', 0)
+edgeFuncOnly = PipGetBoolean('e', 0)
+recomputeEF = PipGetBoolean('r', 0)
+useOldFunc = PipGetBoolean('u', 0)
+if useOldFunc and edgeFuncOnly:
+   exitError('You cannot enter -r and -u together (recompute and use old' +\
+             'edge functions)')
+   
+# Get the com file and analyze for beginning, blendmont, and ending commands
+# Don't strip lines for that: $ is required to be at front
+comlines = readTextFile(comfile, 'blendmont command file')
+
+beforeInd = blendInd = afterInd = -1
+for ind in range(len(comlines)):
+   line = comlines[ind]
+   if line.startswith('$'):
+      if blendInd >= 0:
+         afterInd = ind
+      elif line.find('blendmont') > 0:
+         blendInd = ind
+      else:
+         beforeInd = ind
+
+if blendInd < 0:
+   exitError('Cannot find blendmont command in command file')
+
+lastInd = afterInd
+if afterInd < 0:
+   lastInd = len(comlines)
+blendLines = comlines[blendInd:lastInd]
+
+# Get some options from command file
+outputFile = optionValue(blendLines, 'ImageOutputFile', 0)
+inputFile = optionValue(blendLines, 'ImageInputFile', 0)
+plInput = optionValue(blendLines, 'PieceListInput', 0)
+oldfuncArr = optionValue(blendLines, 'OldEdgeFunctions', 1)
+readxcorrArr = optionValue(blendLines, 'ReadInXcorrs', 1)
+binningArr = optionValue(blendLines, 'BinByFactor', 1)
+blendroot = optionValue(blendLines, 'RootNameForEdges', 0)
+if not outputFile or not blendroot or not inputFile:
+   exitError('Cannot find output file or root name for edges in command file')
+setname = (os.path.splitext(outputFile))[0]
+if not recomputeEF and oldfuncArr and oldfuncArr[0]:
+   useOldFunc = 1
+
+if useOldFunc and edgeFuncOnly:
+   exitError('You requested edge functions only but command file says ' +\
+             'to use old edge functions')
+binning = 1
+if binningArr:
+   binning = binningArr[0]
+
+# Find size to see if need to do in Y
+try:
+   sizelines = runcmd('montagesize ' + inputFile + ' ' + plInput)
+   for line in sizelines:
+      if line.find('Total NX') >= 0:
+         lsplit = line.split()
+         nz = int(lsplit[6])
+         if nz == 1 and not yChunks:
+            yChunks = 1
+            print 'Setting up chunks in Y because the Z size is only 1'
+
+except ImodpyError, errout:
+   exitFromImodError(progname, errout)
+
+# Run blendmont to determine chunking
+if not edgeFuncOnly:
+   runLines = copy.deepcopy(blendLines[1:])
+   runLines.append('ParallelMode %d %d' % (targetChunks, yChunks))
+   try:
+      queryOut = runcmd('blendmont -StandardInput', runLines)
+   except ImodpyError, errout:
+      print 'ERROR: running blendmont to determine chunk extents'
+      exitFromImodError(progname, errout)
+
+   # get the entry lines and other chunk information
+   subsetLines = []
+   boundStarts = []
+   boundEnds = []
+   nxout = 0
+   for line in queryOut:
+      if line.find('SubsetToDo') >= 0:
+         subsetLines.append(line)
+      if line.find('ChunkBoundary') >= 0:
+         lsplit = line.split()
+         boundStarts.append(int(lsplit[1]))
+         boundEnds.append(int(lsplit[2]))
+      if line.find('Output image size:') >= 0:
+         lsplit = line.split()
+         nxout = int(lsplit[3])
+         nyout = int(lsplit[4])
+
+   numChunks = len(subsetLines)
+   if not numChunks or numChunks != len(boundStarts) or not nxout:
+      exitError('Could not find chunk information in output from blendmont')
+
+# Clean up existing coms and logs if any
+try:
+   rmlist = glob.glob(rootname + '-[0-9][0-9][0-9]*.com')
+   rmlist2 = glob.glob(rootname + '-[0-9][0-9][0-9]*.log')
+   rmlist.extend(rmlist2)
+   if os.path.exists(rootname + '-finish.com'):
+      rmlist.append(rootname + '-finish.com')
+   if os.path.exists(rootname + '-finish.log'):
+      rmlist.append(rootname + '-finish.log')
+   for filename in rmlist:
+      os.remove(filename)
+except:
+   pass
+
+# Start with two chunks for edge functions, with possible sync before it
+comnum = 0
+combineLines = []
+if not useOldFunc:
+   if beforeInd >= 0:
+      comnum += 1
+      comname = rootname + '-001-sync.com'
+      writeTextFile(comname, comlines[0:blendInd])
+      
+   sedlist = [r'/^\s*OldEdgeFunctions.*/s//OldEdgeFunctions  0/']
+   if recomputeEF:
+      sedlist.append(r'/^\s*ReadInXcorrs.*/s//ReadInXcorrs  1/')
+   for axis in (1, 2):
+      comnum += 1
+      comname = rootname + '-%03d.com' % (comnum)
+      runLines = copy.deepcopy(blendLines)
+      runLines.append('EdgeFunctionsOnly  %d' % (axis))
+      pysed(sedlist, runLines, comname, True)
+
+   combineLines = ['$if (-e %s.ecd) \\mv -f %s.ecd %s.ecd~' % \
+                   (blendroot, blendroot, blendroot),
+                   '$(cat %s.xecd %s.yecd >! %s.ecd)' % \
+                   (blendroot, blendroot, blendroot)]
+
+if edgeFuncOnly:
+   comnum += 1
+   comname = rootname + '-%03d-sync.com' % (comnum)
+   writeTextFile(comname, combineLines)
+
+else:
+
+   # Put out the file to set up the output file
+   comnum += 1
+   comname = rootname + '-%03d-sync.com' % (comnum)
+   runLines = []
+   if beforeInd >= 0 and useOldFunc:
+      runLines.extend(comlines[0:blendInd])
+   if combineLines:
+      runLines.extend(combineLines)
+   runLines.extend(blendLines)
+   runLines.append('ParallelMode  -1 %d' % (yChunks))
+   if not oldfuncArr:
+      runLines.append('OldEdgeFunctions  1')
+   sedlist = [r'/^\s*ReadInXcorrs.*/s//ReadInXcorrs  1/',
+              r'/^\s*OldEdgeFunctions.*/s//OldEdgeFunctions  1/']
+   pysed(sedlist, runLines, comname, True)
+
+   # Figure out the boundary lines
+   boundLines = (nxout + boundPixels - 1) / nxout
+   infoLines = ["1 %d %d %d %d" % (yChunks, nxout, boundLines, numChunks)]
+   boundFile = rootname + '-bound.info'
+
+   # Make the com files for chunks and accumulate boundary info
+   for ind in range(numChunks):
+      comnum += 1
+      comname = rootname + '-%03d.com' % (comnum)
+      runLines = copy.deepcopy(blendLines)
+      runLines.append('ParallelMode  -2 %d' % (yChunks))
+      runLines.append(subsetLines[ind])
+      runLines.append('BoundaryInfoFile  ' + boundFile)
+      if not oldfuncArr:
+         runLines.append('OldEdgeFunctions  1')
+      pysed(sedlist, runLines, comname, True)
+      infoLines.append(setname + '-%03d.bound' % (ind + 1))
+      start = boundStarts[ind]
+      if not ind:
+         start = -1
+      if yChunks:
+         end = boundEnds[ind] + 1 - boundLines
+         if ind == numChunks - 1:
+            end = -1
+         infoLines.append('-1 %d -1 %d' % (start, end))
+      else:
+         end = boundEnds[ind]
+         if ind == numChunks - 1:
+            end = -1
+         infoLines.append('%d 0 %d -1' % (start, end))
+
+   # Write the info file and the finishing operations
+   writeTextFile(boundFile, infoLines)
+   runLines = ['$fixboundaries  %s %s' % (outputFile, boundFile),
+               '$collectmmm pixels= %s %d %s %d' %
+               (rootname, numChunks, outputFile, comnum + 1 - numChunks)]
+   if afterInd > 0:
+      runLines.extend(comlines[afterInd:])
+   runLines.append('$\\rm -f ' + rootname + '-[0-9][0-9][0-9]*.com* ' + \
+                   rootname + '-[0-9][0-9][0-9]*.log* ' + rootname + \
+                   '-finish*.* ' + setname + '-[0-9][0-9][0-9]*.bound* ' + \
+                   boundFile)
+   writeTextFile(rootname + '-finish.com', runLines)
+   comnum += 1
+
+print comnum, 'command files output and ready to run with'
+print '   processchunks machine_list ' + rootname
+sys.exit(0)
+
+
+#
+#  $Log$
