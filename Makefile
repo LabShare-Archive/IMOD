@@ -71,6 +71,7 @@ all : configure clibs
 	cd sendevent  ; $(MAKE) all
 	cd qtassist   ; $(MAKE) all
 	cd ctfplotter ; $(MAKE) all
+	cd processchunks ; $(MAKE) all
 	cd mrc        ; $(MAKE) all
 	cd clip       ; $(MAKE) all
 	cd midas      ; $(MAKE) all
@@ -152,6 +153,7 @@ clean : configure ALWAYS
 	cd sendevent  ; $(MAKE) $@
 	cd qtassist   ; $(MAKE) $@
 	cd ctfplotter ; $(MAKE) $@
+	cd processchunks ; $(MAKE) $@
 	cd mrc        ; $(MAKE) $@
 	cd midas      ; $(MAKE) $@
 	cd pysrc      ; $(MAKE) $@
@@ -195,6 +197,7 @@ cleanqt : configure ALWAYS
 	cd sendevent  ; $(MAKE) clean
 	cd qtassist   ; $(MAKE) clean
 	cd ctfplotter ; $(MAKE) clean
+	cd processchunks ; $(MAKE) clean
 	cd sourcedoc  ; $(MAKE) clean
 	cd flib/subrs ; \find . -type f -name '*dnmncar*' -exec /bin/rm -f '{}' \;
 	cd flib/subrs/graphics ; $(MAKE) clean
@@ -314,6 +317,8 @@ csrc : ALWAYS
 	sourcedoc/Makefile.dummy sourcedoc/sourcedoc.dsp \
 	ctfplotter/*.cpp ctfplotter/*.h ctfplotter/ctfplotter.pro \
 	ctfplotter/Makefile.dummy ctfplotter/*.qrc ctfplotter/images \
+	processchunks/*.cpp processchunks/*.h processchunks/processchunks.pro \
+	processchunks/Makefile.dummy \
 	html/*.* html/Makefile html/3dmodimages html/etomoImages \
 	html/3dmodHelp html/joinImages html/adpStub html/makeadp \
 	html/ctfHelp html/midasHelp html/libdoc/Makefile html/libdoc/*.html \
@@ -360,6 +365,9 @@ ALWAYS:
 
 ############################################################################
 #  $Log$
+#  Revision 3.80  2010/05/28 21:17:50  mast
+#  Added all licenses to top dir of dist
+#
 #  Revision 3.79  2010/04/12 05:11:03  mast
 #  *** empty log message ***
 #
