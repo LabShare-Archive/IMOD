@@ -100,8 +100,10 @@ c             second time through, save minimum error and
 c             iteration # from first trial that used call to
 c             init_dxy
 c             
-            isolmininit=isolmin
-            ermininit=ermin
+            if (itry .eq. 2) then
+              isolmininit=isolmin
+              ermininit=ermin
+            endif
 c             
             call solve_xyzd(xx,yy,isecview,irealstr,
      &          nview, nrealpt,tilt,rot, gmag,comp,xyz,
@@ -267,6 +269,12 @@ c$$$	  enddo
 
 c       
 c       $Log$
+c       Revision 3.12  2010/06/23 23:42:43  mast
+c       fixed irrelevant illegal operations
+c
+c       Revision 3.11  2008/06/22 20:50:14  mast
+c       Changed to manage items for caller when align is done
+c
 c       Revision 3.10  2008/06/21 19:26:04  mast
 c       Unscaled xyz so it can be used for find_surfaces without worry
 c
