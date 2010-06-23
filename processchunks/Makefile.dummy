@@ -1,0 +1,7 @@
+include ../configure
+
+all :
+
+install	:
+
+clean :
