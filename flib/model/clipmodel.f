@@ -134,7 +134,6 @@ c       Increase Z limits a bit in case there are slightly off Z values
           call exit(1)
         endif
         call scale_model(0)
-        n_objold = n_objold + n_object
 c         
         do iobj=1,max_mod_obj
           n_ptotold=n_ptotold+npt_in_obj(iobj)
@@ -360,6 +359,12 @@ c
 
 c       
 c       $Log$
+c       Revision 3.6  2010/06/23 23:47:55  mast
+c       removed unused undefined variable
+c
+c       Revision 3.5  2008/11/29 15:40:17  mast
+c       Increased z limits to make sure integer entries work
+c
 c       Revision 3.4  2008/10/07 02:28:35  mast
 c       Changed to read one object at a time
 c

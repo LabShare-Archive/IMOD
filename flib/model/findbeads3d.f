@@ -575,14 +575,18 @@ c
 c       quick test for full list and less than the last item on it
 c       And for value less than threshold for storing
       newIndex = 0
-      if (numVals .eq. maxVals .and. values(index(maxVals)) .ge. valNew)
-     &    return
-      if (numVals .gt. 0 .and. valNew .lt. peakRelMin * values(index(1)))
-     &    return
+      if (numVals .eq. maxVals) then
+        if (values(index(maxVals)) .ge. valNew) return
+      endif
+      if (numVals .gt. 0) then
+        if (valNew .lt. peakRelMin * values(index(1))) return
+      endif
 c       
 c       Handle simple cases of inserting at the front or end of the list
 c       
-      if (numVals .eq. 0 .or. valNew .ge. values(index(1))) then
+      if (numVals .eq. 0) then
+        newOrder = 1
+      else if (valNew .ge. values(index(1))) then
         newOrder = 1
       else if (values(index(numVals)) .ge. valNew) then
         newOrder = numVals + 1
@@ -708,7 +712,7 @@ c
       if (ind1 .lt. nTotal - 1) then
         iEnd = ind1 + 1 - ind0 - nOverlap / 2
       else
-        iEnd = ind1 + 2 - ind0 - (ncorr - ncorr / 2)
+        iEnd = ind1 - ind0 - ncorr / 2
       endif
       return
       end
@@ -998,7 +1002,7 @@ c
       integer*4 idyseq(9)/0,-1,1,0,0,-1,1,-1,1/
       integer*4 idzseq(9)/0,0,0,1,-1,-1,-1,1,1/
       logical found
-      integer*4 maxshift,ncorrs,ixStart,ixEnd,iyStart,iyEnd, izStart,izEnd
+      integer*4 maxshift,ixStart,ixEnd,iyStart,iyEnd, izStart,izEnd
 
       real*4 dxadj,dyadj,dzadj
 c       
@@ -1046,7 +1050,6 @@ c
           idxcor = idxglb - nxa / 2
           idycor=idyglb+idy - nya / 2
           idzcor=idzglb+idz - nza / 2
-          ncorrs=ncorrs+1
           call threecorrs(array,nxa,nya,brray,nxb,nyb,0,nxa-1,
      &        0,nya-1,0,nza-1,idxcor,idycor,idzcor,
      &        corrs(-1,idy,idz),corrs(0,idy,idz),corrs(1,idy,idz))
@@ -1331,6 +1334,9 @@ c
 
 c       
 c       $Log$
+c       Revision 3.6  2010/06/23 23:47:19  mast
+c       Fixed bad array accesses in if statements and bad search limits
+c
 c       Revision 3.5  2010/05/26 21:48:21  mast
 c       Output image size in model header so sortbeadsurfs has it
 c
