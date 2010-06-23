@@ -120,7 +120,7 @@ usage = Write reconstructions to separate chunks, not directly to file
 tooltip =
 manpage = Write reconstructions in chunks to separate files and assemble these
 into a single tomogram.  The default is to write directly to the output file.
-Neither this option nor the SeparateProjChunks option should not be needed
+Neither this option nor the SeparateProjChunks option should be needed
 with the protections provided by saving pixels at chunk boundaries into
 separate files; if artifacts do occur, try using the BoundaryPixels option to
 increase the number of pixels saved.
