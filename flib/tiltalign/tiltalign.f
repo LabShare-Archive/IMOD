@@ -316,8 +316,10 @@ c
 c         second time through, save minimum error and iteration # from
 c         first trial that used call to init_dxy
 c         
-        isolmininit=isolmin
-        ermininit=ermin
+        if (itry .eq. 2) then
+          isolmininit=isolmin
+          ermininit=ermin
+        endif
 c         
         call solve_xyzd(xx,yy,isecview,irealstr,nview, nrealpt,tilt,rot,
      &      gmag,comp,xyz,dxy,nsolve,error,erlist,isolve)
@@ -1511,6 +1513,9 @@ c
 
 c       
 c       $Log$
+c       Revision 3.44  2009/11/21 22:19:19  mast
+c       Report mean residual for each contour in 3D table
+c
 c       Revision 3.43  2009/10/23 02:15:06  mast
 c       Provided output of tilt angles before beam tilt adjustment and fixed
 c       potential shortcircuit evaluation problems.
