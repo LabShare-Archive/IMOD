@@ -16,9 +16,7 @@ DDEESSCCRRIIPPTTIIOONN
   densities can be floated over whole sections so that density
   occupies the maximum range for each section.  The program can also
   correct for minor or substantial displacements between pieces, using
-  cross-correlation to find substantial shifts.  Multinegative montages
-  can also be handled, with each negative transformed so as to produce
-  the best fit between the negatives.
+  cross-correlation to find substantial shifts.  
 
   The program performs these feats by examining each edge, or region
   of overlap, between adjacent pieces, and deriving a function that
@@ -48,25 +46,29 @@ DDEESSCCRRIIPPTTIIOONN
   pieces.  Thus, if your montage is "sloppy" enough, you should select
   the option for initial cross-correlations.
   
-  If the pieces are shifted at all from the positions specified by
-  their piece coordinates, the program can correct for this.  It can
-  take the information about the shift between each pair of overlapping
-  pieces and use it to find the amounts to shift each piece so as to
-  fit the pieces together best.  If the shifts are large, then an
-  initial cross-correlation should be selected; otherwise this step is
-  not needed.  There are three ways to implement this correction step.
-  One is based solely on the information in the edge functions.
-  Another is a hybrid method based  on both cross-correlation and edge
-  functions; the program will solve for shifts twice, using the
-  displacements implied by the edge  functions then those implied by
-  correlations, and select the solution that gives the smallest mean
-  error.  The third method is based on cross-correlations alone and is
-  not as reliable as the hybrid method.  This method should be used
-  with older data if it is important to have an image stack that
-  exactly matches that produce by Blendmont prior to June 1, 2001,
-  when the hybrid option was implemented. It might also be useful in
-  cases where the edge functions are not reliable, such as when there
-  are large blank areas in the edge regions. 
+  If the pieces are shifted at all from the positions specified by their
+  piece coordinates, the program can correct for this.  It can take the
+  information about the shift between each pair of overlapping pieces and use
+  it to find the amounts to shift each piece so as to fit the pieces together
+  best.  If the shifts are more than a few pixels, then an initial
+  cross-correlation should be selected; otherwise this step is not needed.
+  There are three ways to implement this correction step.  One is based
+  solely on the information in the edge functions.  Another is a hybrid
+  method based on both cross-correlation and edge functions; the program will
+  solve for shifts twice, using the displacements implied by the edge
+  functions then those implied by correlations, and select the solution that
+  gives the smallest mean error.  The third method is based on
+  cross-correlations alone and is not as reliable as the hybrid method.  This
+  method should be used (with the -xcorr option) with older data if it is
+  important to have an image stack that exactly matches that produce by
+  Blendmont prior to June 1, 2001, when the hybrid option was implemented. It
+  might also be useful in cases where the edge functions are not reliable,
+  such as when there are large blank areas in the edge regions.  It is also
+  used by default (as of IMOD 4.2.3) when there is only one piece in one of
+  the two directions, because in this case the mean error is zero regardless
+  of whether correlations or edge functions are used.  In such cases, you
+  would have to use the -edge option to have it use the displacements from
+  edge functions instead.
 
   In any case where cross-correlations are being computed, the program
   will write the displacements between pieces into a file with the
@@ -88,16 +90,58 @@ DDEESSCCRRIIPPTTIIOONN
   correlated wider than the nominal overlap zone (up to 0.5 has been
   tried with good results).
 
-  If sections come from more than one negative, this may be specified
-  in either of two ways.  If every section has the same division of
-  pieces into negatives, then one can specify this universal division 
-  into negatives as an interactive input to the program.
-  Alternatively, one may add negative numbers after the z coordinates
-  in the file of piece coordinates.  The only restriction on these
-  numbers is that they should be non-zero, and every piece from the
-  same negative should have the same number.  Thus, one could number
-  negatives 1, 2, 3 ... in each section that has multiple negatives,
-  or one could use the identifying number on each negative.
+  Sometime there is simply not enough information in an overlap zone to allow
+  the displacement between pieces to be determined.  You can exclude such
+  overlap zones from being considered by making a model marking each edge to
+  be excluded.  To make the model, run 3dmod on the unblended montage, and
+  edit the object type to make the type be scattered points with symbols
+  displayed at each point, but with no sphere radius.  Mark an edge to be
+  excluded by placing a point near the middle of the line (discontinuity)
+  that appears between the two adjacent pieces.  This position is actually on
+  one side of the overlap zone between the pieces, but Blendmont will be able
+  to assign your points to edges based upon where it thinks each such line
+  appears in 3dmod.
+
+  There are several different scenarios that you might follow when excluding
+  edges, and they might require different settings of the -nonzero option.
+  With the default setting of this option (1), when the program reads in edge
+  displacements from a file and finds a nonzero displacement for an edge to
+  be excluded, it includes that edge when determining piece shifts but still
+  does not try to compute an edge function.  This behavior is appropriate if
+  you mark the edges to exclude, run Blendmont to compute edge displacements,
+  then use Midas(1) to adjust some of the excluded edges to have nonzero
+  displacements, because it can be assumed that the adjsted displacement is
+  correct.  If you want edge functions to be computed as well for such edges,
+  then you would enter the -nonzero option with a value of 2.  Alternatively,
+  suppose you run Blendmont and get bad displacements for some edges, then
+  you mark the edges to exclude.  If you want to go on to make a blended image
+  without rerunning correlations or setting those displacements to 0, then
+  you would need to use the -nonzero option with a value of 0 to make the
+  program ignore all of the excluded edges.
+
+  By default, the program puts the output into a single frame.  However,
+  when you specify the maximum frame size and minimum overlap of the output
+  image, the program will pick the largest frame size less than that maximum,
+  with the smallest overlap greater than that minimum, so that the resulting
+  image will contain at least as many pixels as the original input image.
+  The program picks a frame size that is a multiple of 2 and has no prime
+  factor greater than 19 (so that fourier transforms can be run on the
+  resulting pieces).  This behavior is silly for very large images and can be
+  overridden with the -nofft option.
+
+  The program was originally written to handle montages digitzed from
+  multiple film negatives, with each negative transformed so as to produce
+  the best fit between the negatives.  This is unlikely to work, but here is
+  the documentation for it. If sections come from more than one negative,
+  this may be specified in either of two ways.  If every section has the same
+  division of pieces into negatives, then one can specify this universal
+  division into negatives as an interactive input to the program.
+  Alternatively, one may add negative numbers after the z coordinates in the
+  file of piece coordinates.  The only restriction on these numbers is that
+  they should be non-zero, and every piece from the same negative should have
+  the same number.  Thus, one could number negatives 1, 2, 3 ... in each
+  section that has multiple negatives, or one could use the identifying
+  number on each negative.
 
   When pieces of a section come from more than one negative, the
   program uses the edge functions between the negatives to determine
@@ -107,14 +151,6 @@ DDEESSCCRRIIPPTTIIOONN
   and translation for each negative, so as to bring all of the
   negatives into best alignment.  Blending of edges is performed after
   such rotations and translations have been applied.
-
-  When you specify the maximum frame size and minimum overlap of the
-  output image, the program will pick the largest frame size less than
-  that maximum, with the smallest overlap greater than that minimum,
-  so that the resulting image will contain at least as many pixels as
-  the original input image.  It picks a frame size that is a multiple
-  of 2 and has no prime factor greater than 19 (so that fourier
-  transforms can be run on the resulting pieces).
 
   Blendmont uses the PIP package for input (see the manual page for pip(1))
   and can still take sequential input interactively, to maintain compatibility

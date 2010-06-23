@@ -80,6 +80,32 @@ only one available before IMOD 3.6), 3 for cubic; the default is cubic when
 the program is run with PIP input and quadratic when run with sequential
 input.
 
+[Field = SkipEdgeModelFile]
+short = skip
+type = FN
+usage = Model file with points near edges to exclude
+tooltip = 
+manpage = Model file with points near edges to exclude when computing edge 
+functions and displacements.  You can exclude edges where the overlap cannot
+be determined correctly in order to prevent bad displacements from affecting
+the placement of surrounding pieces.  On an initial run of Blendmont, marked
+edges will be given zero correlation displacements and zero edge functions.
+On subsequent runs, the treatment of such edges may be affected by the
+-nonzero option described next.
+
+[Field = NonzeroSkippedEdgeUse]
+short = nonzero
+type = I
+usage = Where to use excluded edges that have non-zero shifts read from file
+tooltip = 
+manpage = An indicator of how to treat excluded edges that have non-zero shifts
+read in from the edge displacement file.  Possible values are: 0, to exclude
+the edge from computation of piece shifts and to give it a zero edge function;
+1, to include the displacement in the computation of piece shifts but still
+give it the edge a zero edge function; 2, to include the displacement in the
+computation of piece shifts and compute an edge function for it.  The default
+is 1.
+
 [Field = DistortionField]
 short = distort
 type = FN
@@ -265,6 +291,16 @@ usage = Minimum and maximum Y index coordinates to output
 tooltip = 
 manpage = Minimum and maximum Y index coordinates to output.
 
+[Field = NoResizeForFFT]
+short = nofft
+type = B
+usage = Do not increase size of single frame output to legal size for FFT
+tooltip = 
+manpage = Do not increase the size of the output to be suitable for taking an
+FFT.  By default, output sizes are increased to have no higher prime factor
+than 19.  This option suppresses that increase, but only when output is to a
+single frame.
+
 [Field = AdjustOrigin]
 short = origin
 type = B
@@ -410,21 +446,22 @@ uniform data.
 [Field = ParallelMode]
 short = parallel
 type = IP
-usage = Mode for setting up or running parallel blend and max sections
+usage = Mode for setting up or running parallel blend, and 1 for chunks in Y
 tooltip = 
-manpage = Mode for setting up or running a parallel blend.  The possibilities 
+manpage = Mode for setting up or running a parallel blend.  The second value
+should be 0 for chunks in Z, or 1 for chunks in Y.  The possibilities 
 for the first value are:
 ^   > 0: The program will check for the legality of blending in parallel and
-output subset section lists for running with the given number of target
-chunks.  The second value should be the maximum number of sections to put in
-each chunk.
+output subset section or line lists for running with the given number of target
+chunks.  
 ^  -1: The program will create and write the header for a common output file
-to be written directly by multiple blends.  The second value is irrelevant.
+to be written directly by multiple blends.
 ^  -2: The program will write the given subset of sections directly to a
-common output file.  The second value is irrelevant.
+common output file.
 ^  -3: The program will take the SubsetToDo as the SectionsToDo and write
 these sections to a new file; multiple files will need to be stacked
-afterwards.  The second value is irrelevant.
+afterwards.  It should not be necessary to write multiple files; increase the
+boundary pixels if artifacts occur when writing to a single file.
 
 [Field = SubsetToDo]
 short = subset
@@ -432,7 +469,36 @@ type = LI
 usage = Subset of sections to do in parallel blend
 tooltip = 
 manpage = List of subset of sections to blend when running multiple blends in
-parallel.  This option is ignored unless ParallelMode is -1 or -2.
+parallel.  This option is ignored unless ParallelMode is negative.
+
+[Field = LineSubsetToDo]
+short = lines
+type = IP
+usage = Starting and ending Y values of lines to do in parallel blend
+tooltip = 
+manpage = Starting and ending Y values of lines to blend when running multiple
+blends in parallel.  This option is ignored unless ParallelMode is negative.
+
+[Field = BoundaryInfoFile]
+short = boundary
+type = FN
+usage = File with information about boundaries when writing in parallel
+tooltip = 
+manpage = File with information about boundary locations and files when 
+directly writing in parallel to a single output file.
+
+[Field = EdgeFunctionsOnly]
+short = functions
+type = I
+usage = Just compute edge functions (1 for X, 2 for Y, 3 for both)
+tooltip =
+manpage = Compute edge functions (and correlations, if appropriate) then exit.
+Enter 1 or 2 for X or Y edges alone, or 3 to compute both.  If 1 or 2 is
+entered and edge correlation displacements are being written to a file, then
+the first or second half of the file is produced in a file with extension
+".xecd" or ".yecd", and the two halves may simply be concatenated to obtain
+the full file.  Blendmont will produce a concatenated file when it is told to
+read in the edge displacements and it finds only these two partial files.
 
 [SectionHeader = XCOptions]
 usage = CROSS-CORRELATION CONTROL OPTIONS 
@@ -493,7 +559,7 @@ correlated, and it is easy for a spurious peak to become stronger than the
 true peak when there is much displacement between the areas.  The true peak
 will generally still give a stronger correlation coefficient in such a case.
 This value is set to 1 by default unless VerySloppyMontage is entered, in
-which case he default is 16.
+which case the default is 16.
 
 [Field = FilterRadius1]
 short = radius1
