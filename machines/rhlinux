@@ -287,8 +287,9 @@ QMAKE_LFLAGS_RELEASE += -Wl,-E
 EOF
 
 echo " " >! $ctfplot_qconf
+echo " " >! $prochunk_qconf
 if ("$qmcxxFlags" != "") then
-    foreach i ($midas_qconf $imod_qconf $ctfplot_qconf)
+    foreach i ($midas_qconf $imod_qconf $ctfplot_qconf $prochunk_qconf)
         echo "QMAKE_CXXFLAGS_DEBUG += $qmcxxFlags" >> $i
     end
 endif

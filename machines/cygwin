@@ -302,6 +302,7 @@ set class_sep       = ';'
 #
 echo CONFIG += CONSOLE >! $sendevent_qconf
 echo CONFIG += CONSOLE >! $sourcedoc_qconf
+echo CONFIG += CONSOLE >! $prochunk_qconf
 
 #  /LARGEADDRESSAWARE flag allows up to 3GB memory on a 32-bit system if it
 # has the /3GB boot flag; isn't needed for 64-bit link since it is the default
@@ -338,9 +339,10 @@ if ($no_qt3 == false) then
     echo 'QT +=  qt3support' >> $imod_qconf
     echo 'QT +=  qt3support' >> $midas_qconf
     echo 'QT +=  qt3support' >> $ctfplot_qconf
+    echo 'QT +=  qt3support' >> $prochunk_qconf
 endif
 
-set warn = (warn_on warn_on warn_on warn_on warn_off warn_on)
+set warn = (warn_on warn_on warn_on warn_on warn_on warn_off warn_on)
 @ i = 0
 while ($i < $#qdir)
     @ i++

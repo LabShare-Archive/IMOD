@@ -290,18 +290,19 @@ set imod_target = `echo $send_target | sed '/imod/s/imodsendevent/3dmod/g'`
 set midas_target = `echo $send_target | sed '/imod/s/imodsendevent/midas/g'`
 set assist_target = `echo $send_target | sed '/imod/s/imodsendevent/imodqtassist/g'`
 set ctf_target = `echo $send_target | sed '/imod/s/imodsendevent/ctfplotter/g'`
+set prochunk_target = `echo $send_target | sed '/imod/s/imodsendevent/processchunks/g'`
 set sourcedoc_exe = `echo $send_target | sed '/imod/s/imodsendevent/sourcedoc/g'`
 
 # Make some more lists for looping
 #
-set qrun = (runsendevent runqtassist runctfplotter runmidas)
-set qtarget = ($send_target $assist_target $ctf_target)
+set qrun = (runsendevent runqtassist runctfplotter runprocesschunks runmidas)
+set qtarget = ($send_target $assist_target $ctf_target $prochunk_target)
 
 # make script files to run programs
 # Set DYLD_LIBRARY_PATH with qtlib before running program
 #
-@ i = 0   # Loop on imodsendevent imodqtassist ctfplotter
-while ($i < 3)
+@ i = 0   # Loop on imodsendevent imodqtassist ctfplotter processchunks
+while ($i < 4)
     @ i++
 cat <<EOF >! $qdir[$i]/$qrun[$i]
 #!/bin/sh
@@ -380,6 +381,7 @@ EOF
 
 # 3/30/10: Start this file, it is now expected to be started
 echo " " >! $ctfplot_qconf
+echo " " >! $prochunk_qconf
 
 # Make run scripts for the fortran Qt programs
 # They have to be named run... because the programs install in bin first
