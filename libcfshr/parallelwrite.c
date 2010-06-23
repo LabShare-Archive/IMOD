@@ -187,6 +187,15 @@ int parWrtFindRegion(int secNum, int lineNum, int nlWrite, char **filename,
       startLines[0] = regions[i].startLine[0];
       sections[1] = regions[i].section[1];
       startLines[1] = regions[i].startLine[1];
+
+      /* Modify boundary lines for Y chunks so that simple test against the
+         boundary will work even if there is no boundary */
+      if (everySec) {
+        if (startLines[0] < 0)
+          startLines[0] -= numBoundLines;
+        if (startLines[1] < 0)
+          startLines[1] = ny + 1;
+      }
       return 0;
     }
   }
@@ -233,6 +242,9 @@ int parwrtgetregion(int *regionNum, char *filename, int *sections,
 /*
 
 $Log$
+Revision 1.2  2009/09/18 14:57:20  mast
+Corrected test for good reading of a line
+
 Revision 1.1  2009/02/16 06:15:03  mast
 Added to package
 
