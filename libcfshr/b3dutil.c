@@ -22,8 +22,11 @@
 
 #ifndef _WIN32
 #include <sys/time.h>
+#include <unistd.h>
 #else
 #include <Windows.h>
+#include <process.h>
+#define getpid _getpid
 #endif
 
 #ifdef WIN32_BIGFILE
@@ -37,7 +40,6 @@
 
 #ifdef MAC103_BIGFILE
 #include <sys/uio.h>
-#include <unistd.h>
 #endif
 
 #ifdef _OPENMP
@@ -47,6 +49,7 @@
 #ifdef F77FUNCAP
 #define imodbackupfile IMODBACKUPFILE
 #define imodgetenv IMODGETENV
+#define imodgetpid IMODGETPID
 #define b3dheaderitembytes B3DHEADERITEMBYTES
 #define cputime CPUTIME
 #define walltime WALLTIME
@@ -54,6 +57,7 @@
 #else
 #define imodbackupfile imodbackupfile_
 #define imodgetenv imodgetenv_
+#define imodgetpid imodgetpid_
 #define b3dheaderitembytes b3dheaderitembytes_
 #define cputime cputime_
 #define walltime walltime_
@@ -200,6 +204,17 @@ int imodgetenv(char *var, char *value, int varSize, int valueSize)
   return c2fString(valPtr, value, valueSize);
 }
 
+/*! Returns the process ID */
+int imodGetpid()
+{
+  return (int)getpid();
+}
+
+/*! Fotran-callable routine to get the process ID */
+int imodgetpid()
+{
+  return (int)getpid();
+}
 
 /*! Creates a C string with a copy of a Fortran string described by [str] and 
   [strsize], using [malloc]. */
@@ -610,6 +625,9 @@ int numompthreads(int optimalThreads)
 
 /*
 $Log$
+Revision 1.14  2010/05/20 23:43:44  mast
+Fixed default IMOD_DIR for Mac
+
 Revision 1.13  2010/03/24 02:20:32  mast
 Added function get IMOD_DIR or default
 
