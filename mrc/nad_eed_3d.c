@@ -940,10 +940,6 @@ return;
 #include "parse_params.h"
 #include "mrcfiles.h"
 #include "mrcslice.h"
-#ifndef _WIN32
-#include <sys/types.h>
-#include <unistd.h>
-#endif
 
 void usage(char *progname, float ht, int pmax, float sigma, float lambda)
 {
@@ -1051,7 +1047,7 @@ int main (int argc, char **argv)
         writeArg = iarg;
         break;
       case 'P':
-        fprintf(stderr, "Shell PID: %d\n", getpid());
+        fprintf(stderr, "Shell PID: %d\n", imodGetpid());
         fflush(stderr);
         break;
       default:
@@ -1269,6 +1265,9 @@ int main (int argc, char **argv)
 /*  
     
 $Log$
+Revision 3.13  2010/01/07 19:40:14  mast
+Add flush
+
 Revision 3.12  2009/04/09 02:44:13  mast
 Fixed some longs to ints, complaints by intel compiler
 
