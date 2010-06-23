@@ -1,5 +1,7 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+6/23/10: Prevented writing large last boundary file when doing Y chunks
+
 6/18/10: Fixed some bugs that crashed Boxstartend.
 
 6/18/10: Popping up the last warning found during a processchunks run.
