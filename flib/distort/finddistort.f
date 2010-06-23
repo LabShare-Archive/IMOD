@@ -146,7 +146,7 @@ c
       colSumCrit = 0.2
       relaxInitial = 0.67
       atol = 0.
-      btol = 0.01
+      btol = 0.0
       conlim = 1.e7
       useOldXf = .false.
       xffile = ' '
@@ -638,7 +638,7 @@ c
               uu(i) = shiftXY(ixy, i)
             enddo
             itnlim = numVars
-            call lsqr(numRows, numVars, sparseProd, 0., 0,
+            call lsqr(numRows, numVars, sparseProd, 0.d0, 0,
      &          iwrk, uu, vv, ww, xx, se, atol, btol, conlim,
      &          itnlim, -1, istop, itndone, anorm, acond, rnorm,
      &          arnorm, xnorm)
@@ -1079,6 +1079,12 @@ c$$$      end
 
 c
 c       $Log$
+c       Revision 1.15  2010/06/23 23:35:15  mast
+c       Call lsqr with double 0. and use default btol
+c
+c       Revision 1.14  2008/12/30 04:45:16  mast
+c       Switched to using C library functions
+c
 c       Revision 1.13  2007/11/18 04:58:07  mast
 c       Redeclared concat at 320
 c
