@@ -6,6 +6,9 @@
 #  $Revision$
 #
 #  $Log$
+#  Revision 3.8  2010/04/19 03:13:23  mast
+#  Switch to module, fixed allocation of big arrays in common
+#
 #  Revision 3.7  2006/06/22 01:09:45  mast
 #  Replaced LDFLAGS with LDFFLAGS for Intel Mac
 #
@@ -40,12 +43,15 @@ BLOBJS = blendmont.$(O) bsubs.$(O) edgesubs.$(O) shuffler.$(O) smoothgrid.$(O)\
 
 REDOBJS = reducemont.$(O) shuffler.$(O) setoverlap.$(O) blendvars.$(O)
 
-SLOPOBJS = sloppymont.$(O) shuffler.$(O) setoverlap.$(O)
+SLOPOBJS = sloppymont.$(O) shuffler.$(O) setoverlap.$(O) blendvars.$(O)
 
 all: $(PROGS)
 
+# Add $(LAPACKLIBS) to test find_best_shifts with SVD
 blendmont$(E): $(BLOBJS)
-	$(FC)  -o blendmont $(BLOBJS) $(LDFLG) $(IMLIBS) $(FORTCLIBS)
+	$(FC)  -o blendmont $(BLOBJS) $(LDFLG) $(LSMLMOD) $(LIMOD) \
+	$(IMLIBS) $(FORTCLIBS)
+
 
 reducemont$(E): $(REDOBJS)
 	$(FC) -o reducemont $(REDOBJS) $(LDFLG) $(IMLIBS) $(FORTCLIBS)
