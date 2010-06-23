@@ -31,16 +31,16 @@ c
       implicit none
       integer nbytes_recl_item,limneg
       include 'recl_bytes.inc'
-      character*160 filnam,edgenam,plOutfile, outFile
-      character*160 rootname
+      character*320 filnam,edgenam,plOutfile, outFile
+      character*320 rootname,edgename2
       character*320 concat
       character*4 edgeext(2)/'.xef','.yef'/
-      character*4 xcorrext/'.ecd'/
+      character*5 xcorrext(0:2)/'.ecd','.xecd','.yecd'/
       character*18 actionStr
       integer*4 mxyzin(3),nxyzst(3)/0,0,0/
       real*4 cell(6)/1.,1.,1.,0.,0.,0./
       real*4 delta(3),xorig, yorig, zorig
-      real*4 binline(maxlinelength)
+      real*4, allocatable :: binline(:)
       character*80 titlech
 c       
 c	structure /rotrans/
@@ -49,7 +49,6 @@ c	end structure
 c       
       integer*4 nskip(2)/1,2/			!regression position skip s&l
       integer*4 nfit(2)/5,7/			!# to include in regression s&l
-      integer*4 nxgrid(2),nygrid(2)		!# of grid points for x&y edges
       integer*4 igridstr(2),iofset(2)		!just temp usage here
 c       
       parameter (limneg=30)
@@ -62,31 +61,34 @@ c
       integer*4 nedonjoint(15),listonjoint(15,limneg) !#, list edges on joint
       integer*4 ixpclo(15),ixpcup(15),iypclo(15),iypcup(15)
 c       
-      integer*4 iblend(2)			!blending width in x and y
-      integer*4 indoneedge(2),indedge4(3,2),nedgetmp(5,2)
-      integer*4 listz(limsect),izwant(limsect), izAllWant(limsect)
+      integer*4 nedgetmp(5,2)
+      integer*4, allocatable :: listz(:),izwant(:), izAllWant(:)
       logical skipxforms,undistortOnly,xcWriteOut
       character dat*9, tim*8
-      real*4 edgefrac(2),title(20),distout(2),edgefrac4(3,2)
+      real*4 edgefrac(2),title(20),distout(2)
       real*4 edgefracx,edgefracy
       equivalence (edgefrac(1),edgefracx),(edgefrac(2),edgefracy)
       integer*4, allocatable :: mapAllPc(:,:,:)
-      logical edgedone(limedge,2),multineg(limsect),active4(3,2)
+      integer*4, allocatable :: ixpctmp(:), iypctmp(:), izpctmp(:), negtmp(:)
+      logical, allocatable :: multineg(:), multitmp(:), edgedone(:,:)
+      logical active4(3,2)
       logical anypixels,inframe,dofast,anyneg,anylinesout,xinlong,testMode
       logical shifteach,docross,fromedge,exist,xcreadin,xclegacy,outputpl
       logical xcorrDebug,verySloppy,useEdges,edgesIncomplete,adjustOrigin
-      real*4 dxgridmean(limedge,2),dygridmean(limedge,2)
-      real*4 edgedispx(limedge,2),edgedispy(limedge,2)
+      logical edgesSeparated,fromCorrOnly, samePieces, noFFTsizes, yChunks
+      real*4, allocatable :: dxgridmean(:,:),dygridmean(:,:)
+      real*4, allocatable :: edgedispx(:,:),edgedispy(:,:)
       real*4 aftermean(2),aftermax(2)
       character*6 edgexcorrtext(2)/'xcorr:','edges:'/
-      real*4 gl(2,3,limsect),h(2,3,limnpc),fastf(2,3),hit(2,3),fstmp(2,3)
+      real*4 fastf(2,3),hit(2,3),fstmp(2,3)
+      real*4, allocatable :: h(:,:,:), gl(:,:,:)
 c       the former rotrans structures
       real*4 hcum(6,limneg),hadj(6,limneg),r(6,limneg,2),hfram(6),rnet(6)
       integer*4 modepow(0:15)/8,15,8,0,0,0,16,0,0,9,10,11,12,13,14,15/
       integer*4  minxwant, maxxwant, modeParallel, nzAllWant, numOut, numChunks
-      integer*4  minywant, maxywant, maxSects, numExtra
+      integer*4  minywant, maxywant, numExtra, nxybox(2), nExtra(2)
 c       
-      character*160 idfFile, magGradFile
+      character*320 idfFile, magGradFile, boundfile
       integer*4 inputBinning,idfNx, idfNy, idfBinning
       real*4 pixelIdf, binRatio
 c       
@@ -110,11 +112,9 @@ c
       integer*4 iwhich,neglo,negup,indlo,indup,joint,ied,iedge,ipclo,ipcup
       integer*4 maxswing,ishift,nshiftneg,idum1,idum2,inde,nbestedge,indbest
       real*4 erradj,errlim,dxsum,dysum,sumx,sumy,xdisp,ydisp
-      real*4 beforemean,beforemax,f12,f13,f23,f24,er1,et1,el2,et2
+      real*4 beforemean,beforemax
       integer*4 indgl,ilis,niter,linebase,nedgesum,indedg,indlower
-      integer*4 indp1,indp2,indp3,indp4,inde12,inde13,inde34,inde24,nactivep
-      real*4 er3,eb3,el4,eb4,fx,fy,dr1,dt1,dl2,dt2,dr3,db3,dl4,db4,dla,dra
-      real*4 dba,dta,ax,ay,ex,ey,wll,wlr,wul,wur,wsum,x1,y1,w1,w2,c11,c12,c21
+      real*4 x1,y1,w1,w2,c11,c12,c21
       real*4 xgconst,ygconst,c22,denom,fb11,fb12,fb21,fb22,x1last,y1last
       integer*4 indpidef,indpl,indpu,ipiece1,ipiece2,iter,jndp1,jndp2,jndp3
       real*4 dx2,dy2,x2,y2,pixval,w3,wmax,f2b11,f2b12,f2b21,f2b22,val
@@ -122,12 +122,16 @@ c
       real*4 f3b11,f3b12,f3b21,f3b22,dden,dden12,dden13,dden23,x3,y3,x3t,y3t
       real*4 dy3,dx3,bx,by,emin,w4,f4b11,f4b12,f4b21,f4b22,dden14,dden43
       integer*4 ipiece3,ipiece4,nxgr,nygr,indbray1,indbray2,jndp4
-      real*4 x4,y4,dx4,dy4,f34,xg,yg, delDmagPerUm, delRotPerUm, delIndent(2)
-      real*4 dmagnew,rotnew,tiltOffset
-      integer*4 iBinning, nyWrite, nlineTot,indentXC,numZero
+      real*4 x4,y4,dx4,dy4,xg,yg, delDmagPerUm, delRotPerUm, delIndent(2)
+      real*4 dmagnew,rotnew,tiltOffset,edstart,edend,bwof
+      integer*4 iBinning, nyWrite, nlineTot,indentXC,numZero, mostNeeded
       integer*4 lineOffset, ixOffset, iyOffset, linesBuffered, iBufferBase
-      integer*4 imodBackupFile
+      integer*4 maxXcorrBinning, nxyXcorrTarget, numSkip, lineStart, lineEnd
+      integer*4 nxyPadded, nxyBoxed, ifUseAdjusted, iyOutOffset, ifEdgeFuncOnly
+      integer*4 ipfirst(4), numfirst, ixyFuncStart, ixyFuncEnd, nlinesWrite
+      integer*4 imodBackupFile, parWrtInitialize
       real*4 sind,cosd,oneintrp
+      real*8 walltime, wallstart, fastcum, slowcum
 c       
       logical pipinput
       integer*4 numOptArg, numNonOptArg
@@ -139,7 +143,7 @@ c
 c       cut and pasted from ../../manpages/autodoc2man -2 2 blendmont
 c       
       integer numOptions
-      parameter (numOptions = 58)
+      parameter (numOptions = 64)
       character*(40 * numOptions) options(1)
       options(1) =
      &    'imin:ImageInputFile:FN:@plin:PieceListInput:FN:@'//
@@ -147,6 +151,7 @@ c
      &    'rootname:RootNameForEdges:CH:@mode:ModeToOutput:I:@'//
      &    'float:FloatToRange:B:@xform:TransformFile:FN:@'//
      &    'center:TransformCenterXandY:FP:@order:InterpolationOrder:I:@'//
+     &    'skip:SkipEdgeModelFile:FN:@nonzero:NonzeroSkippedEdgeUse:I:@'//
      &    'distort:DistortionField:FN:@imagebinned:ImagesAreBinned:I:@'//
      &    'gradient:GradientFile:FN:@adjusted:AdjustedFocus:B:@'//
      &    'addgrad:AddToGradient:FP:@tiltfile:TiltFile:FN:@'//
@@ -156,8 +161,9 @@ c
      &    'shift:ShiftPieces:B:@edge:ShiftFromEdges:B:@'//
      &    'xcorr:ShiftFromXcorrs:B:@readxcorr:ReadInXcorrs:B:@'//
      &    'sections:SectionsToDo:LI:@xminmax:StartingAndEndingX:IP:@'//
-     &    'yminmax:StartingAndEndingY:IP:@origin:AdjustOrigin:B:@'//
-     &    'bin:BinByFactor:I:@maxsize:MaximumNewSizeXandY:IP:@'//
+     &    'yminmax:StartingAndEndingY:IP:@nofft:NoResizeForFFT:B:@'//
+     &    'origin:AdjustOrigin:B:@bin:BinByFactor:I:@'//
+     &    'maxsize:MaximumNewSizeXandY:IP:@'//
      &    'minoverlap:MinimumOverlapXandY:IP:@oldedge:OldEdgeFunctions:B:@'//
      &    'perneg:FramesPerNegativeXandY:IP:@'//
      &    'missing:MissingFromFirstNegativeXandY:IP:@'//
@@ -165,16 +171,20 @@ c
      &    'grid:GridSpacingShortAndLong:IP:@indents:IndentShortAndLong:IP:@'//
      &    'goodedge:GoodEdgeLowAndHighZ:IP:@onegood:OneGoodEdgeLimits:IAM:@'//
      &    'exclude:ExcludeFillFromEdges:B:@parallel:ParallelMode:IP:@'//
-     &    'subset:SubsetToDo:LI:@aspect:AspectRatioForXcorr:F:@'//
-     &    'pad:PadFraction:F:@extra:ExtraXcorrWidth:F:@'//
-     &    'numpeaks:NumberOfXcorrPeaks:I:@radius1:FilterRadius1:F:@'//
-     &    'radius2:FilterRadius2:F:@sigma1:FilterSigma1:F:@'//
-     &    'sigma2:FilterSigma2:F:@treat:TreatFillForXcorr:I:@'//
-     &    'xcdbg:XcorrDebug:B:@taper:TaperFraction:F:@'//
-     &    'param:ParameterFile:PF:@help:usage:B:'
+     &    'subset:SubsetToDo:LI:@lines:LineSubsetToDo:IP:@'//
+     &    'boundary:BoundaryInfoFile:FN:@functions:EdgeFunctionsOnly:I:@'//
+     &    'aspect:AspectRatioForXcorr:F:@pad:PadFraction:F:@'//
+     &    'extra:ExtraXcorrWidth:F:@numpeaks:NumberOfXcorrPeaks:I:@'//
+     &    'radius1:FilterRadius1:F:@radius2:FilterRadius2:F:@'//
+     &    'sigma1:FilterSigma1:F:@sigma2:FilterSigma2:F:@'//
+     &    'treat:TreatFillForXcorr:I:@xcdbg:XcorrDebug:B:@'//
+     &    'taper:TaperFraction:F:@param:ParameterFile:PF:@help:usage:B:'
 c       
-c       initialization of elements in common
+c       initialization of many things
 c       
+      ixdebug = -12000
+      iydebug = -12000
+      inpiece(0) = 0
       iunedge(1)=7
       iunedge(2)=8
       indent(1)=5				!minimum indent short & long
@@ -202,6 +212,8 @@ c
       undistortOnly = .false.
       limitData = .false.
       adjustOrigin = .false.
+      noFFTsizes = .false.
+      yChunks = .false.
       iBinning = 1
       numAngles = 0
       numUseEdge = 0
@@ -210,6 +222,11 @@ c
       modeParallel = 0
       outFile = ' '
       numXcorrPeaks = 1
+      numSkip = 0
+      ifUseAdjusted = 1
+      iyOutOffset = 0
+      ifEdgeFuncOnly = 0
+      edgename2 = ' '
 c       
 c       Xcorr parameters
 c       11/5/05: increased taper fraction 0.05->0.1 to protect against
@@ -226,6 +243,8 @@ c
       radius2 = 0.
       sigma1 = 0.05
       sigma2 = 0.
+      maxXcorrBinning = 3
+      nxyXcorrTarget = 1024
       verySloppy = .false.
 c       
 c       Pip startup: set error, parse options, check help, set flag if used
@@ -234,28 +253,31 @@ c
      &    'ERROR: BLENDMONT - ', .true., 0, 0, 0, numOptArg,
      &    numNonOptArg)
       pipinput = numOptArg + numNonOptArg .gt. 0
-c       
-c       Allocate arrays now
-      allocate(array(maxsiz), brray(maxbsiz),  xcray(idimc/2), xdray(idimc/2),
-     &    stat = ierr)
-      if (ierr .ne. 0) call exitError('ALLOCATING HUGE ARRAYS')
 c
       if (PipGetInOutFile('ImageInputFile', numNonOptArg + 1,
      &    'Input image file', filnam) .ne. 0) call exitError(
      &    'NO INPUT IMAGE FILE SPECIFIED')
       call imopen(1,filnam,'ro')
       call irdhdr(1,nxyzin,mxyzin,modein,dmin,dmax,dmean)
+      if (pipinput) ierr = PipGetInteger('EdgeFunctionsOnly', ifEdgeFuncOnly)
+      ifEdgeFuncOnly = max(0, min(3, ifEdgeFuncOnly))
+      if (ifEdgeFuncOnly .eq. 1 .or. ifEdgeFuncOnly .eq. 2) then
+        ixyFuncStart = ifEdgeFuncOnly
+        ixyFuncEnd = ifEdgeFuncOnly
+      else
+        ixyFuncStart = 1
+        ixyFuncEnd = 2
+      endif
 c       
       if (PipGetInOutFile('ImageOutputFile', numNonOptArg + 1,
-     &    'Output image file', outfile) .ne. 0) call exitError(
-     &    'NO OUTPUT IMAGE FILE SPECIFIED')
+     &    'Output image file', outfile) .ne. 0 .and. ifEdgeFuncOnly .eq. 0)
+     &    call exitError('NO OUTPUT IMAGE FILE SPECIFIED')
 c       
       modeout=modein
       if (pipinput) then
         ierr = PipGetInteger('ModeToOutput', modeout)
       else
-        write(*,'(1x,a,i2,a,$)')'Mode for output file [/ for',modeout,
-     &      ']: '
+        write(*,'(1x,a,i2,a,$)')'Mode for output file [/ for',modeout, ']: '
         read(5,*)modeout
       endif
       if(modeout.lt.0.or.modeout.gt.15.or.
@@ -303,33 +325,60 @@ c       Preserve legacy behavior of floating to positive range for mode 1
         definmin = 0.
       endif
 
+      limsect = 100000
+      allocate(ixpctmp(liminit), iypctmp(liminit), izpctmp(liminit),
+     &    negtmp(liminit), multitmp(limsect), stat = ierr)
+      if (ierr .ne. 0) call exitError('ALLOCATING INITIAL ARRAYS')
+c	
+      call read_list(ixpctmp,iypctmp,izpctmp,negtmp,
+     &    multitmp,npclist,minzpc,maxzpc,anyneg,pipinput)
+      limnpc = npclist + 10
+      allocate(ixpclist(limnpc), iypclist(limnpc), izpclist(limnpc),
+     &    neglist(limnpc), limDataInd(limnpc), iedgelower(limnpc,2),
+     &    iedgeupper(limnpc,2), hinv(2,3,limnpc), memIndex(limnpc),
+     &    htmp(2,3,limnpc), h(2,3,limnpc), indvar(limnpc), stat = ierr)
+      if (ierr .ne. 0) call exitError('ALLOCATING ARRAYS PER PIECE')
+      ixpclist(1:npclist) = ixpctmp(1:npclist)
+      iypclist(1:npclist) = iypctmp(1:npclist)
+      izpclist(1:npclist) = izpctmp(1:npclist)
+      neglist(1:npclist) = negtmp(1:npclist)
+c
+      nsect=maxzpc+1-minzpc
+      limsect = nsect + 1
+      allocate(tiltAngles(limsect), dmagPerUm(limsect), rotPerUm(limsect),
+     &    listz(limsect),izwant(limsect), izAllWant(limsect), gl(2,3,limsect),
+     &    multineg(limsect), stat = ierr)
+      if (ierr .ne. 0) call exitError('ALLOCATING ARRAYS PER PIECE')
+      multineg(1:nsect) = multitmp(1:nsect)
+c
+      call fill_listz(izpclist,npclist,listz,nlistz)
+c
       dogxforms=.false.
       if(filnam.ne.' ' .and. .not.undistortOnly)then
         call dopen(3,filnam,'ro','f')
-        call xfrdall(3,gl,nglist,*98)
+        call xfrdall2(3,gl,nglist,limsect,ierr)
         close(3)
+c         
+c         It is OK if ierr=-1 : more transforms than sections
+        if (ierr .gt. 0) call exitError ('READING TRANSFORMS')
         dogxforms=.true.
       endif
-c	
-      call read_list(ixpclist,iypclist,izpclist,neglist,
-     &    multineg,npclist,minzpc,maxzpc,anyneg,pipinput)
-      nsect=maxzpc+1-minzpc
-      call fill_listz(izpclist,npclist,listz,nlistz)
-      if(dogxforms)then
-        if (nlistz.gt.nglist) call exitError(
-     &      'MORE SECTIONS THAN G TRANSFORMS')
 
-        SKIPXFORMS=.FALSE.
-        IF(NLISTZ.LT.NSECT)THEN
-          IF(NGLIST.EQ.NLISTZ)THEN
-            PRINT *,'LOOKS LIKE THERE ARE TRANSFORMS ONLY FOR '//
-     &          'THE SECTIONS THAT EXIST IN FILE'
-          ELSEIF(NGLIST.EQ.NSECT)THEN
-            PRINT *,'THERE SEEM TO BE TRANSFORMS FOR EACH Z VALUE,'
-     &          //' INCLUDING ONES MISSING FROM FILE'
+
+      if(dogxforms)then
+        if (nlistz.gt.nglist) call exitError('MORE SECTIONS THAN G TRANSFORMS')
+
+        skipxforms=.false.
+        if(nlistz.lt.nsect)then
+          if(nglist.eq.nlistz)then
+            print *,'Looks like there are transforms only for '//
+     &          'the sections that exist in file'
+          elseif(nglist.eq.nsect)then
+            print *,'There seem to be transforms for each Z value,'
+     &          //' including ones missing from file'
             SKIPXFORMS=.TRUE.
-          ELSE
-            CALL EXITERROR('CANNOT TELL HOW TRANSFORMS MATCH UP TO '//
+          else
+            call exitError('CANNOT TELL HOW TRANSFORMS MATCH UP TO '//
      &          'SECTIONS, BECAUSE OF MISSING SECTIONS')
           endif
         endif
@@ -342,7 +391,7 @@ c
       call checklist(iypclist,npclist,1,nyin,minypiece,nypieces,
      &    nyoverlap)
       if(nxpieces.le.0. or. nypieces.le.0)call exitError
-     &    ('CHECKLIST REPORTED 0 PIECES IN ONE DIRECTION')
+     &    ('CHECKLIST REPORTED A PROBLEM WITH THE PIECE LIST IN ONE DIRECTION')
 c       
       nxtotpix=nxpieces*(nxin-nxoverlap)+nxoverlap
       nytotpix=nypieces*(nyin-nyoverlap)+nyoverlap
@@ -351,6 +400,13 @@ c
       write(*,115)nytotpix,'Y',nypieces,nyin,nyoverlap
 115   format(i7,' total ',a1,' pixels in',i4,' pieces of',
      &    i6, ' pixels, with overlap of',i5)
+c
+      limedge = limsect * max(1, nxpieces * nypieces)
+      allocate(dxgridmean(limedge,2),dygridmean(limedge,2),
+     &    edgedispx(limedge,2),edgedispy(limedge,2), edgedone(limedge,2),
+     &    ipiecelower(limedge,2),ipieceupper(limedge,2), ibufedge(limedge,2),
+     &    ifskipEdge(limedge,2), stat = ierr)
+      if (ierr .ne. 0) call exitError('ALLOCATING ARRAYS PER EDGE')
 c       
 c       find out if global multi-neg specifications are needed or desired
 c       But first deal with correlation control parameters
@@ -368,7 +424,7 @@ c
           ierr = PipGetBoolean('SloppyMontage', ifsloppy)
         endif
         ierr = PipGetFloat('AspectRatio', aspectMax)
-        ierr = PipGetFloat('NumberOfXcorrPeaks', numXcorrPeaks)
+        ierr = PipGetInteger('NumberOfXcorrPeaks', numXcorrPeaks)
         numXcorrPeaks = max(1, min(limXcorrPeaks, numXcorrPeaks))
         ierr = PipGetFloat('PadFraction', padFrac)
         ierr = PipGetFloat('ExtraXcorrWidth', extraWidth)
@@ -383,6 +439,7 @@ c
         ierr = PipGetLogical('ShiftFromEdges', fromedge)
         ierr = PipGetLogical('ShiftFromXcorrs', xclegacy)
         ierr = PipGetLogical('ReadInXcorrs', xcreadin)
+        ierr = PipGetLogical('TestMode', testMode)
         ierr = PipGetTwoIntegers('GoodEdgeLowAndHighZ', izUseDefLow,
      &      izUseDefHigh)
         ierr = PipNumberOfEntries('OneGoodEdgeLimits', numUseEdge)
@@ -435,13 +492,6 @@ c
           xcreadin=ioptabs.eq.4.or.ioptabs.eq.6
         endif
       endif
-c       
-c       Set flag for whether to write out edge displacements
-c       write edge correlations if they are not being read in and if they are
-c       computed in their entirety
-      xcWriteOut = .not.testMode.and..not.xcreadin.and.
-     &    ((ifsloppy.eq.1.and.shifteach) .or.
-     &    (ifsloppy.eq.0.and.shifteach.and..not.fromedge))
 c
       if(ioptabs.eq.1)then
         if (pipinput) then
@@ -493,7 +543,7 @@ c
      &      'Name of new piece list file (Return for none): '
         read(5,'(a)')plOutFile
       endif
-      outputpl = plOutFile .ne. ' '
+      outputpl = plOutFile .ne. ' ' .and. ifEdgeFuncOnly .eq. 0
 c       
 c       find out center of transforms
 c       
@@ -518,37 +568,47 @@ c
 c       get list of sections desired, set up default as all sections
 c       
       do i=1,nlistz
-        izwant(i)=listz(i)
+        izpctmp(i)=listz(i)
       enddo
       nzwant=nlistz
       if (pipinput) then
         if (PipGetString('SectionsToDo', filnam) .eq. 0)
-     &      call parselist(filnam, izwant, nzwant)
+     &      call parselist(filnam, izpctmp, nzwant)
       else
         print *,'Enter list of sections to be included in output '//
      &      'file (ranges ok)','   or / to include all sections'
-        call rdlist(5,izwant,nzwant)
+        call rdlist(5,izpctmp,nzwant)
       endif
 c       
-c       repack list, eliminating non-existent sections and duplicates
+c       copy/pack list, eliminating non-existent sections and duplicates
       ixout = 0
       do ix = 1, nzwant
         ierr =0
         do i = 1, nlistz
-          if (listz(i) .eq. izwant(ix)) ierr = 1
+          if (listz(i) .eq. izpctmp(ix)) ierr = 1
         enddo
         do i = 1, ixout
-          if (izwant(i) .eq. izwant(ix)) ierr = 0
+          if (izwant(i) .eq. izpctmp(ix)) ierr = 0
         enddo
         if (ierr .eq. 1) then
           ixout = ixout + 1
-          izwant(ixout) = izwant(ix)
+          izwant(ixout) = izpctmp(ix)
         endif
       enddo
       nzwant  = ixout
       if (nzwant .eq. 0) call exitError('SECTION OUTPUT LIST DOES NOT '//
      &    'INCLUDE ANY ACTUAL SECTIONS')
+      nzAllWant = nzwant
 c       
+c       Set flag for whether to write out edge displacements
+c       write edge correlations if they are not being read in and if they are
+c       computed in their entirety: but this needs to be modified later
+      xcWriteOut = .not.testMode.and..not.xcreadin.and.
+     &    ((ifsloppy.eq.1.and.shifteach) .or.
+     &    (ifsloppy.eq.0.and.shifteach.and..not.fromedge))
+c       
+      deallocate(ixpctmp, iypctmp, izpctmp, negtmp, multitmp, stat = ierr)
+c
       if (undistortOnly) then
 c         
 c         If undistorting, copy sizes etc.
@@ -564,22 +624,22 @@ c
         actionStr = 'undistorted only'
       else
 c	  
-c	  Set up output size limited by line length in X
+c	  Set up output size
 c	  
         minxoverlap=2
         minyoverlap=2
-        newxframe=maxlinelength
-        newyframe=1000000
+        newxframe=100000000
+        newyframe=100000000
         ntrial=0
 32      minxwant=minxpiece
         minywant=minypiece
         maxxwant=minxwant+nxtotpix-1
         maxywant=minywant+nytotpix-1
         if (pipinput) then
-          ierr = PipGetLogical('TestMode', testMode)
           ierr = PipGetLogical('XcorrDebug', xcorrDebug)
           ierr = PipGetLogical('AdjustOrigin', adjustOrigin)
           ierr = PipGetLogical('ExcludeFillFromEdges', limitData)
+          ierr = PipGetLogical('NoResizeForFFT', noFFTsizes)
           ierr = PipGetTwoIntegers('StartingAndEndingX', minxwant, maxxwant)
           ierr = PipGetTwoIntegers('StartingAndEndingY', minywant, maxywant)
           ierr = PipGetTwoIntegers('MaximumNewSizeXandY', newxframe,
@@ -599,22 +659,38 @@ c
      &        'Maximum new X and Y frame size, minimum overlap: '
           read(5,*)newxframe,newyframe,minxoverlap,minyoverlap
         endif
-        nxtotwant=2*((maxxwant+2-minxwant)/2)
-        nytotwant=2*((maxywant+2-minywant)/2)
         if(ntrial.le.1)then			!on first 2 trials, enforce min
           minxoverlap=max(2,minxoverlap)	!overlap of 2 so things look
           minyoverlap=max(2,minyoverlap)	!nice in wimp.  After that, let
         endif					!the user have it.
         ntrial=ntrial+1
-        if(newxframe.gt. maxlinelength) call exitError
-     &      ('OUTPUT SIZE IS TOO LARGE IN X FOR ARRAYS')
 c         
-        call setoverlap(nxtotwant,minxoverlap,newxframe,2,newxpieces,
-     &      newxoverlap,newxtotpix)
-        call setoverlap(nytotwant,minyoverlap,newyframe,2,newypieces,
-     &      newyoverlap,newytotpix)
+c         If no resizing desired, take exactly what is requested in one frame
+        if (noFFTsizes .and. maxxwant+1-minxwant .le. newxframe .and.
+     &      maxywant+1-minywant .le. newyframe) then
+          nxtotwant=maxxwant+1-minxwant
+          newxframe = nxtotwant
+          newxtotpix = nxtotwant
+          newxpieces = 1
+          newxoverlap = 2
+          nytotwant=maxywant+1-minywant
+          newyframe = nytotwant
+          newytotpix = nytotwant
+          newypieces = 1
+          newyoverlap = 2
+        else
+          if (noFFTsizes)write(*,'(/,a,a)')'WARNING: BLENDMONT - NoResizeFor',
+     &        'FFT IS IGNORED WITH OUTPUT TO MORE THAN ONE FRAME'
+          nxtotwant=2*((maxxwant+2-minxwant)/2)
+          nytotwant=2*((maxywant+2-minywant)/2)
+          call setoverlap(nxtotwant,minxoverlap,newxframe,2,newxpieces,
+     &        newxoverlap,newxtotpix)
+          call setoverlap(nytotwant,minyoverlap,newyframe,2,newypieces,
+     &        newyoverlap,newytotpix)
+        endif
 c         
-        if (.not.outputpl .and. (newxpieces.gt.1 .or. newypieces.gt.1))
+        if (.not.outputpl .and. ifEdgeFuncOnly .eq. 0 .and.
+     &      (newxpieces.gt.1 .or. newypieces.gt.1))
      &      call exitError('YOU MUST SPECIFY AN OUTPUT PIECE LIST FILE'
      &      //' TO HAVE MORE THAN ONE OUTPUT FRAME')
         if (iBinning .gt. 1 .and. (newxpieces.gt.1 .or. newypieces.gt.1))
@@ -643,6 +719,7 @@ c
       call getBinnedSize(nxout, iBinning, nxbin, ixOffset)
       call getBinnedSize(nyout, iBinning, nybin, iyOffset)
       nzbin = 0
+      nlinesWrite = nybin
       hxcen=nxin/2.
       hycen=nyin/2.
 c       
@@ -693,6 +770,9 @@ c
                 iedgelower(ipchi,ixy)=ned
                 iedgeupper(ipclo,ixy)=ned
                 edgedone(ned,ixy)=.false.
+                ifSkipEdge(ned,ixy) = 0
+                edgedispx(ned,ixy) = 0.
+                edgedispy(ned,ixy) = 0.
               endif
             enddo
           enddo
@@ -701,7 +781,46 @@ c
         nalong=nxpieces
         ncross=nypieces
       enddo
-      deallocate(mapAllPc)
+c       
+c       Allocate data depending on number of pieces (limvar)
+      limvar = nxpieces * nypieces
+      if (.not. undistortOnly) then
+        allocate(bb(2, limvar), ivarpc(limvar), iallVarpc(limvar),
+     &      ivarGroup(limvar), listCheck(limvar), fpsWork(16*limvar),
+     &      dxyvar(limvar, 2), rowTmp(limvar*2), stat = ierr)
+        if (ierr .ne. 0) call exitError('ALLOCATING ARRAYS FOR FINDING SHIFTS')
+c
+        if (testMode) then
+          allocate(gradXcenLo(limvar),gradXcenHi(limvar), gradYcenLo(limvar),
+     &        gradYcenHi(limvar), overXcenLo(limvar),overXcenHi(limvar),
+     &        overYcenLo(limvar),overYcenHi(limvar), dxedge(limedge,2),
+     &        dyedge(limedge,2),dxadj(limedge,2),dyadj(limedge,2), stat = ierr)
+          if (ierr .ne. 0) call exitError('ALLOCATING ARRAYS FOR TEST MODE')
+        endif
+      endif
+c       
+c       Determine size needed for output and correlation arrays
+      maxlinelength = newxframe + 32
+      maxbsiz=(ifastsiz+maxbin)*maxlinelength
+c       
+c       Find binning up to limit that will get padded size down to target
+      do nbinXcorr = 1, maxXcorrBinning
+        nxyPadded = 0
+        nxyBoxed = 0
+        do ixy = 1, 2
+          call xcorrSizes(ixy, nbinXcorr, 0, i, nxybox, nExtra, ix, iy,
+     &        iz, iwant)
+          nxyPadded = max(nxyPadded, (ix + 8) * (iy + 8), (iz + 8) * (iwant+8))
+          nxyBoxed = max(nxyBoxed, (nxybox(1) + 4) * (nxybox(2) + 4))
+        enddo
+        if (nxyBoxed .lt. nxyXcorrTarget**2 .or.
+     &      nbinXcorr .eq. maxXcorrBinning) exit
+      enddo
+      idimc = nxyPadded
+      maxbsiz = max(maxbsiz, nxyBoxed * nbinXcorr**2)
+c      print *,'nbinxcorr, dims',nbinXcorr,idimc,maxbsiz
+      allocate(binline(maxlinelength), brray(maxbsiz), stat = ierr)
+      if (ierr .ne. 0) call exitError('ALLOCATING OUTPUT LINE ARRAYS')
 c       
 c       get edge file name root, parameters if doing a new one
 c       
@@ -715,61 +834,110 @@ c
         write(*,'(1x,a,$)')'Root file name for edge function files: '
         read(5,'(a)')rootname
       endif
+      if (ifoldEdge .ne. 0 .and. ifEdgeFuncOnly .ne. 0) call exitError('YOU '//
+     &    'CANNOT USE OLD EDGE FUNCTIONS WHEN JUST COMPUTING EDGE FUNCTIONS')
 c       
 c       Find out about parallel mode
       if (pipinput) then
-        ierr = PipGetTwoIntegers('ParallelMode', modeParallel, maxSects)
+        ierr = PipGetTwoIntegers('ParallelMode', modeParallel, ix)
         if (modeParallel .ne. 0) then
+          yChunks = ix .ne. 0
           if (outputpl .or. newxpieces.gt.1 .or. newypieces.gt.1)
      &        call exitError('PARALLEL MODE REQUIRES OUTPUT IN ONE PIECE '//
      &        'WITH NO PIECE LIST')
-          if (undistortOnly .or. testMode .or. xcorrDebug) call exitError(
-     &        'NO PARALLEL MODE ALLOWED WITH UndistortOnly, TestMode, OR '//
+          if (undistortOnly .or. testMode .or. xcorrDebug .or.
+     &        ifEdgeFuncOnly .ne. 0) call exitError('NO PARALLEL MODE ALLOWED'
+     &        //'WITH UndistortOnly, EdgeFunctionsOnly, TestMode, OR '//
      &        'XcorrDebug')
-          if (ifoldedge .eq. 0) call exitError(
+          if (modeParallel .lt. 0 .and. ifoldedge .eq. 0) call exitError(
      &        'PARALLEL MODE ALLOWED ONLY WHEN USING OLD EDGE FUNCTIONS')
-          if (xcWriteOut) call exitError('PARALLEL MODE NOT ALLOWED IF '//
+          if (modeParallel .lt. 0 .and. xcWriteOut) call exitError(
+     &        'PARALLEL MODE NOT ALLOWED IF '//
      &        'WRITING EDGE CORRELATION DISPLACEMENTS')
-          if (modeParallel .gt. 0) then
+           if (modeParallel .gt. 0) then
 c             
 c             Figure out lists to output
             if (modeParallel .le. 1) call exitError('TARGET NUMBER OF '//
      &          'CHUNKS SHOULD BE AT LEAST 2')
-            if (maxSects .lt. 1) call exitError('MAXIMUM NUMBER OF SECTIONS'//
-     &          ' SHOULD BE AT LEAST 1')
-            numChunks = min(modeParallel, nzwant)
-            numChunks = max(numChunks, nzwant / maxSects)
-            numExtra = mod(nzwant, numChunks)
+c             
+c             Set up for breaking into Z chunks and modify for chunks in Y
+            ix = nzwant
             ixout = 1
+            if (yChunks) then
+              ix = newytotpix / iBinning
+              ixout = newminypiece 
+            endif
+            numChunks = min(modeParallel, ix)
+            numExtra = mod(ix, numChunks)
             do i = 1, numChunks
-              numOut = nzwant / numChunks
+              numOut = ix / numChunks
               if (i .le. numExtra) numOut = numOut + 1
-              write(*,'(a,$)')'SubsetToDo '
-              call wrlist(izwant(ixout), numOut)
-              ixout = ixout + numOut
+              if (yChunks) then
+                iy = ixout + iBinning * numout - 1
+                if (i .eq. numChunks) iy = newminypiece + newytotpix - 1
+                write(*,'(a,2i9)')'LineSubsetToDo ',ixout,iy
+                indxlo = (ixout - newminypiece) / iBinning
+                indxhi = (iy - newminypiece) / iBinning
+                ixout = ixout + iBinning * numOut 
+              else
+                write(*,'(a,$)')'SubsetToDo '
+                call wrlist(izwant(ixout), numOut)
+                indxlo = ixout - 1
+                indxhi = ixout + numOut - 2
+                ixout = ixout + numOut
+              endif
+              if (i .eq. 1) indxlo = -1
+              if (i .eq. numChunks) indxhi = -1
+              write(*,'(a,2i9)')'ChunkBoundary  ', indxlo, indxhi
             enddo
+c
+c             Output the image size for convenient parsing
+            write(*,'(a,2i9)')'Output image size:',nxbin,nybin
 c             
 c             Or get subset list
           elseif (modeParallel .lt. -1) then
-            if (PipGetString('SubsetToDo', filnam) .ne. 0) call exitError(
-     &          'SubsetToDo ENTRY REQUIRED WITH THIS PARALLEL MODE')
+            if (yChunks) then
+              if (PipGetTwoIntegers('LineSubsetToDo', lineStart, lineEnd) .ne.
+     &            0) call exitError('YOU MUST ENTER LineSubsetToDo '//
+     &            'WITH THIS PARALLEL MODE')
+              if (lineStart .lt. newminypiece .or. lineEnd .gt.
+     &            newminypiece + newytotpix - 1) call exitError(
+     &            'THE STARTING OR ENDING LINE OF THE SUBSET IS OUT OF RANGE')
+              if (modeParallel .lt. -2) call exitError('ONLY DIRECT WRITING'//
+     &            'TO A SINGLE FILE IS ALLOWED WITH SUBSETS OF LINES')
+              if (mod(lineStart - newminypiece, iBinning) .ne. 0 .or.
+     &            (mod(lineEnd + 1 - lineStart, iBinning) .ne. 0 .and.
+     &            lineEnd .ne. newminypiece + newytotpix - 1)) call exitError
+     &            ('STARTING LINE AND NUMBER OF LINES MUST BE A MULTIPLE '//
+     &            'OF THE BINNING')
+              iyOutOffset = (lineStart - newminypiece) / iBinning
+              nlinesWrite = (lineEnd + 1 - lineStart) / iBinning
+            else
+              if (PipGetString('SubsetToDo', filnam) .ne. 0) call exitError(
+     &            'YOU MUST ENTER SubsetToDo WITH THIS PARALLEL MODE')
 c             
-c             For direct writing, save full want list as all want list
-            if (modeParallel .eq. -2) then
-              do i = 1, nzwant
-                izAllWant(i) = izwant(i)
-              enddo
-              nzAllWant = nzwant
+c               For direct writing, save full want list as all want list
+              if (modeParallel .eq. -2) izAllWant(1:nzwant) = izwant(1:nzwant)
+c               
+c               In either case, replace the actual want list
+              call parselist(filnam, izwant, nzwant)
             endif
-c             
-c             In either case, replace the actual want list
-            call parselist(filnam, izwant, nzwant)
+            ierr = PipGetString('BoundaryInfoFile', boundfile)
           else
 c             
-c             Open output file: set Z size
+c             Open output file: set Z size for the file (nzbin is kept as a
+c             running count of sections output otherwise)
               nzbin = nzwant
           endif
         endif
+      endif
+c       
+c       Initialize parallel writing if there is a boundary file
+      ierr = parWrtInitialize(boundFile, 5, nxbin, nybin, nzAllWant)
+      if (ierr. ne. 0) then
+        write(*,'(/,a,i3)')'ERROR: BLENDMONT - INITIALIZING PARALLEL WRITE '//
+     &      'BOUNDARY FILE, ERROR',ierr
+        call exit(1)
       endif
 c
       edgesIncomplete = .false.
@@ -848,8 +1016,8 @@ c
         enddo
       endif
 
-54    if (modeParallel .ne. 0 .and. (ifoldedge .eq. 0 .or. edgesIncomplete))
-     &    call exitError('PARALLEL MODE NOT ALLOWED IF EDGES FUNCTIONS '//
+54    if (modeParallel .lt. 0 .and. (ifoldedge .eq. 0 .or. edgesIncomplete))
+     &    call exitError('PARALLEL MODE NOT ALLOWED IF EDGE FUNCTIONS '//
      &    'ARE INCOMPLETE OR NONEXISTENT')
       if((ifoldedge.eq.0 .or. edgesIncomplete) .and. .not.undistortOnly)then
         ifdiddle=0
@@ -897,22 +1065,19 @@ c        print *,(iboxsiz(I),indent(i),intgrid(i),i=1,2)
         do ixy=1,2
           call setgridchars(nxyzin,noverlap,iboxsiz,indent,intgrid,
      &        ixy,0,0,0,0,nxgrid(ixy),nygrid(ixy),igridstr,iofset)
-          if (nxgrid(ixy) .gt. ixgdim .or. nygrid(ixy) .gt. iygdim)
-     &        call exitError(
-     &        'TOO MANY GRID POINTS FOR ARRAYS, TRY INCREASING GridSpacing')
 c          print *,ixy,nxgrid(ixy),nygrid(ixy),nedgetmp(2,ixy),nedgetmp(3,ixy)
           if (edgesIncomplete .and. (nxgrid(ixy) .ne. nedgetmp(2,ixy) .or.
      &        nygrid(ixy) .ne. nedgetmp(3,ixy))) call exitError('CANNOT USE'//
      &        ' INCOMPLETE OLD EDGE FUNCTION FILE WITH CURRENT PARAMETERS')
         enddo
       endif
-      if(ifoldedge.eq.0  .and. .not.undistortOnly)then
+      if(ifoldedge.eq.0  .and. .not.undistortOnly .and. modeParallel.le.0)then
         needbyteswap = 0
 c           open file, write header record
 c           set record length to total bytes divided by system-dependent
 c           number of bytes per item
 c           
-        do ixy=1,2
+        do ixy = ixyFuncStart, ixyFuncEnd
           lenrec=4*max(6,3*(nxgrid(ixy)*nygrid(ixy)+2))/nbytes_recl_item
           edgenam=concat(rootname,edgeext(ixy))
           ierr = imodBackupFile(edgenam)
@@ -926,22 +1091,54 @@ c           write header record
         enddo
       endif
 c       
+c       Do not write ecd file if not all sections are being computed
+      if (ifoldedge .eq. 1 .and. nzwant .ne. nlistz) xcWriteOut = .false.
+c       
+c       Read old .ecd file(s)
       if(xcreadin .and. .not.undistortOnly)then
-        edgenam=concat(rootname,xcorrext)
+        edgenam=concat(rootname,xcorrext(0))
         inquire(file=edgenam,exist=exist)
+        iy = 4
         if(.not.exist)then
-          write(*,'(/,a,a)')'ERROR: BLENDMONT - Edge correlation file does '//
-     &        'not exist: ',edgenam
-          call exit(1)
+c           
+c           If the file does not exist, look for the two separate files
+c           and put second name in a different variable.  Set unit number to
+c           read one file then the other.
+          edgenam = concat(rootname,xcorrext(1))
+          inquire(file=edgenam,exist=exist)
+          if (exist) then
+            edgename2 = concat(rootname,xcorrext(2))
+            inquire(file=edgenam,exist=exist)
+          endif
+          if(.not.exist)then
+            edgenam=concat(rootname,xcorrext(0))
+            write(*,'(/,a,a)')'ERROR: BLENDMONT - Edge correlation file does'//
+     &          ' not exist: ',edgenam
+            call exit(1)
+          endif
+          call dopen(5, edgename2, 'ro','f')
+          iy = 5
         endif
         call dopen(4,edgenam,'ro','f')
         read(4,*)nedgetmp(1,1),nedgetmp(1,2)
         if(nedgetmp(1,1).ne.nedge(1).or.nedgetmp(1,2).ne.nedge(2))
      &      call exitError('WRONG # OF EDGES IN EDGE CORRELATION FILE')
-        read(4,*)((edgedispx(i,ixy),edgedispy(i,ixy),i=1,nedge(ixy))
-     &      ,ixy=1,2)
+        ix = 4
+        do ixy = 1,2
+          do i = 1,nedge(ixy)
+            read(ix,*)edgedispx(i,ixy),edgedispy(i,ixy)
+          enddo
+          ix = iy
+        enddo
         close(4)
+        close(5)
       endif
+      ixgdim = 0
+      iygdim = 0
+      do ixy = 1, 2
+        ixgdim = max(ixgdim, nxgrid(ixy))
+        iygdim = max(iygdim, nygrid(ixy))
+      enddo
 c       
 c       make default blending width be 80% of overlap up to 50, then
 c       half of overlap above 50
@@ -1077,7 +1274,19 @@ c         Get fill treatment; if not entered and very sloppy and distortion,
 c         set for taper
         if (PipGetInteger('TreatFillForXcorr', ifillTreatment) .ne. 0 .and.
      &      verySloppy .and. (undistort .or. doMagGrad)) ifillTreatment = 2
+c         
+c         Check for model of edges to exclude
+        ierr = PipGetLogical('NonzeroSkippedEdgeUse', ifUseAdjusted)
+        if (PipGetString('SkipEdgeModelFile', filnam) .eq. 0 .and.
+     &      .not. undistortOnly)  call readExclusionModel(filnam,edgedispx,
+     &      edgedispy,limedge, ifUseAdjusted, mapAllPc, nxpieces, nypieces,
+     &      minzpc, numSkip)
       endif
+c       
+c       Now that skip flags have been set, write ecd file if
+c       it was read in from two halves
+      if (edgename2 .ne. ' ') call writeEdgeCorrelations()
+c
       doFields = undistort .or. doMagGrad
       if (undistortOnly .and. .not. doFields) call exitError('YOU MUST'//
      &    'ENTER -gradient AND/OR -distort WITH -justUndistort')
@@ -1086,22 +1295,57 @@ c         set for taper
 
       call PipDone()
 c       
+c       Allocate more arrays now
+      deallocate(mapAllPc)
+      allocate(xcray(idimc/2), xdray(idimc/2), mappiece(nxpieces, nypieces),
+     &    mapDisjoint(nxpieces, nypieces), anyDisjoint(nxpieces, nypieces),
+     &    limDataLo(limvar,2,2), limDataHi(limvar,2,2),
+     &    dxgrbf(ixgdim,iygdim,limedgbf), dygrbf(ixgdim,iygdim,limedgbf),
+     &    ddengrbf(ixgdim,iygdim,limedgbf), dxgrid(ixgdim,iygdim),
+     &    dygrid(ixgdim,iygdim), ddengrid(ixgdim,iygdim), 
+     &    sdgrid(ixgdim,iygdim), stat = ierr)
+      if (ierr .ne. 0) call exitError(
+     &    'ALLOCATING CORRELATION OR EDGE BUFFER ARRAYS')
+c       
+c       Set maximum load; allow one extra slot if doing fields
+c       Limit by the maximum number of pieces that could be needed, which is
+c       the full array, or just one if undistorting
+      npixin = nxin * int(nyin, kind = 8)
+      mostNeeded = max(2, nxpieces * nypieces)
+      if (undistortOnly) mostNeeded = 1
+c       
+c       First compute a limit based on the minimum memory we would like to use
+      if (doFields) then
+        maxload = min(memMinimum/npixin - 1, memlim, maxFields, mostNeeded)
+        ix = 1
+      else
+        maxload = min(memMinimum/npixin, memlim, mostNeeded)
+        ix = 0
+      endif
+c       
+c       Increase that to 4 or whatever is needed if it is below that
+c       but if this doesn't fit into the preferred memory limit, then
+c       just go for 2 pieces and make sure that fits too!
+      maxload = max(maxload, min(4, mostNeeded))
+      if ((maxload + ix) * npixin .gt. memPreferred) maxload =min(2,mostNeeded)
+      if ((maxload + ix) * npixin .gt. memMaximum) call exitError(
+     &    'IMAGES TOO LARGE FOR 32-BIT ARRAY INDEXES')
+      maxsiz = (maxload + ix) * npixin
+      allocate(array(maxsiz), stat = ierr)
+      if (ierr .ne. 0 .and. maxload .gt. min(2,mostNeeded)) then
+        maxload =min(2,mostNeeded)
+        maxsiz = (maxload + ix) * npixin
+        allocate(array(maxsiz), stat = ierr)
+      endif
+      if (ierr .ne. 0) call exitError('ALLOCATING MAIN IMAGE ARRAY')
+      write(*,'(a,i5,a)')'Allocated', maxsiz / (1024*256),
+     &    ' MB of memory for main image array'
+c       
 c       initialize memory allocator and dx,dy lists for looking for near piece
 c       
       call clearShuffle()
       call initNearList()
-c       
-c       Set maximum load; allow one extra slot if doing fields, limit by
-c       size of arrays
-c       
-      npixin=nxin*nyin
-      if (doFields) then
-        maxload = min(maxsiz/npixin - 1, memlim, maxFields)
-      else
-        maxload=min(maxsiz/npixin, memlim)
-      endif
-      if (maxload .lt. 1 .or. (.not.UndistortOnly .and. maxload .lt. 2))
-     &    call exitError('IMAGES TOO LARGE FOR ARRAYS')
+c
       intgrcopy(1)=intgrid(1)
       intgrcopy(2)=intgrid(2)
 c       
@@ -1110,7 +1354,7 @@ c       All errors checked, exit if setting up parallel
 c       
 c       Now open output files after errors have been checked, unless direct 
 c       writing in parallel mode
-      if (modeParallel .ne. -2) then
+      if (modeParallel .ne. -2 .and. ifEdgeFuncOnly .eq. 0) then
 c         
 c         Do as much of header as possible, shift origin same as in newstack
         call imopen(2,outfile,'new')
@@ -1145,15 +1389,17 @@ c
 90      format( 'BLENDMONT: Montage pieces ',a, t57, a9, 2x, a8 )
         call iwrhdrc(2,titlech,1,dmin,dmax,dmean)
         if (modeParallel .eq. -1) call exit(0)
-      else
+      else if (ifEdgeFuncOnly .eq. 0) then
         call imopen(2,outfile,'old')
-        call irdhdr(2,ixpclo,ixpcup,ixout,f12,f13,f23)
+        call irdhdr(2,ixpclo,ixpcup,ixout,wll,wlr,wul)
         if (ixpclo(1) .ne. nxbin .or. ixpclo(2) .ne. nybin .or.
      &      ixout .ne. modeout) call exitError(
      &      'EXISTING OUTPUT FILE DOES NOT HAVE RIGHT SIZE OR MODE')
       endif
 c
       if (outputpl) call dopen(3,ploutfile,'new','f')
+      fastcum = 0.
+      slowcum = 0.
 c       
 c       loop on z: do everything within each section for maximum efficiency
 c       
@@ -1167,10 +1413,10 @@ c
         do iwant=1,nzwant
           if(izwant(iwant).eq.izsect)ifwant=1
         enddo
-        if (ifwant .eq. 0 .and. (testMode .or. undistortOnly)) go to 92
+        if (ifwant .eq. 0 .and. (testMode .or. undistortOnly)) cycle
 c         
 c         Look up actual section to write if doing direct parallel writes
-        if (ifwant .ne. 0 .and. modeParallel .eq. -2) then
+        if (ifwant .ne. 0 .and. modeParallel .eq. -2 .and. .not. yChunks) then
           do i = 1, nzAllWant
             if (izAllWant(i) .eq. izsect) numOut = i - 1
           enddo
@@ -1207,277 +1453,14 @@ c
 C
         if(.not. undistortOnly)then 
 c           
-c           First get edge functions if haven't already
-c           Check if any edges are to be substituted on this section
-c           Do so if any use values are different from original and none are 0
-          useEdges = .false.
-          if (numUseEdge .gt. 0 .or. izUseDefLow .ge. 0) then
-            numZero = 0
-            do ixy = 1,2
-              do iedge=1,nedge(ixy)
-                if(izsect.eq. izpclist(ipiecelower(iedge,ixy))) then
-                  call findEdgeToUse(iedge, ixy, jedge)
-                  if (jedge .eq. 0) numZero = numZero + 1
-                  if (jedge .ne. iedge) useEdges = .true.
-                endif
-              enddo
-            enddo
-            if (numZero .gt. 0) useEdges = .false.
-c            print *,'numzero, useedges',numZero,useEdges
-          endif
-c           
-c           loop on short then long direction
-c           
-          do iedgedir=1,2
-            call  crossvalue(xinlong,iedgedir,3-iedgedir,ixy,iyx)
-c             
-c             loop on all edges of that type with pieces in section that are
-c             not done yet
-c             
-            do iedge=1,nedge(ixy)
-              if(izsect.eq. izpclist(ipiecelower(iedge,ixy))) then
-                jedge = iedge
-                if (useEdges) call findEdgeToUse(iedge, ixy, jedge)
-c                print *,'checking edge',ixy, jedge,' for edge',ixy, iedge
-                if (.not.edgedone(jedge,ixy)) then
-c                 
-c                   do cross-correlation if the sloppy flag is set and either
-c                   we are shifting each piece or the pieces are't on same neg
-c                 
-c                  print *,'Doing edge ', ixy, jedge
-                  docross=ifsloppy.ne.0.and.(shifteach.or.(
-     &                anyneg.and.neglist(ipiecelower(jedge,ixy))
-     &                .ne.neglist(ipieceupper(jedge,ixy))))
-                  call doedge(jedge,ixy,edgedone,sdcrit,devcrit,
-     &                nfit, norder, nskip, docross, xcreadin, xclegacy,
-     &                edgedispx, edgedispy)
-c                   
-c                   after each one, check memory list to see if there's any
-c                   pieces with undone lower edge in orthogonal direction
-c                   
-                  if (.not.useEdges) then
-                    do imem=1,maxload
-                      ipc=izmemlist(imem)
-                      if(ipc.gt.0)then
-                        jedge=iedgelower(ipc,iyx)
-                        if(jedge.gt.0)then
-                          if(.not.edgedone(jedge,iyx))then
-c                            print *,'Doing edge ', iyx, jedge
-                            docross=ifsloppy.ne.0.and.(shifteach.or.(
-     &                          anyneg.and.neglist(ipiecelower(jedge,iyx))
-     &                          .ne.neglist(ipieceupper(jedge,iyx))))
-                            call doedge(jedge,iyx,edgedone,sdcrit,
-     &                          devcrit,nfit, norder, nskip, docross,
-     &                          xcreadin, xclegacy, edgedispx, edgedispy)
-                          endif
-                        endif
-                      endif
-                    enddo
-                  endif
-                endif
-              endif
-            enddo
-          enddo
+c           First get edge functions for the section if they haven't been done
+          call findSectionEdgeFunctions()
         endif
 c         
 c         now if doing multinegatives, need to solve for h transforms
 c         
         if(multng .and. .not. undistortOnly)then
-c           
-c           first make index of negatives and find coordinates of each
-c           
-          numneg=0
-          do i=1,limneg
-            maxnegx(i)=-1000000
-            minnegx(i)=1000000
-            maxnegy(i)=-1000000
-            minnegy(i)=1000000
-          enddo
-          do ipc=1,npclist
-            if(izpclist(ipc).eq.izsect)then
-              iwhich=0
-              do i=1,numneg
-                if(neglist(ipc).eq.negind(i))iwhich=i
-              enddo
-              if(iwhich.eq.0)then
-                numneg=numneg+1
-                negind(numneg)=neglist(ipc)
-                iwhich=numneg
-              endif
-c               point max coordinate 1 past end: it'll be easier
-              minnegx(iwhich)=min(minnegx(iwhich),ixpclist(ipc))
-              maxnegx(iwhich)=max(maxnegx(iwhich),ixpclist(ipc)+nxin)
-              minnegy(iwhich)=min(minnegy(iwhich),iypclist(ipc))
-              maxnegy(iwhich)=max(maxnegy(iwhich),iypclist(ipc)+nyin)
-            endif
-          enddo
-c           
-c           look at all edges, make tables of joints between negs
-c           
-          do ixy=1,2
-            njoint(ixy)=0
-            do i=1,numneg
-              jointupper(i,ixy)=0
-              jointlower(i,ixy)=0
-            enddo
-c             
-            do iedge=1,nedge(ixy)
-              neglo=neglist(ipiecelower(iedge,ixy))
-              negup=neglist(ipieceupper(iedge,ixy))
-              if(izpclist(ipiecelower(iedge,ixy)).eq.izsect.and.
-     &            neglo.ne.negup)then
-c                 convert neg #'s to neg indexes
-                do i=1,numneg
-                  if(negind(i).eq.neglo)indlo=i
-                  if(negind(i).eq.negup)indup=i
-                enddo
-c                 see if joint already on list
-                joint=0
-                do j=1,njoint(ixy)
-                  if(neglower(j,ixy).eq.indlo.and.
-     &                negupper(j,ixy).eq.indup) joint=j
-                enddo
-c                 if not, add to list
-                if(joint.eq.0)then
-                  njoint(ixy)=njoint(ixy)+1
-                  joint=njoint(ixy)
-                  neglower(joint,ixy)=indlo
-                  negupper(joint,ixy)=indup
-c                   point the negatives to the joint
-                  jointlower(indlo,ixy)=joint
-                  jointupper(indup,ixy)=joint
-                  nedonjoint(joint)=0
-                endif
-c                 add edge to list of ones on that joint
-                nedonjoint(joint)=nedonjoint(joint)+1
-                listonjoint(nedonjoint(joint),joint)=iedge
-              endif
-            enddo
-c             
-c             now process all edges on each joint to get a rotrans
-c             
-            do joint=1,njoint(ixy)
-              do ied=1,nedonjoint(joint)
-                iedge=listonjoint(ied,joint)
-                call readEdgeFunc(iedge, ixy, ied)
-
-                ipclo=ipiecelower(iedge,ixy)
-                ixpclo(ied)=ixgrdstbf(ied) +ixpclist(ipclo)
-                iypclo(ied)=iygrdstbf(ied) +iypclist(ipclo)
-                ipcup=ipieceupper(iedge,ixy)
-                ixpcup(ied)=ixofsbf(ied) +ixpclist(ipcup)
-                iypcup(ied)=iyofsbf(ied) +iypclist(ipcup)
-              enddo
-              call joint_to_rotrans(dxgrbf,dygrbf,ixgdim,iygdim,
-     &            nxgrbf,nygrbf,intgrid(ixy),intgrid(3-ixy)
-     &            ,ixpclo,iypclo,ixpcup,iypcup,nedonjoint(joint)
-     &            ,r(1,joint,ixy))
-              write(*,'(1x,a,2i4,a,f6.2,a,2f6.1)')
-     &            char(ixy+ichar('W'))//' joint, negatives'
-     &            ,neglist(ipclo),neglist(ipcup),'   theta ='
-     &            ,r(1,joint,ixy),'   dx, dy ='
-     &            ,r(2,joint,ixy),r(3,joint,ixy)
-            enddo
-          enddo
-c           
-c           Resolve the edges into rotrans centered on each negative
-c           Initially set the rotrans for each negative to null
-c           
-          maxswing=0
-          do i=1,numneg
-            hcum(1,i)=0.
-            hcum(2,i)=0.
-            hcum(3,i)=0.
-            hcum(4,i)=0.5*(maxnegx(i)+minnegx(i))
-            hcum(5,i)=0.5*(maxnegy(i)+minnegy(i))
-            maxswing=max(maxswing,(maxnegx(i)-minnegx(i))/2,
-     &          (maxnegy(i)-minnegy(i))/2)
-          enddo
-c           
-c           start loop - who knows how long this will take
-c           
-          ishift=1
-          erradj=1.e10
-          nshiftneg=100
-          errlim=0.1*numneg
-          do while(ishift.le.nshiftneg.and.erradj.gt.errlim)
-c             
-c             set sum of adjustment h's to null
-c             
-            erradj=0.
-            do i=1,numneg
-              call lincom_rotrans(hcum(1,i),0.,hcum(1,i),0.,hadj(1,i))
-              nhadjsum(i)=0
-            enddo
-c             
-c             loop on joints, adding up net adjustments still needed
-c             
-            do ixy=1,2
-              do joint=1,njoint(ixy)
-c                 
-c                 get net rotrans still needed at this joint: subtract upper
-c                 h and add lower h to joint rotrans
-c                 
-                negup=negupper(joint,ixy)
-                neglo=neglower(joint,ixy)
-                call lincom_rotrans(hcum(1,negup),-1.,r(1,joint,ixy),-1.,
-     &              rnet)
-                call lincom_rotrans(hcum(1,neglo),1.,rnet,1.,rnet)
-c                 
-c                 now add half of the net needed to the upper adjustment
-c                 subtract half from the lower adjustment
-c                 
-                call lincom_rotrans(rnet,0.5,hadj(1,negup),1.
-     &              ,hadj(1,negup))
-                nhadjsum(negup)=nhadjsum(negup)+1
-                call lincom_rotrans(rnet,-0.5,hadj(1,neglo),1.
-     &              ,hadj(1,neglo))
-                nhadjsum(neglo)=nhadjsum(neglo)+1
-              enddo
-            enddo
-c             
-c             get the average adjustment, adjust hcum with it
-c             
-            dxsum=0.
-            dysum=0.
-            do i=1,numneg
-              erradj=erradj+(abs(hadj(2,i))+abs(hadj(3,i))+
-     &            abs(hadj(1,i))*maxswing)/nhadjsum(i)
-              call lincom_rotrans(hadj(1,i),1./nhadjsum(i),hcum(1,i),1.
-     &            ,hcum(1,i))
-              dxsum=dxsum+hcum(2,i)
-              dysum=dysum+hcum(3,i)
-            enddo
-c             
-          enddo                                 !end of cycle
-c           
-c           shift all dx and dy to have a mean of zero
-c           
-          do i=1,numneg
-            hcum(1,i)=hcum(1,i)-dxsum/numneg
-            hcum(2,i)=hcum(2,i)-dysum/numneg
-          enddo
-c           
-c           compute the h function (and hinv) centered on corner of frame
-c           
-          do ipc=1,npclist
-            if(izpclist(ipc).eq.izsect)then
-              do i=1,numneg
-                if(negind(i).eq. neglist(ipc))then
-                  call recen_rotrans(hcum(1,i),float(ixpclist(ipc))
-     &                ,float(iypclist(ipc)),hfram)
-                  h(1,1,ipc)=cosd(hfram(1))
-                  h(2,1,ipc)=sind(hfram(1))
-                  h(1,2,ipc)=-h(2,1,ipc)
-                  h(2,2,ipc)=h(1,1,ipc)
-                  h(1,3,ipc)=hfram(2)
-                  h(2,3,ipc)=hfram(3)
-                  call xfinvert(h(1,1,ipc),hinv(1,1,ipc))
-                endif
-              enddo
-            endif
-          enddo
-c           
+          call findMultinegTransforms()
         endif					!end of multineg stuff
 
         if (.not. undistortOnly) then
@@ -1497,12 +1480,12 @@ c
 c           
 c           if this section is not wanted in output, skip out
 c           
-          if(ifwant.eq.0)go to 92
+          if(ifwant.eq.0) cycle
 c           
 c           scan through all edges in this section to determine limits for
 c           when a point is near an edge
 c           
-          do ixy=1,2
+          do ixy=ixyFuncStart,ixyFuncEnd
             edgelonear(ixy)=0.
             edgehinear(ixy)=nxyzin(ixy)-1.
             do iedge=1,nedge(ixy)
@@ -1521,142 +1504,53 @@ c                print *,'reading header of edge',ixy,jedge,' for edge',ixy,iedg
                   call convert_longs(igridstr,2)
                   call convert_longs(iofset,2)
                 endif
-c                print *,nxgr,nygr, (igridstr(i), iofset(i),i=1,2)
                 edgehinear(ixy)=min(edgehinear(ixy),
      &              float(igridstr(ixy)))
                 edgelonear(ixy)=max(edgelonear(ixy),float
      &              ((min(nxgr,nygr)-1)*intgrid(1)+iofset(ixy)+10))
+c                print *,nxgr,nygr, (igridstr(i), iofset(i),i=1,2)
               endif
             enddo
+c            print *,ixy,edgelonear(ixy),edgehinear(ixy)
           enddo
+          edgesSeparated = edgehinear(1) - edgelonear(1) .gt. 0.05 * nxin .and.
+     &        edgehinear(2) - edgelonear(2) .gt. 0.05 * nyin
         endif
 c         
-c         Now analyze for h transforms if need to shift each piece - set
+c         Now analyze for h transforms if need to shift each piece - this sets
 c         multng because it is a flag that hinv exists and needs to be used
 c         
-        if(shifteach .and. .not. undistortOnly)then
-          multng=.true.
-          do ixy=1,2
-            do iedge=1,nedge(ixy)
-              if(izpclist(ipiecelower(iedge,ixy)).eq.izsect)then
-c                 
-c                 need displacements implied by edges, unless this is to be
-c                 done by old cross-correlation only
-c                 
-                if(.not.xclegacy)then
-                  call edgeswap(iedge,ixy,inde)
-c                   
-c                   compute the mean current displacement of upper relative
-c                   to lower implied by the d[xy]mean
-c                   
-                  sumx=0.
-                  sumy=0.
-                  do ix=1,nxgrbf(inde)
-                    do iy=1,nygrbf(inde)
-                      sumx=sumx+dxgrbf(ix,iy,inde)
-                      sumy=sumy+dygrbf(ix,iy,inde)
-                    enddo
-                  enddo  
-                  dxgridmean(iedge,ixy)=sumx/
-     &                (nxgrbf(inde)*nygrbf(inde))
-                  dygridmean(iedge,ixy)=sumy/
-     &                (nxgrbf(inde)*nygrbf(inde))
-c                   
-c                   adjust these by the current displacements implied by
-c                   starting and offset coordinates of the edge areas
-c                   
-                  if(ixy.eq.1)then
-                    dxgridmean(iedge,ixy)=dxgridmean(iedge,ixy)+
-     &                  ixofsbf(inde)-ixgrdstbf(inde)+nxin-nxoverlap
-                    dygridmean(iedge,ixy)=dygridmean(iedge,ixy)+
-     &                  iyofsbf(inde)-iygrdstbf(inde)
-                  else
-                    dxgridmean(iedge,ixy)=dxgridmean(iedge,ixy)+
-     &                  ixofsbf(inde)-ixgrdstbf(inde)
-                    dygridmean(iedge,ixy)=dygridmean(iedge,ixy)+
-     &                  iyofsbf(inde)-iygrdstbf(inde)+nyin-nyoverlap
-                  endif
-                endif
-c                 
-                if(.not.fromedge.and..not.xcreadin.and.
-     &              .not.(ifsloppy.eq.1.and.ifoldedge.eq.0))then
-c                   
-c                   If the edges of the image are lousy, it's better to use
-c                   correlation, so here is this option.  Compute the
-c                   correlations unless doing this by edges only,
-c                   if they aren't already available
-c                   
-                  call shuffler(ipiecelower(iedge,ixy),indlo)
-                  call shuffler(ipieceupper(iedge,ixy),indup)
-
-                  call getExtraIndents(ipiecelower(iedge,ixy), 
-     &                ipieceupper(iedge,ixy), ixy, delIndent)
-                  indentXC = 0
-                  if (delIndent(ixy) .gt. 0. .and. ifillTreatment .eq. 1)
-     &                indentXC = int(delIndent(ixy)) + 1
-                  call xcorredge(array(indlo),array(indup),
-     &                ixy,xdisp,ydisp,xclegacy,indentXC)
-                  edgedispx(iedge,ixy)=xdisp
-                  edgedispy(iedge,ixy)=ydisp
-                endif
-c		  write(*,'(1x,a,2i4,a,2f8.2,a,2f8.2)')
-c                 &		      char(ixy+ichar('W'))//' edge, pieces'
-c                 &		      ,ipiecelower(iedge,ixy),ipieceupper(iedge,ixy),
-c                 &		      '  dxygridmean:',dxgridmean(iedge,ixy),
-c                 &		      dygridmean(iedge,ixy),'  xcorr:',-xdisp,-ydisp
-c                 dxgridmean(iedge,ixy)=-xdisp
-c                 dygridmean(iedge,ixy)=-ydisp
-c		  endif
+        mapDisjoint = 0
+        anyDisjoint = .false.
+        if(shifteach .and. .not. undistortOnly .and. ifEdgeFuncOnly .ne. 1
+     &      .and. ifEdgeFuncOnly .ne. 2)then
+          call getBestPieceShifts()
+c           
+c           Analyze for disjoint edges on this section
+c           Look for non-overlap between cross-corner pieces and code by type
+          do iyfrm = 1, nypieces - 1
+            do ixfrm = 1, nxpieces - 1
+              if (mappiece(ixfrm, iyfrm) .gt. 0 .and. mappiece(ixfrm+1, iyfrm)
+     &            .gt. 0 .and. mappiece(ixfrm, iyfrm+1) .gt. 0 .and.
+     &            mappiece(ixfrm+1, iyfrm+1) .gt. 0) then
+                ix = mappiece(ixfrm, iyfrm)
+                iy = mappiece(ixfrm+1, iyfrm+1)
+                if (ixpclist(ix) + h(1,3,ix) + nxin .le.
+     &              ixpclist(iy) + h(1,3,iy)) mapDisjoint(ixfrm, iyfrm) = 1
+                if (iypclist(ix) + h(2,3,ix) + nyin .le.
+     &              iypclist(iy) + h(2,3,iy)) mapDisjoint(ixfrm, iyfrm) = 3
+                ix = mappiece(ixfrm, iyfrm+1)
+                iy = mappiece(ixfrm+1, iyfrm)
+                if (ixpclist(ix) + h(1,3,ix) + nxin .le.
+     &              ixpclist(iy) + h(1,3,iy)) mapDisjoint(ixfrm, iyfrm) = 2
+                if (iypclist(iy) + h(2,3,iy) + nyin .le.
+     &              iypclist(ix) + h(2,3,ix)) mapDisjoint(ixfrm, iyfrm) = 4
+                if (mapDisjoint(ixfrm, iyfrm) .ne. 0) 
+     &              anyDisjoint(ixfrm:ixfrm+1, iyfrm:iyfrm+1) = .true.
+c                if (mapDisjoint(ixfrm, iyfrm) .ne. 0) print *,'disjoint',ixfrm,iyfrm
               endif
             enddo
           enddo
-c           
-c           DNM 8/18/02: pass array to find_best_shifts, but do not pass
-c           hinv since it is in common
-c           
-          if(.not.fromedge)then
-            call find_best_shifts(array,nxpieces * nypieces, edgedispx,
-     &          edgedispy,-1,izsect,h, nbestedge,beforemean,beforemax,
-     &          aftermean(1),aftermax(1))
-            indbest=1
-          endif
-          if(.not.xclegacy)then
-            call find_best_shifts(array,nxpieces * nypieces, dxgridmean,
-     &          dygridmean,1,izsect,h, nbestedge,beforemean,beforemax,
-     &          aftermean(2),aftermax(2))
-            indbest=2
-          endif
-c           
-c           if first one was better based upon mean, redo it and reset the
-c           index to 1
-c           
-          if(.not.(xclegacy.or.fromedge).and.(aftermean(1).lt.aftermean(2)))
-     &        then
-            call find_best_shifts(array,nxpieces * nypieces, edgedispx,
-     &          edgedispy,-1,izsect,h, nbestedge,beforemean,beforemax,
-     &          aftermean(1),aftermax(1))
-            indbest=1
-          endif
-          write(*,'(i4,a,2f7.2,a,a,2f7.2)')nbestedge,
-     &        ' edges, mean&max error before:', beforemean,beforemax,
-     &        ', after by ', edgexcorrtext(indbest),
-     &        aftermean(indbest),aftermax(indbest)
-          if (testMode)then
-            write(*,'(a,i4,a,2f8.3,a,2f9.4)')' section:',
-     &		izsect,'  gradient:',dmagPerUm(min(ilistz, numMagGrad)),
-     &		rotPerUm(min(ilistz, numMagGrad)),
-     &          '  mean, max error:', aftermean(indbest),aftermax(indbest)
-            if (indbest .eq. 1) then
-              call findBestGradient(edgedispx,edgedispy,-1,izsect,
-     &            dmagnew,rotnew)
-            else
-              call findBestGradient(dxgridmean,dygridmean,1,izsect,
-     &            dmagnew,rotnew)
-            endif
-            write(*,'(a,2f9.4)')' Total gradient implied by displacements:',
-     &          dmagPerUm(min(ilistz, numMagGrad))+dmagnew,
-     &          rotPerUm(min(ilistz, numMagGrad))+rotnew
-          endif
         endif
 c         
 c         if doing g transforms, get inverse and recenter it from center
@@ -1681,7 +1575,7 @@ c         out the undistorted pieces in memory
 c         
         doingEdgeFunc = .false.
         if (doFields) call clearShuffle()
-        if (testMode) go to 92
+        if (testMode .or. ifEdgeFuncOnly .ne. 0) cycle ! To end of section loop
 c         
 c         if floating, need to get current input min and max
 c         To pad edges properly, need current mean: put it into dmean
@@ -1757,13 +1651,12 @@ c
               enddo
               grandsum=grandsum+tsum
               nzbin=nzbin+1
-              print *,'writing ',nzbin
               call iwrsec(2, array(indbray))
 c               
               if (outputpl) write(3,'(2i6,i4)')newpcxll,newpcyll,izsect
             endif
           enddo
-          go to 92
+          cycle                                 ! To end of section loop
         endif
 c         
 c         GET THE PIXEL OUT
@@ -1788,12 +1681,17 @@ c             do fast little boxes
 c             
             nxfast=(newxframe+(ifastsiz-1))/ifastsiz
             nyfast=(newyframe+(ifastsiz-1))/ifastsiz
+            if (yChunks) nyfast = (lineEnd - lineStart + ifastsiz) / ifastsiz
 c             
 c             loop on boxes, get lower & upper limits in each box
 c             
             do iyfast=1,nyfast
               indylo=newpcyll+(iyfast-1)*ifastsiz
               indyhi=min(indylo+ifastsiz,newpcyll+newyframe)-1
+              if (yChunks) then
+                indylo = lineStart + (iyfast-1)*ifastsiz
+                indyhi = min(indylo + ifastsiz - 1, lineEnd)
+              endif
               nlinesout=indyhi+1-indylo
 c               
 c               fill array with dmean
@@ -1811,25 +1709,39 @@ c
                 dofast=.true.
                 inframe=.false.
                 inonepiece=0
+                samePieces = .true.
+                debug = (ixdebug .ge. indxlo .and. ixdebug .le. indxhi) .or.
+     &                (iydebug .ge. indylo .and. iydebug .le. indyhi)
                 do indy=indylo,indyhi,indyhi-indylo
                   do indx=indxlo,indxhi,indxhi-indxlo
                     call countedges(indx,indy,xg,yg, useEdges)
                     if(numpieces.gt.0)then
-                      if(inonepiece.eq.0)inonepiece=inpiece(1)
+                      if(inonepiece.eq.0)then
+                        inonepiece=inpiece(1)
+                        numfirst = numpieces
+                        ipfirst(1:4) = inpiece(1:4)
+                      endif
                       dofast=dofast.and. numpieces.eq.1 .and.
      &                    inpiece(1).eq.inonepiece
+                      samePieces = samePieces .and. numpieces .eq. numfirst
                       do i=1,numpieces
                         inframe=inframe .or. (xinpiece(i).ge.0. .and.
      &                      xinpiece(i).le.nxin-1. .and. yinpiece(i)
      &                      .ge.0. .and. yinpiece(i).le.nyin-1.)
+                        samePieces = samePieces .and. ipfirst(i).eq.inpiece(i)
                       enddo
+                    else
+                      samePieces = .false.
                     endif
                   enddo
                 enddo
+c                if (debug) print *,indylo,indyhi,numpieces,xinpiece(1),yinpiece(1)
 c                 
 c                 ALL ON ONE PIECE: do a fast transform of whole box
 c                 
+                wallstart = walltime()
                 if(dofast.and.inframe)then
+c                  if (debug) print *,  'fast box',indxlo,indxhi,indylo,indyhi
                   call xfunit(fastf,1.)         !start with unit xform
 c                   
 c                   if doing g xforms, put operations into xform that will
@@ -1862,6 +1774,7 @@ c
      &                indyhi,newpcxll,fastf,fastf(1,3),
      &                fastf(2,3),inonepiece)
                   anypixels=.true.
+                  fastcum = fastcum + walltime() - wallstart
 c                   
                 elseif(inframe)then
 c                   
@@ -1871,794 +1784,40 @@ c
                   linebase=iBufferBase + 1 - newpcxll
                   do indy=indylo,indyhi
                     do indx=indxlo,indxhi
-                      call countedges(indx,indy,xg,yg, useEdges)
+c                       Set debug .or. or .and. here
+                      debug = indx .eq. ixdebug .or. indy .eq. iydebug
+                      if (samePieces) then
+c                         
+c                         If it is all the same pieces in this box, then update
+c                         the positions in the pieces
+                        xg = indx
+                        yg = indy
+                        if (dogxforms) then
+                          xg = ginv(1,1)*indx + ginv(1,2)*indy + ginv(1,3)
+                          yg = ginv(2,1)*indx + ginv(2,2)*indy + ginv(2,3)
+                        endif
+                        do i = 1, numPieces
+                          call positionInPiece(xg, yg, inpiece(i), xinpiece(i),
+     &                        yinpiece(i))
+                        enddo
+                      else
+                        call countedges(indx,indy,xg,yg, useEdges)
+                      endif
+c                      if (debug) write(*,'(2i6,i7,i2,a,i3,a,5i5)')indx,indy,
+c     &                    numedges(1), numedges(2),' edges',numpieces,
+c     &                    ' pieces', (inpiece(i),i=1,numpieces)
 c                       
 c                       load the edges and compute edge fractions
 c                       
-                      nedgesum=0
-                      do ixy=1,2
-                        do ied=1,numedges(ixy)
-                          iedge=inedge(ied,ixy)
-                          call edgeswap(iedge,ixy,indedg)
-                          indlower=inedlower(ied,ixy)
-                          indedge4(ied,ixy)=indedg
-                          if(ixy.eq.1) then
-                            edgefrac4(ied,ixy)=0.5+(xinpiece(indlower)
-     &                          -(ixgrdstbf(indedg)+ (nxgrbf(indedg)-1)
-     &                          *intgrid(1)/2.))/
-     &                          min(nxgrbf(indedg)*intgrid(1),iblend(1))
-                          else
-                            edgefrac4(ied,ixy)=0.5+(yinpiece(indlower)
-     &                          -(iygrdstbf(indedg)+(nygrbf(indedg)-1)
-     &                          *intgrid(1)/2.))/
-     &                          min(nygrbf(indedg)*intgrid(1),iblend(2))
-                          endif
-                          active4(ied,ixy)=edgefrac4(ied,ixy).lt..999
-     &                        .and.edgefrac4(ied,ixy).gt..001
-                          if(active4(ied,ixy)) nedgesum=nedgesum+1
-                          if(edgefrac4(ied,ixy).lt.0.)edgefrac4(ied,ixy)=0.
-                          if(edgefrac4(ied,ixy).gt.1.)edgefrac4(ied,ixy)=1.
-                        enddo
-                      enddo
+                      call computeEdgeFractions()
 c                       
-c                       get indices of pieces and edges: for now, numbers
-c                       1 to 4 represent lower left, lower right, upper left,
-c                       and upper right
-c                       
-                      if(numpieces.gt.1)then
-                        indp1=0                 !index of piece 1, 2, 3, or 4
-                        indp2=0                 !if the point is in them
-                        indp3=0
-                        indp4=0
-                        inde12=0		!index of edges between 1 and 2
-                        inde13=0		!1 and 3, etc
-                        inde34=0
-                        inde24=0
-                        f12=0.                  !edge fractions betweem 1 and 2
-                        f13=0.                  !1 and 3, etc
-                        f23=0.
-                        f24=0.
-                        er1=0.                  !end fractions to right and top
-                        et1=0.                  !of piece 1, left and bottom of
-                        el2=0.                  !piece 3, etc
-                        et2=0.
-                        er3=0.
-                        eb3=0.
-                        el4=0.
-                        eb4=0.
-                        fx=0.			!the composite edge fractions
-                        fy=0.			!in x and y directions
-                        if(numpieces.gt.2)then
-                          do ipc=1,numpieces
-                            if(xinpiece(ipc).gt.nxin/2.and.
-     &                          yinpiece(ipc).gt.nyin/2)indp1=ipc
-                            if(xinpiece(ipc).gt.nxin/2.and.
-     &                          yinpiece(ipc).lt.nyin/2)indp3=ipc
-                            if(xinpiece(ipc).lt.nxin/2.and.
-     &                          yinpiece(ipc).gt.nyin/2)indp2=ipc
-                            if(xinpiece(ipc).lt.nxin/2.and.
-     &                          yinpiece(ipc).lt.nyin/2)indp4=ipc
-                          enddo
-                          do ied=1,numedges(1)
-                            if(inedlower(ied,1).eq.indp1)inde12=ied
-                            if(inedlower(ied,1).eq.indp3)inde34=ied
-                          enddo
-                          do ied=1,numedges(2)
-                            if(inedlower(ied,2).eq.indp1)inde13=ied
-                            if(inedlower(ied,2).eq.indp2)inde24=ied
-                          enddo
-                          if(inde12.ne.0)f12=edgefrac4(inde12,1)
-                          if(inde34.ne.0)f34=edgefrac4(inde34,1)
-                          if(inde13.ne.0)f13=edgefrac4(inde13,2)
-                          if(inde24.ne.0)f24=edgefrac4(inde24,2)
-
-                        else
-c                           
-c                           two piece case - identify as upper or lower to
-c                           simplify computation of end fractions
-c                           
-                          if(numedges(1).gt.0)then
-                            fx=edgefrac4(1,1)
-                            if(0.5*(yinpiece(1)+yinpiece(2)).gt.nyin/2)then
-                              inde12=1
-                              if(xinpiece(1).gt.xinpiece(2))then
-                                indp1=1
-                                indp2=2
-                              else
-                                indp1=2
-                                indp2=1
-                              endif
-                            else
-                              inde34=1
-                              fy=1.
-                              if(xinpiece(1).gt.xinpiece(2))then
-                                indp3=1
-                                indp4=2
-                              else
-                                indp3=2
-                                indp4=1
-                              endif
-                            endif
-                          else
-                            fy=edgefrac4(1,2)
-                            if(0.5*(xinpiece(1)+xinpiece(2)).gt.nxin/2)then
-                              inde13=1
-                              if(yinpiece(1).gt.yinpiece(2))then
-                                indp1=1
-                                indp3=2
-                              else
-                                indp1=2
-                                indp3=1
-                              endif
-                            else
-                              inde24=1
-                              fx=1.
-                              if(yinpiece(1).gt.yinpiece(2))then
-                                indp2=1
-                                indp4=2
-                              else
-                                indp2=2
-                                indp4=1
-                              endif
-                            endif
-                          endif
-                        endif
-c                         
-c                         get distance to top, right, bottom, or left edges
-c                         as needed for each piece, and compute end fractions
-c                         
-                        if(indp1.gt.0)then
-                          dr1=nxin-1.-xinpiece(indp1)
-                          dt1=nyin-1.-yinpiece(indp1)
-                          er1=(dr1+1.)/iblend(1)
-                          et1=dt1/iblend(2)
-                        endif			
-                        if(indp2.gt.0)then
-                          dl2=xinpiece(indp2)
-                          dt2=nyin-1.-yinpiece(indp2)
-                          el2=(dl2+1.)/iblend(1)
-                          et2=(dt2+1.)/iblend(2)
-                        endif			
-                        if(indp3.gt.0)then
-                          dr3=nxin-1.-xinpiece(indp3)
-                          db3=yinpiece(indp3)
-                          er3=(dr3+1.)/iblend(1)
-                          eb3=(db3+1.)/iblend(2)
-                        endif			
-                        if(indp4.gt.0)then
-                          dl4=xinpiece(indp4)
-                          db4=yinpiece(indp4)
-                          el4=(dl4+1.)/iblend(1)
-                          eb4=(db4+1.)/iblend(2)
-                        endif
-c                         
-c                         If there are 4 pieces, fx and fy are weighted sum
-c                         of the f's in the two overlapping edges.  The
-c                         weights ex and ey are modified fractional distances
-c                         across the overlap zone.  First get the distances
-c                         to the borders of the overlap zone (dla, etc) and
-c                         use them to get absolute fractional distances
-c                         across zone, ax in the y direction and ay in the
-c                         x direction.  They are used to make ex slide from
-c                         being a distance across the lower overlap to being
-c                         a distance across the upper overlap.  This gives
-c                         continuity with the edge in 2 or 3-piece cases
-c                         
-                        if(numpieces.eq.4) then
-                          dla=min(dl2,dl4)
-                          dra=min(dr1,dr3)
-                          dba=min(db3,db4)
-                          dta=min(dt1,dt2)
-                          ax=dba/(dta+dba)
-                          ay=dla/(dra+dla)
-                          ex=((1-ay)*db3+ay*db4)/
-     &                        ((1-ay)*(dt1+db3)+ay*(dt2+db4))
-                          ey=((1-ax)*dl2+ax*dl4)/
-     &                        ((1-ax)*(dr1+dl2)+ax*(dr3+dl4))
-                          fx=(1-ex)*f12+ex*f34
-                          fy=(1-ey)*f13+ey*f24
-                        elseif(numpieces.eq.3)then
-c                           
-c                           Three-piece case is simple, only two edges
-c                           
-                          fx=edgefrac4(1,1)
-                          fy=edgefrac4(1,2)
-                        endif
-c                         
-c                         weighting factors are a product of the two f's,
-c                         attenuated if necessary by fractional distance to
-c                         end of piece, then normalized to sum to 1.
-c                         
-                        wll=min(1-fx,et1)*min(1-fy,er1)
-                        wlr=min(fx,et2)*min(1-fy,el2)
-                        wul=min(1-fx,eb3)*min(fy,er3)
-                        wur=min(fx,eb4)*min(fy,el4)
-                        wsum=wll+wlr+wul+wur
-                        if(wsum.gt.0.)then
-                          wll=wll/wsum
-                          wlr=wlr/wsum
-                          wul=wul/wsum
-                          wur=wur/wsum
-                        endif
-c                         
-c                         count up active pieces implied by the w's
-c                         
-                        nactivep=0
-                        if(wll.gt.0.)nactivep=nactivep+1
-                        if(wlr.gt.0.)nactivep=nactivep+1
-                        if(wul.gt.0.)nactivep=nactivep+1
-                        if(wur.gt.0.)nactivep=nactivep+1
-c                         
-c                         filter out cross-corner 2-piece cases, pick the
-c                         piece where the point is most interior
-c                         
-                        if(nactivep.eq.2.and.wll*wur.gt.0.)then
-                          if(min(dt1,dr1).lt.min(db4,dl4))then
-                            wll=0.
-                          else
-                            wur=0.
-                          endif
-                          nactivep=1
-                        elseif(nactivep.eq.2.and.wul*wlr.gt.0.)then
-                          if(min(dt2,dl2).lt.min(db3,dr3))then
-                            wlr=0.
-                          else
-                            wul=0.
-                          endif
-                          nactivep=1
-                        endif			    
-                      else
-c                         
-c                         the one-piece case, avoid all that computation
-c                         
-                        nactivep=1
-                        indp1=1
-                        wll=1.
-                      endif
+c                       get indices of pieces and edges and the weighting
+c                       of each piece: for now, numbers
+                      call getPieceIndicesAndWeighting()
 c                       
 c                       NOW SORT OUT THE CASES OF 1, 2, 3 or 4 PIECES
-c                       
-                      if(nactivep.le.1)then	!ONE PIECE
-                        if(wll.gt.0.)then
-                          indpidef=indp1
-                        elseif(wlr.gt.0.)then
-                          indpidef=indp2
-                        elseif(wul.gt.0.)then
-                          indpidef=indp3
-                        else
-                          indpidef=indp4
-                        endif
-                        if(nactivep.eq.0)indpidef=1
-c                         
-                        call shuffler(inpiece(indpidef),indbray)
-                        pixval=oneintrp(array(indbray),nxin,nyin,
-     &                      xinpiece(indpidef),yinpiece(indpidef),
-     &                      inpiece(indpidef))
-c                         
-c                         ONE EDGE, TWO PIECES
-c                         
-                      elseif(nactivep.eq.2)then
-c                         
-c                         find the pieces around the edge, set edge index
-c                         
-                        if(wll.gt.0..and.wlr.gt.0.)then
-                          indpl=indp1
-                          indpu=indp2
-                          w1=wll
-                          indedg=indedge4(inde12,1)
-                        elseif(wul.gt.0..and.wur.gt.0.)then
-                          indpl=indp3
-                          indpu=indp4
-                          w1=wul
-                          indedg=indedge4(inde34,1)
-                        elseif(wll.gt.0..and.wul.gt.0.)then
-                          indpl=indp1
-                          indpu=indp3
-                          w1=wll
-                          indedg=indedge4(inde13,2)
-                        else
-                          indpl=indp2
-                          indpu=indp4
-                          w1=wlr
-                          indedg=indedge4(inde24,2)
-                        endif
-c                         
-c                         set up pieces #'s, and starting coords
-c                         
-                        ipiece1=inpiece(indpl)
-                        ipiece2=inpiece(indpu)
-                        x1=xinpiece(indpl)
-                        y1=yinpiece(indpl)
-                        w2=1.-w1
-c                         
-c                         set up to solve equation for (x1,y1) and (x2,y2)
-c                         given their difference and the desired xg,yg
-c                         
-                        xgconst=xg-w1*ixpclist(ipiece1)
-     &                      -w2*ixpclist(ipiece2)
-                        ygconst=yg-w1*iypclist(ipiece1)
-     &                      -w2*iypclist(ipiece2)
-                        if(multng)then
-                          xgconst=xgconst-w1*h(1,3,ipiece1)
-     &                        -w2*h(1,3,ipiece2)
-                          ygconst=ygconst-w1*h(2,3,ipiece1)
-     &                        -w2*h(2,3,ipiece2)
-                          c11=w1*h(1,1,ipiece1)
-     &                        +w2*h(1,1,ipiece2)
-                          c12=w1*h(1,2,ipiece1)
-     &                        +w2*h(1,2,ipiece2)
-                          c21=w1*h(2,1,ipiece1)
-     &                        +w2*h(2,1,ipiece2)
-                          c22=w1*h(2,2,ipiece1)
-     &                        +w2*h(2,2,ipiece2)
-                          denom=c11*c22-c12*c21
-                          fb11=w2*h(1,1,ipiece2)
-                          fb12=w2*h(1,2,ipiece2)
-                          fb21=w2*h(2,1,ipiece2)
-                          fb22=w2*h(2,2,ipiece2)
-                        endif
-c                         
-c                         in this loop, use the difference between (x1,y1)
-c                         and (x2,y2) at the one place to solve for values of
-c                         those coords; iterate until stabilize
-c                         
-                        x1last=-100.
-                        y1last=-100.
-                        iter=1
-                        do while(iter.le.niter.and.(abs(x1-x1last)
-     &                      .gt.0.01 .or.abs(y1-y1last).gt.0.01))
-                          call dxydgrinterp(x1,y1,indedg,x2,y2,dden)
-                          x1last=x1
-                          y1last=y1
-                          dx2=x2-x1
-                          dy2=y2-y1
-                          if(multng)then
-                            bx=xgconst-fb11*dx2-fb12*dy2
-                            by=ygconst-fb21*dx2-fb22*dy2
-                            x1=(bx*c22-by*c12)/denom
-                            y1=(by*c11-bx*c21)/denom
-                          else
-                            x1=xgconst-w2*dx2
-                            y1=ygconst-w2*dy2
-                          endif
-                          x2=x1+dx2
-                          y2=y1+dy2
-                          iter=iter+1
-                        enddo
-c                         
-c                         get the pixel from the piece with the bigger weight
-c                         and adjust density by the difference across edge
-c                         Except average them within 4 pixels of center!
-c                         
-                        if(abs(w1-w2)*max(iblend(1),iblend(2)).lt.2.5)then
-                          call shuffler(ipiece1,indbray1)
-                          call shuffler(ipiece2,indbray2)
-                          pixval=w1*oneintrp(array(indbray1),nxin,
-     &                        nyin, x1,y1,ipiece1) +
-     &                        w2*oneintrp(array(indbray2),nxin,
-     &                        nyin, x2,y2,ipiece2)
-                        elseif(w1.gt.w2)then
-                          call shuffler(ipiece1,indbray)
-                          pixval=oneintrp(array(indbray),nxin,nyin,
-     &                        x1,y1,ipiece1) + w2*dden
-                        else
-                          call shuffler(ipiece2,indbray)
-                          pixval=oneintrp(array(indbray),nxin,nyin,
-     &                        x2,y2,ipiece2) - w1*dden
-                        endif
-c                         
-c                         THREE PIECES AND TWO EDGES
-c                         
-                      elseif(nactivep.eq.3)then
-c                         
-c                         now decide between the three cases of divergent,
-c                         serial, or convergent functions, and assign pieces
-c                         and weights accordingly
-c                         
-c                         DIVERGENT: if lower piece is same for x and y edge
-c                         
-                        if(wur.le.0.)then
-                          w1=wll
-                          w2=wlr
-                          w3=wul
-                          jndp1=indp1
-                          jndp2=indp2
-                          jndp3=indp3
-                          ind12edg=indedge4(inde12,1)
-                          ind13edg=indedge4(inde13,2)
-                          icortyp=1
-c                           
-c                           CONVERGENT: if upper piece same for x and y edge
-c                           
-                        elseif(wll.le.0.)then
-                          w3=wur
-                          w1=wul
-                          w2=wlr
-                          jndp1=indp3
-                          jndp2=indp2
-                          jndp3=indp4
-                          ind13edg=indedge4(inde34,1)
-                          ind23edg=indedge4(inde24,2)
-                          icortyp=2
-c                           
-c                           SERIAL: lower of one is the upper of the other
-c                           
-                        else
-                          w1=wll
-                          w3=wur
-                          jndp1=indp1
-                          jndp3=indp4
-                          if(wlr.le.0.)then
-                            w2=wul
-                            jndp2=indp3
-                            ind12edg=indedge4(inde13,2)
-                            ind23edg=indedge4(inde34,1)
-                          else
-                            w2=wlr
-                            jndp2=indp2
-                            ind12edg=indedge4(inde12,1)
-                            ind23edg=indedge4(inde24,2)
-                          endif
-                          icortyp=3
-                        endif
-                        
-                        ipiece1=inpiece(jndp1)
-                        ipiece2=inpiece(jndp2)
-                        ipiece3=inpiece(jndp3)
-                        x1=xinpiece(jndp1)
-                        y1=yinpiece(jndp1)
-                        wmax=max(w1,w2,w3)
-c                         
-c                         set up to solve equations for new (x1,y1), (x2,y2)
-c                         and (x3,y3) given the differences between them and
-c                         the desired weighted coordinate (xg,yg)
-c                         
-                        xgconst=xg-w1*ixpclist(ipiece1)-
-     &                      w2*ixpclist(ipiece2)-w3*ixpclist(ipiece3)
-                        ygconst=yg-w1*iypclist(ipiece1)-
-     &                      w2*iypclist(ipiece2)-w3*iypclist(ipiece3)
-                        if(multng)then
-                          xgconst=xgconst-w1*h(1,3,ipiece1)
-     &                        -w2*h(1,3,ipiece2)-w3*h(1,3,ipiece3)
-                          ygconst=ygconst-w1*h(2,3,ipiece1)
-     &                        -w2*h(2,3,ipiece2)-w3*h(2,3,ipiece3)
-                          c11=w1*h(1,1,ipiece1)+w2*
-     &                        h(1,1,ipiece2)+w3*h(1,1,ipiece3)
-                          c12=w1*h(1,2,ipiece1)+w2*
-     &                        h(1,2,ipiece2)+w3*h(1,2,ipiece3)
-                          c21=w1*h(2,1,ipiece1)+w2*
-     &                        h(2,1,ipiece2)+w3*h(2,1,ipiece3)
-                          c22=w1*h(2,2,ipiece1)+w2*
-     &                        h(2,2,ipiece2)+w3*h(2,2,ipiece3)
-                          denom=c11*c22-c12*c21
-                          f2b11=w2*h(1,1,ipiece2)
-                          f2b12=w2*h(1,2,ipiece2)
-                          f2b21=w2*h(2,1,ipiece2)
-                          f2b22=w2*h(2,2,ipiece2)
-                          f3b11=w3*h(1,1,ipiece3)
-                          f3b12=w3*h(1,2,ipiece3)
-                          f3b21=w3*h(2,1,ipiece3)
-                          f3b22=w3*h(2,2,ipiece3)
-                        endif
-c                         
-c                         do iteration, starting with coordinates and solving
-c                         for new coordinates until convergence
-c                         
-                        x1last=-100.
-                        y1last=-100.
-                        iter=1
-                        do while(iter.le.niter.and.(abs(x1-x1last)
-     &                      .gt.0.01 .or.abs(y1-y1last).gt.0.01))
-                          if(icortyp.eq.1)then
-c                             
-c                             divergent case
-c                             
-                            call dxydgrinterp(x1,y1,ind12edg,x2,y2,dden12)
-                            call dxydgrinterp(x1,y1,ind13edg,x3,y3,dden13)
-                          elseif(icortyp.eq.2)then
-c                             
-c                             convergent case
-c                             
-                            call dxydgrinterp(x1,y1,ind13edg,x3,y3,dden13)
-c                             
-                            if(iter.eq.1)then
-                              x2=x3+ixgrdstbf(ind23edg) -ixofsbf(ind23edg)
-                              y2=y3+iygrdstbf(ind23edg) -iyofsbf(ind23edg)
-                            endif
-                            call dxydgrinterp(x2,y2,ind23edg,x3t,y3t,dden23)
-                            x2=x2+x3-x3t
-                            y2=y2+y3-y3t
-                          else
-c                             
-c                             serial case
-c                             
-                            call dxydgrinterp(x1,y1,ind12edg,x2,y2 ,dden12)
-                            call dxydgrinterp(x2,y2,ind23edg,x3,y3 ,dden23)
-                          endif
-c                           
-c                           solve equations for new coordinates
-c                           
-                          x1last=x1
-                          y1last=y1
-                          dx2=x2-x1
-                          dy2=y2-y1
-                          dx3=x3-x1
-                          dy3=y3-y1
-                          if(multng)then
-                            bx=xgconst-f2b11*dx2-f2b12*dy2
-     &                          -f3b11*dx3-f3b12*dy3
-                            by=ygconst-f2b21*dx2-f2b22*dy2
-     &                          -f3b21*dx3-f3b22*dy3
-                            x1=(bx*c22-by*c12)/denom
-                            y1=(by*c11-bx*c21)/denom
-                          else
-                            x1=xgconst-w2*dx2-w3*dx3
-                            y1=ygconst-w2*dy2-w3*dy3
-                          endif
-                          x2=x1+dx2
-                          y2=y1+dy2
-                          x3=x1+dx3
-                          y3=y1+dy3
-                          iter=iter+1
-                        enddo
-c                         
-c                         take pixel from the piece with the highest weight
-c                         
-                        if(w1.eq.wmax)then
-                          call shuffler(ipiece1,indbray)
-                          pixval=oneintrp(array(indbray),nxin,nyin,
-     &                        x1,y1,ipiece1)
-                        elseif(w2.eq.wmax)then
-                          call shuffler(ipiece2,indbray)
-                          pixval=oneintrp(array(indbray),nxin,nyin,
-     &                        x2,y2,ipiece2)
-                        else
-                          call shuffler(ipiece3,indbray)
-                          pixval=oneintrp(array(indbray),nxin,nyin,
-     &                        x3,y3,ipiece3)
-                        endif
-c                         
-c                         Adjust for differences in mean density: divergent
-c                         
-                        if(icortyp.eq.1)then
-                          if(w1.eq.wmax)then
-                            pixval=pixval + w2*dden12 + w3*dden13
-                          elseif(w2.eq.wmax)then
-                            pixval=pixval+(w2-1.)*dden12+w3*dden13
-                          else
-                            pixval=pixval+w2*dden12+(w3-1.)*dden13
-                          endif
-c                           
-c                           convergent
-c                           
-                        elseif(icortyp.eq.2)then
-                          if(w1.eq.wmax)then
-                            pixval=pixval-(w1-1.)*dden13-w2*dden23
-                          elseif(w2.eq.wmax)then
-                            pixval=pixval-w1*dden13-(w2-1.)*dden23
-                          else
-                            pixval=pixval-w1*dden13 -w2*dden23
-                          endif
-c                           
-c                           serial
-c                           
-                        else
-c                           
-                          if(w1.eq.wmax)then
-                            pixval=pixval-(w1-1.)*dden12+w3*dden23
-                          elseif(w2.eq.wmax)then
-                            pixval=pixval-w1*dden12+w3*dden23
-                          else
-                            pixval=pixval-w1*dden12+(w3-1.)*dden23
-                          endif
-                        endif
-                      else
-c                         
-c                         FOUR PIECES, THREE EDGES USED FOR SOLUTION
-c                         
-c                         First, need to have only 3 active edges, so if
-c                         there are four, knock one out based on ex and ey
-c                         
-                        if(nedgesum.eq.4)then
-                          emin=min(ex,1.-ex,ey,1.-ey)
-                          if(ex.eq.emin)then
-                            active4(inde34,1)=.false.
-                          elseif(1.-ex.eq.emin)then
-                            active4(inde12,1)=.false.
-                          elseif(ey.eq.emin)then
-                            active4(inde24,2)=.false.
-                          else
-                            active4(inde13,2)=.false.
-                          endif
-                        endif
-c                         
-c                         here there is always a serial chain from ll to ur,
-c                         through either ul or lr, and in each case the
-c                         fourth piece is either divergent from the first or
-c                         converging on the fourth
-c                         
-                        w1=wll
-                        w3=wur
-                        if(.not.active4(inde12,1).or.
-     &                      .not.active4(inde24,2))then
-                          w2=wul
-                          w4=wlr
-                          jndp2=indp3
-                          jndp4=indp2
-                          ind12edg=indedge4(inde13,2)
-                          ind23edg=indedge4(inde34,1)
-                          if(.not.active4(inde24,2))then
-                            ind14edg=indedge4(inde12,1)
-                            icortyp=1		!divergent
-                          else
-                            ind43edg=indedge4(inde24,2)
-                            icortyp=2		!convergent
-                          endif
-                        else
-                          w2=wlr
-                          w4=wul
-                          jndp2=indp2
-                          jndp4=indp3
-                          ind12edg=indedge4(inde12,1)
-                          ind23edg=indedge4(inde24,2)
-                          if(.not.active4(inde34,1))then
-                            ind14edg=indedge4(inde13,2)
-                            icortyp=1
-                          else
-                            ind43edg=indedge4(inde34,1)
-                            icortyp=2
-                          endif
-                        endif
-c                         
-                        ipiece1=inpiece(indp1)
-                        ipiece2=inpiece(jndp2)
-                        ipiece3=inpiece(indp4)
-                        ipiece4=inpiece(jndp4)
-                        x1=xinpiece(indp1)
-                        y1=yinpiece(indp1)
-                        wmax=max(w1,w2,w3,w4)
-c                         
-c                         set up to solve equations for new (x1,y1), (x2,y2)
-c                         (x3,y3), and (x4,y4) given the differences between
-c                         them and the desired weighted coordinate (xg,yg)
-c                         
-                        xgconst=xg-w1*ixpclist(ipiece1)-w2*ixpclist(ipiece2)
-     &                      -w3*ixpclist(ipiece3)-w4*ixpclist(ipiece4)
-                        ygconst=yg-w1*iypclist(ipiece1)-w2*iypclist(ipiece2)
-     &                      -w3*iypclist(ipiece3)-w4*iypclist(ipiece4)
-                        if(multng)then
-                          xgconst=xgconst-w1*h(1,3,ipiece1)-w2*h(1,3,ipiece2)
-     &                        -w3*h(1,3,ipiece3)-w4*h(1,3,ipiece4)
-                          ygconst=ygconst-w1*h(2,3,ipiece1)-w2*h(2,3,ipiece2)
-     &                        -w3*h(2,3,ipiece3)-w4*h(2,3,ipiece4)
-                          c11=w1*h(1,1,ipiece1)+w2*h(1,1,ipiece2)
-     &                        +w3*h(1,1,ipiece3)+w4*h(1,1,ipiece4)
-                          c12=w1*h(1,2,ipiece1)+w2*h(1,2,ipiece2)
-     &                        +w3*h(1,2,ipiece3)+w4*h(1,2,ipiece4)
-                          c21=w1*h(2,1,ipiece1)+w2*h(2,1,ipiece2)
-     &                        +w3*h(2,1,ipiece3)+w4*h(2,1,ipiece4)
-                          c22=w1*h(2,2,ipiece1)+w2*h(2,2,ipiece2)
-     &                        +w3*h(2,2,ipiece3)+w4*h(2,2,ipiece4)
-                          denom=c11*c22-c12*c21
-                          f2b11=w2*h(1,1,ipiece2)
-                          f2b12=w2*h(1,2,ipiece2)
-                          f2b21=w2*h(2,1,ipiece2)
-                          f2b22=w2*h(2,2,ipiece2)
-                          f3b11=w3*h(1,1,ipiece3)
-                          f3b12=w3*h(1,2,ipiece3)
-                          f3b21=w3*h(2,1,ipiece3)
-                          f3b22=w3*h(2,2,ipiece3)
-                          f4b11=w4*h(1,1,ipiece4)
-                          f4b12=w4*h(1,2,ipiece4)
-                          f4b21=w4*h(2,1,ipiece4)
-                          f4b22=w4*h(2,2,ipiece4)
-                        endif
-c                         
-c                         do iteration, starting with coordinates and solving
-c                         for new coordinates until convergence
-c                         
-                        x1last=-100.
-                        y1last=-100.
-                        iter=1
-                        do while(iter.le.niter.and.(abs(x1-x1last)
-     &                      .gt.0.01 .or.abs(y1-y1last).gt.0.01))
-                          call dxydgrinterp(x1,y1,ind12edg,x2,y2 ,dden12)
-                          call dxydgrinterp(x2,y2,ind23edg,x3,y3 ,dden23)
-                          if(icortyp.eq.1)then
-c                             
-c                             divergent case
-c                             
-                            call dxydgrinterp(x1,y1,ind14edg,x4,y4 ,dden14)
-                          else
-c                             
-c                             convergent case
-c                             
-                            if(iter.eq.1)then
-                              x4=x3+ixgrdstbf(ind43edg) -ixofsbf(ind43edg)
-                              y4=y3+iygrdstbf(ind43edg) -iyofsbf(ind43edg)
-                            endif
-                            call dxydgrinterp(x4,y4,ind43edg,x3t,y3t ,dden43)
-                            x4=x4+x3-x3t
-                            y4=y4+y3-y3t
-                          endif
-c                           
-c                           solve equations for new coordinates
-c                           
-                          x1last=x1
-                          y1last=y1
-                          dx2=x2-x1
-                          dy2=y2-y1
-                          dx3=x3-x1
-                          dy3=y3-y1
-                          dx4=x4-x1
-                          dy4=y4-y1
-                          if(multng)then
-                            bx=xgconst-f2b11*dx2-f2b12*dy2
-     &                          -f3b11*dx3-f3b12*dy3-f4b11*dx4-f4b12*dy4
-                            by=ygconst-f2b21*dx2-f2b22*dy2
-     &                          -f3b21*dx3-f3b22*dy3-f4b21*dx4-f4b22*dy4
-                            x1=(bx*c22-by*c12)/denom
-                            y1=(by*c11-bx*c21)/denom
-                          else
-                            x1=xgconst-w2*dx2-w3*dx3-w4*dx4
-                            y1=ygconst-w2*dy2-w3*dy3-w4*dy4
-                          endif
-                          x2=x1+dx2
-                          y2=y1+dy2
-                          x3=x1+dx3
-                          y3=y1+dy3
-                          x4=x1+dx4
-                          y4=y1+dy4
-                          iter=iter+1
-                        enddo
-c                         
-c                         take pixel from the piece with the highest weight
-c                         and adjust density appropriately for case
-c                         
-                        if(w1.eq.wmax)then
-                          call shuffler(ipiece1,indbray)
-                          pixval=oneintrp(array(indbray),nxin,nyin,
-     &                        x1,y1,ipiece1)
-                          if(icortyp.eq.1)then
-                            pixval=pixval+(w2+w3)*dden12+w3*dden23+w4*dden14
-                          else
-                            pixval=pixval+(1.-w1)*dden12+(w3+w4)*dden23
-     &                          -w4*dden43
-                          endif
-                        elseif(w2.eq.wmax)then
-                          call shuffler(ipiece2,indbray)
-                          pixval=oneintrp(array(indbray),nxin,nyin,
-     &                        x2,y2,ipiece2)
-                          if(icortyp.eq.1)then
-                            pixval=pixval+(w2+w3-1.)*dden12+w3*dden23+
-     &                          w4*dden14
-                          else
-                            pixval=pixval-w1*dden12+(w3+w4)*dden23-w4*dden43
-                          endif
-                        elseif(w3.eq.wmax)then
-                          call shuffler(ipiece3,indbray)
-                          pixval=oneintrp(array(indbray),nxin,nyin,
-     &                        x3,y3,ipiece3)
-                          if(icortyp.eq.1)then
-                            pixval=pixval+(w2+w3-1.)*dden12+(w3-1.)*dden23+
-     &                          w4*dden14
-                          else
-                            pixval=pixval-w1*dden12+(w3+w4-1.)*dden23
-     &                          -w4*dden43
-                          endif
-                        else
-                          call shuffler(ipiece4,indbray)
-                          pixval=oneintrp(array(indbray),nxin,nyin,
-     &                        x4,y4,ipiece4)
-                          if(icortyp.eq.1)then
-                            pixval=pixval+(w2+w3)*dden12+w3*dden23
-     &                          +(w4-1.)*dden14
-                          else
-                            pixval=pixval-w1*dden12+(w3+w4-1.)*dden23
-     &                          -(w4-1.)*dden43
-                          endif
-                        endif
-                      endif
+
+                      call getPixelFromPieces()
 c                       
 c                       stick limited pixval into array and mark as output
 c                       
@@ -2668,12 +1827,13 @@ c
                     enddo
                     linebase=linebase+nxout
                   enddo
+                  slowcum = slowcum + walltime() - wallstart
                 endif
               enddo
 c               
 c               if any pixels have been present in this frame, write line out
 c               
-              if (modeParallel .ne. -2) numOut = nzbin
+              if (modeParallel .ne. -2 .or. yChunks) numOut = nzbin
               if(anypixels)then
                 do i=1,nxout*nlinesout
                   brray(i+iBufferBase)=pixscale*brray(i+iBufferBase)+pixadd
@@ -2685,7 +1845,7 @@ c                 Get new number of lines left in buffer; if at top of
 c                 frame, increment lines to write if there are any lines left
 c                 
                 ilineout=((iyfast-1)*ifastsiz - iyOffset) / iBinning
-                call imposn(2,numOut,ilineout)
+                call parWrtPosn(2,numOut,ilineout + iyOutOffset)
                 ilineout = linesBuffered + nLinesOut
                 nyWrite = (ilineOut - lineOffset) / iBinning
                 linesBuffered = mod(ilineout - lineOffset, iBinning)
@@ -2714,12 +1874,10 @@ c                 fill the lower part of frame with mean values
 c                 
                 if(.not.anylinesout.and.iyfast.gt.1)then
                   val=dmean*pixscale+pixadd
-                  do i=1,nxout*ifastsiz
-                    brray(i)=val
-                  enddo
-                  call imposn(2,numOut,0)
-                  do ifill=1,iyfast-1
-                    call iwrsecl(2,brray,ifastsiz)
+                  brray(1:nxout)=val
+                  call parWrtPosn(2,numOut,iyOutOffset)
+                  do ifill=1,(iyfast-1) * ifastsiz
+                    call parWrtLin(2,brray)
                   enddo
                   tsum=tsum+val*nxout*(iyfast-1)*ifastsiz
                 endif
@@ -2737,50 +1895,47 @@ c
               if (outputpl) write(3,'(2i6,i4)')newpcxll,newpcyll,izsect
             endif
 c             
-          enddo
-        enddo
-92    enddo
+          enddo                                 ! Loop on frames - short dim
+        enddo                                   ! Loop on frames - long dim
+      enddo                                     ! Loop on sections
 c       
       close(3)
+c      write(*,'(a,2f12.6)')'fast box and single pixel times:',fastcum,slowcum
+      if (ifEdgeFuncOnly .eq. 0) then
 c       
-c       If direct parallel, output stats
-      pixelTot = (float(nxbin) * nybin) * nzbin
-      tmean = grandsum / pixelTot
-      if (modeParallel .eq. -2) then
-        write(*,'(a,3g15.7,f15.0)')'Min, max, mean, # pixels=',dminout,dmaxout,
-     &      tmean, pixelTot
-      else
-c       
-c         otherwise finalize the header
-c         
-        call ialsiz(2,nxyzbin,nxyzst)
-        call ialsam(2,nxyzbin)
-        cell(3)=nzbin*delta(3)
-        call ialcel(2,cell)
-        call iwrhdr(2,title,-1,dminout,dmaxout, tmean)
+c         If direct parallel, output stats
+        pixelTot = (float(nxbin) * nlinesWrite) * nzbin
+        tmean = grandsum / pixelTot
+        if (modeParallel .eq. -2) then
+          write(*,'(a,3g15.7,f15.0)')'Min, max, mean, # pixels=',dminout,
+     &        dmaxout, tmean, pixelTot
+        else 
+c           
+c           otherwise finalize the header
+c           
+          call ialsiz(2,nxyzbin,nxyzst)
+          call ialsam(2,nxyzbin)
+          cell(3)=nzbin*delta(3)
+          call ialcel(2,cell)
+          call iwrhdr(2,title,-1,dminout,dmaxout, tmean)
+        endif
+        call imclose(2)
       endif
-      call imclose(2)
       if (undistortOnly) call exit(0)
 c       
 c       write edge correlations 
 c       
-      if(xcWriteOut) then
-        edgenam=concat(rootname,xcorrext)
-        call dopen(4,edgenam,'new','f')
-        write(4,'(2i7)')nedge(1),nedge(2)
-        write(4,'(f9.3,f10.3)')((edgedispx(i,ixy),edgedispy(i,ixy),
-     &      i=1,nedge(ixy)),ixy=1,2)
-        close(4)
-      endif
+      if(xcWriteOut) call writeEdgeCorrelations()
 c       
 c       rewrite header for new edge functions so that they have later date
 c       than the edge correlations; close files
 c       
-      do ixy = 1,2
+      do ixy = ixyFuncStart, ixyFuncEnd
         if (ifoldedge .eq. 0) write(iunedge(ixy),rec=1)nedge(ixy),
      &      nxgrid(ixy),nygrid(ixy) ,intgrid(ixy),intgrid(3-ixy)
         close(iunedge(ixy))
-
+      enddo
+      do ixy = 1, 2
         if (ifDumpXY(ixy) .gt. 0) then
           call iwrhdr(2+ixy,title,-1,0.,255.,128.)
           call imclose(2+ixy)
@@ -2788,11 +1943,1416 @@ c
       enddo
 c       
       call exit(0)
-98    call exitError ('READING TRANSFORMS')
+
+      CONTAINS
+
+c       Write the full edge correlation file, or the X or Y component only
+c
+      subroutine writeEdgeCorrelations()
+      edgenam=concat(rootname,xcorrext(mod(ifEdgeFuncOnly,3)))
+      call dopen(4,edgenam,'new','f')
+      if (ixyFuncStart .eq. 1) write(4,'(2i7)')nedge(1),nedge(2)
+      do ixy = ixyFuncStart, ixyFuncEnd
+        if (numSkip .eq. 0) then
+          write(4,'(f9.3,f10.3)')(edgedispx(i,ixy),edgedispy(i,ixy),
+     &        i=1,nedge(ixy))
+        else
+          write(4,'(f9.3,f10.3,i4)')(edgedispx(i,ixy),edgedispy(i,ixy),
+     &        ifskipEdge(i, ixy), i=1,nedge(ixy))
+        endif
+      enddo
+      close(4)
+      return 
+      end subroutine writeEdgeCorrelations
+
+
+c       GETS EDGE FUNCTIONS FOR A SECTION IF THEY HAVEN'T BEEN DONE YET
+c
+      subroutine findSectionEdgeFunctions()
+c       
+c       Check if any edges are to be substituted on this section
+c       Do so if any use values are different from original and none are 0
+      useEdges = .false.
+      if (numUseEdge .gt. 0 .or. izUseDefLow .ge. 0) then
+        numZero = 0
+        do ixy = 1,2
+          do iedge=1,nedge(ixy)
+            if(izsect.eq. izpclist(ipiecelower(iedge,ixy))) then
+              call findEdgeToUse(iedge, ixy, jedge)
+              if (jedge .eq. 0) numZero = numZero + 1
+              if (jedge .ne. iedge) useEdges = .true.
+            endif
+          enddo
+        enddo
+        if (numZero .gt. 0) useEdges = .false.
+c         print *,'numzero, useedges',numZero,useEdges
+      endif
+c       
+c       loop on short then long direction
+c       
+      do iedgedir=1,2
+        call  crossvalue(xinlong,iedgedir,3-iedgedir,ixy,iyx)
+        if (iyx .eq. ifEdgeFuncOnly) cycle
+c         
+c         loop on all edges of that type with pieces in section that are
+c         not done yet
+c         
+        do iedge=1,nedge(ixy)
+          if(izsect.eq. izpclist(ipiecelower(iedge,ixy))) then
+            jedge = iedge
+            if (useEdges) call findEdgeToUse(iedge, ixy, jedge)
+c             print *,'checking edge',ixy, jedge,' for edge',ixy, iedge
+            if (.not.edgedone(jedge,ixy)) then
+c               
+c               do cross-correlation if the sloppy flag is set and either
+c               we are shifting each piece or the pieces are't on same neg
+c               
+c               print *,'Doing edge ', ixy, jedge
+              docross=ifsloppy.ne.0.and.(shifteach.or.(
+     &            anyneg.and.neglist(ipiecelower(jedge,ixy))
+     &            .ne.neglist(ipieceupper(jedge,ixy))))
+              call doedge(jedge,ixy,edgedone,sdcrit,devcrit,
+     &            nfit, norder, nskip, docross, xcreadin, xclegacy,
+     &            edgedispx, edgedispy, limedge)
+c               
+c               after each one, check memory list to see if there's any
+c               pieces with undone lower edge in orthogonal direction
+c               
+              if (.not.useEdges .and. ixy .ne. ifEdgeFuncOnly) then
+                do imem=1,maxload
+                  ipc=izmemlist(imem)
+                  if(ipc.gt.0)then
+                    jedge=iedgelower(ipc,iyx)
+                    if(jedge.gt.0)then
+                      if(.not.edgedone(jedge,iyx))then
+c                         print *,'Doing edge ', iyx, jedge
+                        docross=ifsloppy.ne.0.and.(shifteach.or.(
+     &                      anyneg.and.neglist(ipiecelower(jedge,iyx))
+     &                      .ne.neglist(ipieceupper(jedge,iyx))))
+                        call doedge(jedge,iyx,edgedone,sdcrit, devcrit,
+     &                      nfit, norder, nskip, docross, xcreadin,
+     &                      xclegacy, edgedispx, edgedispy, limedge)
+                      endif
+                    endif
+                  endif
+                enddo
+              endif
+            endif
+          endif
+        enddo
+      enddo
+      return
+      end subroutine findSectionEdgeFunctions
+
+
+c       FINDS H TRANSFORMS IF MULTIPLE NEGATIVES (UNTESTED!)
+c
+      subroutine findMultinegTransforms()
+      real*4 sind,cosd
+c       
+c       first make index of negatives and find coordinates of each
+c       
+      numneg=0
+      do i=1,limneg
+        maxnegx(i)=-1000000
+        minnegx(i)=1000000
+        maxnegy(i)=-1000000
+        minnegy(i)=1000000
+      enddo
+      do ipc=1,npclist
+        if(izpclist(ipc).eq.izsect)then
+          iwhich=0
+          do i=1,numneg
+            if(neglist(ipc).eq.negind(i))iwhich=i
+          enddo
+          if(iwhich.eq.0)then
+            numneg=numneg+1
+            negind(numneg)=neglist(ipc)
+            iwhich=numneg
+          endif
+c           point max coordinate 1 past end: it'll be easier
+          minnegx(iwhich)=min(minnegx(iwhich),ixpclist(ipc))
+          maxnegx(iwhich)=max(maxnegx(iwhich),ixpclist(ipc)+nxin)
+          minnegy(iwhich)=min(minnegy(iwhich),iypclist(ipc))
+          maxnegy(iwhich)=max(maxnegy(iwhich),iypclist(ipc)+nyin)
+        endif
+      enddo
+c       
+c       look at all edges, make tables of joints between negs
+c       
+      do ixy=1,2
+        njoint(ixy)=0
+        do i=1,numneg
+          jointupper(i,ixy)=0
+          jointlower(i,ixy)=0
+        enddo
+c         
+        do iedge=1,nedge(ixy)
+          neglo=neglist(ipiecelower(iedge,ixy))
+          negup=neglist(ipieceupper(iedge,ixy))
+          if(izpclist(ipiecelower(iedge,ixy)).eq.izsect.and.
+     &        neglo.ne.negup)then
+c             convert neg #'s to neg indexes
+            do i=1,numneg
+              if(negind(i).eq.neglo)indlo=i
+              if(negind(i).eq.negup)indup=i
+            enddo
+c             see if joint already on list
+            joint=0
+            do j=1,njoint(ixy)
+              if(neglower(j,ixy).eq.indlo.and.
+     &            negupper(j,ixy).eq.indup) joint=j
+            enddo
+c             if not, add to list
+            if(joint.eq.0)then
+              njoint(ixy)=njoint(ixy)+1
+              joint=njoint(ixy)
+              neglower(joint,ixy)=indlo
+              negupper(joint,ixy)=indup
+c               point the negatives to the joint
+              jointlower(indlo,ixy)=joint
+              jointupper(indup,ixy)=joint
+              nedonjoint(joint)=0
+            endif
+c             add edge to list of ones on that joint
+            nedonjoint(joint)=nedonjoint(joint)+1
+            listonjoint(nedonjoint(joint),joint)=iedge
+          endif
+        enddo
+c         
+c         now process all edges on each joint to get a rotrans
+c         
+        do joint=1,njoint(ixy)
+          do ied=1,nedonjoint(joint)
+            iedge=listonjoint(ied,joint)
+            call readEdgeFunc(iedge, ixy, ied)
+
+            ipclo=ipiecelower(iedge,ixy)
+            ixpclo(ied)=ixgrdstbf(ied) +ixpclist(ipclo)
+            iypclo(ied)=iygrdstbf(ied) +iypclist(ipclo)
+            ipcup=ipieceupper(iedge,ixy)
+            ixpcup(ied)=ixofsbf(ied) +ixpclist(ipcup)
+            iypcup(ied)=iyofsbf(ied) +iypclist(ipcup)
+          enddo
+          call joint_to_rotrans(dxgrbf,dygrbf,ixgdim,iygdim,
+     &        nxgrbf,nygrbf,intgrid(ixy),intgrid(3-ixy)
+     &        ,ixpclo,iypclo,ixpcup,iypcup,nedonjoint(joint)
+     &        ,r(1,joint,ixy))
+          write(*,'(1x,a,2i4,a,f6.2,a,2f6.1)')
+     &        char(ixy+ichar('W'))//' joint, negatives'
+     &        ,neglist(ipclo),neglist(ipcup),'   theta ='
+     &        ,r(1,joint,ixy),'   dx, dy ='
+     &        ,r(2,joint,ixy),r(3,joint,ixy)
+        enddo
+      enddo
+c       
+c       Resolve the edges into rotrans centered on each negative
+c       Initially set the rotrans for each negative to null
+c       
+      maxswing=0
+      do i=1,numneg
+        hcum(1,i)=0.
+        hcum(2,i)=0.
+        hcum(3,i)=0.
+        hcum(4,i)=0.5*(maxnegx(i)+minnegx(i))
+        hcum(5,i)=0.5*(maxnegy(i)+minnegy(i))
+        maxswing=max(maxswing,(maxnegx(i)-minnegx(i))/2,
+     &      (maxnegy(i)-minnegy(i))/2)
+      enddo
+c       
+c       start loop - who knows how long this will take
+c       
+      ishift=1
+      erradj=1.e10
+      nshiftneg=100
+      errlim=0.1*numneg
+      do while(ishift.le.nshiftneg.and.erradj.gt.errlim)
+c         
+c         set sum of adjustment h's to null
+c         
+        erradj=0.
+        do i=1,numneg
+          call lincom_rotrans(hcum(1,i),0.,hcum(1,i),0.,hadj(1,i))
+          nhadjsum(i)=0
+        enddo
+c         
+c         loop on joints, adding up net adjustments still needed
+c         
+        do ixy=1,2
+          do joint=1,njoint(ixy)
+c             
+c             get net rotrans still needed at this joint: subtract upper
+c             h and add lower h to joint rotrans
+c             
+            negup=negupper(joint,ixy)
+            neglo=neglower(joint,ixy)
+            call lincom_rotrans(hcum(1,negup),-1.,r(1,joint,ixy),-1.,
+     &          rnet)
+            call lincom_rotrans(hcum(1,neglo),1.,rnet,1.,rnet)
+c             
+c             now add half of the net needed to the upper adjustment
+c             subtract half from the lower adjustment
+c             
+            call lincom_rotrans(rnet,0.5,hadj(1,negup),1.
+     &          ,hadj(1,negup))
+            nhadjsum(negup)=nhadjsum(negup)+1
+            call lincom_rotrans(rnet,-0.5,hadj(1,neglo),1.
+     &          ,hadj(1,neglo))
+            nhadjsum(neglo)=nhadjsum(neglo)+1
+          enddo
+        enddo
+c         
+c         get the average adjustment, adjust hcum with it
+c         
+        dxsum=0.
+        dysum=0.
+        do i=1,numneg
+          erradj=erradj+(abs(hadj(2,i))+abs(hadj(3,i))+
+     &        abs(hadj(1,i))*maxswing)/nhadjsum(i)
+          call lincom_rotrans(hadj(1,i),1./nhadjsum(i),hcum(1,i),1.
+     &        ,hcum(1,i))
+          dxsum=dxsum+hcum(2,i)
+          dysum=dysum+hcum(3,i)
+        enddo
+c         
+      enddo                                     !end of cycle
+c       
+c       shift all dx and dy to have a mean of zero
+c       
+      do i=1,numneg
+        hcum(1,i)=hcum(1,i)-dxsum/numneg
+        hcum(2,i)=hcum(2,i)-dysum/numneg
+      enddo
+c       
+c       compute the h function (and hinv) centered on corner of frame
+c       
+      do ipc=1,npclist
+        if(izpclist(ipc).eq.izsect)then
+          do i=1,numneg
+            if(negind(i).eq. neglist(ipc))then
+              call recen_rotrans(hcum(1,i),float(ixpclist(ipc))
+     &            ,float(iypclist(ipc)),hfram)
+              h(1,1,ipc)=cosd(hfram(1))
+              h(2,1,ipc)=sind(hfram(1))
+              h(1,2,ipc)=-h(2,1,ipc)
+              h(2,2,ipc)=h(1,1,ipc)
+              h(1,3,ipc)=hfram(2)
+              h(2,3,ipc)=hfram(3)
+              call xfinvert(h(1,1,ipc),hinv(1,1,ipc))
+            endif
+          enddo
+        endif
+      enddo
+      return
+      end subroutine findMultinegTransforms
+
+
+c       FIND THE SHIFTS OF EACH PIECE THAT BEST ALIGN THE PIECES
+c
+      subroutine getBestPieceShifts()
+c       
+c       Set the multineg flag to indicate that there are h transforms
+      multng=.true.
+      do ixy=1,2
+        do iedge=1,nedge(ixy)
+          if(izpclist(ipiecelower(iedge,ixy)).eq.izsect)then
+c             
+c             need displacements implied by edges, unless this is to be
+c             done by old cross-correlation only
+c             
+            if(.not.xclegacy)then
+              call edgeswap(iedge,ixy,inde)
+c               
+c               compute the mean current displacement of upper relative
+c               to lower implied by the d[xy]mean
+c               
+              sumx=0.
+              sumy=0.
+              do ix=1,nxgrbf(inde)
+                do iy=1,nygrbf(inde)
+                  sumx=sumx+dxgrbf(ix,iy,inde)
+                  sumy=sumy+dygrbf(ix,iy,inde)
+                enddo
+              enddo  
+              dxgridmean(iedge,ixy)=sumx / (nxgrbf(inde)*nygrbf(inde))
+              dygridmean(iedge,ixy)=sumy / (nxgrbf(inde)*nygrbf(inde))
+c               
+c               adjust these by the current displacements implied by
+c               starting and offset coordinates of the edge areas
+c               
+              if(ixy.eq.1)then
+                dxgridmean(iedge,ixy)=dxgridmean(iedge,ixy)+
+     &              ixofsbf(inde)-ixgrdstbf(inde)+nxin-nxoverlap
+                dygridmean(iedge,ixy)=dygridmean(iedge,ixy)+
+     &              iyofsbf(inde)-iygrdstbf(inde)
+              else
+                dxgridmean(iedge,ixy)=dxgridmean(iedge,ixy)+
+     &              ixofsbf(inde)-ixgrdstbf(inde)
+                dygridmean(iedge,ixy)=dygridmean(iedge,ixy)+
+     &              iyofsbf(inde)-iygrdstbf(inde)+nyin-nyoverlap
+              endif
+c               
+c               But if this edge is skipped for edge functions and included
+c               for finding shifts, substitute the (read-in) correlation shift
+              if (ifskipEdge(iedge,ixy) .eq. 1) then
+                dxgridmean(iedge, ixy) = -edgedispx(iedge, ixy)
+                dygridmean(iedge, ixy) = -edgedispy(iedge, ixy)
+              endif
+            endif
+c             
+            if(.not.fromedge.and..not.xcreadin.and.
+     &          .not.(ifsloppy.eq.1.and.ifoldedge.eq.0))then
+c               
+c               If the edges of the image are lousy, it's better to use
+c               correlation, so here is this option.  Compute the
+c               correlations unless doing this by edges only,
+c               if they aren't already available
+c               
+              if (ifskipEdge(iedge,ixy) .gt. 0) then
+                xdisp = 0.
+                ydisp = 0.
+              else
+                call shuffler(ipiecelower(iedge,ixy),indlo)
+                call shuffler(ipieceupper(iedge,ixy),indup)
+                
+                call getExtraIndents(ipiecelower(iedge,ixy), 
+     &              ipieceupper(iedge,ixy), ixy, delIndent)
+                indentXC = 0
+                if (delIndent(ixy) .gt. 0. .and. ifillTreatment .eq. 1)
+     &              indentXC = int(delIndent(ixy)) + 1
+                call xcorredge(array(indlo),array(indup),
+     &              ixy,xdisp,ydisp,xclegacy,indentXC)
+              endif
+              edgedispx(iedge,ixy)=xdisp
+              edgedispy(iedge,ixy)=ydisp
+            endif
+c             write(*,'(1x,a,2i4,a,2f8.2,a,2f8.2)')
+c             &		      char(ixy+ichar('W'))//' edge, pieces'
+c             &		      ,ipiecelower(iedge,ixy),ipieceupper(iedge,ixy),
+c             &		      '  dxygridmean:',dxgridmean(iedge,ixy),
+c             &		      dygridmean(iedge,ixy),'  xcorr:',-xdisp,-ydisp
+c             dxgridmean(iedge,ixy)=-xdisp
+c             dygridmean(iedge,ixy)=-ydisp
+c             endif
+          endif
+        enddo
+      enddo
+c       
+c       If there is only one piece in one direction, then do it from
+c       correlation only unless directed to use the edge, because the error
+c       is zero in either case and it is impossible to tell which is better
+      fromCorrOnly = xclegacy .or.
+     &    (.not.fromedge .and. (nxpieces .eq. 1 .or. nypieces .eq. 1))
+c       
+      if (.not. fromedge) then
+        call find_best_shifts(edgedispx, edgedispy,limedge,-1, izsect,h,
+     &      nbestedge,beforemean,beforemax, aftermean(1), aftermax(1))
+        indbest=1
+      endif
+      if (.not. fromCorrOnly) then
+        call find_best_shifts(dxgridmean, dygridmean,limedge,1, izsect,h,
+     &      nbestedge,beforemean,beforemax, aftermean(2), aftermax(2))
+        indbest=2
+      endif
+c       
+c       if first one was better based upon mean, redo it and reset the
+c       index to 1
+c       
+      if(.not.(fromCorrOnly.or.fromedge) .and.
+     &    (aftermean(1).lt.aftermean(2))) then
+        call find_best_shifts(edgedispx, edgedispy,limedge,-1, izsect,h,
+     &      nbestedge,beforemean,beforemax, aftermean(1), aftermax(1))
+        indbest=1
+      endif
+      write(*,'(i5,a,2f7.1,a,a,2f7.2)')nbestedge,
+     &    ' edges, mean&max error before:', beforemean,beforemax,
+     &    ', after by ', edgexcorrtext(indbest),
+     &    aftermean(indbest),aftermax(indbest)
+      if (testMode)then
+        write(*,'(a,i4,a,2f8.3,a,2f9.4)')' section:',
+     &      izsect,'  gradient:',dmagPerUm(min(ilistz, numMagGrad)),
+     &      rotPerUm(min(ilistz, numMagGrad)),
+     &      '  mean, max error:', aftermean(indbest),aftermax(indbest)
+        if (indbest .eq. 1) then
+          call findBestGradient(edgedispx,edgedispy,limedge,-1,izsect,
+     &        dmagnew,rotnew)
+        else
+          call findBestGradient(dxgridmean,dygridmean,limedge,1,izsect,
+     &        dmagnew,rotnew)
+        endif
+        write(*,'(a,2f9.4)')' Total gradient implied by displacements:',
+     &      dmagPerUm(min(ilistz, numMagGrad))+dmagnew,
+     &      rotPerUm(min(ilistz, numMagGrad))+rotnew
+      endif
+      return
+      end subroutine getBestPieceShifts
+
+
+c       LOADS THE EDGES AND COMPUTES EDGE FRACTIONS FOR A PIXEL
+c
+      subroutine computeEdgeFractions()
+      nedgesum=0
+      do ixy=1,2
+        do ied=1,numedges(ixy)
+          iedge=inedge(ied,ixy)
+          call edgeswap(iedge,ixy,indedg)
+          indlower=inedlower(ied,ixy)
+          indedge4(ied,ixy)=indedg
+          if (edgesSeparated) then
+            if(ixy.eq.1) then
+              edgefrac4(ied,ixy)=0.5+(xinpiece(indlower)-
+     &            (ixgrdstbf(indedg)+ (nxgrbf(indedg)-1) *intgrid(1)/2.)) /
+     &            min(nxgrbf(indedg)*intgrid(1),iblend(1))
+            else
+              edgefrac4(ied,ixy)=0.5+(yinpiece(indlower)
+     &            -(iygrdstbf(indedg)+(nygrbf(indedg)-1) *intgrid(1)/2.))/
+     &            min(nygrbf(indedg)*intgrid(1),iblend(2))
+            endif
+          else
+            if(ixy.eq.1) then
+              bwof=max(0,nxgrbf(indedg)*intgrid(1)-iblend(1))/2
+              edstart = max(0.55 * nxin, ixgrdstbf(indedg) -intgrid(1)/2.+bwof)
+              edend = min(0.45 * nxin, ixofsbf(indedg)+ (nxgrbf(indedg)-0.5)*
+     &            intgrid(1)-bwof) + ixgrdstbf(indedg) - ixofsbf(indedg)
+              bwof=(xinpiece(indlower)-edstart)/(edend-edstart)
+            else
+              bwof=max(0,nygrbf(indedg)*intgrid(1)-iblend(2))/2
+              edstart = max(0.55 * nyin, iygrdstbf(indedg) -intgrid(1)/2.+bwof)
+              edend = min(0.45 * nyin, iyofsbf(indedg)+ (nygrbf(indedg)-0.5)*
+     &            intgrid(1)-bwof) + iygrdstbf(indedg) - iyofsbf(indedg)
+              bwof=(yinpiece(indlower)-edstart)/(edend-edstart)
+            endif
+c            if (debug)print *,ied,ixy,edgefrac4(ied,ixy),bwof
+            edgefrac4(ied,ixy)=bwof
+          endif
+          active4(ied,ixy)=edgefrac4(ied,ixy).lt..999
+     &        .and.edgefrac4(ied,ixy).gt..001
+          if(active4(ied,ixy)) nedgesum=nedgesum+1
+          if(edgefrac4(ied,ixy).lt.0.)edgefrac4(ied,ixy)=0.
+          if(edgefrac4(ied,ixy).gt.1.)edgefrac4(ied,ixy)=1.
+c          if (debug) print *,ied,ixy,edgefrac4(ied,ixy),active4(ied,ixy)
+        enddo
+      enddo
+      return
+      end subroutine computeEdgeFractions
+
+
+
+c       SORT OUT THE CASES OF 1, 2, 3 or 4 PIECES AND COMPUTE PIXEL
+c
+      subroutine getPixelFromPieces()
+      real*4 oneintrp
+c       
+      if(nactivep.le.1)then                     !ONE PIECE
+        if(wll.gt.0.)then
+          indpidef=indp1
+        elseif(wlr.gt.0.)then
+          indpidef=indp2
+        elseif(wul.gt.0.)then
+          indpidef=indp3
+        else
+          indpidef=indp4
+        endif
+        if(nactivep.eq.0)indpidef=1
+c         
+        call shuffler(inpiece(indpidef),indbray)
+        pixval=oneintrp(array(indbray),nxin,nyin, xinpiece(indpidef),
+     &      yinpiece(indpidef), inpiece(indpidef))
+c         
+c         ONE EDGE, TWO PIECES
+c         
+      elseif(nactivep.eq.2)then
+c         
+c         find the pieces around the edge, set edge index
+c         
+        if(wll.gt.0..and.wlr.gt.0.)then
+          indpl=indp1
+          indpu=indp2
+          w1=wll
+          indedg=indedge4(inde12,1)
+        elseif(wul.gt.0..and.wur.gt.0.)then
+          indpl=indp3
+          indpu=indp4
+          w1=wul
+          indedg=indedge4(inde34,1)
+        elseif(wll.gt.0..and.wul.gt.0.)then
+          indpl=indp1
+          indpu=indp3
+          w1=wll
+          indedg=indedge4(inde13,2)
+        else
+          indpl=indp2
+          indpu=indp4
+          w1=wlr
+          indedg=indedge4(inde24,2)
+        endif
+c         
+c         set up pieces #'s, and starting coords
+c         
+        ipiece1=inpiece(indpl)
+        ipiece2=inpiece(indpu)
+        x1=xinpiece(indpl)
+        y1=yinpiece(indpl)
+        w2=1.-w1
+c         
+c         set up to solve equation for (x1,y1) and (x2,y2)
+c         given their difference and the desired xg,yg
+c         
+        xgconst=xg-w1*ixpclist(ipiece1) - w2*ixpclist(ipiece2)
+        ygconst=yg-w1*iypclist(ipiece1) - w2*iypclist(ipiece2)
+        if(multng)then
+          xgconst=xgconst-w1*h(1,3,ipiece1) - w2*h(1,3,ipiece2)
+          ygconst=ygconst-w1*h(2,3,ipiece1) - w2*h(2,3,ipiece2)
+          c11=w1*h(1,1,ipiece1) + w2*h(1,1,ipiece2)
+          c12=w1*h(1,2,ipiece1) + w2*h(1,2,ipiece2)
+          c21=w1*h(2,1,ipiece1) + w2*h(2,1,ipiece2)
+          c22=w1*h(2,2,ipiece1) + w2*h(2,2,ipiece2)
+          denom=c11*c22-c12*c21
+          fb11=w2*h(1,1,ipiece2)
+          fb12=w2*h(1,2,ipiece2)
+          fb21=w2*h(2,1,ipiece2)
+          fb22=w2*h(2,2,ipiece2)
+        endif
+c         
+c         in this loop, use the difference between (x1,y1)
+c         and (x2,y2) at the one place to solve for values of
+c         those coords; iterate until stabilize
+c         
+        x1last=-100.
+        y1last=-100.
+        iter=1
+        do while (iter.le.niter .and. (abs(x1-x1last) .gt. 0.01
+     &      .or. abs(y1-y1last) .gt. 0.01))
+          call dxydgrinterp(x1,y1,indedg,x2,y2,dden)
+          x1last=x1
+          y1last=y1
+          dx2=x2-x1
+          dy2=y2-y1
+          if(multng)then
+            bx=xgconst-fb11*dx2-fb12*dy2
+            by=ygconst-fb21*dx2-fb22*dy2
+            x1=(bx*c22-by*c12)/denom
+            y1=(by*c11-bx*c21)/denom
+          else
+            x1=xgconst-w2*dx2
+            y1=ygconst-w2*dy2
+          endif
+          x2=x1+dx2
+          y2=y1+dy2
+          iter=iter+1
+        enddo
+c         
+c         get the pixel from the piece with the bigger weight
+c         and adjust density by the difference across edge
+c         Except average them within 4 pixels of center!
+c         
+        if(abs(w1-w2)*max(iblend(1),iblend(2)).lt.2.5)then
+          call shuffler(ipiece1,indbray1)
+          call shuffler(ipiece2,indbray2)
+          pixval=w1*oneintrp(array(indbray1),nxin, nyin, x1,y1,ipiece1) +
+     &        w2*oneintrp(array(indbray2),nxin, nyin, x2,y2,ipiece2)
+        elseif(w1.gt.w2)then
+          call shuffler(ipiece1,indbray)
+          pixval=oneintrp(array(indbray),nxin,nyin, x1,y1,ipiece1) + w2*dden
+        else
+          call shuffler(ipiece2,indbray)
+          pixval=oneintrp(array(indbray),nxin,nyin, x2,y2,ipiece2) - w1*dden
+        endif
+c         
+c         THREE PIECES AND TWO EDGES
+c         
+      elseif(nactivep.eq.3)then
+c         
+c         now decide between the three cases of divergent, serial, or
+c         convergent functions, and assign pieces and weights accordingly
+c         
+c         DIVERGENT: if lower piece is same for x and y edge
+c         
+        if(wur.le.0.)then
+          w1=wll
+          w2=wlr
+          w3=wul
+          jndp1=indp1
+          jndp2=indp2
+          jndp3=indp3
+          ind12edg=indedge4(inde12,1)
+          ind13edg=indedge4(inde13,2)
+          icortyp=1
+c           
+c           CONVERGENT: if upper piece same for x and y edge
+c           
+        elseif(wll.le.0.)then
+          w3=wur
+          w1=wul
+          w2=wlr
+          jndp1=indp3
+          jndp2=indp2
+          jndp3=indp4
+          ind13edg=indedge4(inde34,1)
+          ind23edg=indedge4(inde24,2)
+          icortyp=2
+c           
+c           SERIAL: lower of one is the upper of the other
+c           
+        else
+          w1=wll
+          w3=wur
+          jndp1=indp1
+          jndp3=indp4
+          if(wlr.le.0.)then
+            w2=wul
+            jndp2=indp3
+            ind12edg=indedge4(inde13,2)
+            ind23edg=indedge4(inde34,1)
+          else
+            w2=wlr
+            jndp2=indp2
+            ind12edg=indedge4(inde12,1)
+            ind23edg=indedge4(inde24,2)
+          endif
+          icortyp=3
+        endif
+        
+        ipiece1=inpiece(jndp1)
+        ipiece2=inpiece(jndp2)
+        ipiece3=inpiece(jndp3)
+        x1=xinpiece(jndp1)
+        y1=yinpiece(jndp1)
+        wmax=max(w1,w2,w3)
+c         
+c         set up to solve equations for new (x1,y1), (x2,y2)
+c         and (x3,y3) given the differences between them and
+c         the desired weighted coordinate (xg,yg)
+c         
+        xgconst=xg-w1*ixpclist(ipiece1)-
+     &      w2*ixpclist(ipiece2)-w3*ixpclist(ipiece3)
+        ygconst=yg-w1*iypclist(ipiece1)-
+     &      w2*iypclist(ipiece2)-w3*iypclist(ipiece3)
+        if(multng)then
+          xgconst=xgconst-w1*h(1,3,ipiece1)-w2*h(1,3,ipiece2)-w3*h(1,3,ipiece3)
+          ygconst=ygconst-w1*h(2,3,ipiece1)-w2*h(2,3,ipiece2)-w3*h(2,3,ipiece3)
+          c11=w1*h(1,1,ipiece1)+w2* h(1,1,ipiece2)+w3*h(1,1,ipiece3)
+          c12=w1*h(1,2,ipiece1)+w2* h(1,2,ipiece2)+w3*h(1,2,ipiece3)
+          c21=w1*h(2,1,ipiece1)+w2* h(2,1,ipiece2)+w3*h(2,1,ipiece3)
+          c22=w1*h(2,2,ipiece1)+w2* h(2,2,ipiece2)+w3*h(2,2,ipiece3)
+          denom=c11*c22-c12*c21
+          f2b11=w2*h(1,1,ipiece2)
+          f2b12=w2*h(1,2,ipiece2)
+          f2b21=w2*h(2,1,ipiece2)
+          f2b22=w2*h(2,2,ipiece2)
+          f3b11=w3*h(1,1,ipiece3)
+          f3b12=w3*h(1,2,ipiece3)
+          f3b21=w3*h(2,1,ipiece3)
+          f3b22=w3*h(2,2,ipiece3)
+        endif
+c         
+c         do iteration, starting with coordinates and solving
+c         for new coordinates until convergence
+c         
+        x1last=-100.
+        y1last=-100.
+        iter=1
+        do while(iter.le.niter.and.(abs(x1-x1last) .gt.0.01
+     &      .or.abs(y1-y1last).gt.0.01))
+          if(icortyp.eq.1)then
+c             
+c             divergent case
+c             
+            call dxydgrinterp(x1,y1,ind12edg,x2,y2,dden12)
+            call dxydgrinterp(x1,y1,ind13edg,x3,y3,dden13)
+          elseif(icortyp.eq.2)then
+c             
+c             convergent case
+c             
+            call dxydgrinterp(x1,y1,ind13edg,x3,y3,dden13)
+c             
+            if(iter.eq.1)then
+              x2=x3+ixgrdstbf(ind23edg) -ixofsbf(ind23edg)
+              y2=y3+iygrdstbf(ind23edg) -iyofsbf(ind23edg)
+            endif
+            call dxydgrinterp(x2,y2,ind23edg,x3t,y3t,dden23)
+            x2=x2+x3-x3t
+            y2=y2+y3-y3t
+          else
+c             
+c             serial case
+c             
+            call dxydgrinterp(x1,y1,ind12edg,x2,y2 ,dden12)
+            call dxydgrinterp(x2,y2,ind23edg,x3,y3 ,dden23)
+          endif
+c           
+c           solve equations for new coordinates
+c           
+          x1last=x1
+          y1last=y1
+          dx2=x2-x1
+          dy2=y2-y1
+          dx3=x3-x1
+          dy3=y3-y1
+          if(multng)then
+            bx=xgconst-f2b11*dx2-f2b12*dy2 -f3b11*dx3-f3b12*dy3
+            by=ygconst-f2b21*dx2-f2b22*dy2 -f3b21*dx3-f3b22*dy3
+            x1=(bx*c22-by*c12)/denom
+            y1=(by*c11-bx*c21)/denom
+          else
+            x1=xgconst-w2*dx2-w3*dx3
+            y1=ygconst-w2*dy2-w3*dy3
+          endif
+          x2=x1+dx2
+          y2=y1+dy2
+          x3=x1+dx3
+          y3=y1+dy3
+          iter=iter+1
+        enddo
+c         
+c         take pixel from the piece with the highest weight
+c         
+        if(w1.eq.wmax)then
+          call shuffler(ipiece1,indbray)
+          pixval=oneintrp(array(indbray),nxin,nyin, x1,y1,ipiece1)
+        elseif(w2.eq.wmax)then
+          call shuffler(ipiece2,indbray)
+          pixval=oneintrp(array(indbray),nxin,nyin, x2,y2,ipiece2)
+        else
+          call shuffler(ipiece3,indbray)
+          pixval=oneintrp(array(indbray),nxin,nyin, x3,y3,ipiece3)
+        endif
+c         
+c         Adjust for differences in mean density: divergent
+c         
+        if(icortyp.eq.1)then
+          if(w1.eq.wmax)then
+            pixval=pixval + w2*dden12 + w3*dden13
+          elseif(w2.eq.wmax)then
+            pixval=pixval+(w2-1.)*dden12+w3*dden13
+          else
+            pixval=pixval+w2*dden12+(w3-1.)*dden13
+          endif
+c           
+c           convergent
+c           
+        elseif(icortyp.eq.2)then
+          if(w1.eq.wmax)then
+            pixval=pixval-(w1-1.)*dden13-w2*dden23
+          elseif(w2.eq.wmax)then
+            pixval=pixval-w1*dden13-(w2-1.)*dden23
+          else
+            pixval=pixval-w1*dden13 -w2*dden23
+          endif
+c           
+c           serial
+c           
+        else
+c           
+          if(w1.eq.wmax)then
+            pixval=pixval-(w1-1.)*dden12+w3*dden23
+          elseif(w2.eq.wmax)then
+            pixval=pixval-w1*dden12+w3*dden23
+          else
+            pixval=pixval-w1*dden12+(w3-1.)*dden23
+          endif
+        endif
+      else
+c         
+c         FOUR PIECES, THREE EDGES USED FOR SOLUTION
+c         
+c         First, need to have only 3 active edges, so if
+c         there are four, knock one out based on ex and ey
+c         
+        if(nedgesum.eq.4)then
+          emin=min(ex,1.-ex,ey,1.-ey)
+          if(ex.eq.emin)then
+            active4(inde34,1)=.false.
+          elseif(1.-ex.eq.emin)then
+            active4(inde12,1)=.false.
+          elseif(ey.eq.emin)then
+            active4(inde24,2)=.false.
+          else
+            active4(inde13,2)=.false.
+          endif
+        endif
+c         
+c         here there is always a serial chain from ll to ur, through either ul
+c         or lr, and in each case the fourth piece is either divergent from
+c         the first or converging on the fourth
+c         
+        w1=wll
+        w3=wur
+        if(.not.active4(inde12,1).or.
+     &      .not.active4(inde24,2))then
+          w2=wul
+          w4=wlr
+          jndp2=indp3
+          jndp4=indp2
+          ind12edg=indedge4(inde13,2)
+          ind23edg=indedge4(inde34,1)
+          if(.not.active4(inde24,2))then
+            ind14edg=indedge4(inde12,1)
+            icortyp=1                           !divergent
+          else
+            ind43edg=indedge4(inde24,2)
+            icortyp=2                           !convergent
+          endif
+        else
+          w2=wlr
+          w4=wul
+          jndp2=indp2
+          jndp4=indp3
+          ind12edg=indedge4(inde12,1)
+          ind23edg=indedge4(inde24,2)
+          if(.not.active4(inde34,1))then
+            ind14edg=indedge4(inde13,2)
+            icortyp=1
+          else
+            ind43edg=indedge4(inde34,1)
+            icortyp=2
+          endif
+        endif
+c         
+        ipiece1=inpiece(indp1)
+        ipiece2=inpiece(jndp2)
+        ipiece3=inpiece(indp4)
+        ipiece4=inpiece(jndp4)
+        x1=xinpiece(indp1)
+        y1=yinpiece(indp1)
+        wmax=max(w1,w2,w3,w4)
+c         
+c         set up to solve equations for new (x1,y1), (x2,y2)
+c         (x3,y3), and (x4,y4) given the differences between
+c         them and the desired weighted coordinate (xg,yg)
+c         
+        xgconst=xg-w1*ixpclist(ipiece1)-w2*ixpclist(ipiece2)
+     &      -w3*ixpclist(ipiece3)-w4*ixpclist(ipiece4)
+        ygconst=yg-w1*iypclist(ipiece1)-w2*iypclist(ipiece2)
+     &      -w3*iypclist(ipiece3)-w4*iypclist(ipiece4)
+        if(multng)then
+          xgconst=xgconst-w1*h(1,3,ipiece1)-w2*h(1,3,ipiece2)
+     &        -w3*h(1,3,ipiece3)-w4*h(1,3,ipiece4)
+          ygconst=ygconst-w1*h(2,3,ipiece1)-w2*h(2,3,ipiece2)
+     &        -w3*h(2,3,ipiece3)-w4*h(2,3,ipiece4)
+          c11=w1*h(1,1,ipiece1)+w2*h(1,1,ipiece2)
+     &        +w3*h(1,1,ipiece3)+w4*h(1,1,ipiece4)
+          c12=w1*h(1,2,ipiece1)+w2*h(1,2,ipiece2)
+     &        +w3*h(1,2,ipiece3)+w4*h(1,2,ipiece4)
+          c21=w1*h(2,1,ipiece1)+w2*h(2,1,ipiece2)
+     &        +w3*h(2,1,ipiece3)+w4*h(2,1,ipiece4)
+          c22=w1*h(2,2,ipiece1)+w2*h(2,2,ipiece2)
+     &        +w3*h(2,2,ipiece3)+w4*h(2,2,ipiece4)
+          denom=c11*c22-c12*c21
+          f2b11=w2*h(1,1,ipiece2)
+          f2b12=w2*h(1,2,ipiece2)
+          f2b21=w2*h(2,1,ipiece2)
+          f2b22=w2*h(2,2,ipiece2)
+          f3b11=w3*h(1,1,ipiece3)
+          f3b12=w3*h(1,2,ipiece3)
+          f3b21=w3*h(2,1,ipiece3)
+          f3b22=w3*h(2,2,ipiece3)
+          f4b11=w4*h(1,1,ipiece4)
+          f4b12=w4*h(1,2,ipiece4)
+          f4b21=w4*h(2,1,ipiece4)
+          f4b22=w4*h(2,2,ipiece4)
+        endif
+c         
+c         do iteration, starting with coordinates and solving
+c         for new coordinates until convergence
+c         
+        x1last=-100.
+        y1last=-100.
+        iter=1
+        do while(iter.le.niter.and.(abs(x1-x1last) .gt.0.01
+     &      .or.abs(y1-y1last).gt.0.01))
+          call dxydgrinterp(x1,y1,ind12edg,x2,y2 ,dden12)
+          call dxydgrinterp(x2,y2,ind23edg,x3,y3 ,dden23)
+          if(icortyp.eq.1)then
+c             
+c             divergent case
+c             
+            call dxydgrinterp(x1,y1,ind14edg,x4,y4 ,dden14)
+          else
+c             
+c             convergent case
+c             
+            if(iter.eq.1)then
+              x4=x3+ixgrdstbf(ind43edg) -ixofsbf(ind43edg)
+              y4=y3+iygrdstbf(ind43edg) -iyofsbf(ind43edg)
+            endif
+            call dxydgrinterp(x4,y4,ind43edg,x3t,y3t ,dden43)
+            x4=x4+x3-x3t
+            y4=y4+y3-y3t
+          endif
+c           
+c           solve equations for new coordinates
+c           
+          x1last=x1
+          y1last=y1
+          dx2=x2-x1
+          dy2=y2-y1
+          dx3=x3-x1
+          dy3=y3-y1
+          dx4=x4-x1
+          dy4=y4-y1
+          if(multng)then
+            bx=xgconst-f2b11*dx2-f2b12*dy2
+     &          -f3b11*dx3-f3b12*dy3-f4b11*dx4-f4b12*dy4
+            by=ygconst-f2b21*dx2-f2b22*dy2
+     &          -f3b21*dx3-f3b22*dy3-f4b21*dx4-f4b22*dy4
+            x1=(bx*c22-by*c12)/denom
+            y1=(by*c11-bx*c21)/denom
+          else
+            x1=xgconst-w2*dx2-w3*dx3-w4*dx4
+            y1=ygconst-w2*dy2-w3*dy3-w4*dy4
+          endif
+          x2=x1+dx2
+          y2=y1+dy2
+          x3=x1+dx3
+          y3=y1+dy3
+          x4=x1+dx4
+          y4=y1+dy4
+          iter=iter+1
+        enddo
+c         
+c         take pixel from the piece with the highest weight
+c         and adjust density appropriately for case
+c         
+        if(w1.eq.wmax)then
+          call shuffler(ipiece1,indbray)
+          pixval=oneintrp(array(indbray),nxin,nyin, x1,y1,ipiece1)
+          if(icortyp.eq.1)then
+            pixval=pixval+(w2+w3)*dden12+w3*dden23+w4*dden14
+          else
+            pixval=pixval+(1.-w1)*dden12+(w3+w4)*dden23 -w4*dden43
+          endif
+        elseif(w2.eq.wmax)then
+          call shuffler(ipiece2,indbray)
+          pixval=oneintrp(array(indbray),nxin,nyin, x2,y2,ipiece2)
+          if(icortyp.eq.1)then
+            pixval=pixval+(w2+w3-1.)*dden12+w3*dden23+ w4*dden14
+          else
+            pixval=pixval-w1*dden12+(w3+w4)*dden23-w4*dden43
+          endif
+        elseif(w3.eq.wmax)then
+          call shuffler(ipiece3,indbray)
+          pixval=oneintrp(array(indbray),nxin,nyin, x3,y3,ipiece3)
+          if(icortyp.eq.1)then
+            pixval=pixval+(w2+w3-1.)*dden12+(w3-1.)*dden23+ w4*dden14
+          else
+            pixval=pixval-w1*dden12+(w3+w4-1.)*dden23 -w4*dden43
+          endif
+        else
+          call shuffler(ipiece4,indbray)
+          pixval=oneintrp(array(indbray),nxin,nyin, x4,y4,ipiece4)
+          if(icortyp.eq.1)then
+            pixval=pixval+(w2+w3)*dden12+w3*dden23 +(w4-1.)*dden14
+          else
+            pixval=pixval-w1*dden12+(w3+w4-1.)*dden23 -(w4-1.)*dden43
+          endif
+        endif
+      endif
+      end subroutine getPixelFromPieces
+
       end
+
+c       GET INDICES OF PIECES AND EDGES AND THE WEIGHTING OF EACH PIECE
+c
+      subroutine getPieceIndicesAndWeighting()
+      use blendvars
+      implicit none
+      real*4 er3,eb3,el4,eb4,fx,fy,dr1,dt1,dl2,dt2,dr3,db3,dl4,db4,dla,dra
+      real*4 dba,dta,ax,ay,f12,f13,f34,f24,er1,et1,el2,et2
+      integer*4 ipfrom, ipxto, ipyto, ixyDisjoint, ied, ipc,i, indedg
+      real*4 bwof, edstart, edend, wsum
+
+c       for now, numbers 1 to 4 represent lower left, lower right, upper left,
+c       and upper right 
+      if(numpieces.gt.1)then
+        indp1=0                                 !index of piece 1, 2, 3, or 4
+        indp2=0                                 !if the point is in them
+        indp3=0
+        indp4=0
+        inde12=0                                !index of edges between 1 and 2
+        inde13=0                                !1 and 3, etc
+        inde34=0
+        inde24=0
+        f12=0.                                  !edge fractions between 1 and 2
+        f13=0.                                  !1 and 3, etc
+        f34=0.
+        f24=0.
+        er1=0.                                  !end fractions to right and top
+        et1=0.                                  !of piece 1, left and bottom of
+        el2=0.                                  !piece 3, etc
+        et2=0.
+        er3=0.
+        eb3=0.
+        el4=0.
+        eb4=0.
+        fx=0.                                   !the composite edge fractions
+        fy=0.                                   !in x and y directions
+        if(numpieces.gt.2)then
+          do ipc=1,numpieces
+            i = 2 * (inpyframe(ipc) - minyframe) + 1 +
+     &          inpxframe(ipc) - minxframe
+            indp1234(i) = ipc
+          enddo
+          do ied=1,numedges(1)
+            if(inedlower(ied,1).eq.indp1)inde12=ied
+            if(inedlower(ied,1).eq.indp3)inde34=ied
+          enddo
+          do ied=1,numedges(2)
+            if(inedlower(ied,2).eq.indp1)inde13=ied
+            if(inedlower(ied,2).eq.indp2)inde24=ied
+          enddo
+c          if (debug) print *,inde12,inde34,inde13,inde24
+          if(inde12.ne.0)f12=edgefrac4(inde12,1)
+          if(inde34.ne.0)f34=edgefrac4(inde34,1)
+          if(inde13.ne.0)f13=edgefrac4(inde13,2)
+          if(inde24.ne.0)f24=edgefrac4(inde24,2)
+c          if (debug) write(*,'(a,4i6,a,4f8.4)')'piece 1234',
+c     &        inpiece(indp1),inpiece(indp2),inpiece(indp3),
+c     &        inpiece(indp4),'  edge fractions',f12,f34,f13,f24
+        else
+c           
+c           two piece case - identify as upper or lower to
+c           simplify computation of end fractions
+c           
+          if(numedges(1).gt.0)then
+            fx=edgefrac4(1,1)
+            if(0.5*(yinpiece(1)+yinpiece(2)).gt.nyin/2)then
+              inde12=1
+              if(xinpiece(1).gt.xinpiece(2))then
+                indp1=1
+                indp2=2
+              else
+                indp1=2
+                indp2=1
+              endif
+            else
+              inde34=1
+              fy=1.
+              if(xinpiece(1).gt.xinpiece(2))then
+                indp3=1
+                indp4=2
+              else
+                indp3=2
+                indp4=1
+              endif
+            endif
+          else
+            fy=edgefrac4(1,2)
+            if(0.5*(xinpiece(1)+xinpiece(2)).gt.nxin/2)then
+              inde13=1
+              if(yinpiece(1).gt.yinpiece(2))then
+                indp1=1
+                indp3=2
+              else
+                indp1=2
+                indp3=1
+              endif
+            else
+              inde24=1
+              fx=1.
+              if(yinpiece(1).gt.yinpiece(2))then
+                indp2=1
+                indp4=2
+              else
+                indp2=2
+                indp4=1
+              endif
+            endif
+          endif
+        endif
+c         
+c         get distance to top, right, bottom, or left edges
+c         as needed for each piece, and compute end fractions
+c         
+        if(indp1.gt.0)then
+          dr1=nxin-1.-xinpiece(indp1)
+          dt1=nyin-1.-yinpiece(indp1)
+          er1=(dr1+1.)/iblend(1)
+          et1=dt1/iblend(2)
+        endif			
+        if(indp2.gt.0)then
+          dl2=xinpiece(indp2)
+          dt2=nyin-1.-yinpiece(indp2)
+          el2=(dl2+1.)/iblend(1)
+          et2=(dt2+1.)/iblend(2)
+        endif			
+        if(indp3.gt.0)then
+          dr3=nxin-1.-xinpiece(indp3)
+          db3=yinpiece(indp3)
+          er3=(dr3+1.)/iblend(1)
+          eb3=(db3+1.)/iblend(2)
+        endif			
+        if(indp4.gt.0)then
+          dl4=xinpiece(indp4)
+          db4=yinpiece(indp4)
+          el4=(dl4+1.)/iblend(1)
+          eb4=(db4+1.)/iblend(2)
+        endif
+c         
+c         If 3 pieces, check for a disjoint edge: use previous state if pieces
+c         match the last time
+        if (numPieces .eq. 3 .and. anyDisjoint(minxframe, minyframe)) then
+          if (inpiece(indp1) .eq. lastp1 .and. inpiece(indp2) .eq.lastp2 .and.
+     &        inpiece(indp3) .eq. lastp3 .and. inpiece(indp4) .eq. lastp4) then
+            ixyDisjoint = lastxyDisjoint
+          else
+c             
+c             if pieces have changed, analyze edge starts and ends.
+c             First find the missing edges and set some indexes
+            ixyDisjoint = 0
+            if (indp1 .eq. 0) then
+              inedge(2,1) = iedgelower(inpiece(indp2), 1)
+              inedge(2,2) = iedgelower(inpiece(indp3), 2)
+              ipfrom = indp4
+              ipxto = indp2
+              ipyto = indp3
+            else if (indp2 .eq. 0) then
+              inedge(2,1) = iedgeupper(inpiece(indp1), 1)
+              inedge(2,2) = iedgelower(inpiece(indp4), 2)
+              ipfrom = indp3
+              ipxto = indp1
+              ipyto = indp4
+            else if (indp3 .eq. 0) then
+              inedge(2,1) = iedgelower(inpiece(indp4), 1)
+              inedge(2,2) = iedgeupper(inpiece(indp1), 2)
+              ipfrom = indp2
+              ipxto = indp4
+              ipyto = indp1
+            else if (indp4 .eq. 0) then
+              inedge(2,1) = iedgeupper(inpiece(indp3), 1)
+              inedge(2,2) = iedgeupper(inpiece(indp2), 2)
+              ipfrom = indp1
+              ipxto = indp3
+              ipyto = indp2
+            endif
+c             
+c             Analyze X edge first then Y edge - don't worry if both are bad
+            if (inedge(2,1) .gt. 0 .and. inedge(2,2) .gt. 0) then
+c               
+c               Get start of already included X edge and translate it into
+c               piece on missing X edge, and get end of the missing X edge
+c               in that piece.  If end is before start, it is disjoint
+              if (indp1 .eq. 0 .or. indp3 .eq. 0) then
+                indedg = indedge4(1,1)
+                bwof=max(0,nxgrbf(indedg)*intgrid(1)-iblend(1))/2
+                edstart = ixofsbf(indedg) - intgrid(1)/2. + bwof +
+     &              xinpiece(ipxto) - xinpiece(ipfrom)
+                call edgeswap(inedge(2,1),1,indedg)
+                bwof=max(0,nxgrbf(indedg)*intgrid(1)-iblend(1))/2
+                edend = ixofsbf(indedg) + (nxgrbf(indedg)-0.5)*intgrid(1)-bwof
+                if (edend .le. edstart) ixyDisjoint = 1
+              else
+c                 
+c                 Other two cases, compare end of existing to start of missing
+                indedg = indedge4(1,1)
+                bwof=max(0,nxgrbf(indedg)*intgrid(1)-iblend(1))/2
+                edend = ixgrdstbf(indedg) +(nxgrbf(indedg)-0.5)*intgrid(1) -
+     &              bwof +  xinpiece(ipxto) - xinpiece(ipfrom)
+                call edgeswap(inedge(2,1),1,indedg)
+                bwof=max(0,nxgrbf(indedg)*intgrid(1)-iblend(1))/2
+                edstart = ixgrdstbf(indedg) - intgrid(1)/2. + bwof
+                if (edend .le. edstart) ixyDisjoint = 1
+              endif
+c               
+c               Similarly two cases for Y
+              if (indp1 .eq. 0 .or. indp2 .eq. 0) then
+                indedg = indedge4(1,2)
+                bwof=max(0,nygrbf(indedg)*intgrid(1)-iblend(2))/2
+                edstart = iyofsbf(indedg) - intgrid(1)/2. + bwof +
+     &              yinpiece(ipyto) - yinpiece(ipfrom)
+                call edgeswap(inedge(2,2),2,indedg)
+                bwof=max(0,nygrbf(indedg)*intgrid(1)-iblend(2))/2
+                edend = iyofsbf(indedg) + (nygrbf(indedg)-0.5)*intgrid(1)-bwof
+                if (edend .le. edstart) ixyDisjoint = 2
+              else
+                indedg = indedge4(1,2)
+                bwof=max(0,nygrbf(indedg)*intgrid(1)-iblend(2))/2
+                edend = iygrdstbf(indedg) +(nygrbf(indedg)-0.5)*intgrid(1) -
+     &              bwof +  yinpiece(ipyto) - yinpiece(ipfrom)
+                call edgeswap(inedge(2,2),2,indedg)
+                bwof=max(0,nygrbf(indedg)*intgrid(1)-iblend(2))/2
+                edstart = iygrdstbf(indedg) - intgrid(1)/2. + bwof
+                if (edend .le. edstart) ixyDisjoint = 2
+              endif
+c               
+c               If one was found, compute the start and end for the half of
+c               the edge to be used on the other axis
+              if (ixyDisjoint .eq. 1) then
+                indedg = indedge4(1,2)
+                bwof=max(0,nygrbf(indedg)*intgrid(1)-iblend(2))/2
+                if (indp1 .eq. 0 .or. indp2 .eq. 0) then
+                  startSkew = iyofsbf(indedg) +(nygrbf(indedg)-1)*intgrid(1)/2.
+                  endSkew = iyofsbf(indedg) + (nygrbf(indedg)-0.5)*intgrid(1)-
+     &                bwof
+                else
+                  startSkew = iygrdstbf(indedg) - intgrid(1)/2. + bwof
+                  endSkew = iygrdstbf(indedg) +(nygrbf(indedg)-1)*intgrid(1)/2.
+                endif
+              else if (ixyDisjoint .eq. 2) then
+                indedg = indedge4(1,1)
+                bwof=max(0,nxgrbf(indedg)*intgrid(1)-iblend(1))/2
+                if (indp1 .eq. 0 .or. indp3 .eq. 0) then
+                  startSkew = ixofsbf(indedg) +(nxgrbf(indedg)-1)*intgrid(1)/2.
+                  endSkew = ixofsbf(indedg) + (nxgrbf(indedg)-0.5)*intgrid(1)
+     &                -bwof
+                else
+                  startSkew = ixgrdstbf(indedg) - intgrid(1)/2. + bwof
+                  endSkew = ixgrdstbf(indedg) +(nxgrbf(indedg)-1)*intgrid(1)/2.
+                endif
+              endif
+            endif
+c             
+c             Save for future use
+            lastp1 = inpiece(indp1)
+            lastp2 = inpiece(indp2)
+            lastp3 = inpiece(indp3)
+            lastp4 = inpiece(indp4)
+            lastxyDisjoint = ixyDisjoint
+          endif
+c           
+c           Now if there is disjoint edge, modify edge and end fractions to
+c           start at the midpoint of the piece
+          if (ixyDisjoint .eq. 1) then
+            if (indp1 .eq. 0) then
+              edgefrac4(1,2) = max(0., min(1., (yinpiece(indp4)-
+     &            startSkew) / (endSkew-startSkew)))
+              db4 = max(0., yinpiece(indp4) - startSkew)
+              eb4 = (db4 + 1.) / iblend(2)
+c              if (debug) write(*,'(a,3f8.1,a,f8.4,f8.1,f8.4)')'s&e skew, y',
+c     &            startSkew,endSkew,yinpiece(indp4),
+c     &            ' mod ef, db4, eb4',edgefrac4(1,2),db4,eb4
+            else if (indp2 .eq. 0) then
+              edgefrac4(1,2) = max(0., min(1., (yinpiece(indp3)-
+     &            startSkew) / (endSkew-startSkew)))
+              db3 = max(0., yinpiece(indp3) - startSkew)
+              eb3 = (db3 + 1.) / iblend(2)
+            else if (indp3 .eq. 0) then
+              edgefrac4(1,2) = max(0., min(1., (yinpiece(indp3)-
+     &            startSkew) / (endSkew-startSkew)))
+              dt2 = max(0., endSkew - yinpiece(indp2))
+              et2 = (dt2 + 1.) / iblend(2)
+            else
+              edgefrac4(1,2) = max(0., min(1., (yinpiece(indp1)-
+     &            startSkew) / (endSkew-startSkew)))
+              dt1 = max(0., endSkew - yinpiece(indp1))
+              et1 = (dt1 + 1.) / iblend(2)
+            endif
+          else if (ixyDisjoint .eq. 2) then
+            if (indp1 .eq. 0) then
+              edgefrac4(1,1) = max(0., min(1., (xinpiece(indp4)-
+     &            startSkew) / (endSkew-startSkew)))
+              dl4 = max(0., xinpiece(indp4) - startSkew)
+              el4 = (dl4 + 1.) / iblend(1)
+              if (indp2 .eq. 0) then
+                edgefrac4(1,1) = max(0., min(1., (xinpiece(indp3)-
+     &              startSkew) / (endSkew-startSkew)))
+                dr3 = max(0., endSkew - xinpiece(indp3))
+                er3 = (dr3 + 1.) / iblend(1)
+              else if (indp3 .eq. 0) then
+                edgefrac4(1,1) = max(0., min(1., (xinpiece(indp2)-
+     &              startSkew) / (endSkew-startSkew)))
+                dl2 = max(0., xinpiece(indp4) - startSkew)
+                el2 = (dl2 + 1.) / iblend(1)
+              else
+                edgefrac4(1,1) = max(0., min(1., (xinpiece(indp1)-
+     &              startSkew) / (endSkew-startSkew)))
+                dr1 = max(0., endSkew - xinpiece(indp1))
+                er1 = (dr3 + 1.) / iblend(1)
+              endif
+            endif
+          endif
+        endif
+c         
+c         If there are 4 pieces, fx and fy are weighted sum of the f's in the
+c         two overlapping edges.  The weights ex and ey are modified
+c         fractional distances across the overlap zone.  First get the
+c         distances to the borders of the overlap zone (dla, etc) and
+c         use them to get absolute fractional distances across zone, ax in the
+c         y direction and ay in the x direction.  They are used to make ex
+c         slide from being a distance across the lower overlap to being
+c         a distance across the upper overlap.  This gives continuity with the
+c         edge in 2 or 3-piece cases
+c         
+        if(numpieces.eq.4) then
+          dla=min(dl2,dl4)
+          dra=min(dr1,dr3)
+          dba=min(db3,db4)
+          dta=min(dt1,dt2)
+          ax=dba/(dta+dba)
+          ay=dla/(dra+dla)
+          ex=((1-ay)*db3+ay*db4)/ ((1-ay)*(dt1+db3)+ay*(dt2+db4))
+          ey=((1-ax)*dl2+ax*dl4)/ ((1-ax)*(dr1+dl2)+ax*(dr3+dl4))
+          fx=(1-ex)*f12+ex*f34
+          fy=(1-ey)*f13+ey*f24
+        elseif(numpieces.eq.3)then
+c           
+c           Three-piece case is simple, only two edges
+c           
+          fx=edgefrac4(1,1)
+          fy=edgefrac4(1,2)
+        endif
+c         
+c         weighting factors are a product of the two f's,
+c         attenuated if necessary by fractional distance to
+c         end of piece, then normalized to sum to 1.
+c         
+        wll=min(1-fx,et1)*min(1-fy,er1)
+        wlr=min(fx,et2)*min(1-fy,el2)
+        wul=min(1-fx,eb3)*min(fy,er3)
+        wur=min(fx,eb4)*min(fy,el4)
+        wsum=wll+wlr+wul+wur
+        if(wsum.gt.0.)then
+          wll=wll/wsum
+          wlr=wlr/wsum
+          wul=wul/wsum
+          wur=wur/wsum
+        endif
+c         
+c         count up active pieces implied by the w's
+c         
+        nactivep=0
+        if(wll.gt.0.)nactivep=nactivep+1
+        if(wlr.gt.0.)nactivep=nactivep+1
+        if(wul.gt.0.)nactivep=nactivep+1
+        if(wur.gt.0.)nactivep=nactivep+1
+c         
+c         filter out cross-corner 2-piece cases, pick the
+c         piece where the point is most interior
+c         
+        if(nactivep.eq.2.and.wll*wur.gt.0.)then
+          if(min(dt1,dr1).lt.min(db4,dl4))then
+            wll=0.
+          else
+            wur=0.
+          endif
+          nactivep=1
+        elseif(nactivep.eq.2.and.wul*wlr.gt.0.)then
+          if(min(dt2,dl2).lt.min(db3,dr3))then
+            wlr=0.
+          else
+            wul=0.
+          endif
+          nactivep=1
+        endif			    
+      else
+c         
+c         the one-piece case, avoid all that computation
+c         
+        nactivep=1
+        indp1=1
+        wll=1.
+      endif
+c      if (debug)write(*,'(a,i3,a,4f8.4)')'Active',nactivep,'  weights',wll,wlr,wul,wur
+      return
+      end subroutine getPieceIndicesAndWeighting
+
+
 
 c       
 c       $Log$
+c       Revision 3.42  2010/04/29 23:22:47  mast
+c       Remove debug output
+c
 c       Revision 3.41  2010/04/19 03:13:23  mast
 c       Switch to module, fixed allocation of big arrays in common
 c
