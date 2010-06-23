@@ -74,7 +74,8 @@ c       7/7/00 CER: remove the encode's; titlech is the temp space
 c       
       character*80 titlech
 c       
-      integer*4 listz(limsect),izwant(limsect)
+      integer*4, allocatable :: listz(:),izwant(:)
+      integer*4, allocatable :: ixpctmp(:), iypctmp(:), izpctmp(:)
       character dat*9, tim*8
       real*4 title(20),delt(3)
       logical anypixels,dofast,anylinesout,xinlong
@@ -95,21 +96,19 @@ c
       integer*4 ixst,ixnd,indbase,ix,iy,nsum,ilineout,ifill
       real*4 dminout,dmaxout,grandsum,sum,val,tmpsum,tmean
       integer*4 nzwant,newxoverlap,newyoverlap,kti,izsect,iwant
-      integer*4 ixout,iyout,ixinpc,iyinpc,ifrevise
+      integer*4 ixout,iyout,ixinpc,iyinpc,ifrevise, mostNeeded
 c       
       call setExitPrefix('ERROR: REDUCEMONT -')
+      nreduce = 1
 c       
-c       Allocate arrays now
-      allocate(array(maxsiz), brray(maxbsiz),  xcray(idimc/2), xdray(idimc/2),
-     &    stat = i)
-      if (i .ne. 0) call exitError('ALLOCATING HUGE ARRAYS')
+c       Allocate temp arrays
+      allocate(ixpctmp(liminit), iypctmp(liminit), izpctmp(liminit), stat = i)
+      if (i .ne. 0) call exitError('ALLOCATING INITIAL ARRAYS')
 c
       write(*,'(1x,a,$)')'Input image file: '
       read(5,'(a)')filnam
       call imopen(1,filnam,'ro')
       call irdhdr(1,nxyzin,mxyzin,modein,dmin,dmax,dmean)
-      if (nxin * nyin .gt. maxsiz) call exitError(
-     &    'IMAGES TOO LARGE FOR ARRAYS')
 c       
       call irtdel(1,delt)
       call irtorg(1,xorig,yorig,zorig)
@@ -117,23 +116,34 @@ c
       write(*,'(1x,a,$)') 'Piece list file if image is a'//
      &    ' montage, otherwise Return: '
       read(*,'(a)')filnam
-      call read_piece_list(filnam,ixpclist,iypclist,izpclist,
-     &    npclist)
+      call read_piece_list(filnam,ixpctmp,iypctmp,izpctmp, npclist)
+      limnpc = npclist + 10
+      if (npclist.eq.0) limnpc = nzin + 10
+      allocate(ixpclist(limnpc), iypclist(limnpc), izpclist(limnpc),
+     &    memIndex(limnpc), stat = i)
+      if (i .ne. 0) call exitError('ALLOCATING ARRAYS PER PIECE')
 c       
 c       if no pieces, set up mocklist
       if(npclist.eq.0)then
         do i=1,nzin
-          ixpclist(i)=0
-          iypclist(i)=0
-          izpclist(i)=i-1
+          ixpctmp(i)=0
+          iypctmp(i)=0
+          izpctmp(i)=i-1
         enddo
         npclist=nzin
       endif
+      ixpclist(1:npclist) = ixpctmp(1:npclist)
+      iypclist(1:npclist) = iypctmp(1:npclist)
+      izpclist(1:npclist) = izpctmp(1:npclist)
 c	
-      call fill_listz(izpclist,npclist,listz,nlistz)
-      minzpc=listz(1)
-      maxzpc=listz(nlistz)
+      call fill_listz(izpclist,npclist,izpctmp,nlistz)
+      minzpc=izpctmp(1)
+      maxzpc=izpctmp(nlistz)
       nsect=maxzpc+1-minzpc
+      limsect = nsect + 10
+      allocate(listz(limsect), stat = i)
+      if (i .ne. 0) call exitError('ALLOCATING ARRAYS PER SECTION')
+      listz(1:nlistz) = izpctmp(1:nlistz) 
 c       
 c       now check lists and get basic properties of overlap etc
 c       
@@ -141,7 +151,7 @@ c
      &    nxoverlap)
       call checklist(iypclist,npclist,1,nyin,minypiece,nypieces,
      &    nyoverlap)
-      if(nxpieces.le.0. or. nypieces.le.0)stop 'PIECE LIST NOT GOOD'
+      if(nxpieces.le.0. or. nypieces.le.0)call exitError('PIECE LIST NOT GOOD')
 c       
       nxtotpix=nxpieces*(nxin-nxoverlap)+nxoverlap
       nytotpix=nypieces*(nyin-nyoverlap)+nyoverlap
@@ -149,8 +159,8 @@ c
       maxypiece=minypiece+nytotpix-1
       write(*,115)nxtotpix,'X',nxpieces,nxin,nxoverlap
       write(*,115)nytotpix,'Y',nypieces,nyin,nyoverlap
-115   format(i6,' total ',a1,' pixels in',i3,' pieces of',
-     &    i4, ' pixels, with overlap of',i4)
+115   format(i7,' total ',a1,' pixels in',i4,' pieces of',
+     &    i6, ' pixels, with overlap of',i5)
 c       
 c       
       write(*,'(1x,a,$)')'Output image file: '
@@ -200,19 +210,17 @@ c
 c       
 c       get list of sections desired, set up default as all sections
 c       
-      do i=1,nlistz
-        izwant(i)=listz(i)
-      enddo
-      nzwant=nlistz
       print *,'Enter list of sections to be included in output '//
      &    'file (ranges ok)','   or / to include all sections'
       do i=1,nlistz
-        izwant(i)=listz(i)
+        izpctmp(i)=listz(i)
       enddo
       nzwant=nlistz
-      call rdlist(5,izwant,nzwant)
-c       
-c       output size limited by line length in X
+      call rdlist(5,izpctmp,nzwant)
+      allocate(izwant(nzwant + 10), stat = i)
+      if (i .ne. 0) call exitError('ALLOCATING ARRAYS PER SECTION')
+      izwant(1:nzwant) = izpctmp(1:nzwant)
+      deallocate(ixpctmp, iypctmp, izpctmp, stat = i)
 c       
       minxoverlap=2
       minyoverlap=2
@@ -244,11 +252,7 @@ c
         minyoverlap=max(2,minyoverlap)          !nice in wimp.  After that, let
       endif					!the user have it.
       ntrial=ntrial+1
-      if(newxframe.gt. maxlinelength)then
-        print *,'too large in X for arrays'
-        go to 32
-      endif
-c       
+c
       call setoverlap(nxtotwant,minxoverlap,newxframe,2,newxpieces,
      &    newxoverlap,newxtotpix)
       call setoverlap(nytotwant,minyoverlap,newyframe,2,newypieces,
@@ -262,6 +266,11 @@ c
       read(5,*)ifrevise
       if(ifrevise.ne.0)go to 32	  
 c       
+      maxlinelength = newxframe + 32
+      maxbsiz=(ifastsiz+maxbin)*maxlinelength
+      allocate(brray(maxbsiz), mapPiece(nxpieces,nypieces), stat = i)
+      if (i .ne. 0) call exitError('ALLOCATING OUTPUT LINE ARRAY')
+c
       newminxpiece=minxwant-(newxtotpix-nxtotwant)/2
       newminypiece=minywant-(newytotpix-nytotwant)/2
       nxout=newxframe
@@ -277,8 +286,26 @@ c
 c       initialize memory allocator
 c       
       call clearShuffle()
-      npixin=nxin*nyin
-      maxload=min(maxsiz/npixin,memlim)
+c       
+c       Allocate memory as in blendmont - start with minimum size, then
+c       go to preferred memory of that is needed to get 4 pieces, then drop
+c       back to minimum pieces needed
+      npixin = nxin * int(nyin, kind = 8)
+      mostNeeded = nxpieces * nypieces
+      maxload = min(memMinimum/npixin, memlim, mostNeeded)
+      maxload = max(maxload, min(4, mostNeeded))
+      if (maxload * npixin .gt. memPreferred) maxload =min(2,mostNeeded)
+      if (maxload * npixin .gt. memMaximum) call exitError(
+     &    'IMAGES TOO LARGE FOR 32-BIT ARRAY INDEXES')
+      maxsiz = maxload * npixin
+      allocate(array(maxsiz), stat = i)
+      if (i .ne. 0 .and. maxload .gt. min(2,mostNeeded)) then
+        maxload = min(2,mostNeeded)
+        maxsiz = maxload * npixin
+        allocate(array(maxsiz), stat = i)
+      endif
+      if (i .ne. 0) call exitError('ALLOCATING MAIN IMAGE ARRAY')
+      
 c       
 c       loop on z: do everything within each section for maximum efficiency
 c       
@@ -723,6 +750,9 @@ c
       end
 
 c       $Log$
+c       Revision 3.10  2010/04/19 03:13:23  mast
+c       Switch to module, fixed allocation of big arrays in common
+c
 c       Revision 3.9  2007/04/07 21:35:49  mast
 c       Switched to exitError
 c
