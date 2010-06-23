@@ -1,0 +1,63 @@
+Version = 1.0
+Pip = 1
+
+[Field = n]
+short =
+type = I
+usage = Expected number of machines or processors (default 4) 
+tooltip =
+manpage = Expected number of machines or processors.  The default is 4. 
+The number of chunks will be 4 times the number of processors, unless specified
+with "-t".
+
+[Field = t]
+short =
+type = I
+usage = Target number of chunks (default is 4 times number of processors)
+tooltip =
+manpage = The desired number of chunks to set up.  The actual number will be
+limited by the number of sections when chunks are in Z.
+
+[Field = y]
+short =
+type = B
+usage = Do chunks in Y instead of in Z  
+tooltip =
+manpage = Do chunks in Y instead of in Z.  Chunks in Y are chosen
+automatically if there is only one section in Z.
+
+[Field = e]
+short =
+type = B
+usage = Do edge functions only, without blending images 
+tooltip =
+manpage = Compute edge functions without blending images.  This option is not
+allowed if the command file specifies to use old edge functions, unless you
+enter the "-r" option too.
+
+[Field = u]
+short =
+type = B
+usage = Use old edge functions and displacements; just blend images 
+tooltip =
+manpage = Just blend images using existing edge functions and displacements,
+regardless of the values of the corresponding options in the command file.
+
+[Field = r]
+short =
+type = B
+usage = Recompute edge functions but use existing displacements 
+tooltip =
+manpage = Recompute edge functions using existing displacements between
+pieces, regardless of the values of the corresponding options in the command
+file.
+
+[Field = b]
+short =
+type = I
+usage = Number of boundary pixels between chunks (default 2048) 
+tooltip =
+manpage = Set the number of boundary pixels saved in separate files to the
+given value.  The boundary pixels are rewritten to the output file after all
+chunks are done. 
+

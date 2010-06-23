@@ -1,0 +1,71 @@
+.na
+.nh
+.TH splitblend 1 4.2.3 BL3DEMC
+.SH NAME
+splitblend \- Produce command files for running blendmont in parallel
+.SH SYNOPSIS
+splitblend [options] <Blendmont command file>
+.SH DESCRIPTION
+Splitblend is a Python script that takes a command file for running
+Blendmont(1) and produces files that can be run in parallel with
+Processchunks(1).  Blendmont(1) performs two distinct operations.  First, it
+finds the displacement between adjacent pieces and the detailed mappings
+between pieces in their overlap zones; the latter are referred to as edge
+functions.  Second, it uses this information to make the blended images.  The
+first operation can only be divided into two parts, one for all of the edges
+between pieces in the X direction, the other for edges in Y.  The second
+operation can be divided into many more chunks, where each chunk is either a
+set of sections in Z or a set of lines in Y.  The latter is useful when
+blending a single large image.  Which operations Blendmont(1) does is
+ordinarily controlled by two parameters, OldEdgeFunctions and ReadInXcorrs.
+There are three common situations:
+.br
+1) Doing all operations on an initial run of Blendmont:
+    OldEdgeFunctions  0
+    ReadInXcorrs      0
+.br
+2) Computing new edge functions after fixing displacements in Midas(1):
+    OldEdgeFunctions  0
+    ReadInXcorrs      1
+.br
+3) Just blending images with the existing displacements and edge functions:
+    OldEdgeFunctions  1
+    ReadInXcorrs      1
+.P
+If you enter no options to indicate otherwise, Splitblend will set up command
+files to blend images after doing the operations determined by the values of
+these options in the command file.  However, you can override what is in the
+file with the "-r" option to tell it to compute new edge functions with 
+existing displacements, and with the "-u" option to tell it just to blend
+images using existing displacements and edge functions.  You can also use the
+"-e" option to compute edge functions only, without blending images.
+.P
+The
+command file can contain commands before and after the Blendmont(1) run, but
+should not contain more than one run of Blendmont.
+.P
+When X and Y edge functions are computed in parallel, a sync command file is
+used to combine the edge correlation displacements from the X and Y edges
+into one ".ecd" file.
+.P
+Blending can be dominated by file input/output, particularly if overlap zones
+are small and there are no distortion corrections.  If disk access is slow,
+there may be little value in running Blendmont(1) in parallel in such cases.
+.SS Options
+Splitblend uses the PIP package for input (see the manual page
+for pip(1)).  Options can be specified either as command line
+arguments (with the -) or one per line in a command file
+(without the -):
+INSERT OPTION TEXT HERE
+.TP
+.B -StandardInput
+Read parameter entries from standard input
+
+.SH AUTHOR
+David Mastronarde  
+
+.SH SEE ALSO
+blendmont(1), processchunks(1), midas(1)
+
+.SH BUGS
+Email bug reports to mast@colorado.edu.
