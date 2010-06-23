@@ -65,6 +65,7 @@ set qtassist_dir    = qtassist
 set sourcedoc_dir   = sourcedoc
 set ctfplot_dir     = ctfplotter
 set ctfplot_flibs   = ""
+set prochunk_dir    = processchunks
 set plugsrc_dir     = plugs
 set libdiaqt_dir    = libdiaqt
 set etomo_dir       = Etomo
@@ -76,6 +77,7 @@ set sendevent_qconf = sendevent/qconfigure
 set qtassist_qconf  = qtassist/qconfigure
 set sourcedoc_qconf = sourcedoc/qconfigure
 set ctfplot_qconf   = ctfplotter/qconfigure
+set prochunk_qconf  = processchunks/qconfigure
 set sourcedoc_exe   = sourcedoc
 set qtdel1          = ""
 set fort_cpplibs    =
@@ -331,11 +333,12 @@ end
 # the ones that can be treated the same for runscripts, etc, then midas, then
 # oddballs
 #
-set qdir = ($sendevent_dir $qtassist_dir $ctfplot_dir $midas_dir $imod_dir \
-  $sourcedoc_dir)
-set qprog = (imodsendevent imodqtassist ctfplotter midas imod sourcedoc)
-set qconf = ($sendevent_qconf $qtassist_qconf $ctfplot_qconf $midas_qconf \
-  $imod_qconf $sourcedoc_qconf)
+set qdir = ($sendevent_dir $qtassist_dir $ctfplot_dir $prochunk_dir \
+  $midas_dir $imod_dir $sourcedoc_dir)
+set qprog = (imodsendevent imodqtassist ctfplotter processchunks midas imod \
+  sourcedoc)
+set qconf = ($sendevent_qconf $qtassist_qconf $ctfplot_qconf $prochunk_qconf \
+  $midas_qconf $imod_qconf $sourcedoc_qconf)
 
 # Manage imodhelp for the qmake without having to delete a good one
 if (! -e $imod_dir/imodhelp.h) touch $imod_dir/imodhelp.h
@@ -669,6 +672,7 @@ if ($machine != cygwin) then
     echo LIBS += -L$lib_dir -liimod -limod -lcfshr -ldiaqt $ltiff $midasGL >> $midas_qconf
     echo LIBS += -L$lib_dir -lm -llapack -lblas -liimod -lcfshr $ltiff -lifft $lapack_flibs >> $ctfplot_qconf
     echo LIBS += -L$lib_dir -lcfshr >! $qtassist_qconf
+    echo LIBS += -L$lib_dir -lcfshr >> $prochunk_qconf
     foreach i ($midas_qconf $ctfplot_qconf)
         echo INCLUDEPATH += $inc_dir >> $i
         echo MOC_DIR = tmp >> $i
@@ -678,6 +682,7 @@ if ($machine != cygwin) then
     end
     echo target.path = $inst_bin_dir >! $sendevent_qconf
     echo target.path = $inst_bin_dir >> $qtassist_qconf
+    echo target.path = $inst_bin_dir >> $prochunk_qconf
     echo -n >! $sourcedoc_qconf
 
 
@@ -729,8 +734,8 @@ if [ -e 3dmod ] ; then strip 3dmod ; fi ; \\rm -f 3dmodv imod imodv ; \
 ln -s 3dmod 3dmodv ; ln -s 3dmod imod ; ln -s 3dmodv imodv
 EOF
 
-        @ i = 0    # Loop on imodsendevent imodqtassist ctfplotter midas
-        while ($i < 4)
+        @ i = 0    # Loop on imodsendevent imodqtassist ctfplotter pchunk midas
+        while ($i < 5)
             @ i++
             cat <<EOF  >> $qconf[$i]
 INSTALLS += strip
@@ -744,7 +749,7 @@ EOF
         # For Mac, copy the run files, also strip (-x needed for 3dmod)
         #
         @ i = 0
-        while ($i < 4)  # Loop on imodsendevent imodqtassist ctfplotter midas
+        while ($i < 5)  # Loop on imodsendevent imodqtass ctfplot pchunk midas
             @ i++
             cat <<EOF  >> $qconf[$i]
 INSTALLS += $qrun[$i]
@@ -1008,6 +1013,9 @@ exit
 
 #
 #  $Log$
+#  Revision 1.63  2010/05/20 19:36:48  mast
+#  Eliminated uac_wrap option
+#
 #  Revision 1.62  2010/04/23 01:34:53  mast
 #  Add separate variable for building libtrack
 #
