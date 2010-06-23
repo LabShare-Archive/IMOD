@@ -5,6 +5,9 @@ c
 c       $Revision$
 c       
 c       $Log$
+c       Revision 3.4  2006/06/29 04:53:31  mast
+c       Set up to use small model
+c
 c       Revision 3.3  2005/04/09 14:53:55  mast
 c       Fixed a line length problem
 c       
@@ -102,8 +105,8 @@ c
 c         starting from there, load nfit nearest points
 c         
         do while((ibefo.gt.0.or.ipast.le.ninobj).and.mfit.lt.nfit)
-          ipb=object(ibase+ibefo)
-          ipp=object(ibase+ipast)
+          if (ibefo.gt.0) ipb=object(ibase+ibefo)
+          if (ipast.le.ninobj) ipp=object(ibase+ipast)
 c           
 c           take the only one that's legal
 c           

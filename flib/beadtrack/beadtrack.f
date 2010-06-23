@@ -94,7 +94,7 @@ c
       real*4 radpix,boxsum,boxmin,boxmax,refsum,refmin,refmax,corsum,cormin
       real*4 cormax,xbox,ybox,xt,yt,xtmp,ytmp,wsum,tiltcur,gmamgcur,dxcur
       integer*4 lastlist,iseq,nadded,ivseq,idir,nvlist,iview,ivuse,ib,jx
-      integer*4 ifexclude,iexcl,ivl,ntodo,nclose,neardiff,izv,nfound,ipcz
+      integer*4 ifexclude,iexcl,ivl,ntodo,nclose,neardiff,izv,ipcz
       integer*4 ix0,ix1,iy0,iy1,ic,jc,maxuse,ibox,needed,nextbox,izbox
       integer*4 ifdidalign,ivdel,ivnear,indr,ndat,navg,idif,idirw,itry
       real*4 rotcur,dycur,cosr,sinr,cost,sint,a,b,c,d,e,f,wsumsq,wstmp
@@ -1082,7 +1082,6 @@ c
               endif
               if(izv.eq.iview)then
                 iffound(iobjdo)=2
-                nfound=nfound+1
               elseif(abs(izv-iview).le.maxgap)then
                 xbox=p_coord(1,ipt)
                 ybox=p_coord(2,ipt)
@@ -1473,7 +1472,6 @@ c
 c                     mark as found, add to data matrix for alignment
 c                     
                     iffound(iobjdo)=1
-                    nfound=nfound+1
                     ndat=ndat+1
                     xr(1,ndat)=xseek(iobjdo)-xcen
                     xr(2,ndat)=yseek(iobjdo)-ycen
@@ -1803,6 +1801,9 @@ c
 c       
 c       
 c       $Log$
+c       Revision 3.34  2010/06/02 21:09:01  mast
+c       Switch to new surfaceSort function
+c
 c       Revision 3.33  2010/05/28 19:32:55  mast
 c       Enhance error message when box size too large
 c
