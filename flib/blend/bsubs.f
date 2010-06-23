@@ -22,6 +22,7 @@ c       getDataLimits
 c       IWRBINNED
 c       GETEXTRAINDENTS
 c       IBINPAK
+c       readExclusionModel
 c       DUMPEDGE
 c       
 c       $Id$
@@ -276,171 +277,171 @@ c
       use blendvars
       implicit none
       integer*4 nxd,nyd,nxc,nyc,indxlo, indxhi,indylo, indyhi
-          integer*4 newpcxll,izpc
-          real*4 drray(nxd,nyd)
-          real*4 crray(nxc,nyc)
-          real*4 amat(2,2),dx,dy,fdx,fdy,xbase,ybase
-          integer*4 indy,iyout,indx,ixout,ixp,iyp,ixpp1,ixpm1,iypp1,iypm1
-          integer*4 ixpp2,iypp2
-          real*4 pixval,xp,yp,v2,v4,v6,v8,v5,a,b,c,d,vmin,vmax
-          real*4 dxm1,dxdxm1,fx1,fx2,fx3,fx4,dym1,dydym1,v1,v3
+      integer*4 newpcxll,izpc
+      real*4 drray(nxd,nyd)
+      real*4 crray(nxc,nyc)
+      real*4 amat(2,2),dx,dy,fdx,fdy,xbase,ybase
+      integer*4 indy,iyout,indx,ixout,ixp,iyp,ixpp1,ixpm1,iypp1,iypm1
+      integer*4 ixpp2,iypp2
+      real*4 pixval,xp,yp,v2,v4,v6,v8,v5,a,b,c,d,vmin,vmax
+      real*4 dxm1,dxdxm1,fx1,fx2,fx3,fx4,dym1,dydym1,v1,v3
+c       
+      do indy=indylo,indyhi
+        iyout=indy+1-indylo
+        xbase = amat(1,2)*indy+fdx
+        ybase = amat(2,2)*indy+fdy
+        if (interpOrder .le. 1) then
 c           
-          do indy=indylo,indyhi
-            iyout=indy+1-indylo
-            xbase = amat(1,2)*indy+fdx
-            ybase = amat(2,2)*indy+fdy
-            if (interpOrder .le. 1) then
-c               
-c               Linear interpolation
-c               
-              do indx=indxlo,indxhi
-                ixout=indx+1-newpcxll
-                pixval=dmean
-                xp=amat(1,1)*indx+xbase
-                yp=amat(2,1)*indx+ybase
-                if (doFields) then
-                  call interpolateGrid(xp, yp, fieldDx(1,1,memIndex(izpc)),
-     &                fieldDy(1,1,memIndex(izpc)), lmField, nxField, nyField,
-     &                ixFieldstrt, xFieldIntrv, iyFieldStrt, yFieldIntrv, dx, dy)
-                  xp = xp + dx
-                  yp = yp + dy
-                endif
-                IXP = XP
-                IYP = YP
-                IF (IXP .ge. 1 .and. IXP .lt. NXC .and. IYP .ge. 1 .and.
-     &              IYP .lt. NYC) then
-                  DX = XP - IXP
-                  DY = YP - IYP
-                  IXPP1 = IXP + 1
-                  IYPP1 = IYP + 1
-                  pixval = (1. - dy) * ((1. - dx) * crray(ixp, iyp) +
-     &                dx * crray(ixpp1, iyp)) +
-     &                dy * ((1. - dx) * crray(ixp, iypp1) +
-     &                dx * crray(ixpp1, iypp1))
-                endif
-                drray(ixout,iyout)=pixval             
-              enddo
-c               
-            elseif (interpOrder .eq. 2) then
-c               
-c               Old quadratic interpolation
-c               
-              do indx=indxlo,indxhi
-                ixout=indx+1-newpcxll
-                pixval=dmean
-                xp=amat(1,1)*indx+xbase
-                yp=amat(2,1)*indx+ybase
-                if (doFields) then
-                  call interpolateGrid(xp, yp, fieldDx(1,1,memIndex(izpc)),
-     &                fieldDy(1,1,memIndex(izpc)), lmField, nxField, nyField,
-     &                ixFieldstrt, xFieldIntrv, iyFieldStrt, yFieldIntrv, dx, dy)
-                  xp = xp + dx
-                  yp = yp + dy
-                endif
-                ixp=nint(xp)
-                iyp=nint(yp)
-                if(ixp.lt.1.or.ixp.gt.nxc.or.iyp.lt.1.or.iyp.gt.nyc)
-     &              go to 80
-C                 
-C                 Do quadratic interpolation
-C                 
-                DX = XP - IXP
-                DY = YP - IYP
-                v5=crray(ixp,iyp)
-c                 
-c                 but if on an integer boundary already, done
-c                 
-                if(dx.eq.0.and.dy.eq.0.)then
-                  pixval=v5
-                  go to 80
-                endif
-c                 
-                IXPP1 = MIN(NXC,IXP + 1)
-                IXPM1 = MAX(1,IXP - 1)
-                IYPP1 = MIN(NYC,IYP + 1)
-                IYPM1 = MAX(1,IYP - 1)
-C                 
-C                 Set up terms for quadratic interpolation
-C                 
-                V2 = CRRAY(IXP, IYPM1)
-                V4 = CRRAY(IXPM1, IYP)
-                V6 = CRRAY(IXPP1, IYP)
-                V8 = CRRAY(IXP, IYPP1)
-c                 
-c                 find min and max of all 5 points
-c                 
-                vmax=max(v2,v4,v5,v6,v8)
-                vmin=min(v2,v4,v5,v6,v8)
-C                 
-                A = (V6 + V4)*.5 - V5
-                B = (V8 + V2)*.5 - V5
-                C = (V6 - V4)*.5
-                D = (V8 - V2)*.5
-C                 
-c                 limit the new density to between min and max of original points
-c                 
-                pixval = max(vmin,min(vmax,
-     &              A*DX*DX + B*DY*DY + C*DX + D*DY + V5))
-80              drray(ixout,iyout)=pixval
-              enddo
-            else
-c               
-c               cubic interpolation
-c               
-              do indx=indxlo,indxhi
-                ixout=indx+1-newpcxll
-                pixval=dmean
-                xp=amat(1,1)*indx+xbase
-                yp=amat(2,1)*indx+ybase
-                if (doFields) then
-                  call interpolateGrid(xp, yp, fieldDx(1,1,memIndex(izpc)),
-     &                fieldDy(1,1,memIndex(izpc)), lmField, nxField, nyField,
-     &                ixFieldstrt, xFieldIntrv, iyFieldStrt, yFieldIntrv, dx, dy)
-                  xp = xp + dx
-                  yp = yp + dy
-                endif
-                IXP = XP
-                IYP = YP
-                IF (IXP .ge. 2 .and. IXP .lt. NXC - 1 .and. IYP .ge. 2 .and.
-     &              IYP .lt. NYC - 1) then
-
-                  DX = XP - IXP
-                  DY = YP - IYP
-                  IXPP1 = IXP + 1
-                  IXPM1 = IXP - 1
-                  IYPP1 = IYP + 1
-                  IYPM1 = IYP - 1
-                  ixpp2 = ixp + 2
-                  iypp2 = iyp + 2
-                  
-                  dxm1 = dx-1.
-                  dxdxm1=dx*dxm1
-                  fx1=-dxm1*dxdxm1
-                  fx4=dx*dxdxm1
-                  fx2=1+dx**2*(dx-2.)
-                  fx3=dx*(1.-dxdxm1)
-                  
-                  dym1 = dy-1.
-                  dydym1=dy*dym1
-                  
-                  v1=fx1*crray(ixpm1,iypm1)+fx2*crray(ixp,iypm1)+
-     &                fx3*crray(ixpp1,iypm1)+fx4*crray(ixpp2,iypm1)
-                  v2=fx1*crray(ixpm1,iyp)+fx2*crray(ixp,iyp)+
-     &                fx3*crray(ixpp1,iyp)+fx4*crray(ixpp2,iyp)
-                  v3=fx1*crray(ixpm1,iypp1)+fx2*crray(ixp,iypp1)+
-     &                fx3*crray(ixpp1,iypp1)+fx4*crray(ixpp2,iypp1)
-                  v4=fx1*crray(ixpm1,iypp2)+fx2*crray(ixp,iypp2)+
-     &                fx3*crray(ixpp1,iypp2)+fx4*crray(ixpp2,iypp2)
-                  pixval=-dym1*dydym1*v1+(1.+dy**2*(dy-2.))*v2+
-     &                dy*(1.-dydym1)*v3 +dy*dydym1*v4
-c                   
-                endif
-                drray(ixout,iyout)=pixval
-              enddo
+c           Linear interpolation
+c           
+          do indx=indxlo,indxhi
+            ixout=indx+1-newpcxll
+            pixval=dmean
+            xp=amat(1,1)*indx+xbase
+            yp=amat(2,1)*indx+ybase
+            if (doFields) then
+              call interpolateGrid(xp, yp, fieldDx(1,1,memIndex(izpc)),
+     &            fieldDy(1,1,memIndex(izpc)), lmField, nxField, nyField,
+     &            ixFieldstrt, xFieldIntrv, iyFieldStrt, yFieldIntrv, dx, dy)
+              xp = xp + dx
+              yp = yp + dy
             endif
+            IXP = XP
+            IYP = YP
+            IF (IXP .ge. 1 .and. IXP .lt. NXC .and. IYP .ge. 1 .and.
+     &          IYP .lt. NYC) then
+              DX = XP - IXP
+              DY = YP - IYP
+              IXPP1 = IXP + 1
+              IYPP1 = IYP + 1
+              pixval = (1. - dy) * ((1. - dx) * crray(ixp, iyp) +
+     &            dx * crray(ixpp1, iyp)) +
+     &            dy * ((1. - dx) * crray(ixp, iypp1) +
+     &            dx * crray(ixpp1, iypp1))
+            endif
+            drray(ixout,iyout)=pixval             
           enddo
-          return
-          end
+c           
+        elseif (interpOrder .eq. 2) then
+c           
+c           Old quadratic interpolation
+c           
+          do indx=indxlo,indxhi
+            ixout=indx+1-newpcxll
+            pixval=dmean
+            xp=amat(1,1)*indx+xbase
+            yp=amat(2,1)*indx+ybase
+            if (doFields) then
+              call interpolateGrid(xp, yp, fieldDx(1,1,memIndex(izpc)),
+     &            fieldDy(1,1,memIndex(izpc)), lmField, nxField, nyField,
+     &            ixFieldstrt, xFieldIntrv, iyFieldStrt, yFieldIntrv, dx, dy)
+              xp = xp + dx
+              yp = yp + dy
+            endif
+            ixp=nint(xp)
+            iyp=nint(yp)
+            if(ixp.lt.1.or.ixp.gt.nxc.or.iyp.lt.1.or.iyp.gt.nyc)
+     &          go to 80
+C             
+C             Do quadratic interpolation
+C             
+            DX = XP - IXP
+            DY = YP - IYP
+            v5=crray(ixp,iyp)
+c             
+c             but if on an integer boundary already, done
+c             
+            if(dx.eq.0.and.dy.eq.0.)then
+              pixval=v5
+              go to 80
+            endif
+c             
+            IXPP1 = MIN(NXC,IXP + 1)
+            IXPM1 = MAX(1,IXP - 1)
+            IYPP1 = MIN(NYC,IYP + 1)
+            IYPM1 = MAX(1,IYP - 1)
+C             
+C             Set up terms for quadratic interpolation
+C             
+            V2 = CRRAY(IXP, IYPM1)
+            V4 = CRRAY(IXPM1, IYP)
+            V6 = CRRAY(IXPP1, IYP)
+            V8 = CRRAY(IXP, IYPP1)
+c             
+c             find min and max of all 5 points
+c             
+            vmax=max(v2,v4,v5,v6,v8)
+            vmin=min(v2,v4,v5,v6,v8)
+C             
+            A = (V6 + V4)*.5 - V5
+            B = (V8 + V2)*.5 - V5
+            C = (V6 - V4)*.5
+            D = (V8 - V2)*.5
+C             
+c             limit the new density to between min and max of original points
+c             
+            pixval = max(vmin,min(vmax,
+     &          A*DX*DX + B*DY*DY + C*DX + D*DY + V5))
+80          drray(ixout,iyout)=pixval
+          enddo
+        else
+c           
+c           cubic interpolation
+c           
+          do indx=indxlo,indxhi
+            ixout=indx+1-newpcxll
+            pixval=dmean
+            xp=amat(1,1)*indx+xbase
+            yp=amat(2,1)*indx+ybase
+            if (doFields) then
+              call interpolateGrid(xp, yp, fieldDx(1,1,memIndex(izpc)),
+     &            fieldDy(1,1,memIndex(izpc)), lmField, nxField, nyField,
+     &            ixFieldstrt, xFieldIntrv, iyFieldStrt, yFieldIntrv, dx, dy)
+              xp = xp + dx
+              yp = yp + dy
+            endif
+            IXP = XP
+            IYP = YP
+            IF (IXP .ge. 2 .and. IXP .lt. NXC - 1 .and. IYP .ge. 2 .and.
+     &          IYP .lt. NYC - 1) then
+
+              DX = XP - IXP
+              DY = YP - IYP
+              IXPP1 = IXP + 1
+              IXPM1 = IXP - 1
+              IYPP1 = IYP + 1
+              IYPM1 = IYP - 1
+              ixpp2 = ixp + 2
+              iypp2 = iyp + 2
+              
+              dxm1 = dx-1.
+              dxdxm1=dx*dxm1
+              fx1=-dxm1*dxdxm1
+              fx4=dx*dxdxm1
+              fx2=1+dx**2*(dx-2.)
+              fx3=dx*(1.-dxdxm1)
+              
+              dym1 = dy-1.
+              dydym1=dy*dym1
+              
+              v1=fx1*crray(ixpm1,iypm1)+fx2*crray(ixp,iypm1)+
+     &            fx3*crray(ixpp1,iypm1)+fx4*crray(ixpp2,iypm1)
+              v2=fx1*crray(ixpm1,iyp)+fx2*crray(ixp,iyp)+
+     &            fx3*crray(ixpp1,iyp)+fx4*crray(ixpp2,iyp)
+              v3=fx1*crray(ixpm1,iypp1)+fx2*crray(ixp,iypp1)+
+     &            fx3*crray(ixpp1,iypp1)+fx4*crray(ixpp2,iypp1)
+              v4=fx1*crray(ixpm1,iypp2)+fx2*crray(ixp,iypp2)+
+     &            fx3*crray(ixpp1,iypp2)+fx4*crray(ixpp2,iypp2)
+              pixval=-dym1*dydym1*v1+(1.+dy**2*(dy-2.))*v2+
+     &            dy*(1.-dydym1)*v3 +dy*dydym1*v4
+c               
+            endif
+            drray(ixout,iyout)=pixval
+          enddo
+        endif
+      enddo
+      return
+      end
 
 
 
@@ -730,6 +731,11 @@ c
           call convert_floats(ddengrbf(1,iy,indbuf),nxgr)
         enddo
       endif
+      if (ifskipEdge(iedge,ixy) .gt. 0) then
+        dxgrid(1:nxgr,1:nygr) = 0.
+        dygrid(1:nxgr,1:nygr) = 0.
+        ddengrid(1:nxgr,1:nygr) = 0.
+      endif
 c      print *,'read all of edge',ixy,iedge,ixpclist(ipiecelower(iedge,ixy)),
 c     &    iypclist(ipiecelower(iedge,ixy)),nxgr,nygr
       nxgrbf(indbuf)=nxgr
@@ -748,34 +754,33 @@ c       outward.  Edge functions are found, then smoothed using the other
 c       arguments as parameters, then written to the appropriate edge file
 c       
       subroutine doedge(iedge,ixy,edgedone,sdcrit,devcrit,nfit,
-     &    norder,nskip,docross,xcreadin,xclegacy,edgedispx,edgedispy)
+     &    norder,nskip,docross,xcreadin,xclegacy,edgedispx,edgedispy,idimedge)
 c       
       use blendvars
       implicit none
 c       real*4 array(*)
       integer*4 nfit(2),nskip(2)
       logical docross,xcreadin,xclegacy
-      integer*4 iedge,ixy,norder
+      integer*4 iedge,ixy,norder,idimedge
       real*4 sdcrit,devcrit
 c       
-      logical edgedone(limedge,2)
-      real*4 edgedispx(limedge,2),edgedispy(limedge,2)
+      logical edgedone(idimedge,2)
+      real*4 edgedispx(idimedge,2),edgedispy(idimedge,2)
 c       
       integer limpneg
       parameter (limpneg=20)
       integer*4 multcoord(limpneg),multedge(limpneg),multmp(limpneg)
      &    ,mcotmp(limpneg),igrstr(2),igrofs(2)
-      real*4 dxgrid(ixgdim,iygdim),dygrid(ixgdim,iygdim)
-      real*4 ddengrid(ixgdim,iygdim),sdgrid(ixgdim,iygdim)
 c       
       integer*4 intxgrid,intygrid,nmult,intscan,ipclo,ipcup,ipc,mltco
       integer*4 i,j,itmp,midcoord,mindiff,imult,imid,middone,indlow
       integer*4 indup,ixdisp,iydisp,ixdispmid,iydispmid,lastedge
       integer*4 lastxdisp,lastydisp,idiff,jedge,nxgr,nygr,ix,iy,indentXcorr
-      real*4 xdisp,ydisp,theta,dxedge,dyedge,dxmid,dymid,xdispl,ydispl
+      real*4 xdisp,ydisp,theta,edgedx,edgedy,dxmid,dymid,xdispl,ydispl
       real*4 costh,sinth,xrel,yrel,thetamid,delIndent(2)
       integer*4 memlow,memup,indentUse(2), limitLo, limitHi, limitLo2, limitHi2
       real*4 cosd,sind
+      real*8 wallstart, walltime
 c       
 c       make list of edges to be done
 c       
@@ -883,8 +888,13 @@ c
               indentXcorr = 0
               if (delIndent(ixy) .gt. 0. .and. ifillTreatment .eq. 1)
      &            indentXcorr = int(delIndent(ixy)) + 1
-              call xcorredge(array(indlow),array(indup),
-     &            ixy,xdisp,ydisp,xclegacy,indentXcorr)
+              if (ifskipEdge(jedge,ixy) .gt. 0) then
+                xdisp = 0.
+                ydisp = 0.
+              else
+                call xcorredge(array(indlow),array(indup),
+     &              ixy,xdisp,ydisp,xclegacy,indentXcorr)
+              endif
               edgedispx(jedge,ixy)=xdisp
               edgedispy(jedge,ixy)=ydisp
             endif
@@ -901,18 +911,18 @@ c
           if(imult.eq. middone+1)then
 c             
             theta=thetamid                      !at midway point, restore
-            dxedge=dxmid                        !values from first (middle)
-            dyedge=dymid                        !edge
+            edgedx=dxmid                        !values from first (middle)
+            edgedy=dymid                        !edge
             lastedge=multedge(1)
             lastxdisp=ixdispmid
             lastydisp=iydispmid
           else
             call edge_to_rotrans(dxgrid,dygrid,ixgdim,iygdim,nxgr,
-     &          nygr,intxgrid,intygrid,theta,dxedge,dyedge)
+     &          nygr,intxgrid,intygrid,theta,edgedx,edgedy)
             if(imult.eq.2)then
               thetamid=theta                    !if that was first edge, save
-              dxmid=dxedge                      !the value
-              dymid=dyedge
+              dxmid=edgedx                      !the value
+              dymid=edgedy
             endif
             lastedge=multedge(imult-1)
           endif
@@ -929,8 +939,8 @@ c
 c           rotate vector by theta and displace by dx, dy; the movement in
 c           the tip of the displacement vector is the expected relative
 c           displacement between this frame and the last
-          xrel=xdispl*costh - ydispl*sinth + dxedge - xdispl
-          yrel=xdispl*sinth + ydispl*costh + dyedge - ydispl
+          xrel=xdispl*costh - ydispl*sinth + edgedx - xdispl
+          yrel=xdispl*sinth + ydispl*costh + edgedy - ydispl
 c           add pixel displacement of last frame to get total expected pixel
 c           displacement of this frame
           ixdisp=nint(xrel)+lastxdisp
@@ -963,8 +973,8 @@ c         Determine data limits for edge in long dimension if flag set
 c          
         call setgridchars(nxyzin,noverlap,iboxsiz,indentUse,intgrid,
      &      ixy,ixdisp,iydisp,limitLo,limitHi,nxgr,nygr,igrstr,igrofs)
-        if (nxgr .gt. ixgdim .or. nygr .gt. iygdim) call exitError(
-     &      'TOO MANY GRID POINTS FOR ARRAYS, TRY INCREASING GridSpacing')
+        if (nxgr .gt. nxgrid(ixy) .or. nygr .gt. nygrid(ixy)) call exitError(
+     &      'ONE GRID HAS MORE POINTS THAN ORIGINALLY EXPECTED')
         lastxdisp=ixdisp
         lastydisp=iydisp
 c         
@@ -973,14 +983,22 @@ c     &      char(ixy+ichar('W'))//' edge, pieces'
 c     &      ,ipiecelower(jedge,ixy),ipieceupper(jedge,ixy),
 c     &      '  ngrid:',nxgr,nygr,'  start lower:',igrstr,
 c     &      '  upper:',igrofs
-        call findedgefunc(array(indlow),array(indup),nxin,nyin,
-     &      igrstr(1),igrstr(2),igrofs(1),igrofs(2),nxgr,nygr,
-     &      intxgrid,intygrid,iboxsiz(ixy),iboxsiz(3-ixy),intscan,
-     &      dxgrid, dygrid,sdgrid, ddengrid,ixgdim,iygdim)
-c         
-        call smoothgrid(dxgrid,dygrid,sdgrid,ddengrid,ixgdim,
-     &      iygdim,nxgr,nygr,sdcrit, devcrit,nfit(ixy),nfit(3-ixy),
-     &      norder, nskip(ixy),nskip(3-ixy))
+        if (ifskipEdge(jedge, ixy) .eq. 0) then
+          wallstart = walltime()
+          call findedgefunc(array(indlow),array(indup),nxin,nyin,
+     &        igrstr(1),igrstr(2),igrofs(1),igrofs(2),nxgr,nygr,
+     &        intxgrid,intygrid,iboxsiz(ixy),iboxsiz(3-ixy),intscan,
+     &        dxgrid, dygrid,sdgrid, ddengrid,ixgdim,iygdim)
+c           
+          call smoothgrid(dxgrid,dygrid,sdgrid,ddengrid,ixgdim,
+     &        iygdim,nxgr,nygr,sdcrit, devcrit,nfit(ixy),nfit(3-ixy),
+     &        norder, nskip(ixy),nskip(3-ixy))
+c          write(*,'(a,f10.6)')'Edge function time',walltime()-wallstart
+        else
+          dxgrid(1:nxgr,1:nygr) = 0.
+          dygrid(1:nxgr,1:nygr) = 0.
+          ddengrid(1:nxgr,1:nygr) = 0.
+        endif
 c         
 c$$$        xrel = 0.
 c$$$        yrel = 0.
@@ -1104,15 +1122,18 @@ c
       integer*4 indx,indy
       real*4 xg,yg
 c       
-c       
-      logical edgeonlist,needcheck(5,2),ngframe, useEdges, inLimit(2)
+      logical edgeonlist,needcheck(maxInPc,2),ngframe, useEdges, inLimit(2)
+      logical useCross
       real*4 xycur(2)
-      integer*4 ixframe,iyframe,ipc,ixfrm,iyfrm,minxframe,minyframe, limitLo
+      integer*4 movedPiece(4), k, axisin, maxInside, ipcCross
+      integer*4 ixframe,iyframe,ipc,ixfrm,iyfrm, limitLo, j
       integer*4 indinp,newedge,newpiece,iflo,listno,ixy,i, idSearch, limitHi
       real*4 xtmp,xframe,yframe,ytmp,xbak,ybak,distmin,xttmp,dist
+      real*4 xpcCross, ypcCross
       logical b3dxor
 c       
       numpieces=0
+      ipcCross = 0
       numedges(1)=0
       numedges(2)=0
       idSearch = 1
@@ -1130,20 +1151,17 @@ c
       yframe=(yg-minypiece-nyoverlap/2)/(nyin-nyoverlap)
       ixframe=xframe+1.                         !truncation gives proper frame
       iyframe=yframe+1.
-      ngframe=ixframe.lt.1.or.ixframe.gt.nxpieces.or.
-     &    iyframe.lt.1.or.iyframe.gt.nypieces.or.
-     &    mappiece(max(1,ixframe),max(1,iyframe)).eq.0
+      ngframe=ixframe.lt.1.or.ixframe.gt.nxpieces.or. iyframe.lt.1.or.
+     &    iyframe.gt.nypieces.or. mappiece(min(nxpieces,max(1,ixframe)),
+     &    min(nypieces,max(1,iyframe))).eq.0
       if(multng)then
 c         
-c         if there are multineg h's, need to make sure point is actually in
-c         frame, but if frame no good, switch to nearest frame first
-c         
+c         if there are multineg h's (including piece shifting!), need to make
+c         sure point is actually in frame, but if frame no good, switch to
+c         nearest frame first 
         if (ngframe) call findNearestPiece(ixframe, iyframe)
         ipc=mappiece(ixframe,iyframe)
-        xtmp=xg-ixpclist(ipc)
-        ytmp=yg-iypclist(ipc)
-        xbak=hinv(1,1,ipc)*xtmp+hinv(1,2,ipc)*ytmp +hinv(1,3,ipc)
-        ybak=hinv(2,1,ipc)*xtmp+hinv(2,2,ipc)*ytmp +hinv(2,3,ipc)
+        call positionInPiece(xg, yg, ipc, xbak, ybak)
         ngframe=xbak.lt.0.or.xbak.gt.nxin-1.or. ybak.lt.0.or.ybak.gt.nyin-1
 
         if (ngframe) then
@@ -1157,9 +1175,9 @@ c
 c           
 c           If still not in a frame, start in the nearest and expand the search
 c
-          if (ixframe.lt.1.or.ixframe.gt.nxpieces.or.
-     &        iyframe.lt.1.or.iyframe.gt.nypieces.or.
-     &        mappiece(max(1,ixframe),max(1,iyframe)).eq.0) then
+          if (ixframe.lt.1.or.ixframe.gt.nxpieces.or. iyframe.lt.1.or.
+     &        iyframe.gt.nypieces.or. mappiece(min(nxpieces,max(1,ixframe)),
+     &        min(nypieces,max(1,iyframe))).eq.0) then
             call findNearestPiece(ixframe, iyframe)
             idSearch = 2
           endif
@@ -1195,13 +1213,7 @@ c
 c               
 c               get real coordinate in piece, adjusting for h if present
 c               
-              xtmp=xg-ixpclist(ipc)
-              ytmp=yg-iypclist(ipc)
-              if(multng)then
-                xttmp=xtmp
-                xtmp=hinv(1,1,ipc)*xttmp+hinv(1,2,ipc)*ytmp +hinv(1,3,ipc)
-                ytmp=hinv(2,1,ipc)*xttmp+hinv(2,2,ipc)*ytmp +hinv(2,3,ipc)
-              endif
+              call positionInPiece(xg, yg, ipc, xtmp, ytmp)
 c               
 c               distance is negative for a piece that point is actually in;
 c               it is negative of distance from nearest edge
@@ -1217,117 +1229,258 @@ c
           enddo
           ixfrm=ixfrm+1
         enddo
-        if(distmin.eq.1.e10)return
+c
+c         return if no pieces in this loop.  This seems odd but there are
+c         weird edge effects if it returns just because it is not inside any
+        if (distmin .eq. 1.e10) return
         ixframe=minxframe
         iyframe=minyframe
       endif
 c       
 c       initialize list of pieces with this piece # on it, then start looping
 c       over the pieces present in the list
-c       
+c       Keep track of min and max frame numbers on list
       numpieces=1
       inpiece(1)=mappiece(ixframe,iyframe)
       indinp=1
       needcheck(1,1)=.true.
       needcheck(1,2)=.true.
+      minxframe = ixframe
+      maxxframe = ixframe
+      minyframe = iyframe
+      maxyframe = iyframe
+      inpxframe(1) = ixframe
+      inpyframe(1) = iyframe
+      call positionInPiece(xg, yg, inpiece(1), xinpiece(1), yinpiece(1))
+c
       do while (indinp.le.numpieces)
 c         
-c         come into this loop looking at a piece onlist; need to get true
-c         coordinates in piece and see if point is near/in an edge to another
-c         Start by translating into coordinates in piece
+c         come into this loop looking at a piece onlist; use true
+c         coordinates in piece to see if point is near/in an edge to another
 c         
         ipc=inpiece(indinp)
-        xycur(1)=xg-ixpclist(ipc)
-        xycur(2)=yg-iypclist(ipc)
-c         
-c         if there are multineg h's, need to compute (again!) the
-c         location within the piece
-c         
-        if(multng)then
-          xtmp=xycur(1)
-          xycur(1)=hinv(1,1,ipc)*xtmp+hinv(1,2,ipc)*xycur(2) +hinv(1,3,ipc)
-          xycur(2)=hinv(2,1,ipc)*xtmp+hinv(2,2,ipc)*xycur(2) +hinv(2,3,ipc)
-        endif
-        xinpiece(indinp)=xycur(1)
-        yinpiece(indinp)=xycur(2)
+        xycur(1) = xinpiece(indinp)
+        xycur(2) = yinpiece(indinp)
 c         
 c         check the x and y directions to see if point is near an edge
 c         
         do ixy=1,2
-          if(needcheck(indinp,ixy))then
-            newedge=0
-            if(xycur(ixy).lt.edgelonear(ixy).and.
-     &          iedgelower(ipc,ixy).gt.0)then
-              newedge=iedgelower(ipc,ixy)
-              newpiece=ipiecelower(newedge,ixy)
-              iflo=1
-            endif
-            if(xycur(ixy).gt.edgehinear(ixy).and.
-     &          iedgeupper(ipc,ixy).gt.0)then
-              newedge=iedgeupper(ipc,ixy)
-              newpiece=ipieceupper(newedge,ixy)
-              iflo=0
-            endif
+          do iflo = 0, 1
+            if(needcheck(indinp,ixy))then
+              newedge=0
+              if(iflo .eq. 1 .and. xycur(ixy).lt.edgelonear(ixy).and.
+     &            iedgelower(ipc,ixy).gt.0)then
+                newedge=iedgelower(ipc,ixy)
+                newpiece=ipiecelower(newedge,ixy)
+              endif
+              if(iflo .eq. 0 .and. xycur(ixy).gt.edgehinear(ixy).and.
+     &            iedgeupper(ipc,ixy).gt.0)then
+                newedge=iedgeupper(ipc,ixy)
+                newpiece=ipieceupper(newedge,ixy)
+              endif
 c             
-c             if either check picked up a new edge, see if edge is on list
-c             already
+c               if check picked up a new edge, see if edge is on list already
 c             
-            if(newedge.ne.0)then
-              edgeonlist=.false.
-              do i=1,numedges(ixy)
-                edgeonlist=edgeonlist.or.(inedge(i,ixy).eq.newedge)
-              enddo
-c               
-c               if not, add it, and the implied piece, to list
-c               
-              if(.not.edgeonlist)then
-                listno=0
-                do i=1,numpieces
-                  if(newpiece.eq.inpiece(i))listno=i
+              if(newedge.ne.0)then
+                edgeonlist=.false.
+                do i=1,numedges(ixy)
+                  edgeonlist=edgeonlist.or.(inedge(i,ixy).eq.newedge)
                 enddo
-                if(listno.eq.0)then
-c                   
-c                   but if adding a new piece, check for point actually in
-c                   piece first
-c                   
-                  xbak=xg-ixpclist(newpiece)
-                  ybak=yg-iypclist(newpiece)
-                  if(multng)then
-                    xtmp=xbak
-                    xbak=hinv(1,1,newpiece)*xtmp+ hinv(1,2,newpiece)*ybak
-     &                  +hinv(1,3,newpiece)
-                    ybak=hinv(2,1,newpiece)*xtmp+ hinv(2,2,newpiece)*ybak
-     &                  +hinv(2,3,newpiece)
-                  endif
-                  if(xbak.ge.0.and.xbak.le.nxin-1.and.
-     &                ybak.ge.0.and.ybak.le.nyin-1)then
-                    numpieces=numpieces+1
-                    inpiece(numpieces)=newpiece
-                    needcheck(numpieces,ixy)=.false.
-                    needcheck(numpieces,3-ixy)=.true.
-                    listno=numpieces
-                  endif
-                endif
 c                 
-c                 add edge to list only if legal piece found
+c                 if not, add it, and the implied piece, to list
+c               
+                if(.not.edgeonlist)then
+                  listno=0
+                  do i=1,numpieces
+                    if(newpiece.eq.inpiece(i))listno=i
+                  enddo
+                  if(listno.eq.0)then
+c                   
+c                     but if adding a new piece, check for point actually in
+c                     piece first
+c                     
+                    call positionInPiece(xg, yg, newpiece, xbak, ybak)
+                    if(xbak.ge.0.and.xbak.le.nxin-1.and.
+     &                  ybak.ge.0.and.ybak.le.nyin-1)then
+                      numpieces=numpieces+1
+                      inpiece(numpieces)=newpiece
+                      xinpiece(numpieces) = xbak
+                      yinpiece(numpieces) = ybak
+c                       
+c                       Get new frame numbers and maintain min/max
+                      if (ixy .eq. 1) then
+                        inpxframe(numpieces) = inpxframe(indinp) + 1 - 2 * iflo
+                        inpyframe(numpieces) = inpyframe(indinp)
+                      else
+                        inpxframe(numpieces) = inpxframe(indinp)
+                        inpyframe(numpieces) = inpyframe(indinp) + 1 - 2 * iflo
+                      endif
+                      minxframe = min(minxframe, inpxframe(numpieces))
+                      minyframe = min(minyframe, inpyframe(numpieces))
+                      maxxframe = max(maxxframe, inpxframe(numpieces))
+                      maxyframe = max(maxyframe, inpyframe(numpieces))
+c                       
+c                       If there are crossed limits to edges, then still need
+c                       to check this axis for this new piece
+                      needcheck(numpieces,ixy) =
+     &                    edgelonear(ixy) .ge. edgehinear(ixy)
+                      needcheck(numpieces,3-ixy)=.true.
+                      listno=numpieces
+                    else if (numpieces .eq. 1 .and. anyDisjoint(
+     &                    inpxframe(indinp), inpyframe(indinp))) then
+c                       
+c                       If the point was NOT in this overlapping piece, and
+c                       any corners are disjoint, find cross-corner piece
+c                       Look across upper and lower edges on the other axis
+c                       from the rejected piece to see if point in other piece
+                      newedge = iedgelower(newpiece, 3-ixy)
+                      if (newedge .ne. 0) then
+                        call positionInPiece(xg, yg,
+     &                      ipiecelower(newedge,3-ixy), xbak, ybak)
+                        if (xbak.ge.0.and.xbak.le.nxin-1.and.
+     &                      ybak.ge.0.and.ybak.le.nyin-1) then
+                          ipcCross = ipiecelower(newedge,3-ixy)
+                          xpcCross = xbak
+                          ypcCross = ybak
+                        endif
+                      endif
+c
+                      newedge = iedgeupper(newpiece, 3-ixy)
+                      if (newedge .ne. 0) then
+                        call positionInPiece(xg, yg,
+     &                      ipieceupper(newedge,3-ixy), xbak, ybak)
+                        if (xbak.ge.0.and.xbak.le.nxin-1.and.
+     &                      ybak.ge.0.and.ybak.le.nyin-1) then
+                          ipcCross = ipieceupper(newedge,3-ixy)
+                          xpcCross = xbak
+                          ypcCross = ybak
+                        endif
+                      endif
+                    endif
+                  endif
 c                 
-                if(listno.gt.0)then
-                  numedges(ixy)=numedges(ixy)+1
-                  inedge(numedges(ixy),ixy)=newedge
-                  if(iflo.eq.0)then
-                    inedupper(numedges(ixy),ixy)=listno
-                    inedlower(numedges(ixy),ixy)=indinp
-                  else
-                    inedupper(numedges(ixy),ixy)=indinp
-                    inedlower(numedges(ixy),ixy)=listno
+c                   add edge to list only if legal piece found
+c                   
+                  if(listno.gt.0)then
+                    numedges(ixy)=numedges(ixy)+1
+                    inedge(numedges(ixy),ixy)=newedge
+                    if(iflo.eq.0)then
+                      inedupper(numedges(ixy),ixy)=listno
+                      inedlower(numedges(ixy),ixy)=indinp
+                    else
+                      inedupper(numedges(ixy),ixy)=indinp
+                      inedlower(numedges(ixy),ixy)=listno
+                    endif
                   endif
                 endif
               endif
             endif
-          endif
+          enddo
         enddo
         indinp=indinp+1
       enddo
+c      if (indy.eq.685) write(*,'(2i5,i3,a,4i3,10i5)')indx,indy,numPieces,
+c     &    ' pieces',minxframe,maxxframe,minyframe,maxyframe,(inPiece(i),i=1,numPieces)
+c       
+c       If the pieces extend too far in either direction, we need to reduce the
+c       list to the ones where the point is most interior
+      if (maxxframe .gt. minxframe + 1 .or. maxyframe .gt. minyframe + 1) then
+c         
+c         first find axis where point is most interior
+        maxInside = -10000000
+        do i = 1, numPieces
+          if (min(xinpiece(i), nxin - 1 - xinpiece(i)) .gt. maxInside) then
+            maxInside = min(xinpiece(i), nxin - 1 - xinpiece(i))
+            axisin = 1
+          endif
+          if (min(yinpiece(i), nyin - 1 - yinpiece(i)) .gt. maxInside) then
+            maxInside = min(yinpiece(i), nyin - 1 - xinpiece(i))
+            axisin = 2
+          endif
+        enddo
+c        if (indy.eq.685)print *,'maxInside, axisin',maxInside,axisin
+c         
+c         do the most interior axis first and find best set of frames for it
+c         Then do the other axis, with new constraint on first axis
+        do ixy = 1, 2
+          if (axisin .eq. ixy) then
+            call mostInteriorFrames(1, xinpiece, nxin, ixframe, iyframe)
+            minxframe = ixframe
+            maxxframe = min(ixframe + 1, maxxframe)
+            if (ixy .eq. 1) call constrainFrames(minxframe, maxxframe,
+     &          minyframe, maxyframe, inpxframe, inpyframe)
+          else
+            call mostInteriorFrames(2, yinpiece, nyin, ixframe, iyframe)
+            minyframe = iyframe
+            maxyframe = min(iyframe + 1, maxyframe)
+            if (ixy .eq. 1) call constrainFrames(minyframe, maxyframe,
+     &          minxframe, maxxframe, inpyframe, inpxframe)
+          endif
+c          if(indx.eq.37) print *,ixy, minxframe,maxxframe,minyframe,maxyframe
+        enddo
+c         
+c         Repack the frames, retaining only the ones within range and keeping
+c         track of former numbers
+        j = 0
+        do i = 1, numPieces
+          if (inpxframe(i).ge.minxframe .and. inpxframe(i) .le. maxxframe .and.
+     &        inpyframe(i).ge.minyframe .and. inpyframe(i) .le. maxyframe) then
+            j = j + 1
+            inPiece(j) = inPiece(i)
+            xinPiece(j) = xinPiece(i)
+            yinPiece(j) = yinPiece(i)
+            inpxFrame(j) = inpxFrame(i)
+            inpyFrame(j) = inpyFrame(i)
+            movedPiece(j) = i
+          endif
+        enddo
+        numPieces = j
+c         
+c         Repack edges too
+        do ixy = 1, 2
+          j = 0
+          do i = 1, numedges(ixy)
+            ixfrm = 0
+            iyfrm = 0
+c             
+c             Find the pieces that the lower and upper pieces became; if both
+c             exist, retain the edge and reassign the numbers
+            do k = 1, numPieces
+              if (inedlower(i, ixy) .eq. movedPiece(k)) ixfrm = k
+              if (inedupper(i, ixy) .eq. movedPiece(k)) iyfrm = k
+            enddo
+            if (ixfrm .gt. 0 .and. iyfrm .gt. 0) then
+              j = j + 1
+              inedlower(j, ixy) = ixfrm
+              inedupper(j, ixy) = iyfrm
+              inedge(j, ixy) = inedge(i,ixy)
+            endif
+          enddo
+          numedges(ixy) = j
+        enddo
+      endif
+c       
+c       If there is one piece and a potential cross-piece, consider switching
+      if (numPieces .eq. 1 .and. ipcCross .ne. 0) then
+        ixframe = (ixpclist(ipcCross) - minxpiece) / (nxin - nxoverlap) + 1
+        iyframe = (iypclist(ipcCross) - minypiece) / (nyin - nyoverlap) + 1
+        ixy = mapDisjoint(min(ixframe,inpxFrame(1)), min(iyframe,inpyFrame(1)))
+c         
+c         Use cross piece if point is more interior along the other axis from
+c         the disjoint edges (ixy is 1,2 for X, 3,4 for Y)
+        if (ixy .gt. 0) then
+          if ((ixy .le. 2 .and. min(ypcCross, nyin-1-ypcCross) .gt.
+     &        min(yinpiece(1), nyin - 1 - yinpiece(1))) .or.
+     &        (ixy .gt. 2 .and. min(xpcCross, nxin-1-xpcCross) .gt.
+     &        min(xinpiece(1), nxin - 1 - xinpiece(1)))) then
+            inpiece(1) = ipcCross
+            xinpiece(1) = xpcCross
+            yinpiece(1) = ypcCross
+            inpxFrame(1) = ixframe
+            inpyFrame(1) = iyframe
+          endif
+        endif
+      endif
 c       
 c       If there are two pieces and the limit flag is set, find out if one
 c       should be thrown away
@@ -1363,6 +1516,100 @@ c       Replace edges with ones to use if called for
             if (newedge .ne. 0) inedge(i, ixy) = newedge
           enddo
         enddo
+      endif
+      return
+
+      CONTAINS
+c       
+c       Find which set of pieces has the point most interior in a given
+c       direction
+      subroutine mostInteriorFrames(ixy, xyinpiece, nxyin, ixbest, iybest)
+      real*4 xyinpiece(*), closest, distin(2,2), dist1, dist2
+      integer*4 nxyin, ixbest, iybest, ix, iy, ixy, maxOneCol,ixOneCol,iyOneCol
+      maxInside = -100000
+      maxOneCol = -100000
+      ixbest = minxframe
+      iybest = minyframe
+      ixOneCol = minxframe
+      iyOneCol = minyframe
+      do iyfrm = minyframe, max(minyframe, maxyframe-1)
+        do ixfrm = minxframe, max(minxframe, maxxframe-1)
+c           
+c           Find the minimum distance to edge for frames that fit in this range
+          distin = 1000000.
+          do i = 1, numPieces
+            ix = inpxframe(i)+1-ixfrm
+            iy = inpyframe(i)+1-iyfrm
+            if ((ix+1)/2 .eq. 1 .and. (iy+1)/2 .eq. 1)  distin(ix,iy) =
+     &          min(xyinpiece(i), nxyin-xyinpiece(i))
+          enddo
+          if (ixy .eq. 1) then
+            dist1 = min(distin(1,1), distin(1,2))
+            dist2 = min(distin(2,1), distin(2,2))
+          else
+            dist1 = min(distin(1,1), distin(2,1))
+            dist2 = min(distin(1,2), distin(2,2))
+          endif
+c           
+c           Keep track of which range maximizes this distance separately for
+c           ones with one column and two
+          if (dist1 .lt. 999999. .and. dist2 .lt. 999999.) then
+            closest = (dist1 + dist2) / 2.
+            if (closest .le. nxyin .and. closest .gt. maxInside) then
+              maxInside = closest
+              ixbest = ixfrm
+              iybest = iyfrm
+            endif
+          else
+            closest = min(dist1, dist2)
+            if (closest .le. nxyin .and. closest .gt. maxOneCol) then
+              maxOneCol = closest
+              ixOneCol = ixfrm
+              iyOneCol = iyfrm
+            endif
+          endif
+c          if (indy.eq.685.and.(indx+1)/2.eq.798/2) print *,ixfrm, iyfrm,dist1,dist2,closest
+        enddo
+      enddo
+      if (maxInside .lt. 0 .and. maxOneCol .gt. 0) then
+        ixbest = ixOneCol
+        iybest = iyOneCol
+      endif
+      return
+      end subroutine mostInteriorFrames
+
+      subroutine constrainFrames(minAxis, maxAxis, minOther, maxOther,
+     &    inpfAxis, inpfOther)
+      integer*4 minAxis, maxAxis, minOther, maxOther, inpfAxis(*), inpfOther(*)
+      i = minOther
+      minOther = maxOther
+      maxOther = i
+      do i = 1, numPieces
+        if (inpfAxis(i) .ge. minAxis .and. inpfAxis(i) .le. maxAxis) then
+          minOther = min(minOther, inpfOther(i))
+          maxOther = max(maxOther, inpfOther(i))
+        endif
+      enddo
+      return
+      end subroutine constrainFrames
+      
+      end subroutine countedges
+
+
+c       Computes position of global point xg, yg (after g transforms) in piece
+c       ipc, returns result in xinpc, yinpc
+c
+      subroutine positionInPiece(xg, yg, ipc, xinpc, yinpc)
+      use blendvars
+      implicit none
+      real*4 xg, yg, xinpc, yinpc, xtmp
+      integer*4 ipc
+      xinpc = xg - ixpclist(ipc)
+      yinpc = yg - iypclist(ipc)
+      if (multng) then
+        xtmp = xinpc
+        xinpc=hinv(1,1,ipc)*xtmp+hinv(1,2,ipc)*yinpc +hinv(1,3,ipc)
+        yinpc=hinv(2,1,ipc)*xtmp+hinv(2,2,ipc)*yinpc +hinv(2,3,ipc)
       endif
       return
       end
@@ -1501,79 +1748,91 @@ c
       end
 
 
+c       Computes sizes for doing edge cross-correlation in one direction
+c       ixy is 1/2 for X/Y edges, nbin is the binning, indentXC is the indent
+c       from full size.  It returns indentUse with the actual indent being
+c       used, nxybox with the image box size after binning, nExtra with the
+c       the number of extra pixels in each dimension (from extraWidth), and
+c       the padded sizes for correlation in nxpad, nypad.  The padded size
+c       for filtering to compute real-space correlations is in nxCCC, nyCCC
+c       
+      subroutine xcorrSizes(ixy, nbin, indentXC, indentUse, nxybox, nExtra,
+     &    nxpad, nypad, nxCCC, nyCCC)
+      use blendvars
+      implicit none
+      integer*4 indentXC,ixy,nbin,indentUse, nxybox(2), nExtra(2),nxpad, nypad
+      integer*4 nxCCC, nyCCC, iyx, nxybord(2), npadCCC, niceframe
+      npadCCC = 16
+      iyx=3-ixy
+      indentUse = min(indentXC, (noverlap(ixy) - 8) / 2)
+      nxybox(ixy) = (noverlap(ixy) - indentUse * 2) / nbin
+      nxybox(iyx) = min((nxyzin(iyx) - 2*nbin), int(aspectmax*noverlap(ixy))) /
+     &    nbin
+      nExtra(iyx)=0
+      nExtra(ixy) = min(2 * (nint(extraWidth * nxybox(ixy)) / 2),
+     &    (nxyzin(ixy) - max(nbin, indentUse) * 2) / nbin - nxybox(ixy))
+      nxybox(ixy) = nxybox(ixy) + nExtra(ixy)
+c       
+c       get the padded size
+c       Limit the long dimension padding to twice the default short dim padding
+      nxybord(ixy)=max(5,nint(padFrac*nxybox(ixy)))
+      nxybord(iyx)=min(max(5,nint(padFrac*nxybox(iyx))), 
+     &    max(5, nint(0.45 * 2 * nxybox(ixy))))
+      nxpad=niceframe(nxybox(1)+2*nxybord(1),2,19)
+      nypad=niceframe(nxybox(2)+2*nxybord(2),2,19)
+      nxCCC = niceframe(nxybox(1) + npadCCC, 2, 19)
+      nyCCC = niceframe(nxybox(2) + npadCCC, 2, 19)
+      return
+      end
+
+
+c       Does cross-correlation on an edge
+c
       subroutine xcorredge(crray,drray,ixy,xdisp,ydisp, legacy, indentXC)
       use blendvars
       implicit none
       real*4 crray(*),drray(*),xdisp,ydisp
       integer*4 indentXC,ixy
       logical legacy
-      integer*4 nxybox(2),ind0(2),ind1(2),idispl(2), nxybord(2)
+      integer*4 nxybox(2),ind0(2),ind1(2),idispl(2)
       real*4 ctf(8193),rdispl(2)
       real*4 overfrac,delta,sdmin,ddenmin
       real*4 xpeak(limXcorrPeaks),ypeak(limXcorrPeaks),peak(limXcorrPeaks)
       integer*4 indentSD,niter,limstep,iyx,nxpad,nypad, indentUse
-      integer*4 jx,ixdispl,iydispl,i,nExtra(2),nbin, maxBinSize, ierr
-      integer*4 nsmooth, nxsmooth, nysmooth, npadCCC, indPeak
-      integer*4 niceframe, taperAtFill, nsum
-      real *8 cccMax, ccc, CCCoefficient
+      integer*4 jx,ixdispl,iydispl,i,nExtra(2),nbin, ierr
+      integer*4 nsmooth, nxsmooth, nysmooth, indPeak, nxCCC, nyCCC
+      integer*4 taperAtFill, nsum
+      real *8 cccMax, ccc, CCCoefficient,walltime,wallstart
 
       indentSD=5                                !indent for sdsearch
       overfrac=0.9                              !fraction of overlap to use
       niter=4                                   !iterations for sdsearch
       limstep=10                                !limiting distance
-      maxBinSize = 1024
-      nbin = 1
+      nbin = nbinXcorr
       nsmooth = 6
-      npadCCC = 16
+      wallstart = walltime()
 c       
 c       find size and limits of box in overlap zone to cut out
 c       
       iyx=3-ixy
-      indentUse = min(indentXC, (noverlap(ixy) - 8) / 2)
+      call xcorrSizes(ixy, nbin, indentXC, indentUse, nxybox, nExtra,
+     &    nxpad, nypad, nxCCC, nyCCC)
       indentSD = indentSD + indentUse
-      nxybox(ixy)=noverlap(ixy) - indentUse * 2
-      nxybox(iyx)=min(nxyzin(iyx), int(aspectmax*noverlap(ixy)))
-c
-c       find binning that brings area down to maximum size
-c
-      do while (nxybox(ixy) * nxybox(iyx) .gt. (nbin * maxBinSize)**2)
-        nbin = nbin + 1
-      enddo
-      nxybox(ixy) = nxybox(ixy) / nbin
-      nxybox(iyx) = nxybox(iyx) / nbin
-
-c       nxybox(iyx)=nxyzin(iyx)
-      nExtra(iyx)=0
-      nExtra(ixy) = 2 * (nint(extraWidth * nxybox(ixy)) / 2)
-      nxybox(ixy) = nxybox(ixy) + nExtra(ixy)
-      ind0(iyx)=nxyzin(iyx)/2 - nbin * (nxybox(iyx)/2)
+      ind0(iyx)=nxyzin(iyx)/2 - (nbin * nxybox(iyx))/2
       ind1(iyx)=ind0(iyx) + nbin * nxybox(iyx) - 1
-c      ind1(iyx)=nxyzin(iyx)/2 + nbin * (nxybox(iyx)/2) - 1
       ind0(ixy)=nxyzin(ixy) - noverlap(ixy) + indentUse - nbin * nExtra(ixy)
       ind1(ixy)=ind0(ixy) + nbin * nxybox(ixy) - 1
-c       
-c       get the padded size
-c       Limit the long dimension padding to twice the default short dim
-c       padding
-c       
-      nxybord(ixy)=max(5,nint(padFrac*nxybox(ixy)))
-      nxybord(iyx)=min(max(5,nint(padFrac*nxybox(iyx))), 
-     &    max(5, nint(0.45 * 2 * nxybox(ixy))))
-c       nxybord(iyx)=max(5,nint(padFrac*nxybox(iyx)))
-      nxpad=niceframe(nxybox(1)+2*nxybord(1),2,19)
-      nypad=niceframe(nxybox(2)+2*nxybord(2),2,19)
 c
 c       Set up smoothing over some pixels, but no more than half of the pad
       nxSmooth = nxybox(1) + min(2 * nsmooth, (nxpad - nxybox(1)) / 2)
       nySmooth = nxybox(2) + min(2 * nsmooth, (nypad - nxybox(2)) / 2)
 c      print *,ixy,indentUse, nxybox(ixy),nxybox(iyx),ind0(iyx),ind1(iyx),
 c     &    ind0(ixy),ind1(ixy)
-c      print *,nxybord(ixy),nxybord(iyx),nxpad,nypad,nxtap,nytap, nxSmooth,
-c     &    nySmooth
+c      print *,nxpad,nypad, nxSmooth, nySmooth
 
-      if(nxybox(1)*nxybox(2).gt.maxbsiz.or.nxpad*nypad.gt.idimc)call
-     &    exitError('Overlap too big for correlation arrays, reduce '//
-     &    'padding or aspect ratio')
+      if(nxybox(1)*nxybox(2)*nbin**2 .gt.maxbsiz .or. nxpad*nypad.gt.idimc .or.
+     &    nxCCC*nyCCC .gt. idimc) call
+     &    exitError('CORRELATION ARRAYS WERE NOT MADE LARGE ENOUGH')
 c       
 c       get the first image, lower piece
 c       
@@ -1630,12 +1889,13 @@ c
       call todfft(xcray,nxpad,nypad,1)
       call xcorrPeakFind(xcray,nxpad+2,nypad,xpeak,ypeak,peak,numXcorrPeaks)
       call dumpedge(xcray,nxpad+2,nxpad,nypad,ixy,1)
+c      write(*,'(a,f10.6)')'Initial cross-corr time',walltime()-wallstart
       indPeak = 1
       if (numXcorrPeaks .gt. 1 .and. .not.legacy) then
 c         
 c         If evaluating multiple peaks, get a new padding amount and ctf
-        nxpad = niceframe(nxybox(1) + npadCCC, 2, 19)
-        nypad = niceframe(nxybox(2) + npadCCC, 2, 19)
+        nxpad = nxCCC
+        nypad = nyCCC
         call setctfwsr(nbin*sigma1,nbin*sigma2,nbin*radius1,nbin*radius2,ctf,
      &      nxpad,nypad,delta)
 c         
@@ -1675,6 +1935,7 @@ c     &          ypeak(i), ' peak =',peak(i), ' nsum = ', nsum, ' cc =',ccc
             endif
           endif
         enddo
+c        write(*,'(a,f10.6)')'time after CCC',walltime()-wallstart
       endif
 c       
 c       return the amount to shift upper to align it to lower (verified)
@@ -1729,59 +1990,80 @@ c
         xdisp=-rdispl(1)
         ydisp=-rdispl(2)-(nyin-nyoverlap)
       endif
+c      write(*,'(a,f10.6)')'time after big search',walltime()-wallstart
 c       write(*,'(2f8.2,2f8.2)')xpeak,ypeak,xdisp,ydisp
       return
       end
 
 
-      subroutine find_best_shifts(a,maxvar,dxgridmean,dygridmean,idir,izsect,h,
-     &    nsum,bavg,bmax,aavg,amax)
+c       Solve for the shifts of all the pieces based on the displacements
+c       across their edges
+c
+      subroutine find_best_shifts(dxgridmean,dygridmean,idimedge,idir,
+     &    izsect,h, nsum,bavg,bmax,aavg,amax)
 
       use blendvars
       implicit none
-      integer*4 idir,izsect,nsum,maxvar
+      integer*4 idir,izsect,nsum,idimedge
       real*4 bavg,bmax,aavg,amax
 c       
       real*4 h(2,3,*)
-      real*4 dxgridmean(limedge,2),dygridmean(limedge,2)
-      integer*4 indvar(limnpc)
+      real*4 dxgridmean(idimedge,2),dygridmean(idimedge,2)
+      integer*4 numInRow,newGroup,lowup
 c       
-c       parameter (limvar=400)
-      real*8 a(maxvar,maxvar),b(limvar,2)
-      integer*4 ivarpc(limvar)
+c       Set maxvar higher to get comparisons
+      integer maxvar, maxGaussj
+      parameter (maxGaussj = 25, maxvar = maxGaussj)
+      real*4 a(maxvar,maxvar)
 c       
-      integer*4 nvar,ipc,ivar,m,ixy,iedge,neighpc,neighvar,ipclo,i
-      integer*4 noverwrote
-      real*4 asum,bsum,xsum,ysum,bdist,adist
+      real*4 critmaxmove,critMoveDiff
+      integer*4 intervalForTest, numAvgForTest,findPieceShifts,maxiter
+      integer*4 nvar,ipc,ivar,m,ixy,iedge,neighpc,neighvar,ipclo,i,j, numGroups
+      integer*4 numPrev, ndxy, nallvar, nextvar, nextCheck, numToCheck, igroup
+      real*4 asum,bsum,xsum,ysum,bdist,adist, dxgroup, dygroup
+      real*8 wallstart, walltime, wallAdj, wallGaussj
+      integer*4 gaussj
+c$$$c       
+c$$$c       variables for SVD
+c$$$      integer maxgels
+c$$$      parameter (maxgels = 12000)
+c$$$      real*8 daa(maxgels, maxgels), dbb(maxgels, 2), dwork(50*maxgels)
+c$$$      real*8 singval(maxgels),acond
+c$$$      common /sngval/daa,dbb,dwork,singval
 c       
 c       The data coming in are the displacements of upper piece from
 c       being in alignment with the lower piece if idir = 1, or the
 c       shift needed to align upper piece with lower if idir = -1
 c       
-c       build list of variables
+c       build list of variables: ALL means all pieces that have an edge
 c       
-      nvar=0
+      nallvar=0
       do ipc=1,npclist
-        if(izpclist(ipc).eq.izsect)then
+        if (izpclist(ipc).eq.izsect) then
           call xfunit(h(1,1,ipc),1.)
           call xfunit(hinv(1,1,ipc),1.)
-          indvar(ipc)=0
-          if(iedgelower(ipc,1).gt.0.or.
+          indvar(ipc) = 0
+          if (iedgelower(ipc,1).gt.0.or.
      &        iedgelower(ipc,2).gt.0.or.
      &        iedgeupper(ipc,1).gt.0.or.
-     &        iedgeupper(ipc,2).gt.0)then
-            nvar=nvar+1
-            if (nvar.gt.limvar .or. nvar*maxvar.gt.maxsiz / 2)then
-              print *,'nvar, limvar, nvar*maxvar, maxsiz / 2',nvar, limvar, 
-     &            nvar*maxvar, maxsiz / 2
+     &        iedgeupper(ipc,2).gt.0) then
+            nallvar=nallvar+1
+            if (nallvar.gt.limvar)then
+              print *,'nallvar, limvar',nallvar, limvar
               call exitError(
-     &            'TOO MANY PIECES FOR ARRAYS IN FIND_BEST_SHIFTS')
+     &            'ARRAYS WERE NOT MADE LARGE ENOUGH FOR FIND_BEST_SHIFTS')
             endif
-            ivarpc(nvar)=ipc
-            indvar(ipc)=nvar
+            iallVarpc(nallvar) = ipc
+            ivarGroup(nallvar) = 0
+            indvar(ipc) = nallvar
           endif
         endif
       enddo
+c       
+c       Classify pieces into separate groups if any by following connections
+c       between them
+      call sortVarsIntoGroups()
+c
       nsum=0
       bsum=0.
       bmax=0.
@@ -1789,94 +2071,256 @@ c
       amax=0.
       bavg=0.
       aavg=0.
-      if(nvar.eq.1)return
+      numPrev = 0
+      if (nallvar.eq.1) return
 c       
-c       build matrix of simultaneous equations for minimization solution
-c       
-      do ivar=1,nvar-1
-        ipc=ivarpc(ivar)
-        do m=1,nvar-1
-          a(ivar,m)=0.
-          b(ivar,1)=0.
-          b(ivar,2)=0.
-        enddo
-c         
-        do ixy=1,2
-          iedge=iedgelower(ipc,ixy)
-          if(iedge.gt.0)then
-            a(ivar,ivar)=a(ivar,ivar)+1
-            neighpc=ipiecelower(iedge,ixy)
-            neighvar=indvar(neighpc)
-c             
-c             for a regular neighbor, enter a -1 in its term; but for the
-c             last variable being eliminated, enter a +1 for ALL other
-c             variables instead
-c             
-            if(neighvar.ne.nvar)then
-              a(ivar,neighvar)=a(ivar,neighvar)-1
-            else
-              do m=1,nvar-1
-                a(ivar,m)=a(ivar,m)+1
-              enddo
-            endif
-c             
-c             when this piece is an upper piece, subtract displacements from
-c             constant term
-c             
-            b(ivar,1)=b(ivar,1)-idir*dxgridmean(iedge,ixy)
-            b(ivar,2)=b(ivar,2)-idir*dygridmean(iedge,ixy)
+c       Loop on groups, set up to do fit for each group
+      do igroup = 1, numGroups
+        nvar = 0
+        do ivar = 1, nallVar
+          if (ivarGroup(ivar) .eq. igroup) then
+            nvar = nvar + 1
+            ivarpc(nvar) = iallVarpc(ivar)
+            indvar(ivarpc(nvar)) = nvar
           endif
+        enddo
+c        print *,nvar
+        if (nvar .gt. 1) then
+c       
+c           build matrix of simultaneous equations for minimization solution
+c           by matrix inversion or SVD
+          do ivar=1,nvar-1
+            ipc=ivarpc(ivar)
+            do m=1,nvar-1
+              rowTmp(m) = 0.
+              bb(1,ivar)=0.
+              bb(2,ivar)=0.
+            enddo
+c             
+            do ixy=1,2
+              if (includeEdge(1, ipc,ixy, iedge)) then
+                rowTmp(ivar)=rowTmp(ivar)+1
+                neighpc=ipiecelower(iedge,ixy)
+                neighvar=indvar(neighpc)
+c                 
+c                 for a regular neighbor, enter a -1 in its term; but for the
+c                 last variable being eliminated, enter a +1 for ALL other
+c                 variables instead
+c             
+                if(neighvar.ne.nvar)then
+                  rowTmp(neighvar)=rowTmp(neighvar)-1
+                else
+                  do m=1,nvar-1
+                    rowTmp(m)=rowTmp(m)+1
+                  enddo
+                endif
+c             
+c                 when this piece is an upper piece, subtract displacements
+c                 from constant term
+c                 
+                bb(1,ivar)=bb(1,ivar)-idir*dxgridmean(iedge,ixy)
+                bb(2,ivar)=bb(2,ivar)-idir*dygridmean(iedge,ixy)
+              endif
 c           
-          iedge=iedgeupper(ipc,ixy)
-          if(iedge.gt.0)then
-            a(ivar,ivar)=a(ivar,ivar)+1
-            neighpc=ipieceupper(iedge,ixy)
-            neighvar=indvar(neighpc)
-            if(neighvar.ne.nvar)then
-              a(ivar,neighvar)=a(ivar,neighvar)-1
-            else
+              if (includeEdge(2, ipc,ixy, iedge)) then
+                rowTmp(ivar)=rowTmp(ivar)+1
+                neighpc=ipieceupper(iedge,ixy)
+                neighvar=indvar(neighpc)
+                if(neighvar.ne.nvar)then
+                  rowTmp(neighvar)=rowTmp(neighvar)-1
+                else
+                  do m=1,nvar-1
+                    rowTmp(m)=rowTmp(m)+1
+                  enddo
+                endif
+c             
+c                 when a lower piece, add displacements to constant terms
+c             
+                bb(1,ivar)=bb(1,ivar)+idir*dxgridmean(iedge,ixy)
+                bb(2,ivar)=bb(2,ivar)+idir*dygridmean(iedge,ixy)
+              endif
+            enddo
+c$$$c         
+c$$$c         LOAD FOR SVD
+c$$$            do m=1,nvar-1
+c$$$              daa(ivar,m) = rowTmp(m)
+c$$$            enddo
+c$$$            dbb(ivar,1) = bb(1,ivar)
+c$$$            dbb(ivar,2) = bb(2,ivar)
+c             
+c             Load the row data in a if below maxvar
+            if (nvar .le. maxvar) then
               do m=1,nvar-1
-                a(ivar,m)=a(ivar,m)+1
+                a(m,ivar) = rowTmp(m)
               enddo
             endif
-c             
-c             when a lower piece, add displacements to constant terms
-c             
-            b(ivar,1)=b(ivar,1)+idir*dxgridmean(iedge,ixy)
-            b(ivar,2)=b(ivar,2)+idir*dygridmean(iedge,ixy)
+          enddo
+c$$$c       
+c$$$c       Solve SVD
+c$$$          wallstart = walltime()
+c$$$          acond = -1.
+c$$$          call dgelss(nvar-1,nvar-1,2,daa,maxgels, dbb, maxgels, singval,
+c$$$     &        acond, m, dwork, 50*maxgels, ixy)
+c$$$          write(*,'(a,i5,a,i5,a,f10.4)')'dgelss  rank',m,
+c$$$     &        '  info',ixy,'  time', walltime()-wallstart
+
+c           
+c           Solve by iteration first
+          if (nvar .gt. maxGaussj) then
+            critMaxMove = 1.e-4
+            numAvgForTest = 10
+            intervalForTest = 100
+            critMoveDiff = 1.e-6
+            maxiter = 100 + nvar * 10
+            wallstart = walltime()
+            wallstart = walltime()
+            if (findPieceShifts(ivarpc, nvar, indvar, ixpclist, iypclist,
+     &          dxgridmean, dygridmean, idir, ipiecelower, ipieceupper,
+     &          ifskipEdge, limedge, dxyvar, limvar, iedgelower,
+     &          iedgeupper, limnpc, fpsWork, 1, 0, 2, critMaxMove,
+     &          critMoveDiff, maxiter, numAvgForTest, intervalForTest, i)
+     &          .ne. 0) call exitError('CALLING findPieceShifts')
+            wallAdj = walltime()-wallstart
+c            write(*,'(i6,a,f8.4,a,f15.6)')i, ' iterations, time',wallAdj
+
+c$$$            ysum = 0.
+c$$$            xsum = 0.
+c$$$            do ivar=1,nvar-1
+c$$$              ipc=ivarpc(ivar)
+c$$$              do ixy = 1,2
+c$$$                xsum = max(xsum, abs(dxyvar(ivar,ixy) - dbb(ivar,ixy)))
+c$$$                do j=1,2
+c$$$                  if (includeEdge(2, ipc,j, iedge)) then
+c$$$                    numInRow = 0
+c$$$                    neighpc=ipieceupper(iedge,j)
+c$$$                    neighvar=indvar(neighpc)
+c$$$                    if (neighvar.ne.nvar) ysum = max(ysum, abs(
+c$$$     &                  (dbb(ivar,ixy) - dbb(neighvar,ixy))
+c$$$     &                  - (dxyvar(ivar,ixy) - dxyvar(neighvar,ixy))))
+c$$$                  endif
+c$$$                enddo
+c$$$              enddo
+c$$$            enddo
+c$$$            write(*,'(a,f12.7,a,f12.7)')'Shift adj - SVD max position diff'
+c$$$     &          ,xsum,'  edge diff',ysum
           endif
+c       
+c           solve the equations with gaussj if within range
+
+c       
+c           write(*,'(9i5)')(ivarpc(i),i=1,nvar)
+c           write(*,'(8f7.1)')((a(j,i),i=1,nvar-1),j=1,nvar-1)
+c           write(*,'(8f9.2)')((bb(j,i),i=1,nvar-1),j=1,2)
+          if (nvar .le. maxvar) then
+            wallstart = walltime()
+            i = gaussj(a,nvar-1,maxvar,bb,2,2)
+            if (i .gt. 0) call exitError(
+     &          'SINGULAR MATRIX WHEN SOLVING LINEAR EQUATIONS IN GAUSSJ')
+            if (i .lt. 0) call exitError(
+     &          'TOO MANY VARIABLES TO SOLVE LINEAR EQUATIONS WITH GAUSSJ')
+            wallGaussj = walltime() - wallstart
+c             write(*,'(8f9.2)')((bb(j,i),i=1,nvar-1),j=1,2)
+          endif
+c       
+c           Use the iteration solution, do comparisons if both were done
+          if (nvar .gt. maxGaussj) then
+            do j = 1,2
+              xsum = 0.
+              do i = 1,nvar-1 
+                if (nvar .le. maxvar) xsum =
+     &              max(xsum, abs(bb(j,i) - dxyvar(i,j)))
+                bb(j,i) = dxyvar(i,j)
+              enddo
+              if (nvar .le. maxvar)write(*,'(a,i2,a,f15.7)'),'axis', j,
+     &            ' max shift adj - gaussj difference',xsum
+c               write(*,'(8f9.2)')(bb(j,i),i=1,nvar-1)
+            enddo
+            if (nvar .le. maxvar) write(*,'(a,f12.6, a, f12.6)')'gaussj time',
+     &          wallGaussj, '   shift adj time', wallAdj
+          endif
+        endif
+c
+c         take the b values as dx and dy; compute the
+c         sum to get the shift for the final piece
+        xsum=0.
+        ysum=0.
+        do i=1,nvar-1
+          h(1,3,ivarpc(i))=bb(1,i)
+          h(2,3,ivarpc(i))=bb(2,i)
+          xsum=xsum+bb(1,i)
+          ysum=ysum+bb(2,i)
         enddo
-      enddo
-c       
-c       solve the equations, take the b values as dx and dy; compute the
-c       sum to get the shift for the final piece
-c       
-c       write(*,'(9i5)')(ivarpc(i),i=1,nvar)
-c       write(*,'(8f7.1)')((a(i,j),i=1,nvar-1),j=1,nvar-1)
-c       write(*,'(8f9.2)')((b(i,j),i=1,nvar-1),j=1,2)
-      call gaussjd(a,nvar-1,maxvar,b,2,limvar,2)
-c       write(*,'(8f9.2)')((b(i,j),i=1,nvar-1),j=1,2)
-      xsum=0.
-      ysum=0.
-      do i=1,nvar-1
-        h(1,3,ivarpc(i))=b(i,1)
-        h(2,3,ivarpc(i))=b(i,2)
-        xsum=xsum+b(i,1)
-        ysum=ysum+b(i,2)
-      enddo
-      h(1,3,ivarpc(nvar))=-xsum
-      h(2,3,ivarpc(nvar))=-ysum
-      do i=1,nvar
-        call xfinvert(h(1,1,ivarpc(i)),hinv(1,1,ivarpc(i)))
+        h(1,3,ivarpc(nvar))=-xsum
+        h(2,3,ivarpc(nvar))=-ysum
+c
+c         For multiple groups, find the mean displacement between this group
+c         and all previous ones and adjust shifts to make that mean be zero
+c         but to keep the overall mean zero
+        if (igroup .gt. 1) then
+          dxgroup = 0.
+          dygroup = 0.
+          ndxy = 0
+c           
+c           rebuild index to variables
+          do ivar = 1, nallvar
+            indvar(iallVarpc(ivar)) = ivar
+          enddo
+c           
+c           Loop on pieces in this group, and for each edge to a piece in a
+c           lower group, add up the displacement across the edge
+          do ivar = 1, nvar
+            ipc = ivarpc(ivar)
+            do lowup = 1, 2
+              do ixy = 1, 2
+                if (.not. includeEdge(lowup, ipc, ixy, iedge)) then
+                  if (iedge .gt. 0) then
+                    if (lowup.eq.1) then
+                      ipclo=ipiecelower(iedge,ixy)
+                    else
+                      ipclo=ipieceupper(iedge,ixy)
+                    endif                    
+                    if (ivarGroup(indvar(ipclo)) .lt. igroup) then
+                      dxgroup = dxgroup + h(1,3,ipc) - h(1,3,ipclo)
+                      dygroup = dygroup + h(2,3,ipc) - h(2,3,ipclo)
+                      ndxy = ndxy + 1
+                    endif
+                  endif
+                endif
+              enddo              
+            enddo              
+          enddo
+c           
+c           Adjust positions by a weighted fraction of the mean displacement
+          if (ndxy .gt. 0) then
+            dxgroup = dxgroup / ndxy
+            dygroup = dygroup / ndxy
+c            print *,'Shift relative to previous group', dxgroup,dygroup
+c            print *,'adjusting this',-(dygroup * numPrev) / (nvar +numPrev),
+c     &          '   this',(dygroup * nvar) / (nvar + numPrev)
+            do ivar = 1, nallvar
+              ipc=iallVarpc(ivar)
+              if (ivarGroup(ivar) .lt. igroup) then
+                h(1,3,ipc) = h(1,3,ipc) + (dxgroup * nvar) / (nvar + numPrev)
+                h(2,3,ipc) = h(2,3,ipc) + (dygroup * nvar) / (nvar + numPrev)
+              else if (ivarGroup(ivar) .eq. igroup) then
+                h(1,3,ipc) = h(1,3,ipc) - (dxgroup * numPrev) / (nvar +numPrev)
+                h(2,3,ipc) = h(2,3,ipc) - (dygroup * numPrev) / (nvar +numPrev)
+              endif
+            enddo
+          endif
+        endif
+        numPrev = numPrev + nvar
       enddo
 c       
 c       compute and return the results 
 c       
-      do ivar=1,nvar
-        ipc=ivarpc(ivar)
+      do ivar=1,nallvar
+        ipc=iallVarpc(ivar)
+        call xfinvert(h(1,1,ipc),hinv(1,1,ipc))
+c        write(*,'(i7,2i4,2f8.1)')ipc,1+(ixpclist(ipc)-minxpiece)/(nxin-nxoverlap),
+c     &      1+(iypclist(ipc)-minypiece)/(nyin-nyoverlap), h(1,3,ipc),h(2,3,ipc)
         do ixy=1,2
-          iedge=iedgelower(ipc,ixy)
-          if(iedge.gt.0)then
+          if (includeEdge(1, ipc,ixy, iedge)) then
             ipclo=ipiecelower(iedge,ixy)
             bdist=sqrt(dxgridmean(iedge,ixy)**2+
      &          dygridmean(iedge,ixy)**2)
@@ -1887,36 +2331,146 @@ c
             amax=max(amax,adist)
             bmax=max(bmax,bdist)
             nsum=nsum+1
+c            write(*,'(i7,2i4,f8.2)')ipc,ixy-1+(ixpclist(ipc)-minxpiece)/(nxin-nxoverlap),
+c     &          2-ixy+(iypclist(ipc)-minypiece)/(nyin-nyoverlap), adist
           endif
         enddo
       enddo
       bavg=bsum/nsum
       aavg=asum/nsum
 c       write(*,'(i3,a,2f6.2,a,2f6.2)')nsum, ' edges, mean, max '//
-c       &           'displacement before:', bsum/nsum,bmax,', after:',asum/nsum,
-c       &           amax
-c       
-c       DNM 8/18/02: invalidate pieces in memory for part of array that
-c       was used
-c       
-      noverwrote = (2 * maxvar * nvar + npixin - 1) / npixin
-      do i = 1,min(noverwrote,memlim)
-        if (izmemlist(i) .gt. 0) memIndex(izmemlist(i)) = -1
-        izmemlist(i) = -1
-        lastused(i) = 0
-      enddo
+c     &    'displacement before:', bsum/nsum,bmax,', after:',asum/nsum, amax
 c       
       return
-      end
+
+      CONTAINS
+
+c       Test for whether an edge should be included, lowup = 1/2 for lower/
+c       upper edge, kpc is piece index, kxy is x/y direction, the edge number
+c       if any is returned in ked
+c
+      logical function includeEdge(lowup, kpc, kxy, ked)
+      integer*4 lowup, kpc, kxy, ked
+      includeEdge = .false.
+      if (lowup .eq. 1) then
+        ked = iedgelower(kpc,kxy)
+      else
+        ked = iedgeupper(kpc,kxy)
+      endif
+      if (ked .eq. 0) return
+      if (ifskipEdge(ked,kxy) .gt. 1) return
+      includeEdge = .true.
+      return
+      end function includeEdge
 
 
-      subroutine findBestGradient(dxgridmean,dygridmean,idir,izsect,
+c       Check for whether to add a piece to the current group
+c
+      subroutine checkGroup(kpc)
+      integer*4 kpc
+c      print *,'checking group of ',kpc, ivarGroup(indvar(kpc))
+      if (ivarGroup(indvar(kpc)) .gt. 0) return
+      ivarGroup(indvar(kpc)) = numGroups
+      numToCheck = numToCheck + 1
+      listCheck(numToCheck) = kpc
+      return
+      end subroutine checkGroup
+
+
+c       Classify pieces into separate groups if any by following connections
+c       between them
+c
+      subroutine sortVarsIntoGroups()
+      numGroups = 0
+      nextvar = 1
+      do while (nextvar .le. nallvar)
+c         
+c         Look for next piece that is unclassified
+        do while (nextvar .le. nallvar)
+          if (ivarGroup(nextvar) .eq. 0) exit
+          nextvar = nextvar + 1
+        enddo
+        if (nextvar .gt. nallvar) exit
+c         
+c         Start a new group and initialize check list
+        numGroups = numGroups + 1
+        ivarGroup(nextvar) = numGroups
+        nextCheck = 1
+        numToCheck = 1
+        listCheck(1) = iallVarpc(nextvar)
+c         
+c         Loop on the check list, for next piece, check its 4 edges and
+c         assign and add to check list other pieces not in group yet
+        do while (nextCheck .le. numToCheck)
+          ipc = listCheck(nextCheck)
+          do ixy = 1, 2
+            if (includeEdge(1, ipc, ixy, iedge))
+     &          call checkGroup(ipiecelower(iedge, ixy))
+            if (includeEdge(2, ipc, ixy, iedge))
+     &          call checkGroup(ipieceupper(iedge, ixy))
+          enddo
+          nextCheck = nextCheck + 1
+        enddo
+        nextvar = nextvar + 1
+      enddo
+c      print *,'groups:',numGroups
+c       
+c       Have to make sure the groups are going to be done in a connected order
+c       if there are more than 2
+      do igroup = 1, numGroups - 2
+        newGroup = 0
+        do ivar = 1, nallVar
+c           
+c           Look at pieces in all the groups already done
+          if (ivarGroup(ivar) .le. igroup) then
+            ipc = iallVarpc(ivar)
+c             
+c             Look for an excluded edge to a piece in a higher group
+            do ixy = 1, 2
+              if (.not. includeEdge(1, ipc, ixy, iedge)) then
+                if (iedge .gt. 0) then
+                  ipclo=ipiecelower(iedge,ixy)
+                  m = ivarGroup(indvar(ipclo))
+                  if (m .gt. igroup) newGroup = m
+                endif
+              endif
+              if (.not. includeEdge(2, ipc, ixy, iedge)) then
+                if (iedge .gt. 0) then
+                  ipclo=ipieceupper(iedge,ixy)
+                  m = ivarGroup(indvar(ipclo))
+                  if (m .gt. igroup) newGroup = m
+                endif
+              endif
+            enddo
+c             
+c             Swap the group numbers of that group and the next one
+            if (newGroup .gt. 0) then
+c              print *,'swapping groups',igroup + 1,newGroup
+              do i = 1, nallVar
+                if (ivarGroup(i) .eq. igroup + 1) then
+                  ivarGroup(i) = newGroup
+                else if (ivarGroup(i) .eq. newGroup) then
+                  ivarGroup(i) = igroup + 1
+                endif
+              enddo
+              exit
+            endif
+          endif
+        enddo
+      enddo
+      return
+      end subroutine sortVarsIntoGroups
+
+      end subroutine find_best_shifts
+
+
+      subroutine findBestGradient(dxgridmean,dygridmean,idimEdge,idir,izsect,
      &    gradnew,rotnew)
       use blendvars
       implicit none
-      integer*4 idir,izsect
+      integer*4 idir,izsect,idimEdge
       real*4 gradnew,rotnew
-      real*4 dxgridmean(limedge,2),dygridmean(limedge,2),bavg,bmax
+      real*4 dxgridmean(idimedge,2),dygridmean(idimedge,2),bavg,bmax
 c       
 c       Stuff for amoeba: ftol2 and ptol2 are used the FIRST time
 c       
@@ -1929,14 +2483,8 @@ c
       external gradfunc
 c       
       integer*4 nedg, ifTrace, nTrial,izedge
-      real*4 dxedge(limedge,2),dyedge(limedge,2),errMin
-      real*4 gradXcenLo(limvar),gradXcenHi(limvar)
-      real*4 gradYcenLo(limvar),gradYcenHi(limvar)
-      real*4 overXcenLo(limvar),overXcenHi(limvar)
-      real*4 overYcenLo(limvar),overYcenHi(limvar)
-      common /funccom/nedg, ifTrace, nTrial, izedge, errMin, dxedge, dyedge,
-     &    gradXcenLo, gradXcenHi, gradYcenLo, gradYcenHi, overXcenLo,
-     &    overXcenHi, overYcenLo, overYcenHi
+      real*4 errMin
+      common /funccom/nedg, ifTrace, nTrial, izedge, errMin
 c       
       integer*4 ipc,ipclo,ixy,iedge
 
@@ -2046,17 +2594,11 @@ c
       real*4 p(*), funcErr
 
       integer*4 nedg, ifTrace, nTrial,izedge
-      real*4 dxedge(limedge,2),dyedge(limedge,2),errMin
-      real*4 gradXcenLo(limvar),gradXcenHi(limvar)
-      real*4 gradYcenLo(limvar),gradYcenHi(limvar)
-      real*4 overXcenLo(limvar),overXcenHi(limvar)
-      real*4 overYcenLo(limvar),overYcenHi(limvar)
-      common /funccom/nedg, ifTrace, nTrial, izedge, errMin, dxedge, dyedge,
-     &    gradXcenLo, gradXcenHi, gradYcenLo, gradYcenHi, overXcenLo,
-     &    overXcenHi, overYcenLo, overYcenHi
+      real*4 errMin
+      common /funccom/nedg, ifTrace, nTrial, izedge, errMin
 c       
-      real*4 h(2,3,limnpc),tiltang,errSum,dxlo,dxhi,dylo,dyhi
-      real*4 dxadj(limedge,2),dyadj(limedge,2),bmean, bmax, aftmean, aftmax
+      real*4 tiltang,errSum,dxlo,dxhi,dylo,dyhi
+      real*4 bmean, bmax, aftmean, aftmax
       integer*4 ied, ixy, iedge, ipc
       character*1 starout
 
@@ -2090,8 +2632,8 @@ c
         endif
       enddo
 
-      call find_best_shifts(array, nxpieces * nypieces, dxadj, dyadj,
-     &    1, izedge, h, iedge, bmean, bmax, aftmean, aftmax)
+      call find_best_shifts(dxadj, dyadj, limedge, 1, izedge, htmp,
+     &    iedge, bmean, bmax, aftmean, aftmax)
 
       funcErr = aftmean
       if (ifTrace .gt. 0) then
@@ -2289,8 +2831,8 @@ c
             dmax = max(dmax, array(ix,iy))
             dsum8 = dsum8 + array(ix,iy)
           enddo
+          call parWrtLin(iunit, array(1,iy))
         enddo
-        call iwrsecl(iunit, array, nyout)
         return
       endif
 
@@ -2321,7 +2863,7 @@ c
           dmax = max(dmax, brray(ix))
           dsum8 = dsum8 + brray(ix)
         enddo
-        call iwrlin(iunit, brray)
+        call parWrtLin(iunit, brray)
       enddo
       return
       end
@@ -2404,6 +2946,143 @@ c
       return
       end
 
+
+c       Reads a model of edges to exclude, analyzes it and marks edges
+c       for exclusion.  FILNAM has the name of the model, EDGEDISPX and
+c       EDGEDISPY are the edge displacements (zero unless read from file) with
+c       direst dimension IDIMEDGE, findEFforAdjusted is a flag that edge
+c       functions should be found for excluded edges that have nonzero
+c       displacements, and numSkip is returned with the number of edges skipped
+c
+      subroutine readExclusionModel(filnam, edgedispx, edgedispy,idimedge,
+     &    ifUseAdjusted, mapAllPc, nxmap, nymap, minzpc, numSkip)
+      use blendvars
+      implicit none
+      include 'smallmodel.inc'
+      character*(*) filnam
+      integer*4 nxmap, nymap, minzpc, mapAllPc(nxmap,nymap,*)
+      integer*4 ixy, ied, ipc, iobj, ipt, ipnt,numEFonly,idimedge, numSkip,i,j
+      integer*4 ixpc, iypc, lenx, leny, numNear, ifUseAdjusted, ixframe,iyframe
+      integer*4 ixright, iytop, izpc
+      real*4 edgedispx(idimedge,2), edgedispy(idimedge,2), vertex(4,2)
+      logical exist, readSmallMod, inside
+c
+      exist=readSmallMod(filnam)
+      if (.not.exist) call exitError('READING EDGE EXCLUSION MODEL FILE')
+      call scale_model(0)
+      numEFonly = 0
+      numSkip = 0
+      numnear = 0
+c       
+c       Loop on the edges, make a quadrangle for area nearest to each
+      do ixy = 1, 2
+        do ied = 1, nedge(ixy)
+          ipc = ipieceupper(ied,ixy)
+          ixpc = ixpclist(ipc)
+          iypc = iypclist(ipc)
+          izpc = izpclist(ipc)+1-minzpc
+          lenx = nxin - nxoverlap
+          leny = nyin - nyoverlap
+          ixframe = 1 + (ixpc - minxpiece) / lenx
+          iyframe = 1 + (iypc - minypiece) / leny
+          ixright = ixpc + lenx
+          iytop = iypc + leny
+c           
+c           WARNING: This code tracks how 3dmod lays out data when displaying
+c           a montage: it copies each entire piece into the buffer in Z order
+c           A piece extends farther in one direction if it is either the last
+c           piece or it is laid down after the next in that direction
+          if (ixframe .eq. nxpieces) then
+            ixright = ixpc + nxin
+          else if (mapAllPc(ixframe+1, iyframe, izpc) .lt. ipc) then
+            ixright = ixpc + nxin
+          endif
+          if (iyframe .eq. nypieces) then
+            iytop = iypc + nyin
+          else if (mapAllPc(ixframe, iyframe+1, izpc) .lt. ipc) then
+            iytop = iypc + nyin
+          endif
+c           
+c           A piece starts farther in one direction if the piece before it
+c           is laid down after this piece
+          if (ixframe .gt. 1) then
+            if (mapAllPc(ixframe-1, iyframe, izpc) .gt. ipc)
+     &          ixpc = ixpc + nxoverlap
+          endif
+          if (iyframe .gt. 1) then
+            if (mapAllPc(ixframe, iyframe-1, izpc) .gt. ipc)
+     &          iypc = iypc + nyoverlap
+          endif
+          lenx = ixright - ixpc
+          leny = iytop - iypc
+c           
+c           This puts the vertices on the edge at its visible ends and one 
+c           vertex in the middle of this visible piece; the other vertex is 
+c           just a fixed distance into the piece below
+          vertex(1,1) = ixpc + lenx / 2.
+          vertex(1,2) = iypc + leny / 2.
+          vertex(2,1) = ixpc
+          vertex(2,2) = iypc
+          if (ixy .eq. 1) then
+            vertex(3,1) = ixpc - (nxin - nxoverlap) / 2.
+            vertex(3,2) = vertex(1,2)
+            vertex(4,1) = vertex(2,1)
+            vertex(4,2) = vertex(2,2) + leny
+          else
+            vertex(3,1) = vertex(1,1)
+            vertex(3,2) = iypc - (nyin - nyoverlap) / 2.
+            vertex(4,1) = vertex(2,1) + lenx
+            vertex(4,2) = vertex(2,2)
+          endif
+c          print *,'edge',ixy,ixpc,iypc,int(vertex(4,1)),int(vertex(4,2))
+c           
+c           test each model point for being inside this quadrangle
+          do iobj = 1, max_mod_obj
+            do ipt = 1, npt_in_obj(iobj)
+              ipnt = abs(object(ipt + ibase_obj(iobj)))
+              if (nint(p_coord(3,ipnt)) .eq. izpclist(ipc)) then
+                if (inside(vertex(1,1), vertex(1,2), 4, p_coord(1,ipnt),
+     &              p_coord(2,ipnt)) .and. ifskipEdge(ied,ixy) .eq. 0) then
+c                  write(*,'(3i3,10f6.0)')ied,ixy,ipc,p_coord(1,ipnt),
+c     &                p_coord(2,ipnt),((vertex(i,j),j=1,2),i=1,4)
+                  numNear = numNear + 1
+                  ifskipEdge(ied,ixy) = 2
+                  if ((edgedispx(ied,ixy) .ne. 0. .or.
+     &                edgedispy(ied,ixy).ne.0.) .and. ifUseAdjusted.gt.0) then
+                    ifskipEdge(ied,ixy) = 1
+                    if (ifUseAdjusted .gt. 1) ifskipEdge(ied,ixy) = 0
+                    numEFonly = numEFonly + 1
+                  endif
+                  if (ifskipEdge(ied,ixy) .gt. 0) numSkip = numSkip + 1
+                endif
+              endif
+            enddo
+          enddo
+        enddo
+      enddo
+      if (numNear .gt. 0) then
+        if (numEFonly .eq. 0) then
+          write(*,'(/,i7,a,/,a)')numSkip,' edges will be given zero edge '//
+     &        'functions and', '   excluded when solving for shifts'
+        else if (ifUseAdjusted .gt. 1) then
+          write(*,'(/,i7,a,i7,a,/,a)')numSkip,
+     &      ' edges will be given zero edge functions but', numEFonly,
+     &      ' others have','  non-zero displacements and edge functions '//
+     &        'will be found for them'
+        else
+          write(*,'(/,i7,a,i7,a,/,a)')numSkip,
+     &      ' edges will be given zero edge functions but', numEFonly,
+     &      ' of them have','  non-zero displacements and will be '//
+     &      'included when solving for shifts'
+        endif
+      endif
+      if (n_point .gt. numNear)
+     &    write(*,'(/,a,i7,a,i7,a)')'WARNING: only',numSkip,' of the ',n_point,
+     &      ' model points were near an edge'
+      return
+      end
+
+
 c       dumpEdge writes a padded image or correlation to a file.  The
 c       image in CRRAY, NXDIM is the X array dimension and NXPAD and NYPAD
 c       are image sizes.  IXY is 1 for X or 2 for Y edge.
@@ -2466,6 +3145,9 @@ c
 
 c       
 c       $Log$
+c       Revision 3.30  2010/04/29 04:28:18  mast
+c       Added diagnostic output to error message
+c
 c       Revision 3.29  2010/04/19 03:13:23  mast
 c       Switch to module, fixed allocation of big arrays in common
 c
