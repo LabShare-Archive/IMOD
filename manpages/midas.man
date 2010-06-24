@@ -302,7 +302,7 @@ The default overlay colors are magenta and green (mg).
 .B -D
 Run in debug mode, which means do not run the program in the background.
 .TP
-.B -p
+.B -q
 Suppress reminder to rebuild edge functions when exiting after fixing montage
 edges.
 .SH FILES
