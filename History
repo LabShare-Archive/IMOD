@@ -1,5 +1,18 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+6/26/10: Fixed problem with Ccderaser potentially not finding anything in
+difference search if nothing is examined in the peak search (In 4.1).
+
+6/23/10: Many blendmont changes: memory is allocated as needed; edges marked
+in a model can be excluded to keep them from ruining the piece placement; 
+computation of piece shifts is much faster and handles edge exclusion; pieces
+can overlap by > 50% and more than 2 pieces in a direction can overlap a given
+point; artifacts are reduced when adjacent edges in a row or column do not
+overlap in the narrow dimension; X and Y edges can be computed in separate
+runs in parallel, chunks can be written in Y as well as Z, and parallel
+writing is protected with boundary files.  A script, Splitblend, was added to
+set up command files for parallel runs of Blendmont.
+
 6/23/10: Prevented writing large last boundary file when doing Y chunks
 (In 4.1).
 
