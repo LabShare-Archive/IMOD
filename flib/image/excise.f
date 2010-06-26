@@ -124,7 +124,7 @@ c       ENCODE(80,301,TITLE)dat,tim
 	CALL IALCEL(2,CELL2)
 	dmin=1.e10
 	dmax=-1.e10
-	tmin=0.
+	tmean=0.
 c
 c	  make list of z values
 c

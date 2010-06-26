@@ -21,7 +21,7 @@ C
       real*4 TITLE(20), CELL2(6),delta(3)
       real*4, allocatable :: ARRAY(:)
 C       
-      CHARACTER*160 FILIN,FILOUT
+      CHARACTER*320 FILIN,FILOUT
       character*9 dat
       character*8 tim
       character*80 titlech
@@ -144,7 +144,7 @@ C
       call ialorg(2, origx, origy, origz)
       dmin=1.e30
       dmax=-1.e30
-      tmin=0.
+      tmean=0.
 c       
       izst=izlo-(nz3-nzbox)/2
       iznd=izst+nz3-1
@@ -178,6 +178,12 @@ c
       end
 c
 c       $Log$
+c       Revision 3.6  2010/06/26 18:15:53  mast
+c       Fixed initialization of mean sum
+c
+c       Revision 3.5  2010/01/08 19:06:00  mast
+c       Converted to PIP, added nofft option
+c
 c       Revision 3.4  2008/12/19 15:02:21  mast
 c       Oops need to pad single slice if padding requested
 c

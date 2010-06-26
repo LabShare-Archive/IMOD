@@ -846,6 +846,9 @@ c
       numPixels = 0
       nxuse = nx - 2 * nEdgePixels
       nyuse = ny - 2 * nEdgePixels
+      radMaxSq = radiusMax**2
+      outerSq = outerRadius**2
+      iouter = nint(outerRadius)
 c       
 c       set up extent of scan regions
 c       
@@ -914,9 +917,6 @@ c
 c                 
 c                 find mean and SD in the annulus
 c                 
-                radMaxSq = radiusMax**2
-                outerSq = outerRadius**2
-                iouter = nint(outerRadius)
                 jxs = max(1, ixPeak - iouter)
                 jxn = min(nx, ixPeak + iouter)
                 jys = max(1, iyPeak - iouter)
@@ -1473,6 +1473,13 @@ c       Look at all pixels in range, add to object at new base
       
 c       
 c       $Log$
+c       Revision 3.28  2010/06/26 18:09:03  mast
+c       Fixed radMaxSq not being defined for difference search if it never got
+c       defined in the peak search
+c
+c       Revision 3.27  2010/02/05 15:44:33  mast
+c       Ring SD needed to be computed with doubles
+c
 c       Revision 3.26  2008/12/09 16:04:36  mast
 c       Added an imposn before reading data to get this off bug list
 c
