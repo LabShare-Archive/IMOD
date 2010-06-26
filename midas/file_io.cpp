@@ -235,10 +235,10 @@ int load_transforms(MidasView *vw, char *filename)
          transforms */
     }
     
-    // Rotate then stretch transforms when coming in
+    // Rotate then stretch transforms when coming in if stretch is actually on
     if (vw->rotMode)
       rotate_all_transforms(vw, vw->globalRot);
-    if (vw->cosStretch)
+    if (vw->cosStretch > 0)
       stretch_all_transforms(vw, 0);
   }
 	
@@ -346,6 +346,9 @@ void load_angles(MidasView *vw)
 
 /*
 $Log$
+Revision 3.11  2009/01/15 16:30:19  mast
+Qt 4 port
+
 Revision 3.10  2008/10/13 04:36:23  mast
 Added cosine stretching
 
