@@ -77,7 +77,7 @@ static void usage(void)
        " max to 255\n";
      qstr += "   -b <size>\t set initial size for block copies\n";
      qstr += "   -a <angle>\t rotate all images by angle.\n";
-     qstr += "   -t <filename>\t load tilt angles from file and use cosine "
+     qstr += "   -t <filename>\t load tilt angles from file and allow cosine "
        "stretching.\n";
      qstr += "   -o <filename>\t output transforms to given file instead of "
        "input file\n";
@@ -893,6 +893,9 @@ void midas_error(const char *tmsg, const char *bmsg, int retval)
 /*
 
 $Log$
+Revision 3.26  2009/12/07 17:09:50  mast
+Remove requirement for existing ecd file with montage mode
+
 Revision 3.25  2009/03/06 05:39:39  mast
 Fixed loading of global rotation box
 
