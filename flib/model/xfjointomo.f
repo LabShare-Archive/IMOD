@@ -12,6 +12,9 @@ c
 c       $Id$
 c       
 c       $Log$
+c       Revision 3.5  2009/03/25 21:37:26  mast
+c       Initialized reference section number
+c
 c       Revision 3.4  2008/07/14 23:45:15  mast
 c       Made it skip points if a trajectory was coplanar on one side or other
 c
@@ -275,20 +278,20 @@ c
 c               find index of point above the gap, first point in previous
 c               section and last point in current section
 c               
-              do while(iAboveGap .le. ninobj .and. iAboveGap .ge. 1 .and.
-     &            p_coord(3,object(iAboveGap+ibase)) .lt. gapz)
+              do while(iAboveGap .le. ninobj .and. iAboveGap .ge. 1)
+                if (p_coord(3,object(iAboveGap+ibase)) .ge. gapz) exit
                 iAboveGap = iAboveGap + ipol
               enddo
               do while (izsec .gt. 1 .and. iFirstInPrev .le. ninobj .and.
-     &            iFirstInPrev .ge. 1 .and.
-     &            p_coord(3,object(iFirstInPrev+ibase)) .lt.
-     &            izBound(izsec - 1) - 0.5)
+     &            iFirstInPrev .ge. 1)
+                if (p_coord(3,object(iFirstInPrev+ibase)) .ge.
+     &            izBound(izsec - 1) - 0.5) exit
                 iFirstInPrev = iFirstInPrev + ipol
               enddo
               do while (izsec .lt. numBoundaries .and. lastInSec .gt. 1 .and.
-     &            lastInSec .lt. ninobj - 1 .and.
-     &            p_coord(3,object(lastInSec + ibase + ipol)) .gt.
-     &            izBound(izsec + 1) - 0.5)
+     &            lastInSec .lt. ninobj - 1)
+                if (p_coord(3,object(lastInSec + ibase + ipol)) .le.
+     &            izBound(izsec + 1) - 0.5) exit
                 lastInSec = lastInSec + ipol
               enddo
 c
