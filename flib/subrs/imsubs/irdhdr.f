@@ -249,7 +249,7 @@ C
      &    1X,'Minimum density .......................',G13.5,/,
      &    1X,'Maximum density .......................',G13.5,/,
      &    1X,'Mean density ..........................',G13.5,/,
-     &    1X,'tilt angles (original,current) ........',f5.1,5f6.1,/,
+     &    1X,'tilt angles (original,current) ........',6f6.1,/,
      &    1X,'Space group,# extra bytes,idtype,lens .',4I9,//,
      &    1X,i5,' Titles :'/10(19A4,A3/))
 c
@@ -1271,6 +1271,9 @@ c
       end
 
 c       $Log$
+c       Revision 3.20  2010/03/27 19:22:44  mast
+c       Made stamp CCP4 compliant
+c
 c       Revision 3.19  2009/09/10 21:49:42  mast
 c       Make origin not run together
 c
