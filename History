@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+6/26/10: Fixed problem with Ccderaser potentially not finding anything in
+difference search if nothing is examined in the peak search.
+
 6/23/10: Prevented writing large last boundary file when doing Y chunks
 
 6/18/10: Fixed some bugs that crashed Boxstartend.
