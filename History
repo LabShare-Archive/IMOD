@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+6/26/10: Stopped midas from stretching transforms on startup when cosine
+stretch is enabled but not actually on.
+
 6/26/10: Fixed problem with Ccderaser potentially not finding anything in
 difference search if nothing is examined in the peak search.
 
