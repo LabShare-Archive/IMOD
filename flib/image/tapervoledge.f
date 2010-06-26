@@ -40,6 +40,9 @@ c
 c       $Revision$
 c       
 c       $Log$
+c       Revision 3.1  2006/05/13 00:04:27  mast
+c       Redimensioned, added declarations and error exits
+c
 C
 c       David Mastronarde, 7/22/97; 2/2/01: taper a single slice.
       implicit none
@@ -152,7 +155,7 @@ c       ENCODE(80,301,TITLE)dat,tim
       CALL IALCEL(2,CELL2)
       dmin=1.e10
       dmax=-1.e10
-      tmin=0.
+      tmean=0.
 c       
       indbase=1
       do iz=izlo,izhi

@@ -181,7 +181,7 @@ C
       call ialorg(1,origx, origy, origz)
       dmin=1.e30
       dmax=-1.e30
-      tmin=0.
+      tmean=0.
 c       
       ifile=1
       do izf=1,nfz
@@ -285,6 +285,9 @@ c
 
 c	
 c       $Log$
+c       Revision 3.7  2007/10/04 00:42:06  mast
+c       MAde it set origin from first input volume
+c
 c       Revision 3.6  2007/07/16 04:39:55  mast
 c       Fixed problem after testing
 c
