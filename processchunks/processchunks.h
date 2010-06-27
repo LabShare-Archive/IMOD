@@ -2,6 +2,8 @@
 #define PROCESSCHUNKS_H
 
 #include <QApplication>
+#include <machinehandler.h>
+#include <QList>
 
 class ProcessHandler;
 class QTextStream;
@@ -30,16 +32,18 @@ private:
   int runProcessAndOutputLines(QProcess &process, QString &command,
       QStringList &params, int numLines);
 
-  ProcessHandler *mHandlers;
+  ProcessHandler *mProcessArray;
+  QList<MachineHandler> *mMachineList;
   QTextStream *mOut;
-  int mProcessFinishedCount, mRetain, mSingleFile, mJustGo, mSkipProbe,
-      mReturnPid, mNice, mDropCrit, mMaxChunkErr, mQueue, mVersion, mVerbose,
-      *mFlags, *mNumChunkErr;
+  int mSizeProcessArray, mProcessFinishedCount, mRetain,
+      mSingleFile, mJustGo, mSkipProbe, mReturnPid, mNice, mDropCrit,
+      mMaxChunkErr, mQueue, mVersion, mVerbose, mCopyLogIndex;
   char *mRemoteDir;//was curdir
-  char *mCheckFile, *mQueueName, *mMachineList, *mRootName, *mQueueCom,
+  char *mCheckFile, *mQueueName, *mCpuList, *mRootName, *mQueueCom,
       *mSshExt, *mPidExt;
   QString *mHostRoot;
-  QStringList *mMachineArray, *mComFileArray, *mSshOpts;
+  QStringList *mSshOpts;
+  bool mRestarting;
 };
 
 #endif

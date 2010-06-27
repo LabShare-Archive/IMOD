@@ -1,5 +1,5 @@
 /*
- *  qtprocesschunks -- Runs tiltb.com in current data/UITests/dual-montage on bear
+ *  processchunks -- An application to process command files on multiple machines
  *
  *  Author: Sue Held
  *
@@ -18,10 +18,11 @@
 #include "b3dutil.h"
 #include <QDir>
 #include <signal.h>
+#include <QSet>
 
 static const int arraySize = 2;
-//Using a shorter sleep time and not adjusting the sleep depending on the
-//number of machines.
+//Using a shorter sleep time then the processchunks script and not adjusting
+//the sleep depending on the number of machines.
 static const int sleepMillisec = 100;
 static const int maxLocalByNum = 32;
 static const int timeout = 30;
@@ -81,12 +82,15 @@ Processchunks::Processchunks(int &argc, char **argv) :
   *mSshOpts << "-o PreferredAuthentications=publickey"
       << "-o StrictHostKeyChecking=no";
   mVersion = -1;
-  mMachineList = NULL;
+  mCpuList = NULL;
   mRootName = NULL;
   mQueueCom = NULL;
   mQueueName = queueNameDefault;
   mHostRoot = NULL;
   mCheckFile = NULL;
+  mCopyLogIndex = -1;
+  mRestarting = false;
+  mMachineList = new QList<MachineHandler> ();
   //old codemNumSshOpts
   //mHandlers = new ProcessHandler[arraySize];
   //Handles need to know what process they are handling
@@ -107,7 +111,8 @@ void processchunksUsageHeader(char *pname) {
   printf(
       "\nUsage: %s [Options] machine_list root_name\nWill process multiple command "
         "files on multiple processors or machines\nmachine_list is a list of "
-        "available machines, separated by commas.\nRoot_name is "
+        "available machines, separated by commas.\nList machines names multiple "
+        "times to gain access to multiple CPUs on a machine.\nRoot_name is "
         "the base name of the command files, omitting -nnn.com\n\n", pname);
   imodUsageHeader(pname);
 }
@@ -144,30 +149,17 @@ void Processchunks::loadParams(int &argc, char **argv) {
     fprintf(stderr, "Shell PID: %d\n", imodGetpid());
     fflush(stderr);
   }
-  PipGetNonOptionArg(0, &mMachineList);
+  PipGetNonOptionArg(0, &mCpuList);
   PipGetNonOptionArg(1, &mRootName);
   PipGetBoolean("v", &mVerbose);
-  int i = 0;
-  mHandlers[i++].setVerbose(mVerbose);
-  mHandlers[i++].setVerbose(mVerbose);
   //Error check
   if (mRetain && mSingleFile) {
     exitError("You cannot use the retain option with a single command file");
   }
 }
 
-//Handle ctrl-C
-void handleSigInt(int signal) {
-  if (signal != SIGINT) {
-    return;
-  }
-  QTextStream out(stdout);
-  out << "SIGINT detected" << endl;
-  QApplication::quit();
-}
-
-//Setup mSshOpts, mMachineArray, mComFileArray, mHostRoot, mRemoteDir.  Probe
-//machines.  Listen for ctrl-C.
+//Setup mSshOpts, mCpuArray, mComFileArray, mHostRoot, mRemoteDir.  Probe
+//machines.
 void Processchunks::setup() {
   int i;
   //Change mSshOpts if version is recent enough
@@ -193,50 +185,85 @@ void Processchunks::setup() {
     }
   }
 
-  //Setup mMachineArray with the queue name or the values in mMachineList.
+  //Setup cpuArray with the queue name or the values in mCpuList.
   //Not implementing $IMOD_ALL_MACHINES since no one seems to have used it.
+  MachineHandler *machine;
   if (mQueue) {
-    //For a queue, make a machine list that is all the same name
-    mQueueCom = mMachineList;
-    for (int i = 0; i < mQueue; i++) {
-      mMachineArray = new QStringList();
-      mMachineArray->append(mQueueName);
-    }
+    //For a queue, make a CPU list that is all the same name
+    mQueueCom = mCpuList;
+    machine = new MachineHandler(mQueueName, mQueue);
+    mMachineList->append(*machine);
   }
   else {
-    //Setup up machine names
-    QString temp(mMachineList);
-    mMachineArray = new QStringList(temp.split(",", QString::SkipEmptyParts));
+    //Setup up machine names from mCpuList
+    QString temp(mCpuList);
+    QStringList cpuArray = temp.split(",", QString::SkipEmptyParts);
+    //Now handling mixed up names (as in bear,bebop,bear) without extra probes.
+    //Processes will now be run based on the first time a machine appears in
+    //the list.
+    //MachineSet temporarily keeps track of machines.
+    QSet<QString> machineSet;
+    for (i = 0; i < cpuArray.size(); i) {
+      QString cpuMachine = cpuArray.at(i);
+      if (!machineSet.contains(cpuMachine)) {
+        machineSet.insert(cpuMachine);
+        machine = new MachineHandler(cpuMachine);
+        mMachineList->append(*machine);
+      }
+      else {
+        //Increment the number of CPUs in an existing machine.
+        machine = &mMachineList->last();
+        if (*machine == cpuMachine) {
+          machine->incrementNumCpus();
+        }
+        else {
+          //Machine names are mixed up (as in bear,bebop,bear).
+          for (int j = 0; j < mMachineList->size(); j++) {
+            machine = &(*mMachineList)[j];
+            if (*machine == cpuMachine) {
+              machine->incrementNumCpus();
+              break;
+            }
+          }
+        }
+      }
+    }
   }
-  int size = mMachineArray->size();
+  int size = mMachineList->size();
   if (size < 1) {
     exitError("No machines specified");
   }
   //Translate a single number into a list of localhost entries
   if (size == 1) {
     bool ok;
-    long localByNum = mMachineArray->at(0).toLong(&ok);
+    machine = &(*mMachineList)[0];
+    long localByNum = machine->nameToLong(&ok);
     if (ok) {
       if (localByNum > maxLocalByNum) {
         exitError("You cannot run more than %d chunks on localhost by "
           "entering a number", maxLocalByNum);
       }
+      machine->setValues("localhost", localByNum);
     }
-    mMachineArray->clear();
-    for (int i = 0; i < localByNum; i++) {
-      mMachineArray->append("localhost");
+  }
+
+  if (mVerbose) {
+    *mOut << "mMachineList:" << endl;
+  }
+  //Setup machines.  Do this only once after the number of CPUs is finalized.
+  for (i = 0; i < mMachineList->size(); i++) {
+    machine = &(*mMachineList)[i];
+    machine->setup();
+    if (mVerbose) {
+      *mOut << i << ":" << machine->getName() << endl;
     }
   }
   if (mVerbose) {
-    *mOut << "mMachineArray:" << endl;
-    for (i = 0; i < mMachineArray->size(); i++) {
-      *mOut << i << ":" << mMachineArray->at(i) << endl;
-    }
     *mOut << endl;
   }
 
-  //Sets up mComFileArray for single file or multi-file processing
-  mComFileArray = new QStringList();
+  //Sets up mProcessArray for single file or multi-file processing
+  QStringList comFileArray;
   if (mVerbose) {
     *mOut << "current path:" << QDir::currentPath() << endl;
   }
@@ -253,7 +280,7 @@ void Processchunks::setup() {
       exitError("The single command file %s does not exist",
           rootName.toAscii().data());
     }
-    mComFileArray->append(rootName);
+    comFileArray.append(rootName);
   }
   else {
     //Build up lists in order -nnn, -nnnn, -nnnnn*, which should work both for
@@ -263,7 +290,7 @@ void Processchunks::setup() {
     QString startComFile(mRootName);
     startComFile.append("-start.com");
     if (dir.exists(startComFile)) {
-      mComFileArray->append(startComFile);
+      comFileArray.append(startComFile);
     }
     //Add numeric com files
     dir.setSorting(QDir::Name);
@@ -274,37 +301,49 @@ void Processchunks::setup() {
     buildFilters("-???.com", "-??\?-sync.com", filters);
     QStringList list = dir.entryList(filters);
     cleanupList("-\\D{3,3}(-sync){0,1}\\.com", list);
-    *mComFileArray += list;
+    comFileArray += list;
     //add -nnnn com files
     filters.clear();
     list.clear();
     buildFilters("-????.com", "-???\?-sync.com", filters);
     list = dir.entryList(filters);
     cleanupList("-\\D{4,4}(-sync){0,1}\\.com", list);
-    *mComFileArray += list;
+    comFileArray += list;
     //add -nnnnn com files
     filters.clear();
     list.clear();
     buildFilters("-?????.com", "-????\?-sync.com", filters);
     list = dir.entryList(filters);
     cleanupList("-\\D{5,5}(-sync){0,1}\\.com", list);
-    *mComFileArray += list;
+    comFileArray += list;
     //Add finish com file
     QString finishComFile(mRootName);
     finishComFile.append("-finish.com");
     if (dir.exists(finishComFile)) {
-      mComFileArray->append(finishComFile);
+      comFileArray.append(finishComFile);
     }
   }
   if (mVerbose) {
     *mOut << "mComFileArray:" << endl;
-    for (i = 0; i < mComFileArray->size(); i++) {
-      *mOut << i << ":" << mComFileArray->at(i) << endl;
+    for (i = 0; i < comFileArray.size(); i++) {
+      *mOut << i << ":" << comFileArray.at(i) << endl;
     }
     *mOut << endl;
   }
-  if (mComFileArray->isEmpty()) {
+  if (comFileArray.isEmpty()) {
     exitError("There are no command files matching %s-nnn.com", mRootName);
+  }
+  //Build mProcessArray from comFileArray.
+  //set up flag list and set up which chunk to copy the
+  //log from, the first non-sync if any, otherwise just the first one
+  mSizeProcessArray = comFileArray.size();
+  mProcessArray = new ProcessHandler[mSizeProcessArray];
+  for (i = 0; i < mSizeProcessArray; i++) {
+    if (!mProcessArray[i].setup(mSingleFile, mVerbose, comFileArray.at(i))
+        && mCopyLogIndex == -1) {
+      //Setting mCopyLogIndex to the first non-sync log
+      mCopyLogIndex = i;
+    }
   }
 
   //Setup mHostRoot
@@ -330,89 +369,89 @@ void Processchunks::setup() {
   }
 
   //Get current directory if the -w option was not used
-  if (mRemoteDir != NULL) {
-    return;
-  }
-  QProcess pwd(this);
-  command.clear();
-  command.append("pwd");
-  pwd.start(command);
-  if (pwd.waitForFinished()) {
-    QString temp(pwd.readAllStandardOutput());
-    if (!temp.isEmpty()) {
-      mRemoteDir = temp.toAscii().data();
+  if (mRemoteDir == NULL) {
+    QProcess pwd(this);
+    command.clear();
+    command.append("pwd");
+    pwd.start(command);
+    if (pwd.waitForFinished()) {
+      QString temp(pwd.readAllStandardOutput());
+      if (!temp.isEmpty()) {
+        mRemoteDir = temp.toAscii().data();
+      }
     }
-  }
-  else {
-    exitError("Unable to run the pwd command");
+    else {
+      exitError("Unable to run the pwd command");
+    }
   }
 
   //Probe machines by running the "w" command.  Drop machines that don't respond.
   //probe machines and get all the verifications unless etomo is running it
-  if (mSkipProbe && mJustGo) {
-    return;
-  }
-  //Remove the old checkfile
-  if (mCheckFile != NULL) {
-    QDir dir(".");
-    if (dir.exists(mCheckFile)) {
-      dir.remove(mCheckFile);
+  if (!mSkipProbe || !mJustGo) {
+    //Remove the old checkfile
+    if (mCheckFile != NULL) {
+      QDir dir(".");
+      if (dir.exists(mCheckFile)) {
+        dir.remove(mCheckFile);
+      }
     }
-  }
-  *mOut << "Probing machine connections and loads..." << endl;
-  QProcess w(this);
-  QString localCommand("w");
-  QStringList localParams;
-  QString remoteCommand("ssh");
-  QStringList remoteParams("-x");
-  for (i = 0; i < mSshOpts->size(); i++) {
-    remoteParams.append(mSshOpts->at(i));
-  }
-  remoteParams << "dummy" << "hostname ; w";
-  bool lastStat = -1;
-  //Probing the machines and building a new machine array from the ones that
-  //respond.
-  i = 0;
-  while (i < mMachineArray->size()) {
-    QString machName = mMachineArray->at(i);
-    //Don't check the same machine twice.  Assume that multiple entries of
-    //machines are next to each other.
-    if (i == 0 || mMachineArray->at(i - 1) != machName) {
+    *mOut << "Probing machine connections and loads..." << endl;
+    QProcess w(this);
+    QString localCommand("w");
+    QStringList localParams;
+    QString remoteCommand("ssh");
+    QStringList remoteParams("-x");
+    for (i = 0; i < mSshOpts->size(); i++) {
+      remoteParams.append(mSshOpts->at(i));
+    }
+    remoteParams << "dummy" << "hostname ; w";
+    //Probing the machines and building a new cpu array from the ones that
+    //respond.
+    bool status = -1;
+    i = 0;
+    while (i < mMachineList->size()) {
+      QString machName = (*mMachineList)[i].getName();
       if (machName == mHostRoot || machName == "localhost") {
         *mOut << machName << endl;
-        lastStat = runProcessAndOutputLines(w, localCommand, localParams, 1);
+        status = runProcessAndOutputLines(w, localCommand, localParams, 1);
       }
       else {
         remoteParams.replace(mSshOpts->size() + 1, machName);
-        lastStat = runProcessAndOutputLines(w, remoteCommand, remoteParams, 2);
+        status = runProcessAndOutputLines(w, remoteCommand, remoteParams, 2);
       }
-      //LastStat can also be set to 1 on the local machine if it times out.
+      //status can also be set to 1 on the local machine if it times out.
       //No longer testing for 141 before no longer supporting SGI
-      if (lastStat != 0) {
+      if (status != 0) {
         *mOut << "Dropping " << machName
             << " from list because it does not respond" << endl << endl;
         if (mVerbose) {
-          *mOut << "lastStat:" << lastStat << endl;
+          *mOut << "status:" << status << endl;
         }
+        //Drops failed machine from the machine list
+        mMachineList->removeAt(i);
+      }
+      else {
+        i++;
       }
     }
-    //Drops failed machine names from machine array
-    if (lastStat != 0) {
-      mMachineArray->removeAt(i);
-    }
-    else {
-      i++;
+    if (mVerbose) {
+      *mOut << "end probe machines" << endl;
     }
   }
-  if (mVerbose) {
-    *mOut << "end probe machines" << endl;
-  }
-
-  //allow users to send commands to process by type ctrl-C
-  signal(SIGINT, handleSigInt);
 }
 
-//Setup mFlags.  Run event loop.
+//Handle ctrl-C
+void handleSigInt(int signal) {
+  if (signal != SIGINT) {
+    return;
+  }
+  QTextStream out(stdout);
+  out << "SIGINT detected" << endl;
+  QApplication::quit();
+}
+
+//Setup mFlags.  Find first not-done log file.  Delete log files and
+//miscellaneous files.  Listen for ctrl-C.  Run event loop.
 void Processchunks::runProcesses() {/*
  QStringList params[2];
  //Start process 0
@@ -428,19 +467,96 @@ void Processchunks::runProcesses() {/*
  mHandlers[index].setParams(params[index]);
  mHandlers[index].runProcess();
  //Error messages from inside the event loop must using QApplication functionality
- PipDone();
  //Start loop and timer
- startTimer(100);
+
  */
 
   int i;
-
-  //set up flag list and list of assignments and set up which chunk to copy the
-  //log from, the first non-sync if any, otherwise just the first one
-  for (i = 0; i < mComFileArray->size(); i++) {
-    int sync = 0;
+  if (mRestarting) {
+    //reset the flags and list of assignments and set up which chunk to copy the
+    //log from, the first non-sync if any, otherwise just the first one
+    for (i = 0; i < mSizeProcessArray; i++) {
+      mProcessArray[i].reset();
+    }
+    //reset flags associated with the machines and CPUs
+    MachineHandler *machine;
+    for (i = 0; i < mMachineList->size(); i++) {
+      machine = &(*mMachineList)[i];
+      machine->reset();
+    }
   }
 
+  //Prescan logs for done ones to find first undone one, or back up unfinished
+  int numDone = 0;
+  int firstUndoneIndex = -1;
+  for (i = 0; i < mSizeProcessArray; i++) {
+    ProcessHandler *process = &mProcessArray[i];
+    if (process->logExists()) {
+      if (process->isChunkDone()) {
+        //If it was done and we are resuming, set flag it is done, count
+        if (mRetain) {
+          process->setFlag(ProcessHandler::done);
+          numDone++;
+        }
+      }
+      else if (!mRetain) {
+        //If it was not done and we are restarting, back up the old log
+        process->backupLog();
+      }
+    }
+    //If resuming and this is the first undone one, keep track of that
+    if (mRetain && firstUndoneIndex == -1 && !process->flagEquals(
+        ProcessHandler::done)) {
+      firstUndoneIndex = i;
+    }
+  }
+  if (firstUndoneIndex == -1) {
+    firstUndoneIndex = 0;
+  }
+
+  //remove logs if not restarting
+  if (!mRetain) {
+    QProcess find(this);
+    QString command("find");
+    QStringList params;
+    params << "." << "-maxdepth" << "1" << "-type" << "f" << "-name" << "dummy"
+        << "-exec" << "rm" << "-f" << "{}";
+    QString pattern;
+    pattern.arg("%1-[0-9][0-9][0-9]*.log", mRootName);
+    params.replace(6, pattern);
+    find.start(command, params);
+    find.waitForFinished();
+    pattern.arg("%1-start.log", mRootName);
+    params.replace(6, pattern);
+    find.start(command, params);
+    find.waitForFinished();
+    pattern.arg("%1-finish.log", mRootName);
+    params.replace(6, pattern);
+    find.start(command, params);
+    find.waitForFinished();
+    //Clean up .ssh and .pid files to avoid confusion and .csh on general principle
+    pattern.arg("%1-[0-9][0-9][0-9]*.%2", mRootName, mSshExt);
+    params.replace(6, pattern);
+    find.start(command, params);
+    find.waitForFinished();
+    pattern.arg("%1-[0-9][0-9][0-9]*.%2", mRootName, mPidExt);
+    params.replace(6, pattern);
+    find.start(command, params);
+    find.waitForFinished();
+    pattern.arg("%1-[0-9][0-9][0-9]*.csh", mRootName);
+    params.replace(6, pattern);
+    find.start(command, params);
+    find.waitForFinished();
+  }
+
+  if (!mRestarting) {
+    //allow users to send commands to process by type ctrl-C
+    signal(SIGINT, handleSigInt);
+  }
+
+  startTimer(100);
+  //Error messages from inside the event loop must using QApplication functionality
+  PipDone();
   exec();
 }
 
@@ -575,6 +691,10 @@ void Processchunks::msgProcessFinished() {
 }
 /*
  $Log$
+ Revision 1.2  2010/06/23 20:17:27  sueh
+ bug# 1364 Moved most setup functionality into one function.  Changed
+ QTprocesschunks to Processchunks.
+
  Revision 1.1  2010/06/23 16:22:33  sueh
  bug# 1364 First checkin for QT version of processchunks.
 
