@@ -6,6 +6,7 @@
  */
 #include <processhandler.h>
 #include <QTextStream>
+#include <QDir>
 
 static QString pidTag = "PID:";
 
@@ -30,16 +31,69 @@ ProcessHandler::~ProcessHandler() {
   delete mPid;
 }
 
+//Set mFlag to -1 for sync com files.
+//Return mFlag as a boolean (so it returns true for sync com files).
+bool ProcessHandler::setup(int verbose, int singleFile, QString comFile) {
+  mVerbose = verbose;
+  mComFileName = &comFile;
+  //To get the log file name, append .log to the root of the com file
+  mLogFileName = new QString();
+  int i = mComFileName->lastIndexOf(".");
+  if (i != -1) {
+    mLogFileName->arg("%1.log", mComFileName->mid(0, i));
+  }
+  else {
+    mLogFileName->arg("%1.log", *mComFileName);
+  }
+  mSingleFile = singleFile;
+  reset();
+  return mFlag;
+}
+
+//Resets mNumChunkErr and mFlag.
+void ProcessHandler::reset() {
+  mNumChunkErr = 0;
+  if (mSingleFile || mComFileName->endsWith("-start.com")
+      || mComFileName->endsWith("-finish.com") || mComFileName->endsWith(
+      "-sync.com")) {
+    mFlag = sync;
+  }
+  else {
+    mFlag = notDone;
+  }
+}
+
+bool ProcessHandler::logExists() {
+  QDir dir;
+  return dir.exists(*mLogFileName);
+}
+
+bool ProcessHandler::isChunkDone() {
+  QFile logFile(*mLogFileName);
+  //todo
+  //logFile.
+}
+
+//todo
+void ProcessHandler::setFlag(enum flag) {
+
+}
+
+//todo
+void ProcessHandler::backupLog() {
+
+}
+
+bool ProcessHandler::flagEquals(enum flag flag) {
+  return flag == mFlag;
+}
+
 void ProcessHandler::init(Processchunks *parent, char *imodDir,
     QTextStream *out, int index) {
   mParent = parent;
   mImodDir = imodDir;
   mOut = out;
   mIndex = index;
-}
-
-void ProcessHandler::setVerbose(int verbose) {
-  mVerbose = verbose;
 }
 
 void ProcessHandler::setParams(QStringList params) {
