@@ -19,12 +19,24 @@ public:
   ProcessHandler();
   ~ProcessHandler();
 
+  enum flag {
+    sync = -1, notDone, done = 2
+  };
+
+  bool setup(int verbose,int singleFile,QString comFile);
+  void reset();
+  bool logExists();
+  bool isChunkDone();
+  void setFlag(enum flag);
+  void backupLog();
+  bool flagEquals(enum flag);
+
   void
-      init(Processchunks *parent, char *imodDir, QTextStream *out, int index);
-  void setVerbose(int verbose);
+  init(Processchunks *parent, char *imodDir, QTextStream *out, int index);
   void setParams(QStringList params);
   void runProcess();
   bool waitForFinished(int timeout);
+
 
 public slots:
   void handleError(QProcess::ProcessError error);
@@ -32,13 +44,20 @@ public slots:
   void handleStarted();
   void handleFinished(int exitCode, QProcess::ExitStatus exitStatus);
 
+
+
 private:
+  QString *mComFileName,*mLogFileName;
+  bool mVerbose,mSingleFile;
+  int mNumChunkErr;
+  enum flag mFlag;
+
   Processchunks *mParent;
   QTextStream *mOut;
   QProcess *mProc;
   int mIndex;
   QStringList *mParams;
-  bool mFinished, mVerbose;
+  bool mFinished;
   QString *mPid, *mStderr;
   char *mImodDir;
 };
