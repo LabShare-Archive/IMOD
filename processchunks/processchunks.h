@@ -34,7 +34,7 @@ private:
   QTextStream *mOut;
   int mProcessFinishedCount, mRetain, mSingleFile, mJustGo, mSkipProbe,
       mReturnPid, mNice, mDropCrit, mMaxChunkErr, mQueue, mVersion, mVerbose,
-      mFlags[],mNumChunkErr[];
+      *mFlags, *mNumChunkErr;
   char *mRemoteDir;//was curdir
   char *mCheckFile, *mQueueName, *mMachineList, *mRootName, *mQueueCom,
       *mSshExt, *mPidExt;
