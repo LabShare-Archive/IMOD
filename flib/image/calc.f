@@ -22,6 +22,10 @@ c
 c       $Revision$
 c       
 c       $Log$
+c       Revision 3.2  2005/12/09 04:44:59  mast
+c       Fixes for gfortran: unraveled the branches into 8 and 14, fixed byte,
+c       reindented to remove tabs in format continuation
+c
 c       
       CHARACTER*132 STRNG
 c	ISTAT=LIB$GET_FOREIGN(STRNG,,LENGTH,IFLAG)	!See if expression
@@ -386,7 +390,7 @@ c	EQUIVALENCE (FUNC,FCNS)
       DIMENSION CSAV(50)
       COMMON /DESKC/ ICSP,ICSTK(50),LINENO,ILFLG,VL4S(50)
       COMMON /EVAL2/ ISP,IOP,IERR,STPOS,IP,IRP,ILP,STACK,STRING
-      INTEGER*1 STRNG(132),STRING(134)
+      INTEGER*1 STRNG(132),STRING(134),BB
       COMMON /VARS/ NVARS,VARNAMS,VL1(50),VL2(50),VL3(50),VL4(50),DEGFLG
       LOGICAL*1 DEGFLG,VARNAMS(10,50)
       integer*1 byteupcase
@@ -526,11 +530,13 @@ C
           STACK(ISP)=I+9
 c	    print *,'eval replace',isp,opcode,stack(isp)
           IF (IP.EQ.0) GOTO 42
+          BB = ichar(' ')
+          if (ip.gt.1) bb = string(ip-1)
           IF ((STRING(IP).EQ.ichar('+').OR.STRING(IP).EQ.ichar('-')) .AND.
-     &        (STRING(IP-1).EQ.ichar('(').OR.STRING(IP-1).EQ.ichar('*').OR.
-     &        STRING(IP-1).EQ.ichar('/').OR.STRING(IP-1).EQ.ichar('+').OR.
-     &        STRING(IP-1).EQ.ichar('-').OR.STRING(IP-1).EQ.ichar('>').OR.
-     &        STRING(IP-1).EQ.ichar('<'))) THEN
+     &        (BB.EQ.ichar('(').OR.BB.EQ.ichar('*').OR.
+     &        BB.EQ.ichar('/').OR.BB.EQ.ichar('+').OR.
+     &        BB.EQ.ichar('-').OR.BB.EQ.ichar('>').OR.
+     &        BB.EQ.ichar('<'))) THEN
             IF (STRING(IP).EQ.ichar('-')) THEN
               STACK(ISP+1)=OPCODE
               STACK(ISP+2)=8
@@ -861,7 +867,8 @@ c	      print *,'push2',isp,stack(isp)
      &        .OR.B.EQ.ichar('<').OR.B.EQ.ichar('>')
      &        .OR.B.EQ.ichar('^')) THEN         !Decode the constant
           CALL PUSH1(IT,TERM(20-IT))
-          BB=STRING(I-1)
+          BB=ichar(' ')
+          if (i.gt.1)BB=STRING(I-1)
           IF ((B.EQ.ichar('+').OR.B.EQ.ichar('-')).AND.
      &        (BB.EQ.ichar('*').OR.BB.EQ.ichar('/') .OR.BB.EQ.ichar('(')
      &        .OR.BB.EQ.ichar('<').OR.BB.EQ.ichar('>')
