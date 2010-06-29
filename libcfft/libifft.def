@@ -3,18 +3,21 @@
 LIBRARY      "libifft"
 
 EXPORTS
-	r2cftk
 	diprp
-	mdftkd
-	r5cftk
-	r8cftk
-	rpcftk
-	TODFFT
-	realft
-	hermft
-	srfp
-	ODFFT
-	cmplft
+	thrdfftc
+	odfftc
 	r4cftk
-	r3cftk
+	r8cftk
+	r2cftk
+	hermft
+	rpcftk
+	mdftkd
+	srfp
 	THRDFFT
+	cmplft
+	r5cftk
+	r3cftk
+	realft
+	ODFFT
+	TODFFT
+	todfftc
