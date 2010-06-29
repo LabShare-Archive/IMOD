@@ -85,24 +85,8 @@ magnification and stretching.
 <P>
 The <B>Stretch Angle</B> slider sets the axis along which the section will be
 stretched by either an Arrow button or a hotkey.  This axis is shown by the red
-dashed line.  If the section has already been stretched, the axis of that actual
-stretch is shown with a blue dashed line.
-<P>
-If the program was started with "-a" to specify a <B>Global rotation</B> angle,
-this angle is displayed and can be adjusted with the spin box below the
-<B>Stretch Angle</B> slider.  Use the up and down arrows to adjust the angle by
-1 degree, or type in a new value directly.  Select <B>Mouse shifts X only</B> to
-constrain translation changes with the mouse to the X direction in the rotated
-images.  With this constraint, it is still possible to change the shift in Y
-with the arrow hot keys or the Y translation arrow buttons.
-<P>
-If the program was started with "-t" and a file of tilt angles, then two more
-controls appear.  Select <B>Apply cosine stretch</B> to stretch the current
-image along the X axis by the ratio of the cosines of the current and
-reference image tilt angles.  They should be easier to line up with this
-stretching.  Below this checkbox is <B>Tilt angle offset</B> spin box to allow
-you to adjust the tilt angles by a constant amount.  For very high tilt
-angles, this offset may be needed to get the right amount of cosine stretching.
+dashed line.  If the section has already been stretched, the axis of that
+actual stretch is shown with a blue dashed line.
 <P>
 Rotation, magnification, and stretch will occur around the center of rotation,
 which is marked by the yellow star.  You can use [Ctrl]+Middle-Mouse-Button to
@@ -120,10 +104,40 @@ point:
 <LI>Rotate and stretch to align the images at a second, distant location.
 <LI>Set a second fixed point at that location.
 <LI>Stretch with the right mouse button to align the images in other places.
-<LI>If the images are still not aligned well enough, pick a new center point and
-second fixed point at two well-separated places where they now seem best
+<LI>If the images are still not aligned well enough, pick a new center point
+and second fixed point at two well-separated places where they now seem best
 aligned, and stretch again.
 </OL>
+<P>
+The <B>Cross-Correlate</B> button can be used to align the images by
+cross-correlating them in a square area around the center point marked with the
+yellow star.  The program will search for peaks in the cross-correlation of
+padded and filtered extracts from the two images, then evaluate the
+correlation coefficient for peaks within a certain range of the origin and
+pick the peak with the highest correlation.  The size of the region being
+correlated can be set in the <B>Box</B> spin box, and the limit on the shift
+in X and Y that can be found is adjusted with the <B>Limit</B> spin box.
+These shifts are incremental to the current translation between images, so
+if you adjust the translation approximately, the correlation should be able to
+find a small shift to refine your translation.  The parameters for padding and
+filtering are based on the settings that are most successful in Blendmont
+when finding overlaps between adjacent pieces.
+<P>
+If the program was started with "-a" to specify a <B>Global rotation</B> angle,
+this angle is displayed and can be adjusted with the spin box below the
+<B>Stretch Angle</B> slider.  Use the up and down arrows to adjust the angle by
+1 degree, or type in a new value directly.  Select <B>Mouse shifts X only</B> to
+constrain translation changes with the mouse to the X direction in the rotated
+images.  With this constraint, it is still possible to change the shift in Y
+with the arrow hot keys or the Y translation arrow buttons.
+<P>
+If the program was started with "-t" and a file of tilt angles, then two more
+controls appear.  Select <B>Apply cosine stretch</B> to stretch the current
+image along the X axis by the ratio of the cosines of the current and
+reference image tilt angles.  They should be easier to line up with this
+stretching.  Below this checkbox is the <B>Tilt angle offset</B> spin box to
+allow you to adjust the tilt angles by a constant amount.  For very high tilt
+angles, this offset may be needed to get the right amount of cosine stretching.
 <A NAME = "File"><H3>File Menu Items</H3>
 <UL>
 <LI><B>Load Transforms</B>:&emsp;will load transforms from a file.  If the set
@@ -158,18 +172,37 @@ the current section to mirror it around the X axis.  To mirror around the Y axis
 just rotate by 180 degrees before or after this operation.
 </UL>
 <A NAME = "Controls"><H3>Controls when Fixing Montages</H3>
-X edges are between adjacent pieces in a row and are numbered from left to right
-in the bottom row, next row, etc.  Y edges are between adjacent pieces in a
-column and are numbered from bottom to top in the left-most column, next column,
-etc.
+X edges are between adjacent pieces in a row and are numbered from left to
+right in the bottom row, next row, etc.  Y edges are between adjacent pieces
+in a column and are numbered from bottom to top in the left-most column, next
+column, etc.  Every edge can also be identified by its lower piece, namely the
+piece to the left of an X edge and below a Y edge.
 <P>
 In the top panel, the X and Y radio buttons can be used to select which type of
 edge, if there is more than one type of edge in a section.  The edge number is
 displayed in a spin box and can be changed by typing a new number into the text
-box or by pressing the up and down arrow buttons.
+box or by pressing the up and down arrow buttons.  In addition, the position
+within the montage of the 
+lower piece of an edge is displayed in X and Y spin boxes; these piece
+positions are numbered from 1.  These spin boxes provide a more convenient way
+to know where an edge is and navigate between edges, such as to see all of the
+edges around a particular piece.
+<P>
+If you excluded edges from consideration when running Blendmont, a checkbox
+will appear, <B>Skip excluded edges</B>, and will be turned on by default.
+When this checkbox is on, the program will skip over these edges
+when you move between edges with the controls, and it will omit these edges
+from any error computations (see below).  Turn this option off to go to any of
+these edges and adjust their displacements.
 <P>
 Only X and Y translations of one piece relative to another can be changed when
 fixing montages.
+<P>
+Cross-correlation can be used when fixing edges; it may be more successful
+than the correlation within Blendmont because you can select the center of the
+area to correlate.  The area correlated
+corresponds to the intersection of the region where the two pieces overlap and
+the square correlation box shown on the screen.
 <P>
 The bottom panel displays information about the errors in fitting pieces
 together with the current displacements and allows one to go to the edges with
@@ -178,14 +211,23 @@ displacement between pieces implied by the X and Y translation values at that
 edge, and the displacement achieved when all pieces are shifted into best
 alignment using the translation values for all of the edges.
 <P>
-For the edges with the four highest errors, the edge number and error are
+For the edges with the six highest errors, the edge number and error are
 displayed in a button, which can be pressed to make that edge be the current
 edge.  The errors, and even the edges, displayed in these buttons will change
-whenever the displacement at the current edge is changed.
+whenever the displacement at the current edge is changed.  You can select the
+number of buttons to display (between 2 and 10) with the "-e" option when
+starting the program.
 <P>
 Below the buttons are the X and Y components of the error at the current edge.
 On the line below that is the "Leave-out" error for the current edge, which is
-its error when its translation values are left out when solving for the best fit
-between pieces.  This error can be compared directly with any mismatch observed
-between the pieces.  Pressing the <B>Apply Leave-out Error</B> button will change the
-X and Y translations by these amounts.
+its error when its translation values are left out when solving for the best
+fit between pieces.  This error can be compared directly with any mismatch
+observed between the pieces.  Pressing the <B>Apply Leave-out Error</B> button
+will change the X and Y translations by these amounts.
+<P>
+When there are over 625 pieces, the errors are estimated using local patches
+of pieces in order to save time, so they may not exactly match the values in
+Blendmont.  With many thousands of pieces, the error computation may
+noticeably slow down the program when moving between edges.  There is a
+checkbox, <B>Skip error computation</B>, to avoid this delay when browsing
+through edges.
