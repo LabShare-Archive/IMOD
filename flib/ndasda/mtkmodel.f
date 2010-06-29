@@ -5,6 +5,9 @@ c
 c       $Revision$
 c       
 c       $Log$
+c       Revision 3.8  2007/01/06 23:56:32  mast
+c       Added ability to preserve and transfer point sizes when writing model
+c
 c       Revision 3.7  2006/10/30 17:45:14  mast
 c       Fixed moving contours to new object when only one meshed object and
 c       fixed flag setting to get closed contour objects
@@ -223,11 +226,12 @@ c
           ipstrt=1
           ipend=npt_in_obj(iobj)
           if(iflag.eq.1.and.(zstart.ne.0..or.zend.ne.0.))then
-            do while (ipend.gt.1.and.
-     &          ((zend.ne.0.and.p_coord(3,abs(object(ipend+ibase))).gt.zend)
+            do while (((zend.ne.0.and.
+     &          p_coord(3,abs(object(ipend+ibase))).gt.zend)
      &          .or. (zstart.ne.0.and.
      &          p_coord(3,abs(object(ipend+ibase))).lt.zstart)))
               ipend=ipend-1
+              if (ipend .le. 0) exit
             enddo
             do while (ipstrt.lt.ipend.and.
      &          ((zend.ne.0.and.p_coord(3,abs(object(ipstrt+ibase))).gt.zend)
