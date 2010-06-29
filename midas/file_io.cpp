@@ -112,10 +112,26 @@ int load_refimage(MidasView *vw, char *filename)
   li.offset = - smin * li.slope;
   vw->ref->mean = hin.amean * li.slope + li.offset;
 
-  mrcReadZByte(&hin, &li, vw->ref->data.b, vw->xsec);
+  midasReadZByte(vw, &hin, &li, vw->ref->data.b, vw->xsec);
 
   fclose(hin.fp);
   return 0;
+}
+
+int midasReadZByte(MidasView *vw, MRCheader *hin, LoadInfo *li, 
+                   unsigned char *data, int sec)
+{
+  int err, nxb, nyb;
+  if (vw->binning == 1) {
+    err = mrcReadZByte(hin, li, data, sec);
+  } else {
+    err = mrcReadZByte(hin, li, vw->unbinnedBuf, sec);
+    if (err)
+      return err;
+    err = reduceByBinning(vw->unbinnedBuf, SLICE_MODE_BYTE, hin->nx, hin->ny,
+                    vw->binning, data, 1, &nxb, &nyb);
+  }
+  return err;
 }
 
 int save_view(MidasView *vw, char *filename)
@@ -198,8 +214,14 @@ int load_transforms(MidasView *vw, char *filename)
           midas_error("Error reading displacement file.", "", 0);
 	  return(-2);
 	}
-	sscanf(LATIN1(qline), "%f%*c%f%*c", &(vw->edgedx[k * 2 + ixy]),
-	       &(vw->edgedy[k * 2 + ixy]));
+        i = 0;
+	sscanf(LATIN1(qline), "%f%*c%f%*c%d", &(vw->edgedx[k * 2 + ixy]),
+	       &(vw->edgedy[k * 2 + ixy]), &i);
+        vw->skippedEdge[k * 2 + ixy] = i;
+        if (i)
+          vw->anySkipped = 1;
+        vw->edgedx[k * 2 + ixy] /= vw->binning;
+        vw->edgedy[k * 2 + ixy] /= vw->binning;
       }
     set_mont_pieces(vw);
 
@@ -230,6 +252,8 @@ int load_transforms(MidasView *vw, char *filename)
       vw->tr[k].mat[2] = 0.0;
       vw->tr[k].mat[5] = 0.0;
       vw->tr[k].mat[8] = 1.0;
+      vw->tr[k].mat[6] /= vw->binning;
+      vw->tr[k].mat[7] /= vw->binning;
 	       
       /* DNM 12/16/03: no longer have to convert dx,dy for origin-centered 
          transforms */
@@ -238,7 +262,7 @@ int load_transforms(MidasView *vw, char *filename)
     // Rotate then stretch transforms when coming in
     if (vw->rotMode)
       rotate_all_transforms(vw, vw->globalRot);
-    if (vw->cosStretch)
+    if (vw->cosStretch > 0)
       stretch_all_transforms(vw, 0);
   }
 	
@@ -264,7 +288,7 @@ int load_transforms(MidasView *vw, char *filename)
 int write_transforms(MidasView *vw, char *filename)
 {
   int k, ixy, numWrite, i;
-  float mat[9];
+  float mat[9], dxout, dyout;
   QString str = filename;
 
   QFile file(str);
@@ -279,8 +303,13 @@ int write_transforms(MidasView *vw, char *filename)
     stream << str;
     for (ixy = 0; ixy < 2; ixy++)
       for (k = 0 ; k < vw->nedge[ixy]; k++) {
-	str.sprintf("%9.3f %9.3f\n", (vw->edgedx[k * 2 + ixy]),
-		(vw->edgedy[k * 2 + ixy]));
+        dxout = vw->edgedx[k*2 + ixy] * vw->binning;
+        dyout = vw->edgedy[k*2 + ixy] * vw->binning;
+        if (vw->anySkipped)
+          str.sprintf("%9.3f %9.3f  %d\n", dxout, dyout,
+                      vw->skippedEdge[k * 2 + ixy]);
+        else
+          str.sprintf("%9.3f %9.3f\n", dxout, dyout);
 	stream << str;
       }
 
@@ -297,8 +326,8 @@ int write_transforms(MidasView *vw, char *filename)
       if (vw->rotMode)
         rotate_transform(mat, -vw->globalRot);
 
-      str.sprintf("%12.7f%12.7f%12.7f%12.7f%12.3f%12.3f\n",
-                  mat[0], mat[3], mat[1], mat[4], mat[6], mat[7]);
+      str.sprintf("%12.7f%12.7f%12.7f%12.7f%12.3f%12.3f\n", mat[0], mat[3], 
+                  mat[1], mat[4], mat[6] * vw->binning, mat[7] * vw->binning);
 	stream << str;
     }
 
@@ -346,6 +375,9 @@ void load_angles(MidasView *vw)
 
 /*
 $Log$
+Revision 3.11  2009/01/15 16:30:19  mast
+Qt 4 port
+
 Revision 3.10  2008/10/13 04:36:23  mast
 Added cosine stretching
 
