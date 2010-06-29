@@ -77,11 +77,10 @@ c
 12    ierr=2
       read(3,'(a)',err=20,end=14)dummy
       lenact=len(dummy)
-      do while(lenact.gt.0.and.(dummy(lenact:lenact).eq.' '.or.
-     &    dummy(lenact:lenact).eq.char(0)))
+      do while(dummy(lenact:lenact).eq.' '.or. dummy(lenact:lenact).eq.char(0))
         lenact=lenact-1
+        if (lenact .le. 0) go to 12
       enddo
-      if(lenact.eq.0)go to 12
       call frefor(dummy,freinp,ninp)
       ierr=3
       if(ninp.lt.3.or.ninp.gt.4)go to 20        !error if fewer than 3 numbers
@@ -3145,6 +3144,10 @@ c
 
 c       
 c       $Log$
+c       Revision 3.31  2010/06/23 23:11:56  mast
+c       Changes for excluded edges, disjoint edges, overlap > 50% and multiple
+c       overlaps, and new shift determination methods
+c
 c       Revision 3.30  2010/04/29 04:28:18  mast
 c       Added diagnostic output to error message
 c
