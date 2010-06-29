@@ -26,6 +26,7 @@
 #include <qstringlist.h>
 #include <qregexp.h>
 #include <qlayout.h>
+#include <qtooltip.h>
 #include <QDoubleSpinBox>
 //Added by qt3to4:
 #include <QKeyEvent>
@@ -63,29 +64,32 @@ static void usage(void)
      imodCopyright();
      qstr.sprintf("Usage: %s [options] <mrc filename> "
 	     "[transform filename]\n", pname);
-     qstr += "options:\n";
-     qstr += "   -g\t\t output global transforms (default"
+     qstr += "Options:\n";
+     qstr += "   -g\t\t Output global transforms (default"
        " is local)\n";
-     qstr += "   -r <filename>\t load reference image file\n";
-     qstr += "   -rz <section>\t section # for reference (default 0)\n";
-     qstr += "   -p <filename>\t load piece list file for fixing montages\n";
-     qstr += "   -c <size list>\t align chunks of sections; list # of sections "
-       "in chunks\n",
-     qstr += "   -C <size>\t set cache size to given number of "
+     qstr += "   -r <filename>\t Load reference image file\n";
+     qstr += "   -rz <section>\t Section # for reference (default 0)\n";
+     qstr += "   -p <filename>\t Load piece list file for fixing montages\n";
+     qstr += "   -c <size list>\t Align chunks of sections; list # of sections"
+       " in chunks\n";
+     qstr += "   -B <factor>\t Bin images by the given factor\n";
+     qstr += "   -C <size>\t Set cache size to given number of "
        "sections\n"; 
-     qstr += "   -s <min,max>\t set intensity scaling; min to 0 and"
+     qstr += "   -s <min,max>\t Set intensity scaling; min to 0 and"
        " max to 255\n";
-     qstr += "   -b <size>\t set initial size for block copies\n";
-     qstr += "   -a <angle>\t rotate all images by angle.\n";
-     qstr += "   -t <filename>\t load tilt angles from file and use cosine "
+     qstr += "   -b <size>\t Set initial size for block copies\n";
+     qstr += "   -a <angle>\t Rotate all images by angle.\n";
+     qstr += "   -t <filename>\t Load tilt angles from file and allow cosine "
        "stretching.\n";
-     qstr += "   -o <filename>\t output transforms to given file instead of "
+     qstr += "   -o <filename>\t Output transforms to given file instead of "
        "input file\n";
-     qstr += "   -O <letters>\t two letters for colors of previous/current in"
+     qstr += "   -e <number>\t Show given number of buttons with largest edge "
+       "errors\n";
+     qstr += "   -O <letters>\t Two letters for colors of previous/current in"
        " overlay\n";
-     qstr += "   -S\t\t use single-buffered visual\n";
-     qstr += "   -D\t\t debug mode - do not run in background\n";
-     qstr += "   -q\t\t suppress reminder message when fixing edges\n";
+     qstr += "   -S\t\t Use single-buffered visual\n";
+     qstr += "   -D\t\t Debug mode - do not run in background\n";
+     qstr += "   -q\t\t Suppress reminder message when fixing edges\n";
 #ifdef _WIN32
      dia_puts(LATIN1(qstr));
 #else
@@ -170,6 +174,15 @@ int main (int argc, char **argv)
 
       case 'b':
 	vw->boxsize = atoi(argv[++i]);
+	break;
+
+      case 'B':
+	vw->binning = atoi(argv[++i]);
+        vw->binning = B3DMAX(1, B3DMIN(8, vw->binning));
+	break;
+
+      case 'e':
+	vw->numTopErr = atoi(argv[++i]);
 	break;
 
       case 'a':
@@ -519,8 +532,9 @@ void MidasWindow::makeSeparator(QVBoxLayout *parent, int width)
   frame->setLineWidth(width);
 }
 
-void MidasWindow::makeTwoArrows(QHBoxLayout *parent, int direction, 
-                                int signal, QSignalMapper *mapper, bool repeat)
+void MidasWindow::makeTwoArrows(QHBoxLayout *parent, int direction, int signal,
+                                QSignalMapper *mapper, bool repeat,
+                                char *tip1, char *tip2)
   
 {
   parent->setSpacing(4);
@@ -530,6 +544,8 @@ void MidasWindow::makeTwoArrows(QHBoxLayout *parent, int direction,
   arrow->setFixedWidth(ARROW_SIZE);
   arrow->setFixedHeight(ARROW_SIZE);
   arrow->setAutoRepeat(repeat);
+  if (tip1)
+    arrow->setToolTip(QString(tip1));
   mapper->setMapping(arrow, direction * signal);
   QObject::connect(arrow, SIGNAL(clicked()), mapper, SLOT(map()));
 
@@ -539,6 +555,8 @@ void MidasWindow::makeTwoArrows(QHBoxLayout *parent, int direction,
   arrow->setFixedWidth(ARROW_SIZE);
   arrow->setFixedHeight(ARROW_SIZE);
   arrow->setAutoRepeat(repeat);
+  if (tip2)
+    arrow->setToolTip(QString(tip2));
   mapper->setMapping(arrow, -direction * signal);
   QObject::connect(arrow, SIGNAL(clicked()), mapper, SLOT(map()));
 }
@@ -546,13 +564,14 @@ void MidasWindow::makeTwoArrows(QHBoxLayout *parent, int direction,
 QLabel *MidasWindow::makeArrowRow(QVBoxLayout *parent, int direction, 
                                   int signal, QSignalMapper *mapper, 
                                   bool repeat, QString textlabel, int decimals,
-                                  int digits, float value)
+                                  int digits, float value, char *tip1, 
+                                  char *tip2)
 {
   char string[32];
   QLabel *label;
   QString str;
   QHBoxLayout *row = diaHBoxLayout(parent);
-  makeTwoArrows(row, direction, signal, mapper, repeat);
+  makeTwoArrows(row, direction, signal, mapper, repeat, tip1, tip2);
   
   label = diaLabel(LATIN1(textlabel), NULL, row);
   label->setAlignment(Qt::AlignLeft | Qt::AlignVCenter);
@@ -563,14 +582,15 @@ QLabel *MidasWindow::makeArrowRow(QVBoxLayout *parent, int direction,
   return (label);
 }
 
-QSignalMapper *MidasWindow::makeLabeledArrows(QVBoxLayout *parent, 
+QSignalMapper *MidasWindow::makeLabeledArrows(QVBoxLayout *parent,
                                               QString textlabel,
-					      QLabel **outLabel, bool repeat)
+                                              QLabel **outLabel, bool repeat, 
+                                              char *tip1, char *tip2)
 {
   QHBoxLayout *row = diaHBoxLayout(parent);
   QSignalMapper *mapper = new QSignalMapper();
   
-  makeTwoArrows(row, 1, 1, mapper, repeat);
+  makeTwoArrows(row, 1, 1, mapper, repeat, tip1, tip2);
   
   *outLabel = diaLabel(LATIN1(textlabel), NULL, row);
   (*outLabel)->setAlignment(Qt::AlignLeft | Qt::AlignVCenter);
@@ -591,6 +611,7 @@ void MidasWindow::createParameterDisplay(QVBoxLayout *col)
 {
   int i;
   QLabel *label;
+  QString str;
   
   for (i = 0; i < 3; i++) {
     VW->mouseLabel[i] = diaLabel(" ", NULL, col);
@@ -603,39 +624,47 @@ void MidasWindow::createParameterDisplay(QVBoxLayout *col)
   VW->wParameter[3] = makeArrowRow
     (col, -1, 4, paramMapper, true, "X translation",
      VW->midasSlots->getParamDecimals(3), VW->midasSlots->getParamDigits(3),
-     -1000.0);
+     -1000.0, "Shift current image left (hot key Left Arrow)", 
+     "Shift current image right (hot key Right Arrow)");
   VW->wParameter[4] = makeArrowRow
     (col, 1, 5, paramMapper, true, "Y translation",
      VW->midasSlots->getParamDecimals(4), VW->midasSlots->getParamDigits(4),
-     -1000.0);
+     -1000.0, "Shift current image up (hot key Up Arrow)", 
+     "Shift current image down (hot key Down Arrow");
   VW->wIncrement[2] = makeArrowRow
     (col, 1, 3, incMapper, false, "   increment ",
      VW->midasSlots->getIncDecimals(2),  VW->midasSlots->getIncDigits(2),
-     VW->increment[2]);
+     VW->increment[2], "Make shift increment bigger", 
+     "Make shift increment smaller");
   if (VW->xtype != XTYPE_MONT) {
     makeSeparator(col, 1);
     VW->wParameter[0] = makeArrowRow
       (col, -1, 1, paramMapper, true, "Rotation    ",
        VW->midasSlots->getParamDecimals(0), VW->midasSlots->getParamDigits(0),
-       -179.);
+       -179., "Rotate current image counterclockwise (hot key o)", 
+       "Rotate current image clockwise (hot key l)");
     VW->wIncrement[0] = makeArrowRow
       (col, 1, 1, incMapper, false, "   increment",
        VW->midasSlots->getIncDecimals(0), VW->midasSlots->getIncDigits(0),
-       VW->increment[0]);
+       VW->increment[0], "Make rotation increment bigger",
+       "Make rotation increment smaller");
     makeSeparator(col, 1);
 
     VW->wParameter[1] = makeArrowRow
       (col, 1, 2, paramMapper, true, "Magnification",
        VW->midasSlots->getParamDecimals(1),  VW->midasSlots->getParamDigits(1),
-       1.0);
+       1.0, "Scale current image up (hot key p)", 
+       "Scale current image down (hot key ;)");
     VW->wParameter[2] = makeArrowRow
       (col, 1, 3, paramMapper, true, "Stretch      ",
        VW->midasSlots->getParamDecimals(2),  VW->midasSlots->getParamDigits(2),
-       1.0);
+       1.0, "Stretch current image along axis (hot key [)", 
+       "Compress current image along axis (hot key ')");
     VW->wIncrement[1] = makeArrowRow
       (col, 1, 2, incMapper, false, "   factor    ", 
        VW->midasSlots->getIncDecimals(1),  VW->midasSlots->getIncDigits(1),
-       VW->increment[1]);
+       VW->increment[1], "Increase amount by which to scale and stretch",
+       "Decrease amount by which to scale and stretch");
 
   }     
 
@@ -655,7 +684,34 @@ void MidasWindow::createParameterDisplay(QVBoxLayout *col)
     VW->anglelabel->setAlignment(Qt::AlignRight);
     QObject::connect(VW->anglescale, SIGNAL(valueChanged(int)),
 		     VW->midasSlots, SLOT(slotAngle(int)));
+    VW->anglescale->setToolTip("Set angle at which new stretch is applied"
+                                 " (hot keys ] and \\)");
+  }
 
+  makeSeparator(col, 1);
+  QPushButton *button = diaPushButton("Cross-Correlate", NULL, col);
+  QObject::connect(button, SIGNAL(clicked()), VW->midasSlots,
+                   SLOT(slotCorrelate()));
+  button->setToolTip("Find shift by cross-correlating the two images in boxed"
+                     " region (hot key C)");
+  QHBoxLayout *corrParamBox = diaHBoxLayout(col);
+  int maxdim = B3DMAX(VW->xsize, VW->ysize);
+  VW->corrBoxSpin = (QSpinBox *)diaLabeledSpin
+    (0, 32., (float)(0.8 * maxdim), 16., "Box", NULL, corrParamBox);
+  VW->corrLimitSpin = (QSpinBox *)diaLabeledSpin
+    (0, 2., (float)(0.5 * maxdim), 2., "Limit", NULL, corrParamBox);
+  VW->corrBoxSpin->setValue(VW->corrBoxSize);
+  VW->corrLimitSpin->setValue(VW->corrShiftLimit);
+  QObject::connect(VW->corrBoxSpin, SIGNAL(valueChanged(int)),
+                   VW->midasSlots, SLOT(slotCorrBoxSize(int)));
+  QObject::connect(VW->corrLimitSpin, SIGNAL(valueChanged(int)),
+                   VW->midasSlots, SLOT(slotCorrShiftLimit(int)));
+  VW->corrBoxSpin->setToolTip("Size of square box around center point to"
+                              " correlate");
+  VW->corrLimitSpin->setToolTip("Maximum shift in X or Y to search for "
+                              "correlation peak");
+
+  if (VW->xtype != XTYPE_MONT) {
     if (VW->rotMode) {
       makeSeparator(col, 1);
       QHBoxLayout *globRotBox = diaHBoxLayout(col);
@@ -669,15 +725,21 @@ void MidasWindow::createParameterDisplay(QVBoxLayout *col)
       VW->globRotSpin->setValue(VW->globalRot);
       QObject::connect(VW->globRotSpin, SIGNAL(valueChanged(double)), 
                        VW->midasSlots, SLOT(slotGlobRot(double)));
+      VW->globRotSpin->setToolTip("Angle to rotate both images by to make "
+                                  "tilt axis vertical");
       QCheckBox *check = diaCheckBox("Mouse shifts X only", NULL, col);
       check->setChecked(false);
       QObject::connect(check, SIGNAL(toggled(bool)), VW->midasSlots,
                        SLOT(slotConstrainMouse(bool)));
+      check->setToolTip("Allow shifts with mouse only in X (perpendicular to"
+                        " tilt axis)");
       if (VW->cosStretch) {
         check = diaCheckBox("Apply cosine stretch", NULL, col);
         check->setChecked(false);
         QObject::connect(check, SIGNAL(toggled(bool)), VW->midasSlots,
                          SLOT(slotCosStretch(bool)));
+        check->setToolTip("Show current image stretched by ratio of cosines "
+                          "of tilt angles");
         VW->cosStretch = 0;
 
         QHBoxLayout *tiltOffBox = diaHBoxLayout(col);
@@ -686,6 +748,7 @@ void MidasWindow::createParameterDisplay(QVBoxLayout *col)
         VW->tiltOffSpin->setFixedWidth
           (VW->tiltOffSpin->fontMetrics().width("-180.0000"));
         VW->tiltOffSpin->setValue(0.);
+        VW->tiltOffSpin->setToolTip("Amount to add to all tilt angles");
         QObject::connect(VW->tiltOffSpin, SIGNAL(valueChanged(double)), 
                          VW->midasSlots, SLOT(slotTiltOff(double)));
       }
@@ -694,16 +757,22 @@ void MidasWindow::createParameterDisplay(QVBoxLayout *col)
   } else {
     makeSeparator(col, 2);
 
+    VW->numTopErr = B3DMIN(MAX_TOP_ERR, B3DMAX(2, VW->numTopErr));
+    if (VW->nxpieces == 1 || VW->nypieces == 1)
+      VW->numTopErr = 2;
+    else if (VW->numTopErr > VW->maxedge[0] + VW->maxedge[1])
+      VW->numTopErr = 2 * ((VW->maxedge[0] + VW->maxedge[1]) / 2);
     VW->wMeanerr = diaLabel("Mean error: 100.00", NULL, col);
     VW->wMeanerr->setAlignment(Qt::AlignLeft);
-    label = diaLabel("Top 4 errors:", NULL, col);
+    str.sprintf("Top %d errors:", VW->numTopErr);
+    label = diaLabel(LATIN1(str), NULL, col);
     label->setAlignment(Qt::AlignLeft);
 
     QGridLayout *grid = new QGridLayout();
     col->addLayout(grid);
     grid->setSpacing(5);
     QSignalMapper *mapper = new QSignalMapper();
-    for (i = 0; i < 4; i++) {
+    for (i = 0; i < VW->numTopErr; i++) {
       VW->wToperr[i] = new QPushButton("X 199: 50.00  ");
       grid->addWidget(VW->wToperr[i], i / 2, i % 2);
       mapper->setMapping(VW->wToperr[i], i);
@@ -718,11 +787,19 @@ void MidasWindow::createParameterDisplay(QVBoxLayout *col)
     VW->wLeaverr = diaLabel("Leave-out: -50.00, -50.00", NULL, col);
     VW->wLeaverr->setAlignment(Qt::AlignLeft);
 
-    QPushButton *button = diaPushButton("Apply Leave-out Error", NULL, col);
-    QObject::connect(button, SIGNAL(clicked()), VW->midasSlots,
+    VW->wApplyLeave = diaPushButton("Apply Leave-out Error", NULL, col);
+    QObject::connect(VW->wApplyLeave, SIGNAL(clicked()), VW->midasSlots,
 		     SLOT(slotLeave_out()));
-  }
+    VW->wApplyLeave->setToolTip("Set this edge shift to value implied by "
+                                "all the other edge shifts");
 
+    if (VW->nxpieces * VW->nypieces > 1200) {
+      QCheckBox *check = diaCheckBox("Skip error computation", NULL, col);
+      QObject::connect(check, SIGNAL(toggled(bool)), VW->midasSlots,
+                       SLOT(slotSkipError(bool)));
+      check->setToolTip("Speed up display by not computing edge errors");
+    }
+  }
 }
 
 void MidasWindow::createSectionControls(QVBoxLayout *parent)
@@ -739,6 +816,7 @@ void MidasWindow::createSectionControls(QVBoxLayout *parent)
     VW->refSpin = makeSpinBoxRow(row, "Reference Sec. ", 1, maxz);
     QObject::connect(VW->refSpin, SIGNAL(valueChanged(int)),
                      VW->midasSlots, SLOT(slotRefValue(int)));
+    VW->refSpin->setToolTip("Set section being aligned to");
   }
 
   // Current section text box
@@ -747,6 +825,8 @@ void MidasWindow::createSectionControls(QVBoxLayout *parent)
   VW->curSpin = makeSpinBoxRow(row, "Current Sec. ", 1, maxz);
   QObject::connect(VW->curSpin, SIGNAL(valueChanged(int)),
                    VW->midasSlots, SLOT(slotCurValue(int)));
+  VW->curSpin->setToolTip("Set the current section to align (hot keys a and"
+                          " b)");
   
   if (VW->numChunks) {
 
@@ -755,6 +835,8 @@ void MidasWindow::createSectionControls(QVBoxLayout *parent)
     VW->chunkSpin = makeSpinBoxRow(row, "Current Chunk ", 2, VW->numChunks);
     QObject::connect(VW->chunkSpin, SIGNAL(valueChanged(int)),
                      VW->midasSlots, SLOT(slotChunkValue(int)));
+    VW->chunkSpin->setToolTip("Set the chunk (tomogram) to align to the "
+                              "previous one (hot keys A and B)");
   
   } else if (VW->xtype != XTYPE_XREF && VW->xtype != XTYPE_MONT) {
     
@@ -764,6 +846,8 @@ void MidasWindow::createSectionControls(QVBoxLayout *parent)
     VW->difftoggle->setChecked(true);
     QObject::connect(VW->difftoggle, SIGNAL(toggled(bool)), 
 		     VW->midasSlots, SLOT(slotKeepdiff(bool)));
+    VW->difftoggle->setToolTip("Always align a section to the immediately "
+                               "previous one");
 
     if (VW->xtype == XTYPE_XF)
       label = diaLabel ("Local Alignment Mode", NULL, col);
@@ -781,10 +865,37 @@ void MidasWindow::createSectionControls(QVBoxLayout *parent)
     VW->wYedge = diaRadioButton("Y", NULL, VW->edgeGroup, row, 1, NULL);
     QObject::connect(VW->edgeGroup, SIGNAL(buttonClicked(int)),
 		     VW->midasSlots, SLOT(slotXory(int)));
+    VW->wXedge->setToolTip("Select edges between adjacent pieces in X");
+    VW->wYedge->setToolTip("Select edges between adjacent pieces in Y");
 
     VW->edgeSpin = makeSpinBoxRow(row, "Edge ", 1, VW->maxedge[VW->xory]);
     QObject::connect(VW->edgeSpin, SIGNAL(valueChanged(int)),
                      VW->midasSlots, SLOT(slotEdgeValue(int)));
+    VW->edgeSpin->setToolTip("Set sequential edge number (hot keys A and B)");
+    row = diaHBoxLayout(col);
+    row->setSpacing(3);
+    VW->lowerXspin = makeSpinBoxRow(row, "Lower X", 1, VW->nxpieces);
+    VW->lowerYspin = (QSpinBox *)diaLabeledSpin
+      (0, 1., (float)VW->nypieces, 1., "Y", NULL,  row);
+    VW->lowerYspin->setFixedWidth(60);
+    QObject::connect(VW->lowerXspin, SIGNAL(valueChanged(int)),
+                     VW->midasSlots, SLOT(slotLowerXvalue(int)));
+    QObject::connect(VW->lowerYspin, SIGNAL(valueChanged(int)),
+                     VW->midasSlots, SLOT(slotLowerYvalue(int)));
+    VW->lowerXspin->setToolTip("Set frame number in X of piece below edge"
+                               " (hot keys x and X)");
+    VW->lowerYspin->setToolTip("Set frame number in Y of piece below edge"
+                               " (hot keys y and Y)");
+
+    if (VW->anySkipped) {
+      VW->wSkipExcluded = diaCheckBox("Skip excluded edges", NULL, col);
+      VW->wSkipExcluded->setChecked(true);
+      QObject::connect(VW->wSkipExcluded, SIGNAL(toggled(bool)), 
+                       VW->midasSlots, SLOT(slotSkipExcluded(bool)));
+      VW->excludeSkipped = 1;
+      VW->wSkipExcluded->setToolTip("Skip over edges excluded in Blendmont and"
+                                    " exclude them from error computations");
+    }
 
     VW->midasSlots->manage_xory(VW);
     
@@ -798,13 +909,17 @@ void MidasWindow::createZoomBlock(QVBoxLayout *parent)
 {
   QString str;
 
-  QSignalMapper *mapper = makeLabeledArrows(parent, "Zoom  1.00", 
-					    &VW->zoomlabel, false);
+  QSignalMapper *mapper = makeLabeledArrows
+    (parent, "Zoom  1.00", &VW->zoomlabel, false, "Increase the display zoom "
+     "(hot key =)", "Decrease the display zoom (hot key -)");
   QObject::connect(mapper, SIGNAL(mapped(int)), VW->midasSlots,
 		     SLOT(slotZoom(int)));
 
   str.sprintf("Block size %2d", VW->boxsize);
-  mapper = makeLabeledArrows(parent, str, &VW->blocklabel, false);
+  mapper = makeLabeledArrows
+    (parent, str, &VW->blocklabel, false, "Increase the size of blocks copied"
+     " when transforming image", "Decrease the size of blocks copied"
+     " when transforming image");
   QObject::connect(mapper, SIGNAL(mapped(int)), VW->midasSlots,
 		     SLOT(slotBlock(int)));
   
@@ -812,6 +927,8 @@ void MidasWindow::createZoomBlock(QVBoxLayout *parent)
   check->setChecked(VW->fastip == 0);
   QObject::connect(check, SIGNAL(toggled(bool)), VW->midasSlots,
 		     SLOT(slotInterpolate(bool)));
+  check->setToolTip("Transform image by linear interpolation instead of block"
+                    " copies or nearest point interpolation");
 }
 
 void MidasWindow::createViewToggle(QVBoxLayout *parent)
@@ -821,12 +938,15 @@ void MidasWindow::createViewToggle(QVBoxLayout *parent)
   VW->overlaytoggle->setChecked(VW->vmode == MIDAS_VIEW_COLOR);
   QObject::connect(VW->overlaytoggle, SIGNAL(toggled(bool)), VW->midasSlots,
 		   SLOT(slotOverlay(bool)));
+  VW->overlaytoggle->setToolTip("Show both images in two-color overlay (hot "
+                                "keys Insert or Delete)");
 
   QPushButton *button = diaPushButton("Toggle Ref/Cur", NULL, parent);
   QObject::connect(button, SIGNAL(pressed()), VW->midasSlots,
 		     SLOT(slotAlign_arm()));
   QObject::connect(button, SIGNAL(released()), VW->midasSlots,
 		     SLOT(slotAlign_disarm()));
+  button->setToolTip("Toggle between current image and reference image");
 }
 
 void MidasWindow::createContrastControls(QVBoxLayout *parent)
@@ -844,6 +964,8 @@ void MidasWindow::createContrastControls(QVBoxLayout *parent)
 		   VW->midasSlots, SLOT(slotBlackPressed()));
   QObject::connect(VW->wBlacklevel, SIGNAL(sliderReleased()),
 		   VW->midasSlots, SLOT(slotBlackReleased()));
+  VW->wBlacklevel->setToolTip("Set lower end of contrast ramp (hot keys F1 "
+                              "and F2)");
 
   row = diaHBoxLayout(parent);
   row->setSpacing(3);
@@ -857,20 +979,26 @@ void MidasWindow::createContrastControls(QVBoxLayout *parent)
 		   VW->midasSlots, SLOT(slotWhitePressed()));
   QObject::connect(VW->wWhitelevel, SIGNAL(sliderReleased()),
 		   VW->midasSlots, SLOT(slotWhiteReleased()));
+  VW->wWhitelevel->setToolTip("Set upper end of contrast ramp (hot keys F3 "
+                              "and F4)");
      
   QCheckBox *check = diaCheckBox("Apply to only one sec.", NULL, parent);
   check->setChecked(false);
   QObject::connect(check, SIGNAL(toggled(bool)), VW->midasSlots,
 		     SLOT(slotApplyone(bool)));
+  check->setToolTip("Adjust contrast independently for the current section");
 
   VW->reversetoggle = diaCheckBox("Reverse contrast", NULL, parent);
   VW->reversetoggle->setChecked(false);
   QObject::connect(VW->reversetoggle, SIGNAL(toggled(bool)), VW->midasSlots,
 		     SLOT(slotReverse(bool)));
+  VW->reversetoggle->setToolTip("Show images in inverted contrast");
 
   QPushButton *button = diaPushButton("Auto Contrast", NULL, parent);
   QObject::connect(button, SIGNAL(clicked()), VW->midasSlots,
 		     SLOT(slotAutoContrast()));
+  button->setToolTip("Adjust contrast to standard level based on mean/SD of "
+                     "image (hot key Ctrl-A)");
 }
 
 
@@ -893,6 +1021,9 @@ void midas_error(const char *tmsg, const char *bmsg, int retval)
 /*
 
 $Log$
+Revision 3.26  2009/12/07 17:09:50  mast
+Remove requirement for existing ecd file with montage mode
+
 Revision 3.25  2009/03/06 05:39:39  mast
 Fixed loading of global rotation box
 
@@ -913,82 +1044,82 @@ Revision 3.20  2007/10/03 21:36:10  mast
 Added ImodAssistant help object
 
 Revision 3.19  2006/06/26 15:48:19  mast
-    Added autocontrast function
+Added autocontrast function
 
-    Revision 3.18  2006/05/20 16:07:56  mast
-    Changes to allow mirroring around X axis
+Revision 3.18  2006/05/20 16:07:56  mast
+Changes to allow mirroring around X axis
 
-    Revision 3.17  2006/05/13 22:52:52  mast
-    Changes to allow overlay colors to be specified
+Revision 3.17  2006/05/13 22:52:52  mast
+Changes to allow overlay colors to be specified
 
-    Revision 3.16  2006/03/01 19:16:03  mast
-    Fixed bug in setting window size and eliminated debug output, called 
-    library routines for limiting window size and position
+Revision 3.16  2006/03/01 19:16:03  mast
+Fixed bug in setting window size and eliminated debug output, called 
+library routines for limiting window size and position
 
-    Revision 3.15  2005/03/10 21:04:14  mast
-    Added -q option for use from etomo
+Revision 3.15  2005/03/10 21:04:14  mast
+Added -q option for use from etomo
 
-    Revision 3.14  2004/11/05 18:53:22  mast
-    Include local files with quotes, not brackets
+Revision 3.14  2004/11/05 18:53:22  mast
+Include local files with quotes, not brackets
 
-    Revision 3.13  2004/10/25 18:51:52  mast
-    Added optoin to output to different file from input file
+Revision 3.13  2004/10/25 18:51:52  mast
+Added optoin to output to different file from input file
 
-    Revision 3.12  2004/07/12 18:42:30  mast
-    Changes for chunk alignment and for switching to spin boxes
+Revision 3.12  2004/07/12 18:42:30  mast
+Changes for chunk alignment and for switching to spin boxes
 
-    Revision 3.11  2004/07/07 19:25:31  mast
-    Changed exit(-1) to exit(3) for Cygwin
+Revision 3.11  2004/07/07 19:25:31  mast
+Changed exit(-1) to exit(3) for Cygwin
 
-    Revision 3.10  2004/05/28 18:56:13  mast
-    needed to parse gloabal rotation as float
+Revision 3.10  2004/05/28 18:56:13  mast
+needed to parse gloabal rotation as float
 
-    Revision 3.9  2003/12/17 21:44:19  mast
-    Changes to implement global rotations
+Revision 3.9  2003/12/17 21:44:19  mast
+Changes to implement global rotations
 
-    Revision 3.8  2003/11/01 16:43:10  mast
-    changed to put out virtually all error messages to a window
+Revision 3.8  2003/11/01 16:43:10  mast
+changed to put out virtually all error messages to a window
 
-    Revision 3.7  2003/06/20 19:35:41  mast
-    Connected top error buttons to mapper
+Revision 3.7  2003/06/20 19:35:41  mast
+Connected top error buttons to mapper
 
-    Revision 3.6  2003/05/26 01:02:33  mast
-    Added label to show mouse action
+Revision 3.6  2003/05/26 01:02:33  mast
+Added label to show mouse action
 
-    Revision 3.5  2003/02/28 21:36:08  mast
-    connect to focusLost signal of ToolEdit
+Revision 3.5  2003/02/28 21:36:08  mast
+connect to focusLost signal of ToolEdit
 
-    Revision 3.4  2003/02/28 18:10:58  mast
-    Fix include fiddling
+Revision 3.4  2003/02/28 18:10:58  mast
+Fix include fiddling
 
-    Revision 3.3  2003/02/27 23:06:51  mast
-    Fiddling with includes some more
+Revision 3.3  2003/02/27 23:06:51  mast
+Fiddling with includes some more
 
-    Revision 3.2  2003/02/27 20:19:10  mast
-    Changes in includes for Windows
+Revision 3.2  2003/02/27 20:19:10  mast
+Changes in includes for Windows
 
-    Revision 3.1  2003/02/10 20:49:57  mast
-    Merge Qt source
+Revision 3.1  2003/02/10 20:49:57  mast
+Merge Qt source
 
-    Revision 1.1.2.4  2003/01/30 01:10:25  mast
-    Move fork to before starting application
+Revision 1.1.2.4  2003/01/30 01:10:25  mast
+Move fork to before starting application
 
-    Revision 1.1.2.3  2003/01/26 23:20:33  mast
-    using new library
+Revision 1.1.2.3  2003/01/26 23:20:33  mast
+using new library
 
-    Revision 1.1.2.2  2002/12/06 19:05:01  mast
-    Changes for binary file reading under windows
+Revision 1.1.2.2  2002/12/06 19:05:01  mast
+Changes for binary file reading under windows
 
-    Revision 1.1.2.1  2002/12/05 03:13:02  mast
-    New Qt version
+Revision 1.1.2.1  2002/12/05 03:13:02  mast
+New Qt version
 
-    Revision 3.4  2002/11/05 23:54:24  mast
-    Changed to get a visual then pass it to GLw.
+Revision 3.4  2002/11/05 23:54:24  mast
+Changed to get a visual then pass it to GLw.
 
-    Revision 3.3  2002/11/05 23:29:13  mast
-    Changed to call imodCopyright
+Revision 3.3  2002/11/05 23:29:13  mast
+Changed to call imodCopyright
 
-    Revision 3.2  2002/08/19 04:46:10  mast
-    Changed number of columns in edge number text box to 4
+Revision 3.2  2002/08/19 04:46:10  mast
+Changed number of columns in edge number text box to 4
 
 */
