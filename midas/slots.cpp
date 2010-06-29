@@ -56,22 +56,40 @@ MidasSlots::~MidasSlots()
 
 /* routines needed to update the menu widgets */
 
-int MidasSlots::index_to_edgeno(int index, int *xory)
+int MidasSlots::index_to_edgeno(int index, int &xory)
 {
   int  ipclo, pcx, pcy, edge;
-  *xory = 0;
+  xory = 0;
   if (index < 0)
     return 0;
   ipclo = VW->piecelower[index];
-  *xory = index % 2;
-  pcx = (VW->xpclist[ipclo] - VW->minxpiece) / (VW->xsize - VW->nxoverlap);
-  pcy = (VW->ypclist[ipclo] - VW->minypiece) / (VW->ysize - VW->nyoverlap);
-  if (*xory)
-    edge = pcx * (VW->nypieces - 1) + pcy + 1;
-  else
-    edge = pcy * (VW->nxpieces - 1) + pcx + 1;
+  xory = index % 2;
+  pcx = (VW->xpclist[ipclo] - VW->minxpiece) / (VW->hin->nx - VW->nxoverlap)+1;
+  pcy = (VW->ypclist[ipclo] - VW->minypiece) / (VW->hin->ny - VW->nyoverlap)+1;
+  edge = lower_piece_to_edgeno(pcx, pcy, xory);
   return edge;
 }
+
+// Converts piece numbers numbered from 1 to edge number
+int MidasSlots::lower_piece_to_edgeno(int pcx, int pcy, int xory)
+{
+  if (xory)
+    return (pcx - 1) * (VW->nypieces - 1) + pcy;
+  return (pcy - 1) * (VW->nxpieces - 1) + pcx;
+}
+
+// Converts an edge number to lower piece numbers, all numbered from 1
+void MidasSlots::edgeno_to_lower_piece(int edge, int xory, int &pcx, int &pcy)
+{
+  if (xory) {
+    pcx = (edge - 1) / (VW->nypieces - 1) + 1;
+    pcy = (edge - 1) % (VW->nypieces - 1) + 1;
+  } else {
+    pcx = (edge - 1) % (VW->nxpieces - 1) + 1;
+    pcy = (edge - 1) / (VW->nxpieces - 1) + 1;
+  }
+}
+
 
 void MidasSlots::update_parameters()
 {
@@ -91,29 +109,31 @@ void MidasSlots::update_parameters()
     param[3] = mat[6];
     param[4] = mat[7];
     first = 0;
-  } else {
+  } else  {
     param[3] = VW->edgedx[VW->edgeind * 2 + VW->xory];
     param[4] = VW->edgedy[VW->edgeind * 2 + VW->xory];
     first = 3;
-    find_best_shifts(VW, 0, 4, &meanerr, toperr, VW->topind, &curerrx,
-		     &curerry, VW->mousemoving);
-    find_best_shifts(VW, 1, 1, &meanleave, &topleave, &topleavind,
-		     &VW->curleavex, &VW->curleavey, VW->mousemoving);
-
-    str.sprintf("Mean error: %.2f", meanerr);
-    VW->wMeanerr->setText(str);
-	  
-    for (i = 0; i < 4; i++) {
-      edge = index_to_edgeno(VW->topind[i], &topxy);
-      str.sprintf("%s %d: %.2f  ", topxy ? "Y" : "X", edge, toperr[i]);
-      VW->wToperr[i]->setText(str);
+    if (!VW->skipErr) {
+      find_best_shifts(VW, 0, VW->numTopErr, &meanerr, toperr, VW->topind,
+                       &curerrx, &curerry, VW->mousemoving);
+      find_best_shifts(VW, 1, 1, &meanleave, &topleave, &topleavind,
+                       &VW->curleavex, &VW->curleavey, VW->mousemoving);
+      
+      str.sprintf("Mean error: %.2f", meanerr);
+      VW->wMeanerr->setText(str);
+      
+      for (i = 0; i < VW->numTopErr; i++) {
+        edge = index_to_edgeno(VW->topind[i], topxy);
+        str.sprintf("%s %d: %.2f  ", topxy ? "Y" : "X", edge, toperr[i]);
+        VW->wToperr[i]->setText(str);
+      }
+      
+      str.sprintf("This edge: %.2f, %.2f", curerrx, curerry);
+      VW->wCurerr->setText(str);
+      
+      str.sprintf("Leave-out: %.2f, %.2f", VW->curleavex, VW->curleavey);
+      VW->wLeaverr->setText(str);
     }
-
-    str.sprintf("This edge: %.2f, %.2f", curerrx, curerry);
-    VW->wCurerr->setText(str);
-	  
-    str.sprintf("Leave-out: %.2f, %.2f", VW->curleavex, VW->curleavey);
-    VW->wLeaverr->setText(str);
   }
 
   for (i = first; i < 5; i++) {
@@ -131,6 +151,7 @@ void MidasSlots::update_parameters()
 void MidasSlots::update_sections()
 {
   QString str;
+  int pcx, pcy;
  
   if (VW->numChunks) {
     diaSetSpinBox(VW->chunkSpin, VW->curChunk + 1);
@@ -146,6 +167,9 @@ void MidasSlots::update_sections()
                 + 1);
   if (VW->xtype == XTYPE_MONT) {
     diaSetSpinBox(VW->edgeSpin, VW->curedge);
+    edgeno_to_lower_piece(VW->curedge, VW->xory, pcx, pcy);
+    diaSetSpinBox(VW->lowerXspin, pcx);
+    diaSetSpinBox(VW->lowerYspin, pcy);
     return;
   }
   diaSetSpinBox(VW->refSpin, VW->refz + 1);
@@ -745,7 +769,7 @@ void MidasSlots::try_section_change(int ds, int dsref)
 
 void MidasSlots::try_montage_section(int sec, int direction)
 {
-  int newcur, ind;
+  int newcur;
   if (sec < VW->minzpiece)
     sec = VW->minzpiece;
   if (sec > VW->maxzpiece)
@@ -759,12 +783,7 @@ void MidasSlots::try_montage_section(int sec, int direction)
   manage_xory(VW);
   VW->curedge = nearest_edge(VW, VW->montcz, VW->xory, VW->curedge, 0, 
 			     &VW->edgeind);
-  set_mont_pieces(VW);
-  ind = get_bw_index();
-  update_parameters();
-  setbwlevels(VW->tr[ind].black, VW->tr[ind].white, 1);
-  update_sections();
-  backup_current_mat();
+  finishNewEdge();
 }
 
 void MidasSlots::sectionInc(int ds)
@@ -849,7 +868,7 @@ void MidasSlots::slotChunkValue(int sec)
 /* Functions for changing the current edge */
 void MidasSlots::try_montage_edge(int sec, int direction)
 {
-  int newcur, ind;
+  int newcur;
   if (sec > VW->maxedge[VW->xory])
     sec = VW->maxedge[VW->xory];
   if (sec < 1)
@@ -861,12 +880,7 @@ void MidasSlots::try_montage_edge(int sec, int direction)
     return;
   }
   VW->curedge = newcur;
-  set_mont_pieces(VW);
-  ind = get_bw_index();
-  update_parameters();
-  setbwlevels(VW->tr[ind].black, VW->tr[ind].white, 1);
-  update_sections();
-  backup_current_mat();
+  finishNewEdge();
 }
 
 void MidasSlots::slotEdge(int upDown)
@@ -883,24 +897,174 @@ void MidasSlots::slotEdgeValue(int sec)
   VW->midasWindow->setFocus();
 }
 
+// Try to switch to a new lower piece; xory is -1 or 1 to move only along
+// the X or Y axis, and direction is -1 or 1 to move in given direction
+void MidasSlots::try_lower_piece(int pcx, int pcy, int xory, int direction)
+{
+  int base = (VW->montcz - VW->minzpiece) * VW->nxpieces * VW->nypieces;
+  int limit = VW->nxpieces * VW->nypieces;
+  int mindist, dist, xtry, ytry, target, ind, maxbelow, minabove, index;
+  int found = 0;
+  if (xory) {
+    maxbelow = -1;
+    minabove = limit + 1;
 
+    // Move along the axis and find the last piece below and the first one 
+    // above the target
+    if (xory < 0) {
+      target = pcx;
+      for (xtry = 1; xtry <= VW->nxpieces - (VW->xory ? 0 : 1); xtry++) {
+        ind = (xtry - 1) + (pcy - 1) * VW->nxpieces + base;
+        if (includedEdge(ind, VW->xory)) {
+          if (xtry < pcx)
+            maxbelow = xtry;
+          else if (xtry == pcx) {
+            maxbelow = minabove = xtry;
+            break;
+          } else {
+            minabove = xtry;
+            break;
+          }
+        }
+      }
+    } else {
+      target = pcy;
+      for (ytry = 1; ytry <= VW->nypieces - (VW->xory ? 1 : 0); ytry++) {
+        ind = (pcx - 1) + (ytry - 1) * VW->nxpieces + base;
+        if (includedEdge(ind, VW->xory)) {
+          if (ytry < pcy)
+            maxbelow = ytry;
+          else if (ytry == pcy) {
+            maxbelow = minabove = ytry;
+            break;
+          } else {
+            minabove = ytry;
+            break;
+          }
+        }
+      }
+    }
+
+    // Assign based on direction and what was found
+    if (direction < 0) {
+      if (maxbelow >= 0)
+          found = maxbelow;
+    } else if (direction > 0) {
+      if (minabove <= limit)
+        found = minabove;
+    } else if (maxbelow > 0 || minabove <= limit) {
+      if (maxbelow < 0)
+        found = minabove;
+      else if (minabove > limit)
+        found = maxbelow;
+      else {
+        found = maxbelow;
+        if (target - maxbelow > minabove - target)
+          found = minabove;
+      }
+    }
+    if (found && xory < 0) {
+      index = (found - 1) + (pcy - 1) * VW->nxpieces + base;
+      found = lower_piece_to_edgeno(found, pcy, VW->xory);
+    } else if(found) {
+      index = (pcx - 1) + (found - 1) * VW->nxpieces + base;
+      found = lower_piece_to_edgeno(pcx, found, VW->xory);
+    }
+    
+  } else {
+
+    // Or, if no preferred axis, just find the nearest piece with an edge
+    mindist = 1000000000;
+    for (ytry = 1; ytry < VW->nypieces && mindist; ytry++) {
+      for (xtry = 1; xtry < VW->nxpieces && mindist; xtry++) {
+        ind = (xtry - 1) + (ytry - 1) * VW->nxpieces + base;
+        if (includedEdge(ind, VW->xory)) {
+          dist = (xtry - pcx) * (xtry - pcx) + (ytry - pcy) * (ytry - pcy);
+          if (dist < mindist) {
+            mindist = dist;
+            found = lower_piece_to_edgeno(xtry, ytry, VW->xory);
+            index = (xtry - 1) + (ytry - 1) * VW->nxpieces + base;
+          }
+        }  
+      }
+    }
+  }          
+
+  if (!found) {
+    update_sections();
+    return;
+  }
+  VW->curedge = found;
+  VW->edgeind = VW->edgeupper[VW->xory + 2 * VW->montmap[index]];
+  finishNewEdge();
+}
+
+// Common tasks after changing the edge
+void MidasSlots::finishNewEdge()
+{
+  int ind;
+  set_mont_pieces(VW);
+  ind = get_bw_index();
+  update_parameters();
+  setbwlevels(VW->tr[ind].black, VW->tr[ind].white, 1);
+  update_sections();
+  backup_current_mat();
+}
+
+// A new X value for lower piece
+void MidasSlots::slotLowerXvalue(int sec)
+{
+  int pcx, pcy, upDown;
+  edgeno_to_lower_piece(VW->curedge, VW->xory, pcx, pcy);
+  upDown = sec - pcx;
+  if (upDown != 1 && upDown != -1)
+    upDown = 0;
+  try_lower_piece(sec, pcy, -1, upDown);
+  VW->midasWindow->setFocus();
+}
+
+// A new Y value for lower piece
+void MidasSlots::slotLowerYvalue(int sec)
+{
+  int pcx, pcy, upDown;
+  edgeno_to_lower_piece(VW->curedge, VW->xory, pcx, pcy);
+  upDown = sec - pcy;
+  if (upDown != 1 && upDown != -1)
+    upDown = 0;
+  try_lower_piece(pcx, sec, 1, upDown);
+  VW->midasWindow->setFocus();
+}
+
+// Take one step of lower piece in X or Y
+void MidasSlots::stepLowerXorY(int xory, int direction)
+{
+  int pcx, pcy;
+  edgeno_to_lower_piece(VW->curedge, VW->xory, pcx, pcy);
+  if (xory < 0)
+    pcx += direction;
+  else
+    pcy += direction;
+  if (pcx >= 1 && pcx <= VW->nxpieces && pcy >= 1 && pcy <= VW->nypieces)
+    try_lower_piece(pcx, pcy, xory, direction);
+}
+
+// Change the X or Y selection
 void MidasSlots::slotXory(int which)
 {
-  int newcur = VW->curedge;
+  int pcx, pcy;
   if (which == VW->xory)
     return;
+  edgeno_to_lower_piece(VW->curedge, VW->xory, pcx, pcy);
   VW->xory = which;
   flush_xformed(VW);
 
   diaSetGroup(VW->edgeGroup, VW->xory);
-
-  /* Adjust the edge number as necessary, and set current edge to zero to
+  
+  /* Keep the lower piece number the same if possible.  Set curedge to 0 to
      force it to recognize this as a new edge and do updates */
-  if (newcur > VW->maxedge[VW->xory])
-    newcur = VW->maxedge[VW->xory];
   VW->curedge = 0;
-  VW->edgeSpin->setRange(1, VW->maxedge[VW->xory]);
-  try_montage_edge(newcur, 0);
+  manage_xory(VW);
+  try_lower_piece(pcx, pcy, 0, 0);
 }
 
 void MidasSlots::manage_xory(MidasView *vw)
@@ -926,10 +1090,21 @@ void MidasSlots::manage_xory(MidasView *vw)
     return;
   VW->edgeSpin->setRange(1, VW->maxedge[VW->xory]);
   diaSetGroup(VW->edgeGroup, VW->xory);
+  VW->lowerXspin->setRange(1, VW->nxpieces - (vw->xory ? 0 : 1));
+  VW->lowerYspin->setRange(1, VW->nypieces - (vw->xory ? 1 : 0));
+  VW->lowerXspin->setEnabled(onlyone != 0);
+  VW->lowerYspin->setEnabled(onlyone != 1);
 
   state = onlyone < 0;
   vw->wXedge->setEnabled(state);
   vw->wYedge->setEnabled(state);
+  if (vw->xory != vw->centerXory) {
+    vw->xcenter = vw->xsize - 
+      (vw->xory ? vw->xsize : vw->nxoverlap / vw->binning) / 2;
+    vw->ycenter = vw->ysize - 
+      (vw->xory ? vw->nyoverlap / vw->binning : vw->ysize) / 2;
+    vw->centerXory = vw->xory;
+  }
 }
 
 void MidasSlots::slotLeave_out()
@@ -940,7 +1115,7 @@ void MidasSlots::slotLeave_out()
 void MidasSlots::slotTop_error(int item)
 {
   int topxy, edge;
-  edge = index_to_edgeno(VW->topind[item], &topxy);
+  edge = index_to_edgeno(VW->topind[item], topxy);
   if (!edge)
     return;
   if (VW->xory != topxy) {
@@ -952,6 +1127,29 @@ void MidasSlots::slotTop_error(int item)
   try_montage_edge(edge, 0);
 }
 
+void MidasSlots::slotSkipError(bool state)
+{
+  VW->skipErr = state ? 1 : 0;
+  VW->wMeanerr->setEnabled(!state);
+  VW->wCurerr->setEnabled(!state);
+  VW->wLeaverr->setEnabled(!state);
+  VW->wApplyLeave->setEnabled(!state);
+  for (int i = 0; i < VW->numTopErr; i++)
+    VW->wToperr[i]->setEnabled(!state);
+  update_parameters();
+}
+
+void MidasSlots::slotSkipExcluded(bool state)
+{
+  int pcx, pcy;
+  VW->excludeSkipped = state;
+  edgeno_to_lower_piece(VW->curedge, VW->xory, pcx, pcy);
+  if (state) {
+    manage_xory(VW);
+    try_lower_piece(pcx, pcy, 0, 0);
+  }
+  update_parameters();
+}
 
 static float zooms[MAX_ZOOMIND] = {-8., -6., -4., -3., -2., 
 				   1., 1.5, 2., 3., 4., 6., 8., 10.};
@@ -1341,6 +1539,27 @@ void MidasSlots::slotTiltOff(double value)
   VW->midasWindow->setFocus();
 }
 
+void MidasSlots::slotCorrelate()
+{
+  crossCorrelate(VW);
+}
+
+void MidasSlots::slotCorrBoxSize(int value)
+{
+  VW->corrBoxSize = value;
+  VW->drawCorrBox = 2;
+  VW->midasGL->draw();
+  VW->midasWindow->setFocus();
+}
+
+void MidasSlots::slotCorrShiftLimit(int value)
+{
+  VW->corrShiftLimit = value;
+  VW->drawCorrBox = 2;
+  VW->midasGL->draw();
+  VW->midasWindow->setFocus();
+}
+
 void MidasSlots::midas_keyinput(QKeyEvent *event)
 {
   int transtep = 10;
@@ -1348,6 +1567,7 @@ void MidasSlots::midas_keyinput(QKeyEvent *event)
   int coninc = (bwinc + 1) / 2;
   int keysym = event->key();
   int keypad = event->modifiers() & Qt::KeypadModifier;
+  int shifted = event->modifiers() & Qt::ShiftModifier;
 
   convertNumLock(keysym, keypad);
 
@@ -1511,9 +1731,9 @@ void MidasSlots::midas_keyinput(QKeyEvent *event)
     break;
 	  
   case Qt::Key_A:
-    if ((event->modifiers() & Qt::ShiftModifier) && (VW->xtype == XTYPE_MONT))
+    if (shifted && (VW->xtype == XTYPE_MONT))
       slotEdge(1);
-    else if ((event->modifiers() & Qt::ShiftModifier) && VW->numChunks)
+    else if (shifted && VW->numChunks)
       slotChunkValue(VW->curChunk + 2);
     else if (event->modifiers() & Qt::ControlModifier)
       slotAutoContrast();
@@ -1522,22 +1742,34 @@ void MidasSlots::midas_keyinput(QKeyEvent *event)
     break;
 
   case Qt::Key_B:
-    if ((event->modifiers() & Qt::ShiftModifier) && (VW->xtype == XTYPE_MONT))
+    if (shifted && (VW->xtype == XTYPE_MONT))
       slotEdge(-1);
-    else if ((event->modifiers() & Qt::ShiftModifier) && VW->numChunks)
+    else if (shifted && VW->numChunks)
       slotChunkValue(VW->curChunk);
     else
       sectionInc(-1);
     break;
 
   case Qt::Key_C:
-    if (VW->numChunks)
+    if (shifted)
+      slotCorrelate();
+    else if (VW->numChunks)
       try_section_change(0, 1);
     break;
 
   case Qt::Key_D:
     if (VW->numChunks)
       try_section_change(0, -1);
+    break;
+
+  case Qt::Key_X:
+    if (VW->xtype == XTYPE_MONT && VW->nxpieces > 1)
+      stepLowerXorY(-1, shifted ? 1 : -1);
+    break;
+
+  case Qt::Key_Y:
+    if (VW->xtype == XTYPE_MONT && VW->nypieces > 1)
+      stepLowerXorY(1, shifted ? 1 : -1);
     break;
 
   case Qt::Key_Control:
@@ -1559,10 +1791,14 @@ void MidasSlots::midas_keyinput(QKeyEvent *event)
 
 void MidasSlots::mouse_shift_image()
 {
+
+  // As in 3dmod, move image with mouse for zoom < 1, move 1 image pixel per
+  // mouse pixel above 1
+  float factor = VW->truezoom < 1. ? 1. / VW->truezoom : 1.;
   if (VW->lastmx == VW->mx && VW->lastmy == VW->my)
     return;
-  VW->xtrans += VW->mx - VW->lastmx;
-  VW->ytrans += VW->my - VW->lastmy;
+  VW->xtrans += B3DNINT(factor * (VW->mx - VW->lastmx));
+  VW->ytrans += B3DNINT(factor * (VW->my - VW->lastmy));
   VW->lastmx = VW->mx;
   VW->lastmy = VW->my;
   VW->midasGL->draw();
@@ -1832,6 +2068,9 @@ int MidasSlots::showHelpPage(const char *page)
 
 /*
 $Log$
+Revision 3.21  2009/01/15 17:03:23  mast
+Get rid of floatspinbox include
+
 Revision 3.20  2009/01/15 16:30:19  mast
 Qt 4 port
 
