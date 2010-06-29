@@ -1010,14 +1010,14 @@ c
 c           
 c           Find the next one down
           ioutNext = iout - 1
-          do while (ioutNext .gt. 1 .and. mapa2l(ioutNext) .eq. 0)
+          do while (ioutNext .gt. 1 .and. mapa2l(max(1, ioutNext)) .eq. 0)
             ioutNext = ioutNext - 1
           enddo
 c
 c           If there is no next one (at the bottom), use the last one
 c           If there is no last one, use the next one
 c           if there are both, interpolate
-          if (mapa2l(ioutNext) .eq. 0) then
+          if (ioutNext .eq. 0 .or. mapa2l(max(1,ioutNext)) .eq. 0) then
             var(index, iout) = varLast
           else if (ioutLast .lt. 1) then
             var(index, iout) = var(index, mapa2l(ioutNext))
@@ -1127,6 +1127,9 @@ c
 c       2/16/07: removed filetoview function that errored on nonexistent views
 
 c       $Log$
+c       Revision 3.19  2009/10/09 17:28:58  mast
+c       Fixed mapping for compression and made the default reference view be 1
+c
 c       Revision 3.18  2007/12/11 22:23:11  mast
 c       Removed X tilt/rotation warning if solving for only one X-tilt variable
 c
