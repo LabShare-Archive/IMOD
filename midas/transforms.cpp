@@ -20,12 +20,17 @@
 #include <QTextStream>
 #include "dia_qtutils.h"
 #include "b3dutil.h"
+#include "sliceproc.h"
+#include "cfft.h"
 
 static void checklist(int *xpclist, int npclist, int nxframe, int *minxpiece,
                       int *nxpieces, int *nxoverlap);
-static void solve_for_shifts(MidasView *vw, float *a, float *b,
-                             int *ivarpc, int *indvar, int nvar, int limvar,
-                             int leavind);
+static void solve_for_shifts(MidasView *vw, float *b, int *ivarpc, int *indvar,
+                             int nvar, int leavind);
+static int lowerEdgeIfIncluded(int ipc, int ixy);
+static int upperEdgeIfIncluded(int ipc, int ixy);
+static int checkPathList(MidasView *vw, int ipc, int jpc, int &numOnList);
+static int piecesNotConnected(MidasView *vw, int leavind);
 
 int new_view(MidasView *vw)
 {
@@ -34,6 +39,7 @@ int new_view(MidasView *vw)
   vw->ysize = 0;
   vw->zsize = 0;
   vw->xysize = 0;
+  vw->binning = 1;
   vw->cz = 0;
   vw->ref = NULL;
   vw->showref = 0;
@@ -91,6 +97,11 @@ int new_view(MidasView *vw)
   vw->difftoggle = NULL;
   vw->keepsecdiff = 1;
   vw->mouseXonly = 0;
+  vw->anySkipped = 0;
+  vw->excludeSkipped = 0;
+  vw->centerXory = -1;
+  vw->numTopErr = 6;
+  vw->skipErr = 0;
   vw->ctrlPressed = 0;
   vw->shiftPressed = 0;
   vw->midasWindow = NULL;
@@ -119,13 +130,21 @@ int load_view(MidasView *vw, char *fname)
 
   vw->cz = 1;
   vw->refz = 0;
-
+  ix = B3DMIN(vw->hin->nx, vw->hin->ny);
+  vw->binning = B3DMIN(ix, vw->binning);
   vw->zsize = vw->hin->nz;
-  vw->xsize = vw->hin->nx;
-  vw->ysize = vw->hin->ny;
+  
+  // Adjust X and Y size for the binning.  Note that montage parameters like
+  // piece coordinates and overlap are never adjusted for binning, so 
+  // computations with them need to access the original size from hin
+  vw->xsize = vw->hin->nx / vw->binning;
+  vw->ysize = vw->hin->ny / vw->binning;
   vw->xysize = vw->xsize * vw->ysize;
   vw->xcenter = 0.5 * vw->xsize;
   vw->ycenter = 0.5 * vw->ysize;
+  ix = B3DMAX(vw->xsize, vw->ysize);
+  vw->corrBoxSize = B3DMAX(32, 16 * B3DNINT(ix / 80.));
+  vw->corrShiftLimit = B3DMAX(2, 2 * B3DNINT(ix / 20.));
 
   if (vw->boxsize < 0) {
     vw->boxsize = (int)((sqrt((double)vw->xysize) - 1.) / 128. + 1.);
@@ -162,7 +181,11 @@ int load_view(MidasView *vw, char *fname)
 
   vw->cache = (struct Midas_cache *)malloc(vw->cachesize * 
                                            sizeof(struct Midas_cache));
-
+  if (vw->binning > 1) {
+    vw->unbinnedBuf = (unsigned char *)malloc(vw->hin->nx * vw->hin->ny);
+    if (!vw->unbinnedBuf)
+      midas_error("Out of memory! ", "Exiting", 3);
+  }
   for(k = 0; k < vw->cachesize; k++){
     vw->cache[k].sec = sliceCreate(vw->xsize, vw->ysize, 
                                         MRC_MODE_BYTE);
@@ -265,9 +288,9 @@ int load_view(MidasView *vw, char *fname)
         vw->maxzpiece = vw->zpclist[k];
     }
 
-    checklist(vw->xpclist, vw->zsize, vw->xsize, &vw->minxpiece, 
+    checklist(vw->xpclist, vw->zsize, vw->hin->nx, &vw->minxpiece, 
               &vw->nxpieces, &vw->nxoverlap);
-    checklist(vw->ypclist, vw->zsize, vw->ysize, &vw->minypiece, 
+    checklist(vw->ypclist, vw->zsize, vw->hin->ny, &vw->minypiece, 
               &vw->nypieces, &vw->nyoverlap);
     if (vw->nxpieces < 0 || vw->nypieces < 0)
       midas_error("Piece list does not have regular array "
@@ -286,13 +309,16 @@ int load_view(MidasView *vw, char *fname)
     vw->piecelower = (int *)malloc(2 * maxedges * sizeof(int));
     vw->edgedx = (float *)malloc(2 * maxedges * sizeof(float));
     vw->edgedy = (float *)malloc(2 * maxedges * sizeof(float));
+    vw->skippedEdge = (int *)malloc(2 * maxedges * sizeof(int));
     vw->montmap = (int *)malloc(maxpieces * sizeof(int));
-    vw->fbs_a = (float *)malloc(nxypc * nxypc * sizeof(float));
+    vw->fbs_work = (int *)malloc((nxypc * 31 / 2 + 1) * sizeof(int));
     vw->fbs_b = (float *)malloc(2 * nxypc * sizeof(float));
     vw->fbs_ivarpc = (int *)malloc(nxypc * sizeof(int));
+    vw->pathList = (int *)malloc(nxypc * sizeof(int));
+    vw->leaveType = (unsigned char *)malloc(vw->zsize * sizeof(unsigned char));
     if (!vw->montmap || !vw->pieceupper || !vw->piecelower ||
-        !vw->edgedx || !vw->edgedy || !vw->fbs_a || !vw->fbs_b ||
-        !vw->fbs_ivarpc)
+        !vw->edgedx || !vw->edgedy || !vw->fbs_work || !vw->fbs_b ||
+        !vw->fbs_ivarpc || !vw->skippedEdge || !vw->pathList || !vw->leaveType)
       midas_error("Error getting memory for piece analysis.", "", 3);
 
     /*get edge indexes for pieces and piece indexes for edges
@@ -302,9 +328,9 @@ int load_view(MidasView *vw, char *fname)
 
     for (k = 0; k < vw->zsize; k++) {
       vw->montmap[(vw->xpclist[k] - vw->minxpiece) / 
-                  (vw->xsize - vw->nxoverlap) +
+                  (vw->hin->nx - vw->nxoverlap) +
                   vw->nxpieces * (vw->ypclist[k] - vw->minypiece) /
-                  (vw->ysize - vw->nyoverlap) +
+                  (vw->hin->ny - vw->nyoverlap) +
                   nxypc * (vw->zpclist[k] - vw->minzpiece)] = k;
       vw->edgelower[2 * k] = -1;
       vw->edgeupper[2 * k] = -1;
@@ -357,8 +383,10 @@ int load_view(MidasView *vw, char *fname)
                                &vw->edgeind);
 
     // Initialize the edge dxy to zero then load them if there is a file
-    for (k = 0; k < 2 * maxedges; k++)
+    for (k = 0; k < 2 * maxedges; k++) {
       vw->edgedx[k] = vw->edgedy[k] = 0.;
+      vw->skippedEdge[k] = 0;
+    }
 
     set_mont_pieces(vw);
     vw->incindex[2]--;
@@ -420,7 +448,7 @@ Islice *getRawSlice(MidasView *vw, int zval)
   vw->cache[oldest].zval = zval;
   vw->cache[oldest].xformed = 0;
   vw->cache[oldest].used = vw->usecount++;
-  mrcReadZByte(vw->hin, vw->li, vw->cache[oldest].sec->data.b, zval);
+  midasReadZByte(vw, vw->hin, vw->li, vw->cache[oldest].sec->data.b, zval);
   return (vw->cache[oldest].sec);
 }
 
@@ -547,6 +575,41 @@ Islice *midasGetSlice(MidasView *vw, int sliceType)
   return(NULL);
 }
 
+/*
+ * Get the image data point from appropriate previous image for the mode
+ */
+unsigned char *midasGetPrevImage(MidasView *vw)
+{
+  int refz = vw->refz;
+
+  Islice *prevSlice;
+  unsigned char *prevImageData = NULL;
+
+  /* set previous image data pointer. */
+  switch(vw->xtype){
+  case XTYPE_XF:
+  case XTYPE_MONT:
+    prevSlice = midasGetSlice(vw, vw->rotMode ? MIDAS_SLICE_PREVIOUS : 
+                              MIDAS_SLICE_OPREVIOUS);
+    if (prevSlice)
+      prevImageData = prevSlice->data.b;
+    break;
+  case XTYPE_XREF:
+    if (vw->ref)
+      prevImageData = vw->ref->data.b;
+    refz = vw->zsize;
+    break;
+  case XTYPE_XG:
+  default:
+    prevSlice = midasGetSlice(vw, MIDAS_SLICE_PREVIOUS);
+    if (prevSlice)
+      prevImageData = prevSlice->data.b;
+    break;
+  }
+  return prevImageData;
+}
+
+
 /* flush the cache of any transformed images */
 void flush_xformed(MidasView *vw)
 {
@@ -650,6 +713,9 @@ int translate_slice(MidasView *vw, int xt, int yt)
   return(0);
 }
 
+/*
+ * Transform a slice by the given transformation
+ */
 int midas_transform(Islice *slin, Islice *sout, float *trmat)
 {
   int i, j, k, l, index;
@@ -667,6 +733,7 @@ int midas_transform(Islice *slin, Islice *sout, float *trmat)
   unsigned char *buf;
   float xc = VW->xsize / 2.;
   float yc = VW->ysize / 2.;
+  double wallstart;
 
   mat = tramat_inverse(trmat);
   if (!mat)
@@ -697,11 +764,15 @@ int midas_transform(Islice *slin, Islice *sout, float *trmat)
     nxa = xsize - 2;
     nya = ysize - 2;
   }
+  wallstart = wallTime();
 
-  for(j = 0, y = oy, x = ox; j < ysize + 1 - box; 
-      j += box, y += ydy * box, x += ydx * box){
-
-    oy = y; ox = x;
+#pragma omp parallel for                        \
+  shared(xdx, xdy, ydx, ydy, VW, ox, oy, umean, box, nxa, nya, xsize, ysize) \
+  private(j, x, y, xst, xnd, xlft, xrt, ixnd, ixst, k, buf, i, ix, iy, index) \
+  private(fx, fy, l)
+  for(j = 0; j < ysize + 1 - box; j += box){
+    x = ox + j * ydx;
+    y = oy + j * ydy;
 
     /* compute constrained, safe coordinates to use */
     xst = 0;
@@ -825,7 +896,6 @@ int midas_transform(Islice *slin, Islice *sout, float *trmat)
       }
     }
 
-    y = oy; x = ox;
   }
 
   /* fill any top lines left undone */
@@ -836,6 +906,7 @@ int midas_transform(Islice *slin, Islice *sout, float *trmat)
   }
 
   tramat_free(mat);
+  //printf("transform time %.6f\n", wallTime()- wallstart);
   return(0);
 }
 
@@ -970,7 +1041,7 @@ int tramat_rot(float *mat, double angle)
 } */
 
 
-int tramat_testin(float *mat, float *imat)
+static int tramat_testin(float *mat, float *imat)
 {
   float *idmat;
   int error = 0;
@@ -1084,6 +1155,7 @@ void stretch_transform(MidasView *vw, float *mat, int index,
 void stretch_all_transforms(MidasView *vw, int destretch)
 {
   int i;
+  printf("%stretching all\n", destretch? "Des" : "S");
   for (i = 0; i < vw->zsize; i++)
     stretch_transform(vw, vw->tr[i].mat, i, destretch);
 }
@@ -1167,6 +1239,17 @@ static void checklist(int *xpclist, int npclist, int nxframe, int *minxpiece,
   }
 }
 
+int includedEdge(int mapind, int xory)
+{
+  int ipc = VW->montmap[mapind];
+  int ned = 0;
+  if (ipc >= 0)
+    ned = VW->edgeupper[2 * ipc + xory];
+  if (ned >= 0 && !(VW->excludeSkipped && VW->skippedEdge[2 * ned + xory]))
+    return 1;
+  return 0;
+}
+
 int nearest_edge(MidasView *vw, int z, int xory, int edgeno, 
                  int direction, int *edgeind)
 {
@@ -1190,7 +1273,7 @@ int nearest_edge(MidasView *vw, int z, int xory, int edgeno,
   for (edge = 1; edge <= vw->maxedge[xory]; edge++) {
     ind = ((edge - 1) % nacross) * xmult + 
       ((edge - 1) / nacross) * ymult + base;
-    if (vw->montmap[ind] >= 0 && vw->montmap[ind + xmult] >= 0) {
+    if (includedEdge(ind, xory)) {
 
       /* If there is an edge, update maxbelow if below the target 
          and keep going; set both max and min if on target and break,
@@ -1293,19 +1376,94 @@ void set_mont_pieces(MidasView *vw)
   int ind = vw->edgeind * 2 + vw->xory;
   vw->cz = vw->pieceupper[ind];
   vw->refz = vw->piecelower[ind];
-  vw->tr[vw->cz].mat[6] = vw->edgedx[ind] + vw->xpclist[vw->cz] - 
-    vw->xpclist[vw->refz];
-  vw->tr[vw->cz].mat[7] = vw->edgedy[ind] + vw->ypclist[vw->cz] - 
-    vw->ypclist[vw->refz];
+  vw->tr[vw->cz].mat[6] = vw->edgedx[ind];
+  vw->tr[vw->cz].mat[7] = vw->edgedy[ind];
+  if (vw->xory)
+    vw->tr[vw->cz].mat[7] += vw->ysize - 
+      (float)(vw->nyoverlap - vw->hin->ny % vw->binning) / vw->binning;
+  else
+    vw->tr[vw->cz].mat[6] += vw->xsize - 
+      (float)(vw->nxoverlap - vw->hin->nx % vw->binning) / vw->binning;
 }
 
-#define MAX_GAUSSJ_VARS 9
-#define LOCAL_BORDER 2
+static int lowerEdgeIfIncluded(int ipc, int ixy)
+{
+  int ind = VW->edgelower[2 * ipc + ixy];
+  if (ind >= 0 && !(VW->excludeSkipped && VW->skippedEdge[2 * ind + ixy]))
+    return ind;
+  return -1;
+}
+
+static int upperEdgeIfIncluded(int ipc, int ixy)
+{
+  int ind = VW->edgeupper[2 * ipc + ixy];
+  if (ind >= 0 && !(VW->excludeSkipped && VW->skippedEdge[2 * ind + ixy]))
+    return ind;
+  return -1;
+}
+
+// Check if a piece is already assigned a type, add to list if not,
+// return 1 if the new piece has different type from old one
+static int checkPathList(MidasView *vw, int oldpc, int newpc, int &numOnList)
+{
+      // If this piece already has a type and it is different from the one
+      // one we are looking at, then there is path
+  if (vw->leaveType[newpc]) {
+    if (vw->leaveType[newpc] != vw->leaveType[oldpc])
+      return 1;
+  } else {
+
+    // Otherwise, assign type and add to look list
+    vw->leaveType[newpc] = vw->leaveType[oldpc];
+    vw->pathList[numOnList++] = newpc;
+  }
+  return 0;
+}
+
+// Determine if two pieces on either side of edge being left out are not 
+// connected by any other path
+static int piecesNotConnected(MidasView *vw, int leavind)
+{
+  int i, edge, ipc, nlist = 2;
+  int lookInd = 0;
+  vw->pathList[0] = vw->piecelower[leavind];
+  vw->pathList[1] = vw->pieceupper[leavind];
+  for (i = 0; i < vw->zsize; i++)
+    vw->leaveType[i] = 0;
+  vw->leaveType[vw->pathList[0]] = 1;
+  vw->leaveType[vw->pathList[1]] = 2;
+  while (lookInd < nlist) {
+    ipc = vw->pathList[lookInd];
+
+    // Check each edge, if any connects to a piece already assigned the other
+    // type, then they are connected
+    edge = lowerEdgeIfIncluded(ipc, 0);
+    if (edge >= 0 && 2 * edge != leavind && 
+        checkPathList(vw, ipc, vw->piecelower[2 * edge], nlist))
+      return 0;
+    edge = lowerEdgeIfIncluded(ipc, 1);
+    if (edge >= 0 && 2 * edge + 1 != leavind && 
+        checkPathList(vw, ipc, vw->piecelower[2*edge + 1], nlist))
+      return 0;
+    edge = upperEdgeIfIncluded(ipc, 0);
+    if (edge >= 0 && 2 * edge != leavind && 
+        checkPathList(vw, ipc, vw->pieceupper[2 * edge], nlist))
+      return 0;
+    edge = upperEdgeIfIncluded(ipc, 1);
+    if (edge >= 0 && 2 * edge + 1 != leavind && 
+        checkPathList(vw, ipc, vw->pieceupper[2*edge + 1], nlist))
+      return 0;
+    lookInd++;
+  }
+  return 1;
+}
+
+#define MAX_GLOBAL_VARS 25
+#define LOCAL_BORDER 3
 void find_best_shifts(MidasView *vw, int leaveout, int ntoperr,
                       float *meanerr, float *amax, int *indmax,
                       float *curerrx, float *curerry, int localonly)
 {
-  float *a = vw->fbs_a;
   float *b = vw->fbs_b;
   int *indvar = vw->fbs_indvar;
   int *ivarpc = vw->fbs_ivarpc;
@@ -1316,20 +1474,26 @@ void find_best_shifts(MidasView *vw, int leaveout, int ntoperr,
 
   /*  Unlike in bsubs.f the data coming in are the shifts to bring 
       the upper piece into alignment with the lower piece. */
-     
-  /* build list of variables */
+
+  // Forget it if there is no connection except this edge
   leavind = -1;
-  if (leaveout)
+  *curerrx = *curerry = *meanerr = 0.;
+  if (leaveout) {
     leavind = vw->edgeind * 2 + vw->xory;
+    if (piecesNotConnected(vw, leavind))
+      return;
+  }
+
+  /* build list of variables */
   nvar=0;
   for (ipc = 0; ipc < vw->zsize; ipc++) {
     if(vw->zpclist[ipc] == vw->montcz) {
       indvar[ipc] = -1;
       ind = ipc * 2;
-      elx = vw->edgelower[ind];
-      ely = vw->edgelower[ind + 1];
-      eux = vw->edgeupper[ind];
-      euy = vw->edgeupper[ind + 1];
+      elx = lowerEdgeIfIncluded(ipc, 0);
+      ely = lowerEdgeIfIncluded(ipc, 1);
+      eux = upperEdgeIfIncluded(ipc, 0);
+      euy = upperEdgeIfIncluded(ipc, 1);
       if ((elx > -1 && elx * 2 != leavind) ||
           (ely > -1 && ely * 2 + 1 != leavind) ||
           (eux > -1 && eux * 2 != leavind) ||
@@ -1345,19 +1509,18 @@ void find_best_shifts(MidasView *vw, int leaveout, int ntoperr,
     amax[i]=0.;
     indmax[i] = -1;
   }
-  *curerrx = *curerry = *meanerr = 0.;
   if (nvar < 2)
     return;
 
-  if (nvar > MAX_GAUSSJ_VARS * MAX_GAUSSJ_VARS) {
-    double wallstart = wallTime();
+  if (nvar > MAX_GLOBAL_VARS * MAX_GLOBAL_VARS) {
+    //double wallstart = wallTime();
     find_local_errors(vw, leaveout, ntoperr, meanerr, amax, indmax,
                       curerrx, curerry, localonly);
     //printf("local time %.3f\n", wallTime() - wallstart);
     return;
   }
 
-  solve_for_shifts(vw, a, b, ivarpc, indvar, nvar, limvar, leavind);
+  solve_for_shifts(vw, b, ivarpc, indvar, nvar, leavind);
 
 
   nsum=0;
@@ -1366,13 +1529,12 @@ void find_best_shifts(MidasView *vw, int leaveout, int ntoperr,
     ipc=ivarpc[ivar];
 
     for (ixy = 0; ixy < 2; ixy++) {
-      edge = vw->edgelower[ipc * 2 + ixy];
+      edge = lowerEdgeIfIncluded(ipc, ixy);
       ind = edge * 2 + ixy;
       if (edge > -1) {
         ipclo = vw->piecelower[ind];
         adx = b[ivar * 2] - b[indvar[ipclo] * 2] - vw->edgedx[ind];
-        ady = b[ivar * 2 + 1] - b[indvar[ipclo] * 2 + 1] -
-          vw->edgedy[ind];
+        ady = b[ivar * 2 + 1] - b[indvar[ipclo] * 2 + 1] - vw->edgedy[ind];
         adist = sqrt((double)(adx * adx + ady * ady));
         if (ind == vw->edgeind * 2 + vw->xory) {
           *curerrx = adx;
@@ -1411,13 +1573,13 @@ void find_local_errors(MidasView *vw, int leaveout, int ntoperr,
                        float *meanerr, float *amax, int *indmax,
                        float *curerrx, float *curerry, int localonly)
 {
-  float *a = vw->fbs_a;
   float *b = vw->fbs_b;
   int *indvar = vw->fbs_indvar;
   int *ivarpc = vw->fbs_ivarpc;
   int leavind, i, j, ivar, ipclo, ipc, nvar, ind, elx, ely, eux, euy;
   int nsum, edge, ixy, localind;
-  float adist, asum, adx, ady;
+  float adist, adx, ady;
+  double asum;
   int limvar = vw->nxpieces * vw->nypieces;
   int ix, iy, ixst, ixnd, ixstin, ixndin, iyst, iynd, iystin, iyndin;
   int nlong, nshort, ndivShort, ndivLong, divSizeShort, divSizeLong;
@@ -1457,8 +1619,8 @@ void find_local_errors(MidasView *vw, int leaveout, int ntoperr,
   ndivShort = 1;
   divSizeShort = nshort - 1;
   shortsize = nshort;
-  if (nshort > MAX_GAUSSJ_VARS) {
-    basesize = MAX_GAUSSJ_VARS - 2 * LOCAL_BORDER - 1;
+  if (nshort > MAX_GLOBAL_VARS) {
+    basesize = MAX_GLOBAL_VARS - 2 * LOCAL_BORDER - 1;
     ndivShort = (nshort + basesize - 2) / basesize;
     divSizeShort = (nshort - 1) / ndivShort;
     shortsize = divSizeShort + 2 * LOCAL_BORDER + 1;
@@ -1469,7 +1631,7 @@ void find_local_errors(MidasView *vw, int leaveout, int ntoperr,
   /*   printf ("%d %d %d %d\n", basesize, ndivShort, divSizeShort, shortsize); */
 
   /* Now long size can have bigger divisions if short side is small */
-  basesize = (MAX_GAUSSJ_VARS * MAX_GAUSSJ_VARS) / shortsize -
+  basesize = (MAX_GLOBAL_VARS * MAX_GLOBAL_VARS) / shortsize -
     2 * LOCAL_BORDER - 1;
   ndivLong = (nlong + basesize - 2) / basesize;
   divSizeLong = (nlong - 1) / ndivLong;
@@ -1523,10 +1685,11 @@ void find_local_errors(MidasView *vw, int leaveout, int ntoperr,
             continue;
           
           ind = ipc * 2;
-          elx = vw->edgelower[ind];
-          ely = vw->edgelower[ind + 1];
-          eux = vw->edgeupper[ind];
-          euy = vw->edgeupper[ind + 1];
+          elx = lowerEdgeIfIncluded(ipc, 0);
+          ely = lowerEdgeIfIncluded(ipc, 1);
+          eux = upperEdgeIfIncluded(ipc, 0);
+          euy = upperEdgeIfIncluded(ipc, 1);
+
           /* include a piece if one of its edges is included
              in the area being analyzed */
           if ((ix > ixst && elx > -1 && elx * 2 != leavind) ||
@@ -1548,25 +1711,24 @@ void find_local_errors(MidasView *vw, int leaveout, int ntoperr,
             doarea = 1;
         }
       }
-      /*  printf("X: %d %d %d %d %d   Y: %d %d %d %d %d   leave %d %d\n",
-          divX, ixst, ixnd, ixstin, ixndin, divY, iyst, iynd, iystin, iyndin, leavind, doarea); */
+      /*printf("X: %d %d %d %d %d   Y: %d %d %d %d %d   leave %d %d\n",
+        divX, ixst, ixnd, ixstin, ixndin, divY, iyst, iynd, iystin, iyndin, leavind, doarea); */
       if (nvar >= 2 && doarea) {
-        solve_for_shifts(vw, a, b, ivarpc, indvar, nvar, limvar, leavind);
+        solve_for_shifts(vw, b, ivarpc, indvar, nvar, leavind);
 
         /* evaluate errors for ones in the inner area */
         for (iy = iystin; iy <= iyndin; iy++) {
           for (ix = ixstin; ix <= ixndin; ix++) {
             ipc = vw->montmap[ix + iy * vw->nxpieces + vw->montcz * limvar];
-            if (ipc < 0)
+            if (ipc < 0 || indvar[ipc] < 0)
               continue;
             ivar = indvar[ipc];
 
             for (ixy = 0; ixy < 2; ixy++) {
-              edge = vw->edgelower[ipc * 2 + ixy];
+              edge = lowerEdgeIfIncluded(ipc, ixy);
               ind = edge * 2 + ixy;
-              /* evaluate if edge exists and, for an
-                 X edge, the piece is past the first in X
-                 and is either not the last local piece in
+              /* evaluate if edge exists and, for an X edge, the piece is past
+                 the first in X and is either not the last local piece in
                  Y or the very last piece in Y */
               if (edge > -1 && 
                   ((!ixy && ix > ixstin &&
@@ -1618,109 +1780,173 @@ void find_local_errors(MidasView *vw, int leaveout, int ntoperr,
      printf("%.3f\n", elapsed); */
 }
 
-/* Set up equations to determine shifts for the given set of variables */
-static void solve_for_shifts(MidasView *vw, float *a, float *b, 
-                             int *ivarpc, int *indvar, int nvar, int limvar,
+/* Determine shifts for the given set of variables */
+static void solve_for_shifts(MidasView *vw, float *b, 
+                             int *ivarpc, int *indvar, int nvar,
                              int leavind)
 {
-  int ivar, ipc, ind,i;
-  int neighpc, neighvar, edge, m, ixy;
-  float xsum, ysum;
+  int numIter;
+  int maxIter = 20 + nvar;
+  int numAvgForTest = 7;
+  int intervalForTest = 50;
+  float critMaxMove = 5.e-4f;
+  float critMoveDiff = 5.e-6f;
 
   if (nvar < 2)
     return;
 
-  /*  build matrix of simultaneous equations for minimization solution */
-  for (ivar = 0; ivar < nvar - 1; ivar++) {
-    ipc = ivarpc[ivar];
-    for (m = 0; m < nvar -1; m++) {
-      a[ivar * limvar + m] = 0.;
-      b[ivar * 2] = 0;
-      b[ivar * 2 + 1] = 0.;
-    }
-
-    for (ixy = 0; ixy < 2; ixy++) {
-
-      edge = vw->edgelower[ipc * 2 + ixy];
-      if(edge > -1 && edge * 2 + ixy != leavind) {
-        ind = edge * 2 + ixy;
-        neighpc = vw->piecelower[ind];
-        neighvar = indvar[neighpc];
-        if (neighvar >= 0) {
-          a[ivar * limvar + ivar]++;
-                    
-          /* for a regular neighbor, enter a -1 in its term; 
-             but for the last variable being eliminated, enter
-             a +1 for ALL other variables instead */
-          if (neighvar != nvar - 1)
-            a[ivar * limvar + neighvar]--;
-          else {
-            for (m = 0 ; m < nvar-1; m++)
-              a[ivar * limvar + m]++;
-          }
-
-          /* when this piece is an upper piece, subtract 
-             displacements from (add shifts to) constant term */
-          b[ivar * 2] += vw->edgedx[ind];
-          b[ivar * 2 + 1] += vw->edgedy[ind];
-        }
-      }
-
-      edge = vw->edgeupper[ipc * 2 + ixy];
-      if(edge > -1 && edge * 2 + ixy != leavind) {
-        ind = edge * 2 + ixy;
-        neighpc = vw->pieceupper[ind];
-        neighvar = indvar[neighpc];
-        if (neighvar >= 0) {
-          a[ivar * limvar + ivar]++;
-          if (neighvar != nvar - 1)
-            a[ivar * limvar + neighvar]--;
-          else {
-            for (m=0 ; m < nvar-1; m++)
-              a[ivar * limvar + m]++;
-          }
-                    
-          /* when a lower piece, add displacements to (subtract
-             shifts from) constant terms */
-          b[ivar * 2] -= vw->edgedx[ind];
-          b[ivar * 2 + 1] -= vw->edgedy[ind];
-        }
-      }
-    }
-  }
-
-  /* solve the equations, take the b values as dx and dy; compute the
-     sum to get the shift for the final piece */
-
-  /*   for (i = 0; i < nvar; i++)
-       printf("%5d",ivarpc[i]);
-       printf("\n");
-       for (j = 0; j < (nvar -1); j++) {
-       for (i = 0; i < (nvar - 1); i++) 
-       printf("%7.1f", a[j + i * limvar]);
-       printf("\n");
-       }
-       for (j = 0; j < 2; j++) {
-       for (i = 0; i < (nvar - 1); i++)
-       printf("%9.2f", b[i * 2 + j]);
-       printf("\n");
-       } */
-          
-  gaussj(a, nvar - 1, limvar, b, 2, 2);
-
-  xsum=0.;
-  ysum=0.;
-  for (i = 0; i < nvar-1; i++) {
-    xsum += b[i * 2];
-    ysum += b[i * 2 + 1];
-  }
-  b[(nvar - 1) * 2] = -xsum;
-  b[(nvar - 1) * 2 + 1] = -ysum;
-
+  if (findPieceShifts(ivarpc, nvar, indvar, vw->xpclist, vw->ypclist,
+                      vw->edgedx, vw->edgedy, -1, vw->piecelower,
+                      vw->pieceupper, vw->skippedEdge, 1, b, 1,
+                      vw->edgelower, vw->edgeupper, 1, vw->fbs_work, 0,leavind,
+                      vw->excludeSkipped ? 1 : 3, critMaxMove, critMoveDiff,
+                      maxIter,numAvgForTest,intervalForTest, &numIter))
+    printf("Error calling findPieceShifts\n");
+  return;
 }
 
+static void xcorrRange(int size, float shift, int center, int border, int box,
+                       int &prev0, int &prev1)
+{
+  int ishift = B3DNINT(shift);
+  int boxlo = center - box / 2;
+  int boxhi = boxlo + box - 1;
+  prev0 = border + B3DMAX(0, ishift);
+  
+  prev1 = size - 1 - border - B3DMIN(0, ishift);
+  prev0 = B3DMAX(boxlo, prev0);
+  prev1 = B3DMIN(boxhi, prev1);
+}
+
+#define MAX_PEAKS 16
+void crossCorrelate(MidasView *vw)
+{
+  float padFrac = 0.2f, taperFrac = 0.1f;
+  float radius1 = -0.005, radius2 = 0.2f, sigma1 = 0.025f, sigma2 = 0.05f;
+  float peakRatio = 5.;
+  int nsmooth = 6;
+  int maxdim = B3DMAX(vw->xsize, vw->ysize);
+  int border = B3DMIN(16, maxdim / 64);
+  float xpeak[MAX_PEAKS], ypeak[MAX_PEAKS], peaks[MAX_PEAKS];
+  float ctf[8193], ctfDelta;
+  float *mat = vw->tr[vw->cz].mat;
+  int ix0, ix1, iy0, iy1, i, nxsmooth, nysmooth, minpad;
+  int nxuse, nyuse, nxpad, nypad;
+  float *array, *brray, *arfilt;
+  int ifor = 0, ibak = 1;
+  int ipsave, nsum, imax;
+  unsigned char *curImageData, *prevImageData;
+  Islice *curSlice;
+  double ccc, cccmax;
+
+  xcorrRange(vw->xsize, mat[6], vw->xcenter, border, vw->corrBoxSize, ix0,ix1);
+  xcorrRange(vw->ysize, mat[7], vw->ycenter, border, vw->corrBoxSize, iy0,iy1);
+  nxuse = ix1 + 1 - ix0;
+  nyuse = iy1 + 1 - iy0;
+  if (nxuse < 32 || nyuse < 32) {
+    midas_error("The box size or overlap is too small to",
+                "correlate the images at this shift", 0);
+    return;
+  }
+
+  // Tried using taperinpad alone and it fails in the usual way on edges
+  // So use the current approach in blendmont of smoothing and tapering outside
+  // filtering low frequencies and looking at real-space correlations 
+  // coefficient at  multiple locations
+  // Make padding at least twice as big as desired smoothing
+  minpad = B3DMAX(nxuse * padFrac, 2 * nsmooth);
+  nxpad = niceFrame(nxuse + 2 * minpad, 2, 19);
+  minpad = B3DMAX(nyuse * padFrac, 2 * nsmooth);
+  nypad = niceFrame(nyuse + 2 * minpad, 2, 19);
+  nxsmooth = nxuse + 2 * nsmooth;
+  nysmooth = nyuse + 2 * nsmooth;
+  array = (float *)malloc(((nxpad + 2) * nypad) * sizeof(float));
+  brray = (float *)malloc(((nxpad + 2) * nypad) * sizeof(float));
+  arfilt = (float *)malloc(((nxpad + 2) * nypad) * sizeof(float));
+  if (!array || !brray || !arfilt) {
+    midas_error("Error getting memory for correlation arrays", "", 0);
+    B3DFREE(array);
+    B3DFREE(brray);
+    B3DFREE(arfilt);
+    return;
+  }
+  ipsave = vw->fastip;
+  if (vw->fastip) {
+    vw->fastip = 0;
+    flush_xformed(vw);
+  }
+  curSlice = midasGetSlice(VW, MIDAS_SLICE_CURRENT);
+  curImageData = curSlice->data.b;
+  prevImageData = midasGetPrevImage(vw);
+  vw->fastip = ipsave;
+  sliceTaperInPad(prevImageData, SLICE_MODE_BYTE, vw->xsize, ix0, ix1, iy0,
+                  iy1, array, nxuse, nxuse, nyuse, 0, 0);
+  sliceSmoothOutPad(array, SLICE_MODE_FLOAT, nxuse, nyuse, array, nxsmooth, 
+                    nxsmooth, nysmooth);
+  sliceTaperOutPad(array, SLICE_MODE_FLOAT, nxsmooth, nysmooth, array, 
+                   nxpad+2, nxpad, nypad, 0, 0.);
+  sliceTaperInPad(curImageData, SLICE_MODE_BYTE, vw->xsize, ix0, ix1, iy0,
+                  iy1, brray, nxuse, nxuse, nyuse, 0, 0);
+  sliceSmoothOutPad(brray, SLICE_MODE_FLOAT, nxuse, nyuse, brray, nxsmooth, 
+                    nxsmooth, nysmooth);
+  sliceTaperOutPad(brray, SLICE_MODE_FLOAT, nxsmooth, nysmooth, brray, 
+                   nxpad+2, nxpad, nypad, 0, 0.);
+
+  todfftc(array, nxpad, nypad, 0);
+  todfftc(brray, nxpad, nypad, 0);
+
+  // Double filter the correlation so it corresponds to the filtered real-space
+  // correlation
+  XCorrSetCTF(sigma1, sigma2, radius1, radius2, ctf, nxpad, nypad,
+              &ctfDelta);
+  XCorrFilterPart(array, array, nxpad, nypad, ctf, ctfDelta);
+  XCorrFilterPart(brray, brray, nxpad, nypad, ctf, ctfDelta);
+  memcpy(arfilt, array, (nxpad + 2) * nypad * sizeof(float));
+  conjugateProduct(array, brray, nxpad, nypad);
+  todfftc(array, nxpad, nypad, 1);
+  todfftc(brray, nxpad, nypad, 1);
+  todfftc(arfilt, nxpad, nypad, 1);
+  XCorrPeakFind(array, nxpad+2, nypad, xpeak, ypeak, peaks, MAX_PEAKS);
+
+  // For each peak within range, evaluate the CCC and find one with highest CCC
+  cccmax = -10.;
+  for (i = 0; i < MAX_PEAKS; i++) {
+    if (peaks[i] > -1.e29 && fabs((double)xpeak[i]) <= vw->corrShiftLimit && 
+        fabs((double)ypeak[i]) <= vw->corrShiftLimit) {
+      ccc = XCorrCCCoefficient(arfilt, brray, nxpad+2, nxpad, nypad, xpeak[i], 
+                               ypeak[i], (nxpad - nxuse) / 2, 
+                               (nypad - nyuse) / 2, &nsum);
+      //printf("%.2f %.2f %g %.5f %d\n", xpeak[i], ypeak[i], peaks[i], ccc, nsum);
+      if (ccc > cccmax) {
+        cccmax = ccc;
+        imax = i;
+      }
+    }
+  }
+  free(array);
+  free(brray);
+  free(arfilt);
+  if (cccmax > -1.) {
+    printf("Peak %d at %.2f,%.2f   ccc %.4f  raw ratio to first %f\n", imax+1,
+           xpeak[imax], ypeak[imax], cccmax, peaks[0] / peaks[imax]);
+    vw->drawCorrBox = 1;
+    vw->midasSlots->translate(xpeak[imax], ypeak[imax]);
+    return;
+  }
+
+  // No peak found, draw box in red
+  vw->drawCorrBox = 3;
+  vw->midasGL->draw();
+  
+}
+
+
 /*
+
 $Log$
+Revision 3.22  2010/06/06 21:13:40  mast
+Add include for gaussj in library
+
 Revision 3.21  2009/12/07 17:09:22  mast
 Initialize edge displacements to zero so input file need not exist
 
