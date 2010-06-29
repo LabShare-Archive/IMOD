@@ -37,6 +37,9 @@
 /*  $Id$
 
 $Log$
+Revision 1.6  2007/10/12 19:45:17  mast
+Fix documentation to describe X dimension of array
+
 Revision 1.4  2006/11/03 17:28:38  mast
 Added documentation, author and license statements
 
@@ -203,4 +206,12 @@ void odfft(float *array, int *nxp, int *nyp, int *idirp)
     printf("ERROR: odfft - idir = %d is an illegal option\n", idir);
     exit(1);
   }
+}
+
+/*!
+ * Function to call @odfft from C with arguments passed by value
+ */
+void odfftc(float *array, int nx, int ny, int idir)
+{
+  odfft(array, &nx, &ny, &idir);
 }

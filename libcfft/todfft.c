@@ -38,6 +38,9 @@
 /*  $Id$
 
 $Log$
+Revision 1.4  2007/10/12 18:33:01  mast
+Fix documentation to describe X dimension of array
+
 Revision 1.3  2006/11/03 17:28:38  mast
 Added documentation, author and license statements
 
@@ -166,4 +169,12 @@ void todfft(float *array, int *nxp, int *nyp, int *idirp)
   hermft(array, &(array[1]), nxo2, idim);
 
   return;
+}
+
+/*!
+ * Function to call @todfft from C with arguments passed by value
+ */
+void todfftc(float *array, int nx, int ny, int idir)
+{
+  todfft(array, &nx, &ny, &idir);
 }

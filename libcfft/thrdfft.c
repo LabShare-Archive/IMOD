@@ -78,8 +78,20 @@ void thrdfft(float *array, float *brray, int *nxp, int *nyp, int *nzp,
   return;
 }
 
+/*!
+ * Function to call @thrdfft from C with arguments passed by value
+ */
+void thrdfftc(float *array, float *brray, int nx, int ny, int nz, int idir)
+{
+  thrdfft(array, brray, &nx, &ny, &nz, &idir);
+}
+
+
 /*
 $Log$
+Revision 1.4  2007/10/16 23:36:40  mast
+Fix documentation of working array size
+
 Revision 1.3  2007/10/12 18:33:01  mast
 Fix documentation to describe X dimension of array
 
