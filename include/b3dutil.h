@@ -22,6 +22,7 @@
 #define B3DMIN(a,b) ((a) < (b) ? (a) : (b))
 #define B3DMAX(a,b) ((a) > (b) ? (a) : (b))
 #define B3DNINT(a) (int)floor((a) + 0.5)
+#define B3DFREE(a) if (a) free(a)
 
 #ifdef __cplusplus
 extern "C" {
@@ -66,6 +67,9 @@ extern "C" {
 
 /*
 $Log$
+Revision 1.19  2010/06/23 17:23:03  mast
+pid function
+
 Revision 1.18  2010/03/24 02:20:17  mast
 IMOD_DIR function
 

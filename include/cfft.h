@@ -7,6 +7,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 3.1  2004/10/24 20:47:09  mast
+Addition to package
+
 */
 #ifndef CFFT_H
 #define CFFT_H
@@ -28,9 +31,12 @@ extern "C" {
 #endif
 
 void odfft(float *array, int *nxp, int *nyp, int *idirp);
+void odfftc(float *array, int nx, int ny, int idir);
 void todfft(float *array, int *nxp, int *nyp, int *idirp);
+void todfftc(float *array, int nx, int ny, int idir);
 void thrdfft(float *array, float *brray, int *nxp, int *nyp, int *nzp, 
              int *idirp);
+void thrdfftc(float *array, float *brray, int nx, int ny, int nz, int idir);
 void srfp (int pts, int pmax, int twogrp, int *factor, int *sym, int *psym,
 	   int *unsym, int *error);
 void realft (float *even, float *odd, int n, int *dim);
