@@ -6,7 +6,7 @@ midas \- manual image alignment for MRC files.
 .SH SYNOPSIS
 midas [options] <image file> [transform file]
 .SH DESCRIPTION
-midas allows one to assess and adjust the alignment between pairs of images.
+Midas allows one to assess and adjust the alignment between pairs of images.
 It is typically used to align images from serial sections and to correct
 errors in a pre-alignment of tilt series images by cross-correlation.  It can
 also be used to adjust the alignment between adjacent pieces in a montaged
@@ -19,14 +19,15 @@ translation, rotation or distortion happens everywhere in an image.
 All transformation parameters can be adjusted by dragging a
 point on the image with the mouse.
 The help menus describe the functions of each mouse button, as well as the
-operation of the various controls and hot keys.
+operation of the various controls and hot keys.  The controls also have
+tooltips with brief summaries of their function.
 
 Midas also allows one to adjust the brightness and contrast of each image
 independently to ease comparisons.  The program can produce a copy of the
 image stack with these individual contrast changes applied (but not with the
 transformations applied).
 
-The input image files for midas must be MRC files.  They can be byte, integer,
+The input image files for Midas must be MRC files.  They can be byte, integer,
 or real images, and can also be RGB images, which will be displayed in
 grayscale.  The latter option can be used to align model contours displayed on
 an image by snapshotting the Zap window in 3dmod(1) and creating a color MRC 
@@ -47,7 +48,7 @@ section.  The transformations in this mode are sometimes referred to as "xf"
 transforms, which are suitable only for aligning one image to another.
 The program xftoxg(1) is used to convert xf transforms into the "xg" transforms
 that are suitable for transforming the whole image stack into alignment.
-In this mode, midas displays the reference section without transforming it,
+In this mode, Midas displays the reference section without transforming it,
 and any changes in transformation are applied only to the transform of the
 current section.
 
@@ -82,7 +83,7 @@ option.  In this mode, advancing or backing up by a section changes only the
 current section; the reference section is changed only by typing a
 new number into its text box.  If your reference section happens to be in the
 same file as the images being aligned to it, then you can either specify
-that file as both the reference and the image file, or start midas in local
+that file as both the reference and the image file, or start Midas in local
 alignment mode then turn off the "Keep Curr-Ref Diff" box and set the
 reference and current sections independently.
 
@@ -100,16 +101,16 @@ store the current transform on the internal list.  You can use the latter to
 save a transform that you like before trying to improve on it.
 
 If the name of a file of transforms is entered after the image filename when
-first starting midas,
-then midas will read transforms from this file, and images will initially
+first starting Midas,
+then Midas will read transforms from this file, and images will initially
 be displayed with these transforms.  This file then becomes the default file
-into which midas will save transforms.  Transforms can be saved into a
+into which Midas will save transforms.  Transforms can be saved into a
 different file with the File menu entry "Save As".  After doing so, that file
 becomes the default file for successive save operations.
-In either case, the first time that midas saves to a file, it will make a
+In either case, the first time that Midas saves to a file, it will make a
 backup of an existing file by that name by adding ~ at the end.
 If the name of a transform file that does not yet exist is entered on the
-command line, midas will create and save into that file.
+command line, Midas will create and save into that file.
 
 .SS Using Global Rotations and Cosine Stretching
 Midas can rotate all images by a common amount and allow you to adjust
@@ -123,7 +124,7 @@ direction that needs fixing in a tilt series pre-aligned by correlation.
 This rotation provides a convenient way to look at tilted images but should
 not affect the alignment; the transformations output by the program are
 independent of the global rotation angle.  However, the X and Y translations
-that are displayed and adjusted in midas are relative to the rotated images
+that are displayed and adjusted in Midas are relative to the rotated images
 and will change with the angle.  Global rotations can be used in local or
 global alignment mode.
 
@@ -161,15 +162,15 @@ bottom of tomogram into separate chunks.
 
 .SS Fixing Montage Overlaps
 When the pieces of a montage need to be shifted into registration with each
-other, blendmont(1) uses the image displacements in the overlap zones between
-adjacent pieces to determine how to shift the pieces.  Sometimes blendmont
+other, Blendmont(1) uses the image displacements in the overlap zones between
+adjacent pieces to determine how to shift the pieces.  Sometimes Blendmont
 does not determine a displacement correctly, leading to erroneous registration
-of the pieces.  To use midas to correct the displacements, start midas with
+of the pieces.  To use Midas to correct the displacements, start Midas with
 the 
 .B -p
 option followed by the name of the piece list file.   After the montaged
 image file name, in place of a transformation file, enter the name of the
-edge correlation displacement (.ecd) file produced by blendmont.
+edge correlation displacement (.ecd) file produced by Blendmont.
 You can then display and adjust the overlap between any pair of adjacent
 pieces on any section.  Overlap zones are referred to as edges and are of two
 types: X edges
@@ -179,12 +180,16 @@ row, then in the next row, etc.
 Y edges are numbered from bottom to top in columns, with the leftmost column
 being the first one.
 The edge number controls, just below the section controls, allow one to select
-any given edge, but it is more convenient to use the buttons provided for 
-selecting one of the four edges with the worst displacement errors.
+any given edge by this number, but they also allow you to see and select an
+edge by the X
+and Y frame number of the lower piece (the one to the left of an X edge, or
+below a Y edge).  To find edges that need fixing, it is usually more
+convenient to use the buttons provided for
+selecting one of the edges with the worst displacement errors.
 
 When two pieces are displayed, their X and Y translation values correspond
-to the image displacement at that edge, originally measured by blendmont and
-possibly adjusted within midas.  The displacements for all of the edges
+to the image displacement at that edge, originally measured by Blendmont and
+possibly adjusted within Midas.  The displacements for all of the edges
 are used to determine the optimal shifts of the piece.  When these shifts are
 applied to the pieces, they produce displacements at all of the edges,
 displacements that
@@ -217,11 +222,11 @@ correctly.  Visual examination of the edges is the only way to detect and
 correct errors in the measured displacements.
 
 .SS Options
-midas accepts some Qt options (such as -style) and
+Midas accepts some Qt options (such as -style) and
 the following options.
 .TP
 .B -g
-Start midas in global alignment mode.  The default is local alignment mode. 
+Start Midas in global alignment mode.  The default is local alignment mode. 
 .TP
 .B -r <filename>
 Load a reference image from a file with the given 
@@ -244,11 +249,18 @@ Determine alignment between chunks of sections.  Enter a comma-separated list
 of the number of sections in each chunk.  The list should add up to the
 total number of sections in the image file.
 .TP
+.B -B <factor>
+Bin images by the given factor when reading them in.  The translation
+component of the transformation shown and adjusted in the program will be
+smaller by this amount.  Translations will be scaled down when read in from a
+file and scaled back up when written out to file.  Errors shown when fixing
+montage overlaps will also be smaller by the binning factor.
+.TP
 .B -p <filename>
 Load piece coordinates for a montaged image file from the given
 .I filename
 and enter montage fixing mode.  The final argument on the command line would
-ordinarily be the .ecd file produced by blendmont(1), but it is possible to
+ordinarily be the .ecd file produced by Blendmont(1), but it is possible to
 open a montage without such a file.
 .TP
 .B -C <size>
@@ -289,8 +301,12 @@ necessary with a spin box control.
 .TP
 .B -o <filename>
 Save transforms to a file with the given 
-.I filname
+.I filename
 instead of to the file that transforms were read from.
+.TP
+.B -e <number>
+When fixing montage overlaps, show the given number of buttons with the
+highest errors (between 2 and 10).
 .TP
 .B -O <2 letters>
 Specify the colors for the previous and current image in overlay mode.  The
@@ -306,7 +322,7 @@ Run in debug mode, which means do not run the program in the background.
 Suppress reminder to rebuild edge functions when exiting after fixing montage
 edges.
 .SH FILES
-The transformation files that midas uses are in the following format.
+The transformation files that Midas uses are in the following format.
 The files are in ascii format with one line for each image in the image stack.
 Each line contains 6 numerical parameters that are used
 to calculate the linear transformation.
