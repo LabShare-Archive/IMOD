@@ -70,6 +70,7 @@ class QDoubleSpinBox;
 #define MAX_CACHE_MBYTES   128
 #define MAX_ZOOMIND        13
 #define MAX_INCREMENTS      6
+#define MAX_TOP_ERR        10
 
 #define LATIN1(a) ((const char *)a.toLatin1())
 
@@ -111,12 +112,15 @@ public slots:
  private:
  void makeSeparator(QVBoxLayout *parent, int width);
  void makeTwoArrows(QHBoxLayout *parent, int direction, int signal,
-                    QSignalMapper *mapper, bool repeat);
+                    QSignalMapper *mapper, bool repeat, char *tip1 = NULL,
+                    char *tip2 = NULL);
  QSignalMapper *makeLabeledArrows(QVBoxLayout *parent, QString textlabel, 
-                                  QLabel **outLabel, bool repeat);
+                                  QLabel **outLabel, bool repeat,
+                                  char *tip1 = NULL, char *tip2 = NULL);
  QLabel *makeArrowRow(QVBoxLayout *parent, int direction, int signal, 
                       QSignalMapper *mapper, bool repeat, QString textlabel, 
-                      int decimals, int digits, float value);
+                      int decimals, int digits, float value, char *tip1 = NULL,
+                      char *tip2 = NULL);
  QSpinBox *makeSpinBoxRow(QHBoxLayout *row, char *labText, int minz, int maxz);
  void createParameterDisplay(QVBoxLayout *parent);
  void createSectionControls(QVBoxLayout *parent);
@@ -158,6 +162,7 @@ typedef struct Midas_view
   int xsize; 
   int ysize;
   int xysize;
+  int binning; /* Binning applied to data */
   int cz;    /* current section */
   int refz;  /* reference section */
   float xcenter;  /* center coordinates for rotation, stretch, mag */
@@ -188,6 +193,7 @@ typedef struct Midas_view
   int usecount;  /* use counter */
   int cachesize; /* size */
   struct Midas_cache *cache;
+  unsigned char *unbinnedBuf;
 	
   /* transformation data array */
   struct Midas_transform *tr;
@@ -240,6 +246,8 @@ typedef struct Midas_view
   char *plname; /* name of piece list file */
      
   int xsec;    /* The section # of the reference image. */
+  int corrBoxSize;  /* Size of box for correlation */
+  int corrShiftLimit;  /* Shift limit for correlation */
 
   int *xpclist; /* Piece coordinates */
   int *ypclist;
@@ -250,6 +258,10 @@ typedef struct Midas_view
   int nxoverlap, nyoverlap;   /* Overlap between pieces */
   float *edgedx;    /* Edge displacements in X and Y */
   float *edgedy;
+  int *skippedEdge;   /* Flag if edge was skipped in blendmont */
+  int *pathList;     /* List of pieces to look at when looking for path */
+  unsigned char *leaveType;  /* Type 1 or 2 for pieces around left-out edge */
+  int anySkipped;      /* Flags if any such edges exist */
   int *montmap;   /* Map of piece numbers in 3-D array of positions */
   int *edgelower; /* indexes of edges below and above pieces */
   int *edgeupper;
@@ -258,15 +270,19 @@ typedef struct Midas_view
   int nedge[2];    /* total # of edges in X or Y */
   int maxedge[2];  /* Maximum # of edges in X or Y on a section */
   int xory;        /* Doing X or Y edge */
+  int centerXory;  /* Whether center was set for X or Y edge */
   int montcz;      /* Current Z value ; cz refers to piece number */
   int curedge;     /* Current edge number in the section */
   int edgeind;     /* index into arrays of current edge */
-  float *fbs_a;    /* Arrays needed by find_best_shifts */
+  int *fbs_work;   /* Arrays needed by find_best_shifts */
   float *fbs_b;
   int *fbs_indvar;
   int *fbs_ivarpc;
+  int excludeSkipped;  /* Flag to exclude the skipped edges */
   float curleavex, curleavey;  /* Leave-out error of current edge */
-  int topind[8];   /* Index of edges with top errors */
+  int topind[MAX_TOP_ERR];   /* Index of edges with top errors */
+  int numTopErr;    /* Number of top errors to display */
+  int skipErr;      /* Flag to skip error computation and display */
 		       
   int      depth;
 
@@ -280,6 +296,7 @@ typedef struct Midas_view
   QCheckBox *reversetoggle;
   int      reversemap;   /* flag to reverse contrast */
   int      applytoone;   /* Flag to apply to only one section */
+  int      drawCorrBox;  /* Flag to draw correlation box, indicating color */
   QSpinBox *curSpin;
   QSpinBox *refSpin;
   QSpinBox *chunkSpin;
@@ -290,6 +307,9 @@ typedef struct Midas_view
   QRadioButton *wYedge;
   
   QSpinBox *edgeSpin;
+  QSpinBox *lowerXspin;
+  QSpinBox *lowerYspin;
+  QCheckBox *wSkipExcluded;
   QLabel   *zoomlabel;
   QLabel   *blocklabel;
   int      boxsize;      /* block size for transforms */
@@ -298,15 +318,19 @@ typedef struct Midas_view
   int      incindex[3];    /* index from parameters to increments */
   float    increment[3];   /* Current increments */
   QLabel   *wParameter[5];
-  QPushButton *wToperr[4];
+  QPushButton *wToperr[MAX_TOP_ERR];
   QLabel   *wMeanerr;
   QLabel   *wCurerr;
   QLabel   *wLeaverr;
+  QPushButton *wApplyLeave;
+  QCheckBox *wSkipErr;
   float    paramstate[5];  /* Current displayed values of parameters */
   float    backup_mat[9];  /* backup values for current section */
   float    backup_edgedx, backup_edgedy;
   QSlider  *anglescale;
   QLabel   *anglelabel;
+  QSpinBox *corrBoxSpin;
+  QSpinBox *corrLimitSpin;
   QLabel   *mouseLabel[3];
   QDoubleSpinBox *globRotSpin;
   QDoubleSpinBox *tiltOffSpin;
@@ -329,7 +353,7 @@ void midas_error(const char *tmsg, const char *bmsg, int retval);
 /****************************************************************************/
 
 /****************************************************************************/
-/* file_io.cpp function prototypes                                          */
+ /* file_io.cpp function prototypes                                          */
 
 int load_image(MidasView *vw, char *filename);
 int load_refimage(MidasView *vw, char *filename);
@@ -337,6 +361,8 @@ int save_view(MidasView *vw, char *filename);
 int write_transforms(MidasView *vw, char *filename);
 int load_transforms(MidasView *vw, char *filename);
 void load_angles(MidasView *vw);
+int midasReadZByte(MidasView *vw, MRCheader *hin, LoadInfo *li, 
+                   unsigned char *data, int sec);
 
 
 /****************************************************************************/
@@ -344,6 +370,7 @@ void load_angles(MidasView *vw);
 
 Islice *getRawSlice(MidasView *vw, int zval);
 Islice *midasGetSlice(MidasView *vw, int sliceType);
+unsigned char *midasGetPrevImage(MidasView *vw);
 void flush_xformed(MidasView *vw);
 void midasGetSize(MidasView *vw, int *xs, int *ys);
      
@@ -368,6 +395,7 @@ void stretch_transform(MidasView *vw, float *mat, int index,
                        int destretch);
 void stretch_all_transforms(MidasView *vw, int destretch);
 void transform_model(const char *infname, const char *outfname, MidasView *vw);
+int includedEdge(int mapind, int xory);
 int nearest_edge(MidasView *vw, int z, int xory, int edgeno, 
 		 int direction, int *edgeind);
 int nearest_section(MidasView *vw, int sect, int direction);
@@ -378,12 +406,16 @@ void find_best_shifts(MidasView *vw, int leaveout, int ntoperr,
 void find_local_errors(MidasView *vw, int leaveout, int ntoperr,
 		       float *meanerr, float *amax, int *indmax,
 		       float *curerrx, float *curerry, int localonly);
+void crossCorrelate(MidasView *vw);
 
 #endif  // MIDAS_H
 
 /*
 
 $Log$
+Revision 3.17  2010/06/06 21:14:12  mast
+Remove some declarations (like gaussj, amat_to_rotmagstr)
+
 Revision 3.16  2009/01/15 16:30:19  mast
 Qt 4 port
 

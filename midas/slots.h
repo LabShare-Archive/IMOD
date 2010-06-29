@@ -38,6 +38,7 @@ class MidasSlots : public QObject
   void midas_keyinput(QKeyEvent *event);
   void synchronizeChunk(int sec);
   int showHelpPage(const char *page);
+  void translate(float xstep, float ystep);
 
   public slots:
     void slotFilemenu(int item);
@@ -52,6 +53,8 @@ class MidasSlots : public QObject
   void slotEdgeValue(int sec);
   void slotEdge(int upDown);
   void slotXory(int which);
+  void slotLowerXvalue(int sec);
+  void slotLowerYvalue(int sec);
   void slotLeave_out();
   void slotTop_error(int item);
   void slotZoom(int upDown);
@@ -73,11 +76,18 @@ class MidasSlots : public QObject
   void slotTiltOff(double value);
   void slotConstrainMouse(bool state);
   void slotCosStretch(bool state);
+  void slotSkipError(bool state);
+  void slotSkipExcluded(bool state);
   void slotAutoContrast();
+  void slotCorrelate();
+  void slotCorrBoxSize(int value);
+  void slotCorrShiftLimit(int value);
   void slotMidas_quit();
 
  private:
-  int index_to_edgeno(int index, int *xory);
+  int index_to_edgeno(int index, int &xory);
+  int lower_piece_to_edgeno(int pcx, int pcx, int xory);
+  void edgeno_to_lower_piece(int edge, int xory, int &pcx, int &pcy);
   void retransform_slice(void);
   void update_overlay(void);
   void getChangeLimits (int *ist, int *ind);
@@ -91,12 +101,14 @@ class MidasSlots : public QObject
   void hotkey_help();
   void mouse_help();
   void scale(float step);
-  void translate(float xstep, float ystep);
   void rotate(float step);
   void stretch(float step, float angle);
   void try_montage_section(int sec, int direction);
   void try_section_change(int ds, int dsref);
   void try_montage_edge(int sec, int direction);
+  void try_lower_piece(int pcx, int pcy, int xory, int direction);
+  void stepLowerXorY(int xory, int direction);
+  void finishNewEdge();
   void display_bwslider_value(QLabel *w, int white);
   void convertNumLock(int &keysym, int &keypad);
 
@@ -111,6 +123,9 @@ class MidasSlots : public QObject
 /*
   
 $Log$
+Revision 3.8  2009/01/15 16:30:19  mast
+Qt 4 port
+
 Revision 3.7  2008/10/13 04:36:23  mast
 Added cosine stretching
 
