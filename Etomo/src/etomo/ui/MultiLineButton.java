@@ -44,6 +44,9 @@ import java.lang.String;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.42  2010/06/30 21:04:12  sueh
+ * <p> bug# 1387 Added getDebugInstance.
+ * <p>
  * <p> Revision 3.41  2009/11/20 17:28:22  sueh
  * <p> bug# 1282 Added prefixes to all of the field names, so that the fields that
  * <p> are actually abstract buttons (radio buttons, etc) won't be activated by a
@@ -226,17 +229,15 @@ class MultiLineButton implements ProcessResultDisplay {
   private boolean debug = false;
 
   MultiLineButton() {
-    this(null, false, null);
+    this(null, false, null, false);
   }
 
   MultiLineButton(String label) {
-    this(label, false, null);
+    this(label, false, null, false);
   }
 
   static MultiLineButton getDebugInstance(String label) {
-    MultiLineButton instance = new MultiLineButton(label);
-    instance.debug = true;
-    return instance;
+    return new MultiLineButton(label, false, null, true);
   }
 
   int getWidth() {
@@ -244,7 +245,7 @@ class MultiLineButton implements ProcessResultDisplay {
   }
 
   MultiLineButton(String label, boolean toggleButton) {
-    this(label, toggleButton, null);
+    this(label, toggleButton, null, false);
   }
 
   /**
@@ -254,9 +255,11 @@ class MultiLineButton implements ProcessResultDisplay {
    * @param toggleButton
    * @param dialogType
    */
-  MultiLineButton(String label, boolean toggleButton, DialogType dialogType) {
+  MultiLineButton(String label, boolean toggleButton, DialogType dialogType,
+      boolean debug) {
     this.toggleButton = toggleButton;
     this.dialogType = dialogType;
+    this.debug = debug;
     if (toggleButton) {
       button = new JToggleButton(format(label));
     }
@@ -288,12 +291,12 @@ class MultiLineButton implements ProcessResultDisplay {
   }
 
   static final MultiLineButton getToggleButtonInstance() {
-    return new MultiLineButton(null, true, null);
+    return new MultiLineButton(null, true, null, false);
   }
 
   static final MultiLineButton getToggleButtonInstance(String label,
       DialogType dialogType) {
-    return new MultiLineButton(label, true, dialogType);
+    return new MultiLineButton(label, true, dialogType, false);
   }
 
   static final MultiLineButton getToggleButtonInstance(String label) {
@@ -415,7 +418,7 @@ class MultiLineButton implements ProcessResultDisplay {
     }
     label = "<html><b>".concat(label).concat("</b>");
     if (debug) {
-      System.err.println("label="+label);
+      System.err.println("label=" + label);
     }
     return label;
   }
