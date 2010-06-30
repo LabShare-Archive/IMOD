@@ -218,9 +218,10 @@ c
 c
 c	  if no zones yet or it's outside any zone, start a new zone
 	izon=nzone
-	do while(izon.gt.0.and.(iztmpc1.ne.izzon(izon).or.
+	do while(izon.gt.0)
+          if (.not.(iztmpc1.ne.izzon(izon).or.
      &	    ixtmpc1.lt.ixzon0(izon).or.ixtmpc1.gt.ixzon1(izon).or.
-     &	    iytmpc1.lt.iyzon0(izon).or.iytmpc1.gt.iyzon1(izon)))
+     &	    iytmpc1.lt.iyzon0(izon).or.iytmpc1.gt.iyzon1(izon))) exit
 	  izon=izon-1
 	enddo
 	if(izon.eq.0)then
