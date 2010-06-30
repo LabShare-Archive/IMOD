@@ -44,6 +44,11 @@ import java.lang.String;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.41  2009/11/20 17:28:22  sueh
+ * <p> bug# 1282 Added prefixes to all of the field names, so that the fields that
+ * <p> are actually abstract buttons (radio buttons, etc) won't be activated by a
+ * <p> "bn." field command.
+ * <p>
  * <p> Revision 3.40  2009/09/01 03:18:25  sueh
  * <p> bug# 1222
  * <p>
@@ -218,6 +223,7 @@ class MultiLineButton implements ProcessResultDisplay {
   private boolean manualName = false;
   private Color buttonForeground = null;
   private Color buttonHighlightForeground = null;
+  private boolean debug = false;
 
   MultiLineButton() {
     this(null, false, null);
@@ -225,6 +231,12 @@ class MultiLineButton implements ProcessResultDisplay {
 
   MultiLineButton(String label) {
     this(label, false, null);
+  }
+
+  static MultiLineButton getDebugInstance(String label) {
+    MultiLineButton instance = new MultiLineButton(label);
+    instance.debug = true;
+    return instance;
   }
 
   int getWidth() {
@@ -394,7 +406,7 @@ class MultiLineButton implements ProcessResultDisplay {
     button.setText(format(label));
   }
 
-  private static final String format(String label) {
+  private final String format(String label) {
     if (label == null) {
       return null;
     }
@@ -402,6 +414,9 @@ class MultiLineButton implements ProcessResultDisplay {
       return label;
     }
     label = "<html><b>".concat(label).concat("</b>");
+    if (debug) {
+      System.err.println("label="+label);
+    }
     return label;
   }
 
