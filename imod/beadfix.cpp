@@ -1207,7 +1207,7 @@ void BeadFixer::moveAll(bool globalOK, bool skipDisplay)
   // Do not allow it for the global area unless the flag allows it and there
   // are no locals
   if ((mCurArea <= 0 && (mNumAreas > 1 || !globalOK)) ||
-      mCurrentRes >= mNumResid)
+      mCurrentRes >= mNumResid || !mNumResid)
     return;
   mMovingAll = true;
   mNumAllMoved = 0;
@@ -2794,6 +2794,12 @@ void BeadFixer::keyReleaseEvent ( QKeyEvent * e )
 /*
 
 $Log$
+Revision 1.69  2010/06/30 20:02:55  mast
+Fixed problem with pushing Move All button after readinglog with 0 residuals
+
+Revision 1.68  2010/04/19 23:51:24  mast
+Fixed some width issues
+
 Revision 1.67  2010/04/01 02:41:47  mast
 Called function to test for closing keys, or warning cleanup
 
