@@ -217,7 +217,7 @@ c
      &          objname
           endif
         endif
-        if(ity.gt.0.and.iobjflag(abs(ity)).eq.4) then
+        if(ity.gt.0.and.iobjflag(max(1,ity)).eq.4) then
           ierr = getimodobjname(abs(ity), objname)
           write(*,'(i5,2x,a,12x,a)')ity,' meshes',objname
         endif
@@ -1294,6 +1294,12 @@ c
       end
 
 c       $Log$
+c       Revision 3.17  2010/06/30 04:43:20  mast
+c       Fix for shortcircuit assumption
+c
+c       Revision 3.16  2008/06/17 20:26:45  mast
+c       Added centroid of peak to integral calculation
+c
 c       Revision 3.15  2007/10/19 18:05:58  mast
 c       Added report of distances of close approach
 c

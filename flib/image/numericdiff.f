@@ -7,6 +7,12 @@ c
 c	  $Revision$
 c
 c	  $Log$
+c	  Revision 3.5  2010/06/30 04:41:34  mast
+c	  Fix for shortcircuit assumption
+c	
+c	  Revision 3.4  2005/12/09 04:42:35  mast
+c	  gfortran: open name= fix
+c	
 c	  Revision 3.3  2005/10/11 21:37:48  mast
 c	  Updated fallback PIP options
 c	
@@ -196,7 +202,8 @@ c
 c	  
 c	  If the strip string matches, convert the line to all numeric
 c	  
-	if (lenStrip .gt.0 .and. index(line, stripStr(1:lenStrip)) .gt. 0) then
+	if (lenStrip .gt.0 .and. index(line, stripStr(1:max(1,lenStrip)))
+     &      .gt. 0) then
 	  do i = 1,length
 	    ival = ichar(line(i:i))
 c	      

@@ -59,7 +59,8 @@ c
         endif
         if(linein(1:1).ne.'#' .and. linein(1:2).ne.'$!')then
           if(iffirst.eq.0.and.linecom(lencom:lencom).eq.'\\')then
-            if (lencom.gt.1 .and. linecom(lencom-1:lencom-1).eq.'\\') then
+            if (lencom.gt.1 .and. linecom(max(1,lencom-1):max(1,lencom-1))
+     &          .eq.'\\') then
 c               
 c               if last line needs to be continued in the output
 c               dump the last line, replace with current line
@@ -123,6 +124,9 @@ c
 
 c       
 c       $Log$
+c       Revision 3.14  2010/06/30 04:41:34  mast
+c       Fix for shortcircuit assumption
+c
 c       Revision 3.13  2010/04/26 22:02:06  mast
 c       Made log file length 10240 and allowed spaces in it
 c

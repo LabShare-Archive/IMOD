@@ -67,7 +67,7 @@ c       starting values of a and da for natural search
       data danat/1.,1.,2.,.02,.02,2./
       real*8 tsum, tsumsq
 c       
-      integer*4 ihist(0:1000)
+      integer*4 ihist(0:1001)
       real*4 range(10,2),pmlim(6),ranlo(10),ranhi(10),percen(10,2),
      &    pclo(10),pchi(10)
       equivalence (ranlo(1),range(1,1)),(ranhi(1),range(1,2))
@@ -1093,6 +1093,13 @@ c       SCALING = 1 BUT THIS SHOULD BE DOCUMENTED
       end
 c       
 c       $Log$
+c       Revision 3.17  2010/06/30 04:41:34  mast
+c       Fix for shortcircuit assumption
+c
+c       Revision 3.16  2010/03/11 04:45:19  mast
+c       Copied fixed values of rest of variables in func when fewer than 6
+c       variables - fixes bug in latest version
+c
 c       Revision 3.15  2009/10/14 17:48:48  mast
 c       Allocated big array in module to avoid compile error in gfortran/Mac
 c
