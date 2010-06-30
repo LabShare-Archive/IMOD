@@ -9,11 +9,12 @@ statements due to lack of shortcircuit evaluation with ifort compiler, most
 fixes put into 4.1.
 
 6/29/10: Many Midas changes: added ability to refine shift with local
-cross-correlation and to load data binned.  Added tooltips.  For fixing
-montage overlaps, added spin buttons to select a piece by its X and Y frame
-number, adopted much faster method of computing piece shifts and improved
-estimate of shifts for very large montages, provided up to 10 buttons with
-highest edge errors, and handled skipped edges.
+cross-correlation and to load data binned.  Parallelized the image
+transformation routine with OpenMP.  Added tooltips.  For fixing montage
+overlaps, added spin buttons to select a piece by its X and Y frame number,
+adopted much faster method of computing piece shifts and improved estimate of
+shifts for very large montages, provided up to 10 buttons with highest edge
+errors, and handled skipped edges.
 
 6/26/10: Fixed problem with Ccderaser potentially not finding anything in
 difference search if nothing is examined in the peak search (In 4.1).
