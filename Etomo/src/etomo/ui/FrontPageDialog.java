@@ -25,6 +25,9 @@ import etomo.type.ToolType;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.8  2010/03/27 05:05:48  sueh
+ * <p> bug# 1316 Add volume flatten tool button to front page.
+ * <p>
  * <p> Revision 1.7  2010/02/17 05:03:12  sueh
  * <p> bug# 1301 Using manager instead of manager key for popping up messages.
  * <p>
@@ -56,7 +59,7 @@ public final class FrontPageDialog {
   public static final String rcsid = "$Id$";
 
   private final SpacedPanel pnlRoot = SpacedPanel.getInstance(true);
-  private final MultiLineButton btnRecon = new MultiLineButton("New "
+  private final MultiLineButton btnRecon =  MultiLineButton.getDebugInstance("New "
       + EtomoMenu.RECON_LABEL);
   private final MultiLineButton btnJoin = new MultiLineButton("New "
       + EtomoMenu.JOIN_LABEL);
