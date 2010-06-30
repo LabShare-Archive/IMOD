@@ -5,6 +5,9 @@ c
 c	  $Revision$
 c
 c	  $Log$
+c	  Revision 3.2  2003/08/08 17:52:26  mast
+c	  Removed ctrl-M from ends of lines
+c	
 c	  Revision 3.1  2002/08/03 22:52:05  mast
 c	  Break up an if statement to keep outside_boundary from being called
 c	  with no boundaries.
@@ -684,15 +687,15 @@ c
 c		    
 c		    on first trial, check if outside boundaries and fail
 c
-		    if(nround.eq.1.and.ifexcludeout.ne.0.and.
-     &			nbound.gt.0.and.
-     &			outside_boundary(nbound,listbound,zbound,xmt,ymt,
-     &			zmt,iref,iref,0.,0.,0.))then
-		      shifted(ishift)=.false.
-		      needshift(locshft)=.false.
-		      needcheck(locshft)=.false.
-		      nexclude=nexclude+1
-		    endif
+		    if(nround.eq.1.and.ifexcludeout.ne.0.and. nbound.gt.0) then
+                      if (outside_boundary(nbound,listbound,zbound,xmt,ymt,
+     &                    zmt,iref,iref,0.,0.,0.))then
+                        shifted(ishift)=.false.
+                        needshift(locshft)=.false.
+                        needcheck(locshft)=.false.
+                        nexclude=nexclude+1
+                      endif
+                    endif
 c
 		    do while(needshift(locshft))
 c			
@@ -899,15 +902,15 @@ c
 c		    
 c		  on first trial, check if outside boundaries and fail
 c		  
-		if(nround.eq.1.and.ifexcludeout.ne.0.and.
-     &		    nbound.gt.0.and.
-     &		    outside_boundary(nbound,listbound,zbound,xmt,ymt,
-     &		    zmt,isurf,0,0.,0.,0.))then
-		  shifted(ishift)=.false.
-		  needshift(locshft)=.false.
-		  needcheck(locshft)=.false.
-		  nexclude=nexclude+1
-		endif
+		if(nround.eq.1.and.ifexcludeout.ne.0.and. nbound.gt.0) then
+                  if (outside_boundary(nbound,listbound,zbound,xmt,ymt,
+     &                zmt,isurf,0,0.,0.,0.))then
+                    shifted(ishift)=.false.
+                    needshift(locshft)=.false.
+                    needcheck(locshft)=.false.
+                    nexclude=nexclude+1
+                  endif
+                endif
 c
 		do while(needshift(locshft))
 c		    

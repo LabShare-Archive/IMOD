@@ -553,8 +553,8 @@ c           for next above threshold on list is not past target
 c             
 c             Advance index to next, skipping ones below threshold
             iran = iran + 1
-            do while (iran .lt. ninran .and. ninview(inran(iran)) .lt.
-     &          ninThresh)
+            do while (iran .lt. ninran)
+              if (ninview(inran(iran)) .ge. ninThresh) exit
               iran = iran + 1
             enddo
 c             
@@ -565,8 +565,8 @@ c
 c             if not at end, get next eligible one
             if (iran.lt. ninran) then
               nextran = iran + 1
-              do while (nextran .lt. ninran .and. ninview(inran(nextran)) .lt.
-     &            ninThresh)
+              do while (nextran .lt. ninran)
+                if (ninview(inran(nextran)) .ge. ninThresh) exit
                 nextran = nextran + 1
               enddo
 c               
@@ -688,6 +688,9 @@ c
       end
 c
 c       $Log$
+c       Revision 3.6  2010/03/22 21:20:47  mast
+c       Fix error message to be on one line
+c
 c       Revision 3.5  2008/12/14 19:03:41  mast
 c       Fixed limit on angle used to get group size, set limit to 80
 c

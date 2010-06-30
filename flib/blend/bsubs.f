@@ -1670,10 +1670,12 @@ c
         ixnew = ixFrame + idxPcNear(i)
         iynew = iyFrame + idyPcNear(i)
         if (ixnew .ge. 1 .and. ixnew .le. nxpieces .and. iynew .ge. 1 .and. 
-     &      iynew .le. nypieces .and. mappiece(ixnew, iynew) .ne. 0) then
-          ixFrame = ixnew
-          iyFrame = iynew
-          return
+     &      iynew .le. nypieces) then
+          if (mappiece(ixnew, iynew) .ne. 0) then
+            ixFrame = ixnew
+            iyFrame = iynew
+            return
+          endif
         endif
       enddo
       return
@@ -2766,7 +2768,8 @@ c         First find out if first line has a common value
         i = iPixStr + 1
         lineBase = ind + lineStart * incLine
         value = array(lineBase + iPixStr * incPix)
-        do while (i .le. iPixEnd .and. array(lineBase + i * incPix) .eq. value)
+        do while (i .le. iPixEnd)
+          if (array(lineBase + i * incPix) .ne. value) exit
           i = i + 1
         enddo
         if (i .le. iPixEnd) then
@@ -3144,6 +3147,9 @@ c
 
 c       
 c       $Log$
+c       Revision 3.32  2010/06/29 03:03:17  mast
+c       Avoided an indexing error when reading pl with blank l line
+c
 c       Revision 3.31  2010/06/23 23:11:56  mast
 c       Changes for excluded edges, disjoint edges, overlap > 50% and multiple
 c       overlaps, and new shift determination methods

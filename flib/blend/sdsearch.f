@@ -186,20 +186,21 @@ c               keep checking corners only if nothing changed yet
               if(.not.(xchanged.or.ychanged))then
                 newidx=idxmin+ixdir*ndxy
                 newidy=idymin+iydir*ndxy
-                if(abs(newidy).le.ndlim.and.abs(newidx).le.ndlim
-     &              .and..not.checked(newidx,newidy))then
-                  call sdcalc(array,brray,nx,ny,ixbox0,iybox0,ixbox1,
-     &                iybox1 ,dxcen+newidx*dxy,dycen+newidy*dxy,sd,
-     &                dden)
-c                   write(*,101)newidx,newidy,sd
-                  checked(newidx,newidy)=.true.
-                  if(sd.lt.sdmin)then
-                    sdmin=sd
-                    ddenmin=dden
-                    xchanged=.true.
-                    ychanged=.true.
-                    idxmin=newidx
-                    idymin=newidy
+                if(abs(newidy).le.ndlim.and.abs(newidx).le.ndlim) then
+                  if (.not.checked(newidx,newidy))then
+                    call sdcalc(array,brray,nx,ny,ixbox0,iybox0,ixbox1,
+     &                  iybox1 ,dxcen+newidx*dxy,dycen+newidy*dxy,sd,
+     &                  dden)
+c                     write(*,101)newidx,newidy,sd
+                    checked(newidx,newidy)=.true.
+                    if(sd.lt.sdmin)then
+                      sdmin=sd
+                      ddenmin=dden
+                      xchanged=.true.
+                      ychanged=.true.
+                      idxmin=newidx
+                      idymin=newidy
+                    endif
                   endif
                 endif
               endif
