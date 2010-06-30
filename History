@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+6/30/10: Fixed bug in Bead Fixer that froze 3dmod if a "Move all" button was
+pressed after reading a log with 0 residuals (In 4.1).
+
 6/29/10: IMOD_4-2-3
 6/29/10: Many fixes to prevent illegal array accesses in IF and WHILE 
 statements due to lack of shortcircuit evaluation with ifort compiler, most 
