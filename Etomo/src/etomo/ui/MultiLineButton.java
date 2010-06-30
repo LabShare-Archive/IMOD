@@ -44,6 +44,9 @@ import java.lang.String;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.43  2010/06/30 21:10:14  sueh
+ * <p> bug# 1387 Fixed debug instance.
+ * <p>
  * <p> Revision 3.42  2010/06/30 21:04:12  sueh
  * <p> bug# 1387 Added getDebugInstance.
  * <p>
@@ -418,6 +421,26 @@ class MultiLineButton implements ProcessResultDisplay {
     }
     label = "<html><b>".concat(label).concat("</b>");
     if (debug) {
+      System.err.println("java.version:  " + System.getProperty("java.version"));
+      System.err.println("java.vendor:  " + System.getProperty("java.vendor"));
+      System.err.println("java.home:  " + System.getProperty("java.home"));
+      System.err.println("java.vm.version:  "
+          + System.getProperty("java.vm.version"));
+      System.err.println("java.vm.vendor:  "
+          + System.getProperty("java.vm.vendor"));
+      System.err.println("java.vm.home:  " + System.getProperty("java.vm.home"));
+      System.err.println("java.class.version:  "
+          + System.getProperty("java.class.version"));
+      System.err.println("java.class.path:  "
+          + System.getProperty("java.class.path"));
+      System.err.println("java.library.path:  "
+          + System.getProperty("java.library.path"));
+      System.err.println("java.io.tmpdir:  "
+          + System.getProperty("java.io.tmpdir"));
+      System.err
+          .println("java.compiler:  " + System.getProperty("java.compiler"));
+      System.err
+          .println("java.ext.dirs:  " + System.getProperty("java.ext.dirs"));
       System.err.println("label=" + label);
     }
     return label;
