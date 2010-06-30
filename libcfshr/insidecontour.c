@@ -37,6 +37,8 @@ int InsideContour(float *ptX, float *ptY, int np, float x, float y)
   float xp, yp, xc, yc, xcross;
   int j, jl;
 
+  if (np <= 0)
+    return 0;
   yp = ptY[np - 1];
   j = 0;
   while(j < np) {
@@ -108,6 +110,9 @@ int insidecontour(float *ptX, float *ptY, int *np, float *x, float *y)
 /*
 
 $Log$
+Revision 1.3  2010/06/21 16:27:49  mast
+fix log
+
 Revision 1.2  2007/10/12 04:14:51  mast
 Documentation fix
 
