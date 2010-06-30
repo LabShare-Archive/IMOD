@@ -1,5 +1,10 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+6/29/10: IMOD_4-2-3
+6/29/10: Many fixes to prevent illegal array accesses in IF and WHILE 
+statements due to lack of shortcircuit evaluation with ifort compiler, most 
+fixes put into 4.1.
+
 6/29/10: Many Midas changes: added ability to refine shift with local
 cross-correlation and to load data binned.  Added tooltips.  For fixing
 montage overlaps, added spin buttons to select a piece by its X and Y frame
