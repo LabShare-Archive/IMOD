@@ -79,8 +79,8 @@ c
       do while(lenact.gt.0.and.(dummy(lenact:lenact).eq.' '.or.
      &    dummy(lenact:lenact).eq.char(0)))
         lenact=lenact-1
+        if (lenact .le. 0) go to 12
       enddo
-      if(lenact.eq.0)go to 12
       call frefor(dummy,freinp,ninp)
       ierr=3
       if(ninp.lt.3.or.ninp.gt.4)go to 20        !error if fewer than 3 numbers
@@ -1157,9 +1157,9 @@ c
 c           
 c           If still not in a frame, start in the nearest and expand the search
 c
-          if (ixframe.lt.1.or.ixframe.gt.nxpieces.or.
-     &        iyframe.lt.1.or.iyframe.gt.nypieces.or.
-     &        mappiece(max(1,ixframe),max(1,iyframe)).eq.0) then
+          if (ixframe.lt.1.or.ixframe.gt.nxpieces.or. iyframe.lt.1.or.
+     &        iyframe.gt.nypieces.or. mappiece(min(nxpieces,max(1,ixframe)),
+     &        min(nypieces,max(1,iyframe))).eq.0) then
             call findNearestPiece(ixframe, iyframe)
             idSearch = 2
           endif
@@ -1423,11 +1423,13 @@ c
       do i = 1, numPcNear
         ixnew = ixFrame + idxPcNear(i)
         iynew = iyFrame + idyPcNear(i)
-        if (ixnew .ge. 1 .and. ixnew .le. nxpieces .and. iynew .ge. 1 .and. 
-     &      iynew .le. nypieces .and. mappiece(ixnew, iynew) .ne. 0) then
-          ixFrame = ixnew
-          iyFrame = iynew
-          return
+         if (ixnew .ge. 1 .and. ixnew .le. nxpieces .and. iynew .ge. 1 .and. 
+     &      iynew .le. nypieces) then
+          if (mappiece(ixnew, iynew) .ne. 0) then
+            ixFrame = ixnew
+            iyFrame = iynew
+            return
+          endif
         endif
       enddo
       return
@@ -2221,7 +2223,8 @@ c         First find out if first line has a common value
         i = iPixStr + 1
         lineBase = ind + lineStart * incLine
         value = array(lineBase + iPixStr * incPix)
-        do while (i .le. iPixEnd .and. array(lineBase + i * incPix) .eq. value)
+        do while (i .le. iPixEnd)
+          if (array(lineBase + i * incPix) .ne. value) exit
           i = i + 1
         enddo
         if (i .le. iPixEnd) then
@@ -2462,6 +2465,9 @@ c
 
 c       
 c       $Log$
+c       Revision 3.28  2008/12/23 00:08:58  mast
+c       Use smoothing and tapering outside, multiple xcorr peaks and CCC
+c
 c       Revision 3.27  2008/11/27 01:18:42  mast
 c       Modified commented out debugging output
 c
