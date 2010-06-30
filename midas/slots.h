@@ -86,7 +86,7 @@ class MidasSlots : public QObject
 
  private:
   int index_to_edgeno(int index, int &xory);
-  int lower_piece_to_edgeno(int pcx, int pcx, int xory);
+  int lower_piece_to_edgeno(int pcx, int pcy, int xory);
   void edgeno_to_lower_piece(int edge, int xory, int &pcx, int &pcy);
   void retransform_slice(void);
   void update_overlay(void);
@@ -123,6 +123,9 @@ class MidasSlots : public QObject
 /*
   
 $Log$
+Revision 3.9  2010/06/29 22:29:26  mast
+changes for numerous improvements
+
 Revision 3.8  2009/01/15 16:30:19  mast
 Qt 4 port
 
