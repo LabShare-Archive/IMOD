@@ -25,6 +25,10 @@ import etomo.type.DialogType;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.4  2009/01/20 20:15:14  sueh
+ * <p> bug# 1102 Changed JMenuItems to MenuItems so they can name
+ * <p> themselves.
+ * <p>
  * <p> Revision 1.3  2008/05/03 00:50:52  sueh
  * <p> bug# 847 This class will not be used.
  * <p>
@@ -53,9 +57,9 @@ final class MenuButton extends MultiLineButton implements ContextMenu {
    * @param menuItemArray
    */
   MenuButton(String label, boolean toggleButton, DialogType dialogType) {
-    super(label, toggleButton, dialogType);
+    super(label, toggleButton, dialogType, false);
   }
-  
+
   static final MenuButton getToggleMenuButtonInstance(String label,
       DialogType dialogType) {
     return new MenuButton(label, true, dialogType);

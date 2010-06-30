@@ -46,7 +46,7 @@ final class Run3dmodButton extends MultiLineButton implements ContextMenu,
   private Run3dmodButton(final String label,
       final Run3dmodButtonContainer container, final boolean toggleButton,
       final DialogType dialogType, boolean deferred, String description) {
-    super(label, toggleButton, dialogType);
+    super(label, toggleButton, dialogType, false);
     this.container = container;
     this.deferred = deferred;
     String openString;
@@ -86,7 +86,7 @@ final class Run3dmodButton extends MultiLineButton implements ContextMenu,
     instance.init();
     return instance;
   }
-  
+
   static Run3dmodButton getDeferred3dmodInstance(final String label,
       final Run3dmodButtonContainer container) {
     Run3dmodButton instance = new Run3dmodButton(label, container, false, null,
@@ -102,10 +102,10 @@ final class Run3dmodButton extends MultiLineButton implements ContextMenu,
     instance.init();
     return instance;
   }
-  
+
   static Run3dmodButton getDeferredToggle3dmodInstance(final String label) {
-    Run3dmodButton instance = new Run3dmodButton(label, null, true, null,
-        true, null);
+    Run3dmodButton instance = new Run3dmodButton(label, null, true, null, true,
+        null);
     instance.init();
     return instance;
   }
@@ -125,7 +125,7 @@ final class Run3dmodButton extends MultiLineButton implements ContextMenu,
     }
     deferred3dmodButton = input;
   }
-  
+
   void setDeferred3dmodButton(BinnedXY3dmodButton input) {
     if (input == null && deferred) {
       throw new NullPointerException(
@@ -204,6 +204,9 @@ final class Run3dmodButton extends MultiLineButton implements ContextMenu,
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.14  2009/09/01 03:18:24  sueh
+ * <p> bug# 1222
+ * <p>
  * <p> Revision 1.13  2009/01/20 20:24:18  sueh
  * <p> bug# 1102 Changed JMenuItem variables to type MenuItem so that they can name themselves.
  * <p>
