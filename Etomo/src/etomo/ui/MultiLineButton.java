@@ -44,6 +44,9 @@ import java.lang.String;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.44  2010/06/30 21:55:05  sueh
+ * <p> bug# 1387 Added Java info to debug print.
+ * <p>
  * <p> Revision 3.43  2010/06/30 21:10:14  sueh
  * <p> bug# 1387 Fixed debug instance.
  * <p>
@@ -441,6 +444,11 @@ class MultiLineButton implements ProcessResultDisplay {
           .println("java.compiler:  " + System.getProperty("java.compiler"));
       System.err
           .println("java.ext.dirs:  " + System.getProperty("java.ext.dirs"));
+      System.err.println("os.name:  " + System.getProperty("os.name"));
+      System.err.println("os.arch:  " + System.getProperty("os.arch"));
+      System.err.println("os.version:  " + System.getProperty("os.version"));
+      System.err.println("user.name:  " + System.getProperty("user.name"));
+      System.err.println("user.home:  " + System.getProperty("user.home"));
       System.err.println("label=" + label);
     }
     return label;
