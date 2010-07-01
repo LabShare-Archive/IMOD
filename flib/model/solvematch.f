@@ -161,7 +161,9 @@ c
       endif
 c       
 c       If no fiducials are to be used, skip down to maximum residual entry
-c       
+c       after initializing some variables
+      maxconta = 0
+      maxcontb = 0
       if (filename .eq. ' ')go to 40
 c       
       ncolfit = 4
@@ -181,8 +183,6 @@ c
 c       
 c       fill listcorr with actual contour numbers, and find maximum contours
 c       
-      maxconta = 0
-      maxcontb = 0
       do i=1,npnta
         listcorra(i)=iconta(i)
         mapab(i)=0
@@ -1300,6 +1300,9 @@ c
 
 c
 c       $Log$
+c       Revision 3.23  2009/12/02 05:42:47  mast
+c       *** empty log message ***
+c
 c       Revision 3.22  2009/04/07 14:26:50  mast
 c       Increase size of filename variable
 c
