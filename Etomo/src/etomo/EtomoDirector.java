@@ -96,36 +96,38 @@ public class EtomoDirector {
   }
 
   public static void main(String[] args) {
+    System.err.println("java.version:  " + System.getProperty("java.version"));
+    System.err.println("java.vendor:  " + System.getProperty("java.vendor"));
+    System.err.println("java.home:  " + System.getProperty("java.home"));
+    System.err.println("java.vm.version:  "
+        + System.getProperty("java.vm.version"));
+    System.err.println("java.vm.vendor:  "
+        + System.getProperty("java.vm.vendor"));
+    System.err.println("java.vm.home:  " + System.getProperty("java.vm.home"));
+    System.err.println("java.class.version:  "
+        + System.getProperty("java.class.version"));
+    System.err.println("java.class.path:  "
+        + System.getProperty("java.class.path"));
+    System.err.println("java.library.path:  "
+        + System.getProperty("java.library.path"));
+    System.err.println("java.io.tmpdir:  "
+        + System.getProperty("java.io.tmpdir"));
+    System.err
+        .println("java.compiler:  " + System.getProperty("java.compiler"));
+    System.err
+        .println("java.ext.dirs:  " + System.getProperty("java.ext.dirs"));
+    System.err.println("os.name:  " + System.getProperty("os.name"));
+    System.err.println("os.arch:  " + System.getProperty("os.arch"));
+    System.err.println("os.version:  " + System.getProperty("os.version"));
+    System.err.println("user.name:  " + System.getProperty("user.name"));
+    System.err.println("user.home:  " + System.getProperty("user.home"));
+    System.err.println("user.dir:  " + System.getProperty("user.dir"));
+    System.err.println("java.awt.headless:  "
+        + System.getProperty("java.awt.headless"));
     Utilities.dateTimeStamp();
     try {
       Utilities.setStartTime();
       EtomoDirector.INSTANCE.arguments.parse(args);
-      System.err.println("java.version:  " + System.getProperty("java.version"));
-      System.err.println("java.vendor:  " + System.getProperty("java.vendor"));
-      System.err.println("java.home:  " + System.getProperty("java.home"));
-      System.err.println("java.vm.version:  "
-          + System.getProperty("java.vm.version"));
-      System.err.println("java.vm.vendor:  "
-          + System.getProperty("java.vm.vendor"));
-      System.err.println("java.vm.home:  " + System.getProperty("java.vm.home"));
-      System.err.println("java.class.version:  "
-          + System.getProperty("java.class.version"));
-      System.err.println("java.class.path:  "
-          + System.getProperty("java.class.path"));
-      System.err.println("java.library.path:  "
-          + System.getProperty("java.library.path"));
-      System.err.println("java.io.tmpdir:  "
-          + System.getProperty("java.io.tmpdir"));
-      System.err
-          .println("java.compiler:  " + System.getProperty("java.compiler"));
-      System.err
-          .println("java.ext.dirs:  " + System.getProperty("java.ext.dirs"));
-      System.err.println("os.name:  " + System.getProperty("os.name"));
-      System.err.println("os.arch:  " + System.getProperty("os.arch"));
-      System.err.println("os.version:  " + System.getProperty("os.version"));
-      System.err.println("user.name:  " + System.getProperty("user.name"));
-      System.err.println("user.home:  " + System.getProperty("user.home"));
-      System.err.println("user.dir:  " + System.getProperty("user.dir"));
       INSTANCE.initialize();
       //automation must be done last in main, otherwise initialization may not
       //complete normally.
@@ -263,34 +265,6 @@ public class EtomoDirector {
    */
   private void initProgram() {
     originalUserDir = System.getProperty("user.dir");
-    System.err.println("java.version:  " + System.getProperty("java.version"));
-    System.err.println("java.vendor:  " + System.getProperty("java.vendor"));
-    System.err.println("java.home:  " + System.getProperty("java.home"));
-    System.err.println("java.vm.version:  "
-        + System.getProperty("java.vm.version"));
-    System.err.println("java.vm.vendor:  "
-        + System.getProperty("java.vm.vendor"));
-    System.err.println("java.vm.home:  " + System.getProperty("java.vm.home"));
-    System.err.println("java.class.version:  "
-        + System.getProperty("java.class.version"));
-    System.err.println("java.class.path:  "
-        + System.getProperty("java.class.path"));
-    System.err.println("java.library.path:  "
-        + System.getProperty("java.library.path"));
-    System.err.println("java.io.tmpdir:  "
-        + System.getProperty("java.io.tmpdir"));
-    System.err
-        .println("java.compiler:  " + System.getProperty("java.compiler"));
-    System.err
-        .println("java.ext.dirs:  " + System.getProperty("java.ext.dirs"));
-    System.err.println("os.name:  " + System.getProperty("os.name"));
-    System.err.println("os.arch:  " + System.getProperty("os.arch"));
-    System.err.println("os.version:  " + System.getProperty("os.version"));
-    System.err.println("user.name:  " + System.getProperty("user.name"));
-    System.err.println("user.home:  " + System.getProperty("user.home"));
-    System.err.println("user.dir:  " + originalUserDir);
-    System.err.println("java.awt.headless:  "
-        + System.getProperty("java.awt.headless"));
     System.err.println("GraphicsEnvironment.isHeadless()="
         + GraphicsEnvironment.isHeadless());
     System.err.println("IMOD version:  " + ImodVersion.CURRENT_VERSION);
@@ -1172,6 +1146,9 @@ public class EtomoDirector {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.94  2010/07/02 20:00:33  sueh
+ * <p> bug# 1387 Putting information print earlier.
+ * <p>
  * <p> Revision 1.93  2010/06/02 21:43:45  sueh
  * <p> bug# 1380 Improved the comment for exitProgram and changed testDone
  * <p> to testFailed for clarity.
