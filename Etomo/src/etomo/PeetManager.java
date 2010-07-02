@@ -64,6 +64,10 @@ import etomo.util.EnvironmentVariable;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.63  2010/02/17 04:42:47  sueh
+ * <p> bug# 1301 Moved comScriptMgr and logPanel from BaseManager to child
+ * <p> class.
+ * <p>
  * <p> Revision 1.62  2010/01/13 21:52:09  sueh
  * <p> bug# 1292 In imodAvgVol getting the list of files from averageFilenames.txt.
  * <p>
@@ -302,7 +306,6 @@ public final class PeetManager extends BaseManager {
   private static final AxisID AXIS_ID = AxisID.ONLY;
   private final LogPanel logPanel = LogPanel.getInstance(this);
 
-
   private final PeetScreenState screenState = new PeetScreenState(AXIS_ID,
       AxisType.SINGLE_AXIS);
   private final ProcessResultDisplayFactoryBlank processResultDisplayFactory = new ProcessResultDisplayFactoryBlank();
@@ -376,11 +379,11 @@ public final class PeetManager extends BaseManager {
   public InterfaceType getInterfaceType() {
     return InterfaceType.PEET;
   }
-  
+
   public LogInterface getLogInterface() {
     return logPanel;
   }
-  
+
   public LogPanel getLogPanel() {
     return logPanel;
   }
@@ -957,6 +960,6 @@ public final class PeetManager extends BaseManager {
     }
     //param should never be set to resume
     parallelPanel.getParallelProgressDisplay().resetResults();
-    processchunks(AxisID.ONLY, param, null, processSeries);
+    processchunks(AxisID.ONLY, param, null, processSeries, false);
   }
 }
