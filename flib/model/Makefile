@@ -18,7 +18,7 @@ PROGS = convertmod$(E) model2point$(E) imavgstat$(E) solvematch$(E) \
  refinematch$(E) findwarp$(E) sumdensity$(E) mtrotlong$(E) howflared$(E) \
  tomopitch$(E) fiberpitch$(E) corrsearch3d$(E) repackseed$(E) resamplemod$(E) \
  findhotpixels$(E) xfjointomo$(E) boxavg$(E) tiltxcorr$(E) findbeads3d$(E) \
- sortbeadsurfs$(E)
+ sortbeadsurfs$(E) edmont$(E)
 # mtteach$(E)  tomoblobs$(E)
 
 WLIBS = $(LWMOD) $(LIMOD) $(IMLIBS) $(FORTCLIBS)
@@ -47,6 +47,9 @@ xfmodel$(E): xfmodel.$(O)
 
 boxstartend$(E): boxstartend.$(O)
 	$(FC) -o boxstartend boxstartend.$(O) $(LDFLG) $(SMALLLIBS)
+
+edmont$(E): edmont.$(O)
+	$(FC) -o edmont edmont.$(O) $(LDFLG) $(SMALLLIBS)
 
 endmodel$(E): endmodel.$(O)
 	$(FC) -o endmodel endmodel.$(O) $(LDFLG) $(WLIBS)
@@ -170,6 +173,9 @@ clean:
 	-\rm -f *.o* *~ *.exe $(PROGS)
 
 #  $Log$
+#  Revision 3.20  2009/12/09 15:34:37  mast
+#  remove find_surfaces from sortbeadsurfs
+#
 #  Revision 3.19  2009/12/09 01:33:43  mast
 #  sortbeadsurfs
 #
