@@ -65,6 +65,11 @@ import etomo.util.EnvironmentVariable;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.64  2010/04/28 15:37:21  sueh
+ * <p> bug# 1344 Added getFileSubdirectoryName.  Passing params to process
+ * <p> manager functions, standardizing "3dmod is open" messages to always
+ * <p> use closeImod.  Using ProcessSeries.Process to hold process information.
+ * <p>
  * <p> Revision 1.63  2010/02/17 04:42:47  sueh
  * <p> bug# 1301 Moved comScriptMgr and logPanel from BaseManager to child
  * <p> class.
@@ -967,6 +972,6 @@ public final class PeetManager extends BaseManager {
     }
     //param should never be set to resume
     parallelPanel.getParallelProgressDisplay().resetResults();
-    processchunks(AxisID.ONLY, param, null, processSeries);
+    processchunks(AxisID.ONLY, param, null, processSeries,false);
   }
 }
