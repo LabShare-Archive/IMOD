@@ -30,6 +30,9 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.30  2009/01/20 20:32:42  sueh
+ * <p> bug# 1102 Changed buttons to type SimpleButton and naming them.
+ * <p>
  * <p> Revision 1.29  2008/10/16 22:33:46  sueh
  * <p> bug# 1141 Created FinalAlignedStack dialog to run full aligned stack and mtf filter.
  * <p>
@@ -192,7 +195,7 @@ public class TomogramProcessPanel extends AxisProcessPanel {
    * @param axis
    */
   public TomogramProcessPanel(ApplicationManager appManager, AxisID axis) {
-    super(axis, appManager);
+    super(axis, appManager, true);
     applicationManager = (ApplicationManager) manager;
     //  Create the process control panel    
     createProcessControlPanel();

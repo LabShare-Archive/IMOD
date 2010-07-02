@@ -23,7 +23,7 @@ public final class ParallelProcessPanel extends AxisProcessPanel {
   public static  final String  rcsid =  "$Id$";
   
   ParallelProcessPanel(ParallelManager manager) {
-    super(AxisID.ONLY, manager);
+    super(AxisID.ONLY, manager, true);
     createProcessControlPanel();
     initializePanels();
   }
@@ -54,6 +54,9 @@ public final class ParallelProcessPanel extends AxisProcessPanel {
 }
 /**
 * <p> $Log$
+* <p> Revision 1.3  2006/04/07 23:32:39  sueh
+* <p> bug# 846 Changing the background colors for java 1.5.
+* <p>
 * <p> Revision 1.2  2006/04/06 23:34:45  sueh
 * <p> bug# 844 Added a color for the generic parallel processing window.
 * <p>

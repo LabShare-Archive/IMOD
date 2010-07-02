@@ -19,6 +19,9 @@ import etomo.type.AxisID;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.6  2006/04/07 23:32:30  sueh
+* <p> bug# 846 Changing the background colors for java 1.5.
+* <p>
 * <p> Revision 1.5  2006/04/06 23:34:22  sueh
 * <p> bug# 844 Added a color for the join window.
 * <p>
@@ -57,7 +60,7 @@ public class JoinProcessPanel extends AxisProcessPanel {
    * @param axis
    */
   public JoinProcessPanel(JoinManager joinManager, AxisID axis) {
-    super(axis, joinManager);
+    super(axis, joinManager, true);
     createProcessControlPanel();
     initializePanels();
   }

@@ -77,19 +77,24 @@ public final class ParallelPanel implements Expandable {
   private ProcesschunksParam processchunksParam = null;
   private ProcessResultDisplay processResultDisplay = null;
 
+  private final boolean popupChunkWarnings;
+
   public static ParallelPanel getInstance(final BaseManager manager,
       final AxisID axisID, final PanelHeaderState state,
-      final AxisProcessPanel parent) {
-    ParallelPanel instance = new ParallelPanel(manager, axisID, state, parent);
+      final AxisProcessPanel parent, boolean popupChunkWarnings) {
+    ParallelPanel instance = new ParallelPanel(manager, axisID, state, parent,
+        popupChunkWarnings);
     instance.addListeners();
     return instance;
   }
 
   private ParallelPanel(final BaseManager manager, final AxisID axisID,
-      final PanelHeaderState state, final AxisProcessPanel parent) {
+      final PanelHeaderState state, final AxisProcessPanel parent,
+      boolean popupChunkWarnings) {
     this.manager = manager;
     this.axisID = axisID;
     this.parent = parent;
+    this.popupChunkWarnings = popupChunkWarnings;
     //initialize table
     computerTable = new ProcessorTable(manager, this, axisID, false);
     queueTable = new ProcessorTable(manager, this, axisID, true);
@@ -219,7 +224,7 @@ public final class ParallelPanel implements Expandable {
     String command = event.getActionCommand();
     if (command == btnResume.getActionCommand()) {
       manager.resume(axisID, processchunksParam, processResultDisplay, null,
-          rootPanel, null);
+          rootPanel, null, popupChunkWarnings);
     }
     else if (command == btnPause.getActionCommand()) {
       manager.pause(axisID);
@@ -385,6 +390,10 @@ public final class ParallelPanel implements Expandable {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.71  2010/02/26 20:38:28  sueh
+ * <p> Changing the complex popup titles are making it hard to complete the
+ * <p> uitests.
+ * <p>
  * <p> Revision 1.70  2010/02/17 05:03:12  sueh
  * <p> bug# 1301 Using manager instead of manager key for popping up messages.
  * <p>

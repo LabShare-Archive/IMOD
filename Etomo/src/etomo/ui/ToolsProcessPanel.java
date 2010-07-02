@@ -19,13 +19,16 @@ import etomo.type.AxisID;
  * 
  * @version $Revision$
  * 
- * <p> $Log$ </p>
+ * <p> $Log$
+ * <p> Revision 1.1  2010/02/17 04:57:21  sueh
+ * <p> bug# 1301 Process panel for the ToolsManager.
+ * <p> </p>
  */
 public final class ToolsProcessPanel extends AxisProcessPanel {
   public static final String rcsid = "$Id$";
 
   ToolsProcessPanel(ToolsManager manager) {
-    super(AxisID.ONLY, manager);
+    super(AxisID.ONLY, manager, true);
     createProcessControlPanel();
     initializePanels();
   }
