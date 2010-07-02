@@ -18,13 +18,16 @@ import etomo.type.AxisID;
 * 
 * @version $Revision$
 * 
-* <p> $Log$ </p>
+* <p> $Log$
+* <p> Revision 1.1  2009/10/27 20:42:18  sueh
+* <p> bug# 1275 Required class for FrontPageManager.
+* <p> </p>
 */
 final class FrontPageProcessPanel  extends AxisProcessPanel{
   public static  final String  rcsid =  "$Id$";
   
   FrontPageProcessPanel(FrontPageManager manager) {
-    super(AxisID.ONLY, manager);
+    super(AxisID.ONLY, manager,true);
     initializePanels();
   }
   
