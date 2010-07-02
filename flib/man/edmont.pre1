@@ -1,0 +1,66 @@
+     BBoouullddeerr LLaabboorraattoorryy ffoorr 33--DDiimmeennssiioonnaall EElleeccttrroonn MMiiccrroossccooppyy ooff CCeellllss
+
+EDMONT(1)							   EDMONT(1)
+
+NNAAMMEE
+  edmont - to edit, combine, split apart, bin, and restack montages
+
+SSYYNNOOPPSSIISS
+  edmont [options] input_file(s) output_file
+
+DDEESSCCRRIIPPTTIIOONN
+  Edmont is a general montage editor than can be used to extract a subset of
+  a montage, combine multiple montaged files or split a montage into multiple
+  files, rescale images to a common range or mean of density, and  bin the
+  montage pieces.  
+         
+  If there are piece coordinates in the extended header of the image file,
+  the program will transfer those coordinates to the output file.  These
+  coordinates can be used instead of ones from a piece list file.  If one
+  wishes to have sections numbered sequentially from zero, or the X and Y
+  coordinates of an extracted subset of pieces shifted to start at zero, the
+  coordinates in the header of the output file will be modified
+  appropriately.
+
+  The general requirement when combining multiple montages is that they all
+  have the same image size and overlap between adjacent pieces, and that
+  they all fit on the same regular grid of positions.  They may have
+  different numbers of pieces in each direction, and pieces at different
+  locations; indeed, it is possible to assemble a montage from different files
+  containing laterally adjacent pieces.
+  
+  If floating is not selected, data are rescaled uniformly, if necessary, to
+  fit a new output data mode.  Specifically, data will be rescaled when going
+  between byte and signed or unsigned integer modes, but only by the
+  difference in data range between input and output modes.  Use the -1
+  floating option to have the data scaled to fill the data range instead.  If
+  the input file has real data (mode 2) that is not confined to the range of
+  the output mode, then you must specify one of the three kinds of floating
+  to avoid truncating the data.
+
+  Edmont uses the PIP package for input exclusively (see the manual page
+  for pip(1)).  The following options can be specified either as command line
+  arguments (with the -) or one per line in a command file or parameter file
+  (without the -):
+
+INSERT OPTION TEXT HERE
+
+  -StandardInput
+     Read parameter entries from standard input.
+
+HHIISSTTOORRYY
+  Written by David Mastronarde, 5/9/89
+  1999: added ability to knock out pieces.
+  1/3/00: made it handle extra header data, made scaling logic more
+  like NEWSTACK and made sure it could handle negative integers. 
+  10/24/00: made it actually use coordinates in header and renumber
+  sections sequentially.
+  7/2/10: Converted to PIP, used memory allocation, added many error checks,
+
+  default section lists, binning, shifting, subsetting by frame number, and
+  more flexibility in assembling montages.
+
+SSEEEE AALLSSOO
+  blendmont(1), newstack(1), reducemont(1)
+
+

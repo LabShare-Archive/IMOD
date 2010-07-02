@@ -1,0 +1,186 @@
+[Field = ImageInputFile]
+short = imin
+type = FNM
+usage = Montaged image input file
+tooltip =
+manpage = Montaged image input file.  If there is more than one non-option
+argument, all except the last one are also taken as image input files,
+following any files entered with this option.
+
+[Field = PieceListInput]
+short = plin
+type = FNM
+usage = File with list of piece coordinates for image input file
+tooltip =
+manpage = File with list of piece coordinates for image input file.  This file
+may be omitted if the image file has piece coordinates in its header, but if
+this entry is made for any image file, there must be an entry for each image
+file.  However, a filename of "none" can be entered if some image files have
+coordinates in the header and some do not.
+
+[Field = ImageOutputFile]
+short = imout
+type = FNM
+usage = Output file for montaged images
+tooltip =
+manpage = Output file for montaged images.  If there are any non-option
+arguments, the last one is also taken as an output image file, following any
+filenames entered with this option.
+
+[Field = PieceListOutput]
+short = plout
+type = FNM
+usage = File for list of coordinates of pieces in output image file
+tooltip =
+manpage = File for list of coordinates of pieces in output image file.  This
+entry may be omitted if the coordinates are being placed in the image header,
+but is required if there are input piece list files.
+
+[Field = SectionsToRead]
+short = secs
+type = LIM
+usage = List of sections to read from input file, numbered from 0.  
+The default is all sections.  Ranges are allowed.
+tooltip = 
+manpage = List of sections to read from an input file, numbered from 0.
+Ranges may be entered (e.g., 1-3,5,8), and / may be used to specify all
+sections in the file.  If multiple lists are entered, each
+one will be applied to the respective input file.  If no list is entered for
+a file, all sections will be read.  Note that montages can have missing
+sections, and a list that includes such missing sections will generate an
+error.
+
+[Field = NumberToOutput]
+short = numout
+type = IAM
+usage = Number of sections to write to each output file
+tooltip = 
+manpage = Number of sections to write to each output file, when there are
+multiple output files.  These numbers may be listed in sequence in one entry,
+or in several entries.  If there is one output file per section being written,
+then one section will be written to each file and this entry is not needed.
+
+[Field = ModeToOutput]
+short = mode
+type = I
+usage = Storage mode of output file; 0 for byte, 1 or 6 for integer, 2 for real
+tooltip = 
+manpage = The storage mode of the output file; 0 for byte, 1 for 16-bit 
+signed integer, 6 for 16-bit unsigned integer, or 2 for 32-bit floating point.
+The default is the mode of the first input file.
+
+[Field = XMinAndMax]
+short = xminmax
+type = IP
+usage = Minimum and maximum X coordinates to include in output
+tooltip = 
+manpage = Minimum and maximum X coordinates to include in output.  Any piece
+containing pixels within this range will be included in the output.  Thus, you
+need to pick coordinates that are far enough away from the edges of a piece
+to exclude overlapping pieces that you do not want.
+
+[Field = YMinAndMax]
+short = Yminmax
+type = IP
+usage = Minimum and maximum Y coordinates to include in output
+tooltip = 
+manpage = Minimum and maximum Y coordinates to include in output.  Any piece
+containing pixels within this range will be included in the output.
+
+[Field = XFrameMinAndMax]
+short = xframes
+type = IP
+usage = Starting and ending frames in X to include in output (numbered from 1)
+tooltip = 
+manpage = Starting and ending frames in X to include in the output.  Frames are
+numbered from one for the leftmost frame in any of the input files, up to the
+rightmost frame in any of the input files.
+
+[Field = YFrameMinAndMax]
+short = yframes
+type = IP
+usage = Starting and ending frames in Y to include in output (numbered from 1)
+tooltip = 
+manpage = Starting and ending frames in Y to include in the output.  Frames
+are numbered from 1 for the bottommost frame of any input file, up to the
+topmost frame in any input file.
+
+[Field = FloatDensities]
+short = float
+type = I
+usage = Rescale densities of sections separately to fill data range (1) or to 
+bring to common mean and SD (2), or together to fill data range (-1)
+tooltip = 
+manpage = Adjust densities of sections individually or together.  Enter 1 for
+each section to fill the data range, 2 to scale sections to common mean and
+standard deviation, or -1 to scale all sections by the same factors to fill
+the data range.  The latter scaling occurs only when changing from one fixed
+point mode (0, 1, or 6) to another.  It is most useful when converting from an
+integer to a byte mode, because otherwise the data will fill only the fraction
+of the byte range that they occupy in the integer range.
+
+[Field = BinByFactor]
+short = bin
+type = I
+usage = Use binning to reduce images in size by the given factor
+tooltip =
+manpage = Use binning to reduce images in size by the given factor.  Because
+coordinates are kept as integers, binning may not produce exactly the same
+spacing between pieces as in the original data.  This is not a problem if the
+data are still to be blended, since Blendmont(1) can adjust for any
+shifts induced by the binning.  However, if data are already blended, the
+pieces will not be precisely aligned unless both the original image size and
+overlap are evenly divisible by the the binning.  Use Reducemont(1) for
+binning if this is not the case.
+
+[Field = ExclusionModel]
+short = exclude
+type = FN
+usage = Model file with points on pieces to exclude from output
+tooltip =
+manpage = Model file with points on pieces to exclude from output.  This
+option allows you to remove bad pieces from a montage.  To make a model,
+set the object type to scattered points and turn on a symbol display so that
+you can see the points.  Place points near the middle of the unwanted pieces. 
+A point must be in the region outside the overlap zones, if overlap is less
+that one quarter of the piece size, or within the central half of the piece if
+overlap is higher than that.  If overlap is high, you will have to anticipate
+where the entire piece is located in the 3dmod display, since pieces are
+generally overlaid on two sides by overlapping pieces that occur later in the
+image file.  All points in the model will be used as exclusion points.
+
+[Field = RenumberZFromZero]
+short = renumber
+type = B
+usage = Renumber Z values to be sequential and start at zero
+tooltip = 
+manpage = Renumber Z values to be sequential and start at zero.  This option
+can be used to close up gaps from missing sections or to shift the Z values
+of a subset stack down to start at zero.  It is required if you are combining
+two montages that have pieces at the same coordinates.
+
+[Field = ShiftXYToZero]
+short = shift
+type = B
+usage = Adjust X and Y piece coordinates to start at zero
+tooltip = 
+manpage = Adjust X and Y piece coordinates to start at zero.  If the data are
+going into multiple output files, the coordinates of the entire collection of
+output sections will start at zero, but the coordinates in any one file may
+not start at zero.  To achieve other shifts of piece coordinates, use
+Edpiecepoint(1).
+
+[Field = ParameterFile]
+short = param
+type = PF
+usage = Read parameter entries from file
+tooltip = 
+manpage = Read parameter entries as keyword-value pairs from a parameter file.
+
+[Field = usage]
+short = help
+type = B
+usage = Print help output
+tooltip = 
+manpage = 
+
