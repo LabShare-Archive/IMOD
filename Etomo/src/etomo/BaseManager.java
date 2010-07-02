@@ -1084,7 +1084,7 @@ public abstract class BaseManager {
    */
   public void processchunks(AxisID axisID, ProcesschunksParam param,
       ProcessResultDisplay processResultDisplay,
-      ConstProcessSeries processSeries) {
+      ConstProcessSeries processSeries,boolean popupChunkWarnings) {
     ParallelPanel parallelPanel = getMainPanel().getParallelPanel(axisID);
     BaseMetaData metaData = getBaseMetaData();
     metaData.setCurrentProcesschunksRootName(axisID, param.getRootName()
@@ -1095,7 +1095,7 @@ public abstract class BaseManager {
     try {
       threadName = getProcessManager().processchunks(axisID, param,
           parallelPanel.getParallelProgressDisplay(), processResultDisplay,
-          processSeries);
+          processSeries,popupChunkWarnings);
     }
     catch (SystemProcessException e) {
       e.printStackTrace();
@@ -1292,7 +1292,7 @@ public abstract class BaseManager {
   public final void resume(AxisID axisID, ProcesschunksParam param,
       ProcessResultDisplay processResultDisplay,
       ConstProcessSeries processSeries, Container root,
-      CommandDetails subcommandDetails) {
+      CommandDetails subcommandDetails,boolean popupChunkWarnings) {
     sendMsgProcessStarting(processResultDisplay);
     BaseMetaData metaData = getBaseMetaData();
     if (param == null) {
@@ -1321,7 +1321,7 @@ public abstract class BaseManager {
     try {
       threadName = getProcessManager().processchunks(axisID, param,
           parallelPanel.getParallelProgressDisplay(), processResultDisplay,
-          processSeries);
+          processSeries,popupChunkWarnings);
     }
     catch (SystemProcessException e) {
       e.printStackTrace();
@@ -1346,6 +1346,10 @@ public abstract class BaseManager {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.127  2010/03/18 22:40:45  sueh
+ * <p> bug# 1323 processchunks and resume was saving meta data to .etomo
+ * <p> instead of .edf.
+ * <p>
  * <p> Revision 1.126  2010/03/12 03:56:52  sueh
  * <p> bug# 1325 Added isExiting.
  * <p>
