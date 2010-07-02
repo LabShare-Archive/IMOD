@@ -13,10 +13,8 @@ Version = 1.2
 	assert.enabled.bn.done=
 [[]]
 run.function.volume-trimming=
-[[if = test-gui]]
-	run.function.flatten-volume=
-	run.function.squeeze-volume=
-[[]]
+run.function.flatten-volume=
+run.function.squeeze-volume=
 bn.done=
 
 
@@ -143,7 +141,7 @@ run.function.scaling-from-sub-area=
 
 [function = flatten-volume]
 tb.trim-vol.1=
-[[if = test-values]]
+[[if = test-gui]]
 	#check values
 	assert.rb.flatten-the-trimvol-output=on
 	assert.rb.flatten-the-squeezevol-output=off
@@ -155,8 +153,7 @@ tb.trim-vol.1=
 	assert.tf.output-thickness-in-z=
 	assert.tf.temporary-directory=
 	assert.bn.flatten=off
-[[]]
-#check enabled/disabled
+  #check enabled/disabled
 assert.enabled.rb.flatten-the-trimvol-output=	
 assert.enabled.rb.flatten-the-squeezevol-output=
 assert.enabled.sp.open-binned-by=
@@ -170,6 +167,7 @@ assert.enabled.tf.output-thickness-in-z=
 assert.enabled.tf.temporary-directory=
 assert.enabled.bn.flatten=
 assert.enabled.bn.open-flattened-tomogram=
+[[]]
 #run 3dmod
 bn.make-surface-model=
 [[if = test-values]]
@@ -229,7 +227,7 @@ bn.open-assessment-in-3dmod=
 
 [function = squeeze-volume]
 tb.trim-vol.2=
-[[if = test-values]]
+[[if = test-gui]]
 	#check values
 	assert.rb.squeeze-the-trimvol-output=on
 	assert.rb.squeeze-the-flatten-output=off
@@ -237,8 +235,6 @@ tb.trim-vol.2=
 	assert.tf.in-z=1.25
 	assert.cb.linear-interpolation=off
 	assert.bn.squeeze-volume=off
-[[]]
-[[if = test-gui]]
 	#check enabled/disabled
 	assert.enabled.rb.squeeze-the-trimvol-output=
 	assert.enabled.rb.squeeze-the-flatten-output=
