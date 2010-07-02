@@ -28,6 +28,12 @@ import etomo.ui.UIHarness;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.47  2010/07/02 03:14:48  sueh
+ * <p> bug# 1388 Added popupChunkWarnings.
+ * <p>
+ * <p> Revision 3.44.2.1  2010/06/18 16:36:01  sueh
+ * <p> bug# 1385 Merging changes from head.
+ * <p>
  * <p> Revision 3.46  2010/06/18 16:22:01  sueh
  * <p> bug# 1385 In processDone(int) collecting the last warning from
  * <p> monitorMessages (only interested in detached processes) to pop up.
@@ -310,6 +316,7 @@ class BackgroundProcess extends Thread implements SystemProcessInterface {
   private ProcessEndState endState = null;
   private SystemProgram program = null;
   private ProcessResultDisplay processResultDisplay = null;
+  private boolean popupChunkWarnings = true;
 
   BackgroundProcess(BaseManager manager, ArrayList commandArrayList,
       BaseProcessManager processManager, AxisID axisID,
@@ -332,7 +339,8 @@ class BackgroundProcess extends Thread implements SystemProcessInterface {
 
   BackgroundProcess(BaseManager manager, CommandDetails commandDetails,
       BaseProcessManager processManager, AxisID axisID,
-      ProcessName processName, ConstProcessSeries processSeries) {
+      ProcessName processName, ConstProcessSeries processSeries,
+      boolean popupChunkWarnings) {
     this.manager = manager;
     this.axisID = axisID;
     this.commandDetails = commandDetails;
@@ -345,6 +353,7 @@ class BackgroundProcess extends Thread implements SystemProcessInterface {
     this.processSeries = processSeries;
     commandArrayList = null;
     forceNextProcess = false;
+    this.popupChunkWarnings = popupChunkWarnings;
   }
 
   BackgroundProcess(BaseManager manager, Command command,
@@ -703,8 +712,7 @@ class BackgroundProcess extends Thread implements SystemProcessInterface {
           errorFound = true;
         }
       }
-      if (!errorFound) {
-        if (monitorMessages != null) {
+      if (!errorFound && monitorMessages != null && popupChunkWarnings) {
           //TODO start using CHUNK WARNING: tag after processchunks starts
           //putting one out.
           String lastWarningMessage = monitorMessages.getLastWarning();
@@ -719,7 +727,6 @@ class BackgroundProcess extends Thread implements SystemProcessInterface {
           }
         }
       }
-    }
     else if (endState != ProcessEndState.KILLED
         && endState != ProcessEndState.PAUSED) {
       errorFound = true;

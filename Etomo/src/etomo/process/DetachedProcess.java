@@ -50,9 +50,10 @@ final class DetachedProcess extends BackgroundProcess {
   DetachedProcess(BaseManager manager, DetachedCommandDetails commandDetails,
       BaseProcessManager processManager, AxisID axisID,
       OutfileProcessMonitor monitor, ProcessResultDisplay processResultDisplay,
-      ProcessName processName, ConstProcessSeries processSeries) {
+      ProcessName processName, ConstProcessSeries processSeries,
+      boolean popupChunkWarnings) {
     super(manager, commandDetails, processManager, axisID, processName,
-        processSeries);
+        processSeries, popupChunkWarnings);
     this.axisID = axisID;
     this.manager = manager;
     this.monitor = monitor;
@@ -254,6 +255,13 @@ final class DetachedProcess extends BackgroundProcess {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.23  2010/07/02 03:17:47  sueh
+ * <p> bug# 1388 Added popupChunkWarnings to the constructor.
+ * <p>
+ * <p> Revision 1.22  2010/02/26 20:37:59  sueh
+ * <p> Changing the complex popup titles are making it hard to complete the
+ * <p> uitests.
+ * <p>
  * <p> Revision 1.21  2010/02/17 04:49:20  sueh
  * <p> bug# 1301 Using the manager instead of the manager key do pop up
  * <p> messages.

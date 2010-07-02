@@ -45,6 +45,12 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.92  2010/07/02 03:17:30  sueh
+ * <p> bug# 1388 Added popupChunkWarnings.
+ * <p>
+ * <p> Revision 1.90  2010/03/12 04:01:19  sueh
+ * <p> bug# 1325 Added startComScript with a Command parameter.
+ * <p>
  * <p> Revision 1.89  2010/02/26 20:37:59  sueh
  * <p> Changing the complex popup titles are making it hard to complete the
  * <p> uitests.
@@ -583,7 +589,8 @@ public abstract class BaseProcessManager {
       final ProcesschunksParam param,
       final ParallelProgressDisplay parallelProgressDisplay,
       final ProcessResultDisplay processResultDisplay,
-      final ConstProcessSeries processSeries) throws SystemProcessException {
+      final ConstProcessSeries processSeries, boolean popupChunkWarnings)
+      throws SystemProcessException {
     // Instantiate the process monitor
     ProcesschunksProcessMonitor monitor;
     if (param.equalsRootName(ProcessName.VOLCOMBINE, axisID)) {
@@ -597,14 +604,14 @@ public abstract class BaseProcessManager {
     BackgroundProcess process;
     if (param.isSubdirNameEmpty()) {
       process = startDetachedProcess(param, axisID, monitor,
-          processResultDisplay, ProcessName.PROCESSCHUNKS, processSeries);
+          processResultDisplay, ProcessName.PROCESSCHUNKS, processSeries, popupChunkWarnings);
 
     }
     else {
       monitor.setSubdirName(param.getSubdirName());
       process = startDetachedProcess(param, axisID, monitor,
           processResultDisplay, ProcessName.PROCESSCHUNKS, param
-              .getSubdirName(), param.getShortCommandName(), processSeries);
+              .getSubdirName(), param.getShortCommandName(), processSeries, popupChunkWarnings);
     }
     return process.getName();
   }
@@ -725,7 +732,7 @@ public abstract class BaseProcessManager {
         null, processMonitor, processResultDisplay, commandDetails,
         processSeries), command, processMonitor, axisID);
   }
-  
+
   /**
    * Start a managed command script for the specified axis
    * @param command
@@ -736,11 +743,11 @@ public abstract class BaseProcessManager {
    */
   final ComScriptProcess startComScript(final String commandString,
       final ProcessMonitor processMonitor, final AxisID axisID,
-      final ProcessResultDisplay processResultDisplay,final Command command,
+      final ProcessResultDisplay processResultDisplay, final Command command,
       final ConstProcessSeries processSeries) throws SystemProcessException {
-    return startComScript(new ComScriptProcess(manager, commandString, this, axisID,
-        null, processMonitor, processResultDisplay, command,processSeries), commandString,
-        processMonitor, axisID);
+    return startComScript(new ComScriptProcess(manager, commandString, this,
+        axisID, null, processMonitor, processResultDisplay, command,
+        processSeries), commandString, processMonitor, axisID);
   }
 
   /**
@@ -1583,11 +1590,11 @@ public abstract class BaseProcessManager {
       final DetachedCommandDetails detachedCommandDetails, final AxisID axisID,
       final OutfileProcessMonitor monitor,
       final ProcessResultDisplay processResultDisplay,
-      final ProcessName processName, final ConstProcessSeries processSeries)
-      throws SystemProcessException {
+      final ProcessName processName, final ConstProcessSeries processSeries,
+      boolean popupChunkWarnings) throws SystemProcessException {
     DetachedProcess detachedProcess = new DetachedProcess(manager,
         detachedCommandDetails, this, axisID, monitor, processResultDisplay,
-        processName, processSeries);
+        processName, processSeries, popupChunkWarnings);
     if (monitor != null) {
       monitor.setProcess(detachedProcess);
     }
@@ -1600,11 +1607,11 @@ public abstract class BaseProcessManager {
       final OutfileProcessMonitor monitor,
       final ProcessResultDisplay processResultDisplay,
       final ProcessName processName, final String subdirName,
-      final String shortCommandName, final ConstProcessSeries processSeries)
+      final String shortCommandName, final ConstProcessSeries processSeries,boolean popupChunkWarnings)
       throws SystemProcessException {
     DetachedProcess detachedProcess = new DetachedProcess(manager,
         detachedCommandDetails, this, axisID, monitor, processResultDisplay,
-        processName, processSeries);
+        processName, processSeries, popupChunkWarnings);
     detachedProcess.setSubdirName(subdirName);
     detachedProcess.setShortCommandName(shortCommandName);
     if (monitor != null) {
