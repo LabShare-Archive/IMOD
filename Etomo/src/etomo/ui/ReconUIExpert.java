@@ -187,7 +187,8 @@ public abstract class ReconUIExpert implements UIExpert {
     setDialogState(ProcessState.INPROGRESS);
     //param should never be set to resume
     parallelPanel.getParallelProgressDisplay().resetResults();
-    manager.processchunks(axisID, param, processResultDisplay, processSeries);
+    manager.processchunks(axisID, param, processResultDisplay, processSeries,
+        true);
   }
 
   final ParallelPanel getParallelPanel() {
@@ -209,6 +210,9 @@ public abstract class ReconUIExpert implements UIExpert {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.13  2010/03/03 05:06:43  sueh
+ * <p> bug# 1311 Removed unnecessary ProcessName references.
+ * <p>
  * <p> Revision 1.12  2010/02/17 05:03:12  sueh
  * <p> bug# 1301 Using manager instead of manager key for popping up messages.
  * <p>
