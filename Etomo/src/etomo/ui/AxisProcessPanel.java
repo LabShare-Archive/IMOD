@@ -29,6 +29,9 @@ import etomo.type.ProcessName;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.41  2010/03/03 05:00:48  sueh
+ * <p> bug# 1311 Removed unnecessary ProcessName references.
+ * <p>
  * <p> Revision 3.40  2009/10/27 20:41:01  sueh
  * <p> bug# 1275 In initializePanels only add the outerStatusPanel if the manager
  * <p> contains a process manager.  The outerStatusPanel contains the progress
@@ -282,6 +285,8 @@ public abstract class AxisProcessPanel implements ContextMenu {
   private boolean parallelDialog = false;
   private boolean parallelInUse = false;
 
+  private final boolean popupChunkWarnings;
+
   //  Progress panel
   final ProgressPanel progressPanel;
   private final SimpleButton buttonKillProcess = new SimpleButton(
@@ -300,10 +305,11 @@ public abstract class AxisProcessPanel implements ContextMenu {
    * @param appManager
    * @param axis
    */
-  AxisProcessPanel(AxisID axis, BaseManager manager) {
+  AxisProcessPanel(AxisID axis, BaseManager manager, boolean popupChunkWarnings) {
     progressPanel = ProgressPanel.getInstance("No process", manager, axis);
     axisID = axis;
     this.manager = manager;
+    this.popupChunkWarnings = popupChunkWarnings;
     //  Create the status panel
     actionListener = new KillButtonActionListener(this);
     buttonKillProcess.addActionListener(actionListener);
@@ -390,7 +396,8 @@ public abstract class AxisProcessPanel implements ContextMenu {
   private final void createParallelPanel() {
     if (parallelPanel == null) {
       parallelPanel = ParallelPanel.getInstance(manager, axisID, manager
-          .getBaseScreenState(axisID).getParallelHeaderState(), this);
+          .getBaseScreenState(axisID).getParallelHeaderState(), this,
+          popupChunkWarnings);
       parallelStatusPanel.add(Box.createRigidArea(FixedDim.x5_y0));
       parallelStatusPanel.add(parallelPanel.getContainer());
     }

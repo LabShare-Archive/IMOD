@@ -28,6 +28,10 @@ import etomo.ui.UIHarness;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.46  2010/06/18 16:22:01  sueh
+ * <p> bug# 1385 In processDone(int) collecting the last warning from
+ * <p> monitorMessages (only interested in detached processes) to pop up.
+ * <p>
  * <p> Revision 3.45  2010/04/28 16:15:13  sueh
  * <p> bug# 1344 Added closeOutputImageFile.  Added another constructor that
  * <p> takes a Command parameter.
@@ -310,6 +314,7 @@ class BackgroundProcess extends Thread implements SystemProcessInterface {
   private ProcessEndState endState = null;
   private SystemProgram program = null;
   private ProcessResultDisplay processResultDisplay = null;
+  private boolean popupChunkWarnings = true;
 
   BackgroundProcess(BaseManager manager, ArrayList commandArrayList,
       BaseProcessManager processManager, AxisID axisID,
@@ -332,7 +337,8 @@ class BackgroundProcess extends Thread implements SystemProcessInterface {
 
   BackgroundProcess(BaseManager manager, CommandDetails commandDetails,
       BaseProcessManager processManager, AxisID axisID,
-      ProcessName processName, ConstProcessSeries processSeries) {
+      ProcessName processName, ConstProcessSeries processSeries,
+      boolean popupChunkWarnings) {
     this.manager = manager;
     this.axisID = axisID;
     this.commandDetails = commandDetails;
@@ -345,6 +351,7 @@ class BackgroundProcess extends Thread implements SystemProcessInterface {
     this.processSeries = processSeries;
     commandArrayList = null;
     forceNextProcess = false;
+    this.popupChunkWarnings = popupChunkWarnings;
   }
 
   BackgroundProcess(BaseManager manager, Command command,
@@ -731,20 +738,18 @@ class BackgroundProcess extends Thread implements SystemProcessInterface {
           errorFound = true;
         }
       }
-      if (!errorFound) {
-        if (monitorMessages != null) {
-          //TODO start using CHUNK WARNING: tag after processchunks starts
-          //putting one out.
-          String lastWarningMessage = monitorMessages.getLastWarning();
-          if (lastWarningMessage != null) {
-            ProcessMessages warningMessage = ProcessMessages.getInstance();
-            warningMessage.addWarning();
-            warningMessage.addWarning("<html><U>Warnings Occurred</U>");
-            warningMessage.addWarning("<html><U>Last warning:</U>");
-            warningMessage.addWarning(lastWarningMessage);
-            UIHarness.INSTANCE.openWarningMessageDialog(manager, warningMessage,
-                getProcessName() + " Warning", axisID);
-          }
+      if (!errorFound && monitorMessages != null && popupChunkWarnings) {
+        //TODO start using CHUNK WARNING: tag after processchunks starts
+        //putting one out.
+        String lastWarningMessage = monitorMessages.getLastWarning();
+        if (lastWarningMessage != null) {
+          ProcessMessages warningMessage = ProcessMessages.getInstance();
+          warningMessage.addWarning();
+          warningMessage.addWarning("<html><U>Warnings Occurred</U>");
+          warningMessage.addWarning("<html><U>Last warning:</U>");
+          warningMessage.addWarning(lastWarningMessage);
+          UIHarness.INSTANCE.openWarningMessageDialog(manager, warningMessage,
+              getProcessName() + " Warning", axisID);
         }
       }
     }
