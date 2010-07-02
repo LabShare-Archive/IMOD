@@ -20,6 +20,9 @@ import etomo.type.AxisID;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.2  2007/02/19 22:14:55  sueh
+* <p> bug# 964 Overriding createProcessControlPanel
+* <p>
 * <p> Revision 1.1  2007/02/19 22:03:37  sueh
 * <p> bug# 964 Process panel for PEET interface.
 * <p> </p>
@@ -32,7 +35,7 @@ public class PeetProcessPanel extends AxisProcessPanel {
   }
   
   PeetProcessPanel(BaseManager manager) {
-    super(AxisID.ONLY, manager);
+    super(AxisID.ONLY, manager,false);
     createProcessControlPanel();
     initializePanels();
   }
