@@ -20,6 +20,12 @@ c
 c       $Revision$
 c       
 c       $Log$
+c       Revision 3.7  2010/07/02 02:12:41  mast
+c       Increased some array limits
+c
+c       Revision 3.6  2006/03/02 00:25:25  mast
+c       Move polyterm to library
+c
 c       Revision 3.5  2005/12/09 04:43:27  mast
 c       gfortran: .xor., continuation, format tab continuation or byte fixes
 c
@@ -41,12 +47,12 @@ c
       implicit none
       integer idim, limpt, idzlim, limflags
       include 'model.inc'
-      parameter (idim=10000,limpt=50000,idzlim=50, limflags=2000)
+      parameter (idim=20000,limpt=100000,idzlim=5000, limflags=20000)
 C       
       REAL*4 xt(limpt),yt(limpt),zt(limpt),pt(limpt,3),p_new(2,max_pt)
       equivalence (xt,pt),(yt,pt(1,2)),(zt,pt(1,3))
 C       
-      CHARACTER*80 FILin,filout
+      CHARACTER*320 FILin,filout
 c       
       logical readw_or_imod,failed,getModelObjectRange
       include 'statsize.inc'
@@ -129,6 +135,8 @@ c
 
       nobjTot = getImodObjSize()
       if (nzfit .lt. 1) call errorexit('NUMBER OF SECTIONS IS TOO SMALL')
+      if (nzfit .gt. idzlim) call exitError(
+     &    'NUMBER OF SECTIONS IS TOO LARGE FOR ARRAYS')
       if (iorder2 .lt. 0 .or. iorder2 .gt. 4) call errorexit(
      &    'CONTOUR SMOOTHING ORDER IS OUTSIDE OF ALLOWED RANGE')
       if (iorder .lt. 1 .or. iorder .gt. 5) call errorexit(
