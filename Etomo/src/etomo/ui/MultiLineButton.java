@@ -44,6 +44,9 @@ import java.lang.String;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.46  2010/07/02 20:04:16  sueh
+ * <p> bug# 1387 Debugging all the time
+ * <p>
  * <p> Revision 3.45  2010/07/01 01:30:54  sueh
  * <p> bug# 1387 Added more info to debug print.
  * <p>
@@ -427,31 +430,6 @@ class MultiLineButton implements ProcessResultDisplay {
     }
     label = "<html><b>".concat(label).concat("</b>");
     if (debug) {
-      System.err.println("java.version:  " + System.getProperty("java.version"));
-      System.err.println("java.vendor:  " + System.getProperty("java.vendor"));
-      System.err.println("java.home:  " + System.getProperty("java.home"));
-      System.err.println("java.vm.version:  "
-          + System.getProperty("java.vm.version"));
-      System.err.println("java.vm.vendor:  "
-          + System.getProperty("java.vm.vendor"));
-      System.err.println("java.vm.home:  " + System.getProperty("java.vm.home"));
-      System.err.println("java.class.version:  "
-          + System.getProperty("java.class.version"));
-      System.err.println("java.class.path:  "
-          + System.getProperty("java.class.path"));
-      System.err.println("java.library.path:  "
-          + System.getProperty("java.library.path"));
-      System.err.println("java.io.tmpdir:  "
-          + System.getProperty("java.io.tmpdir"));
-      System.err
-          .println("java.compiler:  " + System.getProperty("java.compiler"));
-      System.err
-          .println("java.ext.dirs:  " + System.getProperty("java.ext.dirs"));
-      System.err.println("os.name:  " + System.getProperty("os.name"));
-      System.err.println("os.arch:  " + System.getProperty("os.arch"));
-      System.err.println("os.version:  " + System.getProperty("os.version"));
-      System.err.println("user.name:  " + System.getProperty("user.name"));
-      System.err.println("user.home:  " + System.getProperty("user.home"));
       System.err.println("label=" + label);
     }
     return label;
