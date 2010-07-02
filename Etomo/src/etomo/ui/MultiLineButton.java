@@ -44,6 +44,9 @@ import java.lang.String;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.45  2010/07/01 01:30:54  sueh
+ * <p> bug# 1387 Added more info to debug print.
+ * <p>
  * <p> Revision 3.44  2010/06/30 21:55:05  sueh
  * <p> bug# 1387 Added Java info to debug print.
  * <p>
@@ -251,7 +254,7 @@ class MultiLineButton implements ProcessResultDisplay {
   }
 
   MultiLineButton(String label, boolean toggleButton) {
-    this(label, toggleButton, null, false);
+    this(label, toggleButton, null, true);
   }
 
   /**
