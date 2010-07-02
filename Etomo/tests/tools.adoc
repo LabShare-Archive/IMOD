@@ -73,7 +73,7 @@ bn.open-flattened-tomogram=
 	#check values
 	assert.tf.smoothing-factors-to-try=2,2.5,3,3.5,4
 	#check enabled/disabled
-	assert.enabled.tf.smoothing-factors=
+	assert.enabled.tf.smoothing-factors-to-try=
 	assert.enabled.bn.run-flattenwarp-to-assess-smoothing=
 	assert.enabled.bn.open-assessment-in-3dmod=
 [[]]
