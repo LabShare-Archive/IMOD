@@ -242,9 +242,20 @@ c       prefix set by calling setExitPrefix
       return
       end
 
+      subroutine memoryError(ierr, message)
+      implicit none
+      integer*4 ierr
+      character*(*) message
+      if (ierr .ne. 0) call exitError('FAILURE TO ALLOCATE '//message)
+      return
+      end
+
       
 c       
 c       $Log$
+c       Revision 3.12  2009/12/04 20:31:12  mast
+c       Add call to print entries
+c
 c       Revision 3.11  2007/06/22 05:02:53  mast
 c       Enabled read from stdin if no args
 c
