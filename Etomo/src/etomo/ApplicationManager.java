@@ -8074,7 +8074,7 @@ public final class ApplicationManager extends BaseManager implements
     mainPanel.setState(ProcessState.INPROGRESS, axisID, dialogType);
     // param should never be set to resume
     parallelPanel.getParallelProgressDisplay().resetResults();
-    processchunks(axisID, param, processResultDisplay, processSeries);
+    processchunks(axisID, param, processResultDisplay, processSeries,true);
   }
 
   public BaseProcessManager getProcessManager() {
@@ -8139,6 +8139,11 @@ public final class ApplicationManager extends BaseManager implements
 /**
  * <p>
  * $Log$
+ * Revision 3.361  2010/05/20 23:48:28  sueh
+ * bug# 1373 In updateCombineComscriptState setting the end command to
+ * matchorwarp when volcombine is going to be run and its using
+ * processchunks.
+ *
  * Revision 3.360  2010/05/05 20:43:33  sueh
  * bug# 1344 Added releaseFile.
  *

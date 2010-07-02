@@ -355,7 +355,7 @@ public final class ParallelManager extends BaseManager {
       return;
     }
     parallelPanel.getParallelProgressDisplay().resetResults();
-    processchunks(AxisID.ONLY, param, processResultDisplay, processSeries);
+    processchunks(AxisID.ONLY, param, processResultDisplay, processSeries,true);
   }
 
   public boolean setNewParamFile(final File file) {
@@ -660,7 +660,7 @@ public final class ParallelManager extends BaseManager {
       return;
     }
     parallelPanel.getParallelProgressDisplay().resetResults();
-    processchunks(AxisID.ONLY, param, null, processSeries);
+    processchunks(AxisID.ONLY, param, null, processSeries, true);
   }
 
   /**
@@ -759,7 +759,7 @@ public final class ParallelManager extends BaseManager {
     }
     processSeries.setRun3dmodDeferred(deferred3dmodButton, run3dmodMenuOptions);
     parallelPanel.getParallelProgressDisplay().resetResults();
-    processchunks(AxisID.ONLY, param, null, processSeries);
+    processchunks(AxisID.ONLY, param, null, processSeries,true);
   }
 
   /**
@@ -823,6 +823,11 @@ public final class ParallelManager extends BaseManager {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.44  2010/04/28 15:37:05  sueh
+ * <p> bug# 1344 Added getFileSubdirectoryName.  Passing params to process
+ * <p> manager functions, standardizing "3dmod is open" messages to always
+ * <p> use closeImod.  Using ProcessSeries.Process to hold process information.
+ * <p>
  * <p> Revision 1.43  2010/02/17 04:42:26  sueh
  * <p> bug# 1301 Moved comScriptMgr and logPanel from BaseManager to child
  * <p> class.
