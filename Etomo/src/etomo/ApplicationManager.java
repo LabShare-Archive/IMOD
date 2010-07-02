@@ -8006,7 +8006,7 @@ public final class ApplicationManager extends BaseManager implements
     mainPanel.setState(ProcessState.INPROGRESS, axisID, dialogType);
     //param should never be set to resume
     parallelPanel.getParallelProgressDisplay().resetResults();
-    processchunks(axisID, param, processResultDisplay, processSeries);
+    processchunks(axisID, param, processResultDisplay, processSeries, true);
   }
 
   public BaseProcessManager getProcessManager() {
@@ -8070,6 +8070,11 @@ public final class ApplicationManager extends BaseManager implements
 }
 /**
  * <p> $Log$
+ * <p> Revision 3.355  2010/04/08 04:36:08  sueh
+ * <p> bug# 1348 Preventing a silent failure of rename fixed stack in
+ * <p> replaceRawStack.  Resetting use fixed stack warning as early as possible.
+ * <p> Sending exception stack to log when tilt parameter error happens.
+ * <p>
  * <p> Revision 3.354  2010/03/16 21:48:54  sueh
  * <p> Added closeImod(String,AxisID,AxisID,String) to pop up a close message in
  * <p> axis A about an axis B tomogram.

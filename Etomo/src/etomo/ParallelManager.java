@@ -67,7 +67,6 @@ public final class ParallelManager extends BaseManager {
   private static final AxisID AXIS_ID = AxisID.ONLY;
   private final LogPanel logPanel = LogPanel.getInstance(this);
 
-
   private final BaseScreenState screenState = new BaseScreenState(AXIS_ID,
       AxisType.SINGLE_AXIS);
   private final ParallelState state = new ParallelState(this, AXIS_ID);
@@ -140,11 +139,11 @@ public final class ParallelManager extends BaseManager {
   public InterfaceType getInterfaceType() {
     return InterfaceType.PP;
   }
-  
+
   public LogInterface getLogInterface() {
     return logPanel;
   }
-  
+
   public LogPanel getLogPanel() {
     return logPanel;
   }
@@ -348,7 +347,7 @@ public final class ParallelManager extends BaseManager {
       return;
     }
     parallelPanel.getParallelProgressDisplay().resetResults();
-    processchunks(AxisID.ONLY, param, processResultDisplay, processSeries);
+    processchunks(AxisID.ONLY, param, processResultDisplay, processSeries, true);
   }
 
   public boolean setNewParamFile(final File file) {
@@ -649,7 +648,7 @@ public final class ParallelManager extends BaseManager {
       return;
     }
     parallelPanel.getParallelProgressDisplay().resetResults();
-    processchunks(AxisID.ONLY, param, null, processSeries);
+    processchunks(AxisID.ONLY, param, null, processSeries, true);
   }
 
   /**
@@ -748,7 +747,7 @@ public final class ParallelManager extends BaseManager {
     }
     processSeries.setRun3dmodDeferred(deferred3dmodButton, run3dmodMenuOptions);
     parallelPanel.getParallelProgressDisplay().resetResults();
-    processchunks(AxisID.ONLY, param, null, processSeries);
+    processchunks(AxisID.ONLY, param, null, processSeries, true);
   }
 
   /**
@@ -812,6 +811,10 @@ public final class ParallelManager extends BaseManager {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.43  2010/02/17 04:42:26  sueh
+ * <p> bug# 1301 Moved comScriptMgr and logPanel from BaseManager to child
+ * <p> class.
+ * <p>
  * <p> Revision 1.42  2010/01/21 21:26:26  sueh
  * <p> bug# 1305 Passing FileType to imod instead of key and file.
  * <p>
