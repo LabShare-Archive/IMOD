@@ -9,7 +9,7 @@ LDFLG    = $(LDFFLAGS)
 
 PROGS = addtostack$(E) alterheader$(E) assemblevol$(E) avganova$(E) \
  avgstack$(E) calc$(E) checkxforms$(E) combinefft$(E) \
- densmatch$(E) edmont$(E) edpiecepoint$(E) enhance$(E) eraser$(E) excise$(E) \
+ densmatch$(E) edpiecepoint$(E) enhance$(E) eraser$(E) excise$(E) \
  extposition$(E) extracttilts$(E) extractpieces$(E) extstack$(E) fftrans$(E) \
  filltomo$(E) findcontrast$(E) findsection$(E) fixmont$(E) goodframe$(E) \
  header$(E) matchvol$(E) montagesize$(E) mtdetect$(E) mtteach$(E) \
@@ -59,9 +59,6 @@ densmatch$(E): densmatch.$(O)
 
 densnorm$(E): densnorm.$(O)
 	$(FC) -o densnorm densnorm.$(O) $(LDFLG) $(IMLIBS) $(LIBS)
-
-edmont$(E): edmont.$(O)
-	$(FC) -o edmont edmont.$(O) $(LDFLG) $(IMLIBS) $(LIBS)
 
 edpiecepoint$(E): edpiecepoint.$(O)
 	$(FC) -o edpiecepoint edpiecepoint.$(O) $(LDFLG) $(IMLIBS) $(LIBS)
@@ -215,6 +212,9 @@ enhance.$(O): $(INCDIR)/ftbuf.inc
 fftrans.$(O): $(INCDIR)/ftbuf.inc
 
 #  $Log$
+#  Revision 3.22  2009/10/02 20:22:06  mast
+#  Removed tiltxcorr
+#
 #  Revision 3.21  2009/09/07 17:22:13  mast
 #  Convert stitchvars to module
 #
