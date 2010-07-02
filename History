@@ -1,5 +1,10 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+7/2/10: Converted Edmont to PIP input, added memory allocation, default
+section lists, binning, shifting of X/Y coordinates to zero, use of model
+instead of point list for piece exclusion, extraction of subset by frame
+number, and better error checking. 
+
 7/1/10: In Etomo - parallel processing, removed chunk warning popup in the PEET
 interface  (In 4.1).
 

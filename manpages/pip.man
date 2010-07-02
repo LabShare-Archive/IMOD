@@ -822,6 +822,10 @@ void setExitPrefix(char *\fIprefix\fB);
 
 subroutine setExitPrefix(\fIprefix\fB)
 character*N \fIprefix\fB
+
+subroutine memoryError(\fIierr\fB, \fIerrString\fB)
+integer*4 \fIierr\fB
+character*N \fIerrString\fB
 .ft R
 .fi
 
@@ -837,6 +841,9 @@ case the destination for error output can be specified, whereas using
 functions can be used by programs that do not call anything else in PIP;
 however, \fBexitError\fR will work only if the exit prefix has been set to a
 non-empty string with either \fBsetExitPrefix\fR or \fBPipExitOnError\fR.
+The Fortran routine \fBmemoryError\fR tests whether \fIierr\fR  is nonzero
+and, if so, calls \fBexitError\fR with \fIerrString\fR appended to "FAILURE TO
+ALLOCATE ".
 
 .SS Calling from Python
 The Python versions of the functions handle returned values differently:
