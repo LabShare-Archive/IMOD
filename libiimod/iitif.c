@@ -377,13 +377,21 @@ void tiffSuppressWarnings(void)
 
 static void warningHandler(const char *module, const char *fmt, va_list ap)
 {
-  char buffer[100];
-  vsnprintf(buffer, 99, fmt, ap);
+  char buffer[160];
+  vsnprintf(buffer, 159, fmt, ap);
   va_end(ap);
-  if (!strstr(buffer, "unknown field with tag") && oldHandler)
-    oldHandler(module, fmt, ap);
+
+  /* It didn't work to call the old handler with some errors, so print it
+     ourselves to stderr */
+  if (!strstr(buffer, "unknown field with tag")) {
+    if (module)
+      fprintf(stderr, "%s: Warning, %s\n", module, buffer);
+    else
+      fprintf(stderr, "Warning, %s\n", buffer);
+  }
 }
 
+/* Set up to filter out the ubiquitous unknown field warnings */
 void tiffFilterWarnings(void)
 {
   oldHandler = TIFFSetWarningHandler(warningHandler);
@@ -932,6 +940,15 @@ int tiffWriteSection(ImodImageFile *inFile, void *buf, int compression,
 
 /*
   $Log$
+  Revision 3.21  2010/07/06 03:20:00  mast
+  Put out module too, which sometimes has the filename!
+
+  Revision 3.20  2010/07/05 20:01:19  mast
+  Fixed warning handler to not try to call TIFF handler
+
+  Revision 3.19  2009/06/19 21:02:30  mast
+  Took out debug output
+
   Revision 3.18  2009/06/19 20:45:28  mast
   Added ability to read long integer and RGBA files
 
