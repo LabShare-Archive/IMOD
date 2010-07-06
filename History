@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+7/5/10: Fixed TIFF warning handler to print message instead of trying to pass
+it on to TIFF handler, which crashed with some files.
+
 6/30/10: Fixed bug in Bead Fixer that froze 3dmod if a "Move all" button was
 pressed after reading a log with 0 residuals.
 
