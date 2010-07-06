@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+7/5/10: Fixed TIFF warning handler to print message instead of trying to pass
+it on to TIFF handler, which crashed with some files (In 4.1).
+
 7/2/10: Converted Edmont to PIP input, added memory allocation, default
 section lists, binning, shifting of X/Y coordinates to zero, use of model
 instead of point list for piece exclusion, extraction of subset by frame
