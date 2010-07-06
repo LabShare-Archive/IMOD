@@ -1927,8 +1927,8 @@ void crossCorrelate(MidasView *vw)
   free(brray);
   free(arfilt);
   if (cccmax > -1.) {
-    printf("Peak %d at %.2f,%.2f   ccc %.4f  raw ratio to first %f\n", imax+1,
-           xpeak[imax], ypeak[imax], cccmax, peaks[0] / peaks[imax]);
+    /*printf("Peak %d at %.2f,%.2f   ccc %.4f  raw ratio to first %f\n",imax+1,
+      xpeak[imax], ypeak[imax], cccmax, peaks[0] / peaks[imax]); */
     vw->drawCorrBox = 1;
     vw->midasSlots->translate(xpeak[imax], ypeak[imax]);
     return;
@@ -1944,6 +1944,11 @@ void crossCorrelate(MidasView *vw)
 /*
 
 $Log$
+Revision 3.23  2010/06/29 22:34:22  mast
+Switched to new faster solution method for piece shifts, increased size
+of local patches to make that more robust, handled skipped edges, binning
+and correlation
+
 Revision 3.22  2010/06/06 21:13:40  mast
 Add include for gaussj in library
 
