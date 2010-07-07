@@ -23,6 +23,9 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.10  2010/06/04 20:00:55  sueh
+ * <p> bug# 1380 Added --ignoreloc.
+ * <p>
  * <p> Revision 1.9  2010/04/10 00:28:41  sueh
  * <p> bug# 1349 Added --autoclose3dmod and reorganized help string.
  * <p>
@@ -80,14 +83,15 @@ public final class Arguments {
 
   static final String HELP_MESSAGE = "Options:\n  "
       + DEBUG_TAG
-      + "\tSend extra information to standard error.  The "
+      + " [level]"
+      + "\n\t\tSend extra information to standard error.  The "
       + DEBUG_TAG
       + " option"
       + "\n\t\tincludes the following options:  "
       + MEMORY_TAG
       + " and "
       + TIMESTAMP_TAG
-      + "."
+      + ".  Level can be 0 (debug is off), 1 (default) or 2 (more information)."
       + "\n\n  "
       + DEMO_TAG
       + "\tDeprecated."
@@ -186,8 +190,7 @@ public final class Arguments {
       + "\n\n  "
       + NAMES_TAG
       + "\tFor testing.  Send the names of screen elements to standard out.  For"
-      + "\n\t\twriting automated regression tests." + "\n\n  "
-      + NEWSTUFF_TAG
+      + "\n\t\twriting automated regression tests." + "\n\n  " + NEWSTUFF_TAG
       + "\tMay cause Etomo to run with unreleased functionality." + "\n\n  "
       + TEST_TAG
       + "\tFor testing.  Test mode used for unit testing and automated"
@@ -196,6 +199,7 @@ public final class Arguments {
   private final ArrayList paramFileNameList = new ArrayList();
 
   private boolean debug = false;
+  private int debugLevel = 0;
   private boolean demo = false;
   /**
    * If arguments hasn't been initialized yet, then
@@ -312,7 +316,7 @@ public final class Arguments {
   public ConstEtomoNumber getFiducial() {
     return fiducial;
   }
-  
+
   public boolean isIgnoreLoc() {
     return ignoreLoc;
   }
@@ -339,9 +343,6 @@ public final class Arguments {
       }
       else if (args[i].equals(HELP1_TAG) || args[i].equals(HELP2_TAG)) {
         help = true;
-      }
-      else if (args[i].equals(DEBUG_TAG)) {
-        debug = true;
       }
       else if (args[i].equals(DEMO_TAG)) {
         demo = true;
@@ -371,6 +372,23 @@ public final class Arguments {
           }
           catch (NumberFormatException e) {
             displayMemoryInterval = 0;
+          }
+        }
+      }
+      else if (args[i].equals(DEBUG_TAG)) {
+        debug = true;
+        //--debug can be used alone, or followed by an integer
+        //(debugLevel).
+        if (i < args.length - 1) {
+          try {
+            debugLevel = Math.abs(Integer.parseInt(args[i + 1]));
+            if (debugLevel == 0) {
+              debug = false;
+            }
+            i++;
+          }
+          catch (NumberFormatException e) {
+            debugLevel = 1;
           }
         }
       }
@@ -439,7 +457,7 @@ public final class Arguments {
         autoClose3dmod = true;
       }
       else if (args[i].equals(IGNORE_LOC_TAG)) {
-        ignoreLoc=true;
+        ignoreLoc = true;
       }
       else {
         System.err.println("WARNING:  unknown argument, " + args[i]
@@ -460,6 +478,10 @@ public final class Arguments {
 
   int getDisplayMemoryInterval() {
     return displayMemoryInterval;
+  }
+
+  int getDebugLevel() {
+    return debugLevel;
   }
 
   boolean isDisplayMemory() {
