@@ -697,7 +697,7 @@ Correlation Alignment</A> in the Extra Topics section.
 <LI>Press <B>Done</B>.  There is no need to make a coarse aligned stack in
 this panel because its tilt axis is not vertical.
 <LI>Press <B>Done</B> on the <B>Tomogram Positioning</B> panel to get to the
-<B>Tomogram Generation</B> panel.
+<B>Final Aligned Stack</B> panel.
 <LI>Adjust the <B>Tilt axis rotation</B> if it does not match the values that
 you usually get for rotation angle in a fiducial alignment solution at this
 magnification.
@@ -707,7 +707,10 @@ cube of the binning.
 <LI>Press <B>View Full Aligned Stack</B> and check the alignment.  If
 something needs to be fixed, press <B>Coarse
 Alignment</B>, then <B>Fix Alignment with Midas</B>.  After fixing the
-alignment, come back to the <B>Tomogram Generation</B> panel.
+alignment, come back to the <B>Final Aligned Stack</B> panel and rebuild the
+aligned stack.
+<LI>Press <B>Done</B> on the <B>Final Aligned Stack</B> panel to get to the
+<B>Tomogram Generation</B> panel.
 <LI>Set an appropriate <B>Tomogram thickness in Z</B>.  Thickness is specified
 in unbinned pixels so that its value is independent of the selected binning.
 <LI>Press <B>Generate Tomogram</B>.
@@ -1683,7 +1686,11 @@ More important, you should not solve for distortion.  However, local
 alignments can be used successfully when there are many patches.  When there
 are few patches, the number of variables should be constrained appropriately;
 for example, by fixing the tilt angles and solving for one rotation angle
-together with a beam tilt angle.
+together with a beam tilt angle.  If contours have been cut into overlapping
+pieces, it is possible for the solution to be unstable when solving for tilt
+angles.  Look at the solution to make sure that tilt angles and rotation angles
+are behaving reasonably; if there is any doubt about this, just fix the tilt
+angles.
 <P>
 When you press <B>View/Edit Fiducial Model</B> for a patch tracking model, the
 Bead Fixer will open in the <B>Look at contours</B> mode.  In this mode, it
