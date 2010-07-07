@@ -126,6 +126,16 @@ public class EtomoDirector {
         }
         if (EtomoDirector.INSTANCE.arguments.getDebugLevel() > 1) {
           System.err.println();
+          System.err.println("Java lib:");
+          File libDir = new File(new File(System.getProperty("java.home")),
+              "lib");
+          String[] libDirList = libDir.list();
+          if (libDirList != null) {
+            for (int i = 0; i < libDirList.length; i++) {
+              System.err.println(libDirList[i]);
+            }
+          }
+          System.err.println();
           ResourceBundle resources = ResourceBundle.getBundle(
               "sun.awt.resources.awt", CoreResourceBundleControl
                   .getRBControlInstance());
@@ -1169,6 +1179,9 @@ public class EtomoDirector {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.96  2010/07/07 21:21:56  sueh
+ * <p> bug# 1387 printing more information.
+ * <p>
  * <p> Revision 1.95  2010/07/02 20:17:19  sueh
  * <p> bug# 1387 Moving system information to the top, so it will be there during
  * <p> any failure.
