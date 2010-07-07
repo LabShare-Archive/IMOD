@@ -7,10 +7,18 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.Enumeration;
+import java.util.Iterator;
+import java.util.Map;
+import java.util.ResourceBundle;
+import java.util.Set;
 
 import javax.swing.ToolTipManager;
+import javax.swing.UIDefaults;
 import javax.swing.UIManager;
 import javax.swing.plaf.FontUIResource;
+
+import sun.util.CoreResourceBundleControl;
 
 import etomo.process.IntermittentBackgroundProcess;
 import etomo.process.ProcessRestarter;
@@ -96,38 +104,42 @@ public class EtomoDirector {
   }
 
   public static void main(String[] args) {
-    System.err.println("java.version:  " + System.getProperty("java.version"));
-    System.err.println("java.vendor:  " + System.getProperty("java.vendor"));
-    System.err.println("java.home:  " + System.getProperty("java.home"));
-    System.err.println("java.vm.version:  "
-        + System.getProperty("java.vm.version"));
-    System.err.println("java.vm.vendor:  "
-        + System.getProperty("java.vm.vendor"));
-    System.err.println("java.vm.home:  " + System.getProperty("java.vm.home"));
-    System.err.println("java.class.version:  "
-        + System.getProperty("java.class.version"));
-    System.err.println("java.class.path:  "
-        + System.getProperty("java.class.path"));
-    System.err.println("java.library.path:  "
-        + System.getProperty("java.library.path"));
-    System.err.println("java.io.tmpdir:  "
-        + System.getProperty("java.io.tmpdir"));
-    System.err
-        .println("java.compiler:  " + System.getProperty("java.compiler"));
-    System.err
-        .println("java.ext.dirs:  " + System.getProperty("java.ext.dirs"));
-    System.err.println("os.name:  " + System.getProperty("os.name"));
-    System.err.println("os.arch:  " + System.getProperty("os.arch"));
-    System.err.println("os.version:  " + System.getProperty("os.version"));
-    System.err.println("user.name:  " + System.getProperty("user.name"));
-    System.err.println("user.home:  " + System.getProperty("user.home"));
-    System.err.println("user.dir:  " + System.getProperty("user.dir"));
-    System.err.println("java.awt.headless:  "
-        + System.getProperty("java.awt.headless"));
-    Utilities.dateTimeStamp();
     try {
-      Utilities.setStartTime();
       EtomoDirector.INSTANCE.arguments.parse(args);
+      if (!EtomoDirector.INSTANCE.arguments.isHelp()) {
+        //Print out java properties
+        Enumeration enumeration = System.getProperties().propertyNames();
+        while (enumeration.hasMoreElements()) {
+          Object key = enumeration.nextElement();
+          System.err.println(key + ":  " + System.getProperty((String) key));
+        }
+      }
+      if (EtomoDirector.INSTANCE.arguments.isDebug()) {
+        //print more environment info
+        System.err.println();
+        Map env = System.getenv();
+        Set keys = env.keySet();
+        Iterator iterator = keys.iterator();
+        while (iterator.hasNext()) {
+          Object key = iterator.next();
+          System.err.println(key + ":  " + env.get(key));
+        }
+        if (EtomoDirector.INSTANCE.arguments.getDebugLevel() > 1) {
+          System.err.println();
+          ResourceBundle resources = ResourceBundle.getBundle(
+              "sun.awt.resources.awt", CoreResourceBundleControl
+                  .getRBControlInstance());
+          Enumeration enumeration = resources.getKeys();
+          while (enumeration.hasMoreElements()) {
+            Object key = enumeration.nextElement();
+            System.err.println(key + ":  " + resources.getString((String) key));
+          }
+        }
+      }
+      if (!EtomoDirector.INSTANCE.arguments.isHelp()) {
+        Utilities.dateTimeStamp();
+        Utilities.setStartTime();
+      }
       INSTANCE.initialize();
       //automation must be done last in main, otherwise initialization may not
       //complete normally.
@@ -843,6 +855,7 @@ public class EtomoDirector {
     //for(int i = 0; i < plaf.length; i++) {
     //  System.err.println(plaf[i].getClassName());
     //}
+    System.err.println();
     String osName = System.getProperty("os.name");
     if (arguments.isDebug()) {
       System.err.println("os.name: " + osName);
@@ -879,6 +892,16 @@ public class EtomoDirector {
     catch (Exception excep) {
       System.err.println("Could not set " + lookAndFeelClassName
           + " look and feel");
+    }
+    if (arguments.getDebugLevel() > 1) {
+      //print look and feel info
+      System.err.println("\nLook and feel defaults:");
+      UIDefaults uiDefaults = UIManager.getLookAndFeelDefaults();
+      Enumeration enumeration = uiDefaults.keys();
+      while (enumeration.hasMoreElements()) {
+        Object key = enumeration.nextElement();
+        System.err.println(key + ":  " + uiDefaults.getString(key));
+      }
     }
   }
 
@@ -1146,6 +1169,10 @@ public class EtomoDirector {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.95  2010/07/02 20:17:19  sueh
+ * <p> bug# 1387 Moving system information to the top, so it will be there during
+ * <p> any failure.
+ * <p>
  * <p> Revision 1.94  2010/07/02 20:00:33  sueh
  * <p> bug# 1387 Putting information print earlier.
  * <p>
