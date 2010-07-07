@@ -161,7 +161,8 @@ void taperoutpad(void *array, int *nxbox, int *nybox, float *brray, int *nxdim,
  * larger array with padding, and tapers the image down to the mean value at
  * its edge, tapering pixels inside the extracted image area.  The image data
  * are in [array], their X dimension is [nxdimin], and their SLICE_MODE is 
- * given in [type].  The starting and ending coordinates to extract in X and Y
+ * given in [type].  The mode can be byte, signed or unsigned short, float, or
+ * RGB.  The starting and ending coordinates to extract in X and Y
  * are [ix0] to [ix1] and [iy0] to [iy1].  The output image array is [brray] 
  * and its X dimension is specified by [nxdim].  The padded image size is 
  * specified by [nx] and [ny], and [nxtap] and [nytap] indicate the number of
@@ -215,6 +216,14 @@ void sliceTaperInPad(void *array, int type, int nxdimin, int ix0, int ix1,
       floatin = (float *)array + ix1 + iy * nxdimin;
       for (ix = ix1; ix >= ix0; ix--)
         *out-- = *floatin--;
+      break;
+
+    case SLICE_MODE_RGB:
+      bytein = (b3dUByte *)array + 3 * (ix1 + iy * nxdimin);
+      for (ix = ix1; ix >= ix0; ix--) {
+        *out-- = bytein[0] + bytein[1] + bytein[2];
+        bytein -= 3;
+      }
       break;
 
     }
@@ -548,6 +557,9 @@ void splitfill(float *array, int *nxbox, int *nybox, float *brray,
 
 /*
   $Log$
+  Revision 1.7  2008/12/20 05:31:16  mast
+  Added function to smooth outside
+
   Revision 1.6  2008/12/01 15:26:53  mast
   Added splitfill
 

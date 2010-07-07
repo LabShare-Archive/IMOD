@@ -4,6 +4,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 1.3  2010/06/26 18:01:32  mast
+ * Fixed test for keepByte value
+ *
  * Revision 1.2  2007/10/01 15:26:09  mast
  * *** empty log message ***
  *
@@ -28,15 +31,16 @@
 /*!
  * Reduces an array in size by summing pixels (binning) by the factor [nbin].
  * [array] has the input, with dimensions [nxin] by [nyin], and slice mode in
- * [type].  The slice mode can be byte, short, unsigned short, or float.
+ * [type].  The slice mode can be byte, short, unsigned short, float, or RGB.
  * [brray] receives the output, with dimensions returned in [nxr] and [nyr].
  * The output will have the same mode as the input and will be the average of
- * binned values, except in one case.  If the input is bytes and [keepByte] is
- * 0, then the output will be signed short integers and will be the sum, not 
- * the average, of the binned values.  [brray] can be the same as [array],
- * and [nxr], [nyr] can be the same variables as [nxin], [nyin].  The output 
- * size is obtained by integer division of the input size by
- * the binning.  If the remainder of this division is nonzero, the data are 
+ * binned values, except in two cases.  If the input is bytes or RGB and 
+ * [keepByte] is 0, then the output will be signed short integers and will be 
+ * the sum, not the average, of the binned values, and for RGB data the output
+ * will be an equal sum of red, green, and blue values.  [brray] can be the 
+ * same as [array], and [nxr], [nyr] can be the same variables as [nxin],
+ * [nyin].  The output size is obtained by integer division of the input size 
+ * by the binning.  If the remainder of this division is nonzero, the data are 
  * centered in the output array as nearly as possible.  Specifically, the
  * coordinates of the lower left corner of the output array are offset by 
  * ^  ((nx % nbin) / 2, (ny % nbin) / 2) ^
@@ -51,7 +55,7 @@ int reduceByBinning(void *array, int type, int nxin, int nyin, int nbin,
   int nyout = nyin / nbin;
   int ixofs = (nxin % nbin) / 2;
   int iyofs = (nyin % nbin) / 2;
-  int sum, ix, iy;
+  int sum, ix, iy, red, green, blue;
   b3dFloat fsum;
   unsigned char *bdata = (unsigned char *)brray;
   b3dInt16 *sdata = (b3dInt16 *)brray;
@@ -62,16 +66,16 @@ int reduceByBinning(void *array, int type, int nxin, int nyin, int nbin,
   b3dFloat *fdata = (b3dFloat *)brray;
   b3dFloat *fline1, *fline2, *fline3, *fline4;
 
-  if (type != SLICE_MODE_BYTE && keepByte)
+  if (type != SLICE_MODE_BYTE && type != SLICE_MODE_RGB && keepByte)
     return 1;
   if (type != SLICE_MODE_BYTE && type != SLICE_MODE_SHORT && 
-      type != SLICE_MODE_USHORT && type != SLICE_MODE_FLOAT)
+      type != SLICE_MODE_USHORT && type != SLICE_MODE_FLOAT && 
+      type != SLICE_MODE_RGB)
     return 1;
 
-  switch (nbin) {
+  if (nbin == 2 && type != SLICE_MODE_RGB) {
     
     /* Binning by 2 */
-  case 2:
     switch (type) {
     case SLICE_MODE_BYTE:
       for (iy = 0; iy < nyout; iy++) {
@@ -134,9 +138,9 @@ int reduceByBinning(void *array, int type, int nxin, int nyin, int nbin,
       }
       break;
     }
-    break;
   
-  case 3:
+  } else if (nbin == 3 && type != SLICE_MODE_RGB) {
+
     /* Binning by 3 */
     switch (type) {
     case SLICE_MODE_BYTE:
@@ -218,9 +222,8 @@ int reduceByBinning(void *array, int type, int nxin, int nyin, int nbin,
       }
       break;
     }
-    break;
 
-  case 4:
+  } else if (nbin == 4 && type != SLICE_MODE_RGB) {
 
     /* Binning by 4 */
     switch (type) {
@@ -319,11 +322,10 @@ int reduceByBinning(void *array, int type, int nxin, int nyin, int nbin,
       }
       break;
     }
-    break;
 
-  default:
+  } else {
 
-    /* Bin by arbitrary number */
+    /* Bin by arbitrary number or bin RGB */
     switch (type) {
     case SLICE_MODE_BYTE:
       for (iy = 0; iy < nyout; iy++) {
@@ -395,6 +397,33 @@ int reduceByBinning(void *array, int type, int nxin, int nyin, int nbin,
         }
       }
       break;
+
+    case SLICE_MODE_RGB:
+      for (iy = 0; iy < nyout; iy++) {
+        cline1 = ((unsigned char *)array) + 3 * ((nbin * iy + iyofs) * nxin + 
+                                                 ixofs);
+        for (ix = 0; ix < nxout; ix++) {
+          red = green = blue = 0;
+          cline2 = cline1;
+          for (j = 0; j < nbin; j++) {
+            for (i = 0; i < nbin; i++) {
+              red += cline2[3*i];
+              green += cline2[3*i + 1];
+              blue += cline2[3*i + 2];
+            }
+            cline2 += nxin * 3;
+          }
+          if (keepByte) {
+            *bdata++ = (unsigned char)((red + nbinsq / 2) / nbinsq);
+            *bdata++ = (unsigned char)((green + nbinsq / 2) / nbinsq);
+            *bdata++ = (unsigned char)((blue + nbinsq / 2) / nbinsq);
+          } else 
+            *sdata++ = red + green + blue;
+          cline1 += nbin * 3;
+        }
+      }
+      break;
+
     }
   }
   *nxr = nxout;
