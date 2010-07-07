@@ -259,7 +259,7 @@ taken into account when <A HREF = "man/solvematch.html">Solvematch</A>
 uses the fiducial coordinates to obtain the initial
 transformation between dual-axis tomograms.
 
-<LI><B>Tomogram Generation.</B> There is one parameter that can be adjusted to
+<LI><B>Final Aligned Stack.</B> There is one parameter that can be adjusted to
 affect the results at this stage, the angle of the tilt axis.  A possible
 strategy is to examine the aligned stack and see what rotation angle is needed
 to keep features as close as possible to the same horizontal line through the
@@ -274,21 +274,22 @@ press <B>Done</B> (remember, there is no need to generate the coarse aligned
 stack).
 <LI>Go to <B>Tomogram Positioning</B> and determine the positioning
 parameters.
-<LI>Go to <B>Tomogram Generation</B> and generate and view an aligned stack. 
+<LI>Go to <B>Final Aligned Stack</B> and generate and view an aligned stack. 
 If features are not staying in one horizontal line,
 adjust the <B>Tilt axis rotation</B> and make a new aligned stack to try to
 improve this. 
-<LI> Specify a subset of slices and
+<LI>Go to <B>Tomogram Generation</B> and specify a subset of slices and
 possibly a reduced width.  Specify a trial tomogram name and compute the trial
 tomogram.
 <LI>Go back to <B>Coarse Alignment</B> and try different parameters (e.g.,
 cumulative correlation or a subset area).
-<LI>Go to <B>Tomogram Generation</B> and make a new aligned stack and 
-trial tomogram.
+<LI>Go to <B>Final Aligned Stack</B> and make a new aligned stack and then
+go to <B>Tomogram Generation</B> and make a new trial tomogram.
 <LI>Repeat the last two steps until optimal parameters are determined then
 compute the correlation again, if necessary.
-<LI>Go to <B>Tomogram Generation</B>, generate
-the aligned stack.  Apply 2D filtering if needed.  Reset the slice limits and 
+<LI>Go to <B>Final Aligned Stack</B>, generate
+the aligned stack.  Apply 2D filtering if needed.  Go to <B>Tomogram
+Generation</B>, reset the slice limits and 
 width, and make the final tomogram.
 </OL>
 </UL>
