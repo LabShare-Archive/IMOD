@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+7/8/10: Prevented numerical errors and crashes in Ctfplotter when run with
+very low expected defocus values (in microns instead of nm) (In 4.1).
+
 7/5/10: Fixed TIFF warning handler to print message instead of trying to pass
 it on to TIFF handler, which crashed with some files (In 4.1).
 
