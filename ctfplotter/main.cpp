@@ -247,9 +247,9 @@ int main(int argc, char *argv[])
   double firstZero, secondZero;
   app.defocusFinder.getTwoZeros(app.defocusFinder.getExpDefocus(), firstZero,
                                 secondZero);
-  int firstZeroIndex=B3DNINT(firstZero * (nDim - 1));
+  int secZeroIndex=B3DMIN(nDim - 1, B3DNINT(secondZero * (nDim - 1)));
+  int firstZeroIndex=B3DMIN(secZeroIndex - 3, B3DNINT(firstZero * (nDim - 1)));
   app.setX1Range(firstZeroIndex-12, firstZeroIndex-1);
-  int secZeroIndex=B3DNINT(secondZero * (nDim - 1));
   app.setX2Range(firstZeroIndex+1, secZeroIndex);
   app.simplexEngine=new SimplexFitting(nDim);
   app.linearEngine=new LinearFitting(nDim);
@@ -290,6 +290,9 @@ int ctfShowHelpPage(const char *page)
 /*
 
 $Log$
+Revision 1.18  2010/04/02 00:17:12  mast
+Cleanup for warnings
+
 Revision 1.17  2010/03/14 19:32:57  mast
 Ask about writing defocus file before exiting
 
