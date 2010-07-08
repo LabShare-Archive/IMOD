@@ -135,15 +135,6 @@ public class EtomoDirector {
               System.err.println(libDirList[i]);
             }
           }
-          System.err.println();
-          ResourceBundle resources = ResourceBundle.getBundle(
-              "sun.awt.resources.awt", CoreResourceBundleControl
-                  .getRBControlInstance());
-          Enumeration enumeration = resources.getKeys();
-          while (enumeration.hasMoreElements()) {
-            Object key = enumeration.nextElement();
-            System.err.println(key + ":  " + resources.getString((String) key));
-          }
         }
       }
       if (!EtomoDirector.INSTANCE.arguments.isHelp()) {
@@ -1179,6 +1170,9 @@ public class EtomoDirector {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.97  2010/07/07 21:49:36  sueh
+ * <p> bug# 1387 printing information about the java lib directory.
+ * <p>
  * <p> Revision 1.96  2010/07/07 21:21:56  sueh
  * <p> bug# 1387 printing more information.
  * <p>
