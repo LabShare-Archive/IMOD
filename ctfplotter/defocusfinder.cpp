@@ -14,6 +14,7 @@
 #include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include "b3dutil.h"
 #include "defocusfinder.h"
 #include "myapp.h"
 
@@ -138,7 +139,7 @@ void DefocusFinder::setExpDefocus(double expDef)
   double theta;
   double delz = expDef /mCsOne;
   mExpDefocus=expDef;
-  theta = sqrt(delz - sqrt(delz * delz + mAmpAngle - 2.));
+  theta = sqrt(delz - sqrt(B3DMAX(0, delz * delz + mAmpAngle - 2.)));
   mExpZero = theta * mPixelSize*2.0/(mWavelength*mCsTwo);
   //  mExpZero=sqrt(mCsOne/mExpDefocus)*mPixelSize*2.0/(mWavelength*mCsTwo);
 }
@@ -151,9 +152,9 @@ void DefocusFinder::getTwoZeros(double focus, double &firstZero,
 {
   double theta;
   double delz = focus / mCsOne;
-  theta = sqrt(delz - sqrt(delz * delz + mAmpAngle - 2.));
+  theta = sqrt(delz - sqrt(B3DMAX(0., delz * delz + mAmpAngle - 2.)));
   firstZero = theta * mPixelSize*2.0/(mWavelength*mCsTwo);
-  theta = sqrt(delz - sqrt(delz * delz + mAmpAngle - 4.));
+  theta = sqrt(delz - sqrt(B3DMAX(0., delz * delz + mAmpAngle - 4.)));
   secondZero = theta * mPixelSize*2.0/(mWavelength*mCsTwo);
 }
 
@@ -207,6 +208,12 @@ double DefocusFinder::CTFvalue(double freq, double def)
 /*
 
 $Log$
+Revision 1.10  2010/07/08 23:13:22  mast
+Prevented sqrt of negative number with very low defocus
+
+Revision 1.9  2010/04/02 00:17:12  mast
+Cleanup for warnings
+
 Revision 1.8  2009/08/10 22:12:47  mast
 Implemented exact equations and added function for second zero
 
