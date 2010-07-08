@@ -10,15 +10,12 @@ import java.util.Date;
 import java.util.Enumeration;
 import java.util.Iterator;
 import java.util.Map;
-import java.util.ResourceBundle;
 import java.util.Set;
 
 import javax.swing.ToolTipManager;
 import javax.swing.UIDefaults;
 import javax.swing.UIManager;
 import javax.swing.plaf.FontUIResource;
-
-import sun.util.CoreResourceBundleControl;
 
 import etomo.process.IntermittentBackgroundProcess;
 import etomo.process.ProcessRestarter;
@@ -1170,6 +1167,9 @@ public class EtomoDirector {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.98  2010/07/08 01:00:27  sueh
+ * <p> bug# 1387 Removed resource print because it didn't compile.
+ * <p>
  * <p> Revision 1.97  2010/07/07 21:49:36  sueh
  * <p> bug# 1387 printing information about the java lib directory.
  * <p>
