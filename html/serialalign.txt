@@ -354,7 +354,7 @@ overlaps, save the shifts (this saves a new copy of sections.ecd).  Then edit
 sloppyblend.com and change the 0 to a 1 on the line "ReadInXcorrs".  Rerun
 the program with subm.
 
-     Once you have a blended stack, you can use the same procdures on it that 
+     Once you have a blended stack, you can use the same procedures on it that 
 were described above with sections.st to align the stack.  Once you have a set
 of g transforms, edit slopyblend.com again to apply these transforms to the
 original stack in the blending operations.  To do this, 1) change the name on
