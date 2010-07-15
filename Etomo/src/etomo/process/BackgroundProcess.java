@@ -28,6 +28,9 @@ import etomo.ui.UIHarness;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.47  2010/07/02 03:14:48  sueh
+ * <p> bug# 1388 Added popupChunkWarnings.
+ * <p>
  * <p> Revision 3.46  2010/06/18 16:22:01  sueh
  * <p> bug# 1385 In processDone(int) collecting the last warning from
  * <p> monitorMessages (only interested in detached processes) to pop up.
@@ -370,6 +373,23 @@ class BackgroundProcess extends Thread implements SystemProcessInterface {
     commandDetails = null;
     forceNextProcess = false;
   }
+  
+  BackgroundProcess(BaseManager manager, CommandDetails commandDetails,
+      BaseProcessManager processManager, AxisID axisID,
+      ProcessName processName, ConstProcessSeries processSeries) {
+    this.manager = manager;
+    this.axisID = axisID;
+    this.command = commandDetails;
+    this.commandArray = command.getCommandArray();
+    this.processManager = processManager;
+    commandProcessID = new StringBuffer("");
+    processData = ProcessData.getManagedInstance(axisID, manager, processName);
+    this.processSeries = processSeries;
+    commandArrayList = null;
+    processDetails = commandDetails;
+    this.commandDetails = commandDetails;
+    forceNextProcess = false;
+  }
 
   BackgroundProcess(BaseManager manager, CommandDetails commandDetails,
       BaseProcessManager processManager, AxisID axisID,
@@ -573,6 +593,11 @@ class BackgroundProcess extends Thread implements SystemProcessInterface {
 
   final CommandDetails getCommandDetails() {
     return commandDetails;
+  }
+  
+  
+  public String toString() {
+    return getCommandLine();
   }
 
   /**
