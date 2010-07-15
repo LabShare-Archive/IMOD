@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+7/14/10: In Etomo fixed a problem which prevented the references from being
+loaded into 3dmod.
+
 7/8/10: Prevented numerical errors and crashes in Ctfplotter when run with
 very low expected defocus values (in microns instead of nm) (In 4.1).
 
