@@ -14,13 +14,21 @@ c
 c       $Id$
 c       
 c       $Log$
+c       Revision 3.2  2008/11/15 01:21:35  mast
+c       Standardized error messages and increased array sizes
+c
 c       
-      parameter (maxextra = 10000000, maxpiece=500000)
-      real*4 array(maxextra/4)
+      implicit none
+      real*4, allocatable :: array(:)
       integer*4 nxyz(3),mxyz(3)
-      integer*4 ixpclist(maxpiece),iypclist(maxpiece)
-      integer*4 izpclist(maxpiece)
+      integer*4, allocatable :: ixpclist(:), iypclist(:), izpclist(:)
       character*320 imfile,plfile
+      integer*4 modein, nbsym, nbyte,iflags,npclist,minzpc,maxzpc,i,nsect
+      integer*4 nxtotpix, minxpiece,nxpieces,nxoverlap,minypiece,nypieces
+      integer*4 nyoverlap,nytotpix,maxextra,maxpiece,ierr
+      real*4 dmin,dmax,dmean
+c
+      maxpiece=1000000
       if(iargc().lt.1.or.iargc().gt.2)then
         print *,'Usage: montagesize image_file piece_list_file'
         print *,'   (piece_list_file is optional if image_file'//
@@ -32,10 +40,15 @@ c
       call ialprt(.false.)
       call imopen(1,imfile,'ro')
       call irdhdr(1,nxyz,mxyz,modein,dmin,dmax,dmean)
+      maxpiece = max(maxpiece, 2 * nxyz(3))
+      allocate(ixpclist(maxpiece),iypclist(maxpiece), izpclist(maxpiece),
+     &    stat = ierr)
+      call memoryError(ierr, 'ARRAYS FOR PIECE COORDINATES')
       if (iargc().eq.1) then
         call irtnbsym(1,nbsym)
-        if(nbsym.gt.maxextra)
-     &      call exitError('ARRAYS NOT LARGE ENOUGH FOR EXTRA HEADER DATA')
+        maxextra = nbsym + 1000
+        allocate(array(maxextra/4), stat = ierr)
+        call memoryError(ierr, 'ARRAY FOR EXTRA HEADER DATA')
         call irtsym(1,nbsym,array)
         call irtsymtyp(1,nbyte,iflags)
         call get_extra_header_pieces (array,nbsym,nbyte,iflags,nxyz(3)
@@ -71,7 +84,7 @@ c
 c       
       nxtotpix=nxpieces*(nxyz(1)-nxoverlap)+nxoverlap
       nytotpix=nypieces*(nxyz(2)-nyoverlap)+nyoverlap
-      write(*,'(a,3i6)')' Total NX, NY, NZ:',nxtotpix,nytotpix,nsect
+      write(*,'(a,3i10)')' Total NX, NY, NZ:',nxtotpix,nytotpix,nsect
       call exit(0)
       end
 
