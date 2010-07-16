@@ -2971,7 +2971,7 @@ c
 c
       exist=readSmallMod(filnam)
       if (.not.exist) call exitError('READING EDGE EXCLUSION MODEL FILE')
-      call scale_model(0)
+      call scaleModelToImage(1,0)
       numEFonly = 0
       numSkip = 0
       numnear = 0
@@ -3147,6 +3147,9 @@ c
 
 c       
 c       $Log$
+c       Revision 3.33  2010/06/30 04:39:02  mast
+c       Fix for shortcircuit assumption
+c
 c       Revision 3.32  2010/06/29 03:03:17  mast
 c       Avoided an indexing error when reading pl with blank l line
 c
