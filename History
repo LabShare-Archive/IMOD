@@ -1,5 +1,6 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+7/14/10: IMOD_4-2-4
 7/14/10: Made Montagesize work for > 100000 pixels, made Blendmont able to 
 use an exclusion model built on file with different binning, fixed a bug
 that crashed Midas when fixing edges with missing pieces, and fixed header 

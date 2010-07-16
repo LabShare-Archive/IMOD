@@ -100,7 +100,8 @@ DDEESSCCRRIIPPTTIIOONN
   that appears between the two adjacent pieces.  This position is actually on
   one side of the overlap zone between the pieces, but Blendmont will be able
   to assign your points to edges based upon where it thinks each such line
-  appears in 3dmod.
+  appears in 3dmod.  Blendmont will correctly scale a model that was built on
+  a montage at a different binning than the one being blended.
 
   There are several different scenarios that you might follow when excluding
   edges, and they might require different settings of the -nonzero option.
