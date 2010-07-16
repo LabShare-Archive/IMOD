@@ -13,7 +13,7 @@ c
       include 'smallmodel.inc'
 C       
       integer*4 NXYZ(3),MXYZ(3),NXYZST(3),NXYZ2(3),MXYZ2(3),NX,NY,NZ
-      real*4 TITLE(20), CELL2(6),cell(6)
+      real*4 TITLE(20), CELL2(6),cell(6),delt(3), xorig, yorig, zorig
 C       
       CHARACTER*320, allocatable :: FILIN(:),FILOUT(:), pifilin(:),pifilout(:)
 C       
@@ -518,6 +518,8 @@ c
      &      nxpieces, mxoverlap, minypiece, nypieces, myoverlap)
         call irtsiz(1,nxyz,mxyz,nxyzst)
         call irtcel(1,cell)
+        call irtdel(1, delt)
+        call irtorg(1, xorig, yorig, zorig)
 c         
 c         get extra header information if any
 c         
@@ -761,9 +763,15 @@ c             if mxyz=nxyz, keep this relationship
 c               keep delta the same by scaling cell size from change in mxyz
             do i=1,3
               CELL2(i)=mxyz2(i)*(cell(i)/mxyz(i))
+              if (i .lt. 3) cell2(i) = cell2(i) * ibinning
               CELL2(i+3)=90.
             enddo
             CALL IALCEL(2,CELL2)
+c             
+c             adjust origin if shifting piece coords to 0
+            if (ifshiftXY)
+     &          call ialorg(2, xorig - ibinning * minSubXpiece * delt(1),
+     &          yorig - ibinning * minSubYpiece * delt(2), zorig)
             if(nbsymout.gt.0)call ialsym(2,nbsymout,extraout)
             DMEAN=DMEAN/ipcout
 C             
@@ -886,6 +894,11 @@ c       same file on two channels
       end
 
 c       $Log$
+c       Revision 3.1  2010/07/02 17:04:29  mast
+c       PIP conversion, memory allocation, added default section lists, model
+c       instead of point file, subsets by frame number, binning, better checks
+c       and ability to combine data laterally, better floating
+c
 c       Revision 3.4  2006/07/08 13:53:16  mast
 c       Changed stops to exitError
 c       
