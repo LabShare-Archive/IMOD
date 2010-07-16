@@ -1242,7 +1242,7 @@ static void checklist(int *xpclist, int npclist, int nxframe, int *minxpiece,
 int includedEdge(int mapind, int xory)
 {
   int ipc = VW->montmap[mapind];
-  int ned = 0;
+  int ned = -1;
   if (ipc >= 0)
     ned = VW->edgeupper[2 * ipc + xory];
   if (ned >= 0 && !(VW->excludeSkipped && VW->skippedEdge[2 * ned + xory]))
@@ -1944,6 +1944,9 @@ void crossCorrelate(MidasView *vw)
 /*
 
 $Log$
+Revision 3.24  2010/07/06 23:41:24  mast
+Comment out debug output
+
 Revision 3.23  2010/06/29 22:34:22  mast
 Switched to new faster solution method for piece shifts, increased size
 of local patches to make that more robust, handled skipped edges, binning
