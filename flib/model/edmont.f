@@ -769,7 +769,7 @@ c               keep delta the same by scaling cell size from change in mxyz
             CALL IALCEL(2,CELL2)
 c             
 c             adjust origin if shifting piece coords to 0
-            if (ifshiftXY)
+            if (ifshiftXY .ne. 0)
      &          call ialorg(2, xorig - ibinning * minSubXpiece * delt(1),
      &          yorig - ibinning * minSubYpiece * delt(2), zorig)
             if(nbsymout.gt.0)call ialsym(2,nbsymout,extraout)
@@ -894,6 +894,9 @@ c       same file on two channels
       end
 
 c       $Log$
+c       Revision 3.2  2010/07/16 03:42:34  mast
+c       Adjusted pixel size for binning, adjusted origin if shift X/Y to 0
+c
 c       Revision 3.1  2010/07/02 17:04:29  mast
 c       PIP conversion, memory allocation, added default section lists, model
 c       instead of point file, subsets by frame number, binning, better checks
