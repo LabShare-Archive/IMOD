@@ -41,6 +41,10 @@ import etomo.comscript.TransferfidParam;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.59  2010/05/27 23:15:15  sueh
+ * <p> bug# 1360 In constructor don't warn about missing RAPTOR unless RAPTOR_BIN has been
+ * <p> set.
+ * <p>
  * <p> Revision 3.58  2010/05/21 21:01:16  sueh
  * <p> bug# 1366 In updatePick making transfer fid invisible when raptor is in use.
  * <p>
@@ -587,18 +591,18 @@ public final class FiducialModelDialog extends ProcessDialog implements
   }
 
   public void setParameters(final ConstMetaData metaData) {
+    MethodEnumeratedType method = MethodEnumeratedType.getInstance(metaData
+        .getTrackMethod(axisID));
+    if (method == MethodEnumeratedType.SEED) {
+      rbMethodSeed.setSelected(true);
+    }
+    else if (method == MethodEnumeratedType.PATCH_TRACKING) {
+      rbMethodPatchTracking.setSelected(true);
+    }
+    else if (axisID != AxisID.SECOND && method == MethodEnumeratedType.RAPTOR) {
+      rbMethodRaptor.setSelected(true);
+    }
     if (axisID != AxisID.SECOND) {
-      MethodEnumeratedType method = MethodEnumeratedType.getInstance(metaData
-          .getTrackMethod(axisID));
-      if (method == MethodEnumeratedType.SEED) {
-        rbMethodSeed.setSelected(true);
-      }
-      else if (method == MethodEnumeratedType.PATCH_TRACKING) {
-        rbMethodPatchTracking.setSelected(true);
-      }
-      else if (method == MethodEnumeratedType.RAPTOR) {
-        rbMethodRaptor.setSelected(true);
-      }
       raptorPanel.setParameters(metaData);
     }
     tiltxcorrPanel.setParameters(metaData);
