@@ -96,6 +96,7 @@ public final class TiltalignParam extends ConstTiltalignParam implements
       tiltNondefaultGroup = ParamUtilities.setParamIfPresent(scriptCommand,
           TILT_NONDEFAULT_GROUP_KEY, nondefaultGroupSize,
           nondefaultGroupIntegerType);
+      localTiltOption.parse(scriptCommand);
       localTiltDefaultGrouping.parse(scriptCommand);
       localTiltNondefaultGroup = ParamUtilities.setParamIfPresent(
           scriptCommand, LOCAL_TILT_NONDEFAULT_GROUP_KEY, nondefaultGroupSize,
@@ -949,6 +950,9 @@ public final class TiltalignParam extends ConstTiltalignParam implements
 
 /**
  * <p> $Log$
+ * <p> Revision 3.23  2008/07/16 20:14:27  sueh
+ * <p> bug# 1126 In setRotationAngle changed parameter to String.
+ * <p>
  * <p> Revision 3.22  2007/03/07 21:02:20  sueh
  * <p> bug# 981 Added beamTiltOption and fixedOrInitialBeamTilt.
  * <p>
