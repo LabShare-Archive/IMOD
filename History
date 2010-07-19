@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+7/18/10: Some Etomo screen data in Tracking and File Alignment was not being
+loaded from files - fixed the problem.
+
 7/14/10: IMOD_4-2-4
 7/14/10: Made Montagesize work for > 100000 pixels, made Blendmont able to 
 use an exclusion model built on file with different binning, fixed a bug
