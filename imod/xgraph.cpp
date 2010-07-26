@@ -482,9 +482,9 @@ void GraphWindow::xgraphFillData(GraphStruct *xg)
     xg->allocSize = 0;
 
   xg->cx = vi->xmouse;
-  cx = (int)(xg->cx + 0.5);
+  cx = (int)xg->cx;
   xg->cy = vi->ymouse;
-  cy = (int)(xg->cy + 0.5);
+  cy = (int)xg->cy;
   xg->cz = vi->zmouse;
   cz = (int)(xg->cz + 0.5);
 
@@ -853,7 +853,7 @@ void GraphWindow::xgraphDrawPlot(GraphStruct *xg)
   for(i = spnt - xg->subStart; i < epnt - xg->subStart; i++){
     if (i < 0)
       continue;
-    if (i >= xg->dsize - 2)
+    if (i >= xg->dsize)
       break;
     if (xg->data[i] < min)
       min = xg->data[i];
@@ -1005,6 +1005,12 @@ static void makeBoundaryPoint(Ipoint pt1, Ipoint pt2, int ix1, int ix2,
 
 /*
     $Log$
+    Revision 4.19  2010/07/26 21:47:38  mast
+    Fixed rounding of mouse position and drawing of all Z planes
+
+    Revision 4.18  2010/04/01 02:41:48  mast
+    Called function to test for closing keys, or warning cleanup
+
     Revision 4.17  2009/03/30 18:26:20  mast
     Call function to raise on mouse press if needed
 
