@@ -154,7 +154,7 @@ tiltxcorr$(E): tiltxcorr.$(O)
 	$(FC) -o tiltxcorr tiltxcorr.$(O) $(LDFLG) $(SMALLLIBS)
 
 tiltxcorr.$(O): tiltxcorr.f
-	$(FC) $(FFLAGS) $(OPENMP) -c tiltxcorr.f
+	$(FC) $(FFLAGS) $(OPENMPF) -c tiltxcorr.f
 
 tomoblobs$(E): tomoblobs.$(O)
 	$(FC) -o tomoblobs tomoblobs.$(O) $(LDFLG) $(IMLIBS) $(FORTCLIBS)
@@ -170,6 +170,9 @@ clean:
 	-\rm -f *.o* *~ *.exe $(PROGS)
 
 #  $Log$
+#  Revision 3.20  2009/12/09 15:34:37  mast
+#  remove find_surfaces from sortbeadsurfs
+#
 #  Revision 3.19  2009/12/09 01:33:43  mast
 #  sortbeadsurfs
 #

@@ -144,7 +144,7 @@ rotatevol$(E): rotatevol.$(O) rotmatwarpsubs.$(O) rotmatwarp.$(O)
 	$(LDFLG) $(IMLIBS) $(LIBS)
 
 rotmatwarpsubs.$(O): rotmatwarpsubs.f rotmatwarp.$(O)
-	$(FC) $(FFLAGS) $(OPENMP) -c rotmatwarpsubs.f
+	$(FC) $(FFLAGS) $(OPENMPF) -c rotmatwarpsubs.f
 
 rotmont$(E): rotmont.$(O)
 	$(FC) -o rotmont rotmont.$(O) $(LDFLG) $(IMLIBS) $(LIBS)
@@ -175,7 +175,7 @@ vmstocsh$(E): vmstocsh.$(O)
 	$(FC) -o vmstocsh vmstocsh.$(O) $(LDFLG) $(IMLIBS) $(LIBS)
 
 warpvol.$(O): warpvol.f
-	$(FC) $(FFLAGS) $(OPENMP) -c warpvol.f
+	$(FC) $(FFLAGS) $(OPENMPF) -c warpvol.f
 
 warpvol$(E): warpvol.$(O) rotmatwarpsubs.$(O) rotmatwarp.$(O)
 	$(FC) -o warpvol rotmatwarpsubs.$(O) warpvol.$(O) rotmatwarp.$(O) \
@@ -215,6 +215,9 @@ enhance.$(O): $(INCDIR)/ftbuf.inc
 fftrans.$(O): $(INCDIR)/ftbuf.inc
 
 #  $Log$
+#  Revision 3.22  2009/10/02 20:22:06  mast
+#  Removed tiltxcorr
+#
 #  Revision 3.21  2009/09/07 17:22:13  mast
 #  Convert stitchvars to module
 #
