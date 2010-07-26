@@ -23,15 +23,22 @@ if ($compiler == default && $intel == true) then
 endif
 if ($compiler == gnu) set compiler = gfortran
 
-# If using intel fortran compiler, check for C compiler too
-# Let an intel entry force use of C++ compiler if possible
-#
 set openmpFlags = ""
 set ccompFlags = ""
 set ccomp = "gcc"
 set cxx = "g++"
 set libmt = ""
 setenv QMAKESPEC macx-g++
+gcc -v >&! gcc.tmp
+set gccvers = `sed -n '/gcc version/s/.*sion \([0-9\.]*\).*/\1/p' gcc.tmp |sed '/\./s// /g'`
+\rm -f gcc.tmp
+if ($#gccvers < 2) set gccvers = 3
+set unameout = `uname -r | sed '/\./s// /g'`
+@ darversion = $unameout[1]
+
+# If using intel fortran compiler, check for C compiler too
+# Let an intel entry force use of C++ compiler if possible
+#
 if ($compiler == ifort || $compiler == intel) then
     set iccout = `which icc`
     if (! $status && ("$iccout:h" != "/usr/bin" || $compiler == intel)) then
@@ -41,12 +48,45 @@ if ($compiler == ifort || $compiler == intel) then
         set ccompFlags = '-vec-report0'
         if ($openmp == true) then
             set openmpFlags = "-openmp"
+            set openmpfFlags = "-openmp"
             set libmt = "mt"
         endif
     else
         set openmp = false
     endif
     set compiler = ifort
+
+    # Get the fortran version, they changed libraries
+    #
+    ifort -v >&! ifort.tmp
+    set ifortnum = `sed -n -e '/\./s// /g' -e '/Version/s/.*Version \([0-9 ]*\).*/\1/p' ifort.tmp`
+    \rm -f ifort.tmp
+    @ ifortversion = 9
+    if ("$ifortnum" != "") @ ifortversion = $ifortnum[1]
+    set openmplib = "libguide"
+    if ($ifortversion > 10) set openmplib = "libiomp5"
+endif
+
+# If using gcc, assume that version 4.2 has openmp for C and fortran
+if ($ccomp == gcc) then
+    if ($gccvers[1] == 3) then
+        echo "IMOD can no longer be compiled with g77/gcc 3"
+        exit 1
+    endif
+    @ minorvers = $gccvers[2]
+    if ($minorvers >= 2) then
+        set openmp = true
+        set openmpFlags = "-fopenmp"
+        set openmpfFlags = "-fopenmp"
+
+        # For mixed compilation, the library must be libiomp, and need to
+        # specify this before version 11 where it became default
+        if ($compiler == ifort) then
+            set openmpfFlags = "-openmp --openmp-lib compat"
+            set openmplib = "libiomp5"
+            if ($ifortversion > 10) set openmpfFlags = "-openmp"
+        endif
+    endif
 endif
 
 # DNM 1/1/9/03: remove the defines for FILE_OFFSET_BITS=64 here and in the
@@ -72,28 +112,30 @@ if ("$filetext" != "") then
     set assistantcopy   = 'QtAssistant'
 endif
 
-echo "LDFLAGS = $m64flags"' -L$(LIBDIR) '"-dynamic $openmpFlags -read_only_relocs warning" >> $configure
+# -read_only_relocs warning is not supposed to be used with 64-bit OS 10.6
+#
+set ldread_only = "-read_only_relocs warning"
+set wlread_only = "-Wl,-dynamic -Wl,-read_only_relocs,warning"
+if ($m64bit == true && $darversion > 9) then
+    set ldread_only = ""
+    set wlread_only = ""
+endif
+
+echo "LDFLAGS = $m64flags"' -L$(LIBDIR) '"-dynamic $openmpFlags $ldread_only" >> $configure
 
 if ($compiler == ifort) then
     set fcomp = "ifort"
 
-    # Get the fortran version, they changed libraries
-    #
-    ifort -v >&! ifort.tmp
-    set ifortnum = `sed -n -e '/\./s// /g' -e '/Version/s/.*Version \([0-9 ]*\).*/\1/p' ifort.tmp`
-    \rm -f ifort.tmp
-    @ ifortversion = 9
-    if ("$ifortnum" != "") @ ifortversion = $ifortnum[1]
     
     set fcompFlags = "-132 -assume bscc -vec-report0"
 
     echo "      parameter (nbytes_recl_item=4)" >! $endian_dir/recl_bytes.inc
-    set fortvers = 3
-    set ldfflags = '-L$(LIBDIR) '"-i-dynamic $openmpFlags -Wl,-dynamic -Wl,-read_only_relocs,warning"
+    set ldfflags = '-L$(LIBDIR) '"-i-dynamic $openmpfFlags $wlread_only"
     set fcmpldFlags = "-i-dynamic"
     set exefflags = "-mdynamic-no-pic"
     set fortdir = `which ifort`
     set fortlibdir = $fortdir:h:h/lib
+    if (! -e $fortlibdir) set fortlibdir = $fortdir:h:h:h/lib
     echo "DLLSOURCEDIR1 = $fortlibdir" >> $configure
     set dllstocopy1 = "libifcore$libmt libifport$libmt libimf libsvml"
     if ($ifortversion <= 9) then
@@ -101,7 +143,7 @@ if ($compiler == ifort) then
     else
         set dllstocopy1 = "$dllstocopy1 libintlc"
     endif    
-    if ($openmp == true) set dllstocopy1 = "$dllstocopy1 libguide"
+    if ($openmp == true) set dllstocopy1 = "$dllstocopy1 $openmplib"
     echo "DLLSTOCOPY1 = $dllstocopy1" >> $configure
 else
 
@@ -109,39 +151,25 @@ else
     set exefflags = ""
     set fcmpldFlags = $ldfflags
 
-    gcc -v >&! gfortran.tmp
-    set fortvers = `sed -n '/gcc version/s/.*sion \([0-9\.]*\).*/\1/p' gfortran.tmp |sed '/\./s// /g'`
+    set dllsourcedir1 = "/usr/local/lib"
+    #
+    # gfortran needs unlimited fixed format, and date and time subroutines
+    # also needs -fbackslash starting at 4.3 
+    gfortran -v >&! gfortran.tmp
+    set gfortvers = `sed -n '/gcc version/s/.*sion \([0-9\.]*\).*/\1/p' gfortran.tmp |sed '/\./s// /g'`
     \rm -f gfortran.tmp
-    if ($#fortvers < 2) set fortvers = 3
-    echo "DLLSOURCEDIR1 = /usr/local/lib" >> $configure
-    if ($fortvers[1] == 3) then
-        echo "IMOD can no longer be compiled with g77"
-        exit 1
-        set fcomp = "g77"
-        set lapack_flibs = "-lg2c"
+    @ minorvers = $gfortvers[2]
+    if ($gfortvers[1] != 4 || $minorvers > 2) set fcompFlags = "-fbackslash $fcompFlags"
+    set fcomp = "gfortran"
 
-        # tell the C routines being called by Fortran that they need two __
-        #
-        echo '#define G77__HACK' >> $hconfigure
-        echo "DLLSTOCOPY1 = libg2c" >> $configure
-    else
-        #
-        # gfortran needs unlimited fixed format, and date and time subroutines
-        # also needs -fbackslash starting at 4.3 
-        gfortran -v >&! gfortran.tmp
-        set gfortvers = `sed -n '/gcc version/s/.*sion \([0-9\.]*\).*/\1/p' gfortran.tmp |sed '/\./s// /g'`
-        \rm -f gfortran.tmp
-        @ minorvers = $gfortvers[2]
-        if ($gfortvers[1] != 4 || $minorvers > 2) set fcompFlags = "-fbackslash $fcompFlags"
-        set fcomp = "gfortran"
-
-        # Sometimes this is needed, sometimes not, just put it in
-        set lapack_flibs = "-lgfortran"
-        echo "DATESRC   = compat/datetime.f" >> $configure
-        echo "DIRDATEOBJ  = compat/datetime.o" >> $configure
-        echo "DATEOBJ  = datetime.o" >> $configure
-        echo "DLLSTOCOPY1 = libgfortran" >> $configure
-    endif
+    # Sometimes this is needed, sometimes not, just put it in
+    set lapack_flibs = "-lgfortran"
+    echo "DATESRC   = compat/datetime.f" >> $configure
+    echo "DIRDATEOBJ  = compat/datetime.o" >> $configure
+    echo "DATEOBJ  = datetime.o" >> $configure
+    echo "DLLSTOCOPY1 = libgfortran" >> $configure
+    if (-e /usr/lib/libgfortran.dylib) set dllsourcedir1 = "/usr/lib"
+    echo "DLLSOURCEDIR1 = $dllsourcedir1" >> $configure
 endif
 echo "DLLDESTDIR = lib" >> $configure
 
@@ -165,7 +193,7 @@ if ($shared_libs != false) then
 	echo "AR      = c++"                 >> $configure
 	echo "ARCPP   = c++"                >> $configure
     endif
-    echo "ARFLAGS = $flags $openmpFlags $m64flags -i-dynamic -dynamiclib -Wl,-single_module -Wl,-flat_namespace -Wl,-undefined,suppress -Wl,-read_only_relocs,warning -o "    >> $configure
+    echo "ARFLAGS = $flags $openmpFlags $m64flags -i-dynamic -dynamiclib -Wl,-single_module -Wl,-flat_namespace -Wl,-undefined,suppress $wlread_only -o "    >> $configure
     echo "RANLIB    = true"                     >> $configure
     echo "LIBEXT  = dylib"                 >> $configure
     if ($majorrel > 7) then
@@ -186,10 +214,8 @@ endif
 echo 'MAKELIB   = $(AR) $(ARFLAGS)' >> $configure
 echo 'MAKELIBCPP = $(ARCPP) $(ARFLAGS)' >> $configure
 
-# No longer needed 5/12/05, and needs to be gone for gcc 4
-# 7/12/05: But needed on 10.4 with gcc 3.3
-set fort_cpplibs = -lstdc++
-if ($fortvers[1] != 3) set fort_cpplibs = "-lstdc++.6"
+# Simplified 7/26/10 since there is no gcc 3 compile any more
+set fort_cpplibs = "-lstdc++.6"
 if ($compiler == ifort) set fort_cpplibs = "-lstdc++ -lgcc_s.1"
 
 echo "CLIBS   = -lc -lm" >> $configure
@@ -223,8 +249,6 @@ echo '#define SENDEVENT_RETRY_HACK 300' >> $hconfigure
 echo '#define MAC103_BIGFILE' >> $hconfigure
 
 # Set the GLU_CALLBACK for OS 10.4 with gcc 4
-set unameout = `uname -r | sed '/\./s// /g'`
-@ darversion = $unameout[1]
 if ($darversion < 9 && $ccomp == gcc) echo '#define GLU_CALLBACK GLvoid (*)(...)' >> $hconfigure
 
 set optimization = "-O3 -w"
@@ -262,8 +286,15 @@ endif
 # copies but we still have to pack libraries for users without CUDA
 #
 if ($?CUDA_DIR) then
-    set nvcc_flags = "$nvcc_flags -DUNIX -Xcompiler -fno-strict-aliasing -O3 --host-compilation C"
+    set cudavers = `nvcc --version | sed -n -e '/[,.]/s// /g' -e '/^.*release/s///p'`
+    @ cudamajor = $cudavers[1]
+    if ($cudamajor > 2) then
+        set nvcc_flags = "$nvcc_flags -m64 -DUNIX -Xcompiler -fno-strict-aliasing -O3"
+    else
+        set nvcc_flags = "$nvcc_flags -DUNIX -Xcompiler -fno-strict-aliasing -O3 --host-compilation C"
+    endif
     set cudalibs = "-L$CUDA_DIR/lib -Wl,-rpath,/usr/local/cuda/lib -lcudart -lcufft -ltlshook"
+    if ($m64bit == true) set cudalibs = "$cudalibs -lstdc++"
     echo "DLLSTOCOPY2 = libcudart libcufft libtlshook" >> $configure
     echo "DLLSOURCEDIR2 = $CUDA_DIR/lib" >> $configure
 endif
