@@ -32,7 +32,8 @@ setenv QMAKESPEC macx-g++
 gcc -v >&! gcc.tmp
 set gccvers = `sed -n '/gcc version/s/.*sion \([0-9\.]*\).*/\1/p' gcc.tmp |sed '/\./s// /g'`
 \rm -f gcc.tmp
-if ($#gccvers < 2) set gccvers = 3
+if ($#gccvers < 2) set gccvers = (3 0)
+@ minorvers = $gccvers[2]
 set unameout = `uname -r | sed '/\./s// /g'`
 @ darversion = $unameout[1]
 
@@ -52,7 +53,7 @@ if ($compiler == ifort || $compiler == intel) then
             set libmt = "mt"
         endif
     else
-        set openmp = false
+        if ($minorvers < 2) set openmp = false
     endif
     set compiler = ifort
 
@@ -73,9 +74,7 @@ if ($ccomp == gcc) then
         echo "IMOD can no longer be compiled with g77/gcc 3"
         exit 1
     endif
-    @ minorvers = $gccvers[2]
-    if ($minorvers >= 2) then
-        set openmp = true
+    if ($minorvers >= 2 && $openmp == true) then
         set openmpFlags = "-fopenmp"
         set openmpfFlags = "-fopenmp"
 
