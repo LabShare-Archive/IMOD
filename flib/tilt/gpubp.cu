@@ -848,7 +848,7 @@ __global__ void bpXtiltTest(float *slice, int pitch, int jbase, int iwide,
       xp =  zpart + xx * cbeta - 0.5f;
       if (yproj >= 1. - ytol && yproj <= nyprj + ytol && xp >= 0.5 && 
           xp < nxprj - 0.5) {
-        yproj = fmax(1., fmin((float)nyprj, yproj));
+        yproj = fmax(1.f, fmin((float)nyprj, yproj));
         jproj = min((int)yproj, nyprj - 1);
         fj = yproj - jproj;
         kproj = (jproj - lsliceBase) * nviews + iv + 0.5f;
@@ -1782,7 +1782,7 @@ static void pflush(const char *format, ...)
   va_list args;
   va_start(args, format);
   vsprintf(errorMess, format, args);
-  printf(errorMess);
+  printf("%s", errorMess);
   fflush(stdout);  
   fflush(stdout);
   va_end(args);
@@ -1796,7 +1796,7 @@ static void pflerr(const char *format, ...)
   va_list args;
   va_start(args, format);
   vsprintf(errorMess, format, args);
-  printf(errorMess);
+  printf("%s", errorMess);
   err = cudaGetLastError();
   pflush(": %s\n", cudaGetErrorString(err));
   fflush(stdout);  
@@ -1829,6 +1829,9 @@ static void allocerr(char *mess, int *nplanes, int *firstNpl,
 /*
 
 $Log$
+Revision 3.4  2010/02/26 16:56:37  mast
+Pass debug flag to gpuAvailable and return memory as a float
+
 Revision 3.3  2010/02/22 06:04:49  mast
 Added reprojection with local alignments and one-slice reprojection
 
