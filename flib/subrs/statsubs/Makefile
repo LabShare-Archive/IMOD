@@ -11,7 +11,7 @@ all: $(OBJS)
 
 
 metro.$(O): metro.f
-	$(FC) -c $(FFLAGS) $(OPENMP) metro.f
+	$(FC) -c $(FFLAGS) $(OPENMPF) metro.f
 
 
 clean:
