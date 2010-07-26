@@ -123,7 +123,14 @@ c
             read(5,'(a)')FILIN
           endif
           if(.not.readSmallMod(filin))then
-            write(*,'(/,a,a)') 'ERROR: TOMOPITCH - READING MODEL FILE ',filin
+            inquire(file=filin, exist = usetimes)
+            if (.not. usetimes) then
+              write(*,'(/,a,a,a)') 'ERROR: TOMOPITCH - MODEL FILE ',
+     &            trim(filin),' DOES NOT EXIST - DID YOU SAVE IT FROM 3dmod?'
+            else
+              write(*,'(/,a,a)') 'ERROR: TOMOPITCH - READING MODEL FILE ',
+     &            trim(filin)
+            endif
             call exit(1)
           endif
           ierr=getimodhead(xyscal,zscal,xofs,yofs,zofs,ifflip)
@@ -577,6 +584,12 @@ c
       end
 
 c       $Log$
+c       Revision 3.17  2010/07/26 21:57:42  mast
+c       Give better error message when error reading model
+c
+c       Revision 3.16  2009/03/19 05:50:43  mast
+c       Fix bug when contours are drawn in opposite direction and overlap in Z
+c
 c       Revision 3.15  2008/07/15 18:19:54  mast
 c       Fixed error messages to come out on one line on Windows
 c
