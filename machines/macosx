@@ -9,20 +9,8 @@ if ($tifflibs == default) set tifflibs = true
 
 if ($tifflibs == true) set c_includes = "$c_includes"' -I/usr/local/include'
 
-# Set default compiler to intel for intel, but only if it exists and its true
-# location has been put on the path
+# Set defaults for using gcc
 #
-if ($compiler == default && $intel == true) then
-    set ifortout = `which ifort`
-    if ($status || "$ifortout:h" == "/usr/bin") then
-	set compiler = gfortran
-        set openmp = false
-    else
-	set compiler = ifort
-    endif
-endif
-if ($compiler == gnu) set compiler = gfortran
-
 set openmpFlags = ""
 set ccompFlags = ""
 set ccomp = "gcc"
@@ -36,6 +24,20 @@ if ($#gccvers < 2) set gccvers = (3 0)
 @ minorvers = $gccvers[2]
 set unameout = `uname -r | sed '/\./s// /g'`
 @ darversion = $unameout[1]
+
+# Set default fortran compiler to intel for intel, but only if it exists and 
+# its true location has been put on the path
+#
+if ($compiler == default && $intel == true) then
+    set ifortout = `which ifort`
+    if ($status || "$ifortout:h" == "/usr/bin") then
+	set compiler = gfortran
+        if ($minorvers < 2) set openmp = false
+    else
+	set compiler = ifort
+    endif
+endif
+if ($compiler == gnu) set compiler = gfortran
 
 # If using intel fortran compiler, check for C compiler too
 # Let an intel entry force use of C++ compiler if possible
