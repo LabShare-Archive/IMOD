@@ -1,5 +1,6 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+7/27/10: IMOD_4-2-5
 7/26/10: Fixed Imod2vrml sphere drawing in non-scattered objects (In 4.1).
 
 7/26/10: Enabled building with GPU support on 64-bit Mac OS X 10.6 (In 4.1).
@@ -10,7 +11,7 @@ if there is an error reading it (In 4.1).
 7/26/10: Fixed rounding of mouse position in graph window so lines will go
 through the clicked pixel; made graph go through all Z planes (In 4.1).
 
-7/18/10: Some Etomo screen data in Tracking and File Alignment was not being
+7/18/10: Some Etomo screen data in Tracking and Fine Alignment was not being
 loaded from files - fixed the problem.
 
 7/14/10: IMOD_4-2-4
