@@ -240,7 +240,7 @@ static void printObject(Imod *imod, int ob, int flags, FILE *fout)
   int co;
   Iobj *obj = &imod->obj[ob];
   int lastuse = -1;
-  int hasSpheres = iobjScat(obj->flags);
+  int hasSpheres = (iobjScat(obj->flags) || obj->pdrawsize) ? 1 : 0;
   if (iobjOff(obj->flags))
     return;
 
@@ -276,6 +276,7 @@ static void printObject(Imod *imod, int ob, int flags, FILE *fout)
 static void printScatContours(Imod *imod, Iobj *obj, FILE *fout)
 {
   Icont *cont;
+  int hasSpheres = (iobjScat(obj->flags) || obj->pdrawsize) ? 1 : 0;
   int co, pt;
   float zscale = imod->zscale;
   float size;
@@ -285,7 +286,7 @@ static void printScatContours(Imod *imod, Iobj *obj, FILE *fout)
     
     /* Skip the contour if it is empty or if object is not scattered and there 
        are no sizes */
-    if (!cont || !cont->psize || (!iobjScat(obj->flags) && !cont->sizes))
+    if (!cont || !cont->psize || (!hasSpheres && !cont->sizes))
       continue;
     for (pt = 0; pt < cont->psize; pt++) {
       size = imodPointGetSize(obj, cont, pt);
@@ -601,6 +602,12 @@ static void printMesh(Imod *imod, int ob, int flags, FILE *fout)
 
 /*
 $Log$
+Revision 3.8  2010/07/27 02:40:49  mast
+Fixed sphere drawing in non-scattered objects
+
+Revision 3.7  2007/04/11 21:22:15  mast
+Added option to output points/normals for each polygon
+
 Revision 3.6  2006/08/31 23:13:15  mast
 Changed mat1 to real names
 
