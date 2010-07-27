@@ -779,9 +779,11 @@ Processing</B>, check <B>Enable graphics processing</B>
 </P>
 The easiest way to test whether the GPU is functioning is to select it when
 building a tomogram.&nbsp; After you start generating the tomogram, there will
-be a warning message if the GPU cannot be used.&nbsp; Some EVGA GeForce GT 220
-cards have given variable results.&nbsp; To test whether your GPU is
-functioning correctly, generate a tomogram twice in a row with the GPU.&nbsp;
+be a warning message if the GPU cannot be used.&nbsp; A few
+cards have given variable results - two EVGA GeForce GT 220 and one GTX
+295.&nbsp; Thus, it is important to test whether your GPU is
+functioning correctly.&nbsp; The easiest way to do this is to generate a
+tomogram twice in a row with the GPU.&nbsp;
 Then, at the command line, enter
 <pre>
     subimage setname_full.rec | tail
