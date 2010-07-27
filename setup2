@@ -99,6 +99,7 @@ set ldfflags        = '$(LDFLAGS)'
 set libtrackFlags   = '$(LIBFFLAGS)'
 set dllext          = '$(LIBEXT)'
 set moc             = '$(QTDIR)/bin/moc'
+set openmpfFlags    = '$(OPENMP)'
 set rgbprogs        = 
 set makestaticlib   = "ar ruv "
 set staticranlib    = ranlib
@@ -863,6 +864,7 @@ echo "NMCAREXT = $nmcarext" >> $configure
 echo "FAR = $far" >> $configure
 echo "FC = $fcomp"              >> $configure
 echo "OPENMP = $openmpFlags"  >> $configure
+echo "OPENMPF = $openmpfFlags"  >> $configure
 echo "WMODEXT = $wmodext" >> $configure
 echo "MAKEWMOD = $makewmod" >> $configure
 echo "LWMOD = $lwmod" >> $configure
@@ -1008,6 +1010,9 @@ exit
 
 #
 #  $Log$
+#  Revision 1.61.2.2  2010/05/20 19:37:58  mast
+#  backport
+#
 #  Revision 1.63  2010/05/20 19:36:48  mast
 #  Eliminated uac_wrap option
 #
