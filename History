@@ -1,5 +1,16 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+7/26/10: IMOD_4-1-4
+7/26/10: Fixed Imod2vrml sphere drawing in non-scattered objects.
+
+7/26/10: Enabled building with GPU support on 64-bit Mac OS X 10.6.
+
+7/26/10: Made Tomopitch test for existence of model and ask if it was saved
+if there is an error reading it.
+
+7/26/10: Fixed rounding of mouse position in graph window so lines will go
+through the clicked pixel; made graph go through all Z planes.
+
 7/8/10: Prevented numerical errors and crashes in Ctfplotter when run with
 very low expected defocus values (in microns instead of nm).
 
@@ -8,6 +19,9 @@ it on to TIFF handler, which crashed with some files.
 
 6/30/10: Fixed bug in Bead Fixer that froze 3dmod if a "Move all" button was
 pressed after reading a log with 0 residuals.
+
+6/29/10: Many fixes to prevent illegal array accesses in IF and WHILE 
+statements due to lack of shortcircuit evaluation with ifort compiler.
 
 6/26/10: Stopped midas from stretching transforms on startup when cosine
 stretch is enabled but not actually on.
