@@ -38,14 +38,17 @@ regenerate the Makefile by running setup rather than by running qmake in the
 program directory.
 
 In order to build with CUDA support, environment variable CUDA_DIR must be
-defined to point to the directory where the CUDA toolkit is installed.
-So far, CUDA 2.1, 2.2, and 2.3 have been used on various systems.  The build
-system itself need not be CUDA-capable or have drivers supporting CUDA.
+defined to point to the directory where the CUDA toolkit is installed.  The
+build computer itself need not be CUDA-capable or have drivers supporting
+CUDA.  So far, CUDA 2.1, 2.2, and 2.3 have been used on various systems; 3.1
+has been used only on Mac OS X and did require some nvcc compiler flag
+changes, which have not yet been made for other systems.  CUDA support for
+64-bit Mac can be built only with CUDA 3.1 and only under OS X 10.6.
 
 The setup scripts automatically configure to use OpenMP in cases where they
 think it is available.
 
-You need a Sun version of the Java Development Kit to build eTomo.  Version
+You need a Sun/Oracle version of the Java Development Kit to build eTomo.  Version
 1.5 or higher is required and there should be no problems using the latest
 version.  On a 64-bit system, it does not matter if this is 32 or 64-bit.
 This will already be available on Mac; it may be available in some versions of
@@ -110,7 +113,9 @@ directory.
 
 BUILDING ON MAC OS X
 
-You need to have the latest version of Xcode tools for your systems installed.
+Generally, you should have the latest version of Xcode tools for your system
+installed; but see the notes below about using an older version in order to
+install an integrated gfortran.
 
 Qt 4.4.3 for 32-bit Mac was built in /usr/local/Trolltech on a 32-bit Mac with:
 ./configure -prefix /usr/local/Trolltech/Qt-4.4.3 -fast -no-exceptions \
@@ -126,7 +131,7 @@ making a link /usr/local/Trolltech/Qt-4.6.2  pointing to the local directory,
 running
 ./configure -prefix /usr/local/Trolltech/Qt-4.6.2 -fast -no-exceptions \
 -no-phonon -no-phonon-backend -no-webkit -no-rpath -no-libtiff -qt-libpng \
--qt-libmng -qt-libjpeg -continue -cocoa -arch x86_64 -release -nomake examples \
+-qt-libmng -qt-libjpeg -continue -cocoa -arch x86_64 -release -nomake demos \
 -nomake examples
 
 and skipping the install.  It can also be built in place, and there it tells
@@ -153,17 +158,33 @@ sudo make install
 Then rename /usr/local/libtiff.a to libtiff64.a 
 
 You need to have a Fortran compiler.  Two options are the Intel compiler
-(version 10 recommended currently) and a version of gfortran from
+(version 10 or 11 recommended currently) and a version of gfortran from
 http://r.research.att.com/tools/
-There is a nasty comment in the latter site about avoiding gfortran from
-http://hpc.sourceforge.net/, which unfortunately matches our own experience.
+(There is a nasty comment in the latter site about avoiding gfortran from
+http://hpc.sourceforge.net/, which unfortunately matches our own experience.).
+There are two choices here: install a free-standing gfortran into /usr/local,
+or install a gfortran that is integrated into the gcc installation.  The
+former is simpler but does not allow OpenMP to be used; the latter does allow
+OpenMP to be used if you have gcc 4.2.  The build scripts assume that if gcc
+4.2 is present and gfortran is being used, that the gfortran is integrated and
+OpenMP can be used.  If you have gcc 4.2 but installed the free-standing
+gfortran, you need to add the -no_openmp option to the setup command.
+
+The integrated gfortran is currently available only to match older versions of
+Xcode.  Specifically, for GNU Fortran 4.2.4 for 10.6, you should have Xcode
+3.2.2 to use the package gfortran-42-5659.pkg.  If you want to link with
+dynamic rather than static libgfortran, you should have XCode 3.2.1 to use
+the packages gfortran-42-5646.pkg and libgfortran-4.2.4-5646.tar.gz.
 
 The setup scripts provide for three options for compilers on Intel Macs:
-Native gcc       gfortran       (No OpenMP support)
-Native gcc       Intel Fortran  (No OpenMP support in IMOD)
-Intel C++        Intel Fortran  (OpenMP works in IMOD)
+Native gcc     gfortran       (OpenMP works if gcc 4.2 and gfortran integrated)
+Native gcc     Intel Fortran  (OpenMP works if gcc 4.2 and gfortran integrated)
+Intel C++      Intel Fortran  (OpenMP works)
 
 Only the first option is available on PowerPC Macs.
+Only the first and second options are available under OS X 10.6.  Version 10
+of Intel compilers will not install on 10.6, and Version 11 of the Intel C++
+compiler currently will not build Qt programs.
 
 On Intel Mac, the setup script will try to do the right thing if you have the
 true location of one or both Intel compilers on your path (i.e., the presence
