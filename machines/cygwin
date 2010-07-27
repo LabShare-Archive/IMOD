@@ -506,10 +506,12 @@ if ($compiler == intel) then
             set cudabin = `cygpath -m $CUDA_BIN_PATH`
             set cudalib = `cygpath -m $CUDA_LIB_PATH`
         endif
+        set cudart = `cd $cudabin ; ls cudart*.dll | sed -e '/[[:cntrl:]]/s///g' -e '/[^ ]*emu[^ ]*/s///g' -e '/.dll/s///g'`
+        set cufft = `cd $cudabin ; ls cufft*.dll | sed -e '/[[:cntrl:]]/s///g' -e '/[^ ]*emu[^ ]*/s///g' -e '/.dll/s///g'`
         set nvcc_flags = "$nvcc_flags -O2"
         set cudalibs = "-LIBPATH:$cudalib cudart.lib cufft.lib"
         echo "DLLSOURCEDIR$dllnum = $cudabin" >> $configure
-        echo "DLLSTOCOPY$dllnum = cudart cufft" >> $configure
+        echo "DLLSTOCOPY$dllnum = $cudart $cufft" >> $configure
     endif
 
     # Build imodwincpu
