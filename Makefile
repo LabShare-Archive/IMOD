@@ -300,7 +300,7 @@ csrc : ALWAYS
 	machines \
 	lib*/*.[ch] lib*/*.cpp lib[icm]*/Makefile libdiaqt/Makefile.dummy \
 	libdiaqt/Makefile.unix lib*/*.dsp lib*/*.vcproj libimod/libimod.dsw \
-	USFFTlib/*/*.a sysdep/*/* \
+	sysdep/*/* \
 	imod/*.[ch] imod/*.cpp imod/*.ui imod/imod.pro \
 	imod/*.bits imod/*.png imod/*.xpm imod/*.qrc \
 	imod/3dmod.dsw imod/Makefile.dummy imod/b3dicon.i* \
@@ -365,6 +365,9 @@ ALWAYS:
 
 ############################################################################
 #  $Log$
+#  Revision 3.81  2010/06/23 21:22:06  mast
+#  Added processchunks to make and clean, not to install
+#
 #  Revision 3.80  2010/05/28 21:17:50  mast
 #  Added all licenses to top dir of dist
 #
