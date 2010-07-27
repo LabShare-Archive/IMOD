@@ -40,10 +40,11 @@ program directory.
 In order to build with CUDA support, environment variable CUDA_DIR must be
 defined to point to the directory where the CUDA toolkit is installed.  The
 build computer itself need not be CUDA-capable or have drivers supporting
-CUDA.  So far, CUDA 2.1, 2.2, and 2.3 have been used on various systems; 3.1
-has been used only on Mac OS X and did require some nvcc compiler flag
-changes, which have not yet been made for other systems.  CUDA support for
-64-bit Mac can be built only with CUDA 3.1 and only under OS X 10.6.
+CUDA.  So far, CUDA 2.1, 2.2, 2.3, and 3.1 have been used on various systems;
+3.1 required some nvcc compiler flag changes and library location changes.
+These changes have been made for Mac OS X in IMOD 4.1, but not until IMOD
+4.2.5 for 64-bit Linux.  CUDA support for 64-bit Mac can be built only with
+CUDA 3.1 and only under OS X 10.6.
 
 The setup scripts automatically configure to use OpenMP in cases where they
 think it is available.
