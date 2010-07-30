@@ -1,5 +1,7 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+7/30/10: Fixed problem with splittilt when "slice" is in dataset name.
+
 7/27/10: IMOD_4-2-5
 7/26/10: Fixed Imod2vrml sphere drawing in non-scattered objects (In 4.1).
 
