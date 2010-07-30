@@ -146,7 +146,7 @@ if ($targetslabs < $minslabs) @ targetslabs = $minslabs
 set xaxistilt = `grep -i xaxistilt $comname | grep -v '^#' | sed '/[^0-9\.]/s///g'`
 set fullimage = `grep -i fullimage $comname | grep -v '^#' | sed '/[^ 0-9\.]/s///g'`
 set thickness = `grep -i thickness $comname | grep -v '^#' | sed '/[^0-9\.]/s///g'`
-set slices = `grep -i slice $comname | grep -v '^#' | sed '/[^ 0-9\.]/s///g'`
+set slices = `grep -i "^ *slice" $comname | grep -v '^#' | sed '/[^ 0-9\.]/s///g'`
 set local = `grep -i localfile $comname | grep -v '^#'`
 set binning = `grep -i imagebinned $comname | grep -v '^#' | sed '/[^0-9\.]/s///g'`
 set alifile = `grep -i inputproj $comname | grep -v '^#' | awk '{print $2}' | sed '/[[:cntrl:]]/s///g'`
@@ -476,6 +476,9 @@ echo "Command files for $numslabs chunks created and ready to run with:"
 echo "  processchunks machine_list $rootname"
 
 #  $Log$
+#  Revision 3.23  2010/07/30 19:58:24  mast
+#  Fixed problem with slice in dataset name
+#
 #  Revision 3.22  2010/05/25 03:35:53  mast
 #  Get rid of backup coms and logs too
 #
