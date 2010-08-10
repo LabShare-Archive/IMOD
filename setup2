@@ -96,8 +96,9 @@ set lifft           = -lifft
 set limesh          = -limesh
 set lapacklibs      = '-llapack -lblas'
 set lapack_flibs    = ''
-set lapacklink     = '$(CC)'
+set lapacklink      = '$(CC)'
 set ldfflags        = '$(LDFLAGS)'
+set farflags        = '$(ARFLAGS)'
 set libtrackFlags   = '$(LIBFFLAGS)'
 set dllext          = '$(LIBEXT)'
 set moc             = '$(QTDIR)/bin/moc'
@@ -112,7 +113,7 @@ set far             = '$(AR)'
 set lwmod           = -lwmod
 set lsmlmod         = -lsmlmod
 set wmodext         = '$(DLLEXT)'
-set makewmod        = '$(FAR) $(ARFLAGS)'
+set makewmod        = '$(FAR) $(FARFLAGS)'
 set junit_home      = /usr/local/junit
 set jfcunit_home      = /usr/local/jfcunit
 set class_sep       = ':'
@@ -857,6 +858,7 @@ endif
 echo "QTPLUG_SRCDIR1 = imageformats" >> $configure
 echo "RGBPROGS = $rgbprogs" >> $configure
 echo "LDFFLAGS = $ldfflags" >> $configure
+echo "FARFLAGS = $farflags" >> $configure
 cat <<EOF  >> $configure
 LIBTRACKFLAGS = $libtrackFlags
 EOF
@@ -1015,6 +1017,9 @@ exit
 
 #
 #  $Log$
+#  Revision 1.66  2010/07/26 19:30:40  mast
+#  Add separate openmp flag for fortran
+#
 #  Revision 1.65  2010/06/29 21:33:08  mast
 #  Add libifft to midas
 #
