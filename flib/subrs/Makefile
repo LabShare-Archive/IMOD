@@ -29,7 +29,7 @@ $(LIBHVEM): $(LIBMRCIM) piecesubs/*.f hvem/*.f xfsubs/*.f statsubs/*.f
 	(cd xfsubs ; $(MAKE) all)
 	(cd statsubs ; $(MAKE) all)
 	$(RM) $(LIBHVEM)
-	$(FAR) $(ARFLAGS)$(LIBHVEM) $(LIBHVEMDEF) \
+	$(FAR) $(FARFLAGS)$(LIBHVEM) $(LIBHVEMDEF) \
 	piecesubs/*.$(O) hvem/*.$(O) xfsubs/*.$(O) statsubs/*.$(O)
 	$(RANLIB) $(LIBHVEM)
 	$(CP) libhvem.$(LIBEXT) $(LIBDIR)
@@ -51,7 +51,7 @@ $(LIBMRCIM): imsubs/*.f imsubs/*.c imsubs2/*.f
 	(cd imsubs ; $(MAKE) all)
 	(cd imsubs2 ; $(MAKE) all)
 	$(RM) $(LIBMRCIM)
-	$(FAR) $(ARFLAGS)$(LIBMRCIM) $(LIBMRCIMDEF) imsubs/$(IMSUBSOBJ) \
+	$(FAR) $(FARFLAGS)$(LIBMRCIM) $(LIBMRCIMDEF) imsubs/$(IMSUBSOBJ) \
 	imsubs2/*.$(O)
 	$(RANLIB) $(LIBMRCIM)
 	$(CP) libmrcim.$(LIBEXT) $(LIBDIR)
@@ -61,7 +61,7 @@ $(LIBMRCIM): imsubs/*.f imsubs/*.c imsubs2/*.f
 $(LIBIFFT):	ifftsub/*.f
 	(cd ifftsub ; $(MAKE) all)
 	$(RM) $(LIBIFFT)
-	$(FAR) $(ARFLAGS)$(LIBIFFT) $(LIBIFFTDEF) ifftsub/*.$(O)
+	$(FAR) $(FARFLAGS)$(LIBIFFT) $(LIBIFFTDEF) ifftsub/*.$(O)
 	$(RANLIB) $(LIBIFFT)
 	$(CP) libifft.$(LIBEXT) $(LIBDIR)
 
@@ -75,7 +75,7 @@ $(LIBNMCAR):	graphics/*.f graphics/*.c*
 $(LIBCOMPAT):	$(COMPATSRC) 
 	(cd compat; $(MAKE) all)
 	$(RM) $(LIBCOMPAT)
-	$(FAR) $(ARFLAGS)$(LIBCOMPAT) $(COMPATOBJ)
+	$(FAR) $(FARFLAGS)$(LIBCOMPAT) $(COMPATOBJ)
 	$(RANLIB) $(LIBCOMPAT)
 	$(CP) libb3dcmpt.$(LIBEXT) $(LIBDIR)
 
@@ -96,7 +96,7 @@ $(LIBLAPACK): lapack/*.f
 $(LIBTRACK):	linetrack/*.f linetrack/*.c*
 	(cd linetrack; $(MAKE) all)
 	$(RM) $(LIBTRACK)
-	$(FAR) $(ARFLAGS)$(LIBTRACK) $(LIBTRACKDEF) linetrack/*.$(O)
+	$(FAR) $(FARFLAGS)$(LIBTRACK) $(LIBTRACKDEF) linetrack/*.$(O)
 	$(RANLIB) $(LIBTRACK)
 	$(CP) libtrack.$(LIBEXT) $(LIBDIR)
 

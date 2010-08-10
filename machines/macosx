@@ -79,6 +79,7 @@ if ($ccomp == gcc) then
     if ($minorvers >= 2 && $openmp == true) then
         set openmpFlags = "-fopenmp"
         set openmpfFlags = "-fopenmp"
+        set libmt = "mt"
 
         # For mixed compilation, the library must be libiomp, and need to
         # specify this before version 11 where it became default
@@ -195,6 +196,7 @@ if ($shared_libs != false) then
 	echo "ARCPP   = c++"                >> $configure
     endif
     echo "ARFLAGS = $flags $openmpFlags $m64flags -i-dynamic -dynamiclib -Wl,-single_module -Wl,-flat_namespace -Wl,-undefined,suppress $wlread_only -o "    >> $configure
+    set farflags = "$flags $openmpfFlags $m64flags -i-dynamic -dynamiclib -Wl,-single_module -Wl,-flat_namespace -Wl,-undefined,suppress $wlread_only -o "
     echo "RANLIB    = true"                     >> $configure
     echo "LIBEXT  = dylib"                 >> $configure
     if ($majorrel > 7) then
