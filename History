@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+8/17/10: Fixed problem with tilt when reconstructing < 10 large slices, allowed
+up to 3600 views.
+
 7/30/10: Fixed problem with splittilt when "slice" is in dataset name.
 
 7/26/10: IMOD_4-1-4
