@@ -49,7 +49,7 @@ c
       module tiltvars
       integer limview, limwidth
       integer limreproj
-      parameter (limview=720)
+      parameter (limview=3600)
       parameter (limreproj = limview)
 c       
       integer*4 NSTACK,maxstack, needBase, numNeedSE
