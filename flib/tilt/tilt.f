@@ -3238,7 +3238,8 @@ c         line.  Also replace the slice limits.
         ipextra = 0
         npad = 0
         if (debug) print *,'scale: ', scale,flevl
-
+        
+        numNeedEval = min(numNeedEval, jslice + 1 - islice)
         call setNeededSlices(maxNeeds, numNeedEval)
         if (allocateArray(maxNeeds, numNeedEval, 1,minMemory) .eq. 0)
      &      call exitError('THE MAIN ARRAY CANNOT BE ALLOCATED LARGE ENOUGH'//
@@ -3324,6 +3325,7 @@ c       If reading base, figure out total views being added and adjust scales
         flevl=flevl*nviews
       endif
       if (debug) print *,'scale: ', scale,flevl
+      numNeedEval = min(numNeedEval, jslice + 1 - islice)
       call setNeededSlices(maxNeeds, numNeedEval)
       if (debug) print *,(maxNeeds(i), i = 1, numNeedEval)
       if (iterForReport .gt. 0) then
@@ -5057,6 +5059,9 @@ c       Set to open contour, show values etc., and show sphere on section only
 
 c       
 c       $Log$
+c       Revision 3.60  2010/08/17 18:32:43  mast
+c       Fixed memory allocation for fewer than 10 slices
+c
 c       Revision 3.59  2010/06/20 19:29:12  mast
 c       Use unit 6 for boundary info to avoid conflict with debug output
 c
