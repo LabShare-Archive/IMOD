@@ -25,7 +25,7 @@ tb.trim-vol=
 	assert.enabled.bn.3dmod-full-volume=
 	assert.enabled.bn.get-xyz-volume-range-from-3dmod=
 [[]]
-run.function.volume-range=
+if.var.test-gui.run.function.volume-range=
 [[if = test-gui]]
 	run.function.scaling=
 [[]]
@@ -60,26 +60,36 @@ wait.process.trimming-volume = done
 
 
 [function = volume-range]
-[[if = test-values]]
-	#check values
-	assert.tf.x-min=1
-	assert.tf.x-max=%{size-to-output-x}
-	assert.tf.y-min=1
-	assert.tf.y-max=%{size-to-output-y}
-	assert.tf.z-min=1
-	assert.tf.z-max=%{tomogram-thickness-in-z}
+#check values
+assert.tf.x-min=1
+assert.tf.x-max=%{size-to-output-x}
+assert.tf.y-min=1
+assert.tf.y-max=%{size-to-output-y}
+assert.tf.z-min=1
+[[if = patch-tracking]]
+  assert.tf.z-max=%{tomogram-thickness-in-z-patch-tracking}
 [[]]
-[[if = test-gui]]
-	#check enabled/disabled
-	assert.enabled.tf.x-min=
-	assert.enabled.tf.x-max=
-	assert.enabled.tf.y-min=
-	assert.enabled.tf.y-max=
-	assert.enabled.tf.z-min=
-	assert.enabled.tf.z-max=
+[[ifnot = patch-tracking]]
+  assert.tf.z-max=%{tomogram-thickness-in-z}
 [[]]
-tf.z-min = 5
-tf.z-max = %{volume-range-z-max}
+#check enabled/disabled
+assert.enabled.tf.x-min=
+assert.enabled.tf.x-max=
+assert.enabled.tf.y-min=
+assert.enabled.tf.y-max=
+assert.enabled.tf.z-min=
+assert.enabled.tf.z-max=
+
+
+[function = assert-variable-scaling-values]
+[[if = patch-tracking]]
+  assert.tf.z-min.1=%{scaling-z-min-patch-tracking}
+  assert.tf.z-max.1=%{scaling-z-max-patch-tracking}
+[[]]
+[[ifnot = patch-tracking]]
+  assert.tf.z-min.1=%{scaling-z-min}
+  assert.tf.z-max.1=%{scaling-z-max}
+[[]]
 
 
 [function = scaling]
@@ -90,8 +100,7 @@ tf.z-max = %{volume-range-z-max}
 	assert.tf.black=
 	assert.tf.white=
 	assert.rb.find-scaling-from-sections=on
-	assert.tf.z-min.1=%{scaling-z-min}
-	assert.tf.z-max.1=%{scaling-z-max}
+	run.function.assert-variable-scaling-values=
 [[]]
 [[if = test-gui]]
 	#check enabled/disabled
@@ -175,7 +184,7 @@ bn.make-surface-model=
 	bn.run-flattenwarp=
 	wait.popup.flattenwarp-terminated=OK
 [[]]
-copy.file=%{dataset}_flat.mod
+run.function.copy=
 run.function.smoothing-asessment=
 tf.smoothing-factor=2.5
 [[if = test-values]]
@@ -208,6 +217,28 @@ assert.exists.file=%{dataset}_flat.rec
 assert.bn.flatten=on
 #run 3dmod
 bn.open-flattened-tomogram=
+
+
+[function = copy]
+[[if = simple-align]]
+  run.function.copy-simple-align-files=
+[[]]
+[[ifnot = simple-align]]
+  if.var.patch-tracking.run.function.copy-patch-tracking-files=
+  if.not.var.patch-tracking.run.function.copy-files=
+[[]]
+
+
+[function = copy-simple-align-files]
+copy.file=%{dataset}_flat-simple-align.mod|%{dataset}_flat.mod
+
+
+[function = copy-patch-tracking-files]
+copy.file=%{dataset}_flat-patch-tracking.mod|%{dataset}_flat.mod
+
+
+[function = copy-files]
+copy.file=%{dataset}_flat.mod
 
 
 [function = smoothing-asessment]

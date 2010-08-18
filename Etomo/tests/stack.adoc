@@ -282,6 +282,15 @@ assert.bn.reproject-model=on
 run.function.erase-beads=
 
 
+[function = assert-added-z-shift]
+[[ifnot = simple-align]]
+  assert.tf.added-z-shift=%{incremental-shift-to-center}
+[[]]
+[[if = simple-align]]
+  assert.tf.added-z-shift=%{incremental-shift-to-center-simple-align}
+[[]]
+
+
 [function = align-stack-and-create-tomogram]
 mb.align-stack-and-create-tomogram=+
 [[if = test-gui]]
@@ -291,7 +300,7 @@ mb.align-stack-and-create-tomogram=+
 	assert.tf.center-to-center-thickness=%{center-to-center-thickness}
 	assert.tf.additional-unbinned-diameters-to-add=3
 	assert.tf.thickness=%{erase-gold-thickness}
-	assert.tf.added-z-shift=%{incremental-shift-to-center}
+  run.function.assert-added-z-shift=
 	assert.bn.align-and-build-tomogram=off
 	# check enabled/disabled
 	assert.enabled.sp.aligned-image-stack-binning=

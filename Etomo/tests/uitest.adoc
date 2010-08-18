@@ -276,18 +276,23 @@ set.var.findbeads3d-binning = 1
 set.var.erase-gold-thickness=98
 set.var.incremental-shift-to-center.a=-12.9
 set.var.incremental-shift-to-center.b=-13.9
+set.var.incremental-shift-to-center-simple-align.a=-12.4
+set.var.incremental-shift-to-center-simple-align.b=-13.9
 set.var.final-align-comscript=newst
 set.var.final-align-command=newstack
 #TomoGen
 set.var.output-density-scaling-factor=1000.0
 set.var.tomogram-thickness-in-z.a=76
 set.var.tomogram-thickness-in-z.b=78
+set.var.tomogram-thickness-in-z-patch-tracking.a=88
 set.var.x-axis-tilt.a=1.76
 set.var.x-axis-tilt.b=0.13
+set.var.x-axis-tilt-patch-tracking.a=1.48
 #PostProc
-set.var.volume-range-z-max=70
 set.var.scaling-z-min=25
 set.var.scaling-z-max=50
+set.var.scaling-z-min-patch-tracking=29
+set.var.scaling-z-max-patch-tracking=58
 
 [dataset = midzone2]
 copy.file = %{dataset}.st
@@ -300,6 +305,8 @@ set.var.image-rotation = 0.0
 set.var.sample-tomogram-thickness = 200
 set.var.z-axis-min = 5
 set.var.z-axis-max = 70
+set.var.z-axis-min-patch-tracking = 8
+set.var.z-axis-max-patch-tracking = 114
 set.var.unbinned-bead-diameter = 10.56
 set.var.int-unbinned-bead-diameter = 11
 #PreProc
@@ -331,8 +338,9 @@ set.var.output-density-scaling-factor.b=1000.0
 set.var.tomogram-thickness-in-z=84
 set.var.x-axis-tilt.a=1.71
 set.var.x-axis-tilt.b=0.18
+set.var.tomogram-thickness-in-z-patch-tracking.a=128
+set.var.tomogram-thickness-in-z-patch-tracking.b=144
 #PostProc
-set.var.volume-range-z-max=79
 set.var.scaling-z-min=28
 set.var.scaling-z-max=56
 set.interface.Recon=

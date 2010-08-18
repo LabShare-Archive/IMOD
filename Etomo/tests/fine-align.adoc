@@ -1,14 +1,134 @@
 Version = 1.2
 
 [function = main]
-run.function.general=
-[[ifnot = simple-align]]
-	if.var.patch-tracking.return=
-	run.function.global-variables=
+if.var.test-gui.run.function.test-gui=
+run.function.compute-alignment=
+format.bn.done=
+
+
+[function = compute-alignment]
+[[if = simple-align]]
+run.function.compute-with-simple-align=
 [[]]
 [[ifnot = simple-align]]
-	run.function.local-variables=
+if.var.patch-tracking.run.function.compute-with-patch-tracking=
+if.not.var.patch-tracking.run.function.compute=
 [[]]
+# file check
+assert.exists.file=tilt%{axis}.com
+assert.exists.file=align%{axis}.com
+assert.exists.file=align%{axis}.log
+assert.exists.file=taAngles%{axis}.log
+assert.exists.file=taCoordinates%{axis}.log
+assert.exists.file=taError%{axis}.log
+assert.exists.file=taLocals%{axis}.log
+assert.exists.file=taMappings%{axis}.log
+assert.exists.file=taResiduals%{axis}.log
+assert.exists.file=taSolution%{axis}.log
+assert.exists.file=taBeamtilt%{axis}.log
+assert.exists.file=%{dataset}%{axis}.xtilt
+assert.exists.file=%{dataset}%{axis}.xf
+assert.exists.file=%{dataset}%{axis}.tltxf
+assert.exists.file=%{dataset}%{axis}.resmod
+assert.exists.file=%{dataset}%{axis}.resid
+assert.exists.file=%{dataset}%{axis}fid.xyz
+assert.exists.file=%{dataset}%{axis}.3dmod
+assert.exists.file=%{dataset}%{axis}_fid.xf
+assert.exists.file=%{dataset}%{axis}_fid.tlt
+# backup check
+assert.exists.file=align%{axis}.log~
+assert.exists.file=%{dataset}%{axis}.xtilt~
+assert.exists.file=%{dataset}%{axis}.tlt~
+assert.exists.file=%{dataset}%{axis}.tltxf~
+assert.exists.file=%{dataset}%{axis}.resmod~
+assert.exists.file=%{dataset}%{axis}.resid~
+assert.exists.file=%{dataset}%{axis}fid.xyz~
+assert.exists.file=%{dataset}%{axis}.3dmod~
+assert.exists.file=%{dataset}%{axis}_fid.xf~
+[[if = test-gui]]
+  # run 3dmod
+  bn.view-3d-model=
+  bn.view-residual-vectors=
+  bn.view/edit-fiducial-model=
+[[]]
+run.function.copy=
+bn.compute-alignment=
+wait.process.aligning-stack=done
+
+
+[function = compute-with-simple-align]
+bn.compute-alignment=
+wait.process.aligning-stack=done
+bn.compute-alignment=
+wait.process.aligning-stack=done
+
+
+[function = compute-with-patch-tracking]
+tb.general.1=
+rb.fixed-tilt-angles=
+bn.compute-alignment=
+wait.process.aligning-stack=done
+tb.general=
+cb.enable-local-alignments=on
+tb.general.2=
+cb.enable.2=off
+bn.compute-alignment=
+wait.process.aligning-stack=done
+
+
+[function = compute]
+bn.compute-alignment=
+wait.process.aligning-stack=done
+tb.general.1=
+rb.full-solution=
+bn.compute-alignment=
+wait.process.aligning-stack=done
+tb.general=
+cb.enable-local-alignments=on
+bn.compute-alignment=
+wait.process.aligning-stack=done
+
+
+[function = copy]
+[[if = simple-align]]
+  run.function.copy-simple-align-files=
+[[]]
+[[ifnot = simple-align]]
+  if.var.patch-tracking.run.function.copy-patch-tracking-files=
+  if.not.var.patch-tracking.run.function.copy-files=
+[[]]
+
+
+[function = copy-simple-align-files]
+copy.file=%{dataset}%{axis}_simple-align.xtilt|%{dataset}%{axis}.xtilt
+copy.file=%{dataset}%{axis}_simple-align.xf|%{dataset}%{axis}.xf
+copy.file=%{dataset}%{axis}_simple-align.tlt|%{dataset}%{axis}.tlt
+copy.file=%{dataset}%{axis}_simple-align.tltxf|%{dataset}%{axis}.tltxf
+copy.file=%{dataset}%{axis}_simple-align.resmod|%{dataset}%{axis}.resmod
+copy.file=%{dataset}%{axis}_simple-align.resid|%{dataset}%{axis}.resid
+copy.file=%{dataset}%{axis}fid_simple-align.xyz|%{dataset}%{axis}fid.xyz
+copy.file=%{dataset}%{axis}_simple-align.3dmod|%{dataset}%{axis}.3dmod
+copy.file=%{dataset}%{axis}_fid_simple-align.xf|%{dataset}%{axis}_fid.xf
+copy.file=%{dataset}%{axis}_fid_simple-align.tlt|%{dataset}%{axis}_fid.tlt
+
+
+[function = copy-patch-tracking-files]
+#didn't break contours for midzone2b so nothing to change
+if.equals.var.axis.return=b
+copy.file=%{dataset}%{axis}_patch-tracking.xtilt|%{dataset}%{axis}.xtilt
+copy.file=%{dataset}%{axis}_patch-tracking.xf|%{dataset}%{axis}.xf
+copy.file=%{dataset}%{axis}_patch-tracking.tlt|%{dataset}%{axis}.tlt
+copy.file=%{dataset}%{axis}_patch-tracking.tltxf|%{dataset}%{axis}.tltxf
+copy.file=%{dataset}%{axis}_patch-tracking.resmod|%{dataset}%{axis}.resmod
+copy.file=%{dataset}%{axis}_patch-tracking.resid|%{dataset}%{axis}.resid
+copy.file=%{dataset}%{axis}fid_patch-tracking.xyz|%{dataset}%{axis}fid.xyz
+copy.file=%{dataset}%{axis}_patch-tracking.3dmod|%{dataset}%{axis}.3dmod
+copy.file=%{dataset}%{axis}_fid_patch-tracking.xf|%{dataset}%{axis}_fid.xf
+copy.file=%{dataset}%{axis}_fid_patch-tracking.tlt|%{dataset}%{axis}_fid.tlt
+copy.file=%{dataset}%{axis}local_patch-tracking.xf|%{dataset}%{axis}local.xf
+
+
+[function = copy-files]
 copy.file=%{dataset}%{axis}.xtilt
 copy.file=%{dataset}%{axis}.xf
 copy.file=%{dataset}%{axis}.tlt
@@ -19,21 +139,21 @@ copy.file=%{dataset}%{axis}fid.xyz
 copy.file=%{dataset}%{axis}.3dmod
 copy.file=%{dataset}%{axis}_fid.xf
 copy.file=%{dataset}%{axis}_fid.tlt
-[[ifnot = simple-align]]
-	copy.file=%{dataset}%{axis}local.xf
-	if.var.patch-tracking.return=
-	copy.file=%{dataset}%{axis}.zfac
-[[]]
-# run with best alignment
-bn.compute-alignment=
-wait.process.aligning-stack=done
-format.bn.done=
+copy.file=%{dataset}%{axis}local.xf
+copy.file=%{dataset}%{axis}.zfac
 
 
-# General tab
+[function = test-gui]
+run.function.general-test-gui=
+run.function.global-variables-test-gui=
+run.function.local-variables-test-gui=
+  
+  
+# General tab test gui
 
 
-[function = general-test-values]
+[function = general-test-gui]
+tb.general=
 assert.tf.list-of-views-to-exclude=
 assert.tf.separate-view-groups=
 [[ifnot = patch-tracking]]
@@ -45,163 +165,74 @@ assert.tf.separate-view-groups=
 	assert.rb.assume-fiducials-on-2-surfaces-for-analysis=off
 [[]]
 assert.bn.compute-alignment=off
+# check enabled/disabled
+assert.enabled.tf.list-of-views-to-exclude=
+assert.enabled.tf.separate-view-groups=
+assert.enabled.rb.do-not-sort-fiducials-into-2-surfaces-for-analysis=
+assert.enabled.rb.assume-fiducials-on-2-surfaces-for-analysis=
+assert.enabled.bn.compute-alignment=
+assert.enabled.bn.view/edit-fiducial-model=
+assert.enabled.bn.view-3d-model=
+assert.enabled.bn.view-residual-vectors=
+# test panels
+run.function.residual-reporting-test-gui=
+run.function.volume-position-parameters-test-gui=
+run.function.minimization-parameters-test-gui=
+run.function.local-alignment-parameters-test-gui=
 
 
-[function = general]
+[function = residual-reporting-test-gui]
 tb.general=
-# Only test values if keep is off.
-[[if = test-gui]]
-	if.not.var.keep-dataset-dir.set.var.test-values=
-	return.var.test-values=
-[[]]
-if.var.patch-tracking.set.var.2-surfaces=off
-[[if = test-values]]
-	# check values
-	run.function.general-test-values=
-[[]]
-[[if = test-gui]]
-	# check enabled/disabled
-	assert.enabled.tf.list-of-views-to-exclude=
-	assert.enabled.tf.separate-view-groups=
-	assert.enabled.rb.do-not-sort-fiducials-into-2-surfaces-for-analysis=
-	assert.enabled.rb.assume-fiducials-on-2-surfaces-for-analysis=
-	assert.enabled.bn.compute-alignment=
-	assert.enabled.bn.view/edit-fiducial-model=
-	assert.enabled.bn.view-3d-model=
-	assert.enabled.bn.view-residual-vectors=
-[[]]
-# run
-bn.compute-alignment=
-wait.process.aligning-stack=done
-[[if = test-gui]]
-	# file check
-	assert.exists.file=tilt%{axis}.com
-	assert.exists.file=align%{axis}.com
-	assert.exists.file=align%{axis}.log
-	assert.exists.file=taAngles%{axis}.log
-	assert.exists.file=taCoordinates%{axis}.log
-	assert.exists.file=taError%{axis}.log
-	assert.exists.file=taLocals%{axis}.log
-	assert.exists.file=taMappings%{axis}.log
-	assert.exists.file=taResiduals%{axis}.log
-	assert.exists.file=taSolution%{axis}.log
-	assert.exists.file=taBeamtilt%{axis}.log
-	assert.exists.file=%{dataset}%{axis}.xtilt
-	assert.exists.file=%{dataset}%{axis}.xf
-	assert.exists.file=%{dataset}%{axis}.tltxf
-	assert.exists.file=%{dataset}%{axis}.resmod
-	assert.exists.file=%{dataset}%{axis}.resid
-	assert.exists.file=%{dataset}%{axis}fid.xyz
-	assert.exists.file=%{dataset}%{axis}.3dmod
-	assert.exists.file=%{dataset}%{axis}_fid.xf
-	assert.exists.file=%{dataset}%{axis}_fid.tlt
-	# run again
-	bn.compute-alignment=
-	wait.process.aligning-stack=done
-	# file check
-	assert.exists.file=tilt%{axis}.com
-	assert.exists.file=align%{axis}.com
-	assert.exists.file=align%{axis}.log
-	assert.exists.file=taAngles%{axis}.log
-	assert.exists.file=taCoordinates%{axis}.log
-	assert.exists.file=taError%{axis}.log
-	assert.exists.file=taLocals%{axis}.log
-	assert.exists.file=taMappings%{axis}.log
-	assert.exists.file=taResiduals%{axis}.log
-	assert.exists.file=taSolution%{axis}.log
-	assert.exists.file=taBeamtilt%{axis}.log
-	assert.exists.file=%{dataset}%{axis}.xtilt
-	assert.exists.file=%{dataset}%{axis}.xf
-	assert.exists.file=%{dataset}%{axis}.tlt
-	assert.exists.file=%{dataset}%{axis}.tltxf
-	assert.exists.file=%{dataset}%{axis}.resmod
-	assert.exists.file=%{dataset}%{axis}.resid
-	assert.exists.file=%{dataset}%{axis}fid.xyz
-	assert.exists.file=%{dataset}%{axis}.3dmod
-	assert.exists.file=%{dataset}%{axis}_fid.xf
-	assert.exists.file=%{dataset}%{axis}_fid.tlt
-	# backups
-	assert.exists.file=align%{axis}.log~
-	assert.exists.file=%{dataset}%{axis}.xtilt~
-	assert.exists.file=%{dataset}%{axis}.tlt~
-	assert.exists.file=%{dataset}%{axis}.tltxf~
-	assert.exists.file=%{dataset}%{axis}.resmod~
-	assert.exists.file=%{dataset}%{axis}.resid~
-	assert.exists.file=%{dataset}%{axis}fid.xyz~
-	assert.exists.file=%{dataset}%{axis}.3dmod~
-	assert.exists.file=%{dataset}%{axis}_fid.xf~
-	# run 3dmod
-	bn.view-3d-model=
-	bn.view-residual-vectors=
-	bn.view/edit-fiducial-model=
-	# test panels
-	run.function.residual-reporting=
-	run.function.volume-position-parameters=
-	run.function.minimization-parameters=
-	run.function.local-alignment-parameters=
-[[]]
-
-
-[function = residual-reporting]
-tb.general=
-[[ifnot = keep-dataset-dir]]
-	# check values
-	assert.tf.threshold-for-residual-report=3.0
-	assert.rb.all-views=on
-	assert.rb.neighboring-views=off
-[[]]
+assert.tf.threshold-for-residual-report=3.0
+assert.rb.all-views=on
+assert.rb.neighboring-views=off
 # check enabled/disabled
 assert.enabled.tf.threshold-for-residual-report=
 assert.enabled.rb.all-views=
 assert.enabled.rb.neighboring-views=
 
 
-[function = volume-position-parameters]
+[function = volume-position-parameters-test-gui]
 tb.general=
-[[ifnot = keep-dataset-dir]]
-	# check values
-	assert.tf.total-tilt-angle-offset=0.0
-	assert.tf.tilt-axis-z-shift=0.0
-[[]]
+# check values
+assert.tf.total-tilt-angle-offset=0.0
+assert.tf.tilt-axis-z-shift=0.0
 # check enabled/disabled
 assert.enabled.tf.total-tilt-angle-offset=
 assert.enabled.tf.tilt-axis-z-shift=
 
-[function = minimization-parameters]
+
+[function = minimization-parameters-test-gui]
 tb.general=
 bn.advanced=
-[[ifnot = keep-dataset-dir]]
-	# check values
-	assert.tf.metro-factor=0.25
-	assert.tf.cycle-limit=1000
-[[]]
+# check values
+assert.tf.metro-factor=0.25
+assert.tf.cycle-limit=1000
 # check enabled/disabled
 assert.enabled.tf.metro-factor=
 assert.enabled.tf.cycle-limit=
 format.bn.basic=
 
 
-[function = local-alignment-parameters]
+[function = local-alignment-parameters-test-gui]
 tb.general=
-[[ifnot = keep-dataset-dir]]
-	# check values
-	assert.cb.enable-local-alignments=0
-	assert.rb.target-patch-size=on
-	assert.tf.target-patch-size=700,700
-	assert.rb.#-of-local-patches=off
-	assert.tf.#-of-local-patches=5,5
-	assert.tf.min-#-of-fiducials=8,3
-	bn.advanced=
-	assert.tf.overlap-factor=0.5,0.5
-	cb.enable-local-alignments=on
-	rb.#-of-local-patches=
-	assert.tf.min-local-patch-size-or-overlap-factor=0.5,0.5
-	rb.target-patch-size=
-	cb.enable-local-alignments=off
-	if.var.single.assert.cb.use-global-x-y-z-coordinates=off
-	if.var.dual.assert.cb.use-global-x-y-z-coordinates=on
-	format.bn.basic=
-[[]]
+# check values
+assert.cb.enable-local-alignments=0
+assert.rb.target-patch-size=on
+assert.tf.target-patch-size=700,700
+assert.rb.#-of-local-patches=off
+assert.tf.#-of-local-patches=5,5
+assert.tf.min-#-of-fiducials=8,3
+bn.advanced=
+assert.tf.overlap-factor=0.5,0.5
+cb.enable-local-alignments=on
+rb.#-of-local-patches=
+assert.tf.min-local-patch-size-or-overlap-factor=0.5,0.5
+rb.target-patch-size=
+cb.enable-local-alignments=off
+if.var.single.assert.cb.use-global-x-y-z-coordinates=off
+if.var.dual.assert.cb.use-global-x-y-z-coordinates=on
+format.bn.basic=
 # check enabled/disabled
 cb.enable-local-alignments=off
 assert.enabled.cb.enable-local-alignments=
@@ -232,64 +263,38 @@ rb.target-patch-size=
 cb.enable-local-alignments=off
 
 
-# Global Variables tab
+# Global Variables tab test gui
 
 
-[function = global-variables]
+[function = global-variables-test-gui]
 tb.general.1=
-# Only test values if keep is off.
-[[if = test-gui]]
-	if.not.var.keep-dataset-dir.set.var.test-values=
-	return.var.test-values=
-[[]]
-[[if = test-values]]
-	# check values
-	bn.advanced=
-	assert.cb.solve-for-single-stretch-during-projection=off
-	format.bn.basic=
-[[]]
-[[if = test-gui]]
-	# check enabled/disabled
-	bn.advanced=
-	assert.enabled.cb.solve-for-single-stretch-during-projection=
-	format.bn.basic=
-	run.function.rotation-solution-type=
-	run.function.magnification-solution-type=
-	run.function.tilt-angle-solution-type=
-	run.function.distortion-solution-type=
-	run.function.beam-tilt=
-[[]]
-# Run with full distortion solution
-rb.full-solution=
-bn.compute-alignment=
-wait.process.aligning-stack=done
-[[if = test-gui]]
-	# file check
-	assert.exists.file=%{dataset}%{axis}.zfac
-	# Run again with full distortion solution
-	bn.compute-alignment=
-	wait.process.aligning-stack=done
-	# file check
-	assert.exists.file=%{dataset}%{axis}.zfac
-	# backups
-	assert.exists.file=%{dataset}%{axis}.zfac~
-[[]]
+# check values
+bn.advanced=
+assert.cb.solve-for-single-stretch-during-projection=off
+format.bn.basic=
+# check enabled/disabled
+bn.advanced=
+assert.enabled.cb.solve-for-single-stretch-during-projection=
+format.bn.basic=
+run.function.rotation-solution-type-test-gui=
+run.function.magnification-solution-type-test-gui=
+run.function.tilt-angle-solution-type-test-gui=
+run.function.distortion-solution-type-test-gui=
+run.function.beam-tilt-test-gui=
 
 
-[function = rotation-solution-type]
+[function = rotation-solution-type-test-gui]
 tb.general.1=
-[[ifnot = keep-dataset-dir]]
-	# check values
-	assert.rb.no-rotation=off
-	assert.rb.one-rotation=off
-	assert.rb.group-rotations=off
-	assert.rb.solve-for-all-rotations=on
-	assert.tf.rotation-angle=%{image-rotation}
-	assert.tf.group-size=5
-	bn.advanced=
-	assert.tf.non-default-grouping=
-	format.bn.basic=
-[[]]
+# check values
+assert.rb.no-rotation=off
+assert.rb.one-rotation=off
+assert.rb.group-rotations=off
+assert.rb.solve-for-all-rotations=on
+assert.tf.rotation-angle=%{image-rotation}
+assert.tf.group-size=5
+bn.advanced=
+assert.tf.non-default-grouping=
+format.bn.basic=
 # check enabled/disabled
 assert.enabled.rb.no-rotation=
 assert.enabled.rb.one-rotation=
@@ -321,19 +326,17 @@ assert.disabled.tf.non-default-grouping=
 format.bn.basic=
 
 
-[function = magnification-solution-type]
+[function = magnification-solution-type-test-gui]
 tb.general.1=
-[[ifnot = keep-dataset-dir]]
-	# check values
-	assert.rb.fixed-magnification-at-10=off
-	assert.rb.group-magnifications=off
-	assert.rb.solve-for-all-magnifications=on
-	assert.tf.group-size.1=4
-	bn.advanced=
-	assert.tf.reference-view=1
-	assert.tf.non-default-grouping.1=
-	format.bn.basic=
-[[]]
+# check values
+assert.rb.fixed-magnification-at-10=off
+assert.rb.group-magnifications=off
+assert.rb.solve-for-all-magnifications=on
+assert.tf.group-size.1=4
+bn.advanced=
+assert.tf.reference-view=1
+assert.tf.non-default-grouping.1=
+format.bn.basic=
 # check enabled/disabled
 rb.fixed-magnification-at-10=
 assert.enabled.rb.fixed-magnification-at-10=
@@ -359,18 +362,16 @@ assert.disabled.tf.non-default-grouping.1=
 format.bn.basic=
 
 
-[function = tilt-angle-solution-type]
+[function = tilt-angle-solution-type-test-gui]
 tb.general.1=
-[[ifnot = keep-dataset-dir]]
-	# check values
-	assert.rb.fixed-tilt-angles=off
-	assert.rb.group-tilt-angles=on
-	assert.rb.solve-for-all-except-minimum-tilt=off
-	assert.tf.group-size.2=5
-	bn.advanced=
-	assert.tf.non-default-grouping.2=
-	format.bn.basic=
-[[]]
+# check values
+assert.rb.fixed-tilt-angles=off
+assert.rb.group-tilt-angles=on
+assert.rb.solve-for-all-except-minimum-tilt=off
+assert.tf.group-size.2=5
+bn.advanced=
+assert.tf.non-default-grouping.2=
+format.bn.basic=
 # check enabled/disabled
 assert.enabled.rb.fixed-tilt-angles=
 assert.enabled.rb.group-tilt-angles=
@@ -393,23 +394,21 @@ format.bn.basic=
 rb.group-tilt-angles=
 
 
-[function = distortion-solution-type]
+[function = distortion-solution-type-test-gui]
 tb.general.1=
 bn.advanced=
 rb.no-beam-tilt=
 format.bn.basic=
-[[ifnot = keep-dataset-dir]]
-	# check values
-	assert.rb.disabled=on
-	assert.rb.full-solution=off
-	assert.rb.skew-only=off
-	assert.tf.x-stretch-group-size=7
-	assert.tf.skew-group-size=11
-	bn.advanced=
-	assert.tf.x-stretch-non-default-grouping=
-	assert.tf.skew-non-default-grouping=
-	format.bn.basic=
-[[]]
+# check values
+assert.rb.disabled=on
+assert.rb.full-solution=off
+assert.rb.skew-only=off
+assert.tf.x-stretch-group-size=7
+assert.tf.skew-group-size=11
+bn.advanced=
+assert.tf.x-stretch-non-default-grouping=
+assert.tf.skew-non-default-grouping=
+format.bn.basic=
 # check enabled/disabled
 assert.enabled.rb.disabled=
 assert.enabled.rb.full-solution=
@@ -447,17 +446,15 @@ format.bn.basic=
 rb.disabled=
 
 
-[function = beam-tilt]
+[function = beam-tilt-test-gui]
 tb.general.1=
 mb.beam-tilt=A
 rb.disabled=
-[[ifnot = keep-dataset-dir]]
-	# check values
-	assert.rb.no-beam-tilt=on
-	assert.rb.fixed-beam-tilt=off
-	assert.tf.fixed-beam-tilt=
-	assert.rb.solve-for-beam-tilt=off
-[[]]
+# check values
+assert.rb.no-beam-tilt=on
+assert.rb.fixed-beam-tilt=off
+assert.tf.fixed-beam-tilt=
+assert.rb.solve-for-beam-tilt=off
 # check enabled/disabled
 assert.enabled.rb.no-beam-tilt=
 assert.enabled.rb.fixed-beam-tilt=
@@ -476,44 +473,28 @@ rb.no-beam-tilt=
 mb.beam-tilt=B
 
 
-# Local Variables tab
+# Local Variables tab gui test
 
 
-[function = local-variables]
+[function = local-variables-test-gui]
 tb.general=
 cb.enable-local-alignments=
 tb.general.2=
-[[if = test-gui]]
-	# box functions
-	run.function.local-rotation-solution-type=
-	run.function.local-magnification-solution-type=
-	run.function.local-tilt-angle-solution-type=
-	run.function.local-distortion-solution-type=
-[[]]
-# Run with local alignments
-bn.compute-alignment=
-wait.process.aligning-stack=done
-[[if = test-gui]]
-	# file check
-	assert.exists.file=%{dataset}%{axis}local.xf
-	# Run again with local full distortion solution
-	bn.compute-alignment=
-	wait.process.aligning-stack=done
-	# file check
-	assert.exists.file=%{dataset}%{axis}local.xf
-[[]]
+# box functions
+run.function.local-rotation-solution-type-test-gui=
+run.function.local-magnification-solution-type-test-gui=
+run.function.local-tilt-angle-solution-type-test-gui=
+run.function.local-distortion-solution-type-test-gui=
 
 
-[function = local-rotation-solution-type]
+[function = local-rotation-solution-type-test-gui]
 tb.general.2=
-[[ifnot = keep-dataset-dir]]
-	# check values
-	assert.cb.enable=on
-	assert.tf.group-size=6
-	bn.advanced=
-	assert.tf.non-default-grouping=
-	format.bn.basic=
-[[]]
+# check values
+assert.cb.enable=on
+assert.tf.group-size=6
+bn.advanced=
+assert.tf.non-default-grouping=
+format.bn.basic=
 # check enabled/disabled
 assert.enabled.cb.enable=
 cb.enable=on
@@ -529,16 +510,14 @@ format.bn.basic=
 cb.enable=on
 
 
-[function = local-magnification-solution-type]
+[function = local-magnification-solution-type-test-gui]
 tb.general.2=
-[[ifnot = keep-dataset-dir]]
-	# check values
-	assert.cb.enable.1=on
-	assert.tf.group-size.1=7
-	bn.advanced=
-	assert.tf.non-default-grouping.1=
-	format.bn.basic=
-[[]]
+# check values
+assert.cb.enable.1=on
+assert.tf.group-size.1=7
+bn.advanced=
+assert.tf.non-default-grouping.1=
+format.bn.basic=
 # check enabled/disabled
 assert.enabled.cb.enable.1=
 cb.enable.1=on
@@ -554,16 +533,14 @@ format.bn.basic=
 cb.enable.1=on
 
 
-[function = local-tilt-angle-solution-type]
+[function = local-tilt-angle-solution-type-test-gui]
 tb.general.2=
-[[ifnot = keep-dataset-dir]]
-	# check values
-	assert.cb.enable.2=on
-	assert.tf.group-size.2=6
-	bn.advanced=
-	assert.tf.non-default-grouping.2=
-	format.bn.basic=
-[[]]
+# check values
+assert.cb.enable.2=on
+assert.tf.group-size.2=6
+bn.advanced=
+assert.tf.non-default-grouping.2=
+format.bn.basic=
 # check enabled/disabled
 assert.enabled.cb.enable.2=
 cb.enable.2=on
@@ -579,18 +556,11 @@ format.bn.basic=
 cb.enable.2=on
 
 
-[function = local-distortion-solution-type]
+[function = local-distortion-solution-type-test-gui]
 tb.general.2=
 # check values
-[[ifnot = patch-tracking]]
-assert.rb.disabled=off
-# Full solution should be on because it was turned on in Global Variables
-assert.rb.full-solution=on
-[[]]
-[[if = patch-tracking]]
 assert.rb.disabled=on
 assert.rb.full-solution=off
-[[]]
 assert.rb.skew-only=off
 assert.tf.x-stretch-group-size=7
 assert.tf.skew-group-size=11

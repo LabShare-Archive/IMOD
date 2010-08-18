@@ -7,6 +7,17 @@ if.var.build.return=
 bn.done=
 
 
+[function = assert-variable-tilt-values]
+[[if = patch-tracking]]
+  assert.tf.tomogram-thickness-in-z=%{tomogram-thickness-in-z-patch-tracking}
+    assert.tf.x-axis-tilt=%{x-axis-tilt-patch-tracking}
+[[]]
+[[ifnot = patch-tracking]]
+  assert.tf.tomogram-thickness-in-z=%{tomogram-thickness-in-z}
+    assert.tf.x-axis-tilt=%{x-axis-tilt}
+[[]]
+
+
 [function = tilt]
 # Different name output file with single axis:  dataset_full.rec
 set.var.tomo-ext=
@@ -17,8 +28,7 @@ mb.tilt=+
 	assert.cb.parallel-processing=on
 	assert.cb.take-logarithm-of-densities-with-offset=on
 	assert.tf.take-logarithm-of-densities-with-offset=0.0
-	assert.tf.tomogram-thickness-in-z=%{tomogram-thickness-in-z}
-	assert.tf.x-axis-tilt=%{x-axis-tilt}
+	run.function.assert-variable-tilt-values=
 	assert.tf.radial-filter-cutoff=0.35
 	assert.tf.falloff=0.05
 	assert.cb.use-local-alignments=on
@@ -85,6 +95,7 @@ mb.tilt=+
 [[]]
 # test trial tilt
 run.function.trial-tilt=
+run.function.setup-patch-tracking=
 # run with parallel processing
 cb.parallel-processing=on
 bn.generate-tomogram=
@@ -147,6 +158,11 @@ assert.bn.generate-tomogram=on
 # clean up
 bn.delete-intermediate-image-stacks=
 
+
+[function = setup-patch-tracking]
+if.not.var.patch-tracking.return=
+if.equals.var.dataset.return=BB
+tf.tomogram-thickness-in-z=%{tomogram-thickness-in-z-patch-tracking}
 
 [function = same-file]
 [[ifnot = simple-align]]

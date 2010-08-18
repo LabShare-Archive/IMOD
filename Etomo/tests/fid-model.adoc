@@ -293,6 +293,8 @@ bn.track-patches=
 wait.process.cross-correlating-stack=done
 assert.exists.file=xcorr_pt%{axis}.log~
 assert.exists.file=%{dataset}%{axis}.fid~
+#don't break contours for midzone2b (doesn't need it)
+if.equals.var.axis.return=b
 cb.break-contours-into-pieces=on
 bn.track-patches=
 wait.process.cross-correlating-stack=done

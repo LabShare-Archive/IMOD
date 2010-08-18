@@ -11,7 +11,7 @@ bb: single dual single-test-gui dual-test-gui single-fidless single-simple-align
 midzone2: single-montage dual-montage single-montage-test-gui dual-montage-test-gui
 unicross: join join-test-gui nad
 pi: peet peet-test-gui
-temp: 
+temp: single-patch-tracking-test-gui single-montage dual-montage single-montage-test-gui dual-montage-test-gui dual-montage-patch-tracking join join-test-gui generic nad peet peet-test-gui flatten-volume flatten-volume-test-gui
 
 single: dummy
 	$(IMOD_UITEST_SCRIPT)/uitest single

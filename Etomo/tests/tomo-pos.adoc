@@ -13,14 +13,34 @@ Version = 1.2
 [[]]
 bn.done =
 
+
 [function = create-sample-tomograms]
 cb.use-whole-tomogram = off
 tf.sample-tomogram-thickness = %{sample-tomogram-thickness}
 bn.create-sample-tomograms =
 wait.process.creating-sample-tomogram = done
 
+
+[function = copy]
+[[if = simple-align]]
+  copy.file = tomopitch%{axis}_simple-align.mod|tomopitch%{axis}.mod
+[[]]
+[[ifnot = simple-align]]
+  run.function.non-simple-align-copy=
+[[]]
+
+
+[function = non-simple-align-copy]
+[[if = patch-tracking]]
+  copy.file = tomopitch%{axis}_patch-tracking.mod|tomopitch%{axis}.mod
+[[]]
+[[ifnot = patch-tracking]]
+  copy.file = tomopitch%{axis}.mod
+[[]]
+
+
 [function = compute-z-shift-&-pitch-angles]
-copy.file = tomopitch%{axis}.mod
+run.function.copy=
 sleep=
 bn.compute-z-shift-&-pitch-angles =
 wait.process.finding-sample-position = done
