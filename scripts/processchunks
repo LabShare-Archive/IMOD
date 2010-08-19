@@ -222,12 +222,13 @@ else
     if ($#tenthoulist > 0) set comlist = ($comlist $tenthoulist)
 
     if (-e $endroot.com) set comlist = ($comlist $endroot.com)
+
+    if ($#hundlist < 1 && $#thoulist < 1 && $#tenthoulist < 1) then
+        echo "ERROR: $pn - There are no command files matching $rootname-nnn.com"
+        exit 1
+    endif
 endif
 
-if ($#comlist < 1) then
-    echo "ERROR: $pn - There are no command files matching $rootname-nnn.com"
-    exit 1
-endif
 
 set thishost = `hostname`
 set hostroot = $thishost:r:r:r
@@ -935,6 +936,9 @@ exit 2
 
 #
 #  $Log$
+#  Revision 3.53  2010/06/14 20:42:37  mast
+#  Copy log from first non-sync chunk if any; report WARNINGS
+#
 #  Revision 3.52  2010/05/25 03:23:04  mast
 #  Increased specificity of cleanup to include 3 digits
 #
