@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+8/19/10: Fixed processchunks test for numbered com files, so rerunning on a
+finished set does not run -start and -finish over.
+
 8/17/10: Fixed problem with tilt when reconstructing < 10 large slices, allowed
 up to 3600 views.
 
