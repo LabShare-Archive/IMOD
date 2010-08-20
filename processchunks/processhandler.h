@@ -11,6 +11,11 @@
 
 #include <QProcess>
 #include <processchunks.h>
+#include <machinehandler.h>
+#include <QTextStream>
+
+class Processchunks;
+class MachineHandler;
 
 class ProcessHandler: public QObject {
 Q_OBJECT
@@ -19,47 +24,90 @@ public:
   ProcessHandler();
   ~ProcessHandler();
 
-  enum flag {
-    sync = -1, notDone, done = 2
-  };
+  typedef enum flag {
+    sync = -1, notDone, assigned, done
+  } FlagType;
 
-  bool setup(int verbose,int singleFile,QString comFile);
-  void reset();
-  bool logExists();
-  bool isChunkDone();
-  void setFlag(enum flag);
+  void setup(Processchunks &processchunks, const QString &comFile,
+      const int processIndex);
+  const bool logFileExists(const bool newlyCreatedFile);
+  const bool isChunkDone();
+  void setFlag(const FlagType flag);
+  void removeFiles();
+  void removeProcessFiles();
+  const bool cshFileExists();
+  const int getNumChunkErr();
+  const QString getComFileName();
+  void printWarnings();
+  const QString getLogFileName();
+  const QByteArray readAllLogFile();
+  const bool isLogFileEmpty();
+  const bool isStartProcessTimedOut(const int timeoutMillisec);
+  void getErrorMessage(QStringList &errorMess);
+  void incrementNumChunkErr();
+  const bool isComProcessDone();
+  void printTooManyErrorsMessage(const int numErr);
+  const bool isJobFileEmpty();
+  const bool getSshError(QString &dropMess);
+  const bool qidFileExists();
+  const QString &getPid();
+  void setFlagNotDone();
   void backupLog();
-  bool flagEquals(enum flag);
-
-  void
-  init(Processchunks *parent, char *imodDir, QTextStream *out, int index);
-  void setParams(QStringList params);
-  void runProcess();
-  bool waitForFinished(int timeout);
-
+  const FlagType getFlag();
+  void makeCshFile();
+  void runProcess(MachineHandler *machine);
+  const bool killProcess();
+  void continueKillProcess(const bool asynchronous);
+  void msgKillProcessTimeout();
+  const bool isFinishedSignalReceived();
 
 public slots:
-  void handleError(QProcess::ProcessError error);
-  void handleReadyReadStandardError();
+  void handleError(const QProcess::ProcessError error);
   void handleStarted();
-  void handleFinished(int exitCode, QProcess::ExitStatus exitStatus);
+  void
+  handleFinished(const int exitCode, const QProcess::ExitStatus exitStatus);
+  void handleReadyReadStandardError();
+  void handleReadyReadStandardOutput();
+  void handleKillFinished(const int exitCode,
+      const QProcess::ExitStatus exitStatus);
+  void cleanupKillProcess();
 
-
+protected:
+  void timerEvent(const QTimerEvent *e);
 
 private:
-  QString *mComFileName,*mLogFileName;
-  bool mVerbose,mSingleFile;
-  int mNumChunkErr;
-  enum flag mFlag;
+  void initProcess();
+  const bool getPid(QTextStream *stream);
+  const bool getSshError(QString &dropMess, QTextStream *stream);
+  void resetSignalValues();
+  void readAllStandardError() ;
+  void readAllStandardOutput();
 
-  Processchunks *mParent;
-  QTextStream *mOut;
-  QProcess *mProc;
-  int mIndex;
-  QStringList *mParams;
-  bool mFinished;
-  QString *mPid, *mStderr;
-  char *mImodDir;
+  QString mComFileName, mRoot;
+  QFile *mLogFile, *mCshFile, *mJobFile, *mQidFile;
+  bool mLogFileExists;
+  //On when process is run, off when finished, kill finished signal received,
+  //or when the kill timeout is handled.
+  bool mStartingProcess;
+  int mNumChunkErr;
+  FlagType mFlag;
+  QByteArray mStderr, mStdout;
+  QString mPid, mEscapedCurrentDirPath, mCommand;//queue or local command
+  QStringList mParamList;//list of queue or local params
+  Processchunks *mProcesschunks;
+  QProcess *mProcess, *mVmstocsh;
+  QTime mStartTime;
+
+  //Kill process variables
+  MachineHandler *mMachine;
+  QProcess *mKillProcess;
+  int mProcessIndex, mPidTimerId;
+  bool mKill, mRanContinueKillProcess;
+
+  //Signal variables
+  bool mErrorSignalReceived, mStartedSignalReceived, mFinishedSignalReceived,
+      mKillFinishedSignalReceived;
+  int mProcessError, mExitCode, mExitStatus;
 };
 
 #endif /* PROCESSHANDLER_H_ */

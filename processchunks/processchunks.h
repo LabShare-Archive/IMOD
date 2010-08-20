@@ -4,10 +4,15 @@
 #include <QApplication>
 #include <machinehandler.h>
 #include <QList>
+#include <QStringList>
+#include <QDir>
+#include <processhandler.h>
 
 class ProcessHandler;
 class QTextStream;
 class QProcess;
+class QFile;
+class MachineHandler;
 
 class Processchunks: public QApplication {
 Q_OBJECT
@@ -18,32 +23,107 @@ public:
 
   void loadParams(int &argc, char **argv);
   void setup();
-  bool askGo();
-  void runProcesses();
-  void msgProcessFinished();
+  const bool askGo();
+  void startLoop();
+  void handleInterrupt();
+  void killProcessOnNextMachines();
+  ProcessHandler &getProcessHandler(const int processIndex);
+  void msgKillProcessStarted(const int processIndex);
+  void msgKillProcessDone(const int processIndex);
+  void handleFileSystemBug();
+  void setInterrupt();
+
+  const QStringList &getEnv();
+  const bool isQueue();
+  const QString &getQueueCommand();
+  QDir &getCurrentDir();
+  const QStringList &getQueueParamList();
+  const bool isVerbose();
+  QTextStream &getOutStream();
+  const bool isSingleFile();
+  const QString &getHostRoot();
+  const QStringList &getSshOpts();
+  const int getNice();
+  const char getAns();
+  QStringList &getDropList();
+  const int getDropCrit();
+
+public slots:
+  void timerEvent();
 
 protected:
   void timerEvent(QTimerEvent *e);
 
 private:
-  void extractVersion(QString versionString);
-  void buildFilters(char *reg, char *sync, QStringList &filters);
-  void cleanupList(char *remove, QStringList &list);
-  int runProcessAndOutputLines(QProcess &process, QString &command,
-      QStringList &params, int numLines);
+  const int extractVersion(const QString &versionString);
+  void buildFilters(const char *reg, const char *sync, QStringList &filters);
+  void cleanupList(const char *remove, QStringList &list);
+  const int runProcessAndOutputLines(QProcess &process, const QString &command,
+      const QStringList &params, const int numLines);
+  void setupSshOpts();
+  void setupMachineList();
+  void setupHostRoot();
+  void setupEnvironment();
+  void setupProcessArray();
+  void probeMachines();
+  const bool readCheckFile();
+  void exitIfDropped(const int minFail, const int failTot, const int assignTot);
+  const bool handleChunkDone(MachineHandler *machine, const int cpuIndex,
+      const int processIndex);
+  const bool
+  handleLogFileError(QStringList &errorMess, MachineHandler *machine,
+      const int cpuIndex, const int processIndex);
+  void handleComProcessNotDone(bool &dropout, QString &dropMess,
+      const int processIndex);
+  void handleDropOut(bool &noChunks, QString &dropMess,
+      MachineHandler *machine, const int cpuIndex, const int processIndex,
+      const QStringList &errorMess);
+  const bool checkChunk(int &runFlag, bool &noChunks, int &undone,
+      bool &foundChunks, bool &chunkOk, MachineHandler *machine,
+      const int processIndex, const int chunkErrTot);
+  void runProcess(MachineHandler *machine, const int cpuIndex,
+      const int processIndex);
+  void cleanupAndExit(int exitCode = 0);
+  void killProcesses(QStringList *dropList = NULL);
+  void startTimers();
+  void cleanupKillProcesses(const bool timeout);
+  void checkQueueProcessesDone(const bool timeout);
 
+  int mSizeProcessArray;
   ProcessHandler *mProcessArray;
-  QList<MachineHandler> *mMachineList;
-  QTextStream *mOut;
-  int mSizeProcessArray, mProcessFinishedCount, mRetain,
-      mSingleFile, mJustGo, mSkipProbe, mReturnPid, mNice, mDropCrit,
-      mMaxChunkErr, mQueue, mVersion, mVerbose, mCopyLogIndex;
-  char *mRemoteDir;//was curdir
-  char *mCheckFile, *mQueueName, *mCpuList, *mRootName, *mQueueCom,
-      *mSshExt, *mPidExt;
-  QString *mHostRoot;
-  QStringList *mSshOpts;
-  bool mRestarting;
+  QList<MachineHandler> mMachineList;
+  QTextStream *mOutStream;
+
+  //params
+  int mRetain, mJustGo, mNice, mDropCrit, mQueue, mSingleFile, mMaxChunkErr,
+      mVerbose;
+  bool mSkipProbe;
+  char *mQueueName, *mRootName;
+  QFile *mCheckFile;
+  const QString *mRemoteDir;//was curdir
+  QString mCpuList;
+
+  //setup
+  int mCopyLogIndex, mNumCpus;
+  QString mHostRoot, mQueueCommand;
+  QStringList mSshOpts, mQueueParamList, mEnv;
+  QDir mCurrentDir;
+
+  //loop
+  int mNumDone, mLastNumDone, mHoldCrit, mTimerId, mFirstUndoneIndex,
+      mNextSyncIndex, mSyncing;
+  bool mPausing, mAnyDone, mInterrupt;
+  char mAns;
+
+  //killing processes
+  bool mKill, mAllKillProcessesHaveStarted;
+  int mKillProcessMachineIndex, mKillTimerId, mKillCounter;
+  QList<int> mProcessesWithUnfinishedKillRequest;
+  QStringList mDropList;
+
+  //handling file system bug
+  QProcess *mLsProcess;
+  QStringList mLsParamList;
 };
 
 #endif
