@@ -65,7 +65,7 @@ static int zDrawSize = -1;
 static int lastYsize = -1;
 static int lastZsize = -1;
 
-#define MAX_SLICES 256
+#define MAX_SLICES 1024
 
 struct imodvImageDataStruct {
   ImodvImage *dia;
@@ -843,6 +843,9 @@ void ImodvImage::keyReleaseEvent ( QKeyEvent * e )
 
 /*
 $Log$
+Revision 4.21  2010/04/01 02:41:48  mast
+Called function to test for closing keys, or warning cleanup
+
 Revision 4.20  2009/03/22 19:54:25  mast
 Show with new geometry adjust routine for Mac OS X 10.5/cocoa
 
