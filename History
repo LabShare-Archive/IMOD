@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+8/25/10: Fixed Newstack problem with a file list of output files and added
+-append option to specify extension on series of numbered files.
+
 8/19/10: Fixed processchunks test for numbered com files, so rerunning on a
 finished set does not run -start and -finish over.
 

@@ -53,9 +53,19 @@ tooltip =
 manpage = Starting number for a series of numbered output files, where
 one section will be placed in each file.  There must be only one output file
 name entered, and it will be taken as the root name for the output files.  A
-dot and the number will be appended to the root name for each file.  The
-number of digits used for the number will be the same for all files so that
-they will list in order.
+dot and the number will be appended to the root name for each file unless an
+extension is entered with the -append option.  The number of digits used for
+the number will be the same for all files so that they will list in order. 
+
+[Field = AppendExtension]
+short = append
+type = CH
+usage = Extension to append to series of numbered filenames
+tooltip =
+manpage = Extension to append to the filenames in a series of numbered files.
+With this option, files will be named like "rootnnn.ext" instead of
+"root.nnn", where "root" is the root name entered as the output file name,
+and "ext" is the extension entered with this option.
 
 [Field = SectionsToRead]
 short = secs
