@@ -29,7 +29,7 @@ C
       CHARACTER*320 xffil,filistin,filistout
       CHARACTER*320, allocatable :: FILIN(:),FILOUT(:)
       character*320 idfFile, magGradFile
-      character*320 tempname,temp_filename
+      character*320 tempname,temp_filename, seriesExt
       character*100000 listString
       character*6 convfmt
       character*10 convnum
@@ -108,27 +108,28 @@ c
 c       fallbacks from ../../manpages/autodoc2man -2 2  newstack
 c       
       integer numOptions
-      parameter (numOptions = 37)
+      parameter (numOptions = 38)
       character*(40 * numOptions) options(1)
       options(1) =
      &    'input:InputFile:FNM:@output:OutputFile:FNM:@'//
      &    'fileinlist:FileOfInputs:FN:@fileoutlist:FileOfOutputs:FN:@'//
-     &    'split:SplitStartingNumber:I:@secs:SectionsToRead:LIM:@'//
-     &    'skip:SkipSectionIncrement:I:@numout:NumberToOutput:IAM:@'//
-     &    'replace:ReplaceSections:LI:@blank:BlankOutput:B:@'//
-     &    'size:SizeToOutputInXandY:IP:@mode:ModeToOutput:I:@'//
-     &    'offset:OffsetsInXandY:FAM:@applyfirst:ApplyOffsetsFirst:B:@'//
-     &    'xform:TransformFile:FN:@uselines:UseTransformLines:LIM:@'//
-     &    'onexform:OneTransformPerFile:B:@rotate:RotateByAngle:F:@'//
-     &    'expand:ExpandByFactor:F:@bin:BinByFactor:I:@'//
-     &    'origin:AdjustOrigin:B:@linear:LinearInterpolation:B:@'//
-     &    'float:FloatDensities:I:@contrast:ContrastBlackWhite:IP:@'//
-     &    'scale:ScaleMinAndMax:FP:@fill:FillValue:F:@'//
-     &    'multadd:MultiplyAndAdd:FPM:@taper:TaperAtFill:IP:@'//
-     &    'distort:DistortionField:FN:@imagebinned:ImagesAreBinned:I:@'//
-     &    'fields:UseFields:LIM:@gradient:GradientFile:FN:@'//
-     &    'memory:MemoryLimit:I:@test:TestLimits:IP:@'//
-     &    'verbose:VerboseOutput:I:@param:ParameterFile:PF:@help:usage:B:'
+     &    'split:SplitStartingNumber:I:@append:AppendExtension:CH:@'//
+     &    'secs:SectionsToRead:LIM:@skip:SkipSectionIncrement:I:@'//
+     &    'numout:NumberToOutput:IAM:@replace:ReplaceSections:LI:@'//
+     &    'blank:BlankOutput:B:@size:SizeToOutputInXandY:IP:@'//
+     &    'mode:ModeToOutput:I:@offset:OffsetsInXandY:FAM:@'//
+     &    'applyfirst:ApplyOffsetsFirst:B:@xform:TransformFile:FN:@'//
+     &    'uselines:UseTransformLines:LIM:@onexform:OneTransformPerFile:B:@'//
+     &    'rotate:RotateByAngle:F:@expand:ExpandByFactor:F:@'//
+     &    'bin:BinByFactor:I:@origin:AdjustOrigin:B:@'//
+     &    'linear:LinearInterpolation:B:@float:FloatDensities:I:@'//
+     &    'contrast:ContrastBlackWhite:IP:@scale:ScaleMinAndMax:FP:@'//
+     &    'fill:FillValue:F:@multadd:MultiplyAndAdd:FPM:@'//
+     &    'taper:TaperAtFill:IP:@distort:DistortionField:FN:@'//
+     &    'imagebinned:ImagesAreBinned:I:@fields:UseFields:LIM:@'//
+     &    'gradient:GradientFile:FN:@memory:MemoryLimit:I:@'//
+     &    'test:TestLimits:IP:@verbose:VerboseOutput:I:@'//
+     &    'param:ParameterFile:PF:@help:usage:B:'
 c       
 c       Pip startup: set error, parse options, check help, set flag if used
 c       
@@ -175,6 +176,7 @@ c
       rottime = 0.
       maxextra = 0
       iseriesBase = -1
+      seriesExt = ' '
 c       
 c       Preliminary allocation of array
       allocate(array(limdim), stat = ierr)
@@ -316,15 +318,18 @@ c
         if (iseriesBase .ge. 0 .and. nfileout .ne. 1) call exitError('THERE'//
      &      ' MUST BE ONLY ONE OUTPUT FILE NAME FOR SERIES OF NUMBERED FILES')
         if (iseriesBase .ge. 0) nfileout = listot
+        ierr = PipGetString('AppendExtension', seriesExt)
       else
         write(*,'(1x,a,$)')'# of output files (or -1 to read list'//
      &      ' of output files from file): '
         read(5,*)nfileout
       endif
       if (nfileout .eq. 0) call exitError('NO OUTPUT FILE SPECIFIED')
-c
-      allocate(filout(nfileout), nsecout(nfileout), stat = ierr)
-      if(ierr.ne.0)call exitError('ALLOCATING ARRAYS FOR OUTPUT FILES')
+c       
+      if (nfileout .gt. 0) then
+        allocate(filout(nfileout), nsecout(nfileout), stat = ierr)
+        call memoryError(ierr, 'ARRAYS FOR OUTPUT FILES')
+      endif
 c
 c       get list input
 c       
@@ -336,6 +341,10 @@ c
         endif
         call dopen(7,filistout,'ro','f')
         read(inunit,*)nfileout
+        if (nfileout .le. 0) call exitError('THE OUTPUT LIST FILE MUST START'//
+     &      ' WITH A POSITIVE NUMBER OF FILES TO OUTPUT')
+        allocate(filout(nfileout), nsecout(nfileout), stat = ierr)
+        call memoryError(ierr, 'ARRAYS FOR OUTPUT FILES')
       elseif(nfileout.eq.1 .and. .not.pipinput)then
 c         
 c         get single output file
@@ -403,7 +412,12 @@ c       If series, now take the one filename as root name and make filenames
         do i = 1, listot
           nsecout(i) = 1
           write(convnum, convfmt) i + iseriesBase - 1
-          filout(i) = concat(concat(tempname, '.'), convnum)
+          if (seriesExt .eq. ' ') then
+            filout(i) = concat(concat(tempname, '.'), convnum)
+          else
+            filout(i) = concat(concat(concat(tempname, convnum), '.'),
+     &          seriesExt)
+          endif
         enddo
         noutot=listot
       endif
@@ -2092,6 +2106,9 @@ c
 ************************************************************************
 *       
 c       $Log$
+c       Revision 3.59  2010/06/09 04:29:02  mast
+c       Fixed fallback for memory limit
+c
 c       Revision 3.58  2010/04/13 15:42:16  mast
 c       Increased number of allowed sections, used allocation for all other common
 c       section and file related arrays, added split option
