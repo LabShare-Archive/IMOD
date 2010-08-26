@@ -163,15 +163,15 @@ void Processchunks::loadParams(int &argc, char **argv) {
 //Setup mSshOpts, mCpuArray, mProcessArray, mHostRoot, mRemoteDir.  Probe
 //machines.
 void Processchunks::setup() {
+  //Get current directory if the -w option was not used
+  if (mRemoteDir == NULL) {
+    mRemoteDir = new QString(mCurrentDir.absolutePath().toLatin1().data());
+  }
   setupSshOpts();
   setupMachineList();
   setupHostRoot();
   setupEnvironment();
   setupProcessArray();
-  //Get current directory if the -w option was not used
-  if (mRemoteDir == NULL) {
-    mRemoteDir = new QString(mCurrentDir.absolutePath().toLatin1().data());
-  }
   probeMachines();
 }
 
@@ -250,7 +250,6 @@ void Processchunks::timerEvent() {
 }
 
 void Processchunks::setInterrupt() {
-  *mOutStream << "tag D" << endl;
   mInterrupt = true;
 }
 
@@ -324,7 +323,7 @@ void Processchunks::timerEvent(QTimerEvent *timerEvent) {
         if (processIndex != -1) {
           QString dropMess;
           QString checkPid;
-          QStringList errorMess;
+          QString errorMess;
           if (mProcessArray[processIndex].isComProcessDone()) {
             //Handle the comscript ran and finished
             // If the log is present and the process's finished signal has been caught
@@ -352,18 +351,8 @@ void Processchunks::timerEvent(QTimerEvent *timerEvent) {
             }
           }
           else {
-            handleComProcessNotDone(dropout, dropMess, processIndex);
+            handleComProcessNotDone(dropout, dropMess, machine, processIndex);
           }
-          //Now if pid file has anything but a PID in the two cases of
-          //nonexistent or zero-length log file, drop machine
-          /*checkPid = mProcessArray[processIndex].getPid();
-           if (!checkPid.isEmpty()) {
-           dropout = true;
-           machine->setFailureCount(mDropCrit);
-           dropMess = "it cannot run IMOD commands (";
-           dropMess.append(checkPid);
-           dropMess.append(")");
-           }*/
           //if failed, remove the assignment, mark chunk as to be done,
           //skip this machine on this round
           if (dropout) {
@@ -678,12 +667,9 @@ void Processchunks::cleanupKillProcesses(const bool timeout) {
     killTimer(mKillTimerId);
     mKillTimerId = 0;
   }
-  if (!mProcessesWithUnfinishedKillRequest.isEmpty()) {
-    return;
-  }
   //Not all kill requests completed so send a timeout message to the processes
   int i;
-  for (i = 0; mProcessesWithUnfinishedKillRequest.size(); i++) {
+  for (i = 0; i < mProcessesWithUnfinishedKillRequest.size(); i++) {
     mProcessArray[mProcessesWithUnfinishedKillRequest.at(i)].msgKillProcessTimeout();
   }
   //Handle error
@@ -1180,7 +1166,7 @@ const bool Processchunks::handleChunkDone(MachineHandler *machine,
 //Looks for and print an error message in log file.
 //If the chunk has errored too many times, set mAns to E and kill jobs
 //Return false the chunk has errored too many times
-const bool Processchunks::handleLogFileError(QStringList &errorMess,
+const bool Processchunks::handleLogFileError(QString &errorMess,
     MachineHandler *machine, const int cpuIndex, const int processIndex) {
   int numErr, i;
   mProcessArray[processIndex].getErrorMessage(errorMess);
@@ -1212,7 +1198,7 @@ const bool Processchunks::handleLogFileError(QStringList &errorMess,
 //Handle com not started yet
 //Handle log doen't exist and timeout - drop
 void Processchunks::handleComProcessNotDone(bool &dropout, QString &dropMess,
-    const int processIndex) {
+    MachineHandler *machine, const int processIndex) {
   if (mQueue && !mProcessArray[processIndex].qidFileExists()) {
     //For a queue, the qid file should be there
     dropout = true;
@@ -1222,7 +1208,11 @@ void Processchunks::handleComProcessNotDone(bool &dropout, QString &dropMess,
     //Either there is no log file or the .csh is still present:
     //check the ssh file and accumulate timeout
     //If the ssh file is non empty check for errors there
-    dropout = mProcessArray[processIndex].getSshError(dropMess);
+    if (mProcessArray[processIndex].getSshError(dropMess)) {
+      //A cd or ssh error is very serious - stop using this machine.
+      dropout = true;
+      machine->setFailureCount(mDropCrit);
+    }
     if (!dropout && mProcessArray[processIndex].isFinishedSignalReceived()) {
       dropout = true;
     }
@@ -1240,33 +1230,30 @@ void Processchunks::handleComProcessNotDone(bool &dropout, QString &dropMess,
 //skip this machine on this round
 void Processchunks::handleDropOut(bool &noChunks, QString &dropMess,
     MachineHandler *machine, const int cpuIndex, const int processIndex,
-    const QStringList &errorMess) {
-  int i;
+    const QString &errorMess) {
   *mOutStream << mProcessArray[processIndex].getComFileName() << " failed on "
       << machine->getName() << " - need to restart" << endl;
   if (!errorMess.isEmpty()) {
-    for (i = 0; i < errorMess.size(); i++) {
-      *mOutStream << errorMess.at(i) << endl;
-    }
-    mProcessArray[processIndex].setFlagNotDone();
-    if (mSyncing) {
-      mSyncing = 1;
-    }
-    machine->setAssignedProcIndex(cpuIndex, -1);
-    noChunks = false;
-    machine->incrementFailureCount();
-    if (machine->getFailureCount() >= mDropCrit) {
-      if (dropMess.isEmpty()) {
-        dropMess = "it failed (with ";
-        if (!machine->isChunkErred()) {
-          dropMess.append("time out) ");
-        }
-        else {
-          dropMess.append("chunk error) ");
-        }
-        dropMess.append(machine->getFailureCount());
-        dropMess.append(" times in a row");
+    *mOutStream << errorMess << endl;
+  }
+  mProcessArray[processIndex].setFlagNotDone();
+  if (mSyncing) {
+    mSyncing = 1;
+  }
+  machine->setAssignedProcIndex(cpuIndex, -1);
+  noChunks = false;
+  machine->incrementFailureCount();
+  if (machine->getFailureCount() >= mDropCrit) {
+    if (dropMess.isEmpty()) {
+      dropMess = "it failed (with ";
+      if (!machine->isChunkErred()) {
+        dropMess.append("time out");
       }
+      else {
+        dropMess.append("chunk error");
+      }
+      dropMess.append(") %1 times in a row");
+      dropMess = dropMess.arg(machine->getFailureCount());
     }
     if (!mAnyDone && machine->isChunkErred()) {
       *mOutStream << "Holding off on using ";
@@ -1501,8 +1488,15 @@ ProcessHandler &Processchunks::getProcessHandler(const int processIndex) {
   return mProcessArray[processIndex];
 }
 
+const QString &Processchunks::getRemoteDir() {
+  return *mRemoteDir;
+}
+
 /*
  $Log$
+ Revision 1.4  2010/08/20 21:37:14  sueh
+ bug# 1364
+
  Revision 1.3  2010/06/27 17:30:08  sueh
  bug# 1364 Added MachineHandler.
 

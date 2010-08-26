@@ -80,8 +80,8 @@ void ProcessHandler::setup(Processchunks &processchunks,
   mProcesschunks = &processchunks;
   mComFileName = comFile;
   mProcessIndex = processIndex;
-  mEscapedCurrentDirPath = QDir::currentPath();
-  mEscapedCurrentDirPath.replace(QRegExp(" "), "\\ ");
+  mEscapedRemoteDirPath = mProcesschunks->getRemoteDir();
+  mEscapedRemoteDirPath.replace(QRegExp(" "), "\\ ");
   setFlagNotDone();
   //Set mRoot
   int i = mComFileName.lastIndexOf(".");
@@ -110,7 +110,7 @@ void ProcessHandler::setup(Processchunks &processchunks,
     //finishes after putting things into the queue
     //$queuecom -w "$curdir" -a R $comname:r
     mCommand = mProcesschunks->getQueueCommand();
-    QString param = QString("'%1'").arg(QDir::currentPath());
+    QString param = QString("'%1'").arg(mProcesschunks->getRemoteDir());
     mParamList << mProcesschunks->getQueueParamList() << "-w" << param << "-a"
         << "R" << mRoot;
   }
@@ -287,7 +287,7 @@ const bool ProcessHandler::getSshError(QString &dropMess, QTextStream *stream) {
   while (!line.isNull()) {
     if (line.indexOf("cd: ") != -1) {
       dropMess = "it cannot cd to %1 (%2)";
-      dropMess = dropMess.arg(QDir::currentPath(), line);
+      dropMess = dropMess.arg(mProcesschunks->getRemoteDir(), line);
       return true;
     }
     else if (line.indexOf("ssh: connect to host") != -1) {
@@ -341,8 +341,8 @@ const bool ProcessHandler::isChunkDone() {
 }
 
 //Reads the last 1000 characters of the file.  Returns all the text between
-//"ERROR:" and the end of the file.
-void ProcessHandler::getErrorMessage(QStringList &errorMess) {
+//with "ERROR:" and the end of the file.
+void ProcessHandler::getErrorMessage(QString &errorMess) {
   if (!mLogFile->open(QIODevice::ReadOnly)) {
     return;
   }
@@ -352,18 +352,21 @@ void ProcessHandler::getErrorMessage(QStringList &errorMess) {
   if (size > sizeToCheck) {
     stream.seek(size - sizeToCheck);
   }
-  bool errorFound = false;
-  QString line = stream.readLine();
-  while (!stream.atEnd()) {
-    if (!errorFound && line.indexOf("ERROR:") != -1) {
-      errorFound = true;
-    }
-    if (errorFound) {
+  QString line;
+  do {
+    line = stream.readLine();
+    if (line.indexOf("ERROR:") != -1) {
       errorMess.append(line);
     }
-    line = stream.readLine();
-  }
+  } while (!stream.atEnd());
   mLogFile->close();
+  if (errorMess.isEmpty()) {
+    errorMess.append("CHUNK ERROR: (last line) - ");
+    errorMess.append(line);
+  }
+  else {
+    errorMess.prepend("CHUNK ");
+  }
 }
 
 void ProcessHandler::printTooManyErrorsMessage(const int numErr) {
@@ -519,7 +522,7 @@ void ProcessHandler::runProcess(MachineHandler *machine) {
       //being run from a shell.
       //QString param = QString("'\"cd %1 && (csh -ef < %2 ; \\rm -f %3)\"'").arg(
       QString param = QString("\"cd %1 && (csh -ef < %2 ; \\rm -f %3)\"").arg(
-          mEscapedCurrentDirPath, mCshFile->fileName(), mCshFile->fileName());
+          mEscapedRemoteDirPath, mCshFile->fileName(), mCshFile->fileName());
       paramList = new QStringList();
       paramList->append("-x");
       QStringList sshOpts = mProcesschunks->getSshOpts();
@@ -778,10 +781,21 @@ void ProcessHandler::msgKillProcessTimeout() {
 void ProcessHandler::handleKillFinished(const int exitCode,
     const QProcess::ExitStatus exitStatus) {
   mKillFinishedSignalReceived = true;
-  if (mProcesschunks->isVerbose()) {
-    mProcesschunks->getOutStream() << "handleKillFinished:exitCode:" << exitCode << ",exitStatus:"
-        << exitStatus << endl;
-  }
+  /*if (exitCode) {
+   mProcesschunks->getOutStream() << "Failed to kill " << mComFileName
+   << " on " << mMachine->getName()
+   << ".  Kill function failed (no problem if machine is dead)." << endl;
+   mProcessIndex = -1;
+   if (!mKillFinishedSignalReceived) {
+   mKillProcess->kill();
+   }
+   mKillFinishedSignalReceived = false;
+   mKill = false;
+   }
+   else if (mProcesschunks->isVerbose()) {*/
+  mProcesschunks->getOutStream() << "handleKillFinished:exitCode:" << exitCode
+      << ",exitStatus:" << exitStatus << endl;
+  //}
 }
 void ProcessHandler::handleError(const QProcess::ProcessError processError) {
   mErrorSignalReceived = true;

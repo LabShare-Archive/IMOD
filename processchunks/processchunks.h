@@ -47,6 +47,7 @@ public:
   const char getAns();
   QStringList &getDropList();
   const int getDropCrit();
+  const QString &getRemoteDir();
 
 public slots:
   void timerEvent();
@@ -71,13 +72,13 @@ private:
   const bool handleChunkDone(MachineHandler *machine, const int cpuIndex,
       const int processIndex);
   const bool
-  handleLogFileError(QStringList &errorMess, MachineHandler *machine,
+  handleLogFileError(QString &errorMess, MachineHandler *machine,
       const int cpuIndex, const int processIndex);
   void handleComProcessNotDone(bool &dropout, QString &dropMess,
-      const int processIndex);
+      MachineHandler *machine, const int processIndex);
   void handleDropOut(bool &noChunks, QString &dropMess,
       MachineHandler *machine, const int cpuIndex, const int processIndex,
-      const QStringList &errorMess);
+      const QString &errorMess);
   const bool checkChunk(int &runFlag, bool &noChunks, int &undone,
       bool &foundChunks, bool &chunkOk, MachineHandler *machine,
       const int processIndex, const int chunkErrTot);

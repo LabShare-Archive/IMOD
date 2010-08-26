@@ -43,7 +43,7 @@ public:
   const QByteArray readAllLogFile();
   const bool isLogFileEmpty();
   const bool isStartProcessTimedOut(const int timeoutMillisec);
-  void getErrorMessage(QStringList &errorMess);
+  void getErrorMessage(QString &errorMess);
   void incrementNumChunkErr();
   const bool isComProcessDone();
   void printTooManyErrorsMessage(const int numErr);
@@ -92,7 +92,7 @@ private:
   int mNumChunkErr;
   FlagType mFlag;
   QByteArray mStderr, mStdout;
-  QString mPid, mEscapedCurrentDirPath, mCommand;//queue or local command
+  QString mPid, mEscapedRemoteDirPath, mCommand;//queue or local command
   QStringList mParamList;//list of queue or local params
   Processchunks *mProcesschunks;
   QProcess *mProcess, *mVmstocsh;
