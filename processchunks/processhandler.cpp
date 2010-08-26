@@ -781,22 +781,20 @@ void ProcessHandler::msgKillProcessTimeout() {
 void ProcessHandler::handleKillFinished(const int exitCode,
     const QProcess::ExitStatus exitStatus) {
   mKillFinishedSignalReceived = true;
-  /*if (exitCode) {
-   mProcesschunks->getOutStream() << "Failed to kill " << mComFileName
-   << " on " << mMachine->getName()
-   << ".  Kill function failed (no problem if machine is dead)." << endl;
-   mProcessIndex = -1;
-   if (!mKillFinishedSignalReceived) {
-   mKillProcess->kill();
-   }
-   mKillFinishedSignalReceived = false;
-   mKill = false;
-   }
-   else if (mProcesschunks->isVerbose()) {*/
-  mProcesschunks->getOutStream() << "handleKillFinished:exitCode:" << exitCode
-      << ",exitStatus:" << exitStatus << endl;
-  //}
+  if (exitCode) {
+    mProcesschunks->getOutStream() << "kill process exitCode:" << exitCode
+        << endl;
+    QByteArray byteArray = mKillProcess->readAllStandardOutput();
+    if (!byteArray.isEmpty()) {
+      mProcesschunks->getOutStream() << byteArray << endl;
+    }
+    byteArray = mKillProcess->readAllStandardError();
+    if (!byteArray.isEmpty()) {
+      mProcesschunks->getOutStream() << byteArray << endl;
+    }
+  }
 }
+
 void ProcessHandler::handleError(const QProcess::ProcessError processError) {
   mErrorSignalReceived = true;
   mProcessError = processError;
