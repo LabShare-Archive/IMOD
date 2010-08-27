@@ -593,6 +593,18 @@ int AdocGetNumberOfSections(char *typeName)
 }
 
 /*!
+ * Returns the number of key-value pairs in the section with index [sectInd]
+ * in the collection of sections of type [typeName].  Returns -1 for errors.
+ */
+int AdocGetNumberOfKeys(char *typeName, int sectInd)
+{
+  AdocSection *sect;
+  if (!(sect = getSection(typeName, sectInd)))
+    return -1;
+  return sect->numKeys;
+}
+
+/*!
  * Gets the value string matching [key] in the section with index [sectInd]
  * in the collection of sections of type [typeName].  Returns a copy of the
  * value in [string]; it should be freed with {free}.  Returns -1 if the key is
@@ -1106,6 +1118,9 @@ static int addComments(AdocSection *sect, char **comments, int *numComments,
 
 /*
   $Log$
+  Revision 1.2  2009/04/13 05:08:44  mast
+  Changed to allow clearing and reuse of autodocs in the array
+
   Revision 1.1  2007/09/20 02:43:08  mast
   Moved to new library
 
