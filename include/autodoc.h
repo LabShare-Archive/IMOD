@@ -24,6 +24,7 @@ int AdocSetKeyValue(char *collName, int sectInd, char *key, char *value);
 int AdocDeleteKeyValue(char *collName, int sectInd, char *key);
 int AdocGetSectionName(char *collName, int sectInd, char **string);
 int AdocGetNumberOfSections(char *collName);
+int AdocGetNumberOfKeys(char *typeName, int sectInd);
 int AdocGetString(char *collName, int sectInd, char *key, char **string);
 int AdocGetInteger(char *collName, int sectInd, char *key, int *val1);
 int AdocGetTwoIntegers(char *collName, int sectInd, char *key, int *val1,
@@ -57,6 +58,9 @@ int AdocSetThreeFloats(char *typeName, int sectInd, char *key, float val1,
 
 /*
   $Log$
+  Revision 3.4  2009/04/13 05:13:45  mast
+  New function to clear one autodoc
+
   Revision 3.3  2007/04/05 20:57:42  mast
   Added set functions for ints and floats
 
