@@ -366,7 +366,7 @@ int AdocWrite(char *filename)
 
     /* Write section name unless we're in global */
     if (i || j || strcmp(sect->name, GLOBAL_NAME))
-      fprintf(afile, "[%s %s %s]\n", coll->name, valueDelim, sect->name);
+      fprintf(afile, "\n[%s %s %s]\n", coll->name, valueDelim, sect->name);
 
     /* Loop on key-values */
     for (k = 0; k < sect->numKeys; k++) {
@@ -1118,6 +1118,9 @@ static int addComments(AdocSection *sect, char **comments, int *numComments,
 
 /*
   $Log$
+  Revision 1.3  2010/08/27 20:54:35  mast
+  Added function to get number of keys
+
   Revision 1.2  2009/04/13 05:08:44  mast
   Changed to allow clearing and reuse of autodocs in the array
 
