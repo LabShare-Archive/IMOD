@@ -79,6 +79,7 @@ static int addAutodoc();
 static AdocSection *getSection(char *collName, int sectInd);
 static int addComments(AdocSection *sect, char **comments, int *numComments,
                        int index);
+static int writeFile(FILE *afile, int writeAll);
 
 /*!
  * Reads an autodoc from the file specified by [filename], and returns the 
@@ -339,10 +340,8 @@ void AdocDone()
  */
 int AdocWrite(char *filename)
 {
-  int i,j,k, backerr, ind, comInd;
+  int i,backerr;
   FILE *afile;
-  AdocCollection *coll;
-  AdocSection *sect;
 
   if (!curAdoc)
     return -1;
@@ -350,10 +349,46 @@ int AdocWrite(char *filename)
   afile = fopen(filename, "w");
   if (!afile)
     return -1;
+  if (writeFile(afile, 1))
+    return -1;
+
+  for (i = 0; i < curAdoc->numFinalCom; i++)
+    fprintf(afile, "%s\n", curAdoc->finalComments[i]);
+
+  fclose(afile);
+  return backerr ? 1 : 0;
+}
+
+/*!
+ * Appends the last section in the current autodoc to the file specified by 
+ * [filename].  Returns -1 for errors.
+ */
+int AdocAppendSection(char *filename)
+{
+  FILE *afile;
+  if (!curAdoc)
+    return -1;
+  afile = fopen(filename, "a");
+  if (!afile)
+    return -1;
+  if (writeFile(afile, 0))
+    return -1;
+
+  fclose(afile);
+  return 0;
+}
+
+/* Function to actually write the file or last section only */
+static int writeFile(FILE *afile, int writeAll)
+{
+  int i,j,k, ind, comInd, write;
+  AdocCollection *coll;
+  AdocSection *sect;
 
   /* Initialize delimiter, loop on indexes in the autodoc */
   valueDelim = defaultDelim;
   for (ind = 0; ind < curAdoc->numSections; ind++) {
+    write = (writeAll || ind == curAdoc->numSections - 1) ? 1 : 0;
     i = curAdoc->collList[ind];
     j = curAdoc->sectList[ind];
     coll = &curAdoc->collections[i];
@@ -362,10 +397,11 @@ int AdocWrite(char *filename)
     /* dump comments before section */
     comInd = 0;
     while (comInd < sect->numComments && sect->comIndex[comInd] == -1)
-      fprintf(afile, "%s\n", sect->comments[comInd++]);
+      if (write)
+        fprintf(afile, "%s\n", sect->comments[comInd++]);
 
     /* Write section name unless we're in global */
-    if (i || j || strcmp(sect->name, GLOBAL_NAME))
+    if ((i || j || strcmp(sect->name, GLOBAL_NAME)) && write)
       fprintf(afile, "\n[%s %s %s]\n", coll->name, valueDelim, sect->name);
 
     /* Loop on key-values */
@@ -373,12 +409,14 @@ int AdocWrite(char *filename)
 
       /* dump comments associated with this index */
       while (comInd < sect->numComments && sect->comIndex[comInd] == k)
-        fprintf(afile, "%s\n", sect->comments[comInd++]);
+        if (write)
+          fprintf(afile, "%s\n", sect->comments[comInd++]);
 
       /* Print key-value pairs with non-null values */
       if (sect->keys[k] && sect->values[k]) {
-        fprintf(afile, "%s %s %s\n", sect->keys[k], valueDelim, 
-                sect->values[k]);
+        if (write)
+          fprintf(afile, "%s %s %s\n", sect->keys[k], valueDelim, 
+                  sect->values[k]);
         
         /* After a new delimiter is written, need to set delimiter */
         if (!i && !j && !strcmp("KeyValueDelimiter", sect->keys[k])) {
@@ -394,15 +432,11 @@ int AdocWrite(char *filename)
         }
 
         /* Print keys without values too */
-      } else if (sect->keys[k]) 
-          fprintf(afile, "%s %s \n", sect->keys[k], valueDelim);
+      } else if (sect->keys[k] && write) 
+        fprintf(afile, "%s %s \n", sect->keys[k], valueDelim);
     }
   }
-  for (i = 0; i < curAdoc->numFinalCom; i++)
-    fprintf(afile, "%s\n", curAdoc->finalComments[i]);
-
-  fclose(afile);
-  return backerr ? 1 : 0;
+  return 0;
 }
 
 /*!
@@ -1118,6 +1152,9 @@ static int addComments(AdocSection *sect, char **comments, int *numComments,
 
 /*
   $Log$
+  Revision 1.4  2010/08/27 22:17:24  mast
+  Add a line before a section starts
+
   Revision 1.3  2010/08/27 20:54:35  mast
   Added function to get number of keys
 
