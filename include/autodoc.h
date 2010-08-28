@@ -19,6 +19,7 @@ int AdocSetCurrent(int index);
 void AdocClear(int index);
 void AdocDone();
 int AdocWrite(char *filename);
+int AdocAppendSection(char *filename);
 int AdocAddSection(char *collName, char *name);
 int AdocSetKeyValue(char *collName, int sectInd, char *key, char *value);
 int AdocDeleteKeyValue(char *collName, int sectInd, char *key);
@@ -58,6 +59,9 @@ int AdocSetThreeFloats(char *typeName, int sectInd, char *key, float val1,
 
 /*
   $Log$
+  Revision 3.5  2010/08/27 20:54:48  mast
+  new function
+
   Revision 3.4  2009/04/13 05:13:45  mast
   New function to clear one autodoc
 
