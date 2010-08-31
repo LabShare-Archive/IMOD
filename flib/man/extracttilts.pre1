@@ -12,9 +12,15 @@ DDEESSCCRRIIPPTTIIOONN
   EXTRACTTILTS will extract one kind of information from the header of an
   image file, if it is present, and produce a file with a list of the values.
   The default behavior is to extract tilt angles; these can be extracted from
-  headers in the Agard/FEI format or from headers produced by SerialEM. 
+  headers in the Agard/FEI format or from headers produced by SerialEM.
   Enter an option to extract one of the other kinds of information written by
   SerialEM.
+
+  In addition to extracting data stored in the image file header, the program
+  can extract from a metadata file written by SerialEM in the autodoc format.
+  A wider range of information can be stored in such a file than in the
+  header.  The metadata file must have the same number of sections as the
+  image file.
 
   Extracttilts uses the PIP package for input (see the manual page for
   pip(1)). Thus, the following options can be specified either as command line
