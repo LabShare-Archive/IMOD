@@ -337,6 +337,8 @@ int  mrc_plist_create(struct LoadInfo *li, int nx, int ny, int nz, int nfx,
 		      int nfy, int ovx, int ovy);
 int  iiPlistLoadF(FILE *fin, struct LoadInfo *li, int nx, int ny, int nz);
 int  iiPlistLoad(char *filename, struct LoadInfo *li, int nx, int ny, int nz);
+int iiPlistFromMetadata(char *filename, int addMdoc, IloadInfo *li, int nx, 
+                        int ny, int nz);
 void mrc_liso(MrcHeader *hdata, struct LoadInfo *li);
 int mrc_fix_li(struct LoadInfo *li, int nx, int ny, int nz);
 int get_loadinfo(MrcHeader *hdata, struct LoadInfo *li);
@@ -363,6 +365,9 @@ void mrc_set_cmap_stamp(MrcHeader *hdata);
 /*
 
 $Log$
+Revision 3.23  2009/02/16 06:16:34  mast
+Add parallel write routine
+
 Revision 3.22  2009/01/02 05:19:19  mast
 const char * for Qt 4 port
 
