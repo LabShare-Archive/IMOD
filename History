@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+8/31/10: Fixed problems with processchunks hanging when some machines have
+given errors.
+
 8/17/10: Fixed problem with tilt when reconstructing < 10 large slices, allowed
 up to 3600 views.
 
