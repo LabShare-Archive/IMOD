@@ -18,6 +18,7 @@
 
 #ifdef F77FUNCAP
 #define adocread ADOCREAD
+#define adocopenimagemetadata ADOCOPENIMAGEMETADATA
 #define adocnew ADOCNEW
 #define adocsetcurrent ADOCSETCURRENT
 #define adocdone ADOCDONE
@@ -44,6 +45,7 @@
 #define adocsetthreefloats ADOCSETTHREEFLOATS
 #else
 #define adocread adocread_
+#define adocopenimagemetadata adocopenimagemetadata_
 #define adocnew adocnew_
 #define adocsetcurrent adocsetcurrent_
 #define adocdone adocdone_
@@ -81,6 +83,18 @@ int adocread(char *filename, int nameSize)
   if (!(cStr = adocf2cstr(filename, nameSize)))
     return -1;
   err = AdocRead(cStr);
+  free(cStr);
+  return (err >= 0 ? err + 1 : err);
+}
+
+int adocopenimagemetadata(char *filename, int *addMdoc, int *montage,
+                          int *numSect, int *sectType, int nameSize)
+{
+  char *cStr;
+  int err;
+  if (!(cStr = adocf2cstr(filename, nameSize)))
+    return -1;
+  err = AdocOpenImageMetadata(cStr, *addMdoc, montage, numSect, sectType);
   free(cStr);
   return (err >= 0 ? err + 1 : err);
 }
@@ -418,6 +432,9 @@ static char *adocf2cstr(char *str, int strSize)
 
 /*
   $Log$
+  Revision 1.1  2007/09/20 02:43:08  mast
+  Moved to new library
+
   Revision 3.2  2007/04/05 20:57:23  mast
   Added set functions for ints and floats
 

@@ -14,6 +14,8 @@
 extern "C" {
 #endif
 int AdocRead(char *filename);
+int AdocOpenImageMetadata(char *filename, int addMdoc, int *montage,
+                          int *numSect, int *sectType);
 int AdocNew();
 int AdocSetCurrent(int index);
 void AdocClear(int index);
@@ -59,6 +61,9 @@ int AdocSetThreeFloats(char *typeName, int sectInd, char *key, float val1,
 
 /*
   $Log$
+  Revision 3.6  2010/08/28 05:18:04  mast
+  Append function
+
   Revision 3.5  2010/08/27 20:54:48  mast
   new function
 

@@ -15,6 +15,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdarg.h>
+#include <sys/stat.h>
 #include "b3dutil.h"
 
 /* A section has a name and holds the key-value pairs */
@@ -281,6 +282,61 @@ int AdocRead(char *filename)
 
   fclose(afile);
   return (err ? err : index);
+}
+
+/*!
+ * Try to read an image metadata file and determine its properties.  It will 
+ * look for and try to read the file with name [filename] if [addMdoc] is 0,
+ * otherwise it will append '.mdoc' to [filename].  Returns a non-zero in
+ * [montage] if the file indicates a montage; the number of sections in
+ * [numSect], and 1 for a metadata autodoc or 2 for an image series autodoc
+ * in [sectType].  The return value is the index of the autodoc, or -1 for an
+ * error opening or reading the file, -2 if the file does not exist, or -3 if
+ * it is neither type of metadata file.
+ */
+int AdocOpenImageMetadata(char *filename, int addMdoc, int *montage,
+                          int *numSect, int *sectType)
+{
+  struct stat buf;
+  char *usename = filename;
+  int series, index;
+
+  /* Attach extension to file if requested */
+  if (addMdoc) {
+    usename = (char *)malloc(strlen(filename) + 6);
+    if (!usename)
+      return -1;
+    sprintf(usename, "%s.mdoc", filename);
+  }
+
+  /* Return -2 if it does not exist, -1 if error reading it */
+  if (stat(usename, &buf)) {
+    index = -2;
+  } else {
+    index = AdocRead(usename);
+  }
+  if (addMdoc)
+    free(usename);
+  if (index < 0)
+    return index;
+
+  /* Determine section type or return -3 if not a metadata file */
+  if (!AdocGetString(GLOBAL_NAME, 0, "ImageFile", &usename)) {
+    *sectType = 1;
+    free(usename);
+    *numSect = AdocGetNumberOfSections("ZValue");
+  } else if (!AdocGetInteger(GLOBAL_NAME, 0, "ImageSeries", &series) && 
+             series) {
+    *sectType = 2;
+    *numSect = AdocGetNumberOfSections("Image");
+  } else {
+    AdocClear(index);
+    return -3;
+  }
+ 
+  *montage = 0;
+  AdocGetInteger(GLOBAL_NAME, 0, "Montage", montage);
+  return index;
 }
 
 /*!
@@ -1152,6 +1208,9 @@ static int addComments(AdocSection *sect, char **comments, int *numComments,
 
 /*
   $Log$
+  Revision 1.5  2010/08/28 05:17:52  mast
+  Added function to append last section
+
   Revision 1.4  2010/08/27 22:17:24  mast
   Add a line before a section starts
 
