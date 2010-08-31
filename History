@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+8/31/10: Added ability to use a separate metadata file produced by SerialEM in
+Extracttilts and Extractpieces and when loading a montage with 3dmod.
+
 8/31/10: Fixed problems with processchunks hanging when some machines have
 given errors (In 4.1).
 
