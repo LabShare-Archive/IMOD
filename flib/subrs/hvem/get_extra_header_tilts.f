@@ -148,8 +148,81 @@ c       !
       return
       end
 
+c       !
+c       Returns values of a defined type from an image metadata file written by
+c       SerialEM.  The metadata file should be opened first with 
+c       @autodoc.html#AdocOpenImageMetadata .  The function relies on the Z
+c       values of the sections in the file as listed in [izpiece], which
+c       should be obtained first with @get_metadata_pieces .
+c       ^  [indAdoc] = autodoc index of metadata file
+c       ^  [iTypeAdoc] = type of metadata file: 1 for one file, 2 for series
+c       ^  [nz] = number of sections or pieces
+c       ^  [iTypeData] = type of data to retrieve: 1 for tilt angle, 3 for
+c       stage position, 4 for magnification, 5 for intensity, 6 for exposure
+c       dose, 7 for pixel size, 8 for defocus, 9 for exposure time
+c       ^  [val1], [val2] = arrays for one or two values to be returned
+c       ^  [nvals] = # of values returned (or highest # if there are gaps)
+c       ^  [nfound] = # of values actually found in metadata
+c       ^  [maxvals] = size of [val1] and [val2] arrays
+c       ^  [izpiece] = Z value of each section in file
+c       !
+      subroutine get_metadata_items(indAdoc, iTypeAdoc, nz, iTypeData, val1,
+     &    val2,nvals, nfound, maxvals,izpiece)
+      implicit none
+      real*4 val1(*), val2(*)
+      integer*4 izpiece(*)
+      integer*4 nz,nvals,maxvals,indAdoc,iTypeAdoc,iTypeData, nfound
+      integer*4 i,ind,ival,itmp
+      character*6 sectNames(2) /'ZValue', 'Image'/
+      character*20 keys(9) /'TiltAngle', 'N', 'StagePosition', 'Magnification',
+     &    'Intensity', 'ExposureDose', 'PixelSpacing', 'Defocus',
+     &    'ExposureTime'/
+      integer*4 iwhich(9) /1,2,3,2,1,1,1,1,1/
+      integer*4 AdocSetCurrent, AdocGetTwoFloats,AdocGetFloat,AdocGetInteger
+c       
+      if (AdocSetCurrent(indAdoc) .ne. 0) then
+        write(*,'(/,a,a)')'ERROR: GET_METADATA_ITEMS ',
+     &      '- FAILED TO SET AUTODOC INDEX'
+        call exit(1)
+      endif
+
+      nvals = 0
+      nfound = 0
+      do i=1,nz
+        ival=izpiece(i)+1
+        if(ival.lt.1)then
+          write(*,'(/,a,a)')'ERROR: GET_METADATA_ITEMS',
+     &        ' - VALUE ARRAY NOT DESIGNED FOR NEGATIVE Z VALUES'
+          call exit(1)
+        endif
+        if(ival.gt.maxvals)then
+          write(*,'(/,a,a)')'ERROR: GET_METADATA_ITEMS',
+     &        ' - ARRAY NOT BIG ENOUGH FOR DATA'
+          call exit(1)
+        endif
+
+        if (iwhich(iTypeData) .eq. 1) then
+          if (AdocGetFloat(sectNames(iTypeAdoc), i, keys(iTypeData),
+     &        val1(ival)) .eq. 0) nfound = nfound + 1
+        else if (iwhich(iTypeData) .eq. 2) then
+          if (AdocGetInteger(sectNames(iTypeAdoc), i, keys(iTypeData),
+     &        itmp) .eq. 0) then
+            val1(ival) = itmp
+            nfound = nfound + 1
+          endif
+        else if (iwhich(iTypeData) .eq. 3) then
+          if (AdocGetTwoFloats(sectNames(iTypeAdoc), i, keys(iTypeData),
+     &        val1(ival), val2(ival)) .eq. 0) nfound = nfound + 1
+        endif
+        nvals=max(nvals,ival)
+      enddo
+      return
+      end
 c       
 c       $Log$
+c       Revision 3.6  2007/05/22 15:43:09  mast
+c       Changed treatment of SerialEM float to use powers of 2.
+c
 c       Revision 3.5  2007/05/19 00:03:18  mast
 c       Added the exposure dose and routine to convert shorts to a float
 c

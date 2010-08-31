@@ -105,7 +105,49 @@ c
       return
       end
 
+c       !
+c       Returns piece coordinates from a metadata autodoc file written by
+c       SerialEM.  The file should be opened first with 
+c       @autodoc.html#AdocOpenImageMetadata .
+c       ^  [index] = index of autodoc
+c       ^  [itype] = type of metadata file: 1 for one file, 2 for image series
+c       ^  [nz] = number of pieces in the file
+c       ^  [ixpiece], [iypiece], [izpiece] = arrays in which coordinates are
+c       returned
+c       ^  [npiece] = number of coordinates returned (should equal [nz])
+c       ^  [maxpiece] = size of [piece] arrays
+c       ^  [nfound] = number of sections piece coordinates were found for
+c       !
+      subroutine get_metadata_pieces(index, itype, nz, ixpiece,iypiece,izpiece,
+     &    maxpiece, nfound)
+      implicit none
+      integer*4 ixpiece(*),iypiece(*),izpiece(*)
+      integer*4 maxpiece, index, itype, nz, nfound
+      integer*4 i,ind
+      character*6 sectNames(2) /'ZValue', 'Image'/
+      integer*4 AdocSetCurrent, AdocGetThreeIntegers
+      
+      if (nz.gt.maxpiece) then
+        write(*,'(/,a,a)')'ERROR: GET_METADATA_PIECES ',
+     &      '- ARRAYS NOT LARGE ENOUGH FOR PIECE LISTS'
+        call exit(1)
+      endif
+      if (AdocSetCurrent(index) .ne. 0) then
+        write(*,'(/,a,a)')'ERROR: GET_METADATA_PIECES ',
+     &      '- FAILED TO SET AUTODOC INDEX'
+        call exit(1)
+      endif
+      do i = 1, nz
+        if (AdocGetThreeIntegers(sectNames(itype), i, 'PieceCoordinates',
+     &      ixpiece(i), iypiece(i), izpiece(i)) .eq. 0) nfound = nfound + 1
+      enddo
+      return
+      end
+
 c       $Log$
+c       Revision 3.9  2007/05/19 00:03:49  mast
+c       Formatted documentation, imporved error printout
+c
 c       Revision 3.8  2005/12/21 15:26:46  mast
 c       But don't use same int*2 for moving Z and X/Y around
 c       
